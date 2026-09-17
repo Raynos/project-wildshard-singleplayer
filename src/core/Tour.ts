@@ -17,15 +17,15 @@ export class Tour {
   constructor(private camera: THREE.PerspectiveCamera) {
     const eye = (x: number, z: number, h = 1.7) => new THREE.Vector3(x, heightAt(x, z) + h, z);
     // south gate → up the trail → cabin 1 hollow → across to cabin 2 → ridge cabin 3 → ends looking over the planet
+    // follows the trail centrelines (guaranteed clear of trunks): south gate → hollow (cabin 1)
+    // → south trail → spur → ridge cabin 3, ending on the planet
     this.path = new THREE.CatmullRomCurve3([
-      eye(0, -240, 1.7), eye(2, -200, 1.7), eye(-6, -150, 1.8), eye(-28, -100, 1.8), eye(-24, -60, 1.9), eye(-6, -46, 1.9),
-      eye(14, -30, 2.0), eye(30, 4, 2.2), eye(52, 22, 1.9), eye(70, 16, 1.8), eye(78, 60, 2.4), eye(96, 110, 2.6), eye(108, 132, 1.9),
-      eye(126, 150, 2.0), eye(150, 165, 3.0), eye(160, 190, 5.0),
+      eye(0, -240, 1.7), eye(0, -200, 1.7), eye(-6, -150, 1.8), eye(-24, -105, 1.8), eye(-26, -70, 1.9), eye(-14, -46, 2.0),
+      eye(-4, -20, 2.0), eye(10, 20, 2.1), eye(24, 60, 2.1), eye(36, 96, 2.2), eye(60, 114, 2.3), eye(90, 128, 2.2), eye(108, 136, 2.0), eye(120, 152, 2.6),
     ], false, 'centripetal', 0.5);
     this.look = new THREE.CatmullRomCurve3([
-      eye(0, -200, 1.6), eye(-4, -150, 1.6), eye(-20, -110, 1.6), eye(-24, -60, 1.6), eye(-14, -34, 2.0), eye(-14, -34, 2.2),
-      eye(40, -10, 1.6), eye(62, 30, 2.2), eye(62, 30, 2.4), eye(80, 70, 1.6), eye(110, 130, 2.0), eye(118, 142, 2.6), eye(118, 142, 2.6),
-      eye(150, 170, 1.5), eye(200, 230, 30), eye(-300, 400, 200),
+      eye(0, -200, 1.6), eye(-4, -150, 1.6), eye(-20, -110, 1.6), eye(-24, -70, 1.6), eye(-14, -34, 2.2), eye(-14, -34, 2.4),
+      eye(20, 10, 1.6), eye(62, 30, 2.2), eye(30, 90, 1.6), eye(60, 114, 1.8), eye(118, 142, 2.6), eye(118, 142, 2.6), eye(118, 142, 2.4), eye(-200, 500, 260),
     ], false, 'centripetal', 0.5);
   }
 
