@@ -120,7 +120,7 @@ export class Grass {
             // wind: a travelling gust front plus a faster ripple and a per-blade flutter
             vec2 dir = vec2( 0.86, 0.5 );
             vec3 wpos = ( modelMatrix * instanceMatrix * vec4( transformed, 1.0 ) ).xyz;
-            float phase = dot( wpos.xz, dir ) * 0.32;
+            float phase = dot( wpos.xz, dir ) * 0.32 + rnd * 1.7;
             float gust = sin( uTime * 1.25 - phase ) * 0.5 + 0.5;
             gust *= gust;
             float ripple = sin( uTime * 2.9 - phase * 2.1 + wpos.x * 0.45 ) * 0.5 + 0.5;
@@ -131,7 +131,7 @@ export class Grass {
             // a little per-clump lean in a random direction so the field is not combed flat
             vec2 leanDir = vec2( cos( rnd * 6.2832 ), sin( rnd * 6.2832 ) ) * 0.05;
             vec3 off = vec3( dir.x * amp + flutter * 0.02 + leanDir.x, 0.0, dir.y * amp + flutter * 0.015 + leanDir.y ) * w;
-            off.y = - length( off.xz ) * 0.45;
+            off.y = - length( off.xz ) * 0.3;
             transformed += ( off * im ) / max( s2, 1e-6 ) * fade;
           }`);
       shader.fragmentShader = shader.fragmentShader
@@ -243,7 +243,7 @@ export class Grass {
       this.tmpM.toArray(matArr, idx * 16);
       // colour: yellow-green meadow ↔ deep green, patchy via noise, olive-brown on the forest floor
       const tone = smoothstep(-0.5, 0.5, patch) * 0.65 + cv * 0.35;
-      this.tmpC.setRGB(lerp(0.66, 1.08, tone), lerp(0.8, 0.92, tone), lerp(0.42, 0.55, tone));
+      this.tmpC.setRGB(lerp(0.6, 1.0, tone), lerp(0.72, 0.86, tone), lerp(0.36, 0.5, tone));
       const floorMix = f * (1 - g);
       this.tmpC.r = lerp(this.tmpC.r, 0.78, floorMix * 0.6);
       this.tmpC.g = lerp(this.tmpC.g, 0.62, floorMix * 0.6);
