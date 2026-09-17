@@ -21,3 +21,19 @@ Execution order (each step screenshot-verified against the matching mockup):
 3. Trunk shader + tree mix (4).
 4. Grade + grain (6).
 5. Integrate agents' features, then push density (3), cabin dressing (7), weapon scale (8), range readout (9).
+
+## Status (2026-09-17)
+
+| # | Item | State |
+|---|------|-------|
+| 1 | Golden-hour light | done — `qwantani_sunset_puresky`, warm CSM sun, needle translucency, bark rim gradient |
+| 2 | Volumetrics | done — depth-aware ray-marched height fog with sun in-scatter + screen-space shadowing (`src/core/Volumetrics.ts`), god rays + corona, valley mist sprites |
+| 3 | Forest floor density | done — ~50k grass clumps, 6k ferns, moss, litter, stones, flowers, reeds |
+| 4 | Scots-pine trunks / crowns | done — bark height gradient, three-card fans with drooping tips, near-field photoscan twig quads (< 38 m), shaded undersides |
+| 5 | Beyond the chunk | done — three ridge rings with snow caps, cloud sea below the slab, cloud dome |
+| 6 | Post grade | done — AgX + split-tone `GradeEffect`, grain, contrast |
+| 7 | Cabin dressing | done — moss roofs, plumes, lanterns, room lights, camp with tripod/pot, rubble, barrels |
+| 8 | Hero weapon | done — walnut/blued-steel materials, mockup framing, range readout |
+| 9 | Animals in the scene | done — herds at trail edges, fur shells within 18 m, breathing, look-at, corpse settle + fade |
+
+Verified: 60 FPS at 1600×900 on Apple M-series with everything on; mouse-look, sprint, ADS (72→50 FOV), fire/hit/kill, harvest and doors exercised through the real entry.
