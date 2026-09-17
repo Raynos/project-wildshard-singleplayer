@@ -1,7 +1,10 @@
 import * as THREE from 'three';
 import { bootstrap } from '../core/bootstrap';
 import { Crossbow, type Targets, type TargetAnimal, type TargetHit } from '../player/Crossbow';
-import { heightAt } from '../world/Heightfield';
+import { heightAt, inChunk } from '../world/Heightfield';
+import { HUD } from '../ui/HUD';
+import { Audio } from '../audio/Audio';
+import { CHUNK_HALF } from '../core/config';
 
 /** Dev harness: crossbow + stub targets. ?nolock=1 lets F/R/ads=1 work without pointer lock. */
 class DummyTarget implements TargetAnimal {
@@ -68,18 +71,69 @@ async function main() {
   targets.list.push(new DummyTarget(game.scene, px + fx * 22 + rx * 3, pz + fz * 22 + rz * 3, 'deer', (m) => sky.setupMaterial(m)));
   targets.list.push(new DummyTarget(game.scene, px + fx * 25 - rx * 6, pz + fz * 25 - rz * 6, 'deer', (m) => sky.setupMaterial(m)));
 
-  const crossbow = new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: params.has('nolock') });
+  const nolock = params.has('nolock');
+  const crossbow = new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
   crossbow.adsHeld = params.has('ads');
   crossbow.inspect = params.has('inspect') ? 1 : 0;
-  crossbow.onFire = () => console.log('[weapon] fire');
-  crossbow.onHit = (kind, headshot, killed) => console.log('[weapon] hit', kind, headshot ? 'HEADSHOT' : '', killed ? 'KILLED' : '');
-  crossbow.onImpact = (surface) => console.log('[weapon] impact', surface);
-  crossbow.onReloadStart = () => console.log('[weapon] reload start');
-  crossbow.onReloadEnd = () => console.log('[weapon] reload end');
+  crossbow.reloadScale = params.has('slowreload') ? 6 : 1;
+  const hud = new HUD({ pointerLock: !nolock });
+  const audio = new Audio();
+  let kills = 0, health = 100;
 
-  game.onUpdate((dt, t) => { crossbow.update(dt, t); for (const d of targets.list) d.update(); });
+  // ── crossbow → hud / audio ──
+  crossbow.onFire = () => { audio.crossbowFire(); };
+  crossbow.onDry = () => { audio.dryFire(); };
+  crossbow.onReloadStart = () => { audio.reload(); };
+  crossbow.onImpact = (surface, point) => {
+    const dx = point.x - player.position.x, dz = point.z - player.position.z, d = Math.hypot(dx, dz);
+    const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
+    audio.boltImpact(surface, d > 1 ? ((dx * rx + dz * rz) / d) * 0.7 : 0, 1 / (1 + d / 12));
+  };
+  crossbow.onHit = (kind, headshot, killed) => {
+    hud.showHitMarker(headshot, killed);
+    audio.hitMarker();
+    if (killed) { kills++; audio.kill(); hud.killFeed(`${kind} ${headshot ? 'headshot' : 'killed'} · ${Math.round(player.position.distanceTo(targets.list[0].position))} m`); }
+  };
+  // ── player → audio ──
+  player.onStep = (sprinting) => audio.footstep(sprinting);
+  player.onJump = () => audio.jump();
+  player.onLand = (hard) => { audio.land(hard); if (hard) { health = Math.max(0, health - 12); hud.damageFlash(); } };
+  // ── intro / pointer lock ──
+  const enter = () => { audio.resume(); crossbow.enabled = true; if (!nolock) player.lock(); };
+  hud.onResume = enter;
+  if (params.has('skipintro')) { hud.markEntered(); if (!nolock) crossbow.enabled = false; }
+  else { crossbow.enabled = false; hud.showIntro(enter, { 'Targets': `${targets.list.length} stub spheres` }); }
+  document.addEventListener('keydown', () => audio.resume(), { once: true });
+  document.addEventListener('mousedown', () => audio.resume(), { once: true });
+  // dev keys: T = deer call from target 0, G = boar grunt, H = hoofsteps, B = boar squeal, K = damage flash, P = toast
+  document.addEventListener('keydown', (e) => {
+    const t0 = targets.list[0], t1 = targets.list[1];
+    if (e.code === 'KeyT') audio.animal('deer_call', t1.position, player.position, player.yaw);
+    if (e.code === 'KeyG') audio.animal('boar_grunt', t0.position, player.position, player.yaw);
+    if (e.code === 'KeyH') audio.animal('hoofsteps', t1.position, player.position, player.yaw);
+    if (e.code === 'KeyB') audio.animal('boar_squeal', t0.position, player.position, player.yaw);
+    if (e.code === 'KeyK') { health = Math.max(0, health - 15); hud.damageFlash(); }
+    if (e.code === 'KeyP') hud.toast('Bolt recovered');
+  });
+
+  let prompt: string | undefined;
+  game.onUpdate((dt, t) => {
+    crossbow.update(dt, t);
+    for (const d of targets.list) d.update();
+    audio.listenerYaw = player.yaw;
+    const near = targets.list.find((d) => d.alive === false && d.position.distanceTo(player.position) < 3);
+    prompt = near ? '[E] Harvest carcass' : params.has('prompt') ? '[E] Open door' : undefined;
+    const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
+    hud.setBoundaryWarning(edge < 14 || params.has('boundary'));
+    void inChunk;
+    hud.setState({
+      bolts: crossbow.state.bolts, loaded: crossbow.state.loaded, reloading: crossbow.state.reloading, reloadProgress: crossbow.state.reloadProgress,
+      health, fps: game.stats.fps, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
+      prompt, speed: player.speedFactor, ads: crossbow.state.ads,
+    });
+  });
   game.buildComposer();
   game.start();
-  (window as unknown as { __world: unknown }).__world = { ...world, crossbow, targets };
+  (window as unknown as { __world: unknown }).__world = { ...world, crossbow, targets, hud, audio };
 }
 main();

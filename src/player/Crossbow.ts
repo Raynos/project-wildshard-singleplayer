@@ -479,6 +479,8 @@ export class Crossbow {
   adsHeld = false;
   /** dev: 0 = normal, 1 = showcase pose (model centred, three-quarter view, slowly turning) */
   inspect = 0;
+  /** dev: reload duration multiplier (1 = normal) */
+  reloadScale = 1;
 
   onFire?: () => void;
   onHit?: (kind: 'deer' | 'boar', headshot: boolean, killed: boolean) => void;
@@ -692,7 +694,7 @@ export class Crossbow {
     clearer.renderOrder = 999; clearer.frustumCulled = false;
     clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
     this.model.add(clearer);
-    this.model.traverse((o) => { if ((o as THREE.Mesh).isMesh) { o.frustumCulled = false; if (o !== clearer) o.renderOrder = 1000; (o as THREE.Mesh).castShadow = false; (o as THREE.Mesh).receiveShadow = false; } });
+    this.model.traverse((o) => { if ((o as THREE.Mesh).isMesh) { o.frustumCulled = false; if (o !== clearer) o.renderOrder = 1000; (o as THREE.Mesh).castShadow = false; (o as THREE.Mesh).receiveShadow = o !== clearer; } });
     this.model.scale.setScalar(0.78);
   }
 
@@ -736,7 +738,7 @@ export class Crossbow {
     // auto reload
     if (!this.state.loaded && !this.state.reloading && this.state.bolts > 0 && this.sinceFire > AUTO_RELOAD_DELAY) this.reload();
     if (this.state.reloading) {
-      this.reloadT += dt;
+      this.reloadT += dt / this.reloadScale;
       const pr = Math.min(1, this.reloadT / RELOAD_DURATION);
       this.state.reloadProgress = pr;
       this.drawTarget = sstep(0.18, 0.78, pr);
