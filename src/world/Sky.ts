@@ -149,7 +149,7 @@ export class Sky {
 
   private buildSunDisc() {
     const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.0, 0.95, 0.85), fog: false, toneMapped: false });
-    this.sunDisc = new THREE.Mesh(new THREE.SphereGeometry(18, 24, 24), mat);
+    this.sunDisc = new THREE.Mesh(new THREE.SphereGeometry(26, 24, 24), mat);
     this.sunDisc.position.copy(this.sunDir).multiplyScalar(1500);
     this.sunDisc.frustumCulled = false;
     this.scene.add(this.sunDisc);

@@ -216,7 +216,7 @@ export class TreeFactory {
     });
 
     const albedoRT = rt(THREE.SRGBColorSpace);
-    render(0, bakeMat(0), albedoRT, new THREE.Color(0.12, 0.2, 0.08), 0);
+    render(0, bakeMat(0), albedoRT, new THREE.Color(0.1, 0.16, 0.07), 0);
     const normalRT = rt(THREE.LinearSRGBColorSpace);
     render(1, bakeMat(1), normalRT, new THREE.Color(0.5, 0.5, 1.0), 1);
     const armRT = rt(THREE.LinearSRGBColorSpace);
@@ -254,7 +254,7 @@ export class TreeFactory {
     const tmp = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
     while (y < height * 0.96) {
       const t = (y - crownStart) / (height - crownStart);
-      const count = Math.max(2, Math.round((7 - t * 3.5) * detail + rng.range(0, 1)));
+      const count = Math.max(2, Math.round((9 - t * 4.5) * detail + rng.range(0, 1)));
       const baseLen = (3.9 - t * 3.1) * (height / 20) * rng.range(0.85, 1.15);
       const yawOff = rng.range(0, Math.PI * 2);
       for (let b = 0; b < count; b++) {
@@ -278,7 +278,7 @@ export class TreeFactory {
           cards.push(g);
         }
         // a short inner card angled up fills the crown between whorls
-        if (detail > 0.6 && rng.next() < 0.5) {
+        if (detail > 0.6 && rng.next() < 0.8) {
           const g = card.clone();
           e.set(0, yaw + rng.range(-0.5, 0.5), 0.25 + rng.range(0, 0.3), 'YXZ'); q.setFromEuler(e);
           const l2 = len * 0.45;

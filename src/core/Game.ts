@@ -55,8 +55,8 @@ export class Game {
     composer.addPass(ao);
 
     const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
-      blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.SMALL, density: 0.94, decay: 0.93, weight: 0.35,
-      exposure: 0.45, samples: 48, clampMax: 1.0, resolutionScale: 0.5,
+      blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
+      exposure: 0.55, samples: 60, clampMax: 1.0, resolutionScale: 0.5,
     });
     const bloom = new BloomEffect({ intensity: 0.55, luminanceThreshold: 0.85, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.6 });
     const vignette = new VignetteEffect({ offset: 0.32, darkness: 0.55 });
