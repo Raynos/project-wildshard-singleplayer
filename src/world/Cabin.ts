@@ -88,7 +88,7 @@ const SPECS: CabinSpec[] = [
   { // cabin 1 — the hollow: classic 7×5, camp fire out front with log benches
     W: 5, L: 7, rows: 11, pitch: 0.72, doorZ: 0.9,
     windows: [{ wall: 'front', at: -1.6 }, { wall: 'back', at: 0.6 }, { wall: 'zpos', at: -1.5 }],
-    chimney: 'zneg', porchDepth: 2.1, firePit: true, bench: 'logs',
+    chimney: 'zneg', porchDepth: 2.1, firePit: true, bench: 'logs', leanTo: true, lantern: true,
   },
   { // cabin 2 — 9×6 with an L-shaped annex, lantern on the porch, table outside
     W: 6, L: 9, rows: 12, pitch: 0.66, doorZ: 1.2,
@@ -98,12 +98,13 @@ const SPECS: CabinSpec[] = [
   { // cabin 3 — the ridge: 6×5, steep roof, lean-to wood shed
     W: 5, L: 6, rows: 11, pitch: 0.82, doorZ: -0.6,
     windows: [{ wall: 'front', at: 1.5 }, { wall: 'back', at: 0 }, { wall: 'zneg', at: -1.3, w: 0.7, h: 0.6 }],
-    chimney: 'zpos', porchDepth: 1.9, leanTo: true, bench: 'logs',
+    chimney: 'zpos', porchDepth: 1.9, leanTo: true, bench: 'logs', lantern: true,
   },
 ];
 
 interface Door { pivot: THREE.Object3D; open: boolean; t: number; collider: Collider; interactable: Interactable }
 interface Fire { light: THREE.PointLight; base: number; seed: number }
+interface Swing { pivot: THREE.Object3D; seed: number }
 interface Floor { x: number; z: number; rot: number; hw: number; hd: number; y: number }
 
 export class Cabins {
@@ -113,6 +114,7 @@ export class Cabins {
   firePits: { x: number; y: number; z: number }[] = [];
   private doors: Door[] = [];
   private fires: Fire[] = [];
+  private swings: Swing[] = [];
   private particleMats = new Set<THREE.ShaderMaterial>();
   private floors: Floor[] = [];
 
@@ -171,11 +173,13 @@ export class Cabins {
       const n = Math.sin(t * 11 + f.seed) * 0.5 + Math.sin(t * 23.7 + f.seed * 2.3) * 0.3 + Math.sin(t * 3.1 + f.seed) * 0.2;
       f.light.intensity = f.base * (1 + 0.28 * n);
     }
+    for (const sw of this.swings) { sw.pivot.rotation.z = Math.sin(t * 1.35 + sw.seed) * 0.05 + Math.sin(t * 2.9 + sw.seed * 1.7) * 0.015; sw.pivot.rotation.x = Math.cos(t * 1.1 + sw.seed) * 0.03; }
     for (const m of this.particleMats) m.uniforms.uTime.value = t;
   }
 
   /** @internal */ _door(d: Door) { this.doors.push(d); this.colliders.push(d.collider); this.interactables.push(d.interactable); }
   /** @internal */ _fire(f: Fire) { this.fires.push(f); }
+  /** @internal */ _swing(sw: Swing) { this.swings.push(sw); }
   /** @internal */ _particles(m: THREE.ShaderMaterial) { this.particleMats.add(m); }
   /** @internal */ _floor(f: Floor) { this.floors.push(f); }
 }
@@ -202,24 +206,26 @@ async function loadMats(sky: Sky): Promise<Mats> {
     log: std(logSet, { color: new THREE.Color(0.95, 0.9, 0.84), normalScale: new THREE.Vector2(0.8, 0.8) }),
     endGrain: new THREE.MeshStandardMaterial({ map: makeEndGrainTexture(), roughness: 0.95, metalness: 0, color: 0xb0a48e }),
     chink: new THREE.MeshStandardMaterial({ color: 0x4d473f, roughness: 1, metalness: 0 }),
-    roof: std(roofSet, { color: new THREE.Color(0.62, 0.58, 0.53), normalScale: new THREE.Vector2(1.2, 1.2) }),
+    roof: std(roofSet, { color: new THREE.Color(0.46, 0.43, 0.39), normalScale: new THREE.Vector2(1.3, 1.3) }),
     beam: std(beamSet, { color: new THREE.Color(0.9, 0.86, 0.8) }),
     deck: std(deckSet),
     door: std(doorSet, { color: new THREE.Color(0.72, 0.68, 0.62) }),
     stone: std(stoneSet, { color: new THREE.Color(0.58, 0.56, 0.53) }),
     glass: new THREE.MeshPhysicalMaterial({
-      color: 0x0e1216, roughness: 0.05, metalness: 0, transparent: true, opacity: 0.72, envMapIntensity: 1.8,
-      emissive: new THREE.Color(1.0, 0.68, 0.38), emissiveIntensity: 0.4, side: THREE.DoubleSide, depthWrite: false,
+      color: 0x0a0c0e, roughness: 0.08, metalness: 0, transparent: true, opacity: 0.66, envMapIntensity: 0.8,
+      emissive: new THREE.Color(1.0, 0.5, 0.17), emissiveIntensity: 1.15, side: THREE.DoubleSide, depthWrite: false,
     }),
     bark: std(barkSet, { color: new THREE.Color(0.85, 0.8, 0.75) }),
     iron: new THREE.MeshStandardMaterial({ color: 0x2b2724, roughness: 0.6, metalness: 0.75 }),
     cloth: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, metalness: 0, vertexColors: true }),
     char: new THREE.MeshStandardMaterial({ color: 0x14100d, roughness: 0.95, metalness: 0, emissive: 0xff4a08, emissiveIntensity: 0.12 }),
-    smoke: makeParticleMaterial('smoke'),
-    flame: makeParticleMaterial('flame'),
-    ember: makeParticleMaterial('ember'),
+    smoke: makeParticleMaterial('smoke', sky),
+    flame: makeParticleMaterial('flame', sky),
+    ember: makeParticleMaterial('ember', sky),
     glow: new THREE.MeshBasicMaterial({ map: makeGlowTexture(), color: 0xff7a1a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
   };
+  installMoss(m.roof, sky, 'roof');
+  installMoss(m.stone, sky, 'stone');
   // the rough_pine_door scan is a saturated orange-red: pull it toward a weathered grey-brown in the shader
   m.door.onBeforeCompile = (shader) => {
     attachFogUniforms(shader);
@@ -290,16 +296,17 @@ function makeNoiseTexture() {
 let noiseTex: THREE.Texture | undefined;
 
 /** Billboard particle material driven entirely by uTime (no per-frame CPU work). */
-function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember') {
+function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember', sky: Sky) {
   noiseTex ??= makeNoiseTexture();
   const cfg = {
-    smoke: { life: 6.0, rise: 5.5, spread: 0.18, size: [0.45, 2.4], wind: [0.9, 0.0, 0.5], blend: THREE.NormalBlending, fog: true },
-    flame: { life: 0.9, rise: 0.75, spread: 0.32, size: [0.62, 0.22], wind: [0, 0, 0], blend: THREE.AdditiveBlending, fog: false },
-    ember: { life: 2.6, rise: 2.8, spread: 0.35, size: [0.035, 0.012], wind: [0.25, 0, 0.15], blend: THREE.AdditiveBlending, fog: false },
+    smoke: { life: 11.0, rise: 12.0, spread: 0.25, size: [0.7, 4.6], wind: [1.6, 0.0, 0.45], blend: THREE.NormalBlending, fog: true },
+    flame: { life: 0.85, rise: 0.95, spread: 0.36, size: [0.95, 0.3], wind: [0, 0, 0], blend: THREE.AdditiveBlending, fog: false },
+    ember: { life: 2.8, rise: 3.4, spread: 0.4, size: [0.04, 0.012], wind: [0.3, 0, 0.15], blend: THREE.AdditiveBlending, fog: false },
   }[kind];
   const uniforms: Record<string, THREE.IUniform> = {
     uTime: { value: 0 }, uLife: { value: cfg.life }, uRise: { value: cfg.rise }, uSpread: { value: cfg.spread },
     uSize: { value: new THREE.Vector2(cfg.size[0], cfg.size[1]) }, uWind: { value: new THREE.Vector3(...cfg.wind) }, tNoise: { value: noiseTex },
+    uSunDir: { value: sky.sunDir.clone() }, uSunColor: { value: sky.sunColor.clone() },
     ...(cfg.fog ? THREE.UniformsUtils.clone(THREE.UniformsLib.fog) : {}),
   };
   return new THREE.ShaderMaterial({
@@ -307,8 +314,8 @@ function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember') {
     defines: { [kind.toUpperCase()]: 1 },
     vertexShader: /* glsl */`
       attribute vec4 seed;
-      uniform float uTime, uLife, uRise, uSpread; uniform vec2 uSize; uniform vec3 uWind;
-      varying vec2 vUv; varying float vAge; varying vec4 vSeed;
+      uniform float uTime, uLife, uRise, uSpread; uniform vec2 uSize; uniform vec3 uWind; uniform vec3 uSunDir;
+      varying vec2 vUv; varying float vAge; varying vec4 vSeed; varying vec2 vSunView;
       #include <fog_pars_vertex>
       void main() {
         float age = fract(uTime / uLife * (0.85 + 0.3 * seed.z) + seed.w);
@@ -322,13 +329,22 @@ function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember') {
           p.z += cos(uTime * 6.3 + seed.y * 20.0) * 0.06 * age;
         #else
           p.y += age * uRise * (0.7 + 0.6 * seed.x);
-          p += uWind * age * age * (0.6 + 0.8 * seed.x);
           p.x += sin(age * 9.0 + seed.x * 12.0) * 0.12 * age + sin(uTime * 1.3 + seed.y * 9.0) * 0.08 * age;
           p.z += cos(age * 7.0 + seed.y * 12.0) * 0.12 * age;
         #endif
+        vec3 windW = vec3(0.0);
+        #ifndef FLAME
+          // wind is a world-space vector: undo the cabin's yaw so every plume drifts the same way
+          windW = (inverse(mat3(modelMatrix)) * uWind) * age * age * (0.6 + 0.8 * seed.x);
+          #ifdef SMOKE
+            windW += (inverse(mat3(modelMatrix)) * vec3(sin(uTime * 0.37 + seed.x * 6.0), 0.0, cos(uTime * 0.29 + seed.y * 6.0))) * 0.9 * age * age;
+          #endif
+          p += windW;
+        #endif
+        vSunView = normalize((viewMatrix * vec4(uSunDir, 0.0)).xy + vec2(1e-4));
         float size = mix(uSize.x, uSize.y, age) * (0.75 + 0.5 * seed.x);
         #ifdef SMOKE
-          size *= smoothstep(0.0, 0.15, age);
+          size = mix(uSize.x, uSize.y, pow(age, 0.7)) * (0.75 + 0.5 * seed.x) * smoothstep(0.0, 0.08, age);
         #endif
         vec3 transformed = p;
         vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
@@ -345,16 +361,20 @@ function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember') {
         #include <fog_vertex>
       }`,
     fragmentShader: /* glsl */`
-      uniform sampler2D tNoise; uniform float uTime;
-      varying vec2 vUv; varying float vAge; varying vec4 vSeed;
+      uniform sampler2D tNoise; uniform float uTime; uniform vec3 uSunColor;
+      varying vec2 vUv; varying float vAge; varying vec4 vSeed; varying vec2 vSunView;
       #include <fog_pars_fragment>
       void main() {
         vec2 d = vUv - 0.5;
         #ifdef SMOKE
-          float n = texture2D(tNoise, vUv * 1.5 + vSeed.xy * 3.0 + vec2(uTime * 0.02, -uTime * 0.05)).r;
-          float m = smoothstep(0.5, 0.05, length(d) + (n - 0.5) * 0.35);
-          float a = m * 0.28 * smoothstep(0.0, 0.12, vAge) * (1.0 - smoothstep(0.35, 1.0, vAge));
-          gl_FragColor = vec4(vec3(0.62, 0.62, 0.64) * (0.7 + 0.3 * n), a);
+          float n = texture2D(tNoise, vUv * 1.3 + vSeed.xy * 3.0 + vec2(uTime * 0.015, -uTime * 0.04)).r;
+          float n2 = texture2D(tNoise, vUv * 3.1 + vSeed.zw * 5.0 + vec2(-uTime * 0.03, -uTime * 0.02)).r;
+          float m = smoothstep(0.5, 0.08, length(d) + (n - 0.5) * 0.42 + (n2 - 0.5) * 0.15);
+          float a = m * 0.55 * smoothstep(0.0, 0.08, vAge) * (1.0 - smoothstep(0.3, 1.0, vAge));
+          // lit on the sun side of each puff, cool blue-grey in its own shadow
+          float lit = smoothstep(-0.55, 0.6, dot(d * 2.0, vSunView) + (n - 0.5) * 0.6);
+          vec3 col = mix(vec3(0.36, 0.38, 0.44), vec3(0.95, 0.9, 0.85) * uSunColor * 1.25, lit) * (0.85 + 0.3 * n2);
+          gl_FragColor = vec4(col, a);
           #include <fog_fragment>
         #endif
         #ifdef FLAME
@@ -369,7 +389,7 @@ function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember') {
           float heat = body * (1.0 - uv.y * 0.6) * (1.0 - vAge * 0.5);
           vec3 col = mix(vec3(1.0, 0.18, 0.02), vec3(1.0, 0.62, 0.12), smoothstep(0.15, 0.6, heat));
           col = mix(col, vec3(1.0, 0.96, 0.75), smoothstep(0.55, 1.0, heat));
-          gl_FragColor = vec4(col * body * life * 1.6, body * life);
+          gl_FragColor = vec4(col * body * life * 1.8, body * life);
         #endif
         #ifdef EMBER
           float m = smoothstep(0.5, 0.15, length(d));
@@ -391,8 +411,75 @@ function makeParticles(mat: THREE.ShaderMaterial, count: number, rng: Rng) {
   for (let i = 0; i < seeds.length; i++) seeds[i] = rng.next();
   geo.setAttribute('seed', new THREE.InstancedBufferAttribute(seeds, 4));
   geo.instanceCount = count;
-  geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 3, 0), 8);
+  geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 5, 0), 18);
   return new THREE.Mesh(geo, mat);
+}
+
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+
+/**
+ * Procedural moss / lichen overlay: value-noise patches in world space, denser where the `moss`
+ * vertex attribute is high (eaves, foundation base) and on faces turned away from the sun, with a
+ * soft normal bump along the patch edges.
+ */
+function installMoss(mat: THREE.MeshStandardMaterial, sky: Sky, kind: 'roof' | 'stone') {
+  const strength = kind === 'roof' ? 1.0 : 0.6;
+  mat.onBeforeCompile = (shader) => {
+    attachFogUniforms(shader);
+    shader.uniforms.uMossSun = { value: sky.sunDir };
+    shader.uniforms.uMossStrength = { value: strength };
+    shader.uniforms.uMossUpOnly = { value: kind === 'roof' ? 1.0 : 0.0 };
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', `#include <common>
+        attribute float moss; varying float vMoss; varying vec3 vMossPos; varying vec3 vMossN;`)
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        vMoss = moss; vMossPos = (modelMatrix * vec4(transformed, 1.0)).xyz; vMossN = normalize(mat3(modelMatrix) * objectNormal);`);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>
+        uniform vec3 uMossSun; uniform float uMossStrength, uMossUpOnly;
+        varying float vMoss; varying vec3 vMossPos; varying vec3 vMossN;
+        float mossHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float mossNoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+          return mix(mix(mossHash(i), mossHash(i + vec2(1, 0)), f.x), mix(mossHash(i + vec2(0, 1)), mossHash(i + vec2(1, 1)), f.x), f.y); }
+        float mossFbm(vec2 p) { mat2 r = mat2(0.8, 0.6, -0.6, 0.8); vec2 p2 = r * p * 2.13 + 3.7; vec2 p3 = r * p2 * 2.02 + 9.1;
+          return mossNoise(p) * 0.5 + mossNoise(p2) * 0.3 + mossNoise(p3) * 0.2; }
+        float mossMask;`)
+      .replace('#include <map_fragment>', `#include <map_fragment>
+        {
+          #ifdef USE_MAP
+            vec2 mp = vMapUv * vec2(1.6, 3.6) + vMossPos.xz * 0.2;       // patches stretched along the planks
+          #else
+            vec2 mp = vMossPos.xz * 2.0 + vMossPos.y * 0.35;
+          #endif
+          float n = mossFbm(mp) * 0.8 + mossFbm(mat2(0.6, 0.8, -0.8, 0.6) * mp * 2.7 + 11.0) * 0.2;
+          float patchy = 0.55 + 0.9 * mossNoise(mp * 0.3 + 2.0);            // large-scale variation so some stretches stay bare
+          float shade = 1.0 - smoothstep(-0.3, 0.5, dot(vMossN, uMossSun));
+          float density = (0.2 + 0.75 * pow(vMoss, 1.6) + 0.18 * shade) * patchy * uMossStrength * mix(1.0, smoothstep(-0.05, 0.45, vMossN.y), uMossUpOnly);
+          float th = 0.8 - density * 0.5;
+          mossMask = smoothstep(th, th + 0.22, n);
+          float lichen = smoothstep(0.74, 0.86, mossFbm(mat2(0.6, 0.8, -0.8, 0.6) * mp * 4.0 + 17.0)) * density * 0.35;
+          vec3 mossCol = mix(vec3(0.02, 0.038, 0.009), vec3(0.075, 0.115, 0.03), mossFbm(mp * 2.0 + 5.0));
+          mossCol *= clamp(0.6 + 3.0 * dot(diffuseColor.rgb, vec3(0.33)), 0.6, 1.25);   // let the plank grain show through the mat
+          vec3 lichenCol = vec3(0.055, 0.07, 0.04);
+          diffuseColor.rgb = mix(diffuseColor.rgb, mossCol, mossMask);
+          diffuseColor.rgb = mix(diffuseColor.rgb, lichenCol, lichen * (1.0 - mossMask));
+        }`)
+      .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
+        roughnessFactor = mix(roughnessFactor, 0.97, mossMask);`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+        {
+          // bump along the moss patch edges (same maths as three's perturbNormalArb)
+          float mh = mossMask * 0.35;
+          vec2 dHdxy = vec2(dFdx(mh), dFdy(mh));
+          vec3 sp = -vViewPosition;
+          vec3 vSigmaX = dFdx(sp), vSigmaY = dFdy(sp);
+          vec3 R1 = cross(vSigmaY, normal), R2 = cross(normal, vSigmaX);
+          float fDet = dot(vSigmaX, R1) * faceDirection;
+          vec3 vGrad = sign(fDet) * (dHdxy.x * R1 + dHdxy.y * R2);
+          normal = normalize(abs(fDet) * normal - vGrad * 6.0);
+        }`);
+  };
+  mat.customProgramCacheKey = () => 'cabin-moss-' + kind;
 }
 
 // ───────────────────────────── geometry helpers ─────────────────────────────
@@ -482,6 +569,12 @@ class CabinBuilder {
   private add(key: MatKey, geo: THREE.BufferGeometry, matrix?: THREE.Matrix4) {
     if (matrix) geo.applyMatrix4(matrix);
     if (geo.index) geo = geo.toNonIndexed();
+    if ((key === 'roof' || key === 'stone') && !geo.attributes.moss) {
+      // moss density hint: stone = near the ground, roof default = mid-slope
+      const pos = geo.attributes.position as THREE.BufferAttribute, moss = new Float32Array(pos.count);
+      for (let i = 0; i < pos.count; i++) moss[i] = key === 'stone' ? clamp01((0.9 - pos.getY(i)) / 1.1) : 0.35;
+      geo.setAttribute('moss', new THREE.BufferAttribute(moss, 1));
+    }
     if (!this.parts.has(key)) this.parts.set(key, []);
     this.parts.get(key)!.push(geo);
   }
@@ -541,8 +634,9 @@ class CabinBuilder {
     if (this.spec.leanTo) this.leanTo(annexSide);
     else this.woodpile(-(W / 2) - 0.32, -annexSide * (L / 2 - 1.6), 0, 4, 1.8, { x: -(W / 2) - 0.25, z: -annexSide * (L / 2 + 0.9) });
     if (this.spec.firePit) this.firePit(firePit);
-    if (this.spec.lantern) this.lantern(lantern);
+    this.lantern(lantern);
     this.outdoorProps();
+    this.rubble();
     this.smoke();
     this.finish();
   }
@@ -656,8 +750,21 @@ class CabinBuilder {
       const run = W / 2 + (side > 0 ? eaveFront : eaveBack);
       const slope = run / cosP;
       const sheet = swapUV(boxUV(new THREE.BoxGeometry(slope, SHEET, len), 1.5, 0, this.rng.range(0, 1)));  // planks run down the slope
+      { // moss hint: 0 at the ridge → 1 at the eave (local +x is down-slope on the +side, up-slope on the −side)
+        const pos = sheet.attributes.position as THREE.BufferAttribute, moss = new Float32Array(pos.count);
+        for (let i = 0; i < pos.count; i++) moss[i] = clamp01(0.5 + (side * pos.getX(i)) / slope);
+        sheet.setAttribute('moss', new THREE.BufferAttribute(moss, 1));
+      }
       this.m.makeRotationZ(-side * pitch).setPosition(ox + side * run / 2, ridge - (run / 2) * tanP + (RAFTER_H + SHEET / 2) / cosP, zc);
       this.add('roof', sheet, this.m);
+      // a few loose / lifted planks
+      for (let k = 0; k < 3; k++) {
+        const pl = swapUV(boxUV(new THREE.BoxGeometry(this.rng.range(0.7, 1.3), 0.03, 0.14), 1.5, 0, this.rng.next()));
+        const px = this.rng.range(-slope / 2 + 0.7, slope / 2 - 0.7), pz = this.rng.range(-len / 2 + 0.3, len / 2 - 0.3);
+        const lift = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(this.rng.range(-0.06, 0.06), this.rng.range(-0.05, 0.05), this.rng.range(0.02, 0.06))).setPosition(px, SHEET / 2 + 0.03, pz);
+        this.m.makeRotationZ(-side * pitch).setPosition(ox + side * run / 2, ridge - (run / 2) * tanP + (RAFTER_H + SHEET / 2) / cosP, zc).multiply(lift);
+        this.add('roof', pl, this.m);
+      }
       const n = Math.max(2, Math.round(len / 0.8));
       for (let i = 0; i <= n; i++) {
         const z = zc - len / 2 + 0.08 + (len - 0.16) * (i / n);
@@ -789,10 +896,15 @@ class CabinBuilder {
     const glow = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.6), this.mats.glow);
     glow.position.set(cx, FLOOR + 0.35, bz - side * 0.5); glow.rotation.y = side > 0 ? Math.PI : 0;
     this.root.add(glow);
-    const light = new THREE.PointLight(0xffa050, 9, 9, 2);
+    const light = new THREE.PointLight(0xffa050, 14, 10, 2);
     light.position.set(cx, FLOOR + 0.6, bz - side * 0.7);
     this.root.add(light);
-    this.owner._fire({ light, base: 9, seed: this.index * 3.1 });
+    this.owner._fire({ light, base: 14, seed: this.index * 3.1 });
+    // room light so the windows glow at dusk
+    const room = new THREE.PointLight(0xffb070, 16, 11, 2);
+    room.position.set(0.2, FLOOR + 1.9, 0);
+    this.root.add(room);
+    this.owner._fire({ light: room, base: 16, seed: this.index * 1.7 + 0.5 });
     this.collider(cx, bz, 0.8, 0.3, 0, PLINTH + 1.6);
   }
 
@@ -901,12 +1013,36 @@ class CabinBuilder {
     this.m.makeRotationY(yaw).setPosition(x, FLOOR, z);
     this.add('beam', mergeGeometries(g.map((x) => x.toNonIndexed()))!, this.m);
   }
-  private cloth(w: number, h: number, d: number, x: number, y: number, z: number, color: number) {
+  /** a drying animal hide folded over a rope line: irregular outline, two flaps either side of the rope */
+  private hide(x: number, y: number, z: number, yaw: number) {
+    const outline = new THREE.Shape();
+    const n = 18;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      const r = 0.42 * (1 + 0.18 * Math.sin(a * 2 + 0.5) + 0.12 * Math.sin(a * 5 + 1.3) + this.rng.range(-0.05, 0.05));
+      const px = Math.cos(a) * r * 1.15, py = Math.sin(a) * r;
+      i ? outline.lineTo(px, py) : outline.moveTo(px, py);
+    }
+    outline.closePath();
+    for (const sgn of [-1, 1]) {
+      const g = new THREE.ExtrudeGeometry(outline, { depth: 0.015, bevelEnabled: false }).toNonIndexed();
+      g.translate(0, -0.44, 0);                                   // hang from the rope
+      const c = new THREE.Color(0x120b06), col = new Float32Array(g.attributes.position.count * 3);
+      const pos = g.attributes.position as THREE.BufferAttribute;
+      for (let i = 0; i < pos.count; i++) { const f = 0.75 + 0.35 * Math.abs(Math.sin(pos.getX(i) * 9 + pos.getY(i) * 7)); col[i * 3] = c.r * f; col[i * 3 + 1] = c.g * f; col[i * 3 + 2] = c.b * f; }
+      g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      this.m.makeRotationFromEuler(new THREE.Euler(sgn * 0.1, yaw, 0, 'YXZ')).setPosition(x, y, z);
+      g.translate(0, 0, sgn > 0 ? 0.01 : -0.025);
+      this.add('cloth', g, this.m);
+    }
+  }
+  private cloth(w: number, h: number, d: number, x: number, y: number, z: number, color: number, yaw = 0, lean = 0) {
     const g = new THREE.BoxGeometry(w, h, d).toNonIndexed();
     const c = new THREE.Color(color), col = new Float32Array(g.attributes.position.count * 3);
-    for (let i = 0; i < col.length; i += 3) { col[i] = c.r; col[i + 1] = c.g; col[i + 2] = c.b; }
+    for (let i = 0; i < col.length; i += 3) { col[i] = c.r * this.rng.range(0.85, 1.05); col[i + 1] = c.g * this.rng.range(0.85, 1.05); col[i + 2] = c.b; }
     g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    this.m.makeTranslation(x, y, z);
+    if (lean) g.translate(0, -h / 2, lean > 0 ? d : -d);
+    this.m.makeRotationFromEuler(new THREE.Euler(lean, yaw, 0, 'YXZ')).setPosition(x, lean ? y + h / 2 : y, z);
     this.add('cloth', g, this.m);
   }
 
@@ -931,6 +1067,16 @@ class CabinBuilder {
     this.add('bark', side, m); this.add('endGrain', caps, m);
     this.placeProp('hatchet', block.x + 0.02, 0.6, block.z, this.rng.range(0, 6), 1.15);
     this.collider(block.x, block.z, 0.2, 0.2, 0, 0.55);
+    // split firewood scattered around the block
+    for (let i = 0; i < 9; i++) {
+      const a = this.rng.range(0, Math.PI * 2), d = this.rng.range(0.35, 1.2);
+      const r = this.rng.range(0.06, 0.09), l = this.rng.range(0.32, 0.45);
+      const wedge = new THREE.CylinderGeometry(r, r, l, 7, 1, false, 0, Math.PI);
+      const uv = wedge.attributes.uv as THREE.BufferAttribute, pos = wedge.attributes.position as THREE.BufferAttribute;
+      for (let k = 0; k < uv.count; k++) uv.setXY(k, pos.getX(k) * 0.5 + this.rng.next(), pos.getY(k) * 0.5);
+      this.m.makeRotationFromEuler(new THREE.Euler(this.rng.range(-0.1, 0.1), this.rng.range(0, 6.3), Math.PI / 2 + this.rng.range(-0.15, 0.15), 'YXZ')).setPosition(block.x + Math.cos(a) * d, r * 0.5, block.z + Math.sin(a) * d);
+      this.add('bark', wedge, this.m);
+    }
   }
 
   // ── L-shaped annex on the gable end: shares the back wall line, own front + far gable walls, lower roof ──
@@ -1013,8 +1159,36 @@ class CabinBuilder {
     const glow = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5).rotateX(-Math.PI / 2), this.mats.glow);
     glow.position.set(fx, 0.14, fz);
     this.root.add(glow);
-    const flames = makeParticles(this.mats.flame, 26, this.rng); flames.position.set(fx, 0.16, fz); flames.renderOrder = 5;
-    const embers = makeParticles(this.mats.ember, 40, this.rng); embers.position.set(fx, 0.35, fz); embers.renderOrder = 6;
+    const flames = makeParticles(this.mats.flame, 44, this.rng); flames.position.set(fx, 0.16, fz); flames.renderOrder = 5;
+    const embers = makeParticles(this.mats.ember, 64, this.rng); embers.position.set(fx, 0.35, fz); embers.renderOrder = 6;
+    // ring of stones around the pit
+    for (let i = 0; i < 16; i++) {
+      const a = (i / 16) * Math.PI * 2 + this.rng.range(-0.1, 0.1), rr = 0.92 + this.rng.range(-0.06, 0.08);
+      const r = this.rng.range(0.11, 0.18);
+      const g = boxUV(new THREE.DodecahedronGeometry(r, 0), 1.5, this.rng.next(), this.rng.next());
+      g.scale(1, this.rng.range(0.55, 0.85), this.rng.range(0.8, 1.3));
+      this.m.makeRotationFromEuler(new THREE.Euler(this.rng.range(0, 0.3), a, this.rng.range(0, 0.3))).setPosition(fx + Math.cos(a) * rr, r * 0.4, fz + Math.sin(a) * rr);
+      this.add('stone', g, this.m);
+    }
+    // iron tripod with a hanging cooking pot
+    const apexY = 1.75;
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * Math.PI * 2 + 0.4, foot = 0.8;
+      const legLen = Math.hypot(foot, apexY), tilt = Math.atan2(foot, apexY);
+      const leg = new THREE.CylinderGeometry(0.014, 0.02, legLen, 6);
+      this.m.makeRotationFromEuler(new THREE.Euler(0, -a, tilt, 'YXZ')).setPosition(fx + Math.cos(a) * foot / 2, apexY / 2, fz + Math.sin(a) * foot / 2);
+      this.add('iron', leg, this.m);
+    }
+    this.box('iron', 0.09, 0.05, 0.09, fx, apexY + 0.01, fz, 1);                           // apex ring
+    const potY = 1.12;
+    this.m.makeTranslation(fx, (apexY + potY + 0.2) / 2, fz);
+    this.add('iron', new THREE.CylinderGeometry(0.007, 0.007, apexY - potY - 0.2, 5), this.m);   // chain
+    const pot = new THREE.CylinderGeometry(0.2, 0.17, 0.24, 14, 1, true);
+    this.m.makeTranslation(fx, potY, fz); this.add('iron', pot, this.m);
+    this.add('iron', new THREE.CircleGeometry(0.17, 14).rotateX(Math.PI / 2).translate(fx, potY - 0.12, fz));
+    this.add('iron', new THREE.TorusGeometry(0.19, 0.008, 5, 16).rotateX(Math.PI / 2).translate(fx, potY + 0.12, fz));
+    this.add('iron', new THREE.TorusGeometry(0.2, 0.008, 5, 16, Math.PI).rotateZ(0).translate(fx, potY + 0.12, fz));   // bail handle
+    this.add('char', new THREE.CircleGeometry(0.15, 12).rotateX(-Math.PI / 2).translate(fx, potY + 0.06, fz));           // stew surface
     this.root.add(flames, embers);
     this.owner._particles(this.mats.flame); this.owner._particles(this.mats.ember);
     const light = new THREE.PointLight(0xff9a3c, 28, 22, 2);
@@ -1035,8 +1209,10 @@ class CabinBuilder {
 
   // ── hanging lantern on the porch ──
   private lantern(model: THREE.Object3D) {
-    const x = this.porchPostX - 0.2, z = this.spec.doorZ + 1.55;
-    const hangY = this.porchHeaderY - 0.18;
+    const x = this.spec.W / 2 + 0.3, z = this.spec.doorZ + 0.78;   // bracket arm out from the wall beside the door
+    const hangY = FLOOR + 2.05;
+    this.box('iron', 0.42, 0.025, 0.025, x - 0.16, hangY + 0.03, z, 1);
+    this.box('iron', 0.025, 0.2, 0.025, this.spec.W / 2 - LOG_R + 0.05, hangY - 0.07, z, 1);
     const lan = model.clone(true);
     lan.traverse((o) => {
       const mesh = o as THREE.Mesh;
@@ -1055,15 +1231,39 @@ class CabinBuilder {
         this.sky.setupMaterial(mesh.material);
       }
     });
-    lan.position.set(x, hangY - 0.42, z);
+    const pivot = new THREE.Group();
+    pivot.position.set(x, hangY + 0.02, z);
+    lan.position.set(0, -0.46, 0);
     lan.scale.setScalar(1.35);
-    this.root.add(lan);
-    this.box('iron', 0.02, 0.02, 0.18, x, hangY, z - 0.06, 1);
-    this.box('iron', 0.012, 0.14, 0.012, x, hangY - 0.07, z, 1);
-    const light = new THREE.PointLight(0xffb060, 7, 10, 2);
-    light.position.set(x, hangY - 0.3, z);
-    this.root.add(light);
-    this.owner._fire({ light, base: 7, seed: 2.2 });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.005, 6, 12), this.mats.iron);
+    ring.position.y = -0.03;
+    const light = new THREE.PointLight(0xffb060, 9, 11, 2);
+    light.position.set(0, -0.3, 0);
+    pivot.add(lan, ring, light);
+    this.root.add(pivot);
+    this.owner._fire({ light, base: 9, seed: 2.2 + this.index });
+    this.owner._swing({ pivot, seed: this.index * 2.3 });
+  }
+
+  // ── stone rubble and mossy stones along the foundation ──
+  private rubble() {
+    const { W, L } = this.spec;
+    const n = Math.round((W + L) * 2.2);
+    for (let i = 0; i < n; i++) {
+      const side = this.rng.int(0, 3);
+      const t = this.rng.range(-0.5, 0.5);
+      let x = 0, z = 0;
+      if (side === 0) { x = W / 2 + 0.25 + this.rng.range(0, 0.5); z = t * L; }
+      else if (side === 1) { x = -(W / 2) - 0.25 - this.rng.range(0, 0.5); z = t * L; }
+      else if (side === 2) { z = L / 2 + 0.25 + this.rng.range(0, 0.5); x = t * W; }
+      else { z = -(L / 2) - 0.25 - this.rng.range(0, 0.5); x = t * W; }
+      if (side === 0 && Math.abs(z) < L / 2 + 0.3) continue;                    // porch side
+      const r = this.rng.range(0.07, 0.2);
+      const g = boxUV(new THREE.DodecahedronGeometry(r, 0), 1.5, this.rng.next(), this.rng.next());
+      g.scale(1, this.rng.range(0.5, 0.8), this.rng.range(0.8, 1.3));
+      this.m.makeRotationFromEuler(new THREE.Euler(this.rng.range(0, 0.4), this.rng.range(0, 6.3), this.rng.range(0, 0.4))).setPosition(x, r * 0.35, z);
+      this.add('stone', g, this.m);
+    }
   }
 
   // ── crates, barrels, bucket, outdoor table/bench ──
@@ -1074,6 +1274,18 @@ class CabinBuilder {
     this.placeProp('barrel', x0 + 0.5, FLOOR, far * (L / 2 - 0.6), this.rng.range(0, 6));
     this.placeProp('crate', x0 + 0.55, FLOOR, far * (L / 2 - 1.5), Math.PI / 2 + this.rng.range(-0.15, 0.15));
     this.placeProp('bucket', x0 + D - 0.45, FLOOR, far * (L / 2 - 0.5) * 0.9, this.rng.range(0, 6));
+    this.placeProp('crate', x0 + D + 0.9, 0, dz + far * -1.4, this.rng.range(0, 6), 0.85);          // crate by the steps
+    this.placeProp('barrel', -(this.spec.W / 2) - 0.5, 0, -far * (L / 2 - 0.4), this.rng.range(0, 6));  // rain barrel under the back eave
+    if (this.spec.firePit) {
+      // rope line with a drying hide between two posts
+      const px = x0 + D + 1.4, pz = far * (L / 2 + 1.2), yaw = 0.3;
+      const dx = Math.cos(yaw) * 1.5, dzz = -Math.sin(yaw) * 1.5;
+      for (const sgn of [-1, 1]) { this.box('beam', 0.09, 1.9, 0.09, px + sgn * dx, 0.95, pz + sgn * dzz, 1); this.collider(px + sgn * dx, pz + sgn * dzz, 0.06, 0.06, 0, 1.9); }
+      const rope = new THREE.CylinderGeometry(0.008, 0.008, 3.0, 5).rotateZ(Math.PI / 2);
+      this.m.makeRotationY(yaw).setPosition(px, 1.78, pz); this.add('bark', rope, this.m);
+      this.hide(px + 0.2 * Math.cos(yaw), 1.78, pz - 0.2 * Math.sin(yaw), yaw);
+      this.collider(px, pz, 0.5, 0.05, 0, 1.8, yaw);
+    }
     if (this.spec.bench === 'table') {
       const tx = x0 + D + 2.2, tz = -far * (L / 2 - 0.5);
       this.box('deck', 1.6, 0.06, 0.8, tx, 0.76, tz, 1.3);
@@ -1091,7 +1303,7 @@ class CabinBuilder {
   private smoke() {
     const { L } = this.spec;
     const side = this.spec.chimney === 'zpos' ? 1 : -1;
-    const p = makeParticles(this.mats.smoke, 22, this.rng);
+    const p = makeParticles(this.mats.smoke, 40, this.rng);
     p.position.set(-0.6, this.ridgeY + 0.85, side * (L / 2 + 0.42));
     p.renderOrder = 4;
     this.root.add(p);
