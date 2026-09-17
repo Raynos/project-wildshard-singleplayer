@@ -115,7 +115,7 @@ function makeWalnut(seed: number): TexSet {
   const W = 1024, H = 256;
   const { fbm, hash } = makeNoise(seed);
   const col = new Uint8Array(W * H * 4), arm = new Uint8Array(W * H * 4), hgt = new Float32Array(W * H);
-  const dark = [30, 17, 9], light = [112, 70, 38];
+  const dark = [26, 14, 7], light = [92, 56, 30];
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const u = x / W, v = y / H;
     const warp = fbm(u * 3 + 7, v * 2, 4);
@@ -618,8 +618,10 @@ export class Crossbow {
     const brass: THREE.BufferGeometry[] = [];
     brass.push(cyl(0.014, 0.014, 0.042, 18, 0, 0.004, 0.14, 0, 0, Math.PI / 2)); // nut
     brass.push(box(0.032, 0.006, 0.011, 0, 0.012, 0.133)); // nut fingers
-    for (const sx of [-1, 1]) brass.push(box(0.0015, 0.004, 0.30, sx * 0.0225, -0.03, -0.09)); // inlay lines along the flanks
+    for (const sx of [-1, 1]) brass.push(box(0.0015, 0.0035, 0.30, sx * 0.0245, -0.03, -0.09)); // inlay lines along the flanks
     brass.push(box(0.03, 0.002, 0.05, 0, -0.088, 0.25, 0.3)); // thumb plate on the grip top edge
+    const bead = new THREE.SphereGeometry(0.0035, 10, 8); bead.translate(0, 0.009, -0.375); brass.push(bead); // foresight bead
+    brass.push(cyl(0.0015, 0.0015, 0.008, 6, 0, 0.004, -0.375)); // bead post
     const brassGeo = mergeGeometries(brass.map(stripExtra), false)!;
     this.model.add(new THREE.Mesh(brassGeo, brassMat));
     // trigger (curved) + guard
@@ -672,12 +674,12 @@ export class Crossbow {
 
     // ── leather grip ──
     const gripShape = new THREE.Shape(); // rounded rectangle section
-    const gw = 0.024, gh = 0.03, gr = 0.011;
+    const gw = 0.026, gh = 0.047, gr = 0.012;
     gripShape.moveTo(-gw + gr, -gh); gripShape.lineTo(gw - gr, -gh); gripShape.quadraticCurveTo(gw, -gh, gw, -gh + gr);
     gripShape.lineTo(gw, gh - gr); gripShape.quadraticCurveTo(gw, gh, gw - gr, gh); gripShape.lineTo(-gw + gr, gh);
     gripShape.quadraticCurveTo(-gw, gh, -gw, gh - gr); gripShape.lineTo(-gw, -gh + gr); gripShape.quadraticCurveTo(-gw, -gh, -gw + gr, -gh);
-    const grip = new THREE.ExtrudeGeometry(gripShape, { depth: 0.09, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.003, bevelSegments: 3, curveSegments: 6 });
-    grip.rotateX(Math.PI * 0.11); grip.translate(0, -0.082, 0.33);
+    const grip = new THREE.ExtrudeGeometry(gripShape, { depth: 0.1, bevelEnabled: true, bevelThickness: 0.003, bevelSize: 0.002, bevelSegments: 3, curveSegments: 6 });
+    grip.rotateX(0.35); grip.translate(0, -0.074, 0.30);
     this.model.add(new THREE.Mesh(grip, leatherMat));
 
     // ── loaded bolt on the rail ──
@@ -695,7 +697,7 @@ export class Crossbow {
     clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
     this.model.add(clearer);
     this.model.traverse((o) => { if ((o as THREE.Mesh).isMesh) { o.frustumCulled = false; if (o !== clearer) o.renderOrder = 1000; (o as THREE.Mesh).castShadow = false; (o as THREE.Mesh).receiveShadow = o !== clearer; } });
-    this.model.scale.setScalar(0.78);
+    this.model.scale.setScalar(0.86);
   }
 
   private buildProjectiles() {
@@ -787,7 +789,7 @@ export class Crossbow {
     this.reloadTilt += (rl - this.reloadTilt) * Math.min(1, dt * 10);
     const a = sstep(0, 1, this.adsBlend), sp = this.sprintBlend, rt = this.reloadTilt;
     // hip: lower-right (Skyrim), ADS: centred and a little closer to the eye
-    let px = THREE.MathUtils.lerp(0.17, 0.0, a), py = THREE.MathUtils.lerp(-0.165, -0.085, a), pz = THREE.MathUtils.lerp(-0.29, -0.30, a);
+    let px = THREE.MathUtils.lerp(0.165, 0.0, a), py = THREE.MathUtils.lerp(-0.155, -0.088, a), pz = THREE.MathUtils.lerp(-0.27, -0.29, a);
     let rx = THREE.MathUtils.lerp(0.03, 0.0, a), ry = THREE.MathUtils.lerp(0.11, 0.0, a), rz = THREE.MathUtils.lerp(0.05, 0.0, a);
     // sprint: drop and swing across the body
     px += sp * -0.05; py += sp * -0.09; pz += sp * 0.04; rx += sp * 0.32; ry += sp * 0.45; rz += sp * -0.15;

@@ -149,7 +149,6 @@ export class HUD {
       this.healthBar.style.width = `${h}%`;
       this.healthBar.classList.toggle('low', h <= 30);
     }
-    const max = s.maxBolts ?? this.opts.maxBolts ?? 30;
     if (s.bolts !== L.bolts) {
       L.bolts = s.bolts;
       this.ammoCount.firstElementChild!.textContent = String(s.bolts);
@@ -164,7 +163,6 @@ export class HUD {
     }
     const rp = s.reloading ? (s.reloadProgress ?? 0) : 0;
     if (rp !== L.reloadProgress) { L.reloadProgress = rp; this.reloadBar.style.width = `${rp * 100}%`; }
-    void max;
     // crosshair spread
     const target = (s.ads ? 4 : 7) + (s.speed ?? 0) * 7 + (s.reloading ? 6 : 0);
     if (Math.abs(target - this.spread) > 0.05) { this.spread += (target - this.spread) * 0.2; this.cross.style.setProperty('--gap', `${this.spread.toFixed(1)}px`); }

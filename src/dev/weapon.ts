@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { bootstrap } from '../core/bootstrap';
 import { Crossbow, type Targets, type TargetAnimal, type TargetHit } from '../player/Crossbow';
-import { heightAt, inChunk } from '../world/Heightfield';
+import { heightAt } from '../world/Heightfield';
 import { HUD } from '../ui/HUD';
 import { Audio } from '../audio/Audio';
 import { CHUNK_HALF } from '../core/config';
@@ -125,7 +125,6 @@ async function main() {
     prompt = near ? '[E] Harvest carcass' : params.has('prompt') ? '[E] Open door' : undefined;
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 || params.has('boundary'));
-    void inChunk;
     hud.setState({
       bolts: crossbow.state.bolts, loaded: crossbow.state.loaded, reloading: crossbow.state.reloading, reloadProgress: crossbow.state.reloadProgress,
       health, fps: game.stats.fps, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
