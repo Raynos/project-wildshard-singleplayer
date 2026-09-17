@@ -21,3 +21,9 @@ before uploading it.
 The game must be absolutely amazing with its graphics, we must build the AAA 
 graphics until we are absolutely wowed and we must not stop until it looks
 like a genuine PS5 game
+
+## Status
+
+Playable: `pnpm install && pnpm assets && pnpm dev` → http://localhost:5173 (see `docs/RUNNING.md`).
+Target look: `art/` (codex/OpenAI image-gen mockups); gap list: `docs/AAA-PLAN.md`;
+progress photos, `timelapse.mp4` and `progress-video.mp4`: `progress/`.
