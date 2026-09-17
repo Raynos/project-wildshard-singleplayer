@@ -50,7 +50,7 @@ export class TreeFactory {
     this.needleMaterial = new THREE.MeshStandardMaterial({
       map: card.albedo, normalMap: card.normal, roughnessMap: card.arm, aoMap: card.arm,
       alphaTest: 0.45, side: THREE.DoubleSide, roughness: 1, metalness: 0,
-      color: new THREE.Color(0.92, 0.95, 0.85), normalScale: new THREE.Vector2(0.8, 0.8),
+      color: new THREE.Color(0.8, 0.92, 0.7), normalScale: new THREE.Vector2(0.8, 0.8),
     });
     this.needleMaterial.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
@@ -66,7 +66,7 @@ export class TreeFactory {
           {
             vec3 upV = normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz );
             vec3 toCam = normalize( - vViewPosition );
-            normal = normalize( mix( normal, upV * 0.8 + toCam * 0.5, 0.65 ) );
+            normal = normalize( mix( normal, upV * 0.9 + toCam * 0.35, 0.5 ) );
           }`)
         .replace('#include <lights_fragment_begin>', `#include <lights_fragment_begin>
           reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.05;`)
@@ -134,6 +134,15 @@ export class TreeFactory {
     const stemShape = new THREE.Shape([new THREE.Vector2(-1, -0.03), new THREE.Vector2(0.95, -0.006), new THREE.Vector2(0.95, 0.006), new THREE.Vector2(-1, 0.03)]);
     const stem = new THREE.Mesh(new THREE.ShapeGeometry(stemShape), new THREE.MeshBasicMaterial({ color: 0x2a1d12 }));
     stem.position.set(0, 0, -0.02); group.add(stem);
+    // fit the whole branch inside the card frame so no twig gets clipped into a straight edge
+    {
+      const box = new THREE.Box3().setFromObject(group);
+      const size = new THREE.Vector3(); box.getSize(size);
+      const centre = new THREE.Vector3(); box.getCenter(centre);
+      const fit = Math.min(1.96 / size.x, 0.96 / size.y);
+      group.scale.setScalar(fit);
+      group.position.set(-centre.x * fit, -centre.y * fit, 0);
+    }
     scene.add(group);
 
     const cam = new THREE.OrthographicCamera(-1, 1, 0.5, -0.5, 0.01, 10);
@@ -225,25 +234,35 @@ export class TreeFactory {
       const baseLen = (3.9 - t * 3.1) * (height / 20) * rng.range(0.85, 1.15);
       const yawOff = rng.range(0, Math.PI * 2);
       for (let b = 0; b < count; b++) {
-        const yaw = yawOff + (b / count) * Math.PI * 2 + rng.range(-0.4, 0.4);
-        const droop = -0.4 + t * 0.32 + rng.range(-0.12, 0.12);
-        const len = baseLen * rng.range(0.85, 1.15);
+        if (rng.next() < 0.12) continue;                       // gaps make the silhouette read as organic
+        const yaw = yawOff + (b / count) * Math.PI * 2 + rng.range(-0.45, 0.45);
+        const droop = -0.4 + t * 0.32 + rng.range(-0.2, 0.2);
+        const len = baseLen * rng.range(0.6, 1.25);
         const width = len * 0.5;
-        const ox = Math.cos(yaw) * (trunkR * (1 - y / height) + 0.02 + bendX * (y / height) ** 2 * 0);
-        const oz = -Math.sin(yaw) * (trunkR * (1 - y / height) + 0.02);
+        const rTrunk = trunkR * (1 - y / height) + 0.02;
+        const ox = Math.cos(yaw) * rTrunk, oz = -Math.sin(yaw) * rTrunk;
+        const roll0 = rng.range(-0.4, 0.4);
         // two quads in a shallow V give the branch volume from every angle
-        for (const roll of [0.5, -0.5]) {
+        for (const roll of [0.55, -0.55]) {
           const g = card.clone();
           e.set(0, yaw, droop, 'YXZ');
           q.setFromEuler(e);
-          const qr = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), roll);
+          const qr = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), roll + roll0);
           q.multiply(qr);
           tmp.compose(new THREE.Vector3(ox + bendX * (y / height) ** 2, y, oz + bendZ * (y / height) ** 2), q, new THREE.Vector3(len, width, 1));
           g.applyMatrix4(tmp);
           cards.push(g);
         }
+        // a short inner card angled up fills the crown between whorls
+        if (detail > 0.6 && rng.next() < 0.5) {
+          const g = card.clone();
+          e.set(0, yaw + rng.range(-0.5, 0.5), 0.25 + rng.range(0, 0.3), 'YXZ'); q.setFromEuler(e);
+          const l2 = len * 0.45;
+          tmp.compose(new THREE.Vector3(ox + bendX * (y / height) ** 2, y + rng.range(0, 0.4), oz + bendZ * (y / height) ** 2), q, new THREE.Vector3(l2, l2 * 0.5, 1));
+          g.applyMatrix4(tmp); cards.push(g);
+        }
       }
-      y += whorlStep * rng.range(0.85, 1.15);
+      y += whorlStep * rng.range(0.8, 1.2);
     }
     // leader: two crossed vertical cards at the top
     for (const yaw of [0, Math.PI / 2]) {

@@ -10,7 +10,7 @@ import { fogUniforms } from './Atmosphere';
  */
 export class Sky {
   sunDir = new THREE.Vector3(0.3, 0.6, 0.4).normalize();
-  sunColor = new THREE.Color(1.0, 0.93, 0.82);
+  sunColor = new THREE.Color(1.0, 0.86, 0.68);
   csm!: CSM;
   sunDisc!: THREE.Mesh;
   planet = new THREE.Group();
@@ -20,7 +20,8 @@ export class Sky {
   constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private renderer: THREE.WebGLRenderer) {}
 
   async build() {
-    const hdr = await loadHDR('/assets/hdri/kloofendal_48d_partly_cloudy_puresky_2k.hdr');
+    const hdriName = new URLSearchParams(location.search).get('hdri') ?? 'qwantani_late_afternoon_puresky';
+    const hdr = await loadHDR(`/assets/hdri/${hdriName}_2k.hdr`);
     this.findSun(hdr);
     hdr.mapping = THREE.EquirectangularReflectionMapping;
     const pmrem = new THREE.PMREMGenerator(this.renderer);
@@ -28,9 +29,9 @@ export class Sky {
     const env = pmrem.fromEquirectangular(hdr).texture;
     pmrem.dispose();
     this.scene.environment = env;
-    this.scene.environmentIntensity = 0.55;
+    this.scene.environmentIntensity = 0.8;
     this.scene.background = hdr;
-    this.scene.backgroundIntensity = 1.0;
+    this.scene.backgroundIntensity = 1.15;
     this.scene.backgroundBlurriness = 0.0;
 
     // Fog colour = average of the sky just above the horizon in the view direction
@@ -42,12 +43,12 @@ export class Sky {
     this.csm = new CSM({
       camera: this.camera, parent: this.scene, cascades: 3, mode: 'practical',
       maxFar: 220, shadowMapSize: 2048, lightDirection: this.sunDir.clone().negate(),
-      lightIntensity: 3.2, shadowBias: -0.00012, lightMargin: 120, lightNear: 1, lightFar: 600,
+      lightIntensity: 4.6, shadowBias: -0.00012, lightMargin: 120, lightNear: 1, lightFar: 600,
     });
     this.csm.fade = true;
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = 0.05; l.shadow.radius = 2; }
 
-    this.scene.add(new THREE.HemisphereLight(0x8fb2d9, 0x3a3121, 0.25));
+    this.scene.add(new THREE.HemisphereLight(0x9fb8d8, 0x4a3a28, 0.35));
 
     this.buildSunDisc();
     this.buildPlanet();

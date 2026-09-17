@@ -91,10 +91,12 @@ export class Terrain {
           vec4 alb = vec4(0.0);
           vec3 nrm = vec3(0.0);
           vec3 arm = vec3(0.0);
+          const vec3 tints[4] = vec3[4]( vec3(0.78, 0.74, 0.68), vec3(0.72, 0.8, 0.6), vec3(0.85, 0.85, 0.85), vec3(0.62, 0.56, 0.5) );
           for (int i = 0; i < 4; i++) {
             float wi = w[i];
             if (wi < 0.004) continue;
-            alb += sampleLayer(tDiff, i, tuv, camDist) * wi;
+            vec4 l = sampleLayer(tDiff, i, tuv, camDist); l.rgb *= tints[i];
+            alb += l * wi;
             nrm += (sampleLayer(tNorm, i, tuv, camDist).xyz * 2.0 - 1.0) * wi;
             arm += sampleLayer(tArm, i, tuv, camDist).xyz * wi;
           }

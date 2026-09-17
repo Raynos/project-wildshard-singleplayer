@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {
   EffectComposer, RenderPass, EffectPass, BloomEffect, SMAAEffect, VignetteEffect, ToneMappingEffect,
-  ToneMappingMode, BlendFunction, GodRaysEffect, KernelSize, SMAAPreset, EdgeDetectionMode, ChromaticAberrationEffect,
+  ToneMappingMode, BlendFunction, GodRaysEffect, KernelSize, SMAAPreset, EdgeDetectionMode, ChromaticAberrationEffect, HueSaturationEffect, BrightnessContrastEffect,
 } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
 import { installAtmosphere } from '../world/Atmosphere';
@@ -61,7 +61,9 @@ export class Game {
     const vignette = new VignetteEffect({ offset: 0.32, darkness: 0.55 });
     const chroma = new ChromaticAberrationEffect({ offset: new THREE.Vector2(0.0006, 0.0006), radialModulation: true, modulationOffset: 0.35 });
     const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
-    composer.addPass(new EffectPass(this.camera, godRays, bloom, chroma, vignette, tone));
+    const grade = new HueSaturationEffect({ saturation: 0.18 });
+    const contrast = new BrightnessContrastEffect({ brightness: 0.02, contrast: 0.12 });
+    composer.addPass(new EffectPass(this.camera, godRays, bloom, chroma, vignette, tone, grade, contrast));
     const smaa = new SMAAEffect({ preset: SMAAPreset.HIGH, edgeDetectionMode: EdgeDetectionMode.COLOR });
     composer.addPass(new EffectPass(this.camera, smaa));
     this.composer = composer;

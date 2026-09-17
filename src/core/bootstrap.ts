@@ -5,6 +5,7 @@ import { TreeFactory } from '../world/TreeFactory';
 import { Forest } from '../world/Forest';
 import { Player } from '../player/Player';
 import type { Sky } from '../world/Sky';
+import { Tour } from './Tour';
 
 export interface World {
   game: Game;
@@ -12,6 +13,7 @@ export interface World {
   terrain: Terrain;
   forest: Forest;
   player: Player;
+  tour: Tour | null;
   params: URLSearchParams;
   num: (key: string, fallback: number) => number;
 }
@@ -49,6 +51,11 @@ export async function bootstrap(): Promise<World> {
     game.camera.add(q); q.position.set(0, 0, -1.2); game.scene.add(game.camera);
   }
 
-  game.onUpdate((dt) => { player.update(dt); forest.update(dt, player.position); });
-  return { game, sky, terrain, forest, player, params, num };
+  const tour = params.has('tour') ? new Tour(game.camera) : null;
+  game.onUpdate((dt) => {
+    if (tour) { tour.setTime(tour.time); player.position.copy(game.camera.position); player.position.y -= 1.7; }
+    else player.update(dt);
+    forest.update(dt, player.position);
+  });
+  return { game, sky, terrain, forest, player, tour, params, num };
 }

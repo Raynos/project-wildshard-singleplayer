@@ -6,7 +6,7 @@ import { heightAt, normalAt, trailDistance, cabinMask, inChunk } from './Heightf
 import { TreeFactory, windUniforms } from './TreeFactory';
 import type { Sky } from './Sky';
 
-export interface TreeInstance { x: number; y: number; z: number; r: number; variant: number; scale: number; rot: number; height: number }
+export interface TreeInstance { x: number; y: number; z: number; r: number; variant: number; scale: number; rot: number; height: number; tint: THREE.Color }
 
 const LOD_DIST = 110; // metres: beyond this, use the low-card geometry
 
@@ -71,7 +71,8 @@ export class Forest {
       const variant = rng.next() < 0.1 ? 3 : rng.int(0, 2);
       const scale = rng.range(0.8, 1.2);
       const v = this.factory.variants[variant];
-      const t: TreeInstance = { x, y: y - 0.25, z, r: v.trunkRadius * scale + 0.15, variant, scale, rot: rng.range(0, Math.PI * 2), height: v.height * scale };
+      const tint = new THREE.Color().setHSL(0.22 + rng.range(-0.035, 0.035), rng.range(0.2, 0.45), rng.range(0.55, 0.72));
+      const t: TreeInstance = { x, y: y - 0.25, z, r: v.trunkRadius * scale + 0.15, variant, scale, rot: rng.range(0, Math.PI * 2), height: v.height * scale, tint };
       this.trees.push(t);
       const k = this.key(x, z);
       if (!this.grid.has(k)) this.grid.set(k, []);
@@ -110,10 +111,11 @@ export class Forest {
       this.tmpQ.setFromAxisAngle(this.tmpP.set(0, 1, 0), t.rot);
       this.tmpM.compose(this.tmpP.set(t.x, t.y, t.z), this.tmpQ, this.tmpS.set(t.scale, t.scale, t.scale));
       target.setMatrixAt(idx, this.tmpM);
+      target.setColorAt(idx, t.tint);
       this.trunks[t.variant].setMatrixAt(countsT[t.variant]++, this.tmpM);
     }
-    this.hi.forEach((m, i) => { m.count = counts[i]; m.instanceMatrix.needsUpdate = true; });
-    this.lo.forEach((m, i) => { m.count = countsLo[i]; m.instanceMatrix.needsUpdate = true; });
+    this.hi.forEach((m, i) => { m.count = counts[i]; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; });
+    this.lo.forEach((m, i) => { m.count = countsLo[i]; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; });
     this.trunks.forEach((m, i) => { m.count = countsT[i]; m.instanceMatrix.needsUpdate = true; });
   }
 }
