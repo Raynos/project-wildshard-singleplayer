@@ -15,16 +15,21 @@ import type { Forest } from './Forest';
  *   scene.add(grass.group);
  *   game.onUpdate((dt) => grass.update(dt, player.position));
  *
- * One InstancedMesh of ~50k grass *clumps* (3 crossed, curved blade quads each, procedural
- * Canvas2D blade atlas) that follows the player in a 4 m cell grid (toroidal slot table). A cell
- * is (re)seeded from a hash of its coordinates, so the same square metre always grows the same
- * grass. Density comes from the terrain splat (dense on the grass layer, sparse on forest floor,
- * none on trail / rock / cabin pads / inside trunks). Instances sit on `heightAt` and tilt to the
- * cell's `normalAt`. Wind, distance fade (instances shrink to 0 in the outer FADE metres of the
- * ring) and translucent light-wrap are all in the vertex/fragment shader, so the CPU only works
- * when the player crosses a cell boundary (and then at most `budget` cells per frame).
+ * One InstancedMesh (one draw call, 75k slots, ~25–35k live clumps) of grass *clumps* — 3 crossed,
+ * curved blade quads each, drawn from a procedural Canvas2D blade atlas — that follows the player
+ * in a 4 m cell grid (toroidal slot table, 28×28 cells × 96 slots). A cell is (re)seeded from a
+ * hash of its coordinates, so the same square metre always grows the same grass. Density comes
+ * from the terrain splat (dense on the grass layer, sparse on forest floor, none on trail / rock /
+ * cabin pads / inside trunks). Instances sit on `heightAt`, tilt to the cell's `normalAt`, and get
+ * a per-instance colour (yellow-green ↔ deep green patches, olive-brown on the forest floor).
+ * Everything else is in the shader: gust-front wind (windUniforms.uTime), distance LOD (3 → 2 → 1
+ * quads, then every other clump, then shrink to 0 in the outer FADE metres), fake root AO,
+ * translucent light-wrap / sun backlight, alpha sharpening so distant grass keeps its coverage.
+ * The CPU only works when the player crosses a cell boundary (≈0.13 ms per cell, at most
+ * `params.budget` cells per frame; the first fill after a spawn/teleport is done at once, ~50 ms).
  *
- * Public: `group`, `mesh`, `update(dt, playerPos)`, `radius`, `params` (live tunables).
+ * Public: `group`, `mesh`, `material`, `update(dt, playerPos)`, `radius`,
+ *         `params` = { budget, windStrength } (live tunables).
  */
 
 const RADIUS = 55;         // metres: ring around the player that has grass
@@ -34,6 +39,7 @@ const N = Math.ceil((RADIUS * 2) / CELL); // 28 cells per side
 const K = 96;              // instance slots per cell → 75 264 instances
 
 const grassUniforms = {
+  uGrassWind: { value: 1.0 },
   uRadius: { value: RADIUS },
   uFade: { value: FADE },
   uSunDir: { value: new THREE.Vector3(0, 1, 0) },
@@ -98,7 +104,7 @@ export class Grass {
       shader.uniforms.uWindStrength = windUniforms.uWindStrength;
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', /* glsl */`#include <common>
-          uniform float uTime; uniform float uWindStrength; uniform float uRadius; uniform float uFade;
+          uniform float uTime; uniform float uWindStrength; uniform float uGrassWind; uniform float uRadius; uniform float uFade;
           attribute float quadId;
           varying float vH;`)
         .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
@@ -126,7 +132,7 @@ export class Grass {
             float ripple = sin( uTime * 2.9 - phase * 2.1 + wpos.x * 0.45 ) * 0.5 + 0.5;
             float flutter = sin( uTime * 6.5 + wpos.x * 4.3 + wpos.z * 3.1 );
             float s2 = dot( im[0], im[0] );
-            float amp = ( 0.02 + gust * 0.13 * ( 0.7 + 0.6 * rnd ) + ripple * 0.045 ) * uWindStrength * sqrt( s2 ) * 2.0;
+            float amp = ( 0.02 + gust * 0.13 * ( 0.7 + 0.6 * rnd ) + ripple * 0.045 ) * uWindStrength * uGrassWind * sqrt( s2 ) * 2.0;
             float w = h * h;
             // a little per-clump lean in a random direction so the field is not combed flat
             vec2 leanDir = vec2( cos( rnd * 6.2832 ), sin( rnd * 6.2832 ) ) * 0.05;
@@ -164,7 +170,7 @@ export class Grass {
   }
 
   update(_dt: number, playerPos: THREE.Vector3) {
-    windUniforms.uWindStrength.value = this.params.windStrength;
+    grassUniforms.uGrassWind.value = this.params.windStrength;
     const pcx = Math.floor(playerPos.x / CELL), pcz = Math.floor(playerPos.z / CELL);
     if (pcx !== this.lastCellX || pcz !== this.lastCellZ) {
       const first = this.lastCellX === 0x7fffffff;
