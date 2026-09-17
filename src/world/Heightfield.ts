@@ -45,7 +45,7 @@ export function trailDistance(x: number, z: number): number {
 /** 0..1: how much this point is inside the mandated flat entry road at an edge midpoint */
 function entryRoadMask(x: number, z: number): number {
   const half = ROAD_WIDTH / 2 + 3;
-  const along = (a: number, b: number) => smoothstep(half + 6, half, Math.abs(a)) * smoothstep(CHUNK_HALF - ROAD_LENGTH - 25, CHUNK_HALF - ROAD_LENGTH + 5, Math.abs(b));
+  const along = (a: number, b: number) => smoothstep(half + 22, half, Math.abs(a)) * smoothstep(CHUNK_HALF - ROAD_LENGTH - 25, CHUNK_HALF - ROAD_LENGTH + 5, Math.abs(b));
   return Math.max(along(x, z), along(z, x));
 }
 
@@ -69,7 +69,7 @@ function landscape(x: number, z: number): number {
   h -= smoothstep(220, 40, r) * 5;
   // rim: rise toward the chunk edges except where the roads enter (feels like a bounded shard)
   const edge = Math.max(Math.abs(x), Math.abs(z)) / CHUNK_HALF;
-  h += smoothstep(0.72, 1.0, edge) * 9;
+  h += smoothstep(0.78, 1.0, edge) * 4.5;
   return h;
 }
 

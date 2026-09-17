@@ -55,12 +55,22 @@ export class TreeFactory {
     this.needleMaterial.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
       patchWind(shader);
-      // soft light wrap so backlit needles glow a little instead of going black
-      shader.fragmentShader = shader.fragmentShader.replace(
-        '#include <lights_fragment_begin>',
-        `#include <lights_fragment_begin>
-         reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.06;`,
-      );
+      // Foliage shading: bend the card normal toward "up" so the crown lights like a volume
+      // instead of a stack of flat planes, and darken cards toward the trunk / lower crown.
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nvarying float vCrownAO;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvCrownAO = mix(0.5, 1.0, uv.x) * mix(0.72, 1.0, windWeight);');
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying float vCrownAO;')
+        .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+          {
+            vec3 upV = normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz );
+            vec3 toCam = normalize( - vViewPosition );
+            normal = normalize( mix( normal, upV * 0.8 + toCam * 0.5, 0.65 ) );
+          }`)
+        .replace('#include <lights_fragment_begin>', `#include <lights_fragment_begin>
+          reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.05;`)
+        .replace('#include <map_fragment>', '#include <map_fragment>\ndiffuseColor.rgb *= vCrownAO;');
     };
     this.needleMaterial.customProgramCacheKey = () => 'needles';
     this.needleDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: card.albedo, alphaTest: 0.45, side: THREE.DoubleSide });
@@ -96,40 +106,45 @@ export class TreeFactory {
     const rng = new Rng(99);
     const group = new THREE.Group();
     const aspect = 200 / 408; // twig width / height
-    // main stem from (0,0) to (2,0) in the XY plane; twigs alternate along it, angled forward
-    const N = 34;
+    // main stem from (-1,0) to (1,0) in the XY plane; twigs alternate along it, angled toward the tip
+    const N = 22;
     for (let i = 0; i < N; i++) {
       const t = i / (N - 1);
-      const x = -0.95 + t * 1.9 + rng.range(-0.02, 0.02);
-      const side = i % 2 === 0 ? 1 : -1;
-      const len = 0.62 * (1 - t * 0.55) * rng.range(0.85, 1.15);
-      const m = new THREE.Mesh(twigGeo);
-      m.position.set(x, side * 0.03, rng.range(-0.05, 0.05));
-      m.rotation.z = side * (-Math.PI / 2 + rng.range(0.55, 0.95)) + Math.PI / 2 * (side > 0 ? 0 : 0);
-      // twig "up" (its +Y) should point away from stem and forward (+x)
-      m.rotation.z = side > 0 ? -1.05 + rng.range(-0.15, 0.15) : -2.1 + rng.range(-0.15, 0.15);
-      m.rotation.x = rng.range(-0.35, 0.35);
-      m.scale.set(len * aspect * 1.25, len, 1);
-      group.add(m);
+      for (const side of [1, -1]) {
+        for (let layer = 0; layer < 2; layer++) {
+          const x = -0.98 + t * 1.9 + rng.range(-0.04, 0.04);
+          const len = (0.66 - t * 0.34) * rng.range(0.75, 1.2);
+          const m = new THREE.Mesh(twigGeo);
+          m.position.set(x, side * rng.range(0.0, 0.08), layer * 0.04 + rng.range(-0.02, 0.02));
+          // twig +Y points away from the stem and forward (+x); -1.05 rad ≈ 60° forward-up, mirrored below
+          const base = side > 0 ? -1.0 : -2.14;
+          m.rotation.z = base + rng.range(-0.25, 0.25) + layer * (side > 0 ? -0.2 : 0.2);
+          m.rotation.x = rng.range(-0.4, 0.4);
+          m.scale.set(len * aspect * (rng.next() < 0.5 ? 1 : -1), len, 1);
+          group.add(m);
+        }
+      }
     }
-    // tip twig pointing along +x
-    const tip = new THREE.Mesh(twigGeo); tip.position.set(0.98, 0, 0); tip.rotation.z = -Math.PI / 2; tip.scale.set(0.4 * aspect * 1.3, 0.45, 1); group.add(tip);
-    // a few twigs on top to fill the middle
-    for (let i = 0; i < 10; i++) {
-      const m = new THREE.Mesh(twigGeo);
-      m.position.set(rng.range(-0.8, 0.7), rng.range(-0.08, 0.08), 0.05);
-      m.rotation.z = rng.range(-2.6, -0.5); m.rotation.x = rng.range(-0.3, 0.3);
-      const len = rng.range(0.35, 0.5); m.scale.set(len * aspect * 1.25, len, 1); group.add(m);
+    // tip twigs pointing along +x
+    for (let i = 0; i < 3; i++) {
+      const tip = new THREE.Mesh(twigGeo); tip.position.set(0.9 + i * 0.03, (i - 1) * 0.05, 0.02 * i);
+      tip.rotation.z = -Math.PI / 2 + (i - 1) * 0.25; tip.scale.set(0.42 * aspect, 0.5, 1); group.add(tip);
     }
+    // stem: a thin dark strip so the branch reads as connected
+    const stemShape = new THREE.Shape([new THREE.Vector2(-1, -0.03), new THREE.Vector2(0.95, -0.006), new THREE.Vector2(0.95, 0.006), new THREE.Vector2(-1, 0.03)]);
+    const stem = new THREE.Mesh(new THREE.ShapeGeometry(stemShape), new THREE.MeshBasicMaterial({ color: 0x2a1d12 }));
+    stem.position.set(0, 0, -0.02); group.add(stem);
     scene.add(group);
 
     const cam = new THREE.OrthographicCamera(-1, 1, 0.5, -0.5, 0.01, 10);
     cam.position.set(0, 0, 5); cam.lookAt(0, 0, 0);
-    const W = 1024, H = 512;
+    const W = 2048, H = 1024;
     const rt = (colorSpace: THREE.ColorSpace) => new THREE.WebGLRenderTarget(W, H, { colorSpace, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter, magFilter: THREE.LinearFilter });
 
-    const render = (mat: THREE.Material, target: THREE.WebGLRenderTarget, clear: THREE.Color, clearAlpha: number) => {
-      group.traverse((o) => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).material = mat; });
+    const stemMats = [new THREE.MeshBasicMaterial({ color: 0x2a1d12 }), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.5, 0.5, 1.0) }), new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.9, 0) })];
+    const render = (mode: number, mat: THREE.Material, target: THREE.WebGLRenderTarget, clear: THREE.Color, clearAlpha: number) => {
+      group.traverse((o) => { if ((o as THREE.Mesh).isMesh && o !== stem) (o as THREE.Mesh).material = mat; });
+      stem.material = stemMats[mode];
       const prev = this.renderer.getRenderTarget();
       const prevClear = this.renderer.getClearColor(new THREE.Color()); const prevAlpha = this.renderer.getClearAlpha();
       const prevTone = this.renderer.toneMapping; this.renderer.toneMapping = THREE.NoToneMapping;
@@ -168,11 +183,11 @@ export class TreeFactory {
     });
 
     const albedoRT = rt(THREE.SRGBColorSpace);
-    render(bakeMat(0), albedoRT, new THREE.Color(0.12, 0.2, 0.08), 0);
+    render(0, bakeMat(0), albedoRT, new THREE.Color(0.12, 0.2, 0.08), 0);
     const normalRT = rt(THREE.LinearSRGBColorSpace);
-    render(bakeMat(1), normalRT, new THREE.Color(0.5, 0.5, 1.0), 1);
+    render(1, bakeMat(1), normalRT, new THREE.Color(0.5, 0.5, 1.0), 1);
     const armRT = rt(THREE.LinearSRGBColorSpace);
-    render(bakeMat(2), armRT, new THREE.Color(1, 0.85, 0), 1);
+    render(2, bakeMat(2), armRT, new THREE.Color(1, 0.85, 0), 1);
 
     for (const t of [albedoRT.texture, normalRT.texture, armRT.texture]) { t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 8; }
     twigGeo.dispose();
@@ -200,18 +215,18 @@ export class TreeFactory {
     const cards: THREE.BufferGeometry[] = [];
     const card = new THREE.PlaneGeometry(2, 1);       // matches the bake: x ∈ [-1,1], y ∈ [-0.5,0.5]
     card.translate(1, 0, 0);                           // pivot at the base of the branch
-    const crownStart = height * rng.range(0.22, 0.3);
-    const whorlStep = 0.75 + height * 0.012;
+    const crownStart = height * (height < 15 ? rng.range(0.12, 0.2) : rng.range(0.3, 0.42));
+    const whorlStep = 0.5 + height * 0.011;
     let y = crownStart;
     const tmp = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
     while (y < height * 0.96) {
       const t = (y - crownStart) / (height - crownStart);
-      const count = Math.max(2, Math.round((5 - t * 2.5) * detail + rng.range(0, 1)));
-      const baseLen = (3.4 - t * 2.7) * (height / 20) * rng.range(0.85, 1.15);
+      const count = Math.max(2, Math.round((7 - t * 3.5) * detail + rng.range(0, 1)));
+      const baseLen = (3.9 - t * 3.1) * (height / 20) * rng.range(0.85, 1.15);
       const yawOff = rng.range(0, Math.PI * 2);
       for (let b = 0; b < count; b++) {
         const yaw = yawOff + (b / count) * Math.PI * 2 + rng.range(-0.4, 0.4);
-        const droop = -0.28 - t * 0.12 + rng.range(-0.12, 0.12);
+        const droop = -0.4 + t * 0.32 + rng.range(-0.12, 0.12);
         const len = baseLen * rng.range(0.85, 1.15);
         const width = len * 0.5;
         const ox = Math.cos(yaw) * (trunkR * (1 - y / height) + 0.02 + bendX * (y / height) ** 2 * 0);

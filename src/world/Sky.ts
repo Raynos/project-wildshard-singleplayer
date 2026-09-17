@@ -112,15 +112,16 @@ export class Sky {
   private buildPlanet() {
     // A gas giant with rings sits low over the east horizon — the world's signature skyline.
     const dir = this.planetDir;
-    const dist = 1700, radius = 190;
-    const body = new THREE.Mesh(new THREE.SphereGeometry(radius, 48, 48), new THREE.MeshLambertMaterial({
-      color: 0xc9b39a, fog: false, emissive: 0x2a2f45, emissiveIntensity: 0.6,
+    const dist = 1700, radius = 300;
+    const body = new THREE.Mesh(new THREE.SphereGeometry(radius, 64, 64), new THREE.MeshLambertMaterial({
+      color: 0xb9c2cc, fog: false, emissive: 0x4a5a70, emissiveIntensity: 0.9,
     }));
     const bandsTex = makePlanetTexture();
     (body.material as THREE.MeshLambertMaterial).map = bandsTex;
     const ringTex = makeRingTexture();
-    const ring = new THREE.Mesh(new THREE.RingGeometry(radius * 1.35, radius * 2.3, 96, 1), new THREE.MeshLambertMaterial({
+    const ring = new THREE.Mesh(new THREE.RingGeometry(radius * 1.25, radius * 2.35, 128, 1), new THREE.MeshLambertMaterial({
       map: ringTex, transparent: true, side: THREE.DoubleSide, fog: false, depthWrite: false, alphaMap: ringTex,
+      color: 0xd8dde6, emissive: 0x2a3446, emissiveIntensity: 0.8,
     }));
     this.setupMaterial(body.material as THREE.Material);
     this.setupMaterial(ring.material as THREE.Material);
@@ -129,9 +130,9 @@ export class Sky {
     const pos = ring.geometry.attributes.position as THREE.BufferAttribute;
     for (let i = 0; i < uv.count; i++) {
       const r = Math.hypot(pos.getX(i), pos.getY(i));
-      uv.setXY(i, (r - radius * 1.35) / (radius * 0.95), 0.5);
+      uv.setXY(i, (r - radius * 1.25) / (radius * 1.1), 0.5);
     }
-    ring.rotation.x = Math.PI / 2 - 0.35; ring.rotation.z = 0.2;
+    ring.rotation.x = Math.PI / 2 - 0.42; ring.rotation.z = 0.35;
     this.planet.add(body, ring);
     this.planet.position.copy(dir).multiplyScalar(dist);
     this.planet.lookAt(0, 0, 0);
@@ -141,28 +142,36 @@ export class Sky {
 }
 
 function makePlanetTexture() {
-  const c = document.createElement('canvas'); c.width = 512; c.height = 256;
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 512;
   const g = c.getContext('2d')!;
-  const bands = ['#d9c3a5', '#b8956e', '#e5d3b8', '#a67c52', '#cdb590', '#8f6b47', '#e0cfb5', '#b9987a'];
-  for (let y = 0; y < 256; y++) {
-    const t = y / 256;
-    const b = bands[Math.floor(t * bands.length + Math.sin(t * 40) * 0.4) % bands.length];
-    g.fillStyle = b; g.globalAlpha = 0.85 + 0.15 * Math.sin(y * 0.3);
-    g.fillRect(0, y, 512, 1);
+  const bands = ['#d9d3c6', '#c4b8a6', '#e6e0d4', '#b8a996', '#d2c9ba', '#a8998a', '#e3dccf', '#c9bcab'];
+  for (let y = 0; y < 512; y++) {
+    const t = y / 512;
+    const k = t * bands.length + Math.sin(t * 37) * 0.6 + Math.sin(t * 91) * 0.25;
+    const b = bands[Math.floor(Math.abs(k)) % bands.length];
+    g.fillStyle = b; g.globalAlpha = 0.9 + 0.1 * Math.sin(y * 0.2);
+    g.fillRect(0, y, 1024, 1);
   }
-  g.globalAlpha = 0.25;
-  for (let i = 0; i < 40; i++) { g.fillStyle = i % 2 ? '#fff' : '#6b4a2f'; g.beginPath(); g.ellipse(Math.random() * 512, Math.random() * 256, 20 + Math.random() * 60, 4 + Math.random() * 8, 0, 0, Math.PI * 2); g.fill(); }
+  g.globalAlpha = 0.18;
+  for (let i = 0; i < 90; i++) {
+    g.fillStyle = i % 3 ? '#ffffff' : '#8a7a68'; g.beginPath();
+    g.ellipse(Math.random() * 1024, Math.random() * 512, 30 + Math.random() * 140, 3 + Math.random() * 7, 0, 0, Math.PI * 2); g.fill();
+  }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }
 
 function makeRingTexture() {
-  const c = document.createElement('canvas'); c.width = 512; c.height = 4;
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 4;
   const g = c.getContext('2d')!;
-  for (let x = 0; x < 512; x++) {
-    const t = x / 512;
-    const a = (0.35 + 0.65 * Math.abs(Math.sin(t * 60) * Math.sin(t * 13))) * (t < 0.08 ? t / 0.08 : 1) * (t > 0.92 ? (1 - t) / 0.08 : 1) * (Math.abs(t - 0.62) < 0.03 ? 0.15 : 1);
-    const l = 190 + 40 * Math.sin(t * 25);
-    g.fillStyle = `rgba(${l},${l - 15},${l - 40},${a})`; g.fillRect(x, 0, 1, 4);
+  for (let x = 0; x < 1024; x++) {
+    const t = x / 1024;
+    let a = 0.55 + 0.45 * Math.sin(t * 28) * Math.sin(t * 7.3 + 1) ;
+    a *= t < 0.06 ? t / 0.06 : 1;
+    a *= t > 0.9 ? (1 - t) / 0.1 : 1;
+    if (Math.abs(t - 0.58) < 0.035) a *= 0.12;            // Cassini-style gap
+    if (Math.abs(t - 0.3) < 0.012) a *= 0.4;
+    const l = 205 + 30 * Math.sin(t * 19);
+    g.fillStyle = `rgba(${l},${l - 8},${l - 22},${Math.max(0, Math.min(1, a))})`; g.fillRect(x, 0, 1, 4);
   }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }

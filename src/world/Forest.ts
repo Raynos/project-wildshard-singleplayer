@@ -61,7 +61,9 @@ export class Forest {
       const d = density.fbm(x * 0.008, z * 0.008, 3);            // clearings & dense groves
       const keep = smoothstep(-0.45, 0.35, d) * 0.92 + 0.08;
       if (rng.next() > keep) continue;
-      if (trailDistance(x, z) < 7 + rng.range(0, 3)) continue;
+      const roadEntry = (Math.abs(x) < 16 && Math.abs(z) > CHUNK_HALF - 95) || (Math.abs(z) < 16 && Math.abs(x) > CHUNK_HALF - 95);
+      if (roadEntry) continue;
+      if (trailDistance(x, z) < 9 + rng.range(0, 4)) continue;
       if (cabinMask(x, z) > 0.02) continue;
       const [, ny] = normalAt(x, z);
       if (ny < 0.72) continue;                                     // too steep

@@ -30,7 +30,9 @@ const MODEL_MAPS = {
   pine_tree_01: { res: '1k', maps: ['twig_diff', 'twig_nor_gl', 'twig_arm', 'twig_alpha'] },
 };
 
-const MODELS = ['rock_moss_set_01', 'tree_stump_01', 'dead_tree_trunk', 'stone_fire_pit'];
+const MODELS = ['rock_moss_set_01', 'tree_stump_01', 'dead_tree_trunk', 'stone_fire_pit',
+  // cabin props (cabins agent)
+  'Lantern_01', 'wooden_crate_02', 'barrel_03', 'wooden_bucket_01', 'hatchet'];
 const HDRIS = { kloofendal_48d_partly_cloudy_puresky: '2k' };
 
 async function exists(p) { try { await access(p); return true; } catch { return false; } }

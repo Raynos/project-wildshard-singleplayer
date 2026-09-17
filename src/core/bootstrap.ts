@@ -41,6 +41,14 @@ export async function bootstrap(): Promise<World> {
   player.pitch = num('pitch', 0);
   canvas.addEventListener('click', () => { if (!params.has('nolock')) player.lock(); });
 
+  if (params.get('debug') === 'card') {
+    // show the baked branch card in front of the camera
+    const m = factory.needleMaterial;
+    const tex = params.get('map') === 'normal' ? m.normalMap : params.get('map') === 'arm' ? m.roughnessMap : m.map;
+    const q = new THREE.Mesh(new THREE.PlaneGeometry(2, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
+    game.camera.add(q); q.position.set(0, 0, -1.2); game.scene.add(game.camera);
+  }
+
   game.onUpdate((dt) => { player.update(dt); forest.update(dt, player.position); });
   return { game, sky, terrain, forest, player, params, num };
 }
