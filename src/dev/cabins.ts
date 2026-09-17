@@ -5,6 +5,7 @@
 import { bootstrap } from '../core/bootstrap';
 import { Cabins } from '../world/Cabin';
 import { Props } from '../world/Props';
+import { heightAt } from '../world/Heightfield';
 
 const world = await bootstrap();
 const cabins = new Cabins(world.sky);
@@ -31,6 +32,6 @@ function interact() {
 }
 document.addEventListener('keydown', (e) => { if (e.code === 'KeyE') interact(); });
 
-(window as unknown as { __world: unknown }).__world = { ...world, cabins, props, interactables, interact };
+(window as unknown as { __world: unknown }).__world = { ...world, cabins, props, interactables, interact, heightAt };
 world.game.buildComposer();
 world.game.start();

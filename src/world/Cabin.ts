@@ -5,6 +5,7 @@ import { loadPBR, loadGLTF, pbrMaterial, type PBRSet } from '../core/assets';
 import { Rng } from '../core/rng';
 import { SEED } from '../core/config';
 import { heightAt, CABIN_SITES } from './Heightfield';
+import { attachFogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
 import type { Collider } from '../player/Player';
 
@@ -50,6 +51,16 @@ const RAFTER_H = 0.14;
 const SHEET = 0.045;
 
 interface Opening { a0: number; a1: number; y0: number; y1: number } // along-wall range, height range (absolute local y)
+const FRAME = 0.09;                                                   // window frame thickness
+/** snap a height to the nearest chinking gap of a wall (eave walls: rows at (i+½)·LOG, gable walls: (i+1)·LOG) */
+function snapRow(y: number, gableWall: boolean) {
+  const off = gableWall ? 0.5 : 0;
+  return PLINTH + (Math.round((y - PLINTH) / LOG - off) + off) * LOG;
+}
+/** the hole cut through the logs for a window: glass opening + frame, top/bottom snapped to log gaps so no cut log end shows */
+function roughOpening(o: Opening, gableWall: boolean): Opening {
+  return { a0: o.a0 - FRAME + 0.01, a1: o.a1 + FRAME - 0.01, y0: snapRow(o.y0 - FRAME, gableWall), y1: snapRow(o.y1 + FRAME, gableWall) };
+}
 type WallId = 'front' | 'back' | 'zpos' | 'zneg';
 interface WallExt { from?: number; to?: number; overhangFrom?: boolean; overhangTo?: boolean }
 interface LogBoxOpts {
@@ -189,15 +200,15 @@ async function loadMats(sky: Sky): Promise<Mats> {
   const std = (set: PBRSet, extra: THREE.MeshStandardMaterialParameters = {}) => pbrMaterial(set, { metalness: 0, ...extra });
   const m: Mats = {
     log: std(logSet, { color: new THREE.Color(0.95, 0.9, 0.84), normalScale: new THREE.Vector2(0.8, 0.8) }),
-    endGrain: new THREE.MeshStandardMaterial({ map: makeEndGrainTexture(), roughness: 0.92, metalness: 0, color: 0xb9a482 }),
-    chink: new THREE.MeshStandardMaterial({ color: 0x5e574d, roughness: 1, metalness: 0 }),
+    endGrain: new THREE.MeshStandardMaterial({ map: makeEndGrainTexture(), roughness: 0.95, metalness: 0, color: 0xb0a48e }),
+    chink: new THREE.MeshStandardMaterial({ color: 0x4d473f, roughness: 1, metalness: 0 }),
     roof: std(roofSet, { color: new THREE.Color(0.62, 0.58, 0.53), normalScale: new THREE.Vector2(1.2, 1.2) }),
     beam: std(beamSet, { color: new THREE.Color(0.9, 0.86, 0.8) }),
     deck: std(deckSet),
     door: std(doorSet, { color: new THREE.Color(0.72, 0.68, 0.62) }),
     stone: std(stoneSet, { color: new THREE.Color(0.8, 0.78, 0.74) }),
     glass: new THREE.MeshPhysicalMaterial({
-      color: 0x243038, roughness: 0.06, metalness: 0, transparent: true, opacity: 0.6, envMapIntensity: 1.4,
+      color: 0x0e1216, roughness: 0.05, metalness: 0, transparent: true, opacity: 0.72, envMapIntensity: 1.8,
       emissive: new THREE.Color(1.0, 0.68, 0.38), emissiveIntensity: 0.4, side: THREE.DoubleSide, depthWrite: false,
     }),
     bark: std(barkSet, { color: new THREE.Color(0.85, 0.8, 0.75) }),
@@ -209,6 +220,13 @@ async function loadMats(sky: Sky): Promise<Mats> {
     ember: makeParticleMaterial('ember'),
     glow: new THREE.MeshBasicMaterial({ map: makeGlowTexture(), color: 0xff7a1a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
   };
+  // the rough_pine_door scan is a saturated orange-red: pull it toward a weathered grey-brown in the shader
+  m.door.onBeforeCompile = (shader) => {
+    attachFogUniforms(shader);
+    shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+      diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.333))), diffuseColor.rgb, 0.45) * vec3(0.9, 0.95, 1.0);`);
+  };
+  m.door.customProgramCacheKey = () => 'cabin-door';
   for (const k of ['log', 'endGrain', 'chink', 'roof', 'beam', 'deck', 'door', 'stone', 'glass', 'bark', 'iron', 'cloth', 'char'] as const) sky.setupMaterial(m[k]);
   return m;
 }
@@ -216,8 +234,10 @@ async function loadMats(sky: Sky): Promise<Mats> {
 function makeEndGrainTexture() {
   const c = document.createElement('canvas'); c.width = c.height = 256;
   const g = c.getContext('2d')!;
-  g.fillStyle = '#c9ad82'; g.fillRect(0, 0, 256, 256);
+  g.fillStyle = '#9d8b6c'; g.fillRect(0, 0, 256, 256);
   const rng = new Rng(SEED + 31);
+  // weathering speckle
+  for (let i = 0; i < 6000; i++) { g.fillStyle = rng.next() < 0.5 ? 'rgba(60,45,30,0.25)' : 'rgba(200,185,160,0.2)'; g.fillRect(rng.range(0, 256), rng.range(0, 256), 1 + rng.range(0, 2), 1 + rng.range(0, 2)); }
   for (let r = 4; r < 128; r += 3 + rng.range(0, 4)) {
     g.beginPath();
     for (let a = 0; a <= 64; a++) {
@@ -227,13 +247,13 @@ function makeEndGrainTexture() {
       a ? g.lineTo(x, y) : g.moveTo(x, y);
     }
     g.closePath();
-    g.strokeStyle = rng.next() < 0.5 ? 'rgba(120,80,40,0.45)' : 'rgba(150,110,60,0.3)';
-    g.lineWidth = 1 + rng.range(0, 1.5);
+    g.strokeStyle = rng.next() < 0.5 ? 'rgba(70,50,30,0.5)' : 'rgba(110,85,55,0.35)';
+    g.lineWidth = 0.8 + rng.range(0, 1.4);
     g.stroke();
   }
-  g.strokeStyle = 'rgba(60,35,15,0.7)'; g.lineWidth = 1.5;
-  for (let i = 0; i < 5; i++) { const th = rng.range(0, Math.PI * 2); g.beginPath(); g.moveTo(128, 128); g.lineTo(128 + Math.cos(th) * 120, 128 + Math.sin(th) * 120); g.stroke(); }
-  g.strokeStyle = '#4a3320'; g.lineWidth = 10; g.beginPath(); g.arc(128, 128, 123, 0, Math.PI * 2); g.stroke();
+  g.strokeStyle = 'rgba(40,28,15,0.8)';
+  for (let i = 0; i < 7; i++) { const th = rng.range(0, Math.PI * 2), l = rng.range(50, 122); g.lineWidth = 1 + rng.range(0, 2); g.beginPath(); g.moveTo(128 + Math.cos(th) * 8, 128 + Math.sin(th) * 8); g.lineTo(128 + Math.cos(th + 0.05) * l, 128 + Math.sin(th + 0.05) * l); g.stroke(); }
+  g.strokeStyle = '#3d2c1c'; g.lineWidth = 9; g.beginPath(); g.arc(128, 128, 124, 0, Math.PI * 2); g.stroke();
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
 }
 
@@ -403,7 +423,7 @@ function logGeo(len: number, r: number, board: number, vOff: number, segs = 14, 
   const pos = side.attributes.position as THREE.BufferAttribute, uv = side.attributes.uv as THREE.BufferAttribute;
   for (let i = 0; i < pos.count; i++) {
     const th = Math.atan2(pos.getZ(i), pos.getX(i)) / (Math.PI * 2) + 0.5; // 0..1 around
-    if (bark) uv.setXY(i, th * (r * 6.3) * 1.1, (pos.getY(i) + vOff) * 1.1);
+    if (bark) uv.setXY(i, th * (r * 6.283) * 0.5, (pos.getY(i) + vOff) * 0.5); // pine_bark is a 2 m tile
     else {
       const tri = th < 0.5 ? th * 2 : 2 - th * 2;                              // mirror so the board wraps front & back
       uv.setXY(i, (board + 0.06 + tri * 0.88) / BOARDS, (pos.getY(i) + vOff) / BOARD_LEN);
@@ -564,6 +584,8 @@ class CabinBuilder {
       w.from = e.from ?? w.from; w.to = e.to ?? w.to;
       const ohF = e.overhangFrom ?? true, ohT = e.overhangTo ?? true;
       const wallOps = ops[w.id] ?? [];
+      // gable walls start half a row up: a slim sill log fills the gap to the plinth
+      if (w.y0 === 1.0) this.log(w.to - w.from, ox + (w.from + w.to) / 2, PLINTH + 0.07, oz + w.at, false, 0.07);
       const nRows = w.gable ? rows + Math.ceil((ridge - wallTop) / LOG) + 1 : rows;
       for (let i = 0; i < nRows; i++) {
         const yc = PLINTH + (i + w.y0) * LOG;
@@ -616,10 +638,10 @@ class CabinBuilder {
   private openingsFor(): Partial<Record<WallId, Opening[]>> {
     const out: Partial<Record<WallId, Opening[]>> = {};
     (out.front ??= []).push(this.doorOpening());
-    for (const w of this.spec.windows) (out[w.wall] ??= []).push(this.windowOpening(w));
+    for (const w of this.spec.windows) (out[w.wall] ??= []).push(roughOpening(this.windowOpening(w), w.wall === 'zpos' || w.wall === 'zneg'));
     return out;
   }
-  private doorOpening(): Opening { return { a0: this.spec.doorZ - 0.55, a1: this.spec.doorZ + 0.55, y0: PLINTH - 0.05, y1: FLOOR + 2.1 + 0.06 }; }
+  private doorOpening(): Opening { return { a0: this.spec.doorZ - 0.54, a1: this.spec.doorZ + 0.54, y0: PLINTH - 0.05, y1: snapRow(FLOOR + 2.1 + 0.1, false) }; }
   private windowOpening(w: WindowSpec): Opening {
     const ww = w.w ?? 0.95, h = w.h ?? 0.85, y = w.y ?? FLOOR + 1.15;
     return { a0: w.at - ww / 2, a1: w.at + ww / 2, y0: y, y1: y + h };
@@ -659,12 +681,13 @@ class CabinBuilder {
     const dz = this.spec.doorZ, x = W / 2 - LOG_R;
     const H = 2.1, DW = 0.95;
     const fd = LOG * 1.15;
-    this.box('beam', fd, H + 0.12, 0.1, x, FLOOR + (H + 0.12) / 2, dz - 0.5, 1.0);
-    this.box('beam', fd, H + 0.12, 0.1, x, FLOOR + (H + 0.12) / 2, dz + 0.5, 1.0);
-    this.box('beam', fd, 0.12, 1.1, x, FLOOR + H + 0.12, dz, 1.0);
+    const top = this.doorOpening().y1 + 0.01;
+    this.box('beam', fd, top - FLOOR, 0.1, x, (top + FLOOR) / 2, dz - 0.5, 1.0);
+    this.box('beam', fd, top - FLOOR, 0.1, x, (top + FLOOR) / 2, dz + 0.5, 1.0);
+    this.box('beam', fd, top - (FLOOR + H + 0.04), 1.1, x, (top + FLOOR + H + 0.04) / 2, dz, 1.0);
     this.box('beam', fd + 0.06, 0.05, 1.1, x, FLOOR + 0.02, dz, 1.0);
     const pivot = new THREE.Group();
-    pivot.position.set(x - 0.02, FLOOR + 0.04, dz - DW / 2);
+    pivot.position.set(x - 0.02, FLOOR + 0.02, dz - DW / 2);
     const leaf = new THREE.BoxGeometry(0.06, H, DW);
     {
       const uv = leaf.attributes.uv as THREE.BufferAttribute, pos = leaf.attributes.position as THREE.BufferAttribute, nor = leaf.attributes.normal as THREE.BufferAttribute;
@@ -711,13 +734,15 @@ class CabinBuilder {
   // ── windows: frame, sill, mullions, glass ──
   private windowFrame(o: Opening, alongZ: boolean, at: number, glass: THREE.BufferGeometry[]) {
     const ww = o.a1 - o.a0, hh = o.y1 - o.y0, yc = (o.y0 + o.y1) / 2, ac = (o.a0 + o.a1) / 2;
-    const fd = LOG * 1.15, ft = 0.09;
+    const rough = roughOpening(o, !alongZ);
+    const sillH = o.y0 - rough.y0 + 0.01, headH = rough.y1 - o.y1 + 0.01;   // fill up to the log gaps
+    const fd = LOG * 1.15, ft = FRAME;
     const g: THREE.BufferGeometry[] = [];
     const fb = (w: number, h: number, d: number, x: number, y: number, z: number) => g.push(boxUV(new THREE.BoxGeometry(w, h, d), 1, this.rng.next(), this.rng.next()).translate(x, y, z));
-    fb(ww + ft * 2, ft, fd, 0, hh / 2 + ft / 2, 0);
-    fb(ww + ft * 2, ft, fd + 0.06, 0, -hh / 2 - ft / 2, 0);   // sill, slightly proud
-    fb(ft, hh, fd, -ww / 2 - ft / 2, 0, 0);
-    fb(ft, hh, fd, ww / 2 + ft / 2, 0, 0);
+    fb(ww + ft * 2, headH, fd, 0, hh / 2 + headH / 2, 0);
+    fb(ww + ft * 2, sillH, fd + 0.06, 0, -hh / 2 - sillH / 2, 0);   // sill, slightly proud
+    fb(ft, hh + sillH + headH, fd, -ww / 2 - ft / 2, (headH - sillH) / 2, 0);
+    fb(ft, hh + sillH + headH, fd, ww / 2 + ft / 2, (headH - sillH) / 2, 0);
     fb(0.04, hh, 0.04, 0, 0, 0);
     fb(ww, 0.04, 0.04, 0, 0, 0);
     const m = new THREE.Matrix4().makeRotationY(alongZ ? -Math.PI / 2 : 0).setPosition(alongZ ? at : ac, yc, alongZ ? ac : at);
@@ -921,7 +946,7 @@ class CabinBuilder {
       gables: { zpos: side > 0, zneg: side < 0 },
       skip: [nearWall, 'back'],
       ext: { front: side > 0 ? { from: -hza - LOG_R + 0.05, overhangFrom: false } : { to: hza + LOG_R - 0.05, overhangTo: false } },
-      openings: { [farWall]: [win] },
+      openings: { [farWall]: [roughOpening(win, true)] },
     });
     this.roof(a.W, a.L, ox, oz, a.pitch, wallTop, 0.45, 0.45, side > 0 ? 0.45 : -0.15, side > 0 ? -0.15 : 0.45);
     const glass: THREE.BufferGeometry[] = [];

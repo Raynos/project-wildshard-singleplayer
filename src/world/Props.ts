@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { SEED } from '../core/config';
 import { Rng } from '../core/rng';
 import { smoothstep } from '../core/noise';
-import { heightAt, normalAt, trailDistance, cabinMask, inChunk, CABIN_SITES } from './Heightfield';
+import { heightAt, normalAt, trailDistance, cabinMask, inChunk, CABIN_SITES, TRAILS } from './Heightfield';
 import { loadLod, prepModel } from './Cabin';
 import type { Sky } from './Sky';
 import type { Forest } from './Forest';
@@ -38,6 +38,12 @@ export class Props {
     // bushes: implemented but off by default — low-poly clumps read as blobs next to the photoscans
     if (this.withBushes) this.bushes();
     return this.group;
+  }
+
+  /** a random point on a random trail segment */
+  private trailPoint(rng: Rng): [number, number] {
+    const poly = rng.pick(TRAILS), i = rng.int(0, poly.length - 2), t = rng.next();
+    return [poly[i][0] + (poly[i + 1][0] - poly[i][0]) * t, poly[i][1] + (poly[i + 1][1] - poly[i][1]) * t];
   }
 
   private treeFree(x: number, z: number, r: number) {
@@ -78,15 +84,19 @@ export class Props {
       return { ...p, local, radius, height, mats: [] as THREE.Matrix4[] };
     });
     let n = 0, tries = 0;
-    while (n < 350 && tries++ < 20000) {
-      const x = rng.range(-244, 244), z = rng.range(-244, 244);
+    while (n < 380 && tries++ < 30000) {
+      // half the boulders line the trails (where the player actually walks), the rest follow the slopes
+      let x: number, z: number;
+      const nearTrail = rng.next() < 0.5;
+      if (nearTrail) { const p = this.trailPoint(rng); const a = rng.range(0, Math.PI * 2), d = rng.range(3.5, 16); x = p[0] + Math.cos(a) * d; z = p[1] + Math.sin(a) * d; }
+      else { x = rng.range(-244, 244); z = rng.range(-244, 244); }
       if (!inChunk(x, z, 6) || cabinMask(x, z) > 0.2) continue;
       const td = trailDistance(x, z);
       if (td < 3) continue;
       const [, ny] = normalAt(x, z, 1.0);
       const slope = 1 - ny;
       // rocks favour slopes and the rocky ridges; a sprinkle everywhere
-      if (rng.next() > 0.18 + 0.82 * smoothstep(0.04, 0.3, slope)) continue;
+      if (!nearTrail && rng.next() > 0.18 + 0.82 * smoothstep(0.04, 0.3, slope)) continue;
       const shape = rng.pick(shapes);
       // log-distributed size: mostly knee-high, a few car-sized
       const scale = Math.exp(rng.range(Math.log(0.3), Math.log(1.7)));
@@ -107,13 +117,13 @@ export class Props {
     const rng = new Rng(SEED + 202);
     const mats: THREE.Matrix4[] = [];
     let tries = 0;
-    while (mats.length < 60 && tries++ < 20000) {
+    while (mats.length < 70 && tries++ < 20000) {
       let x: number, z: number;
       if (rng.next() < 0.4) {
         const c = rng.pick(CABIN_SITES);
         const a = rng.range(0, Math.PI * 2), d = rng.range(9, 22);
         x = c.x + Math.cos(a) * d; z = c.z + Math.sin(a) * d;
-      } else { x = rng.range(-240, 240); z = rng.range(-240, 240); }
+      } else { const p = this.trailPoint(rng); const a = rng.range(0, Math.PI * 2), d = rng.range(3.5, 14); x = p[0] + Math.cos(a) * d; z = p[1] + Math.sin(a) * d; }
       if (!inChunk(x, z, 6)) continue;
       const td = trailDistance(x, z);
       if (td < 3.5 || (td > 14 && cabinMask(x, z) < 0.02)) continue;
@@ -137,14 +147,16 @@ export class Props {
     const bb = p0.geometry.boundingBox!;
     const halfLen = (bb.max.x - bb.min.x) / 2, bottom = bb.min.y;
     let tries = 0;
-    while (mats.length < 45 && tries++ < 30000) {
-      const x = rng.range(-240, 240), z = rng.range(-240, 240);
+    while (mats.length < 55 && tries++ < 30000) {
+      let x: number, z: number;
+      if (rng.next() < 0.7) { const p = this.trailPoint(rng); const a = rng.range(0, Math.PI * 2), d = rng.range(4.5, 12); x = p[0] + Math.cos(a) * d; z = p[1] + Math.sin(a) * d; }
+      else { x = rng.range(-240, 240); z = rng.range(-240, 240); }
       if (!inChunk(x, z, 7) || cabinMask(x, z) > 0.2) continue;
       const td = trailDistance(x, z);
-      if (td < 4.5 || (td > 9 && rng.next() < 0.6)) continue;      // bias toward trail edges
+      if (td < 4.5) continue;
       const [nx, ny, nz] = normalAt(x, z, 1.0);
       if (ny < 0.75) continue;
-      const scale = rng.range(0.9, 1.5), hl = halfLen * scale;
+      const scale = rng.range(1.1, 1.8), hl = halfLen * scale;
       // orientation: mostly along the fall line, some random
       let yaw = rng.next() < 0.6 ? Math.atan2(-nz, nx) + rng.range(-0.5, 0.5) : rng.range(0, Math.PI * 2);
       const dx = Math.cos(yaw), dz = -Math.sin(yaw);               // local +X after yaw
@@ -152,14 +164,15 @@ export class Props {
       if (trailDistance(ax, az) < 4 || trailDistance(bx, bz) < 4) continue;
       if (!this.treeFree(x, z, 0.5) || !this.treeFree(ax, az, 0.4) || !this.treeFree(bx, bz, 0.4)) continue;
       // lie along the ground: pitch from the end heights, roll random
-      const ya = heightAt(ax, az), yb = heightAt(bx, bz), ym = (ya + yb) / 2;
-      const pitch = Math.atan2(yb - ya, 2 * hl);
-      const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(rng.range(0, Math.PI * 2), yaw, pitch, 'YXZ'));
+      const ya = heightAt(ax, az), yb = heightAt(bx, bz);
+      // a log bridges concave ground on its ends and balances on convex ground in the middle: rest on the higher of the two
+      const ym = Math.max((ya + yb) / 2, heightAt(x, z), (heightAt((x + ax) / 2, (z + az) / 2) + heightAt((x + bx) / 2, (z + bz) / 2)) / 2);
+      const pitch = Math.atan2(ya - yb, 2 * hl);            // Rz(+pitch) lifts the +X end
       // roll happens around the log axis (local X): apply after yaw+pitch
       const qRoll = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), rng.range(0, Math.PI * 2));
-      q.setFromEuler(new THREE.Euler(0, yaw, pitch, 'YXZ')).multiply(qRoll);
-      const sink = -bottom * scale + 0.04 + rng.range(0, 0.05);
-      mats.push(new THREE.Matrix4().compose(new THREE.Vector3(x, ym - sink + 0.12 * scale, z), q, new THREE.Vector3(scale, scale, scale)));
+      const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, yaw, pitch, 'YXZ')).multiply(qRoll);
+      // the terrain mesh is ~2 m per vertex, so lift thin logs a little above the analytic height rather than let them sink
+      mats.push(new THREE.Matrix4().compose(new THREE.Vector3(x, ym - bottom * scale + 0.14 * scale, z), q, new THREE.Vector3(scale, scale, scale)));
       void nx;
     }
     for (const p of parts) this.instanced(p.geometry, p.material, mats, p.matrix);
