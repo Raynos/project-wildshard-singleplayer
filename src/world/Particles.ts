@@ -20,7 +20,7 @@ import type { Forest } from './Forest';
  *  - mist:    48 large soft billboards (procedural noise-blob texture) parked in the lowest terrain
  *             around the central hollow, drifting and slowly turning, depthWrite off, fading near
  *             the camera and when looked at from above so they never read as flat cards.
- *  - needles: 200 tumbling pine-needle quads dropping from the crowns of trees within 35 m of the
+ *  - needles: 200 tumbling pine-needle quads dropping from the crowns of trees within 28 m of the
  *             player (respawn set is rebuilt from `forest.trees` whenever the player moves 8 m).
  * All three are unlit ShaderMaterials with the global exponential height fog applied by hand
  * (same formula as Atmosphere.ts) so they melt into the haze.
@@ -222,7 +222,7 @@ export class Particles {
 
   // ------------------------------------------------------------------ needles
   private buildNeedles() {
-    const geo = new THREE.PlaneGeometry(0.16, 0.04);
+    const geo = new THREE.PlaneGeometry(0.2, 0.05);
     const origin = new Float32Array(NEEDLE_COUNT * 3), info = new Float32Array(NEEDLE_COUNT * 4);
     this.needleOrigin = new THREE.InstancedBufferAttribute(origin, 3).setUsage(THREE.DynamicDrawUsage) as THREE.InstancedBufferAttribute;
     this.needleInfo = new THREE.InstancedBufferAttribute(info, 4).setUsage(THREE.DynamicDrawUsage) as THREE.InstancedBufferAttribute;
@@ -280,7 +280,7 @@ export class Particles {
   }
 
   private respawnNeedles(p: THREE.Vector3) {
-    const near = this.forest.trees.filter((t) => (t.x - p.x) ** 2 + (t.z - p.z) ** 2 < 35 * 35);
+    const near = this.forest.trees.filter((t) => (t.x - p.x) ** 2 + (t.z - p.z) ** 2 < 28 * 28);
     if (!near.length) { this.needles.count = 0; return; }
     const rng = this.needleRng;
     const o = this.needleOrigin.array as Float32Array, inf = this.needleInfo.array as Float32Array;
@@ -292,7 +292,7 @@ export class Particles {
       const ground = heightAt(x, z);
       const fall = Math.max(1, top - ground + 0.05);
       o[i * 3] = x; o[i * 3 + 1] = top; o[i * 3 + 2] = z;
-      inf[i * 4] = fall; inf[i * 4 + 1] = fall / 0.55 + rng.range(6, 40); inf[i * 4 + 2] = rng.range(0, 60); inf[i * 4 + 3] = rng.next();
+      inf[i * 4] = fall; inf[i * 4 + 1] = fall / 0.55 + rng.range(2, 14); inf[i * 4 + 2] = rng.range(0, 60); inf[i * 4 + 3] = rng.next();
     }
     this.needleOrigin.needsUpdate = true; this.needleInfo.needsUpdate = true;
     this.needles.count = NEEDLE_COUNT;
