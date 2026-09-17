@@ -14,7 +14,7 @@ export interface World {
   terrain: Terrain;
   forest: Forest;
   player: Player;
-  tour: Tour | null;
+  tour: Tour;
   params: URLSearchParams;
   num: (key: string, fallback: number) => number;
 }
@@ -25,23 +25,27 @@ export interface World {
  *
  * URL params: ?x=&z=&yaw=&pitch=  spawn pose (metres / radians)
  */
-export async function bootstrap(): Promise<World> {
+export async function bootstrap(onStep: (label: string, frac: number) => void = () => {}): Promise<World> {
   const params = new URLSearchParams(location.search);
   const num = (k: string, d: number) => (params.has(k) ? parseFloat(params.get(k)!) : d);
   const canvas = document.getElementById('game') as HTMLCanvasElement;
   const game = new Game(canvas);
+  onStep('Reading the sky', 0.05);
   const sky = await game.buildSky();
+  onStep('Shaping terrain · splat layers', 0.2);
   const terrain = await new Terrain().build();
   terrain.group.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.Material | undefined; if (m) sky.setupMaterial(m); });
   game.scene.add(terrain.group);
 
+  onStep('Baking pine branch cards', 0.4);
   const factory = await new TreeFactory(game.renderer).build();
+  onStep('Planting pines', 0.55);
   const forest = new Forest(factory, sky).build();
   game.scene.add(forest.group);
   terrain.applyCanopy(forest.canopyMap);
 
   const player = new Player(game.camera, forest, canvas);
-  player.spawn(num('x', 0), num('z', -235), num('yaw', 0));
+  player.spawn(num('x', 0), num('z', -235), num('yaw', Math.PI));
   player.pitch = num('pitch', 0);
   canvas.addEventListener('click', () => { if (!params.has('nolock')) player.lock(); });
 
@@ -53,9 +57,10 @@ export async function bootstrap(): Promise<World> {
     game.camera.add(q); q.position.set(0, 0, -1.2); game.scene.add(game.camera);
   }
 
-  const tour = params.has('tour') ? new Tour(game.camera) : null;
+  const tour = new Tour(game.camera);
+  tour.active = params.has('tour');
   game.onUpdate((dt) => {
-    if (tour) { tour.setTime(tour.time); player.position.copy(game.camera.position); player.position.y -= 1.7; }
+    if (tour.active) { tour.setTime(tour.time); player.position.copy(game.camera.position); player.position.y -= 1.7; }
     else player.update(dt);
     forest.update(dt, player.position);
   });

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { SEED } from '../core/config';
 import { Rng } from '../core/rng';
 import { Noise2D, smoothstep, lerp } from '../core/noise';
-import { heightAt, normalAt, splatAt } from './Heightfield';
+import { heightAt, normalAt, splatAt, inChunk, pondMask, waterLevel } from './Heightfield';
 import { attachFogUniforms } from './Atmosphere';
 import { windUniforms } from './TreeFactory';
 import type { Sky } from './Sky';
@@ -238,11 +238,12 @@ export class Grass {
       const yaw = rng.range(0, Math.PI * 2);
       const hv = rng.next();
       const cv = rng.next();
-      let keep = roll < p;
+      let keep = roll < p && inChunk(x, z, 1.5) && pondMask(x, z) < 0.02;
       if (keep) for (const tr of trees) { const dx = tr.x - x, dz = tr.z - z; if (dx * dx + dz * dz < (tr.r + 0.3) ** 2) { keep = false; break; } }
       const idx = base + k;
       if (!keep) { this.zeroM.toArray(matArr, idx * 16); continue; }
       const y = heightAt(x, z) - 0.03;
+      if (y < waterLevel() + 0.15) { this.zeroM.toArray(matArr, idx * 16); continue; }
       const h = lerp(0.36, 0.68, hv) * lerp(0.72, 1.0, g) * (0.9 + 0.2 * patch);
       this.tmpQ.setFromAxisAngle(UP, yaw).premultiply(this.tmpQ2);
       this.tmpM.compose(this.tmpP.set(x, y, z), this.tmpQ, this.tmpS.set(h, h, h));

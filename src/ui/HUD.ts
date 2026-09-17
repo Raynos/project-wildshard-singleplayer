@@ -34,8 +34,9 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, html?: 
 export class HUD {
   root: HTMLElement;
   onResume?: () => void;
+  onSoundToggle?: (on: boolean) => void;
   private opts: HUDOptions;
-  private entered = false;
+  entered = false;
   private onEnter?: () => void;
 
   private compassStrip!: HTMLElement; private heading!: HTMLElement;
@@ -59,7 +60,7 @@ export class HUD {
       const locked = !!document.pointerLockElement;
       this.setPaused(!locked);
     });
-    document.addEventListener('keydown', (e) => { if (e.code === 'Enter' && this.intro && !this.entered) this.enter(); });
+    document.addEventListener('keydown', (e) => { if (this.intro && !this.entered && !e.metaKey && !e.ctrlKey && e.code !== 'Escape') this.enter(); });
   }
 
   private build() {
@@ -207,14 +208,12 @@ export class HUD {
     this.onEnter = onEnter;
     this.root.classList.add('intro');
     const rows: IntroStats = {
-      'Build': `local-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.dev`,
-      'Chunk format': 'wsc/3 · 500 m',
-      'Validation': { value: 'ok · 16/16', tone: 'ok' },
-      'Seed': String(SEED),
-      'Terrain': `${TERRAIN_RES}² heightfield · ${CHUNK_SIZE} m`,
-      'Tree count': TREE_COUNT.toLocaleString(),
-      'Wildlife': 'deer · boar',
-      'Upload': { value: 'not staged', tone: 'warn' },
+      'Chunk': CHUNK_ID,
+      'Grid': CHUNK_COORDS,
+      'Size': `${CHUNK_SIZE} m × ${CHUNK_SIZE} m`,
+      'Build': { value: 'local · unuploaded', tone: 'warn' },
+      'Seed': `0x${SEED.toString(16).toUpperCase().padStart(8, '0')}`,
+      'Validation': { value: `ok · ${TERRAIN_RES}² heightfield · ${TREE_COUNT.toLocaleString()} pines`, tone: 'ok' },
       ...(stats ?? {}),
     };
     const intro = el('div', 'ws-intro');
@@ -222,16 +221,18 @@ export class HUD {
       <div class="ws-head">
         <div class="ws-wordmark">Project <b>Wildshard</b></div>
         <div class="ws-tagline">A world that does not exist yet, arriving one chunk at a time.</div>
-        <div class="ws-phase">Phase 6 — play iteration · local chunk playtest</div>
+        <div class="ws-phase">Phase 1 — gameplay contract · local chunk playtest</div>
       </div>
       <div class="ws-body"><div class="ws-glass ws-panel">
         <div class="ws-ptitle">Chunk playtest · <b>pine-hollow</b></div>
         <div class="ws-meta"></div>
         <button class="ws-enter"><span>Enter the chunk</span><small>click · or press Enter</small></button>
       </div></div>
+      <div class="ws-enterbar"><div class="ws-eicon">⇥</div><div class="ws-etext"><b>Enter the chunk</b><small>Press any key</small></div><div class="ws-ready">Ready</div></div>
+      <div class="ws-glass ws-sound">Sound on</div>
       <div class="ws-foot">
         <div class="ws-legend"><span><b>WASD</b>move</span><span><b>Shift</b>sprint</span><span><b>LMB</b>fire</span><span><b>RMB</b>aim</span><span><b>R</b>span</span><span><b>E</b>interact</span><span><b>Esc</b>release cursor</span></div>
-        <div class="ws-credit">An in-progress private project · ${CHUNK_ID}</div>
+        <div class="ws-credit">An in-progress private project</div>
       </div>`;
     const meta = intro.querySelector('.ws-meta')!;
     for (const [k, v] of Object.entries(rows)) {
@@ -239,6 +240,8 @@ export class HUD {
       meta.appendChild(el('div', undefined, `<span>${k}</span><span class="${tone}">${val}</span>`));
     }
     intro.querySelector('.ws-enter')!.addEventListener('click', () => this.enter());
+    intro.querySelector('.ws-enterbar')!.addEventListener('click', () => this.enter());
+    intro.querySelector('.ws-sound')!.addEventListener('click', (e) => { e.stopPropagation(); const b = e.currentTarget as HTMLElement; const off = b.classList.toggle('off'); b.textContent = off ? 'Sound off' : 'Sound on'; this.onSoundToggle?.(!off); });
     this.root.appendChild(intro);
     this.intro = intro;
   }

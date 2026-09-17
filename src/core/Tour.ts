@@ -11,6 +11,8 @@ export class Tour {
   private path: THREE.CatmullRomCurve3;
   private look: THREE.CatmullRomCurve3;
   time = 0;
+  /** when true the tour owns the camera (set by ?tour=1 or the intro attract mode) */
+  active = false;
 
   constructor(private camera: THREE.PerspectiveCamera) {
     const eye = (x: number, z: number, h = 1.7) => new THREE.Vector3(x, heightAt(x, z) + h, z);

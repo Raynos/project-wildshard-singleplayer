@@ -692,11 +692,21 @@ export class Crossbow {
     this.model.add(this.loadedBolt);
 
     // depth-clear so the viewmodel never clips into world geometry; render after everything opaque
-    const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false }));
+    // The clearer and the viewmodel live in the *transparent* queue (renderOrder 999/1000) so the
+    // depth clear happens after every world transparent (boundary lines, mist, halos) has drawn —
+    // otherwise those would paint over the whole scene with the cleared depth buffer.
+    const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true }));
     clearer.renderOrder = 999; clearer.frustumCulled = false;
     clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
     this.model.add(clearer);
-    this.model.traverse((o) => { if ((o as THREE.Mesh).isMesh) { o.frustumCulled = false; if (o !== clearer) o.renderOrder = 1000; (o as THREE.Mesh).castShadow = false; (o as THREE.Mesh).receiveShadow = o !== clearer; } });
+    this.model.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh) return;
+      m.frustumCulled = false; m.castShadow = false; m.receiveShadow = o !== clearer;
+      if (o === clearer) return;
+      m.renderOrder = 1000;
+      for (const mat of Array.isArray(m.material) ? m.material : [m.material]) { mat.transparent = true; mat.depthWrite = true; }
+    });
     this.model.scale.setScalar(0.86);
   }
 

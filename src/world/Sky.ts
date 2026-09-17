@@ -10,7 +10,7 @@ import { fogUniforms } from './Atmosphere';
  */
 export class Sky {
   sunDir = new THREE.Vector3(0.3, 0.6, 0.4).normalize();
-  sunColor = new THREE.Color(1.0, 0.86, 0.68);
+  sunColor = new THREE.Color(1.0, 0.76, 0.5);
   csm!: CSM;
   sunDisc!: THREE.Mesh;
   planet = new THREE.Group();
@@ -20,7 +20,9 @@ export class Sky {
   constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private renderer: THREE.WebGLRenderer) {}
 
   async build() {
-    const hdriName = new URLSearchParams(location.search).get('hdri') ?? 'qwantani_late_afternoon_puresky';
+    const qs = new URLSearchParams(location.search);
+    const qn = (k: string, d: number) => (qs.has(k) ? parseFloat(qs.get(k)!) : d);
+    const hdriName = qs.get('hdri') ?? 'qwantani_sunset_puresky';
     const hdr = await loadHDR(`/assets/hdri/${hdriName}_2k.hdr`);
     this.findSun(hdr);
     hdr.mapping = THREE.EquirectangularReflectionMapping;
@@ -29,9 +31,9 @@ export class Sky {
     const env = pmrem.fromEquirectangular(hdr).texture;
     pmrem.dispose();
     this.scene.environment = env;
-    this.scene.environmentIntensity = 0.8;
+    this.scene.environmentIntensity = qn('envI', 1.1);
     this.scene.background = hdr;
-    this.scene.backgroundIntensity = 1.15;
+    this.scene.backgroundIntensity = qn('bgI', 0.95);
     this.scene.backgroundBlurriness = 0.0;
 
     // Fog colour = average of the sky just above the horizon in the view direction
@@ -43,12 +45,12 @@ export class Sky {
     this.csm = new CSM({
       camera: this.camera, parent: this.scene, cascades: 3, mode: 'practical',
       maxFar: 220, shadowMapSize: 2048, lightDirection: this.sunDir.clone().negate(),
-      lightIntensity: 4.6, shadowBias: -0.00012, lightMargin: 120, lightNear: 1, lightFar: 600,
+      lightIntensity: qn('sunI', 6.0), shadowBias: -0.00012, lightMargin: 120, lightNear: 1, lightFar: 600,
     });
     this.csm.fade = true;
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = 0.05; l.shadow.radius = 2; }
 
-    this.scene.add(new THREE.HemisphereLight(0x9fb8d8, 0x4a3a28, 0.35));
+    this.scene.add(new THREE.HemisphereLight(0x8fa8d0, 0x4a3a28, 0.45));
 
     this.buildSunDisc();
     this.buildPlanet();
@@ -126,7 +128,7 @@ export class Sky {
     const u = (bx + 0.5) / width, v = 1 - (by + 0.5) / height;
     const theta = (u - 0.5) * 2 * Math.PI, phi = (v - 0.5) * Math.PI;
     this.sunDir.set(Math.cos(theta) * Math.cos(phi), Math.sin(phi), Math.sin(theta) * Math.cos(phi)).normalize();
-    if (this.sunDir.y < 0.25) this.sunDir.y = 0.25, this.sunDir.normalize();
+    if (this.sunDir.y < 0.12) this.sunDir.y = 0.12, this.sunDir.normalize();
   }
 
   private sampleHorizon(hdr: THREE.DataTexture) {
