@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { CHUNK_HALF, TREE_COUNT, SEED } from '../core/config';
 import { Rng } from '../core/rng';
 import { Noise2D, smoothstep } from '../core/noise';
-import { heightAt, normalAt, trailDistance, cabinMask, inChunk } from './Heightfield';
+import { heightAt, normalAt, trailDistance, cabinMask, inChunk, pondMask } from './Heightfield';
 import { TreeFactory, windUniforms } from './TreeFactory';
 import type { Sky } from './Sky';
 
@@ -65,6 +65,7 @@ export class Forest {
       if (roadEntry) continue;
       if (trailDistance(x, z) < 9 + rng.range(0, 4)) continue;
       if (cabinMask(x, z) > 0.02) continue;
+      if (pondMask(x, z) > 0.03) continue;
       const [, ny] = normalAt(x, z);
       if (ny < 0.72) continue;                                     // too steep
       const y = heightAt(x, z);

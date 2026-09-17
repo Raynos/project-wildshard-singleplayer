@@ -6,6 +6,7 @@ import { Forest } from '../world/Forest';
 import { Player } from '../player/Player';
 import type { Sky } from '../world/Sky';
 import { Tour } from './Tour';
+import * as Heightfield from '../world/Heightfield';
 
 export interface World {
   game: Game;
@@ -57,5 +58,6 @@ export async function bootstrap(): Promise<World> {
     else player.update(dt);
     forest.update(dt, player.position);
   });
+  (window as unknown as { __hf: unknown }).__hf = Heightfield;
   return { game, sky, terrain, forest, player, tour, params, num };
 }

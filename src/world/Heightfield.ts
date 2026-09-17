@@ -73,8 +73,24 @@ function landscape(x: number, z: number): number {
   return h;
 }
 
+/** A still pond in the hollow west of cabin 1. */
+export const POND = { x: -56, z: 120, r: 22 };
+let _waterLevel: number | null = null;
+export function waterLevel(): number {
+  if (_waterLevel === null) _waterLevel = landscape(POND.x, POND.z) + 1.0; // fills the natural basin below its rim
+  return _waterLevel;
+}
+/** 0 outside the pond basin → 1 at its centre */
+export function pondMask(x: number, z: number): number {
+  const d = Math.hypot(x - POND.x, z - POND.z) + n.get(x * 0.05, z * 0.05) * 3;
+  return smoothstep(POND.r + 10, POND.r * 0.3, d);
+}
+
 export function heightAt(x: number, z: number): number {
   let h = landscape(x, z);
+  // pond basin: dish down to ~3 m below the water line
+  const pm = pondMask(x, z);
+  if (pm > 0) h = lerp(h, Math.min(h, waterLevel() - 1.6 - pm * 1.6), smoothstep(0.0, 0.5, pm));
   // trails: flatten a little and carve a shallow bed
   const td = trailDistance(x, z);
   const trailW = smoothstep(9, 2.5, td);
@@ -110,7 +126,7 @@ export function splatAt(x: number, z: number): [number, number, number, number] 
   const h = heightAt(x, z);
   const td = trailDistance(x, z);
   const rock = smoothstep(0.16, 0.34, slope) + smoothstep(0.55, 0.75, n2.fbm(x * 0.02, z * 0.02, 3) + smoothstep(14, 24, h) * 0.3);
-  const trail = smoothstep(5.5 + n.get(x * 0.1, z * 0.1) * 1.5, 1.5, td) + cabinMask(x, z) * 0.6;
+  const trail = smoothstep(5.5 + n.get(x * 0.1, z * 0.1) * 1.5, 1.5, td) + cabinMask(x, z) * 0.6 + smoothstep(0.05, 0.4, pondMask(x, z));
   const grassN = n.fbm(x * 0.012 + 50, z * 0.012, 4);
   const grass = smoothstep(-0.05, 0.35, grassN) * smoothstep(0.25, 0.08, slope) * (1 - smoothstep(2, 10, h) * 0.5);
   let w0 = 1, w1 = clamp(grass, 0, 1), w2 = clamp(rock, 0, 1), w3 = clamp(trail, 0, 1);
