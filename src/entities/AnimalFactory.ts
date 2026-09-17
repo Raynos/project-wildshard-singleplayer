@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { Noise2D } from '../core/noise';
 import { Rng } from '../core/rng';
 import type { Sky } from '../world/Sky';
+import { attachFogUniforms, fogUniforms } from '../world/Atmosphere';
 
 /**
  * AnimalFactory — procedural, code-built deer and boar.
@@ -55,6 +56,7 @@ export interface AnimalModel {
   dims: AnimalDims;
   fur: THREE.MeshPhysicalMaterial;
   hard: THREE.MeshStandardMaterial;
+  eye: THREE.MeshPhysicalMaterial;
 }
 
 export interface AnimalRig {
@@ -81,6 +83,7 @@ const TEX_M = 0.32; // metres per detail-texture repeat
 const _t = new THREE.Vector3(), _side = new THREE.Vector3(), _up = new THREE.Vector3(), _n = new THREE.Vector3(), _c = new THREE.Color();
 
 /** Loft a closed tube through `st` stations with `seg` sides; returns an indexed geometry with position/normal/uv/color/skinIndex/skinWeight. */
+let shagAmp = 0; // metres of noise displacement along the ring normal (set per species before lofting)
 function loft(st: Station[], seg: number, part: string, paint: Paint, capStart = true, capEnd = true, frame: 'x' | 'z' = 'x'): THREE.BufferGeometry {
   const n = st.length;
   const pos: number[] = [], nor: number[] = [], uv: number[] = [], col: number[] = [], si: number[] = [], sw: number[] = [];
@@ -109,12 +112,18 @@ function loft(st: Station[], seg: number, part: string, paint: Paint, capStart =
       const ca = Math.cos(a), sa = Math.sin(a);
       const vs = sa > 0 ? s.top : s.bot;
       const rx = Math.max(1e-4, s.rx), ry = Math.max(1e-4, s.ry * vs);
-      const px = s.x + _side.x * rx * ca + _up.x * ry * sa;
-      const py = s.y + _side.y * rx * ca + _up.y * ry * sa;
-      const pz = s.z + _side.z * rx * ca + _up.z * ry * sa;
+      let px = s.x + _side.x * rx * ca + _up.x * ry * sa;
+      let py = s.y + _side.y * rx * ca + _up.y * ry * sa;
+      let pz = s.z + _side.z * rx * ca + _up.z * ry * sa;
       // ellipse normal: (cos/rx, sin/ry) in the ring frame, then tilt by the taper
       _n.set(_side.x * ca / rx + _up.x * sa / ry, _side.y * ca / rx + _up.y * sa / ry, _side.z * ca / rx + _up.z * sa / ry).normalize();
       _n.addScaledVector(_t, -dr).normalize();
+      // shaggy coat: push the surface in/out with noise so the silhouette isn't a smooth tube (big parts only)
+      if (shagAmp > 0 && (part === 'body' || part === 'neck' || part === 'head' || part === 'crest')) {
+        const amp = shagAmp * Math.min(1, (rx + ry) / 0.25) * (part === 'crest' ? 2.5 : 1);
+        const d = paintNoise.fbm(px * 9 + py * 3, pz * 9 - py * 4, 3) * amp;
+        px += _n.x * d; py += _n.y * d; pz += _n.z * d;
+      }
       pos.push(px, py, pz); nor.push(_n.x, _n.y, _n.z);
       uv.push((j / seg) * uRep, along[i] / TEX_M);
       paint(_c, px, py, pz, _n.x, _n.y, _n.z, part, t, a);
@@ -215,32 +224,37 @@ function lattice(px: number, py: number, rng: Rng) {
   };
 }
 
-function makeFurTextures(seed: number, opts: { contrast: number; grizzle: number; normalStrength: number; bristle: number }) {
+function makeFurTextures(seed: number, opts: { contrast: number; grizzle: number; normalStrength: number; bristle: number; strandLen: number; root: number }) {
   const S = 512;
   const rng = new Rng(seed);
-  // fur strands: narrow across (x), long along (y)
-  const f1 = lattice(96, 12, rng), f2 = lattice(192, 24, rng), f3 = lattice(384, 48, rng);
+  // fur strands: narrow across (x, ~2-3 mm at TEX_M), long along (y)
+  const f1 = lattice(112, 14, rng), f2 = lattice(224, 28, rng), f3 = lattice(448, 56, rng);
   const m1 = lattice(6, 6, rng), m2 = lattice(12, 12, rng), m3 = lattice(24, 24, rng);
+  const ph = lattice(128, 8, rng);       // per-strand phase so root/tip breaks don't line up
   const height = new Float32Array(S * S);
   const albedo = new Float32Array(S * S);
+  const L = opts.strandLen;              // strand segments per texture repeat along v
   for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
     const u = x / S, v = y / S;
     // wobble the strands so they aren't perfectly parallel
-    const wob = (m3(u, v) - 0.5) * 0.02;
+    const wob = (m3(u, v) - 0.5) * 0.03;
     const fur = f1(u + wob, v) * 0.5 + f2(u + wob * 2, v) * 0.3 + f3(u, v) * 0.2;
     const mott = m1(u, v) * 0.55 + m2(u, v) * 0.3 + m3(u, v) * 0.15;
+    // root → tip: each strand segment is dark at its root and pale at its tip
+    const seg = (v * L + ph(u, v) * 1.7) % 1;
+    const tip = seg * seg;
     const i = y * S + x;
-    height[i] = fur;
+    height[i] = fur * 0.7 + tip * 0.3;
     // grizzle: sparse pale guard-hair tips
-    const g = opts.grizzle > 0 ? Math.max(0, f2(u * 0.5, v) - 0.72) * 4 * opts.grizzle : 0;
-    albedo[i] = 1 - opts.contrast * (0.55 - fur) - 0.22 * (mott - 0.5) * (1 + opts.bristle) + g;
+    const g = opts.grizzle > 0 ? Math.max(0, f2(u * 0.5, v) - 0.68) * 4 * opts.grizzle * (0.4 + tip) : 0;
+    albedo[i] = 1 - opts.contrast * (0.55 - fur) - 0.2 * (mott - 0.5) * (1 + opts.bristle) - opts.root * (1 - tip) + g;
   }
   // albedo canvas (values ≤ 1 → material colour is carried by vertex colours)
   const ca = document.createElement('canvas'); ca.width = S; ca.height = S;
   const ga = ca.getContext('2d')!;
   const ia = ga.createImageData(S, S);
   for (let i = 0; i < S * S; i++) {
-    const a = Math.min(1, Math.max(0.35, albedo[i]));
+    const a = Math.min(1, Math.max(0.2, albedo[i] + 0.12));
     const v = Math.round(a * 255);
     ia.data[i * 4] = v; ia.data[i * 4 + 1] = Math.round(v * 0.985); ia.data[i * 4 + 2] = Math.round(v * 0.96); ia.data[i * 4 + 3] = 255;
   }
@@ -253,7 +267,7 @@ function makeFurTextures(seed: number, opts: { contrast: number; grizzle: number
   for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
     const l = height[y * S + ((x - 1 + S) % S)], r = height[y * S + ((x + 1) % S)];
     const d = height[((y - 1 + S) % S) * S + x], u = height[((y + 1) % S) * S + x];
-    let nx = -(r - l) * k, ny = -(u - d) * k * 0.5, nz = 1;
+    let nx = -(r - l) * k, ny = -(u - d) * k * 0.7, nz = 1;
     const len = Math.hypot(nx, ny, nz); nx /= len; ny /= len; nz /= len;
     const i = (y * S + x) * 4;
     inn.data[i] = Math.round((nx * 0.5 + 0.5) * 255); inn.data[i + 1] = Math.round((ny * 0.5 + 0.5) * 255); inn.data[i + 2] = Math.round((nz * 0.5 + 0.5) * 255); inn.data[i + 3] = 255;
@@ -280,6 +294,7 @@ interface Species {
   bones: BoneDef[];
   furParts: THREE.BufferGeometry[];
   hardParts: THREE.BufferGeometry[];
+  eyeParts: THREE.BufferGeometry[];
   dims: AnimalDims;
 }
 
@@ -295,64 +310,64 @@ const S = (x: number, y: number, z: number, rx: number, ry: number, b0: number, 
 // ── Deer ────────────────────────────────────────────────────────────────────────────────
 
 function deerPaint(): Paint {
-  const tan = srgb(0.44, 0.30, 0.18), tanDark = srgb(0.32, 0.22, 0.13), belly = srgb(0.50, 0.42, 0.31), cream = srgb(0.50, 0.44, 0.33);
-  const legDark = srgb(0.27, 0.19, 0.12), nose = srgb(0.05, 0.04, 0.04), muzzle = srgb(0.32, 0.26, 0.20), earIn = srgb(0.52, 0.45, 0.35);
-  const antler = srgb(0.36, 0.28, 0.20), antlerTip = srgb(0.64, 0.58, 0.47), hoof = srgb(0.11, 0.09, 0.07), eye = srgb(0.03, 0.025, 0.02);
-  const tmp = new THREE.Color();
+  // autumn coat: ~#7a5a3c body, greyer neck/legs, cream belly + throat, pale rump patch with a dark tail stripe
+  const body = srgb(0.478, 0.353, 0.235), bodyDark = srgb(0.36, 0.27, 0.19), grey = srgb(0.40, 0.35, 0.30), greyDark = srgb(0.30, 0.26, 0.22);
+  const belly = srgb(0.68, 0.62, 0.52), cream = srgb(0.74, 0.68, 0.56), rump = srgb(0.62, 0.57, 0.47);
+  const legDark = srgb(0.30, 0.25, 0.20), nose = srgb(0.06, 0.05, 0.05), muzzle = srgb(0.28, 0.24, 0.21), eyeRing = srgb(0.20, 0.16, 0.13), earIn = srgb(0.62, 0.56, 0.48);
+  const antler = srgb(0.40, 0.31, 0.22), antlerTip = srgb(0.74, 0.68, 0.58), hoof = srgb(0.10, 0.08, 0.07), eye = srgb(0.02, 0.015, 0.01);
   return (out, x, y, z, nx, ny, nz, part, t, a) => {
-    const nz1 = paintNoise.fbm(x * 2.5 + 3, z * 2.5 + y * 1.7, 3);
+    const n1 = paintNoise.fbm(x * 2.5 + 3, z * 2.5 + y * 1.7, 3);
     switch (part) {
       case 'body': {
-        out.copy(tan);
-        // dorsal stripe
-        mix(out, out, tanDark, sstep(0.75, 0.95, ny) * sstep(0.12, 0.03, Math.abs(x)) * 0.8);
-        // belly & inner flank lighten
-        mix(out, out, belly, sstep(-0.2, -0.75, ny) * 0.8);
-        // rump patch (pale cream around the tail)
+        out.copy(body);
+        mix(out, out, bodyDark, sstep(0.75, 0.95, ny) * sstep(0.12, 0.03, Math.abs(x)) * 0.8);          // dorsal stripe
+        mix(out, out, grey, sstep(0.4, 0.75, z) * 0.5);                                              // greyer shoulders
+        mix(out, out, belly, sstep(-0.15, -0.7, ny) * 0.9);                                          // cream belly
         const rd = Math.hypot(x * 1.2, (y - 0.98) * 1.3, (z + 0.9) * 0.9);
-        mix(out, out, cream, sstep(0.27, 0.13, rd) * (ny > -0.4 ? 0.7 : 0.3));
+        mix(out, out, rump, sstep(0.30, 0.16, rd) * (ny > -0.4 ? 0.85 : 0.4));                       // pale rump patch
+        mix(out, out, bodyDark, sstep(0.30, 0.16, rd) * sstep(0.05, 0.015, Math.abs(x)) * sstep(0.3, 0.8, ny)); // dark stripe over the tail
         break;
       }
       case 'neck':
-        out.copy(tan);
-        mix(out, out, tanDark, sstep(0.6, 0.9, ny) * 0.5);
-        mix(out, out, cream, sstep(-0.35, -0.85, ny) * 0.7); // throat
+        mix(out, grey, body, 0.35);
+        mix(out, out, greyDark, sstep(0.6, 0.9, ny) * 0.5);
+        mix(out, out, cream, sstep(-0.3, -0.85, ny) * 0.85);                                          // throat
         break;
       case 'head':
-        out.copy(tan);
-        mix(out, out, tanDark, sstep(0.4, 0.9, ny) * 0.35 * (1 - sstep(0.55, 0.8, t)));
-        mix(out, out, muzzle, sstep(0.6, 0.85, t) * 0.7);
-        mix(out, out, cream, sstep(-0.3, -0.8, ny) * sstep(0.35, 0.65, t) * 0.7); // chin / lower jaw
+        mix(out, grey, body, 0.45);
+        mix(out, out, greyDark, sstep(0.4, 0.9, ny) * 0.4 * (1 - sstep(0.55, 0.8, t)));
+        mix(out, out, muzzle, sstep(0.62, 0.88, t) * 0.8);
+        mix(out, out, cream, sstep(-0.3, -0.8, ny) * sstep(0.35, 0.7, t) * 0.8);                     // chin / lower jaw
+        mix(out, out, eyeRing, sstep(0.09, 0.03, Math.hypot(Math.abs(x) - 0.098, (y - 1.735) * 1.2, (z - 1.215) * 0.8)) * 0.9);
         mix(out, out, nose, sstep(0.9, 0.97, t));
         break;
       case 'ear':
-        out.copy(tanDark);
+        out.copy(greyDark);
         mix(out, out, earIn, sstep(0.1, 0.6, nz) * 0.9);
-        mix(out, out, nose, sstep(0.75, 1, t) * 0.5);
+        mix(out, out, nose, sstep(0.8, 1, t) * 0.6);
         break;
       case 'leg':
-        mix(out, tan, legDark, sstep(0.62, 0.35, y));
-        mix(out, out, belly, sstep(0.1, -0.6, nx * 0) * 0); // (keep hook)
+        mix(out, grey, legDark, sstep(0.62, 0.3, y));
+        mix(out, out, body, 0.25);
         break;
       case 'tail':
-        out.copy(tanDark);
-        mix(out, out, cream, sstep(-0.1, -0.7, ny) * 0.8 + sstep(0.5, 1, t) * 0.4);
+        out.copy(bodyDark);
+        mix(out, out, rump, sstep(-0.1, -0.7, ny) * 0.9 + sstep(0.5, 1, t) * 0.3);
         break;
       case 'antler':
-        mix(out, antler, antlerTip, sstep(0.55, 1, t) * 0.8 + 0.1 * nz1);
+        mix(out, antler, antlerTip, sstep(0.5, 1, t) * 0.85 + 0.1 * n1);
         break;
       case 'hoof': out.copy(hoof); break;
       case 'eye': out.copy(eye); break;
-      default: out.copy(tan);
+      default: out.copy(body);
     }
-    // mottling / fur tone variation
-    const m = 1 + 0.10 * nz1;
+    const m = 1 + 0.10 * n1;
     out.r *= m; out.g *= m; out.b *= m * 0.98;
-    tmp.copy(out);
   };
 }
 
 function deerSpecies(stag: boolean): Species {
+  shagAmp = 0.005;
   const bones: BoneDef[] = [
     { name: 'body', parent: null, pos: [0, 0.92, -0.05] },
     { name: 'neck1', parent: 'body', pos: [0, 1.04, 0.62] },
@@ -375,7 +390,7 @@ function deerSpecies(stag: boolean): Species {
   }
   const B = boneIndex(bones);
   const paint = deerPaint();
-  const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [];
+  const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [], eyes: THREE.BufferGeometry[] = [];
   const body = B('body'), n1 = B('neck1'), n2 = B('neck2'), hd = B('head');
 
   // torso
@@ -420,16 +435,16 @@ function deerSpecies(stag: boolean): Species {
   for (const sx of [1, -1]) {
     const eb = B(sx > 0 ? 'earL' : 'earR');
     fur.push(loft([
-      S(sx * 0.07, 1.78, 1.07, 0.022, 0.014, hd, eb, 0.3),
-      S(sx * 0.11, 1.84, 1.05, 0.042, 0.015, eb),
-      S(sx * 0.16, 1.91, 1.02, 0.048, 0.013, eb),
-      S(sx * 0.21, 1.98, 0.99, 0.036, 0.010, eb),
-      S(sx * 0.245, 2.03, 0.97, 0.016, 0.006, eb),
+      S(sx * 0.07, 1.78, 1.07, 0.024, 0.014, hd, eb, 0.3),
+      S(sx * 0.115, 1.85, 1.05, 0.052, 0.015, eb),
+      S(sx * 0.17, 1.93, 1.02, 0.062, 0.013, eb),
+      S(sx * 0.225, 2.01, 0.99, 0.048, 0.010, eb),
+      S(sx * 0.27, 2.08, 0.965, 0.018, 0.006, eb),
     ], 10, 'ear', paint, true, true, 'z'));
     // eye
     const eye = new THREE.SphereGeometry(0.022, 10, 8);
     eye.translate(sx * 0.098, 1.735, 1.215);
-    hard.push(skinPlain(eye, hd, 'eye', paint));
+    eyes.push(skinPlain(eye, hd, 'eye', paint));
   }
   // tail
   const tl = B('tail');
@@ -449,9 +464,9 @@ function deerSpecies(stag: boolean): Species {
       S(sx * 0.15, 0.78, 0.45, 0.085, 0.14, body, sh, 0.8),
       S(sx * 0.155, 0.62, 0.45, 0.062, 0.095, sh),
       S(sx * 0.155, 0.52, 0.45, 0.045, 0.06, sh, ca, 0.5),
-      S(sx * 0.155, 0.44, 0.45, 0.037, 0.05, ca),
-      S(sx * 0.155, 0.28, 0.45, 0.032, 0.043, ca),
-      S(sx * 0.155, 0.16, 0.45, 0.036, 0.047, ca, fe, 0.5),
+      S(sx * 0.155, 0.44, 0.45, 0.034, 0.047, ca),
+      S(sx * 0.155, 0.28, 0.45, 0.028, 0.038, ca),
+      S(sx * 0.155, 0.16, 0.45, 0.033, 0.044, ca, fe, 0.5),
       S(sx * 0.155, 0.10, 0.46, 0.034, 0.045, fe),
       S(sx * 0.155, 0.06, 0.475, 0.032, 0.04, fe),
     ], 12, 'leg', paint, false, true));
@@ -470,8 +485,8 @@ function deerSpecies(stag: boolean): Species {
       S(sx * 0.15, 0.58, -0.47, 0.058, 0.085, hp, stf, 0.5),
       S(sx * 0.155, 0.50, -0.53, 0.048, 0.068, stf),
       S(sx * 0.155, 0.43, -0.59, 0.04, 0.058, stf, hk, 0.5),
-      S(sx * 0.155, 0.36, -0.615, 0.036, 0.05, hk),
-      S(sx * 0.155, 0.20, -0.61, 0.032, 0.042, hk),
+      S(sx * 0.155, 0.36, -0.615, 0.034, 0.047, hk),
+      S(sx * 0.155, 0.20, -0.61, 0.028, 0.038, hk),
       S(sx * 0.155, 0.10, -0.605, 0.035, 0.045, hk),
       S(sx * 0.155, 0.06, -0.60, 0.032, 0.04, hk),
     ], 12, 'leg', paint, false, true));
@@ -487,19 +502,19 @@ function deerSpecies(stag: boolean): Species {
   if (stag) {
     for (const sx of [1, -1]) {
       const beam: [number, number, number][] = [[sx * 0.055, 1.81, 1.08], [sx * 0.09, 1.95, 1.03], [sx * 0.15, 2.10, 0.98], [sx * 0.21, 2.28, 0.99], [sx * 0.25, 2.44, 1.04], [sx * 0.27, 2.56, 1.10]];
-      hard.push(tube(beam, 0.034, 0.012, hd, 'antler', paint));
-      const tine = (from: [number, number, number], to: [number, number, number], mid: [number, number, number], r0 = 0.02) => hard.push(tube([from, mid, to], r0, 0.006, hd, 'antler', paint, 6));
+      hard.push(tube(beam, 0.046, 0.015, hd, 'antler', paint));
+      const tine = (from: [number, number, number], to: [number, number, number], mid: [number, number, number], r0 = 0.026) => hard.push(tube([from, mid, to], r0, 0.007, hd, 'antler', paint, 6));
       tine([sx * 0.07, 1.88, 1.04], [sx * 0.11, 2.02, 1.27], [sx * 0.09, 1.97, 1.16]);           // brow
       tine([sx * 0.13, 2.05, 0.99], [sx * 0.16, 2.24, 1.20], [sx * 0.145, 2.16, 1.10]);         // bez
       tine([sx * 0.20, 2.25, 0.99], [sx * 0.34, 2.36, 1.14], [sx * 0.27, 2.32, 1.06]);          // trez
-      tine([sx * 0.25, 2.46, 1.05], [sx * 0.20, 2.66, 1.18], [sx * 0.23, 2.57, 1.11], 0.016);   // crown fwd
-      tine([sx * 0.26, 2.50, 1.07], [sx * 0.40, 2.66, 1.02], [sx * 0.33, 2.59, 1.05], 0.016);   // crown out
+      tine([sx * 0.25, 2.46, 1.05], [sx * 0.20, 2.66, 1.18], [sx * 0.23, 2.57, 1.11], 0.02);   // crown fwd
+      tine([sx * 0.26, 2.50, 1.07], [sx * 0.40, 2.66, 1.02], [sx * 0.33, 2.59, 1.05], 0.02);   // crown out
     }
   }
   // sort feet in FL, FR, BL, BR order (loop pushed FL, BL, FR, BR)
   const feetOrdered: [number, number][] = [feet[0], feet[2], feet[1], feet[3]];
   return {
-    bones, furParts: fur, hardParts: hard,
+    bones, furParts: fur, hardParts: hard, eyeParts: eyes,
     dims: { bodyY: 0.92, bodyHalfLen: 0.72, bodyRadius: 0.33, headRadius: 0.17, legLen: 0.92, feet: feetOrdered, halfWidth: 0.27 },
   };
 }
@@ -507,29 +522,30 @@ function deerSpecies(stag: boolean): Species {
 // ── Boar ────────────────────────────────────────────────────────────────────────────────
 
 function boarPaint(): Paint {
-  const base = srgb(0.22, 0.17, 0.13), grizzle = srgb(0.40, 0.35, 0.28), dark = srgb(0.11, 0.09, 0.07), black = srgb(0.06, 0.05, 0.045);
-  const snout = srgb(0.16, 0.09, 0.08), tusk = srgb(0.86, 0.80, 0.66), hoof = srgb(0.10, 0.08, 0.07), eye = srgb(0.03, 0.02, 0.02), cheek = srgb(0.34, 0.30, 0.25);
+  // dark grey-brown with grizzled pale bristle tips along the spine, pale tusks
+  const base = srgb(0.27, 0.21, 0.16), grizzle = srgb(0.50, 0.42, 0.32), dark = srgb(0.13, 0.10, 0.08), black = srgb(0.06, 0.05, 0.045);
+  const snout = srgb(0.16, 0.09, 0.08), tusk = srgb(0.90, 0.86, 0.74), hoof = srgb(0.09, 0.075, 0.065), eye = srgb(0.02, 0.015, 0.01), cheek = srgb(0.40, 0.36, 0.30);
   return (out, x, y, z, nx, ny, nz, part, t, a) => {
     const n1 = paintNoise.fbm(x * 4 + 11, z * 4 + y * 3, 3);
     switch (part) {
       case 'body':
         out.copy(base);
-        mix(out, out, grizzle, sstep(-0.2, 0.5, ny) * sstep(-0.3, 0.5, n1) * 0.7); // grizzled flanks/back
-        mix(out, out, dark, sstep(-0.3, -0.8, ny) * 0.8);
+        mix(out, out, grizzle, sstep(-0.1, 0.9, ny) * (0.22 + 0.35 * sstep(-0.3, 0.5, n1)));           // grizzled back
+        mix(out, out, dark, sstep(-0.3, -0.8, ny) * 0.85);
         break;
       case 'neck': case 'head':
         out.copy(base);
-        mix(out, out, cheek, sstep(0.55, 0.85, t) * sstep(0.3, 0.9, Math.abs(nx)) * 0.7);   // pale cheek/muzzle whiskers
-        mix(out, out, grizzle, sstep(0.2, 0.8, ny) * 0.3);
-        mix(out, out, dark, sstep(-0.3, -0.8, ny) * 0.7);
+        mix(out, out, cheek, sstep(0.55, 0.85, t) * sstep(0.3, 0.9, Math.abs(nx)) * 0.75);            // pale cheek whiskers
+        mix(out, out, grizzle, sstep(0.2, 0.9, ny) * 0.3);
+        mix(out, out, dark, sstep(-0.3, -0.8, ny) * 0.75);
         mix(out, out, black, sstep(0.9, 0.98, t));
         break;
       case 'snout': out.copy(snout); break;
-      case 'crest': mix(out, black, dark, 0.3 + 0.3 * n1); break;
+      case 'crest': mix(out, dark, grizzle, sstep(0.0, 0.5, ny) * (0.35 + 0.3 * n1)); break;
       case 'ear': out.copy(dark); mix(out, out, base, sstep(0.1, 0.6, nz) * 0.6); break;
       case 'leg': mix(out, base, dark, sstep(0.45, 0.2, y)); break;
       case 'tail': mix(out, dark, black, sstep(0.6, 1, t)); break;
-      case 'tusk': mix(out, srgb(0.5, 0.42, 0.34), tusk, sstep(0.0, 0.5, t)); break;
+      case 'tusk': mix(out, srgb(0.55, 0.48, 0.40), tusk, sstep(0.0, 0.45, t)); break;
       case 'hoof': out.copy(hoof); break;
       case 'eye': out.copy(eye); break;
       default: out.copy(base);
@@ -540,6 +556,7 @@ function boarPaint(): Paint {
 }
 
 function boarSpecies(): Species {
+  shagAmp = 0.016;
   const bones: BoneDef[] = [
     { name: 'body', parent: null, pos: [0, 0.62, -0.02] },
     { name: 'neck1', parent: 'body', pos: [0, 0.69, 0.55] },
@@ -562,7 +579,7 @@ function boarSpecies(): Species {
   }
   const B = boneIndex(bones);
   const paint = boarPaint();
-  const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [];
+  const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [], eyes: THREE.BufferGeometry[] = [];
   const body = B('body'), n1 = B('neck1'), n2 = B('neck2'), hd = B('head');
   // torso: barrel with shoulder hump, narrower hips (y is raised 0.07 vs the first draft: legs were too short)
   const Y = 0.07;
@@ -571,11 +588,11 @@ function boarSpecies(): Species {
     S(0, 0.545 + Y, -0.625, 0.12, 0.16, body),
     S(0, 0.54 + Y, -0.58, 0.19, 0.24, body, body, 0, 1.0, 1.0),
     S(0, 0.54 + Y, -0.48, 0.225, 0.27, body, body, 0, 1.04, 1.0),
-    S(0, 0.55 + Y, -0.30, 0.255, 0.30, body, body, 0, 1.06, 1.04),
-    S(0, 0.55 + Y, -0.05, 0.27, 0.31, body, body, 0, 1.12, 1.06),
-    S(0, 0.56 + Y, 0.18, 0.28, 0.32, body, body, 0, 1.24, 1.04),
-    S(0, 0.58 + Y, 0.36, 0.28, 0.32, body, n1, 0.15, 1.30, 1.0),
-    S(0, 0.60 + Y, 0.52, 0.255, 0.30, body, n1, 0.5, 1.24, 0.95),
+    S(0, 0.55 + Y, -0.30, 0.26, 0.32, body, body, 0, 1.06, 1.06),
+    S(0, 0.55 + Y, -0.05, 0.275, 0.335, body, body, 0, 1.14, 1.08),
+    S(0, 0.56 + Y, 0.18, 0.285, 0.34, body, body, 0, 1.30, 1.06),
+    S(0, 0.58 + Y, 0.36, 0.285, 0.34, body, n1, 0.15, 1.38, 1.02),
+    S(0, 0.60 + Y, 0.52, 0.26, 0.32, body, n1, 0.5, 1.30, 0.96),
     S(0, 0.62 + Y, 0.66, 0.21, 0.26, n1, n2, 0.5, 1.12, 0.95),
     S(0, 0.625 + Y, 0.78, 0.175, 0.21, n2, hd, 0.6, 1.06, 0.98),
   ], 22, 'body', paint, true, false));
@@ -583,22 +600,22 @@ function boarSpecies(): Species {
   fur.push(loft([
     S(0, 0.625 + Y, 0.76, 0.18, 0.215, n2, hd, 0.5, 1.06, 0.98),
     S(0, 0.615 + Y, 0.90, 0.155, 0.185, hd, hd, 0, 1.05, 1.0),
-    S(0, 0.585 + Y, 1.01, 0.12, 0.14, hd, hd, 0, 1.0, 1.08),
-    S(0, 0.535 + Y, 1.11, 0.09, 0.105, hd, hd, 0, 1.0, 1.12),
-    S(0, 0.48 + Y, 1.20, 0.068, 0.078, hd, hd, 0, 1.0, 1.12),
-    S(0, 0.44 + Y, 1.265, 0.056, 0.062, hd),
-    S(0, 0.425 + Y, 1.30, 0.05, 0.052, hd),
+    S(0, 0.585 + Y, 1.02, 0.125, 0.145, hd, hd, 0, 1.0, 1.08),
+    S(0, 0.535 + Y, 1.14, 0.095, 0.11, hd, hd, 0, 1.0, 1.12),
+    S(0, 0.48 + Y, 1.25, 0.072, 0.082, hd, hd, 0, 1.0, 1.12),
+    S(0, 0.44 + Y, 1.33, 0.058, 0.064, hd),
+    S(0, 0.425 + Y, 1.37, 0.052, 0.054, hd),
   ], 18, 'head', paint, false, true));
   // snout disc
   hard.push(loft([
-    S(0, 0.425 + Y, 1.295, 0.052, 0.054, hd),
-    S(0, 0.42 + Y, 1.325, 0.06, 0.062, hd),
-    S(0, 0.418 + Y, 1.335, 0.055, 0.057, hd),
-    S(0, 0.418 + Y, 1.338, 0.02, 0.02, hd),
+    S(0, 0.425 + Y, 1.365, 0.054, 0.056, hd),
+    S(0, 0.42 + Y, 1.395, 0.062, 0.064, hd),
+    S(0, 0.418 + Y, 1.405, 0.057, 0.059, hd),
+    S(0, 0.418 + Y, 1.408, 0.02, 0.02, hd),
   ], 14, 'snout', paint));
   // tusks (lower, curving up and out)
   for (const sx of [1, -1]) {
-    hard.push(tube([[sx * 0.05, 0.43 + Y, 1.16], [sx * 0.075, 0.45 + Y, 1.20], [sx * 0.095, 0.50 + Y, 1.215], [sx * 0.10, 0.545 + Y, 1.21]], 0.014, 0.004, hd, 'tusk', paint, 6));
+    hard.push(tube([[sx * 0.05, 0.43 + Y, 1.22], [sx * 0.078, 0.45 + Y, 1.265], [sx * 0.10, 0.50 + Y, 1.28], [sx * 0.105, 0.55 + Y, 1.275]], 0.016, 0.004, hd, 'tusk', paint, 6));
     const eb = B(sx > 0 ? 'earL' : 'earR');
     fur.push(loft([
       S(sx * 0.08, 0.76 + Y, 0.84, 0.03, 0.015, hd, eb, 0.3),
@@ -609,17 +626,17 @@ function boarSpecies(): Species {
     ], 10, 'ear', paint, true, true, 'z'));
     const eye = new THREE.SphereGeometry(0.016, 10, 8);
     eye.translate(sx * 0.115, 0.625 + Y, 0.97);
-    hard.push(skinPlain(eye, hd, 'eye', paint));
+    eyes.push(skinPlain(eye, hd, 'eye', paint));
   }
   // bristle crest along the spine (a jagged fin), stations rear → front so the ring 'up' is +Y
   const crestSt: Station[] = [];
   const crestPts: [number, number, number, number, number, number][] = [
     // z, y, ry, b0, b1, w1
-    [0.86, 0.78, 0.015, hd, hd, 0], [0.74, 0.86, 0.04, n2, hd, 0.5], [0.58, 0.93, 0.06, n1, n2, 0.5], [0.42, 0.965, 0.07, body, n1, 0.4],
-    [0.26, 0.945, 0.065, body, body, 0], [0.08, 0.90, 0.055, body, body, 0], [-0.12, 0.865, 0.045, body, body, 0], [-0.32, 0.845, 0.035, body, body, 0], [-0.5, 0.82, 0.02, body, body, 0], [-0.58, 0.80, 0.01, body, body, 0],
+    [0.86, 0.78, 0.02, hd, hd, 0], [0.74, 0.86, 0.06, n2, hd, 0.5], [0.58, 0.93, 0.09, n1, n2, 0.5], [0.42, 0.985, 0.10, body, n1, 0.4],
+    [0.26, 0.965, 0.09, body, body, 0], [0.08, 0.915, 0.075, body, body, 0], [-0.12, 0.875, 0.06, body, body, 0], [-0.32, 0.85, 0.045, body, body, 0], [-0.5, 0.82, 0.025, body, body, 0], [-0.58, 0.80, 0.01, body, body, 0],
   ];
   const crng = new Rng(77);
-  crestPts.reverse().forEach(([z, y, ry, b0, b1, w1]) => crestSt.push(S(0, y - 0.04 + Y, z, 0.014, ry * (0.85 + crng.next() * 0.3), b0, b1, w1, 1, 0.3)));
+  crestPts.reverse().forEach(([z, y, ry, b0, b1, w1]) => crestSt.push(S(0, y - 0.04 + Y, z, 0.022, ry * (0.85 + crng.next() * 0.3), b0, b1, w1, 1, 0.3)));
   fur.push(loft(crestSt, 6, 'crest', paint));
   // tail with tuft
   const tl = B('tail');
@@ -672,8 +689,8 @@ function boarSpecies(): Species {
   }
   const feetOrdered: [number, number][] = [feet[0], feet[2], feet[1], feet[3]];
   return {
-    bones, furParts: fur, hardParts: hard,
-    dims: { bodyY: 0.62, bodyHalfLen: 0.62, bodyRadius: 0.32, headRadius: 0.19, legLen: 0.58, feet: feetOrdered, halfWidth: 0.28 },
+    bones, furParts: fur, hardParts: hard, eyeParts: eyes,
+    dims: { bodyY: 0.62, bodyHalfLen: 0.65, bodyRadius: 0.33, headRadius: 0.2, legLen: 0.58, feet: feetOrdered, halfWidth: 0.29 },
   };
 }
 
@@ -695,26 +712,56 @@ export class AnimalFactory {
     const sp = kind === 'deer' ? deerSpecies(variant === 'stag') : boarSpecies();
     const furGeo = mergeGeometries(sp.furParts, false)!;
     const hardGeo = mergeGeometries(sp.hardParts, false)!;
-    const geometry = mergeGeometries([furGeo, hardGeo], true)!;
-    sp.furParts.forEach((g) => g.dispose()); sp.hardParts.forEach((g) => g.dispose()); furGeo.dispose(); hardGeo.dispose();
+    const eyeGeo = mergeGeometries(sp.eyeParts, false)!;
+    const geometry = mergeGeometries([furGeo, hardGeo, eyeGeo], true)!;
+    for (const g of [...sp.furParts, ...sp.hardParts, ...sp.eyeParts, furGeo, hardGeo, eyeGeo]) g.dispose();
     geometry.computeBoundingSphere();
     geometry.boundingSphere!.radius += 0.6; // animated legs / neck / corpse roll never leave this
     geometry.computeBoundingBox();
 
     const tex = kind === 'deer'
-      ? (this.deerTex ??= makeFurTextures(101, { contrast: 0.5, grizzle: 0.0, normalStrength: 0.8, bristle: 0 }))
-      : (this.boarTex ??= makeFurTextures(202, { contrast: 0.75, grizzle: 0.8, normalStrength: 1.3, bristle: 0.6 }));
-    // MeshPhysicalMaterial for the sheen term: the soft velvet rim that makes fur read as fur
+      ? (this.deerTex ??= makeFurTextures(101, { contrast: 0.8, grizzle: 0.15, normalStrength: 1.6, bristle: 0, strandLen: 24, root: 0.14 }))
+      : (this.boarTex ??= makeFurTextures(202, { contrast: 1.0, grizzle: 0.6, normalStrength: 2.2, bristle: 0.6, strandLen: 12, root: 0.24 }));
+    // MeshPhysicalMaterial for the sheen term (soft velvet), plus a backlit Fresnel rim patched in below
     const fur = new THREE.MeshPhysicalMaterial({
-      map: tex.map, normalMap: tex.normalMap, normalScale: new THREE.Vector2(kind === 'deer' ? 0.7 : 1.0, kind === 'deer' ? 0.7 : 1.0),
-      roughness: kind === 'deer' ? 0.86 : 0.9, metalness: 0, vertexColors: true, color: new THREE.Color(1.0, 1.0, 1.0),
-      sheen: kind === 'deer' ? 0.22 : 0.3, sheenRoughness: 0.8, sheenColor: kind === 'deer' ? new THREE.Color(0.42, 0.30, 0.18) : new THREE.Color(0.3, 0.26, 0.22),
+      map: tex.map, normalMap: tex.normalMap, normalScale: new THREE.Vector2(1.0, 1.0),
+      roughness: kind === 'deer' ? 0.82 : 0.88, metalness: 0, vertexColors: true, color: new THREE.Color(1.0, 1.0, 1.0),
+      sheen: kind === 'deer' ? 0.3 : 0.15, sheenRoughness: 0.7, sheenColor: kind === 'deer' ? new THREE.Color(0.45, 0.36, 0.26) : new THREE.Color(0.35, 0.3, 0.24),
     });
-    const hard = new THREE.MeshStandardMaterial({ roughness: 0.45, metalness: 0, vertexColors: true, color: new THREE.Color(1, 1, 1), normalMap: tex.normalMap, normalScale: new THREE.Vector2(0.35, 0.35) });
-    this.sky.setupMaterial(fur); this.sky.setupMaterial(hard);
-    m = { kind, variant, geometry, bones: sp.bones, dims: sp.dims, fur, hard };
+    const rim = kind === 'deer' ? new THREE.Color(1.0, 0.72, 0.42) : new THREE.Color(0.9, 0.7, 0.45);
+    fur.userData.rimColor = rim;
+    this.patchFur(fur, kind);
+    const hard = new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0, vertexColors: true, color: new THREE.Color(1, 1, 1), normalMap: tex.normalMap, normalScale: new THREE.Vector2(0.35, 0.35) });
+    const eye = new THREE.MeshPhysicalMaterial({ roughness: 0.1, metalness: 0, vertexColors: true, color: new THREE.Color(1, 1, 1), clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.5 });
+    this.sky.setupMaterial(fur); this.sky.setupMaterial(hard); this.sky.setupMaterial(eye);
+    m = { kind, variant, geometry, bones: sp.bones, dims: sp.dims, fur, hard, eye };
     this.models.set(key, m);
     return m;
+  }
+
+  /** Fur shader patch: Fresnel-lit tip colour that glows when the sun is behind the animal (backlit edges). */
+  private patchFur(fur: THREE.MeshPhysicalMaterial, kind: AnimalKind) {
+    const rim = fur.userData.rimColor as THREE.Color;
+    fur.onBeforeCompile = (shader) => {
+      attachFogUniforms(shader);
+      shader.uniforms.furRimColor = { value: rim };
+      shader.uniforms.furSunDir = fogUniforms.fogSunDir;
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <clipping_planes_pars_fragment>', `#include <clipping_planes_pars_fragment>
+          uniform vec3 furRimColor; uniform vec3 furSunDir;`)
+        .replace('#include <opaque_fragment>', `
+          {
+            vec3 V = normalize( vViewPosition );
+            float ndv = saturate( dot( normal, V ) );
+            vec3 sunV = normalize( ( viewMatrix * vec4( furSunDir, 0.0 ) ).xyz );
+            float back = saturate( dot( sunV, -V ) );                // looking toward the sun → the coat's tips light up
+            float fres = pow( 1.0 - ndv, 3.2 );
+            float rimAmt = fres * ( 0.04 + 1.2 * back * back );
+            outgoingLight += furRimColor * rimAmt * ( 0.15 + 0.85 * diffuseColor.rgb * 2.2 );
+          }
+          #include <opaque_fragment>`);
+    };
+    fur.customProgramCacheKey = () => 'animal-fur-' + kind;
   }
 
   /** Build a SkinnedMesh + skeleton for one animal. `tint` (0..1) slightly varies the fur colour per individual. */
@@ -730,15 +777,17 @@ export class AnimalFactory {
       if (d.parent) bones[d.parent].add(b);
     }
     const fur = model.fur.clone();
-    const v = (tint - 0.5) * 0.24;
-    fur.color.setRGB(1.0 + v, 1.0 + v * 0.8, 1.0 + v * 0.5);
+    fur.userData.rimColor = model.fur.userData.rimColor;
+    this.patchFur(fur, model.kind);           // clone() does not carry onBeforeCompile
+    const v = (tint - 0.5) * 0.2;
+    fur.color.setRGB(1.0 + v, 1.0 + v * 0.9, 1.0 + v * 0.7);
     this.sky.setupMaterial(fur);
-    const mesh = new THREE.SkinnedMesh(model.geometry, [fur, model.hard]);
+    const mesh = new THREE.SkinnedMesh(model.geometry, [fur, model.hard, model.eye]);
     mesh.add(bones.body);
     mesh.updateMatrixWorld(true);
     mesh.bind(new THREE.Skeleton(list));
     mesh.castShadow = true; mesh.receiveShadow = true;
     mesh.frustumCulled = true;
-    return { mesh, bones, materials: [fur, model.hard] };
+    return { mesh, bones, materials: [fur, model.hard, model.eye] };
   }
 }

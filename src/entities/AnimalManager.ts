@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { SEED, CHUNK_HALF } from '../core/config';
 import { Rng } from '../core/rng';
-import { heightAt, normalAt, trailDistance, cabinMask, inChunk } from '../world/Heightfield';
+import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel, CABIN_SITES } from '../world/Heightfield';
 import type { Forest } from '../world/Forest';
 import type { Sky } from '../world/Sky';
 import { AnimalFactory, type AnimalKind, type AnimalModel } from './AnimalFactory';
@@ -84,26 +84,53 @@ export class AnimalManager {
 
   // ── spawning ───────────────────────────────────────────────────────────────────────────
 
-  private isOpen(x: number, z: number, clearingR: number) {
+  /** dry ground: above the pond's water line */
+  private isDry(x: number, z: number) { return heightAt(x, z) > waterLevel() + 0.25; }
+
+  /**
+   * Ground an animal can stand on. `clearingR` > 3 asks for a clearing (few trunks in that radius);
+   * `canopy` instead asks for trees around (boars root under the canopy).
+   */
+  private isOpen(x: number, z: number, clearingR: number, canopy = false) {
     if (!inChunk(x, z, 22)) return false;
-    if (trailDistance(x, z) < 12) return false;
+    if (trailDistance(x, z) < (clearingR > 3 ? 9 : 6)) return false;
     if (cabinMask(x, z) > 0) return false;
     if (normalAt(x, z)[1] < 0.8) return false;
-    if (this.forest.nearby(x, z, clearingR).length > (clearingR > 3 ? 2 : 0)) return false;
-    return true;
+    if (!this.isDry(x, z)) return false;
+    const near = this.forest.nearby(x, z, clearingR).length;
+    if (clearingR > 3) return canopy ? near >= 3 : near <= 2;
+    return near === 0;
   }
 
   private spawnHerds() {
     const rng = this.rng;
-    const plan: { kind: AnimalKind; n: number }[] = [{ kind: 'deer', n: 5 }, { kind: 'deer', n: 5 }, { kind: 'deer', n: 4 }, { kind: 'boar', n: 5 }, { kind: 'boar', n: 5 }];
+    const cabin2 = CABIN_SITES[1];
+    // herd placement rules: deer graze in clearings near the trails (10–25 m off the centreline) so a
+    // player walking a trail sees them at the tree line; one herd sits by the south spawn trail and one
+    // near cabin 2; boars root under the canopy.
+    interface Plan { kind: AnimalKind; n: number; anchor?: { x: number; z: number; rMin: number; rMax: number }; canopy: boolean; trail: [number, number] }
+    const plan: Plan[] = [
+      { kind: 'deer', n: 5, anchor: { x: 0, z: -190, rMin: 18, rMax: 55 }, canopy: false, trail: [10, 25] },   // south trail
+      { kind: 'deer', n: 5, anchor: { x: cabin2.x, z: cabin2.z, rMin: 22, rMax: 45 }, canopy: false, trail: [10, 28] },
+      { kind: 'deer', n: 4, canopy: false, trail: [10, 25] },
+      { kind: 'boar', n: 5, canopy: true, trail: [12, 40] },
+      { kind: 'boar', n: 5, canopy: true, trail: [12, 40] },
+    ];
     const centres: [number, number][] = [];
     for (const h of plan) {
       let cx = 0, cz = 0, ok = false;
-      for (let tries = 0; tries < 400 && !ok; tries++) {
-        cx = rng.range(-215, 215); cz = rng.range(-215, 215);
-        if (!this.isOpen(cx, cz, 7)) continue;
-        if (Math.hypot(cx, cz + 235) < 45) continue;                       // not on top of the spawn point
-        if (centres.some(([x, z]) => Math.hypot(x - cx, z - cz) < 70)) continue;
+      for (let tries = 0; tries < 1500 && !ok; tries++) {
+        if (h.anchor) {
+          const ang = rng.range(0, Math.PI * 2), r = rng.range(h.anchor.rMin, h.anchor.rMax);
+          cx = h.anchor.x + Math.cos(ang) * r; cz = h.anchor.z + Math.sin(ang) * r;
+        } else { cx = rng.range(-215, 215); cz = rng.range(-215, 215); }
+        // relax the trail band and clearing size as the search goes on
+        const relax = tries / 1500;
+        const td = trailDistance(cx, cz);
+        if (td < h.trail[0] || td > h.trail[1] + relax * 60) continue;
+        if (!this.isOpen(cx, cz, h.canopy ? 9 : 7 - relax * 3, h.canopy)) continue;
+        if (Math.hypot(cx, cz + 235) < 30) continue;                       // not on top of the spawn point
+        if (centres.some(([x, z]) => Math.hypot(x - cx, z - cz) < 60)) continue;
         ok = true;
       }
       if (!ok) continue;
@@ -112,7 +139,7 @@ export class AnimalManager {
       this.herds.push(herd);
       for (let i = 0; i < h.n; i++) {
         let px = cx, pz = cz, placed = false;
-        for (let tries = 0; tries < 40 && !placed; tries++) {
+        for (let tries = 0; tries < 60 && !placed; tries++) {
           const ang = rng.range(0, Math.PI * 2), r = rng.range(1.5, 9);
           px = cx + Math.cos(ang) * r; pz = cz + Math.sin(ang) * r;
           if (!this.isOpen(px, pz, 1.2)) continue;
@@ -272,7 +299,7 @@ export class AnimalManager {
             const hx = tx - herd.cx, hz = tz - herd.cz, hd = Math.hypot(hx, hz);
             if (hd > 15) { tx = herd.cx + hx / hd * 14; tz = herd.cz + hz / hd * 14; }
           }
-          if (!inChunk(tx, tz, 20) || normalAt(tx, tz)[1] < 0.78 || cabinMask(tx, tz) > 0) continue;
+          if (!inChunk(tx, tz, 20) || normalAt(tx, tz)[1] < 0.78 || cabinMask(tx, tz) > 0 || !this.isDry(tx, tz)) continue;
           if (this.forest.nearby(tx, tz, 1.0).length) continue;
           br.tx = tx; br.tz = tz; ok = true;
         }
@@ -310,12 +337,12 @@ export class AnimalManager {
     }
     // steep ground ahead / chunk edge: bend toward the chunk centre
     const ax = px + vx * look, az = pz + vz * look;
-    if (!inChunk(ax, az, 22) || normalAt(ax, az)[1] < 0.75) {
+    if (!inChunk(ax, az, 22) || normalAt(ax, az)[1] < 0.75 || !this.isDry(ax, az)) {
       const cd = Math.hypot(px, pz) + 1e-3;
       vx += -px / cd * 1.5; vz += -pz / cd * 1.5;
       // and try the perpendiculars
       const sx = -vz, sz = vx;
-      const lOk = inChunk(px + sx * look, pz + sz * look, 22) && normalAt(px + sx * look, pz + sz * look)[1] >= 0.75;
+      const lOk = inChunk(px + sx * look, pz + sz * look, 22) && normalAt(px + sx * look, pz + sz * look)[1] >= 0.75 && this.isDry(px + sx * look, pz + sz * look);
       if (lOk) { vx += sx; vz += sz; } else { vx -= sx; vz -= sz; }
     }
     a.setMotion(Math.atan2(vx, vz), speed, turnRate);
@@ -323,6 +350,11 @@ export class AnimalManager {
 
   private confine(a: Animal) {
     const p = a.position;
+    if (!this.isDry(p.x, p.z)) {
+      // stepped into the pond: back up toward the last dry heading
+      p.x -= Math.sin(a.yaw) * 1.0; p.z -= Math.cos(a.yaw) * 1.0;
+      a.desiredYaw = a.yaw + Math.PI * 0.75;
+    }
     const lim = CHUNK_HALF - 4; // hard clamp; steering keeps AI animals ≥ 20 m from the edge
     if (Math.abs(p.x) > lim) p.x = Math.sign(p.x) * lim;
     if (Math.abs(p.z) > lim) p.z = Math.sign(p.z) * lim;
