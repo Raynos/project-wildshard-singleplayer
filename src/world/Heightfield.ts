@@ -126,7 +126,7 @@ export function splatAt(x: number, z: number): [number, number, number, number] 
   const h = heightAt(x, z);
   const td = trailDistance(x, z);
   const rock = smoothstep(0.16, 0.34, slope) + smoothstep(0.55, 0.75, n2.fbm(x * 0.02, z * 0.02, 3) + smoothstep(14, 24, h) * 0.3);
-  const trail = smoothstep(5.5 + n.get(x * 0.1, z * 0.1) * 1.5, 1.5, td) + cabinMask(x, z) * 0.6 + smoothstep(0.05, 0.4, pondMask(x, z));
+  const trail = smoothstep(5.5 + n.get(x * 0.1, z * 0.1) * 1.5, 1.5, td) + cabinMask(x, z) * 0.6 + smoothstep(0.35, 0.6, pondMask(x, z)) * 0.7;
   const grassN = n.fbm(x * 0.012 + 50, z * 0.012, 4);
   const grass = smoothstep(-0.05, 0.35, grassN) * smoothstep(0.25, 0.08, slope) * (1 - smoothstep(2, 10, h) * 0.5);
   let w0 = 1, w1 = clamp(grass, 0, 1), w2 = clamp(rock, 0, 1), w3 = clamp(trail, 0, 1);
