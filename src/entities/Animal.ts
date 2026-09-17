@@ -144,7 +144,7 @@ export class Animal {
     this.flinchPitch = -lz * 0.12 + (hitPoint.y - this.position.y > this.model.dims.bodyY ? 0.05 : -0.03);
     if (this.hp <= 0) {
       this.hp = 0; this.alive = false; this.state = 'dead';
-      this.deathT = 0; this.deathSide = lx >= 0 ? 1 : -1; // falls away from the shot
+      this.deathT = 0; this.deathSide = lx >= 0 ? -1 : 1; // pushed over away from the shot (legs face the shooter)
       this.desiredSpeed = 0;
       return true;
     }
@@ -310,7 +310,7 @@ export class Animal {
     const p = this.tmp;
     const deer = this.kind === 'deer';
     // head to the ground; deer need the whole neck down, boars only nose down a little
-    p[P_NECK1] = deer ? 1.05 : 0.35; p[P_NECK2] = deer ? 0.85 : 0.2; p[P_HEAD_P] = deer ? 0.55 : 0.35;
+    p[P_NECK1] = deer ? 1.2 : 0.35; p[P_NECK2] = deer ? 0.95 : 0.2; p[P_HEAD_P] = deer ? 0.7 : 0.35;
     p[P_NECK_Y] *= 0.6; p[P_HEAD_Y] *= 0.4;
     // nibbling
     const nib = Math.sin(t * 6 + seed) * 0.5 + 0.5;

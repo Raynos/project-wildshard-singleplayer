@@ -43,7 +43,7 @@ interface Brain {
 }
 
 const DEER_WALK = 1.3, DEER_RUN = 9.5, BOAR_WALK = 1.1, BOAR_RUN = 6.8, BOAR_CHARGE = 7.5;
-const ALERT_DIST = 30, SPRINT_DIST = 45, FLEE_DIST = 18, CHARGE_DIST = 6;
+const ALERT_DIST = 30, ALERT_DIST_BOAR = 22, SPRINT_DIST = 45, FLEE_DIST = 18, CHARGE_DIST = 6;
 const ANIM_LOD = 140;
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _p = new THREE.Vector3();
@@ -174,7 +174,8 @@ export class AnimalManager {
     const dx = player.x - a.position.x, dz = player.z - a.position.z;
     const dPlayer = Math.hypot(dx, dz);
     const boar = a.kind === 'boar';
-    const threat = dPlayer < ALERT_DIST || (sprinting && dPlayer < SPRINT_DIST);
+    const alertD = boar ? ALERT_DIST_BOAR : ALERT_DIST;
+    const threat = dPlayer < alertD || (sprinting && dPlayer < SPRINT_DIST);
     br.chargeCd = Math.max(0, br.chargeCd - dt);
     br.hurtT = Math.max(0, br.hurtT - dt);
     if (a.hp < a.maxHp) br.hurtT = 6;
@@ -217,7 +218,7 @@ export class AnimalManager {
         br.scared -= dt;
         if (hurtCharge) { this.enter(a, br, 'charge'); break; }
         if (dPlayer < FLEE_DIST || (br.scared <= 0 && threat) || a.hp < a.maxHp) { this.enter(a, br, 'flee'); break; }
-        if (!threat && dPlayer > ALERT_DIST + 10) { br.timer -= dt; if (br.timer <= 0) this.enter(a, br, 'graze'); }
+        if (!threat && dPlayer > alertD + 10) { br.timer -= dt; if (br.timer <= 0) this.enter(a, br, 'graze'); }
         else br.timer = 2.5;
         break;
       }
@@ -449,6 +450,15 @@ function rayCapsule(o: THREE.Vector3, d: THREE.Vector3, a: THREE.Vector3, b: THR
 // Blood: a pooled particle burst + pooled ground decals
 // ─────────────────────────────────────────────────────────────────────────────────────────
 
+function makeDropTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 32;
+  const g = c.getContext('2d')!;
+  const grad = g.createRadialGradient(16, 16, 2, 16, 16, 15);
+  grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.7, 'rgba(255,255,255,0.9)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grad; g.fillRect(0, 0, 32, 32);
+  return new THREE.CanvasTexture(c);
+}
+
 const MAX_P = 384, MAX_DECALS = 24;
 
 class BloodFX {
@@ -469,13 +479,13 @@ class BloodFX {
     this.posAttr.setUsage(THREE.DynamicDrawUsage);
     g.setAttribute('position', this.posAttr);
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-    const mat = new THREE.PointsMaterial({ color: new THREE.Color(0.28, 0.01, 0.01), size: 0.045, sizeAttenuation: true, transparent: true, opacity: 0.95, depthWrite: false });
+    const mat = new THREE.PointsMaterial({ color: new THREE.Color(0.09, 0.004, 0.003), size: 0.035, sizeAttenuation: true, transparent: true, opacity: 0.95, depthWrite: false, map: makeDropTexture(), alphaTest: 0.3 });
     this.points = new THREE.Points(g, mat);
     this.points.frustumCulled = false;
     this.points.renderOrder = 5;
     this.group.add(this.points);
     for (let i = 0; i < MAX_P; i++) this.pos[i * 3 + 1] = -1000;
-    const dmat = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.12, 0.005, 0.005), roughness: 0.55, metalness: 0, transparent: true, opacity: 0.85, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    const dmat = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.035, 0.002, 0.002), roughness: 0.35, metalness: 0, transparent: true, opacity: 0.9, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
     sky.setupMaterial(dmat);
     const dgeo = new THREE.CircleGeometry(1, 18);
     // irregular splat outline
@@ -510,7 +520,7 @@ class BloodFX {
     _d.set(nrm[0], nrm[1], nrm[2]);
     d.quaternion.setFromUnitVectors(_c.set(0, 0, 1), _d);
     d.rotateZ(Math.random() * Math.PI * 2);
-    const r = 0.22 + Math.random() * 0.2 * strength;
+    const r = 0.14 + Math.random() * 0.14 * strength;
     d.scale.set(r, r * (0.7 + Math.random() * 0.5), 1);
     d.visible = true;
   }

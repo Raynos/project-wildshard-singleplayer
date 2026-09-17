@@ -615,8 +615,8 @@ function boarSpecies(): Species {
   const crestSt: Station[] = [];
   const crestPts: [number, number, number, number, number, number][] = [
     // z, y, ry, b0, b1, w1
-    [0.86, 0.78, 0.02, hd, hd, 0], [0.74, 0.86, 0.06, n2, hd, 0.5], [0.58, 0.93, 0.085, n1, n2, 0.5], [0.42, 0.965, 0.10, body, n1, 0.4],
-    [0.26, 0.945, 0.095, body, body, 0], [0.08, 0.90, 0.08, body, body, 0], [-0.12, 0.865, 0.065, body, body, 0], [-0.32, 0.845, 0.05, body, body, 0], [-0.5, 0.82, 0.03, body, body, 0], [-0.58, 0.80, 0.012, body, body, 0],
+    [0.86, 0.78, 0.015, hd, hd, 0], [0.74, 0.86, 0.04, n2, hd, 0.5], [0.58, 0.93, 0.06, n1, n2, 0.5], [0.42, 0.965, 0.07, body, n1, 0.4],
+    [0.26, 0.945, 0.065, body, body, 0], [0.08, 0.90, 0.055, body, body, 0], [-0.12, 0.865, 0.045, body, body, 0], [-0.32, 0.845, 0.035, body, body, 0], [-0.5, 0.82, 0.02, body, body, 0], [-0.58, 0.80, 0.01, body, body, 0],
   ];
   const crng = new Rng(77);
   crestPts.reverse().forEach(([z, y, ry, b0, b1, w1]) => crestSt.push(S(0, y - 0.04 + Y, z, 0.014, ry * (0.85 + crng.next() * 0.3), b0, b1, w1, 1, 0.3)));
@@ -637,9 +637,9 @@ function boarSpecies(): Species {
     const sx = side === 'L' ? 1 : -1;
     const sh = B(`F${side}_shoulder`), ca = B(`F${side}_carpus`), fe = B(`F${side}_fetlock`);
     fur.push(loft([
-      S(sx * 0.13, 0.62, 0.41, 0.11, 0.16, body, sh, 0.3),
-      S(sx * 0.14, 0.48, 0.42, 0.095, 0.13, body, sh, 0.8),
-      S(sx * 0.15, 0.37, 0.42, 0.068, 0.088, sh),
+      S(sx * 0.13, 0.66, 0.40, 0.13, 0.19, body, sh, 0.3),
+      S(sx * 0.145, 0.50, 0.42, 0.105, 0.15, body, sh, 0.8),
+      S(sx * 0.15, 0.37, 0.42, 0.072, 0.095, sh),
       S(sx * 0.15, 0.31, 0.42, 0.054, 0.066, sh, ca, 0.5),
       S(sx * 0.15, 0.22, 0.42, 0.046, 0.056, ca),
       S(sx * 0.15, 0.13, 0.42, 0.045, 0.055, ca, fe, 0.5),
@@ -654,9 +654,9 @@ function boarSpecies(): Species {
     feet.push([sx * 0.145, 0.445]);
     const hp = B(`B${side}_hip`), stf = B(`B${side}_stifle`), hk = B(`B${side}_hock`);
     fur.push(loft([
-      S(sx * 0.11, 0.60, -0.50, 0.115, 0.18, body, hp, 0.3),
-      S(sx * 0.13, 0.48, -0.43, 0.10, 0.14, body, hp, 0.8),
-      S(sx * 0.145, 0.38, -0.38, 0.072, 0.092, hp, stf, 0.5),
+      S(sx * 0.11, 0.62, -0.50, 0.13, 0.20, body, hp, 0.3),
+      S(sx * 0.135, 0.49, -0.43, 0.11, 0.16, body, hp, 0.8),
+      S(sx * 0.145, 0.38, -0.38, 0.076, 0.098, hp, stf, 0.5),
       S(sx * 0.15, 0.30, -0.43, 0.056, 0.07, stf),
       S(sx * 0.15, 0.25, -0.475, 0.048, 0.06, stf, hk, 0.5),
       S(sx * 0.15, 0.15, -0.465, 0.045, 0.055, hk),
