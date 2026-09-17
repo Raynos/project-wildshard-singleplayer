@@ -28,7 +28,12 @@ import type { Forest } from './Forest';
  * The CPU only works when the player crosses a cell boundary (≈0.13 ms per cell, at most
  * `params.budget` cells per frame; the first fill after a spawn/teleport is done at once, ~50 ms).
  *
- * Public: `group`, `mesh`, `material`, `update(dt, playerPos)`, `radius`,
+ * `flowers` is a second InstancedMesh on the same cell scheme (8 slots per cell): ~6 % of the
+ * clumps in open, grassy clearings (grass splat high, `forest.canopyMap` low) get a white / blue /
+ * yellow 4-petal flower head on a stem. Forest-floor clumps are a solid tuft carpet; along the
+ * trail (trail weight 0.08–0.6) a taller, denser verge grows; the trail bed itself stays clear.
+ *
+ * Public: `group`, `mesh`, `flowers`, `material`, `update(dt, playerPos)`, `radius`,
  *         `params` = { budget, windStrength } (live tunables).
  */
 
