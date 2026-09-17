@@ -3,6 +3,7 @@ import { bootstrap } from './core/bootstrap';
 import { CHUNK_HALF } from './core/config';
 import { Boundary } from './world/Boundary';
 import { Water } from './world/Water';
+import { Horizon } from './world/Horizon';
 import { Grass } from './world/Grass';
 import { Undergrowth } from './world/Undergrowth';
 import { Particles } from './world/Particles';
@@ -26,6 +27,8 @@ async function main() {
   game.scene.add(boundary.group);
   const water = new Water(sky).build();
   game.scene.add(water.mesh);
+  const horizon = new Horizon(sky).build();
+  game.scene.add(horizon.group);
 
   loading.step('Seeding grass and ferns', 0.68);
   const grass = new Grass(sky, forest).build();
@@ -107,6 +110,7 @@ async function main() {
     if (attract && tour.active) { attractT += dt * 0.35; tour.setTime(9 + ((attractT - 9) % 22)); }
     boundary.update(dt, t);
     water.update(dt);
+    horizon.update(dt, game.camera);
     grass.update(dt, player.position);
     under.update(dt, player.position);
     particles.update(dt, player.position, game.camera);
@@ -125,6 +129,7 @@ async function main() {
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 && hud.entered);
+    hud.setAimInfo(crossbow.aimInfo);
     hud.setState({
       bolts: crossbow.state.bolts, loaded: crossbow.state.loaded, reloading: crossbow.state.reloading, reloadProgress: crossbow.state.reloadProgress,
       health, fps: game.stats.fps, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
