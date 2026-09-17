@@ -15,9 +15,10 @@ import { Animal } from './Animal';
  *   const animals = new AnimalManager(scene, sky, forest).build();
  *   game.onUpdate((dt, t) => animals.update(dt, t, player.position, player.sprinting));
  *
- *   animals.raycast(origin, dir, maxDist) → { animal, point, distance, headshot } | null
- *   animal.applyDamage(amount, hitPoint, dir) → true if it died   (deer 60 hp, boar 90 hp)
- *   animals.hit(hit, damage, dir)  — convenience: applies damage (headshot ×3), blood, events
+ *   animals.raycast(origin, dir, maxDist) → { animal, point, distance, headshot } | null  (result object is reused)
+ *   animal.applyDamage(amount, hitPoint, dir) → true if it died   (deer 60 hp, boar 90 hp; caller applies headshot ×3)
+ *   animals.hit(hit, damage, dir)  — convenience: applyDamage with headshot ×3
+ *   Blood burst + ground decal, sounds, AI reaction and onKill all fire from applyDamage.
  *   animals.onKill   = (animal) => …
  *   animals.onCharge = (animal, damage) => …          a boar reached the player
  *   animals.onSound  = (name, position) => …          'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal'
@@ -136,6 +137,7 @@ export class AnimalManager {
     a.place(x, z, yaw);
     a.herd = -1;
     a.onFootfall = this.footfall;
+    a.onDamaged = this.damaged;
     a.sampleTerrain();
     this.group.add(a.mesh);
     this.animals.push(a);
@@ -372,22 +374,23 @@ export class AnimalManager {
     return h;
   }
 
-  /** Apply a hit: damage (×3 for headshots), blood, sounds and the kill event. Returns true if it died. */
+  /** Convenience: apply a raycast hit with headshot ×3. Returns true if it died. */
   hit(hit: AnimalHit, damage: number, dir: THREE.Vector3): boolean {
-    const a = hit.animal;
-    const dmg = hit.headshot ? damage * 3 : damage;
-    this.blood.burst(hit.point, dir, hit.headshot ? 1.4 : 1);
+    return hit.animal.applyDamage(hit.headshot ? damage * 3 : damage, hit.point, dir);
+  }
+
+  /** every applyDamage lands here: blood, sounds, AI reaction, kill event */
+  private damaged = (a: Animal, amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3, died: boolean) => {
+    this.blood.burst(hitPoint, dir, amount >= 90 ? 1.5 : 1);
     if (a.kind === 'boar') this.onSound?.('boar_squeal', a.position); else this.onSound?.('deer_call', a.position);
-    const died = a.applyDamage(dmg, hit.point, dir);
     const br = this.brains.get(a);
-    if (died) { this.onKill?.(a); if (br) br.timer = 0; }
-    else if (br && a.state !== 'charge') {
+    if (died) { this.onKill?.(a); if (br) br.timer = 0; return; }
+    if (br && a.state !== 'charge') {
       // a wounded animal bolts (boars may turn on you)
       if (a.kind === 'boar' && this.playerPos.distanceTo(a.position) < CHARGE_DIST + 2 && br.chargeCd <= 0 && this.rng.next() < 0.7) this.enter(a, br, 'charge');
       else this.enter(a, br, 'flee');
     }
-    return died;
-  }
+  };
 
   // ── debug ──────────────────────────────────────────────────────────────────────────────
 

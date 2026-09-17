@@ -53,7 +53,7 @@ export interface AnimalModel {
   geometry: THREE.BufferGeometry;
   bones: BoneDef[];
   dims: AnimalDims;
-  fur: THREE.MeshStandardMaterial;
+  fur: THREE.MeshPhysicalMaterial;
   hard: THREE.MeshStandardMaterial;
 }
 
@@ -383,14 +383,14 @@ function deerSpecies(stag: boolean): Species {
     S(0, 0.99, -0.90, 0.02, 0.02, body),
     S(0, 0.985, -0.89, 0.12, 0.17, body),
     S(0, 0.975, -0.86, 0.19, 0.26, body, body, 0, 1.03, 1.0),
-    S(0, 0.96, -0.79, 0.225, 0.30, body, body, 0, 1.06, 0.9),
-    S(0, 0.955, -0.66, 0.245, 0.32, body, body, 0, 1.08, 0.9),
-    S(0, 0.945, -0.52, 0.25, 0.33, body, body, 0, 1.06, 0.94),
-    S(0, 0.93, -0.25, 0.25, 0.335, body, body, 0, 1.0, 1.02),
-    S(0, 0.925, 0.05, 0.25, 0.34, body, body, 0, 1.0, 1.08),
-    S(0, 0.935, 0.32, 0.245, 0.34, body, body, 0, 1.12, 1.08),
-    S(0, 0.955, 0.52, 0.225, 0.33, body, n1, 0.25, 1.12, 1.0),
-    S(0, 0.97, 0.70, 0.18, 0.27, body, n1, 0.4, 1.02, 0.9),
+    S(0, 0.97, -0.79, 0.225, 0.29, body, body, 0, 1.06, 0.86),
+    S(0, 0.965, -0.66, 0.245, 0.31, body, body, 0, 1.08, 0.86),
+    S(0, 0.955, -0.52, 0.25, 0.32, body, body, 0, 1.06, 0.9),
+    S(0, 0.94, -0.25, 0.25, 0.33, body, body, 0, 0.99, 1.0),
+    S(0, 0.93, 0.05, 0.25, 0.345, body, body, 0, 1.0, 1.08),
+    S(0, 0.935, 0.32, 0.245, 0.35, body, body, 0, 1.14, 1.1),
+    S(0, 0.955, 0.52, 0.225, 0.34, body, n1, 0.25, 1.15, 1.02),
+    S(0, 0.975, 0.70, 0.18, 0.28, body, n1, 0.4, 1.04, 0.9),
     S(0, 0.99, 0.82, 0.10, 0.16, body, n1, 0.5),
     S(0, 1.00, 0.86, 0.02, 0.03, body, n1, 0.5),
   ], 22, 'body', paint));
@@ -704,9 +704,11 @@ export class AnimalFactory {
     const tex = kind === 'deer'
       ? (this.deerTex ??= makeFurTextures(101, { contrast: 0.5, grizzle: 0.0, normalStrength: 0.8, bristle: 0 }))
       : (this.boarTex ??= makeFurTextures(202, { contrast: 0.75, grizzle: 0.8, normalStrength: 1.3, bristle: 0.6 }));
-    const fur = new THREE.MeshStandardMaterial({
+    // MeshPhysicalMaterial for the sheen term: the soft velvet rim that makes fur read as fur
+    const fur = new THREE.MeshPhysicalMaterial({
       map: tex.map, normalMap: tex.normalMap, normalScale: new THREE.Vector2(kind === 'deer' ? 0.7 : 1.0, kind === 'deer' ? 0.7 : 1.0),
       roughness: kind === 'deer' ? 0.86 : 0.9, metalness: 0, vertexColors: true, color: new THREE.Color(1.0, 1.0, 1.0),
+      sheen: kind === 'deer' ? 0.22 : 0.3, sheenRoughness: 0.8, sheenColor: kind === 'deer' ? new THREE.Color(0.42, 0.30, 0.18) : new THREE.Color(0.3, 0.26, 0.22),
     });
     const hard = new THREE.MeshStandardMaterial({ roughness: 0.45, metalness: 0, vertexColors: true, color: new THREE.Color(1, 1, 1), normalMap: tex.normalMap, normalScale: new THREE.Vector2(0.35, 0.35) });
     this.sky.setupMaterial(fur); this.sky.setupMaterial(hard);

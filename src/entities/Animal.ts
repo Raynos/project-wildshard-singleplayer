@@ -45,7 +45,7 @@ const pulse = (t: number, period: number, seed: number, width = 0.12) => {
   return p < width ? Math.sin((p / width) * Math.PI) : 0;
 };
 
-const _v = new THREE.Vector3(), _q = new THREE.Quaternion(), _e = new THREE.Euler();
+const _v = new THREE.Vector3();
 
 export class Animal {
   kind: AnimalKind;
@@ -78,12 +78,13 @@ export class Animal {
   private tiltPitch = 0; private tiltRoll = 0; private groundY = 0;
   private footDelta = new Float32Array(4);
   private legDir: THREE.Bone[][] = [];
-  private breathe = 0;
   private lastFootPhase = new Float32Array(4);
   /** called when a hoof plants during a gait (index, phase strength) — the manager turns it into sounds */
   onFootfall?: (animal: Animal, strength: number) => void;
   /** dev hook: freeze the animation at a gait ('idle'|'graze'|'walk'|'trot'|'gallop') and phase (0..1) */
   debugGait?: { gait: string; phase: number };
+  /** set by the manager: fires after every applyDamage (blood, sounds, AI reaction, onKill) */
+  onDamaged?: (animal: Animal, amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3, died: boolean) => void;
 
   constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1) {
     this.kind = model.kind;
@@ -131,7 +132,12 @@ export class Animal {
     a.set(cx - fx, cy - fy, cz - fz); b.set(cx + fx, cy + fy, cz + fz);
   }
 
-  /** Apply damage; `hitPoint`/`dir` (world) drive the flinch and the collapse side. Returns true if this shot killed it. */
+  /**
+   * Apply damage (the caller multiplies for headshots: `hit.headshot ? dmg * 3 : dmg`, or uses
+   * AnimalManager.hit which does it). `hitPoint`/`dir` (world) drive the flinch and the collapse
+   * side. Returns true if this shot killed it. Blood, sounds, AI reaction and manager.onKill
+   * happen through `onDamaged`, so calling this directly is enough.
+   */
   applyDamage(amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3): boolean {
     if (!this.alive) return false;
     this.hp -= amount;
@@ -146,8 +152,10 @@ export class Animal {
       this.hp = 0; this.alive = false; this.state = 'dead';
       this.deathT = 0; this.deathSide = lx >= 0 ? -1 : 1; // pushed over away from the shot (legs face the shooter)
       this.desiredSpeed = 0;
+      this.onDamaged?.(this, amount, hitPoint, dir, true);
       return true;
     }
+    this.onDamaged?.(this, amount, hitPoint, dir, false);
     return false;
   }
 
