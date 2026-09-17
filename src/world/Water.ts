@@ -39,7 +39,7 @@ export class Water {
     const normalTex = makeWaterNormal();
     this.uniforms.tReflection.value = this.rt.texture;
     this.mat = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(0.012, 0.04, 0.03), roughness: 0.05, metalness: 0.0, transparent: true,
+      color: new THREE.Color(0.008, 0.028, 0.022), roughness: 0.05, metalness: 0.0, transparent: true,
       normalMap: normalTex, normalScale: new THREE.Vector2(0.09, 0.09), envMapIntensity: 0.2,
       clearcoat: 0.6, clearcoatRoughness: 0.05, depthWrite: false,
     });
@@ -70,9 +70,9 @@ export class Water {
           {
             vec3 V = normalize(vViewPosition);
             float NdotV = clamp(dot(normal, V), 0.0, 1.0);
-            float F = 0.04 + 0.7 * pow(1.0 - NdotV, 3.0);
+            float F = 0.03 + 0.62 * pow(1.0 - NdotV, 3.0);
             vec2 muv = vMirror.xy / vMirror.w + rippleN.xy * 0.06;
-            vec3 refl = texture2D(tReflection, muv).rgb * vec3(0.55, 0.62, 0.62);
+            vec3 refl = texture2D(tReflection, muv).rgb * vec3(0.42, 0.5, 0.52);
             vec3 deep = gl_FragColor.rgb;
             // shallow water shows the bottom colour a little
             deep = mix(deep, deep + vec3(0.03, 0.05, 0.03), smoothstep(2.0, 0.0, vDepth));

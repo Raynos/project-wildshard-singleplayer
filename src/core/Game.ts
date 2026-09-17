@@ -8,6 +8,7 @@ import { installAtmosphere } from '../world/Atmosphere';
 import { setAnisotropy } from './assets';
 import { Sky } from '../world/Sky';
 import { GradeEffect } from './Grade';
+import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 
 export class Game {
   renderer: THREE.WebGLRenderer;
@@ -19,6 +20,7 @@ export class Game {
   private updaters: ((dt: number, t: number) => void)[] = [];
   stats = { fps: 0, frames: 0, acc: 0 };
   private renderPass!: RenderPass;
+  volumetrics!: VolumetricsEffect;
 
   constructor(public canvas: HTMLCanvasElement) {
     installAtmosphere();
@@ -54,9 +56,13 @@ export class Game {
     ao.configuration.color = new THREE.Color(0.05, 0.06, 0.05);
     composer.addPass(ao);
 
+    const vol = new VolumetricsEffect(this.camera, makeNoiseTexture());
+    vol.setSun(this.sky.sunDir, new THREE.Color(1.0, 0.72, 0.42));
+    if (this.scene.fog) vol.setFogColor((this.scene.fog as THREE.Fog).color);
+    this.volumetrics = vol;
     const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
       blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
-      exposure: 0.55, samples: 60, clampMax: 1.0, resolutionScale: 0.5,
+      exposure: 0.4, samples: 60, clampMax: 1.0, resolutionScale: 0.5,
     });
     const bloom = new BloomEffect({ intensity: 0.55, luminanceThreshold: 0.85, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.6 });
     const vignette = new VignetteEffect({ offset: 0.32, darkness: 0.55 });
@@ -67,6 +73,7 @@ export class Game {
     const split = new GradeEffect();
     const grain = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: true });
     grain.blendMode.opacity.value = 0.12;
+    composer.addPass(new EffectPass(this.camera, vol));
     composer.addPass(new EffectPass(this.camera, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain));
     const smaa = new SMAAEffect({ preset: SMAAPreset.HIGH, edgeDetectionMode: EdgeDetectionMode.COLOR });
     composer.addPass(new EffectPass(this.camera, smaa));
