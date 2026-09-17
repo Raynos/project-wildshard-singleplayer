@@ -3,13 +3,17 @@
 // window.__world = { ...bootstrap(), grass }, window.__gpu = { ms } (GPU frame time via timer queries)
 import { bootstrap } from '../core/bootstrap';
 import { Grass } from '../world/Grass';
+import { Undergrowth } from '../world/Undergrowth';
 
 const world = await bootstrap();
 const grass = new Grass(world.sky, world.forest).build();
 world.game.scene.add(grass.group);
-world.game.onUpdate((dt) => grass.update(dt, world.player.position));
+const under = new Undergrowth(world.sky, world.forest).build();
+world.game.scene.add(under.group);
+world.game.onUpdate((dt) => { grass.update(dt, world.player.position); under.update(dt, world.player.position); });
+console.log('undergrowth', JSON.stringify(under.counts));
 
-(window as unknown as { __world: unknown }).__world = { ...world, grass };
+(window as unknown as { __world: unknown }).__world = { ...world, grass, under };
 world.game.buildComposer();
 installGpuTimer();
 world.game.start();
