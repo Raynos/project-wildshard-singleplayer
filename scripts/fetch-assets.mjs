@@ -32,7 +32,7 @@ const MODEL_MAPS = {
 
 const MODELS = ['rock_moss_set_01', 'tree_stump_01', 'dead_tree_trunk', 'stone_fire_pit',
   // cabin props (cabins agent)
-  'Lantern_01', 'wooden_crate_02', 'barrel_03', 'wooden_bucket_01', 'hatchet'];
+  'Lantern_01', 'wooden_crate_02', 'wine_barrel_01', 'wooden_bucket_01', 'hatchet'];
 const HDRIS = { kloofendal_48d_partly_cloudy_puresky: '2k', kloofendal_28d_misty_puresky: '2k', qwantani_late_afternoon_puresky: '2k', sunflowers_puresky: '2k' };
 
 async function exists(p) { try { await access(p); return true; } catch { return false; } }
