@@ -57,6 +57,8 @@ export interface AnimalModel {
   fur: THREE.MeshPhysicalMaterial;
   hard: THREE.MeshStandardMaterial;
   eye: THREE.MeshPhysicalMaterial;
+  /** SHELL_LAYERS fur-shell materials, innermost first (shared by every animal of this kind) */
+  shells: THREE.MeshPhysicalMaterial[];
 }
 
 export interface AnimalRig {
@@ -82,11 +84,28 @@ const TEX_M = 0.32; // metres per detail-texture repeat
 
 const _t = new THREE.Vector3(), _side = new THREE.Vector3(), _up = new THREE.Vector3(), _n = new THREE.Vector3(), _c = new THREE.Color();
 
+/**
+ * Relative fur length per vertex (1 = the species' base shell length). Long on the body, neck mane and
+ * boar crest; short on the face, ears and lower legs; none on hard parts.
+ */
+function furLength(part: string, y: number, ny: number, t: number): number {
+  switch (part) {
+    case 'body': return ny < -0.5 ? 0.7 : 1.0;
+    case 'neck': return 1.15;
+    case 'head': return t < 0.5 ? 0.45 : 0.2;
+    case 'ear': return 0.25;
+    case 'leg': return y > 0.5 ? 0.55 : y > 0.25 ? 0.3 : 0.15;
+    case 'tail': return 0.9;
+    case 'crest': return 1.9;
+    default: return 0;
+  }
+}
+
 /** Loft a closed tube through `st` stations with `seg` sides; returns an indexed geometry with position/normal/uv/color/skinIndex/skinWeight. */
 let shagAmp = 0; // metres of noise displacement along the ring normal (set per species before lofting)
 function loft(st: Station[], seg: number, part: string, paint: Paint, capStart = true, capEnd = true, frame: 'x' | 'z' = 'x'): THREE.BufferGeometry {
   const n = st.length;
-  const pos: number[] = [], nor: number[] = [], uv: number[] = [], col: number[] = [], si: number[] = [], sw: number[] = [];
+  const pos: number[] = [], nor: number[] = [], uv: number[] = [], col: number[] = [], si: number[] = [], sw: number[] = [], fl: number[] = [];
   const idx: number[] = [];
   // arc length along the spine for v
   const along: number[] = [0];
@@ -129,6 +148,7 @@ function loft(st: Station[], seg: number, part: string, paint: Paint, capStart =
       paint(_c, px, py, pz, _n.x, _n.y, _n.z, part, t, a);
       col.push(_c.r, _c.g, _c.b);
       si.push(s.b0, s.b1, 0, 0); sw.push(1 - s.w1, s.w1, 0, 0);
+      fl.push(furLength(part, py, _n.y, t));
     }
   }
   for (let i = 0; i < n - 1; i++) for (let j = 0; j < seg; j++) {
@@ -143,7 +163,7 @@ function loft(st: Station[], seg: number, part: string, paint: Paint, capStart =
     const ci = pos.length / 3;
     pos.push(s.x, s.y, s.z); nor.push(_t.x, _t.y, _t.z); uv.push(0.5 * uRep, along[i] / TEX_M);
     paint(_c, s.x, s.y, s.z, _t.x, _t.y, _t.z, part, along[i] / total, 0);
-    col.push(_c.r, _c.g, _c.b); si.push(s.b0, s.b1, 0, 0); sw.push(1 - s.w1, s.w1, 0, 0);
+    col.push(_c.r, _c.g, _c.b); si.push(s.b0, s.b1, 0, 0); sw.push(1 - s.w1, s.w1, 0, 0); fl.push(furLength(part, s.y, _t.y, along[i] / total));
     for (let j = 0; j < seg; j++) {
       const a = i * ringVerts + j, b = a + 1;
       if (flip) idx.push(ci, b, a); else idx.push(ci, a, b);
@@ -158,6 +178,7 @@ function loft(st: Station[], seg: number, part: string, paint: Paint, capStart =
   g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4));
   g.setAttribute('skinWeight', new THREE.Float32BufferAttribute(sw, 4));
+  g.setAttribute('furLen', new THREE.Float32BufferAttribute(fl, 1));
   g.setIndex(idx);
   // smooth face-averaged normals (more robust than the analytic ring normal on coarse lofts); the
   // duplicated uv-seam vertices get the average of both sides so the seam is invisible
@@ -184,6 +205,7 @@ function skinPlain(g: THREE.BufferGeometry, bone: number, part: string, paint: P
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
   g.setAttribute('skinIndex', new THREE.BufferAttribute(si, 4));
   g.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
+  g.setAttribute('furLen', new THREE.BufferAttribute(new Float32Array(cnt), 1)); // eyes: no fur
   return g;
 }
 
@@ -279,6 +301,26 @@ function makeFurTextures(seed: number, opts: { contrast: number; grizzle: number
   normalMap.wrapS = normalMap.wrapT = THREE.RepeatWrapping; normalMap.anisotropy = 8;
   return { map, normalMap };
 }
+
+/** Tileable strand cross-section for fur shells: each dot is one hair; its value is the hair's length. */
+function makeStrandTexture(seed: number) {
+  const S = 256;
+  const rng = new Rng(seed);
+  const c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d')!;
+  g.fillStyle = '#000'; g.fillRect(0, 0, S, S);
+  for (let i = 0; i < 5200; i++) {
+    const x = rng.next() * S, y = rng.next() * S, r = 0.9 + rng.next() * 1.4;
+    const v = Math.round((0.18 + Math.pow(rng.next(), 0.7) * 0.82) * 255);
+    g.fillStyle = 'rgb(' + v + ',' + v + ',' + v + ')';
+    for (const [ox, oy] of [[0, 0], [S, 0], [-S, 0], [0, S], [0, -S]]) { g.beginPath(); g.arc(x + ox, y + oy, r, 0, Math.PI * 2); g.fill(); }
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4;
+  return t;
+}
+
+export const SHELL_LAYERS = 8;
 
 // ─────────────────────────────────────────────────────────────────────────────────────────
 // Species definitions
@@ -380,6 +422,7 @@ function deerSpecies(stag: boolean): Species {
     { name: 'earL', parent: 'head', pos: [0.075, 1.79, 1.08] },
     { name: 'earR', parent: 'head', pos: [-0.075, 1.79, 1.08] },
     { name: 'tail', parent: 'body', pos: [0, 1.0, -0.9] },
+    { name: 'belly', parent: 'body', pos: [0, 0.8, 0.0] },   // scaled for breathing
   ];
   for (const side of ['L', 'R'] as const) {
     const sx = side === 'L' ? 1 : -1;
@@ -395,7 +438,7 @@ function deerSpecies(stag: boolean): Species {
   const B = boneIndex(bones);
   const paint = deerPaint();
   const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [], eyes: THREE.BufferGeometry[] = [];
-  const body = B('body'), n1 = B('neck1'), n2 = B('neck2'), hd = B('head');
+  const body = B('body'), n1 = B('neck1'), n2 = B('neck2'), hd = B('head'), bl = B('belly');
 
   // torso
   fur.push(loft([
@@ -404,10 +447,10 @@ function deerSpecies(stag: boolean): Species {
     S(0, 0.975, -0.86, 0.19, 0.26, body, body, 0, 1.03, 1.0),
     S(0, 0.97, -0.79, 0.225, 0.29, body, body, 0, 1.06, 0.86),
     S(0, 0.965, -0.66, 0.245, 0.31, body, body, 0, 1.08, 0.86),
-    S(0, 0.955, -0.52, 0.25, 0.32, body, body, 0, 1.06, 0.9),
-    S(0, 0.94, -0.25, 0.25, 0.33, body, body, 0, 0.99, 1.0),
-    S(0, 0.93, 0.05, 0.25, 0.345, body, body, 0, 1.0, 1.08),
-    S(0, 0.935, 0.32, 0.245, 0.35, body, body, 0, 1.14, 1.1),
+    S(0, 0.955, -0.52, 0.25, 0.32, body, bl, 0.3, 1.06, 0.9),
+    S(0, 0.94, -0.25, 0.25, 0.33, body, bl, 0.7, 0.99, 1.0),
+    S(0, 0.93, 0.05, 0.25, 0.345, body, bl, 0.7, 1.0, 1.08),
+    S(0, 0.935, 0.32, 0.245, 0.35, body, bl, 0.35, 1.14, 1.1),
     S(0, 0.955, 0.52, 0.225, 0.34, body, n1, 0.25, 1.15, 1.02),
     S(0, 0.975, 0.70, 0.18, 0.28, body, n1, 0.4, 1.04, 0.9),
     S(0, 0.99, 0.82, 0.10, 0.16, body, n1, 0.5),
@@ -440,10 +483,10 @@ function deerSpecies(stag: boolean): Species {
     const eb = B(sx > 0 ? 'earL' : 'earR');
     fur.push(loft([
       S(sx * 0.07, 1.78, 1.07, 0.024, 0.014, hd, eb, 0.3),
-      S(sx * 0.115, 1.85, 1.05, 0.052, 0.015, eb),
-      S(sx * 0.17, 1.93, 1.02, 0.062, 0.013, eb),
-      S(sx * 0.225, 2.01, 0.99, 0.048, 0.010, eb),
-      S(sx * 0.27, 2.08, 0.965, 0.018, 0.006, eb),
+      S(sx * 0.115, 1.85, 1.05, 0.048, 0.015, eb),
+      S(sx * 0.165, 1.92, 1.02, 0.056, 0.013, eb),
+      S(sx * 0.215, 1.99, 0.99, 0.042, 0.010, eb),
+      S(sx * 0.25, 2.05, 0.97, 0.016, 0.006, eb),
     ], 10, 'ear', paint, true, true, 'z'));
     // eye
     const eye = new THREE.SphereGeometry(0.022, 10, 8);
@@ -571,6 +614,7 @@ function boarSpecies(): Species {
     { name: 'earL', parent: 'head', pos: [0.09, 0.85, 0.82] },
     { name: 'earR', parent: 'head', pos: [-0.09, 0.85, 0.82] },
     { name: 'tail', parent: 'body', pos: [0, 0.71, -0.62] },
+    { name: 'belly', parent: 'body', pos: [0, 0.5, 0.0] },
   ];
   for (const side of ['L', 'R'] as const) {
     const sx = side === 'L' ? 1 : -1;
@@ -586,7 +630,7 @@ function boarSpecies(): Species {
   const B = boneIndex(bones);
   const paint = boarPaint();
   const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [], eyes: THREE.BufferGeometry[] = [];
-  const body = B('body'), n1 = B('neck1'), n2 = B('neck2'), hd = B('head');
+  const body = B('body'), n1 = B('neck1'), n2 = B('neck2'), hd = B('head'), bl = B('belly');
   // torso: barrel with shoulder hump, narrower hips (y is raised 0.07 vs the first draft: legs were too short)
   const Y = 0.07;
   fur.push(loft([
@@ -594,9 +638,9 @@ function boarSpecies(): Species {
     S(0, 0.545 + Y, -0.625, 0.12, 0.16, body),
     S(0, 0.54 + Y, -0.58, 0.19, 0.24, body, body, 0, 1.0, 1.0),
     S(0, 0.54 + Y, -0.48, 0.225, 0.27, body, body, 0, 1.04, 1.0),
-    S(0, 0.55 + Y, -0.30, 0.26, 0.32, body, body, 0, 1.06, 1.06),
-    S(0, 0.55 + Y, -0.05, 0.275, 0.335, body, body, 0, 1.14, 1.08),
-    S(0, 0.56 + Y, 0.18, 0.285, 0.34, body, body, 0, 1.30, 1.06),
+    S(0, 0.55 + Y, -0.30, 0.26, 0.32, body, bl, 0.5, 1.06, 1.06),
+    S(0, 0.55 + Y, -0.05, 0.275, 0.335, body, bl, 0.7, 1.14, 1.08),
+    S(0, 0.56 + Y, 0.18, 0.285, 0.34, body, bl, 0.4, 1.30, 1.06),
     S(0, 0.58 + Y, 0.36, 0.285, 0.34, body, n1, 0.15, 1.38, 1.02),
     S(0, 0.60 + Y, 0.52, 0.26, 0.32, body, n1, 0.5, 1.30, 0.96),
     S(0, 0.62 + Y, 0.66, 0.21, 0.26, n1, n2, 0.5, 1.12, 0.95),
@@ -708,6 +752,7 @@ export class AnimalFactory {
   private models = new Map<string, AnimalModel>();
   private deerTex?: { map: THREE.Texture; normalMap: THREE.Texture };
   private boarTex?: { map: THREE.Texture; normalMap: THREE.Texture };
+  private strandTex?: THREE.Texture;
 
   constructor(private sky: Sky) {}
 
@@ -741,14 +786,33 @@ export class AnimalFactory {
     const hard = new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0, vertexColors: true, color: new THREE.Color(1, 1, 1), normalMap: tex.normalMap, normalScale: new THREE.Vector2(0.35, 0.35) });
     const eye = new THREE.MeshPhysicalMaterial({ roughness: 0.1, metalness: 0, vertexColors: true, color: new THREE.Color(1, 1, 1), clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.5 });
     this.sky.setupMaterial(fur); this.sky.setupMaterial(hard); this.sky.setupMaterial(eye);
-    m = { kind, variant, geometry, bones: sp.bones, dims: sp.dims, fur, hard, eye };
+    // fur shells: the same material with the vertex offset + strand alpha test, one per layer
+    const shells: THREE.MeshPhysicalMaterial[] = [];
+    const strand = (this.strandTex ??= makeStrandTexture(303));
+    const baseLen = kind === 'deer' ? 0.05 : 0.065;   // metres at the outermost layer for furLen = 1
+    for (let i = 0; i < SHELL_LAYERS; i++) {
+      const sm = fur.clone();
+      sm.userData.rimColor = rim;
+      const k = (i + 1) / SHELL_LAYERS;
+      sm.userData.shell = { layer: k, len: baseLen * k, threshold: 0.1 + 0.82 * k * k, dark: 0.8 + 0.3 * k, strand };
+      this.patchFur(sm, kind, i);
+      this.sky.setupMaterial(sm);
+      shells.push(sm);
+    }
+    m = { kind, variant, geometry, bones: sp.bones, dims: sp.dims, fur, hard, eye, shells };
     this.models.set(key, m);
     return m;
   }
 
-  /** Fur shader patch: Fresnel-lit tip colour that glows when the sun is behind the animal (backlit edges). */
-  private patchFur(fur: THREE.MeshPhysicalMaterial, kind: AnimalKind) {
+  /**
+   * Fur shader patch: Fresnel-lit tip colour that glows when the sun is behind the animal (backlit
+   * edges). With `shellIndex` the material becomes a fur-shell layer: vertices are pushed out along the
+   * skinned normal by furLen x layer length (combed down/back by gravity), a strand cross-section is
+   * alpha-tested so hairs thin out toward the outer layers, and inner layers are darkened (root AO).
+   */
+  private patchFur(fur: THREE.MeshPhysicalMaterial, kind: AnimalKind, shellIndex = -1) {
     const rim = fur.userData.rimColor as THREE.Color;
+    const shell = fur.userData.shell as { layer: number; len: number; threshold: number; dark: number; strand: THREE.Texture } | undefined;
     fur.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
       shader.uniforms.furRimColor = { value: rim };
@@ -761,14 +825,49 @@ export class AnimalFactory {
             vec3 V = normalize( vViewPosition );
             float ndv = saturate( dot( normal, V ) );
             vec3 sunV = normalize( ( viewMatrix * vec4( furSunDir, 0.0 ) ).xyz );
-            float back = saturate( dot( sunV, -V ) );                // looking toward the sun → the coat's tips light up
+            float back = saturate( dot( sunV, -V ) );                // looking toward the sun: the coat's tips light up
             float fres = pow( 1.0 - ndv, 3.2 );
             float rimAmt = fres * ( 0.02 + 1.2 * back * back );
             outgoingLight += furRimColor * rimAmt * ( 0.15 + 0.85 * diffuseColor.rgb * 2.2 );
           }
           #include <opaque_fragment>`);
+      if (shell) {
+        shader.uniforms.shellLen = { value: shell.len };
+        shader.uniforms.shellComb = { value: new THREE.Vector3(0, -0.45, -0.25).multiplyScalar(shell.len * shell.layer) };
+        shader.uniforms.shellT = { value: shell.threshold };
+        shader.uniforms.shellDark = { value: shell.dark };
+        shader.uniforms.strandMap = { value: shell.strand };
+        shader.vertexShader = shader.vertexShader
+          .replace('#include <clipping_planes_pars_vertex>', `#include <clipping_planes_pars_vertex>
+            attribute float furLen; uniform float shellLen; uniform vec3 shellComb; varying float vFurLen; varying vec2 vStrandUv;`)
+          .replace('#include <skinning_vertex>', `#include <skinning_vertex>
+            vFurLen = furLen; vStrandUv = uv * 6.0;
+            transformed += objectNormal * ( furLen * shellLen ) + shellComb * furLen;`);
+        shader.fragmentShader = shader.fragmentShader
+          .replace('#include <clipping_planes_pars_fragment>', `#include <clipping_planes_pars_fragment>
+            uniform float shellT; uniform float shellDark; uniform sampler2D strandMap; varying float vFurLen; varying vec2 vStrandUv;`)
+          .replace('#include <map_fragment>', `#include <map_fragment>
+            if ( vFurLen < 0.04 ) discard;
+            float strand = texture2D( strandMap, vStrandUv ).r;
+            if ( strand < shellT ) discard;
+            diffuseColor.rgb *= shellDark;`);
+      }
     };
-    fur.customProgramCacheKey = () => 'animal-fur-' + kind;
+    fur.customProgramCacheKey = () => 'animal-fur-' + kind + (shell ? '-shell' + shellIndex : '');
+  }
+
+  /** Fur-shell meshes for one rig: SHELL_LAYERS SkinnedMeshes sharing geometry + skeleton, parented to the body mesh, all hidden. */
+  createShells(rig: AnimalRig, model: AnimalModel): THREE.SkinnedMesh[] {
+    const out: THREE.SkinnedMesh[] = [];
+    for (let i = 0; i < SHELL_LAYERS; i++) {
+      const sh = new THREE.SkinnedMesh(model.geometry, model.shells[i]);
+      sh.castShadow = false; sh.receiveShadow = true;
+      sh.frustumCulled = false; sh.visible = false;
+      rig.mesh.add(sh);
+      sh.bind(rig.mesh.skeleton, rig.mesh.bindMatrix);
+      out.push(sh);
+    }
+    return out;
   }
 
   /** Build a SkinnedMesh + skeleton for one animal. `tint` (0..1) slightly varies the fur colour per individual. */

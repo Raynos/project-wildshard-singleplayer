@@ -19,6 +19,10 @@ import { Animal } from './Animal';
  *   animal.applyDamage(amount, hitPoint, dir) → true if it died   (deer 60 hp, boar 90 hp; caller applies headshot ×3)
  *   animals.hit(hit, damage, dir)  — convenience: applyDamage with headshot ×3
  *   Blood burst + ground decal, sounds, AI reaction and onKill all fire from applyDamage.
+ *   animal.fadeOut()  — dissolve a harvested carcass over 1.5 s (animal.hidden afterwards)
+ *
+ * Fur shells: the SHELL_MAX nearest animals within SHELL_DIST m get 4–8 fur-shell layers (SkinnedMeshes
+ * sharing the body's geometry + skeleton); nothing changes beyond that distance.
  *   animals.onKill   = (animal) => …
  *   animals.onCharge = (animal, damage) => …          a boar reached the player
  *   animals.onSound  = (name, position) => …          'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal'
@@ -46,6 +50,7 @@ interface Brain {
 const DEER_WALK = 1.3, DEER_RUN = 9.5, BOAR_WALK = 1.1, BOAR_RUN = 6.8, BOAR_CHARGE = 7.5;
 const ALERT_DIST = 30, ALERT_DIST_BOAR = 22, SPRINT_DIST = 45, FLEE_DIST = 18, CHARGE_DIST = 6;
 const ANIM_LOD = 140;
+const SHELL_DIST = 18, SHELL_MAX = 4;   // fur shells: nearest SHELL_MAX animals within SHELL_DIST m
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _p = new THREE.Vector3();
 
@@ -66,6 +71,8 @@ export class AnimalManager {
   private blood!: BloodFX;
   private debugMeshes: THREE.Mesh[] = [];
   private playerPos = new THREE.Vector3();
+  private shellDist = new Float64Array(SHELL_MAX);
+  private shellIdx = new Int32Array(SHELL_MAX);
 
   constructor(private scene: THREE.Scene, private sky: Sky, private forest: Forest) {
     this.factory = new AnimalFactory(sky);
@@ -165,6 +172,8 @@ export class AnimalManager {
     a.herd = -1;
     a.onFootfall = this.footfall;
     a.onDamaged = this.damaged;
+    a.makeShells = () => this.factory.createShells(rig, model);
+    a.prepareMaterial = (m) => this.sky.setupMaterial(m);
     a.sampleTerrain();
     this.group.add(a.mesh);
     this.animals.push(a);
@@ -189,10 +198,26 @@ export class AnimalManager {
       this.thinkAcc -= 0.1;
       for (let i = 0; i < n; i++) this.think(this.animals[i], 0.1, playerPos, playerSprinting);
     }
+    // fur shells: pick the SHELL_MAX nearest animals inside SHELL_DIST (tiny insertion sort, no allocs)
+    const sd = this.shellDist, si = this.shellIdx;
+    sd.fill(Infinity); si.fill(-1);
     for (let i = 0; i < n; i++) {
       const a = this.animals[i];
-      const near = a.position.distanceToSquared(playerPos) < ANIM_LOD * ANIM_LOD;
+      if (a.hidden) continue;
+      const d2 = a.position.distanceToSquared(playerPos);
+      const near = d2 < ANIM_LOD * ANIM_LOD;
       a.update(dt, t, near);
+      if (d2 < SHELL_DIST * SHELL_DIST) {
+        for (let k = 0; k < SHELL_MAX; k++) if (d2 < sd[k]) {
+          for (let m = SHELL_MAX - 1; m > k; m--) { sd[m] = sd[m - 1]; si[m] = si[m - 1]; }
+          sd[k] = d2; si[k] = i; break;
+        }
+      }
+    }
+    for (let i = 0; i < n; i++) {
+      let level = 0;
+      for (let k = 0; k < SHELL_MAX; k++) if (si[k] === i) { const d = Math.sqrt(sd[k]); level = d < 6 ? 8 : d < 11 ? 6 : 4; }
+      this.animals[i].setShellLevel(level);
     }
     this.blood.update(dt);
     if (this.debug) this.updateDebug();
@@ -200,7 +225,7 @@ export class AnimalManager {
 
   private think(a: Animal, dt: number, player: THREE.Vector3, sprinting: boolean) {
     const br = this.brains.get(a)!;
-    if (!a.alive) { a.lookWeight = 0; return; }
+    if (!a.alive) { a.lookWeight = 0; a.settleCorpse(); return; }
     const rng = this.rng;
     const dx = player.x - a.position.x, dz = player.z - a.position.z;
     const dPlayer = Math.hypot(dx, dz);
@@ -239,7 +264,8 @@ export class AnimalManager {
           }
         }
         // occasional glance at the player when they are visible but not yet a threat
-        a.lookWeight = dPlayer < 55 && Math.sin(a.seed * 20 + performance.now() * 0.0004) > 0.5 ? 0.6 : 0;
+        // watch the player: steadily when close, occasional glances further out
+        a.lookWeight = dPlayer < 12 ? 1 : dPlayer < 55 && Math.sin(a.seed * 20 + performance.now() * 0.0004) > 0.5 ? 0.6 : 0;
         a.lookTarget.copy(player);
         break;
       }
@@ -248,7 +274,7 @@ export class AnimalManager {
         a.lookTarget.copy(player); a.lookWeight = 1;
         br.scared -= dt;
         if (hurtCharge) { this.enter(a, br, 'charge'); break; }
-        if (dPlayer < FLEE_DIST || (br.scared <= 0 && threat) || a.hp < a.maxHp) { this.enter(a, br, 'flee'); break; }
+        if (!this.calm && (dPlayer < FLEE_DIST || (br.scared <= 0 && threat) || a.hp < a.maxHp)) { this.enter(a, br, 'flee'); break; }
         if (!threat && dPlayer > alertD + 10) { br.timer -= dt; if (br.timer <= 0) this.enter(a, br, 'graze'); }
         else br.timer = 2.5;
         break;
@@ -382,7 +408,7 @@ export class AnimalManager {
   raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, aliveOnly = true): AnimalHit | null {
     let best = maxDist, bestA: Animal | null = null, bestHead = false;
     for (const a of this.animals) {
-      if (aliveOnly && !a.alive) continue;
+      if ((aliveOnly && !a.alive) || a.hidden) continue;
       // broad phase: bounding sphere around the animal
       _c.copy(a.position); _c.y += a.dims.bodyY * a.scale;
       _d.subVectors(_c, origin);

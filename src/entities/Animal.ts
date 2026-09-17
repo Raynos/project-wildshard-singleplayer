@@ -85,6 +85,17 @@ export class Animal {
   debugGait?: { gait: string; phase: number };
   /** set by the manager: fires after every applyDamage (blood, sounds, AI reaction, onKill) */
   onDamaged?: (animal: Animal, amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3, died: boolean) => void;
+  /** fur-shell meshes (created lazily by the manager via makeShells); shellLevel = how many are visible */
+  shells: THREE.SkinnedMesh[] = [];
+  makeShells?: (animal: Animal) => THREE.SkinnedMesh[];
+  /** set by the manager: runs sky.setupMaterial on the fade clones (clone() drops onBeforeCompile) */
+  prepareMaterial?: (m: THREE.Material) => void;
+  shellLevel = 0;
+  /** true once fadeOut() finished: the mesh is hidden and the animal can be ignored */
+  hidden = false;
+  private fadeT = -1;
+  private fadeMats: THREE.Material[] = [];
+  private legAbd = new Float32Array(4);       // corpse: per-leg sideways angle so hooves settle on the ground
 
   constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1) {
     this.kind = model.kind;
@@ -151,6 +162,7 @@ export class Animal {
     if (this.hp <= 0) {
       this.hp = 0; this.alive = false; this.state = 'dead';
       this.deathT = 0; this.deathSide = lx >= 0 ? -1 : 1; // pushed over away from the shot (legs face the shooter)
+      for (let l = 0; l < 4; l++) this.legAbd[l] = ((l % 2 === 0) === (this.deathSide < 0)) ? 0.35 : 0.25;
       this.desiredSpeed = 0;
       this.onDamaged?.(this, amount, hitPoint, dir, true);
       return true;
@@ -238,8 +250,9 @@ export class Animal {
       pose[P_NECK_Y] += ly * 0.55 * this.lookAmt;
       pose[P_HEAD_Y] += ly * 0.45 * this.lookAmt;
       pose[P_HEAD_P] += lp * this.lookAmt;
-      // head up, ears pricked forward, neck raised
-      pose[P_NECK1] -= 0.18 * this.lookAmt; pose[P_NECK2] -= 0.1 * this.lookAmt;
+      // head up (lifts out of a graze), ears pricked forward, neck raised
+      pose[P_NECK1] += (-0.15 - pose[P_NECK1]) * this.lookAmt; pose[P_NECK2] += (-0.05 - pose[P_NECK2]) * this.lookAmt;
+      pose[P_HEAD_P] += (0.12 - pose[P_HEAD_P]) * this.lookAmt * 0.8;
       pose[P_EARL_P] -= 0.35 * this.lookAmt; pose[P_EARR_P] -= 0.35 * this.lookAmt;
       pose[P_EARL_Y] += 0.25 * this.lookAmt; pose[P_EARR_Y] -= 0.25 * this.lookAmt;
     }
@@ -273,16 +286,67 @@ export class Animal {
       this.blendTo(P_EARL_P, 0.6, k); this.blendTo(P_EARR_P, 0.6, k); this.blendTo(P_EARL_Y, 0, k); this.blendTo(P_EARR_Y, 0, k);
       this.blendTo(P_TAIL_P, 0.3, k); this.blendTo(P_TAIL_Y, 0, k);
       for (let l = 0; l < 4; l++) {
-        const front = l < 2, down = (l % 2 === 0) === (side > 0); // legs on the ground side tuck, top legs stretch
-        this.blendTo(P_LEG + l * 3, (front ? -0.55 : 0.35) * (down ? 1 : 0.6) + 0.25 * buckle, k);
-        this.blendTo(P_LEG + l * 3 + 1, (front ? 0.9 : 0.8) * (down ? 1 : 0.55) * buckle, k);
-        this.blendTo(P_LEG + l * 3 + 2, (front ? 0.3 : -0.5) * buckle, k);
+        const front = l < 2, down = (l % 2 === 0) === (side < 0); // legs on the ground side tuck, top legs drape
+        this.blendTo(P_LEG + l * 3, (front ? -0.45 : 0.3) * (down ? 1 : 0.6) + 0.2 * buckle, k);
+        this.blendTo(P_LEG + l * 3 + 1, (front ? 0.55 : 0.5) * (down ? 1 : 0.7) * buckle, k);
+        this.blendTo(P_LEG + l * 3 + 2, (front ? 0.2 : -0.3) * buckle, k);
       }
     }
 
     this.applyTerrain(dt);
-    this.applyPose();
+    this.applyPose(dt);
     this.applyRoot();
+    this.updateFade(dt);
+  }
+
+  /** Show `n` of the fur-shell layers (0 = none; spread across the 8 layers so 4 still spans the coat depth). */
+  setShellLevel(n: number) {
+    if (n === this.shellLevel) return;
+    if (n > 0 && !this.shells.length && this.makeShells) this.shells = this.makeShells(this);
+    this.shellLevel = n;
+    const N = this.shells.length;
+    for (let i = 0; i < N; i++) this.shells[i].visible = false;
+    if (this.hidden) return;
+    // pick n layers evenly spaced, always including the outermost
+    for (let j = 0; j < Math.min(n, N); j++) this.shells[Math.round(((j + 1) * N) / Math.min(n, N)) - 1].visible = true;
+  }
+
+  /** Fade the (dead) animal out over 1.5 s, then hide it. Used when a carcass has been harvested. */
+  fadeOut() {
+    if (this.fadeT >= 0 || this.hidden) return;
+    this.fadeT = 0;
+    this.setShellLevel(0);
+    // give this mesh its own transparent materials (hard + eye are shared per model)
+    const mats = this.mesh.material as THREE.Material[];
+    this.fadeMats = mats.map((m) => { const c = m.clone(); c.transparent = true; c.depthWrite = true; this.prepareMaterial?.(c); return c; });
+    // the fur clone loses its rim patch; a plain transparent fade is fine for 1.5 s
+    this.mesh.material = this.fadeMats;
+  }
+
+  private updateFade(dt: number) {
+    if (this.fadeT < 0) return;
+    this.fadeT += dt / 1.5;
+    const k = Math.min(1, this.fadeT);
+    for (const m of this.fadeMats) m.opacity = 1 - k;
+    this.mesh.position.y -= 0.12 * k;                 // sinks into the ground as it goes
+    if (k >= 1) { this.hidden = true; this.mesh.visible = false; this.fadeT = -1; }
+  }
+
+  /**
+   * Corpse: measure each hoof against the terrain and swing the ground-side legs down until the hooves
+   * rest on it (the top-side legs lie across the body). Called by the manager at 10 Hz for dead animals.
+   */
+  settleCorpse() {
+    if (this.alive || this.deathT < 0.6) return;
+    const side = this.deathSide;
+    for (let l = 0; l < 4; l++) {
+      const down = (l % 2 === 0) === (side < 0);
+      const lo = this.legDir[l][2];
+      _v.set(0, -0.11, 0).applyMatrix4(lo.matrixWorld);              // hoof tip in world space (bone matrices carry the mesh scale)
+      const clr = _v.y - heightAt(_v.x, _v.z);
+      // swing the leg toward the ground while the hoof is in the air, back if it digs in; top legs only drape so far
+      this.legAbd[l] = THREE.MathUtils.clamp(this.legAbd[l] + THREE.MathUtils.clamp(clr * 1.5, -0.12, 0.12), -0.15, down ? 1.2 : 0.4);
+    }
   }
 
   // ── pose generators (write into this.tmp) ────────────────────────────────────────────
@@ -423,7 +487,7 @@ export class Animal {
 
   // ── apply to bones ──────────────────────────────────────────────────────────────────────
 
-  private applyPose() {
+  private applyPose(dt: number) {
     const p = this.pose, b = this.bones, d = this.model.dims;
     b.body.position.y = d.bodyY + p[P_BODY_Y];
     b.body.rotation.set(p[P_BODY_PITCH], p[P_BODY_YAW], p[P_BODY_ROLL], 'YXZ');
@@ -433,13 +497,26 @@ export class Animal {
     b.earL.rotation.set(-p[P_EARL_P], 0, -p[P_EARL_Y]);   // ear pitch: + = laid back
     b.earR.rotation.set(-p[P_EARR_P], 0, -p[P_EARR_Y]);
     b.tail.rotation.set(p[P_TAIL_P], 0, p[P_TAIL_Y]);
+    const dead = !this.alive ? smooth01(Math.max(0, this.deathT)) : 0;
     for (let l = 0; l < 4; l++) {
       const [u, m, lo] = this.legDir[l];
       u.rotation.x = -p[P_LEG + l * 3];
       m.rotation.x = p[P_LEG + l * 3 + 1];
       lo.rotation.x = p[P_LEG + l * 3 + 2];
+      // corpse: legs swing toward the ground (settled per hoof by settleCorpse); ground is local +X when the
+      // body rolled onto its left side (side < 0), local -X otherwise
+      u.rotation.z = dead * this.legAbd[l] * (this.deathSide < 0 ? 1 : -1);
+    }
+    // breathing: the belly bone swells (visible at a few metres), faster after running
+    if (this.alive) {
+      const rate = 1.4 + 2.6 * Math.min(1, this.speed / 6);
+      this.breathPhase += rate * dt * 2 * Math.PI * 0.45;
+      const br = 0.5 + 0.5 * Math.sin(this.breathPhase);
+      const sc = 1 + 0.045 * br;
+      b.belly.scale.set(sc, sc * 0.85, 1 + 0.01 * br);
     }
   }
+  private breathPhase = 0;
 
   private applyRoot() {
     const m = this.mesh;
