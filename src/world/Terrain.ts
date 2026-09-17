@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '../core/config';
 import { heightAt, splatAt } from './Heightfield';
-import { loadPBR, pbrMaterial, type PBRSet } from '../core/assets';
+import { loadPBR, loadPBRArray, pbrMaterial } from '../core/assets';
 import { attachFogUniforms } from './Atmosphere';
 
 export class Terrain {
@@ -22,10 +22,8 @@ export class Terrain {
   }
 
   async build() {
-    const [floor, grass, rock, dirt] = await Promise.all([
-      loadPBR('forest_ground_04'), loadPBR('leafy_grass'), loadPBR('rock_ground'), loadPBR('stony_dirt_path'),
-    ]);
-    this.mesh = new THREE.Mesh(this.buildGeometry(), this.buildMaterial([floor, grass, rock, dirt]));
+    const layers = await loadPBRArray(['forest_ground_04', 'leafy_grass', 'rock_ground', 'stony_dirt_path'], 1024);
+    this.mesh = new THREE.Mesh(this.buildGeometry(), this.buildMaterial(layers));
     this.mesh.receiveShadow = true;
     this.mesh.castShadow = false;
     this.group.add(this.mesh);
@@ -51,15 +49,14 @@ export class Terrain {
     return geo;
   }
 
-  private buildMaterial(sets: PBRSet[]) {
-    const mat = new THREE.MeshStandardMaterial({
-      map: sets[0].map, normalMap: sets[0].normalMap, roughnessMap: sets[0].armMap, aoMap: sets[0].armMap, metalnessMap: sets[0].armMap,
-      metalness: 0, roughness: 1, normalScale: new THREE.Vector2(1, 1),
-    });
+  private buildMaterial(layers: { map: THREE.DataArrayTexture; normalMap: THREE.DataArrayTexture; armMap: THREE.DataArrayTexture }) {
+    // a dummy 1×1 normal map keeps three's USE_NORMALMAP path (tbn) alive; the real layers are the arrays
+    const dummy = new THREE.DataTexture(new Uint8Array([128, 128, 255, 255]), 1, 1); dummy.needsUpdate = true;
+    const mat = new THREE.MeshStandardMaterial({ normalMap: dummy, metalness: 0, roughness: 1, normalScale: new THREE.Vector2(1, 1) });
     const u = {
-      tDiff: { value: sets.map((s) => s.map) },
-      tNorm: { value: sets.map((s) => s.normalMap) },
-      tArm: { value: sets.map((s) => s.armMap) },
+      tDiff: { value: layers.map },
+      tNorm: { value: layers.normalMap },
+      tArm: { value: layers.armMap },
     };
     mat.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, u);
@@ -77,25 +74,20 @@ export class Terrain {
           vWPos = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;`);
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <common>', `#include <common>
-          uniform sampler2D tDiff[4];
-          uniform sampler2D tNorm[4];
-          uniform sampler2D tArm[4];
+          precision highp sampler2DArray;
+          uniform sampler2DArray tDiff;
+          uniform sampler2DArray tNorm;
+          uniform sampler2DArray tArm;
           varying vec4 vSplat;
           varying float vCanopy;
           varying vec3 vWPos;
-          vec4 tex4(sampler2D t[4], int i, vec2 uv) {
-            if (i == 0) return texture2D(t[0], uv);
-            if (i == 1) return texture2D(t[1], uv);
-            if (i == 2) return texture2D(t[2], uv);
-            return texture2D(t[3], uv);
-          }
           float hash21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
-          vec4 sampleLayer(sampler2D t[4], int i, vec2 uv, float camDist) {
+          vec4 sampleLayer(sampler2DArray t, int i, vec2 uv, float camDist) {
             vec2 uvA = uv * 0.28;               // ~3.6 m tiles up close
             vec2 uvB = uv * 0.034 + 0.37;       // ~30 m tiles far away
             float k = smoothstep(18.0, 70.0, camDist);
-            vec4 a = tex4(t, i, uvA);
-            vec4 b = tex4(t, i, uvB);
+            vec4 a = texture(t, vec3(uvA, float(i)));
+            vec4 b = texture(t, vec3(uvB, float(i)));
             return mix(a, b, k);
           }
           `)
@@ -135,7 +127,7 @@ export class Terrain {
         .replace('#include <roughnessmap_fragment>', `float roughnessFactor = roughness * splatArm.g;`)
         .replace('#include <metalnessmap_fragment>', `float metalnessFactor = metalness;`)
         .replace('#include <aomap_fragment>', `
-          float ambientOcclusion = ( splatArm.r - 1.0 ) * aoMapIntensity + 1.0;
+          float ambientOcclusion = ( splatArm.r - 1.0 ) * 0.9 + 1.0;
           reflectedLight.indirectDiffuse *= ambientOcclusion;`);
     };
     mat.customProgramCacheKey = () => 'terrain-splat';

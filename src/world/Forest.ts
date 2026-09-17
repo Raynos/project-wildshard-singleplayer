@@ -76,7 +76,7 @@ export class Forest {
       const variant = rng.next() < 0.1 ? 3 : rng.int(0, 2);
       const scale = rng.range(0.8, 1.2);
       const v = this.factory.variants[variant];
-      const tint = new THREE.Color().setHSL(0.22 + rng.range(-0.035, 0.035), rng.range(0.2, 0.45), rng.range(0.55, 0.72));
+      const tint = new THREE.Color().setHSL(0.25 + rng.range(-0.04, 0.03), rng.range(0.25, 0.5), rng.range(0.5, 0.68));
       const t: TreeInstance = { x, y: y - 0.25, z, r: v.trunkRadius * scale + 0.15, variant, scale, rot: rng.range(0, Math.PI * 2), height: v.height * scale, tint };
       this.trees.push(t);
       const k = this.key(x, z);

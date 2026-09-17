@@ -62,7 +62,7 @@ export class Game {
     const chroma = new ChromaticAberrationEffect({ offset: new THREE.Vector2(0.0006, 0.0006), radialModulation: true, modulationOffset: 0.35 });
     const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
     const grade = new HueSaturationEffect({ saturation: 0.18 });
-    const contrast = new BrightnessContrastEffect({ brightness: 0.02, contrast: 0.12 });
+    const contrast = new BrightnessContrastEffect({ brightness: -0.015, contrast: 0.2 });
     composer.addPass(new EffectPass(this.camera, godRays, bloom, chroma, vignette, tone, grade, contrast));
     const smaa = new SMAAEffect({ preset: SMAAPreset.HIGH, edgeDetectionMode: EdgeDetectionMode.COLOR });
     composer.addPass(new EffectPass(this.camera, smaa));

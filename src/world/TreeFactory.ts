@@ -48,9 +48,9 @@ export class TreeFactory {
     this.barkMaterial.onBeforeCompile = (shader) => { attachFogUniforms(shader); patchWind(shader); };
     this.barkMaterial.customProgramCacheKey = () => 'bark';
     this.needleMaterial = new THREE.MeshStandardMaterial({
-      map: card.albedo, normalMap: card.normal, roughnessMap: card.arm, aoMap: card.arm,
-      alphaTest: 0.45, side: THREE.DoubleSide, roughness: 1, metalness: 0,
-      color: new THREE.Color(0.8, 0.92, 0.7), normalScale: new THREE.Vector2(0.8, 0.8),
+      map: card.albedo, normalMap: card.normal, aoMap: card.arm,
+      alphaTest: 0.45, side: THREE.DoubleSide, roughness: 0.96, metalness: 0, envMapIntensity: 0.45,
+      color: new THREE.Color(0.55, 0.78, 0.45), normalScale: new THREE.Vector2(0.8, 0.8),
     });
     this.needleMaterial.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
@@ -65,11 +65,20 @@ export class TreeFactory {
         .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
           {
             vec3 upV = normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz );
-            vec3 toCam = normalize( - vViewPosition );
-            normal = normalize( mix( normal, upV * 0.9 + toCam * 0.35, 0.5 ) );
+            normal = normalize( mix( normal, upV, 0.45 ) );
           }`)
         .replace('#include <lights_fragment_begin>', `#include <lights_fragment_begin>
-          reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.05;`)
+          {
+            // needle translucency: sun shining through the crown toward the viewer glows gold
+            #if NUM_DIR_LIGHTS > 0
+              vec3 Lv = directionalLights[0].direction;
+              vec3 Vv = normalize( vViewPosition );
+              float vdotl = saturate( dot( -Vv, Lv ) );
+              float trans = pow( vdotl, 5.0 ) * 0.55 + 0.08;
+              reflectedLight.indirectDiffuse += diffuseColor.rgb * directionalLights[0].color * trans * 0.35;
+            #endif
+            reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.04;
+          }`)
         .replace('#include <map_fragment>', '#include <map_fragment>\ndiffuseColor.rgb *= vCrownAO;');
     };
     this.needleMaterial.customProgramCacheKey = () => 'needles';

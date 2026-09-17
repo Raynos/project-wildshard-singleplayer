@@ -45,9 +45,10 @@ export class Sky {
     this.csm = new CSM({
       camera: this.camera, parent: this.scene, cascades: 3, mode: 'practical',
       maxFar: 220, shadowMapSize: 2048, lightDirection: this.sunDir.clone().negate(),
-      lightIntensity: qn('sunI', 6.0), shadowBias: -0.00012, lightMargin: 120, lightNear: 1, lightFar: 600,
+      lightIntensity: qn('sunI', 3.8), shadowBias: -0.00012, lightMargin: 120, lightNear: 1, lightFar: 600,
     });
     this.csm.fade = true;
+    patchCSMShaderChunk();
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = 0.05; l.shadow.radius = 2; }
 
     this.scene.add(new THREE.HemisphereLight(0x8fa8d0, 0x4a3a28, 0.45));
@@ -184,6 +185,27 @@ export class Sky {
     this.planet.traverse((o) => { o.frustumCulled = false; });
     this.scene.add(this.planet);
   }
+}
+
+/**
+ * three r186's CSMShader replaces `lights_fragment_begin` with a copy that predates the
+ * `#ifdef STANDARD` block computing `material.dfg` / multi-scattering compensation, so every
+ * CSM material loses its IBL specular (metals go black, water loses its sky). Re-insert it.
+ */
+function patchCSMShaderChunk() {
+  const chunk = THREE.ShaderChunk.lights_fragment_begin;
+  if (chunk.includes('material.dfg')) return;
+  const block = /* glsl */`
+#ifdef STANDARD
+	float dotNVms = saturate( dot( geometryNormal, geometryViewDir ) );
+	material.dfg = texture2D( dfgLUT, vec2( material.roughness, dotNVms ) ).rg;
+	#if ( NUM_SUN_LIGHTS > 0 || NUM_DIR_LIGHTS > 0 || NUM_POINT_LIGHTS > 0 || NUM_SPOT_LIGHTS > 0 )
+		float EssMs = material.dfg.x + material.dfg.y;
+		material.multiScatteringCompensation = 1.0 + material.specularColorBlended * ( 1.0 / EssMs - 1.0 );
+	#endif
+#endif
+IncidentLight directLight;`;
+  THREE.ShaderChunk.lights_fragment_begin = chunk.replace('IncidentLight directLight;', block);
 }
 
 function makeCloudTexture() {
