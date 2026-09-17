@@ -228,7 +228,7 @@ function makeFurTextures(seed: number, opts: { contrast: number; grizzle: number
   const S = 512;
   const rng = new Rng(seed);
   // fur strands: narrow across (x, ~2-3 mm at TEX_M), long along (y)
-  const f1 = lattice(112, 14, rng), f2 = lattice(224, 28, rng), f3 = lattice(448, 56, rng);
+  const f0 = lattice(30, 5, rng), f1 = lattice(112, 14, rng), f2 = lattice(224, 28, rng), f3 = lattice(448, 56, rng); // f0 = 1 cm tufts, visible at 5 m
   const m1 = lattice(6, 6, rng), m2 = lattice(12, 12, rng), m3 = lattice(24, 24, rng);
   const ph = lattice(128, 8, rng);       // per-strand phase so root/tip breaks don't line up
   const height = new Float32Array(S * S);
@@ -238,7 +238,7 @@ function makeFurTextures(seed: number, opts: { contrast: number; grizzle: number
     const u = x / S, v = y / S;
     // wobble the strands so they aren't perfectly parallel
     const wob = (m3(u, v) - 0.5) * 0.03;
-    const fur = f1(u + wob, v) * 0.5 + f2(u + wob * 2, v) * 0.3 + f3(u, v) * 0.2;
+    const fur = f0(u + wob * 3, v) * 0.35 + f1(u + wob, v) * 0.35 + f2(u + wob * 2, v) * 0.2 + f3(u, v) * 0.1;
     const mott = m1(u, v) * 0.55 + m2(u, v) * 0.3 + m3(u, v) * 0.15;
     // root → tip: each strand segment is dark at its root and pale at its tip
     const seg = (v * L + ph(u, v) * 1.7) % 1;
@@ -246,7 +246,7 @@ function makeFurTextures(seed: number, opts: { contrast: number; grizzle: number
     const i = y * S + x;
     height[i] = fur * 0.7 + tip * 0.3;
     // grizzle: sparse pale guard-hair tips
-    const g = opts.grizzle > 0 ? Math.max(0, f2(u * 0.5, v) - 0.68) * 4 * opts.grizzle * (0.4 + tip) : 0;
+    const g = opts.grizzle > 0 ? Math.max(0, f1(u, v) * 0.6 + f0(u, v) * 0.4 - 0.58) * 1.6 * opts.grizzle * (0.4 + tip) : 0;   // pale guard-hair streaks, not sparkles
     albedo[i] = 1 - opts.contrast * (0.55 - fur) - 0.2 * (mott - 0.5) * (1 + opts.bristle) - opts.root * (1 - tip) + g;
   }
   // albedo canvas (values ≤ 1 → material colour is carried by vertex colours)
@@ -311,7 +311,7 @@ const S = (x: number, y: number, z: number, rx: number, ry: number, b0: number, 
 
 function deerPaint(): Paint {
   // autumn coat: ~#7a5a3c body, greyer neck/legs, cream belly + throat, pale rump patch with a dark tail stripe
-  const body = srgb(0.478, 0.353, 0.235), bodyDark = srgb(0.36, 0.27, 0.19), grey = srgb(0.40, 0.35, 0.30), greyDark = srgb(0.30, 0.26, 0.22);
+  const body = srgb(0.40, 0.335, 0.265), bodyDark = srgb(0.30, 0.25, 0.20), grey = srgb(0.38, 0.34, 0.30), greyDark = srgb(0.29, 0.255, 0.22);
   const belly = srgb(0.68, 0.62, 0.52), cream = srgb(0.74, 0.68, 0.56), rump = srgb(0.62, 0.57, 0.47);
   const legDark = srgb(0.30, 0.25, 0.20), nose = srgb(0.06, 0.05, 0.05), muzzle = srgb(0.28, 0.24, 0.21), eyeRing = srgb(0.20, 0.16, 0.13), earIn = srgb(0.62, 0.56, 0.48);
   const antler = srgb(0.40, 0.31, 0.22), antlerTip = srgb(0.74, 0.68, 0.58), hoof = srgb(0.10, 0.08, 0.07), eye = srgb(0.02, 0.015, 0.01);
@@ -361,7 +361,11 @@ function deerPaint(): Paint {
       case 'eye': out.copy(eye); break;
       default: out.copy(body);
     }
-    const m = 1 + 0.10 * n1;
+    let m = 1 + 0.10 * n1;
+    // baked occlusion: underside, between the legs and where the legs meet the body
+    if (part === 'body') m *= 1 - 0.35 * sstep(-0.2, -0.9, ny) - 0.25 * sstep(0.25, 0.05, Math.abs(Math.abs(z) - 0.5)) * sstep(0.85, 0.6, y);
+    if (part === 'leg') m *= 1 - 0.3 * sstep(0.45, 0.8, y) - 0.2 * sstep(0.16, 0.1, Math.abs(x));
+    if (part === 'neck') m *= 1 - 0.2 * sstep(-0.2, -0.8, ny);
     out.r *= m; out.g *= m; out.b *= m * 0.98;
   };
 }
@@ -523,14 +527,14 @@ function deerSpecies(stag: boolean): Species {
 
 function boarPaint(): Paint {
   // dark grey-brown with grizzled pale bristle tips along the spine, pale tusks
-  const base = srgb(0.27, 0.21, 0.16), grizzle = srgb(0.50, 0.42, 0.32), dark = srgb(0.13, 0.10, 0.08), black = srgb(0.06, 0.05, 0.045);
+  const base = srgb(0.36, 0.29, 0.225), grizzle = srgb(0.58, 0.50, 0.40), dark = srgb(0.16, 0.13, 0.10), black = srgb(0.06, 0.05, 0.045);
   const snout = srgb(0.16, 0.09, 0.08), tusk = srgb(0.90, 0.86, 0.74), hoof = srgb(0.09, 0.075, 0.065), eye = srgb(0.02, 0.015, 0.01), cheek = srgb(0.40, 0.36, 0.30);
   return (out, x, y, z, nx, ny, nz, part, t, a) => {
     const n1 = paintNoise.fbm(x * 4 + 11, z * 4 + y * 3, 3);
     switch (part) {
       case 'body':
         out.copy(base);
-        mix(out, out, grizzle, sstep(-0.1, 0.9, ny) * (0.22 + 0.35 * sstep(-0.3, 0.5, n1)));           // grizzled back
+        mix(out, out, grizzle, sstep(-0.1, 0.9, ny) * (0.3 + 0.4 * sstep(-0.3, 0.5, n1)));           // grizzled back
         mix(out, out, dark, sstep(-0.3, -0.8, ny) * 0.85);
         break;
       case 'neck': case 'head':
@@ -550,7 +554,9 @@ function boarPaint(): Paint {
       case 'eye': out.copy(eye); break;
       default: out.copy(base);
     }
-    const m = 1 + 0.14 * n1;
+    let m = 1 + 0.14 * n1;
+    if (part === 'body') m *= 1 - 0.35 * sstep(-0.2, -0.9, ny) - 0.25 * sstep(0.25, 0.05, Math.abs(Math.abs(z) - 0.45)) * sstep(0.55, 0.35, y);
+    if (part === 'leg') m *= 1 - 0.3 * sstep(0.3, 0.55, y) - 0.2 * sstep(0.15, 0.1, Math.abs(x));
     out.r *= m; out.g *= m; out.b *= m;
   };
 }
@@ -727,6 +733,7 @@ export class AnimalFactory {
       map: tex.map, normalMap: tex.normalMap, normalScale: new THREE.Vector2(1.0, 1.0),
       roughness: kind === 'deer' ? 0.82 : 0.88, metalness: 0, vertexColors: true, color: new THREE.Color(1.0, 1.0, 1.0),
       sheen: kind === 'deer' ? 0.3 : 0.15, sheenRoughness: 0.7, sheenColor: kind === 'deer' ? new THREE.Color(0.45, 0.36, 0.26) : new THREE.Color(0.35, 0.3, 0.24),
+      envMapIntensity: kind === 'deer' ? 0.6 : 0.9, // less IBL fill so the sun side / shadow side contrast survives (fur self-shadows); boars live in shade
     });
     const rim = kind === 'deer' ? new THREE.Color(1.0, 0.72, 0.42) : new THREE.Color(0.9, 0.7, 0.45);
     fur.userData.rimColor = rim;
@@ -756,7 +763,7 @@ export class AnimalFactory {
             vec3 sunV = normalize( ( viewMatrix * vec4( furSunDir, 0.0 ) ).xyz );
             float back = saturate( dot( sunV, -V ) );                // looking toward the sun → the coat's tips light up
             float fres = pow( 1.0 - ndv, 3.2 );
-            float rimAmt = fres * ( 0.04 + 1.2 * back * back );
+            float rimAmt = fres * ( 0.02 + 1.2 * back * back );
             outgoingLight += furRimColor * rimAmt * ( 0.15 + 0.85 * diffuseColor.rgb * 2.2 );
           }
           #include <opaque_fragment>`);
@@ -780,7 +787,7 @@ export class AnimalFactory {
     fur.userData.rimColor = model.fur.userData.rimColor;
     this.patchFur(fur, model.kind);           // clone() does not carry onBeforeCompile
     const v = (tint - 0.5) * 0.2;
-    fur.color.setRGB(1.0 + v, 1.0 + v * 0.9, 1.0 + v * 0.7);
+    fur.color.setRGB(0.9 + v, 0.9 + v * 0.9, 0.9 + v * 0.7);
     this.sky.setupMaterial(fur);
     const mesh = new THREE.SkinnedMesh(model.geometry, [fur, model.hard, model.eye]);
     mesh.add(bones.body);
