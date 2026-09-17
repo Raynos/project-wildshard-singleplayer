@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { SEED } from '../core/config';
 import { Rng } from '../core/rng';
 import { smoothstep } from '../core/noise';
-import { heightAt } from './Heightfield';
+import { heightAt, POND, waterLevel } from './Heightfield';
 import { attachFogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
 import type { Forest } from './Forest';
@@ -17,9 +17,11 @@ import type { Forest } from './Forest';
  *  - motes:   THREE.Points (1500) wrapped in a 24 m box around the camera (mod-wrapped in the vertex
  *             shader → world-static positions, zero CPU), soft round additive sprites, slow drift,
  *             sparkle + edge fade. Fog dims them.
- *  - mist:    48 large soft billboards (procedural noise-blob texture) parked in the lowest terrain
- *             around the central hollow, drifting and slowly turning, depthWrite off, fading near
- *             the camera and when looked at from above so they never read as flat cards.
+ *  - mist:    72 large soft billboards (procedural noise-blob texture) parked in the lowest terrain
+ *             around the central hollow and over the pond, drifting and slowly turning, depthWrite
+ *             off, fading near the camera and when looked at from above so they never read as flat
+ *             cards. Tinted towards the fog's sun colour (warm at the sunset HDRI), warmer still when
+ *             seen against the sun.
  *  - needles: 200 tumbling pine-needle quads dropping from the crowns of trees within 28 m of the
  *             player (respawn set is rebuilt from `forest.trees` whenever the player moves 8 m).
  * All three are unlit ShaderMaterials with the global exponential height fog applied by hand
@@ -29,7 +31,7 @@ import type { Forest } from './Forest';
  */
 
 const MOTE_COUNT = 1500, MOTE_RANGE = 12;    // half-extent of the wrap box (m)
-const MIST_COUNT = 48;
+const MIST_COUNT = 72;
 const NEEDLE_COUNT = 200;
 
 const fogGLSL = /* glsl */`
@@ -211,8 +213,9 @@ export class Particles {
         uniform sampler2D uTex; uniform float uOpacity; uniform vec3 uSunColor;
         varying vec2 vUv; varying vec3 vWorld; varying float vFade;
         void main() {
-          float a = texture2D( uTex, vUv ).a * vFade * 0.32 * uOpacity;
-          vec3 col = mix( fogColor, vec3( 1.0 ), 0.2 ) * 0.9;
+          float a = texture2D( uTex, vUv ).a * vFade * 0.34 * uOpacity;
+          float sunAmt = max( dot( normalize( vWorld - cameraPosition ), fogSunDir ), 0.0 );
+          vec3 col = mix( fogColor, fogSunColor, 0.3 + 0.45 * pow( sunAmt, 3.0 ) ) * 0.95;
           float f = atmosFogFactor( vWorld );
           col = mix( col, atmosFogColor( vWorld ), f );
           gl_FragColor = vec4( col, a );
@@ -301,24 +304,28 @@ export class Particles {
 
 // ------------------------------------------------------------------ placement helpers
 
-/** Lowest, most enclosed spots near the central hollow: score = local depression + bowl bias. */
+/** Lowest, most enclosed spots near the central hollow and the pond: score = local depression + bias. */
 function pickMistSpots() {
   const rng = new Rng(SEED + 903);
   const cands: { x: number; y: number; z: number; s: number }[] = [];
-  for (let i = 0; i < 900; i++) {
-    const x = rng.range(-170, 170), z = rng.range(-170, 170);
-    const h = heightAt(x, z);
+  const wl = waterLevel();
+  for (let i = 0; i < 1300; i++) {
+    let x: number, z: number;
+    if (i % 4 === 0) { const a = rng.range(0, Math.PI * 2), d = rng.range(0, POND.r + 14); x = POND.x + Math.cos(a) * d; z = POND.z + Math.sin(a) * d; }
+    else { x = rng.range(-170, 170); z = rng.range(-170, 170); }
+    const h = Math.max(heightAt(x, z), wl - 0.3);   // over the pond sit on the water, not the basin floor
     let ring = 0;
     for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; ring += heightAt(x + Math.cos(a) * 22, z + Math.sin(a) * 22); }
     const lowness = ring / 8 - h;
-    const bowl = smoothstep(170, 40, Math.hypot(x, z + 10)) * 2.5;
-    cands.push({ x, y: h, z, s: lowness + bowl + rng.range(0, 0.4) });
+    const bowl = smoothstep(170, 40, Math.hypot(x, z + 10)) * 3.0;
+    const pond = smoothstep(POND.r + 30, POND.r * 0.5, Math.hypot(x - POND.x, z - POND.z)) * 3.0;
+    cands.push({ x, y: h, z, s: lowness + bowl + pond + rng.range(0, 0.4) });
   }
   cands.sort((a, b) => b.s - a.s);
   const out: { x: number; y: number; z: number }[] = [];
   for (const c of cands) {
     if (out.length >= MIST_COUNT) break;
-    if (out.some((o) => Math.hypot(o.x - c.x, o.z - c.z) < 11)) continue;
+    if (out.some((o) => Math.hypot(o.x - c.x, o.z - c.z) < 9)) continue;
     out.push(c);
   }
   return out;

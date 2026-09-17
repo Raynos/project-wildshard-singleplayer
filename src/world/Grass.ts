@@ -37,6 +37,7 @@ const FADE = 10;           // metres: outer band where instances scale down to 0
 const CELL = 4;            // metres per cell
 const N = Math.ceil((RADIUS * 2) / CELL); // 28 cells per side
 const K = 96;              // instance slots per cell → 75 264 instances
+const KF = 8;              // flower slots per cell
 
 const grassUniforms = {
   uGrassWind: { value: 1.0 },
@@ -50,6 +51,8 @@ export class Grass {
   group = new THREE.Group();
   mesh!: THREE.InstancedMesh;
   material!: THREE.MeshStandardMaterial;
+  /** small white / blue / yellow flower heads in ~4 % of clearing clumps (same cell scheme) */
+  flowers!: THREE.InstancedMesh;
   readonly radius = RADIUS;
   /** live tunables */
   params = { budget: 6, windStrength: 1.0 };
@@ -86,6 +89,15 @@ export class Grass {
     const arr = this.mesh.instanceMatrix.array as Float32Array;
     for (let i = 0; i < N * N * K; i++) this.zeroM.toArray(arr, i * 16);
     this.group.add(this.mesh);
+    this.flowers = new THREE.InstancedMesh(buildFlowerGeometry(), this.buildFlowerMaterial(), N * N * KF);
+    this.flowers.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.flowers.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(N * N * KF * 3), 3);
+    this.flowers.instanceColor.setUsage(THREE.DynamicDrawUsage);
+    this.flowers.frustumCulled = false;
+    this.flowers.receiveShadow = true;
+    const farr = this.flowers.instanceMatrix.array as Float32Array;
+    for (let i = 0; i < N * N * KF; i++) this.zeroM.toArray(farr, i * 16);
+    this.group.add(this.flowers);
     grassUniforms.uSunDir.value.copy(this.sky.sunDir);
     grassUniforms.uSunColor.value.copy(this.sky.sunColor);
     return this;
@@ -114,12 +126,14 @@ export class Grass {
             float dist = distance( ipos, cameraPosition );
             float rnd = fract( sin( dot( ipos.xz, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 );
             float fade = 1.0 - smoothstep( uRadius - uFade, uRadius, dist );
-            // LOD: far clumps lose their 3rd and then 2nd quad, then every other clump, before the ring fade
-            if ( quadId > 1.5 ) fade *= 1.0 - smoothstep( 18.0, 26.0, dist );
-            else if ( quadId > 0.5 ) fade *= 1.0 - smoothstep( 32.0, 40.0, dist );
-            if ( rnd < 0.5 ) fade *= 1.0 - smoothstep( 38.0, 46.0, dist );
+            // LOD: filler quads only near the camera; far clumps lose their 3rd, then 2nd quad, then
+            // every other clump thins out, before the ring fade — a gentle taper so no band pops
+            if ( quadId > 2.5 ) fade *= 1.0 - smoothstep( 9.0, 16.0, dist );
+            else if ( quadId > 1.5 ) fade *= 1.0 - smoothstep( 22.0, 34.0, dist );
+            else if ( quadId > 0.5 ) fade *= 1.0 - smoothstep( 34.0, 46.0, dist );
+            if ( rnd < 0.5 ) fade *= 1.0 - smoothstep( 40.0, 50.0, dist );
             // widen the surviving card a little so far coverage holds up
-            transformed.x *= 1.0 + smoothstep( 18.0, 30.0, dist ) * 0.35;
+            transformed.x *= 1.0 + smoothstep( 20.0, 34.0, dist ) * 0.35;
             transformed *= fade;
             float h = uv.y;
             vH = h;
@@ -165,6 +179,50 @@ export class Grass {
     return mat;
   }
 
+  private buildFlowerMaterial() {
+    const mat = new THREE.MeshStandardMaterial({ map: makeFlowerTexture(), alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.7, metalness: 0 });
+    mat.onBeforeCompile = (shader) => {
+      attachFogUniforms(shader);
+      shader.uniforms.uTime = windUniforms.uTime;
+      shader.uniforms.uWindStrength = windUniforms.uWindStrength;
+      shader.uniforms.uGrassWind = grassUniforms.uGrassWind;
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', /* glsl */`#include <common>
+          uniform float uTime; uniform float uWindStrength; uniform float uGrassWind;`)
+        .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
+          {
+            mat3 im = mat3( instanceMatrix );
+            vec3 ipos = ( modelMatrix * vec4( instanceMatrix[3].xyz, 1.0 ) ).xyz;
+            float dist = distance( ipos, cameraPosition );
+            float fade = 1.0 - smoothstep( 24.0, 34.0, dist );
+            transformed *= fade;
+            float h = uv.y;
+            vec3 wpos = ( modelMatrix * instanceMatrix * vec4( transformed, 1.0 ) ).xyz;
+            float phase = dot( wpos.xz, vec2( 0.86, 0.5 ) ) * 0.32;
+            float gust = sin( uTime * 1.25 - phase ) * 0.5 + 0.5; gust *= gust;
+            float s2 = dot( im[0], im[0] );
+            float amp = ( 0.01 + gust * 0.07 ) * uWindStrength * uGrassWind * sqrt( s2 ) * 2.0;
+            vec3 off = vec3( 0.86 * amp, 0.0, 0.5 * amp ) * h * h;
+            transformed += ( off * im ) / max( s2, 1e-6 ) * fade;
+          }`);
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <normal_fragment_begin>', THREE.ShaderChunk.normal_fragment_begin.replace('normal *= faceDirection;', ''))
+        .replace('#include <lights_fragment_begin>', /* glsl */`#include <lights_fragment_begin>
+          reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.12;`);
+    };
+    mat.customProgramCacheKey = () => 'grass-flowers';
+    this.sky.setupMaterial(mat);
+    return mat;
+  }
+
+  private canopyAt(x: number, z: number) {
+    const img = this.forest.canopyMap?.image as { data: Float32Array; width: number; height: number } | undefined;
+    if (!img) return 0;
+    const ix = Math.min(img.width - 1, Math.max(0, Math.floor(((x + 250) / 500) * img.width)));
+    const iz = Math.min(img.height - 1, Math.max(0, Math.floor(((z + 250) / 500) * img.height)));
+    return img.data[iz * img.width + ix];
+  }
+
   private slotOf(cx: number, cz: number) {
     return (((cx % N) + N) % N) * N + (((cz % N) + N) % N);
   }
@@ -207,7 +265,10 @@ export class Grass {
       this.seedCell(cx, cz);
       n++; dirty = true;
     }
-    if (dirty) { this.mesh.instanceMatrix.needsUpdate = true; this.mesh.instanceColor!.needsUpdate = true; }
+    if (dirty) {
+      this.mesh.instanceMatrix.needsUpdate = true; this.mesh.instanceColor!.needsUpdate = true;
+      this.flowers.instanceMatrix.needsUpdate = true; this.flowers.instanceColor!.needsUpdate = true;
+    }
   }
 
   private seedCell(cx: number, cz: number) {
@@ -221,6 +282,11 @@ export class Grass {
     const matArr = this.mesh.instanceMatrix.array as Float32Array;
     const colArr = this.mesh.instanceColor!.array as Float32Array;
     const base = slot * K;
+    const fArr = this.flowers.instanceMatrix.array as Float32Array;
+    const fCol = this.flowers.instanceColor!.array as Float32Array;
+    const fBase = slot * KF;
+    let fk = 0;
+    const canopy = this.canopyAt(x0 + CELL / 2, z0 + CELL / 2);
     this.tmpN.set(nrm[0], nrm[1], nrm[2]);
     this.tmpQ2.setFromUnitVectors(UP, this.tmpN);
     for (let k = 0; k < K; k++) {
@@ -232,8 +298,11 @@ export class Grass {
       const t = bilerp(s00[3], s10[3], s01[3], s11[3], u, v);
       const r = bilerp(s00[2], s10[2], s01[2], s11[2], u, v);
       const patch = this.patchNoise.fbm(x * 0.045, z * 0.045, 2);
-      let p = g * (1.0 + 0.3 * patch) + f * 0.13;
-      p *= smoothstep(0.3, 0.04, t) * smoothstep(0.5, 0.1, r);
+      // dense on the grass layer, a solid tuft carpet on the forest floor, a taller verge along the
+      // trail edge (trail weight up to ~0.6), nothing on the trail bed / rock
+      const verge = smoothstep(0.08, 0.4, t) * (1 - smoothstep(0.45, 0.62, t));
+      let p = g * (1.0 + 0.3 * patch) + f * (0.5 + 0.12 * patch) + verge * 0.7;
+      p *= smoothstep(0.62, 0.42, t) * smoothstep(0.5, 0.1, r);
       const roll = rng.next();
       const yaw = rng.range(0, Math.PI * 2);
       const hv = rng.next();
@@ -244,7 +313,7 @@ export class Grass {
       if (!keep) { this.zeroM.toArray(matArr, idx * 16); continue; }
       const y = heightAt(x, z) - 0.03;
       if (y < waterLevel() + 0.15) { this.zeroM.toArray(matArr, idx * 16); continue; }
-      const h = lerp(0.36, 0.68, hv) * lerp(0.72, 1.0, g) * (0.9 + 0.2 * patch);
+      const h = lerp(0.36, 0.68, hv) * lerp(0.78, 1.0, g) * (0.9 + 0.2 * patch) * (1 + verge * 0.55);
       this.tmpQ.setFromAxisAngle(UP, yaw).premultiply(this.tmpQ2);
       this.tmpM.compose(this.tmpP.set(x, y, z), this.tmpQ, this.tmpS.set(h, h, h));
       this.tmpM.toArray(matArr, idx * 16);
@@ -256,7 +325,23 @@ export class Grass {
       this.tmpC.g = lerp(this.tmpC.g, 0.62, floorMix * 0.6);
       this.tmpC.b = lerp(this.tmpC.b, 0.34, floorMix * 0.6);
       colArr[idx * 3] = this.tmpC.r; colArr[idx * 3 + 1] = this.tmpC.g; colArr[idx * 3 + 2] = this.tmpC.b;
+      // flowers: a few per cell in open, grassy clearings
+      const fr = rng.next();
+      if (fk < KF && g > 0.45 && canopy < 0.35 && fr < 0.06) {
+        const fi = fBase + fk++;
+        const fs = rng.range(0.9, 1.3) * h * 2.0;
+        this.tmpM.compose(this.tmpP.set(x, y + 0.02, z), this.tmpQ, this.tmpS.set(fs, fs, fs));
+        this.tmpM.toArray(fArr, fi * 16);
+        const kind = rng.next();
+        if (kind < 0.45) this.tmpC.setRGB(1.0, 1.0, 0.95);           // white
+        else if (kind < 0.75) this.tmpC.setRGB(0.55, 0.62, 1.0);     // blue
+        else this.tmpC.setRGB(1.0, 0.85, 0.25);                      // yellow
+        fCol[fi * 3] = this.tmpC.r; fCol[fi * 3 + 1] = this.tmpC.g; fCol[fi * 3 + 2] = this.tmpC.b;
+      }
     }
+    for (let i = fk; i < KF; i++) this.zeroM.toArray(fArr, (fBase + i) * 16);
+    this.flowers.instanceMatrix.addUpdateRange(fBase * 16, KF * 16);
+    this.flowers.instanceColor!.addUpdateRange(fBase * 3, KF * 3);
     this.mesh.instanceMatrix.addUpdateRange(base * 16, K * 16);
     this.mesh.instanceColor!.addUpdateRange(base * 3, K * 3);
   }
@@ -267,16 +352,20 @@ const bilerp = (a: number, b: number, c: number, d: number, u: number, v: number
 
 // ---------------------------------------------------------------------------------- geometry
 
-/** Three crossed, curved quads (4 rows each) with the pivot at the root. Unit height, ~0.72 wide. */
+/**
+ * Five curved quads (4 rows each) with the pivot at the root. Unit height, ~0.72 wide. Quads 0–2 are
+ * the crossed core; quads 3–4 are slightly offset fillers that only survive within ~16 m (see LOD).
+ */
 function buildClumpGeometry() {
   const rng = new Rng(SEED + 404);
-  const rows = 4, quads = 3;
+  const rows = 4, quads = 5;
   const verts: number[] = [], norms: number[] = [], uvs: number[] = [], idx: number[] = [], qid: number[] = [];
   for (let q = 0; q < quads; q++) {
-    const yaw = (q / quads) * Math.PI + rng.range(-0.18, 0.18);
+    const filler = q >= 3;
+    const yaw = (filler ? (q - 3) * Math.PI * 0.5 + 0.4 : (q / 3) * Math.PI) + rng.range(-0.18, 0.18);
     const tilt = rng.range(-0.12, 0.12);
-    const ox = rng.range(-0.05, 0.05), oz = rng.range(-0.05, 0.05);
-    const width = 0.72 * rng.range(0.9, 1.1);
+    const ox = rng.range(-0.05, 0.05) + (filler ? rng.range(-0.16, 0.16) : 0), oz = rng.range(-0.05, 0.05) + (filler ? rng.range(-0.16, 0.16) : 0);
+    const width = (filler ? 0.6 : 0.72) * rng.range(0.9, 1.1);
     const bend = rng.range(0.12, 0.22);
     const tile = q % 4;
     const mirror = rng.next() < 0.5;
@@ -284,7 +373,7 @@ function buildClumpGeometry() {
     const base = verts.length / 3;
     for (let r = 0; r < rows; r++) {
       const t = r / (rows - 1);
-      const y = t;
+      const y = t * (filler ? 0.85 : 1);
       const lean = bend * t * t;             // curve the quad along its normal
       for (let c = 0; c < 2; c++) {
         const lx = (c - 0.5) * width * (1 - t * 0.08);
@@ -314,6 +403,54 @@ function buildClumpGeometry() {
   geo.setIndex(idx);
   geo.computeBoundingSphere();
   return geo;
+}
+
+/** Two crossed quads, 0.16 wide × 0.32 tall, pivot at the root: a stem with a flower head on top. */
+function buildFlowerGeometry() {
+  const verts: number[] = [], norms: number[] = [], uvs: number[] = [], idx: number[] = [];
+  for (let q = 0; q < 2; q++) {
+    const yaw = q * Math.PI * 0.5, cy = Math.cos(yaw), sy = Math.sin(yaw);
+    const base = verts.length / 3;
+    for (let r = 0; r < 2; r++) for (let c = 0; c < 2; c++) {
+      const lx = (c - 0.5) * 0.16;
+      verts.push(lx * cy, r * 0.32, lx * sy);
+      norms.push(0, 1, 0);
+      uvs.push(c, r);
+    }
+    idx.push(base, base + 2, base + 1, base + 1, base + 2, base + 3);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+  geo.setAttribute('normal', new THREE.Float32BufferAttribute(norms, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  geo.setIndex(idx);
+  geo.computeBoundingSphere();
+  return geo;
+}
+
+/** Thin stem + a 4-petal head (white; tinted per instance) with a warm centre. */
+function makeFlowerTexture() {
+  const W = 64, H = 128;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d')!;
+  g.strokeStyle = 'rgb(70,96,40)'; g.lineWidth = 2.5; g.lineCap = 'round';
+  g.beginPath(); g.moveTo(32, 126); g.quadraticCurveTo(29, 80, 32, 30); g.stroke();
+  // a tiny leaf on the stem
+  g.fillStyle = 'rgb(78,110,44)';
+  g.beginPath(); g.ellipse(36, 88, 7, 3, -0.6, 0, Math.PI * 2); g.fill();
+  const cx = 32, cy = 26;
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + 0.3;
+    g.fillStyle = 'rgb(250,250,250)';
+    g.beginPath(); g.ellipse(cx + Math.cos(a) * 10, cy + Math.sin(a) * 10, 11, 7, a, 0, Math.PI * 2); g.fill();
+  }
+  g.fillStyle = 'rgb(255,200,60)';
+  g.beginPath(); g.arc(cx, cy, 5, 0, Math.PI * 2); g.fill();
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+  tex.anisotropy = 8;
+  return tex;
 }
 
 // ---------------------------------------------------------------------------------- texture
