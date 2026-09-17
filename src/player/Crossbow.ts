@@ -116,7 +116,7 @@ function makeWalnut(seed: number): TexSet {
   const W = 1024, H = 256;
   const { fbm, hash } = makeNoise(seed);
   const col = new Uint8Array(W * H * 4), arm = new Uint8Array(W * H * 4), hgt = new Float32Array(W * H);
-  const dark = [22, 12, 6], light = [78, 50, 28];
+  const dark = [22, 12, 6], light = [72, 46, 26];
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const u = x / W, v = y / H;
     const warp = fbm(u * 3 + 7, v * 2, 4);
@@ -130,7 +130,7 @@ function makeWalnut(seed: number): TexSet {
     const i = (y * W + x) * 4;
     for (let c = 0; c < 3; c++) col[i + c] = clamp01((dark[c] + (light[c] - dark[c]) * lum) / 255) * 255;
     col[i + 3] = 255;
-    const rough = clamp01(0.58 + band * 0.14 + (fine - 0.5) * 0.16 - smudge * 0.1);
+    const rough = clamp01(0.74 + band * 0.12 + (fine - 0.5) * 0.14 - smudge * 0.08);
     arm[i] = (1 - band * 0.1) * 255; arm[i + 1] = rough * 255; arm[i + 2] = 0; arm[i + 3] = 255;
     hgt[y * W + x] = (1 - band) * 0.45 + fine * 0.3 + fleck * 0.02;
   }
@@ -297,7 +297,7 @@ function sweepRect(curve: THREE.Curve<THREE.Vector3>, segs: number, halfW: (t: n
       const a = c[f], b = c[(f + 1) % 4];
       const fn = new THREE.Vector3().subVectors(b, a).cross(T).normalize().negate();
       pos.push(a.x, a.y, a.z, b.x, b.y, b.z); nrm.push(fn.x, fn.y, fn.z, fn.x, fn.y, fn.z); uv.push(t * 6, 0, t * 6, 1);
-      const wear = (f % 2 === 1 ? 1.0 : 0.3) * (0.85 + 0.3 * Math.abs(Math.sin(t * 23 + f))); // edges worn bright, flats blackened
+      const wear = (f % 2 === 1 ? 0.8 : 0.28) * (0.85 + 0.3 * Math.abs(Math.sin(t * 23 + f))); // edges worn bright, flats blackened
       col.push(wear, wear, wear, wear, wear, wear);
     }
   }
@@ -586,11 +586,11 @@ export class Crossbow {
   private buildViewmodel() {
     const walnut = makeWalnut(11), steel = makeSteel(23), leather = makeLeather(31), cord = makeCord();
     walnut.map.repeat.set(1, 4); walnut.normalMap.repeat.set(1, 4); walnut.armMap.repeat.set(1, 4);
-    const woodMat = new THREE.MeshStandardMaterial({ map: walnut.map, normalMap: walnut.normalMap, normalScale: new THREE.Vector2(0.75, 0.75), aoMap: walnut.armMap, roughnessMap: walnut.armMap, roughness: 1, metalness: 0, vertexColors: true, envMapIntensity: 0.45 });
+    const woodMat = new THREE.MeshPhysicalMaterial({ map: walnut.map, normalMap: walnut.normalMap, normalScale: new THREE.Vector2(0.75, 0.75), aoMap: walnut.armMap, roughnessMap: walnut.armMap, roughness: 1, metalness: 0, vertexColors: true, envMapIntensity: 0.45, specularIntensity: 0.3 }); // low specularIntensity kills the grazing sunset sheen on the rail
     const ironMat = new THREE.MeshStandardMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.7, 0.7), aoMap: steel.armMap, roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.5, metalness: 1, color: new THREE.Color(0.24, 0.23, 0.23), envMapIntensity: 0.6 });
     const prodMat = new THREE.MeshPhysicalMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.6, 0.6), roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.25, metalness: 1, color: new THREE.Color(0.55, 0.55, 0.57), vertexColors: true, anisotropy: 0.8, anisotropyRotation: 0, envMapIntensity: 0.7 });
     steel.map.repeat.set(2, 2); steel.normalMap.repeat.set(2, 2); steel.armMap.repeat.set(2, 2);
-    const leatherMat = new THREE.MeshStandardMaterial({ map: leather.map, normalMap: leather.normalMap, aoMap: leather.armMap, roughnessMap: leather.armMap, roughness: 1, metalness: 0 });
+    const leatherMat = new THREE.MeshPhysicalMaterial({ map: leather.map, normalMap: leather.normalMap, aoMap: leather.armMap, roughnessMap: leather.armMap, roughness: 1, metalness: 0, specularIntensity: 0.4, envMapIntensity: 0.5 });
     const cordMat = new THREE.MeshStandardMaterial({ map: cord.map, normalMap: cord.normalMap, roughness: 0.85, metalness: 0 });
     const brassMat = new THREE.MeshStandardMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.3, 0.3), roughnessMap: steel.armMap, roughness: 1.1, metalness: 1, color: new THREE.Color(0.95, 0.66, 0.3), envMapIntensity: 1.0 });
     ([['xbow-wood', woodMat], ['xbow-iron', ironMat], ['xbow-prod', prodMat], ['xbow-leather', leatherMat], ['xbow-cord', cordMat], ['xbow-brass', brassMat]] as [string, THREE.Material][]).forEach(([n, m]) => { fixIBL(m, n); this.sky.setupMaterial(m); });
@@ -615,8 +615,13 @@ export class Crossbow {
     stockGeo.translate(-0.019, 0, 0);
     // rail strips (two lighter wood rails with a groove for the bolt)
     const railL = box(0.008, 0.005, 0.52, -0.011, 0.0025, -0.12), railR = box(0.008, 0.005, 0.52, 0.011, 0.0025, -0.12);
-    const woodGeo = mergeGeometries([stockGeo, railL, railR].map(stripExtra), false)!;
+    const stockNI = stripExtra(stockGeo);
+    const woodGeo = mergeGeometries([stockNI, stripExtra(railL), stripExtra(railR)], false)!;
     edgeWear(woodGeo, 0.18);
+    { // the groove rails sit in shadow of the bolt: darker, oil-soaked
+      const c = woodGeo.getAttribute('color') as THREE.BufferAttribute;
+      for (let i = stockNI.getAttribute('position').count; i < c.count; i++) c.setXYZ(i, c.getX(i) * 0.62, c.getY(i) * 0.6, c.getZ(i) * 0.58);
+    }
     const stock = new THREE.Mesh(woodGeo, woodMat);
     this.model.add(stock);
 
