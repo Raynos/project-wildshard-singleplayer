@@ -22,3 +22,7 @@ WASD move · Shift sprint · Ctrl/C crouch · Space jump · LMB fire · RMB aim 
 - Feature dev harnesses: `dev/animals.html`, `dev/cabins.html`, `dev/grass.html`, `dev/weapon.html`
 
 `window.__world` exposes everything (game, sky, terrain, forest, player, grass, animals, crossbow, hud, audio …).
+
+## Live
+
+https://wildshard-singleplayer.vercel.app — deploy with `vercel deploy --prod --yes` from the repo root (project `wildshard-singleplayer`, Vite auto-detected).
