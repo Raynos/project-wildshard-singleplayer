@@ -6,9 +6,9 @@ import * as THREE from 'three';
 export const fogUniforms = {
   fogSunDir: { value: new THREE.Vector3(0, 1, 0) },
   fogSunColor: { value: new THREE.Color(1.0, 0.72, 0.42) },
-  fogHeight: { value: -8.0 },          // metres; fog is densest below this
+  fogHeight: { value: -14.0 },          // metres; fog is densest below this
   fogHeightFalloff: { value: 0.12 },
-  fogHeightDensity: { value: 0.0035 },
+  fogHeightDensity: { value: 0.005 },
   fogDistDensity: { value: 0.00045 },
 };
 
