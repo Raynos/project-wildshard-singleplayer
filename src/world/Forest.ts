@@ -9,6 +9,7 @@ import type { Sky } from './Sky';
 export interface TreeInstance { x: number; y: number; z: number; r: number; variant: number; scale: number; rot: number; height: number; tint: THREE.Color }
 
 const LOD_DIST = 110; // metres: beyond this, use the low-card geometry
+const TWIG_DIST = 38; // metres: within this, individual twig quads are drawn on the branches
 
 export class Forest {
   group = new THREE.Group();
@@ -16,6 +17,7 @@ export class Forest {
   private hi: THREE.InstancedMesh[] = [];
   private lo: THREE.InstancedMesh[] = [];
   private trunks: THREE.InstancedMesh[] = [];
+  private twigs: THREE.InstancedMesh[] = [];
   private lastLodPos = new THREE.Vector3(1e9, 0, 0);
   private grid = new Map<string, TreeInstance[]>();
 
@@ -29,6 +31,7 @@ export class Forest {
     this.canopyMap = this.buildCanopyMap();
     this.sky.setupMaterial(this.factory.barkMaterial);
     this.sky.setupMaterial(this.factory.needleMaterial);
+    this.sky.setupMaterial(this.factory.twigMaterial);
     this.factory.variants.forEach((v, vi) => {
       const count = this.trees.filter((t) => t.variant === vi).length;
       const mk = (geo: THREE.BufferGeometry, mat: THREE.Material, depth?: THREE.Material) => {
@@ -43,6 +46,7 @@ export class Forest {
       this.trunks.push(mk(v.trunk, this.factory.barkMaterial));
       this.hi.push(mk(v.cardsHi, this.factory.needleMaterial, this.factory.needleDepth));
       this.lo.push(mk(v.cardsLo, this.factory.needleMaterial, this.factory.needleDepth));
+      this.twigs.push(mk(v.twigs, this.factory.twigMaterial, this.factory.twigDepth));
     });
     return this;
   }
@@ -125,9 +129,9 @@ export class Forest {
 
   update(dt: number, viewer: THREE.Vector3) {
     windUniforms.uTime.value += dt;
-    if (viewer.distanceToSquared(this.lastLodPos) < 6 * 6) return;
+    if (viewer.distanceToSquared(this.lastLodPos) < 3 * 3) return;
     this.lastLodPos.copy(viewer);
-    const counts = this.hi.map(() => 0), countsLo = this.lo.map(() => 0), countsT = this.trunks.map(() => 0);
+    const counts = this.hi.map(() => 0), countsLo = this.lo.map(() => 0), countsT = this.trunks.map(() => 0), countsTw = this.twigs.map(() => 0);
     for (const t of this.trees) {
       const dx = t.x - viewer.x, dz = t.z - viewer.z;
       const near = dx * dx + dz * dz < LOD_DIST * LOD_DIST;
@@ -138,9 +142,11 @@ export class Forest {
       target.setMatrixAt(idx, this.tmpM);
       target.setColorAt(idx, t.tint);
       this.trunks[t.variant].setMatrixAt(countsT[t.variant]++, this.tmpM);
+      if (dx * dx + dz * dz < TWIG_DIST * TWIG_DIST) { const tw = this.twigs[t.variant]; tw.setMatrixAt(countsTw[t.variant], this.tmpM); tw.setColorAt(countsTw[t.variant]++, t.tint); }
     }
     this.hi.forEach((m, i) => { m.count = counts[i]; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; });
     this.lo.forEach((m, i) => { m.count = countsLo[i]; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; });
     this.trunks.forEach((m, i) => { m.count = countsT[i]; m.instanceMatrix.needsUpdate = true; });
+    this.twigs.forEach((m, i) => { m.count = countsTw[i]; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; });
   }
 }

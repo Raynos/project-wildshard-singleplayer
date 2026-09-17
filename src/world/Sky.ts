@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { loadHDR } from '../core/assets';
 import { fogUniforms } from './Atmosphere';
+import { Noise2D } from '../core/noise';
 
 /**
  * Lighting rig: HDRI sky for IBL + background, a cascaded-shadow sun matched to the
@@ -218,26 +219,19 @@ IncidentLight directLight;`;
 }
 
 function makeCloudTexture() {
-  // tileable fbm value noise
+  // tileable fbm: sample simplex noise on a torus so both axes wrap without seams
   const N = 512;
   const c = document.createElement('canvas'); c.width = c.height = N;
   const g = c.getContext('2d')!;
   const img = g.createImageData(N, N);
-  const rnd = (x: number, y: number) => { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); };
-  const val = (x: number, y: number, f: number) => {
-    const X = ((x * f) % N + N) % N, Y = ((y * f) % N + N) % N;
-    const x0 = Math.floor(X), y0 = Math.floor(Y), tx = X - x0, ty = Y - y0;
-    const sx = tx * tx * (3 - 2 * tx), sy = ty * ty * (3 - 2 * ty);
-    const per = N / f;
-    const r = (i: number, j: number) => rnd(((i % per) + per) % per, ((j % per) + per) % per);
-    const a = r(x0, y0), b = r(x0 + 1, y0), cc = r(x0, y0 + 1), d = r(x0 + 1, y0 + 1);
-    return (a + (b - a) * sx) * (1 - sy) + (cc + (d - cc) * sx) * sy;
-  };
+  const n = new Noise2D(1234);
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-    let v = 0, amp = 0.5, norm = 0;
-    for (let o = 0; o < 6; o++) { const f = (2 ** o) / 64; v += val(x, y, f) * amp; norm += amp; amp *= 0.55; }
-    v /= norm;
-    const i = (y * N + x) * 4; img.data[i] = img.data[i + 1] = img.data[i + 2] = v * 255; img.data[i + 3] = 255;
+    const u = (x / N) * Math.PI * 2, v = (y / N) * Math.PI * 2;
+    const px = Math.cos(u) * 1.5, py = Math.sin(u) * 1.5, pz = Math.cos(v) * 1.5, pw = Math.sin(v) * 1.5;
+    let s = 0, amp = 0.5, norm = 0;
+    for (let o = 0; o < 6; o++) { const f = 2 ** o; s += (n.get((px + pz * 0.7) * f, (py + pw * 0.7) * f + o * 7.3) * 0.5 + 0.5) * amp; norm += amp; amp *= 0.55; }
+    s /= norm;
+    const i = (y * N + x) * 4; img.data[i] = img.data[i + 1] = img.data[i + 2] = s * 255; img.data[i + 3] = 255;
   }
   g.putImageData(img, 0, 0);
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
