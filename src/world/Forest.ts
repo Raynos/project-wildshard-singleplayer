@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { CHUNK_HALF, TREE_COUNT, SEED } from '../core/config';
+import { CHUNK_HALF, CHUNK_SIZE, TREE_COUNT, SEED } from '../core/config';
 import { Rng } from '../core/rng';
 import { Noise2D, smoothstep } from '../core/noise';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, pondMask } from './Heightfield';
@@ -21,8 +21,12 @@ export class Forest {
 
   constructor(private factory: TreeFactory, private sky: Sky) {}
 
+  /** Soft canopy-density texture (for terrain darkening under trees, and grass thinning). */
+  canopyMap!: THREE.DataTexture;
+
   build() {
     this.place();
+    this.canopyMap = this.buildCanopyMap();
     this.sky.setupMaterial(this.factory.barkMaterial);
     this.sky.setupMaterial(this.factory.needleMaterial);
     this.factory.variants.forEach((v, vi) => {
@@ -79,6 +83,26 @@ export class Forest {
       if (!this.grid.has(k)) this.grid.set(k, []);
       this.grid.get(k)!.push(t);
     }
+  }
+
+  private buildCanopyMap() {
+    const N = 256, data = new Float32Array(N * N);
+    const toCell = (v: number) => ((v + CHUNK_HALF) / CHUNK_SIZE) * N;
+    for (const t of this.trees) {
+      const r = (t.height * 0.16) / (CHUNK_SIZE / N); // crown radius in cells
+      const cx = toCell(t.x), cz = toCell(t.z);
+      const R = Math.ceil(r + 1);
+      for (let j = -R; j <= R; j++) for (let i = -R; i <= R; i++) {
+        const x = Math.round(cx) + i, z = Math.round(cz) + j;
+        if (x < 0 || z < 0 || x >= N || z >= N) continue;
+        const d = Math.hypot(x - cx, z - cz) / r;
+        if (d < 1) data[z * N + x] = Math.min(1, data[z * N + x] + (1 - d * d) * 0.7);
+      }
+    }
+    const tex = new THREE.DataTexture(data, N, N, THREE.RedFormat, THREE.FloatType);
+    tex.magFilter = tex.minFilter = THREE.LinearFilter;
+    tex.needsUpdate = true;
+    return tex;
   }
 
   private key(x: number, z: number) { return `${Math.floor(x / 16)},${Math.floor(z / 16)}`; }

@@ -38,6 +38,7 @@ export async function bootstrap(): Promise<World> {
   const factory = await new TreeFactory(game.renderer).build();
   const forest = new Forest(factory, sky).build();
   game.scene.add(forest.group);
+  terrain.applyCanopy(forest.canopyMap);
 
   const player = new Player(game.camera, forest, canvas);
   player.spawn(num('x', 0), num('z', -235), num('yaw', 0));

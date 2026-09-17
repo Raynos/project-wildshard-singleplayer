@@ -8,6 +8,18 @@ export class Terrain {
   group = new THREE.Group();
   mesh!: THREE.Mesh;
   material!: THREE.MeshStandardMaterial;
+  /** Bake a 0..1 canopy-density map (from Forest) into a per-vertex attribute → ambient darkening under trees. */
+  applyCanopy(tex: THREE.DataTexture) {
+    const { width: N, data } = tex.image as { width: number; data: Float32Array };
+    const pos = this.mesh.geometry.attributes.position as THREE.BufferAttribute;
+    const canopy = new Float32Array(pos.count);
+    for (let i = 0; i < pos.count; i++) {
+      const u = (pos.getX(i) + CHUNK_HALF) / CHUNK_SIZE, v = (pos.getZ(i) + CHUNK_HALF) / CHUNK_SIZE;
+      const x = Math.min(N - 1, Math.max(0, Math.round(u * N))), z = Math.min(N - 1, Math.max(0, Math.round(v * N)));
+      canopy[i] = data[z * N + x];
+    }
+    this.mesh.geometry.setAttribute('canopy', new THREE.BufferAttribute(canopy, 1));
+  }
 
   async build() {
     const [floor, grass, rock, dirt] = await Promise.all([
@@ -55,10 +67,13 @@ export class Terrain {
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', `#include <common>
           attribute vec4 splat;
+          attribute float canopy;
           varying vec4 vSplat;
+          varying float vCanopy;
           varying vec3 vWPos;`)
         .replace('#include <worldpos_vertex>', `#include <worldpos_vertex>
           vSplat = splat;
+          vCanopy = canopy;
           vWPos = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;`);
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <common>', `#include <common>
@@ -66,6 +81,7 @@ export class Terrain {
           uniform sampler2D tNorm[4];
           uniform sampler2D tArm[4];
           varying vec4 vSplat;
+          varying float vCanopy;
           varying vec3 vWPos;
           vec4 tex4(sampler2D t[4], int i, vec2 uv) {
             if (i == 0) return texture2D(t[0], uv);
@@ -103,6 +119,7 @@ export class Terrain {
           float macro = hash21(floor(tuv * 0.05)) * 0.12 + 0.94;
           float macro2 = mix(0.88, 1.08, smoothstep(-1.0, 1.0, sin(tuv.x * 0.021 + tuv.y * 0.017) + sin(tuv.x * 0.009 - tuv.y * 0.013)));
           alb.rgb *= macro * macro2;
+          alb.rgb *= mix(1.0, 0.55, vCanopy);
           diffuseColor *= alb;
           vec3 splatNormal = normalize(nrm);
           vec3 splatArm = arm;`)
