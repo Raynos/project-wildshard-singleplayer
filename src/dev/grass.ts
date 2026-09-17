@@ -4,16 +4,19 @@
 import { bootstrap } from '../core/bootstrap';
 import { Grass } from '../world/Grass';
 import { Undergrowth } from '../world/Undergrowth';
+import { Particles } from '../world/Particles';
 
 const world = await bootstrap();
 const grass = new Grass(world.sky, world.forest).build();
 world.game.scene.add(grass.group);
 const under = new Undergrowth(world.sky, world.forest).build();
 world.game.scene.add(under.group);
-world.game.onUpdate((dt) => { grass.update(dt, world.player.position); under.update(dt, world.player.position); });
+const particles = new Particles(world.sky, world.forest).build();
+world.game.scene.add(particles.group);
+world.game.onUpdate((dt) => { grass.update(dt, world.player.position); under.update(dt, world.player.position); particles.update(dt, world.player.position, world.game.camera); });
 console.log('undergrowth', JSON.stringify(under.counts));
 
-(window as unknown as { __world: unknown }).__world = { ...world, grass, under };
+(window as unknown as { __world: unknown }).__world = { ...world, grass, under, particles };
 world.game.buildComposer();
 installGpuTimer();
 world.game.start();
