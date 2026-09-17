@@ -160,14 +160,14 @@ export class Sky {
     const dir = this.planetDir;
     const dist = 1700, radius = 300;
     const body = new THREE.Mesh(new THREE.SphereGeometry(radius, 64, 64), new THREE.MeshLambertMaterial({
-      color: 0xb9c2cc, fog: false, emissive: 0x4a5a70, emissiveIntensity: 0.9,
+      color: 0x9aa4b4, fog: false, emissive: 0x2c3646, emissiveIntensity: 0.7, transparent: true, opacity: 0.85,
     }));
     const bandsTex = makePlanetTexture();
     (body.material as THREE.MeshLambertMaterial).map = bandsTex;
     const ringTex = makeRingTexture();
     const ring = new THREE.Mesh(new THREE.RingGeometry(radius * 1.25, radius * 2.35, 128, 1), new THREE.MeshLambertMaterial({
       map: ringTex, transparent: true, side: THREE.DoubleSide, fog: false, depthWrite: false, alphaMap: ringTex,
-      color: 0xd8dde6, emissive: 0x2a3446, emissiveIntensity: 0.8,
+      color: 0xb8c0cc, emissive: 0x1e2838, emissiveIntensity: 0.7, opacity: 0.8,
     }));
     this.setupMaterial(body.material as THREE.Material);
     this.setupMaterial(ring.material as THREE.Material);

@@ -25,9 +25,9 @@ export class Horizon {
   private buildRidges() {
     const noise = new Noise2D(777);
     const rings = [
-      { r: 1500, h: 200, base: -70, seg: 720, col: new THREE.Color(0.075, 0.09, 0.12), snow: 0.72, haze: 0.12 },
-      { r: 2600, h: 440, base: -100, seg: 720, col: new THREE.Color(0.1, 0.12, 0.17), snow: 0.66, haze: 0.3 },
-      { r: 4200, h: 760, base: -130, seg: 540, col: new THREE.Color(0.13, 0.16, 0.22), snow: 0.6, haze: 0.48 },
+      { r: 1500, h: 150, base: -120, seg: 720, col: new THREE.Color(0.075, 0.09, 0.12), snow: 0.72, haze: 0.12 },
+      { r: 2600, h: 330, base: -170, seg: 720, col: new THREE.Color(0.1, 0.12, 0.17), snow: 0.66, haze: 0.3 },
+      { r: 4200, h: 560, base: -230, seg: 540, col: new THREE.Color(0.13, 0.16, 0.22), snow: 0.6, haze: 0.48 },
     ];
     rings.forEach((ring, ri) => {
       // a ring-shaped strip: bottom edge below the horizon, top edge = ridge line
@@ -50,7 +50,7 @@ export class Horizon {
         const x = Math.cos(a) * ring.r, z = Math.sin(a) * ring.r;
         const h = profile[i];
         const peak = ring.base + ring.h * (0.25 + h);
-        pos.push(x, ring.base - 400, z, x, peak, z);
+        pos.push(x, ring.base - 600, z, x, peak, z);
         // slope-facing normal from the neighbouring peaks so the sun side reads lighter
         const hl = profile[(i + ring.seg - 1) % ring.seg], hr = profile[(i + 1) % ring.seg];
         const tilt = (hl - hr) * ring.seg * 0.03;
