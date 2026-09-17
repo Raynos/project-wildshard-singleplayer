@@ -149,9 +149,18 @@ export class Sky {
 
   private buildSunDisc() {
     const mat = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.0, 0.95, 0.85), fog: false, toneMapped: false });
-    this.sunDisc = new THREE.Mesh(new THREE.SphereGeometry(26, 24, 24), mat);
+    this.sunDisc = new THREE.Mesh(new THREE.SphereGeometry(14, 24, 24), mat);
     this.sunDisc.position.copy(this.sunDir).multiplyScalar(1500);
     this.sunDisc.frustumCulled = false;
+    // soft corona so the disc reads as a glowing sun rather than a white ball
+    const c = document.createElement('canvas'); c.width = c.height = 256;
+    const g = c.getContext('2d')!;
+    const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+    grad.addColorStop(0, 'rgba(255,240,210,0.9)'); grad.addColorStop(0.12, 'rgba(255,210,150,0.55)'); grad.addColorStop(0.4, 'rgba(255,170,90,0.12)'); grad.addColorStop(1, 'rgba(255,140,60,0)');
+    g.fillStyle = grad; g.fillRect(0, 0, 256, 256);
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, fog: false, toneMapped: false }));
+    halo.scale.set(420, 420, 1);
+    this.sunDisc.add(halo);
     this.scene.add(this.sunDisc);
   }
 
