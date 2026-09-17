@@ -24,7 +24,7 @@ import { Animal } from './Animal';
  *   animals.animals: Animal[]   animals.alive (count)
  *
  * Dev helpers: animals.spawn(kind, x, z, yaw, variant?) adds a single animal (no herd AI target),
- * animals.debug = true draws the hit capsules.
+ * animals.debug = true draws the hit capsules, animals.calm = true stops them reacting to the player.
  */
 
 export interface AnimalHit { animal: Animal; point: THREE.Vector3; distance: number; headshot: boolean }
@@ -57,6 +57,8 @@ export class AnimalManager {
   onCharge?: (animal: Animal, damage: number) => void;
   onSound?: (name: AnimalSound, position: THREE.Vector3) => void;
   debug = false;
+  /** dev: animals ignore the player (no alert / flee) */
+  calm = false;
   private brains = new Map<Animal, Brain>();
   private rng = new Rng(SEED + 31);
   private thinkAcc = 0;
@@ -128,7 +130,7 @@ export class AnimalManager {
   /** Add one animal (also used by the dev showcase). */
   spawn(kind: AnimalKind, x: number, z: number, yaw: number, variant: 'stag' | 'hind' | 'boar' = kind === 'boar' ? 'boar' : 'hind'): Animal {
     const model = this.factory.model(kind, variant);
-    const scale = kind === 'deer' ? (variant === 'stag' ? this.rng.range(1.0, 1.08) : this.rng.range(0.88, 0.97)) : this.rng.range(0.9, 1.08);
+    const scale = kind === 'deer' ? (variant === 'stag' ? this.rng.range(1.04, 1.12) : this.rng.range(0.94, 1.02)) : this.rng.range(0.92, 1.1);
     const rig = this.factory.instantiate(model, this.rng.next());
     const a = new Animal(rig, model, this.rng.next(), scale);
     a.place(x, z, yaw);
@@ -175,7 +177,7 @@ export class AnimalManager {
     const dPlayer = Math.hypot(dx, dz);
     const boar = a.kind === 'boar';
     const alertD = boar ? ALERT_DIST_BOAR : ALERT_DIST;
-    const threat = dPlayer < alertD || (sprinting && dPlayer < SPRINT_DIST);
+    const threat = !this.calm && (dPlayer < alertD || (sprinting && dPlayer < SPRINT_DIST));
     br.chargeCd = Math.max(0, br.chargeCd - dt);
     br.hurtT = Math.max(0, br.hurtT - dt);
     if (a.hp < a.maxHp) br.hurtT = 6;

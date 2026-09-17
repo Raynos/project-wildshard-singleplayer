@@ -7,6 +7,7 @@ import { AnimalManager } from '../entities/AnimalManager';
  *   /dev/animals.html?nolock=1&x=&z=&yaw=&pitch=
  *   &showcase=1   spawn a stag, a boar and a walking hind 4 m in front of the spawn point
  *   &debug=1      draw the hit volumes
+ *   &calm=1       animals ignore the player (walk right up to a herd)
  * Click = shoot a ray from the camera (applies 30 damage, prints the hit).
  * window.__world = { ...world, animals }
  */
@@ -14,6 +15,7 @@ const world = await bootstrap();
 const { game, sky, forest, player, params } = world;
 const animals = new AnimalManager(game.scene, sky, forest).build();
 animals.debug = params.has('debug');
+animals.calm = params.has('calm');
 animals.onKill = (a) => console.log('[animals] kill', a.kind);
 animals.onCharge = (a, dmg) => console.log('[animals] charge hit', a.kind, dmg);
 animals.onSound = (name) => { if (params.has('logsound')) console.log('[animals] sound', name); };

@@ -295,7 +295,7 @@ const S = (x: number, y: number, z: number, rx: number, ry: number, b0: number, 
 // ── Deer ────────────────────────────────────────────────────────────────────────────────
 
 function deerPaint(): Paint {
-  const tan = srgb(0.44, 0.30, 0.18), tanDark = srgb(0.32, 0.22, 0.13), belly = srgb(0.50, 0.42, 0.31), cream = srgb(0.56, 0.49, 0.35);
+  const tan = srgb(0.44, 0.30, 0.18), tanDark = srgb(0.32, 0.22, 0.13), belly = srgb(0.50, 0.42, 0.31), cream = srgb(0.50, 0.44, 0.33);
   const legDark = srgb(0.27, 0.19, 0.12), nose = srgb(0.05, 0.04, 0.04), muzzle = srgb(0.32, 0.26, 0.20), earIn = srgb(0.52, 0.45, 0.35);
   const antler = srgb(0.36, 0.28, 0.20), antlerTip = srgb(0.64, 0.58, 0.47), hoof = srgb(0.11, 0.09, 0.07), eye = srgb(0.03, 0.025, 0.02);
   const tmp = new THREE.Color();
@@ -310,7 +310,7 @@ function deerPaint(): Paint {
         mix(out, out, belly, sstep(-0.2, -0.75, ny) * 0.8);
         // rump patch (pale cream around the tail)
         const rd = Math.hypot(x * 1.2, (y - 0.98) * 1.3, (z + 0.9) * 0.9);
-        mix(out, out, cream, sstep(0.27, 0.15, rd) * (ny > -0.4 ? 0.8 : 0.35));
+        mix(out, out, cream, sstep(0.27, 0.13, rd) * (ny > -0.4 ? 0.7 : 0.3));
         break;
       }
       case 'neck':
