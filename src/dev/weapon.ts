@@ -125,6 +125,7 @@ async function main() {
     prompt = near ? '[E] Harvest carcass' : params.has('prompt') ? '[E] Open door' : undefined;
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 || params.has('boundary'));
+    hud.setAimInfo(crossbow.aimInfo);
     hud.setState({
       bolts: crossbow.state.bolts, loaded: crossbow.state.loaded, reloading: crossbow.state.reloading, reloadProgress: crossbow.state.reloadProgress,
       health, fps: game.stats.fps, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,

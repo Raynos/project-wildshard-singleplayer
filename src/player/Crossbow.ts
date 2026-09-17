@@ -24,6 +24,7 @@ import { CHUNK_HALF } from '../core/config';
  *   onReloadStart() / onReloadEnd()
  *   onDry()                                        — trigger pulled with nothing loaded
  * State: `crossbow.state` → { bolts, loaded, reloading, reloadProgress, ads }  (bolts includes the loaded one)
+ * `crossbow.aimInfo` → { kind, distance } | null — the animal under the crosshair (for the HUD range readout)
  *
  * Side effects the integrator must know about: ADS tweens `game.camera.fov` (72 → 50) and calls
  * `camera.updateProjectionMatrix()` + `sky.csm.updateFrustums()`; recoil nudges `player.pitch`;
@@ -115,7 +116,7 @@ function makeWalnut(seed: number): TexSet {
   const W = 1024, H = 256;
   const { fbm, hash } = makeNoise(seed);
   const col = new Uint8Array(W * H * 4), arm = new Uint8Array(W * H * 4), hgt = new Float32Array(W * H);
-  const dark = [26, 14, 7], light = [92, 56, 30];
+  const dark = [22, 12, 6], light = [78, 50, 28];
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const u = x / W, v = y / H;
     const warp = fbm(u * 3 + 7, v * 2, 4);
@@ -129,7 +130,7 @@ function makeWalnut(seed: number): TexSet {
     const i = (y * W + x) * 4;
     for (let c = 0; c < 3; c++) col[i + c] = clamp01((dark[c] + (light[c] - dark[c]) * lum) / 255) * 255;
     col[i + 3] = 255;
-    const rough = clamp01(0.42 + band * 0.16 + (fine - 0.5) * 0.18 - smudge * 0.12);
+    const rough = clamp01(0.58 + band * 0.14 + (fine - 0.5) * 0.16 - smudge * 0.1);
     arm[i] = (1 - band * 0.1) * 255; arm[i + 1] = rough * 255; arm[i + 2] = 0; arm[i + 3] = 255;
     hgt[y * W + x] = (1 - band) * 0.45 + fine * 0.3 + fleck * 0.02;
   }
@@ -192,7 +193,7 @@ function makeLeather(seed: number): TexSet {
     const seam = Math.abs(((v * 6) % 1) - 0.5) < 0.04 ? 1 : 0;
     const lum = 0.55 + (pebble - 0.5) * 0.5 + (big - 0.5) * 0.4 - seam * 0.35;
     const i = (y * S + x) * 4;
-    col[i] = clamp01(lum * 0.55) * 255; col[i + 1] = clamp01(lum * 0.34) * 255; col[i + 2] = clamp01(lum * 0.2) * 255; col[i + 3] = 255;
+    col[i] = clamp01(lum * 0.4) * 255; col[i + 1] = clamp01(lum * 0.26) * 255; col[i + 2] = clamp01(lum * 0.16) * 255; col[i + 3] = 255;
     arm[i] = (1 - seam * 0.3) * 255; arm[i + 1] = clamp01(0.62 + (pebble - 0.5) * 0.3 + seam * 0.2) * 255; arm[i + 2] = 0; arm[i + 3] = 255;
     hgt[y * S + x] = pebble * 0.5 - seam * 0.8;
   }
@@ -210,7 +211,7 @@ function makeCord(): { map: THREE.Texture; normalMap: THREE.Texture } {
     const f = fbm(u * 8, v * 8, 2);
     const lum = 0.62 + twist * 0.2 + (f - 0.5) * 0.15;
     const i = (y * S + x) * 4;
-    col[i] = clamp01(lum * 0.86) * 255; col[i + 1] = clamp01(lum * 0.76) * 255; col[i + 2] = clamp01(lum * 0.56) * 255; col[i + 3] = 255;
+    col[i] = clamp01(lum * 0.46) * 255; col[i + 1] = clamp01(lum * 0.36) * 255; col[i + 2] = clamp01(lum * 0.22) * 255; col[i + 3] = 255;
     hgt[y * S + x] = twist * 0.5;
   }
   const map = dataTexture(col, S, S, true); map.repeat.set(1, 14);
@@ -281,7 +282,7 @@ function fixIBL(mat: THREE.Material, name: string) {
 /** Sweep a tapered rectangle section along a curve (flat spring-steel limb). */
 function sweepRect(curve: THREE.Curve<THREE.Vector3>, segs: number, halfW: (t: number) => number, halfH: (t: number) => number): THREE.BufferGeometry {
   const up = new THREE.Vector3(0, 1, 0);
-  const pos: number[] = [], nrm: number[] = [], uv: number[] = [], idx: number[] = [];
+  const pos: number[] = [], nrm: number[] = [], uv: number[] = [], idx: number[] = [], col: number[] = [];
   const p = new THREE.Vector3(), T = new THREE.Vector3(), N = new THREE.Vector3(), B = new THREE.Vector3();
   const faces = [[1, 1], [1, -1], [-1, -1], [-1, 1]]; // corners in (N, B) space, ring order
   const c = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
@@ -296,6 +297,8 @@ function sweepRect(curve: THREE.Curve<THREE.Vector3>, segs: number, halfW: (t: n
       const a = c[f], b = c[(f + 1) % 4];
       const fn = new THREE.Vector3().subVectors(b, a).cross(T).normalize().negate();
       pos.push(a.x, a.y, a.z, b.x, b.y, b.z); nrm.push(fn.x, fn.y, fn.z, fn.x, fn.y, fn.z); uv.push(t * 6, 0, t * 6, 1);
+      const wear = (f % 2 === 1 ? 1.0 : 0.3) * (0.85 + 0.3 * Math.abs(Math.sin(t * 23 + f))); // edges worn bright, flats blackened
+      col.push(wear, wear, wear, wear, wear, wear);
     }
   }
   for (let s = 0; s < segs; s++) for (let f = 0; f < 4; f++) {
@@ -306,6 +309,7 @@ function sweepRect(curve: THREE.Curve<THREE.Vector3>, segs: number, halfW: (t: n
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
   g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   g.setIndex(idx);
   return g;
 }
@@ -481,6 +485,10 @@ export class Crossbow {
   inspect = 0;
   /** dev: reload duration multiplier (1 = normal) */
   reloadScale = 1;
+  /** what the crosshair is over (animals only; refreshed every 4th frame, 120 m) */
+  aimInfo: { kind: 'deer' | 'boar'; distance: number } | null = null;
+  private aimFrame = 0;
+  private aimCache = { kind: 'deer' as 'deer' | 'boar', distance: 0 };
 
   onFire?: () => void;
   onHit?: (kind: 'deer' | 'boar', headshot: boolean, killed: boolean) => void;
@@ -578,9 +586,9 @@ export class Crossbow {
   private buildViewmodel() {
     const walnut = makeWalnut(11), steel = makeSteel(23), leather = makeLeather(31), cord = makeCord();
     walnut.map.repeat.set(1, 4); walnut.normalMap.repeat.set(1, 4); walnut.armMap.repeat.set(1, 4);
-    const woodMat = new THREE.MeshStandardMaterial({ map: walnut.map, normalMap: walnut.normalMap, normalScale: new THREE.Vector2(0.9, 0.9), aoMap: walnut.armMap, roughnessMap: walnut.armMap, roughness: 1, metalness: 0, vertexColors: true });
-    const ironMat = new THREE.MeshStandardMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.5, 0.5), aoMap: steel.armMap, roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1, metalness: 1, color: new THREE.Color(0.42, 0.42, 0.44), envMapIntensity: 0.75 });
-    const prodMat = new THREE.MeshPhysicalMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.6, 0.6), roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.4, metalness: 1, color: new THREE.Color(0.3, 0.31, 0.35), anisotropy: 0.8, anisotropyRotation: 0, envMapIntensity: 0.9 });
+    const woodMat = new THREE.MeshStandardMaterial({ map: walnut.map, normalMap: walnut.normalMap, normalScale: new THREE.Vector2(0.75, 0.75), aoMap: walnut.armMap, roughnessMap: walnut.armMap, roughness: 1, metalness: 0, vertexColors: true, envMapIntensity: 0.45 });
+    const ironMat = new THREE.MeshStandardMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.7, 0.7), aoMap: steel.armMap, roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.5, metalness: 1, color: new THREE.Color(0.24, 0.23, 0.23), envMapIntensity: 0.6 });
+    const prodMat = new THREE.MeshPhysicalMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.6, 0.6), roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.25, metalness: 1, color: new THREE.Color(0.55, 0.55, 0.57), vertexColors: true, anisotropy: 0.8, anisotropyRotation: 0, envMapIntensity: 0.7 });
     steel.map.repeat.set(2, 2); steel.normalMap.repeat.set(2, 2); steel.armMap.repeat.set(2, 2);
     const leatherMat = new THREE.MeshStandardMaterial({ map: leather.map, normalMap: leather.normalMap, aoMap: leather.armMap, roughnessMap: leather.armMap, roughness: 1, metalness: 0 });
     const cordMat = new THREE.MeshStandardMaterial({ map: cord.map, normalMap: cord.normalMap, roughness: 0.85, metalness: 0 });
@@ -680,6 +688,11 @@ export class Crossbow {
     gripShape.quadraticCurveTo(-gw, gh, -gw, gh - gr); gripShape.lineTo(-gw, -gh + gr); gripShape.quadraticCurveTo(-gw, -gh, -gw + gr, -gh);
     const grip = new THREE.ExtrudeGeometry(gripShape, { depth: 0.1, bevelEnabled: true, bevelThickness: 0.003, bevelSize: 0.002, bevelSegments: 3, curveSegments: 6 });
     grip.rotateX(0.35); grip.translate(0, -0.074, 0.30);
+    const fw = 0.0245, fh = 0.033, fr = 0.009; const foreShape = new THREE.Shape();
+    foreShape.moveTo(-fw + fr, -fh); foreShape.lineTo(fw - fr, -fh); foreShape.quadraticCurveTo(fw, -fh, fw, -fh + fr); foreShape.lineTo(fw, fh - fr); foreShape.quadraticCurveTo(fw, fh, fw - fr, fh); foreShape.lineTo(-fw + fr, fh); foreShape.quadraticCurveTo(-fw, fh, -fw, fh - fr); foreShape.lineTo(-fw, -fh + fr); foreShape.quadraticCurveTo(-fw, -fh, -fw + fr, -fh);
+    const fore = new THREE.ExtrudeGeometry(foreShape, { depth: 0.17, bevelEnabled: true, bevelThickness: 0.002, bevelSize: 0.002, bevelSegments: 2, curveSegments: 6 });
+    fore.translate(0, -0.03, -0.24); // forearm wrap between the front band and the mid band
+    this.model.add(new THREE.Mesh(fore, leatherMat));
     this.model.add(new THREE.Mesh(grip, leatherMat));
 
     // ── loaded bolt on the rail ──
@@ -707,7 +720,7 @@ export class Crossbow {
       m.renderOrder = 1000;
       for (const mat of Array.isArray(m.material) ? m.material : [m.material]) { mat.transparent = true; mat.depthWrite = true; }
     });
-    this.model.scale.setScalar(0.86);
+    this.model.scale.setScalar(1.35);
   }
 
   private buildProjectiles() {
@@ -799,8 +812,8 @@ export class Crossbow {
     this.reloadTilt += (rl - this.reloadTilt) * Math.min(1, dt * 10);
     const a = sstep(0, 1, this.adsBlend), sp = this.sprintBlend, rt = this.reloadTilt;
     // hip: lower-right (Skyrim), ADS: centred and a little closer to the eye
-    let px = THREE.MathUtils.lerp(0.165, 0.0, a), py = THREE.MathUtils.lerp(-0.155, -0.088, a), pz = THREE.MathUtils.lerp(-0.27, -0.29, a);
-    let rx = THREE.MathUtils.lerp(0.03, 0.0, a), ry = THREE.MathUtils.lerp(0.11, 0.0, a), rz = THREE.MathUtils.lerp(0.05, 0.0, a);
+    let px = THREE.MathUtils.lerp(0.12, 0.0, a), py = THREE.MathUtils.lerp(-0.165, -0.115, a), pz = THREE.MathUtils.lerp(-0.27, -0.31, a);
+    let rx = THREE.MathUtils.lerp(0.035, 0.0, a), ry = THREE.MathUtils.lerp(0.13, 0.0, a), rz = THREE.MathUtils.lerp(0.04, 0.0, a);
     // sprint: drop and swing across the body
     px += sp * -0.05; py += sp * -0.09; pz += sp * 0.04; rx += sp * 0.32; ry += sp * 0.45; rz += sp * -0.15;
     // reload: tilt the bow up-left to reach the string, crank shake
@@ -822,6 +835,14 @@ export class Crossbow {
     this.poseRot.x += (rx - this.poseRot.x) * sm; this.poseRot.y += (ry - this.poseRot.y) * sm; this.poseRot.z += (rz - this.poseRot.z) * sm;
     this.model.position.copy(this.posePos);
     this.model.rotation.set(this.poseRot.x, this.poseRot.y, this.poseRot.z);
+
+    // aim readout
+    if (this.targets && (++this.aimFrame & 3) === 0) {
+      cam.getWorldDirection(_fwd);
+      const hit = this.targets.raycast(cam.position, _fwd, 120);
+      if (hit && hit.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; this.aimInfo = this.aimCache; }
+      else this.aimInfo = null;
+    }
 
     this.stepBolts(dt);
     this.puffs.update(dt, this.game.renderer, cam);

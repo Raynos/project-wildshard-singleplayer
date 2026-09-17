@@ -8,6 +8,7 @@ import { CHUNK_ID, CHUNK_COORDS, TREE_COUNT, CHUNK_SIZE, TERRAIN_RES, SEED } fro
  *   hud.setState({ bolts, loaded, reloading, reloadProgress?, health, fps, pos: {x, z}, yaw, kills, prompt?, speed?, ads? })
  *   hud.showHitMarker(headshot, killed)  hud.killFeed('Boar · headshot')  hud.toast('Bolt recovered')
  *   hud.damageFlash()  hud.setBoundaryWarning(visible)  hud.setPaused(bool)  hud.onResume = () => …
+ *   hud.setAimInfo(crossbow.aimInfo)   // "BOAR · 15 M" under the crosshair
  *
  * Call `setState` every frame (it diffs and only touches the DOM on change). Pause overlay appears on
  * pointer-unlock after the chunk was entered (`pointerLock` mode only); clicking it fires `onResume`.
@@ -44,7 +45,7 @@ export class HUD {
   private fps!: HTMLElement; private coords!: HTMLElement;
   private healthVal!: HTMLElement; private healthBar!: HTMLElement;
   private ammoCount!: HTMLElement; private ammoStatus!: HTMLElement; private ammoStatusText!: HTMLElement; private reloadBar!: HTMLElement; private pips: HTMLElement[] = [];
-  private cross!: HTMLElement; private killX!: HTMLElement; private hitRing!: HTMLElement;
+  private cross!: HTMLElement; private killX!: HTMLElement; private hitRing!: HTMLElement; private aim!: HTMLElement; private aimText = '';
   private prompt!: HTMLElement; private boundary!: HTMLElement; private flash!: HTMLElement;
   private intro?: HTMLElement; private pause!: HTMLElement;
   private last: Partial<HUDState> & { statusKey?: string; headingDeg?: number; fpsShown?: number } = {};
@@ -118,6 +119,7 @@ export class HUD {
     this.killX = this.cross.querySelector('.ws-x')!;
     r.appendChild(this.cross);
     this.hitRing = el('div', 'ws-hitring'); r.appendChild(this.hitRing);
+    this.aim = el('div', 'ws-aim'); r.appendChild(this.aim);
 
     this.prompt = el('div', 'ws-glass ws-prompt'); r.appendChild(this.prompt);
     this.boundary = el('div', 'ws-boundary', '<div class="ws-bt">Chunk boundary</div><div class="ws-bs">No-man\'s land beyond · nothing has been generated here</div>'); r.appendChild(this.boundary);
@@ -135,8 +137,8 @@ export class HUD {
     if (s.fps !== L.fpsShown) { L.fpsShown = s.fps; this.fps.firstElementChild!.textContent = String(s.fps); }
     const hx = Math.round(s.pos.x), hz = Math.round(s.pos.z);
     if (hx !== L.pos?.x || hz !== L.pos?.z) { L.pos = { x: hx, z: hz }; this.coords.textContent = `${fmt(hx)} · ${fmt(hz)}`; }
-    // compass: yaw 0 faces -Z = north, yaw increases turning left → heading decreases
-    let deg = (-s.yaw * 180) / Math.PI; deg = ((deg % 360) + 360) % 360;
+    // compass: +Z (the south-gate spawn's forward, yaw π) is north; turning left decreases the heading
+    let deg = 180 - (s.yaw * 180) / Math.PI; deg = ((deg % 360) + 360) % 360;
     const degR = Math.round(deg * 2) / 2;
     if (degR !== L.headingDeg) {
       L.headingDeg = degR;
@@ -174,6 +176,14 @@ export class HUD {
       else this.prompt.classList.remove('show');
     }
     if (this.hitTimer > 0 && (this.hitTimer -= 1) === 0) this.cross.classList.remove('hit', 'head');
+  }
+
+  /** range readout under the crosshair: "BOAR · 15 M" (null hides it) */
+  setAimInfo(info: { kind: string; distance: number } | null) {
+    const text = info ? `${info.kind} · ${Math.round(info.distance)} m` : '';
+    if (text === this.aimText) return;
+    this.aimText = text;
+    if (text) { this.aim.textContent = text; this.aim.classList.add('show'); } else this.aim.classList.remove('show');
   }
 
   showHitMarker(headshot: boolean, killed: boolean) {
