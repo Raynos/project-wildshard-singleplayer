@@ -13,7 +13,7 @@ sleep 12
 N=$((FPS * SECS))
 for ((i=0; i<N; i++)); do
   T=$(python3 -c "print($i/$FPS)")
-  agent-browser --session $S eval "window.__world.tour.time = $T" >/dev/null
+  agent-browser --session $S eval "window.__world.tour.time = $T; window.__world.crossbow.model.visible = true; 1" >/dev/null
   sleep 0.15
   agent-browser --session $S screenshot "$OUT/$(printf %05d $i).png" >/dev/null
   [ $((i % 20)) -eq 0 ] && echo "frame $i / $N"

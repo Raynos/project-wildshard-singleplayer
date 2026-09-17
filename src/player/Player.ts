@@ -21,6 +21,8 @@ export class Player {
   bobTime = 0;
   locked = false;
   colliders: Collider[] = [];
+  /** extra walkable surfaces (cabin floors, porch decks): return a world y or undefined */
+  platforms: ((x: number, z: number) => number | undefined)[] = [];
   keys = new Set<string>();
   private eyeOffset = EYE;
   private landImpulse = 0;
@@ -78,8 +80,12 @@ export class Player {
 
     this.collide();
 
-    // ground
-    const g = heightAt(this.position.x, this.position.z);
+    // ground: terrain, or a platform if we are at/above it (step up ≤ 0.5 m)
+    let g = heightAt(this.position.x, this.position.z);
+    for (const p of this.platforms) {
+      const y = p(this.position.x, this.position.z);
+      if (y !== undefined && y > g && this.position.y >= y - 0.5) g = y;
+    }
     if (this.position.y <= g) {
       if (!this.onGround) { const hard = this.velocity.y < -9; this.landImpulse = Math.min(0.35, -this.velocity.y * 0.03); this.onLand?.(hard); }
       this.position.y = g; this.velocity.y = 0; this.onGround = true;

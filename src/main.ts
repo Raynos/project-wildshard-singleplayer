@@ -41,6 +41,7 @@ async function main() {
   const { group: cabinGroup, colliders, interactables } = await cabins.build();
   game.scene.add(cabinGroup);
   player.colliders.push(...colliders);
+  player.platforms.push((x, z) => cabins.floorHeightAt(x, z));
   const props = new Props(sky, forest);
   game.scene.add(await props.build());
   player.colliders.push(...props.colliders);
@@ -60,7 +61,8 @@ async function main() {
   crossbow.adsHeld = params.has('ads');
   const hud = new HUD({ pointerLock: !nolock });
   const audio = new Audio();
-  let kills = 0, health = 100, lastHurt = 0;
+  let kills = 0, health = 100, lastHurt = 0, pelts = 0;
+  const harvested = new Set<object>();
 
   crossbow.onFire = () => audio.crossbowFire();
   crossbow.onDry = () => audio.dryFire();
@@ -104,7 +106,17 @@ async function main() {
   // ── interaction (doors) ──
   let prompt: string | undefined;
   let nearest: (typeof interactables)[number] | undefined;
-  document.addEventListener('keydown', (e) => { if (e.code === 'KeyE' && nearest && hud.entered) nearest.onInteract(); });
+  let carcass: (typeof animals.animals)[number] | undefined;
+  document.addEventListener('keydown', (e) => {
+    if (e.code !== 'KeyE' || !hud.entered) return;
+    if (nearest) nearest.onInteract();
+    else if (carcass) {
+      harvested.add(carcass); pelts++;
+      hud.toast(`${carcass.kind === 'deer' ? 'Venison + deer hide' : 'Boar meat + hide'} harvested · ${pelts} total`);
+      audio.hitMarker();
+      carcass.mesh.visible = false;
+    }
+  });
 
   game.onUpdate((dt, t) => {
     if (attract && tour.active) { attractT += dt * 0.35; tour.setTime(9 + ((attractT - 9) % 22)); }
@@ -122,10 +134,13 @@ async function main() {
     // nearest interactable
     nearest = undefined; let best = 1e9;
     for (const it of interactables) { const d = it.position.distanceTo(game.camera.position); if (d < it.radius && d < best) { best = d; nearest = it; } }
-    prompt = nearest ? `[E] ${nearest.label}` : undefined;
+    carcass = undefined;
+    if (!nearest) for (const a of animals.animals) { if (!a.alive && !harvested.has(a) && a.position.distanceTo(player.position) < 2.6) { carcass = a; break; } }
+    prompt = nearest ? `[E] ${nearest.label}` : carcass ? `[E] Harvest ${carcass.kind}` : undefined;
 
-    // slow health regen
+    // slow health regen; death → respawn at the gate
     if (health < 100 && performance.now() - lastHurt > 6000) health = Math.min(100, health + dt * 4);
+    if (health <= 0) { health = 100; hud.toast('Gored — respawning at the south gate'); hud.damageFlash(); player.spawn(0, -236, Math.PI); crossbow.addBolts(30 - crossbow.state.bolts); }
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 && hud.entered);
