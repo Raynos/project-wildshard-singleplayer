@@ -87,9 +87,9 @@ export class Game {
       const dt = Math.min(0.1, this.clock.getDelta());
       const t = this.clock.elapsedTime;
       for (const u of this.updaters) u(dt, t);
-      this.sky?.update();
+      this.sky?.update(dt);
       // planet + sun disc travel with the camera so they stay "infinitely" far
-      if (this.sky) { this.sky.planet.position.copy(this.camera.position).addScaledVector(this.sky.planetDir, 1700); this.sky.sunDisc.position.copy(this.camera.position).addScaledVector(this.sky.sunDir, 1500); }
+      if (this.sky) { this.sky.clouds.position.copy(this.camera.position); this.sky.planet.position.copy(this.camera.position).addScaledVector(this.sky.planetDir, 1700); this.sky.sunDisc.position.copy(this.camera.position).addScaledVector(this.sky.sunDir, 1500); }
       this.composer.render(dt);
       this.stats.frames++; this.stats.acc += dt;
       if (this.stats.acc >= 0.5) { this.stats.fps = Math.round(this.stats.frames / this.stats.acc); this.stats.frames = 0; this.stats.acc = 0; }

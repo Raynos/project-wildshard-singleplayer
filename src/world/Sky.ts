@@ -52,6 +52,7 @@ export class Sky {
 
     this.buildSunDisc();
     this.buildPlanet();
+    this.buildClouds();
     return this;
   }
 
@@ -68,7 +69,48 @@ export class Sky {
     mat.needsUpdate = true;
   }
 
-  update() { this.csm.update(); }
+  clouds!: THREE.Mesh;
+  private cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() } };
+
+  update(dt = 0) { this.csm.update(); this.cloudUniforms.uTime.value += dt; }
+
+  /** Thin procedural cirrus/cumulus layer on a sky dome — the HDRI has none, and a forest needs a sky with some drama. */
+  private buildClouds() {
+    const geo = new THREE.SphereGeometry(1400, 48, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
+    const tex = makeCloudTexture();
+    this.cloudUniforms.uSunDir.value.copy(this.sunDir);
+    this.cloudUniforms.uSunColor.value.set(1.0, 0.82, 0.62);
+    const mat = new THREE.ShaderMaterial({
+      uniforms: { ...this.cloudUniforms, tClouds: { value: tex } },
+      transparent: true, depthWrite: false, side: THREE.BackSide,
+      vertexShader: /* glsl */`
+        varying vec3 vDir;
+        void main() { vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: /* glsl */`
+        uniform sampler2D tClouds; uniform float uTime; uniform vec3 uSunDir; uniform vec3 uSunColor;
+        varying vec3 vDir;
+        void main() {
+          vec3 d = normalize(vDir);
+          if (d.y < 0.02) discard;
+          // project onto a flat cloud plane at height ~1 for a believable perspective
+          vec2 p = d.xz / (d.y + 0.15);
+          vec2 uv = p * 0.5 + vec2(uTime * 0.004, uTime * 0.002);
+          float a = texture2D(tClouds, uv).r;
+          float b = texture2D(tClouds, uv * 3.1 + vec2(-uTime * 0.006, uTime * 0.003)).r;
+          float cover = smoothstep(0.52, 0.8, a * 0.7 + b * 0.3);
+          float horizon = smoothstep(0.02, 0.22, d.y);
+          float sunAmt = max(dot(d, uSunDir), 0.0);
+          vec3 lit = mix(vec3(0.62, 0.66, 0.74), vec3(1.0, 0.94, 0.86), smoothstep(0.3, 0.9, a));
+          lit = mix(lit, uSunColor * 1.3, pow(sunAmt, 6.0) * 0.6);
+          float alpha = cover * horizon * 0.85;
+          gl_FragColor = vec4(lit, alpha);
+        }`,
+    });
+    this.clouds = new THREE.Mesh(geo, mat);
+    this.clouds.frustumCulled = false;
+    this.clouds.renderOrder = -10;
+    this.scene.add(this.clouds);
+  }
 
   private findSun(hdr: THREE.DataTexture) {
     const { width, height, data } = hdr.image as { width: number; height: number; data: Float32Array | Uint16Array };
@@ -140,6 +182,32 @@ export class Sky {
     this.planet.traverse((o) => { o.frustumCulled = false; });
     this.scene.add(this.planet);
   }
+}
+
+function makeCloudTexture() {
+  // tileable fbm value noise
+  const N = 512;
+  const c = document.createElement('canvas'); c.width = c.height = N;
+  const g = c.getContext('2d')!;
+  const img = g.createImageData(N, N);
+  const rnd = (x: number, y: number) => { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); };
+  const val = (x: number, y: number, f: number) => {
+    const X = ((x * f) % N + N) % N, Y = ((y * f) % N + N) % N;
+    const x0 = Math.floor(X), y0 = Math.floor(Y), tx = X - x0, ty = Y - y0;
+    const sx = tx * tx * (3 - 2 * tx), sy = ty * ty * (3 - 2 * ty);
+    const per = N / f;
+    const r = (i: number, j: number) => rnd(((i % per) + per) % per, ((j % per) + per) % per);
+    const a = r(x0, y0), b = r(x0 + 1, y0), cc = r(x0, y0 + 1), d = r(x0 + 1, y0 + 1);
+    return (a + (b - a) * sx) * (1 - sy) + (cc + (d - cc) * sx) * sy;
+  };
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    let v = 0, amp = 0.5, norm = 0;
+    for (let o = 0; o < 6; o++) { const f = (2 ** o) / 64; v += val(x, y, f) * amp; norm += amp; amp *= 0.55; }
+    v /= norm;
+    const i = (y * N + x) * 4; img.data[i] = img.data[i + 1] = img.data[i + 2] = v * 255; img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
 }
 
 function makePlanetTexture() {
