@@ -105,7 +105,8 @@ export class Props {
       if (td < r + 2) continue;
       const sink = shape.height * scale * (0.18 + 0.35 * smoothstep(0.05, 0.3, slope) + rng.range(0, 0.1));
       shape.mats.push(Props.place(x, z, rng.range(0, Math.PI * 2), scale, sink, 0.85));
-      if (r > 0.9) this.colliders.push({ x, z, hw: r * 0.62, hd: r * 0.62, rot: 0, yTop: heightAt(x, z) + shape.height * scale - sink, yBottom: heightAt(x, z) - 1 });
+      const above = shape.height * scale - sink;                  // height showing above ground
+      if (above > 1.0) this.colliders.push({ x, z, hw: r * 0.6, hd: r * 0.6, rot: 0, yTop: heightAt(x, z) + above, yBottom: heightAt(x, z) - 1 });
       n++;
     }
     for (const s of shapes) this.instanced(s.geometry, s.material, s.mats, s.local);
@@ -158,7 +159,7 @@ export class Props {
       if (ny < 0.75) continue;
       const scale = rng.range(1.1, 1.8), hl = halfLen * scale;
       // orientation: mostly along the fall line, some random
-      let yaw = rng.next() < 0.6 ? Math.atan2(-nz, nx) + rng.range(-0.5, 0.5) : rng.range(0, Math.PI * 2);
+      const yaw = rng.next() < 0.6 ? Math.atan2(-nz, nx) + rng.range(-0.5, 0.5) : rng.range(0, Math.PI * 2);
       const dx = Math.cos(yaw), dz = -Math.sin(yaw);               // local +X after yaw
       const ax = x + dx * hl, az = z + dz * hl, bx = x - dx * hl, bz = z - dz * hl;
       if (trailDistance(ax, az) < 4 || trailDistance(bx, bz) < 4) continue;
@@ -173,7 +174,6 @@ export class Props {
       const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, yaw, pitch, 'YXZ')).multiply(qRoll);
       // the terrain mesh is ~2 m per vertex, so lift thin logs a little above the analytic height rather than let them sink
       mats.push(new THREE.Matrix4().compose(new THREE.Vector3(x, ym - bottom * scale + 0.14 * scale, z), q, new THREE.Vector3(scale, scale, scale)));
-      void nx;
     }
     for (const p of parts) this.instanced(p.geometry, p.material, mats, p.matrix);
     this.counts.logs = mats.length;

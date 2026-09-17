@@ -206,7 +206,7 @@ async function loadMats(sky: Sky): Promise<Mats> {
     beam: std(beamSet, { color: new THREE.Color(0.9, 0.86, 0.8) }),
     deck: std(deckSet),
     door: std(doorSet, { color: new THREE.Color(0.72, 0.68, 0.62) }),
-    stone: std(stoneSet, { color: new THREE.Color(0.8, 0.78, 0.74) }),
+    stone: std(stoneSet, { color: new THREE.Color(0.58, 0.56, 0.53) }),
     glass: new THREE.MeshPhysicalMaterial({
       color: 0x0e1216, roughness: 0.05, metalness: 0, transparent: true, opacity: 0.72, envMapIntensity: 1.8,
       emissive: new THREE.Color(1.0, 0.68, 0.38), emissiveIntensity: 0.4, side: THREE.DoubleSide, depthWrite: false,
@@ -214,7 +214,7 @@ async function loadMats(sky: Sky): Promise<Mats> {
     bark: std(barkSet, { color: new THREE.Color(0.85, 0.8, 0.75) }),
     iron: new THREE.MeshStandardMaterial({ color: 0x2b2724, roughness: 0.6, metalness: 0.75 }),
     cloth: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, metalness: 0, vertexColors: true }),
-    char: new THREE.MeshStandardMaterial({ color: 0x1a1512, roughness: 0.9, metalness: 0, emissive: 0xff5a10, emissiveIntensity: 0.35 }),
+    char: new THREE.MeshStandardMaterial({ color: 0x14100d, roughness: 0.95, metalness: 0, emissive: 0xff4a08, emissiveIntensity: 0.12 }),
     smoke: makeParticleMaterial('smoke'),
     flame: makeParticleMaterial('flame'),
     ember: makeParticleMaterial('ember'),
