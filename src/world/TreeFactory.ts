@@ -246,8 +246,14 @@ export class TreeFactory {
 
     // branch cards
     const cards: THREE.BufferGeometry[] = [];
-    const card = new THREE.PlaneGeometry(2, 1);       // matches the bake: x ∈ [-1,1], y ∈ [-0.5,0.5]
+    const card = new THREE.PlaneGeometry(2, 1, 4, 1);  // matches the bake: x ∈ [-1,1], y ∈ [-0.5,0.5]
     card.translate(1, 0, 0);                           // pivot at the base of the branch
+    {
+      // droop the tip: real pine branches sag then curl up at the end
+      const cp = card.attributes.position as THREE.BufferAttribute;
+      for (let i = 0; i < cp.count; i++) { const x = cp.getX(i) / 2; cp.setZ(i, cp.getZ(i) + (-0.12 * x * x + 0.06 * x * x * x)); }
+      card.computeVertexNormals();
+    }
     const crownStart = height * (height < 15 ? rng.range(0.12, 0.2) : rng.range(0.3, 0.42));
     const whorlStep = 0.5 + height * 0.011;
     let y = crownStart;
@@ -265,9 +271,9 @@ export class TreeFactory {
         const width = len * 0.5;
         const rTrunk = trunkR * (1 - y / height) + 0.02;
         const ox = Math.cos(yaw) * rTrunk, oz = -Math.sin(yaw) * rTrunk;
-        const roll0 = rng.range(-0.4, 0.4);
-        // two quads in a shallow V give the branch volume from every angle
-        for (const roll of [0.55, -0.55]) {
+        const roll0 = rng.range(-0.5, 0.5);
+        // three quads in a shallow fan give the branch volume from every angle
+        for (const roll of [0.7, 0.0, -0.7]) {
           const g = card.clone();
           e.set(0, yaw, droop, 'YXZ');
           q.setFromEuler(e);
