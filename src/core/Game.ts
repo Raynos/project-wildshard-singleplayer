@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import {
   EffectComposer, RenderPass, EffectPass, BloomEffect, SMAAEffect, VignetteEffect, ToneMappingEffect,
-  ToneMappingMode, BlendFunction, GodRaysEffect, KernelSize, SMAAPreset, EdgeDetectionMode, ChromaticAberrationEffect, HueSaturationEffect, BrightnessContrastEffect,
+  ToneMappingMode, BlendFunction, GodRaysEffect, KernelSize, SMAAPreset, EdgeDetectionMode, ChromaticAberrationEffect, HueSaturationEffect, BrightnessContrastEffect, NoiseEffect,
 } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
 import { installAtmosphere } from '../world/Atmosphere';
 import { setAnisotropy } from './assets';
 import { Sky } from '../world/Sky';
+import { GradeEffect } from './Grade';
 
 export class Game {
   renderer: THREE.WebGLRenderer;
@@ -63,7 +64,10 @@ export class Game {
     const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
     const grade = new HueSaturationEffect({ saturation: 0.18 });
     const contrast = new BrightnessContrastEffect({ brightness: -0.015, contrast: 0.2 });
-    composer.addPass(new EffectPass(this.camera, godRays, bloom, chroma, vignette, tone, grade, contrast));
+    const split = new GradeEffect();
+    const grain = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: true });
+    grain.blendMode.opacity.value = 0.12;
+    composer.addPass(new EffectPass(this.camera, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain));
     const smaa = new SMAAEffect({ preset: SMAAPreset.HIGH, edgeDetectionMode: EdgeDetectionMode.COLOR });
     composer.addPass(new EffectPass(this.camera, smaa));
     this.composer = composer;

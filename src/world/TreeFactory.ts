@@ -45,7 +45,22 @@ export class TreeFactory {
       map: bark.map, normalMap: bark.normalMap, roughnessMap: bark.armMap, aoMap: bark.armMap,
       roughness: 1, metalness: 0, color: new THREE.Color(0.85, 0.8, 0.75),
     });
-    this.barkMaterial.onBeforeCompile = (shader) => { attachFogUniforms(shader); patchWind(shader); };
+    this.barkMaterial.onBeforeCompile = (shader) => {
+      attachFogUniforms(shader); patchWind(shader);
+      // Scots pine: dark plated bark low on the trunk, papery orange bark high up
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nvarying float vTrunkT;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvTrunkT = windWeight / 0.35;');
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nvarying float vTrunkT;')
+        .replace('#include <map_fragment>', `#include <map_fragment>
+          {
+            float up = smoothstep(0.3, 0.8, vTrunkT);
+            vec3 low = vec3(0.62, 0.55, 0.5);
+            vec3 high = vec3(1.25, 0.78, 0.52);
+            diffuseColor.rgb *= mix(low, high, up);
+          }`);
+    };
     this.barkMaterial.customProgramCacheKey = () => 'bark';
     this.needleMaterial = new THREE.MeshStandardMaterial({
       map: card.albedo, normalMap: card.normal, aoMap: card.arm,
