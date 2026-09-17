@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { POND, waterLevel, heightAt } from './Heightfield';
-import { attachFogUniforms } from './Atmosphere';
+import { attachFogUniforms, fogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
 
 /**
@@ -70,9 +70,11 @@ export class Water {
           {
             vec3 V = normalize(vViewPosition);
             float NdotV = clamp(dot(normal, V), 0.0, 1.0);
-            float F = 0.03 + 0.62 * pow(1.0 - NdotV, 3.0);
+            float F = 0.02 + 0.55 * pow(1.0 - NdotV, 3.5);
             vec2 muv = vMirror.xy / vMirror.w + rippleN.xy * 0.06;
-            vec3 refl = texture2D(tReflection, muv).rgb * vec3(0.42, 0.5, 0.52);
+            vec3 refl = texture2D(tReflection, muv).rgb;
+            // a real pond is darker than the sky it mirrors: compress bright (sky) reflections harder than dark (tree) ones
+            refl = refl / (1.0 + refl * 1.6) * vec3(0.5, 0.58, 0.62);
             vec3 deep = gl_FragColor.rgb;
             // shallow water shows the bottom colour a little
             deep = mix(deep, deep + vec3(0.03, 0.05, 0.03), smoothstep(2.0, 0.0, vDepth));
@@ -80,7 +82,12 @@ export class Water {
             col += reflectedLight.directSpecular * 0.25;   // keep the sun glint on top
             gl_FragColor.rgb = col;
           }
-          gl_FragColor.a = shore;`);
+          gl_FragColor.a = shore;`)
+        // fog the water surface less than the air: keep 65 % of the unfogged colour
+        .replace('#include <fog_fragment>', `
+          vec3 preFog = gl_FragColor.rgb;
+          #include <fog_fragment>
+          gl_FragColor.rgb = mix(preFog, gl_FragColor.rgb, 0.35);`);
     };
     this.mat.customProgramCacheKey = () => 'pond-water';
     this.sky.setupMaterial(this.mat);
@@ -130,6 +137,8 @@ export class Water {
     pm.elements[2] = cp.x; pm.elements[6] = cp.y; pm.elements[10] = cp.z + 1 - 0.003; pm.elements[14] = cp.w;
 
     this.mesh.visible = false;
+    const fd = fogUniforms.fogDistDensity.value, fh = fogUniforms.fogHeightDensity.value;
+    fogUniforms.fogDistDensity.value = fd * 0.4; fogUniforms.fogHeightDensity.value = fh * 0.4;
     const prevRT = renderer.getRenderTarget();
     const prevShadow = renderer.shadowMap.autoUpdate;
     renderer.shadowMap.autoUpdate = false;
@@ -139,6 +148,7 @@ export class Water {
     renderer.render(scene, cam);
     renderer.shadowMap.autoUpdate = prevShadow;
     renderer.setRenderTarget(prevRT);
+    fogUniforms.fogDistDensity.value = fd; fogUniforms.fogHeightDensity.value = fh;
     this.mesh.visible = true;
   }
 }

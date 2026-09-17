@@ -114,7 +114,7 @@ async function main() {
       harvested.add(carcass); pelts++;
       hud.toast(`${carcass.kind === 'deer' ? 'Venison + deer hide' : 'Boar meat + hide'} harvested · ${pelts} total`);
       audio.hitMarker();
-      carcass.mesh.visible = false;
+      carcass.fadeOut();
     }
   });
 

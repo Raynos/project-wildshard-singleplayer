@@ -8,7 +8,7 @@ export const fogUniforms = {
   fogSunColor: { value: new THREE.Color(1.0, 0.72, 0.42) },
   fogHeight: { value: -8.0 },          // metres; fog is densest below this
   fogHeightFalloff: { value: 0.12 },
-  fogHeightDensity: { value: 0.006 },
+  fogHeightDensity: { value: 0.0035 },
   fogDistDensity: { value: 0.00045 },
 };
 
