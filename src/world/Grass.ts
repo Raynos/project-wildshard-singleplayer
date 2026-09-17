@@ -31,7 +31,7 @@ const RADIUS = 55;         // metres: ring around the player that has grass
 const FADE = 10;           // metres: outer band where instances scale down to 0
 const CELL = 4;            // metres per cell
 const N = Math.ceil((RADIUS * 2) / CELL); // 28 cells per side
-const K = 64;              // instance slots per cell → 50 176 instances
+const K = 96;              // instance slots per cell → 75 264 instances
 
 const grassUniforms = {
   uRadius: { value: RADIUS },
@@ -99,13 +99,21 @@ export class Grass {
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', /* glsl */`#include <common>
           uniform float uTime; uniform float uWindStrength; uniform float uRadius; uniform float uFade;
+          attribute float quadId;
           varying float vH;`)
         .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
           {
             mat3 im = mat3( instanceMatrix );
             vec3 ipos = ( modelMatrix * vec4( instanceMatrix[3].xyz, 1.0 ) ).xyz;
             float dist = distance( ipos, cameraPosition );
+            float rnd = fract( sin( dot( ipos.xz, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 );
             float fade = 1.0 - smoothstep( uRadius - uFade, uRadius, dist );
+            // LOD: far clumps lose their 3rd and then 2nd quad, then every other clump, before the ring fade
+            if ( quadId > 1.5 ) fade *= 1.0 - smoothstep( 18.0, 26.0, dist );
+            else if ( quadId > 0.5 ) fade *= 1.0 - smoothstep( 32.0, 40.0, dist );
+            if ( rnd < 0.5 ) fade *= 1.0 - smoothstep( 38.0, 46.0, dist );
+            // widen the surviving card a little so far coverage holds up
+            transformed.x *= 1.0 + smoothstep( 18.0, 30.0, dist ) * 0.35;
             transformed *= fade;
             float h = uv.y;
             vH = h;
@@ -118,9 +126,11 @@ export class Grass {
             float ripple = sin( uTime * 2.9 - phase * 2.1 + wpos.x * 0.45 ) * 0.5 + 0.5;
             float flutter = sin( uTime * 6.5 + wpos.x * 4.3 + wpos.z * 3.1 );
             float s2 = dot( im[0], im[0] );
-            float amp = ( 0.05 + gust * 0.26 + ripple * 0.07 ) * uWindStrength * sqrt( s2 ) * 2.0;
+            float amp = ( 0.02 + gust * 0.13 * ( 0.7 + 0.6 * rnd ) + ripple * 0.045 ) * uWindStrength * sqrt( s2 ) * 2.0;
             float w = h * h;
-            vec3 off = vec3( dir.x * amp + flutter * 0.025, 0.0, dir.y * amp + flutter * 0.018 ) * w;
+            // a little per-clump lean in a random direction so the field is not combed flat
+            vec2 leanDir = vec2( cos( rnd * 6.2832 ), sin( rnd * 6.2832 ) ) * 0.05;
+            vec3 off = vec3( dir.x * amp + flutter * 0.02 + leanDir.x, 0.0, dir.y * amp + flutter * 0.015 + leanDir.y ) * w;
             off.y = - length( off.xz ) * 0.45;
             transformed += ( off * im ) / max( s2, 1e-6 ) * fade;
           }`);
@@ -216,7 +226,7 @@ export class Grass {
       const t = bilerp(s00[3], s10[3], s01[3], s11[3], u, v);
       const r = bilerp(s00[2], s10[2], s01[2], s11[2], u, v);
       const patch = this.patchNoise.fbm(x * 0.045, z * 0.045, 2);
-      let p = g * (0.75 + 0.35 * patch) + f * 0.16;
+      let p = g * (1.0 + 0.3 * patch) + f * 0.13;
       p *= smoothstep(0.3, 0.04, t) * smoothstep(0.5, 0.1, r);
       const roll = rng.next();
       const yaw = rng.range(0, Math.PI * 2);
@@ -233,7 +243,7 @@ export class Grass {
       this.tmpM.toArray(matArr, idx * 16);
       // colour: yellow-green meadow ↔ deep green, patchy via noise, olive-brown on the forest floor
       const tone = smoothstep(-0.5, 0.5, patch) * 0.65 + cv * 0.35;
-      this.tmpC.setRGB(lerp(0.62, 1.05, tone), lerp(0.86, 0.98, tone), lerp(0.5, 0.62, tone));
+      this.tmpC.setRGB(lerp(0.66, 1.08, tone), lerp(0.8, 0.92, tone), lerp(0.42, 0.55, tone));
       const floorMix = f * (1 - g);
       this.tmpC.r = lerp(this.tmpC.r, 0.78, floorMix * 0.6);
       this.tmpC.g = lerp(this.tmpC.g, 0.62, floorMix * 0.6);
@@ -250,16 +260,16 @@ const bilerp = (a: number, b: number, c: number, d: number, u: number, v: number
 
 // ---------------------------------------------------------------------------------- geometry
 
-/** Three crossed, curved quads (4 rows each) with the pivot at the root. Unit height, ~0.55 wide. */
+/** Three crossed, curved quads (4 rows each) with the pivot at the root. Unit height, ~0.72 wide. */
 function buildClumpGeometry() {
   const rng = new Rng(SEED + 404);
   const rows = 4, quads = 3;
-  const verts: number[] = [], norms: number[] = [], uvs: number[] = [], idx: number[] = [];
+  const verts: number[] = [], norms: number[] = [], uvs: number[] = [], idx: number[] = [], qid: number[] = [];
   for (let q = 0; q < quads; q++) {
     const yaw = (q / quads) * Math.PI + rng.range(-0.18, 0.18);
     const tilt = rng.range(-0.12, 0.12);
     const ox = rng.range(-0.05, 0.05), oz = rng.range(-0.05, 0.05);
-    const width = 0.55 * rng.range(0.9, 1.1);
+    const width = 0.72 * rng.range(0.9, 1.1);
     const bend = rng.range(0.12, 0.22);
     const tile = q % 4;
     const mirror = rng.next() < 0.5;
@@ -274,6 +284,7 @@ function buildClumpGeometry() {
         const lz = lean + tilt * t;
         const x = ox + lx * cy - lz * sy, z = oz + lx * sy + lz * cy;
         verts.push(x, y, z);
+        qid.push(q);
         // normal: mostly up, leaning outwards from the clump axis → soft rounded shading
         const rl = Math.hypot(x, z) || 1;
         const nx = (x / rl) * 0.4, nz = (z / rl) * 0.4;
@@ -292,6 +303,7 @@ function buildClumpGeometry() {
   geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
   geo.setAttribute('normal', new THREE.Float32BufferAttribute(norms, 3));
   geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  geo.setAttribute('quadId', new THREE.Float32BufferAttribute(qid, 1));
   geo.setIndex(idx);
   geo.computeBoundingSphere();
   return geo;
@@ -307,13 +319,13 @@ function makeBladeAtlas() {
   g.clearRect(0, 0, W, H);
   const rng = new Rng(SEED + 505);
   for (let tile = 0; tile < 4; tile++) {
-    const nBlades = 4 + (tile % 2);
+    const nBlades = 9 + (tile % 3);
     const x0 = tile * TILE;
     for (let b = 0; b < nBlades; b++) {
-      const rootX = x0 + TILE * (0.18 + 0.64 * ((b + 0.5) / nBlades)) + rng.range(-14, 14);
-      const height = H * rng.range(0.62, 0.98);
-      const bendX = rng.range(-0.28, 0.28) * TILE * (b % 2 ? 1 : -1) * (rng.next() < 0.3 ? -1 : 1);
-      const w0 = rng.range(11, 17);
+      const rootX = x0 + TILE * (0.14 + 0.72 * ((b + 0.5) / nBlades)) + rng.range(-16, 16);
+      const height = H * (b % 3 === 1 ? rng.range(0.45, 0.7) : rng.range(0.68, 1.0));
+      const bendX = rng.range(0.1, 0.3) * TILE * (b % 2 ? 1 : -1) * (rng.next() < 0.25 ? -1 : 1);
+      const w0 = rng.range(15, 26);
       const hue = rng.range(-1, 1);
       drawBlade(g, rootX, H, bendX, height, w0, hue, rng);
     }
@@ -352,15 +364,15 @@ function drawBlade(g: CanvasRenderingContext2D, rx: number, ry: number, bendX: n
   };
   // vertical gradient: dark olive root → mid green → lighter yellow-green tip
   const grad = g.createLinearGradient(0, ry, 0, ry - height);
-  const rootC = `rgb(${52 + hue * 6},${58 + hue * 4},${22})`;
-  const midC = `rgb(${96 + hue * 14},${122 + hue * 6},${38 + hue * 4})`;
-  const tipC = `rgb(${142 + hue * 18},${152 + hue * 8},${58 + hue * 6})`;
+  const rootC = `rgb(${60 + hue * 6},${70 + hue * 4},${26})`;
+  const midC = `rgb(${112 + hue * 16},${138 + hue * 8},${46 + hue * 5})`;
+  const tipC = `rgb(${164 + hue * 20},${172 + hue * 10},${74 + hue * 8})`;
   grad.addColorStop(0, rootC); grad.addColorStop(0.45, midC); grad.addColorStop(1, tipC);
   g.fillStyle = grad;
   g.globalAlpha = 1;
   path(); g.fill();
   // midrib highlight
-  g.strokeStyle = `rgba(${170 + hue * 20},${180},${90},0.45)`;
+  g.strokeStyle = `rgba(${185 + hue * 20},${196},${104},0.5)`;
   g.lineWidth = Math.max(1, w0 * 0.22);
   g.lineCap = 'round';
   g.beginPath();
