@@ -88,7 +88,7 @@ async function main() {
   // ── intro: attract camera drifts through the hollow until the player enters ──
   const tour = world.tour;
   const attract = !params.has('skipintro') && !params.has('tour');
-  let attractT = 9;
+  let attractT = 12;
   if (attract) { tour.active = true; tour.setTime(attractT); }
   const enter = () => {
     audio.resume();
@@ -119,7 +119,7 @@ async function main() {
   });
 
   game.onUpdate((dt, t) => {
-    if (attract && tour.active) { attractT += dt * 0.35; tour.setTime(9 + ((attractT - 9) % 22)); }
+    if (attract && tour.active) { attractT += dt * 0.3; tour.setTime(12 + ((attractT - 12) % 14)); }
     boundary.update(dt, t);
     water.update(dt);
     horizon.update(dt, game.camera);

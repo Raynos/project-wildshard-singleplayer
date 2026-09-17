@@ -152,7 +152,7 @@ html, body { margin: 0; padding: 0; overflow: hidden; background: #050810; }
 @keyframes ws-ring { 0% { opacity: 0.9; transform: scale(0.5); } 100% { opacity: 0; transform: scale(1.4); } }
 
 /* ── intro overlay ── */
-.ws-intro { position: absolute; inset: 0; pointer-events: auto; background: radial-gradient(ellipse at 50% 40%, rgba(6, 10, 18, 0.35) 0%, rgba(6, 10, 18, 0.82) 70%, rgba(3, 5, 9, 0.96) 100%); display: flex; flex-direction: column; justify-content: space-between; transition: opacity 0.6s ease; }
+.ws-intro { position: absolute; inset: 0; pointer-events: auto; background: linear-gradient(90deg, rgba(6, 10, 18, 0.6) 0%, rgba(6, 10, 18, 0.25) 45%, rgba(6, 10, 18, 0.05) 100%), linear-gradient(180deg, rgba(6, 10, 18, 0.2) 0%, rgba(6, 10, 18, 0.0) 30%, rgba(6, 10, 18, 0.55) 100%); display: flex; flex-direction: column; justify-content: space-between; transition: opacity 0.6s ease; }
 .ws-intro.hide { opacity: 0; pointer-events: none; }
 .ws-intro .ws-head { padding: 34px 44px 0; }
 .ws-intro .ws-wordmark { font-family: var(--ws-display); font-weight: 700; font-size: 54px; line-height: 1; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; }
