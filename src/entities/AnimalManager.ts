@@ -5,7 +5,7 @@ import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel } fro
 import type { Forest } from '../world/Forest';
 import type { Sky } from '../world/Sky';
 import { AnimalFactory, type AnimalKind, type AnimalModel } from './AnimalFactory';
-import { Animal } from './Animal';
+import { Animal, damageFor } from './Animal';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from '../core/tier';
 import { noReflect } from '../world/Water';
@@ -19,7 +19,7 @@ import { noReflect } from '../world/Water';
  *   game.onUpdate((dt, t) => animals.update(dt, t, player.position, player.sprinting));
  *
  *   animals.raycast(origin, dir, maxDist) → { animal, point, distance, headshot, damage } | null  (result object is reused;
- *                                          `damage` = DAMAGE model for that hit: body 32–40 with distance falloff past 40 m, head ×2.5)
+ *                                          `damage` = DAMAGE model (Animal.ts) for that hit: body 32–40 with distance falloff past 40 m, head ×2.5)
  *   animal.applyDamage(amount, hitPoint, dir) → true if it died   (deer 60 hp, boar 100 hp)
  *   animals.hit(hit, dir)  — convenience: applyDamage(hit.damage)
  *   animals.disturb(point, strength) — a bolt landed / something loud happened here: animals within
@@ -128,9 +128,6 @@ export const BOAR_TUNING: HuntTuning = {
   herdAlertRadius: 12, herdBoltDelayMin: 0.2, herdBoltDelayMax: 0.7,
   impactSpook: 7, impactAlert: 18,
 };
-
-/** Bolt damage: body 32–40 (a deer takes two, a boar three), ×2.5 to the head (one kills a deer); fades to 60 % from 40 to 90 m. */
-export const DAMAGE = { bodyMin: 32, bodyMax: 40, headMul: 2.5, falloffStart: 40, falloffEnd: 90, falloffMin: 0.6 };
 
 const DEER_WALK = 1.3, BOAR_WALK = 1.1, BOAR_CHARGE = 7.5, CHARGE_HIT_DIST = 1.4;
 const CHARGE_WHEN_HIT_DIST = 25;   // a wounded boar this close turns on you instead of running
@@ -564,12 +561,8 @@ export class AnimalManager {
 
   private hitResult: AnimalHit = { animal: null as unknown as Animal, point: new THREE.Vector3(), distance: 0, headshot: false, damage: 0 };
 
-  /** the DAMAGE model: a body bolt from `dist` m (falloff past 40 m), ×headMul for the head */
-  damageFor(headshot: boolean, dist: number): number {
-    const fall = 1 - (1 - DAMAGE.falloffMin) * THREE.MathUtils.clamp((dist - DAMAGE.falloffStart) / (DAMAGE.falloffEnd - DAMAGE.falloffStart), 0, 1);
-    const body = this.rng.range(DAMAGE.bodyMin, DAMAGE.bodyMax) * fall;
-    return Math.round(headshot ? body * DAMAGE.headMul : body);
-  }
+  /** the DAMAGE model (Animal.ts): a body bolt from `dist` m (falloff past 40 m), ×headMul for the head */
+  damageFor(headshot: boolean, dist: number): number { return damageFor(headshot, dist); }
 
   /**
    * Ray vs every living animal's head sphere + body capsule. Returns the nearest hit

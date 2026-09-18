@@ -14,6 +14,7 @@ import type { AnimalKind, AnimalModel, AnimalRig } from './AnimalFactory';
  *   animal.kind: 'deer' | 'boar'      animal.alive      animal.position (feet, world)
  *   animal.hp / maxHp                 animal.state       animal.yaw (heading, radians)
  *   animal.lastHitT                   performance.now() ms of the last applyDamage (health bars fade from it)
+ *   animal.damageFor(headshot, distance)   → the DAMAGE model's number for a bolt (the crossbow asks before applyDamage)
  *   animal.applyDamage(amount, hitPoint, dir) → true if it died
  *   animal.headWorld(out) / bodyCapsule(a, b)  — hit volumes (world space)
  *
@@ -21,6 +22,16 @@ import type { AnimalKind, AnimalModel, AnimalRig } from './AnimalFactory';
  */
 
 export type AnimalState = 'idle' | 'graze' | 'wander' | 'alert' | 'flee' | 'charge' | 'dead';
+
+/** Bolt damage: body 32–40 (a deer takes two, a boar three), ×2.5 to the head (one kills a deer); fades to 60 % from 40 to 90 m. */
+export const DAMAGE = { bodyMin: 32, bodyMax: 40, headMul: 2.5, falloffStart: 40, falloffEnd: 90, falloffMin: 0.6 };
+
+/** The DAMAGE model for one bolt: a body hit from `dist` m (falloff past 40 m), ×headMul for the head. */
+export function damageFor(headshot: boolean, dist: number): number {
+  const fall = 1 - (1 - DAMAGE.falloffMin) * THREE.MathUtils.clamp((dist - DAMAGE.falloffStart) / (DAMAGE.falloffEnd - DAMAGE.falloffStart), 0, 1);
+  const body = (DAMAGE.bodyMin + Math.random() * (DAMAGE.bodyMax - DAMAGE.bodyMin)) * fall;
+  return Math.round(headshot ? body * DAMAGE.headMul : body);
+}
 
 // pose parameter indices
 const P_BODY_Y = 0, P_BODY_PITCH = 1, P_BODY_ROLL = 2, P_BODY_YAW = 3;
@@ -130,6 +141,9 @@ export class Animal {
   }
 
   // ── combat ─────────────────────────────────────────────────────────────────────────────
+
+  /** damage a bolt does to this animal: body 32–40 with distance falloff, ×2.5 to the head (see DAMAGE) */
+  damageFor(headshot: boolean, dist: number): number { return damageFor(headshot, dist); }
 
   /** world-space head hit sphere centre */
   headWorld(out: THREE.Vector3) {
