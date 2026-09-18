@@ -1,5 +1,5 @@
 /**
- * TEMPORARY debug pill (next to the frame meter, top-right). The game is a home-screen PWA, so
+ * TEMPORARY debug pill (a small tab on the left screen edge, mid-height). The game is a home-screen PWA, so
  * knobs live here instead of URL params and persist in localStorage. Delete this file and its
  * `new Debug()` line when the black-screen / LPM investigation is over.
  *
@@ -27,14 +27,14 @@ export class Debug {
   constructor(private onChange: (f: DebugFlags) => void) {
     const pill = document.createElement('button');
     pill.type = 'button'; pill.textContent = 'DBG';
-    Object.assign(pill.style, { position: 'fixed', right: '12px', top: 'max(22px, calc(env(safe-area-inset-top, 0px) - 4px))', zIndex: '9998', padding: '3px 7px', font: '700 9px/1 Rajdhani, sans-serif', letterSpacing: '0.2em', color: '#ff7a6b', background: 'rgba(6,10,18,0.7)', border: '1px solid #ff7a6b', pointerEvents: 'auto' } as CSSStyleDeclaration);
+    Object.assign(pill.style, { position: 'fixed', left: '0', top: '45%', transform: 'rotate(-90deg) translate(-50%, 0)', transformOrigin: 'left top', zIndex: '9998', padding: '3px 7px', font: '700 9px/1 Rajdhani, sans-serif', letterSpacing: '0.2em', color: '#ff7a6b', background: 'rgba(6,10,18,0.7)', border: '1px solid #ff7a6b', pointerEvents: 'auto' } as CSSStyleDeclaration);
     pill.onclick = () => (this.panel ? this.close() : this.open());
     document.body.appendChild(pill);
   }
   private close() { this.panel?.remove(); this.panel = undefined; }
   private open() {
     const p = document.createElement('div');
-    Object.assign(p.style, { position: 'fixed', right: '12px', top: 'calc(40px + env(safe-area-inset-top, 0px))', zIndex: '9998', background: 'rgba(6,10,18,0.96)', border: '1px solid #ff7a6b', color: '#fff', font: '12px/1.6 JetBrains Mono, Menlo, monospace', padding: '10px 12px', pointerEvents: 'auto', minWidth: '220px' } as CSSStyleDeclaration);
+    Object.assign(p.style, { position: 'fixed', left: '28px', top: '30%', zIndex: '9998', background: 'rgba(6,10,18,0.96)', border: '1px solid #ff7a6b', color: '#fff', font: '12px/1.6 JetBrains Mono, Menlo, monospace', padding: '10px 12px', pointerEvents: 'auto', minWidth: '220px' } as CSSStyleDeclaration);
     const row = (label: string, options: string[], current: string, set: (v: string) => void, note = '') => {
       const r = document.createElement('div'); r.style.margin = '4px 0';
       r.append(Object.assign(document.createElement('span'), { textContent: `${label.padEnd(6)} ` }));
