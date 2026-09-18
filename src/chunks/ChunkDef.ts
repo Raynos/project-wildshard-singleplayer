@@ -181,6 +181,26 @@ export interface ChunkGrade {
 
 export interface SpawnPose { x: number; z: number; yaw: number }
 
+/**
+ * Open water covering the whole shard (Driftwood Isle). The terrain's `waterLevel()` returns
+ * `level` when this is set (the pond's line otherwise); everything below it is sea floor. The
+ * ocean surface itself is `src/world/Ocean.ts`.
+ */
+export interface OceanDef {
+  /** sea-surface height in metres */
+  level: number;
+  /** shallow-water colour (over sand) and deep-water colour, linear RGB */
+  shallowColor: RGB;
+  deepColor: RGB;
+  /** metres below the surface at which the water reads as fully deep */
+  deepDepth: number;
+}
+
+/** How the shard is rendered: textured PBR (Pine Hollow) or faceted flat-shaded vertex colours, no textures (Driftwood Isle). */
+export type ChunkStyle = 'pbr' | 'lowpoly';
+/** The first-person weapon the shard hands the player (`src/player/Crossbow.ts` / `src/player/Sword.ts`). */
+export type ChunkWeapon = 'crossbow' | 'sword';
+
 export interface ChunkDef {
   /** canonical id, e.g. `chunk://local/pine-hollow` */
   id: string;
@@ -213,4 +233,10 @@ export interface ChunkDef {
   grade: ChunkGrade;
   /** where the player stands on entering (feet, metres; yaw radians — π faces +Z, the compass' north) */
   spawn: SpawnPose;
+  /** rendering style; omitted = 'pbr' */
+  style?: ChunkStyle;
+  /** player weapon; omitted = 'crossbow' */
+  weapon?: ChunkWeapon;
+  /** open water over the whole shard; omitted = dry land with an optional pond */
+  ocean?: OceanDef;
 }
