@@ -10,13 +10,16 @@ import type { Rifle } from './Rifle';
  *
  *   const weapons = new Weapons(crossbow, rifle);          // the base weapon is held first; the rifle is LOCKED until
  *                                                          // `unlock('rifle')` (the cabin pickup, WeaponPickup.ts; `?weapon=rifle` in main.ts)
+ *   const weapons = new Weapons(sword, rifle, [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }]);
+ *                                                          // `extras`: more shard weapons (Weapon.ts rigs) after the rifle, each LOCKED
+ *                                                          // until `unlock(id)` — Driftwood's iron sword (IronSword.ts pickup on the wreck)
  *   weapons.onFire = …  weapons.onHit = …  weapons.onImpact = …   // wire the hooks ONCE here; every weapon forwards to them
  *   game.onUpdate((dt, t) => weapons.update(dt, t));       // AFTER player.update — updates BOTH weapons (bolts in flight,
  *                                                          // brass, puffs and tracers keep going while a weapon is holstered)
  *   weapons.current.state → { ammo, magazine, reserve, loaded, reloading, reloadProgress, ads }   (the HUD reads this)
  *
- * Input (only while the held weapon's `inputAllowed()`): `1` the base weapon, `2` rifle, `Q` swap — a locked weapon is
- * ignored. Touch: the SWAP pill (TouchControls.ts, shown once a second weapon is unlocked — `onUnlock`) calls `swap()`.
+ * Input (only while the held weapon's `inputAllowed()`): `1` / `2` / `3` the OWNED weapons in kit order (Pine Hollow:
+ * 1 crossbow, 2 AR-15; Driftwood: 1 wooden sword, 2 iron sword once found), `Q` swap — a locked weapon is ignored. Touch: the SWAP pill (TouchControls.ts, shown once a second weapon is unlocked — `onUnlock`) calls `swap()`.
  * Fire / ADS / reload input lives in each weapon; the manager keeps `enabled` and the touch AIM latch (`adsHeld`) and
  * applies them to whichever weapon is held.
  *
@@ -25,7 +28,7 @@ import type { Rifle } from './Rifle';
  * own pose code; the manager only drives the blend. Input is off for the half second of the swap.
  */
 
-export type WeaponId = 'crossbow' | 'sword' | 'rifle';
+export type WeaponId = 'crossbow' | 'sword' | 'rifle' | 'sword-iron';
 /** species id (`Animal.kind`) — any registered species */
 export type AnimalKind = string;
 /** `ammo` undefined = no ammo on this weapon (the sword): the HUD hides its readouts */
@@ -69,6 +72,8 @@ const SWAP_TIME = 0.25; // s per half (drop, then raise)
 
 /** a shard weapon (Weapon.ts) plus the optional hooks the manager uses when present (Crossbow and Sword both have them) */
 export type BaseLike = Weapon & Partial<Pick<KitWeapon, 'holster' | 'reload' | 'aimRay' | 'inputAllowed'>>;
+/** an extra shard weapon for the kit (the iron sword): its rig, its kit id and its HUD tag */
+export interface ExtraWeapon { weapon: BaseLike; id: WeaponId; name: string }
 
 /** the shard's base `Weapon` (Crossbow or Sword) → KitWeapon: bolts map onto ammo over a MAX_BOLTS "magazine" (the HUD keeps
  *  showing 27 / 30), no reserve; the sword has no ammo (`hasAmmo === false` → `ammo` undefined, the HUD hides the strip). */
@@ -79,9 +84,9 @@ class BaseWeapon implements KitWeapon {
   readonly segments: number;
   onFire?: () => void; onHit?: KitWeapon['onHit']; onImpact?: KitWeapon['onImpact']; onReloadStart?: () => void; onReloadEnd?: () => void; onDry?: () => void;
   private cache: WeaponState = { ammo: 0, magazine: MAX_BOLTS, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
-  constructor(private bow: BaseLike) {
+  constructor(private bow: BaseLike, id?: WeaponId, name?: string) {
     const isBow = bow instanceof Crossbow;
-    this.id = isBow ? 'crossbow' : 'sword'; this.name = isBow ? 'Crossbow' : 'Sword'; this.ammoLabel = isBow ? 'Bolts' : ''; this.segments = isBow ? 4 : 0;
+    this.id = id ?? (isBow ? 'crossbow' : 'sword'); this.name = name ?? (isBow ? 'Crossbow' : 'Sword'); this.ammoLabel = isBow ? 'Bolts' : ''; this.segments = isBow ? 4 : 0;
     bow.onFire = () => this.onFire?.();
     bow.onHit = (k, h, d) => this.onHit?.(k, h, d);
     bow.onImpact = (s, p) => this.onImpact?.(s, p);
@@ -124,8 +129,8 @@ export class Weapons implements WeaponHooks {
   private _visible = true;
   private swapping: { from: KitWeapon; to: KitWeapon; t: number; switched: boolean } | null = null;
 
-  constructor(base: BaseLike, rifle: Rifle) {
-    this.list = [new BaseWeapon(base), rifle];
+  constructor(base: BaseLike, rifle: Rifle, extras: ExtraWeapon[] = []) {
+    this.list = [new BaseWeapon(base), rifle, ...extras.map((e) => new BaseWeapon(e.weapon, e.id, e.name))];
     for (const w of this.list) {
       w.onFire = () => this.onFire?.();
       w.onHit = (k, h, d) => this.onHit?.(k, h, d);
@@ -139,8 +144,7 @@ export class Weapons implements WeaponHooks {
     this.apply();
     document.addEventListener('keydown', (e) => {
       if (e.repeat || !this.current.inputAllowed()) return;
-      if (e.code === 'Digit1') this.select(this.list[0].id);
-      else if (e.code === 'Digit2') this.select('rifle');
+      if (e.code === 'Digit1' || e.code === 'Digit2' || e.code === 'Digit3') { const w = this.available[Number(e.code.slice(5)) - 1]; if (w) this.select(w.id); }
       else if (e.code === 'KeyQ') this.swap();
     });
     (window as unknown as { __weapons: Weapons }).__weapons = this; // dev / screenshot hook

@@ -16,6 +16,7 @@
  * `src/chunks/registry.ts`. See `docs/SHARDS.md`.
  */
 import type { Noise2D } from '../core/noise';
+import type { HuntTuning } from '../entities/AnimalManager';
 
 /** [x, z] metres, origin at the chunk centre, chunk spans ±250 on both axes */
 export type Vec2 = [number, number];
@@ -241,6 +242,11 @@ export interface ChunkDef {
   trees: ChunkTrees;
   forest: ChunkForest;
   fauna: HerdPlan[];
+  /**
+   * Per-shard overrides of a species' hunting-loop numbers (`HuntTuning`, src/entities/AnimalManager.ts), merged over
+   * the species' own by `AnimalManager.tuningFor` — Driftwood's boars see you from far off on open sand. Keyed by kind.
+   */
+  faunaTuning?: Partial<Record<FaunaKind, Partial<HuntTuning>>>;
   sky: ChunkSky;
   atmosphere: ChunkAtmosphere;
   grade: ChunkGrade;

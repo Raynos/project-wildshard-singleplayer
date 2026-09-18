@@ -148,7 +148,24 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
     tintHue: 0.28, tintHueJitter: [-0.03, 0.03], tintSat: [0.5, 0.7], tintLight: [0.5, 0.62],
     largeVariantChance: 0.1,
   },
-  fauna: [],
+  // ── island fauna (loot-agent): no forest here, so every plan asks for the open (`canopy: false`); the placer treats a
+  // treeless shard as all clearing and keeps animals above the water line. Trails are only the four jetties' sandbars,
+  // hence the wide band. Anchors: boar sounders on the south beach by the pier, the west back-beach palms and the north
+  // grove; a brown bear on the Wreck Cove sand, a black bear in the NW jungle under the shrine; a few deer on the plateau.
+  fauna: [
+    { kind: 'boar', count: 4, anchor: { x: 45, z: -150, rMin: 5, rMax: 25 }, canopy: false, trailBand: [8, 600] },
+    { kind: 'boar', count: 3, anchor: { x: -140, z: -30, rMin: 5, rMax: 30 }, canopy: false, trailBand: [8, 600] },
+    { kind: 'boar', count: 4, anchor: { x: 30, z: 150, rMin: 5, rMax: 30 }, canopy: false, trailBand: [8, 600] },
+    { kind: 'bear', count: 1, variants: ['brown'], anchor: { x: 126, z: 10, rMin: 8, rMax: 26 }, canopy: false, trailBand: [8, 600] },
+    { kind: 'bear', count: 1, variants: ['black', 'black-blaze'], anchor: { x: -98, z: 108, rMin: 15, rMax: 35 }, canopy: false, trailBand: [8, 600] },
+    { kind: 'deer', count: 3, anchor: { x: -24, z: -62, rMin: 16, rMax: 30 }, canopy: false, trailBand: [8, 600] },
+  ],
+  // open sand: a boar sees you from far off (Pine Hollow's numbers assume a forest) — ChunkDef.faunaTuning, merged over
+  // the species' HuntTuning by AnimalManager.tuningFor
+  faunaTuning: {
+    boar: { sightRange: 42, sightRangeGraze: 26, sightCone: 1.22, hearWalk: 18, hearSprint: 34, noticeRate: 0.65, impactAlert: 28 },
+    deer: { sightRange: 44, sightRangeGraze: 22, noticeRate: 0.4 },
+  },
   sky: {
     hdri: 'kloofendal_48d_partly_cloudy_puresky',
     sunColor: [1.0, 0.97, 0.9],

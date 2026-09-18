@@ -132,6 +132,52 @@ export function deerPaintLow(v?: VariantDef): Paint {
 }
 
 /**
+ * Driftwood Isle bear: a flat two-tone coat — the base colour over the body, a paler saddle of guard-hair tips down the
+ * back / hump / shoulders (no noise: the facet jitter does the "fur"), a darker belly and lower legs, a tan muzzle,
+ * black nose and claws. Variant tints (brown, Old Blackpaw, Grizzled Sow…) come through the same palette keys as the
+ * PBR paint (`base tip dark muzzle blaze nose claw eye pad`, species/bear.ts); the pastel lift keeps a black bear from
+ * reading as a silhouette in the island's hard light.
+ */
+export function bearPaintLow(v?: VariantDef): Paint {
+  const t = v?.tint ?? {};
+  const baseC: RGB3 = t.base ?? [0.075, 0.062, 0.055];
+  const black = baseC[0] < 0.15;
+  // a black bear's low-poly base is lifted to a warm charcoal so its facets still show
+  const bC: RGB3 = black ? [baseC[0] * 2.2 + 0.05, baseC[1] * 2.0 + 0.045, baseC[2] * 1.9 + 0.045] : baseC;
+  const base = srgb(...bC), tip = srgb(...(t.tip ?? (black ? [0.30, 0.25, 0.21] : [0.68, 0.56, 0.40])));
+  const dark = scaled(bC, 0.55), belly = scaled(bC, 0.62), muzzle = srgb(...(t.muzzle ?? [0.46, 0.34, 0.23]));
+  const blaze = srgb(...(t.blaze ?? [0.85, 0.78, 0.62])), nose = srgb(...(t.nose ?? [0.05, 0.04, 0.04]));
+  const claw = srgb(...(t.claw ?? (black ? [0.16, 0.14, 0.12] : [0.6, 0.53, 0.42]))), pad = srgb(...(t.pad ?? [0.12, 0.09, 0.08]));
+  const eye = srgb(...(t.eye ?? [0.02, 0.015, 0.01])), earIn = scaled(bC, 0.8);
+  const hasBlaze = !!v?.traits?.blaze;
+  const grizzle = Number(v?.traits?.grizzle ?? 0.35);
+  return (out, x, y, z, nx, ny, nz, part, tt) => {
+    switch (part) {
+      case 'body':
+        out.copy(base);
+        mix(out, out, tip, sstep(0.05, 0.8, ny) * (0.35 + 0.65 * grizzle) * (0.55 + 0.45 * sstep(-0.2, 0.5, z)));   // the saddle, strongest over the hump
+        mix(out, out, belly, sstep(-0.3, -0.85, ny) * 0.85);
+        if (hasBlaze && z > 0.3 && ny < -0.15) mix(out, out, blaze, sstep(0.15, 0.06, Math.abs(x)) * sstep(0.28, 0.42, z) * sstep(-0.15, -0.6, ny));
+        break;
+      case 'neck': out.copy(base); mix(out, out, tip, sstep(0.0, 0.9, ny) * grizzle * 0.5); mix(out, out, belly, sstep(-0.3, -0.85, ny) * 0.7); break;
+      case 'head':
+        out.copy(base);
+        mix(out, out, tip, sstep(0.3, 0.95, ny) * grizzle * 0.3 * sstep(0.55, 0.2, tt));
+        mix(out, out, muzzle, sstep(0.5, 0.75, tt));
+        mix(out, out, dark, sstep(0.94, 1.0, tt) * 0.6);
+        break;
+      case 'ear': out.copy(dark); mix(out, out, earIn, sstep(0.1, 0.6, -nx * Math.sign(x)) * 0.8); void nz; break;
+      case 'leg': mix(out, base, dark, sstep(0.5, 0.12, y) * 0.85); mix(out, out, pad, sstep(0.09, 0.03, y) * sstep(0.2, -0.8, ny) * 0.8); break;
+      case 'tail': mix(out, base, dark, sstep(0.3, 1, tt) * 0.6); break;
+      case 'nose': out.copy(nose); break;
+      case 'claw': mix(out, claw, dark, sstep(0.4, 1.0, tt) * 0.5); break;
+      case 'eye': out.copy(eye); break;
+      default: out.copy(base);
+    }
+  };
+}
+
+/**
  * The boar's dorsal crest as a serrated row of faceted spikes. `pts` are the crest points of species/boar.ts
  * ([z, y, ry, b0, b1, w1], `yOff` added to y); the ridge is resampled every ~8 cm between them so the spikes
  * overlap into a jagged fin, alternating tall / short, leaning back along the spine. Each spike is a 4-sided

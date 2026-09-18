@@ -213,9 +213,11 @@ export class AnimalManager {
     if (normalAt(x, z)[1] < 0.8) return false;
     if (!this.isDry(x, z)) return false;
     const near = this.forest.nearby(x, z, clearingR).length;
-    if (clearingR > 3) return canopy ? near >= 3 : near <= 2;
+    if (clearingR > 3) return canopy ? near >= 3 || this.treeless : near <= 2;
     return near === 0;
   }
+  /** a shard with no forest trees (Driftwood Isle: palms are not Forest trees) — every spot is a clearing, a canopy ask is moot */
+  private get treeless() { return this.forest.trees.length === 0; }
 
   private spawnHerds() {
     const rng = this.rng;
@@ -266,9 +268,16 @@ export class AnimalManager {
 
   /** the species' hunting-loop numbers: its own `tuning`, else the manager's baseline for its temperament */
   private tuningFor(a: Animal): HuntTuning {
+    const cached = this.tuningCache.get(a.kind);
+    if (cached) return cached;
     const sp = speciesDef(a.kind);
-    return sp.tuning ?? (sp.aggressive ? BOAR_TUNING : DEER_TUNING);
+    const base = sp.tuning ?? (sp.aggressive ? BOAR_TUNING : DEER_TUNING);
+    const over = getActiveChunk().faunaTuning?.[a.kind];
+    const t = over ? { ...base, ...over, stalk: over.stalk ?? base.stalk } : base;   // ChunkDef.faunaTuning: the shard's overrides (Driftwood's far-sighted beach boars)
+    this.tuningCache.set(a.kind, t);
+    return t;
   }
+  private tuningCache = new Map<AnimalKind, HuntTuning>();
 
   /** true if a living legendary of this kind is already in the chunk (the cap is one per kind) */
   private hasLegendary(kind: AnimalKind) {

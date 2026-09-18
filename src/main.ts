@@ -30,7 +30,6 @@ import { Crossbow, type Targets, type TargetHit } from './player/Crossbow';
 import { Rifle } from './player/Rifle';
 import { Weapons, type WeaponId } from './player/Weapons';
 import { WeaponPickup } from './player/WeaponPickup';
-import { SKINS, SkinLocker, applySkin, crossbowDisplayModel, skinFor, type SkinDef, type SkinId } from './player/Skins';
 import { TouchControls } from './player/TouchControls';
 import { HUD } from './ui/HUD';
 import { Loading } from './ui/Loading';
@@ -194,7 +193,7 @@ async function main() {
   const inventory = new Inventory(getActiveChunk().id);   // the pack: harvest drops
   const menu = new GameMenu({
     fullMap, progress, inventory,
-    kit: () => weapons.available.map((w) => ({ id: w.id, name: (w.id === 'crossbow' ? 'Hunting crossbow' : w.id === 'sword' ? 'Wooden sword' : w.name) + (w.id === 'crossbow' || w.id === 'rifle' ? (skins.wearing(w.id) ? ` · ${skins.wearing(w.id)!.name}` : '') : ''), ammoLabel: w.id === 'crossbow' ? 'Iron bolts' : w.id === 'rifle' ? 'Rounds' : '', ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? 'rifle' : 'crossbow' })),
+    kit: () => weapons.available.map((w) => ({ id: w.id, name: w.id === 'crossbow' ? 'Hunting crossbow' : w.id === 'sword' ? 'Wooden sword' : w.name, ammoLabel: w.id === 'crossbow' ? 'Iron bolts' : w.id === 'rifle' ? 'Rounds' : '', ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? 'rifle' : 'crossbow' })),
     onEquip: (id) => weapons.select(id as WeaponId),
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
@@ -221,10 +220,7 @@ async function main() {
     audio.hitMarker();
     if (killed) { kills++; audio.kill(); }
   };
-  animals.onKill = (a) => {
-    hud.killFeed(`${a.label} · ${Math.round(a.position.distanceTo(player.position))} m`); progress.recordKill(a.kind, a.variant);
-    const skin = skinFor(a.kind, a.variant); if (skin && !skins.has(skin.id)) spawnSkinDrop(skin, a.position); // the legendary's drop, once
-  };
+  animals.onKill = (a) => { hud.killFeed(`${a.label} · ${Math.round(a.position.distanceTo(player.position))} m`); progress.recordKill(a.kind, a.variant); };
   setAimTargets(animals.animals); // aim assist reads the live array
   // the AR-15 is found, not issued: a floating pickup on the floor of cabin 1 (the hollow), inside by the door wall
   // (cabin local frame: door on +X, chimney end -Z — Cabin.ts); "[E] Take AR-15" through the door / harvest prompt path
@@ -238,32 +234,6 @@ async function main() {
     return drop;
   })();
   if (params.get('weapon') === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle', true); rifleDrop?.dispose(); } // dev: start with it
-  // ── legendary skins (src/player/Skins.ts): the Ghost stag drops the GHOST STAG crossbow, Old Ironhide the IRONHIDE AR-15 —
-  // a big purple floating pickup where the animal fell (WeaponPickup tier 'rare'); taking it swaps the skin (and hands you the
-  // rifle if you had not found it). What you own / wear persists; `?skin=ghost-stag` previews, `?drop=ironhide` spawns one ahead.
-  const skins = new SkinLocker();
-  const skinDrops: WeaponPickup[] = [];
-  const weaponModel = (w: 'crossbow' | 'rifle') => (w === 'rifle' ? rifle.model : crossbow instanceof Crossbow ? crossbow.model : null);
-  const wearSkin = (skin: SkinDef) => { const m = weaponModel(skin.weapon); if (m) applySkin(m, skin, sky); skins.wear(skin.weapon, skin.id); };
-  const spawnSkinDrop = (skin: SkinDef, at: THREE.Vector3) => {
-    const item = skin.weapon === 'rifle' ? rifle.displayModel() : crossbow instanceof Crossbow ? crossbowDisplayModel(crossbow, sky) : null;
-    if (!item) return;
-    applySkin(item, skin, sky);
-    const label = skin.weapon === 'rifle' ? 'AR-15' : 'crossbow';
-    const drop = new WeaponPickup({ scene: game.scene, item, position: new THREE.Vector3(at.x, heightAt(at.x, at.z), at.z), tier: 'rare', prompt: `Take the ${skin.name} ${label}`, scale: skin.weapon === 'rifle' ? 1 : 1.1 });
-    interactables.push(drop.interactable);
-    skinDrops.push(drop);
-    drop.onPickup = () => {
-      skins.own(skin.id); wearSkin(skin);
-      if (skin.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle'); }
-      audio.hitMarker();
-      hud.toast(`${skin.name} ${label} — ${skin.blurb}`);
-      skinDrops.splice(skinDrops.indexOf(drop), 1);
-    };
-  };
-  for (const w of ['crossbow', 'rifle'] as const) { const s = skins.wearing(w); if (s) wearSkin(s); }
-  if (params.get('skin') && params.get('skin')! in SKINS) { const s = SKINS[params.get('skin') as SkinId]; skins.own(s.id); wearSkin(s); if (s.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle', true); } }
-  if (params.get('drop') && params.get('drop')! in SKINS) { const f = 4.5; spawnSkinDrop(SKINS[params.get('drop') as SkinId], new THREE.Vector3(player.position.x - Math.sin(player.yaw) * f, 0, player.position.z - Math.cos(player.yaw) * f)); }
   new Combat(game, animals, weapons as unknown as Crossbow, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
   animals.onSound = (name, pos) => audio.animal(name, pos, player.position, player.yaw);
   animals.onCharge = (_a, dmg) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); };
@@ -332,7 +302,6 @@ async function main() {
     animals.update(dt, t, player.position, player.sprinting);
     weapons.update(dt, t); // every weapon ticks (bolts in flight keep flying while the rifle is out)
     rifleDrop?.update(dt, t, game.renderer, game.camera);
-    for (const d of skinDrops) d.update(dt, t, game.renderer, game.camera);
     audio.listenerYaw = player.yaw;
 
     // nearest interactable

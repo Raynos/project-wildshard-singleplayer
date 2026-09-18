@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef } from './registry';
-import { loft, tube, skinPlain, S, boneIndex, srgb, mix, sstep, paintNoise, setShag, type Paint } from './loft';
+import { loft, tube, skinPlain, S, boneIndex, srgb, mix, sstep, paintNoise, setShag, isLowPoly, type Paint } from './loft';
+import { bearPaintLow } from '../lowpoly';
 import type { HuntTuning } from '../AnimalManager';
 
 /**
@@ -120,7 +121,7 @@ function buildBear(v: VariantDef, rng: Rng): AnimalSpecies {
     );
   }
   const B = boneIndex(bones);
-  const paint = bearPaint(v);
+  const paint = isLowPoly() ? bearPaintLow(v) : bearPaint(v);   // Driftwood Isle: flat two-tone coat (see ../lowpoly.ts)
   const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [], eyes: THREE.BufferGeometry[] = [];
   const body = B('body'), n1 = B('neck1'), n2 = B('neck2'), hd = B('head'), bl = B('belly');
   // torso: a long, deep, low-slung barrel; heavy round rump, the withers rise into a hump (brown bear)
