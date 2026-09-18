@@ -73,7 +73,10 @@ const versionPlugin = (): Plugin => ({
 
 export default defineConfig({
   server: { port: 5173, host: true },
-  build: { target: 'es2022', chunkSizeWarningLimit: 4000 },
+  // keepNames: the uncaught-exception modal shows raw stacks on phones (no source-map resolution there), so keep
+  // function / class names readable; hidden source maps for desktop devtools (not referenced from the bundle).
+  esbuild: { keepNames: true },
+  build: { target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: 'hidden' },
   assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
   define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
   plugins: [versionPlugin(), pwaPlugin(BUILD_ID)],

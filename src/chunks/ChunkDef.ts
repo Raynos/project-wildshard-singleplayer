@@ -156,6 +156,14 @@ export interface ChunkSky {
   hemiSky: number;
   hemiGround: number;
   hemiIntensity: number;
+  /**
+   * The ringed gas giant (`Sky.buildGasGiant`): a banded cream / tan / rust planet with a thin bright
+   * ring, lit from the sun's side. Omitted = the default grey planet low over the west (Pine Hollow).
+   * Degrees: `azimuth` compass (0 = north = +Z, 90 = east = −X), `elevation` above the horizon,
+   * `size` = the body's apparent diameter, `tilt` = ring opening (0 edge-on … 90 face-on), `roll` = the
+   * ring's lean on the sky (optional, default 20).
+   */
+  planet?: { azimuth: number; elevation: number; size: number; tilt: number; roll?: number };
 }
 
 /** Height + distance fog (`src/world/Atmosphere.ts`) and the volumetric sun shafts. */

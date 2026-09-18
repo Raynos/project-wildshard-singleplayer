@@ -10,9 +10,11 @@ import { Boat } from './world/Boat';
 import { Boulders } from './world/Boulders';
 import { Hut } from './world/Hut';
 import { Palms } from './world/Palms';
-import { HUT, LOOKOUT, WRECK } from './chunks/driftwood-isle';
+import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES } from './chunks/driftwood-isle';
 import { Lookout } from './world/Lookout';
 import { Wreck } from './world/Wreck';
+import { Shrine } from './world/Shrine';
+import { Bushes } from './world/Bushes';
 import { Hands } from './player/Hands';
 import { ROAD_LENGTH } from './core/config';
 import { Sword } from './player/Sword';
@@ -79,7 +81,7 @@ async function main() {
   const respawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
 
   // ── world dressing ──
-  const { boundary, water, ocean, pier, boat, palms, horizon } = await step('edge', () => {
+  const { boundary, water, ocean, pier, jetties, boat, palms, hut, lookout, wreck, shrine, bushes, horizon } = await step('edge', () => {
     const boundary = new Boundary(sky).build();
     game.scene.add(boundary.group);
     const water = !isOcean && hasPond() ? new Water(sky).build() : null;
@@ -112,12 +114,20 @@ async function main() {
     if (lookout) { game.scene.add(lookout.group); player.colliders.push(...lookout.colliders); player.platforms.push((x, z) => lookout.floorHeightAt(x, z)); }
     const wreck = isOcean ? new Wreck(sky, WRECK).build() : null;
     if (wreck) { game.scene.add(wreck.group); player.colliders.push(...wreck.colliders); player.platforms.push((x, z) => wreck.floorHeightAt(x, z)); }
+    // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
+    const shrine = isOcean ? new Shrine(sky, SHRINE).build() : null;
+    if (shrine) { game.scene.add(shrine.group); player.colliders.push(...shrine.colliders); player.platforms.push((x, z) => shrine.floorHeightAt(x, z)); }
+    const jetties = isOcean ? JETTIES.map((j) => new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: chunk.ocean!.level + 1.2 }).build()) : [];
+    for (const j of jetties) { game.scene.add(j.group); player.colliders.push(...j.colliders); player.platforms.push((x, z) => j.floorHeightAt(x, z)); }
+    const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
+    const bushes = isOcean ? new Bushes(sky).build(Bushes.scatterIsland(chunk.seed, 260, AVOID)) : null;
+    if (bushes) game.scene.add(bushes.mesh);
     // coconut palms (one draw call, fronds sway in update)
-    const palms = isOcean ? new Palms(sky).build(Palms.scatterIsland(chunk.seed, 150, [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }])) : null;
+    const palms = isOcean ? new Palms(sky).build(Palms.scatterIsland(chunk.seed, 150, AVOID)) : null;
     if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
-    return { boundary, water, ocean, pier, boat, palms, horizon };
+    return { boundary, water, ocean, pier, jetties, boat, palms, hut, lookout, wreck, shrine, bushes, horizon };
   });
 
   const { grass, under, particles } = await step('grass', () => {
@@ -326,6 +336,6 @@ async function main() {
   (plan as unknown as { done(): void }).done(); // throws unless both tracks are exactly 1
   game.start();
   await loading.done();
-  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, boat, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio };
+  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio };
 }
 main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));

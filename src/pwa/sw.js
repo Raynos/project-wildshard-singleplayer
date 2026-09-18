@@ -126,6 +126,10 @@ async function migrateStatic() {
         const res = await prev.match(req, MATCH_OPTS);
         if (!res) continue;
         const p = new URL(req.url).pathname;
+        // baked terrain/sky (/assets/baked/<slug>/*) is regenerated every build at the SAME byte size — a size match
+        // proves nothing (Driftwood's re-baked island served the first flat-seafloor bake to every phone: empty
+        // palm/boulder merges → "e[0].index"). Never carry them over; they are small and re-fetch on the new build.
+        if (p.startsWith('/assets/baked/')) continue;
         if (sizes && p.startsWith('/assets/')) {
           const want = sizes[p];
           if (typeof want !== 'number') continue; // no longer in the build
