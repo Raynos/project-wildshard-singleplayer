@@ -14,6 +14,8 @@ import { buildTerrain } from './terrain';
 import type { ChunkDef, CabinSite } from './ChunkDef';
 // 16:9 jpg, ~640×360, cropped from a headless screenshot of the shard (no crossbow in frame).
 import thumbnail from './thumbs/pine-hollow.jpg';
+import heroPortrait from './thumbs/pine-hollow-portrait.jpg';
+import heroLandscape from './thumbs/pine-hollow-landscape.jpg';
 
 /** Three flattened pads; the engine builds one log cabin on each. Keep them > 40 m apart and off the trails. */
 const CABIN_SITES: CabinSite[] = [
@@ -35,7 +37,7 @@ export const TEMPLATE: ChunkDef = {
   treeCount: 2600,                      // Pine Hollow places 2,600; the density noise thins below it
   biome: '<one-line biome name>',       // "Boreal pine forest", "Salt flats", …
   blurb: '<Two sentences for the title-screen picker: what you see, what lives here.>',
-  thumbnail,
+  thumbnail, heroPortrait, heroLandscape,
 
   // ── terrain ─────────────────────────────────────────────────────────────────────────────────
   // buildTerrain() adds the fundamentals for you: the four entry roads (levelled to y = 0 at the

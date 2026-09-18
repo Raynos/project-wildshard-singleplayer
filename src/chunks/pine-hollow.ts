@@ -8,6 +8,8 @@ import { CHUNK_HALF, ROAD_LENGTH } from '../core/config';
 import { buildTerrain } from './terrain';
 import type { ChunkDef, CabinSite } from './ChunkDef';
 import thumbnail from './thumbs/pine-hollow.jpg';
+import heroPortrait from './thumbs/pine-hollow-portrait.jpg';
+import heroLandscape from './thumbs/pine-hollow-landscape.jpg';
 
 const CABIN_SITES: CabinSite[] = [
   { x: -14, z: -34, rot: 0.35 },
@@ -26,7 +28,7 @@ export const PINE_HOLLOW: ChunkDef = {
   treeCount: 2600,
   biome: 'Boreal pine forest',
   blurb: 'Scots pines on a rolling shard with three log cabins in a sheltered hollow and a still pond below the ridge. Deer graze the trail edges; boar root under the canopy.',
-  thumbnail,
+  thumbnail, heroPortrait, heroLandscape,
 
   terrain: buildTerrain(1337, {
     landscape(x, z, { n, n2 }) {

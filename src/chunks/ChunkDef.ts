@@ -199,6 +199,9 @@ export interface ChunkDef {
   blurb: string;
   /** URL of a 16:9 thumbnail for the picker (import a jpg from `src/chunks/thumbs/`) */
   thumbnail: string;
+  /** full-bleed title-screen stills (jpg, ≤1600 px long side): the menu shows these instead of the live world */
+  heroPortrait: string;
+  heroLandscape: string;
 
   terrain: ChunkTerrain;
   assets: ChunkAssets;

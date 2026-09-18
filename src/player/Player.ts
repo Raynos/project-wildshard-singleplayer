@@ -65,7 +65,7 @@ export class Player {
     const str = Math.max(-1, Math.min(1, (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + this.touchMove.x));
     this.crouching = k.has('ControlLeft') || k.has('KeyC');
     this.sprinting = (k.has('ShiftLeft') || this.touchSprint) && fwd > 0 && !this.crouching;
-    const speed = this.crouching ? 6.6 : this.sprinting ? 21.6 : 12.9; // 3x the original 2.2 / 7.2 / 4.3 — "boringly slow"
+    const speed = this.crouching ? 4.4 : this.sprinting ? 14.4 : 8.6; // 2x the original 2.2 / 7.2 / 4.3 — "boringly slow"
 
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
     let mx = (-sin * fwd + cos * str), mz = (-cos * fwd - sin * str);
