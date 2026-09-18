@@ -1,0 +1,107 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/assets/tex/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=2592000" }
+      ]
+    },
+    {
+      "source": "/assets/models/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=2592000" }
+      ]
+    },
+    {
+      "source": "/assets/hdri/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=2592000" }
+      ]
+    },
+    {
+      "source": "/basis/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=2592000" }
+      ]
+    },
+    {
+      "source": "/(.*).hdr",
+      "headers": [
+        { "key": "Content-Type", "value": "image/vnd.radiance" }
+      ]
+    },
+    {
+      "source": "/(.*).glb",
+      "headers": [
+        { "key": "Content-Type", "value": "model/gltf-binary" }
+      ]
+    },
+    {
+      "source": "/(.*).gltf",
+      "headers": [
+        { "key": "Content-Type", "value": "model/gltf+json" }
+      ]
+    },
+    {
+      "source": "/(.*).ktx2",
+      "headers": [
+        { "key": "Content-Type", "value": "image/ktx2" }
+      ]
+    },
+    {
+      "source": "/(.*).webmanifest",
+      "headers": [
+        { "key": "Content-Type", "value": "application/manifest+json" }
+      ]
+    },
+    {
+      "source": "/",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/version.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/asset-index.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/manifest.webmanifest",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ]
+}
