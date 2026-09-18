@@ -155,3 +155,6 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | PICKUP-B | Single built-in image edit: cabin AR-15 sigil-ring pickup; save art/pickup-B-ring.png | **done** | art/pickup-B-ring.png; one built-in generation |
 
 | PICKUP-C | One built-in cabin screenshot edit: diegetic AR-15 on crate, ammo and lantern; save art/pickup-C-diegetic.png | **done** | art/pickup-C-diegetic.png; single built-in generation |
+| D19 | "**LET ME IN**" — deploy checkpoint C0/C1 | **done** | `4a7c034` built from a clean export, live at https://wildshard-singleplayer.vercel.app (build b-mu6lg86q): ocean + pier + wooden sword + swimming |
+| D20 | World/sword agents as **checkpoint agents** (world v0.0.1 / sword v0.1: commit the minimal, deploy, then keep building) | **done** | both committed WIP on request; world-agent continues boat → beach → island |
+| D21 | Use **herdr** to see what the other two sessions are doing (menus, floor pickups + pickup mockups, enemy variants / new enemy types) and reuse: floor-pickup for the iron sword; **low-poly bears** on the island; **add three new enemy types** that fit the style to the plan (+ mockups) — "go nuts" | **open** | |
