@@ -1,5 +1,5 @@
 /* ─── touch controls (src/player/TouchControls.ts adds #hud.touch; layer is hidden until the intro is gone) ─── prefix ws-touch- ─── */
-.ws-touch { --bar: calc(max(15vh, 104px) + env(safe-area-inset-bottom, 0px) * 0.5); --disc: min(22vw, 110px); position: absolute; inset: 0; display: none; pointer-events: auto; touch-action: none; z-index: 5; }
+.ws-touch { --bar: calc(max(15vh, 104px) + env(safe-area-inset-bottom, 0px) * 0.5); --disc: min(15vw, 84px); position: absolute; inset: 0; display: none; pointer-events: auto; touch-action: none; z-index: 5; }
 #hud.touch:not(.intro) .ws-touch { display: block; }
 .ws-touch-stick { position: absolute; z-index: 2; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 1px solid rgba(143, 227, 255, 0.35); background: rgba(6, 10, 18, 0.35); opacity: 0; transition: opacity 0.12s; pointer-events: none; }
 .ws-touch-stick.show { opacity: 1; }
@@ -14,9 +14,11 @@
 .ws-touch-zone .ws-touch-label { position: absolute; left: 12px; top: 34px; font-size: 8px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ws-cyan-dim); }
 /* round glass discs above the bar (K1): AIM centred over the MOVE pad, JUMP over the LOOK pad, a smaller HOVER between */
 .ws-touch-disc { position: absolute; bottom: calc(var(--bar) + 14px); width: var(--disc); height: var(--disc); margin-left: calc(var(--disc) / -2); appearance: none; -webkit-appearance: none; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 50%; background: radial-gradient(circle at 50% 35%, rgba(24, 34, 48, 0.72), rgba(6, 10, 18, 0.82) 70%); border: 1px solid rgba(143, 227, 255, 0.55); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 0 0 3px rgba(6, 10, 18, 0.6), inset 0 0 0 4px rgba(143, 227, 255, 0.18), inset 0 1px 0 rgba(143, 227, 255, 0.2); backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); color: #fff; font-family: var(--ws-mono); font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; transition: background 0.15s, border-color 0.15s, box-shadow 0.15s; }
-.ws-touch-disc.aim { left: 25%; }
-.ws-touch-disc.jump { left: 75%; }
-.ws-touch-disc.hover { left: 50%; width: calc(var(--disc) * 0.68); height: calc(var(--disc) * 0.68); margin-left: calc(var(--disc) * -0.34); font-size: 7.5px; gap: 1px; }
+/* layout A ("edge docks", art/buttons-A-edges.png): AIM hugs the left edge, JUMP the right, HOVER is a small pill on the right edge halfway up — the centre stays clear of the crossbow */
+.ws-touch-disc.aim { left: calc(var(--disc) / 2 + 10px); }
+.ws-touch-disc.jump { left: calc(100% - var(--disc) / 2 - 10px); }
+.ws-touch-disc.hover { left: auto; right: 0; bottom: auto; top: 46%; margin-left: 0; width: 52px; height: 52px; border-radius: 12px 0 0 12px; border-right: none; font-size: 7px; gap: 2px; }
+.ws-touch-disc.hover::before, .ws-touch-disc.hover::after { display: none; }
 .ws-touch-disc svg { display: block; width: 38%; height: 38%; fill: currentColor; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6)); }
 .ws-touch-disc.hover svg { width: 44%; height: 44%; }
 .ws-touch-disc span { display: block; line-height: 1; color: var(--ws-text); }
