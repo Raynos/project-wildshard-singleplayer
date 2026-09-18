@@ -107,7 +107,7 @@ interface Door { pivot: THREE.Object3D; open: boolean; t: number; collider: Coll
 interface Fire { light: THREE.PointLight; base: number; seed: number }
 /** phone tier: a point light's slot — the 4 shared lights jump to the nearest cabin's anchors each frame */
 interface LightAnchor { anchor: THREE.Object3D; color: number; intensity: number; distance: number; decay: number; seed: number }
-interface CabinLod { root: THREE.Object3D; detail: THREE.Object3D[]; anchors: LightAnchor[]; detailOn: boolean }
+interface CabinLod { root: THREE.Object3D; detail: THREE.Object3D[]; far: THREE.Object3D[]; anchors: LightAnchor[]; detailOn: boolean; farOn: boolean }
 interface Swing { pivot: THREE.Object3D; seed: number }
 interface Floor { x: number; z: number; rot: number; hw: number; hd: number; y: number }
 
@@ -135,34 +135,31 @@ export class Cabins {
       loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadGLTF('wooden_crate_02'), loadGLTF('wine_barrel_01'), loadGLTF('wooden_bucket_01'), loadGLTF('hatchet'),
     ]);
     const props = { crate: prepModel(crate.scene, this.sky), barrel: prepModel(barrel.scene, this.sky), bucket: prepModel(bucket.scene, this.sky), hatchet: prepModel(hatchet.scene, this.sky) };
-    const propInstances: Record<string, THREE.Matrix4[]> = { crate: [], barrel: [], bucket: [], hatchet: [] };
-
     CABIN_SITES.forEach((site, i) => {
       const spec = SPECS[i];
       const y = heightAt(site.x, site.z);
+      // per-cabin prop instances: each cabin's crates / barrels / buckets / hatchet are its own detail meshes
+      // (hidden with the rest of its hardware past cabinDetailDist) — 8 chunk-wide instanced meshes were always drawn
+      const propInstances: Record<string, THREE.Matrix4[]> = { crate: [], barrel: [], bucket: [], hatchet: [] };
       const b = new CabinBuilder(this, spec, i, site.x, y, site.z, site.rot, mats, this.sky, propInstances);
       b.build(firePitGltf.scene, lanternGltf.scene);
       this.group.add(b.root);
-      this.lods.push({ root: b.root, detail: b.detail, anchors: b.anchors, detailOn: true });
-    });
-    if (TIER_CONFIG.sharedCabinLights) {
-      // one light per anchor slot of a cabin (all cabins have the same 4: hearth, room, camp fire, lantern)
-      const n = Math.max(...this.lods.map((l) => l.anchors.length));
-      for (let i = 0; i < n; i++) { const l = new THREE.PointLight(0xffa050, 0, 10, 2); this.group.add(l); this.sharedLights.push(l); }
-    }
-
-    // props shared across cabins as instanced meshes (1 draw call per glTF primitive)
-    for (const [k, list] of Object.entries(propInstances)) {
-      if (!list.length) continue;
-      for (const m of props[k as keyof typeof props]) {
-        const im = new THREE.InstancedMesh(m.geometry, m.material, list.length);
-        im.castShadow = true; im.receiveShadow = true;
-        const tmp = new THREE.Matrix4();
-        list.forEach((mat, j) => im.setMatrixAt(j, tmp.copy(mat).multiply(m.matrix)));
-        im.instanceMatrix.needsUpdate = true;
-        this.group.add(im);
+      for (const [k, list] of Object.entries(propInstances)) {
+        if (!list.length) continue;
+        for (const m of props[k as keyof typeof props]) {
+          const im = new THREE.InstancedMesh(m.geometry, m.material, list.length);
+          im.castShadow = true; im.receiveShadow = true;
+          const tmp = new THREE.Matrix4();
+          list.forEach((mat, j) => im.setMatrixAt(j, tmp.copy(mat).multiply(m.matrix)));
+          im.instanceMatrix.needsUpdate = true;
+          im.computeBoundingSphere();
+          this.group.add(im);
+          b.detail.push(im);
+        }
       }
-    }
+      if (!TIER_CONFIG.cabinDetailShadows) for (const o of b.detail) o.traverse((c) => { c.castShadow = false; });
+      this.lods.push({ root: b.root, detail: b.detail, far: b.far, anchors: b.anchors, detailOn: true, farOn: false });
+    });
     return { group: this.group, colliders: this.colliders, interactables: this.interactables };
   }
 
@@ -187,6 +184,9 @@ export class Cabins {
       if (d2 < nearestD2) { nearestD2 = d2; nearest = i; }
       const on = d2 < dd;
       if (on !== l.detailOn) { l.detailOn = on; for (const o of l.detail) o.visible = on; }
+      // past 2× the detail distance only the silhouette parts stay (log walls, roof, stone, deck, beams, smoke)
+      const far = d2 > dd * 4;
+      if (far !== l.farOn) { l.farOn = far; for (const o of l.far) o.visible = !far; }
     });
     if (this.sharedLights.length && nearest >= 0) {
       const l = this.lods[nearest];
@@ -581,11 +581,15 @@ function wallSlab(a0: number, a1: number, h: number, thick: number, openings: Op
 // ───────────────────────────── one cabin ─────────────────────────────
 
 const DETAIL_KEYS: MatKey[] = ['iron', 'cloth', 'char', 'chink'];
+/** merged parts that go too past 2× cabinDetailDist (log ends, woodpile bark, door frame) */
+const FAR_KEYS: MatKey[] = ['endGrain', 'bark', 'door'];
 
 class CabinBuilder {
   root = new THREE.Group();
   /** small parts hidden beyond TIER_CONFIG.cabinDetailDist */
   detail: THREE.Object3D[] = [];
+  /** mid parts hidden beyond 2× cabinDetailDist */
+  far: THREE.Object3D[] = [];
   /** phone tier: where this cabin's point lights would be (see Cabins.sharedLights) */
   anchors: LightAnchor[] = [];
   private parts = new Map<MatKey, THREE.BufferGeometry[]>();
@@ -880,7 +884,7 @@ class CabinBuilder {
     const battenMesh = new THREE.Mesh(mergeGeometries(battens.map((g) => g.toNonIndexed()))!, this.mats.beam);
     battenMesh.castShadow = true;
     pivot.add(battenMesh); this.detail.push(battenMesh);
-    this.root.add(pivot);
+    this.root.add(pivot); this.far.push(doorMesh);
 
     const col = this.collider(x, dz, 0.08, DW / 2, 0, FLOOR + H);
     const d: Door = {
@@ -1367,6 +1371,7 @@ class CabinBuilder {
       mesh.receiveShadow = true;
       this.root.add(mesh);
       if (DETAIL_KEYS.includes(key)) this.detail.push(mesh);
+      else if (FAR_KEYS.includes(key)) this.far.push(mesh);
     }
     this.parts.clear();
   }

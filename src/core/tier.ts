@@ -26,7 +26,7 @@ export const TIER_CONFIG = {
     undergrowthFar: 60, propsFar: 220, propsMinAngular: 0.004, // a 0.5 m rock lives to 125 m, a boulder to 220 m
     // cabins: hardware / lantern / fire pit / flames only within this; 4 shared point lights follow the nearest cabin
     // instead of 12 in every shader (NUM_POINT_LIGHTS is per-fragment cost on everything, grass included)
-    cabinDetailDist: 70, sharedCabinLights: true, beaconLights: false,
+    cabinDetailDist: 70, cabinDetailShadows: false, sharedCabinLights: true, beaconLights: false,
     // pond planar reflection: render-target width (height = half), and whether the carpet layers reflect
     reflectionWidth: 512, reflectDetail: false,
     // post: god rays samples / resolution scale, volumetric march steps, SMAA preset
@@ -41,7 +41,7 @@ export const TIER_CONFIG = {
     treeHiDist: 110, treeLoDist: 210, treeTwigDist: 38, loTreeShadows: true,
     grassRadius: 55, grassSlots: 96, grassQuads: 5,
     undergrowthFar: 110, propsFar: 700, propsMinAngular: 0.0012,
-    cabinDetailDist: 160, sharedCabinLights: false, beaconLights: true,
+    cabinDetailDist: 160, cabinDetailShadows: true, sharedCabinLights: false, beaconLights: true,
     reflectionWidth: 1024, reflectDetail: true,
     godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, volumetricScale: 1, smaa: 'high' as 'off' | 'low' | 'high', bloomLevels: 8,
   },

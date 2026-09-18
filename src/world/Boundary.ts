@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CHUNK_HALF, CHUNK_DEPTH, ROAD_WIDTH } from '../core/config';
 import { heightAt } from './Heightfield';
 import type { Sky } from './Sky';
@@ -49,6 +50,7 @@ export class Boundary {
 
     // ---- glowing ribbon walls along the edges (soft, fades with height) — the "you are leaving the chunk" veil
     const ribbonMat = this.veilMaterial();
+    const ribbons: THREE.BufferGeometry[] = [];
     for (let s = 0; s < 4; s++) {
       const a = corners[s], b = corners[(s + 1) % 4];
       const geo = new THREE.PlaneGeometry(1, 1, segs, 1);
@@ -60,50 +62,71 @@ export class Boundary {
         pos.setXYZ(i, x, g + up * 14, z);
       }
       geo.computeVertexNormals();
-      const m = new THREE.Mesh(geo, ribbonMat);
-      m.frustumCulled = false;
-      this.group.add(m);
+      ribbons.push(geo);
     }
+    // one draw call for the four ribbons (they were 4 never-culled meshes)
+    const ribbon = new THREE.Mesh(mergeGeometries(ribbons, false)!, ribbonMat);
+    ribbon.frustumCulled = false;
+    this.group.add(ribbon);
 
     // ---- corner + edge-midpoint beacons (the 8 flags planted before upload) and the centre beacon
     const off = ROAD_WIDTH / 2 + 4;
     const beaconPts: [number, number][] = [...(corners as [number, number][]), [-off, -H], [H, -off], [off, H], [-H, off]];
     for (const [x, z] of beaconPts) this.group.add(this.beacon(x, z, heightAt(x, z)));
+    this.mergeBeacons();
 
     // ---- road gates: translucent cyan portal across each entry road at the boundary
     const gateMat = this.gateMaterial();
     const gates: { x: number; z: number; rot: number }[] = [
       { x: 0, z: -H, rot: 0 }, { x: 0, z: H, rot: 0 }, { x: -H, z: 0, rot: Math.PI / 2 }, { x: H, z: 0, rot: Math.PI / 2 },
     ];
+    // the four gates and their eight posts: one mesh each (one material, one draw call)
+    const gateGeos: THREE.BufferGeometry[] = [], postGeos: THREE.BufferGeometry[] = [];
+    const m = new THREE.Matrix4();
     for (const g of gates) {
-      const gate = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_WIDTH + 2, 7), gateMat);
-      gate.position.set(g.x, heightAt(g.x, g.z) + 3.5, g.z);
-      gate.rotation.y = g.rot;
-      this.group.add(gate);
-      // gate posts
+      gateGeos.push(new THREE.PlaneGeometry(ROAD_WIDTH + 2, 7).applyMatrix4(m.makeRotationY(g.rot).setPosition(g.x, heightAt(g.x, g.z) + 3.5, g.z)));
       for (const side of [-1, 1]) {
-        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 7.5, 8), new THREE.MeshStandardMaterial({ color: 0x1a2028, roughness: 0.5, metalness: 0.8, emissive: new THREE.Color(0.1, 0.5, 0.7), emissiveIntensity: 0.6 }));
         const px = g.x + Math.cos(g.rot) * side * (ROAD_WIDTH / 2 + 1), pz = g.z - Math.sin(g.rot) * side * (ROAD_WIDTH / 2 + 1);
-        post.position.set(px, heightAt(px, pz) + 3.6, pz);
-        this.sky.setupMaterial(post.material);
-        this.group.add(post);
+        postGeos.push(new THREE.CylinderGeometry(0.12, 0.16, 7.5, 8).translate(px, heightAt(px, pz) + 3.6, pz));
       }
     }
+    this.group.add(new THREE.Mesh(mergeGeometries(gateGeos, false)!, gateMat));
+    const postMat = new THREE.MeshStandardMaterial({ color: 0x1a2028, roughness: 0.5, metalness: 0.8, emissive: new THREE.Color(0.1, 0.5, 0.7), emissiveIntensity: 0.6 });
+    this.sky.setupMaterial(postMat);
+    this.group.add(new THREE.Mesh(mergeGeometries(postGeos, false)!, postMat));
     return this;
+  }
+
+  private beaconParts: { pole: THREE.BufferGeometry[]; head: THREE.BufferGeometry[]; beam: THREE.BufferGeometry[] } = { pole: [], head: [], beam: [] };
+  private beaconMats!: { pole: THREE.Material; head: THREE.Material; beam: THREE.Material };
+
+  /** the 9 beacons' poles, heads and beams as three meshes instead of 27 (halos stay sprites, lights stay lights) */
+  private mergeBeacons() {
+    const P = this.beaconParts, M = this.beaconMats;
+    const pole = new THREE.Mesh(mergeGeometries(P.pole, false)!, M.pole); pole.castShadow = true;
+    const head = new THREE.Mesh(mergeGeometries(P.head, false)!, M.head);
+    const beam = new THREE.Mesh(mergeGeometries(P.beam, false)!, M.beam);
+    this.group.add(pole, head, beam);
   }
 
   private beacon(x: number, z: number, y: number) {
     const g = new THREE.Group();
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.09, 2.6, 8), new THREE.MeshStandardMaterial({ color: 0x1d232b, roughness: 0.45, metalness: 0.85 }));
-    pole.position.y = 1.3; pole.castShadow = true;
-    this.sky.setupMaterial(pole.material);
-    const head = new THREE.Mesh(new THREE.OctahedronGeometry(0.28, 0), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.5, 1.4, 1.8), toneMapped: false, fog: false }));
-    head.position.y = 2.85;
+    if (!this.beaconMats) {
+      const poleMat = new THREE.MeshStandardMaterial({ color: 0x1d232b, roughness: 0.45, metalness: 0.85 });
+      this.sky.setupMaterial(poleMat);
+      this.beaconMats = {
+        pole: poleMat,
+        head: new THREE.MeshBasicMaterial({ color: new THREE.Color(0.5, 1.4, 1.8), toneMapped: false, fog: false }),
+        beam: new THREE.MeshBasicMaterial({ color: new THREE.Color(0.3, 0.8, 1.0), transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }),
+      };
+    }
+    // geometry goes to the merged beacon meshes (world space); only the halo sprite (and light) live in this group
+    this.beaconParts.pole.push(new THREE.CylinderGeometry(0.06, 0.09, 2.6, 8).translate(x, y + 1.3, z));
+    this.beaconParts.head.push(new THREE.OctahedronGeometry(0.28, 0).translate(x, y + 2.85, z));
+    this.beaconParts.beam.push(new THREE.CylinderGeometry(0.08, 0.02, 40, 8, 1, true).translate(x, y + 2.85 + 20, z));
     const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTexture(), color: new THREE.Color(0.4, 0.9, 1.0), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.8 }));
     halo.scale.set(2.2, 2.2, 1); halo.position.y = 2.85;
-    const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.02, 40, 8, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.3, 0.8, 1.0), transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }));
-    beam.position.y = 2.85 + 20;
-    g.add(pole, head, halo, beam);
+    g.add(halo);
     if (TIER_CONFIG.beaconLights) {
       // 8 more point lights in every lit shader: desktop only (the phone tier runs 4 shared cabin lights)
       const light = new THREE.PointLight(new THREE.Color(0.4, 0.9, 1.0), 6, 12, 2);
