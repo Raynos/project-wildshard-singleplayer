@@ -267,7 +267,7 @@ const SWING: Key[] = [
   key(SLASH_END, -0.02, -0.35, -0.46, -0.88, 0.22, -0.42, 0.15),  // follow-through: blade out to the left, still rising a little
   key(SWING_TIME, REST.pos.x, REST.pos.y, REST.pos.z, REST.dir.x, REST.dir.y, REST.dir.z, REST.roll),
 ];
-const GUARD = key(0, 0.08, -0.30, -0.56, -0.05, 0.98, -0.2, 0.0);
+const GUARD = key(0, 0.17, -0.27, -0.50, -0.50, 0.82, -0.28, 0.15); // raised across the body, the crosshair stays clear
 const SPRINT = key(0, 0.34, -0.46, -0.58, -0.2, 0.55, -0.81, 0.6);
 
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3();
@@ -449,7 +449,7 @@ export class Sword implements Weapon {
       const put = (slot: number, src: Float32Array, idx: number, alpha: number) => {
         P[o + slot * 3] = src[idx * 3]; P[o + slot * 3 + 1] = src[idx * 3 + 1]; P[o + slot * 3 + 2] = src[idx * 3 + 2]; A[oa + slot] = alpha;
       };
-      const inner = 0.0, outer = 0.7;
+      const inner = 0.0, outer = 0.6;
       // tri 1: A0 B0 B1 · tri 2: A0 B1 A1  (A = inner edge, B = tip)
       put(0, this.trailA, i0, a0 * a0 * inner); put(1, this.trailB, i0, a0 * outer); put(2, this.trailB, i1, a1 * outer);
       put(3, this.trailA, i0, a0 * a0 * inner); put(4, this.trailB, i1, a1 * outer); put(5, this.trailA, i1, a1 * a1 * inner);
@@ -550,8 +550,8 @@ export class Sword implements Weapon {
 
     // portrait phone: the wider FOV + narrow frame put the hands mid-screen — hold the sword lower, further out, smaller
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
-    const scale = 1 - portrait * 0.22;
-    pos.x *= 1 - portrait * 0.1; pos.y *= 1 + portrait * 0.45; pos.z *= 1 + portrait * 0.35;
+    const scale = 1 - portrait * 0.2;
+    pos.x *= 1 - portrait * 0.32; pos.y *= 1 + portrait * 0.1; pos.z *= 1 + portrait * 0.45;
     if (this.holster > 0) { const h = sstep(0, 1, this.holster); pos.y -= h * 0.45; pos.z += h * 0.1; q.premultiply(_q2.setFromEuler(_e.set(-h * 0.6, 0, h * 0.3, 'YXZ'))); } // weapon swap: drop out of the frame
     if (this.inspect) { pos.set(0.0, -0.05, -0.75); q.setFromEuler(_e.set(0.2, Math.sin(t * 0.3) * 0.8, 0.9, 'YXZ')); }
     this.rig.scale.setScalar(scale); this.armRig.scale.setScalar(scale);

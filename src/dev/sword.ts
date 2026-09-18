@@ -6,6 +6,8 @@ import type { Targets, TargetHit } from '../player/Crossbow';
 import { HUD } from '../ui/HUD';
 import { Combat } from '../ui/Combat';
 import { Audio } from '../audio/Audio';
+import { TouchControls } from '../player/TouchControls';
+import type { Weapons } from '../player/Weapons';
 import { CHUNK_HALF } from '../core/config';
 
 /**
@@ -39,6 +41,8 @@ if (params.has('showcase')) {
 const nolock = params.has('nolock');
 const sword = new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, blade: params.has('iron') ? 'iron' : 'wood' });
 sword.adsHeld = params.has('ads');
+// on-screen controls (?touch=1 forces): TouchControls only uses tryFire / adsHeld / enabled (+ swap on the SWAP pill, a no-op here)
+new TouchControls(player, Object.assign(sword, { swap() { /* one weapon */ }, available: [sword], onUnlock: undefined }) as unknown as Weapons, params.has('touch'));
 sword.inspect = params.has('inspect') ? 1 : 0;
 sword.swingScale = world.num('slow', 1);
 const hud = new HUD({ pointerLock: !nolock });
