@@ -7,7 +7,7 @@
  * a MOVE zone (left, anchored stick: push past 85 % while heading forward = sprint) and a LOOK zone (right, drag
  * pad). A row of four buttons sits directly above the bar: JUMP · RELOAD · AIM (hold) · FIRE; USE appears in the
  * row only while the HUD has an interact prompt and dispatches the same `KeyE` the keyboard path listens for.
- * The world above the bar still works twin-stick style (floating stick on the left half, drag-look on the right).
+ * Move/look touches are only taken inside the bar; the world above it is not a control surface.
  *
  * Talks to the player through `player.touchMove / touchSprint / touchJump` (analog, summed with WASD) and to
  * the crossbow through its public `tryFire() / reload() / adsHeld`. The layer only receives events once the
@@ -60,21 +60,19 @@ export class TouchControls {
     // ── stick + look: pointer events on the layer itself (buttons stop propagation) ──
     root.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'mouse' && !force) return;
-      const left = e.clientX < window.innerWidth * 0.5;
-      if (left && this.stickPointer < 0) {
+      const zone = root.querySelector<HTMLElement>('.ws-tzone.move')!.getBoundingClientRect();
+      if (e.clientY < zone.top) return; // above the bar: not a control surface
+      const inMove = e.clientX <= zone.right;
+      if (inMove && this.stickPointer < 0) {
         this.stickPointer = e.pointerId;
-        // inside the MOVE zone the stick is anchored at the zone centre; above the bar it floats where the thumb lands
-        const zone = root.querySelector<HTMLElement>('.ws-tzone.move')!.getBoundingClientRect();
-        const anchored = e.clientY >= zone.top && e.clientX <= zone.right;
-        this.stickBase = anchored ? { x: zone.left + zone.width / 2, y: zone.top + zone.height / 2 } : { x: e.clientX, y: e.clientY };
-        const dx = e.clientX - this.stickBase.x, dy = e.clientY - this.stickBase.y;
+        // the stick is anchored at the MOVE zone's centre; a touch anywhere in the zone grabs it
+        this.stickBase = { x: zone.left + zone.width / 2, y: zone.top + zone.height / 2 };
         this.showStick(this.stickBase.x, this.stickBase.y, 0, 0);
-        if (anchored && Math.hypot(dx, dy) > 0) this.applyStick(dx, dy);
-      } else if (!left && this.lookPointer < 0) {
+        this.applyStick(e.clientX - this.stickBase.x, e.clientY - this.stickBase.y);
+      } else if (!inMove && this.lookPointer < 0) {
         this.lookPointer = e.pointerId;
         this.lookLast = { x: e.clientX, y: e.clientY };
-        const pad = root.querySelector<HTMLElement>('.ws-tzone.look')!.getBoundingClientRect();
-        this.lookRate = LOOK_RATE * (e.clientY >= pad.top ? PAD_BOOST : 1);
+        this.lookRate = LOOK_RATE * PAD_BOOST;
       } else return;
       root.setPointerCapture(e.pointerId);
       e.preventDefault();
