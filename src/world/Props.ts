@@ -69,7 +69,7 @@ export class Props {
       c.copy(bs.center).applyMatrix4(tmp); sc.setFromMatrixScale(tmp);
       bounds[i * 4] = c.x; bounds[i * 4 + 1] = c.y; bounds[i * 4 + 2] = c.z; bounds[i * 4 + 3] = bs.radius * Math.max(sc.x, sc.y, sc.z);
     });
-    const culled = new CulledInstances(im, all, bounds, TIER_CONFIG.propsFar, 40, 0.0025);
+    const culled = new CulledInstances(im, all, bounds, TIER_CONFIG.propsFar, 40, TIER_CONFIG.propsMinAngular);
     this.forest.onViewChange((f, v) => culled.cull(f, v));
     this.group.add(im);
   }

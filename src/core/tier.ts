@@ -20,10 +20,10 @@ export const TIER_CONFIG = {
     cascades: 1, shadowMapSize: 1024, shadowFar: 80, shadowMargin: 60, softShadows: false,
     undergrowthShadows: false, animalShadowDist: 30, animalHideDist: 150, furShells: false,
     // trees: hi cards → lo cards → far card beyond loDist; lo trees never cast shadows (they are past shadowFar)
-    treeHiDist: 55, treeLoDist: 120, treeTwigDist: 24, loTreeShadows: false,
+    treeHiDist: 70, treeLoDist: 130, treeTwigDist: 24, loTreeShadows: false,
     // grass carpet: ring radius / slots per 4 m cell / quads per clump
     grassRadius: 40, grassSlots: 72, grassQuads: 3,
-    undergrowthFar: 60, propsFar: 140,
+    undergrowthFar: 60, propsFar: 220, propsMinAngular: 0.004, // a 0.5 m rock lives to 125 m, a boulder to 220 m
     // cabins: hardware / lantern / fire pit / flames only within this; 4 shared point lights follow the nearest cabin
     // instead of 12 in every shader (NUM_POINT_LIGHTS is per-fragment cost on everything, grass included)
     cabinDetailDist: 70, sharedCabinLights: true, beaconLights: false,
@@ -38,7 +38,7 @@ export const TIER_CONFIG = {
     undergrowthShadows: true, animalShadowDist: 90, animalHideDist: 400, furShells: true,
     treeHiDist: 110, treeLoDist: 210, treeTwigDist: 38, loTreeShadows: true,
     grassRadius: 55, grassSlots: 96, grassQuads: 5,
-    undergrowthFar: 110, propsFar: 320,
+    undergrowthFar: 110, propsFar: 700, propsMinAngular: 0.0012,
     cabinDetailDist: 160, sharedCabinLights: false, beaconLights: true,
     reflectionWidth: 1024, reflectDetail: true,
     godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, smaa: 'high' as 'low' | 'high', bloomLevels: 8,

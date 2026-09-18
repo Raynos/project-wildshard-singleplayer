@@ -28,6 +28,35 @@ Scene pass at the gate (calls / tris), with the 2 shadow cascades → without sh
 Shadow passes alone: 211 calls / 9.8 M tris (more than the visible scene).
 Budget (phone): ≤ 150 calls, ≤ 2.0 M tris, iPhone ≥ 55 fps. Desktop: 60 fps at 1600×900, ≤ 300 calls.
 
-## §1 Levers (counts before → after, gate / cabin / pond, phone unless noted)
+## §1 Levers (whole-frame calls / tris, phone 390×844; gate · cabin · pond)
+
+| # | lever (commit) | gate | cabin | pond |
+|---|---|---|---|---|
+| 0 | before (58ccfe0) | 451 / 17.2 M | 425 / 17.5 M | 380 / 24.0 M |
+| 1 | shadows by tier (1 cascade to 80 m, 1024², PCF; undergrowth / lo trees / far animals cast none) + per-tree frustum culling + far-tree impostor beyond 130 m (f806c4b) | 236 / 5.6 M | | |
+| 2 | grass 40 m ring · 72 slots · 3 quads; props per-instance culled; pond reflection skips carpet layers, 512×256; cabin detail LOD 70 m; 4 shared point lights (were 20 in every shader); god rays 24 @ 0.35, volumetrics 8 steps, SMAA low, bloom 5 levels (07f59f9) | 180 / 2.1 M | 210 / 2.4 M | 187 / 2.0 M |
+| 3 | undergrowth cell-culled (ferns 0.43 M → 0.01 M), hi trees to 70 m (64b2d22 +) | **179 / 1.9 M** | **209 / 2.2 M** | **191 / 1.7 M** |
+
+Per group at the gate now: trees 32 / 0.33 M · grass 1 / 0.52 M · cabins 52 / 0.46 M · terrain 2 / 0.13 M · props 16 /
+0.13 M · post 23 · boundary 15 · crossbow 13 · animals 4 · undergrowth 6 / 0.02 M. Shadow pass 39 calls / 0.42 M.
+Programs at play: phone 153 → 89, desktop 165 → 164.
+
+Desktop 1600×900 (must look unchanged — verified at all three poses): gate 836 / 22.3 M → 612 / 11.1 M, cabin
+903 / 22.8 M → 601 / 11.8 M, pond 668 / 29.5 M → 529 / 10.6 M. Desktop got the tree culling + impostor beyond
+210 m, culled props / undergrowth, the leaner reflection and the cabin detail LOD at 160 m; everything else is
+tier-gated in `src/core/tier.ts`.
+
+What the phone tier trades away (visible if you look): mid trees are lo cards from 70 m (crowns a little
+thinner), impostor cross-cards past 130 m, grass ring 40 m and ~25 % thinner, ferns fade at 60 m, one 1024²
+shadow cascade to 80 m (softer, blockier near shadows; nothing shadows past 80 m), cabin hardware / lantern /
+fire pit pop in at 70 m, only the nearest cabin's lights are lit, no beacon lights, no fur shells, animals vanish
+past 150 m, god rays / volumetrics coarser.
 
 ## §2 Left
+
+- The iPhone reading after this batch is the gate: calls are still ~180–210 (budget 150); if the meter says
+  < 55 fps, in order: DPR 1.25 → 1.0 (`tier.ts dpr`), grassSlots 72 → 56, treeHiDist 70 → 55, cabin merged parts
+  fewer per far cabin (log/roof/stone only past 150 m), trees via BatchedMesh (24 → 4 draws, needs
+  WEBGL_multi_draw on iOS).
+- Headless ms is vsync-pinned; fill-rate (needle-card overdraw, 4 point lights, volumetrics) is unmeasured here.
+- Crossbow 13 calls and the HUD are outside this brief.
