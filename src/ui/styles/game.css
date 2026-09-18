@@ -69,8 +69,9 @@
 .ws-game-cross u { position: absolute; left: -1px; top: -1px; width: 2px; height: 2px; background: rgba(230, 242, 248, 0.6); }
 .ws-game-cross.hit i { background: var(--ws-red); }
 .ws-game-cross.hit.head i { background: var(--ws-amber); }
-.ws-game-cross.ads { --gap: 4px; }
-.ws-game-cross.ads i { opacity: 0.55; }
+/* iron sights: the bolt tip is the sight — the crosshair (and the aim readout sitting on the stock) fade out while aiming */
+.ws-game-cross.ads { opacity: 0; }
+.ws-game-cross.ads ~ .ws-game-aim { opacity: 0; }
 .ws-game-cross .ws-game-x { position: absolute; left: -16px; top: -16px; width: 32px; height: 32px; opacity: 0; }
 .ws-game-cross .ws-game-x::before, .ws-game-cross .ws-game-x::after { content: ''; position: absolute; left: 50%; top: 50%; width: 30px; height: 2px; background: var(--ws-red); box-shadow: 0 0 6px var(--ws-red); transform-origin: center; }
 .ws-game-cross .ws-game-x::before { transform: translate(-50%, -50%) rotate(45deg); }
@@ -109,7 +110,8 @@
 
 /* play-mode HUD hides while the intro (menu.css) is up */
 #hud.intro .ws-game-chunk, #hud.intro .ws-game-compass, #hud.intro .ws-game-health, #hud.intro .ws-game-ammo, #hud.intro .ws-game-cross, #hud.intro .ws-game-feed, #hud.intro .ws-game-prompt, #hud.intro .ws-game-boundary, #hud.intro .ws-game-toasts { opacity: 0; transition: opacity 0.4s; }
-#hud .ws-game-chunk, #hud .ws-game-compass, #hud .ws-game-health, #hud .ws-game-ammo, #hud .ws-game-cross, #hud .ws-game-feed { transition: opacity 0.6s ease 0.2s; }
+#hud .ws-game-chunk, #hud .ws-game-compass, #hud .ws-game-health, #hud .ws-game-ammo, #hud .ws-game-feed { transition: opacity 0.6s ease 0.2s; }
+#hud .ws-game-cross { transition: opacity 0.15s ease; } /* snappy both ways for the ADS fade (was on the 0.6 s intro reveal above) */
 
 /* ─── in-game HUD on a phone: no chunk metadata, compact compass, vitals top-left, bolts top-right ─── */
 @media (max-width: 700px) {

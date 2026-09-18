@@ -9,7 +9,7 @@ import { CHUNK_HALF } from '../core/config';
 
 /**
  * Crossbow — first-person hero weapon: procedural medieval hunting crossbow viewmodel,
- * physical bolt projectiles, impact puffs, ADS zoom, recoil and reload.
+ * physical bolt projectiles, impact puffs, ADS (iron sights: the weapon centred, bolt tip on the aim line, no zoom), recoil and reload.
  *
  *   const crossbow = new Crossbow({ game, sky, player, forest }, targets?, { allowUnlocked?: boolean });
  *   game.onUpdate((dt, t) => crossbow.update(dt, t));   // register AFTER player.update
@@ -26,7 +26,7 @@ import { CHUNK_HALF } from '../core/config';
  * State: `crossbow.state` → { bolts, loaded, reloading, reloadProgress, ads }  (bolts includes the loaded one)
  * `crossbow.aimInfo` → { kind, distance } | null — the animal under the crosshair (for the HUD range readout)
  *
- * Side effects the integrator must know about: ADS tweens `game.camera.fov` (72 → 50) and calls
+ * Side effects the integrator must know about: the FOV setter (Hor+ on portrait; ADS keeps the hip FOV) owns `game.camera.fov` and calls
  * `camera.updateProjectionMatrix()` + `sky.csm.updateFrustums()`; recoil nudges `player.pitch`;
  * the viewmodel is parented to `game.camera` and the camera is added to the scene.
  * Animals are reached only through the `Targets` interface below (no import of the animal module).
@@ -54,7 +54,8 @@ const FIRE_COOLDOWN = 0.3;
 const MAX_FLYING = 8;
 const MAX_STUCK = 20;
 const STUCK_LIFETIME = 30;
-const FOV_HIP = 72, FOV_ADS = 50;
+/** ADS is true iron sights, not a zoom: the FOV stays put and the weapon is brought up to the eye instead. */
+const FOV_HIP = 72, FOV_ADS = 72;
 /** Vertical FOV to give the camera. Three's fov is vertical, so on a portrait phone a fixed 72° collapses the
  *  horizontal view to ~37°; widen it (Hor+ via the geometric mean of the aspect) so 72° hip → ~94° at 9:19.5. */
 function fovForAspect(base: number, aspect: number) {
@@ -828,9 +829,16 @@ export class Crossbow {
     this.reloadTilt += (rl - this.reloadTilt) * Math.min(1, dt * 10);
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
     const a = sstep(0, 1, this.adsBlend), sp = this.sprintBlend * (1 - portrait * 0.7), rt = this.reloadTilt; // portrait: the sprint swing would fill the frame
-    // hip: lower-right (Skyrim), ADS: centred and a little closer to the eye
-    let px = THREE.MathUtils.lerp(0.12, 0.0, a), py = THREE.MathUtils.lerp(-0.165, -0.115, a), pz = THREE.MathUtils.lerp(-0.27, -0.31, a);
-    let rx = THREE.MathUtils.lerp(0.035, 0.0, a), ry = THREE.MathUtils.lerp(0.13, 0.0, a), rz = THREE.MathUtils.lerp(0.04, 0.0, a);
+    // hip: lower-right (Skyrim). ADS: iron sights — the stock centred and seen from just above along the rail, so the
+    // loaded bolt's tip sits on the camera axis (a hair below centre) and IS the sight: bolts fly along the camera
+    // forward from it (spawnBolt), so at range they land on the tip. Limbs span ~60 % of the width, no yaw/roll.
+    // Landscape numbers; portrait (Hor+ 94° tall frame, model at 0.71×) is tuned on its own via `portrait` and
+    // pre-divided by the hip portrait scaling applied below so the final pose is exactly these values.
+    const adsY = THREE.MathUtils.lerp(-0.065, -0.102, portrait) / (1 + portrait * 0.7);
+    const adsZ = THREE.MathUtils.lerp(-0.31, -0.58, portrait) / (1 + portrait * 1.5);
+    const adsRx = THREE.MathUtils.lerp(0.14, 0.56, portrait); // portrait: steeper from above so the short stock still runs off the bottom edge
+    let px = THREE.MathUtils.lerp(0.12, 0.0, a), py = THREE.MathUtils.lerp(-0.165, adsY, a), pz = THREE.MathUtils.lerp(-0.27, adsZ, a);
+    let rx = THREE.MathUtils.lerp(0.035, adsRx, a), ry = THREE.MathUtils.lerp(0.13, 0.0, a), rz = THREE.MathUtils.lerp(0.04, 0.0, a);
     // sprint: drop and swing across the body
     px += sp * -0.05; py += sp * -0.09; pz += sp * 0.04; rx += sp * 0.32; ry += sp * 0.45; rz += sp * -0.15;
     // reload: tilt the bow up-left to reach the string, crank shake
@@ -838,11 +846,12 @@ export class Crossbow {
     px += rt * -0.06; py += rt * -0.05; pz += rt * 0.02; rx += rt * 0.35 + crank * 0.008; ry += rt * -0.28; rz += rt * 0.42 + crank * 0.012;
     // breathing / idle sway
     px += Math.sin(t * 0.7) * 0.0025 * (1 - a * 0.7); py += Math.sin(t * 1.1) * 0.002 * (1 - a * 0.7); rz += Math.sin(t * 0.5) * 0.006 * (1 - a);
-    // walk bob (counter-phase to the camera bob → the weapon feels heavy)
-    const sf = p.speedFactor * (1 - a * 0.6);
+    // walk bob (counter-phase to the camera bob → the weapon feels heavy); ~30 % of it while sighted
+    const sf = p.speedFactor * (1 - a * 0.7);
     px += Math.cos(p.bobTime) * 0.016 * sf; py += -Math.abs(Math.sin(p.bobTime)) * 0.012 * sf; rz += Math.cos(p.bobTime) * 0.02 * sf; rx += Math.sin(p.bobTime * 2) * 0.01 * sf;
-    // look lag
-    ry += this.lagYaw; rx += this.lagPitch; px += this.lagYaw * 0.25; py += this.lagPitch * 0.2;
+    // look lag (~30 % while sighted so the tip stays on the aim line)
+    const lag = 1 - a * 0.7;
+    ry += this.lagYaw * lag; rx += this.lagPitch * lag; px += this.lagYaw * 0.25 * lag; py += this.lagPitch * 0.2 * lag;
     // recoil
     pz += this.recoil * 0.07; py += this.recoil * 0.015; rx += this.recoil * 0.12; rz += this.recoil * -0.03;
 
