@@ -22,6 +22,7 @@ export class Perf {
     this.root.className = 'ws-perf';
     this.root.innerHTML = '<b>—</b><span></span>';
     document.body.appendChild(this.root);
+    document.querySelectorAll<HTMLElement>('.ws-game-fps').forEach((e) => { e.hidden = true; }); // the HUD's old faint readout; this meter replaces it
     if (new URLSearchParams(location.search).get('perf') === '0') this.root.hidden = true;
     game.onUpdate(() => this.update(performance.now()));
     // frames are gated on the menu (Game.frameGate): say so rather than freeze on the last number

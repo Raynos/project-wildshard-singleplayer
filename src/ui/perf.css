@@ -12,5 +12,3 @@ body:has(#hud.intro) .ws-perf, body:has(.ws-load) .ws-perf { top: calc(84px + en
   .ws-perf b { font-size: 9px; }
   body:has(#hud.intro) .ws-perf, body:has(.ws-load) .ws-perf { top: calc(100px + env(safe-area-inset-top, 0px)); }
 }
-/* the old faint readout in the HUD is superseded */
-#hud .ws-game-fps { display: none; } /* HUD.ts still creates it; the meter above replaces it */
