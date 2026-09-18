@@ -9,7 +9,8 @@ const params = new URLSearchParams(location.search);
 const ua = navigator.userAgent;
 const isIPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
 const mobileUA = /iPhone|iPad|iPod|Android/i.test(ua) || isIPadOS;
-const dbgTier = (() => { try { return (JSON.parse(localStorage.getItem('ws.debug') ?? '{}') as { tier?: string }).tier; } catch { return undefined; } })(); // DBG pill (src/ui/Debug.ts)
+const dbgFlags = (() => { try { return JSON.parse(localStorage.getItem('ws.debug') ?? '{}') as { tier?: string; dpr?: string; aa?: string }; } catch { return {}; } })(); // DBG pill (src/ui/Debug.ts)
+const dbgTier = dbgFlags.tier;
 const forced = (params.get('tier') ?? (dbgTier === 'phone' || dbgTier === 'desktop' ? dbgTier : null)) as Tier | null;
 
 export const TIER: Tier = forced === 'phone' || forced === 'desktop' ? forced : mobileUA ? 'phone' : 'desktop';
@@ -47,3 +48,8 @@ export const TIER_CONFIG = {
     godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, volumetricScale: 1, smaa: 'high' as 'off' | 'low' | 'high', bloomLevels: 8,
   },
 }[TIER];
+
+// DBG overrides (src/ui/Debug.ts): render scale and SMAA, so the sharpness/fps trade-off can be dialled on the phone
+if (dbgFlags.dpr && dbgFlags.dpr !== 'auto') TIER_CONFIG.dpr = Number(dbgFlags.dpr);
+if (dbgFlags.aa === 'on' && TIER_CONFIG.smaa === 'off') TIER_CONFIG.smaa = 'low';
+if (dbgFlags.aa === 'off') TIER_CONFIG.smaa = 'off';
