@@ -135,5 +135,5 @@
   .ws-game-ammo .ws-game-rbar { margin-top: 5px; }
   .ws-game-health .ws-game-hval small { display: none; }
   .ws-game-health .ws-game-hrow { gap: 8px; }
-  #hud.touch .ws-game-prompt { bottom: calc(max(15vh, 104px) + env(safe-area-inset-bottom, 0px) + 66px); }
+  #hud.touch .ws-game-prompt { display: none; } /* touch: the prompt is the big USE button (touch.css) */
 }

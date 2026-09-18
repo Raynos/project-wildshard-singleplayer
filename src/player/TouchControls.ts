@@ -45,8 +45,8 @@ export class TouchControls {
     root.className = 'ws-touch';
     root.innerHTML = `
       <div class="ws-touch-stick"><i></i></div>
+      <button class="ws-touch-use" type="button">Use</button>
       <div class="ws-touch-btns">
-        <button class="ws-touch-btn use" type="button">Use</button>
         <button class="ws-touch-btn jump" type="button">Jump</button>
         <button class="ws-touch-btn reload" type="button">Reload</button>
         <button class="ws-touch-btn aim" type="button">Aim</button>
@@ -123,7 +123,25 @@ export class TouchControls {
     btn('.reload', () => { if (this.crossbow.enabled) this.crossbow.reload(); });
     btn('.jump', () => { this.player.touchJump = true; });
     btn('.ws-touch-pause', () => document.dispatchEvent(new Event('ws:pause')));
-    btn('.use', () => document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e', bubbles: true })));
+    btn('.ws-touch-use', () => document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e', bubbles: true })));
+    // the interact prompt ("[E] Open door") becomes a big USE button above the row, labelled with the action
+    const use = root.querySelector<HTMLElement>('.ws-touch-use')!;
+    const bindPrompt = (prompt: HTMLElement) => {
+      const sync = () => {
+        const on = prompt.classList.contains('show');
+        use.classList.toggle('show', on);
+        if (on) use.textContent = (prompt.textContent ?? '').replace(/^[A-Z]\s*/, '').trim() || 'Use';
+      };
+      new MutationObserver(sync).observe(prompt, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
+      sync();
+    };
+    // the HUD may be built after this layer (main.ts order) — wait for the prompt element to appear
+    const found = hud.querySelector<HTMLElement>('.ws-game-prompt');
+    if (found) bindPrompt(found);
+    else {
+      const mo = new MutationObserver(() => { const p = hud.querySelector<HTMLElement>('.ws-game-prompt'); if (p) { mo.disconnect(); bindPrompt(p); } });
+      mo.observe(hud, { childList: true });
+    }
   }
 
   private applyStick(dx: number, dy: number) {
