@@ -9,6 +9,7 @@ import type { Vector3 } from 'three';
  *
  *   audio.crossbowFire()  audio.boltImpact('wood'|'ground'|'flesh')  audio.reload()   audio.dryFire()
  *   audio.footstep(sprinting)  audio.jump()  audio.land(hard)  audio.hitMarker()  audio.kill()
+ *   audio.splash(impact)  audio.wadeStep(depth, sprinting)  audio.swimStroke()  audio.waterExit()   // water (Player.onEnterWater / onStep while wading / onStroke / onExitWater)
  *   audio.animal('deer_call'|'boar_grunt'|'hoofsteps'|'boar_squeal', position, listenerPos, yaw?)
  *   audio.setAmbient(true|false)   audio.muted = true|false   audio.master.gain (0.6)
  *
@@ -197,6 +198,53 @@ export class Audio {
     this.tone({ t, type: 'sine', f0: hard ? 75 : 85, f1: 40, glide: 0.08, gain: hard ? 0.7 : 0.35, decay: hard ? 0.22 : 0.12 });
     this.burst({ t: t + 0.01, type: 'bandpass', freq: 2400, q: 0.8, gain: 0.12, decay: 0.05 });
     if (hard) this.burst({ t: t + 0.06, type: 'lowpass', freq: 300, gain: 0.3, decay: 0.12 });
+  }
+
+  // ─────────────── water (wading / swimming) ───────────────
+  /** feet break the surface. `impact` = entry speed m/s: ~0–1 walking in (a slosh), 10+ off the pier (a full plunge with a spray tail) */
+  splash(impact = 0) {
+    const t = this.ctx.currentTime;
+    const k = Math.min(1, impact / 10);            // 0 = stepping in, 1 = a dive off the pier
+    // the body of the splash: a low "gloop" plus a mid slap that scales with how hard we hit
+    this.tone({ t, type: 'sine', f0: 160 + 60 * k, f1: 45, glide: 0.12 + 0.08 * k, gain: 0.25 + 0.55 * k, attack: 0.008, decay: 0.2 + 0.2 * k });
+    this.burst({ t, type: 'lowpass', freq: 700 + 900 * k, freqEnd: 180, gain: 0.35 + 0.6 * k, attack: 0.004, decay: 0.12 + 0.18 * k });
+    // spray: bright noise that opens up after the hit and rains back down
+    this.burst({ t: t + 0.02, type: 'bandpass', freq: 2600, freqEnd: 1100, q: 0.5, gain: 0.12 + 0.45 * k, attack: 0.03 + 0.03 * k, decay: 0.3 + 0.5 * k });
+    if (k > 0.35) {
+      // droplets pattering back onto the surface
+      for (let i = 0; i < 5 + Math.floor(k * 6); i++) {
+        const ti = t + 0.25 + rnd(0, 0.55) * (0.5 + k);
+        this.burst({ t: ti, type: 'bandpass', freq: rnd(1800, 4200), q: 3, gain: rnd(0.03, 0.09) * k, decay: rnd(0.02, 0.05), pan: rnd(-0.6, 0.6) });
+      }
+    }
+  }
+
+  /** a footstep in shallow water: the crunch of the dry step is replaced by a slosh that deepens with the water */
+  wadeStep(depth: number, sprinting = false) {
+    const t = this.ctx.currentTime;
+    this.stepSide = -this.stepSide;
+    const pan = this.stepSide * 0.14;
+    const d = Math.min(1, depth / 1.1);
+    this.burst({ t, type: 'lowpass', freq: 900 - 400 * d, freqEnd: 250, gain: (sprinting ? 0.42 : 0.28) * (0.6 + 0.6 * d), attack: 0.006, decay: 0.09 + 0.1 * d, pan });
+    this.burst({ t: t + 0.01, type: 'bandpass', freq: rnd(1900, 3000), freqEnd: 1200, q: 0.7, gain: 0.08 + 0.14 * d, attack: 0.015, decay: 0.12 + 0.12 * d, pan });
+    this.tone({ t, type: 'sine', f0: rnd(90, 130), f1: 50, glide: 0.07, gain: 0.12 + 0.12 * d, decay: 0.09, pan });
+  }
+
+  /** one swim stroke: an arm sweeping through the water, a soft wash off to one side */
+  swimStroke() {
+    const t = this.ctx.currentTime;
+    this.stepSide = -this.stepSide;
+    const pan = this.stepSide * 0.35;
+    this.burst({ t, type: 'bandpass', freq: rnd(500, 700), freqEnd: 1400, q: 0.6, gain: 0.16, attack: 0.09, decay: 0.28, pan });
+    this.burst({ t: t + 0.06, type: 'bandpass', freq: 2400, freqEnd: 1300, q: 0.8, gain: 0.07, attack: 0.05, decay: 0.22, pan });
+    this.tone({ t, type: 'sine', f0: 110, f1: 70, glide: 0.2, gain: 0.06, attack: 0.05, decay: 0.2, pan });
+  }
+
+  /** climbing / wading out: water sheeting off and a few drips */
+  waterExit() {
+    const t = this.ctx.currentTime;
+    this.burst({ t, type: 'bandpass', freq: 1200, freqEnd: 500, q: 0.6, gain: 0.16, attack: 0.02, decay: 0.3 });
+    for (let i = 0; i < 4; i++) this.burst({ t: t + 0.15 + rnd(0, 0.5), type: 'bandpass', freq: rnd(2200, 4000), q: 4, gain: rnd(0.02, 0.05), decay: 0.03, pan: rnd(-0.4, 0.4) });
   }
 
   // ─────────────── feedback ───────────────

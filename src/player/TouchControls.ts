@@ -8,6 +8,8 @@
  * pad — a TAP on the look pad, under 12 px and 300 ms, fires; a drag only looks). Round glass discs sit above the bar
  * (K1 mockup): AIM over the MOVE pad, JUMP over the LOOK pad, a smaller HOVER between them (AIM and HOVER are toggles:
  * tap to latch, tap again to release — HOVER steps on / off the hoverboard, `player.setHover`, and mirrors the H key).
+ * While the player swims (`player.onSwimChange`) JUMP is swapped for a DIVE disc in the same spot — a HELD button that
+ * drives `player.touchDive` → `player.diveHeld` (the dive mechanic consumes it; the layer only owns the control).
  * There is no RELOAD: `crossbow.tryFire()` spans the bow itself when it is fired empty. USE is a big button above the
  * discs, shown only while the HUD has an interact prompt; it dispatches the same `KeyE` the keyboard path listens for.
  * The HUD (HUD.ts) mounts the VITALS / BOLTS strips into the bar's top corners (`.ws-game-vitals` / `.ws-game-bolts`).
@@ -59,6 +61,7 @@ export class TouchControls {
       <button class="ws-touch-disc aim" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="1.4"/><path d="M12 1.5v4.5M12 18v4.5M1.5 12H6M18 12h4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Aim</span></button>
       <button class="ws-touch-disc hover" type="button"><svg viewBox="0 0 24 24"><path d="M2 9.5c0-1.4 1.1-2.5 2.5-2.5h15c1.4 0 2.5 1.1 2.5 2.5S20.9 12 19.5 12h-15C3.1 12 2 10.9 2 9.5z"/><path d="M6 15.5h12M8.5 19h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.7"/></svg><span>Hover</span></button>
       <button class="ws-touch-disc jump" type="button"><svg viewBox="0 0 24 24"><path d="M12 2.5 4 11h5v10.5h6V11h5z"/></svg><span>Jump</span></button>
+      <button class="ws-touch-disc dive" type="button"><svg viewBox="0 0 24 24"><path d="M12 2v11.5M7.5 9.5 12 14l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 18.5c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4 1.7-1.4 3.4-1.4 1.6 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 22c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/></svg><span>Dive</span></button>
       <button class="ws-touch-pause" type="button">Pause</button>
       <div class="ws-touch-bar">
         <div class="ws-touch-zone move"><u></u><span class="ws-touch-label">Move</span></div>
@@ -148,6 +151,11 @@ export class TouchControls {
     this.player.onHoverChange = (on) => { hover.classList.toggle('on', on); prevHover?.(on); };
     hover.classList.toggle('on', this.player.hover);
     btn('.jump', () => { this.player.touchJump = true; });
+    // DIVE replaces JUMP while swimming: a held control (down = held), released on up / cancel / leave
+    btn('.dive', () => { this.player.touchDive = true; }, () => { this.player.touchDive = false; });
+    const prevSwim = this.player.onSwimChange;
+    this.player.onSwimChange = (on) => { root.classList.toggle('swimming', on); if (!on) this.player.touchDive = false; prevSwim?.(on); };
+    root.classList.toggle('swimming', this.player.swimming);
     btn('.ws-touch-pause', () => document.dispatchEvent(new Event('ws:pause')));
     btn('.ws-touch-use', () => document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e', bubbles: true })));
     // the interact prompt ("[E] Open door") becomes a big USE button above the row, labelled with the action
