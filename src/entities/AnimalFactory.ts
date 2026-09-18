@@ -12,7 +12,7 @@ import { facetGeometry, lowPolyMaterials } from './lowpoly';
 import.meta.glob(['./species/*.ts', '!./species/registry.ts', '!./species/loft.ts'], { eager: true });
 
 export { registerSpecies, speciesDef, hasSpecies, speciesKinds, variantDef, variantMods, rollVariant, RARITY_ORDER } from './species/registry';
-export type { SpeciesDef, VariantDef, VariantMods, Rarity, AnimalDims, BoneDef, AnimalSpecies, FurStyle } from './species/registry';
+export type { SpeciesDef, VariantDef, VariantMods, Rarity, AnimalDims, BoneDef, AnimalSpecies, FurStyle, RigAnimCtx, ThinkCtx, EnemyWorld } from './species/registry';
 export type { Paint, Station } from './species/loft';
 
 /**
@@ -254,6 +254,7 @@ export class AnimalFactory {
       // faceted: flat per-face normals, flat-shaded untextured materials, no fur shells
       geometry = facetGeometry(geometry);
       const lp = lowPolyMaterials();
+      if (species.eyeGlow) { lp.eye.emissive = col3(species.eyeGlow); lp.eye.emissiveIntensity = species.eyeGlowIntensity ?? 1; }   // the sailor's cyan eyes
       this.sky.setupMaterial(lp.fur); this.sky.setupMaterial(lp.hard); this.sky.setupMaterial(lp.eye);
       m = { kind, variant: v.id, style: 'lowpoly', species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur: lp.fur, hard: lp.hard, eye: lp.eye, shells: [] };
       this.models.set(key, m);
@@ -277,6 +278,7 @@ export class AnimalFactory {
     this.patchFur(fur);
     const hard = new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0, vertexColors: true, color: new THREE.Color(1, 1, 1), normalMap: tex.normalMap, normalScale: new THREE.Vector2(0.35, 0.35) });
     const eye = new THREE.MeshPhysicalMaterial({ roughness: 0.1, metalness: 0, vertexColors: true, color: new THREE.Color(1, 1, 1), clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.5 });
+    if (species.eyeGlow) { eye.emissive = col3(species.eyeGlow); eye.emissiveIntensity = species.eyeGlowIntensity ?? 1; }
     this.sky.setupMaterial(fur); this.sky.setupMaterial(hard); this.sky.setupMaterial(eye);
     // fur shells: the same material with the vertex offset + strand alpha test, one per layer
     const shells: THREE.MeshPhysicalMaterial[] = [];

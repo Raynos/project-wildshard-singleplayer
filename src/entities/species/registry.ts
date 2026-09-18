@@ -1,6 +1,7 @@
 import type * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import type { HuntTuning } from '../AnimalManager';
+import type { Animal, AnimalState } from '../Animal';
 
 /**
  * Species registry — the pluggable contract every huntable species implements.
@@ -70,6 +71,85 @@ export interface AnimalDims {
   feet: [number, number][];
   /** width of the body (for the corpse's resting height when rolled on its side) */
   halfWidth: number;
+  /** body hit-capsule axis: 'z' (default, along the spine of a quadruped) or 'y' (upright: the Drowned Sailor) */
+  capsuleAxis?: 'z' | 'y';
+}
+
+/**
+ * Per-frame animation context of a CUSTOM rig (`SpeciesDef.rig === 'custom'`: crab, monkey, sailor — anything that is
+ * not a quadruped). Animal.ts hands ONE reused object to `SpeciesDef.animate` every frame instead of running its
+ * deer/boar pose generators; the species poses its own bones by name. Timers (deathT, flinch, brace, attack) are
+ * owned by Animal.ts so applyDamage / stagger / the corpse contract behave the same as for every other species.
+ */
+export interface RigAnimCtx {
+  bones: Record<string, THREE.Bone>;
+  dims: AnimalDims;
+  dt: number; t: number; seed: number; scale: number;
+  /** m/s forward ground speed and lateral speed (+ = the animal's left) */
+  speed: number; strafe: number;
+  /** gait phase 0..1, advanced by Animal.ts from the ground speed (stride from dims.legLen) */
+  phase: number;
+  state: AnimalState;
+  alive: boolean;
+  /** -1 while alive, else 0..1 over the 0.8 s death collapse (held at 1 afterwards) */
+  deathT: number;
+  /** 0..1: a hit flinch (decays), the stagger brace (held for the stun), then released */
+  flinch: number; brace: number;
+  /** 0..1 progress through the current attack (Animal.startAttack), -1 when not attacking */
+  attack: number;
+  /** where to look (world) and how much, from the AI */
+  lookTarget: THREE.Vector3; lookWeight: number;
+  /** the animal's world position (feet) and heading */
+  position: THREE.Vector3; yaw: number;
+  /** per-animal scratch shared with `think` (numbers only: timers, targets, indices) */
+  mem: Record<string, number>;
+  /** the animal itself (for the few things a pose needs to write back: `yOffset` while climbing / rising) */
+  animal: Animal;
+}
+
+/**
+ * What the shard hands the enemy species' AI (`AnimalManager.enemyWorld`, filled by main.ts / src/entities/Enemies.ts):
+ * palm crowns for the monkeys to perch in, the coconut thrower, the wreck's hold for the sailor. Everything optional —
+ * a species falls back to ground behaviour when its piece is missing.
+ */
+export interface EnemyWorld {
+  /** palm frond crowns (world) — Coconut Monkey perches — and, index-matched, the foot of each trunk (where it climbs from) */
+  perches?: THREE.Vector3[];
+  perchBases?: THREE.Vector3[];
+  /** lob a coconut from `from` at `target` (Enemies.ts owns the projectile pool + the hit test against the player) */
+  throwCoconut?: (from: THREE.Vector3, target: THREE.Vector3, thrower: Animal) => void;
+  /** a splash burst of water droplets at a world point (the sailor rising / dying) */
+  splash?: (at: THREE.Vector3, strength: number) => void;
+  /** the wreck's hold: centre, radius that counts as "inside" (the player entering it wakes the sailor), the radius the
+   *  sailor guards, and the deck / floor height under (x, z) (undefined off the deck → the sand) */
+  hold?: { x: number; z: number; r: number; guardR: number; floorAt: (x: number, z: number) => number | undefined };
+  /** 0 (midday) .. 1 (night) — the sailor only leaves the hold at night; a shard without a clock leaves it undefined */
+  night?: () => number;
+}
+
+/** The AI tick (10 Hz) context for a species that thinks for itself (`SpeciesDef.think`): the manager's senses/flee loop is skipped. */
+export interface ThinkCtx {
+  /** seconds since the last tick (0.1) and the global clock */
+  dt: number; t: number;
+  /** the player's feet (world) and ground speed m/s */
+  player: THREE.Vector3; playerSpeed: number;
+  rng: Rng;
+  /** dev: the player is invisible to animals */
+  calm: boolean;
+  /** the herd this animal was spawned into (all members, dead ones too), or null */
+  herd: Animal[] | null;
+  /** the player takes `damage` from this animal (routed to AnimalManager.onCharge — main.ts already wires it) */
+  hurt: (damage: number) => void;
+  /** an AnimalSound by name at the animal (routed to AnimalManager.onSound) */
+  sound: (name: string) => void;
+  /** the shard's enemy pieces (perches, coconuts, the hold) */
+  world: EnemyWorld;
+  heightAt: (x: number, z: number) => number;
+  waterLevel: () => number;
+  /** the manager's steering with trunk / edge / slope avoidance (sets the animal's motion) */
+  steer: (a: Animal, yaw: number, speed: number, turnRate: number) => void;
+  /** keep inside the chunk and off the water (the manager's confine) */
+  confine: (a: Animal) => void;
 }
 
 export interface BoneDef { name: string; parent: string | null; pos: [number, number, number] }
@@ -133,6 +213,20 @@ export interface SpeciesDef {
   /** animation flavour: grazeNeck 1 = the whole neck goes down (deer), 0.3 = only the nose (boar);
    *  gallopTail 1 = tail flagged straight up when running (deer), 0.5 = half (boar) */
   pose?: { grazeNeck: number; gallopTail: number };
+  // ── custom rigs + enemy AI (Driftwood Isle's crab / monkey / sailor; see RigAnimCtx / ThinkCtx above) ──
+  /** 'quadruped' (default: the deer skeleton, Animal.ts poses it) or 'custom' (only `body` (root) + `head` bones are
+   *  required; `animate` poses the rest every frame) */
+  rig?: 'quadruped' | 'custom';
+  /** custom rigs: pose the bones from the context (called every frame the animal is within animation range) */
+  animate?: (ctx: RigAnimCtx) => void;
+  /** the species runs its own AI: called at 10 Hz instead of the manager's senses / flee / charge loop */
+  think?: (a: Animal, ctx: ThinkCtx) => void;
+  /** scale the damage of a hit by where it lands: (animal, hitPoint, blow direction) → multiplier (the crab's shell: 0.5 from the front) */
+  damageMul?: (a: Animal, hitPoint: THREE.Vector3, dir: THREE.Vector3) => number;
+  /** custom rigs: seconds the corpse stays before it fades on its own (the sailor dissolves into droplets); omit = stays like any carcass */
+  corpseFade?: number;
+  /** self-lit eyes (linear rgb) × intensity — the Drowned Sailor's cyan stare; the eye material is per species */
+  eyeGlow?: [number, number, number]; eyeGlowIntensity?: number;
 }
 
 const SPECIES = new Map<string, SpeciesDef>();

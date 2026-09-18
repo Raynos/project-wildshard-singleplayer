@@ -26,7 +26,8 @@ import { getActiveChunk } from '../chunks/registry';
  */
 
 export type ImpactKind = 'wood' | 'ground' | 'flesh';
-export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal' | 'elk_bugle' | 'bear_growl' | 'bear_roar' | 'bear_hurt';
+export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal' | 'elk_bugle' | 'bear_growl' | 'bear_roar' | 'bear_hurt'
+  | 'crab_click' | 'crab_snap' | 'monkey_chatter' | 'monkey_shriek' | 'sailor_groan' | 'sailor_slash' | 'coconut_hit' | 'coconut_land';   // Driftwood Isle's enemies (src/entities/Enemies.ts)
 export type AmbientBed = 'forest' | 'island';
 export type StepSurface = 'litter' | 'planks' | 'sand';
 
@@ -550,6 +551,52 @@ export class Audio {
         this.tone({ t: t + dur * 0.5, type: 'sawtooth', f0: 150, f1: 90, glide: dur * 0.5, gain: 0.5, attack: 0.01, decay: dur * 0.55, vibrato: { rate: 18, depth: 18 }, lowpass: 700, out: bus });
         this.burst({ t, type: 'bandpass', freq: 700, q: 0.5, gain: 0.5, attack: 0.05, hold: dur * 0.55, decay: dur * 0.5, out: bus });
         this.burst({ t: t + 0.05, type: 'lowpass', freq: 1600, gain: 0.3, attack: 0.1, hold: dur * 0.4, decay: dur * 0.5, out: bus });
+        break;
+      }
+      // ── Driftwood Isle enemies (species/{crab,monkey,sailor}.ts + Enemies.ts) ──
+      case 'crab_click': { // the reef crab: two to four dry clicks of the mouthparts
+        const n = 2 + Math.floor(rnd(0, 2.9));
+        for (let i = 0; i < n; i++) { const ti = t + i * rnd(0.06, 0.1); this.burst({ t: ti, type: 'bandpass', freq: rnd(2200, 3200), q: 5, gain: 0.55, decay: 0.03, out: bus }); this.tone({ t: ti, type: 'square', f0: 1800, f1: 900, glide: 0.02, gain: 0.12, decay: 0.025, out: bus }); }
+        break;
+      }
+      case 'crab_snap': { // the pincer shutting: a hard crack with a knock under it
+        this.burst({ t, type: 'highpass', freq: 1800, gain: 0.9, decay: 0.05, out: bus });
+        this.burst({ t: t + 0.005, type: 'bandpass', freq: 900, q: 2, gain: 0.6, decay: 0.08, out: bus });
+        this.tone({ t, type: 'sine', f0: 140, f1: 70, glide: 0.06, gain: 0.5, decay: 0.09, out: bus });
+        break;
+      }
+      case 'monkey_chatter': { // three to five quick "ook-ook" chirps
+        const n = 3 + Math.floor(rnd(0, 2.9)), base = rnd(520, 720);
+        for (let i = 0; i < n; i++) { const ti = t + i * rnd(0.09, 0.14); this.tone({ t: ti, type: 'sawtooth', f0: base, f1: base * 1.5, glide: 0.05, gain: 0.45, attack: 0.01, hold: 0.03, decay: 0.06, vibrato: { rate: 30, depth: 40 }, lowpass: 2600, out: bus }); this.burst({ t: ti, type: 'bandpass', freq: base * 2.2, q: 1.5, gain: 0.12, decay: 0.06, out: bus }); }
+        break;
+      }
+      case 'monkey_shriek': { // a rising screech that breaks up
+        this.tone({ t, type: 'sawtooth', f0: 800, f1: 1900, glide: 0.18, gain: 0.7, attack: 0.01, hold: 0.12, decay: 0.22, vibrato: { rate: 38, depth: 120 }, lowpass: 4200, out: bus });
+        this.tone({ t: t + 0.05, type: 'square', f0: 1200, f1: 2400, glide: 0.2, gain: 0.2, attack: 0.01, decay: 0.3, vibrato: { rate: 44, depth: 200 }, lowpass: 3800, out: bus });
+        this.burst({ t, type: 'bandpass', freq: 2600, q: 0.8, gain: 0.25, attack: 0.02, hold: 0.15, decay: 0.2, out: bus });
+        break;
+      }
+      case 'sailor_groan': { // a drowned groan: a long low rasp under a watery gurgle
+        const dur = rnd(0.9, 1.4);
+        this.tone({ t, type: 'sawtooth', f0: rnd(78, 92), f1: 58, glide: dur, gain: 0.8, attack: 0.15, hold: dur * 0.4, decay: dur * 0.5, vibrato: { rate: 6, depth: 6 }, lowpass: 420, out: bus });
+        this.tone({ t: t + 0.05, type: 'square', f0: 120, f1: 84, glide: dur, gain: 0.18, attack: 0.2, hold: dur * 0.35, decay: dur * 0.5, vibrato: { rate: 9, depth: 10 }, lowpass: 600, out: bus });
+        this.burst({ t, type: 'bandpass', freq: 520, freqEnd: 240, q: 3, gain: 0.35, attack: 0.1, hold: dur * 0.5, decay: dur * 0.5, rate: 0.6, out: bus });
+        for (let i = 0; i < 5; i++) this.burst({ t: t + rnd(0.1, dur), type: 'bandpass', freq: rnd(300, 700), q: 6, gain: 0.25, decay: 0.05, out: bus });   // bubbles
+        break;
+      }
+      case 'sailor_slash': { // the cutlass: a rising whoosh
+        this.burst({ t, type: 'bandpass', freq: 700, freqEnd: 2600, q: 1.2, gain: 0.6, attack: 0.03, hold: 0.06, decay: 0.16, out: bus });
+        this.burst({ t: t + 0.02, type: 'highpass', freq: 3000, gain: 0.2, attack: 0.04, decay: 0.14, out: bus });
+        break;
+      }
+      case 'coconut_hit': { // a coconut off your skull: a hard hollow knock
+        this.tone({ t, type: 'sine', f0: 260, f1: 120, glide: 0.05, gain: 0.8, decay: 0.12, out: bus });
+        this.burst({ t, type: 'lowpass', freq: 900, gain: 0.5, decay: 0.05, out: bus });
+        break;
+      }
+      case 'coconut_land': { // a coconut in the sand: a dull thump and a hiss of grains
+        this.tone({ t, type: 'sine', f0: 150, f1: 70, glide: 0.06, gain: 0.55, decay: 0.12, out: bus });
+        this.burst({ t: t + 0.01, type: 'lowpass', freq: 1400, gain: 0.3, attack: 0.01, decay: 0.12, out: bus });
         break;
       }
       case 'bear_hurt': { // a hit: a sharp bark-roar, higher and shorter than the charge bellow, dropping into a grunt

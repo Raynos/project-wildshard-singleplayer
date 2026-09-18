@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { heightAt } from '../world/Heightfield';
-import { variantMods, type AnimalKind, type AnimalModel, type AnimalRig, type Rarity, type VariantMods } from './AnimalFactory';
+import { variantMods, type AnimalKind, type AnimalModel, type AnimalRig, type Rarity, type VariantMods, type RigAnimCtx } from './AnimalFactory';
 
 /**
  * Animal — one animal instance (any registered species): procedural skeletal animation + health.
@@ -23,9 +23,17 @@ import { variantMods, type AnimalKind, type AnimalModel, type AnimalRig, type Ra
  *   animal.headWorld(out) / bodyCapsule(a, b)  — hit volumes (world space)
  *
  * The AnimalManager owns AI state and calls animal.setMotion(desiredYaw, desiredSpeed).
+ *
+ * CUSTOM RIGS (`SpeciesDef.rig === 'custom'`: the Driftwood crab / monkey / sailor): the skeleton is whatever the
+ * species built (`body` root + `head` are the only required bones); every frame Animal.ts fills a RigAnimCtx
+ * (speed, strafe, gait phase, deathT, flinch, brace, attack, mem) and calls `species.animate(ctx)` instead of the
+ * quadruped pose generators. Everything else — applyDamage, stagger, hit volumes, fadeOut, the manager's raycast —
+ * is unchanged. Extra motion knobs for those species' AI: `setStrafe(mps)` (lateral speed, + = left),
+ * `yOffset` (metres above the ground: a monkey in a crown, a sailor below the deck), `startAttack(seconds)` /
+ * `attackPhase` (0..1 wind-up → strike, drives the telegraph pose), `mem` (per-animal numbers).
  */
 
-export type AnimalState = 'idle' | 'graze' | 'wander' | 'alert' | 'flee' | 'charge' | 'stalk' | 'dead';
+export type AnimalState = 'idle' | 'graze' | 'wander' | 'alert' | 'flee' | 'charge' | 'stalk' | 'dead' | 'attack' | 'perch' | 'rise' | 'hide' | 'sidestep';
 
 /** Bolt damage: body 32–40 (a deer takes two, a boar three), ×2.5 to the head (one kills a deer); fades to 60 % from 40 to 90 m. */
 export const DAMAGE = { bodyMin: 32, bodyMax: 40, headMul: 2.5, falloffStart: 40, falloffEnd: 90, falloffMin: 0.6 };
@@ -91,6 +99,15 @@ export class Animal {
   /** an extra per-animal AI scratch: timers etc. are kept on the manager side */
   seed: number;
   scale: number;
+  /** custom rig (SpeciesDef.rig === 'custom'): the species animates its own bones */
+  readonly custom: boolean;
+  /** lateral ground speed, m/s (+ = the animal's left); the crab's sidestep. Integrated like `speed`, no steering */
+  strafe = 0; desiredStrafe = 0;
+  /** metres the feet sit above the sampled ground (a monkey in a palm crown; negative = the sailor still under the deck) */
+  yOffset = 0;
+  /** per-animal scratch for a species' think / animate (numbers only) */
+  mem: Record<string, number> = {};
+  private attackT = -1; private attackDur = 1;
 
   private bones: Record<string, THREE.Bone>;
   private model: AnimalModel;
@@ -137,13 +154,19 @@ export class Animal {
     this.maxHp = this.hp = v.hp ?? model.species.tuning?.hp ?? (model.kind === 'deer' ? 60 : 100);   // the manager re-reads the HuntTuning.hp
     this.mesh.scale.setScalar(scale);
     this.mesh.rotation.order = 'YXZ';
+    this.custom = model.species.rig === 'custom';
     const b = this.bones;
-    this.legDir = [
+    if (!this.custom) this.legDir = [
       [b.FL_shoulder, b.FL_carpus, b.FL_fetlock], [b.FR_shoulder, b.FR_carpus, b.FR_fetlock],
       [b.BL_hip, b.BL_stifle, b.BL_hock], [b.BR_hip, b.BR_stifle, b.BR_hock],
     ];
     this.gaitW[G_IDLE] = 1;
+    this.rigCtx = {
+      bones: this.bones, dims: model.dims, dt: 0, t: 0, seed, scale, speed: 0, strafe: 0, phase: 0, state: 'idle', alive: true,
+      deathT: -1, flinch: 0, brace: 0, attack: -1, lookTarget: this.lookTarget, lookWeight: 0, position: this.position, yaw: 0, mem: this.mem, animal: this,
+    };
   }
+  private rigCtx: RigAnimCtx;
 
   get dims() { return this.model.dims; }
 
@@ -159,6 +182,14 @@ export class Animal {
   setMotion(desiredYaw: number, desiredSpeed: number, turnRate = 2.5) {
     this.desiredYaw = desiredYaw; this.desiredSpeed = desiredSpeed; this.turnRate = turnRate;
   }
+  /** lateral desired speed, m/s, + = the animal's left (the crab sidesteps around you) */
+  setStrafe(mps: number) { this.desiredStrafe = mps; }
+
+  /** begin an attack lasting `dur` s: `attackPhase` runs 0 → 1 (the species' animate poses the wind-up and the strike from it) */
+  startAttack(dur: number) { this.attackT = 0; this.attackDur = Math.max(0.05, dur); }
+  /** 0..1 through the current attack, -1 when none (held at 1 until the next startAttack / cancelAttack) */
+  get attackPhase() { return this.attackT < 0 ? -1 : Math.min(1, this.attackT / this.attackDur); }
+  cancelAttack() { this.attackT = -1; }
 
   // ── combat ─────────────────────────────────────────────────────────────────────────────
 
@@ -170,13 +201,14 @@ export class Animal {
     const m = this.bones.head.matrixWorld.elements;
     return out.set(m[12], m[13], m[14]);
   }
-  /** world-space body capsule segment (a = rump, b = chest) */
+  /** world-space body capsule segment (a = rump, b = chest; or bottom → top for an upright rig, dims.capsuleAxis 'y') */
   bodyCapsule(a: THREE.Vector3, b: THREE.Vector3) {
     const d = this.model.dims;
     const m = this.bones.body.matrixWorld.elements;
     // body bone world matrix: columns are the body axes in world space
     const cx = m[12], cy = m[13], cz = m[14];
-    const fx = m[8] * d.bodyHalfLen, fy = m[9] * d.bodyHalfLen, fz = m[10] * d.bodyHalfLen;
+    const o = d.capsuleAxis === 'y' ? 4 : 8;
+    const fx = m[o] * d.bodyHalfLen, fy = m[o + 1] * d.bodyHalfLen, fz = m[o + 2] * d.bodyHalfLen;
     a.set(cx - fx, cy - fy, cz - fz); b.set(cx + fx, cy + fy, cz + fz);
   }
 
@@ -194,6 +226,8 @@ export class Animal {
       const headshot = _v.distanceToSquared(hitPoint) < (this.model.dims.headRadius * this.scale + 0.06) ** 2;
       if (!headshot) amount = Math.max(1, Math.round(amount * this.mods.damageTaken));
     }
+    const mul = this.model.species.damageMul;
+    if (mul) amount = Math.max(1, Math.round(amount * mul(this, hitPoint, dir)));
     this.hp -= amount;
     this.lastHitT = performance.now();
     // flinch away from the shot: project the shot direction into body space
@@ -267,17 +301,23 @@ export class Animal {
         this.position.x += Math.sin(this.yaw) * this.speed * dt;
         this.position.z += Math.cos(this.yaw) * this.speed * dt;
       }
-    } else this.speed = 0;
+      this.strafe += THREE.MathUtils.clamp(this.desiredStrafe - this.strafe, -9 * dt, 9 * dt);
+      if (Math.abs(this.strafe) > 0.01) {
+        // the animal's left is +X in its frame: world (cos yaw, -sin yaw)
+        this.position.x += Math.cos(this.yaw) * this.strafe * dt;
+        this.position.z -= Math.sin(this.yaw) * this.strafe * dt;
+      }
+    } else { this.speed = 0; this.strafe = 0; }
 
     // ground follow (smoothed so bumps in the heightfield don't jitter the body)
     const gy = heightAt(this.position.x, this.position.z);
     this.groundY += (gy - this.groundY) * Math.min(1, dt * 12);
-    this.position.y = this.groundY;
+    this.position.y = this.groundY + this.yOffset;
 
     // gait weights from speed
     const gw = this.gaitTarget;
     gw.fill(0);
-    const s = this.speed / this.scale;
+    const s = Math.hypot(this.speed, this.strafe) / this.scale;
     if (this.debugGait) {
       const gi = ['idle', 'graze', 'walk', 'trot', 'gallop'].indexOf(this.debugGait.gait);
       this.gaitW.fill(0); this.gaitW[Math.max(0, gi)] = 1; this.phase = this.debugGait.phase;
@@ -298,13 +338,30 @@ export class Animal {
     if (moving > 0.01 && this.alive && !this.debugGait) {
       const g = this.gaitW[G_GALLOP] > 0.5 ? GAITS[G_GALLOP] : this.gaitW[G_TROT] > 0.5 ? GAITS[G_TROT] : GAITS[G_WALK];
       const stride = 2 * d.legLen * Math.sin(g.amp) * this.scale * (g === GAITS[G_GALLOP] ? 1.9 : g === GAITS[G_TROT] ? 1.35 : 1.0);
-      const freq = Math.max(0.6, this.speed * g.stance / stride);
+      const freq = Math.max(0.6, Math.hypot(this.speed, this.strafe) * g.stance / stride);
       this.phase = (this.phase + freq * dt) % 1;
     }
+    if (this.attackT >= 0) this.attackT += dt;
 
     if (!near) {
       // far LOD: just move the root; skip pose maths (skeleton keeps its last pose)
       this.applyRoot();
+      return;
+    }
+
+    if (this.custom) {
+      // a custom rig: advance the shared timers, then the species poses its own bones
+      if (this.flinch > 0.001) this.flinch *= Math.exp(-dt * 5.5);
+      if (this.brace > 0.001 && this.stunT <= 0) this.brace *= Math.exp(-dt * 7);
+      if (this.deathT >= 0) this.deathT = Math.min(1, this.deathT + dt / 0.8);
+      this.lookAmt += ((this.alive ? this.lookWeight : 0) - this.lookAmt) * Math.min(1, dt * 4);
+      this.applyTerrain(dt);
+      const c = this.rigCtx;
+      c.dt = dt; c.t = t; c.speed = this.speed; c.strafe = this.strafe; c.phase = this.phase; c.state = this.state; c.alive = this.alive;
+      c.deathT = this.deathT; c.flinch = this.flinch; c.brace = smooth01(this.brace); c.attack = this.attackPhase; c.lookWeight = this.lookAmt; c.yaw = this.yaw;
+      this.model.species.animate?.(c);
+      this.applyRoot();
+      this.updateFade(dt);
       return;
     }
 
@@ -427,7 +484,7 @@ export class Animal {
    * rest on it (the top-side legs lie across the body). Called by the manager at 10 Hz for dead animals.
    */
   settleCorpse() {
-    if (this.alive || this.deathT < 0.6) return;
+    if (this.alive || this.deathT < 0.6 || this.custom) return;
     const side = this.deathSide;
     for (let l = 0; l < 4; l++) {
       const down = (l % 2 === 0) === (side < 0);
@@ -541,7 +598,7 @@ export class Animal {
     this.tiltRollT = Math.atan2(hl - hr, 2 * W);
     // per-foot delta vs the tilted body plane
     const feet = d.feet;
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < Math.min(4, feet.length); i++) {
       const fx = feet[i][0] * this.scale, fz = feet[i][1] * this.scale;
       const wx = this.position.x + cos * fx + sin * fz, wz = this.position.z - sin * fx + cos * fz;
       const planeY = this.groundY - Math.tan(this.tiltPitchT) * fz + Math.tan(this.tiltRollT) * fx;
@@ -559,7 +616,7 @@ export class Animal {
       this.footDelta[i] += (this.footDeltaT[i] - this.footDelta[i]) * k;
       minD = Math.min(minD, this.footDelta[i]);
     }
-    if (!this.alive) return;
+    if (!this.alive || this.custom) return;
     const legLen = this.model.dims.legLen;
     const p = this.pose;
     // lower the body so the lowest hoof reaches the ground, flex knees for feet on higher ground

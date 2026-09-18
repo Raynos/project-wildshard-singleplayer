@@ -4,7 +4,7 @@ import { Rng } from '../core/rng';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel } from '../world/Heightfield';
 import type { Forest } from '../world/Forest';
 import type { Sky } from '../world/Sky';
-import { AnimalFactory, speciesDef, rollVariant, type AnimalKind, type AnimalStyle } from './AnimalFactory';
+import { AnimalFactory, speciesDef, rollVariant, type AnimalKind, type AnimalStyle, type EnemyWorld, type ThinkCtx } from './AnimalFactory';
 import { Animal, damageFor } from './Animal';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from '../core/tier';
@@ -57,12 +57,21 @@ import { noReflect } from '../world/Water';
  * Dev helpers: animals.spawn(kind, x, z, yaw, variant?) adds a single animal (no herd AI target) — `variant`
  * is a variant id ('ironhide') or an id list to roll from; omitted = the species' full weighted table.
  * animals.debug = true draws the hit capsules, animals.calm = true stops them reacting to the player.
+ *
+ * Species that THINK FOR THEMSELVES (`SpeciesDef.think` — Driftwood Isle's Reef Crab / Coconut Monkey / Drowned Sailor,
+ * src/entities/Enemies.ts spawns them): the manager still owns spawning, per-frame animation, hit tests, blood, sounds,
+ * onKill and the corpse, but their 10 Hz tick goes to the species' `think(animal, ThinkCtx)` instead of the senses /
+ * flee / charge loop above, and a hit does not push them into flee / charge. Their damage to the player arrives through
+ * the same `onCharge(animal, damage)`. `animals.enemyWorld` (EnemyWorld) is what the shard hands those AIs: palm
+ * perches, the coconut thrower, the wreck's hold — Enemies.ts fills it; a missing piece degrades to ground behaviour.
+ * `animals.addHerd(kind, cx, cz)` makes a herd for such a spawner (`spawn()` then `animal.herd = index`).
  */
 
 export interface AnimalHit { animal: Animal; point: THREE.Vector3; distance: number; headshot: boolean; damage: number }
-export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal' | 'bear_growl' | 'bear_roar' | 'bear_hurt';
+export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal' | 'bear_growl' | 'bear_roar' | 'bear_hurt'
+  | 'crab_click' | 'crab_snap' | 'monkey_chatter' | 'monkey_shriek' | 'sailor_groan' | 'sailor_slash' | 'coconut_hit' | 'coconut_land';
 
-interface Herd { kind: AnimalKind; cx: number; cz: number; members: Animal[] }
+export interface Herd { kind: AnimalKind; cx: number; cz: number; members: Animal[] }
 
 interface Brain {
   timer: number;        // time left in the current state
@@ -170,6 +179,8 @@ export class AnimalManager {
   debug = false;
   /** dev: animals ignore the player (no alert / flee) */
   calm = false;
+  /** the shard's pieces for the self-thinking enemy species (see the header; Enemies.ts fills it) */
+  enemyWorld: EnemyWorld = {};
   private brains = new Map<Animal, Brain>();
   private rng = new Rng(SEED + 31);
   private thinkAcc = 0;
@@ -315,6 +326,12 @@ export class AnimalManager {
     return a;
   }
 
+  /** a herd for an external spawner (Enemies.ts): returns its index for `animal.herd`; push the animals into `members` */
+  addHerd(kind: AnimalKind, cx: number, cz: number): number {
+    this.herds.push({ kind, cx, cz, members: [] });
+    return this.herds.length - 1;
+  }
+
   private footfall = (a: Animal, strength: number) => {
     if (!this.onSound) return;
     if (a.position.distanceToSquared(this.playerPos) > 35 * 35) return;
@@ -367,6 +384,27 @@ export class AnimalManager {
 
   private think(a: Animal, dt: number, player: THREE.Vector3, sprinting: boolean) {
     const br = this.brains.get(a)!;
+    const self = speciesDef(a.kind).think;
+    if (self) {
+      // a self-thinking species (the island's enemies): its own tick, its own reactions, its own bounds
+      if (!a.alive) {
+        a.lookWeight = 0;
+        const fade = speciesDef(a.kind).corpseFade;
+        if (fade && !a.hidden && performance.now() - a.lastHitT > fade * 1000) a.fadeOut();
+        return;
+      }
+      if (a.stunned) { a.setMotion(a.yaw, 0, 1); a.setStrafe(0); a.lookTarget.copy(player); a.lookWeight = 1; return; }
+      const c = this.thinkCtx;
+      c.dt = dt; c.t = performance.now() * 0.001; c.player = player; c.playerSpeed = sprinting ? 7.2 : this.playerSpeed;
+      c.calm = this.calm; c.herd = a.herd >= 0 ? this.herds[a.herd].members : null; c.world = this.enemyWorld;
+      c.hurt = (damage) => this.onCharge?.(a, damage);
+      c.sound = (name) => this.onSound?.(name as AnimalSound, a.position);
+      a.sampleTerrain();
+      self(a, c);
+      const herd = a.herd >= 0 ? this.herds[a.herd] : null;
+      if (herd) this.updateHerd(herd);
+      return;
+    }
     if (!a.alive) { a.lookWeight = 0; a.settleCorpse(); return; }
     if (a.stunned) { br.chargeCd = Math.max(0, br.chargeCd - dt); a.setMotion(a.yaw, 0, 1); a.lookTarget.copy(player); a.lookWeight = 1; this.confine(a); return; }   // staggered by a sword blow (Animal.stagger): the AI holds (the charge cooldown still ticks)
     const rng = this.rng;
@@ -503,6 +541,13 @@ export class AnimalManager {
     this.confine(a);
     if (herd) this.updateHerd(herd);
   }
+
+  private thinkCtx: ThinkCtx = {
+    dt: 0.1, t: 0, player: new THREE.Vector3(), playerSpeed: 0, rng: this.rng, calm: false, herd: null,
+    hurt: () => undefined, sound: () => undefined, world: {}, heightAt, waterLevel,
+    steer: (a, yaw, speed, turnRate) => this.steer(a, yaw, speed, turnRate),
+    confine: (a) => this.confine(a),
+  };
 
   private enter(a: Animal, br: Brain, s: Animal['state']) {
     const rng = this.rng;
@@ -724,6 +769,7 @@ export class AnimalManager {
     this.onDamage?.(a, amount, hitPoint, headshot, died);
     const br = this.brains.get(a);
     if (died) { this.onKill?.(a); if (br) br.timer = 0; return; }
+    if (sp.think) return;   // a self-thinking species reads animal.lastHitT / hp in its own tick
     if (br && a.state !== 'charge') {
       // a wounded animal bolts at once — no freeze; a boar this close turns on you instead
       const T = this.tuningFor(a);
@@ -747,7 +793,7 @@ export class AnimalManager {
    */
   private staggered = (a: Animal, strength: number, running: boolean) => {
     const br = this.brains.get(a);
-    if (!br || !running || a.state !== 'charge') return;
+    if (!br || !running || a.state !== 'charge' || speciesDef(a.kind).think) return;
     const T = this.tuningFor(a);
     br.chargeCd = strength >= 0.75 ? (T.stalk ? T.stalk.rechargeCd : 1.4) : 0.3;
     this.enter(a, br, T.stalk ? 'stalk' : 'alert');

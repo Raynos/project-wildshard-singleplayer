@@ -10,6 +10,8 @@ import { AnimalManager } from '../entities/AnimalManager';
  *   &calm=1       animals ignore the player (walk right up to a herd)
  *   &style=lowpoly  force the faceted Driftwood Isle animals (production reads ChunkDef.style)
  *   &sounder=5    a sounder of N idle boars 6 m ahead of the spawn (with &trot=1 / &walk=1 one of them circles)
+ *   &species=crab|monkey|sailor  (&n=4 &dist=5 &variant=big) spawn N of that species ahead, running their OWN AI (SpeciesDef.think);
+ *                 &pose=attack starts their attack every 2 s (the telegraph / strike close-ups); &pose=walk circles them
  * Click = shoot a ray from the camera (applies the DAMAGE model, prints the hit).
  * window.__world = { ...world, animals }
  */
@@ -50,8 +52,27 @@ if (params.has('sounder')) {
   }
 }
 
+const enemies: ReturnType<AnimalManager['spawn']>[] = [];
+const kind = params.get('species') ?? '';
+if (kind) {
+  const n = world.num('n', 4), dist = world.num('dist', 5);
+  const fwd = player.forward, cx = player.position.x + fwd.x * dist, cz = player.position.z + fwd.z * dist;
+  const facing = Math.atan2(-fwd.x, -fwd.z);   // face the player
+  const herd = animals.addHerd(kind, cx, cz);
+  for (let i = 0; i < n; i++) {
+    const ang = (i / n) * Math.PI * 2 + 0.4, r = i === 0 ? 0 : 1.8 + (i % 2) * 0.9;
+    const v = params.get('variant') ?? (kind === 'crab' ? (i === 0 ? 'big' : 'small') : undefined);
+    const e = animals.spawn(kind, cx + Math.cos(ang) * r, cz + Math.sin(ang) * r, facing, v);
+    e.herd = herd; animals.herds[herd].members.push(e);
+    enemies.push(e);
+  }
+}
+let poseT = 0;
+
 game.onUpdate((dt, t) => {
   animals.update(dt, t, player.position, player.sprinting);
+  if (enemies.length && params.get('pose') === 'attack') { poseT += dt; if (poseT > 2) { poseT = 0; for (const e of enemies) { e.mem.st = 2; e.mem.hit = 0; e.startAttack(kind === 'crab' ? 0.78 : kind === 'monkey' ? 1.0 : 0.9); } } }
+  if (enemies.length && params.get('pose') === 'walk') for (const e of enemies) { e.mem.st = 9; e.state = 'wander'; e.setMotion(e.yaw + 0.01, 1.2, 1); }
   for (const s of showcase) {
     // walk a 3 m circle
     const w = 0.45, r = 3;
