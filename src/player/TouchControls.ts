@@ -9,7 +9,7 @@
  * (K1 mockup): AIM over the MOVE pad, JUMP over the LOOK pad, a smaller HOVER between them (AIM and HOVER are toggles:
  * tap to latch, tap again to release — HOVER steps on / off the hoverboard, `player.setHover`, and mirrors the H key).
  * While the player swims (`player.onSwimChange`) JUMP is swapped for a DIVE disc in the same spot — a HELD button that
- * drives `player.touchDive` → `player.diveHeld` (hold to go down). Once the eye is under (`player.onSubmerge / onSurface`)
+ * drives `player.touchDive` → `player.diveHeld` (hold to go down). Once the eye is under (`player.submerged`, polled)
  * a SURFACE disc appears beside it (`player.touchSurface` → `player.surfaceHeld`, hold to come up) and hides again on
  * surfacing. There is no other vertical control in the water.
  * A SWAP pill mirrors HOVER on the LEFT edge: it calls `weapons.swap()` (crossbow ⇄ AR-15, the Q key); it only shows once a
@@ -51,6 +51,7 @@ export class TouchControls {
   private stick?: HTMLElement; private knob?: HTMLElement;
   readonly assist?: AimAssist;
   private lookFrameDist = 0; private lookSpeed = 0; // px moved on the LOOK pad since the last frame / smoothed px/s
+  private wasSubmerged = false; // the SURFACE disc follows player.submerged
 
   constructor(private player: Player, private weapons: Weapons, force = false) {
     this.active = force || IS_TOUCH;
@@ -86,6 +87,7 @@ export class TouchControls {
       const speed = dt > 0 ? this.lookFrameDist / dt : 0; this.lookFrameDist = 0;
       this.lookSpeed += (speed - this.lookSpeed) * Math.min(1, dt * 15);
       if (weapons.enabled) assist.update(dt, player, weapons.adsHeld, this.lookSpeed);
+      if (player.submerged !== this.wasSubmerged) { this.wasSubmerged = player.submerged; root.classList.toggle('submerged', player.submerged); if (!player.submerged) player.touchSurface = false; }
     };
 
     // ── stick + look: pointer events on the layer itself (buttons stop propagation) ──
@@ -170,11 +172,10 @@ export class TouchControls {
     const prevSwim = this.player.onSwimChange;
     this.player.onSwimChange = (on) => { root.classList.toggle('swimming', on); if (!on) { this.player.touchDive = false; this.player.touchSurface = false; root.classList.remove('submerged'); } prevSwim?.(on); };
     root.classList.toggle('swimming', this.player.swimming);
-    // SURFACE appears beside DIVE while the eye is under (held: up = release); it goes with the swim state on climb-out
+    // SURFACE appears beside DIVE while the eye is under (held: up = release); it goes with the swim state on climb-out.
+    // Polled from `player.submerged` every frame (in preUpdate above) rather than hooked on onSubmerge / onSurface, so
+    // main.ts can assign those callbacks freely (audio) without having to chain ours.
     btn('.surface', () => { this.player.touchSurface = true; }, () => { this.player.touchSurface = false; });
-    const prevSub = this.player.onSubmerge, prevSurf = this.player.onSurface;
-    this.player.onSubmerge = () => { root.classList.add('submerged'); prevSub?.(); };
-    this.player.onSurface = () => { root.classList.remove('submerged'); this.player.touchSurface = false; prevSurf?.(); };
     root.classList.toggle('submerged', this.player.submerged);
     btn('.ws-touch-pause', () => document.dispatchEvent(new Event('ws:pause')));
     btn('.ws-touch-use', () => document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e', bubbles: true })));
