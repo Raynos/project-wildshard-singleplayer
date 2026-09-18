@@ -16,6 +16,7 @@ import { TouchControls } from './player/TouchControls';
 import { HUD } from './ui/HUD';
 import { Loading } from './ui/Loading';
 import { Perf } from './ui/Perf';
+import { Minimap } from './ui/Minimap';
 import { createBootPlan, type StepRunner } from './boot/plan';
 import { declareTotals, installByteCounter } from './boot/bytes';
 import { chunkFiles } from './boot/manifest';
@@ -99,6 +100,7 @@ async function main() {
   crossbow.adsHeld = params.has('ads');
   const hud = new HUD({ pointerLock: !nolock });
   const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
+  const minimap = new Minimap(); // circular minimap (Heightfield is installed by now)
   const audio = new Audio();
   let kills = 0, health = 100, lastHurt = 0, pelts = 0;
   const harvested = new Set<object>();
@@ -187,7 +189,7 @@ async function main() {
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 && hud.entered);
     hud.setAimInfo(crossbow.aimInfo);
-    hud.setAnimals(animalPositions(animals.animals)); // compass paw marker at the nearest live animal
+    if (hud.entered) { hud.setAnimals(animalPositions(animals.animals)); minimap.update(player.position, player.yaw, animals.animals); } // compass paw + minimap (hidden under the menu)
     hud.setState({
       bolts: crossbow.state.bolts, loaded: crossbow.state.loaded, reloading: crossbow.state.reloading, reloadProgress: crossbow.state.reloadProgress,
       health, fps: game.stats.fps, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,

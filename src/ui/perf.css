@@ -8,7 +8,7 @@
 .ws-perf .ws-perf-short { display: none; }
 @media (max-width: 700px) {
   /* phone: one short line top-right, above the compass band (its top edge is max(9vh, safe-area + 10px)); the PAUSE pill is top-left */
-  .ws-perf { right: 16px; top: calc(10px + env(safe-area-inset-top, 0px)); font-size: 8px; gap: 4px; padding: 2px 5px; }
+  .ws-perf { right: 12px; top: calc(2px + env(safe-area-inset-top, 0px)); font-size: 8px; gap: 4px; padding: 2px 5px; } /* same line as the PAUSE pill, clear of the compass band */
   .ws-perf .ws-perf-long { display: none; }
   .ws-perf .ws-perf-short { display: inline; }
   .ws-perf b { font-size: 9px; }

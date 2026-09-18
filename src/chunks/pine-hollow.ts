@@ -96,11 +96,11 @@ export const PINE_HOLLOW: ChunkDef = {
   // walking a trail sees them at the tree line; one herd sits by the south spawn trail and one near
   // cabin 2; boars root under the canopy.
   fauna: [
-    { kind: 'deer', count: 5, anchor: { x: 0, z: -190, rMin: 18, rMax: 55 }, canopy: false, trailBand: [10, 25] },   // south trail
-    { kind: 'deer', count: 5, anchor: { x: CABIN_SITES[1].x, z: CABIN_SITES[1].z, rMin: 22, rMax: 45 }, canopy: false, trailBand: [10, 28] },
-    { kind: 'deer', count: 4, canopy: false, trailBand: [10, 25] },
-    { kind: 'boar', count: 5, canopy: true, trailBand: [12, 40] },
-    { kind: 'boar', count: 5, canopy: true, trailBand: [12, 40] },
+    { kind: 'deer', count: 15, anchor: { x: 0, z: -190, rMin: 18, rMax: 55 }, canopy: false, trailBand: [10, 25] },   // south trail
+    { kind: 'deer', count: 15, anchor: { x: CABIN_SITES[1].x, z: CABIN_SITES[1].z, rMin: 22, rMax: 45 }, canopy: false, trailBand: [10, 28] },
+    { kind: 'deer', count: 12, canopy: false, trailBand: [10, 25] },
+    { kind: 'boar', count: 15, canopy: true, trailBand: [12, 40] },
+    { kind: 'boar', count: 15, canopy: true, trailBand: [12, 40] },
   ],
   sky: {
     hdri: 'qwantani_sunset_puresky',
