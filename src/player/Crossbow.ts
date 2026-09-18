@@ -814,14 +814,20 @@ export class Crossbow {
     if (Math.abs(dYaw) > 1) dYaw = 0; if (Math.abs(dPitch) > 1) dPitch = 0;
     this.lagYaw = THREE.MathUtils.clamp(this.lagYaw - dYaw * 0.5, -0.12, 0.12);
     this.lagPitch = THREE.MathUtils.clamp(this.lagPitch - dPitch * 0.5, -0.1, 0.1);
-    this.lagYawVel += (-this.lagYaw * 220 - this.lagYawVel * 20) * dt; this.lagYaw += this.lagYawVel * dt;
-    this.lagPitchVel += (-this.lagPitch * 220 - this.lagPitchVel * 20) * dt; this.lagPitch += this.lagPitchVel * dt;
+    // stiff spring (k=220): explicit Euler blows up once k·dt² > 1 (≈ 15 fps on a phone) → substep at ≤ 1/120 s
+    for (let rem = dt; rem > 0; rem -= 1 / 120) {
+      const h = Math.min(rem, 1 / 120);
+      this.lagYawVel += (-this.lagYaw * 220 - this.lagYawVel * 20) * h; this.lagYaw += this.lagYawVel * h;
+      this.lagPitchVel += (-this.lagPitch * 220 - this.lagPitchVel * 20) * h; this.lagPitch += this.lagPitchVel * h;
+    }
+    this.lagYaw = THREE.MathUtils.clamp(this.lagYaw, -0.12, 0.12); this.lagPitch = THREE.MathUtils.clamp(this.lagPitch, -0.1, 0.1);
 
     // pose blend: hip ↔ ADS ↔ sprint ↔ reload
     this.sprintBlend += ((p.sprinting ? 1 : 0) - this.sprintBlend) * Math.min(1, dt * 7);
     const rl = this.state.reloading ? Math.sin(Math.min(1, this.state.reloadProgress) * Math.PI) : 0;
     this.reloadTilt += (rl - this.reloadTilt) * Math.min(1, dt * 10);
-    const a = sstep(0, 1, this.adsBlend), sp = this.sprintBlend, rt = this.reloadTilt;
+    const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
+    const a = sstep(0, 1, this.adsBlend), sp = this.sprintBlend * (1 - portrait * 0.7), rt = this.reloadTilt; // portrait: the sprint swing would fill the frame
     // hip: lower-right (Skyrim), ADS: centred and a little closer to the eye
     let px = THREE.MathUtils.lerp(0.12, 0.0, a), py = THREE.MathUtils.lerp(-0.165, -0.115, a), pz = THREE.MathUtils.lerp(-0.27, -0.31, a);
     let rx = THREE.MathUtils.lerp(0.035, 0.0, a), ry = THREE.MathUtils.lerp(0.13, 0.0, a), rz = THREE.MathUtils.lerp(0.04, 0.0, a);
@@ -842,9 +848,10 @@ export class Crossbow {
 
     if (this.inspect) { px = 0.02; py = -0.02; pz = -0.42; rx = 0.35; ry = 0.9 + Math.sin(t * 0.25) * 0.5; rz = 0.1; }
     // portrait phone: the wider FOV + narrow frame make the bow fill the screen — hold it lower, further out, smaller
-    const port = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
-    px *= 1 - port * 0.1; py *= 1 + port * 0.6; pz *= 1 + port * 0.35;
-    this.model.scale.setScalar(1.35 * (1 - port * 0.25));
+    const port = portrait;
+    // target: the whole prod visible inside ~60 % of the screen width (prod ≈ 0.68 m × scale at |pz| + 0.3 × scale)
+    px *= 1 - port * 0.25; py *= 1 + port * 0.7; pz *= 1 + port * 1.5;
+    this.model.scale.setScalar(1.35 * (1 - port * 0.55));
     const sm = this.poseInit ? Math.min(1, dt * 14) : 1; this.poseInit = true;
     this.posePos.x += (px - this.posePos.x) * sm; this.posePos.y += (py - this.posePos.y) * sm; this.posePos.z += (pz - this.posePos.z) * sm;
     this.poseRot.x += (rx - this.poseRot.x) * sm; this.poseRot.y += (ry - this.poseRot.y) * sm; this.poseRot.z += (rz - this.poseRot.z) * sm;
