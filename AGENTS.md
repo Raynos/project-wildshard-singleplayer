@@ -9,6 +9,16 @@
 
 - Commit early and often with small commits, and `git push origin main` after every commit —
   don't let local commits pile up.
+- **Shared-tree safety** — this checkout has **more than one agent editing the working tree at
+  once** (parallel Claude sessions and their subagents, all on `main`, no worktrees). **NEVER**
+  `git stash`, `checkout`, `restore`, `git rm`, or otherwise mutate files you didn't author.
+  Stage **only your own files, by explicit path** (`git add path/a path/b` — never `git add -A`,
+  `git add .`, or `git commit -a`), and leave everyone else's uncommitted WIP untouched. Deploy
+  from a clean export of HEAD (`git archive HEAD | tar -x -C <dir>`), never from the working
+  tree, so nobody's half-finished files ship. Verify before you claim: `git status`,
+  `git log origin/main..main`, and the push actually succeeding.
+- Every screenshot session must be closed (`agent-browser --session <s> close`) before you
+  report — an open one keeps rendering the game and pins the box.
 
 ## Mockups
 
