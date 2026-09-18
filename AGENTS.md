@@ -15,3 +15,10 @@ on his laptop.
 
 - A finished game will run at 60 FPS only.
 - A finished game will have AAA graphics that are photo realistic worthy of PS5
+
+## Deploy
+
+- Deploy frequently. After every meaningful, verified change run
+  `vercel deploy --prod --yes` from the repo root (project `wildshard-singleplayer`,
+  live at https://wildshard-singleplayer.vercel.app). Don't batch up a day of work
+  before shipping it.
