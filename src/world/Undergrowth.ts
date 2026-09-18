@@ -7,6 +7,7 @@ import { attachFogUniforms } from './Atmosphere';
 import { windUniforms } from './TreeFactory';
 import type { Sky } from './Sky';
 import type { Forest } from './Forest';
+import { TIER_CONFIG } from '../core/tier';
 
 /**
  * Forest-floor undergrowth: instanced ferns, low round-leaf shrubs and needle/twig litter.
@@ -30,7 +31,7 @@ import type { Forest } from './Forest';
  */
 
 const FERN_MAX = 6000, SHRUB_MAX = 1500, LITTER_MAX = 5000, STONE_MAX = 3000, MOSS_MAX = 3000, REED_MAX = 1500;
-const FADE_FAR = 110, FADE_BAND = 25;
+const FADE_FAR = TIER_CONFIG.undergrowthFar, FADE_BAND = Math.min(25, FADE_FAR * 0.3);
 
 const underUniforms = {
   uFadeFar: { value: FADE_FAR },
@@ -87,6 +88,7 @@ export class Undergrowth {
     const mesh = new THREE.InstancedMesh(geo, mat, Math.max(1, items.length));
     mesh.frustumCulled = false;
     mesh.receiveShadow = true;
+    shadow = shadow && TIER_CONFIG.undergrowthShadows;
     mesh.castShadow = shadow;
     if (shadow && tex) {
       const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: 0.5, side: THREE.DoubleSide });

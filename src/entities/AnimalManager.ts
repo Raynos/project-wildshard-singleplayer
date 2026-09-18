@@ -7,6 +7,7 @@ import type { Sky } from '../world/Sky';
 import { AnimalFactory, type AnimalKind, type AnimalModel } from './AnimalFactory';
 import { Animal } from './Animal';
 import { getActiveChunk } from '../chunks/registry';
+import { TIER_CONFIG } from '../core/tier';
 
 /**
  * AnimalManager — spawns the chunk's huntable wildlife (the active ChunkDef's `fauna` herd plans),
@@ -199,7 +200,10 @@ export class AnimalManager {
       const d2 = a.position.distanceToSquared(playerPos);
       const near = d2 < ANIM_LOD * ANIM_LOD;
       a.update(dt, t, near);
-      if (d2 < SHELL_DIST * SHELL_DIST) {
+      // draw / shadow distance by tier: a deer at 150 m is a few pixels on a phone, and only near animals shadow
+      a.mesh.visible = d2 < TIER_CONFIG.animalHideDist * TIER_CONFIG.animalHideDist;
+      a.mesh.castShadow = d2 < TIER_CONFIG.animalShadowDist * TIER_CONFIG.animalShadowDist;
+      if (TIER_CONFIG.furShells && d2 < SHELL_DIST * SHELL_DIST) {
         for (let k = 0; k < SHELL_MAX; k++) if (d2 < sd[k]) {
           for (let m = SHELL_MAX - 1; m > k; m--) { sd[m] = sd[m - 1]; si[m] = si[m - 1]; }
           sd[k] = d2; si[k] = i; break;

@@ -22,6 +22,9 @@ export class Sky {
 
   constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private renderer: THREE.WebGLRenderer) {}
 
+  /** the player's camera (world modules cull against it) */
+  get viewCamera() { return this.camera; }
+
   async build() {
     const { sky: S, atmosphere: A } = getActiveChunk();
     const qs = new URLSearchParams(location.search);
@@ -52,8 +55,8 @@ export class Sky {
 
     this.csm = new CSM({
       camera: this.camera, parent: this.scene, cascades: TIER_CONFIG.cascades, mode: 'practical',
-      maxFar: 220, shadowMapSize: 2048, lightDirection: this.sunDir.clone().negate(),
-      lightIntensity: qn('sunI', S.sunIntensity), shadowBias: -0.00012, lightMargin: 120, lightNear: 1, lightFar: 600,
+      maxFar: TIER_CONFIG.shadowFar, shadowMapSize: TIER_CONFIG.shadowMapSize, lightDirection: this.sunDir.clone().negate(),
+      lightIntensity: qn('sunI', S.sunIntensity), shadowBias: -0.00012, lightMargin: TIER_CONFIG.shadowMargin, lightNear: 1, lightFar: 600,
     });
     this.csm.fade = true;
     patchCSMShaderChunk();

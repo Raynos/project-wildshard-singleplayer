@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { loadTexture, loadPBR } from '../core/assets';
 import { Rng } from '../core/rng';
 import { attachFogUniforms } from './Atmosphere';
+import { TIER_CONFIG } from '../core/tier';
 
 /**
  * Pine trees built from a runtime-baked "branch card".
@@ -20,6 +21,8 @@ export interface TreeVariant {
   cardsLo: THREE.BufferGeometry;
   /** near-field detail: individual photoscan twig quads along the branches (drawn within ~35 m) */
   twigs: THREE.BufferGeometry;
+  /** far LOD: two crossed quads with the whole tree (cards + trunk) baked into `farMaterial`'s atlas — 4 tris */
+  far: THREE.BufferGeometry;
   height: number;
   trunkRadius: number;
 }
@@ -35,6 +38,8 @@ export class TreeFactory {
   needleDepth!: THREE.MeshDepthMaterial;
   twigMaterial!: THREE.MeshStandardMaterial;
   twigDepth!: THREE.MeshDepthMaterial;
+  /** far-tree impostor: albedo + normal atlas, one column per variant (baked from the hi tree at load) */
+  farMaterial!: THREE.MeshStandardMaterial;
   variants: TreeVariant[] = [];
 
   private opts: Required<TreeFactoryOptions>;
@@ -147,10 +152,107 @@ export class TreeFactory {
     for (const s of specs) {
       const hi = this.buildTree(s.height, s.trunk, new Rng(s.seed * 77 + 1), 1.0);
       const lo = this.buildTree(s.height, s.trunk, new Rng(s.seed * 77 + 1), 0.45);
-      this.variants.push({ trunk: hi.trunk, cardsHi: hi.cards, cardsLo: lo.cards, twigs: hi.twigs, height: s.height, trunkRadius: s.trunk });
+      this.variants.push({ trunk: hi.trunk, cardsHi: hi.cards, cardsLo: lo.cards, twigs: hi.twigs, far: new THREE.BufferGeometry(), height: s.height, trunkRadius: s.trunk });
     }
     void rng;
+    this.bakeImpostors(card.albedo, bark.map!);
     return this;
+  }
+
+  // ---------------------------------------------------------------- far-tree impostor bake
+  /**
+   * Render each variant's hi tree (cards + trunk) from the side into one atlas column of albedo and
+   * of view-space normals (bent toward up like the needle shader), then build the 2-quad cross that
+   * wears it. Beyond `treeLoDist` a tree is 4 triangles instead of ~1 300.
+   */
+  private bakeImpostors(cardAlbedo: THREE.Texture, barkMap: THREE.Texture) {
+    const n = this.variants.length;
+    const COL = TIER_CONFIG.maxTexture >= 2048 ? 512 : 256, W = COL * n, H = COL * 2;
+    const rt = (colorSpace: THREE.ColorSpace) => new THREE.WebGLRenderTarget(W, H, { colorSpace, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter, magFilter: THREE.LinearFilter });
+    const albedoRT = rt(THREE.SRGBColorSpace), normalRT = rt(THREE.LinearSRGBColorSpace);
+    const needleColor = this.needleMaterial.color, barkColor = this.barkMaterial.color;
+    const mk = (map: THREE.Texture, tint: THREE.Color, mode: number, isBark: boolean, height: number) => new THREE.ShaderMaterial({
+      uniforms: { tMap: { value: map }, uTint: { value: tint }, uMode: { value: mode }, uCrown: { value: isBark ? 0 : 1 }, uHeight: { value: height } },
+      side: THREE.DoubleSide,
+      vertexShader: /* glsl */`
+        uniform float uHeight;
+        varying vec2 vUv; varying vec3 vN; varying float vAO;
+        void main() {
+          vUv = uv; vN = normalize( normalMatrix * normal );
+          vAO = mix( 0.5, 1.0, uv.x ) * mix( 0.72, 1.0, position.y / uHeight );
+          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        }`,
+      fragmentShader: /* glsl */`
+        uniform sampler2D tMap; uniform vec3 uTint; uniform int uMode; uniform float uCrown;
+        varying vec2 vUv; varying vec3 vN; varying float vAO;
+        void main() {
+          vec4 d = texture2D( tMap, vUv );
+          if ( d.a < 0.45 ) discard;
+          if ( uMode == 0 ) { gl_FragColor = vec4( d.rgb * uTint * mix( 1.0, vAO, uCrown ), 1.0 ); return; }
+          vec3 nn = normalize( vN ); if ( !gl_FrontFacing ) nn = -nn; if ( nn.z < 0.0 ) nn.z = -nn.z;
+          nn = normalize( mix( nn, vec3( 0.0, 1.0, 0.0 ), 0.45 * uCrown ) );
+          gl_FragColor = vec4( nn * 0.5 + 0.5, 1.0 );
+        }`,
+    });
+    const scene = new THREE.Scene();
+    const cam = new THREE.OrthographicCamera(-1, 1, 1, 0, 0.1, 400);
+    const prev = this.renderer.getRenderTarget();
+    const prevClear = this.renderer.getClearColor(new THREE.Color()); const prevAlpha = this.renderer.getClearAlpha();
+    const prevTone = this.renderer.toneMapping; this.renderer.toneMapping = THREE.NoToneMapping;
+    this.variants.forEach((v, i) => {
+      v.cardsHi.computeBoundingBox(); const bb = v.cardsHi.boundingBox!;
+      const halfW = Math.max(Math.abs(bb.min.x), Math.abs(bb.max.x), Math.abs(bb.min.z), Math.abs(bb.max.z)) * 1.02;
+      // column aspect is 1:2 → frame = 2·halfW wide, 4·halfW tall (the tree is always taller than wide)
+      const frameH = Math.max(v.height * 1.02, halfW * 4), frameW = frameH / 2;
+      cam.left = -frameW / 2; cam.right = frameW / 2; cam.top = frameH; cam.bottom = 0; cam.updateProjectionMatrix();
+      cam.position.set(0, 0, 200); cam.lookAt(0, 0, 0);
+      for (let mode = 0; mode < 2; mode++) {
+        scene.clear();
+        scene.add(new THREE.Mesh(v.cardsHi, mk(cardAlbedo, needleColor, mode, false, v.height)), new THREE.Mesh(v.trunk, mk(barkMap, new THREE.Color().copy(barkColor).multiplyScalar(0.7), mode, true, v.height)));
+        const target = mode === 0 ? albedoRT : normalRT;
+        // column i of the atlas: the target's own viewport / scissor (renderer.setViewport would clobber the canvas viewport)
+        target.viewport.set(i * COL, 0, COL, H); target.scissor.set(i * COL, 0, COL, H); target.scissorTest = true;
+        this.renderer.setRenderTarget(target);
+        this.renderer.setClearColor(mode === 0 ? new THREE.Color(0.1, 0.16, 0.07) : new THREE.Color(0.5, 0.5, 1.0), mode === 0 ? 0 : 1);
+        this.renderer.clear();
+        this.renderer.render(scene, cam);
+      }
+      // the cross: two vertical quads, pivot at the base, UVs into column i
+      const geos: THREE.BufferGeometry[] = [];
+      for (const yaw of [0, Math.PI / 2]) {
+        const q = new THREE.PlaneGeometry(frameW, frameH);
+        q.translate(0, frameH / 2, 0);
+        q.rotateY(yaw);
+        const uv = q.attributes.uv as THREE.BufferAttribute;
+        for (let k = 0; k < uv.count; k++) uv.setXY(k, (i + uv.getX(k)) / n, uv.getY(k));
+        geos.push(q);
+      }
+      const far = mergeGeometries(geos, false)!;
+      const fp = far.attributes.position as THREE.BufferAttribute;
+      const wind = new Float32Array(fp.count);
+      for (let k = 0; k < fp.count; k++) wind[k] = fp.getY(k) / v.height;
+      far.setAttribute('windWeight', new THREE.BufferAttribute(wind, 1));
+      far.computeBoundingSphere();
+      v.far = far;
+    });
+    for (const t of [albedoRT, normalRT]) { t.viewport.set(0, 0, W, H); t.scissor.set(0, 0, W, H); t.scissorTest = false; }
+    this.renderer.setRenderTarget(prev); this.renderer.setClearColor(prevClear, prevAlpha); this.renderer.toneMapping = prevTone;
+    for (const t of [albedoRT.texture, normalRT.texture]) { t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 4; }
+    this.farMaterial = new THREE.MeshStandardMaterial({
+      map: albedoRT.texture, normalMap: normalRT.texture, alphaTest: 0.3, side: THREE.DoubleSide, roughness: 0.96, metalness: 0, envMapIntensity: 0.45,
+      color: new THREE.Color(1, 1, 1), normalScale: new THREE.Vector2(1, 1),
+    });
+    this.farMaterial.onBeforeCompile = (shader) => {
+      attachFogUniforms(shader); patchWind(shader);
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <alphatest_fragment>', /* glsl */`
+          diffuseColor.a = clamp( ( diffuseColor.a - alphaTest ) / max( fwidth( diffuseColor.a ), 1e-4 ) + 0.5, 0.0, 1.0 );
+          if ( diffuseColor.a < 0.5 ) discard;`)
+        .replace('#include <normal_fragment_begin>', THREE.ShaderChunk.normal_fragment_begin.replace('normal *= faceDirection;', ''))
+        .replace('#include <lights_fragment_begin>', `#include <lights_fragment_begin>
+          reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.06;`);
+    };
+    this.farMaterial.customProgramCacheKey = () => 'tree-far';
   }
 
   // ---------------------------------------------------------------- branch card bake

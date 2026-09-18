@@ -6,21 +6,41 @@ import { heightAt, normalAt, trailDistance, cabinMask, inChunk, pondMask } from 
 import { TreeFactory, windUniforms } from './TreeFactory';
 import type { Sky } from './Sky';
 import { getActiveChunk } from '../chunks/registry';
+import { TIER_CONFIG } from '../core/tier';
 
 export interface TreeInstance { x: number; y: number; z: number; r: number; variant: number; scale: number; rot: number; height: number; tint: THREE.Color }
 
-const LOD_DIST = 110; // metres: beyond this, use the low-card geometry
-const TWIG_DIST = 38; // metres: within this, individual twig quads are drawn on the branches
+const LOD_DIST = TIER_CONFIG.treeHiDist;   // metres: beyond this, the low-card geometry
+const FAR_DIST = TIER_CONFIG.treeLoDist;   // metres: beyond this, the 2-quad baked impostor
+const TWIG_DIST = TIER_CONFIG.treeTwigDist; // metres: within this, individual twig quads are drawn on the branches
+const KEEP_NEAR = Math.max(45, TIER_CONFIG.shadowFar * 0.5); // metres: trees this close are never frustum-culled (their shadows reach into view)
+const CULL_FOV_PAD = 24;                    // degrees added to the camera FOV for the cull frustum
 
+/**
+ * Per-frame bucketing: every tree has one precomputed matrix; on move (> 1.5 m) or turn (> 3°) the
+ * buckets are refilled with only the trees inside a padded view frustum (or within KEEP_NEAR), by
+ * distance band: hi cards + twigs (near), lo cards, far impostor. Trunks follow the same near/far
+ * split so the far half never enters a shadow pass on the phone tier.
+ */
 export class Forest {
   group = new THREE.Group();
   trees: TreeInstance[] = [];
   private hi: THREE.InstancedMesh[] = [];
   private lo: THREE.InstancedMesh[] = [];
+  private far: THREE.InstancedMesh[] = [];
   private trunks: THREE.InstancedMesh[] = [];
+  private trunksFar: THREE.InstancedMesh[] = [];
   private twigs: THREE.InstancedMesh[] = [];
   private lastLodPos = new THREE.Vector3(1e9, 0, 0);
+  private lastDir = new THREE.Vector3(0, 0, 0);
   private grid = new Map<string, TreeInstance[]>();
+  private mats!: Float32Array;   // 16 floats per tree
+  private tints!: Float32Array;  // 3 floats per tree
+  private frustum = new THREE.Frustum();
+  private cullCam = new THREE.PerspectiveCamera();
+  private projView = new THREE.Matrix4();
+  private sphere = new THREE.Sphere();
+  private viewDir = new THREE.Vector3();
 
   constructor(private factory: TreeFactory, private sky: Sky) {}
 
@@ -33,21 +53,34 @@ export class Forest {
     this.sky.setupMaterial(this.factory.barkMaterial);
     this.sky.setupMaterial(this.factory.needleMaterial);
     this.sky.setupMaterial(this.factory.twigMaterial);
+    this.sky.setupMaterial(this.factory.farMaterial);
+    this.mats = new Float32Array(this.trees.length * 16);
+    this.tints = new Float32Array(this.trees.length * 3);
+    this.trees.forEach((t, i) => {
+      this.tmpQ.setFromAxisAngle(this.tmpP.set(0, 1, 0), t.rot);
+      this.tmpM.compose(this.tmpP.set(t.x, t.y, t.z), this.tmpQ, this.tmpS.set(t.scale, t.scale, t.scale));
+      this.tmpM.toArray(this.mats, i * 16);
+      this.tints[i * 3] = t.tint.r; this.tints[i * 3 + 1] = t.tint.g; this.tints[i * 3 + 2] = t.tint.b;
+    });
     this.factory.variants.forEach((v, vi) => {
       const count = this.trees.filter((t) => t.variant === vi).length;
-      const mk = (geo: THREE.BufferGeometry, mat: THREE.Material, depth?: THREE.Material) => {
+      const mk = (geo: THREE.BufferGeometry, mat: THREE.Material, shadow: boolean, depth?: THREE.Material, tint = true) => {
         const im = new THREE.InstancedMesh(geo, mat, count);
-        im.castShadow = true; im.receiveShadow = true;
+        im.castShadow = shadow; im.receiveShadow = true;
         if (depth) im.customDepthMaterial = depth;
-        im.frustumCulled = false; // we do LOD bucketing ourselves; culling a whole InstancedMesh is pointless
+        im.frustumCulled = false; // we do LOD bucketing + per-tree culling ourselves
         im.count = 0;
+        if (tint) { im.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(count * 3), 3); im.instanceColor.setUsage(THREE.DynamicDrawUsage); }
+        im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
         this.group.add(im);
         return im;
       };
-      this.trunks.push(mk(v.trunk, this.factory.barkMaterial));
-      this.hi.push(mk(v.cardsHi, this.factory.needleMaterial, this.factory.needleDepth));
-      this.lo.push(mk(v.cardsLo, this.factory.needleMaterial, this.factory.needleDepth));
-      this.twigs.push(mk(v.twigs, this.factory.twigMaterial, this.factory.twigDepth));
+      this.trunks.push(mk(v.trunk, this.factory.barkMaterial, true, undefined, false));
+      this.trunksFar.push(mk(v.trunk, this.factory.barkMaterial, TIER_CONFIG.loTreeShadows, undefined, false));
+      this.hi.push(mk(v.cardsHi, this.factory.needleMaterial, true, this.factory.needleDepth));
+      this.lo.push(mk(v.cardsLo, this.factory.needleMaterial, TIER_CONFIG.loTreeShadows, this.factory.needleDepth));
+      this.far.push(mk(v.far, this.factory.farMaterial, false));
+      this.twigs.push(mk(v.twigs, this.factory.twigMaterial, true, this.factory.twigDepth));
     });
     return this;
   }
@@ -131,24 +164,49 @@ export class Forest {
 
   update(dt: number, viewer: THREE.Vector3) {
     windUniforms.uTime.value += dt;
-    if (viewer.distanceToSquared(this.lastLodPos) < 3 * 3) return;
-    this.lastLodPos.copy(viewer);
-    const counts = this.hi.map(() => 0), countsLo = this.lo.map(() => 0), countsT = this.trunks.map(() => 0), countsTw = this.twigs.map(() => 0);
-    for (const t of this.trees) {
-      const dx = t.x - viewer.x, dz = t.z - viewer.z;
-      const near = dx * dx + dz * dz < LOD_DIST * LOD_DIST;
-      const target = near ? this.hi[t.variant] : this.lo[t.variant];
-      const idx = near ? counts[t.variant]++ : countsLo[t.variant]++;
-      this.tmpQ.setFromAxisAngle(this.tmpP.set(0, 1, 0), t.rot);
-      this.tmpM.compose(this.tmpP.set(t.x, t.y, t.z), this.tmpQ, this.tmpS.set(t.scale, t.scale, t.scale));
-      target.setMatrixAt(idx, this.tmpM);
-      target.setColorAt(idx, t.tint);
-      this.trunks[t.variant].setMatrixAt(countsT[t.variant]++, this.tmpM);
-      if (dx * dx + dz * dz < TWIG_DIST * TWIG_DIST) { const tw = this.twigs[t.variant]; tw.setMatrixAt(countsTw[t.variant], this.tmpM); tw.setColorAt(countsTw[t.variant]++, t.tint); }
+    const cam = this.sky.viewCamera;
+    cam.getWorldDirection(this.viewDir);
+    const moved = viewer.distanceToSquared(this.lastLodPos) > 1.5 * 1.5;
+    const turned = this.viewDir.dot(this.lastDir) < Math.cos(3 * Math.PI / 180);
+    if (!moved && !turned) return;
+    this.lastLodPos.copy(viewer); this.lastDir.copy(this.viewDir);
+
+    // padded view frustum for culling (the sphere test below is generous already; the pad covers the shadow lead-in)
+    const cc = this.cullCam;
+    cc.fov = cam.fov + CULL_FOV_PAD; cc.aspect = cam.aspect; cc.near = cam.near; cc.far = cam.far;
+    cc.updateProjectionMatrix();
+    this.projView.multiplyMatrices(cc.projectionMatrix, cam.matrixWorldInverse);
+    this.frustum.setFromProjectionMatrix(this.projView);
+
+    const V = this.hi.length;
+    const nHi = new Int32Array(V), nLo = new Int32Array(V), nFar = new Int32Array(V), nT = new Int32Array(V), nTF = new Int32Array(V), nTw = new Int32Array(V);
+    const put = (m: THREE.InstancedMesh, idx: number, i: number, tint: boolean) => {
+      (m.instanceMatrix.array as Float32Array).set(this.mats.subarray(i * 16, i * 16 + 16), idx * 16);
+      if (tint) (m.instanceColor!.array as Float32Array).set(this.tints.subarray(i * 3, i * 3 + 3), idx * 3);
+    };
+    const hiD2 = LOD_DIST * LOD_DIST, farD2 = FAR_DIST * FAR_DIST, twD2 = TWIG_DIST * TWIG_DIST, keepD2 = KEEP_NEAR * KEEP_NEAR;
+    for (let i = 0; i < this.trees.length; i++) {
+      const t = this.trees[i];
+      const dx = t.x - viewer.x, dz = t.z - viewer.z, d2 = dx * dx + dz * dz;
+      if (d2 > keepD2) {
+        this.sphere.center.set(t.x, t.y + t.height * 0.5, t.z); this.sphere.radius = t.height * 0.6;
+        if (!this.frustum.intersectsSphere(this.sphere)) continue;
+      }
+      const v = t.variant;
+      if (d2 < hiD2) {
+        put(this.hi[v], nHi[v]++, i, true);
+        put(this.trunks[v], nT[v]++, i, false);
+        if (d2 < twD2) put(this.twigs[v], nTw[v]++, i, true);
+      } else if (d2 < farD2) {
+        put(this.lo[v], nLo[v]++, i, true);
+        put(this.trunksFar[v], nTF[v]++, i, false);
+      } else {
+        put(this.far[v], nFar[v]++, i, true);
+      }
     }
-    this.hi.forEach((m, i) => { m.count = counts[i]; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; });
-    this.lo.forEach((m, i) => { m.count = countsLo[i]; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; });
-    this.trunks.forEach((m, i) => { m.count = countsT[i]; m.instanceMatrix.needsUpdate = true; });
-    this.twigs.forEach((m, i) => { m.count = countsTw[i]; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; });
+    const commit = (list: THREE.InstancedMesh[], counts: Int32Array) => list.forEach((m, i) => {
+      m.count = counts[i]; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true;
+    });
+    commit(this.hi, nHi); commit(this.lo, nLo); commit(this.far, nFar); commit(this.trunks, nT); commit(this.trunksFar, nTF); commit(this.twigs, nTw);
   }
 }

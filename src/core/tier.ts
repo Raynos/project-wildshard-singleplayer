@@ -1,7 +1,7 @@
 /**
  * Quality tier, picked once at boot. Phones get smaller textures, fewer shadow cascades, no AO and a
  * DPR cap — the difference between "loads in minutes then dies" and playable. `?tier=phone|desktop`
- * overrides for testing.
+ * overrides for testing. Every knob below is measured in docs/plans/PLAY-PERF.md.
  */
 export type Tier = 'phone' | 'desktop';
 
@@ -14,6 +14,29 @@ const forced = params.get('tier') as Tier | null;
 export const TIER: Tier = forced === 'phone' || forced === 'desktop' ? forced : mobileUA ? 'phone' : 'desktop';
 
 export const TIER_CONFIG = {
-  phone:   { maxTexture: 1024, layerSize: 512,  dpr: 1.25, cascades: 2, ao: false, grassRadius: 40 },
-  desktop: { maxTexture: 4096, layerSize: 1024, dpr: 1.5,  cascades: 3, ao: true,  grassRadius: 60 },
+  phone: {
+    maxTexture: 1024, layerSize: 512, dpr: 1.25, ao: false,
+    // shadows: one cascade to 80 m, 1024² — the 2-cascade rig re-drew the whole world twice (9.8 M tris)
+    cascades: 1, shadowMapSize: 1024, shadowFar: 80, shadowMargin: 60,
+    undergrowthShadows: false, animalShadowDist: 30, animalHideDist: 150, furShells: false,
+    // trees: hi cards → lo cards → far card beyond loDist; lo trees never cast shadows (they are past shadowFar)
+    treeHiDist: 55, treeLoDist: 120, treeTwigDist: 24, loTreeShadows: false,
+    // grass carpet: ring radius / slots per 4 m cell / quads per clump
+    grassRadius: 40, grassSlots: 56, grassQuads: 3,
+    undergrowthFar: 60, propsFar: 140,
+    // pond planar reflection: render-target width (height = half), and whether the carpet layers reflect
+    reflectionWidth: 512, reflectDetail: false,
+    // post: god rays samples / resolution scale, volumetric march steps, SMAA preset
+    godRaysSamples: 24, godRaysScale: 0.35, volumetricSteps: 8, smaa: 'low' as 'low' | 'high',
+  },
+  desktop: {
+    maxTexture: 4096, layerSize: 1024, dpr: 1.5, ao: true,
+    cascades: 3, shadowMapSize: 2048, shadowFar: 220, shadowMargin: 120,
+    undergrowthShadows: true, animalShadowDist: 90, animalHideDist: 400, furShells: true,
+    treeHiDist: 110, treeLoDist: 210, treeTwigDist: 38, loTreeShadows: true,
+    grassRadius: 55, grassSlots: 96, grassQuads: 5,
+    undergrowthFar: 110, propsFar: 320,
+    reflectionWidth: 1024, reflectDetail: true,
+    godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, smaa: 'high' as 'low' | 'high',
+  },
 }[TIER];
