@@ -10,7 +10,8 @@ import { Hut } from '../world/Hut';
 import { Palms } from '../world/Palms';
 import { Lookout } from '../world/Lookout';
 import { Wreck } from '../world/Wreck';
-import { HUT, LOOKOUT, WRECK } from '../chunks/driftwood-isle';
+import { Shrine } from '../world/Shrine';
+import { HUT, LOOKOUT, WRECK, SHRINE } from '../chunks/driftwood-isle';
 import { Boundary } from '../world/Boundary';
 import { Horizon } from '../world/Horizon';
 import { CHUNK_HALF, ROAD_LENGTH } from '../core/config';
@@ -44,7 +45,7 @@ game.scene.add(hut.group);
 player.colliders.push(...hut.colliders);
 player.platforms.push((x, z) => hut.floorHeightAt(x, z));
 
-const palms = new Palms(sky).build(Palms.scatterIsland(chunk.seed, 150, [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }]));
+const palms = new Palms(sky).build(Palms.scatterIsland(chunk.seed, 150, [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }]));
 game.scene.add(palms.mesh);
 player.colliders.push(...palms.colliders);
 
@@ -58,6 +59,11 @@ game.scene.add(wreck.group);
 player.colliders.push(...wreck.colliders);
 player.platforms.push((x, z) => wreck.floorHeightAt(x, z));
 
+const shrine = new Shrine(sky, SHRINE).build();
+game.scene.add(shrine.group);
+player.colliders.push(...shrine.colliders);
+player.platforms.push((x, z) => shrine.floorHeightAt(x, z));
+
 const boundary = new Boundary(sky).build();
 game.scene.add(boundary.group);
 const horizon = new Horizon(sky).build();
@@ -65,6 +71,6 @@ game.scene.add(horizon.group);
 
 game.onUpdate((dt, t) => { ocean?.update(dt); boat.update(dt); palms.update(dt); boundary.update(dt, t); horizon.update(dt, game.camera); });
 
-(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boat, rocks, hut, palms, lookout, wreck, boundary, horizon, heightAt };
+(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boat, rocks, hut, palms, lookout, wreck, shrine, boundary, horizon, heightAt };
 game.buildComposer();
 game.start();

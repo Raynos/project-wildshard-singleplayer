@@ -39,6 +39,8 @@ export const HEADLAND = { x: 98, z: 96, r: 48, h: 22, shoulderR: 80, shoulderH: 
 /** Wreck Cove: a bay bitten out of the east shore; the wreck lies heeled on its sand, bow to the land */
 export const COVE = { ang: -0.02, depth: 46, width: 0.5 };
 export const WRECK = { x: 149, z: 4, heading: 2.1, roll: 0.32 };
+/** the ring shrine on a knoll in the north-west jungle (rot: which way its pillars face — south-east, toward the hut) */
+export const SHRINE = { x: -98, z: 108, rot: 2.4 };
 /** the lookout tower on the headland summit (rot: the stair faces south-west, toward the hut) */
 export const LOOKOUT = { x: HEADLAND.x - 4, z: HEADLAND.z - 2, rot: 0.6 };
 
@@ -101,6 +103,8 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
         h += smoothstep(HEADLAND.r + 7 + sw * 26, HEADLAND.r - 6, hr) * HEADLAND.h;
         h += smoothstep(HEADLAND.shoulderR, 20, d) * n.fbm(x * 0.025 + 8, z * 0.025, 3) * 2.2 * (1 - sw); // broken, boulder-strewn top
       }
+      // the shrine knoll: a soft rise with a flat top for the dais
+      { const d = Math.hypot(x - SHRINE.x, z - SHRINE.z); h += smoothstep(34, 9, d) * 3.2; }
       return h;
     },
     /** The four mandated entry roads only (they are the four jetties' sandbars). */
