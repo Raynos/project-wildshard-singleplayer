@@ -1,7 +1,7 @@
 /**
  * TouchControls — on-screen first-person controls for coarse-pointer devices (phones, tablets).
  *
- *   const touch = new TouchControls(player, crossbow);   // no-op on mouse/trackpad devices (`touch.active === false`)
+ *   const touch = new TouchControls(player, weapons);    // no-op on mouse/trackpad devices (`touch.active === false`)
  *
  * Layout (styled in src/ui/styles/touch.css, prefix `ws-touch-`): a glass control bar across the bottom ~15 % of the screen, split into
  * a MOVE zone (left, anchored stick: push past 85 % while heading forward = sprint) and a LOOK zone (right, drag
@@ -10,7 +10,9 @@
  * tap to latch, tap again to release — HOVER steps on / off the hoverboard, `player.setHover`, and mirrors the H key).
  * While the player swims (`player.onSwimChange`) JUMP is swapped for a DIVE disc in the same spot — a HELD button that
  * drives `player.touchDive` → `player.diveHeld` (the dive mechanic consumes it; the layer only owns the control).
- * There is no RELOAD: `crossbow.tryFire()` spans the bow itself when it is fired empty. USE is a big button above the
+ * A SWAP pill mirrors HOVER on the LEFT edge: it calls `weapons.swap()` (crossbow ⇄ AR-15, the Q key); it only shows once a
+ * second weapon is unlocked (`weapons.onUnlock` — the AR-15 is a cabin pickup).
+ * There is no RELOAD: `weapons.tryFire()` reloads the held weapon itself when it is fired empty. USE is a big button above the
  * discs, shown only while the HUD has an interact prompt; it dispatches the same `KeyE` the keyboard path listens for.
  * The HUD (HUD.ts) mounts the VITALS / BOLTS strips into the bar's top corners (`.ws-game-vitals` / `.ws-game-bolts`).
  * Move/look touches are only taken inside the bar; the world above it is not a control surface.
@@ -20,11 +22,11 @@
  * `assist.lookScale()`.
  *
  * Talks to the player through `player.touchMove / touchSprint / touchJump` (analog, summed with WASD) and to
- * the crossbow through its public `tryFire() / reload() / adsHeld`. The layer only receives events once the
+ * the held weapon through the Weapons manager's `tryFire() / adsHeld / enabled` (Weapons.ts). The layer only receives events once the
  * intro is gone (`#hud.intro` hides it), and never needs pointer lock — iOS has none.
  */
 import type { Player } from './Player';
-import type { Crossbow } from './Crossbow';
+import type { Weapons } from './Weapons';
 import { AimAssist } from './AimAssist';
 
 export const IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
@@ -48,7 +50,7 @@ export class TouchControls {
   readonly assist?: AimAssist;
   private lookFrameDist = 0; private lookSpeed = 0; // px moved on the LOOK pad since the last frame / smoothed px/s
 
-  constructor(private player: Player, private crossbow: Crossbow, force = false) {
+  constructor(private player: Player, private weapons: Weapons, force = false) {
     this.active = force || IS_TOUCH;
     if (!this.active) return;
     const hud = document.getElementById('hud') ?? document.body;
@@ -59,6 +61,7 @@ export class TouchControls {
       <div class="ws-touch-stick"><i></i></div>
       <button class="ws-touch-use" type="button">Use</button>
       <button class="ws-touch-disc aim" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="1.4"/><path d="M12 1.5v4.5M12 18v4.5M1.5 12H6M18 12h4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Aim</span></button>
+      <button class="ws-touch-disc swap" type="button"><svg viewBox="0 0 24 24"><path d="M4 8h13M13.5 4.5 17 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 16H7M10.5 12.5 7 16l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Swap</span></button>
       <button class="ws-touch-disc hover" type="button"><svg viewBox="0 0 24 24"><path d="M2 9.5c0-1.4 1.1-2.5 2.5-2.5h15c1.4 0 2.5 1.1 2.5 2.5S20.9 12 19.5 12h-15C3.1 12 2 10.9 2 9.5z"/><path d="M6 15.5h12M8.5 19h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.7"/></svg><span>Hover</span></button>
       <button class="ws-touch-disc jump" type="button"><svg viewBox="0 0 24 24"><path d="M12 2.5 4 11h5v10.5h6V11h5z"/></svg><span>Jump</span></button>
       <button class="ws-touch-disc dive" type="button"><svg viewBox="0 0 24 24"><path d="M12 2v11.5M7.5 9.5 12 14l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 18.5c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4 1.7-1.4 3.4-1.4 1.6 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 22c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/></svg><span>Dive</span></button>
@@ -79,7 +82,7 @@ export class TouchControls {
       prevPre?.(dt);
       const speed = dt > 0 ? this.lookFrameDist / dt : 0; this.lookFrameDist = 0;
       this.lookSpeed += (speed - this.lookSpeed) * Math.min(1, dt * 15);
-      if (crossbow.enabled) assist.update(dt, player, crossbow.adsHeld, this.lookSpeed);
+      if (weapons.enabled) assist.update(dt, player, weapons.adsHeld, this.lookSpeed);
     };
 
     // ── stick + look: pointer events on the layer itself (buttons stop propagation) ──
@@ -125,7 +128,7 @@ export class TouchControls {
       } else if (e.pointerId === this.lookPointer) {
         this.lookPointer = -1;
         // a tap on the look pad (barely moved, quick) fires; a drag only looked. Cancelled touches never fire.
-        if (e.type === 'pointerup' && this.lookPath < TAP_PX && performance.now() - this.lookT0 < TAP_MS && this.crossbow.enabled) this.crossbow.tryFire();
+        if (e.type === 'pointerup' && this.lookPath < TAP_PX && performance.now() - this.lookT0 < TAP_MS && this.weapons.enabled) this.weapons.tryFire();
       }
     };
     root.addEventListener('pointerup', release);
@@ -141,8 +144,16 @@ export class TouchControls {
     };
     // AIM is a toggle, not a hold: each press flips ADS and the button stays lit (.on) while it is latched
     const aim = root.querySelector<HTMLElement>('.aim')!;
-    aim.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.crossbow.adsHeld = !this.crossbow.adsHeld; aim.classList.toggle('on', this.crossbow.adsHeld); });
+    aim.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.weapons.adsHeld = !this.weapons.adsHeld; aim.classList.toggle('on', this.weapons.adsHeld); });
     aim.addEventListener('pointerup', (e) => e.stopPropagation());
+    // SWAP: crossbow ⇄ rifle (Weapons.swap, the Q key); the pill flashes .down while pressed, nothing latches. Hidden until a
+    // second weapon is unlocked (the AR-15 pickup — Weapons.onUnlock)
+    btn('.swap', () => { if (this.weapons.enabled) this.weapons.swap(); });
+    const swap = root.querySelector<HTMLElement>('.swap')!;
+    const syncSwap = () => swap.classList.toggle('show', this.weapons.available.length > 1);
+    const prevUnlock = this.weapons.onUnlock;
+    this.weapons.onUnlock = (id) => { syncSwap(); prevUnlock?.(id); };
+    syncSwap();
     // HOVER is a toggle too; the H key flips the same state, so the lit look follows the player, not the button
     const hover = root.querySelector<HTMLElement>('.hover')!;
     hover.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.player.setHover(!this.player.hover); });

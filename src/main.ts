@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { bootstrap } from './core/bootstrap';
 import { CHUNK_HALF } from './core/config';
-import { hasPond } from './world/Heightfield';
+import { hasPond, heightAt, CABIN_SITES } from './world/Heightfield';
 import { Boundary } from './world/Boundary';
 import { Water } from './world/Water';
 import { Ocean } from './world/Ocean';
@@ -23,6 +23,9 @@ import { Cabins } from './world/Cabin';
 import { Props } from './world/Props';
 import { AnimalManager } from './entities/AnimalManager';
 import { Crossbow, type Targets, type TargetHit } from './player/Crossbow';
+import { Rifle } from './player/Rifle';
+import { Weapons, type WeaponId } from './player/Weapons';
+import { WeaponPickup } from './player/WeaponPickup';
 import { TouchControls } from './player/TouchControls';
 import { HUD } from './ui/HUD';
 import { Loading } from './ui/Loading';
@@ -138,7 +141,7 @@ async function main() {
     return a;
   });
 
-  // ── player kit: crossbow, HUD, audio ──
+  // ── player kit: the shard's weapon + the AR-15 (Weapons.ts: 1 / 2 / Q, touch SWAP; the rifle is a cabin pickup), HUD, audio ──
   await step('weapon', () => undefined); // synchronous below; the step marks it in the log
   const targets: Targets = {
     raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null {
@@ -150,8 +153,10 @@ async function main() {
   const crossbow: Weapon = chunk.weapon === 'sword'
     ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock })
     : new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
-  new TouchControls(player, crossbow as Crossbow, params.has('touch')); // on-screen FPS controls on coarse-pointer devices (?touch=1 forces)
-  crossbow.adsHeld = params.has('ads');
+  const rifle = new Rifle({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
+  const weapons = new Weapons(crossbow, rifle); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
+  new TouchControls(player, weapons, params.has('touch')); // on-screen FPS controls on coarse-pointer devices (?touch=1 forces)
+  weapons.adsHeld = params.has('ads');
   const hud = new HUD({ pointerLock: !nolock });
   const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
   const minimap = new Minimap(); // circular minimap (Heightfield is installed by now)
@@ -166,9 +171,8 @@ async function main() {
   const inventory = new Inventory(getActiveChunk().id);   // the pack: harvest drops
   const menu = new GameMenu({
     fullMap, progress, inventory,
-    kit: () => (chunk.weapon === 'sword'
-      ? [{ id: 'sword', name: 'Wooden sword', ammoLabel: '', ammo: 0, magazine: 0, reserve: 0, equipped: true, icon: 'crossbow' as const }] // TODO(icons): a sword glyph
-      : [{ id: 'crossbow', name: 'Hunting crossbow', ammoLabel: 'Iron bolts', ammo: crossbow.state.bolts ?? 0, magazine: 30, reserve: 0, equipped: true, icon: 'crossbow' as const }]),
+    kit: () => weapons.available.map((w) => ({ id: w.id, name: w.id === 'crossbow' ? 'Hunting crossbow' : w.id === 'sword' ? 'Wooden sword' : w.name, ammoLabel: w.id === 'crossbow' ? 'Iron bolts' : w.id === 'rifle' ? 'Rounds' : '', ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? 'rifle' : 'crossbow' })),
+    onEquip: (id) => weapons.select(id as WeaponId),
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); });
@@ -179,23 +183,36 @@ async function main() {
   onNumber('volume', masterGain);
 
   const hands = new Hands(sky, game.camera); // white-gloved swimming hands (shown only while player.swimming)
-  crossbow.onFire = () => (chunk.weapon === 'sword' ? audio.swordSwing() : audio.crossbowFire());
-  crossbow.onDry = () => audio.dryFire();
-  crossbow.onReloadStart = () => audio.reload();
-  crossbow.onImpact = (surface, point) => {
+  weapons.onFire = () => (weapons.current.id === 'rifle' ? audio.rifleFire() : chunk.weapon === 'sword' ? audio.swordSwing() : audio.crossbowFire());
+  weapons.onDry = () => audio.dryFire();
+  weapons.onReloadStart = () => (weapons.current.id === 'rifle' ? audio.rifleReload() : audio.reload());
+  weapons.onSwap = () => audio.weaponSwap();
+  weapons.onImpact = (surface, point) => {
     const dx = point.x - player.position.x, dz = point.z - player.position.z, d = Math.hypot(dx, dz);
     const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
     const pan = d > 1 ? ((dx * rx + dz * rz) / d) * 0.7 : 0, gain = 1 / (1 + d / 12);
-    if (chunk.weapon === 'sword') audio.swordHit(surface, pan, gain); else audio.boltImpact(surface, pan, gain);
+    if (weapons.current.id !== 'rifle' && chunk.weapon === 'sword') audio.swordHit(surface, pan, gain); else audio.boltImpact(surface, pan, gain);
   };
-  crossbow.onHit = (kind, headshot, killed) => {
+  weapons.onHit = (_kind, headshot, killed) => {
     hud.showHitMarker(headshot, killed);
     audio.hitMarker();
     if (killed) { kills++; audio.kill(); }
   };
   animals.onKill = (a) => { hud.killFeed(`${a.label} · ${Math.round(a.position.distanceTo(player.position))} m`); progress.recordKill(a.kind, a.variant); };
   setAimTargets(animals.animals); // aim assist reads the live array
-  new Combat(game, animals, crossbow, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring)
+  // the AR-15 is found, not issued: a floating pickup on the floor of cabin 1 (the hollow), inside by the door wall
+  // (cabin local frame: door on +X, chimney end -Z — Cabin.ts); "[E] Take AR-15" through the door / harvest prompt path
+  const rifleDrop = (() => {
+    const site = CABIN_SITES[0]; if (!site || !cabins) return null;
+    const lx = 1.5, lz = -1.6, c = Math.cos(site.rot), sn = Math.sin(site.rot);
+    const x = site.x + lx * c + lz * sn, z = site.z - lx * sn + lz * c;
+    const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position: new THREE.Vector3(x, cabins.floorHeightAt(x, z) ?? heightAt(x, z), z), tier: 'common', prompt: 'Take AR-15' });
+    interactables.push(drop.interactable);
+    drop.onPickup = () => { weapons.unlock('rifle'); weapons.select('rifle'); audio.hitMarker(); hud.toast('AR-15 acquired · 1/2 to switch, Q to swap'); };
+    return drop;
+  })();
+  if (params.get('weapon') === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle', true); rifleDrop?.dispose(); } // dev: start with it
+  new Combat(game, animals, weapons as unknown as Crossbow, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
   animals.onSound = (name, pos) => audio.animal(name, pos, player.position, player.yaw);
   animals.onCharge = (_a, dmg) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); };
   player.onStep = (sprinting) => (player.wading ? audio.wadeStep(player.depth, sprinting) : audio.footstep(sprinting));
@@ -214,18 +231,18 @@ async function main() {
   const enter = () => {
     audio.resume();
     void keepAlive.start(); // screen wake lock — needs this user gesture
-    crossbow.enabled = true;
-    crossbow.model.visible = true;
+    weapons.setEnabled(true);
+    weapons.visible = true;
     perf.setActive(true); debug.setActive(true);
     if (tour.active && !params.has('tour')) { tour.active = false; respawn(); }
     if (!nolock) player.lock();
   };
   hud.onResume = enter;
-  hud.onExitToMenu = () => { crossbow.enabled = false; perf.setActive(false); debug.setActive(false); }; // the HUD mutes audio and clears `entered`; the gate does the rest
+  hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); debug.setActive(false); }; // the HUD mutes audio and clears `entered`; the gate does the rest
   // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
   game.frameGate = () => hud.entered;
-  if (menuFirst) { crossbow.enabled = false; crossbow.model.visible = false; perf.setActive(false); audio.muted = true; hud.showIntro(enter); }
-  else { hud.markEntered(); crossbow.enabled = !nolock || params.has('skipintro'); debug.setActive(true); }
+  if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.muted = true; hud.showIntro(enter); }
+  else { hud.markEntered(); weapons.setEnabled(!nolock || params.has('skipintro')); debug.setActive(true); }
   document.addEventListener('keydown', () => audio.resume(), { once: true });
   document.addEventListener('mousedown', () => audio.resume(), { once: true });
 
@@ -259,9 +276,10 @@ async function main() {
     particles.update(dt, player.position, game.camera);
     cabins?.update(dt, t);
     // swimming holsters the weapon (hands only; Hands.ts follows)
-    if (player.swimming !== swimHold) { swimHold = player.swimming; crossbow.model.visible = !swimHold; crossbow.enabled = !swimHold; }
+    if (player.swimming !== swimHold) { swimHold = player.swimming; weapons.visible = !swimHold; weapons.setEnabled(!swimHold); }
     animals.update(dt, t, player.position, player.sprinting);
-    crossbow.update(dt, t);
+    weapons.update(dt, t); // every weapon ticks (bolts in flight keep flying while the rifle is out)
+    rifleDrop?.update(dt, t, game.renderer, game.camera);
     audio.listenerYaw = player.yaw;
 
     // nearest interactable
@@ -277,12 +295,13 @@ async function main() {
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 && hud.entered);
-    hud.setAimInfo(crossbow.aimInfo);
+    hud.setAimInfo(weapons.aimInfo);
     if (hud.entered) { hud.setAnimals(animalPositions(animals.animals)); minimap.update(player.position, player.yaw, animals.animals); fullMap.update(player.position, player.yaw); } // compass paw + minimap (hidden under the menu)
     hud.setState({
-      bolts: crossbow.state.bolts, loaded: crossbow.state.loaded, reloading: crossbow.state.reloading, reloadProgress: crossbow.state.reloadProgress,
+      bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, reserve: weapons.state.reserve, loaded: weapons.state.loaded, reloading: weapons.state.reloading, reloadProgress: weapons.state.reloadProgress,
+      ammoLabel: weapons.current.ammoLabel, weaponName: weapons.current.name, segments: weapons.current.segments,
       health, fps: game.stats.fps, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
-      prompt, speed: player.speedFactor, ads: crossbow.state.ads,
+      prompt, speed: player.speedFactor, ads: weapons.state.ads,
     });
   });
 

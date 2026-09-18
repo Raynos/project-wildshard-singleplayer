@@ -62,6 +62,8 @@
 .ws-game-ammo .ws-game-count { font-family: var(--ws-display); font-weight: 700; font-size: 30px; line-height: 1; color: #fff; letter-spacing: 0.02em; }
 .ws-game-ammo .ws-game-count small { font-size: 13px; color: var(--ws-text-dim); font-weight: 500; }
 .ws-game-ammo .ws-game-count.empty { color: var(--ws-red); }
+.ws-game-ammo .ws-game-count .ws-game-reserve { margin-left: 6px; font-size: 11px; color: var(--ws-cyan-dim); font-weight: 600; letter-spacing: 0.06em; } /* rounds beyond the magazine (rifle: + 90) */
+.ws-game-ammo .ws-label .ws-game-weapon { display: block; font-size: 8px; letter-spacing: 0.3em; color: rgba(230, 242, 248, 0.55); margin-bottom: 2px; } /* weapon name tag: CROSSBOW / AR-15 */
 .ws-game-ammo .ws-game-status { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 8px; font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-cyan-dim); }
 .ws-game-ammo .ws-game-status i { width: 7px; height: 7px; background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); transform: rotate(45deg); transition: background 0.2s; }
 .ws-game-ammo .ws-game-status.reloading { color: var(--ws-amber); }
@@ -173,6 +175,9 @@
 .ws-game-vitals .ws-game-glyph svg, .ws-game-bolts .ws-game-glyph svg { display: block; width: 100%; height: 100%; fill: #fff; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6)); }
 .ws-game-vitals .ws-game-num, .ws-game-bolts .ws-game-num { font-family: var(--ws-display); font-weight: 700; font-size: 21px; line-height: 1; letter-spacing: 0.02em; color: #fff; font-variant-numeric: tabular-nums; }
 .ws-game-bolts .ws-game-num small { font-size: 13px; font-weight: 600; color: rgba(230, 242, 248, 0.8); }
+.ws-game-bolts .ws-game-num .ws-game-reserve { font-size: 10px; color: var(--ws-cyan-dim); margin-left: 4px; }
+.ws-game-bolts .ws-game-tiny .ws-game-weapon { display: block; font-size: 6.5px; letter-spacing: 0.26em; color: rgba(230, 242, 248, 0.5); line-height: 1; margin-bottom: 1px; }
+.ws-game-bolts .ws-game-tiny .ws-game-weapon:empty { display: none; }
 .ws-game-vitals .ws-game-tiny, .ws-game-bolts .ws-game-tiny { font-size: 7.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-cyan-dim); }
 .ws-game-vitals .ws-game-vbar { position: relative; width: 46px; height: 4px; background: rgba(143, 227, 255, 0.14); overflow: hidden; }
 .ws-game-vitals .ws-game-vbar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ws-cyan); box-shadow: 0 0 8px rgba(143, 227, 255, 0.6); transition: width 0.25s ease-out, background 0.3s; }

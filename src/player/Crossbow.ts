@@ -42,7 +42,8 @@ export interface TargetAnimal {
   applyDamage(amount: number, point: THREE.Vector3, dir: THREE.Vector3): boolean;
   /** the damage model's number for a bolt: headshot ×2.5, body 32–40 with distance falloff (src/entities/Animal.ts) */
   damageFor(headshot: boolean, dist: number): number;
-  kind: 'deer' | 'boar';
+  /** species id (`Animal.kind`, any registered species — 'deer', 'boar', variants …) */
+  kind: string;
   position: THREE.Vector3;
   alive: boolean;
 }
@@ -80,12 +81,12 @@ const TRUNK_PAD = 0.15;
 const MAX_TRACERS = 8, TRACER_POINTS = 2048, TRACER_LIFE = 6, TRACER_FADE = 1.5, TRACER_WIDTH = 8;
 /** markers + the flying glow are scaled with distance (never below 1×) so they stay ~25 px on screen at any range */
 const TRACER_PX = 0.32;
-const TRACER_ORDER = 1200; // after the viewmodel (1000) so the trail's first metre shows over the weapon
+export const TRACER_ORDER = 1200; // after the viewmodel (1000) so the trail's first metre shows over the weapon
 /** ADS is true iron sights, not a zoom: the FOV stays put and the weapon is brought up to the eye instead. */
-const FOV_HIP = 72, FOV_ADS = 58; // ADS zooms 1.3× (tan 36° / 1.3 → 29.1° half-angle); the pose solve re-runs per FOV so the sight stays centred
+export const FOV_HIP = 72, FOV_ADS = 58; // ADS zooms 1.3× (tan 36° / 1.3 → 29.1° half-angle); the pose solve re-runs per FOV so the sight stays centred
 /** Vertical FOV to give the camera. Three's fov is vertical, so on a portrait phone a fixed 72° collapses the
  *  horizontal view to ~37°; widen it (Hor+ via the geometric mean of the aspect) so 72° hip → ~94° at 9:19.5. */
-function fovForAspect(base: number, aspect: number) {
+export function fovForAspect(base: number, aspect: number) {
   if (aspect >= 1) return base;
   return THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(base) / 2) / Math.sqrt(aspect)));
 }
@@ -106,7 +107,7 @@ const PEEP_Z = 0.10, PEEP_R = 0.01, PEEP_TUBE = 0.12, PEEP_R_WORLD = 0.0105, PEE
 
 // ───────────────────────────── procedural noise / textures ─────────────────────────────
 
-function makeNoise(seed: number) {
+export function makeNoise(seed: number) {
   const hash = (x: number, y: number) => {
     let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(seed, 1442695041)) | 0;
     h = Math.imul(h ^ (h >>> 13), 1274126177);
@@ -126,10 +127,10 @@ function makeNoise(seed: number) {
   };
   return { hash, n, fbm };
 }
-const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
-const sstep = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+export const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
+export const sstep = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 
-function dataTexture(data: Uint8Array, w: number, h: number, srgb: boolean, repeat = 1): THREE.DataTexture {
+export function dataTexture(data: Uint8Array, w: number, h: number, srgb: boolean, repeat = 1): THREE.DataTexture {
   const t = new THREE.DataTexture(data, w, h, THREE.RGBAFormat);
   t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
@@ -142,7 +143,7 @@ function dataTexture(data: Uint8Array, w: number, h: number, srgb: boolean, repe
   return t;
 }
 
-function normalFromHeight(h: Float32Array, w: number, hgt: number, strength: number): THREE.DataTexture {
+export function normalFromHeight(h: Float32Array, w: number, hgt: number, strength: number): THREE.DataTexture {
   const out = new Uint8Array(w * hgt * 4);
   for (let y = 0; y < hgt; y++) for (let x = 0; x < w; x++) {
     const l = h[y * w + ((x + w - 1) % w)], r = h[y * w + ((x + 1) % w)];
@@ -155,7 +156,7 @@ function normalFromHeight(h: Float32Array, w: number, hgt: number, strength: num
   return dataTexture(out, w, hgt, false);
 }
 
-interface TexSet { map: THREE.Texture; normalMap: THREE.Texture; armMap: THREE.Texture }
+export interface TexSet { map: THREE.Texture; normalMap: THREE.Texture; armMap: THREE.Texture }
 
 /** Dark walnut: fine ring bands, streaks along the grain, oil smudges. Grain runs along U. 1 UV unit ≈ 1 m × 0.25 m. */
 function makeWalnut(seed: number): TexSet {
@@ -184,7 +185,7 @@ function makeWalnut(seed: number): TexSet {
 }
 
 /** Forged steel: mottled grey, brushed scratches, pits with a rust tint. */
-function makeSteel(seed: number): TexSet {
+export function makeSteel(seed: number): TexSet {
   const S = 512;
   const { fbm, hash } = makeNoise(seed);
   const cvs = document.createElement('canvas'); cvs.width = cvs.height = S;
@@ -372,13 +373,13 @@ function bandGeometry(w: number, h: number, len: number, thick: number, bevel = 
   return g;
 }
 
-function box(w: number, h: number, d: number, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0): THREE.BufferGeometry {
+export function box(w: number, h: number, d: number, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0): THREE.BufferGeometry {
   const g = new THREE.BoxGeometry(w, h, d);
   if (rx || ry || rz) g.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rx, ry, rz)));
   g.translate(x, y, z);
   return g;
 }
-function cyl(rTop: number, rBot: number, len: number, seg: number, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0): THREE.BufferGeometry {
+export function cyl(rTop: number, rBot: number, len: number, seg: number, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0): THREE.BufferGeometry {
   const g = new THREE.CylinderGeometry(rTop, rBot, len, seg);
   if (rx || ry || rz) g.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rx, ry, rz)));
   g.translate(x, y, z);
@@ -390,7 +391,7 @@ function remapUV(g: THREE.BufferGeometry, u0: number, v0: number, su: number, sv
   return g;
 }
 /** Lighten vertex colour on bevel/edge vertices (normals off-axis) → worn, handled edges. */
-function edgeWear(g: THREE.BufferGeometry, amount = 0.28) {
+export function edgeWear(g: THREE.BufferGeometry, amount = 0.28) {
   const n = g.getAttribute('normal'), count = n.count;
   const colors = new Float32Array(count * 3);
   for (let i = 0; i < count; i++) {
@@ -402,7 +403,7 @@ function edgeWear(g: THREE.BufferGeometry, amount = 0.28) {
   }
   g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 }
-function stripExtra(g: THREE.BufferGeometry) { // non-indexed, only position/normal/uv, so merge works
+export function stripExtra(g: THREE.BufferGeometry) { // non-indexed, only position/normal/uv, so merge works
   if (g.index) g = g.toNonIndexed();
   for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal' && k !== 'uv') g.deleteAttribute(k);
   return g;
@@ -439,7 +440,7 @@ function buildBoltGeometry(): THREE.BufferGeometry {
 
 const PUFF_COUNT = 6, PUFF_PARTICLES = 14, MAX_PARTICLES = PUFF_COUNT * PUFF_PARTICLES;
 
-class Puffs {
+export class Puffs {
   points: THREE.Points;
   private pos: Float32Array; private vel = new Float32Array(MAX_PARTICLES * 3);
   private life = new Float32Array(MAX_PARTICLES); private maxLife = new Float32Array(MAX_PARTICLES);
@@ -514,7 +515,7 @@ class Puffs {
 
 // ───────────────────────────── debug tracers ─────────────────────────────
 
-const TRACER_RED = new THREE.Color(1.0, 0.0, 0.0); // pure red; anything brighter the AgX tone map washes to salmon
+export const TRACER_RED = new THREE.Color(1.0, 0.0, 0.0); // pure red; anything brighter the AgX tone map washes to salmon
 /** shared: the glow on flying bolts, impact-marker spheres, stuck-bolt nock dots (never fades) */
 const glowMat = new THREE.MeshBasicMaterial({ color: TRACER_RED, transparent: true, depthTest: false, depthWrite: false, toneMapped: false, fog: false, side: THREE.DoubleSide });
 const boltGlowGeo = new THREE.SphereGeometry(0.035, 12, 8);   // 7 cm on the flying bolt
@@ -613,13 +614,15 @@ export class Crossbow implements Weapon {
   inspect = 0;
   /** dev: reload duration multiplier (1 = normal) */
   reloadScale = 1;
+  /** 0..1 weapon-swap blend driven by Weapons.ts: 1 = dropped out of view (down + back + muzzle up); 0 = held (no effect) */
+  holster = 0;
   /** what the crosshair is over (animals only; refreshed every 4th frame, 120 m) */
-  aimInfo: { kind: 'deer' | 'boar'; distance: number } | null = null;
+  aimInfo: { kind: string; distance: number } | null = null;
   private aimFrame = 0;
-  private aimCache = { kind: 'deer' as 'deer' | 'boar', distance: 0 };
+  private aimCache = { kind: 'deer', distance: 0 };
 
   onFire?: () => void;
-  onHit?: (kind: 'deer' | 'boar', headshot: boolean, killed: boolean) => void;
+  onHit?: (kind: string, headshot: boolean, killed: boolean) => void;
   onImpact?: (surface: ImpactSurface, point: THREE.Vector3) => void;
   onReloadStart?: () => void;
   onReloadEnd?: () => void;
@@ -677,7 +680,7 @@ export class Crossbow implements Weapon {
   }
 
   // ── input ──
-  private inputAllowed() { return this.enabled && (this.player.locked || this.allowUnlocked); }
+  inputAllowed() { return this.enabled && (this.player.locked || this.allowUnlocked); }
   private bindInput() {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
@@ -724,14 +727,19 @@ export class Crossbow implements Weapon {
   private buildViewmodel() {
     const walnut = makeWalnut(11), steel = makeSteel(23), leather = makeLeather(31), cord = makeCord();
     walnut.map.repeat.set(1, 4); walnut.normalMap.repeat.set(1, 4); walnut.armMap.repeat.set(1, 4);
-    const woodMat = new THREE.MeshPhysicalMaterial({ map: walnut.map, normalMap: walnut.normalMap, normalScale: new THREE.Vector2(0.75, 0.75), aoMap: walnut.armMap, roughnessMap: walnut.armMap, roughness: 1, metalness: 0, vertexColors: true, envMapIntensity: 0.45, specularIntensity: 0.3 }); // low specularIntensity kills the grazing sunset sheen on the rail
+    // Every material below carries the SAME map slots (map, normal, ao, roughness, metalness — the ARM texture
+    // feeds the last three, a flat 1×1 ARM where a set has none) and the same cache key, so the crossbow costs
+    // three programs (Physical + vertex colours: stock; the same + anisotropy: prod; Standard: iron, brass, cord,
+    // leather) instead of six — each one is ~150 ms of Metal shader compile on the iPhone. Uniform values still differ per material.
+    const flatArm = dataTexture(new Uint8Array([255, 255, 0, 255]), 1, 1, false); // ao 1 · roughness 1 · metal 0
+    const woodMat = new THREE.MeshPhysicalMaterial({ map: walnut.map, normalMap: walnut.normalMap, normalScale: new THREE.Vector2(0.75, 0.75), aoMap: walnut.armMap, roughnessMap: walnut.armMap, metalnessMap: walnut.armMap, roughness: 1, metalness: 0, vertexColors: true, envMapIntensity: 0.45, specularIntensity: 0.3 }); // low specularIntensity kills the grazing sunset sheen on the rail
     const ironMat = new THREE.MeshStandardMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.7, 0.7), aoMap: steel.armMap, roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.5, metalness: 1, color: new THREE.Color(0.24, 0.23, 0.23), envMapIntensity: 0.6 });
-    const prodMat = new THREE.MeshPhysicalMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.6, 0.6), roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.25, metalness: 1, color: new THREE.Color(0.55, 0.55, 0.57), vertexColors: true, anisotropy: 0.8, anisotropyRotation: 0, envMapIntensity: 0.7 });
+    const prodMat = new THREE.MeshPhysicalMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.6, 0.6), aoMap: steel.armMap, roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.25, metalness: 1, color: new THREE.Color(0.55, 0.55, 0.57), vertexColors: true, anisotropy: 0.8, anisotropyRotation: 0, envMapIntensity: 0.7 }); // anisotropy kept (hero-weapon sheen): its define is the prod's own program
     steel.map.repeat.set(2, 2); steel.normalMap.repeat.set(2, 2); steel.armMap.repeat.set(2, 2);
-    const leatherMat = new THREE.MeshPhysicalMaterial({ map: leather.map, normalMap: leather.normalMap, aoMap: leather.armMap, roughnessMap: leather.armMap, roughness: 1, metalness: 0, specularIntensity: 0.4, envMapIntensity: 0.5 });
-    const cordMat = new THREE.MeshStandardMaterial({ map: cord.map, normalMap: cord.normalMap, roughness: 0.85, metalness: 0 });
-    const brassMat = new THREE.MeshStandardMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.3, 0.3), roughnessMap: steel.armMap, roughness: 1.1, metalness: 1, color: new THREE.Color(0.95, 0.66, 0.3), envMapIntensity: 1.0 });
-    ([['xbow-wood', woodMat], ['xbow-iron', ironMat], ['xbow-prod', prodMat], ['xbow-leather', leatherMat], ['xbow-cord', cordMat], ['xbow-brass', brassMat]] as [string, THREE.Material][]).forEach(([n, m]) => { fixIBL(m, n); this.sky.setupMaterial(m); });
+    const leatherMat = new THREE.MeshStandardMaterial({ map: leather.map, normalMap: leather.normalMap, aoMap: leather.armMap, roughnessMap: leather.armMap, metalnessMap: leather.armMap, roughness: 1, metalness: 0, envMapIntensity: 0.5 });
+    const cordMat = new THREE.MeshStandardMaterial({ map: cord.map, normalMap: cord.normalMap, aoMap: flatArm, roughnessMap: flatArm, metalnessMap: flatArm, roughness: 0.85, metalness: 0 });
+    const brassMat = new THREE.MeshStandardMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.3, 0.3), aoMap: steel.armMap, roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.1, metalness: 1, color: new THREE.Color(0.95, 0.66, 0.3), envMapIntensity: 1.0 });
+    ([['xbow-wood', woodMat], ['xbow-iron', ironMat], ['xbow-prod', prodMat], ['xbow-leather', leatherMat], ['xbow-cord', cordMat], ['xbow-brass', brassMat]] as [string, THREE.Material][]).forEach(([n, m]) => { m.name = n; fixIBL(m, 'xbow'); this.sky.setupMaterial(m); });
 
     // model space: -Z forward (bolt direction), +Y up, rail top at y=0. Nut at z=+0.14, prod at z=-0.30.
     // ── stock: side profile extruded along X with bevels ──
@@ -842,7 +850,7 @@ export class Crossbow implements Weapon {
     const atlas = makeBoltAtlas(41);
     this.boltGeo = buildBoltGeometry();
     this.boltMat = new THREE.MeshStandardMaterial({ map: atlas.map, normalMap: atlas.normalMap, aoMap: atlas.armMap, roughnessMap: atlas.armMap, metalnessMap: atlas.armMap, roughness: 1, metalness: 1, alphaTest: 0.5, side: THREE.DoubleSide });
-    fixIBL(this.boltMat, 'xbow-bolt'); this.sky.setupMaterial(this.boltMat);
+    this.boltMat.name = 'xbow-bolt'; fixIBL(this.boltMat, 'xbow'); this.sky.setupMaterial(this.boltMat);
     this.loadedBolt = new THREE.Mesh(this.boltGeo, this.boltMat);
     this.loadedBolt.position.set(0, 0.0095, 0.128 - 0.18);
     this.model.add(this.loadedBolt);
@@ -1081,6 +1089,7 @@ export class Crossbow implements Weapon {
     } else this.peep.visible = false;
 
     if (this.inspect) { px = 0.02; py = -0.02; pz = -0.42; rx = 0.35; ry = 0.9 + Math.sin(t * 0.25) * 0.5; rz = 0.1; }
+    if (this.holster > 0) { const h = sstep(0, 1, this.holster); py -= h * 0.32; pz += h * 0.08; rx -= h * 0.55; rz += h * 0.25; } // weapon swap: drop out of the frame
     this.model.scale.setScalar(scale);
     const sm = this.poseInit ? Math.min(1, dt * 14) : 1; this.poseInit = true;
     this.posePos.x += (px - this.posePos.x) * sm; this.posePos.y += (py - this.posePos.y) * sm; this.posePos.z += (pz - this.posePos.z) * sm;

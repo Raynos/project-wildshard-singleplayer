@@ -9,7 +9,10 @@ import type { GameMenu } from './Menu';
  *
  *   const hud = new HUD({ pointerLock?: boolean });   // pointerLock:false in ?nolock dev mode (no pause overlay)
  *   hud.showIntro(() => player.lock())                 // title screen: shard deck; ENTER WORLD / any key → onEnter
- *   hud.setState({ bolts?, loaded, reloading, reloadProgress?, health, fps, pos: {x, z}, yaw, kills, prompt?, speed?, ads? })
+ *   hud.setState({ bolts?, loaded, reloading, reloadProgress?, health, fps, pos: {x, z}, yaw, kills, prompt?, speed?, ads?,
+ *                  maxBolts?, reserve?, ammoLabel?, weaponName?, segments? })
+ *     — the ammo strip is generic: `bolts` is the held weapon's ammo (BOLTS 27 / 30 for the crossbow, ROUNDS 27 / 30 + 60
+ *       with the "AR-15" tag for the rifle — src/player/Weapons.ts)
  *     — `bolts: undefined` = the weapon has no ammo (the sword): the BOLTS panel, its meter and the touch-bar strip are hidden
  *   hud.showHitMarker(headshot, killed)  hud.killFeed('Boar · headshot')  hud.toast('Bolt recovered')
  *   hud.damageFlash()  hud.setBoundaryWarning(visible)  hud.menu = gameMenu  hud.setPaused(bool)  hud.onResume = () => …  // the menu's close
@@ -31,6 +34,9 @@ export interface HUDState {
   bolts?: number; loaded: boolean; reloading: boolean; reloadProgress?: number;
   health: number; fps: number; pos: { x: number; z: number }; yaw: number; kills: number;
   prompt?: string; speed?: number; ads?: boolean; maxBolts?: number;
+  /** generic ammo strip (Weapons.ts): `reserve` rounds beyond the magazine (hidden when 0), `ammoLabel` "Bolts" / "Rounds",
+   *  `weaponName` tag ("CROSSBOW" / "AR-15"), `segments` bars over the magazine on the touch strip (4 crossbow, 6 rifle) */
+  reserve?: number; ammoLabel?: string; weaponName?: string; segments?: number;
   /** nearest animal for the compass paw: `bearing` in compass degrees (0 = north = +Z, 90 = east = −X) — see `bearingTo` */
   nearest?: { bearing: number; distance: number; kind: string };
 }
@@ -81,7 +87,7 @@ export class HUD {
   private markHouse!: HTMLElement; private markPaw!: HTMLElement; private range!: HTMLElement;
   private animals: { x: number; z: number }[] = [];
   /** P2 touch layout: vitals + bolts strips rendered INTO the control bar's corners (`.ws-touch-bar`, TouchControls) */
-  private bar?: { hval: HTMLElement; hbar: HTMLElement; bolts: HTMLElement; bcount: HTMLElement; segs: HTMLElement[] };
+  private bar?: { hval: HTMLElement; hbar: HTMLElement; bolts: HTMLElement; bcount: HTMLElement; segs: HTMLElement[]; segBox: HTMLElement; label: HTMLElement; weapon: HTMLElement; max: HTMLElement; reserve: HTMLElement };
   private lastMark = { house: NaN, paw: NaN, range: '' };
   private ppd = 1.2; // compass px per degree — measured from the band (`--ppd`), see build()
   private feed!: HTMLElement; private toasts!: HTMLElement;
@@ -96,6 +102,7 @@ export class HUD {
   private deck?: { cards: DeckCard[]; index: number; select: (i: number, smooth?: boolean) => void; activate: () => void };
   private last: Partial<HUDState> & { statusKey?: string; headingDeg?: number; fpsShown?: number; noAmmo?: boolean } = {};
   private ammoPanel!: HTMLElement;
+  private ammoLabel!: HTMLElement; private ammoMax!: HTMLElement; private ammoReserve!: HTMLElement; private ammoWeapon!: HTMLElement; private pipBox!: HTMLElement;
   private hitTimer = 0; private spread = 7;
 
   constructor(opts: HUDOptions = {}) {
@@ -172,12 +179,13 @@ export class HUD {
 
     // ammo
     const ammo = el('div', 'ws-glass ws-game-ammo');
-    ammo.innerHTML = `<div class="ws-game-arow"><span class="ws-label">Bolts</span><span class="ws-game-count"><span class="c">30</span> <small>/ ${this.opts.maxBolts}</small></span></div>
+    ammo.innerHTML = `<div class="ws-game-arow"><span class="ws-label"><span class="ws-game-weapon">Crossbow</span><span class="l">Bolts</span></span><span class="ws-game-count"><span class="c">30</span> <small>/ <span class="m">${this.opts.maxBolts}</span></small><small class="ws-game-reserve"></small></span></div>
       <div class="ws-game-pips"></div><div class="ws-game-rbar"><i></i></div><div class="ws-game-status"><span class="s">Loaded</span><i></i></div>`;
     this.ammoPanel = ammo;
     this.ammoCount = ammo.querySelector('.ws-game-count')!; this.ammoStatus = ammo.querySelector('.ws-game-status')!; this.ammoStatusText = ammo.querySelector('.ws-game-status .s')!; this.reloadBar = ammo.querySelector('.ws-game-rbar i')!;
-    const pips = ammo.querySelector('.ws-game-pips')!;
-    for (let i = 0; i < (this.opts.maxBolts ?? 30); i++) { const p = el('i'); pips.appendChild(p); this.pips.push(p); }
+    this.ammoLabel = ammo.querySelector('.ws-label .l')!; this.ammoWeapon = ammo.querySelector('.ws-game-weapon')!; this.ammoMax = ammo.querySelector('.m')!; this.ammoReserve = ammo.querySelector('.ws-game-reserve')!;
+    this.pipBox = ammo.querySelector('.ws-game-pips')!;
+    this.buildPips(this.opts.maxBolts ?? 30);
     r.appendChild(ammo);
 
     // crosshair
@@ -198,9 +206,23 @@ export class HUD {
     document.addEventListener('keydown', (e) => { if (e.code === 'Escape' && !this.opts.pointerLock && this.entered && !this.paused) this.setPaused(true); });
   }
 
+  private buildPips(n: number) {
+    this.pipBox.replaceChildren(); this.pips.length = 0;
+    for (let i = 0; i < n; i++) { const p = el('i'); this.pipBox.appendChild(p); this.pips.push(p); }
+  }
+
   // ── per-frame state ──
   setState(s: HUDState) {
     const L = this.last;
+    // the held weapon: label / name / magazine size / reserve (Weapons.ts) — rebuilds the pips + bars when the weapon changes
+    const maxBolts = s.maxBolts ?? this.opts.maxBolts ?? 30, label = s.ammoLabel ?? 'Bolts', name = s.weaponName ?? 'Crossbow', segments = s.segments ?? 4, reserve = s.reserve ?? 0;
+    if (maxBolts !== L.maxBolts || label !== L.ammoLabel || name !== L.weaponName || segments !== L.segments) {
+      L.maxBolts = maxBolts; L.ammoLabel = label; L.weaponName = name; L.segments = segments; L.statusKey = undefined; L.bolts = undefined;
+      this.ammoLabel.textContent = label; this.ammoWeapon.textContent = name; this.ammoMax.textContent = String(maxBolts);
+      if (this.pips.length !== maxBolts) this.buildPips(maxBolts);
+      if (this.bar) { this.bar.label.textContent = label; this.bar.weapon.textContent = name; this.bar.max.textContent = String(maxBolts); this.buildSegs(segments); }
+    }
+    if (reserve !== L.reserve) { L.reserve = reserve; const txt = reserve > 0 ? `+ ${reserve}` : ''; this.ammoReserve.textContent = txt; if (this.bar) this.bar.reserve.textContent = txt; }
     if (s.fps !== L.fpsShown) { L.fpsShown = s.fps; this.fps.firstElementChild!.textContent = String(s.fps); }
     const hx = Math.round(s.pos.x), hz = Math.round(s.pos.z);
     if (hx !== L.pos?.x || hz !== L.pos?.z) { L.pos = { x: hx, z: hz }; this.coords.textContent = `${fmt(hx)} · ${fmt(hz)}`; }
@@ -234,7 +256,8 @@ export class HUD {
     if (statusKey !== L.statusKey) {
       L.statusKey = statusKey;
       this.ammoStatus.className = 'ws-game-status ' + (statusKey === 'empty' ? 'empty' : statusKey === 'reloading' ? 'reloading' : '');
-      this.ammoStatusText.textContent = statusKey === 'empty' ? 'No bolts' : statusKey === 'reloading' ? 'Spanning' : statusKey === 'loaded' ? 'Loaded' : 'Spent · R to span';
+      const bow = label === 'Bolts';
+      this.ammoStatusText.textContent = statusKey === 'empty' ? (bow ? 'No bolts' : reserve > 0 ? 'Empty · R to reload' : 'No rounds') : statusKey === 'reloading' ? (bow ? 'Spanning' : 'Reloading') : statusKey === 'loaded' ? (bow ? 'Loaded' : 'Ready') : (bow ? 'Spent · R to span' : 'R to reload');
       this.syncBar('status');
     }
     const rp = s.reloading ? (s.reloadProgress ?? 0) : 0;
@@ -258,12 +281,19 @@ export class HUD {
     const bar = this.root.querySelector<HTMLElement>('.ws-touch-bar');
     if (!bar) return false;
     const vitals = el('div', 'ws-game-vitals', `<i class="ws-game-glyph">${SVG_HEART}</i><b class="ws-game-num">100</b><span class="ws-game-vbar"><i></i></span><span class="ws-game-tiny">Vitals</span>`);
-    const bolts = el('div', 'ws-game-bolts', `<span class="ws-game-tiny">Bolts</span><span class="ws-game-segs">${'<i></i>'.repeat(4)}</span><b class="ws-game-num"><span class="c">30</span><small> / ${this.opts.maxBolts}</small></b><i class="ws-game-glyph">${SVG_BOLT}</i>`);
+    const L = this.last, segN = L.segments ?? 4, reserve = L.reserve ?? 0;
+    const bolts = el('div', 'ws-game-bolts', `<span class="ws-game-tiny"><span class="ws-game-weapon">${L.weaponName ?? 'Crossbow'}</span><span class="l">${L.ammoLabel ?? 'Bolts'}</span></span><span class="ws-game-segs">${'<i></i>'.repeat(segN)}</span><b class="ws-game-num"><span class="c">30</span><small> / <span class="m">${L.maxBolts ?? this.opts.maxBolts}</span></small><small class="ws-game-reserve">${reserve > 0 ? `+ ${reserve}` : ''}</small></b><i class="ws-game-glyph">${SVG_BOLT}</i>`);
     bar.append(vitals, bolts);
     if (this.last.noAmmo) bolts.style.display = 'none';
-    this.bar = { hval: vitals.querySelector('.ws-game-num')!, hbar: vitals.querySelector('.ws-game-vbar i')!, bolts, bcount: bolts.querySelector('.c')!, segs: Array.from(bolts.querySelectorAll<HTMLElement>('.ws-game-segs i')) };
+    this.bar = { hval: vitals.querySelector('.ws-game-num')!, hbar: vitals.querySelector('.ws-game-vbar i')!, bolts, bcount: bolts.querySelector('.c')!, segs: Array.from(bolts.querySelectorAll<HTMLElement>('.ws-game-segs i')), segBox: bolts.querySelector('.ws-game-segs')!, label: bolts.querySelector('.ws-game-tiny .l')!, weapon: bolts.querySelector('.ws-game-weapon')!, max: bolts.querySelector('.m')!, reserve: bolts.querySelector('.ws-game-reserve')! };
     this.syncBar('health'); this.syncBar('bolts'); this.syncBar('status');
     return true;
+  }
+  /** the touch strip's bars over the magazine: 4 for the crossbow, 6 for the rifle (rebuilt on a weapon change) */
+  private buildSegs(n: number) {
+    const b = this.bar; if (!b || b.segs.length === n) return;
+    b.segBox.innerHTML = '<i></i>'.repeat(n); b.segs = Array.from(b.segBox.querySelectorAll<HTMLElement>('i'));
+    this.syncBar('bolts');
   }
 
   private syncBar(what: 'health' | 'bolts' | 'status') {
@@ -275,7 +305,7 @@ export class HUD {
       b.hbar.style.width = `${h}%`;
       b.hbar.classList.toggle('low', h <= 30);
     } else if (what === 'bolts') {
-      const n = L.bolts ?? this.opts.maxBolts ?? 30, max = this.opts.maxBolts ?? 30;
+      const max = L.maxBolts ?? this.opts.maxBolts ?? 30, n = L.bolts ?? max;
       b.bcount.textContent = String(n);
       const lit = n <= 0 ? 0 : Math.max(1, Math.floor((n / max) * b.segs.length + 1e-6));
       b.segs.forEach((seg, i) => seg.classList.toggle('off', i >= lit));
