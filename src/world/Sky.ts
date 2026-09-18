@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { TIER_CONFIG } from '../core/tier';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { loadHDR } from '../core/assets';
 import { fogUniforms } from './Atmosphere';
@@ -50,7 +51,7 @@ export class Sky {
     fogUniforms.fogDistDensity.value = A.fogDistDensity;
 
     this.csm = new CSM({
-      camera: this.camera, parent: this.scene, cascades: 3, mode: 'practical',
+      camera: this.camera, parent: this.scene, cascades: TIER_CONFIG.cascades, mode: 'practical',
       maxFar: 220, shadowMapSize: 2048, lightDirection: this.sunDir.clone().negate(),
       lightIntensity: qn('sunI', S.sunIntensity), shadowBias: -0.00012, lightMargin: 120, lightNear: 1, lightFar: 600,
     });

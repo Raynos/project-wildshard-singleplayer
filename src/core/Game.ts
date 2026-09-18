@@ -10,6 +10,7 @@ import { Sky } from '../world/Sky';
 import { GradeEffect } from './Grade';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '../chunks/registry';
+import { TIER_CONFIG } from './tier';
 
 export class Game {
   renderer: THREE.WebGLRenderer;
@@ -26,7 +27,7 @@ export class Game {
   constructor(public canvas: HTMLCanvasElement) {
     installAtmosphere();
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false, depth: true });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, TIER_CONFIG.dpr));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.toneMapping = THREE.NoToneMapping; // tone mapping happens in the composer
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -48,15 +49,17 @@ export class Game {
     this.renderPass = new RenderPass(this.scene, this.camera);
     composer.addPass(this.renderPass);
 
-    const ao = new N8AOPostPass(this.scene, this.camera, window.innerWidth, window.innerHeight);
-    ao.configuration.aoRadius = 2.5;
-    ao.configuration.distanceFalloff = 1.0;
-    ao.configuration.intensity = 2.5;
-    ao.configuration.halfRes = true;
-    ao.configuration.screenSpaceRadius = false;
-    ao.configuration.gammaCorrection = false;
-    ao.configuration.color = new THREE.Color(0.05, 0.06, 0.05);
-    composer.addPass(ao);
+    if (TIER_CONFIG.ao) {
+      const ao = new N8AOPostPass(this.scene, this.camera, window.innerWidth, window.innerHeight);
+      ao.configuration.aoRadius = 2.5;
+      ao.configuration.distanceFalloff = 1.0;
+      ao.configuration.intensity = 2.5;
+      ao.configuration.halfRes = true;
+      ao.configuration.screenSpaceRadius = false;
+      ao.configuration.gammaCorrection = false;
+      ao.configuration.color = new THREE.Color(0.05, 0.06, 0.05);
+      composer.addPass(ao);
+    }
 
     const vol = new VolumetricsEffect(this.camera, makeNoiseTexture());
     vol.setSun(this.sky.sunDir, new THREE.Color(...A.volumetricSunColor));
@@ -83,6 +86,66 @@ export class Game {
   }
 
   onUpdate(fn: (dt: number, t: number) => void) { this.updaters.push(fn); }
+
+  /**
+   * Compile every material in the scene in batches of two, reporting progress, instead of letting
+   * the first render() build ~100 programs in one synchronous stall (minutes on iOS). Ported from
+   * trials-gauntlet-demo `compileMaterials`: detached non-recursive clones restrict each batch
+   * without touching live visibility, compiled against the composer's scene target (program
+   * variants depend on the output colour space / tone mapping of the target they render to).
+   * Returns the distinct material count.
+   */
+  async precompile(onProgress?: (done: number, total: number) => void): Promise<number> {
+    const mats: THREE.Material[] = [];
+    const seen = new Set<THREE.Material>();
+    this.scene.traverse((o) => {
+      const m = (o as THREE.Mesh).material;
+      for (const mat of Array.isArray(m) ? m : m ? [m] : []) if (!seen.has(mat)) { seen.add(mat); mats.push(mat); }
+    });
+    const r = this.renderer;
+    const target = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
+    const chunk = 2;
+    for (let i = 0; i < mats.length; i += chunk) {
+      const keep = new Set(mats.slice(i, i + chunk));
+      const batch = new THREE.Group();
+      this.scene.traverse((o) => {
+        const mesh = o as THREE.Mesh;
+        const material = mesh.material;
+        if (!material) return;
+        const selected = (Array.isArray(material) ? material : [material]).filter((m) => keep.has(m));
+        if (!selected.length) return;
+        const copy = mesh.clone(false);
+        copy.material = Array.isArray(material) ? selected : selected[0]!;
+        batch.add(copy);
+      });
+      const prev = r.getRenderTarget();
+      let pending: Promise<unknown>;
+      try { r.setRenderTarget(target); pending = r.compileAsync(batch, this.camera, this.scene); } finally { r.setRenderTarget(prev); }
+      await pending;
+      onProgress?.(Math.min(mats.length, i + chunk), mats.length);
+      await new Promise((res) => requestAnimationFrame(() => res(undefined)));
+    }
+    return mats.length;
+  }
+
+  /**
+   * The first frames, as a step: a scene-only draw (shadow-depth programs + the GPU's first draw of
+   * every pipeline), then the full composer (screen-quad shaders compileAsync cannot reach).
+   */
+  async firstFrame(onProgress?: (done: number, total: number, detail: string) => void) {
+    const frame = () => new Promise((res) => requestAnimationFrame(() => res(undefined)));
+    onProgress?.(0, 2, 'world + shadows');
+    // into the composer's input buffer, not the canvas: the canvas target would be a second set of program variants
+    const target = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
+    const prev = this.renderer.getRenderTarget();
+    this.renderer.setRenderTarget(target);
+    this.renderer.render(this.scene, this.camera);
+    this.renderer.setRenderTarget(prev);
+    await frame();
+    onProgress?.(1, 2, 'post chain');
+    this.composer.render(0.016);
+    await frame();
+  }
 
   resize() {
     const w = window.innerWidth, h = window.innerHeight;

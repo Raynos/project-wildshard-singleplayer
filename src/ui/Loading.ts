@@ -60,8 +60,15 @@ export class Loading {
     this.label.textContent = label;
     const line = document.createElement('div');
     line.textContent = `▸ ${label}`;
+    line.dataset.label = label;
     this.log.appendChild(line);
     while (this.log.children.length > 6) this.log.removeChild(this.log.firstChild!);
+  }
+
+  /** Live detail for the current step (a count), shown after its label. */
+  detail(text: string) {
+    const last = this.log.lastElementChild as HTMLElement | null;
+    if (last) last.textContent = `▸ ${last.dataset.label} · ${text}`;
   }
 
   private render() {

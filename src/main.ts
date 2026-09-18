@@ -155,6 +155,12 @@ async function main() {
   });
 
   game.buildComposer();
+  // Compile programs in batches with a visible count, then draw the first frames as a step —
+  // instead of the first render() compiling ~100 programs in one stall (minutes on iOS).
+  loading.step('Compiling shaders', 0.97);
+  const materials = await game.precompile((d, n) => loading.detail(`${d} / ${n} materials`));
+  loading.step(`First frame · ${materials} materials · ${game.renderer.info.programs?.length ?? 0} programs`, 0.99);
+  await game.firstFrame((_d, _n, what) => loading.detail(what));
   game.start();
   await loading.done();
   (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, grass, under, particles, cabins, props, animals, crossbow, hud, audio };

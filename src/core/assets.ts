@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { fetchImage } from '../boot/bytes';
+import { TIER_CONFIG } from './tier';
 
-const texLoader = new THREE.TextureLoader();
 const gltfLoader = new GLTFLoader();
 const hdrLoader = new RGBELoader();
 
@@ -11,17 +12,34 @@ export interface PBRSet { map: THREE.Texture; normalMap: THREE.Texture; armMap: 
 let maxAniso = 8;
 export function setAnisotropy(renderer: THREE.WebGLRenderer) { maxAniso = Math.min(16, renderer.capabilities.getMaxAnisotropy()); }
 
-export function loadTexture(url: string, srgb = false, repeat = 1): Promise<THREE.Texture> {
-  return new Promise((res, rej) => texLoader.load(url, (t) => {
-    t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    t.repeat.set(repeat, repeat);
-    t.anisotropy = maxAniso;
-    if (srgb) t.colorSpace = THREE.SRGBColorSpace;
-    res(t);
-  }, undefined, rej));
+/**
+ * Decoded images, one per URL: the same file asked for twice (rock_ground: terrain slab and cabin
+ * rubble) is fetched and decoded once. Decoding goes through fetch → createImageBitmap (off the main
+ * thread, bytes counted by the boot plan) and is capped at the tier's texture size — on a phone a
+ * 2048² Poly Haven set becomes 1024², a quarter of the GPU memory and upload time.
+ */
+const images = new Map<string, Promise<ImageBitmap | HTMLImageElement>>();
+export function loadImage(url: string, maxSize = TIER_CONFIG.maxTexture): Promise<ImageBitmap | HTMLImageElement> {
+  let p = images.get(url);
+  if (!p) { p = fetchImage(url, maxSize); images.set(url, p); }
+  return p;
 }
 
-/** Poly Haven texture set: diffuse + GL normal + ARM (ao / roughness / metal) */
+export async function loadTexture(url: string, srgb = false, repeat = 1): Promise<THREE.Texture> {
+  const image = await loadImage(url);
+  const t = new THREE.Texture(image);
+  t.flipY = !(typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap); // bitmaps are flipped at decode
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(repeat, repeat);
+  t.anisotropy = maxAniso;
+  t.generateMipmaps = true;
+  t.minFilter = THREE.LinearMipmapLinearFilter;
+  if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+  t.needsUpdate = true;
+  return t;
+}
+
+/** Poly Haven texture set: diffuse + GL normal + ARM (ao / roughness / metal). Textures are shared per url; `repeat` is per call. */
 export async function loadPBR(id: string, repeat = 1): Promise<PBRSet> {
   const base = `/assets/tex/${id}/`;
   const [map, normalMap, armMap] = await Promise.all([
@@ -52,9 +70,10 @@ export function loadHDR(url: string): Promise<THREE.DataTexture> {
  * Load several Poly Haven sets into three DataArrayTextures (diffuse / normal / ARM), one layer
  * per id — lets a splat shader use 3 samplers instead of 3×N (WebGL caps fragment samplers at 16).
  */
-export async function loadPBRArray(ids: string[], size = 1024): Promise<{ map: THREE.DataArrayTexture; normalMap: THREE.DataArrayTexture; armMap: THREE.DataArrayTexture }> {
+export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize): Promise<{ map: THREE.DataArrayTexture; normalMap: THREE.DataArrayTexture; armMap: THREE.DataArrayTexture }> {
   const kinds = ['diffuse', 'nor_gl', 'arm'] as const;
-  const load = (url: string) => new Promise<HTMLImageElement>((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = url; });
+  // decoded straight to the layer size (no flip: drawImage keeps the file's orientation either way)
+  const load = (url: string) => fetchImage(url, size, false);
   const canvas = document.createElement('canvas'); canvas.width = canvas.height = size;
   const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
   const build = async (kind: (typeof kinds)[number], srgb: boolean) => {
