@@ -17,7 +17,7 @@ export const TIER: Tier = forced === 'phone' || forced === 'desktop' ? forced : 
 
 export const TIER_CONFIG = {
   phone: {
-    maxTexture: 1024, layerSize: 512, dpr: 1.5, ao: false, // DPR 1.5 + SMAA on: the user's call — the crossbow at 1.0 was unacceptable (DBG dpr knob still overrides)
+    maxTexture: 1024, layerSize: 512, dpr: 1.5, ao: false, // DPR 1.5 + SMAA on: confirmed by the user as the phone default (the crossbow at 1.0 was unacceptable); DBG dpr knob still overrides
     // shadows: one cascade to 80 m, 1024² — the 2-cascade rig re-drew the whole world twice (9.8 M tris)
     cascades: 1, shadowMapSize: 1024, shadowFar: 80, shadowMargin: 60, softShadows: false,
     undergrowthShadows: false, animalShadowDist: 30, animalHideDist: 150, furShells: false,
