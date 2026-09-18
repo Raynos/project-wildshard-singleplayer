@@ -117,10 +117,10 @@ export class TouchControls {
 
   private applyStick(dx: number, dy: number) {
     const len = Math.hypot(dx, dy);
-    if (len > STICK_RADIUS) { dx *= STICK_RADIUS / len; dy *= STICK_RADIUS / len; }
+    const nx = len > 0 ? dx / len : 0, ny = len > 0 ? dy / len : 0; // direction from the raw delta
     const mag = Math.min(1, len / STICK_RADIUS);
     const scaled = mag < DEADZONE ? 0 : (mag - DEADZONE) / (1 - DEADZONE);
-    const nx = len > 0 ? dx / len : 0, ny = len > 0 ? dy / len : 0;
+    if (len > STICK_RADIUS) { dx *= STICK_RADIUS / len; dy *= STICK_RADIUS / len; } // knob stays on the ring
     this.player.touchMove.x = nx * scaled;
     this.player.touchMove.y = -ny * scaled;
     this.player.touchSprint = mag > SPRINT_AT && -ny > 0.5;

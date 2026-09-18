@@ -50,7 +50,7 @@ setInterval(check, 5 * 60 * 1000);
 const hud = document.getElementById('hud');
 const sync = () => {
   const onTitle = !!document.querySelector('.ws-loading') || !!hud?.classList.contains('intro');
-  el.classList.toggle('visible', onTitle || newer);
+  el.classList.toggle('visible', onTitle); // menu-only: never over the game view, even when a newer build exists
 };
 sync();
 new MutationObserver(sync).observe(document.body, { childList: true, subtree: false, attributes: true, attributeFilter: ['class'] });
