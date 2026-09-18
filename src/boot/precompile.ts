@@ -53,6 +53,21 @@ function objectKey(o: MeshLike): string {
 
 const materialsOf = (o: THREE.Object3D): THREE.Material[] => { const m = (o as THREE.Mesh).material; return Array.isArray(m) ? m : m ? [m] : []; };
 
+type BatchedLike = THREE.Mesh & { isBatchedMesh?: boolean; _colorsTexture?: THREE.DataTexture | null };
+/**
+ * A detached stand-in for `mesh` that computes the same program: `clone(false)` keeps the
+ * instancing / skinning / morph flags, geometry and skeleton. BatchedMesh.copy in r186 never
+ * copies `_colorsTexture` (it tests the destination, which is null), yet `batchingColor` is a
+ * cache-key bit — carry the reference over, or the forest's four materials and three depth
+ * variants compile again at the first frame.
+ */
+function standIn(mesh: THREE.Mesh): THREE.Mesh {
+  const copy = mesh.clone(false) as BatchedLike;
+  const src = mesh as BatchedLike;
+  if (src.isBatchedMesh && src._colorsTexture && !copy._colorsTexture) copy._colorsTexture = src._colorsTexture;
+  return copy;
+}
+
 /**
  * One detached clone per distinct (material, object-flags) pair, grouped `per` clones a job.
  * `clone(false)` keeps the instancing / skinning / morph flags and the geometry that pick the
@@ -69,7 +84,7 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
     const ok = objectKey(mesh);
     const wanted = list.filter((m) => { mats.add(m); const k = m.uuid + ok; if (seen.has(k)) return false; seen.add(k); return true; });
     if (!wanted.length) return;
-    const copy = mesh.clone(false) as THREE.Mesh;
+    const copy = standIn(mesh);
     copy.material = Array.isArray(mesh.material) ? wanted : wanted[0]!;
     clones.push(copy);
   });
@@ -111,7 +126,7 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
       }
       if (seen.has(key)) continue;
       seen.add(key);
-      const copy = mesh.clone(false) as THREE.Mesh;
+      const copy = standIn(mesh);
       copy.material = depth;
       clones.push(copy);
     }
