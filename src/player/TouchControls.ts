@@ -48,6 +48,7 @@ export class TouchControls {
         <button class="ws-tbtn aim" type="button">Aim</button>
         <button class="ws-tbtn fire" type="button">Fire</button>
       </div>
+      <button class="ws-tpause" type="button">Pause</button>
       <div class="ws-tbar">
         <div class="ws-tzone move"><u></u><span class="ws-tlabel">Move</span></div>
         <div class="ws-tzone look"><u></u><span class="ws-tlabel">Look</span></div>
@@ -110,6 +111,7 @@ export class TouchControls {
     btn('.aim', () => { this.crossbow.adsHeld = true; }, () => { this.crossbow.adsHeld = false; });
     btn('.reload', () => { if (this.crossbow.enabled) this.crossbow.reload(); });
     btn('.jump', () => { this.player.touchJump = true; });
+    btn('.ws-tpause', () => document.dispatchEvent(new Event('ws:pause')));
     btn('.use', () => document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e', bubbles: true })));
   }
 

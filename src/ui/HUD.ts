@@ -143,8 +143,18 @@ export class HUD {
     this.toasts = el('div', 'ws-toasts'); r.appendChild(this.toasts);
     this.flash = el('div', 'ws-flash'); r.appendChild(this.flash);
 
-    this.pause = el('div', 'ws-pause', '<div class="ws-glass ws-pbox"><div class="ws-pt">Paused</div><div class="ws-ps">Click to resume · Esc to release the cursor</div></div>');
-    this.pause.addEventListener('click', () => { this.setPaused(false); this.onResume?.(); });
+    this.pause = el('div', 'ws-pause', `<div class="ws-glass ws-pbox">
+      <div class="ws-pt">Paused</div><div class="ws-ps">${this.opts.pointerLock ? 'Esc released the cursor' : 'Chunk playtest'}</div>
+      <button class="ws-pbtn resume" type="button">Resume</button>
+      <button class="ws-pbtn exit" type="button">Exit to main menu</button>
+    </div>`);
+    const resume = () => { this.setPaused(false); this.onResume?.(); };
+    this.pause.addEventListener('click', (e) => { if (e.target === this.pause) resume(); }); // backdrop click = resume (desktop habit)
+    this.pause.querySelector('.resume')!.addEventListener('click', resume);
+    this.pause.querySelector('.exit')!.addEventListener('click', () => location.reload()); // the title screen is the boot; a reload is the honest way back
+    // touch pause button (TouchControls) and Escape on devices without pointer lock
+    document.addEventListener('ws:pause', () => { if (this.entered) this.setPaused(!this.paused); });
+    document.addEventListener('keydown', (e) => { if (e.code === 'Escape' && !this.opts.pointerLock && this.entered) this.setPaused(!this.paused); });
     r.appendChild(this.pause);
   }
 
@@ -257,12 +267,12 @@ export class HUD {
       <div class="ws-hero"></div>
       <div class="ws-head"><div class="ws-wordmark">Project <b>Wildshard</b></div></div>
       <div class="ws-deck">
-        <div class="ws-cards" data-scroll>${cards.map((c, i) => `
+        <div class="ws-cards"><div class="ws-track">${cards.map((c, i) => `
           <button class="ws-card${c.active ? ' active' : ''}${c.playable ? '' : ' soon'}" type="button" data-i="${i}" title="${c.blurb.replace(/"/g, '&quot;')}">
             <span class="ws-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-card-tag ${c.tagTone}">${c.tag}</i></span>
             <b>${c.displayName}</b><small>${c.label}</small>
           </button>`).join('')}
-        </div>
+        </div></div>
         <div class="ws-dots">${cards.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
         <button class="ws-enter" type="button"><b>Enter world</b><small>Press any key</small></button>
         <div class="ws-row"><div class="ws-sound">Sound on</div></div>
@@ -277,7 +287,13 @@ export class HUD {
     const portrait = () => innerWidth < innerHeight;
     const heroUrl = (c: DeckCard) => (portrait() ? c.heroPortrait : c.heroLandscape) ?? '';
     let index = Math.max(0, cards.findIndex((c) => c.active));
-    const centreOf = (i: number) => cardEls[i].offsetLeft + cardEls[i].offsetWidth / 2 - list.clientWidth / 2;
+    // paginated track: one card per swipe, always centred — no native scroll, so it can't rest between cards
+    const track = list.querySelector<HTMLElement>('.ws-track')!;
+    const offsetOf = (i: number) => list.clientWidth / 2 - (cardEls[i].offsetLeft + cardEls[i].offsetWidth / 2);
+    const place = (i: number, extra = 0, animate = true) => {
+      track.style.transition = animate ? 'transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
+      track.style.transform = `translateX(${offsetOf(i) + extra}px)`;
+    };
 
     const apply = () => {
       const c = cards[index];
@@ -293,7 +309,7 @@ export class HUD {
     };
     const select = (i: number, smooth = true) => {
       i = Math.max(0, Math.min(cards.length - 1, i));
-      list.scrollTo({ left: centreOf(i), behavior: smooth ? 'smooth' : 'auto' });
+      place(i, 0, smooth);
       if (i !== index) { index = i; apply(); }
     };
     const activate = () => {
@@ -301,19 +317,29 @@ export class HUD {
       if (!c.playable) return;
       if (c.active) this.enter(); else location.href = chunkUrl(c.slug);
     };
-    // scroll → nearest card to the centre is the selection (rAF-debounced)
-    let raf = 0;
-    list.addEventListener('scroll', () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        const mid = list.scrollLeft + list.clientWidth / 2;
-        let best = 0, bestD = Infinity;
-        cardEls.forEach((e, i) => { const d = Math.abs(e.offsetLeft + e.offsetWidth / 2 - mid); if (d < bestD) { bestD = d; best = i; } });
-        if (best !== index) { index = best; apply(); }
-      });
-    }, { passive: true });
-    cardEls.forEach((e, i) => e.addEventListener('click', (ev) => { ev.stopPropagation(); if (i !== index) select(i); }));
+    // swipe → the track follows the finger (rubber-banded at the ends), release = one page in the swipe direction
+    let drag: { id: number; x0: number; t0: number; dx: number } | null = null;
+    list.addEventListener('pointerdown', (e) => {
+      if (drag) return;
+      drag = { id: e.pointerId, x0: e.clientX, t0: performance.now(), dx: 0 };
+      list.setPointerCapture(e.pointerId);
+    });
+    list.addEventListener('pointermove', (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      drag.dx = e.clientX - drag.x0;
+      const atEnd = (drag.dx > 0 && index === 0) || (drag.dx < 0 && index === cards.length - 1);
+      place(index, atEnd ? drag.dx * 0.3 : drag.dx, false);
+    });
+    const endDrag = (e: PointerEvent) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const { dx, t0 } = drag; drag = null;
+      const v = dx / Math.max(1, performance.now() - t0); // px/ms
+      if (Math.abs(dx) > 36 || (Math.abs(v) > 0.35 && Math.abs(dx) > 14)) { swipedAt = performance.now(); select(index + (dx < 0 ? 1 : -1)); }
+      else place(index);
+    };
+    let swipedAt = 0; // a swipe's trailing click must not re-select the card under the finger
+    list.addEventListener('pointerup', endDrag); list.addEventListener('pointercancel', endDrag);
+    cardEls.forEach((e, i) => e.addEventListener('click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }));
     dots.forEach((d, i) => d.addEventListener('click', (ev) => { ev.stopPropagation(); select(i); }));
     enterBtn.addEventListener('click', (ev) => { ev.stopPropagation(); activate(); });
     intro.querySelector('.ws-sound')!.addEventListener('click', (e) => { e.stopPropagation(); const b = e.currentTarget as HTMLElement; const off = b.classList.toggle('off'); b.textContent = off ? 'Sound off' : 'Sound on'; this.onSoundToggle?.(!off); });
@@ -321,7 +347,7 @@ export class HUD {
     let wasPortrait = portrait();
     const onResize = () => {
       if (!this.intro) { removeEventListener('resize', onResize); return; }
-      list.scrollTo({ left: centreOf(index), behavior: 'auto' });
+      place(index, 0, false);
       if (portrait() !== wasPortrait) { wasPortrait = portrait(); apply(); }
     };
     addEventListener('resize', onResize);
@@ -333,7 +359,7 @@ export class HUD {
     this.intro = intro;
     this.deck = { cards, get index() { return index; }, select, activate };
     apply();
-    list.scrollTo({ left: centreOf(index), behavior: 'auto' });
+    requestAnimationFrame(() => place(index, 0, false)); // after layout: offsets need the intro in the DOM
   }
 
   private enter() {
