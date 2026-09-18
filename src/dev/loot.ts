@@ -2,6 +2,7 @@
 // the wooden / iron sword kit (Weapons.ts) + the iron sword pickup on the wreck (IronSword.ts) + HUD.
 // http://localhost:5173/dev/loot.html?chunk=driftwood-isle&nolock=1&skipintro=1&x=0&z=-235&yaw=3.1416&pitch=0
 //   &iron=1   start with the iron sword (the pickup is disposed)   &calm=1  animals ignore you   &touch=1&tier=phone
+//   &deck=lx,lz   stand on the wreck's deck at that hull-local point (x starboard, z stern), facing the sword   &take=N  take it after N s
 // window.__world = { ...bootstrap(), animals, weapons, drop, wreck, hud, ironSite, … }
 import * as THREE from 'three';
 import { bootstrap } from '../core/bootstrap';
@@ -101,6 +102,16 @@ const drop = new IronSwordPickup({ scene: game.scene, sky, position: ironSite })
 interactables.push(drop.interactable);
 drop.onPickup = () => { weapons.unlock('sword-iron'); weapons.select('sword-iron'); audio.hitMarker(); hud.toast('Iron sword acquired · 1/2 to switch, Q to swap'); };
 if (params.has('iron')) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); drop.dispose(); }
+
+// screenshot helpers: stand on the heeled deck facing the sword; take the sword after N s (the toast / burst shot)
+if (params.has('deck')) {
+  const [lx, lz] = (params.get('deck') || '-0.9,1').split(',').map(Number);
+  const cs = Math.cos(WRECK.heading), sn = Math.sin(WRECK.heading);
+  const x = WRECK.x + lx * cs + lz * sn, z = WRECK.z - lx * sn + lz * cs;
+  const deck = wreck.floorHeightAt(x, z);
+  if (deck !== undefined) { player.position.set(x, deck + 0.02, z); player.velocity.set(0, 0, 0); player.yaw = Math.atan2(-(ironSite.x - x), -(ironSite.z - z)); player.pitch = world.num('pitch', 0.1); }
+}
+if (params.has('take')) setTimeout(() => drop.take(), world.num('take', 3) * 1000);
 
 const enter = () => { audio.resume(); weapons.setEnabled(true); weapons.visible = true; if (!nolock) player.lock(); };
 hud.onResume = enter;

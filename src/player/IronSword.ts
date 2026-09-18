@@ -18,12 +18,13 @@ import { WRECK } from '../chunks/driftwood-isle';
  *   const drop = new IronSwordPickup({ scene, sky, position: ironSwordSite(wreck) });   // floor point = the deck
  *   interactables.push(drop.interactable);                       // "[E] Take iron sword" within `radius` (the door / harvest prompt path)
  *   drop.onPickup = () => { weapons.unlock('sword-iron'); weapons.select('sword-iron'); hud.toast('Iron sword acquired · 1/2 to switch, Q to swap'); audio.hitMarker(); };
+ *   drop.onNear = (on) => audio.pickupHum(on);
  *   game.onUpdate((dt, t) => drop.update(dt, t, game.renderer, game.camera, player.position));   // the player POSITION
  *                                                                // makes it walk-to-pick-me-up: feet within TAKE_R m of the orb → take()
  *   `?weapon=iron` (dev): weapons.unlock('sword-iron'); weapons.select('sword-iron', true); drop.dispose();
  *
  * `ironSwordSite(wreck)` = the world point on the heeled deck at the broken midships planks (Wreck.ts: local
- * z = +2.4 toward the stern, a hair to port so the bubble clears the mainmast). The deck is ~1.2–1.7 m above the cove
+ * z = +4.2 toward the stern — 3 m aft of the mainmast so it reads from the bow — a little to port). The deck is ~1.2–1.7 m above the cove
  * sand: one jump from the low (starboard) rail puts you on it. Falls back to the sand beside the hull if the wreck has
  * no deck there (a future hull change) — `ironSwordSite` never returns undefined.
  */
@@ -44,12 +45,15 @@ export interface IronSwordPickupOptions {
 /** steel: bevelled edges bright, flats mid, the fuller dark; iron guard / pommel; leather grip + wrap */
 const lin = (hex: number) => new THREE.Color(hex).convertSRGBToLinear();
 const C = {
-  edge: lin(0xf4f6fa), flat: lin(0xbfc5cf), fuller: lin(0x8f96a3), tip: lin(0xe6e9ef),
+  edge: lin(0xeef1f6), flat: lin(0xb4bac5), fuller: lin(0x848b98), tip: lin(0xe6e9ef),
   iron: lin(0x3a3c42), ironLight: lin(0x585b63), ironDark: lin(0x25272c),
   grip: lin(0x4a2d1a), wrap: lin(0x6e4629), pommelCap: lin(0x6b6e77), gem: lin(0xd94b3a),
 };
 const WARM = 0xffb257;
-const TAKE_R = 1.15;               // m, feet to the orb's floor point (the orb is 0.46 m in radius, hovering 0.7 m up)
+const TAKE_R = 1.2;                // m, feet to the orb's floor point (the orb is 0.46 m in radius, hovering 0.7 m up)
+const LIFT = 0.22;                 // m the orb's floor point sits over the deck: the big sword (DISPLAY_SCALE × 1.25 m) pokes out of the
+                                   // orb top and bottom, so the pommel clears the planks
+const DISPLAY_SCALE = 1.3, TILT = THREE.MathUtils.degToRad(40);   // fills the orb diagonally like the AR-15 in the mockup
 const TAKE_DY = 1.6;               // m, |feet y − floor y| — no taking it from the sand under the hull
 
 /** per-FACE coloured triangles: each quad between ring r and r+1, segment i, takes `segCol[i]` (with a tiny per-face jitter) */
@@ -116,8 +120,8 @@ const merge = (parts: THREE.BufferGeometry[]): THREE.BufferGeometry => {
 export function buildIronSwordDisplay(sky: Sky): THREE.Group {
   const g = new THREE.Group();
   // ── blade: 0.92 m, wide at the ricasso, a gentle taper, then a 10 cm point ──
-  const guardY = 0.16, y0 = guardY + 0.02, L = 0.92;
-  const w = (f: number) => 0.052 * (1 - f * 0.42), t = (f: number) => 0.011 * (1 - f * 0.3);
+  const guardY = 0.16, y0 = guardY + 0.02, L = 0.94;
+  const w = (f: number) => 0.07 * (1 - f * 0.38), t = (f: number) => 0.016 * (1 - f * 0.3);
   const rings: THREE.Vector3[][] = [];
   for (const f of [0, 0.18, 0.38, 0.58, 0.76, 0.88]) rings.push(bladeSection(y0 + L * f, w(f), t(f)));
   rings.push(bladeSection(y0 + L * 0.94, w(0.88) * 0.66, t(0.88) * 0.8, 0.9));
@@ -130,7 +134,7 @@ export function buildIronSwordDisplay(sky: Sky): THREE.Group {
   const base = rings[0], capPos: number[] = [], capCol: number[] = [];
   for (let i = 0; i < base.length; i++) { const a = base[i], b = base[(i + 1) % base.length]; capPos.push(0, y0, 0, b.x, b.y, b.z, a.x, a.y, a.z); for (let k = 0; k < 3; k++) capCol.push(C.flat.r, C.flat.g, C.flat.b); }
   const cap = new THREE.BufferGeometry(); cap.setAttribute('position', new THREE.Float32BufferAttribute(capPos, 3)); cap.setAttribute('color', new THREE.Float32BufferAttribute(capCol, 3)); cap.computeVertexNormals();
-  const steel = new THREE.MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: 0.32, metalness: 0.88, envMapIntensity: 1.1 });
+  const steel = new THREE.MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: 0.5, metalness: 0.65, envMapIntensity: 0.85 });
   steel.name = 'iron-sword-steel';
   sky.setupMaterial(steel);
   const bladeMesh = new THREE.Mesh(merge([blade, cap]), steel);
@@ -139,7 +143,7 @@ export function buildIronSwordDisplay(sky: Sky): THREE.Group {
 
   // ── guard: a dark iron cross, thick at the centre block, the arms swept a little toward the blade, knobbed ends ──
   const parts: THREE.BufferGeometry[] = [];
-  const armL = 0.17;
+  const armL = 0.21;
   for (const s of [-1, 1]) {
     const arm = new THREE.BoxGeometry(armL, 0.034, 0.052, 3, 1, 1);
     const p = arm.getAttribute('position') as THREE.BufferAttribute;
@@ -149,7 +153,7 @@ export function buildIronSwordDisplay(sky: Sky): THREE.Group {
     parts.push(facet(arm, C.iron, 0.07, 21 + s));
     parts.push(facet(new THREE.SphereGeometry(0.03, 6, 4).translate(s * (armL + 0.05), guardY + 0.026, 0), C.ironLight, 0.06, 31 + s));
   }
-  parts.push(facet(new THREE.BoxGeometry(0.09, 0.062, 0.066).translate(0, guardY, 0), C.ironDark, 0.05, 41));
+  parts.push(facet(new THREE.BoxGeometry(0.1, 0.066, 0.07).translate(0, guardY, 0), C.ironDark, 0.05, 41));
   parts.push(facet(new THREE.OctahedronGeometry(0.02, 0).translate(0, guardY, 0.036), C.gem, 0.03, 42)); // a garnet set in the block
 
   // ── grip: leather core with a spiral of wrap ridges (alternating ring radii, alternating colours) ──
@@ -170,7 +174,7 @@ export function buildIronSwordDisplay(sky: Sky): THREE.Group {
   fittings.castShadow = true; fittings.receiveShadow = true;
   g.add(fittings);
   // centre the model on the orb: the orb's item origin is its middle; the sword's middle is ~0.45 m up from the grip
-  bladeMesh.position.y = fittings.position.y = -0.46;
+  bladeMesh.position.y = fittings.position.y = -0.36;
   return g;
 }
 
@@ -190,7 +194,7 @@ function makeHalo(): THREE.CanvasTexture {
 export function ironSwordSite(wreck: { floorHeightAt(x: number, z: number): number | undefined }, heightAt: (x: number, z: number) => number): THREE.Vector3 {
   const h = WRECK.heading, cs = Math.cos(h), sn = Math.sin(h);
   // hull frame (Wreck.ts): local x = starboard, z = stern; world = R_y(heading) · local
-  const lx = -0.35, lz = 2.4;
+  const lx = -0.7, lz = 4.2;
   const x = WRECK.x + lx * cs + lz * sn, z = WRECK.z - lx * sn + lz * cs;
   const deck = wreck.floorHeightAt(x, z);
   if (deck !== undefined) return new THREE.Vector3(x, deck, z);
@@ -212,17 +216,17 @@ export class IronSwordPickup {
 
   constructor(opts: IronSwordPickupOptions) {
     this.scene = opts.scene;
-    this.floor = opts.position.clone();
+    this.floor = opts.position.clone(); this.floor.y += LIFT;
     this.takeRadius = opts.takeRadius ?? TAKE_R;
-    this.pickup = new ItemPickup({ scene: opts.scene, item: buildIronSwordDisplay(opts.sky), position: opts.position, tier: opts.tier ?? 'common', prompt: opts.prompt ?? 'Take iron sword', radius: opts.radius ?? 2.6, scale: 1, tilt: THREE.MathUtils.degToRad(24) });
+    this.pickup = new ItemPickup({ scene: opts.scene, item: buildIronSwordDisplay(opts.sky), position: this.floor, tier: opts.tier ?? 'common', prompt: opts.prompt ?? 'Take iron sword', radius: opts.radius ?? 2.6, scale: DISPLAY_SCALE, tilt: TILT });
     this.interactable = this.pickup.interactable;
     // the warm glow: an amber point light over the deck (the orb's own is a short cyan one) and a big soft halo
     this.light = new THREE.PointLight(WARM, 18, 11, 1.6);
-    this.light.position.set(opts.position.x, opts.position.y + 1.3, opts.position.z);
+    this.light.position.set(this.floor.x, this.floor.y + 1.3, this.floor.z);
     haloTex ??= makeHalo();
     this.haloMat = new THREE.SpriteMaterial({ map: haloTex, color: WARM, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false });
     this.halo = new THREE.Sprite(this.haloMat);
-    this.halo.position.set(opts.position.x, opts.position.y + 0.75, opts.position.z);
+    this.halo.position.set(this.floor.x, this.floor.y + 0.75, this.floor.z);
     this.halo.scale.setScalar(3.2);
     this.halo.renderOrder = 19;
     opts.scene.add(this.light, this.halo);
@@ -231,6 +235,9 @@ export class IronSwordPickup {
   get onPickup() { return this.pickup.onPickup; }
   set onPickup(fn: (() => void) | undefined) { this.pickup.onPickup = fn; }
   get taken() { return this.pickup.taken; }
+  /** the player stepped inside / out of the prompt radius (main.ts → audio.pickupHum) */
+  get onNear() { return this.pickup.onNear; }
+  set onNear(fn: ((inside: boolean) => void) | undefined) { this.pickup.onNear = fn; }
   /** pick it up now (E / walk-in): the orb bursts, `onPickup` fires; a no-op the second time */
   take() { this.pickup.take(); }
 
@@ -251,7 +258,7 @@ export class IronSwordPickup {
     if (!this.pickup.taken) {
       if (playerPos && this.takeRadius > 0) {
         const dx = playerPos.x - this.floor.x, dz = playerPos.z - this.floor.z;
-        if (dx * dx + dz * dz < this.takeRadius * this.takeRadius && Math.abs(playerPos.y - this.floor.y) < TAKE_DY) this.take();
+        if (dx * dx + dz * dz < this.takeRadius * this.takeRadius && Math.abs(playerPos.y - this.floor.y) < TAKE_DY + LIFT) this.take();
       }
       const tt = t + this.phase;
       const flick = 1 + Math.sin(tt * 2.2) * 0.1 + Math.sin(tt * 7.3) * 0.05;
