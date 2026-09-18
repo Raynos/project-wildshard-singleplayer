@@ -11,7 +11,8 @@ const hdrLoader = new RGBELoader();
 export interface PBRSet { map: THREE.Texture; normalMap: THREE.Texture; armMap: THREE.Texture }
 
 let maxAniso = 8;
-export function setAnisotropy(renderer: THREE.WebGLRenderer) { maxAniso = Math.min(16, renderer.capabilities.getMaxAnisotropy()); }
+let gpu: THREE.WebGLRenderer | null = null;
+export function setAnisotropy(renderer: THREE.WebGLRenderer) { gpu = renderer; maxAniso = Math.min(16, renderer.capabilities.getMaxAnisotropy()); }
 
 /**
  * Decoded images, one per URL: the same file asked for twice (rock_ground: terrain slab and cabin
@@ -80,21 +81,17 @@ export function loadHDR(url: string): Promise<THREE.DataTexture> {
 /**
  * Load several Poly Haven sets into three DataArrayTextures (diffuse / normal / ARM), one layer
  * per id — lets a splat shader use 3 samplers instead of 3×N (WebGL caps fragment samplers at 16).
+ *
+ * Each decoded bitmap is copied straight into its layer on the GPU (`copyTextureToTexture` →
+ * texSubImage3D): no canvas, no `getImageData` readback — 12 × 4 MB of main-thread pixel copies
+ * were most of the phone's terrain step. The array is allocated empty (`dataReady = false`) and
+ * mipmapped once after the last layer. Without a renderer (dev harnesses) the canvas path remains.
  */
 export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize): Promise<{ map: THREE.DataArrayTexture; normalMap: THREE.DataArrayTexture; armMap: THREE.DataArrayTexture }> {
   const kinds = ['diffuse', 'nor_gl', 'arm'] as const;
-  // decoded straight to the layer size (no flip: drawImage keeps the file's orientation either way)
+  // decoded straight to the layer size (no flip: the layer keeps the file's orientation either way)
   const load = (url: string) => fetchImage(url, size, false);
-  const canvas = document.createElement('canvas'); canvas.width = canvas.height = size;
-  const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
-  const build = async (kind: (typeof kinds)[number], srgb: boolean) => {
-    const data = new Uint8Array(size * size * 4 * ids.length);
-    for (let i = 0; i < ids.length; i++) {
-      const im = await load(texUrl(ids[i], kind));
-      ctx.drawImage(im, 0, 0, size, size);
-      data.set(ctx.getImageData(0, 0, size, size).data, i * size * size * 4);
-    }
-    const t = new THREE.DataArrayTexture(data, size, size, ids.length);
+  const finish = (t: THREE.DataArrayTexture, srgb: boolean) => {
     t.format = THREE.RGBAFormat; t.type = THREE.UnsignedByteType;
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
     t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter;
@@ -103,6 +100,39 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
     t.needsUpdate = true;
     return t;
   };
+  const buildGPU = async (kind: (typeof kinds)[number], srgb: boolean, renderer: THREE.WebGLRenderer) => {
+    const t = finish(new THREE.DataArrayTexture(null, size, size, ids.length), srgb);
+    t.source.dataReady = false;          // allocate the storage (texStorage3D, all mip levels), upload nothing
+    renderer.initTexture(t);
+    const images = await Promise.all(ids.map((id) => load(texUrl(id, kind))));
+    let canvas: HTMLCanvasElement | null = null;
+    for (let i = 0; i < ids.length; i++) {
+      let im: TexImageSource = images[i]!;
+      if (im.width !== size || im.height !== size) { // a smaller source: scale it on a canvas (the old path) instead of failing the copy
+        canvas ??= Object.assign(document.createElement('canvas'), { width: size, height: size });
+        canvas.getContext('2d')!.drawImage(im, 0, 0, size, size);
+        im = canvas;
+      }
+      const src = new THREE.Texture(im as HTMLImageElement); // never uploaded itself: copyTextureToTexture reads its image
+      src.flipY = false;
+      t.generateMipmaps = i === ids.length - 1; // one generateMipmap, after the last layer
+      renderer.copyTextureToTexture(src, t, null, new THREE.Vector3(0, 0, i));
+    }
+    t.generateMipmaps = true;
+    return t;
+  };
+  const buildCPU = async (kind: (typeof kinds)[number], srgb: boolean) => {
+    const canvas = document.createElement('canvas'); canvas.width = canvas.height = size;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+    const data = new Uint8Array(size * size * 4 * ids.length);
+    for (let i = 0; i < ids.length; i++) {
+      const im = await load(texUrl(ids[i]!, kind));
+      ctx.drawImage(im, 0, 0, size, size);
+      data.set(ctx.getImageData(0, 0, size, size).data, i * size * size * 4);
+    }
+    return finish(new THREE.DataArrayTexture(data, size, size, ids.length), srgb);
+  };
+  const build = (kind: (typeof kinds)[number], srgb: boolean) => (gpu && !new URLSearchParams(location.search).has('cpuarray') ? buildGPU(kind, srgb, gpu) : buildCPU(kind, srgb));
   const [map, normalMap, armMap] = await Promise.all([build('diffuse', true), build('nor_gl', false), build('arm', false)]);
   return { map, normalMap, armMap };
 }
