@@ -61,7 +61,7 @@ export class Hut {
     const place = (g: THREE.BufferGeometry, lx: number, ly: number, lz: number) => { g.rotateY(this.spec.rot); const [wx, wz] = this.toWorld(lx, lz); g.translate(wx, ly, wz); return g; };
     const collider = (lx: number, lz: number, hw: number, hd: number, yBottom: number, yTop: number) => {
       const [wx, wz] = this.toWorld(lx, lz);
-      this.colliders.push({ x: wx, z: wz, hw, hd, rot: this.spec.rot, yBottom, yTop });
+      this.colliders.push({ x: wx, z: wz, hw, hd, rot: -this.spec.rot, yBottom, yTop }); // Player's collider rot is the inverse of our toWorld rotation
     };
 
     // ── deck: cabin floor + porch on the front and both sides, plank by plank ──

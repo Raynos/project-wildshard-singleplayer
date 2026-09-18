@@ -36,6 +36,9 @@ export const PLATEAU = { x: -24, z: -62, r: 46, h: 13 };
 export const HUT = { x: PLATEAU.x + 2, z: PLATEAU.z - 2, rot: 0 };
 /** the north-east massif: a tall craggy headland (a broad shoulder + a high top) with the lookout on its summit */
 export const HEADLAND = { x: 98, z: 96, r: 48, h: 22, shoulderR: 80, shoulderH: 9 };
+/** Wreck Cove: a bay bitten out of the east shore; the wreck lies heeled on its sand, bow to the land */
+export const COVE = { ang: -0.02, depth: 46, width: 0.5 };
+export const WRECK = { x: 149, z: 4, heading: 2.1, roll: 0.32 };
 /** the lookout tower on the headland summit (rot: the stair faces south-west, toward the hut) */
 export const LOOKOUT = { x: HEADLAND.x - 4, z: HEADLAND.z - 2, rot: 0.6 };
 
@@ -68,12 +71,15 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
     landscape(x, z, { n, n2 }) {
       const dx = x - ISLAND.x, dz = z - ISLAND.z;
       const r = Math.hypot(dx, dz), ang = Math.atan2(dz, dx);
-      const R = ISLAND.r + n.get(Math.cos(ang) * 1.7 + 3.3, Math.sin(ang) * 1.7) * 32 + n2.fbm(x * 0.006, z * 0.006, 3) * 22;
+      let R = ISLAND.r + n.get(Math.cos(ang) * 1.7 + 3.3, Math.sin(ang) * 1.7) * 32 + n2.fbm(x * 0.006, z * 0.006, 3) * 22;
+      R -= smoothstep(1 - COVE.width, 0.995, Math.cos(ang - COVE.ang)) * COVE.depth; // Wreck Cove bitten out of the east shore
       const m = R - r;
       const sea = OCEAN.level;
       let h: number;
-      if (m < 0) h = -5.0 + smoothstep(-70, 0, m) * (sea + 5.0);           // shelf up to the water line
-      else h = sea + smoothstep(0, 26, m) * 1.8 + smoothstep(20, 90, m) * 3.6; // beach, then the grassy interior
+      // the shelf and the beach keep a real slope through the water line (a smoothstep there would flatten
+      // the shallows into a 20 m wide foam sheet)
+      if (m < 0) h = -5.0 + Math.pow(clamp(1 + m / 70, 0, 1), 1.6) * (sea + 5.0);           // shelf up to the water line
+      else h = sea + Math.pow(clamp(m / 26, 0, 1), 0.85) * 1.8 + smoothstep(20, 90, m) * 3.6; // beach, then the grassy interior
       h += n.fbm(x * 0.04, z * 0.04, 2) * 0.25 * smoothstep(-10, 15, m);       // small dune / ground bumps on land
       // the hut plateau: a flat-topped crag with a craggy (noise-warped) rim and a gentler ramp on the south side
       {

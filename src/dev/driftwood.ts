@@ -9,7 +9,8 @@ import { Boulders } from '../world/Boulders';
 import { Hut } from '../world/Hut';
 import { Palms } from '../world/Palms';
 import { Lookout } from '../world/Lookout';
-import { HUT, LOOKOUT } from '../chunks/driftwood-isle';
+import { Wreck } from '../world/Wreck';
+import { HUT, LOOKOUT, WRECK } from '../chunks/driftwood-isle';
 import { Boundary } from '../world/Boundary';
 import { Horizon } from '../world/Horizon';
 import { CHUNK_HALF, ROAD_LENGTH } from '../core/config';
@@ -52,6 +53,11 @@ game.scene.add(lookout.group);
 player.colliders.push(...lookout.colliders);
 player.platforms.push((x, z) => lookout.floorHeightAt(x, z));
 
+const wreck = new Wreck(sky, WRECK).build();
+game.scene.add(wreck.group);
+player.colliders.push(...wreck.colliders);
+player.platforms.push((x, z) => wreck.floorHeightAt(x, z));
+
 const boundary = new Boundary(sky).build();
 game.scene.add(boundary.group);
 const horizon = new Horizon(sky).build();
@@ -59,6 +65,6 @@ game.scene.add(horizon.group);
 
 game.onUpdate((dt, t) => { ocean?.update(dt); boat.update(dt); palms.update(dt); boundary.update(dt, t); horizon.update(dt, game.camera); });
 
-(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boat, rocks, hut, palms, lookout, boundary, horizon, heightAt };
+(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boat, rocks, hut, palms, lookout, wreck, boundary, horizon, heightAt };
 game.buildComposer();
 game.start();

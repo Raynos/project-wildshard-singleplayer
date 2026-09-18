@@ -125,7 +125,7 @@ export class Pier {
         }
         const [wx, wz] = this.toWorld(a, across);
         this.posts.push({ x: wx, z: wz });
-        this.colliders.push({ x: wx, z: wz, hw: postR + 0.04, hd: postR + 0.04, rot: this.spec.rot ?? 0, yTop: postTop, yBottom: deckY - 1 });
+        this.colliders.push({ x: wx, z: wz, hw: postR + 0.04, hd: postR + 0.04, rot: -(this.spec.rot ?? 0), yTop: postTop, yBottom: deckY - 1 });
       }
       // cross brace under the deck between the two posts
       const b = new THREE.BoxGeometry(width + 0.4, 0.12, 0.12);
@@ -146,7 +146,7 @@ export class Pier {
       }
       const [wx, wz] = this.toWorld(0.35, across);
       this.bollards.push({ x: wx, z: wz });
-      this.colliders.push({ x: wx, z: wz, hw: 0.32, hd: 0.32, rot: this.spec.rot ?? 0, yTop: top, yBottom: deckY - 1 });
+      this.colliders.push({ x: wx, z: wz, hw: 0.32, hd: 0.32, rot: -(this.spec.rot ?? 0), yTop: top, yBottom: deckY - 1 });
     }
     // ── the sea end: a low kick board so the deck reads as an end, not a cut ──
     add(place(new THREE.BoxGeometry(width + 0.3, 0.22, 0.14), 0.02, 0, deckY + 0.05), C.plankDark, 0.05);

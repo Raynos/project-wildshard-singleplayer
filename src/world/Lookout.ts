@@ -51,7 +51,7 @@ export class Lookout {
       parts.push(ni);
     };
     const place = (g: THREE.BufferGeometry, lx: number, ly: number, lz: number) => { g.rotateY(this.spec.rot); const [wx, wz] = this.toWorld(lx, lz); g.translate(wx, ly, wz); return g; };
-    const collider = (lx: number, lz: number, hw: number, hd: number, yBottom: number, yTop: number) => { const [wx, wz] = this.toWorld(lx, lz); this.colliders.push({ x: wx, z: wz, hw, hd, rot: this.spec.rot, yBottom, yTop }); };
+    const collider = (lx: number, lz: number, hw: number, hd: number, yBottom: number, yTop: number) => { const [wx, wz] = this.toWorld(lx, lz); this.colliders.push({ x: wx, z: wz, hw, hd, rot: -this.spec.rot, yBottom, yTop }); }; // Player's collider rot is the inverse of our toWorld rotation
 
     // ── four posts, splayed 0.5 m at the foot, with two cross-brace levels ──
     const half = PLAT / 2 - 0.2;
