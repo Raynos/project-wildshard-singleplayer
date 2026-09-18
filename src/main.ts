@@ -153,7 +153,7 @@ async function main() {
   const inventory = new Inventory(getActiveChunk().id);   // the pack: harvest drops
   const menu = new GameMenu({
     fullMap, progress, inventory,
-    kit: () => [{ id: 'crossbow', name: 'Hunting crossbow', ammoLabel: 'Iron bolts', ammo: crossbow.state.bolts, magazine: 30, reserve: 0, equipped: true, icon: 'crossbow' }],
+    kit: () => [{ id: 'crossbow', name: 'Hunting crossbow', ammoLabel: 'Iron bolts', ammo: crossbow.state.bolts ?? 0, magazine: 30, reserve: 0, equipped: true, icon: 'crossbow' }],
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); });
