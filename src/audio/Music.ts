@@ -74,8 +74,17 @@ class Engine {
   state: MusicState = { shard: 'pine', mode: 'menu', intensity: 0, underwater: false };
   /** dev: only these layers sound (scripts/music/render.mjs --solo for per-layer level checks) */
   solo: Set<string> | undefined;
-  /** diagnostics: scheduled notes, live oscillators (peak), scheduler main-thread time */
-  stats = { notes: 0, bars: 0, osc: 0, oscPeak: 0, schedMs: 0, schedMax: 0 };
+  /** diagnostics: scheduled notes / bars, scheduler main-thread time; `liveOsc(now)` counts the oscillators sounding at `now` */
+  stats = { notes: 0, bars: 0, schedMs: 0, schedMax: 0 };
+  private oscSpans: { t0: number; t1: number }[] = [];
+  private spanOf = new WeakMap<AudioScheduledSourceNode, { t0: number; t1: number }>();
+  /** an oscillator's stop time moved (a pad released, a bar cancelled): keep the live count honest */
+  private restop(o: AudioScheduledSourceNode, t1: number) { const sp = this.spanOf.get(o); if (sp) sp.t1 = t1; }
+  liveOsc(now = this.ctx.currentTime): number {
+    this.oscSpans = this.oscSpans.filter((o) => o.t1 > now - 1);
+    let n = 0; for (const o of this.oscSpans) if (o.t0 <= now && o.t1 > now) n++;
+    return n;
+  }
 
   constructor(ctx: BaseAudioContext, dest: AudioNode) {
     this.ctx = ctx;
@@ -115,9 +124,8 @@ class Engine {
 
   // ─────────────── helpers ───────────────
   private into(k: GainKey): AudioNode { return this.pans[k] ?? this.gains[k]; }
-  private track(o: AudioScheduledSourceNode) {
-    this.stats.osc++; this.stats.oscPeak = Math.max(this.stats.oscPeak, this.stats.osc);
-    o.addEventListener('ended', () => { this.stats.osc--; });
+  private track(o: AudioScheduledSourceNode, t0?: number, t1?: number) {
+    if (o instanceof OscillatorNode && t0 !== undefined && t1 !== undefined && this.oscSpans.length < 4096) { const sp = { t0, t1 }; this.oscSpans.push(sp); this.spanOf.set(o, sp); }
   }
   private env(g: AudioParam, t: number, peak: number, attack: number, decay: number, hold = 0) {
     g.setValueAtTime(0.0001, t);
@@ -127,7 +135,7 @@ class Engine {
   }
   private osc(type: OscillatorType, f: number, t0: number, t1: number, detune = 0): OscillatorNode {
     const o = this.ctx.createOscillator(); o.type = type; o.frequency.value = f; o.detune.value = detune;
-    o.start(t0); o.stop(t1); this.track(o); return o;
+    o.start(t0); o.stop(t1); this.track(o, t0, t1); return o;
   }
   private noiseSrc(t0: number, t1: number, rate = 1): AudioBufferSourceNode {
     const s = this.ctx.createBufferSource(); s.buffer = this.noise; s.loop = true; s.playbackRate.value = rate;
@@ -168,14 +176,15 @@ class Engine {
         v.releaseAt = tr;
         g.gain.cancelScheduledValues(tr); g.gain.setValueAtTime(Math.max(0.0001, this.valueAt(g.gain, tr, t, attack)), tr);
         g.gain.exponentialRampToValueAtTime(0.0001, tr + secs);
-        for (const o of srcs) o.stop(tr + secs + 0.05);
+        // the tail is −48 dB by 60 % of the release: stop the oscillators there (the budget is 12 live)
+        for (const o of srcs) { o.stop(tr + secs * 0.6 + 0.05); this.restop(o, tr + secs * 0.6 + 0.05); }
       },
       // a cancelled bar scheduled the release: take it back (the release lies in the future, so cancelling from it is exact)
       unrelease: () => {
         if (v.releaseAt === undefined) return;
         const tr = v.releaseAt; v.releaseAt = undefined;
         g.gain.cancelScheduledValues(tr); g.gain.setValueAtTime(Math.max(0.0001, this.valueAt(g.gain, tr, t, attack)), tr);
-        for (const o of srcs) o.stop(t + 3600);
+        for (const o of srcs) { o.stop(t + 3600); this.restop(o, t + 3600); }
       },
     };
     return v;
@@ -186,7 +195,7 @@ class Engine {
   /** pluck: Karplus-Strong — a noise burst through a feedback delay of 1/f with a 2-point low-pass, computed into a buffer per pitch */
   pluck(n: number, t: number, _d: number, v: number, out: AudioNode = this.into('pluck')) {
     const buf = this.ksBuffer(midiHz(n));
-    const s = this.ctx.createBufferSource(); s.buffer = buf; s.start(t); s.stop(t + buf.duration); this.track(s);
+    const s = this.ctx.createBufferSource(); s.buffer = buf; s.start(t); s.stop(t + buf.duration);
     const g = this.ctx.createGain(); g.gain.setValueAtTime(0.34 * v, t); g.gain.setValueAtTime(0.34 * v, t + buf.duration - 0.08); g.gain.linearRampToValueAtTime(0.0001, t + buf.duration - 0.005);
     s.connect(g).connect(out);
     return { srcs: [s], out: g } as Voice;
@@ -305,6 +314,10 @@ class Engine {
   private bpmFor(seg: Segment) { return seg.at !== undefined || this.arrangement?.driven ? seg.bpm : TEMPO[this.state.mode]; }
 
   // ─────────────── sequencer ───────────────
+  /** fill the Karplus-Strong cache for every pluck pitch the arrangement uses (and their Dorian forms) — ~1 ms each, off the bar schedule */
+  warm(arr: Arrangement) {
+    for (const seg of arr.segments) for (const n of seg.notes.pluck ?? []) { this.ksBuffer(midiHz(n.n)); this.ksBuffer(midiHz(dorianPitch(n.n))); }
+  }
   /** start `arr` at time `t` (the drone comes up with it) */
   begin(arr: Arrangement, t: number) {
     this.arrangement = arr; this.segIdx = 0; this.beat0 = 0; this.nextT = t; this.bars = []; this.lastChord = undefined;
@@ -354,7 +367,7 @@ class Engine {
     for (const c of seg.chords) if (c.t >= beat0 && c.t < end) {
       const name = dorian ? DORIAN_OF[c.chord] : c.chord, tc = at(c.t);
       const attack = Math.min(1.4, Math.max(0.05, spb * 2.2));
-      if (this.pad) this.pad.release(tc, Math.max(0.8, spb * 4));
+      if (this.pad) this.pad.release(tc, Math.max(0.8, spb * 3.2));
       this.pad = this.padVoice(name, tc, attack); this.lastChord = name; bar.voices.push(this.pad);
     }
     // notes
@@ -389,7 +402,7 @@ class Engine {
     const i = this.bars.findIndex((b) => b.t0 > now + 0.03);
     if (i < 0) return;
     const first = this.bars[i];
-    for (const b of this.bars.splice(i)) for (const v of b.voices) { try { v.out.disconnect(); } catch { /* gone */ } for (const s of v.srcs) { try { s.stop(now); } catch { /* not started */ } } }
+    for (const b of this.bars.splice(i)) for (const v of b.voices) { try { v.out.disconnect(); } catch { /* gone */ } for (const s of v.srcs) { try { s.stop(now); } catch { /* not started */ } this.restop(s, now); } }
     this.pad = first.before.pad; this.lastChord = first.before.lastChord; this.targets = { ...first.before.targets };
     for (const k of GAIN_KEYS) { const p = this.gains[k].gain; this.hold(p, first.t0); p.setValueAtTime(this.targets[k] ?? 0, first.t0); }
     this.bassDuck.gain.cancelScheduledValues(first.t0); this.bassDuck.gain.setValueAtTime(1, first.t0);
@@ -402,9 +415,9 @@ class Engine {
   /** silence everything; the bars already scheduled stop at `t` */
   end(t: number) {
     if (this.pad) this.pad.release(t, 0.4);
-    for (const b of this.bars) for (const v of b.voices) { try { v.out.gain.setValueAtTime(v.out.gain.value, t); v.out.gain.linearRampToValueAtTime(0, t + 0.05); } catch { /* */ } for (const s of v.srcs) { try { s.stop(t + 0.1); } catch { /* */ } } }
+    for (const b of this.bars) for (const v of b.voices) { try { v.out.gain.setValueAtTime(v.out.gain.value, t); v.out.gain.linearRampToValueAtTime(0, t + 0.05); } catch { /* */ } for (const s of v.srcs) { try { s.stop(t + 0.1); } catch { /* */ } this.restop(s, t + 0.1); } }
     this.bars = []; this.arrangement = undefined; this.pad = undefined;
-    for (const n of this.droneNodes) { try { n.stop(t + 0.1); } catch { /* */ } } this.droneNodes = [];
+    for (const n of this.droneNodes) { try { n.stop(t + 0.1); } catch { /* */ } this.restop(n, t + 0.1); } this.droneNodes = [];
   }
 
   // ─────────────── stings (their own bus, so the death duck never swallows them) ───────────────
@@ -466,6 +479,8 @@ export class Music {
     this.playing = name;
     this.pump();
     this.timer = window.setInterval(() => this.pump(), TICK_MS);
+    const idle = (window as unknown as { requestIdleCallback?: (fn: () => void) => void }).requestIdleCallback;
+    if (idle) idle(() => this.engine.warm(arr)); else window.setTimeout(() => this.engine.warm(arr), 300);
   }
   private pump() {
     const spb = this.engine.currentSpb();

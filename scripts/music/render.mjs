@@ -12,7 +12,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const trailer = resolve(here, '../trailer');
 const jobs = process.argv.length >= 5
   ? [[process.argv[2], Number(process.argv[3]), resolve(process.argv[4]), process.argv[5] ? process.argv[5].split(',').filter(Boolean) : undefined, process.argv[6] ? JSON.parse(process.argv[6]) : undefined]]
-  : [['trailer30', 28.2, `${trailer}/score-30.wav`], ['trailer15', 14.8, `${trailer}/score-15.wav`], ['theme', 40, `${trailer}/theme-loop.wav`]];
+  : [['trailer30', 28.2, `${trailer}/score-30.wav`], ['trailer15', 15.0, `${trailer}/score-15.wav`], ['theme', 40, `${trailer}/theme-loop.wav`]];
 
 const browser = await chromium.launch({ headless: true, args: ['--autoplay-policy=no-user-gesture-required'] });
 const page = await browser.newPage();

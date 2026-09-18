@@ -29,10 +29,12 @@ for (const s of ['pine', 'island'] as Shard[]) btn(s, () => music.setState({ sha
 btn('underwater', () => music.setState({ underwater: !music.state.underwater }));
 for (const s of ['pickup', 'death', 'chunk'] as StingName[]) btn(`sting ${s}`, () => music.sting(s));
 const pre = document.createElement('pre'); ui.appendChild(pre);
+let oscPeak = 0;
 setInterval(() => {
-  const st = music.stats;
-  pre.textContent = `ctx ${audio.ctx.state} t=${audio.ctx.currentTime.toFixed(1)}  ${JSON.stringify(music.state)}\nbars ${st.bars} notes ${st.notes} osc ${st.osc} (peak ${st.oscPeak}) sched ${st.schedMs.toFixed(1)} ms total, max ${st.schedMax.toFixed(2)} ms/bar`;
-}, 1000);
+  const st = music.stats, live = music.engine.liveOsc(); oscPeak = Math.max(oscPeak, live);
+  pre.textContent = `ctx ${audio.ctx.state} t=${audio.ctx.currentTime.toFixed(1)}  ${JSON.stringify(music.state)}\nbars ${st.bars} notes ${st.notes} osc live ${live} (peak ${oscPeak}) sched ${st.schedMs.toFixed(1)} ms total, max ${st.schedMax.toFixed(2)} ms/bar`;
+}, 250);
+(window as unknown as { __oscPeak: () => number }).__oscPeak = () => oscPeak;
 
 (window as unknown as { __music: unknown }).__music = { Music, music, audio, renderWav };
 
