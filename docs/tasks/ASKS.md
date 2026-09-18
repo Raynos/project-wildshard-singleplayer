@@ -66,4 +66,4 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | P1 | One built-in EDGES HUD edit of base-phone; save art/hud-P1-baredges.png | **in flight** | Codex; single generation |
 
 | P2 | One built-in TOP CORNERS HUD edit; save art/hud-P2-barcorners.png | **in flight** | Codex; single generation |
-| MM1 | **Top-down circular minimap (B)** with red/yellow animal dots — art/minimap-k1-B-terrain.png | **in flight** (minimap agent) | src/ui/Minimap.ts + minimap.css; main.ts wiring pending |
+| MM1 | **Top-down circular minimap (B)** with red/yellow animal dots — art/minimap-k1-B-terrain.png | **done** | `b3b6568` src/ui/Minimap.ts + minimap.css (north-up, scrolls, fog of war, deer yellow / boar red + charge pulse); main.ts wiring (`new Minimap()` + `minimap.update(...)`) owned by the HUD session |
