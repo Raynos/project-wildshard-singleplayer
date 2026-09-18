@@ -7,6 +7,10 @@ import { Water } from './world/Water';
 import { Ocean } from './world/Ocean';
 import { Pier } from './world/Pier';
 import { Boat } from './world/Boat';
+import { Boulders } from './world/Boulders';
+import { Hut } from './world/Hut';
+import { Palms } from './world/Palms';
+import { HUT } from './chunks/driftwood-isle';
 import { Hands } from './player/Hands';
 import { ROAD_LENGTH } from './core/config';
 import { Sword } from './player/Sword';
@@ -65,7 +69,7 @@ async function main() {
   const respawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
 
   // ── world dressing ──
-  const { boundary, water, ocean, pier, boat, horizon } = await step('edge', () => {
+  const { boundary, water, ocean, pier, boat, palms, horizon } = await step('edge', () => {
     const boundary = new Boundary(sky).build();
     game.scene.add(boundary.group);
     const water = !isOcean && hasPond() ? new Water(sky).build() : null;
@@ -87,9 +91,18 @@ async function main() {
       player.colliders.push(...boat.colliders);
       player.platforms.push((x, z) => boat.floorHeightAt(x, z));
     }
+    // faceted shore boulders along the beach
+    const rocks = isOcean ? new Boulders(sky).build(Boulders.scatterShore(chunk.seed)) : null;
+    if (rocks) { game.scene.add(rocks.mesh); player.colliders.push(...rocks.colliders); }
+    // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
+    const hut = isOcean ? new Hut(sky, HUT).build() : null;
+    if (hut) { game.scene.add(hut.group); player.colliders.push(...hut.colliders); player.platforms.push((x, z) => hut.floorHeightAt(x, z)); }
+    // coconut palms (one draw call, fronds sway in update)
+    const palms = isOcean ? new Palms(sky).build(Palms.scatterIsland(chunk.seed, 150, [{ x: HUT.x, z: HUT.z, r: 11 }])) : null;
+    if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
-    return { boundary, water, ocean, pier, boat, horizon };
+    return { boundary, water, ocean, pier, boat, palms, horizon };
   });
 
   const { grass, under, particles } = await step('grass', () => {
@@ -153,7 +166,9 @@ async function main() {
   const inventory = new Inventory(getActiveChunk().id);   // the pack: harvest drops
   const menu = new GameMenu({
     fullMap, progress, inventory,
-    kit: () => [{ id: 'crossbow', name: 'Hunting crossbow', ammoLabel: 'Iron bolts', ammo: crossbow.state.bolts, magazine: 30, reserve: 0, equipped: true, icon: 'crossbow' }],
+    kit: () => (chunk.weapon === 'sword'
+      ? [{ id: 'sword', name: 'Wooden sword', ammoLabel: '', ammo: 0, magazine: 0, reserve: 0, equipped: true, icon: 'crossbow' as const }] // TODO(icons): a sword glyph
+      : [{ id: 'crossbow', name: 'Hunting crossbow', ammoLabel: 'Iron bolts', ammo: crossbow.state.bolts ?? 0, magazine: 30, reserve: 0, equipped: true, icon: 'crossbow' as const }]),
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); });
@@ -236,6 +251,7 @@ async function main() {
     water?.update(dt);
     ocean?.update(dt);
     boat?.update(dt);
+    palms?.update(dt);
     hands.update(dt, player);
     horizon.update(dt, game.camera);
     grass?.update(dt, player.position);
