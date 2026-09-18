@@ -34,7 +34,7 @@ export const TIER_CONFIG = {
     // post: god rays samples / resolution scale, volumetric march steps, SMAA preset
     // 3 full-res SMAA passes are the dearest part of the chain and DPR 1.0 is upscaled ×3 on the screen anyway;
     // volumetrics march at half res into their own target; god rays at a quarter
-    godRaysSamples: 24, godRaysScale: 0.25, volumetricSteps: 8, volumetricScale: 0.5, smaa: 'off' as 'off' | 'low' | 'high', bloomLevels: 4,
+    godRaysSamples: 24, godRaysScale: 0.25, volumetricSteps: 8, volumetricScale: 0.5, smaa: 'low' as 'off' | 'low' | 'high', bloomLevels: 4, // SMAA low back on: at DPR 1.0 the viewmodel's edges stair-step without it
   },
   desktop: {
     maxTexture: 4096, layerSize: 1024, dpr: 1.5, ao: true,

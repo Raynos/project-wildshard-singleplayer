@@ -3,7 +3,6 @@
  * knobs live here instead of URL params and persist in localStorage. Delete this file and its
  * `new Debug()` line when the black-screen / LPM investigation is over.
  *
- *   loop     rAF | timer(16 ms)      Game.start reads `dbg.loop` each frame (live switch)
  *   tier     phone | desktop         src/core/tier.ts reads `dbg.tier` at boot (needs reload)
  *   meter    on | off                the frame meter
  *   rdbg     on | off                the resume debug modal
@@ -12,9 +11,9 @@
  *   keep     on | off                silent looping <audio> (does iOS keep an audio-playing PWA warm across a switch?)
  *   reload                           cache-busting reload (same as the build pill)
  */
-export interface DebugFlags { loop: 'raf' | 'timer'; tier: 'auto' | 'phone' | 'desktop'; meter: boolean; rdbg: boolean; keepalive: boolean; dpr: 'auto' | '1' | '1.25' | '1.5'; aa: 'auto' | 'on' | 'off' }
+export interface DebugFlags { tier: 'auto' | 'phone' | 'desktop'; meter: boolean; rdbg: boolean; keepalive: boolean; dpr: 'auto' | '1' | '1.25' | '1.5'; aa: 'auto' | 'on' | 'off' }
 const KEY = 'ws.debug';
-const DEFAULTS: DebugFlags = { loop: 'raf', tier: 'auto', meter: true, rdbg: true, keepalive: false, dpr: 'auto', aa: 'auto' };
+const DEFAULTS: DebugFlags = { tier: 'auto', meter: true, rdbg: true, keepalive: false, dpr: 'auto', aa: 'auto' };
 
 export function readDebugFlags(): DebugFlags {
   try { return { ...DEFAULTS, ...(JSON.parse(localStorage.getItem(KEY) ?? '{}') as Partial<DebugFlags>) }; } catch { return { ...DEFAULTS }; }
@@ -47,7 +46,6 @@ export class Debug {
       if (note) r.append(Object.assign(document.createElement('span'), { textContent: ` ${note}`, style: 'color:#8fa;opacity:.7;font-size:10px' }));
       p.appendChild(r);
     };
-    row('loop', ['raf', 'timer'], dbg.loop, (v) => { dbg.loop = v as DebugFlags['loop']; });
     row('tier', ['auto', 'phone', 'desktop'], dbg.tier, (v) => { dbg.tier = v as DebugFlags['tier']; }, 'reload');
     row('dpr', ['auto', '1', '1.25', '1.5'], dbg.dpr, (v) => { dbg.dpr = v as DebugFlags['dpr']; }, 'reload · sharpness vs fps');
     row('aa', ['auto', 'on', 'off'], dbg.aa, (v) => { dbg.aa = v as DebugFlags['aa']; }, 'reload · SMAA');

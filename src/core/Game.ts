@@ -13,7 +13,6 @@ import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from './tier';
 import { ResumeSnapshot } from './ResumeSnapshot';
 import { ResumeDebug } from './ResumeDebug';
-import { dbg } from '../ui/Debug';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 
@@ -175,10 +174,8 @@ export class Game {
     new ResumeDebug(this.renderer, () => snapshot.firstFrameAt, () => this.frameGate(), () => `${snapshot.describe()} · ${this.keepAlive?.describe() ?? ''}`);
     this.canvas.addEventListener('webglcontextlost', () => { this.gl.lostAt = performance.now(); this.gl.events++; console.warn('[gl] context lost'); });
     this.canvas.addEventListener('webglcontextrestored', () => { this.gl.restoredAt = performance.now(); console.warn('[gl] context restored after', Math.round(this.gl.restoredAt - this.gl.lostAt), 'ms'); });
-    // ?loop=timer: drive the loop from a 16 ms timer instead of rAF — an experiment for iOS Low Power
-    // Mode, which throttles rAF to 30 Hz (whether the compositor presents timer-driven frames any
-    // faster is the question the phone's meter answers). Default stays rAF.
-    const schedule = (fn: () => void) => { if (dbg.loop === 'timer') setTimeout(fn, 16); else requestAnimationFrame(fn); }; // live switch from the DBG pill
+    // (A timer-driven loop was tried for iOS Low Power Mode: timers are throttled to ~30 ms there too. rAF it is.)
+    const schedule = (fn: () => void) => { requestAnimationFrame(fn); };
     const loop = () => {
       schedule(loop);
       if (!forceFrame && !this.frameGate()) { this.clock.getDelta(); return; } // keep the clock moving so the next frame's dt is sane
