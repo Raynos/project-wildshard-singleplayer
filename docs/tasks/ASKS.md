@@ -114,3 +114,12 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | D5 | Equipment: **mockups of a basic low-poly wooden sword and a basic low-poly iron sword**; one swing animation each (no shoot/reload); **first implementation = wooden sword only** | **in flight** | art/driftwood-sword-{wooden,iron}.png |
 | D6 | Where does **equipment / inventory** go in the UI — "forget about equipment … I'll deal with inventory and equipment later" | **dropped** (deferred by the user) | — |
 | D7 | "We already implemented the boar — do the same boar in the low-poly art style, and start there" | **open** | first engine step after the mockups |
+
+| P1 | **DPR 1.5 + AA on by default on phones** ("game changer for the crossbow") | **done, receipt pending** | `b-mu6i9vn4`; needs a meter line at 1.5 with Low Power Mode off — fallback 1.25 if it drops under 60 |
+| P2 | **Deer less skittish** — "I need to be able to get close and shoot them" | **done, verdict pending** | `6bd73ad` / `b-mu6iff3u`: sight 30/14 m, hears a walker at 12 m, 4–7 s freeze, run 6.0 (< sprint 7.2), stops at 35–50 m |
+| P3 | Crossbow shader programs 8 → 4 with the look unchanged (load agent's patch) | **open** | blocked on Crossbow.ts being free of the HUD session's edits; prod anisotropy must stay |
+| P4 | Remove the DBG pill (tier / dpr / aa / meter) once the graphics defaults are settled | **open** | src/ui/Debug.ts + one line in main.ts + tier.ts overrides |
+| P5 | Cold first-launch bytes 30 MB → ~10 MB (baked PMREM instead of the 4 MB HDR, model textures to the phone tier, KTX2 for GPU memory) | **open** | docs/plans/LOAD-PERF.md §P1; the SW cache migration (9f6c3e2) already makes it a one-time cost |
+| P6 | Shard 3 biome (shard 2 = Driftwood Isle, D1) | **open** | user: "I'll tell later" |
+| X1 | Black screen on iOS app switch | **closed — accepted** | iOS restores a suspended standalone app before any JS runs; overlay / mirror / hidden canvas / manifest colour / wake lock / keep-alive audio made no difference; modal removed in `fa47487` |
+| X2 | 30 fps in Low Power Mode | **closed — accepted** | iOS caps rAF and timers at 30 Hz; `?loop=timer` tried and removed |
