@@ -8,7 +8,7 @@
 .ws-perf .ws-perf-short { display: none; }
 @media (max-width: 700px) {
   /* phone: one short line top-right, above the compass band (its top edge is max(9vh, safe-area + 10px)); the PAUSE pill is top-left */
-  .ws-perf { right: 12px; top: max(6px, calc(env(safe-area-inset-top, 0px) - 20px)); font-size: 8px; gap: 4px; padding: 2px 5px; } /* inside the status-bar band, same line as the PAUSE pill (right of the clock is clear) */
+  .ws-perf { left: 12px; right: auto; top: calc(max(6px, env(safe-area-inset-top, 0px) - 20px) + 30px); font-size: 8px; gap: 4px; padding: 2px 5px; } /* under the PAUSE pill; the minimap owns the top-right */
   .ws-perf .ws-perf-long { display: none; }
   .ws-perf .ws-perf-short { display: inline; }
   .ws-perf b { font-size: 9px; }
