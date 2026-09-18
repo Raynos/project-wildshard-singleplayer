@@ -54,7 +54,8 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   const factory = await step('cards', () => TREE_FACTORIES[def.trees.factory](game.renderer, def));
   const forest = await step('forest', (p) => {
     const f = new Forest(factory, sky).build();
-    game.scene.add(f.group);
+    if (f.trees.length === 0) f.group.visible = false; // an ocean shard: the empty needle / twig batches still cost 24k tris + shadow draws on the phone
+    else game.scene.add(f.group);
     terrain.applyCanopy(f.canopyMap);
     p.detail(`${f.trees.length.toLocaleString()} ${def.trees.noun}`);
     return f;

@@ -122,7 +122,7 @@ async function main() {
     const jetties = isOcean ? JETTIES.map((j) => new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: chunk.ocean!.level + 1.2 }).build()) : [];
     for (const j of jetties) { game.scene.add(j.group); player.colliders.push(...j.colliders); player.platforms.push((x, z) => j.floorHeightAt(x, z)); }
     const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
-    const bushes = isOcean ? new Bushes(sky).build(Bushes.scatterIsland(chunk.seed, 260, AVOID)) : null;
+    const bushes = isOcean ? new Bushes(sky).build(Bushes.scatterIsland(chunk.seed, undefined, AVOID)) : null;
     if (bushes) game.scene.add(bushes.mesh);
     // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
     const gulls = pier && boat && rocks ? new Gulls(sky).build({
@@ -136,7 +136,7 @@ async function main() {
     }) : null;
     if (gulls) game.scene.add(gulls.group);
     // coconut palms (one draw call, fronds sway in update)
-    const palms = isOcean ? new Palms(sky).build(Palms.scatterIsland(chunk.seed, 150, AVOID)) : null;
+    const palms = isOcean ? new Palms(sky).build(Palms.scatterIsland(chunk.seed, undefined, AVOID)) : null;
     if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
