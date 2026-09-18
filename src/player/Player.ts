@@ -34,14 +34,14 @@ const SWIM_IN = WADE_MAX + 0.1;       // ground depth at which walking becomes s
 const SWIM_OUT = WADE_MAX - 0.05;     // … and swimming becomes wading again (the seabed / a beach rising under you)
 const NO_SPRINT_DEPTH = 0.6;          // knee-deep and up: no sprint
 const FLOAT_DEPTH = EYE - 0.35;       // feet float this far under the surface → the eye sits 0.35 m above it
-const SWIM_SPEED = 4.3 * 0.6;         // m/s, 60 % of walking
+export const SWIM_SPEED = 4.3 * 0.6;  // m/s, 60 % of walking (Hands.ts paces the stroke against it)
 const SWIM_ACCEL = 5;                 // /s — sluggish in water
 const BUOY_K = 14;                    // spring to the float height (ω ≈ 3.7 rad/s) …
 const BUOY_C = 3.5;                   // … under-damped (ζ ≈ 0.47): a plunge off a pier dips the head under and pops back up
 const CLIMB_REACH = 1.3;              // m a platform top may sit above the surface and still be climbed onto from the water
 const CLIMB_K = 30; const CLIMB_C = 10; // stiffer pull when hauling out onto a deck
 const CLIMB_PROBE = 0.7;              // m ahead of the feet where a platform is looked for while swimming toward it
-const STROKE_PERIOD = 0.85;           // s between strokes at full swim speed
+export const STROKE_PERIOD = 0.85;    // s between strokes at full swim speed (`onStroke`; Hands.ts runs one arm cycle per stroke)
 
 export class Player {
   position = new THREE.Vector3(0, 0, 0);
@@ -94,7 +94,7 @@ export class Player {
   onSwimChange?: (on: boolean) => void;
   /** one swim stroke while moving through water (audio) */
   onStroke?: () => void;
-  private inWater = false; private strokeTime = 0; private climbTo: number | null = null; private entryKeep = 0.3;
+  private inWater = false; private strokeTime = 0; private climbTo: number | null = null; private climbCooldown = 0; private entryKeep = 0.3;
   private readonly waterLine = new WaterLine();
   readonly board: Hoverboard;
   private eyeOffset = EYE;
@@ -245,10 +245,16 @@ export class Player {
       const v = this.velocity;
       v.x += (mx * SWIM_SPEED - v.x) * Math.min(1, SWIM_ACCEL * dt);
       v.z += (mz * SWIM_SPEED - v.z) * Math.min(1, SWIM_ACCEL * dt);
+      const x0 = this.position.x, z0 = this.position.z;
       this.position.x += v.x * dt;
       this.position.z += v.z * dt;
       this.collide(); // pilings, walls: still solid in the water
       const p = this.position;
+      // pinned against a piling / bollard while hauling out: let go of the climb (and don't grab again for a beat) so we
+      // sink back to the float height instead of hanging in the air beside the deck
+      const blocked = Math.hypot(p.x - x0, p.z - z0) < Math.hypot(v.x, v.z) * dt * 0.25;
+      if (this.climbTo !== null && blocked) { this.climbTo = null; this.climbCooldown = 0.6; }
+      this.climbCooldown = Math.max(0, this.climbCooldown - dt);
       const ws = this.waterSurfaceAt(p.x, p.z);
       const g = groundAt();
       if (ws === null) {
@@ -266,7 +272,7 @@ export class Player {
             const y = pl(px, pz);
             if (y !== undefined && y > ws - 0.3 && y - ws < CLIMB_REACH && (ahead === undefined || y < ahead)) ahead = y;
           }
-          if (ahead !== undefined && (!here || this.climbTo !== null)) this.climbTo = ahead;
+          if (ahead !== undefined && this.climbCooldown === 0 && (!here || this.climbTo !== null)) this.climbTo = ahead;
           else if (this.climbTo !== null && ahead === undefined && !here) this.climbTo = null;
         } else this.climbTo = null;
         if (groundDepth < SWIM_OUT) {
