@@ -97,3 +97,29 @@ Some things are still Pine-Hollow-specific in the engine and need code, not data
   `dressing` field and per-biome placers; add it when the second biome is chosen.
 - **The cabins** are the same three log cabins on every shard (a def chooses only where).
 - **The attract-mode camera path** (`src/core/Tour.ts`) follows Pine Hollow's trails.
+
+## Driftwood Isle — the low-poly pieces
+
+The second shard (`src/chunks/driftwood-isle.ts`, `style: 'lowpoly'`, `ocean`) is built from
+flat-shaded vertex-coloured modules, each one mesh, each exposing `colliders` for
+`player.colliders` and (where you can stand on it) `floorHeightAt(x, z)` for `player.platforms`.
+`src/dev/driftwood.ts` is the reference wiring; main.ts mirrors it under `if (chunk.ocean)`.
+
+| Module | What | Placement |
+|---|---|---|
+| `world/Ocean.ts` | faceted sea to the horizon, depth-coloured, foam band, `update(dt)` | `ChunkDef.ocean` |
+| `world/Pier.ts` | jetty on rope-wrapped pilings, `bollards`, `posts`, `mooringsFor()` | the south entry road + `JETTIES` (N / W / E) |
+| `world/Boat.ts` | moored sailboat, bobs in `update(dt)`, `ropes` mesh to the pier | beside the south pier |
+| `world/Boulders.ts` | faceted rocks, `scatterShore(seed)` | the water line |
+| `world/Hut.ts` | thatched stilt hut with porch + steps | `HUT` on the `PLATEAU` crag |
+| `world/Palms.ts` | coconut palms with a vertex-shader sway, `scatterIsland(seed, n, avoid)`, `update(dt)` | beach top + groves |
+| `world/Lookout.ts` | watchtower with stair and banner | `LOOKOUT` on the `HEADLAND` summit |
+| `world/Wreck.ts` | beached two-master, cargo and driftwood | `WRECK` in `COVE` (east) |
+| `world/Shrine.ts` | ring shrine on a dais with standing stones | `SHRINE` (north-west knoll) |
+| `world/Bushes.ts` | shrubs with red hibiscus, `scatterIsland(seed, n, avoid)` | beach top + clumps inland |
+
+The landscape is one function of the constants above (island disc, plateau, headland, cove,
+shrine knoll), so moving a POI is a one-line change; the entry roads stay forced to y = 0 and are
+the jetties' submerged sandbars. `scripts/bake-chunk.mjs` fingerprints the landscape into the bake
+header and `BakedTerrain.ts` refuses a bake that does not match the live def, so a stale
+`terrain.bin` (from before a def edit, or a service-worker copy) falls back to the analytic field.
