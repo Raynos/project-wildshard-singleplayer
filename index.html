@@ -28,6 +28,8 @@
       // iOS Safari: no rubber-band scroll of the fixed page, no pinch zoom — the game owns every gesture.
       document.addEventListener('touchmove', (e) => { if (!e.target.closest('[data-scroll]')) e.preventDefault(); }, { passive: false });
       document.addEventListener('gesturestart', (e) => e.preventDefault());
+      // home-screen PWA vs Safari tab: the page runs under the status bar only in standalone mode (CSS --ws-top handles the offset)
+      if (navigator.standalone || matchMedia('(display-mode: standalone)').matches) document.documentElement.classList.add('standalone');
     </script>
     <canvas id="game"></canvas>
     <div id="hud"></div>

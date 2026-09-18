@@ -3,6 +3,10 @@
    .ws-wordmark / .ws-bar and the keyframes. Everything else is sculpted per screen in a sibling file with
    its own class prefix (game.css → ws-game-, menu.css → ws-menu-, …); scripts/check-css.mjs enforces it. */
 :root {
+  /* top edge of the HUD on phones. In Safari the status bar is outside the page (safe-area-inset-top = 0) → 6px from
+     the top; as a home-screen PWA the page runs under the clock / Dynamic Island (inset ≈ 59px) → sit just below them.
+     `html.standalone` (index.html) is also set for anything that needs to know the mode explicitly. */
+  --ws-top: calc(env(safe-area-inset-top, 0px) + 6px);
   --ws-cyan: #8fe3ff;
   --ws-cyan-dim: rgba(143, 227, 255, 0.55);
   --ws-cyan-line: rgba(143, 227, 255, 0.35);
