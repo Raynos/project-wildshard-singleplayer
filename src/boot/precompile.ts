@@ -214,22 +214,31 @@ export async function runPrecompile(
   created.push(...(newProgramsSince(renderer, before) as unknown as ProgramLike[]));
   const n = created.length;
   const t0 = performance.now();
+  // Phase A (parallel drivers): wait for COMPLETION_STATUS_KHR on every program, counting them up.
+  const units = parallel ? 2 * n : n;
   if (parallel) {
-    let ready = 0;
     for (;;) {
-      ready = 0;
+      let ready = 0;
       for (const p of created) if (p.isReady()) ready++;
-      onProgress?.(jobs.length + ready, jobs.length + n, `${ready} / ${n} programs linked · parallel`);
+      onProgress?.(jobs.length + ready, jobs.length + units, `${ready} / ${n} programs linked · parallel`);
       if (ready >= n) break;
       await frame();
     }
-  } else {
-    for (let i = 0; i < n; i++) {
-      gl.getProgramParameter(created[i]!.program, gl.LINK_STATUS); // blocks until this one program is linked
-      onProgress?.(jobs.length + i + 1, jobs.length + n, `${i + 1} / ${n} programs linked · serial`);
-      await frame();
-    }
+    if (PERFLOAD) perfLog('link', performance.now() - t0, renderer, `${n} programs · parallel`);
   }
-  if (PERFLOAD) perfLog('link', performance.now() - t0, renderer, `${n} programs · ${mode}`);
+  // Phase B: resolve each link. COMPLETION_STATUS only says the front end is done — ANGLE Metal
+  // builds the Metal library on the first LINK_STATUS / uniform query (~20 ms a program with a cold
+  // shader cache), which the first frame would otherwise pay for every program in one stall. One
+  // query per program, time-boxed per frame so the count keeps moving; without the extension this
+  // is also where the link itself blocks.
+  const tB = performance.now();
+  let tSlice = tB;
+  const skipResolve = PERFLOAD && new URLSearchParams(location.search).has('noresolve'); // A/B for the instrumentation
+  for (let i = 0; i < n; i++) {
+    if (!skipResolve) gl.getProgramParameter(created[i]!.program, gl.LINK_STATUS);
+    onProgress?.(jobs.length + (parallel ? n : 0) + i + 1, jobs.length + units, `${i + 1} / ${n} programs resolved · ${mode}`);
+    if (performance.now() - tSlice > 12) { await frame(); tSlice = performance.now(); }
+  }
+  if (PERFLOAD) perfLog('resolve', performance.now() - tB, renderer, `${n} programs · LINK_STATUS`);
   return { materials, jobs: jobs.length, programs: n, parallel };
 }
