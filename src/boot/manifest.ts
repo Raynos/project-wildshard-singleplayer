@@ -1,0 +1,24 @@
+/**
+ * The files a chunk's boot downloads, per byte source — derived from its ChunkDef so the
+ * declared totals cannot drift from what the world actually asks for. Cabins/props content is
+ * still engine-fixed (docs/SHARDS.md), so those lists are fixed here too.
+ */
+import type { ChunkDef } from '../chunks/ChunkDef';
+import type { ChunkFiles } from './bytes';
+
+const pbr = (id: string) => ['diffuse', 'nor_gl', 'arm'].map((k) => `/assets/tex/${id}/${k}.jpg`);
+const gltf = (id: string) => [`/assets/models/${id}/${id}.gltf`, `/assets/models/${id}/${id}.bin`, ...['diff', 'nor_gl', 'arm'].map((k) => `/assets/models/${id}/textures/${id}_${k}_1k.jpg`)];
+const lod = (id: string) => [`/assets/models/${id}/${id}_lod.glb`];
+const uniq = (xs: string[]) => [...new Set(xs)];
+
+export function chunkFiles(def: ChunkDef): ChunkFiles {
+  const terrain = uniq([...def.assets.groundLayers, def.assets.slabRock].flatMap(pbr));
+  const trees = uniq([...pbr(def.trees.bark), `/assets/tex/${def.trees.twigAtlas}/twig_rgba.png`, `/assets/tex/${def.trees.twigAtlas}/twig_nor_gl.jpg`, `/assets/tex/${def.trees.twigAtlas}/twig_arm.jpg`]);
+  const cabins = uniq([
+    ...['wood_trunk_wall', 'wood_planks_grey', 'wood_planks_dirt', 'rough_pine_door', 'stone_wall'].flatMap(pbr),
+    ...['stone_fire_pit', 'wooden_crate_02', 'wine_barrel_01', 'wooden_bucket_01', 'hatchet'].flatMap(gltf),
+    ...lod('Lantern_01'),
+  ]).filter((f) => !terrain.includes(f) && !trees.includes(f)); // pine_bark, rock_ground: counted where first loaded
+  const props = uniq([...lod('rock_moss_set_01'), ...lod('tree_stump_01'), ...lod('dead_tree_trunk')]);
+  return { sky: [`/assets/hdri/${def.sky.hdri}_2k.hdr`], terrain, trees, cabins, props };
+}

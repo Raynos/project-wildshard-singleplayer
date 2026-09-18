@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Game } from './Game';
+import { TERRAIN_RES } from './config';
 import { Terrain } from '../world/Terrain';
 import { TreeFactory } from '../world/TreeFactory';
 import { Forest } from '../world/Forest';
@@ -7,6 +8,7 @@ import { Player } from '../player/Player';
 import type { Sky } from '../world/Sky';
 import { Tour } from './Tour';
 import * as Heightfield from '../world/Heightfield';
+import { runDirect, type StepRunner } from '../boot/plan';
 import { getActiveChunk, setActiveChunk, chunkSlugFromUrl } from '../chunks/registry';
 import type { ChunkDef } from '../chunks/ChunkDef';
 
@@ -35,25 +37,28 @@ export interface World {
  * URL params: ?chunk=<slug>  which shard (default pine-hollow, see src/chunks/registry.ts)
  *             ?x=&z=&yaw=&pitch=  spawn pose (metres / radians)
  */
-export async function bootstrap(onStep: (label: string, frac: number) => void = () => {}): Promise<World> {
+export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   const params = new URLSearchParams(location.search);
   const num = (k: string, d: number) => (params.has(k) ? parseFloat(params.get(k)!) : d);
   const def = setActiveChunk(chunkSlugFromUrl(location.search));
   const canvas = document.getElementById('game') as HTMLCanvasElement;
-  const game = new Game(canvas);
-  onStep('Reading the sky', 0.05);
-  const sky = await game.buildSky();
-  onStep('Shaping terrain · splat layers', 0.2);
-  const terrain = await new Terrain().build();
-  terrain.group.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.Material | undefined; if (m) sky.setupMaterial(m); });
-  game.scene.add(terrain.group);
-
-  onStep('Baking branch cards', 0.4);
-  const factory = await TREE_FACTORIES[def.trees.factory](game.renderer, def);
-  onStep(`Planting ${def.trees.noun}`, 0.55);
-  const forest = new Forest(factory, sky).build();
-  game.scene.add(forest.group);
-  terrain.applyCanopy(forest.canopyMap);
+  const game = await step('renderer', () => new Game(canvas));
+  const sky = await step('sky', () => game.buildSky());
+  const terrain = await step('terrain', async (p) => {
+    const t = await new Terrain().build();
+    t.group.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.Material | undefined; if (m) sky.setupMaterial(m); });
+    game.scene.add(t.group);
+    p.detail(`${TERRAIN_RES}² heightfield · ${def.assets.groundLayers.length} splat layers`);
+    return t;
+  });
+  const factory = await step('cards', () => TREE_FACTORIES[def.trees.factory](game.renderer, def));
+  const forest = await step('forest', (p) => {
+    const f = new Forest(factory, sky).build();
+    game.scene.add(f.group);
+    terrain.applyCanopy(f.canopyMap);
+    p.detail(`${f.trees.length.toLocaleString()} ${def.trees.noun}`);
+    return f;
+  });
 
   const player = new Player(game.camera, forest, canvas);
   player.spawn(num('x', def.spawn.x), num('z', def.spawn.z), num('yaw', def.spawn.yaw));

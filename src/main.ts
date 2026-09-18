@@ -14,47 +14,70 @@ import { AnimalManager } from './entities/AnimalManager';
 import { Crossbow, type Targets, type TargetHit } from './player/Crossbow';
 import { HUD } from './ui/HUD';
 import { Loading } from './ui/Loading';
+import { createBootPlan, type StepRunner } from './boot/plan';
+import { declareTotals, installByteCounter } from './boot/bytes';
+import { chunkFiles } from './boot/manifest';
+import { getActiveChunk } from './chunks/registry';
+import { TIER } from './core/tier';
 import { Audio } from './audio/Audio';
 
 async function main() {
   const loading = new Loading();
+  // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/boot/plan.ts).
+  // Declared bytes come from the chunk's file list; every /assets fetch is counted on its way in.
+  const files = chunkFiles(getActiveChunk());
+  const plan = createBootPlan((view) => loading.paint(view), { totals: declareTotals(files) });
+  installByteCounter(plan, files);
+  const step: StepRunner = (key, work) => plan.step(key, work).then((p) => p.value);
   // let the service worker take control first (≤ 2.5 s, never fatal) so the first visit's bytes are cached
   await window.__ws_sw?.ready;
-  const world = await bootstrap((label, frac) => loading.step(label, frac));
+  const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk } = world;
   const nolock = params.has('nolock');
   const respawn = () => player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw);
 
   // ── world dressing ──
-  loading.step('Raising the chunk boundary', 0.6);
-  const boundary = new Boundary(sky).build();
-  game.scene.add(boundary.group);
-  const water = hasPond() ? new Water(sky).build() : null;
-  if (water) game.scene.add(water.mesh);
-  const horizon = new Horizon(sky).build();
-  game.scene.add(horizon.group);
+  const { boundary, water, horizon } = await step('edge', () => {
+    const boundary = new Boundary(sky).build();
+    game.scene.add(boundary.group);
+    const water = hasPond() ? new Water(sky).build() : null;
+    if (water) game.scene.add(water.mesh);
+    const horizon = new Horizon(sky).build();
+    game.scene.add(horizon.group);
+    return { boundary, water, horizon };
+  });
 
-  loading.step('Seeding grass and ferns', 0.68);
-  const grass = new Grass(sky, forest).build();
-  const under = new Undergrowth(sky, forest).build();
-  const particles = new Particles(sky, forest).build();
-  game.scene.add(grass.group, under.group, particles.group);
+  const { grass, under, particles } = await step('grass', () => {
+    const grass = new Grass(sky, forest).build();
+    const under = new Undergrowth(sky, forest).build();
+    const particles = new Particles(sky, forest).build();
+    game.scene.add(grass.group, under.group, particles.group);
+    return { grass, under, particles };
+  });
 
-  loading.step('Building the cabins', 0.78);
-  const cabins = new Cabins(sky);
-  const { group: cabinGroup, colliders, interactables } = await cabins.build();
-  game.scene.add(cabinGroup);
-  player.colliders.push(...colliders);
-  player.platforms.push((x, z) => cabins.floorHeightAt(x, z));
-  const props = new Props(sky, forest);
-  game.scene.add(await props.build());
-  player.colliders.push(...props.colliders);
+  const { cabins, interactables } = await step('cabins', async () => {
+    const cabins = new Cabins(sky);
+    const { group: cabinGroup, colliders, interactables } = await cabins.build();
+    game.scene.add(cabinGroup);
+    player.colliders.push(...colliders);
+    player.platforms.push((x, z) => cabins.floorHeightAt(x, z));
+    return { cabins, interactables };
+  });
+  const props = await step('props', async () => {
+    const props = new Props(sky, forest);
+    game.scene.add(await props.build());
+    player.colliders.push(...props.colliders);
+    return props;
+  });
 
-  loading.step('Waking the herds', 0.9);
-  const animals = new AnimalManager(game.scene, sky, forest).build();
+  const animals = await step('animals', (p) => {
+    const a = new AnimalManager(game.scene, sky, forest).build();
+    p.detail(`${a.animals.length} animals`);
+    return a;
+  });
 
   // ── player kit: crossbow, HUD, audio ──
-  loading.step('Spanning the crossbow', 0.96);
+  await step('weapon', () => undefined); // synchronous below; the step marks it in the log
   const targets: Targets = {
     raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null {
       const h = animals.raycast(origin, dir, maxDist);
@@ -123,7 +146,8 @@ async function main() {
   });
 
   game.onUpdate((dt, t) => {
-    if (attract && tour.active) { attractT += dt * 0.3; tour.setTime(12 + ((attractT - 12) % 14)); }
+    // phones hold the hero frame: at 15–17 fps the drift judders and the 14 s wrap hard-cuts
+    if (attract && tour.active && TIER !== 'phone') { attractT += dt * 0.3; tour.setTime(12 + ((attractT - 12) % 14)); }
     boundary.update(dt, t);
     water?.update(dt);
     horizon.update(dt, game.camera);
@@ -159,10 +183,10 @@ async function main() {
   game.buildComposer();
   // Compile programs in batches with a visible count, then draw the first frames as a step —
   // instead of the first render() compiling ~100 programs in one stall (minutes on iOS).
-  loading.step('Compiling shaders', 0.97);
-  const materials = await game.precompile((d, n) => loading.detail(`${d} / ${n} materials`));
-  loading.step(`First frame · ${materials} materials · ${game.renderer.info.programs?.length ?? 0} programs`, 0.99);
-  await game.firstFrame((_d, _n, what) => loading.detail(what));
+  const programs = () => `${game.renderer.info.programs?.length ?? 0} programs`;
+  await step('shaders', (p) => game.precompile((d, n) => p.set(d, n, `${d} / ${n} materials · ${programs()}`)));
+  await step('firstFrame', (p) => game.firstFrame((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
+  (plan as unknown as { done(): void }).done(); // throws unless both tracks are exactly 1
   game.start();
   await loading.done();
   (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, grass, under, particles, cabins, props, animals, crossbow, hud, audio };

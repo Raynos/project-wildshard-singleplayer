@@ -31,8 +31,8 @@ export interface ByteProgress { add(n: number): void }
 
 export interface LogRow {
   key: BootStep; label: string; state: 'todo' | 'on' | 'ok';
-  /** Wall ms of the step (running: so far). */
-  ms: number; detail: string; fraction: number; sub: number;
+  /** Wall ms of the step (running: so far at publish time; `t0` lets a painter keep it live). */
+  ms: number; t0: number; detail: string; fraction: number; sub: number;
 }
 
 export interface ProgressView {
@@ -91,7 +91,7 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
       const ok = s.state === 'ok';
       if (ok) doneCount++;
       acc += STEP_INFO[k].weight * (ok ? 1 : s.state === 'on' ? s.fraction : 0);
-      return { key: k, label: STEP_INFO[k].label, state: s.state, ms: s.state === 'on' ? t - s.t0 : s.ms, detail: s.detail, fraction: ok ? 1 : s.fraction, sub: ok ? 1 : s.sub };
+      return { key: k, label: STEP_INFO[k].label, state: s.state, ms: s.state === 'on' ? t - s.t0 : s.ms, t0: s.t0, detail: s.detail, fraction: ok ? 1 : s.fraction, sub: ok ? 1 : s.sub };
     });
     let read = 0, total = 0, filesDone = 0, filesTotal = 0;
     for (const s of sources.values()) {
@@ -166,3 +166,9 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
 }
 
 export const formatMB = (b: number): string => `${(b / 1048576).toFixed(b < 10 * 1048576 ? 2 : 1)} MB`;
+
+/** Runs one step: what code outside main.ts (bootstrap) receives, so it need not know the plan type. */
+export type StepRunner = <T>(key: BootStep, work: (p: StepProgress) => T | Promise<T>) => Promise<T>;
+const noProgress: StepProgress = { set() {}, detail() {} };
+/** No loading screen (dev entries): run the work, report nothing. */
+export const runDirect: StepRunner = async (_key, work) => work(noProgress);
