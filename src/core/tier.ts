@@ -15,14 +15,14 @@ export const TIER: Tier = forced === 'phone' || forced === 'desktop' ? forced : 
 
 export const TIER_CONFIG = {
   phone: {
-    maxTexture: 1024, layerSize: 512, dpr: 1.25, ao: false,
+    maxTexture: 1024, layerSize: 512, dpr: 1.0, ao: false,
     // shadows: one cascade to 80 m, 1024² — the 2-cascade rig re-drew the whole world twice (9.8 M tris)
     cascades: 1, shadowMapSize: 1024, shadowFar: 80, shadowMargin: 60, softShadows: false,
     undergrowthShadows: false, animalShadowDist: 30, animalHideDist: 150, furShells: false,
     // trees: hi cards → lo cards → far card beyond loDist; lo trees never cast shadows (they are past shadowFar)
-    treeHiDist: 70, treeLoDist: 130, treeTwigDist: 24, loTreeShadows: false,
+    treeHiDist: 55, treeLoDist: 130, treeTwigDist: 24, loTreeShadows: false,
     // grass carpet: ring radius / slots per 4 m cell / quads per clump
-    grassRadius: 40, grassSlots: 72, grassQuads: 3,
+    grassRadius: 40, grassSlots: 56, grassQuads: 3,
     undergrowthFar: 60, propsFar: 220, propsMinAngular: 0.004, // a 0.5 m rock lives to 125 m, a boulder to 220 m
     // cabins: hardware / lantern / fire pit / flames only within this; 4 shared point lights follow the nearest cabin
     // instead of 12 in every shader (NUM_POINT_LIGHTS is per-fragment cost on everything, grass included)
