@@ -2,7 +2,8 @@
 
 ## Version control
 
-- Commit early and often with small commits.
+- Commit early and often with small commits, and `git push origin main` after every commit —
+  don't let local commits pile up.
 
 ## Mockups
 
