@@ -12,6 +12,7 @@ import { Cabins } from './world/Cabin';
 import { Props } from './world/Props';
 import { AnimalManager } from './entities/AnimalManager';
 import { Crossbow, type Targets, type TargetHit } from './player/Crossbow';
+import { TouchControls } from './player/TouchControls';
 import { HUD } from './ui/HUD';
 import { Loading } from './ui/Loading';
 import { createBootPlan, type StepRunner } from './boot/plan';
@@ -85,6 +86,7 @@ async function main() {
     },
   };
   const crossbow = new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
+  new TouchControls(player, crossbow, params.has('touch')); // on-screen FPS controls on coarse-pointer devices (?touch=1 forces)
   crossbow.adsHeld = params.has('ads');
   const hud = new HUD({ pointerLock: !nolock });
   const audio = new Audio();
