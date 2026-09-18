@@ -7,9 +7,6 @@ import { Water } from './world/Water';
 import { Ocean } from './world/Ocean';
 import { Pier } from './world/Pier';
 import { Boat } from './world/Boat';
-import { Boulders } from './world/Boulders';
-import { Hut } from './world/Hut';
-import { HUT } from './chunks/driftwood-isle';
 import { Hands } from './player/Hands';
 import { ROAD_LENGTH } from './core/config';
 import { Sword } from './player/Sword';
@@ -90,12 +87,6 @@ async function main() {
       player.colliders.push(...boat.colliders);
       player.platforms.push((x, z) => boat.floorHeightAt(x, z));
     }
-    // faceted shore boulders along the beach
-    const rocks = isOcean ? new Boulders(sky).build(Boulders.scatterShore(chunk.seed)) : null;
-    if (rocks) { game.scene.add(rocks.mesh); player.colliders.push(...rocks.colliders); }
-    // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
-    const hut = isOcean ? new Hut(sky, HUT).build() : null;
-    if (hut) { game.scene.add(hut.group); player.colliders.push(...hut.colliders); player.platforms.push((x, z) => hut.floorHeightAt(x, z)); }
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
     return { boundary, water, ocean, pier, boat, horizon };
@@ -162,9 +153,7 @@ async function main() {
   const inventory = new Inventory(getActiveChunk().id);   // the pack: harvest drops
   const menu = new GameMenu({
     fullMap, progress, inventory,
-    kit: () => (chunk.weapon === 'sword'
-      ? [{ id: 'sword', name: 'Wooden sword', ammoLabel: '', ammo: 0, magazine: 0, reserve: 0, equipped: true, icon: 'crossbow' as const }] // TODO(icons): a sword glyph
-      : [{ id: 'crossbow', name: 'Hunting crossbow', ammoLabel: 'Iron bolts', ammo: crossbow.state.bolts ?? 0, magazine: 30, reserve: 0, equipped: true, icon: 'crossbow' as const }]),
+    kit: () => [{ id: 'crossbow', name: 'Hunting crossbow', ammoLabel: 'Iron bolts', ammo: crossbow.state.bolts, magazine: 30, reserve: 0, equipped: true, icon: 'crossbow' }],
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); });

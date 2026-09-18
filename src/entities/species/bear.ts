@@ -261,21 +261,21 @@ registerSpecies({
   // weights sum to 100: black 55 % (a third of them with a chest blaze) · brown 30 % · Old Blackpaw 10 % · Grizzled Sow 5 %
   // (a herd plan's `variants` narrows the pool — Pine Hollow's black den never rolls a brown)
   variants: [
-    { id: 'black', label: 'Black bear', weight: 37, rarity: 'common', scale: [0.95, 1.05], hp: 220, traits: { grizzle: 0.3 } },
-    { id: 'black-blaze', label: 'Black bear', weight: 18, rarity: 'common', scale: [0.95, 1.05], hp: 220, traits: { grizzle: 0.3, blaze: 1 } },
+    { id: 'black', label: 'Black bear', weight: 37, rarity: 'common', scale: [1.3, 1.4], hp: 220, traits: { grizzle: 0.3 } },
+    { id: 'black-blaze', label: 'Black bear', weight: 18, rarity: 'common', scale: [1.3, 1.4], hp: 220, traits: { grizzle: 0.3, blaze: 1 } },
     {
-      id: 'brown', label: 'Brown bear', weight: 30, rarity: 'uncommon', scale: [1.15, 1.3], hp: 320,
+      id: 'brown', label: 'Brown bear', weight: 30, rarity: 'uncommon', scale: [1.6, 1.75], hp: 320,
       tint: BROWN_TINT, traits: { hump: 1, grizzle: 0.6 },
       fur: { rim: [0.95, 0.8, 0.55], sheenColor: [0.42, 0.34, 0.24] },
       mods: { damageTaken: 0.85, chargeDamage: 45, relentless: true },   // relentless: a brown bear never breaks off
     },
     {
-      id: 'black-old', label: 'Old Blackpaw', weight: 10, rarity: 'rare', scale: [1.25, 1.25], hp: 330,
+      id: 'black-old', label: 'Old Blackpaw', weight: 10, rarity: 'rare', scale: [1.65, 1.65], hp: 330,
       tint: BLACKPAW_TINT, traits: { grizzle: 0.45, hump: 0.3 },
       mods: { chargeDamage: 42, relentless: true, chargeDist: 1.2 },
     },
     {
-      id: 'brown-old', label: 'Grizzled Sow', weight: 5, rarity: 'rare', scale: [1.45, 1.45], hp: 480,
+      id: 'brown-old', label: 'Grizzled Sow', weight: 5, rarity: 'rare', scale: [2.0, 2.0], hp: 480,
       tint: GRIZZLED_TINT, traits: { hump: 1.3, grizzle: 1.0 },
       fur: { rim: [0.95, 0.9, 0.78], sheenColor: [0.5, 0.46, 0.4] },
       mods: { damageTaken: 0.8, chargeDamage: 55, relentless: true, chargeDist: 1.3, speed: 1.05 },

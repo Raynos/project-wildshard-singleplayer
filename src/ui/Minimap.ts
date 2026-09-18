@@ -260,10 +260,7 @@ export class Minimap {
     for (let i = 0; i < h.length; i++) { if (h[i] < hMin) hMin = h[i]; if (h[i] > hMax) hMax = h[i]; }
     const img = new ImageData(N, N), px = img.data, col: RGB = [0, 0, 0];
     const lx = -0.55, ly = 0.65, lz = -0.52; // light from the upper-left of the map (north-west), fairly low
-    const chunk = getActiveChunk();
-    const F = chunk.forest;
-    const ocean = chunk.ocean ?? null; // open-water shard: sea by depth, sand where the floor breaks the surface, no forest
-    const SEA_DEEP: RGB = [22, 74, 128], SEA_SHALLOW: RGB = [78, 196, 214], SAND: RGB = [226, 206, 150];
+    const F = getActiveChunk().forest;
     const density = new Noise2D(SEED + 5);   // Forest.ts thins its tree candidates with this field: groves are dark floor, clearings meadow
     for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
       const wx = CHUNK_HALF - i * HEIGHT_STEP, wz = CHUNK_HALF - j * HEIGHT_STEP;
@@ -276,18 +273,11 @@ export class Minimap {
       const shade = 0.6 + 0.4 * Math.max(0, nx * lx + ny * ly + nz * lz) / Math.hypot(lx, ly, lz);
       const slope = 1 - ny;
       const alt = (h[j * N + i] - hMin) / Math.max(1, hMax - hMin);
-      let sh = shade;
-      if (ocean) {
-        const depth = ocean.level - h[j * N + i];
-        if (depth > 0) { mix(SEA_SHALLOW, SEA_DEEP, smoothstep(0, ocean.deepDepth, depth), col); sh = 1; }
-        else { mix(SAND, GRASS_HI, smoothstep(1.5, 8, -depth), col); mix(col, ROCK, smoothstep(0.14, 0.4, slope), col); }
-      } else {
-        mix(GRASS_LO, GRASS_HI, alt, col);
-        mix(col, FLOOR, grove * 0.8, col);
-        mix(col, ROCK, smoothstep(0.14, 0.4, slope), col);
-      }
+      mix(GRASS_LO, GRASS_HI, alt, col);
+      mix(col, FLOOR, grove * 0.8, col);
+      mix(col, ROCK, smoothstep(0.14, 0.4, slope), col);
       const o = (j * N + i) * 4;
-      px[o] = col[0] * sh; px[o + 1] = col[1] * sh; px[o + 2] = col[2] * sh; px[o + 3] = 255;
+      px[o] = col[0] * shade; px[o + 1] = col[1] * shade; px[o + 2] = col[2] * shade; px[o + 3] = 255;
     }
     const small = canvas(N, N); ctx2d(small).putImageData(img, 0, 0);
     ctx.imageSmoothingEnabled = true;
@@ -302,12 +292,6 @@ export class Minimap {
       ctx.beginPath(); ctx.arc(u, v, r * 0.98, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
     }
 
-    if (ocean) {
-      // the south pier (src/world/Pier.ts: 4 m deck from the edge midpoint 60 m north) — the entry roads are submerged sandbars
-      ctx.fillStyle = '#b8945e';
-      ctx.fillRect(toU(2), toV(-CHUNK_HALF + 60), 4 * ppm, 60 * ppm);
-      return;
-    }
     // trails: a dark bed with a lighter dirt centre
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     const stroke = (w: number, style: string) => {
