@@ -50,6 +50,7 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | 36 | **Iron sights rebuilt to match mockup A** — 859379d rejected ("does nothing about aiming down the iron sights"): camera must look down the bolt axis, tip just below centre, string at the bottom, limbs mid-height | **done** | `9597753` — ADS pose solved at runtime from the bolt/nut geometry + FOV per aspect (`src/player/Crossbow.ts`, rotation 0, tip at NDC (0, −0.12), nut just in front of the near plane; limbs ±0.63 desktop, edge to edge portrait; bolts fly the eye→tip ray so the impact projects on the tip) |
 | 37 | **Hoverboard mode + toggle button; walk speed back to 1×** ("double run speed feels silly now") | **done** | `c3632f2` (landed inside that commit — its message says iron sights; the hoverboard diff is in it): `Player.ts` 2.2 / 7.2 / 4.3 m/s again; hover = `H` / HOVER touch button (latched), 14 m/s cruise, 0.45 m ride height, ≤ 6° roll; `src/player/Hoverboard.ts` viewmodel |
 | 38 | **New HUD from approved mockups K1 + P2** — compass band with cabin/animal markers + CABIN · 180 m readout (desktop + touch), round AIM / JUMP discs, vitals + bolts inside the control bar corners, no RELOAD button | **done** | `5d4b82a` compass band (HUD.ts + game.css; `hud.setAnimals()` / `HUDState.nearest` feed the paw — main.ts not yet wired, so no paw in play) · `cc1ad79` P2 touch layout (bar strips, discs, HOVER disc kept, PAUSE under the compass) |
+| 39 | **Tracer bolts + bolts stay stuck in trees (debugging the sights)** — "a massive glowing red tracer" to see where the bolt goes; bolts stick in trees permanently for target practice | **in flight** (tracer agent) | `src/player/Crossbow.ts` |
 
 | K2 | One HOLO SURVEY HUD edit of base-phone; save art/hud-K2-holosurvey.png | **done** | art/hud-K2-holosurvey.png; built-in imagegen single generation |
 
@@ -63,7 +64,29 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 
 | N1 | One built-in image edit: GRIP BAR HUD on base-phone; save art/hud-N1-gripbar.png | **done** | art/hud-N2-consolebar.png; single built-in imagegen edit |
 
-| P1 | One built-in EDGES HUD edit of base-phone; save art/hud-P1-baredges.png | **in flight** | Codex; single generation |
+| P1 | One built-in EDGES HUD edit of base-phone; save art/hud-P1-baredges.png | **done** | art/hud-P1-baredges.png; single built-in generation; outer-edge vitals/ammo |
 
-| P2 | One built-in TOP CORNERS HUD edit; save art/hud-P2-barcorners.png | **in flight** | Codex; single generation |
+| P2 | One built-in TOP CORNERS HUD edit; save art/hud-P2-barcorners.png | **done** | art/hud-P2-barcorners.png; single built-in generation |
+
+| MB | One built-in terrain minimap screenshot edit; save art/minimap-B-terrain.png | **done** | art/minimap-B-terrain.png; single built-in imagegen edit |
+
+| MINIMAP-A | One built-in radar minimap screenshot edit; save art/minimap-A-radar.png | **done** | art/minimap-A-radar.png; single built-in imagegen edit |
+
+| MC | One built-in screenshot edit: holo ring minimap; save art/minimap-C-holo.png | **done** | art/minimap-C-holo.png; single built-in generation |
+
+| MK1B | One built-in terrain minimap edit of K1 screenshot; save art/minimap-k1-B-terrain.png | **done** | art/minimap-k1-A-radar.png; single built-in imagegen edit |
+
+| MK1A | One built-in edit of K1: circular radar minimap; save art/minimap-k1-A-radar.png | **done** | art/minimap-k1-A-radar.png; single built-in imagegen edit |
+
+| MK1C | One built-in K1 screenshot edit: holo ring minimap; save art/minimap-k1-C-holo.png | **done** | art/minimap-k1-A-radar.png; single built-in imagegen edit |
+
+| L1 | Load **5× faster on the iPhone**; the shaders step sat at "140 / 142" for 10–53 s | **in flight** (load-speed agent) | `5651fde` perflog · `d584095` precompile everything before the first frame (scene + shadow-depth + sky box + post chain, issued at once, parallel link with a live count; r186 PCFSoft→PCF recompile found and settled) · `3996b33` LINK_STATUS resolve phase. Desktop tier=phone: shaders 3.5 s → 0.11 s, first frame 1.86 s → 0.25 s, 0 programs compiled after the step. Phone reading pending. |
+| L2 | Loading bar is **not continuous — arbitrary chunks** | **done** | `da7c9c3` — steps weighted by the previous run's wall ms (localStorage per tier/cores), running step = max(sub-progress, elapsed/expected) < 1, republished every frame; 100 only at done(). Desktop trace: 232 paints / 1.2 s, 0 regressions, longest gap 214 ms. |
+| L3 | **Pre-bake at deploy time** (terrain, placements, sky) so the phone does no maths at launch | **done** (terrain) / open (placements, sky, cards) | `937c76d` scripts/bake-chunk.mjs → public/assets/baked/pine-hollow/terrain.bin, Heightfield lookups: desktop terrain 249 → 86 ms, grass 210 → 75. `5c6b8ef` textures uploaded in the shaders step (first frame 733–1468 → ~110 ms). `5681ad4` splat arrays copied on the GPU, no getImageData. Phone reading pending. |
 | MM1 | **Top-down circular minimap (B)** with red/yellow animal dots — art/minimap-k1-B-terrain.png | **done** | `b3b6568` src/ui/Minimap.ts + minimap.css (north-up, scrolls, fog of war, deer yellow / boar red + charge pulse); main.ts wiring (`new Minimap()` + `minimap.update(...)`) owned by the HUD session |
+
+| BUTTONS-C | One built-in screenshot edit: lower crossbow and corner discs; save art/buttons-C-lowered.png | **done** | art/buttons-C-lowered.png; single built-in imagegen edit |
+
+| BUTTONS-A | One built-in screenshot edit: edge-docked AIM/JUMP discs and right-edge HOVER pill; save art/buttons-A-edges.png | **done** | art/buttons-B-inbar.png; single built-in imagegen edit |
+
+| BUTTONS-B | One built-in screenshot edit: compact AIM / HOVER / JUMP pills inside control bar; save art/buttons-B-inbar.png | **done** | art/buttons-B-inbar.png; single built-in imagegen edit |

@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import type { Game } from '../core/Game';
 import type { Sky } from '../world/Sky';
 import type { Player } from '../player/Player';
@@ -53,8 +56,27 @@ const RELOAD_DURATION = 1.35;
 const AUTO_RELOAD_DELAY = 1.4;
 const FIRE_COOLDOWN = 0.3;
 const MAX_FLYING = 8;
-const MAX_STUCK = 20;
-const STUCK_LIFETIME = 30;
+/** Stuck bolts are PERMANENT (target practice): no lifetime — only the cap evicts, oldest first. */
+const MAX_STUCK = 200;
+/** how deep the broadhead sits in wood / ground (m); the rest of the bolt stands proud of the surface */
+const STUCK_BURY = 0.08;
+/** Forest pads every trunk's collision radius (`TreeInstance.r`) by this much over the drawn trunk (Forest.ts) */
+const TRUNK_PAD = 0.15;
+/**
+ * DEBUG TRACERS (for sighting-in the iron sights): every bolt gets a big red glow while it flies, leaves a fat
+ * additive red trail of its whole flight path (drawn through trees: no depth test) and drops a red impact marker
+ * where it stopped; trail + marker live TRACER_LIFE s then fade. Stuck bolts get a permanent red dot on the nock.
+ * One flip here turns it all off; `?tracer=0` / `?tracer=1` overrides it per load.
+ */
+const TRACER_ON = true;
+const TRACER: boolean = (() => {
+  const q = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('tracer');
+  return q === null ? TRACER_ON : q !== '0';
+})();
+const MAX_TRACERS = 8, TRACER_POINTS = 2048, TRACER_LIFE = 6, TRACER_FADE = 1.5, TRACER_WIDTH = 8;
+/** markers + the flying glow are scaled with distance (never below 1×) so they stay ~25 px on screen at any range */
+const TRACER_PX = 0.32;
+const TRACER_ORDER = 1200; // after the viewmodel (1000) so the trail's first metre shows over the weapon
 /** ADS is true iron sights, not a zoom: the FOV stays put and the weapon is brought up to the eye instead. */
 const FOV_HIP = 72, FOV_ADS = 72;
 /** Vertical FOV to give the camera. Three's fov is vertical, so on a portrait phone a fixed 72° collapses the
@@ -480,10 +502,91 @@ class Puffs {
   }
 }
 
+// ───────────────────────────── debug tracers ─────────────────────────────
+
+const TRACER_RED = new THREE.Color(1.0, 0.0, 0.0); // pure red; anything brighter the AgX tone map washes to salmon
+/** shared: the glow on flying bolts, impact-marker spheres, stuck-bolt nock dots (never fades) */
+const glowMat = new THREE.MeshBasicMaterial({ color: TRACER_RED, transparent: true, depthTest: false, depthWrite: false, toneMapped: false, fog: false, side: THREE.DoubleSide });
+const boltGlowGeo = new THREE.SphereGeometry(0.035, 12, 8);   // 7 cm on the flying bolt
+const stuckDotGeo = new THREE.SphereGeometry(0.025, 10, 6);   // 5 cm on a stuck bolt's nock
+const markerGeo = new THREE.SphereGeometry(0.06, 14, 10);     // 12 cm at the impact point
+const ringGeo = new THREE.RingGeometry(0.10, 0.14, 28);
+
+/** One flight path: a pre-allocated fat-line buffer (TRACER_POINTS samples → segment pairs) + an impact marker. */
+class Tracer {
+  readonly line: LineSegments2; readonly mat: LineMaterial;
+  readonly marker = new THREE.Group();
+  private buf: Float32Array; private ibuf: THREE.InstancedInterleavedBuffer; private geo: LineSegmentsGeometry;
+  private markMat: THREE.MeshBasicMaterial; private ring: THREE.Mesh;
+  private last = new THREE.Vector3();
+  n = 0; active = false;
+  /** absolute time the trail + marker expire; < 0 while the bolt is still flying */
+  endTime = -1;
+
+  constructor(scene: THREE.Scene) {
+    this.buf = new Float32Array((TRACER_POINTS - 1) * 6);
+    this.geo = new LineSegmentsGeometry();
+    this.geo.setPositions(this.buf);
+    this.ibuf = (this.geo.attributes.instanceStart as THREE.InterleavedBufferAttribute).data as THREE.InstancedInterleavedBuffer;
+    this.ibuf.setUsage(THREE.DynamicDrawUsage);
+    this.geo.instanceCount = 0;
+    this.mat = new LineMaterial({ linewidth: TRACER_WIDTH, transparent: true, opacity: 1, depthTest: false, depthWrite: false, toneMapped: false, fog: false });
+    this.mat.color = TRACER_RED.clone(); // the setter stores the object itself (a Color; > 1 so bloom haloes it)
+    this.line = new LineSegments2(this.geo, this.mat);
+    this.line.frustumCulled = false; this.line.renderOrder = TRACER_ORDER; this.line.visible = false;
+    scene.add(this.line);
+    this.markMat = glowMat.clone();
+    const ball = new THREE.Mesh(markerGeo, this.markMat); ball.renderOrder = TRACER_ORDER + 1;
+    this.ring = new THREE.Mesh(ringGeo, this.markMat); this.ring.renderOrder = TRACER_ORDER + 1;
+    this.marker.add(ball, this.ring);
+    this.marker.visible = false;
+    scene.add(this.marker);
+  }
+
+  begin(p: THREE.Vector3) {
+    this.n = 0; this.geo.instanceCount = 0; this.active = true; this.endTime = -1;
+    this.mat.opacity = 1; this.markMat.opacity = 1;
+    this.marker.visible = false; this.line.visible = false;
+    this.addPoint(p);
+  }
+
+  /** append a flight sample (one per integration step); no allocation, uploads only the new segment */
+  addPoint(p: THREE.Vector3) {
+    if (this.n >= TRACER_POINTS) return;
+    if (this.n > 0) {
+      if (p.distanceToSquared(this.last) < 1e-8) return;
+      const o = (this.n - 1) * 6, b = this.buf, l = this.last;
+      b[o] = l.x; b[o + 1] = l.y; b[o + 2] = l.z; b[o + 3] = p.x; b[o + 4] = p.y; b[o + 5] = p.z;
+      this.ibuf.addUpdateRange(o, 6); this.ibuf.needsUpdate = true;
+      this.geo.instanceCount = this.n;
+      this.line.visible = true;
+    }
+    this.last.copy(p); this.n++;
+  }
+
+  finish(p: THREE.Vector3, t: number) {
+    this.addPoint(p);
+    this.marker.position.copy(p); this.marker.visible = true;
+    this.endTime = t + TRACER_LIFE;
+  }
+
+  update(t: number, cam: THREE.Camera, res: THREE.Vector2) {
+    if (!this.active) return;
+    this.mat.resolution.copy(res);
+    if (this.endTime < 0) return;
+    const rem = this.endTime - t;
+    if (rem <= 0) { this.active = false; this.line.visible = false; this.marker.visible = false; return; }
+    const a = Math.min(1, rem / TRACER_FADE);
+    this.mat.opacity = a; this.markMat.opacity = a;
+    this.ring.quaternion.copy(cam.quaternion); // the ring always faces the camera
+    this.marker.scale.setScalar(Math.max(1, TRACER_PX * this.marker.position.distanceTo(cam.position)));
+  }
+}
+
 // ───────────────────────────── the crossbow ─────────────────────────────
 
-interface Bolt { mesh: THREE.Mesh; pos: THREE.Vector3; vel: THREE.Vector3; active: boolean; age: number; roll: number }
-interface Stuck { mesh: THREE.Mesh; expires: number }
+interface Bolt { mesh: THREE.Mesh; pos: THREE.Vector3; vel: THREE.Vector3; active: boolean; age: number; roll: number; tracer: Tracer | null; glow: THREE.Mesh | null }
+interface Stuck { mesh: THREE.Mesh }
 
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion();
@@ -540,6 +643,8 @@ export class Crossbow {
   private bolts: Bolt[] = [];
   private stuck: Stuck[] = [];
   private puffs = new Puffs();
+  private tracers: Tracer[] = [];
+  private tracerRes = new THREE.Vector2();
   private time = 0;
   private spawnPos = new THREE.Vector3();
 
@@ -754,9 +859,29 @@ export class Crossbow {
     for (let i = 0; i < MAX_FLYING; i++) {
       const mesh = new THREE.Mesh(this.boltGeo, this.boltMat);
       mesh.visible = false; mesh.castShadow = true; mesh.frustumCulled = false;
+      let glow: THREE.Mesh | null = null;
+      if (TRACER) { // red glow riding on the flying bolt (a child, so it hides with it)
+        glow = new THREE.Mesh(boltGlowGeo, glowMat); glow.renderOrder = TRACER_ORDER + 1; glow.position.set(0, 0, this.tipLocal.z + 0.05);
+        mesh.add(glow);
+      }
       this.game.scene.add(mesh);
-      this.bolts.push({ mesh, pos: new THREE.Vector3(), vel: new THREE.Vector3(), active: false, age: 0, roll: 0 });
+      this.bolts.push({ mesh, pos: new THREE.Vector3(), vel: new THREE.Vector3(), active: false, age: 0, roll: 0, tracer: null, glow });
     }
+    if (TRACER) for (let i = 0; i < MAX_TRACERS; i++) this.tracers.push(new Tracer(this.game.scene));
+  }
+  /** a free tracer, else the one closest to expiring (oldest) */
+  private takeTracer(): Tracer | null {
+    if (!TRACER) return null;
+    let best: Tracer | null = null;
+    for (const t of this.tracers) { if (!t.active) return t; if (t.endTime >= 0 && (!best || t.endTime < best.endTime)) best = t; }
+    if (!best) best = this.tracers[0]; // all 8 still flying: recycle the first
+    for (const b of this.bolts) if (b.tracer === best) b.tracer = null;
+    return best;
+  }
+  private endTracer(b: Bolt, point: THREE.Vector3) {
+    if (!b.tracer) return;
+    b.tracer.finish(point, this.time);
+    b.tracer = null;
   }
 
   /** world position of the loaded bolt's broadhead tip (the iron sight) */
@@ -792,6 +917,9 @@ export class Crossbow {
     b.mesh.visible = true;
     b.mesh.position.copy(b.pos);
     b.mesh.quaternion.setFromUnitVectors(NEG_Z, _dir);
+    if (b.tracer) b.tracer.finish(b.pos, this.time); // slot stolen mid-flight: close its old trail
+    b.tracer = this.takeTracer();
+    b.tracer?.begin(b.pos);
   }
 
   /**
@@ -928,7 +1056,10 @@ export class Crossbow {
 
     this.stepBolts(dt);
     this.puffs.update(dt, this.game.renderer, cam);
-    while (this.stuck.length && this.stuck[0].expires < t) this.removeStuck(0);
+    if (TRACER) {
+      this.game.renderer.getDrawingBufferSize(this.tracerRes);
+      for (const tr of this.tracers) tr.update(t, cam, this.tracerRes);
+    }
   }
 
   private updateString() {
@@ -960,13 +1091,15 @@ export class Crossbow {
         b.vel.multiplyScalar(1 - BOLT_DRAG * h * b.vel.length() * 0.1);
         b.pos.addScaledVector(b.vel, h);
         if (this.testHit(b, _v1)) break;
+        b.tracer?.addPoint(b.pos);
       }
       if (!b.active) continue;
-      if (Math.abs(b.pos.x) > CHUNK_HALF + 60 || Math.abs(b.pos.z) > CHUNK_HALF + 60 || b.pos.y < -150 || b.age > 12) { b.active = false; b.mesh.visible = false; continue; }
+      if (Math.abs(b.pos.x) > CHUNK_HALF + 60 || Math.abs(b.pos.z) > CHUNK_HALF + 60 || b.pos.y < -150 || b.age > 12) { b.active = false; b.mesh.visible = false; this.endTracer(b, b.pos); continue; }
       b.mesh.position.copy(b.pos);
       _dir.copy(b.vel).normalize();
       b.roll += dt * 14;
       b.mesh.quaternion.setFromUnitVectors(NEG_Z, _dir).multiply(_q2.setFromAxisAngle(NEG_Z, b.roll));
+      if (b.glow) b.glow.scale.setScalar(Math.max(1, TRACER_PX * b.pos.distanceTo(this.game.camera.position)));
     }
   }
 
@@ -987,11 +1120,14 @@ export class Crossbow {
         return true;
       }
     }
-    // tree trunks (tapered cylinders)
+    // tree trunks (tapered cylinders): the full collision radius (trunk + TRUNK_PAD) over the whole trunk height, so a
+    // bolt that visibly meets bark sticks instead of slipping through; it is then stuck into the REAL bark (the
+    // padded hit is up to 15 cm short of it) by looking a little further along the flight for the unpadded trunk
     for (const tr of this.forest.nearby(b.pos.x, b.pos.z, 1)) {
-      const tf = this.segmentCylinder(prev, _dir, segLen, tr.x, tr.z, Math.max(0.08, tr.r - 0.12), tr.y, tr.y + tr.height * 0.8);
+      const tf = this.segmentCylinder(prev, _dir, segLen, tr.x, tr.z, tr.r, tr.y, tr.y + tr.height);
       if (tf >= 0) {
-        _v2.copy(prev).addScaledVector(_dir, tf);
+        const tb = this.segmentCylinder(prev, _dir, segLen + TRUNK_PAD * 4, tr.x, tr.z, Math.max(0.05, tr.r - TRUNK_PAD), tr.y, tr.y + tr.height);
+        _v2.copy(prev).addScaledVector(_dir, tb >= 0 ? tb : tf);
         this.stopBolt(b, _v2, _dir, 'wood', true);
         return true;
       }
@@ -1034,17 +1170,25 @@ export class Crossbow {
 
   private stopBolt(b: Bolt, point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface, stick: boolean) {
     b.active = false; b.mesh.visible = false;
+    this.endTracer(b, point);
     this.puffs.emit(point, dir, surface);
     this.onImpact?.(surface, point);
     if (!stick) return;
-    // stick: keep a static mesh with the head buried ~10 cm in the surface
+    // stick: a static mesh, permanent, with the broadhead STUCK_BURY into the surface and the shaft + fletching
+    // standing proud. The geometry origin sits -tipLocal.z (≈ 21.5 cm, measured from the bounding box) behind
+    // the tip, so the origin goes STUCK_BURY + tipLocal.z along the flight direction from the hit point.
     if (this.stuck.length >= MAX_STUCK) this.removeStuck(0);
     const mesh = new THREE.Mesh(this.boltGeo, this.boltMat);
     mesh.castShadow = true;
-    mesh.position.copy(point).addScaledVector(dir, -0.18 + 0.10); // geometry centre sits 0.18 behind the tip
+    mesh.position.copy(point).addScaledVector(dir, STUCK_BURY + this.tipLocal.z);
     mesh.quaternion.setFromUnitVectors(NEG_Z, dir).multiply(_q.setFromAxisAngle(NEG_Z, b.roll));
+    if (TRACER) { // permanent red dot on the nock so stuck bolts read from a distance
+      const dot = new THREE.Mesh(stuckDotGeo, glowMat); dot.renderOrder = TRACER_ORDER + 1;
+      dot.position.set(0, 0, this.boltGeo.boundingBox!.max.z);
+      mesh.add(dot);
+    }
     this.game.scene.add(mesh);
-    this.stuck.push({ mesh, expires: this.time + STUCK_LIFETIME });
+    this.stuck.push({ mesh });
   }
   private removeStuck(i: number) {
     const s = this.stuck.splice(i, 1)[0];
