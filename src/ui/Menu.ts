@@ -75,7 +75,7 @@ export class GameMenu {
     this.sheet.appendChild(this.tabBar);
     const body = el('ws-gmenu-body');
     this.panels = { map: el('ws-gmenu-panel map'), inventory: el('ws-gmenu-panel scroll'), achievements: el('ws-gmenu-panel scroll'), settings: el('ws-gmenu-panel scroll') };
-    for (const p of Object.values(this.panels)) body.appendChild(p);
+    for (const p of Object.values(this.panels)) { if (p.classList.contains('scroll')) p.dataset.scroll = ''; body.appendChild(p); } // index.html swallows touchmove outside [data-scroll]
     this.sheet.appendChild(body);
     this.hint = el('ws-gmenu-hint');
     this.sheet.appendChild(this.hint);

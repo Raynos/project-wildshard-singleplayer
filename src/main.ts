@@ -263,7 +263,7 @@ async function main() {
     if (!item) return;
     applySkin(item, skin, sky);
     const label = skin.weapon === 'rifle' ? 'AR-15' : 'crossbow';
-    const drop = new WeaponPickup({ scene: game.scene, item, position: new THREE.Vector3(at.x, heightAt(at.x, at.z), at.z), tier: 'rare', prompt: `Take the ${skin.name} ${label}`, scale: skin.weapon === 'rifle' ? 1 : 1.1 });
+    const drop = new WeaponPickup({ scene: game.scene, item, position: new THREE.Vector3(at.x, heightAt(at.x, at.z), at.z), tier: 'rare', prompt: `Take the ${skin.name} ${label}`, scale: skin.weapon === 'rifle' ? 1.35 : 1.6 }); // big — a legendary fills its orb
     interactables.push(drop.interactable);
     skinDrops.push(drop);
     drop.onPickup = () => {
