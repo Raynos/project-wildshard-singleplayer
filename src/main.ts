@@ -16,6 +16,7 @@ import { Wreck } from './world/Wreck';
 import { Shrine } from './world/Shrine';
 import { Bushes } from './world/Bushes';
 import { Gulls } from './world/Gulls';
+import { Trailside } from './world/Trailside';
 import { Hands } from './player/Hands';
 import { ROAD_LENGTH } from './core/config';
 import { Sword } from './player/Sword';
@@ -106,7 +107,8 @@ async function main() {
       player.platforms.push((x, z) => boat.floorHeightAt(x, z));
     }
     // faceted shore boulders along the beach
-    const rocks = isOcean ? new Boulders(sky).build(Boulders.scatterShore(chunk.seed)) : null;
+    const rockSpecs = isOcean ? Boulders.scatterShore(chunk.seed) : [];
+    const rocks = isOcean ? new Boulders(sky).build(rockSpecs) : null;
     if (rocks) { game.scene.add(rocks.mesh); player.colliders.push(...rocks.colliders); }
     // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
     const hut = isOcean ? new Hut(sky, HUT).build() : null;
@@ -130,11 +132,15 @@ async function main() {
         ...pier.posts.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.02, p.z)),
         ...pier.bollards.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.41, p.z)),
         new THREE.Vector3(-4.2, chunk.ocean!.level + 0.78, -CHUNK_HALF + 6 - 3.0), new THREE.Vector3(-4.2, chunk.ocean!.level + 0.7, -CHUNK_HALF + 6 + 3.0),
+        ...rockSpecs.filter((b) => b.r > 1.8).map((b) => new THREE.Vector3(b.x, heightAt(b.x, b.z) + b.r * (b.squash ?? 0.7) * 1.3, b.z)),
         ...Gulls.beachPerches(chunk.seed, 10, { x: 0, z: -195, r: 90 }),
       ],
       centre: new THREE.Vector3(0, 0, -205), radius: 90,
     }) : null;
     if (gulls) game.scene.add(gulls.group);
+    // sand paths between the POIs: plank steps up the crag, rope fences, signposts
+    const trailside = isOcean ? new Trailside(sky).build(Trailside.forIsland()) : null;
+    if (trailside) { game.scene.add(trailside.mesh); player.colliders.push(...trailside.colliders); }
     // coconut palms (one draw call, fronds sway in update)
     const palms = isOcean ? new Palms(sky).build(Palms.scatterIsland(chunk.seed, undefined, AVOID)) : null;
     if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
@@ -281,7 +287,10 @@ async function main() {
   new Combat(game, animals, weapons as unknown as Crossbow, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
   animals.onSound = (name, pos) => audio.animal(name, pos, player.position, player.yaw);
   animals.onCharge = (_a, dmg) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); };
-  player.onStep = (sprinting) => (player.wading ? audio.wadeStep(player.depth, sprinting) : audio.footstep(sprinting));
+  player.onStep = (sprinting) => (player.wading ? audio.wadeStep(player.depth, sprinting)
+    : audio.footstep(sprinting, pier?.floorHeightAt(player.position.x, player.position.z) !== undefined ? 'planks'
+      : isOcean && heightAt(player.position.x, player.position.z) - chunk.ocean!.level < 2.6 ? 'sand' : 'litter'));
+  if (gulls) gulls.onCall = (pos) => audio.gullCallAt(pos, player.position, player.yaw);
   player.onEnterWater = (impact) => audio.splash(impact);
   player.onExitWater = () => audio.waterExit();
   player.onStroke = () => audio.swimStroke();
