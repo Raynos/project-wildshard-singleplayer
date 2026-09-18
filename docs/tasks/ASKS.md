@@ -100,5 +100,5 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | 46 | **HP/vitals out of the black bar** (thumbs cover it) → then "**half above, bolts back inside**" | **done** | `0673608` then `4615043` |
 | 47 | **Crossbow bolts iron, not wood** | **done** | `4615043` — iron shaft in the bolt atlas |
 | 48 | **Minimap 33 % bigger, compass two-thirds width floating left, minimap beside it** → then "**compass a bit lower and 25 % thinner**" | **done** | `4615043`, `62becba` |
-| 49 | (parent's item) `setAimTargets(animals.animals)` is **not wired in main.ts** — aim assist is inert in production until it is | **open** | prototype 1 (main.ts): one import + one line after `animals` exists |
+| 49 | (parent's item) `setAimTargets(animals.animals)` is **not wired in main.ts** — aim assist is inert in production until it is | **done** | prototype 1 (main.ts): one import + one line after `animals` exists |
 

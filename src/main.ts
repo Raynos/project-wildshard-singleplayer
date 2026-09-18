@@ -20,6 +20,7 @@ import { Minimap } from './ui/Minimap';
 import { Debug } from './ui/Debug';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
+import { setAimTargets } from './player/AimTargets';
 import { createBootPlan, type StepRunner } from './boot/plan';
 import { declareTotals, installByteCounter } from './boot/bytes';
 import { chunkFiles } from './boot/manifest';
@@ -123,6 +124,7 @@ async function main() {
     audio.hitMarker();
     if (killed) { kills++; audio.kill(); }
   };
+  setAimTargets(animals.animals); // aim assist reads the live array
   new Combat(game, animals, crossbow, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring)
   animals.onKill = (a) => hud.killFeed(`${a.kind} · ${Math.round(a.position.distanceTo(player.position))} m`);
   animals.onSound = (name, pos) => audio.animal(name, pos, player.position, player.yaw);
