@@ -61,7 +61,7 @@ export function boarPaintLow(v?: VariantDef): Paint {
   const baseC: RGB3 = t.base ?? [0.40, 0.255, 0.18];
   const base = srgb(...baseC), back = scaled(baseC, 1.45, 1.04), belly = scaled(baseC, 0.66);
   const cheek = scaled(baseC, 1.32, 1.03), muzzle = scaled(baseC, 0.8);
-  const leg = scaled(baseC, 0.72), legDark = scaled(baseC, 0.5), hoof = srgb(...(t.hoof ?? [0.12, 0.09, 0.08]));
+  const leg = scaled(baseC, 0.72), legDark = scaled(baseC, 0.42), hoof = srgb(...(t.hoof ?? [0.14, 0.10, 0.09]));
   const crest = scaled(baseC, 1.2, 1.04), crestTip = scaled(baseC, 1.75, 1.08), earIn = srgb(0.52, 0.32, 0.30);
   const snout = srgb(...(t.snout ?? [0.66, 0.40, 0.38]));
   const tuskC: RGB3 = t.tusk ?? [0.95, 0.91, 0.80];

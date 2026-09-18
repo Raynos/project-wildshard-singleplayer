@@ -8,12 +8,15 @@ import { AnimalManager } from '../entities/AnimalManager';
  *   &showcase=1   spawn a stag, a boar and a walking hind 4 m in front of the spawn point
  *   &debug=1      draw the hit volumes
  *   &calm=1       animals ignore the player (walk right up to a herd)
+ *   &style=lowpoly  force the faceted Driftwood Isle animals (production reads ChunkDef.style)
+ *   &sounder=5    a sounder of N idle boars 6 m ahead of the spawn (with &trot=1 / &walk=1 one of them circles)
  * Click = shoot a ray from the camera (applies the DAMAGE model, prints the hit).
  * window.__world = { ...world, animals }
  */
 const world = await bootstrap();
 const { game, sky, forest, player, params } = world;
-const animals = new AnimalManager(game.scene, sky, forest).build();
+const style = params.get('style') === 'lowpoly' ? 'lowpoly' : undefined;
+const animals = new AnimalManager(game.scene, sky, forest, { style }).build();
 animals.debug = params.has('debug');
 animals.calm = params.has('calm');
 animals.onKill = (a) => console.log('[animals] kill', a.kind);
@@ -34,6 +37,18 @@ if (params.has('showcase')) {
   // freeze AI on the showcase animals: they are driven here
   for (const s of [stag, boar, hind]) s.herd = -2;
 }
+if (params.has('sounder')) {
+  // centred `dist` m ahead of wherever the player spawned, facing
+  const n = world.num('sounder', 5), dist = world.num('dist', 6);
+  const fwd = player.forward, cx = player.position.x + fwd.x * dist, cz = player.position.z + fwd.z * dist;
+  const facing = Math.atan2(fwd.x, fwd.z);   // the player's heading in the animals' yaw convention
+  for (let i = 0; i < n; i++) {
+    const ang = (i / n) * Math.PI * 2 + 0.7, r = i === 0 ? 0 : 1.6 + (i % 2) * 1.1;
+    const b = animals.spawn('boar', cx + Math.cos(ang) * r, cz + Math.sin(ang) * r, facing + Math.PI * 0.5 + i * 1.3, params.get('variant') ?? 'boar');
+    b.state = 'idle'; b.herd = -2;
+    if (i === 0 && (params.has('trot') || params.has('walk'))) showcase.push({ a: b, cx, cz });
+  }
+}
 
 game.onUpdate((dt, t) => {
   animals.update(dt, t, player.position, player.sprinting);
@@ -48,7 +63,7 @@ game.onUpdate((dt, t) => {
     s.a.sampleTerrain();
   }
   // keep showcase animals out of the herd AI
-  if (params.has('showcase')) for (const a of animals.animals) if (a.herd === -2 && !showcase.some((s) => s.a === a)) { a.state = 'idle'; a.setMotion(a.desiredYaw, 0); a.lookTarget.copy(player.position); a.lookWeight = 0.6; }
+  if (params.has('showcase') || params.has('sounder')) for (const a of animals.animals) if (a.herd === -2 && !showcase.some((s) => s.a === a)) { a.state = 'idle'; a.setMotion(a.desiredYaw, 0); a.lookTarget.copy(player.position); a.lookWeight = 0.6; }
 });
 
 // click to shoot
