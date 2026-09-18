@@ -66,19 +66,22 @@ export class Horizon {
       geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
       geo.setIndex(idx);
       const mat = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
-      const haze = ring.haze.toFixed(2);
       mat.onBeforeCompile = (shader) => {
         attachFogUniforms(shader);
+        shader.uniforms.uHaze = { value: ring.haze }; // per ring as a uniform, so the three rings share one program
         // aerial perspective: far ranges dissolve into a cool blue haze, warmer toward the sun
-        shader.fragmentShader = shader.fragmentShader.replace('#include <fog_fragment>', `
+        shader.fragmentShader = shader.fragmentShader
+          .replace('#include <common>', '#include <common>\nuniform float uHaze;')
+          .replace('#include <fog_fragment>', `
           {
             vec3 ray = normalize(vFogWorldPos - cameraPosition);
             float sunAmt = max(dot(ray, fogSunDir), 0.0);
             vec3 hazeCol = mix(vec3(0.5, 0.58, 0.74), fogSunColor * 0.9, pow(sunAmt, 3.0) * 0.7);
-            gl_FragColor.rgb = mix(gl_FragColor.rgb, hazeCol, ${haze});
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, hazeCol, uHaze);
           }`);
       };
-      mat.customProgramCacheKey = () => `ridge${ri}`;
+      mat.name = `ridge${ri}`;
+      mat.customProgramCacheKey = () => 'ridge';
       this.sky.setupMaterial(mat);
       const mesh = new THREE.Mesh(geo, mat);
       mesh.frustumCulled = false;

@@ -96,7 +96,7 @@ export class Undergrowth {
     if (shadow && tex) {
       const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: 0.5, side: THREE.DoubleSide });
       depth.onBeforeCompile = (shader) => { patchUndergrowthVertex(shader, wind); };
-      depth.customProgramCacheKey = () => 'under-depth-' + wind;
+      depth.customProgramCacheKey = () => 'under-depth'; // wind is a uniform: one depth program for every kind
       mesh.customDepthMaterial = depth;
     }
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), q2 = new THREE.Quaternion(), p = new THREE.Vector3(), s = new THREE.Vector3(), n = new THREE.Vector3();
@@ -120,6 +120,7 @@ export class Undergrowth {
 
   private makeMaterial(tex: THREE.Texture, key: string, wind: number, alphaTest: number) {
     const mat = new THREE.MeshStandardMaterial({ map: tex, alphaTest, side: THREE.DoubleSide, roughness: 0.8, metalness: 0 });
+    mat.name = 'under-' + key;
     mat.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
       Object.assign(shader.uniforms, underUniforms);
@@ -141,7 +142,7 @@ export class Undergrowth {
             reflectedLight.indirectDiffuse += diffuseColor.rgb * ( 0.05 + bl * 0.35 ) * uSunColor;
           }`);
     };
-    mat.customProgramCacheKey = () => 'under-' + key;
+    mat.customProgramCacheKey = () => 'under'; // `key` names the material; wind is a uniform, so every kind shares ONE program (was 6 — ~150 ms each on iOS)
     this.sky.setupMaterial(mat);
     return mat;
   }
@@ -236,6 +237,7 @@ const UP = new THREE.Vector3(0, 1, 0);
 
 /** Distance fade (scale to 0) + gentle wind, shared by the lit and the shadow-depth materials. */
 function patchUndergrowthVertex(shader: { vertexShader: string; uniforms: Record<string, THREE.IUniform> }, wind: number) {
+  shader.uniforms.uWindScale = { value: wind }; // per material, not baked into the source: the program is shared
   shader.uniforms.uTime = windUniforms.uTime;
   shader.uniforms.uWindStrength = windUniforms.uWindStrength;
   shader.uniforms.uFadeFar = underUniforms.uFadeFar;
@@ -243,7 +245,7 @@ function patchUndergrowthVertex(shader: { vertexShader: string; uniforms: Record
   shader.uniforms.uViewerPos = underUniforms.uViewerPos;
   shader.vertexShader = shader.vertexShader
     .replace('#include <common>', /* glsl */`#include <common>
-      uniform float uTime; uniform float uWindStrength; uniform float uFadeFar; uniform float uFadeBand; uniform vec3 uViewerPos;
+      uniform float uTime; uniform float uWindStrength; uniform float uWindScale; uniform float uFadeFar; uniform float uFadeBand; uniform vec3 uViewerPos;
       varying float vH;`)
     .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
       {
@@ -260,7 +262,7 @@ function patchUndergrowthVertex(shader: { vertexShader: string; uniforms: Record
         float gust = sin( uTime * 1.25 - phase ) * 0.5 + 0.5;
         gust *= gust;
         float flutter = sin( uTime * 5.0 + wpos.x * 3.0 + wpos.z * 2.0 );
-        float amp = ( 0.01 + gust * 0.05 ) * uWindStrength * ${wind.toFixed(3)} * 4.0;
+        float amp = ( 0.01 + gust * 0.05 ) * uWindStrength * uWindScale * 4.0;
         float w = h * h;
         vec3 off = vec3( 0.86 * amp + flutter * 0.006, 0.0, 0.5 * amp + flutter * 0.004 ) * w;
         off.y = - length( off.xz ) * 0.3;
