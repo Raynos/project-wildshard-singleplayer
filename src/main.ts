@@ -25,6 +25,10 @@ import { Loading } from './ui/Loading';
 import { Perf } from './ui/Perf';
 import { Minimap } from './ui/Minimap';
 import { FullMap } from './ui/Map';
+import { GameMenu } from './ui/Menu';
+import { Progress } from './game/Progress';
+import { Inventory, harvestOf, ITEMS } from './game/Inventory';
+import { getNumber, onNumber } from './ui/Settings';
 import { Debug } from './ui/Debug';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
@@ -138,12 +142,26 @@ async function main() {
   const hud = new HUD({ pointerLock: !nolock });
   const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
   const minimap = new Minimap(); // circular minimap (Heightfield is installed by now)
-  const fullMap = new FullMap(minimap); // tap the minimap → the whole chunk; tap / CLOSE / Esc / M to close
+  const fullMap = new FullMap(minimap); // the menu's MAP tab (Menu.ts mounts it); tap the minimap / M to open
   const keepAlive = new KeepAlive();
   const debug = new Debug(() => perf.refresh()); // TEMPORARY: tier/dpr/aa/meter knobs (src/ui/Debug.ts)
   const audio = new Audio();
   let kills = 0, health = 100, lastHurt = 0, pelts = 0, swimHold = false;
   const harvested = new Set<object>();
+  // ── the in-game menu: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (src/ui/Menu.ts) ──
+  const progress = new Progress(getActiveChunk().id);     // shard achievements → titles (src/game/achievements.ts)
+  const inventory = new Inventory(getActiveChunk().id);   // the pack: harvest drops
+  const menu = new GameMenu({
+    fullMap, progress, inventory,
+    kit: () => [{ id: 'crossbow', name: 'Hunting crossbow', ammoLabel: 'Iron bolts', ammo: crossbow.state.bolts ?? 0, magazine: 30, reserve: 0, equipped: true, icon: 'crossbow' }],
+  });
+  hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
+  fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); });
+  document.addEventListener('keydown', (e) => { if (e.code === 'KeyM' && hud.entered && !menu.isOpen) menu.open('map'); });
+  menu.onOpen = () => { if (document.pointerLockElement) document.exitPointerLock?.(); }; // the map wants a cursor; the lock comes back on close (onResume)
+  progress.onEarned = (d) => { hud.toast(`Achievement · ${d.name} — title unlocked: ${d.title}`); audio.hitMarker(); };
+  const masterGain = () => { if (!audio.muted) audio.master.gain.setTargetAtTime(0.6 * getNumber('volume'), audio.ctx.currentTime, 0.05); };
+  onNumber('volume', masterGain);
 
   const hands = new Hands(sky, game.camera); // white-gloved swimming hands (shown only while player.swimming)
   crossbow.onFire = () => (chunk.weapon === 'sword' ? audio.swordSwing() : audio.crossbowFire());
@@ -160,9 +178,9 @@ async function main() {
     audio.hitMarker();
     if (killed) { kills++; audio.kill(); }
   };
+  animals.onKill = (a) => { hud.killFeed(`${a.label} · ${Math.round(a.position.distanceTo(player.position))} m`); progress.recordKill(a.kind, a.variant); };
   setAimTargets(animals.animals); // aim assist reads the live array
   new Combat(game, animals, crossbow, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring)
-  animals.onKill = (a) => hud.killFeed(`${a.kind} · ${Math.round(a.position.distanceTo(player.position))} m`);
   animals.onSound = (name, pos) => audio.animal(name, pos, player.position, player.yaw);
   animals.onCharge = (_a, dmg) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); };
   player.onStep = (sprinting) => (player.wading ? audio.wadeStep(player.depth, sprinting) : audio.footstep(sprinting));
@@ -171,7 +189,7 @@ async function main() {
   player.onStroke = () => audio.swimStroke();
   player.onJump = () => audio.jump();
   player.onLand = (hard) => { audio.land(hard); if (hard) { health = Math.max(0, health - 8); hud.damageFlash(); } };
-  hud.onSoundToggle = (on) => { audio.muted = !on; };
+  hud.onSoundToggle = (on) => { audio.muted = !on; masterGain(); };
 
   // ── menu ↔ world: the world is fully loaded, then sits frozen and silent under the menu (hero art
   // covers the canvas) until ENTER WORLD; "Exit to main menu" freezes it again — no reload, no
@@ -205,7 +223,9 @@ async function main() {
     if (nearest) nearest.onInteract();
     else if (carcass) {
       harvested.add(carcass); pelts++;
-      hud.toast(`${carcass.kind === 'deer' ? 'Venison + deer hide' : 'Boar meat + hide'} harvested · ${pelts} total`);
+      const drops = harvestOf(carcass.kind, carcass.variant);
+      for (const id of drops) inventory.add(id);
+      hud.toast(`${drops.map((id) => ITEMS[id].label).join(' + ') || 'Nothing'} harvested · ${inventory.total} in the pack`);
       audio.hitMarker();
       carcass.fadeOut();
     }

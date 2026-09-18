@@ -2,17 +2,17 @@ import { CHUNK_SIZE } from '../core/config';
 import { CHUNKS, getActiveChunk, chunkUrl } from '../chunks/registry';
 import { PLACEHOLDERS } from '../chunks/placeholders';
 import { CABIN_SITES } from '../world/Heightfield';
-import { getSetting, setSetting, onSetting, type SettingKey } from '../ui/Settings';
+import type { GameMenu } from './Menu';
 
 /**
- * HUD — DOM overlay in `#hud`, styled by `src/ui/styles/game.css` / `menu.css` / `pause.css` on top of `base.css` (Wildshard glass identity; one class prefix per screen, see scripts/check-css.mjs).
+ * HUD — DOM overlay in `#hud`, styled by `src/ui/styles/game.css` / `menu.css` (the in-game menu is src/ui/Menu.ts + gmenu.css) on top of `base.css` (Wildshard glass identity; one class prefix per screen, see scripts/check-css.mjs).
  *
  *   const hud = new HUD({ pointerLock?: boolean });   // pointerLock:false in ?nolock dev mode (no pause overlay)
  *   hud.showIntro(() => player.lock())                 // title screen: shard deck; ENTER WORLD / any key → onEnter
  *   hud.setState({ bolts?, loaded, reloading, reloadProgress?, health, fps, pos: {x, z}, yaw, kills, prompt?, speed?, ads? })
  *     — `bolts: undefined` = the weapon has no ammo (the sword): the BOLTS panel, its meter and the touch-bar strip are hidden
  *   hud.showHitMarker(headshot, killed)  hud.killFeed('Boar · headshot')  hud.toast('Bolt recovered')
- *   hud.damageFlash()  hud.setBoundaryWarning(visible)  hud.setPaused(bool)  hud.onResume = () => …
+ *   hud.damageFlash()  hud.setBoundaryWarning(visible)  hud.menu = gameMenu  hud.setPaused(bool)  hud.onResume = () => …  // the menu's close
  *   hud.onExitToMenu = () => …   // pause → "Exit to main menu": the HUD re-shows the intro itself (no reload); stop/mute the world here
  *   hud.setAimInfo(crossbow.aimInfo)   // "BOAR · 15 M" under the crosshair
  *   hud.setAnimals([{ x, z }, …])      // world positions of live animals: the compass pins a paw at the nearest one within 120 m
@@ -21,8 +21,9 @@ import { getSetting, setSetting, onSetting, type SettingKey } from '../ui/Settin
  * (`CABIN_SITES` — static, so the HUD reads them itself) and a "CABIN · 180 m" readout under it; the paw marker comes
  * from `state.nearest` (bearing in compass degrees, 0 = north) when the caller has one, else from `setAnimals`.
  *
- * Call `setState` every frame (it diffs and only touches the DOM on change). Pause overlay appears on
- * pointer-unlock after the chunk was entered (`pointerLock` mode only); clicking it fires `onResume`.
+ * Call `setState` every frame (it diffs and only touches the DOM on change). Pause = the in-game menu on its
+ * Settings tab: opened by the touch PAUSE button, Esc, or a released pointer lock after the chunk was entered
+ * (`pointerLock` mode only); closing it fires `onResume`.
  */
 
 export interface HUDState {
@@ -89,7 +90,9 @@ export class HUD {
   private ammoCount!: HTMLElement; private ammoStatus!: HTMLElement; private ammoStatusText!: HTMLElement; private reloadBar!: HTMLElement; private pips: HTMLElement[] = [];
   private cross!: HTMLElement; private killX!: HTMLElement; private hitRing!: HTMLElement; private aim!: HTMLElement; private aimText = '';
   private prompt!: HTMLElement; private boundary!: HTMLElement; private flash!: HTMLElement;
-  private intro?: HTMLElement; private pause!: HTMLElement;
+  private intro?: HTMLElement;
+  /** the in-game menu (src/ui/Menu.ts) — pause opens it on Settings; its close is our `onResume` */
+  private _menu?: GameMenu;
   private deck?: { cards: DeckCard[]; index: number; select: (i: number, smooth?: boolean) => void; activate: () => void };
   private last: Partial<HUDState> & { statusKey?: string; headingDeg?: number; fpsShown?: number; noAmmo?: boolean } = {};
   private ammoPanel!: HTMLElement;
@@ -189,31 +192,10 @@ export class HUD {
     this.toasts = el('div', 'ws-game-toasts'); r.appendChild(this.toasts);
     this.flash = el('div', 'ws-game-flash'); r.appendChild(this.flash);
 
-    this.pause = el('div', 'ws-pause', `<div class="ws-glass ws-pause-box">
-      <div class="ws-pause-title">Paused</div><div class="ws-pause-sub">${this.opts.pointerLock ? 'Esc released the cursor' : 'Chunk playtest'}</div>
-      <button class="ws-pause-btn resume" type="button">Resume</button>
-      <button class="ws-pause-btn exit" type="button">Exit to main menu</button>
-      <div class="ws-pause-settings">
-        <div class="ws-pause-settings-title">Settings</div>
-        <button class="ws-pause-switch" type="button" data-setting="aimAssist" role="switch"><span class="ws-pause-switch-label">Aim assist</span><i class="ws-pause-pill"></i></button>
-        <button class="ws-pause-switch" type="button" data-setting="tracers" role="switch"><span class="ws-pause-switch-label">Tracer bolts</span><i class="ws-pause-pill"></i></button>
-      </div>
-    </div>`);
-    // settings switches: tap flips the persisted setting (src/ui/Settings.ts); the pill mirrors it, also when changed elsewhere
-    for (const sw of this.pause.querySelectorAll<HTMLElement>('.ws-pause-switch')) {
-      const key = sw.dataset.setting as SettingKey;
-      const sync = (v: boolean) => { sw.classList.toggle('on', v); sw.setAttribute('aria-checked', String(v)); };
-      sync(getSetting(key)); onSetting(key, sync);
-      sw.addEventListener('click', (e) => { e.stopPropagation(); setSetting(key, !getSetting(key)); });
-    }
-    const resume = () => { this.setPaused(false); this.onResume?.(); };
-    this.pause.addEventListener('click', (e) => { if (e.target === this.pause) resume(); }); // backdrop click = resume (desktop habit)
-    this.pause.querySelector('.resume')!.addEventListener('click', resume);
-    this.pause.querySelector('.exit')!.addEventListener('click', () => this.exitToMenu());
-    // touch pause button (TouchControls) and Escape on devices without pointer lock
+    // pause = the in-game menu on its Settings tab (src/ui/Menu.ts, attached by main.ts as `hud.menu`):
+    // the touch PAUSE button (TouchControls), Escape on devices without pointer lock, and a released pointer lock
     document.addEventListener('ws:pause', () => { if (this.entered) this.setPaused(!this.paused); });
-    document.addEventListener('keydown', (e) => { if (e.code === 'Escape' && !this.opts.pointerLock && this.entered) this.setPaused(!this.paused); });
-    r.appendChild(this.pause);
+    document.addEventListener('keydown', (e) => { if (e.code === 'Escape' && !this.opts.pointerLock && this.entered && !this.paused) this.setPaused(true); });
   }
 
   // ── per-frame state ──
@@ -371,8 +353,10 @@ export class HUD {
   damageFlash() { this.flash.classList.remove('show'); void this.flash.offsetWidth; this.flash.classList.add('show'); }
   setBoundaryWarning(visible: boolean) { this.boundary.classList.toggle('show', visible); }
 
-  setPaused(paused: boolean) { this.pause.classList.toggle('show', paused && this.entered); }
-  get paused() { return this.pause.classList.contains('show'); }
+  set menu(m: GameMenu) { this._menu = m; m.onClose = () => this.onResume?.(); m.onExit = () => this.exitToMenu(); }
+  get menu() { return this._menu!; }
+  setPaused(paused: boolean) { if (!this._menu || !this.entered) return; if (paused) this._menu.open('settings'); else this._menu.close(); }
+  get paused() { return !!this._menu?.isOpen; }
 
   /**
    * Title screen: the shard deck IS the menu. A horizontal snap carousel of shard cards over the
@@ -518,7 +502,7 @@ export class HUD {
    *  `onExitToMenu` is where main.ts stops the loop / mutes audio. The next ENTER WORLD fires `onEnter` again. */
   exitToMenu() {
     if (!this.entered || this.intro) return;
-    this.setPaused(false);
+    this._menu?.close(true);
     this.entered = false;
     if (document.pointerLockElement) document.exitPointerLock?.();
     this.onSoundToggle?.(false);

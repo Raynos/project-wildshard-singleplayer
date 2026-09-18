@@ -1,0 +1,120 @@
+/* ─── in-game MENU (src/ui/Menu.ts): MAP · INVENTORY · ACHIEVEMENTS · SETTINGS ─── prefix ws-gmenu- ───
+   One full-height glass sheet over the blurred, still-running world (art/menu-tab-*.png). Header (MENU / shard,
+   CLOSE), a four-tab bar with the cyan underline, the active tab's panel, a footer hint. Lives on <body>
+   above the HUD, the minimap (z 6) and the phone's touch layer (z 5). */
+.ws-gmenu { position: fixed; inset: 0; z-index: 70; display: flex; align-items: stretch; justify-content: center; padding: calc(var(--ws-top) + 4px) 10px calc(10px + env(safe-area-inset-bottom, 0px)); background: rgba(6, 10, 18, 0.55); backdrop-filter: blur(6px) saturate(1.1); -webkit-backdrop-filter: blur(6px) saturate(1.1); opacity: 0; pointer-events: none; transition: opacity 0.18s; font-family: var(--ws-mono); color: var(--ws-text); }
+.ws-gmenu.show { opacity: 1; pointer-events: auto; }
+.ws-gmenu .ws-gmenu-sheet { width: 100%; max-width: 560px; display: flex; flex-direction: column; min-height: 0; background: rgba(8, 12, 20, 0.86); padding: 0; }
+.ws-gmenu .ws-gmenu-sheet::after { content: ''; position: absolute; right: -1px; bottom: -1px; width: 18px; height: 18px; border-right: 1px solid var(--ws-cyan); border-bottom: 1px solid var(--ws-cyan); opacity: 0.8; pointer-events: none; }
+
+/* header */
+.ws-gmenu .ws-gmenu-head { display: flex; align-items: flex-start; justify-content: space-between; padding: 18px 20px 12px; }
+.ws-gmenu .ws-gmenu-title { font-family: var(--ws-display); font-weight: 700; font-size: 34px; line-height: 1; letter-spacing: 0.34em; text-transform: uppercase; color: #fff; }
+.ws-gmenu .ws-gmenu-sub { margin-top: 8px; font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-gmenu .ws-gmenu-close { padding: 11px 20px; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.06); border: 1px solid var(--ws-cyan); color: var(--ws-cyan); font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.24em; text-transform: uppercase; cursor: pointer; }
+.ws-gmenu .ws-gmenu-close:active { background: rgba(143, 227, 255, 0.22); }
+
+/* tabs */
+.ws-gmenu .ws-gmenu-tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid rgba(143, 227, 255, 0.18); border-bottom: 1px solid rgba(143, 227, 255, 0.18); }
+.ws-gmenu .ws-gmenu-tab { position: relative; padding: 14px 4px 12px; appearance: none; -webkit-appearance: none; background: none; border: 0; border-right: 1px solid rgba(143, 227, 255, 0.12); color: var(--ws-text-dim); font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: color 0.15s; }
+.ws-gmenu .ws-gmenu-tab:last-child { border-right: 0; }
+.ws-gmenu .ws-gmenu-tab.active { color: #fff; text-shadow: 0 0 10px rgba(143, 227, 255, 0.5); }
+.ws-gmenu .ws-gmenu-tab.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--ws-cyan); box-shadow: 0 0 10px rgba(143, 227, 255, 0.8); }
+
+/* panels */
+.ws-gmenu .ws-gmenu-body { position: relative; flex: 1; min-height: 0; }
+.ws-gmenu .ws-gmenu-panel { position: absolute; inset: 0; display: none; padding: 14px 16px 10px; }
+.ws-gmenu .ws-gmenu-panel.active { display: flex; flex-direction: column; }
+.ws-gmenu .ws-gmenu-panel.scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; overscroll-behavior: contain; }
+.ws-gmenu .ws-gmenu-hint { padding: 10px 0 12px; text-align: center; font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase; color: rgba(196, 220, 232, 0.45); }
+.ws-gmenu .ws-gmenu-label { flex: none; margin: 10px 0 6px; font-size: 9.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-gmenu .ws-gmenu-label:first-child { margin-top: 0; }
+.ws-gmenu .ws-gmenu-chip { flex: none; padding: 3px 8px; border: 1px solid var(--ws-cyan-line); color: var(--ws-cyan); font-size: 8.5px; letter-spacing: 0.22em; text-transform: uppercase; }
+.ws-gmenu .ws-gmenu-empty { padding: 20px 0; text-align: center; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-gmenu svg { width: 100%; height: 100%; display: block; }
+
+/* MAP: label row, a square frame the FullMap canvas fills, zoom chips + legend */
+.ws-gmenu .ws-gmenu-panel.map { touch-action: none; padding-bottom: 8px; }
+.ws-gmenu .ws-gmenu-mapmeta { flex: none; margin-bottom: 8px; font-size: 9.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-gmenu .ws-gmenu-mapframe { position: relative; flex: 0 1 auto; width: 100%; aspect-ratio: 1; min-height: 0; border: 1px solid rgba(143, 227, 255, 0.22); background: rgba(4, 7, 12, 0.9); overflow: hidden; }
+.ws-gmenu .ws-gmenu-mapfoot { flex: none; display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+.ws-gmenu .ws-gmenu-zooms { display: flex; gap: 6px; }
+.ws-gmenu .ws-gmenu-zoom { min-width: 46px; padding: 8px 10px; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.05); border: 1px solid rgba(143, 227, 255, 0.22); color: var(--ws-text-dim); font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.14em; cursor: pointer; }
+.ws-gmenu .ws-gmenu-zoom.active { border-color: var(--ws-cyan); color: #fff; background: rgba(143, 227, 255, 0.16); }
+.ws-gmenu .ws-gmenu-legend { display: flex; gap: 14px; font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-gmenu .ws-gmenu-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.ws-gmenu .ws-gmenu-legend i { width: 12px; height: 12px; }
+.ws-gmenu .ws-gmenu-legend i.poi { color: var(--ws-cyan); }
+.ws-gmenu .ws-gmenu-legend i.you { color: #fff; }
+
+/* INVENTORY: equipped weapon cards + the 3-column pack grid */
+.ws-gmenu .ws-gmenu-weapon { flex: none; display: flex; align-items: center; gap: 14px; width: 100%; margin-bottom: 8px; padding: 10px 12px; appearance: none; -webkit-appearance: none; text-align: left; background: rgba(143, 227, 255, 0.04); border: 1px solid rgba(143, 227, 255, 0.22); color: var(--ws-text); font-family: var(--ws-mono); cursor: pointer; }
+.ws-gmenu .ws-gmenu-weapon.equipped { border-color: rgba(143, 227, 255, 0.5); background: rgba(143, 227, 255, 0.08); }
+.ws-gmenu .ws-gmenu-weapon .ws-gmenu-chip { opacity: 0.6; }
+.ws-gmenu .ws-gmenu-weapon.equipped .ws-gmenu-chip { opacity: 1; }
+.ws-gmenu .ws-gmenu-wicon { flex: none; width: 64px; height: 44px; color: #d8c7a8; }
+.ws-gmenu .ws-gmenu-wbody { flex: 1; min-width: 0; }
+.ws-gmenu .ws-gmenu-wname { font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
+.ws-gmenu .ws-gmenu-wammo { margin-top: 3px; font-size: 9px; letter-spacing: 0.14em; white-space: nowrap; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-gmenu .ws-gmenu-wbody .ws-bar { margin-top: 6px; height: 4px; }
+.ws-gmenu .ws-gmenu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ws-gmenu .ws-gmenu-slot { position: relative; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px; background: rgba(143, 227, 255, 0.04); border: 1px solid rgba(143, 227, 255, 0.2); }
+.ws-gmenu .ws-gmenu-slot::before { content: ''; position: absolute; left: -1px; top: -1px; width: 10px; height: 10px; border-left: 1px solid var(--ws-cyan); border-top: 1px solid var(--ws-cyan); opacity: 0.6; }
+.ws-gmenu .ws-gmenu-slot.empty { opacity: 0.45; }
+.ws-gmenu .ws-gmenu-sicon { width: 46%; height: 46%; color: #e0cfae; }
+.ws-gmenu .ws-gmenu-count { position: absolute; right: 6px; top: 6px; padding: 2px 6px; border: 1px solid rgba(143, 227, 255, 0.3); background: rgba(6, 10, 18, 0.6); font-weight: 400; font-size: 9px; letter-spacing: 0.08em; color: #fff; }
+.ws-gmenu .ws-gmenu-sname { font-size: 8.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-text-dim); text-align: center; }
+
+/* ACHIEVEMENTS: overall bar, the worn title card, one row per achievement */
+.ws-gmenu .ws-gmenu-total { flex: none; margin: 0 0 4px; height: 4px; }
+.ws-gmenu .ws-gmenu-titlecard { flex: none; display: flex; align-items: center; gap: 14px; padding: 12px 14px; background: rgba(143, 227, 255, 0.06); border: 1px solid rgba(143, 227, 255, 0.4); box-shadow: inset 0 0 30px rgba(143, 227, 255, 0.05); }
+.ws-gmenu .ws-gmenu-titlecard.none { border-color: rgba(143, 227, 255, 0.18); background: rgba(143, 227, 255, 0.02); }
+.ws-gmenu .ws-gmenu-laurel { flex: none; width: 44px; height: 44px; color: var(--ws-cyan); }
+.ws-gmenu .ws-gmenu-titlecard.none .ws-gmenu-laurel { color: var(--ws-text-dim); opacity: 0.5; }
+.ws-gmenu .ws-gmenu-titletext { font-family: var(--ws-display); font-weight: 700; font-size: 20px; line-height: 1.1; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
+.ws-gmenu .ws-gmenu-titlecard.none .ws-gmenu-titletext { color: var(--ws-text-dim); }
+.ws-gmenu .ws-gmenu-titlesub { margin-top: 4px; font-size: 8.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-gmenu .ws-gmenu-ach { flex: none; display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 8px; padding: 10px 12px 10px 10px; appearance: none; -webkit-appearance: none; text-align: left; background: rgba(143, 227, 255, 0.03); border: 1px solid rgba(143, 227, 255, 0.18); color: var(--ws-text); font-family: var(--ws-mono); cursor: default; }
+.ws-gmenu .ws-gmenu-ach.earned { cursor: pointer; border-color: rgba(143, 227, 255, 0.4); background: rgba(143, 227, 255, 0.06); }
+.ws-gmenu .ws-gmenu-ach.active { border-color: var(--ws-cyan); }
+.ws-gmenu .ws-gmenu-aicon { flex: none; width: 50px; height: 50px; padding: 6px; border: 1px solid rgba(143, 227, 255, 0.22); background: rgba(6, 10, 18, 0.5); color: #fff; }
+.ws-gmenu .ws-gmenu-aicon.ghost { color: #e8fbff; filter: drop-shadow(0 0 5px rgba(143, 227, 255, 0.9)); }
+.ws-gmenu .ws-gmenu-ach:not(.earned) .ws-gmenu-aicon { color: rgba(230, 242, 248, 0.75); }
+.ws-gmenu .ws-gmenu-abody { flex: 1; min-width: 0; }
+.ws-gmenu .ws-gmenu-aname { font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
+.ws-gmenu .ws-gmenu-agoal { margin-top: 2px; font-size: 8.5px; letter-spacing: 0.12em; white-space: nowrap; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-gmenu .ws-gmenu-abody .ws-bar { margin-top: 6px; height: 4px; }
+.ws-gmenu .ws-gmenu-areward { flex: none; display: flex; align-items: center; gap: 8px; width: 34%; max-width: 170px; }
+.ws-gmenu .ws-gmenu-amark { flex: none; width: 22px; height: 22px; color: var(--ws-text-dim); }
+.ws-gmenu .ws-gmenu-ach.earned .ws-gmenu-amark { color: var(--ws-cyan); filter: drop-shadow(0 0 6px rgba(143, 227, 255, 0.6)); }
+.ws-gmenu .ws-gmenu-atitle { font-size: 8.5px; line-height: 1.5; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-gmenu .ws-gmenu-ach.earned .ws-gmenu-atitle { color: var(--ws-cyan); }
+.ws-gmenu .ws-gmenu-areward .ws-gmenu-chip { display: inline-block; margin-top: 4px; }
+
+/* SETTINGS: the two big buttons, then switch rows, segmented pickers, the volume slider */
+.ws-gmenu .ws-gmenu-btn { flex: none; display: block; width: 100%; margin-bottom: 10px; padding: 14px 22px; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.08); border: 1px solid var(--ws-cyan-line); color: #fff; cursor: pointer; font-family: var(--ws-display); font-weight: 700; font-size: 16px; letter-spacing: 0.26em; text-transform: uppercase; }
+.ws-gmenu .ws-gmenu-btn.resume { border-color: var(--ws-cyan); background: rgba(143, 227, 255, 0.16); box-shadow: 0 0 18px rgba(143, 227, 255, 0.15); }
+.ws-gmenu .ws-gmenu-btn.exit { color: var(--ws-cyan); }
+.ws-gmenu .ws-gmenu-btn:active { background: rgba(143, 227, 255, 0.28); }
+.ws-gmenu .ws-gmenu-rule { flex: none; height: 1px; margin: 4px 0 8px; background: rgba(143, 227, 255, 0.18); }
+.ws-gmenu .ws-gmenu-switch, .ws-gmenu .ws-gmenu-row { flex: none; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; width: 100%; margin-bottom: 6px; padding: 10px 12px; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.05); border: 1px solid rgba(143, 227, 255, 0.22); color: var(--ws-text); font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; }
+.ws-gmenu .ws-gmenu-switch { cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+.ws-gmenu .ws-gmenu-switch.on { border-color: rgba(143, 227, 255, 0.5); color: #fff; }
+.ws-gmenu .ws-gmenu-swlabel { flex: 1 1 auto; min-width: 0; text-align: left; }
+.ws-gmenu .ws-gmenu-pill { position: relative; flex: none; width: 34px; height: 18px; border-radius: 9px; background: rgba(6, 10, 18, 0.7); border: 1px solid rgba(143, 227, 255, 0.35); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5); transition: background 0.18s, border-color 0.18s, box-shadow 0.18s; }
+.ws-gmenu .ws-gmenu-pill::after { content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--ws-text-dim); transition: transform 0.18s, background 0.18s; }
+.ws-gmenu .ws-gmenu-switch.on .ws-gmenu-pill { background: rgba(143, 227, 255, 0.28); border-color: var(--ws-cyan); box-shadow: 0 0 12px rgba(143, 227, 255, 0.35), inset 0 0 6px rgba(143, 227, 255, 0.25); }
+.ws-gmenu .ws-gmenu-switch.on .ws-gmenu-pill::after { transform: translateX(16px); background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); }
+.ws-gmenu .ws-gmenu-seg { flex: none; display: flex; margin-left: auto; }
+.ws-gmenu .ws-gmenu-segbtn { padding: 6px 7px; appearance: none; -webkit-appearance: none; background: rgba(6, 10, 18, 0.5); border: 1px solid rgba(143, 227, 255, 0.25); border-left-width: 0; color: var(--ws-text-dim); font-family: var(--ws-mono); font-size: 9px; letter-spacing: 0.04em; cursor: pointer; }
+.ws-gmenu .ws-gmenu-segbtn:first-child { border-left-width: 1px; }
+.ws-gmenu .ws-gmenu-segbtn.active { background: rgba(143, 227, 255, 0.28); color: #fff; }
+.ws-gmenu .ws-gmenu-apply { flex: none; align-self: flex-end; margin: 0 0 8px; padding: 7px 12px; appearance: none; -webkit-appearance: none; background: rgba(255, 181, 71, 0.1); border: 1px solid var(--ws-amber); color: var(--ws-amber); font-family: var(--ws-mono); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; cursor: pointer; }
+.ws-gmenu .ws-gmenu-apply[hidden] { display: none; }
+.ws-gmenu .ws-gmenu-slider { flex: 1; max-width: 170px; margin: 0; height: 4px; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.15); outline: none; }
+.ws-gmenu .ws-gmenu-slider::-webkit-slider-thumb { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 2px solid var(--ws-cyan); box-shadow: 0 0 10px rgba(143, 227, 255, 0.6); cursor: pointer; }
+.ws-gmenu .ws-gmenu-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #fff; border: 2px solid var(--ws-cyan); cursor: pointer; }
+
+/* landscape / desktop: the sheet is a centred column, the map frame keeps a usable height */
+@media (min-aspect-ratio: 1/1) { .ws-gmenu { padding-top: calc(var(--ws-top) + 8px); } .ws-gmenu .ws-gmenu-sheet { max-width: 640px; } }
+.ws-gmenu .ws-gmenu-mapcanvas { position: absolute; inset: 0; }

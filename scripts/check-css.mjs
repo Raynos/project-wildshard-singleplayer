@@ -38,7 +38,7 @@ const FILES = [
   { file: join(STYLES, 'base.css'), prefix: null, strict: true },
   { file: join(STYLES, 'game.css'), prefix: 'ws-game-', strict: true },
   { file: join(STYLES, 'menu.css'), prefix: 'ws-menu-', strict: true },
-  { file: join(STYLES, 'pause.css'), prefix: 'ws-pause-', strict: true },
+  { file: join(STYLES, 'gmenu.css'), prefix: 'ws-gmenu-', strict: true }, // the in-game menu (src/ui/Menu.ts): map / inventory / achievements / settings
   { file: join(STYLES, 'touch.css'), prefix: 'ws-touch-', strict: true },
   { file: join(STYLES, 'update.css'), prefix: 'ws-update-', strict: true },
   { file: join(STYLES, 'minimap.css'), prefix: 'ws-minimap-', strict: true },
