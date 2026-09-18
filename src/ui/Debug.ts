@@ -23,8 +23,12 @@ function save() { try { localStorage.setItem(KEY, JSON.stringify(dbg)); } catch 
 
 export class Debug {
   private panel?: HTMLElement;
+  private pill: HTMLButtonElement;
+  /** in game only: hidden on the loading screen and the menu */
+  setActive(on: boolean) { this.pill.hidden = !on; if (!on) this.close(); }
   constructor(private onChange: (f: DebugFlags) => void) {
     const pill = document.createElement('button');
+    this.pill = pill; pill.hidden = true;
     pill.type = 'button'; pill.textContent = 'DBG';
     Object.assign(pill.style, { position: 'fixed', left: '0', top: '45%', transform: 'rotate(-90deg) translate(-50%, 0)', transformOrigin: 'left top', zIndex: '9998', padding: '3px 7px', font: '700 9px/1 Rajdhani, sans-serif', letterSpacing: '0.2em', color: '#ff7a6b', background: 'rgba(6,10,18,0.7)', border: '1px solid #ff7a6b', pointerEvents: 'auto' } as CSSStyleDeclaration);
     pill.onclick = () => (this.panel ? this.close() : this.open());

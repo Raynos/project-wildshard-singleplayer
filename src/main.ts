@@ -106,7 +106,7 @@ async function main() {
   const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
   const minimap = new Minimap(); // circular minimap (Heightfield is installed by now)
   const keepAlive = new KeepAlive(); game.keepAlive = keepAlive;
-  new Debug((f) => { perf.refresh(); if (f.keepalive) keepAlive.startAudio(); }); // TEMPORARY: loop/tier/meter/rdbg/keep knobs (src/ui/Debug.ts) — remove when the black-screen / LPM work is done
+  const debug = new Debug((f) => { perf.refresh(); if (f.keepalive) keepAlive.startAudio(); }); // TEMPORARY: loop/tier/meter/rdbg/keep knobs (src/ui/Debug.ts) — remove when the black-screen / LPM work is done
   const audio = new Audio();
   let kills = 0, health = 100, lastHurt = 0, pelts = 0;
   const harvested = new Set<object>();
@@ -144,16 +144,16 @@ async function main() {
     void keepAlive.start(); // wake lock (+ optional keep-alive audio) — needs this user gesture
     crossbow.enabled = true;
     crossbow.model.visible = true;
-    perf.setActive(true);
+    perf.setActive(true); debug.setActive(true);
     if (tour.active && !params.has('tour')) { tour.active = false; respawn(); }
     if (!nolock) player.lock();
   };
   hud.onResume = enter;
-  hud.onExitToMenu = () => { crossbow.enabled = false; perf.setActive(false); }; // the HUD mutes audio and clears `entered`; the gate does the rest
+  hud.onExitToMenu = () => { crossbow.enabled = false; perf.setActive(false); debug.setActive(false); }; // the HUD mutes audio and clears `entered`; the gate does the rest
   // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
   game.frameGate = () => hud.entered;
   if (menuFirst) { crossbow.enabled = false; crossbow.model.visible = false; perf.setActive(false); audio.muted = true; hud.showIntro(enter); }
-  else { hud.markEntered(); crossbow.enabled = !nolock || params.has('skipintro'); }
+  else { hud.markEntered(); crossbow.enabled = !nolock || params.has('skipintro'); debug.setActive(true); }
   document.addEventListener('keydown', () => audio.resume(), { once: true });
   document.addEventListener('mousedown', () => audio.resume(), { once: true });
 
