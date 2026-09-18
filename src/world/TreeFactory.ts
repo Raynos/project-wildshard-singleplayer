@@ -140,10 +140,10 @@ export class TreeFactory {
     this.twigMaterial.customProgramCacheKey = () => 'twigs';
     this.twigDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: twigDiff, alphaTest: 0.5, side: THREE.DoubleSide });
     this.twigDepth.onBeforeCompile = (shader) => patchWind(shader);
-    this.twigDepth.customProgramCacheKey = () => 'twigs-depth';
+    this.twigDepth.customProgramCacheKey = () => 'tree-depth'; // same wind patch as the needles' depth material: one program
     this.needleDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: card.albedo, alphaTest: 0.45, side: THREE.DoubleSide });
     this.needleDepth.onBeforeCompile = (shader) => patchWind(shader);
-    this.needleDepth.customProgramCacheKey = () => 'needles-depth';
+    this.needleDepth.customProgramCacheKey = () => 'tree-depth';
 
     const rng = new Rng(4242);
     const specs = [
