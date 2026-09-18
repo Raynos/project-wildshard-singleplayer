@@ -6,7 +6,8 @@
  * Layout (styled in src/ui/styles/touch.css, prefix `ws-touch-`): a glass control bar across the bottom ~15 % of the screen, split into
  * a MOVE zone (left, anchored stick: push past 85 % while heading forward = sprint) and a LOOK zone (right, drag
  * pad — a TAP on the look pad, under 12 px and 300 ms, fires; a drag only looks). A row of three buttons sits
- * directly above the bar: JUMP · RELOAD · AIM (a toggle: tap to latch ADS on, tap again to release); USE appears
+ * directly above the bar: JUMP · RELOAD · AIM · HOVER (AIM and HOVER are toggles: tap to latch, tap again to release —
+ * HOVER steps on / off the hoverboard, `player.setHover`, and mirrors the H key); USE appears
  * in the row only while the HUD has an interact prompt and dispatches the same `KeyE` the keyboard path listens for.
  * Move/look touches are only taken inside the bar; the world above it is not a control surface.
  *
@@ -50,6 +51,7 @@ export class TouchControls {
         <button class="ws-touch-btn jump" type="button">Jump</button>
         <button class="ws-touch-btn reload" type="button">Reload</button>
         <button class="ws-touch-btn aim" type="button">Aim</button>
+        <button class="ws-touch-btn hover" type="button">Hover</button>
       </div>
       <button class="ws-touch-pause" type="button">Pause</button>
       <div class="ws-touch-bar">
@@ -120,6 +122,13 @@ export class TouchControls {
     const aim = root.querySelector<HTMLElement>('.aim')!;
     aim.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.crossbow.adsHeld = !this.crossbow.adsHeld; aim.classList.toggle('on', this.crossbow.adsHeld); });
     aim.addEventListener('pointerup', (e) => e.stopPropagation());
+    // HOVER is a toggle too; the H key flips the same state, so the lit look follows the player, not the button
+    const hover = root.querySelector<HTMLElement>('.hover')!;
+    hover.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.player.setHover(!this.player.hover); });
+    hover.addEventListener('pointerup', (e) => e.stopPropagation());
+    const prevHover = this.player.onHoverChange;
+    this.player.onHoverChange = (on) => { hover.classList.toggle('on', on); prevHover?.(on); };
+    hover.classList.toggle('on', this.player.hover);
     btn('.reload', () => { if (this.crossbow.enabled) this.crossbow.reload(); });
     btn('.jump', () => { this.player.touchJump = true; });
     btn('.ws-touch-pause', () => document.dispatchEvent(new Event('ws:pause')));
