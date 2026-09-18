@@ -24,6 +24,8 @@ export class Perf {
     document.body.appendChild(this.root);
     if (new URLSearchParams(location.search).get('perf') === '0') this.root.hidden = true;
     game.onUpdate(() => this.update(performance.now()));
+    // frames are gated on the menu (Game.frameGate): say so rather than freeze on the last number
+    setInterval(() => { if (performance.now() - this.lastPaint > 1500 && this.lastText !== 'idle') { this.lastText = 'idle'; (this.root.firstElementChild as HTMLElement).textContent = '—'; (this.root.lastElementChild as HTMLElement).textContent = 'world paused'; this.root.className = 'ws-perf'; } }, 500);
   }
 
   private update(now: number) {

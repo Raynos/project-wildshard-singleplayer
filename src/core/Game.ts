@@ -25,6 +25,8 @@ export class Game {
   frameMs = new Float32Array(120); frameI = 0;
   /** draw calls / triangles of the last whole frame (all composer passes) */
   lastFrame = { calls: 0, triangles: 0 };
+  /** Return false to skip a whole frame (updaters + render): a menu covering the canvas, a still title on a phone. */
+  frameGate: () => boolean = () => true;
   private renderPass!: RenderPass;
   volumetrics!: VolumetricsEffect;
 
@@ -165,6 +167,7 @@ export class Game {
     this.renderer.info.autoReset = false; // the composer renders several passes per frame: count the whole frame
     const loop = () => {
       requestAnimationFrame(loop);
+      if (!this.frameGate()) { this.clock.getDelta(); return; } // keep the clock moving so the next frame's dt is sane
       this.renderer.info.reset();
       const dt = Math.min(0.1, this.clock.getDelta());
       const t = this.clock.elapsedTime;

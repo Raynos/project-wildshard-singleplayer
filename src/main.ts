@@ -129,6 +129,14 @@ async function main() {
     if (!nolock) player.lock();
   };
   hud.onResume = enter;
+  // Don't render what nobody sees: while a teaser's hero art covers the canvas the frame is skipped
+  // entirely; on a phone the live-world title is a still shot, so it runs at 20 Hz until entered.
+  let gateFrame = 0;
+  game.frameGate = () => {
+    if (hud.entered) return true;
+    if (document.querySelector('.ws-intro .ws-hero.show')) return false;
+    return TIER !== 'phone' || (++gateFrame % 3 === 0);
+  };
   if (attract) { crossbow.enabled = false; crossbow.model.visible = false; hud.showIntro(enter); }
   else { hud.markEntered(); crossbow.enabled = !nolock || params.has('skipintro'); }
   document.addEventListener('keydown', () => audio.resume(), { once: true });
