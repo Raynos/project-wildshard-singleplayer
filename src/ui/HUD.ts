@@ -1,5 +1,5 @@
 import { CHUNK_SIZE, TERRAIN_RES } from '../core/config';
-import { getActiveChunk } from '../chunks/registry';
+import { CHUNKS, getActiveChunk, chunkUrl } from '../chunks/registry';
 
 /**
  * HUD — DOM overlay in `#hud`, styled by `src/ui/hud.css` (Wildshard glass identity).
@@ -240,6 +240,12 @@ export class HUD {
         <div class="ws-ptitle">Chunk playtest · <b>${def.slug}</b></div>
         <div class="ws-meta"></div>
         <button class="ws-enter"><span>Enter the chunk</span><small>click · or press Enter</small></button>
+      </div>
+      <div class="ws-glass ws-panel ws-shards">
+        <div class="ws-ptitle">Shards · <b>${CHUNKS.length}</b></div>
+        <div class="ws-shards-head"><span class="ws-label">Chunks on this build</span><span class="ws-shards-hint">${CHUNKS.length > 1 ? 'select another to load it' : 'one authored so far'}</span></div>
+        <div class="ws-shards-list"></div>
+        <div class="ws-shards-blurb"></div>
       </div></div>
       <div class="ws-enterbar"><div class="ws-eicon">⇥</div><div class="ws-etext"><b>Enter the chunk</b><small>Press any key</small></div><div class="ws-ready">Ready</div></div>
       <div class="ws-glass ws-sound">Sound on</div>
@@ -252,6 +258,20 @@ export class HUD {
       const val = typeof v === 'string' ? v : v.value, tone = typeof v === 'string' ? '' : v.tone ?? '';
       meta.appendChild(el('div', undefined, `<span>${k}</span><span class="${tone}">${val}</span>`));
     }
+    // shard picker: every authored chunk; picking another reloads with ?chunk=<slug>
+    const list = intro.querySelector('.ws-shards-list')!;
+    const blurb = intro.querySelector('.ws-shards-blurb')!;
+    const showBlurb = (c: typeof def) => { blurb.innerHTML = `<b>${c.displayName}</b> · ${c.biome} — ${c.blurb}`; };
+    for (const c of CHUNKS) {
+      const card = el('button', 'ws-shard' + (c === def ? ' active' : ''), `<span class="ws-shard-img" style="background-image:url('${c.thumbnail}')"><i>${c === def ? 'Loaded' : 'Load'}</i></span><b>${c.displayName}</b><small>${c.gridCoords} · ${c.biome}</small>`);
+      card.type = 'button';
+      card.title = c.id;
+      card.addEventListener('mouseenter', () => showBlurb(c));
+      card.addEventListener('mouseleave', () => showBlurb(def));
+      card.addEventListener('click', (e) => { e.stopPropagation(); if (c !== def) location.href = chunkUrl(c.slug); });
+      list.appendChild(card);
+    }
+    showBlurb(def);
     intro.querySelector('.ws-enter')!.addEventListener('click', () => this.enter());
     intro.querySelector('.ws-enterbar')!.addEventListener('click', () => this.enter());
     intro.querySelector('.ws-sound')!.addEventListener('click', (e) => { e.stopPropagation(); const b = e.currentTarget as HTMLElement; const off = b.classList.toggle('off'); b.textContent = off ? 'Sound off' : 'Sound on'; this.onSoundToggle?.(!off); });

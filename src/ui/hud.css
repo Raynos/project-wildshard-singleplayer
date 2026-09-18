@@ -244,3 +244,43 @@ html, body { margin: 0; padding: 0; overflow: hidden; background: #050810; }
 .ws-update.newer { color: var(--ws-cyan); border-color: var(--ws-cyan); box-shadow: 0 0 18px rgba(143, 227, 255, 0.3); }
 .ws-update.newer .ws-update-dot { background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); animation: ws-update-pulse 1.2s ease-in-out infinite; }
 @keyframes ws-update-pulse { 50% { opacity: 0.3; } }
+
+/* ─── title screen: shard picker (second panel beside the playtest panel) ─── */
+.ws-intro .ws-body { gap: 16px; flex-wrap: wrap; }
+.ws-intro .ws-panel.ws-shards { width: 420px; align-self: flex-start; }
+.ws-shards-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 14px; }
+.ws-shards-hint { font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-shards-list { display: flex; gap: 10px; margin-top: 10px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.ws-shards-list::-webkit-scrollbar { display: none; }
+.ws-shard { flex: 0 0 176px; width: 176px; padding: 0; margin: 0; text-align: left; background: rgba(6, 10, 18, 0.5); border: 1px solid rgba(143, 227, 255, 0.22); color: var(--ws-text); cursor: pointer; font-family: var(--ws-mono); pointer-events: auto; transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
+.ws-shard:hover, .ws-shard:focus-visible { border-color: var(--ws-cyan); box-shadow: 0 0 18px rgba(143, 227, 255, 0.25); outline: none; transform: translateY(-1px); }
+.ws-shard.active { border-color: var(--ws-cyan); cursor: default; box-shadow: inset 0 0 0 1px rgba(143, 227, 255, 0.35); }
+.ws-shard.active:hover { transform: none; box-shadow: inset 0 0 0 1px rgba(143, 227, 255, 0.35); }
+.ws-shard .ws-shard-img { display: block; position: relative; width: 100%; aspect-ratio: 16 / 9; background-size: cover; background-position: center; border-bottom: 1px solid rgba(143, 227, 255, 0.18); }
+.ws-shard .ws-shard-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6, 10, 18, 0) 55%, rgba(6, 10, 18, 0.55) 100%); }
+.ws-shard .ws-shard-img i { position: absolute; right: 6px; top: 6px; z-index: 1; font-style: normal; font-size: 8.5px; letter-spacing: 0.2em; text-transform: uppercase; padding: 2px 6px; color: var(--ws-cyan); border: 1px solid var(--ws-cyan-line); background: var(--ws-glass-deep); }
+.ws-shard.active .ws-shard-img i { color: #7cf2a7; border-color: rgba(124, 242, 167, 0.5); }
+.ws-shard b { display: block; padding: 7px 9px 0; font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; line-height: 1.1; }
+.ws-shard small { display: block; padding: 3px 9px 8px; font-size: 9.5px; letter-spacing: 0.06em; color: var(--ws-text-dim); line-height: 1.4; }
+.ws-shards-blurb { margin-top: 12px; font-size: 11px; line-height: 1.5; color: var(--ws-text-dim); min-height: 4.4em; }
+.ws-shards-blurb b { color: var(--ws-text); font-weight: 500; }
+
+/* ─── title screen on a phone-width viewport ─── */
+@media (max-width: 700px) {
+  .ws-intro { overflow-y: auto; }
+  .ws-intro .ws-head { padding: 22px 16px 0; }
+  .ws-intro .ws-wordmark { font-size: 40px; }
+  .ws-intro .ws-tagline { font-size: 12px; }
+  .ws-intro .ws-sound { top: 14px; right: 16px; padding: 7px 12px; }
+  .ws-intro .ws-body { padding: 18px 16px 0; align-items: stretch; flex-direction: column; }
+  .ws-intro .ws-panel, .ws-intro .ws-panel.ws-shards { width: 100%; padding: 16px 16px 18px; }
+  .ws-intro .ws-panel .ws-ptitle { font-size: 18px; }
+  .ws-intro .ws-panel .ws-meta div { font-size: 12px; gap: 16px; }
+  .ws-intro .ws-panel .ws-meta span:first-child { width: 78px; }
+  .ws-intro .ws-panel .ws-enter { display: flex; font-size: 16px; letter-spacing: 0.16em; padding: 12px 14px; }
+  .ws-intro .ws-panel .ws-enter small { display: none; }
+  .ws-intro .ws-enterbar { display: none; }
+  .ws-intro .ws-foot { flex-direction: column; align-items: flex-start; gap: 10px; padding: 18px 16px 22px; }
+  .ws-intro .ws-legend { flex-wrap: wrap; gap: 8px 14px; }
+  .ws-shard { flex-basis: 150px; width: 150px; }
+}
