@@ -102,3 +102,12 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | 48 | **Minimap 33 % bigger, compass two-thirds width floating left, minimap beside it** → then "**compass a bit lower and 25 % thinner**" | **done** | `4615043`, `62becba` |
 | 49 | (parent's item) `setAimTargets(animals.animals)` is **not wired in main.ts** — aim assist is inert in production until it is | **done** | prototype 1 (main.ts): one import + one line after `animals` exists |
 
+
+## 2026-09-18 (Driftwood Isle)
+
+| # | ask (the user's words, shortened) | status | owner / evidence |
+|---|---|---|---|
+| D1 | "We are building Driftwood Island" — the low-poly Wind Waker–style island shard, currently a "not yet playable" teaser | **open** | this session; mockups first (D2–D4) |
+| D2 | **Mockups via parallel codex agents: the spawn point in three different low-poly art styles** | **in flight** | art/driftwood-spawn-{A,B,C}-*.png |
+| D3 | **Mockups of two or three points of interest** | **in flight** | art/driftwood-poi-{1,2,3}-*.png |
+| D4 | Island gameplay is **different from Pine Hollow** (not first-person crossbow) — "more like Zelda Wind Waker"; "a couple of mockups of what happens when you have …" (sentence cut off) | **needs pick** | waiting for the rest of the sentence |
