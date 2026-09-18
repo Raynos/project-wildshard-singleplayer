@@ -174,6 +174,29 @@ export function postJobs(composer: EffectComposer, rt: THREE.WebGLRenderTarget |
   return jobs;
 }
 
+/**
+ * Every texture the first frame would upload — material maps, ShaderMaterial uniforms (the post
+ * chain's lookup tables included), the scene's background / environment — read off the compile jobs.
+ * Uploading (texImage + mipmaps, ~30 × 1024² on the phone) is otherwise the first draw's job,
+ * inside the first frame's stall.
+ */
+export function collectTextures(jobs: CompileJob[]): THREE.Texture[] {
+  const out = new Set<THREE.Texture>();
+  const add = (v: unknown) => { const t = v as (THREE.Texture & { isRenderTargetTexture?: boolean }) | null; if (t && typeof t === 'object' && t.isTexture && !t.isRenderTargetTexture) out.add(t); };
+  const fromMaterial = (m: THREE.Material) => {
+    for (const v of Object.values(m as unknown as Record<string, unknown>)) add(v);
+    const u = (m as THREE.ShaderMaterial).uniforms;
+    if (u) for (const k in u) add(u[k]?.value);
+  };
+  // the jobs' clones carry every scene material, the post-chain materials and the background box;
+  // the target scenes carry the background / environment maps
+  for (const job of jobs) {
+    job.root.traverse((o) => { for (const m of materialsOf(o)) fromMaterial(m); });
+    if (job.target) { add(job.target.background); add(job.target.environment); }
+  }
+  return [...out];
+}
+
 interface ProgramLike { isReady(): boolean; program: WebGLProgram; usedTimes: number }
 
 const frame = (): Promise<void> => new Promise((res) => requestAnimationFrame(() => setTimeout(res, 0))); // a real paint between
@@ -185,12 +208,13 @@ const frame = (): Promise<void> => new Promise((res) => requestAnimationFrame(()
 export async function runPrecompile(
   renderer: THREE.WebGLRenderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
   onProgress?: (done: number, total: number, detail: string) => void,
+  textures: THREE.Texture[] = collectTextures(jobs),
 ): Promise<PrecompileReport> {
   const parallel = renderer.extensions.has('KHR_parallel_shader_compile');
   const before = snapshotPrograms(renderer);
   const gl = renderer.getContext();
   const created: ProgramLike[] = [];
-  const total = () => jobs.length + Math.max(created.length, 1);
+  const total = () => jobs.length + Math.max(created.length, 1) + textures.length;
   const mode = parallel ? 'parallel' : 'serial';
   let tFrame = performance.now();
   for (let i = 0; i < jobs.length; i++) {
@@ -220,7 +244,7 @@ export async function runPrecompile(
     for (;;) {
       let ready = 0;
       for (const p of created) if (p.isReady()) ready++;
-      onProgress?.(jobs.length + ready, jobs.length + units, `${ready} / ${n} programs linked · parallel`);
+      onProgress?.(jobs.length + ready, jobs.length + units + textures.length, `${ready} / ${n} programs linked · parallel`);
       if (ready >= n) break;
       await frame();
     }
@@ -236,9 +260,19 @@ export async function runPrecompile(
   const skipResolve = PERFLOAD && new URLSearchParams(location.search).has('noresolve'); // A/B for the instrumentation
   for (let i = 0; i < n; i++) {
     if (!skipResolve) gl.getProgramParameter(created[i]!.program, gl.LINK_STATUS);
-    onProgress?.(jobs.length + (parallel ? n : 0) + i + 1, jobs.length + units, `${i + 1} / ${n} programs resolved · ${mode}`);
+    onProgress?.(jobs.length + (parallel ? n : 0) + i + 1, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
     if (performance.now() - tSlice > 12) { await frame(); tSlice = performance.now(); }
   }
   if (PERFLOAD) perfLog('resolve', performance.now() - tB, renderer, `${n} programs · LINK_STATUS`);
+  // Phase C: upload every texture (12 ms slices) so the first draw finds them resident.
+  const tC = performance.now();
+  tSlice = tC;
+  const base = jobs.length + units;
+  for (let i = 0; i < textures.length; i++) {
+    try { renderer.initTexture(textures[i]!); } catch { /* a texture the driver rejects is the draw's problem, not the loader's */ }
+    onProgress?.(base + i + 1, base + textures.length, `${i + 1} / ${textures.length} textures uploaded`);
+    if (performance.now() - tSlice > 12) { await frame(); tSlice = performance.now(); }
+  }
+  if (PERFLOAD) perfLog('textures', performance.now() - tC, renderer, `${textures.length} textures · initTexture`);
   return { materials, jobs: jobs.length, programs: n, parallel };
 }
