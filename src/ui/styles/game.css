@@ -131,7 +131,8 @@
   #hud.intro .ws-game-fps { top: calc(66px + env(safe-area-inset-top, 0px)); right: 16px; }
   .ws-game-chunk { display: none; }
   /* the band's top edge sits at ~9 % of the screen, or under the PAUSE pill (touch.css, top-left at safe-area + 10 px, ~20 px tall + the bracket) when the notch pushes that lower; everything centred stacks under it */
-  .ws-game-compass { width: 90vw; top: max(5vh, calc(env(safe-area-inset-top, 0px) + 12px)); height: 32px; }
+  /* phone: the band floats LEFT at two thirds of the width; the minimap sits beside it on the right */
+  .ws-game-compass { left: 14px; transform: none; width: calc(60vw - 14px); top: max(5vh, calc(env(safe-area-inset-top, 0px) + 12px)); height: 32px; }
   .ws-game-compass .ws-game-cardinal { font-size: 16px; }
   .ws-game-compass .ws-game-mark { width: 20px; height: 20px; margin: -10px 0 0 -10px; }
   .ws-game-compass .ws-game-mark.paw svg { width: 18px; height: 18px; }
@@ -159,7 +160,7 @@
 /* the strips sit ON TOP of the bar's edge (bottom: 100%), not inside it — a thumb on the pads would cover them */
 .ws-game-vitals, .ws-game-bolts { position: absolute; bottom: calc(100% + 6px); display: flex; align-items: center; gap: 7px; height: 22px; padding: 3px 9px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); pointer-events: none; white-space: nowrap; }
 .ws-game-vitals { left: 12px; }
-.ws-game-bolts { right: 12px; }
+.ws-game-bolts { right: 12px; bottom: auto; top: 6px; background: none; border: none; padding: 0; } /* half above (vitals), bolts inside the bar */
 .ws-game-vitals .ws-game-glyph, .ws-game-bolts .ws-game-glyph { display: block; width: 15px; height: 15px; }
 .ws-game-vitals .ws-game-glyph svg, .ws-game-bolts .ws-game-glyph svg { display: block; width: 100%; height: 100%; fill: #fff; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6)); }
 .ws-game-vitals .ws-game-num, .ws-game-bolts .ws-game-num { font-family: var(--ws-display); font-weight: 700; font-size: 21px; line-height: 1; letter-spacing: 0.02em; color: #fff; font-variant-numeric: tabular-nums; }

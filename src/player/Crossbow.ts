@@ -263,7 +263,7 @@ function makeCord(): { map: THREE.Texture; normalMap: THREE.Texture } {
   return { map, normalMap };
 }
 
-/** Bolt atlas: bottom half ash shaft, top-left steel, top-right feather vane (alpha). */
+/** Bolt atlas: bottom half iron shaft, top-left steel head, top-right feather vane (alpha). */
 function makeBoltAtlas(seed: number): TexSet {
   const S = 512;
   const { fbm, hash } = makeNoise(seed);
@@ -271,10 +271,10 @@ function makeBoltAtlas(seed: number): TexSet {
   for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
     const u = x / S, v = y / S, i = (y * S + x) * 4;
     let r = 0, g = 0, b = 0, a = 255, rough = 0.6, metal = 0, ao = 1, h = 0;
-    if (v < 0.5) { // ash shaft, grain along U
-      const grain = fbm(u * 60, v * 10, 3), ring = fbm(u * 3, v * 40, 2);
-      const lum = 0.66 + (grain - 0.5) * 0.35 + (ring - 0.5) * 0.2;
-      r = 176 * lum; g = 142 * lum; b = 96 * lum; rough = 0.55 + (grain - 0.5) * 0.2; h = grain;
+    if (v < 0.5) { // iron shaft: drawn/forged steel, fine longitudinal scratches, a little bluing
+      const grain = fbm(u * 80, v * 4, 3), scratch = fbm(u * 260, v * 3, 2), mottle = fbm(u * 6, v * 12, 2);
+      const lum = 0.42 + (grain - 0.5) * 0.22 + (scratch - 0.5) * 0.12 + (mottle - 0.5) * 0.1;
+      r = 255 * lum * 0.94; g = 255 * lum * 0.97; b = 255 * lum * 1.04; rough = 0.42 + (mottle - 0.5) * 0.25 + (scratch - 0.5) * 0.15; metal = 1; h = grain * 0.4;
     } else if (u < 0.5) { // steel
       const m = fbm(u * 20, v * 20, 4), scratch = fbm(u * 200, v * 6, 2);
       const lum = 0.5 + (m - 0.5) * 0.35 + (scratch - 0.5) * 0.15;
