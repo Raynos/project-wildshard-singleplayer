@@ -347,14 +347,15 @@ function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember', sky: Sky) {
     uTime: { value: 0 }, uLife: { value: cfg.life }, uRise: { value: cfg.rise }, uSpread: { value: cfg.spread },
     uSize: { value: new THREE.Vector2(cfg.size[0], cfg.size[1]) }, uWind: { value: new THREE.Vector3(...cfg.wind) }, tNoise: { value: noiseTex },
     uSunDir: { value: sky.sunDir.clone() }, uSunColor: { value: sky.sunColor.clone() },
-    ...(cfg.fog ? THREE.UniformsUtils.clone(THREE.UniformsLib.fog) : {}),
+    ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), uKind: { value: { smoke: 0, flame: 1, ember: 2 }[kind] },
   };
   return new THREE.ShaderMaterial({
-    uniforms, transparent: true, depthWrite: false, blending: cfg.blend, fog: cfg.fog, side: THREE.DoubleSide,
-    defines: { [kind.toUpperCase()]: 1 },
+    // one program for smoke / flame / ember: the kind is a uniform branch, not a define, and every kind carries the
+    // fog uniforms (only smoke applies them) — three per-define variants were three ~150 ms compiles on the iPhone
+    uniforms, transparent: true, depthWrite: false, blending: cfg.blend, fog: true, side: THREE.DoubleSide,
     vertexShader: /* glsl */`
       attribute vec4 seed;
-      uniform float uTime, uLife, uRise, uSpread; uniform vec2 uSize; uniform vec3 uWind; uniform vec3 uSunDir;
+      uniform float uTime, uLife, uRise, uSpread; uniform vec2 uSize; uniform vec3 uWind; uniform vec3 uSunDir; uniform int uKind;
       varying vec2 vUv; varying float vAge; varying vec4 vSeed; varying vec2 vSunView;
       #include <fog_pars_vertex>
       void main() {
@@ -362,51 +363,51 @@ function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember', sky: Sky) {
         vAge = age; vSeed = seed; vUv = uv;
         float ang = seed.y * 6.2831853;
         vec3 p = vec3(cos(ang), 0.0, sin(ang)) * uSpread * sqrt(seed.z);
-        #ifdef FLAME
+        if (uKind == 1) {
           p.y += age * uRise * (0.6 + 0.8 * seed.x);
           p.xz *= 1.0 - age * 0.55;
           p.x += sin(uTime * 7.0 + seed.x * 20.0) * 0.06 * age;
           p.z += cos(uTime * 6.3 + seed.y * 20.0) * 0.06 * age;
-        #else
+        } else {
           p.y += age * uRise * (0.7 + 0.6 * seed.x);
           p.x += sin(age * 9.0 + seed.x * 12.0) * 0.12 * age + sin(uTime * 1.3 + seed.y * 9.0) * 0.08 * age;
           p.z += cos(age * 7.0 + seed.y * 12.0) * 0.12 * age;
-        #endif
+        }
         vec3 windW = vec3(0.0);
-        #ifndef FLAME
+        if (uKind != 1) {
           // wind is a world-space vector: undo the cabin's yaw so every plume drifts the same way
           windW = (inverse(mat3(modelMatrix)) * uWind) * age * age * (0.6 + 0.8 * seed.x);
-          #ifdef SMOKE
+          if (uKind == 0) {
             windW += (inverse(mat3(modelMatrix)) * vec3(sin(uTime * 0.37 + seed.x * 6.0), 0.0, cos(uTime * 0.29 + seed.y * 6.0))) * 0.9 * age * age;
-          #endif
+          }
           p += windW;
-        #endif
+        }
         vSunView = normalize((viewMatrix * vec4(uSunDir, 0.0)).xy + vec2(1e-4));
         float size = mix(uSize.x, uSize.y, age) * (0.75 + 0.5 * seed.x);
-        #ifdef SMOKE
+        if (uKind == 0) {
           size = mix(uSize.x, uSize.y, pow(age, 0.7)) * (0.75 + 0.5 * seed.x) * smoothstep(0.0, 0.08, age);
-        #endif
+        }
         vec3 transformed = p;
         vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
         float rot = seed.x * 6.28 + age * (seed.y - 0.5) * 2.0;
         vec2 q = position.xy * size;
-        #ifdef SMOKE
+        if (uKind == 0) {
           q = vec2(q.x * cos(rot) - q.y * sin(rot), q.x * sin(rot) + q.y * cos(rot));
-        #endif
-        #ifdef FLAME
+        }
+        if (uKind == 1) {
           q.y *= 1.9;
-        #endif
+        }
         mvPosition.xy += q;
         gl_Position = projectionMatrix * mvPosition;
         #include <fog_vertex>
       }`,
     fragmentShader: /* glsl */`
-      uniform sampler2D tNoise; uniform float uTime; uniform vec3 uSunColor;
+      uniform sampler2D tNoise; uniform float uTime; uniform vec3 uSunColor; uniform int uKind;
       varying vec2 vUv; varying float vAge; varying vec4 vSeed; varying vec2 vSunView;
       #include <fog_pars_fragment>
       void main() {
         vec2 d = vUv - 0.5;
-        #ifdef SMOKE
+        if (uKind == 0) {
           float n = texture2D(tNoise, vUv * 1.3 + vSeed.xy * 3.0 + vec2(uTime * 0.015, -uTime * 0.04)).r;
           float n2 = texture2D(tNoise, vUv * 3.1 + vSeed.zw * 5.0 + vec2(-uTime * 0.03, -uTime * 0.02)).r;
           float m = smoothstep(0.5, 0.08, length(d) + (n - 0.5) * 0.42 + (n2 - 0.5) * 0.15);
@@ -416,8 +417,8 @@ function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember', sky: Sky) {
           vec3 col = mix(vec3(0.36, 0.38, 0.44), vec3(0.95, 0.9, 0.85) * uSunColor * 1.25, lit) * (0.85 + 0.3 * n2);
           gl_FragColor = vec4(col, a);
           #include <fog_fragment>
-        #endif
-        #ifdef FLAME
+        }
+        if (uKind == 1) {
           vec2 uv = vUv;
           float n1 = texture2D(tNoise, uv * vec2(1.2, 0.7) + vec2(vSeed.x * 4.0, -uTime * 0.9 - vSeed.y * 5.0)).r;
           float n2 = texture2D(tNoise, uv * vec2(2.3, 1.4) + vec2(-vSeed.y * 3.0, -uTime * 1.6 + vSeed.x * 7.0)).r;
@@ -430,13 +431,13 @@ function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember', sky: Sky) {
           vec3 col = mix(vec3(1.0, 0.18, 0.02), vec3(1.0, 0.62, 0.12), smoothstep(0.15, 0.6, heat));
           col = mix(col, vec3(1.0, 0.96, 0.75), smoothstep(0.55, 1.0, heat));
           gl_FragColor = vec4(col * body * life * 1.8, body * life);
-        #endif
-        #ifdef EMBER
+        }
+        if (uKind == 2) {
           float m = smoothstep(0.5, 0.15, length(d));
           float flick = 0.6 + 0.4 * sin(uTime * 17.0 + vSeed.x * 40.0);
           float life = smoothstep(0.0, 0.05, vAge) * (1.0 - smoothstep(0.4, 1.0, vAge));
           gl_FragColor = vec4(vec3(1.0, 0.55, 0.15) * 2.5 * m * flick * life, m * life);
-        #endif
+        }
       }`,
   });
 }
@@ -519,7 +520,7 @@ function installMoss(mat: THREE.MeshStandardMaterial, sky: Sky, kind: 'roof' | '
           normal = normalize(abs(fDet) * normal - vGrad * 6.0);
         }`);
   };
-  mat.customProgramCacheKey = () => 'cabin-moss-' + kind;
+  mat.customProgramCacheKey = () => 'cabin-moss'; // strength / upOnly are uniforms: roof and stone share one program
 }
 
 // ───────────────────────────── geometry helpers ─────────────────────────────
