@@ -1,4 +1,5 @@
 import type { Vector3 } from 'three';
+import { getActiveChunk } from '../chunks/registry';
 
 /**
  * Audio — every sound is synthesised with WebAudio (no files).
@@ -14,13 +15,19 @@ import type { Vector3 } from 'three';
  *   audio.footstep(sprinting)  audio.jump()  audio.land(hard)  audio.hitMarker()  audio.kill()
  *   audio.splash(impact)  audio.wadeStep(depth, sprinting)  audio.swimStroke()  audio.waterExit()   // water (Player.onEnterWater / onStep while wading / onStroke / onExitWater)
  *   audio.animal('deer_call'|'boar_grunt'|'hoofsteps'|'boar_squeal'|'bear_growl'|'bear_roar'|'bear_hurt', position, listenerPos, yaw?)
- *   audio.setAmbient(true|false)   audio.muted = true|false   audio.master.gain (0.6)
+ *   audio.gullCall(pan?, gain?)  audio.gullCallAt(position, listenerPos, yaw?)   // gulls (src/world/Gulls.ts onCall)
+ *   audio.footstep(sprinting, 'litter'|'planks'|'sand')                          // surface: pine litter (default), the pier deck, the beach
+ *   audio.setAmbient(true|false)  audio.setAmbient('forest'|'island')   audio.muted = true|false   audio.master.gain (0.6)
  *
- * Ambient (wind gusts + distant birds) starts on resume() and runs on its own scheduler.
+ * Ambient starts on resume() and runs on its own scheduler. The bed follows the chunk: `new Audio()` reads
+ * `getActiveChunk().ocean` — an ocean shard gets surf swells, a warm breeze and gulls ('island'); otherwise the
+ * pine wind, tree hiss and distant birds ('forest'). `setAmbient('island')` switches it (before or after resume()).
  */
 
 export type ImpactKind = 'wood' | 'ground' | 'flesh';
 export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal' | 'elk_bugle' | 'bear_growl' | 'bear_roar' | 'bear_hurt';
+export type AmbientBed = 'forest' | 'island';
+export type StepSurface = 'litter' | 'planks' | 'sand';
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 
@@ -37,6 +44,9 @@ export class Audio {
   private birdTimer = 0; private gustTimer = 0;
   private windGain?: GainNode; private windGain2?: GainNode;
   private _muted = false;
+  private bed: AmbientBed;
+  private bedNodes: AudioNode[] = [];
+  private surfTimer = 0;
   private hum?: { out: GainNode; stop: () => void };
 
   constructor() {
@@ -49,6 +59,7 @@ export class Audio {
     this.sfx = this.ctx.createGain(); this.sfx.gain.value = 1; this.sfx.connect(this.master);
     this.ambient = this.ctx.createGain(); this.ambient.gain.value = 0.55; this.ambient.connect(this.master);
     this.makeNoise();
+    this.bed = getActiveChunk().ocean ? 'island' : 'forest';
   }
 
   get muted() { return this._muted; }
@@ -60,7 +71,16 @@ export class Audio {
     if (!this.started) { this.started = true; this.startAmbient(); }
   }
 
-  setAmbient(on: boolean) { this.ambientOn = on; this.ambient.gain.setTargetAtTime(on ? 0.55 : 0, this.ctx.currentTime, 0.4); }
+  /** `true`/`false` mutes the bed; `'forest'`/`'island'` swaps it (pine wind + birds ↔ surf + breeze + gulls) */
+  setAmbient(on: boolean | AmbientBed) {
+    if (typeof on === 'string') {
+      if (on === this.bed) return;
+      this.bed = on;
+      if (this.started) { this.stopBed(); this.startBed(); }
+      return;
+    }
+    this.ambientOn = on; this.ambient.gain.setTargetAtTime(on ? 0.55 : 0, this.ctx.currentTime, 0.4);
+  }
 
   // ─────────────── building blocks ───────────────
   private makeNoise() {
@@ -282,10 +302,25 @@ export class Audio {
   }
 
   // ─────────────── movement ───────────────
-  footstep(sprinting: boolean) {
+  footstep(sprinting: boolean, surface: StepSurface = 'litter') {
     const t = this.ctx.currentTime;
     this.stepSide = -this.stepSide;
     const pan = this.stepSide * 0.14;
+    if (surface === 'planks') {
+      // a boot on a pier deck: a hollow wooden knock that rings down the planks, a hint of a creak
+      this.burst({ t, type: 'bandpass', freq: rnd(220, 320), q: 1.6, gain: sprinting ? 0.55 : 0.38, decay: sprinting ? 0.09 : 0.12, pan });
+      this.tone({ t, type: 'triangle', f0: rnd(150, 190), f1: 90, glide: 0.07, gain: sprinting ? 0.3 : 0.2, decay: 0.11, pan, lowpass: 900 });
+      this.tone({ t, type: 'sine', f0: rnd(60, 75), f1: 40, glide: 0.06, gain: sprinting ? 0.35 : 0.22, decay: 0.09, pan });
+      if (Math.random() < 0.25) this.tone({ t: t + 0.03, type: 'sawtooth', f0: rnd(400, 700), f1: rnd(300, 500), glide: 0.12, gain: 0.03, attack: 0.03, decay: 0.12, pan, lowpass: 1400, vibrato: { rate: 18, depth: 20 } });
+      return;
+    }
+    if (surface === 'sand') {
+      // a soft grainy scuff, no knock: broadband hiss that swells and settles, a dull thud under it
+      this.burst({ t, type: 'bandpass', freq: rnd(1400, 2200), freqEnd: 700, q: 0.5, gain: sprinting ? 0.3 : 0.2, attack: 0.02, decay: sprinting ? 0.1 : 0.14, pan });
+      this.burst({ t: t + 0.01, type: 'lowpass', freq: 380, gain: sprinting ? 0.32 : 0.2, attack: 0.012, decay: 0.09, pan });
+      this.tone({ t, type: 'sine', f0: rnd(60, 80), f1: 42, glide: 0.06, gain: sprinting ? 0.18 : 0.1, decay: 0.07, pan });
+      return;
+    }
     const f = rnd(380, 720);
     this.burst({ t, type: 'lowpass', freq: f, gain: sprinting ? 0.5 : 0.32, decay: sprinting ? 0.06 : 0.08, pan });
     // needle-litter crunch
@@ -465,49 +500,135 @@ export class Audio {
     }
   }
 
+  // ─────────────── gulls ───────────────
+  /** a gull: a short two-note squawk — a nasal sawtooth "kyow" that breaks up, then a lower "ow"; sometimes a third yelp */
+  gullCall(pan = 0, gain = 1) {
+    const c = this.ctx, t = c.currentTime;
+    const bus = c.createGain(); bus.gain.value = 0.28 * gain;
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1900; bp.Q.value = 0.7;
+    bus.connect(bp); this.route(bp, pan, this.ambient);
+    const base = rnd(1050, 1350);
+    // note 1: rises fast then bends down, wide fast vibrato (the rasp)
+    this.tone({ t, type: 'sawtooth', f0: base * 0.85, f1: base * 1.25, glide: 0.06, gain: 1, attack: 0.015, hold: 0.05, decay: 0.09, vibrato: { rate: 42, depth: 90 }, lowpass: 4200, out: bus });
+    this.tone({ t: t + 0.06, type: 'sawtooth', f0: base * 1.25, f1: base * 0.9, glide: 0.12, gain: 0.7, attack: 0.005, decay: 0.12, vibrato: { rate: 42, depth: 90 }, lowpass: 3600, out: bus });
+    this.burst({ t, type: 'bandpass', freq: base * 2, q: 2, gain: 0.25, attack: 0.02, hold: 0.06, decay: 0.1, out: bus });
+    // note 2: lower, shorter
+    const t2 = t + rnd(0.2, 0.27);
+    this.tone({ t: t2, type: 'sawtooth', f0: base * 0.95, f1: base * 0.62, glide: 0.16, gain: 0.8, attack: 0.012, hold: 0.03, decay: 0.15, vibrato: { rate: 36, depth: 70 }, lowpass: 3200, out: bus });
+    this.burst({ t: t2, type: 'bandpass', freq: base * 1.6, q: 2, gain: 0.18, attack: 0.02, decay: 0.12, out: bus });
+    if (Math.random() < 0.35) {
+      const t3 = t2 + rnd(0.2, 0.28);
+      this.tone({ t: t3, type: 'sawtooth', f0: base * 0.8, f1: base * 0.55, glide: 0.14, gain: 0.55, attack: 0.012, decay: 0.14, vibrato: { rate: 30, depth: 60 }, lowpass: 2800, out: bus });
+    }
+  }
+
+  /** gullCall positioned like `animal()`: distance attenuation + a stereo pan from the listener yaw */
+  gullCallAt(position: Vector3, listenerPos: Vector3, yaw = this.listenerYaw) {
+    const dx = position.x - listenerPos.x, dz = position.z - listenerPos.z, dy = position.y - listenerPos.y;
+    const dist = Math.sqrt(dx * dx + dz * dz + dy * dy);
+    if (dist > 160) return;
+    const att = 1 / Math.pow(1 + dist / 14, 1.3);
+    const rx = Math.cos(yaw), rz = -Math.sin(yaw);
+    const pan = dist > 0.5 ? Math.max(-1, Math.min(1, (dx * rx + dz * rz) / dist)) * 0.8 : 0;
+    this.gullCall(pan, att);
+  }
+
   // ─────────────── ambient loop ───────────────
-  private startAmbient() {
+  private startAmbient() { this.startBed(); }
+
+  private stopBed() {
+    clearTimeout(this.birdTimer); clearTimeout(this.gustTimer); clearTimeout(this.surfTimer);
+    const t = this.ctx.currentTime;
+    for (const n of this.bedNodes) {
+      if (n instanceof GainNode) { n.gain.cancelScheduledValues(t); n.gain.setTargetAtTime(0, t, 0.6); }
+      if (n instanceof AudioScheduledSourceNode) n.stop(t + 3);
+    }
+    this.bedNodes = [];
+    this.windGain = this.windGain2 = undefined;
+  }
+
+  private startBed() {
+    if (this.bed === 'island') this.startIsland(); else this.startForest();
+  }
+
+  /** a looping noise band: bandpass + lowpass, slow amplitude and filter LFOs, panned into the ambient bus */
+  private mkWind(freq: number, q: number, pan: number, lfoRate: number, base: number, lowpass = 1200) {
     const c = this.ctx;
-    const mkWind = (freq: number, q: number, pan: number, lfoRate: number, base: number) => {
-      const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; src.start(0, Math.random());
-      const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q;
-      const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1200;
-      const g = c.createGain(); g.gain.value = base;
-      const lfo = c.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = lfoRate;
-      const lg = c.createGain(); lg.gain.value = base * 0.6;
-      lfo.connect(lg).connect(g.gain); lfo.start();
-      // slow filter drift for movement
-      const lfo2 = c.createOscillator(); lfo2.frequency.value = lfoRate * 0.7 + 0.01;
-      const lg2 = c.createGain(); lg2.gain.value = freq * 0.35;
-      lfo2.connect(lg2).connect(f.frequency); lfo2.start();
-      src.connect(f).connect(lp).connect(g);
-      const p = c.createStereoPanner(); p.pan.value = pan;
-      g.connect(p).connect(this.ambient);
-      return g;
-    };
-    this.windGain = mkWind(260, 0.5, -0.55, 0.07, 0.11);
-    this.windGain2 = mkWind(620, 0.8, 0.55, 0.11, 0.06);
-    mkWind(140, 0.4, 0.0, 0.05, 0.09);
+    const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; src.start(0, Math.random());
+    const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = lowpass;
+    const g = c.createGain(); g.gain.value = base;
+    const lfo = c.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = lfoRate;
+    const lg = c.createGain(); lg.gain.value = base * 0.6;
+    lfo.connect(lg).connect(g.gain); lfo.start();
+    // slow filter drift for movement
+    const lfo2 = c.createOscillator(); lfo2.frequency.value = lfoRate * 0.7 + 0.01;
+    const lg2 = c.createGain(); lg2.gain.value = freq * 0.35;
+    lfo2.connect(lg2).connect(f.frequency); lfo2.start();
+    src.connect(f).connect(lp).connect(g);
+    const p = c.createStereoPanner(); p.pan.value = pan;
+    g.connect(p).connect(this.ambient);
+    this.bedNodes.push(g, src, lfo, lfo2);
+    return g;
+  }
+
+  /** the island: a warm low breeze, a wide surf hiss bed, and a slow swell rolling up the beach every 6–9 s */
+  private startIsland() {
+    this.windGain = this.mkWind(180, 0.4, -0.3, 0.05, 0.05, 900);   // a lighter, warmer breeze than the pines
+    this.windGain2 = this.mkWind(420, 0.6, 0.3, 0.08, 0.03, 1100);
+    this.mkWind(1500, 0.35, 0.0, 0.03, 0.02, 5000);                  // the constant far surf hiss
+    this.scheduleGust(1.4);
+    this.scheduleSurf();
+  }
+
+  /** the pines: the original three wind bands, the tree hiss, gusts and distant birds */
+  private startForest() {
+    this.windGain = this.mkWind(260, 0.5, -0.55, 0.07, 0.11);
+    this.windGain2 = this.mkWind(620, 0.8, 0.55, 0.11, 0.06);
+    this.mkWind(140, 0.4, 0.0, 0.05, 0.09);
     // tree hiss (very quiet high band)
-    mkWind(2400, 0.5, 0.2, 0.09, 0.012);
+    this.mkWind(2400, 0.5, 0.2, 0.09, 0.012);
     this.scheduleGust();
     this.scheduleBird();
   }
 
-  private scheduleGust() {
-    const wait = rnd(5, 12);
+  private scheduleSurf() {
+    const wait = rnd(6, 9);
+    this.surfTimer = window.setTimeout(() => {
+      if (this.ambientOn) this.surfSwell();
+      this.scheduleSurf();
+    }, wait * 1000);
+  }
+
+  /** one wave: a low rumble building over ~2 s, the break (a wide bright hiss), then the wash sliding back down the sand */
+  private surfSwell() {
+    const c = this.ctx, t = c.currentTime;
+    const pan = rnd(-0.35, 0.35), size = rnd(0.7, 1.15);
+    const bus = c.createGain(); bus.gain.value = 0.42 * size;
+    this.route(bus, pan, this.ambient);
+    const build = rnd(1.6, 2.4), wash = rnd(2.6, 4.0);
+    // the build: low noise rising in pitch and level
+    this.burst({ t, type: 'lowpass', freq: 240, freqEnd: 700, gain: 0.5, attack: build, decay: 1.2, hold: 0.2, out: bus });
+    // the break: wide, bright, a fast swell then the long wash tail that darkens as it drains
+    this.burst({ t: t + build * 0.75, type: 'bandpass', freq: 1800, freqEnd: 500, q: 0.4, gain: 0.55, attack: 0.5, hold: 0.4, decay: wash, out: bus });
+    this.burst({ t: t + build * 0.85, type: 'highpass', freq: 2600, gain: 0.16, attack: 0.35, hold: 0.3, decay: wash * 0.6, out: bus });
+    // the foam fizz on the sand at the end
+    this.burst({ t: t + build + 1.2, type: 'bandpass', freq: 4200, q: 0.6, gain: 0.08, attack: 0.6, decay: wash * 0.7, out: bus });
+  }
+  private scheduleGust(gentle = 1) {
+    const wait = rnd(5, 12) * gentle;
     this.gustTimer = window.setTimeout(() => {
       if (this.ambientOn && this.windGain && this.windGain2) {
-        const t = this.ctx.currentTime, rise = rnd(1.5, 3), fall = rnd(2, 4), amt = rnd(1.5, 2.6);
+        const t = this.ctx.currentTime, rise = rnd(1.5, 3), fall = rnd(2, 4), amt = 1 + rnd(0.5, 1.6) / gentle;
         for (const g of [this.windGain, this.windGain2]) {
-          const base = g === this.windGain ? 0.11 : 0.06;
+          const base = this.bed === 'island' ? (g === this.windGain ? 0.05 : 0.03) : (g === this.windGain ? 0.11 : 0.06);
           g.gain.cancelScheduledValues(t);
           g.gain.setValueAtTime(g.gain.value, t);
           g.gain.linearRampToValueAtTime(base * amt, t + rise);
           g.gain.linearRampToValueAtTime(base, t + rise + fall);
         }
       }
-      this.scheduleGust();
+      this.scheduleGust(gentle);
     }, wait * 1000);
   }
 
@@ -535,7 +656,7 @@ export class Audio {
     }
   }
 
-  dispose() { clearTimeout(this.birdTimer); clearTimeout(this.gustTimer); void this.ctx.close(); }
+  dispose() { clearTimeout(this.birdTimer); clearTimeout(this.gustTimer); clearTimeout(this.surfTimer); void this.ctx.close(); }
 }
 
 export { Audio as GameAudio };
