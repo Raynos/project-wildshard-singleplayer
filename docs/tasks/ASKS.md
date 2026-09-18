@@ -36,14 +36,26 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | 22 | "NEW BUILD · TAP TO UPDATE" **off the game view** — menu only | **done** | `e13157d` |
 | 23 | Loading screen **regression** (bars gone, text misaligned) | **done** | `a0d1641` — carousel `.ws-track` collided with Loading.ts's `.ws-track` |
 | 24 | **No world / no sounds / no fps meter on the main menu**; hero images only | **in flight** | prototype 1 owns main.ts (world paused + muted while the intro is up); Pine Hollow heroes: this session (#31) |
-| 25 | **CSS sculpted per page** — unique class names per screen, fix it permanently | **in flight** | subagent: split `hud.css` → `src/ui/styles/{base,game,menu,pause,touch,update}.css` + `scripts/check-css.mjs` prebuild lint; prototype 1 renamed loading → `ws-load-*` (`6f0167c`) |
-| 26 | **Tap the look pad to fire**, remove the FIRE button | **in flight** | folded into the CSS subagent's TouchControls work |
-| 27 | **Aim is a toggle**, not a hold | **in flight** | same |
-| 28 | **Aim = iron sights**, not a zoom: no crosshair, crossbow centred; **3 codex mockups** | **needs pick** | `art/ads-A-centred-low.png`, `ads-B-eye-level.png`, `ads-C-peep-sight.png` sent (B's HUD was redrawn by codex — judge the pose only) |
+| 25 | **CSS sculpted per page** — unique class names per screen, fix it permanently | **done** | `087a862` `f80893d`: `hud.css` → `src/ui/styles/{base,game,menu,pause,touch,update}.css`, one prefix per screen, `scripts/check-css.mjs` on prebuild (fails on collisions; loading/perf warn-only until prototype 1 renames `ws-tagline`/`ws-fps`); also fixed the compass letters picking up the deck's `.ws-card` |
+| 26 | **Tap the look pad to fire**, remove the FIRE button | **done** | `df60e4c` (tap < 12 px / < 300 ms in the LOOK pad fires) |
+| 27 | **Aim is a toggle**, not a hold | **done** | `df60e4c` (AIM latches, cyan while on) |
+| 28 | **Aim = iron sights**, not a zoom: no crosshair, crossbow centred; **3 codex mockups** → user picked **A** | **in flight** (subagent: Crossbow.ts + game.css) | `art/ads-A-centred-low.png`, `ads-B-eye-level.png`, `ads-C-peep-sight.png` sent (B's HUD was redrawn by codex — judge the pose only) |
 | 29 | Exit to main menu **bumps to the loading screen** — should go to the chunk selector | **in flight** | = #33 flow |
-| 30 | **Loading screen gone** (blank, build `b-mu6ezhob`) | **in flight** | prototype 1's deploy (`6f0167c`/`f806c4b`); reported to them with the headless diagnosis |
-| 31 | **Codex hero image for Pine Hollow** so the menu never shows the live world at 29 fps | **in flight** | generated `art/hero-pine-hollow-{portrait,landscape}.png`; wiring `heroPortrait/heroLandscape` on the ChunkDef next |
+| 30 | **Loading screen gone** (blank, build `b-mu6ezhob`) | **done** | prototype 1: `.ws-load` root rules restored in loading.css; live `b-mu6f75ka` |
+| 31 | **Codex hero image for Pine Hollow** so the menu never shows the live world at 29 fps | **done** | `815d8e6` `art/hero-pine-hollow-{portrait,landscape}.png` → `src/chunks/thumbs/`, `heroPortrait/heroLandscape` on the ChunkDef; the menu shows it once #33 lands |
 | 32 | **Show me the three (iron-sights) mockups** / **what's the current progress** | **done** | sent 22:46 |
 | 33 | **The flow**: startup/reload → loading (always) → main menu = chunk selection → Enter → Pause → Exit → chunk selection **without** reload or loading screen | **in flight** | prototype 1: world pause/mute + `hud.onExitToMenu`; this session: HUD re-shows the intro, never reloads |
 | 34 | Port trials-gauntlet's **asks process** so chat asks persist durably | **done** | this file; `AGENTS.md` bullet; `.claude/hooks/session-brief.sh` + `.claude/settings.json` SessionStart |
-| 35 | "Current build is pretty badly damaged, I'll wait for a deploy" | **open** | next deploy after #30 + #25 + #26/27 land; ping the user with the build id |
+| 35 | "Current build is pretty badly damaged, I'll wait for a deploy" | **done** | `b-mu6f75ka` (loading fix + perf) then `b-mu6fmkqb` (CSS split, tap-to-fire, AIM toggle, 2× speed, Pine Hollow heroes on the def) |
+
+| K2 | One HOLO SURVEY HUD edit of base-phone; save art/hud-K2-holosurvey.png | **done** | art/hud-K2-holosurvey.png; built-in imagegen single generation |
+
+| K3 | One built-in image edit: Cartographer HUD on base-phone; save art/hud-K3-cartographer.png | **done** | art/hud-K3-cartographer.png; single built-in imagegen edit |
+
+| K1 | One Staging Glass HUD edit of base-phone; save art/hud-K1-stagingglass.png | **done** | art/hud-K1-stagingglass.png; one built-in imagegen edit |
+
+| N2 | One built-in image edit: CONSOLE BAR on base-phone; save art/hud-N2-consolebar.png | **done** | art/hud-N2-consolebar.png; single built-in imagegen edit |
+
+| N3 | One built-in HOLO BAR edit of base-phone; save art/hud-N3-holobar.png | **done** | art/hud-N3-holobar.png; one built-in imagegen edit |
+
+| N1 | One built-in image edit: GRIP BAR HUD on base-phone; save art/hud-N1-gripbar.png | **done** | art/hud-N2-consolebar.png; single built-in imagegen edit |
