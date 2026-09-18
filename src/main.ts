@@ -4,6 +4,11 @@ import { CHUNK_HALF } from './core/config';
 import { hasPond } from './world/Heightfield';
 import { Boundary } from './world/Boundary';
 import { Water } from './world/Water';
+import { Ocean } from './world/Ocean';
+import { Pier } from './world/Pier';
+import { ROAD_LENGTH } from './core/config';
+import { Sword } from './player/Sword';
+import type { Weapon } from './player/Weapon';
 import { Horizon } from './world/Horizon';
 import { Grass } from './world/Grass';
 import { Undergrowth } from './world/Undergrowth';
@@ -50,28 +55,42 @@ async function main() {
   const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk } = world;
   const nolock = params.has('nolock');
-  const respawn = () => player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw);
+  const isOcean = !!chunk.ocean; // open-water shard (Driftwood Isle): ocean + pier, no forest carpet / cabins / props
+  const respawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
 
   // ── world dressing ──
-  const { boundary, water, horizon } = await step('edge', () => {
+  const { boundary, water, ocean, pier, horizon } = await step('edge', () => {
     const boundary = new Boundary(sky).build();
     game.scene.add(boundary.group);
-    const water = hasPond() ? new Water(sky).build() : null;
+    const water = !isOcean && hasPond() ? new Water(sky).build() : null;
     if (water) game.scene.add(water.mesh);
+    const ocean = isOcean ? new Ocean(sky).build() : null;
+    if (ocean) game.scene.add(ocean.group);
+    // the south entry road is a wooden pier over the water; the player spawns on its deck
+    const pier = isOcean ? new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: chunk.ocean!.level + 1.2 }).build() : null;
+    if (pier) {
+      game.scene.add(pier.group);
+      player.colliders.push(...pier.colliders);
+      player.platforms.push((x, z) => pier.floorHeightAt(x, z));
+      const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
+    }
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
-    return { boundary, water, horizon };
+    return { boundary, water, ocean, pier, horizon };
   });
 
   const { grass, under, particles } = await step('grass', () => {
-    const grass = new Grass(sky, forest).build();
-    const under = new Undergrowth(sky, forest).build();
+    // no forest carpet over open water (grass scattered the whole sea floor for 19 s)
+    const grass = isOcean ? null : new Grass(sky, forest).build();
+    const under = isOcean ? null : new Undergrowth(sky, forest).build();
     const particles = new Particles(sky, forest).build();
-    game.scene.add(grass.group, under.group, particles.group);
+    if (grass && under) game.scene.add(grass.group, under.group);
+    game.scene.add(particles.group);
     return { grass, under, particles };
   });
 
   const { cabins, interactables } = await step('cabins', async () => {
+    if (isOcean) return { cabins: null, interactables: [] as Awaited<ReturnType<Cabins['build']>>['interactables'] };
     const cabins = new Cabins(sky);
     const { group: cabinGroup, colliders, interactables } = await cabins.build();
     game.scene.add(cabinGroup);
@@ -80,6 +99,7 @@ async function main() {
     return { cabins, interactables };
   });
   const props = await step('props', async () => {
+    if (isOcean) return null;
     const props = new Props(sky, forest);
     game.scene.add(await props.build());
     player.colliders.push(...props.colliders);
@@ -100,8 +120,11 @@ async function main() {
       return h ? { animal: h.animal, point: h.point, distance: h.distance, headshot: h.headshot } : null;
     },
   };
-  const crossbow = new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
-  new TouchControls(player, crossbow, params.has('touch')); // on-screen FPS controls on coarse-pointer devices (?touch=1 forces)
+  // the shard hands the player its weapon (ChunkDef.weapon): the wooden sword on Driftwood Isle, the crossbow elsewhere
+  const crossbow: Weapon = chunk.weapon === 'sword'
+    ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock })
+    : new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
+  new TouchControls(player, crossbow as Crossbow, params.has('touch')); // on-screen FPS controls on coarse-pointer devices (?touch=1 forces)
   crossbow.adsHeld = params.has('ads');
   const hud = new HUD({ pointerLock: !nolock });
   const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
@@ -110,7 +133,7 @@ async function main() {
   const keepAlive = new KeepAlive();
   const debug = new Debug(() => perf.refresh()); // TEMPORARY: tier/dpr/aa/meter knobs (src/ui/Debug.ts)
   const audio = new Audio();
-  let kills = 0, health = 100, lastHurt = 0, pelts = 0;
+  let kills = 0, health = 100, lastHurt = 0, pelts = 0, swimHold = false;
   const harvested = new Set<object>();
 
   crossbow.onFire = () => audio.crossbowFire();
@@ -177,11 +200,14 @@ async function main() {
   game.onUpdate((dt, t) => {
     boundary.update(dt, t);
     water?.update(dt);
+    ocean?.update(dt);
     horizon.update(dt, game.camera);
-    grass.update(dt, player.position);
-    under.update(dt, player.position);
+    grass?.update(dt, player.position);
+    under?.update(dt, player.position);
     particles.update(dt, player.position, game.camera);
-    cabins.update(dt, t);
+    cabins?.update(dt, t);
+    // swimming holsters the weapon (hands only; Hands.ts follows)
+    if (player.swimming !== swimHold) { swimHold = player.swimming; crossbow.model.visible = !swimHold; crossbow.enabled = !swimHold; }
     animals.update(dt, t, player.position, player.sprinting);
     crossbow.update(dt, t);
     audio.listenerYaw = player.yaw;
@@ -195,7 +221,7 @@ async function main() {
 
     // slow health regen; death → respawn at the gate
     if (health < 100 && performance.now() - lastHurt > 6000) health = Math.min(100, health + dt * 4);
-    if (health <= 0) { health = 100; hud.toast('Gored — respawning at the south gate'); hud.damageFlash(); respawn(); crossbow.addBolts(30 - crossbow.state.bolts); }
+    if (health <= 0) { health = 100; hud.toast('Gored — respawning at the south gate'); hud.damageFlash(); respawn(); crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); }
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 && hud.entered);
@@ -217,6 +243,6 @@ async function main() {
   (plan as unknown as { done(): void }).done(); // throws unless both tracks are exactly 1
   game.start();
   await loading.done();
-  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, grass, under, particles, cabins, props, animals, crossbow, hud, audio };
+  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, grass, under, particles, cabins, props, animals, crossbow, hud, audio };
 }
 main();
