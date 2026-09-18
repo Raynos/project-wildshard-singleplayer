@@ -126,8 +126,10 @@ export interface SpeciesDef {
   chargeDamage?: number;
   /** the hunting-loop numbers; omit for the manager's DEER_TUNING / BOAR_TUNING (deer / boar keep theirs there) */
   tuning?: HuntTuning;
-  /** AnimalSound names for the ambient call and the hurt cry (default deer_call / boar_grunt+boar_squeal) */
-  sounds?: { call: string; hurt: string };
+  /** AnimalSound names for the ambient call and the hurt cry (default deer_call / boar_grunt+boar_squeal);
+   *  `callVariants` limits the ambient call to those variant ids (elk: bulls bugle, cows don't) and
+   *  `callEvery` is the seconds between calls, [min, max] (default 20–90) */
+  sounds?: { call: string; hurt: string; callVariants?: string[]; callEvery?: [number, number] };
   /** animation flavour: grazeNeck 1 = the whole neck goes down (deer), 0.3 = only the nose (boar);
    *  gallopTail 1 = tail flagged straight up when running (deer), 0.5 = half (boar) */
   pose?: { grazeNeck: number; gallopTail: number };

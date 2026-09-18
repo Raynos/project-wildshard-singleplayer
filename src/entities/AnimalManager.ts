@@ -225,6 +225,10 @@ export class AnimalManager {
     const centres: [number, number][] = [];
     for (const h of plan) {
       let cx = 0, cz = 0, ok = false;
+      // herd centres keep 60 m apart when the shard leaves placement to us; an anchored plan already says where
+      // it wants to be (a laid-out grid of small groups, `src/chunks/fauna-layout.ts`), so only its own ring size
+      // — never less than 20 m — separates it from its neighbours
+      const sep = h.anchor ? Math.min(60, Math.max(20, h.anchor.rMax)) : 60;
       for (let tries = 0; tries < 1500 && !ok; tries++) {
         if (h.anchor) {
           const ang = rng.range(0, Math.PI * 2), r = rng.range(h.anchor.rMin, h.anchor.rMax);
@@ -236,7 +240,7 @@ export class AnimalManager {
         if (td < h.trailBand[0] || td > h.trailBand[1] + relax * 60) continue;
         if (!this.isOpen(cx, cz, h.canopy ? 9 : 7 - relax * 3, h.canopy)) continue;
         if (Math.hypot(cx - spawn.x, cz - spawn.z) < 30) continue;         // not on top of the spawn point
-        if (centres.some(([x, z]) => Math.hypot(x - cx, z - cz) < 60)) continue;
+        if (centres.some(([x, z]) => Math.hypot(x - cx, z - cz) < sep)) continue;
         ok = true;
       }
       if (!ok) continue;
@@ -393,8 +397,11 @@ export class AnimalManager {
     // ambient calls
     br.callT -= dt;
     if (br.callT <= 0) {
-      br.callT = rng.range(20, 90);
-      if (dPlayer < 80) this.onSound?.((sp.sounds?.call ?? (boar ? 'boar_grunt' : 'deer_call')) as AnimalSound, a.position);
+      const every = sp.sounds?.callEvery;
+      br.callT = every ? rng.range(every[0], every[1]) : rng.range(20, 90);
+      // species may limit the call to some variants (elk: only bulls bugle) and it is a CALM sound — not mid-flight
+      const caller = !sp.sounds?.callVariants || sp.sounds.callVariants.includes(a.variant);
+      if (caller && dPlayer < 80 && a.state !== 'flee' && a.state !== 'charge') this.onSound?.((sp.sounds?.call ?? (boar ? 'boar_grunt' : 'deer_call')) as AnimalSound, a.position);
     }
 
     const herd = a.herd >= 0 ? this.herds[a.herd] : null;
