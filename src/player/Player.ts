@@ -19,7 +19,9 @@ const HOVER_HEIGHT = 0.45;            // m above the terrain / platform
 const HOVER_SPRING_K = 70;            // spring to the ride height (ω ≈ 8.4 rad/s) …
 const HOVER_SPRING_C = 6.5;           // … slightly under-damped (ζ ≈ 0.39) so it bobs after a hop / a bump
 const HOVER_SPRING_MAX = 30;          // m/s² — clamp so a cliff edge feels like falling, not a slingshot
-const HOVER_HOP = 5;                  // m/s
+const HOVER_JUMP = 9.5;               // m/s launch — a real jump, not a bob: the spring lets go and gravity (lighter) brings you down
+const HOVER_JUMP_GRAVITY = 15;        // m/s² while airborne on the board (floatier than on foot)
+const DOUBLE_JUMP = 6.8;              // m/s second jump on foot
 const HOVER_ROLL = 6 * Math.PI / 180; // camera roll cap, reached at HOVER_ROLL_AT m/s sideways
 const HOVER_ROLL_AT = 7;
 const HOVER_PITCH = 0.03;             // rad nose-down at top speed
@@ -49,6 +51,9 @@ export class Player {
   hoverBlend = 0;
   /** hover telemetry for the viewmodel / camera: lateral (+right) and forward velocity along the heading, forward acceleration, ride-height error */
   hoverLat = 0; hoverFwd = 0; hoverAccel = 0; hoverBob = 0;
+  /** airborne after a board jump (spring disengaged); `hoverLanded` is a one-frame impulse (m/s) for the viewmodel */
+  hoverAir = false; hoverLanded = 0; hoverJumpKick = 0;
+  private jumpWasDown = false; private jumpsLeft = 0;
   onHoverChange?: (on: boolean) => void;
   readonly board: Hoverboard;
   private eyeOffset = EYE;
@@ -109,7 +114,9 @@ export class Player {
     let mx = (-sin * fwd + cos * str), mz = (-cos * fwd - sin * str);
     const len = Math.hypot(mx, mz);
     if (len > 1) { mx /= len; mz /= len; }
-    const jump = k.has('Space') || this.touchJump; this.touchJump = false;
+    // jump is an EDGE (press), not a held state — so holding Space can't chain a double jump
+    const jumpDown = k.has('Space') || this.touchJump; this.touchJump = false;
+    const jump = jumpDown && !this.jumpWasDown; this.jumpWasDown = jumpDown;
 
     // ground: terrain, or a platform if we are at/above it (step up ≤ 0.5 m)
     const groundAt = () => {
@@ -151,19 +158,29 @@ export class Player {
       const g = groundAt();
       const target = g + HOVER_HEIGHT;
       const err = target - this.position.y;
-      if (jump && this.onGround) { v.y = HOVER_HOP; this.onGround = false; this.onJump?.(); }
-      const a = Math.max(-HOVER_SPRING_MAX, Math.min(HOVER_SPRING_MAX, HOVER_SPRING_K * err)) - HOVER_SPRING_C * v.y;
-      v.y += a * dt;
-      this.position.y += v.y * dt;
+      this.hoverLanded = 0; this.hoverJumpKick = Math.max(0, this.hoverJumpKick - dt * 4);
+      if (jump && this.onGround && !this.hoverAir) { v.y = HOVER_JUMP; this.hoverAir = true; this.hoverJumpKick = 1; this.onGround = false; this.onJump?.(); }
+      if (this.hoverAir) {
+        // ── airborne: the repulsors can't reach the ground — ballistic, a little floaty, until we fall back to the ride height
+        v.y -= HOVER_JUMP_GRAVITY * dt;
+        this.position.y += v.y * dt;
+        if (v.y < 0 && this.position.y <= target + 0.05) { this.hoverAir = false; this.hoverLanded = -v.y; this.onLand?.(-v.y > 9); }
+      } else {
+        const a = Math.max(-HOVER_SPRING_MAX, Math.min(HOVER_SPRING_MAX, HOVER_SPRING_K * err)) - HOVER_SPRING_C * v.y;
+        v.y += a * dt;
+        this.position.y += v.y * dt;
+      }
       if (this.position.y < g) { this.position.y = g; if (v.y < 0) v.y = 0; } // steep slope / bump: the board never goes under
       this.hoverBob = this.position.y - target;
-      this.onGround = Math.abs(this.hoverBob) < 0.3;                 // "grounded" = riding near the ride height (hop allowed)
+      this.onGround = !this.hoverAir && Math.abs(this.hoverBob) < 0.3; // "grounded" = riding near the ride height (jump allowed)
     } else {
       const accel = this.onGround ? 14 : 3;
       this.velocity.x += (mx * speed - this.velocity.x) * Math.min(1, accel * dt);
       this.velocity.z += (mz * speed - this.velocity.z) * Math.min(1, accel * dt);
 
+      if (this.onGround) this.jumpsLeft = 1; // one more jump available once you've left the ground
       if (jump && this.onGround && !this.crouching) { this.velocity.y = 7.2; this.onGround = false; this.onJump?.(); }
+      else if (jump && !this.onGround && this.jumpsLeft > 0) { this.jumpsLeft--; this.velocity.y = Math.max(this.velocity.y, 0) * 0.3 + DOUBLE_JUMP; this.onJump?.(); } // double jump
       this.velocity.y -= GRAVITY * dt;
 
       this.position.x += this.velocity.x * dt;

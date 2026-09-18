@@ -131,13 +131,13 @@
   #hud.intro .ws-game-fps { top: calc(66px + env(safe-area-inset-top, 0px)); right: 16px; }
   .ws-game-chunk { display: none; }
   /* the band's top edge sits at ~9 % of the screen, or under the PAUSE pill (touch.css, top-left at safe-area + 10 px, ~20 px tall + the bracket) when the notch pushes that lower; everything centred stacks under it */
-  .ws-game-compass { width: 90vw; top: max(9vh, calc(env(safe-area-inset-top, 0px) + 46px)); height: 32px; }
+  .ws-game-compass { width: 90vw; top: max(7vh, calc(env(safe-area-inset-top, 0px) + 34px)); height: 32px; }
   .ws-game-compass .ws-game-cardinal { font-size: 16px; }
   .ws-game-compass .ws-game-mark { width: 20px; height: 20px; margin: -10px 0 0 -10px; }
   .ws-game-compass .ws-game-mark.paw svg { width: 18px; height: 18px; }
   .ws-game-compass .ws-game-range { font-size: 10px; padding: 2px 14px 3px; }
-  .ws-game-feed { top: calc(max(9vh, calc(env(safe-area-inset-top, 0px) + 46px)) + 66px); }
-  .ws-game-toasts { top: calc(max(9vh, calc(env(safe-area-inset-top, 0px) + 46px)) + 66px); right: 12px; }
+  .ws-game-feed { top: calc(max(7vh, calc(env(safe-area-inset-top, 0px) + 34px)) + 66px); }
+  .ws-game-toasts { top: calc(max(7vh, calc(env(safe-area-inset-top, 0px) + 34px)) + 66px); right: 12px; }
   .ws-game-fps { top: calc(104px + env(safe-area-inset-top, 0px)); right: 12px; font-size: 8px; }
   .ws-game-health { left: 12px; top: calc(8px + env(safe-area-inset-top, 0px)); bottom: auto; width: 108px; padding: 6px 9px 7px; }
   .ws-game-health .ws-game-hval { font-size: 15px; }

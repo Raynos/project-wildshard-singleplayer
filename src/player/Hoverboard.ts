@@ -32,7 +32,7 @@ function roundedRect(w: number, h: number, r: number) {
 export class Hoverboard {
   readonly model = new THREE.Group();
   private blend = 0;                // 0..1 fade
-  private lean = 0; private pitch = 0; private bob = 0;
+  private lean = 0; private pitch = 0; private bob = 0; private kick = 0; private land = 0;
   private t = 0;
   private pulse: THREE.MeshStandardMaterial;
   private glow: THREE.MeshBasicMaterial;
@@ -97,8 +97,14 @@ export class Hoverboard {
 
     // lean into lateral velocity (board rolls), nose up under acceleration, sink/rise with the ride-height spring (lagged)
     this.lean += (-Math.max(-1, Math.min(1, p.hoverLat / 7)) * 0.28 - this.lean) * Math.min(1, dt * 6);
-    this.pitch += ((-p.hoverAccel * 0.012) - this.pitch) * Math.min(1, dt * 5);
-    this.bob += ((p.hoverBob * -0.35) - this.bob) * Math.min(1, dt * 7);
+    // jump: nose kicks up hard on launch, the board floats level in the air, then compresses on landing
+    this.kick = Math.max(this.kick, p.hoverJumpKick);
+    if (p.hoverLanded > 0) this.land = Math.min(1, p.hoverLanded / 9);
+    this.kick = Math.max(0, this.kick - dt * 2.2); this.land = Math.max(0, this.land - dt * 3);
+    const airPitch = p.hoverAir ? 0.06 : 0;
+    this.pitch += ((-p.hoverAccel * 0.012 - this.kick * this.kick * 0.55 + airPitch) - this.pitch) * Math.min(1, dt * (this.kick > 0.6 ? 18 : 5));
+    const bobT = p.hoverAir ? 0.08 : p.hoverBob * -0.35 - this.land * 0.18;
+    this.bob += (bobT - this.bob) * Math.min(1, dt * (this.land > 0.5 ? 16 : 7));
     const idle = Math.sin(this.t * 1.7) * 0.004 + Math.sin(this.t * 2.9) * 0.002;
     const wobble = Math.sin(this.t * 1.3) * 0.006;
 
@@ -114,7 +120,8 @@ export class Hoverboard {
 
     // repulsors breathe; brighter with speed
     const sp = Math.hypot(p.velocity.x, p.velocity.z) / HOVER_TOP;
-    this.pulse.emissiveIntensity = 1.8 + Math.sin(this.t * 6) * 0.25 + sp * 1.2;
-    this.glow.opacity = (0.28 + Math.sin(this.t * 9) * 0.06 + sp * 0.25) * this.blend;
+    const flash = this.kick * this.kick * 3 + this.land * 1.5; // repulsors flare on launch and on touchdown
+    this.pulse.emissiveIntensity = 1.8 + Math.sin(this.t * 6) * 0.25 + sp * 1.2 + flash;
+    this.glow.opacity = Math.min(1, (0.28 + Math.sin(this.t * 9) * 0.06 + sp * 0.25 + flash * 0.15) * this.blend);
   }
 }
