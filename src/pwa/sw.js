@@ -94,6 +94,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
       await migrateStatic();
+      await purgeBaked(); // a same-size re-bake would otherwise be served from the previous build's entry forever
       for (const k of await caches.keys()) if (k.startsWith('ws-') && !KEEP.includes(k)) await caches.delete(k);
       await pruneImmutable();
       await self.clients.claim();
@@ -139,6 +140,12 @@ async function migrateStatic() {
       } catch { /* one bad entry must not stop the migration */ }
     }
   }
+}
+
+/** Every /assets/baked/** entry out of the static cache: baked terrain / sky are rebuilt per deploy at the same byte size. */
+async function purgeBaked() {
+  const c = await caches.open(STATIC);
+  for (const req of await c.keys()) if (new URL(req.url).pathname.startsWith('/assets/baked/')) await c.delete(req, MATCH_OPTS);
 }
 
 /** Drop only the content-addressed entries this build no longer names. An empty bundle list → no prune (never a wipe). */
@@ -203,6 +210,10 @@ self.addEventListener('fetch', (event) => {
   }
   if (NETWORK_FIRST_RE.test(url.pathname)) {
     event.respondWith(networkFirst(req, SHELL));
+    return;
+  }
+  if (url.pathname.startsWith('/assets/baked/')) { // fresh bake first, cache only as the offline fallback
+    event.respondWith(networkFirst(req, STATIC));
     return;
   }
   if (IMMUTABLE_RE.test(url.pathname) || STATIC_RE.test(url.pathname)) {
