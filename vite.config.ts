@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from 'vite';
 import { execSync } from 'node:child_process';
 import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { pwaPlugin } from './vite/pwa-plugin';
 
 // Build stamp: short git sha + build time. Baked into the bundle as __BUILD_ID__ and
 // emitted as /version.json so the running app can tell when the server has a newer build
@@ -48,5 +49,5 @@ export default defineConfig({
   build: { target: 'es2022', chunkSizeWarningLimit: 4000 },
   assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
   define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
-  plugins: [versionPlugin()],
+  plugins: [versionPlugin(), pwaPlugin(BUILD_ID)],
 });
