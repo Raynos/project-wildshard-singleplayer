@@ -1,6 +1,7 @@
 import { getActiveChunk } from '../chunks/registry';
 import { formatMB, type ProgressView } from '../boot/plan';
 import { TIER } from '../core/tier';
+import { PERFLOAD, barTrace } from '../boot/perflog';
 import './loading.css';
 
 /**
@@ -56,6 +57,7 @@ export class Loading {
   /** The plan publishes a view on every event; paint it. Integers floor, so 100 means done. */
   paint(v: ProgressView) {
     this.view = v;
+    if (PERFLOAD) barTrace.push([Math.round(performance.now() - this.t0), v.setup, v.download, v.step]);
     const pct = (f: number) => String(Math.floor(f * 100));
     this.els.dlPct.textContent = pct(v.download);
     this.els.suPct.textContent = pct(v.setup);

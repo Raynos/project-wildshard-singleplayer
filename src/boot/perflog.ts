@@ -13,7 +13,9 @@ type Programs = readonly ProgramLike[];
 
 export interface PerfRow { phase: string; ms: number; programs: number; detail: string }
 export const perfRows: PerfRow[] = [];
-if (typeof window !== 'undefined') (window as unknown as { __perfload: PerfRow[] }).__perfload = perfRows;
+/** every painted (t ms, setup, download, step) of the loading screen — the bar's continuity, readable headless */
+export const barTrace: [number, number, number, string][] = [];
+if (typeof window !== 'undefined') Object.assign(window, { __perfload: perfRows, __perfbar: barTrace });
 
 const programsOf = (r: THREE.WebGLRenderer): Programs => (r.info.programs ?? []) as unknown as Programs;
 

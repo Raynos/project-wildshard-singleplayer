@@ -7,19 +7,24 @@
  *
  * Two fractions, each monotone by construction and each exactly 1 on `done()` by arithmetic:
  *
- *   setup    = Σ weight(step) × fraction(step) / Σ weight(step)      over BOOT_STEPS (steps.ts)
+ *   setup    = Σ expected(step) × fraction(step) / Σ expected(step)  over BOOT_STEPS (steps.ts)
  *   download = Σ min(read(src), total(src)) / Σ total(src)           over BYTE_SOURCES (steps.ts)
  *
- * A step's fraction is 1 when its `work()` resolved (finishing IS reporting); while running it is
- * `done / (total + 1)` of its sub-progress — so a running step can report every unit and still
- * not read complete (no "100 % but not done"); 0 before it starts. A byte source's `read` grows
- * only by what the reader that reads the bytes adds, and is set to `total` by the completion of
- * the step that awaited it. There is no cap, timer, easing or "need" flag anywhere.
+ * `expected(step)` is the wall ms the step took last time on this device and tier (timing.ts;
+ * the table's weights on a first run). A step's fraction is 1 when its `work()` resolved
+ * (finishing IS reporting); while running it is the larger of its reported sub-progress
+ * `done / (total + 1)` and its elapsed / expected — both strictly below 1, so a running step can
+ * report every unit, or overrun its expectation, and still not read complete (no "100 % but not
+ * done"); 0 before it starts. While a step runs the view is republished every animation frame
+ * so the elapsed term moves the bar continuously. A byte source's `read` grows only by what the
+ * reader that reads the bytes adds, and is set to `total` by the completion of the step that
+ * awaited it. There is no easing or "need" flag anywhere.
  *
  * `Plan<Remaining>` loses each key as `step()` runs it, and `done` is typed `never` until nothing
  * remains — a step dropped from `main.ts` is a compile error.
  */
 import { BOOT_STEPS, BYTE_SOURCES, STEP_INFO, byteLabel, closedBy, type BootStep, type ByteKey } from './steps';
+import { expectedDurations, saveTimings, type Timings } from './timing';
 
 export interface StepProgress {
   /** Progress in the step's own unit; the step's contribution becomes max(previous, done / (total + 1)). */
@@ -62,10 +67,18 @@ export interface PlanOptions {
   /** Declared byte totals and file counts per source (known before the first byte). */
   totals: Readonly<Record<ByteKey, { bytes: number; files: number }>>;
   now?: () => number;
+  /** Expected ms per step (default: the previous run's, from localStorage — timing.ts). */
+  expected?: Readonly<Record<BootStep, number>>;
+  /** Called at done() with this run's per-step ms (default: blends them into localStorage). */
+  record?: (measured: Timings) => void;
+  /** Per-frame republish while a step runs (default: requestAnimationFrame; tests pass their own or none). */
+  schedule?: ((fn: () => void) => void) | null;
 }
 
 interface StepState { state: 'todo' | 'on' | 'ok'; fraction: number; sub: number; detail: string; t0: number; ms: number }
 const clamp01 = (x: number): number => (x > 1 ? 1 : x > 0 ? x : 0);
+/** A running step never reads complete: its elapsed / expected term is capped just below 1. */
+const RUNNING_CAP = 0.995;
 
 export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep> {
   const now = options.now ?? (() => performance.now());
@@ -80,18 +93,24 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
   let shownDownload = 0;
   let shownSetup = 0;
   let view!: ProgressView;
-  const weightTotal = BOOT_STEPS.reduce((n, k) => n + STEP_INFO[k].weight, 0);
+  const expected = options.expected ?? expectedDurations();
+  const record = options.record ?? saveTimings;
+  const schedule = options.schedule === undefined ? (typeof requestAnimationFrame === 'function' ? (fn: () => void) => { requestAnimationFrame(fn); } : null) : options.schedule;
+  let ticking = false;
   const credited = (s: { total: number; read: number; closed: boolean }): number => (s.closed ? s.total : Math.min(s.read, s.total));
 
   function publish(): void {
     const t = now();
-    let acc = 0, doneCount = 0;
+    let acc = 0, expectedTotal = 0, doneCount = 0;
     const rows: LogRow[] = BOOT_STEPS.map((k) => {
       const s = steps.get(k)!;
       const ok = s.state === 'ok';
       if (ok) doneCount++;
-      acc += STEP_INFO[k].weight * (ok ? 1 : s.state === 'on' ? s.fraction : 0);
-      return { key: k, label: STEP_INFO[k].label, state: s.state, ms: s.state === 'on' ? t - s.t0 : s.ms, t0: s.t0, detail: s.detail, fraction: ok ? 1 : s.fraction, sub: ok ? 1 : s.sub };
+      const d = expected[k];
+      // running: reported sub-progress or elapsed / expected, whichever is further — never 1
+      const fraction = ok ? 1 : s.state === 'on' ? Math.max(s.fraction, Math.min(RUNNING_CAP, (t - s.t0) / d)) : 0;
+      acc += d * fraction; expectedTotal += d * 1; // the same additions as `acc` at done(): equal by arithmetic
+      return { key: k, label: STEP_INFO[k].label, state: s.state, ms: s.state === 'on' ? t - s.t0 : s.ms, t0: s.t0, detail: s.detail, fraction, sub: ok ? 1 : s.sub };
     });
     let read = 0, total = 0, filesDone = 0, filesTotal = 0;
     for (const s of sources.values()) {
@@ -100,7 +119,7 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
       filesTotal += s.files; filesDone += s.closed ? s.files : Math.min(s.filesDone, s.files);
     }
     // The max() is the assertion that no future edit can make the screen run backwards.
-    shownSetup = Math.max(shownSetup, weightTotal > 0 ? acc / weightTotal : 1);
+    shownSetup = Math.max(shownSetup, expectedTotal > 0 ? acc / expectedTotal : 1);
     shownDownload = Math.max(shownDownload, total > 0 ? read / total : 1);
     const last = lastRead ? sources.get(lastRead)! : null;
     view = {
@@ -129,11 +148,26 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
     };
   }
 
+  /** While a step is running, republish every frame so the elapsed term moves the bar between events. */
+  function tick(): void {
+    if (ticking || !schedule) return;
+    ticking = true;
+    const frame = () => {
+      ticking = false;
+      if (finished || error !== null || steps.get(current)!.state !== 'on') return;
+      publish();
+      ticking = true;
+      schedule(frame);
+    };
+    schedule(frame);
+  }
+
   async function run<T>(key: BootStep, work: (p: StepProgress) => T | Promise<T>): Promise<T> {
     const s = steps.get(key);
     if (!s || s.state !== 'todo' || finished) throw new Error(`boot plan: ${key} ${!s ? 'unknown' : finished ? 'after done()' : 'already ' + s.state}`);
     s.state = 'on'; s.t0 = now(); current = key;
     publish();
+    tick();
     const value = await work(progressFor(key));
     s.state = 'ok'; s.fraction = 1; s.sub = 1; s.ms = now() - s.t0;
     for (const bk of BYTE_SOURCES) if (closedBy(bk) === key) sources.get(bk)!.closed = true;
@@ -156,6 +190,9 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
       if (missed.length) throw new Error(`boot plan: ${missed.join(',')} not complete`);
       finished = true;
       publish();
+      const measured: Timings = {};
+      for (const k of BOOT_STEPS) measured[k] = steps.get(k)!.ms;
+      record(measured);
       // Arithmetic, not policy: Σw·1/Σw and ΣT/ΣT. The throw is the assertion that this file's math was not edited into a lie.
       if (view.download !== 1 || view.setup !== 1) throw new Error('boot plan: done() not at 1/1');
     },
