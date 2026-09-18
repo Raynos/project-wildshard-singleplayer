@@ -89,6 +89,6 @@ game.scene.add(horizon.group);
 
 game.onUpdate((dt, t) => { ocean?.update(dt); boat.update(dt); palms.update(dt); gulls.update(dt, player.position); boundary.update(dt, t); horizon.update(dt, game.camera); });
 
-(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boat, rocks, hut, palms, lookout, wreck, shrine, boundary, horizon, heightAt };
+(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boat, rocks, gulls, hut, palms, lookout, wreck, shrine, boundary, horizon, heightAt };
 game.buildComposer();
 game.start();

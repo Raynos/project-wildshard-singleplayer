@@ -81,7 +81,9 @@ interface Gull {
   yaw0: number;
 }
 
-const _p = new THREE.Vector3(), _q = new THREE.Vector3(), _m = new THREE.Matrix4(), _quat = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(1, 1, 1);
+/** the model is built at ~0.65 m wingspan; instances are scaled up so a gull reads against a post at a distance (the mockups' chunky birds) */
+const GULL_SCALE = 1.3, FOOT = 0.17 * GULL_SCALE;
+const _p = new THREE.Vector3(), _q = new THREE.Vector3(), _m = new THREE.Matrix4(), _quat = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(GULL_SCALE, GULL_SCALE, GULL_SCALE);
 
 export class Gulls {
   group = new THREE.Group();
@@ -177,7 +179,7 @@ export class Gulls {
 
     // body: a lofted 6-sided fuselage, tail point → 3 rings → nose point. Grey back, white flanks / belly.
     const rings: { z: number; rx: number; ry: number; y: number }[] = [
-      { z: -0.17, rx: 0.045, ry: 0.03, y: 0.02 }, { z: -0.02, rx: 0.085, ry: 0.075, y: 0.0 }, { z: 0.11, rx: 0.07, ry: 0.065, y: 0.005 },
+      { z: -0.17, rx: 0.05, ry: 0.035, y: 0.02 }, { z: -0.02, rx: 0.1, ry: 0.09, y: 0.0 }, { z: 0.11, rx: 0.085, ry: 0.08, y: 0.005 },
     ];
     const sides = 6;
     const ringPt = (r: { z: number; rx: number; ry: number; y: number }, k: number) => { const a = (k / sides) * Math.PI * 2 + Math.PI / 6; return [Math.cos(a) * r.rx, r.y + Math.sin(a) * r.ry, r.z]; };
@@ -213,9 +215,10 @@ export class Gulls {
     for (const side of [-1, 1]) {
       const p = side < 0 ? PART.wingL : PART.wingR;
       const sx = SHOULDER_X * side, ex = ELBOW_X * side, hx = 0.56 * side, tx = 0.72 * side, y = SHOULDER_Y;
-      quad([sx, y, -0.06], [sx, y, 0.1], [ex, y + 0.01, 0.1], [ex, y + 0.01, -0.03], C.grey, p, 0.04);
-      quad([ex, y + 0.01, -0.03], [ex, y + 0.01, 0.1], [hx, y + 0.005, 0.06], [hx, y + 0.005, -0.07], C.greyDark, p, 0.04);
-      quad([hx, y + 0.005, -0.07], [hx, y + 0.005, 0.06], [tx, y, 0.0], [tx, y, -0.1], C.tip, p, 0.06);
+      // broad chunky wings (the mockups' birds): a 0.26 chord at the root, the hand swept back to a 0.1 tip
+      quad([sx, y, -0.14], [sx, y, 0.12], [ex, y + 0.01, 0.1], [ex, y + 0.01, -0.12], C.grey, p, 0.04);
+      quad([ex, y + 0.01, -0.12], [ex, y + 0.01, 0.1], [hx, y + 0.005, 0.04], [hx, y + 0.005, -0.15], C.greyDark, p, 0.04);
+      quad([hx, y + 0.005, -0.15], [hx, y + 0.005, 0.04], [tx, y, -0.08], [tx, y, -0.18], C.tip, p, 0.06);
     }
     // legs: two orange sticks from the hip; the feet a small wedge
     for (const side of [-1, 1]) {
@@ -289,7 +292,7 @@ export class Gulls {
     const p = this.perches[perch];
     this.occupied[perch] = 1;
     g.perch = perch; g.state = S.Perched;
-    g.x = p.x; g.y = p.y + 0.17; g.z = p.z;
+    g.x = p.x; g.y = p.y + FOOT; g.z = p.z;
     g.yaw = this.perchYaw[perch]; g.pitch = 0; g.roll = 0;
     g.flap = -0.3; g.fold = 0.2; g.legs = 0; g.head = 0;
     g.t = 0; g.timer = this.rng.range(1.5, 5);
@@ -363,7 +366,7 @@ export class Gulls {
     const p = this.perches[perch];
     this.occupied[perch] = 1; g.perch = perch;
     g.ax = g.x; g.ay = g.y; g.az = g.z;
-    g.tx = p.x; g.ty = p.y + 0.17; g.tz = p.z;
+    g.tx = p.x; g.ty = p.y + FOOT; g.tz = p.z;
     const dx = g.tx - g.x, dz = g.tz - g.z, d = Math.hypot(dx, dz, g.ty - g.y);
     // come in along the current heading, high, and drop onto the perch from above
     g.bx = g.x + Math.sin(g.yaw) * d * 0.45; g.bz = g.z + Math.cos(g.yaw) * d * 0.45; g.by = Math.max(g.y, g.ty + 4) + d * 0.08;
