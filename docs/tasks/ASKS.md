@@ -118,7 +118,7 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | D7 | "We already implemented the boar — do the same boar in the low-poly art style, and start there" | **open** | first engine step after the mockups |
 
 | P1 | **DPR 1.5 + AA on by default on phones** ("game changer for the crossbow") | **done** | `b-mu6i9vn4`; user confirmed 1.5 + AA stays the phone default |
-| P2 | **Deer less skittish** — "I need to be able to get close and shoot them" | **done, verdict pending** | `6bd73ad` / `b-mu6iff3u`: sight 30/14 m, hears a walker at 12 m, 4–7 s freeze, run 6.0 (< sprint 7.2), stops at 35–50 m |
+| P2 | **Deer less skittish** — "I need to be able to get close and shoot them" | **done** | `6bd73ad` / `b-mu6iff3u`: sight 30/14 m, hears a walker at 12 m, 4–7 s freeze, run 6.0 (< sprint 7.2), stops at 35–50 m |
 | P3 | Crossbow shader programs 8 → 4 with the look unchanged (load agent's patch) | **open** | blocked on Crossbow.ts being free of the HUD session's edits; prod anisotropy must stay |
 | P4 | Remove the DBG pill (tier / dpr / aa / meter) once the graphics defaults are settled | **open** | src/ui/Debug.ts + one line in main.ts + tier.ts overrides |
 | P5 | Cold first-launch bytes 30 MB → ~10 MB (baked PMREM instead of the 4 MB HDR, model textures to the phone tier, KTX2 for GPU memory) | **open** | docs/plans/LOAD-PERF.md §P1; the SW cache migration (9f6c3e2) already makes it a one-time cost |
@@ -130,3 +130,5 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | D12 | World order: **fill the world with water + just the pier** → then **a little boat by the pier** → then **the beach** (what you see from the pier) → then the rest of the island piece by piece | **in flight** | world-agent |
 | D13 | **Swimming mechanism** (subagent) — it's all water | **in flight** | swim-agent |
 | D14 | **Diving** (second subagent, after swimming): in water JUMP becomes **DIVE**; holding DIVE goes down, a **SURFACE** button appears beside it that goes up; no other vertical control for now | **open** | starts when D13 lands |
+
+| M1 | **Full map**: tap the minimap → whole chunk, drag to pan, pinch/wheel zoom, fog of war, cabins + pond as POIs, no animal markers; CLOSE / Esc / M | **done** | `019d9b9` + phone tap fix `232547a`; user: "map works" |
