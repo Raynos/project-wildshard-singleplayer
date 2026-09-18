@@ -15,7 +15,7 @@ import { WRECK } from '../chunks/driftwood-isle';
  * The weapon itself is the existing rig: `new Sword(world, targets, { blade: 'iron' })` (Sword.ts, 28 base damage),
  * registered with the kit manager as `'sword-iron'` (Weapons.ts `extras`). This file only builds the pickup.
  *
- *   const drop = new IronSwordPickup({ scene, sky, position: ironSwordSite(wreck) });   // floor point = the deck
+ *   const drop = new IronSwordPickup({ scene, sky, position: ironSwordSite(wreck, heightAt) });   // floor point = the deck
  *   interactables.push(drop.interactable);                       // "[E] Take iron sword" within `radius` (the door / harvest prompt path)
  *   drop.onPickup = () => { weapons.unlock('sword-iron'); weapons.select('sword-iron'); hud.toast('Iron sword acquired · 1/2 to switch, Q to swap'); audio.hitMarker(); };
  *   drop.onNear = (on) => audio.pickupHum(on);
