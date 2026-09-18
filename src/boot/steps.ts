@@ -32,8 +32,8 @@ export const BOOT_STEPS = STEP_ROWS.map((row) => row[0]) as readonly BootStep[];
  * the number because it is in this table, and complete because its step is — `done()` reads 1
  * by arithmetic, never by reclassification.
  */
-export const BYTE_SOURCES = ['sky', 'terrain', 'trees', 'cabins', 'props'] as const;
+export const BYTE_SOURCES = ['sky', 'baked', 'terrain', 'trees', 'cabins', 'props'] as const;
 export type ByteKey = (typeof BYTE_SOURCES)[number];
-const CLOSED_BY: Record<ByteKey, BootStep> = { sky: 'sky', terrain: 'terrain', trees: 'cards', cabins: 'cabins', props: 'props' };
+const CLOSED_BY: Record<ByteKey, BootStep> = { sky: 'sky', baked: 'sky', terrain: 'terrain', trees: 'cards', cabins: 'cabins', props: 'props' };
 export const closedBy = (key: ByteKey): BootStep => CLOSED_BY[key];
-export const byteLabel = (key: ByteKey): string => key === 'trees' ? 'pine bark · twigs' : STEP_INFO[closedBy(key)].label.toLowerCase();
+export const byteLabel = (key: ByteKey): string => key === 'trees' ? 'pine bark · twigs' : key === 'baked' ? 'baked textures' : STEP_INFO[closedBy(key)].label.toLowerCase();

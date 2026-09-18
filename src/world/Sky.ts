@@ -5,6 +5,7 @@ import { loadHDR } from '../core/assets';
 import { fogUniforms } from './Atmosphere';
 import { Noise2D } from '../core/noise';
 import { getActiveChunk } from '../chunks/registry';
+import { bakedTexture, preloadBakedTextures } from '../boot/bakedTextures';
 
 /**
  * Lighting rig: HDRI sky for IBL + background, a cascaded-shadow sun matched to the
@@ -30,7 +31,7 @@ export class Sky {
     const qs = new URLSearchParams(location.search);
     const qn = (k: string, d: number) => (qs.has(k) ? parseFloat(qs.get(k)!) : d);
     const hdriName = qs.get('hdri') ?? S.hdri;
-    const hdr = await loadHDR(`/assets/hdri/${hdriName}_2k.hdr`);
+    const [hdr] = await Promise.all([loadHDR(`/assets/hdri/${hdriName}_2k.hdr`), preloadBakedTextures()]); // baked procedural textures (clouds, fur…) ride along with the HDR
     this.findSun(hdr);
     hdr.mapping = THREE.EquirectangularReflectionMapping;
     const pmrem = new THREE.PMREMGenerator(this.renderer);
@@ -117,7 +118,8 @@ export class Sky {
   /** Thin procedural cirrus/cumulus layer on a sky dome — the HDRI has none, and a forest needs a sky with some drama. */
   private buildClouds() {
     const geo = new THREE.SphereGeometry(1400, 48, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
-    const tex = makeCloudTexture();
+    const tex = bakedTexture('clouds', makeCloudTexture); // 512² six-octave simplex on a torus: ~200 ms of phone CPU when not baked
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
     this.cloudUniforms.uSunDir.value.copy(this.sunDir);
     this.cloudUniforms.uSunColor.value.set(...getActiveChunk().sky.cloudSunColor);
     const mat = new THREE.ShaderMaterial({
@@ -208,7 +210,7 @@ export class Sky {
     const body = new THREE.Mesh(new THREE.SphereGeometry(radius, 64, 64), new THREE.MeshLambertMaterial({
       color: 0x9aa4b4, fog: false, emissive: 0x2c3646, emissiveIntensity: 0.7, transparent: true, opacity: 0.85,
     }));
-    const bandsTex = makePlanetTexture();
+    const bandsTex = bakedTexture('planet', makePlanetTexture); bandsTex.colorSpace = THREE.SRGBColorSpace;
     (body.material as THREE.MeshLambertMaterial).map = bandsTex;
     const ringTex = makeRingTexture();
     const ring = new THREE.Mesh(new THREE.RingGeometry(radius * 1.25, radius * 2.35, 128, 1), new THREE.MeshLambertMaterial({

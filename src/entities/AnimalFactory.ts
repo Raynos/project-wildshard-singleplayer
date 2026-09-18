@@ -4,6 +4,7 @@ import { Noise2D } from '../core/noise';
 import { Rng } from '../core/rng';
 import type { Sky } from '../world/Sky';
 import { attachFogUniforms, fogUniforms } from '../world/Atmosphere';
+import { bakedTexture } from '../boot/bakedTextures';
 
 /**
  * AnimalFactory — procedural, code-built deer and boar.
@@ -246,7 +247,19 @@ function lattice(px: number, py: number, rng: Rng) {
   };
 }
 
-function makeFurTextures(seed: number, opts: { contrast: number; grizzle: number; normalStrength: number; bristle: number; strandLen: number; root: number }) {
+function makeFurTextures(seed: number, opts: { contrast: number; grizzle: number; normalStrength: number; bristle: number; strandLen: number; root: number }, kind: string) {
+  // baked to public/assets/baked/<slug>/tex/fur-<kind>-{map,normal} by scripts/bake-textures.mjs: the two 512² fields
+  // below are ~350 ms of phone CPU per kind; `gen` runs them once only when a file is missing
+  let gen: { ca: HTMLCanvasElement; cn: HTMLCanvasElement } | null = null;
+  const build = () => (gen ??= makeFurCanvases(seed, opts));
+  const map = bakedTexture(`fur-${kind}-map`, () => new THREE.CanvasTexture(build().ca));
+  map.colorSpace = THREE.SRGBColorSpace; map.wrapS = map.wrapT = THREE.RepeatWrapping; map.anisotropy = 8;
+  const normalMap = bakedTexture(`fur-${kind}-normal`, () => new THREE.CanvasTexture(build().cn), { lossless: true });
+  normalMap.wrapS = normalMap.wrapT = THREE.RepeatWrapping; normalMap.anisotropy = 8;
+  return { map, normalMap };
+}
+
+function makeFurCanvases(seed: number, opts: { contrast: number; grizzle: number; normalStrength: number; bristle: number; strandLen: number; root: number }) {
   const S = 512;
   const rng = new Rng(seed);
   // fur strands: narrow across (x, ~2-3 mm at TEX_M), long along (y)
@@ -295,11 +308,7 @@ function makeFurTextures(seed: number, opts: { contrast: number; grizzle: number
     inn.data[i] = Math.round((nx * 0.5 + 0.5) * 255); inn.data[i + 1] = Math.round((ny * 0.5 + 0.5) * 255); inn.data[i + 2] = Math.round((nz * 0.5 + 0.5) * 255); inn.data[i + 3] = 255;
   }
   gn.putImageData(inn, 0, 0);
-  const map = new THREE.CanvasTexture(ca);
-  map.colorSpace = THREE.SRGBColorSpace; map.wrapS = map.wrapT = THREE.RepeatWrapping; map.anisotropy = 8;
-  const normalMap = new THREE.CanvasTexture(cn);
-  normalMap.wrapS = normalMap.wrapT = THREE.RepeatWrapping; normalMap.anisotropy = 8;
-  return { map, normalMap };
+  return { ca, cn };
 }
 
 /** Tileable strand cross-section for fur shells: each dot is one hair; its value is the hair's length. */
@@ -771,8 +780,8 @@ export class AnimalFactory {
     geometry.computeBoundingBox();
 
     const tex = kind === 'deer'
-      ? (this.deerTex ??= makeFurTextures(101, { contrast: 0.8, grizzle: 0.15, normalStrength: 1.6, bristle: 0, strandLen: 24, root: 0.14 }))
-      : (this.boarTex ??= makeFurTextures(202, { contrast: 1.0, grizzle: 0.6, normalStrength: 2.2, bristle: 0.6, strandLen: 12, root: 0.24 }));
+      ? (this.deerTex ??= makeFurTextures(101, { contrast: 0.8, grizzle: 0.15, normalStrength: 1.6, bristle: 0, strandLen: 24, root: 0.14 }, 'deer'))
+      : (this.boarTex ??= makeFurTextures(202, { contrast: 1.0, grizzle: 0.6, normalStrength: 2.2, bristle: 0.6, strandLen: 12, root: 0.24 }, 'boar'));
     // MeshPhysicalMaterial for the sheen term (soft velvet), plus a backlit Fresnel rim patched in below
     const fur = new THREE.MeshPhysicalMaterial({
       map: tex.map, normalMap: tex.normalMap, normalScale: new THREE.Vector2(1.0, 1.0),

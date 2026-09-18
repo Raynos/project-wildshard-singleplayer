@@ -1,0 +1,36 @@
+{
+  "hash": "177a0fc46d0eb893",
+  "version": 1,
+  "files": {
+    "planet.jpg": {
+      "bytes": 60530,
+      "width": 1024,
+      "height": 512
+    },
+    "clouds.jpg": {
+      "bytes": 63536,
+      "width": 512,
+      "height": 512
+    },
+    "fur-deer-map.jpg": {
+      "bytes": 63863,
+      "width": 512,
+      "height": 512
+    },
+    "fur-deer-normal.png": {
+      "bytes": 741592,
+      "width": 512,
+      "height": 512
+    },
+    "fur-boar-map.jpg": {
+      "bytes": 82219,
+      "width": 512,
+      "height": 512
+    },
+    "fur-boar-normal.png": {
+      "bytes": 706258,
+      "width": 512,
+      "height": 512
+    }
+  }
+}
