@@ -5,8 +5,9 @@
  */
 import type { ChunkDef } from '../chunks/ChunkDef';
 import type { ChunkFiles } from './bytes';
+import { pbrUrls } from '../core/assets';
 
-const pbr = (id: string) => ['diffuse', 'nor_gl', 'arm'].map((k) => `/assets/tex/${id}/${k}.jpg`);
+const pbr = pbrUrls; // tier-aware: the phone's _1k files are what it downloads, so they are what it declares
 const gltf = (id: string) => [`/assets/models/${id}/${id}.gltf`, `/assets/models/${id}/${id}.bin`, ...['diff', 'nor_gl', 'arm'].map((k) => `/assets/models/${id}/textures/${id}_${k}_1k.jpg`)];
 const lod = (id: string) => [`/assets/models/${id}/${id}_lod.glb`];
 const uniq = (xs: string[]) => [...new Set(xs)];

@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "assets": "node scripts/fetch-assets.mjs",
+    "assets": "node scripts/fetch-assets.mjs && node scripts/tex-tiers.mjs",
+    "tex-tiers": "node scripts/tex-tiers.mjs",
     "timelapse": "bash scripts/timelapse.sh",
     "bench": "node scripts/bench-load.mjs",
     "bench:ci": "node scripts/bench-load.mjs --ci"

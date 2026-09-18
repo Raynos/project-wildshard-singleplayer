@@ -3,6 +3,7 @@ import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import { fetchImage } from '../boot/bytes';
 import { TIER_CONFIG } from './tier';
+import { PUBLIC_BYTES } from '../boot/bytes.generated';
 
 const gltfLoader = new GLTFLoader();
 const hdrLoader = new RGBELoader();
@@ -39,13 +40,23 @@ export async function loadTexture(url: string, srgb = false, repeat = 1): Promis
   return t;
 }
 
+/**
+ * URL of one map of a Poly Haven set. The phone tier gets the `_1k.jpg` sibling
+ * (scripts/tex-tiers.mjs: ≤ 1024², q82 — a quarter of the bytes) when the build has one.
+ */
+export function texUrl(id: string, kind: 'diffuse' | 'nor_gl' | 'arm'): string {
+  const base = `/assets/tex/${id}/${kind}`;
+  if (TIER_CONFIG.maxTexture <= 1024 && `${base}_1k.jpg` in PUBLIC_BYTES) return `${base}_1k.jpg`;
+  return `${base}.jpg`;
+}
+export const pbrUrls = (id: string) => (['diffuse', 'nor_gl', 'arm'] as const).map((k) => texUrl(id, k));
+
 /** Poly Haven texture set: diffuse + GL normal + ARM (ao / roughness / metal). Textures are shared per url; `repeat` is per call. */
 export async function loadPBR(id: string, repeat = 1): Promise<PBRSet> {
-  const base = `/assets/tex/${id}/`;
   const [map, normalMap, armMap] = await Promise.all([
-    loadTexture(base + 'diffuse.jpg', true, repeat),
-    loadTexture(base + 'nor_gl.jpg', false, repeat),
-    loadTexture(base + 'arm.jpg', false, repeat),
+    loadTexture(texUrl(id, 'diffuse'), true, repeat),
+    loadTexture(texUrl(id, 'nor_gl'), false, repeat),
+    loadTexture(texUrl(id, 'arm'), false, repeat),
   ]);
   return { map, normalMap, armMap };
 }
@@ -79,7 +90,7 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
   const build = async (kind: (typeof kinds)[number], srgb: boolean) => {
     const data = new Uint8Array(size * size * 4 * ids.length);
     for (let i = 0; i < ids.length; i++) {
-      const im = await load(`/assets/tex/${ids[i]}/${kind}.jpg`);
+      const im = await load(texUrl(ids[i], kind));
       ctx.drawImage(im, 0, 0, size, size);
       data.set(ctx.getImageData(0, 0, size, size).data, i * size * size * 4);
     }
