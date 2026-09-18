@@ -317,8 +317,8 @@ export function lowPolyGroundColor(out: THREE.Color, h: number, slope: number, x
   const g = ss(h, 2.2, 4.5);
   if (g > 0) { _tmpC.lerpColors(LP.grass, LP.grassDark, hash2(Math.floor(x * 0.11), Math.floor(z * 0.11)) * 0.6); out.lerp(_tmpC, g); }
   // rock on the steep facets (a hair lighter on the flatter ledges)
-  const r = ss(slope, 0.42, 0.62);
-  if (r > 0) { _tmpC.lerpColors(LP.rock, LP.rockLight, ss(slope, 0.9, 0.6)); out.lerp(_tmpC, r); }
+  const r = ss(slope, 0.24, 0.4);
+  if (r > 0) { _tmpC.lerpColors(LP.rock, LP.rockLight, ss(slope, 0.8, 0.45)); out.lerp(_tmpC, r); }
   // per-facet jitter so the flat shading reads as facets, not a gradient
   return out.multiplyScalar(0.93 + hash2(x, z) * 0.14);
 }

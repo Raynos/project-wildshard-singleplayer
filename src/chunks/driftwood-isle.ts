@@ -30,6 +30,10 @@ export const OCEAN: OceanDef = {
 export const PIER = { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckAbove: 1.2 };
 /** the island disc: centre and nominal shoreline radius (the shoreline is noise-warped ±30 m) */
 export const ISLAND = { x: 0, z: 12, r: 188 };
+/** the hut's plateau: a flat-topped crag in the south-centre; the hut stands at its middle */
+export const PLATEAU = { x: -24, z: -62, r: 46, h: 13 };
+/** the hut site on the plateau (rot: which way the door faces — south, toward the pier) */
+export const HUT = { x: PLATEAU.x + 2, z: PLATEAU.z - 2, rot: 0 };
 
 /** on the pier deck, 15 m in (past the HUD's 14 m boundary warning), facing north up the pier */
 const SPAWN = { x: 0, z: -CHUNK_HALF + 15, yaw: Math.PI };
@@ -67,6 +71,15 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
       if (m < 0) h = -5.0 + smoothstep(-70, 0, m) * (sea + 5.0);           // shelf up to the water line
       else h = sea + smoothstep(0, 26, m) * 1.8 + smoothstep(20, 90, m) * 3.6; // beach, then the grassy interior
       h += n.fbm(x * 0.04, z * 0.04, 2) * 0.25 * smoothstep(-10, 15, m);       // small dune / ground bumps on land
+      // the hut plateau: a flat-topped crag with a craggy (noise-warped) rim and a gentler ramp on the south side
+      {
+        const px = x - PLATEAU.x, pz = z - PLATEAU.z;
+        const pr = Math.hypot(px, pz) + n2.get(px * 0.05 + 9, pz * 0.05) * 6;
+        const south = smoothstep(0.2, 0.9, -pz / Math.max(1, Math.hypot(px, pz))) * smoothstep(14, 0, Math.abs(px + 6)); // a 12 m wide ramp toward the pier
+        const rimW = 10 + south * 26;
+        h += smoothstep(PLATEAU.r + rimW, PLATEAU.r - 4, pr) * PLATEAU.h;
+        h += smoothstep(PLATEAU.r - 6, PLATEAU.r - 30, pr) * n.fbm(x * 0.03 + 4, z * 0.03, 2) * 0.6; // the top is not a table
+      }
       return h;
     },
     /** The four mandated entry roads only (they are the four jetties' sandbars). */

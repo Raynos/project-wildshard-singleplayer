@@ -6,6 +6,8 @@ import { Ocean } from '../world/Ocean';
 import { Pier } from '../world/Pier';
 import { Boat } from '../world/Boat';
 import { Boulders } from '../world/Boulders';
+import { Hut } from '../world/Hut';
+import { HUT } from '../chunks/driftwood-isle';
 import { Boundary } from '../world/Boundary';
 import { Horizon } from '../world/Horizon';
 import { CHUNK_HALF, ROAD_LENGTH } from '../core/config';
@@ -34,6 +36,11 @@ const rocks = new Boulders(sky).build(Boulders.scatterShore(chunk.seed));
 game.scene.add(rocks.mesh);
 player.colliders.push(...rocks.colliders);
 
+const hut = new Hut(sky, HUT).build();
+game.scene.add(hut.group);
+player.colliders.push(...hut.colliders);
+player.platforms.push((x, z) => hut.floorHeightAt(x, z));
+
 const boundary = new Boundary(sky).build();
 game.scene.add(boundary.group);
 const horizon = new Horizon(sky).build();
@@ -41,6 +48,6 @@ game.scene.add(horizon.group);
 
 game.onUpdate((dt, t) => { ocean?.update(dt); boat.update(dt); boundary.update(dt, t); horizon.update(dt, game.camera); });
 
-(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boat, rocks, boundary, horizon, heightAt };
+(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boat, rocks, hut, boundary, horizon, heightAt };
 game.buildComposer();
 game.start();
