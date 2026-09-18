@@ -93,6 +93,11 @@ const KICK_PITCH = THREE.MathUtils.degToRad(0.8);
  *  (~5 cm) and the depth, and the limb span falls out (≈ ±0.5 landscape, edge to edge on a 94° portrait). */
 const ADS_TIP_NDC_Y = -0.12, ADS_NUT_NDC_Y = -0.85, ADS_NEAR_MARGIN = 0.03, ADS_PITCH = 0, ADS_BLEND_TIME = 0.18, ADS_MOTION = 0.3;
 const BODY_DAMAGE = 55, HEAD_DAMAGE = 130;
+/** Rear PEEP sight (mockup art/ads-C-peep-sight.png): a dark-iron ring on a post just in front of the nut (the stock
+ *  behind the nut is inside the near plane when sighted), placed on the eye→tip line so that at full ADS its centre
+ *  projects exactly where the tip does — the tip is seen through the ring. Outer diameter ≈ 4 % of the screen width
+ *  (≥ 7 % of the height, so it stays a ring on a portrait phone). Hidden at the hip, fades in with the ADS blend. */
+const PEEP_Z = 0.10, PEEP_R = 0.01, PEEP_TUBE = 0.12, PEEP_W = 0.04, PEEP_H = 0.07, PEEP_CYAN = 0x8fe3ff;
 
 // ───────────────────────────── procedural noise / textures ─────────────────────────────
 
@@ -637,7 +642,10 @@ export class Crossbow {
   private tipModel = new THREE.Vector3(); private tipLocal = new THREE.Vector3();
   private adsCache = { aspect: 0, fov: 0, scale: 0 };
   /** the solved iron-sights pose + the numbers behind it (dev / verification: `__world.crossbow.adsPose`) */
-  readonly adsPose = { px: 0, py: 0, pz: 0, rx: ADS_PITCH, scale: 0, tipDepth: 0, eyeAboveRail: 0, nutDepth: 0, nutNdcY: 0, limbNdcX: 0, tipNdcY: ADS_TIP_NDC_Y };
+  readonly adsPose = { px: 0, py: 0, pz: 0, rx: ADS_PITCH, scale: 0, tipDepth: 0, eyeAboveRail: 0, nutDepth: 0, nutNdcY: 0, limbNdcX: 0, tipNdcY: ADS_TIP_NDC_Y, peepY: 0, peepZ: PEEP_Z, peepDepth: 0, peepR: 0 };
+  /** the rear peep sight: ring + post, posed from `adsPose` every sighted frame */
+  private peep = new THREE.Group(); private peepRing = new THREE.Group(); private peepPost!: THREE.Mesh;
+  private peepMats: THREE.Material[] = [];
 
   // projectiles
   private bolts: Bolt[] = [];
@@ -836,6 +844,19 @@ export class Crossbow {
     this.tipLocal.set(0, 0, this.boltGeo.boundingBox!.min.z);
     this.tipModel.copy(this.tipLocal).add(this.loadedBolt.position);
 
+    // ── rear peep sight: dark iron ring with a faint cyan inner edge, on a post rising from the rail (posed per frame) ──
+    const peepIron = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.05, 0.05, 0.055), roughness: 0.9, metalness: 0.75, emissive: new THREE.Color(PEEP_CYAN), emissiveIntensity: 0.05 });
+    const peepGlow = new THREE.MeshBasicMaterial({ color: new THREE.Color(PEEP_CYAN), toneMapped: false, fog: false, opacity: 0.85 });
+    this.peepMats.push(peepIron, peepGlow);
+    const ringOuter = new THREE.Mesh(new THREE.TorusGeometry(PEEP_R, PEEP_R * PEEP_TUBE, 10, 40), peepIron);
+    const ringInner = new THREE.Mesh(new THREE.TorusGeometry(PEEP_R * (1 - PEEP_TUBE * 0.85), PEEP_R * 0.025, 6, 40), peepGlow);
+    this.peepRing.add(ringOuter, ringInner);
+    const postGeo = new THREE.BoxGeometry(0.0025, 1, 0.002); postGeo.translate(0, -0.5, 0); // top at 0, scaled to reach the rail
+    this.peepPost = new THREE.Mesh(postGeo, peepIron);
+    this.peep.add(this.peepRing, this.peepPost);
+    this.peep.visible = false;
+    this.model.add(this.peep);
+
     // depth-clear so the viewmodel never clips into world geometry; render after everything opaque
     // The clearer and the viewmodel live in the *transparent* queue (renderOrder 999/1000) so the
     // depth clear happens after every world transparent (boundary lines, mist, halos) has drawn —
@@ -941,6 +962,11 @@ export class Crossbow {
     o.px = 0; o.py = ADS_TIP_NDC_Y * tv * D - ty; o.pz = -D - tip.z * scale; o.rx = ADS_PITCH; o.scale = scale;
     o.tipDepth = D; o.eyeAboveRail = -o.py; o.nutDepth = D - A; o.nutNdcY = (ny + o.py) / ((D - A) * tv);
     o.limbNdcX = (this.tipR.x * scale) / (-(this.tipR.z * scale + o.pz) * th);
+    // peep: on the eye→tip line at model z = PEEP_Z. Eye in model space is (0, -py, -pz) / scale (rotation 0).
+    const ey = -o.py / scale, ez = -o.pz / scale;
+    const u = (PEEP_Z - ez) / (tip.z - ez);
+    o.peepZ = PEEP_Z; o.peepY = ey + (tip.y - ey) * u; o.peepDepth = (ez - PEEP_Z) * scale;
+    o.peepR = Math.max(PEEP_W * o.peepDepth * th, PEEP_H * o.peepDepth * tv); // outer radius, world (½ of Ø = 4 % width / 7 % height)
     return o;
   }
 
@@ -1036,6 +1062,16 @@ export class Crossbow {
       const arx = ads.rx + (bobRx + lagRx) * m + rc * 0.1, ary = lagRy * m, arz = (swRz + bobRz) * m + rc * -0.02;
       px += (ax - px) * a; py += (ay - py) * a; pz += (az - pz) * a; rx += (arx - rx) * a; ry += (ary - ry) * a; rz += (arz - rz) * a;
     }
+
+    // peep sight: posed from the solve, faded with the blend (its centre, the eye and the tip are collinear at a = 1)
+    if (a > 0.001 && !this.inspect) {
+      const ads = this.solveAds(cam, scale);
+      this.peep.visible = true;
+      this.peep.position.set(0, ads.peepY, ads.peepZ);
+      this.peepRing.scale.setScalar(ads.peepR / (scale * PEEP_R));
+      this.peepPost.scale.y = Math.max(0.001, ads.peepY);
+      for (const m of this.peepMats) m.opacity = a;
+    } else this.peep.visible = false;
 
     if (this.inspect) { px = 0.02; py = -0.02; pz = -0.42; rx = 0.35; ry = 0.9 + Math.sin(t * 0.25) * 0.5; rz = 0.1; }
     this.model.scale.setScalar(scale);
