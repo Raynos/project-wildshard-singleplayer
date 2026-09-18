@@ -105,8 +105,8 @@ async function main() {
   const hud = new HUD({ pointerLock: !nolock });
   const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
   const minimap = new Minimap(); // circular minimap (Heightfield is installed by now)
-  const keepAlive = new KeepAlive(); game.keepAlive = keepAlive;
-  const debug = new Debug((f) => { perf.refresh(); if (f.keepalive) keepAlive.startAudio(); }); // TEMPORARY: loop/tier/meter/rdbg/keep knobs (src/ui/Debug.ts) — remove when the black-screen / LPM work is done
+  const keepAlive = new KeepAlive();
+  const debug = new Debug(() => perf.refresh()); // TEMPORARY: tier/dpr/aa/meter knobs (src/ui/Debug.ts)
   const audio = new Audio();
   let kills = 0, health = 100, lastHurt = 0, pelts = 0;
   const harvested = new Set<object>();
@@ -141,7 +141,7 @@ async function main() {
   const menuFirst = !params.has('skipintro') && !params.has('tour');
   const enter = () => {
     audio.resume();
-    void keepAlive.start(); // wake lock (+ optional keep-alive audio) — needs this user gesture
+    void keepAlive.start(); // screen wake lock — needs this user gesture
     crossbow.enabled = true;
     crossbow.model.visible = true;
     perf.setActive(true); debug.setActive(true);

@@ -48,9 +48,8 @@ export class Perf {
     const q = (p: number) => this.sorted[n + Math.min(valid - 1, Math.floor(valid * p))];
     const p50 = q(0.5), p95 = q(0.95);
     const r = g.lastFrame;
-    const sn = g.snapshot; const rs = sn && sn.resumes ? ` · resume #${sn.resumes}${sn.firstFrameAt ? ` first frame +${Math.round(sn.firstFrameAt - sn.resumedAt)} ms` : ' (no frame yet)'}` : '';
     const gl = g.gl.events ? ` · gl lost ×${g.gl.events}${g.gl.restoredAt > g.gl.lostAt ? ` restored ${Math.round(g.gl.restoredAt - g.gl.lostAt)} ms` : ''}` : '';
-    const text = `${Math.round(1000 / p50)}|${p50.toFixed(1)} / ${p95.toFixed(1)} ms · ${r.calls} calls · ${k(r.triangles)} tris · ${TIER} ${g.renderer.getPixelRatio().toFixed(2)}×${gl}${rs}`;
+    const text = `${Math.round(1000 / p50)}|${p50.toFixed(1)} / ${p95.toFixed(1)} ms · ${r.calls} calls · ${k(r.triangles)} tris · ${TIER} ${g.renderer.getPixelRatio().toFixed(2)}×${gl}`;
     if (text === this.lastText) return;
     this.lastText = text;
     const [fps, rest] = text.split('|');

@@ -1,19 +1,17 @@
 /**
  * TEMPORARY debug pill (a small tab on the left screen edge, mid-height). The game is a home-screen PWA, so
  * knobs live here instead of URL params and persist in localStorage. Delete this file and its
- * `new Debug()` line when the black-screen / LPM investigation is over.
+ * `new Debug()` line when the graphics-settings experiments are over (the black-screen / LPM work is closed).
  *
  *   tier     phone | desktop         src/core/tier.ts reads `dbg.tier` at boot (needs reload)
  *   meter    on | off                the frame meter
- *   rdbg     on | off                the resume debug modal
  *   dpr      auto | 1 | 1.25 | 1.5   render scale on the phone (reload)
  *   aa       auto | on | off        SMAA (reload)
- *   keep     on | off                silent looping <audio> (does iOS keep an audio-playing PWA warm across a switch?)
  *   reload                           cache-busting reload (same as the build pill)
  */
-export interface DebugFlags { tier: 'auto' | 'phone' | 'desktop'; meter: boolean; rdbg: boolean; keepalive: boolean; dpr: 'auto' | '1' | '1.25' | '1.5'; aa: 'auto' | 'on' | 'off' }
+export interface DebugFlags { tier: 'auto' | 'phone' | 'desktop'; meter: boolean; dpr: 'auto' | '1' | '1.25' | '1.5'; aa: 'auto' | 'on' | 'off' }
 const KEY = 'ws.debug';
-const DEFAULTS: DebugFlags = { tier: 'auto', meter: true, rdbg: true, keepalive: false, dpr: 'auto', aa: 'auto' };
+const DEFAULTS: DebugFlags = { tier: 'auto', meter: true, dpr: 'auto', aa: 'auto' };
 
 export function readDebugFlags(): DebugFlags {
   try { return { ...DEFAULTS, ...(JSON.parse(localStorage.getItem(KEY) ?? '{}') as Partial<DebugFlags>) }; } catch { return { ...DEFAULTS }; }
@@ -54,8 +52,6 @@ export class Debug {
     row('dpr', ['auto', '1', '1.25', '1.5'], dbg.dpr, (v) => { dbg.dpr = v as DebugFlags['dpr']; }, 'reload · sharpness vs fps');
     row('aa', ['auto', 'on', 'off'], dbg.aa, (v) => { dbg.aa = v as DebugFlags['aa']; }, 'reload · SMAA');
     row('meter', ['on', 'off'], dbg.meter ? 'on' : 'off', (v) => { dbg.meter = v === 'on'; });
-    row('rdbg', ['on', 'off'], dbg.rdbg ? 'on' : 'off', (v) => { dbg.rdbg = v === 'on'; });
-    row('keep', ['on', 'off'], dbg.keepalive ? 'on' : 'off', (v) => { dbg.keepalive = v === 'on'; }, 'silent audio: iOS keeps us warm?');
     const reload = document.createElement('button'); reload.type = 'button'; reload.textContent = 'RELOAD';
     Object.assign(reload.style, { display: 'block', marginTop: '8px', padding: '8px 14px', font: '700 13px Rajdhani, sans-serif', letterSpacing: '0.2em', background: '#ff7a6b', color: '#000', border: '0' } as CSSStyleDeclaration);
     reload.onclick = () => { const u = new URL(location.href); u.searchParams.set('v', Date.now().toString(36)); location.replace(u.toString()); };
