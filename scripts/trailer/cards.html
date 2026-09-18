@@ -1,0 +1,31 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; width: 1600px; height: 900px; background: #070a0f; overflow: hidden; }
+  .card { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; color: #e8eef6; font-family: Rajdhani, sans-serif; text-align: center;
+    background: radial-gradient(ellipse at 50% 60%, #0d1622 0%, #070a0f 70%); }
+  .card.on { display: flex; }
+  .card::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px); pointer-events: none; }
+  .word { font-weight: 700; font-size: 128px; letter-spacing: 0.12em; line-height: 1; }
+  .word b { color: #8fe3ff; font-weight: 700; }
+  .rule { width: 120px; height: 3px; background: #8fe3ff; margin: 26px auto 22px; }
+  .tag { font-family: 'JetBrains Mono', monospace; font-size: 22px; letter-spacing: 0.32em; color: #8b96a6; text-transform: uppercase; }
+  .big { font-weight: 600; font-size: 72px; letter-spacing: 0.06em; line-height: 1.15; max-width: 1200px; }
+  .big em { font-style: normal; color: #8fe3ff; }
+  .small { font-family: 'JetBrains Mono', monospace; font-size: 20px; letter-spacing: 0.24em; color: #6c7684; text-transform: uppercase; margin-top: 28px; }
+  .chip { position: absolute; top: 44px; left: 56px; font-family: 'JetBrains Mono', monospace; font-size: 15px; letter-spacing: 0.22em; color: #8fe3ff; border: 1px solid rgba(143,227,255,0.45); padding: 10px 16px; background: rgba(12,20,30,0.7); text-transform: uppercase; }
+  .chip i { display: inline-block; width: 8px; height: 8px; background: #ffb347; border-radius: 50%; margin-right: 10px; vertical-align: 1px; }
+  .url { font-family: 'JetBrains Mono', monospace; font-size: 26px; letter-spacing: 0.1em; color: #8fe3ff; margin-top: 34px; }
+</style></head><body>
+<div class="card" id="title"><div class="word">PROJECT <b>WILDSHARD</b></div><div class="rule"></div><div class="tag">A world that does not exist yet, arriving one chunk at a time</div></div>
+<div class="card" id="vision"><div class="big">Every chunk is <em>built by a player</em>.<br>In Claude Code. Uploaded. Played by everyone.</div></div>
+<div class="card" id="chunk1"><div class="chip"><i></i>chunk 001 · pine-hollow · (+3, −2)</div><div class="big">Chunk 001<br><em>Pine Hollow</em></div><div class="small">boreal forest · crossbow · deer, boar, elk, bear</div></div>
+<div class="card" id="chunk2"><div class="chip"><i></i>chunk 002 · driftwood-isle · (−1, +6)</div><div class="big">Chunk 002<br><em>Driftwood Isle</em></div><div class="small">low-poly island · sword · swim, dive · super experimental</div></div>
+<div class="card" id="built"><div class="big">Built in <em>one night</em>.<br>From a mockup to a phone.</div><div class="small">129 commits · 25 deploys · 9 agents · 1 player</div></div>
+<div class="card" id="end"><div class="word">PROJECT <b>WILDSHARD</b></div><div class="rule"></div><div class="big" style="font-size:54px">Build your chunk. <em>Upload it.</em> Play everyone's.</div><div class="url">wildshard-singleplayer.vercel.app</div></div>
+<script>
+  const id = new URLSearchParams(location.search).get('card') || 'title';
+  document.getElementById(id).classList.add('on');
+</script>
+</body></html>

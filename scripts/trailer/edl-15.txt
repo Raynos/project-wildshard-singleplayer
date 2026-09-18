@@ -1,0 +1,12 @@
+card title 1.0
+vision citadel.mp4 1 1.2
+shot pine-trail 70 27
+shot pier-walk 100 36
+shot planet 140 30
+shot combo 10 42
+shot dive 66 27
+shot bridge 70 30
+shot wreck 110 45
+shot shrine 110 30
+shot hero 40 30
+card end 2.8
