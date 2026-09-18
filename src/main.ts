@@ -12,6 +12,7 @@ import { Hut } from './world/Hut';
 import { Palms } from './world/Palms';
 import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE } from './chunks/driftwood-isle';
 import { RopeBridge } from './world/RopeBridge';
+import { Seabed } from './world/Seabed';
 import { Lookout } from './world/Lookout';
 import { Wreck } from './world/Wreck';
 import { Shrine } from './world/Shrine';
@@ -85,7 +86,7 @@ async function main() {
   const respawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
 
   // ── world dressing ──
-  const { boundary, water, ocean, pier, jetties, boat, palms, hut, lookout, wreck, shrine, bushes, gulls, bridge, horizon } = await step('edge', () => {
+  const { boundary, water, ocean, pier, jetties, boat, palms, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon } = await step('edge', () => {
     const boundary = new Boundary(sky).build();
     game.scene.add(boundary.group);
     const water = !isOcean && hasPond() ? new Water(sky).build() : null;
@@ -145,12 +146,15 @@ async function main() {
     // the swaying rope bridge over the tidal creek on the hut → lookout path
     const bridge = isOcean ? new RopeBridge(sky, BRIDGE).build() : null;
     if (bridge) { game.scene.add(bridge.mesh); player.colliders.push(...bridge.colliders); player.platforms.push((x, z) => bridge.floorHeightAt(x, z)); }
+    // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
+    const seabed = isOcean ? new Seabed(sky).build(Seabed.scatterLagoon(chunk.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }])) : null;
+    if (seabed) { game.scene.add(seabed.mesh); if (seabed.fish) game.scene.add(seabed.fish); }
     // coconut palms (one draw call, fronds sway in update)
     const palms = isOcean ? new Palms(sky).build(Palms.scatterIsland(chunk.seed, undefined, AVOID)) : null;
     if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
-    return { boundary, water, ocean, pier, jetties, boat, palms, hut, lookout, wreck, shrine, bushes, gulls, bridge, horizon };
+    return { boundary, water, ocean, pier, jetties, boat, palms, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon };
   });
 
   const { grass, under, particles } = await step('grass', () => {
@@ -296,6 +300,8 @@ async function main() {
       : isOcean && heightAt(player.position.x, player.position.z) - chunk.ocean!.level < 2.6 ? 'sand' : 'litter'));
   if (gulls) gulls.onCall = (pos) => audio.gullCallAt(pos, player.position, player.yaw);
   player.onEnterWater = (impact) => audio.splash(impact);
+  player.onSubmerge = () => { audio.dive(); audio.setUnderwater(true); };
+  player.onSurface = () => { audio.surface(); audio.setUnderwater(false); };
   player.onExitWater = () => audio.waterExit();
   player.onStroke = () => audio.swimStroke();
   player.onJump = () => audio.jump();
@@ -350,6 +356,7 @@ async function main() {
     palms?.update(dt);
     gulls?.update(dt, player.position);
     bridge?.update(dt);
+    seabed?.update(dt);
     hands.update(dt, player);
     horizon.update(dt, game.camera);
     grass?.update(dt, player.position);
