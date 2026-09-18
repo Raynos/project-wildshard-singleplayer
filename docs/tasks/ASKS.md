@@ -48,6 +48,7 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | 34 | Port trials-gauntlet's **asks process** so chat asks persist durably | **done** | this file; `AGENTS.md` bullet; `.claude/hooks/session-brief.sh` + `.claude/settings.json` SessionStart |
 | 35 | "Current build is pretty badly damaged, I'll wait for a deploy" | **done** | `b-mu6f75ka` (loading fix + perf) then `b-mu6fmkqb` (CSS split, tap-to-fire, AIM toggle, 2× speed, Pine Hollow heroes on the def) |
 | 36 | **Iron sights rebuilt to match mockup A** — 859379d rejected ("does nothing about aiming down the iron sights"): camera must look down the bolt axis, tip just below centre, string at the bottom, limbs mid-height | **done** | `9597753` — ADS pose solved at runtime from the bolt/nut geometry + FOV per aspect (`src/player/Crossbow.ts`, rotation 0, tip at NDC (0, −0.12), nut just in front of the near plane; limbs ±0.63 desktop, edge to edge portrait; bolts fly the eye→tip ray so the impact projects on the tip) |
+| 37 | **Hoverboard mode + toggle button; walk speed back to 1×** ("double run speed feels silly now") | **done** | `c3632f2` (landed inside that commit — its message says iron sights; the hoverboard diff is in it): `Player.ts` 2.2 / 7.2 / 4.3 m/s again; hover = `H` / HOVER touch button (latched), 14 m/s cruise, 0.45 m ride height, ≤ 6° roll; `src/player/Hoverboard.ts` viewmodel |
 
 | K2 | One HOLO SURVEY HUD edit of base-phone; save art/hud-K2-holosurvey.png | **done** | art/hud-K2-holosurvey.png; built-in imagegen single generation |
 
