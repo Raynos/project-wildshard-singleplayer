@@ -47,6 +47,7 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | 33 | **The flow**: startup/reload → loading (always) → main menu = chunk selection → Enter → Pause → Exit → chunk selection **without** reload or loading screen | **in flight** | prototype 1: world pause/mute + `hud.onExitToMenu`; this session: HUD re-shows the intro, never reloads |
 | 34 | Port trials-gauntlet's **asks process** so chat asks persist durably | **done** | this file; `AGENTS.md` bullet; `.claude/hooks/session-brief.sh` + `.claude/settings.json` SessionStart |
 | 35 | "Current build is pretty badly damaged, I'll wait for a deploy" | **done** | `b-mu6f75ka` (loading fix + perf) then `b-mu6fmkqb` (CSS split, tap-to-fire, AIM toggle, 2× speed, Pine Hollow heroes on the def) |
+| 36 | **Iron sights rebuilt to match mockup A** — 859379d rejected ("does nothing about aiming down the iron sights"): camera must look down the bolt axis, tip just below centre, string at the bottom, limbs mid-height | **in flight** | this session: ADS pose solved at runtime from the bolt/nut geometry + FOV per aspect (`src/player/Crossbow.ts`) |
 
 | K2 | One HOLO SURVEY HUD edit of base-phone; save art/hud-K2-holosurvey.png | **done** | art/hud-K2-holosurvey.png; built-in imagegen single generation |
 

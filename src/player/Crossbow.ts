@@ -9,7 +9,8 @@ import { CHUNK_HALF } from '../core/config';
 
 /**
  * Crossbow — first-person hero weapon: procedural medieval hunting crossbow viewmodel,
- * physical bolt projectiles, impact puffs, ADS (iron sights: the weapon centred, bolt tip on the aim line, no zoom), recoil and reload.
+ * physical bolt projectiles, impact puffs, ADS (iron sights: cheek on the stock, the camera looking straight down the
+ * bolt with its tip a hair below centre — the pose is solved from the geometry and the camera per aspect, no zoom), recoil and reload.
  *
  *   const crossbow = new Crossbow({ game, sky, player, forest }, targets?, { allowUnlocked?: boolean });
  *   game.onUpdate((dt, t) => crossbow.update(dt, t));   // register AFTER player.update
@@ -63,6 +64,12 @@ function fovForAspect(base: number, aspect: number) {
   return THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(base) / 2) / Math.sqrt(aspect)));
 }
 const KICK_PITCH = THREE.MathUtils.degToRad(0.8);
+/** Iron sights: the camera looks straight down the bolt axis (model rotation 0, cheek on the stock) and the pose is
+ *  SOLVED from the geometry + the camera's FOV/aspect, not tuned: the loaded bolt's tip is put at ADS_TIP_NDC (a hair
+ *  below centre, the approved mockup) and the model is slid toward the eye until the nut/string reaches
+ *  ADS_NUT_NDC_Y (just inside the bottom edge) or the near plane stops it — that fixes the eye height above the rail
+ *  (~5 cm) and the depth, and the limb span falls out (≈ ±0.5 landscape, edge to edge on a 94° portrait). */
+const ADS_TIP_NDC_Y = -0.12, ADS_NUT_NDC_Y = -0.85, ADS_NEAR_MARGIN = 0.03, ADS_PITCH = 0, ADS_BLEND_TIME = 0.18, ADS_MOTION = 0.3;
 const BODY_DAMAGE = 55, HEAD_DAMAGE = 130;
 
 // ───────────────────────────── procedural noise / textures ─────────────────────────────
@@ -523,6 +530,11 @@ export class Crossbow {
   private lastYaw = 0; private lastPitch = 0; private lagYaw = 0; private lagYawVel = 0; private lagPitch = 0; private lagPitchVel = 0;
   private posePos = new THREE.Vector3(); private poseRot = new THREE.Euler(); private poseInit = false;
   private adsBlend = 0; private sprintBlend = 0; private reloadTilt = 0;
+  /** loaded bolt's broadhead tip, in model space (measured from the bolt geometry) and bolt-local */
+  private tipModel = new THREE.Vector3(); private tipLocal = new THREE.Vector3();
+  private adsCache = { aspect: 0, fov: 0, scale: 0 };
+  /** the solved iron-sights pose + the numbers behind it (dev / verification: `__world.crossbow.adsPose`) */
+  readonly adsPose = { px: 0, py: 0, pz: 0, rx: ADS_PITCH, scale: 0, tipDepth: 0, eyeAboveRail: 0, nutDepth: 0, nutNdcY: 0, limbNdcX: 0, tipNdcY: ADS_TIP_NDC_Y };
 
   // projectiles
   private bolts: Bolt[] = [];
@@ -715,6 +727,9 @@ export class Crossbow {
     this.loadedBolt = new THREE.Mesh(this.boltGeo, this.boltMat);
     this.loadedBolt.position.set(0, 0.0095, 0.128 - 0.18);
     this.model.add(this.loadedBolt);
+    this.boltGeo.computeBoundingBox();
+    this.tipLocal.set(0, 0, this.boltGeo.boundingBox!.min.z);
+    this.tipModel.copy(this.tipLocal).add(this.loadedBolt.position);
 
     // depth-clear so the viewmodel never clips into world geometry; render after everything opaque
     // The clearer and the viewmodel live in the *transparent* queue (renderOrder 999/1000) so the
@@ -744,25 +759,61 @@ export class Crossbow {
     }
   }
 
+  /** world position of the loaded bolt's broadhead tip (the iron sight) */
+  tipWorld(out: THREE.Vector3) { return this.loadedBolt.localToWorld(out.copy(this.tipLocal)); }
+  /** The aim line: from the hip the camera forward (crosshair); sighted, the eye→tip ray — what the tip covers is
+   *  what the bolt hits (the tip sits a hair below centre, so the sight line is a few degrees under the forward). */
+  aimRay(origin: THREE.Vector3, dir: THREE.Vector3) {
+    const cam = this.game.camera, a = sstep(0, 1, this.adsBlend);
+    cam.getWorldDirection(dir);
+    origin.copy(cam.position);
+    if (a > 0.001) { this.tipWorld(_v1).sub(cam.position).normalize(); dir.lerp(_v1, a).normalize(); }
+    return dir;
+  }
+
   private spawnBolt() {
     let b = this.bolts.find((x) => !x.active);
     if (!b) { b = this.bolts.reduce((a, x) => (x.age > a.age ? x : a)); }
-    const cam = this.game.camera;
-    cam.getWorldDirection(_fwd);
+    const cam = this.game.camera, a = sstep(0, 1, this.adsBlend);
+    this.aimRay(_v3, _fwd);
     // spread: tight at ADS, a touch wider from the hip
-    const spread = THREE.MathUtils.degToRad(0.15 + (1 - this.adsBlend) * 0.6);
+    const spread = THREE.MathUtils.degToRad(0.15 + (1 - a) * 0.6);
     _dir.copy(_fwd);
     _v1.set((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2).cross(_fwd).normalize();
     _dir.addScaledVector(_v1, Math.tan(spread * Math.random())).normalize();
-    // start where the rail bolt is (so it visibly leaves the weapon) but travel along the aim line
+    // hip: start where the rail bolt is (so it visibly leaves the weapon) pulled most of the way onto the aim line;
+    // sighted: from the tip itself, which lies on the sight ray, so the flight stays under the tip all the way out
     this.loadedBolt.getWorldPosition(this.spawnPos);
-    _v2.copy(cam.position).addScaledVector(_fwd, 0.35);
-    b.pos.copy(this.spawnPos).lerp(_v2, this.adsBlend * 0.8);
+    cam.getWorldDirection(_v2).multiplyScalar(0.35).add(cam.position);
+    this.spawnPos.lerp(_v2, 0.8);
+    b.pos.copy(this.spawnPos).lerp(this.tipWorld(_v2), a);
     b.vel.copy(_dir).multiplyScalar(BOLT_SPEED);
     b.active = true; b.age = 0; b.roll = 0;
     b.mesh.visible = true;
     b.mesh.position.copy(b.pos);
     b.mesh.quaternion.setFromUnitVectors(NEG_Z, _dir);
+  }
+
+  /**
+   * Iron-sights pose, derived once per (aspect, fov, scale): model rotation is (ADS_PITCH, 0, 0) so the bolt runs
+   * parallel to the camera forward, and the translation puts the tip on the ray to NDC (0, ADS_TIP_NDC_Y).
+   * With the tip depth D and the eye h above the bolt: h = -ADS_TIP_NDC_Y·tan(fov/2)·D. The nut sits A = (nut.z - tip.z)·scale
+   * behind the tip, at depth D - A; asking for it at ADS_NUT_NDC_Y gives one linear equation in D. The near plane
+   * (+ margin) caps how close the nut may come, which is what limits the 94° portrait frame.
+   */
+  private solveAds(cam: THREE.PerspectiveCamera, scale: number) {
+    const c = this.adsCache, o = this.adsPose;
+    if (c.aspect === cam.aspect && c.fov === cam.fov && c.scale === scale) return o;
+    c.aspect = cam.aspect; c.fov = cam.fov; c.scale = scale;
+    const tv = Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2), th = tv * cam.aspect;
+    const tip = this.tipModel, nut = this.nockDrawn;
+    const ty = tip.y * scale, ny = nut.y * scale, A = (nut.z - tip.z) * scale;
+    let D = (ny - ty + ADS_NUT_NDC_Y * tv * A) / ((ADS_NUT_NDC_Y - ADS_TIP_NDC_Y) * tv);
+    D = Math.max(D, cam.near + ADS_NEAR_MARGIN + A);
+    o.px = 0; o.py = ADS_TIP_NDC_Y * tv * D - ty; o.pz = -D - tip.z * scale; o.rx = ADS_PITCH; o.scale = scale;
+    o.tipDepth = D; o.eyeAboveRail = -o.py; o.nutDepth = D - A; o.nutNdcY = (ny + o.py) / ((D - A) * tv);
+    o.limbNdcX = (this.tipR.x * scale) / (-(this.tipR.z * scale + o.pz) * th);
+    return o;
   }
 
   // ── per-frame ──
@@ -798,7 +849,7 @@ export class Crossbow {
 
     // ADS + FOV
     this.state.ads = (this.mouseAds || this.adsHeld) && this.enabled && !this.state.reloading && !p.sprinting;
-    this.adsBlend += ((this.state.ads ? 1 : 0) - this.adsBlend) * Math.min(1, dt * 9);
+    { const step = dt / ADS_BLEND_TIME; this.adsBlend = clamp01(this.adsBlend + THREE.MathUtils.clamp((this.state.ads ? 1 : 0) - this.adsBlend, -step, step)); }
     const targetFov = fovForAspect(FOV_HIP + (FOV_ADS - FOV_HIP) * sstep(0, 1, this.adsBlend), cam.aspect);
     if (Math.abs(targetFov - this.fov) > 0.01) {
       this.fov = targetFov; cam.fov = this.fov; cam.updateProjectionMatrix(); this.sky.csm.updateFrustums();
@@ -829,38 +880,37 @@ export class Crossbow {
     this.reloadTilt += (rl - this.reloadTilt) * Math.min(1, dt * 10);
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
     const a = sstep(0, 1, this.adsBlend), sp = this.sprintBlend * (1 - portrait * 0.7), rt = this.reloadTilt; // portrait: the sprint swing would fill the frame
-    // hip: lower-right (Skyrim). ADS: iron sights — the stock centred and seen from just above along the rail, so the
-    // loaded bolt's tip sits on the camera axis (a hair below centre) and IS the sight: bolts fly along the camera
-    // forward from it (spawnBolt), so at range they land on the tip. Limbs span ~60 % of the width, no yaw/roll.
-    // Landscape numbers; portrait (Hor+ 94° tall frame, model at 0.71×) is tuned on its own via `portrait` and
-    // pre-divided by the hip portrait scaling applied below so the final pose is exactly these values.
-    const adsY = THREE.MathUtils.lerp(-0.065, -0.102, portrait) / (1 + portrait * 0.7);
-    const adsZ = THREE.MathUtils.lerp(-0.31, -0.58, portrait) / (1 + portrait * 1.5);
-    const adsRx = THREE.MathUtils.lerp(0.14, 0.56, portrait); // portrait: steeper from above so the short stock still runs off the bottom edge
-    let px = THREE.MathUtils.lerp(0.12, 0.0, a), py = THREE.MathUtils.lerp(-0.165, adsY, a), pz = THREE.MathUtils.lerp(-0.27, adsZ, a);
-    let rx = THREE.MathUtils.lerp(0.035, adsRx, a), ry = THREE.MathUtils.lerp(0.13, 0.0, a), rz = THREE.MathUtils.lerp(0.04, 0.0, a);
+    // portrait phone: the wider FOV + narrow frame make the bow fill the screen — hold it lower, further out, smaller
+    const port = portrait, scale = 1.35 * (1 - port * 0.55);
+    // shared motion: breathing / idle sway, walk bob (counter-phase to the camera bob → the weapon feels heavy),
+    // look lag (spring), recoil. The hip takes it in full, the sights ~30 % (ADS_MOTION) so the tip stays on the aim line.
+    const swX = Math.sin(t * 0.7) * 0.0025, swY = Math.sin(t * 1.1) * 0.002, swRz = Math.sin(t * 0.5) * 0.006;
+    const sf = p.speedFactor;
+    const bobX = Math.cos(p.bobTime) * 0.016 * sf, bobY = -Math.abs(Math.sin(p.bobTime)) * 0.012 * sf, bobRz = Math.cos(p.bobTime) * 0.02 * sf, bobRx = Math.sin(p.bobTime * 2) * 0.01 * sf;
+    const lagX = this.lagYaw * 0.25, lagY = this.lagPitch * 0.2, lagRy = this.lagYaw, lagRx = this.lagPitch;
+    const rc = this.recoil;
+    // hip: lower-right (Skyrim)
+    let px = 0.12, py = -0.165, pz = -0.27, rx = 0.035, ry = 0.13, rz = 0.04;
     // sprint: drop and swing across the body
     px += sp * -0.05; py += sp * -0.09; pz += sp * 0.04; rx += sp * 0.32; ry += sp * 0.45; rz += sp * -0.15;
     // reload: tilt the bow up-left to reach the string, crank shake
     const crank = this.state.reloading ? Math.sin(this.state.reloadProgress * Math.PI * 14) * (this.state.reloadProgress > 0.15 && this.state.reloadProgress < 0.8 ? 1 : 0) : 0;
     px += rt * -0.06; py += rt * -0.05; pz += rt * 0.02; rx += rt * 0.35 + crank * 0.008; ry += rt * -0.28; rz += rt * 0.42 + crank * 0.012;
-    // breathing / idle sway
-    px += Math.sin(t * 0.7) * 0.0025 * (1 - a * 0.7); py += Math.sin(t * 1.1) * 0.002 * (1 - a * 0.7); rz += Math.sin(t * 0.5) * 0.006 * (1 - a);
-    // walk bob (counter-phase to the camera bob → the weapon feels heavy); ~30 % of it while sighted
-    const sf = p.speedFactor * (1 - a * 0.7);
-    px += Math.cos(p.bobTime) * 0.016 * sf; py += -Math.abs(Math.sin(p.bobTime)) * 0.012 * sf; rz += Math.cos(p.bobTime) * 0.02 * sf; rx += Math.sin(p.bobTime * 2) * 0.01 * sf;
-    // look lag (~30 % while sighted so the tip stays on the aim line)
-    const lag = 1 - a * 0.7;
-    ry += this.lagYaw * lag; rx += this.lagPitch * lag; px += this.lagYaw * 0.25 * lag; py += this.lagPitch * 0.2 * lag;
-    // recoil
-    pz += this.recoil * 0.07; py += this.recoil * 0.015; rx += this.recoil * 0.12; rz += this.recoil * -0.03;
-
-    if (this.inspect) { px = 0.02; py = -0.02; pz = -0.42; rx = 0.35; ry = 0.9 + Math.sin(t * 0.25) * 0.5; rz = 0.1; }
-    // portrait phone: the wider FOV + narrow frame make the bow fill the screen — hold it lower, further out, smaller
-    const port = portrait;
+    px += swX + bobX + lagX; py += swY + bobY + lagY; rz += swRz + bobRz; rx += bobRx + lagRx; ry += lagRy;
+    pz += rc * 0.07; py += rc * 0.015; rx += rc * 0.12; rz += rc * -0.03;
     // target: the whole prod visible inside ~60 % of the screen width (prod ≈ 0.68 m × scale at |pz| + 0.3 × scale)
     px *= 1 - port * 0.25; py *= 1 + port * 0.7; pz *= 1 + port * 1.5;
-    this.model.scale.setScalar(1.35 * (1 - port * 0.55));
+    // iron sights: cheek on the stock, looking straight down the bolt — pose solved from the geometry (solveAds);
+    // recoil kicks the muzzle up but barely back, the nut is already a hair in front of the near plane
+    if (a > 0) {
+      const ads = this.solveAds(cam, scale), m = ADS_MOTION;
+      const ax = ads.px + (swX + bobX + lagX) * m, ay = ads.py + (swY + bobY + lagY) * m + rc * 0.01, az = ads.pz + rc * 0.015;
+      const arx = ads.rx + (bobRx + lagRx) * m + rc * 0.1, ary = lagRy * m, arz = (swRz + bobRz) * m + rc * -0.02;
+      px += (ax - px) * a; py += (ay - py) * a; pz += (az - pz) * a; rx += (arx - rx) * a; ry += (ary - ry) * a; rz += (arz - rz) * a;
+    }
+
+    if (this.inspect) { px = 0.02; py = -0.02; pz = -0.42; rx = 0.35; ry = 0.9 + Math.sin(t * 0.25) * 0.5; rz = 0.1; }
+    this.model.scale.setScalar(scale);
     const sm = this.poseInit ? Math.min(1, dt * 14) : 1; this.poseInit = true;
     this.posePos.x += (px - this.posePos.x) * sm; this.posePos.y += (py - this.posePos.y) * sm; this.posePos.z += (pz - this.posePos.z) * sm;
     this.poseRot.x += (rx - this.poseRot.x) * sm; this.poseRot.y += (ry - this.poseRot.y) * sm; this.poseRot.z += (rz - this.poseRot.z) * sm;
@@ -869,8 +919,9 @@ export class Crossbow {
 
     // aim readout
     if (this.targets && (++this.aimFrame & 3) === 0) {
-      cam.getWorldDirection(_fwd);
-      const hit = this.targets.raycast(cam.position, _fwd, 120);
+      this.model.updateMatrixWorld(); // the pose was just set; the sight ray goes through the tip
+      this.aimRay(_v3, _fwd);
+      const hit = this.targets.raycast(_v3, _fwd, 120);
       if (hit && hit.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; this.aimInfo = this.aimCache; }
       else this.aimInfo = null;
     }
