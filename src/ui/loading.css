@@ -1,4 +1,5 @@
 /* Loading screen facts panel (src/ui/Loading.ts). Base panel/wordmark styles live in hud.css. */
+.ws-loading .ws-loading-meta-1 { grid-template-columns: 1fr; margin: 10px 0 8px; }
 .ws-loading .ws-ptitle { display: flex; align-items: baseline; }
 .ws-loading .ws-ptitle b { margin-left: 6px; }
 .ws-loading .ws-loading-clock { margin-left: auto; font-family: var(--ws-mono); font-size: 13px; letter-spacing: 0.08em; color: var(--ws-cyan); font-weight: 400; }

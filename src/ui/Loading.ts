@@ -1,4 +1,3 @@
-import { CHUNK_SIZE } from '../core/config';
 import { getActiveChunk } from '../chunks/registry';
 import { formatMB, type ProgressView } from '../boot/plan';
 import { TIER } from '../core/tier';
@@ -31,11 +30,8 @@ export class Loading {
       <div class="ws-loading-body">
         <div class="ws-glass ws-loading-panel">
           <div class="ws-ptitle">Loading chunk · <b>${chunk.slug}</b><span class="ws-loading-clock" data-el="clock">00:00.0</span></div>
-          <div class="ws-loading-meta">
-            <div><span>chunk</span><span>${chunk.id}</span></div>
-            <div><span>grid</span><span>${chunk.gridCoords}</span></div>
-            <div><span>size</span><span>${CHUNK_SIZE} m × ${CHUNK_SIZE} m</span></div>
-            <div><span>tier</span><span>${TIER} · ${Math.round(innerWidth * devicePixelRatio)}×${Math.round(innerHeight * devicePixelRatio)}</span></div>
+          <div class="ws-loading-meta ws-loading-meta-1">
+            <div><span>tier</span><span>${TIER} · ${Math.round(innerWidth * devicePixelRatio)}×${Math.round(innerHeight * devicePixelRatio)} · ${navigator.hardwareConcurrency ?? '?'} cores${window.__ws_sw ? ' · offline cache' : ''}</span></div>
           </div>
           <div class="ws-track">
             <div class="ws-track-row"><span class="ws-track-name">download</span><span class="ws-track-fact" data-el="dlFact">—</span><span class="ws-track-pct" data-el="dlPct">0</span></div>
