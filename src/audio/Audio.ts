@@ -330,28 +330,6 @@ export class Audio {
         this.burst({ t, type: 'bandpass', freq: 2200, q: 0.7, gain: 0.25, attack: 0.02, hold: 0.2, decay: 0.3, out: bus });
         break;
       }
-      case 'elk_bugle': { // bull elk bugle (~1.5 s): a breathy whistle climbing an octave and a half, holding, then dropping into a chesty bellow + grunts
-        const rise = rnd(0.45, 0.6), hold = rnd(0.35, 0.5), fall = rnd(0.3, 0.45);
-        const top = rnd(1350, 1650);
-        // the whistle: a near-sine with a faint harmonic, slow wide vibrato once it reaches the top
-        this.tone({ t, type: 'sine', f0: top * 0.42, f1: top, glide: rise, gain: 0.55, attack: 0.08, hold: rise + hold - 0.08, decay: 0.06, vibrato: { rate: 5.5, depth: 28 }, out: bus });
-        this.tone({ t, type: 'triangle', f0: top * 0.42, f1: top, glide: rise, gain: 0.16, attack: 0.08, hold: rise + hold - 0.08, decay: 0.06, vibrato: { rate: 5.5, depth: 28 }, lowpass: 4200, out: bus });
-        // breath around the whistle
-        this.burst({ t, type: 'bandpass', freq: top * 0.6, freqEnd: top * 1.1, q: 2.5, gain: 0.14, attack: 0.1, hold: rise + hold - 0.1, decay: 0.1, out: bus });
-        // the drop: the whistle breaks into a rasping bellow that slides down into the chest
-        const tb = t + rise + hold;
-        this.tone({ t: tb, type: 'sawtooth', f0: top * 0.55, f1: 180, glide: fall, gain: 0.5, attack: 0.02, hold: 0.05, decay: fall, vibrato: { rate: 18, depth: 40 }, lowpass: 2600, out: bus });
-        this.tone({ t: tb + 0.04, type: 'sawtooth', f0: 320, f1: 110, glide: fall, gain: 0.45, attack: 0.03, decay: fall + 0.1, vibrato: { rate: 12, depth: 14 }, lowpass: 900, out: bus });
-        this.burst({ t: tb, type: 'bandpass', freq: 1400, freqEnd: 400, q: 0.8, gain: 0.22, attack: 0.02, decay: fall, out: bus });
-        // two or three chuckle-grunts on the tail
-        const n = 2 + Math.floor(rnd(0, 1.9));
-        for (let i = 0; i < n; i++) {
-          const ti = tb + fall + 0.05 + i * rnd(0.14, 0.2);
-          this.tone({ t: ti, type: 'sawtooth', f0: rnd(120, 150), f1: 85, glide: 0.1, gain: 0.4, attack: 0.015, hold: 0.03, decay: 0.09, lowpass: 700, out: bus });
-          this.burst({ t: ti, type: 'lowpass', freq: 500, gain: 0.3, attack: 0.01, hold: 0.02, decay: 0.08, out: bus });
-        }
-        break;
-      }
       case 'bear_growl': { // low chesty huff-growl: a slow sawtooth rumble under a breathy lowpass exhale, one or two huffs
         const n = 1 + Math.floor(rnd(0, 1.8));
         for (let i = 0; i < n; i++) {
@@ -399,6 +377,28 @@ export class Audio {
       src.connect(f).connect(lp).connect(g);
       const p = c.createStereoPanner(); p.pan.value = pan;
       g.connect(p).connect(this.ambient);
+      case 'elk_bugle': { // bull elk bugle (~1.5 s): a breathy whistle climbing an octave and a half, holding, then dropping into a chesty bellow + grunts
+        const rise = rnd(0.45, 0.6), hold = rnd(0.35, 0.5), fall = rnd(0.3, 0.45);
+        const top = rnd(1350, 1650);
+        // the whistle: a near-sine with a faint harmonic, slow wide vibrato once it reaches the top
+        this.tone({ t, type: 'sine', f0: top * 0.42, f1: top, glide: rise, gain: 0.55, attack: 0.08, hold: rise + hold - 0.08, decay: 0.06, vibrato: { rate: 5.5, depth: 28 }, out: bus });
+        this.tone({ t, type: 'triangle', f0: top * 0.42, f1: top, glide: rise, gain: 0.16, attack: 0.08, hold: rise + hold - 0.08, decay: 0.06, vibrato: { rate: 5.5, depth: 28 }, lowpass: 4200, out: bus });
+        // breath around the whistle
+        this.burst({ t, type: 'bandpass', freq: top * 0.6, freqEnd: top * 1.1, q: 2.5, gain: 0.14, attack: 0.1, hold: rise + hold - 0.1, decay: 0.1, out: bus });
+        // the drop: the whistle breaks into a rasping bellow that slides down into the chest
+        const tb = t + rise + hold;
+        this.tone({ t: tb, type: 'sawtooth', f0: top * 0.55, f1: 180, glide: fall, gain: 0.5, attack: 0.02, hold: 0.05, decay: fall, vibrato: { rate: 18, depth: 40 }, lowpass: 2600, out: bus });
+        this.tone({ t: tb + 0.04, type: 'sawtooth', f0: 320, f1: 110, glide: fall, gain: 0.45, attack: 0.03, decay: fall + 0.1, vibrato: { rate: 12, depth: 14 }, lowpass: 900, out: bus });
+        this.burst({ t: tb, type: 'bandpass', freq: 1400, freqEnd: 400, q: 0.8, gain: 0.22, attack: 0.02, decay: fall, out: bus });
+        // two or three chuckle-grunts on the tail
+        const n = 2 + Math.floor(rnd(0, 1.9));
+        for (let i = 0; i < n; i++) {
+          const ti = tb + fall + 0.05 + i * rnd(0.14, 0.2);
+          this.tone({ t: ti, type: 'sawtooth', f0: rnd(120, 150), f1: 85, glide: 0.1, gain: 0.4, attack: 0.015, hold: 0.03, decay: 0.09, lowpass: 700, out: bus });
+          this.burst({ t: ti, type: 'lowpass', freq: 500, gain: 0.3, attack: 0.01, hold: 0.02, decay: 0.08, out: bus });
+        }
+        break;
+      }
       return g;
     };
     this.windGain = mkWind(260, 0.5, -0.55, 0.07, 0.11);
