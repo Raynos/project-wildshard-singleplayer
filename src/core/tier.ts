@@ -30,7 +30,9 @@ export const TIER_CONFIG = {
     // pond planar reflection: render-target width (height = half), and whether the carpet layers reflect
     reflectionWidth: 512, reflectDetail: false,
     // post: god rays samples / resolution scale, volumetric march steps, SMAA preset
-    godRaysSamples: 24, godRaysScale: 0.35, volumetricSteps: 8, smaa: 'low' as 'low' | 'high', bloomLevels: 5,
+    // 3 full-res SMAA passes are the dearest part of the chain and DPR 1.0 is upscaled ×3 on the screen anyway;
+    // volumetrics march at half res into their own target; god rays at a quarter
+    godRaysSamples: 24, godRaysScale: 0.25, volumetricSteps: 8, volumetricScale: 0.5, smaa: 'off' as 'off' | 'low' | 'high', bloomLevels: 4,
   },
   desktop: {
     maxTexture: 4096, layerSize: 1024, dpr: 1.5, ao: true,
@@ -41,6 +43,6 @@ export const TIER_CONFIG = {
     undergrowthFar: 110, propsFar: 700, propsMinAngular: 0.0012,
     cabinDetailDist: 160, sharedCabinLights: false, beaconLights: true,
     reflectionWidth: 1024, reflectDetail: true,
-    godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, smaa: 'high' as 'low' | 'high', bloomLevels: 8,
+    godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, volumetricScale: 1, smaa: 'high' as 'off' | 'low' | 'high', bloomLevels: 8,
   },
 }[TIER];

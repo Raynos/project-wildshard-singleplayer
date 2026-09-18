@@ -72,7 +72,7 @@ export class Game {
       composer.addPass(ao);
     }
 
-    const vol = new VolumetricsEffect(this.camera, makeNoiseTexture(), TIER_CONFIG.volumetricSteps);
+    const vol = new VolumetricsEffect(this.camera, makeNoiseTexture(), TIER_CONFIG.volumetricSteps, TIER_CONFIG.volumetricScale);
     vol.setSun(this.sky.sunDir, new THREE.Color(...A.volumetricSunColor));
     if (this.scene.fog) vol.setFogColor((this.scene.fog as THREE.Fog).color);
     this.volumetrics = vol;
@@ -91,8 +91,10 @@ export class Game {
     grain.blendMode.opacity.value = 0.12;
     composer.addPass(new EffectPass(this.camera, vol));
     composer.addPass(new EffectPass(this.camera, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain));
-    const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
-    composer.addPass(new EffectPass(this.camera, smaa));
+    if (TIER_CONFIG.smaa !== 'off') {
+      const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
+      composer.addPass(new EffectPass(this.camera, smaa));
+    }
     this.composer = composer;
   }
 

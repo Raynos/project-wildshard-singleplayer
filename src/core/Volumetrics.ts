@@ -1,6 +1,55 @@
 import { Effect, EffectAttribute, BlendFunction } from 'postprocessing';
-import { Uniform, Vector3, Matrix4, Color, PerspectiveCamera, Texture, DataTexture, RepeatWrapping, NearestFilter } from 'three';
+import {
+  Uniform, Vector3, Matrix4, Color, PerspectiveCamera, Texture, DataTexture, RepeatWrapping, NearestFilter, LinearFilter,
+  WebGLRenderTarget, HalfFloatType, ShaderMaterial, Mesh, BufferGeometry, Float32BufferAttribute, Scene, OrthographicCamera, WebGLRenderer,
+  type DepthPackingStrategies, BasicDepthPacking,
+} from 'three';
 import { fogUniforms } from '../world/Atmosphere';
+
+/** the march: GLSL shared by the in-place (full-res) effect and the half-res pre-pass */
+const MARCH = (steps: number) => /* glsl */`
+  uniform mat4 uInvView; uniform mat4 uInvProj; uniform mat4 uViewProj;
+  uniform vec3 uCamPos; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform vec3 uFogColor;
+  uniform float uHeight; uniform float uFalloff; uniform float uDensity; uniform float uStrength;
+  uniform sampler2D uNoise; uniform float uFrame;
+
+  float fogAt(vec3 p) { return uDensity * exp(-uFalloff * (p.y - uHeight)); }
+
+  vec3 inscatterAt(const in vec2 uv, const in float depth) {
+    vec4 clip = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
+    vec4 vp = uInvProj * clip; vp /= vp.w;
+    vec3 worldEnd = (uInvView * vec4(vp.xyz, 1.0)).xyz;
+    vec3 ray = worldEnd - uCamPos;
+    float len = min(length(ray), 120.0);
+    vec3 dir = ray / max(length(ray), 1e-3);
+    float sunAmt = max(dot(dir, uSunDir), 0.0);
+    float phase = 0.15 + 0.85 * pow(sunAmt, 6.0);         // forward-scattering lobe
+
+    const int N = ${steps};
+    float jitter = texture2D(uNoise, gl_FragCoord.xy / 64.0 + fract(uFrame * 0.618) ).r;
+    float stepLen = len / float(N);
+    float t = stepLen * (0.25 + 0.5 * jitter);
+    float scatter = 0.0, trans = 1.0;
+    for (int i = 0; i < N; i++) {
+      vec3 p = uCamPos + dir * t;
+      float dens = fogAt(p);
+      // shadow test: is the point lit by the sun? project a point 6 m toward the sun and compare depth
+      vec4 sp = uViewProj * vec4(p + uSunDir * 6.0, 1.0);
+      vec3 sn = sp.xyz / sp.w;
+      float lit = 1.0;
+      if (abs(sn.x) < 1.0 && abs(sn.y) < 1.0 && sp.w > 0.0) {
+        float sceneDepth = readDepth(sn.xy * 0.5 + 0.5);
+        float sceneZ = -getViewZ(sceneDepth);
+        lit = sceneZ < sp.w - 0.5 ? 0.15 : 1.0;
+      }
+      float a = dens * stepLen;
+      scatter += trans * a * lit;
+      trans *= exp(-a);
+      t += stepLen;
+    }
+    // stay subtle away from the sun; the geometry fog already carries the base haze
+    return mix(uFogColor * 0.5, uSunColor, phase) * scatter * uStrength * (0.25 + 0.75 * phase);
+  }`;
 
 /**
  * Screen-space volumetric light: for every pixel, march the view ray (up to the depth buffer)
@@ -10,89 +59,114 @@ import { fogUniforms } from '../world/Atmosphere';
  * with real depth occlusion — the "volumetrics" line in docs/AAA-PLAN.md.
  */
 export class VolumetricsEffect extends Effect {
-  constructor(camera: PerspectiveCamera, private readonly blueNoise: Texture, steps = 14) {
-    super('VolumetricsEffect', /* glsl */`
-      uniform mat4 uInvView; uniform mat4 uInvProj; uniform mat4 uViewProj;
-      uniform vec3 uCamPos; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform vec3 uFogColor;
-      uniform float uHeight; uniform float uFalloff; uniform float uDensity; uniform float uStrength;
-      uniform sampler2D uNoise; uniform float uFrame;
-
-      float fogAt(vec3 p) { return uDensity * exp(-uFalloff * (p.y - uHeight)); }
-
-      void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth, out vec4 outputColor) {
-        float viewZ = getViewZ(depth);
-        vec4 clip = vec4(uv * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
-        vec4 vp = uInvProj * clip; vp /= vp.w;
-        vec3 worldEnd = (uInvView * vec4(vp.xyz, 1.0)).xyz;
-        vec3 ray = worldEnd - uCamPos;
-        float len = min(length(ray), 120.0);
-        vec3 dir = ray / max(length(ray), 1e-3);
-        float sunAmt = max(dot(dir, uSunDir), 0.0);
-        float phase = 0.15 + 0.85 * pow(sunAmt, 6.0);         // forward-scattering lobe
-
-        const int N = ${steps};
-        float jitter = texture2D(uNoise, gl_FragCoord.xy / 64.0 + fract(uFrame * 0.618) ).r;
-        float stepLen = len / float(N);
-        float t = stepLen * (0.25 + 0.5 * jitter);
-        float scatter = 0.0, trans = 1.0;
-        for (int i = 0; i < N; i++) {
-          vec3 p = uCamPos + dir * t;
-          float dens = fogAt(p);
-          // shadow test: is the point lit by the sun? project a point 6 m toward the sun and compare depth
-          vec4 sp = uViewProj * vec4(p + uSunDir * 6.0, 1.0);
-          vec3 sn = sp.xyz / sp.w;
-          float lit = 1.0;
-          if (abs(sn.x) < 1.0 && abs(sn.y) < 1.0 && sp.w > 0.0) {
-            float sceneDepth = readDepth(sn.xy * 0.5 + 0.5);
-            float sceneZ = -getViewZ(sceneDepth);
-            lit = sceneZ < sp.w - 0.5 ? 0.15 : 1.0;
-          }
-          float a = dens * stepLen;
-          scatter += trans * a * lit;
-          trans *= exp(-a);
-          t += stepLen;
-        }
-        // stay subtle away from the sun; the geometry fog already carries the base haze
-        vec3 inscatter = mix(uFogColor * 0.5, uSunColor, phase) * scatter * uStrength * (0.25 + 0.75 * phase);
-        outputColor = vec4(inputColor.rgb + inscatter, inputColor.a);
-      }`, {
+  /**
+   * @param steps  ray-march steps (14 desktop, 8 phone)
+   * @param scale  < 1 → the march runs in a separate render target of this scale (phone: 0.5) and the
+   *               effect only composites it; 1 → the march runs in the effect's own fragment (desktop, as before)
+   */
+  constructor(camera: PerspectiveCamera, private readonly blueNoise: Texture, steps = 14, private readonly scale = 1) {
+    super('VolumetricsEffect', scale < 1
+      ? /* glsl */`
+        uniform sampler2D tScatter;
+        void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth, out vec4 outputColor) {
+          outputColor = vec4(inputColor.rgb + texture2D(tScatter, uv).rgb, inputColor.a);
+        }`
+      : MARCH(steps) + /* glsl */`
+        void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth, out vec4 outputColor) {
+          outputColor = vec4(inputColor.rgb + inscatterAt(uv, depth), inputColor.a);
+        }`, {
       blendFunction: BlendFunction.SRC,
       attributes: EffectAttribute.DEPTH,
-      uniforms: new Map<string, Uniform>([
-        ['uInvView', new Uniform(new Matrix4())],
-        ['uInvProj', new Uniform(new Matrix4())],
-        ['uViewProj', new Uniform(new Matrix4())],
-        ['uCamPos', new Uniform(new Vector3())],
-        ['uSunDir', new Uniform(new Vector3(0, 1, 0))],
-        ['uSunColor', new Uniform(new Color(1, 0.7, 0.4))],
-        ['uFogColor', new Uniform(new Color(0.6, 0.65, 0.75))],
-        ['uHeight', new Uniform(-8)],
-        ['uFalloff', new Uniform(0.12)],
-        ['uDensity', new Uniform(0.0045)],
-        ['uStrength', new Uniform(0.55)],
-        ['uNoise', new Uniform(blueNoise)],
-        ['uFrame', new Uniform(0)],
-      ]),
+      uniforms: new Map<string, Uniform>(scale < 1 ? [['tScatter', new Uniform(null)]] : []),
     });
     this.camera = camera;
+    this.marchUniforms = {
+      uInvView: new Uniform(new Matrix4()),
+      uInvProj: new Uniform(new Matrix4()),
+      uViewProj: new Uniform(new Matrix4()),
+      uCamPos: new Uniform(new Vector3()),
+      uSunDir: new Uniform(new Vector3(0, 1, 0)),
+      uSunColor: new Uniform(new Color(1, 0.7, 0.4)),
+      uFogColor: new Uniform(new Color(0.6, 0.65, 0.75)),
+      uHeight: new Uniform(-8),
+      uFalloff: new Uniform(0.12),
+      uDensity: new Uniform(0.0045),
+      uStrength: new Uniform(0.55),
+      uNoise: new Uniform(blueNoise),
+      uFrame: new Uniform(0),
+    };
+    if (scale < 1) {
+      this.rt = new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false, minFilter: LinearFilter, magFilter: LinearFilter });
+      this.uniforms.get('tScatter')!.value = this.rt.texture;
+      this.marchMat = new ShaderMaterial({
+        uniforms: { ...this.marchUniforms, depthBuffer: new Uniform(null), cameraNear: new Uniform(camera.near), cameraFar: new Uniform(camera.far) },
+        defines: { DEPTH_PACKING: '0' },
+        depthTest: false, depthWrite: false,
+        vertexShader: /* glsl */`varying vec2 vUv; void main() { vUv = position.xy * 0.5 + 0.5; gl_Position = vec4(position.xy, 1.0, 1.0); }`,
+        fragmentShader: /* glsl */`
+          #include <packing>
+          uniform sampler2D depthBuffer; uniform float cameraNear; uniform float cameraFar;
+          varying vec2 vUv;
+          float readDepth(const in vec2 uv) {
+            #if DEPTH_PACKING == 3201
+              return unpackRGBAToDepth(texture2D(depthBuffer, uv));
+            #else
+              return texture2D(depthBuffer, uv).r;
+            #endif
+          }
+          #define getViewZ(depth) perspectiveDepthToViewZ(depth, cameraNear, cameraFar)
+          ${MARCH(steps)}
+          void main() { gl_FragColor = vec4(inscatterAt(vUv, readDepth(vUv)), 1.0); }`,
+      });
+      const tri = new BufferGeometry();
+      tri.setAttribute('position', new Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
+      this.quad = new Mesh(tri, this.marchMat); this.quad.frustumCulled = false;
+      this.marchScene = new Scene(); this.marchScene.add(this.quad);
+    } else {
+      for (const [k, u] of Object.entries(this.marchUniforms)) this.uniforms.set(k, u);
+    }
   }
   private camera: PerspectiveCamera;
   private frame = 0;
   private viewProj = new Matrix4();
+  private marchUniforms: Record<string, Uniform>;
+  private rt: WebGLRenderTarget | null = null;
+  private marchMat: ShaderMaterial | null = null;
+  private quad: Mesh | null = null;
+  private marchScene: Scene | null = null;
+  private marchCam = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-  setSun(dir: Vector3, color: Color) { this.uniforms.get('uSunDir')!.value.copy(dir); this.uniforms.get('uSunColor')!.value.copy(color); }
-  setFogColor(c: Color) { this.uniforms.get('uFogColor')!.value.copy(c); }
+  setSun(dir: Vector3, color: Color) { this.marchUniforms.uSunDir.value.copy(dir); this.marchUniforms.uSunColor.value.copy(color); }
+  setFogColor(c: Color) { this.marchUniforms.uFogColor.value.copy(c); }
 
-  override update() {
-    const cam = this.camera;
-    this.uniforms.get('uInvView')!.value.copy(cam.matrixWorld);
-    this.uniforms.get('uInvProj')!.value.copy(cam.projectionMatrixInverse);
+  override setDepthTexture(depthTexture: Texture, depthPacking: DepthPackingStrategies = BasicDepthPacking) {
+    if (!this.marchMat) return;
+    this.marchMat.uniforms.depthBuffer.value = depthTexture;
+    const packing = String(depthPacking);
+    if (this.marchMat.defines.DEPTH_PACKING !== packing) { this.marchMat.defines.DEPTH_PACKING = packing; this.marchMat.needsUpdate = true; }
+  }
+
+  override setSize(width: number, height: number) {
+    this.rt?.setSize(Math.max(1, Math.round(width * this.scale)), Math.max(1, Math.round(height * this.scale)));
+  }
+
+  override update(renderer: WebGLRenderer) {
+    const cam = this.camera, u = this.marchUniforms;
+    u.uInvView.value.copy(cam.matrixWorld);
+    u.uInvProj.value.copy(cam.projectionMatrixInverse);
     this.viewProj.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
-    this.uniforms.get('uViewProj')!.value.copy(this.viewProj);
-    this.uniforms.get('uCamPos')!.value.copy(cam.position);
-    this.uniforms.get('uHeight')!.value = fogUniforms.fogHeight.value;
-    this.uniforms.get('uFalloff')!.value = fogUniforms.fogHeightFalloff.value;
-    this.uniforms.get('uFrame')!.value = (this.frame++ % 64);
+    u.uViewProj.value.copy(this.viewProj);
+    u.uCamPos.value.copy(cam.position);
+    u.uHeight.value = fogUniforms.fogHeight.value;
+    u.uFalloff.value = fogUniforms.fogHeightFalloff.value;
+    u.uFrame.value = (this.frame++ % 64);
+    if (this.rt && this.marchMat && this.marchScene) {
+      this.marchMat.uniforms.cameraNear.value = cam.near; this.marchMat.uniforms.cameraFar.value = cam.far;
+      const prev = renderer.getRenderTarget();
+      renderer.setRenderTarget(this.rt);
+      renderer.render(this.marchScene, this.marchCam);
+      renderer.setRenderTarget(prev);
+    }
   }
 }
 
