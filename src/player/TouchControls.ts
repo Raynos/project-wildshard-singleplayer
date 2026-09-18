@@ -5,10 +5,12 @@
  *
  * Layout (styled in src/ui/styles/touch.css, prefix `ws-touch-`): a glass control bar across the bottom ~15 % of the screen, split into
  * a MOVE zone (left, anchored stick: push past 85 % while heading forward = sprint) and a LOOK zone (right, drag
- * pad — a TAP on the look pad, under 12 px and 300 ms, fires; a drag only looks). A row of three buttons sits
- * directly above the bar: JUMP · RELOAD · AIM · HOVER (AIM and HOVER are toggles: tap to latch, tap again to release —
- * HOVER steps on / off the hoverboard, `player.setHover`, and mirrors the H key); USE appears
- * in the row only while the HUD has an interact prompt and dispatches the same `KeyE` the keyboard path listens for.
+ * pad — a TAP on the look pad, under 12 px and 300 ms, fires; a drag only looks). Round glass discs sit above the bar
+ * (K1 mockup): AIM over the MOVE pad, JUMP over the LOOK pad, a smaller HOVER between them (AIM and HOVER are toggles:
+ * tap to latch, tap again to release — HOVER steps on / off the hoverboard, `player.setHover`, and mirrors the H key).
+ * There is no RELOAD: `crossbow.tryFire()` spans the bow itself when it is fired empty. USE is a big button above the
+ * discs, shown only while the HUD has an interact prompt; it dispatches the same `KeyE` the keyboard path listens for.
+ * The HUD (HUD.ts) mounts the VITALS / BOLTS strips into the bar's top corners (`.ws-game-vitals` / `.ws-game-bolts`).
  * Move/look touches are only taken inside the bar; the world above it is not a control surface.
  *
  * Talks to the player through `player.touchMove / touchSprint / touchJump` (analog, summed with WASD) and to
@@ -47,12 +49,9 @@ export class TouchControls {
     root.innerHTML = `
       <div class="ws-touch-stick"><i></i></div>
       <button class="ws-touch-use" type="button">Use</button>
-      <div class="ws-touch-btns">
-        <button class="ws-touch-btn jump" type="button">Jump</button>
-        <button class="ws-touch-btn reload" type="button">Reload</button>
-        <button class="ws-touch-btn aim" type="button">Aim</button>
-        <button class="ws-touch-btn hover" type="button">Hover</button>
-      </div>
+      <button class="ws-touch-disc aim" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="1.4"/><path d="M12 1.5v4.5M12 18v4.5M1.5 12H6M18 12h4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Aim</span></button>
+      <button class="ws-touch-disc hover" type="button"><svg viewBox="0 0 24 24"><path d="M2 9.5c0-1.4 1.1-2.5 2.5-2.5h15c1.4 0 2.5 1.1 2.5 2.5S20.9 12 19.5 12h-15C3.1 12 2 10.9 2 9.5z"/><path d="M6 15.5h12M8.5 19h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.7"/></svg><span>Hover</span></button>
+      <button class="ws-touch-disc jump" type="button"><svg viewBox="0 0 24 24"><path d="M12 2.5 4 11h5v10.5h6V11h5z"/></svg><span>Jump</span></button>
       <button class="ws-touch-pause" type="button">Pause</button>
       <div class="ws-touch-bar">
         <div class="ws-touch-zone move"><u></u><span class="ws-touch-label">Move</span></div>
@@ -129,7 +128,6 @@ export class TouchControls {
     const prevHover = this.player.onHoverChange;
     this.player.onHoverChange = (on) => { hover.classList.toggle('on', on); prevHover?.(on); };
     hover.classList.toggle('on', this.player.hover);
-    btn('.reload', () => { if (this.crossbow.enabled) this.crossbow.reload(); });
     btn('.jump', () => { this.player.touchJump = true; });
     btn('.ws-touch-pause', () => document.dispatchEvent(new Event('ws:pause')));
     btn('.ws-touch-use', () => document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e', bubbles: true })));

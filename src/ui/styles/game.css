@@ -154,5 +154,21 @@
   .ws-game-health .ws-game-hrow { gap: 8px; }
   #hud.touch .ws-game-prompt { display: none; } /* touch: the prompt is the big USE button (touch.css) */
 }
-/* touch (P2): vitals + bolts live inside the control bar's corners (below) — the panels are desktop-only */
+/* ─── touch (P2): vitals + bolts live INSIDE the control bar's corners (HUD.ts mounts them into .ws-touch-bar) — the panels are desktop-only ─── */
 #hud.touch .ws-game-health, #hud.touch .ws-game-ammo { display: none; }
+.ws-game-vitals, .ws-game-bolts { position: absolute; top: 8px; display: flex; align-items: center; gap: 7px; height: 22px; pointer-events: none; white-space: nowrap; }
+.ws-game-vitals { left: 12px; }
+.ws-game-bolts { right: 12px; }
+.ws-game-vitals .ws-game-glyph, .ws-game-bolts .ws-game-glyph { display: block; width: 15px; height: 15px; }
+.ws-game-vitals .ws-game-glyph svg, .ws-game-bolts .ws-game-glyph svg { display: block; width: 100%; height: 100%; fill: #fff; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6)); }
+.ws-game-vitals .ws-game-num, .ws-game-bolts .ws-game-num { font-family: var(--ws-display); font-weight: 700; font-size: 21px; line-height: 1; letter-spacing: 0.02em; color: #fff; font-variant-numeric: tabular-nums; }
+.ws-game-bolts .ws-game-num small { font-size: 13px; font-weight: 600; color: rgba(230, 242, 248, 0.8); }
+.ws-game-vitals .ws-game-tiny, .ws-game-bolts .ws-game-tiny { font-size: 7.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-cyan-dim); }
+.ws-game-vitals .ws-game-vbar { position: relative; width: 46px; height: 4px; background: rgba(143, 227, 255, 0.14); overflow: hidden; }
+.ws-game-vitals .ws-game-vbar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ws-cyan); box-shadow: 0 0 8px rgba(143, 227, 255, 0.6); transition: width 0.25s ease-out, background 0.3s; }
+.ws-game-vitals .ws-game-vbar i.low { background: var(--ws-red); box-shadow: 0 0 8px rgba(255, 90, 74, 0.7); }
+.ws-game-bolts .ws-game-segs { display: flex; gap: 3px; }
+.ws-game-bolts .ws-game-segs i { width: 12px; height: 5px; background: var(--ws-cyan); box-shadow: 0 0 6px rgba(143, 227, 255, 0.5); transition: background 0.2s; }
+.ws-game-bolts .ws-game-segs i.off { background: rgba(143, 227, 255, 0.22); box-shadow: none; }
+.ws-game-bolts.reloading .ws-game-segs i:not(.off) { background: var(--ws-amber); box-shadow: 0 0 6px rgba(255, 181, 71, 0.5); animation: ws-blink 0.6s ease-in-out infinite; }
+.ws-game-bolts.empty .ws-game-num { color: var(--ws-red); }

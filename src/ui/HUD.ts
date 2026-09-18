@@ -51,6 +51,8 @@ export function bearingTo(x: number, z: number, tx: number, tz: number) {
   const deg = (Math.atan2(-(tx - x), tz - z) * 180) / Math.PI;
   return ((deg % 360) + 360) % 360;
 }
+const SVG_HEART = '<svg viewBox="0 0 24 24"><path d="M12 21s-7.6-4.7-9.6-9.3C1 8 3.2 4.5 6.7 4.5c2 0 3.6 1.1 5.3 3 1.7-1.9 3.3-3 5.3-3 3.5 0 5.7 3.5 4.3 7.2C19.6 16.3 12 21 12 21z"/></svg>';
+const SVG_BOLT = '<svg viewBox="0 0 24 24"><path d="M21 3l-1.2 7.6-2.2-2.2-9.4 9.4 1.6 1.6-1.6 1.6-1.5-1.5-2.2 2.2-1.4-1.4 2.2-2.2-1.5-1.5 1.6-1.6 1.6 1.6 9.4-9.4-2.2-2.2z"/></svg>';
 const SVG_HOUSE = '<svg viewBox="0 0 24 24"><path d="M12 3 2 12h3v8h5v-6h4v6h5v-8h3z"/></svg>';
 const SVG_PAW = '<svg viewBox="0 0 24 24"><circle cx="4.6" cy="9.6" r="2.4"/><circle cx="9.2" cy="5.2" r="2.7"/><circle cx="14.8" cy="5.2" r="2.7"/><circle cx="19.4" cy="9.6" r="2.4"/><path d="M12 10c-3.6 0-7 3.3-7 6.6 0 2 1.4 3.4 3.3 3.4 1.4 0 2.3-.9 3.7-.9s2.3.9 3.7.9c1.9 0 3.3-1.4 3.3-3.4 0-3.3-3.4-6.6-7-6.6z"/></svg>';
 
@@ -74,6 +76,8 @@ export class HUD {
   private compassStrip!: HTMLElement;
   private markHouse!: HTMLElement; private markPaw!: HTMLElement; private range!: HTMLElement;
   private animals: { x: number; z: number }[] = [];
+  /** P2 touch layout: vitals + bolts strips rendered INTO the control bar's corners (`.ws-touch-bar`, TouchControls) */
+  private bar?: { hval: HTMLElement; hbar: HTMLElement; bolts: HTMLElement; bcount: HTMLElement; segs: HTMLElement[] };
   private lastMark = { house: NaN, paw: NaN, range: '' };
   private ppd = 1.2; // compass px per degree — measured from the band (`--ppd`), see build()
   private feed!: HTMLElement; private toasts!: HTMLElement;
@@ -92,6 +96,8 @@ export class HUD {
     this.root = document.getElementById('hud') ?? document.body.appendChild(el('div'));
     this.root.id = 'hud';
     this.build();
+    // the touch layer may be built before or after the HUD (main.ts order): mount the bar strips as soon as it exists
+    if (!this.mountBar()) { const mo = new MutationObserver(() => { if (this.mountBar()) mo.disconnect(); }); mo.observe(this.root, { childList: true }); }
     document.addEventListener('pointerlockchange', () => {
       if (!this.opts.pointerLock || !this.entered) return;
       const locked = !!document.pointerLockElement;
@@ -213,18 +219,21 @@ export class HUD {
       this.healthVal.textContent = String(Math.round(h));
       this.healthBar.style.width = `${h}%`;
       this.healthBar.classList.toggle('low', h <= 30);
+      this.syncBar('health');
     }
     if (s.bolts !== L.bolts) {
       L.bolts = s.bolts;
       this.ammoCount.firstElementChild!.textContent = String(s.bolts);
       this.ammoCount.classList.toggle('empty', s.bolts <= 0);
       this.pips.forEach((p, i) => p.classList.toggle('off', i >= s.bolts));
+      this.syncBar('bolts');
     }
     const statusKey = s.bolts <= 0 && !s.loaded ? 'empty' : s.reloading ? 'reloading' : s.loaded ? 'loaded' : 'spent';
     if (statusKey !== L.statusKey) {
       L.statusKey = statusKey;
       this.ammoStatus.className = 'ws-game-status ' + (statusKey === 'empty' ? 'empty' : statusKey === 'reloading' ? 'reloading' : '');
       this.ammoStatusText.textContent = statusKey === 'empty' ? 'No bolts' : statusKey === 'reloading' ? 'Spanning' : statusKey === 'loaded' ? 'Loaded' : 'Spent · R to span';
+      this.syncBar('status');
     }
     const rp = s.reloading ? (s.reloadProgress ?? 0) : 0;
     if (rp !== L.reloadProgress) { L.reloadProgress = rp; this.reloadBar.style.width = `${rp * 100}%`; }
@@ -238,6 +247,39 @@ export class HUD {
       else this.prompt.classList.remove('show');
     }
     if (this.hitTimer > 0 && (this.hitTimer -= 1) === 0) this.cross.classList.remove('hit', 'head');
+  }
+
+  /** touch (P2): heart · 100 · bar · VITALS in the bar's top-left corner, BOLTS · segments · 27 / 30 · bolt top-right.
+   *  Rendered into TouchControls' `.ws-touch-bar` once it exists; the numbers are HUD state, so the HUD owns them. */
+  private mountBar() {
+    if (this.bar) return true;
+    const bar = this.root.querySelector<HTMLElement>('.ws-touch-bar');
+    if (!bar) return false;
+    const vitals = el('div', 'ws-game-vitals', `<i class="ws-game-glyph">${SVG_HEART}</i><b class="ws-game-num">100</b><span class="ws-game-vbar"><i></i></span><span class="ws-game-tiny">Vitals</span>`);
+    const bolts = el('div', 'ws-game-bolts', `<span class="ws-game-tiny">Bolts</span><span class="ws-game-segs">${'<i></i>'.repeat(4)}</span><b class="ws-game-num"><span class="c">30</span><small> / ${this.opts.maxBolts}</small></b><i class="ws-game-glyph">${SVG_BOLT}</i>`);
+    bar.append(vitals, bolts);
+    this.bar = { hval: vitals.querySelector('.ws-game-num')!, hbar: vitals.querySelector('.ws-game-vbar i')!, bolts, bcount: bolts.querySelector('.c')!, segs: Array.from(bolts.querySelectorAll<HTMLElement>('.ws-game-segs i')) };
+    this.syncBar('health'); this.syncBar('bolts'); this.syncBar('status');
+    return true;
+  }
+
+  private syncBar(what: 'health' | 'bolts' | 'status') {
+    const b = this.bar, L = this.last;
+    if (!b) return;
+    if (what === 'health') {
+      const h = Math.max(0, Math.min(100, L.health ?? 100));
+      b.hval.textContent = String(Math.round(h));
+      b.hbar.style.width = `${h}%`;
+      b.hbar.classList.toggle('low', h <= 30);
+    } else if (what === 'bolts') {
+      const n = L.bolts ?? this.opts.maxBolts ?? 30, max = this.opts.maxBolts ?? 30;
+      b.bcount.textContent = String(n);
+      const lit = n <= 0 ? 0 : Math.max(1, Math.floor((n / max) * b.segs.length + 1e-6));
+      b.segs.forEach((seg, i) => seg.classList.toggle('off', i >= lit));
+    } else {
+      b.bolts.classList.toggle('empty', L.statusKey === 'empty');
+      b.bolts.classList.toggle('reloading', L.statusKey === 'reloading');
+    }
   }
 
   /** world positions of the live animals — the compass pins a paw at the nearest one within `PAW_RANGE` (empty = no paw) */
