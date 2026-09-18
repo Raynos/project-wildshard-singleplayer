@@ -30,6 +30,9 @@ export function installAtmosphere() {
       #ifdef USE_INSTANCING
         fogWP = instanceMatrix * fogWP;
       #endif
+      #ifdef USE_BATCHING
+        fogWP = batchingMatrix * fogWP;
+      #endif
       vFogWorldPos = ( modelMatrix * fogWP ).xyz;
     #endif`;
 

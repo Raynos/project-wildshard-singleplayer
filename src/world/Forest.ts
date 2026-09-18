@@ -37,6 +37,10 @@ export class Forest {
   private grid = new Map<string, TreeInstance[]>();
   private mats!: Float32Array;   // 16 floats per tree
   private tints!: Float32Array;  // 3 floats per tree
+  /** batched path (WEBGL_multi_draw): one BatchedMesh per material, one instance per tree, LOD = geometry id + visibility */
+  private batched: { needles: THREE.BatchedMesh; far: THREE.BatchedMesh; bark: THREE.BatchedMesh; twigs: THREE.BatchedMesh; geoHi: number[]; geoLo: number[]; geoFar: number[]; geoTrunk: number[]; geoTwig: number[] } | null = null;
+  /** why the tree draw count is what it is — the perf meter / reports read this */
+  readonly path: 'batched' | 'instanced';
   private frustum = new THREE.Frustum();
   private cullCam = new THREE.PerspectiveCamera();
   private projView = new THREE.Matrix4();
@@ -47,7 +51,7 @@ export class Forest {
   /** Called whenever the tree buckets are refilled (view moved > 1.5 m or turned > 3°), with the padded cull frustum. */
   onViewChange(fn: (frustum: THREE.Frustum, viewer: THREE.Vector3) => void) { this.viewListeners.push(fn); this.lastLodPos.set(1e9, 0, 0); }
 
-  constructor(private factory: TreeFactory, private sky: Sky) {}
+  constructor(private factory: TreeFactory, private sky: Sky) { this.path = factory.multiDraw ? 'batched' : 'instanced'; }
 
   /** Soft canopy-density texture (for terrain darkening under trees, and grass thinning). */
   canopyMap!: THREE.DataTexture;
@@ -67,6 +71,7 @@ export class Forest {
       this.tmpM.toArray(this.mats, i * 16);
       this.tints[i * 3] = t.tint.r; this.tints[i * 3 + 1] = t.tint.g; this.tints[i * 3 + 2] = t.tint.b;
     });
+    if (this.path === 'batched') { this.buildBatched(); return this; }
     this.factory.variants.forEach((v, vi) => {
       const count = this.trees.filter((t) => t.variant === vi).length;
       const mk = (geo: THREE.BufferGeometry, mat: THREE.Material, shadow: boolean, depth?: THREE.Material, tint = true) => {
@@ -89,6 +94,43 @@ export class Forest {
       noReflect(this.twigs[this.twigs.length - 1]);
     });
     return this;
+  }
+
+  /**
+   * 4 BatchedMeshes (needles hi+lo, far impostor, bark, twigs) instead of 24 InstancedMeshes: 4 draws + 3 shadow
+   * draws for the whole forest. Every tree owns one instance in each; a view change only flips geometry ids and
+   * visibility. three culls each instance against the camera (and the shadow camera) itself.
+   */
+  private buildBatched() {
+    const V = this.factory.variants, n = this.trees.length;
+    const size = (geos: THREE.BufferGeometry[]) => geos.reduce((a, g) => ({ v: a.v + g.attributes.position.count, i: a.i + (g.index ? g.index.count : g.attributes.position.count) }), { v: 0, i: 0 });
+    const mk = (geos: THREE.BufferGeometry[], mat: THREE.Material, shadow: boolean, depth?: THREE.Material) => {
+      const { v, i } = size(geos);
+      const bm = new THREE.BatchedMesh(n, v, i, mat);
+      bm.castShadow = shadow; bm.receiveShadow = true;
+      bm.sortObjects = false; bm.perObjectFrustumCulled = true;
+      if (depth) bm.customDepthMaterial = depth;
+      const ids = geos.map((g) => bm.addGeometry(g));
+      this.group.add(bm);
+      return { bm, ids };
+    };
+    const needles = mk([...V.map((v) => v.cardsHi), ...V.map((v) => v.cardsLo)], this.factory.needleMaterial, true, this.factory.needleDepth);
+    const far = mk(V.map((v) => v.far), this.factory.farMaterial, false);
+    const bark = mk(V.map((v) => v.trunk), this.factory.barkMaterial, true);
+    const twigs = mk(V.map((v) => v.twigs), this.factory.twigMaterial, true, this.factory.twigDepth);
+    noReflect(twigs.bm);
+    const m = new THREE.Matrix4();
+    this.trees.forEach((t, i) => {
+      m.fromArray(this.mats, i * 16);
+      for (const { bm, ids } of [needles, far, bark, twigs]) {
+        const id = bm.addInstance(ids[t.variant]);   // ids line up with tree index (one instance per tree, in order)
+        bm.setMatrixAt(id, m); bm.setColorAt(id, t.tint); bm.setVisibleAt(id, false);
+      }
+    });
+    this.batched = {
+      needles: needles.bm, far: far.bm, bark: bark.bm, twigs: twigs.bm,
+      geoHi: needles.ids.slice(0, V.length), geoLo: needles.ids.slice(V.length), geoFar: far.ids, geoTrunk: bark.ids, geoTwig: twigs.ids,
+    };
   }
 
   private place() {
@@ -184,13 +226,33 @@ export class Forest {
     this.projView.multiplyMatrices(cc.projectionMatrix, cam.matrixWorldInverse);
     this.frustum.setFromProjectionMatrix(this.projView);
 
+    const hiD2 = LOD_DIST * LOD_DIST, farD2 = FAR_DIST * FAR_DIST, twD2 = TWIG_DIST * TWIG_DIST, keepD2 = KEEP_NEAR * KEEP_NEAR;
+    if (this.batched) {
+      const B = this.batched;
+      for (let i = 0; i < this.trees.length; i++) {
+        const t = this.trees[i];
+        const dx = t.x - viewer.x, dz = t.z - viewer.z, d2 = dx * dx + dz * dz;
+        let vis = true;
+        if (d2 > keepD2) {
+          this.sphere.center.set(t.x, t.y + t.height * 0.5, t.z); this.sphere.radius = t.height * 0.6;
+          vis = this.frustum.intersectsSphere(this.sphere);
+        }
+        const near = d2 < hiD2, mid = d2 < farD2;
+        if (vis && mid) B.needles.setGeometryIdAt(i, near ? B.geoHi[t.variant] : B.geoLo[t.variant]);
+        B.needles.setVisibleAt(i, vis && mid);
+        B.bark.setVisibleAt(i, vis && mid);
+        B.far.setVisibleAt(i, vis && !mid);
+        B.twigs.setVisibleAt(i, vis && d2 < twD2);
+      }
+      for (const fn of this.viewListeners) fn(this.frustum, viewer);
+      return;
+    }
     const V = this.hi.length;
     const nHi = new Int32Array(V), nLo = new Int32Array(V), nFar = new Int32Array(V), nT = new Int32Array(V), nTF = new Int32Array(V), nTw = new Int32Array(V);
     const put = (m: THREE.InstancedMesh, idx: number, i: number, tint: boolean) => {
       (m.instanceMatrix.array as Float32Array).set(this.mats.subarray(i * 16, i * 16 + 16), idx * 16);
       if (tint) (m.instanceColor!.array as Float32Array).set(this.tints.subarray(i * 3, i * 3 + 3), idx * 3);
     };
-    const hiD2 = LOD_DIST * LOD_DIST, farD2 = FAR_DIST * FAR_DIST, twD2 = TWIG_DIST * TWIG_DIST, keepD2 = KEEP_NEAR * KEEP_NEAR;
     for (let i = 0; i < this.trees.length; i++) {
       const t = this.trees[i];
       const dx = t.x - viewer.x, dz = t.z - viewer.z, d2 = dx * dx + dz * dz;

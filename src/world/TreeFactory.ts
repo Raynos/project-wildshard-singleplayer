@@ -43,8 +43,11 @@ export class TreeFactory {
   variants: TreeVariant[] = [];
 
   private opts: Required<TreeFactoryOptions>;
+  /** WEBGL_multi_draw present → Forest draws every tree LOD of a material as one BatchedMesh (else InstancedMesh per variant) */
+  readonly multiDraw: boolean;
   constructor(private renderer: THREE.WebGLRenderer, opts: TreeFactoryOptions = {}) {
     this.opts = { bark: 'pine_bark', twigAtlas: 'pine_tree_01', ...opts };
+    this.multiDraw = renderer.extensions.has('WEBGL_multi_draw') && !new URLSearchParams(location.search).has('nobatch');
   }
 
   async build() {
@@ -505,6 +508,9 @@ export function patchWind(shader: { vertexShader: string; uniforms: Record<strin
         vec4 wp = vec4( transformed, 1.0 );
         #ifdef USE_INSTANCING
           wp = instanceMatrix * wp;
+        #endif
+        #ifdef USE_BATCHING
+          wp = batchingMatrix * wp;
         #endif
         wp = modelMatrix * wp;
         float phase = wp.x * 0.07 + wp.z * 0.09;
