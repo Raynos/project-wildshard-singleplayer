@@ -94,14 +94,14 @@ const KICK_PITCH = THREE.MathUtils.degToRad(0.8);
  *  below centre, the approved mockup) and the model is slid toward the eye until the nut/string reaches
  *  ADS_NUT_NDC_Y (just inside the bottom edge) or the near plane stops it — that fixes the eye height above the rail
  *  (~5 cm) and the depth, and the limb span falls out (≈ ±0.5 landscape, edge to edge on a 94° portrait). */
-const ADS_TIP_NDC_Y = -0.34, ADS_NUT_NDC_Y = -0.9, // tip well under the ring (ring = screen centre): the prod/stock stay below the sight, the world shows through it
-  ADS_NEAR_MARGIN = 0.03, ADS_PITCH = 0, ADS_BLEND_TIME = 0.18, ADS_MOTION = 0.3;
+const ADS_EYE_ABOVE_RAIL = 0.056; // m — cheek on the stock: the eye is this far above the rail, looking straight down the bolt
+const ADS_NEAR_MARGIN = 0.03, ADS_PITCH = 0, ADS_BLEND_TIME = 0.18, ADS_MOTION = 0.3;
 // damage numbers live in the damage model (src/entities/Animal.ts damageFor)
 /** Rear PEEP sight (mockup art/ads-C-peep-sight.png): a dark-iron ring on a post just in front of the nut (the stock
  *  behind the nut is inside the near plane when sighted), placed on the eye→tip line so that at full ADS its centre
  *  projects exactly where the tip does — the tip is seen through the ring. Outer diameter ≈ 4 % of the screen width
  *  (≥ 7 % of the height, so it stays a ring on a portrait phone). Hidden at the hip, fades in with the ADS blend. */
-const PEEP_Z = 0.10, PEEP_R = 0.01, PEEP_TUBE = 0.12, PEEP_W = 0.04, PEEP_H = 0.07, PEEP_CYAN = 0x8fe3ff;
+const PEEP_Z = 0.10, PEEP_R = 0.01, PEEP_TUBE = 0.12, PEEP_R_WORLD = 0.0105, PEEP_CYAN = 0x8fe3ff; // rear peep: 2.1 cm ring on a short post just ahead of the nut
 
 // ───────────────────────────── procedural noise / textures ─────────────────────────────
 
@@ -646,7 +646,7 @@ export class Crossbow {
   private tipModel = new THREE.Vector3(); private tipLocal = new THREE.Vector3();
   private adsCache = { aspect: 0, fov: 0, scale: 0 };
   /** the solved iron-sights pose + the numbers behind it (dev / verification: `__world.crossbow.adsPose`) */
-  readonly adsPose = { px: 0, py: 0, pz: 0, rx: ADS_PITCH, scale: 0, tipDepth: 0, eyeAboveRail: 0, nutDepth: 0, nutNdcY: 0, limbNdcX: 0, tipNdcY: ADS_TIP_NDC_Y, peepY: 0, peepZ: PEEP_Z, peepDepth: 0, peepR: 0 };
+  readonly adsPose = { px: 0, py: 0, pz: 0, rx: ADS_PITCH, scale: 0, tipDepth: 0, eyeAboveRail: 0, nutDepth: 0, nutNdcY: 0, limbNdcX: 0, tipNdcY: 0, peepY: 0, peepZ: PEEP_Z, peepDepth: 0, peepR: 0 };
   /** the rear peep sight: ring + post, posed from `adsPose` every sighted frame */
   private peep = new THREE.Group(); private peepRing = new THREE.Group(); private peepPost!: THREE.Mesh;
   private peepMats: THREE.Material[] = [];
@@ -957,19 +957,21 @@ export class Crossbow {
     const c = this.adsCache, o = this.adsPose;
     if (c.aspect === cam.aspect && c.fov === cam.fov && c.scale === scale) return o;
     c.aspect = cam.aspect; c.fov = cam.fov; c.scale = scale;
+    // Shouldered: the stock is pulled up under the cheek so the eye sits a few cm above the rail and looks straight down
+    // the bolt; the nut is as close as the near plane allows (that is what "pinned into the shoulder" looks like).
     const tv = Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2), th = tv * cam.aspect;
     const tip = this.tipModel, nut = this.nockDrawn;
-    const ty = tip.y * scale, ny = nut.y * scale, A = (nut.z - tip.z) * scale;
-    let D = (ny - ty + ADS_NUT_NDC_Y * tv * A) / ((ADS_NUT_NDC_Y - ADS_TIP_NDC_Y) * tv);
-    D = Math.max(D, cam.near + ADS_NEAR_MARGIN + A);
-    o.px = 0; o.py = ADS_TIP_NDC_Y * tv * D - ty; o.pz = -D - tip.z * scale; o.rx = ADS_PITCH; o.scale = scale;
-    o.tipDepth = D; o.eyeAboveRail = -o.py; o.nutDepth = D - A; o.nutNdcY = (ny + o.py) / ((D - A) * tv);
+    const A = (nut.z - tip.z) * scale;
+    const nutDepth = cam.near + ADS_NEAR_MARGIN;
+    const D = nutDepth + A;
+    o.px = 0; o.py = -ADS_EYE_ABOVE_RAIL; o.pz = -D - tip.z * scale; o.rx = ADS_PITCH; o.scale = scale;
+    o.tipDepth = D; o.eyeAboveRail = ADS_EYE_ABOVE_RAIL; o.nutDepth = nutDepth;
+    o.nutNdcY = (nut.y * scale + o.py) / (nutDepth * tv); o.tipNdcY = (tip.y * scale + o.py) / (D * tv);
     o.limbNdcX = (this.tipR.x * scale) / (-(this.tipR.z * scale + o.pz) * th);
-    // peep: centred on the camera forward (the aim line) at model z = PEEP_Z. Eye in model space is (0, -py, -pz) / scale
-    // and the forward is −Z (rotation 0), so the line is y = ey for every z → the ring projects to the screen centre.
-    const ey = -o.py / scale, ez = -o.pz / scale;
-    o.peepZ = PEEP_Z; o.peepY = ey; o.peepDepth = (ez - PEEP_Z) * scale;
-    o.peepR = Math.max(PEEP_W * o.peepDepth * th, PEEP_H * o.peepDepth * tv); // outer radius, world (½ of Ø = 4 % width / 7 % height)
+    // peep: a real rear sight MOUNTED ON THE STOCK at model z = PEEP_Z, its centre exactly at eye height (on the forward
+    // line → screen centre); fixed physical size, so the post is short and the ring reads as part of the weapon.
+    o.peepZ = PEEP_Z; o.peepY = ADS_EYE_ABOVE_RAIL / scale; o.peepDepth = -(o.pz + PEEP_Z * scale);
+    o.peepR = PEEP_R_WORLD;
     return o;
   }
 
