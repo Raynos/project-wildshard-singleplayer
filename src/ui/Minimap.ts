@@ -14,8 +14,9 @@
  *      same density noise Forest.ts thins its candidates with, cabin roofs (CABIN_SITES);
  *   2. fog of war — a low-res coverage canvas (COVER_PPM px/m) the player's visited positions stamp a
  *      feathered disc into; unexplored ground shows at FOG_BRIGHTNESS;
- *   3. animal dots — yellow = passive (deer), red = can turn on you (boar); a boar that is charging /
- *      alert (or, without a public state, wounded) pulses;
+ *   3. animal dots — yellow = passive (deer), red = can turn on you (boar, bear: `aggressive`, else the
+ *      species registry's flag); a red dot that is charging / stalking / alert (or, without a public state,
+ *      wounded) pulses;
  *   4. the player arrow, a rim vignette. The cyan rim, 45° ticks, "N" and the heading readout are CSS.
  *
  * Nothing is allocated per frame: every canvas, gradient and sprite is built at construction or on resize.
@@ -25,10 +26,11 @@ import { heightAt, trailDistance, TRAILS, CABIN_SITES, POND, hasPond } from '../
 import { Noise2D, smoothstep } from '../core/noise';
 import { Rng } from '../core/rng';
 import { getActiveChunk, onActiveChunkChange } from '../chunks/registry';
+import { hasSpecies, speciesDef } from '../entities/species/registry';
 
 export interface MinimapAnimal {
   kind: string;
-  /** charges the player (red dot); default: kind === 'boar' */
+  /** charges the player (red dot); default: the species registry's `aggressive` flag for `kind` */
   aggressive?: boolean;
   /** 'rare' / 'legendary' animals get a thin white ring */
   rarity?: string;
@@ -188,8 +190,8 @@ export class Minimap {
       const dx = a.position.x - pos.x, dz = a.position.z - pos.z;
       if (dx * dx + dz * dz > VIEW_RADIUS * VIEW_RADIUS) continue;
       const sx = c - dx * k, sy = c - dz * k;
-      const aggressive = a.aggressive ?? a.kind === 'boar';
-      const hot = aggressive && (a.state !== undefined ? (a.state === 'charge' || a.state === 'alert') : (a.hp !== undefined && a.maxHp !== undefined && a.hp < a.maxHp));
+      const aggressive = a.aggressive ?? (hasSpecies(a.kind) && !!speciesDef(a.kind).aggressive);
+      const hot = aggressive && (a.state !== undefined ? (a.state === 'charge' || a.state === 'stalk' || a.state === 'alert') : (a.hp !== undefined && a.maxHp !== undefined && a.hp < a.maxHp));
       const r = hot ? dot * (1 + 0.5 * pulse) : dot;
       if (hot) {
         ctx.beginPath(); ctx.arc(sx, sy, r + 3 * this.dpr * (0.5 + pulse), 0, Math.PI * 2);

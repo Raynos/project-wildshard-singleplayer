@@ -102,6 +102,10 @@ export const PINE_HOLLOW: ChunkDef = {
     { kind: 'boar', count: 15, canopy: true, trailBand: [12, 40] },
     { kind: 'boar', count: 15, canopy: true, trailBand: [12, 40] },
     { kind: 'boar', count: 4, canopy: true, trailBand: [30, 60], variants: ['black', 'scarback'] },   // the dark sounder deep under the canopy
+    // ── bears (bear agent) ── two dens deep under the canopy, far off every trail and > 80 m from the south gate:
+    // a black-bear den in the north-west corner and a lone brown bear in the north-east. Bears hunt you (see bear.ts).
+    { kind: 'bear', count: 2, anchor: { x: -150, z: -150, rMin: 10, rMax: 30 }, canopy: true, trailBand: [40, 220], variants: ['black', 'black-blaze', 'black-old'] },
+    { kind: 'bear', count: 1, anchor: { x: 150, z: -150, rMin: 10, rMax: 30 }, canopy: true, trailBand: [40, 220], variants: ['brown', 'brown-old'] },
   ],
   sky: {
     hdri: 'qwantani_sunset_puresky',

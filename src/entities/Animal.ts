@@ -23,7 +23,7 @@ import { variantMods, type AnimalKind, type AnimalModel, type AnimalRig, type Ra
  * The AnimalManager owns AI state and calls animal.setMotion(desiredYaw, desiredSpeed).
  */
 
-export type AnimalState = 'idle' | 'graze' | 'wander' | 'alert' | 'flee' | 'charge' | 'dead';
+export type AnimalState = 'idle' | 'graze' | 'wander' | 'alert' | 'flee' | 'charge' | 'stalk' | 'dead';
 
 /** Bolt damage: body 32–40 (a deer takes two, a boar three), ×2.5 to the head (one kills a deer); fades to 60 % from 40 to 90 m. */
 export const DAMAGE = { bodyMin: 32, bodyMax: 40, headMul: 2.5, falloffStart: 40, falloffEnd: 90, falloffMin: 0.6 };

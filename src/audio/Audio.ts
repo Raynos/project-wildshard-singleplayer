@@ -11,14 +11,14 @@ import type { Vector3 } from 'three';
  *   audio.swordSwing()  audio.swordHit('flesh'|'wood', pan?, gain?)          // wooden sword (src/player/Sword.ts)
  *   audio.footstep(sprinting)  audio.jump()  audio.land(hard)  audio.hitMarker()  audio.kill()
  *   audio.splash(impact)  audio.wadeStep(depth, sprinting)  audio.swimStroke()  audio.waterExit()   // water (Player.onEnterWater / onStep while wading / onStroke / onExitWater)
- *   audio.animal('deer_call'|'boar_grunt'|'hoofsteps'|'boar_squeal', position, listenerPos, yaw?)
+ *   audio.animal('deer_call'|'boar_grunt'|'hoofsteps'|'boar_squeal'|'bear_growl'|'bear_roar'|'bear_hurt', position, listenerPos, yaw?)
  *   audio.setAmbient(true|false)   audio.muted = true|false   audio.master.gain (0.6)
  *
  * Ambient (wind gusts + distant birds) starts on resume() and runs on its own scheduler.
  */
 
 export type ImpactKind = 'wood' | 'ground' | 'flesh';
-export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal';
+export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal' | 'bear_growl' | 'bear_roar' | 'bear_hurt';
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 
@@ -328,6 +328,32 @@ export class Audio {
         this.tone({ t, type: 'sawtooth', f0: 900, f1: 1500, glide: 0.12, gain: 0.8, attack: 0.02, hold: 0.15, decay: 0.3, vibrato: { rate: 32, depth: 70 }, lowpass: 3500, out: bus });
         this.tone({ t: t + 0.12, type: 'sawtooth', f0: 1500, f1: 700, glide: 0.4, gain: 0.5, attack: 0.01, decay: 0.4, vibrato: { rate: 32, depth: 70 }, lowpass: 3000, out: bus });
         this.burst({ t, type: 'bandpass', freq: 2200, q: 0.7, gain: 0.25, attack: 0.02, hold: 0.2, decay: 0.3, out: bus });
+        break;
+      }
+      case 'bear_growl': { // low chesty huff-growl: a slow sawtooth rumble under a breathy lowpass exhale, one or two huffs
+        const n = 1 + Math.floor(rnd(0, 1.8));
+        for (let i = 0; i < n; i++) {
+          const ti = t + i * rnd(0.45, 0.65), dur = rnd(0.5, 0.8);
+          this.tone({ t: ti, type: 'sawtooth', f0: rnd(48, 58), f1: 40, glide: dur, gain: 0.85, attack: 0.08, hold: dur * 0.45, decay: dur * 0.55, vibrato: { rate: 9, depth: 5 }, lowpass: 260, out: bus });
+          this.tone({ t: ti + 0.02, type: 'square', f0: rnd(70, 84), f1: 58, glide: dur, gain: 0.25, attack: 0.1, hold: dur * 0.4, decay: dur * 0.5, vibrato: { rate: 11, depth: 8 }, lowpass: 380, out: bus });
+          this.burst({ t: ti, type: 'lowpass', freq: 520, gain: 0.55, attack: 0.05, hold: dur * 0.35, decay: dur * 0.6, out: bus });
+        }
+        break;
+      }
+      case 'bear_roar': { // the charge: a rising bellow — two detuned sawtooths sweeping up then tearing off, with a breath-noise rasp
+        const dur = rnd(0.9, 1.2);
+        this.tone({ t, type: 'sawtooth', f0: 70, f1: 150, glide: dur * 0.45, gain: 1.0, attack: 0.05, hold: dur * 0.5, decay: dur * 0.5, vibrato: { rate: 14, depth: 14 }, lowpass: 900, out: bus });
+        this.tone({ t: t + 0.03, type: 'sawtooth', f0: 104, f1: 226, glide: dur * 0.45, gain: 0.55, attack: 0.06, hold: dur * 0.5, decay: dur * 0.5, vibrato: { rate: 14, depth: 20 }, lowpass: 1400, out: bus });
+        this.tone({ t: t + dur * 0.5, type: 'sawtooth', f0: 150, f1: 90, glide: dur * 0.5, gain: 0.5, attack: 0.01, decay: dur * 0.55, vibrato: { rate: 18, depth: 18 }, lowpass: 700, out: bus });
+        this.burst({ t, type: 'bandpass', freq: 700, q: 0.5, gain: 0.5, attack: 0.05, hold: dur * 0.55, decay: dur * 0.5, out: bus });
+        this.burst({ t: t + 0.05, type: 'lowpass', freq: 1600, gain: 0.3, attack: 0.1, hold: dur * 0.4, decay: dur * 0.5, out: bus });
+        break;
+      }
+      case 'bear_hurt': { // a hit: a sharp bark-roar, higher and shorter than the charge bellow, dropping into a grunt
+        this.tone({ t, type: 'sawtooth', f0: 220, f1: 330, glide: 0.08, gain: 0.9, attack: 0.01, hold: 0.12, decay: 0.28, vibrato: { rate: 22, depth: 30 }, lowpass: 1800, out: bus });
+        this.tone({ t: t + 0.05, type: 'sawtooth', f0: 330, f1: 120, glide: 0.35, gain: 0.6, attack: 0.01, decay: 0.4, vibrato: { rate: 16, depth: 20 }, lowpass: 1000, out: bus });
+        this.tone({ t: t + 0.32, type: 'sawtooth', f0: 64, f1: 46, glide: 0.25, gain: 0.5, attack: 0.03, hold: 0.1, decay: 0.25, lowpass: 320, out: bus });
+        this.burst({ t, type: 'bandpass', freq: 1100, q: 0.6, gain: 0.4, attack: 0.01, hold: 0.15, decay: 0.3, out: bus });
         break;
       }
     }

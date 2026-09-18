@@ -12,7 +12,7 @@ import { noReflect } from '../world/Water';
 
 /**
  * AnimalManager — spawns the chunk's huntable wildlife (the active ChunkDef's `fauna` herd plans),
- * runs their AI at 10 Hz (idle / graze / wander / alert / flee / charge / dead), animates
+ * runs their AI at 10 Hz (idle / graze / wander / alert / flee / charge / stalk / dead), animates
  * them every frame, and exposes the combat + audio hooks.
  *
  *   const animals = new AnimalManager(scene, sky, forest).build();
@@ -36,7 +36,9 @@ import { noReflect } from '../world/Water';
  * flees at `runSpeed` (faster than a sprinting player) but only until `fleeUntil..fleeUntilMax` m away, then stops, looks
  * back, and grazes again — "wary" (sharper senses) for `waryTime` s. A hit that does not kill bolts it at once. One
  * spooked animal alerts its herd within `herdAlertRadius` m. Boars charge when hit or when the player is within
- * `chargeDist` m.
+ * `chargeDist` m. HUNTERS (a species whose HuntTuning has `stalk` — the bear) never bolt: the alert freeze
+ * ends in a STALK (walking the player down, huffing) that becomes a charge inside panicDist, and a charge that
+ * lands or times out drops back into the stalk after `stalk.rechargeCd` s until the player is `stalk.giveUp` m away.
  *
  * Fur shells: the SHELL_MAX nearest animals within SHELL_DIST m get 4–8 fur-shell layers (SkinnedMeshes
  * sharing the body's geometry + skeleton); nothing changes beyond that distance.
@@ -58,7 +60,7 @@ import { noReflect } from '../world/Water';
  */
 
 export interface AnimalHit { animal: Animal; point: THREE.Vector3; distance: number; headshot: boolean; damage: number }
-export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal';
+export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal' | 'bear_growl' | 'bear_roar' | 'bear_hurt';
 
 interface Herd { kind: AnimalKind; cx: number; cz: number; members: Animal[] }
 
@@ -105,7 +107,18 @@ export interface HuntTuning {
   herdBoltDelayMin: number; herdBoltDelayMax: number; // s: herd-mates bolt this long after it
   // ── disturbances (a bolt landing nearby) ──
   impactSpook: number;     // m: bolt now
-  impactAlert: number;     // m: head up
+  impactAlert: number;     // m: head up (a HUNTER also engages from this far: it heard the shot)
+  // ── hunters (bear): the alert turns into a pursuit ('stalk') instead of a bolt ──
+  stalk?: {
+    detect: number;      // m: the player inside this radius is noticed at once, any direction (it smells you)
+    speed: number;       // m/s of the stalk — a deliberate walk toward the player
+    giveUp: number;      // m: a stalking animal this far from the player loses interest
+    rechargeCd: number;  // s between a charge (contact or timeout) and the next
+    huffMin: number; huffMax: number; // s between huffs (the species' `call` sound) while stalking
+    roar: string;        // AnimalSound played at the start of a charge
+    fleeBelowHp: number; // hp fraction under which a hit may make a NON-relentless variant break off and flee
+    fleeChance: number;  // probability of that break-off per hit
+  };
 }
 
 export const DEER_TUNING: HuntTuning = {
@@ -371,6 +384,7 @@ export class AnimalManager {
       // hearing: any direction, radius from the noise the player makes
       const hear = (pSpeed < 0.4 ? T.hearStill : pSpeed < 2.6 ? T.hearCrouch : pSpeed < 5.2 ? T.hearWalk : T.hearSprint) * wary;
       if (dPlayer < hear) rate = Math.max(rate, T.noticeRate * 1.5 * (1 + (1 - dPlayer / hear)));
+      if (T.stalk && dPlayer < T.stalk.detect) rate = Math.max(rate, T.noticeRate * 3);   // a hunter smells you
     }
     br.sensed = rate > 0;
     br.awareness = br.sensed ? Math.min(1, br.awareness + rate * dt) : Math.max(0, br.awareness - T.forgetRate * dt);
@@ -384,10 +398,12 @@ export class AnimalManager {
     }
 
     const herd = a.herd >= 0 ? this.herds[a.herd] : null;
+    // the player is inside the charge distance: chargers charge (hunters stalk while the charge cools down), the rest bolt
+    const engage = () => { if (boar && br.chargeCd <= 0) this.enter(a, br, 'charge'); else if (T.stalk) this.enter(a, br, 'stalk'); else { br.spooked = true; this.enter(a, br, 'flee'); } };
 
     switch (a.state) {
       case 'idle': case 'graze': case 'wander': {
-        if (panic) { if (boar && br.chargeCd <= 0) this.enter(a, br, 'charge'); else { br.spooked = true; this.enter(a, br, 'flee'); } break; }
+        if (panic) { engage(); break; }
         if (br.awareness >= T.alertAt) { this.enter(a, br, 'alert'); break; }
         br.timer -= dt;
         if (a.state === 'wander') {
@@ -412,8 +428,15 @@ export class AnimalManager {
         a.setMotion(a.desiredYaw, 0, 2.0);
         a.lookTarget.copy(player); a.lookWeight = 1;
         br.freeze -= dt;
-        if (panic) { if (boar && br.chargeCd <= 0) this.enter(a, br, 'charge'); else this.enter(a, br, 'flee'); break; }
-        if (br.freeze <= 0 && (br.spooked || br.awareness >= T.boltAt)) { this.enter(a, br, 'flee'); break; }
+        if (panic) { engage(); break; }
+        if (br.freeze <= 0 && (br.spooked || br.awareness >= T.boltAt)) {
+          if (!T.stalk) { this.enter(a, br, 'flee'); break; }
+          // a hunter comes for you instead — unless it is nearly dead (it stands and watches), or you are out of reach
+          const wounded = !M.relentless && a.hp / a.maxHp < T.stalk.fleeBelowHp;
+          if (!wounded && dPlayer < T.impactAlert) this.enter(a, br, 'stalk');
+          else { br.spooked = false; br.awareness = Math.min(br.awareness, T.alertAt * 0.5); this.enter(a, br, 'graze'); }
+          break;
+        }
         if (br.sensed) br.timer = T.relaxAfter;
         else { br.timer -= dt; if (br.timer <= 0) { br.spooked = false; br.awareness = Math.min(br.awareness, T.alertAt * 0.5); this.enter(a, br, 'graze'); } }
         break;
@@ -432,16 +455,28 @@ export class AnimalManager {
         a.lookWeight = 0;
         break;
       }
+      case 'stalk': {
+        // hunters only: walk the player down, huffing, and charge once inside panicDist (again after rechargeCd)
+        const st = T.stalk!;
+        if (this.calm || dPlayer > st.giveUp) { br.awareness = 0; br.spooked = false; this.enter(a, br, 'wander'); break; }
+        if (panic && br.chargeCd <= 0) { this.enter(a, br, 'charge'); break; }
+        this.steer(a, Math.atan2(dx, dz), st.speed * M.speed, 2.5);
+        a.lookTarget.copy(player); a.lookWeight = 1;
+        br.timer -= dt;
+        if (br.timer <= 0) { br.timer = rng.range(st.huffMin, st.huffMax); if (dPlayer < 80) this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position); }
+        break;
+      }
       case 'charge': {
         br.timer -= dt;
         this.steer(a, Math.atan2(dx, dz), (sp.chargeSpeed ?? BOAR_CHARGE) * M.speed, 4.0);
         a.lookTarget.copy(player); a.lookWeight = 0.5;
+        const after: Animal['state'] = T.stalk ? 'stalk' : 'flee';   // a hunter keeps pressing; a boar wheels away
         if (dPlayer < CHARGE_HIT_DIST * Math.max(1, a.scale)) {
           this.onCharge?.(a, M.chargeDamage);
           this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
-          br.chargeCd = M.relentless ? 2 : 6;   // Old Ironhide wheels round and comes again
-          this.enter(a, br, 'flee');
-        } else if (br.timer <= 0) { br.chargeCd = M.relentless ? 1.5 : 4; this.enter(a, br, 'flee'); }
+          br.chargeCd = T.stalk ? T.stalk.rechargeCd : M.relentless ? 2 : 6;   // Old Ironhide wheels round and comes again
+          this.enter(a, br, after);
+        } else if (br.timer <= 0) { br.chargeCd = T.stalk ? T.stalk.rechargeCd : M.relentless ? 1.5 : 4; this.enter(a, br, after); }
         break;
       }
       default: break;
@@ -491,9 +526,12 @@ export class AnimalManager {
         if (!a.aggressive && rng.next() < 0.3) this.onSound?.((sp.sounds?.call ?? 'deer_call') as AnimalSound, a.position);
         if (from !== 'charge') this.alertHerd(a, true);
         break;
+      case 'stalk':
+        br.timer = 0.4; br.wary = T.waryTime; br.awareness = 1; br.spooked = false;
+        break;
       case 'charge':
         br.timer = a.mods.relentless ? 12 : 4; br.wary = T.waryTime;
-        this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
+        this.onSound?.((T.stalk?.roar ?? sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
         break;
       default: break;
     }
@@ -512,7 +550,7 @@ export class AnimalManager {
       if (m === a || !m.alive) continue;
       if (m.position.distanceToSquared(a.position) > r2) continue;
       const mb = this.brains.get(m)!;
-      if (m.state === 'flee' || m.state === 'charge') continue;
+      if (m.state === 'flee' || m.state === 'charge' || m.state === 'stalk') continue;
       if (!bolt) { mb.awareness = Math.min(T.alertAt * 0.7, mb.awareness + 0.12); continue; }
       if (m.state !== 'alert') { mb.awareness = Math.max(mb.awareness, T.alertAt); this.enter(m, mb, 'alert'); }
       mb.spooked = true; mb.freeze = Math.min(mb.freeze, this.rng.range(T.herdBoltDelayMin, T.herdBoltDelayMax));
@@ -531,7 +569,7 @@ export class AnimalManager {
       const d = Math.hypot(point.x - a.position.x, point.z - a.position.z);
       if (d > T.impactAlert * strength) continue;
       const br = this.brains.get(a)!;
-      if (a.state === 'flee' || a.state === 'charge') continue;
+      if (a.state === 'flee' || a.state === 'charge' || a.state === 'stalk') continue;
       if (a.state !== 'alert') { br.awareness = Math.max(br.awareness, T.alertAt); this.enter(a, br, 'alert'); }
       if (d < T.impactSpook * strength) { br.spooked = true; br.freeze = Math.min(br.freeze, 0.25); }
       else br.awareness = Math.min(1, br.awareness + 0.3);
@@ -670,9 +708,15 @@ export class AnimalManager {
     if (died) { this.onKill?.(a); if (br) br.timer = 0; return; }
     if (br && a.state !== 'charge') {
       // a wounded animal bolts at once — no freeze; a boar this close turns on you instead
-      br.wary = this.tuningFor(a).waryTime;
+      const T = this.tuningFor(a);
+      br.wary = T.waryTime;
       const M = a.mods;
-      if (a.aggressive && this.playerPos.distanceTo(a.position) < CHARGE_WHEN_HIT_DIST * M.chargeDist && (br.chargeCd <= 0 || M.relentless) && (M.relentless || this.rng.next() < 0.7)) this.enter(a, br, 'charge');
+      if (T.stalk) {
+        // a hunter never runs from a hit — it comes for you from wherever it is (the charge times out into a stalk);
+        // only a nearly dead, non-relentless one (a black bear under 20 %) may break off
+        if (!M.relentless && a.hp / a.maxHp < T.stalk.fleeBelowHp && this.rng.next() < T.stalk.fleeChance) { br.spooked = true; this.enter(a, br, 'flee'); }
+        else { br.chargeCd = 0; this.enter(a, br, 'charge'); }
+      } else if (a.aggressive && this.playerPos.distanceTo(a.position) < CHARGE_WHEN_HIT_DIST * M.chargeDist && (br.chargeCd <= 0 || M.relentless) && (M.relentless || this.rng.next() < 0.7)) this.enter(a, br, 'charge');
       else { br.spooked = true; this.enter(a, br, 'flee'); }
     }
   };
