@@ -45,7 +45,7 @@ const TRACK_STALE = 0.25;                                    // s — a bearing 
 interface Candidate { target: AimTarget; dist: number; angle: number; yawTo: number; pitchTo: number; radius: number; wy: number; wp: number; hasVel: boolean }
 interface Bearing { yaw: number; pitch: number; t: number }
 
-const _aim = new THREE.Vector3(), _head = new THREE.Vector3(), _fwd = new THREE.Vector3(), _dir = new THREE.Vector3(), _ndc = new THREE.Vector3();
+const _aim = new THREE.Vector3(), _head = new THREE.Vector3(), _body = new THREE.Vector3(), _bdir = new THREE.Vector3(), _fwd = new THREE.Vector3(), _dir = new THREE.Vector3(), _ndc = new THREE.Vector3();
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 const easeOut = (p: number) => 1 - (1 - p) ** 3;
@@ -102,14 +102,17 @@ export class AimAssist {
       if (dist > RANGE || dist < 0.5) { this.bearings.delete(t); continue; }
       _dir.divideScalar(dist);
       const yawTo = Math.atan2(-_dir.x, -_dir.z), pitchTo = Math.asin(clamp(_dir.y, -1, 1));
-      // angular velocity relative to the player = bearing delta since last frame (covers the animal's walk AND the player's strafe)
+      // angular velocity relative to the player = bearing delta of the BODY CENTRE since last frame (covers the animal's walk
+      // AND the player's strafe; the body centre follows `position` only, so a head swing / graze bob never reads as motion)
+      bodyCentre(t, _body); _bdir.subVectors(_body, p).normalize();
+      const byaw = Math.atan2(-_bdir.x, -_bdir.z), bpitch = Math.asin(clamp(_bdir.y, -1, 1));
       const b = this.bearings.get(t);
       let wy = 0, wp = 0, hasVel = false;
       if (b) {
         const span = this.clock - b.t;
-        if (span > 0 && span < TRACK_STALE) { wy = wrap(yawTo - b.yaw) / span; wp = (pitchTo - b.pitch) / span; hasVel = true; }
-        b.yaw = yawTo; b.pitch = pitchTo; b.t = this.clock;
-      } else this.bearings.set(t, { yaw: yawTo, pitch: pitchTo, t: this.clock });
+        if (span > 0 && span < TRACK_STALE) { wy = wrap(byaw - b.yaw) / span; wp = (bpitch - b.pitch) / span; hasVel = true; }
+        b.yaw = byaw; b.pitch = bpitch; b.t = this.clock;
+      } else this.bearings.set(t, { yaw: byaw, pitch: bpitch, t: this.clock });
       const dot = _dir.dot(_fwd);
       if (dot <= 0) continue;
       const angle = Math.acos(Math.min(1, dot));
@@ -152,7 +155,8 @@ export class AimAssist {
     }
 
     // 3. tracking: while ADS holds an animal inside the inner cone, follow 65 % of its bearing rate (capped), unless pushed away
-    if (adsOn && best) {
+    //    (not during the snap — that already re-aims at the moving aim point every frame)
+    if (adsOn && best && !this.snap) {
       const inner = clamp(Math.atan(TRACK_RADIUS / best.dist), TRACK_MIN, TRACK_MAX_ANGLE);
       if (best.angle <= inner && best.hasVel) {
         let { wy, wp } = best;
@@ -195,9 +199,13 @@ export class AimAssist {
 
 /** upper body: halfway from the body centre to the head (a body hit when snapped onto; the head is the player's to find) */
 function aimPoint(t: AimTarget, out: THREE.Vector3) {
-  const s = t.scale ?? 1;
-  out.copy(t.position); out.y += (t.dims?.bodyY ?? 0.9) * s;
+  bodyCentre(t, out);
   if (t.headWorld) { t.headWorld(_head); if (Number.isFinite(_head.x) && _head.lengthSq() > 0) out.lerp(_head, 0.5); }
+  return out;
+}
+/** body centre from `position` alone (feet + body height) — animation-free, so it is what the velocity estimate watches */
+function bodyCentre(t: AimTarget, out: THREE.Vector3) {
+  out.copy(t.position); out.y += (t.dims?.bodyY ?? 0.9) * (t.scale ?? 1);
   return out;
 }
 /** the animal's own half-size (m): the bubble grows with a boar's bulk / a big deer */
