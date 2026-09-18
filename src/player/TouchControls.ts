@@ -5,8 +5,9 @@
  *
  * Layout (styled in src/ui/styles/touch.css, prefix `ws-touch-`): a glass control bar across the bottom ~15 % of the screen, split into
  * a MOVE zone (left, anchored stick: push past 85 % while heading forward = sprint) and a LOOK zone (right, drag
- * pad). A row of four buttons sits directly above the bar: JUMP · RELOAD · AIM (hold) · FIRE; USE appears in the
- * row only while the HUD has an interact prompt and dispatches the same `KeyE` the keyboard path listens for.
+ * pad — a TAP on the look pad, under 12 px and 300 ms, fires; a drag only looks). A row of three buttons sits
+ * directly above the bar: JUMP · RELOAD · AIM (a toggle: tap to latch ADS on, tap again to release); USE appears
+ * in the row only while the HUD has an interact prompt and dispatches the same `KeyE` the keyboard path listens for.
  * Move/look touches are only taken inside the bar; the world above it is not a control surface.
  *
  * Talks to the player through `player.touchMove / touchSprint / touchJump` (analog, summed with WASD) and to
@@ -23,6 +24,8 @@ const DEADZONE = 0.12;
 const SPRINT_AT = 0.85;
 const LOOK_RATE = 0.0095;     // rad per px (≈ 0.54°/px; a 200 px swipe turns ~110°)
 const PAD_BOOST = 1.6;        // the LOOK pad in the bar is small — a thumb's travel there is worth more
+const TAP_PX = 12;            // a look-pad touch that travels less than this …
+const TAP_MS = 300;           // … and ends within this is a tap = fire
 
 export class TouchControls {
   readonly active: boolean;
@@ -30,6 +33,7 @@ export class TouchControls {
   private stickPointer = -1; private lookPointer = -1;
   private stickBase = { x: 0, y: 0 };
   private lookLast = { x: 0, y: 0 }; private lookRate = LOOK_RATE;
+  private lookPath = 0; private lookT0 = 0; // tap-to-fire: distance travelled + start time of the look touch
   private stick?: HTMLElement; private knob?: HTMLElement;
 
   constructor(private player: Player, private crossbow: Crossbow, force = false) {
@@ -46,7 +50,6 @@ export class TouchControls {
         <button class="ws-touch-btn jump" type="button">Jump</button>
         <button class="ws-touch-btn reload" type="button">Reload</button>
         <button class="ws-touch-btn aim" type="button">Aim</button>
-        <button class="ws-touch-btn fire" type="button">Fire</button>
       </div>
       <button class="ws-touch-pause" type="button">Pause</button>
       <div class="ws-touch-bar">
@@ -74,6 +77,7 @@ export class TouchControls {
         this.lookPointer = e.pointerId;
         this.lookLast = { x: e.clientX, y: e.clientY };
         this.lookRate = LOOK_RATE * PAD_BOOST;
+        this.lookPath = 0; this.lookT0 = performance.now();
       } else return;
       root.setPointerCapture(e.pointerId);
       e.preventDefault();
@@ -84,6 +88,7 @@ export class TouchControls {
       } else if (e.pointerId === this.lookPointer) {
         const dx = e.clientX - this.lookLast.x, dy = e.clientY - this.lookLast.y;
         this.lookLast = { x: e.clientX, y: e.clientY };
+        this.lookPath += Math.hypot(dx, dy);
         this.player.yaw -= dx * this.lookRate;
         this.player.pitch = Math.max(-1.45, Math.min(1.45, this.player.pitch - dy * this.lookRate));
       }
@@ -94,7 +99,11 @@ export class TouchControls {
         this.player.touchMove.x = this.player.touchMove.y = 0;
         this.player.touchSprint = false;
         this.stick!.classList.remove('show');
-      } else if (e.pointerId === this.lookPointer) this.lookPointer = -1;
+      } else if (e.pointerId === this.lookPointer) {
+        this.lookPointer = -1;
+        // a tap on the look pad (barely moved, quick) fires; a drag only looked. Cancelled touches never fire.
+        if (e.type === 'pointerup' && this.lookPath < TAP_PX && performance.now() - this.lookT0 < TAP_MS && this.crossbow.enabled) this.crossbow.tryFire();
+      }
     };
     root.addEventListener('pointerup', release);
     root.addEventListener('pointercancel', release);
@@ -107,8 +116,10 @@ export class TouchControls {
       const end = (e: Event) => { e.stopPropagation(); b.classList.remove('down'); up?.(); };
       b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end); b.addEventListener('pointerleave', end);
     };
-    btn('.fire', () => { if (this.crossbow.enabled) this.crossbow.tryFire(); });
-    btn('.aim', () => { this.crossbow.adsHeld = true; }, () => { this.crossbow.adsHeld = false; });
+    // AIM is a toggle, not a hold: each press flips ADS and the button stays lit (.on) while it is latched
+    const aim = root.querySelector<HTMLElement>('.aim')!;
+    aim.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.crossbow.adsHeld = !this.crossbow.adsHeld; aim.classList.toggle('on', this.crossbow.adsHeld); });
+    aim.addEventListener('pointerup', (e) => e.stopPropagation());
     btn('.reload', () => { if (this.crossbow.enabled) this.crossbow.reload(); });
     btn('.jump', () => { this.player.touchJump = true; });
     btn('.ws-touch-pause', () => document.dispatchEvent(new Event('ws:pause')));

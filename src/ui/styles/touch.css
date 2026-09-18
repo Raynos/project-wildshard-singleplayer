@@ -14,9 +14,7 @@
 .ws-touch-zone .ws-touch-label { position: absolute; left: 12px; top: 8px; font-size: 8px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ws-cyan-dim); }
 .ws-touch-btns { position: absolute; left: 12px; right: 12px; bottom: calc(max(15vh, 104px) + env(safe-area-inset-bottom, 0px) * 0.5 + 10px); display: flex; gap: 8px; }
 .ws-touch-btn { appearance: none; -webkit-appearance: none; margin: 0; padding: 0; flex: 1; height: 46px; border-radius: 6px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); color: var(--ws-text); font-family: var(--ws-mono); font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
-.ws-touch-btn.down { background: rgba(143, 227, 255, 0.3); border-color: var(--ws-cyan); }
+.ws-touch-btn.down, .ws-touch-btn.on { background: rgba(143, 227, 255, 0.3); border-color: var(--ws-cyan); }
 .ws-touch-btn.use { display: none; color: var(--ws-cyan); border-color: var(--ws-cyan); }
 /* USE only shows while the game HUD (game.css) has an interact prompt up */
 .ws-game-prompt.show ~ .ws-touch .ws-touch-btn.use { display: block; }
-.ws-touch-btn.fire { flex: 1.4; font-family: var(--ws-display); font-weight: 700; font-size: 14px; letter-spacing: 0.24em; color: #fff; background: rgba(143, 227, 255, 0.14); border-color: var(--ws-cyan); box-shadow: 0 0 18px rgba(143, 227, 255, 0.2); }
-.ws-touch-btn.fire.down { background: rgba(255, 90, 74, 0.35); border-color: var(--ws-red); }
