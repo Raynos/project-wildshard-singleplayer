@@ -18,7 +18,9 @@ loops.
 
 ## Existing modules (do not modify unless told)
 
-- `src/core/config.ts` — `CHUNK_SIZE=500`, `CHUNK_HALF`, `CHUNK_DEPTH`, `SEED`, …
+- `src/core/config.ts` — `CHUNK_SIZE=500`, `CHUNK_HALF`, `CHUNK_DEPTH` (fixed) and `SEED`, `TREE_COUNT`, `CHUNK_ID`,
+  `CHUNK_COORDS` (live bindings of the active shard). Per-shard data lives in `src/chunks/*.ts` — see `docs/SHARDS.md`;
+  `getActiveChunk()` from `src/chunks/registry.ts` gives you the whole def.
 - `src/core/rng.ts` — `Rng(seed)`: `.next() .range(a,b) .int(a,b) .pick(arr)`; deterministic. Use it, not Math.random.
 - `src/core/noise.ts` — `Noise2D(seed)`: `.get(x,y)` [-1,1], `.fbm(x,y,oct)`, `.ridged()`; `smoothstep, clamp, lerp`.
 - `src/core/assets.ts` — `loadPBR(id, repeat)` → `{map, normalMap, armMap}` from `public/assets/tex/<id>/`
