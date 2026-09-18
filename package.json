@@ -8,7 +8,9 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "assets": "node scripts/fetch-assets.mjs",
-    "timelapse": "bash scripts/timelapse.sh"
+    "timelapse": "bash scripts/timelapse.sh",
+    "bench": "node scripts/bench-load.mjs",
+    "bench:ci": "node scripts/bench-load.mjs --ci"
   },
   "dependencies": {
     "n8ao": "^2.0.1",
@@ -20,6 +22,7 @@
     "@gltf-transform/core": "^4.5.0",
     "@gltf-transform/functions": "^4.5.0",
     "@types/three": "^0.186.0",
+    "playwright": "^1.63.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.0"
   }

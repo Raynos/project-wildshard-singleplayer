@@ -1,0 +1,13 @@
+{
+  "$doc": "Load budgets from docs/plans/LOAD-PERF.md §1, checked by `pnpm bench:ci` (scripts/bench-load.mjs --ci). cond = <network>/<cold|warm>; metric = a row field of progress/bench/*.json; max (with unit MB|s|count) or equals. Missing rows print n/a and do not fail.",
+  "rows": [
+    { "name": "title screen visible", "cond": "4g/cold", "metric": "titleMs", "max": 1000, "unit": "s" },
+    { "name": "first-launch transfer", "cond": "wifi/cold", "metric": "netBytes", "max": 12582912, "unit": "MB" },
+    { "name": "warm transfer (SW cache)", "cond": "wifi/warm", "metric": "netBytes", "max": 104857, "unit": "MB" },
+    { "name": "requests, first launch", "cond": "wifi/cold", "metric": "requests", "max": 20, "unit": "count" },
+    { "name": "time to play, cold", "cond": "4g/cold", "metric": "playMs", "max": 10000, "unit": "s" },
+    { "name": "time to play, warm", "cond": "4g/warm", "metric": "playMs", "max": 3000, "unit": "s" },
+    { "name": "longest main-thread task", "cond": "wifi/cold", "metric": "longTaskMaxMs", "max": 100, "unit": "ms" },
+    { "name": "service worker controls warm run", "cond": "wifi/warm", "metric": "swController", "equals": true }
+  ]
+}
