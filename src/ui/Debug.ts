@@ -25,7 +25,7 @@ export class Debug {
   constructor(private onChange: (f: DebugFlags) => void) {
     const pill = document.createElement('button');
     pill.type = 'button'; pill.textContent = 'DBG';
-    Object.assign(pill.style, { position: 'fixed', right: '12px', top: 'calc(20px + env(safe-area-inset-top, 0px))', zIndex: '9998', padding: '3px 7px', font: '700 9px/1 Rajdhani, sans-serif', letterSpacing: '0.2em', color: '#ff7a6b', background: 'rgba(6,10,18,0.7)', border: '1px solid #ff7a6b', pointerEvents: 'auto' } as CSSStyleDeclaration);
+    Object.assign(pill.style, { position: 'fixed', right: '12px', top: 'max(22px, calc(env(safe-area-inset-top, 0px) - 4px))', zIndex: '9998', padding: '3px 7px', font: '700 9px/1 Rajdhani, sans-serif', letterSpacing: '0.2em', color: '#ff7a6b', background: 'rgba(6,10,18,0.7)', border: '1px solid #ff7a6b', pointerEvents: 'auto' } as CSSStyleDeclaration);
     pill.onclick = () => (this.panel ? this.close() : this.open());
     document.body.appendChild(pill);
   }
