@@ -111,7 +111,7 @@ export class Ocean {
             // shore foam: a hard white band where the floor meets the surface, breathing with the swell
             float edge = vDepth + sin(uTime * 1.3 + vXZ.x * 0.9 + vXZ.y * 0.4) * 0.12;
             float foam = 1.0 - smoothstep(0.16, 0.3, edge);
-            foam = max(foam, (1.0 - smoothstep(0.4, 0.5, edge)) * 0.4);
+            foam = max(foam, (1.0 - smoothstep(0.4, 0.5, edge)) * 0.28);
             // white caps on the tallest crests, sparse
             float cap = smoothstep(0.2, 0.25, vCrest) * step(0.9, hash21(floor(vXZ * 0.36))) * 0.8;
             diffuseColor.rgb = mix(water, vec3(0.9), clamp(foam + cap, 0.0, 1.0));

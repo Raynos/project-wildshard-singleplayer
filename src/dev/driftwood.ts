@@ -5,6 +5,7 @@ import { bootstrap } from '../core/bootstrap';
 import { Ocean } from '../world/Ocean';
 import { Pier } from '../world/Pier';
 import { Boat } from '../world/Boat';
+import { Boulders } from '../world/Boulders';
 import { Boundary } from '../world/Boundary';
 import { Horizon } from '../world/Horizon';
 import { CHUNK_HALF, ROAD_LENGTH } from '../core/config';
@@ -29,6 +30,10 @@ game.scene.add(boat.group); if (boat.ropes) game.scene.add(boat.ropes);
 player.colliders.push(...boat.colliders);
 player.platforms.push((x, z) => boat.floorHeightAt(x, z));
 
+const rocks = new Boulders(sky).build(Boulders.scatterShore(chunk.seed));
+game.scene.add(rocks.mesh);
+player.colliders.push(...rocks.colliders);
+
 const boundary = new Boundary(sky).build();
 game.scene.add(boundary.group);
 const horizon = new Horizon(sky).build();
@@ -36,6 +41,6 @@ game.scene.add(horizon.group);
 
 game.onUpdate((dt, t) => { ocean?.update(dt); boat.update(dt); boundary.update(dt, t); horizon.update(dt, game.camera); });
 
-(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boat, boundary, horizon, heightAt };
+(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boat, rocks, boundary, horizon, heightAt };
 game.buildComposer();
 game.start();

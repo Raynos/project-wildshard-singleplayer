@@ -21,13 +21,15 @@ const SEED = 0x5ea1;
 export const OCEAN: OceanDef = {
   level: 0.8,
   // albedo (linear); the sun + sky here add up to ~3× so the palette stays under 0.5 or it tone-maps to white
-  shallowColor: [0.08, 0.42, 0.40],
+  shallowColor: [0.07, 0.5, 0.46],
   deepColor: [0.006, 0.07, 0.24],
   deepDepth: 6,
 };
 
 /** Where the south pier lands (the crescent beach) — the island's origin for the later pieces. */
 export const PIER = { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckAbove: 1.2 };
+/** the island disc: centre and nominal shoreline radius (the shoreline is noise-warped ±30 m) */
+export const ISLAND = { x: 0, z: 12, r: 188 };
 
 /** on the pier deck, 15 m in (past the HUD's 14 m boundary warning), facing north up the pier */
 const SPAWN = { x: 0, z: -CHUNK_HALF + 15, yaw: Math.PI };
@@ -49,14 +51,22 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   terrain: buildTerrain(SEED, {
     oceanLevel: OCEAN.level,
     /**
-     * Sea floor: a gently rolling bed 4–6 m under the surface everywhere (step 1: no island yet).
-     * Keep it below OCEAN.level - 2 so nothing pokes out; the roads are forced to 0 (sandbars).
+     * The island: a noise-warped disc centred a little north of the chunk centre. `m` is signed
+     * metres inside the shoreline. Out to sea the floor is 5 m down and shelves up over the last
+     * 60 m (the turquoise lagoon over sand); the beach climbs from the water line to ~2.6 m over
+     * 25 m, then the interior rises gently to grass at ~6 m. The plateau, cliffs and lookout are
+     * added on top as their pieces land. Entry roads are forced to 0 by buildTerrain (sandbars).
      */
-    landscape(x, z, { n }) {
-      let h = -4.8 + n.fbm(x * 0.012, z * 0.012, 3) * 1.2;
-      // shelve up a little toward the edge midpoints so the sandbar ramps read as sand, not a cliff
-      const edge = Math.max(Math.abs(x), Math.abs(z)) / CHUNK_HALF;
-      h += smoothstep(0.8, 1.0, edge) * 1.0;
+    landscape(x, z, { n, n2 }) {
+      const dx = x - ISLAND.x, dz = z - ISLAND.z;
+      const r = Math.hypot(dx, dz), ang = Math.atan2(dz, dx);
+      const R = ISLAND.r + n.get(Math.cos(ang) * 1.7 + 3.3, Math.sin(ang) * 1.7) * 32 + n2.fbm(x * 0.006, z * 0.006, 3) * 22;
+      const m = R - r;
+      const sea = OCEAN.level;
+      let h: number;
+      if (m < 0) h = -5.0 + smoothstep(-70, 0, m) * (sea + 5.0);           // shelf up to the water line
+      else h = sea + smoothstep(0, 26, m) * 1.8 + smoothstep(20, 90, m) * 3.6; // beach, then the grassy interior
+      h += n.fbm(x * 0.04, z * 0.04, 2) * 0.25 * smoothstep(-10, 15, m);       // small dune / ground bumps on land
       return h;
     },
     /** The four mandated entry roads only (they are the four jetties' sandbars). */

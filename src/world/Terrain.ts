@@ -297,13 +297,13 @@ export class Terrain {
 
 // ── low-poly palette (sRGB in, linear out via THREE.Color) ──
 const LP = {
-  seabed: new THREE.Color('#b9b08a'),
-  wetSand: new THREE.Color('#d9c48e'),
-  sand: new THREE.Color('#f3e0a6'),
-  grass: new THREE.Color('#7fc44c'),
-  grassDark: new THREE.Color('#5da33a'),
-  rock: new THREE.Color('#6f7378'),
-  rockLight: new THREE.Color('#8d9197'),
+  seabed: new THREE.Color('#a39b76'),
+  wetSand: new THREE.Color('#c4ad78'),
+  sand: new THREE.Color('#dcc48a'),
+  grass: new THREE.Color('#6cae47'),
+  grassDark: new THREE.Color('#4d8c33'),
+  rock: new THREE.Color('#666a70'),
+  rockLight: new THREE.Color('#84888e'),
 };
 const _tmpC = new THREE.Color();
 const hash2 = (x: number, z: number) => { const s = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return s - Math.floor(s); };
