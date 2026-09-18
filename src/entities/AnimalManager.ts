@@ -102,25 +102,25 @@ export interface HuntTuning {
 
 export const DEER_TUNING: HuntTuning = {
   hp: 60,
-  // A deer head-on sees you walking at ~40 m and bolts at ~33; from behind / the side you get to ~24 m on foot,
-  // ~12 m at a crouch. Sprinting anywhere inside 48 m is heard.
-  sightRange: 52, sightRangeGraze: 26, sightCone: THREE.MathUtils.degToRad(75),
-  hearStill: 5, hearCrouch: 11, hearWalk: 26, hearSprint: 48,
-  noticeRate: 0.55, forgetRate: 0.16, alertAt: 0.35, boltAt: 1.0,
-  // 1.8–3.2 s head-up stare: enough to raise the crossbow and take the shot
-  freezeMin: 1.8, freezeMax: 3.2, relaxAfter: 4.5, panicDist: 11,
-  // gallop 8.6 (you sprint 7.2 — you cannot run one down) but only to 65–90 m, then it trots, stops and looks back
-  runSpeed: 8.6, trotSpeed: 4.2, fleeMinTime: 2.5, fleeUntil: 65, fleeUntilMax: 90, fleeMaxTime: 14, lookBack: 2.5,
-  waryTime: 25, waryBoost: 1.6,
-  herdAlertRadius: 15, herdBoltDelayMin: 0.3, herdBoltDelayMax: 0.9,
-  impactSpook: 8, impactAlert: 22,
+  // Huntable, not paranoid (user: "I need to be able to get close and shoot them"): head-on a deer notices you
+  // walking at ~22 m; from behind / the side you get to ~12 m on foot. Only sprinting inside 24 m is heard.
+  sightRange: 30, sightRangeGraze: 14, sightCone: THREE.MathUtils.degToRad(55),
+  hearStill: 3, hearCrouch: 6, hearWalk: 12, hearSprint: 24,
+  noticeRate: 0.3, forgetRate: 0.3, alertAt: 0.45, boltAt: 1.0,
+  // 4–7 s head-up stare: plenty of time to raise the crossbow and take the shot
+  freezeMin: 4.0, freezeMax: 7.0, relaxAfter: 3.5, panicDist: 6,
+  // gallop 6.0 (you sprint 7.2 — you CAN close on one) and only to 35–50 m, then it trots, stops and looks back
+  runSpeed: 6.0, trotSpeed: 3.2, fleeMinTime: 1.5, fleeUntil: 35, fleeUntilMax: 50, fleeMaxTime: 8, lookBack: 2.5,
+  waryTime: 10, waryBoost: 1.2,
+  herdAlertRadius: 8, herdBoltDelayMin: 0.4, herdBoltDelayMax: 1.2,
+  impactSpook: 4, impactAlert: 10,
 };
 
 export const BOAR_TUNING: HuntTuning = {
   hp: 100,
   // poor eyes, good nose: a short cone but it hears a walker from 22 m
-  sightRange: 30, sightRangeGraze: 18, sightCone: THREE.MathUtils.degToRad(60),
-  hearStill: 6, hearCrouch: 10, hearWalk: 22, hearSprint: 40,
+  sightRange: 22, sightRangeGraze: 14, sightCone: THREE.MathUtils.degToRad(60),
+  hearStill: 4, hearCrouch: 7, hearWalk: 14, hearSprint: 28,
   noticeRate: 0.5, forgetRate: 0.2, alertAt: 0.35, boltAt: 1.0,
   freezeMin: 1.5, freezeMax: 2.8, relaxAfter: 4, panicDist: 10, // panicDist doubles as the charge trigger
   runSpeed: 6.8, trotSpeed: 3.6, fleeMinTime: 2, fleeUntil: 40, fleeUntilMax: 60, fleeMaxTime: 10, lookBack: 2,
