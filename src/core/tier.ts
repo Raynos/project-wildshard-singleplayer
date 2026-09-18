@@ -9,7 +9,8 @@ const params = new URLSearchParams(location.search);
 const ua = navigator.userAgent;
 const isIPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
 const mobileUA = /iPhone|iPad|iPod|Android/i.test(ua) || isIPadOS;
-const forced = params.get('tier') as Tier | null;
+const dbgTier = (() => { try { return (JSON.parse(localStorage.getItem('ws.debug') ?? '{}') as { tier?: string }).tier; } catch { return undefined; } })(); // DBG pill (src/ui/Debug.ts)
+const forced = (params.get('tier') ?? (dbgTier === 'phone' || dbgTier === 'desktop' ? dbgTier : null)) as Tier | null;
 
 export const TIER: Tier = forced === 'phone' || forced === 'desktop' ? forced : mobileUA ? 'phone' : 'desktop';
 

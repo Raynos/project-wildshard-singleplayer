@@ -13,6 +13,7 @@ import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from './tier';
 import { ResumeSnapshot } from './ResumeSnapshot';
 import { ResumeDebug } from './ResumeDebug';
+import { dbg } from '../ui/Debug';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 
@@ -32,6 +33,7 @@ export class Game {
   /** WebGL context loss bookkeeping (iOS drops the context in the background); the perf meter shows it */
   gl = { lostAt: 0, restoredAt: 0, events: 0 };
   snapshot?: ResumeSnapshot;
+  keepAlive?: { describe(): string };
   /** Return false to skip a whole frame (updaters + render): a menu covering the canvas, a still title on a phone. */
   frameGate: () => boolean = () => true;
   private renderPass!: RenderPass;
@@ -170,14 +172,13 @@ export class Game {
     const snapshot = new ResumeSnapshot(this.renderer, () => this.composer.render(0.016), () => this.frameGate());
     this.snapshot = snapshot;
     // dismissible facts panel on every real resume (src/core/ResumeDebug.ts; ?rdbg=0 disables)
-    new ResumeDebug(this.renderer, () => snapshot.firstFrameAt, () => this.frameGate(), () => snapshot.describe());
+    new ResumeDebug(this.renderer, () => snapshot.firstFrameAt, () => this.frameGate(), () => `${snapshot.describe()} · ${this.keepAlive?.describe() ?? ''}`);
     this.canvas.addEventListener('webglcontextlost', () => { this.gl.lostAt = performance.now(); this.gl.events++; console.warn('[gl] context lost'); });
     this.canvas.addEventListener('webglcontextrestored', () => { this.gl.restoredAt = performance.now(); console.warn('[gl] context restored after', Math.round(this.gl.restoredAt - this.gl.lostAt), 'ms'); });
     // ?loop=timer: drive the loop from a 16 ms timer instead of rAF — an experiment for iOS Low Power
     // Mode, which throttles rAF to 30 Hz (whether the compositor presents timer-driven frames any
     // faster is the question the phone's meter answers). Default stays rAF.
-    const timerLoop = new URLSearchParams(location.search).get('loop') === 'timer';
-    const schedule = timerLoop ? (fn: () => void) => { setTimeout(fn, 16); } : (fn: () => void) => { requestAnimationFrame(fn); };
+    const schedule = (fn: () => void) => { if (dbg.loop === 'timer') setTimeout(fn, 16); else requestAnimationFrame(fn); }; // live switch from the DBG pill
     const loop = () => {
       schedule(loop);
       if (!forceFrame && !this.frameGate()) { this.clock.getDelta(); return; } // keep the clock moving so the next frame's dt is sane

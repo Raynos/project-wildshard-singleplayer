@@ -27,6 +27,7 @@ class DummyTarget implements TargetAnimal {
     this.head.position.copy(this.position).add(new THREE.Vector3(0, r * 0.9, 0));
     scene.add(this.body, this.head);
   }
+  damageFor(headshot: boolean) { return headshot ? 130 : 55; }
   applyDamage(amount: number) {
     if (!this.alive) return false;
     this.hp -= amount;

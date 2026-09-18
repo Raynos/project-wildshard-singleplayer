@@ -9,6 +9,7 @@ import type { Player } from '../player/Player';
 import type { Forest } from '../world/Forest';
 import { heightAt } from '../world/Heightfield';
 import { CHUNK_HALF } from '../core/config';
+import { getSetting, setSetting } from '../ui/Settings';
 
 /**
  * Crossbow — first-person hero weapon: procedural medieval hunting crossbow viewmodel,
@@ -38,6 +39,8 @@ import { CHUNK_HALF } from '../core/config';
 
 export interface TargetAnimal {
   applyDamage(amount: number, point: THREE.Vector3, dir: THREE.Vector3): boolean;
+  /** the damage model's number for a bolt: headshot ×2.5, body 32–40 with distance falloff (src/entities/Animal.ts) */
+  damageFor(headshot: boolean, dist: number): number;
   kind: 'deer' | 'boar';
   position: THREE.Vector3;
   alive: boolean;
@@ -63,16 +66,16 @@ const STUCK_BURY = 0.08;
 /** Forest pads every trunk's collision radius (`TreeInstance.r`) by this much over the drawn trunk (Forest.ts) */
 const TRUNK_PAD = 0.15;
 /**
- * DEBUG TRACERS (for sighting-in the iron sights): every bolt gets a big red glow while it flies, leaves a fat
- * additive red trail of its whole flight path (drawn through trees: no depth test) and drops a red impact marker
- * where it stopped; trail + marker live TRACER_LIFE s then fade. Stuck bolts get a permanent red dot on the nock.
- * One flip here turns it all off; `?tracer=0` / `?tracer=1` overrides it per load.
+ * TRACERS (for sighting-in the iron sights): a traced bolt gets a big red glow while it flies, leaves a fat solid-red
+ * trail of its whole flight path (drawn through trees: no depth test) and drops a red impact marker where it stopped;
+ * trail + marker live TRACER_LIFE s then fade. A traced bolt that sticks keeps a permanent red dot on its nock.
+ * Runtime toggle: the 'tracers' setting (pause menu, persisted) is read at fire time, so a flip applies to the next
+ * shot; `?tracer=0` / `?tracer=1` writes it once at load.
  */
-const TRACER_ON = true;
-const TRACER: boolean = (() => {
+{
   const q = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('tracer');
-  return q === null ? TRACER_ON : q !== '0';
-})();
+  if (q !== null) setSetting('tracers', q !== '0');
+}
 const MAX_TRACERS = 8, TRACER_POINTS = 2048, TRACER_LIFE = 6, TRACER_FADE = 1.5, TRACER_WIDTH = 8;
 /** markers + the flying glow are scaled with distance (never below 1×) so they stay ~25 px on screen at any range */
 const TRACER_PX = 0.32;
@@ -92,7 +95,7 @@ const KICK_PITCH = THREE.MathUtils.degToRad(0.8);
  *  ADS_NUT_NDC_Y (just inside the bottom edge) or the near plane stops it — that fixes the eye height above the rail
  *  (~5 cm) and the depth, and the limb span falls out (≈ ±0.5 landscape, edge to edge on a 94° portrait). */
 const ADS_TIP_NDC_Y = -0.12, ADS_NUT_NDC_Y = -0.85, ADS_NEAR_MARGIN = 0.03, ADS_PITCH = 0, ADS_BLEND_TIME = 0.18, ADS_MOTION = 0.3;
-const BODY_DAMAGE = 55, HEAD_DAMAGE = 130;
+// damage numbers live in the damage model (src/entities/Animal.ts damageFor)
 /** Rear PEEP sight (mockup art/ads-C-peep-sight.png): a dark-iron ring on a post just in front of the nut (the stock
  *  behind the nut is inside the near plane when sighted), placed on the eye→tip line so that at full ADS its centre
  *  projects exactly where the tip does — the tip is seen through the ring. Outer diameter ≈ 4 % of the screen width
@@ -590,7 +593,7 @@ class Tracer {
 
 // ───────────────────────────── the crossbow ─────────────────────────────
 
-interface Bolt { mesh: THREE.Mesh; pos: THREE.Vector3; vel: THREE.Vector3; active: boolean; age: number; roll: number; tracer: Tracer | null; glow: THREE.Mesh | null }
+interface Bolt { mesh: THREE.Mesh; pos: THREE.Vector3; vel: THREE.Vector3; active: boolean; age: number; roll: number; traced: boolean; tracer: Tracer | null; glow: THREE.Mesh }
 interface Stuck { mesh: THREE.Mesh }
 
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3();
@@ -880,19 +883,16 @@ export class Crossbow {
     for (let i = 0; i < MAX_FLYING; i++) {
       const mesh = new THREE.Mesh(this.boltGeo, this.boltMat);
       mesh.visible = false; mesh.castShadow = true; mesh.frustumCulled = false;
-      let glow: THREE.Mesh | null = null;
-      if (TRACER) { // red glow riding on the flying bolt (a child, so it hides with it)
-        glow = new THREE.Mesh(boltGlowGeo, glowMat); glow.renderOrder = TRACER_ORDER + 1; glow.position.set(0, 0, this.tipLocal.z + 0.05);
-        mesh.add(glow);
-      }
+      // red glow riding on the flying bolt (a child, so it hides with it; shown only on traced shots)
+      const glow = new THREE.Mesh(boltGlowGeo, glowMat); glow.renderOrder = TRACER_ORDER + 1; glow.position.set(0, 0, this.tipLocal.z + 0.05); glow.visible = false;
+      mesh.add(glow);
       this.game.scene.add(mesh);
-      this.bolts.push({ mesh, pos: new THREE.Vector3(), vel: new THREE.Vector3(), active: false, age: 0, roll: 0, tracer: null, glow });
+      this.bolts.push({ mesh, pos: new THREE.Vector3(), vel: new THREE.Vector3(), active: false, age: 0, roll: 0, traced: false, tracer: null, glow });
     }
-    if (TRACER) for (let i = 0; i < MAX_TRACERS; i++) this.tracers.push(new Tracer(this.game.scene));
+    for (let i = 0; i < MAX_TRACERS; i++) this.tracers.push(new Tracer(this.game.scene));
   }
   /** a free tracer, else the one closest to expiring (oldest) */
   private takeTracer(): Tracer | null {
-    if (!TRACER) return null;
     let best: Tracer | null = null;
     for (const t of this.tracers) { if (!t.active) return t; if (t.endTime >= 0 && (!best || t.endTime < best.endTime)) best = t; }
     if (!best) best = this.tracers[0]; // all 8 still flying: recycle the first
@@ -939,8 +939,10 @@ export class Crossbow {
     b.mesh.position.copy(b.pos);
     b.mesh.quaternion.setFromUnitVectors(NEG_Z, _dir);
     if (b.tracer) b.tracer.finish(b.pos, this.time); // slot stolen mid-flight: close its old trail
-    b.tracer = this.takeTracer();
+    b.traced = getSetting('tracers'); // read per shot: a pause-menu flip applies to the next bolt
+    b.tracer = b.traced ? this.takeTracer() : null;
     b.tracer?.begin(b.pos);
+    b.glow.visible = b.traced;
   }
 
   /**
@@ -1092,10 +1094,8 @@ export class Crossbow {
 
     this.stepBolts(dt);
     this.puffs.update(dt, this.game.renderer, cam);
-    if (TRACER) {
-      this.game.renderer.getDrawingBufferSize(this.tracerRes);
-      for (const tr of this.tracers) tr.update(t, cam, this.tracerRes);
-    }
+    this.game.renderer.getDrawingBufferSize(this.tracerRes);
+    for (const tr of this.tracers) tr.update(t, cam, this.tracerRes);
   }
 
   private updateString() {
@@ -1135,7 +1135,7 @@ export class Crossbow {
       _dir.copy(b.vel).normalize();
       b.roll += dt * 14;
       b.mesh.quaternion.setFromUnitVectors(NEG_Z, _dir).multiply(_q2.setFromAxisAngle(NEG_Z, b.roll));
-      if (b.glow) b.glow.scale.setScalar(Math.max(1, TRACER_PX * b.pos.distanceTo(this.game.camera.position)));
+      if (b.traced) b.glow.scale.setScalar(Math.max(1, TRACER_PX * b.pos.distanceTo(this.game.camera.position)));
     }
   }
 
@@ -1150,7 +1150,7 @@ export class Crossbow {
     if (this.targets) {
       const hit = this.targets.raycast(prev, _dir, segLen);
       if (hit) {
-        const killed = hit.animal.applyDamage(hit.headshot ? HEAD_DAMAGE : BODY_DAMAGE, hit.point, _dir);
+        const killed = hit.animal.applyDamage(hit.animal.damageFor(hit.headshot, hit.point.distanceTo(this.game.camera.position)), hit.point, _dir);
         this.onHit?.(hit.animal.kind, hit.headshot, killed);
         this.stopBolt(b, hit.point, _dir, 'flesh', false);
         return true;
@@ -1218,7 +1218,7 @@ export class Crossbow {
     mesh.castShadow = true;
     mesh.position.copy(point).addScaledVector(dir, STUCK_BURY + this.tipLocal.z);
     mesh.quaternion.setFromUnitVectors(NEG_Z, dir).multiply(_q.setFromAxisAngle(NEG_Z, b.roll));
-    if (TRACER) { // permanent red dot on the nock so stuck bolts read from a distance
+    if (b.traced) { // permanent red dot on the nock so a traced bolt reads from a distance
       const dot = new THREE.Mesh(stuckDotGeo, glowMat); dot.renderOrder = TRACER_ORDER + 1;
       dot.position.set(0, 0, this.boltGeo.boundingBox!.max.z);
       mesh.add(dot);

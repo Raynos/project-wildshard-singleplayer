@@ -29,6 +29,7 @@ export class ResumeSnapshot {
   resumedAt = 0; firstFrameAt = 0; resumes = 0;
   /** centre pixel of live frames 1 / 5 / 30 after a resume, read inside the render task (the only place the buffer is valid) */
   liveSamples: string[] = []; private framesSinceResume = 0;
+  canvasHidden = false;
 
   constructor(private renderer: THREE.WebGLRenderer, private renderFrame: () => void, private worldVisible: () => boolean) {
     const mk = (z: string) => {
@@ -49,7 +50,7 @@ export class ResumeSnapshot {
   }
 
   /** For the debug modal: what the overlay / mirror hold right now. */
-  describe() { return `live centre pixel ${this.liveSamples.join(' · ') || '(no live frame yet)'} · overlay ${this.overlay.hidden ? 'hidden' : 'SHOWING'} (${this.overlay.width}×${this.overlay.height}) · mirror ${this.mirror.width}×${this.mirror.height} age ${Math.round(performance.now() - this.lastMirror)} ms`; }
+  describe() { return `canvas ${this.canvasHidden ? 'HIDDEN' : 'shown'} · live centre pixel ${this.liveSamples.join(' · ') || '(no live frame yet)'} · overlay ${this.overlay.hidden ? 'hidden' : 'SHOWING'} (${this.overlay.width}×${this.overlay.height}) · mirror ${this.mirror.width}×${this.mirror.height} age ${Math.round(performance.now() - this.lastMirror)} ms`; }
 
   /** Called by the loop after each rendered frame — inside the render task, so the buffer is readable. */
   afterFrame(now: number) {
@@ -60,7 +61,7 @@ export class ResumeSnapshot {
         try { const gl = this.renderer.getContext(); const px = new Uint8Array(4); gl.readPixels(gl.drawingBufferWidth >> 1, gl.drawingBufferHeight >> 1, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); this.liveSamples.push(`f${f}: ${px[0]},${px[1]},${px[2]}${px[0] + px[1] + px[2] === 0 ? ' BLACK' : ''}`); } catch { /* ignore */ }
       }
     }
-    if (!this.overlay.hidden && this.pendingFrames > 0 && --this.pendingFrames === 0) this.overlay.hidden = true;
+    if (!this.overlay.hidden && this.pendingFrames > 0 && --this.pendingFrames === 0) { this.renderer.domElement.style.visibility = ''; this.canvasHidden = false; this.overlay.hidden = true; }
     if (now - this.lastMirror >= MIRROR_MS && this.worldVisible()) { this.lastMirror = now; this.mirrorFrame(); }
   }
 
@@ -104,6 +105,9 @@ export class ResumeSnapshot {
       this.octx.save(); this.octx.scale(1, -1); this.octx.drawImage(this.flip, 0, -h); this.octx.restore();
       this.overlay.hidden = false;
       this.pendingFrames = 0;
+      // give iOS no WebGL layer to rebuild on resume: the overlay covers the screen until the first live frames are in
+      this.renderer.domElement.style.visibility = 'hidden';
+      this.canvasHidden = true;
     } catch (e) { console.warn('[resume] snapshot failed', e); }
   }
 }

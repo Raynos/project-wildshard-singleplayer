@@ -1,4 +1,5 @@
 import type * as THREE from 'three';
+import { dbg } from '../ui/Debug';
 
 /**
  * Black-screen-on-app-switch debugging modal. On every real resume (the page was hidden for more
@@ -16,7 +17,7 @@ export class ResumeDebug {
   private t0 = performance.now();
   private glLost = 0; private glRestored = 0; private glLostAt = 0;
   private modal?: HTMLElement;
-  private enabled = !/[?&]rdbg=0/.test(location.search);
+  private get enabled() { return dbg.rdbg && !/[?&]rdbg=0/.test(location.search); }
 
   constructor(private renderer: THREE.WebGLRenderer, private firstFrameAt: () => number, private gated: () => boolean, private snapshotState: () => string) {
     const log = (name: string) => this.events.push(`${name} @${this.ms()}`);
@@ -53,6 +54,7 @@ export class ResumeDebug {
       `gl context: lost ×${this.glLost}, restored ×${this.glRestored}`,
       `snapshot: ${this.snapshotState()}`,
       `events: ${this.events.join(' → ') || '(none)'}`,
+      `page loaded ${((performance.now()) / 1000).toFixed(0)} s ago (a cold relaunch would read a few seconds) · reload count this session: ${(performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)?.type ?? '?'}`,
       `standalone PWA: ${(navigator as unknown as { standalone?: boolean }).standalone ? 'yes' : 'no'} · visible now: ${document.visibilityState} · focus: ${document.hasFocus()}`,
       `canvas ${this.renderer.domElement.width}×${this.renderer.domElement.height} · dpr ${this.renderer.getPixelRatio().toFixed(2)} · heap ${mem ? `${Math.round(mem.usedJSHeapSize / 1048576)} MB` : 'n/a'} · ${navigator.userAgent.match(/OS \d+_\d+/)?.[0] ?? ''}`,
     ];
