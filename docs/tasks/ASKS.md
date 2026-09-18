@@ -125,3 +125,8 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | P6 | Shard 3 biome (shard 2 = Driftwood Isle, D1) | **open** | user: "I'll tell later" |
 | X1 | Black screen on iOS app switch | **closed — accepted** | iOS restores a suspended standalone app before any JS runs; overlay / mirror / hidden canvas / manifest colour / wake lock / keep-alive audio made no difference; modal removed in `fa47487` |
 | X2 | 30 fps in Low Power Mode | **closed — accepted** | iOS caps rAF and timers at 30 Hz; `?loop=timer` tried and removed |
+| D10 | **"Go ahead and implement the whole thing, incrementally, screenshots along the way; get me walking around quickly"** — world first | **in flight** | parent + agents below |
+| D11 | **One subagent each: boar (low-poly), sword (wooden), world** | **in flight** | boar-agent, sword-agent, world-agent (parent wires main.ts) |
+| D12 | World order: **fill the world with water + just the pier** → then **a little boat by the pier** → then **the beach** (what you see from the pier) → then the rest of the island piece by piece | **in flight** | world-agent |
+| D13 | **Swimming mechanism** (subagent) — it's all water | **in flight** | swim-agent |
+| D14 | **Diving** (second subagent, after swimming): in water JUMP becomes **DIVE**; holding DIVE goes down, a **SURFACE** button appears beside it that goes up; no other vertical control for now | **open** | starts when D13 lands |
