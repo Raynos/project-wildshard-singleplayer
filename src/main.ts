@@ -10,7 +10,9 @@ import { Boat } from './world/Boat';
 import { Boulders } from './world/Boulders';
 import { Hut } from './world/Hut';
 import { Palms } from './world/Palms';
-import { HUT } from './chunks/driftwood-isle';
+import { HUT, LOOKOUT, WRECK } from './chunks/driftwood-isle';
+import { Lookout } from './world/Lookout';
+import { Wreck } from './world/Wreck';
 import { Hands } from './player/Hands';
 import { ROAD_LENGTH } from './core/config';
 import { Sword } from './player/Sword';
@@ -45,6 +47,7 @@ import { declareTotals, installByteCounter } from './boot/bytes';
 import { chunkFiles } from './boot/manifest';
 import { getActiveChunk } from './chunks/registry';
 import { Audio } from './audio/Audio';
+import { installErrorModal, showError } from './ui/ErrorModal';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
 const _animalXZ: { x: number; z: number }[] = [];
@@ -55,6 +58,7 @@ function animalPositions(list: { position: { x: number; z: number }; alive?: boo
   return _animalXZ;
 }
 
+installErrorModal(); // before anything can throw
 async function main() {
   const loading = new Loading();
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/boot/plan.ts).
@@ -62,6 +66,9 @@ async function main() {
   const files = chunkFiles(getActiveChunk());
   const plan = createBootPlan((view) => loading.paint(view), { totals: declareTotals(files) });
   installByteCounter(plan, files);
+  // a boot that throws shows WHY: the loading panel's foot line + the uncaught-exception modal (src/ui/ErrorModal.ts)
+  window.addEventListener('unhandledrejection', (e) => plan.fail(`BOOT FAILED · ${String((e.reason as { message?: string })?.message ?? e.reason)}`.slice(0, 300)));
+  window.addEventListener('error', (e) => plan.fail(`BOOT FAILED · ${e.message} @ ${e.filename?.split('/').pop()}:${e.lineno}`.slice(0, 300)));
   const step: StepRunner = (key, work) => plan.step(key, work).then((p) => p.value);
   // let the service worker take control first (≤ 2.5 s, never fatal) so the first visit's bytes are cached
   await window.__ws_sw?.ready;
@@ -100,8 +107,13 @@ async function main() {
     // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
     const hut = isOcean ? new Hut(sky, HUT).build() : null;
     if (hut) { game.scene.add(hut.group); player.colliders.push(...hut.colliders); player.platforms.push((x, z) => hut.floorHeightAt(x, z)); }
+    // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
+    const lookout = isOcean ? new Lookout(sky, LOOKOUT).build() : null;
+    if (lookout) { game.scene.add(lookout.group); player.colliders.push(...lookout.colliders); player.platforms.push((x, z) => lookout.floorHeightAt(x, z)); }
+    const wreck = isOcean ? new Wreck(sky, WRECK).build() : null;
+    if (wreck) { game.scene.add(wreck.group); player.colliders.push(...wreck.colliders); player.platforms.push((x, z) => wreck.floorHeightAt(x, z)); }
     // coconut palms (one draw call, fronds sway in update)
-    const palms = isOcean ? new Palms(sky).build(Palms.scatterIsland(chunk.seed, 150, [{ x: HUT.x, z: HUT.z, r: 11 }])) : null;
+    const palms = isOcean ? new Palms(sky).build(Palms.scatterIsland(chunk.seed, 150, [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }])) : null;
     if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
@@ -316,4 +328,4 @@ async function main() {
   await loading.done();
   (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, boat, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio };
 }
-main();
+main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));
