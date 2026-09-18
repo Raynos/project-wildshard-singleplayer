@@ -9,6 +9,7 @@ import type { Vector3 } from 'three';
  *
  *   audio.crossbowFire()  audio.boltImpact('wood'|'ground'|'flesh')  audio.reload()   audio.dryFire()
  *   audio.rifleFire()  audio.rifleReload()  audio.weaponSwap()          // AR-15 (src/player/Rifle.ts) + swap (Weapons.ts)
+ *   audio.pickupHum(on)                                           // the pickup orb's hum while inside its prompt radius
  *   audio.swordSwing()  audio.swordHeavy()  audio.swordHit('flesh'|'wood', pan?, gain?)   // sword (src/player/Sword.ts): a light swing, the heavy's release (layered over swordSwing), a hit
  *   audio.footstep(sprinting)  audio.jump()  audio.land(hard)  audio.hitMarker()  audio.kill()
  *   audio.splash(impact)  audio.wadeStep(depth, sprinting)  audio.swimStroke()  audio.waterExit()   // water (Player.onEnterWater / onStep while wading / onStroke / onExitWater)
@@ -36,6 +37,7 @@ export class Audio {
   private birdTimer = 0; private gustTimer = 0;
   private windGain?: GainNode; private windGain2?: GainNode;
   private _muted = false;
+  private hum?: { out: GainNode; stop: () => void };
 
   constructor() {
     const AC = (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext);
@@ -251,6 +253,32 @@ export class Audio {
     this.burst({ t: t + 0.30, type: 'bandpass', freq: 1800, freqEnd: 2600, q: 0.5, gain: 0.14, attack: 0.02, decay: 0.16 });
     this.burst({ t: t + 0.46, type: 'bandpass', freq: 1300, q: 1.5, gain: 0.3, decay: 0.035 });
     this.tone({ t: t + 0.46, type: 'sine', f0: 220, f1: 130, glide: 0.04, gain: 0.2, decay: 0.06 });
+  }
+
+  /** the item-pickup orb's hum while the player stands inside its prompt radius (WeaponPickup.onNear): a low-passed
+   *  220 Hz sine with a 5.5 Hz tremolo and a faint fifth, looped, faded in over 0.35 s and out over 0.5 s */
+  pickupHum(on: boolean) {
+    const c = this.ctx, t = c.currentTime;
+    if (on) {
+      if (!this.hum) {
+        const out = c.createGain(); out.gain.value = 0;
+        const trem = c.createGain(); trem.gain.value = 0.7;
+        const lfo = c.createOscillator(); lfo.frequency.value = 5.5;
+        const lg = c.createGain(); lg.gain.value = 0.3; lfo.connect(lg).connect(trem.gain); lfo.start(t);
+        const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700; lp.Q.value = 0.7;
+        const o1 = c.createOscillator(); o1.type = 'sine'; o1.frequency.value = 220;
+        const o2 = c.createOscillator(); o2.type = 'triangle'; o2.frequency.value = 330; // a soft fifth
+        const g2 = c.createGain(); g2.gain.value = 0.18;
+        o1.connect(lp); o2.connect(g2).connect(lp); lp.connect(trem).connect(out).connect(this.sfx);
+        o1.start(t); o2.start(t);
+        this.hum = { out, stop: () => { o1.stop(); o2.stop(); lfo.stop(); out.disconnect(); } };
+      }
+      this.hum.out.gain.cancelScheduledValues(t); this.hum.out.gain.setTargetAtTime(0.11, t, 0.12);
+    } else if (this.hum) {
+      const h = this.hum; this.hum = undefined;
+      h.out.gain.cancelScheduledValues(t); h.out.gain.setTargetAtTime(0, t, 0.16);
+      setTimeout(() => h.stop(), 700);
+    }
   }
 
   // ─────────────── movement ───────────────

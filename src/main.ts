@@ -247,6 +247,7 @@ async function main() {
     const x = site.x + lx * c + lz * sn, z = site.z - lx * sn + lz * c;
     const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position: new THREE.Vector3(x, cabins.floorHeightAt(x, z) ?? heightAt(x, z), z), tier: 'common', prompt: 'Take AR-15' });
     interactables.push(drop.interactable);
+    drop.onNear = (inside) => audio.pickupHum(inside); // the orb hums while you stand in its prompt radius
     drop.onPickup = () => { weapons.unlock('rifle'); weapons.select('rifle'); audio.hitMarker(); hud.toast('AR-15 acquired · 1/2 to switch, Q to swap'); };
     return drop;
   })();
