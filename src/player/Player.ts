@@ -24,6 +24,10 @@ export class Player {
   /** extra walkable surfaces (cabin floors, porch decks): return a world y or undefined */
   platforms: ((x: number, z: number) => number | undefined)[] = [];
   keys = new Set<string>();
+  /** analog input from on-screen controls (TouchControls): x = strafe (+right), y = forward (+ahead), both -1..1 */
+  touchMove = { x: 0, y: 0 };
+  touchSprint = false;
+  touchJump = false;
   private eyeOffset = EYE;
   private landImpulse = 0;
   onJump?: () => void;
@@ -44,7 +48,7 @@ export class Player {
     window.addEventListener('blur', () => this.keys.clear());
   }
 
-  lock() { this.canvas.requestPointerLock(); }
+  lock() { this.canvas.requestPointerLock?.(); } // undefined on iOS Safari — touch input never needs it
 
   spawn(x: number, z: number, yaw: number) {
     this.position.set(x, heightAt(x, z), z);
@@ -57,10 +61,10 @@ export class Player {
   update(dt: number) {
     dt = Math.min(dt, 0.05);
     const k = this.keys;
-    const fwd = (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0);
-    const str = (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0);
+    const fwd = Math.max(-1, Math.min(1, (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0) + this.touchMove.y));
+    const str = Math.max(-1, Math.min(1, (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + this.touchMove.x));
     this.crouching = k.has('ControlLeft') || k.has('KeyC');
-    this.sprinting = k.has('ShiftLeft') && fwd > 0 && !this.crouching;
+    this.sprinting = (k.has('ShiftLeft') || this.touchSprint) && fwd > 0 && !this.crouching;
     const speed = this.crouching ? 2.2 : this.sprinting ? 7.2 : 4.3;
 
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
@@ -71,7 +75,8 @@ export class Player {
     this.velocity.x += (mx * speed - this.velocity.x) * Math.min(1, accel * dt);
     this.velocity.z += (mz * speed - this.velocity.z) * Math.min(1, accel * dt);
 
-    if (k.has('Space') && this.onGround && !this.crouching) { this.velocity.y = 7.2; this.onGround = false; this.onJump?.(); }
+    const jump = k.has('Space') || this.touchJump; this.touchJump = false;
+    if (jump && this.onGround && !this.crouching) { this.velocity.y = 7.2; this.onGround = false; this.onJump?.(); }
     this.velocity.y -= GRAVITY * dt;
 
     this.position.x += this.velocity.x * dt;

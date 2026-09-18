@@ -14,8 +14,9 @@
   --ws-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
 }
 
-html, body { margin: 0; padding: 0; overflow: hidden; background: #050810; }
-#game { display: block; width: 100vw; height: 100vh; }
+html, body { margin: 0; padding: 0; overflow: hidden; background: #050810; touch-action: manipulation; overscroll-behavior: none; -webkit-text-size-adjust: 100%; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+#game { display: block; width: 100vw; height: 100vh; touch-action: none; }
+#hud button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 #hud { position: fixed; inset: 0; pointer-events: none; font-family: var(--ws-mono); color: var(--ws-text); user-select: none; overflow: hidden; }
 #hud * { box-sizing: border-box; }
 
@@ -237,6 +238,7 @@ html, body { margin: 0; padding: 0; overflow: hidden; background: #050810; }
 #hud.intro .ws-fps { top: 82px; right: 44px; }
 .ws-intro .ws-foot { padding: 0 44px 26px 84px; }
 .ws-intro.hide .ws-enterbar { pointer-events: none; }
+.ws-intro .ws-menter { display: none; }
 
 /* ── build / update pill (title screen only; PWAs have no address bar to refresh from) ── */
 .ws-update { position: fixed; right: 44px; top: calc(10px + env(safe-area-inset-top, 0px)); z-index: 60; display: none; align-items: center; gap: 6px; padding: 3px 7px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); color: var(--ws-text-dim); font-family: var(--ws-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.4; cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
@@ -266,24 +268,80 @@ html, body { margin: 0; padding: 0; overflow: hidden; background: #050810; }
 .ws-shards-blurb { margin-top: 12px; font-size: 11px; line-height: 1.5; color: var(--ws-text-dim); min-height: 4.4em; }
 .ws-shards-blurb b { color: var(--ws-text); font-weight: 500; }
 
-/* ─── title screen on a phone-width viewport ─── */
+/* ─── title screen on a phone-width viewport: wordmark, shard strip, one big Enter button ─── */
 @media (max-width: 700px) {
-  .ws-intro { overflow-y: auto; }
-  .ws-intro .ws-head { padding: 22px 16px 0; }
-  .ws-intro .ws-wordmark { font-size: 40px; }
-  .ws-intro .ws-tagline { font-size: 12px; }
+  .ws-intro { overflow: hidden; background: linear-gradient(180deg, rgba(6, 10, 18, 0.55) 0%, rgba(6, 10, 18, 0.05) 35%, rgba(6, 10, 18, 0.05) 55%, rgba(6, 10, 18, 0.75) 100%); }
+  .ws-intro .ws-head { padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 0; }
+  .ws-intro .ws-wordmark { font-size: 28px; letter-spacing: 0.06em; }
+  .ws-intro .ws-tagline { font-size: 11px; letter-spacing: 0.04em; margin-top: 6px; max-width: 250px; }
+  .ws-intro .ws-phase { display: none; }
   .ws-update { right: 16px; }
-  .ws-intro .ws-sound { top: calc(36px + env(safe-area-inset-top, 0px)); right: 16px; padding: 7px 12px; }
-  #hud.intro .ws-fps { top: calc(72px + env(safe-area-inset-top, 0px)); right: 16px; }
-  .ws-intro .ws-body { padding: 18px 16px 0; align-items: stretch; flex-direction: column; }
-  .ws-intro .ws-panel, .ws-intro .ws-panel.ws-shards { width: 100%; padding: 16px 16px 18px; }
-  .ws-intro .ws-panel .ws-ptitle { font-size: 18px; }
-  .ws-intro .ws-panel .ws-meta div { font-size: 12px; gap: 16px; }
-  .ws-intro .ws-panel .ws-meta span:first-child { width: 78px; }
-  .ws-intro .ws-panel .ws-enter { display: flex; font-size: 16px; letter-spacing: 0.16em; padding: 12px 14px; }
-  .ws-intro .ws-panel .ws-enter small { display: none; }
+  .ws-intro .ws-sound { top: calc(34px + env(safe-area-inset-top, 0px)); right: 16px; padding: 6px 10px; font-size: 10px; }
+  #hud.intro .ws-fps { top: calc(66px + env(safe-area-inset-top, 0px)); right: 16px; }
+  .ws-intro .ws-body { padding: 0 16px; flex-direction: column; align-items: stretch; justify-content: flex-end; gap: 10px; flex-wrap: nowrap; }
+  .ws-intro .ws-panel:not(.ws-shards) { display: none; }
   .ws-intro .ws-enterbar { display: none; }
-  .ws-intro .ws-foot { flex-direction: column; align-items: flex-start; gap: 10px; padding: 18px 16px 22px; }
-  .ws-intro .ws-legend { flex-wrap: wrap; gap: 8px 14px; }
-  .ws-shard { flex-basis: 150px; width: 150px; }
+  .ws-intro .ws-foot { display: none; }
+  /* shard strip: no glass, no title, just small horizontal cards */
+  .ws-intro .ws-panel.ws-shards { width: 100%; padding: 0; background: none; border: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .ws-intro .ws-panel.ws-shards::before { display: none; }
+  .ws-intro .ws-panel.ws-shards .ws-ptitle { display: none; }
+  .ws-shards-head { margin-top: 0; }
+  .ws-shards-head .ws-label { font-size: 9px; }
+  .ws-shards-hint { display: none; }
+  .ws-shards-list { margin-top: 6px; gap: 8px; }
+  .ws-shard { flex: 0 0 auto; width: auto; display: flex; align-items: center; gap: 8px; padding-right: 10px; background: var(--ws-glass-deep); }
+  .ws-shard .ws-shard-img { width: 64px; flex: 0 0 64px; border-bottom: none; border-right: 1px solid rgba(143, 227, 255, 0.18); }
+  .ws-shard .ws-shard-img i { display: none; }
+  .ws-shard.active .ws-shard-img::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #7cf2a7; z-index: 1; }
+  .ws-shard b { padding: 0; font-size: 12px; }
+  .ws-shard small { padding: 1px 0 0; font-size: 8.5px; }
+  .ws-shards-blurb { display: none; }
+  /* the one control that matters */
+  .ws-intro .ws-menter { display: flex; align-items: center; justify-content: space-between; margin: 0 0 calc(18px + env(safe-area-inset-bottom, 0px)); padding: 14px 18px; width: 100%; background: rgba(143, 227, 255, 0.12); border: 1px solid var(--ws-cyan); border-left: 4px solid var(--ws-cyan); color: #fff; cursor: pointer; pointer-events: auto; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(143, 227, 255, 0.2); }
+  .ws-intro .ws-menter:active { background: rgba(143, 227, 255, 0.28); }
+  .ws-intro .ws-menter b { font-family: var(--ws-display); font-weight: 700; font-size: 22px; letter-spacing: 0.24em; text-transform: uppercase; }
+  .ws-intro .ws-menter small { font-family: var(--ws-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-cyan-dim); text-align: right; }
+}
+}
+
+/* ─── touch controls (TouchControls.ts adds #hud.touch; layer is hidden until the intro is gone) ─── */
+.ws-touch { position: absolute; inset: 0; display: none; pointer-events: auto; touch-action: none; z-index: 5; }
+#hud.touch:not(.intro) .ws-touch { display: block; }
+.ws-stick { position: absolute; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 1px solid rgba(143, 227, 255, 0.35); background: rgba(6, 10, 18, 0.35); opacity: 0; transition: opacity 0.12s; pointer-events: none; }
+.ws-stick.show { opacity: 1; }
+.ws-stick i { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: rgba(143, 227, 255, 0.35); border: 1px solid var(--ws-cyan); box-shadow: 0 0 14px rgba(143, 227, 255, 0.4); }
+.ws-tbtns { position: absolute; right: calc(14px + env(safe-area-inset-right, 0px)); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); display: grid; grid-template-columns: 56px 56px; grid-template-rows: 44px 44px 72px; gap: 10px; justify-items: end; align-items: end; }
+.ws-tbtn { appearance: none; -webkit-appearance: none; margin: 0; padding: 0; width: 56px; height: 44px; border-radius: 6px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); color: var(--ws-text); font-family: var(--ws-mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+.ws-tbtn.down { background: rgba(143, 227, 255, 0.3); border-color: var(--ws-cyan); }
+.ws-tbtn.use { grid-column: 1 / 3; width: 100%; display: none; color: var(--ws-cyan); border-color: var(--ws-cyan); }
+.ws-prompt.show ~ .ws-touch .ws-tbtn.use { display: block; }
+.ws-tbtn.jump { grid-row: 2; grid-column: 1; }
+.ws-tbtn.reload { grid-row: 2; grid-column: 2; }
+.ws-tbtn.aim { grid-row: 3; grid-column: 1; height: 72px; border-radius: 50%; width: 56px; }
+.ws-tbtn.fire { grid-row: 3; grid-column: 2; width: 72px; height: 72px; border-radius: 50%; font-family: var(--ws-display); font-weight: 700; font-size: 13px; letter-spacing: 0.2em; color: #fff; background: rgba(143, 227, 255, 0.14); border-color: var(--ws-cyan); box-shadow: 0 0 18px rgba(143, 227, 255, 0.2); }
+.ws-tbtn.fire.down { background: rgba(255, 90, 74, 0.35); border-color: var(--ws-red); }
+
+/* ─── in-game HUD on a phone: no chunk metadata, compact compass, vitals top-left, bolts top-right ─── */
+@media (max-width: 700px) {
+  .ws-chunk { display: none; }
+  .ws-compass { width: 140px; top: calc(8px + env(safe-area-inset-top, 0px)); height: 30px; }
+  .ws-compass .ws-strip { height: 24px; top: 2px; }
+  .ws-compass .ws-card { font-size: 11px; }
+  .ws-feed { top: calc(44px + env(safe-area-inset-top, 0px)); }
+  .ws-fps { top: calc(104px + env(safe-area-inset-top, 0px)); right: 12px; font-size: 8px; }
+  .ws-health { left: 12px; top: calc(8px + env(safe-area-inset-top, 0px)); bottom: auto; width: 108px; padding: 6px 9px 7px; }
+  .ws-health .ws-hval { font-size: 15px; }
+  .ws-health .ws-label { font-size: 8px; }
+  .ws-bar { margin-top: 5px; height: 3px; }
+  .ws-ammo { right: 12px; top: calc(8px + env(safe-area-inset-top, 0px)); bottom: auto; min-width: 0; padding: 5px 9px 6px; }
+  .ws-ammo .ws-arow { gap: 10px; }
+  .ws-ammo .ws-count { font-size: 18px; }
+  .ws-ammo .ws-label { font-size: 8px; }
+  .ws-ammo .ws-status { margin-top: 4px; font-size: 8px; }
+  .ws-ammo .ws-pips { display: none; }
+  .ws-ammo .ws-rbar { margin-top: 5px; }
+  .ws-health .ws-hval small { display: none; }
+  .ws-health .ws-hrow { gap: 8px; }
+  .ws-prompt { bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
 }

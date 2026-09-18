@@ -248,6 +248,7 @@ export class HUD {
         <div class="ws-shards-blurb"></div>
       </div></div>
       <div class="ws-enterbar"><div class="ws-eicon">⇥</div><div class="ws-etext"><b>Enter the chunk</b><small>Press any key</small></div><div class="ws-ready">Ready</div></div>
+      <button class="ws-menter" type="button"><b>Enter world</b><small>${def.displayName} · ${def.gridCoords}</small></button>
       <div class="ws-glass ws-sound">Sound on</div>
       <div class="ws-foot">
         <div class="ws-legend"><span><b>WASD</b>move</span><span><b>Shift</b>sprint</span><span><b>LMB</b>fire</span><span><b>RMB</b>aim</span><span><b>R</b>span</span><span><b>E</b>interact</span><span><b>Esc</b>release cursor</span></div>
@@ -274,6 +275,7 @@ export class HUD {
     showBlurb(def);
     intro.querySelector('.ws-enter')!.addEventListener('click', () => this.enter());
     intro.querySelector('.ws-enterbar')!.addEventListener('click', () => this.enter());
+    intro.querySelector('.ws-menter')!.addEventListener('click', () => this.enter());
     intro.querySelector('.ws-sound')!.addEventListener('click', (e) => { e.stopPropagation(); const b = e.currentTarget as HTMLElement; const off = b.classList.toggle('off'); b.textContent = off ? 'Sound off' : 'Sound on'; this.onSoundToggle?.(!off); });
     this.root.appendChild(intro);
     this.intro = intro;

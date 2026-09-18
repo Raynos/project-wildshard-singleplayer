@@ -55,6 +55,12 @@ const MAX_FLYING = 8;
 const MAX_STUCK = 20;
 const STUCK_LIFETIME = 30;
 const FOV_HIP = 72, FOV_ADS = 50;
+/** Vertical FOV to give the camera. Three's fov is vertical, so on a portrait phone a fixed 72° collapses the
+ *  horizontal view to ~37°; widen it (Hor+ via the geometric mean of the aspect) so 72° hip → ~94° at 9:19.5. */
+function fovForAspect(base: number, aspect: number) {
+  if (aspect >= 1) return base;
+  return THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(base) / 2) / Math.sqrt(aspect)));
+}
 const KICK_PITCH = THREE.MathUtils.degToRad(0.8);
 const BODY_DAMAGE = 55, HEAD_DAMAGE = 130;
 
@@ -792,7 +798,7 @@ export class Crossbow {
     // ADS + FOV
     this.state.ads = (this.mouseAds || this.adsHeld) && this.enabled && !this.state.reloading && !p.sprinting;
     this.adsBlend += ((this.state.ads ? 1 : 0) - this.adsBlend) * Math.min(1, dt * 9);
-    const targetFov = FOV_HIP + (FOV_ADS - FOV_HIP) * sstep(0, 1, this.adsBlend);
+    const targetFov = fovForAspect(FOV_HIP + (FOV_ADS - FOV_HIP) * sstep(0, 1, this.adsBlend), cam.aspect);
     if (Math.abs(targetFov - this.fov) > 0.01) {
       this.fov = targetFov; cam.fov = this.fov; cam.updateProjectionMatrix(); this.sky.csm.updateFrustums();
     }
@@ -835,6 +841,10 @@ export class Crossbow {
     pz += this.recoil * 0.07; py += this.recoil * 0.015; rx += this.recoil * 0.12; rz += this.recoil * -0.03;
 
     if (this.inspect) { px = 0.02; py = -0.02; pz = -0.42; rx = 0.35; ry = 0.9 + Math.sin(t * 0.25) * 0.5; rz = 0.1; }
+    // portrait phone: the wider FOV + narrow frame make the bow fill the screen — hold it lower, further out, smaller
+    const port = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
+    px *= 1 - port * 0.1; py *= 1 + port * 0.6; pz *= 1 + port * 0.35;
+    this.model.scale.setScalar(1.35 * (1 - port * 0.25));
     const sm = this.poseInit ? Math.min(1, dt * 14) : 1; this.poseInit = true;
     this.posePos.x += (px - this.posePos.x) * sm; this.posePos.y += (py - this.posePos.y) * sm; this.posePos.z += (pz - this.posePos.z) * sm;
     this.poseRot.x += (rx - this.poseRot.x) * sm; this.poseRot.y += (ry - this.poseRot.y) * sm; this.poseRot.z += (rz - this.poseRot.z) * sm;
