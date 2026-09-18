@@ -108,9 +108,11 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | # | ask (the user's words, shortened) | status | owner / evidence |
 |---|---|---|---|
 | D1 | "We are building Driftwood Island" — the low-poly Wind Waker–style island shard, currently a "not yet playable" teaser | **open** | this session; mockups first (D2–D4) |
-| D2 | **Mockups via parallel codex agents: the spawn point in three different low-poly art styles** | **in flight** | art/driftwood-spawn-{A,B,C}-*.png |
-| D3 | **Mockups of two or three points of interest** | **in flight** | art/driftwood-poi-{1,2,3}-*.png |
-| D4 | Island gameplay is **different from Pine Hollow** (not first-person crossbow) — "more like Zelda Wind Waker"; mockups of the gameplay → resolved by D5 (sword swings) | **in flight** | third-person framing assumed for all island mockups |
+| D2 | **Mockups via parallel codex agents: the spawn point in three different low-poly art styles** | **done** | art/driftwood-spawn-{A-toon,B-faceted,C-painterly}.png (third-person round) — user: **B is closest**; Claude: B is also by far the easiest (no textures, flat-shaded procedural geometry, no outline pass) |
+| D3 | **Mockups of two or three points of interest** | **done** | art/driftwood-poi-{1-lookout,2-wreck-cove,3-shrine}.png — user: "the points of interest are amazing" |
+| D4 | Island gameplay is **different from Pine Hollow** — "more like Zelda Wind Waker"; then: **"this game engine is still first person"**, same player/HUD code as Pine Hollow | **done** | first round was third-person (wrong); second round regenerated first-person |
+| D8 | **Portrait**, with the **same HUD as Pine Hollow** (PAUSE top, minimap, black touch bar at the bottom, no ammo counter) — user sent the real phone capture as the reference | **in flight** | art/driftwood-fp-*.png (portrait, style B, HUD copied from the capture) |
+| D9 | **Full top-down map of the island** as a codex render (what the minimap zooms out to), POIs on it | **in flight** | art/driftwood-map-topdown.png |
 | D5 | Equipment: **mockups of a basic low-poly wooden sword and a basic low-poly iron sword**; one swing animation each (no shoot/reload); **first implementation = wooden sword only** | **in flight** | art/driftwood-sword-{wooden,iron}.png |
 | D6 | Where does **equipment / inventory** go in the UI — "forget about equipment … I'll deal with inventory and equipment later" | **dropped** (deferred by the user) | — |
 | D7 | "We already implemented the boar — do the same boar in the low-poly art style, and start there" | **open** | first engine step after the mockups |
