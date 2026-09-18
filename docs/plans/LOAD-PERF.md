@@ -1,5 +1,23 @@
 # Plan: 100× faster load & start (benchmaxx)
 
+## Status (2026-09-17, load-speed agent) — measured before → after per lever
+
+Desktop = headless Chrome, ANGLE Metal, `?tier=phone&skipintro=1&nolock=1&perfload=1` (the `?perfload=1`
+instrumentation in `src/boot/perflog.ts` lists every program each phase compiles). Phone = the user's
+iPhone screenshot of the loading panel, warm (everything from the offline cache).
+
+| Lever | Commit | Desktop before → after | Phone before → after |
+|---|---|---|---|
+| **Shaders: precompile everything** (scene materials deduped by material × object flags, shadow-depth variants built as `WebGLShadowMap.getDepthMaterial` would, sky background box, every post-chain material; issued at once, `KHR_parallel_shader_compile` polled per program with a live count) | `d584095` | shaders 3.5 s serial → 0.11 s; first frame 1.86 s (19 programs) → 0.25 s (0 programs) | shaders 4.8–53 s + first frame 12.5 s → _pending_ |
+| **r186 removed `PCFSoftShadowMap`**: the first shadow pass flipped the type, a cache-key parameter, so every program compiled twice | `d584095` (settled in `precompile()`; the constructor still says PCFSoft) | tier=desktop first frame 105 → 179 programs → 0 | part of the 63 programs above |
+| **Resolve links in the step** (`LINK_STATUS` per program, 12 ms slices — the cold Metal library build otherwise lands in the first frame's `onFirstUse`) | `3996b33` | first-ever launch: 1.96 s of `onFirstUse` in the first frame → in the bar | _pending_ |
+| **Continuous bar** (steps weighted by the previous run's ms per tier/cores, elapsed/expected < 1 for the running step, per-frame republish) | `da7c9c3` | 232 paints over a 1.23 s load, longest gap 214 ms, 0 regressions | — |
+| Bake terrain / placements / sky (§P2) | — | — | — |
+
+Remaining phone-side compute, CPU profile (desktop ms, phone ≈ 4×): terrain geometry `splatAt`/`heightAt`
+165 (plus 12 canvas `getImageData` at a hardcoded 1024² in `loadPBRArray` — `TIER_CONFIG.layerSize` is
+ignored), undergrowth placement 176, Sky clouds + PMREM 210, herds 100, crossbow viewmodel textures 63.
+
 Goal: the chunk playtest opens like a native game on an iPhone home-screen PWA —
 title screen in under a second, playable in seconds, and a **second launch that
 touches the network for nothing but `version.json`**.
