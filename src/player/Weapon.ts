@@ -30,7 +30,7 @@ export interface WeaponState {
   ads: boolean;
 }
 
-export interface AimInfo { kind: 'deer' | 'boar'; distance: number }
+export interface AimInfo { kind: string; distance: number }
 
 export interface Weapon {
   /** input gate: false mutes fire / ADS (menu, pause, intro) */

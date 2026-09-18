@@ -301,7 +301,7 @@ export class Sword implements Weapon {
   private aimCache: AimInfo = { kind: 'deer', distance: 0 };
 
   onFire?: () => void;
-  onHit?: (kind: 'deer' | 'boar', headshot: boolean, killed: boolean) => void;
+  onHit?: (kind: string, headshot: boolean, killed: boolean) => void;
   onImpact?: (surface: ImpactSurface, point: THREE.Vector3) => void;
   onReloadStart?: () => void;
   onReloadEnd?: () => void;
