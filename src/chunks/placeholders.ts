@@ -9,9 +9,6 @@
 import nalatiThumb from './thumbs/nalati-grasslands.jpg';
 import nalatiPortrait from './thumbs/nalati-grasslands-portrait.jpg';
 import nalatiLandscape from './thumbs/nalati-grasslands-landscape.jpg';
-import driftwoodThumb from './thumbs/driftwood-isle.jpg';
-import driftwoodPortrait from './thumbs/driftwood-isle-portrait.jpg';
-import driftwoodLandscape from './thumbs/driftwood-isle-landscape.jpg';
 
 export interface ShardTeaser {
   slug: string;
@@ -36,15 +33,5 @@ export const PLACEHOLDERS: ShardTeaser[] = [
     thumbnail: nalatiThumb,
     heroPortrait: nalatiPortrait,
     heroLandscape: nalatiLandscape,
-  },
-  {
-    slug: 'driftwood-isle',
-    displayName: 'Driftwood Isle',
-    biome: 'Low-poly island · open ocean',
-    gridCoords: '(−1, +6)',
-    blurb: 'A small low-poly island in a bright ocean, in the spirit of Wind Waker — crossbow hunting among island boar and gulls. Not yet playable.',
-    thumbnail: driftwoodThumb,
-    heroPortrait: driftwoodPortrait,
-    heroLandscape: driftwoodLandscape,
   },
 ];

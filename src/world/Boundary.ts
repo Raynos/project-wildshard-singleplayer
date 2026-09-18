@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CHUNK_HALF, CHUNK_DEPTH, ROAD_WIDTH } from '../core/config';
-import { heightAt } from './Heightfield';
+import { heightAt as terrainHeightAt, waterLevel } from './Heightfield';
 import type { Sky } from './Sky';
 import { TIER_CONFIG } from '../core/tier';
 
@@ -10,7 +10,9 @@ import { TIER_CONFIG } from '../core/tier';
  * four surface edges, the eight corner beacons (which the author plants before uploading),
  * the vertical corner beams down to the slab bottom, and a translucent "no-man's land" gate
  * across each entry road. Purely additive/emissive geometry — no lighting needed.
+ * Over an open-water shard everything sits on the sea surface instead of the sea floor.
  */
+const heightAt = (x: number, z: number) => Math.max(terrainHeightAt(x, z), waterLevel());
 export class Boundary {
   group = new THREE.Group();
   private mats: THREE.ShaderMaterial[] = [];

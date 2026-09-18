@@ -3,11 +3,15 @@ import { CHUNK_DEPTH } from '../core/config';
 import { Noise2D } from '../core/noise';
 import { attachFogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
+import { getActiveChunk } from '../chunks/registry';
 
 /**
  * What lies beyond the chunk: a sea of clouds far below the slab (the Wildshard grid hangs in
  * the sky) and three rings of mountain ridges on the horizon, drawn as fogged silhouettes.
  * All of it moves with the camera on XZ so it never parallaxes wrong up close.
+ * Over an open-water shard (`ChunkDef.ocean`) the ridges become a scatter of distant rocky islets
+ * and sea stacks (most of each ring is gated below the sea) and there is no cloud sea — the
+ * Ocean surface runs to the horizon instead.
  */
 export class Horizon {
   group = new THREE.Group();
@@ -17,18 +21,26 @@ export class Horizon {
   constructor(private sky: Sky) {}
 
   build() {
-    this.buildRidges();
-    this.buildCloudSea();
+    const ocean = !!getActiveChunk().ocean;
+    this.buildRidges(ocean);
+    if (!ocean) this.buildCloudSea();
     return this;
   }
 
-  private buildRidges() {
+  private buildRidges(ocean: boolean) {
     const noise = new Noise2D(777);
-    const rings = [
-      { r: 1500, h: 150, base: -120, seg: 720, col: new THREE.Color(0.075, 0.09, 0.12), snow: 0.72, haze: 0.12 },
-      { r: 2600, h: 330, base: -170, seg: 720, col: new THREE.Color(0.1, 0.12, 0.17), snow: 0.66, haze: 0.3 },
-      { r: 4200, h: 560, base: -230, seg: 540, col: new THREE.Color(0.13, 0.16, 0.22), snow: 0.6, haze: 0.48 },
-    ];
+    const rings = ocean
+      ? [
+        // islets: low, sparse, greenish-grey rock; the gate keeps ~80 % of each ring under the sea
+        { r: 1300, h: 90, base: -60, seg: 720, col: new THREE.Color(0.16, 0.19, 0.17), snow: 2, haze: 0.18, gate: 0.66 },
+        { r: 2300, h: 140, base: -80, seg: 720, col: new THREE.Color(0.18, 0.22, 0.22), snow: 2, haze: 0.34, gate: 0.63 },
+        { r: 3600, h: 200, base: -110, seg: 540, col: new THREE.Color(0.2, 0.25, 0.27), snow: 2, haze: 0.5, gate: 0.68 },
+      ]
+      : [
+        { r: 1500, h: 150, base: -120, seg: 720, col: new THREE.Color(0.075, 0.09, 0.12), snow: 0.72, haze: 0.12, gate: -1 },
+        { r: 2600, h: 330, base: -170, seg: 720, col: new THREE.Color(0.1, 0.12, 0.17), snow: 0.66, haze: 0.3, gate: -1 },
+        { r: 4200, h: 560, base: -230, seg: 540, col: new THREE.Color(0.13, 0.16, 0.22), snow: 0.6, haze: 0.48, gate: -1 },
+      ];
     rings.forEach((ring, ri) => {
       // a ring-shaped strip: bottom edge below the horizon, top edge = ridge line
       const geo = new THREE.BufferGeometry();
@@ -42,14 +54,16 @@ export class Horizon {
         for (let o = 0; o < 6; o++) { const nv = 1 - Math.abs(noise.get(cx * f + ri * 9.1, sz * f + ri * 3.7)); h += nv * nv * amp; norm += amp; amp *= 0.5; f *= 2.1; }
         h /= norm;
         const massif = noise.get(cx * 1.3 + ri * 4, sz * 1.3) * 0.5 + 0.5;
-        profile.push(h * (0.45 + massif * 0.9));
+        // islets: a slow gate noise decides where an island breaks the surface at all
+        const gate = ring.gate < 0 ? 1 : THREE.MathUtils.smoothstep(noise.get(cx * 5.0 + ri * 11.3, sz * 5.0 + 5.1) * 0.5 + 0.5, ring.gate, ring.gate + 0.2);
+        profile.push(h * (0.45 + massif * 0.9) * gate);
       }
       const maxH = Math.max(...profile);
       for (let i = 0; i <= ring.seg; i++) {
         const a = (i / ring.seg) * Math.PI * 2;
         const x = Math.cos(a) * ring.r, z = Math.sin(a) * ring.r;
         const h = profile[i];
-        const peak = ring.base + ring.h * (0.25 + h);
+        const peak = ring.gate < 0 ? ring.base + ring.h * (0.25 + h) : h > 0.001 ? 4 + ring.h * h : ring.base;
         pos.push(x, ring.base - 600, z, x, peak, z);
         // slope-facing normal from the neighbouring peaks so the sun side reads lighter
         const hl = profile[(i + ring.seg - 1) % ring.seg], hr = profile[(i + 1) % ring.seg];

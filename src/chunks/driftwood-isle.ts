@@ -1,0 +1,122 @@
+/**
+ * Driftwood Isle — the second shard: a small faceted low-poly island in a bright turquoise ocean
+ * on grid (−1, +6). Wind Waker in spirit: flat-shaded vertex-coloured geometry, no textures at
+ * all (`style: 'lowpoly'`), a wooden pier at the south edge, a moored sailboat, island boar hunted
+ * with a wooden sword. Tropical midday sky, the ringed planet high over the water.
+ *
+ * Build order (docs/tasks/ASKS.md D12): water + pier → boat → beach → the island piece by piece.
+ * The landscape below is the sea floor; the island rises out of it as the pieces land.
+ */
+import { smoothstep, clamp } from '../core/noise';
+import { CHUNK_HALF, ROAD_LENGTH } from '../core/config';
+import { buildTerrain } from './terrain';
+import type { ChunkDef, OceanDef } from './ChunkDef';
+import thumbnail from './thumbs/driftwood-isle.jpg';
+import heroPortrait from './thumbs/driftwood-isle-portrait.jpg';
+import heroLandscape from './thumbs/driftwood-isle-landscape.jpg';
+
+const SEED = 0x5ea1;
+
+/** Sea surface. The four entry roads are forced to y = 0 by `buildTerrain`, so a level a little above 0 turns them into submerged sandbars under the piers. */
+export const OCEAN: OceanDef = {
+  level: 0.8,
+  // albedo (linear); the sun + sky here add up to ~3× so the palette stays under 0.5 or it tone-maps to white
+  shallowColor: [0.08, 0.42, 0.40],
+  deepColor: [0.006, 0.07, 0.24],
+  deepDepth: 6,
+};
+
+/** Where the south pier lands (the crescent beach) — the island's origin for the later pieces. */
+export const PIER = { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckAbove: 1.2 };
+
+/** on the pier deck, 15 m in (past the HUD's 14 m boundary warning), facing north up the pier */
+const SPAWN = { x: 0, z: -CHUNK_HALF + 15, yaw: Math.PI };
+
+export const DRIFTWOOD_ISLE: ChunkDef = {
+  id: 'chunk://local/driftwood-isle',
+  slug: 'driftwood-isle',
+  displayName: 'Driftwood Isle',
+  gridCoords: '(−1, +6)',
+  seed: SEED,
+  treeCount: 0,
+  biome: 'Low-poly island · open ocean · SUPER EXPERIMENTAL',
+  blurb: 'Super experimental — ocean and a pier so far. A small low-poly island in a bright ocean, in the spirit of Wind Waker. A pier, a moored sailboat, a hut on the plateau, a ring shrine in the jungle and a wreck in the cove — island boar hunted with a wooden sword.',
+  thumbnail, heroPortrait, heroLandscape,
+  style: 'lowpoly',
+  weapon: 'sword',
+  ocean: OCEAN,
+
+  terrain: buildTerrain(SEED, {
+    oceanLevel: OCEAN.level,
+    /**
+     * Sea floor: a gently rolling bed 4–6 m under the surface everywhere (step 1: no island yet).
+     * Keep it below OCEAN.level - 2 so nothing pokes out; the roads are forced to 0 (sandbars).
+     */
+    landscape(x, z, { n }) {
+      let h = -4.8 + n.fbm(x * 0.012, z * 0.012, 3) * 1.2;
+      // shelve up a little toward the edge midpoints so the sandbar ramps read as sand, not a cliff
+      const edge = Math.max(Math.abs(x), Math.abs(z)) / CHUNK_HALF;
+      h += smoothstep(0.8, 1.0, edge) * 1.0;
+      return h;
+    },
+    /** The four mandated entry roads only (they are the four jetties' sandbars). */
+    trails: [
+      [[0, -CHUNK_HALF], [0, -CHUNK_HALF + ROAD_LENGTH]],
+      [[0, CHUNK_HALF], [0, CHUNK_HALF - ROAD_LENGTH]],
+      [[-CHUNK_HALF, 0], [-CHUNK_HALF + ROAD_LENGTH, 0]],
+      [[CHUNK_HALF, 0], [CHUNK_HALF - ROAD_LENGTH, 0]],
+    ],
+    cabinSites: [],
+    /** Unused by the low-poly terrain (it colours by height and slope), kept sane for the splat contract: [sand, grass, rock, trail]. */
+    splat(x, z, t) {
+      const [, ny] = t.normalAt(x, z, 1.0);
+      const slope = 1 - ny;
+      const h = t.heightAt(x, z);
+      const rock = clamp(smoothstep(0.2, 0.4, slope), 0, 1);
+      const grass = clamp(smoothstep(2.5, 5, h), 0, 1) * (1 - rock);
+      const sand = Math.max(0, 1 - rock - grass);
+      return [sand, grass, rock, 0];
+    },
+  }),
+
+  // the low-poly style loads none of these; they are what the engine's PBR path would use
+  assets: {
+    groundLayers: ['forest_ground_04', 'leafy_grass', 'rock_ground', 'stony_dirt_path'],
+    groundTints: [[0.95, 0.88, 0.7], [0.6, 0.85, 0.45], [0.7, 0.7, 0.72], [0.9, 0.84, 0.66]],
+    slabRock: 'rock_ground',
+  },
+  trees: { factory: 'pine', bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'trees' }, // no trees yet (palms are a later piece)
+  forest: {
+    spacing: 9,
+    densityFreq: 0.01,
+    clearings: [-0.3, 0.4],
+    maxSlope: 0.7,
+    tintHue: 0.28, tintHueJitter: [-0.03, 0.03], tintSat: [0.5, 0.7], tintLight: [0.5, 0.62],
+    largeVariantChance: 0.1,
+  },
+  fauna: [],
+  sky: {
+    hdri: 'kloofendal_48d_partly_cloudy_puresky',
+    sunColor: [1.0, 0.97, 0.9],
+    sunIntensity: 2.2,
+    envIntensity: 0.7,
+    bgIntensity: 1.0,
+    fogSunColor: [1.0, 0.98, 0.92],
+    cloudSunColor: [1.0, 0.98, 0.94],
+    hemiSky: 0x9fd8ff, hemiGround: 0x2a6f8a, hemiIntensity: 0.4,
+  },
+  atmosphere: {
+    fogHeight: -20.0,
+    fogHeightFalloff: 0.08,
+    fogHeightDensity: 0.0012,
+    fogDistDensity: 0.00032,
+    volumetricSunColor: [1.0, 0.97, 0.9],
+  },
+  grade: {
+    saturation: 0.32, brightness: 0.02, contrast: 0.12,
+    bloomIntensity: 0.22, bloomThreshold: 0.95,
+    shadowTint: [0.94, 0.98, 1.06], highTint: [1.04, 1.01, 0.96],
+    lift: [0.0, 0.0, 0.005], gain: [1.02, 1.02, 1.0], gamma: 1.0,
+  },
+  spawn: SPAWN,
+};

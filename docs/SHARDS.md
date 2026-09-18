@@ -65,6 +65,10 @@ the template so the dirt texture and prop placement follow the road.
 | `atmosphere.volumetricSunColor` | god-ray colour | |
 | `grade.*` | composer: saturation / brightness / contrast / bloom + `GradeEffect` split-tone | display-space |
 | `spawn` | where the player stands on enter and respawn; `?x= ?z= ?yaw=` override | |
+| `style` | `'pbr'` (default: textured splat terrain, PBR slab) or `'lowpoly'` (Driftwood Isle: no textures at all — `Terrain.ts` builds flat-shaded, vertex-coloured facets by height/slope) | every lit thing in a lowpoly shard is `MeshStandardMaterial({ flatShading, vertexColors })` on non-indexed geometry |
+| `weapon` | `'crossbow'` (default) or `'sword'` — the first-person weapon main.ts hands the player | |
+| `ocean` | open water over the whole shard: `level` (sea surface, m), `shallowColor` / `deepColor` (linear RGB albedo — keep them dark, the midday sun + sky here add up to ~3×), `deepDepth` (m below the surface at which the water is fully deep) | `src/world/Ocean.ts` (faceted, animated, depth-coloured, foam band) replaces `Water`; `Boundary` / `Horizon` sit on the surface and draw islets instead of ridges; pass `oceanLevel: ocean.level` to `buildTerrain` so `waterLevel()` agrees |
+| `terrain` spec → `oceanLevel` | `waterLevel()` for an open-water shard (no pond dish) | the entry roads are still forced to y = 0, so a level a little above 0 makes them submerged sandbars under the piers |
 
 ## Tuning tips
 

@@ -8,6 +8,7 @@
  *   · flat cabin pads at the landscape height of each site
  *   · a shallow bed carved along every trail
  *   · the pond basin dished below its water line
+ *   · an open-water shard's sea level (`oceanLevel`) as `waterLevel()`, no pond dish
  * All of it stays closure-based (no `this`), so the functions can be re-exported and called
  * millions of times from the terrain mesh / placement loops without indirection.
  */
@@ -38,6 +39,7 @@ export function buildTerrain(seed: number, spec: TerrainSpec): ChunkTerrain {
   const cabinSites: CabinSite[] = spec.cabinSites;
   const pond = spec.pond ?? null;
   const pondFill = spec.pondFill ?? 1.0;
+  const oceanLevel = spec.oceanLevel ?? null;
   const landscape = (x: number, z: number) => spec.landscape(x, z, noise);
 
   function trailDistance(x: number, z: number): number {
@@ -57,7 +59,7 @@ export function buildTerrain(seed: number, spec: TerrainSpec): ChunkTerrain {
 
   let _waterLevel: number | null = null;
   function waterLevel(): number {
-    if (_waterLevel === null) _waterLevel = pond ? landscape(pond.x, pond.z) + pondFill : -1e4; // fills the natural basin below its rim
+    if (_waterLevel === null) _waterLevel = oceanLevel !== null ? oceanLevel : pond ? landscape(pond.x, pond.z) + pondFill : -1e4; // ocean, or the pond fills the natural basin below its rim
     return _waterLevel;
   }
 

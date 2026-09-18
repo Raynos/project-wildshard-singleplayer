@@ -13,12 +13,14 @@
  */
 import type { ChunkDef } from './ChunkDef';
 import { PINE_HOLLOW } from './pine-hollow';
+import { DRIFTWOOD_ISLE } from './driftwood-isle';
 import { _applyChunkConstants } from '../core/config';
 
 export const DEFAULT_CHUNK = 'pine-hollow';
 
 export const CHUNKS: ChunkDef[] = [
   PINE_HOLLOW,
+  DRIFTWOOD_ISLE,
 ];
 
 export function chunkSlugFromUrl(search = location.search): string {

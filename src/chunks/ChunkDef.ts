@@ -73,6 +73,8 @@ export interface TerrainSpec {
   pond?: PondDef;
   /** metres the pond surface sits above the raw landscape height at its centre (default 1.0) */
   pondFill?: number;
+  /** open-water shard: `waterLevel()` returns this (pass `ChunkDef.ocean.level`) and the landscape below it is sea floor */
+  oceanLevel?: number;
   /**
    * Ground-layer blend for `ChunkAssets.groundLayers` — [layer0, layer1, layer2, layer3], any
    * scale (normalised for you). `t` is the finished terrain so you can query slope, height,
