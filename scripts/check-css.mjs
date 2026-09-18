@@ -41,6 +41,7 @@ const FILES = [
   { file: join(STYLES, 'pause.css'), prefix: 'ws-pause-', strict: true },
   { file: join(STYLES, 'touch.css'), prefix: 'ws-touch-', strict: true },
   { file: join(STYLES, 'update.css'), prefix: 'ws-update-', strict: true },
+  { file: join(STYLES, 'minimap.css'), prefix: 'ws-minimap-', strict: true },
   // loading screen: owned by src/ui/Loading.ts — warn only while its owner finishes the ws-load-* rename
   { file: join(ROOT, 'src/ui/loading.css'), prefix: 'ws-load-', strict: false },
   // frame meter (src/ui/Perf.ts) — warn only; not part of the HUD split
