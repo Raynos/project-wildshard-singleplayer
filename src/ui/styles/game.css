@@ -156,7 +156,8 @@
 }
 /* ─── touch (P2): vitals + bolts live INSIDE the control bar's corners (HUD.ts mounts them into .ws-touch-bar) — the panels are desktop-only ─── */
 #hud.touch .ws-game-health, #hud.touch .ws-game-ammo { display: none; }
-.ws-game-vitals, .ws-game-bolts { position: absolute; top: 8px; display: flex; align-items: center; gap: 7px; height: 22px; pointer-events: none; white-space: nowrap; }
+/* the strips sit ON TOP of the bar's edge (bottom: 100%), not inside it — a thumb on the pads would cover them */
+.ws-game-vitals, .ws-game-bolts { position: absolute; bottom: calc(100% + 6px); display: flex; align-items: center; gap: 7px; height: 22px; padding: 3px 9px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); pointer-events: none; white-space: nowrap; }
 .ws-game-vitals { left: 12px; }
 .ws-game-bolts { right: 12px; }
 .ws-game-vitals .ws-game-glyph, .ws-game-bolts .ws-game-glyph { display: block; width: 15px; height: 15px; }
