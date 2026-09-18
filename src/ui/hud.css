@@ -303,7 +303,6 @@ html, body { margin: 0; padding: 0; overflow: hidden; position: fixed; width: 10
   .ws-intro .ws-menter b { font-family: var(--ws-display); font-weight: 700; font-size: 22px; letter-spacing: 0.24em; text-transform: uppercase; }
   .ws-intro .ws-menter small { font-family: var(--ws-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-cyan-dim); text-align: right; }
 }
-}
 
 /* ─── touch controls (TouchControls.ts adds #hud.touch; layer is hidden until the intro is gone) ─── */
 .ws-touch { position: absolute; inset: 0; display: none; pointer-events: auto; touch-action: none; z-index: 5; }
