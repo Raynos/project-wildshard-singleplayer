@@ -36,8 +36,8 @@ const NO_SPRINT_DEPTH = 0.6;          // knee-deep and up: no sprint
 const FLOAT_DEPTH = EYE - 0.35;       // feet float this far under the surface → the eye sits 0.35 m above it
 const SWIM_SPEED = 4.3 * 0.6;         // m/s, 60 % of walking
 const SWIM_ACCEL = 5;                 // /s — sluggish in water
-const BUOY_K = 20;                    // spring to the float height (ω ≈ 4.5 rad/s) …
-const BUOY_C = 8;                     // … a touch under critical (ζ ≈ 0.9): a plunge dips and comes back up once
+const BUOY_K = 14;                    // spring to the float height (ω ≈ 3.7 rad/s) …
+const BUOY_C = 3.5;                   // … under-damped (ζ ≈ 0.47): a plunge off a pier dips the head under and pops back up
 const CLIMB_REACH = 1.3;              // m a platform top may sit above the surface and still be climbed onto from the water
 const CLIMB_K = 30; const CLIMB_C = 10; // stiffer pull when hauling out onto a deck
 const CLIMB_PROBE = 0.7;              // m ahead of the feet where a platform is looked for while swimming toward it
@@ -94,7 +94,7 @@ export class Player {
   onSwimChange?: (on: boolean) => void;
   /** one swim stroke while moving through water (audio) */
   onStroke?: () => void;
-  private inWater = false; private strokeTime = 0; private climbTo: number | null = null;
+  private inWater = false; private strokeTime = 0; private climbTo: number | null = null; private entryKeep = 0.3;
   private readonly waterLine = new WaterLine();
   readonly board: Hoverboard;
   private eyeOffset = EYE;
@@ -320,7 +320,8 @@ export class Player {
       if (wet && groundDepth > SWIM_IN) {
         // deep enough to float: hand over to the swim branch (this frame's fall speed is mostly eaten by the splash)
         this.setSwimming(true);
-        this.velocity.y *= 0.3; this.onGround = false; this.strokeTime = 0;
+        this.entryKeep = this.velocity.y < -6 ? 0.45 : 0.3; // a hard plunge keeps enough speed to dip the head under for a beat
+        this.velocity.y *= this.entryKeep; this.onGround = false; this.strokeTime = 0;
         if (this.position.y < g) this.position.y = g;
       } else if (this.position.y <= g) {
         if (!this.onGround) {
@@ -342,7 +343,7 @@ export class Player {
     const inWater = this.depth > 0.02;
     if (inWater !== this.inWater) {
       this.inWater = inWater;
-      if (inWater) this.onEnterWater?.(Math.max(0, -this.velocity.y / (this.swimming ? 0.3 : 1)) + Math.hypot(this.velocity.x, this.velocity.z) * 0.3);
+      if (inWater) this.onEnterWater?.(Math.max(0, -this.velocity.y / (this.swimming ? this.entryKeep : 1)) + Math.hypot(this.velocity.x, this.velocity.z) * 0.3);
       else this.onExitWater?.();
     }
 
