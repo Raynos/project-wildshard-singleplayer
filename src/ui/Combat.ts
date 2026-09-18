@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Game } from '../core/Game';
 import type { AnimalManager } from '../entities/AnimalManager';
 import type { Animal } from '../entities/Animal';
-import type { Crossbow } from '../player/Crossbow';
+import type { Weapon } from '../player/Weapon';
 import { TIER } from '../core/tier';
 import './styles/combat.css';
 
@@ -21,10 +21,12 @@ import './styles/combat.css';
  *   • A missed bolt landing near animals disturbs them (animals.disturb) — the AI's "a bolt just thudded in next
  *     to me" trigger lives here because this module owns the crossbow impact hook.
  *
- * Self-wiring: `new Combat(game, animals, crossbow, camera)` registers its own game.onUpdate (register it AFTER the
- * crossbow/animals updaters so it reads this frame's positions) and taps `crossbow.onFire` / `crossbow.onImpact` and
+ * Self-wiring: `new Combat(game, animals, weapon, camera)` registers its own game.onUpdate (register it AFTER the
+ * weapon/animals updaters so it reads this frame's positions) and taps `weapon.onFire` / `weapon.onImpact` and
  * `animals.onDamage` without clobbering callbacks assigned before OR after (the taps are property accessors).
- * The crosshair hit-marker stays with hud.showHitMarker (crossbow.onHit) — nothing here duplicates it.
+ * The crosshair hit-marker stays with hud.showHitMarker (weapon.onHit) — nothing here duplicates it.
+ * `weapon` is any `Weapon` (src/player/Weapon.ts): crossbow or sword. A melee weapon's `reach` caps the MISS
+ * judgement — a swing at a boar 30 m off is not a miss, it is out of range.
  */
 
 const BAR_DIST = 60;                       // m: bars only this close
@@ -65,7 +67,10 @@ export class Combat {
   private candDist: number[] = [];
   private t = 0;
 
-  constructor(private game: Game, private animals: AnimalManager, crossbow: Crossbow, private camera: THREE.Camera) {
+  private reach: number;
+
+  constructor(private game: Game, private animals: AnimalManager, weapon: Weapon, private camera: THREE.Camera) {
+    this.reach = weapon.reach ?? Infinity;
     this.layer = document.createElement('div');
     this.layer.className = 'ws-combat-layer';
     const hud = document.getElementById('hud');
@@ -90,8 +95,8 @@ export class Combat {
     const measure = () => { this.w = window.innerWidth; this.h = window.innerHeight; };
     measure(); window.addEventListener('resize', measure);
 
-    tap(crossbow, 'onFire', () => this.fired());
-    tap(crossbow, 'onImpact', (surface, point) => this.impact(surface as string, point as THREE.Vector3));
+    tap(weapon, 'onFire', () => this.fired());
+    tap(weapon, 'onImpact', (surface, point) => this.impact(surface as string, point as THREE.Vector3));
     tap(animals, 'onDamage', (a, amount, point, headshot, died) => this.damage(a as Animal, amount as number, point as THREE.Vector3, headshot as boolean, died as boolean));
     game.onUpdate((dt, t) => this.update(dt, t));
   }
@@ -101,9 +106,10 @@ export class Combat {
   private fired() {
     // judged at the moment of firing: was an animal on (or nearly on) the aim ray?
     if (!this.aimed) return;
+    _o.setFromMatrixPosition(this.camera.matrixWorld);
+    if (this.aimed.position.distanceTo(_o) > this.reach + 1) return; // melee: out of reach is not a miss
     let slot = this.pending.find((p) => !p.active);
     if (!slot) { slot = this.pending[0]; for (const p of this.pending) if (p.t < slot.t) slot = p; } // recycle the oldest
-    _o.setFromMatrixPosition(this.camera.matrixWorld);
     slot.animal = this.aimed; slot.t = this.t; slot.active = true;
     slot.deadline = this.t + this.aimed.position.distanceTo(_o) / BOLT_SPEED_EST + PENDING_GRACE;
   }

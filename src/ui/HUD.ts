@@ -9,7 +9,8 @@ import { getSetting, setSetting, onSetting, type SettingKey } from '../ui/Settin
  *
  *   const hud = new HUD({ pointerLock?: boolean });   // pointerLock:false in ?nolock dev mode (no pause overlay)
  *   hud.showIntro(() => player.lock())                 // title screen: shard deck; ENTER WORLD / any key → onEnter
- *   hud.setState({ bolts, loaded, reloading, reloadProgress?, health, fps, pos: {x, z}, yaw, kills, prompt?, speed?, ads? })
+ *   hud.setState({ bolts?, loaded, reloading, reloadProgress?, health, fps, pos: {x, z}, yaw, kills, prompt?, speed?, ads? })
+ *     — `bolts: undefined` = the weapon has no ammo (the sword): the BOLTS panel, its meter and the touch-bar strip are hidden
  *   hud.showHitMarker(headshot, killed)  hud.killFeed('Boar · headshot')  hud.toast('Bolt recovered')
  *   hud.damageFlash()  hud.setBoundaryWarning(visible)  hud.setPaused(bool)  hud.onResume = () => …
  *   hud.onExitToMenu = () => …   // pause → "Exit to main menu": the HUD re-shows the intro itself (no reload); stop/mute the world here
@@ -25,7 +26,8 @@ import { getSetting, setSetting, onSetting, type SettingKey } from '../ui/Settin
  */
 
 export interface HUDState {
-  bolts: number; loaded: boolean; reloading: boolean; reloadProgress?: number;
+  /** bolts carried; undefined = no ammo on this weapon (melee) → the ammo readouts are hidden */
+  bolts?: number; loaded: boolean; reloading: boolean; reloadProgress?: number;
   health: number; fps: number; pos: { x: number; z: number }; yaw: number; kills: number;
   prompt?: string; speed?: number; ads?: boolean; maxBolts?: number;
   /** nearest animal for the compass paw: `bearing` in compass degrees (0 = north = +Z, 90 = east = −X) — see `bearingTo` */
@@ -89,7 +91,8 @@ export class HUD {
   private prompt!: HTMLElement; private boundary!: HTMLElement; private flash!: HTMLElement;
   private intro?: HTMLElement; private pause!: HTMLElement;
   private deck?: { cards: DeckCard[]; index: number; select: (i: number, smooth?: boolean) => void; activate: () => void };
-  private last: Partial<HUDState> & { statusKey?: string; headingDeg?: number; fpsShown?: number } = {};
+  private last: Partial<HUDState> & { statusKey?: string; headingDeg?: number; fpsShown?: number; noAmmo?: boolean } = {};
+  private ammoPanel!: HTMLElement;
   private hitTimer = 0; private spread = 7;
 
   constructor(opts: HUDOptions = {}) {
@@ -168,6 +171,7 @@ export class HUD {
     const ammo = el('div', 'ws-glass ws-game-ammo');
     ammo.innerHTML = `<div class="ws-game-arow"><span class="ws-label">Bolts</span><span class="ws-game-count"><span class="c">30</span> <small>/ ${this.opts.maxBolts}</small></span></div>
       <div class="ws-game-pips"></div><div class="ws-game-rbar"><i></i></div><div class="ws-game-status"><span class="s">Loaded</span><i></i></div>`;
+    this.ammoPanel = ammo;
     this.ammoCount = ammo.querySelector('.ws-game-count')!; this.ammoStatus = ammo.querySelector('.ws-game-status')!; this.ammoStatusText = ammo.querySelector('.ws-game-status .s')!; this.reloadBar = ammo.querySelector('.ws-game-rbar i')!;
     const pips = ammo.querySelector('.ws-game-pips')!;
     for (let i = 0; i < (this.opts.maxBolts ?? 30); i++) { const p = el('i'); pips.appendChild(p); this.pips.push(p); }
@@ -234,14 +238,17 @@ export class HUD {
       this.healthBar.classList.toggle('low', h <= 30);
       this.syncBar('health');
     }
-    if (s.bolts !== L.bolts) {
-      L.bolts = s.bolts;
-      this.ammoCount.firstElementChild!.textContent = String(s.bolts);
-      this.ammoCount.classList.toggle('empty', s.bolts <= 0);
-      this.pips.forEach((p, i) => p.classList.toggle('off', i >= s.bolts));
+    const noAmmo = s.bolts === undefined;
+    if (noAmmo !== L.noAmmo) { L.noAmmo = noAmmo; this.ammoPanel.style.display = noAmmo ? 'none' : ''; if (this.bar) this.bar.bolts.style.display = noAmmo ? 'none' : ''; }
+    const bolts = s.bolts ?? 0;
+    if (!noAmmo && bolts !== L.bolts) {
+      L.bolts = bolts;
+      this.ammoCount.firstElementChild!.textContent = String(bolts);
+      this.ammoCount.classList.toggle('empty', bolts <= 0);
+      this.pips.forEach((p, i) => p.classList.toggle('off', i >= bolts));
       this.syncBar('bolts');
     }
-    const statusKey = s.bolts <= 0 && !s.loaded ? 'empty' : s.reloading ? 'reloading' : s.loaded ? 'loaded' : 'spent';
+    const statusKey = noAmmo ? 'loaded' : bolts <= 0 && !s.loaded ? 'empty' : s.reloading ? 'reloading' : s.loaded ? 'loaded' : 'spent';
     if (statusKey !== L.statusKey) {
       L.statusKey = statusKey;
       this.ammoStatus.className = 'ws-game-status ' + (statusKey === 'empty' ? 'empty' : statusKey === 'reloading' ? 'reloading' : '');
@@ -271,6 +278,7 @@ export class HUD {
     const vitals = el('div', 'ws-game-vitals', `<i class="ws-game-glyph">${SVG_HEART}</i><b class="ws-game-num">100</b><span class="ws-game-vbar"><i></i></span><span class="ws-game-tiny">Vitals</span>`);
     const bolts = el('div', 'ws-game-bolts', `<span class="ws-game-tiny">Bolts</span><span class="ws-game-segs">${'<i></i>'.repeat(4)}</span><b class="ws-game-num"><span class="c">30</span><small> / ${this.opts.maxBolts}</small></b><i class="ws-game-glyph">${SVG_BOLT}</i>`);
     bar.append(vitals, bolts);
+    if (this.last.noAmmo) bolts.style.display = 'none';
     this.bar = { hval: vitals.querySelector('.ws-game-num')!, hbar: vitals.querySelector('.ws-game-vbar i')!, bolts, bcount: bolts.querySelector('.c')!, segs: Array.from(bolts.querySelectorAll<HTMLElement>('.ws-game-segs i')) };
     this.syncBar('health'); this.syncBar('bolts'); this.syncBar('status');
     return true;

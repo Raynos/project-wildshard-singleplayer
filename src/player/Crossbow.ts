@@ -10,6 +10,7 @@ import type { Forest } from '../world/Forest';
 import { heightAt } from '../world/Heightfield';
 import { CHUNK_HALF } from '../core/config';
 import { getSetting, setSetting } from '../ui/Settings';
+import type { Weapon } from './Weapon';
 
 /**
  * Crossbow — first-person hero weapon: procedural medieval hunting crossbow viewmodel,
@@ -601,7 +602,8 @@ const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vect
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion();
 const NEG_Z = new THREE.Vector3(0, 0, -1), Y_AXIS = new THREE.Vector3(0, 1, 0), X_AXIS = new THREE.Vector3(1, 0, 0);
 
-export class Crossbow {
+export class Crossbow implements Weapon {
+  readonly hasAmmo = true;
   state = { bolts: MAX_BOLTS, loaded: true, reloading: false, reloadProgress: 0, ads: false };
   enabled = true;
   allowUnlocked = false;

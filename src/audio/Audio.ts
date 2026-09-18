@@ -8,6 +8,7 @@ import type { Vector3 } from 'three';
  *   audio.listenerYaw = player.yaw;     // each frame, for stereo panning of positional sounds
  *
  *   audio.crossbowFire()  audio.boltImpact('wood'|'ground'|'flesh')  audio.reload()   audio.dryFire()
+ *   audio.swordSwing()  audio.swordHit('flesh'|'wood', pan?, gain?)          // wooden sword (src/player/Sword.ts)
  *   audio.footstep(sprinting)  audio.jump()  audio.land(hard)  audio.hitMarker()  audio.kill()
  *   audio.splash(impact)  audio.wadeStep(depth, sprinting)  audio.swimStroke()  audio.waterExit()   // water (Player.onEnterWater / onStep while wading / onStroke / onExitWater)
  *   audio.animal('deer_call'|'boar_grunt'|'hoofsteps'|'boar_squeal', position, listenerPos, yaw?)
@@ -152,6 +153,28 @@ export class Audio {
       this.burst({ t, type: 'bandpass', freq: 950, q: 0.7, gain: 0.3 * gain, decay: 0.035, pan });
       this.tone({ t, type: 'sine', f0: 110, f1: 55, glide: 0.08, gain: 0.5 * gain, decay: 0.16, pan });
     }
+  }
+
+  /** sword swing: a whoosh — bandpass noise sweeping up then down over ~0.2 s, a hair of low air under it (src/player/Sword.ts onFire) */
+  swordSwing() {
+    const t = this.ctx.currentTime;
+    this.burst({ t, type: 'bandpass', freq: 500, freqEnd: 2200, q: 0.6, gain: 0.32, attack: 0.05, decay: 0.09, rate: 1.1 });
+    this.burst({ t: t + 0.09, type: 'bandpass', freq: 2200, freqEnd: 700, q: 0.7, gain: 0.4, attack: 0.02, decay: 0.13 });
+    this.burst({ t: t + 0.02, type: 'lowpass', freq: 300, gain: 0.12, attack: 0.06, decay: 0.16 });
+  }
+
+  /** sword hit: a wooden thud on flesh (or a knock on wood) — low thump, a damp mid knock, a short bright crack; panned like boltImpact */
+  swordHit(kind: ImpactKind = 'flesh', pan = 0, gain = 1) {
+    const t = this.ctx.currentTime;
+    if (kind === 'wood') {
+      this.burst({ t, type: 'bandpass', freq: 1400, q: 2, gain: 0.5 * gain, decay: 0.05, pan });
+      this.tone({ t, type: 'triangle', f0: 520, f1: 300, glide: 0.05, gain: 0.25 * gain, decay: 0.1, pan });
+    } else {
+      this.burst({ t, type: 'lowpass', freq: 420, gain: 0.7 * gain, decay: 0.11, pan });
+      this.burst({ t, type: 'bandpass', freq: 1100, q: 1, gain: 0.25 * gain, decay: 0.03, pan });
+    }
+    this.tone({ t, type: 'sine', f0: 160, f1: 60, glide: 0.09, gain: 0.7 * gain, decay: 0.18, pan });
+    this.burst({ t: t + 0.004, type: 'highpass', freq: 2800, gain: 0.18 * gain, decay: 0.012, pan });
   }
 
   /** ratchet clicks over ~1.2 s (matches the crossbow's span animation) */
