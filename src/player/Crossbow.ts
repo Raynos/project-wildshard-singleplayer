@@ -94,7 +94,7 @@ const KICK_PITCH = THREE.MathUtils.degToRad(0.8);
  *  below centre, the approved mockup) and the model is slid toward the eye until the nut/string reaches
  *  ADS_NUT_NDC_Y (just inside the bottom edge) or the near plane stops it — that fixes the eye height above the rail
  *  (~5 cm) and the depth, and the limb span falls out (≈ ±0.5 landscape, edge to edge on a 94° portrait). */
-const ADS_TIP_NDC_Y = -0.12, ADS_NUT_NDC_Y = -0.85,
+const ADS_TIP_NDC_Y = -0.34, ADS_NUT_NDC_Y = -0.9, // tip well under the ring (ring = screen centre): the prod/stock stay below the sight, the world shows through it
   ADS_NEAR_MARGIN = 0.03, ADS_PITCH = 0, ADS_BLEND_TIME = 0.18, ADS_MOTION = 0.3;
 // damage numbers live in the damage model (src/entities/Animal.ts damageFor)
 /** Rear PEEP sight (mockup art/ads-C-peep-sight.png): a dark-iron ring on a post just in front of the nut (the stock
