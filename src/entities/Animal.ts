@@ -18,6 +18,8 @@ import { variantMods, type AnimalKind, type AnimalModel, type AnimalRig, type Ra
  *   animal.lastHitT                   performance.now() ms of the last applyDamage (health bars fade from it)
  *   animal.damageFor(headshot, distance)   → the DAMAGE model's number for a bolt (the crossbow asks before applyDamage)
  *   animal.applyDamage(amount, hitPoint, dir) → true if it died
+ *   animal.stagger(dir, strength)     a melee blow: pushed STAGGER_PUSH m along `dir` over 0.25 s, AI frozen (`stunned`)
+ *                                     for 0.4–0.8 s in a braced flinch; strength 0 = light (0.6 m / 0.4 s), 1 = heavy (1.5 m / 0.8 s)
  *   animal.headWorld(out) / bodyCapsule(a, b)  — hit volumes (world space)
  *
  * The AnimalManager owns AI state and calls animal.setMotion(desiredYaw, desiredSpeed).
@@ -61,6 +63,9 @@ const pulse = (t: number, period: number, seed: number, width = 0.12) => {
 
 const _v = new THREE.Vector3();
 
+/** stagger (a sword blow, Sword.ts): push distance / hold time at strength 0 (light) and 1 (heavy), the push's duration */
+const STAGGER_PUSH = [0.6, 1.5], STAGGER_STUN = [0.4, 0.8], STAGGER_PUSH_T = 0.25;
+
 export class Animal {
   kind: AnimalKind;
   /** VariantDef id ('hind', 'black', 'ironhide'…), its rarity tier and display name */
@@ -96,6 +101,9 @@ export class Animal {
   private phase = 0;
   private lookAmt = 0;
   private flinch = 0; private flinchRoll = 0; private flinchPitch = 0;
+  private stunT = 0; private pushT = 0; private pushDist = 0; private pushDir = new THREE.Vector3(); private brace = 0;
+  /** set by the manager: fires on every stagger — `running` = it was moving (a charge) when the blow landed */
+  onStaggered?: (animal: Animal, strength: number, running: boolean) => void;
   private deathT = -1; private deathSide = 1;
   private tiltPitch = 0; private tiltRoll = 0; private groundY = 0;
   private footDelta = new Float32Array(4);
@@ -207,12 +215,47 @@ export class Animal {
     return false;
   }
 
+  /** true while a stagger holds it: the manager skips its think, it neither steers nor walks */
+  get stunned() { return this.stunT > 0; }
+
+  /**
+   * A melee blow (Sword.ts calls it right after applyDamage): the animal stops dead, is shoved along `dir` (world,
+   * flattened) over STAGGER_PUSH_T s and holds a braced flinch for the stun — 0.6 m / 0.4 s at strength 0 (a light
+   * swing) up to 1.5 m / 0.8 s at 1 (the heavy). Big animals (scale > 1) are shoved proportionally less. Bolts never
+   * call this, so Pine Hollow's crossbow hunting is unchanged. `onStaggered` lets the manager break a running charge.
+   */
+  stagger(dir: THREE.Vector3, strength = 0) {
+    if (!this.alive) return;
+    const s = THREE.MathUtils.clamp(strength, 0, 1);
+    const running = this.speed > 1.5;
+    this.pushDist = THREE.MathUtils.lerp(STAGGER_PUSH[0], STAGGER_PUSH[1], s) / Math.max(1, this.scale);
+    this.pushT = STAGGER_PUSH_T;
+    this.pushDir.set(dir.x, 0, dir.z);
+    if (this.pushDir.lengthSq() < 1e-6) this.pushDir.set(Math.sin(this.yaw), 0, Math.cos(this.yaw)).negate(); else this.pushDir.normalize();
+    this.stunT = THREE.MathUtils.lerp(STAGGER_STUN[0], STAGGER_STUN[1], s);
+    this.brace = 1;
+    this.speed = 0; this.desiredSpeed = 0;
+    this.flinch = Math.max(this.flinch, 0.8 + 0.2 * s);
+    this.onStaggered?.(this, s, running);
+  }
+
   // ── per-frame ──────────────────────────────────────────────────────────────────────────
 
   /** Integrate motion and animate. `t` = global seconds; `near` = within animation LOD range. */
   update(dt: number, t: number, near: boolean) {
     const d = this.model.dims;
-    if (this.alive) {
+    if (this.alive && this.stunT > 0) {
+      // staggered: no steering, no gait — shoved back along the blow with an ease-out, then held
+      this.stunT -= dt; this.speed = 0;
+      if (this.pushT > 0) {
+        const u0 = 1 - this.pushT / STAGGER_PUSH_T;
+        this.pushT = Math.max(0, this.pushT - dt);
+        const u1 = 1 - this.pushT / STAGGER_PUSH_T;
+        const ease = (u: number) => 1 - (1 - u) * (1 - u);
+        const step = this.pushDist * (ease(u1) - ease(u0));
+        this.position.x += this.pushDir.x * step; this.position.z += this.pushDir.z * step;
+      }
+    } else if (this.alive) {
       // heading + speed steering
       let dy = this.desiredYaw - this.yaw;
       dy = Math.atan2(Math.sin(dy), Math.cos(dy));
@@ -303,6 +346,17 @@ export class Animal {
       pose[P_EARL_P] += 0.5 * f; pose[P_EARR_P] += 0.5 * f;
       pose[P_TAIL_P] -= 0.6 * f;
       this.flinch *= Math.exp(-dt * 5.5);
+    }
+    // ── stagger brace (held for the stun, then released): hunkered low, nose down, ears pinned, tail clamped ──
+    if (this.brace > 0.001) {
+      const b = smooth01(this.brace);
+      pose[P_BODY_Y] -= 0.14 * b * d.bodyY;
+      pose[P_BODY_PITCH] += 0.06 * b;
+      pose[P_NECK1] += 0.28 * b; pose[P_NECK2] += 0.12 * b; pose[P_HEAD_P] += 0.25 * b;
+      pose[P_EARL_P] += 0.6 * b; pose[P_EARR_P] += 0.6 * b;
+      pose[P_TAIL_P] -= 0.7 * b;
+      for (let l = 0; l < 4; l++) pose[P_LEG + l * 3 + 1] += 0.16 * b;   // knees bent: legs take the shove
+      if (this.stunT <= 0) this.brace *= Math.exp(-dt * 7);
     }
 
     // ── death collapse ──

@@ -15,8 +15,9 @@ import { CHUNK_HALF } from '../core/config';
  *   /dev/sword.html?nolock=1&skipintro=1&x=&z=&yaw=&pitch=
  *   &showcase=1   a boar 1.6 m ahead (idle, AI off) and a hind 2.2 m ahead-left — swing at them
  *   &touch=1      on-screen controls (with &tier=phone for the phone layout)
- *   &ads=1        hold the guard pose · &inspect=1 showcase pose (centred, turning) · &iron=1 the iron blade
- * window.__world = { ...world, animals, sword, combat, hud, audio } — `__world.sword.tryFire()` swings.
+ *   &ads=1        charge the heavy (toggle off to release) · &inspect=1 showcase pose (centred, turning) · &iron=1 the iron blade
+ * window.__world = { ...world, animals, sword, combat, hud, audio } — `__world.sword.tryFire()` swings (tap thrice for the combo);
+ * `__world.sword.adsHeld = true` charges the heavy, `= false` releases it; `&slow=5` for slow motion.
  */
 const world = await bootstrap();
 const { game, sky, forest, player, params } = world;
@@ -50,6 +51,7 @@ const audio = new Audio();
 let kills = 0, health = 100;
 
 sword.onFire = () => audio.swordSwing();
+sword.onHeavy = () => audio.swordHeavy();
 sword.onImpact = (surface, point) => {
   const dx = point.x - player.position.x, dz = point.z - player.position.z, d = Math.hypot(dx, dz);
   const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);

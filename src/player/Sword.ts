@@ -6,33 +6,46 @@ import type { Player } from '../player/Player';
 import type { Forest } from '../world/Forest';
 import type { Targets, ImpactSurface } from './Crossbow';
 import type { Weapon, WeaponState, AimInfo } from './Weapon';
+import { REST, CHARGE, SPRINT, COMBO, HEAVY, type Move } from './SwordMoves';
 
 /**
  * Sword — the Driftwood Isle melee weapon (`ChunkDef.weapon === 'sword'`): a low-poly wooden sword (pale carved blade
  * with a rounded tip, plain crossguard, leather-wrapped grip, dark pommel) held in two low-poly hands lower-right,
- * one horizontal swing with a short additive white arc trail, a cooldown, and a melee hit test. Faceted flat-shaded
- * vertex colours, no textures (mockups: art/driftwood-fp-sword-wooden.png, art/driftwood-fp-spawn.png). The iron
- * sword (art/driftwood-fp-sword-iron.png) is the same rig with `{ blade: 'iron' }` later: steel blade, 28 damage.
+ * a three-hit light combo and a charged heavy, each swing with its own arc and additive trail, a melee hit test and
+ * hit-stun / knockback on what it hits. Faceted flat-shaded vertex colours, no textures (mockups:
+ * art/driftwood-fp-sword-wooden.png, art/driftwood-fp-sword-iron.png). The iron sword is the same rig with
+ * `{ blade: 'iron' }`: steel blade, 28 base damage.
  *
- *   const sword = new Sword({ game, sky, player, forest }, targets?, { allowUnlocked?: boolean });
+ *   const sword = new Sword({ game, sky, player, forest }, targets?, { allowUnlocked?: boolean, blade?: 'wood' | 'iron' });
  *   game.onUpdate((dt, t) => sword.update(dt, t));   // register AFTER player.update
  *
  * Implements `Weapon` (src/player/Weapon.ts) — the same surface main.ts / TouchControls / Combat / HUD use on the
  * crossbow: `enabled`, `model`, `state` (no ammo: `bolts` undefined, `hasAmmo = false` → the HUD hides the BOLTS
  * panel), `aimInfo`, `adsHeld`, `tryFire()`, `update(dt, t)`, `addBolts()` (no-op) and the same callbacks.
  *
- * Input (only while `player.locked`, or always when `allowUnlocked`): LMB / `F` swing; RMB (hold) or `adsHeld`
- * (the touch AIM disc) = a guard pose — the sword raised upright in front of the face; harmless, no zoom.
+ * COMBO (LMB / `F` / a touch tap on the look area = `tryFire()`): tap, tap, tap plays SLASH (right → left) →
+ * BACKHAND (left → right) → FINISHER (overhead diagonal) as one chained animation — a tap during swing N queues
+ * swing N+1 (one deep), which starts the moment N's active window closes, from N's follow-through pose. After the
+ * finisher the next tap restarts at 1; so does a tap more than COMBO_GAP s after the last swing ended. Damage per
+ * swing ×1 / ×1 / ×1.33 of the blade's base (wood 12 / 12 / 16).
  *
- * Swing: SWING_TIME s — a short wind-up to the right, a horizontal slash right → left across the frame, recover.
- * During the slash (the active window) a fan of rays from the eye (±SWEEP_YAW, three pitches) is cast against
+ * HEAVY (RMB held / the touch AIM disc — `adsHeld`; the disc should read "HEAVY"): a toggle-on / press starts the
+ * charge — the blade rises over the right shoulder (CHARGE pose) and after HEAVY_CHARGE s the heavy is ready; the
+ * release (toggle-off / RMB up) throws a wide, slower overhead chop for ×2 (wood 24) with a longer hit-stop, a thick
+ * pale trail with a glint at the tip, and a heavy stagger. Releasing before the charge is full queues the release for
+ * when it is. The player keeps walking / strafing while charging (strafing is the dodge — there is no block).
+ * `state.ads` is true while charging (the HUD's ADS state); `charging` / `charge` (0..1) are readable for a meter.
+ *
+ * Hit test: during a swing's active window a fan of rays from the eye (the move's `fan`) is cast against
  * `targets.raycast` out to REACH m; the first animal hit takes `applyDamage(damage, point, dir)` once per swing, then
- * `onHit(kind, false, killed)` + `onImpact('flesh', point)` fire (Combat's damage float and the HUD hit marker work
- * unchanged), the swing hit-stops for a beat and a star burst pops at the point. `onFire()` fires at the start of
- * every swing (play the whoosh); nothing else on a miss.
+ * `stagger(pushDir, strength)` when the target has one (Animal.ts: light 0.6 m / 0.4 s, heavy 1.5 m / 0.8 s, breaks a
+ * running charge), `onHit(kind, false, killed)` + `onImpact('flesh', point)` fire (Combat's damage float and the HUD
+ * hit marker work unchanged), the swing hit-stops for a beat and a star burst pops at the point.
  *
- * Events: onFire() · onHit(kind, headshot=false, killed) · onImpact('flesh', point) · onDry() never · onReload* never.
- * `sword.reach` = REACH so Combat's MISS judgement ignores animals out of range.
+ * Events: onFire() every swing (light AND heavy: play the whoosh; Combat's MISS judgement taps it) · onHeavy() on the
+ * heavy's release, after onFire (a deeper whoosh layer: Audio.swordHeavy) · onHit(kind, headshot=false, killed) ·
+ * onImpact('flesh', point) · onDry() never · onReload* never. `sword.reach` = REACH so Combat's MISS judgement
+ * ignores animals out of range. `heavySwing` is true while the current swing is the heavy.
  *
  * Side effects (same as the crossbow): owns `game.camera.fov` (Hor+ on portrait) + `sky.csm.updateFrustums()`,
  * parents the viewmodel to `game.camera` (added to the scene if not yet), renders after a depth clear at 999/1000.
@@ -43,13 +56,12 @@ export interface SwordOptions { allowUnlocked?: boolean; blade?: 'wood' | 'iron'
 
 const DAMAGE_WOOD = 12, DAMAGE_IRON = 28;
 export const REACH = 2.2;            // m from the eye
-const SWEEP_YAW = 0.55;              // rad: half-angle of the horizontal fan the slash covers
-const SWING_TIME = 0.35;             // s: wind-up + slash + recover
-const COOLDOWN = 0.42;               // s between swings (a hair over the swing: no double-swing on a fast tap)
-const WINDUP = 0.07, SLASH_END = 0.235; // s: the active window is [WINDUP, SLASH_END]
-const HIT_STOP = 0.045;              // s: the swing freezes on contact
-const TRAIL_SAMPLES = 16, TRAIL_LIFE = 0.13; // ribbon samples kept / s a sample lives
-const GUARD_BLEND = 0.14;
+const COOLDOWN = 0.08;               // s after a swing ends before a FRESH tap swings again (queued combo swings chain directly)
+const COMBO_GAP = 0.6;               // s after a swing ends within which the next tap continues the combo
+const CHAIN_LAG = 0.02;              // s after the active window closes that the queued swing takes over
+export const HEAVY_CHARGE = 0.45;    // s of holding before the heavy is ready
+const CHARGE_BLEND = 0.16;           // s to raise the blade into the charge pose
+const TRAIL_SAMPLES = 20;
 const ARM_FOLLOW = 0.45;             // the forearms take this much of the sword's rotation away from rest (a cheap elbow)
 const FOV_HIP = 72;
 /** three's fov is vertical: a fixed 72° on a portrait phone collapses the horizontal view, so widen it (Hor+, same as Crossbow.ts) */
@@ -178,7 +190,7 @@ function buildSword(blade: 'wood' | 'iron'): { sword: THREE.BufferGeometry; arms
     add(xform(fist(0.05, 0.024, 0.03, 0.7), -0.008, 0.03, 0.028, 0.25, 0.15, -0.45), C.skinDark, seed + 10); // thumb over the top, toward the blade
   }
   // ── forearms: a wrist stub of skin then a wide cream sleeve, angled off toward the lower right / bottom of the frame ──
-  const restInv = poseQuat(new THREE.Quaternion(), REST.dir, REST.roll).invert();
+  const restInv = REST.q.clone().invert();
   const arm = (fromY: number, dirCam: THREE.Vector3, seed: number) => {
     const d = dirCam.clone().normalize().applyQuaternion(restInv), from = new THREE.Vector3(0, fromY, 0);
     const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d); // tube +Y → down the arm
@@ -251,33 +263,39 @@ class Stars {
 
 // ───────────────────────────── the sword ─────────────────────────────
 
-/** one swing keyframe in camera space: hands position, blade direction, roll about the blade (0 = flat toward the eye) */
-interface Key { t: number; pos: THREE.Vector3; dir: THREE.Vector3; roll: number }
-const key = (t: number, px: number, py: number, pz: number, dx: number, dy: number, dz: number, roll: number): Key => ({ t, pos: new THREE.Vector3(px, py, pz), dir: new THREE.Vector3(dx, dy, dz).normalize(), roll });
-/**
- * The swing, camera space at scale 1 (landscape). Rest = the spawn mockup (hands lower-right, blade up-left toward the
- * frame centre). Wind-up pulls the hands right and cocks the blade back over the shoulder; the slash drops the blade
- * to horizontal and sweeps it right → left across the frame, edge leading; recover eases back to rest.
- */
-const REST = key(0, 0.27, -0.33, -0.52, -0.34, 0.76, -0.55, 0.35);
-const SWING: Key[] = [
-  REST,
-  key(WINDUP, 0.42, -0.25, -0.50, 0.62, 0.62, -0.48, 0.55),        // cocked: blade up-right, tip toward the frame's right edge
-  key(0.13, 0.22, -0.33, -0.48, -0.70, 0.48, -0.53, 0.3),          // mid-slash: sweeping across, tip upper-left of centre (the mockup frame)
-  key(SLASH_END, -0.02, -0.35, -0.46, -0.88, 0.22, -0.42, 0.15),  // follow-through: blade out to the left, still rising a little
-  key(SWING_TIME, REST.pos.x, REST.pos.y, REST.pos.z, REST.dir.x, REST.dir.y, REST.dir.z, REST.roll),
-];
-const GUARD = key(0, 0.17, -0.27, -0.50, -0.50, 0.82, -0.28, 0.15); // raised across the body, the crosshair stays clear
-const SPRINT = key(0, 0.34, -0.46, -0.58, -0.2, 0.55, -0.81, 0.6);
-
-const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3();
-const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _qk = new THREE.Quaternion(), _qk2 = new THREE.Quaternion(), _e = new THREE.Euler();
+const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3(), _push = new THREE.Vector3();
+const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _e = new THREE.Euler();
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 
-/** quaternion that takes +Y to `dir` then rolls about it */
-function poseQuat(out: THREE.Quaternion, dir: THREE.Vector3, roll: number) {
-  out.setFromUnitVectors(Y_AXIS, dir);
-  return out.multiply(_q2.setFromAxisAngle(Y_AXIS, roll));
+/** the heavy's tip glint: one additive star quad (camera space — the model group is camera-parented, so it always faces the eye) that rides the blade tip through the chop, spinning, then winks out */
+class Glint {
+  mesh: THREE.Mesh;
+  private mat: THREE.ShaderMaterial;
+  alpha = 0;
+  constructor() {
+    this.mat = new THREE.ShaderMaterial({
+      uniforms: { uAlpha: { value: 0 }, uRot: { value: 0 } },
+      vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      // a spinning four-point star with a soft core: |x|^0.5 + |y|^0.5 ≤ 1 in rotated quad space, plus a radial glow
+      fragmentShader: `uniform float uAlpha; uniform float uRot; varying vec2 vUv; void main(){
+        vec2 p = (vUv - 0.5) * 2.0; float c = cos(uRot), s = sin(uRot); p = vec2(c * p.x - s * p.y, s * p.x + c * p.y);
+        vec2 d = abs(p) * 0.85; float st = sqrt(d.x) + sqrt(d.y); float star = st < 1.0 ? pow(1.0 - st, 0.6) : 0.0;
+        float glow = max(0.0, 1.0 - length(p) * 1.5); glow *= glow;
+        float a = (star * 1.6 + glow * 1.3) * uAlpha; if (a <= 0.002) discard; gl_FragColor = vec4(1.0, 0.97, 0.82, a); }`,
+      transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, toneMapped: false, side: THREE.DoubleSide,
+    });
+    this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.3), this.mat);
+    this.mesh.frustumCulled = false; this.mesh.renderOrder = 1002; this.mesh.visible = false;
+  }
+  set(pos: THREE.Vector3) { this.mesh.position.copy(pos); }
+  update(dt: number, t: number, lit: boolean) {
+    this.alpha = lit ? Math.min(1, this.alpha + dt * 12) : Math.max(0, this.alpha - dt * 7);
+    this.mesh.visible = this.alpha > 0.002;
+    if (!this.mesh.visible) return;
+    this.mat.uniforms.uAlpha.value = this.alpha; this.mat.uniforms.uRot.value = t * 9;
+    const pulse = 1 + 0.12 * Math.sin(t * 31);
+    this.mesh.scale.setScalar(pulse * (0.7 + 0.3 * this.alpha));
+  }
 }
 
 export class Sword implements Weapon {
@@ -286,9 +304,9 @@ export class Sword implements Weapon {
   readonly state: WeaponState = { loaded: true, reloading: false, reloadProgress: 0, ads: false };
   enabled = true;
   allowUnlocked = false;
-  /** hold the guard pose externally (touch AIM disc, dev `?ads=1`) — OR'ed with the right mouse button */
+  /** the heavy's charge held externally (the touch AIM disc — label it HEAVY — or dev `?ads=1`); OR'ed with the right mouse button. On = charging, off = release. */
   adsHeld = false;
-  /** damage per hit: wooden 12, iron 28 */
+  /** base damage per light hit: wooden 12, iron 28 (the finisher ×1.33, the heavy ×2) */
   damage: number;
   /** dev: showcase pose (model centred, slowly turning) */
   inspect = 0;
@@ -301,6 +319,8 @@ export class Sword implements Weapon {
   private aimCache: AimInfo = { kind: 'deer', distance: 0 };
 
   onFire?: () => void;
+  /** the heavy's release (after onFire): a deeper whoosh — Audio.swordHeavy() */
+  onHeavy?: () => void;
   onHit?: (kind: string, headshot: boolean, killed: boolean) => void;
   onImpact?: (surface: ImpactSurface, point: THREE.Vector3) => void;
   onReloadStart?: () => void;
@@ -311,24 +331,34 @@ export class Sword implements Weapon {
   private game: Game; private sky: Sky; private player: Player;
   private targets?: Targets;
   private rig = new THREE.Group(); private armRig = new THREE.Group();
-  private restQ = new THREE.Quaternion();
   private tipY = 0; private baseY = 0;
 
-  // swing state
-  private swingT = -1;        // s into the swing, -1 = idle
+  // swing / combo state
+  private move: Move | null = null;
+  private swingT = 0;
+  private fromPos = new THREE.Vector3(); private fromQ = new THREE.Quaternion();   // where the sword was when this swing started
+  private basePos = new THREE.Vector3().copy(REST.pos); private baseQ = new THREE.Quaternion().copy(REST.q); // this frame's pose before sway / portrait
+  private queued = false;
+  private comboIdx = 0;          // index into COMBO of the NEXT light swing
+  private lastSwingEnd = -1e9;
   private cooldown = 0;
   private hitDone = false; private hitStop = 0;
   private jolt = 0;
-  private mouseGuard = false; private guardBlend = 0; private sprintBlend = 0;
+  // heavy
+  private mouseHeld = false; private heldPrev = false;
+  private charging = false; private chargeT = 0; private releaseQueued = false; private chargePending = false;
+  private chargeBlend = 0; private sprintBlend = 0;
   private fov = FOV_HIP;
   private lastYaw = 0; private lastPitch = 0; private lagYaw = 0; private lagYawVel = 0; private lagPitch = 0; private lagPitchVel = 0;
   private posePos = new THREE.Vector3(); private poseQ = new THREE.Quaternion(); private poseInit = false;
 
   // trail
-  private trail!: THREE.Mesh; private trailPos!: Float32Array; private trailAlpha!: Float32Array;
+  private trail!: THREE.Mesh; private trailMat!: THREE.ShaderMaterial; private trailPos!: Float32Array; private trailAlpha!: Float32Array;
   private trailPosAttr!: THREE.BufferAttribute; private trailAlphaAttr!: THREE.BufferAttribute;
   private trailT = new Float32Array(TRAIL_SAMPLES).fill(-1); private trailHead = 0; private trailN = 0;
+  private trailStyle = COMBO[0].trail;
   private stars = new Stars();
+  private glint = new Glint();
   private time = 0;
 
   constructor(world: SwordWorld, targets?: Targets, opts: SwordOptions = {}) {
@@ -343,6 +373,7 @@ export class Sword implements Weapon {
     cam.add(this.model);
     if (!cam.parent) this.game.scene.add(cam);
     this.game.scene.add(this.stars.points);
+    this.model.add(this.glint.mesh);
     this.bindInput();
   }
 
@@ -352,38 +383,70 @@ export class Sword implements Weapon {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
       if (e.button === 0) this.tryFire();
-      if (e.button === 2) this.mouseGuard = true;
+      if (e.button === 2) this.mouseHeld = true;
     });
-    document.addEventListener('mouseup', (e) => { if (e.button === 2) this.mouseGuard = false; });
+    document.addEventListener('mouseup', (e) => { if (e.button === 2) this.mouseHeld = false; });
     document.addEventListener('contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
     document.addEventListener('keydown', (e) => {
       if (!this.inputAllowed() || e.repeat) return;
       if (e.code === 'KeyF') this.tryFire();
     });
-    window.addEventListener('blur', () => { this.mouseGuard = false; });
+    window.addEventListener('blur', () => { this.mouseHeld = false; });
   }
 
-  /** Swing (LMB / F / touch tap). Ignored while a swing is running or cooling down. */
+  /**
+   * A light swing (LMB / F / touch tap). Idle → the next combo swing (1 again if the last swing ended more than
+   * COMBO_GAP s ago, or the combo is spent). Mid-swing → queues the next combo swing (one deep; not off the heavy).
+   * Ignored while charging the heavy.
+   */
   tryFire() {
-    if (this.swingT >= 0 || this.cooldown > 0 || !this.enabled) return;
-    this.swingT = 0; this.cooldown = COOLDOWN; this.hitDone = false; this.hitStop = 0;
-    this.onFire?.();
+    if (!this.enabled || this.charging) return;
+    if (this.move) {
+      if (this.move !== HEAVY && this.comboIdx < COMBO.length) this.queued = true;
+      return;
+    }
+    if (this.cooldown > 0) return;
+    if (this.comboIdx >= COMBO.length || this.time - this.lastSwingEnd > COMBO_GAP) this.comboIdx = 0;
+    this.startSwing(COMBO[this.comboIdx++]);
   }
+  private startSwing(move: Move) {
+    this.move = move; this.swingT = 0; this.hitDone = false; this.hitStop = 0; this.queued = false;
+    this.fromPos.copy(this.basePos); this.fromQ.copy(this.baseQ);
+    this.trailN = 0; this.trail.visible = false;
+    this.trailStyle = move.trail; (this.trailMat.uniforms.uColor.value as THREE.Color).copy(move.trail.color);
+    this.onFire?.();
+    if (move === HEAVY) this.onHeavy?.();
+  }
+  private beginCharge() { this.charging = true; this.chargeT = 0; this.releaseQueued = false; this.chargePending = false; this.comboIdx = 0; }
+  private releaseHeavy() { this.charging = false; this.releaseQueued = false; this.comboIdx = 0; this.startSwing(HEAVY); }
+
   /** no ammo to add / nothing to reload */
   addBolts(_n: number) { /* melee */ }
   reload() { /* melee */ }
   /** the aim line: the camera forward from the eye (what the crosshair shows) */
   aimRay(origin: THREE.Vector3, dir: THREE.Vector3) { const cam = this.game.camera; cam.getWorldDirection(dir); origin.copy(cam.position); return dir; }
   /** shown + held (true) or holstered (false: hidden, input off) */
-  setActive(on: boolean) { this.model.visible = on; if (!on) { this.enabled = false; this.swingT = -1; this.trailN = 0; this.trail.visible = false; } }
-  /** true while the blade is in its active window (dev / tests) */
-  get swinging() { return this.swingT >= 0; }
+  setActive(on: boolean) {
+    this.model.visible = on;
+    if (!on) { this.enabled = false; this.move = null; this.queued = false; this.charging = false; this.chargePending = false; this.releaseQueued = false; this.trailN = 0; this.trail.visible = false; }
+  }
+  /** true while a swing is running (dev / tests) */
+  get swinging() { return this.move !== null; }
+  /** the running swing's name ('slash' | 'backhand' | 'finisher' | 'heavy'), or null */
+  get swingName() { return this.move?.name ?? null; }
+  /** true while the running swing is the heavy */
+  get heavySwing() { return this.move === HEAVY; }
+  /** true while the heavy is being charged (RMB / AIM disc held) */
+  get chargingHeavy() { return this.charging; }
+  /** 0..1 heavy charge (1 = ready to release) */
+  get charge() { return this.charging ? clamp01(this.chargeT / HEAVY_CHARGE) : 0; }
+  /** which light swing the next tap throws (1..3) */
+  get comboStep() { return this.comboIdx >= COMBO.length || (!this.move && this.time - this.lastSwingEnd > COMBO_GAP) ? 1 : this.comboIdx + 1; }
 
   // ── viewmodel ──
   private buildViewmodel(blade: 'wood' | 'iron') {
     const { sword, arms, tipY, baseY } = buildSword(blade);
     this.tipY = tipY; this.baseY = baseY;
-    poseQuat(this.restQ, REST.dir, REST.roll);
     const mat = new THREE.MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: 0.82, metalness: blade === 'iron' ? 0.6 : 0, envMapIntensity: 0.6 });
     mat.name = 'sword'; mat.customProgramCacheKey = () => 'sword-lowpoly';
     this.sky.setupMaterial(mat);
@@ -401,7 +464,7 @@ export class Sword implements Weapon {
     this.model.add(clearer);
   }
 
-  /** the arc trail: a ribbon of the last TRAIL_SAMPLES blade positions (outer half of the blade), additive white, alpha by age */
+  /** the arc trail: a ribbon of the last TRAIL_SAMPLES blade positions (the outer part of the blade, per move), additive, alpha by age */
   private buildTrail() {
     const g = new THREE.BufferGeometry();
     const quads = TRAIL_SAMPLES - 1;
@@ -411,20 +474,21 @@ export class Sword implements Weapon {
     this.trailPosAttr.setUsage(THREE.DynamicDrawUsage); this.trailAlphaAttr.setUsage(THREE.DynamicDrawUsage);
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
     g.setDrawRange(0, 0);
-    const mat = new THREE.ShaderMaterial({
+    this.trailMat = new THREE.ShaderMaterial({
+      uniforms: { uColor: { value: new THREE.Color(1, 1, 1) } },
       vertexShader: `attribute float aAlpha; varying float vA; void main(){ vA = aAlpha; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-      fragmentShader: `varying float vA; void main(){ gl_FragColor = vec4(1.0, 1.0, 1.0, vA); }`,
+      fragmentShader: `uniform vec3 uColor; varying float vA; void main(){ gl_FragColor = vec4(uColor, vA); }`,
       transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false,
     });
-    this.trail = new THREE.Mesh(g, mat);
+    this.trail = new THREE.Mesh(g, this.trailMat);
     this.trail.frustumCulled = false; this.trail.renderOrder = 1001; this.trail.visible = false;
     this.model.add(this.trail); // camera space, like the rig — the ribbon is the sword's own motion, not the world's
   }
   private trailA = new Float32Array(TRAIL_SAMPLES * 3); private trailB = new Float32Array(TRAIL_SAMPLES * 3);
   private trailSample() {
-    // the ribbon spans the outer 55 % of the blade, in the model's (camera) space
+    // the ribbon spans the blade from the move's `from` fraction to the tip, in the model's (camera) space
     this.rig.updateMatrix();
-    _v1.set(0, this.baseY + (this.tipY - this.baseY) * 0.62, 0).applyMatrix4(this.rig.matrix);
+    _v1.set(0, this.baseY + (this.tipY - this.baseY) * this.trailStyle.from, 0).applyMatrix4(this.rig.matrix);
     _v2.set(0, this.tipY + 0.03, 0).applyMatrix4(this.rig.matrix);
     if (this.trailN > 0) { // skip a sample the tip has not moved for (hit-stop): no zero-width quads
       const l = (this.trailHead - 1 + TRAIL_SAMPLES) % TRAIL_SAMPLES;
@@ -438,10 +502,10 @@ export class Sword implements Weapon {
   private trailRebuild() {
     // walk the ring oldest → newest, quad per consecutive pair; alpha fades with age and toward the inner edge
     let live = 0, q = 0;
-    const P = this.trailPos, A = this.trailAlpha, n = this.trailN;
+    const P = this.trailPos, A = this.trailAlpha, n = this.trailN, st = this.trailStyle;
+    const life = st.life * this.swingScale;
     for (let k = 0; k < n - 1; k++) {
       const i0 = (this.trailHead - n + k + TRAIL_SAMPLES) % TRAIL_SAMPLES, i1 = (i0 + 1) % TRAIL_SAMPLES;
-      const life = TRAIL_LIFE * this.swingScale;
       const a0 = clamp01(1 - (this.time - this.trailT[i0]) / life), a1 = clamp01(1 - (this.time - this.trailT[i1]) / life);
       if (a0 <= 0 && a1 <= 0) continue;
       live++;
@@ -449,7 +513,7 @@ export class Sword implements Weapon {
       const put = (slot: number, src: Float32Array, idx: number, alpha: number) => {
         P[o + slot * 3] = src[idx * 3]; P[o + slot * 3 + 1] = src[idx * 3 + 1]; P[o + slot * 3 + 2] = src[idx * 3 + 2]; A[oa + slot] = alpha;
       };
-      const inner = 0.0, outer = 0.6;
+      const inner = st.inner, outer = st.alpha;
       // tri 1: A0 B0 B1 · tri 2: A0 B1 A1  (A = inner edge, B = tip)
       put(0, this.trailA, i0, a0 * a0 * inner); put(1, this.trailB, i0, a0 * outer); put(2, this.trailB, i1, a1 * outer);
       put(3, this.trailA, i0, a0 * a0 * inner); put(4, this.trailB, i1, a1 * outer); put(5, this.trailA, i1, a1 * a1 * inner);
@@ -459,41 +523,47 @@ export class Sword implements Weapon {
     if (live) { this.trailPosAttr.needsUpdate = true; this.trailAlphaAttr.needsUpdate = true; }
   }
 
-  // ── melee hit test: a fan of rays from the eye across the slash's sweep, out to REACH ──
-  private static YAWS = [0, -0.18, 0.18, -0.36, 0.36, -SWEEP_YAW, SWEEP_YAW];
-  private static PITCHES = [-0.3, 0.0, -0.6, -0.9]; // a boar at your feet is ~40° below the eye
-  private testHit() {
+  // ── melee hit test: the move's fan of rays from the eye across its sweep, out to REACH ──
+  private testHit(move: Move) {
     if (!this.targets) return;
     const cam = this.game.camera;
     cam.getWorldDirection(_fwd);
     _v3.copy(cam.position);
     _e.set(0, 0, 0, 'YXZ');
-    for (const pitch of Sword.PITCHES) for (const yaw of Sword.YAWS) {
+    for (const pitch of move.fan.pitches) for (const yaw of move.fan.yaws) {
       _e.y = yaw; _e.x = pitch;
       _q.setFromEuler(_e); _q.premultiply(cam.quaternion);
       _dir.set(0, 0, -1).applyQuaternion(_q);
       const hit = this.targets.raycast(_v3, _dir, REACH);
       if (!hit || !hit.animal.alive) continue;
-      // strike direction = the sweep (right → left across the forward), not the ray: the flinch reads as a side-on blow
-      _v1.copy(_fwd).applyAxisAngle(Y_AXIS, Math.PI / 2).multiplyScalar(0.7).addScaledVector(_fwd, 0.7).normalize();
-      const killed = hit.animal.applyDamage(this.damage, hit.point, _v1);
-      this.hitDone = true; this.hitStop = HIT_STOP; this.jolt = 1;
-      this.stars.burst(hit.point, _fwd);
+      // strike direction = the sweep (across the forward, the move's way), not the ray: the flinch reads as a side-on blow;
+      // an overhead chop (sweep ≈ 0) drives forward and down
+      _v2.copy(_fwd).applyAxisAngle(Y_AXIS, Math.PI / 2);                                       // the player's left
+      _v1.copy(_fwd).multiplyScalar(0.7).addScaledVector(_v2, 0.7 * move.sweep).normalize();
+      if (Math.abs(move.sweep) < 0.6) _v1.y -= 0.35 * (1 - Math.abs(move.sweep)); _v1.normalize();
+      const dmg = Math.round(this.damage * move.damage);
+      const killed = hit.animal.applyDamage(dmg, hit.point, _v1);
+      // knockback: away from the player, biased the way the sweep travels (Animal.stagger flattens it)
+      _push.set(_fwd.x, 0, _fwd.z).normalize().multiplyScalar(0.8).addScaledVector(_v2, 0.5 * move.sweep);
+      if (!killed) (hit.animal as unknown as { stagger?: (dir: THREE.Vector3, strength: number) => void }).stagger?.(_push, move.stagger);
+      this.hitDone = true; this.hitStop = move.hitStop; this.jolt = move === HEAVY ? 1.6 : 1;
+      this.stars.burst(hit.point, _fwd, move === HEAVY ? 14 : 9);
       this.onHit?.(hit.animal.kind, false, killed);
       this.onImpact?.('flesh', hit.point);
       return;
     }
   }
 
-  /** evaluate the swing keys at `t` s into the swing → position + quaternion (camera space, scale 1) */
-  private evalSwing(t: number, outPos: THREE.Vector3, outQ: THREE.Quaternion) {
-    let k = 0; while (k < SWING.length - 2 && t > SWING[k + 1].t) k++;
-    const a = SWING[k], b = SWING[k + 1];
-    let f = clamp01((t - a.t) / (b.t - a.t));
-    f = k === 0 ? easeIn(f) : k === SWING.length - 2 ? sstep(0, 1, f) : k === 1 ? easeOut(f) : f; // snap into the slash, settle out of it
-    outPos.copy(a.pos).lerp(b.pos, f);
-    poseQuat(_qk, a.dir, a.roll); poseQuat(_qk2, b.dir, b.roll);
-    outQ.slerpQuaternions(_qk, _qk2, f); // (qb must not be outQ: slerpQuaternions copies qa into this first)
+  /** evaluate a move at `t` s into it → position + quaternion (camera space, scale 1): from-pose → cocked → mid → follow-through → REST */
+  private evalSwing(move: Move, t: number, outPos: THREE.Vector3, outQ: THREE.Quaternion) {
+    const k = move.keys;
+    let aPos: THREE.Vector3, aQ: THREE.Quaternion, bPos: THREE.Vector3, bQ: THREE.Quaternion, t0: number, t1: number, f: number;
+    if (t < k[0].t) { aPos = this.fromPos; aQ = this.fromQ; bPos = k[0].pos; bQ = k[0].q; t0 = 0; t1 = k[0].t; f = easeIn(clamp01((t - t0) / (t1 - t0))); }
+    else if (t < k[1].t) { aPos = k[0].pos; aQ = k[0].q; bPos = k[1].pos; bQ = k[1].q; t0 = k[0].t; t1 = k[1].t; f = easeOut(clamp01((t - t0) / (t1 - t0))); } // snap into the slash
+    else if (t < k[2].t) { aPos = k[1].pos; aQ = k[1].q; bPos = k[2].pos; bQ = k[2].q; t0 = k[1].t; t1 = k[2].t; f = clamp01((t - t0) / (t1 - t0)); }
+    else { aPos = k[2].pos; aQ = k[2].q; bPos = REST.pos; bQ = REST.q; t0 = k[2].t; t1 = move.total; f = sstep(0, 1, clamp01((t - t0) / (t1 - t0))); } // settle out of it
+    outPos.copy(aPos).lerp(bPos, f);
+    outQ.slerpQuaternions(aQ, bQ, f);
   }
 
   // ── per-frame ──
@@ -506,19 +576,31 @@ export class Sword implements Weapon {
     const targetFov = fovForAspect(FOV_HIP, cam.aspect);
     if (Math.abs(targetFov - this.fov) > 0.01) { this.fov = targetFov; cam.fov = this.fov; cam.updateProjectionMatrix(); this.sky.csm.updateFrustums(); }
 
-    // swing clock (hit-stop holds it on contact)
-    if (this.swingT >= 0) {
+    // heavy: the hold (RMB / touch AIM latch) — edge on = start charging (after the running swing, if any), edge off = release
+    const held = (this.mouseHeld || this.adsHeld) && this.enabled;
+    if (held && !this.heldPrev) { if (this.move) this.chargePending = true; else this.beginCharge(); }
+    if (!held && this.heldPrev) { this.chargePending = false; if (this.charging) { if (this.chargeT >= HEAVY_CHARGE) this.releaseHeavy(); else this.releaseQueued = true; } }
+    this.heldPrev = held;
+    if (this.charging) {
+      this.chargeT += dt;
+      if (this.releaseQueued && this.chargeT >= HEAVY_CHARGE) this.releaseHeavy();
+    } else if (this.chargePending && !this.move) this.beginCharge();
+
+    // swing clock (hit-stop holds it on contact); a queued combo swing chains the moment the active window closes
+    let move = this.move;
+    if (move) {
       if (this.hitStop > 0) this.hitStop -= dt; else this.swingT += dt / this.swingScale;
-      if (this.swingT >= SWING_TIME) this.swingT = -1;
+      if (this.queued && this.swingT >= move.slashEnd + CHAIN_LAG && this.comboIdx < COMBO.length) { this.startSwing(COMBO[this.comboIdx++]); move = this.move; }
+      else if (this.swingT >= move.total) { this.move = move = null; this.lastSwingEnd = t; this.cooldown = COOLDOWN; }
     }
-    const swinging = this.swingT >= 0, active = swinging && this.swingT >= WINDUP && this.swingT <= SLASH_END;
-    if (active && !this.hitDone) this.testHit();
+    const active = !!move && this.swingT >= move.windup && this.swingT <= move.slashEnd;
+    if (move && active && !this.hitDone) this.testHit(move);
     this.jolt *= Math.exp(-dt * 14);
 
-    // guard pose (RMB / touch AIM latch), sprint
-    this.state.ads = (this.mouseGuard || this.adsHeld) && this.enabled && !swinging && !p.sprinting;
-    { const step = dt / GUARD_BLEND; this.guardBlend = clamp01(this.guardBlend + THREE.MathUtils.clamp((this.state.ads ? 1 : 0) - this.guardBlend, -step, step)); }
-    this.sprintBlend += ((p.sprinting && !swinging ? 1 : 0) - this.sprintBlend) * Math.min(1, dt * 7);
+    // charge pose blend (the blade rises over the shoulder), sprint
+    this.state.ads = this.charging;
+    { const step = dt / CHARGE_BLEND; this.chargeBlend = clamp01(this.chargeBlend + THREE.MathUtils.clamp((this.charging ? 1 : 0) - this.chargeBlend, -step, step)); }
+    this.sprintBlend += ((p.sprinting && !move && !this.charging ? 1 : 0) - this.sprintBlend) * Math.min(1, dt * 7);
 
     // look lag (spring, substepped like the crossbow)
     let dYaw = p.yaw - this.lastYaw, dPitch = p.pitch - this.lastPitch;
@@ -532,16 +614,22 @@ export class Sword implements Weapon {
       this.lagPitchVel += (-this.lagPitch * 220 - this.lagPitchVel * 20) * h; this.lagPitch += this.lagPitchVel * h;
     }
 
-    // base pose: rest, or the swing, blended toward guard / sprint
+    // base pose: rest, or the swing, blended toward the charge / sprint poses
     const pos = _v1, q = _q;
-    if (swinging) this.evalSwing(this.swingT, pos, q);
-    else { pos.copy(REST.pos); poseQuat(q, REST.dir, REST.roll); }
-    const g = sstep(0, 1, this.guardBlend), sp = this.sprintBlend;
-    if (g > 0) { pos.lerp(GUARD.pos, g); q.slerp(poseQuat(_qk, GUARD.dir, GUARD.roll), g); }
-    if (sp > 0) { pos.lerp(SPRINT.pos, sp); q.slerp(poseQuat(_qk, SPRINT.dir, SPRINT.roll), sp); }
+    if (move) this.evalSwing(move, this.swingT, pos, q);
+    else { pos.copy(REST.pos); q.copy(REST.q); }
+    const c = sstep(0, 1, this.chargeBlend), sp = this.sprintBlend;
+    if (c > 0) {
+      pos.lerp(CHARGE.pos, c); q.slerp(CHARGE.q, c);
+      // charged: a taut tremble in the raised blade, and a small lift as it comes ready
+      const ready = this.charge;
+      pos.x += Math.sin(t * 43) * 0.0025 * ready * c; pos.y += (Math.sin(t * 37) * 0.002 + 0.02 * ready) * c;
+    }
+    if (sp > 0) { pos.lerp(SPRINT.pos, sp); q.slerp(SPRINT.q, sp); }
+    this.basePos.copy(pos); this.baseQ.copy(q);
 
-    // idle sway / walk bob (counter-phase to the camera bob) / look lag / hit jolt — full at the hip, 30 % in the guard
-    const m = 1 - g * 0.7, sf = p.speedFactor;
+    // idle sway / walk bob (counter-phase to the camera bob) / look lag / hit jolt — full at the hip, 30 % in the charge
+    const m = 1 - c * 0.7, sf = p.speedFactor;
     const swX = Math.sin(t * 0.7) * 0.003, swY = Math.sin(t * 1.1) * 0.0025;
     const bobX = Math.cos(p.bobTime) * 0.018 * sf, bobY = -Math.abs(Math.sin(p.bobTime)) * 0.014 * sf;
     pos.x += (swX + bobX + this.lagYaw * 0.25) * m; pos.y += (swY + bobY + this.lagPitch * 0.2) * m; pos.z += this.jolt * 0.05;
@@ -560,15 +648,19 @@ export class Sword implements Weapon {
     this.rig.position.copy(this.posePos); this.rig.quaternion.copy(this.poseQ);
     // forearms: pinned to the hands, but only part of the way round with the sword (the wrists bend, the elbows stay put)
     this.armRig.position.copy(this.posePos);
-    this.armRig.quaternion.copy(this.restQ).slerp(this.poseQ, ARM_FOLLOW);
+    this.armRig.quaternion.copy(REST.q).slerp(this.poseQ, ARM_FOLLOW);
 
     // trail: sample through the slash, then fade
     if (active) this.trailSample();
     if (this.trailN > 0) {
       this.trailRebuild();
       const newest = (this.trailHead - 1 + TRAIL_SAMPLES) % TRAIL_SAMPLES;
-      if (t - this.trailT[newest] > TRAIL_LIFE * this.swingScale) this.trailN = 0; // every sample has faded: drop the ribbon
+      if (t - this.trailT[newest] > this.trailStyle.life * this.swingScale) this.trailN = 0; // every sample has faded: drop the ribbon
     }
+    // the heavy's tip glint: on through the chop's active window, then winks out
+    const glintOn = move === HEAVY && active;
+    if (glintOn) { this.rig.updateMatrix(); this.glint.set(_v2.set(0, this.tipY + 0.02, 0).applyMatrix4(this.rig.matrix)); }
+    this.glint.update(dt, t, glintOn);
 
     // aim readout (HUD "BOAR · 15 M")
     if (this.targets && (++this.aimFrame & 3) === 0) {

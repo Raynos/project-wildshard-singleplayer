@@ -292,6 +292,7 @@ export class AnimalManager {
     a.herd = -1;
     a.onFootfall = this.footfall;
     a.onDamaged = this.damaged;
+    a.onStaggered = this.staggered;
     if (model.shells.length) a.makeShells = () => this.factory.createShells(rig, model);   // none in 'lowpoly'
     a.prepareMaterial = (m) => this.sky.setupMaterial(m);
     a.sampleTerrain();
@@ -358,6 +359,7 @@ export class AnimalManager {
   private think(a: Animal, dt: number, player: THREE.Vector3, sprinting: boolean) {
     const br = this.brains.get(a)!;
     if (!a.alive) { a.lookWeight = 0; a.settleCorpse(); return; }
+    if (a.stunned) { br.chargeCd = Math.max(0, br.chargeCd - dt); a.setMotion(a.yaw, 0, 1); a.lookTarget.copy(player); a.lookWeight = 1; this.confine(a); return; }   // staggered by a sword blow (Animal.stagger): the AI holds (the charge cooldown still ticks)
     const rng = this.rng;
     const sp = speciesDef(a.kind);
     const boar = a.aggressive;                    // charges instead of only fleeing
@@ -726,6 +728,21 @@ export class AnimalManager {
       } else if (a.aggressive && this.playerPos.distanceTo(a.position) < CHARGE_WHEN_HIT_DIST * M.chargeDist && (br.chargeCd <= 0 || M.relentless) && (M.relentless || this.rng.next() < 0.7)) this.enter(a, br, 'charge');
       else { br.spooked = true; this.enter(a, br, 'flee'); }
     }
+  };
+
+  /**
+   * every Animal.stagger lands here: a blow that lands on a RUNNING charge breaks it — the animal stops dead (the stun),
+   * comes up alert glaring, and either resumes the charge as soon as the stun lifts (a light swing: chargeCd shorter than
+   * the stun) or, off a heavy, wheels away and comes again (the after-charge cooldown path). A blow on a standing animal
+   * only delays whatever `damaged` decided.
+   */
+  private staggered = (a: Animal, strength: number, running: boolean) => {
+    const br = this.brains.get(a);
+    if (!br || !running || a.state !== 'charge') return;
+    const T = this.tuningFor(a);
+    br.chargeCd = strength >= 0.75 ? (T.stalk ? T.stalk.rechargeCd : 1.4) : 0.3;
+    this.enter(a, br, T.stalk ? 'stalk' : 'alert');
+    br.freeze = 0.3 + strength * 0.8;
   };
 
   // ── debug ──────────────────────────────────────────────────────────────────────────────
