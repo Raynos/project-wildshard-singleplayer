@@ -229,7 +229,7 @@ export class Cabins {
 interface Mats {
   log: THREE.MeshStandardMaterial; endGrain: THREE.MeshStandardMaterial; chink: THREE.MeshStandardMaterial;
   roof: THREE.MeshStandardMaterial; beam: THREE.MeshStandardMaterial; deck: THREE.MeshStandardMaterial;
-  door: THREE.MeshStandardMaterial; stone: THREE.MeshStandardMaterial; glass: THREE.MeshPhysicalMaterial;
+  door: THREE.MeshStandardMaterial; stone: THREE.MeshStandardMaterial; glass: THREE.MeshStandardMaterial;
   bark: THREE.MeshStandardMaterial; iron: THREE.MeshStandardMaterial; cloth: THREE.MeshStandardMaterial;
   char: THREE.MeshStandardMaterial;
   smoke: THREE.ShaderMaterial; flame: THREE.ShaderMaterial; ember: THREE.ShaderMaterial; glow: THREE.MeshBasicMaterial;
@@ -251,7 +251,7 @@ async function loadMats(sky: Sky): Promise<Mats> {
     deck: std(deckSet),
     door: std(doorSet, { color: new THREE.Color(0.72, 0.68, 0.62) }),
     stone: std(stoneSet, { color: new THREE.Color(0.58, 0.56, 0.53) }),
-    glass: new THREE.MeshPhysicalMaterial({
+    glass: new THREE.MeshStandardMaterial({ // Standard, not Physical: same look, and it shares the double-sided program with the fire pit
       color: 0x0a0c0e, roughness: 0.08, metalness: 0, transparent: true, opacity: 0.66, envMapIntensity: 0.8,
       emissive: new THREE.Color(1.0, 0.5, 0.17), emissiveIntensity: 1.15, side: THREE.DoubleSide, depthWrite: false,
     }),
@@ -1278,6 +1278,7 @@ class CabinBuilder {
       const mat = mesh.material as THREE.MeshPhysicalMaterial;
       if (mat.transparent || /glass/i.test(mat.name)) {
         mesh.material = new THREE.MeshStandardMaterial({ color: 0xffd9a0, emissive: new THREE.Color(1.0, 0.72, 0.4), emissiveIntensity: 3.0, roughness: 0.2, metalness: 0, transparent: true, opacity: 0.85 });
+        this.sky.setupMaterial(mesh.material); // lit like everything else: one shared program instead of its own non-CSM one
         mesh.castShadow = false;
       } else {
         mesh.material = new THREE.MeshStandardMaterial({ map: mat.map, normalMap: mat.normalMap, roughnessMap: mat.roughnessMap, metalnessMap: mat.metalnessMap, aoMap: mat.aoMap, metalness: 0.9, roughness: 1, color: 0xd8b070 });
