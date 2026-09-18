@@ -116,6 +116,9 @@ export class Minimap {
     this.fit();
   }
 
+  /** The painted terrain layer and fog coverage, for the full map (src/ui/Map.ts). */
+  get layers() { if (this.layerDirty) this.paintLayer(); return { terrain: this.layer, cover: this.cover }; }
+
   setVisible(v: boolean) {
     if (v === this.visible) return;
     this.visible = v;

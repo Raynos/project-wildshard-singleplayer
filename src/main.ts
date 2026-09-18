@@ -17,6 +17,7 @@ import { HUD } from './ui/HUD';
 import { Loading } from './ui/Loading';
 import { Perf } from './ui/Perf';
 import { Minimap } from './ui/Minimap';
+import { FullMap } from './ui/Map';
 import { Debug } from './ui/Debug';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
@@ -105,6 +106,7 @@ async function main() {
   const hud = new HUD({ pointerLock: !nolock });
   const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
   const minimap = new Minimap(); // circular minimap (Heightfield is installed by now)
+  const fullMap = new FullMap(minimap); // tap the minimap → the whole chunk; tap / CLOSE / Esc / M to close
   const keepAlive = new KeepAlive();
   const debug = new Debug(() => perf.refresh()); // TEMPORARY: tier/dpr/aa/meter knobs (src/ui/Debug.ts)
   const audio = new Audio();
@@ -198,7 +200,7 @@ async function main() {
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 && hud.entered);
     hud.setAimInfo(crossbow.aimInfo);
-    if (hud.entered) { hud.setAnimals(animalPositions(animals.animals)); minimap.update(player.position, player.yaw, animals.animals); } // compass paw + minimap (hidden under the menu)
+    if (hud.entered) { hud.setAnimals(animalPositions(animals.animals)); minimap.update(player.position, player.yaw, animals.animals); fullMap.update(player.position, player.yaw); } // compass paw + minimap (hidden under the menu)
     hud.setState({
       bolts: crossbow.state.bolts, loaded: crossbow.state.loaded, reloading: crossbow.state.reloading, reloadProgress: crossbow.state.reloadProgress,
       health, fps: game.stats.fps, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
