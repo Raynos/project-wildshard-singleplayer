@@ -28,6 +28,10 @@ import { getActiveChunk, onActiveChunkChange } from '../chunks/registry';
 
 export interface MinimapAnimal {
   kind: string;
+  /** charges the player (red dot); default: kind === 'boar' */
+  aggressive?: boolean;
+  /** 'rare' / 'legendary' animals get a thin white ring */
+  rarity?: string;
   position: { x: number; z: number };
   alive?: boolean;
   hp?: number;
@@ -184,7 +188,7 @@ export class Minimap {
       const dx = a.position.x - pos.x, dz = a.position.z - pos.z;
       if (dx * dx + dz * dz > VIEW_RADIUS * VIEW_RADIUS) continue;
       const sx = c - dx * k, sy = c - dz * k;
-      const aggressive = a.kind === 'boar';
+      const aggressive = a.aggressive ?? a.kind === 'boar';
       const hot = aggressive && (a.state !== undefined ? (a.state === 'charge' || a.state === 'alert') : (a.hp !== undefined && a.maxHp !== undefined && a.hp < a.maxHp));
       const r = hot ? dot * (1 + 0.5 * pulse) : dot;
       if (hot) {
@@ -194,6 +198,11 @@ export class Minimap {
       ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2);
       ctx.fillStyle = aggressive ? DOT_AGGRESSIVE : DOT_PASSIVE; ctx.fill();
       ctx.strokeStyle = DOT_OUTLINE; ctx.stroke();
+      if (a.rarity === 'rare' || a.rarity === 'legendary') {   // a thin white ring marks the trophies
+        ctx.beginPath(); ctx.arc(sx, sy, r + 2.2 * this.dpr, 0, Math.PI * 2);
+        ctx.strokeStyle = a.rarity === 'legendary' ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.7)'; ctx.stroke();
+        ctx.strokeStyle = DOT_OUTLINE;
+      }
     }
 
     // 4. the player arrow (heading is clockwise from north; canvas rotate() is clockwise on screen)

@@ -122,12 +122,15 @@ export interface ChunkForest {
   largeVariantChance: number;
 }
 
-export type FaunaKind = 'deer' | 'boar';
+/** a registered species kind (`src/entities/species/<kind>.ts`): 'deer' | 'boar' built in; bear / elk… as they register */
+export type FaunaKind = 'deer' | 'boar' | (string & {});
 
 /** One herd / sounder. `src/entities/AnimalManager.ts` finds a clearing that satisfies it. */
 export interface HerdPlan {
   kind: FaunaKind;
   count: number;
+  /** restrict the herd to these variant ids of the species (e.g. ['black', 'scarback']); omit for the full weighted table */
+  variants?: string[];
   /** ring around a point to search for the herd centre; omit for anywhere in the chunk */
   anchor?: { x: number; z: number; rMin: number; rMax: number };
   /** true = under the canopy (boars), false = in a clearing (deer) */

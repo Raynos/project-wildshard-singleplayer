@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { heightAt } from '../world/Heightfield';
-import type { AnimalKind, AnimalModel, AnimalRig } from './AnimalFactory';
+import { variantMods, type AnimalKind, type AnimalModel, type AnimalRig, type Rarity, type VariantMods } from './AnimalFactory';
 
 /**
- * Animal — one deer or boar instance: procedural skeletal animation + health.
+ * Animal — one animal instance (any registered species): procedural skeletal animation + health.
  *
  * Animation is a weighted blend of gait/idle pose generators (idle, graze, walk, trot, gallop)
  * written into a flat Float32Array of joint angles, plus additive layers (alert look-at,
@@ -11,7 +11,9 @@ import type { AnimalKind, AnimalModel, AnimalRig } from './AnimalFactory';
  * knee flex so hooves plant). The result is applied to the rig's bones every frame.
  *
  * Public surface used by other systems:
- *   animal.kind: 'deer' | 'boar'      animal.alive      animal.position (feet, world)
+ *   animal.kind: 'deer' | 'boar' | …  animal.alive      animal.position (feet, world)
+ *   animal.variant / rarity / label   the rolled VariantDef ('white-stag', 'uncommon', "White stag"); mods = its gameplay multipliers
+ *   animal.aggressive                 true for species that charge (boar, bear) — the minimap paints these red
  *   animal.hp / maxHp                 animal.state       animal.yaw (heading, radians)
  *   animal.lastHitT                   performance.now() ms of the last applyDamage (health bars fade from it)
  *   animal.damageFor(headshot, distance)   → the DAMAGE model's number for a bolt (the crossbow asks before applyDamage)
@@ -61,6 +63,12 @@ const _v = new THREE.Vector3();
 
 export class Animal {
   kind: AnimalKind;
+  /** VariantDef id ('hind', 'black', 'ironhide'…), its rarity tier and display name */
+  variant: string; rarity: Rarity; label: string;
+  /** species that turn on the player (boar, bear) */
+  aggressive: boolean;
+  /** per-variant gameplay multipliers (speed / chargeDist / damageTaken / chargeDamage / relentless), applied by the manager */
+  mods: VariantMods;
   alive = true;
   hp: number; maxHp: number;
   position = new THREE.Vector3();
@@ -113,8 +121,12 @@ export class Animal {
 
   constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1) {
     this.kind = model.kind;
+    const v = model.variantDef;
+    this.variant = v.id; this.rarity = v.rarity; this.label = v.label || model.species.label;
+    this.aggressive = !!model.species.aggressive;
+    this.mods = variantMods(model.species, v);
     this.mesh = rig.mesh; this.bones = rig.bones; this.model = model; this.seed = seed; this.scale = scale;
-    this.maxHp = this.hp = model.kind === 'deer' ? 60 : 100;   // the manager re-reads DEER_TUNING / BOAR_TUNING.hp
+    this.maxHp = this.hp = v.hp ?? model.species.tuning?.hp ?? (model.kind === 'deer' ? 60 : 100);   // the manager re-reads the HuntTuning.hp
     this.mesh.scale.setScalar(scale);
     this.mesh.rotation.order = 'YXZ';
     const b = this.bones;
@@ -164,10 +176,16 @@ export class Animal {
    * Apply damage (`amount` is final: AnimalManager.raycast() hands back `hit.damage` from the DAMAGE model —
    * body 32–40 with distance falloff, head ×2.5 — and AnimalManager.hit(hit, dir) applies it). `hitPoint`/`dir`
    * (world) drive the flinch and the collapse side. Returns true if this shot killed it. Blood, sounds, AI reaction and manager.onKill
-   * happen through `onDamaged`, so calling this directly is enough.
+   * happen through `onDamaged`, so calling this directly is enough. A variant's `mods.damageTaken` scales BODY hits
+   * (Old Ironhide shrugs off 40 %); a headshot always lands in full — `onDamaged` gets the amount actually dealt.
    */
   applyDamage(amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3): boolean {
     if (!this.alive) return false;
+    if (this.mods.damageTaken !== 1) {
+      this.headWorld(_v);
+      const headshot = _v.distanceToSquared(hitPoint) < (this.model.dims.headRadius * this.scale + 0.06) ** 2;
+      if (!headshot) amount = Math.max(1, Math.round(amount * this.mods.damageTaken));
+    }
     this.hp -= amount;
     this.lastHitT = performance.now();
     // flinch away from the shot: project the shot direction into body space
@@ -398,9 +416,9 @@ export class Animal {
   private poseGraze(t: number, seed: number) {
     this.poseIdle(t, seed);
     const p = this.tmp;
-    const deer = this.kind === 'deer';
-    // head to the ground; deer need the whole neck down, boars only nose down a little
-    p[P_NECK1] = deer ? 1.2 : 0.35; p[P_NECK2] = deer ? 0.95 : 0.2; p[P_HEAD_P] = deer ? 0.7 : 0.35;
+    const gn = this.model.species.pose?.grazeNeck ?? (this.kind === 'boar' ? 0.3 : 1);
+    // head to the ground; deer (grazeNeck 1) need the whole neck down, boars (0.3) only nose down a little
+    p[P_NECK1] = 0.35 + 0.85 * gn; p[P_NECK2] = 0.2 + 0.75 * gn; p[P_HEAD_P] = 0.35 + 0.35 * gn;
     p[P_NECK_Y] *= 0.6; p[P_HEAD_Y] *= 0.4;
     // nibbling
     const nib = Math.sin(t * 6 + seed) * 0.5 + 0.5;
@@ -450,7 +468,7 @@ export class Animal {
     // ears back at speed, tail up when fleeing
     p[P_EARL_P] = gallop ? 0.7 : 0.1; p[P_EARR_P] = gallop ? 0.7 : 0.1;
     p[P_EARL_Y] = 0.2; p[P_EARR_Y] = -0.2;
-    p[P_TAIL_P] = gallop ? (this.kind === 'deer' ? 1.0 : 0.5) : 0.1 + 0.15 * beat;   // + = raised
+    p[P_TAIL_P] = gallop ? (this.model.species.pose?.gallopTail ?? (this.kind === 'boar' ? 0.5 : 1.0)) : 0.1 + 0.15 * beat;   // + = raised
     p[P_TAIL_Y] = Math.sin(ph * Math.PI * 2) * 0.15;
   }
 

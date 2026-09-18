@@ -101,6 +101,7 @@ export const PINE_HOLLOW: ChunkDef = {
     { kind: 'deer', count: 12, canopy: false, trailBand: [10, 25] },
     { kind: 'boar', count: 15, canopy: true, trailBand: [12, 40] },
     { kind: 'boar', count: 15, canopy: true, trailBand: [12, 40] },
+    { kind: 'boar', count: 4, canopy: true, trailBand: [30, 60], variants: ['black', 'scarback'] },   // the dark sounder deep under the canopy
   ],
   sky: {
     hdri: 'qwantani_sunset_puresky',

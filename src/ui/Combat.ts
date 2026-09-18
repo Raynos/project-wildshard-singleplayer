@@ -181,7 +181,7 @@ export class Combat {
       if (have) continue;
       const free = this.bars.find((s) => !s.animal);
       if (!free) break;
-      free.animal = a; free.kind.textContent = a.kind.toUpperCase(); free.lastHp = -1;
+      free.animal = a; free.kind.textContent = (a.label ?? a.kind).toUpperCase(); free.lastHp = -1;
     }
     for (const s of this.bars) {
       const a = s.animal;

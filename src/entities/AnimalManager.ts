@@ -4,7 +4,7 @@ import { Rng } from '../core/rng';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel } from '../world/Heightfield';
 import type { Forest } from '../world/Forest';
 import type { Sky } from '../world/Sky';
-import { AnimalFactory, type AnimalKind, type AnimalModel } from './AnimalFactory';
+import { AnimalFactory, speciesDef, rollVariant, type AnimalKind, type AnimalStyle } from './AnimalFactory';
 import { Animal, damageFor } from './Animal';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from '../core/tier';
@@ -20,7 +20,7 @@ import { noReflect } from '../world/Water';
  *
  *   animals.raycast(origin, dir, maxDist) → { animal, point, distance, headshot, damage } | null  (result object is reused;
  *                                          `damage` = DAMAGE model (Animal.ts) for that hit: body 32–40 with distance falloff past 40 m, head ×2.5)
- *   animal.applyDamage(amount, hitPoint, dir) → true if it died   (deer 60 hp, boar 100 hp)
+ *   animal.applyDamage(amount, hitPoint, dir) → true if it died   (deer 60 hp, boar 100 hp; variants override — Old Ironhide 300)
  *   animals.hit(hit, dir)  — convenience: applyDamage(hit.damage)
  *   animals.disturb(point, strength) — a bolt landed / something loud happened here: animals within
  *                                      impactSpook m bolt, within impactAlert m go alert (Combat calls it on misses)
@@ -45,7 +45,15 @@ import { noReflect } from '../world/Water';
  *   animals.onSound  = (name, position) => …          'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal'
  *   animals.animals: Animal[]   animals.alive (count)
  *
- * Dev helpers: animals.spawn(kind, x, z, yaw, variant?) adds a single animal (no herd AI target),
+ * Species + variants: every kind comes from the species registry (`src/entities/species/<kind>.ts`, see
+ * AnimalFactory.ts). Each spawn rolls a VariantDef by weight with the seeded rng — its `scale`, `hp` and `mods`
+ * (speed / chargeDist / damageTaken / chargeDamage / relentless) are applied HERE on top of the species'
+ * HuntTuning (DEER_TUNING / BOAR_TUNING below stay the untouched baseline; a species may ship its own
+ * `tuning`). A 'legendary' variant is capped at ONE alive per kind (the roll falls back to the rare tier).
+ * HerdPlan.variants restricts a herd's pool to those ids.
+ *
+ * Dev helpers: animals.spawn(kind, x, z, yaw, variant?) adds a single animal (no herd AI target) — `variant`
+ * is a variant id ('ironhide') or an id list to roll from; omitted = the species' full weighted table.
  * animals.debug = true draws the hit capsules, animals.calm = true stops them reacting to the player.
  */
 
@@ -129,7 +137,7 @@ export const BOAR_TUNING: HuntTuning = {
   impactSpook: 7, impactAlert: 18,
 };
 
-const DEER_WALK = 1.3, BOAR_WALK = 1.1, BOAR_CHARGE = 7.5, CHARGE_HIT_DIST = 1.4;
+const DEER_WALK = 1.3, BOAR_WALK = 1.1, BOAR_CHARGE = 7.5, CHARGE_HIT_DIST = 1.4;   // species defaults (SpeciesDef.walkSpeed / chargeSpeed override)
 const CHARGE_WHEN_HIT_DIST = 25;   // a wounded boar this close turns on you instead of running
 const ANIM_LOD = 140;
 const SHELL_DIST = 18, SHELL_MAX = 4;   // fur shells: nearest SHELL_MAX animals within SHELL_DIST m
@@ -159,8 +167,9 @@ export class AnimalManager {
   private shellDist = new Float64Array(SHELL_MAX);
   private shellIdx = new Int32Array(SHELL_MAX);
 
-  constructor(private scene: THREE.Scene, private sky: Sky, private forest: Forest) {
-    this.factory = new AnimalFactory(sky);
+  /** `opts.style` forces the render style (dev harness); production reads `ChunkDef.style` ('pbr' | 'lowpoly') */
+  constructor(private scene: THREE.Scene, private sky: Sky, private forest: Forest, opts: { style?: AnimalStyle } = {}) {
+    this.factory = new AnimalFactory(sky, { style: opts.style ?? getActiveChunk().style ?? 'pbr' });
     this.group.name = 'animals';
   }
 
@@ -231,31 +240,47 @@ export class AnimalManager {
           placed = true;
         }
         if (!placed) continue;
-        const variant = h.kind === 'boar' ? 'boar' : i === 0 ? 'stag' : 'hind';
-        const a = this.spawn(h.kind, px, pz, rng.range(0, Math.PI * 2), variant);
+        const a = this.spawn(h.kind, px, pz, rng.range(0, Math.PI * 2), h.variants);
         a.herd = this.herds.length - 1;
         herd.members.push(a);
       }
     }
   }
 
-  /** Add one animal (also used by the dev showcase). */
-  spawn(kind: AnimalKind, x: number, z: number, yaw: number, variant: 'stag' | 'hind' | 'boar' = kind === 'boar' ? 'boar' : 'hind'): Animal {
-    const model = this.factory.model(kind, variant);
-    const scale = kind === 'deer' ? (variant === 'stag' ? this.rng.range(1.04, 1.12) : this.rng.range(0.94, 1.02)) : this.rng.range(0.92, 1.1);
+  /** the species' hunting-loop numbers: its own `tuning`, else the manager's baseline for its temperament */
+  private tuningFor(a: Animal): HuntTuning {
+    const sp = speciesDef(a.kind);
+    return sp.tuning ?? (sp.aggressive ? BOAR_TUNING : DEER_TUNING);
+  }
+
+  /** true if a living legendary of this kind is already in the chunk (the cap is one per kind) */
+  private hasLegendary(kind: AnimalKind) {
+    for (const a of this.animals) if (a.kind === kind && a.rarity === 'legendary' && a.alive) return true;
+    return false;
+  }
+
+  /**
+   * Add one animal (also used by the dev showcase). `variant`: a variant id (exact, even a second legendary),
+   * an id list to roll from by weight, or nothing for the species' whole table.
+   */
+  spawn(kind: AnimalKind, x: number, z: number, yaw: number, variant?: string | string[]): Animal {
+    const sp = speciesDef(kind);
+    const v = typeof variant === 'string' ? sp.variants.find((d) => d.id === variant) ?? sp.variants[0] : rollVariant(sp, this.rng, variant, this.hasLegendary(kind));
+    const model = this.factory.model(kind, v.id);
+    const scale = this.rng.range(v.scale[0], v.scale[1]);
     const rig = this.factory.instantiate(model, this.rng.next());
     const a = new Animal(rig, model, this.rng.next(), scale);
-    a.maxHp = a.hp = (kind === 'boar' ? BOAR_TUNING : DEER_TUNING).hp;
+    a.maxHp = a.hp = v.hp ?? this.tuningFor(a).hp;
     a.place(x, z, yaw);
     a.herd = -1;
     a.onFootfall = this.footfall;
     a.onDamaged = this.damaged;
-    a.makeShells = () => this.factory.createShells(rig, model);
+    if (model.shells.length) a.makeShells = () => this.factory.createShells(rig, model);   // none in 'lowpoly'
     a.prepareMaterial = (m) => this.sky.setupMaterial(m);
     a.sampleTerrain();
     this.group.add(a.mesh);
     this.animals.push(a);
-    const tune = kind === 'boar' ? BOAR_TUNING : DEER_TUNING;
+    const tune = this.tuningFor(a);
     this.brains.set(a, {
       timer: this.rng.range(1, 4), tx: x, tz: z, fleeT: 0, fleeUntil: this.rng.range(tune.fleeUntil, tune.fleeUntilMax), chargeCd: 0,
       callT: this.rng.range(10, 60), awareness: 0, freeze: 0, spooked: false, wary: 0, sensed: false,
@@ -317,8 +342,10 @@ export class AnimalManager {
     const br = this.brains.get(a)!;
     if (!a.alive) { a.lookWeight = 0; a.settleCorpse(); return; }
     const rng = this.rng;
-    const boar = a.kind === 'boar';
-    const T = boar ? BOAR_TUNING : DEER_TUNING;
+    const sp = speciesDef(a.kind);
+    const boar = a.aggressive;                    // charges instead of only fleeing
+    const T = this.tuningFor(a);
+    const M = a.mods;
     const dx = player.x - a.position.x, dz = player.z - a.position.z;
     const dPlayer = Math.hypot(dx, dz);
     br.chargeCd = Math.max(0, br.chargeCd - dt);
@@ -347,13 +374,13 @@ export class AnimalManager {
     }
     br.sensed = rate > 0;
     br.awareness = br.sensed ? Math.min(1, br.awareness + rate * dt) : Math.max(0, br.awareness - T.forgetRate * dt);
-    const panic = !this.calm && dPlayer < T.panicDist;
+    const panic = !this.calm && dPlayer < T.panicDist * (boar ? M.chargeDist : 1);   // for chargers this is the charge trigger
 
     // ambient calls
     br.callT -= dt;
     if (br.callT <= 0) {
       br.callT = rng.range(20, 90);
-      if (dPlayer < 80) this.onSound?.(boar ? 'boar_grunt' : 'deer_call', a.position);
+      if (dPlayer < 80) this.onSound?.((sp.sounds?.call ?? (boar ? 'boar_grunt' : 'deer_call')) as AnimalSound, a.position);
     }
 
     const herd = a.herd >= 0 ? this.herds[a.herd] : null;
@@ -367,7 +394,7 @@ export class AnimalManager {
           const tdx = br.tx - a.position.x, tdz = br.tz - a.position.z;
           const td = Math.hypot(tdx, tdz);
           if (td < 1.2 || br.timer <= 0) { this.enter(a, br, rng.next() < 0.6 ? 'graze' : 'idle'); break; }
-          this.steer(a, Math.atan2(tdx, tdz), boar ? BOAR_WALK : DEER_WALK, 1.8);
+          this.steer(a, Math.atan2(tdx, tdz), sp.walkSpeed ?? (boar ? BOAR_WALK : DEER_WALK), 1.8);
         } else {
           a.setMotion(a.desiredYaw, 0, 1.5);
           if (br.timer <= 0) {
@@ -400,21 +427,21 @@ export class AnimalManager {
         const done = br.fleeT > T.fleeMaxTime || (br.fleeT > T.fleeMinTime && farEnough);
         if (done) { this.enter(a, br, 'alert'); br.freeze = T.lookBack; br.spooked = false; br.timer = T.relaxAfter; break; }
         // gallop, easing to a trot for the last stretch
-        const speed = dPlayer > br.fleeUntil * 0.8 && br.fleeT > T.fleeMinTime ? T.trotSpeed : T.runSpeed * (0.92 + 0.08 * Math.sin(a.seed * 9));
+        const speed = (dPlayer > br.fleeUntil * 0.8 && br.fleeT > T.fleeMinTime ? T.trotSpeed : T.runSpeed * (0.92 + 0.08 * Math.sin(a.seed * 9))) * M.speed;
         this.steer(a, Math.atan2(ax, az), speed, 3.5);
         a.lookWeight = 0;
         break;
       }
       case 'charge': {
         br.timer -= dt;
-        this.steer(a, Math.atan2(dx, dz), BOAR_CHARGE, 4.0);
+        this.steer(a, Math.atan2(dx, dz), (sp.chargeSpeed ?? BOAR_CHARGE) * M.speed, 4.0);
         a.lookTarget.copy(player); a.lookWeight = 0.5;
-        if (dPlayer < CHARGE_HIT_DIST) {
-          this.onCharge?.(a, 25);
-          this.onSound?.('boar_grunt', a.position);
-          br.chargeCd = 6;
+        if (dPlayer < CHARGE_HIT_DIST * Math.max(1, a.scale)) {
+          this.onCharge?.(a, M.chargeDamage);
+          this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
+          br.chargeCd = M.relentless ? 2 : 6;   // Old Ironhide wheels round and comes again
           this.enter(a, br, 'flee');
-        } else if (br.timer <= 0) { br.chargeCd = 4; this.enter(a, br, 'flee'); }
+        } else if (br.timer <= 0) { br.chargeCd = M.relentless ? 1.5 : 4; this.enter(a, br, 'flee'); }
         break;
       }
       default: break;
@@ -426,7 +453,8 @@ export class AnimalManager {
 
   private enter(a: Animal, br: Brain, s: Animal['state']) {
     const rng = this.rng;
-    const T = a.kind === 'boar' ? BOAR_TUNING : DEER_TUNING;
+    const T = this.tuningFor(a);
+    const sp = speciesDef(a.kind);
     const from = a.state;
     a.state = s;
     switch (s) {
@@ -453,19 +481,19 @@ export class AnimalManager {
       case 'alert':
         br.freeze = rng.range(T.freezeMin, T.freezeMax); br.timer = T.relaxAfter;
         a.setMotion(a.desiredYaw, 0, 2);
-        if (a.kind === 'boar' && rng.next() < 0.5) this.onSound?.('boar_grunt', a.position);
+        if (a.aggressive && rng.next() < 0.5) this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
         // one head coming up makes the herd glance (awareness nudge) — only a BOLT brings every head up (alertHerd)
         if (from !== 'flee' && from !== 'alert') this.alertHerd(a, false);
         break;
       case 'flee':
         br.fleeT = 0; br.fleeUntil = rng.range(T.fleeUntil, T.fleeUntilMax);
         br.wary = T.waryTime; br.awareness = 1; br.spooked = false;
-        if (a.kind === 'deer' && rng.next() < 0.3) this.onSound?.('deer_call', a.position);
+        if (!a.aggressive && rng.next() < 0.3) this.onSound?.((sp.sounds?.call ?? 'deer_call') as AnimalSound, a.position);
         if (from !== 'charge') this.alertHerd(a, true);
         break;
       case 'charge':
-        br.timer = 4; br.wary = T.waryTime;
-        this.onSound?.('boar_grunt', a.position);
+        br.timer = a.mods.relentless ? 12 : 4; br.wary = T.waryTime;
+        this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
         break;
       default: break;
     }
@@ -478,7 +506,7 @@ export class AnimalManager {
    */
   private alertHerd(a: Animal, bolt: boolean) {
     if (a.herd < 0) return;
-    const T = a.kind === 'boar' ? BOAR_TUNING : DEER_TUNING;
+    const T = this.tuningFor(a);
     const r2 = T.herdAlertRadius * T.herdAlertRadius;
     for (const m of this.herds[a.herd].members) {
       if (m === a || !m.alive) continue;
@@ -499,7 +527,7 @@ export class AnimalManager {
     if (this.calm) return;
     for (const a of this.animals) {
       if (!a.alive) continue;
-      const T = a.kind === 'boar' ? BOAR_TUNING : DEER_TUNING;
+      const T = this.tuningFor(a);
       const d = Math.hypot(point.x - a.position.x, point.z - a.position.z);
       if (d > T.impactAlert * strength) continue;
       const br = this.brains.get(a)!;
@@ -632,7 +660,8 @@ export class AnimalManager {
   /** every applyDamage lands here: blood, sounds, AI reaction, kill event */
   private damaged = (a: Animal, amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3, died: boolean) => {
     this.blood.burst(hitPoint, dir, amount >= 80 ? 1.5 : 1);
-    if (a.kind === 'boar') this.onSound?.('boar_squeal', a.position); else this.onSound?.('deer_call', a.position);
+    const sp = speciesDef(a.kind);
+    this.onSound?.((sp.sounds?.hurt ?? (a.aggressive ? 'boar_squeal' : 'deer_call')) as AnimalSound, a.position);
     // headshot = the hit point sits inside the head sphere (a hair of slack for the ray step)
     a.headWorld(_p);
     const headshot = _p.distanceToSquared(hitPoint) < (a.dims.headRadius * a.scale + 0.06) ** 2;
@@ -641,8 +670,9 @@ export class AnimalManager {
     if (died) { this.onKill?.(a); if (br) br.timer = 0; return; }
     if (br && a.state !== 'charge') {
       // a wounded animal bolts at once — no freeze; a boar this close turns on you instead
-      br.wary = (a.kind === 'boar' ? BOAR_TUNING : DEER_TUNING).waryTime;
-      if (a.kind === 'boar' && this.playerPos.distanceTo(a.position) < CHARGE_WHEN_HIT_DIST && br.chargeCd <= 0 && this.rng.next() < 0.7) this.enter(a, br, 'charge');
+      br.wary = this.tuningFor(a).waryTime;
+      const M = a.mods;
+      if (a.aggressive && this.playerPos.distanceTo(a.position) < CHARGE_WHEN_HIT_DIST * M.chargeDist && (br.chargeCd <= 0 || M.relentless) && (M.relentless || this.rng.next() < 0.7)) this.enter(a, br, 'charge');
       else { br.spooked = true; this.enter(a, br, 'flee'); }
     }
   };

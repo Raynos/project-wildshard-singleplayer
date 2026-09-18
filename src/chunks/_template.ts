@@ -108,7 +108,8 @@ export const TEMPLATE: ChunkDef = {
     largeVariantChance: 0.1,            // share of trees using the big variant
   },
   // Herds: `anchor` searches a ring around a point (omit for anywhere); `canopy` true = under trees
-  // (boar), false = a clearing (deer); `trailBand` = metres off the nearest trail [min, max].
+  // (boar), false = a clearing (deer); `trailBand` = metres off the nearest trail [min, max];
+  // `variants` (optional) restricts a herd to those variant ids of the species, e.g. ['black', 'scarback'].
   fauna: [
     { kind: 'deer', count: 5, anchor: { x: 0, z: -190, rMin: 18, rMax: 55 }, canopy: false, trailBand: [10, 25] },
     { kind: 'deer', count: 4, canopy: false, trailBand: [10, 25] },
