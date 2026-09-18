@@ -13,7 +13,8 @@ import { Wreck } from '../world/Wreck';
 import { Shrine } from '../world/Shrine';
 import { Bushes } from '../world/Bushes';
 import { Trailside } from '../world/Trailside';
-import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES } from '../chunks/driftwood-isle';
+import { RopeBridge } from '../world/RopeBridge';
+import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE } from '../chunks/driftwood-isle';
 import { Boundary } from '../world/Boundary';
 import { Horizon } from '../world/Horizon';
 import { CHUNK_HALF, ROAD_LENGTH } from '../core/config';
@@ -91,13 +92,19 @@ game.scene.add(trailside.mesh);
 player.colliders.push(...trailside.colliders);
 lap('trailside');
 
+const bridge = new RopeBridge(sky, BRIDGE).build();
+game.scene.add(bridge.mesh);
+player.colliders.push(...bridge.colliders);
+player.platforms.push((x, z) => bridge.floorHeightAt(x, z));
+lap('bridge');
+
 const boundary = new Boundary(sky).build();
 game.scene.add(boundary.group);
 const horizon = new Horizon(sky).build();
 game.scene.add(horizon.group);
 
-game.onUpdate((dt, t) => { ocean?.update(dt); boat.update(dt); palms.update(dt); boundary.update(dt, t); horizon.update(dt, game.camera); });
+game.onUpdate((dt, t) => { ocean?.update(dt); boat.update(dt); palms.update(dt); bridge.update(dt); boundary.update(dt, t); horizon.update(dt, game.camera); });
 
-(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, jetties, boat, rocks, hut, palms, lookout, wreck, shrine, bushes, trailside, boundary, horizon, heightAt, buildMs: T };
+(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, jetties, boat, rocks, hut, palms, lookout, wreck, shrine, bushes, trailside, bridge, boundary, horizon, heightAt, buildMs: T };
 game.buildComposer();
 game.start();

@@ -37,8 +37,8 @@ export const JETTIES = [
 /** the sand paths between the POIs (also `trails[4..]`): [pier → hut], [hut → lookout], [fork → wreck], [hut → shrine] */
 export const PATHS: [number, number][][] = [
   [[0, -188], [-8, -172], [-30, -142], [-30, -104], [-24, -80], [-20, -68]],
-  [[-20, -68], [-8, -50], [20, -30], [36, 10], [50, 44], [66, 62], [90, 90]],
-  [[36, 10], [80, -6], [120, -2], [140, 4]],
+  [[-20, -68], [-8, -50], [14, -24], [17, 8], [24, 22], [31, 30], [50, 44], [66, 62], [90, 90]],
+  [[17, 8], [60, 0], [100, -2], [140, 4]],
   [[-20, -68], [-52, -30], [-72, 20], [-88, 70], [-96, 96]],
 ];
 /** the island disc: centre and nominal shoreline radius (the shoreline is noise-warped ±30 m) */
@@ -54,6 +54,9 @@ export const COVE = { ang: -0.02, depth: 46, width: 0.5 };
 export const WRECK = { x: 149, z: 4, heading: 2.1, roll: 0.32 };
 /** the ring shrine on a knoll in the north-west jungle (rot: which way its pillars face — south-east, toward the hut) */
 export const SHRINE = { x: -98, z: 108, rot: 2.4 };
+/** the tidal creek across the hut → lookout path (a ravine cut below sea level, so the lagoon runs into it) and the rope bridge over it */
+export const GULLY = { x: 24, z: 22, width: 11, depth: 7, length: 64 };
+export const BRIDGE = { a: [16, 14] as [number, number], b: [32, 30] as [number, number], sag: 0.9 };
 /** the lookout tower on the headland summit (rot: the stair faces south-west, toward the hut) */
 export const LOOKOUT = { x: HEADLAND.x - 4, z: HEADLAND.z - 2, rot: 0.6 };
 
@@ -115,6 +118,13 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
         h += smoothstep(HEADLAND.shoulderR + 14 + sw * 20, HEADLAND.shoulderR - 10, hr) * HEADLAND.shoulderH;
         h += smoothstep(HEADLAND.r + 7 + sw * 26, HEADLAND.r - 6, hr) * HEADLAND.h;
         h += smoothstep(HEADLAND.shoulderR, 20, d) * n.fbm(x * 0.025 + 8, z * 0.025, 3) * 2.2 * (1 - sw); // broken, boulder-strewn top
+      }
+      // the gully: a ravine cut across the headland's south-west climb (NW–SE), spanned by the rope bridge
+      {
+        const gx = x - GULLY.x, gz = z - GULLY.z;
+        const across = (gx + gz) * 0.7071, along = (gx - gz) * 0.7071; // across = the climb's direction
+        const cut = smoothstep(GULLY.width / 2 + 3, GULLY.width / 2 - 2, Math.abs(across) + n2.get(along * 0.15, 3.3) * 1.5) * smoothstep(GULLY.length / 2, GULLY.length / 2 - 14, Math.abs(along));
+        h -= cut * (GULLY.depth + n.get(x * 0.2, z * 0.2) * 1.2);
       }
       // the shrine knoll: a soft rise with a flat top for the dais
       { const d = Math.hypot(x - SHRINE.x, z - SHRINE.z); h += smoothstep(34, 9, d) * 3.2; }
