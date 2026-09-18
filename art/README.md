@@ -85,3 +85,20 @@ References attached: `sources/progress.mp4 frame @25s (intro HUD)`, `progress/01
 Prompt = SCENE below + shared STYLE block (STYLE block with the HUD-text exception reworded to "UI text" and the first-person line reworded to "the blurred background is a first-person forest view"; no HUD block).
 
 > SCENE: The intro / title screen of the game, shown over a heavily blurred, dreamy golden-hour pine-forest background (bokeh, god rays, the ringed planet as a soft glow top-right) with a subtle dark gradient. Layout, exact text, rendered crisply and verbatim: top-left, large bold condensed uppercase wordmark "PROJECT WILDSHARD" ("PROJECT" in white, "WILDSHARD" in pale cyan #8fe3ff), under it a smaller grey subtitle line "A world that does not exist yet, arriving one chunk at a time." and a tiny cyan-dot label "PHASE 1 — GAMEPLAY CONTRACT". Centre-left: a dark semi-transparent glass panel with a 1 px cyan accent edge, titled "CHUNK PLAYTEST · pine-hollow" with small monospaced metadata rows: "CHUNK    chunk://local/pine-hollow", "GRID     (+3, -2)", "SIZE     500 m x 500 m", "BUILD    local · unuploaded", "SEED     0x7A3F19C2". Bottom-centre: a wide glass button bar with a small lock/enter icon and the text "ENTER THE CHUNK" in white letter-spaced uppercase, with a small grey line "Press any key" under it and a cyan outlined chip on the right reading "READY". Bottom-left tiny grey footer "AN IN-PROGRESS PRIVATE PROJECT"; top-right a tiny glass chip "SOUND ON" with a small bars icon. Typography: Rajdhani-style condensed uppercase display type, generous letter-spacing, crisp anti-aliased UI. This is a UI screenshot of a real game menu, clean and legible.
+
+## HUD reimagined (`art/hud-*.png`, 2026-09-17)
+
+Five HUD directions generated the same way (five parallel `codex exec` runs, references: the user's
+current phone screenshot of the HUD + mockup-01/03), prompts in the session log. Subject is the HUD,
+the world is backdrop. A/B/C are portrait phone (1024×1536), D/E landscape (1536×1024).
+
+| file | direction | the idea |
+|---|---|---|
+| `hud-A-diegetic.png` | Diegetic hunter | no boxes: hairline compass, health as a corner arc, ammo as bolt silhouettes, glyph buttons down the right edge |
+| `hud-B-console.png` | Staging console | the cyan-glass identity pushed: radial compass, hex ammo ring, FIRE + satellites, corner brackets |
+| `hud-C-clean.png` | Console clean | Skyrim/Conan: bottom compass strip with cabin/animal icons, thin bars, floating stick, icon-only rail |
+| `hud-D-minimal.png` | Cinematic minimal | heading number only, health as a hurt vignette, ammo dial on the crossbow stock, controls invisible until touched |
+| `hud-E-dashboard.png` | Survival dashboard | one slim bottom strip: vitals · stamina · compass · range · bolts; faint control rings above it |
+
+Gotcha: parallel runs must not all "copy the newest PNG from ~/.codex/generated_images" — they race
+and copy each other's file. Map outputs by the generation folder id in each run's log instead.
