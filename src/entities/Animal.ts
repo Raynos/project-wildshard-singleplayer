@@ -13,6 +13,7 @@ import type { AnimalKind, AnimalModel, AnimalRig } from './AnimalFactory';
  * Public surface used by other systems:
  *   animal.kind: 'deer' | 'boar'      animal.alive      animal.position (feet, world)
  *   animal.hp / maxHp                 animal.state       animal.yaw (heading, radians)
+ *   animal.lastHitT                   performance.now() ms of the last applyDamage (health bars fade from it)
  *   animal.applyDamage(amount, hitPoint, dir) → true if it died
  *   animal.headWorld(out) / bodyCapsule(a, b)  — hit volumes (world space)
  *
@@ -59,6 +60,8 @@ export class Animal {
   herd = 0;
   /** AI writes these; the animal steers toward them every frame */
   desiredYaw = 0; desiredSpeed = 0; turnRate = 2.5;
+  /** performance.now() of the last hit (-Infinity until hit) */
+  lastHitT = -Infinity;
   /** where the head should look (world) while alert; weight 0..1 */
   lookTarget = new THREE.Vector3(); lookWeight = 0;
   /** an extra per-animal AI scratch: timers etc. are kept on the manager side */
@@ -100,7 +103,7 @@ export class Animal {
   constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1) {
     this.kind = model.kind;
     this.mesh = rig.mesh; this.bones = rig.bones; this.model = model; this.seed = seed; this.scale = scale;
-    this.maxHp = this.hp = model.kind === 'deer' ? 60 : 90;
+    this.maxHp = this.hp = model.kind === 'deer' ? 60 : 100;   // the manager re-reads DEER_TUNING / BOAR_TUNING.hp
     this.mesh.scale.setScalar(scale);
     this.mesh.rotation.order = 'YXZ';
     const b = this.bones;
@@ -144,14 +147,15 @@ export class Animal {
   }
 
   /**
-   * Apply damage (the caller multiplies for headshots: `hit.headshot ? dmg * 3 : dmg`, or uses
-   * AnimalManager.hit which does it). `hitPoint`/`dir` (world) drive the flinch and the collapse
-   * side. Returns true if this shot killed it. Blood, sounds, AI reaction and manager.onKill
+   * Apply damage (`amount` is final: AnimalManager.raycast() hands back `hit.damage` from the DAMAGE model —
+   * body 32–40 with distance falloff, head ×2.5 — and AnimalManager.hit(hit, dir) applies it). `hitPoint`/`dir`
+   * (world) drive the flinch and the collapse side. Returns true if this shot killed it. Blood, sounds, AI reaction and manager.onKill
    * happen through `onDamaged`, so calling this directly is enough.
    */
   applyDamage(amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3): boolean {
     if (!this.alive) return false;
     this.hp -= amount;
+    this.lastHitT = performance.now();
     // flinch away from the shot: project the shot direction into body space
     const cos = Math.cos(this.yaw), sin = Math.sin(this.yaw);
     const lx = dir.x * cos - dir.z * sin;      // +x = animal's left

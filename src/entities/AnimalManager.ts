@@ -18,11 +18,25 @@ import { noReflect } from '../world/Water';
  *   const animals = new AnimalManager(scene, sky, forest).build();
  *   game.onUpdate((dt, t) => animals.update(dt, t, player.position, player.sprinting));
  *
- *   animals.raycast(origin, dir, maxDist) → { animal, point, distance, headshot } | null  (result object is reused)
- *   animal.applyDamage(amount, hitPoint, dir) → true if it died   (deer 60 hp, boar 90 hp; caller applies headshot ×3)
- *   animals.hit(hit, damage, dir)  — convenience: applyDamage with headshot ×3
+ *   animals.raycast(origin, dir, maxDist) → { animal, point, distance, headshot, damage } | null  (result object is reused;
+ *                                          `damage` = DAMAGE model for that hit: body 32–40 with distance falloff past 40 m, head ×2.5)
+ *   animal.applyDamage(amount, hitPoint, dir) → true if it died   (deer 60 hp, boar 100 hp)
+ *   animals.hit(hit, dir)  — convenience: applyDamage(hit.damage)
+ *   animals.disturb(point, strength) — a bolt landed / something loud happened here: animals within
+ *                                      impactSpook m bolt, within impactAlert m go alert (Combat calls it on misses)
+ *   animals.nearRay(origin, dir, maxDist, tol) → the animal whose head/body passes within `tol` m of the ray (aim assist / "was I aiming at it")
  *   Blood burst + ground decal, sounds, AI reaction and onKill all fire from applyDamage.
  *   animal.fadeOut()  — dissolve a harvested carcass over 1.5 s (animal.hidden afterwards)
+ *
+ * The hunting loop (DEER_TUNING / BOAR_TUNING below): every animal carries an `awareness` meter 0..1. It rises while the
+ * player is inside the SIGHT cone (body heading ± sightCone, out to sightRange — far less while grazing head-down) or
+ * inside the HEARING radius (any direction; grows with the player's speed: still < crouch < walk < sprint), and decays
+ * otherwise. At `alertAt` the head comes up and the animal FREEZES staring at you for freezeMin..freezeMax s — that is
+ * the shot window — then bolts if it still senses you (`boltAt`), or relaxes back to grazing after `relaxAfter` s. It
+ * flees at `runSpeed` (faster than a sprinting player) but only until `fleeUntil..fleeUntilMax` m away, then stops, looks
+ * back, and grazes again — "wary" (sharper senses) for `waryTime` s. A hit that does not kill bolts it at once. One
+ * spooked animal alerts its herd within `herdAlertRadius` m. Boars charge when hit or when the player is within
+ * `chargeDist` m.
  *
  * Fur shells: the SHELL_MAX nearest animals within SHELL_DIST m get 4–8 fur-shell layers (SkinnedMeshes
  * sharing the body's geometry + skeleton); nothing changes beyond that distance.
@@ -35,7 +49,7 @@ import { noReflect } from '../world/Water';
  * animals.debug = true draws the hit capsules, animals.calm = true stops them reacting to the player.
  */
 
-export interface AnimalHit { animal: Animal; point: THREE.Vector3; distance: number; headshot: boolean }
+export interface AnimalHit { animal: Animal; point: THREE.Vector3; distance: number; headshot: boolean; damage: number }
 export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal';
 
 interface Herd { kind: AnimalKind; cx: number; cz: number; members: Animal[] }
@@ -43,15 +57,83 @@ interface Herd { kind: AnimalKind; cx: number; cz: number; members: Animal[] }
 interface Brain {
   timer: number;        // time left in the current state
   tx: number; tz: number; // wander target
-  fleeT: number;
+  fleeT: number;        // seconds spent fleeing
+  fleeUntil: number;    // m from the player at which this animal stops running (seeded per animal)
   chargeCd: number;
   callT: number;
-  hurtT: number;
-  scared: number;       // alert timer before bolting
+  awareness: number;    // 0..1 sense meter (see DEER_TUNING)
+  freeze: number;       // alert: seconds of head-up stare left before it may bolt
+  spooked: boolean;     // alert: bolt as soon as the freeze ends, whatever the senses say (herd panic, impact, hit)
+  wary: number;         // seconds of sharpened senses left after a scare
+  sensed: boolean;      // the player was sensed this think
 }
 
-const DEER_WALK = 1.3, DEER_RUN = 9.5, BOAR_WALK = 1.1, BOAR_RUN = 6.8, BOAR_CHARGE = 7.5;
-const ALERT_DIST = 30, ALERT_DIST_BOAR = 22, SPRINT_DIST = 45, FLEE_DIST = 18, CHARGE_DIST = 6;
+/** One animal kind's hunting-loop numbers. Player speeds for reference: crouch 2.2, walk 4.3, sprint 7.2 m/s. */
+export interface HuntTuning {
+  hp: number;
+  // ── senses ──
+  sightRange: number;      // m: a head-up animal notices a MOVING player inside its cone out to here
+  sightRangeGraze: number; // m: head down in the grass it sees far less
+  sightCone: number;       // rad: half-angle of the cone around the body heading
+  hearStill: number; hearCrouch: number; hearWalk: number; hearSprint: number; // m: hearing radius by player speed (any direction)
+  noticeRate: number;      // awareness/s at the edge of a sense; up to 2× nearer (× 0.3 for a player standing still in view)
+  forgetRate: number;      // awareness/s decay while nothing is sensed
+  alertAt: number;         // awareness → head up + freeze
+  boltAt: number;          // awareness → run (once the freeze is over)
+  // ── alert ──
+  freezeMin: number; freezeMax: number; // s: the stare before it may bolt — the shot window
+  relaxAfter: number;      // s: alert with nothing sensed → back to grazing
+  panicDist: number;       // m: player closer than this → bolt at once, no freeze
+  // ── flee ──
+  runSpeed: number;        // m/s gallop
+  trotSpeed: number;       // m/s once it is nearly far enough
+  fleeMinTime: number;     // s: run at least this long
+  fleeUntil: number; fleeUntilMax: number; // m from the player where it stops (seeded per animal in this band)
+  fleeMaxTime: number;     // s: give up running (edge of the chunk, pond…)
+  lookBack: number;        // s: stopped after the run, looking back at you, before grazing again
+  waryTime: number; waryBoost: number; // s of sharper senses after a scare, and the multiplier
+  // ── herd ──
+  herdAlertRadius: number; // m: a spooked animal alerts herd-mates within this
+  herdBoltDelayMin: number; herdBoltDelayMax: number; // s: herd-mates bolt this long after it
+  // ── disturbances (a bolt landing nearby) ──
+  impactSpook: number;     // m: bolt now
+  impactAlert: number;     // m: head up
+}
+
+export const DEER_TUNING: HuntTuning = {
+  hp: 60,
+  // A deer head-on sees you walking at ~40 m and bolts at ~33; from behind / the side you get to ~24 m on foot,
+  // ~12 m at a crouch. Sprinting anywhere inside 48 m is heard.
+  sightRange: 52, sightRangeGraze: 26, sightCone: THREE.MathUtils.degToRad(75),
+  hearStill: 5, hearCrouch: 11, hearWalk: 26, hearSprint: 48,
+  noticeRate: 0.55, forgetRate: 0.16, alertAt: 0.35, boltAt: 1.0,
+  // 1.8–3.2 s head-up stare: enough to raise the crossbow and take the shot
+  freezeMin: 1.8, freezeMax: 3.2, relaxAfter: 4.5, panicDist: 11,
+  // gallop 8.6 (you sprint 7.2 — you cannot run one down) but only to 65–90 m, then it trots, stops and looks back
+  runSpeed: 8.6, trotSpeed: 4.2, fleeMinTime: 2.5, fleeUntil: 65, fleeUntilMax: 90, fleeMaxTime: 14, lookBack: 2.5,
+  waryTime: 25, waryBoost: 1.6,
+  herdAlertRadius: 15, herdBoltDelayMin: 0.3, herdBoltDelayMax: 0.9,
+  impactSpook: 8, impactAlert: 22,
+};
+
+export const BOAR_TUNING: HuntTuning = {
+  hp: 100,
+  // poor eyes, good nose: a short cone but it hears a walker from 22 m
+  sightRange: 30, sightRangeGraze: 18, sightCone: THREE.MathUtils.degToRad(60),
+  hearStill: 6, hearCrouch: 10, hearWalk: 22, hearSprint: 40,
+  noticeRate: 0.5, forgetRate: 0.2, alertAt: 0.35, boltAt: 1.0,
+  freezeMin: 1.5, freezeMax: 2.8, relaxAfter: 4, panicDist: 10, // panicDist doubles as the charge trigger
+  runSpeed: 6.8, trotSpeed: 3.6, fleeMinTime: 2, fleeUntil: 40, fleeUntilMax: 60, fleeMaxTime: 10, lookBack: 2,
+  waryTime: 20, waryBoost: 1.5,
+  herdAlertRadius: 12, herdBoltDelayMin: 0.2, herdBoltDelayMax: 0.7,
+  impactSpook: 7, impactAlert: 18,
+};
+
+/** Bolt damage: body 32–40 (a deer takes two, a boar three), ×2.5 to the head (one kills a deer); fades to 60 % from 40 to 90 m. */
+export const DAMAGE = { bodyMin: 32, bodyMax: 40, headMul: 2.5, falloffStart: 40, falloffEnd: 90, falloffMin: 0.6 };
+
+const DEER_WALK = 1.3, BOAR_WALK = 1.1, BOAR_CHARGE = 7.5, CHARGE_HIT_DIST = 1.4;
+const CHARGE_WHEN_HIT_DIST = 25;   // a wounded boar this close turns on you instead of running
 const ANIM_LOD = 140;
 const SHELL_DIST = 18, SHELL_MAX = 4;   // fur shells: nearest SHELL_MAX animals within SHELL_DIST m
 
@@ -65,6 +147,8 @@ export class AnimalManager {
   onKill?: (animal: Animal) => void;
   onCharge?: (animal: Animal, damage: number) => void;
   onSound?: (name: AnimalSound, position: THREE.Vector3) => void;
+  /** every non-lethal AND lethal hit: amount actually dealt, world hit point, whether it was the head (Combat draws the numbers) */
+  onDamage?: (animal: Animal, amount: number, hitPoint: THREE.Vector3, headshot: boolean, died: boolean) => void;
   debug = false;
   /** dev: animals ignore the player (no alert / flee) */
   calm = false;
@@ -74,6 +158,7 @@ export class AnimalManager {
   private blood!: BloodFX;
   private debugMeshes: THREE.Mesh[] = [];
   private playerPos = new THREE.Vector3();
+  private playerPrev = new THREE.Vector3(); private playerSpeed = 0; private playerInit = false;
   private shellDist = new Float64Array(SHELL_MAX);
   private shellIdx = new Int32Array(SHELL_MAX);
 
@@ -163,6 +248,7 @@ export class AnimalManager {
     const scale = kind === 'deer' ? (variant === 'stag' ? this.rng.range(1.04, 1.12) : this.rng.range(0.94, 1.02)) : this.rng.range(0.92, 1.1);
     const rig = this.factory.instantiate(model, this.rng.next());
     const a = new Animal(rig, model, this.rng.next(), scale);
+    a.maxHp = a.hp = (kind === 'boar' ? BOAR_TUNING : DEER_TUNING).hp;
     a.place(x, z, yaw);
     a.herd = -1;
     a.onFootfall = this.footfall;
@@ -172,7 +258,11 @@ export class AnimalManager {
     a.sampleTerrain();
     this.group.add(a.mesh);
     this.animals.push(a);
-    this.brains.set(a, { timer: this.rng.range(1, 4), tx: x, tz: z, fleeT: 0, chargeCd: 0, callT: this.rng.range(10, 60), hurtT: 0, scared: 0 });
+    const tune = kind === 'boar' ? BOAR_TUNING : DEER_TUNING;
+    this.brains.set(a, {
+      timer: this.rng.range(1, 4), tx: x, tz: z, fleeT: 0, fleeUntil: this.rng.range(tune.fleeUntil, tune.fleeUntilMax), chargeCd: 0,
+      callT: this.rng.range(10, 60), awareness: 0, freeze: 0, spooked: false, wary: 0, sensed: false,
+    });
     return a;
   }
 
@@ -191,6 +281,11 @@ export class AnimalManager {
     const n = this.animals.length;
     if (this.thinkAcc >= 0.1) {
       this.thinkAcc -= 0.1;
+      // the player's ground speed (m/s) is the noise they make: still / crouch / walk / sprint
+      if (!this.playerInit) { this.playerPrev.copy(playerPos); this.playerInit = true; }
+      const moved = Math.hypot(playerPos.x - this.playerPrev.x, playerPos.z - this.playerPrev.z);
+      this.playerPrev.copy(playerPos);
+      this.playerSpeed += (Math.min(moved / 0.1, 9) - this.playerSpeed) * 0.5;
       for (let i = 0; i < n; i++) this.think(this.animals[i], 0.1, playerPos, playerSprinting);
     }
     // fur shells: pick the SHELL_MAX nearest animals inside SHELL_DIST (tiny insertion sort, no allocs)
@@ -225,15 +320,37 @@ export class AnimalManager {
     const br = this.brains.get(a)!;
     if (!a.alive) { a.lookWeight = 0; a.settleCorpse(); return; }
     const rng = this.rng;
+    const boar = a.kind === 'boar';
+    const T = boar ? BOAR_TUNING : DEER_TUNING;
     const dx = player.x - a.position.x, dz = player.z - a.position.z;
     const dPlayer = Math.hypot(dx, dz);
-    const boar = a.kind === 'boar';
-    const alertD = boar ? ALERT_DIST_BOAR : ALERT_DIST;
-    const threat = !this.calm && (dPlayer < alertD || (sprinting && dPlayer < SPRINT_DIST));
     br.chargeCd = Math.max(0, br.chargeCd - dt);
-    br.hurtT = Math.max(0, br.hurtT - dt);
-    if (a.hp < a.maxHp) br.hurtT = 6;
+    br.wary = Math.max(0, br.wary - dt);
     a.sampleTerrain();
+
+    // ── senses → awareness meter ──
+    // sight: inside the cone around the body heading, further when the head is up; a still player is far harder to spot
+    const wary = br.wary > 0 ? T.waryBoost : 1;
+    const pSpeed = sprinting ? 7.2 : this.playerSpeed;
+    let rate = 0;
+    if (!this.calm && dPlayer > 0.01) {
+      const grazing = a.state === 'graze';
+      const sight = (grazing ? T.sightRangeGraze : T.sightRange) * wary;
+      if (dPlayer < sight) {
+        let rel = Math.atan2(dx, dz) - a.yaw;
+        rel = Math.atan2(Math.sin(rel), Math.cos(rel));
+        if (Math.abs(rel) < T.sightCone) {
+          const still = pSpeed < 0.4 ? 0.3 : pSpeed < 2.6 ? 0.7 : 1;
+          rate = Math.max(rate, T.noticeRate * (1 + (1 - dPlayer / sight)) * still);
+        }
+      }
+      // hearing: any direction, radius from the noise the player makes
+      const hear = (pSpeed < 0.4 ? T.hearStill : pSpeed < 2.6 ? T.hearCrouch : pSpeed < 5.2 ? T.hearWalk : T.hearSprint) * wary;
+      if (dPlayer < hear) rate = Math.max(rate, T.noticeRate * 1.5 * (1 + (1 - dPlayer / hear)));
+    }
+    br.sensed = rate > 0;
+    br.awareness = br.sensed ? Math.min(1, br.awareness + rate * dt) : Math.max(0, br.awareness - T.forgetRate * dt);
+    const panic = !this.calm && dPlayer < T.panicDist;
 
     // ambient calls
     br.callT -= dt;
@@ -243,11 +360,11 @@ export class AnimalManager {
     }
 
     const herd = a.herd >= 0 ? this.herds[a.herd] : null;
-    const hurtCharge = boar && a.hp < a.maxHp && dPlayer < CHARGE_DIST && br.chargeCd <= 0;
 
     switch (a.state) {
       case 'idle': case 'graze': case 'wander': {
-        if (threat) { this.enter(a, br, 'alert'); break; }
+        if (panic) { if (boar && br.chargeCd <= 0) this.enter(a, br, 'charge'); else { br.spooked = true; this.enter(a, br, 'flee'); } break; }
+        if (br.awareness >= T.alertAt) { this.enter(a, br, 'alert'); break; }
         br.timer -= dt;
         if (a.state === 'wander') {
           const tdx = br.tx - a.position.x, tdz = br.tz - a.position.z;
@@ -261,38 +378,41 @@ export class AnimalManager {
             if (r < 0.45) this.enter(a, br, 'wander'); else this.enter(a, br, r < 0.8 ? 'graze' : 'idle');
           }
         }
-        // occasional glance at the player when they are visible but not yet a threat
-        // watch the player: steadily when close, occasional glances further out
-        a.lookWeight = dPlayer < 12 ? 1 : dPlayer < 55 && Math.sin(a.seed * 20 + performance.now() * 0.0004) > 0.5 ? 0.6 : 0;
+        // a half-noticed player gets glances (awareness creeping up); otherwise the odd look around
+        a.lookWeight = br.awareness > 0.12 ? 0.6 : dPlayer < 55 && Math.sin(a.seed * 20 + performance.now() * 0.0004) > 0.7 ? 0.4 : 0;
         a.lookTarget.copy(player);
         break;
       }
       case 'alert': {
+        // head up, frozen, staring at you: the shot window
         a.setMotion(a.desiredYaw, 0, 2.0);
         a.lookTarget.copy(player); a.lookWeight = 1;
-        br.scared -= dt;
-        if (hurtCharge) { this.enter(a, br, 'charge'); break; }
-        if (!this.calm && (dPlayer < FLEE_DIST || (br.scared <= 0 && threat) || a.hp < a.maxHp)) { this.enter(a, br, 'flee'); break; }
-        if (!threat && dPlayer > alertD + 10) { br.timer -= dt; if (br.timer <= 0) this.enter(a, br, 'graze'); }
-        else br.timer = 2.5;
+        br.freeze -= dt;
+        if (panic) { if (boar && br.chargeCd <= 0) this.enter(a, br, 'charge'); else this.enter(a, br, 'flee'); break; }
+        if (br.freeze <= 0 && (br.spooked || br.awareness >= T.boltAt)) { this.enter(a, br, 'flee'); break; }
+        if (br.sensed) br.timer = T.relaxAfter;
+        else { br.timer -= dt; if (br.timer <= 0) { br.spooked = false; br.awareness = Math.min(br.awareness, T.alertAt * 0.5); this.enter(a, br, 'graze'); } }
         break;
       }
       case 'flee': {
-        br.fleeT -= dt;
-        if (hurtCharge && rng.next() < 0.6) { this.enter(a, br, 'charge'); break; }
+        br.fleeT += dt;
         // run away, biased back toward the herd's side of the map and away from the chunk edge
         let ax = -dx / (dPlayer + 1e-3), az = -dz / (dPlayer + 1e-3);
         if (herd) { const hx = herd.cx - a.position.x, hz = herd.cz - a.position.z, hd = Math.hypot(hx, hz) + 1e-3; if (hd > 25) { ax += hx / hd * 0.35; az += hz / hd * 0.35; } }
-        this.steer(a, Math.atan2(ax, az), (boar ? BOAR_RUN : DEER_RUN) * (0.85 + 0.15 * Math.sin(a.seed * 9)), 3.5);
+        const farEnough = dPlayer > br.fleeUntil;
+        const done = br.fleeT > T.fleeMaxTime || (br.fleeT > T.fleeMinTime && farEnough);
+        if (done) { this.enter(a, br, 'alert'); br.freeze = T.lookBack; br.spooked = false; br.timer = T.relaxAfter; break; }
+        // gallop, easing to a trot for the last stretch
+        const speed = dPlayer > br.fleeUntil * 0.8 && br.fleeT > T.fleeMinTime ? T.trotSpeed : T.runSpeed * (0.92 + 0.08 * Math.sin(a.seed * 9));
+        this.steer(a, Math.atan2(ax, az), speed, 3.5);
         a.lookWeight = 0;
-        if (br.fleeT <= 0) { this.enter(a, br, 'idle'); br.timer = 1.5; }
         break;
       }
       case 'charge': {
         br.timer -= dt;
         this.steer(a, Math.atan2(dx, dz), BOAR_CHARGE, 4.0);
         a.lookTarget.copy(player); a.lookWeight = 0.5;
-        if (dPlayer < 1.4) {
+        if (dPlayer < CHARGE_HIT_DIST) {
           this.onCharge?.(a, 25);
           this.onSound?.('boar_grunt', a.position);
           br.chargeCd = 6;
@@ -309,6 +429,8 @@ export class AnimalManager {
 
   private enter(a: Animal, br: Brain, s: Animal['state']) {
     const rng = this.rng;
+    const T = a.kind === 'boar' ? BOAR_TUNING : DEER_TUNING;
+    const from = a.state;
     a.state = s;
     switch (s) {
       case 'idle': br.timer = rng.range(3, 7); a.setMotion(a.desiredYaw, 0, 1.5); break;
@@ -332,19 +454,62 @@ export class AnimalManager {
         break;
       }
       case 'alert':
-        br.scared = rng.range(1.2, 3.5); br.timer = 2.5;
+        br.freeze = rng.range(T.freezeMin, T.freezeMax); br.timer = T.relaxAfter;
         a.setMotion(a.desiredYaw, 0, 2);
         if (a.kind === 'boar' && rng.next() < 0.5) this.onSound?.('boar_grunt', a.position);
+        // one head coming up makes the herd glance (awareness nudge) — only a BOLT brings every head up (alertHerd)
+        if (from !== 'flee' && from !== 'alert') this.alertHerd(a, false);
         break;
       case 'flee':
-        br.fleeT = rng.range(8, 12);
+        br.fleeT = 0; br.fleeUntil = rng.range(T.fleeUntil, T.fleeUntilMax);
+        br.wary = T.waryTime; br.awareness = 1; br.spooked = false;
         if (a.kind === 'deer' && rng.next() < 0.3) this.onSound?.('deer_call', a.position);
+        if (from !== 'charge') this.alertHerd(a, true);
         break;
       case 'charge':
-        br.timer = 4;
+        br.timer = 4; br.wary = T.waryTime;
         this.onSound?.('boar_grunt', a.position);
         break;
       default: break;
+    }
+  }
+
+  /**
+   * Herd-mates within herdAlertRadius: `bolt` = one of them is running, so they all come up alert and run too a beat
+   * later; otherwise (a head came up) they only get a nudge of awareness — a sentry freezing must not empty the
+   * clearing, or there is never a shot.
+   */
+  private alertHerd(a: Animal, bolt: boolean) {
+    if (a.herd < 0) return;
+    const T = a.kind === 'boar' ? BOAR_TUNING : DEER_TUNING;
+    const r2 = T.herdAlertRadius * T.herdAlertRadius;
+    for (const m of this.herds[a.herd].members) {
+      if (m === a || !m.alive) continue;
+      if (m.position.distanceToSquared(a.position) > r2) continue;
+      const mb = this.brains.get(m)!;
+      if (m.state === 'flee' || m.state === 'charge') continue;
+      if (!bolt) { mb.awareness = Math.min(T.alertAt * 0.7, mb.awareness + 0.12); continue; }
+      if (m.state !== 'alert') { mb.awareness = Math.max(mb.awareness, T.alertAt); this.enter(m, mb, 'alert'); }
+      mb.spooked = true; mb.freeze = Math.min(mb.freeze, this.rng.range(T.herdBoltDelayMin, T.herdBoltDelayMax));
+    }
+  }
+
+  /**
+   * Something loud landed at `point` (a bolt in a tree or the dirt): animals within impactSpook m bolt after a
+   * short start, within impactAlert m their heads come up. `strength` scales both radii (1 = a bolt).
+   */
+  disturb(point: THREE.Vector3, strength = 1) {
+    if (this.calm) return;
+    for (const a of this.animals) {
+      if (!a.alive) continue;
+      const T = a.kind === 'boar' ? BOAR_TUNING : DEER_TUNING;
+      const d = Math.hypot(point.x - a.position.x, point.z - a.position.z);
+      if (d > T.impactAlert * strength) continue;
+      const br = this.brains.get(a)!;
+      if (a.state === 'flee' || a.state === 'charge') continue;
+      if (a.state !== 'alert') { br.awareness = Math.max(br.awareness, T.alertAt); this.enter(a, br, 'alert'); }
+      if (d < T.impactSpook * strength) { br.spooked = true; br.freeze = Math.min(br.freeze, 0.25); }
+      else br.awareness = Math.min(1, br.awareness + 0.3);
     }
   }
 
@@ -397,7 +562,14 @@ export class AnimalManager {
 
   // ── combat ─────────────────────────────────────────────────────────────────────────────
 
-  private hitResult: AnimalHit = { animal: null as unknown as Animal, point: new THREE.Vector3(), distance: 0, headshot: false };
+  private hitResult: AnimalHit = { animal: null as unknown as Animal, point: new THREE.Vector3(), distance: 0, headshot: false, damage: 0 };
+
+  /** the DAMAGE model: a body bolt from `dist` m (falloff past 40 m), ×headMul for the head */
+  damageFor(headshot: boolean, dist: number): number {
+    const fall = 1 - (1 - DAMAGE.falloffMin) * THREE.MathUtils.clamp((dist - DAMAGE.falloffStart) / (DAMAGE.falloffEnd - DAMAGE.falloffStart), 0, 1);
+    const body = this.rng.range(DAMAGE.bodyMin, DAMAGE.bodyMax) * fall;
+    return Math.round(headshot ? body * DAMAGE.headMul : body);
+  }
 
   /**
    * Ray vs every living animal's head sphere + body capsule. Returns the nearest hit
@@ -427,24 +599,58 @@ export class AnimalManager {
     const h = this.hitResult;
     h.animal = bestA; h.distance = best; h.headshot = bestHead;
     h.point.copy(origin).addScaledVector(dir, best);
+    h.damage = this.damageFor(bestHead, h.point.distanceTo(this.playerPos));
     return h;
   }
 
-  /** Convenience: apply a raycast hit with headshot ×3. Returns true if it died. */
-  hit(hit: AnimalHit, damage: number, dir: THREE.Vector3): boolean {
-    return hit.animal.applyDamage(hit.headshot ? damage * 3 : damage, hit.point, dir);
+  /**
+   * The living animal whose head sphere or body capsule passes within `tol` m of the ray (nearest along the ray),
+   * or null. Cheap (one closest-point test per animal in range) — Combat asks every frame for the crosshair target.
+   */
+  nearRay(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, tol: number): Animal | null {
+    let best = maxDist, bestA: Animal | null = null;
+    for (const a of this.animals) {
+      if (!a.alive || a.hidden) continue;
+      _c.copy(a.position); _c.y += a.dims.bodyY * a.scale;
+      _d.subVectors(_c, origin);
+      const t = _d.dot(dir);
+      if (t < 0 || t > best) continue;
+      const r = (a.dims.bodyHalfLen + a.dims.bodyRadius) * a.scale + tol;
+      if (_d.lengthSq() - t * t > r * r) continue;
+      // refine against the head sphere and the body capsule
+      a.headWorld(_p);
+      const rh = a.dims.headRadius * a.scale + tol;
+      _d.subVectors(_p, origin); const th = _d.dot(dir);
+      let ok = th > 0 && _d.lengthSq() - th * th < rh * rh;
+      if (!ok) {
+        a.bodyCapsule(_a, _b);
+        ok = segRayDist2(origin, dir, _a, _b) < (a.dims.bodyRadius * a.scale + tol) ** 2;
+      }
+      if (ok) { best = t; bestA = a; }
+    }
+    return bestA;
+  }
+
+  /** Convenience: apply a raycast hit with its modelled damage. Returns true if it died. */
+  hit(hit: AnimalHit, dir: THREE.Vector3): boolean {
+    return hit.animal.applyDamage(hit.damage, hit.point, dir);
   }
 
   /** every applyDamage lands here: blood, sounds, AI reaction, kill event */
   private damaged = (a: Animal, amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3, died: boolean) => {
-    this.blood.burst(hitPoint, dir, amount >= 90 ? 1.5 : 1);
+    this.blood.burst(hitPoint, dir, amount >= 80 ? 1.5 : 1);
     if (a.kind === 'boar') this.onSound?.('boar_squeal', a.position); else this.onSound?.('deer_call', a.position);
+    // headshot = the hit point sits inside the head sphere (a hair of slack for the ray step)
+    a.headWorld(_p);
+    const headshot = _p.distanceToSquared(hitPoint) < (a.dims.headRadius * a.scale + 0.06) ** 2;
+    this.onDamage?.(a, amount, hitPoint, headshot, died);
     const br = this.brains.get(a);
     if (died) { this.onKill?.(a); if (br) br.timer = 0; return; }
     if (br && a.state !== 'charge') {
-      // a wounded animal bolts (boars may turn on you)
-      if (a.kind === 'boar' && this.playerPos.distanceTo(a.position) < CHARGE_DIST + 2 && br.chargeCd <= 0 && this.rng.next() < 0.7) this.enter(a, br, 'charge');
-      else this.enter(a, br, 'flee');
+      // a wounded animal bolts at once — no freeze; a boar this close turns on you instead
+      br.wary = (a.kind === 'boar' ? BOAR_TUNING : DEER_TUNING).waryTime;
+      if (a.kind === 'boar' && this.playerPos.distanceTo(a.position) < CHARGE_WHEN_HIT_DIST && br.chargeCd <= 0 && this.rng.next() < 0.7) this.enter(a, br, 'charge');
+      else { br.spooked = true; this.enter(a, br, 'flee'); }
     }
   };
 
@@ -483,6 +689,19 @@ function raySphere(o: THREE.Vector3, d: THREE.Vector3, c: THREE.Vector3, r: numb
   if (disc < 0) return -1;
   const t = -b - Math.sqrt(disc);
   return t >= 0 ? t : (cc < 0 ? 0 : -1);
+}
+
+/** squared distance between a ray (o, d unit) and a segment a-b (closest points, clamped to the segment and t ≥ 0) */
+function segRayDist2(o: THREE.Vector3, d: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3): number {
+  _ab.subVectors(b, a); _ao.subVectors(a, o);
+  const abab = _ab.dot(_ab), abd = _ab.dot(d), aod = _ao.dot(d), abao = _ab.dot(_ao);
+  const den = abab - abd * abd;
+  let u = den > 1e-6 ? (abd * aod - abao) / den : 0;            // param on the segment
+  u = THREE.MathUtils.clamp(u, 0, 1);
+  let t = aod + u * abd;                                        // param on the ray
+  if (t < 0) t = 0;
+  const px = a.x + _ab.x * u - (o.x + d.x * t), py = a.y + _ab.y * u - (o.y + d.y * t), pz = a.z + _ab.z * u - (o.z + d.z * t);
+  return px * px + py * py + pz * pz;
 }
 
 /** ray vs capsule (segment a-b, radius r): infinite-cylinder test clipped to the segment, plus the end spheres */

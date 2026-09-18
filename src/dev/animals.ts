@@ -8,7 +8,7 @@ import { AnimalManager } from '../entities/AnimalManager';
  *   &showcase=1   spawn a stag, a boar and a walking hind 4 m in front of the spawn point
  *   &debug=1      draw the hit volumes
  *   &calm=1       animals ignore the player (walk right up to a herd)
- * Click = shoot a ray from the camera (applies 30 damage, prints the hit).
+ * Click = shoot a ray from the camera (applies the DAMAGE model, prints the hit).
  * window.__world = { ...world, animals }
  */
 const world = await bootstrap();
@@ -57,7 +57,7 @@ window.addEventListener('mousedown', (e) => {
   if (e.button !== 0) return;
   game.camera.getWorldDirection(dir);
   const hit = animals.raycast(game.camera.position, dir, 200);
-  if (hit) { const died = animals.hit(hit, 30, dir); console.log('[animals] hit', hit.animal.kind, hit.headshot ? 'HEAD' : 'body', hit.distance.toFixed(1), 'hp', hit.animal.hp, died ? 'DIED' : ''); }
+  if (hit) { const died = animals.hit(hit, dir); console.log('[animals] hit', hit.animal.kind, hit.headshot ? 'HEAD' : 'body', hit.distance.toFixed(1), 'hp', hit.animal.hp, died ? 'DIED' : ''); }
 });
 
 game.buildComposer();

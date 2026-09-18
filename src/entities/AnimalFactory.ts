@@ -827,7 +827,10 @@ export class AnimalFactory {
             vec3 sunV = normalize( ( viewMatrix * vec4( furSunDir, 0.0 ) ).xyz );
             float back = saturate( dot( sunV, -V ) );                // looking toward the sun: the coat's tips light up
             float fres = pow( 1.0 - ndv, 3.2 );
-            float rimAmt = fres * ( 0.02 + 1.2 * back * back );
+            // the backlit glow is a close-up detail: past ~10 m it washes the whole silhouette into the haze and a
+            // deer at 25 m becomes a pale ghost you cannot aim at, so it fades to a third by 40 m
+            float rimDist = 1.0 - 0.67 * smoothstep( 10.0, 40.0, length( vViewPosition ) );
+            float rimAmt = fres * ( 0.02 + 1.2 * back * back ) * rimDist;
             outgoingLight += furRimColor * rimAmt * ( 0.15 + 0.85 * diffuseColor.rgb * 2.2 );
           }
           #include <opaque_fragment>`);
