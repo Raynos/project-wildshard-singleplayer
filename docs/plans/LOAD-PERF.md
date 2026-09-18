@@ -12,11 +12,14 @@ iPhone screenshot of the loading panel, warm (everything from the offline cache)
 | **r186 removed `PCFSoftShadowMap`**: the first shadow pass flipped the type, a cache-key parameter, so every program compiled twice | `d584095` (settled in `precompile()`; the constructor still says PCFSoft) | tier=desktop first frame 105 → 179 programs → 0 | part of the 63 programs above |
 | **Resolve links in the step** (`LINK_STATUS` per program, 12 ms slices — the cold Metal library build otherwise lands in the first frame's `onFirstUse`) | `3996b33` | first-ever launch: 1.96 s of `onFirstUse` in the first frame → in the bar | _pending_ |
 | **Continuous bar** (steps weighted by the previous run's ms per tier/cores, elapsed/expected < 1 for the running step, per-frame republish) | `da7c9c3` | 232 paints over a 1.23 s load, longest gap 214 ms, 0 regressions | — |
-| Bake terrain / placements / sky (§P2) | — | — | — |
+| **Terrain baked at build time** (`scripts/bake-chunk.mjs` → `public/assets/baked/<slug>/terrain.bin`, 256² heights + splat on the mesh grid; `src/world/BakedTerrain.ts` swaps Heightfield's `heightAt`/`normalAt`/`splatAt` for grid lookups — mesh bit-identical, every placer and the player read the grid) | `937c76d` | terrain 249 → 86 ms · grass/ferns/litter 210 → 75 · forest 17 → 13 (fresh contexts) | _pending_ (was terrain 838 · grass 620) |
+| **Textures uploaded in the step** (`renderer.initTexture` for ~100 textures, 12 ms slices) | `5c6b8ef` | first frame 733–1468 → 103–128 ms (fresh contexts); time to world 4.3–4.8 → 2.6–2.7 s | _pending_ |
+| Bake placements / sky / cards (§P2), KTX2 (§P1) | — | — | — |
 
-Remaining phone-side compute, CPU profile (desktop ms, phone ≈ 4×): terrain geometry `splatAt`/`heightAt`
-165 (plus 12 canvas `getImageData` at a hardcoded 1024² in `loadPBRArray` — `TIER_CONFIG.layerSize` is
-ignored), undergrowth placement 176, Sky clouds + PMREM 210, herds 100, crossbow viewmodel textures 63.
+Remaining per step, desktop headless tier=phone fresh context (ms): renderer 11 · sky 150 · terrain 84 (12 canvas
+`getImageData` at a hardcoded 1024² in `loadPBRArray` — `TIER_CONFIG.layerSize` is ignored) · cards 48 · forest 12 ·
+edge 24 · grass 75 · cabins 108 (GLTF + texture decode) · props 26 · animals 108 (fur textures + spawn) ·
+shaders ~330 (link + resolve + texture upload) · first frame ~110.
 
 Goal: the chunk playtest opens like a native game on an iPhone home-screen PWA —
 title screen in under a second, playable in seconds, and a **second launch that
