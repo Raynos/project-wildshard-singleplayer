@@ -152,32 +152,50 @@ html, body { margin: 0; padding: 0; overflow: hidden; position: fixed; width: 10
 .ws-hitring.show { animation: ws-ring 0.35s ease-out forwards; }
 @keyframes ws-ring { 0% { opacity: 0.9; transform: scale(0.5); } 100% { opacity: 0; transform: scale(1.4); } }
 
-/* ── intro overlay ── */
-.ws-intro { position: absolute; inset: 0; pointer-events: auto; background: linear-gradient(90deg, rgba(6, 10, 18, 0.6) 0%, rgba(6, 10, 18, 0.25) 45%, rgba(6, 10, 18, 0.05) 100%), linear-gradient(180deg, rgba(6, 10, 18, 0.2) 0%, rgba(6, 10, 18, 0.0) 30%, rgba(6, 10, 18, 0.55) 100%); display: flex; flex-direction: column; justify-content: space-between; transition: opacity 0.6s ease; }
+/* ── title screen: the shard deck IS the menu ──
+   wordmark top-left, a snap carousel of shard cards low on the screen over the live world, one
+   wide ENTER WORLD, a tiny sound row. Teasers crossfade their hero art in behind everything. */
+.ws-intro { position: absolute; inset: 0; pointer-events: auto; display: flex; flex-direction: column; justify-content: space-between; transition: opacity 0.6s ease; overflow: hidden; }
 .ws-intro.hide { opacity: 0; pointer-events: none; }
+.ws-intro .ws-hero { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.35s ease; pointer-events: none; }
+.ws-intro .ws-hero.show { opacity: 1; }
+.ws-intro::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(6, 10, 18, 0.45) 0%, rgba(6, 10, 18, 0.05) 28%, rgba(6, 10, 18, 0.05) 50%, rgba(6, 10, 18, 0.7) 100%); }
+.ws-intro .ws-head, .ws-intro .ws-deck { position: relative; z-index: 2; }
 .ws-intro .ws-head { padding: 34px 44px 0; }
-.ws-intro .ws-wordmark { font-family: var(--ws-display); font-weight: 700; font-size: 54px; line-height: 1; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; }
+.ws-intro .ws-wordmark { font-family: var(--ws-display); font-weight: 700; font-size: 54px; line-height: 1; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6); }
 .ws-intro .ws-wordmark b { color: var(--ws-cyan); font-weight: 700; }
-.ws-intro .ws-tagline { margin-top: 10px; font-size: 13px; letter-spacing: 0.04em; color: var(--ws-text-dim); max-width: 380px; line-height: 1.5; }
-.ws-intro .ws-phase { margin-top: 16px; font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--ws-cyan-dim); }
-.ws-intro .ws-phase::before { content: ''; display: inline-block; width: 6px; height: 6px; background: var(--ws-cyan); margin-right: 10px; vertical-align: 1px; }
-.ws-intro .ws-body { display: flex; justify-content: center; align-items: center; flex: 1; }
-.ws-intro .ws-panel { width: 520px; padding: 20px 24px 22px; }
-.ws-intro .ws-panel .ws-ptitle { font-family: var(--ws-display); font-weight: 700; font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; }
-.ws-intro .ws-panel .ws-ptitle b { color: var(--ws-cyan); font-weight: 700; }
-.ws-intro .ws-panel .ws-meta { margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 26px; row-gap: 7px; }
-.ws-intro .ws-panel .ws-meta div { display: flex; justify-content: space-between; gap: 12px; font-size: 11px; border-bottom: 1px solid rgba(143, 227, 255, 0.08); padding-bottom: 5px; }
-.ws-intro .ws-panel .ws-meta span:first-child { color: var(--ws-text-dim); letter-spacing: 0.16em; font-size: 9.5px; text-transform: uppercase; }
-.ws-intro .ws-panel .ws-meta span:last-child { color: var(--ws-text); }
-.ws-intro .ws-panel .ws-meta span.ok { color: #7cf2a7; }
-.ws-intro .ws-panel .ws-meta span.warn { color: var(--ws-amber); }
-.ws-enter { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; width: 100%; padding: 14px 18px; background: rgba(143, 227, 255, 0.08); border: 1px solid var(--ws-cyan); color: #fff; cursor: pointer; font-family: var(--ws-display); font-weight: 700; font-size: 19px; letter-spacing: 0.22em; text-transform: uppercase; transition: background 0.15s, box-shadow 0.15s; pointer-events: auto; }
-.ws-enter:hover, .ws-enter:focus { background: rgba(143, 227, 255, 0.2); box-shadow: 0 0 24px rgba(143, 227, 255, 0.35); outline: none; }
-.ws-enter small { font-family: var(--ws-mono); font-size: 9.5px; letter-spacing: 0.2em; color: var(--ws-cyan-dim); font-weight: 400; }
-.ws-intro .ws-foot { display: flex; justify-content: space-between; align-items: flex-end; padding: 0 44px 26px; }
-.ws-intro .ws-legend { display: flex; gap: 22px; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-text-dim); }
-.ws-intro .ws-legend b { color: var(--ws-text); font-weight: 500; border: 1px solid var(--ws-cyan-line); padding: 1px 6px; margin-right: 7px; }
-.ws-intro .ws-credit { font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(196, 220, 232, 0.4); }
+.ws-intro .ws-wordmark::after { content: ''; display: block; width: 34px; height: 2px; margin-top: 10px; background: var(--ws-cyan); box-shadow: 0 0 10px var(--ws-cyan); }
+/* deck: carousel + dots + enter + sound, centred in the lower half */
+.ws-intro .ws-deck { --card-w: 420px; --card-gap: 18px; display: flex; flex-direction: column; align-items: center; padding-bottom: max(26px, env(safe-area-inset-bottom, 0px)); }
+.ws-cards { position: relative; display: flex; gap: var(--card-gap); width: 100%; padding: 12px calc(50% - var(--card-w) / 2); overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; touch-action: pan-x; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+.ws-cards::-webkit-scrollbar { display: none; }
+.ws-card { position: relative; flex: 0 0 var(--card-w); width: var(--card-w); scroll-snap-align: center; padding: 0; margin: 0; text-align: center; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 12px 40px rgba(0, 0, 0, 0.45); color: var(--ws-text); cursor: pointer; font-family: var(--ws-mono); opacity: 0.55; transform: scale(0.94); transition: opacity 0.25s, transform 0.25s, border-color 0.25s, box-shadow 0.25s; -webkit-tap-highlight-color: transparent; }
+.ws-card::before { content: ''; position: absolute; left: -1px; top: -1px; width: 18px; height: 18px; border-left: 1px solid var(--ws-cyan); border-top: 1px solid var(--ws-cyan); opacity: 0.8; z-index: 1; }
+.ws-card.selected { opacity: 1; transform: none; border-color: var(--ws-cyan); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 28px rgba(143, 227, 255, 0.28); cursor: default; }
+.ws-card:focus-visible { outline: none; border-color: var(--ws-cyan); }
+.ws-card .ws-card-img { display: block; position: relative; margin: 6px; aspect-ratio: 16 / 9; background-size: cover; background-position: center; border: 1px solid rgba(143, 227, 255, 0.18); }
+.ws-card .ws-card-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6, 10, 18, 0) 60%, rgba(6, 10, 18, 0.5) 100%); }
+.ws-card.soon .ws-card-img { filter: saturate(0.75); }
+.ws-card .ws-card-tag { position: absolute; right: 8px; top: 8px; z-index: 1; font-style: normal; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; padding: 3px 8px; color: var(--ws-cyan); border: 1px solid var(--ws-cyan-line); background: var(--ws-glass-deep); }
+.ws-card .ws-card-tag.ok { color: #7cf2a7; border-color: rgba(124, 242, 167, 0.6); box-shadow: 0 0 10px rgba(124, 242, 167, 0.3); }
+.ws-card .ws-card-tag.soon { color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.5); }
+.ws-card b { display: block; padding: 8px 12px 0; font-family: var(--ws-display); font-weight: 700; font-size: 24px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; line-height: 1.1; }
+.ws-card small { display: block; padding: 4px 12px 12px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ws-text-dim); line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-dots { display: flex; gap: 8px; margin-top: 6px; }
+.ws-dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(196, 220, 232, 0.35); cursor: pointer; transition: background 0.2s, box-shadow 0.2s; }
+.ws-dots i.on { background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); }
+.ws-enter { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; margin-top: 18px; width: var(--card-w); padding: 12px 18px; background: rgba(143, 227, 255, 0.1); border: 1px solid var(--ws-cyan); color: #fff; cursor: pointer; pointer-events: auto; font-family: var(--ws-display); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(143, 227, 255, 0.22), inset 0 0 18px rgba(143, 227, 255, 0.08); transition: background 0.2s, box-shadow 0.2s, border-color 0.2s, color 0.2s; -webkit-tap-highlight-color: transparent; }
+.ws-enter b { font-weight: 700; font-size: 24px; letter-spacing: 0.3em; text-transform: uppercase; line-height: 1; }
+.ws-enter small { font-family: var(--ws-mono); font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-cyan-dim); }
+.ws-enter:hover, .ws-enter:focus-visible { background: rgba(143, 227, 255, 0.22); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 32px rgba(143, 227, 255, 0.4); outline: none; }
+.ws-enter:active { background: rgba(143, 227, 255, 0.3); }
+.ws-enter.soon, .ws-enter.soon:hover { background: rgba(6, 10, 18, 0.55); border-color: rgba(143, 227, 255, 0.25); color: var(--ws-text-dim); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); cursor: default; }
+.ws-enter.soon small { color: rgba(196, 220, 232, 0.4); }
+.ws-intro .ws-row { display: flex; justify-content: center; gap: 22px; margin-top: 16px; }
+.ws-intro .ws-sound { padding: 4px 6px; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-text-dim); pointer-events: auto; cursor: pointer; }
+.ws-intro .ws-sound::after { content: ''; display: inline-block; width: 6px; height: 6px; background: var(--ws-cyan); margin-left: 10px; box-shadow: 0 0 8px var(--ws-cyan); vertical-align: 1px; }
+.ws-intro .ws-sound.off::after { background: transparent; border: 1px solid var(--ws-cyan-dim); box-shadow: none; }
+#hud.intro .ws-fps { top: 82px; right: 44px; }
 
 /* ── pause overlay ── */
 .ws-pause { position: absolute; inset: 0; pointer-events: auto; cursor: pointer; background: rgba(6, 10, 18, 0.6); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
@@ -214,32 +232,6 @@ html, body { margin: 0; padding: 0; overflow: hidden; position: fixed; width: 10
 .ws-loading .ws-loading-log div:last-child { color: var(--ws-cyan-dim); }
 .ws-loading .ws-loading-foot { display: flex; justify-content: space-between; padding: 0 44px 26px; font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(196, 220, 232, 0.4); }
 
-/* ── intro: mockup-06 layout — wordmark + panel on the left, enter bar along the bottom ── */
-.ws-intro .ws-head { padding: 44px 0 0 84px; }
-.ws-intro .ws-wordmark { font-size: 84px; letter-spacing: 0.04em; text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6); }
-.ws-intro .ws-tagline { font-size: 15px; max-width: none; color: rgba(230, 242, 248, 0.85); letter-spacing: 0.1em; margin-top: 14px; }
-.ws-intro .ws-body { justify-content: flex-start; align-items: flex-start; padding: 40px 0 0 84px; }
-.ws-intro .ws-panel { width: 560px; background: var(--ws-glass-deep); }
-.ws-intro .ws-panel .ws-ptitle { font-size: 22px; padding-bottom: 12px; border-bottom: 1px solid rgba(143, 227, 255, 0.25); }
-.ws-intro .ws-panel .ws-meta { grid-template-columns: 1fr; row-gap: 10px; margin-top: 16px; }
-.ws-intro .ws-panel .ws-meta div { justify-content: flex-start; gap: 28px; border-bottom: none; padding-bottom: 0; font-size: 13px; }
-.ws-intro .ws-panel .ws-meta span:first-child { width: 90px; font-size: 10.5px; letter-spacing: 0.24em; }
-.ws-intro .ws-panel .ws-enter { display: none; }
-.ws-intro .ws-enterbar { position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%); width: 740px; display: flex; align-items: center; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); border-left: 4px solid var(--ws-cyan); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); pointer-events: auto; cursor: pointer; transition: background 0.15s, box-shadow 0.15s; }
-.ws-intro .ws-enterbar:hover { background: rgba(12, 22, 36, 0.9); box-shadow: 0 0 30px rgba(143, 227, 255, 0.25); }
-.ws-intro .ws-enterbar .ws-eicon { width: 90px; text-align: center; font-size: 26px; color: var(--ws-text-dim); border-right: 1px solid rgba(143, 227, 255, 0.15); align-self: stretch; display: flex; align-items: center; justify-content: center; }
-.ws-intro .ws-enterbar .ws-etext { flex: 1; text-align: center; padding: 16px 0; }
-.ws-intro .ws-enterbar .ws-etext b { display: block; font-family: var(--ws-display); font-weight: 700; font-size: 24px; letter-spacing: 0.3em; text-transform: uppercase; color: #fff; }
-.ws-intro .ws-enterbar .ws-etext small { display: block; margin-top: 4px; font-size: 11px; letter-spacing: 0.16em; color: var(--ws-text-dim); }
-.ws-intro .ws-enterbar .ws-ready { margin: 0 22px; padding: 10px 20px; border: 1px solid var(--ws-cyan); color: var(--ws-cyan); font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.24em; text-transform: uppercase; box-shadow: inset 0 0 14px rgba(143, 227, 255, 0.12); }
-.ws-intro .ws-sound { position: absolute; top: 38px; right: 44px; padding: 10px 18px; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-text); pointer-events: auto; cursor: pointer; }
-.ws-intro .ws-sound::after { content: ''; display: inline-block; width: 7px; height: 7px; background: var(--ws-cyan); margin-left: 12px; box-shadow: 0 0 8px var(--ws-cyan); vertical-align: 1px; }
-.ws-intro .ws-sound.off::after { background: transparent; border: 1px solid var(--ws-cyan-dim); box-shadow: none; }
-#hud.intro .ws-fps { top: 82px; right: 44px; }
-.ws-intro .ws-foot { padding: 0 44px 26px 84px; }
-.ws-intro.hide .ws-enterbar { pointer-events: none; }
-.ws-intro .ws-menter { display: none; }
-
 /* ── build / update pill (title screen only; PWAs have no address bar to refresh from) ── */
 .ws-update { position: fixed; right: 44px; top: calc(10px + env(safe-area-inset-top, 0px)); z-index: 60; display: none; align-items: center; gap: 6px; padding: 3px 7px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); color: var(--ws-text-dim); font-family: var(--ws-mono); font-size: 8px; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1.4; cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
 .ws-update.visible { display: flex; }
@@ -248,60 +240,28 @@ html, body { margin: 0; padding: 0; overflow: hidden; position: fixed; width: 10
 .ws-update.newer .ws-update-dot { background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); animation: ws-update-pulse 1.2s ease-in-out infinite; }
 @keyframes ws-update-pulse { 50% { opacity: 0.3; } }
 
-/* ─── title screen: shard picker (second panel beside the playtest panel) ─── */
-.ws-intro .ws-body { gap: 16px; flex-wrap: wrap; }
-.ws-intro .ws-panel.ws-shards { width: 420px; align-self: flex-start; }
-.ws-shards-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 14px; }
-.ws-shards-hint { font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-text-dim); }
-.ws-shards-list { display: flex; gap: 10px; margin-top: 10px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
-.ws-shards-list::-webkit-scrollbar { display: none; }
-.ws-shard { flex: 0 0 176px; width: 176px; padding: 0; margin: 0; text-align: left; background: rgba(6, 10, 18, 0.5); border: 1px solid rgba(143, 227, 255, 0.22); color: var(--ws-text); cursor: pointer; font-family: var(--ws-mono); pointer-events: auto; transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
-.ws-shard:hover, .ws-shard:focus-visible { border-color: var(--ws-cyan); box-shadow: 0 0 18px rgba(143, 227, 255, 0.25); outline: none; transform: translateY(-1px); }
-.ws-shard.active { border-color: var(--ws-cyan); cursor: default; box-shadow: inset 0 0 0 1px rgba(143, 227, 255, 0.35); }
-.ws-shard.active:hover { transform: none; box-shadow: inset 0 0 0 1px rgba(143, 227, 255, 0.35); }
-.ws-shard .ws-shard-img { display: block; position: relative; width: 100%; aspect-ratio: 16 / 9; background-size: cover; background-position: center; border-bottom: 1px solid rgba(143, 227, 255, 0.18); }
-.ws-shard .ws-shard-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6, 10, 18, 0) 55%, rgba(6, 10, 18, 0.55) 100%); }
-.ws-shard .ws-shard-img i { position: absolute; right: 6px; top: 6px; z-index: 1; font-style: normal; font-size: 8.5px; letter-spacing: 0.2em; text-transform: uppercase; padding: 2px 6px; color: var(--ws-cyan); border: 1px solid var(--ws-cyan-line); background: var(--ws-glass-deep); }
-.ws-shard.active .ws-shard-img i { color: #7cf2a7; border-color: rgba(124, 242, 167, 0.5); }
-.ws-shard b { display: block; padding: 7px 9px 0; font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; line-height: 1.1; }
-.ws-shard small { display: block; padding: 3px 9px 8px; font-size: 9.5px; letter-spacing: 0.06em; color: var(--ws-text-dim); line-height: 1.4; }
-.ws-shards-blurb { margin-top: 12px; font-size: 11px; line-height: 1.5; color: var(--ws-text-dim); min-height: 4.4em; }
-.ws-shards-blurb b { color: var(--ws-text); font-weight: 500; }
-
-/* ─── title screen on a phone-width viewport: wordmark, shard strip, one big Enter button ─── */
+/* ─── title screen on a phone-width viewport: the deck fills the lower third, world above ─── */
 @media (max-width: 700px) {
-  .ws-intro { overflow: hidden; background: linear-gradient(180deg, rgba(6, 10, 18, 0.55) 0%, rgba(6, 10, 18, 0.05) 35%, rgba(6, 10, 18, 0.05) 55%, rgba(6, 10, 18, 0.75) 100%); }
+  .ws-intro::before { background: linear-gradient(180deg, rgba(6, 10, 18, 0.55) 0%, rgba(6, 10, 18, 0.05) 30%, rgba(6, 10, 18, 0.05) 52%, rgba(6, 10, 18, 0.78) 100%); }
   .ws-intro .ws-head { padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 0; }
-  .ws-intro .ws-wordmark { font-size: 28px; letter-spacing: 0.06em; max-width: 190px; line-height: 1.02; }
-  .ws-intro .ws-tagline { font-size: 11px; letter-spacing: 0.04em; margin-top: 6px; max-width: 250px; }
-  .ws-intro .ws-phase { display: none; }
+  .ws-intro .ws-wordmark { font-size: 13px; letter-spacing: 0.3em; line-height: 1.05; color: rgba(230, 242, 248, 0.85); font-weight: 600; }
+  .ws-intro .ws-wordmark b { display: block; font-size: 26px; letter-spacing: 0.12em; margin-top: 3px; }
+  .ws-intro .ws-wordmark::after { width: 26px; margin-top: 6px; }
   .ws-update { right: 16px; }
-  .ws-intro .ws-sound { top: calc(34px + env(safe-area-inset-top, 0px)); right: 16px; padding: 6px 10px; font-size: 10px; }
   #hud.intro .ws-fps { top: calc(66px + env(safe-area-inset-top, 0px)); right: 16px; }
-  .ws-intro .ws-body { padding: 0 16px; flex-direction: column; align-items: stretch; justify-content: flex-end; gap: 10px; flex-wrap: nowrap; }
-  .ws-intro .ws-panel:not(.ws-shards) { display: none; }
-  .ws-intro .ws-enterbar { display: none; }
-  .ws-intro .ws-foot { display: none; }
-  /* shard strip: no glass, no title, just small horizontal cards */
-  .ws-intro .ws-panel.ws-shards { width: 100%; padding: 0; background: none; border: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
-  .ws-intro .ws-panel.ws-shards::before { display: none; }
-  .ws-intro .ws-panel.ws-shards .ws-ptitle { display: none; }
-  .ws-shards-head { margin-top: 0; }
-  .ws-shards-head .ws-label { font-size: 9px; }
-  .ws-shards-hint { display: none; }
-  .ws-shards-list { margin-top: 6px; gap: 8px; }
-  .ws-shard { flex: 0 0 auto; width: auto; display: flex; align-items: center; gap: 8px; padding-right: 10px; background: var(--ws-glass-deep); }
-  .ws-shard .ws-shard-img { width: 64px; flex: 0 0 64px; border-bottom: none; border-right: 1px solid rgba(143, 227, 255, 0.18); }
-  .ws-shard .ws-shard-img i { display: none; }
-  .ws-shard.active .ws-shard-img::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: #7cf2a7; z-index: 1; }
-  .ws-shard b { padding: 0; font-size: 12px; }
-  .ws-shard small { padding: 1px 0 0; font-size: 8.5px; }
-  .ws-shards-blurb { display: none; }
-  /* the one control that matters */
-  .ws-intro .ws-menter { display: flex; align-items: center; justify-content: space-between; margin: 0 0 max(14px, env(safe-area-inset-bottom, 0px)); padding: 14px 18px; width: 100%; background: rgba(143, 227, 255, 0.12); border: 1px solid var(--ws-cyan); border-left: 4px solid var(--ws-cyan); color: #fff; cursor: pointer; pointer-events: auto; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(143, 227, 255, 0.2); }
-  .ws-intro .ws-menter:active { background: rgba(143, 227, 255, 0.28); }
-  .ws-intro .ws-menter b { font-family: var(--ws-display); font-weight: 700; font-size: 22px; letter-spacing: 0.24em; text-transform: uppercase; }
-  .ws-intro .ws-menter small { font-family: var(--ws-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-cyan-dim); text-align: right; }
+  .ws-intro .ws-deck { --card-w: 78vw; --card-gap: 12px; padding-bottom: max(10px, env(safe-area-inset-bottom, 0px)); }
+  .ws-cards { padding-top: 10px; padding-bottom: 10px; }
+  .ws-card .ws-card-img { margin: 5px; }
+  .ws-card .ws-card-tag { font-size: 8px; padding: 2px 6px; right: 6px; top: 6px; }
+  .ws-card b { font-size: 16px; padding-top: 6px; }
+  .ws-card small { font-size: 9px; letter-spacing: 0.05em; padding: 3px 10px 9px; }
+  .ws-dots { margin-top: 2px; gap: 7px; }
+  .ws-dots i { width: 6px; height: 6px; }
+  .ws-enter { margin-top: 12px; padding: 13px 16px; }
+  .ws-enter b { font-size: 20px; letter-spacing: 0.26em; }
+  .ws-enter small { display: none; }
+  .ws-intro .ws-row { margin-top: 8px; }
+  .ws-intro .ws-sound { font-size: 9px; }
 }
 
 /* ─── touch controls (TouchControls.ts adds #hud.touch; layer is hidden until the intro is gone) ─── */

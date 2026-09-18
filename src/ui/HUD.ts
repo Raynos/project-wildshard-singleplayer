@@ -1,11 +1,12 @@
-import { CHUNK_SIZE, TERRAIN_RES } from '../core/config';
+import { CHUNK_SIZE } from '../core/config';
 import { CHUNKS, getActiveChunk, chunkUrl } from '../chunks/registry';
+import { PLACEHOLDERS } from '../chunks/placeholders';
 
 /**
  * HUD — DOM overlay in `#hud`, styled by `src/ui/hud.css` (Wildshard glass identity).
  *
  *   const hud = new HUD({ pointerLock?: boolean });   // pointerLock:false in ?nolock dev mode (no pause overlay)
- *   hud.showIntro(() => player.lock(), stats?)         // intro overlay; ENTER THE CHUNK / Enter key → onEnter
+ *   hud.showIntro(() => player.lock())                 // title screen: shard deck; ENTER WORLD / any key → onEnter
  *   hud.setState({ bolts, loaded, reloading, reloadProgress?, health, fps, pos: {x, z}, yaw, kills, prompt?, speed?, ads? })
  *   hud.showHitMarker(headshot, killed)  hud.killFeed('Boar · headshot')  hud.toast('Bolt recovered')
  *   hud.damageFlash()  hud.setBoundaryWarning(visible)  hud.setPaused(bool)  hud.onResume = () => …
@@ -22,6 +23,13 @@ export interface HUDState {
 }
 export interface HUDOptions { pointerLock?: boolean; maxBolts?: number }
 export type IntroStats = Record<string, string | { value: string; tone?: 'ok' | 'warn' }>;
+
+/** One card in the title-screen deck: an authored chunk (playable) or a teaser (coming soon). */
+interface DeckCard {
+  slug: string; displayName: string; label: string; thumbnail: string; tag: string; tagTone: 'ok' | 'soon' | '';
+  playable: boolean; active: boolean; heroPortrait?: string; heroLandscape?: string; blurb: string;
+}
+const HERO_FADE_MS = 350;
 
 const CARDINALS: [number, string, boolean][] = [[0, 'N', true], [45, 'NE', false], [90, 'E', true], [135, 'SE', false], [180, 'S', true], [225, 'SW', false], [270, 'W', true], [315, 'NW', false]];
 const PX_PER_DEG = 2.4;
@@ -49,6 +57,7 @@ export class HUD {
   private cross!: HTMLElement; private killX!: HTMLElement; private hitRing!: HTMLElement; private aim!: HTMLElement; private aimText = '';
   private prompt!: HTMLElement; private boundary!: HTMLElement; private flash!: HTMLElement;
   private intro?: HTMLElement; private pause!: HTMLElement;
+  private deck?: { cards: DeckCard[]; index: number; select: (i: number, smooth?: boolean) => void; activate: () => void };
   private last: Partial<HUDState> & { statusKey?: string; headingDeg?: number; fpsShown?: number } = {};
   private hitTimer = 0; private spread = 7;
 
@@ -62,7 +71,13 @@ export class HUD {
       const locked = !!document.pointerLockElement;
       this.setPaused(!locked);
     });
-    document.addEventListener('keydown', (e) => { if (this.intro && !this.entered && !e.metaKey && !e.ctrlKey && e.code !== 'Escape') this.enter(); });
+    document.addEventListener('keydown', (e) => {
+      if (!this.intro || this.entered || e.metaKey || e.ctrlKey || e.code === 'Escape') return;
+      const deck = this.deck;
+      if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') { e.preventDefault(); deck?.select(deck.index + (e.code === 'ArrowLeft' ? -1 : 1)); return; }
+      if (deck && !deck.cards[deck.index]?.playable) return;  // "press any key" is inert on a coming-soon shard
+      if (deck) deck.activate(); else this.enter();
+    });
   }
 
   private build() {
@@ -215,77 +230,117 @@ export class HUD {
   setPaused(paused: boolean) { this.pause.classList.toggle('show', paused && this.entered); }
   get paused() { return this.pause.classList.contains('show'); }
 
-  /** Intro overlay. `stats` rows go into the CHUNK PLAYTEST panel (string, or {value, tone}). */
-  showIntro(onEnter: () => void, stats?: IntroStats) {
+  /**
+   * Title screen: the shard deck IS the menu. A horizontal snap carousel of shard cards over the
+   * live world; the centred card is the selection. Real chunks are playable (the active one enters,
+   * another reloads with `?chunk=`); teasers from `PLACEHOLDERS` crossfade their hero art in behind
+   * the deck and turn ENTER WORLD into COMING SOON. `stats` is accepted for API compatibility.
+   */
+  showIntro(onEnter: () => void, _stats?: IntroStats) {
     this.onEnter = onEnter;
     this.root.classList.add('intro');
     const def = getActiveChunk();
-    const rows: IntroStats = {
-      'Chunk': def.id,
-      'Grid': def.gridCoords,
-      'Size': `${CHUNK_SIZE} m × ${CHUNK_SIZE} m`,
-      'Build': { value: 'local · unuploaded', tone: 'warn' },
-      'Seed': `0x${def.seed.toString(16).toUpperCase().padStart(8, '0')}`,
-      'Validation': { value: `ok · ${TERRAIN_RES}² heightfield · ${def.treeCount.toLocaleString()} ${def.trees.noun}`, tone: 'ok' },
-      ...(stats ?? {}),
-    };
+    const cards: DeckCard[] = [
+      ...CHUNKS.map((c): DeckCard => ({
+        slug: c.slug, displayName: c.displayName, thumbnail: c.thumbnail, blurb: c.blurb,
+        label: `${c.biome} · ${c.gridCoords} · ${CHUNK_SIZE} m shard`,
+        tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def,
+      })),
+      ...PLACEHOLDERS.map((t): DeckCard => ({
+        slug: t.slug, displayName: t.displayName, thumbnail: t.thumbnail, blurb: t.blurb,
+        label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false,
+        heroPortrait: t.heroPortrait, heroLandscape: t.heroLandscape,
+      })),
+    ];
     const intro = el('div', 'ws-intro');
     intro.innerHTML = `
-      <div class="ws-head">
-        <div class="ws-wordmark">Project <b>Wildshard</b></div>
-        <div class="ws-tagline">A world that does not exist yet, arriving one chunk at a time.</div>
-        <div class="ws-phase">Phase 1 — gameplay contract · local chunk playtest</div>
-      </div>
-      <div class="ws-body"><div class="ws-glass ws-panel">
-        <div class="ws-ptitle">Chunk playtest · <b>${def.slug}</b></div>
-        <div class="ws-meta"></div>
-        <button class="ws-enter"><span>Enter the chunk</span><small>click · or press Enter</small></button>
-      </div>
-      <div class="ws-glass ws-panel ws-shards">
-        <div class="ws-ptitle">Shards · <b>${CHUNKS.length}</b></div>
-        <div class="ws-shards-head"><span class="ws-label">Chunks on this build</span><span class="ws-shards-hint">${CHUNKS.length > 1 ? 'select another to load it' : 'one authored so far'}</span></div>
-        <div class="ws-shards-list" data-scroll></div>
-        <div class="ws-shards-blurb"></div>
-      </div></div>
-      <div class="ws-enterbar"><div class="ws-eicon">⇥</div><div class="ws-etext"><b>Enter the chunk</b><small>Press any key</small></div><div class="ws-ready">Ready</div></div>
-      <button class="ws-menter" type="button"><b>Enter world</b><small>${def.displayName} · ${def.gridCoords}</small></button>
-      <div class="ws-glass ws-sound">Sound on</div>
-      <div class="ws-foot">
-        <div class="ws-legend"><span><b>WASD</b>move</span><span><b>Shift</b>sprint</span><span><b>LMB</b>fire</span><span><b>RMB</b>aim</span><span><b>R</b>span</span><span><b>E</b>interact</span><span><b>Esc</b>release cursor</span></div>
-        <div class="ws-credit">An in-progress private project</div>
+      <div class="ws-hero"></div>
+      <div class="ws-head"><div class="ws-wordmark">Project <b>Wildshard</b></div></div>
+      <div class="ws-deck">
+        <div class="ws-cards" data-scroll>${cards.map((c, i) => `
+          <button class="ws-card${c.active ? ' active' : ''}${c.playable ? '' : ' soon'}" type="button" data-i="${i}" title="${c.blurb.replace(/"/g, '&quot;')}">
+            <span class="ws-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-card-tag ${c.tagTone}">${c.tag}</i></span>
+            <b>${c.displayName}</b><small>${c.label}</small>
+          </button>`).join('')}
+        </div>
+        <div class="ws-dots">${cards.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
+        <button class="ws-enter" type="button"><b>Enter world</b><small>Press any key</small></button>
+        <div class="ws-row"><div class="ws-sound">Sound on</div></div>
       </div>`;
-    const meta = intro.querySelector('.ws-meta')!;
-    for (const [k, v] of Object.entries(rows)) {
-      const val = typeof v === 'string' ? v : v.value, tone = typeof v === 'string' ? '' : v.tone ?? '';
-      meta.appendChild(el('div', undefined, `<span>${k}</span><span class="${tone}">${val}</span>`));
-    }
-    // shard picker: every authored chunk; picking another reloads with ?chunk=<slug>
-    const list = intro.querySelector('.ws-shards-list')!;
-    const blurb = intro.querySelector('.ws-shards-blurb')!;
-    const showBlurb = (c: typeof def) => { blurb.innerHTML = `<b>${c.displayName}</b> · ${c.biome} — ${c.blurb}`; };
-    for (const c of CHUNKS) {
-      const card = el('button', 'ws-shard' + (c === def ? ' active' : ''), `<span class="ws-shard-img" style="background-image:url('${c.thumbnail}')"><i>${c === def ? 'Loaded' : 'Load'}</i></span><b>${c.displayName}</b><small>${c.gridCoords} · ${c.biome}</small>`);
-      card.type = 'button';
-      card.title = c.id;
-      card.addEventListener('mouseenter', () => showBlurb(c));
-      card.addEventListener('mouseleave', () => showBlurb(def));
-      card.addEventListener('click', (e) => { e.stopPropagation(); if (c !== def) location.href = chunkUrl(c.slug); });
-      list.appendChild(card);
-    }
-    showBlurb(def);
-    intro.querySelector('.ws-enter')!.addEventListener('click', () => this.enter());
-    intro.querySelector('.ws-enterbar')!.addEventListener('click', () => this.enter());
-    intro.querySelector('.ws-menter')!.addEventListener('click', () => this.enter());
+    const hero = intro.querySelector<HTMLElement>('.ws-hero')!;
+    const list = intro.querySelector<HTMLElement>('.ws-cards')!;
+    const cardEls = Array.from(list.querySelectorAll<HTMLElement>('.ws-card'));
+    const dots = Array.from(intro.querySelectorAll<HTMLElement>('.ws-dots i'));
+    const enterBtn = intro.querySelector<HTMLButtonElement>('.ws-enter')!;
+    const enterTitle = enterBtn.querySelector('b')!, enterHint = enterBtn.querySelector('small')!;
+
+    const portrait = () => innerWidth < innerHeight;
+    const heroUrl = (c: DeckCard) => (portrait() ? c.heroPortrait : c.heroLandscape) ?? '';
+    let index = Math.max(0, cards.findIndex((c) => c.active));
+    const centreOf = (i: number) => cardEls[i].offsetLeft + cardEls[i].offsetWidth / 2 - list.clientWidth / 2;
+
+    const apply = () => {
+      const c = cards[index];
+      cardEls.forEach((e, i) => e.classList.toggle('selected', i === index));
+      dots.forEach((d, i) => d.classList.toggle('on', i === index));
+      const url = c.playable ? '' : heroUrl(c);
+      if (url) { hero.style.backgroundImage = `url('${url}')`; hero.classList.add('show'); }
+      else hero.classList.remove('show');
+      enterBtn.classList.toggle('soon', !c.playable);
+      enterBtn.disabled = !c.playable;
+      enterTitle.textContent = c.playable ? 'Enter world' : 'Coming soon';
+      enterHint.textContent = !c.playable ? 'Not yet playable' : c.active ? 'Press any key' : `Reloads with ${c.displayName}`;
+    };
+    const select = (i: number, smooth = true) => {
+      i = Math.max(0, Math.min(cards.length - 1, i));
+      list.scrollTo({ left: centreOf(i), behavior: smooth ? 'smooth' : 'auto' });
+      if (i !== index) { index = i; apply(); }
+    };
+    const activate = () => {
+      const c = cards[index];
+      if (!c.playable) return;
+      if (c.active) this.enter(); else location.href = chunkUrl(c.slug);
+    };
+    // scroll → nearest card to the centre is the selection (rAF-debounced)
+    let raf = 0;
+    list.addEventListener('scroll', () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const mid = list.scrollLeft + list.clientWidth / 2;
+        let best = 0, bestD = Infinity;
+        cardEls.forEach((e, i) => { const d = Math.abs(e.offsetLeft + e.offsetWidth / 2 - mid); if (d < bestD) { bestD = d; best = i; } });
+        if (best !== index) { index = best; apply(); }
+      });
+    }, { passive: true });
+    cardEls.forEach((e, i) => e.addEventListener('click', (ev) => { ev.stopPropagation(); if (i !== index) select(i); }));
+    dots.forEach((d, i) => d.addEventListener('click', (ev) => { ev.stopPropagation(); select(i); }));
+    enterBtn.addEventListener('click', (ev) => { ev.stopPropagation(); activate(); });
     intro.querySelector('.ws-sound')!.addEventListener('click', (e) => { e.stopPropagation(); const b = e.currentTarget as HTMLElement; const off = b.classList.toggle('off'); b.textContent = off ? 'Sound off' : 'Sound on'; this.onSoundToggle?.(!off); });
+    // orientation flips swap the hero file and re-centre the selected card (card width is viewport-relative)
+    let wasPortrait = portrait();
+    const onResize = () => {
+      if (!this.intro) { removeEventListener('resize', onResize); return; }
+      list.scrollTo({ left: centreOf(index), behavior: 'auto' });
+      if (portrait() !== wasPortrait) { wasPortrait = portrait(); apply(); }
+    };
+    addEventListener('resize', onResize);
+    // preload the hero art so the crossfade is instant (current orientation first, the other set later)
+    const preload = (p: boolean) => { for (const c of cards) { const u = (p ? c.heroPortrait : c.heroLandscape); if (u) new Image().src = u; } };
+    preload(portrait()); setTimeout(() => preload(!portrait()), 4000);
+
     this.root.appendChild(intro);
     this.intro = intro;
+    this.deck = { cards, get index() { return index; }, select, activate };
+    apply();
+    list.scrollTo({ left: centreOf(index), behavior: 'auto' });
   }
 
   private enter() {
     if (!this.intro) return;
-    const intro = this.intro; this.intro = undefined;
+    const intro = this.intro; this.intro = undefined; this.deck = undefined;
     intro.classList.add('hide');
-    setTimeout(() => intro.remove(), 700);
+    setTimeout(() => intro.remove(), Math.max(700, HERO_FADE_MS * 2));
     this.root.classList.remove('intro');
     this.entered = true;
     this.onEnter?.();
