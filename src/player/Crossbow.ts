@@ -81,7 +81,7 @@ const MAX_TRACERS = 8, TRACER_POINTS = 2048, TRACER_LIFE = 6, TRACER_FADE = 1.5,
 const TRACER_PX = 0.32;
 const TRACER_ORDER = 1200; // after the viewmodel (1000) so the trail's first metre shows over the weapon
 /** ADS is true iron sights, not a zoom: the FOV stays put and the weapon is brought up to the eye instead. */
-const FOV_HIP = 72, FOV_ADS = 72;
+const FOV_HIP = 72, FOV_ADS = 58; // ADS zooms 1.3× (tan 36° / 1.3 → 29.1° half-angle); the pose solve re-runs per FOV so the sight stays centred
 /** Vertical FOV to give the camera. Three's fov is vertical, so on a portrait phone a fixed 72° collapses the
  *  horizontal view to ~37°; widen it (Hor+ via the geometric mean of the aspect) so 72° hip → ~94° at 9:19.5. */
 function fovForAspect(base: number, aspect: number) {
