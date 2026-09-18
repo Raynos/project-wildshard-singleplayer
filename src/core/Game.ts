@@ -173,8 +173,13 @@ export class Game {
     new ResumeDebug(this.renderer, () => snapshot.firstFrameAt, () => this.frameGate(), () => snapshot.describe());
     this.canvas.addEventListener('webglcontextlost', () => { this.gl.lostAt = performance.now(); this.gl.events++; console.warn('[gl] context lost'); });
     this.canvas.addEventListener('webglcontextrestored', () => { this.gl.restoredAt = performance.now(); console.warn('[gl] context restored after', Math.round(this.gl.restoredAt - this.gl.lostAt), 'ms'); });
+    // ?loop=timer: drive the loop from a 16 ms timer instead of rAF — an experiment for iOS Low Power
+    // Mode, which throttles rAF to 30 Hz (whether the compositor presents timer-driven frames any
+    // faster is the question the phone's meter answers). Default stays rAF.
+    const timerLoop = new URLSearchParams(location.search).get('loop') === 'timer';
+    const schedule = timerLoop ? (fn: () => void) => { setTimeout(fn, 16); } : (fn: () => void) => { requestAnimationFrame(fn); };
     const loop = () => {
-      requestAnimationFrame(loop);
+      schedule(loop);
       if (!forceFrame && !this.frameGate()) { this.clock.getDelta(); return; } // keep the clock moving so the next frame's dt is sane
       forceFrame = false;
       this.renderer.info.reset();
