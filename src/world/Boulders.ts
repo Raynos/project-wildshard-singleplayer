@@ -78,7 +78,7 @@ export class Boulders {
       g.rotateX(nz * 0.6); g.rotateZ(-nx * 0.6); // lean with the slope a little
       g.translate(b.x, y + b.r * (b.squash ?? 0.7) * 0.35, b.z);
       g.deleteAttribute('uv'); g.deleteAttribute('normal');
-      const ni = g.toNonIndexed();
+      const ni = g.index ? g.toNonIndexed() : g;
       const n = ni.attributes.position.count, col = new Float32Array(n * 3);
       const p = ni.attributes.position as THREE.BufferAttribute;
       for (let i = 0; i < n; i += 3) {

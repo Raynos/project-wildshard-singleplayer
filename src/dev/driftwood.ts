@@ -11,7 +11,8 @@ import { Palms } from '../world/Palms';
 import { Lookout } from '../world/Lookout';
 import { Wreck } from '../world/Wreck';
 import { Shrine } from '../world/Shrine';
-import { HUT, LOOKOUT, WRECK, SHRINE } from '../chunks/driftwood-isle';
+import { Bushes } from '../world/Bushes';
+import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES } from '../chunks/driftwood-isle';
 import { Boundary } from '../world/Boundary';
 import { Horizon } from '../world/Horizon';
 import { CHUNK_HALF, ROAD_LENGTH } from '../core/config';
@@ -30,6 +31,9 @@ game.scene.add(pier.group);
 player.colliders.push(...pier.colliders);
 player.platforms.push((x, z) => pier.floorHeightAt(x, z));
 { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; }
+
+const jetties = JETTIES.map((j) => new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: (chunk.ocean?.level ?? 0) + 1.2 }).build());
+for (const j of jetties) { game.scene.add(j.group); player.colliders.push(...j.colliders); player.platforms.push((x, z) => j.floorHeightAt(x, z)); }
 
 const boat = new Boat(sky, { x: -4.2, z: -CHUNK_HALF + 6, heading: 0, waterY: chunk.ocean?.level ?? 0, moorTo: pier.mooringsFor(-4.2, -CHUNK_HALF + 6) }).build();
 game.scene.add(boat.group); if (boat.ropes) game.scene.add(boat.ropes);
@@ -64,6 +68,10 @@ game.scene.add(shrine.group);
 player.colliders.push(...shrine.colliders);
 player.platforms.push((x, z) => shrine.floorHeightAt(x, z));
 
+const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
+const bushes = new Bushes(sky).build(Bushes.scatterIsland(chunk.seed, 260, AVOID));
+game.scene.add(bushes.mesh);
+
 const boundary = new Boundary(sky).build();
 game.scene.add(boundary.group);
 const horizon = new Horizon(sky).build();
@@ -71,6 +79,6 @@ game.scene.add(horizon.group);
 
 game.onUpdate((dt, t) => { ocean?.update(dt); boat.update(dt); palms.update(dt); boundary.update(dt, t); horizon.update(dt, game.camera); });
 
-(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boat, rocks, hut, palms, lookout, wreck, shrine, boundary, horizon, heightAt };
+(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, jetties, boat, rocks, hut, palms, lookout, wreck, shrine, bushes, boundary, horizon, heightAt };
 game.buildComposer();
 game.start();

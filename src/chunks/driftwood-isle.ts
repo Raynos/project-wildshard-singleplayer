@@ -28,6 +28,12 @@ export const OCEAN: OceanDef = {
 
 /** Where the south pier lands (the crescent beach) — the island's origin for the later pieces. */
 export const PIER = { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckAbove: 1.2 };
+/** the other three jetties at the N / W / E edge midpoints (the mandated entry roads are their sandbars); the E one runs on into Wreck Cove */
+export const JETTIES = [
+  { x: 0, z: CHUNK_HALF, rot: Math.PI, length: ROAD_LENGTH },
+  { x: -CHUNK_HALF, z: 0, rot: Math.PI / 2, length: 95 },
+  { x: CHUNK_HALF, z: 0, rot: -Math.PI / 2, length: 108 },
+];
 /** the island disc: centre and nominal shoreline radius (the shoreline is noise-warped ±30 m) */
 export const ISLAND = { x: 0, z: 12, r: 188 };
 /** the hut's plateau: a flat-topped crag in the south-centre; the hut stands at its middle */
@@ -152,6 +158,8 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
     fogSunColor: [1.0, 0.98, 0.92],
     cloudSunColor: [1.0, 0.98, 0.94],
     hemiSky: 0x9fd8ff, hemiGround: 0x2a6f8a, hemiIntensity: 0.4,
+    // the ringed gas giant high in the north-east (up and right of the pier's view), lit from the NW sun
+    planet: { azimuth: 38, elevation: 40, size: 14, tilt: 22, roll: 18 },
   },
   atmosphere: {
     fogHeight: -20.0,
