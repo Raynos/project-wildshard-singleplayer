@@ -23,7 +23,8 @@
  *
  *   install   precache the critical shell (strict — a failed shell fails install, so the old worker keeps
  *             serving), then the bundle + icons (tolerant, only what is missing).
- *   activate  drop stale ws-shell/ws-static caches, prune (never wipe) the immutable cache, claim.
+ *   activate  migrate the previous ws-static-* entries whose size still matches asset-index.json into the new
+ *             static cache, drop stale ws-shell/ws-static caches, prune (never wipe) the immutable cache, claim.
  *   fetch     hashed bundle: cache-first into ws-immutable;
  *             tex / models / hdri / basis / fonts / icons: cache-first into the static cache;
  *             the document: cache-first with a background revalidate (a flapping link must never hold the
@@ -51,7 +52,7 @@ const STATIC_OPTIONAL = ['/apple-touch-icon.png', '/favicon.png', '/icon-192.png
 
 /** Vite's hashed output sits directly under /assets/ — the unhashed Poly Haven dirs are one level deeper. */
 const IMMUTABLE_RE = /^\/assets\/[^/]+-[\w-]{8}\.\w+$/;
-const STATIC_RE = /^\/assets\/(tex|models|hdri)\/|^\/basis\/|^\/fonts\/|^\/(apple-touch-icon|favicon|icon-\d+)\.png$/;
+const STATIC_RE = /^\/assets\/(tex|models|hdri|baked)\/|^\/basis\/|^\/fonts\/|^\/(apple-touch-icon|favicon|icon-\d+)\.png$/;
 const NETWORK_FIRST_RE = /^\/(asset-index\.json|sw\.js|manifest\.webmanifest)$/;
 
 const cacheFor = (pathname) => (IMMUTABLE_RE.test(pathname) ? IMMUTABLE_CACHE : STATIC);
@@ -92,12 +93,49 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
+      await migrateStatic();
       for (const k of await caches.keys()) if (k.startsWith('ws-') && !KEEP.includes(k)) await caches.delete(k);
       await pruneImmutable();
       await self.clients.claim();
     })(),
   );
 });
+
+/**
+ * A new static cache name (one asset added, resized or removed) used to mean the previous 30 MB were thrown
+ * away and the next launch re-downloaded all of it — DOWNLOAD read 100 % but every fetching step took
+ * seconds (the 16 s cabins step of 2026-09-18). Carry every entry of the old ws-static-* caches over whose
+ * decoded size still equals the byte the new build declares in /asset-index.json (fetched no-store); a
+ * changed file is skipped and re-fetched lazily by cacheFirst, an absent one is dropped with the old cache.
+ * Entries the index does not list (icons, fonts, basis) move as they are.
+ */
+async function migrateStatic() {
+  const old = (await caches.keys()).filter((k) => k.startsWith('ws-static-') && k !== STATIC);
+  if (!old.length) return;
+  let sizes = null;
+  try {
+    const r = await fetch(abs('/asset-index.json'), { cache: 'no-store' });
+    if (r.ok) sizes = await r.json();
+  } catch { /* offline at activate: migrate by name only */ }
+  const next = await caches.open(STATIC);
+  for (const k of old) {
+    const prev = await caches.open(k);
+    for (const req of await prev.keys()) {
+      try {
+        if (await next.match(req, MATCH_OPTS)) continue;
+        const res = await prev.match(req, MATCH_OPTS);
+        if (!res) continue;
+        const p = new URL(req.url).pathname;
+        if (sizes && p.startsWith('/assets/')) {
+          const want = sizes[p];
+          if (typeof want !== 'number') continue; // no longer in the build
+          if ((await res.clone().arrayBuffer()).byteLength !== want) continue; // edited in place: re-fetch lazily
+        }
+        await next.put(req, res);
+      } catch { /* one bad entry must not stop the migration */ }
+    }
+  }
+}
 
 /** Drop only the content-addressed entries this build no longer names. An empty bundle list → no prune (never a wipe). */
 async function pruneImmutable() {

@@ -29,7 +29,7 @@ They expire on three different clocks, which is why there are three:
 | cache | holds | expires |
 |---|---|---|
 | `ws-immutable` | `/assets/<name>-<hash>.*` — the emitted bundle | never wiped; `activate` prunes it to the files the new build's `sw.js` names (`__BUNDLE__`), so a deploy costs only the chunks that changed |
-| `ws-static-<assetsHash>` | `/assets/tex|models|hdri/**`, `/basis/**`, `/fonts/**`, root icons — the 70 MB the boot streams, cached on use | keyed by a hash of the `public/assets` file list + sizes; a JS-only deploy keeps the whole cache, an asset change rolls it |
+| `ws-static-<assetsHash>` | `/assets/tex|models|hdri|baked/**`, `/basis/**`, `/fonts/**`, root icons — the 30–70 MB the boot streams, cached on use | keyed by a hash of the `public/assets` file list + sizes; a JS-only deploy keeps the whole cache. An asset change names a new cache, and `activate` **migrates** every entry of the old one whose decoded size still matches the new `/asset-index.json` (fetched `no-store`) before dropping it — so adding, resizing or removing one file costs only that file. Before 2026-09-18 it rolled the whole cache: the first launch after such a deploy re-downloaded everything. |
 | `ws-shell-<build>` | `index.html`, `manifest.webmanifest`, `asset-index.json` | keyed by the build id (`<sha>-<content hash>`); dropped on `activate` of the next build |
 
 `__BUILD_ID__` in `sw.js` is `vite.config.ts`'s `BUILD_ID` **plus** a content hash of the emitted
@@ -38,6 +38,16 @@ reinstall a byte-identical `sw.js`) and the player's cache survives it.
 
 Cross-origin requests (Google Fonts) are never intercepted: offline, the title screen falls back
 to the system font stack that `hud.css` declares after Rajdhani / JetBrains Mono.
+
+## What the loading screen's DOWNLOAD track can and cannot tell you
+
+DOWNLOAD counts the bytes the boot's fetches deliver (`src/boot/bytes.ts` tees every `/assets/**`
+body) **regardless of where they came from** — the worker's cache, the HTTP cache or the network
+all read the same. A wiped or missing cache therefore still shows `30.5 MB / 30.5 MB · 100 %`; the
+tell is the SETUP rows: every step that fetches (sky, terrain, cards, cabins, props) takes seconds
+while every step that only computes (forest, edge, grass, herds) stays in the tens of ms. That
+pattern on 2026-09-18 (cabins 16.0 s) was the static cache being rolled by a deploy that added
+`terrain.bin`, not a CPU regression.
 
 ## iOS eviction (gauntlet `PWA_OFFLINE.md` §4.1)
 
@@ -62,3 +72,13 @@ iOS Safari, so the only defence is a resident set that is small and cheap to ref
 `vite preview` differences from the host: sirv serves `/` with `Cache-Control: no-cache` (it sets that
 after the middleware; `/index.html` gets the `no-store` rule) and adds `Vary: Origin` — which is why
 the worker matches with `ignoreVary`.
+
+2026-09-18, static-cache migration (`scripts`-free check, playwright persistent context on `vite preview --port 4181`,
+`?tier=phone&skipintro=1&nolock=1`, bytes = page responses not served by the worker + the worker's own fetches):
+
+| step | bytes on the wire |
+|---|---|
+| build A, first launch | 33.34 MB in 92 responses |
+| build A, second launch | 0 (7 responses: document, `version.json`, Google Fonts) |
+| add one 1 MB asset under `public/assets/`, build B, `adopt()` → reload | **0.83 MB in 24 responses** (the new bundle + shell; before the migration this was the full 33 MB) |
+| build B, next launch | 0 |
