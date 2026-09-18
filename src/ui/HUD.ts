@@ -10,6 +10,7 @@ import { PLACEHOLDERS } from '../chunks/placeholders';
  *   hud.setState({ bolts, loaded, reloading, reloadProgress?, health, fps, pos: {x, z}, yaw, kills, prompt?, speed?, ads? })
  *   hud.showHitMarker(headshot, killed)  hud.killFeed('Boar · headshot')  hud.toast('Bolt recovered')
  *   hud.damageFlash()  hud.setBoundaryWarning(visible)  hud.setPaused(bool)  hud.onResume = () => …
+ *   hud.onExitToMenu = () => …   // pause → "Exit to main menu": the HUD re-shows the intro itself (no reload); stop/mute the world here
  *   hud.setAimInfo(crossbow.aimInfo)   // "BOAR · 15 M" under the crosshair
  *
  * Call `setState` every frame (it diffs and only touches the DOM on change). Pause overlay appears on
@@ -44,6 +45,8 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, html?: 
 export class HUD {
   root: HTMLElement;
   onResume?: () => void;
+  onExitToMenu?: () => void;
+  private soundOff = false; // the menu's sound toggle; applied via onSoundToggle on enter, muted on exit-to-menu
   onSoundToggle?: (on: boolean) => void;
   private opts: HUDOptions;
   entered = false;
@@ -151,7 +154,7 @@ export class HUD {
     const resume = () => { this.setPaused(false); this.onResume?.(); };
     this.pause.addEventListener('click', (e) => { if (e.target === this.pause) resume(); }); // backdrop click = resume (desktop habit)
     this.pause.querySelector('.resume')!.addEventListener('click', resume);
-    this.pause.querySelector('.exit')!.addEventListener('click', () => location.reload()); // the title screen is the boot; a reload is the honest way back
+    this.pause.querySelector('.exit')!.addEventListener('click', () => this.exitToMenu());
     // touch pause button (TouchControls) and Escape on devices without pointer lock
     document.addEventListener('ws:pause', () => { if (this.entered) this.setPaused(!this.paused); });
     document.addEventListener('keydown', (e) => { if (e.code === 'Escape' && !this.opts.pointerLock && this.entered) this.setPaused(!this.paused); });
@@ -255,6 +258,7 @@ export class HUD {
         slug: c.slug, displayName: c.displayName, thumbnail: c.thumbnail, blurb: c.blurb,
         label: `${c.biome} · ${c.gridCoords} · ${CHUNK_SIZE} m shard`,
         tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def,
+        heroPortrait: c.heroPortrait, heroLandscape: c.heroLandscape,
       })),
       ...PLACEHOLDERS.map((t): DeckCard => ({
         slug: t.slug, displayName: t.displayName, thumbnail: t.thumbnail, blurb: t.blurb,
@@ -299,7 +303,8 @@ export class HUD {
       const c = cards[index];
       cardEls.forEach((e, i) => e.classList.toggle('selected', i === index));
       dots.forEach((d, i) => d.classList.toggle('on', i === index));
-      const url = c.playable ? '' : heroUrl(c);
+      // every card has hero art — the menu never shows the live world (it is paused underneath)
+      const url = heroUrl(c);
       if (url) { hero.style.backgroundImage = `url('${url}')`; hero.classList.add('show'); }
       else hero.classList.remove('show');
       enterBtn.classList.toggle('soon', !c.playable);
@@ -342,7 +347,9 @@ export class HUD {
     cardEls.forEach((e, i) => e.addEventListener('click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }));
     dots.forEach((d, i) => d.addEventListener('click', (ev) => { ev.stopPropagation(); select(i); }));
     enterBtn.addEventListener('click', (ev) => { ev.stopPropagation(); activate(); });
-    intro.querySelector('.ws-menu-sound')!.addEventListener('click', (e) => { e.stopPropagation(); const b = e.currentTarget as HTMLElement; const off = b.classList.toggle('off'); b.textContent = off ? 'Sound off' : 'Sound on'; this.onSoundToggle?.(!off); });
+    const soundBtn = intro.querySelector<HTMLElement>('.ws-menu-sound')!;
+    if (this.soundOff) { soundBtn.classList.add('off'); soundBtn.textContent = 'Sound off'; }
+    soundBtn.addEventListener('click', (e) => { e.stopPropagation(); this.soundOff = soundBtn.classList.toggle('off'); soundBtn.textContent = this.soundOff ? 'Sound off' : 'Sound on'; });
     // orientation flips swap the hero file and re-centre the selected card (card width is viewport-relative)
     let wasPortrait = portrait();
     const onResize = () => {
@@ -369,11 +376,24 @@ export class HUD {
     setTimeout(() => intro.remove(), Math.max(700, HERO_FADE_MS * 2));
     this.root.classList.remove('intro');
     this.entered = true;
+    this.onSoundToggle?.(!this.soundOff); // the world is silent under the menu; the player's choice applies on entry
     this.onEnter?.();
   }
 
   /** dev: skip the intro entirely */
   markEntered() { this.entered = true; this.root.classList.remove('intro'); }
+
+  /** Pause → "Exit to main menu": back to the chunk selection without a reload. The world stays loaded;
+   *  `onExitToMenu` is where main.ts stops the loop / mutes audio. The next ENTER WORLD fires `onEnter` again. */
+  exitToMenu() {
+    if (!this.entered || this.intro) return;
+    this.setPaused(false);
+    this.entered = false;
+    if (document.pointerLockElement) document.exitPointerLock?.();
+    this.onSoundToggle?.(false);
+    this.onExitToMenu?.();
+    if (this.onEnter) this.showIntro(this.onEnter);
+  }
 }
 
 function fmt(n: number) { return (n >= 0 ? '+' : '−') + String(Math.abs(n)).padStart(3, '0'); }
