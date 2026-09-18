@@ -244,7 +244,7 @@ export class HUD {
       <div class="ws-glass ws-panel ws-shards">
         <div class="ws-ptitle">Shards · <b>${CHUNKS.length}</b></div>
         <div class="ws-shards-head"><span class="ws-label">Chunks on this build</span><span class="ws-shards-hint">${CHUNKS.length > 1 ? 'select another to load it' : 'one authored so far'}</span></div>
-        <div class="ws-shards-list"></div>
+        <div class="ws-shards-list" data-scroll></div>
         <div class="ws-shards-blurb"></div>
       </div></div>
       <div class="ws-enterbar"><div class="ws-eicon">⇥</div><div class="ws-etext"><b>Enter the chunk</b><small>Press any key</small></div><div class="ws-ready">Ready</div></div>
