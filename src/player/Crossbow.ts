@@ -94,7 +94,8 @@ const KICK_PITCH = THREE.MathUtils.degToRad(0.8);
  *  below centre, the approved mockup) and the model is slid toward the eye until the nut/string reaches
  *  ADS_NUT_NDC_Y (just inside the bottom edge) or the near plane stops it — that fixes the eye height above the rail
  *  (~5 cm) and the depth, and the limb span falls out (≈ ±0.5 landscape, edge to edge on a 94° portrait). */
-const ADS_TIP_NDC_Y = -0.12, ADS_NUT_NDC_Y = -0.85, ADS_NEAR_MARGIN = 0.03, ADS_PITCH = 0, ADS_BLEND_TIME = 0.18, ADS_MOTION = 0.3;
+const ADS_TIP_NDC_Y = -0.12, ADS_NUT_NDC_Y = -0.85,
+  ADS_NEAR_MARGIN = 0.03, ADS_PITCH = 0, ADS_BLEND_TIME = 0.18, ADS_MOTION = 0.3;
 // damage numbers live in the damage model (src/entities/Animal.ts damageFor)
 /** Rear PEEP sight (mockup art/ads-C-peep-sight.png): a dark-iron ring on a post just in front of the nut (the stock
  *  behind the nut is inside the near plane when sighted), placed on the eye→tip line so that at full ADS its centre
@@ -907,13 +908,13 @@ export class Crossbow {
 
   /** world position of the loaded bolt's broadhead tip (the iron sight) */
   tipWorld(out: THREE.Vector3) { return this.loadedBolt.localToWorld(out.copy(this.tipLocal)); }
-  /** The aim line: from the hip the camera forward (crosshair); sighted, the eye→tip ray — what the tip covers is
-   *  what the bolt hits (the tip sits a hair below centre, so the sight line is a few degrees under the forward). */
+  /** The aim line is ALWAYS the camera forward (the crosshair / the peep ring's centre), hip or sighted — the user
+   *  found sighted shots landing low when they flew along the eye→tip ray. Sighted bolts start at the tip, which is
+   *  a few cm under the eye, and fly parallel to the forward: at any range that is the same point as the hip shot. */
   aimRay(origin: THREE.Vector3, dir: THREE.Vector3) {
-    const cam = this.game.camera, a = sstep(0, 1, this.adsBlend);
+    const cam = this.game.camera;
     cam.getWorldDirection(dir);
     origin.copy(cam.position);
-    if (a > 0.001) { this.tipWorld(_v1).sub(cam.position).normalize(); dir.lerp(_v1, a).normalize(); }
     return dir;
   }
 
@@ -964,10 +965,10 @@ export class Crossbow {
     o.px = 0; o.py = ADS_TIP_NDC_Y * tv * D - ty; o.pz = -D - tip.z * scale; o.rx = ADS_PITCH; o.scale = scale;
     o.tipDepth = D; o.eyeAboveRail = -o.py; o.nutDepth = D - A; o.nutNdcY = (ny + o.py) / ((D - A) * tv);
     o.limbNdcX = (this.tipR.x * scale) / (-(this.tipR.z * scale + o.pz) * th);
-    // peep: on the eye→tip line at model z = PEEP_Z. Eye in model space is (0, -py, -pz) / scale (rotation 0).
+    // peep: centred on the camera forward (the aim line) at model z = PEEP_Z. Eye in model space is (0, -py, -pz) / scale
+    // and the forward is −Z (rotation 0), so the line is y = ey for every z → the ring projects to the screen centre.
     const ey = -o.py / scale, ez = -o.pz / scale;
-    const u = (PEEP_Z - ez) / (tip.z - ez);
-    o.peepZ = PEEP_Z; o.peepY = ey + (tip.y - ey) * u; o.peepDepth = (ez - PEEP_Z) * scale;
+    o.peepZ = PEEP_Z; o.peepY = ey; o.peepDepth = (ez - PEEP_Z) * scale;
     o.peepR = Math.max(PEEP_W * o.peepDepth * th, PEEP_H * o.peepDepth * tv); // outer radius, world (½ of Ø = 4 % width / 7 % height)
     return o;
   }

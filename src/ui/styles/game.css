@@ -142,8 +142,11 @@
   .ws-game-compass .ws-game-mark { width: 20px; height: 20px; margin: -10px 0 0 -10px; }
   .ws-game-compass .ws-game-mark.paw svg { width: 18px; height: 18px; }
   .ws-game-compass .ws-game-range { font-size: 10px; padding: 2px 14px 3px; }
-  .ws-game-feed { top: calc(var(--ws-top) + 66px); }
-  .ws-game-toasts { top: calc(var(--ws-top) + 66px); right: 12px; }
+  /* phone: feed + toasts are LEFT-aligned under the fps line, capped at the minimap's left edge (the map owns the top-right) */
+  .ws-game-feed { left: 12px; transform: none; align-items: flex-start; top: calc(var(--ws-top) + 66px); max-width: calc(100vw - 34vw - 14px - 24px); }
+  .ws-game-feed .ws-game-item { font-size: 10px; padding: 4px 9px; white-space: normal; text-align: left; }
+  .ws-game-toasts { left: 12px; right: auto; align-items: flex-start; top: calc(var(--ws-top) + 110px); max-width: calc(100vw - 34vw - 14px - 24px); }
+  .ws-game-toasts .ws-game-toast { font-size: 10px; padding: 5px 10px; white-space: normal; text-align: left; }
   .ws-game-fps { top: calc(104px + env(safe-area-inset-top, 0px)); right: 12px; font-size: 8px; }
   .ws-game-health { left: 12px; top: calc(8px + env(safe-area-inset-top, 0px)); bottom: auto; width: 108px; padding: 6px 9px 7px; }
   .ws-game-health .ws-game-hval { font-size: 15px; }
