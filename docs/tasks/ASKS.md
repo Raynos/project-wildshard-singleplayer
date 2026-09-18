@@ -39,7 +39,7 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | 25 | **CSS sculpted per page** — unique class names per screen, fix it permanently | **done** | `087a862` `f80893d`: `hud.css` → `src/ui/styles/{base,game,menu,pause,touch,update}.css`, one prefix per screen, `scripts/check-css.mjs` on prebuild (fails on collisions; loading/perf warn-only until prototype 1 renames `ws-tagline`/`ws-fps`); also fixed the compass letters picking up the deck's `.ws-card` |
 | 26 | **Tap the look pad to fire**, remove the FIRE button | **done** | `df60e4c` (tap < 12 px / < 300 ms in the LOOK pad fires) |
 | 27 | **Aim is a toggle**, not a hold | **done** | `df60e4c` (AIM latches, cyan while on) |
-| 28 | **Aim = iron sights**, not a zoom: no crosshair, crossbow centred; **3 codex mockups** → user picked **A** | **in flight** (subagent: Crossbow.ts + game.css) | `art/ads-A-centred-low.png`, `ads-B-eye-level.png`, `ads-C-peep-sight.png` sent (B's HUD was redrawn by codex — judge the pose only) |
+| 28 | **Aim = iron sights**, not a zoom: no crosshair, crossbow centred; **3 codex mockups** → user picked **A** | **done** | `859379d` (bolt tip on the aim line, FOV 72 both ways, crosshair fades; portrait limbs 72 %) — `art/ads-A-centred-low.png`, `ads-B-eye-level.png`, `ads-C-peep-sight.png` sent (B's HUD was redrawn by codex — judge the pose only) |
 | 29 | Exit to main menu **bumps to the loading screen** — should go to the chunk selector | **in flight** | = #33 flow |
 | 30 | **Loading screen gone** (blank, build `b-mu6ezhob`) | **done** | prototype 1: `.ws-load` root rules restored in loading.css; live `b-mu6f75ka` |
 | 31 | **Codex hero image for Pine Hollow** so the menu never shows the live world at 29 fps | **done** | `815d8e6` `art/hero-pine-hollow-{portrait,landscape}.png` → `src/chunks/thumbs/`, `heroPortrait/heroLandscape` on the ChunkDef; the menu shows it once #33 lands |
@@ -59,3 +59,7 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | N3 | One built-in HOLO BAR edit of base-phone; save art/hud-N3-holobar.png | **done** | art/hud-N3-holobar.png; one built-in imagegen edit |
 
 | N1 | One built-in image edit: GRIP BAR HUD on base-phone; save art/hud-N1-gripbar.png | **done** | art/hud-N2-consolebar.png; single built-in imagegen edit |
+
+| P1 | One built-in EDGES HUD edit of base-phone; save art/hud-P1-baredges.png | **in flight** | Codex; single generation |
+
+| P2 | One built-in TOP CORNERS HUD edit; save art/hud-P2-barcorners.png | **in flight** | Codex; single generation |
