@@ -159,7 +159,7 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
     cloudSunColor: [1.0, 0.98, 0.94],
     hemiSky: 0x9fd8ff, hemiGround: 0x2a6f8a, hemiIntensity: 0.4,
     // the ringed gas giant high in the north-east (up and right of the pier's view), lit from the NW sun
-    planet: { azimuth: 38, elevation: 40, size: 14, tilt: 22, roll: 18 },
+    planet: { azimuth: 36, elevation: 38, size: 17, tilt: 24, roll: -16 },
   },
   atmosphere: {
     fogHeight: -20.0,

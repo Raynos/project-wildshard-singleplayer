@@ -6,8 +6,12 @@ import { fogUniforms } from './Atmosphere';
 import { Noise2D } from '../core/noise';
 import { Rng } from '../core/rng';
 import { getActiveChunk } from '../chunks/registry';
+import type { ChunkSky } from '../chunks/ChunkDef';
 import { bakedTexture, preloadBakedTextures } from '../boot/bakedTextures';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
+
+/** how far the planet group sits from the camera (Game.ts re-places it every frame along `planetDir`) */
+export const PLANET_DIST = 1700;
 
 /** public/assets/baked/<slug>/sky.json — the HDR's sun direction and horizon colour, scanned at build time (scripts/bake-sky.mjs). */
 async function loadBakedSky(hdri: string): Promise<{ sunDir: [number, number, number]; horizon: [number, number, number] } | null> {
@@ -127,7 +131,7 @@ export class Sky {
   clouds!: THREE.Mesh;
   private cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() } };
 
-  update(dt = 0) { this.csm.update(); this.cloudUniforms.uTime.value += dt; }
+  update(dt = 0) { this.csm.update(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt; }
 
   /** Thin procedural cirrus/cumulus layer on a sky dome — the HDRI has none, and a forest needs a sky with some drama. */
   private buildClouds() {
@@ -218,6 +222,8 @@ export class Sky {
   }
 
   private buildPlanet() {
+    const P = getActiveChunk().sky.planet;
+    if (P) { this.buildGasGiant(P); return; }
     // A gas giant with rings sits low over the east horizon — the world's signature skyline.
     const dir = this.planetDir;
     const dist = 1700, radius = 300;
@@ -247,6 +253,116 @@ export class Sky {
     this.planet.traverse((o) => { o.frustumCulled = false; });
     this.scene.add(this.planet);
   }
+
+  /**
+   * `ChunkSky.planet`: a banded gas giant with a thin bright ring on the sky where the def puts it
+   * (Driftwood Isle). Two transparent, fogless, depth-write-free meshes in `this.planet` (Game.ts
+   * keeps the group `PLANET_DIST` along `planetDir` from the camera): the body is a sphere shaded in
+   * its own shader — band texture wrapped about the ring axis, soft terminator from the sun's side,
+   * limb darkening and sky-haze at the limb so it sits *in* the sky like the mockups — and the ring
+   * an annulus whose shader hides the part behind the body and darkens the body's shadow on it.
+   */
+  private buildGasGiant(P: NonNullable<ChunkSky['planet']>) {
+    const d2r = Math.PI / 180;
+    const az = P.azimuth * d2r, el = P.elevation * d2r;
+    this.planetDir.set(-Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).normalize();
+    const dist = PLANET_DIST, R = dist * Math.tan(P.size * 0.5 * d2r);
+    const haze = new THREE.Color().copy((this.scene.fog as THREE.Fog).color).lerp(new THREE.Color(0.55, 0.7, 0.95), 0.4);
+    const bands = bakedTexture('giant', makeGiantTexture); bands.colorSpace = THREE.SRGBColorSpace;
+    bands.wrapS = THREE.RepeatWrapping; bands.wrapT = THREE.ClampToEdgeWrapping;
+    this.giantUniforms.uSunDir.value.copy(this.sunDir);
+    this.giantUniforms.uHaze.value.copy(haze);
+    this.giantUniforms.uRadius.value = R;
+
+    const body = new THREE.Mesh(new THREE.SphereGeometry(R, 48, 32), new THREE.ShaderMaterial({
+      uniforms: { ...this.giantUniforms, tBands: { value: bands } },
+      transparent: true, depthWrite: false,
+      vertexShader: /* glsl */`
+        varying vec3 vN; varying vec3 vW;
+        void main() {
+          vN = normalize(mat3(modelMatrix) * normal);
+          vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz;
+          gl_Position = projectionMatrix * viewMatrix * w;
+        }`,
+      fragmentShader: /* glsl */`
+        uniform sampler2D tBands; uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uTime;
+        varying vec3 vN; varying vec3 vW;
+        void main() {
+          vec3 N = normalize(vN);
+          vec3 V = normalize(cameraPosition - vW);
+          // bands wrap about the ring axis; the giant turns very slowly
+          vec3 T = normalize(cross(uAxis, vec3(0.0, 0.0, 1.0)));
+          vec3 B = cross(uAxis, T);
+          float lat = dot(N, uAxis);
+          float lon = atan(dot(N, B), dot(N, T)) / 6.2831853 + uTime * 0.0025;
+          vec3 col = texture2D(tBands, vec2(lon, lat * 0.5 + 0.5)).rgb;
+          float mu = max(dot(N, V), 0.0);
+          float day = smoothstep(-0.35, 0.3, dot(N, uSunDir));   // a wide soft terminator: the disc reads bright, with a shaded crescent
+          float limb = 0.45 + 0.55 * mu;                       // limb darkening
+          vec3 lit = col * (0.24 + 0.95 * day) * limb + col * vec3(0.05, 0.08, 0.14) * (1.0 - day); // a little sky bounce on the night side
+          // sky haze: the disc is pale and airy, more so at the limb (it sits in the atmosphere, not in front of it)
+          float h = 0.1 + 0.45 * pow(1.0 - mu, 2.4);
+          vec3 c = mix(lit, uHaze, h);
+          gl_FragColor = vec4(c, 0.92 - 0.25 * pow(1.0 - mu, 3.0));
+        }`,
+    }));
+    body.renderOrder = -12;
+
+    const ring = new THREE.Mesh(new THREE.RingGeometry(R * 1.38, R * 2.08, 160, 1), new THREE.ShaderMaterial({
+      uniforms: { ...this.giantUniforms },
+      transparent: true, depthWrite: false, side: THREE.DoubleSide,
+      vertexShader: /* glsl */`
+        varying vec3 vW; varying vec2 vL; varying vec3 vC;
+        void main() {
+          vL = position.xy;
+          vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz;
+          vC = modelMatrix[3].xyz;                      // the planet's centre (the ring sits at the group origin)
+          gl_Position = projectionMatrix * viewMatrix * w;
+        }`,
+      fragmentShader: /* glsl */`
+        uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uRadius;
+        varying vec3 vW; varying vec2 vL; varying vec3 vC;
+        // does the ray o + d t (t > 0, t < tmax) pass through the body?
+        bool hitsBody(vec3 o, vec3 d, float tmax) {
+          float t = dot(vC - o, d);
+          if (t < 0.0 || t > tmax) return false;
+          return length(o + d * t - vC) < uRadius * 0.995;
+        }
+        void main() {
+          float r = length(vL) / uRadius;                 // 1.38 … 2.08
+          float t = (r - 1.38) / 0.70;
+          // radial profile: a bright dense inner band, a thin gap, a fainter outer sheet with fine ringlets
+          float a = 0.62 + 0.38 * sin(t * 31.0) * sin(t * 7.3 + 1.0);
+          a *= smoothstep(0.0, 0.08, t) * smoothstep(1.0, 0.86, t);
+          a *= 1.0 - 0.85 * smoothstep(0.03, 0.0, abs(t - 0.56));            // the Cassini gap
+          a *= 1.0 - 0.5 * smoothstep(0.012, 0.0, abs(t - 0.3));
+          a *= mix(1.0, 0.55, smoothstep(0.6, 1.0, t));                        // the outer sheet is thinner
+          float bright = 0.55 + 0.45 * sin(t * 19.0 + 0.4);
+          // hidden behind the body / in the body's shadow
+          vec3 toEye = cameraPosition - vW; float dEye = length(toEye);
+          if (hitsBody(vW, toEye / dEye, dEye)) discard;
+          float shadow = hitsBody(vW, uSunDir, 1e9) ? 0.22 : 1.0;
+          // lit face vs the face in shade
+          vec3 V = toEye / dEye;
+          float sameSide = sign(dot(uAxis, V)) == sign(dot(uAxis, uSunDir)) ? 1.0 : 0.6;
+          float lit = (0.5 + 0.5 * abs(dot(uAxis, uSunDir))) * sameSide * shadow;
+          vec3 col = vec3(0.98, 0.95, 0.88) * (0.45 + 0.9 * lit) * bright;
+          col = mix(col, uHaze, 0.2);
+          gl_FragColor = vec4(col, a * 0.8);
+        }`,
+    }));
+    ring.rotation.set((90 - P.tilt) * d2r, 0, (P.roll ?? 20) * d2r, 'ZXY');
+    ring.renderOrder = -11;
+
+    this.planet.add(body, ring);
+    this.planet.position.copy(this.planetDir).multiplyScalar(dist);
+    this.planet.lookAt(0, 0, 0);
+    const axis = new THREE.Vector3(0, 0, 1).applyQuaternion(ring.quaternion).applyQuaternion(this.planet.quaternion).normalize();
+    this.giantUniforms.uAxis.value.copy(axis);
+    this.planet.traverse((o) => { o.frustumCulled = false; });
+    this.scene.add(this.planet);
+  }
+  private giantUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uHaze: { value: new THREE.Color() }, uAxis: { value: new THREE.Vector3(0, 1, 0) }, uRadius: { value: 1 } };
 }
 
 /**
@@ -323,4 +439,53 @@ function makeRingTexture() {
     g.fillStyle = `rgba(${l},${l - 8},${l - 22},${Math.max(0, Math.min(1, a))})`; g.fillRect(x, 0, 1, 4);
   }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+
+/**
+ * The gas giant's bands (`ChunkSky.planet`): cream / tan / rust latitude bands with turbulent edges and
+ * a few storm ovals, wrapping seamlessly in longitude (noise sampled on a circle). Seeded so the bake is
+ * reproducible (scripts/bake-textures.mjs, name `giant`).
+ */
+function makeGiantTexture() {
+  const W = 512, H = 256;
+  const rng = new Rng(7171), n = new Noise2D(7171);
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d')!;
+  const img = g.createImageData(W, H);
+  // colour stops down the latitude (0 = south pole … 1 = north pole)
+  const stops: [number, [number, number, number]][] = [
+    [0.0, [200, 180, 150]], [0.08, [230, 214, 184]], [0.16, [196, 156, 108]], [0.24, [240, 228, 202]], [0.3, [172, 104, 64]],
+    [0.36, [234, 218, 188]], [0.43, [208, 168, 118]], [0.5, [246, 236, 214]], [0.56, [190, 136, 90]], [0.62, [228, 208, 176]],
+    [0.7, [156, 92, 58]], [0.76, [236, 222, 196]], [0.84, [200, 164, 118]], [0.92, [224, 204, 174]], [1.0, [188, 168, 142]],
+  ];
+  const ramp = (v: number, out: number[]) => {
+    v = Math.min(1, Math.max(0, v));
+    let i = 0; while (i < stops.length - 2 && stops[i + 1][0] < v) i++;
+    const [v0, c0] = stops[i], [v1, c1] = stops[i + 1];
+    const u = Math.min(1, Math.max(0, (v - v0) / (v1 - v0)));
+    const e = u * u * (3 - 2 * u) * 0.6 + u * 0.4; // soft-ish band edges
+    for (let k = 0; k < 3; k++) out[k] = c0[k] + (c1[k] - c0[k]) * e;
+  };
+  const col = [0, 0, 0];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const u = (x / W) * Math.PI * 2, v = y / H;
+    const cu = Math.cos(u), su = Math.sin(u);
+    // turbulence: seamless in u (circle), stretched along the bands
+    const t1 = n.fbm(cu * 1.4 + v * 9.0, su * 1.4 + 3.0, 3);
+    const t2 = n.get(cu * 4.0 + v * 22.0, su * 4.0 + 11.0);
+    ramp(v + t1 * 0.035 + t2 * 0.008, col);
+    const shade = 0.96 + 0.04 * n.get(cu * 3 + v * 30, su * 3 + 5);
+    const i = (y * W + x) * 4; img.data[i] = col[0] * shade; img.data[i + 1] = col[1] * shade; img.data[i + 2] = col[2] * shade; img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  // storm ovals: a couple of rust spots and pale eddies riding the bands
+  for (let i = 0; i < 14; i++) {
+    const big = i < 2;
+    g.globalAlpha = big ? 0.55 : 0.3;
+    g.fillStyle = big ? '#b0603e' : i % 3 ? '#f4eee0' : '#a97a52';
+    g.beginPath();
+    g.ellipse(rng.next() * W, H * (0.2 + rng.next() * 0.6), big ? 22 + rng.next() * 14 : 8 + rng.next() * 16, big ? 9 + rng.next() * 4 : 2.5 + rng.next() * 3, 0, 0, Math.PI * 2);
+    g.fill();
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; return t;
 }
