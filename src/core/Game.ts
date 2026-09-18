@@ -11,6 +11,7 @@ import { GradeEffect } from './Grade';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from './tier';
+import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 
 export class Game {
   renderer: THREE.WebGLRenderer;
@@ -111,8 +112,10 @@ export class Game {
     const r = this.renderer;
     const target = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
     const chunk = 2;
+    if (PERFLOAD) perfLog('precompile:start', 0, r, `${mats.length} materials · parallel=${parallelCompile(r)}`);
     for (let i = 0; i < mats.length; i += chunk) {
       const keep = new Set(mats.slice(i, i + chunk));
+      const t0 = performance.now(); const before = PERFLOAD ? snapshotPrograms(r) : null;
       const batch = new THREE.Group();
       this.scene.traverse((o) => {
         const mesh = o as THREE.Mesh;
@@ -128,6 +131,7 @@ export class Game {
       let pending: Promise<unknown>;
       try { r.setRenderTarget(target); pending = r.compileAsync(batch, this.camera, this.scene); } finally { r.setRenderTarget(prev); }
       await pending;
+      if (before) perfLog(`batch ${i}`, performance.now() - t0, r, `${[...keep].map((m) => `${m.type}:${m.name || '?'}`).join(' + ')} → ${newProgramsSince(r, before).map(describeProgram).join(' | ') || 'cached'}`);
       onProgress?.(Math.min(mats.length, i + chunk), mats.length);
       await new Promise((res) => requestAnimationFrame(() => res(undefined)));
     }
@@ -144,13 +148,18 @@ export class Game {
     // into the composer's input buffer, not the canvas: the canvas target would be a second set of program variants
     const target = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
     const prev = this.renderer.getRenderTarget();
+    let t0 = performance.now(); let before = PERFLOAD ? snapshotPrograms(this.renderer) : null;
     this.renderer.setRenderTarget(target);
     this.renderer.render(this.scene, this.camera);
     this.renderer.setRenderTarget(prev);
+    if (before) perfLog('firstFrame:world', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | '));
     await frame();
     onProgress?.(1, 2, 'post chain');
+    t0 = performance.now(); before = PERFLOAD ? snapshotPrograms(this.renderer) : null;
     this.composer.render(0.016);
+    if (before) perfLog('firstFrame:post', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | '));
     await frame();
+    if (PERFLOAD) { t0 = performance.now(); before = snapshotPrograms(this.renderer); this.composer.render(0.016); perfLog('secondFrame', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | ')); console.info('[perfload] programs:\n' + dumpPrograms(this.renderer).join('\n')); }
   }
 
   resize() {
@@ -165,9 +174,17 @@ export class Game {
   start() {
     this.clock.start();
     this.renderer.info.autoReset = false; // the composer renders several passes per frame: count the whole frame
+    // Returning from the background on iOS: the GL backbuffer is dropped, so draw one frame at once
+    // (bypassing the gate) rather than showing black until the next gated frame; log context loss so
+    // a slow return can be attributed (textures + programs are re-uploaded after a restore).
+    let forceFrame = false;
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') forceFrame = true; });
+    this.canvas.addEventListener('webglcontextlost', () => console.warn('[gl] context lost', Math.round(performance.now())));
+    this.canvas.addEventListener('webglcontextrestored', () => console.warn('[gl] context restored', Math.round(performance.now())));
     const loop = () => {
       requestAnimationFrame(loop);
-      if (!this.frameGate()) { this.clock.getDelta(); return; } // keep the clock moving so the next frame's dt is sane
+      if (!forceFrame && !this.frameGate()) { this.clock.getDelta(); return; } // keep the clock moving so the next frame's dt is sane
+      forceFrame = false;
       this.renderer.info.reset();
       const dt = Math.min(0.1, this.clock.getDelta());
       const t = this.clock.elapsedTime;

@@ -1,4 +1,4 @@
-/* Loading screen (src/ui/Loading.ts) — every class here is ws-load-*; shared names (ws-glass, ws-wordmark, ws-tagline) come from base.css */
+/* Loading screen (src/ui/Loading.ts) — every class here is ws-load-*; shared names (ws-glass, ws-wordmark) come from base.css */
 
 /* ── pause overlay ── */
 
@@ -12,7 +12,7 @@
 .ws-load .ws-load-head { padding: 34px 44px 0; }
 .ws-load .ws-wordmark { font-family: var(--ws-display); font-weight: 700; font-size: 54px; line-height: 1; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; }
 .ws-load .ws-wordmark b { color: var(--ws-cyan); }
-.ws-load .ws-tagline { margin-top: 10px; font-size: 13px; letter-spacing: 0.04em; color: var(--ws-text-dim); }
+.ws-load .ws-load-tagline { margin-top: 10px; font-size: 13px; letter-spacing: 0.04em; color: var(--ws-text-dim); }
 .ws-load .ws-load-body { flex: 1; display: flex; align-items: center; justify-content: center; }
 .ws-load .ws-load-panel { width: 560px; padding: 22px 26px 20px; }
 .ws-load .ws-load-title { font-family: var(--ws-display); font-weight: 700; font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; }

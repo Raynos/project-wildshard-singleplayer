@@ -134,7 +134,7 @@ async function main() {
   let gateFrame = 0;
   game.frameGate = () => {
     if (hud.entered) return true;
-    if (document.querySelector('.ws-intro .ws-hero.show')) return false;
+    if (document.querySelector('.ws-menu .ws-menu-hero.show')) return false;
     return TIER !== 'phone' || (++gateFrame % 3 === 0);
   };
   if (attract) { crossbow.enabled = false; crossbow.model.visible = false; hud.showIntro(enter); }

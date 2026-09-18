@@ -25,7 +25,7 @@ export class Loading {
     this.root.innerHTML = `
       <div class="ws-load-head">
         <div class="ws-wordmark">Project <b>Wildshard</b></div>
-        <div class="ws-tagline">A world that does not exist yet, arriving one chunk at a time.</div>
+        <div class="ws-load-tagline">A world that does not exist yet, arriving one chunk at a time.</div>
       </div>
       <div class="ws-load-body">
         <div class="ws-glass ws-load-panel">
