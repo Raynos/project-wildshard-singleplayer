@@ -7,6 +7,7 @@ import { Pier } from '../world/Pier';
 import { Boat } from '../world/Boat';
 import { Boulders } from '../world/Boulders';
 import { Hut } from '../world/Hut';
+import { Palms } from '../world/Palms';
 import { HUT } from '../chunks/driftwood-isle';
 import { Boundary } from '../world/Boundary';
 import { Horizon } from '../world/Horizon';
@@ -41,13 +42,17 @@ game.scene.add(hut.group);
 player.colliders.push(...hut.colliders);
 player.platforms.push((x, z) => hut.floorHeightAt(x, z));
 
+const palms = new Palms(sky).build(Palms.scatterIsland(chunk.seed, 150, [{ x: HUT.x, z: HUT.z, r: 11 }]));
+game.scene.add(palms.mesh);
+player.colliders.push(...palms.colliders);
+
 const boundary = new Boundary(sky).build();
 game.scene.add(boundary.group);
 const horizon = new Horizon(sky).build();
 game.scene.add(horizon.group);
 
-game.onUpdate((dt, t) => { ocean?.update(dt); boat.update(dt); boundary.update(dt, t); horizon.update(dt, game.camera); });
+game.onUpdate((dt, t) => { ocean?.update(dt); boat.update(dt); palms.update(dt); boundary.update(dt, t); horizon.update(dt, game.camera); });
 
-(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boat, rocks, hut, boundary, horizon, heightAt };
+(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boat, rocks, hut, palms, boundary, horizon, heightAt };
 game.buildComposer();
 game.start();
