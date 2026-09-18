@@ -14,12 +14,22 @@ iPhone screenshot of the loading panel, warm (everything from the offline cache)
 | **Continuous bar** (steps weighted by the previous run's ms per tier/cores, elapsed/expected < 1 for the running step, per-frame republish) | `da7c9c3` | 232 paints over a 1.23 s load, longest gap 214 ms, 0 regressions | — |
 | **Terrain baked at build time** (`scripts/bake-chunk.mjs` → `public/assets/baked/<slug>/terrain.bin`, 256² heights + splat on the mesh grid; `src/world/BakedTerrain.ts` swaps Heightfield's `heightAt`/`normalAt`/`splatAt` for grid lookups — mesh bit-identical, every placer and the player read the grid) | `937c76d` | terrain 249 → 86 ms · grass/ferns/litter 210 → 75 · forest 17 → 13 (fresh contexts) | _pending_ (was terrain 838 · grass 620) |
 | **Textures uploaded in the step** (`renderer.initTexture` for ~100 textures, 12 ms slices) | `5c6b8ef` | first frame 733–1468 → 103–128 ms (fresh contexts); time to world 4.3–4.8 → 2.6–2.7 s | _pending_ |
-| Bake placements / sky / cards (§P2), KTX2 (§P1) | — | — | — |
+| **Round 2 — fewer programs** (each ≈ 110–150 ms of Metal compile on the iPhone, cold): BatchedMesh colour bit in the precompile stand-ins · undergrowth wind / horizon haze / cabin moss / fire particles as uniforms instead of source constants and defines · every plain MeshStandard/Physical material given the same map slots (1×1 fillers in `Sky.setupMaterial`) · needle/twig depth share · cabin + lantern glass through the shared programs · idle tone-mapping luminance pair no longer compiled | `d4c9657` `0b731ef` `114b4b3` `c4287fd` `05980ed` `714b6c2` | tier=phone programs **103 → 76**, 0 compiled at the first frame (crossbow patch pending: → 72) | _pending_ (was 98 + 7 at first frame) |
+| **SW static-cache migration** (`activate` copies the previous ws-static-* entries whose size matches asset-index.json; `/assets/baked/**` cached) | `9f6c3e2` | +1 asset deploy: 33.3 MB → 0.83 MB on the wire | the 16 s cabins run was this |
+| **Branch cards baked headless** (`scripts/bake-cards.mjs` → `card-{albedo,normal,arm}`, 3.1 MB) | `0ad009e` | 2 programs + 3 RT passes gone from the cards step (79 → 77) | _pending_ (cards 826 ms cold) |
+| **Procedural textures baked** (`bakedTexture()` + `scripts/bake-textures.mjs`: clouds, planet, deer/boar fur albedo + normal) | `2bb4d4c` | sky 133 → 95 ms · herds 105 → 16 ms (fresh contexts) | _pending_ (herds 980 ms cold) |
+| Sun / horizon from the HDR, PMREM, cabin geometry merge, KTX2 (§P1) | — | — | — |
 
-Remaining per step, desktop headless tier=phone fresh context (ms): renderer 11 · sky 150 · terrain 84 (12 canvas
-`getImageData` at a hardcoded 1024² in `loadPBRArray` — `TIER_CONFIG.layerSize` is ignored) · cards 48 · forest 12 ·
-edge 24 · grass 75 · cabins 108 (GLTF + texture decode) · props 26 · animals 108 (fur textures + spawn) ·
-shaders ~330 (link + resolve + texture upload) · first frame ~110.
+Remaining per step, desktop headless tier=phone fresh context (ms, 2026-09-18 00:50): renderer 9 · sky 95 ·
+terrain 82 · cards 70 · forest 14 · edge 21 · grass 66 · cabins 92 (GLTF + texture decode; 36 ms CPU) · props 27 ·
+animals 16 · shaders ~280 (76 programs linked + resolved, ~100 textures uploaded) · first frame ~78; ≈ 0.9 s of
+steps, 2.4 s to the world including browser start-up and the 1.3 MB bundle.
+
+Programs left (76): 23 custom-patched lit materials (terrain, slab, needles/far/bark/twigs, pond, ridge, grass ×2,
+undergrowth, cabin door/moss, fur ×2, crossbow ×8 → 4 with the pending patch), 8 generic lit variants, 3 Lambert
+(planet / rings), 11 unlit (MeshBasic ×7, sprite, lines, points), 10 small scene ShaderMaterials (sky dome,
+particles, boundary), 7 shadow-depth variants, 13 post (3 EffectPass + god rays 3 + bloom 3 + SMAA 2 + copy/mask)
++ the sky box. Below ~60 means dropping effects on the phone tier: god rays (−4), SMAA (−2), bloom (−3).
 
 Goal: the chunk playtest opens like a native game on an iPhone home-screen PWA —
 title screen in under a second, playable in seconds, and a **second launch that
