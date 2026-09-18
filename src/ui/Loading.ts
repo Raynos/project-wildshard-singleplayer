@@ -21,30 +21,30 @@ export class Loading {
   constructor() {
     const chunk = getActiveChunk();
     this.root = document.createElement('div');
-    this.root.className = 'ws-loading';
+    this.root.className = 'ws-load';
     this.root.innerHTML = `
-      <div class="ws-loading-head">
+      <div class="ws-load-head">
         <div class="ws-wordmark">Project <b>Wildshard</b></div>
         <div class="ws-tagline">A world that does not exist yet, arriving one chunk at a time.</div>
       </div>
-      <div class="ws-loading-body">
-        <div class="ws-glass ws-loading-panel">
-          <div class="ws-ptitle">Loading chunk · <b>${chunk.slug}</b><span class="ws-loading-clock" data-el="clock">00:00.0</span></div>
-          <div class="ws-loading-meta ws-loading-meta-1">
+      <div class="ws-load-body">
+        <div class="ws-glass ws-load-panel">
+          <div class="ws-load-title">Loading chunk · <b>${chunk.slug}</b><span class="ws-load-clock" data-el="clock">00:00.0</span></div>
+          <div class="ws-load-meta ws-load-meta-1">
             <div><span>tier</span><span>${TIER} · ${Math.round(innerWidth * devicePixelRatio)}×${Math.round(innerHeight * devicePixelRatio)} · ${navigator.hardwareConcurrency ?? '?'} cores${window.__ws_sw ? ' · offline cache' : ''}</span></div>
           </div>
-          <div class="ws-track">
-            <div class="ws-track-row"><span class="ws-track-name">download</span><span class="ws-track-fact" data-el="dlFact">—</span><span class="ws-track-pct" data-el="dlPct">0</span></div>
-            <div class="ws-loading-bar"><div class="ws-loading-fill" data-el="dlBar"></div></div>
+          <div class="ws-load-track">
+            <div class="ws-load-track-row"><span class="ws-load-track-name">download</span><span class="ws-load-track-fact" data-el="dlFact">—</span><span class="ws-load-track-pct" data-el="dlPct">0</span></div>
+            <div class="ws-load-bar"><div class="ws-load-fill" data-el="dlBar"></div></div>
           </div>
-          <div class="ws-track">
-            <div class="ws-track-row"><span class="ws-track-name">setup</span><span class="ws-track-fact" data-el="suFact">—</span><span class="ws-track-pct" data-el="suPct">0</span></div>
-            <div class="ws-loading-bar"><div class="ws-loading-fill" data-el="suBar"></div></div>
+          <div class="ws-load-track">
+            <div class="ws-load-track-row"><span class="ws-load-track-name">setup</span><span class="ws-load-track-fact" data-el="suFact">—</span><span class="ws-load-track-pct" data-el="suPct">0</span></div>
+            <div class="ws-load-bar"><div class="ws-load-fill" data-el="suBar"></div></div>
           </div>
-          <div class="ws-loading-log" data-el="rows"></div>
+          <div class="ws-load-log" data-el="rows"></div>
         </div>
       </div>
-      <div class="ws-loading-foot"><span>local build · unuploaded</span><span data-el="foot">an in-progress private project</span></div>`;
+      <div class="ws-load-foot"><span>local build · unuploaded</span><span data-el="foot">an in-progress private project</span></div>`;
     document.body.appendChild(this.root);
     this.els = {};
     this.root.querySelectorAll<HTMLElement>('[data-el]').forEach((e) => { this.els[e.dataset.el!] = e; });
@@ -76,7 +76,7 @@ export class Loading {
     const v = this.view; if (!v) return;
     // every step that has started, newest last; todo steps are not rows (nothing to say about them yet)
     const shown = v.rows.filter((r) => r.state !== 'todo');
-    while (this.rowsEl.children.length < shown.length) { const d = document.createElement('div'); d.innerHTML = '<span class="ws-row-label"></span><span class="ws-row-detail"></span><span class="ws-row-ms"></span>'; this.rowsEl.appendChild(d); }
+    while (this.rowsEl.children.length < shown.length) { const d = document.createElement('div'); d.innerHTML = '<span class="ws-load-row-label"></span><span class="ws-load-row-detail"></span><span class="ws-load-row-ms"></span>'; this.rowsEl.appendChild(d); }
     shown.forEach((r, i) => {
       const el = this.rowsEl.children[i] as HTMLElement;
       el.className = r.state === 'on' ? 'on' : 'ok';

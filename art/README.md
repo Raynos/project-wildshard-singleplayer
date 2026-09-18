@@ -102,3 +102,12 @@ the world is backdrop. A/B/C are portrait phone (1024×1536), D/E landscape (153
 
 Gotcha: parallel runs must not all "copy the newest PNG from ~/.codex/generated_images" — they race
 and copy each other's file. Map outputs by the generation folder id in each run's log instead.
+
+### HUD overlays on the real frame (`art/hud-F…J.png`, 2026-09-17)
+
+Second round after the user's correction: the world, crossbow, crosshair and the bottom MOVE / LOOK
+control bar are FIXED; only the four action buttons and the vitals / compass / bolts readouts change.
+Base = an in-engine phone-tier screenshot at the trail pose with the HUD hidden (`?tier=phone&perf=0&touch=1
+&x=0&z=-200&yaw=3.1416`, viewport 390×844 @3×), given to codex as the edit target with the invariants
+repeated. F icon rail · G refined row · H split cluster (thumb-reachable) · I rings · J staging console.
+Parallel-run rule: each run copies the path its own image_gen result reported, never "the newest file".

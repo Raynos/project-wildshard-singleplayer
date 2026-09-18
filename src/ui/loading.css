@@ -1,37 +1,46 @@
+/* Loading screen (src/ui/Loading.ts) — every class here is ws-load-*; shared names (ws-glass, ws-wordmark, ws-tagline) come from base.css */
+#hud.intro .ws-fps { top: 82px; right: 44px; }
+
+/* ── pause overlay ── */
+#hud.touch .ws-pause { z-index: 10; }
+
+/* play-mode HUD hides while the intro is up */
+#hud.intro .ws-chunk, #hud.intro .ws-compass, #hud.intro .ws-health, #hud.intro .ws-ammo, #hud.intro .ws-cross, #hud.intro .ws-feed, #hud.intro .ws-prompt, #hud.intro .ws-boundary, #hud.intro .ws-toasts { opacity: 0; transition: opacity 0.4s; }
+
 /* Loading screen facts panel (src/ui/Loading.ts). Base panel/wordmark styles live in hud.css. */
-.ws-loading .ws-loading-meta-1 { grid-template-columns: 1fr; margin: 10px 0 8px; }
-.ws-loading .ws-ptitle { display: flex; align-items: baseline; }
-.ws-loading .ws-ptitle b { margin-left: 6px; }
-.ws-loading .ws-loading-clock { margin-left: auto; font-family: var(--ws-mono); font-size: 13px; letter-spacing: 0.08em; color: var(--ws-cyan); font-weight: 400; }
-.ws-loading .ws-track { margin-top: 12px; }
-.ws-loading .ws-track-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; }
-.ws-loading .ws-track-name { width: 78px; color: var(--ws-cyan-dim); flex: none; }
-.ws-loading .ws-track-fact { flex: 1; color: var(--ws-text-dim); text-transform: none; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ws-loading .ws-track-pct { color: #fff; font-family: var(--ws-display); font-size: 18px; letter-spacing: 0.04em; width: 44px; text-align: right; flex: none; }
-.ws-loading .ws-track-pct::after { content: '%'; font-size: 11px; margin-left: 2px; color: var(--ws-text-dim); }
-.ws-loading .ws-loading-log { margin-top: 14px; min-height: 96px; }
-.ws-loading .ws-loading-log div { display: flex; gap: 10px; align-items: baseline; font-size: 9.5px; letter-spacing: 0.08em; line-height: 1.7; color: rgba(196, 220, 232, 0.45); }
-.ws-loading .ws-loading-log div.on { color: var(--ws-cyan-dim); }
-.ws-loading .ws-loading-log .ws-row-label { flex: none; }
-.ws-loading .ws-loading-log .ws-row-detail { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(196, 220, 232, 0.6); }
-.ws-loading .ws-loading-log div.on .ws-row-detail { color: #fff; }
-.ws-loading .ws-loading-log .ws-row-ms { flex: none; font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
+.ws-load .ws-load-meta-1 { grid-template-columns: 1fr; margin: 10px 0 8px; }
+.ws-load .ws-load-title { display: flex; align-items: baseline; }
+.ws-load .ws-load-title b { margin-left: 6px; }
+.ws-load .ws-load-clock { margin-left: auto; font-family: var(--ws-mono); font-size: 13px; letter-spacing: 0.08em; color: var(--ws-cyan); font-weight: 400; }
+.ws-load .ws-load-track { margin-top: 12px; }
+.ws-load .ws-load-track-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; }
+.ws-load .ws-load-track-name { width: 78px; color: var(--ws-cyan-dim); flex: none; }
+.ws-load .ws-load-track-fact { flex: 1; color: var(--ws-text-dim); text-transform: none; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-load .ws-load-track-pct { color: #fff; font-family: var(--ws-display); font-size: 18px; letter-spacing: 0.04em; width: 44px; text-align: right; flex: none; }
+.ws-load .ws-load-track-pct::after { content: '%'; font-size: 11px; margin-left: 2px; color: var(--ws-text-dim); }
+.ws-load .ws-load-log { margin-top: 14px; min-height: 96px; }
+.ws-load .ws-load-log div { display: flex; gap: 10px; align-items: baseline; font-size: 9.5px; letter-spacing: 0.08em; line-height: 1.7; color: rgba(196, 220, 232, 0.45); }
+.ws-load .ws-load-log div.on { color: var(--ws-cyan-dim); }
+.ws-load .ws-load-log .ws-load-row-label { flex: none; }
+.ws-load .ws-load-log .ws-load-row-detail { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: rgba(196, 220, 232, 0.6); }
+.ws-load .ws-load-log div.on .ws-load-row-detail { color: #fff; }
+.ws-load .ws-load-log .ws-load-row-ms { flex: none; font-variant-numeric: tabular-nums; min-width: 52px; text-align: right; }
 @media (max-width: 600px) {
-  .ws-loading .ws-track-name { width: 64px; }
-  .ws-loading .ws-track-fact { font-size: 10px; }
-  .ws-loading .ws-loading-log { min-height: 0; }
+  .ws-load .ws-load-track-name { width: 64px; }
+  .ws-load .ws-load-track-fact { font-size: 10px; }
+  .ws-load .ws-load-log { min-height: 0; }
 }
 
 /* phone: the panel fills the width, the head and foot tighten, safe areas respected */
 @media (max-width: 700px) {
-  .ws-loading .ws-loading-head { padding: calc(44px + env(safe-area-inset-top, 0px)) 16px 0; } /* clears the build pill top-right */
-  .ws-loading .ws-wordmark { font-size: 34px; letter-spacing: 0.06em; }
-  .ws-loading .ws-tagline { font-size: 11px; }
-  .ws-loading .ws-loading-body { padding: 12px 16px; align-items: flex-start; }
-  .ws-loading .ws-loading-panel { width: 100%; padding: 16px 14px 14px; }
-  .ws-loading .ws-ptitle { font-size: 16px; }
-  .ws-loading .ws-loading-clock { font-size: 12px; }
-  .ws-loading .ws-loading-meta { grid-template-columns: 1fr; margin: 10px 0 12px; }
-  .ws-loading .ws-loading-meta div { font-size: 10.5px; }
-  .ws-loading .ws-loading-foot { padding: 0 16px calc(14px + env(safe-area-inset-bottom, 0px)); font-size: 8.5px; letter-spacing: 0.14em; }
+  .ws-load .ws-load-head { padding: calc(44px + env(safe-area-inset-top, 0px)) 16px 0; } /* clears the build pill top-right */
+  .ws-load .ws-wordmark { font-size: 34px; letter-spacing: 0.06em; }
+  .ws-load .ws-tagline { font-size: 11px; }
+  .ws-load .ws-load-body { padding: 12px 16px; align-items: flex-start; }
+  .ws-load .ws-load-panel { width: 100%; padding: 16px 14px 14px; }
+  .ws-load .ws-load-title { font-size: 16px; }
+  .ws-load .ws-load-clock { font-size: 12px; }
+  .ws-load .ws-load-meta { grid-template-columns: 1fr; margin: 10px 0 12px; }
+  .ws-load .ws-load-meta div { font-size: 10.5px; }
+  .ws-load .ws-load-foot { padding: 0 16px calc(14px + env(safe-area-inset-bottom, 0px)); font-size: 8.5px; letter-spacing: 0.14em; }
 }

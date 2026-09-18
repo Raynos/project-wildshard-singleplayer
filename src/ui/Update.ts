@@ -49,7 +49,7 @@ setInterval(check, 5 * 60 * 1000);
 // Only show while on the loading / title screen; hide once the player has entered the chunk.
 const hud = document.getElementById('hud');
 const sync = () => {
-  const onTitle = !!document.querySelector('.ws-loading') || !!hud?.classList.contains('intro');
+  const onTitle = !!document.querySelector('.ws-load') || !!hud?.classList.contains('intro');
   el.classList.toggle('visible', onTitle); // menu-only: never over the game view, even when a newer build exists
 };
 sync();

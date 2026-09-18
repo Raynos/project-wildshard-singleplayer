@@ -6,11 +6,11 @@
 .ws-perf.bad b { color: #ff7a6b; }
 .ws-perf[hidden] { display: none; }
 /* the title screen's build pill and sound toggle sit top-right: drop under them */
-body:has(#hud.intro) .ws-perf, body:has(.ws-loading) .ws-perf { top: calc(84px + env(safe-area-inset-top, 0px)); }
+body:has(#hud.intro) .ws-perf, body:has(.ws-load) .ws-perf { top: calc(84px + env(safe-area-inset-top, 0px)); }
 @media (max-width: 700px) {
   .ws-perf { right: 8px; top: calc(100px + env(safe-area-inset-top, 0px)); font-size: 7px; gap: 4px; padding: 2px 4px; }
   .ws-perf b { font-size: 9px; }
-  body:has(#hud.intro) .ws-perf, body:has(.ws-loading) .ws-perf { top: calc(100px + env(safe-area-inset-top, 0px)); }
+  body:has(#hud.intro) .ws-perf, body:has(.ws-load) .ws-perf { top: calc(100px + env(safe-area-inset-top, 0px)); }
 }
 /* the old faint readout in the HUD is superseded */
 #hud .ws-fps { display: none; }

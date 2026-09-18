@@ -101,11 +101,11 @@ const INIT_SCRIPT = `(() => {
   try { new PerformanceObserver((l) => { for (const e of l.getEntries()) W.__bench_long.push([Math.round(e.startTime), Math.round(e.duration)]); }).observe({ type: 'longtask', buffered: true }); } catch {}
   let lastStep = '';
   const readStep = () => {
-    const root = document.querySelector('.ws-loading'); if (!root) return null;
+    const root = document.querySelector('.ws-load'); if (!root) return null;
     const ds = root.getAttribute('data-step') || root.querySelector('[data-step]')?.getAttribute('data-step');
     if (ds) return { text: ds, bytes: root.getAttribute('data-bytes') || root.querySelector('[data-bytes]')?.getAttribute('data-bytes') || null };
-    const log = root.querySelector('.ws-loading-log'); const line = log && log.lastElementChild;
-    const text = line ? line.textContent.replace(/^▸\\s*/, '') : (root.querySelector('.ws-loading-label')?.textContent ?? '');
+    const log = root.querySelector('.ws-load-log'); const line = log && log.lastElementChild;
+    const text = line ? line.textContent.replace(/^▸\\s*/, '') : (root.querySelector('.ws-load-track-fact')?.textContent ?? '');
     return { text, bytes: null };
   };
   const onMut = () => { const s = readStep(); if (s && s.text && s.text !== lastStep) { lastStep = s.text; W.__bench_steps.push([Math.round(performance.now()), s.text, s.bytes]); } };
@@ -115,10 +115,10 @@ const INIT_SCRIPT = `(() => {
   };
   if (document.documentElement) start(); else document.addEventListener('DOMContentLoaded', start);
   const poll = setInterval(() => {
-    if (!W.__bench_title && (document.querySelector('.ws-loading') || document.querySelector('#hud.intro'))) {
+    if (!W.__bench_title && (document.querySelector('.ws-load') || document.querySelector('#hud.intro'))) {
       W.__bench_title = -1; requestAnimationFrame(() => requestAnimationFrame(() => { W.__bench_title = Math.round(performance.now()); }));
     }
-    if (!W.__bench_play && !document.querySelector('.ws-loading') && W.__world) { W.__bench_play = Math.round(performance.now()); clearInterval(poll); }
+    if (!W.__bench_play && !document.querySelector('.ws-load') && W.__world) { W.__bench_play = Math.round(performance.now()); clearInterval(poll); }
   }, 50);
 })();`;
 
