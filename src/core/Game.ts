@@ -11,6 +11,7 @@ import { GradeEffect } from './Grade';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from './tier';
+import { ResumeSnapshot } from './ResumeSnapshot';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 
@@ -160,6 +161,9 @@ export class Game {
     // a slow return can be attributed (textures + programs are re-uploaded after a restore).
     let forceFrame = false;
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') forceFrame = true; });
+    // iOS snapshots the screen without WebGL layers when the app is backgrounded → 1–2 s of black on return.
+    // ResumeSnapshot paints the last frame into a 2D canvas overlay at that moment (src/core/ResumeSnapshot.ts).
+    const snapshot = new ResumeSnapshot(this.renderer, () => this.composer.render(0.016), () => this.frameGate());
     this.canvas.addEventListener('webglcontextlost', () => { this.gl.lostAt = performance.now(); this.gl.events++; console.warn('[gl] context lost'); });
     this.canvas.addEventListener('webglcontextrestored', () => { this.gl.restoredAt = performance.now(); console.warn('[gl] context restored after', Math.round(this.gl.restoredAt - this.gl.lostAt), 'ms'); });
     const loop = () => {
@@ -174,6 +178,7 @@ export class Game {
       // planet + sun disc travel with the camera so they stay "infinitely" far
       if (this.sky) { this.sky.clouds.position.copy(this.camera.position); this.sky.planet.position.copy(this.camera.position).addScaledVector(this.sky.planetDir, 1700); this.sky.sunDisc.position.copy(this.camera.position).addScaledVector(this.sky.sunDir, 1500); }
       this.composer.render(dt);
+      snapshot.afterFrame();
       this.lastFrame.calls = this.renderer.info.render.calls; this.lastFrame.triangles = this.renderer.info.render.triangles;
       this.frameMs[this.frameI] = dt * 1000; this.frameI = (this.frameI + 1) % this.frameMs.length;
       this.stats.frames++; this.stats.acc += dt;
