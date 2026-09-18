@@ -267,7 +267,7 @@ export class HUD {
       <div class="ws-hero"></div>
       <div class="ws-head"><div class="ws-wordmark">Project <b>Wildshard</b></div></div>
       <div class="ws-deck">
-        <div class="ws-cards"><div class="ws-track">${cards.map((c, i) => `
+        <div class="ws-cards"><div class="ws-deck-track">${cards.map((c, i) => `
           <button class="ws-card${c.active ? ' active' : ''}${c.playable ? '' : ' soon'}" type="button" data-i="${i}" title="${c.blurb.replace(/"/g, '&quot;')}">
             <span class="ws-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-card-tag ${c.tagTone}">${c.tag}</i></span>
             <b>${c.displayName}</b><small>${c.label}</small>
@@ -288,7 +288,7 @@ export class HUD {
     const heroUrl = (c: DeckCard) => (portrait() ? c.heroPortrait : c.heroLandscape) ?? '';
     let index = Math.max(0, cards.findIndex((c) => c.active));
     // paginated track: one card per swipe, always centred — no native scroll, so it can't rest between cards
-    const track = list.querySelector<HTMLElement>('.ws-track')!;
+    const track = list.querySelector<HTMLElement>('.ws-deck-track')!;
     const offsetOf = (i: number) => list.clientWidth / 2 - (cardEls[i].offsetLeft + cardEls[i].offsetWidth / 2);
     const place = (i: number, extra = 0, animate = true) => {
       track.style.transition = animate ? 'transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';

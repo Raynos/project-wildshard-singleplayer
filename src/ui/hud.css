@@ -168,7 +168,7 @@ html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; background: 
 /* deck: carousel + dots + enter + sound, centred in the lower half */
 .ws-intro .ws-deck { --card-w: 420px; --card-gap: 18px; display: flex; flex-direction: column; align-items: center; padding-bottom: max(26px, env(safe-area-inset-bottom, 0px)); }
 .ws-cards { position: relative; width: 100%; padding: 12px 0; overflow: hidden; touch-action: none; cursor: grab; }
-.ws-track { display: flex; gap: var(--card-gap); will-change: transform; }
+.ws-deck-track { display: flex; gap: var(--card-gap); will-change: transform; }
 .ws-cards::-webkit-scrollbar { display: none; }
 .ws-card { position: relative; flex: 0 0 var(--card-w); width: var(--card-w); padding: 0; margin: 0; text-align: center; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 12px 40px rgba(0, 0, 0, 0.45); color: var(--ws-text); cursor: pointer; font-family: var(--ws-mono); opacity: 0.55; transform: scale(0.94); transition: opacity 0.25s, transform 0.25s, border-color 0.25s, box-shadow 0.25s; -webkit-tap-highlight-color: transparent; }
 .ws-card::before { content: ''; position: absolute; left: -1px; top: -1px; width: 18px; height: 18px; border-left: 1px solid var(--ws-cyan); border-top: 1px solid var(--ws-cyan); opacity: 0.8; z-index: 1; }
