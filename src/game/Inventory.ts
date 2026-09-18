@@ -28,7 +28,7 @@ export function harvestOf(kind: string, variant?: string): ItemId[] {
   switch (kind) {
     case 'deer': return /stag|ghost/.test(variant ?? '') ? ['venison', 'deer-hide', 'antlers'] : ['venison', 'deer-hide'];
     case 'boar': return variant === 'sow' ? ['boar-meat', 'boar-hide'] : ['boar-meat', 'boar-hide', 'boar-tusk'];
-    case 'elk': return ['elk-meat', 'elk-hide', 'antlers'];
+    case 'elk': return /bull|imperial/.test(variant ?? '') ? ['elk-meat', 'elk-hide', 'antlers'] : ['elk-meat', 'elk-hide']; // cows carry no rack
     case 'bear': return ['bear-pelt', 'bear-claw'];
     default: return [];
   }
