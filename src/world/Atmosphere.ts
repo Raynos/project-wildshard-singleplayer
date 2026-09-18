@@ -78,3 +78,37 @@ export function installAtmosphere() {
 export function attachFogUniforms(shader: { uniforms: Record<string, THREE.IUniform> }) {
   for (const k of Object.keys(fogUniforms)) shader.uniforms[k] = (fogUniforms as Record<string, THREE.IUniform>)[k];
 }
+
+// ─── underwater (the eye below the sea surface — Player.submerged) ───
+// The same fog, retuned: no height term, a dense distance term (half the light gone by ~12 m), a deep teal-green
+// colour and no orange sun in-scatter. `setUnderwater(on)` picks the target, `updateUnderwater(dt, scene.fog)` lerps
+// the uniforms and the scene fog colour there over ~0.3 s; the dry values are captured on the way in and restored.
+const UNDER_COLOR = new THREE.Color(0.08, 0.78, 0.9); // linear HDR: the scene's sun + sky sit near 3×, so the fog must be bright to read as turquoise, not grey
+const UNDER_SUN = new THREE.Color(0.4, 1.2, 1.2);
+const UNDER_DIST_DENSITY = 0.024;
+const UNDER_BLEND_RATE = 1 / 0.3;
+let underTarget = 0, underBlend = 0;
+const dry = { color: new THREE.Color(), sun: new THREE.Color(), dist: 0, height: 0, captured: false };
+const _c = new THREE.Color();
+
+/** the eye went under (true) / came back up (false) */
+export function setUnderwater(on: boolean) { underTarget = on ? 1 : 0; }
+export function isUnderwater() { return underTarget === 1; }
+
+/** every frame (Player.update does it): lerps the fog uniforms + `fog.color` toward the underwater / dry set */
+export function updateUnderwater(dt: number, fog: THREE.Fog | THREE.FogExp2 | null) {
+  if (underBlend === underTarget) return;
+  if (!dry.captured) {
+    // the dry set is whatever the sky installed (Sky.ts); read it the first time the water asks for a change
+    dry.captured = true;
+    dry.sun.copy(fogUniforms.fogSunColor.value); dry.dist = fogUniforms.fogDistDensity.value; dry.height = fogUniforms.fogHeightDensity.value;
+    if (fog) dry.color.copy(fog.color);
+  }
+  const step = Math.min(1, dt * UNDER_BLEND_RATE);
+  underBlend = underTarget > underBlend ? Math.min(underTarget, underBlend + step) : Math.max(underTarget, underBlend - step);
+  const t = underBlend * underBlend * (3 - 2 * underBlend);
+  fogUniforms.fogSunColor.value.copy(dry.sun).lerp(UNDER_SUN, t);
+  fogUniforms.fogDistDensity.value = dry.dist + (UNDER_DIST_DENSITY - dry.dist) * t;
+  fogUniforms.fogHeightDensity.value = dry.height * (1 - t);
+  if (fog) fog.color.copy(dry.color).lerp(_c.copy(UNDER_COLOR), t);
+}

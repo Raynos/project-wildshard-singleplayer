@@ -18,11 +18,17 @@
 /* layout A ("edge docks", art/buttons-A-edges.png): AIM hugs the left edge, JUMP the right, HOVER is a small pill on the right edge halfway up — the centre stays clear of the crossbow */
 .ws-touch-disc.aim { left: calc(var(--disc) / 2 + 10px); }
 .ws-touch-disc.jump { left: calc(100% - var(--disc) / 2 - 10px); }
-/* swimming (TouchControls adds .swimming to the layer): JUMP gives its spot to DIVE, a held button */
+/* swimming (TouchControls adds .swimming to the layer): JUMP gives its spot to DIVE, a held button; once the eye is under
+   (.submerged) a SURFACE disc surfaces beside it, one disc-width in from the edge — hold to rise, gone again at the top */
 .ws-touch-disc.dive { left: calc(100% - var(--disc) / 2 - 10px); display: none; }
+.ws-touch-disc.surface { left: calc(100% - var(--disc) * 1.5 - 26px); display: none; opacity: 0; transform: translateY(8px); transition: opacity 0.2s, transform 0.2s, background 0.15s; }
 .ws-touch.swimming .ws-touch-disc.jump { display: none; }
 .ws-touch.swimming .ws-touch-disc.dive { display: flex; }
-.ws-touch-disc.dive svg { width: 44%; height: 44%; fill: none; }
+.ws-touch.swimming .ws-touch-disc.surface { display: flex; }
+.ws-touch.swimming.submerged .ws-touch-disc.surface { opacity: 1; transform: none; }
+.ws-touch.swimming:not(.submerged) .ws-touch-disc.surface { pointer-events: none; }
+.ws-touch-disc.dive svg, .ws-touch-disc.surface svg { width: 44%; height: 44%; fill: none; }
+.ws-touch-disc.surface span { font-size: 8px; letter-spacing: 0.18em; }
 .ws-touch-disc.hover { left: auto; right: 0; bottom: auto; top: 46%; margin-left: 0; width: 52px; height: 52px; border-radius: 12px 0 0 12px; border-right: none; font-size: 7px; gap: 2px; }
 .ws-touch-disc.hover::before, .ws-touch-disc.hover::after { display: none; }
 /* SWAP (crossbow ⇄ AR-15, src/player/Weapons.ts): HOVER's mirror on the LEFT edge, same pill, opening to the right */

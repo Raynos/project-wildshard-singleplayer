@@ -1,10 +1,11 @@
 import * as THREE from 'three';
-import { heightAt, pondMask, waterLevel } from '../world/Heightfield';
+import { heightAt, normalAt, pondMask, waterLevel } from '../world/Heightfield';
 import { getActiveChunk } from '../chunks/registry';
 import { CHUNK_HALF } from '../core/config';
 import type { Forest } from '../world/Forest';
 import { Hoverboard } from './Hoverboard';
 import { WaterLine } from './WaterLine';
+import { setUnderwater, updateUnderwater } from '../world/Atmosphere';
 
 export interface Collider { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }
 
@@ -42,6 +43,18 @@ const CLIMB_REACH = 1.3;              // m a platform top may sit above the surf
 const CLIMB_K = 30; const CLIMB_C = 10; // stiffer pull when hauling out onto a deck
 const CLIMB_PROBE = 0.7;              // m ahead of the feet where a platform is looked for while swimming toward it
 export const STROKE_PERIOD = 0.85;    // s between strokes at full swim speed (`onStroke`; Hands.ts runs one arm cycle per stroke)
+// ── diving (hold DIVE to go down, hold SURFACE to come up; nothing else moves you vertically — no drowning, no stamina) ──
+const DIVE_SPEED = 1.6;               // m/s descent while DIVE is held …
+const SURFACE_SPEED = 2.0;            // … and ascent while SURFACE is held
+const DIVE_EASE = 5;                  // /s — a short ease-in / ease-out on the vertical speed (a heavy, watery start)
+const DIVE_ENTER = 0.35;              // m below the float height at which the dive "latches" (neutral buoyancy from here down)
+const DIVE_SWIM = 0.85;               // horizontal swim speed underwater, as a fraction of the surface swim
+// ── slopes (on foot, on terrain — not platforms, not water, never the hoverboard) ──
+const SLOPE_WALK = 0.72;              // ground normal y below this (≈ 44°) is too steep to walk UP: the uphill part of the move is cancelled
+const SLOPE_SLIDE = 0.6;              // below this (≈ 53°) you slide down it with no control
+const SLOPE_PROBE = 0.6;              // m ahead of the feet, along the move, where the slope is also sampled (so a wall stops you before you're on it)
+const SLIDE_SPEED = 3.2;              // m/s down the fall line while sliding …
+const SLIDE_ACCEL = 5;                // … reached at this rate (/s)
 
 export class Player {
   position = new THREE.Vector3(0, 0, 0);
@@ -81,10 +94,25 @@ export class Player {
   wading = false;
   /** floating: the feet hang FLOAT_DEPTH under the surface and buoyancy, not gravity, holds them there */
   swimming = false;
-  /** the DIVE control (Space / the DIVE disc) is held while swimming — consumed by the dive mechanic, unused here */
+  /** the DIVE control (Space / the DIVE disc) is held while swimming: descend at DIVE_SPEED (the dive latches past DIVE_ENTER — see `diving`) */
   diveHeld = false;
   /** touch DIVE disc state (TouchControls) — summed into `diveHeld` with Space */
   touchDive = false;
+  /** the SURFACE control (Shift / the SURFACE disc) is held while swimming: ascend at SURFACE_SPEED until the float height */
+  surfaceHeld = false;
+  /** touch SURFACE disc state (TouchControls) — summed into `surfaceHeld` with Shift */
+  touchSurface = false;
+  /** the eye is under the water surface (the underwater look, muffled audio, the SURFACE disc). Also true for the beat a plunge dips the head under. */
+  submerged = false;
+  /** on foot on ground too steep to stand on (normal y < SLOPE_SLIDE): sliding down the fall line, no control, no jump */
+  sliding = false;
+  /** the ground under the feet this frame is a platform (deck, floor, steps), not the terrain — platforms are never "too steep" */
+  onPlatform = false;
+  /** diving: the dive latched (feet more than DIVE_ENTER below the float height) — neutral buoyancy holds the depth until SURFACE brings you back up */
+  diving = false;
+  /** the eye went under / came back up (Audio.dive() plunge / Audio.surface() gasp) */
+  onSubmerge?: () => void;
+  onSurface?: () => void;
   /** wave clock for the swim bob (seconds) */
   waveTime = 0;
   /** feet dropped below the surface (splash; `impact` = entry speed m/s, ~0 walking in, 10+ off a pier) / came back out */
@@ -145,7 +173,7 @@ export class Player {
   private setSwimming(on: boolean) {
     if (on === this.swimming) return;
     this.swimming = on;
-    if (!on) { this.climbTo = null; this.diveHeld = false; this.touchDive = false; }
+    if (!on) { this.climbTo = null; this.diveHeld = false; this.touchDive = false; this.surfaceHeld = false; this.touchSurface = false; this.diving = false; }
     this.onSwimChange?.(on);
   }
 
@@ -180,15 +208,17 @@ export class Player {
     // jump is an EDGE (press), not a held state — so holding Space can't chain a double jump
     const jumpDown = k.has('Space') || this.touchJump; this.touchJump = false;
     const jump = jumpDown && !this.jumpWasDown && !swim; this.jumpWasDown = jumpDown;
-    // while swimming Space / the DIVE disc is a HELD control for the dive mechanic (nothing here reads it)
+    // while swimming Space / the DIVE disc and Shift / the SURFACE disc are HELD controls (the swim branch reads them)
     this.diveHeld = swim && (k.has('Space') || this.touchDive);
+    this.surfaceHeld = swim && (k.has('ShiftLeft') || k.has('ShiftRight') || this.touchSurface);
 
     // ground: terrain, or a platform if we are at/above it (step up ≤ 0.5 m)
     const groundAt = () => {
       let g = heightAt(this.position.x, this.position.z);
+      this.onPlatform = false;
       for (const p of this.platforms) {
         const y = p(this.position.x, this.position.z);
-        if (y !== undefined && y > g && this.position.y >= y - 0.5) g = y;
+        if (y !== undefined && y > g && this.position.y >= y - 0.5) { g = y; this.onPlatform = true; }
       }
       return g;
     };
@@ -243,8 +273,9 @@ export class Player {
     } else if (swim) {
       // ── swimming: sluggish horizontal drift, buoyancy (not gravity) eases the feet to the float height; no jump / sprint / crouch ──
       const v = this.velocity;
-      v.x += (mx * SWIM_SPEED - v.x) * Math.min(1, SWIM_ACCEL * dt);
-      v.z += (mz * SWIM_SPEED - v.z) * Math.min(1, SWIM_ACCEL * dt);
+      const swimSpeed = SWIM_SPEED * (this.diving ? DIVE_SWIM : 1); // a touch slower under the surface
+      v.x += (mx * swimSpeed - v.x) * Math.min(1, SWIM_ACCEL * dt);
+      v.z += (mz * swimSpeed - v.z) * Math.min(1, SWIM_ACCEL * dt);
       const x0 = this.position.x, z0 = this.position.z;
       this.position.x += v.x * dt;
       this.position.z += v.z * dt;
@@ -281,14 +312,29 @@ export class Player {
           this.position.y = Math.max(this.position.y, g); this.velocity.y = 0; this.onGround = true;
           this.landImpulse = 0.06;
         } else {
-          // dive-agent: replace `target` with a descent while `this.diveHeld` (and a rise for SURFACE); nothing else here cares
           const climbing = this.climbTo !== null;
           const bob = Math.sin(this.waveTime * 1.4) * 0.05 + Math.sin(this.waveTime * 2.3 + 1.0) * 0.02;
-          const target = climbing ? (this.climbTo as number) + 0.02 : ws - FLOAT_DEPTH + bob;
-          const kk = climbing ? CLIMB_K : BUOY_K, cc = climbing ? CLIMB_C : BUOY_C;
-          v.y += (kk * (target - p.y) - cc * v.y) * dt;
-          p.y += v.y * dt;
-          if (p.y < g) { p.y = g; if (v.y < 0) v.y = 0; }
+          const floatY = ws - FLOAT_DEPTH + bob;
+          if (climbing) this.diving = false;
+          if (!climbing && (this.diving || this.diveHeld)) {
+            // ── diving: the vertical speed is driven, not sprung — DIVE eases you down, SURFACE eases you up, neither holds
+            // the depth (neutral buoyancy: no bobbing back up). The seabed / a collider still stops you.
+            const want = this.diveHeld && !this.surfaceHeld ? -DIVE_SPEED : this.surfaceHeld ? SURFACE_SPEED : 0;
+            v.y += (want - v.y) * Math.min(1, DIVE_EASE * dt);
+            p.y += v.y * dt;
+            if (p.y < g) { p.y = g; if (v.y < 0) v.y = 0; }
+            if (p.y < floatY - DIVE_ENTER) this.diving = true;
+            if (p.y >= floatY) {
+              // broke the surface (SURFACE held to the top, or DIVE released before the latch): the float logic takes it from here
+              this.diving = false; p.y = floatY; v.y = Math.max(0, v.y) * 0.6;
+            }
+          } else {
+            const target = climbing ? (this.climbTo as number) + 0.02 : floatY;
+            const kk = climbing ? CLIMB_K : BUOY_K, cc = climbing ? CLIMB_C : BUOY_C;
+            v.y += (kk * (target - p.y) - cc * v.y) * dt;
+            p.y += v.y * dt;
+            if (p.y < g) { p.y = g; if (v.y < 0) v.y = 0; }
+          }
           this.onGround = false;
         }
         this.waterSurface = ws;
@@ -303,13 +349,34 @@ export class Player {
       }
       this.hoverLat = this.hoverFwd = this.hoverAccel = this.hoverBob = 0;
     } else {
-      const accel = this.onGround ? 14 : 3;
-      this.velocity.x += (mx * speed - this.velocity.x) * Math.min(1, accel * dt);
-      this.velocity.z += (mz * speed - this.velocity.z) * Math.min(1, accel * dt);
+      let accel = this.onGround ? 14 : 3;
+      let wx = mx * speed, wz = mz * speed; // the velocity the input asks for
+      // ── too steep: cliffs, crags and rock walls are not stairs. On terrain (not a deck / floor platform, not in the water)
+      // the ground normal under the feet and a step ahead along the move is checked: past SLOPE_WALK the uphill part of the
+      // move is cancelled (you slide along the contour), past SLOPE_SLIDE you slide down it with no control. The hoverboard
+      // never comes here (its repulsors glide up anything); downhill and flat are untouched.
+      this.sliding = false;
+      if (this.onGround && !this.onPlatform && !this.wading) {
+        const p = this.position;
+        let [nx, ny, nz] = normalAt(p.x, p.z, 0.6);
+        if (len > 0.05) {
+          const [ax, ay, az] = normalAt(p.x + mx / len * SLOPE_PROBE, p.z + mz / len * SLOPE_PROBE, 0.6);
+          if (ay < ny) { nx = ax; ny = ay; nz = az; }
+        }
+        if (ny < SLOPE_WALK) {
+          const dl = Math.hypot(nx, nz) || 1, dx = nx / dl, dz = nz / dl; // the downhill direction (the normal leans down the slope)
+          const up = -(wx * dx + wz * dz);
+          if (up > 0) { wx += dx * up; wz += dz * up; }
+          if (ny < SLOPE_SLIDE) { wx = dx * SLIDE_SPEED; wz = dz * SLIDE_SPEED; accel = SLIDE_ACCEL; this.sliding = true; }
+          else accel = Math.min(accel, 8); // feet scrabbling on the steep face: less grip
+        }
+      }
+      this.velocity.x += (wx - this.velocity.x) * Math.min(1, accel * dt);
+      this.velocity.z += (wz - this.velocity.z) * Math.min(1, accel * dt);
 
       if (this.onGround) this.jumpsLeft = 1; // one more jump available once you've left the ground
       const jumpV = 7.2 * (1 - 0.35 * wadeT); // wading: the water saps the push-off
-      if (jump && this.onGround && !this.crouching) { this.velocity.y = jumpV; this.onGround = false; this.onJump?.(); }
+      if (jump && this.onGround && !this.crouching && !this.sliding) { this.velocity.y = jumpV; this.onGround = false; this.onJump?.(); }
       else if (jump && !this.onGround && this.jumpsLeft > 0) { this.jumpsLeft--; this.velocity.y = Math.max(this.velocity.y, 0) * 0.3 + DOUBLE_JUMP; this.onJump?.(); } // double jump
       this.velocity.y -= GRAVITY * dt;
 
@@ -384,8 +451,17 @@ export class Player {
     this.camera.rotation.z = Math.sin(this.bobTime) * bobAmp * 0.25 - str * 0.012 * (1 - this.hoverBlend) + this.roll;
 
     this.board.update(dt, this);
-    // water line: tint the bottom of the view as the eye nears / dips under the surface
-    this.waterLine.update(this.waterSurface === null ? Infinity : this.camera.position.y - this.waterSurface);
+    // water line: tint the bottom of the view as the eye nears / dips under the surface; under it, the underwater look
+    const eyeAbove = this.waterSurface === null ? Infinity : this.camera.position.y - this.waterSurface;
+    const submerged = eyeAbove < 0;
+    if (submerged !== this.submerged) {
+      this.submerged = submerged;
+      setUnderwater(submerged);
+      if (submerged) this.onSubmerge?.(); else this.onSurface?.();
+    }
+    updateUnderwater(dt, (this.camera.parent as THREE.Scene | null)?.fog ?? null);
+    this.waterLine.update(eyeAbove, dt);
+    this.waterLine.setHint(!swim ? 0 : submerged ? 2 : 1);
   }
 
   private collide() {

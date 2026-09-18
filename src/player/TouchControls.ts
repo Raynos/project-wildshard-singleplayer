@@ -9,7 +9,9 @@
  * (K1 mockup): AIM over the MOVE pad, JUMP over the LOOK pad, a smaller HOVER between them (AIM and HOVER are toggles:
  * tap to latch, tap again to release — HOVER steps on / off the hoverboard, `player.setHover`, and mirrors the H key).
  * While the player swims (`player.onSwimChange`) JUMP is swapped for a DIVE disc in the same spot — a HELD button that
- * drives `player.touchDive` → `player.diveHeld` (the dive mechanic consumes it; the layer only owns the control).
+ * drives `player.touchDive` → `player.diveHeld` (hold to go down). Once the eye is under (`player.onSubmerge / onSurface`)
+ * a SURFACE disc appears beside it (`player.touchSurface` → `player.surfaceHeld`, hold to come up) and hides again on
+ * surfacing. There is no other vertical control in the water.
  * A SWAP pill mirrors HOVER on the LEFT edge: it calls `weapons.swap()` (crossbow ⇄ AR-15, the Q key); it only shows once a
  * second weapon is unlocked (`weapons.onUnlock` — the AR-15 is a cabin pickup).
  * There is no RELOAD: `weapons.tryFire()` reloads the held weapon itself when it is fired empty. USE is a big button above the
@@ -26,7 +28,6 @@
  * intro is gone (`#hud.intro` hides it), and never needs pointer lock — iOS has none.
  */
 import type { Player } from './Player';
-import { getActiveChunk } from '../chunks/registry';
 import type { Weapons } from './Weapons';
 import { AimAssist } from './AimAssist';
 
@@ -65,6 +66,7 @@ export class TouchControls {
       <button class="ws-touch-disc swap" type="button"><svg viewBox="0 0 24 24"><path d="M4 8h13M13.5 4.5 17 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 16H7M10.5 12.5 7 16l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Swap</span></button>
       <button class="ws-touch-disc hover" type="button"><svg viewBox="0 0 24 24"><path d="M2 9.5c0-1.4 1.1-2.5 2.5-2.5h15c1.4 0 2.5 1.1 2.5 2.5S20.9 12 19.5 12h-15C3.1 12 2 10.9 2 9.5z"/><path d="M6 15.5h12M8.5 19h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.7"/></svg><span>Hover</span></button>
       <button class="ws-touch-disc jump" type="button"><svg viewBox="0 0 24 24"><path d="M12 2.5 4 11h5v10.5h6V11h5z"/></svg><span>Jump</span></button>
+      <button class="ws-touch-disc surface" type="button"><svg viewBox="0 0 24 24"><path d="M12 21.5V9M7.5 13.5 12 9l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 5.5c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4 1.7-1.4 3.4-1.4 1.6 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>Surface</span></button>
       <button class="ws-touch-disc dive" type="button"><svg viewBox="0 0 24 24"><path d="M12 2v11.5M7.5 9.5 12 14l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 18.5c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4 1.7-1.4 3.4-1.4 1.6 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 22c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/></svg><span>Dive</span></button>
       <button class="ws-touch-pause" type="button">Pause</button>
       <div class="ws-touch-bar">
@@ -145,7 +147,6 @@ export class TouchControls {
     };
     // AIM is a toggle, not a hold: each press flips ADS and the button stays lit (.on) while it is latched
     const aim = root.querySelector<HTMLElement>('.aim')!;
-    if (getActiveChunk().weapon === 'sword') aim.querySelector('span')!.textContent = 'Heavy'; // the sword: hold-to-charge overhead, not iron sights
     aim.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.weapons.adsHeld = !this.weapons.adsHeld; aim.classList.toggle('on', this.weapons.adsHeld); });
     aim.addEventListener('pointerup', (e) => e.stopPropagation());
     // SWAP: crossbow ⇄ rifle (Weapons.swap, the Q key); the pill flashes .down while pressed, nothing latches. Hidden until a
@@ -167,8 +168,14 @@ export class TouchControls {
     // DIVE replaces JUMP while swimming: a held control (down = held), released on up / cancel / leave
     btn('.dive', () => { this.player.touchDive = true; }, () => { this.player.touchDive = false; });
     const prevSwim = this.player.onSwimChange;
-    this.player.onSwimChange = (on) => { root.classList.toggle('swimming', on); if (!on) this.player.touchDive = false; prevSwim?.(on); };
+    this.player.onSwimChange = (on) => { root.classList.toggle('swimming', on); if (!on) { this.player.touchDive = false; this.player.touchSurface = false; root.classList.remove('submerged'); } prevSwim?.(on); };
     root.classList.toggle('swimming', this.player.swimming);
+    // SURFACE appears beside DIVE while the eye is under (held: up = release); it goes with the swim state on climb-out
+    btn('.surface', () => { this.player.touchSurface = true; }, () => { this.player.touchSurface = false; });
+    const prevSub = this.player.onSubmerge, prevSurf = this.player.onSurface;
+    this.player.onSubmerge = () => { root.classList.add('submerged'); prevSub?.(); };
+    this.player.onSurface = () => { root.classList.remove('submerged'); this.player.touchSurface = false; prevSurf?.(); };
+    root.classList.toggle('submerged', this.player.submerged);
     btn('.ws-touch-pause', () => document.dispatchEvent(new Event('ws:pause')));
     btn('.ws-touch-use', () => document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e', bubbles: true })));
     // the interact prompt ("[E] Open door") becomes a big USE button above the row, labelled with the action

@@ -14,6 +14,7 @@ import { getActiveChunk } from '../chunks/registry';
  *   audio.swordSwing()  audio.swordHeavy()  audio.swordHit('flesh'|'wood', pan?, gain?)   // sword (src/player/Sword.ts): a light swing, the heavy's release (layered over swordSwing), a hit
  *   audio.footstep(sprinting)  audio.jump()  audio.land(hard)  audio.hitMarker()  audio.kill()
  *   audio.splash(impact)  audio.wadeStep(depth, sprinting)  audio.swimStroke()  audio.waterExit()   // water (Player.onEnterWater / onStep while wading / onStroke / onExitWater)
+ *   audio.dive()  audio.surface()  audio.setUnderwater(on)   // diving (Player.onSubmerge / onSurface): plunge + gasp, and the whole mix muffled (master lowpass) with a low hum + bubbles while under
  *   audio.animal('deer_call'|'boar_grunt'|'hoofsteps'|'boar_squeal'|'bear_growl'|'bear_roar'|'bear_hurt', position, listenerPos, yaw?)
  *   audio.gullCall(pan?, gain?)  audio.gullCallAt(position, listenerPos, yaw?)   // gulls (src/world/Gulls.ts onCall)
  *   audio.footstep(sprinting, 'litter'|'planks'|'sand')                          // surface: pine litter (default), the pier deck, the beach
@@ -48,6 +49,9 @@ export class Audio {
   private bedNodes: AudioNode[] = [];
   private surfTimer = 0;
   private hum?: { out: GainNode; stop: () => void };
+  /** the master lowpass: wide open on land, shut down to ~500 Hz under water (setUnderwater) */
+  private muffle: BiquadFilterNode;
+  private underwater = false; private underGain?: GainNode; private bubbleTimer = 0;
 
   constructor() {
     const AC = (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext);
@@ -55,7 +59,8 @@ export class Audio {
     this.master = this.ctx.createGain(); this.master.gain.value = 0.6;
     const comp = this.ctx.createDynamicsCompressor();
     comp.threshold.value = -12; comp.knee.value = 18; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.16;
-    this.master.connect(comp).connect(this.ctx.destination);
+    this.muffle = this.ctx.createBiquadFilter(); this.muffle.type = 'lowpass'; this.muffle.frequency.value = 20000; this.muffle.Q.value = 0.5;
+    this.master.connect(this.muffle).connect(comp).connect(this.ctx.destination);
     this.sfx = this.ctx.createGain(); this.sfx.gain.value = 1; this.sfx.connect(this.master);
     this.ambient = this.ctx.createGain(); this.ambient.gain.value = 0.55; this.ambient.connect(this.master);
     this.makeNoise();
@@ -389,6 +394,63 @@ export class Audio {
     for (let i = 0; i < 4; i++) this.burst({ t: t + 0.15 + rnd(0, 0.5), type: 'bandpass', freq: rnd(2200, 4000), q: 4, gain: rnd(0.02, 0.05), decay: 0.03, pan: rnd(-0.4, 0.4) });
   }
 
+  // ─────────────── diving (Player.onSubmerge / onSurface) ───────────────
+  /** the head goes under: a soft whump of water closing over the ears and a trail of bubbles */
+  dive() {
+    const t = this.ctx.currentTime;
+    this.tone({ t, type: 'sine', f0: 140, f1: 40, glide: 0.25, gain: 0.35, attack: 0.02, decay: 0.35 });
+    this.burst({ t, type: 'lowpass', freq: 900, freqEnd: 160, gain: 0.4, attack: 0.02, decay: 0.32 });
+    for (let i = 0; i < 9; i++) {
+      const ti = t + 0.08 + rnd(0, 0.7);
+      this.tone({ t: ti, type: 'sine', f0: rnd(420, 900), f1: rnd(900, 1800), glide: 0.06, gain: rnd(0.02, 0.05), attack: 0.004, decay: rnd(0.03, 0.07), pan: rnd(-0.5, 0.5) });
+    }
+  }
+
+  /** breaking the surface: water sheeting off the head, a gasp of air, a couple of drips */
+  surface() {
+    const t = this.ctx.currentTime;
+    this.burst({ t, type: 'bandpass', freq: 1400, freqEnd: 500, q: 0.6, gain: 0.34, attack: 0.01, decay: 0.28 });
+    this.burst({ t: t + 0.03, type: 'lowpass', freq: 1200, freqEnd: 300, gain: 0.22, attack: 0.01, decay: 0.16 });
+    // the gasp: a breathy inhale (bandpassed noise sweeping up) then a short exhale
+    this.burst({ t: t + 0.12, type: 'bandpass', freq: 700, freqEnd: 1900, q: 1.4, gain: 0.13, attack: 0.16, decay: 0.12, hold: 0.05 });
+    this.burst({ t: t + 0.5, type: 'bandpass', freq: 1500, freqEnd: 600, q: 1.1, gain: 0.07, attack: 0.05, decay: 0.2 });
+    for (let i = 0; i < 4; i++) this.burst({ t: t + 0.2 + rnd(0, 0.5), type: 'bandpass', freq: rnd(2200, 4000), q: 4, gain: rnd(0.02, 0.05), decay: 0.03, pan: rnd(-0.4, 0.4) });
+  }
+
+  /** under the surface everything is muffled (master lowpass down to ~500 Hz) under a low pressure hum with the odd bubble */
+  setUnderwater(on: boolean) {
+    if (on === this.underwater) return;
+    this.underwater = on;
+    const c = this.ctx, t = c.currentTime;
+    this.muffle.frequency.cancelScheduledValues(t);
+    this.muffle.frequency.setValueAtTime(this.muffle.frequency.value, t);
+    this.muffle.frequency.exponentialRampToValueAtTime(on ? 520 : 20000, t + 0.3);
+    if (!this.underGain) {
+      // the hum: brown-ish noise through a 90 Hz lowpass, swelling on a slow LFO; lives on the ambient bus (mutes with it)
+      const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; src.start(0, Math.random());
+      const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 90; lp.Q.value = 0.9;
+      const lp2 = c.createBiquadFilter(); lp2.type = 'lowpass'; lp2.frequency.value = 220;
+      const g = this.underGain = c.createGain(); g.gain.value = 0;
+      const lfo = c.createOscillator(); lfo.frequency.value = 0.13; const lg = c.createGain(); lg.gain.value = 0.35;
+      const sw = c.createGain(); sw.gain.value = 1; lfo.connect(lg).connect(sw.gain); lfo.start();
+      src.connect(lp).connect(lp2).connect(sw).connect(g).connect(this.ambient);
+    }
+    this.underGain.gain.cancelScheduledValues(t);
+    this.underGain.gain.setValueAtTime(this.underGain.gain.value, t);
+    this.underGain.gain.linearRampToValueAtTime(on ? 1.4 : 0, t + (on ? 0.6 : 0.3));
+    clearTimeout(this.bubbleTimer);
+    if (on) this.scheduleBubble();
+  }
+
+  private scheduleBubble() {
+    this.bubbleTimer = window.setTimeout(() => {
+      if (!this.underwater) return;
+      const t = this.ctx.currentTime, n = 1 + Math.floor(rnd(0, 4)), pan = rnd(-0.7, 0.7);
+      for (let i = 0; i < n; i++) this.tone({ t: t + i * rnd(0.05, 0.12), type: 'sine', f0: rnd(300, 700), f1: rnd(800, 1600), glide: 0.07, gain: rnd(0.015, 0.04), attack: 0.004, decay: rnd(0.04, 0.08), pan, out: this.ambient });
+      this.scheduleBubble();
+    }, rnd(1.2, 4.5) * 1000);
+  }
+
   // ─────────────── feedback ───────────────
   hitMarker() {
     const t = this.ctx.currentTime;
@@ -656,7 +718,7 @@ export class Audio {
     }
   }
 
-  dispose() { clearTimeout(this.birdTimer); clearTimeout(this.gustTimer); clearTimeout(this.surfTimer); void this.ctx.close(); }
+  dispose() { clearTimeout(this.birdTimer); clearTimeout(this.surfTimer); clearTimeout(this.gustTimer); clearTimeout(this.bubbleTimer); void this.ctx.close(); }
 }
 
 export { Audio as GameAudio };
