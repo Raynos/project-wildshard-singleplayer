@@ -21,6 +21,10 @@ export class Game {
   clock = new THREE.Clock();
   private updaters: ((dt: number, t: number) => void)[] = [];
   stats = { fps: 0, frames: 0, acc: 0 };
+  /** last 120 frame times in ms (ring; `frameI` is the next slot) — the perf meter reads p50/p95 from it */
+  frameMs = new Float32Array(120); frameI = 0;
+  /** draw calls / triangles of the last whole frame (all composer passes) */
+  lastFrame = { calls: 0, triangles: 0 };
   private renderPass!: RenderPass;
   volumetrics!: VolumetricsEffect;
 
@@ -158,8 +162,10 @@ export class Game {
 
   start() {
     this.clock.start();
+    this.renderer.info.autoReset = false; // the composer renders several passes per frame: count the whole frame
     const loop = () => {
       requestAnimationFrame(loop);
+      this.renderer.info.reset();
       const dt = Math.min(0.1, this.clock.getDelta());
       const t = this.clock.elapsedTime;
       for (const u of this.updaters) u(dt, t);
@@ -167,6 +173,8 @@ export class Game {
       // planet + sun disc travel with the camera so they stay "infinitely" far
       if (this.sky) { this.sky.clouds.position.copy(this.camera.position); this.sky.planet.position.copy(this.camera.position).addScaledVector(this.sky.planetDir, 1700); this.sky.sunDisc.position.copy(this.camera.position).addScaledVector(this.sky.sunDir, 1500); }
       this.composer.render(dt);
+      this.lastFrame.calls = this.renderer.info.render.calls; this.lastFrame.triangles = this.renderer.info.render.triangles;
+      this.frameMs[this.frameI] = dt * 1000; this.frameI = (this.frameI + 1) % this.frameMs.length;
       this.stats.frames++; this.stats.acc += dt;
       if (this.stats.acc >= 0.5) { this.stats.fps = Math.round(this.stats.frames / this.stats.acc); this.stats.frames = 0; this.stats.acc = 0; }
     };

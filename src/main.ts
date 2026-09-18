@@ -15,6 +15,7 @@ import { Crossbow, type Targets, type TargetHit } from './player/Crossbow';
 import { TouchControls } from './player/TouchControls';
 import { HUD } from './ui/HUD';
 import { Loading } from './ui/Loading';
+import { Perf } from './ui/Perf';
 import { createBootPlan, type StepRunner } from './boot/plan';
 import { declareTotals, installByteCounter } from './boot/bytes';
 import { chunkFiles } from './boot/manifest';
@@ -89,6 +90,7 @@ async function main() {
   new TouchControls(player, crossbow, params.has('touch')); // on-screen FPS controls on coarse-pointer devices (?touch=1 forces)
   crossbow.adsHeld = params.has('ads');
   const hud = new HUD({ pointerLock: !nolock });
+  new Perf(game); // frame meter top-right (?perf=0 hides)
   const audio = new Audio();
   let kills = 0, health = 100, lastHurt = 0, pelts = 0;
   const harvested = new Set<object>();

@@ -1,0 +1,18 @@
+/* frame meter (src/ui/Perf.ts) — top-right, under the build pill on the title screen and the bolts panel in play */
+.ws-perf { position: fixed; right: 16px; top: calc(14px + env(safe-area-inset-top, 0px)); z-index: 55; display: flex; align-items: baseline; gap: 8px; padding: 5px 9px; pointer-events: none; font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--ws-text-dim); background: rgba(6, 10, 18, 0.62); border: 1px solid rgba(143, 227, 255, 0.18); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ws-perf b { font-family: var(--ws-display); font-weight: 700; font-size: 18px; line-height: 1; color: #fff; letter-spacing: 0.02em; }
+.ws-perf b::after { content: ' FPS'; font-family: var(--ws-mono); font-size: 8px; font-weight: 400; color: var(--ws-text-dim); letter-spacing: 0.16em; }
+.ws-perf.slow b { color: #ffd27a; }
+.ws-perf.bad b { color: #ff7a6b; }
+.ws-perf[hidden] { display: none; }
+/* the title screen's build pill and sound toggle sit top-right: drop under them */
+body:has(#hud.intro) .ws-perf, body:has(.ws-loading) .ws-perf { top: calc(92px + env(safe-area-inset-top, 0px)); }
+@media (max-width: 700px) {
+  .ws-perf { right: 12px; top: calc(108px + env(safe-area-inset-top, 0px)); font-size: 9px; gap: 6px; padding: 4px 7px; }
+  .ws-perf b { font-size: 15px; }
+  .ws-perf { flex-wrap: wrap; max-width: 210px; justify-content: flex-end; }
+  .ws-perf span { flex-basis: 100%; text-align: right; white-space: normal; line-height: 1.4; }
+  body:has(#hud.intro) .ws-perf, body:has(.ws-loading) .ws-perf { top: calc(108px + env(safe-area-inset-top, 0px)); }
+}
+/* the old faint readout in the HUD is superseded */
+#hud .ws-fps { display: none; }
