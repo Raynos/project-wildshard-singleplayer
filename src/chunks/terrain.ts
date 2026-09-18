@@ -32,6 +32,23 @@ function entryRoadMask(x: number, z: number): number {
   return Math.max(along(x, z), along(z, x));
 }
 
+/**
+ * A 32-bit fingerprint of a height field: FNV-1a over `heightAt` sampled on a 16 × 16 grid across the
+ * chunk, quantised to millimetres. scripts/bake-chunk.mjs stores it in the bake's header and
+ * src/world/BakedTerrain.ts refuses a bake whose fingerprint differs from the live def's functions —
+ * so a stale terrain.bin (an old build in the service worker, a def edited since the last vite start)
+ * can never be installed over the analytic field.
+ */
+export function landscapeHash(t: Pick<ChunkTerrain, 'heightAt'>, size = CHUNK_HALF * 2): number {
+  let h = 0x811c9dc5;
+  const n = 16, d = size / (n - 1);
+  for (let iz = 0; iz < n; iz++) for (let ix = 0; ix < n; ix++) {
+    const v = Math.round(t.heightAt(-size / 2 + ix * d, -size / 2 + iz * d) * 1000) | 0;
+    for (let b = 0; b < 4; b++) { h ^= (v >>> (b * 8)) & 0xff; h = Math.imul(h, 0x01000193) >>> 0; }
+  }
+  return h >>> 0;
+}
+
 export function buildTerrain(seed: number, spec: TerrainSpec): ChunkTerrain {
   const noise: TerrainNoise = { n: new Noise2D(seed), n2: new Noise2D(seed + 7) };
   const { n } = noise;

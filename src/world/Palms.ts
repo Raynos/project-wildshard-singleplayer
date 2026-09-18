@@ -131,7 +131,9 @@ export class Palms {
       this.colliders.push({ x: p.x, z: p.z, hw: 0.3, hd: 0.3, rot: 0, yTop: base + p.h, yBottom: base - 1 });
       this.count++;
     }
-    const geo = mergeGeometries(parts, false)!;
+    // an empty scatter (a stale terrain, a def with no land) must not throw in mergeGeometries: an empty mesh instead
+    if (!parts.length) console.warn('[palms] nothing placed — %d candidates rejected', specs.length);
+    const geo = parts.length ? mergeGeometries(parts, false)! : new THREE.BufferGeometry();
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.85, metalness: 0, side: THREE.DoubleSide });
     mat.onBeforeCompile = (shader) => {

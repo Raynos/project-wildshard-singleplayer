@@ -8,14 +8,16 @@
  * evaluating fbm/ridged noise for each (phone: terrain 838 ms, most of it here).
  *
  * The lookups are exact at the mesh vertices and the mesh's own bilinear surface between them,
- * which is what the player sees. A missing or foreign file leaves the analytic functions in
- * place (a warning, never a failure).
+ * which is what the player sees. A missing, foreign or stale file (its landscape fingerprint —
+ * `landscapeHash` in src/chunks/terrain.ts, stored in the header — must equal the live def's) leaves
+ * the analytic functions in place (a warning, never a failure).
  */
 import { _installBakedTerrain } from './Heightfield';
 import { getActiveChunk } from '../chunks/registry';
+import { landscapeHash } from '../chunks/terrain';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 
-export interface BakedGrid { res: number; size: number; seed: number; heights: Float32Array; splat: Uint8Array }
+export interface BakedGrid { res: number; size: number; seed: number; /** fingerprint of the def's heightAt the bake was made from (0 = legacy, unhashed) */ landscapeHash: number; heights: Float32Array; splat: Uint8Array }
 
 export const bakedTerrainUrl = (slug: string): string | null => {
   const url = `/assets/baked/${slug}/terrain.bin`;
@@ -26,10 +28,10 @@ export function parseBakedTerrain(buf: ArrayBuffer): BakedGrid | null {
   const dv = new DataView(buf);
   if (buf.byteLength < 24 || dv.getUint8(0) !== 0x57 || dv.getUint8(1) !== 0x53 || dv.getUint8(2) !== 0x54 || dv.getUint8(3) !== 0x52) return null;
   if (dv.getUint32(4, true) !== 1) return null;
-  const res = dv.getUint32(8, true), size = dv.getFloat32(12, true), seed = dv.getUint32(16, true);
+  const res = dv.getUint32(8, true), size = dv.getFloat32(12, true), seed = dv.getUint32(16, true), landscapeHash = dv.getUint32(20, true);
   const n = res * res;
   if (buf.byteLength !== 24 + n * 8) return null;
-  return { res, size, seed, heights: new Float32Array(buf, 24, n), splat: new Uint8Array(buf, 24 + n * 4, n * 4) };
+  return { res, size, seed, landscapeHash, heights: new Float32Array(buf, 24, n), splat: new Uint8Array(buf, 24 + n * 4, n * 4) };
 }
 
 /** Bilinear samplers over the grid, in the ChunkTerrain shapes. */
@@ -85,6 +87,12 @@ export async function loadBakedTerrain(): Promise<boolean> {
     if (!res.ok) throw new Error(`${res.status}`);
     const grid = parseBakedTerrain(await res.arrayBuffer());
     if (!grid || grid.seed !== (def.seed >>> 0)) throw new Error('bad header / seed');
+    // the bake must come from THIS def's landscape: a stale file (service-worker cache, a def edited since the last
+    // bake) fingerprints differently and is refused — the analytic field stays in place
+    if (grid.landscapeHash !== 0) {
+      const live = landscapeHash(def.terrain, grid.size);
+      if (live !== grid.landscapeHash) throw new Error(`stale: landscape ${grid.landscapeHash.toString(16)} ≠ live ${live.toString(16)}`);
+    } else console.info(`[baked] ${def.slug}: legacy bake without a landscape fingerprint — accepted unchecked`);
     if (getActiveChunk() !== def) return false;
     _installBakedTerrain(bakedSamplers(grid));
     installedFor = def.slug;

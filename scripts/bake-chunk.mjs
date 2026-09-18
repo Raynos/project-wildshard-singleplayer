@@ -13,7 +13,7 @@
 //
 //   node --import ./scripts/bake-loader.mjs scripts/bake-chunk.mjs [--force] [--check]
 //
-// Format (little-endian): 'WSTR' u32 version=1 · u32 res · f32 size · u32 seed · u32 flags=0 ·
+// Format (little-endian): 'WSTR' u32 version=1 · u32 res · f32 size · u32 seed · u32 landscapeHash (0 = unhashed legacy) ·
 //   f32[res²] height · u8[res²·4] splat weights (each row sums to ≈ 255) — vertex i = iz·res + ix at
 //   (x, z) = (−half + ix·d, −half + iz·d), d = size / (res − 1).
 import { createHash } from 'node:crypto';
@@ -28,6 +28,7 @@ const check = process.argv.includes('--check');
 const VERSION = 1;
 
 const { CHUNK_SIZE, CHUNK_HALF, TERRAIN_RES } = await import(pathToFileURL(resolve(ROOT, 'src/core/config.ts')).href);
+const { landscapeHash } = await import(pathToFileURL(resolve(ROOT, 'src/chunks/terrain.ts')).href);
 
 // every chunk module that exports a ChunkDef (has slug + terrain); the registry itself needs `location`
 const chunkFiles = readdirSync(resolve(ROOT, 'src/chunks')).filter((f) => f.endsWith('.ts') && !/^(registry|terrain|ChunkDef|_template|placeholders)\.ts$/.test(f));
@@ -56,7 +57,8 @@ for (const file of chunkFiles) {
     const buf = new ArrayBuffer(header + n * 4 + n * 4);
     const dv = new DataView(buf);
     dv.setUint8(0, 0x57); dv.setUint8(1, 0x53); dv.setUint8(2, 0x54); dv.setUint8(3, 0x52); // 'WSTR'
-    dv.setUint32(4, VERSION, true); dv.setUint32(8, res, true); dv.setFloat32(12, CHUNK_SIZE, true); dv.setUint32(16, def.seed >>> 0, true); dv.setUint32(20, 0, true);
+    const lhash = landscapeHash(def.terrain, CHUNK_SIZE); // the runtime recomputes this from the live def and refuses a mismatch (BakedTerrain.ts)
+    dv.setUint32(4, VERSION, true); dv.setUint32(8, res, true); dv.setFloat32(12, CHUNK_SIZE, true); dv.setUint32(16, def.seed >>> 0, true); dv.setUint32(20, lhash, true);
     const heights = new Float32Array(buf, header, n);
     const splat = new Uint8Array(buf, header + n * 4, n * 4);
     const d = CHUNK_SIZE / (res - 1);
@@ -79,7 +81,7 @@ for (const file of chunkFiles) {
     }
     mkdirSync(dir, { recursive: true });
     writeFileSync(bin, Buffer.from(buf));
-    writeFileSync(meta, JSON.stringify({ hash: digest, version: VERSION, res, size: CHUNK_SIZE, seed: def.seed, bytes: buf.byteLength, heightRange: [min, max], bakedAt: new Date().toISOString() }, null, 2) + '\n');
+    writeFileSync(meta, JSON.stringify({ hash: digest, version: VERSION, res, size: CHUNK_SIZE, seed: def.seed, landscapeHash: lhash, bytes: buf.byteLength, heightRange: [min, max], bakedAt: new Date().toISOString() }, null, 2) + '\n');
     written++;
     console.log(`bake: ${def.slug} terrain ${res}² → ${(buf.byteLength / 1024).toFixed(0)} KB in ${Math.round(performance.now() - t0)} ms (h ${min.toFixed(1)}…${max.toFixed(1)} m, ${digest})`);
   }

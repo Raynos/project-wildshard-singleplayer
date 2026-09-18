@@ -89,7 +89,9 @@ export class Bushes {
       }
       this.count++;
     }
-    const geo = mergeGeometries(parts, false)!;
+    // an empty scatter (a stale terrain, a def with no land) must not throw in mergeGeometries: an empty mesh instead
+    if (!parts.length) console.warn('[bushes] nothing placed — %d candidates rejected', specs.length);
+    const geo = parts.length ? mergeGeometries(parts, false)! : new THREE.BufferGeometry();
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0 });
     this.sky.setupMaterial(mat);

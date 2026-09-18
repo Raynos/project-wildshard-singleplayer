@@ -93,7 +93,9 @@ export class Boulders {
       if (b.r > 0.9) this.colliders.push({ x: b.x, z: b.z, hw: b.r * 0.8, hd: b.r * 0.8, rot: b.rot ?? 0, yTop: y + b.r * 1.2, yBottom: y - 2 });
       this.count++;
     }
-    const geo = mergeGeometries(parts, false)!;
+    // an empty scatter (a stale terrain, a def with no land) must not throw in mergeGeometries: an empty mesh instead
+    if (!parts.length) console.warn('[boulders] nothing placed — %d candidates rejected', specs.length);
+    const geo = parts.length ? mergeGeometries(parts, false)! : new THREE.BufferGeometry();
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0 });
     this.sky.setupMaterial(mat);
