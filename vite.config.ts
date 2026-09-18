@@ -75,7 +75,7 @@ export default defineConfig({
   server: { port: 5173, host: true },
   // keepNames: the uncaught-exception modal shows raw stacks on phones (no source-map resolution there), so keep
   // function / class names readable; hidden source maps for desktop devtools (not referenced from the bundle).
-  esbuild: { keepNames: true },
+  esbuild: { keepNames: true, minifyIdentifiers: false }, // readable stacks in the exception modal (identifier mangling saves ~15 % gzip; not worth blind bug reports)
   build: { target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: 'hidden' },
   assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
   define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },

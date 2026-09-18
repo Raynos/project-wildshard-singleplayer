@@ -11,6 +11,8 @@
  * Only the first error is shown; later ones append a counter. Errors inside the modal itself are ignored.
  */
 
+declare const __BUILD_ID__: string; // vite.config.ts define
+
 let root: HTMLElement | null = null;
 let count = 0;
 let firstText = '';
@@ -57,7 +59,7 @@ function build(): HTMLElement {
 }
 
 function meta(): string {
-  const build = (window as unknown as { __ws_build?: string }).__ws_build ?? document.querySelector('[data-build]')?.getAttribute('data-build') ?? '';
+  let build = ''; try { build = __BUILD_ID__; } catch { /* dev without the define */ }
   return [`build ${build || 'unknown'} · ${new Date().toISOString()}`, location.href, navigator.userAgent, `${innerWidth}×${innerHeight} · dpr ${devicePixelRatio} · cores ${navigator.hardwareConcurrency ?? '?'}`].join('\n');
 }
 
