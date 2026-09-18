@@ -57,6 +57,7 @@ import { declareTotals, installByteCounter } from './boot/bytes';
 import { chunkFiles } from './boot/manifest';
 import { getActiveChunk } from './chunks/registry';
 import { Audio } from './audio/Audio';
+import { Music } from './audio/Music';
 import { installErrorModal, showError } from './ui/ErrorModal';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
@@ -86,7 +87,8 @@ async function main() {
   const { game, sky, player, forest, params, chunk } = world;
   const nolock = params.has('nolock');
   const isOcean = !!chunk.ocean; // open-water shard (Driftwood Isle): ocean + pier, no forest carpet / cabins / props
-  const respawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
+  const respawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } music?.sting('death'); };
+  let music: Music | undefined; // assigned with the audio below (respawn can fire before it exists)
 
   // ── world dressing ──
   const { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon } = await step('edge', () => {
@@ -224,6 +226,9 @@ async function main() {
   const keepAlive = new KeepAlive();
   const debug = new Debug(() => perf.refresh()); // TEMPORARY: tier/dpr/aa/meter knobs (src/ui/Debug.ts)
   const audio = new Audio();
+  // the Wildshard theme (docs/plans/MUSIC.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
+  music = new Music(audio);
+  music.setState({ shard: chunk.ocean ? 'island' : 'pine', mode: 'menu', intensity: 0, underwater: false });
   let kills = 0, health = 100, lastHurt = 0, pelts = 0, swimHold = false;
   const harvested = new Set<object>();
   // ── the in-game menu: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (src/ui/Menu.ts) ──
@@ -255,6 +260,7 @@ async function main() {
     if (weapons.current.id !== 'rifle' && chunk.weapon === 'sword') audio.swordHit(surface, pan, gain); else audio.boltImpact(surface, pan, gain);
   };
   weapons.onHit = (_kind, headshot, killed) => {
+    music?.combat(0.7);
     hud.showHitMarker(headshot, killed);
     audio.hitMarker();
     if (killed) { kills++; audio.kill(); }
@@ -273,7 +279,7 @@ async function main() {
     const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position: new THREE.Vector3(x, cabins.floorHeightAt(x, z) ?? heightAt(x, z), z), tier: 'common', prompt: 'Take AR-15' });
     interactables.push(drop.interactable);
     drop.onNear = (inside) => audio.pickupHum(inside); // the orb hums while you stand in its prompt radius
-    drop.onPickup = () => { weapons.unlock('rifle'); weapons.select('rifle'); audio.hitMarker(); hud.toast('AR-15 acquired · 1/2 to switch, Q to swap'); };
+    drop.onPickup = () => { weapons.unlock('rifle'); weapons.select('rifle'); audio.hitMarker(); music?.sting('pickup'); hud.toast('AR-15 acquired · 1/2 to switch, Q to swap'); };
     return drop;
   })();
   if (params.get('weapon') === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle', true); rifleDrop?.dispose(); } // dev: start with it
@@ -282,7 +288,7 @@ async function main() {
     const drop = new IronSwordPickup({ scene: game.scene, sky, position: ironSwordSite(wreck, heightAt) });
     interactables.push(drop.interactable);
     drop.onNear = (inside) => audio.pickupHum(inside);
-    drop.onPickup = () => { weapons.unlock('sword-iron'); weapons.select('sword-iron'); audio.hitMarker(); hud.toast('Iron sword acquired · 1/2 to switch, Q to swap'); };
+    drop.onPickup = () => { weapons.unlock('sword-iron'); weapons.select('sword-iron'); audio.hitMarker(); music?.sting('pickup'); hud.toast('Iron sword acquired · 1/2 to switch, Q to swap'); };
     return drop;
   })();
   if (params.get('weapon') === 'iron' && ironSword) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); ironDrop?.dispose(); }
@@ -314,14 +320,14 @@ async function main() {
   if (params.get('drop') && params.get('drop')! in SKINS) { const f = 4.5; spawnSkinDrop(SKINS[params.get('drop') as SkinId], new THREE.Vector3(player.position.x - Math.sin(player.yaw) * f, 0, player.position.z - Math.cos(player.yaw) * f)); }
   new Combat(game, animals, weapons as unknown as Crossbow, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
   animals.onSound = (name, pos) => audio.animal(name, pos, player.position, player.yaw);
-  animals.onCharge = (_a, dmg) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); };
+  animals.onCharge = (_a, dmg) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); music?.combat(0.9); };
   player.onStep = (sprinting) => (player.wading ? audio.wadeStep(player.depth, sprinting)
     : audio.footstep(sprinting, pier?.floorHeightAt(player.position.x, player.position.z) !== undefined ? 'planks'
       : isOcean && heightAt(player.position.x, player.position.z) - chunk.ocean!.level < 2.6 ? 'sand' : 'litter'));
   if (gulls) gulls.onCall = (pos) => audio.gullCallAt(pos, player.position, player.yaw);
   player.onEnterWater = (impact) => audio.splash(impact);
-  player.onSubmerge = () => { audio.dive(); audio.setUnderwater(true); };
-  player.onSurface = () => { audio.surface(); audio.setUnderwater(false); };
+  player.onSubmerge = () => { audio.dive(); audio.setUnderwater(true); music?.setState({ underwater: true }); };
+  player.onSurface = () => { audio.surface(); audio.setUnderwater(false); music?.setState({ underwater: false }); };
   player.onExitWater = () => audio.waterExit();
   player.onStroke = () => audio.swimStroke();
   player.onJump = () => audio.jump();
@@ -335,6 +341,8 @@ async function main() {
   const menuFirst = !params.has('skipintro') && !params.has('tour');
   const enter = () => {
     audio.resume();
+    if (music && !music.isPlaying) { music.play('theme'); music.sting('chunk'); } // the resolve chord on the first frame in
+    music?.setState({ mode: 'calm', intensity: 0 });
     void keepAlive.start(); // screen wake lock — needs this user gesture
     weapons.setEnabled(true);
     weapons.visible = true;
@@ -343,7 +351,7 @@ async function main() {
     if (!nolock) player.lock();
   };
   hud.onResume = enter;
-  hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); debug.setActive(false); }; // the HUD mutes audio and clears `entered`; the gate does the rest
+  hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); debug.setActive(false); music?.setState({ mode: 'menu' }); }; // the HUD mutes audio and clears `entered`; the gate does the rest
   // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
   game.frameGate = () => hud.entered;
   if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.muted = true; hud.showIntro(enter); }
@@ -368,7 +376,16 @@ async function main() {
     }
   });
 
+  let musicPoll = 0;
   game.onUpdate((dt, t) => {
+    // music: once a second (not per frame) — an animal that has noticed you within 40 m lifts calm → alert; combat comes from the hit hooks and decays by itself
+    if (music && t - musicPoll > 1) {
+      musicPoll = t;
+      if (music.state.mode !== 'combat' && music.state.mode !== 'menu') {
+        const noticed = animals.animals.some((a) => a.alive && (a.state === 'alert' || a.state === 'stalk') && a.position.distanceTo(player.position) < 40);
+        music.setState({ mode: noticed ? 'alert' : 'calm', intensity: noticed ? 0.5 : 0 });
+      }
+    }
     boundary.update(dt, t);
     water?.update(dt);
     ocean?.update(dt);
