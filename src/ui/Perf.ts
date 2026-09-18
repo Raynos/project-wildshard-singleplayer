@@ -23,11 +23,15 @@ export class Perf {
     this.root.innerHTML = '<b>—</b><span></span>';
     document.body.appendChild(this.root);
     document.querySelectorAll<HTMLElement>('.ws-game-fps').forEach((e) => { e.hidden = true; }); // the HUD's old faint readout; this meter replaces it
-    if (new URLSearchParams(location.search).get('perf') === '0') this.root.hidden = true;
+    if (new URLSearchParams(location.search).get('perf') === '0') { this.userHidden = true; this.root.hidden = true; }
     game.onUpdate(() => this.update(performance.now()));
     // frames are gated on the menu (Game.frameGate): say so rather than freeze on the last number
     setInterval(() => { if (performance.now() - this.lastPaint > 1500 && this.lastText !== 'idle') { this.lastText = 'idle'; (this.root.firstElementChild as HTMLElement).textContent = '—'; (this.root.lastElementChild as HTMLElement).textContent = 'world paused'; this.root.className = 'ws-perf'; } }, 500);
   }
+
+  /** Hidden while the menu is up (the world is not rendering, so there is nothing to measure). */
+  setActive(on: boolean) { this.root.hidden = on ? this.userHidden : true; }
+  private userHidden = false;
 
   private update(now: number) {
     if (now - this.lastPaint < PAINT_MS) return;
@@ -40,7 +44,8 @@ export class Perf {
     const q = (p: number) => this.sorted[n + Math.min(valid - 1, Math.floor(valid * p))];
     const p50 = q(0.5), p95 = q(0.95);
     const r = g.lastFrame;
-    const text = `${Math.round(1000 / p50)}|${p50.toFixed(1)} / ${p95.toFixed(1)} ms · ${r.calls} calls · ${k(r.triangles)} tris · ${TIER} ${g.renderer.getPixelRatio().toFixed(2)}×`;
+    const gl = g.gl.events ? ` · gl lost ×${g.gl.events}${g.gl.restoredAt > g.gl.lostAt ? ` restored ${Math.round(g.gl.restoredAt - g.gl.lostAt)} ms` : ''}` : '';
+    const text = `${Math.round(1000 / p50)}|${p50.toFixed(1)} / ${p95.toFixed(1)} ms · ${r.calls} calls · ${k(r.triangles)} tris · ${TIER} ${g.renderer.getPixelRatio().toFixed(2)}×${gl}`;
     if (text === this.lastText) return;
     this.lastText = text;
     const [fps, rest] = text.split('|');

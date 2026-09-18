@@ -27,6 +27,8 @@ export class Game {
   frameMs = new Float32Array(120); frameI = 0;
   /** draw calls / triangles of the last whole frame (all composer passes) */
   lastFrame = { calls: 0, triangles: 0 };
+  /** WebGL context loss bookkeeping (iOS drops the context in the background); the perf meter shows it */
+  gl = { lostAt: 0, restoredAt: 0, events: 0 };
   /** Return false to skip a whole frame (updaters + render): a menu covering the canvas, a still title on a phone. */
   frameGate: () => boolean = () => true;
   private renderPass!: RenderPass;
@@ -40,7 +42,7 @@ export class Game {
     this.renderer.toneMapping = THREE.NoToneMapping; // tone mapping happens in the composer
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap; // r186 removed PCFSoft: it renders PCF anyway, and the type is in every program's cache key
     setAnisotropy(this.renderer);
     this.camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.08, 2600);
     window.addEventListener('resize', () => this.resize());
@@ -158,8 +160,8 @@ export class Game {
     // a slow return can be attributed (textures + programs are re-uploaded after a restore).
     let forceFrame = false;
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') forceFrame = true; });
-    this.canvas.addEventListener('webglcontextlost', () => console.warn('[gl] context lost', Math.round(performance.now())));
-    this.canvas.addEventListener('webglcontextrestored', () => console.warn('[gl] context restored', Math.round(performance.now())));
+    this.canvas.addEventListener('webglcontextlost', () => { this.gl.lostAt = performance.now(); this.gl.events++; console.warn('[gl] context lost'); });
+    this.canvas.addEventListener('webglcontextrestored', () => { this.gl.restoredAt = performance.now(); console.warn('[gl] context restored after', Math.round(this.gl.restoredAt - this.gl.lostAt), 'ms'); });
     const loop = () => {
       requestAnimationFrame(loop);
       if (!forceFrame && !this.frameGate()) { this.clock.getDelta(); return; } // keep the clock moving so the next frame's dt is sane

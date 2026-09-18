@@ -20,7 +20,6 @@ import { createBootPlan, type StepRunner } from './boot/plan';
 import { declareTotals, installByteCounter } from './boot/bytes';
 import { chunkFiles } from './boot/manifest';
 import { getActiveChunk } from './chunks/registry';
-import { TIER } from './core/tier';
 import { Audio } from './audio/Audio';
 
 async function main() {
@@ -90,7 +89,7 @@ async function main() {
   new TouchControls(player, crossbow, params.has('touch')); // on-screen FPS controls on coarse-pointer devices (?touch=1 forces)
   crossbow.adsHeld = params.has('ads');
   const hud = new HUD({ pointerLock: !nolock });
-  new Perf(game); // frame meter top-right (?perf=0 hides)
+  const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
   const audio = new Audio();
   let kills = 0, health = 100, lastHurt = 0, pelts = 0;
   const harvested = new Set<object>();
@@ -116,28 +115,24 @@ async function main() {
   player.onLand = (hard) => { audio.land(hard); if (hard) { health = Math.max(0, health - 8); hud.damageFlash(); } };
   hud.onSoundToggle = (on) => { audio.muted = !on; };
 
-  // ── intro: attract camera drifts through the hollow until the player enters ──
+  // ── menu ↔ world: the world is fully loaded, then sits frozen and silent under the menu (hero art
+  // covers the canvas) until ENTER WORLD; "Exit to main menu" freezes it again — no reload, no
+  // loading screen. `?skipintro=1` (bench / screenshots) and `?tour=1` go straight to the world.
   const tour = world.tour;
-  const attract = !params.has('skipintro') && !params.has('tour');
-  let attractT = 12;
-  if (attract) { tour.active = true; tour.setTime(attractT); }
+  const menuFirst = !params.has('skipintro') && !params.has('tour');
   const enter = () => {
     audio.resume();
     crossbow.enabled = true;
     crossbow.model.visible = true;
+    perf.setActive(true);
     if (tour.active && !params.has('tour')) { tour.active = false; respawn(); }
     if (!nolock) player.lock();
   };
   hud.onResume = enter;
-  // Don't render what nobody sees: while a teaser's hero art covers the canvas the frame is skipped
-  // entirely; on a phone the live-world title is a still shot, so it runs at 20 Hz until entered.
-  let gateFrame = 0;
-  game.frameGate = () => {
-    if (hud.entered) return true;
-    if (document.querySelector('.ws-menu .ws-menu-hero.show')) return false;
-    return TIER !== 'phone' || (++gateFrame % 3 === 0);
-  };
-  if (attract) { crossbow.enabled = false; crossbow.model.visible = false; hud.showIntro(enter); }
+  hud.onExitToMenu = () => { crossbow.enabled = false; perf.setActive(false); }; // the HUD mutes audio and clears `entered`; the gate does the rest
+  // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
+  game.frameGate = () => hud.entered;
+  if (menuFirst) { crossbow.enabled = false; crossbow.model.visible = false; perf.setActive(false); audio.muted = true; hud.showIntro(enter); }
   else { hud.markEntered(); crossbow.enabled = !nolock || params.has('skipintro'); }
   document.addEventListener('keydown', () => audio.resume(), { once: true });
   document.addEventListener('mousedown', () => audio.resume(), { once: true });
@@ -158,8 +153,6 @@ async function main() {
   });
 
   game.onUpdate((dt, t) => {
-    // phones hold the hero frame: at 15–17 fps the drift judders and the 14 s wrap hard-cuts
-    if (attract && tour.active && TIER !== 'phone') { attractT += dt * 0.3; tour.setTime(12 + ((attractT - 12) % 14)); }
     boundary.update(dt, t);
     water?.update(dt);
     horizon.update(dt, game.camera);
@@ -196,7 +189,7 @@ async function main() {
   // Compile programs in batches with a visible count, then draw the first frames as a step —
   // instead of the first render() compiling ~100 programs in one stall (minutes on iOS).
   const programs = () => `${game.renderer.info.programs?.length ?? 0} programs`;
-  await step('shaders', (p) => game.precompile((d, n) => p.set(d, n, `${d} / ${n} materials · ${programs()}`)));
+  await step('shaders', (p) => game.precompile((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
   await step('firstFrame', (p) => game.firstFrame((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
   (plan as unknown as { done(): void }).done(); // throws unless both tracks are exactly 1
   game.start();
