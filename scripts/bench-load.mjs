@@ -13,9 +13,11 @@
 //   pnpm bench -- --url=https://wildshard-singleplayer.vercel.app   # live site, no build
 //   pnpm bench -- --compare progress/bench/a.json progress/bench/b.json
 import { spawn, execSync } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { resolve, basename } from 'node:path';
-import { chromium } from 'playwright';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { resolve, basename, join } from 'node:path';
+process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= '1';
+const { chromium } = await import('playwright');
 
 const ROOT = resolve(new URL('..', import.meta.url).pathname);
 const OUT_DIR = resolve(ROOT, 'progress/bench');
@@ -120,31 +122,16 @@ const INIT_SCRIPT = `(() => {
   }, 50);
 })();`;
 
-const COLLECT = `((assetIndex) => {
+const COLLECT = `(() => {
   const W = window;
-  const typeOf = (u) => { const p = u.split(/[?#]/)[0].toLowerCase(); const m = p.match(/\\.([a-z0-9]+)$/); const e = m ? m[1] : '';
-    if (/fonts\\.(gstatic|googleapis)\\.com/.test(u) || /^(woff2?|ttf|otf)$/.test(e)) return 'font';
-    if (e === 'jpeg') return 'jpg'; if (e === 'mjs') return 'js'; if (e === 'htm' || e === '' ) return e === '' ? 'other' : 'html';
-    return ${JSON.stringify(TYPES)}.includes(e) ? e : 'other'; };
-  const bytes = {}; for (const t of ${JSON.stringify(TYPES)}) bytes[t] = { net: 0, cache: 0, opaque: 0, n: 0 };
-  let requests = 0, net = 0, cache = 0, opaque = 0, sw = 0;
-  const known = (u) => { try { return assetIndex[new URL(u).pathname] || 0; } catch { return 0; } };
   const nav = performance.getEntriesByType('navigation')[0];
-  const rs = [...performance.getEntriesByType('resource')];
-  const all = nav ? [nav, ...rs] : rs;
-  for (const r of all) {
-    const t = r === nav ? 'html' : typeOf(r.name); const b = bytes[t]; b.n++; requests++;
-    if (r.workerStart > 0 && r.transferSize === 0) sw++;
-    if (r.transferSize > 0) { b.net += r.transferSize; net += r.transferSize; }
-    else if (r.encodedBodySize > 0 || known(r.name) > 0) { const n = r.encodedBodySize || known(r.name); b.cache += n; cache += n; }
-    else { b.opaque++; opaque++; }
-  }
   const long = W.__bench_long || []; const maxLong = long.reduce((m, e) => Math.max(m, e[1]), 0);
   const world = W.__world; const renderer = world && world.game && world.game.renderer; const info = renderer && renderer.info;
   return {
     titleMs: W.__bench_title > 0 ? W.__bench_title : null, playMs: W.__bench_play || null,
     domContentLoadedMs: nav ? Math.round(nav.domContentLoadedEventEnd) : null, loadEventMs: nav ? Math.round(nav.loadEventEnd) : null,
-    requests, netBytes: net, cacheBytes: cache, opaqueRequests: opaque, swRequests: sw, bytes,
+    // encodedBodySize by URL: the size of a response the HTTP cache served (transferSize 0), used when asset-index.json has no row
+    sizes: Object.fromEntries(performance.getEntriesByType('resource').filter((r) => r.encodedBodySize > 0).map((r) => [r.name, r.encodedBodySize])),
     longTasks: long.length, longTaskMs: long.reduce((s, e) => s + e[1], 0), longTaskMaxMs: maxLong,
     steps: W.__bench_steps || [],
     heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null,
@@ -156,64 +143,129 @@ const COLLECT = `((assetIndex) => {
   };
 })()`;
 
-// ── run matrix ──
-const browser = await chromium.launch({ headless: true, args: GPU === 'swiftshader' ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--use-angle=metal', '--ignore-gpu-blocklist'] });
-let assetIndex = {}; // /assets/<path> → bytes, for the size of responses the HTTP cache / service worker served (they report 0/0)
+// ── browser ──
+// Chromium is launched by hand with a DevTools port and Playwright connects over CDP, because the
+// service worker fetches most of the bytes and Playwright's per-page CDP session cannot throttle a
+// worker target: a raw browser-level session auto-attaches to every service_worker target and
+// applies the current network preset there too. PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS makes
+// the worker's own fetches visible on context 'requestfinished' so they can be counted as net bytes.
+const { browser, chrome, swThrottle } = await launchBrowser();
+let assetIndex = {}; // /assets/<path> → bytes, the size of a response the SW served from its cache (Resource Timing reports 0/0 for those)
 try { assetIndex = await (await fetch(`${URL_BASE}/asset-index.json`, { cache: 'no-store' })).json(); } catch {}
 const runs = []; // { cond, cache, run, status, ...metrics }
 try {
   for (const cond of CONDITIONS) {
+    await swThrottle(NETS[cond]);
     for (let i = 0; i < RUNS; i++) {
       const ctx = await browser.newContext({ viewport: { width: VW, height: VH }, deviceScaleFactor: 1, serviceWorkers: 'allow' });
       try {
-        for (const cache of ['cold', 'warm']) {
-          if (!CACHES.includes(cache) && cache === 'warm') continue;
+        for (const cache of ['cold', 'warm']) {          // cold always runs (it is what warms the context); it is only reported when asked for
+          if (cache === 'warm' && !CACHES.includes('warm')) continue;
           const label = `${cond}/${cache}${RUNS > 1 ? ` #${i + 1}` : ''}`;
           const t0 = Date.now();
           const r = await runOnce(ctx, cond, cache, label);
+          if (cache === 'cold' && !CACHES.includes('cold')) continue;
           runs.push({ cond, cache, run: i + 1, ...r });
-          console.error(`  ${label.padEnd(14)} ${r.status.padEnd(8)} title ${fmtS(r.titleMs)} · play ${fmtS(r.playMs)} · ${fmtMB(r.netBytes)} net / ${fmtMB(r.cacheBytes)} cache · ${r.requests} req · ${r.longTasks} long (${r.longTaskMaxMs} ms max) · sw=${r.swController} (${((Date.now() - t0) / 1000).toFixed(0)} s wall)`);
-          if (cache === 'cold' && !CACHES.includes('cold')) runs.pop(); // cold only run to warm the context
+          console.error(`  ${label.padEnd(14)} ${r.status.padEnd(8)} title ${fmtS(r.titleMs)} · play ${fmtS(r.playMs)} · ${fmtMB(r.netBytes)} net / ${fmtMB(r.cacheBytes)} cache · ${r.requests} req (${r.swFetches} by sw) · ${r.longTasks} long (${r.longTaskMaxMs} ms max) · sw=${r.swController} (${((Date.now() - t0) / 1000).toFixed(0)} s wall)`);
         }
-      } finally { await ctx.close(); }
+      } finally { await within(ctx.close(), 10_000); }
     }
   }
-} finally { await browser.close(); cleanup(); }
+} finally { await within(browser.close(), 10_000); chrome.kill(); cleanup(); }
+
+async function launchBrowser() {
+  const udd = mkdtempSync(join(tmpdir(), 'wildshard-bench-'));
+  const gpuArgs = GPU === 'swiftshader' ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--use-angle=metal', '--ignore-gpu-blocklist'];
+  const chrome = spawn(chromium.executablePath(), ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${udd}`, '--no-first-run', '--no-default-browser-check', '--disable-extensions', ...gpuArgs, 'about:blank'], { stdio: 'ignore' });
+  const portFile = join(udd, 'DevToolsActivePort');
+  await waitFor(() => existsSync(portFile) && readFileSync(portFile, 'utf8').split('\n')[0] > 0, 15_000, 'chromium did not open its DevTools port');
+  const port = readFileSync(portFile, 'utf8').split('\n')[0].trim();
+  const wsUrl = (await (await fetch(`http://127.0.0.1:${port}/json/version`)).json()).webSocketDebuggerUrl;
+  const ws = new WebSocket(wsUrl);
+  await new Promise((res, rej) => { ws.addEventListener('open', res); ws.addEventListener('error', rej); });
+  let id = 0; const pending = new Map(); const swSessions = new Set(); let current = null;
+  const send = (method, params = {}, sessionId) => new Promise((res, rej) => { const i = ++id; pending.set(i, { res, rej }); ws.send(JSON.stringify({ id: i, method, params, sessionId })); });
+  const apply = (sessionId) => current ? send('Network.emulateNetworkConditions', { offline: false, latency: current.latency, downloadThroughput: current.down, uploadThroughput: current.up }, sessionId) : send('Network.disable', {}, sessionId);
+  ws.addEventListener('message', async (ev) => {
+    const m = JSON.parse(ev.data);
+    if (m.id && pending.has(m.id)) { const p = pending.get(m.id); pending.delete(m.id); m.error ? p.rej(new Error(m.error.message)) : p.res(m.result); return; }
+    if (m.method === 'Target.attachedToTarget') {
+      const { sessionId, targetInfo } = m.params;
+      if (targetInfo.type === 'service_worker' && targetInfo.url.startsWith(URL_BASE)) {
+        swSessions.add(sessionId);
+        try { await send('Network.enable', {}, sessionId); await apply(sessionId); } catch (e) { console.error(`  [sw throttle] ${e.message}`); }
+      }
+      send('Runtime.runIfWaitingForDebugger', {}, sessionId).catch(() => {});
+    }
+    if (m.method === 'Target.detachedFromTarget') swSessions.delete(m.params.sessionId);
+  });
+  await send('Target.setAutoAttach', { autoAttach: true, waitForDebuggerOnStart: true, flatten: true });
+  const browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
+  const swThrottle = async (net) => { current = net; for (const s of swSessions) await apply(s).catch(() => {}); };
+  return { browser, chrome, swThrottle };
+}
 
 async function runOnce(ctx, cond, cache, label) {
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e.message).slice(0, 200)));
   const cdp = await ctx.newCDPSession(page);
-  await cdp.send('Network.enable');
   const net = NETS[cond];
-  if (net) await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: net.latency, downloadThroughput: net.down, uploadThroughput: net.up });
+  if (net) { await cdp.send('Network.enable'); await cdp.send('Network.emulateNetworkConditions', { offline: false, latency: net.latency, downloadThroughput: net.down, uploadThroughput: net.up }); }
   if (CPU > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
-  let wireBytes = 0, wireRequests = 0, fromSW = 0, fromDisk = 0;
-  cdp.on('Network.loadingFinished', (e) => { wireBytes += e.encodedDataLength; wireRequests++; });
-  cdp.on('Network.responseReceived', (e) => { if (e.response.fromServiceWorker) fromSW++; else if (e.response.fromDiskCache) fromDisk++; });
+  // byte accounting from the context's network events: page requests + the service worker's own fetches
+  const reqs = []; const inflight = [];
+  const onFinished = (req) => { inflight.push((async () => {
+    const [sizes, res] = await Promise.all([within(req.sizes(), 5000), within(req.response(), 5000)]);
+    reqs.push({ url: req.url(), bySW: !!req.serviceWorker(), fromSW: !!res?.fromServiceWorker(), status: res?.status() ?? 0, body: sizes?.responseBodySize ?? 0, headers: sizes?.responseHeadersSize ?? 0 });
+  })()); };
+  ctx.on('requestfinished', onFinished);
   await page.addInitScript(INIT_SCRIPT);
   let status = 'ok';
   try {
     await page.goto(`${URL_BASE}/?nolock=1&bench=1`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
     await page.waitForFunction(() => window.__bench_play > 0, null, { timeout: TIMEOUT_MS, polling: 100 });
-    // let the first frames land so renderer.info / long tasks settle
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(1500); // let the first frames land so renderer.info / long tasks settle
   } catch (e) {
     status = /Timeout/i.test(String(e)) ? 'timeout' : 'error';
     errors.push(String(e.message ?? e).split('\n')[0].slice(0, 200));
   }
-  let m = {};
-  try { m = await page.evaluate(COLLECT, assetIndex); } catch (e) { errors.push(`collect: ${e.message}`); }
-  const shot = resolve(OUT_DIR, `shot-${cond}-${cache}.png`);
-  try { mkdirSync(OUT_DIR, { recursive: true }); await page.screenshot({ path: shot }); } catch {}
+  let m = { sizes: {} };
+  try { m = await page.evaluate(COLLECT); } catch (e) { errors.push(`collect: ${e.message}`); }
+  try { mkdirSync(OUT_DIR, { recursive: true }); await page.screenshot({ path: resolve(OUT_DIR, `shot-${cond}-${cache}.png`) }); } catch {}
+  ctx.off('requestfinished', onFinished);
+  await within(Promise.all(inflight), 10_000);
+  await within(page.close(), 10_000);
   if (status === 'ok' && errors.length) status = 'ok*';
-  await page.close();
-  return { status, label, wireBytes, wireRequests, fromSW, fromDisk, errors, ...m };
+  const { sizes, ...rest } = m;
+  return { status, label, errors, ...accountBytes(reqs, sizes ?? {}), ...rest };
+}
+
+/** Bytes by type. net = bytes that crossed the (emulated) network: page responses not served by the SW plus every fetch the SW itself made; cache = page responses the HTTP cache or the SW's cache served, sized from Resource Timing or asset-index.json. */
+function accountBytes(reqs, perfSizes) {
+  const typeOf = (u) => { const p = u.split(/[?#]/)[0].toLowerCase(); const m = p.match(/\.([a-z0-9]+)$/); const e = m ? m[1] : '';
+    if (/fonts\.(gstatic|googleapis)\.com/.test(u) || /^(woff2?|ttf|otf)$/.test(e)) return 'font';
+    if (e === 'jpeg') return 'jpg'; if (e === 'mjs') return 'js'; if (e === 'htm') return 'html'; if (e === '') return 'html';
+    return TYPES.includes(e) ? e : 'other'; };
+  const known = (u) => { try { const k = new URL(u).pathname; return assetIndex[k] || perfSizes[u] || 0; } catch { return perfSizes[u] || 0; } };
+  const bytes = {}; for (const t of TYPES) bytes[t] = { net: 0, cache: 0, n: 0 };
+  const swNetByUrl = new Map();
+  for (const r of reqs) if (r.bySW) swNetByUrl.set(r.url, (swNetByUrl.get(r.url) ?? 0) + r.body + r.headers);
+  let requests = 0, net = 0, cache = 0, fromSW = 0, swFetches = 0;
+  for (const r of reqs) {
+    if (/^(blob|data):/.test(r.url)) continue;           // in-memory (GLTF embedded images), never a request
+    const b = bytes[typeOf(r.url)];
+    if (r.bySW) { swFetches++; const n = r.body + r.headers; b.net += n; net += n; continue; }
+    requests++; b.n++;
+    if (r.fromSW) { fromSW++; if (!swNetByUrl.has(r.url)) { const n = known(r.url); b.cache += n; cache += n; } }
+    else if (r.body > 0) { const n = r.body + r.headers; b.net += n; net += n; }
+    else { const n = known(r.url); b.cache += n; cache += n; }
+  }
+  return { requests, swFetches, fromSW, netBytes: net, cacheBytes: cache, bytes, reqs: reqs.map((r) => [r.bySW ? 'sw' : r.fromSW ? 'page<sw' : 'page', r.url.replace(URL_BASE, ''), r.body + r.headers]) };
 }
 
 // ── aggregate: p50 per (cond,cache) across runs ──
-const NUMERIC = ['titleMs', 'playMs', 'domContentLoadedMs', 'requests', 'netBytes', 'cacheBytes', 'opaqueRequests', 'swRequests', 'wireBytes', 'wireRequests', 'fromSW', 'fromDisk', 'longTasks', 'longTaskMs', 'longTaskMaxMs', 'heapMB', 'textures', 'geometries', 'programs', 'firstFrameMs'];
+const NUMERIC = ['titleMs', 'playMs', 'domContentLoadedMs', 'requests', 'swFetches', 'fromSW', 'netBytes', 'cacheBytes', 'longTasks', 'longTaskMs', 'longTaskMaxMs', 'heapMB', 'textures', 'geometries', 'programs', 'firstFrameMs'];
 const rows = {};
 for (const cond of CONDITIONS) for (const cache of CACHES) {
   const key = `${cond}/${cache}`; const rs = runs.filter((r) => r.cond === cond && r.cache === cache);
@@ -257,15 +309,20 @@ function summaryTable(rows) {
   const lines = [`| ${h.join(' | ')} |`, `|${h.map(() => '---').join('|')}|`];
   for (const r of Object.values(rows)) {
     const by = TYPES.filter((t) => r.bytes[t].net > 0 || r.bytes[t].cache > 0).map((t) => `${t} ${fmtMB(r.bytes[t].net + r.bytes[t].cache, 1)}`).join(' · ');
-    lines.push(`| ${r.cond}/${r.cache}${r.status !== 'ok' ? ` (${r.status})` : ''} | ${fmtMB(r.netBytes)} / ${fmtMB(r.cacheBytes)}${r.opaqueRequests ? ` (+${r.opaqueRequests} opaque)` : ''}<br><small>${by}</small> | ${na(r.requests)} | ${fmtS(r.titleMs)} | ${fmtS(r.playMs)} | ${na(r.longTasks)} / ${na(r.longTaskMs)} / ${na(r.longTaskMaxMs)} | ${na(r.textures)} | ${na(r.programs)} | ${na(r.heapMB)} | ${r.swController ? `yes (${na(r.swRequests)} req)` : 'no'} |`);
+    lines.push(`| ${r.cond}/${r.cache}${r.status !== 'ok' ? ` (${r.status})` : ''} | ${fmtMB(r.netBytes)} / ${fmtMB(r.cacheBytes)}<br><small>${by}</small> | ${na(r.requests)} | ${fmtS(r.titleMs)} | ${fmtS(r.playMs)} | ${na(r.longTasks)} / ${na(r.longTaskMs)} / ${na(r.longTaskMaxMs)} | ${na(r.textures)} | ${na(r.programs)} | ${na(r.heapMB)} | ${r.swController ? `yes · ${na(r.fromSW)} served` : 'no'} |`);
   }
   return lines.join('\n') + '\n';
 }
 function stepTable(r) {
-  const lines = ['| at s | Δ ms | step |', '|---|---|---|'];
-  let prev = 0;
-  for (const [t, text, bytes] of r.steps) { lines.push(`| ${(t / 1000).toFixed(2)} | ${t - prev} | ${text}${bytes ? ` (${bytes})` : ''} |`); prev = t; }
-  if (r.playMs) lines.push(`| ${(r.playMs / 1000).toFixed(2)} | ${r.playMs - prev} | *playable (\`.ws-loading\` gone, \`__world\` set)* |`);
+  const lines = ['| start s | took ms | step |', '|---|---|---|'];
+  const steps = [];
+  for (const [t, text, bytes] of r.steps) {      // consecutive "label · n / N …" progress updates collapse into one row
+    const key = text.replace(/ · \d+ \/ \d+.*$/, ''); const last = steps[steps.length - 1];
+    if (last && last.key === key && /\d+ \/ \d+/.test(text)) { last.text = text; last.n++; } else steps.push({ key, t, text, bytes, n: 1 });
+  }
+  const end = r.playMs ?? steps[steps.length - 1]?.t ?? 0;
+  steps.forEach((s, i) => { const next = i + 1 < steps.length ? steps[i + 1].t : end; lines.push(`| ${(s.t / 1000).toFixed(2)} | ${Math.max(0, next - s.t)} | ${s.text}${s.bytes ? ` (${s.bytes})` : ''}${s.n > 1 ? ` — ${s.n} updates` : ''} |`); });
+  if (r.playMs) lines.push(`| ${(r.playMs / 1000).toFixed(2)} | | *playable (\`.ws-loading\` gone, \`__world\` set)* |`);
   return lines.join('\n') + '\n';
 }
 function budgetTable(rows, budget) {
@@ -308,4 +365,5 @@ function fmtS(ms) { return typeof ms === 'number' ? (ms / 1000).toFixed(2) : 'n/
 function fmtUnit(v, unit) { return unit === 'MB' ? fmtMB(v) : unit === 's' ? fmtS(v) : String(v); }
 function na(v) { return v === null || v === undefined ? 'n/a' : String(v); }
 function rel(p) { return p.startsWith(ROOT) ? p.slice(ROOT.length + 1) : p; }
+function within(p, ms) { return Promise.race([Promise.resolve(p).catch(() => null), new Promise((r) => setTimeout(r, ms, null).unref())]); }
 async function waitFor(fn, ms, msg) { const t = Date.now(); while (Date.now() - t < ms) { try { if (await fn()) return; } catch {} await new Promise((r) => setTimeout(r, 250)); } throw new Error(msg); }
