@@ -10,7 +10,9 @@
  *
  * The pier runs from (x, z) toward +z (north) for `length` metres. `floorHeightAt` returns the
  * deck's top for any (x, z) over the deck, else undefined — same contract as `Cabins`.
- * `bollards` are the two tall rope-wrapped posts at the sea end (the sailboat moors to them).
+ * `bollards` are the two tall rope-wrapped posts at the sea end (the sailboat moors to them);
+ * `posts` every piling. `mooringsFor(x, z)` picks the bollard and the piling nearest a boat moored
+ * alongside at (x, z) — pass it as `Boat.moorTo`.
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -49,6 +51,8 @@ export class Pier {
   colliders: Collider[] = [];
   /** the two tall mooring posts at the sea end, world xz */
   bollards: { x: number; z: number }[] = [];
+  /** every piling along the deck, world xz (mooring lines, gulls…) */
+  posts: { x: number; z: number }[] = [];
   readonly deckY: number;
   private cos: number; private sin: number;
 
@@ -120,6 +124,7 @@ export class Pier {
           add(place(t, a, across, postTop - 0.16 - r * 0.1), r === 1 ? C.ropeDark : C.rope, 0.04);
         }
         const [wx, wz] = this.toWorld(a, across);
+        this.posts.push({ x: wx, z: wz });
         this.colliders.push({ x: wx, z: wz, hw: postR + 0.04, hd: postR + 0.04, rot: this.spec.rot ?? 0, yTop: postTop, yBottom: deckY - 1 });
       }
       // cross brace under the deck between the two posts
@@ -155,6 +160,16 @@ export class Pier {
     this.mesh.receiveShadow = true;
     this.group.add(this.mesh);
     return this;
+  }
+
+  /** [bollard, piling] on the side of (x, z) for a boat moored alongside — bow line and stern line */
+  mooringsFor(x: number, z: number, sternZ = z + 3): { x: number; z: number }[] {
+    const side = (x - this.spec.x) * this.cos - (z - this.spec.z) * this.sin < 0 ? -1 : 1;
+    const onSide = (p: { x: number; z: number }) => Math.sign((p.x - this.spec.x) * this.cos - (p.z - this.spec.z) * this.sin) === side;
+    const bollard = this.bollards.find(onSide) ?? this.bollards[0];
+    let post = this.posts[0], best = Infinity;
+    for (const p of this.posts) { if (!onSide(p)) continue; const d = Math.hypot(p.x - x, p.z - sternZ); if (d < best) { best = d; post = p; } }
+    return [bollard, post];
   }
 
   /** world y of the deck under (x, z), or undefined off the pier */

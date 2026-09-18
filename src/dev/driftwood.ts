@@ -4,6 +4,7 @@
 import { bootstrap } from '../core/bootstrap';
 import { Ocean } from '../world/Ocean';
 import { Pier } from '../world/Pier';
+import { Boat } from '../world/Boat';
 import { Boundary } from '../world/Boundary';
 import { Horizon } from '../world/Horizon';
 import { CHUNK_HALF, ROAD_LENGTH } from '../core/config';
@@ -23,13 +24,18 @@ player.colliders.push(...pier.colliders);
 player.platforms.push((x, z) => pier.floorHeightAt(x, z));
 { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; }
 
+const boat = new Boat(sky, { x: -4.2, z: -CHUNK_HALF + 6, heading: 0, waterY: chunk.ocean?.level ?? 0, moorTo: pier.mooringsFor(-4.2, -CHUNK_HALF + 6) }).build();
+game.scene.add(boat.group); if (boat.ropes) game.scene.add(boat.ropes);
+player.colliders.push(...boat.colliders);
+player.platforms.push((x, z) => boat.floorHeightAt(x, z));
+
 const boundary = new Boundary(sky).build();
 game.scene.add(boundary.group);
 const horizon = new Horizon(sky).build();
 game.scene.add(horizon.group);
 
-game.onUpdate((dt, t) => { ocean?.update(dt); boundary.update(dt, t); horizon.update(dt, game.camera); });
+game.onUpdate((dt, t) => { ocean?.update(dt); boat.update(dt); boundary.update(dt, t); horizon.update(dt, game.camera); });
 
-(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boundary, horizon, heightAt };
+(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boat, boundary, horizon, heightAt };
 game.buildComposer();
 game.start();
