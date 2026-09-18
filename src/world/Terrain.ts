@@ -4,6 +4,7 @@ import { heightAt, splatAt } from './Heightfield';
 import { loadPBR, loadPBRArray, pbrMaterial } from '../core/assets';
 import { attachFogUniforms } from './Atmosphere';
 import { getActiveChunk } from '../chunks/registry';
+import { loadBakedTerrain } from './BakedTerrain';
 
 export class Terrain {
   group = new THREE.Group();
@@ -23,7 +24,7 @@ export class Terrain {
   }
 
   async build() {
-    const layers = await loadPBRArray([...getActiveChunk().assets.groundLayers], 1024);
+    const [layers] = await Promise.all([loadPBRArray([...getActiveChunk().assets.groundLayers], 1024), loadBakedTerrain()]); // baked heights/splat → Heightfield lookups (BakedTerrain.ts)
     this.mesh = new THREE.Mesh(this.buildGeometry(), this.buildMaterial(layers));
     this.mesh.receiveShadow = true;
     this.mesh.castShadow = false;

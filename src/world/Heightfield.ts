@@ -42,6 +42,16 @@ onActiveChunkChange((def) => {
   TRAILS = T.trails; CABIN_SITES = T.cabinSites; POND = T.pond ?? NO_POND;
 });
 
+/**
+ * The baked grid (src/world/BakedTerrain.ts, public/assets/baked/<slug>/terrain.bin) replaces the
+ * analytic field with lookups over the terrain mesh's own vertices — the same numbers the mesh is
+ * built from, so collision and planting sit exactly on the rendered surface. setActiveChunk()
+ * rebinds the analytic functions again (the next chunk's bake is installed when it loads).
+ */
+export function _installBakedTerrain(baked: Pick<ChunkTerrain, 'heightAt' | 'normalAt' | 'splatAt'>) {
+  heightAt = baked.heightAt; normalAt = baked.normalAt; splatAt = baked.splatAt;
+}
+
 export function inChunk(x: number, z: number, margin = 0) {
   return Math.abs(x) <= CHUNK_HALF - margin && Math.abs(z) <= CHUNK_HALF - margin;
 }

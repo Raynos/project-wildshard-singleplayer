@@ -6,6 +6,7 @@
 import type { ChunkDef } from '../chunks/ChunkDef';
 import type { ChunkFiles } from './bytes';
 import { pbrUrls } from '../core/assets';
+import { bakedTerrainUrl } from '../world/BakedTerrain';
 
 const pbr = pbrUrls; // tier-aware: the phone's _1k files are what it downloads, so they are what it declares
 const gltf = (id: string) => [`/assets/models/${id}/${id}.gltf`, `/assets/models/${id}/${id}.bin`, ...['diff', 'nor_gl', 'arm'].map((k) => `/assets/models/${id}/textures/${id}_${k}_1k.jpg`)];
@@ -13,7 +14,8 @@ const lod = (id: string) => [`/assets/models/${id}/${id}_lod.glb`];
 const uniq = (xs: string[]) => [...new Set(xs)];
 
 export function chunkFiles(def: ChunkDef): ChunkFiles {
-  const terrain = uniq([...def.assets.groundLayers, def.assets.slabRock].flatMap(pbr));
+  const baked = bakedTerrainUrl(def.slug); // scripts/bake-chunk.mjs output, when the build has one
+  const terrain = uniq([...(baked ? [baked] : []), ...[...def.assets.groundLayers, def.assets.slabRock].flatMap(pbr)]);
   const trees = uniq([...pbr(def.trees.bark), `/assets/tex/${def.trees.twigAtlas}/twig_rgba.png`, `/assets/tex/${def.trees.twigAtlas}/twig_nor_gl.jpg`, `/assets/tex/${def.trees.twigAtlas}/twig_arm.jpg`]);
   const cabins = uniq([
     ...['wood_trunk_wall', 'wood_planks_grey', 'wood_planks_dirt', 'rough_pine_door', 'stone_wall'].flatMap(pbr),

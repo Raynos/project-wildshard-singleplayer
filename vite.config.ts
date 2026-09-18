@@ -29,6 +29,15 @@ function assetIndex(): string {
   return JSON.stringify(out);
 }
 
+// Pre-bake every shard's terrain (scripts/bake-chunk.mjs → public/assets/baked/<slug>/terrain.bin) before
+// the byte table below is written, so the bake is declared and downloaded like any other asset. Idempotent
+// by content hash: a no-op unless a chunk's terrain sources changed. Never fatal (the game computes at launch).
+function bakeChunks() {
+  try { execSync('node --import ./scripts/bake-loader.mjs scripts/bake-chunk.mjs', { stdio: 'inherit' }); }
+  catch (e) { console.warn('[bake] terrain bake failed — launch falls back to the analytic field', e); }
+}
+bakeChunks();
+
 // src/boot/bytes.generated.ts: the same table as a committed TS module, so the boot plan's declared
 // denominators need no fetch and `pnpm tsc` fails when a file a chunk declares disappears.
 function writeBytesModule() {
