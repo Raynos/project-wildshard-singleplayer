@@ -117,7 +117,7 @@ async function main() {
   const targets: Targets = {
     raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null {
       const h = animals.raycast(origin, dir, maxDist);
-      return h ? { animal: h.animal, point: h.point, distance: h.distance, headshot: h.headshot } : null;
+      return h ? { animal: h.animal as unknown as TargetHit['animal'], point: h.point, distance: h.distance, headshot: h.headshot } : null; // Animal.kind is any species id; the weapons only read deer / boar
     },
   };
   // the shard hands the player its weapon (ChunkDef.weapon): the wooden sword on Driftwood Isle, the crossbow elsewhere
