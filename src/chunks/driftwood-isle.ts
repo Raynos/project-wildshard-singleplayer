@@ -34,6 +34,10 @@ export const ISLAND = { x: 0, z: 12, r: 188 };
 export const PLATEAU = { x: -24, z: -62, r: 46, h: 13 };
 /** the hut site on the plateau (rot: which way the door faces — south, toward the pier) */
 export const HUT = { x: PLATEAU.x + 2, z: PLATEAU.z - 2, rot: 0 };
+/** the north-east massif: a tall craggy headland (a broad shoulder + a high top) with the lookout on its summit */
+export const HEADLAND = { x: 98, z: 96, r: 48, h: 22, shoulderR: 80, shoulderH: 9 };
+/** the lookout tower on the headland summit (rot: the stair faces south-west, toward the hut) */
+export const LOOKOUT = { x: HEADLAND.x - 4, z: HEADLAND.z - 2, rot: 0.6 };
 
 /** on the pier deck, 15 m in (past the HUD's 14 m boundary warning), facing north up the pier */
 const SPAWN = { x: 0, z: -CHUNK_HALF + 15, yaw: Math.PI };
@@ -79,6 +83,17 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
         const rimW = 10 + south * 26;
         h += smoothstep(PLATEAU.r + rimW, PLATEAU.r - 4, pr) * PLATEAU.h;
         h += smoothstep(PLATEAU.r - 6, PLATEAU.r - 30, pr) * n.fbm(x * 0.03 + 4, z * 0.03, 2) * 0.6; // the top is not a table
+      }
+      // the north-east headland: a broad rocky shoulder and a high craggy top, a narrow ramp up its south-west face
+      {
+        const hx = x - HEADLAND.x, hz = z - HEADLAND.z;
+        const d = Math.hypot(hx, hz);
+        const crag = n2.get(hx * 0.04 + 21, hz * 0.04) * 9 + n.get(hx * 0.12, hz * 0.12 + 7) * 3;
+        const hr = d + crag;
+        const sw = smoothstep(0.3, 0.95, (-hx - hz) / Math.max(1, d * 1.4142)) * smoothstep(16, 0, Math.abs(hx - hz) / 1.4142); // ramp along the SW diagonal
+        h += smoothstep(HEADLAND.shoulderR + 14 + sw * 20, HEADLAND.shoulderR - 10, hr) * HEADLAND.shoulderH;
+        h += smoothstep(HEADLAND.r + 7 + sw * 26, HEADLAND.r - 6, hr) * HEADLAND.h;
+        h += smoothstep(HEADLAND.shoulderR, 20, d) * n.fbm(x * 0.025 + 8, z * 0.025, 3) * 2.2 * (1 - sw); // broken, boulder-strewn top
       }
       return h;
     },

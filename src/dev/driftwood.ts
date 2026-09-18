@@ -8,7 +8,8 @@ import { Boat } from '../world/Boat';
 import { Boulders } from '../world/Boulders';
 import { Hut } from '../world/Hut';
 import { Palms } from '../world/Palms';
-import { HUT } from '../chunks/driftwood-isle';
+import { Lookout } from '../world/Lookout';
+import { HUT, LOOKOUT } from '../chunks/driftwood-isle';
 import { Boundary } from '../world/Boundary';
 import { Horizon } from '../world/Horizon';
 import { CHUNK_HALF, ROAD_LENGTH } from '../core/config';
@@ -42,9 +43,14 @@ game.scene.add(hut.group);
 player.colliders.push(...hut.colliders);
 player.platforms.push((x, z) => hut.floorHeightAt(x, z));
 
-const palms = new Palms(sky).build(Palms.scatterIsland(chunk.seed, 150, [{ x: HUT.x, z: HUT.z, r: 11 }]));
+const palms = new Palms(sky).build(Palms.scatterIsland(chunk.seed, 150, [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }]));
 game.scene.add(palms.mesh);
 player.colliders.push(...palms.colliders);
+
+const lookout = new Lookout(sky, LOOKOUT).build();
+game.scene.add(lookout.group);
+player.colliders.push(...lookout.colliders);
+player.platforms.push((x, z) => lookout.floorHeightAt(x, z));
 
 const boundary = new Boundary(sky).build();
 game.scene.add(boundary.group);
@@ -53,6 +59,6 @@ game.scene.add(horizon.group);
 
 game.onUpdate((dt, t) => { ocean?.update(dt); boat.update(dt); palms.update(dt); boundary.update(dt, t); horizon.update(dt, game.camera); });
 
-(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boat, rocks, hut, palms, boundary, horizon, heightAt };
+(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, boat, rocks, hut, palms, lookout, boundary, horizon, heightAt };
 game.buildComposer();
 game.start();
