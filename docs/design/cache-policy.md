@@ -48,4 +48,17 @@ iOS Safari, so the only defence is a resident set that is small and cheap to ref
 
 ## Verified
 
-(pending — filled in by the verification step)
+2026-09-17, `pnpm build && vite preview --port 4174`, headless Chromium via `agent-browser`, build
+`0b33061-mu6cvxgj-76c689979d`, `?nolock=1`:
+
+| check | result |
+|---|---|
+| first load | worker controls the page; Cache Storage holds **69 entries / 59.66 MB** (`ws-static` 63 files 58.30 MB, `ws-immutable` 3 files 1.35 MB, `ws-shell` 3 files 7 KB). 17.8 MB in 9 requests went out before `clients.claim()` landed — main.ts does not yet `await window.__ws_sw.ready` — and were cached on the second visit instead (73 entries / 77.07 MB held from then on). |
+| second load | every one of the **69 `/assets/**` resources has `transferSize === 0`** (served by the worker); the only same-origin network hit is `/version.json` (**362 bytes**); `load` event at 233 ms. |
+| offline | `set offline on` + reload: 73 same-origin resources, 0 failed, boots to the title screen (`progress/068-pwa-offline-title.png`); the build pill stays plain because `version.json` is unreachable. |
+| new build | after a rebuild the new worker reaches `installed`, `window.__ws_sw.waiting` is set and the pill shows "new … update"; `adopt()` → reload comes up on the new build with the old `ws-shell` dropped, `ws-static` intact (77 MB kept), and again only `version.json` on the network — the new entry chunk was precached at install. |
+| `?sw=0` | unregisters the worker (`getRegistrations().length === 0`). |
+
+`vite preview` differences from the host: sirv serves `/` with `Cache-Control: no-cache` (it sets that
+after the middleware; `/index.html` gets the `no-store` rule) and adds `Vary: Origin` — which is why
+the worker matches with `ignoreVary`.
