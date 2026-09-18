@@ -117,12 +117,8 @@ export class Pier {
         add(place(g, a, across, (postTop + deckY - pileDepth) / 2, 0), C.post, 0.07);
         // cap
         add(place(new THREE.CylinderGeometry(postR * 0.95, postR * 0.95, 0.1, 7), a, across, postTop + 0.02), C.postTop, 0.05);
-        // rope wrap: three tori just under the cap
-        for (let r = 0; r < 3; r++) {
-          const t = new THREE.TorusGeometry(postR * 0.9 + 0.05, 0.045, 5, 10);
-          t.rotateX(Math.PI / 2);
-          add(place(t, a, across, postTop - 0.16 - r * 0.1), r === 1 ? C.ropeDark : C.rope, 0.04);
-        }
+        // rope wrap: three short 8-sided bands just under the cap (a torus each was 100 tris; the pier is drawn twice with shadows)
+        for (let r = 0; r < 3; r++) add(place(new THREE.CylinderGeometry(postR + 0.06, postR + 0.06, 0.08, 8), a, across, postTop - 0.16 - r * 0.1), r === 1 ? C.ropeDark : C.rope, 0.04);
         const [wx, wz] = this.toWorld(a, across);
         this.posts.push({ x: wx, z: wz });
         this.colliders.push({ x: wx, z: wz, hw: postR + 0.04, hd: postR + 0.04, rot: -(this.spec.rot ?? 0), yTop: postTop, yBottom: deckY - 1 });
@@ -139,11 +135,7 @@ export class Pier {
       const g = new THREE.CylinderGeometry(0.24, 0.28, top - (deckY - pileDepth), 8);
       add(place(g, 0.35, across, (top + deckY - pileDepth) / 2), C.post, 0.06);
       add(place(new THREE.CylinderGeometry(0.27, 0.27, 0.12, 8), 0.35, across, top + 0.03), C.postTop, 0.05);
-      for (let r = 0; r < 5; r++) {
-        const t = new THREE.TorusGeometry(0.3, 0.055, 5, 12);
-        t.rotateX(Math.PI / 2);
-        add(place(t, 0.35, across, top - 0.22 - r * 0.11), r % 2 ? C.ropeDark : C.rope, 0.04);
-      }
+      for (let r = 0; r < 5; r++) add(place(new THREE.CylinderGeometry(0.34, 0.34, 0.1, 8), 0.35, across, top - 0.22 - r * 0.11), r % 2 ? C.ropeDark : C.rope, 0.04);
       const [wx, wz] = this.toWorld(0.35, across);
       this.bollards.push({ x: wx, z: wz });
       this.colliders.push({ x: wx, z: wz, hw: 0.32, hd: 0.32, rot: -(this.spec.rot ?? 0), yTop: top, yBottom: deckY - 1 });

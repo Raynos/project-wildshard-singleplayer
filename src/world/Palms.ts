@@ -16,6 +16,7 @@ import { Rng } from '../core/rng';
 import { Noise2D } from '../core/noise';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
+import { TIER_CONFIG } from '../core/tier';
 
 export interface PalmSpec { x: number; z: number; h: number; lean: number; leanDir: number; rot: number; fronds: number }
 
@@ -34,7 +35,7 @@ export class Palms {
   constructor(private sky: Sky) {}
 
   /** Island rule: behind the beach and on the plateau top, denser in groves, never on steep rock, clear of the hut and piers. */
-  static scatterIsland(seed: number, count = 150, avoid: { x: number; z: number; r: number }[] = []): PalmSpec[] {
+  static scatterIsland(seed: number, count = TIER_CONFIG.palmCount, avoid: { x: number; z: number; r: number }[] = []): PalmSpec[] {
     const rng = new Rng(seed ^ 0x9a1e), grove = new Noise2D(seed + 21);
     const wl = waterLevel();
     const out: PalmSpec[] = [];
@@ -97,7 +98,7 @@ export class Palms {
       for (let f = 0; f < n; f++) {
         const ang = (f / n) * Math.PI * 2 + p.rot + rng.range(-0.15, 0.15);
         const tilt = rng.range(-0.1, 0.35);            // some fronds droop lower
-        const L = rng.range(3.2, 4.3), fs = 6;
+        const L = rng.range(3.2, 4.3), fs = TIER_CONFIG.palmFrondSegs; // 6 desktop / 4 phone segments per frond
         const dir = new THREE.Vector3(Math.cos(ang), 0, Math.sin(ang));
         const side = new THREE.Vector3(-Math.sin(ang), 0, Math.cos(ang));
         const shade = rng.next();

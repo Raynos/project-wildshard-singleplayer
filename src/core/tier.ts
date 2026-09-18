@@ -35,6 +35,9 @@ export const TIER_CONFIG = {
     // 3 full-res SMAA passes are the dearest part of the chain and DPR 1.0 is upscaled ×3 on the screen anyway;
     // volumetrics march at half res into their own target; god rays at a quarter
     godRaysSamples: 24, godRaysScale: 0.25, volumetricSteps: 8, volumetricScale: 0.5, smaa: 'low' as 'off' | 'low' | 'high', bloomLevels: 4, // SMAA low back on: at DPR 1.0 the viewmodel's edges stair-step without it
+    // Driftwood Isle (low-poly): ocean grid cell over the chunk (m), scatter counts, and which scatters cast shadows
+    // (a merged mesh is drawn whole into the shadow map — 80 k bush triangles twice was the phone's 30 fps)
+    oceanCell: 4.0, palmCount: 120, palmFrondSegs: 4, bushCount: 170, bushDetail: 0, bushShadows: false, boulderShadows: true,
   },
   desktop: {
     maxTexture: 4096, layerSize: 1024, dpr: 1.5, ao: true,
@@ -46,6 +49,7 @@ export const TIER_CONFIG = {
     cabinDetailDist: 160, cabinDetailShadows: true, sharedCabinLights: false, beaconLights: true,
     reflectionWidth: 1024, reflectDetail: true,
     godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, volumetricScale: 1, smaa: 'high' as 'off' | 'low' | 'high', bloomLevels: 8,
+    oceanCell: 2.75, palmCount: 150, palmFrondSegs: 6, bushCount: 260, bushDetail: 1, bushShadows: true, boulderShadows: true,
   },
 }[TIER];
 

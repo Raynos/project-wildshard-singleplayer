@@ -5,7 +5,7 @@
  *   scene.add(ocean.group);                 // ocean.mesh is the surface
  *   game.onUpdate((dt) => ocean.update(dt));
  *
- * One mesh: a grid 2.75 m fine over the chunk (plus a margin) that coarsens geometrically out to
+ * One mesh: a grid 2.75 m fine (phone: 4 m) over the chunk (plus a margin) that coarsens geometrically out to
  * ~4 km, so the same surface runs to the horizon with no seam. The vertices are lifted by three
  * sine waves in the vertex shader; `flatShading` derives the normal per facet from screen-space
  * derivatives, so the facets tilt and glint as the waves roll with no normal recompute on the CPU.
@@ -21,6 +21,7 @@ import { heightAt, inChunk } from './Heightfield';
 import { attachFogUniforms } from './Atmosphere';
 import { getActiveChunk } from '../chunks/registry';
 import type { Sky } from './Sky';
+import { TIER_CONFIG } from '../core/tier';
 
 export class Ocean {
   group = new THREE.Group();
@@ -37,11 +38,12 @@ export class Ocean {
     this.level = def.level;
 
     // ── grid coordinates: fine over the chunk, coarsening outward to the horizon ──
-    const fine = 2.75, inner = CHUNK_HALF + 30, far = 4200;
+    const fine = TIER_CONFIG.oceanCell, inner = CHUNK_HALF + 30, far = 4200; // 2.75 m desktop / 4 m phone (57 k → 30 k verts)
     const half: number[] = [];
     for (let v = 0; v <= inner + 1e-6; v += fine) half.push(v);
     let v = half[half.length - 1], step = fine;
-    while (v < far) { step *= 1.16; v += step; half.push(v); }
+    const grow = fine > 3 ? 1.25 : 1.16; // the phone's far ring coarsens faster (13 rings instead of 34 per side)
+    while (v < far) { step *= grow; v += step; half.push(v); }
     const coords = [...half.slice(1).reverse().map((c) => -c), ...half];
     const N = coords.length;
 

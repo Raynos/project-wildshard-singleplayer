@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '../core/config';
-import { heightAt, splatAt } from './Heightfield';
+import { heightAt, normalAt, splatAt } from './Heightfield';
 import { loadPBR, loadPBRArray, pbrMaterial } from '../core/assets';
 import { attachFogUniforms } from './Atmosphere';
 import { getActiveChunk } from '../chunks/registry';
@@ -35,14 +35,24 @@ export class Terrain {
   }
 
   /**
-   * `style: 'lowpoly'` (Driftwood Isle): no textures at all. The same heightfield as non-indexed,
-   * flat-shaded, vertex-coloured triangles — one colour per facet from its centroid's height and
-   * slope (sea floor / wet sand / dry sand / grass / rock) with a little per-facet jitter so the
-   * facets read. The slab walls are the same idea in dark rock. Two draw calls, no maps.
+   * `style: 'lowpoly'` (Driftwood Isle): no textures at all. The same heightfield as an indexed
+   * grid with `flatShading` (the normal comes from screen-space derivatives) and a `flat`-qualified
+   * colour varying: each triangle takes the colour of its provoking (last) vertex, so the facets are
+   * solid blocks of colour with no per-vertex duplication — 65 k vertices for 130 k triangles where a
+   * non-indexed mesh needed 390 k (the phone is vertex-bound). Colour is sand / grass / rock by the
+   * vertex's height above the sea and its slope, with per-vertex jitter so the facets read. The slab
+   * walls are the same idea in dark rock. Two draw calls, no maps.
    */
   private async buildLowPoly() {
     await loadBakedTerrain();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.92, metalness: 0 });
+    mat.onBeforeCompile = (shader) => {
+      attachFogUniforms(shader);
+      // `flat` interpolation: the whole triangle gets its last vertex's colour (three #defines varying → out / in)
+      shader.vertexShader = shader.vertexShader.replace('varying vec4 vColor;', 'flat varying vec4 vColor;');
+      shader.fragmentShader = shader.fragmentShader.replace('varying vec4 vColor;', 'flat varying vec4 vColor;');
+    };
+    mat.customProgramCacheKey = () => 'terrain-lowpoly';
     this.material = mat;
     this.mesh = new THREE.Mesh(this.buildLowPolyGeometry(), mat);
     this.mesh.receiveShadow = true;
@@ -54,35 +64,29 @@ export class Terrain {
 
   private buildLowPolyGeometry() {
     const res = TERRAIN_RES, n = res - 1, d = CHUNK_SIZE / n;
-    const H = new Float32Array(res * res);
-    for (let iz = 0; iz < res; iz++) for (let ix = 0; ix < res; ix++) H[iz * res + ix] = heightAt(-CHUNK_HALF + ix * d, -CHUNK_HALF + iz * d);
-    const tris = n * n * 2;
-    const pos = new Float32Array(tris * 9), col = new Uint8Array(tris * 9);
+    const pos = new Float32Array(res * res * 3), col = new Uint8Array(res * res * 3);
     const wl = getActiveChunk().ocean?.level ?? -1e4;
     const c = new THREE.Color();
-    let p = 0;
-    const put = (ax: number, az: number, bx: number, bz: number, cx: number, cz: number) => {
-      const ya = H[az * res + ax], yb = H[bz * res + bx], yc = H[cz * res + cx];
-      const xa = -CHUNK_HALF + ax * d, za = -CHUNK_HALF + az * d, xb = -CHUNK_HALF + bx * d, zb = -CHUNK_HALF + bz * d, xc = -CHUNK_HALF + cx * d, zc = -CHUNK_HALF + cz * d;
-      // facet slope from its own plane (this is what the flat normal will be)
-      const ux = xb - xa, uy = yb - ya, uz = zb - za, vx = xc - xa, vy = yc - ya, vz = zc - za;
-      const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
-      const slope = 1 - Math.abs(ny) / Math.hypot(nx, ny, nz);
-      const h = (ya + yb + yc) / 3 - wl; // metres above the sea
-      lowPolyGroundColor(c, h, slope, (xa + xb + xc) / 3, (za + zb + zc) / 3);
-      const r = Math.round(c.r * 255), g = Math.round(c.g * 255), b = Math.round(c.b * 255);
-      pos[p] = xa; pos[p + 1] = ya; pos[p + 2] = za; pos[p + 3] = xb; pos[p + 4] = yb; pos[p + 5] = zb; pos[p + 6] = xc; pos[p + 7] = yc; pos[p + 8] = zc;
-      col[p] = col[p + 3] = col[p + 6] = r; col[p + 1] = col[p + 4] = col[p + 7] = g; col[p + 2] = col[p + 5] = col[p + 8] = b;
-      p += 9;
-    };
+    for (let iz = 0; iz < res; iz++) for (let ix = 0; ix < res; ix++) {
+      const i = iz * res + ix, x = -CHUNK_HALF + ix * d, z = -CHUNK_HALF + iz * d;
+      const y = heightAt(x, z);
+      pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
+      const [, ny] = normalAt(x, z, d * 0.5);
+      lowPolyGroundColor(c, y - wl, 1 - ny, x, z);
+      col[i * 3] = Math.round(c.r * 255); col[i * 3 + 1] = Math.round(c.g * 255); col[i * 3 + 2] = Math.round(c.b * 255);
+    }
+    const idx = new Uint32Array(n * n * 6);
+    let k = 0;
     for (let iz = 0; iz < n; iz++) for (let ix = 0; ix < n; ix++) {
-      // alternate the diagonal per cell so the facets don't all lean the same way
-      if ((ix + iz) & 1) { put(ix, iz, ix, iz + 1, ix + 1, iz + 1); put(ix, iz, ix + 1, iz + 1, ix + 1, iz); }
-      else { put(ix, iz, ix, iz + 1, ix + 1, iz); put(ix + 1, iz, ix, iz + 1, ix + 1, iz + 1); }
+      const a = iz * res + ix, b = a + 1, cc = a + res, dd = cc + 1;
+      // alternate the diagonal per cell so the facets don't all lean the same way; the last index is the provoking vertex
+      if ((ix + iz) & 1) { idx[k++] = a; idx[k++] = cc; idx[k++] = dd; idx[k++] = a; idx[k++] = dd; idx[k++] = b; }
+      else { idx[k++] = a; idx[k++] = cc; idx[k++] = b; idx[k++] = b; idx[k++] = cc; idx[k++] = dd; }
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(col, 3, true));
+    geo.setIndex(new THREE.BufferAttribute(idx, 1));
     geo.computeBoundingSphere();
     return geo;
   }

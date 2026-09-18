@@ -14,6 +14,7 @@ import { heightAt, normalAt, waterLevel, inChunk } from './Heightfield';
 import { Rng } from '../core/rng';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
+import { TIER_CONFIG } from '../core/tier';
 
 export interface BoulderSpec { x: number; z: number; r: number; rot?: number; squash?: number }
 
@@ -100,7 +101,7 @@ export class Boulders {
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0 });
     this.sky.setupMaterial(mat);
     this.mesh = new THREE.Mesh(geo, mat);
-    this.mesh.castShadow = true; this.mesh.receiveShadow = true;
+    this.mesh.castShadow = TIER_CONFIG.boulderShadows; this.mesh.receiveShadow = true;
     return this;
   }
 }

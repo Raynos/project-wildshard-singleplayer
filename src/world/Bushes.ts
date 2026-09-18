@@ -13,6 +13,7 @@ import { heightAt, normalAt, waterLevel, inChunk } from './Heightfield';
 import { Rng } from '../core/rng';
 import { Noise2D } from '../core/noise';
 import type { Sky } from './Sky';
+import { TIER_CONFIG } from '../core/tier';
 
 export interface BushSpec { x: number; z: number; r: number; flowers: boolean }
 
@@ -25,7 +26,7 @@ export class Bushes {
 
   constructor(private sky: Sky) {}
 
-  static scatterIsland(seed: number, count = 260, avoid: { x: number; z: number; r: number }[] = []): BushSpec[] {
+  static scatterIsland(seed: number, count = TIER_CONFIG.bushCount, avoid: { x: number; z: number; r: number }[] = []): BushSpec[] {
     const rng = new Rng(seed ^ 0xb054), clump = new Noise2D(seed + 33);
     const wl = waterLevel();
     const out: BushSpec[] = [];
@@ -59,7 +60,7 @@ export class Bushes {
       const tint = GREENS[rng.int(0, GREENS.length - 1)];
       for (let k = 0; k < lobes; k++) {
         const r = b.r * rng.range(0.55, 1.0);
-        const g = new THREE.IcosahedronGeometry(r, 1);
+        const g = new THREE.IcosahedronGeometry(r, TIER_CONFIG.bushDetail); // 80 tris a lobe on desktop, 20 on the phone
         const pos = g.attributes.position as THREE.BufferAttribute;
         for (let i = 0; i < pos.count; i++) { const s = 1 + (rng.next() - 0.5) * 0.25; pos.setXYZ(i, pos.getX(i) * s, pos.getY(i) * s * 0.7, pos.getZ(i) * s); }
         const a = rng.range(0, Math.PI * 2), d = k === 0 ? 0 : rng.range(0.3, b.r * 0.8);
@@ -96,7 +97,7 @@ export class Bushes {
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0 });
     this.sky.setupMaterial(mat);
     this.mesh = new THREE.Mesh(geo, mat);
-    this.mesh.castShadow = true; this.mesh.receiveShadow = true;
+    this.mesh.castShadow = TIER_CONFIG.bushShadows; this.mesh.receiveShadow = true;
     return this;
   }
 }
