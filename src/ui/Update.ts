@@ -6,7 +6,8 @@
  */
 declare const __BUILD_ID__: string;
 
-const sha = __BUILD_ID__.split('-')[0];
+const [gitSha, stamp] = __BUILD_ID__.split('-');
+const sha = gitSha.length >= 7 ? gitSha : stamp; // Vercel CLI builds have no git checkout → show the time token
 const el = document.createElement('button');
 el.className = 'ws-update';
 el.type = 'button';
@@ -31,7 +32,7 @@ async function check() {
     if (j.build && j.build !== __BUILD_ID__) {
       newer = true;
       el.classList.add('newer');
-      el.querySelector('.ws-update-text')!.textContent = `new build ${j.build.split('-')[0]} · tap to update`;
+      el.querySelector('.ws-update-text')!.textContent = `new build ${((b) => (b[0].length >= 7 ? b[0] : b[1]))(j.build.split('-'))} · tap to update`;
     }
   } catch { /* offline — keep the plain reload pill */ }
 }

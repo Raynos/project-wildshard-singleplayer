@@ -5,9 +5,9 @@ import { execSync } from 'node:child_process';
 // emitted as /version.json so the running app can tell when the server has a newer build
 // (iOS home-screen PWAs have no address bar, so the title screen offers the reload).
 function buildId(): string {
-  let sha = 'dev';
-  try { sha = execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch {}
-  return `${sha}-${Date.now().toString(36)}`;
+  let sha = (process.env.VERCEL_GIT_COMMIT_SHA ?? '').slice(0, 7);
+  try { sha ||= execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch {}
+  return `${sha || 'b'}-${Date.now().toString(36)}`;
 }
 const BUILD_ID = buildId();
 const versionJson = () => JSON.stringify({ build: BUILD_ID, time: new Date().toISOString() });
