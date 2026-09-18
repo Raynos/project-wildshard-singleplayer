@@ -13,6 +13,8 @@ import { Palms } from './world/Palms';
 import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE } from './chunks/driftwood-isle';
 import { RopeBridge } from './world/RopeBridge';
 import { Seabed } from './world/Seabed';
+import { Cove } from './world/Cove';
+import { Enemies } from './entities/Enemies';
 import { Lookout } from './world/Lookout';
 import { Wreck } from './world/Wreck';
 import { Shrine } from './world/Shrine';
@@ -87,7 +89,7 @@ async function main() {
   const respawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
 
   // ── world dressing ──
-  const { boundary, water, ocean, pier, jetties, boat, palms, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon } = await step('edge', () => {
+  const { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon } = await step('edge', () => {
     const boundary = new Boundary(sky).build();
     game.scene.add(boundary.group);
     const water = !isOcean && hasPond() ? new Water(sky).build() : null;
@@ -151,11 +153,15 @@ async function main() {
     const seabed = isOcean ? new Seabed(sky).build(Seabed.scatterLagoon(chunk.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }])) : null;
     if (seabed) { game.scene.add(seabed.mesh); if (seabed.fish) game.scene.add(seabed.fish); }
     // coconut palms (one draw call, fronds sway in update)
-    const palms = isOcean ? new Palms(sky).build(Palms.scatterIsland(chunk.seed, undefined, AVOID)) : null;
+    const palmSpecs = isOcean ? Palms.scatterIsland(chunk.seed, undefined, AVOID) : [];
+    const palms = isOcean ? new Palms(sky).build(palmSpecs) : null;
+    // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
+    const cove = isOcean ? new Cove(sky).build(Cove.forIsland()) : null;
+    if (cove) { game.scene.add(cove.group); player.colliders.push(...cove.colliders); }
     if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
-    return { boundary, water, ocean, pier, jetties, boat, palms, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon };
+    return { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon };
   });
 
   const { grass, under, particles } = await step('grass', () => {
@@ -190,6 +196,8 @@ async function main() {
     p.detail(`${a.animals.length} animals`);
     return a;
   });
+  // the island's enemies (Enemies.ts): reef crabs at the tidepools, coconut monkeys in the groves, the drowned sailor in the wreck's hold
+  const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [] }).build() : null;
 
   // ── player kit: the shard's weapon + the AR-15 (Weapons.ts: 1 / 2 / Q, touch SWAP; the rifle is a cabin pickup), HUD, audio ──
   await step('weapon', () => undefined); // synchronous below; the step marks it in the log
@@ -369,6 +377,7 @@ async function main() {
     gulls?.update(dt, player.position);
     bridge?.update(dt);
     seabed?.update(dt);
+    cove?.update(dt); shrine?.update(dt); enemies?.update(dt, t, player.position);
     hands.update(dt, player);
     horizon.update(dt, game.camera);
     grass?.update(dt, player.position);
@@ -416,6 +425,6 @@ async function main() {
   (plan as unknown as { done(): void }).done(); // throws unless both tracks are exactly 1
   game.start();
   await loading.done();
-  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio };
+  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio };
 }
 main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));
