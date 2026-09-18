@@ -4,8 +4,20 @@ import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { loadHDR } from '../core/assets';
 import { fogUniforms } from './Atmosphere';
 import { Noise2D } from '../core/noise';
+import { Rng } from '../core/rng';
 import { getActiveChunk } from '../chunks/registry';
 import { bakedTexture, preloadBakedTextures } from '../boot/bakedTextures';
+import { PUBLIC_BYTES } from '../boot/bytes.generated';
+
+/** public/assets/baked/<slug>/sky.json — the HDR's sun direction and horizon colour, scanned at build time (scripts/bake-sky.mjs). */
+async function loadBakedSky(hdri: string): Promise<{ sunDir: [number, number, number]; horizon: [number, number, number] } | null> {
+  const url = `/assets/baked/${getActiveChunk().slug}/sky.json`;
+  if (!(url in PUBLIC_BYTES) || new URLSearchParams(location.search).has('nobake') || new URLSearchParams(location.search).has('hdri')) return null;
+  try {
+    const j = await (await fetch(url)).json() as { hdri: string; sunDir: [number, number, number]; horizon: [number, number, number] };
+    return j.hdri === hdri ? j : null; // a different HDRI than the bake saw → scan at launch
+  } catch { return null; }
+}
 
 /**
  * Lighting rig: HDRI sky for IBL + background, a cascaded-shadow sun matched to the
@@ -31,8 +43,10 @@ export class Sky {
     const qs = new URLSearchParams(location.search);
     const qn = (k: string, d: number) => (qs.has(k) ? parseFloat(qs.get(k)!) : d);
     const hdriName = qs.get('hdri') ?? S.hdri;
-    const [hdr] = await Promise.all([loadHDR(`/assets/hdri/${hdriName}_2k.hdr`), preloadBakedTextures()]); // baked procedural textures (clouds, fur…) ride along with the HDR
-    this.findSun(hdr);
+    // baked procedural textures (clouds, fur…) and the baked sun / horizon (scripts/bake-sky.mjs) ride along with the HDR
+    const [hdr, , baked] = await Promise.all([loadHDR(`/assets/hdri/${hdriName}_2k.hdr`), preloadBakedTextures(), loadBakedSky(hdriName)]);
+    if (baked) this.sunDir.fromArray(baked.sunDir).normalize();
+    else this.findSun(hdr);
     hdr.mapping = THREE.EquirectangularReflectionMapping;
     const pmrem = new THREE.PMREMGenerator(this.renderer);
     pmrem.compileEquirectangularShader();
@@ -45,7 +59,7 @@ export class Sky {
     this.scene.backgroundBlurriness = 0.0;
 
     // Fog colour = average of the sky just above the horizon in the view direction
-    const horizon = this.sampleHorizon(hdr);
+    const horizon = baked ? new THREE.Color(...baked.horizon) : this.sampleHorizon(hdr);
     this.scene.fog = new THREE.Fog(horizon, 1, 1e6); // distances unused: Atmosphere.ts overrides the maths
     fogUniforms.fogSunDir.value.copy(this.sunDir);
     fogUniforms.fogSunColor.value.set(...S.fogSunColor);
@@ -276,6 +290,7 @@ function makeCloudTexture() {
 }
 
 function makePlanetTexture() {
+  const rng = new Rng(4242); // seeded: the bake (scripts/bake-textures.mjs) must be reproducible
   const c = document.createElement('canvas'); c.width = 1024; c.height = 512;
   const g = c.getContext('2d')!;
   const bands = ['#d9d3c6', '#c4b8a6', '#e6e0d4', '#b8a996', '#d2c9ba', '#a8998a', '#e3dccf', '#c9bcab'];
@@ -289,7 +304,7 @@ function makePlanetTexture() {
   g.globalAlpha = 0.18;
   for (let i = 0; i < 90; i++) {
     g.fillStyle = i % 3 ? '#ffffff' : '#8a7a68'; g.beginPath();
-    g.ellipse(Math.random() * 1024, Math.random() * 512, 30 + Math.random() * 140, 3 + Math.random() * 7, 0, 0, Math.PI * 2); g.fill();
+    g.ellipse(rng.next() * 1024, rng.next() * 512, 30 + rng.next() * 140, 3 + rng.next() * 7, 0, 0, Math.PI * 2); g.fill();
   }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
 }

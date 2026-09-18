@@ -39,17 +39,22 @@ try {
   await page.goto(`${URL_BASE}/?chunk=${SLUG}&tier=desktop&skipintro=1&nolock=1&nobake=1&bakeexport=1`);
   await page.waitForFunction(() => !!window.__world, null, { timeout: 120000 });
   const out = await page.evaluate(() => window.__bakeExport);
-  if (existsSync(dir)) rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
   const files = {};
+  let changed = 0;
+  const wanted = new Set();
   for (const [name, { dataUrl, lossless, width, height }] of Object.entries(out)) {
     const file = `${name}.${lossless ? 'png' : 'jpg'}`;
+    wanted.add(file);
     const buf = Buffer.from(dataUrl.split(',')[1], 'base64');
-    writeFileSync(resolve(dir, file), buf);
+    const path = resolve(dir, file);
+    // a source edit that did not change the pixels keeps the file byte-identical (no commit noise, same SW cache entry)
+    if (!existsSync(path) || !readFileSync(path).equals(buf)) { writeFileSync(path, buf); changed++; }
     files[file] = { bytes: buf.length, width, height };
   }
+  for (const f of readdirSync(dir)) if (!wanted.has(f)) { rmSync(resolve(dir, f)); changed++; }
   writeFileSync(meta, JSON.stringify({ hash: digest, version: VERSION, files }, null, 2) + '\n');
-  console.log(`bake-textures: ${SLUG} → ${Object.entries(files).map(([f, v]) => `${f} ${(v.bytes / 1024).toFixed(0)} KB`).join(' · ')} (${digest}) — commit public/assets/baked/${SLUG}/`);
+  console.log(`bake-textures: ${SLUG} → ${Object.entries(files).map(([f, v]) => `${f} ${(v.bytes / 1024).toFixed(0)} KB`).join(' · ')} (${digest}) — ${changed} file(s) changed; commit public/assets/baked/${SLUG}/`);
 } finally {
   await browser.close();
 }

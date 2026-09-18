@@ -9,6 +9,7 @@ import { pbrUrls } from '../core/assets';
 import { bakedTerrainUrl } from '../world/BakedTerrain';
 import { bakedCardUrls } from '../world/BakedCards';
 import { bakedTextureUrls } from './bakedTextures';
+import { PUBLIC_BYTES } from './bytes.generated';
 
 const pbr = pbrUrls; // tier-aware: the phone's _1k files are what it downloads, so they are what it declares
 const gltf = (id: string) => [`/assets/models/${id}/${id}.gltf`, `/assets/models/${id}/${id}.bin`, ...['diff', 'nor_gl', 'arm'].map((k) => `/assets/models/${id}/textures/${id}_${k}_1k.jpg`)];
@@ -26,5 +27,6 @@ export function chunkFiles(def: ChunkDef): ChunkFiles {
     ...lod('Lantern_01'),
   ]).filter((f) => !terrain.includes(f) && !trees.includes(f)); // pine_bark, rock_ground: counted where first loaded
   const props = uniq([...lod('rock_moss_set_01'), ...lod('tree_stump_01'), ...lod('dead_tree_trunk')]);
-  return { sky: [`/assets/hdri/${def.sky.hdri}_2k.hdr`], baked: bakedTextureUrls(def.slug), terrain, trees, cabins, props };
+  const skyJson = `/assets/baked/${def.slug}/sky.json`;
+  return { sky: [`/assets/hdri/${def.sky.hdri}_2k.hdr`, ...(skyJson in PUBLIC_BYTES ? [skyJson] : [])], baked: bakedTextureUrls(def.slug), terrain, trees, cabins, props };
 }
