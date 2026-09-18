@@ -314,7 +314,7 @@ const DFG_FIX = /* glsl */`
 }
 #endif
 #include <lights_fragment_begin>`;
-function fixIBL(mat: THREE.Material, name: string) {
+export function fixIBL(mat: THREE.Material, name: string) {
   const prev = mat.onBeforeCompile;
   mat.onBeforeCompile = function (shader, renderer) {
     prev.call(this, shader, renderer);

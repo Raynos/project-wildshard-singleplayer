@@ -7,7 +7,7 @@ import { HUD } from '../ui/HUD';
 import { Combat } from '../ui/Combat';
 import { Audio } from '../audio/Audio';
 import { TouchControls } from '../player/TouchControls';
-import type { Weapons } from '../player/Weapons';
+import type { Crossbow as Weapons } from '../player/Crossbow'; // TouchControls takes the crossbow shape at HEAD
 import { CHUNK_HALF } from '../core/config';
 
 /**

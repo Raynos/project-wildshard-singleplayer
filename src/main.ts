@@ -6,6 +6,8 @@ import { Boundary } from './world/Boundary';
 import { Water } from './world/Water';
 import { Ocean } from './world/Ocean';
 import { Pier } from './world/Pier';
+import { Boat } from './world/Boat';
+import { Hands } from './player/Hands';
 import { ROAD_LENGTH } from './core/config';
 import { Sword } from './player/Sword';
 import type { Weapon } from './player/Weapon';
@@ -59,7 +61,7 @@ async function main() {
   const respawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
 
   // ── world dressing ──
-  const { boundary, water, ocean, pier, horizon } = await step('edge', () => {
+  const { boundary, water, ocean, pier, boat, horizon } = await step('edge', () => {
     const boundary = new Boundary(sky).build();
     game.scene.add(boundary.group);
     const water = !isOcean && hasPond() ? new Water(sky).build() : null;
@@ -74,9 +76,16 @@ async function main() {
       player.platforms.push((x, z) => pier.floorHeightAt(x, z));
       const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
     }
+    // the little sailboat you arrived in, moored to the pier's sea-end bollards; you can drop into it
+    const boat = pier ? new Boat(sky, { x: -4.2, z: -CHUNK_HALF + 6, heading: 0, waterY: chunk.ocean!.level, moorTo: pier.mooringsFor(-4.2, -CHUNK_HALF + 6) }).build() : null;
+    if (boat) {
+      game.scene.add(boat.group); if (boat.ropes) game.scene.add(boat.ropes);
+      player.colliders.push(...boat.colliders);
+      player.platforms.push((x, z) => boat.floorHeightAt(x, z));
+    }
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
-    return { boundary, water, ocean, pier, horizon };
+    return { boundary, water, ocean, pier, boat, horizon };
   });
 
   const { grass, under, particles } = await step('grass', () => {
@@ -136,13 +145,15 @@ async function main() {
   let kills = 0, health = 100, lastHurt = 0, pelts = 0, swimHold = false;
   const harvested = new Set<object>();
 
-  crossbow.onFire = () => audio.crossbowFire();
+  const hands = new Hands(sky, game.camera); // white-gloved swimming hands (shown only while player.swimming)
+  crossbow.onFire = () => (chunk.weapon === 'sword' ? audio.swordSwing() : audio.crossbowFire());
   crossbow.onDry = () => audio.dryFire();
   crossbow.onReloadStart = () => audio.reload();
   crossbow.onImpact = (surface, point) => {
     const dx = point.x - player.position.x, dz = point.z - player.position.z, d = Math.hypot(dx, dz);
     const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
-    audio.boltImpact(surface, d > 1 ? ((dx * rx + dz * rz) / d) * 0.7 : 0, 1 / (1 + d / 12));
+    const pan = d > 1 ? ((dx * rx + dz * rz) / d) * 0.7 : 0, gain = 1 / (1 + d / 12);
+    if (chunk.weapon === 'sword') audio.swordHit(surface, pan, gain); else audio.boltImpact(surface, pan, gain);
   };
   crossbow.onHit = (kind, headshot, killed) => {
     hud.showHitMarker(headshot, killed);
@@ -154,7 +165,10 @@ async function main() {
   animals.onKill = (a) => hud.killFeed(`${a.kind} · ${Math.round(a.position.distanceTo(player.position))} m`);
   animals.onSound = (name, pos) => audio.animal(name, pos, player.position, player.yaw);
   animals.onCharge = (_a, dmg) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); };
-  player.onStep = (sprinting) => audio.footstep(sprinting);
+  player.onStep = (sprinting) => (player.wading ? audio.wadeStep(player.depth, sprinting) : audio.footstep(sprinting));
+  player.onEnterWater = (impact) => audio.splash(impact);
+  player.onExitWater = () => audio.waterExit();
+  player.onStroke = () => audio.swimStroke();
   player.onJump = () => audio.jump();
   player.onLand = (hard) => { audio.land(hard); if (hard) { health = Math.max(0, health - 8); hud.damageFlash(); } };
   hud.onSoundToggle = (on) => { audio.muted = !on; };
@@ -201,6 +215,8 @@ async function main() {
     boundary.update(dt, t);
     water?.update(dt);
     ocean?.update(dt);
+    boat?.update(dt);
+    hands.update(dt, player);
     horizon.update(dt, game.camera);
     grass?.update(dt, player.position);
     under?.update(dt, player.position);
@@ -243,6 +259,6 @@ async function main() {
   (plan as unknown as { done(): void }).done(); // throws unless both tracks are exactly 1
   game.start();
   await loading.done();
-  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, grass, under, particles, cabins, props, animals, crossbow, hud, audio };
+  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, boat, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio };
 }
 main();
