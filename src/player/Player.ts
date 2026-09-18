@@ -62,6 +62,8 @@ export class Player {
   onJump?: () => void;
   onLand?: (hard: boolean) => void;
   onStep?: (sprinting: boolean) => void;
+  /** runs first thing in update(), before input is read and the camera is posed — the touch aim assist nudges yaw/pitch here */
+  preUpdate?: (dt: number) => void;
   private lastBobPhase = 0;
 
   constructor(public camera: THREE.PerspectiveCamera, private forest: Forest, private canvas: HTMLCanvasElement) {
@@ -102,6 +104,7 @@ export class Player {
 
   update(dt: number) {
     dt = Math.min(dt, 0.05);
+    this.preUpdate?.(dt);
     const k = this.keys;
     const fwd = Math.max(-1, Math.min(1, (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0) + this.touchMove.y));
     const str = Math.max(-1, Math.min(1, (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + this.touchMove.x));

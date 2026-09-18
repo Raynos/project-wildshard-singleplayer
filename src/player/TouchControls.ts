@@ -13,12 +13,17 @@
  * The HUD (HUD.ts) mounts the VITALS / BOLTS strips into the bar's top corners (`.ws-game-vitals` / `.ws-game-bolts`).
  * Move/look touches are only taken inside the bar; the world above it is not a control surface.
  *
+ * Aim assist (AimAssist.ts — friction / snap-on-AIM / tracking, touch only, pause-menu switch): the layer owns an
+ * `AimAssist`, feeds it the LOOK-pad drag, runs it from `player.preUpdate` every frame and scales the drag by
+ * `assist.lookScale()`.
+ *
  * Talks to the player through `player.touchMove / touchSprint / touchJump` (analog, summed with WASD) and to
  * the crossbow through its public `tryFire() / reload() / adsHeld`. The layer only receives events once the
  * intro is gone (`#hud.intro` hides it), and never needs pointer lock — iOS has none.
  */
 import type { Player } from './Player';
 import type { Crossbow } from './Crossbow';
+import { AimAssist } from './AimAssist';
 
 export const IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
 
@@ -38,6 +43,8 @@ export class TouchControls {
   private lookLast = { x: 0, y: 0 }; private lookRate = LOOK_RATE;
   private lookPath = 0; private lookT0 = 0; // tap-to-fire: distance travelled + start time of the look touch
   private stick?: HTMLElement; private knob?: HTMLElement;
+  readonly assist?: AimAssist;
+  private lookFrameDist = 0; private lookSpeed = 0; // px moved on the LOOK pad since the last frame / smoothed px/s
 
   constructor(private player: Player, private crossbow: Crossbow, force = false) {
     this.active = force || IS_TOUCH;
@@ -61,6 +68,16 @@ export class TouchControls {
     this.root = root;
     this.stick = root.querySelector('.ws-touch-stick')!;
     this.knob = this.stick.querySelector('i')!;
+
+    // ── aim assist: runs at the top of every player update (before the camera is posed) so a nudge shows the same frame ──
+    const assist = this.assist = new AimAssist(root);
+    const prevPre = player.preUpdate;
+    player.preUpdate = (dt) => {
+      prevPre?.(dt);
+      const speed = dt > 0 ? this.lookFrameDist / dt : 0; this.lookFrameDist = 0;
+      this.lookSpeed += (speed - this.lookSpeed) * Math.min(1, dt * 15);
+      if (crossbow.enabled) assist.update(dt, player, crossbow.adsHeld, this.lookSpeed);
+    };
 
     // ── stick + look: pointer events on the layer itself (buttons stop propagation) ──
     root.addEventListener('pointerdown', (e) => {
@@ -89,9 +106,11 @@ export class TouchControls {
       } else if (e.pointerId === this.lookPointer) {
         const dx = e.clientX - this.lookLast.x, dy = e.clientY - this.lookLast.y;
         this.lookLast = { x: e.clientX, y: e.clientY };
-        this.lookPath += Math.hypot(dx, dy);
-        this.player.yaw -= dx * this.lookRate;
-        this.player.pitch = Math.max(-1.45, Math.min(1.45, this.player.pitch - dy * this.lookRate));
+        this.lookPath += Math.hypot(dx, dy); this.lookFrameDist += Math.hypot(dx, dy);
+        this.assist?.noteLook(dx, dy);
+        const rate = this.lookRate * (this.assist?.lookScale() ?? 1); // aim-assist friction near an animal
+        this.player.yaw -= dx * rate;
+        this.player.pitch = Math.max(-1.45, Math.min(1.45, this.player.pitch - dy * rate));
       }
     });
     const release = (e: PointerEvent) => {

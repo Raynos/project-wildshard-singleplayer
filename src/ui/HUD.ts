@@ -2,6 +2,7 @@ import { CHUNK_SIZE } from '../core/config';
 import { CHUNKS, getActiveChunk, chunkUrl } from '../chunks/registry';
 import { PLACEHOLDERS } from '../chunks/placeholders';
 import { CABIN_SITES } from '../world/Heightfield';
+import { getSetting, setSetting, onSetting, type SettingKey } from '../ui/Settings';
 
 /**
  * HUD — DOM overlay in `#hud`, styled by `src/ui/styles/game.css` / `menu.css` / `pause.css` on top of `base.css` (Wildshard glass identity; one class prefix per screen, see scripts/check-css.mjs).
@@ -188,7 +189,19 @@ export class HUD {
       <div class="ws-pause-title">Paused</div><div class="ws-pause-sub">${this.opts.pointerLock ? 'Esc released the cursor' : 'Chunk playtest'}</div>
       <button class="ws-pause-btn resume" type="button">Resume</button>
       <button class="ws-pause-btn exit" type="button">Exit to main menu</button>
+      <div class="ws-pause-settings">
+        <div class="ws-pause-settings-title">Settings</div>
+        <button class="ws-pause-switch" type="button" data-setting="aimAssist" role="switch"><span class="ws-pause-switch-label">Aim assist</span><i class="ws-pause-pill"></i></button>
+        <button class="ws-pause-switch" type="button" data-setting="tracers" role="switch"><span class="ws-pause-switch-label">Tracer bolts</span><i class="ws-pause-pill"></i></button>
+      </div>
     </div>`);
+    // settings switches: tap flips the persisted setting (src/ui/Settings.ts); the pill mirrors it, also when changed elsewhere
+    for (const sw of this.pause.querySelectorAll<HTMLElement>('.ws-pause-switch')) {
+      const key = sw.dataset.setting as SettingKey;
+      const sync = (v: boolean) => { sw.classList.toggle('on', v); sw.setAttribute('aria-checked', String(v)); };
+      sync(getSetting(key)); onSetting(key, sync);
+      sw.addEventListener('click', (e) => { e.stopPropagation(); setSetting(key, !getSetting(key)); });
+    }
     const resume = () => { this.setPaused(false); this.onResume?.(); };
     this.pause.addEventListener('click', (e) => { if (e.target === this.pause) resume(); }); // backdrop click = resume (desktop habit)
     this.pause.querySelector('.resume')!.addEventListener('click', resume);
