@@ -3,7 +3,7 @@ import { CHUNKS, getActiveChunk, chunkUrl } from '../chunks/registry';
 import { PLACEHOLDERS } from '../chunks/placeholders';
 
 /**
- * HUD — DOM overlay in `#hud`, styled by `src/ui/hud.css` (Wildshard glass identity).
+ * HUD — DOM overlay in `#hud`, styled by `src/ui/styles/game.css` / `menu.css` / `pause.css` on top of `base.css` (Wildshard glass identity; one class prefix per screen, see scripts/check-css.mjs).
  *
  *   const hud = new HUD({ pointerLock?: boolean });   // pointerLock:false in ?nolock dev mode (no pause overlay)
  *   hud.showIntro(() => player.lock())                 // title screen: shard deck; ENTER WORLD / any key → onEnter
@@ -84,69 +84,69 @@ export class HUD {
     const r = this.root;
     // chunk panel
     const def = getActiveChunk();
-    const chunk = el('div', 'ws-glass ws-chunk');
-    chunk.innerHTML = `<div class="ws-title">Project <b>Wildshard</b></div><div class="ws-sub">Chunk playtest</div>
-      <div class="ws-row"><span>chunk</span><span class="ws-id">${def.id}</span></div>
-      <div class="ws-row"><span>grid</span><span>${def.gridCoords}</span></div>
-      <div class="ws-row"><span>pos</span><span class="ws-coords">+000 · +000</span></div>
-      <div class="ws-tag"><i></i>Local build · unuploaded</div>`;
-    this.coords = chunk.querySelector('.ws-coords')!;
+    const chunk = el('div', 'ws-glass ws-game-chunk');
+    chunk.innerHTML = `<div class="ws-game-title">Project <b>Wildshard</b></div><div class="ws-game-sub">Chunk playtest</div>
+      <div class="ws-game-row"><span>chunk</span><span class="ws-game-id">${def.id}</span></div>
+      <div class="ws-game-row"><span>grid</span><span>${def.gridCoords}</span></div>
+      <div class="ws-game-row"><span>pos</span><span data-el="coords">+000 · +000</span></div>
+      <div class="ws-game-tag"><i></i>Local build · unuploaded</div>`;
+    this.coords = chunk.querySelector('[data-el="coords"]')!;
     r.appendChild(chunk);
 
     // compass
-    const compass = el('div', 'ws-glass ws-compass');
-    this.compassStrip = el('div', 'ws-strip');
+    const compass = el('div', 'ws-glass ws-game-compass');
+    this.compassStrip = el('div', 'ws-game-strip');
     for (let deg = -360; deg < 720; deg += 15) {
       const major = deg % 45 === 0;
-      const tick = el('i', 'ws-tick' + (major ? ' major' : ''));
+      const tick = el('i', 'ws-game-tick' + (major ? ' major' : ''));
       tick.style.left = `${(deg + 360) * PX_PER_DEG}px`;
       this.compassStrip.appendChild(tick);
     }
     for (let lap = -1; lap <= 1; lap++) for (const [deg, label, major] of CARDINALS) {
-      const c = el('div', 'ws-card' + (major ? '' : ' minor') + (label === 'N' ? ' n' : ''), label);
+      const c = el('div', 'ws-game-cardinal' + (major ? '' : ' minor') + (label === 'N' ? ' n' : ''), label);
       c.style.left = `${(deg + lap * 360 + 360) * PX_PER_DEG}px`;
       this.compassStrip.appendChild(c);
     }
     compass.appendChild(this.compassStrip);
-    compass.appendChild(el('div', 'ws-centre'));
-    this.heading = el('div', 'ws-heading', '000°');
+    compass.appendChild(el('div', 'ws-game-centre'));
+    this.heading = el('div', 'ws-game-heading', '000°');
     compass.appendChild(this.heading);
     r.appendChild(compass);
 
-    this.feed = el('div', 'ws-feed'); r.appendChild(this.feed);
-    this.fps = el('div', 'ws-fps', '<b>60</b> FPS<br>R186 · WEBGL2'); r.appendChild(this.fps);
+    this.feed = el('div', 'ws-game-feed'); r.appendChild(this.feed);
+    this.fps = el('div', 'ws-game-fps', '<b>60</b> FPS<br>R186 · WEBGL2'); r.appendChild(this.fps);
 
     // health
-    const health = el('div', 'ws-glass ws-health');
-    health.innerHTML = `<div class="ws-hrow"><span class="ws-label">Vitals</span><span class="ws-hval"><span class="v">100</span><small>/ 100</small></span></div><div class="ws-bar"><i style="width:100%"></i><u style="left:25%"></u><u style="left:50%"></u><u style="left:75%"></u></div>`;
+    const health = el('div', 'ws-glass ws-game-health');
+    health.innerHTML = `<div class="ws-game-hrow"><span class="ws-label">Vitals</span><span class="ws-game-hval"><span class="v">100</span><small>/ 100</small></span></div><div class="ws-bar"><i style="width:100%"></i><u style="left:25%"></u><u style="left:50%"></u><u style="left:75%"></u></div>`;
     this.healthVal = health.querySelector('.v')!; this.healthBar = health.querySelector('.ws-bar i')!;
     r.appendChild(health);
 
     // ammo
-    const ammo = el('div', 'ws-glass ws-ammo');
-    ammo.innerHTML = `<div class="ws-arow"><span class="ws-label">Bolts</span><span class="ws-count"><span class="c">30</span> <small>/ ${this.opts.maxBolts}</small></span></div>
-      <div class="ws-pips"></div><div class="ws-rbar"><i></i></div><div class="ws-status"><span class="s">Loaded</span><i></i></div>`;
-    this.ammoCount = ammo.querySelector('.ws-count')!; this.ammoStatus = ammo.querySelector('.ws-status')!; this.ammoStatusText = ammo.querySelector('.ws-status .s')!; this.reloadBar = ammo.querySelector('.ws-rbar i')!;
-    const pips = ammo.querySelector('.ws-pips')!;
+    const ammo = el('div', 'ws-glass ws-game-ammo');
+    ammo.innerHTML = `<div class="ws-game-arow"><span class="ws-label">Bolts</span><span class="ws-game-count"><span class="c">30</span> <small>/ ${this.opts.maxBolts}</small></span></div>
+      <div class="ws-game-pips"></div><div class="ws-game-rbar"><i></i></div><div class="ws-game-status"><span class="s">Loaded</span><i></i></div>`;
+    this.ammoCount = ammo.querySelector('.ws-game-count')!; this.ammoStatus = ammo.querySelector('.ws-game-status')!; this.ammoStatusText = ammo.querySelector('.ws-game-status .s')!; this.reloadBar = ammo.querySelector('.ws-game-rbar i')!;
+    const pips = ammo.querySelector('.ws-game-pips')!;
     for (let i = 0; i < (this.opts.maxBolts ?? 30); i++) { const p = el('i'); pips.appendChild(p); this.pips.push(p); }
     r.appendChild(ammo);
 
     // crosshair
-    this.cross = el('div', 'ws-cross', '<i class="t"></i><i class="b"></i><i class="l"></i><i class="r"></i><u></u><div class="ws-x"></div>');
-    this.killX = this.cross.querySelector('.ws-x')!;
+    this.cross = el('div', 'ws-game-cross', '<i class="t"></i><i class="b"></i><i class="l"></i><i class="r"></i><u></u><div class="ws-game-x"></div>');
+    this.killX = this.cross.querySelector('.ws-game-x')!;
     r.appendChild(this.cross);
-    this.hitRing = el('div', 'ws-hitring'); r.appendChild(this.hitRing);
-    this.aim = el('div', 'ws-aim'); r.appendChild(this.aim);
+    this.hitRing = el('div', 'ws-game-hitring'); r.appendChild(this.hitRing);
+    this.aim = el('div', 'ws-game-aim'); r.appendChild(this.aim);
 
-    this.prompt = el('div', 'ws-glass ws-prompt'); r.appendChild(this.prompt);
-    this.boundary = el('div', 'ws-boundary', '<div class="ws-bt">Chunk boundary</div><div class="ws-bs">No-man\'s land beyond · nothing has been generated here</div>'); r.appendChild(this.boundary);
-    this.toasts = el('div', 'ws-toasts'); r.appendChild(this.toasts);
-    this.flash = el('div', 'ws-flash'); r.appendChild(this.flash);
+    this.prompt = el('div', 'ws-glass ws-game-prompt'); r.appendChild(this.prompt);
+    this.boundary = el('div', 'ws-game-boundary', '<div class="ws-game-bt">Chunk boundary</div><div class="ws-game-bs">No-man\'s land beyond · nothing has been generated here</div>'); r.appendChild(this.boundary);
+    this.toasts = el('div', 'ws-game-toasts'); r.appendChild(this.toasts);
+    this.flash = el('div', 'ws-game-flash'); r.appendChild(this.flash);
 
-    this.pause = el('div', 'ws-pause', `<div class="ws-glass ws-pbox">
-      <div class="ws-pt">Paused</div><div class="ws-ps">${this.opts.pointerLock ? 'Esc released the cursor' : 'Chunk playtest'}</div>
-      <button class="ws-pbtn resume" type="button">Resume</button>
-      <button class="ws-pbtn exit" type="button">Exit to main menu</button>
+    this.pause = el('div', 'ws-pause', `<div class="ws-glass ws-pause-box">
+      <div class="ws-pause-title">Paused</div><div class="ws-pause-sub">${this.opts.pointerLock ? 'Esc released the cursor' : 'Chunk playtest'}</div>
+      <button class="ws-pause-btn resume" type="button">Resume</button>
+      <button class="ws-pause-btn exit" type="button">Exit to main menu</button>
     </div>`);
     const resume = () => { this.setPaused(false); this.onResume?.(); };
     this.pause.addEventListener('click', (e) => { if (e.target === this.pause) resume(); }); // backdrop click = resume (desktop habit)
@@ -188,7 +188,7 @@ export class HUD {
     const statusKey = s.bolts <= 0 && !s.loaded ? 'empty' : s.reloading ? 'reloading' : s.loaded ? 'loaded' : 'spent';
     if (statusKey !== L.statusKey) {
       L.statusKey = statusKey;
-      this.ammoStatus.className = 'ws-status ' + (statusKey === 'empty' ? 'empty' : statusKey === 'reloading' ? 'reloading' : '');
+      this.ammoStatus.className = 'ws-game-status ' + (statusKey === 'empty' ? 'empty' : statusKey === 'reloading' ? 'reloading' : '');
       this.ammoStatusText.textContent = statusKey === 'empty' ? 'No bolts' : statusKey === 'reloading' ? 'Spanning' : statusKey === 'loaded' ? 'Loaded' : 'Spent · R to span';
     }
     const rp = s.reloading ? (s.reloadProgress ?? 0) : 0;
@@ -221,14 +221,14 @@ export class HUD {
   }
 
   killFeed(text: string) {
-    const item = el('div', 'ws-item', text.replace(/\b(headshot|kill|killed)\b/gi, '<b>$1</b>'));
+    const item = el('div', 'ws-game-feed-item', text.replace(/\b(headshot|kill|killed)\b/gi, '<b>$1</b>'));
     this.feed.prepend(item);
     while (this.feed.children.length > 4) this.feed.lastElementChild!.remove();
     setTimeout(() => { item.classList.add('out'); setTimeout(() => item.remove(), 500); }, 4200);
   }
 
   toast(text: string) {
-    const t = el('div', 'ws-glass ws-toast', text);
+    const t = el('div', 'ws-glass ws-game-toast', text);
     this.toasts.appendChild(t);
     while (this.toasts.children.length > 4) this.toasts.firstElementChild!.remove();
     setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 500); }, 3200);
@@ -262,33 +262,33 @@ export class HUD {
         heroPortrait: t.heroPortrait, heroLandscape: t.heroLandscape,
       })),
     ];
-    const intro = el('div', 'ws-intro');
+    const intro = el('div', 'ws-menu');
     intro.innerHTML = `
-      <div class="ws-hero"></div>
-      <div class="ws-head"><div class="ws-wordmark">Project <b>Wildshard</b></div></div>
-      <div class="ws-deck">
-        <div class="ws-cards"><div class="ws-deck-track">${cards.map((c, i) => `
-          <button class="ws-card${c.active ? ' active' : ''}${c.playable ? '' : ' soon'}" type="button" data-i="${i}" title="${c.blurb.replace(/"/g, '&quot;')}">
-            <span class="ws-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-card-tag ${c.tagTone}">${c.tag}</i></span>
+      <div class="ws-menu-hero"></div>
+      <div class="ws-menu-head"><div class="ws-wordmark">Project <b>Wildshard</b></div></div>
+      <div class="ws-menu-deck">
+        <div class="ws-menu-cards"><div class="ws-menu-deck-track">${cards.map((c, i) => `
+          <button class="ws-menu-card${c.active ? ' active' : ''}${c.playable ? '' : ' soon'}" type="button" data-i="${i}" title="${c.blurb.replace(/"/g, '&quot;')}">
+            <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-menu-card-tag ${c.tagTone}">${c.tag}</i></span>
             <b>${c.displayName}</b><small>${c.label}</small>
           </button>`).join('')}
         </div></div>
-        <div class="ws-dots">${cards.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
-        <button class="ws-enter" type="button"><b>Enter world</b><small>Press any key</small></button>
-        <div class="ws-row"><div class="ws-sound">Sound on</div></div>
+        <div class="ws-menu-dots">${cards.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
+        <button class="ws-menu-enter" type="button"><b>Enter world</b><small>Press any key</small></button>
+        <div class="ws-menu-row"><div class="ws-menu-sound">Sound on</div></div>
       </div>`;
-    const hero = intro.querySelector<HTMLElement>('.ws-hero')!;
-    const list = intro.querySelector<HTMLElement>('.ws-cards')!;
-    const cardEls = Array.from(list.querySelectorAll<HTMLElement>('.ws-card'));
-    const dots = Array.from(intro.querySelectorAll<HTMLElement>('.ws-dots i'));
-    const enterBtn = intro.querySelector<HTMLButtonElement>('.ws-enter')!;
+    const hero = intro.querySelector<HTMLElement>('.ws-menu-hero')!;
+    const list = intro.querySelector<HTMLElement>('.ws-menu-cards')!;
+    const cardEls = Array.from(list.querySelectorAll<HTMLElement>('.ws-menu-card'));
+    const dots = Array.from(intro.querySelectorAll<HTMLElement>('.ws-menu-dots i'));
+    const enterBtn = intro.querySelector<HTMLButtonElement>('.ws-menu-enter')!;
     const enterTitle = enterBtn.querySelector('b')!, enterHint = enterBtn.querySelector('small')!;
 
     const portrait = () => innerWidth < innerHeight;
     const heroUrl = (c: DeckCard) => (portrait() ? c.heroPortrait : c.heroLandscape) ?? '';
     let index = Math.max(0, cards.findIndex((c) => c.active));
     // paginated track: one card per swipe, always centred — no native scroll, so it can't rest between cards
-    const track = list.querySelector<HTMLElement>('.ws-deck-track')!;
+    const track = list.querySelector<HTMLElement>('.ws-menu-deck-track')!;
     const offsetOf = (i: number) => list.clientWidth / 2 - (cardEls[i].offsetLeft + cardEls[i].offsetWidth / 2);
     const place = (i: number, extra = 0, animate = true) => {
       track.style.transition = animate ? 'transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
@@ -342,7 +342,7 @@ export class HUD {
     cardEls.forEach((e, i) => e.addEventListener('click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }));
     dots.forEach((d, i) => d.addEventListener('click', (ev) => { ev.stopPropagation(); select(i); }));
     enterBtn.addEventListener('click', (ev) => { ev.stopPropagation(); activate(); });
-    intro.querySelector('.ws-sound')!.addEventListener('click', (e) => { e.stopPropagation(); const b = e.currentTarget as HTMLElement; const off = b.classList.toggle('off'); b.textContent = off ? 'Sound off' : 'Sound on'; this.onSoundToggle?.(!off); });
+    intro.querySelector('.ws-menu-sound')!.addEventListener('click', (e) => { e.stopPropagation(); const b = e.currentTarget as HTMLElement; const off = b.classList.toggle('off'); b.textContent = off ? 'Sound off' : 'Sound on'; this.onSoundToggle?.(!off); });
     // orientation flips swap the hero file and re-centre the selected card (card width is viewport-relative)
     let wasPortrait = portrait();
     const onResize = () => {

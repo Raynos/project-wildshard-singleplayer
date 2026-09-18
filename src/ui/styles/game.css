@@ -1,0 +1,137 @@
+/* ─── in-game HUD (src/ui/HUD.ts) ─── prefix ws-game- ─── shared primitives come from base.css */
+
+/* ── top-left: chunk panel ── */
+.ws-game-chunk { position: absolute; left: 22px; top: 20px; padding: 10px 14px 11px; min-width: 250px; }
+.ws-game-chunk .ws-game-title { font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
+.ws-game-chunk .ws-game-title b { color: var(--ws-cyan); font-weight: 700; }
+.ws-game-chunk .ws-game-sub { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-cyan-dim); margin-top: 1px; }
+.ws-game-chunk .ws-game-row { display: flex; justify-content: space-between; gap: 16px; font-size: 11px; margin-top: 7px; color: var(--ws-text); }
+.ws-game-chunk .ws-game-row span:first-child { color: var(--ws-text-dim); letter-spacing: 0.12em; font-size: 10px; text-transform: uppercase; }
+.ws-game-chunk .ws-game-id { color: var(--ws-cyan); }
+.ws-game-tag { display: inline-flex; align-items: center; gap: 7px; margin-top: 9px; padding: 3px 8px 3px 7px; border: 1px solid rgba(255, 181, 71, 0.45); color: var(--ws-amber); font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; }
+.ws-game-tag i { width: 6px; height: 6px; background: var(--ws-amber); border-radius: 50%; box-shadow: 0 0 8px var(--ws-amber); animation: ws-blink 1.6s ease-in-out infinite; }
+
+/* ── top-centre: compass ── */
+.ws-game-compass { position: absolute; left: 50%; top: 18px; transform: translateX(-50%); width: 440px; height: 38px; overflow: hidden; }
+.ws-game-compass .ws-game-strip { position: absolute; top: 4px; left: 0; height: 30px; white-space: nowrap; will-change: transform; }
+.ws-game-compass .ws-game-tick { position: absolute; bottom: 4px; width: 1px; height: 6px; background: var(--ws-cyan-line); }
+.ws-game-compass .ws-game-tick.major { height: 10px; background: var(--ws-cyan-dim); }
+.ws-game-compass .ws-game-cardinal { position: absolute; top: 0; transform: translateX(-50%); font-family: var(--ws-display); font-weight: 600; font-size: 13px; letter-spacing: 0.1em; color: var(--ws-text); }
+.ws-game-compass .ws-game-cardinal.minor { font-size: 9px; color: var(--ws-text-dim); top: 3px; }
+.ws-game-compass .ws-game-cardinal.n { color: var(--ws-cyan); }
+.ws-game-compass .ws-game-centre { position: absolute; left: 50%; top: 0; width: 1px; height: 100%; background: var(--ws-cyan); box-shadow: 0 0 6px var(--ws-cyan); }
+.ws-game-compass .ws-game-heading { position: absolute; left: 50%; bottom: -1px; transform: translateX(-50%); font-size: 9px; letter-spacing: 0.15em; color: var(--ws-cyan-dim); background: var(--ws-glass); padding: 0 5px; }
+.ws-game-compass::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(6, 10, 18, 0.9), transparent 22%, transparent 78%, rgba(6, 10, 18, 0.9)); pointer-events: none; }
+
+/* ── kill feed under the compass ── */
+.ws-game-feed { position: absolute; left: 50%; top: 64px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.ws-game-feed .ws-game-feed-item { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ws-text); padding: 4px 12px; background: var(--ws-glass); border: 1px solid var(--ws-cyan-faint); border-left: 2px solid var(--ws-cyan); animation: ws-feed-in 0.25s ease-out; }
+.ws-game-feed .ws-game-feed-item.out { animation: ws-feed-out 0.5s ease-in forwards; }
+.ws-game-feed .ws-game-feed-item b { color: var(--ws-cyan); font-weight: 500; }
+
+/* ── top-right: fps (the faint readout is superseded by Perf.ts's frame meter and stays hidden) ── */
+.ws-game-fps { position: absolute; right: 22px; top: 20px; font-size: 10px; letter-spacing: 0.18em; color: rgba(196, 220, 232, 0.4); text-align: right; line-height: 1.5; }
+.ws-game-fps b { color: rgba(196, 220, 232, 0.7); font-weight: 500; }
+#hud .ws-game-fps { display: none; }
+#hud.intro .ws-game-fps { top: 82px; right: 44px; }
+
+/* ── bottom-left: health ── */
+.ws-game-health { position: absolute; left: 22px; bottom: 22px; padding: 9px 14px 11px; width: 250px; }
+.ws-game-health .ws-game-hrow { display: flex; justify-content: space-between; align-items: baseline; }
+.ws-game-health .ws-game-hval { font-family: var(--ws-display); font-weight: 700; font-size: 22px; color: #fff; letter-spacing: 0.02em; line-height: 1; }
+.ws-game-health .ws-game-hval small { font-size: 11px; color: var(--ws-text-dim); margin-left: 3px; }
+
+/* ── bottom-right: bolts ── */
+.ws-game-ammo { position: absolute; right: 22px; bottom: 22px; padding: 9px 16px 11px 14px; min-width: 210px; text-align: right; }
+.ws-game-ammo .ws-game-arow { display: flex; justify-content: space-between; align-items: baseline; gap: 18px; }
+.ws-game-ammo .ws-game-count { font-family: var(--ws-display); font-weight: 700; font-size: 30px; line-height: 1; color: #fff; letter-spacing: 0.02em; }
+.ws-game-ammo .ws-game-count small { font-size: 13px; color: var(--ws-text-dim); font-weight: 500; }
+.ws-game-ammo .ws-game-count.empty { color: var(--ws-red); }
+.ws-game-ammo .ws-game-status { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 8px; font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-cyan-dim); }
+.ws-game-ammo .ws-game-status i { width: 7px; height: 7px; background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); transform: rotate(45deg); transition: background 0.2s; }
+.ws-game-ammo .ws-game-status.reloading { color: var(--ws-amber); }
+.ws-game-ammo .ws-game-status.reloading i { background: var(--ws-amber); box-shadow: 0 0 8px var(--ws-amber); animation: ws-spin 0.6s linear infinite; }
+.ws-game-ammo .ws-game-status.empty { color: var(--ws-red); }
+.ws-game-ammo .ws-game-status.empty i { background: var(--ws-red); box-shadow: none; }
+.ws-game-ammo .ws-game-rbar { height: 2px; margin-top: 7px; background: rgba(143, 227, 255, 0.1); position: relative; overflow: hidden; }
+.ws-game-ammo .ws-game-rbar i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--ws-amber); }
+.ws-game-ammo .ws-game-pips { display: flex; justify-content: flex-end; gap: 2px; margin-top: 7px; }
+.ws-game-ammo .ws-game-pips i { width: 4px; height: 9px; background: var(--ws-cyan); opacity: 0.85; }
+.ws-game-ammo .ws-game-pips i.off { background: rgba(143, 227, 255, 0.15); }
+
+/* ── crosshair ── */
+.ws-game-cross { position: absolute; left: 50%; top: 50%; width: 0; height: 0; --gap: 7px; }
+.ws-game-cross i { position: absolute; background: rgba(230, 242, 248, 0.9); box-shadow: 0 0 3px rgba(0, 0, 0, 0.8); transition: background 0.08s; }
+.ws-game-cross i.t, .ws-game-cross i.b { width: 1.5px; height: 8px; left: -0.75px; }
+.ws-game-cross i.l, .ws-game-cross i.r { height: 1.5px; width: 8px; top: -0.75px; }
+.ws-game-cross i.t { top: calc(-1 * var(--gap) - 8px); } .ws-game-cross i.b { top: var(--gap); }
+.ws-game-cross i.l { left: calc(-1 * var(--gap) - 8px); } .ws-game-cross i.r { left: var(--gap); }
+.ws-game-cross u { position: absolute; left: -1px; top: -1px; width: 2px; height: 2px; background: rgba(230, 242, 248, 0.6); }
+.ws-game-cross.hit i { background: var(--ws-red); }
+.ws-game-cross.hit.head i { background: var(--ws-amber); }
+.ws-game-cross.ads { --gap: 4px; }
+.ws-game-cross.ads i { opacity: 0.55; }
+.ws-game-cross .ws-game-x { position: absolute; left: -16px; top: -16px; width: 32px; height: 32px; opacity: 0; }
+.ws-game-cross .ws-game-x::before, .ws-game-cross .ws-game-x::after { content: ''; position: absolute; left: 50%; top: 50%; width: 30px; height: 2px; background: var(--ws-red); box-shadow: 0 0 6px var(--ws-red); transform-origin: center; }
+.ws-game-cross .ws-game-x::before { transform: translate(-50%, -50%) rotate(45deg); }
+.ws-game-cross .ws-game-x::after { transform: translate(-50%, -50%) rotate(-45deg); }
+.ws-game-cross .ws-game-x.show { animation: ws-kill 0.7s ease-out forwards; }
+
+/* ── aim readout under the crosshair ── */
+.ws-game-aim { position: absolute; left: 50%; top: calc(50% + 26px); transform: translateX(-50%); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-text); text-shadow: 0 0 6px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(0, 0, 0, 0.9); opacity: 0; transition: opacity 0.18s ease; white-space: nowrap; }
+.ws-game-aim.show { opacity: 1; }
+#hud.intro .ws-game-aim { opacity: 0; }
+
+/* ── interaction prompt ── */
+.ws-game-prompt { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); padding: 7px 14px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-text); opacity: 0; transition: opacity 0.15s; }
+.ws-game-prompt.show { opacity: 1; }
+.ws-game-prompt b { color: var(--ws-cyan); font-weight: 500; border: 1px solid var(--ws-cyan-line); padding: 1px 6px; margin-right: 8px; }
+
+/* ── boundary warning ── */
+.ws-game-boundary { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); text-align: center; opacity: 0; transition: opacity 0.6s ease; }
+.ws-game-boundary.show { opacity: 1; }
+.ws-game-boundary .ws-game-bt { font-family: var(--ws-display); font-weight: 700; font-size: 22px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--ws-amber); text-shadow: 0 0 18px rgba(255, 181, 71, 0.45), 0 2px 6px rgba(0, 0, 0, 0.8); }
+.ws-game-boundary .ws-game-bs { margin-top: 5px; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255, 181, 71, 0.75); }
+.ws-game-boundary::before, .ws-game-boundary::after { content: ''; display: block; width: 100%; height: 1px; margin: 6px 0; background: repeating-linear-gradient(90deg, var(--ws-amber) 0 14px, transparent 14px 24px); opacity: 0.6; }
+
+/* ── toasts ── */
+.ws-game-toasts { position: absolute; right: 22px; top: 60px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.ws-game-toasts .ws-game-toast { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 12px; color: var(--ws-text); animation: ws-feed-in 0.25s ease-out; }
+.ws-game-toasts .ws-game-toast.out { animation: ws-feed-out 0.5s ease-in forwards; }
+
+/* ── damage flash + vignette ── */
+.ws-game-flash { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 45%, rgba(255, 40, 20, 0.55) 100%); opacity: 0; }
+.ws-game-flash.show { animation: ws-flash 0.55s ease-out forwards; }
+
+/* ── hit marker ring (subtle) ── */
+.ws-game-hitring { position: absolute; left: 50%; top: 50%; width: 26px; height: 26px; margin: -13px; border: 1px solid var(--ws-red); border-radius: 50%; opacity: 0; }
+.ws-game-hitring.show { animation: ws-ring 0.35s ease-out forwards; }
+
+/* play-mode HUD hides while the intro (menu.css) is up */
+#hud.intro .ws-game-chunk, #hud.intro .ws-game-compass, #hud.intro .ws-game-health, #hud.intro .ws-game-ammo, #hud.intro .ws-game-cross, #hud.intro .ws-game-feed, #hud.intro .ws-game-prompt, #hud.intro .ws-game-boundary, #hud.intro .ws-game-toasts { opacity: 0; transition: opacity 0.4s; }
+#hud .ws-game-chunk, #hud .ws-game-compass, #hud .ws-game-health, #hud .ws-game-ammo, #hud .ws-game-cross, #hud .ws-game-feed { transition: opacity 0.6s ease 0.2s; }
+
+/* ─── in-game HUD on a phone: no chunk metadata, compact compass, vitals top-left, bolts top-right ─── */
+@media (max-width: 700px) {
+  #hud.intro .ws-game-fps { top: calc(66px + env(safe-area-inset-top, 0px)); right: 16px; }
+  .ws-game-chunk { display: none; }
+  .ws-game-compass { width: 140px; top: calc(8px + env(safe-area-inset-top, 0px)); height: 30px; }
+  .ws-game-compass .ws-game-strip { height: 24px; top: 2px; }
+  .ws-game-compass .ws-game-cardinal { font-size: 11px; }
+  .ws-game-feed { top: calc(44px + env(safe-area-inset-top, 0px)); }
+  .ws-game-fps { top: calc(104px + env(safe-area-inset-top, 0px)); right: 12px; font-size: 8px; }
+  .ws-game-health { left: 12px; top: calc(8px + env(safe-area-inset-top, 0px)); bottom: auto; width: 108px; padding: 6px 9px 7px; }
+  .ws-game-health .ws-game-hval { font-size: 15px; }
+  .ws-game-health .ws-label { font-size: 8px; }
+  .ws-game-health .ws-bar { margin-top: 5px; height: 3px; }
+  .ws-game-ammo { right: 12px; top: calc(8px + env(safe-area-inset-top, 0px)); bottom: auto; min-width: 0; padding: 5px 9px 6px; }
+  .ws-game-ammo .ws-game-arow { gap: 10px; }
+  .ws-game-ammo .ws-game-count { font-size: 18px; }
+  .ws-game-ammo .ws-label { font-size: 8px; }
+  .ws-game-ammo .ws-game-status { margin-top: 4px; font-size: 8px; }
+  .ws-game-ammo .ws-game-pips { display: none; }
+  .ws-game-ammo .ws-game-rbar { margin-top: 5px; }
+  .ws-game-health .ws-game-hval small { display: none; }
+  .ws-game-health .ws-game-hrow { gap: 8px; }
+  #hud.touch .ws-game-prompt { bottom: calc(max(15vh, 104px) + env(safe-area-inset-bottom, 0px) + 66px); }
+}

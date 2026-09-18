@@ -1,0 +1,67 @@
+/* ─── title screen: the shard deck IS the menu (src/ui/HUD.ts showIntro) ─── prefix ws-menu- ───
+   wordmark top-left, a snap carousel of shard cards low on the screen over the live world, one
+   wide ENTER WORLD, a tiny sound row. Teasers crossfade their hero art in behind everything.
+   HUD.ts also toggles the state class `intro` on #hud while this screen is up. */
+.ws-menu { position: absolute; inset: 0; pointer-events: auto; display: flex; flex-direction: column; justify-content: space-between; transition: opacity 0.6s ease; overflow: hidden; }
+.ws-menu.hide { opacity: 0; pointer-events: none; }
+.ws-menu .ws-menu-hero { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.35s ease; pointer-events: none; }
+.ws-menu .ws-menu-hero.show { opacity: 1; }
+.ws-menu::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(6, 10, 18, 0.45) 0%, rgba(6, 10, 18, 0.05) 28%, rgba(6, 10, 18, 0.05) 50%, rgba(6, 10, 18, 0.7) 100%); }
+.ws-menu .ws-menu-head, .ws-menu .ws-menu-deck { position: relative; z-index: 2; }
+.ws-menu .ws-menu-head { padding: 34px 44px 0; }
+.ws-menu .ws-wordmark { text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6); }
+.ws-menu .ws-wordmark b { font-weight: 700; }
+.ws-menu .ws-wordmark::after { content: ''; display: block; width: 34px; height: 2px; margin-top: 10px; background: var(--ws-cyan); box-shadow: 0 0 10px var(--ws-cyan); }
+/* deck: carousel + dots + enter + sound, centred in the lower half */
+.ws-menu .ws-menu-deck { --card-w: 420px; --card-gap: 18px; display: flex; flex-direction: column; align-items: center; padding-bottom: max(26px, env(safe-area-inset-bottom, 0px)); }
+.ws-menu-cards { position: relative; width: 100%; padding: 12px 0; overflow: hidden; touch-action: none; cursor: grab; }
+.ws-menu-deck-track { display: flex; gap: var(--card-gap); will-change: transform; }
+.ws-menu-cards::-webkit-scrollbar { display: none; }
+.ws-menu-card { position: relative; flex: 0 0 var(--card-w); width: var(--card-w); padding: 0; margin: 0; text-align: center; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 12px 40px rgba(0, 0, 0, 0.45); color: var(--ws-text); cursor: pointer; font-family: var(--ws-mono); opacity: 0.55; transform: scale(0.94); transition: opacity 0.25s, transform 0.25s, border-color 0.25s, box-shadow 0.25s; -webkit-tap-highlight-color: transparent; }
+.ws-menu-card::before { content: ''; position: absolute; left: -1px; top: -1px; width: 18px; height: 18px; border-left: 1px solid var(--ws-cyan); border-top: 1px solid var(--ws-cyan); opacity: 0.8; z-index: 1; }
+.ws-menu-card.selected { opacity: 1; transform: none; border-color: var(--ws-cyan); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 28px rgba(143, 227, 255, 0.28); cursor: default; }
+.ws-menu-card:focus-visible { outline: none; border-color: var(--ws-cyan); }
+.ws-menu-card .ws-menu-card-img { display: block; position: relative; margin: 6px; aspect-ratio: 16 / 9; background-size: cover; background-position: center; border: 1px solid rgba(143, 227, 255, 0.18); }
+.ws-menu-card .ws-menu-card-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6, 10, 18, 0) 60%, rgba(6, 10, 18, 0.5) 100%); }
+.ws-menu-card.soon .ws-menu-card-img { filter: saturate(0.75); }
+.ws-menu-card .ws-menu-card-tag { position: absolute; right: 8px; top: 8px; z-index: 1; font-style: normal; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; padding: 3px 8px; color: var(--ws-cyan); border: 1px solid var(--ws-cyan-line); background: var(--ws-glass-deep); }
+.ws-menu-card .ws-menu-card-tag.ok { color: #7cf2a7; border-color: rgba(124, 242, 167, 0.6); box-shadow: 0 0 10px rgba(124, 242, 167, 0.3); }
+.ws-menu-card .ws-menu-card-tag.soon { color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.5); }
+.ws-menu-card b { display: block; padding: 8px 12px 0; font-family: var(--ws-display); font-weight: 700; font-size: 24px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; line-height: 1.1; }
+.ws-menu-card small { display: block; padding: 4px 12px 12px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ws-text-dim); line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-menu-dots { display: flex; gap: 8px; margin-top: 6px; }
+.ws-menu-dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(196, 220, 232, 0.35); cursor: pointer; transition: background 0.2s, box-shadow 0.2s; }
+.ws-menu-dots i.on { background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); }
+.ws-menu-enter { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; margin-top: 18px; width: var(--card-w); padding: 12px 18px; background: rgba(143, 227, 255, 0.1); border: 1px solid var(--ws-cyan); color: #fff; cursor: pointer; pointer-events: auto; font-family: var(--ws-display); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(143, 227, 255, 0.22), inset 0 0 18px rgba(143, 227, 255, 0.08); transition: background 0.2s, box-shadow 0.2s, border-color 0.2s, color 0.2s; -webkit-tap-highlight-color: transparent; }
+.ws-menu-enter b { font-weight: 700; font-size: 24px; letter-spacing: 0.3em; text-transform: uppercase; line-height: 1; }
+.ws-menu-enter small { font-family: var(--ws-mono); font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-cyan-dim); }
+.ws-menu-enter:hover, .ws-menu-enter:focus-visible { background: rgba(143, 227, 255, 0.22); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 32px rgba(143, 227, 255, 0.4); outline: none; }
+.ws-menu-enter:active { background: rgba(143, 227, 255, 0.3); }
+.ws-menu-enter.soon, .ws-menu-enter.soon:hover { background: rgba(6, 10, 18, 0.55); border-color: rgba(143, 227, 255, 0.25); color: var(--ws-text-dim); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); cursor: default; }
+.ws-menu-enter.soon small { color: rgba(196, 220, 232, 0.4); }
+.ws-menu .ws-menu-row { display: flex; justify-content: center; gap: 22px; margin-top: 16px; }
+.ws-menu .ws-menu-sound { padding: 4px 6px; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-text-dim); pointer-events: auto; cursor: pointer; }
+.ws-menu .ws-menu-sound::after { content: ''; display: inline-block; width: 6px; height: 6px; background: var(--ws-cyan); margin-left: 10px; box-shadow: 0 0 8px var(--ws-cyan); vertical-align: 1px; }
+.ws-menu .ws-menu-sound.off::after { background: transparent; border: 1px solid var(--ws-cyan-dim); box-shadow: none; }
+
+/* ─── title screen on a phone-width viewport: the deck fills the lower third, world above ─── */
+@media (max-width: 700px) {
+  .ws-menu::before { background: linear-gradient(180deg, rgba(6, 10, 18, 0.55) 0%, rgba(6, 10, 18, 0.05) 30%, rgba(6, 10, 18, 0.05) 52%, rgba(6, 10, 18, 0.78) 100%); }
+  .ws-menu .ws-menu-head { padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 0; }
+  .ws-menu .ws-wordmark { font-size: 13px; letter-spacing: 0.3em; line-height: 1.05; color: rgba(230, 242, 248, 0.85); font-weight: 600; }
+  .ws-menu .ws-wordmark b { display: block; font-size: 26px; letter-spacing: 0.12em; margin-top: 3px; }
+  .ws-menu .ws-wordmark::after { width: 26px; margin-top: 6px; }
+  .ws-menu .ws-menu-deck { --card-w: 78vw; --card-gap: 12px; padding-bottom: max(10px, env(safe-area-inset-bottom, 0px)); }
+  .ws-menu-cards { padding-top: 10px; padding-bottom: 10px; }
+  .ws-menu-card .ws-menu-card-img { margin: 5px; }
+  .ws-menu-card .ws-menu-card-tag { font-size: 8px; padding: 2px 6px; right: 6px; top: 6px; }
+  .ws-menu-card b { font-size: 16px; padding-top: 6px; }
+  .ws-menu-card small { font-size: 9px; letter-spacing: 0.05em; padding: 3px 10px 9px; }
+  .ws-menu-dots { margin-top: 2px; gap: 7px; }
+  .ws-menu-dots i { width: 6px; height: 6px; }
+  .ws-menu-enter { margin-top: 12px; padding: 13px 16px; }
+  .ws-menu-enter b { font-size: 20px; letter-spacing: 0.26em; }
+  .ws-menu-enter small { display: none; }
+  .ws-menu .ws-menu-row { margin-top: 8px; }
+  .ws-menu .ws-menu-sound { font-size: 9px; }
+}

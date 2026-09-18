@@ -11,7 +11,7 @@ const sha = gitSha.length >= 7 ? gitSha : stamp; // Vercel CLI builds have no gi
 const el = document.createElement('button');
 el.className = 'ws-update';
 el.type = 'button';
-el.innerHTML = `<span class="ws-update-dot"></span><span class="ws-update-text">${sha} · reload</span>`;
+el.innerHTML = `<span class="ws-update-dot"></span><span data-el="text">${sha} · reload</span>`;
 document.body.appendChild(el);
 
 const reload = () => {
@@ -27,7 +27,7 @@ el.addEventListener('click', reload);
 const lightUp = (label: string) => {
   newer = true;
   el.classList.add('newer');
-  el.querySelector('.ws-update-text')!.textContent = `new ${label} · tap to update`;
+  el.querySelector('[data-el="text"]')!.textContent = `new ${label} · tap to update`;
 };
 // the worker found a new build (installed, waiting) — same pill, no toast
 window.addEventListener('ws-sw-waiting', () => lightUp('build'));

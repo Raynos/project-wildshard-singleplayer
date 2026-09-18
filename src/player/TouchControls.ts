@@ -3,7 +3,7 @@
  *
  *   const touch = new TouchControls(player, crossbow);   // no-op on mouse/trackpad devices (`touch.active === false`)
  *
- * Layout (styled in hud.css, `.ws-touch`): a glass control bar across the bottom ~15 % of the screen, split into
+ * Layout (styled in src/ui/styles/touch.css, prefix `ws-touch-`): a glass control bar across the bottom ~15 % of the screen, split into
  * a MOVE zone (left, anchored stick: push past 85 % while heading forward = sprint) and a LOOK zone (right, drag
  * pad). A row of four buttons sits directly above the bar: JUMP · RELOAD · AIM (hold) · FIRE; USE appears in the
  * row only while the HUD has an interact prompt and dispatches the same `KeyE` the keyboard path listens for.
@@ -40,28 +40,28 @@ export class TouchControls {
     const root = document.createElement('div');
     root.className = 'ws-touch';
     root.innerHTML = `
-      <div class="ws-stick"><i></i></div>
-      <div class="ws-tbtns">
-        <button class="ws-tbtn use" type="button">Use</button>
-        <button class="ws-tbtn jump" type="button">Jump</button>
-        <button class="ws-tbtn reload" type="button">Reload</button>
-        <button class="ws-tbtn aim" type="button">Aim</button>
-        <button class="ws-tbtn fire" type="button">Fire</button>
+      <div class="ws-touch-stick"><i></i></div>
+      <div class="ws-touch-btns">
+        <button class="ws-touch-btn use" type="button">Use</button>
+        <button class="ws-touch-btn jump" type="button">Jump</button>
+        <button class="ws-touch-btn reload" type="button">Reload</button>
+        <button class="ws-touch-btn aim" type="button">Aim</button>
+        <button class="ws-touch-btn fire" type="button">Fire</button>
       </div>
-      <button class="ws-tpause" type="button">Pause</button>
-      <div class="ws-tbar">
-        <div class="ws-tzone move"><u></u><span class="ws-tlabel">Move</span></div>
-        <div class="ws-tzone look"><u></u><span class="ws-tlabel">Look</span></div>
+      <button class="ws-touch-pause" type="button">Pause</button>
+      <div class="ws-touch-bar">
+        <div class="ws-touch-zone move"><u></u><span class="ws-touch-label">Move</span></div>
+        <div class="ws-touch-zone look"><u></u><span class="ws-touch-label">Look</span></div>
       </div>`;
     hud.appendChild(root);
     this.root = root;
-    this.stick = root.querySelector('.ws-stick')!;
+    this.stick = root.querySelector('.ws-touch-stick')!;
     this.knob = this.stick.querySelector('i')!;
 
     // ── stick + look: pointer events on the layer itself (buttons stop propagation) ──
     root.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'mouse' && !force) return;
-      const zone = root.querySelector<HTMLElement>('.ws-tzone.move')!.getBoundingClientRect();
+      const zone = root.querySelector<HTMLElement>('.ws-touch-zone.move')!.getBoundingClientRect();
       if (e.clientY < zone.top) return; // above the bar: not a control surface
       const inMove = e.clientX <= zone.right;
       if (inMove && this.stickPointer < 0) {
@@ -111,7 +111,7 @@ export class TouchControls {
     btn('.aim', () => { this.crossbow.adsHeld = true; }, () => { this.crossbow.adsHeld = false; });
     btn('.reload', () => { if (this.crossbow.enabled) this.crossbow.reload(); });
     btn('.jump', () => { this.player.touchJump = true; });
-    btn('.ws-tpause', () => document.dispatchEvent(new Event('ws:pause')));
+    btn('.ws-touch-pause', () => document.dispatchEvent(new Event('ws:pause')));
     btn('.use', () => document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e', bubbles: true })));
   }
 

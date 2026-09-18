@@ -1,0 +1,26 @@
+/* ─── loading screen base panel (src/ui/Loading.ts; the facts-panel extras are in src/ui/loading.css) ─── prefix ws-load- ───
+   This is the old hud.css `.ws-loading` block under the ws-load-* names Loading.ts now uses (base panel, wordmark,
+   tagline, meta grid, bar, log, foot). The loading screen's owner may fold it into src/ui/loading.css; until the two
+   files are reconciled scripts/check-css.mjs only WARNS about this file and src/ui/loading.css. */
+.ws-load { position: fixed; inset: 0; z-index: 20; font-family: var(--ws-mono); color: var(--ws-text); background: radial-gradient(ellipse at 50% 30%, #0d1a26 0%, #06090f 60%, #030508 100%); display: flex; flex-direction: column; justify-content: space-between; user-select: none; transition: opacity 0.7s ease; }
+.ws-load.hide { opacity: 0; pointer-events: none; }
+.ws-load::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(143, 227, 255, 0.025) 0 1px, transparent 1px 3px); pointer-events: none; }
+.ws-load .ws-load-head { padding: 34px 44px 0; }
+.ws-load .ws-wordmark { font-family: var(--ws-display); font-weight: 700; font-size: 54px; line-height: 1; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; }
+.ws-load .ws-wordmark b { color: var(--ws-cyan); }
+.ws-load .ws-tagline { margin-top: 10px; font-size: 13px; letter-spacing: 0.04em; color: var(--ws-text-dim); }
+.ws-load .ws-load-body { flex: 1; display: flex; align-items: center; justify-content: center; }
+.ws-load .ws-load-panel { width: 560px; padding: 22px 26px 20px; }
+.ws-load .ws-load-title { font-family: var(--ws-display); font-weight: 700; font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; }
+.ws-load .ws-load-title b { color: var(--ws-cyan); }
+.ws-load .ws-load-meta { margin: 14px 0 18px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 26px; row-gap: 7px; }
+.ws-load .ws-load-meta div { display: flex; justify-content: space-between; font-size: 11px; border-bottom: 1px solid rgba(143, 227, 255, 0.08); padding-bottom: 5px; }
+.ws-load .ws-load-meta span:first-child { color: var(--ws-text-dim); letter-spacing: 0.16em; font-size: 9.5px; text-transform: uppercase; }
+.ws-load .ws-load-bar { height: 4px; background: rgba(143, 227, 255, 0.12); position: relative; overflow: hidden; }
+.ws-load .ws-load-fill { height: 100%; width: 0; background: linear-gradient(90deg, rgba(143, 227, 255, 0.6), var(--ws-cyan)); box-shadow: 0 0 12px rgba(143, 227, 255, 0.6); transition: width 0.1s linear; }
+.ws-load .ws-load-row { display: flex; justify-content: space-between; margin-top: 10px; font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; }
+.ws-load .ws-load-label { color: var(--ws-cyan-dim); }
+.ws-load .ws-load-pct { color: #fff; font-family: var(--ws-display); font-size: 16px; letter-spacing: 0.06em; }
+.ws-load .ws-load-log { margin-top: 12px; font-size: 9.5px; letter-spacing: 0.08em; color: rgba(196, 220, 232, 0.4); min-height: 70px; line-height: 1.6; }
+.ws-load .ws-load-log div:last-child { color: var(--ws-cyan-dim); }
+.ws-load .ws-load-foot { display: flex; justify-content: space-between; padding: 0 44px 26px; font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(196, 220, 232, 0.4); }

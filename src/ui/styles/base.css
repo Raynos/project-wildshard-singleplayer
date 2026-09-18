@@ -1,0 +1,60 @@
+/* ─── Wildshard UI base ─── dark glass, cyan accents, Rajdhani display / JetBrains Mono data ───
+   ONLY shared primitives live here: tokens, page resets, .ws-glass / .ws-label / .ws-mono / .ws-display /
+   .ws-wordmark / .ws-bar and the keyframes. Everything else is sculpted per screen in a sibling file with
+   its own class prefix (game.css → ws-game-, menu.css → ws-menu-, …); scripts/check-css.mjs enforces it. */
+:root {
+  --ws-cyan: #8fe3ff;
+  --ws-cyan-dim: rgba(143, 227, 255, 0.55);
+  --ws-cyan-line: rgba(143, 227, 255, 0.35);
+  --ws-cyan-faint: rgba(143, 227, 255, 0.14);
+  --ws-glass: rgba(6, 10, 18, 0.55);
+  --ws-glass-deep: rgba(6, 10, 18, 0.78);
+  --ws-text: #e6f2f8;
+  --ws-text-dim: rgba(196, 220, 232, 0.6);
+  --ws-red: #ff5a4a;
+  --ws-amber: #ffb547;
+  --ws-display: 'Rajdhani', 'Bahnschrift', 'DIN Alternate', sans-serif;
+  --ws-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+}
+
+html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; background: #050810; touch-action: manipulation; overscroll-behavior: none; -webkit-text-size-adjust: 100%; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+#game { display: block; width: 100vw; height: 100vh; touch-action: none; }
+#hud button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+#hud { position: fixed; inset: 0; pointer-events: none; font-family: var(--ws-mono); color: var(--ws-text); user-select: none; overflow: hidden; }
+#hud * { box-sizing: border-box; }
+
+.ws-glass {
+  background: var(--ws-glass);
+  border: 1px solid var(--ws-cyan-line);
+  backdrop-filter: blur(10px) saturate(1.2);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 10px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(143, 227, 255, 0.12);
+  position: relative;
+}
+.ws-glass::before { /* corner accent line */
+  content: ''; position: absolute; left: -1px; top: -1px; width: 18px; height: 18px;
+  border-left: 1px solid var(--ws-cyan); border-top: 1px solid var(--ws-cyan); opacity: 0.8;
+}
+.ws-label { font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-cyan-dim); }
+.ws-mono { font-family: var(--ws-mono); font-variant-numeric: tabular-nums; }
+.ws-display { font-family: var(--ws-display); font-weight: 600; letter-spacing: 0.04em; }
+
+/* wordmark "Project <b>Wildshard</b>" — the title screen and the loading screen scope their own extras on top */
+.ws-wordmark { font-family: var(--ws-display); font-weight: 700; font-size: 54px; line-height: 1; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; }
+.ws-wordmark b { color: var(--ws-cyan); }
+
+/* segmented bar: <div class="ws-bar"><i style="width:…"></i><u style="left:25%"></u>…</div> */
+.ws-bar { position: relative; height: 5px; margin-top: 8px; background: rgba(143, 227, 255, 0.1); overflow: hidden; }
+.ws-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ws-cyan); box-shadow: 0 0 10px rgba(143, 227, 255, 0.6); transition: width 0.25s ease-out, background 0.3s; }
+.ws-bar i.low { background: var(--ws-red); box-shadow: 0 0 10px rgba(255, 90, 74, 0.7); }
+.ws-bar u { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(6, 10, 18, 0.9); }
+
+/* ── keyframes ── */
+@keyframes ws-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+@keyframes ws-feed-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+@keyframes ws-feed-out { to { opacity: 0; transform: translateY(-4px); } }
+@keyframes ws-spin { to { transform: rotate(405deg); } }
+@keyframes ws-kill { 0% { opacity: 1; transform: scale(1.6); } 40% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0.9); } }
+@keyframes ws-flash { 0% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes ws-ring { 0% { opacity: 0.9; transform: scale(0.5); } 100% { opacity: 0; transform: scale(1.4); } }
+@keyframes ws-update-pulse { 50% { opacity: 0.3; } }

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/check-css.mjs",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "assets": "node scripts/fetch-assets.mjs && node scripts/tex-tiers.mjs",

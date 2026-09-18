@@ -1,0 +1,13 @@
+/* ─── pause overlay (src/ui/HUD.ts) ─── prefix ws-pause- ─── */
+.ws-pause { position: absolute; inset: 0; pointer-events: auto; cursor: pointer; background: rgba(6, 10, 18, 0.6); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.ws-pause.show { opacity: 1; pointer-events: auto; }
+.ws-pause .ws-pause-box { padding: 18px 30px; text-align: center; }
+.ws-pause .ws-pause-title { font-family: var(--ws-display); font-weight: 700; font-size: 26px; letter-spacing: 0.3em; text-transform: uppercase; color: #fff; }
+.ws-pause .ws-pause-sub { margin-top: 6px; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ws-cyan-dim); }
+.ws-pause .ws-pause-btn { display: block; width: 100%; margin-top: 10px; padding: 12px 22px; background: rgba(143, 227, 255, 0.08); border: 1px solid var(--ws-cyan-line); color: #fff; cursor: pointer; font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.24em; text-transform: uppercase; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
+.ws-pause .ws-pause-btn.resume { margin-top: 18px; border-color: var(--ws-cyan); background: rgba(143, 227, 255, 0.16); }
+.ws-pause .ws-pause-btn:hover, .ws-pause .ws-pause-btn:active { background: rgba(143, 227, 255, 0.28); }
+.ws-pause .ws-pause-btn.exit { color: var(--ws-text-dim); }
+.ws-pause .ws-pause-box { min-width: 260px; }
+/* above the touch layer (touch.css, z-index 5) */
+#hud.touch .ws-pause { z-index: 10; }
