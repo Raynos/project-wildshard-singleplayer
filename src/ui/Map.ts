@@ -63,6 +63,8 @@ export class FullMap {
     // the minimap is the map button
     minimap.root.style.pointerEvents = 'auto';
     minimap.root.style.cursor = 'pointer';
+    minimap.root.style.zIndex = '6'; // above the phone's full-screen touch layer (.ws-touch, z-index 5), which would otherwise eat the tap
+    minimap.root.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); });
     minimap.root.addEventListener('pointerup', (e) => { e.stopPropagation(); this.show(); });
     window.addEventListener('resize', () => { if (this.open) this.fit(); });
   }
