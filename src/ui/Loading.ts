@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { CHUNK_ID, CHUNK_COORDS, CHUNK_SIZE, SEED } from '../core/config';
+import { CHUNK_SIZE } from '../core/config';
+import { getActiveChunk } from '../chunks/registry';
 
 /**
  * Loading screen in the Wildshard staging identity. Shown before anything renders; each
@@ -18,6 +19,7 @@ export class Loading {
   private raf = 0;
 
   constructor() {
+    const chunk = getActiveChunk();
     this.root = document.createElement('div');
     this.root.className = 'ws-loading';
     this.root.innerHTML = `
@@ -27,12 +29,12 @@ export class Loading {
       </div>
       <div class="ws-loading-body">
         <div class="ws-glass ws-loading-panel">
-          <div class="ws-ptitle">Loading chunk · <b>pine-hollow</b></div>
+          <div class="ws-ptitle">Loading chunk · <b>${chunk.slug}</b></div>
           <div class="ws-loading-meta">
-            <div><span>chunk</span><span>${CHUNK_ID}</span></div>
-            <div><span>grid</span><span>${CHUNK_COORDS}</span></div>
+            <div><span>chunk</span><span>${chunk.id}</span></div>
+            <div><span>grid</span><span>${chunk.gridCoords}</span></div>
             <div><span>size</span><span>${CHUNK_SIZE} m × ${CHUNK_SIZE} m</span></div>
-            <div><span>seed</span><span>0x${SEED.toString(16).toUpperCase().padStart(8, '0')}</span></div>
+            <div><span>seed</span><span>0x${chunk.seed.toString(16).toUpperCase().padStart(8, '0')}</span></div>
           </div>
           <div class="ws-loading-bar"><div class="ws-loading-fill"></div></div>
           <div class="ws-loading-row"><span class="ws-loading-label">Contacting staging server…</span><span class="ws-loading-pct">0%</span></div>

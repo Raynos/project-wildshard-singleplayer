@@ -3,6 +3,7 @@ import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '../core/config
 import { heightAt, splatAt } from './Heightfield';
 import { loadPBR, loadPBRArray, pbrMaterial } from '../core/assets';
 import { attachFogUniforms } from './Atmosphere';
+import { getActiveChunk } from '../chunks/registry';
 
 export class Terrain {
   group = new THREE.Group();
@@ -22,7 +23,7 @@ export class Terrain {
   }
 
   async build() {
-    const layers = await loadPBRArray(['forest_ground_04', 'leafy_grass', 'rock_ground', 'stony_dirt_path'], 1024);
+    const layers = await loadPBRArray([...getActiveChunk().assets.groundLayers], 1024);
     this.mesh = new THREE.Mesh(this.buildGeometry(), this.buildMaterial(layers));
     this.mesh.receiveShadow = true;
     this.mesh.castShadow = false;
@@ -57,6 +58,7 @@ export class Terrain {
       tDiff: { value: layers.map },
       tNorm: { value: layers.normalMap },
       tArm: { value: layers.armMap },
+      uTints: { value: getActiveChunk().assets.groundTints.map((t) => new THREE.Vector3(...t)) },
     };
     mat.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, u);
@@ -78,6 +80,7 @@ export class Terrain {
           uniform sampler2DArray tDiff;
           uniform sampler2DArray tNorm;
           uniform sampler2DArray tArm;
+          uniform vec3 uTints[4];
           varying vec4 vSplat;
           varying float vCanopy;
           varying vec3 vWPos;
@@ -99,11 +102,10 @@ export class Terrain {
           vec4 alb = vec4(0.0);
           vec3 nrm = vec3(0.0);
           vec3 arm = vec3(0.0);
-          const vec3 tints[4] = vec3[4]( vec3(0.78, 0.74, 0.68), vec3(0.72, 0.8, 0.6), vec3(0.85, 0.85, 0.85), vec3(0.62, 0.56, 0.5) );
           for (int i = 0; i < 4; i++) {
             float wi = w[i];
             if (wi < 0.004) continue;
-            vec4 l = sampleLayer(tDiff, i, tuv, camDist); l.rgb *= tints[i];
+            vec4 l = sampleLayer(tDiff, i, tuv, camDist); l.rgb *= uTints[i];
             alb += l * wi;
             nrm += (sampleLayer(tNorm, i, tuv, camDist).xyz * 2.0 - 1.0) * wi;
             arm += sampleLayer(tArm, i, tuv, camDist).xyz * wi;
@@ -137,7 +139,7 @@ export class Terrain {
 
   /** The chunk is a floating shard: rock walls from the surface down to -CHUNK_DEPTH. */
   private async buildSlab() {
-    const rock = await loadPBR('rock_ground');
+    const rock = await loadPBR(getActiveChunk().assets.slabRock);
     const mat = pbrMaterial(rock, { color: new THREE.Color(0.55, 0.52, 0.5), side: THREE.FrontSide });
     const depth = CHUNK_DEPTH.toFixed(1);
     mat.onBeforeCompile = (shader) => {

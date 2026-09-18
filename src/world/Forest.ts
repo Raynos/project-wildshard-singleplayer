@@ -5,6 +5,7 @@ import { Noise2D, smoothstep } from '../core/noise';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, pondMask } from './Heightfield';
 import { TreeFactory, windUniforms } from './TreeFactory';
 import type { Sky } from './Sky';
+import { getActiveChunk } from '../chunks/registry';
 
 export interface TreeInstance { x: number; y: number; z: number; r: number; variant: number; scale: number; rot: number; height: number; tint: THREE.Color }
 
@@ -52,9 +53,10 @@ export class Forest {
   }
 
   private place() {
+    const F = getActiveChunk().forest;
     const rng = new Rng(SEED + 99);
     const density = new Noise2D(SEED + 5);
-    const cell = 8.5; // metres between candidates → ~3400 candidates, thinned by density
+    const cell = F.spacing; // metres between candidates → ~3400 candidates at 8.5, thinned by density
     const half = CHUNK_HALF - 6;
     const candidates: [number, number][] = [];
     for (let x = -half; x < half; x += cell) for (let z = -half; z < half; z += cell) {
@@ -66,8 +68,8 @@ export class Forest {
     for (const [x, z] of candidates) {
       if (this.trees.length >= TREE_COUNT) break;
       if (!inChunk(x, z, 4)) continue;
-      const d = density.fbm(x * 0.008, z * 0.008, 3);            // clearings & dense groves
-      const keep = smoothstep(-0.45, 0.35, d) * 0.92 + 0.08;
+      const d = density.fbm(x * F.densityFreq, z * F.densityFreq, 3); // clearings & dense groves
+      const keep = smoothstep(F.clearings[0], F.clearings[1], d) * 0.92 + 0.08;
       if (rng.next() > keep) continue;
       const roadEntry = (Math.abs(x) < 16 && Math.abs(z) > CHUNK_HALF - 95) || (Math.abs(z) < 16 && Math.abs(x) > CHUNK_HALF - 95);
       if (roadEntry) continue;
@@ -75,12 +77,12 @@ export class Forest {
       if (cabinMask(x, z) > 0.02) continue;
       if (pondMask(x, z) > 0.03) continue;
       const [, ny] = normalAt(x, z);
-      if (ny < 0.72) continue;                                     // too steep
+      if (ny < F.maxSlope) continue;                               // too steep
       const y = heightAt(x, z);
-      const variant = rng.next() < 0.1 ? 3 : rng.int(0, 2);
+      const variant = rng.next() < F.largeVariantChance ? 3 : rng.int(0, 2);
       const scale = rng.range(0.8, 1.2);
       const v = this.factory.variants[variant];
-      const tint = new THREE.Color().setHSL(0.25 + rng.range(-0.04, 0.03), rng.range(0.25, 0.5), rng.range(0.5, 0.68));
+      const tint = new THREE.Color().setHSL(F.tintHue + rng.range(F.tintHueJitter[0], F.tintHueJitter[1]), rng.range(F.tintSat[0], F.tintSat[1]), rng.range(F.tintLight[0], F.tintLight[1]));
       const t: TreeInstance = { x, y: y - 0.25, z, r: v.trunkRadius * scale + 0.15, variant, scale, rot: rng.range(0, Math.PI * 2), height: v.height * scale, tint };
       this.trees.push(t);
       const k = this.key(x, z);

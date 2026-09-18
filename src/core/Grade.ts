@@ -1,5 +1,9 @@
 import { Effect, BlendFunction } from 'postprocessing';
 import { Uniform, Vector3 } from 'three';
+import type { ChunkGrade } from '../chunks/ChunkDef';
+
+export type GradeOptions = Pick<ChunkGrade, 'shadowTint' | 'highTint' | 'lift' | 'gain' | 'gamma'>;
+const DEFAULTS: GradeOptions = { shadowTint: [0.9, 0.95, 1.08], highTint: [1.06, 1.0, 0.92], lift: [-0.01, -0.008, 0.0], gain: [1.03, 1.02, 1.0], gamma: 1.0 };
 
 /**
  * Final colour grade (runs after tone mapping, in display space): cool shadows / warm highlights
@@ -7,7 +11,8 @@ import { Uniform, Vector3 } from 'three';
  * the "golden hour film" look of the art/ mockups.
  */
 export class GradeEffect extends Effect {
-  constructor() {
+  constructor(opts: Partial<GradeOptions> = {}) {
+    const o = { ...DEFAULTS, ...opts };
     super('GradeEffect', /* glsl */`
       uniform vec3 uShadowTint; uniform vec3 uHighTint; uniform vec3 uLift; uniform vec3 uGain; uniform float uGamma;
       void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
@@ -23,11 +28,11 @@ export class GradeEffect extends Effect {
       }`, {
       blendFunction: BlendFunction.SRC,
       uniforms: new Map<string, Uniform>([
-        ['uShadowTint', new Uniform(new Vector3(0.9, 0.95, 1.08))],
-        ['uHighTint', new Uniform(new Vector3(1.06, 1.0, 0.92))],
-        ['uLift', new Uniform(new Vector3(-0.01, -0.008, 0.0))],
-        ['uGain', new Uniform(new Vector3(1.03, 1.02, 1.0))],
-        ['uGamma', new Uniform(1.0)],
+        ['uShadowTint', new Uniform(new Vector3(...o.shadowTint))],
+        ['uHighTint', new Uniform(new Vector3(...o.highTint))],
+        ['uLift', new Uniform(new Vector3(...o.lift))],
+        ['uGain', new Uniform(new Vector3(...o.gain))],
+        ['uGamma', new Uniform(o.gamma)],
       ]),
     });
   }

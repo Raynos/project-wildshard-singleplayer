@@ -3,6 +3,7 @@ import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { loadHDR } from '../core/assets';
 import { fogUniforms } from './Atmosphere';
 import { Noise2D } from '../core/noise';
+import { getActiveChunk } from '../chunks/registry';
 
 /**
  * Lighting rig: HDRI sky for IBL + background, a cascaded-shadow sun matched to the
@@ -11,7 +12,7 @@ import { Noise2D } from '../core/noise';
  */
 export class Sky {
   sunDir = new THREE.Vector3(0.3, 0.6, 0.4).normalize();
-  sunColor = new THREE.Color(1.0, 0.76, 0.5);
+  sunColor = new THREE.Color(...getActiveChunk().sky.sunColor);
   csm!: CSM;
   sunDisc!: THREE.Mesh;
   planet = new THREE.Group();
@@ -21,9 +22,10 @@ export class Sky {
   constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private renderer: THREE.WebGLRenderer) {}
 
   async build() {
+    const { sky: S, atmosphere: A } = getActiveChunk();
     const qs = new URLSearchParams(location.search);
     const qn = (k: string, d: number) => (qs.has(k) ? parseFloat(qs.get(k)!) : d);
-    const hdriName = qs.get('hdri') ?? 'qwantani_sunset_puresky';
+    const hdriName = qs.get('hdri') ?? S.hdri;
     const hdr = await loadHDR(`/assets/hdri/${hdriName}_2k.hdr`);
     this.findSun(hdr);
     hdr.mapping = THREE.EquirectangularReflectionMapping;
@@ -32,27 +34,31 @@ export class Sky {
     const env = pmrem.fromEquirectangular(hdr).texture;
     pmrem.dispose();
     this.scene.environment = env;
-    this.scene.environmentIntensity = qn('envI', 1.1);
+    this.scene.environmentIntensity = qn('envI', S.envIntensity);
     this.scene.background = hdr;
-    this.scene.backgroundIntensity = qn('bgI', 0.95);
+    this.scene.backgroundIntensity = qn('bgI', S.bgIntensity);
     this.scene.backgroundBlurriness = 0.0;
 
     // Fog colour = average of the sky just above the horizon in the view direction
     const horizon = this.sampleHorizon(hdr);
     this.scene.fog = new THREE.Fog(horizon, 1, 1e6); // distances unused: Atmosphere.ts overrides the maths
     fogUniforms.fogSunDir.value.copy(this.sunDir);
-    fogUniforms.fogSunColor.value.set(1.0, 0.78, 0.5);
+    fogUniforms.fogSunColor.value.set(...S.fogSunColor);
+    fogUniforms.fogHeight.value = A.fogHeight;
+    fogUniforms.fogHeightFalloff.value = A.fogHeightFalloff;
+    fogUniforms.fogHeightDensity.value = A.fogHeightDensity;
+    fogUniforms.fogDistDensity.value = A.fogDistDensity;
 
     this.csm = new CSM({
       camera: this.camera, parent: this.scene, cascades: 3, mode: 'practical',
       maxFar: 220, shadowMapSize: 2048, lightDirection: this.sunDir.clone().negate(),
-      lightIntensity: qn('sunI', 3.8), shadowBias: -0.00012, lightMargin: 120, lightNear: 1, lightFar: 600,
+      lightIntensity: qn('sunI', S.sunIntensity), shadowBias: -0.00012, lightMargin: 120, lightNear: 1, lightFar: 600,
     });
     this.csm.fade = true;
     patchCSMShaderChunk();
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = 0.05; l.shadow.radius = 2; }
 
-    this.scene.add(new THREE.HemisphereLight(0x8fa8d0, 0x4a3a28, 0.45));
+    this.scene.add(new THREE.HemisphereLight(S.hemiSky, S.hemiGround, S.hemiIntensity));
 
     this.buildSunDisc();
     this.buildPlanet();
@@ -83,7 +89,7 @@ export class Sky {
     const geo = new THREE.SphereGeometry(1400, 48, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
     const tex = makeCloudTexture();
     this.cloudUniforms.uSunDir.value.copy(this.sunDir);
-    this.cloudUniforms.uSunColor.value.set(1.0, 0.82, 0.62);
+    this.cloudUniforms.uSunColor.value.set(...getActiveChunk().sky.cloudSunColor);
     const mat = new THREE.ShaderMaterial({
       uniforms: { ...this.cloudUniforms, tClouds: { value: tex } },
       transparent: true, depthWrite: false, side: THREE.BackSide,

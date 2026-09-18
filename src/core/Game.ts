@@ -9,6 +9,7 @@ import { setAnisotropy } from './assets';
 import { Sky } from '../world/Sky';
 import { GradeEffect } from './Grade';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
+import { getActiveChunk } from '../chunks/registry';
 
 export class Game {
   renderer: THREE.WebGLRenderer;
@@ -42,6 +43,7 @@ export class Game {
   }
 
   buildComposer() {
+    const { grade: G, atmosphere: A } = getActiveChunk();
     const composer = new EffectComposer(this.renderer, { frameBufferType: THREE.HalfFloatType, multisampling: 0 });
     this.renderPass = new RenderPass(this.scene, this.camera);
     composer.addPass(this.renderPass);
@@ -57,20 +59,20 @@ export class Game {
     composer.addPass(ao);
 
     const vol = new VolumetricsEffect(this.camera, makeNoiseTexture());
-    vol.setSun(this.sky.sunDir, new THREE.Color(1.0, 0.72, 0.42));
+    vol.setSun(this.sky.sunDir, new THREE.Color(...A.volumetricSunColor));
     if (this.scene.fog) vol.setFogColor((this.scene.fog as THREE.Fog).color);
     this.volumetrics = vol;
     const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
       blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
       exposure: 0.4, samples: 60, clampMax: 1.0, resolutionScale: 0.5,
     });
-    const bloom = new BloomEffect({ intensity: 0.55, luminanceThreshold: 0.85, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.6 });
+    const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.6 });
     const vignette = new VignetteEffect({ offset: 0.32, darkness: 0.55 });
     const chroma = new ChromaticAberrationEffect({ offset: new THREE.Vector2(0.0006, 0.0006), radialModulation: true, modulationOffset: 0.35 });
     const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
-    const grade = new HueSaturationEffect({ saturation: 0.18 });
-    const contrast = new BrightnessContrastEffect({ brightness: -0.015, contrast: 0.2 });
-    const split = new GradeEffect();
+    const grade = new HueSaturationEffect({ saturation: G.saturation });
+    const contrast = new BrightnessContrastEffect({ brightness: G.brightness, contrast: G.contrast });
+    const split = new GradeEffect(G);
     const grain = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: true });
     grain.blendMode.opacity.value = 0.12;
     composer.addPass(new EffectPass(this.camera, vol));

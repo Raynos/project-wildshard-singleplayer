@@ -1,14 +1,15 @@
 import * as THREE from 'three';
 import { SEED, CHUNK_HALF } from '../core/config';
 import { Rng } from '../core/rng';
-import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel, CABIN_SITES } from '../world/Heightfield';
+import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel } from '../world/Heightfield';
 import type { Forest } from '../world/Forest';
 import type { Sky } from '../world/Sky';
 import { AnimalFactory, type AnimalKind, type AnimalModel } from './AnimalFactory';
 import { Animal } from './Animal';
+import { getActiveChunk } from '../chunks/registry';
 
 /**
- * AnimalManager — spawns the chunk's huntable wildlife (3 deer herds, 2 boar sounders),
+ * AnimalManager — spawns the chunk's huntable wildlife (the active ChunkDef's `fauna` herd plans),
  * runs their AI at 10 Hz (idle / graze / wander / alert / flee / charge / dead), animates
  * them every frame, and exposes the combat + audio hooks.
  *
@@ -111,18 +112,9 @@ export class AnimalManager {
 
   private spawnHerds() {
     const rng = this.rng;
-    const cabin2 = CABIN_SITES[1];
-    // herd placement rules: deer graze in clearings near the trails (10–25 m off the centreline) so a
-    // player walking a trail sees them at the tree line; one herd sits by the south spawn trail and one
-    // near cabin 2; boars root under the canopy.
-    interface Plan { kind: AnimalKind; n: number; anchor?: { x: number; z: number; rMin: number; rMax: number }; canopy: boolean; trail: [number, number] }
-    const plan: Plan[] = [
-      { kind: 'deer', n: 5, anchor: { x: 0, z: -190, rMin: 18, rMax: 55 }, canopy: false, trail: [10, 25] },   // south trail
-      { kind: 'deer', n: 5, anchor: { x: cabin2.x, z: cabin2.z, rMin: 22, rMax: 45 }, canopy: false, trail: [10, 28] },
-      { kind: 'deer', n: 4, canopy: false, trail: [10, 25] },
-      { kind: 'boar', n: 5, canopy: true, trail: [12, 40] },
-      { kind: 'boar', n: 5, canopy: true, trail: [12, 40] },
-    ];
+    // herd placement comes from the shard: each HerdPlan asks for a clearing (or canopy) in a band of
+    // distances off the trails, optionally in a ring around an anchor (a trail, a cabin…).
+    const { fauna: plan, spawn } = getActiveChunk();
     const centres: [number, number][] = [];
     for (const h of plan) {
       let cx = 0, cz = 0, ok = false;
@@ -134,9 +126,9 @@ export class AnimalManager {
         // relax the trail band and clearing size as the search goes on
         const relax = tries / 1500;
         const td = trailDistance(cx, cz);
-        if (td < h.trail[0] || td > h.trail[1] + relax * 60) continue;
+        if (td < h.trailBand[0] || td > h.trailBand[1] + relax * 60) continue;
         if (!this.isOpen(cx, cz, h.canopy ? 9 : 7 - relax * 3, h.canopy)) continue;
-        if (Math.hypot(cx, cz + 235) < 30) continue;                       // not on top of the spawn point
+        if (Math.hypot(cx - spawn.x, cz - spawn.z) < 30) continue;         // not on top of the spawn point
         if (centres.some(([x, z]) => Math.hypot(x - cx, z - cz) < 60)) continue;
         ok = true;
       }
@@ -144,7 +136,7 @@ export class AnimalManager {
       centres.push([cx, cz]);
       const herd: Herd = { kind: h.kind, cx, cz, members: [] };
       this.herds.push(herd);
-      for (let i = 0; i < h.n; i++) {
+      for (let i = 0; i < h.count; i++) {
         let px = cx, pz = cz, placed = false;
         for (let tries = 0; tries < 60 && !placed; tries++) {
           const ang = rng.range(0, Math.PI * 2), r = rng.range(1.5, 9);

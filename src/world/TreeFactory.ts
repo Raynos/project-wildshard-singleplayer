@@ -24,6 +24,9 @@ export interface TreeVariant {
   trunkRadius: number;
 }
 
+/** Texture ids from the shard's `ChunkTrees` (defaults are Pine Hollow's). */
+export interface TreeFactoryOptions { bark?: string; twigAtlas?: string }
+
 export const windUniforms = { uTime: { value: 0 }, uWindStrength: { value: 1.0 } };
 
 export class TreeFactory {
@@ -34,14 +37,18 @@ export class TreeFactory {
   twigDepth!: THREE.MeshDepthMaterial;
   variants: TreeVariant[] = [];
 
-  constructor(private renderer: THREE.WebGLRenderer) {}
+  private opts: Required<TreeFactoryOptions>;
+  constructor(private renderer: THREE.WebGLRenderer, opts: TreeFactoryOptions = {}) {
+    this.opts = { bark: 'pine_bark', twigAtlas: 'pine_tree_01', ...opts };
+  }
 
   async build() {
+    const atlas = `/assets/tex/${this.opts.twigAtlas}`;
     const [twigDiff, twigNor, twigArm, bark] = await Promise.all([
-      loadTexture('/assets/tex/pine_tree_01/twig_rgba.png', true),
-      loadTexture('/assets/tex/pine_tree_01/twig_nor_gl.jpg'),
-      loadTexture('/assets/tex/pine_tree_01/twig_arm.jpg'),
-      loadPBR('pine_bark', 1),
+      loadTexture(`${atlas}/twig_rgba.png`, true),
+      loadTexture(`${atlas}/twig_nor_gl.jpg`),
+      loadTexture(`${atlas}/twig_arm.jpg`),
+      loadPBR(this.opts.bark, 1),
     ]);
     const card = this.bakeBranchCard(twigDiff, twigNor, twigArm);
 

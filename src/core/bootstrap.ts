@@ -7,6 +7,13 @@ import { Player } from '../player/Player';
 import type { Sky } from '../world/Sky';
 import { Tour } from './Tour';
 import * as Heightfield from '../world/Heightfield';
+import { getActiveChunk, setActiveChunk, chunkSlugFromUrl } from '../chunks/registry';
+import type { ChunkDef } from '../chunks/ChunkDef';
+
+/** Tree builders by `ChunkTrees.factory` id. Add a species here when a shard needs one. */
+const TREE_FACTORIES = {
+  pine: (renderer: THREE.WebGLRenderer, def: ChunkDef) => new TreeFactory(renderer, { bark: def.trees.bark, twigAtlas: def.trees.twigAtlas }).build(),
+} as const;
 
 export interface World {
   game: Game;
@@ -15,6 +22,8 @@ export interface World {
   forest: Forest;
   player: Player;
   tour: Tour;
+  /** the shard being played (src/chunks/registry.ts) */
+  chunk: ChunkDef;
   params: URLSearchParams;
   num: (key: string, fallback: number) => number;
 }
@@ -23,11 +32,13 @@ export interface World {
  * Builds the base chunk (renderer, sky, terrain, forest, player) and returns the handles.
  * Feature entry points (dev/*.html) and main.ts both start here.
  *
- * URL params: ?x=&z=&yaw=&pitch=  spawn pose (metres / radians)
+ * URL params: ?chunk=<slug>  which shard (default pine-hollow, see src/chunks/registry.ts)
+ *             ?x=&z=&yaw=&pitch=  spawn pose (metres / radians)
  */
 export async function bootstrap(onStep: (label: string, frac: number) => void = () => {}): Promise<World> {
   const params = new URLSearchParams(location.search);
   const num = (k: string, d: number) => (params.has(k) ? parseFloat(params.get(k)!) : d);
+  const def = setActiveChunk(chunkSlugFromUrl(location.search));
   const canvas = document.getElementById('game') as HTMLCanvasElement;
   const game = new Game(canvas);
   onStep('Reading the sky', 0.05);
@@ -37,15 +48,15 @@ export async function bootstrap(onStep: (label: string, frac: number) => void = 
   terrain.group.traverse((o) => { const m = (o as THREE.Mesh).material as THREE.Material | undefined; if (m) sky.setupMaterial(m); });
   game.scene.add(terrain.group);
 
-  onStep('Baking pine branch cards', 0.4);
-  const factory = await new TreeFactory(game.renderer).build();
-  onStep('Planting pines', 0.55);
+  onStep('Baking branch cards', 0.4);
+  const factory = await TREE_FACTORIES[def.trees.factory](game.renderer, def);
+  onStep(`Planting ${def.trees.noun}`, 0.55);
   const forest = new Forest(factory, sky).build();
   game.scene.add(forest.group);
   terrain.applyCanopy(forest.canopyMap);
 
   const player = new Player(game.camera, forest, canvas);
-  player.spawn(num('x', 0), num('z', -235), num('yaw', Math.PI));
+  player.spawn(num('x', def.spawn.x), num('z', def.spawn.z), num('yaw', def.spawn.yaw));
   player.pitch = num('pitch', 0);
   canvas.addEventListener('click', () => { if (!params.has('nolock')) player.lock(); });
 
@@ -65,5 +76,5 @@ export async function bootstrap(onStep: (label: string, frac: number) => void = 
     forest.update(dt, player.position);
   });
   (window as unknown as { __hf: unknown }).__hf = Heightfield;
-  return { game, sky, terrain, forest, player, tour, params, num };
+  return { game, sky, terrain, forest, player, tour, chunk: getActiveChunk(), params, num };
 }

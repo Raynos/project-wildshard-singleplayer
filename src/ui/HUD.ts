@@ -1,4 +1,5 @@
-import { CHUNK_ID, CHUNK_COORDS, TREE_COUNT, CHUNK_SIZE, TERRAIN_RES, SEED } from '../core/config';
+import { CHUNK_SIZE, TERRAIN_RES } from '../core/config';
+import { getActiveChunk } from '../chunks/registry';
 
 /**
  * HUD — DOM overlay in `#hud`, styled by `src/ui/hud.css` (Wildshard glass identity).
@@ -67,10 +68,11 @@ export class HUD {
   private build() {
     const r = this.root;
     // chunk panel
+    const def = getActiveChunk();
     const chunk = el('div', 'ws-glass ws-chunk');
     chunk.innerHTML = `<div class="ws-title">Project <b>Wildshard</b></div><div class="ws-sub">Chunk playtest</div>
-      <div class="ws-row"><span>chunk</span><span class="ws-id">${CHUNK_ID}</span></div>
-      <div class="ws-row"><span>grid</span><span>${CHUNK_COORDS}</span></div>
+      <div class="ws-row"><span>chunk</span><span class="ws-id">${def.id}</span></div>
+      <div class="ws-row"><span>grid</span><span>${def.gridCoords}</span></div>
       <div class="ws-row"><span>pos</span><span class="ws-coords">+000 · +000</span></div>
       <div class="ws-tag"><i></i>Local build · unuploaded</div>`;
     this.coords = chunk.querySelector('.ws-coords')!;
@@ -217,13 +219,14 @@ export class HUD {
   showIntro(onEnter: () => void, stats?: IntroStats) {
     this.onEnter = onEnter;
     this.root.classList.add('intro');
+    const def = getActiveChunk();
     const rows: IntroStats = {
-      'Chunk': CHUNK_ID,
-      'Grid': CHUNK_COORDS,
+      'Chunk': def.id,
+      'Grid': def.gridCoords,
       'Size': `${CHUNK_SIZE} m × ${CHUNK_SIZE} m`,
       'Build': { value: 'local · unuploaded', tone: 'warn' },
-      'Seed': `0x${SEED.toString(16).toUpperCase().padStart(8, '0')}`,
-      'Validation': { value: `ok · ${TERRAIN_RES}² heightfield · ${TREE_COUNT.toLocaleString()} pines`, tone: 'ok' },
+      'Seed': `0x${def.seed.toString(16).toUpperCase().padStart(8, '0')}`,
+      'Validation': { value: `ok · ${TERRAIN_RES}² heightfield · ${def.treeCount.toLocaleString()} ${def.trees.noun}`, tone: 'ok' },
       ...(stats ?? {}),
     };
     const intro = el('div', 'ws-intro');
@@ -234,7 +237,7 @@ export class HUD {
         <div class="ws-phase">Phase 1 — gameplay contract · local chunk playtest</div>
       </div>
       <div class="ws-body"><div class="ws-glass ws-panel">
-        <div class="ws-ptitle">Chunk playtest · <b>pine-hollow</b></div>
+        <div class="ws-ptitle">Chunk playtest · <b>${def.slug}</b></div>
         <div class="ws-meta"></div>
         <button class="ws-enter"><span>Enter the chunk</span><small>click · or press Enter</small></button>
       </div></div>

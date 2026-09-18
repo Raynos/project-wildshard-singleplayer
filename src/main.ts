@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { bootstrap } from './core/bootstrap';
 import { CHUNK_HALF } from './core/config';
+import { hasPond } from './world/Heightfield';
 import { Boundary } from './world/Boundary';
 import { Water } from './world/Water';
 import { Horizon } from './world/Horizon';
@@ -18,15 +19,16 @@ import { Audio } from './audio/Audio';
 async function main() {
   const loading = new Loading();
   const world = await bootstrap((label, frac) => loading.step(label, frac));
-  const { game, sky, player, forest, params } = world;
+  const { game, sky, player, forest, params, chunk } = world;
   const nolock = params.has('nolock');
+  const respawn = () => player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw);
 
   // ── world dressing ──
   loading.step('Raising the chunk boundary', 0.6);
   const boundary = new Boundary(sky).build();
   game.scene.add(boundary.group);
-  const water = new Water(sky).build();
-  game.scene.add(water.mesh);
+  const water = hasPond() ? new Water(sky).build() : null;
+  if (water) game.scene.add(water.mesh);
   const horizon = new Horizon(sky).build();
   game.scene.add(horizon.group);
 
@@ -94,7 +96,7 @@ async function main() {
     audio.resume();
     crossbow.enabled = true;
     crossbow.model.visible = true;
-    if (tour.active && !params.has('tour')) { tour.active = false; player.spawn(0, -236, Math.PI); }
+    if (tour.active && !params.has('tour')) { tour.active = false; respawn(); }
     if (!nolock) player.lock();
   };
   hud.onResume = enter;
@@ -121,7 +123,7 @@ async function main() {
   game.onUpdate((dt, t) => {
     if (attract && tour.active) { attractT += dt * 0.3; tour.setTime(12 + ((attractT - 12) % 14)); }
     boundary.update(dt, t);
-    water.update(dt);
+    water?.update(dt);
     horizon.update(dt, game.camera);
     grass.update(dt, player.position);
     under.update(dt, player.position);
@@ -140,7 +142,7 @@ async function main() {
 
     // slow health regen; death → respawn at the gate
     if (health < 100 && performance.now() - lastHurt > 6000) health = Math.min(100, health + dt * 4);
-    if (health <= 0) { health = 100; hud.toast('Gored — respawning at the south gate'); hud.damageFlash(); player.spawn(0, -236, Math.PI); crossbow.addBolts(30 - crossbow.state.bolts); }
+    if (health <= 0) { health = 100; hud.toast('Gored — respawning at the south gate'); hud.damageFlash(); respawn(); crossbow.addBolts(30 - crossbow.state.bolts); }
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 && hud.entered);
