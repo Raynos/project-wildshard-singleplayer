@@ -71,10 +71,35 @@ export class Sky {
     return this;
   }
 
+  /**
+   * Shared 1×1 fillers so every plain MeshStandard/Physical material carries the same map slots
+   * (map · normal · ao · roughness · metalness) and therefore the same program: three keys a program
+   * on WHICH slots exist, not their contents, so a coloured post, a mapped plank and a full PBR set
+   * were three ~150 ms Metal compiles on the iPhone for what is one shader with different uniforms.
+   * White multiplies by 1, a flat normal leaves the geometry normal; materials with their own
+   * shader patch (an own customProgramCacheKey) are left alone.
+   */
+  private static fillers: { white: THREE.DataTexture; flatNormal: THREE.DataTexture } | null = null;
+  private static fillSlots(mat: THREE.Material) {
+    const m = mat as THREE.MeshStandardMaterial;
+    if (!m.isMeshStandardMaterial || Object.prototype.hasOwnProperty.call(mat, 'customProgramCacheKey')) return;
+    if (!Sky.fillers) {
+      const tex = (rgb: [number, number, number], srgb: boolean) => { const t = new THREE.DataTexture(new Uint8Array([...rgb, 255]), 1, 1); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true; return t; };
+      Sky.fillers = { white: tex([255, 255, 255], true), flatNormal: tex([128, 128, 255], false) };
+    }
+    const { white, flatNormal } = Sky.fillers;
+    if (!m.map) m.map = white;
+    if (!m.normalMap) m.normalMap = flatNormal;
+    if (!m.aoMap) m.aoMap = white;         // ao · roughness · metalness read r · g · b: white = ×1
+    if (!m.roughnessMap) m.roughnessMap = white;
+    if (!m.metalnessMap) m.metalnessMap = white;
+  }
+
   /** Wrap CSM's onBeforeCompile so materials keep their own shader patches. */
   setupMaterial(mat: THREE.Material) {
     if (this.materials.has(mat)) return;
     this.materials.add(mat);
+    Sky.fillSlots(mat);
     const own = mat.onBeforeCompile;
     this.csm.setupMaterial(mat);
     const csmHook = mat.onBeforeCompile;

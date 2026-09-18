@@ -131,6 +131,16 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
       clones.push(copy);
     }
   });
+  // Generic variants for casters that appear after this step (a fired bolt, a fade clone, a detail LOD
+  // that pops in): plain and mapped, front and double sided — cache hits when the scene already had them.
+  const white = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1); white.needsUpdate = true;
+  const box = new THREE.BoxGeometry(1, 1, 1);
+  for (const [map, side, alphaTest] of [[null, THREE.BackSide, 0], [white, THREE.BackSide, 0], [white, THREE.DoubleSide, 0.5]] as [THREE.Texture | null, THREE.Side, number][]) {
+    const key = `depth|${map ? 'm0' : ''}||${alphaTest > 0 ? 't' : ''}|${side}||generic`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    clones.push(new THREE.Mesh(box, new THREE.MeshDepthMaterial({ depthPacking: THREE.BasicDepthPacking, map, alphaTest, side })));
+  }
   const jobs: CompileJob[] = [];
   for (let i = 0; i < clones.length; i += per) {
     const root = new THREE.Group();
@@ -169,7 +179,14 @@ export function postJobs(composer: EffectComposer, rt: THREE.WebGLRenderTarget |
   const walk = (v: unknown, toScreen: boolean, depth: number): void => {
     if (!v || typeof v !== 'object' || visited.has(v) || depth > 4) return;
     const o = v as Record<string, unknown> & { isMaterial?: boolean; isObject3D?: boolean; isScene?: boolean; isTexture?: boolean; isWebGLRenderTarget?: boolean; isCamera?: boolean; isMesh?: boolean };
-    if (o.isMaterial) { if (!found.has(o as unknown as THREE.Material)) found.set(o as unknown as THREE.Material, toScreen); return; }
+    if (o.isMaterial) {
+      const m = o as unknown as THREE.ShaderMaterial;
+      // only screen shaders a frame really draws: the tone-mapping effect's adaptive-luminance pair is idle
+      // under AGX, and the god-rays light source's MeshBasicMaterial already has its in-scene program
+      const idle = !m.isShaderMaterial || m.name === 'AdaptiveLuminanceMaterial' || (m.name === 'LuminanceMaterial' && !(m.defines && 'THRESHOLD' in m.defines));
+      if (!idle && !found.has(m)) found.set(m, toScreen);
+      return;
+    }
     if (o.isTexture || o.isWebGLRenderTarget || o.isCamera || o.isScene || ArrayBuffer.isView(v)) return;
     if (o.isObject3D) { if (o.isMesh) walk((o as unknown as THREE.Mesh).material, toScreen, depth + 1); return; }
     visited.add(v);
