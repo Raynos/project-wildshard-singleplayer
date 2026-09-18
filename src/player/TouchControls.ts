@@ -21,14 +21,15 @@ export const IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(pointer
 const STICK_RADIUS = 48;      // px from base to full deflection
 const DEADZONE = 0.12;
 const SPRINT_AT = 0.85;
-const LOOK_RATE = 0.005;      // rad per px (≈ 0.29°/px; a 200 px swipe turns 57°)
+const LOOK_RATE = 0.0095;     // rad per px (≈ 0.54°/px; a 200 px swipe turns ~110°)
+const PAD_BOOST = 1.6;        // the LOOK pad in the bar is small — a thumb's travel there is worth more
 
 export class TouchControls {
   readonly active: boolean;
   private root?: HTMLElement;
   private stickPointer = -1; private lookPointer = -1;
   private stickBase = { x: 0, y: 0 };
-  private lookLast = { x: 0, y: 0 };
+  private lookLast = { x: 0, y: 0 }; private lookRate = LOOK_RATE;
   private stick?: HTMLElement; private knob?: HTMLElement;
 
   constructor(private player: Player, private crossbow: Crossbow, force = false) {
@@ -72,6 +73,8 @@ export class TouchControls {
       } else if (!left && this.lookPointer < 0) {
         this.lookPointer = e.pointerId;
         this.lookLast = { x: e.clientX, y: e.clientY };
+        const pad = root.querySelector<HTMLElement>('.ws-tzone.look')!.getBoundingClientRect();
+        this.lookRate = LOOK_RATE * (e.clientY >= pad.top ? PAD_BOOST : 1);
       } else return;
       root.setPointerCapture(e.pointerId);
       e.preventDefault();
@@ -82,8 +85,8 @@ export class TouchControls {
       } else if (e.pointerId === this.lookPointer) {
         const dx = e.clientX - this.lookLast.x, dy = e.clientY - this.lookLast.y;
         this.lookLast = { x: e.clientX, y: e.clientY };
-        this.player.yaw -= dx * LOOK_RATE;
-        this.player.pitch = Math.max(-1.45, Math.min(1.45, this.player.pitch - dy * LOOK_RATE));
+        this.player.yaw -= dx * this.lookRate;
+        this.player.pitch = Math.max(-1.45, Math.min(1.45, this.player.pitch - dy * this.lookRate));
       }
     });
     const release = (e: PointerEvent) => {
