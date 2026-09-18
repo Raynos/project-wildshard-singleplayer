@@ -34,6 +34,13 @@ export const JETTIES = [
   { x: -CHUNK_HALF, z: 0, rot: Math.PI / 2, length: 95 },
   { x: CHUNK_HALF, z: 0, rot: -Math.PI / 2, length: 108 },
 ];
+/** the sand paths between the POIs (also `trails[4..]`): [pier → hut], [hut → lookout], [fork → wreck], [hut → shrine] */
+export const PATHS: [number, number][][] = [
+  [[0, -188], [-8, -172], [-30, -142], [-30, -104], [-24, -80], [-20, -68]],
+  [[-20, -68], [-8, -50], [20, -30], [36, 10], [50, 44], [66, 62], [90, 90]],
+  [[36, 10], [80, -6], [120, -2], [140, 4]],
+  [[-20, -68], [-52, -30], [-72, 20], [-88, 70], [-96, 96]],
+];
 /** the island disc: centre and nominal shoreline radius (the shoreline is noise-warped ±30 m) */
 export const ISLAND = { x: 0, z: 12, r: 188 };
 /** the hut's plateau: a flat-topped crag in the south-centre; the hut stands at its middle */
@@ -113,12 +120,17 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
       { const d = Math.hypot(x - SHRINE.x, z - SHRINE.z); h += smoothstep(34, 9, d) * 3.2; }
       return h;
     },
-    /** The four mandated entry roads only (they are the four jetties' sandbars). */
+    /**
+     * The four mandated entry roads (the jetties' sandbars), then the sand paths: pier landing → up the
+     * plateau ramp → the hut; hut → east → the headland ramp → the lookout; the fork east on to Wreck Cove;
+     * hut → north-west → the shrine. The low-poly terrain paints them sand (Terrain.ts, trailDistance).
+     */
     trails: [
       [[0, -CHUNK_HALF], [0, -CHUNK_HALF + ROAD_LENGTH]],
       [[0, CHUNK_HALF], [0, CHUNK_HALF - ROAD_LENGTH]],
       [[-CHUNK_HALF, 0], [-CHUNK_HALF + ROAD_LENGTH, 0]],
       [[CHUNK_HALF, 0], [CHUNK_HALF - ROAD_LENGTH, 0]],
+      ...PATHS,
     ],
     cabinSites: [],
     /** Unused by the low-poly terrain (it colours by height and slope), kept sane for the splat contract: [sand, grass, rock, trail]. */

@@ -12,6 +12,7 @@ import { Lookout } from '../world/Lookout';
 import { Wreck } from '../world/Wreck';
 import { Shrine } from '../world/Shrine';
 import { Bushes } from '../world/Bushes';
+import { Trailside } from '../world/Trailside';
 import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES } from '../chunks/driftwood-isle';
 import { Boundary } from '../world/Boundary';
 import { Horizon } from '../world/Horizon';
@@ -85,6 +86,11 @@ game.scene.add(bushes.mesh);
 lap('bushes');
 console.log('[driftwood] build ms', JSON.stringify(T));
 
+const trailside = new Trailside(sky).build(Trailside.forIsland());
+game.scene.add(trailside.mesh);
+player.colliders.push(...trailside.colliders);
+lap('trailside');
+
 const boundary = new Boundary(sky).build();
 game.scene.add(boundary.group);
 const horizon = new Horizon(sky).build();
@@ -92,6 +98,6 @@ game.scene.add(horizon.group);
 
 game.onUpdate((dt, t) => { ocean?.update(dt); boat.update(dt); palms.update(dt); boundary.update(dt, t); horizon.update(dt, game.camera); });
 
-(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, jetties, boat, rocks, hut, palms, lookout, wreck, shrine, bushes, boundary, horizon, heightAt, buildMs: T };
+(window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, jetties, boat, rocks, hut, palms, lookout, wreck, shrine, bushes, trailside, boundary, horizon, heightAt, buildMs: T };
 game.buildComposer();
 game.start();

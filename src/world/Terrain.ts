@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '../core/config';
-import { heightAt, normalAt, splatAt } from './Heightfield';
+import { heightAt, normalAt, splatAt, trailDistance } from './Heightfield';
 import { loadPBR, loadPBRArray, pbrMaterial } from '../core/assets';
 import { attachFogUniforms } from './Atmosphere';
 import { getActiveChunk } from '../chunks/registry';
@@ -73,6 +73,8 @@ export class Terrain {
       pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
       const [, ny] = normalAt(x, z, d * 0.5);
       lowPolyGroundColor(c, y - wl, 1 - ny, x, z);
+      // the sand paths: trails above the beach are painted sand over the grass (a 3 m bed with a soft edge)
+      if (y - wl > 1.5) { const td = trailDistance(x, z); if (td < 4.5) { _pathC.copy(LP.path).multiplyScalar(0.94 + hash2(x, z) * 0.12); c.lerp(_pathC, 1 - ss(td, 2.2, 4.5)); } }
       col[i * 3] = Math.round(c.r * 255); col[i * 3 + 1] = Math.round(c.g * 255); col[i * 3 + 2] = Math.round(c.b * 255);
     }
     const idx = new Uint32Array(n * n * 6);
@@ -308,8 +310,10 @@ const LP = {
   grassDark: new THREE.Color('#4d8c33'),
   rock: new THREE.Color('#666a70'),
   rockLight: new THREE.Color('#84888e'),
+  path: new THREE.Color('#d6bd84'),
 };
-const _tmpC = new THREE.Color();
+const _tmpC = new THREE.Color(), _pathC = new THREE.Color();
+const ss = THREE.MathUtils.smoothstep;
 const hash2 = (x: number, z: number) => { const s = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return s - Math.floor(s); };
 
 /** One facet's colour from its height above the sea (m), slope (0 flat → 1 vertical) and position (jitter). */
@@ -322,7 +326,7 @@ export function lowPolyGroundColor(out: THREE.Color, h: number, slope: number, x
   if (g > 0) { _tmpC.lerpColors(LP.grass, LP.grassDark, hash2(Math.floor(x * 0.11), Math.floor(z * 0.11)) * 0.6); out.lerp(_tmpC, g); }
   // rock on the steep facets (a hair lighter on the flatter ledges)
   const r = ss(slope, 0.24, 0.4);
-  if (r > 0) { _tmpC.lerpColors(LP.rock, LP.rockLight, ss(slope, 0.8, 0.45)); out.lerp(_tmpC, r); }
+  if (r > 0) { _tmpC.lerpColors(LP.rock, LP.rockLight, 1 - ss(slope, 0.45, 0.8)); out.lerp(_tmpC, r); }
   // per-facet jitter so the flat shading reads as facets, not a gradient
   return out.multiplyScalar(0.93 + hash2(x, z) * 0.14);
 }
