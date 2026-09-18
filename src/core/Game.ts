@@ -12,6 +12,7 @@ import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from './tier';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
+import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 
 export class Game {
   renderer: THREE.WebGLRenderer;
@@ -95,47 +96,24 @@ export class Game {
   onUpdate(fn: (dt: number, t: number) => void) { this.updaters.push(fn); }
 
   /**
-   * Compile every material in the scene in batches of two, reporting progress, instead of letting
-   * the first render() build ~100 programs in one synchronous stall (minutes on iOS). Ported from
-   * trials-gauntlet-demo `compileMaterials`: detached non-recursive clones restrict each batch
-   * without touching live visibility, compiled against the composer's scene target (program
-   * variants depend on the output colour space / tone mapping of the target they render to).
-   * Returns the distinct material count.
+   * Build every program the first frame would otherwise compile in one stall — the scene's
+   * materials, the shadow-depth variants, the sky background and the post chain — with progress
+   * (src/boot/precompile.ts). Returns the distinct material count.
    */
-  async precompile(onProgress?: (done: number, total: number) => void): Promise<number> {
-    const mats: THREE.Material[] = [];
-    const seen = new Set<THREE.Material>();
-    this.scene.traverse((o) => {
-      const m = (o as THREE.Mesh).material;
-      for (const mat of Array.isArray(m) ? m : m ? [m] : []) if (!seen.has(mat)) { seen.add(mat); mats.push(mat); }
-    });
-    const r = this.renderer;
-    const target = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
-    const chunk = 2;
-    if (PERFLOAD) perfLog('precompile:start', 0, r, `${mats.length} materials · parallel=${parallelCompile(r)}`);
-    for (let i = 0; i < mats.length; i += chunk) {
-      const keep = new Set(mats.slice(i, i + chunk));
-      const t0 = performance.now(); const before = PERFLOAD ? snapshotPrograms(r) : null;
-      const batch = new THREE.Group();
-      this.scene.traverse((o) => {
-        const mesh = o as THREE.Mesh;
-        const material = mesh.material;
-        if (!material) return;
-        const selected = (Array.isArray(material) ? material : [material]).filter((m) => keep.has(m));
-        if (!selected.length) return;
-        const copy = mesh.clone(false);
-        copy.material = Array.isArray(material) ? selected : selected[0]!;
-        batch.add(copy);
-      });
-      const prev = r.getRenderTarget();
-      let pending: Promise<unknown>;
-      try { r.setRenderTarget(target); pending = r.compileAsync(batch, this.camera, this.scene); } finally { r.setRenderTarget(prev); }
-      await pending;
-      if (before) perfLog(`batch ${i}`, performance.now() - t0, r, `${[...keep].map((m) => `${m.type}:${m.name || '?'}`).join(' + ')} → ${newProgramsSince(r, before).map(describeProgram).join(' | ') || 'cached'}`);
-      onProgress?.(Math.min(mats.length, i + chunk), mats.length);
-      await new Promise((res) => requestAnimationFrame(() => res(undefined)));
-    }
-    return mats.length;
+  async precompile(onProgress?: (done: number, total: number, detail: string) => void): Promise<number> {
+    // r186 removed PCFSoftShadowMap: the first shadow pass silently flips the type to PCF, and
+    // shadowMapType is in every program's cache key — so everything compiled here would be
+    // compiled AGAIN by the first frame (desktop 105 → 179 programs). Settle it before compiling.
+    if (this.renderer.shadowMap.type === THREE.PCFSoftShadowMap) this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    const rt = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
+    const { jobs, materials } = sceneJobs(this.scene, rt);
+    jobs.push(...shadowJobs(this.scene, rt));
+    const bg = backgroundJob(this.scene, rt);
+    if (bg) jobs.push(bg);
+    jobs.push(...postJobs(this.composer, rt));
+    if (PERFLOAD) perfLog('precompile:start', 0, this.renderer, `${materials} materials · ${jobs.length} jobs · parallel=${parallelCompile(this.renderer)}`);
+    const report = await runPrecompile(this.renderer, this.camera, jobs, materials, onProgress);
+    return report.materials;
   }
 
   /**
@@ -143,8 +121,9 @@ export class Game {
    * every pipeline), then the full composer (screen-quad shaders compileAsync cannot reach).
    */
   async firstFrame(onProgress?: (done: number, total: number, detail: string) => void) {
-    const frame = () => new Promise((res) => requestAnimationFrame(() => res(undefined)));
+    const frame = () => new Promise((res) => requestAnimationFrame(() => setTimeout(res, 0))); // rAF alone resumes before the paint
     onProgress?.(0, 2, 'world + shadows');
+    await frame();
     // into the composer's input buffer, not the canvas: the canvas target would be a second set of program variants
     const target = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
     const prev = this.renderer.getRenderTarget();
