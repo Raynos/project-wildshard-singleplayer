@@ -15,6 +15,7 @@ import { Lookout } from './world/Lookout';
 import { Wreck } from './world/Wreck';
 import { Shrine } from './world/Shrine';
 import { Bushes } from './world/Bushes';
+import { Gulls } from './world/Gulls';
 import { Hands } from './player/Hands';
 import { ROAD_LENGTH } from './core/config';
 import { Sword } from './player/Sword';
@@ -82,7 +83,7 @@ async function main() {
   const respawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } };
 
   // ── world dressing ──
-  const { boundary, water, ocean, pier, jetties, boat, palms, hut, lookout, wreck, shrine, bushes, horizon } = await step('edge', () => {
+  const { boundary, water, ocean, pier, jetties, boat, palms, hut, lookout, wreck, shrine, bushes, gulls, horizon } = await step('edge', () => {
     const boundary = new Boundary(sky).build();
     game.scene.add(boundary.group);
     const water = !isOcean && hasPond() ? new Water(sky).build() : null;
@@ -123,12 +124,23 @@ async function main() {
     const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
     const bushes = isOcean ? new Bushes(sky).build(Bushes.scatterIsland(chunk.seed, 260, AVOID)) : null;
     if (bushes) game.scene.add(bushes.mesh);
+    // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
+    const gulls = pier && boat && rocks ? new Gulls(sky).build({
+      perches: [
+        ...pier.posts.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.02, p.z)),
+        ...pier.bollards.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.41, p.z)),
+        new THREE.Vector3(-4.2, chunk.ocean!.level + 0.78, -CHUNK_HALF + 6 - 3.0), new THREE.Vector3(-4.2, chunk.ocean!.level + 0.7, -CHUNK_HALF + 6 + 3.0),
+        ...Gulls.beachPerches(chunk.seed, 10, { x: 0, z: -195, r: 90 }),
+      ],
+      centre: new THREE.Vector3(0, 0, -205), radius: 90,
+    }) : null;
+    if (gulls) game.scene.add(gulls.group);
     // coconut palms (one draw call, fronds sway in update)
     const palms = isOcean ? new Palms(sky).build(Palms.scatterIsland(chunk.seed, 150, AVOID)) : null;
     if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
-    return { boundary, water, ocean, pier, jetties, boat, palms, hut, lookout, wreck, shrine, bushes, horizon };
+    return { boundary, water, ocean, pier, jetties, boat, palms, hut, lookout, wreck, shrine, bushes, gulls, horizon };
   });
 
   const { grass, under, particles } = await step('grass', () => {
@@ -206,6 +218,7 @@ async function main() {
   onNumber('volume', masterGain);
 
   const hands = new Hands(sky, game.camera); // white-gloved swimming hands (shown only while player.swimming)
+  if (chunk.weapon === 'sword') (crossbow as Sword).onHeavy = () => audio.swordHeavy(); // the charged overhead (Weapons does not forward it)
   weapons.onFire = () => (weapons.current.id === 'rifle' ? audio.rifleFire() : chunk.weapon === 'sword' ? audio.swordSwing() : audio.crossbowFire());
   weapons.onDry = () => audio.dryFire();
   weapons.onReloadStart = () => (weapons.current.id === 'rifle' ? audio.rifleReload() : audio.reload());
@@ -321,6 +334,7 @@ async function main() {
     ocean?.update(dt);
     boat?.update(dt);
     palms?.update(dt);
+    gulls?.update(dt, player.position);
     hands.update(dt, player);
     horizon.update(dt, game.camera);
     grass?.update(dt, player.position);
@@ -367,6 +381,6 @@ async function main() {
   (plan as unknown as { done(): void }).done(); // throws unless both tracks are exactly 1
   game.start();
   await loading.done();
-  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio };
+  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio };
 }
 main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));

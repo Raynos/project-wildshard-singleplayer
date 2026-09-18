@@ -88,3 +88,17 @@ push after every commit. `npx tsc --noEmit` clean for your files before each com
 
 Inventory / equipment UI (user: "I'll deal with inventory and equipment later"), underwater world,
 drowning, blocking/dodging, palms on Pine Hollow, the other three jetties as real entrances.
+
+## Enemies (C16) — the island's roster
+
+| enemy | where | behaviour | why it's fun | mockup |
+|---|---|---|---|---|
+| **Boar** (low-poly) | beach, palm groves | same AI as Pine Hollow; charges; hit-stun from the sword | the melee tutorial | `art/driftwood-fp-sword-*.png` |
+| **Bear** (low-poly, black + brown) | wreck cove, NW jungle | the species-agent's stalk/charge AI, lowpoly paint | the "run" enemy — you can't out-trade it with the wooden sword | — |
+| **Reef Crab** | tidepool rocks at Wreck Cove, in 3–5s | sidesteps around you, pincer snap with a wind-up, hard shell = light hits do 50 % from the front (flank it); tiny ones scatter | forces strafing (the user's "strafe is the dodge") | `art/driftwood-enemy-1-crab.png` |
+| **Coconut Monkey** | palm groves, troops of 3–4 | climbs palms, throws coconuts (the island's only ranged attack, dodgeable), drops down to bite if you stand under it; flees when one dies | the first thing that hits you from a distance; makes the groves dangerous | `art/driftwood-enemy-2-monkey.png` |
+| **Drowned Sailor** | inside the wreck's hold (always), the beach at night | slow shamble → cutlass swing; rises out of the water in the hold when you enter; guards the iron sword; glows cyan | the dungeon: the reason to go into the wreck, and the iron sword's guardian | `art/driftwood-enemy-3-wreckghost.png` |
+
+All five are `src/entities/species/*.ts` entries in the species registry with a `lowpoly` paint; crab and sailor
+are non-quadrupeds and need their own small rigs (crab: 6 legs + 2 claws on a body bone; sailor: humanoid,
+6 bones). Gulls are ambient, not enemies.

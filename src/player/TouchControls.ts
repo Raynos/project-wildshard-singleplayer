@@ -26,6 +26,7 @@
  * intro is gone (`#hud.intro` hides it), and never needs pointer lock — iOS has none.
  */
 import type { Player } from './Player';
+import { getActiveChunk } from '../chunks/registry';
 import type { Weapons } from './Weapons';
 import { AimAssist } from './AimAssist';
 
@@ -144,6 +145,7 @@ export class TouchControls {
     };
     // AIM is a toggle, not a hold: each press flips ADS and the button stays lit (.on) while it is latched
     const aim = root.querySelector<HTMLElement>('.aim')!;
+    if (getActiveChunk().weapon === 'sword') aim.querySelector('span')!.textContent = 'Heavy'; // the sword: hold-to-charge overhead, not iron sights
     aim.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.weapons.adsHeld = !this.weapons.adsHeld; aim.classList.toggle('on', this.weapons.adsHeld); });
     aim.addEventListener('pointerup', (e) => e.stopPropagation());
     // SWAP: crossbow ⇄ rifle (Weapons.swap, the Q key); the pill flashes .down while pressed, nothing latches. Hidden until a
