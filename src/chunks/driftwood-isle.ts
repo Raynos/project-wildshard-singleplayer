@@ -32,7 +32,7 @@ export const PIER = { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckA
 export const JETTIES = [
   { x: 0, z: CHUNK_HALF, rot: Math.PI, length: ROAD_LENGTH },
   { x: -CHUNK_HALF, z: 0, rot: Math.PI / 2, length: 95 },
-  { x: CHUNK_HALF, z: 0, rot: -Math.PI / 2, length: 108 },
+  { x: CHUNK_HALF, z: 0, rot: -Math.PI / 2, length: 72 }, // ends 30 m short of the wreck's stern (x 149) — 108 ran straight through it
 ];
 /** the sand paths between the POIs (also `trails[4..]`): [pier → hut], [hut → lookout], [fork → wreck], [hut → shrine] */
 export const PATHS: [number, number][][] = [

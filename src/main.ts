@@ -22,6 +22,7 @@ import { Trailside } from './world/Trailside';
 import { Hands } from './player/Hands';
 import { ROAD_LENGTH } from './core/config';
 import { Sword } from './player/Sword';
+import { IronSwordPickup, ironSwordSite } from './player/IronSword';
 import type { Weapon } from './player/Weapon';
 import { Horizon } from './world/Horizon';
 import { Grass } from './world/Grass';
@@ -203,7 +204,9 @@ async function main() {
     ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock })
     : new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
   const rifle = new Rifle({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
-  const weapons = new Weapons(crossbow, rifle); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
+  // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken
+  const ironSword = chunk.weapon === 'sword' ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, blade: 'iron' }) : null;
+  const weapons = new Weapons(crossbow, rifle, ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : []); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
   new TouchControls(player, weapons, params.has('touch')); // on-screen FPS controls on coarse-pointer devices (?touch=1 forces)
   weapons.adsHeld = params.has('ads');
   const hud = new HUD({ pointerLock: !nolock });
@@ -266,6 +269,15 @@ async function main() {
     return drop;
   })();
   if (params.get('weapon') === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle', true); rifleDrop?.dispose(); } // dev: start with it
+  const ironDrop = (() => {
+    if (!wreck || !ironSword) return null;
+    const drop = new IronSwordPickup({ scene: game.scene, sky, position: ironSwordSite(wreck, heightAt) });
+    interactables.push(drop.interactable);
+    drop.onNear = (inside) => audio.pickupHum(inside);
+    drop.onPickup = () => { weapons.unlock('sword-iron'); weapons.select('sword-iron'); audio.hitMarker(); hud.toast('Iron sword acquired · 1/2 to switch, Q to swap'); };
+    return drop;
+  })();
+  if (params.get('weapon') === 'iron' && ironSword) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); ironDrop?.dispose(); }
   // ── legendary skins (src/player/Skins.ts): the Ghost stag drops the GHOST STAG crossbow, Old Ironhide the IRONHIDE AR-15 —
   // a big purple floating pickup where the animal fell (WeaponPickup tier 'rare'); taking it swaps the skin (and hands you the
   // rifle if you had not found it). What you own / wear persists; `?skin=ghost-stag` previews, `?drop=ironhide` spawns one ahead.
@@ -368,6 +380,7 @@ async function main() {
     animals.update(dt, t, player.position, player.sprinting);
     weapons.update(dt, t); // every weapon ticks (bolts in flight keep flying while the rifle is out)
     rifleDrop?.update(dt, t, game.renderer, game.camera);
+    ironDrop?.update(dt, t, game.renderer, game.camera, player.position); // walk-to-pick-me-up
     for (const d of skinDrops) d.update(dt, t, game.renderer, game.camera);
     audio.listenerYaw = player.yaw;
 
