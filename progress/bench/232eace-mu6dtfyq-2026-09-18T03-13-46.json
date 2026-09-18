@@ -1,0 +1,3896 @@
+{
+  "build": "232eace-mu6dtfyq",
+  "url": "http://localhost:4175",
+  "at": "2026-09-18T03:13:46.007Z",
+  "host": "darwin arm64 node v24.18.1",
+  "cpu": 4,
+  "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+  "runsPerCondition": 1,
+  "viewport": [
+    1280,
+    720
+  ],
+  "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+  "rows": {
+    "wifi/cold": {
+      "cond": "wifi",
+      "cache": "cold",
+      "runs": 1,
+      "status": "ok",
+      "swController": true,
+      "titleMs": 522,
+      "playMs": 30305,
+      "domContentLoadedMs": 458,
+      "requests": 78,
+      "swFetches": 74,
+      "fromSW": 68,
+      "netBytes": 76286205,
+      "cacheBytes": 0,
+      "longTasks": 15,
+      "longTaskMs": 5752,
+      "longTaskMaxMs": 1244,
+      "heapMB": 130.2,
+      "textures": 166,
+      "geometries": 155,
+      "programs": 156,
+      "firstFrameMs": null,
+      "bytes": {
+        "js": {
+          "net": 424333,
+          "cache": 0,
+          "n": 1
+        },
+        "css": {
+          "net": 6616,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 61755608,
+          "cache": 0,
+          "n": 51
+        },
+        "png": {
+          "net": 1721358,
+          "cache": 0,
+          "n": 2
+        },
+        "hdr": {
+          "net": 4172254,
+          "cache": 0,
+          "n": 1
+        },
+        "glb": {
+          "net": 7152996,
+          "cache": 0,
+          "n": 4
+        },
+        "gltf": {
+          "net": 22011,
+          "cache": 0,
+          "n": 5
+        },
+        "bin": {
+          "net": 956621,
+          "cache": 0,
+          "n": 5
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 69505,
+          "cache": 0,
+          "n": 6
+        },
+        "json": {
+          "net": 2100,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 2141,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 662,
+          "cache": 0,
+          "n": 0
+        }
+      },
+      "steps": [
+        [
+          457,
+          "renderer",
+          null
+        ],
+        [
+          702,
+          "sky",
+          null
+        ],
+        [
+          2376,
+          "terrain",
+          null
+        ],
+        [
+          12405,
+          "cards",
+          null
+        ],
+        [
+          14090,
+          "forest",
+          null
+        ],
+        [
+          14202,
+          "edge",
+          null
+        ],
+        [
+          15136,
+          "grass",
+          null
+        ],
+        [
+          15141,
+          "cabins",
+          null
+        ],
+        [
+          22162,
+          "props",
+          null
+        ],
+        [
+          24467,
+          "animals",
+          null
+        ],
+        [
+          24467,
+          "weapon",
+          null
+        ],
+        [
+          24885,
+          "shaders",
+          null
+        ],
+        [
+          28774,
+          "firstFrame",
+          null
+        ]
+      ],
+      "errors": []
+    },
+    "wifi/warm": {
+      "cond": "wifi",
+      "cache": "warm",
+      "runs": 1,
+      "status": "ok",
+      "swController": true,
+      "titleMs": 371,
+      "playMs": 10647,
+      "domContentLoadedMs": 238,
+      "requests": 78,
+      "swFetches": 1,
+      "fromSW": 71,
+      "netBytes": 52116,
+      "cacheBytes": 79284270,
+      "longTasks": 16,
+      "longTaskMs": 6275,
+      "longTaskMaxMs": 1374,
+      "heapMB": 132.8,
+      "textures": 166,
+      "geometries": 155,
+      "programs": 156,
+      "firstFrameMs": null,
+      "bytes": {
+        "js": {
+          "net": 0,
+          "cache": 1294720,
+          "n": 1
+        },
+        "css": {
+          "net": 0,
+          "cache": 30625,
+          "n": 1
+        },
+        "jpg": {
+          "net": 0,
+          "cache": 64339666,
+          "n": 51
+        },
+        "png": {
+          "net": 0,
+          "cache": 1319767,
+          "n": 2
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 4171959,
+          "n": 1
+        },
+        "glb": {
+          "net": 0,
+          "cache": 7151824,
+          "n": 4
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 20581,
+          "n": 5
+        },
+        "bin": {
+          "net": 0,
+          "cache": 955128,
+          "n": 5
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 50739,
+          "cache": 0,
+          "n": 6
+        },
+        "json": {
+          "net": 330,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 1047,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        }
+      },
+      "steps": [
+        [
+          237,
+          "renderer",
+          null
+        ],
+        [
+          282,
+          "sky",
+          null
+        ],
+        [
+          1000,
+          "terrain",
+          null
+        ],
+        [
+          2843,
+          "cards",
+          null
+        ],
+        [
+          3134,
+          "forest",
+          null
+        ],
+        [
+          3251,
+          "edge",
+          null
+        ],
+        [
+          4236,
+          "grass",
+          null
+        ],
+        [
+          4242,
+          "cabins",
+          null
+        ],
+        [
+          4961,
+          "props",
+          null
+        ],
+        [
+          5663,
+          "animals",
+          null
+        ],
+        [
+          5664,
+          "weapon",
+          null
+        ],
+        [
+          5966,
+          "shaders",
+          null
+        ],
+        [
+          9037,
+          "firstFrame",
+          null
+        ]
+      ],
+      "errors": []
+    },
+    "4g/cold": {
+      "cond": "4g",
+      "cache": "cold",
+      "runs": 1,
+      "status": "ok",
+      "swController": true,
+      "titleMs": 966,
+      "playMs": 79303,
+      "domContentLoadedMs": 890,
+      "requests": 78,
+      "swFetches": 74,
+      "fromSW": 67,
+      "netBytes": 76286383,
+      "cacheBytes": 0,
+      "longTasks": 16,
+      "longTaskMs": 6505,
+      "longTaskMaxMs": 1370,
+      "heapMB": 124.5,
+      "textures": 166,
+      "geometries": 155,
+      "programs": 156,
+      "firstFrameMs": null,
+      "bytes": {
+        "js": {
+          "net": 424333,
+          "cache": 0,
+          "n": 1
+        },
+        "css": {
+          "net": 6616,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 61755608,
+          "cache": 0,
+          "n": 51
+        },
+        "png": {
+          "net": 1721536,
+          "cache": 0,
+          "n": 2
+        },
+        "hdr": {
+          "net": 4172254,
+          "cache": 0,
+          "n": 1
+        },
+        "glb": {
+          "net": 7152996,
+          "cache": 0,
+          "n": 4
+        },
+        "gltf": {
+          "net": 22011,
+          "cache": 0,
+          "n": 5
+        },
+        "bin": {
+          "net": 956621,
+          "cache": 0,
+          "n": 5
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 69505,
+          "cache": 0,
+          "n": 6
+        },
+        "json": {
+          "net": 2100,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 2141,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 662,
+          "cache": 0,
+          "n": 0
+        }
+      },
+      "steps": [
+        [
+          890,
+          "renderer",
+          null
+        ],
+        [
+          2082,
+          "sky",
+          null
+        ],
+        [
+          6599,
+          "terrain",
+          null
+        ],
+        [
+          38445,
+          "cards",
+          null
+        ],
+        [
+          43682,
+          "forest",
+          null
+        ],
+        [
+          43804,
+          "edge",
+          null
+        ],
+        [
+          44826,
+          "grass",
+          null
+        ],
+        [
+          44832,
+          "cabins",
+          null
+        ],
+        [
+          67847,
+          "props",
+          null
+        ],
+        [
+          74292,
+          "animals",
+          null
+        ],
+        [
+          74293,
+          "weapon",
+          null
+        ],
+        [
+          74618,
+          "shaders",
+          null
+        ],
+        [
+          77691,
+          "firstFrame",
+          null
+        ]
+      ],
+      "errors": []
+    },
+    "4g/warm": {
+      "cond": "4g",
+      "cache": "warm",
+      "runs": 1,
+      "status": "ok",
+      "swController": true,
+      "titleMs": 551,
+      "playMs": 9486,
+      "domContentLoadedMs": 448,
+      "requests": 78,
+      "swFetches": 1,
+      "fromSW": 71,
+      "netBytes": 52019,
+      "cacheBytes": 79284270,
+      "longTasks": 16,
+      "longTaskMs": 5270,
+      "longTaskMaxMs": 1047,
+      "heapMB": 124.8,
+      "textures": 166,
+      "geometries": 155,
+      "programs": 156,
+      "firstFrameMs": null,
+      "bytes": {
+        "js": {
+          "net": 0,
+          "cache": 1294720,
+          "n": 1
+        },
+        "css": {
+          "net": 0,
+          "cache": 30625,
+          "n": 1
+        },
+        "jpg": {
+          "net": 0,
+          "cache": 64339666,
+          "n": 51
+        },
+        "png": {
+          "net": 0,
+          "cache": 1319767,
+          "n": 2
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 4171959,
+          "n": 1
+        },
+        "glb": {
+          "net": 0,
+          "cache": 7151824,
+          "n": 4
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 20581,
+          "n": 5
+        },
+        "bin": {
+          "net": 0,
+          "cache": 955128,
+          "n": 5
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 50643,
+          "cache": 0,
+          "n": 6
+        },
+        "json": {
+          "net": 330,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 1046,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        }
+      },
+      "steps": [
+        [
+          448,
+          "renderer",
+          null
+        ],
+        [
+          543,
+          "sky",
+          null
+        ],
+        [
+          1203,
+          "terrain",
+          null
+        ],
+        [
+          3243,
+          "cards",
+          null
+        ],
+        [
+          3473,
+          "forest",
+          null
+        ],
+        [
+          3571,
+          "edge",
+          null
+        ],
+        [
+          4361,
+          "grass",
+          null
+        ],
+        [
+          4365,
+          "cabins",
+          null
+        ],
+        [
+          4878,
+          "props",
+          null
+        ],
+        [
+          5426,
+          "animals",
+          null
+        ],
+        [
+          5426,
+          "weapon",
+          null
+        ],
+        [
+          5671,
+          "shaders",
+          null
+        ],
+        [
+          8044,
+          "firstFrame",
+          null
+        ]
+      ],
+      "errors": []
+    }
+  },
+  "raw": [
+    {
+      "cond": "wifi",
+      "cache": "cold",
+      "run": 1,
+      "status": "ok",
+      "label": "wifi/cold",
+      "errors": [],
+      "requests": 78,
+      "swFetches": 74,
+      "fromSW": 68,
+      "netBytes": 76286205,
+      "cacheBytes": 0,
+      "bytes": {
+        "js": {
+          "net": 424333,
+          "cache": 0,
+          "n": 1
+        },
+        "css": {
+          "net": 6616,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 61755608,
+          "cache": 0,
+          "n": 51
+        },
+        "png": {
+          "net": 1721358,
+          "cache": 0,
+          "n": 2
+        },
+        "hdr": {
+          "net": 4172254,
+          "cache": 0,
+          "n": 1
+        },
+        "glb": {
+          "net": 7152996,
+          "cache": 0,
+          "n": 4
+        },
+        "gltf": {
+          "net": 22011,
+          "cache": 0,
+          "n": 5
+        },
+        "bin": {
+          "net": 956621,
+          "cache": 0,
+          "n": 5
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 69505,
+          "cache": 0,
+          "n": 6
+        },
+        "json": {
+          "net": 2100,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 2141,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 662,
+          "cache": 0,
+          "n": 0
+        }
+      },
+      "reqs": [
+        [
+          "page",
+          "/?nolock=1&bench=1",
+          1047
+        ],
+        [
+          "page",
+          "/assets/index-BuFuYC_W.css",
+          6437
+        ],
+        [
+          "page",
+          "/assets/index-53n0Td3C.js",
+          423852
+        ],
+        [
+          "page",
+          "https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+          1392
+        ],
+        [
+          "sw",
+          "/sw.js",
+          302
+        ],
+        [
+          "sw",
+          "/manifest.webmanifest",
+          662
+        ],
+        [
+          "sw",
+          "/index.html",
+          1094
+        ],
+        [
+          "sw",
+          "/asset-index.json",
+          1770
+        ],
+        [
+          "sw",
+          "/assets/index-BuFuYC_W.css",
+          179
+        ],
+        [
+          "sw",
+          "/assets/index-53n0Td3C.js",
+          179
+        ],
+        [
+          "sw",
+          "/assets/pine-hollow-CoOs7D2C.jpg",
+          48257
+        ],
+        [
+          "page",
+          "/version.json?t=1789701087886",
+          330
+        ],
+        [
+          "sw",
+          "/favicon.png",
+          9187
+        ],
+        [
+          "sw",
+          "/apple-touch-icon.png",
+          52370
+        ],
+        [
+          "sw",
+          "/icon-192.png",
+          58147
+        ],
+        [
+          "sw",
+          "/icon-512.png",
+          290497
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/rajdhani/v17/LDI2apCSOBg7S-QT7pa8FvOreefkkbIx.woff2",
+          9331
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/rajdhani/v17/LDIxapCSOBg7S-QT7p4HM-aGW-rO.woff2",
+          8995
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwgknk-4.woff2",
+          31369
+        ],
+        [
+          "page<sw",
+          "/favicon.png",
+          0
+        ],
+        [
+          "sw",
+          "/assets/hdri/qwantani_sunset_puresky_2k.hdr",
+          4172254
+        ],
+        [
+          "page<sw",
+          "/assets/hdri/qwantani_sunset_puresky_2k.hdr",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/forest_ground_04/arm.jpg",
+          3419013
+        ],
+        [
+          "page<sw",
+          "/assets/tex/forest_ground_04/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/forest_ground_04/diffuse.jpg",
+          4529608
+        ],
+        [
+          "page<sw",
+          "/assets/tex/forest_ground_04/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/forest_ground_04/nor_gl.jpg",
+          5289136
+        ],
+        [
+          "page<sw",
+          "/assets/tex/forest_ground_04/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/leafy_grass/arm.jpg",
+          4116887
+        ],
+        [
+          "page<sw",
+          "/assets/tex/leafy_grass/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/rock_ground/arm.jpg",
+          349852
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/stony_dirt_path/arm.jpg",
+          848831
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stony_dirt_path/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/leafy_grass/diffuse.jpg",
+          4766491
+        ],
+        [
+          "page<sw",
+          "/assets/tex/leafy_grass/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/rock_ground/diffuse.jpg",
+          818210
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/leafy_grass/nor_gl.jpg",
+          6047549
+        ],
+        [
+          "page<sw",
+          "/assets/tex/leafy_grass/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/stony_dirt_path/diffuse.jpg",
+          1234354
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stony_dirt_path/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/rock_ground/nor_gl.jpg",
+          1430571
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/stony_dirt_path/nor_gl.jpg",
+          1416681
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stony_dirt_path/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/pine_tree_01/twig_arm.jpg",
+          475072
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_tree_01/twig_arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/pine_tree_01/twig_nor_gl.jpg",
+          798220
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_tree_01/twig_nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/pine_bark/arm.jpg",
+          810385
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_bark/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/pine_bark/diffuse.jpg",
+          837926
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_bark/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/pine_bark/nor_gl.jpg",
+          1178727
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_bark/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/pine_tree_01/twig_rgba.png",
+          1311157
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_tree_01/twig_rgba.png",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_planks_grey/arm.jpg",
+          155483
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_grey/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_planks_grey/nor_gl.jpg",
+          157704
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_grey/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_planks_grey/diffuse.jpg",
+          228564
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_grey/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_planks_dirt/nor_gl.jpg",
+          515287
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_dirt/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_planks_dirt/arm.jpg",
+          561674
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_dirt/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_planks_dirt/diffuse.jpg",
+          918408
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_dirt/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/rough_pine_door/arm.jpg",
+          201944
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rough_pine_door/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/rough_pine_door/diffuse.jpg",
+          722150
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rough_pine_door/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/rough_pine_door/nor_gl.jpg",
+          717643
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rough_pine_door/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_trunk_wall/arm.jpg",
+          1903494
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_trunk_wall/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_trunk_wall/diffuse.jpg",
+          2083188
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_trunk_wall/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/stone_wall/arm.jpg",
+          586988
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stone_wall/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/stone_wall/diffuse.jpg",
+          837260
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stone_wall/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/stone_wall/nor_gl.jpg",
+          1172707
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stone_wall/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_trunk_wall/nor_gl.jpg",
+          3552268
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_trunk_wall/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/stone_fire_pit/stone_fire_pit.gltf",
+          3078
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_crate_02/wooden_crate_02.gltf",
+          4436
+        ],
+        [
+          "sw",
+          "/assets/models/hatchet/hatchet.gltf",
+          3004
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_bucket_01/wooden_bucket_01.gltf",
+          4534
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/stone_fire_pit.gltf",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wine_barrel_01/wine_barrel_01.gltf",
+          6959
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/wooden_crate_02.gltf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/hatchet.gltf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/wooden_bucket_01.gltf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/wine_barrel_01.gltf",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/stone_fire_pit/stone_fire_pit.bin",
+          96517
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/stone_fire_pit.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_crate_02/wooden_crate_02.bin",
+          150363
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/wooden_crate_02.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_arm_1k.jpg",
+          681726
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_arm_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/Lantern_01/Lantern_01_lod.glb",
+          829644
+        ],
+        [
+          "page<sw",
+          "/assets/models/Lantern_01/Lantern_01_lod.glb",
+          0
+        ],
+        [
+          "page",
+          "blob:/6e97ec20-3e07-4263-9a84-b75f80b022bb",
+          0
+        ],
+        [
+          "page",
+          "blob:/779bbee6-ffa9-488d-afa5-f32446c9799b",
+          0
+        ],
+        [
+          "page",
+          "blob:/2d6a046a-5a08-4b73-ba2b-ccbb49e8cca3",
+          0
+        ],
+        [
+          "page",
+          "blob:/06a38f7a-df88-47b6-bd31-db8f56854d2f",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_diff_1k.jpg",
+          785955
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_diff_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_diff_1k.jpg",
+          716395
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_diff_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/hatchet/hatchet.bin",
+          164823
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/hatchet.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_nor_gl_1k.jpg",
+          970107
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_arm_1k.jpg",
+          819862
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_arm_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_bucket_01/wooden_bucket_01.bin",
+          158707
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/wooden_bucket_01.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_nor_gl_1k.jpg",
+          546604
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/hatchet/textures/hatchet_diff_1k.jpg",
+          517825
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/textures/hatchet_diff_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/hatchet/textures/hatchet_nor_gl_1k.jpg",
+          592750
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/textures/hatchet_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/hatchet/textures/hatchet_arm_1k.jpg",
+          691058
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/textures/hatchet_arm_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_diff_1k.jpg",
+          698368
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_diff_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_diff_1k.jpg",
+          196265
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_diff_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_arm_1k.jpg",
+          172816
+        ],
+        [
+          "sw",
+          "/assets/models/wine_barrel_01/wine_barrel_01.bin",
+          386211
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_arm_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/wine_barrel_01.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_nor_gl_1k.jpg",
+          163872
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_arm_1k.jpg",
+          777748
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_nor_gl_1k.jpg",
+          693725
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_arm_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/rock_moss_set_01/rock_moss_set_01_lod.glb",
+          671288
+        ],
+        [
+          "page<sw",
+          "/assets/models/rock_moss_set_01/rock_moss_set_01_lod.glb",
+          0
+        ],
+        [
+          "page",
+          "blob:/f48c532f-7d09-45bf-9aea-945db8e4b118",
+          0
+        ],
+        [
+          "page",
+          "blob:/36b23fa1-7536-4dbb-91d8-c55c26344516",
+          0
+        ],
+        [
+          "page",
+          "blob:/86884cd2-46af-4646-856f-67626a509aeb",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/dead_tree_trunk/dead_tree_trunk_lod.glb",
+          2585398
+        ],
+        [
+          "page<sw",
+          "/assets/models/dead_tree_trunk/dead_tree_trunk_lod.glb",
+          0
+        ],
+        [
+          "page",
+          "blob:/51636e87-10bf-42d3-bb9a-927d5a6d5be6",
+          0
+        ],
+        [
+          "page",
+          "blob:/7998653f-430e-4a95-a57f-3a6d9d9db061",
+          0
+        ],
+        [
+          "page",
+          "blob:/ae2f1025-6495-47f2-96dc-dec07dbb250a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/tree_stump_01/tree_stump_01_lod.glb",
+          3066666
+        ],
+        [
+          "page<sw",
+          "/assets/models/tree_stump_01/tree_stump_01_lod.glb",
+          0
+        ],
+        [
+          "page",
+          "blob:/5560d7b4-87fc-4fa8-a3f4-ea618bbcfa47",
+          0
+        ],
+        [
+          "page",
+          "blob:/f3d2ec18-7069-4f41-93df-4bf7eaa68d26",
+          0
+        ],
+        [
+          "page",
+          "blob:/1f6acd6e-b225-4650-b886-9338542fb8cf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-CoOs7D2C.jpg",
+          0
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/rajdhani/v17/LDI2apCSOBg7S-QT7pbYF_OreefkkbIx.woff2",
+          9427
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/rajdhani/v17/LDI2apCSOBg7S-QT7pb0EPOreefkkbIx.woff2",
+          8991
+        ]
+      ],
+      "titleMs": 522,
+      "playMs": 30305,
+      "domContentLoadedMs": 458,
+      "loadEventMs": 755,
+      "longTasks": 15,
+      "longTaskMs": 5752,
+      "longTaskMaxMs": 1244,
+      "steps": [
+        [
+          457,
+          "renderer",
+          null
+        ],
+        [
+          702,
+          "sky",
+          null
+        ],
+        [
+          2376,
+          "terrain",
+          null
+        ],
+        [
+          12405,
+          "cards",
+          null
+        ],
+        [
+          14090,
+          "forest",
+          null
+        ],
+        [
+          14202,
+          "edge",
+          null
+        ],
+        [
+          15136,
+          "grass",
+          null
+        ],
+        [
+          15141,
+          "cabins",
+          null
+        ],
+        [
+          22162,
+          "props",
+          null
+        ],
+        [
+          24467,
+          "animals",
+          null
+        ],
+        [
+          24467,
+          "weapon",
+          null
+        ],
+        [
+          24885,
+          "shaders",
+          null
+        ],
+        [
+          28774,
+          "firstFrame",
+          null
+        ]
+      ],
+      "heapMB": 130.2,
+      "textures": 166,
+      "geometries": 155,
+      "programs": 156,
+      "firstFrameMs": null,
+      "swController": true,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "dpr": 1,
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    {
+      "cond": "wifi",
+      "cache": "warm",
+      "run": 1,
+      "status": "ok",
+      "label": "wifi/warm",
+      "errors": [],
+      "requests": 78,
+      "swFetches": 1,
+      "fromSW": 71,
+      "netBytes": 52116,
+      "cacheBytes": 79284270,
+      "bytes": {
+        "js": {
+          "net": 0,
+          "cache": 1294720,
+          "n": 1
+        },
+        "css": {
+          "net": 0,
+          "cache": 30625,
+          "n": 1
+        },
+        "jpg": {
+          "net": 0,
+          "cache": 64339666,
+          "n": 51
+        },
+        "png": {
+          "net": 0,
+          "cache": 1319767,
+          "n": 2
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 4171959,
+          "n": 1
+        },
+        "glb": {
+          "net": 0,
+          "cache": 7151824,
+          "n": 4
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 20581,
+          "n": 5
+        },
+        "bin": {
+          "net": 0,
+          "cache": 955128,
+          "n": 5
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 50739,
+          "cache": 0,
+          "n": 6
+        },
+        "json": {
+          "net": 330,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 1047,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        }
+      },
+      "reqs": [
+        [
+          "page<sw",
+          "/assets/index-BuFuYC_W.css",
+          0
+        ],
+        [
+          "page<sw",
+          "/?nolock=1&bench=1",
+          0
+        ],
+        [
+          "sw",
+          "/?nolock=1&bench=1",
+          1047
+        ],
+        [
+          "page<sw",
+          "/assets/index-53n0Td3C.js",
+          0
+        ],
+        [
+          "page",
+          "https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+          1044
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/rajdhani/v17/LDI2apCSOBg7S-QT7pa8FvOreefkkbIx.woff2",
+          9331
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/rajdhani/v17/LDIxapCSOBg7S-QT7p4HM-aGW-rO.woff2",
+          8995
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwgknk-4.woff2",
+          31369
+        ],
+        [
+          "page",
+          "/version.json?t=1789701120176",
+          330
+        ],
+        [
+          "page<sw",
+          "/assets/hdri/qwantani_sunset_puresky_2k.hdr",
+          0
+        ],
+        [
+          "page<sw",
+          "/favicon.png",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/forest_ground_04/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/forest_ground_04/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/forest_ground_04/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/leafy_grass/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/leafy_grass/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/leafy_grass/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stony_dirt_path/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stony_dirt_path/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stony_dirt_path/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_tree_01/twig_rgba.png",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_tree_01/twig_nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_tree_01/twig_arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_bark/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_bark/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_bark/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_trunk_wall/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_trunk_wall/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_grey/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_grey/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_grey/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_dirt/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_dirt/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_dirt/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rough_pine_door/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rough_pine_door/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rough_pine_door/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stone_wall/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stone_wall/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stone_wall/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_trunk_wall/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/stone_fire_pit.gltf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/Lantern_01/Lantern_01_lod.glb",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/wooden_crate_02.gltf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/wine_barrel_01.gltf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/wooden_bucket_01.gltf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/hatchet.gltf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/stone_fire_pit.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_diff_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_arm_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "page",
+          "blob:/5d17e007-ac57-4d13-8236-a97b9ebb5ca1",
+          0
+        ],
+        [
+          "page",
+          "blob:/74fc3bb4-7e14-48c1-8cbd-cc5ca24444de",
+          0
+        ],
+        [
+          "page",
+          "blob:/12f2211e-85ba-4821-a59b-de0b0ac78cdc",
+          0
+        ],
+        [
+          "page",
+          "blob:/74a2984b-4c05-4f9a-8860-437de968b65a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/wooden_crate_02.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_diff_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_arm_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/wine_barrel_01.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_diff_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_arm_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/wooden_bucket_01.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_diff_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_arm_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/hatchet.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/textures/hatchet_diff_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/textures/hatchet_arm_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/textures/hatchet_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/rock_moss_set_01/rock_moss_set_01_lod.glb",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/tree_stump_01/tree_stump_01_lod.glb",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/dead_tree_trunk/dead_tree_trunk_lod.glb",
+          0
+        ],
+        [
+          "page",
+          "blob:/bf8be7c0-c974-4da8-a6b8-d5e125954cb2",
+          0
+        ],
+        [
+          "page",
+          "blob:/969ceb6d-0658-447b-93c2-393cd7a0ab2a",
+          0
+        ],
+        [
+          "page",
+          "blob:/20e393a7-1074-4f44-9422-1da96828e639",
+          0
+        ],
+        [
+          "page",
+          "blob:/e9072546-905b-4f56-ae2f-e01612630fe8",
+          0
+        ],
+        [
+          "page",
+          "blob:/8d367f60-ed4e-49ce-a52f-517f50f14012",
+          0
+        ],
+        [
+          "page",
+          "blob:/c71f82a9-19e3-4869-b48e-cb8f41150bbd",
+          0
+        ],
+        [
+          "page",
+          "blob:/8142ac36-3988-4569-825f-7f5c752ed93b",
+          0
+        ],
+        [
+          "page",
+          "blob:/f2f84fa9-9fbb-4de7-976e-ea42b02ce708",
+          0
+        ],
+        [
+          "page",
+          "blob:/39a1b64a-9645-4b6e-85e8-d458b5b9d5eb",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-CoOs7D2C.jpg",
+          0
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/rajdhani/v17/LDI2apCSOBg7S-QT7pb0EPOreefkkbIx.woff2",
+          0
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/rajdhani/v17/LDI2apCSOBg7S-QT7pbYF_OreefkkbIx.woff2",
+          0
+        ]
+      ],
+      "titleMs": 371,
+      "playMs": 10647,
+      "domContentLoadedMs": 238,
+      "loadEventMs": 349,
+      "longTasks": 16,
+      "longTaskMs": 6275,
+      "longTaskMaxMs": 1374,
+      "steps": [
+        [
+          237,
+          "renderer",
+          null
+        ],
+        [
+          282,
+          "sky",
+          null
+        ],
+        [
+          1000,
+          "terrain",
+          null
+        ],
+        [
+          2843,
+          "cards",
+          null
+        ],
+        [
+          3134,
+          "forest",
+          null
+        ],
+        [
+          3251,
+          "edge",
+          null
+        ],
+        [
+          4236,
+          "grass",
+          null
+        ],
+        [
+          4242,
+          "cabins",
+          null
+        ],
+        [
+          4961,
+          "props",
+          null
+        ],
+        [
+          5663,
+          "animals",
+          null
+        ],
+        [
+          5664,
+          "weapon",
+          null
+        ],
+        [
+          5966,
+          "shaders",
+          null
+        ],
+        [
+          9037,
+          "firstFrame",
+          null
+        ]
+      ],
+      "heapMB": 132.8,
+      "textures": 166,
+      "geometries": 155,
+      "programs": 156,
+      "firstFrameMs": null,
+      "swController": true,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "dpr": 1,
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    {
+      "cond": "4g",
+      "cache": "cold",
+      "run": 1,
+      "status": "ok",
+      "label": "4g/cold",
+      "errors": [],
+      "requests": 78,
+      "swFetches": 74,
+      "fromSW": 67,
+      "netBytes": 76286383,
+      "cacheBytes": 0,
+      "bytes": {
+        "js": {
+          "net": 424333,
+          "cache": 0,
+          "n": 1
+        },
+        "css": {
+          "net": 6616,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 61755608,
+          "cache": 0,
+          "n": 51
+        },
+        "png": {
+          "net": 1721536,
+          "cache": 0,
+          "n": 2
+        },
+        "hdr": {
+          "net": 4172254,
+          "cache": 0,
+          "n": 1
+        },
+        "glb": {
+          "net": 7152996,
+          "cache": 0,
+          "n": 4
+        },
+        "gltf": {
+          "net": 22011,
+          "cache": 0,
+          "n": 5
+        },
+        "bin": {
+          "net": 956621,
+          "cache": 0,
+          "n": 5
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 69505,
+          "cache": 0,
+          "n": 6
+        },
+        "json": {
+          "net": 2100,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 2141,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 662,
+          "cache": 0,
+          "n": 0
+        }
+      },
+      "reqs": [
+        [
+          "page",
+          "/?nolock=1&bench=1",
+          1047
+        ],
+        [
+          "page",
+          "/assets/index-BuFuYC_W.css",
+          6437
+        ],
+        [
+          "page",
+          "https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+          1392
+        ],
+        [
+          "page",
+          "/assets/index-53n0Td3C.js",
+          423852
+        ],
+        [
+          "sw",
+          "/sw.js",
+          302
+        ],
+        [
+          "sw",
+          "/manifest.webmanifest",
+          662
+        ],
+        [
+          "sw",
+          "/index.html",
+          1094
+        ],
+        [
+          "page",
+          "/version.json?t=1789701133829",
+          330
+        ],
+        [
+          "sw",
+          "/asset-index.json",
+          1770
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/rajdhani/v17/LDIxapCSOBg7S-QT7p4HM-aGW-rO.woff2",
+          8995
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/rajdhani/v17/LDI2apCSOBg7S-QT7pa8FvOreefkkbIx.woff2",
+          9331
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwgknk-4.woff2",
+          31369
+        ],
+        [
+          "sw",
+          "/assets/index-BuFuYC_W.css",
+          179
+        ],
+        [
+          "sw",
+          "/assets/index-53n0Td3C.js",
+          179
+        ],
+        [
+          "sw",
+          "/assets/pine-hollow-CoOs7D2C.jpg",
+          48257
+        ],
+        [
+          "page",
+          "/favicon.png",
+          9187
+        ],
+        [
+          "sw",
+          "/favicon.png",
+          178
+        ],
+        [
+          "sw",
+          "/apple-touch-icon.png",
+          52370
+        ],
+        [
+          "sw",
+          "/icon-192.png",
+          58147
+        ],
+        [
+          "sw",
+          "/icon-512.png",
+          290497
+        ],
+        [
+          "sw",
+          "/assets/hdri/qwantani_sunset_puresky_2k.hdr",
+          4172254
+        ],
+        [
+          "page<sw",
+          "/assets/hdri/qwantani_sunset_puresky_2k.hdr",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/forest_ground_04/arm.jpg",
+          3419013
+        ],
+        [
+          "page<sw",
+          "/assets/tex/forest_ground_04/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/forest_ground_04/diffuse.jpg",
+          4529608
+        ],
+        [
+          "page<sw",
+          "/assets/tex/forest_ground_04/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/forest_ground_04/nor_gl.jpg",
+          5289136
+        ],
+        [
+          "page<sw",
+          "/assets/tex/forest_ground_04/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/leafy_grass/arm.jpg",
+          4116887
+        ],
+        [
+          "page<sw",
+          "/assets/tex/leafy_grass/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/rock_ground/arm.jpg",
+          349852
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/stony_dirt_path/arm.jpg",
+          848831
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stony_dirt_path/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/leafy_grass/diffuse.jpg",
+          4766491
+        ],
+        [
+          "page<sw",
+          "/assets/tex/leafy_grass/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/rock_ground/diffuse.jpg",
+          818210
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/leafy_grass/nor_gl.jpg",
+          6047549
+        ],
+        [
+          "page<sw",
+          "/assets/tex/leafy_grass/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/stony_dirt_path/diffuse.jpg",
+          1234354
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stony_dirt_path/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/rock_ground/nor_gl.jpg",
+          1430571
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/stony_dirt_path/nor_gl.jpg",
+          1416681
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stony_dirt_path/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/pine_tree_01/twig_arm.jpg",
+          475072
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_tree_01/twig_arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/pine_tree_01/twig_nor_gl.jpg",
+          798220
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_tree_01/twig_nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/pine_bark/arm.jpg",
+          810385
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_bark/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/pine_bark/diffuse.jpg",
+          837926
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_bark/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/pine_bark/nor_gl.jpg",
+          1178727
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_bark/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/pine_tree_01/twig_rgba.png",
+          1311157
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_tree_01/twig_rgba.png",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_planks_grey/arm.jpg",
+          155483
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_grey/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_planks_grey/nor_gl.jpg",
+          157704
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_grey/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_planks_grey/diffuse.jpg",
+          228564
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_grey/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_planks_dirt/nor_gl.jpg",
+          515287
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_dirt/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_planks_dirt/arm.jpg",
+          561674
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_dirt/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_planks_dirt/diffuse.jpg",
+          918408
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_dirt/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/rough_pine_door/arm.jpg",
+          201944
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rough_pine_door/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/rough_pine_door/diffuse.jpg",
+          722150
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rough_pine_door/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/rough_pine_door/nor_gl.jpg",
+          717643
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rough_pine_door/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_trunk_wall/arm.jpg",
+          1903494
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_trunk_wall/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_trunk_wall/diffuse.jpg",
+          2083188
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_trunk_wall/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/stone_wall/arm.jpg",
+          586988
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stone_wall/arm.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/stone_wall/diffuse.jpg",
+          837260
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stone_wall/diffuse.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/stone_wall/nor_gl.jpg",
+          1172707
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stone_wall/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/tex/wood_trunk_wall/nor_gl.jpg",
+          3552268
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_trunk_wall/nor_gl.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/stone_fire_pit/stone_fire_pit.gltf",
+          3078
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/stone_fire_pit.gltf",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_crate_02/wooden_crate_02.gltf",
+          4436
+        ],
+        [
+          "sw",
+          "/assets/models/hatchet/hatchet.gltf",
+          3004
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_bucket_01/wooden_bucket_01.gltf",
+          4534
+        ],
+        [
+          "sw",
+          "/assets/models/wine_barrel_01/wine_barrel_01.gltf",
+          6959
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/wooden_crate_02.gltf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/hatchet.gltf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/wooden_bucket_01.gltf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/wine_barrel_01.gltf",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/stone_fire_pit/stone_fire_pit.bin",
+          96517
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/stone_fire_pit.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_crate_02/wooden_crate_02.bin",
+          150363
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/wooden_crate_02.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/Lantern_01/Lantern_01_lod.glb",
+          829644
+        ],
+        [
+          "page<sw",
+          "/assets/models/Lantern_01/Lantern_01_lod.glb",
+          0
+        ],
+        [
+          "page",
+          "blob:/842eefc8-458e-42af-95bb-71cac5893b0f",
+          0
+        ],
+        [
+          "page",
+          "blob:/410aebb5-7e60-441c-a3a5-1ed8ba0bf70e",
+          0
+        ],
+        [
+          "page",
+          "blob:/7b0d58b5-ba68-49bc-afdb-d456fa6784b8",
+          0
+        ],
+        [
+          "page",
+          "blob:/9e2d6057-0884-4e77-896d-f81c9bc2e646",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_arm_1k.jpg",
+          681726
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_arm_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_diff_1k.jpg",
+          785955
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_diff_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_diff_1k.jpg",
+          716395
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_diff_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/hatchet/hatchet.bin",
+          164823
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/hatchet.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_nor_gl_1k.jpg",
+          970107
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_arm_1k.jpg",
+          819862
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_arm_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_bucket_01/wooden_bucket_01.bin",
+          158707
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/wooden_bucket_01.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_nor_gl_1k.jpg",
+          546604
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/hatchet/textures/hatchet_diff_1k.jpg",
+          517825
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/textures/hatchet_diff_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/hatchet/textures/hatchet_nor_gl_1k.jpg",
+          592750
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/textures/hatchet_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/hatchet/textures/hatchet_arm_1k.jpg",
+          691058
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/textures/hatchet_arm_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_diff_1k.jpg",
+          698368
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_diff_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_diff_1k.jpg",
+          196265
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_diff_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wine_barrel_01/wine_barrel_01.bin",
+          386211
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/wine_barrel_01.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_arm_1k.jpg",
+          172816
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_arm_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_nor_gl_1k.jpg",
+          693725
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_nor_gl_1k.jpg",
+          163872
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_arm_1k.jpg",
+          777748
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_arm_1k.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/rock_moss_set_01/rock_moss_set_01_lod.glb",
+          671288
+        ],
+        [
+          "page<sw",
+          "/assets/models/rock_moss_set_01/rock_moss_set_01_lod.glb",
+          0
+        ],
+        [
+          "page",
+          "blob:/48abdc02-07e6-4186-b645-a0ed2e048541",
+          0
+        ],
+        [
+          "page",
+          "blob:/5f7c7d67-ff7c-4d05-bb10-ff32a97d8296",
+          0
+        ],
+        [
+          "page",
+          "blob:/1633792c-6985-4598-8633-e9c614c6210b",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/dead_tree_trunk/dead_tree_trunk_lod.glb",
+          2585398
+        ],
+        [
+          "page<sw",
+          "/assets/models/dead_tree_trunk/dead_tree_trunk_lod.glb",
+          0
+        ],
+        [
+          "page",
+          "blob:/6c95a97e-5c83-4dda-9f65-bcc4410178c9",
+          0
+        ],
+        [
+          "page",
+          "blob:/3883bf60-efca-4368-ab97-85d46c64ea30",
+          0
+        ],
+        [
+          "page",
+          "blob:/f86222cd-793c-4559-b999-d8b8fe6bb40d",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models/tree_stump_01/tree_stump_01_lod.glb",
+          3066666
+        ],
+        [
+          "page<sw",
+          "/assets/models/tree_stump_01/tree_stump_01_lod.glb",
+          0
+        ],
+        [
+          "page",
+          "blob:/e7da8d71-645a-4176-89bf-8bdf5179ed0f",
+          0
+        ],
+        [
+          "page",
+          "blob:/19638f59-ff06-4488-a8e2-05c103ecd099",
+          0
+        ],
+        [
+          "page",
+          "blob:/0e800472-b051-4ca2-8a0d-e0bcc3c994db",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-CoOs7D2C.jpg",
+          0
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/rajdhani/v17/LDI2apCSOBg7S-QT7pb0EPOreefkkbIx.woff2",
+          8991
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/rajdhani/v17/LDI2apCSOBg7S-QT7pbYF_OreefkkbIx.woff2",
+          9427
+        ]
+      ],
+      "titleMs": 966,
+      "playMs": 79303,
+      "domContentLoadedMs": 890,
+      "loadEventMs": 1237,
+      "longTasks": 16,
+      "longTaskMs": 6505,
+      "longTaskMaxMs": 1370,
+      "steps": [
+        [
+          890,
+          "renderer",
+          null
+        ],
+        [
+          2082,
+          "sky",
+          null
+        ],
+        [
+          6599,
+          "terrain",
+          null
+        ],
+        [
+          38445,
+          "cards",
+          null
+        ],
+        [
+          43682,
+          "forest",
+          null
+        ],
+        [
+          43804,
+          "edge",
+          null
+        ],
+        [
+          44826,
+          "grass",
+          null
+        ],
+        [
+          44832,
+          "cabins",
+          null
+        ],
+        [
+          67847,
+          "props",
+          null
+        ],
+        [
+          74292,
+          "animals",
+          null
+        ],
+        [
+          74293,
+          "weapon",
+          null
+        ],
+        [
+          74618,
+          "shaders",
+          null
+        ],
+        [
+          77691,
+          "firstFrame",
+          null
+        ]
+      ],
+      "heapMB": 124.5,
+      "textures": 166,
+      "geometries": 155,
+      "programs": 156,
+      "firstFrameMs": null,
+      "swController": true,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "dpr": 1,
+      "viewport": [
+        1280,
+        720
+      ]
+    },
+    {
+      "cond": "4g",
+      "cache": "warm",
+      "run": 1,
+      "status": "ok",
+      "label": "4g/warm",
+      "errors": [],
+      "requests": 78,
+      "swFetches": 1,
+      "fromSW": 71,
+      "netBytes": 52019,
+      "cacheBytes": 79284270,
+      "bytes": {
+        "js": {
+          "net": 0,
+          "cache": 1294720,
+          "n": 1
+        },
+        "css": {
+          "net": 0,
+          "cache": 30625,
+          "n": 1
+        },
+        "jpg": {
+          "net": 0,
+          "cache": 64339666,
+          "n": 51
+        },
+        "png": {
+          "net": 0,
+          "cache": 1319767,
+          "n": 2
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 4171959,
+          "n": 1
+        },
+        "glb": {
+          "net": 0,
+          "cache": 7151824,
+          "n": 4
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 20581,
+          "n": 5
+        },
+        "bin": {
+          "net": 0,
+          "cache": 955128,
+          "n": 5
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 50643,
+          "cache": 0,
+          "n": 6
+        },
+        "json": {
+          "net": 330,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 1046,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        }
+      },
+      "reqs": [
+        [
+          "page<sw",
+          "/assets/index-BuFuYC_W.css",
+          0
+        ],
+        [
+          "page<sw",
+          "/?nolock=1&bench=1",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/index-53n0Td3C.js",
+          0
+        ],
+        [
+          "sw",
+          "/?nolock=1&bench=1",
+          1046
+        ],
+        [
+          "page",
+          "https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+          948
+        ],
+        [
+          "page<sw",
+          "/assets/hdri/qwantani_sunset_puresky_2k.hdr",
+          0
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/rajdhani/v17/LDIxapCSOBg7S-QT7p4HM-aGW-rO.woff2",
+          8995
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/rajdhani/v17/LDI2apCSOBg7S-QT7pa8FvOreefkkbIx.woff2",
+          9331
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/jetbrainsmono/v24/tDbv2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKwBNntkaToggR7BYRbKPxDcwgknk-4.woff2",
+          31369
+        ],
+        [
+          "page",
+          "/version.json?t=1789701215041",
+          330
+        ],
+        [
+          "page<sw",
+          "/assets/tex/forest_ground_04/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/forest_ground_04/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/forest_ground_04/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/favicon.png",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/leafy_grass/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/leafy_grass/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/leafy_grass/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stony_dirt_path/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stony_dirt_path/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stony_dirt_path/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rock_ground/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_tree_01/twig_rgba.png",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_tree_01/twig_nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_tree_01/twig_arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_bark/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_bark/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/pine_bark/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_trunk_wall/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_trunk_wall/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_grey/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_grey/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_grey/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_dirt/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_dirt/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_planks_dirt/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rough_pine_door/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rough_pine_door/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/rough_pine_door/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stone_wall/diffuse.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stone_wall/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/stone_wall/arm.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tex/wood_trunk_wall/nor_gl.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/stone_fire_pit.gltf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/Lantern_01/Lantern_01_lod.glb",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/wooden_crate_02.gltf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/wine_barrel_01.gltf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/wooden_bucket_01.gltf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/hatchet.gltf",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/stone_fire_pit.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_diff_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_arm_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/stone_fire_pit/textures/stone_fire_pit_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "page",
+          "blob:/d1d3a19d-e23a-4dbe-89ac-7b38f0be218e",
+          0
+        ],
+        [
+          "page",
+          "blob:/e353eadc-a4b0-4e29-ba54-240b8aa832ce",
+          0
+        ],
+        [
+          "page",
+          "blob:/f67ccce1-3212-4f78-b996-d6d0d674c647",
+          0
+        ],
+        [
+          "page",
+          "blob:/3be4fe46-4323-4374-86a4-45cf7363bce9",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/wooden_crate_02.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_diff_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_arm_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_crate_02/textures/wooden_crate_02_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/wine_barrel_01.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_diff_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_arm_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wine_barrel_01/textures/wine_barrel_01_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/wooden_bucket_01.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_diff_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_arm_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/wooden_bucket_01/textures/wooden_bucket_01_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/hatchet.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/textures/hatchet_diff_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/textures/hatchet_arm_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/hatchet/textures/hatchet_nor_gl_1k.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/rock_moss_set_01/rock_moss_set_01_lod.glb",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/tree_stump_01/tree_stump_01_lod.glb",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models/dead_tree_trunk/dead_tree_trunk_lod.glb",
+          0
+        ],
+        [
+          "page",
+          "blob:/22f11c7a-0dad-4955-89f2-dd590678717a",
+          0
+        ],
+        [
+          "page",
+          "blob:/8d4e0d5d-1c52-450f-83df-9bf99b078218",
+          0
+        ],
+        [
+          "page",
+          "blob:/5663e8a2-7107-4947-bec8-4fcafbb5e0a3",
+          0
+        ],
+        [
+          "page",
+          "blob:/918cee31-461e-492e-a691-ac29584291d5",
+          0
+        ],
+        [
+          "page",
+          "blob:/09ce4b34-ecb1-4388-8b21-3399acdcc018",
+          0
+        ],
+        [
+          "page",
+          "blob:/e0380bf6-cd0e-45f0-baba-abd1201833a8",
+          0
+        ],
+        [
+          "page",
+          "blob:/5905b977-ff78-4228-bd33-ec6b764edb98",
+          0
+        ],
+        [
+          "page",
+          "blob:/f622a9db-25fa-4dbc-98fc-df617cc6cedb",
+          0
+        ],
+        [
+          "page",
+          "blob:/a8ac6485-464f-4637-a61d-af889525f27c",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-CoOs7D2C.jpg",
+          0
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/rajdhani/v17/LDI2apCSOBg7S-QT7pb0EPOreefkkbIx.woff2",
+          0
+        ],
+        [
+          "page",
+          "https://fonts.gstatic.com/s/rajdhani/v17/LDI2apCSOBg7S-QT7pbYF_OreefkkbIx.woff2",
+          0
+        ]
+      ],
+      "titleMs": 551,
+      "playMs": 9486,
+      "domContentLoadedMs": 448,
+      "loadEventMs": 1207,
+      "longTasks": 16,
+      "longTaskMs": 5270,
+      "longTaskMaxMs": 1047,
+      "steps": [
+        [
+          448,
+          "renderer",
+          null
+        ],
+        [
+          543,
+          "sky",
+          null
+        ],
+        [
+          1203,
+          "terrain",
+          null
+        ],
+        [
+          3243,
+          "cards",
+          null
+        ],
+        [
+          3473,
+          "forest",
+          null
+        ],
+        [
+          3571,
+          "edge",
+          null
+        ],
+        [
+          4361,
+          "grass",
+          null
+        ],
+        [
+          4365,
+          "cabins",
+          null
+        ],
+        [
+          4878,
+          "props",
+          null
+        ],
+        [
+          5426,
+          "animals",
+          null
+        ],
+        [
+          5426,
+          "weapon",
+          null
+        ],
+        [
+          5671,
+          "shaders",
+          null
+        ],
+        [
+          8044,
+          "firstFrame",
+          null
+        ]
+      ],
+      "heapMB": 124.8,
+      "textures": 166,
+      "geometries": 155,
+      "programs": 156,
+      "firstFrameMs": null,
+      "swController": true,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "dpr": 1,
+      "viewport": [
+        1280,
+        720
+      ]
+    }
+  ]
+}
