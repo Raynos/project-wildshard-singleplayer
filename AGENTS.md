@@ -1,5 +1,10 @@
 # AGENTS.md
 
+## The user's asks
+
+- Every user ask → a row in `docs/tasks/ASKS.md` before you start; flip it when it lands; rows never
+  leave. `.claude/hooks/session-brief.sh` prints the open rows at session start — relay them first.
+
 ## Version control
 
 - Commit early and often with small commits, and `git push origin main` after every commit —
