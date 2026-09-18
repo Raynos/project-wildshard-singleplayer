@@ -5,6 +5,7 @@ import { Noise2D, smoothstep } from '../core/noise';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, pondMask } from './Heightfield';
 import { TreeFactory, windUniforms } from './TreeFactory';
 import type { Sky } from './Sky';
+import { noReflect } from './Water';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from '../core/tier';
 
@@ -41,6 +42,10 @@ export class Forest {
   private projView = new THREE.Matrix4();
   private sphere = new THREE.Sphere();
   private viewDir = new THREE.Vector3();
+  private viewListeners: ((frustum: THREE.Frustum, viewer: THREE.Vector3) => void)[] = [];
+
+  /** Called whenever the tree buckets are refilled (view moved > 1.5 m or turned > 3°), with the padded cull frustum. */
+  onViewChange(fn: (frustum: THREE.Frustum, viewer: THREE.Vector3) => void) { this.viewListeners.push(fn); this.lastLodPos.set(1e9, 0, 0); }
 
   constructor(private factory: TreeFactory, private sky: Sky) {}
 
@@ -81,6 +86,7 @@ export class Forest {
       this.lo.push(mk(v.cardsLo, this.factory.needleMaterial, TIER_CONFIG.loTreeShadows, this.factory.needleDepth));
       this.far.push(mk(v.far, this.factory.farMaterial, false));
       this.twigs.push(mk(v.twigs, this.factory.twigMaterial, true, this.factory.twigDepth));
+      noReflect(this.twigs[this.twigs.length - 1]);
     });
     return this;
   }
@@ -208,5 +214,6 @@ export class Forest {
       m.count = counts[i]; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true;
     });
     commit(this.hi, nHi); commit(this.lo, nLo); commit(this.far, nFar); commit(this.trunks, nT); commit(this.trunksFar, nTF); commit(this.twigs, nTw);
+    for (const fn of this.viewListeners) fn(this.frustum, viewer);
   }
 }

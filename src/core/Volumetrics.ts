@@ -10,7 +10,7 @@ import { fogUniforms } from '../world/Atmosphere';
  * with real depth occlusion — the "volumetrics" line in docs/AAA-PLAN.md.
  */
 export class VolumetricsEffect extends Effect {
-  constructor(camera: PerspectiveCamera, private readonly blueNoise: Texture) {
+  constructor(camera: PerspectiveCamera, private readonly blueNoise: Texture, steps = 14) {
     super('VolumetricsEffect', /* glsl */`
       uniform mat4 uInvView; uniform mat4 uInvProj; uniform mat4 uViewProj;
       uniform vec3 uCamPos; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform vec3 uFogColor;
@@ -30,7 +30,7 @@ export class VolumetricsEffect extends Effect {
         float sunAmt = max(dot(dir, uSunDir), 0.0);
         float phase = 0.15 + 0.85 * pow(sunAmt, 6.0);         // forward-scattering lobe
 
-        const int N = 14;
+        const int N = ${steps};
         float jitter = texture2D(uNoise, gl_FragCoord.xy / 64.0 + fract(uFrame * 0.618) ).r;
         float stepLen = len / float(N);
         float t = stepLen * (0.25 + 0.5 * jitter);

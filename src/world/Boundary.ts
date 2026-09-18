@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { CHUNK_HALF, CHUNK_DEPTH, ROAD_WIDTH } from '../core/config';
 import { heightAt } from './Heightfield';
 import type { Sky } from './Sky';
+import { TIER_CONFIG } from '../core/tier';
 
 /**
  * The chunk boundary as the Wildshard staging server draws it: cyan light-lines along the
@@ -102,10 +103,14 @@ export class Boundary {
     halo.scale.set(2.2, 2.2, 1); halo.position.y = 2.85;
     const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.02, 40, 8, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.3, 0.8, 1.0), transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }));
     beam.position.y = 2.85 + 20;
-    const light = new THREE.PointLight(new THREE.Color(0.4, 0.9, 1.0), 6, 12, 2);
-    light.position.y = 2.85;
-    this.beaconLights.push(light);
-    g.add(pole, head, halo, beam, light);
+    g.add(pole, head, halo, beam);
+    if (TIER_CONFIG.beaconLights) {
+      // 8 more point lights in every lit shader: desktop only (the phone tier runs 4 shared cabin lights)
+      const light = new THREE.PointLight(new THREE.Color(0.4, 0.9, 1.0), 6, 12, 2);
+      light.position.y = 2.85;
+      this.beaconLights.push(light);
+      g.add(light);
+    }
     g.position.set(x, y, z);
     return g;
   }

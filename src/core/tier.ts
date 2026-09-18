@@ -22,12 +22,15 @@ export const TIER_CONFIG = {
     // trees: hi cards → lo cards → far card beyond loDist; lo trees never cast shadows (they are past shadowFar)
     treeHiDist: 55, treeLoDist: 120, treeTwigDist: 24, loTreeShadows: false,
     // grass carpet: ring radius / slots per 4 m cell / quads per clump
-    grassRadius: 40, grassSlots: 56, grassQuads: 3,
+    grassRadius: 40, grassSlots: 72, grassQuads: 3,
     undergrowthFar: 60, propsFar: 140,
+    // cabins: hardware / lantern / fire pit / flames only within this; 4 shared point lights follow the nearest cabin
+    // instead of 12 in every shader (NUM_POINT_LIGHTS is per-fragment cost on everything, grass included)
+    cabinDetailDist: 70, sharedCabinLights: true, beaconLights: false,
     // pond planar reflection: render-target width (height = half), and whether the carpet layers reflect
     reflectionWidth: 512, reflectDetail: false,
     // post: god rays samples / resolution scale, volumetric march steps, SMAA preset
-    godRaysSamples: 24, godRaysScale: 0.35, volumetricSteps: 8, smaa: 'low' as 'low' | 'high',
+    godRaysSamples: 24, godRaysScale: 0.35, volumetricSteps: 8, smaa: 'low' as 'low' | 'high', bloomLevels: 5,
   },
   desktop: {
     maxTexture: 4096, layerSize: 1024, dpr: 1.5, ao: true,
@@ -36,7 +39,8 @@ export const TIER_CONFIG = {
     treeHiDist: 110, treeLoDist: 210, treeTwigDist: 38, loTreeShadows: true,
     grassRadius: 55, grassSlots: 96, grassQuads: 5,
     undergrowthFar: 110, propsFar: 320,
+    cabinDetailDist: 160, sharedCabinLights: false, beaconLights: true,
     reflectionWidth: 1024, reflectDetail: true,
-    godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, smaa: 'high' as 'low' | 'high',
+    godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, smaa: 'high' as 'low' | 'high', bloomLevels: 8,
   },
 }[TIER];

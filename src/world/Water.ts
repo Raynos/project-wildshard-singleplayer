@@ -2,6 +2,10 @@ import * as THREE from 'three';
 import { POND, waterLevel, heightAt } from './Heightfield';
 import { attachFogUniforms, fogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
+import { TIER_CONFIG } from '../core/tier';
+
+/** Mark a group/mesh so the pond's planar reflection skips it (grass, undergrowth, particles, twigs …). */
+export function noReflect(o: THREE.Object3D) { o.userData.noReflect = true; }
 
 /**
  * Still forest pond with a real planar reflection (mirrored camera + oblique clip plane,
@@ -17,7 +21,10 @@ export class Water {
     uTextureMatrix: { value: new THREE.Matrix4() },
     uReflectionOn: { value: 0 },
   };
-  private rt = new THREE.WebGLRenderTarget(1024, 512, { type: THREE.HalfFloatType, depthBuffer: true });
+  private rt = new THREE.WebGLRenderTarget(TIER_CONFIG.reflectionWidth, TIER_CONFIG.reflectionWidth / 2, { type: THREE.HalfFloatType, depthBuffer: true });
+  private skipList: THREE.Object3D[] = [];
+  private skipCount = -1;
+  private hidden: THREE.Object3D[] = [];
   private mirrorCam = new THREE.PerspectiveCamera();
   private plane = new THREE.Plane();
   private clip = new THREE.Vector4();
@@ -137,6 +144,13 @@ export class Water {
     pm.elements[2] = cp.x; pm.elements[6] = cp.y; pm.elements[10] = cp.z + 1 - 0.003; pm.elements[14] = cp.w;
 
     this.mesh.visible = false;
+    // the reflection is rippled and half-res: the carpet layers (grass, ferns, litter, twigs, motes) only cost
+    if (this.skipCount !== scene.children.length) {
+      this.skipCount = scene.children.length; this.skipList.length = 0;
+      for (const o of scene.children) { if (o.userData.noReflect) this.skipList.push(o); else for (const c of o.children) if (c.userData.noReflect) this.skipList.push(c); }
+    }
+    this.hidden.length = 0;
+    for (const o of this.skipList) if (o.visible) { o.visible = false; this.hidden.push(o); }
     const fd = fogUniforms.fogDistDensity.value, fh = fogUniforms.fogHeightDensity.value;
     fogUniforms.fogDistDensity.value = fd * 0.4; fogUniforms.fogHeightDensity.value = fh * 0.4;
     const prevRT = renderer.getRenderTarget();
@@ -149,6 +163,7 @@ export class Water {
     renderer.shadowMap.autoUpdate = prevShadow;
     renderer.setRenderTarget(prevRT);
     fogUniforms.fogDistDensity.value = fd; fogUniforms.fogHeightDensity.value = fh;
+    for (const o of this.hidden) o.visible = true;
     this.mesh.visible = true;
   }
 }

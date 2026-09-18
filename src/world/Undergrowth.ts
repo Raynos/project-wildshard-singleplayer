@@ -6,6 +6,7 @@ import { heightAt, normalAt, splatAt, trailDistance, cabinMask, inChunk, pondMas
 import { attachFogUniforms } from './Atmosphere';
 import { windUniforms } from './TreeFactory';
 import type { Sky } from './Sky';
+import { noReflect } from './Water';
 import type { Forest } from './Forest';
 import { TIER_CONFIG } from '../core/tier';
 
@@ -79,6 +80,7 @@ export class Undergrowth {
     this.reeds = this.makeInstanced(buildReedGeometry(), reedMat, place.reeds, true, reedTex, 0.5);
     this.counts = { ferns: place.ferns.length, shrubs: place.shrubs.length, litter: place.litter.length, stones: place.stones.length, moss: place.moss.length, reeds: place.reeds.length };
     this.group.add(this.ferns, this.shrubs, this.litter, this.stones, this.moss, this.reeds);
+    noReflect(this.group);
     return this;
   }
 

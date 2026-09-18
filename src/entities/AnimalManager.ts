@@ -8,6 +8,7 @@ import { AnimalFactory, type AnimalKind, type AnimalModel } from './AnimalFactor
 import { Animal } from './Animal';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from '../core/tier';
+import { noReflect } from '../world/Water';
 
 /**
  * AnimalManager — spawns the chunk's huntable wildlife (the active ChunkDef's `fauna` herd plans),
@@ -87,6 +88,7 @@ export class AnimalManager {
     this.blood = new BloodFX(this.sky);
     this.group.add(this.blood.group);
     this.spawnHerds();
+    if (!TIER_CONFIG.reflectDetail) noReflect(this.group);
     this.scene.add(this.group);
     return this;
   }

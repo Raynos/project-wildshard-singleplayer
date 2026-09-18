@@ -6,7 +6,9 @@ import { heightAt, normalAt, splatAt, inChunk, pondMask, waterLevel } from './He
 import { attachFogUniforms } from './Atmosphere';
 import { windUniforms } from './TreeFactory';
 import type { Sky } from './Sky';
+import { noReflect } from './Water';
 import type { Forest } from './Forest';
+import { TIER_CONFIG } from '../core/tier';
 
 /**
  * Wind-swept grass carpet around the player (Skyrim SE / Horizon style).
@@ -37,12 +39,13 @@ import type { Forest } from './Forest';
  *         `params` = { budget, windStrength } (live tunables).
  */
 
-const RADIUS = 55;         // metres: ring around the player that has grass
+const RADIUS = TIER_CONFIG.grassRadius; // metres: ring around the player that has grass (55 desktop, 40 phone)
 const FADE = 10;           // metres: outer band where instances scale down to 0
 const CELL = 4;            // metres per cell
-const N = Math.ceil((RADIUS * 2) / CELL); // 28 cells per side
-const K = 96;              // instance slots per cell → 75 264 instances
+const N = Math.ceil((RADIUS * 2) / CELL); // 28 cells per side (20 on the phone)
+const K = TIER_CONFIG.grassSlots; // instance slots per cell → 75 264 instances (96 × 28²); phone 56 × 20² = 22 400
 const KF = 8;              // flower slots per cell
+const QUADS = TIER_CONFIG.grassQuads; // quads per clump: 3 crossed (+ 2 near fillers on desktop)
 
 const grassUniforms = {
   uGrassWind: { value: 1.0 },
@@ -105,6 +108,7 @@ export class Grass {
     this.group.add(this.flowers);
     grassUniforms.uSunDir.value.copy(this.sky.sunDir);
     grassUniforms.uSunColor.value.copy(this.sky.sunColor);
+    noReflect(this.group);
     return this;
   }
 
@@ -363,7 +367,7 @@ const bilerp = (a: number, b: number, c: number, d: number, u: number, v: number
  */
 function buildClumpGeometry() {
   const rng = new Rng(SEED + 404);
-  const rows = 4, quads = 5;
+  const rows = 4, quads = QUADS;
   const verts: number[] = [], norms: number[] = [], uvs: number[] = [], idx: number[] = [], qid: number[] = [];
   for (let q = 0; q < quads; q++) {
     const filler = q >= 3;

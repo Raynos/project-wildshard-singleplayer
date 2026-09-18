@@ -67,15 +67,15 @@ export class Game {
       composer.addPass(ao);
     }
 
-    const vol = new VolumetricsEffect(this.camera, makeNoiseTexture());
+    const vol = new VolumetricsEffect(this.camera, makeNoiseTexture(), TIER_CONFIG.volumetricSteps);
     vol.setSun(this.sky.sunDir, new THREE.Color(...A.volumetricSunColor));
     if (this.scene.fog) vol.setFogColor((this.scene.fog as THREE.Fog).color);
     this.volumetrics = vol;
     const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
       blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
-      exposure: 0.4, samples: 60, clampMax: 1.0, resolutionScale: 0.5,
+      exposure: 0.4, samples: TIER_CONFIG.godRaysSamples, clampMax: 1.0, resolutionScale: TIER_CONFIG.godRaysScale,
     });
-    const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.6 });
+    const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.6, levels: TIER_CONFIG.bloomLevels });
     const vignette = new VignetteEffect({ offset: 0.32, darkness: 0.55 });
     const chroma = new ChromaticAberrationEffect({ offset: new THREE.Vector2(0.0006, 0.0006), radialModulation: true, modulationOffset: 0.35 });
     const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
@@ -86,7 +86,7 @@ export class Game {
     grain.blendMode.opacity.value = 0.12;
     composer.addPass(new EffectPass(this.camera, vol));
     composer.addPass(new EffectPass(this.camera, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain));
-    const smaa = new SMAAEffect({ preset: SMAAPreset.HIGH, edgeDetectionMode: EdgeDetectionMode.COLOR });
+    const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
     composer.addPass(new EffectPass(this.camera, smaa));
     this.composer = composer;
   }

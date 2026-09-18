@@ -8,6 +8,7 @@ import { heightAt, CABIN_SITES } from './Heightfield';
 import { attachFogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
 import type { Collider } from '../player/Player';
+import { TIER_CONFIG } from '../core/tier';
 
 /**
  * The three log cabins of the chunk.
@@ -104,6 +105,9 @@ const SPECS: CabinSpec[] = [
 
 interface Door { pivot: THREE.Object3D; open: boolean; t: number; collider: Collider; interactable: Interactable }
 interface Fire { light: THREE.PointLight; base: number; seed: number }
+/** phone tier: a point light's slot — the 4 shared lights jump to the nearest cabin's anchors each frame */
+interface LightAnchor { anchor: THREE.Object3D; color: number; intensity: number; distance: number; decay: number; seed: number }
+interface CabinLod { root: THREE.Object3D; detail: THREE.Object3D[]; anchors: LightAnchor[]; detailOn: boolean }
 interface Swing { pivot: THREE.Object3D; seed: number }
 interface Floor { x: number; z: number; rot: number; hw: number; hd: number; y: number }
 
@@ -117,6 +121,11 @@ export class Cabins {
   private swings: Swing[] = [];
   private particleMats = new Set<THREE.ShaderMaterial>();
   private floors: Floor[] = [];
+  private lods: CabinLod[] = [];
+  /** phone tier: the one shared set of point lights (a constant NUM_POINT_LIGHTS keeps every shader from recompiling) */
+  private sharedLights: THREE.PointLight[] = [];
+  private nearestCabin = -1;
+  private tmpV = new THREE.Vector3();
 
   constructor(private sky: Sky) {}
 
@@ -134,7 +143,13 @@ export class Cabins {
       const b = new CabinBuilder(this, spec, i, site.x, y, site.z, site.rot, mats, this.sky, propInstances);
       b.build(firePitGltf.scene, lanternGltf.scene);
       this.group.add(b.root);
+      this.lods.push({ root: b.root, detail: b.detail, anchors: b.anchors, detailOn: true });
     });
+    if (TIER_CONFIG.sharedCabinLights) {
+      // one light per anchor slot of a cabin (all cabins have the same 4: hearth, room, camp fire, lantern)
+      const n = Math.max(...this.lods.map((l) => l.anchors.length));
+      for (let i = 0; i < n; i++) { const l = new THREE.PointLight(0xffa050, 0, 10, 2); this.group.add(l); this.sharedLights.push(l); }
+    }
 
     // props shared across cabins as instanced meshes (1 draw call per glTF primitive)
     for (const [k, list] of Object.entries(propInstances)) {
@@ -162,6 +177,31 @@ export class Cabins {
   }
 
   update(dt: number, t: number) {
+    // LOD: hardware (iron, glass, lantern, fire pit, flames …) only within cabinDetailDist; the 4 shared phone
+    // lights follow the nearest cabin
+    const cam = this.sky.viewCamera; cam.getWorldPosition(this.tmpV);
+    let nearest = -1, nearestD2 = Infinity;
+    const dd = TIER_CONFIG.cabinDetailDist * TIER_CONFIG.cabinDetailDist;
+    this.lods.forEach((l, i) => {
+      const d2 = l.root.position.distanceToSquared(this.tmpV);
+      if (d2 < nearestD2) { nearestD2 = d2; nearest = i; }
+      const on = d2 < dd;
+      if (on !== l.detailOn) { l.detailOn = on; for (const o of l.detail) o.visible = on; }
+    });
+    if (this.sharedLights.length && nearest >= 0) {
+      const l = this.lods[nearest];
+      if (nearest !== this.nearestCabin) {
+        this.nearestCabin = nearest;
+        this.fires = this.fires.filter((f) => !this.sharedLights.includes(f.light));
+        this.sharedLights.forEach((light, i) => {
+          const a = l.anchors[i];
+          if (!a) { light.intensity = 0; return; }
+          light.color.set(a.color); light.distance = a.distance; light.decay = a.decay;
+          this.fires.push({ light, base: a.intensity, seed: a.seed });
+        });
+      }
+      this.sharedLights.forEach((light, i) => { const a = l.anchors[i]; if (a) a.anchor.getWorldPosition(light.position); });
+    }
     for (const d of this.doors) {
       const target = d.open ? 1 : 0;
       if (d.t === target) continue;
@@ -540,8 +580,14 @@ function wallSlab(a0: number, a1: number, h: number, thick: number, openings: Op
 
 // ───────────────────────────── one cabin ─────────────────────────────
 
+const DETAIL_KEYS: MatKey[] = ['iron', 'cloth', 'char', 'chink'];
+
 class CabinBuilder {
   root = new THREE.Group();
+  /** small parts hidden beyond TIER_CONFIG.cabinDetailDist */
+  detail: THREE.Object3D[] = [];
+  /** phone tier: where this cabin's point lights would be (see Cabins.sharedLights) */
+  anchors: LightAnchor[] = [];
   private parts = new Map<MatKey, THREE.BufferGeometry[]>();
   private rng: Rng;
   private wallTop: number;
@@ -601,6 +647,17 @@ class CabinBuilder {
     return col;
   }
   private worldPos(lx: number, ly: number, lz: number) { return new THREE.Vector3(lx, ly, lz).applyMatrix4(this.root.matrixWorld); }
+  /** a flickering point light under `parent` — a real light on desktop, an anchor for the shared set on the phone */
+  private pointLight(parent: THREE.Object3D, color: number, intensity: number, distance: number, decay: number, x: number, y: number, z: number, seed: number) {
+    if (TIER_CONFIG.sharedCabinLights) {
+      const anchor = new THREE.Object3D(); anchor.position.set(x, y, z); parent.add(anchor);
+      this.anchors.push({ anchor, color, intensity, distance, decay, seed });
+      return;
+    }
+    const light = new THREE.PointLight(color, intensity, distance, decay);
+    light.position.set(x, y, z); parent.add(light);
+    this.owner._fire({ light, base: intensity, seed });
+  }
   private placeProp(kind: string, x: number, y: number, z: number, ry: number, scale = 1) {
     const local = new THREE.Matrix4().makeRotationY(ry).setPosition(x, y, z).scale(new THREE.Vector3(scale, scale, scale));
     this.propInstances[kind].push(new THREE.Matrix4().multiplyMatrices(this.root.matrixWorld, local));
@@ -816,13 +873,13 @@ class CabinBuilder {
     iron.push(new THREE.CylinderGeometry(0.012, 0.012, 0.09, 6).rotateZ(Math.PI / 2).translate(0.01, 1.0, DW - 0.13));
     const ironMesh = new THREE.Mesh(mergeGeometries(iron.map((g) => g.toNonIndexed()))!, this.mats.iron);
     ironMesh.castShadow = true;
-    pivot.add(ironMesh);
+    pivot.add(ironMesh); this.detail.push(ironMesh);
     const battens: THREE.BufferGeometry[] = [];
     for (const by of [0.35, H / 2, H - 0.35]) battens.push(boxUV(new THREE.BoxGeometry(0.03, 0.12, DW - 0.1), 1).translate(-0.045, by, DW / 2));
     battens.push(boxUV(new THREE.BoxGeometry(0.03, 0.12, Math.hypot(H - 0.7, DW - 0.1) - 0.1), 1).rotateX(Math.atan2(H - 0.7, DW - 0.1)).translate(-0.045, H / 2, DW / 2));
     const battenMesh = new THREE.Mesh(mergeGeometries(battens.map((g) => g.toNonIndexed()))!, this.mats.beam);
     battenMesh.castShadow = true;
-    pivot.add(battenMesh);
+    pivot.add(battenMesh); this.detail.push(battenMesh);
     this.root.add(pivot);
 
     const col = this.collider(x, dz, 0.08, DW / 2, 0, FLOOR + H);
@@ -870,7 +927,7 @@ class CabinBuilder {
     if (!glass.length) return;
     const gm = new THREE.Mesh(mergeGeometries(glass)!, this.mats.glass);
     gm.receiveShadow = true; gm.renderOrder = 2;
-    this.root.add(gm);
+    this.root.add(gm); this.detail.push(gm);
   }
 
   // ── stone chimney on a gable end, with a fireplace inside ──
@@ -895,16 +952,10 @@ class CabinBuilder {
     for (let i = 0; i < 3; i++) this.box('char', 0.45, 0.08, 0.08, cx + this.rng.range(-0.15, 0.15), FLOOR + 0.12 + i * 0.05, bz - side * (0.42 + i * 0.03), 1, this.rng.range(-0.4, 0.4));
     const glow = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.6), this.mats.glow);
     glow.position.set(cx, FLOOR + 0.35, bz - side * 0.5); glow.rotation.y = side > 0 ? Math.PI : 0;
-    this.root.add(glow);
-    const light = new THREE.PointLight(0xffa050, 14, 10, 2);
-    light.position.set(cx, FLOOR + 0.6, bz - side * 0.7);
-    this.root.add(light);
-    this.owner._fire({ light, base: 14, seed: this.index * 3.1 });
+    this.root.add(glow); this.detail.push(glow);
+    this.pointLight(this.root, 0xffa050, 14, 10, 2, cx, FLOOR + 0.6, bz - side * 0.7, this.index * 3.1);
     // room light so the windows glow at dusk
-    const room = new THREE.PointLight(0xffb070, 16, 11, 2);
-    room.position.set(0.2, FLOOR + 1.9, 0);
-    this.root.add(room);
-    this.owner._fire({ light: room, base: 16, seed: this.index * 1.7 + 0.5 });
+    this.pointLight(this.root, 0xffb070, 16, 11, 2, 0.2, FLOOR + 1.9, 0, this.index * 1.7 + 0.5);
     this.collider(cx, bz, 0.8, 0.3, 0, PLINTH + 1.6);
   }
 
@@ -1149,7 +1200,7 @@ class CabinBuilder {
     });
     pit.position.set(fx, 0.19 - 0.06, fz);
     pit.rotation.y = this.rng.range(0, 6);
-    this.root.add(pit);
+    this.root.add(pit); this.detail.push(pit);
     for (let i = 0; i < 5; i++) {
       const a = (i / 5) * Math.PI * 2 + 0.3;
       const g = boxUV(new THREE.CylinderGeometry(0.05, 0.065, 0.75, 7), 1);
@@ -1158,7 +1209,7 @@ class CabinBuilder {
     }
     const glow = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5).rotateX(-Math.PI / 2), this.mats.glow);
     glow.position.set(fx, 0.14, fz);
-    this.root.add(glow);
+    this.root.add(glow); this.detail.push(glow);
     const flames = makeParticles(this.mats.flame, 44, this.rng); flames.position.set(fx, 0.16, fz); flames.renderOrder = 5;
     const embers = makeParticles(this.mats.ember, 64, this.rng); embers.position.set(fx, 0.35, fz); embers.renderOrder = 6;
     // ring of stones around the pit
@@ -1189,12 +1240,9 @@ class CabinBuilder {
     this.add('iron', new THREE.TorusGeometry(0.19, 0.008, 5, 16).rotateX(Math.PI / 2).translate(fx, potY + 0.12, fz));
     this.add('iron', new THREE.TorusGeometry(0.2, 0.008, 5, 16, Math.PI).rotateZ(0).translate(fx, potY + 0.12, fz));   // bail handle
     this.add('char', new THREE.CircleGeometry(0.15, 12).rotateX(-Math.PI / 2).translate(fx, potY + 0.06, fz));           // stew surface
-    this.root.add(flames, embers);
+    this.root.add(flames, embers); this.detail.push(flames, embers);
     this.owner._particles(this.mats.flame); this.owner._particles(this.mats.ember);
-    const light = new THREE.PointLight(0xff9a3c, 28, 22, 2);
-    light.position.set(fx, 0.9, fz);
-    this.root.add(light);
-    this.owner._fire({ light, base: 28, seed: 7.7 });
+    this.pointLight(this.root, 0xff9a3c, 28, 22, 2, fx, 0.9, fz, 7.7);
     this.collider(fx, fz, 0.7, 0.7, 0, 0.6);
     const wp = this.worldPos(fx, 0.2, fz);
     this.owner.firePits.push({ x: wp.x, y: wp.y, z: wp.z });
@@ -1237,11 +1285,10 @@ class CabinBuilder {
     lan.scale.setScalar(1.35);
     const ring = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.005, 6, 12), this.mats.iron);
     ring.position.y = -0.03;
-    const light = new THREE.PointLight(0xffb060, 9, 11, 2);
-    light.position.set(0, -0.3, 0);
-    pivot.add(lan, ring, light);
+    pivot.add(lan, ring);
+    this.pointLight(pivot, 0xffb060, 9, 11, 2, 0, -0.3, 0, 2.2 + this.index);
     this.root.add(pivot);
-    this.owner._fire({ light, base: 9, seed: 2.2 + this.index });
+    this.detail.push(pivot);
     this.owner._swing({ pivot, seed: this.index * 2.3 });
   }
 
@@ -1319,6 +1366,7 @@ class CabinBuilder {
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       this.root.add(mesh);
+      if (DETAIL_KEYS.includes(key)) this.detail.push(mesh);
     }
     this.parts.clear();
   }

@@ -5,6 +5,7 @@ import { smoothstep } from '../core/noise';
 import { heightAt, POND, waterLevel } from './Heightfield';
 import { attachFogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
+import { noReflect } from './Water';
 import type { Forest } from './Forest';
 
 /**
@@ -75,6 +76,7 @@ export class Particles {
   build() {
     this.uSunDir.value.copy(this.sky.sunDir);
     this.uSunColor.value.copy(this.sky.sunColor);
+    noReflect(this.group);
     this.motes = this.buildMotes();
     this.mist = this.buildMist();
     this.needles = this.buildNeedles();

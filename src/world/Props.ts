@@ -5,8 +5,11 @@ import { smoothstep } from '../core/noise';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, CABIN_SITES, TRAILS } from './Heightfield';
 import { loadLod, prepModel } from './Cabin';
 import type { Sky } from './Sky';
+import { noReflect } from './Water';
 import type { Forest } from './Forest';
 import type { Collider } from '../player/Player';
+import { CulledInstances } from './Culling';
+import { TIER_CONFIG } from '../core/tier';
 
 /**
  * Forest props: mossy boulders, cut stumps, fallen logs and a few low bushes around the cabins.
@@ -37,6 +40,7 @@ export class Props {
     this.logs(prepModel(trunk.scene, this.sky));
     // bushes: implemented but off by default — low-poly clumps read as blobs next to the photoscans
     if (this.withBushes) this.bushes();
+    if (!TIER_CONFIG.reflectDetail) noReflect(this.group);
     return this.group;
   }
 
@@ -51,14 +55,22 @@ export class Props {
     return true;
   }
 
+  /** one draw call per shape, but only the instances in the padded view frustum / within range are live (see Culling.ts) */
   private instanced(geometry: THREE.BufferGeometry, material: THREE.Material, matrices: THREE.Matrix4[], local: THREE.Matrix4) {
     if (!matrices.length) return;
     const im = new THREE.InstancedMesh(geometry, material, matrices.length);
     im.castShadow = true; im.receiveShadow = true;
-    const tmp = new THREE.Matrix4();
-    matrices.forEach((m, i) => im.setMatrixAt(i, tmp.multiplyMatrices(m, local)));
-    im.instanceMatrix.needsUpdate = true;
-    im.computeBoundingSphere();
+    geometry.computeBoundingSphere();
+    const bs = geometry.boundingSphere!;
+    const tmp = new THREE.Matrix4(), c = new THREE.Vector3(), sc = new THREE.Vector3();
+    const all = new Float32Array(matrices.length * 16), bounds = new Float32Array(matrices.length * 4);
+    matrices.forEach((m, i) => {
+      tmp.multiplyMatrices(m, local); tmp.toArray(all, i * 16);
+      c.copy(bs.center).applyMatrix4(tmp); sc.setFromMatrixScale(tmp);
+      bounds[i * 4] = c.x; bounds[i * 4 + 1] = c.y; bounds[i * 4 + 2] = c.z; bounds[i * 4 + 3] = bs.radius * Math.max(sc.x, sc.y, sc.z);
+    });
+    const culled = new CulledInstances(im, all, bounds, TIER_CONFIG.propsFar, 40, 0.0025);
+    this.forest.onViewChange((f, v) => culled.cull(f, v));
     this.group.add(im);
   }
 
