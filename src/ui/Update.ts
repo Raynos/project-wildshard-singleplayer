@@ -15,12 +15,22 @@ el.innerHTML = `<span class="ws-update-dot"></span><span class="ws-update-text">
 document.body.appendChild(el);
 
 const reload = () => {
-  // Cache-bust the document itself; keep ?chunk= and friends.
+  // A newer service worker waiting: adopt it (SKIP_WAITING → controllerchange → reload, src/boot/sw.ts).
+  // Otherwise cache-bust the document itself; keep ?chunk= and friends.
+  if (window.__ws_sw?.waiting) { void window.__ws_sw.adopt(); return; }
   const url = new URL(location.href);
   url.searchParams.set('v', Date.now().toString(36));
   location.replace(url.toString());
 };
 el.addEventListener('click', reload);
+
+const lightUp = (label: string) => {
+  newer = true;
+  el.classList.add('newer');
+  el.querySelector('.ws-update-text')!.textContent = `new ${label} · tap to update`;
+};
+// the worker found a new build (installed, waiting) — same pill, no toast
+window.addEventListener('ws-sw-waiting', () => lightUp('build'));
 
 let newer = false;
 async function check() {
@@ -29,11 +39,7 @@ async function check() {
     const r = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
     if (!r.ok) return;
     const j = (await r.json()) as { build?: string };
-    if (j.build && j.build !== __BUILD_ID__) {
-      newer = true;
-      el.classList.add('newer');
-      el.querySelector('.ws-update-text')!.textContent = `new ${((b) => (b[0].length >= 7 ? b[0] : b[1]))(j.build.split('-'))} · tap to update`;
-    }
+    if (j.build && j.build !== __BUILD_ID__) lightUp(((b) => (b[0].length >= 7 ? b[0] : b[1]))(j.build.split('-')));
   } catch { /* offline — keep the plain reload pill */ }
 }
 check();

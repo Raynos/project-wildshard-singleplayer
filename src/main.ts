@@ -18,6 +18,8 @@ import { Audio } from './audio/Audio';
 
 async function main() {
   const loading = new Loading();
+  // let the service worker take control first (≤ 2.5 s, never fatal) so the first visit's bytes are cached
+  await window.__ws_sw?.ready;
   const world = await bootstrap((label, frac) => loading.step(label, frac));
   const { game, sky, player, forest, params, chunk } = world;
   const nolock = params.has('nolock');
