@@ -74,7 +74,8 @@ loops.
   sleep 9   # let assets load
   agent-browser --session $S console | grep -v "vite\|deprecated\|PCFSoft" | tail
   agent-browser --session $S screenshot progress/<NNN>-<feature>-<what>.png
-  agent-browser --session $S close   # when completely done
+  agent-browser --session $S close   # ALWAYS, before you report: an open session keeps rendering the game at 60 fps
+                                     # and three forgotten ones pinned this box at load average 24 (2026-09-17)
   ```
   You can drive the world from the console with `agent-browser --session $S eval --stdin` (the
   world object is exposed as `window.__world` by your dev entry — do that).
