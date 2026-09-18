@@ -12,6 +12,7 @@ import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from './tier';
 import { ResumeSnapshot } from './ResumeSnapshot';
+import { ResumeDebug } from './ResumeDebug';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 
@@ -168,6 +169,8 @@ export class Game {
     // ResumeSnapshot paints the last frame into a 2D canvas overlay at that moment (src/core/ResumeSnapshot.ts).
     const snapshot = new ResumeSnapshot(this.renderer, () => this.composer.render(0.016), () => this.frameGate());
     this.snapshot = snapshot;
+    // dismissible facts panel on every real resume (src/core/ResumeDebug.ts; ?rdbg=0 disables)
+    new ResumeDebug(this.renderer, () => snapshot.firstFrameAt, () => this.frameGate(), () => snapshot.describe());
     this.canvas.addEventListener('webglcontextlost', () => { this.gl.lostAt = performance.now(); this.gl.events++; console.warn('[gl] context lost'); });
     this.canvas.addEventListener('webglcontextrestored', () => { this.gl.restoredAt = performance.now(); console.warn('[gl] context restored after', Math.round(this.gl.restoredAt - this.gl.lostAt), 'ms'); });
     const loop = () => {

@@ -27,6 +27,8 @@ export class ResumeSnapshot {
   private lastMirror = 0;
   /** resume timing for the perf meter: when we became visible, and when the first live frame followed */
   resumedAt = 0; firstFrameAt = 0; resumes = 0;
+  /** centre pixel of live frames 1 / 5 / 30 after a resume, read inside the render task (the only place the buffer is valid) */
+  liveSamples: string[] = []; private framesSinceResume = 0;
 
   constructor(private renderer: THREE.WebGLRenderer, private renderFrame: () => void, private worldVisible: () => boolean) {
     const mk = (z: string) => {
@@ -41,14 +43,23 @@ export class ResumeSnapshot {
     this.mctx = this.mirror.getContext('2d')!;
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') this.capture();
-      else { this.pendingFrames = 2; this.resumedAt = performance.now(); this.firstFrameAt = 0; this.resumes++; }
+      else { this.pendingFrames = 2; this.resumedAt = performance.now(); this.firstFrameAt = 0; this.resumes++; this.framesSinceResume = 0; this.liveSamples = []; }
     });
     window.addEventListener('pagehide', () => this.capture());
   }
 
+  /** For the debug modal: what the overlay / mirror hold right now. */
+  describe() { return `live centre pixel ${this.liveSamples.join(' · ') || '(no live frame yet)'} · overlay ${this.overlay.hidden ? 'hidden' : 'SHOWING'} (${this.overlay.width}×${this.overlay.height}) · mirror ${this.mirror.width}×${this.mirror.height} age ${Math.round(performance.now() - this.lastMirror)} ms`; }
+
   /** Called by the loop after each rendered frame — inside the render task, so the buffer is readable. */
   afterFrame(now: number) {
     if (this.resumedAt && !this.firstFrameAt) this.firstFrameAt = now;
+    if (this.resumedAt && this.framesSinceResume < 30) {
+      const f = ++this.framesSinceResume;
+      if (f === 1 || f === 5 || f === 30) {
+        try { const gl = this.renderer.getContext(); const px = new Uint8Array(4); gl.readPixels(gl.drawingBufferWidth >> 1, gl.drawingBufferHeight >> 1, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); this.liveSamples.push(`f${f}: ${px[0]},${px[1]},${px[2]}${px[0] + px[1] + px[2] === 0 ? ' BLACK' : ''}`); } catch { /* ignore */ }
+      }
+    }
     if (!this.overlay.hidden && this.pendingFrames > 0 && --this.pendingFrames === 0) this.overlay.hidden = true;
     if (now - this.lastMirror >= MIRROR_MS && this.worldVisible()) { this.lastMirror = now; this.mirrorFrame(); }
   }
