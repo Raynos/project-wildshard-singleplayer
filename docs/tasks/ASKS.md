@@ -136,3 +136,12 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | D15 | "Race to the fastest checkpoint: **sword + pier**, even half broken; mark the world **super experimental**"; then keep building everything | **in flight** | parent: main.ts ocean/pier wiring; deploy once HEAD builds |
 | D16 | "What else should we be building?" — Claude's list from the mockups: **gulls**, **ringed planet**, **palms**, **thatched hut**, fences/steps/signposts, **lookout + rope bridge**, **wreck cove** (glow inside → iron sword pickup), **ring shrine**, full-map screen with POI labels, boar hit-stun for melee, boar senses retuned for open beach, something to dive for, ocean-edge boundary, hero/thumbnail in style B, island audio (waves/gulls/planks/sand/splash) | **open** | rows to be split out as they start |
 | D17 | **Swimming = no weapon, hands only**; simple swim-stroke hand animation; **different hand styles per shard** (Pine Hollow PBR vs Driftwood low-poly); **white gloves at all times** to dodge hand-rendering difficulty | **in flight** | swim-agent (src/player/Hands.ts); parent hides the weapon while `player.swimming` |
+
+## 2026-09-18 (Pine Hollow gameplay: one menu, four tabs, shard achievements)
+
+| # | ask (the user's words, shortened) | status | owner / evidence |
+|---|---|---|---|
+| G1 | "I need some kind of gameplay in Pine Hollow — we hunt, but there's no achievements, no progression, no quests" → **shard-specific achievements with shard-specific (funny) titles** | **open** | this session; mockups first (G3) |
+| G2 | **Pause menu becomes just "Menu"** with four tabs: **Map · Inventory · Achievements · Settings**. Tapping the minimap opens the menu on the **Map** tab; the pause button opens it on the **Settings** tab (Resume / Exit / switches live there) | **open** | design → implement after the mockups are picked |
+| G3 | **Mockups of all four tabs** (portrait phone, the glass HUD identity) | **in flight** | four parallel codex runs → art/menu-tab-{map,inventory,achievements,settings}.png |
+| G4 | Achievement list: **kill 5 deer, 5 boar, 3 elk, 2 bear**; reward = a **funny title** each. Titles would show under the name in multiplayer; single-player only shows them on the Achievements tab | **open** | note: **elk and bear do not exist in Pine Hollow yet** — two new species files (registry supports it, V1) |
