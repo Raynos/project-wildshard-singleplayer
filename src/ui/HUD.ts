@@ -1,6 +1,7 @@
 import { CHUNK_SIZE } from '../core/config';
 import { CHUNKS, getActiveChunk, chunkUrl } from '../chunks/registry';
 import { PLACEHOLDERS } from '../chunks/placeholders';
+import { CABIN_SITES } from '../world/Heightfield';
 
 /**
  * HUD — DOM overlay in `#hud`, styled by `src/ui/styles/game.css` / `menu.css` / `pause.css` on top of `base.css` (Wildshard glass identity; one class prefix per screen, see scripts/check-css.mjs).
@@ -12,6 +13,11 @@ import { PLACEHOLDERS } from '../chunks/placeholders';
  *   hud.damageFlash()  hud.setBoundaryWarning(visible)  hud.setPaused(bool)  hud.onResume = () => …
  *   hud.onExitToMenu = () => …   // pause → "Exit to main menu": the HUD re-shows the intro itself (no reload); stop/mute the world here
  *   hud.setAimInfo(crossbow.aimInfo)   // "BOAR · 15 M" under the crosshair
+ *   hud.setAnimals([{ x, z }, …])      // world positions of live animals: the compass pins a paw at the nearest one within 120 m
+ *
+ * Compass: a smoked-glass band (both desktop and touch) with a cyan house marker at the bearing of the nearest cabin
+ * (`CABIN_SITES` — static, so the HUD reads them itself) and a "CABIN · 180 m" readout under it; the paw marker comes
+ * from `state.nearest` (bearing in compass degrees, 0 = north) when the caller has one, else from `setAnimals`.
  *
  * Call `setState` every frame (it diffs and only touches the DOM on change). Pause overlay appears on
  * pointer-unlock after the chunk was entered (`pointerLock` mode only); clicking it fires `onResume`.
@@ -21,6 +27,8 @@ export interface HUDState {
   bolts: number; loaded: boolean; reloading: boolean; reloadProgress?: number;
   health: number; fps: number; pos: { x: number; z: number }; yaw: number; kills: number;
   prompt?: string; speed?: number; ads?: boolean; maxBolts?: number;
+  /** nearest animal for the compass paw: `bearing` in compass degrees (0 = north = +Z, 90 = east = −X) — see `bearingTo` */
+  nearest?: { bearing: number; distance: number; kind: string };
 }
 export interface HUDOptions { pointerLock?: boolean; maxBolts?: number }
 export type IntroStats = Record<string, string | { value: string; tone?: 'ok' | 'warn' }>;
@@ -33,7 +41,18 @@ interface DeckCard {
 const HERO_FADE_MS = 350;
 
 const CARDINALS: [number, string, boolean][] = [[0, 'N', true], [45, 'NE', false], [90, 'E', true], [135, 'SE', false], [180, 'S', true], [225, 'SW', false], [270, 'W', true], [315, 'NW', false]];
-const PX_PER_DEG = 2.4;
+const BAND_DEGREES = 292; // the band spans this much heading (W · N · E all visible, like the K1 mockup); px/deg follows its width
+const PAW_RANGE = 120;   // m — the compass only pins an animal this close
+const MARKER_INSET = 22; // px — a marker behind the player parks at the band's edge instead of leaving it
+
+/** compass bearing (deg, 0 = north) of the point (tx, tz) seen from (x, z). North is +Z (the south-gate spawn's forward,
+ *  yaw π, is `player.forward = (−sin yaw, −cos yaw)` = +Z) and the heading is `180 − yaw°`, which puts east at −X. */
+export function bearingTo(x: number, z: number, tx: number, tz: number) {
+  const deg = (Math.atan2(-(tx - x), tz - z) * 180) / Math.PI;
+  return ((deg % 360) + 360) % 360;
+}
+const SVG_HOUSE = '<svg viewBox="0 0 24 24"><path d="M12 3 2 12h3v8h5v-6h4v6h5v-8h3z"/></svg>';
+const SVG_PAW = '<svg viewBox="0 0 24 24"><circle cx="4.6" cy="9.6" r="2.4"/><circle cx="9.2" cy="5.2" r="2.7"/><circle cx="14.8" cy="5.2" r="2.7"/><circle cx="19.4" cy="9.6" r="2.4"/><path d="M12 10c-3.6 0-7 3.3-7 6.6 0 2 1.4 3.4 3.3 3.4 1.4 0 2.3-.9 3.7-.9s2.3.9 3.7.9c1.9 0 3.3-1.4 3.3-3.4 0-3.3-3.4-6.6-7-6.6z"/></svg>';
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, html?: string): HTMLElementTagNameMap[K] {
   const e = document.createElement(tag);
@@ -52,7 +71,11 @@ export class HUD {
   entered = false;
   private onEnter?: () => void;
 
-  private compassStrip!: HTMLElement; private heading!: HTMLElement;
+  private compassStrip!: HTMLElement;
+  private markHouse!: HTMLElement; private markPaw!: HTMLElement; private range!: HTMLElement;
+  private animals: { x: number; z: number }[] = [];
+  private lastMark = { house: NaN, paw: NaN, range: '' };
+  private ppd = 1.2; // compass px per degree — measured from the band (`--ppd`), see build()
   private feed!: HTMLElement; private toasts!: HTMLElement;
   private fps!: HTMLElement; private coords!: HTMLElement;
   private healthVal!: HTMLElement; private healthBar!: HTMLElement;
@@ -96,24 +119,33 @@ export class HUD {
     this.coords = chunk.querySelector('[data-el="coords"]')!;
     r.appendChild(chunk);
 
-    // compass
-    const compass = el('div', 'ws-glass ws-game-compass');
+    // compass: a slim band; the strip sits at the band's centre and slides by the heading (see setState)
+    const compass = el('div', 'ws-game-compass');
+    compass.innerHTML = '<i class="ws-game-brk tl"></i><i class="ws-game-brk tr"></i><i class="ws-game-brk bl"></i><i class="ws-game-brk br"></i>';
+    const band = el('div', 'ws-game-band');
     this.compassStrip = el('div', 'ws-game-strip');
     for (let deg = -360; deg < 720; deg += 15) {
       const major = deg % 45 === 0;
       const tick = el('i', 'ws-game-tick' + (major ? ' major' : ''));
-      tick.style.left = `${(deg + 360) * PX_PER_DEG}px`;
+      tick.style.left = `calc(${deg + 360} * var(--ppd))`;
       this.compassStrip.appendChild(tick);
     }
     for (let lap = -1; lap <= 1; lap++) for (const [deg, label, major] of CARDINALS) {
       const c = el('div', 'ws-game-cardinal' + (major ? '' : ' minor') + (label === 'N' ? ' n' : ''), label);
-      c.style.left = `${(deg + lap * 360 + 360) * PX_PER_DEG}px`;
+      c.style.left = `calc(${deg + lap * 360 + 360} * var(--ppd))`;
       this.compassStrip.appendChild(c);
     }
-    compass.appendChild(this.compassStrip);
-    compass.appendChild(el('div', 'ws-game-centre'));
-    this.heading = el('div', 'ws-game-heading', '000°');
-    compass.appendChild(this.heading);
+    band.appendChild(this.compassStrip);
+    this.markHouse = el('div', 'ws-game-mark house', SVG_HOUSE); band.appendChild(this.markHouse);
+    this.markPaw = el('div', 'ws-game-mark paw', SVG_PAW); band.appendChild(this.markPaw);
+    band.appendChild(el('div', 'ws-game-centre'));
+    compass.appendChild(band);
+    compass.appendChild(el('div', 'ws-game-notch'));
+    // px/deg scales with the band (90 vw on a phone, fixed on desktop): ticks and cardinals are laid out in `--ppd` units
+    const fit = () => { const w = band.clientWidth; if (!w) return; this.ppd = w / BAND_DEGREES; band.style.setProperty('--ppd', `${this.ppd}px`); this.last.headingDeg = undefined; this.lastMark.house = this.lastMark.paw = NaN; };
+    new ResizeObserver(fit).observe(band);
+    fit();
+    this.range = el('div', 'ws-game-range'); compass.appendChild(this.range);
     r.appendChild(compass);
 
     this.feed = el('div', 'ws-game-feed'); r.appendChild(this.feed);
@@ -172,9 +204,9 @@ export class HUD {
     const degR = Math.round(deg * 2) / 2;
     if (degR !== L.headingDeg) {
       L.headingDeg = degR;
-      this.compassStrip.style.transform = `translateX(${220 - (deg + 360) * PX_PER_DEG}px)`;
-      this.heading.textContent = `${String(Math.round(deg)).padStart(3, '0')}°`;
+      this.compassStrip.style.transform = `translateX(${-(deg + 360) * this.ppd}px)`;
     }
+    this.updateMarkers(s, deg);
     if (s.health !== L.health) {
       L.health = s.health;
       const h = Math.max(0, Math.min(100, s.health));
@@ -206,6 +238,42 @@ export class HUD {
       else this.prompt.classList.remove('show');
     }
     if (this.hitTimer > 0 && (this.hitTimer -= 1) === 0) this.cross.classList.remove('hit', 'head');
+  }
+
+  /** world positions of the live animals — the compass pins a paw at the nearest one within `PAW_RANGE` (empty = no paw) */
+  setAnimals(list: { x: number; z: number }[]) { this.animals = list; }
+
+  /** compass markers: the nearest cabin (house + "CABIN · 180 m") and the nearest animal (paw), each at its bearing on the band */
+  private updateMarkers(s: HUDState, heading: number) {
+    const { x, z } = s.pos;
+    let cabin: { d: number; b: number } | null = null;
+    for (const c of CABIN_SITES) {
+      const d = Math.hypot(c.x - x, c.z - z);
+      if (!cabin || d < cabin.d) cabin = { d, b: bearingTo(x, z, c.x, c.z) };
+    }
+    let paw: { d: number; b: number } | null = null;
+    if (s.nearest) { if (s.nearest.distance <= PAW_RANGE) paw = { d: s.nearest.distance, b: s.nearest.bearing }; }
+    else for (const a of this.animals) {
+      const d = Math.hypot(a.x - x, a.z - z);
+      if (d <= PAW_RANGE && (!paw || d < paw.d)) paw = { d, b: bearingTo(x, z, a.x, a.z) };
+    }
+    this.placeMark(this.markHouse, 'house', cabin ? cabin.b - heading : NaN);
+    this.placeMark(this.markPaw, 'paw', paw ? paw.b - heading : NaN);
+    const range = cabin ? `Cabin · ${Math.round(cabin.d)} m` : '';
+    if (range !== this.lastMark.range) { this.lastMark.range = range; this.range.textContent = range; this.range.classList.toggle('show', !!range); }
+  }
+
+  private placeMark(m: HTMLElement, key: 'house' | 'paw', rel: number) {
+    let px = NaN;
+    if (!Number.isNaN(rel)) {
+      rel = ((rel + 540) % 360) - 180; // −180..180 around the heading
+      const half = m.parentElement!.clientWidth / 2 - MARKER_INSET;
+      px = Math.round(Math.max(-half, Math.min(half, rel * this.ppd)) * 2) / 2;
+    }
+    if (px === this.lastMark[key] || (Number.isNaN(px) && Number.isNaN(this.lastMark[key]))) return;
+    this.lastMark[key] = px;
+    if (Number.isNaN(px)) m.classList.remove('show');
+    else { m.style.transform = `translateX(${px}px)`; m.classList.add('show'); }
   }
 
   /** range readout under the crosshair: "BOAR · 15 M" (null hides it) */

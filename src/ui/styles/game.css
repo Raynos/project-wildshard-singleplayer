@@ -11,20 +11,33 @@
 .ws-game-tag { display: inline-flex; align-items: center; gap: 7px; margin-top: 9px; padding: 3px 8px 3px 7px; border: 1px solid rgba(255, 181, 71, 0.45); color: var(--ws-amber); font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; }
 .ws-game-tag i { width: 6px; height: 6px; background: var(--ws-amber); border-radius: 50%; box-shadow: 0 0 8px var(--ws-amber); animation: ws-blink 1.6s ease-in-out infinite; }
 
-/* ── top-centre: compass ── */
-.ws-game-compass { position: absolute; left: 50%; top: 18px; transform: translateX(-50%); width: 440px; height: 38px; overflow: hidden; }
-.ws-game-compass .ws-game-strip { position: absolute; top: 4px; left: 0; height: 30px; white-space: nowrap; will-change: transform; }
-.ws-game-compass .ws-game-tick { position: absolute; bottom: 4px; width: 1px; height: 6px; background: var(--ws-cyan-line); }
-.ws-game-compass .ws-game-tick.major { height: 10px; background: var(--ws-cyan-dim); }
-.ws-game-compass .ws-game-cardinal { position: absolute; top: 0; transform: translateX(-50%); font-family: var(--ws-display); font-weight: 600; font-size: 13px; letter-spacing: 0.1em; color: var(--ws-text); }
-.ws-game-compass .ws-game-cardinal.minor { font-size: 9px; color: var(--ws-text-dim); top: 3px; }
-.ws-game-compass .ws-game-cardinal.n { color: var(--ws-cyan); }
-.ws-game-compass .ws-game-centre { position: absolute; left: 50%; top: 0; width: 1px; height: 100%; background: var(--ws-cyan); box-shadow: 0 0 6px var(--ws-cyan); }
-.ws-game-compass .ws-game-heading { position: absolute; left: 50%; bottom: -1px; transform: translateX(-50%); font-size: 9px; letter-spacing: 0.15em; color: var(--ws-cyan-dim); background: var(--ws-glass); padding: 0 5px; }
-.ws-game-compass::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(6, 10, 18, 0.9), transparent 22%, transparent 78%, rgba(6, 10, 18, 0.9)); pointer-events: none; }
+/* ── top-centre: compass band (K1) — smoked glass, hairline cyan top edge, ticks, W · N · E, a notch above, brackets outside ── */
+.ws-game-compass { position: absolute; left: 50%; top: 16px; transform: translateX(-50%); width: 520px; height: 34px; }
+.ws-game-compass .ws-game-band { --ppd: 1.2px; position: absolute; inset: 0; overflow: hidden; background: rgba(6, 10, 18, 0.6); border: 1px solid rgba(143, 227, 255, 0.4); border-top: 1px solid var(--ws-cyan); box-shadow: inset 0 1px 0 rgba(143, 227, 255, 0.35), inset 0 -1px 0 rgba(0, 0, 0, 0.4); backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); clip-path: polygon(9px 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 9px 100%, 0 50%); }
+.ws-game-compass .ws-game-band::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(6, 10, 18, 0.85), transparent 12%, transparent 88%, rgba(6, 10, 18, 0.85)); pointer-events: none; }
+.ws-game-compass .ws-game-strip { position: absolute; left: 50%; top: 0; height: 100%; white-space: nowrap; will-change: transform; }
+.ws-game-compass .ws-game-tick { position: absolute; top: 50%; width: 1px; height: 8px; margin-top: -4px; background: rgba(143, 227, 255, 0.7); }
+.ws-game-compass .ws-game-tick.major { height: 12px; margin-top: -6px; background: var(--ws-cyan); }
+.ws-game-compass .ws-game-cardinal { position: absolute; top: 50%; transform: translate(-50%, -50%); font-family: var(--ws-display); font-weight: 700; font-size: 18px; letter-spacing: 0.08em; line-height: 1; color: #fff; text-shadow: 0 0 6px rgba(0, 0, 0, 0.6); padding: 0 6px; background: rgba(6, 10, 18, 0.001); }
+.ws-game-compass .ws-game-cardinal.minor { display: none; }
+.ws-game-compass .ws-game-centre { position: absolute; left: 50%; top: 0; width: 1px; height: 100%; background: var(--ws-cyan); opacity: 0.22; }
+.ws-game-compass .ws-game-notch { position: absolute; left: 50%; top: -9px; width: 0; height: 0; margin-left: -6px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 8px solid var(--ws-cyan); filter: drop-shadow(0 0 4px rgba(143, 227, 255, 0.7)); }
+.ws-game-compass .ws-game-brk { position: absolute; width: 14px; height: 14px; border: 1px solid var(--ws-cyan); opacity: 0.8; }
+.ws-game-compass .ws-game-brk.tl { left: -9px; top: -8px; border-right: 0; border-bottom: 0; }
+.ws-game-compass .ws-game-brk.tr { right: -9px; top: -8px; border-left: 0; border-bottom: 0; }
+.ws-game-compass .ws-game-brk.bl { left: -9px; bottom: -8px; border-right: 0; border-top: 0; }
+.ws-game-compass .ws-game-brk.br { right: -9px; bottom: -8px; border-left: 0; border-top: 0; }
+/* markers ON the band: house = nearest cabin (cyan), paw = nearest animal (white); HUD.ts translates them by bearing */
+.ws-game-compass .ws-game-mark { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; opacity: 0; transition: opacity 0.25s; will-change: transform; }
+.ws-game-compass .ws-game-mark.show { opacity: 1; }
+.ws-game-compass .ws-game-mark svg { display: block; width: 100%; height: 100%; fill: var(--ws-cyan); filter: drop-shadow(0 0 5px rgba(143, 227, 255, 0.7)); }
+.ws-game-compass .ws-game-mark.paw svg { width: 20px; height: 20px; margin: 1px; fill: #fff; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.7)); }
+/* "CABIN · 180 m" under the band */
+.ws-game-compass .ws-game-range { position: absolute; left: 50%; top: calc(100% + 6px); transform: translateX(-50%); padding: 3px 16px 4px; white-space: nowrap; font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-text); font-variant-numeric: tabular-nums; background: rgba(6, 10, 18, 0.6); border: 1px solid rgba(143, 227, 255, 0.4); border-bottom-color: var(--ws-cyan); box-shadow: inset 0 -1px 0 rgba(143, 227, 255, 0.3); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px)); opacity: 0; transition: opacity 0.25s; }
+.ws-game-compass .ws-game-range.show { opacity: 1; }
 
 /* ── kill feed under the compass ── */
-.ws-game-feed { position: absolute; left: 50%; top: 64px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.ws-game-feed { position: absolute; left: 50%; top: 84px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .ws-game-feed .ws-game-feed-item { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ws-text); padding: 4px 12px; background: var(--ws-glass); border: 1px solid var(--ws-cyan-faint); border-left: 2px solid var(--ws-cyan); animation: ws-feed-in 0.25s ease-out; }
 .ws-game-feed .ws-game-feed-item.out { animation: ws-feed-out 0.5s ease-in forwards; }
 .ws-game-feed .ws-game-feed-item b { color: var(--ws-cyan); font-weight: 500; }
@@ -117,10 +130,14 @@
 @media (max-width: 700px) {
   #hud.intro .ws-game-fps { top: calc(66px + env(safe-area-inset-top, 0px)); right: 16px; }
   .ws-game-chunk { display: none; }
-  .ws-game-compass { width: 140px; top: calc(8px + env(safe-area-inset-top, 0px)); height: 30px; }
-  .ws-game-compass .ws-game-strip { height: 24px; top: 2px; }
-  .ws-game-compass .ws-game-cardinal { font-size: 11px; }
-  .ws-game-feed { top: calc(44px + env(safe-area-inset-top, 0px)); }
+  /* the band's top edge sits at ~9 % of the screen (just under the status bar); everything centred stacks under it */
+  .ws-game-compass { width: 90vw; top: max(9vh, calc(env(safe-area-inset-top, 0px) + 10px)); height: 32px; }
+  .ws-game-compass .ws-game-cardinal { font-size: 16px; }
+  .ws-game-compass .ws-game-mark { width: 20px; height: 20px; margin: -10px 0 0 -10px; }
+  .ws-game-compass .ws-game-mark.paw svg { width: 18px; height: 18px; }
+  .ws-game-compass .ws-game-range { font-size: 10px; padding: 2px 14px 3px; }
+  .ws-game-feed { top: calc(max(9vh, calc(env(safe-area-inset-top, 0px) + 10px)) + 66px); }
+  .ws-game-toasts { top: calc(max(9vh, calc(env(safe-area-inset-top, 0px) + 10px)) + 66px); right: 12px; }
   .ws-game-fps { top: calc(104px + env(safe-area-inset-top, 0px)); right: 12px; font-size: 8px; }
   .ws-game-health { left: 12px; top: calc(8px + env(safe-area-inset-top, 0px)); bottom: auto; width: 108px; padding: 6px 9px 7px; }
   .ws-game-health .ws-game-hval { font-size: 15px; }
@@ -137,3 +154,5 @@
   .ws-game-health .ws-game-hrow { gap: 8px; }
   #hud.touch .ws-game-prompt { display: none; } /* touch: the prompt is the big USE button (touch.css) */
 }
+/* touch (P2): vitals + bolts live inside the control bar's corners (below) — the panels are desktop-only */
+#hud.touch .ws-game-health, #hud.touch .ws-game-ammo { display: none; }
