@@ -11,7 +11,7 @@ const sha = gitSha.length >= 7 ? gitSha : stamp; // Vercel CLI builds have no gi
 const el = document.createElement('button');
 el.className = 'ws-update';
 el.type = 'button';
-el.innerHTML = `<span class="ws-update-dot"></span><span class="ws-update-text">build ${sha} · reload</span>`;
+el.innerHTML = `<span class="ws-update-dot"></span><span class="ws-update-text">${sha} · reload</span>`;
 document.body.appendChild(el);
 
 const reload = () => {
@@ -32,7 +32,7 @@ async function check() {
     if (j.build && j.build !== __BUILD_ID__) {
       newer = true;
       el.classList.add('newer');
-      el.querySelector('.ws-update-text')!.textContent = `new build ${((b) => (b[0].length >= 7 ? b[0] : b[1]))(j.build.split('-'))} · tap to update`;
+      el.querySelector('.ws-update-text')!.textContent = `new ${((b) => (b[0].length >= 7 ? b[0] : b[1]))(j.build.split('-'))} · tap to update`;
     }
   } catch { /* offline — keep the plain reload pill */ }
 }
