@@ -20,13 +20,13 @@ export class Perf {
   constructor(private game: Game) {
     this.root = document.createElement('div');
     this.root.className = 'ws-perf';
-    this.root.innerHTML = '<b>—</b><span></span>';
+    this.root.innerHTML = '<b>—</b><span class="ws-perf-long"></span><span class="ws-perf-short"></span>';
     document.body.appendChild(this.root);
     document.querySelectorAll<HTMLElement>('.ws-game-fps').forEach((e) => { e.hidden = true; }); // the HUD's old faint readout; this meter replaces it
     if (new URLSearchParams(location.search).get('perf') === '0') { this.userHidden = true; this.root.hidden = true; }
     game.onUpdate(() => this.update(performance.now()));
     // frames are gated on the menu (Game.frameGate): say so rather than freeze on the last number
-    setInterval(() => { if (performance.now() - this.lastPaint > 1500 && this.lastText !== 'idle') { this.lastText = 'idle'; (this.root.firstElementChild as HTMLElement).textContent = '—'; (this.root.lastElementChild as HTMLElement).textContent = 'world paused'; this.root.className = 'ws-perf'; } }, 500);
+    setInterval(() => { if (performance.now() - this.lastPaint > 1500 && this.lastText !== 'idle') { this.lastText = 'idle'; (this.root.firstElementChild as HTMLElement).textContent = '—'; (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = 'world paused'; (this.root.querySelector('.ws-perf-short') as HTMLElement).textContent = 'paused'; this.root.className = 'ws-perf'; } }, 500);
   }
 
   /** Hidden while the menu is up (the world is not rendering, so there is nothing to measure). */
@@ -44,13 +44,15 @@ export class Perf {
     const q = (p: number) => this.sorted[n + Math.min(valid - 1, Math.floor(valid * p))];
     const p50 = q(0.5), p95 = q(0.95);
     const r = g.lastFrame;
+    const sn = g.snapshot; const rs = sn && sn.resumes ? ` · resume #${sn.resumes}${sn.firstFrameAt ? ` first frame +${Math.round(sn.firstFrameAt - sn.resumedAt)} ms` : ' (no frame yet)'}` : '';
     const gl = g.gl.events ? ` · gl lost ×${g.gl.events}${g.gl.restoredAt > g.gl.lostAt ? ` restored ${Math.round(g.gl.restoredAt - g.gl.lostAt)} ms` : ''}` : '';
-    const text = `${Math.round(1000 / p50)}|${p50.toFixed(1)} / ${p95.toFixed(1)} ms · ${r.calls} calls · ${k(r.triangles)} tris · ${TIER} ${g.renderer.getPixelRatio().toFixed(2)}×${gl}`;
+    const text = `${Math.round(1000 / p50)}|${p50.toFixed(1)} / ${p95.toFixed(1)} ms · ${r.calls} calls · ${k(r.triangles)} tris · ${TIER} ${g.renderer.getPixelRatio().toFixed(2)}×${gl}${rs}`;
     if (text === this.lastText) return;
     this.lastText = text;
     const [fps, rest] = text.split('|');
     (this.root.firstElementChild as HTMLElement).textContent = fps;
-    (this.root.lastElementChild as HTMLElement).textContent = rest;
+    (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = rest;
+    (this.root.querySelector('.ws-perf-short') as HTMLElement).textContent = `${Math.round(p50)} ms${gl}${rs}`; // phones: one short line (resume / gl diagnostics stay)
     this.root.classList.toggle('slow', p50 > 20);   // under 50 fps
     this.root.classList.toggle('bad', p50 > 33.4);  // under 30 fps
   }

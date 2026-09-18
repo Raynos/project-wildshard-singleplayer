@@ -5,10 +5,11 @@
 .ws-perf.slow b { color: #ffd27a; }
 .ws-perf.bad b { color: #ff7a6b; }
 .ws-perf[hidden] { display: none; }
-/* the title screen's build pill and sound toggle sit top-right: drop under them */
-body:has(#hud.intro) .ws-perf, body:has(.ws-load) .ws-perf { top: calc(84px + env(safe-area-inset-top, 0px)); }
+.ws-perf .ws-perf-short { display: none; }
 @media (max-width: 700px) {
-  .ws-perf { right: 8px; top: calc(100px + env(safe-area-inset-top, 0px)); font-size: 7px; gap: 4px; padding: 2px 4px; }
+  /* phone: one short line top-right, above the compass band (its top edge is max(9vh, safe-area + 10px)); the PAUSE pill is top-left */
+  .ws-perf { right: 16px; top: calc(10px + env(safe-area-inset-top, 0px)); font-size: 8px; gap: 4px; padding: 2px 5px; }
+  .ws-perf .ws-perf-long { display: none; }
+  .ws-perf .ws-perf-short { display: inline; }
   .ws-perf b { font-size: 9px; }
-  body:has(#hud.intro) .ws-perf, body:has(.ws-load) .ws-perf { top: calc(100px + env(safe-area-inset-top, 0px)); }
 }

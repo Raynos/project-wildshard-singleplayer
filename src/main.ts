@@ -22,6 +22,15 @@ import { chunkFiles } from './boot/manifest';
 import { getActiveChunk } from './chunks/registry';
 import { Audio } from './audio/Audio';
 
+// live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
+const _animalXZ: { x: number; z: number }[] = [];
+function animalPositions(list: { position: { x: number; z: number }; alive?: boolean }[]) {
+  let n = 0;
+  for (const a of list) { if (a.alive === false) continue; const p = _animalXZ[n] ?? (_animalXZ[n] = { x: 0, z: 0 }); p.x = a.position.x; p.z = a.position.z; n++; }
+  _animalXZ.length = n;
+  return _animalXZ;
+}
+
 async function main() {
   const loading = new Loading();
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/boot/plan.ts).
@@ -178,6 +187,7 @@ async function main() {
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 && hud.entered);
     hud.setAimInfo(crossbow.aimInfo);
+    hud.setAnimals(animalPositions(animals.animals)); // compass paw marker at the nearest live animal
     hud.setState({
       bolts: crossbow.state.bolts, loaded: crossbow.state.loaded, reloading: crossbow.state.reloading, reloadProgress: crossbow.state.reloadProgress,
       health, fps: game.stats.fps, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,

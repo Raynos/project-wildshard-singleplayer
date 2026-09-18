@@ -30,6 +30,7 @@ export class Game {
   lastFrame = { calls: 0, triangles: 0 };
   /** WebGL context loss bookkeeping (iOS drops the context in the background); the perf meter shows it */
   gl = { lostAt: 0, restoredAt: 0, events: 0 };
+  snapshot?: ResumeSnapshot;
   /** Return false to skip a whole frame (updaters + render): a menu covering the canvas, a still title on a phone. */
   frameGate: () => boolean = () => true;
   private renderPass!: RenderPass;
@@ -166,6 +167,7 @@ export class Game {
     // iOS snapshots the screen without WebGL layers when the app is backgrounded → 1–2 s of black on return.
     // ResumeSnapshot paints the last frame into a 2D canvas overlay at that moment (src/core/ResumeSnapshot.ts).
     const snapshot = new ResumeSnapshot(this.renderer, () => this.composer.render(0.016), () => this.frameGate());
+    this.snapshot = snapshot;
     this.canvas.addEventListener('webglcontextlost', () => { this.gl.lostAt = performance.now(); this.gl.events++; console.warn('[gl] context lost'); });
     this.canvas.addEventListener('webglcontextrestored', () => { this.gl.restoredAt = performance.now(); console.warn('[gl] context restored after', Math.round(this.gl.restoredAt - this.gl.lostAt), 'ms'); });
     const loop = () => {
@@ -180,7 +182,7 @@ export class Game {
       // planet + sun disc travel with the camera so they stay "infinitely" far
       if (this.sky) { this.sky.clouds.position.copy(this.camera.position); this.sky.planet.position.copy(this.camera.position).addScaledVector(this.sky.planetDir, 1700); this.sky.sunDisc.position.copy(this.camera.position).addScaledVector(this.sky.sunDir, 1500); }
       this.composer.render(dt);
-      snapshot.afterFrame();
+      snapshot.afterFrame(performance.now());
       this.lastFrame.calls = this.renderer.info.render.calls; this.lastFrame.triangles = this.renderer.info.render.triangles;
       this.frameMs[this.frameI] = dt * 1000; this.frameI = (this.frameI + 1) % this.frameMs.length;
       this.stats.frames++; this.stats.acc += dt;
