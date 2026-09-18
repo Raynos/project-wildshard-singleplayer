@@ -1,0 +1,548 @@
+// src/audio/Music.ts — the Wildshard score, played by a small WebAudio instrument set (docs/plans/MUSIC.md).
+//
+//   const music = new Music(audio);                 // its own `music` gain → audio.master; shares the AudioContext
+//   music.play('theme');                            // on ENTER (after audio.resume()); loops D → B for as long as it plays
+//   music.setState({ shard: 'pine' | 'island', mode: 'menu' | 'calm' | 'alert' | 'combat', intensity: 0..1, underwater: false });
+//   music.sting('pickup' | 'death' | 'chunk');      // the bell motif · the minor turn then 6 s of silence · the resolve chord
+//   music.stop();                                   // fades the bus over a bar and silences every voice
+//   music.volume = 0.7;                             // persisted as Settings 'music' (the pause menu's MUSIC slider drives it)
+//   await music.renderOffline('trailer30', 28.2);   // the same graph on an OfflineAudioContext (48 kHz stereo) → AudioBuffer
+//
+// Instruments (7 patches, all here): drone (two detuned saws an octave apart through a slow low-pass) · pad (4-voice
+// chord, triangle + sine, slow attack) · pluck (Karplus-Strong: a noise burst through a feedback delay line — computed
+// into a buffer, because a DelayNode feedback loop bottoms out at one render quantum = 375 Hz at 48 kHz, under the motif)
+// · marimba (sine + 4th-harmonic sine, exponential decay) · bass (sine + a little saw, sidechained to the kick) · pulse
+// (filtered-noise shaker, a tap, a low sine kick) · bell (2-operator FM).
+//
+// Sequencer: bars are scheduled 2 bars ahead on the AudioContext clock from a 120 ms timer (no per-frame work, no
+// AudioWorklet / ScriptProcessor). Layer levels crossfade over one bar starting on a bar; tempo and the Lydian → Dorian
+// switch change on a bar (pending bars are cancelled and rescheduled when the state changes). Under water the whole
+// music bus runs through a 600 Hz low-pass and a slow chorus. `renderOffline` runs the identical scheduler on an
+// OfflineAudioContext — the trailer render and the live playback are one code path.
+import type { Audio } from './Audio';
+import { getNumber, setNumber, onNumber } from '../ui/Settings';
+import {
+  ARRANGEMENTS, CHORDS, CHORD_ROOT, DORIAN_OF, STING_CHUNK, STING_DEATH, STING_PICKUP, dorianPitch,
+  type Arrangement, type ArrangementName, type ChordName, type LayerId, type MixKey, type NoteEv, type Segment,
+} from './score/wildshard-theme';
+
+export type Shard = 'pine' | 'island';
+export type MusicMode = 'menu' | 'calm' | 'alert' | 'combat';
+export type StingName = 'pickup' | 'death' | 'chunk';
+export interface MusicState { shard: Shard; mode: MusicMode; intensity: number; underwater: boolean }
+
+const LOOKAHEAD_BARS = 2;
+const TICK_MS = 120;
+const TEMPO: Record<MusicMode, number> = { menu: 104, calm: 96, alert: 100, combat: 112 };
+type GainKey = Exclude<MixKey, 'lpf' | 'chorus'>;
+const GAIN_KEYS: GainKey[] = ['drone', 'pad', 'pluck', 'marimba', 'bass', 'pulse', 'pulse.soft', 'pulse.kick', 'pulse.four', 'bell'];
+const midiHz = (n: number) => 440 * Math.pow(2, (n - 69) / 12);
+
+interface Voice { srcs: AudioScheduledSourceNode[]; out: GainNode }
+interface PadVoice extends Voice { release: (t: number, secs: number) => void; unrelease: () => void; releaseAt?: number }
+interface Bar {
+  segIdx: number; beat0: number; beats: number; t0: number; spb: number;
+  voices: Voice[];
+  /** the state to restore if this bar is cancelled (the sequencer rewinds to it) */
+  before: { pad: PadVoice | undefined; targets: Record<string, number>; lastChord: ChordName | undefined };
+}
+
+/** the context-agnostic core: instruments + mixer + sequencer. `Music` wraps it for the live game. */
+class Engine {
+  readonly ctx: BaseAudioContext;
+  /** volume → lpf → (dry | chorus) → dest */
+  readonly bus: GainNode;
+  /** the sequencer's layers sum here; the death sting ducks it while the sting itself bypasses (stingBus) */
+  readonly seq: GainNode;
+  readonly stingBus: GainNode;
+  readonly lpf: BiquadFilterNode;
+  readonly chorusWet: GainNode;
+  readonly gains = {} as Record<GainKey, GainNode>;
+  private bassDuck: GainNode;
+  private noise: AudioBuffer;
+  private ks = new Map<number, AudioBuffer>();
+  private padFilter: BiquadFilterNode;
+  private droneNodes: AudioScheduledSourceNode[] = [];
+  private pad: PadVoice | undefined;
+  private lastChord: ChordName | undefined;
+  private targets: Record<string, number> = {};
+  private pans = {} as Partial<Record<GainKey, StereoPannerNode>>;
+  // sequencer
+  arrangement: Arrangement | undefined;
+  private segIdx = 0; private beat0 = 0; private nextT = 0;
+  private bars: Bar[] = [];
+  state: MusicState = { shard: 'pine', mode: 'menu', intensity: 0, underwater: false };
+  /** dev: only these layers sound (scripts/music/render.mjs --solo for per-layer level checks) */
+  solo: Set<string> | undefined;
+  /** diagnostics: scheduled notes, live oscillators (peak), scheduler main-thread time */
+  stats = { notes: 0, bars: 0, osc: 0, oscPeak: 0, schedMs: 0, schedMax: 0 };
+
+  constructor(ctx: BaseAudioContext, dest: AudioNode) {
+    this.ctx = ctx;
+    const c = ctx;
+    this.bus = c.createGain(); this.bus.gain.value = 1;
+    this.lpf = c.createBiquadFilter(); this.lpf.type = 'lowpass'; this.lpf.frequency.value = 20000; this.lpf.Q.value = 0.4;
+    this.bus.connect(this.lpf);
+    const dry = c.createGain(); dry.gain.value = 1; this.lpf.connect(dry).connect(dest);
+    // the underwater chorus: a 14 ms delay wobbled ±5 ms at 0.35 Hz, mixed in by `chorusWet`
+    const delay = c.createDelay(0.1); delay.delayTime.value = 0.014;
+    const lfo = c.createOscillator(); lfo.frequency.value = 0.35; const lg = c.createGain(); lg.gain.value = 0.005;
+    lfo.connect(lg).connect(delay.delayTime); lfo.start();
+    this.chorusWet = c.createGain(); this.chorusWet.gain.value = 0;
+    this.lpf.connect(delay).connect(this.chorusWet).connect(dest);
+    this.seq = c.createGain(); this.seq.connect(this.bus);
+    this.stingBus = c.createGain(); this.stingBus.gain.value = 1; this.stingBus.connect(this.bus);
+    // layers
+    for (const k of GAIN_KEYS) { const g = c.createGain(); g.gain.value = 0; this.gains[k] = g; this.targets[k] = 0; }
+    for (const k of ['drone', 'pad', 'pluck', 'marimba', 'bass', 'pulse', 'bell'] as GainKey[]) this.gains[k].connect(this.seq);
+    for (const k of ['pulse.soft', 'pulse.kick', 'pulse.four'] as GainKey[]) this.gains[k].connect(this.gains.pulse);
+    this.gains.pulse.gain.value = 1; this.targets.pulse = 1;
+    this.padFilter = c.createBiquadFilter(); this.padFilter.type = 'lowpass'; this.padFilter.frequency.value = 2400; this.padFilter.Q.value = 0.5;
+    this.padFilter.connect(this.gains.pad);
+    this.bassDuck = c.createGain(); this.bassDuck.gain.value = 1;
+    const bassLp = c.createBiquadFilter(); bassLp.type = 'lowpass'; bassLp.frequency.value = 420; bassLp.Q.value = 0.8;
+    this.bassDuck.connect(bassLp).connect(this.gains.bass);
+    for (const [k, p] of [['pluck', -0.22], ['marimba', 0.25], ['bell', 0.08]] as [GainKey, number][]) {
+      if (!c.createStereoPanner) continue;
+      const pan = c.createStereoPanner(); pan.pan.value = p; pan.connect(this.gains[k]); this.pans[k] = pan;
+    }
+    // 2 s of white noise for the shaker / kick click / Karplus burst
+    const len = Math.floor(c.sampleRate * 2);
+    this.noise = c.createBuffer(1, len, c.sampleRate);
+    const d = this.noise.getChannelData(0); let s = 1234567;
+    for (let i = 0; i < len; i++) { s = (s * 1664525 + 1013904223) >>> 0; d[i] = (s / 4294967296) * 2 - 1; }
+  }
+
+  // ─────────────── helpers ───────────────
+  private into(k: GainKey): AudioNode { return this.pans[k] ?? this.gains[k]; }
+  private track(o: AudioScheduledSourceNode) {
+    this.stats.osc++; this.stats.oscPeak = Math.max(this.stats.oscPeak, this.stats.osc);
+    o.addEventListener('ended', () => { this.stats.osc--; });
+  }
+  private env(g: AudioParam, t: number, peak: number, attack: number, decay: number, hold = 0) {
+    g.setValueAtTime(0.0001, t);
+    g.linearRampToValueAtTime(peak, t + attack);
+    if (hold > 0) g.setValueAtTime(peak, t + attack + hold);
+    g.exponentialRampToValueAtTime(0.0001, t + attack + hold + decay);
+  }
+  private osc(type: OscillatorType, f: number, t0: number, t1: number, detune = 0): OscillatorNode {
+    const o = this.ctx.createOscillator(); o.type = type; o.frequency.value = f; o.detune.value = detune;
+    o.start(t0); o.stop(t1); this.track(o); return o;
+  }
+  private noiseSrc(t0: number, t1: number, rate = 1): AudioBufferSourceNode {
+    const s = this.ctx.createBufferSource(); s.buffer = this.noise; s.loop = true; s.playbackRate.value = rate;
+    s.start(t0, (t0 * 7.31) % 1.5); s.stop(t1); return s;
+  }
+
+  // ─────────────── the seven patches ───────────────
+  /** drone: D2 and D3 saws, the upper one 6 cents flat, through a low-pass that breathes between ~170 and ~400 Hz */
+  startDrone(t: number) {
+    this.stopDrone();
+    const c = this.ctx, far = 1e9;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 260; lp.Q.value = 0.9;
+    const lfo = c.createOscillator(); lfo.frequency.value = 0.045; const lg = c.createGain(); lg.gain.value = 110;
+    lfo.connect(lg).connect(lp.frequency); lfo.start(t); lfo.stop(far);
+    const a = this.osc('sawtooth', midiHz(38), t, far, 3), b = this.osc('sawtooth', midiHz(50), t, far, -6);
+    const ga = c.createGain(); ga.gain.value = 0.09; const gb = c.createGain(); gb.gain.value = 0.062;
+    a.connect(ga).connect(lp); b.connect(gb).connect(lp); lp.connect(this.gains.drone);
+    this.droneNodes = [a, b, lfo];
+  }
+  stopDrone() { for (const n of this.droneNodes) { try { n.stop(); } catch { /* not started */ } } this.droneNodes = []; }
+
+  /** pad: 4 voices, the root a sine and the rest triangles, each a few cents off, a slow attack; released when the next chord lands */
+  padVoice(chord: ChordName, t: number, attack: number, out: AudioNode = this.padFilter): PadVoice {
+    const c = this.ctx, pitches = CHORDS[chord], det = [0, 6, -5, 4], pan = [-0.35, 0.3, -0.15, 0.25];
+    const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(1, t + attack);
+    g.connect(out);
+    const srcs: AudioScheduledSourceNode[] = [];
+    pitches.forEach((n, i) => {
+      const o = this.osc(i === 0 ? 'sine' : 'triangle', midiHz(n), t, t + 3600, det[i]);
+      const vg = c.createGain(); vg.gain.value = i === 0 ? 0.24 : 0.155;
+      let node: AudioNode = vg;
+      if (c.createStereoPanner) { const p = c.createStereoPanner(); p.pan.value = pan[i]; vg.connect(p); node = p; }
+      o.connect(vg); node.connect(g); srcs.push(o);
+    });
+    const v: PadVoice = {
+      srcs, out: g,
+      release: (tr, secs) => {
+        v.releaseAt = tr;
+        g.gain.cancelScheduledValues(tr); g.gain.setValueAtTime(Math.max(0.0001, this.valueAt(g.gain, tr, t, attack)), tr);
+        g.gain.exponentialRampToValueAtTime(0.0001, tr + secs);
+        for (const o of srcs) o.stop(tr + secs + 0.05);
+      },
+      // a cancelled bar scheduled the release: take it back (the release lies in the future, so cancelling from it is exact)
+      unrelease: () => {
+        if (v.releaseAt === undefined) return;
+        const tr = v.releaseAt; v.releaseAt = undefined;
+        g.gain.cancelScheduledValues(tr); g.gain.setValueAtTime(Math.max(0.0001, this.valueAt(g.gain, tr, t, attack)), tr);
+        for (const o of srcs) o.stop(t + 3600);
+      },
+    };
+    return v;
+  }
+  /** the pad gain at `tr`, given a linear attack that started at `t` (release may land mid-attack) */
+  private valueAt(_p: AudioParam, tr: number, t: number, attack: number) { return Math.min(1, Math.max(0, (tr - t) / attack)); }
+
+  /** pluck: Karplus-Strong — a noise burst through a feedback delay of 1/f with a 2-point low-pass, computed into a buffer per pitch */
+  pluck(n: number, t: number, _d: number, v: number, out: AudioNode = this.into('pluck')) {
+    const buf = this.ksBuffer(midiHz(n));
+    const s = this.ctx.createBufferSource(); s.buffer = buf; s.start(t); s.stop(t + buf.duration); this.track(s);
+    const g = this.ctx.createGain(); g.gain.setValueAtTime(0.34 * v, t); g.gain.setValueAtTime(0.34 * v, t + buf.duration - 0.08); g.gain.linearRampToValueAtTime(0.0001, t + buf.duration - 0.005);
+    s.connect(g).connect(out);
+    return { srcs: [s], out: g } as Voice;
+  }
+  private ksBuffer(f: number): AudioBuffer {
+    const key = Math.round(f * 4);
+    const hit = this.ks.get(key); if (hit) return hit;
+    const sr = this.ctx.sampleRate, N = Math.max(2, Math.round(sr / f)), secs = f > 500 ? 1.4 : 2.0, len = Math.floor(sr * secs);
+    const buf = this.ctx.createBuffer(1, len, sr), d = buf.getChannelData(0);
+    let s = 987654321 + key;
+    const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return (s / 4294967296) * 2 - 1; };
+    // the burst: white noise, DC removed, a touch of pick-position comb (a copy 30 % of a period later, inverted)
+    let mean = 0; for (let i = 0; i < N; i++) { d[i] = rnd(); mean += d[i]; } mean /= N;
+    for (let i = 0; i < N; i++) d[i] -= mean;
+    const pick = Math.max(1, Math.round(N * 0.3)); for (let i = N - 1; i >= pick; i--) d[i] -= 0.8 * d[i - pick];
+    // a plucked string's burst is not white: one-pole low-pass at ~5 partials (the harmonics roll off ~6 dB/oct)
+    const a = 1 - Math.exp((-2 * Math.PI * Math.min(4200, f * 5)) / sr); let y = 0;
+    for (let i = 0; i < N; i++) { y += a * (d[i] - y); d[i] = y; }
+    // the loop: y[i] = decay · ½ (y[i−N] + y[i−N−1]) — the averaging is the string's damping
+    const decay = f < 200 ? 0.994 : f < 500 ? 0.996 : 0.9975;
+    for (let i = N; i < len; i++) d[i] = decay * 0.5 * (d[i - N] + d[i - N - 1 < 0 ? 0 : i - N - 1]);
+    let peak = 0; for (let i = 0; i < len; i++) peak = Math.max(peak, Math.abs(d[i]));
+    const k = peak > 0 ? 0.95 / peak : 1; for (let i = 0; i < len; i++) d[i] *= k;
+    this.ks.set(key, buf);
+    return buf;
+  }
+
+  /** marimba: a sine and its 4th harmonic (the bar's overtone), 3 ms attack, exponential decay; a tiny mallet click */
+  marimba(n: number, t: number, _d: number, v: number, out: AudioNode = this.into('marimba')) {
+    const c = this.ctx, f = midiHz(n), decay = Math.min(1.1, Math.max(0.3, 1.3 - (n - 60) / 40));
+    const g = c.createGain(); this.env(g.gain, t, 0.26 * v, 0.003, decay); g.connect(out);
+    const o1 = this.osc('sine', f, t, t + decay + 0.05);
+    const o2 = this.osc('sine', f * 4, t, t + 0.3); const g2 = c.createGain(); this.env(g2.gain, t, 0.22, 0.002, 0.12);
+    o1.connect(g); o2.connect(g2).connect(g);
+    const click = this.noiseSrc(t, t + 0.03); const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 2800;
+    const cg = c.createGain(); this.env(cg.gain, t, 0.09 * v, 0.001, 0.012); click.connect(hp).connect(cg).connect(out);
+    return { srcs: [o1, o2, click], out: g } as Voice;
+  }
+
+  /** bass: sine + a little saw through the 420 Hz low-pass, 10 ms attack, held for the note, sidechained to the kick */
+  bass(n: number, t: number, d: number, v: number, out: AudioNode = this.bassDuck) {
+    const c = this.ctx, f = midiHz(n), hold = Math.max(0.05, d - 0.07);
+    const g = c.createGain(); this.env(g.gain, t, 0.15 * v, 0.012, 0.07, hold); g.connect(out);
+    const o1 = this.osc('sine', f, t, t + hold + 0.15), o2 = this.osc('sawtooth', f, t, t + hold + 0.15, 4);
+    const sg = c.createGain(); sg.gain.value = 0.16;
+    o1.connect(g); o2.connect(sg).connect(g);
+    return { srcs: [o1, o2], out: g } as Voice;
+  }
+
+  /** pulse: 36 kick (1 & 3) · 35 the four-on-the-floor kicks · 38 tap · 42 shaker — each to its own sub-bus */
+  drum(n: number, t: number, v: number, outOverride?: AudioNode): Voice {
+    const c = this.ctx;
+    if (n === 36 || n === 35) {
+      const out = outOverride ?? this.gains[n === 36 ? 'pulse.kick' : 'pulse.four'];
+      const o = this.osc('sine', 135, t, t + 0.4); o.frequency.setValueAtTime(135, t); o.frequency.exponentialRampToValueAtTime(44, t + 0.09);
+      const g = c.createGain(); this.env(g.gain, t, 0.36 * v, 0.003, 0.3); o.connect(g).connect(out);
+      const click = this.noiseSrc(t, t + 0.03); const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1800;
+      const cg = c.createGain(); this.env(cg.gain, t, 0.2 * v, 0.001, 0.014); click.connect(lp).connect(cg).connect(out);
+      return { srcs: [o, click], out: g };
+    }
+    const out = outOverride ?? this.gains['pulse.soft'];
+    if (n === 42) {
+      const s = this.noiseSrc(t, t + 0.09); const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 6400; bp.Q.value = 1.1;
+      const g = c.createGain(); this.env(g.gain, t, 0.6 * v, 0.006, 0.055); s.connect(bp).connect(g).connect(out);
+      return { srcs: [s], out: g };
+    }
+    // 38: the tap — a damp knock, noise through a 1.4 kHz band and a 190 Hz thump
+    const s = this.noiseSrc(t, t + 0.06); const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1400; bp.Q.value = 1.8;
+    const g = c.createGain(); this.env(g.gain, t, 0.9 * v, 0.002, 0.035); s.connect(bp).connect(g).connect(out);
+    const o = this.osc('sine', 190, t, t + 0.08); const og = c.createGain(); this.env(og.gain, t, 0.5 * v, 0.002, 0.05); o.connect(og).connect(out);
+    return { srcs: [s, o], out: g };
+  }
+
+  /** bell: 2-operator FM — a sine carrier, a modulator at 3.5× (the inharmonic bell partial) whose index decays fast */
+  bell(n: number, t: number, d: number, v: number, out: AudioNode = this.into('bell')) {
+    const c = this.ctx, f = midiHz(n), decay = Math.max(1.2, d);
+    const car = this.osc('sine', f, t, t + decay + 0.1), mod = this.osc('sine', f * 3.5, t, t + decay + 0.1);
+    const mg = c.createGain(); mg.gain.setValueAtTime(f * 2.8, t); mg.gain.exponentialRampToValueAtTime(f * 0.08, t + 0.8);
+    mod.connect(mg).connect(car.frequency);
+    const g = c.createGain(); this.env(g.gain, t, 0.3 * v, 0.004, decay); car.connect(g).connect(out);
+    return { srcs: [car, mod], out: g } as Voice;
+  }
+
+  // ─────────────── mixer ───────────────
+  private param(key: MixKey): AudioParam { return key === 'lpf' ? this.lpf.frequency : key === 'chorus' ? this.chorusWet.gain : this.gains[key].gain; }
+  private hold(p: AudioParam, t: number) {
+    const cp = p as AudioParam & { cancelAndHoldAtTime?: (t: number) => void };
+    if (cp.cancelAndHoldAtTime) cp.cancelAndHoldAtTime(t); else p.cancelScheduledValues(t);
+  }
+  /** ramp a layer / effect to `level` starting at `t` over `ramp` seconds (bar-aligned when the sequencer calls it) */
+  setLevel(key: MixKey, level: number, t: number, ramp = 0.02) {
+    if (this.solo && key !== 'lpf' && key !== 'chorus' && !this.solo.has(key)) level = 0;
+    const p = this.param(key), from = this.targets[key] ?? p.value;
+    this.hold(p, t);
+    if (key === 'lpf') {
+      p.setValueAtTime(Math.max(20, from), t); p.exponentialRampToValueAtTime(Math.max(20, level), t + Math.max(0.005, ramp));
+    } else {
+      p.setValueAtTime(from, t); p.linearRampToValueAtTime(level, t + Math.max(0.005, ramp));
+    }
+    this.targets[key] = level;
+  }
+  /** the game state → layer levels (docs/plans/MUSIC.md "In the game"); `menu` follows the arrangement's own mix instead */
+  private stateLevels(seg: Segment): Partial<Record<GainKey, number>> {
+    const s = this.state, i = Math.min(1, Math.max(0, s.intensity));
+    const mine: LayerId = s.shard === 'island' ? 'marimba' : 'pluck', other: LayerId = mine === 'pluck' ? 'marimba' : 'pluck';
+    const motif = mine === 'pluck' ? 0.9 : 0.85;
+    void seg;
+    if (s.mode === 'combat') return { drone: 1, pad: 0.85, [mine]: 1, [other]: 0.35, bass: 1, 'pulse.soft': 1, 'pulse.kick': 1, 'pulse.four': 0.7 + 0.3 * i, bell: 1 };
+    if (s.mode === 'alert') return { drone: 1, pad: 0.8, [mine]: motif, [other]: 0, bass: 0.7 + 0.3 * i, 'pulse.soft': 0.5 + 0.5 * i, 'pulse.kick': 0, 'pulse.four': 0, bell: 1 };
+    return { drone: 1, pad: 0.75, [mine]: motif, [other]: 0, bass: 0, 'pulse.soft': 0, 'pulse.kick': 0, 'pulse.four': 0, bell: 1 };
+  }
+  /** calm / alert let the motif through only in the sections flagged `calmMotif` (B and D: every ~30 s at 96) — gated at the note, so nothing bleeds across a bar */
+  private motifGate(seg: Segment) { return this.driven || this.state.mode === 'combat' || !!seg.calmMotif; }
+  private get driven() { return !!this.arrangement?.driven || this.state.mode === 'menu'; }
+  private get dorian() { return !this.driven && this.state.mode === 'combat'; }
+  private bpmFor(seg: Segment) { return seg.at !== undefined || this.arrangement?.driven ? seg.bpm : TEMPO[this.state.mode]; }
+
+  // ─────────────── sequencer ───────────────
+  /** start `arr` at time `t` (the drone comes up with it) */
+  begin(arr: Arrangement, t: number) {
+    this.arrangement = arr; this.segIdx = 0; this.beat0 = 0; this.nextT = t; this.bars = []; this.lastChord = undefined;
+    this.pad = undefined;
+    for (const k of GAIN_KEYS) if (k !== 'pulse') { this.gains[k].gain.cancelScheduledValues(t); this.gains[k].gain.setValueAtTime(0, t); this.targets[k] = 0; }
+    this.startDrone(t);
+  }
+  /** schedule every bar that starts before `until` (the live pump calls this with now + 2 bars; offline, with the render length) */
+  pump(until: number) {
+    const arr = this.arrangement; if (!arr) return;
+    const now = this.ctx.currentTime;
+    while (this.bars.length && this.bars[0].t0 + this.bars[0].beats * this.bars[0].spb < now - 0.5) this.bars.shift();
+    let guard = 0;
+    while (this.nextT < until && guard++ < 512) if (!this.scheduleNext()) break;
+  }
+  private scheduleNext(): boolean {
+    const arr = this.arrangement!;
+    const loopEnd = arr.tailFrom ?? arr.segments.length;
+    if (this.segIdx >= arr.segments.length) return false;
+    let seg = arr.segments[this.segIdx];
+    if (this.beat0 >= seg.beats - 1e-6) {
+      this.segIdx++; this.beat0 = 0;
+      if (this.segIdx >= loopEnd && arr.loopTo !== undefined) this.segIdx = arr.loopTo;
+      if (this.segIdx >= arr.segments.length) return false;
+      seg = arr.segments[this.segIdx];
+    }
+    const spb = 60 / this.bpmFor(seg);
+    const t0 = seg.at !== undefined ? seg.at + this.beat0 * spb : this.nextT;
+    const beats = Math.min(4, seg.beats - this.beat0);
+    const t = performance.now();
+    this.scheduleBar(seg, this.segIdx, this.beat0, beats, t0, spb);
+    const ms = performance.now() - t; this.stats.schedMs += ms; this.stats.schedMax = Math.max(this.stats.schedMax, ms);
+    this.beat0 += beats; this.nextT = t0 + beats * spb;
+    return true;
+  }
+  private scheduleBar(seg: Segment, segIdx: number, beat0: number, beats: number, t0: number, spb: number) {
+    const bar: Bar = { segIdx, beat0, beats, t0, spb, voices: [], before: { pad: this.pad, targets: { ...this.targets }, lastChord: this.lastChord } };
+    const end = beat0 + beats, at = (b: number) => t0 + (b - beat0) * spb, dorian = this.dorian;
+    // mixer: the arrangement's mix events (driven) or the state table (game), crossfading over the bar
+    if (this.driven) {
+      for (const m of seg.mix ?? []) if (m.t >= beat0 && m.t < end) this.setLevel(m.key, m.level, at(m.t), m.ramp ?? 0.02);
+    } else {
+      const lv = this.stateLevels(seg);
+      for (const k of Object.keys(lv) as GainKey[]) if (this.targets[k] !== lv[k]) this.setLevel(k, lv[k]!, t0, beats * spb);
+    }
+    // chords → pad (and the drone just holds D)
+    for (const c of seg.chords) if (c.t >= beat0 && c.t < end) {
+      const name = dorian ? DORIAN_OF[c.chord] : c.chord, tc = at(c.t);
+      const attack = Math.min(1.4, Math.max(0.05, spb * 2.2));
+      if (this.pad) this.pad.release(tc, Math.max(0.8, spb * 4));
+      this.pad = this.padVoice(name, tc, attack); this.lastChord = name; bar.voices.push(this.pad);
+    }
+    // notes
+    const notes = seg.notes;
+    const each = (list: NoteEv[] | undefined, fn: (n: NoteEv, tn: number) => Voice | undefined) => {
+      if (!list) return;
+      for (const n of list) if (n.t >= beat0 && n.t < end) { const v = fn(n, at(n.t)); if (v) bar.voices.push(v); this.stats.notes++; }
+    };
+    const pitch = (n: number) => (dorian ? dorianPitch(n) : n), gate = this.motifGate(seg);
+    each(gate ? notes.pluck : undefined, (n, tn) => this.pluck(pitch(n.n), tn, n.d * spb, n.v ?? 0.8));
+    each(gate ? notes.marimba : undefined, (n, tn) => this.marimba(pitch(n.n), tn, n.d * spb, n.v ?? 0.8));
+    each(notes.bass, (n, tn) => this.bass(dorian ? this.dorianRoot(n.n, seg, n.t) : n.n, tn, n.d * spb, n.v ?? 0.8));
+    each(notes.bell, (n, tn) => this.bell(pitch(n.n), tn, n.d * spb, n.v ?? 0.8));
+    each(notes.pulse, (n, tn) => {
+      const v = this.drum(n.n, tn, n.v ?? 0.8);
+      if ((n.n === 36 && this.targets['pulse.kick'] > 0.05) || (n.n === 35 && this.targets['pulse.four'] > 0.05)) this.sidechain(tn);
+      return v;
+    });
+    this.bars.push(bar); this.stats.bars++;
+  }
+  /** the bass follows the Dorian chord's root under a Lydian bar */
+  private dorianRoot(n: number, seg: Segment, t: number): number {
+    const c = [...seg.chords].reverse().find((x) => x.t <= t); if (!c) return n;
+    return n - CHORD_ROOT[c.chord] + CHORD_ROOT[DORIAN_OF[c.chord]];
+  }
+  private sidechain(t: number) {
+    const g = this.bassDuck.gain;
+    g.setValueAtTime(1, Math.max(0, t - 0.003)); g.linearRampToValueAtTime(0.32, t + 0.012); g.linearRampToValueAtTime(1, t + 0.24);
+  }
+  /** drop every bar that has not started yet and rewind the cursor to the first of them (state changes take effect on the next bar) */
+  cancelPending(now: number) {
+    const i = this.bars.findIndex((b) => b.t0 > now + 0.03);
+    if (i < 0) return;
+    const first = this.bars[i];
+    for (const b of this.bars.splice(i)) for (const v of b.voices) { try { v.out.disconnect(); } catch { /* gone */ } for (const s of v.srcs) { try { s.stop(now); } catch { /* not started */ } } }
+    this.pad = first.before.pad; this.lastChord = first.before.lastChord; this.targets = { ...first.before.targets };
+    for (const k of GAIN_KEYS) { const p = this.gains[k].gain; this.hold(p, first.t0); p.setValueAtTime(this.targets[k] ?? 0, first.t0); }
+    this.bassDuck.gain.cancelScheduledValues(first.t0); this.bassDuck.gain.setValueAtTime(1, first.t0);
+    if (this.pad) this.pad.unrelease(); // a cancelled chord had released it; the rescheduled chord will again
+    this.segIdx = first.segIdx; this.beat0 = first.beat0; this.nextT = first.t0;
+  }
+  /** the start of the next bar after `now` (for bar-aligned stops / stings), or now if nothing is scheduled */
+  nextBarAfter(now: number): number { const b = this.bars.find((x) => x.t0 > now); return b ? b.t0 : now; }
+  currentSpb(): number { const b = this.bars[this.bars.length - 1]; return b ? b.spb : 60 / TEMPO[this.state.mode]; }
+  /** silence everything; the bars already scheduled stop at `t` */
+  end(t: number) {
+    if (this.pad) this.pad.release(t, 0.4);
+    for (const b of this.bars) for (const v of b.voices) { try { v.out.gain.setValueAtTime(v.out.gain.value, t); v.out.gain.linearRampToValueAtTime(0, t + 0.05); } catch { /* */ } for (const s of v.srcs) { try { s.stop(t + 0.1); } catch { /* */ } } }
+    this.bars = []; this.arrangement = undefined; this.pad = undefined;
+    for (const n of this.droneNodes) { try { n.stop(t + 0.1); } catch { /* */ } } this.droneNodes = [];
+  }
+
+  // ─────────────── stings (their own bus, so the death duck never swallows them) ───────────────
+  sting(name: StingName, t: number) {
+    const spb = this.currentSpb();
+    if (name === 'pickup') { for (const n of STING_PICKUP) this.bell(n.n, t + n.t * spb, n.d * spb, n.v ?? 0.6, this.stingBus); return; }
+    if (name === 'chunk') {
+      const p = this.padVoice(STING_CHUNK.chord, t, 0.03, this.stingBus); p.release(t + 0.4, 2.6);
+      for (const n of STING_CHUNK.bell) this.bell(n.n, t + n.t * spb, n.d * spb, n.v ?? 0.6, this.stingBus);
+      this.bass(38, t, 1.4, 0.9, this.stingBus); this.drum(36, t, 0.9, this.stingBus);
+      return;
+    }
+    // death: the minor turn — Dm9 → Gm over a bar — then the sequencer ducks to silence for 6 s and comes back over a bar
+    const bar = spb * 4;
+    const a = this.padVoice(STING_DEATH.chords[0], t, 0.05, this.stingBus); a.release(t + bar * 0.5, 1.2);
+    const b = this.padVoice(STING_DEATH.chords[1], t + bar * 0.5, 0.08, this.stingBus); b.release(t + bar, 2.4);
+    for (const n of STING_DEATH.bass) this.bass(n.n, t + n.t * spb, n.d * spb, n.v ?? 0.9, this.stingBus);
+    this.bell(62, t + bar * 0.5, 3, 0.4, this.stingBus);
+    const g = this.seq.gain;
+    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, t + bar);
+    g.setValueAtTime(0, t + bar + 6); g.linearRampToValueAtTime(1, t + bar + 6 + bar);
+  }
+}
+
+/** the live game wrapper: timer, state, volume, stings, the offline render */
+export class Music {
+  readonly ctx: AudioContext;
+  readonly engine: Engine;
+  /** the music bus: `volume` × the Settings 'music' slider → audio.master */
+  readonly out: GainNode;
+  private timer = 0;
+  private _volume: number;
+  private playing: ArrangementName | undefined;
+  private combatTimer = 0;
+
+  constructor(private audio: Audio) {
+    this.ctx = audio.ctx;
+    this.out = this.ctx.createGain();
+    this._volume = getNumber('music');
+    this.out.gain.value = this._volume;
+    this.out.connect(audio.master);
+    this.engine = new Engine(this.ctx, this.out);
+    onNumber('music', (v) => { this._volume = v; this.out.gain.setTargetAtTime(v, this.ctx.currentTime, 0.05); });
+  }
+
+  get state(): MusicState { return this.engine.state; }
+  get stats() { return this.engine.stats; }
+  get volume() { return this._volume; }
+  set volume(v: number) { setNumber('music', v); }
+  get isPlaying() { return this.playing !== undefined; }
+
+  /** start an arrangement (the game uses 'theme'); restarts if already playing */
+  play(name: ArrangementName = 'theme') {
+    this.stopTimer();
+    const arr = ARRANGEMENTS[name], t = this.ctx.currentTime + 0.05;
+    if (this.playing) this.engine.end(t);
+    this.engine.seq.gain.cancelScheduledValues(t); this.engine.seq.gain.setValueAtTime(1, t);
+    this.engine.begin(arr, t);
+    this.playing = name;
+    this.pump();
+    this.timer = window.setInterval(() => this.pump(), TICK_MS);
+  }
+  private pump() {
+    const spb = this.engine.currentSpb();
+    this.engine.pump(this.ctx.currentTime + LOOKAHEAD_BARS * 4 * spb);
+  }
+  private stopTimer() { if (this.timer) { clearInterval(this.timer); this.timer = 0; } }
+
+  /** fade over a bar and silence every voice */
+  stop() {
+    if (!this.playing) return;
+    this.stopTimer();
+    const t = this.ctx.currentTime, bar = this.engine.currentSpb() * 4;
+    const g = this.engine.seq.gain;
+    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, t + bar);
+    this.engine.end(t + bar);
+    this.playing = undefined;
+  }
+
+  /** the game → the music: mode/shard/intensity take effect on the next bar (pending bars are rescheduled); underwater is immediate */
+  setState(next: Partial<MusicState>) {
+    const s = this.engine.state, prev = { ...s };
+    Object.assign(s, next);
+    s.intensity = Math.min(1, Math.max(0, s.intensity));
+    const now = this.ctx.currentTime;
+    if (s.underwater !== prev.underwater && !this.engine.arrangement?.driven) {
+      this.engine.setLevel('lpf', s.underwater ? 600 : 20000, now, s.underwater ? 0.35 : 0.5);
+      this.engine.setLevel('chorus', s.underwater ? 0.55 : 0, now, 0.6);
+    }
+    if (this.playing && (s.mode !== prev.mode || s.shard !== prev.shard || s.intensity !== prev.intensity)) {
+      this.engine.cancelPending(now);
+      this.pump();
+    }
+  }
+  /** a combat event (a charge, a hit landed or taken): combat now, decaying to alert 8 s after the last one */
+  combat(intensity = 0.7) {
+    this.setState({ mode: 'combat', intensity: Math.max(this.state.intensity, intensity) });
+    window.clearTimeout(this.combatTimer);
+    this.combatTimer = window.setTimeout(() => { if (this.state.mode === 'combat') this.setState({ mode: 'alert', intensity: 0.5 }); }, 8000);
+  }
+
+  sting(name: StingName) { this.engine.sting(name, this.ctx.currentTime + 0.02); }
+
+  /** the same instruments and scheduler on an OfflineAudioContext (48 kHz stereo) → an AudioBuffer of `seconds` */
+  static async renderOffline(name: ArrangementName, seconds: number, opts: { state?: Partial<MusicState>; solo?: string[] } = {}): Promise<AudioBuffer> {
+    const sr = 48000, off = new OfflineAudioContext(2, Math.ceil(sr * seconds), sr);
+    // the same master chain the live mix goes through (Audio.ts): a gentle compressor before the output
+    const comp = off.createDynamicsCompressor();
+    comp.threshold.value = -12; comp.knee.value = 18; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.16;
+    comp.connect(off.destination);
+    const eng = new Engine(off, comp);
+    if (opts.state) Object.assign(eng.state, opts.state);
+    if (opts.solo) eng.solo = new Set(opts.solo);
+    eng.begin(ARRANGEMENTS[name], 0);
+    eng.pump(seconds);
+    // a final fade so a loop render never ends on a click
+    eng.bus.gain.setValueAtTime(1, Math.max(0, seconds - 0.6)); eng.bus.gain.linearRampToValueAtTime(0, seconds - 0.02);
+    const buf = await off.startRendering();
+    // the file's ceiling: if the densest bar pokes above −1.5 dBFS, trim the whole render to it (a few tenths of a dB at most)
+    let peak = 0;
+    for (let c = 0; c < buf.numberOfChannels; c++) { const d = buf.getChannelData(c); for (let i = 0; i < d.length; i++) peak = Math.max(peak, Math.abs(d[i])); }
+    const ceil = Math.pow(10, -1.5 / 20);
+    if (peak > ceil) for (let c = 0; c < buf.numberOfChannels; c++) { const d = buf.getChannelData(c), k = ceil / peak; for (let i = 0; i < d.length; i++) d[i] *= k; }
+    return buf;
+  }
+  renderOffline(name: ArrangementName, seconds: number, opts?: { state?: Partial<MusicState>; solo?: string[] }) { return Music.renderOffline(name, seconds, opts); }
+
+  /** WAV bytes (16-bit PCM) of an AudioBuffer — for scripts/music/render.mjs */
+  static toWav(buf: AudioBuffer): ArrayBuffer {
+    const ch = buf.numberOfChannels, n = buf.length, sr = buf.sampleRate, bytes = 44 + n * ch * 2;
+    const ab = new ArrayBuffer(bytes), dv = new DataView(ab);
+    const str = (o: number, s: string) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+    str(0, 'RIFF'); dv.setUint32(4, bytes - 8, true); str(8, 'WAVE'); str(12, 'fmt '); dv.setUint32(16, 16, true);
+    dv.setUint16(20, 1, true); dv.setUint16(22, ch, true); dv.setUint32(24, sr, true); dv.setUint32(28, sr * ch * 2, true); dv.setUint16(32, ch * 2, true); dv.setUint16(34, 16, true);
+    str(36, 'data'); dv.setUint32(40, n * ch * 2, true);
+    const chans = Array.from({ length: ch }, (_, i) => buf.getChannelData(i));
+    let o = 44;
+    for (let i = 0; i < n; i++) for (let c = 0; c < ch; c++) { const v = Math.max(-1, Math.min(1, chans[c][i])); dv.setInt16(o, v < 0 ? v * 32768 : v * 32767, true); o += 2; }
+    return ab;
+  }
+}

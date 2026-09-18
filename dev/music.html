@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wildshard — music dev</title>
+    <link rel="stylesheet" href="/src/ui/hud.css" />
+    <style>
+      #music-dev { position: fixed; left: 12px; top: 12px; z-index: 50; display: flex; flex-wrap: wrap; gap: 6px; max-width: 520px; font: 13px/1.4 "JetBrains Mono", monospace; color: #cfe; }
+      #music-dev button { background: #123; color: #8fe3ff; border: 1px solid #8fe3ff66; padding: 4px 8px; cursor: pointer; }
+      #music-dev pre { width: 100%; margin: 0; white-space: pre-wrap; color: #9ab; }
+    </style>
+  </head>
+  <body>
+    <canvas id="game"></canvas>
+    <div id="hud"></div>
+    <div id="music-dev"></div>
+    <script type="module" src="/src/dev/music.ts"></script>
+  </body>
+</html>

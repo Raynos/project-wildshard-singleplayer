@@ -265,7 +265,14 @@ export class GameMenu {
     slider.addEventListener('input', () => setNumber('volume', Number(slider.value) / 100));
     slider.addEventListener('pointerdown', (e) => e.stopPropagation());
     vol.appendChild(slider);
-    p.append(el('ws-gmenu-label', 'Audio'), vol);
+    // music volume (Settings 'music', 0..1) — src/audio/Music.ts drives its bus from it
+    const mus = el('ws-gmenu-row', '<span class="ws-gmenu-swlabel">Music</span>');
+    const mslider = document.createElement('input'); mslider.type = 'range'; mslider.min = '0'; mslider.max = '100'; mslider.className = 'ws-gmenu-slider';
+    mslider.value = String(Math.round(getNumber('music') * 100));
+    mslider.addEventListener('input', () => setNumber('music', Number(mslider.value) / 100));
+    mslider.addEventListener('pointerdown', (e) => e.stopPropagation());
+    mus.appendChild(mslider);
+    p.append(el('ws-gmenu-label', 'Audio'), vol, mus);
   }
   /** the render scale / AA rows changed a boot flag (src/ui/Debug.ts `dbg`) — only a reload applies it */
   private applyBtn!: HTMLButtonElement;

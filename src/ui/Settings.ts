@@ -3,15 +3,15 @@
 //   getSetting('aimAssist')                          → boolean (default true)
 //   setSetting('tracers', false)                     → persists + notifies subscribers
 //   const off = onSetting('aimAssist', (v) => …)     → unsubscribe; fn is NOT called immediately
-//   getNumber('volume') / setNumber('volume', 0.8) / onNumber('volume', fn)   → the 0..1 sliders (master volume)
+//   getNumber('volume') / setNumber('volume', 0.8) / onNumber('volume', fn)   → the 0..1 sliders (master volume, 'music' = the score's bus)
 //
 // localStorage is wrapped in try/catch (iOS private mode throws on write) — the in-memory copy is the truth for the session.
 export type SettingKey = 'aimAssist' | 'tracers';
-export type NumberKey = 'volume';
+export type NumberKey = 'volume' | 'music';
 
 const STORE = 'ws.settings.v1';
 const DEFAULTS: Record<SettingKey, boolean> = { aimAssist: true, tracers: true };
-const NUM_DEFAULTS: Record<NumberKey, number> = { volume: 0.8 };
+const NUM_DEFAULTS: Record<NumberKey, number> = { volume: 0.8, music: 0.7 };
 
 function load(): { bools: Record<SettingKey, boolean>; nums: Record<NumberKey, number> } {
   const bools = { ...DEFAULTS }, nums = { ...NUM_DEFAULTS };
