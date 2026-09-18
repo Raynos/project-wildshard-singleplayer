@@ -35,6 +35,9 @@ function assetIndex(): string {
 function bakeChunks() {
   try { execSync('node --import ./scripts/bake-loader.mjs scripts/bake-chunk.mjs', { stdio: 'inherit' }); }
   catch (e) { console.warn('[bake] terrain bake failed — launch falls back to the analytic field', e); }
+  // the branch cards need a GPU (scripts/bake-cards.mjs runs headless Chromium locally, outputs are committed): only check
+  try { execSync('node scripts/bake-cards.mjs --check', { stdio: 'inherit' }); }
+  catch { console.warn('[bake] branch cards are stale or missing — run `node scripts/bake-cards.mjs` with the dev server up; launch bakes at runtime meanwhile'); }
 }
 bakeChunks();
 

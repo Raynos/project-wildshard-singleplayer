@@ -4,6 +4,8 @@ import { loadTexture, loadPBR } from '../core/assets';
 import { Rng } from '../core/rng';
 import { attachFogUniforms } from './Atmosphere';
 import { TIER_CONFIG } from '../core/tier';
+import { getActiveChunk } from '../chunks/registry';
+import { loadBakedCards, exportCardTextures } from './BakedCards';
 
 /**
  * Pine trees built from a runtime-baked "branch card".
@@ -58,7 +60,12 @@ export class TreeFactory {
       loadTexture(`${atlas}/twig_arm.jpg`),
       loadPBR(this.opts.bark, 1),
     ]);
-    const card = this.bakeBranchCard(twigDiff, twigNor, twigArm);
+    // baked cards (public/assets/baked/<slug>/card-*.{png,jpg}, scripts/bake-cards.mjs) when the build has them;
+    // the runtime bake below is the fallback and the source of the bake (?bakecards=1 exports it)
+    const params = new URLSearchParams(location.search);
+    const baked = await loadBakedCards(getActiveChunk().slug);
+    const card = baked ?? this.bakeBranchCard(twigDiff, twigNor, twigArm);
+    if (params.has('bakecards')) exportCardTextures(this.renderer, baked ? this.bakeBranchCard(twigDiff, twigNor, twigArm) : card);
 
     this.barkMaterial = new THREE.MeshStandardMaterial({
       map: bark.map, normalMap: bark.normalMap, roughnessMap: bark.armMap, aoMap: bark.armMap,
@@ -363,7 +370,7 @@ export class TreeFactory {
     const armRT = rt(THREE.LinearSRGBColorSpace);
     render(2, bakeMat(2), armRT, new THREE.Color(1, 0.85, 0), 1);
 
-    for (const t of [albedoRT.texture, normalRT.texture, armRT.texture]) { t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 8; }
+    for (const target of [albedoRT, normalRT, armRT]) { const t = target.texture; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 8; (t as THREE.Texture & { __rt?: THREE.WebGLRenderTarget }).__rt = target; }
     twigGeo.dispose();
     return { albedo: albedoRT.texture, normal: normalRT.texture, arm: armRT.texture };
   }
