@@ -47,3 +47,66 @@ export class CulledInstances {
     this.mesh.instanceMatrix.needsUpdate = true;
   }
 }
+
+/**
+ * Same idea for thousands of small static instances (ferns, litter …): instances are bucketed into
+ * `cell` m squares once; a view change tests ~250 cell spheres, then copies the instances of the cells
+ * that pass (plus a per-instance range check). Per-instance colour rides along.
+ */
+export class CelledInstances {
+  private cells: { cx: number; cy: number; cz: number; r: number; idx: Int32Array }[] = [];
+  private sphere = new THREE.Sphere();
+  constructor(
+    public mesh: THREE.InstancedMesh,
+    private matrices: Float32Array,
+    private colors: Float32Array | null,
+    /** x, y, z per instance */
+    private positions: Float32Array,
+    private maxDist: number,
+    cell = 32,
+    instanceRadius = 2,
+  ) {
+    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    if (mesh.instanceColor) mesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
+    mesh.frustumCulled = false;
+    const buckets = new Map<string, number[]>();
+    const n = positions.length / 3;
+    for (let i = 0; i < n; i++) {
+      const k = `${Math.floor(positions[i * 3] / cell)},${Math.floor(positions[i * 3 + 2] / cell)}`;
+      let b = buckets.get(k); if (!b) buckets.set(k, (b = []));
+      b.push(i);
+    }
+    for (const [k, idx] of buckets) {
+      const [ix, iz] = k.split(',').map(Number);
+      let ymin = Infinity, ymax = -Infinity;
+      for (const i of idx) { const y = positions[i * 3 + 1]; if (y < ymin) ymin = y; if (y > ymax) ymax = y; }
+      const cx = (ix + 0.5) * cell, cz = (iz + 0.5) * cell;
+      const r = Math.hypot(cell * 0.5, (ymax - ymin) * 0.5, cell * 0.5) + instanceRadius;
+      this.cells.push({ cx, cy: (ymin + ymax) * 0.5, cz, r, idx: Int32Array.from(idx) });
+    }
+  }
+
+  cull(frustum: THREE.Frustum, viewer: THREE.Vector3) {
+    const arr = this.mesh.instanceMatrix.array as Float32Array;
+    const col = this.mesh.instanceColor ? (this.mesh.instanceColor.array as Float32Array) : null;
+    const p = this.positions, max2 = this.maxDist * this.maxDist;
+    let out = 0;
+    for (const c of this.cells) {
+      const dx = c.cx - viewer.x, dz = c.cz - viewer.z;
+      if (dx * dx + dz * dz > (this.maxDist + c.r) * (this.maxDist + c.r)) continue;
+      this.sphere.center.set(c.cx, c.cy, c.cz); this.sphere.radius = c.r;
+      if (!frustum.intersectsSphere(this.sphere)) continue;
+      for (let j = 0; j < c.idx.length; j++) {
+        const i = c.idx[j];
+        const ex = p[i * 3] - viewer.x, ez = p[i * 3 + 2] - viewer.z;
+        if (ex * ex + ez * ez > max2) continue;
+        arr.set(this.matrices.subarray(i * 16, i * 16 + 16), out * 16);
+        if (col && this.colors) col.set(this.colors.subarray(i * 3, i * 3 + 3), out * 3);
+        out++;
+      }
+    }
+    this.mesh.count = out;
+    this.mesh.instanceMatrix.needsUpdate = true;
+    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+  }
+}

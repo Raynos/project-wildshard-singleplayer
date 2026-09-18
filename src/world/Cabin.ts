@@ -1288,7 +1288,7 @@ class CabinBuilder {
     pivot.add(lan, ring);
     this.pointLight(pivot, 0xffb060, 9, 11, 2, 0, -0.3, 0, 2.2 + this.index);
     this.root.add(pivot);
-    this.detail.push(pivot);
+    this.detail.push(lan, ring); // never the pivot: its light must stay visible (a changing light count recompiles every shader)
     this.owner._swing({ pivot, seed: this.index * 2.3 });
   }
 

@@ -9,6 +9,7 @@ import type { Sky } from './Sky';
 import { noReflect } from './Water';
 import type { Forest } from './Forest';
 import { TIER_CONFIG } from '../core/tier';
+import { CelledInstances } from './Culling';
 
 /**
  * Forest-floor undergrowth: instanced ferns, low round-leaf shrubs and needle/twig litter.
@@ -99,16 +100,21 @@ export class Undergrowth {
       mesh.customDepthMaterial = depth;
     }
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), q2 = new THREE.Quaternion(), p = new THREE.Vector3(), s = new THREE.Vector3(), n = new THREE.Vector3();
-    const col = new THREE.Color();
+    const all = new Float32Array(items.length * 16), cols = new Float32Array(items.length * 3), pos = new Float32Array(items.length * 3);
     items.forEach((it, i) => {
       n.set(it.nx, it.ny, it.nz);
       q2.setFromUnitVectors(UP, n);
       q.setFromAxisAngle(UP, it.rot).premultiply(q2);
       m.compose(p.set(it.x, it.y, it.z), q, s.set(it.scale, it.scale, it.scale));
-      mesh.setMatrixAt(i, m);
-      mesh.setColorAt(i, col.setRGB(it.r, it.g, it.b));
+      m.toArray(all, i * 16);
+      cols[i * 3] = it.r; cols[i * 3 + 1] = it.g; cols[i * 3 + 2] = it.b;
+      pos[i * 3] = it.x; pos[i * 3 + 1] = it.y; pos[i * 3 + 2] = it.z;
     });
-    mesh.count = items.length;
+    mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(items.length * 3), 3);
+    mesh.count = 0;
+    // one draw call, but only the instances in the padded view frustum and inside the fade radius are live
+    const culled = new CelledInstances(mesh, all, cols, pos, FADE_FAR + 2, 32, 2.5);
+    this.forest.onViewChange((f, v) => culled.cull(f, v));
     return mesh;
   }
 

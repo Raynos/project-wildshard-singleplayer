@@ -17,7 +17,7 @@ export const TIER_CONFIG = {
   phone: {
     maxTexture: 1024, layerSize: 512, dpr: 1.25, ao: false,
     // shadows: one cascade to 80 m, 1024² — the 2-cascade rig re-drew the whole world twice (9.8 M tris)
-    cascades: 1, shadowMapSize: 1024, shadowFar: 80, shadowMargin: 60,
+    cascades: 1, shadowMapSize: 1024, shadowFar: 80, shadowMargin: 60, softShadows: false,
     undergrowthShadows: false, animalShadowDist: 30, animalHideDist: 150, furShells: false,
     // trees: hi cards → lo cards → far card beyond loDist; lo trees never cast shadows (they are past shadowFar)
     treeHiDist: 55, treeLoDist: 120, treeTwigDist: 24, loTreeShadows: false,
@@ -34,7 +34,7 @@ export const TIER_CONFIG = {
   },
   desktop: {
     maxTexture: 4096, layerSize: 1024, dpr: 1.5, ao: true,
-    cascades: 3, shadowMapSize: 2048, shadowFar: 220, shadowMargin: 120,
+    cascades: 3, shadowMapSize: 2048, shadowFar: 220, shadowMargin: 120, softShadows: true,
     undergrowthShadows: true, animalShadowDist: 90, animalHideDist: 400, furShells: true,
     treeHiDist: 110, treeLoDist: 210, treeTwigDist: 38, loTreeShadows: true,
     grassRadius: 55, grassSlots: 96, grassQuads: 5,
