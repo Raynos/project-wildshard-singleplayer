@@ -8,7 +8,8 @@ cd "$ROOT" || exit 0
 echo "== session brief (.claude/hooks/session-brief.sh) =="
 echo "-- open asks (docs/tasks/ASKS.md: every row not done/dropped) --"
 if [ -f docs/tasks/ASKS.md ]; then
-  open="$(grep -E '^\| [0-9]+ \|' docs/tasks/ASKS.md | grep -vE '\| \*\*(done|dropped)\*\*' | cut -d'|' -f2-4 || true)"
+  # ids are a bare number or a lettered series (D12, G3, V2, L1, MK1A…): anything alphanumeric in the first column
+  open="$(grep -E '^\| [A-Z0-9-]+ \|' docs/tasks/ASKS.md | grep -vE '^\| # ' | grep -vE '\| \*\*(done|dropped|closed)' | cut -d'|' -f2-4 || true)"
   if [ -n "$open" ]; then printf '%s\n' "$open"; else echo "(none open)"; fi
 else echo "(missing)"; fi
 echo ""
