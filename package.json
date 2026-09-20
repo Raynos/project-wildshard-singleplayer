@@ -7,6 +7,9 @@
     "dev": "vite",
     "prebuild": "node scripts/check-css.mjs",
     "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
     "preview": "vite preview",
     "assets": "node scripts/fetch-assets.mjs && node scripts/tex-tiers.mjs",
     "tex-tiers": "node scripts/tex-tiers.mjs",
@@ -24,6 +27,8 @@
     "@gltf-transform/core": "^4.5.0",
     "@gltf-transform/functions": "^4.5.0",
     "@types/three": "^0.186.0",
+    "oxlint": "^1.83.0",
+    "oxlint-tsgolint": "^7.0.2002",
     "playwright": "^1.63.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.0"
