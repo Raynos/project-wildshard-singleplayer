@@ -2,8 +2,9 @@
 # Pull requests run the same gates and nothing else. Deploys go through the Vercel CLI with a token
 # held in this repo's Actions secrets, so whoever pushes to main (any collaborator) deploys — Vercel's
 # git-author check only applies to its own git integration, which this project deliberately does not use.
+# Vercel rebuilds the upload remotely, so a deploy lands ~1–2 min after the ~30 s of gates here.
 #
-# Secrets: VERCEL_TOKEN (account token), VERCEL_ORG_ID (team id), VERCEL_PROJECT_ID (project id).
+# Secrets: VERCEL_TOKEN (project-scoped token), VERCEL_ORG_ID (team id), VERCEL_PROJECT_ID (project id).
 name: deploy
 
 on:
@@ -64,8 +65,7 @@ jobs:
       - name: CSS check
         run: node scripts/check-css.mjs
 
-      - name: Build (deploying pushes build inside `vercel build` below instead)
-        if: env.DEPLOY != 'true'
+      - name: Build
         run: pnpm exec vite build
 
       # ---- deploy (main only) ------------------------------------------------------------------
@@ -73,17 +73,14 @@ jobs:
         if: github.event_name != 'pull_request' && env.DEPLOY != 'true'
         run: echo "::warning::VERCEL_TOKEN secret is not set — gates passed but nothing was deployed"
 
-      - name: Vercel pull
-        if: env.DEPLOY == 'true'
-        run: pnpm dlx vercel@latest pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Vercel build
-        if: env.DEPLOY == 'true'
-        run: pnpm dlx vercel@latest build --prod --token=${{ secrets.VERCEL_TOKEN }}
-
+      # The token is project-scoped (vcp_…): it can deploy this one project and nothing else, which also
+      # means `vercel pull` / `vercel build` (they look the user up) refuse it. So: link the directory by
+      # writing .vercel/project.json ourselves and let Vercel build the upload remotely (`pnpm run build`).
       - name: Vercel deploy
         if: env.DEPLOY == 'true'
         run: |
-          url=$(pnpm dlx vercel@latest deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          mkdir -p .vercel
+          printf '{"projectId":"%s","orgId":"%s"}' "$VERCEL_PROJECT_ID" "$VERCEL_ORG_ID" > .vercel/project.json
+          url=$(pnpm dlx vercel@latest deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }})
           echo "deployed $url for ${{ github.sha }}"
-          echo "### Deployed to $url" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Deployed \`${{ github.sha }}\` to $url" >> "$GITHUB_STEP_SUMMARY"
