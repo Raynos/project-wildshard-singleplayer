@@ -51,18 +51,18 @@ export class Inventory {
 
   private save() {
     try {
-      const all = (JSON.parse(localStorage.getItem(STORE) ?? '{}') as Record<string, unknown>) ?? {};
+      const all = (JSON.parse(localStorage.getItem(STORE) ?? '{}') as Record<string, unknown> | null) ?? {};
       all[this.chunkId] = { counts: this.counts, order: this.order };
       localStorage.setItem(STORE, JSON.stringify(all));
     } catch { /* not persisted this session */ }
   }
 
-  add(id: ItemId, n = 1) {
+  add(id: ItemId, n = 1): void {
     if (!(id in ITEMS)) return;
     if (!this.order.includes(id)) { if (this.order.length >= PACK_SLOTS) return; this.order.push(id); }
     this.counts[id] = (this.counts[id] ?? 0) + n;
     this.save(); this.onChange?.();
   }
-  get items() { return this.order.map((id) => ({ id, count: this.counts[id] ?? 0, ...ITEMS[id] })); }
-  get total() { return this.order.reduce((s, id) => s + (this.counts[id] ?? 0), 0); }
+  get items(): { id: ItemId; count: number; label: string; icon: IconId }[] { return this.order.map((id) => ({ id, count: this.counts[id] ?? 0, ...ITEMS[id] })); }
+  get total(): number { return this.order.reduce((s, id) => s + (this.counts[id] ?? 0), 0); }
 }
