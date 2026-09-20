@@ -63,8 +63,8 @@ jobs:
       - name: CSS check
         run: node scripts/check-css.mjs
 
-      - name: Build (pull requests; pushes build inside `vercel build` below)
-        if: github.event_name == 'pull_request'
+      - name: Build (deploying pushes build inside `vercel build` below instead)
+        if: env.DEPLOY != 'true'
         run: pnpm exec vite build
 
       # ---- deploy (main only) ------------------------------------------------------------------
