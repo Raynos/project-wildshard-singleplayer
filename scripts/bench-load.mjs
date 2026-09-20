@@ -15,13 +15,14 @@
 import { spawn, execSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { resolve, basename, join } from 'node:path';
+import { resolve as resolvePath, basename, join } from 'node:path';
+
 process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS ??= '1';
 const { chromium } = await import('playwright');
 
-const ROOT = resolve(new URL('..', import.meta.url).pathname);
-const OUT_DIR = resolve(ROOT, 'progress/bench');
-const BUDGET_FILE = resolve(ROOT, 'bench.budget.json');
+const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
+const OUT_DIR = resolvePath(ROOT, 'progress/bench');
+const BUDGET_FILE = resolvePath(ROOT, 'bench.budget.json');
 
 const NETS = {
   wifi: { latency: 20, down: 30e6 / 8, up: 15e6 / 8 },
@@ -72,7 +73,7 @@ if (has('compare')) {
   const i = argv.indexOf('--compare');
   const [a, b] = [argv[i + 1], argv[i + 2]];
   if (!a || !b) { console.error('usage: --compare <before.json> <after.json>'); process.exit(2); }
-  console.log(compareTable(JSON.parse(readFileSync(resolve(a), 'utf8')), JSON.parse(readFileSync(resolve(b), 'utf8')), basename(a), basename(b)));
+  console.log(compareTable(JSON.parse(readFileSync(resolvePath(a), 'utf8')), JSON.parse(readFileSync(resolvePath(b), 'utf8')), basename(a), basename(b)));
   process.exit(0);
 }
 for (const c of CONDITIONS) if (!(c in NETS)) { console.error(`unknown network preset "${c}" (wifi|4g|3g|none)`); process.exit(2); }
@@ -81,9 +82,9 @@ for (const c of CONDITIONS) if (!(c in NETS)) { console.error(`unknown network p
 let preview = null;
 if (!URL_BASE) {
   if (!has('no-build')) { console.error('> pnpm build'); execSync('pnpm build', { cwd: ROOT, stdio: 'inherit' }); }
-  else if (!existsSync(resolve(ROOT, 'dist/index.html'))) { console.error('dist/ missing; drop --no-build'); process.exit(2); }
+  else if (!existsSync(resolvePath(ROOT, 'dist/index.html'))) { console.error('dist/ missing; drop --no-build'); process.exit(2); }
   preview = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
-  preview.stderr.on('data', (d) => process.stderr.write(`[preview] ${d}`));
+  preview.stderr.on('data', (d) => { process.stderr.write(`[preview] ${d}`); });
   URL_BASE = `http://localhost:${PORT}`;
   await waitFor(async () => (await fetch(`${URL_BASE}/version.json`)).ok, 20_000, 'vite preview did not come up');
 }
@@ -92,7 +93,7 @@ const cleanup = () => { if (preview && !preview.killed) preview.kill('SIGTERM');
 process.on('exit', cleanup); process.on('SIGINT', () => { cleanup(); process.exit(130); });
 
 let build = 'unknown';
-try { build = (await (await fetch(`${URL_BASE}/version.json`, { cache: 'no-store' })).json()).build ?? build; } catch {}
+try { build = (await (await fetch(`${URL_BASE}/version.json`, { cache: 'no-store' })).json()).build ?? build; } catch { /* no version.json: keep 'unknown' */ }
 console.error(`> bench ${URL_BASE} build=${build} conditions=${CONDITIONS.join(',')} × ${CACHES.join(',')} cpu=${CPU}× gpu=${GPU} runs=${RUNS} viewport=${VW}x${VH}`);
 
 // ── the in-page instrument: installed before any script of the page runs ──
@@ -150,8 +151,9 @@ const COLLECT = `(() => {
 // applies the current network preset there too. PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS makes
 // the worker's own fetches visible on context 'requestfinished' so they can be counted as net bytes.
 const { browser, chrome, swThrottle } = await launchBrowser();
+/** @type {Record<string, number>} */
 let assetIndex = {}; // /assets/<path> → bytes, the size of a response the SW served from its cache (Resource Timing reports 0/0 for those)
-try { assetIndex = await (await fetch(`${URL_BASE}/asset-index.json`, { cache: 'no-store' })).json(); } catch {}
+try { assetIndex = await (await fetch(`${URL_BASE}/asset-index.json`, { cache: 'no-store' })).json(); } catch { /* no asset index: SW-served responses count as 0 bytes */ }
 const runs = []; // { cond, cache, run, status, ...metrics }
 try {
   for (const cond of CONDITIONS) {
@@ -176,33 +178,34 @@ try {
 async function launchBrowser() {
   const udd = mkdtempSync(join(tmpdir(), 'wildshard-bench-'));
   const gpuArgs = GPU === 'swiftshader' ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--use-angle=metal', '--ignore-gpu-blocklist'];
-  const chrome = spawn(chromium.executablePath(), ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${udd}`, '--no-first-run', '--no-default-browser-check', '--disable-extensions', ...gpuArgs, 'about:blank'], { stdio: 'ignore' });
+  const chromeProc = spawn(chromium.executablePath(), ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${udd}`, '--no-first-run', '--no-default-browser-check', '--disable-extensions', ...gpuArgs, 'about:blank'], { stdio: 'ignore' });
   const portFile = join(udd, 'DevToolsActivePort');
   await waitFor(() => existsSync(portFile) && readFileSync(portFile, 'utf8').split('\n')[0] > 0, 15_000, 'chromium did not open its DevTools port');
   const port = readFileSync(portFile, 'utf8').split('\n')[0].trim();
   const wsUrl = (await (await fetch(`http://127.0.0.1:${port}/json/version`)).json()).webSocketDebuggerUrl;
   const ws = new WebSocket(wsUrl);
-  await new Promise((res, rej) => { ws.addEventListener('open', res); ws.addEventListener('error', rej); });
+  await new Promise((resolve, reject) => { ws.addEventListener('open', resolve); ws.addEventListener('error', reject); });
   let id = 0; const pending = new Map(); const swSessions = new Set(); let current = null;
-  const send = (method, params = {}, sessionId) => new Promise((res, rej) => { const i = ++id; pending.set(i, { res, rej }); ws.send(JSON.stringify({ id: i, method, params, sessionId })); });
+  const send = (method, params, sessionId) => new Promise((resolve, reject) => { const i = ++id; pending.set(i, { resolve, reject }); ws.send(JSON.stringify({ id: i, method, params, sessionId })); });
   const apply = (sessionId) => current ? send('Network.emulateNetworkConditions', { offline: false, latency: current.latency, downloadThroughput: current.down, uploadThroughput: current.up }, sessionId) : send('Network.disable', {}, sessionId);
-  ws.addEventListener('message', async (ev) => {
+  const onMessage = async (ev) => {
     const m = JSON.parse(ev.data);
-    if (m.id && pending.has(m.id)) { const p = pending.get(m.id); pending.delete(m.id); m.error ? p.rej(new Error(m.error.message)) : p.res(m.result); return; }
+    if (m.id && pending.has(m.id)) { const p = pending.get(m.id); pending.delete(m.id); if (m.error) p.reject(new Error(m.error.message)); else p.resolve(m.result); return; }
     if (m.method === 'Target.attachedToTarget') {
       const { sessionId, targetInfo } = m.params;
       if (targetInfo.type === 'service_worker' && targetInfo.url.startsWith(URL_BASE)) {
         swSessions.add(sessionId);
         try { await send('Network.enable', {}, sessionId); await apply(sessionId); } catch (e) { console.error(`  [sw throttle] ${e.message}`); }
       }
-      send('Runtime.runIfWaitingForDebugger', {}, sessionId).catch(() => {});
+      send('Runtime.runIfWaitingForDebugger', {}, sessionId).catch(() => undefined);
     }
     if (m.method === 'Target.detachedFromTarget') swSessions.delete(m.params.sessionId);
-  });
+  };
+  ws.addEventListener('message', (ev) => { void onMessage(ev); });
   await send('Target.setAutoAttach', { autoAttach: true, waitForDebuggerOnStart: true, flatten: true });
-  const browser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
-  const swThrottle = async (net) => { current = net; for (const s of swSessions) await apply(s).catch(() => {}); };
-  return { browser, chrome, swThrottle };
+  const cdpBrowser = await chromium.connectOverCDP(`http://127.0.0.1:${port}`);
+  const throttle = async (net) => { current = net; for (const s of swSessions) await apply(s).catch(() => undefined); };
+  return { browser: cdpBrowser, chrome: chromeProc, swThrottle: throttle };
 }
 
 async function runOnce(ctx, cond, cache, label) {
@@ -217,7 +220,7 @@ async function runOnce(ctx, cond, cache, label) {
   const reqs = []; const inflight = [];
   const onFinished = (req) => { inflight.push((async () => {
     const [sizes, res] = await Promise.all([within(req.sizes(), 5000), within(req.response(), 5000)]);
-    reqs.push({ url: req.url(), bySW: !!req.serviceWorker(), fromSW: !!res?.fromServiceWorker(), status: res?.status() ?? 0, body: sizes?.responseBodySize ?? 0, headers: sizes?.responseHeadersSize ?? 0 });
+    reqs.push({ url: req.url(), bySW: Boolean(req.serviceWorker()), fromSW: Boolean(res?.fromServiceWorker()), status: res?.status() ?? 0, body: sizes?.responseBodySize ?? 0, headers: sizes?.responseHeadersSize ?? 0 });
   })()); };
   ctx.on('requestfinished', onFinished);
   await page.addInitScript(INIT_SCRIPT);
@@ -232,16 +235,17 @@ async function runOnce(ctx, cond, cache, label) {
   }
   let m = { sizes: {} };
   try { m = await page.evaluate(COLLECT); } catch (e) { errors.push(`collect: ${e.message}`); }
-  try { mkdirSync(OUT_DIR, { recursive: true }); await page.screenshot({ path: resolve(OUT_DIR, `shot-${cond}-${cache}.png`) }); } catch {}
+  try { mkdirSync(OUT_DIR, { recursive: true }); await page.screenshot({ path: resolvePath(OUT_DIR, `shot-${cond}-${cache}.png`) }); } catch { /* the screenshot is best-effort */ }
   ctx.off('requestfinished', onFinished);
   await within(Promise.all(inflight), 10_000);
   await within(page.close(), 10_000);
-  if (status === 'ok' && errors.length) status = 'ok*';
+  if (status === 'ok' && errors.length > 0) status = 'ok*';
   const { sizes, ...rest } = m;
-  return { status, label, errors, ...accountBytes(reqs, sizes ?? {}), ...rest };
+  return { status, label, errors, ...accountBytes(reqs, sizes), ...rest };
 }
 
 /** Bytes by type. net = bytes that crossed the (emulated) network: page responses not served by the SW plus every fetch the SW itself made; cache = page responses the HTTP cache or the SW's cache served, sized from Resource Timing or asset-index.json. */
+/** @param {Record<string, number>} perfSizes */
 function accountBytes(reqs, perfSizes) {
   const typeOf = (u) => { const p = u.split(/[?#]/)[0].toLowerCase(); const m = p.match(/\.([a-z0-9]+)$/); const e = m ? m[1] : '';
     if (/fonts\.(gstatic|googleapis)\.com/.test(u) || /^(woff2?|ttf|otf)$/.test(e)) return 'font';
@@ -269,10 +273,10 @@ const NUMERIC = ['titleMs', 'playMs', 'domContentLoadedMs', 'requests', 'swFetch
 const rows = {};
 for (const cond of CONDITIONS) for (const cache of CACHES) {
   const key = `${cond}/${cache}`; const rs = runs.filter((r) => r.cond === cond && r.cache === cache);
-  if (!rs.length) continue;
+  if (rs.length === 0) continue;
   const row = { cond, cache, runs: rs.length, status: rs.every((r) => r.status.startsWith('ok')) ? 'ok' : rs.map((r) => r.status).join(','), swController: rs.some((r) => r.swController) };
   for (const k of NUMERIC) row[k] = p50(rs.map((r) => r[k]).filter((v) => typeof v === 'number'));
-  row.bytes = {}; for (const t of TYPES) row.bytes[t] = { net: p50(rs.map((r) => r.bytes?.[t]?.net)), cache: p50(rs.map((r) => r.bytes?.[t]?.cache)), n: p50(rs.map((r) => r.bytes?.[t]?.n)) };
+  row.bytes = {}; for (const t of TYPES) row.bytes[t] = { net: p50(rs.map((r) => r.bytes[t].net)), cache: p50(rs.map((r) => r.bytes[t].cache)), n: p50(rs.map((r) => r.bytes[t].n)) };
   row.steps = rs[0].steps; // the first run's step trace (ms are illustrative, see docs/BENCH.md)
   row.errors = [...new Set(rs.flatMap((r) => r.errors))];
   rows[key] = row;
@@ -280,8 +284,8 @@ for (const cond of CONDITIONS) for (const cache of CACHES) {
 
 const result = { build, url: URL_BASE, at: new Date().toISOString(), host: `${process.platform} ${process.arch} node ${process.version}`, cpu: CPU, gpu: runs[0]?.gpu ?? GPU, runsPerCondition: RUNS, viewport: [VW, VH], ua: runs[0]?.ua ?? null, rows, raw: runs };
 mkdirSync(OUT_DIR, { recursive: true });
-const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-const jsonPath = resolve(OUT_DIR, `${build}-${stamp}.json`);
+const stamp = new Date().toISOString().replaceAll(/[:.]/g, '-').slice(0, 19);
+const jsonPath = resolvePath(OUT_DIR, `${build}-${stamp}.json`);
 writeFileSync(jsonPath, JSON.stringify(result, null, 2));
 
 // ── report ──
@@ -290,10 +294,10 @@ md += summaryTable(rows);
 const first = rows[`${CONDITIONS[0]}/cold`] ?? Object.values(rows)[0];
 if (first?.steps?.length) md += `\n### per-step · ${first.cond}/${first.cache}\n\n${stepTable(first)}`;
 const errs = Object.values(rows).filter((r) => r.errors.length);
-if (errs.length) md += `\n### page errors\n\n${errs.map((r) => `- ${r.cond}/${r.cache}: ${r.errors.join(' · ')}`).join('\n')}\n`;
-writeFileSync(resolve(OUT_DIR, 'latest.md'), md);
-console.log('\n' + md);
-console.error(`> wrote ${rel(jsonPath)} and ${rel(resolve(OUT_DIR, 'latest.md'))}`);
+if (errs.length > 0) md += `\n### page errors\n\n${errs.map((r) => `- ${r.cond}/${r.cache}: ${r.errors.join(' · ')}`).join('\n')}\n`;
+writeFileSync(resolvePath(OUT_DIR, 'latest.md'), md);
+console.log(`\n${md}`);
+console.error(`> wrote ${rel(jsonPath)} and ${rel(resolvePath(OUT_DIR, 'latest.md'))}`);
 
 if (CI) {
   const { table, failed } = budgetTable(rows, JSON.parse(readFileSync(BUDGET_FILE, 'utf8')));
@@ -304,32 +308,32 @@ if (CI) {
 process.exit(0);
 
 // ── tables ──
-function summaryTable(rows) {
+function summaryTable(byKey) {
   const h = ['condition', 'bytes MB net / cache', 'requests', 'title s', 'play s', 'long tasks n / ms / max', 'textures', 'programs', 'heap MB', 'sw'];
   const lines = [`| ${h.join(' | ')} |`, `|${h.map(() => '---').join('|')}|`];
-  for (const r of Object.values(rows)) {
+  for (const r of Object.values(byKey)) {
     const by = TYPES.filter((t) => r.bytes[t].net > 0 || r.bytes[t].cache > 0).map((t) => `${t} ${fmtMB(r.bytes[t].net + r.bytes[t].cache, 1)}`).join(' · ');
     lines.push(`| ${r.cond}/${r.cache}${r.status !== 'ok' ? ` (${r.status})` : ''} | ${fmtMB(r.netBytes)} / ${fmtMB(r.cacheBytes)}<br><small>${by}</small> | ${na(r.requests)} | ${fmtS(r.titleMs)} | ${fmtS(r.playMs)} | ${na(r.longTasks)} / ${na(r.longTaskMs)} / ${na(r.longTaskMaxMs)} | ${na(r.textures)} | ${na(r.programs)} | ${na(r.heapMB)} | ${r.swController ? `yes · ${na(r.fromSW)} served` : 'no'} |`);
   }
-  return lines.join('\n') + '\n';
+  return `${lines.join('\n')}\n`;
 }
 function stepTable(r) {
   const lines = ['| start s | took ms | step |', '|---|---|---|'];
   const steps = [];
   for (const [t, text, bytes] of r.steps) {      // consecutive "label · n / N …" progress updates collapse into one row
-    const key = text.replace(/ · \d+ \/ \d+.*$/, ''); const last = steps[steps.length - 1];
+    const key = text.replace(/ · \d+ \/ \d+.*$/, ''); const last = steps.at(-1);
     if (last && last.key === key && /\d+ \/ \d+/.test(text)) { last.text = text; last.n++; } else steps.push({ key, t, text, bytes, n: 1 });
   }
   const end = r.playMs ?? steps[steps.length - 1]?.t ?? 0;
   steps.forEach((s, i) => { const next = i + 1 < steps.length ? steps[i + 1].t : end; lines.push(`| ${(s.t / 1000).toFixed(2)} | ${Math.max(0, next - s.t)} | ${s.text}${s.bytes ? ` (${s.bytes})` : ''}${s.n > 1 ? ` — ${s.n} updates` : ''} |`); });
   if (r.playMs) lines.push(`| ${(r.playMs / 1000).toFixed(2)} | | *playable (\`.ws-loading\` gone, \`__world\` set)* |`);
-  return lines.join('\n') + '\n';
+  return `${lines.join('\n')}\n`;
 }
-function budgetTable(rows, budget) {
+function budgetTable(byKey, budget) {
   const lines = ['| budget | measured | threshold | |', '|---|---|---|---|'];
   let failed = 0;
   for (const b of budget.rows) {
-    const r = rows[b.cond]; const v = r ? r[b.metric] : undefined;
+    const r = byKey[b.cond]; const v = r ? r[b.metric] : undefined;
     let cell, verdict;
     if (v === undefined || v === null) { cell = 'n/a'; verdict = 'SKIP'; }
     else if ('equals' in b) { cell = String(v); verdict = v === b.equals ? 'PASS' : 'FAIL'; }
@@ -352,18 +356,18 @@ function compareTable(a, b, an, bn) {
       out += `| ${label} | ${f(va)} | ${f(vb)} | ${d} |\n`;
     }
     const bt = TYPES.filter((t) => (ra.bytes?.[t]?.net ?? 0) + (rb.bytes?.[t]?.net ?? 0) > 0);
-    if (bt.length) out += `| bytes by type (net) | ${bt.map((t) => `${t} ${fmtMB(ra.bytes[t].net, 1)}`).join(' · ')} | ${bt.map((t) => `${t} ${fmtMB(rb.bytes[t].net, 1)}`).join(' · ')} | |\n`;
+    if (bt.length > 0) out += `| bytes by type (net) | ${bt.map((t) => `${t} ${fmtMB(ra.bytes[t].net, 1)}`).join(' · ')} | ${bt.map((t) => `${t} ${fmtMB(rb.bytes[t].net, 1)}`).join(' · ')} | |\n`;
     out += '\n';
   }
   return out;
 }
 
 // ── util ──
-function p50(xs) { const v = xs.filter((x) => typeof x === 'number' && !Number.isNaN(x)).sort((a, b) => a - b); if (!v.length) return null; const m = v.length >> 1; return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2; }
+function p50(xs) { const v = xs.filter((x) => typeof x === 'number' && !Number.isNaN(x)).sort((a, b) => a - b); if (v.length === 0) return null; const m = v.length >> 1; return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2; }
 function fmtMB(b, d = 2) { return typeof b === 'number' ? (b / 1048576).toFixed(d) : 'n/a'; }
 function fmtS(ms) { return typeof ms === 'number' ? (ms / 1000).toFixed(2) : 'n/a'; }
 function fmtUnit(v, unit) { return unit === 'MB' ? fmtMB(v) : unit === 's' ? fmtS(v) : String(v); }
 function na(v) { return v === null || v === undefined ? 'n/a' : String(v); }
 function rel(p) { return p.startsWith(ROOT) ? p.slice(ROOT.length + 1) : p; }
-function within(p, ms) { return Promise.race([Promise.resolve(p).catch(() => null), new Promise((r) => setTimeout(r, ms, null).unref())]); }
-async function waitFor(fn, ms, msg) { const t = Date.now(); while (Date.now() - t < ms) { try { if (await fn()) return; } catch {} await new Promise((r) => setTimeout(r, 250)); } throw new Error(msg); }
+function within(p, ms) { return Promise.race([Promise.resolve(p).catch(() => null), new Promise((resolve) => { setTimeout(resolve, ms, null).unref(); })]); }
+async function waitFor(fn, ms, msg) { const t = Date.now(); while (Date.now() - t < ms) { try { if (await fn()) return; } catch { /* not yet */ } await new Promise((resolve) => { setTimeout(resolve, 250); }); } throw new Error(msg); }

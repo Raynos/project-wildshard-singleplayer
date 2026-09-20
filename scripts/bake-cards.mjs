@@ -11,10 +11,9 @@
 //   node scripts/bake-cards.mjs [--url http://localhost:5173] [--chunk pine-hollow] [--force] [--check]
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = resolve(import.meta.dirname, '..');
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 const URL_BASE = arg('--url', 'http://localhost:5173');
 const SLUG = arg('--chunk', 'pine-hollow');
@@ -40,12 +39,12 @@ const browser = await chromium.launch({ headless: true, args: ['--use-angle=meta
 try {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 720 } })).newPage();
   await page.goto(`${URL_BASE}/?chunk=${SLUG}&tier=desktop&skipintro=1&nolock=1&nobake=1&bakecards=1`);
-  await page.waitForFunction(() => !!window.__cardBake, null, { timeout: 120000 });
+  await page.waitForFunction(() => Boolean(window.__cardBake), null, { timeout: 120000 });
   const out = await page.evaluate(() => window.__cardBake);
   mkdirSync(dir, { recursive: true });
   const write = (name, dataUrl) => { const b = Buffer.from(dataUrl.split(',')[1], 'base64'); writeFileSync(resolve(dir, name), b); return b.length; };
   const sizes = { 'card-albedo.png': write('card-albedo.png', out.albedo), 'card-normal.jpg': write('card-normal.jpg', out.normal), 'card-arm.jpg': write('card-arm.jpg', out.arm) };
-  writeFileSync(meta, JSON.stringify({ hash: digest, version: VERSION, atlas, sizes }, null, 2) + '\n');
+  writeFileSync(meta, `${JSON.stringify({ hash: digest, version: VERSION, atlas, sizes }, null, 2)}\n`);
   console.log(`bake-cards: ${SLUG} → ${Object.entries(sizes).map(([k, v]) => `${k} ${(v / 1024).toFixed(0)} KB`).join(' · ')} (${digest}) — commit public/assets/baked/${SLUG}/`);
 } finally {
   await browser.close();

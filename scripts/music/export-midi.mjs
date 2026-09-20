@@ -4,21 +4,20 @@
 // track on channel 10 (36 kick · 35 four-on-the-floor kick · 38 tap · 42 shaker). Tempo changes per segment; the theme's
 // loop (D → B) is written once, followed by the ring-out.
 import { writeFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 import { execSync } from 'node:child_process';
 
-const here = dirname(fileURLToPath(import.meta.url));
+const here = import.meta.dirname;
 const root = resolve(here, '../..');
 const name = process.argv[2] ?? 'theme';
 const out = resolve(process.argv[3] ?? `${here}/wildshard-${name}.mid`);
 
 // load the TypeScript score through Vite's transform (the dev server is up for the render anyway) — no build step, no deps
 const src = execSync(`curl -s http://localhost:5173/src/audio/score/wildshard-theme.ts`, { cwd: root }).toString();
-const mod = await import('data:text/javascript;base64,' + Buffer.from(src.replace(/^import\.meta\.hot.*$/gm, '')).toString('base64'));
+const mod = await import(`data:text/javascript;base64,${Buffer.from(src.replaceAll(/^import\.meta\.hot.*$/gm, '')).toString('base64')}`);
 const arr = mod.ARRANGEMENTS[name];
 if (!arr) throw new Error(`no arrangement ${name}`);
-const { CHORDS, CHORD_ROOT } = mod;
+const { CHORDS } = mod;
 
 const PPQ = 480;
 const LAYERS = ['drone', 'pad', 'pluck', 'marimba', 'bass', 'pulse', 'bell'];
@@ -28,7 +27,7 @@ const CHANNEL = { drone: 0, pad: 1, pluck: 2, marimba: 3, bass: 4, pulse: 9, bel
 // events per track: { tick, bytes }
 const tracks = Object.fromEntries(LAYERS.map((l) => [l, []]));
 const tempoTrack = [];
-const vlq = (n) => { const b = [n & 0x7f]; while ((n >>= 7) > 0) b.unshift((n & 0x7f) | 0x80); return b; };
+const vlq = (n) => { let v = n; const b = [v & 0x7f]; while ((v >>= 7) > 0) b.unshift((v & 0x7f) | 0x80); return b; };
 const note = (layer, tick, dur, n, v = 0.8) => {
   const ch = CHANNEL[layer], vel = Math.max(1, Math.min(127, Math.round(v * 110)));
   tracks[layer].push({ tick, bytes: [0x90 | ch, n, vel] }, { tick: tick + Math.max(1, Math.round(dur)), bytes: [0x80 | ch, n, 0] });
@@ -37,7 +36,7 @@ const note = (layer, tick, dur, n, v = 0.8) => {
 let tick = 0;
 const segs = arr.tailFrom !== undefined ? arr.segments : arr.segments; // the loop is written once
 for (const seg of segs) {
-  const spb = 60 / seg.bpm, usPerBeat = Math.round(60e6 / seg.bpm);
+  const usPerBeat = Math.round(60e6 / seg.bpm);
   tempoTrack.push({ tick, bytes: [0xff, 0x51, 0x03, (usPerBeat >> 16) & 0xff, (usPerBeat >> 8) & 0xff, usPerBeat & 0xff] });
   const T = (b) => tick + Math.round(b * PPQ);
   const segTicks = Math.round(seg.beats * PPQ);
@@ -46,7 +45,7 @@ for (const seg of segs) {
     const end = i + 1 < seg.chords.length ? seg.chords[i + 1].t : seg.beats;
     for (const p of CHORDS[c.chord]) note('pad', T(c.t), (end - c.t) * PPQ, p, 0.6);
   });
-  if (seg.chords.length || seg.beats > 0) { note('drone', tick, segTicks, 38, 0.5); note('drone', tick, segTicks, 50, 0.4); }
+  if (seg.chords.length > 0 || seg.beats > 0) { note('drone', tick, segTicks, 38, 0.5); note('drone', tick, segTicks, 50, 0.4); }
   for (const layer of ['pluck', 'marimba', 'bass', 'pulse', 'bell']) for (const n of seg.notes[layer] ?? []) note(layer, T(n.t), n.d * PPQ, n.n, n.v ?? 0.8);
   tick += segTicks;
 }

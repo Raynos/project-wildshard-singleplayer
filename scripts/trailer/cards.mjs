@@ -1,5 +1,6 @@
-import { chromium } from '/Users/raynos/projects/project-wildshard-singleplayer/node_modules/playwright/index.mjs';
+import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+
 const dir = new URL('.', import.meta.url).pathname;
 mkdirSync(`${dir}cards`, { recursive: true });
 const browser = await chromium.launch({ headless: true });

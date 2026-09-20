@@ -18,10 +18,10 @@
 //   (x, z) = (−half + ix·d, −half + iz·d), d = size / (res − 1).
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = resolve(import.meta.dirname, '..');
 const OUT = resolve(ROOT, 'public/assets/baked');
 const force = process.argv.includes('--force');
 const check = process.argv.includes('--check');
@@ -73,7 +73,7 @@ for (const file of chunkFiles) {
         const s = def.terrain.splatAt(x, z);
         // quantise so the four bytes sum to exactly 255 (largest weight absorbs the rounding)
         const q = s.map((w) => Math.round(w * 255));
-        let sum = q[0] + q[1] + q[2] + q[3];
+        const sum = q[0] + q[1] + q[2] + q[3];
         let k = 0; for (let j = 1; j < 4; j++) if (q[j] > q[k]) k = j;
         q[k] += 255 - sum;
         splat[i * 4] = q[0]; splat[i * 4 + 1] = q[1]; splat[i * 4 + 2] = q[2]; splat[i * 4 + 3] = q[3];
@@ -81,7 +81,7 @@ for (const file of chunkFiles) {
     }
     mkdirSync(dir, { recursive: true });
     writeFileSync(bin, Buffer.from(buf));
-    writeFileSync(meta, JSON.stringify({ hash: digest, version: VERSION, res, size: CHUNK_SIZE, seed: def.seed, landscapeHash: lhash, bytes: buf.byteLength, heightRange: [min, max], bakedAt: new Date().toISOString() }, null, 2) + '\n');
+    writeFileSync(meta, `${JSON.stringify({ hash: digest, version: VERSION, res, size: CHUNK_SIZE, seed: def.seed, landscapeHash: lhash, bytes: buf.byteLength, heightRange: [min, max], bakedAt: new Date().toISOString() }, null, 2)}\n`);
     written++;
     console.log(`bake: ${def.slug} terrain ${res}² → ${(buf.byteLength / 1024).toFixed(0)} KB in ${Math.round(performance.now() - t0)} ms (h ${min.toFixed(1)}…${max.toFixed(1)} m, ${digest})`);
   }

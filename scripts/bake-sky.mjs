@@ -3,7 +3,7 @@
 //
 // Sky.build scans the decoded 2k HDR twice at launch (findSun: every other pixel for the brightest texel;
 // sampleHorizon: one row above the horizon) — pure functions of the file. This runs the same maths in Node
-// (three's RGBELoader.parse is DOM-free) and writes public/assets/baked/<slug>/sky.json; Sky.ts reads it and
+// (three's HDRLoader.parse is DOM-free) and writes public/assets/baked/<slug>/sky.json; Sky.ts reads it and
 // skips the scans. Idempotent by a hash of the HDR + this script (Sky.ts keeps the reference implementation:
 // change the maths in both places). Runs from vite.config.ts with the terrain bake.
 //
@@ -11,11 +11,11 @@
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { pathToFileURL } from 'node:url';
+import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { DataUtils } from 'three';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = resolve(import.meta.dirname, '..');
 const force = process.argv.includes('--force');
 const VERSION = 1;
 const self = readFileSync(resolve(ROOT, 'scripts/bake-sky.mjs'));
@@ -34,7 +34,7 @@ for (const file of chunkFiles) {
     if (!force && prev?.hash === digest) { console.log(`bake-sky: ${def.slug} up to date (${digest})`); continue; }
 
     const t0 = performance.now();
-    const img = new RGBELoader().parse(hdr.buffer.slice(hdr.byteOffset, hdr.byteOffset + hdr.byteLength));
+    const img = new HDRLoader().parse(hdr.buffer.slice(hdr.byteOffset, hdr.byteOffset + hdr.byteLength));
     const { width, height, data } = img;
     const isHalf = data instanceof Uint16Array;
     const px = (i) => (isHalf ? DataUtils.fromHalfFloat(data[i]) : data[i]);
@@ -58,7 +58,7 @@ for (const file of chunkFiles) {
     const m = Math.max(r, g, b, 1e-3);
     if (m > 1.1) { r *= 1.1 / m; g *= 1.1 / m; b *= 1.1 / m; }
     mkdirSync(dirname(out), { recursive: true });
-    writeFileSync(out, JSON.stringify({ hash: digest, version: VERSION, hdri: def.sky.hdri, sunDir: [sx, sy, sz], horizon: [r, g, b] }, null, 2) + '\n');
+    writeFileSync(out, `${JSON.stringify({ hash: digest, version: VERSION, hdri: def.sky.hdri, sunDir: [sx, sy, sz], horizon: [r, g, b] }, null, 2)}\n`);
     console.log(`bake-sky: ${def.slug} sun (${sx.toFixed(3)}, ${sy.toFixed(3)}, ${sz.toFixed(3)}) horizon (${r.toFixed(3)}, ${g.toFixed(3)}, ${b.toFixed(3)}) in ${Math.round(performance.now() - t0)} ms (${digest})`);
   }
 }

@@ -45,21 +45,21 @@ function publicStamp(root: string, subs: string[]): string[] {
   return rows;
 }
 
-type HeaderRule = { source: string; headers: { key: string; value: string }[] };
+interface HeaderRule { source: string; headers: { key: string; value: string }[] }
 
 /**
  * `vercel.json` `source` → RegExp. Only the forms the file uses: literal paths and `(.*)` groups
  * (Vercel's path-to-regexp escapes everything else, `.` included).
  */
 function sourceRegex(source: string): RegExp {
-  const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const esc = (s: string) => s.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
   return new RegExp(`^${source.split('(.*)').map(esc).join('(.*)')}/?$`);
 }
 
 function vercelHeaders(root: string): { re: RegExp; headers: { key: string; value: string }[] }[] {
   const p = join(root, 'vercel.json');
   if (!existsSync(p)) return [];
-  const rules = (JSON.parse(readFileSync(p, 'utf8')).headers ?? []) as HeaderRule[];
+  const rules = (JSON.parse(readFileSync(p, 'utf8')) as { headers?: HeaderRule[] }).headers ?? [];
   return rules.map((r) => ({ re: sourceRegex(r.source), headers: r.headers }));
 }
 
@@ -79,7 +79,7 @@ export function pwaPlugin(buildId: string): Plugin {
       const assets = contentStamp(assetRows);
       const emitted = Object.entries(bundle)
         .filter(([name]) => !name.endsWith('.map') && name !== 'sw.js' && name !== 'version.json')
-        .map(([name, item]) => `${name}:${item.type === 'chunk' ? Buffer.byteLength(item.code) : Buffer.byteLength(item.source as string | Uint8Array)}`);
+        .map(([name, item]) => `${name}:${item.type === 'chunk' ? Buffer.byteLength(item.code) : Buffer.byteLength(item.source)}`);
       const build = `${buildId}-${contentStamp([...emitted, ...assetRows])}`;
       const hashed = Object.keys(bundle).filter((name) => /^assets\/[^/]+-[\w-]{8}\.\w+$/.test(name)).map((name) => `/${name}`).sort();
       this.emitFile({ type: 'asset', fileName: 'sw.js', source: stamp(src, build, assets, hashed) });

@@ -24,10 +24,9 @@
  * mid-rename by its owner, and perf.css, whose one stray rule is reported below.
  */
 import { readFileSync, readdirSync, statSync } from 'node:fs';
-import { join, relative, resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join, relative, resolve } from 'node:path';
 
-const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const ROOT = resolve(import.meta.dirname, '..');
 const STYLES = join(ROOT, 'src/ui/styles');
 
 /** shared primitives — the only unprefixed classes, and only base.css may define them */
@@ -54,6 +53,7 @@ const NOT_CLASSES = new Set(['ws-sw-waiting']);
 
 const PREFIXES = FILES.map((f) => f.prefix).filter(Boolean);
 const rootOf = (prefix) => prefix.slice(0, -1); // 'ws-menu-' → 'ws-menu'
+/** @param {string} cls */
 const ownerOf = (cls) => {
   if (SHARED.has(cls)) return 'shared';
   return PREFIXES.find((p) => cls.startsWith(p) || cls === rootOf(p)) ?? null;
@@ -61,7 +61,7 @@ const ownerOf = (cls) => {
 
 // ── tiny CSS walker: yields { selector, line } for every style rule, skipping @keyframes ──
 function* rules(css) {
-  const src = css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' ')); // keep line numbers
+  const src = css.replaceAll(/\/\*[\s\S]*?\*\//g, (m) => m.replaceAll(/[^\n]/g, ' ')); // keep line numbers
   let i = 0, depth = 0, start = 0;
   const skip = []; // depth at which a @keyframes block was opened
   const lineAt = (pos) => src.slice(0, pos).split('\n').length;
@@ -95,10 +95,10 @@ const splitTop = (s, seps) => {
   if (cur.trim()) out.push(cur.trim());
   return out;
 };
-const compoundsOf = (sel) => splitTop(sel.replace(/\s*([>+~])\s*/g, ' $1 '), [' ', '>', '+', '~']).filter((c) => !/^[>+~]$/.test(c));
+const compoundsOf = (sel) => splitTop(sel.replaceAll(/\s*([>+~])\s*/g, ' $1 '), [' ', '>', '+', '~']).filter((c) => !/^[>+~]$/.test(c));
 const wsClasses = (compound) => [...compound.matchAll(/\.(ws-[\w-]+)/g)].map((m) => m[1]);
 /** ws- classes of the compound itself, ignoring what's inside :not()/:has() */
-const ownWsClasses = (compound) => wsClasses(compound.replace(/:[\w-]+\([^)]*\)/g, ''));
+const ownWsClasses = (compound) => wsClasses(compound.replaceAll(/:[\w-]+\([^)]*\)/g, ''));
 
 // ── run ──
 let errors = 0, warnings = 0;
@@ -112,6 +112,7 @@ const report = (strict, file, line, msg) => {
 for (const { file, prefix, strict } of FILES) {
   let css;
   try { css = readFileSync(file, 'utf8'); } catch { report(strict, file, 0, 'missing file'); continue; }
+  /** @param {string} cls */
   const mine = (cls) => prefix ? cls.startsWith(prefix) || cls === rootOf(prefix) : SHARED.has(cls);
   for (const { selector, line } of rules(css)) {
     for (const sel of splitTop(selector, [','])) {
@@ -121,19 +122,19 @@ for (const { file, prefix, strict } of FILES) {
       for (const cls of all) if (!ownerOf(cls)) report(strict, file, line, `unknown class .${cls} — not shared and no screen prefix (in \`${sel}\`)`);
       // 2. subject must be defined here
       const subjectIdx = comps.map((c) => ownWsClasses(c).length > 0).lastIndexOf(true);
-      if (subjectIdx < 0) {
+      if (subjectIdx === -1) {
         if (prefix) report(strict, file, line, `unscoped selector \`${sel}\` — every rule here must target a .${prefix}* class`);
         continue;
       }
       const subject = ownWsClasses(comps[subjectIdx]);
       const defined = subject.filter(mine);
-      if (defined.length) {
+      if (defined.length > 0) {
         for (const cls of defined) { if (!definedIn.has(cls)) definedIn.set(cls, new Set()); definedIn.get(cls).add(file); }
         continue;
       }
       const scopedOverride = prefix && subject.every((c) => SHARED.has(c)) && comps.slice(0, subjectIdx).some((c) => ownWsClasses(c).some(mine));
       if (scopedOverride) continue;
-      const what = subject.map((c) => '.' + c).join('');
+      const what = subject.map((c) => `.${c}`).join('');
       report(strict, file, line, prefix
         ? `\`${sel}\` defines ${what}, which is not ${prefix}* — move it to the file that owns it, or scope it under a .${prefix}* element if it is a shared primitive`
         : `\`${sel}\` defines ${what} — base.css may only define the shared primitives (${[...SHARED].join(', ')})`);
@@ -153,7 +154,7 @@ for (const [cls, files] of definedIn) {
 const tsFiles = [];
 (function walk(dir) { for (const n of readdirSync(dir)) { const p = join(dir, n); if (statSync(p).isDirectory()) walk(p); else if (p.endsWith('.ts')) tsFiles.push(p); } })(join(ROOT, 'src'));
 for (const file of tsFiles) {
-  const src = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' ')).replace(/(^|\s)\/\/.*$/gm, '$1');
+  const src = readFileSync(file, 'utf8').replaceAll(/\/\*[\s\S]*?\*\//g, (m) => m.replaceAll(/[^\n]/g, ' ')).replaceAll(/(^|\s)\/\/.*$/gm, '$1');
   src.split('\n').forEach((text, i) => {
     for (const m of text.matchAll(/(?<![\w-])(ws-[a-z0-9-]+)/g)) {
       const cls = m[1];

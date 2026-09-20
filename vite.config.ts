@@ -2,6 +2,7 @@ import { defineConfig, type Plugin } from 'vite';
 import { execSync } from 'node:child_process';
 import { readdirSync, statSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import type { ServerResponse } from 'node:http';
 import { pwaPlugin } from './vite/pwa-plugin';
 
 // Build stamp: short git sha + build time. Baked into the bundle as __BUILD_ID__ and
@@ -9,7 +10,7 @@ import { pwaPlugin } from './vite/pwa-plugin';
 // (iOS home-screen PWAs have no address bar, so the title screen offers the reload).
 function buildId(): string {
   let sha = (process.env.VERCEL_GIT_COMMIT_SHA ?? '').slice(0, 7);
-  try { sha ||= execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch {}
+  try { sha ||= execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch { /* not a git checkout */ }
   return `${sha || 'b'}-${Date.now().toString(36)}`;
 }
 const BUILD_ID = buildId();
@@ -25,7 +26,7 @@ function assetIndex(): string {
       if (st.isDirectory()) walk(p, `${pub}/${name}`); else out[`${pub}/${name}`] = st.size;
     }
   };
-  try { walk('public/assets', '/assets'); } catch {}
+  try { walk('public/assets', '/assets'); } catch { /* no assets dir */ }
   return JSON.stringify(out);
 }
 
@@ -63,7 +64,7 @@ const versionPlugin = (): Plugin => ({
     this.emitFile({ type: 'asset', fileName: 'asset-index.json', source: assetIndex() });
   },
   configureServer(server) {
-    const json = (body: () => string) => (_req: unknown, res: import('node:http').ServerResponse) => {
+    const json = (body: () => string) => (_req: unknown, res: ServerResponse) => {
       res.setHeader('Content-Type', 'application/json'); res.setHeader('Cache-Control', 'no-store'); res.end(body());
     };
     server.middlewares.use('/version.json', json(versionJson));
