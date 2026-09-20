@@ -1,0 +1,88 @@
+# Continuous deployment: every push to main that passes the gates ships to production on Vercel.
+# Pull requests run the same gates and nothing else. Deploys go through the Vercel CLI with a token
+# held in this repo's Actions secrets, so whoever pushes to main (any collaborator) deploys — Vercel's
+# git-author check only applies to its own git integration, which this project deliberately does not use.
+#
+# Secrets: VERCEL_TOKEN (account token), VERCEL_ORG_ID (team id), VERCEL_PROJECT_ID (project id).
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  # deploy steps run only for pushes to main AND only once the token secret exists; until then the
+  # gates still run and the job stays green so the missing token is a notice, not a red build.
+  DEPLOY: ${{ github.event_name == 'push' && secrets.VERCEL_TOKEN != '' }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The repo carries ~900 MB of progress captures / art / sources that the build never reads.
+          # Partial clone + sparse checkout keeps the runner to the code and the shipped assets.
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+            !/docs/
+          sparse-checkout-cone-mode: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # ---- gates: a red step here means no deploy -----------------------------------------------
+      - name: Typecheck
+        run: pnpm exec tsc --noEmit
+
+      - name: Lint
+        run: pnpm run --if-present lint
+
+      - name: CSS check
+        run: node scripts/check-css.mjs
+
+      - name: Build (pull requests; pushes build inside `vercel build` below)
+        if: github.event_name == 'pull_request'
+        run: pnpm exec vite build
+
+      # ---- deploy (main only) ------------------------------------------------------------------
+      - name: No token, no deploy
+        if: github.event_name == 'push' && env.DEPLOY != 'true'
+        run: echo "::warning::VERCEL_TOKEN secret is not set — gates passed but nothing was deployed"
+
+      - name: Vercel pull
+        if: env.DEPLOY == 'true'
+        run: pnpm dlx vercel@latest pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Vercel build
+        if: env.DEPLOY == 'true'
+        run: pnpm dlx vercel@latest build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Vercel deploy
+        if: env.DEPLOY == 'true'
+        run: |
+          url=$(pnpm dlx vercel@latest deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          echo "deployed $url for ${{ github.sha }}"
+          echo "### Deployed to $url" >> "$GITHUB_STEP_SUMMARY"
