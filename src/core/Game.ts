@@ -18,8 +18,9 @@ export class Game {
   renderer: THREE.WebGLRenderer;
   scene = new THREE.Scene();
   camera: THREE.PerspectiveCamera;
-  composer!: EffectComposer;
-  sky!: Sky;
+  private _composer: EffectComposer | null = null;
+  private _sky: Sky | null = null;
+  // oxlint-disable-next-line typescript/no-deprecated -- Clock→Timer changes getDelta semantics; migrate separately
   clock = new THREE.Clock();
   private updaters: ((dt: number, t: number) => void)[] = [];
   stats = { fps: 0, frames: 0, acc: 0 };
@@ -33,6 +34,10 @@ export class Game {
   frameGate: () => boolean = () => true;
   private renderPass!: RenderPass;
   volumetrics!: VolumetricsEffect;
+  /** the post chain — set by buildComposer(); resize() and the loop hold the nullable field directly */
+  get composer(): EffectComposer { if (this._composer === null) throw new Error('Game.composer read before buildComposer()'); return this._composer; }
+  /** the sky — set by buildSky() */
+  get sky(): Sky { if (this._sky === null) throw new Error('Game.sky read before buildSky()'); return this._sky; }
 
   constructor(public canvas: HTMLCanvasElement) {
     installAtmosphere();
@@ -48,12 +53,12 @@ export class Game {
     window.addEventListener('resize', () => this.resize());
   }
 
-  async buildSky() {
-    this.sky = await new Sky(this.scene, this.camera, this.renderer).build();
-    return this.sky;
+  async buildSky(): Promise<Sky> {
+    this._sky = await new Sky(this.scene, this.camera, this.renderer).build();
+    return this._sky;
   }
 
-  buildComposer() {
+  buildComposer(): void {
     const { grade: G, atmosphere: A } = getActiveChunk();
     const composer = new EffectComposer(this.renderer, { frameBufferType: THREE.HalfFloatType, multisampling: 0 });
     this.renderPass = new RenderPass(this.scene, this.camera);
@@ -94,10 +99,10 @@ export class Game {
       const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
       composer.addPass(new EffectPass(this.camera, smaa));
     }
-    this.composer = composer;
+    this._composer = composer;
   }
 
-  onUpdate(fn: (dt: number, t: number) => void) { this.updaters.push(fn); }
+  onUpdate(fn: (dt: number, t: number) => void): void { this.updaters.push(fn); }
 
   /**
    * Build every program the first frame would otherwise compile in one stall — the scene's
@@ -108,6 +113,7 @@ export class Game {
     // r186 removed PCFSoftShadowMap: the first shadow pass silently flips the type to PCF, and
     // shadowMapType is in every program's cache key — so everything compiled here would be
     // compiled AGAIN by the first frame (desktop 105 → 179 programs). Settle it before compiling.
+    // oxlint-disable-next-line typescript/no-deprecated -- the guard exists to migrate away from the deprecated value
     if (this.renderer.shadowMap.type === THREE.PCFSoftShadowMap) this.renderer.shadowMap.type = THREE.PCFShadowMap;
     const rt = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
     const { jobs, materials } = sceneJobs(this.scene, rt);
@@ -124,8 +130,8 @@ export class Game {
    * The first frames, as a step: a scene-only draw (shadow-depth programs + the GPU's first draw of
    * every pipeline), then the full composer (screen-quad shaders compileAsync cannot reach).
    */
-  async firstFrame(onProgress?: (done: number, total: number, detail: string) => void) {
-    const frame = () => new Promise((res) => requestAnimationFrame(() => setTimeout(res, 0))); // rAF alone resumes before the paint
+  async firstFrame(onProgress?: (done: number, total: number, detail: string) => void): Promise<void> {
+    const frame = (): Promise<void> => new Promise((resolve) => { requestAnimationFrame(() => { setTimeout(resolve, 0); }); }); // rAF alone resumes before the paint
     onProgress?.(0, 2, 'world + shadows');
     await frame();
     // into the composer's input buffer, not the canvas: the canvas target would be a second set of program variants
@@ -142,19 +148,20 @@ export class Game {
     this.composer.render(0.016);
     if (before) perfLog('firstFrame:post', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | '));
     await frame();
-    if (PERFLOAD) { t0 = performance.now(); before = snapshotPrograms(this.renderer); this.composer.render(0.016); perfLog('secondFrame', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | ')); console.info('[perfload] programs:\n' + dumpPrograms(this.renderer).join('\n')); }
+    if (PERFLOAD) { t0 = performance.now(); before = snapshotPrograms(this.renderer); this.composer.render(0.016); perfLog('secondFrame', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | ')); console.info(`[perfload] programs:\n${dumpPrograms(this.renderer).join('\n')}`); }
   }
 
-  resize() {
+  resize(): void {
     const w = window.innerWidth, h = window.innerHeight;
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
-    this.composer?.setSize(w, h);
-    this.sky?.csm?.updateFrustums();
+    this._composer?.setSize(w, h); // a resize can land before buildComposer() / buildSky()
+    this._sky?.csm.updateFrustums();
   }
 
-  start() {
+  start(): void {
+    const composer = this.composer, sky = this.sky; // both built before start() (buildComposer reads the sky)
     this.clock.start();
     this.renderer.info.autoReset = false; // the composer renders several passes per frame: count the whole frame
     // Returning from the background: draw one frame at once (bypassing the gate). The 1–2 s of black on an
@@ -174,10 +181,10 @@ export class Game {
       const dt = Math.min(0.1, this.clock.getDelta());
       const t = this.clock.elapsedTime;
       for (const u of this.updaters) u(dt, t);
-      this.sky?.update(dt);
+      sky.update(dt);
       // planet + sun disc travel with the camera so they stay "infinitely" far
-      if (this.sky) { this.sky.clouds.position.copy(this.camera.position); this.sky.planet.position.copy(this.camera.position).addScaledVector(this.sky.planetDir, 1700); this.sky.sunDisc.position.copy(this.camera.position).addScaledVector(this.sky.sunDir, 1500); }
-      this.composer.render(dt);
+      sky.clouds.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.sunDir, 1500);
+      composer.render(dt);
       this.lastFrame.calls = this.renderer.info.render.calls; this.lastFrame.triangles = this.renderer.info.render.triangles;
       this.frameMs[this.frameI] = dt * 1000; this.frameI = (this.frameI + 1) % this.frameMs.length;
       this.stats.frames++; this.stats.acc += dt;

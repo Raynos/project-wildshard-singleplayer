@@ -15,8 +15,7 @@ import { getActiveChunk } from '../chunks/registry';
 import { CHUNK_SIZE } from '../core/config';
 import type { FullMap } from './Map';
 import type { Progress } from '../game/Progress';
-import type { Inventory } from '../game/Inventory';
-import { PACK_SLOTS } from '../game/Inventory';
+import { PACK_SLOTS, type Inventory } from '../game/Inventory';
 import { icon, type IconId } from './icons';
 import { getSetting, setSetting, onSetting, getNumber, setNumber, type SettingKey } from './Settings';
 import { dbg } from './Debug';
@@ -40,8 +39,8 @@ export interface GameMenuOptions {
   onEquip?: (id: string) => void;
 }
 
-const el = (cls: string, html = '', tag = 'div') => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
-const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
+const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
 
 export class GameMenu {
   readonly root: HTMLElement;
@@ -68,19 +67,19 @@ export class GameMenu {
       </div>`;
     this.tabBar = el('ws-gmenu-tabs');
     for (const t of TABS) {
-      const b = el('ws-gmenu-tab', esc(t.label), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset.tab = t.id;
+      const b = el('ws-gmenu-tab', esc(t.label), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['tab'] = t.id;
       b.addEventListener('click', () => this.select(t.id));
-      this.tabBar.appendChild(b);
+      this.tabBar.append(b);
     }
-    this.sheet.appendChild(this.tabBar);
+    this.sheet.append(this.tabBar);
     const body = el('ws-gmenu-body');
     this.panels = { map: el('ws-gmenu-panel map'), inventory: el('ws-gmenu-panel scroll'), achievements: el('ws-gmenu-panel scroll'), settings: el('ws-gmenu-panel scroll') };
-    for (const p of Object.values(this.panels)) { if (p.classList.contains('scroll')) p.dataset.scroll = ''; body.appendChild(p); } // index.html swallows touchmove outside [data-scroll]
-    this.sheet.appendChild(body);
+    for (const p of Object.values(this.panels)) { if (p.classList.contains('scroll')) p.dataset['scroll'] = ''; body.append(p); } // index.html swallows touchmove outside [data-scroll]
+    this.sheet.append(body);
     this.hint = el('ws-gmenu-hint');
-    this.sheet.appendChild(this.hint);
-    this.root.appendChild(this.sheet);
-    document.body.appendChild(this.root);
+    this.sheet.append(this.hint);
+    this.root.append(this.sheet);
+    document.body.append(this.root);
 
     // ── MAP: the FullMap canvas lives inside this panel (Map.ts embedded mode) ──
     this.mapMeta = el('ws-gmenu-mapmeta', `${esc(def.displayName)} · ${CHUNK_SIZE} m`);
@@ -89,19 +88,20 @@ export class GameMenu {
     const foot = el('ws-gmenu-mapfoot');
     const zooms = el('ws-gmenu-zooms');
     for (const z of [1, 2, 4]) {
-      const b = el('ws-gmenu-zoom', `${z}×`, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset.z = String(z);
+      const b = el('ws-gmenu-zoom', `${z}×`, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['z'] = String(z);
       b.addEventListener('click', () => { opts.fullMap.setZoom(z); this.syncZoom(); });
-      zooms.appendChild(b); this.zoomChips.push(b);
+      zooms.append(b); this.zoomChips.push(b);
     }
     foot.append(zooms, el('ws-gmenu-legend', `<span><i class="poi">${icon('poi')}</i>POI</span><span><i class="you">${icon('you')}</i>You</span>`));
     this.panels.map.append(this.mapMeta, frame, foot);
     opts.fullMap.onZoom = () => this.syncZoom();
 
     // ── SETTINGS ──
-    this.buildSettings();
+    this.applyBtn = this.buildSettings();
 
     // close: the CLOSE button, the backdrop (desktop habit), Esc
-    this.sheet.querySelector('.ws-gmenu-close')!.addEventListener('click', () => this.close());
+    const closeBtn = this.sheet.querySelector('.ws-gmenu-close'); if (!closeBtn) throw new Error('GameMenu: no .ws-gmenu-close');
+    closeBtn.addEventListener('click', () => { this.close(); });
     this.root.addEventListener('pointerdown', (e) => { if (e.target === this.root) this.close(); });
     document.addEventListener('keydown', (e) => {
       if (!this._open) return;
@@ -114,10 +114,10 @@ export class GameMenu {
     this.select('settings');
   }
 
-  get isOpen() { return this._open; }
-  get tab() { return this._tab; }
+  get isOpen(): boolean { return this._open; }
+  get tab(): MenuTab { return this._tab; }
 
-  open(tab: MenuTab = this._tab) {
+  open(tab: MenuTab = this._tab): void {
     this.select(tab);
     if (this._open) return;
     this._open = true;
@@ -127,18 +127,18 @@ export class GameMenu {
     this.onOpen?.(tab);
   }
   /** `silent` = no onClose (exit to the main menu: the HUD handles the world itself) */
-  close(silent = false) {
+  close(silent = false): void {
     if (!this._open) return;
     this._open = false;
     this.root.classList.remove('show');
     this.opts.fullMap.hide();
     if (!silent) this.onClose?.();
   }
-  toggle(tab: MenuTab) { if (this._open && this._tab === tab) this.close(); else this.open(tab); }
+  toggle(tab: MenuTab): void { if (this._open && this._tab === tab) this.close(); else this.open(tab); }
 
-  select(tab: MenuTab) {
+  select(tab: MenuTab): void {
     this._tab = tab;
-    for (const b of this.tabBar.children) (b as HTMLElement).classList.toggle('active', (b as HTMLElement).dataset.tab === tab);
+    for (const b of this.tabBar.children) (b as HTMLElement).classList.toggle('active', (b as HTMLElement).dataset['tab'] === tab);
     for (const [id, p] of Object.entries(this.panels)) p.classList.toggle('active', id === tab);
     this.hint.textContent = HINTS[tab];
     if (this._open) { if (tab === 'map') { this.opts.fullMap.show(); this.syncZoom(); } else this.opts.fullMap.hide(); }
@@ -147,20 +147,20 @@ export class GameMenu {
   }
 
   /** re-render the data tabs */
-  refresh() { this.renderInventory(); this.renderAchievements(); this.syncZoom(); }
+  refresh(): void { this.renderInventory(); this.renderAchievements(); this.syncZoom(); }
 
   private syncZoom() {
     const z = this.opts.fullMap.zoom;
-    for (const b of this.zoomChips) b.classList.toggle('active', Math.abs(Number(b.dataset.z) - z) < 0.01);
+    for (const b of this.zoomChips) b.classList.toggle('active', Math.abs(Number(b.dataset['z']) - z) < 0.01);
   }
 
   // ── INVENTORY ──
   private renderInventory() {
     const p = this.panels.inventory; p.replaceChildren();
-    p.appendChild(el('ws-gmenu-label', 'Equipped'));
+    p.append(el('ws-gmenu-label', 'Equipped'));
     for (const w of this.opts.kit()) {
       const pct = w.magazine ? Math.round((w.ammo / w.magazine) * 100) : 0;
-      const card = el('ws-gmenu-weapon' + (w.equipped ? ' equipped' : ''), `
+      const card = el(`ws-gmenu-weapon${w.equipped ? ' equipped' : ''}`, `
         <i class="ws-gmenu-wicon">${icon(w.icon)}</i>
         <div class="ws-gmenu-wbody">
           <div class="ws-gmenu-wname">${esc(w.name)}</div>
@@ -170,18 +170,18 @@ export class GameMenu {
         <span class="ws-gmenu-chip">${w.equipped ? 'Equipped' : 'Hold'}</span>`, 'button');
       (card as HTMLButtonElement).type = 'button';
       card.addEventListener('click', () => { if (!w.equipped) { this.opts.onEquip?.(w.id); this.renderInventory(); } });
-      p.appendChild(card);
+      p.append(card);
     }
     const items = this.opts.inventory.items;
-    p.appendChild(el('ws-gmenu-label', `Pack · ${items.length} / ${PACK_SLOTS}`));
+    p.append(el('ws-gmenu-label', `Pack · ${items.length} / ${PACK_SLOTS}`));
     const grid = el('ws-gmenu-grid');
     for (let i = 0; i < PACK_SLOTS; i++) {
       const it = items[i];
-      grid.appendChild(it
+      grid.append(it
         ? el('ws-gmenu-slot', `<i class="ws-gmenu-sicon">${icon(it.icon)}</i><b class="ws-gmenu-count">×${it.count}</b><span class="ws-gmenu-sname">${esc(it.label)}</span>`)
         : el('ws-gmenu-slot empty'));
     }
-    p.appendChild(grid);
+    p.append(grid);
   }
 
   // ── ACHIEVEMENTS ──
@@ -189,18 +189,18 @@ export class GameMenu {
     const pr = this.opts.progress, p = this.panels.achievements; p.replaceChildren();
     const rows = pr.rows, n = rows.length, e = pr.earnedCount;
     const def = getActiveChunk();
-    p.appendChild(el('ws-gmenu-label', `${esc(def.displayName)} · ${e} / ${n} earned`));
-    p.appendChild(el('ws-bar ws-gmenu-total', `<i style="width:${n ? (e / n) * 100 : 0}%"></i>`));
-    p.appendChild(el('ws-gmenu-label', 'Your title'));
+    p.append(el('ws-gmenu-label', `${esc(def.displayName)} · ${e} / ${n} earned`));
+    p.append(el('ws-bar ws-gmenu-total', `<i style="width:${n ? (e / n) * 100 : 0}%"></i>`));
+    p.append(el('ws-gmenu-label', 'Your title'));
     const t = pr.title;
-    p.appendChild(el('ws-gmenu-titlecard' + (t ? '' : ' none'), `
+    p.append(el(`ws-gmenu-titlecard${t ? '' : ' none'}`, `
       <i class="ws-gmenu-laurel">${icon('laurel')}</i>
       <div><div class="ws-gmenu-titletext">${t ? esc(t.title) : 'No title yet'}</div>
       <div class="ws-gmenu-titlesub">${t ? 'Shown under your name in multiplayer' : 'Earn one below'}</div></div>`));
-    p.appendChild(el('ws-gmenu-label', 'Shard achievements'));
-    if (!n) p.appendChild(el('ws-gmenu-empty', 'This shard has no achievements yet.'));
+    p.append(el('ws-gmenu-label', 'Shard achievements'));
+    if (!n) p.append(el('ws-gmenu-empty', 'This shard has no achievements yet.'));
     for (const r of rows) {
-      const row = el('ws-gmenu-ach' + (r.earned ? ' earned' : '') + (r.active ? ' active' : ''), `
+      const row = el(`ws-gmenu-ach${r.earned ? ' earned' : ''}${r.active ? ' active' : ''}`, `
         <i class="ws-gmenu-aicon ${r.def.icon}">${icon(r.def.icon)}</i>
         <div class="ws-gmenu-abody">
           <div class="ws-gmenu-aname">${esc(r.def.name)}</div>
@@ -213,12 +213,13 @@ export class GameMenu {
         </div>`, 'button');
       (row as HTMLButtonElement).type = 'button';
       row.addEventListener('click', () => { if (r.earned) pr.wear(r.def.id); });
-      p.appendChild(row);
+      p.append(row);
     }
   }
 
   // ── SETTINGS ──
-  private buildSettings() {
+  /** builds the Settings tab; returns the RESTART TO APPLY button (see `markReload`) */
+  private buildSettings(): HTMLButtonElement {
     const p = this.panels.settings;
     const resume = el('ws-gmenu-btn resume', 'Resume', 'button') as HTMLButtonElement; resume.type = 'button';
     resume.addEventListener('click', () => this.close());
@@ -239,13 +240,13 @@ export class GameMenu {
     const seg = (label: string, options: { v: string; text: string }[], get: () => string, set: (v: string) => void) => {
       const row = el('ws-gmenu-row', `<span class="ws-gmenu-swlabel">${label}</span>`);
       const box = el('ws-gmenu-seg');
-      const paint = () => { for (const c of box.children) (c as HTMLElement).classList.toggle('active', (c as HTMLElement).dataset.v === get()); };
+      const paint = () => { for (const c of box.children) (c as HTMLElement).classList.toggle('active', (c as HTMLElement).dataset['v'] === get()); };
       for (const o of options) {
-        const b = el('ws-gmenu-segbtn', o.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset.v = o.v;
+        const b = el('ws-gmenu-segbtn', o.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = o.v;
         b.addEventListener('click', () => { set(o.v); paint(); this.markReload(); });
-        box.appendChild(b);
+        box.append(b);
       }
-      paint(); row.appendChild(box); return row;
+      paint(); row.append(box); return row;
     };
     const dprOpts = [{ v: '1', text: '1.0×' }, { v: '1.25', text: '1.25×' }, { v: '1.5', text: '1.5×' }, { v: 'auto', text: 'Auto' }];
     const aaOpts = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }, { v: 'auto', text: 'Auto' }];
@@ -255,8 +256,7 @@ export class GameMenu {
       seg('Anti-aliasing', aaOpts, () => dbg.aa, (v) => { dbg.aa = v as typeof dbg.aa; saveDbg(); }));
     const apply = el('ws-gmenu-apply', 'Restart to apply', 'button') as HTMLButtonElement; apply.type = 'button'; apply.hidden = true;
     apply.addEventListener('click', () => location.reload());
-    p.appendChild(apply);
-    this.applyBtn = apply;
+    p.append(apply);
 
     // audio: master volume (Settings 'volume', 0..1) — main.ts drives the AudioContext gain from it
     const vol = el('ws-gmenu-row', '<span class="ws-gmenu-swlabel">Master volume</span>');
@@ -264,17 +264,18 @@ export class GameMenu {
     slider.value = String(Math.round(getNumber('volume') * 100));
     slider.addEventListener('input', () => setNumber('volume', Number(slider.value) / 100));
     slider.addEventListener('pointerdown', (e) => e.stopPropagation());
-    vol.appendChild(slider);
+    vol.append(slider);
     // music volume (Settings 'music', 0..1) — src/audio/Music.ts drives its bus from it
     const mus = el('ws-gmenu-row', '<span class="ws-gmenu-swlabel">Music</span>');
     const mslider = document.createElement('input'); mslider.type = 'range'; mslider.min = '0'; mslider.max = '100'; mslider.className = 'ws-gmenu-slider';
     mslider.value = String(Math.round(getNumber('music') * 100));
     mslider.addEventListener('input', () => setNumber('music', Number(mslider.value) / 100));
     mslider.addEventListener('pointerdown', (e) => e.stopPropagation());
-    mus.appendChild(mslider);
+    mus.append(mslider);
     p.append(el('ws-gmenu-label', 'Audio'), vol, mus);
+    return apply;
   }
   /** the render scale / AA rows changed a boot flag (src/ui/Debug.ts `dbg`) — only a reload applies it */
-  private applyBtn!: HTMLButtonElement;
-  private markReload() { this.applyBtn.hidden = false; }
+  private applyBtn: HTMLButtonElement;
+  private markReload(): void { this.applyBtn.hidden = false; }
 }

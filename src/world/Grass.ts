@@ -55,6 +55,9 @@ const grassUniforms = {
   uSunColor: { value: new THREE.Color(1, 0.93, 0.8) },
 };
 
+const UP = new THREE.Vector3(0, 1, 0);
+const bilerp = (a: number, b: number, c: number, d: number, u: number, v: number) => lerp(lerp(a, b, u), lerp(c, d, u), v);
+
 export class Grass {
   group = new THREE.Group();
   mesh!: THREE.InstancedMesh;
@@ -80,16 +83,19 @@ export class Grass {
   private tmpN = new THREE.Vector3();
   private tmpC = new THREE.Color();
   private zeroM = new THREE.Matrix4().makeScale(0, 0, 0);
+  private meshColor!: THREE.InstancedBufferAttribute;
+  private flowerColor!: THREE.InstancedBufferAttribute;
 
   constructor(private sky: Sky, private forest: Forest) {}
 
-  build() {
+  build(): this {
     const geo = buildClumpGeometry();
     this.material = this.buildMaterial();
     this.mesh = new THREE.InstancedMesh(geo, this.material, N * N * K);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(N * N * K * 3), 3);
-    this.mesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
+    this.meshColor = new THREE.InstancedBufferAttribute(new Float32Array(N * N * K * 3), 3);
+    this.mesh.instanceColor = this.meshColor;
+    this.meshColor.setUsage(THREE.DynamicDrawUsage);
     this.mesh.frustumCulled = false;
     this.mesh.receiveShadow = true;
     this.mesh.castShadow = false;
@@ -99,8 +105,9 @@ export class Grass {
     this.group.add(this.mesh);
     this.flowers = new THREE.InstancedMesh(buildFlowerGeometry(), this.buildFlowerMaterial(), N * N * KF);
     this.flowers.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    this.flowers.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(N * N * KF * 3), 3);
-    this.flowers.instanceColor.setUsage(THREE.DynamicDrawUsage);
+    this.flowerColor = new THREE.InstancedBufferAttribute(new Float32Array(N * N * KF * 3), 3);
+    this.flowers.instanceColor = this.flowerColor;
+    this.flowerColor.setUsage(THREE.DynamicDrawUsage);
     this.flowers.frustumCulled = false;
     this.flowers.receiveShadow = true;
     const farr = this.flowers.instanceMatrix.array as Float32Array;
@@ -121,8 +128,8 @@ export class Grass {
     mat.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
       Object.assign(shader.uniforms, grassUniforms);
-      shader.uniforms.uTime = windUniforms.uTime;
-      shader.uniforms.uWindStrength = windUniforms.uWindStrength;
+      shader.uniforms['uTime'] = windUniforms.uTime;
+      shader.uniforms['uWindStrength'] = windUniforms.uWindStrength;
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', /* glsl */`#include <common>
           uniform float uTime; uniform float uWindStrength; uniform float uGrassWind; uniform float uRadius; uniform float uFade;
@@ -192,9 +199,9 @@ export class Grass {
     const mat = new THREE.MeshStandardMaterial({ map: makeFlowerTexture(), alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.7, metalness: 0 });
     mat.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
-      shader.uniforms.uTime = windUniforms.uTime;
-      shader.uniforms.uWindStrength = windUniforms.uWindStrength;
-      shader.uniforms.uGrassWind = grassUniforms.uGrassWind;
+      shader.uniforms['uTime'] = windUniforms.uTime;
+      shader.uniforms['uWindStrength'] = windUniforms.uWindStrength;
+      shader.uniforms['uGrassWind'] = grassUniforms.uGrassWind;
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', /* glsl */`#include <common>
           uniform float uTime; uniform float uWindStrength; uniform float uGrassWind;`)
@@ -225,18 +232,17 @@ export class Grass {
   }
 
   private canopyAt(x: number, z: number) {
-    const img = this.forest.canopyMap?.image as { data: Float32Array; width: number; height: number } | undefined;
-    if (!img) return 0;
+    const img = this.forest.canopyMap.image as { data: Float32Array; width: number; height: number };
     const ix = Math.min(img.width - 1, Math.max(0, Math.floor(((x + 250) / 500) * img.width)));
     const iz = Math.min(img.height - 1, Math.max(0, Math.floor(((z + 250) / 500) * img.height)));
-    return img.data[iz * img.width + ix];
+    return img.data[iz * img.width + ix] ?? 0;
   }
 
   private slotOf(cx: number, cz: number) {
     return (((cx % N) + N) % N) * N + (((cz % N) + N) % N);
   }
 
-  update(_dt: number, playerPos: THREE.Vector3) {
+  update(_dt: number, playerPos: THREE.Vector3): void {
     grassUniforms.uGrassWind.value = this.params.windStrength;
     const pcx = Math.floor(playerPos.x / CELL), pcz = Math.floor(playerPos.z / CELL);
     if (pcx !== this.lastCellX || pcz !== this.lastCellZ) {
@@ -258,15 +264,16 @@ export class Grass {
       }
       if (first) this.flush(Infinity);
     }
-    if (this.queue.length) this.flush(this.queue.length > 300 ? Infinity : this.params.budget);
+    if (this.queue.length > 0) this.flush(this.queue.length > 300 ? Infinity : this.params.budget);
   }
 
   private flush(budget: number) {
     let n = 0;
     const half = N >> 1;
     let dirty = false;
-    while (this.queue.length && n < budget) {
-      const key = this.queue.shift()!;
+    while (this.queue.length > 0 && n < budget) {
+      const key = this.queue.shift();
+      if (key === undefined) break;
       this.queued.delete(key);
       const cx = Math.floor((key + 50000) / 100000), cz = key - cx * 100000;
       // dropped out of the window while queued? (player moved on) → skip
@@ -275,8 +282,8 @@ export class Grass {
       n++; dirty = true;
     }
     if (dirty) {
-      this.mesh.instanceMatrix.needsUpdate = true; this.mesh.instanceColor!.needsUpdate = true;
-      this.flowers.instanceMatrix.needsUpdate = true; this.flowers.instanceColor!.needsUpdate = true;
+      this.mesh.instanceMatrix.needsUpdate = true; this.meshColor.needsUpdate = true;
+      this.flowers.instanceMatrix.needsUpdate = true; this.flowerColor.needsUpdate = true;
     }
   }
 
@@ -289,10 +296,10 @@ export class Grass {
     const nrm = normalAt(x0 + CELL / 2, z0 + CELL / 2, 1.0);
     const trees = this.forest.nearby(x0 + CELL / 2, z0 + CELL / 2, 3);
     const matArr = this.mesh.instanceMatrix.array as Float32Array;
-    const colArr = this.mesh.instanceColor!.array as Float32Array;
+    const colArr = this.meshColor.array as Float32Array;
     const base = slot * K;
     const fArr = this.flowers.instanceMatrix.array as Float32Array;
-    const fCol = this.flowers.instanceColor!.array as Float32Array;
+    const fCol = this.flowerColor.array as Float32Array;
     const fBase = slot * KF;
     let fk = 0;
     const canopy = this.canopyAt(x0 + CELL / 2, z0 + CELL / 2);
@@ -350,14 +357,11 @@ export class Grass {
     }
     for (let i = fk; i < KF; i++) this.zeroM.toArray(fArr, (fBase + i) * 16);
     this.flowers.instanceMatrix.addUpdateRange(fBase * 16, KF * 16);
-    this.flowers.instanceColor!.addUpdateRange(fBase * 3, KF * 3);
+    this.flowerColor.addUpdateRange(fBase * 3, KF * 3);
     this.mesh.instanceMatrix.addUpdateRange(base * 16, K * 16);
-    this.mesh.instanceColor!.addUpdateRange(base * 3, K * 3);
+    this.meshColor.addUpdateRange(base * 3, K * 3);
   }
 }
-
-const UP = new THREE.Vector3(0, 1, 0);
-const bilerp = (a: number, b: number, c: number, d: number, u: number, v: number) => lerp(lerp(a, b, u), lerp(c, d, u), v);
 
 // ---------------------------------------------------------------------------------- geometry
 
@@ -437,11 +441,17 @@ function buildFlowerGeometry() {
   return geo;
 }
 
+function ctx2d(c: HTMLCanvasElement): CanvasRenderingContext2D {
+  const g = c.getContext('2d');
+  if (!g) throw new Error('[grass] no 2d canvas context');
+  return g;
+}
+
 /** Thin stem + a 4-petal head (white; tinted per instance) with a warm centre. */
 function makeFlowerTexture() {
   const W = 64, H = 128;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
-  const g = c.getContext('2d')!;
+  const g = ctx2d(c);
   g.strokeStyle = 'rgb(70,96,40)'; g.lineWidth = 2.5; g.lineCap = 'round';
   g.beginPath(); g.moveTo(32, 126); g.quadraticCurveTo(29, 80, 32, 30); g.stroke();
   // a tiny leaf on the stem
@@ -468,7 +478,7 @@ function makeFlowerTexture() {
 function makeBladeAtlas() {
   const W = 1024, H = 512, TILE = 256;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
-  const g = c.getContext('2d')!;
+  const g = ctx2d(c);
   g.clearRect(0, 0, W, H);
   const rng = new Rng(SEED + 505);
   for (let tile = 0; tile < 4; tile++) {
@@ -494,7 +504,7 @@ function makeBladeAtlas() {
 
 function drawBlade(g: CanvasRenderingContext2D, rx: number, ry: number, bendX: number, height: number, w0: number, hue: number, rng: Rng) {
   // centreline: quadratic bezier from the root up and over
-  const p0 = [rx, ry], p1 = [rx + bendX * 0.35, ry - height * 0.58], p2 = [rx + bendX, ry - height];
+  const p0: [number, number] = [rx, ry], p1: [number, number] = [rx + bendX * 0.35, ry - height * 0.58], p2: [number, number] = [rx + bendX, ry - height];
   const steps = 24;
   const left: [number, number][] = [], right: [number, number][] = [];
   for (let i = 0; i <= steps; i++) {
@@ -505,19 +515,18 @@ function drawBlade(g: CanvasRenderingContext2D, rx: number, ry: number, bendX: n
     const dy = 2 * it * (p1[1] - p0[1]) + 2 * t * (p2[1] - p1[1]);
     const l = Math.hypot(dx, dy) || 1;
     const nx = -dy / l, ny = dx / l;
-    const w = (w0 * Math.pow(1 - t, 0.75) + 0.6) * 0.5;
+    const w = (w0 * (1 - t) ** 0.75 + 0.6) * 0.5;
     left.push([x + nx * w, y + ny * w]); right.push([x - nx * w, y - ny * w]);
   }
   const path = () => {
     g.beginPath();
-    g.moveTo(left[0][0], left[0][1]);
-    for (let i = 1; i < left.length; i++) g.lineTo(left[i][0], left[i][1]);
-    for (let i = right.length - 1; i >= 0; i--) g.lineTo(right[i][0], right[i][1]);
+    left.forEach(([lx, ly], i) => { if (i === 0) g.moveTo(lx, ly); else g.lineTo(lx, ly); });
+    for (let i = right.length - 1; i >= 0; i--) { const r = right[i]; if (r) g.lineTo(r[0], r[1]); }
     g.closePath();
   };
   // vertical gradient: dark olive root → mid green → lighter yellow-green tip
   const grad = g.createLinearGradient(0, ry, 0, ry - height);
-  const rootC = `rgb(${60 + hue * 6},${70 + hue * 4},${26})`;
+  const rootC = `rgb(${60 + hue * 6},${70 + hue * 4},26)`;
   const midC = `rgb(${112 + hue * 16},${138 + hue * 8},${46 + hue * 5})`;
   const tipC = `rgb(${164 + hue * 20},${172 + hue * 10},${74 + hue * 8})`;
   grad.addColorStop(0, rootC); grad.addColorStop(0.45, midC); grad.addColorStop(1, tipC);
@@ -525,12 +534,14 @@ function drawBlade(g: CanvasRenderingContext2D, rx: number, ry: number, bendX: n
   g.globalAlpha = 1;
   path(); g.fill();
   // midrib highlight
-  g.strokeStyle = `rgba(${185 + hue * 20},${196},${104},0.5)`;
+  g.strokeStyle = `rgba(${185 + hue * 20},196,104,0.5)`;
   g.lineWidth = Math.max(1, w0 * 0.22);
   g.lineCap = 'round';
   g.beginPath();
   for (let i = 0; i <= steps; i++) {
-    const x = (left[i][0] + right[i][0]) / 2 + (i % 2 ? 0.3 : -0.3), y = (left[i][1] + right[i][1]) / 2;
+    const l = left[i], r = right[i];
+    if (!l || !r) continue;
+    const x = (l[0] + r[0]) / 2 + (i % 2 ? 0.3 : -0.3), y = (l[1] + r[1]) / 2;
     if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
   }
   g.stroke();
@@ -538,6 +549,6 @@ function drawBlade(g: CanvasRenderingContext2D, rx: number, ry: number, bendX: n
   g.strokeStyle = `rgba(30,40,12,${0.35 + rng.next() * 0.2})`;
   g.lineWidth = 1.2;
   g.beginPath();
-  for (let i = 0; i <= steps * 0.8; i++) { const [x, y] = right[i]; if (i === 0) g.moveTo(x, y); else g.lineTo(x, y); }
+  for (let i = 0; i <= steps * 0.8; i++) { const r = right[i]; if (!r) continue; const [x, y] = r; if (i === 0) g.moveTo(x, y); else g.lineTo(x, y); }
   g.stroke();
 }

@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import type { Sky } from '../world/Sky';
-import { fixIBL } from './Crossbow';
-import type { Crossbow } from './Crossbow';
+import { fixIBL, isMesh, type Crossbow } from './Crossbow';
 
 /**
  * Weapon skins — the legendary drops (art/skin-*.png). A skin restyles the EXISTING crossbow / AR-15 model: the
@@ -89,7 +88,7 @@ export const SKINS: Record<SkinId, SkinDef> = {
 
 /** the skin a kill of (kind, variant) drops, if any */
 export function skinFor(kind: string, variant: string | undefined): SkinDef | null {
-  for (const s of Object.values(SKINS)) if (s.dropsFrom && s.dropsFrom.kind === kind && s.dropsFrom.variant === variant) return s;
+  for (const s of Object.values(SKINS)) if (s.dropsFrom?.kind === kind && s.dropsFrom.variant === variant) return s;
   return null;
 }
 
@@ -122,7 +121,7 @@ function cloneWith(orig: THREE.Material, o: MatOverride, group: string, sky: Sky
 }
 
 /** Restyle `root` (a viewmodel or a display copy) as `skin`; a different skin on the same root swaps cleanly. */
-export function applySkin(root: THREE.Object3D, skin: SkinDef, sky: Sky) {
+export function applySkin(root: THREE.Object3D, skin: SkinDef, sky: Sky): void {
   const prev = STATE.get(root);
   if (prev?.id === skin.id) return;
   if (prev) clearSkin(root);
@@ -134,8 +133,8 @@ export function applySkin(root: THREE.Object3D, skin: SkinDef, sky: Sky) {
     if (!c) { c = cloneWith(mat, o, group, sky); state.clones.set(mat.name, c); }
     return c;
   };
-  root.traverse((obj) => {
-    const mesh = obj as THREE.Mesh; if (!mesh.isMesh) return;
+  root.traverse((mesh) => {
+    if (!isMesh(mesh)) return;
     const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     if (!mats.some((m) => skin.mats[m.name])) return;
     state.originals.set(mesh, mesh.material);
@@ -145,16 +144,16 @@ export function applySkin(root: THREE.Object3D, skin: SkinDef, sky: Sky) {
     state.extras = skin.extras(root, (n) => state.clones.get(n));
     // extras inherit the root's render flags (a viewmodel draws in the transparent queue after a depth clear)
     const sample = [...state.originals.keys()][0];
-    for (const e of state.extras) e.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh && sample) { m.renderOrder = sample.renderOrder; m.frustumCulled = sample.frustumCulled; m.castShadow = sample.castShadow; m.receiveShadow = sample.receiveShadow; } });
+    for (const e of state.extras) e.traverse((m) => { if (isMesh(m) && sample) { m.renderOrder = sample.renderOrder; m.frustumCulled = sample.frustumCulled; m.castShadow = sample.castShadow; m.receiveShadow = sample.receiveShadow; } });
   }
   STATE.set(root, state);
 }
 
 /** back to the plain weapon */
-export function clearSkin(root: THREE.Object3D) {
+export function clearSkin(root: THREE.Object3D): void {
   const s = STATE.get(root); if (!s) return;
   for (const [mesh, mat] of s.originals) mesh.material = mat;
-  for (const e of s.extras) { e.removeFromParent(); e.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) m.geometry.dispose(); }); }
+  for (const e of s.extras) { e.removeFromParent(); e.traverse((m) => { if (isMesh(m)) m.geometry.dispose(); }); }
   for (const c of s.clones.values()) c.dispose();
   STATE.delete(root);
 }
@@ -169,25 +168,25 @@ export function crossbowDisplayModel(crossbow: Crossbow, sky: Sky): THREE.Group 
   const g = crossbow.model.clone(true); // children keep their local poses (the string legs as they sit at rest); geometry is shared
   g.position.set(0, 0, 0); g.quaternion.identity(); g.scale.setScalar(1); // the viewmodel's 1.35× and camera pose stay behind
   const drop: THREE.Object3D[] = [];
-  g.traverse((obj) => {
-    const m = obj as THREE.Mesh;
-    if (!m.isMesh) return;
+  g.traverse((m) => {
+    if (!isMesh(m)) return;
     const mat = m.material as THREE.Material;
-    if (!mat.name || (mat as THREE.MeshBasicMaterial).colorWrite === false || (!m.visible && mat.name !== 'xbow-bolt')) { drop.push(m); return; } // the depth clearer, hidden effects
+    if (!mat.name || !mat.colorWrite || (!m.visible && mat.name !== 'xbow-bolt')) { drop.push(m); return; } // the depth clearer, hidden effects
     const copy = mat.clone(); copy.name = mat.name; copy.transparent = false; copy.depthWrite = true; // the viewmodel draws in the transparent queue; the drop must not
     fixIBL(copy, 'xbow'); sky.setupMaterial(copy);
     m.material = copy; m.visible = true;
     m.castShadow = true; m.receiveShadow = true; m.renderOrder = 0; m.frustumCulled = true;
-    m.onBeforeRender = () => {};
+    m.onBeforeRender = () => { /* a world copy needs no depth clear */ };
   });
   for (const d of drop) d.removeFromParent();
   // the string legs are posed per frame by the viewmodel (Crossbow.updateString); a copy taken before the first frame has
   // them unit-length at the origin — pose them at rest here: tip → nock, the serving at the nock
   const tipL = new THREE.Vector3(-0.335, 0.004, -0.205), tipR = new THREE.Vector3(0.335, 0.004, -0.205), nock = new THREE.Vector3(0, 0.012, -0.07);
   const legs: THREE.Mesh[] = []; let serving: THREE.Mesh | undefined;
-  g.traverse((obj) => {
-    const m = obj as THREE.Mesh; if (!m.isMesh || (m.material as THREE.Material).name !== 'xbow-cord') return;
-    const bb = m.geometry.boundingBox ?? (m.geometry.computeBoundingBox(), m.geometry.boundingBox!);
+  g.traverse((m) => {
+    if (!isMesh(m) || (m.material as THREE.Material).name !== 'xbow-cord') return;
+    if (m.geometry.boundingBox === null) m.geometry.computeBoundingBox();
+    const bb = m.geometry.boundingBox; if (bb === null) return;
     const sz = bb.max.clone().sub(bb.min);
     if (Math.abs(sz.y - 1) < 0.01) legs.push(m); else if (sz.x < 0.07 && sz.x > 0.04 && sz.y < 0.01) serving = m;
   });
@@ -208,7 +207,7 @@ function antlerTines(root: THREE.Object3D, mat: THREE.Material | undefined): THR
   const curve = new THREE.CatmullRomCurve3([tipL, new THREE.Vector3(-0.2, 0.002, -0.275), new THREE.Vector3(0, 0, -0.305), new THREE.Vector3(0.2, 0.002, -0.275), tipR], false, 'catmullrom', 0.5);
   const group = new THREE.Group(); group.name = 'skin-antlers';
   const cone = new THREE.ConeGeometry(1, 1, 7, 1); cone.translate(0, 0.5, 0); // unit tine, base at the origin, pointing +Y
-  cone.setAttribute('color', new THREE.Float32BufferAttribute(new Array(cone.getAttribute('position').count * 3).fill(1), 3)); // in case the material reads vertex colours
+  cone.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(cone.getAttribute('position').count * 3).fill(1), 3)); // in case the material reads vertex colours
   const tines: [number, number, number, number][] = [ // [t along the limb, length, lean back (rad), lean out (rad)]
     [0.02, 0.085, 0.55, -0.35], [0.1, 0.07, 0.35, -0.2], [0.2, 0.06, 0.15, 0], [0.31, 0.045, 0.05, 0.15],
   ];
@@ -246,13 +245,13 @@ export class SkinLocker {
     try {
       const s = JSON.parse(localStorage.getItem(STORE) ?? '{}') as { owned?: SkinId[]; worn?: Partial<Record<WeaponKind, SkinId>> };
       for (const id of s.owned ?? []) if (id in SKINS) this.owned.add(id);
-      for (const [w, id] of Object.entries(s.worn ?? {})) if (id && id in SKINS) this.worn[w as WeaponKind] = id;
+      for (const [w, id] of Object.entries(s.worn ?? {})) if (id in SKINS) this.worn[w as WeaponKind] = id;
     } catch { /* defaults */ }
   }
-  private save() { try { localStorage.setItem(STORE, JSON.stringify({ owned: [...this.owned], worn: this.worn })); } catch { /* not persisted */ } }
-  has(id: SkinId) { return this.owned.has(id); }
-  own(id: SkinId) { if (!this.owned.has(id)) { this.owned.add(id); this.save(); } }
+  private save(): void { try { localStorage.setItem(STORE, JSON.stringify({ owned: [...this.owned], worn: this.worn })); } catch { /* not persisted */ } }
+  has(id: SkinId): boolean { return this.owned.has(id); }
+  own(id: SkinId): void { if (!this.owned.has(id)) { this.owned.add(id); this.save(); } }
   /** the skin `weapon` wears, if any */
   wearing(weapon: WeaponKind): SkinDef | null { const id = this.worn[weapon]; return id ? SKINS[id] : null; }
-  wear(weapon: WeaponKind, id: SkinId | null) { if (id && !this.owned.has(id)) return; if (id) this.worn[weapon] = id; else delete this.worn[weapon]; this.save(); }
+  wear(weapon: WeaponKind, id: SkinId | null): void { if (id && !this.owned.has(id)) return; if (id) this.worn[weapon] = id; else delete this.worn[weapon]; this.save(); }
 }

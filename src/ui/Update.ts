@@ -6,15 +6,16 @@
  */
 declare const __BUILD_ID__: string;
 
-const [gitSha, stamp] = __BUILD_ID__.split('-');
-const sha = gitSha.length >= 7 ? gitSha : stamp; // Vercel CLI builds have no git checkout → show the time token
+/** `<sha>-<stamp>` → the sha, or the time token: Vercel CLI builds have no git checkout */
+const shortBuild = (id: string): string => { const [gitSha = '', stamp = ''] = id.split('-'); return gitSha.length >= 7 ? gitSha : stamp; };
+const sha = shortBuild(__BUILD_ID__);
 const el = document.createElement('button');
 el.className = 'ws-update';
 el.type = 'button';
 el.innerHTML = `<span class="ws-update-dot"></span><span data-el="text">${sha} · reload</span>`;
-document.body.appendChild(el);
+document.body.append(el);
 
-const reload = () => {
+const reload = (): void => {
   // A newer service worker waiting: adopt it (SKIP_WAITING → controllerchange → reload, src/boot/sw.ts).
   // Otherwise cache-bust the document itself; keep ?chunk= and friends.
   if (window.__ws_sw?.waiting) { void window.__ws_sw.adopt(); return; }
@@ -24,34 +25,38 @@ const reload = () => {
 };
 el.addEventListener('click', reload);
 
-const lightUp = (label: string) => {
+let newer = false;
+const lightUp = (label: string): void => {
   newer = true;
   el.classList.add('newer');
-  el.querySelector('[data-el="text"]')!.textContent = `new ${label} · tap to update`;
+  const text = el.querySelector('[data-el="text"]');
+  if (text) text.textContent = `new ${label} · tap to update`;
 };
 // the worker found a new build (installed, waiting) — same pill, no toast
-window.addEventListener('ws-sw-waiting', () => lightUp('build'));
+window.addEventListener('ws-sw-waiting', () => { lightUp('build'); });
 
-let newer = false;
-async function check() {
+async function check(): Promise<void> {
   if (newer) return;
   try {
     const r = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
     if (!r.ok) return;
     const j = (await r.json()) as { build?: string };
-    if (j.build && j.build !== __BUILD_ID__) lightUp(((b) => (b[0].length >= 7 ? b[0] : b[1]))(j.build.split('-')));
+    if (j.build !== undefined && j.build !== '' && j.build !== __BUILD_ID__) lightUp(shortBuild(j.build));
   } catch { /* offline — keep the plain reload pill */ }
 }
-check();
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
+void check();
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void check(); });
 setInterval(check, 5 * 60 * 1000);
 
 // Only show while on the loading / title screen; hide once the player has entered the chunk.
 const hud = document.getElementById('hud');
-const sync = () => {
-  const onTitle = !!document.querySelector('.ws-load') || !!hud?.classList.contains('intro');
+const sync = (): void => {
+  const onTitle = document.querySelector('.ws-load') !== null || (hud?.classList.contains('intro') ?? false);
   el.classList.toggle('visible', onTitle); // menu-only: never over the game view, even when a newer build exists
 };
 sync();
 new MutationObserver(sync).observe(document.body, { childList: true, subtree: false, attributes: true, attributeFilter: ['class'] });
 if (hud) new MutationObserver(sync).observe(hud, { attributes: true, attributeFilter: ['class'] });
+
+// oxlint-disable-next-line unicorn/require-module-specifiers -- side-effect script loaded by index.html: the bare export marks it as a module (import/unambiguous)
+export {};

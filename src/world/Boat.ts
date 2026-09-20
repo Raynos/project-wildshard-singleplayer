@@ -49,7 +49,7 @@ export class Boat {
 
   constructor(private sky: Sky, private spec: BoatSpec) { this.floorY = spec.waterY + 0.32; }
 
-  build() {
+  build(): this {
     const rng = new Rng(SEED ^ 0x0b0a7);
     const parts: THREE.BufferGeometry[] = [];
     const tri = (pos: number[], col: THREE.Color, jitter = 0.07) => {
@@ -64,7 +64,7 @@ export class Boat {
     const add = (g: THREE.BufferGeometry, col: THREE.Color, jitter = 0.07) => {
       g.deleteAttribute('uv'); g.deleteAttribute('normal');
       const ni = g.index ? g.toNonIndexed() : g;
-      const n = ni.attributes.position.count, c = new Float32Array(n * 3);
+      const n = ni.getAttribute('position').count, c = new Float32Array(n * 3);
       for (let i = 0; i < n; i += 3) { const k = 1 - jitter + rng.next() * jitter * 2; for (let j = 0; j < 3; j++) { c[(i + j) * 3] = col.r * k; c[(i + j) * 3 + 1] = col.g * k; c[(i + j) * 3 + 2] = col.b * k; } }
       ni.setAttribute('color', new THREE.BufferAttribute(c, 3));
       parts.push(ni);
@@ -75,14 +75,15 @@ export class Boat {
     const st: { z: number; w: number; top: number; keel: number; chine: number }[] = [];
     for (let i = 0; i <= N; i++) {
       const t = i / N;
-      const bell = Math.sin(Math.PI * Math.pow(t, 0.75));
-      const w = Math.max(0.04, (BEAM / 2) * Math.pow(bell, 0.75) * (t > 0.97 ? 0.7 : 1));
-      st.push({ z: -LENGTH / 2 + t * LENGTH, w, top: 0.72 - 0.22 * Math.sin(Math.PI * t) + (t < 0.15 ? 0.12 : 0), keel: -(0.35 + 0.55 * Math.pow(Math.sin(Math.PI * t), 0.6)), chine: 0.25 });
+      const bell = Math.sin(Math.PI * t ** 0.75);
+      const w = Math.max(0.04, (BEAM / 2) * bell ** 0.75 * (t > 0.97 ? 0.7 : 1));
+      st.push({ z: -LENGTH / 2 + t * LENGTH, w, top: 0.72 - 0.22 * Math.sin(Math.PI * t) + (t < 0.15 ? 0.12 : 0), keel: -(0.35 + 0.55 * Math.sin(Math.PI * t) ** 0.6), chine: 0.25 });
     }
+    const at = (i: number): typeof st[number] => { const v = st[i]; if (v === undefined) throw new Error(`Boat: no station ${i}`); return v; };
     const P = (s: typeof st[number], side: number, k: 'gun' | 'chine' | 'keel'): number[] =>
       k === 'gun' ? [side * s.w, s.top, s.z] : k === 'chine' ? [side * s.w * 0.85, s.chine, s.z] : [0, s.keel, s.z];
     for (let i = 0; i < N; i++) {
-      const a = st[i], b = st[i + 1];
+      const a = at(i), b = at(i + 1);
       for (const side of [-1, 1]) {
         const dark = i % 2 ? C.hullDark : C.hull;
         // upper strake gunwale→chine, lower strake chine→keel (winding flipped per side so both face out)
@@ -99,12 +100,12 @@ export class Boat {
       }
     }
     // transom
-    const s = st[N];
+    const s = at(N);
     quad([s.w, s.top, s.z], [-s.w, s.top, s.z], [0, s.keel, s.z], [0, s.keel, s.z], C.trim);
     quad([-s.w * 0.72, 0.32, s.z], [s.w * 0.72, 0.32, s.z], [s.w, s.top, s.z], [-s.w, s.top, s.z], C.trim);
     // gunwale caps
     for (let i = 0; i < N; i++) {
-      const a = st[i], b = st[i + 1];
+      const a = at(i), b = at(i + 1);
       for (const side of [-1, 1]) {
         const o = 0.09;
         quad([side * (a.w + o), a.top + 0.05, a.z], [side * (b.w + o), b.top + 0.05, b.z], [side * (b.w - o), b.top + 0.05, b.z], [side * (a.w - o), a.top + 0.05, a.z], C.trim, 0.05);
@@ -112,11 +113,11 @@ export class Boat {
     }
     // thwarts (benches)
     for (const t of [0.3, 0.72]) {
-      const i = Math.round(t * N), w = st[i].w * 0.95;
-      add(new THREE.BoxGeometry(w * 2, 0.08, 0.34).translate(0, 0.5, st[i].z), C.floor, 0.05);
+      const station = at(Math.round(t * N)), w = station.w * 0.95;
+      add(new THREE.BoxGeometry(w * 2, 0.08, 0.34).translate(0, 0.5, station.z), C.floor, 0.05);
     }
     // mast, boom, sail
-    const mz = st[3].z, mastH = 5.2;
+    const mz = at(3).z, mastH = 5.2;
     add(new THREE.CylinderGeometry(0.06, 0.085, mastH, 7).translate(0, 0.32 + mastH / 2, mz), C.mast, 0.05);
     add(new THREE.CylinderGeometry(0.045, 0.045, 3.3, 6).rotateX(Math.PI / 2).translate(0, 1.45, mz + 1.65), C.mast, 0.05);
     add(new THREE.CylinderGeometry(0.04, 0.04, 2.2, 6).rotateX(Math.PI / 2).translate(0, 0.32 + mastH - 0.05, mz + 1.1), C.mast, 0.05); // gaff-ish yard
@@ -138,7 +139,7 @@ export class Boat {
     add(new THREE.BoxGeometry(0.06, 1.0, 0.5).translate(0, 0.1, LENGTH / 2 + 0.2), C.trim, 0.05);
     add(new THREE.BoxGeometry(0.05, 0.05, 1.3).translate(0, 0.78, LENGTH / 2 - 0.5), C.mast, 0.05);
 
-    const geo = mergeGeometries(parts, false)!;
+    const geo = mergeGeometries(parts, false);
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.85, metalness: 0, side: THREE.DoubleSide });
     this.sky.setupMaterial(mat);
@@ -155,17 +156,19 @@ export class Boat {
       const cleat = (lz: number): THREE.Vector3 => new THREE.Vector3(this.spec.x + lz * sn, this.spec.waterY + 0.7, this.spec.z + lz * cs);
       const ends = [cleat(-LENGTH / 2 + 0.3), cleat(LENGTH / 2 - 0.3)];
       this.spec.moorTo.slice(0, 2).forEach((post, i) => {
-        const a = ends[i], b = new THREE.Vector3(post.x, this.spec.waterY + 1.9, post.z);
+        const a = ends[i];
+        if (a === undefined) return;
+        const b = new THREE.Vector3(post.x, this.spec.waterY + 1.9, post.z);
         const mid = a.clone().lerp(b, 0.5); mid.y -= 0.35; // sag
         const curve = new THREE.QuadraticBezierCurve3(a, mid, b);
         const g = new THREE.TubeGeometry(curve, 8, 0.03, 4, false);
         g.deleteAttribute('uv'); g.deleteAttribute('normal');
-        const ni = g.toNonIndexed(); const n = ni.attributes.position.count, c = new Float32Array(n * 3);
+        const ni = g.toNonIndexed(); const n = ni.getAttribute('position').count, c = new Float32Array(n * 3);
         for (let k = 0; k < n; k++) { c[k * 3] = C.rope.r; c[k * 3 + 1] = C.rope.g; c[k * 3 + 2] = C.rope.b; }
         ni.setAttribute('color', new THREE.BufferAttribute(c, 3));
         ropeParts.push(ni);
       });
-      const ropes = new THREE.Mesh(mergeGeometries(ropeParts, false)!, mat);
+      const ropes = new THREE.Mesh(mergeGeometries(ropeParts, false), mat);
       ropes.castShadow = true;
       this.ropes = ropes;
     }
@@ -191,7 +194,7 @@ export class Boat {
     return this.floorY;
   }
 
-  update(dt: number) {
+  update(dt: number): void {
     this.t += dt;
     const g = this.group;
     g.position.y = this.spec.waterY + Math.sin(this.t * 0.9) * 0.05 + Math.sin(this.t * 1.7 + 1) * 0.02;

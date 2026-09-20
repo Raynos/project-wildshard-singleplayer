@@ -25,7 +25,7 @@ import { heightAt } from '../world/Heightfield';
 import { AnimalManager } from '../entities/AnimalManager';
 import { Enemies } from '../entities/Enemies';
 
-if (!new URLSearchParams(location.search).has('chunk')) { location.search += (location.search ? '&' : '?') + 'chunk=driftwood-isle'; }
+if (!new URLSearchParams(location.search).has('chunk')) { location.search += `${location.search ? '&' : '?'}chunk=driftwood-isle`; }
 
 const world = await bootstrap();
 const { game, sky, forest, player, chunk, params } = world;
@@ -86,14 +86,14 @@ if (at && PRESETS[at]) {
   player.pitch = p.pitch;
   if (p.deck) { const y = wreck.floorHeightAt(p.x, p.z); if (y !== undefined) player.position.y = y; }
 }
-if (params.has('wake')) { const s = animals.animals.find((a) => a.kind === 'sailor'); if (s) { s.mem.st = 1; s.mem.rising = 1; s.state = 'rise'; } }
+if (params.has('wake')) { const s = animals.animals.find((a) => a.kind === 'sailor'); if (s) { s.mem['st'] = 1; s.mem['rising'] = 1; s.state = 'rise'; } }
 
 let coconutT = 0;
 game.onUpdate((dt, t) => {
   ocean?.update(dt); boat.update(dt); palms.update(dt); boundary.update(dt, t); horizon.update(dt, game.camera); cove.update(dt); shrine.update(dt);
   animals.update(dt, t, player.position, player.sprinting);
   enemies.update(dt, t, player.position);
-  if (params.has('coconut')) { coconutT += dt; if (coconutT > 2) { coconutT = 0; for (const a of animals.animals) if (a.kind === 'monkey' && a.alive) { a.mem.st = 2; a.mem.bite = 0; a.mem.hit = 0; a.startAttack(1.0); } } }
+  if (params.has('coconut')) { coconutT += dt; if (coconutT > 2) { coconutT = 0; for (const a of animals.animals) if (a.kind === 'monkey' && a.alive) { a.mem['st'] = 2; a.mem['bite'] = 0; a.mem['hit'] = 0; a.startAttack(1.0); } } }
 });
 
 // click = a blow

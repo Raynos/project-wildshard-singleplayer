@@ -35,7 +35,7 @@ export class Wreck {
 
   constructor(private sky: Sky, private spec: WreckSpec) {}
 
-  build() {
+  build(): this {
     const rng = new Rng(SEED ^ 0x3ec4);
     const parts: THREE.BufferGeometry[] = [];
     const ground = heightAt(this.spec.x, this.spec.z);
@@ -56,7 +56,7 @@ export class Wreck {
     const add = (g: THREE.BufferGeometry, col: THREE.Color, jitter = 0.07, local = true) => {
       g.deleteAttribute('uv'); g.deleteAttribute('normal');
       const ni = g.index ? g.toNonIndexed() : g;
-      const n = ni.attributes.position.count, c = new Float32Array(n * 3);
+      const n = ni.getAttribute('position').count, c = new Float32Array(n * 3);
       for (let i = 0; i < n; i += 3) { const k = 1 - jitter + rng.next() * jitter * 2; for (let j = 0; j < 3; j++) { c[(i + j) * 3] = col.r * k; c[(i + j) * 3 + 1] = col.g * k; c[(i + j) * 3 + 2] = col.b * k; } }
       ni.setAttribute('color', new THREE.BufferAttribute(c, 3));
       if (local) ni.applyMatrix4(this.m);
@@ -67,9 +67,10 @@ export class Wreck {
     const N = 12, rows = 5;
     const st: { z: number; w: number; top: number }[] = [];
     for (let i = 0; i <= N; i++) {
-      const t = i / N, bell = Math.sin(Math.PI * Math.pow(t, 0.7));
-      st.push({ z: -LENGTH / 2 + t * LENGTH, w: Math.max(0.15, (BEAM / 2) * Math.pow(bell, 0.6) * (t > 0.95 ? 0.75 : 1)), top: 0.4 + 0.9 * (1 - Math.sin(Math.PI * t)) * (t < 0.5 ? 1.2 : 0.6) });
+      const t = i / N, bell = Math.sin(Math.PI * t ** 0.7);
+      st.push({ z: -LENGTH / 2 + t * LENGTH, w: Math.max(0.15, (BEAM / 2) * bell ** 0.6 * (t > 0.95 ? 0.75 : 1)), top: 0.4 + 0.9 * (1 - Math.sin(Math.PI * t)) * (t < 0.5 ? 1.2 : 0.6) });
     }
+    const at = (i: number): typeof st[number] => { const v = st[i]; if (v === undefined) throw new Error(`Wreck: no station ${i}`); return v; };
     const P = (s: typeof st[number], side: number, row: number): number[] => {
       const u = row / rows;                                   // 0 gunwale → 1 keel
       const w = s.w * (1 - u * u * 0.95), y = s.top - DEPTH * u * (0.55 + 0.45 * u);
@@ -81,17 +82,17 @@ export class Wreck {
       const hole = (side < 0 && t > 0.55 && t < 0.8 && r >= 1 && r <= 3) || (side > 0 && t > 0.2 && t < 0.32 && r >= 2 && r <= 3);
       if (hole && rng.next() < 0.85) continue;
       const col = r === 0 ? C.hullDark : rng.next() < 0.25 ? C.hullGrey : C.hull;
-      const a = P(st[i], side, r), b = P(st[i + 1], side, r), c = P(st[i + 1], side, r + 1), d = P(st[i], side, r + 1);
+      const a = P(at(i), side, r), b = P(at(i + 1), side, r), c = P(at(i + 1), side, r + 1), d = P(at(i), side, r + 1);
       if (side < 0) quad(a, b, c, d, col); else quad(b, a, d, c, col);
     }
     // transom
-    { const s = st[N]; quad(P(s, 1, 0), P(s, -1, 0), P(s, -1, rows), P(s, 1, rows), C.hullDark); }
+    { const s = at(N); quad(P(s, 1, 0), P(s, -1, 0), P(s, -1, rows), P(s, 1, rows), C.hullDark); }
     // keel beam + stem
     add(new THREE.BoxGeometry(0.3, 0.35, LENGTH + 0.6).translate(0, -DEPTH + 0.1, 0), C.hullDark, 0.05);
     add(new THREE.BoxGeometry(0.28, DEPTH + 1.2, 0.3).translate(0, -DEPTH / 2 + 0.7, -LENGTH / 2 - 0.1), C.hullDark, 0.05);
     // ── deck at the gunwale line, planks along the length, some missing ──
     for (let i = 0; i < N; i++) {
-      const a = st[i], b = st[i + 1];
+      const a = at(i), b = at(i + 1);
       const nPl = 9;
       for (let k = 0; k < nPl; k++) {
         const u0 = -1 + (2 * k) / nPl, u1 = -1 + (2 * (k + 1)) / nPl - 0.04;
@@ -102,19 +103,19 @@ export class Wreck {
     }
     // bulwark rail
     for (let i = 0; i < N; i++) for (const side of [-1, 1]) {
-      const a = st[i], b = st[i + 1];
+      const a = at(i), b = at(i + 1);
       if (side < 0 && i > 6 && i < 9) continue; // rail smashed where the hull is holed
       quad([side * (a.w + 0.1), a.top + 0.1, a.z], [side * (b.w + 0.1), b.top + 0.1, b.z], [side * (b.w - 0.12), b.top + 0.1, b.z], [side * (a.w - 0.12), a.top + 0.1, a.z], C.hullDark, 0.05);
     }
     // ── masts: foremast broken off at 3 m; mainmast leaning aft with a yard, a tattered sail and stays ──
-    const fz = st[3].z, mz = st[7].z;
-    add(new THREE.CylinderGeometry(0.16, 0.2, 3.2, 7).translate(0, st[3].top + 1.6, fz), C.mast, 0.05);
-    add(new THREE.CylinderGeometry(0.14, 0.17, 1.0, 7).rotateX(0.9).translate(0.2, st[3].top + 3.2, fz + 0.5), C.mast, 0.05); // splintered top hanging
+    const s3 = at(3), s7 = at(7), fz = s3.z, mz = s7.z;
+    add(new THREE.CylinderGeometry(0.16, 0.2, 3.2, 7).translate(0, s3.top + 1.6, fz), C.mast, 0.05);
+    add(new THREE.CylinderGeometry(0.14, 0.17, 1.0, 7).rotateX(0.9).translate(0.2, s3.top + 3.2, fz + 0.5), C.mast, 0.05); // splintered top hanging
     {
       const h = 12, lean = -0.18;
-      const g = new THREE.CylinderGeometry(0.12, 0.22, h, 7); g.rotateX(lean); g.translate(0, st[7].top + Math.cos(lean) * h / 2, mz + Math.sin(-lean) * h / 2 * -1);
+      const g = new THREE.CylinderGeometry(0.12, 0.22, h, 7); g.rotateX(lean); g.translate(0, s7.top + Math.cos(lean) * h / 2, mz + Math.sin(-lean) * h / 2 * -1);
       add(g, C.mast, 0.05);
-      const yardY = st[7].top + 7.5, yardZ = mz + 7.5 * Math.tan(lean);
+      const yardY = s7.top + 7.5, yardZ = mz + 7.5 * Math.tan(lean);
       add(new THREE.CylinderGeometry(0.07, 0.07, 6.0, 6).rotateZ(Math.PI / 2).rotateY(0.15).translate(0, yardY, yardZ), C.mast, 0.05);
       // tattered sail: a quad strip hanging from the yard, ragged lower edge, torn in two
       const cols = 8, rowsS = 5, w = 5.6, drop = 4.2;
@@ -129,13 +130,13 @@ export class Wreck {
         quad(pt(u0, frac0), pt(u1, frac0), pt(u1, Math.min(frac1, rag(u1))), pt(u0, Math.min(frac1, rag(u0))), r % 2 ? C.sail : C.sailDark, 0.05);
       }
       // stays and shrouds as thin boxes
-      for (const [x0, z0] of [[-BEAM / 2 + 0.3, mz - 1], [BEAM / 2 - 0.3, mz - 1], [0, -LENGTH / 2 + 0.4], [0, LENGTH / 2 - 0.6]]) {
-        const top = new THREE.Vector3(0, st[7].top + 10.5, mz + 10.5 * Math.tan(lean)), bot = new THREE.Vector3(x0, st[7].top + 0.2, z0);
-        const len = top.distanceTo(bot), g = new THREE.BoxGeometry(0.04, len, 0.04);
-        g.translate(0, len / 2, 0);
+      for (const [x0, z0] of [[-BEAM / 2 + 0.3, mz - 1], [BEAM / 2 - 0.3, mz - 1], [0, -LENGTH / 2 + 0.4], [0, LENGTH / 2 - 0.6]] as const) {
+        const top = new THREE.Vector3(0, s7.top + 10.5, mz + 10.5 * Math.tan(lean)), bot = new THREE.Vector3(x0, s7.top + 0.2, z0);
+        const len = top.distanceTo(bot), stay = new THREE.BoxGeometry(0.04, len, 0.04);
+        stay.translate(0, len / 2, 0);
         const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), top.clone().sub(bot).normalize());
-        g.applyQuaternion(q); g.translate(bot.x, bot.y, bot.z);
-        add(g, C.rope, 0.04);
+        stay.applyQuaternion(q); stay.translate(bot.x, bot.y, bot.z);
+        add(stay, C.rope, 0.04);
       }
     }
     // ── colliders: the hull as a box (walkable deck from above) ──
@@ -160,7 +161,7 @@ export class Wreck {
       strew(new THREE.CylinderGeometry(0.14, 0.22, len, 5).rotateZ(Math.PI / 2).rotateX(rng.range(-0.1, 0.1)), C.drift, Math.cos(a) * d, Math.sin(a) * d, 0.1, rng.range(0, Math.PI));
     }
 
-    const geo = mergeGeometries(parts, false)!;
+    const geo = mergeGeometries(parts, false);
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
     this.sky.setupMaterial(mat);

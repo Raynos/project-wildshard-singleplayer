@@ -5,7 +5,7 @@
  * crossbow so the front third shows at the bottom of the frame; leans with lateral velocity, pitches with
  * acceleration, sinks/rises with the ride-height spring, fades in/out over 0.25 s when the mode toggles.
  *
- *   const board = new Hoverboard(camera);   // Player constructs it
+ *   const board = new Hoverboard(camera, HOVER_TOP);   // Player constructs it (`top`: the cruise speed the repulsor glow scales against)
  *   board.update(dt, player);               // from Player.update(), every frame
  *
  * Lit by the scene's lights (MeshStandardMaterial, emissive so it reads even unlit — the Player has no `sky` for
@@ -13,12 +13,12 @@
  */
 import * as THREE from 'three';
 import type { Player } from './Player';
-import { HOVER_TOP } from './Player';
+import { isMesh } from './Crossbow';
 
 const CYAN = 0x8fe3ff;
 const LEN = 0.9, WID = 0.28, THICK = 0.032;
 
-function roundedRect(w: number, h: number, r: number) {
+function roundedRect(w: number, h: number, r: number): THREE.Shape {
   const s = new THREE.Shape();
   const x = -w / 2, y = -h / 2;
   s.moveTo(x + r, y);
@@ -37,7 +37,7 @@ export class Hoverboard {
   private pulse: THREE.MeshStandardMaterial;
   private glow: THREE.MeshBasicMaterial;
 
-  constructor(private camera: THREE.PerspectiveCamera) {
+  constructor(private camera: THREE.PerspectiveCamera, private top: number) {
     const g = this.model;
     // deck: rounded plank, extruded in XY then laid flat (length along −z = camera forward)
     const deckShape = roundedRect(WID, LEN, 0.11);
@@ -75,17 +75,16 @@ export class Hoverboard {
     clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
     g.add(clearer);
     g.traverse((o) => {
-      const m = o as THREE.Mesh;
-      if (!m.isMesh || o === clearer) return;
-      m.frustumCulled = false; m.castShadow = false; m.receiveShadow = true; m.renderOrder = 1000;
-      const mat = m.material as THREE.Material;
+      if (!isMesh(o) || o === clearer) return;
+      o.frustumCulled = false; o.castShadow = false; o.receiveShadow = true; o.renderOrder = 1000;
+      const mat = o.material as THREE.Material;
       mat.transparent = true; if (mat !== this.glow) mat.depthWrite = true;
     });
     g.visible = false;
     camera.add(g);
   }
 
-  update(dt: number, p: Player) {
+  update(dt: number, p: Player): void {
     const on = p.hover;
     this.blend += ((on ? 1 : 0) - this.blend) * Math.min(1, dt / 0.25 * 3.5); // ~0.25 s
     if (this.blend < 0.005 && !on) { this.model.visible = false; return; }
@@ -119,7 +118,7 @@ export class Hoverboard {
     this.model.scale.setScalar(s * (1 - port * 0.1));
 
     // repulsors breathe; brighter with speed
-    const sp = Math.hypot(p.velocity.x, p.velocity.z) / HOVER_TOP;
+    const sp = Math.hypot(p.velocity.x, p.velocity.z) / this.top;
     const flash = this.kick * this.kick * 3 + this.land * 1.5; // repulsors flare on launch and on touchdown
     this.pulse.emissiveIntensity = 1.8 + Math.sin(this.t * 6) * 0.25 + sp * 1.2 + flash;
     this.glow.opacity = Math.min(1, (0.28 + Math.sin(this.t * 9) * 0.06 + sp * 0.25 + flash * 0.15) * this.blend);

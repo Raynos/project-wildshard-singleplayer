@@ -93,11 +93,11 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
       R -= smoothstep(1 - COVE.width, 0.995, Math.cos(ang - COVE.ang)) * COVE.depth; // Wreck Cove bitten out of the east shore
       const m = R - r;
       const sea = OCEAN.level;
-      let h: number;
       // the shelf and the beach keep a real slope through the water line (a smoothstep there would flatten
       // the shallows into a 20 m wide foam sheet)
-      if (m < 0) h = -5.0 + Math.pow(clamp(1 + m / 70, 0, 1), 1.6) * (sea + 5.0);           // shelf up to the water line
-      else h = sea + Math.pow(clamp(m / 26, 0, 1), 0.85) * 1.8 + smoothstep(20, 90, m) * 3.6; // beach, then the grassy interior
+      let h = m < 0
+        ? -5.0 + clamp(1 + m / 70, 0, 1) ** 1.6 * (sea + 5.0)                              // shelf up to the water line
+        : sea + clamp(m / 26, 0, 1) ** 0.85 * 1.8 + smoothstep(20, 90, m) * 3.6;            // beach, then the grassy interior
       h += n.fbm(x * 0.04, z * 0.04, 2) * 0.25 * smoothstep(-10, 15, m);       // small dune / ground bumps on land
       // the hut plateau: a flat-topped crag with a craggy (noise-warped) rim and a gentler ramp on the south side
       {

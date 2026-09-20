@@ -5,7 +5,7 @@ import type { Sky } from './Sky';
 import { TIER_CONFIG } from '../core/tier';
 
 /** Mark a group/mesh so the pond's planar reflection skips it (grass, undergrowth, particles, twigs …). */
-export function noReflect(o: THREE.Object3D) { o.userData.noReflect = true; }
+export function noReflect(o: THREE.Object3D): void { o.userData['noReflect'] = true; }
 
 /**
  * Still forest pond with a real planar reflection (mirrored camera + oblique clip plane,
@@ -33,11 +33,11 @@ export class Water {
 
   constructor(private sky: Sky) {}
 
-  build() {
+  build(): this {
     const size = POND.r * 2 + 30, segs = 64;
     const geo = new THREE.PlaneGeometry(size, size, segs, segs);
     geo.rotateX(-Math.PI / 2);
-    const pos = geo.attributes.position as THREE.BufferAttribute;
+    const pos = geo.getAttribute('position');
     const depth = new Float32Array(pos.count);
     const wl = waterLevel();
     for (let i = 0; i < pos.count; i++) depth[i] = wl - heightAt(pos.getX(i) + POND.x, pos.getZ(i) + POND.z);
@@ -106,7 +106,7 @@ export class Water {
     return this;
   }
 
-  update(dt: number) { this.uniforms.uTime.value += dt; }
+  update(dt: number): void { this.uniforms.uTime.value += dt; }
 
   private renderReflection(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera) {
     const v = this.v;
@@ -147,7 +147,7 @@ export class Water {
     // the reflection is rippled and half-res: the carpet layers (grass, ferns, litter, twigs, motes) only cost
     if (this.skipCount !== scene.children.length) {
       this.skipCount = scene.children.length; this.skipList.length = 0;
-      for (const o of scene.children) { if (o.userData.noReflect) this.skipList.push(o); else for (const c of o.children) if (c.userData.noReflect) this.skipList.push(c); }
+      for (const o of scene.children) { if (o.userData['noReflect'] === true) this.skipList.push(o); else for (const c of o.children) if (c.userData['noReflect'] === true) this.skipList.push(c); }
     }
     this.hidden.length = 0;
     for (const o of this.skipList) if (o.visible) { o.visible = false; this.hidden.push(o); }
@@ -171,7 +171,8 @@ export class Water {
 function makeWaterNormal() {
   const N = 256;
   const c = document.createElement('canvas'); c.width = c.height = N;
-  const g = c.getContext('2d')!;
+  const g = c.getContext('2d');
+  if (!g) throw new Error('[water] no 2d canvas context');
   const img = g.createImageData(N, N);
   const h = (x: number, y: number) => {
     const u = (x / N) * Math.PI * 2, v = (y / N) * Math.PI * 2;

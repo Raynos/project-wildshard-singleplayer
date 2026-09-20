@@ -21,7 +21,7 @@ export interface AimTarget {
   dims?: { bodyY?: number; bodyRadius?: number; bodyHalfLen?: number };
 }
 
-let targets: ReadonlyArray<AimTarget> = [];
+let targets: readonly AimTarget[] = [];
 
-export function setAimTargets(list: ReadonlyArray<AimTarget>): void { targets = list; }
-export function getAimTargets(): ReadonlyArray<AimTarget> { return targets; }
+export function setAimTargets(list: readonly AimTarget[]): void { targets = list; }
+export function getAimTargets(): readonly AimTarget[] { return targets; }

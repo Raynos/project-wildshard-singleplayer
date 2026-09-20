@@ -6,7 +6,7 @@ import type { Player } from '../player/Player';
 import type { Forest } from '../world/Forest';
 import type { Targets, ImpactSurface } from './Crossbow';
 import type { Weapon, WeaponState, AimInfo } from './Weapon';
-import { REST, CHARGE, SPRINT, COMBO, HEAVY, type Move } from './SwordMoves';
+import { REST, CHARGE, SPRINT, COMBO, SLASH, HEAVY, type Move } from './SwordMoves';
 
 /**
  * Sword — the Driftwood Isle melee weapon (`ChunkDef.weapon === 'sword'`): a low-poly wooden sword (pale carved blade
@@ -69,7 +69,7 @@ function fovForAspect(base: number, aspect: number) {
   if (aspect >= 1) return base;
   return THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(base) / 2) / Math.sqrt(aspect)));
 }
-const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
+const clamp01 = (v: number) => (v < 0 ? 0 : Math.min(1, v));
 const sstep = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 const easeOut = (t: number) => 1 - (1 - t) * (1 - t);
 const easeIn = (t: number) => t * t;
@@ -103,9 +103,12 @@ function paint(g: THREE.BufferGeometry, col: THREE.Color, jitter = 0.05, seed = 
 function loft(rings: THREE.Vector3[][]): THREE.BufferGeometry {
   const pos: number[] = [];
   for (let r = 0; r < rings.length - 1; r++) {
-    const a = rings[r], b = rings[r + 1], n = a.length;
+    const a = rings[r], b = rings[r + 1];
+    if (a === undefined || b === undefined) continue;
+    const n = a.length;
     for (let i = 0; i < n; i++) {
       const a0 = a[i], a1 = a[(i + 1) % n], b0 = b[i], b1 = b[(i + 1) % n];
+      if (a0 === undefined || a1 === undefined || b0 === undefined || b1 === undefined) continue;
       pos.push(a0.x, a0.y, a0.z, a1.x, a1.y, a1.z, b1.x, b1.y, b1.z);
       pos.push(a0.x, a0.y, a0.z, b1.x, b1.y, b1.z, b0.x, b0.y, b0.z);
     }
@@ -114,18 +117,18 @@ function loft(rings: THREE.Vector3[][]): THREE.BufferGeometry {
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   return g;
 }
-/** diamond cross-section ring at height y: half-width w along X (the edges), half-thickness t along Z (the flats) */
-const diamond = (y: number, w: number, t: number) => [new THREE.Vector3(w, y, 0), new THREE.Vector3(0, y, t), new THREE.Vector3(-w, y, 0), new THREE.Vector3(0, y, -t)];
 /** hexagonal blade section: two edges + two flats, so the flat reads as one facet and the edges as bevels */
 const hexSection = (y: number, w: number, t: number, flat = 0.5) => [
   new THREE.Vector3(w, y, 0), new THREE.Vector3(w * flat, y, t), new THREE.Vector3(-w * flat, y, t), new THREE.Vector3(-w, y, 0), new THREE.Vector3(-w * flat, y, -t), new THREE.Vector3(w * flat, y, -t),
 ];
 const ring = (y: number, r: number, n: number, rot = 0) => { const out: THREE.Vector3[] = []; for (let i = 0; i < n; i++) { const a = rot + (i / n) * Math.PI * 2; out.push(new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r)); } return out; };
 const cap = (ringV: THREE.Vector3[], up: boolean) => { // fan cap over a ring
-  const pos: number[] = []; const n = ringV.length; const cx = ringV.reduce((s, v) => s + v.x, 0) / n, cy = ringV[0].y, cz = ringV.reduce((s, v) => s + v.z, 0) / n;
-  for (let i = 0; i < n; i++) { const a = ringV[i], b = ringV[(i + 1) % n]; if (up) pos.push(cx, cy, cz, a.x, a.y, a.z, b.x, b.y, b.z); else pos.push(cx, cy, cz, b.x, b.y, b.z, a.x, a.y, a.z); }
+  const pos: number[] = []; const n = ringV.length; const cx = ringV.reduce((s, v) => s + v.x, 0) / n, cy = ringV[0]?.y ?? 0, cz = ringV.reduce((s, v) => s + v.z, 0) / n;
+  for (let i = 0; i < n; i++) { const a = ringV[i], b = ringV[(i + 1) % n]; if (a === undefined || b === undefined) continue; if (up) pos.push(cx, cy, cz, a.x, a.y, a.z, b.x, b.y, b.z); else pos.push(cx, cy, cz, b.x, b.y, b.z, a.x, a.y, a.z); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); return g;
 };
+/** ring `i` of a lofted stack (build-time only: every stack below is literal, so a miss is a programming error) */
+const ringAt = (rings: THREE.Vector3[][], i: number): THREE.Vector3[] => { const r = rings[i]; if (r === undefined) throw new Error(`Sword: no ring ${i}`); return r; };
 function xform(g: THREE.BufferGeometry, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, s = 1) {
   if (s !== 1) g.scale(s, s, s);
   if (rx || ry || rz) g.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(rx, ry, rz)));
@@ -162,7 +165,7 @@ function buildSword(blade: 'wood' | 'iron'): { sword: THREE.BufferGeometry; arms
   rings.push(hexSection(tipY, 0.0005, 0.0003)); // rounded tip: collapses to a point over the last two rings
   const bladeCol = blade === 'iron' ? lin(0xc9ccd2) : C.blade;
   parts.push(paint(loft(rings), bladeCol, 0.045, 3));
-  parts.push(paint(cap(rings[0], false), bladeCol, 0, 4));
+  parts.push(paint(cap(ringAt(rings, 0), false), bladeCol, 0, 4));
   // ── guard: a plain bar, a touch thicker in the middle, ends knocked off ──
   const gw = 0.20, gh = 0.028, gd = 0.042;
   const gr = [
@@ -172,7 +175,7 @@ function buildSword(blade: 'wood' | 'iron'): { sword: THREE.BufferGeometry; arms
     [new THREE.Vector3(-gw / 2 + 0.012, guardY + gh / 2, -gd / 2 + 0.008), new THREE.Vector3(gw / 2 - 0.012, guardY + gh / 2, -gd / 2 + 0.008), new THREE.Vector3(gw / 2 - 0.012, guardY + gh / 2, gd / 2 - 0.008), new THREE.Vector3(-gw / 2 + 0.012, guardY + gh / 2, gd / 2 - 0.008)],
   ];
   const guardCol = blade === 'iron' ? lin(0x4a4a50) : C.guard;
-  parts.push(paint(loft(gr), guardCol, 0.05, 5)); parts.push(paint(cap(gr[3], true), guardCol, 0, 6)); parts.push(paint(cap(gr[0], false), guardCol, 0, 7));
+  parts.push(paint(loft(gr), guardCol, 0.05, 5)); parts.push(paint(cap(ringAt(gr, 3), true), guardCol, 0, 6)); parts.push(paint(cap(ringAt(gr, 0), false), guardCol, 0, 7));
   // ── grip: octagonal leather core with three raised wrap bands; a short wooden tang collar under the guard ──
   parts.push(paint(loft([ring(-0.075, 0.0165, 8, 0.2), ring(guardY - 0.013, 0.0175, 8, 0.2)]), C.grip, 0.06, 8));
   for (const y of [-0.055, -0.012, 0.031]) {
@@ -180,7 +183,7 @@ function buildSword(blade: 'wood' | 'iron'): { sword: THREE.BufferGeometry; arms
   }
   // ── pommel: a squat six-sided knob ──
   const pr = [ring(-0.078, 0.014, 6, 0.3), ring(-0.088, 0.024, 6, 0.3), ring(-0.104, 0.024, 6, 0.3), ring(-0.112, 0.013, 6, 0.3)];
-  parts.push(paint(loft(pr), C.pommel, 0.06, 10)); parts.push(paint(cap(pr[3], false), C.pommel, 0, 11));
+  parts.push(paint(loft(pr), C.pommel, 0.06, 10)); parts.push(paint(cap(ringAt(pr, 3), false), C.pommel, 0, 11));
   // ── hands: two fists stacked on the grip (right hand above, left below), thumbs over the top toward the blade ──
   for (const [y, seed, upper] of [[0.037, 12, true], [-0.031, 13, false]] as [number, number, boolean][]) {
     const ry = upper ? 0.18 : -0.14;
@@ -205,7 +208,7 @@ function buildSword(blade: 'wood' | 'iron'): { sword: THREE.BufferGeometry; arms
   };
   arm(0.01, new THREE.Vector3(0.78, -0.56, 0.28), 30);   // right arm (upper fist): out to the lower-right corner
   arm(-0.058, new THREE.Vector3(0.3, -0.88, 0.34), 40);  // left arm (lower fist): down, a little toward the camera
-  const sword = mergeGeometries(parts, false)!, arms = mergeGeometries(armParts, false)!;
+  const sword = mergeGeometries(parts, false), arms = mergeGeometries(armParts, false);
   sword.computeBoundingSphere(); arms.computeBoundingSphere();
   return { sword, arms, tipY, baseY: bladeY0 };
 }
@@ -219,6 +222,7 @@ class Stars {
   private life = new Float32Array(STAR_COUNT); private alpha = new Float32Array(STAR_COUNT); private size = new Float32Array(STAR_COUNT);
   private posAttr: THREE.BufferAttribute; private alphaAttr: THREE.BufferAttribute; private sizeAttr: THREE.BufferAttribute;
   private mat: THREE.ShaderMaterial; private cursor = 0; private tmpSize = new THREE.Vector2();
+  private uScale: THREE.IUniform<number> = { value: 400 };
   constructor() {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', (this.posAttr = new THREE.BufferAttribute(this.pos, 3)));
@@ -227,7 +231,7 @@ class Stars {
     this.posAttr.setUsage(THREE.DynamicDrawUsage); this.alphaAttr.setUsage(THREE.DynamicDrawUsage); this.sizeAttr.setUsage(THREE.DynamicDrawUsage);
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
     this.mat = new THREE.ShaderMaterial({
-      uniforms: { uScale: { value: 400 } },
+      uniforms: { uScale: this.uScale },
       vertexShader: `attribute float aAlpha; attribute float aSize; varying float vA; uniform float uScale;
         void main(){ vA = aAlpha; vec4 mv = modelViewMatrix * vec4(position,1.0); gl_PointSize = aSize * uScale / max(0.05,-mv.z); gl_Position = projectionMatrix * mv; }`,
       // a four-point star: |x|^0.5 + |y|^0.5 ≤ 1 in point space
@@ -248,14 +252,16 @@ class Stars {
   }
   update(dt: number, renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera) {
     renderer.getDrawingBufferSize(this.tmpSize);
-    this.mat.uniforms.uScale.value = this.tmpSize.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+    this.uScale.value = this.tmpSize.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
     let any = false;
+    const pos = this.pos, vel = this.vel;
     for (let i = 0; i < STAR_COUNT; i++) {
-      if (this.life[i] <= 0) continue;
-      any = true; this.life[i] -= dt;
-      this.vel[i * 3 + 1] -= 6 * dt;
-      this.pos[i * 3] += this.vel[i * 3] * dt; this.pos[i * 3 + 1] += this.vel[i * 3 + 1] * dt; this.pos[i * 3 + 2] += this.vel[i * 3 + 2] * dt;
-      this.alpha[i] = this.life[i] > 0 ? Math.min(1, this.life[i] * 5) : 0;
+      const life0 = this.life[i] ?? 0;
+      if (life0 <= 0) continue;
+      any = true; const life = life0 - dt; this.life[i] = life;
+      const j = i * 3, vy = (vel[j + 1] ?? 0) - 6 * dt; vel[j + 1] = vy;
+      pos[j] = (pos[j] ?? 0) + (vel[j] ?? 0) * dt; pos[j + 1] = (pos[j + 1] ?? 0) + vy * dt; pos[j + 2] = (pos[j + 2] ?? 0) + (vel[j + 2] ?? 0) * dt;
+      this.alpha[i] = life > 0 ? Math.min(1, life * 5) : 0;
     }
     if (any) { this.posAttr.needsUpdate = true; this.alphaAttr.needsUpdate = true; this.sizeAttr.needsUpdate = true; }
   }
@@ -271,10 +277,11 @@ const Y_AXIS = new THREE.Vector3(0, 1, 0);
 class Glint {
   mesh: THREE.Mesh;
   private mat: THREE.ShaderMaterial;
+  private uAlpha: THREE.IUniform<number> = { value: 0 }; private uRot: THREE.IUniform<number> = { value: 0 };
   alpha = 0;
   constructor() {
     this.mat = new THREE.ShaderMaterial({
-      uniforms: { uAlpha: { value: 0 }, uRot: { value: 0 } },
+      uniforms: { uAlpha: this.uAlpha, uRot: this.uRot },
       vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
       // a spinning four-point star with a soft core: |x|^0.5 + |y|^0.5 ≤ 1 in rotated quad space, plus a radial glow
       fragmentShader: `uniform float uAlpha; uniform float uRot; varying vec2 vUv; void main(){
@@ -292,7 +299,7 @@ class Glint {
     this.alpha = lit ? Math.min(1, this.alpha + dt * 12) : Math.max(0, this.alpha - dt * 7);
     this.mesh.visible = this.alpha > 0.002;
     if (!this.mesh.visible) return;
-    this.mat.uniforms.uAlpha.value = this.alpha; this.mat.uniforms.uRot.value = t * 9;
+    this.uAlpha.value = this.alpha; this.uRot.value = t * 9;
     const pulse = 1 + 0.12 * Math.sin(t * 31);
     this.mesh.scale.setScalar(pulse * (0.7 + 0.3 * this.alpha));
   }
@@ -329,7 +336,7 @@ export class Sword implements Weapon {
 
   readonly model = new THREE.Group();
   private game: Game; private sky: Sky; private player: Player;
-  private targets?: Targets;
+  private targets: Targets | undefined;
   private rig = new THREE.Group(); private armRig = new THREE.Group();
   private tipY = 0; private baseY = 0;
 
@@ -356,7 +363,8 @@ export class Sword implements Weapon {
   private trail!: THREE.Mesh; private trailMat!: THREE.ShaderMaterial; private trailPos!: Float32Array; private trailAlpha!: Float32Array;
   private trailPosAttr!: THREE.BufferAttribute; private trailAlphaAttr!: THREE.BufferAttribute;
   private trailT = new Float32Array(TRAIL_SAMPLES).fill(-1); private trailHead = 0; private trailN = 0;
-  private trailStyle = COMBO[0].trail;
+  private trailStyle = SLASH.trail;
+  private trailColor: THREE.IUniform<THREE.Color> = { value: new THREE.Color(1, 1, 1) };
   private stars = new Stars();
   private glint = new Glint();
   private time = 0;
@@ -364,7 +372,7 @@ export class Sword implements Weapon {
   constructor(world: SwordWorld, targets?: Targets, opts: SwordOptions = {}) {
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.targets = targets;
-    this.allowUnlocked = !!opts.allowUnlocked;
+    this.allowUnlocked = opts.allowUnlocked ?? false;
     this.damage = opts.blade === 'iron' ? DAMAGE_IRON : DAMAGE_WOOD;
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
     this.buildViewmodel(opts.blade ?? 'wood');
@@ -378,8 +386,8 @@ export class Sword implements Weapon {
   }
 
   // ── input ──
-  inputAllowed() { return this.enabled && (this.player.locked || this.allowUnlocked); }
-  private bindInput() {
+  inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked); }
+  private bindInput(): void {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
       if (e.button === 0) this.tryFire();
@@ -399,7 +407,7 @@ export class Sword implements Weapon {
    * COMBO_GAP s ago, or the combo is spent). Mid-swing → queues the next combo swing (one deep; not off the heavy).
    * Ignored while charging the heavy.
    */
-  tryFire() {
+  tryFire(): void {
     if (!this.enabled || this.charging) return;
     if (this.move) {
       if (this.move !== HEAVY && this.comboIdx < COMBO.length) this.queued = true;
@@ -407,44 +415,45 @@ export class Sword implements Weapon {
     }
     if (this.cooldown > 0) return;
     if (this.comboIdx >= COMBO.length || this.time - this.lastSwingEnd > COMBO_GAP) this.comboIdx = 0;
-    this.startSwing(COMBO[this.comboIdx++]);
+    const next = COMBO[this.comboIdx++];
+    if (next !== undefined) this.startSwing(next);
   }
-  private startSwing(move: Move) {
+  private startSwing(move: Move): void {
     this.move = move; this.swingT = 0; this.hitDone = false; this.hitStop = 0; this.queued = false;
     this.fromPos.copy(this.basePos); this.fromQ.copy(this.baseQ);
     this.trailN = 0; this.trail.visible = false;
-    this.trailStyle = move.trail; (this.trailMat.uniforms.uColor.value as THREE.Color).copy(move.trail.color);
+    this.trailStyle = move.trail; this.trailColor.value.copy(move.trail.color);
     this.onFire?.();
     if (move === HEAVY) this.onHeavy?.();
   }
-  private beginCharge() { this.charging = true; this.chargeT = 0; this.releaseQueued = false; this.chargePending = false; this.comboIdx = 0; }
-  private releaseHeavy() { this.charging = false; this.releaseQueued = false; this.comboIdx = 0; this.startSwing(HEAVY); }
+  private beginCharge(): void { this.charging = true; this.chargeT = 0; this.releaseQueued = false; this.chargePending = false; this.comboIdx = 0; }
+  private releaseHeavy(): void { this.charging = false; this.releaseQueued = false; this.comboIdx = 0; this.startSwing(HEAVY); }
 
   /** no ammo to add / nothing to reload */
-  addBolts(_n: number) { /* melee */ }
-  reload() { /* melee */ }
+  addBolts(_n: number): void { /* melee */ }
+  reload(): void { /* melee */ }
   /** the aim line: the camera forward from the eye (what the crosshair shows) */
-  aimRay(origin: THREE.Vector3, dir: THREE.Vector3) { const cam = this.game.camera; cam.getWorldDirection(dir); origin.copy(cam.position); return dir; }
+  aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { const cam = this.game.camera; cam.getWorldDirection(dir); origin.copy(cam.position); return dir; }
   /** shown + held (true) or holstered (false: hidden, input off) */
-  setActive(on: boolean) {
+  setActive(on: boolean): void {
     this.model.visible = on;
     if (!on) { this.enabled = false; this.move = null; this.queued = false; this.charging = false; this.chargePending = false; this.releaseQueued = false; this.trailN = 0; this.trail.visible = false; }
   }
   /** true while a swing is running (dev / tests) */
-  get swinging() { return this.move !== null; }
+  get swinging(): boolean { return this.move !== null; }
   /** the running swing's name ('slash' | 'backhand' | 'finisher' | 'heavy'), or null */
-  get swingName() { return this.move?.name ?? null; }
+  get swingName(): Move['name'] | null { return this.move?.name ?? null; }
   /** true while the running swing is the heavy */
-  get heavySwing() { return this.move === HEAVY; }
+  get heavySwing(): boolean { return this.move === HEAVY; }
   /** true while the heavy is being charged (RMB / AIM disc held) */
-  get chargingHeavy() { return this.charging; }
+  get chargingHeavy(): boolean { return this.charging; }
   /** 0..1 heavy charge (1 = ready to release) */
-  get charge() { return this.charging ? clamp01(this.chargeT / HEAVY_CHARGE) : 0; }
+  get charge(): number { return this.charging ? clamp01(this.chargeT / HEAVY_CHARGE) : 0; }
   /** which light swing the next tap throws (1..3) */
-  get comboStep() { return this.comboIdx >= COMBO.length || (!this.move && this.time - this.lastSwingEnd > COMBO_GAP) ? 1 : this.comboIdx + 1; }
+  get comboStep(): number { return this.comboIdx >= COMBO.length || (this.move === null && this.time - this.lastSwingEnd > COMBO_GAP) ? 1 : this.comboIdx + 1; }
 
   // ── viewmodel ──
-  private buildViewmodel(blade: 'wood' | 'iron') {
+  private buildViewmodel(blade: 'wood' | 'iron'): void {
     const { sword, arms, tipY, baseY } = buildSword(blade);
     this.tipY = tipY; this.baseY = baseY;
     const mat = new THREE.MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: 0.82, metalness: blade === 'iron' ? 0.6 : 0, envMapIntensity: 0.6 });
@@ -465,7 +474,7 @@ export class Sword implements Weapon {
   }
 
   /** the arc trail: a ribbon of the last TRAIL_SAMPLES blade positions (the outer part of the blade, per move), additive, alpha by age */
-  private buildTrail() {
+  private buildTrail(): void {
     const g = new THREE.BufferGeometry();
     const quads = TRAIL_SAMPLES - 1;
     this.trailPos = new Float32Array(quads * 6 * 3); this.trailAlpha = new Float32Array(quads * 6);
@@ -475,7 +484,7 @@ export class Sword implements Weapon {
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
     g.setDrawRange(0, 0);
     this.trailMat = new THREE.ShaderMaterial({
-      uniforms: { uColor: { value: new THREE.Color(1, 1, 1) } },
+      uniforms: { uColor: this.trailColor },
       vertexShader: `attribute float aAlpha; varying float vA; void main(){ vA = aAlpha; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
       fragmentShader: `uniform vec3 uColor; varying float vA; void main(){ gl_FragColor = vec4(uColor, vA); }`,
       transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false,
@@ -485,47 +494,47 @@ export class Sword implements Weapon {
     this.model.add(this.trail); // camera space, like the rig — the ribbon is the sword's own motion, not the world's
   }
   private trailA = new Float32Array(TRAIL_SAMPLES * 3); private trailB = new Float32Array(TRAIL_SAMPLES * 3);
-  private trailSample() {
+  private trailSample(): void {
     // the ribbon spans the blade from the move's `from` fraction to the tip, in the model's (camera) space
     this.rig.updateMatrix();
     _v1.set(0, this.baseY + (this.tipY - this.baseY) * this.trailStyle.from, 0).applyMatrix4(this.rig.matrix);
     _v2.set(0, this.tipY + 0.03, 0).applyMatrix4(this.rig.matrix);
     if (this.trailN > 0) { // skip a sample the tip has not moved for (hit-stop): no zero-width quads
       const l = (this.trailHead - 1 + TRAIL_SAMPLES) % TRAIL_SAMPLES;
-      if (_v2.distanceToSquared(_v3.set(this.trailB[l * 3], this.trailB[l * 3 + 1], this.trailB[l * 3 + 2])) < 1e-4) return;
+      if (_v2.distanceToSquared(_v3.set(this.trailB[l * 3] ?? 0, this.trailB[l * 3 + 1] ?? 0, this.trailB[l * 3 + 2] ?? 0)) < 1e-4) return;
     }
     const i = this.trailHead; this.trailHead = (this.trailHead + 1) % TRAIL_SAMPLES; this.trailN = Math.min(TRAIL_SAMPLES, this.trailN + 1);
     this.trailA[i * 3] = _v1.x; this.trailA[i * 3 + 1] = _v1.y; this.trailA[i * 3 + 2] = _v1.z;
     this.trailB[i * 3] = _v2.x; this.trailB[i * 3 + 1] = _v2.y; this.trailB[i * 3 + 2] = _v2.z;
     this.trailT[i] = this.time;
   }
-  private trailRebuild() {
+  private trailRebuild(): void {
     // walk the ring oldest → newest, quad per consecutive pair; alpha fades with age and toward the inner edge
     let live = 0, q = 0;
     const P = this.trailPos, A = this.trailAlpha, n = this.trailN, st = this.trailStyle;
     const life = st.life * this.swingScale;
     for (let k = 0; k < n - 1; k++) {
       const i0 = (this.trailHead - n + k + TRAIL_SAMPLES) % TRAIL_SAMPLES, i1 = (i0 + 1) % TRAIL_SAMPLES;
-      const a0 = clamp01(1 - (this.time - this.trailT[i0]) / life), a1 = clamp01(1 - (this.time - this.trailT[i1]) / life);
+      const a0 = clamp01(1 - (this.time - (this.trailT[i0] ?? 0)) / life), a1 = clamp01(1 - (this.time - (this.trailT[i1] ?? 0)) / life);
       if (a0 <= 0 && a1 <= 0) continue;
       live++;
       const o = q * 18, oa = q * 6; q++;
       const put = (slot: number, src: Float32Array, idx: number, alpha: number) => {
-        P[o + slot * 3] = src[idx * 3]; P[o + slot * 3 + 1] = src[idx * 3 + 1]; P[o + slot * 3 + 2] = src[idx * 3 + 2]; A[oa + slot] = alpha;
+        P[o + slot * 3] = src[idx * 3] ?? 0; P[o + slot * 3 + 1] = src[idx * 3 + 1] ?? 0; P[o + slot * 3 + 2] = src[idx * 3 + 2] ?? 0; A[oa + slot] = alpha;
       };
       const inner = st.inner, outer = st.alpha;
       // tri 1: A0 B0 B1 · tri 2: A0 B1 A1  (A = inner edge, B = tip)
       put(0, this.trailA, i0, a0 * a0 * inner); put(1, this.trailB, i0, a0 * outer); put(2, this.trailB, i1, a1 * outer);
       put(3, this.trailA, i0, a0 * a0 * inner); put(4, this.trailB, i1, a1 * outer); put(5, this.trailA, i1, a1 * a1 * inner);
     }
-    (this.trail.geometry as THREE.BufferGeometry).setDrawRange(0, q * 6);
+    this.trail.geometry.setDrawRange(0, q * 6);
     this.trail.visible = live > 0;
     if (live) { this.trailPosAttr.needsUpdate = true; this.trailAlphaAttr.needsUpdate = true; }
   }
 
   // ── melee hit test: the move's fan of rays from the eye across its sweep, out to REACH ──
-  private testHit(move: Move) {
-    if (!this.targets) return;
+  private testHit(move: Move): void {
+    if (this.targets === undefined) return;
     const cam = this.game.camera;
     cam.getWorldDirection(_fwd);
     _v3.copy(cam.position);
@@ -555,7 +564,7 @@ export class Sword implements Weapon {
   }
 
   /** evaluate a move at `t` s into it → position + quaternion (camera space, scale 1): from-pose → cocked → mid → follow-through → REST */
-  private evalSwing(move: Move, t: number, outPos: THREE.Vector3, outQ: THREE.Quaternion) {
+  private evalSwing(move: Move, t: number, outPos: THREE.Vector3, outQ: THREE.Quaternion): void {
     const k = move.keys;
     let aPos: THREE.Vector3, aQ: THREE.Quaternion, bPos: THREE.Vector3, bQ: THREE.Quaternion, t0: number, t1: number, f: number;
     if (t < k[0].t) { aPos = this.fromPos; aQ = this.fromQ; bPos = k[0].pos; bQ = k[0].q; t0 = 0; t1 = k[0].t; f = easeIn(clamp01((t - t0) / (t1 - t0))); }
@@ -567,7 +576,7 @@ export class Sword implements Weapon {
   }
 
   // ── per-frame ──
-  update(dt: number, t: number) {
+  update(dt: number, t: number): void {
     this.time = t;
     const p = this.player, cam = this.game.camera;
     this.cooldown = Math.max(0, this.cooldown - dt);
@@ -590,10 +599,11 @@ export class Sword implements Weapon {
     let move = this.move;
     if (move) {
       if (this.hitStop > 0) this.hitStop -= dt; else this.swingT += dt / this.swingScale;
-      if (this.queued && this.swingT >= move.slashEnd + CHAIN_LAG && this.comboIdx < COMBO.length) { this.startSwing(COMBO[this.comboIdx++]); move = this.move; }
+      const next = this.queued && this.swingT >= move.slashEnd + CHAIN_LAG && this.comboIdx < COMBO.length ? COMBO[this.comboIdx++] : undefined;
+      if (next !== undefined) { this.startSwing(next); move = this.move; }
       else if (this.swingT >= move.total) { this.move = move = null; this.lastSwingEnd = t; this.cooldown = COOLDOWN; }
     }
-    const active = !!move && this.swingT >= move.windup && this.swingT <= move.slashEnd;
+    const active = move !== null && this.swingT >= move.windup && this.swingT <= move.slashEnd;
     if (move && active && !this.hitDone) this.testHit(move);
     this.jolt *= Math.exp(-dt * 14);
 
@@ -655,7 +665,7 @@ export class Sword implements Weapon {
     if (this.trailN > 0) {
       this.trailRebuild();
       const newest = (this.trailHead - 1 + TRAIL_SAMPLES) % TRAIL_SAMPLES;
-      if (t - this.trailT[newest] > this.trailStyle.life * this.swingScale) this.trailN = 0; // every sample has faded: drop the ribbon
+      if (t - (this.trailT[newest] ?? t) > this.trailStyle.life * this.swingScale) this.trailN = 0; // every sample has faded: drop the ribbon
     }
     // the heavy's tip glint: on through the chop's active window, then winks out
     const glintOn = move === HEAVY && active;
@@ -666,7 +676,7 @@ export class Sword implements Weapon {
     if (this.targets && (++this.aimFrame & 3) === 0) {
       cam.getWorldDirection(_fwd);
       const hit = this.targets.raycast(cam.position, _fwd, 120);
-      if (hit && hit.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; this.aimInfo = this.aimCache; }
+      if (hit?.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; this.aimInfo = this.aimCache; }
       else this.aimInfo = null;
     }
     this.stars.update(dt, this.game.renderer, cam);

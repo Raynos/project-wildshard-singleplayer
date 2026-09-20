@@ -57,14 +57,14 @@ export class Cove {
     };
   }
 
-  build(spec: CoveSpec) {
+  build(spec: CoveSpec): this {
     const rng = new Rng(SEED ^ 0xc0e5);
     this.crabSites = spec.crabSites;
     const parts: THREE.BufferGeometry[] = [];
     const add = (g: THREE.BufferGeometry, col: THREE.Color, jitter = 0.1, darkDown = true) => {
       g.deleteAttribute('uv'); g.deleteAttribute('normal');
       const ni = g.index ? g.toNonIndexed() : g;
-      const p = ni.attributes.position as THREE.BufferAttribute;
+      const p = ni.getAttribute('position');
       const n = p.count, c = new Float32Array(n * 3);
       const a = new THREE.Vector3(), b = new THREE.Vector3(), d = new THREE.Vector3(), nrm = new THREE.Vector3(), col3 = new THREE.Color();
       for (let i = 0; i < n; i += 3) {
@@ -79,7 +79,7 @@ export class Cove {
     };
     const rock = (x: number, z: number, r: number, y?: number, col = C.rock) => {
       const g = new THREE.IcosahedronGeometry(r, 0);
-      const p = g.attributes.position as THREE.BufferAttribute;
+      const p = g.getAttribute('position');
       for (let i = 0; i < p.count; i++) p.setXYZ(i, p.getX(i) * rng.range(0.75, 1.25), p.getY(i) * rng.range(0.5, 0.8), p.getZ(i) * rng.range(0.75, 1.25));
       g.rotateY(rng.range(0, 6.28));
       g.translate(x, (y ?? heightAt(x, z)) + r * 0.25, z);
@@ -156,7 +156,7 @@ export class Cove {
       const inner = new THREE.BoxGeometry(cv.w, H, cv.depth);
       inner.deleteAttribute('uv');
       const ni = inner.toNonIndexed();
-      const p = ni.attributes.position as THREE.BufferAttribute;
+      const p = ni.getAttribute('position');
       const keep: number[] = [];
       for (let i = 0; i < p.count; i += 3) { if (p.getZ(i) < -cv.depth / 2 + 1e-3 && p.getZ(i + 1) < -cv.depth / 2 + 1e-3 && p.getZ(i + 2) < -cv.depth / 2 + 1e-3) continue; for (let j = 0; j < 3; j++) keep.push(p.getX(i + j), p.getY(i + j), p.getZ(i + j)); }
       const hollow = new THREE.BufferGeometry(); hollow.setAttribute('position', new THREE.Float32BufferAttribute(keep, 3));
@@ -173,7 +173,7 @@ export class Cove {
       }
       for (let i = 0; i < 7; i++) { const [x, z] = L(rng.range(-cv.w / 2, cv.w / 2), -cv.depth / 2 + 0.3 + rng.range(0, cv.depth)); rock(x, z, rng.range(0.6, 1.0), gy + H - 0.1 + rng.range(0, 0.3), C.rock); }
       // the mouth arch
-      const arch = [[-1.15, 0.2, 0.5], [1.15, 0.2, 0.5], [-1.25, 1.1, 0.5], [1.25, 1.1, 0.5], [-1.0, 2.0, 0.55], [1.0, 2.0, 0.55], [-0.4, 2.55, 0.55], [0.5, 2.6, 0.55]];
+      const arch: [number, number, number][] = [[-1.15, 0.2, 0.5], [1.15, 0.2, 0.5], [-1.25, 1.1, 0.5], [1.25, 1.1, 0.5], [-1.0, 2.0, 0.55], [1.0, 2.0, 0.55], [-0.4, 2.55, 0.55], [0.5, 2.6, 0.55]];
       for (const [ax, ay, ar] of arch) { const [x, z] = L(ax * cv.w / 2, -cv.depth / 2 - 0.15); rock(x, z, ar, gy + ay * (H / cv.h) - ar * 0.25, ay < 1 ? C.rockWet : C.rock); }
       // the ember-lit back wall + the light
       const back = new THREE.PlaneGeometry(cv.w * 0.6, H * 0.45);
@@ -191,7 +191,7 @@ export class Cove {
     }
 
     // ── meshes ──
-    const geo = mergeGeometries(parts, false)!;
+    const geo = mergeGeometries(parts, false);
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.92, metalness: 0 });
     this.sky.setupMaterial(mat);
@@ -199,7 +199,7 @@ export class Cove {
     rocks.castShadow = true; rocks.receiveShadow = true;
     this.group.add(rocks);
 
-    const pools = mergeGeometries(poolParts, false)!;
+    const pools = mergeGeometries(poolParts, false);
     pools.computeBoundingSphere();
     const pmat = new THREE.MeshStandardMaterial({ color: new THREE.Color('#0a2540'), roughness: 0.4, metalness: 0, transparent: true, opacity: 0.9, flatShading: true });
     this.patchRipple(pmat, 'cove-pool');
@@ -208,7 +208,7 @@ export class Cove {
     poolMesh.receiveShadow = true; poolMesh.renderOrder = 1;
     this.group.add(poolMesh);
 
-    const fall = mergeGeometries(fallParts, false)!;
+    const fall = mergeGeometries(fallParts, false);
     fall.computeBoundingSphere();
     const fmat = new THREE.MeshStandardMaterial({ color: new THREE.Color('#bfe6f0'), roughness: 0.5, metalness: 0, transparent: true, opacity: 0.92, side: THREE.DoubleSide });
     this.patchFall(fmat);
@@ -224,7 +224,7 @@ export class Cove {
     const u = this.uniforms;
     mat.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
-      shader.uniforms.uTime = u.uTime;
+      shader.uniforms['uTime'] = u.uTime;
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', '#include <common>\nvarying vec3 vWp;')
         .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.0)).xyz;');
@@ -246,7 +246,7 @@ export class Cove {
     const u = this.uniforms;
     mat.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
-      shader.uniforms.uTime = u.uTime;
+      shader.uniforms['uTime'] = u.uTime;
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', '#include <common>\nvarying vec2 vFuv;')
         .replace('#include <uv_vertex>', '#include <uv_vertex>\nvFuv = uv;');
@@ -264,7 +264,7 @@ export class Cove {
     mat.customProgramCacheKey = () => 'cove-fall';
   }
 
-  update(dt: number) {
+  update(dt: number): void {
     this.t += dt;
     this.uniforms.uTime.value = this.t;
     // the ember glow breathes

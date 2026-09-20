@@ -59,7 +59,7 @@ export class Palms {
     return out;
   }
 
-  build(specs: PalmSpec[]) {
+  build(specs: PalmSpec[]): this {
     const rng = new Rng(0x5ea1 ^ 0x9a);
     const parts: THREE.BufferGeometry[] = [];
     const c = new THREE.Color();
@@ -84,7 +84,10 @@ export class Palms {
         rings.push(ring);
       }
       for (let s = 0; s < segs; s++) for (let k = 0; k < sides; k++) {
-        const a = rings[s][k], b = rings[s][(k + 1) % sides], cc = rings[s + 1][(k + 1) % sides], d = rings[s + 1][k];
+        const r0 = rings[s], r1 = rings[s + 1];
+        if (!r0 || !r1) continue;
+        const a = r0[k], b = r0[(k + 1) % sides], cc = r1[(k + 1) % sides], d = r1[k];
+        if (!a || !b || !cc || !d) continue;
         c.copy(s % 2 ? C.ring : C.trunk).multiplyScalar(0.9 + rng.next() * 0.2);
         const w0 = (s / segs) ** 2 * 0.25, w1 = ((s + 1) / segs) ** 2 * 0.25;
         // sway weight rises with height (the top of the trunk moves a little, the fronds a lot)
@@ -121,7 +124,7 @@ export class Palms {
       for (let k = 0; k < 3; k++) {
         const a = rng.range(0, Math.PI * 2), g = new THREE.IcosahedronGeometry(0.16, 0);
         g.translate(top.x + Math.cos(a) * 0.32, top.y - 0.25, top.z + Math.sin(a) * 0.32);
-        const pp = g.attributes.position as THREE.BufferAttribute;
+        const pp = g.getAttribute('position');
         for (let i = 0; i < pp.count; i++) { pos.push(pp.getX(i), pp.getY(i), pp.getZ(i)); col.push(C.nut.r, C.nut.g, C.nut.b); sway.push(0.3, phase); }
       }
       const geo = new THREE.BufferGeometry();
@@ -133,8 +136,8 @@ export class Palms {
       this.count++;
     }
     // an empty scatter (a stale terrain, a def with no land) must not throw in mergeGeometries: an empty mesh instead
-    if (!parts.length) console.warn('[palms] nothing placed — %d candidates rejected', specs.length);
-    const geo = parts.length ? mergeGeometries(parts, false)! : new THREE.BufferGeometry();
+    if (parts.length === 0) console.warn('[palms] nothing placed — %d candidates rejected', specs.length);
+    const geo = parts.length > 0 ? mergeGeometries(parts, false) : new THREE.BufferGeometry();
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.85, metalness: 0, side: THREE.DoubleSide });
     mat.onBeforeCompile = (shader) => {
@@ -159,5 +162,5 @@ export class Palms {
     return this;
   }
 
-  update(dt: number) { this.uniforms.uTime.value += dt; }
+  update(dt: number): void { this.uniforms.uTime.value += dt; }
 }

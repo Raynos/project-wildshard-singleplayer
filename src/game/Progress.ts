@@ -17,7 +17,7 @@ interface ShardProgress { counts: Record<string, number>; earned: string[]; titl
 type Store = Record<string, ShardProgress>;
 
 function load(): Store {
-  try { return (JSON.parse(localStorage.getItem(STORE) ?? '{}') as Store) ?? {}; } catch { return {}; }
+  try { return (JSON.parse(localStorage.getItem(STORE) ?? '{}') as Store | null) ?? {}; } catch { return {}; }
 }
 
 export interface ProgressRow { def: AchievementDef; count: number; earned: boolean; active: boolean }
@@ -37,7 +37,7 @@ export class Progress {
   private save() { try { localStorage.setItem(STORE, JSON.stringify(this.store)); } catch { /* not persisted this session */ } }
 
   /** one kill of (kind, variant) — bumps every matching achievement, unlocks the ones that reach their count */
-  recordKill(kind: string, variant?: string) {
+  recordKill(kind: string, variant?: string): void {
     let changed = false;
     for (const d of this.defs) {
       if (d.kind !== kind || (d.variant && d.variant !== variant)) continue;
@@ -46,20 +46,20 @@ export class Progress {
       this.shard.counts[d.id] = n; changed = true;
       if (n >= d.count && !this.shard.earned.includes(d.id)) {
         this.shard.earned.push(d.id);
-        if (!this.shard.title) this.shard.title = d.id; // the first title is worn straight away
+        if (this.shard.title === null || this.shard.title === '') this.shard.title = d.id; // the first title is worn straight away
         this.onEarned?.(d);
       }
     }
     if (changed) { this.save(); this.onChange?.(); }
   }
 
-  count(id: string) { return this.shard.counts[id] ?? 0; }
-  earned(id: string) { return this.shard.earned.includes(id); }
-  get earnedCount() { return this.shard.earned.length; }
+  count(id: string): number { return this.shard.counts[id] ?? 0; }
+  earned(id: string): boolean { return this.shard.earned.includes(id); }
+  get earnedCount(): number { return this.shard.earned.length; }
   /** the worn title's def, if any */
   get title(): AchievementDef | null { return this.defs.find((d) => d.id === this.shard.title && this.earned(d.id)) ?? null; }
   /** wear an earned title (ignored when not earned) */
-  wear(id: string) {
+  wear(id: string): void {
     if (!this.earned(id) || this.shard.title === id) return;
     this.shard.title = id; this.save(); this.onChange?.();
   }

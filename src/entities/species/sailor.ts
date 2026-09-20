@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
-import { loft, skinPlain, S, boneIndex, srgb, mix, sstep, type Paint } from './loft';
+import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
 import type { Animal } from '../Animal';
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
 
@@ -20,17 +20,26 @@ import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
  * light goes out) and dissolves (`corpseFade`). With no hold (the dev harness) it stands guard where it was placed.
  */
 
-type RGB = [number, number, number];
-const PALETTE: Record<string, RGB> = {
+const PALETTE = {
   bone: [0.86, 0.83, 0.72], boneDark: [0.62, 0.60, 0.50], skull: [0.90, 0.88, 0.78], socket: [0.12, 0.16, 0.16],
   shirt: [0.88, 0.86, 0.78], stripe: [0.30, 0.36, 0.46], shorts: [0.24, 0.16, 0.11], bandana: [0.58, 0.13, 0.12],
   weed: [0.20, 0.40, 0.14], steel: [0.72, 0.76, 0.80], steelEdge: [0.90, 0.93, 0.96], guard: [0.22, 0.20, 0.18], grip: [0.32, 0.20, 0.12],
   eye: [0.35, 1.0, 1.0],
-};
+} satisfies Record<string, RGB>;
+
+type Side = 'L' | 'R';
+/** the rig's bones by name — exactly the BoneDef list buildSailor() emits (so the factory's bone map holds every key) */
+type SailorBones = Record<'body' | 'spine' | 'chest' | 'head' | `arm${Side}_${'sh' | 'el' | 'hand'}` | `leg${Side}_${'hip' | 'knee' | 'foot'}`, THREE.Bone>;
+/** `Animal.mem` as the sailor uses it (numbers only, the registry contract; Enemies.ts reads `rise` / `rising` for the droplets).
+ *  The first `think` tick writes every key but `floorS`, which `animate` (it can run first) seeds itself. */
+interface SailorMem extends Record<string, number> {
+  init: number; hx: number; hz: number; cd: number; hitT: number; away: number;
+  rise: number; rising: number; sinking: number; floor: number; floorS?: number;
+  st: number; hit: number;
+}
 
 function sailorPaint(v: VariantDef): Paint {
-  const P: Record<string, THREE.Color> = {};
-  for (const k of Object.keys(PALETTE)) { const c = v.tint?.[k] ?? PALETTE[k]; P[k] = srgb(c[0], c[1], c[2]); }
+  const P = paletteColors(PALETTE, v.tint);
   return (out, _x, y, z, _nx, ny, nz, part, t, a) => {
     switch (part) {
       case 'skull': out.copy(P.skull); mix(out, out, P.socket, sstep(0.55, 0.75, t) * sstep(0.2, 0.7, nz) * (1 - sstep(0.4, 0.7, ny)) * 0.9); mix(out, out, P.boneDark, sstep(0.86, 1.0, t) * 0.5); break;
@@ -149,8 +158,8 @@ const R = (b: THREE.Bone, x: number, y: number, z: number) => b.rotation.set(x, 
 const L = THREE.MathUtils.lerp;
 export const RISE_T = 1.5;
 
-function animateSailor(c: RigAnimCtx) {
-  const b = c.bones, t = c.t, seed = c.seed, m = c.mem, a = c.animal, dt = c.dt;
+function animateSailor(c: RigAnimCtx): void {
+  const b = c.bones as SailorBones, t = c.t, seed = c.seed, m = c.mem as SailorMem, a = c.animal, dt = c.dt;
   // ── rising / sinking through the deck (per frame, smooth): mem.rise 0 (under) → 1 (standing) ──
   if (m.rising) { m.rise = Math.min(1, (m.rise || 0) + dt / RISE_T); if (m.rise >= 1) m.rising = 0; }
   if (m.sinking) { m.rise = Math.max(0, (m.rise || 0) - dt / RISE_T); if (m.rise <= 0) m.sinking = 0; }
@@ -169,9 +178,11 @@ function animateSailor(c: RigAnimCtx) {
   const kneel = step(dead, 0, 0.5), topple = step(dead, 0.45, 1);
   b.body.position.y = c.dims.bodyY - 0.06 - 0.04 * Math.abs(Math.sin(ph)) * moving - 0.08 * c.brace - 0.42 * kneel - 0.25 * topple + 0.02 * sway * (1 - moving);
   let bodyP = 0.28 + 0.1 * moving + 0.15 * c.brace - 0.35 * rise + 1.35 * topple;
-  let spineY = 0.06 * sway, headP = -0.15 + 0.2 * c.flinch + 0.25 * kneel + 0.3 * topple, headZ = 0.15 * Math.sin(t * 0.6 + seed);
+  let spineY = 0.06 * sway, headP = -0.15 + 0.2 * c.flinch + 0.25 * kneel + 0.3 * topple;
+  const headZ = 0.15 * Math.sin(t * 0.6 + seed);
   // ── the cutlass swing: wind up over the head (0 → 0.62), the cut (0.62 → 0.78), recover ──
-  let swX = 0.2, swZ = -0.25, swY = 0, elR = -0.5;
+  let swX = 0.2, swZ = -0.25, elR = -0.5;
+  const swY = 0;
   if (atk >= 0) {
     const wind = step(atk, 0, 0.6), cut = step(atk, 0.62, 0.78), rec = step(atk, 0.85, 1);
     swX = L(L(0.2, -2.7, wind), 0.95, cut) * (1 - rec) + 0.2 * rec;
@@ -209,8 +220,8 @@ function animateSailor(c: RigAnimCtx) {
 const ST_HIDE = 0, ST_RISE = 1, ST_ATTACK = 2, ST_GUARD = 3, ST_SINK = 4;
 const SWING_R = 1.8, HIT_R = 1.9, SWING_DAMAGE = 18, WINDUP = 0.6, SWING_DUR = 0.9, SHAMBLE = 1.1, SINK_AFTER = 6;
 
-function thinkSailor(a: Animal, c: ThinkCtx) {
-  const m = a.mem, H = c.world.hold;
+function thinkSailor(a: Animal, c: ThinkCtx): void {
+  const m = a.mem as SailorMem, H = c.world.hold;
   if (!m.init) {
     m.init = 1; m.hx = a.position.x; m.hz = a.position.z; m.cd = 0; m.hitT = 0; m.away = 0;
     m.rise = 0; m.rising = 0; m.sinking = 0; m.floor = 0;
@@ -269,6 +280,7 @@ function thinkSailor(a: Animal, c: ThinkCtx) {
       else if (!m.sinking) m.st = ST_HIDE;
       break;
     }
+    default: break;
   }
 }
 

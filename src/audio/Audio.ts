@@ -44,18 +44,20 @@ export class Audio {
   private ambientOn = true;
   private stepSide = 1;
   private birdTimer = 0; private gustTimer = 0;
-  private windGain?: GainNode; private windGain2?: GainNode;
+  private windGain: GainNode | undefined; private windGain2: GainNode | undefined;
   private _muted = false;
   private bed: AmbientBed;
   private bedNodes: AudioNode[] = [];
   private surfTimer = 0;
-  private hum?: { out: GainNode; stop: () => void };
+  private hum: { out: GainNode; stop: () => void } | undefined;
   /** the master lowpass: wide open on land, shut down to ~500 Hz under water (setUnderwater) */
   private muffle: BiquadFilterNode;
   private underwater = false; private underGain?: GainNode; private bubbleTimer = 0;
 
   constructor() {
-    const AC = (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext);
+    const w: { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext } = window; // old Safari: prefixed only
+    const AC = w.AudioContext ?? w.webkitAudioContext;
+    if (AC === undefined) throw new Error('WebAudio unsupported');
     this.ctx = new AC({ latencyHint: 'interactive' });
     this.master = this.ctx.createGain(); this.master.gain.value = 0.6;
     const comp = this.ctx.createDynamicsCompressor();
@@ -68,17 +70,17 @@ export class Audio {
     this.bed = getActiveChunk().ocean ? 'island' : 'forest';
   }
 
-  get muted() { return this._muted; }
+  get muted(): boolean { return this._muted; }
   set muted(v: boolean) { this._muted = v; this.master.gain.setTargetAtTime(v ? 0 : 0.6, this.ctx.currentTime, 0.05); }
 
   /** Call from a user gesture. Idempotent. */
-  resume() {
+  resume(): void {
     if (this.ctx.state !== 'running') void this.ctx.resume();
     if (!this.started) { this.started = true; this.startAmbient(); }
   }
 
   /** `true`/`false` mutes the bed; `'forest'`/`'island'` swaps it (pine wind + birds ↔ surf + breeze + gulls) */
-  setAmbient(on: boolean | AmbientBed) {
+  setAmbient(on: boolean | AmbientBed): void {
     if (typeof on === 'string') {
       if (on === this.bed) return;
       this.bed = on;
@@ -141,12 +143,12 @@ export class Audio {
   }
 
   private route(node: AudioNode, pan: number, out?: AudioNode) {
-    if (pan !== 0 && this.ctx.createStereoPanner) { const p = this.ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan)); node.connect(p).connect(out ?? this.sfx); }
+    if (pan !== 0 && 'createStereoPanner' in this.ctx) { const p = this.ctx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan)); node.connect(p).connect(out ?? this.sfx); }
     else node.connect(out ?? this.sfx);
   }
 
   // ─────────────── weapon ───────────────
-  crossbowFire() {
+  crossbowFire(): void {
     const t = this.ctx.currentTime;
     // latch release click
     this.burst({ t, type: 'highpass', freq: 2500, gain: 0.35, decay: 0.012 });
@@ -159,13 +161,13 @@ export class Audio {
     this.burst({ t: t + 0.02, type: 'lowpass', freq: 500, gain: 0.3, decay: 0.12 });
   }
 
-  dryFire() {
+  dryFire(): void {
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'highpass', freq: 3000, gain: 0.25, decay: 0.01 });
     this.tone({ t, type: 'square', f0: 700, gain: 0.05, decay: 0.03, lowpass: 2000 });
   }
 
-  boltImpact(kind: ImpactKind, pan = 0, gain = 1) {
+  boltImpact(kind: ImpactKind, pan = 0, gain = 1): void {
     const t = this.ctx.currentTime;
     if (kind === 'wood') {
       this.burst({ t, type: 'bandpass', freq: 1900, q: 2.5, gain: 0.55 * gain, decay: 0.05, pan });
@@ -185,7 +187,7 @@ export class Audio {
   }
 
   /** sword swing: a whoosh — bandpass noise sweeping up then down over ~0.2 s, a hair of low air under it (src/player/Sword.ts onFire) */
-  swordSwing() {
+  swordSwing(): void {
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 500, freqEnd: 2200, q: 0.6, gain: 0.32, attack: 0.05, decay: 0.09, rate: 1.1 });
     this.burst({ t: t + 0.09, type: 'bandpass', freq: 2200, freqEnd: 700, q: 0.7, gain: 0.4, attack: 0.02, decay: 0.13 });
@@ -193,7 +195,7 @@ export class Audio {
   }
 
   /** the heavy's release (Sword.onHeavy, on top of swordSwing): a longer, deeper whoosh — a low rush that climbs, a chest-thump of effort, a breathy tail */
-  swordHeavy() {
+  swordHeavy(): void {
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 220, freqEnd: 900, q: 0.8, gain: 0.45, attack: 0.09, decay: 0.22, rate: 0.9 });
     this.burst({ t: t + 0.12, type: 'bandpass', freq: 1400, freqEnd: 380, q: 0.9, gain: 0.5, attack: 0.03, decay: 0.26 });
@@ -202,7 +204,7 @@ export class Audio {
   }
 
   /** sword hit: a wooden thud on flesh (or a knock on wood) — low thump, a damp mid knock, a short bright crack; panned like boltImpact */
-  swordHit(kind: ImpactKind = 'flesh', pan = 0, gain = 1) {
+  swordHit(kind: ImpactKind = 'flesh', pan = 0, gain = 1): void {
     const t = this.ctx.currentTime;
     if (kind === 'wood') {
       this.burst({ t, type: 'bandpass', freq: 1400, q: 2, gain: 0.5 * gain, decay: 0.05, pan });
@@ -216,7 +218,7 @@ export class Audio {
   }
 
   /** ratchet clicks over ~1.2 s (matches the crossbow's span animation) */
-  reload() {
+  reload(): void {
     const t0 = this.ctx.currentTime + 0.12;
     const n = 11;
     for (let i = 0; i < n; i++) {
@@ -236,7 +238,7 @@ export class Audio {
   }
 
   /** AR-15 semi-auto report: a hard supersonic crack, the gas-port bark, a 150 → 45 Hz chest thump and a short forest echo tail */
-  rifleFire() {
+  rifleFire(): void {
     const t = this.ctx.currentTime;
     // the crack: a ~5 ms highpass transient at full tilt
     this.burst({ t, type: 'highpass', freq: 3800, gain: 0.9, decay: 0.018 });
@@ -252,7 +254,7 @@ export class Audio {
   }
 
   /** mag release · mag drops out · fresh mag seated · bolt release slams home (matches the 1.6 s reload) */
-  rifleReload() {
+  rifleReload(): void {
     const t0 = this.ctx.currentTime + 0.05;
     // mag release button
     this.burst({ t: t0, type: 'bandpass', freq: 2600, q: 3, gain: 0.25, decay: 0.015 });
@@ -272,7 +274,7 @@ export class Audio {
   }
 
   /** weapon swap: sling rustle as one drops, a strap snap and the other's grip clack as it comes up */
-  weaponSwap() {
+  weaponSwap(): void {
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 900, freqEnd: 1600, q: 0.5, gain: 0.16, attack: 0.03, decay: 0.2 });
     this.burst({ t: t + 0.22, type: 'highpass', freq: 3000, gain: 0.18, decay: 0.012 });
@@ -283,7 +285,7 @@ export class Audio {
 
   /** the item-pickup orb's hum while the player stands inside its prompt radius (WeaponPickup.onNear): a low-passed
    *  220 Hz sine with a 5.5 Hz tremolo and a faint fifth, looped, faded in over 0.35 s and out over 0.5 s */
-  pickupHum(on: boolean) {
+  pickupHum(on: boolean): void {
     const c = this.ctx, t = c.currentTime;
     if (on) {
       if (!this.hum) {
@@ -308,7 +310,7 @@ export class Audio {
   }
 
   // ─────────────── movement ───────────────
-  footstep(sprinting: boolean, surface: StepSurface = 'litter') {
+  footstep(sprinting: boolean, surface: StepSurface = 'litter'): void {
     const t = this.ctx.currentTime;
     this.stepSide = -this.stepSide;
     const pan = this.stepSide * 0.14;
@@ -334,13 +336,13 @@ export class Audio {
     this.tone({ t, type: 'sine', f0: rnd(70, 95), f1: 45, glide: 0.05, gain: sprinting ? 0.3 : 0.18, decay: 0.07, pan });
   }
 
-  jump() {
+  jump(): void {
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 400, freqEnd: 1400, q: 0.6, gain: 0.16, attack: 0.02, decay: 0.16 });
     this.burst({ t, type: 'lowpass', freq: 500, gain: 0.25, decay: 0.05 });
   }
 
-  land(hard: boolean) {
+  land(hard: boolean): void {
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'lowpass', freq: hard ? 380 : 500, gain: hard ? 0.8 : 0.45, decay: hard ? 0.16 : 0.09 });
     this.tone({ t, type: 'sine', f0: hard ? 75 : 85, f1: 40, glide: 0.08, gain: hard ? 0.7 : 0.35, decay: hard ? 0.22 : 0.12 });
@@ -350,7 +352,7 @@ export class Audio {
 
   // ─────────────── water (wading / swimming) ───────────────
   /** feet break the surface. `impact` = entry speed m/s: ~0–1 walking in (a slosh), 10+ off the pier (a full plunge with a spray tail) */
-  splash(impact = 0) {
+  splash(impact = 0): void {
     const t = this.ctx.currentTime;
     const k = Math.min(1, impact / 10);            // 0 = stepping in, 1 = a dive off the pier
     // the body of the splash: a low "gloop" plus a mid slap that scales with how hard we hit
@@ -368,7 +370,7 @@ export class Audio {
   }
 
   /** a footstep in shallow water: the crunch of the dry step is replaced by a slosh that deepens with the water */
-  wadeStep(depth: number, sprinting = false) {
+  wadeStep(depth: number, sprinting = false): void {
     const t = this.ctx.currentTime;
     this.stepSide = -this.stepSide;
     const pan = this.stepSide * 0.14;
@@ -379,7 +381,7 @@ export class Audio {
   }
 
   /** one swim stroke: an arm sweeping through the water, a soft wash off to one side */
-  swimStroke() {
+  swimStroke(): void {
     const t = this.ctx.currentTime;
     this.stepSide = -this.stepSide;
     const pan = this.stepSide * 0.35;
@@ -389,7 +391,7 @@ export class Audio {
   }
 
   /** climbing / wading out: water sheeting off and a few drips */
-  waterExit() {
+  waterExit(): void {
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 1200, freqEnd: 500, q: 0.6, gain: 0.16, attack: 0.02, decay: 0.3 });
     for (let i = 0; i < 4; i++) this.burst({ t: t + 0.15 + rnd(0, 0.5), type: 'bandpass', freq: rnd(2200, 4000), q: 4, gain: rnd(0.02, 0.05), decay: 0.03, pan: rnd(-0.4, 0.4) });
@@ -397,7 +399,7 @@ export class Audio {
 
   // ─────────────── diving (Player.onSubmerge / onSurface) ───────────────
   /** the head goes under: a soft whump of water closing over the ears and a trail of bubbles */
-  dive() {
+  dive(): void {
     const t = this.ctx.currentTime;
     this.tone({ t, type: 'sine', f0: 140, f1: 40, glide: 0.25, gain: 0.35, attack: 0.02, decay: 0.35 });
     this.burst({ t, type: 'lowpass', freq: 900, freqEnd: 160, gain: 0.4, attack: 0.02, decay: 0.32 });
@@ -408,7 +410,7 @@ export class Audio {
   }
 
   /** breaking the surface: water sheeting off the head, a gasp of air, a couple of drips */
-  surface() {
+  surface(): void {
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 1400, freqEnd: 500, q: 0.6, gain: 0.34, attack: 0.01, decay: 0.28 });
     this.burst({ t: t + 0.03, type: 'lowpass', freq: 1200, freqEnd: 300, gain: 0.22, attack: 0.01, decay: 0.16 });
@@ -419,7 +421,7 @@ export class Audio {
   }
 
   /** under the surface everything is muffled (master lowpass down to ~500 Hz) under a low pressure hum with the odd bubble */
-  setUnderwater(on: boolean) {
+  setUnderwater(on: boolean): void {
     if (on === this.underwater) return;
     this.underwater = on;
     const c = this.ctx, t = c.currentTime;
@@ -453,13 +455,13 @@ export class Audio {
   }
 
   // ─────────────── feedback ───────────────
-  hitMarker() {
+  hitMarker(): void {
     const t = this.ctx.currentTime;
     this.tone({ t, type: 'sine', f0: 1900, gain: 0.16, decay: 0.045 });
     this.tone({ t: t + 0.012, type: 'sine', f0: 2600, gain: 0.1, decay: 0.05 });
   }
 
-  kill() {
+  kill(): void {
     const t = this.ctx.currentTime;
     this.tone({ t, type: 'sine', f0: 660, gain: 0.18, decay: 0.16 });
     this.tone({ t: t + 0.09, type: 'sine', f0: 990, gain: 0.2, decay: 0.32 });
@@ -469,11 +471,11 @@ export class Audio {
 
   // ─────────────── positional animal sounds ───────────────
   /** distance attenuation + stereo pan from direction relative to the listener yaw */
-  animal(kind: AnimalSound, position: Vector3, listenerPos: Vector3, yaw = this.listenerYaw) {
+  animal(kind: AnimalSound, position: Vector3, listenerPos: Vector3, yaw = this.listenerYaw): void {
     const dx = position.x - listenerPos.x, dz = position.z - listenerPos.z, dy = position.y - listenerPos.y;
     const dist = Math.sqrt(dx * dx + dz * dz + dy * dy);
     if (dist > 140) return;
-    const att = 1 / Math.pow(1 + dist / 9, 1.4);
+    const att = 1 / (1 + dist / 9) ** 1.4;
     const rx = Math.cos(yaw), rz = -Math.sin(yaw); // listener right vector
     const pan = dist > 0.5 ? Math.max(-1, Math.min(1, (dx * rx + dz * rz) / dist)) * 0.8 : 0;
     // distance low-pass into a per-call bus
@@ -606,12 +608,13 @@ export class Audio {
         this.burst({ t, type: 'bandpass', freq: 1100, q: 0.6, gain: 0.4, attack: 0.01, hold: 0.15, decay: 0.3, out: bus });
         break;
       }
+      default: break; // every AnimalSound has a case above
     }
   }
 
   // ─────────────── gulls ───────────────
   /** a gull: a short two-note squawk — a nasal sawtooth "kyow" that breaks up, then a lower "ow"; sometimes a third yelp */
-  gullCall(pan = 0, gain = 1) {
+  gullCall(pan = 0, gain = 1): void {
     const c = this.ctx, t = c.currentTime;
     const bus = c.createGain(); bus.gain.value = 0.28 * gain;
     const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1900; bp.Q.value = 0.7;
@@ -632,11 +635,11 @@ export class Audio {
   }
 
   /** gullCall positioned like `animal()`: distance attenuation + a stereo pan from the listener yaw */
-  gullCallAt(position: Vector3, listenerPos: Vector3, yaw = this.listenerYaw) {
+  gullCallAt(position: Vector3, listenerPos: Vector3, yaw = this.listenerYaw): void {
     const dx = position.x - listenerPos.x, dz = position.z - listenerPos.z, dy = position.y - listenerPos.y;
     const dist = Math.sqrt(dx * dx + dz * dz + dy * dy);
     if (dist > 160) return;
-    const att = 1 / Math.pow(1 + dist / 14, 1.3);
+    const att = 1 / (1 + dist / 14) ** 1.3;
     const rx = Math.cos(yaw), rz = -Math.sin(yaw);
     const pan = dist > 0.5 ? Math.max(-1, Math.min(1, (dx * rx + dz * rz) / dist)) * 0.8 : 0;
     this.gullCall(pan, att);
@@ -765,7 +768,7 @@ export class Audio {
     }
   }
 
-  dispose() { clearTimeout(this.birdTimer); clearTimeout(this.surfTimer); clearTimeout(this.gustTimer); clearTimeout(this.bubbleTimer); void this.ctx.close(); }
+  dispose(): void { clearTimeout(this.birdTimer); clearTimeout(this.surfTimer); clearTimeout(this.gustTimer); clearTimeout(this.bubbleTimer); void this.ctx.close(); }
 }
 
 export { Audio as GameAudio };

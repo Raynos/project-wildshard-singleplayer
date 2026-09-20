@@ -57,14 +57,14 @@ export class Boulders {
     return out;
   }
 
-  build(specs: BoulderSpec[]) {
+  build(specs: BoulderSpec[]): this {
     const rng = new Rng(0x5ea1 ^ 0xb0);
     const parts: THREE.BufferGeometry[] = [];
     const c = new THREE.Color();
     for (const b of specs) {
       const detail = b.r > 2 ? 1 : 0;
       const g = new THREE.IcosahedronGeometry(b.r, detail);
-      const pos = g.attributes.position as THREE.BufferAttribute;
+      const pos = g.getAttribute('position');
       // jitter the (shared) vertices radially, then squash — do it on the indexed sphere so faces stay closed
       for (let i = 0; i < pos.count; i++) {
         const v = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i));
@@ -80,8 +80,8 @@ export class Boulders {
       g.translate(b.x, y + b.r * (b.squash ?? 0.7) * 0.35, b.z);
       g.deleteAttribute('uv'); g.deleteAttribute('normal');
       const ni = g.index ? g.toNonIndexed() : g;
-      const n = ni.attributes.position.count, col = new Float32Array(n * 3);
-      const p = ni.attributes.position as THREE.BufferAttribute;
+      const n = ni.getAttribute('position').count, col = new Float32Array(n * 3);
+      const p = ni.getAttribute('position');
       for (let i = 0; i < n; i += 3) {
         // facet colour: lighter on up-facing faces, darker down low (wet), a little jitter
         const ay = (p.getY(i) + p.getY(i + 1) + p.getY(i + 2)) / 3 - y;
@@ -95,8 +95,8 @@ export class Boulders {
       this.count++;
     }
     // an empty scatter (a stale terrain, a def with no land) must not throw in mergeGeometries: an empty mesh instead
-    if (!parts.length) console.warn('[boulders] nothing placed — %d candidates rejected', specs.length);
-    const geo = parts.length ? mergeGeometries(parts, false)! : new THREE.BufferGeometry();
+    if (parts.length === 0) console.warn('[boulders] nothing placed — %d candidates rejected', specs.length);
+    const geo = parts.length > 0 ? mergeGeometries(parts, false) : new THREE.BufferGeometry();
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0 });
     this.sky.setupMaterial(mat);

@@ -44,7 +44,7 @@ export class Hut {
 
   private toWorld(lx: number, lz: number): [number, number] { return [this.spec.x + lx * this.cos + lz * this.sin, this.spec.z - lx * this.sin + lz * this.cos]; }
 
-  build() {
+  build(): this {
     const rng = new Rng(SEED ^ 0x4077);
     const parts: THREE.BufferGeometry[] = [];
     const ground = heightAt(this.spec.x, this.spec.z);
@@ -52,7 +52,7 @@ export class Hut {
     const add = (g: THREE.BufferGeometry, col: THREE.Color, jitter = 0.06) => {
       g.deleteAttribute('uv'); g.deleteAttribute('normal');
       const ni = g.index ? g.toNonIndexed() : g;
-      const n = ni.attributes.position.count, c = new Float32Array(n * 3);
+      const n = ni.getAttribute('position').count, c = new Float32Array(n * 3);
       for (let i = 0; i < n; i += 3) { const k = 1 - jitter + rng.next() * jitter * 2; for (let j = 0; j < 3; j++) { c[(i + j) * 3] = col.r * k; c[(i + j) * 3 + 1] = col.g * k; c[(i + j) * 3 + 2] = col.b * k; } }
       ni.setAttribute('color', new THREE.BufferAttribute(c, 3));
       parts.push(ni);
@@ -71,7 +71,7 @@ export class Hut {
       add(place(g, px + 0.19, floorY - 0.05 + rng.range(-0.01, 0.01), deckZ), rng.next() < 0.3 ? C.plankDark : C.deck, 0.05);
     }
     // stilts
-    for (const [sx, sz] of [[-deckW / 2 + 0.3, -deckD / 2 + deckZ + 0.3], [deckW / 2 - 0.3, -deckD / 2 + deckZ + 0.3], [-deckW / 2 + 0.3, deckD / 2 + deckZ - 0.3], [deckW / 2 - 0.3, deckD / 2 + deckZ - 0.3], [0, -deckD / 2 + deckZ + 0.3], [0, deckD / 2 + deckZ - 0.3], [-deckW / 2 + 0.3, deckZ], [deckW / 2 - 0.3, deckZ]]) {
+    for (const [sx, sz] of [[-deckW / 2 + 0.3, -deckD / 2 + deckZ + 0.3], [deckW / 2 - 0.3, -deckD / 2 + deckZ + 0.3], [-deckW / 2 + 0.3, deckD / 2 + deckZ - 0.3], [deckW / 2 - 0.3, deckD / 2 + deckZ - 0.3], [0, -deckD / 2 + deckZ + 0.3], [0, deckD / 2 + deckZ - 0.3], [-deckW / 2 + 0.3, deckZ], [deckW / 2 - 0.3, deckZ]] as const) {
       const [wx, wz] = this.toWorld(sx, sz);
       const gy = heightAt(wx, wz) - 0.3;
       add(place(new THREE.BoxGeometry(0.28, floorY - gy, 0.28), sx, (floorY + gy) / 2, sz), C.post, 0.05);
@@ -100,9 +100,9 @@ export class Hut {
       add(place(new THREE.BoxGeometry(0.42, 0.86, 0.08), sx * 2.0 + 0.68, floorY + 1.5, -D / 2 - 0.12), C.plankDark, 0.04);
     }
     // corner posts up to the eave
-    for (const [px, pz] of [[-W / 2, -D / 2], [W / 2, -D / 2], [-W / 2, D / 2], [W / 2, D / 2]]) add(place(new THREE.BoxGeometry(0.24, WALL_H + 0.3, 0.24), px, floorY + (WALL_H + 0.3) / 2, pz), C.post, 0.05);
+    for (const [px, pz] of [[-W / 2, -D / 2], [W / 2, -D / 2], [-W / 2, D / 2], [W / 2, D / 2]] as const) add(place(new THREE.BoxGeometry(0.24, WALL_H + 0.3, 0.24), px, floorY + (WALL_H + 0.3) / 2, pz), C.post, 0.05);
     // porch posts holding the eave
-    for (const [px, pz] of [[-deckW / 2 + 0.35, -deckD / 2 + deckZ + 0.35], [deckW / 2 - 0.35, -deckD / 2 + deckZ + 0.35], [-deckW / 2 + 0.35, D / 2 - 0.4], [deckW / 2 - 0.35, D / 2 - 0.4]]) {
+    for (const [px, pz] of [[-deckW / 2 + 0.35, -deckD / 2 + deckZ + 0.35], [deckW / 2 - 0.35, -deckD / 2 + deckZ + 0.35], [-deckW / 2 + 0.35, D / 2 - 0.4], [deckW / 2 - 0.35, D / 2 - 0.4]] as const) {
       add(place(new THREE.BoxGeometry(0.2, WALL_H + 0.2, 0.2), px, floorY + (WALL_H + 0.2) / 2, pz), C.post, 0.05);
       collider(px, pz, 0.12, 0.12, floorY, floorY + WALL_H);
     }
@@ -130,7 +130,7 @@ export class Hut {
     add(place(new THREE.BoxGeometry(Math.max(1, (W + 1.2 - (D + 1.2))) + 0.8, 0.3, 0.5), 0, eaveY + 1.3 + 2.3, 0), C.thatchDark, 0.05);
     // the roof group is centred on the cabin; the eave overhangs the porch in front — shift its centre to the deck centre
     // (done by building the skirt around deckZ: translate the two skirt pyramids)
-    for (let i = parts.length - 4; i < parts.length - 2; i++) { const [wx, wz] = this.toWorld(0, deckZ); const [ox, oz] = this.toWorld(0, 0); parts[i].translate(wx - ox, 0, wz - oz); }
+    for (let i = parts.length - 4; i < parts.length - 2; i++) { const [wx, wz] = this.toWorld(0, deckZ); const [ox, oz] = this.toWorld(0, 0); parts[i]?.translate(wx - ox, 0, wz - oz); }
     // ── porch railing on the front edge (with a gap for the steps) and the two side edges ──
     const railY = floorY + 0.95;
     const rail = (lx: number, lz: number, len: number, alongX: boolean) => {
@@ -154,7 +154,7 @@ export class Hut {
     }
     this.steps = { z0: stepsZ0, len: nSteps * 0.4, w: stepsW };
 
-    const geo = mergeGeometries(parts, false)!;
+    const geo = mergeGeometries(parts, false);
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
     this.sky.setupMaterial(mat);

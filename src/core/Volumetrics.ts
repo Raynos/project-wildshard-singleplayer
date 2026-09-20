@@ -1,10 +1,18 @@
 import { Effect, EffectAttribute, BlendFunction } from 'postprocessing';
 import {
-  Uniform, Vector3, Matrix4, Color, PerspectiveCamera, Texture, DataTexture, RepeatWrapping, NearestFilter, LinearFilter,
-  WebGLRenderTarget, HalfFloatType, ShaderMaterial, Mesh, BufferGeometry, Float32BufferAttribute, Scene, OrthographicCamera, WebGLRenderer,
+  Uniform, Vector3, Matrix4, Color, type PerspectiveCamera, type Texture, DataTexture, RepeatWrapping, NearestFilter, LinearFilter,
+  WebGLRenderTarget, HalfFloatType, ShaderMaterial, Mesh, BufferGeometry, Float32BufferAttribute, Scene, OrthographicCamera, type WebGLRenderer,
   type DepthPackingStrategies, BasicDepthPacking,
 } from 'three';
 import { fogUniforms } from '../world/Atmosphere';
+
+/** the march's uniforms, typed per slot so the per-frame `.value.copy(...)` calls are checked */
+interface MarchUniforms {
+  uInvView: Uniform<Matrix4>; uInvProj: Uniform<Matrix4>; uViewProj: Uniform<Matrix4>;
+  uCamPos: Uniform<Vector3>; uSunDir: Uniform<Vector3>; uSunColor: Uniform<Color>; uFogColor: Uniform<Color>;
+  uHeight: Uniform<number>; uFalloff: Uniform<number>; uDensity: Uniform<number>; uStrength: Uniform<number>;
+  uNoise: Uniform<Texture>; uFrame: Uniform<number>;
+}
 
 /** the march: GLSL shared by the in-place (full-res) effect and the half-res pre-pass */
 const MARCH = (steps: number) => /* glsl */`
@@ -64,14 +72,14 @@ export class VolumetricsEffect extends Effect {
    * @param scale  < 1 → the march runs in a separate render target of this scale (phone: 0.5) and the
    *               effect only composites it; 1 → the march runs in the effect's own fragment (desktop, as before)
    */
-  constructor(camera: PerspectiveCamera, private readonly blueNoise: Texture, steps = 14, private readonly scale = 1) {
+  constructor(camera: PerspectiveCamera, blueNoise: Texture, steps = 14, private readonly scale = 1) {
     super('VolumetricsEffect', scale < 1
       ? /* glsl */`
         uniform sampler2D tScatter;
         void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth, out vec4 outputColor) {
           outputColor = vec4(inputColor.rgb + texture2D(tScatter, uv).rgb, inputColor.a);
         }`
-      : MARCH(steps) + /* glsl */`
+      : /* glsl */`${MARCH(steps)}
         void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth, out vec4 outputColor) {
           outputColor = vec4(inputColor.rgb + inscatterAt(uv, depth), inputColor.a);
         }`, {
@@ -80,6 +88,7 @@ export class VolumetricsEffect extends Effect {
       uniforms: new Map<string, Uniform>(scale < 1 ? [['tScatter', new Uniform(null)]] : []),
     });
     this.camera = camera;
+    this.nearU = new Uniform(camera.near); this.farU = new Uniform(camera.far);
     this.marchUniforms = {
       uInvView: new Uniform(new Matrix4()),
       uInvProj: new Uniform(new Matrix4()),
@@ -97,9 +106,10 @@ export class VolumetricsEffect extends Effect {
     };
     if (scale < 1) {
       this.rt = new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false, minFilter: LinearFilter, magFilter: LinearFilter });
-      this.uniforms.get('tScatter')!.value = this.rt.texture;
+      const tScatter = this.uniforms.get('tScatter');
+      if (tScatter !== undefined) tScatter.value = this.rt.texture;
       this.marchMat = new ShaderMaterial({
-        uniforms: { ...this.marchUniforms, depthBuffer: new Uniform(null), cameraNear: new Uniform(camera.near), cameraFar: new Uniform(camera.far) },
+        uniforms: { ...this.marchUniforms, depthBuffer: this.depthU, cameraNear: this.nearU, cameraFar: this.farU },
         defines: { DEPTH_PACKING: '0' },
         depthTest: false, depthWrite: false,
         vertexShader: /* glsl */`varying vec2 vUv; void main() { vUv = position.xy * 0.5 + 0.5; gl_Position = vec4(position.xy, 1.0, 1.0); }`,
@@ -123,34 +133,38 @@ export class VolumetricsEffect extends Effect {
       this.quad = new Mesh(tri, this.marchMat); this.quad.frustumCulled = false;
       this.marchScene = new Scene(); this.marchScene.add(this.quad);
     } else {
-      for (const [k, u] of Object.entries(this.marchUniforms)) this.uniforms.set(k, u);
+      for (const k of Object.keys(this.marchUniforms) as (keyof MarchUniforms)[]) this.uniforms.set(k, this.marchUniforms[k]);
     }
   }
   private camera: PerspectiveCamera;
   private frame = 0;
   private viewProj = new Matrix4();
-  private marchUniforms: Record<string, Uniform>;
+  private marchUniforms: MarchUniforms;
+  private depthU = new Uniform<Texture | null>(null);
+  private nearU: Uniform<number>;
+  private farU: Uniform<number>;
+  private depthPacking = '0';
   private rt: WebGLRenderTarget | null = null;
   private marchMat: ShaderMaterial | null = null;
   private quad: Mesh | null = null;
   private marchScene: Scene | null = null;
   private marchCam = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-  setSun(dir: Vector3, color: Color) { this.marchUniforms.uSunDir.value.copy(dir); this.marchUniforms.uSunColor.value.copy(color); }
-  setFogColor(c: Color) { this.marchUniforms.uFogColor.value.copy(c); }
+  setSun(dir: Vector3, color: Color): void { this.marchUniforms.uSunDir.value.copy(dir); this.marchUniforms.uSunColor.value.copy(color); }
+  setFogColor(c: Color): void { this.marchUniforms.uFogColor.value.copy(c); }
 
-  override setDepthTexture(depthTexture: Texture, depthPacking: DepthPackingStrategies = BasicDepthPacking) {
+  override setDepthTexture(depthTexture: Texture, depthPacking: DepthPackingStrategies = BasicDepthPacking): void {
     if (!this.marchMat) return;
-    this.marchMat.uniforms.depthBuffer.value = depthTexture;
+    this.depthU.value = depthTexture;
     const packing = String(depthPacking);
-    if (this.marchMat.defines.DEPTH_PACKING !== packing) { this.marchMat.defines.DEPTH_PACKING = packing; this.marchMat.needsUpdate = true; }
+    if (this.depthPacking !== packing) { this.depthPacking = packing; this.marchMat.defines['DEPTH_PACKING'] = packing; this.marchMat.needsUpdate = true; }
   }
 
-  override setSize(width: number, height: number) {
+  override setSize(width: number, height: number): void {
     this.rt?.setSize(Math.max(1, Math.round(width * this.scale)), Math.max(1, Math.round(height * this.scale)));
   }
 
-  override update(renderer: WebGLRenderer) {
+  override update(renderer: WebGLRenderer): void {
     const cam = this.camera, u = this.marchUniforms;
     u.uInvView.value.copy(cam.matrixWorld);
     u.uInvProj.value.copy(cam.projectionMatrixInverse);
@@ -161,7 +175,7 @@ export class VolumetricsEffect extends Effect {
     u.uFalloff.value = fogUniforms.fogHeightFalloff.value;
     u.uFrame.value = (this.frame++ % 64);
     if (this.rt && this.marchMat && this.marchScene) {
-      this.marchMat.uniforms.cameraNear.value = cam.near; this.marchMat.uniforms.cameraFar.value = cam.far;
+      this.nearU.value = cam.near; this.farU.value = cam.far;
       const prev = renderer.getRenderTarget();
       renderer.setRenderTarget(this.rt);
       renderer.render(this.marchScene, this.marchCam);

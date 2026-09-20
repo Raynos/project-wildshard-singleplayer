@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { bootstrap } from './core/bootstrap';
-import { CHUNK_HALF } from './core/config';
+import { CHUNK_HALF, ROAD_LENGTH } from './core/config';
 import { hasPond, heightAt, CABIN_SITES } from './world/Heightfield';
 import { Boundary } from './world/Boundary';
 import { Water } from './world/Water';
@@ -22,7 +22,6 @@ import { Bushes } from './world/Bushes';
 import { Gulls } from './world/Gulls';
 import { Trailside } from './world/Trailside';
 import { Hands } from './player/Hands';
-import { ROAD_LENGTH } from './core/config';
 import { Sword } from './player/Sword';
 import { IronSwordPickup, ironSwordSite } from './player/IronSword';
 import type { Weapon } from './player/Weapon';
@@ -64,7 +63,7 @@ import { installErrorModal, showError } from './ui/ErrorModal';
 const _animalXZ: { x: number; z: number }[] = [];
 function animalPositions(list: { position: { x: number; z: number }; alive?: boolean }[]) {
   let n = 0;
-  for (const a of list) { if (a.alive === false) continue; const p = _animalXZ[n] ?? (_animalXZ[n] = { x: 0, z: 0 }); p.x = a.position.x; p.z = a.position.z; n++; }
+  for (const a of list) { if (a.alive === false) continue; const p = _animalXZ[n] ??= { x: 0, z: 0 }; p.x = a.position.x; p.z = a.position.z; n++; }
   _animalXZ.length = n;
   return _animalXZ;
 }
@@ -78,20 +77,18 @@ async function main() {
   const plan = createBootPlan((view) => loading.paint(view), { totals: declareTotals(files) });
   installByteCounter(plan, files);
   // a boot that throws shows WHY: the loading panel's foot line + the uncaught-exception modal (src/ui/ErrorModal.ts)
-  window.addEventListener('unhandledrejection', (e) => plan.fail(`BOOT FAILED · ${String((e.reason as { message?: string })?.message ?? e.reason)}`.slice(0, 300)));
-  window.addEventListener('error', (e) => plan.fail(`BOOT FAILED · ${e.message} @ ${e.filename?.split('/').pop()}:${e.lineno}`.slice(0, 300)));
+  window.addEventListener('unhandledrejection', (e) => plan.fail(`BOOT FAILED · ${String((e.reason as { message?: string } | null | undefined)?.message ?? e.reason)}`.slice(0, 300)));
+  window.addEventListener('error', (e) => plan.fail(`BOOT FAILED · ${e.message} @ ${e.filename.split('/').pop()}:${e.lineno}`.slice(0, 300)));
   const step: StepRunner = (key, work) => plan.step(key, work).then((p) => p.value);
   // let the service worker take control first (≤ 2.5 s, never fatal) so the first visit's bytes are cached
   await window.__ws_sw?.ready;
   const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk } = world;
   const nolock = params.has('nolock');
-  const isOcean = !!chunk.ocean; // open-water shard (Driftwood Isle): ocean + pier, no forest carpet / cabins / props
-  const respawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } music?.sting('death'); };
-  let music: Music | undefined; // assigned with the audio below (respawn can fire before it exists)
+  const sea = chunk.ocean, isOcean = sea !== undefined; // open-water shard (Driftwood Isle): ocean + pier, no forest carpet / cabins / props
 
   // ── world dressing ──
-  const { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon } = await step('edge', () => {
+  const dressing = await step('edge', () => {
     const boundary = new Boundary(sky).build();
     game.scene.add(boundary.group);
     const water = !isOcean && hasPond() ? new Water(sky).build() : null;
@@ -99,7 +96,7 @@ async function main() {
     const ocean = isOcean ? new Ocean(sky).build() : null;
     if (ocean) game.scene.add(ocean.group);
     // the south entry road is a wooden pier over the water; the player spawns on its deck
-    const pier = isOcean ? new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: chunk.ocean!.level + 1.2 }).build() : null;
+    const pier = sea ? new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: sea.level + 1.2 }).build() : null;
     if (pier) {
       game.scene.add(pier.group);
       player.colliders.push(...pier.colliders);
@@ -107,7 +104,7 @@ async function main() {
       const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
     }
     // the little sailboat you arrived in, moored to the pier's sea-end bollards; you can drop into it
-    const boat = pier ? new Boat(sky, { x: -4.2, z: -CHUNK_HALF + 6, heading: 0, waterY: chunk.ocean!.level, moorTo: pier.mooringsFor(-4.2, -CHUNK_HALF + 6) }).build() : null;
+    const boat = pier && sea ? new Boat(sky, { x: -4.2, z: -CHUNK_HALF + 6, heading: 0, waterY: sea.level, moorTo: pier.mooringsFor(-4.2, -CHUNK_HALF + 6) }).build() : null;
     if (boat) {
       game.scene.add(boat.group); if (boat.ropes) game.scene.add(boat.ropes);
       player.colliders.push(...boat.colliders);
@@ -128,17 +125,17 @@ async function main() {
     // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
     const shrine = isOcean ? new Shrine(sky, SHRINE).build() : null;
     if (shrine) { game.scene.add(shrine.group); player.colliders.push(...shrine.colliders); player.platforms.push((x, z) => shrine.floorHeightAt(x, z)); }
-    const jetties = isOcean ? JETTIES.map((j) => new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: chunk.ocean!.level + 1.2 }).build()) : [];
+    const jetties = sea ? JETTIES.map((j) => new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: sea.level + 1.2 }).build()) : [];
     for (const j of jetties) { game.scene.add(j.group); player.colliders.push(...j.colliders); player.platforms.push((x, z) => j.floorHeightAt(x, z)); }
     const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
     const bushes = isOcean ? new Bushes(sky).build(Bushes.scatterIsland(chunk.seed, undefined, AVOID)) : null;
     if (bushes) game.scene.add(bushes.mesh);
     // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
-    const gulls = pier && boat && rocks ? new Gulls(sky).build({
+    const gulls = pier && boat && rocks && sea ? new Gulls(sky).build({
       perches: [
         ...pier.posts.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.02, p.z)),
         ...pier.bollards.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.41, p.z)),
-        new THREE.Vector3(-4.2, chunk.ocean!.level + 0.78, -CHUNK_HALF + 6 - 3.0), new THREE.Vector3(-4.2, chunk.ocean!.level + 0.7, -CHUNK_HALF + 6 + 3.0),
+        new THREE.Vector3(-4.2, sea.level + 0.78, -CHUNK_HALF + 6 - 3.0), new THREE.Vector3(-4.2, sea.level + 0.7, -CHUNK_HALF + 6 + 3.0),
         ...rockSpecs.filter((b) => b.r > 1.8).map((b) => new THREE.Vector3(b.x, heightAt(b.x, b.z) + b.r * (b.squash ?? 0.7) * 1.3, b.z)),
         ...Gulls.beachPerches(chunk.seed, 10, { x: 0, z: -195, r: 90 }),
       ],
@@ -165,8 +162,9 @@ async function main() {
     game.scene.add(horizon.group);
     return { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon };
   });
+  const { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon } = dressing;
 
-  const { grass, under, particles } = await step('grass', () => {
+  const carpet = await step('grass', () => {
     // no forest carpet over open water (grass scattered the whole sea floor for 19 s)
     const grass = isOcean ? null : new Grass(sky, forest).build();
     const under = isOcean ? null : new Undergrowth(sky, forest).build();
@@ -175,8 +173,9 @@ async function main() {
     game.scene.add(particles.group);
     return { grass, under, particles };
   });
+  const { grass, under, particles } = carpet;
 
-  const { cabins, interactables } = await step('cabins', async () => {
+  const homestead = await step('cabins', async () => {
     if (isOcean) return { cabins: null, interactables: [] as Awaited<ReturnType<Cabins['build']>>['interactables'] };
     const cabins = new Cabins(sky);
     const { group: cabinGroup, colliders, interactables } = await cabins.build();
@@ -185,12 +184,13 @@ async function main() {
     player.platforms.push((x, z) => cabins.floorHeightAt(x, z));
     return { cabins, interactables };
   });
+  const { cabins, interactables } = homestead;
   const props = await step('props', async () => {
     if (isOcean) return null;
-    const props = new Props(sky, forest);
-    game.scene.add(await props.build());
-    player.colliders.push(...props.colliders);
-    return props;
+    const built = new Props(sky, forest);
+    game.scene.add(await built.build());
+    player.colliders.push(...built.colliders);
+    return built;
   });
 
   const animals = await step('animals', (p) => {
@@ -227,22 +227,24 @@ async function main() {
   const debug = new Debug(() => perf.refresh()); // TEMPORARY: tier/dpr/aa/meter knobs (src/ui/Debug.ts)
   const audio = new Audio();
   // the Wildshard theme (docs/plans/MUSIC.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
-  music = new Music(audio);
+  const music = new Music(audio);
   music.setState({ shard: chunk.ocean ? 'island' : 'pine', mode: 'menu', intensity: 0, underwater: false });
-  let kills = 0, health = 100, lastHurt = 0, pelts = 0, swimHold = false;
+  const respawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } music.sting('death'); };
+  let kills = 0, health = 100, lastHurt = 0, swimHold = false;
   const harvested = new Set<object>();
   // ── the in-game menu: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (src/ui/Menu.ts) ──
   const progress = new Progress(getActiveChunk().id);     // shard achievements → titles (src/game/achievements.ts)
   const inventory = new Inventory(getActiveChunk().id);   // the pack: harvest drops
+  const skins = new SkinLocker();                          // legendary skins owned / worn (persisted; wired below)
   const menu = new GameMenu({
     fullMap, progress, inventory,
-    kit: () => weapons.available.map((w) => ({ id: w.id, name: (w.id === 'crossbow' ? 'Hunting crossbow' : w.id === 'sword' ? 'Wooden sword' : w.name) + (w.id === 'crossbow' || w.id === 'rifle' ? (skins.wearing(w.id) ? ` · ${skins.wearing(w.id)!.name}` : '') : ''), ammoLabel: w.id === 'crossbow' ? 'Iron bolts' : w.id === 'rifle' ? 'Rounds' : '', ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? 'rifle' : 'crossbow' })),
+    kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; return { id: w.id, name: (w.id === 'crossbow' ? 'Hunting crossbow' : w.id === 'sword' ? 'Wooden sword' : w.name) + (worn ? ` · ${worn.name}` : ''), ammoLabel: w.id === 'crossbow' ? 'Iron bolts' : w.id === 'rifle' ? 'Rounds' : '', ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? 'rifle' : 'crossbow' }; }),
     onEquip: (id) => weapons.select(id as WeaponId),
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); });
   document.addEventListener('keydown', (e) => { if (e.code === 'KeyM' && hud.entered && !menu.isOpen) menu.open('map'); });
-  menu.onOpen = () => { if (document.pointerLockElement) document.exitPointerLock?.(); }; // the map wants a cursor; the lock comes back on close (onResume)
+  menu.onOpen = () => { if (document.pointerLockElement) document.exitPointerLock(); }; // the map wants a cursor; the lock comes back on close (onResume)
   progress.onEarned = (d) => { hud.toast(`Achievement · ${d.name} — title unlocked: ${d.title}`); audio.hitMarker(); };
   const masterGain = () => { if (!audio.muted) audio.master.gain.setTargetAtTime(0.6 * getNumber('volume'), audio.ctx.currentTime, 0.05); };
   onNumber('volume', masterGain);
@@ -260,14 +262,10 @@ async function main() {
     if (weapons.current.id !== 'rifle' && chunk.weapon === 'sword') audio.swordHit(surface, pan, gain); else audio.boltImpact(surface, pan, gain);
   };
   weapons.onHit = (_kind, headshot, killed) => {
-    music?.combat(0.7);
+    music.combat(0.7);
     hud.showHitMarker(headshot, killed);
     audio.hitMarker();
     if (killed) { kills++; audio.kill(); }
-  };
-  animals.onKill = (a) => {
-    hud.killFeed(`${a.label} · ${Math.round(a.position.distanceTo(player.position))} m`); progress.recordKill(a.kind, a.variant);
-    const skin = skinFor(a.kind, a.variant); if (skin && !skins.has(skin.id)) spawnSkinDrop(skin, a.position); // the legendary's drop, once
   };
   setAimTargets(animals.animals); // aim assist reads the live array
   // the AR-15 is found, not issued: a floating pickup on the floor of cabin 1 (the hollow), inside by the door wall
@@ -279,7 +277,7 @@ async function main() {
     const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position: new THREE.Vector3(x, cabins.floorHeightAt(x, z) ?? heightAt(x, z), z), tier: 'common', prompt: 'Take AR-15' });
     interactables.push(drop.interactable);
     drop.onNear = (inside) => audio.pickupHum(inside); // the orb hums while you stand in its prompt radius
-    drop.onPickup = () => { weapons.unlock('rifle'); weapons.select('rifle'); audio.hitMarker(); music?.sting('pickup'); hud.toast('AR-15 acquired · 1/2 to switch, Q to swap'); };
+    drop.onPickup = () => { weapons.unlock('rifle'); weapons.select('rifle'); audio.hitMarker(); music.sting('pickup'); hud.toast('AR-15 acquired · 1/2 to switch, Q to swap'); };
     return drop;
   })();
   if (params.get('weapon') === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle', true); rifleDrop?.dispose(); } // dev: start with it
@@ -288,14 +286,13 @@ async function main() {
     const drop = new IronSwordPickup({ scene: game.scene, sky, position: ironSwordSite(wreck, heightAt) });
     interactables.push(drop.interactable);
     drop.onNear = (inside) => audio.pickupHum(inside);
-    drop.onPickup = () => { weapons.unlock('sword-iron'); weapons.select('sword-iron'); audio.hitMarker(); music?.sting('pickup'); hud.toast('Iron sword acquired · 1/2 to switch, Q to swap'); };
+    drop.onPickup = () => { weapons.unlock('sword-iron'); weapons.select('sword-iron'); audio.hitMarker(); music.sting('pickup'); hud.toast('Iron sword acquired · 1/2 to switch, Q to swap'); };
     return drop;
   })();
   if (params.get('weapon') === 'iron' && ironSword) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); ironDrop?.dispose(); }
   // ── legendary skins (src/player/Skins.ts): the Ghost stag drops the GHOST STAG crossbow, Old Ironhide the IRONHIDE AR-15 —
   // a big purple floating pickup where the animal fell (WeaponPickup tier 'rare'); taking it swaps the skin (and hands you the
   // rifle if you had not found it). What you own / wear persists; `?skin=ghost-stag` previews, `?drop=ironhide` spawns one ahead.
-  const skins = new SkinLocker();
   const skinDrops: WeaponPickup[] = [];
   const weaponModel = (w: 'crossbow' | 'rifle') => (w === 'rifle' ? rifle.model : crossbow instanceof Crossbow ? crossbow.model : null);
   const wearSkin = (skin: SkinDef) => { const m = weaponModel(skin.weapon); if (m) applySkin(m, skin, sky); skins.wear(skin.weapon, skin.id); };
@@ -315,19 +312,24 @@ async function main() {
       skinDrops.splice(skinDrops.indexOf(drop), 1);
     };
   };
+  animals.onKill = (a) => {
+    hud.killFeed(`${a.label} · ${Math.round(a.position.distanceTo(player.position))} m`); progress.recordKill(a.kind, a.variant);
+    const skin = skinFor(a.kind, a.variant); if (skin && !skins.has(skin.id)) spawnSkinDrop(skin, a.position); // the legendary's drop, once
+  };
   for (const w of ['crossbow', 'rifle'] as const) { const s = skins.wearing(w); if (s) wearSkin(s); }
-  if (params.get('skin') && params.get('skin')! in SKINS) { const s = SKINS[params.get('skin') as SkinId]; skins.own(s.id); wearSkin(s); if (s.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle', true); } }
-  if (params.get('drop') && params.get('drop')! in SKINS) { const f = 4.5; spawnSkinDrop(SKINS[params.get('drop') as SkinId], new THREE.Vector3(player.position.x - Math.sin(player.yaw) * f, 0, player.position.z - Math.cos(player.yaw) * f)); }
-  new Combat(game, animals, weapons as unknown as Crossbow, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
+  const skinParam = params.get('skin'), dropParam = params.get('drop');
+  if (skinParam && skinParam in SKINS) { const s = SKINS[skinParam as SkinId]; skins.own(s.id); wearSkin(s); if (s.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle', true); } }
+  if (dropParam && dropParam in SKINS) { const f = 4.5; spawnSkinDrop(SKINS[dropParam as SkinId], new THREE.Vector3(player.position.x - Math.sin(player.yaw) * f, 0, player.position.z - Math.cos(player.yaw) * f)); }
+  new Combat(game, animals, weapons, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
   animals.onSound = (name, pos) => audio.animal(name, pos, player.position, player.yaw);
-  animals.onCharge = (_a, dmg) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); music?.combat(0.9); };
+  animals.onCharge = (_a, dmg) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); music.combat(0.9); };
   player.onStep = (sprinting) => (player.wading ? audio.wadeStep(player.depth, sprinting)
     : audio.footstep(sprinting, pier?.floorHeightAt(player.position.x, player.position.z) !== undefined ? 'planks'
-      : isOcean && heightAt(player.position.x, player.position.z) - chunk.ocean!.level < 2.6 ? 'sand' : 'litter'));
+      : sea !== undefined && heightAt(player.position.x, player.position.z) - sea.level < 2.6 ? 'sand' : 'litter'));
   if (gulls) gulls.onCall = (pos) => audio.gullCallAt(pos, player.position, player.yaw);
   player.onEnterWater = (impact) => audio.splash(impact);
-  player.onSubmerge = () => { audio.dive(); audio.setUnderwater(true); music?.setState({ underwater: true }); };
-  player.onSurface = () => { audio.surface(); audio.setUnderwater(false); music?.setState({ underwater: false }); };
+  player.onSubmerge = () => { audio.dive(); audio.setUnderwater(true); music.setState({ underwater: true }); };
+  player.onSurface = () => { audio.surface(); audio.setUnderwater(false); music.setState({ underwater: false }); };
   player.onExitWater = () => audio.waterExit();
   player.onStroke = () => audio.swimStroke();
   player.onJump = () => audio.jump();
@@ -341,8 +343,8 @@ async function main() {
   const menuFirst = !params.has('skipintro') && !params.has('tour');
   const enter = () => {
     audio.resume();
-    if (music && !music.isPlaying) { music.play('theme'); music.sting('chunk'); } // the resolve chord on the first frame in
-    music?.setState({ mode: 'calm', intensity: 0 });
+    if (!music.isPlaying) { music.play('theme'); music.sting('chunk'); } // the resolve chord on the first frame in
+    music.setState({ mode: 'calm', intensity: 0 });
     void keepAlive.start(); // screen wake lock — needs this user gesture
     weapons.setEnabled(true);
     weapons.visible = true;
@@ -351,7 +353,7 @@ async function main() {
     if (!nolock) player.lock();
   };
   hud.onResume = enter;
-  hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); debug.setActive(false); music?.setState({ mode: 'menu' }); }; // the HUD mutes audio and clears `entered`; the gate does the rest
+  hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); debug.setActive(false); music.setState({ mode: 'menu' }); }; // the HUD mutes audio and clears `entered`; the gate does the rest
   // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
   game.frameGate = () => hud.entered;
   if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.muted = true; hud.showIntro(enter); }
@@ -367,7 +369,7 @@ async function main() {
     if (e.code !== 'KeyE' || !hud.entered) return;
     if (nearest) nearest.onInteract();
     else if (carcass) {
-      harvested.add(carcass); pelts++;
+      harvested.add(carcass);
       const drops = harvestOf(carcass.kind, carcass.variant);
       for (const id of drops) inventory.add(id);
       hud.toast(`${drops.map((id) => ITEMS[id].label).join(' + ') || 'Nothing'} harvested · ${inventory.total} in the pack`);
@@ -379,7 +381,7 @@ async function main() {
   let musicPoll = 0;
   game.onUpdate((dt, t) => {
     // music: once a second (not per frame) — an animal that has noticed you within 40 m lifts calm → alert; combat comes from the hit hooks and decays by itself
-    if (music && t - musicPoll > 1) {
+    if (t - musicPoll > 1) {
       musicPoll = t;
       if (music.state.mode !== 'combat' && music.state.mode !== 'menu') {
         const noticed = animals.animals.some((a) => a.alive && (a.state === 'alert' || a.state === 'stalk') && a.position.distanceTo(player.position) < 40);
@@ -439,7 +441,7 @@ async function main() {
   const programs = () => `${game.renderer.info.programs?.length ?? 0} programs`;
   await step('shaders', (p) => game.precompile((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
   await step('firstFrame', (p) => game.firstFrame((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
-  (plan as unknown as { done(): void }).done(); // throws unless both tracks are exactly 1
+  (plan as unknown as { done: () => void }).done(); // throws unless both tracks are exactly 1
   game.start();
   await loading.done();
   (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio };

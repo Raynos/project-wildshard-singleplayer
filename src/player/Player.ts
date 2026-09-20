@@ -141,7 +141,7 @@ export class Player {
       if (e.code === 'Space') e.preventDefault();
       if (e.code === 'KeyH' && !e.repeat) this.setHover(!this.hover);
     });
-    document.addEventListener('keyup', (e) => this.keys.delete(e.code));
+    document.addEventListener('keyup', (e) => { this.keys.delete(e.code); });
     document.addEventListener('mousemove', (e) => {
       if (!this.locked) return;
       this.yaw -= e.movementX * 0.0022;
@@ -150,13 +150,13 @@ export class Player {
     });
     document.addEventListener('pointerlockchange', () => { this.locked = document.pointerLockElement === this.canvas; if (!this.locked) this.keys.clear(); });
     window.addEventListener('blur', () => this.keys.clear());
-    this.board = new Hoverboard(camera);
+    this.board = new Hoverboard(camera, HOVER_TOP);
   }
 
-  lock() { this.canvas.requestPointerLock?.(); } // undefined on iOS Safari — touch input never needs it
+  lock(): void { if ('requestPointerLock' in this.canvas) void this.canvas.requestPointerLock(); } // absent on iOS Safari — touch input never needs it
 
   /** step on / off the hoverboard. Off: the board fades and gravity lands you; on: the spring lifts you to ride height. */
-  setHover(on: boolean) {
+  setHover(on: boolean): void {
     if (on === this.hover) return;
     this.hover = on;
     if (on) { this.crouching = false; this.sprinting = false; this.onGround = false; this.setSwimming(false); }
@@ -170,24 +170,24 @@ export class Player {
     return pondMask(x, z) > 0 ? waterLevel() : null;
   }
 
-  private setSwimming(on: boolean) {
+  private setSwimming(on: boolean): void {
     if (on === this.swimming) return;
     this.swimming = on;
     if (!on) { this.climbTo = null; this.diveHeld = false; this.touchDive = false; this.surfaceHeld = false; this.touchSurface = false; this.diving = false; }
     this.onSwimChange?.(on);
   }
 
-  spawn(x: number, z: number, yaw: number) {
+  spawn(x: number, z: number, yaw: number): void {
     this.position.set(x, heightAt(x, z), z);
     this.yaw = yaw; this.pitch = 0;
     this.velocity.set(0, 0, 0);
     this.setSwimming(false); this.inWater = false; this.depth = 0; this.wading = false;
   }
 
-  get forward() { return new THREE.Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw)); }
+  get forward(): THREE.Vector3 { return new THREE.Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw)); }
 
-  update(dt: number) {
-    dt = Math.min(dt, 0.05);
+  update(dtRaw: number): void {
+    const dt = Math.min(dtRaw, 0.05);
     this.preUpdate?.(dt);
     const k = this.keys;
     const fwd = Math.max(-1, Math.min(1, (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0) + this.touchMove.y));
@@ -238,7 +238,7 @@ export class Player {
       // carve: the sideways component (relative to the heading) is pulled toward what the stick asks for much faster
       // than the forward one — turn at speed and the old momentum, now sideways, bleeds off instead of sliding you
       const fx = -sin, fz = -cos, rx = cos, rz = -sin;
-      let vf = v.x * fx + v.z * fz, vl = v.x * rx + v.z * rz;
+      const vf = v.x * fx + v.z * fz; let vl = v.x * rx + v.z * rz;
       const tl = tx * rx + tz * rz;
       vl += (tl - vl) * (1 - Math.exp(-HOVER_LAT_DRAG * grip * dt));
       v.x = fx * vf + rx * vl; v.z = fz * vf + rz * vl;

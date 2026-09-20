@@ -7,7 +7,7 @@ import { heightAt } from '../world/Heightfield';
 import { getSetting } from '../ui/Settings';
 import {
   Puffs, fixIBL, fovForAspect, FOV_HIP, FOV_ADS, makeNoise, makeSteel, dataTexture, normalFromHeight, box, cyl, stripExtra, sstep, clamp01,
-  TRACER_RED, TRACER_ORDER, type TexSet, type Targets, type ImpactSurface, type CrossbowWorld, type CrossbowOptions,
+  TRACER_RED, TRACER_ORDER, isMesh, type TexSet, type Targets, type ImpactSurface, type CrossbowWorld, type CrossbowOptions,
 } from './Crossbow';
 import type { KitWeapon, WeaponState, AimInfo } from './Weapons';
 
@@ -94,7 +94,8 @@ function makePolymer(seed: number): TexSet {
 /** muzzle flash sprite: a hot white core, orange petals, alpha in the luminance (additive) */
 function makeFlashTexture(): THREE.CanvasTexture {
   const S = 128, cvs = document.createElement('canvas'); cvs.width = cvs.height = S;
-  const ctx = cvs.getContext('2d')!;
+  const ctx = cvs.getContext('2d');
+  if (ctx === null) throw new Error('makeFlashTexture: no 2d canvas context');
   ctx.clearRect(0, 0, S, S);
   const c = S / 2;
   // petals
@@ -170,7 +171,7 @@ export class Rifle implements KitWeapon {
 
   readonly model = new THREE.Group();
   private game: CrossbowWorld['game']; private sky: CrossbowWorld['sky']; private player: CrossbowWorld['player']; private forest: CrossbowWorld['forest'];
-  private targets?: Targets;
+  private targets: Targets | undefined;
   private active = true;
 
   // animated parts
@@ -202,7 +203,7 @@ export class Rifle implements KitWeapon {
   constructor(world: CrossbowWorld, targets?: Targets, opts: CrossbowOptions = {}) {
     this.game = world.game; this.sky = world.sky; this.player = world.player; this.forest = world.forest;
     this.targets = targets;
-    this.allowUnlocked = !!opts.allowUnlocked;
+    this.allowUnlocked = opts.allowUnlocked ?? false;
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
     this.buildViewmodel();
     this.buildEffects();
@@ -214,8 +215,8 @@ export class Rifle implements KitWeapon {
   }
 
   // ── input ──
-  inputAllowed() { return this.enabled && (this.player.locked || this.allowUnlocked); }
-  private bindInput() {
+  inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked); }
+  private bindInput(): void {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
       if (e.button === 0) this.tryFire();
@@ -231,28 +232,28 @@ export class Rifle implements KitWeapon {
     window.addEventListener('blur', () => { this.mouseAds = false; });
   }
 
-  setActive(on: boolean) {
+  setActive(on: boolean): void {
     this.active = on;
     this.model.visible = on;
     if (!on) { this.enabled = false; this.mouseAds = false; }
   }
 
   /** Pull the trigger: one round if the mag has one, else a dry click and (after a beat) a reload. */
-  tryFire() {
+  tryFire(): void {
     if (this.state.reloading || this.cooldown > 0) return;
     if (this.state.ammo <= 0) { this.onDry?.(); this.sinceEmpty = 0; if (this.state.reserve > 0) this.reload(); return; }
     this.fire();
   }
 
-  reload() {
+  reload(): void {
     if (this.state.reloading || this.state.ammo >= MAGAZINE || this.state.reserve <= 0) return;
     this.state.reloading = true; this.reloadT = 0; this.state.reloadProgress = 0;
     this.onReloadStart?.();
   }
 
-  addRounds(n: number) { this.state.reserve += n; }
+  addRounds(n: number): void { this.state.reserve += n; }
 
-  private fire() {
+  private fire(): void {
     const s = this.state;
     s.ammo--; s.loaded = s.ammo > 0;
     this.cooldown = FIRE_INTERVAL;
@@ -267,14 +268,14 @@ export class Rifle implements KitWeapon {
   }
 
   /** The aim line is the camera forward, hip or sighted (the crosshair / the ring's centre). */
-  aimRay(origin: THREE.Vector3, dir: THREE.Vector3) {
+  aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 {
     const cam = this.game.camera;
     cam.getWorldDirection(dir);
     origin.copy(cam.position);
     return dir;
   }
 
-  private hitscan() {
+  private hitscan(): void {
     this.aimRay(_o, _d);
     const a = sstep(0, 1, this.adsBlend);
     const spread = THREE.MathUtils.degToRad(SPREAD_ADS + (1 - a) * SPREAD_HIP + this.bloom * (1 - a * 0.7));
@@ -407,11 +408,11 @@ export class Rifle implements KitWeapon {
     // ── pistol grip (polymer), raked back ──
     P.push(box(0.028, 0.1, 0.038, 0, -0.125, 0.13, -0.35, 0, 0));
     // ── charging handle (steel, animated), bolt carrier glimpse behind the dust cover ──
-    const handleGeo = mergeGeometries([stripExtra(box(0.05, 0.008, 0.02, 0, 0.022, 0.135)), stripExtra(box(0.012, 0.008, 0.11, 0, 0.022, 0.07))], false)!;
+    const handleGeo = mergeGeometries([stripExtra(box(0.05, 0.008, 0.02, 0, 0.022, 0.135)), stripExtra(box(0.012, 0.008, 0.11, 0, 0.022, 0.07))], false);
     this.handle = new THREE.Mesh(handleGeo, steelMat);
     this.bolt = new THREE.Mesh(box(0.014, 0.014, 0.06, 0.022, 0.005, -0.012), steelMat);
     // ── magazine (polymer, animated on reload) ──
-    const magGeo = mergeGeometries([stripExtra(box(0.024, 0.19, 0.07, 0, -0.095, 0, 0.12, 0, 0)), stripExtra(box(0.027, 0.01, 0.075, 0, -0.19, -0.022, 0.12, 0, 0))], false)!;
+    const magGeo = mergeGeometries([stripExtra(box(0.024, 0.19, 0.07, 0, -0.095, 0, 0.12, 0, 0)), stripExtra(box(0.027, 0.01, 0.075, 0, -0.19, -0.022, 0.12, 0, 0))], false);
     this.mag = new THREE.Mesh(magGeo, polyMat);
     this.magRest.set(0, -0.105, -0.045);
     this.mag.position.copy(this.magRest);
@@ -425,9 +426,9 @@ export class Rifle implements KitWeapon {
     const glowRing = new THREE.Mesh(new THREE.TorusGeometry(0.0049, 0.00025, 4, 22), glow); glowRing.position.set(0, SIGHT_Y, REAR_Z);
     glowRing.visible = false;
 
-    const meshA = new THREE.Mesh(mergeGeometries(A.map(stripExtra), false)!, aluMat);
-    const meshP = new THREE.Mesh(mergeGeometries(P.map(stripExtra), false)!, polyMat);
-    const meshS = new THREE.Mesh(mergeGeometries(S.map(stripExtra), false)!, steelMat);
+    const meshA = new THREE.Mesh(mergeGeometries(A.map(stripExtra), false), aluMat);
+    const meshP = new THREE.Mesh(mergeGeometries(P.map(stripExtra), false), polyMat);
+    const meshS = new THREE.Mesh(mergeGeometries(S.map(stripExtra), false), steelMat);
     this.model.add(meshA, meshP, meshS, this.handle, this.bolt, this.mag, glowRing);
     this.displayParts.push({ geo: meshA.geometry, mat: aluMat }, { geo: meshP.geometry, mat: polyMat }, { geo: meshS.geometry, mat: steelMat }, { geo: handleGeo, mat: steelMat }, { geo: magGeo, mat: polyMat, pos: this.magRest.clone() });
     (this.model as THREE.Group & { glowRing: THREE.Mesh }).glowRing = glowRing;
@@ -450,11 +451,10 @@ export class Rifle implements KitWeapon {
     clearer.renderOrder = 999; clearer.frustumCulled = false;
     clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
     this.model.add(clearer);
-    this.model.traverse((o) => {
-      const m = o as THREE.Mesh;
-      if (!m.isMesh) return;
-      m.frustumCulled = false; m.castShadow = false; m.receiveShadow = o !== clearer;
-      if (o === clearer) return;
+    this.model.traverse((m) => {
+      if (!isMesh(m)) return;
+      m.frustumCulled = false; m.castShadow = false; m.receiveShadow = m !== clearer;
+      if (m === clearer) return;
       m.renderOrder = this.flashQuads.includes(m) ? 1001 : 1000;
       for (const mat of Array.isArray(m.material) ? m.material : [m.material]) { mat.transparent = true; if (mat !== flashMat) mat.depthWrite = true; }
     });
@@ -485,7 +485,7 @@ export class Rifle implements KitWeapon {
   }
 
   private ejectBrass() {
-    let b = this.brass.find((x) => x.life <= 0) ?? this.brass.reduce((a, x) => (x.life < a.life ? x : a));
+    const b = this.brass.find((x) => x.life <= 0) ?? this.brass.reduce((a, x) => (x.life < a.life ? x : a));
     const cam = this.game.camera;
     this.model.updateMatrixWorld();
     this.model.localToWorld(b.mesh.position.copy(PORT));
@@ -524,7 +524,7 @@ export class Rifle implements KitWeapon {
   }
 
   // ── per-frame ──
-  update(dt: number, t: number) {
+  update(dt: number, t: number): void {
     this.time = t;
     const p = this.player, cam = this.game.camera, s = this.state;
     this.cooldown = Math.max(0, this.cooldown - dt);
@@ -557,7 +557,7 @@ export class Rifle implements KitWeapon {
 
     // muzzle flash: FLASH_FRAMES frames of quads, the light for FLASH_LIGHT_TIME
     if (this.flashFrames > 0 && --this.flashFrames === 0) this.flash.visible = false;
-    if (this.flashLightT > 0) { this.flashLightT -= dt; if (this.flashLightT <= 0) this.flashLight.intensity = 0; else this.flashLight.intensity = FLASH_LIGHT * clamp01(this.flashLightT / FLASH_LIGHT_TIME); }
+    if (this.flashLightT > 0) { this.flashLightT -= dt; this.flashLight.intensity = this.flashLightT <= 0 ? 0 : FLASH_LIGHT * clamp01(this.flashLightT / FLASH_LIGHT_TIME); }
 
     // ADS + FOV (only the held weapon owns the camera FOV)
     s.ads = (this.mouseAds || this.adsHeld) && this.enabled && !s.reloading && !p.sprinting;
@@ -624,7 +624,7 @@ export class Rifle implements KitWeapon {
     if (this.active && this.targets && (++this.aimFrame & 3) === 0) {
       this.aimRay(_o, _d);
       const hit = this.targets.raycast(_o, _d, 120);
-      if (hit && hit.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; this.aimInfo = this.aimCache; }
+      if (hit?.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; this.aimInfo = this.aimCache; }
       else this.aimInfo = null;
     }
 

@@ -13,6 +13,7 @@ import { TIER_CONFIG } from '../core/tier';
  * Over an open-water shard everything sits on the sea surface instead of the sea floor.
  */
 const heightAt = (x: number, z: number) => Math.max(terrainHeightAt(x, z), waterLevel());
+interface BeaconMats { pole: THREE.Material; head: THREE.Material; beam: THREE.Material }
 export class Boundary {
   group = new THREE.Group();
   private mats: THREE.ShaderMaterial[] = [];
@@ -20,14 +21,15 @@ export class Boundary {
 
   constructor(private sky: Sky) {}
 
-  build() {
+  build(): this {
     const H = CHUNK_HALF;
     // ---- surface edge lines (follow the terrain)
     const segs = 200;
     const pts: number[] = [];
-    const corners = [[-H, -H], [H, -H], [H, H], [-H, H]];
+    const corners: [number, number][] = [[-H, -H], [H, -H], [H, H], [-H, H]];
     for (let s = 0; s < 4; s++) {
       const a = corners[s], b = corners[(s + 1) % 4];
+      if (a === undefined || b === undefined) continue;
       for (let i = 0; i < segs; i++) {
         const t0 = i / segs, t1 = (i + 1) / segs;
         const x0 = a[0] + (b[0] - a[0]) * t0, z0 = a[1] + (b[1] - a[1]) * t0;
@@ -42,7 +44,11 @@ export class Boundary {
       pts.push(x, top, z, x, top + 60, z);
     }
     // bottom rectangle
-    for (let s = 0; s < 4; s++) { const a = corners[s], b = corners[(s + 1) % 4]; pts.push(a[0], -CHUNK_DEPTH, a[1], b[0], -CHUNK_DEPTH, b[1]); }
+    for (let s = 0; s < 4; s++) {
+      const a = corners[s], b = corners[(s + 1) % 4];
+      if (a === undefined || b === undefined) continue;
+      pts.push(a[0], -CHUNK_DEPTH, a[1], b[0], -CHUNK_DEPTH, b[1]);
+    }
     const lineGeo = new THREE.BufferGeometry();
     lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
     const lineMat = new THREE.LineBasicMaterial({ color: new THREE.Color(0.35, 0.95, 1.2), transparent: true, opacity: 0.85, fog: false, toneMapped: false });
@@ -55,8 +61,9 @@ export class Boundary {
     const ribbons: THREE.BufferGeometry[] = [];
     for (let s = 0; s < 4; s++) {
       const a = corners[s], b = corners[(s + 1) % 4];
+      if (a === undefined || b === undefined) continue;
       const geo = new THREE.PlaneGeometry(1, 1, segs, 1);
-      const pos = geo.attributes.position as THREE.BufferAttribute;
+      const pos = geo.getAttribute('position');
       for (let i = 0; i < pos.count; i++) {
         const t = pos.getX(i) + 0.5, up = pos.getY(i) + 0.5;
         const x = a[0] + (b[0] - a[0]) * t, z = a[1] + (b[1] - a[1]) * t;
@@ -67,13 +74,13 @@ export class Boundary {
       ribbons.push(geo);
     }
     // one draw call for the four ribbons (they were 4 never-culled meshes)
-    const ribbon = new THREE.Mesh(mergeGeometries(ribbons, false)!, ribbonMat);
+    const ribbon = new THREE.Mesh(mergeGeometries(ribbons, false), ribbonMat);
     ribbon.frustumCulled = false;
     this.group.add(ribbon);
 
     // ---- corner + edge-midpoint beacons (the 8 flags planted before upload) and the centre beacon
     const off = ROAD_WIDTH / 2 + 4;
-    const beaconPts: [number, number][] = [...(corners as [number, number][]), [-off, -H], [H, -off], [off, H], [-H, off]];
+    const beaconPts: [number, number][] = [...corners, [-off, -H], [H, -off], [off, H], [-H, off]];
     for (const [x, z] of beaconPts) this.group.add(this.beacon(x, z, heightAt(x, z)));
     this.mergeBeacons();
 
@@ -92,28 +99,27 @@ export class Boundary {
         postGeos.push(new THREE.CylinderGeometry(0.12, 0.16, 7.5, 8).translate(px, heightAt(px, pz) + 3.6, pz));
       }
     }
-    this.group.add(new THREE.Mesh(mergeGeometries(gateGeos, false)!, gateMat));
+    this.group.add(new THREE.Mesh(mergeGeometries(gateGeos, false), gateMat));
     const postMat = new THREE.MeshStandardMaterial({ color: 0x1a2028, roughness: 0.5, metalness: 0.8, emissive: new THREE.Color(0.1, 0.5, 0.7), emissiveIntensity: 0.6 });
     this.sky.setupMaterial(postMat);
-    this.group.add(new THREE.Mesh(mergeGeometries(postGeos, false)!, postMat));
+    this.group.add(new THREE.Mesh(mergeGeometries(postGeos, false), postMat));
     return this;
   }
 
   private beaconParts: { pole: THREE.BufferGeometry[]; head: THREE.BufferGeometry[]; beam: THREE.BufferGeometry[] } = { pole: [], head: [], beam: [] };
-  private beaconMats!: { pole: THREE.Material; head: THREE.Material; beam: THREE.Material };
+  private beaconMats: BeaconMats | undefined;
 
   /** the 9 beacons' poles, heads and beams as three meshes instead of 27 (halos stay sprites, lights stay lights) */
   private mergeBeacons() {
-    const P = this.beaconParts, M = this.beaconMats;
-    const pole = new THREE.Mesh(mergeGeometries(P.pole, false)!, M.pole); pole.castShadow = true;
-    const head = new THREE.Mesh(mergeGeometries(P.head, false)!, M.head);
-    const beam = new THREE.Mesh(mergeGeometries(P.beam, false)!, M.beam);
+    const P = this.beaconParts, M = this.beaconMaterials();
+    const pole = new THREE.Mesh(mergeGeometries(P.pole, false), M.pole); pole.castShadow = true;
+    const head = new THREE.Mesh(mergeGeometries(P.head, false), M.head);
+    const beam = new THREE.Mesh(mergeGeometries(P.beam, false), M.beam);
     this.group.add(pole, head, beam);
   }
 
-  private beacon(x: number, z: number, y: number) {
-    const g = new THREE.Group();
-    if (!this.beaconMats) {
+  private beaconMaterials(): BeaconMats {
+    if (this.beaconMats === undefined) {
       const poleMat = new THREE.MeshStandardMaterial({ color: 0x1d232b, roughness: 0.45, metalness: 0.85 });
       this.sky.setupMaterial(poleMat);
       this.beaconMats = {
@@ -122,6 +128,11 @@ export class Boundary {
         beam: new THREE.MeshBasicMaterial({ color: new THREE.Color(0.3, 0.8, 1.0), transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }),
       };
     }
+    return this.beaconMats;
+  }
+
+  private beacon(x: number, z: number, y: number) {
+    const g = new THREE.Group();
     // geometry goes to the merged beacon meshes (world space); only the halo sprite (and light) live in this group
     this.beaconParts.pole.push(new THREE.CylinderGeometry(0.06, 0.09, 2.6, 8).translate(x, y + 1.3, z));
     this.beaconParts.head.push(new THREE.OctahedronGeometry(0.28, 0).translate(x, y + 2.85, z));
@@ -184,9 +195,9 @@ export class Boundary {
     return mat;
   }
 
-  update(dt: number, t: number) {
-    for (const m of this.mats) m.uniforms.uTime.value = t;
-    for (let i = 0; i < this.beaconLights.length; i++) this.beaconLights[i].intensity = 5 + Math.sin(t * 2.2 + i) * 1.5;
+  update(_dt: number, t: number): void {
+    for (const m of this.mats) { const u = m.uniforms['uTime']; if (u !== undefined) u.value = t; }
+    for (let i = 0; i < this.beaconLights.length; i++) { const light = this.beaconLights[i]; if (light !== undefined) light.intensity = 5 + Math.sin(t * 2.2 + i) * 1.5; }
   }
 }
 
@@ -194,7 +205,8 @@ let _halo: THREE.Texture | null = null;
 function haloTexture() {
   if (_halo) return _halo;
   const c = document.createElement('canvas'); c.width = c.height = 128;
-  const g = c.getContext('2d')!;
+  const g = c.getContext('2d');
+  if (g === null) throw new Error('Boundary: no 2d canvas context');
   const grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
   grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.2, 'rgba(180,240,255,0.7)'); grad.addColorStop(1, 'rgba(0,120,200,0)');
   g.fillStyle = grad; g.fillRect(0, 0, 128, 128);

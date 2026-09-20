@@ -29,7 +29,7 @@ export class Tour {
     ], false, 'centripetal', 0.5);
   }
 
-  setTime(t: number) {
+  setTime(t: number): void {
     this.time = t;
     const u = THREE.MathUtils.clamp(t / this.duration, 0, 1);
     const p = this.path.getPointAt(u);

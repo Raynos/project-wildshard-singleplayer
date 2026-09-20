@@ -38,7 +38,7 @@ const FRICTION_MIN = 1.5 * DEG, FRICTION_MAX = 12 * DEG;
 const FRICTION_HIP = 0.6, FRICTION_ADS = 0.45;               // look-delta scale at the bubble centre → 1.0 at the edge
 const SNAP_MARGIN = 1.1, SNAP_MIN = 2 * DEG, SNAP_MAX = 6 * DEG;
 const SNAP_MS = 180, SNAP_SHORT = 0.4 * DEG, SNAP_DRAG_LOCKOUT = 200; // px/s: a flick is not an aim
-const TRACK_RADIUS = 0.9, TRACK_MIN = 1 * DEG, TRACK_MAX_ANGLE = 5 * DEG;
+const TRACK_RADIUS = 0.9, TRACK_MIN = DEG, TRACK_MAX_ANGLE = 5 * DEG;
 const TRACK_GAIN = 0.65, TRACK_MAX_RATE = 45 * DEG;         // rad/s cap on the added rotation
 const TRACK_STALE = 0.25;                                    // s — a bearing sample older than this is not a velocity
 
@@ -69,19 +69,19 @@ export class AimAssist {
       const d = document.createElement('div');
       d.className = 'ws-touch-aimdebug';
       d.style.cssText = 'position:absolute;left:0;top:0;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;border:1.5px solid rgba(143,227,255,0.9);box-shadow:0 0 12px rgba(143,227,255,0.5),inset 0 0 12px rgba(143,227,255,0.25);pointer-events:none;display:none;z-index:3;font:9px/1 ui-monospace,monospace;color:#8fe3ff;letter-spacing:0.12em;text-transform:uppercase;white-space:nowrap;';
-      layer.appendChild(d);
+      layer.append(d);
       this.debug = d;
       (window as unknown as { __aimAssist: AimAssist }).__aimAssist = this; // for the console / the verification script
     }
   }
 
   /** raw LOOK-pad delta (px, screen y down) since the last frame — TouchControls calls this from pointermove */
-  noteLook(dx: number, dy: number) { this.dragX += dx; this.dragY += dy; }
+  noteLook(dx: number, dy: number): void { this.dragX += dx; this.dragY += dy; }
 
   /** 0.45..1 — the LOOK-pad delta multiplier for this frame (1 when the assist is off or nothing is near the sight) */
-  lookScale() { return this.scale; }
+  lookScale(): number { return this.scale; }
 
-  update(dt: number, player: Player, adsOn: boolean, lookDragPxPerSec: number) {
+  update(dt: number, player: Player, adsOn: boolean, lookDragPxPerSec: number): void {
     this.clock += dt;
     const dragX = this.dragX, dragY = this.dragY; this.dragX = this.dragY = 0;
     const engaged = adsOn && !this.wasAds; this.wasAds = adsOn;

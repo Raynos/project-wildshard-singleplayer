@@ -33,7 +33,7 @@ export class Props {
 
   constructor(private sky: Sky, private forest: Forest) {}
 
-  async build() {
+  async build(): Promise<THREE.Group> {
     const [rocks, stump, trunk] = await Promise.all([loadLod('rock_moss_set_01'), loadLod('tree_stump_01'), loadLod('dead_tree_trunk')]);
     this.rocks(prepModel(rocks.scene, this.sky));
     this.stumps(prepModel(stump.scene, this.sky));
@@ -47,7 +47,9 @@ export class Props {
   /** a random point on a random trail segment */
   private trailPoint(rng: Rng): [number, number] {
     const poly = rng.pick(TRAILS), i = rng.int(0, poly.length - 2), t = rng.next();
-    return [poly[i][0] + (poly[i + 1][0] - poly[i][0]) * t, poly[i][1] + (poly[i + 1][1] - poly[i][1]) * t];
+    const a = poly[i], b = poly[i + 1];
+    if (!a || !b) throw new Error('[props] trail polyline shorter than 2 points');
+    return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
   }
 
   private treeFree(x: number, z: number, r: number) {
@@ -57,11 +59,12 @@ export class Props {
 
   /** one draw call per shape, but only the instances in the padded view frustum / within range are live (see Culling.ts) */
   private instanced(geometry: THREE.BufferGeometry, material: THREE.Material, matrices: THREE.Matrix4[], local: THREE.Matrix4) {
-    if (!matrices.length) return;
+    if (matrices.length === 0) return;
     const im = new THREE.InstancedMesh(geometry, material, matrices.length);
     im.castShadow = true; im.receiveShadow = true;
     geometry.computeBoundingSphere();
-    const bs = geometry.boundingSphere!;
+    const bs = geometry.boundingSphere;
+    if (!bs) throw new Error('[props] no bounding sphere');
     const tmp = new THREE.Matrix4(), c = new THREE.Vector3(), sc = new THREE.Vector3();
     const all = new Float32Array(matrices.length * 16), bounds = new Float32Array(matrices.length * 4);
     matrices.forEach((m, i) => {
@@ -89,7 +92,9 @@ export class Props {
     const shapes = parts.map((p) => {
       const g = p.geometry;
       g.computeBoundingBox();
-      const bb = g.boundingBox!, c = new THREE.Vector3(); bb.getCenter(c);
+      const bb = g.boundingBox, c = new THREE.Vector3();
+      if (!bb) throw new Error('[props] no bounding box');
+      bb.getCenter(c);
       const local = new THREE.Matrix4().makeTranslation(-c.x, -bb.min.y, -c.z); // centred, base on y=0
       const radius = Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z) / 2;
       const height = bb.max.y - bb.min.y;
@@ -156,8 +161,10 @@ export class Props {
     const rng = new Rng(SEED + 203);
     const mats: THREE.Matrix4[] = [];
     const p0 = parts[0];
+    if (!p0) throw new Error('[props] dead_tree_trunk has no parts');
     p0.geometry.computeBoundingBox();
-    const bb = p0.geometry.boundingBox!;
+    const bb = p0.geometry.boundingBox;
+    if (!bb) throw new Error('[props] no bounding box');
     const halfLen = (bb.max.x - bb.min.x) / 2, bottom = bb.min.y;
     let tries = 0;
     while (mats.length < 55 && tries++ < 30000) {
@@ -199,7 +206,7 @@ export class Props {
       const r = rng.range(0.28, 0.5);
       const s = new THREE.IcosahedronGeometry(r, 2);
       // roughen the surface a little so it doesn't read as a perfect sphere
-      const pos = s.attributes.position as THREE.BufferAttribute;
+      const pos = s.getAttribute('position');
       for (let k = 0; k < pos.count; k++) {
         const f = 1 + (rng.next() - 0.5) * 0.28;
         pos.setXYZ(k, pos.getX(k) * f, pos.getY(k) * f * 0.75, pos.getZ(k) * f);
@@ -207,7 +214,7 @@ export class Props {
       s.translate(rng.range(-0.45, 0.45), r * 0.55 + rng.range(-0.05, 0.05), rng.range(-0.45, 0.45));
       clump.push(s.toNonIndexed());
     }
-    const geo = clump.reduce((a, b) => { const m = new THREE.BufferGeometry(); const A = a.attributes.position.array as Float32Array, B = b.attributes.position.array as Float32Array; const P = new Float32Array(A.length + B.length); P.set(A); P.set(B, A.length); m.setAttribute('position', new THREE.BufferAttribute(P, 3)); return m; });
+    const geo = clump.reduce((a, b) => { const m = new THREE.BufferGeometry(); const A = a.getAttribute('position').array as Float32Array, B = b.getAttribute('position').array as Float32Array; const P = new Float32Array(A.length + B.length); P.set(A); P.set(B, A.length); m.setAttribute('position', new THREE.BufferAttribute(P, 3)); return m; });
     geo.computeVertexNormals();
     const mat = new THREE.MeshStandardMaterial({ color: 0x1f3a1c, roughness: 1, metalness: 0, flatShading: true });
     this.sky.setupMaterial(mat);

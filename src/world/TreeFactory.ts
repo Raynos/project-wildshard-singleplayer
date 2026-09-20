@@ -52,7 +52,7 @@ export class TreeFactory {
     this.multiDraw = renderer.extensions.has('WEBGL_multi_draw') && !new URLSearchParams(location.search).has('nobatch');
   }
 
-  async build() {
+  async build(): Promise<this> {
     const atlas = `/assets/tex/${this.opts.twigAtlas}`;
     const [twigDiff, twigNor, twigArm, bark] = await Promise.all([
       loadTexture(`${atlas}/twig_rgba.png`, true),
@@ -165,7 +165,7 @@ export class TreeFactory {
       this.variants.push({ trunk: hi.trunk, cardsHi: hi.cards, cardsLo: lo.cards, twigs: hi.twigs, far: new THREE.BufferGeometry(), height: s.height, trunkRadius: s.trunk });
     }
     void rng;
-    this.bakeImpostors(card.albedo, bark.map!);
+    this.bakeImpostors(card.albedo, bark.map);
     return this;
   }
 
@@ -210,7 +210,8 @@ export class TreeFactory {
     const prevClear = this.renderer.getClearColor(new THREE.Color()); const prevAlpha = this.renderer.getClearAlpha();
     const prevTone = this.renderer.toneMapping; this.renderer.toneMapping = THREE.NoToneMapping;
     this.variants.forEach((v, i) => {
-      v.cardsHi.computeBoundingBox(); const bb = v.cardsHi.boundingBox!;
+      v.cardsHi.computeBoundingBox(); const bb = v.cardsHi.boundingBox;
+      if (!bb) throw new Error('[trees] no bounding box');
       const halfW = Math.max(Math.abs(bb.min.x), Math.abs(bb.max.x), Math.abs(bb.min.z), Math.abs(bb.max.z)) * 1.02;
       // column aspect is 1:2 → frame = 2·halfW wide, 4·halfW tall (the tree is always taller than wide)
       const frameH = Math.max(v.height * 1.02, halfW * 4), frameW = frameH / 2;
@@ -233,12 +234,12 @@ export class TreeFactory {
         const q = new THREE.PlaneGeometry(frameW, frameH);
         q.translate(0, frameH / 2, 0);
         q.rotateY(yaw);
-        const uv = q.attributes.uv as THREE.BufferAttribute;
+        const uv = q.getAttribute('uv');
         for (let k = 0; k < uv.count; k++) uv.setXY(k, (i + uv.getX(k)) / n, uv.getY(k));
         geos.push(q);
       }
-      const far = mergeGeometries(geos, false)!;
-      const fp = far.attributes.position as THREE.BufferAttribute;
+      const far = mergeGeometries(geos, false);
+      const fp = far.getAttribute('position');
       const wind = new Float32Array(fp.count);
       for (let k = 0; k < fp.count; k++) wind[k] = fp.getY(k) / v.height;
       far.setAttribute('windWeight', new THREE.BufferAttribute(wind, 1));
@@ -270,7 +271,7 @@ export class TreeFactory {
     // twig region in the atlas (vertical twig, base at the bottom)
     const u0 = 30 / 1024, u1 = 230 / 1024, v0 = 1 - 448 / 1024, v1 = 1 - 40 / 1024;
     const twigGeo = new THREE.PlaneGeometry(1, 1);
-    const uv = twigGeo.attributes.uv as THREE.BufferAttribute;
+    const uv = twigGeo.getAttribute('uv');
     for (let i = 0; i < uv.count; i++) uv.setXY(i, u0 + uv.getX(i) * (u1 - u0), v0 + uv.getY(i) * (v1 - v0));
     twigGeo.translate(0, 0.5, 0); // pivot at the base
 
@@ -322,9 +323,9 @@ export class TreeFactory {
     const W = 2048, H = 1024;
     const rt = (colorSpace: THREE.ColorSpace) => new THREE.WebGLRenderTarget(W, H, { colorSpace, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter, magFilter: THREE.LinearFilter });
 
-    const stemMats = [new THREE.MeshBasicMaterial({ color: 0x1a120b }), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.5, 0.5, 1.0) }), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.35, 0.95, 0) })];
-    const render = (mode: number, mat: THREE.Material, target: THREE.WebGLRenderTarget, clear: THREE.Color, clearAlpha: number) => {
-      group.traverse((o) => { if ((o as THREE.Mesh).isMesh && o !== stem) (o as THREE.Mesh).material = mat; });
+    const stemMats = [new THREE.MeshBasicMaterial({ color: 0x1a120b }), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.5, 0.5, 1.0) }), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.35, 0.95, 0) })] as const;
+    const render = (mode: 0 | 1 | 2, mat: THREE.Material, target: THREE.WebGLRenderTarget, clear: THREE.Color, clearAlpha: number) => {
+      group.traverse((o) => { if (o instanceof THREE.Mesh && o !== stem) o.material = mat; });
       stem.material = stemMats[mode];
       const prev = this.renderer.getRenderTarget();
       const prevClear = this.renderer.getClearColor(new THREE.Color()); const prevAlpha = this.renderer.getClearAlpha();
@@ -380,8 +381,8 @@ export class TreeFactory {
     // trunk: tapered, slightly bent cylinder
     const segsY = 10;
     const trunk = new THREE.CylinderGeometry(1, 1, 1, 9, segsY, true);
-    const tp = trunk.attributes.position as THREE.BufferAttribute;
-    const tuv = trunk.attributes.uv as THREE.BufferAttribute;
+    const tp = trunk.getAttribute('position');
+    const tuv = trunk.getAttribute('uv');
     const bendX = rng.range(-0.6, 0.6), bendZ = rng.range(-0.6, 0.6);
     for (let i = 0; i < tp.count; i++) {
       const y01 = tp.getY(i) + 0.5;
@@ -398,7 +399,7 @@ export class TreeFactory {
     card.translate(1, 0, 0);                           // pivot at the base of the branch
     {
       // droop the tip: real pine branches sag then curl up at the end
-      const cp = card.attributes.position as THREE.BufferAttribute;
+      const cp = card.getAttribute('position');
       for (let i = 0; i < cp.count; i++) { const x = cp.getX(i) / 2; cp.setZ(i, cp.getZ(i) + (-0.12 * x * x + 0.06 * x * x * x)); }
       card.computeVertexNormals();
     }
@@ -406,7 +407,7 @@ export class TreeFactory {
     const twigs: THREE.BufferGeometry[] = [];
     const twig = new THREE.PlaneGeometry(1, 1);
     {
-      const uv = twig.attributes.uv as THREE.BufferAttribute;
+      const uv = twig.getAttribute('uv');
       const u0 = 30 / 1024, u1 = 230 / 1024, v0 = 1 - 448 / 1024, v1 = 1 - 40 / 1024;
       for (let i = 0; i < uv.count; i++) uv.setXY(i, u0 + uv.getX(i) * (u1 - u0), v0 + uv.getY(i) * (v1 - v0));
       twig.translate(0, 0.5, 0);
@@ -474,9 +475,9 @@ export class TreeFactory {
       tmp.compose(new THREE.Vector3(bendX, height * 0.95, bendZ), q, new THREE.Vector3(len, len * 0.5, 1));
       g.applyMatrix4(tmp); cards.push(g);
     }
-    const cardGeo = mergeGeometries(cards, false)!;
+    const cardGeo = mergeGeometries(cards, false);
     // store normalized height in uv2.x → wind weight
-    const cp = cardGeo.attributes.position as THREE.BufferAttribute;
+    const cp = cardGeo.getAttribute('position');
     const wind = new Float32Array(cp.count);
     for (let i = 0; i < cp.count; i++) wind[i] = cp.getY(i) / height;
     cardGeo.setAttribute('windWeight', new THREE.BufferAttribute(wind, 1));
@@ -484,9 +485,9 @@ export class TreeFactory {
     for (let i = 0; i < tp.count; i++) tw[i] = (tp.getY(i) / height) * 0.35;
     trunk.setAttribute('windWeight', new THREE.BufferAttribute(tw, 1));
 
-    const twigGeo = twigs.length ? mergeGeometries(twigs, false)! : new THREE.BufferGeometry();
-    if (twigs.length) {
-      const tp2 = twigGeo.attributes.position as THREE.BufferAttribute;
+    const twigGeo = twigs.length > 0 ? mergeGeometries(twigs, false) : new THREE.BufferGeometry();
+    if (twigs.length > 0) {
+      const tp2 = twigGeo.getAttribute('position');
       const w2 = new Float32Array(tp2.count);
       for (let i = 0; i < tp2.count; i++) w2[i] = tp2.getY(i) / height;
       twigGeo.setAttribute('windWeight', new THREE.BufferAttribute(w2, 1));
@@ -503,9 +504,9 @@ export class TreeFactory {
 }
 
 /** Sway vertices in the wind; uses the shared windUniforms so every tree animates in step. */
-export function patchWind(shader: { vertexShader: string; uniforms: Record<string, THREE.IUniform> }) {
-  shader.uniforms.uTime = windUniforms.uTime;
-  shader.uniforms.uWindStrength = windUniforms.uWindStrength;
+export function patchWind(shader: { vertexShader: string; uniforms: Record<string, THREE.IUniform> }): void {
+  shader.uniforms['uTime'] = windUniforms.uTime;
+  shader.uniforms['uWindStrength'] = windUniforms.uWindStrength;
   shader.vertexShader = shader.vertexShader
     .replace('#include <common>', `#include <common>
       uniform float uTime; uniform float uWindStrength;

@@ -11,7 +11,7 @@
 import { TIER } from '../core/tier';
 import { BOOT_STEPS, STEP_INFO, type BootStep } from './steps';
 
-const KEY = `ws-load-times:v1:${TIER}:${typeof navigator !== 'undefined' ? navigator.hardwareConcurrency ?? 0 : 0}`;
+const KEY = `ws-load-times:v1:${TIER}:${typeof navigator !== 'undefined' ? (navigator as { hardwareConcurrency?: number }).hardwareConcurrency ?? 0 : 0}`;
 const FIRST_RUN_MS_PER_WEIGHT = 300;
 const EMA = 0.5;
 

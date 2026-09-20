@@ -20,8 +20,8 @@ export class Horizon {
 
   constructor(private sky: Sky) {}
 
-  build() {
-    const ocean = !!getActiveChunk().ocean;
+  build(): this {
+    const ocean = Boolean(getActiveChunk().ocean);
     this.buildRidges(ocean);
     if (!ocean) this.buildCloudSea();
     return this;
@@ -62,11 +62,11 @@ export class Horizon {
       for (let i = 0; i <= ring.seg; i++) {
         const a = (i / ring.seg) * Math.PI * 2;
         const x = Math.cos(a) * ring.r, z = Math.sin(a) * ring.r;
-        const h = profile[i];
+        const h = profile[i] ?? 0;
         const peak = ring.gate < 0 ? ring.base + ring.h * (0.25 + h) : h > 0.001 ? 4 + ring.h * h : ring.base;
         pos.push(x, ring.base - 600, z, x, peak, z);
         // slope-facing normal from the neighbouring peaks so the sun side reads lighter
-        const hl = profile[(i + ring.seg - 1) % ring.seg], hr = profile[(i + 1) % ring.seg];
+        const hl = profile[(i + ring.seg - 1) % ring.seg] ?? 0, hr = profile[(i + 1) % ring.seg] ?? 0;
         const tilt = (hl - hr) * ring.seg * 0.03;
         const nx = -Math.cos(a) + Math.sin(a) * tilt, nz = -Math.sin(a) - Math.cos(a) * tilt;
         nrm.push(nx, 0.2, nz, nx, 0.5, nz);
@@ -82,7 +82,7 @@ export class Horizon {
       const mat = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
       mat.onBeforeCompile = (shader) => {
         attachFogUniforms(shader);
-        shader.uniforms.uHaze = { value: ring.haze }; // per ring as a uniform, so the three rings share one program
+        shader.uniforms['uHaze'] = { value: ring.haze }; // per ring as a uniform, so the three rings share one program
         // aerial perspective: far ranges dissolve into a cool blue haze, warmer toward the sun
         shader.fragmentShader = shader.fragmentShader
           .replace('#include <common>', '#include <common>\nuniform float uHaze;')
@@ -141,7 +141,7 @@ export class Horizon {
     this.group.add(this.cloudSea);
   }
 
-  update(dt: number, camera: THREE.Camera) {
+  update(dt: number, camera: THREE.Camera): void {
     this.cloudU.uTime.value += dt;
     this.group.position.x = camera.position.x;
     this.group.position.z = camera.position.z;
@@ -151,7 +151,8 @@ export class Horizon {
 function cloudNoise() {
   const N = 256;
   const c = document.createElement('canvas'); c.width = c.height = N;
-  const g = c.getContext('2d')!;
+  const g = c.getContext('2d');
+  if (!g) throw new Error('[horizon] no 2d canvas context');
   const img = g.createImageData(N, N);
   const n = new Noise2D(31);
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {

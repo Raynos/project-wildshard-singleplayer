@@ -3,7 +3,7 @@ import { CHUNK_HALF, CHUNK_SIZE, TREE_COUNT, SEED } from '../core/config';
 import { Rng } from '../core/rng';
 import { Noise2D, smoothstep } from '../core/noise';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, pondMask } from './Heightfield';
-import { TreeFactory, windUniforms } from './TreeFactory';
+import { type TreeFactory, windUniforms } from './TreeFactory';
 import type { Sky } from './Sky';
 import { noReflect } from './Water';
 import { getActiveChunk } from '../chunks/registry';
@@ -49,14 +49,14 @@ export class Forest {
   private viewListeners: ((frustum: THREE.Frustum, viewer: THREE.Vector3) => void)[] = [];
 
   /** Called whenever the tree buckets are refilled (view moved > 1.5 m or turned > 3°), with the padded cull frustum. */
-  onViewChange(fn: (frustum: THREE.Frustum, viewer: THREE.Vector3) => void) { this.viewListeners.push(fn); this.lastLodPos.set(1e9, 0, 0); }
+  onViewChange(fn: (frustum: THREE.Frustum, viewer: THREE.Vector3) => void): void { this.viewListeners.push(fn); this.lastLodPos.set(1e9, 0, 0); }
 
   constructor(private factory: TreeFactory, private sky: Sky) { this.path = factory.multiDraw ? 'batched' : 'instanced'; }
 
   /** Soft canopy-density texture (for terrain darkening under trees, and grass thinning). */
   canopyMap!: THREE.DataTexture;
 
-  build() {
+  build(): this {
     this.place();
     this.canopyMap = this.buildCanopyMap();
     this.sky.setupMaterial(this.factory.barkMaterial);
@@ -90,8 +90,9 @@ export class Forest {
       this.hi.push(mk(v.cardsHi, this.factory.needleMaterial, true, this.factory.needleDepth));
       this.lo.push(mk(v.cardsLo, this.factory.needleMaterial, TIER_CONFIG.loTreeShadows, this.factory.needleDepth));
       this.far.push(mk(v.far, this.factory.farMaterial, false));
-      this.twigs.push(mk(v.twigs, this.factory.twigMaterial, true, this.factory.twigDepth));
-      noReflect(this.twigs[this.twigs.length - 1]);
+      const twigs = mk(v.twigs, this.factory.twigMaterial, true, this.factory.twigDepth);
+      this.twigs.push(twigs);
+      noReflect(twigs);
     });
     return this;
   }
@@ -103,7 +104,7 @@ export class Forest {
    */
   private buildBatched() {
     const V = this.factory.variants, n = this.trees.length;
-    const size = (geos: THREE.BufferGeometry[]) => geos.reduce((a, g) => ({ v: a.v + g.attributes.position.count, i: a.i + (g.index ? g.index.count : g.attributes.position.count) }), { v: 0, i: 0 });
+    const size = (geos: THREE.BufferGeometry[]) => geos.reduce((a, g) => ({ v: a.v + g.getAttribute('position').count, i: a.i + (g.index ? g.index.count : g.getAttribute('position').count) }), { v: 0, i: 0 });
     const mk = (geos: THREE.BufferGeometry[], mat: THREE.Material, shadow: boolean, depth?: THREE.Material) => {
       const { v, i } = size(geos);
       const bm = new THREE.BatchedMesh(n, v, i, mat);
@@ -123,7 +124,9 @@ export class Forest {
     this.trees.forEach((t, i) => {
       m.fromArray(this.mats, i * 16);
       for (const { bm, ids } of [needles, far, bark, twigs]) {
-        const id = bm.addInstance(ids[t.variant]);   // ids line up with tree index (one instance per tree, in order)
+        const gid = ids[t.variant];
+        if (gid === undefined) throw new Error(`[forest] no geometry for tree variant ${t.variant}`);
+        const id = bm.addInstance(gid);   // ids line up with tree index (one instance per tree, in order)
         bm.setMatrixAt(id, m); bm.setColorAt(id, t.tint); bm.setVisibleAt(id, false);
       }
     });
@@ -144,7 +147,7 @@ export class Forest {
       candidates.push([x + rng.range(-cell * 0.45, cell * 0.45), z + rng.range(-cell * 0.45, cell * 0.45)]);
     }
     // shuffle so thinning is unbiased
-    for (let i = candidates.length - 1; i > 0; i--) { const j = Math.floor(rng.next() * (i + 1)); [candidates[i], candidates[j]] = [candidates[j], candidates[i]]; }
+    for (let i = candidates.length - 1; i > 0; i--) { const j = Math.floor(rng.next() * (i + 1)); const a = candidates[i], b = candidates[j]; if (a && b) { candidates[i] = b; candidates[j] = a; } }
 
     for (const [x, z] of candidates) {
       if (this.trees.length >= TREE_COUNT) break;
@@ -163,12 +166,14 @@ export class Forest {
       const variant = rng.next() < F.largeVariantChance ? 3 : rng.int(0, 2);
       const scale = rng.range(0.8, 1.2);
       const v = this.factory.variants[variant];
+      if (!v) throw new Error(`[forest] no tree variant ${variant}`);
       const tint = new THREE.Color().setHSL(F.tintHue + rng.range(F.tintHueJitter[0], F.tintHueJitter[1]), rng.range(F.tintSat[0], F.tintSat[1]), rng.range(F.tintLight[0], F.tintLight[1]));
       const t: TreeInstance = { x, y: y - 0.25, z, r: v.trunkRadius * scale + 0.15, variant, scale, rot: rng.range(0, Math.PI * 2), height: v.height * scale, tint };
       this.trees.push(t);
       const k = this.key(x, z);
-      if (!this.grid.has(k)) this.grid.set(k, []);
-      this.grid.get(k)!.push(t);
+      let bucket = this.grid.get(k);
+      if (!bucket) { bucket = []; this.grid.set(k, bucket); }
+      bucket.push(t);
     }
   }
 
@@ -183,7 +188,7 @@ export class Forest {
         const x = Math.round(cx) + i, z = Math.round(cz) + j;
         if (x < 0 || z < 0 || x >= N || z >= N) continue;
         const d = Math.hypot(x - cx, z - cz) / r;
-        if (d < 1) data[z * N + x] = Math.min(1, data[z * N + x] + (1 - d * d) * 0.7);
+        if (d < 1) data[z * N + x] = Math.min(1, (data[z * N + x] ?? 0) + (1 - d * d) * 0.7);
       }
     }
     const tex = new THREE.DataTexture(data, N, N, THREE.RedFormat, THREE.FloatType);
@@ -210,7 +215,7 @@ export class Forest {
   private tmpP = new THREE.Vector3();
   private tmpS = new THREE.Vector3();
 
-  update(dt: number, viewer: THREE.Vector3) {
+  update(dt: number, viewer: THREE.Vector3): void {
     windUniforms.uTime.value += dt;
     const cam = this.sky.viewCamera;
     cam.getWorldDirection(this.viewDir);
@@ -231,6 +236,7 @@ export class Forest {
       const B = this.batched;
       for (let i = 0; i < this.trees.length; i++) {
         const t = this.trees[i];
+        if (!t) continue;
         const dx = t.x - viewer.x, dz = t.z - viewer.z, d2 = dx * dx + dz * dz;
         let vis = true;
         if (d2 > keepD2) {
@@ -238,7 +244,7 @@ export class Forest {
           vis = this.frustum.intersectsSphere(this.sphere);
         }
         const near = d2 < hiD2, mid = d2 < farD2;
-        if (vis && mid) B.needles.setGeometryIdAt(i, near ? B.geoHi[t.variant] : B.geoLo[t.variant]);
+        if (vis && mid) B.needles.setGeometryIdAt(i, (near ? B.geoHi[t.variant] : B.geoLo[t.variant]) ?? 0);
         B.needles.setVisibleAt(i, vis && mid);
         B.bark.setVisibleAt(i, vis && mid);
         B.far.setVisibleAt(i, vis && !mid);
@@ -249,12 +255,16 @@ export class Forest {
     }
     const V = this.hi.length;
     const nHi = new Int32Array(V), nLo = new Int32Array(V), nFar = new Int32Array(V), nT = new Int32Array(V), nTF = new Int32Array(V), nTw = new Int32Array(V);
-    const put = (m: THREE.InstancedMesh, idx: number, i: number, tint: boolean) => {
+    const put = (list: THREE.InstancedMesh[], v: number, counts: Int32Array, i: number, tint: boolean) => {
+      const m = list[v];
+      if (!m) return;
+      const idx = counts[v] ?? 0; counts[v] = idx + 1;
       (m.instanceMatrix.array as Float32Array).set(this.mats.subarray(i * 16, i * 16 + 16), idx * 16);
-      if (tint) (m.instanceColor!.array as Float32Array).set(this.tints.subarray(i * 3, i * 3 + 3), idx * 3);
+      if (tint && m.instanceColor) (m.instanceColor.array as Float32Array).set(this.tints.subarray(i * 3, i * 3 + 3), idx * 3);
     };
     for (let i = 0; i < this.trees.length; i++) {
       const t = this.trees[i];
+      if (!t) continue;
       const dx = t.x - viewer.x, dz = t.z - viewer.z, d2 = dx * dx + dz * dz;
       if (d2 > keepD2) {
         this.sphere.center.set(t.x, t.y + t.height * 0.5, t.z); this.sphere.radius = t.height * 0.6;
@@ -262,18 +272,18 @@ export class Forest {
       }
       const v = t.variant;
       if (d2 < hiD2) {
-        put(this.hi[v], nHi[v]++, i, true);
-        put(this.trunks[v], nT[v]++, i, false);
-        if (d2 < twD2) put(this.twigs[v], nTw[v]++, i, true);
+        put(this.hi, v, nHi, i, true);
+        put(this.trunks, v, nT, i, false);
+        if (d2 < twD2) put(this.twigs, v, nTw, i, true);
       } else if (d2 < farD2) {
-        put(this.lo[v], nLo[v]++, i, true);
-        put(this.trunksFar[v], nTF[v]++, i, false);
+        put(this.lo, v, nLo, i, true);
+        put(this.trunksFar, v, nTF, i, false);
       } else {
-        put(this.far[v], nFar[v]++, i, true);
+        put(this.far, v, nFar, i, true);
       }
     }
     const commit = (list: THREE.InstancedMesh[], counts: Int32Array) => list.forEach((m, i) => {
-      m.count = counts[i]; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true;
+      m.count = counts[i] ?? 0; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true;
     });
     commit(this.hi, nHi); commit(this.lo, nLo); commit(this.far, nFar); commit(this.trunks, nT); commit(this.trunksFar, nTF); commit(this.twigs, nTw);
     for (const fn of this.viewListeners) fn(this.frustum, viewer);

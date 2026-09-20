@@ -37,7 +37,7 @@ export class Lookout {
   constructor(private sky: Sky, private spec: LookoutSpec) { this.cos = Math.cos(spec.rot); this.sin = Math.sin(spec.rot); }
   private toWorld(lx: number, lz: number): [number, number] { return [this.spec.x + lx * this.cos + lz * this.sin, this.spec.z - lx * this.sin + lz * this.cos]; }
 
-  build() {
+  build(): this {
     const rng = new Rng(SEED ^ 0x100c);
     const parts: THREE.BufferGeometry[] = [];
     const ground = heightAt(this.spec.x, this.spec.z);
@@ -45,7 +45,7 @@ export class Lookout {
     const add = (g: THREE.BufferGeometry, col: THREE.Color, jitter = 0.06) => {
       g.deleteAttribute('uv'); g.deleteAttribute('normal');
       const ni = g.index ? g.toNonIndexed() : g;
-      const n = ni.attributes.position.count, c = new Float32Array(n * 3);
+      const n = ni.getAttribute('position').count, c = new Float32Array(n * 3);
       for (let i = 0; i < n; i += 3) { const k = 1 - jitter + rng.next() * jitter * 2; for (let j = 0; j < 3; j++) { c[(i + j) * 3] = col.r * k; c[(i + j) * 3 + 1] = col.g * k; c[(i + j) * 3 + 2] = col.b * k; } }
       ni.setAttribute('color', new THREE.BufferAttribute(c, 3));
       parts.push(ni);
@@ -55,7 +55,7 @@ export class Lookout {
 
     // ── four posts, splayed 0.5 m at the foot, with two cross-brace levels ──
     const half = PLAT / 2 - 0.2;
-    for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+    for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) {
       const [wx, wz] = this.toWorld(sx * (half + 0.5), sz * (half + 0.5));
       const gy = heightAt(wx, wz) - 0.4;
       const g = new THREE.BoxGeometry(0.26, platY + 2.6 - gy, 0.26);
@@ -90,7 +90,7 @@ export class Lookout {
     rail((PLAT / 4 + stairW / 4), -PLAT / 2 + 0.1, PLAT / 2 - stairW / 2, true);
     // ── roof: four corner posts and a thatch pyramid ──
     const roofY = platY + 2.6;
-    for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) add(place(new THREE.BoxGeometry(0.18, 2.6, 0.18), sx * (half - 0.05), platY + 1.3, sz * (half - 0.05)), C.post, 0.05);
+    for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) add(place(new THREE.BoxGeometry(0.18, 2.6, 0.18), sx * (half - 0.05), platY + 1.3, sz * (half - 0.05)), C.post, 0.05);
     const pyr = (w: number, h: number, y: number, col: THREE.Color) => {
       const g = new THREE.ConeGeometry(w * 0.72, h, 4, 1); g.rotateY(Math.PI / 4); g.translate(0, y + h / 2, 0);
       add(place(g, 0, 0, 0), col, 0.08);
@@ -119,7 +119,7 @@ export class Lookout {
     {
       const w = 1.1, hgt = 2.6, top = platY + poleH - 0.2;
       const banner = new THREE.PlaneGeometry(w, hgt, 3, 6);
-      const p = banner.attributes.position as THREE.BufferAttribute;
+      const p = banner.getAttribute('position');
       for (let i = 0; i < p.count; i++) { const u = p.getX(i) / w + 0.5; p.setZ(i, Math.sin(u * Math.PI * 2 + p.getY(i)) * 0.08); p.setX(i, p.getX(i) + w / 2 + 0.06); if (p.getY(i) < -hgt / 2 + 0.01) p.setY(i, p.getY(i) + Math.abs(u - 0.5) * 0.7); }
       banner.translate(0, top - hgt / 2, 0);
       add(place(banner, bx, 0, bz), C.banner, 0.07);
@@ -129,7 +129,7 @@ export class Lookout {
       add(place(sig2, bx, 0, bz), C.bannerDark, 0.02);
     }
 
-    const geo = mergeGeometries(parts, false)!;
+    const geo = mergeGeometries(parts, false);
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
     this.sky.setupMaterial(mat);

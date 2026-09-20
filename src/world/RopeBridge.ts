@@ -34,7 +34,7 @@ export class RopeBridge {
   /** plank height at span fraction t (0 at a → 1 at b) */
   private deckY(t: number) { return this.ya + (this.yb - this.ya) * t - this.sag * 4 * t * (1 - t); }
 
-  build() {
+  build(): this {
     const rng = new Rng(SEED ^ 0xb21d);
     const { a, b } = this.spec;
     this.width = this.spec.width ?? 1.4; this.sag = this.spec.sag ?? 1.0;
@@ -46,7 +46,7 @@ export class RopeBridge {
     const add = (g: THREE.BufferGeometry, col: THREE.Color, w: number, jitter = 0.06) => {
       g.deleteAttribute('uv'); g.deleteAttribute('normal');
       const ni = g.index ? g.toNonIndexed() : g;
-      const n = ni.attributes.position.count, c = new Float32Array(n * 3), sway = new Float32Array(n);
+      const n = ni.getAttribute('position').count, c = new Float32Array(n * 3), sway = new Float32Array(n);
       for (let i = 0; i < n; i += 3) { const k = 1 - jitter + rng.next() * jitter * 2; for (let j = 0; j < 3; j++) { c[(i + j) * 3] = col.r * k; c[(i + j) * 3 + 1] = col.g * k; c[(i + j) * 3 + 2] = col.b * k; sway[i + j] = w; } }
       ni.setAttribute('color', new THREE.BufferAttribute(c, 3));
       ni.setAttribute('sway', new THREE.BufferAttribute(sway, 1));
@@ -96,7 +96,7 @@ export class RopeBridge {
       }
     }
 
-    const geo = mergeGeometries(parts, false)!;
+    const geo = mergeGeometries(parts, false);
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.88, metalness: 0, side: THREE.DoubleSide });
     const sx = side.x, sz = side.y;
@@ -129,5 +129,5 @@ export class RopeBridge {
     return this.deckY(Math.min(1, Math.max(0, along / this.len))) + 0.03;
   }
 
-  update(dt: number) { this.uniforms.uTime.value += dt; }
+  update(dt: number): void { this.uniforms.uTime.value += dt; }
 }

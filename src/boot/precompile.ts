@@ -25,7 +25,7 @@
  */
 import * as THREE from 'three';
 import { Pass, type EffectComposer } from 'postprocessing';
-import { PERFLOAD, perfLog, describeProgram, newProgramsSince, snapshotPrograms } from './perflog';
+import { PERFLOAD, perfLog, describeProgram, newProgramsSince, snapshotPrograms, type ProgramLike } from './perflog';
 
 export interface CompileJob {
   label: string;
@@ -40,20 +40,21 @@ export interface CompileJob {
 
 export interface PrecompileReport { materials: number; jobs: number; programs: number; parallel: boolean }
 
-type MeshLike = THREE.Mesh & { isInstancedMesh?: boolean; instanceColor?: unknown; isSkinnedMesh?: boolean; isPoints?: boolean; isLine?: boolean; isSprite?: boolean; customDepthMaterial?: THREE.Material };
+/** any scene object, with the mesh-ish fields the program key reads (all optional: lights, groups and bones have none) */
+type MeshLike = THREE.Object3D & { isMesh?: boolean; geometry?: THREE.BufferGeometry; material?: THREE.Material | THREE.Material[]; isInstancedMesh?: boolean; instanceColor?: THREE.InstancedBufferAttribute | null; isSkinnedMesh?: boolean; isPoints?: boolean; isLine?: boolean; isSprite?: boolean };
 
 /** The parts of an object that change its material's program (WebGLPrograms.getParameters). */
 function objectKey(o: MeshLike): string {
-  const g = o.geometry as THREE.BufferGeometry | undefined;
-  const a = g?.attributes ?? {};
+  const g = o.geometry;
+  const a: THREE.NormalBufferAttributes = g?.attributes ?? {};
   const morph = g?.morphAttributes ? Object.keys(g.morphAttributes).map((k) => `${k}${g.morphAttributes[k as 'position']?.length ?? 0}`).join('') : '';
   return `${o.isInstancedMesh ? 'I' : ''}${o.instanceColor ? 'C' : ''}${o.isSkinnedMesh ? 'S' : ''}${o.isPoints ? 'P' : ''}${o.isLine ? 'L' : ''}${o.isSprite ? 'Q' : ''}` +
-    `|${a.uv1 ? 1 : 0}${a.uv2 ? 1 : 0}${a.uv3 ? 1 : 0}${a.tangent ? 1 : 0}${a.color ? 1 : 0}${a.normal ? 1 : 0}|${morph}`;
+    `|${a['uv1'] ? 1 : 0}${a['uv2'] ? 1 : 0}${a['uv3'] ? 1 : 0}${a['tangent'] ? 1 : 0}${a['color'] ? 1 : 0}${a['normal'] ? 1 : 0}|${morph}`;
 }
 
-const materialsOf = (o: THREE.Object3D): THREE.Material[] => { const m = (o as THREE.Mesh).material; return Array.isArray(m) ? m : m ? [m] : []; };
+const materialsOf = (o: THREE.Object3D): THREE.Material[] => { const m = (o as MeshLike).material; return Array.isArray(m) ? m : m ? [m] : []; };
 
-type BatchedLike = THREE.Mesh & { isBatchedMesh?: boolean; _colorsTexture?: THREE.DataTexture | null };
+type BatchedLike = MeshLike & { isBatchedMesh?: boolean; _colorsTexture?: THREE.DataTexture | null };
 /**
  * A detached stand-in for `mesh` that computes the same program: `clone(false)` keeps the
  * instancing / skinning / morph flags, geometry and skeleton. BatchedMesh.copy in r186 never
@@ -61,7 +62,7 @@ type BatchedLike = THREE.Mesh & { isBatchedMesh?: boolean; _colorsTexture?: THRE
  * cache-key bit — carry the reference over, or the forest's four materials and three depth
  * variants compile again at the first frame.
  */
-function standIn(mesh: THREE.Mesh): THREE.Mesh {
+function standIn(mesh: MeshLike): MeshLike {
   const copy = mesh.clone(false) as BatchedLike;
   const src = mesh as BatchedLike;
   if (src.isBatchedMesh && src._colorsTexture && !copy._colorsTexture) copy._colorsTexture = src._colorsTexture;
@@ -80,12 +81,13 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
   scene.traverse((o) => {
     const mesh = o as MeshLike;
     const list = materialsOf(mesh);
-    if (!list.length) return;
+    if (list.length === 0) return;
     const ok = objectKey(mesh);
     const wanted = list.filter((m) => { mats.add(m); const k = m.uuid + ok; if (seen.has(k)) return false; seen.add(k); return true; });
-    if (!wanted.length) return;
+    const first = wanted[0];
+    if (first === undefined) return;
     const copy = standIn(mesh);
-    copy.material = Array.isArray(mesh.material) ? wanted : wanted[0]!;
+    copy.material = Array.isArray(mesh.material) ? wanted : first;
     clones.push(copy);
   });
   const jobs: CompileJob[] = [];
@@ -109,7 +111,7 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
   const clones: THREE.Object3D[] = [];
   scene.traverse((o) => {
     const mesh = o as MeshLike;
-    if (!mesh.castShadow || !(mesh as THREE.Mesh).isMesh && !mesh.isPoints && !mesh.isLine) return;
+    if (!mesh.castShadow || !mesh.isMesh && !mesh.isPoints && !mesh.isLine) return;
     const ok = objectKey(mesh);
     for (const m of materialsOf(mesh)) {
       const mat = m as THREE.MeshStandardMaterial;
@@ -117,7 +119,7 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
       let key: string;
       if (mesh.customDepthMaterial) { depth = mesh.customDepthMaterial; key = `custom:${depth.uuid}|${ok}`; }
       else {
-        const side = mat.shadowSide !== null && mat.shadowSide !== undefined ? mat.shadowSide : flip[mat.side] ?? THREE.BackSide;
+        const side = mat.shadowSide ?? flip[mat.side] ?? THREE.BackSide;
         const disp = mat.displacementMap && mat.displacementScale !== 0 ? mat.displacementMap : null;
         const alphaTest = mat.alphaToCoverage ? 0.5 : mat.alphaTest;
         key = `depth|${mat.map ? `m${mat.map.channel}` : ''}|${mat.alphaMap ? `a${mat.alphaMap.channel}` : ''}|${alphaTest > 0 ? 't' : ''}|${side}|${disp ? `d${disp.channel}` : ''}|${ok}`;
@@ -152,16 +154,18 @@ export function shadowJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | nul
 
 /** The sky background box (WebGLBackground's boxMesh) — same shader, same envMap kind, drawn into the scene target. */
 export function backgroundJob(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null): CompileJob | null {
-  const bg = scene.background as THREE.Texture | null;
-  if (!bg || !(bg as THREE.Texture).isTexture) return null;
-  const cube = bg.mapping === THREE.CubeUVReflectionMapping ? bg : (bg as THREE.CubeTexture).isCubeTexture ? bg : new THREE.CubeTexture(); // equirect → cube (WebGLCubeMaps)
+  const bg = scene.background;
+  if (!bg || !('isTexture' in bg)) return null;
+  const cube = bg.mapping === THREE.CubeUVReflectionMapping ? bg : 'isCubeTexture' in bg ? bg : new THREE.CubeTexture(); // equirect → cube (WebGLCubeMaps)
+  const lib = THREE.ShaderLib['backgroundCube'];
+  if (lib === undefined) throw new Error('precompile: ShaderLib.backgroundCube is missing');
+  const envMap: THREE.IUniform<THREE.Texture> = { value: cube };
   const mat = new THREE.ShaderMaterial({
-    name: 'BackgroundCubeMaterial', uniforms: THREE.UniformsUtils.clone(THREE.ShaderLib.backgroundCube.uniforms),
-    vertexShader: THREE.ShaderLib.backgroundCube.vertexShader, fragmentShader: THREE.ShaderLib.backgroundCube.fragmentShader,
+    name: 'BackgroundCubeMaterial', uniforms: { ...THREE.UniformsUtils.clone(lib.uniforms), envMap },
+    vertexShader: lib.vertexShader, fragmentShader: lib.fragmentShader,
     side: THREE.BackSide, depthTest: false, depthWrite: false, fog: false,
   });
-  mat.uniforms.envMap!.value = cube;
-  Object.defineProperty(mat, 'envMap', { get() { return (this as THREE.ShaderMaterial).uniforms.envMap!.value; } });
+  Object.defineProperty(mat, 'envMap', { get: () => envMap.value });
   mat.toneMapped = THREE.ColorManagement.getTransfer(bg.colorSpace) !== THREE.SRGBTransfer;
   const geo = new THREE.BoxGeometry(1, 1, 1); geo.deleteAttribute('normal'); geo.deleteAttribute('uv');
   const root = new THREE.Group(); root.add(new THREE.Mesh(geo, mat));
@@ -176,14 +180,15 @@ export function backgroundJob(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | 
 export function postJobs(composer: EffectComposer, rt: THREE.WebGLRenderTarget | null): CompileJob[] {
   const found = new Map<THREE.Material, boolean>(); // material → renders to screen
   const visited = new Set<object>();
-  const walk = (v: unknown, toScreen: boolean, depth: number): void => {
-    if (!v || typeof v !== 'object' || visited.has(v) || depth > 4) return;
+  const walk = (v: unknown, toScreenIn: boolean, depth: number): void => {
+    let toScreen = toScreenIn;
+    if (v === null || typeof v !== 'object' || visited.has(v) || depth > 4) return;
     const o = v as Record<string, unknown> & { isMaterial?: boolean; isObject3D?: boolean; isScene?: boolean; isTexture?: boolean; isWebGLRenderTarget?: boolean; isCamera?: boolean; isMesh?: boolean };
     if (o.isMaterial) {
       const m = o as unknown as THREE.ShaderMaterial;
       // only screen shaders a frame really draws: the tone-mapping effect's adaptive-luminance pair is idle
       // under AGX, and the god-rays light source's MeshBasicMaterial already has its in-scene program
-      const idle = !m.isShaderMaterial || m.name === 'AdaptiveLuminanceMaterial' || (m.name === 'LuminanceMaterial' && !(m.defines && 'THRESHOLD' in m.defines));
+      const idle = !m.isShaderMaterial || m.name === 'AdaptiveLuminanceMaterial' || (m.name === 'LuminanceMaterial' && !('THRESHOLD' in m.defines));
       if (!idle && !found.has(m)) found.set(m, toScreen);
       return;
     }
@@ -201,8 +206,8 @@ export function postJobs(composer: EffectComposer, rt: THREE.WebGLRenderTarget |
   const empty = new THREE.Scene();
   const groups = { buffer: new THREE.Group(), screen: new THREE.Group() };
   for (const [m, toScreen] of found) (toScreen ? groups.screen : groups.buffer).add(new THREE.Mesh(tri, m));
-  if (groups.buffer.children.length) jobs.push({ label: 'post chain', root: groups.buffer, target: empty, rt });
-  if (groups.screen.children.length) jobs.push({ label: 'post → screen', root: groups.screen, target: empty, rt: null });
+  if (groups.buffer.children.length > 0) jobs.push({ label: 'post chain', root: groups.buffer, target: empty, rt });
+  if (groups.screen.children.length > 0) jobs.push({ label: 'post → screen', root: groups.screen, target: empty, rt: null });
   return jobs;
 }
 
@@ -214,11 +219,12 @@ export function postJobs(composer: EffectComposer, rt: THREE.WebGLRenderTarget |
  */
 export function collectTextures(jobs: CompileJob[]): THREE.Texture[] {
   const out = new Set<THREE.Texture>();
-  const add = (v: unknown) => { const t = v as (THREE.Texture & { isRenderTargetTexture?: boolean }) | null; if (t && typeof t === 'object' && t.isTexture && !t.isRenderTargetTexture) out.add(t); };
-  const fromMaterial = (m: THREE.Material) => {
+  const isTexture = (v: unknown): v is THREE.Texture => typeof v === 'object' && v !== null && (v as { isTexture?: boolean }).isTexture === true;
+  const add = (v: unknown): void => { if (isTexture(v) && !v.isRenderTargetTexture) out.add(v); };
+  const fromMaterial = (m: THREE.Material): void => {
     for (const v of Object.values(m as unknown as Record<string, unknown>)) add(v);
-    const u = (m as THREE.ShaderMaterial).uniforms;
-    if (u) for (const k in u) add(u[k]?.value);
+    const u = (m as THREE.Material & { uniforms?: Record<string, THREE.IUniform> }).uniforms;
+    if (u) for (const uni of Object.values(u)) add(uni.value);
   };
   // the jobs' clones carry every scene material, the post-chain materials and the background box;
   // the target scenes carry the background / environment maps
@@ -229,9 +235,7 @@ export function collectTextures(jobs: CompileJob[]): THREE.Texture[] {
   return [...out];
 }
 
-interface ProgramLike { isReady(): boolean; program: WebGLProgram; usedTimes: number }
-
-const frame = (): Promise<void> => new Promise((res) => requestAnimationFrame(() => setTimeout(res, 0))); // a real paint between
+const frame = (): Promise<void> => new Promise((resolve) => { requestAnimationFrame(() => { setTimeout(resolve, 0); }); }); // a real paint between
 
 /**
  * Issue every job, then wait for the driver: reports (done, total, detail) monotonically —
@@ -249,8 +253,7 @@ export async function runPrecompile(
   const total = () => jobs.length + Math.max(created.length, 1) + textures.length;
   const mode = parallel ? 'parallel' : 'serial';
   let tFrame = performance.now();
-  for (let i = 0; i < jobs.length; i++) {
-    const job = jobs[i]!;
+  for (const [i, job] of jobs.entries()) {
     const t0 = performance.now();
     const snap = PERFLOAD ? snapshotPrograms(renderer) : null;
     const prevRt = renderer.getRenderTarget();
@@ -265,9 +268,10 @@ export async function runPrecompile(
     }
     if (snap) perfLog(`issue ${job.label}`, performance.now() - t0, renderer, newProgramsSince(renderer, snap).map(describeProgram).join(' | ') || 'cached');
     onProgress?.(i + 1, total(), `${materials} materials · ${i + 1} / ${jobs.length} batches · ${mode}`);
+    // oxlint-disable-next-line eslint/no-useless-assignment -- read by the next iteration's guard; oxlint's flow analysis loses the loop back-edge across the try/finally above
     if (performance.now() - tFrame > 12 || i === jobs.length - 1) { await frame(); tFrame = performance.now(); }
   }
-  created.push(...(newProgramsSince(renderer, before) as unknown as ProgramLike[]));
+  created.push(...newProgramsSince(renderer, before));
   const n = created.length;
   const t0 = performance.now();
   // Phase A (parallel drivers): wait for COMPLETION_STATUS_KHR on every program, counting them up.
@@ -290,8 +294,8 @@ export async function runPrecompile(
   const tB = performance.now();
   let tSlice = tB;
   const skipResolve = PERFLOAD && new URLSearchParams(location.search).has('noresolve'); // A/B for the instrumentation
-  for (let i = 0; i < n; i++) {
-    if (!skipResolve) gl.getProgramParameter(created[i]!.program, gl.LINK_STATUS);
+  for (const [i, p] of created.entries()) {
+    if (!skipResolve) gl.getProgramParameter(p.program, gl.LINK_STATUS);
     onProgress?.(jobs.length + (parallel ? n : 0) + i + 1, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
     if (performance.now() - tSlice > 12) { await frame(); tSlice = performance.now(); }
   }
@@ -300,8 +304,8 @@ export async function runPrecompile(
   const tC = performance.now();
   tSlice = tC;
   const base = jobs.length + units;
-  for (let i = 0; i < textures.length; i++) {
-    try { renderer.initTexture(textures[i]!); } catch { /* a texture the driver rejects is the draw's problem, not the loader's */ }
+  for (const [i, tex] of textures.entries()) {
+    try { renderer.initTexture(tex); } catch { /* a texture the driver rejects is the draw's problem, not the loader's */ }
     onProgress?.(base + i + 1, base + textures.length, `${i + 1} / ${textures.length} textures uploaded`);
     if (performance.now() - tSlice > 12) { await frame(); tSlice = performance.now(); }
   }

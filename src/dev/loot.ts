@@ -4,7 +4,7 @@
 //   &iron=1   start with the iron sword (the pickup is disposed)   &calm=1  animals ignore you   &touch=1&tier=phone
 //   &deck=lx,lz   stand on the wreck's deck at that hull-local point (x starboard, z stern), facing the sword   &take=N  take it after N s
 // window.__world = { ...bootstrap(), animals, weapons, drop, wreck, hud, ironSite, … }
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { bootstrap } from '../core/bootstrap';
 import { Ocean } from '../world/Ocean';
 import { Pier } from '../world/Pier';
@@ -31,9 +31,9 @@ import { HUD } from '../ui/HUD';
 import { Combat } from '../ui/Combat';
 import { Audio } from '../audio/Audio';
 import type { Interactable } from '../world/Cabin';
-import type { Targets, TargetHit, Crossbow } from '../player/Crossbow';
+import type { Targets, TargetHit } from '../player/Crossbow';
 
-if (!new URLSearchParams(location.search).has('chunk')) { location.search += (location.search ? '&' : '?') + 'chunk=driftwood-isle'; }
+if (!new URLSearchParams(location.search).has('chunk')) { location.search += `${location.search ? '&' : '?'}chunk=driftwood-isle`; }
 
 const world = await bootstrap();
 const { game, sky, player, chunk, forest, params } = world;
@@ -90,7 +90,7 @@ let kills = 0, health = 100;
 weapons.onFire = () => audio.swordSwing();
 weapons.onSwap = () => audio.weaponSwap();
 weapons.onHit = (_k, headshot, killed) => { hud.showHitMarker(headshot, killed); audio.hitMarker(); if (killed) { kills++; audio.kill(); } };
-new Combat(game, animals, weapons as unknown as Crossbow, game.camera);
+new Combat(game, animals, weapons, game.camera);
 animals.onKill = (a) => hud.killFeed(`${a.label} · ${Math.round(a.position.distanceTo(player.position))} m`);
 animals.onSound = (name, pos) => audio.animal(name, pos, player.position, player.yaw);
 animals.onCharge = (_a, dmg) => { health = Math.max(0, health - dmg); hud.damageFlash(); audio.land(true); };
@@ -105,7 +105,7 @@ if (params.has('iron')) { weapons.unlock('sword-iron'); weapons.select('sword-ir
 
 // screenshot helpers: stand on the heeled deck facing the sword; take the sword after N s (the toast / burst shot)
 if (params.has('deck')) {
-  const [lx, lz] = (params.get('deck') || '-0.9,1').split(',').map(Number);
+  const [lx = Number.NaN, lz = Number.NaN] = ((params.get('deck') ?? '') || '-0.9,1').split(',').map(Number);
   const cs = Math.cos(WRECK.heading), sn = Math.sin(WRECK.heading);
   const x = WRECK.x + lx * cs + lz * sn, z = WRECK.z - lx * sn + lz * cs;
   const deck = wreck.floorHeightAt(x, z);

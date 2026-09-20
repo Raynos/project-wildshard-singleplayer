@@ -36,19 +36,19 @@ export interface TerrainNoise { n: Noise2D; n2: Noise2D }
  */
 export interface ChunkTerrain {
   /** surface height in metres (after trails, cabin pads, pond basin and entry-road levelling) */
-  heightAt(x: number, z: number): number;
+  heightAt: (x: number, z: number) => number;
   /** unit surface normal by central differences */
-  normalAt(x: number, z: number, eps?: number): [number, number, number];
+  normalAt: (x: number, z: number, eps?: number) => [number, number, number];
   /** blend weights for the four ground layers in `ChunkAssets.groundLayers`, summing to 1 */
-  splatAt(x: number, z: number): [number, number, number, number];
+  splatAt: (x: number, z: number) => [number, number, number, number];
   /** metres to the nearest trail centreline */
-  trailDistance(x: number, z: number): number;
+  trailDistance: (x: number, z: number) => number;
   /** 0 off the cabin pads → 1 on them */
-  cabinMask(x: number, z: number): number;
+  cabinMask: (x: number, z: number) => number;
   /** 0 outside the pond basin → 1 at its centre (always 0 when the chunk has no pond) */
-  pondMask(x: number, z: number): number;
+  pondMask: (x: number, z: number) => number;
   /** still-water surface height (far below the terrain when the chunk has no pond) */
-  waterLevel(): number;
+  waterLevel: () => number;
   trails: Vec2[][];
   cabinSites: CabinSite[];
   pond: PondDef | null;
@@ -61,7 +61,7 @@ export interface TerrainSpec {
    * fields, never Math.random. Keep it within roughly −10..+40 m; the entry roads are forced
    * to y = 0 at the boundary regardless.
    */
-  landscape(x: number, z: number, noise: TerrainNoise): number;
+  landscape: (x: number, z: number, noise: TerrainNoise) => number;
   /**
    * Dirt-trail polylines. By convention the first four start at the edge midpoints
    * `[0, ∓250]` / `[∓250, 0]` and run straight for ROAD_LENGTH before bending — that is the
@@ -81,7 +81,7 @@ export interface TerrainSpec {
    * scale (normalised for you). `t` is the finished terrain so you can query slope, height,
    * trail distance and the masks.
    */
-  splat(x: number, z: number, t: ChunkTerrain, noise: TerrainNoise): [number, number, number, number];
+  splat: (x: number, z: number, t: ChunkTerrain, noise: TerrainNoise) => [number, number, number, number];
 }
 
 /** Texture / model ids under `public/assets/` (see `scripts/fetch-assets.mjs`). */
@@ -126,14 +126,14 @@ export interface ChunkForest {
 }
 
 /** a registered species kind (`src/entities/species/<kind>.ts`): 'deer' | 'boar' built in; bear / elk… as they register */
-export type FaunaKind = 'deer' | 'boar' | (string & {});
+export type FaunaKind = 'deer' | 'boar' | (string & Record<never, never>);
 
 /** One herd / sounder. `src/entities/AnimalManager.ts` finds a clearing that satisfies it. */
 export interface HerdPlan {
   kind: FaunaKind;
   count: number;
   /** restrict the herd to these variant ids of the species (e.g. ['black', 'scarback']); omit for the full weighted table */
-  variants?: string[];
+  variants?: string[] | undefined;
   /** ring around a point to search for the herd centre; omit for anywhere in the chunk */
   anchor?: { x: number; z: number; rMin: number; rMax: number };
   /** true = under the canopy (boars), false = in a clearing (deer) */

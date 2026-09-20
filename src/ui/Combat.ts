@@ -44,15 +44,15 @@ const PENDING_GRACE = 0.25;                // s: past that deadline with no hit 
 
 interface BarSlot { el: HTMLElement; fill: HTMLElement; kind: HTMLElement; animal: Animal | null; lastHp: number; shown: boolean; }
 interface FloatSlot { el: HTMLElement; num: HTMLElement; label: HTMLElement; x: number; y: number; t: number; active: boolean; }
-interface Pending { animal: Animal; t: number; deadline: number; active: boolean }
+interface Pending { animal: Animal | null; t: number; deadline: number; active: boolean }
 
 const _v = new THREE.Vector3(), _o = new THREE.Vector3(), _d = new THREE.Vector3();
 
 /** Wrap `obj[key]` (an optional callback field) so `hook` always runs before whatever the owner assigns, before or after this call. */
-function tap<T extends object, K extends keyof T>(obj: T, key: K, hook: (...args: unknown[]) => void) {
+function tap<T extends object>(obj: T, key: keyof T, hook: (...args: unknown[]) => void): void {
   let user = obj[key] as unknown as ((...a: unknown[]) => void) | undefined;
-  const combined = (...args: unknown[]) => { hook(...args); user?.(...args); };
-  Object.defineProperty(obj, key, { configurable: true, enumerable: true, get: () => combined, set: (f) => { user = f; } });
+  const combined = (...args: unknown[]): void => { hook(...args); user?.(...args); };
+  Object.defineProperty(obj, key, { configurable: true, enumerable: true, get: () => combined, set: (f: ((...a: unknown[]) => void) | undefined) => { user = f; } });
 }
 
 export class Combat {
@@ -69,65 +69,66 @@ export class Combat {
 
   private reach: number;
 
-  constructor(private game: Game, private animals: AnimalManager, weapon: Weapon, private camera: THREE.Camera) {
+  constructor(game: Game, private animals: AnimalManager, weapon: Pick<Weapon, 'reach' | 'onFire' | 'onImpact'>, private camera: THREE.Camera) {
     this.reach = weapon.reach ?? Infinity;
     this.layer = document.createElement('div');
     this.layer.className = 'ws-combat-layer';
     const hud = document.getElementById('hud');
-    if (hud) hud.insertBefore(this.layer, hud.firstChild); else document.body.appendChild(this.layer);
+    if (hud) hud.prepend(this.layer); else document.body.append(this.layer);
 
     for (let i = 0; i < BAR_MAX; i++) {
       const el = document.createElement('div'); el.className = 'ws-combat-hp';
       const kind = document.createElement('span'); kind.className = 'ws-combat-hp-kind';
       const track = document.createElement('div'); track.className = 'ws-combat-hp-track';
       const fill = document.createElement('i'); fill.className = 'ws-combat-hp-fill';
-      track.appendChild(fill); el.appendChild(kind); el.appendChild(track); this.layer.appendChild(el);
+      track.append(fill); el.append(kind, track); this.layer.append(el);
       this.bars.push({ el, fill, kind, animal: null, lastHp: -1, shown: false });
     }
     for (let i = 0; i < FLOAT_MAX; i++) {
       const el = document.createElement('div'); el.className = 'ws-combat-float';
       const num = document.createElement('b'); const label = document.createElement('i');
-      el.appendChild(num); el.appendChild(label); this.layer.appendChild(el);
+      el.append(num, label); this.layer.append(el);
       this.floats.push({ el, num, label, x: 0, y: 0, t: 0, active: false });
     }
-    for (let i = 0; i < PENDING_MAX; i++) this.pending.push({ animal: null as unknown as Animal, t: 0, deadline: 0, active: false });
+    for (let i = 0; i < PENDING_MAX; i++) this.pending.push({ animal: null, t: 0, deadline: 0, active: false });
 
-    const measure = () => { this.w = window.innerWidth; this.h = window.innerHeight; };
+    const measure = (): void => { this.w = window.innerWidth; this.h = window.innerHeight; };
     measure(); window.addEventListener('resize', measure);
 
-    tap(weapon, 'onFire', () => this.fired());
-    tap(weapon, 'onImpact', (surface, point) => this.impact(surface as string, point as THREE.Vector3));
-    tap(animals, 'onDamage', (a, amount, point, headshot, died) => this.damage(a as Animal, amount as number, point as THREE.Vector3, headshot as boolean, died as boolean));
-    game.onUpdate((dt, t) => this.update(dt, t));
+    tap(weapon, 'onFire', () => { this.fired(); });
+    tap(weapon, 'onImpact', (surface, point) => { this.impact(surface as string, point as THREE.Vector3); });
+    tap(animals, 'onDamage', (a, amount, point, headshot, died) => { this.damage(a as Animal, amount as number, point as THREE.Vector3, headshot as boolean, died as boolean); });
+    game.onUpdate((dt, t) => { this.update(dt, t); });
   }
 
   // ── events ──
 
-  private fired() {
+  private fired(): void {
     // judged at the moment of firing: was an animal on (or nearly on) the aim ray?
     if (!this.aimed) return;
     _o.setFromMatrixPosition(this.camera.matrixWorld);
     if (this.aimed.position.distanceTo(_o) > this.reach + 1) return; // melee: out of reach is not a miss
     let slot = this.pending.find((p) => !p.active);
-    if (!slot) { slot = this.pending[0]; for (const p of this.pending) if (p.t < slot.t) slot = p; } // recycle the oldest
+    if (!slot) { for (const p of this.pending) if (!slot || p.t < slot.t) slot = p; } // recycle the oldest
+    if (!slot) return;
     slot.animal = this.aimed; slot.t = this.t; slot.active = true;
     slot.deadline = this.t + this.aimed.position.distanceTo(_o) / BOLT_SPEED_EST + PENDING_GRACE;
   }
 
-  private damage(a: Animal, amount: number, point: THREE.Vector3, headshot: boolean, died: boolean) {
+  private damage(a: Animal, amount: number, point: THREE.Vector3, headshot: boolean, died: boolean): void {
     // this bolt landed on flesh: it is no longer a candidate for MISS
     this.resolveOldest();
     if (!this.project(point)) { a.headWorld(_v); _v.y += 0.3; if (!this.project(_v)) return; }
     this.float(String(Math.round(amount)), died ? (headshot ? 'HEADSHOT · KILL' : 'KILL') : headshot ? 'HEADSHOT' : '', headshot ? 'head' : '', died);
   }
 
-  private impact(surface: string, point: THREE.Vector3) {
+  private impact(surface: string, point: THREE.Vector3): void {
     if (surface === 'flesh') return;
     this.animals.disturb(point);
     const p = this.resolveOldest();
     if (!p) return;
     // MISS at the impact point if it is on screen, else over the animal we were aiming at
-    if (!this.project(point) && !this.projectAnimal(p.animal)) return;
+    if (!this.project(point) && (!p.animal || !this.projectAnimal(p.animal))) return;
     this.float('MISS', '', 'miss', false);
   }
 
@@ -141,7 +142,7 @@ export class Combat {
 
   // ── per frame ──
 
-  private update(dt: number, t: number) {
+  private update(dt: number, t: number): void {
     this.t = t;
     const cam = this.camera;
     // crosshair target: the animal nearest along the aim ray, within AIM_TOL m of it
@@ -153,14 +154,14 @@ export class Combat {
     for (const p of this.pending) {
       if (!p.active || t < p.deadline) continue;
       p.active = false;
-      if (p.animal.alive && this.projectAnimal(p.animal)) this.float('MISS', '', 'miss', false);
+      if (p.animal && p.animal.alive && this.projectAnimal(p.animal)) this.float('MISS', '', 'miss', false);
     }
 
     this.updateBars();
     this.updateFloats(dt);
   }
 
-  private updateBars() {
+  private updateBars(): void {
     const now = performance.now();
     const list = this.animals.animals;
     const cand = this.candidates, cd = this.candDist;
@@ -168,26 +169,27 @@ export class Combat {
     _o.setFromMatrixPosition(this.camera.matrixWorld);
     for (let i = 0; i < list.length; i++) {
       const a = list[i];
-      if (a.hidden) continue;
+      if (a === undefined || a.hidden) continue;
       const show = now - a.lastHitT < BAR_HOLD || a === this.aimed;
       if (!show) continue;
       const d2 = a.position.distanceToSquared(_o);
       if (d2 > BAR_DIST * BAR_DIST) continue;
       // keep the BAR_MAX nearest (insertion into a short sorted list; no allocations once warmed)
       let k = n < BAR_MAX ? n : -1;
-      if (k < 0) { if (d2 >= cd[BAR_MAX - 1]) continue; k = BAR_MAX - 1; } else n++;
-      while (k > 0 && cd[k - 1] > d2) { cand[k] = cand[k - 1]; cd[k] = cd[k - 1]; k--; }
+      if (k < 0) { if (d2 >= (cd[BAR_MAX - 1] ?? Infinity)) continue; k = BAR_MAX - 1; } else n++;
+      while (k > 0 && (cd[k - 1] ?? 0) > d2) { const pa = cand[k - 1]; if (pa === undefined) break; cand[k] = pa; cd[k] = cd[k - 1] ?? 0; k--; }
       cand[k] = a; cd[k] = d2;
     }
     // free slots whose animal dropped out, then give newcomers a free slot (stable assignment: no bar swapping)
     for (const s of this.bars) if (s.animal) { let keep = false; for (let i = 0; i < n; i++) if (cand[i] === s.animal) { keep = true; break; } if (!keep) { s.animal = null; s.lastHp = -1; } }
     for (let i = 0; i < n; i++) {
       const a = cand[i];
+      if (a === undefined) continue;
       let have = false; for (const s of this.bars) if (s.animal === a) { have = true; break; }
       if (have) continue;
       const free = this.bars.find((s) => !s.animal);
       if (!free) break;
-      free.animal = a; free.kind.textContent = (a.label ?? a.kind).toUpperCase(); free.lastHp = -1;
+      free.animal = a; free.kind.textContent = a.label.toUpperCase(); free.lastHp = -1;
     }
     for (const s of this.bars) {
       const a = s.animal;
@@ -210,17 +212,18 @@ export class Combat {
   }
 
   /** spawn a floating text at the screen point the last successful project() left in _v */
-  private float(text: string, label: string, cls: string, kill: boolean) {
+  private float(text: string, label: string, cls: string, kill: boolean): void {
     let f = this.floats.find((s) => !s.active);
-    if (!f) { f = this.floats[0]; for (const s of this.floats) if (s.t > f.t) f = s; } // recycle the oldest
+    if (!f) { for (const s of this.floats) if (!f || s.t > f.t) f = s; } // recycle the oldest
+    if (!f) return;
     f.active = true; f.t = 0; f.x = _v.x; f.y = _v.y - FLOAT_LIFT;
     f.num.textContent = text; f.label.textContent = label;
-    f.el.className = 'ws-combat-float show' + (cls ? ' ' + cls : '') + (kill ? ' kill' : '');
+    f.el.className = `ws-combat-float show${cls ? ` ${cls}` : ''}${kill ? ' kill' : ''}`;
     f.el.style.opacity = '1';
     f.el.style.transform = `translate3d(${f.x.toFixed(1)}px,${f.y.toFixed(1)}px,0) scale(1.15)`;
   }
 
-  private updateFloats(dt: number) {
+  private updateFloats(dt: number): void {
     for (const f of this.floats) {
       if (!f.active) continue;
       f.t += dt;

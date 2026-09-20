@@ -26,13 +26,13 @@ export class CulledInstances {
     mesh.frustumCulled = false;
   }
 
-  cull(frustum: THREE.Frustum, viewer: THREE.Vector3) {
+  cull(frustum: THREE.Frustum, viewer: THREE.Vector3): void {
     const arr = this.mesh.instanceMatrix.array as Float32Array;
     const b = this.bounds, n = b.length >> 2;
     const keep2 = this.keepNear * this.keepNear, max2 = this.maxDist * this.maxDist;
     let out = 0;
     for (let i = 0; i < n; i++) {
-      const x = b[i * 4], y = b[i * 4 + 1], z = b[i * 4 + 2], r = b[i * 4 + 3];
+      const x = b[i * 4] ?? 0, y = b[i * 4 + 1] ?? 0, z = b[i * 4 + 2] ?? 0, r = b[i * 4 + 3] ?? 0;
       const dx = x - viewer.x, dy = y - viewer.y, dz = z - viewer.z, d2 = dx * dx + dy * dy + dz * dz;
       if (d2 > max2) continue;
       if (d2 > keep2) {
@@ -72,21 +72,21 @@ export class CelledInstances {
     const buckets = new Map<string, number[]>();
     const n = positions.length / 3;
     for (let i = 0; i < n; i++) {
-      const k = `${Math.floor(positions[i * 3] / cell)},${Math.floor(positions[i * 3 + 2] / cell)}`;
+      const k = `${Math.floor((positions[i * 3] ?? 0) / cell)},${Math.floor((positions[i * 3 + 2] ?? 0) / cell)}`;
       let b = buckets.get(k); if (!b) buckets.set(k, (b = []));
       b.push(i);
     }
     for (const [k, idx] of buckets) {
-      const [ix, iz] = k.split(',').map(Number);
+      const [ix = 0, iz = 0] = k.split(',').map(Number);
       let ymin = Infinity, ymax = -Infinity;
-      for (const i of idx) { const y = positions[i * 3 + 1]; if (y < ymin) ymin = y; if (y > ymax) ymax = y; }
+      for (const i of idx) { const y = positions[i * 3 + 1] ?? 0; if (y < ymin) ymin = y; if (y > ymax) ymax = y; }
       const cx = (ix + 0.5) * cell, cz = (iz + 0.5) * cell;
       const r = Math.hypot(cell * 0.5, (ymax - ymin) * 0.5, cell * 0.5) + instanceRadius;
       this.cells.push({ cx, cy: (ymin + ymax) * 0.5, cz, r, idx: Int32Array.from(idx) });
     }
   }
 
-  cull(frustum: THREE.Frustum, viewer: THREE.Vector3) {
+  cull(frustum: THREE.Frustum, viewer: THREE.Vector3): void {
     const arr = this.mesh.instanceMatrix.array as Float32Array;
     const col = this.mesh.instanceColor ? (this.mesh.instanceColor.array as Float32Array) : null;
     const p = this.positions, max2 = this.maxDist * this.maxDist;
@@ -97,8 +97,8 @@ export class CelledInstances {
       this.sphere.center.set(c.cx, c.cy, c.cz); this.sphere.radius = c.r;
       if (!frustum.intersectsSphere(this.sphere)) continue;
       for (let j = 0; j < c.idx.length; j++) {
-        const i = c.idx[j];
-        const ex = p[i * 3] - viewer.x, ez = p[i * 3 + 2] - viewer.z;
+        const i = c.idx[j] ?? 0;
+        const ex = (p[i * 3] ?? 0) - viewer.x, ez = (p[i * 3 + 2] ?? 0) - viewer.z;
         if (ex * ex + ez * ez > max2) continue;
         arr.set(this.matrices.subarray(i * 16, i * 16 + 16), out * 16);
         if (col && this.colors) col.set(this.colors.subarray(i * 3, i * 3 + 3), out * 3);

@@ -40,12 +40,12 @@ export class Sky {
   constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private renderer: THREE.WebGLRenderer) {}
 
   /** the player's camera (world modules cull against it) */
-  get viewCamera() { return this.camera; }
+  get viewCamera(): THREE.PerspectiveCamera { return this.camera; }
 
-  async build() {
+  async build(): Promise<this> {
     const { sky: S, atmosphere: A } = getActiveChunk();
     const qs = new URLSearchParams(location.search);
-    const qn = (k: string, d: number) => (qs.has(k) ? parseFloat(qs.get(k)!) : d);
+    const qn = (k: string, d: number) => { const v = qs.get(k); return v === null ? d : Number.parseFloat(v); };
     const hdriName = qs.get('hdri') ?? S.hdri;
     // baked procedural textures (clouds, fur…) and the baked sun / horizon (scripts/bake-sky.mjs) ride along with the HDR
     const [hdr, , baked] = await Promise.all([loadHDR(`/assets/hdri/${hdriName}_2k.hdr`), preloadBakedTextures(), loadBakedSky(hdriName)]);
@@ -78,7 +78,7 @@ export class Sky {
       lightIntensity: qn('sunI', S.sunIntensity), shadowBias: -0.00012, lightMargin: TIER_CONFIG.shadowMargin, lightNear: 1, lightFar: 600,
     });
     this.csm.fade = true;
-    if (TIER_CONFIG.softShadows === false) this.renderer.shadowMap.type = THREE.PCFShadowMap; // 16-tap PCFSoft → 9-tap PCF on the phone
+    if (!TIER_CONFIG.softShadows) this.renderer.shadowMap.type = THREE.PCFShadowMap; // 16-tap PCFSoft → 9-tap PCF on the phone
     patchCSMShaderChunk();
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = 0.05; l.shadow.radius = 2; }
 
@@ -101,37 +101,37 @@ export class Sky {
   private static fillers: { white: THREE.DataTexture; flatNormal: THREE.DataTexture } | null = null;
   private static fillSlots(mat: THREE.Material) {
     const m = mat as THREE.MeshStandardMaterial;
-    if (!m.isMeshStandardMaterial || Object.prototype.hasOwnProperty.call(mat, 'customProgramCacheKey')) return;
+    if (!m.isMeshStandardMaterial || Object.hasOwn(mat, 'customProgramCacheKey')) return;
     if (!Sky.fillers) {
       const tex = (rgb: [number, number, number], srgb: boolean) => { const t = new THREE.DataTexture(new Uint8Array([...rgb, 255]), 1, 1); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true; return t; };
       Sky.fillers = { white: tex([255, 255, 255], true), flatNormal: tex([128, 128, 255], false) };
     }
     const { white, flatNormal } = Sky.fillers;
-    if (!m.map) m.map = white;
-    if (!m.normalMap) m.normalMap = flatNormal;
-    if (!m.aoMap) m.aoMap = white;         // ao · roughness · metalness read r · g · b: white = ×1
-    if (!m.roughnessMap) m.roughnessMap = white;
-    if (!m.metalnessMap) m.metalnessMap = white;
+    m.map ??= white;
+    m.normalMap ??= flatNormal;
+    m.aoMap ??= white;         // ao · roughness · metalness read r · g · b: white = ×1
+    m.roughnessMap ??= white;
+    m.metalnessMap ??= white;
   }
 
   /** Wrap CSM's onBeforeCompile so materials keep their own shader patches. */
-  setupMaterial(mat: THREE.Material) {
+  setupMaterial(mat: THREE.Material): void {
     if (this.materials.has(mat)) return;
     this.materials.add(mat);
     Sky.fillSlots(mat);
-    const own = mat.onBeforeCompile;
+    const own = mat.onBeforeCompile.bind(mat);
     this.csm.setupMaterial(mat);
-    const csmHook = mat.onBeforeCompile;
-    mat.onBeforeCompile = (shader, renderer) => { own.call(mat, shader, renderer); csmHook.call(mat, shader, renderer); };
-    const key = mat.customProgramCacheKey;
-    mat.customProgramCacheKey = () => key.call(mat) + '|csm';
+    const csmHook = mat.onBeforeCompile.bind(mat);
+    mat.onBeforeCompile = (shader, renderer) => { own(shader, renderer); csmHook(shader, renderer); };
+    const key = mat.customProgramCacheKey.bind(mat);
+    mat.customProgramCacheKey = () => `${key()}|csm`;
     mat.needsUpdate = true;
   }
 
   clouds!: THREE.Mesh;
   private cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() } };
 
-  update(dt = 0) { this.csm.update(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt; }
+  update(dt = 0): void { this.csm.update(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt; }
 
   /** Thin procedural cirrus/cumulus layer on a sky dome — the HDRI has none, and a forest needs a sky with some drama. */
   private buildClouds() {
@@ -186,7 +186,7 @@ export class Sky {
     const u = (bx + 0.5) / width, v = 1 - (by + 0.5) / height;
     const theta = (u - 0.5) * 2 * Math.PI, phi = (v - 0.5) * Math.PI;
     this.sunDir.set(Math.cos(theta) * Math.cos(phi), Math.sin(phi), Math.sin(theta) * Math.cos(phi)).normalize();
-    if (this.sunDir.y < 0.12) this.sunDir.y = 0.12, this.sunDir.normalize();
+    if (this.sunDir.y < 0.12) { this.sunDir.y = 0.12; this.sunDir.normalize(); }
   }
 
   private sampleHorizon(hdr: THREE.DataTexture) {
@@ -211,7 +211,7 @@ export class Sky {
     this.sunDisc.frustumCulled = false;
     // soft corona so the disc reads as a glowing sun rather than a white ball
     const c = document.createElement('canvas'); c.width = c.height = 256;
-    const g = c.getContext('2d')!;
+    const g = ctx2d(c);
     const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
     grad.addColorStop(0, 'rgba(255,240,210,0.9)'); grad.addColorStop(0.12, 'rgba(255,210,150,0.55)'); grad.addColorStop(0.4, 'rgba(255,170,90,0.12)'); grad.addColorStop(1, 'rgba(255,140,60,0)');
     g.fillStyle = grad; g.fillRect(0, 0, 256, 256);
@@ -231,17 +231,17 @@ export class Sky {
       color: 0x9aa4b4, fog: false, emissive: 0x2c3646, emissiveIntensity: 0.7, transparent: true, opacity: 0.85,
     }));
     const bandsTex = bakedTexture('planet', makePlanetTexture); bandsTex.colorSpace = THREE.SRGBColorSpace;
-    (body.material as THREE.MeshLambertMaterial).map = bandsTex;
+    body.material.map = bandsTex;
     const ringTex = makeRingTexture();
     const ring = new THREE.Mesh(new THREE.RingGeometry(radius * 1.25, radius * 2.35, 128, 1), new THREE.MeshLambertMaterial({
       map: ringTex, transparent: true, side: THREE.DoubleSide, fog: false, depthWrite: false, alphaMap: ringTex,
       color: 0xb8c0cc, emissive: 0x1e2838, emissiveIntensity: 0.7, opacity: 0.8,
     }));
-    this.setupMaterial(body.material as THREE.Material);
-    this.setupMaterial(ring.material as THREE.Material);
+    this.setupMaterial(body.material);
+    this.setupMaterial(ring.material);
     // ring uv: remap radial
-    const uv = ring.geometry.attributes.uv as THREE.BufferAttribute;
-    const pos = ring.geometry.attributes.position as THREE.BufferAttribute;
+    const uv = ring.geometry.getAttribute('uv');
+    const pos = ring.geometry.getAttribute('position');
     for (let i = 0; i < uv.count; i++) {
       const r = Math.hypot(pos.getX(i), pos.getY(i));
       uv.setXY(i, (r - radius * 1.25) / (radius * 1.1), 0.5);
@@ -386,11 +386,17 @@ IncidentLight directLight;`;
   THREE.ShaderChunk.lights_fragment_begin = chunk.replace('IncidentLight directLight;', block);
 }
 
+function ctx2d(c: HTMLCanvasElement): CanvasRenderingContext2D {
+  const g = c.getContext('2d');
+  if (!g) throw new Error('[sky] no 2d canvas context');
+  return g;
+}
+
 function makeCloudTexture() {
   // tileable fbm: sample simplex noise on a torus so both axes wrap without seams
   const N = 512;
   const c = document.createElement('canvas'); c.width = c.height = N;
-  const g = c.getContext('2d')!;
+  const g = ctx2d(c);
   const img = g.createImageData(N, N);
   const n = new Noise2D(1234);
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
@@ -408,12 +414,13 @@ function makeCloudTexture() {
 function makePlanetTexture() {
   const rng = new Rng(4242); // seeded: the bake (scripts/bake-textures.mjs) must be reproducible
   const c = document.createElement('canvas'); c.width = 1024; c.height = 512;
-  const g = c.getContext('2d')!;
+  const g = ctx2d(c);
   const bands = ['#d9d3c6', '#c4b8a6', '#e6e0d4', '#b8a996', '#d2c9ba', '#a8998a', '#e3dccf', '#c9bcab'];
   for (let y = 0; y < 512; y++) {
     const t = y / 512;
     const k = t * bands.length + Math.sin(t * 37) * 0.6 + Math.sin(t * 91) * 0.25;
     const b = bands[Math.floor(Math.abs(k)) % bands.length];
+    if (b === undefined) continue;
     g.fillStyle = b; g.globalAlpha = 0.9 + 0.1 * Math.sin(y * 0.2);
     g.fillRect(0, y, 1024, 1);
   }
@@ -427,7 +434,7 @@ function makePlanetTexture() {
 
 function makeRingTexture() {
   const c = document.createElement('canvas'); c.width = 1024; c.height = 4;
-  const g = c.getContext('2d')!;
+  const g = ctx2d(c);
   for (let x = 0; x < 1024; x++) {
     const t = x / 1024;
     let a = 0.55 + 0.45 * Math.sin(t * 28) * Math.sin(t * 7.3 + 1) ;
@@ -450,7 +457,7 @@ function makeGiantTexture() {
   const W = 512, H = 256;
   const rng = new Rng(7171), n = new Noise2D(7171);
   const c = document.createElement('canvas'); c.width = W; c.height = H;
-  const g = c.getContext('2d')!;
+  const g = ctx2d(c);
   const img = g.createImageData(W, H);
   // colour stops down the latitude (0 = south pole … 1 = north pole)
   const stops: [number, [number, number, number]][] = [
@@ -458,15 +465,17 @@ function makeGiantTexture() {
     [0.36, [234, 218, 188]], [0.43, [208, 168, 118]], [0.5, [246, 236, 214]], [0.56, [190, 136, 90]], [0.62, [228, 208, 176]],
     [0.7, [156, 92, 58]], [0.76, [236, 222, 196]], [0.84, [200, 164, 118]], [0.92, [224, 204, 174]], [1.0, [188, 168, 142]],
   ];
-  const ramp = (v: number, out: number[]) => {
-    v = Math.min(1, Math.max(0, v));
-    let i = 0; while (i < stops.length - 2 && stops[i + 1][0] < v) i++;
-    const [v0, c0] = stops[i], [v1, c1] = stops[i + 1];
+  const ramp = (vIn: number, out: [number, number, number]) => {
+    const v = Math.min(1, Math.max(0, vIn));
+    let i = 0; for (; i < stops.length - 2; i++) { const next = stops[i + 1]; if (!next || !(next[0] < v)) break; }
+    const s0 = stops[i], s1 = stops[i + 1];
+    if (!s0 || !s1) return;
+    const [v0, c0] = s0, [v1, c1] = s1;
     const u = Math.min(1, Math.max(0, (v - v0) / (v1 - v0)));
     const e = u * u * (3 - 2 * u) * 0.6 + u * 0.4; // soft-ish band edges
-    for (let k = 0; k < 3; k++) out[k] = c0[k] + (c1[k] - c0[k]) * e;
+    out[0] = c0[0] + (c1[0] - c0[0]) * e; out[1] = c0[1] + (c1[1] - c0[1]) * e; out[2] = c0[2] + (c1[2] - c0[2]) * e;
   };
-  const col = [0, 0, 0];
+  const col: [number, number, number] = [0, 0, 0];
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
     const u = (x / W) * Math.PI * 2, v = y / H;
     const cu = Math.cos(u), su = Math.sin(u);

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef } from './registry';
-import { loft, tube, skinPlain, S, boneIndex, srgb, mix, sstep, paintNoise, setShag, isLowPoly, type Paint } from './loft';
+import { loft, tube, skinPlain, S, boneIndex, srgb, mix, sstep, paintNoise, setShag, isLowPoly, paletteColors, type Paint, type RGB } from './loft';
 import { deerPaintLow } from '../lowpoly';
 
 /**
@@ -12,16 +12,16 @@ import { deerPaintLow } from '../lowpoly';
  * earIn antler antlerTip hoof eye.
  */
 
-const DEER_PALETTE: Record<string, [number, number, number]> = {
+const DEER_PALETTE = {
   // autumn coat: ~#7a5a3c body, greyer neck/legs, cream belly + throat, pale rump patch with a dark tail stripe
   body: [0.40, 0.335, 0.265], bodyDark: [0.30, 0.25, 0.20], grey: [0.38, 0.34, 0.30], greyDark: [0.29, 0.255, 0.22],
   belly: [0.68, 0.62, 0.52], cream: [0.74, 0.68, 0.56], rump: [0.62, 0.57, 0.47],
   legDark: [0.30, 0.25, 0.20], nose: [0.06, 0.05, 0.05], muzzle: [0.28, 0.24, 0.21], eyeRing: [0.20, 0.16, 0.13], earIn: [0.62, 0.56, 0.48],
   antler: [0.40, 0.31, 0.22], antlerTip: [0.74, 0.68, 0.58], hoof: [0.10, 0.08, 0.07], eye: [0.02, 0.015, 0.01],
-};
+} satisfies Record<string, RGB>;
 
 /** pale cream coat, pink nose / ear linings, pale hooves and antlers (leucistic) */
-const WHITE_TINT: Record<string, [number, number, number]> = {
+const WHITE_TINT: Record<string, RGB> = {
   body: [0.86, 0.83, 0.76], bodyDark: [0.74, 0.71, 0.64], grey: [0.84, 0.82, 0.77], greyDark: [0.76, 0.74, 0.69],
   belly: [0.94, 0.92, 0.87], cream: [0.95, 0.93, 0.88], rump: [0.93, 0.91, 0.86],
   legDark: [0.74, 0.71, 0.65], nose: [0.62, 0.40, 0.42], muzzle: [0.82, 0.74, 0.72], eyeRing: [0.74, 0.66, 0.64], earIn: [0.88, 0.72, 0.72],
@@ -29,7 +29,7 @@ const WHITE_TINT: Record<string, [number, number, number]> = {
 };
 
 /** the Ghost stag: white with a cold blue cast; the glow is in the fur override */
-const GHOST_TINT: Record<string, [number, number, number]> = {
+const GHOST_TINT: Record<string, RGB> = {
   ...WHITE_TINT,
   body: [0.84, 0.88, 0.92], bodyDark: [0.70, 0.76, 0.82], grey: [0.82, 0.87, 0.92], greyDark: [0.72, 0.78, 0.84],
   belly: [0.94, 0.96, 0.98], cream: [0.95, 0.97, 0.99], rump: [0.93, 0.95, 0.98],
@@ -37,12 +37,11 @@ const GHOST_TINT: Record<string, [number, number, number]> = {
 };
 
 function deerPaint(v: VariantDef): Paint {
-  const P: Record<string, THREE.Color> = {};
-  for (const k of Object.keys(DEER_PALETTE)) { const c = v.tint?.[k] ?? DEER_PALETTE[k]; P[k] = srgb(c[0], c[1], c[2]); }
+  const P = paletteColors(DEER_PALETTE, v.tint);
   const { body, bodyDark, grey, greyDark, belly, cream, rump, legDark, nose, muzzle, eyeRing, earIn, antler, antlerTip, hoof, eye } = P;
-  const piebald = !!v.traits?.piebald;
+  const piebald = Boolean(v.traits?.['piebald']);
   const white = srgb(0.92, 0.90, 0.85);
-  return (out, x, y, z, nx, ny, nz, part, t, a) => {
+  return (out, x, y, z, _nx, ny, nz, part, t, _a) => {
     const n1 = paintNoise.fbm(x * 2.5 + 3, z * 2.5 + y * 1.7, 3);
     switch (part) {
       case 'body': {
@@ -103,8 +102,8 @@ function deerPaint(v: VariantDef): Paint {
 }
 
 function buildDeer(v: VariantDef, _rng: Rng): AnimalSpecies {
-  const stag = !!v.traits?.antlers;
-  const antlerScale = Number(v.traits?.antlerScale ?? 1);
+  const stag = Boolean(v.traits?.['antlers']);
+  const antlerScale = Number(v.traits?.['antlerScale'] ?? 1);
   setShag(0.005);
   const bones: BoneDef[] = [
     { name: 'body', parent: null, pos: [0, 0.92, -0.05] },
@@ -194,7 +193,7 @@ function buildDeer(v: VariantDef, _rng: Rng): AnimalSpecies {
     S(0, 0.79, -0.99, 0.015, 0.012, tl),
   ], 8, 'tail', paint, false, true));
   // legs
-  const feet: [number, number][] = [];
+  const feetF: [number, number][] = [], feetB: [number, number][] = [];   // front / back, each L then R
   for (const side of ['L', 'R'] as const) {
     const sx = side === 'L' ? 1 : -1;
     const sh = B(`F${side}_shoulder`), ca = B(`F${side}_carpus`), fe = B(`F${side}_fetlock`);
@@ -215,7 +214,7 @@ function buildDeer(v: VariantDef, _rng: Rng): AnimalSpecies {
       S(sx * 0.155, 0.0, 0.49, 0.037, 0.047, fe),
       S(sx * 0.155, -0.005, 0.49, 0.01, 0.01, fe),
     ], 10, 'hoof', paint));
-    feet.push([sx * 0.155, 0.49]);
+    feetF.push([sx * 0.155, 0.49]);
     const hp = B(`B${side}_hip`), stf = B(`B${side}_stifle`), hk = B(`B${side}_hock`);
     fur.push(loft([
       S(sx * 0.12, 0.96, -0.60, 0.11, 0.21, body, hp, 0.3),
@@ -235,11 +234,11 @@ function buildDeer(v: VariantDef, _rng: Rng): AnimalSpecies {
       S(sx * 0.155, 0.0, -0.59, 0.037, 0.047, hk),
       S(sx * 0.155, -0.005, -0.59, 0.01, 0.01, hk),
     ], 10, 'hoof', paint));
-    feet.push([sx * 0.155, -0.59]);
+    feetB.push([sx * 0.155, -0.59]);
   }
   // antlers: the rack is scaled about its root on the skull (antlerScale), radii a little less than length
   if (stag) {
-    const k = antlerScale, rk = Math.pow(antlerScale, 0.7);
+    const k = antlerScale, rk = antlerScale ** 0.7;
     for (const sx of [1, -1]) {
       const root: [number, number, number] = [sx * 0.055, 1.81, 1.08];
       const A = (p: [number, number, number]): [number, number, number] => [root[0] + (p[0] - root[0]) * k, root[1] + (p[1] - root[1]) * k, root[2] + (p[2] - root[2]) * k];
@@ -255,8 +254,8 @@ function buildDeer(v: VariantDef, _rng: Rng): AnimalSpecies {
     }
   }
   setShag(0);
-  // sort feet in FL, FR, BL, BR order (loop pushed FL, BL, FR, BR)
-  const feetOrdered: [number, number][] = [feet[0], feet[2], feet[1], feet[3]];
+  // feet in FL, FR, BL, BR order
+  const feetOrdered: [number, number][] = [...feetF, ...feetB];
   return {
     bones, furParts: fur, hardParts: hard, eyeParts: eyes,
     dims: { bodyY: 0.92, bodyHalfLen: 0.72, bodyRadius: 0.33, headRadius: 0.17, legLen: 0.92, feet: feetOrdered, halfWidth: 0.27 },

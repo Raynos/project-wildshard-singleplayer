@@ -34,7 +34,7 @@ export interface EnemiesOpts {
   scene: THREE.Scene;
   sky: Sky;
   palms?: PalmSpec[];
-  wreck?: { floorHeightAt(x: number, z: number): number | undefined } | null;
+  wreck?: { floorHeightAt: (x: number, z: number) => number | undefined } | null;
   crabSites?: { x: number; z: number }[];
   /** the player spawn to keep troops away from (default the pier landing) */
   spawn?: { x: number; z: number };
@@ -69,9 +69,9 @@ export class Enemies {
   private sailors: { a: Animal; light: THREE.PointLight; dead: boolean; fade: number }[] = [];
   private playerPos = new THREE.Vector3();
 
-  constructor(private animals: AnimalManager, private opts: EnemiesOpts) { this.group.name = 'enemies'; }
+  constructor(private readonly animals: AnimalManager, private readonly opts: EnemiesOpts) { this.group.name = 'enemies'; }
 
-  build() {
+  build(): this {
     const { opts, animals } = this;
     // ── the pieces the AIs read (AnimalManager.enemyWorld) ──
     const W = animals.enemyWorld;
@@ -83,8 +83,8 @@ export class Enemies {
         W.perchBases.push(new THREE.Vector3(p.x, base + 0.2, p.z));
       }
     }
-    W.throwCoconut = (from, to, thrower) => this.throwCoconut(from, to, thrower);
-    W.splash = (at, strength) => this.splash(at, strength);
+    W.throwCoconut = (from, to, thrower) => { this.throwCoconut(from, to, thrower); };
+    W.splash = (at, strength) => { this.splash(at, strength); };
     // ── coconuts: one InstancedMesh ──
     {
       const g = new THREE.IcosahedronGeometry(COCONUT_R, 0);
@@ -116,7 +116,7 @@ export class Enemies {
 
   // ── placement ──────────────────────────────────────────────────────────────────────────
 
-  private placeCrabs() {
+  private placeCrabs(): void {
     const sites = this.opts.crabSites ?? [];
     const rng = this.rng;
     for (const s of sites) {
@@ -127,24 +127,25 @@ export class Enemies {
         const x = s.x + Math.cos(ang) * r, z = s.z + Math.sin(ang) * r;
         if (heightAt(x, z) < waterLevel() + 0.15) continue;
         const a = this.animals.spawn('crab', x, z, rng.range(0, Math.PI * 2), i === 0 ? 'big' : 'small');
-        a.herd = herd; this.animals.herds[herd].members.push(a);
+        a.herd = herd; this.animals.herds[herd]?.members.push(a);
         this.placed.crabs++;
       }
       this.placed.crabGroups++;
     }
   }
 
-  private placeMonkeys() {
+  private placeMonkeys(): void {
     const palms = this.opts.palms ?? [];
     if (palms.length < 4) return;
     const rng = this.rng;
     const spawn = this.opts.spawn ?? { x: 0, z: -235 };
     // grove density: neighbours within 10 m
     const score = palms.map((p) => { let n = 0; for (const q of palms) if (q !== p && Math.hypot(q.x - p.x, q.z - p.z) < 10) n++; return n; });
-    const order = palms.map((_, i) => i).filter((i) => score[i] >= 3).sort((a, b) => score[b] - score[a]);
+    const order = palms.map((_, i) => i).filter((i) => (score[i] ?? 0) >= 3).sort((a, b) => (score[b] ?? 0) - (score[a] ?? 0));
     const centres: PalmSpec[] = [];
     for (const i of order) {
       const p = palms[i];
+      if (p === undefined) continue;
       if (centres.length >= (this.opts.troops ?? 3)) break;
       if (Math.hypot(p.x - spawn.x, p.z - spawn.z) < 60) continue;
       if (Math.hypot(p.x - WRECK.x, p.z - WRECK.z) < 30) continue;
@@ -157,21 +158,22 @@ export class Enemies {
       const herd = this.animals.addHerd('monkey', c.x, c.z);
       for (let i = 0; i < n; i++) {
         const p = grove[i];
+        if (p === undefined) continue;
         const a = this.animals.spawn('monkey', p.x, p.z, rng.range(0, Math.PI * 2));
-        a.herd = herd; this.animals.herds[herd].members.push(a);
+        a.herd = herd; this.animals.herds[herd]?.members.push(a);
         this.placed.monkeys++;
       }
       this.placed.troops++;
     }
   }
 
-  private placeSailor() {
+  private placeSailor(): void {
     const wreck = this.opts.wreck;
-    if (!wreck) return;
+    if (wreck === null || wreck === undefined) return;
     // hull frame (Wreck.ts): local x = starboard, z = stern; the hold hatch is the broken midships deck (local z 0..4.8),
     // the iron sword hovers at local (-0.7, 4.2) (IronSword.ts) — the sailor rises 2 m forward of it, a little to starboard
     const h = WRECK.heading, cs = Math.cos(h), sn = Math.sin(h);
-    const at = (lx: number, lz: number) => ({ x: WRECK.x + lx * cs + lz * sn, z: WRECK.z - lx * sn + lz * cs });
+    const at = (lx: number, lz: number): { x: number; z: number } => ({ x: WRECK.x + lx * cs + lz * sn, z: WRECK.z - lx * sn + lz * cs });
     const spot = at(0.5, 2.2), centre = at(0, 3.2);
     this.animals.enemyWorld.hold = { x: centre.x, z: centre.z, r: 7.5, guardR: 8, floorAt: (x, z) => wreck.floorHeightAt(x, z) };
     const a = this.animals.spawn('sailor', spot.x, spot.z, h + Math.PI, 'sailor');
@@ -186,7 +188,7 @@ export class Enemies {
   // ── projectiles + fx ───────────────────────────────────────────────────────────────────
 
   /** lob a coconut from `from` to land on `to` in 0.8–1.5 s (the flight time grows with the range) */
-  throwCoconut(from: THREE.Vector3, to: THREE.Vector3, thrower: Animal | null) {
+  throwCoconut(from: THREE.Vector3, to: THREE.Vector3, thrower: Animal | null): void {
     const k = this.cNext; this.cNext = (this.cNext + 1) % COCONUTS;
     const dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z;
     const T = THREE.MathUtils.clamp(Math.hypot(dx, dz) / 9, 0.8, 1.5);
@@ -196,7 +198,7 @@ export class Enemies {
   }
 
   /** a burst of water droplets at `at` (strength 1 = the sailor surfacing) */
-  splash(at: THREE.Vector3, strength = 1) {
+  splash(at: THREE.Vector3, strength = 1): void {
     const n = Math.round(60 * strength);
     for (let i = 0; i < n; i++) {
       const k = this.dNext; this.dNext = (this.dNext + 1) % DROPS;
@@ -209,61 +211,67 @@ export class Enemies {
     this.dActive = Math.min(DROPS, this.dActive + n);
   }
 
-  update(dt: number, t: number, playerPos: THREE.Vector3) {
+  update(dt: number, t: number, playerPos: THREE.Vector3): void {
     this.playerPos.copy(playerPos);
     // ── coconuts ──
     let dirty = false;
+    const P = this.cPos, V = this.cVel;
     for (let k = 0; k < COCONUTS; k++) {
       const st = this.cState[k];
       if (!st) continue;
       dirty = true;
       const i = k * 3;
       if (st === 1) {
-        this.cVel[i + 1] -= G * dt;
-        this.cPos[i] += this.cVel[i] * dt; this.cPos[i + 1] += this.cVel[i + 1] * dt; this.cPos[i + 2] += this.cVel[i + 2] * dt;
-        this.cSpin[k] += 7 * dt;
+        V[i + 1] = (V[i + 1] ?? 0) - G * dt;
+        P[i] = (P[i] ?? 0) + (V[i] ?? 0) * dt; P[i + 1] = (P[i + 1] ?? 0) + (V[i + 1] ?? 0) * dt; P[i + 2] = (P[i + 2] ?? 0) + (V[i + 2] ?? 0) * dt;
+        this.cSpin[k] = (this.cSpin[k] ?? 0) + 7 * dt;
+        const x = P[i] ?? 0, y = P[i + 1] ?? 0, z = P[i + 2] ?? 0;
         // the player: feet → head segment
         const px = playerPos.x, pz = playerPos.z, py0 = playerPos.y, py1 = playerPos.y + 1.75;
-        const cy = THREE.MathUtils.clamp(this.cPos[i + 1], py0, py1);
-        const d2 = (this.cPos[i] - px) ** 2 + (cy - this.cPos[i + 1]) ** 2 + (this.cPos[i + 2] - pz) ** 2;
+        const cy = THREE.MathUtils.clamp(y, py0, py1);
+        const d2 = (x - px) ** 2 + (cy - y) ** 2 + (z - pz) ** 2;
         if (d2 < 0.45 * 0.45) {
           const th = this.cThrower[k];
-          if (th) this.animals.onCharge?.(th, 8);
-          this.animals.onSound?.('coconut_hit', _v.set(this.cPos[i], this.cPos[i + 1], this.cPos[i + 2]));
-          this.cState[k] = 2; this.cRest[k] = 1.2; this.cVel[i] *= -0.2; this.cVel[i + 2] *= -0.2; this.cVel[i + 1] = 1.5;   // bounces off you
+          if (th !== null && th !== undefined) this.animals.onCharge?.(th, 8);
+          this.animals.onSound?.('coconut_hit', _v.set(x, y, z));
+          this.cState[k] = 2; this.cRest[k] = 1.2; V[i] = (V[i] ?? 0) * -0.2; V[i + 2] = (V[i + 2] ?? 0) * -0.2; V[i + 1] = 1.5;   // bounces off you
           continue;
         }
-        const ground = Math.max(heightAt(this.cPos[i], this.cPos[i + 2]), waterLevel());
-        if (this.cPos[i + 1] <= ground + COCONUT_R) {
-          this.cPos[i + 1] = ground + COCONUT_R;
+        const ground = Math.max(heightAt(x, z), waterLevel());
+        if (y <= ground + COCONUT_R) {
+          P[i + 1] = ground + COCONUT_R;
           this.cState[k] = 2; this.cRest[k] = REST_T;
-          this.animals.onSound?.('coconut_land', _v.set(this.cPos[i], this.cPos[i + 1], this.cPos[i + 2]));
+          this.animals.onSound?.('coconut_land', _v.set(x, P[i + 1] ?? 0, z));
           if (ground <= waterLevel() + 0.01) this.splash(_v, 0.3);
         }
       } else {
-        this.cRest[k] -= dt;
-        if (this.cVel[i + 1] > 0 || this.cPos[i + 1] > heightAt(this.cPos[i], this.cPos[i + 2]) + COCONUT_R + 0.01) {   // the bounce off the player
-          this.cVel[i + 1] -= G * dt; this.cPos[i] += this.cVel[i] * dt; this.cPos[i + 1] += this.cVel[i + 1] * dt; this.cPos[i + 2] += this.cVel[i + 2] * dt;
-          const g = heightAt(this.cPos[i], this.cPos[i + 2]) + COCONUT_R;
-          if (this.cPos[i + 1] < g) { this.cPos[i + 1] = g; this.cVel[i] = this.cVel[i + 1] = this.cVel[i + 2] = 0; this.cRest[k] = REST_T; }
+        this.cRest[k] = (this.cRest[k] ?? 0) - dt;
+        if ((V[i + 1] ?? 0) > 0 || (P[i + 1] ?? 0) > heightAt(P[i] ?? 0, P[i + 2] ?? 0) + COCONUT_R + 0.01) {   // the bounce off the player
+          V[i + 1] = (V[i + 1] ?? 0) - G * dt; P[i] = (P[i] ?? 0) + (V[i] ?? 0) * dt; P[i + 1] = (P[i + 1] ?? 0) + (V[i + 1] ?? 0) * dt; P[i + 2] = (P[i + 2] ?? 0) + (V[i + 2] ?? 0) * dt;
+          const g = heightAt(P[i] ?? 0, P[i + 2] ?? 0) + COCONUT_R;
+          if ((P[i + 1] ?? 0) < g) { P[i + 1] = g; V[i] = V[i + 1] = V[i + 2] = 0; this.cRest[k] = REST_T; }
         }
-        if (this.cRest[k] <= 0) { this.cState[k] = 0; this.coconuts.setMatrixAt(k, _m.makeScale(0, 0, 0)); continue; }
+        if ((this.cRest[k] ?? 0) <= 0) { this.cState[k] = 0; this.coconuts.setMatrixAt(k, _m.makeScale(0, 0, 0)); continue; }
       }
-      _q.setFromEuler(_e.set(this.cSpin[k], this.cSpin[k] * 0.7, 0));
-      _m.compose(_v.set(this.cPos[i], this.cPos[i + 1], this.cPos[i + 2]), _q, _s.set(1, 1, 1));
+      const spin = this.cSpin[k] ?? 0;
+      _q.setFromEuler(_e.set(spin, spin * 0.7, 0));
+      _m.compose(_v.set(P[i] ?? 0, P[i + 1] ?? 0, P[i + 2] ?? 0), _q, _s.set(1, 1, 1));
       this.coconuts.setMatrixAt(k, _m);
     }
     if (dirty) this.coconuts.instanceMatrix.needsUpdate = true;
     // ── droplets ──
     if (this.dActive) {
       let alive = 0;
+      const life = this.dLife, pos = this.dPos, vel = this.dVel;
       for (let k = 0; k < DROPS; k++) {
-        if (this.dLife[k] <= 0) continue;
-        this.dLife[k] -= dt;
-        if (this.dLife[k] <= 0) { this.dPos[k * 3 + 1] = -1000; continue; }
+        const l0 = life[k] ?? 0;
+        if (l0 <= 0) continue;
+        life[k] = l0 - dt;
+        if ((life[k] ?? 0) <= 0) { pos[k * 3 + 1] = -1000; continue; }
         alive++;
-        this.dVel[k * 3 + 1] -= G * dt;
-        this.dPos[k * 3] += this.dVel[k * 3] * dt; this.dPos[k * 3 + 1] += this.dVel[k * 3 + 1] * dt; this.dPos[k * 3 + 2] += this.dVel[k * 3 + 2] * dt;
+        const j = k * 3;
+        vel[j + 1] = (vel[j + 1] ?? 0) - G * dt;
+        pos[j] = (pos[j] ?? 0) + (vel[j] ?? 0) * dt; pos[j + 1] = (pos[j + 1] ?? 0) + (vel[j + 1] ?? 0) * dt; pos[j + 2] = (pos[j + 2] ?? 0) + (vel[j + 2] ?? 0) * dt;
       }
       this.dActive = alive;
       this.dAttr.needsUpdate = true;
@@ -275,18 +283,19 @@ export class Enemies {
       s.light.position.copy(_w).y += 0.1;
       if (!a.alive && !s.dead) { s.dead = true; s.fade = 1; this.splash(a.position, 1.4); }
       if (s.dead) { s.fade = Math.max(0, s.fade - dt * 1.6); s.light.intensity = 4.5 * s.fade; if (s.fade <= 0) s.light.visible = false; continue; }
-      const up = THREE.MathUtils.clamp(a.mem.rise ?? 0, 0, 1);
+      const up = THREE.MathUtils.clamp(a.mem['rise'] ?? 0, 0, 1);
       const flick = 0.85 + 0.15 * Math.sin(t * 11 + Math.sin(t * 3.7) * 2);
       s.light.intensity = 4.5 * up * flick * (a.position.distanceToSquared(playerPos) < 60 * 60 ? 1 : 0);
       // streaming water while it rises
-      if (a.mem.rising && Math.random() < dt * 30) { _v.copy(a.position); _v.y += 0.5 + Math.random() * 1.2 * up; this.splash(_v, 0.08); }
+      if (a.mem['rising'] && Math.random() < dt * 30) { _v.copy(a.position); _v.y += 0.5 + Math.random() * 1.2 * up; this.splash(_v, 0.08); }
     }
   }
 }
 
-function dropTexture() {
+function dropTexture(): THREE.CanvasTexture {
   const c = document.createElement('canvas'); c.width = c.height = 32;
-  const g = c.getContext('2d')!;
+  const g = c.getContext('2d');
+  if (g === null) throw new Error('Enemies: could not get a 2d canvas context');
   const grad = g.createRadialGradient(16, 16, 2, 16, 16, 15);
   grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.6, 'rgba(255,255,255,0.85)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
   g.fillStyle = grad; g.fillRect(0, 0, 32, 32);

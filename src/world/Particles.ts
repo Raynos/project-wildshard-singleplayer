@@ -73,7 +73,7 @@ export class Particles {
 
   constructor(private sky: Sky, private forest: Forest) {}
 
-  build() {
+  build(): this {
     this.uSunDir.value.copy(this.sky.sunDir);
     this.uSunColor.value.copy(this.sky.sunColor);
     noReflect(this.group);
@@ -84,7 +84,7 @@ export class Particles {
     return this;
   }
 
-  update(dt: number, playerPos: THREE.Vector3, _camera: THREE.Camera) {
+  update(dt: number, playerPos: THREE.Vector3, _camera: THREE.Camera): void {
     this.uTime.value += dt;
     this.uMote.value = this.params.moteIntensity;
     this.uMist.value = this.params.mistOpacity;
@@ -97,7 +97,7 @@ export class Particles {
   private baseUniforms() {
     const u = THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {}]) as Record<string, THREE.IUniform>;
     attachFogUniforms({ uniforms: u });
-    u.uTime = this.uTime; u.uSunDir = this.uSunDir; u.uSunColor = this.uSunColor;
+    u['uTime'] = this.uTime; u['uSunDir'] = this.uSunDir; u['uSunColor'] = this.uSunColor;
     return u;
   }
 
@@ -114,8 +114,8 @@ export class Particles {
     geo.setAttribute('seed', new THREE.BufferAttribute(seed, 4));
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
     const u = this.baseUniforms();
-    u.uRange = { value: MOTE_RANGE }; u.uIntensity = this.uMote; u.uPixelScale = { value: 900 * 0.5 };
-    u.uSprite = { value: makeMoteSprite() };
+    u['uRange'] = { value: MOTE_RANGE }; u['uIntensity'] = this.uMote; u['uPixelScale'] = { value: 900 * 0.5 };
+    u['uSprite'] = { value: makeMoteSprite() };
     const mat = new THREE.ShaderMaterial({
       uniforms: u, transparent: true, depthWrite: false, depthTest: true, blending: THREE.AdditiveBlending, fog: true,
       vertexShader: /* glsl */`
@@ -182,7 +182,7 @@ export class Particles {
 
   private mistMaterial() {
     const u = this.baseUniforms();
-    u.uTex = { value: makeMistTexture() }; u.uOpacity = this.uMist;
+    u['uTex'] = { value: makeMistTexture() }; u['uOpacity'] = this.uMist;
     return new THREE.ShaderMaterial({
       uniforms: u, transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: true,
       vertexShader: /* glsl */`
@@ -229,12 +229,12 @@ export class Particles {
   private buildNeedles() {
     const geo = new THREE.PlaneGeometry(0.2, 0.05);
     const origin = new Float32Array(NEEDLE_COUNT * 3), info = new Float32Array(NEEDLE_COUNT * 4);
-    this.needleOrigin = new THREE.InstancedBufferAttribute(origin, 3).setUsage(THREE.DynamicDrawUsage) as THREE.InstancedBufferAttribute;
-    this.needleInfo = new THREE.InstancedBufferAttribute(info, 4).setUsage(THREE.DynamicDrawUsage) as THREE.InstancedBufferAttribute;
+    this.needleOrigin = new THREE.InstancedBufferAttribute(origin, 3).setUsage(THREE.DynamicDrawUsage);
+    this.needleInfo = new THREE.InstancedBufferAttribute(info, 4).setUsage(THREE.DynamicDrawUsage);
     geo.setAttribute('nOrigin', this.needleOrigin);
     geo.setAttribute('nInfo', this.needleInfo);
     const u = this.baseUniforms();
-    u.uTex = { value: makeNeedleTexture() };
+    u['uTex'] = { value: makeNeedleTexture() };
     const mat = new THREE.ShaderMaterial({
       uniforms: u, side: THREE.DoubleSide, fog: true, transparent: false, alphaTest: 0.5,
       vertexShader: /* glsl */`
@@ -286,7 +286,7 @@ export class Particles {
 
   private respawnNeedles(p: THREE.Vector3) {
     const near = this.forest.trees.filter((t) => (t.x - p.x) ** 2 + (t.z - p.z) ** 2 < 28 * 28);
-    if (!near.length) { this.needles.count = 0; return; }
+    if (near.length === 0) { this.needles.count = 0; return; }
     const rng = this.needleRng;
     const o = this.needleOrigin.array as Float32Array, inf = this.needleInfo.array as Float32Array;
     for (let i = 0; i < NEEDLE_COUNT; i++) {
@@ -335,9 +335,15 @@ function pickMistSpots() {
 
 // ------------------------------------------------------------------ textures
 
+function ctx2d(c: HTMLCanvasElement): CanvasRenderingContext2D {
+  const g = c.getContext('2d');
+  if (!g) throw new Error('[particles] no 2d canvas context');
+  return g;
+}
+
 function makeMoteSprite() {
   const c = document.createElement('canvas'); c.width = c.height = 64;
-  const g = c.getContext('2d')!;
+  const g = ctx2d(c);
   const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
   grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.25, 'rgba(255,255,255,0.7)'); grad.addColorStop(0.6, 'rgba(255,255,255,0.15)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
   g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
@@ -348,7 +354,7 @@ function makeMoteSprite() {
 function makeMistTexture() {
   const S = 256;
   const c = document.createElement('canvas'); c.width = c.height = S;
-  const g = c.getContext('2d')!;
+  const g = ctx2d(c);
   const rng = new Rng(SEED + 904);
   g.globalCompositeOperation = 'lighter';
   for (let i = 0; i < 140; i++) {
@@ -369,7 +375,7 @@ function makeMistTexture() {
 
 function makeNeedleTexture() {
   const c = document.createElement('canvas'); c.width = 64; c.height = 16;
-  const g = c.getContext('2d')!;
+  const g = ctx2d(c);
   g.lineCap = 'round';
   g.strokeStyle = 'rgb(112,70,30)'; g.lineWidth = 2.2;
   g.beginPath(); g.moveTo(4, 9); g.lineTo(60, 5); g.stroke();

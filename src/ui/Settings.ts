@@ -19,8 +19,8 @@ function load(): { bools: Record<SettingKey, boolean>; nums: Record<NumberKey, n
     const raw = localStorage.getItem(STORE);
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<Record<string, unknown>>;
-      for (const k of Object.keys(DEFAULTS) as SettingKey[]) if (typeof parsed[k] === 'boolean') bools[k] = parsed[k] as boolean;
-      for (const k of Object.keys(NUM_DEFAULTS) as NumberKey[]) if (typeof parsed[k] === 'number') nums[k] = parsed[k] as number;
+      for (const k of Object.keys(DEFAULTS) as SettingKey[]) if (typeof parsed[k] === 'boolean') bools[k] = parsed[k];
+      for (const k of Object.keys(NUM_DEFAULTS) as NumberKey[]) if (typeof parsed[k] === 'number') nums[k] = parsed[k];
     }
   } catch { /* private mode / disabled storage: defaults */ }
   return { bools, nums };
@@ -41,8 +41,8 @@ export function setSetting(k: SettingKey, v: boolean): void {
 }
 
 export function getNumber(k: NumberKey): number { return nums[k]; }
-export function setNumber(k: NumberKey, v: number): void {
-  v = Math.min(1, Math.max(0, v));
+export function setNumber(k: NumberKey, raw: number): void {
+  const v = Math.min(1, Math.max(0, raw));
   if (nums[k] === v) return;
   nums[k] = v;
   persist();
@@ -52,12 +52,14 @@ export function onNumber(k: NumberKey, fn: (v: number) => void): () => void {
   let set = numListeners.get(k);
   if (!set) { set = new Set(); numListeners.set(k, set); }
   set.add(fn);
-  return () => { set!.delete(fn); };
+  const s = set;
+  return () => { s.delete(fn); };
 }
 
 export function onSetting(k: SettingKey, fn: (v: boolean) => void): () => void {
   let set = listeners.get(k);
   if (!set) { set = new Set(); listeners.set(k, set); }
   set.add(fn);
-  return () => { set!.delete(fn); };
+  const s = set;
+  return () => { s.delete(fn); };
 }

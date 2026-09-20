@@ -39,7 +39,7 @@ export interface World {
  */
 export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   const params = new URLSearchParams(location.search);
-  const num = (k: string, d: number) => (params.has(k) ? parseFloat(params.get(k)!) : d);
+  const num = (k: string, d: number): number => { const v = params.get(k); return v === null ? d : Number.parseFloat(v); };
   const def = setActiveChunk(chunkSlugFromUrl(location.search));
   const canvas = document.getElementById('game') as HTMLCanvasElement;
   const game = await step('renderer', () => new Game(canvas));

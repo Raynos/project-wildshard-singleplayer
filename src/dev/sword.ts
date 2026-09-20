@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { bootstrap } from '../core/bootstrap';
 import { AnimalManager } from '../entities/AnimalManager';
 import { Sword } from '../player/Sword';

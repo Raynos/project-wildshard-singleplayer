@@ -33,23 +33,33 @@ export type Paint = (out: THREE.Color, x: number, y: number, z: number, nx: numb
 
 export const TEX_M = 0.32; // metres per detail-texture repeat
 
+/** sRGB colour triple, 0..1 (palette entries and VariantDef.tint values) */
+export type RGB = [number, number, number];
+
 const _t = new THREE.Vector3(), _side = new THREE.Vector3(), _up = new THREE.Vector3(), _n = new THREE.Vector3(), _c = new THREE.Color();
 
 /** shared low-frequency noise for coat mottling / patches (fbm ≈ -1..1) */
 export const paintNoise = new Noise2D(4242);
 
-export const srgb = (r: number, g: number, b: number) => new THREE.Color().setRGB(r, g, b, THREE.SRGBColorSpace);
-export const mix = (out: THREE.Color, a: THREE.Color, b: THREE.Color, t: number) => { out.copy(a).lerp(b, THREE.MathUtils.clamp(t, 0, 1)); return out; };
-export const sstep = (a: number, b: number, x: number) => { const t = THREE.MathUtils.clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+export const srgb = (r: number, g: number, b: number): THREE.Color => new THREE.Color().setRGB(r, g, b, THREE.SRGBColorSpace);
+export const mix = (out: THREE.Color, a: THREE.Color, b: THREE.Color, t: number): THREE.Color => { out.copy(a).lerp(b, THREE.MathUtils.clamp(t, 0, 1)); return out; };
+export const sstep = (a: number, b: number, x: number): number => { const t = THREE.MathUtils.clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+
+/** the species palette as THREE.Colors, each entry overridden by the variant's tint of the same name (VariantDef.tint) */
+export function paletteColors<K extends string>(base: Record<K, RGB>, tint: Record<string, RGB> | undefined): Record<K, THREE.Color> {
+  const out: Partial<Record<K, THREE.Color>> = {};
+  for (const k of Object.keys(base) as K[]) { const c = tint?.[k] ?? base[k]; out[k] = srgb(c[0], c[1], c[2]); }
+  return out as Record<K, THREE.Color>;   // every key of `base` was just filled in
+}
 
 /** station helper */
 export const S = (x: number, y: number, z: number, rx: number, ry: number, b0: number, b1 = b0, w1 = 0, top = 1, bot = 1): Station => ({ x, y, z, rx, ry, top, bot, b0, b1, w1 });
 
 /** name → index lookup for a BoneDef list (throws on a typo) */
-export function boneIndex(bones: { name: string }[]) {
+export function boneIndex(bones: { name: string }[]): (name: string) => number {
   const m = new Map<string, number>();
-  bones.forEach((b, i) => m.set(b.name, i));
-  return (name: string) => { const i = m.get(name); if (i === undefined) throw new Error('no bone ' + name); return i; };
+  bones.forEach((b, i) => { m.set(b.name, i); });
+  return (name: string) => { const i = m.get(name); if (i === undefined) throw new Error(`no bone ${name}`); return i; };
 }
 
 /**
@@ -72,7 +82,7 @@ function furLength(part: string, y: number, ny: number, t: number): number {
 
 /** metres of noise displacement along the ring normal (set per species before lofting; reset to 0 after build) */
 let shagAmp = 0;
-export function setShag(amp: number) { shagAmp = amp; }
+export function setShag(amp: number): void { shagAmp = amp; }
 
 /**
  * Low-poly mode (Driftwood Isle, `ChunkDef.style === 'lowpoly'`; set by AnimalFactory around `build()`):
@@ -81,36 +91,38 @@ export function setShag(amp: number) { shagAmp = amp; }
  * `isLowPoly()` for a different palette or part (the boar's crest becomes a row of spikes).
  */
 let lowPoly = false;
-export function setLowPoly(on: boolean) { lowPoly = on; }
-export function isLowPoly() { return lowPoly; }
+export function setLowPoly(on: boolean): void { lowPoly = on; }
+export function isLowPoly(): boolean { return lowPoly; }
 /** ring sides for a loft that asks for `seg` in PBR: big parts 6, legs 5, ears / hooves / tusks 4 */
 export function lowPolySides(seg: number): number { return seg >= 16 ? 6 : seg >= 11 ? 5 : 4; }
 
 /** Loft a closed tube through `st` stations with `seg` sides; returns an indexed geometry with position/normal/uv/color/skinIndex/skinWeight. */
-export function loft(st: Station[], seg: number, part: string, paint: Paint, capStart = true, capEnd = true, frame: 'x' | 'z' = 'x'): THREE.BufferGeometry {
-  if (lowPoly) seg = lowPolySides(seg);
+export function loft(st: Station[], sides: number, part: string, paint: Paint, capStart = true, capEnd = true, frame: 'x' | 'z' = 'x'): THREE.BufferGeometry {
+  const seg = lowPoly ? lowPolySides(sides) : sides;
   const n = st.length;
+  const at = (i: number): Station => { const s = st[i]; if (s === undefined) throw new Error(`loft: no station ${i}`); return s; };
   const pos: number[] = [], nor: number[] = [], uv: number[] = [], col: number[] = [], si: number[] = [], sw: number[] = [], fl: number[] = [];
   const idx: number[] = [];
   // arc length along the spine for v
   const along: number[] = [0];
-  for (let i = 1; i < n; i++) along.push(along[i - 1] + Math.hypot(st[i].x - st[i - 1].x, st[i].y - st[i - 1].y, st[i].z - st[i - 1].z));
-  const total = along[n - 1] || 1;
+  for (let i = 1; i < n; i++) { const a = at(i), b = at(i - 1); along.push((along[i - 1] ?? 0) + Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z)); }
+  const total = (along[n - 1] ?? 0) || 1;
   let circ = 0;
   for (const s of st) circ += Math.PI * (s.rx + s.ry);
   const uRep = Math.max(1, Math.round(circ / n / TEX_M));
   const ringVerts = seg + 1;
   for (let i = 0; i < n; i++) {
-    const s = st[i];
-    const p0 = st[Math.max(0, i - 1)], p1 = st[Math.min(n - 1, i + 1)];
+    const s = at(i), al = along[i] ?? 0;
+    const p0 = at(Math.max(0, i - 1)), p1 = at(Math.min(n - 1, i + 1));
     _t.set(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z).normalize();
     // ring frame: 'x' keeps the ring's side axis on +X (no twist along bilateral parts; order stations
     // so the tangent runs +Z or down), 'z' keeps the ring's thin axis facing +Z (ears)
-    if (frame === 'x') { _side.set(1, 0, 0).addScaledVector(_t, -_t.x).normalize(); _up.crossVectors(_t, _side).normalize(); }
-    else { _side.set(0, 0, 1).cross(_t).normalize(); _up.crossVectors(_t, _side).normalize(); }
+    if (frame === 'x') _side.set(1, 0, 0).addScaledVector(_t, -_t.x).normalize();
+    else _side.set(0, 0, 1).cross(_t).normalize();
+    _up.crossVectors(_t, _side).normalize();
     // radius change per metre → tilts normals along the taper
-    const dr = ((p1.rx + p1.ry) - (p0.rx + p0.ry)) * 0.5 / Math.max(1e-3, along[Math.min(n - 1, i + 1)] - along[Math.max(0, i - 1)]);
-    const t = along[i] / total;
+    const dr = ((p1.rx + p1.ry) - (p0.rx + p0.ry)) * 0.5 / Math.max(1e-3, (along[Math.min(n - 1, i + 1)] ?? 0) - (along[Math.max(0, i - 1)] ?? 0));
+    const t = al / total;
     for (let j = 0; j <= seg; j++) {
       const a = (j / seg) * Math.PI * 2;
       const ca = Math.cos(a), sa = Math.sin(a);
@@ -129,7 +141,7 @@ export function loft(st: Station[], seg: number, part: string, paint: Paint, cap
         px += _n.x * d; py += _n.y * d; pz += _n.z * d;
       }
       pos.push(px, py, pz); nor.push(_n.x, _n.y, _n.z);
-      uv.push((j / seg) * uRep, along[i] / TEX_M);
+      uv.push((j / seg) * uRep, al / TEX_M);
       paint(_c, px, py, pz, _n.x, _n.y, _n.z, part, t, a);
       col.push(_c.r, _c.g, _c.b);
       si.push(s.b0, s.b1, 0, 0); sw.push(1 - s.w1, s.w1, 0, 0);
@@ -141,14 +153,14 @@ export function loft(st: Station[], seg: number, part: string, paint: Paint, cap
     idx.push(a, b, c, b, d, c);
   }
   const cap = (i: number, flip: boolean) => {
-    const s = st[i];
-    const p0 = st[Math.max(0, i - 1)], p1 = st[Math.min(n - 1, i + 1)];
+    const s = at(i), al = along[i] ?? 0;
+    const p0 = at(Math.max(0, i - 1)), p1 = at(Math.min(n - 1, i + 1));
     _t.set(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z).normalize();
     if (flip) _t.negate();
     const ci = pos.length / 3;
-    pos.push(s.x, s.y, s.z); nor.push(_t.x, _t.y, _t.z); uv.push(0.5 * uRep, along[i] / TEX_M);
-    paint(_c, s.x, s.y, s.z, _t.x, _t.y, _t.z, part, along[i] / total, 0);
-    col.push(_c.r, _c.g, _c.b); si.push(s.b0, s.b1, 0, 0); sw.push(1 - s.w1, s.w1, 0, 0); fl.push(furLength(part, s.y, _t.y, along[i] / total));
+    pos.push(s.x, s.y, s.z); nor.push(_t.x, _t.y, _t.z); uv.push(0.5 * uRep, al / TEX_M);
+    paint(_c, s.x, s.y, s.z, _t.x, _t.y, _t.z, part, al / total, 0);
+    col.push(_c.r, _c.g, _c.b); si.push(s.b0, s.b1, 0, 0); sw.push(1 - s.w1, s.w1, 0, 0); fl.push(furLength(part, s.y, _t.y, al / total));
     for (let j = 0; j < seg; j++) {
       const a = i * ringVerts + j, b = a + 1;
       if (flip) idx.push(ci, b, a); else idx.push(ci, a, b);
@@ -168,7 +180,7 @@ export function loft(st: Station[], seg: number, part: string, paint: Paint, cap
   // smooth face-averaged normals (more robust than the analytic ring normal on coarse lofts); the
   // duplicated uv-seam vertices get the average of both sides so the seam is invisible
   g.computeVertexNormals();
-  const na = g.attributes.normal as THREE.BufferAttribute;
+  const na = g.getAttribute('normal') as THREE.BufferAttribute;
   for (let i = 0; i < n; i++) {
     const a = i * ringVerts, b = a + seg;
     _n.set(na.getX(a) + na.getX(b), na.getY(a) + na.getY(b), na.getZ(a) + na.getZ(b)).normalize();
@@ -179,7 +191,7 @@ export function loft(st: Station[], seg: number, part: string, paint: Paint, cap
 
 /** Give a plain geometry (sphere) colour + skin attributes for one bone. */
 export function skinPlain(g: THREE.BufferGeometry, bone: number, part: string, paint: Paint): THREE.BufferGeometry {
-  const p = g.attributes.position as THREE.BufferAttribute, nrm = g.attributes.normal as THREE.BufferAttribute;
+  const p = g.getAttribute('position') as THREE.BufferAttribute, nrm = g.getAttribute('normal') as THREE.BufferAttribute;
   const cnt = p.count;
   const col = new Float32Array(cnt * 3), si = new Uint16Array(cnt * 4), sw = new Float32Array(cnt * 4);
   for (let i = 0; i < cnt; i++) {
@@ -203,11 +215,12 @@ export function tube(points: [number, number, number][], r0: number, r1: number,
   for (let i = 0; i <= N; i++) {
     const t = i / N;
     const p = curve.getPoint(t);
-    const r = THREE.MathUtils.lerp(r0, r1, Math.pow(t, 0.8));
+    const r = THREE.MathUtils.lerp(r0, r1, t ** 0.8);
     st.push({ x: p.x, y: p.y, z: p.z, rx: r, ry: r, top: 1, bot: 1, b0: bone, b1: bone, w1: 0 });
   }
   // rounded tip
-  const last = st[st.length - 1];
-  st.push({ ...last, x: last.x + (last.x - st[st.length - 2].x) * 0.6, y: last.y + (last.y - st[st.length - 2].y) * 0.6, z: last.z + (last.z - st[st.length - 2].z) * 0.6, rx: r1 * 0.35, ry: r1 * 0.35 });
+  const last = st[st.length - 1], prev = st[st.length - 2];
+  if (last === undefined || prev === undefined) throw new Error('tube: fewer than two stations');   // N >= 3 above
+  st.push({ ...last, x: last.x + (last.x - prev.x) * 0.6, y: last.y + (last.y - prev.y) * 0.6, z: last.z + (last.z - prev.z) * 0.6, rx: r1 * 0.35, ry: r1 * 0.35 });
   return loft(st, seg, part, paint);
 }

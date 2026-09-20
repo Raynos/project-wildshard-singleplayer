@@ -35,12 +35,12 @@ export type AnimalKind = string;
 export interface WeaponState { ammo: number | undefined; magazine: number; reserve: number; loaded: boolean; reloading: boolean; reloadProgress: number; ads: boolean }
 export interface AimInfo { kind: AnimalKind; distance: number }
 export interface WeaponHooks {
-  onFire?: () => void;
-  onHit?: (kind: AnimalKind, headshot: boolean, killed: boolean) => void;
-  onImpact?: (surface: ImpactSurface, point: THREE.Vector3) => void;
-  onReloadStart?: () => void;
-  onReloadEnd?: () => void;
-  onDry?: () => void;
+  onFire?: (() => void) | undefined;
+  onHit?: ((kind: AnimalKind, headshot: boolean, killed: boolean) => void) | undefined;
+  onImpact?: ((surface: ImpactSurface, point: THREE.Vector3) => void) | undefined;
+  onReloadStart?: (() => void) | undefined;
+  onReloadEnd?: (() => void) | undefined;
+  onDry?: (() => void) | undefined;
 }
 export interface KitWeapon extends WeaponHooks {
   readonly id: WeaponId;
@@ -59,13 +59,13 @@ export interface KitWeapon extends WeaponHooks {
   holster: number;
   readonly state: WeaponState;
   readonly aimInfo: AimInfo | null;
-  tryFire(): void;
-  reload(): void;
-  update(dt: number, t: number): void;
-  aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3;
+  tryFire: () => void;
+  reload: () => void;
+  update: (dt: number, t: number) => void;
+  aimRay: (origin: THREE.Vector3, dir: THREE.Vector3) => THREE.Vector3;
   /** shown + held (true) or holstered (false: hidden, input off) */
-  setActive(on: boolean): void;
-  inputAllowed(): boolean;
+  setActive: (on: boolean) => void;
+  inputAllowed: () => boolean;
 }
 
 const SWAP_TIME = 0.25; // s per half (drop, then raise)
@@ -82,7 +82,7 @@ class BaseWeapon implements KitWeapon {
   readonly name: string;
   readonly ammoLabel: string;
   readonly segments: number;
-  onFire?: () => void; onHit?: KitWeapon['onHit']; onImpact?: KitWeapon['onImpact']; onReloadStart?: () => void; onReloadEnd?: () => void; onDry?: () => void;
+  onFire?: (() => void) | undefined; onHit?: KitWeapon['onHit']; onImpact?: KitWeapon['onImpact']; onReloadStart?: (() => void) | undefined; onReloadEnd?: (() => void) | undefined; onDry?: (() => void) | undefined;
   private cache: WeaponState = { ammo: 0, magazine: MAX_BOLTS, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
   constructor(private bow: BaseLike, id?: WeaponId, name?: string) {
     const isBow = bow instanceof Crossbow;
@@ -94,35 +94,35 @@ class BaseWeapon implements KitWeapon {
     bow.onReloadEnd = () => this.onReloadEnd?.();
     bow.onDry = () => this.onDry?.();
   }
-  get model() { return this.bow.model; }
-  get enabled() { return this.bow.enabled; } set enabled(v: boolean) { this.bow.enabled = v; }
-  get adsHeld() { return this.bow.adsHeld; } set adsHeld(v: boolean) { this.bow.adsHeld = v; }
-  get holster() { return this.bow.holster ?? 0; } set holster(v: number) { this.bow.holster = v; }
-  get state() {
+  get model(): THREE.Object3D { return this.bow.model; }
+  get enabled(): boolean { return this.bow.enabled; } set enabled(v: boolean) { this.bow.enabled = v; }
+  get adsHeld(): boolean { return this.bow.adsHeld; } set adsHeld(v: boolean) { this.bow.adsHeld = v; }
+  get holster(): number { return this.bow.holster ?? 0; } set holster(v: number) { this.bow.holster = v; }
+  get state(): WeaponState {
     const s = this.bow.state, c = this.cache;
     c.ammo = this.bow.hasAmmo ? s.bolts : undefined; c.loaded = s.loaded; c.reloading = s.reloading; c.reloadProgress = s.reloadProgress; c.ads = s.ads;
     return c;
   }
-  get aimInfo() { return this.bow.aimInfo; }
-  tryFire() { this.bow.tryFire(); }
-  reload() { this.bow.reload?.(); }
-  update(dt: number, t: number) { this.bow.update(dt, t); }
-  aimRay(o: THREE.Vector3, d: THREE.Vector3) {
-    if (this.bow.aimRay) return this.bow.aimRay(o, d);
+  get aimInfo(): AimInfo | null { return this.bow.aimInfo; }
+  tryFire(): void { this.bow.tryFire(); }
+  reload(): void { this.bow.reload?.(); }
+  update(dt: number, t: number): void { this.bow.update(dt, t); }
+  aimRay(o: THREE.Vector3, d: THREE.Vector3): THREE.Vector3 {
+    if (this.bow.aimRay !== undefined) return this.bow.aimRay(o, d);
     const cam = this.bow.model.parent as THREE.Camera; cam.getWorldDirection(d); o.setFromMatrixPosition(cam.matrixWorld); return d; // the viewmodel hangs off the camera
   }
-  setActive(on: boolean) { this.bow.model.visible = on; if (!on) this.bow.enabled = false; }
-  inputAllowed() { return this.bow.inputAllowed ? this.bow.inputAllowed() : this.bow.enabled; }
+  setActive(on: boolean): void { this.bow.model.visible = on; if (!on) this.bow.enabled = false; }
+  inputAllowed(): boolean { return this.bow.inputAllowed !== undefined ? this.bow.inputAllowed() : this.bow.enabled; }
 }
 
 export class Weapons implements WeaponHooks {
   readonly list: KitWeapon[];
   current: KitWeapon;
-  onFire?: () => void; onHit?: KitWeapon['onHit']; onImpact?: KitWeapon['onImpact']; onReloadStart?: () => void; onReloadEnd?: () => void; onDry?: () => void;
+  onFire?: (() => void) | undefined; onHit?: KitWeapon['onHit']; onImpact?: KitWeapon['onImpact']; onReloadStart?: (() => void) | undefined; onReloadEnd?: (() => void) | undefined; onDry?: (() => void) | undefined;
   /** a swap started (play the sling rustle) */
-  onSwap?: (to: WeaponId) => void;
+  onSwap?: ((to: WeaponId) => void) | undefined;
   /** a weapon was unlocked (the touch layer shows its SWAP pill) */
-  onUnlock?: (id: WeaponId) => void;
+  onUnlock?: ((id: WeaponId) => void) | undefined;
   private unlocked = new Set<WeaponId>(['crossbow', 'sword']);
   private _enabled = true;
   private _adsHeld = false;
@@ -130,7 +130,8 @@ export class Weapons implements WeaponHooks {
   private swapping: { from: KitWeapon; to: KitWeapon; t: number; switched: boolean } | null = null;
 
   constructor(base: BaseLike, rifle: Rifle, extras: ExtraWeapon[] = []) {
-    this.list = [new BaseWeapon(base), rifle, ...extras.map((e) => new BaseWeapon(e.weapon, e.id, e.name))];
+    const first = new BaseWeapon(base);
+    this.list = [first, rifle, ...extras.map((e) => new BaseWeapon(e.weapon, e.id, e.name))];
     for (const w of this.list) {
       w.onFire = () => this.onFire?.();
       w.onHit = (k, h, d) => this.onHit?.(k, h, d);
@@ -139,7 +140,7 @@ export class Weapons implements WeaponHooks {
       w.onReloadEnd = () => this.onReloadEnd?.();
       w.onDry = () => this.onDry?.();
     }
-    this.current = this.list[0];
+    this.current = first;
     for (const w of this.list) w.setActive(w === this.current);
     this.apply();
     document.addEventListener('keydown', (e) => {
@@ -151,41 +152,45 @@ export class Weapons implements WeaponHooks {
   }
 
   /** input on the held weapon (menu / pause → false) */
-  get enabled() { return this._enabled; }
+  get enabled(): boolean { return this._enabled; }
   set enabled(on: boolean) { this._enabled = on; this.apply(); }
-  setEnabled(on: boolean) { this.enabled = on; }
+  setEnabled(on: boolean): void { this.enabled = on; }
   /** the held weapon's viewmodel (hidden under the main menu) */
-  get visible() { return this._visible; }
+  get visible(): boolean { return this._visible; }
   set visible(on: boolean) { this._visible = on; this.current.model.visible = on; }
   /** the touch AIM latch — survives a swap (the incoming weapon comes up sighted) */
-  get adsHeld() { return this._adsHeld; }
+  get adsHeld(): boolean { return this._adsHeld; }
   set adsHeld(on: boolean) { this._adsHeld = on; this.apply(); }
-  get swappingNow() { return this.swapping !== null; }
+  get swappingNow(): boolean { return this.swapping !== null; }
 
-  private apply() {
+  private apply(): void {
     for (const w of this.list) {
-      const held = w === this.current && !this.swapping;
+      const held = w === this.current && this.swapping === null;
       w.enabled = this._enabled && held;
       w.adsHeld = held && this._adsHeld;
     }
   }
 
-  get(id: WeaponId) { return this.list.find((w) => w.id === id)!; }
+  get(id: WeaponId): KitWeapon {
+    const w = this.list.find((k) => k.id === id);
+    if (w === undefined) throw new Error(`Weapons: no weapon '${id}' in the kit`);
+    return w;
+  }
   /** is `id` in the player's possession (the crossbow always; the rifle after its pickup / `?weapon=rifle`) */
-  has(id: WeaponId) { return this.unlocked.has(id); }
+  has(id: WeaponId): boolean { return this.unlocked.has(id); }
   /** the unlocked weapons, in kit order */
-  get available() { return this.list.filter((w) => this.unlocked.has(w.id)); }
-  unlock(id: WeaponId) {
+  get available(): KitWeapon[] { return this.list.filter((w) => this.unlocked.has(w.id)); }
+  unlock(id: WeaponId): void {
     if (this.unlocked.has(id)) return;
     this.unlocked.add(id);
     this.onUnlock?.(id);
   }
   /** hold `id` (if unlocked); animated unless `instant` (start-up `?weapon=`) */
-  select(id: WeaponId, instant = false) {
+  select(id: WeaponId, instant = false): void {
     if (!this.unlocked.has(id)) return;
     const to = this.get(id);
-    if (to === this.current && !this.swapping) return;
-    if (this.swapping) { if (this.swapping.to === to) return; this.finishSwap(); if (to === this.current) return; }
+    if (to === this.current && this.swapping === null) return;
+    if (this.swapping !== null) { if (this.swapping.to === to) return; this.finishSwap(); if (to === this.current) return; }
     if (instant) {
       this.current.setActive(false); this.current.holster = 0;
       this.current = to; to.holster = 0; to.setActive(true); to.model.visible = this._visible;
@@ -197,29 +202,31 @@ export class Weapons implements WeaponHooks {
     this.onSwap?.(id);
   }
   /** the next unlocked weapon after the held one (nothing happens while only the crossbow is owned) */
-  swap() {
+  swap(): void {
     const list = this.available;
     if (list.length < 2) return;
     const i = list.indexOf(this.current);
-    this.select(list[(i + 1) % list.length].id);
+    const next = list[(i + 1) % list.length];
+    if (next !== undefined) this.select(next.id);
   }
-  private finishSwap() {
-    const s = this.swapping!;
+  private finishSwap(): void {
+    const s = this.swapping;
+    if (s === null) return;
     s.from.holster = 0; s.to.holster = 0;
     if (!s.switched) { s.from.setActive(false); this.current = s.to; s.to.setActive(true); s.to.model.visible = this._visible; }
     this.swapping = null;
     this.apply();
   }
 
-  tryFire() { this.current.tryFire(); }
-  reload() { this.current.reload(); }
-  aimRay(o: THREE.Vector3, d: THREE.Vector3) { return this.current.aimRay(o, d); }
-  get aimInfo() { return this.current.aimInfo; }
-  get state() { return this.current.state; }
+  tryFire(): void { this.current.tryFire(); }
+  reload(): void { this.current.reload(); }
+  aimRay(o: THREE.Vector3, d: THREE.Vector3): THREE.Vector3 { return this.current.aimRay(o, d); }
+  get aimInfo(): AimInfo | null { return this.current.aimInfo; }
+  get state(): WeaponState { return this.current.state; }
 
-  update(dt: number, t: number) {
+  update(dt: number, t: number): void {
     const s = this.swapping;
-    if (s) {
+    if (s !== null) {
       s.t += dt;
       if (s.t < SWAP_TIME) s.from.holster = s.t / SWAP_TIME;
       else {

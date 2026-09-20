@@ -11,9 +11,11 @@ import './loading.css';
  * clock, and one row per step with its wall ms and live detail. Nothing here eases, animates
  * on a timer or guesses. `done()` fades it out and resolves when it is gone.
  */
+type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'suFact' | 'suPct' | 'suBar' | 'rows' | 'foot';
+
 export class Loading {
   root: HTMLElement;
-  private els: Record<string, HTMLElement>;
+  private els: Record<ElKey, HTMLElement>;
   private rowsEl: HTMLElement;
   private t0 = performance.now();
   private raf = 0;
@@ -21,6 +23,7 @@ export class Loading {
 
   constructor() {
     const chunk = getActiveChunk();
+    const nav: { hardwareConcurrency?: number | undefined } = navigator; // Safari < 15.4 has no hardwareConcurrency
     this.root = document.createElement('div');
     this.root.className = 'ws-load';
     this.root.innerHTML = `
@@ -32,7 +35,7 @@ export class Loading {
         <div class="ws-glass ws-load-panel">
           <div class="ws-load-title">Loading chunk · <b>${chunk.slug}</b><span class="ws-load-clock" data-el="clock">00:00.0</span></div>
           <div class="ws-load-meta ws-load-meta-1">
-            <div><span>tier</span><span>${TIER} · ${Math.round(innerWidth * devicePixelRatio)}×${Math.round(innerHeight * devicePixelRatio)} · ${navigator.hardwareConcurrency ?? '?'} cores${window.__ws_sw ? ' · offline cache' : ''}</span></div>
+            <div><span>tier</span><span>${TIER} · ${Math.round(innerWidth * devicePixelRatio)}×${Math.round(innerHeight * devicePixelRatio)} · ${nav.hardwareConcurrency ?? '?'} cores${window.__ws_sw ? ' · offline cache' : ''}</span></div>
           </div>
           <div class="ws-load-track">
             <div class="ws-load-track-row"><span class="ws-load-track-name">download</span><span class="ws-load-track-fact" data-el="dlFact">—</span><span class="ws-load-track-pct" data-el="dlPct">0</span></div>
@@ -46,19 +49,19 @@ export class Loading {
         </div>
       </div>
       <div class="ws-load-foot"><span>local build · unuploaded</span><span data-el="foot">an in-progress private project</span></div>`;
-    document.body.appendChild(this.root);
-    this.els = {};
-    this.root.querySelectorAll<HTMLElement>('[data-el]').forEach((e) => { this.els[e.dataset.el!] = e; });
+    document.body.append(this.root);
+    const el = (key: ElKey): HTMLElement => { const e = this.root.querySelector<HTMLElement>(`[data-el="${key}"]`); if (!e) throw new Error(`Loading: no [data-el="${key}"]`); return e; };
+    this.els = { clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot') };
     this.rowsEl = this.els.rows;
-    const tick = () => { this.tickClock(); this.raf = requestAnimationFrame(tick); };
+    const tick = (): void => { this.tickClock(); this.raf = requestAnimationFrame(tick); };
     tick();
   }
 
   /** The plan publishes a view on every event; paint it. Integers floor, so 100 means done. */
-  paint(v: ProgressView) {
+  paint(v: ProgressView): void {
     this.view = v;
     if (PERFLOAD) barTrace.push([Math.round(performance.now() - this.t0), v.setup, v.download, v.step]);
-    const pct = (f: number) => String(Math.floor(f * 100));
+    const pct = (f: number): string => String(Math.floor(f * 100));
     this.els.dlPct.textContent = pct(v.download);
     this.els.suPct.textContent = pct(v.setup);
     this.els.dlBar.style.width = `${(v.download * 100).toFixed(1)}%`;
@@ -67,18 +70,18 @@ export class Loading {
       ? `${formatMB(v.bytesRead)} / ${formatMB(v.bytesTotal)} · ${v.filesDone} / ${v.filesTotal} files${v.bytes && v.bytes.done < v.bytes.total ? ` · ${v.bytes.label}` : ''}`
       : 'nothing declared';
     this.els.suFact.textContent = `step ${Math.min(v.doneCount + 1, v.rows.length)} / ${v.rows.length} · ${v.label}${v.detail ? ` · ${v.detail}` : ''}`;
-    this.root.dataset.download = pct(v.download);
-    this.root.dataset.setup = pct(v.setup);
-    this.root.dataset.step = v.step;
+    this.root.dataset['download'] = pct(v.download);
+    this.root.dataset['setup'] = pct(v.setup);
+    this.root.dataset['step'] = v.step;
     this.paintRows();
     if (v.error) this.els.foot.textContent = v.error;
   }
 
-  private paintRows() {
+  private paintRows(): void {
     const v = this.view; if (!v) return;
     // every step that has started, newest last; todo steps are not rows (nothing to say about them yet)
     const shown = v.rows.filter((r) => r.state !== 'todo');
-    while (this.rowsEl.children.length < shown.length) { const d = document.createElement('div'); d.innerHTML = '<span class="ws-load-row-label"></span><span class="ws-load-row-detail"></span><span class="ws-load-row-ms"></span>'; this.rowsEl.appendChild(d); }
+    while (this.rowsEl.children.length < shown.length) { const d = document.createElement('div'); d.innerHTML = '<span class="ws-load-row-label"></span><span class="ws-load-row-detail"></span><span class="ws-load-row-ms"></span>'; this.rowsEl.append(d); }
     shown.forEach((r, i) => {
       const el = this.rowsEl.children[i] as HTMLElement;
       el.className = r.state === 'on' ? 'on' : 'ok';
@@ -89,7 +92,7 @@ export class Loading {
     });
   }
 
-  private tickClock() {
+  private tickClock(): void {
     const s = (performance.now() - this.t0) / 1000;
     this.els.clock.textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${(s % 60).toFixed(1).padStart(4, '0')}`;
     // the running step's ms is live: repaint rows so its clock moves without a plan event
@@ -97,9 +100,11 @@ export class Loading {
   }
 
   done(): Promise<void> {
-    return new Promise((res) => setTimeout(() => {
-      this.root.classList.add('hide');
-      setTimeout(() => { cancelAnimationFrame(this.raf); this.root.remove(); res(); }, 700);
-    }, 350));
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        this.root.classList.add('hide');
+        setTimeout(() => { cancelAnimationFrame(this.raf); this.root.remove(); resolve(); }, 700);
+      }, 350);
+    });
   }
 }

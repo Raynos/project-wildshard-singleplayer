@@ -1,18 +1,18 @@
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
+import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { fetchImage } from '../boot/bytes';
 import { TIER_CONFIG } from './tier';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 
 const gltfLoader = new GLTFLoader();
-const hdrLoader = new RGBELoader();
+const hdrLoader = new HDRLoader();
 
 export interface PBRSet { map: THREE.Texture; normalMap: THREE.Texture; armMap: THREE.Texture }
 
 let maxAniso = 8;
 let gpu: THREE.WebGLRenderer | null = null;
-export function setAnisotropy(renderer: THREE.WebGLRenderer) { gpu = renderer; maxAniso = Math.min(16, renderer.capabilities.getMaxAnisotropy()); }
+export function setAnisotropy(renderer: THREE.WebGLRenderer): void { gpu = renderer; maxAniso = Math.min(16, renderer.capabilities.getMaxAnisotropy()); }
 
 /**
  * Decoded images, one per URL: the same file asked for twice (rock_ground: terrain slab and cabin
@@ -50,7 +50,7 @@ export function texUrl(id: string, kind: 'diffuse' | 'nor_gl' | 'arm'): string {
   if (TIER_CONFIG.maxTexture <= 1024 && `${base}_1k.jpg` in PUBLIC_BYTES) return `${base}_1k.jpg`;
   return `${base}.jpg`;
 }
-export const pbrUrls = (id: string) => (['diffuse', 'nor_gl', 'arm'] as const).map((k) => texUrl(id, k));
+export const pbrUrls = (id: string): string[] => (['diffuse', 'nor_gl', 'arm'] as const).map((k) => texUrl(id, k));
 
 /** Poly Haven texture set: diffuse + GL normal + ARM (ao / roughness / metal). Textures are shared per url; `repeat` is per call. */
 export async function loadPBR(id: string, repeat = 1): Promise<PBRSet> {
@@ -71,11 +71,11 @@ export function pbrMaterial(set: PBRSet, extra: THREE.MeshStandardMaterialParame
 }
 
 export function loadGLTF(id: string): Promise<GLTF> {
-  return new Promise((res, rej) => gltfLoader.load(`/assets/models/${id}/${id}.gltf`, res, undefined, rej));
+  return new Promise((resolve, reject) => { gltfLoader.load(`/assets/models/${id}/${id}.gltf`, resolve, undefined, reject); });
 }
 
 export function loadHDR(url: string): Promise<THREE.DataTexture> {
-  return new Promise((res, rej) => hdrLoader.load(url, res, undefined, rej));
+  return new Promise((resolve, reject) => { hdrLoader.load(url, resolve, undefined, reject); });
 }
 
 /**
@@ -104,14 +104,15 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
     const t = finish(new THREE.DataArrayTexture(null, size, size, ids.length), srgb);
     t.source.dataReady = false;          // allocate the storage (texStorage3D, all mip levels), upload nothing
     renderer.initTexture(t);
-    const images = await Promise.all(ids.map((id) => load(texUrl(id, kind))));
-    let canvas: HTMLCanvasElement | null = null;
-    for (let i = 0; i < ids.length; i++) {
-      let im: TexImageSource = images[i]!;
+    const layers = await Promise.all(ids.map((id) => load(texUrl(id, kind))));
+    let ctx: CanvasRenderingContext2D | null = null;
+    for (const [i, layer] of layers.entries()) {
+      let im: TexImageSource = layer;
       if (im.width !== size || im.height !== size) { // a smaller source: scale it on a canvas (the old path) instead of failing the copy
-        canvas ??= Object.assign(document.createElement('canvas'), { width: size, height: size });
-        canvas.getContext('2d')!.drawImage(im, 0, 0, size, size);
-        im = canvas;
+        ctx ??= Object.assign(document.createElement('canvas'), { width: size, height: size }).getContext('2d');
+        if (ctx === null) throw new Error('loadPBRArray: no 2d canvas context');
+        ctx.drawImage(im, 0, 0, size, size);
+        im = ctx.canvas;
       }
       const src = new THREE.Texture(im as HTMLImageElement); // never uploaded itself: copyTextureToTexture reads its image
       src.flipY = false;
@@ -123,10 +124,11 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
   };
   const buildCPU = async (kind: (typeof kinds)[number], srgb: boolean) => {
     const canvas = document.createElement('canvas'); canvas.width = canvas.height = size;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (ctx === null) throw new Error('loadPBRArray: no 2d canvas context');
     const data = new Uint8Array(size * size * 4 * ids.length);
-    for (let i = 0; i < ids.length; i++) {
-      const im = await load(texUrl(ids[i]!, kind));
+    for (const [i, id] of ids.entries()) {
+      const im = await load(texUrl(id, kind));
       ctx.drawImage(im, 0, 0, size, size);
       data.set(ctx.getImageData(0, 0, size, size).data, i * size * size * 4);
     }

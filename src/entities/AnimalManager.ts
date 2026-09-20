@@ -4,7 +4,7 @@ import { Rng } from '../core/rng';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel } from '../world/Heightfield';
 import type { Forest } from '../world/Forest';
 import type { Sky } from '../world/Sky';
-import { AnimalFactory, speciesDef, rollVariant, type AnimalKind, type AnimalStyle, type EnemyWorld, type ThinkCtx } from './AnimalFactory';
+import { AnimalFactory, speciesDef, variantDef, rollVariant, type AnimalKind, type AnimalStyle, type EnemyWorld, type ThinkCtx } from './AnimalFactory';
 import { Animal, damageFor } from './Animal';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from '../core/tier';
@@ -127,7 +127,7 @@ export interface HuntTuning {
     roar: string;        // AnimalSound played at the start of a charge
     fleeBelowHp: number; // hp fraction under which a hit may make a NON-relentless variant break off and flee
     fleeChance: number;  // probability of that break-off per hit
-  };
+  } | undefined;
 }
 
 export const DEER_TUNING: HuntTuning = {
@@ -166,6 +166,106 @@ const SHELL_DIST = 18, SHELL_MAX = 4;   // fur shells: nearest SHELL_MAX animals
 
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _p = new THREE.Vector3();
 
+// ─────────────────────────────────────────────────────────────────────────────────────────
+// Blood: a pooled particle burst + pooled ground decals
+// ─────────────────────────────────────────────────────────────────────────────────────────
+
+function makeDropTexture(): THREE.CanvasTexture {
+  const c = document.createElement('canvas'); c.width = c.height = 32;
+  const g = c.getContext('2d');
+  if (g === null) throw new Error('BloodFX: could not get a 2d canvas context');
+  const grad = g.createRadialGradient(16, 16, 2, 16, 16, 15);
+  grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.7, 'rgba(255,255,255,0.9)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grad; g.fillRect(0, 0, 32, 32);
+  return new THREE.CanvasTexture(c);
+}
+
+const MAX_P = 384, MAX_DECALS = 24;
+
+class BloodFX {
+  group = new THREE.Group();
+  private pos = new Float32Array(MAX_P * 3);
+  private vel = new Float32Array(MAX_P * 3);
+  private life = new Float32Array(MAX_P);
+  private points: THREE.Points;
+  private posAttr: THREE.BufferAttribute;
+  private next = 0;
+  private decals: THREE.Mesh[] = [];
+  private decalNext = 0;
+  private active = 0;
+
+  constructor(sky: Sky) {
+    const g = new THREE.BufferGeometry();
+    this.posAttr = new THREE.BufferAttribute(this.pos, 3);
+    this.posAttr.setUsage(THREE.DynamicDrawUsage);
+    g.setAttribute('position', this.posAttr);
+    g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
+    const mat = new THREE.PointsMaterial({ color: new THREE.Color(0.09, 0.004, 0.003), size: 0.035, sizeAttenuation: true, transparent: true, opacity: 0.95, depthWrite: false, map: makeDropTexture(), alphaTest: 0.3 });
+    this.points = new THREE.Points(g, mat);
+    this.points.frustumCulled = false;
+    this.points.renderOrder = 5;
+    this.group.add(this.points);
+    for (let i = 0; i < MAX_P; i++) this.pos[i * 3 + 1] = -1000;
+    const dmat = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.035, 0.002, 0.002), roughness: 0.35, metalness: 0, transparent: true, opacity: 0.9, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    sky.setupMaterial(dmat);
+    const dgeo = new THREE.CircleGeometry(1, 18);
+    // irregular splat outline
+    const pa = dgeo.attributes['position'] as THREE.BufferAttribute;
+    for (let i = 1; i < pa.count; i++) { const k = 0.6 + 0.4 * Math.abs(Math.sin(i * 7.3) * Math.cos(i * 3.1)); pa.setXY(i, pa.getX(i) * k, pa.getY(i) * k); }
+    for (let i = 0; i < MAX_DECALS; i++) {
+      const m = new THREE.Mesh(dgeo, dmat);
+      m.visible = false; m.receiveShadow = true; m.renderOrder = 2;
+      this.decals.push(m); this.group.add(m);
+    }
+  }
+
+  burst(at: THREE.Vector3, dir: THREE.Vector3, strength = 1): void {
+    const n = Math.round(22 * strength);
+    for (let i = 0; i < n; i++) {
+      const k = this.next; this.next = (this.next + 1) % MAX_P;
+      this.pos[k * 3] = at.x; this.pos[k * 3 + 1] = at.y; this.pos[k * 3 + 2] = at.z;
+      // spray mostly along the shot direction (exit) with a wide cone
+      const s = 1.5 + Math.random() * 3.5;
+      this.vel[k * 3] = (dir.x * 0.6 + (Math.random() - 0.5) * 1.2) * s;
+      this.vel[k * 3 + 1] = (dir.y * 0.6 + (Math.random() - 0.2) * 1.2) * s;
+      this.vel[k * 3 + 2] = (dir.z * 0.6 + (Math.random() - 0.5) * 1.2) * s;
+      this.life[k] = 0.45 + Math.random() * 0.45;
+    }
+    this.active = Math.min(MAX_P, this.active + n);
+    // ground patch
+    const d = this.decals[this.decalNext]; this.decalNext = (this.decalNext + 1) % MAX_DECALS;
+    if (d === undefined) return;
+    const gx = at.x + dir.x * 0.4, gz = at.z + dir.z * 0.4;
+    const gy = heightAt(gx, gz);
+    const nrm = normalAt(gx, gz);
+    d.position.set(gx, gy + 0.015, gz);
+    _d.set(nrm[0], nrm[1], nrm[2]);
+    d.quaternion.setFromUnitVectors(_c.set(0, 0, 1), _d);
+    d.rotateZ(Math.random() * Math.PI * 2);
+    const r = 0.14 + Math.random() * 0.14 * strength;
+    d.scale.set(r, r * (0.7 + Math.random() * 0.5), 1);
+    d.visible = true;
+  }
+
+  update(dt: number): void {
+    if (this.active === 0) return;
+    let alive = 0;
+    const life = this.life, pos = this.pos, vel = this.vel;
+    for (let k = 0; k < MAX_P; k++) {
+      const l0 = life[k] ?? 0;
+      if (l0 <= 0) continue;
+      life[k] = l0 - dt;
+      if ((life[k] ?? 0) <= 0) { pos[k * 3 + 1] = -1000; continue; }
+      alive++;
+      const j = k * 3;
+      vel[j + 1] = (vel[j + 1] ?? 0) - 9.8 * dt;
+      pos[j] = (pos[j] ?? 0) + (vel[j] ?? 0) * dt; pos[j + 1] = (pos[j + 1] ?? 0) + (vel[j + 1] ?? 0) * dt; pos[j + 2] = (pos[j + 2] ?? 0) + (vel[j + 2] ?? 0) * dt;
+    }
+    this.active = alive;
+    this.posAttr.needsUpdate = true;
+  }
+}
+
 export class AnimalManager {
   group = new THREE.Group();
   animals: Animal[] = [];
@@ -192,14 +292,14 @@ export class AnimalManager {
   private shellIdx = new Int32Array(SHELL_MAX);
 
   /** `opts.style` forces the render style (dev harness); production reads `ChunkDef.style` ('pbr' | 'lowpoly') */
-  constructor(private scene: THREE.Scene, private sky: Sky, private forest: Forest, opts: { style?: AnimalStyle } = {}) {
+  constructor(private readonly scene: THREE.Scene, private readonly sky: Sky, private readonly forest: Forest, opts: { style?: AnimalStyle | undefined } = {}) {
     this.factory = new AnimalFactory(sky, { style: opts.style ?? getActiveChunk().style ?? 'pbr' });
     this.group.name = 'animals';
   }
 
-  get alive() { let n = 0; for (const a of this.animals) if (a.alive) n++; return n; }
+  get alive(): number { let n = 0; for (const a of this.animals) if (a.alive) n++; return n; }
 
-  build() {
+  build(): this {
     this.blood = new BloodFX(this.sky);
     this.group.add(this.blood.group);
     this.spawnHerds();
@@ -211,13 +311,13 @@ export class AnimalManager {
   // ── spawning ───────────────────────────────────────────────────────────────────────────
 
   /** dry ground: above the pond's water line */
-  private isDry(x: number, z: number) { return heightAt(x, z) > waterLevel() + 0.25; }
+  private isDry(x: number, z: number): boolean { return heightAt(x, z) > waterLevel() + 0.25; }
 
   /**
    * Ground an animal can stand on. `clearingR` > 3 asks for a clearing (few trunks in that radius);
    * `canopy` instead asks for trees around (boars root under the canopy).
    */
-  private isOpen(x: number, z: number, clearingR: number, canopy = false) {
+  private isOpen(x: number, z: number, clearingR: number, canopy = false): boolean {
     if (!inChunk(x, z, 22)) return false;
     if (trailDistance(x, z) < (clearingR > 3 ? 9 : 6)) return false;
     if (cabinMask(x, z) > 0) return false;
@@ -228,9 +328,9 @@ export class AnimalManager {
     return near === 0;
   }
   /** a shard with no forest trees (Driftwood Isle: palms are not Forest trees) — every spot is a clearing, a canopy ask is moot */
-  private get treeless() { return this.forest.trees.length === 0; }
+  private get treeless(): boolean { return this.forest.trees.length === 0; }
 
-  private spawnHerds() {
+  private spawnHerds(): void {
     const rng = this.rng;
     // herd placement comes from the shard: each HerdPlan asks for a clearing (or canopy) in a band of
     // distances off the trails, optionally in a ring around an anchor (a trail, a cabin…).
@@ -280,18 +380,18 @@ export class AnimalManager {
   /** the species' hunting-loop numbers: its own `tuning`, else the manager's baseline for its temperament */
   private tuningFor(a: Animal): HuntTuning {
     const cached = this.tuningCache.get(a.kind);
-    if (cached) return cached;
+    if (cached !== undefined) return cached;
     const sp = speciesDef(a.kind);
     const base = sp.tuning ?? (sp.aggressive ? BOAR_TUNING : DEER_TUNING);
     const over = getActiveChunk().faunaTuning?.[a.kind];
-    const t = over ? { ...base, ...over, stalk: over.stalk ?? base.stalk } : base;   // ChunkDef.faunaTuning: the shard's overrides (Driftwood's far-sighted beach boars)
+    const t = over !== undefined ? { ...base, ...over, stalk: over.stalk ?? base.stalk } : base;   // ChunkDef.faunaTuning: the shard's overrides (Driftwood's far-sighted beach boars)
     this.tuningCache.set(a.kind, t);
     return t;
   }
   private tuningCache = new Map<AnimalKind, HuntTuning>();
 
   /** true if a living legendary of this kind is already in the chunk (the cap is one per kind) */
-  private hasLegendary(kind: AnimalKind) {
+  private hasLegendary(kind: AnimalKind): boolean {
     for (const a of this.animals) if (a.kind === kind && a.rarity === 'legendary' && a.alive) return true;
     return false;
   }
@@ -302,7 +402,7 @@ export class AnimalManager {
    */
   spawn(kind: AnimalKind, x: number, z: number, yaw: number, variant?: string | string[]): Animal {
     const sp = speciesDef(kind);
-    const v = typeof variant === 'string' ? sp.variants.find((d) => d.id === variant) ?? sp.variants[0] : rollVariant(sp, this.rng, variant, this.hasLegendary(kind));
+    const v = typeof variant === 'string' ? variantDef(kind, variant) : rollVariant(sp, this.rng, variant, this.hasLegendary(kind));
     const model = this.factory.model(kind, v.id);
     const scale = this.rng.range(v.scale[0], v.scale[1]);
     const rig = this.factory.instantiate(model, this.rng.next());
@@ -313,7 +413,7 @@ export class AnimalManager {
     a.onFootfall = this.footfall;
     a.onDamaged = this.damaged;
     a.onStaggered = this.staggered;
-    if (model.shells.length) a.makeShells = () => this.factory.createShells(rig, model);   // none in 'lowpoly'
+    if (model.shells.length > 0) a.makeShells = () => this.factory.createShells(rig, model);   // none in 'lowpoly'
     a.prepareMaterial = (m) => this.sky.setupMaterial(m);
     a.sampleTerrain();
     this.group.add(a.mesh);
@@ -332,15 +432,15 @@ export class AnimalManager {
     return this.herds.length - 1;
   }
 
-  private footfall = (a: Animal, strength: number) => {
-    if (!this.onSound) return;
+  private footfall = (a: Animal, strength: number): void => {
+    if (this.onSound === undefined) return;
     if (a.position.distanceToSquared(this.playerPos) > 35 * 35) return;
     if (strength > 0.5) this.onSound('hoofsteps', a.position);
   };
 
   // ── per frame ──────────────────────────────────────────────────────────────────────────
 
-  update(dt: number, t: number, playerPos: THREE.Vector3, playerSprinting = false) {
+  update(dt: number, t: number, playerPos: THREE.Vector3, playerSprinting = false): void {
     this.playerPos.copy(playerPos);
     // AI at 10 Hz, staggered across animals so the cost is flat
     this.thinkAcc += dt;
@@ -352,14 +452,14 @@ export class AnimalManager {
       const moved = Math.hypot(playerPos.x - this.playerPrev.x, playerPos.z - this.playerPrev.z);
       this.playerPrev.copy(playerPos);
       this.playerSpeed += (Math.min(moved / 0.1, 9) - this.playerSpeed) * 0.5;
-      for (let i = 0; i < n; i++) this.think(this.animals[i], 0.1, playerPos, playerSprinting);
+      for (const a of this.animals) this.think(a, 0.1, playerPos, playerSprinting);
     }
     // fur shells: pick the SHELL_MAX nearest animals inside SHELL_DIST (tiny insertion sort, no allocs)
     const sd = this.shellDist, si = this.shellIdx;
     sd.fill(Infinity); si.fill(-1);
     for (let i = 0; i < n; i++) {
       const a = this.animals[i];
-      if (a.hidden) continue;
+      if (a === undefined || a.hidden) continue;
       const d2 = a.position.distanceToSquared(playerPos);
       const near = d2 < ANIM_LOD * ANIM_LOD;
       a.update(dt, t, near);
@@ -367,25 +467,26 @@ export class AnimalManager {
       a.mesh.visible = d2 < TIER_CONFIG.animalHideDist * TIER_CONFIG.animalHideDist;
       a.mesh.castShadow = d2 < TIER_CONFIG.animalShadowDist * TIER_CONFIG.animalShadowDist;
       if (TIER_CONFIG.furShells && d2 < SHELL_DIST * SHELL_DIST) {
-        for (let k = 0; k < SHELL_MAX; k++) if (d2 < sd[k]) {
-          for (let m = SHELL_MAX - 1; m > k; m--) { sd[m] = sd[m - 1]; si[m] = si[m - 1]; }
+        for (let k = 0; k < SHELL_MAX; k++) if (d2 < (sd[k] ?? Infinity)) {
+          for (let m = SHELL_MAX - 1; m > k; m--) { sd[m] = sd[m - 1] ?? Infinity; si[m] = si[m - 1] ?? -1; }
           sd[k] = d2; si[k] = i; break;
         }
       }
     }
     for (let i = 0; i < n; i++) {
       let level = 0;
-      for (let k = 0; k < SHELL_MAX; k++) if (si[k] === i) { const d = Math.sqrt(sd[k]); level = d < 6 ? 8 : d < 11 ? 6 : 4; }
-      this.animals[i].setShellLevel(level);
+      for (let k = 0; k < SHELL_MAX; k++) if (si[k] === i) { const d = Math.sqrt(sd[k] ?? Infinity); level = d < 6 ? 8 : d < 11 ? 6 : 4; }
+      this.animals[i]?.setShellLevel(level);
     }
     this.blood.update(dt);
     if (this.debug) this.updateDebug();
   }
 
-  private think(a: Animal, dt: number, player: THREE.Vector3, sprinting: boolean) {
-    const br = this.brains.get(a)!;
+  private think(a: Animal, dt: number, player: THREE.Vector3, sprinting: boolean): void {
+    const br = this.brains.get(a);
+    if (br === undefined) throw new Error(`AnimalManager: ${a.kind} has no brain (not spawned through spawn())`);
     const self = speciesDef(a.kind).think;
-    if (self) {
+    if (self !== undefined) {
       // a self-thinking species (the island's enemies): its own tick, its own reactions, its own bounds
       if (!a.alive) {
         a.lookWeight = 0;
@@ -395,14 +496,14 @@ export class AnimalManager {
       }
       if (a.stunned) { a.setMotion(a.yaw, 0, 1); a.setStrafe(0); a.lookTarget.copy(player); a.lookWeight = 1; return; }
       const c = this.thinkCtx;
+      const herd = a.herd >= 0 ? this.herds[a.herd] ?? null : null;
       c.dt = dt; c.t = performance.now() * 0.001; c.player = player; c.playerSpeed = sprinting ? 7.2 : this.playerSpeed;
-      c.calm = this.calm; c.herd = a.herd >= 0 ? this.herds[a.herd].members : null; c.world = this.enemyWorld;
-      c.hurt = (damage) => this.onCharge?.(a, damage);
-      c.sound = (name) => this.onSound?.(name as AnimalSound, a.position);
+      c.calm = this.calm; c.herd = herd !== null ? herd.members : null; c.world = this.enemyWorld;
+      c.hurt = (damage) => { this.onCharge?.(a, damage); };
+      c.sound = (name) => { this.onSound?.(name as AnimalSound, a.position); };
       a.sampleTerrain();
       self(a, c);
-      const herd = a.herd >= 0 ? this.herds[a.herd] : null;
-      if (herd) this.updateHerd(herd);
+      if (herd !== null) this.updateHerd(herd);
       return;
     }
     if (!a.alive) { a.lookWeight = 0; a.settleCorpse(); return; }
@@ -437,7 +538,7 @@ export class AnimalManager {
       // hearing: any direction, radius from the noise the player makes
       const hear = (pSpeed < 0.4 ? T.hearStill : pSpeed < 2.6 ? T.hearCrouch : pSpeed < 5.2 ? T.hearWalk : T.hearSprint) * wary;
       if (dPlayer < hear) rate = Math.max(rate, T.noticeRate * 1.5 * (1 + (1 - dPlayer / hear)));
-      if (T.stalk && dPlayer < T.stalk.detect) rate = Math.max(rate, T.noticeRate * 3);   // a hunter smells you
+      if (T.stalk !== undefined && dPlayer < T.stalk.detect) rate = Math.max(rate, T.noticeRate * 3);   // a hunter smells you
     }
     br.sensed = rate > 0;
     br.awareness = br.sensed ? Math.min(1, br.awareness + rate * dt) : Math.max(0, br.awareness - T.forgetRate * dt);
@@ -447,15 +548,15 @@ export class AnimalManager {
     br.callT -= dt;
     if (br.callT <= 0) {
       const every = sp.sounds?.callEvery;
-      br.callT = every ? rng.range(every[0], every[1]) : rng.range(20, 90);
+      br.callT = every !== undefined ? rng.range(every[0], every[1]) : rng.range(20, 90);
       // species may limit the call to some variants (elk: only bulls bugle) and it is a CALM sound — not mid-flight
-      const caller = !sp.sounds?.callVariants || sp.sounds.callVariants.includes(a.variant);
+      const caller = sp.sounds?.callVariants === undefined || sp.sounds.callVariants.includes(a.variant);
       if (caller && dPlayer < 80 && a.state !== 'flee' && a.state !== 'charge') this.onSound?.((sp.sounds?.call ?? (boar ? 'boar_grunt' : 'deer_call')) as AnimalSound, a.position);
     }
 
-    const herd = a.herd >= 0 ? this.herds[a.herd] : null;
+    const herd = a.herd >= 0 ? this.herds[a.herd] ?? null : null;
     // the player is inside the charge distance: chargers charge (hunters stalk while the charge cools down), the rest bolt
-    const engage = () => { if (boar && br.chargeCd <= 0) this.enter(a, br, 'charge'); else if (T.stalk) this.enter(a, br, 'stalk'); else { br.spooked = true; this.enter(a, br, 'flee'); } };
+    const engage = (): void => { if (boar && br.chargeCd <= 0) this.enter(a, br, 'charge'); else if (T.stalk !== undefined) this.enter(a, br, 'stalk'); else { br.spooked = true; this.enter(a, br, 'flee'); } };
 
     switch (a.state) {
       case 'idle': case 'graze': case 'wander': {
@@ -486,7 +587,7 @@ export class AnimalManager {
         br.freeze -= dt;
         if (panic) { engage(); break; }
         if (br.freeze <= 0 && (br.spooked || br.awareness >= T.boltAt)) {
-          if (!T.stalk) { this.enter(a, br, 'flee'); break; }
+          if (T.stalk === undefined) { this.enter(a, br, 'flee'); break; }
           // a hunter comes for you instead — unless it is nearly dead (it stands and watches), or you are out of reach
           const wounded = !M.relentless && a.hp / a.maxHp < T.stalk.fleeBelowHp;
           if (!wounded && dPlayer < T.impactAlert) this.enter(a, br, 'stalk');
@@ -501,7 +602,7 @@ export class AnimalManager {
         br.fleeT += dt;
         // run away, biased back toward the herd's side of the map and away from the chunk edge
         let ax = -dx / (dPlayer + 1e-3), az = -dz / (dPlayer + 1e-3);
-        if (herd) { const hx = herd.cx - a.position.x, hz = herd.cz - a.position.z, hd = Math.hypot(hx, hz) + 1e-3; if (hd > 25) { ax += hx / hd * 0.35; az += hz / hd * 0.35; } }
+        if (herd !== null) { const hx = herd.cx - a.position.x, hz = herd.cz - a.position.z, hd = Math.hypot(hx, hz) + 1e-3; if (hd > 25) { ax += hx / hd * 0.35; az += hz / hd * 0.35; } }
         const farEnough = dPlayer > br.fleeUntil;
         const done = br.fleeT > T.fleeMaxTime || (br.fleeT > T.fleeMinTime && farEnough);
         if (done) { this.enter(a, br, 'alert'); br.freeze = T.lookBack; br.spooked = false; br.timer = T.relaxAfter; break; }
@@ -513,7 +614,8 @@ export class AnimalManager {
       }
       case 'stalk': {
         // hunters only: walk the player down, huffing, and charge once inside panicDist (again after rechargeCd)
-        const st = T.stalk!;
+        const st = T.stalk;
+        if (st === undefined) throw new Error(`AnimalManager: ${a.kind} is stalking without HuntTuning.stalk`);
         if (this.calm || dPlayer > st.giveUp) { br.awareness = 0; br.spooked = false; this.enter(a, br, 'wander'); break; }
         if (panic && br.chargeCd <= 0) { this.enter(a, br, 'charge'); break; }
         this.steer(a, Math.atan2(dx, dz), st.speed * M.speed, 2.5);
@@ -526,20 +628,21 @@ export class AnimalManager {
         br.timer -= dt;
         this.steer(a, Math.atan2(dx, dz), (sp.chargeSpeed ?? BOAR_CHARGE) * M.speed, 4.0);
         a.lookTarget.copy(player); a.lookWeight = 0.5;
-        const after: Animal['state'] = T.stalk ? 'stalk' : 'flee';   // a hunter keeps pressing; a boar wheels away
+        const after: Animal['state'] = T.stalk !== undefined ? 'stalk' : 'flee';   // a hunter keeps pressing; a boar wheels away
         if (dPlayer < CHARGE_HIT_DIST * Math.max(1, a.scale)) {
           this.onCharge?.(a, M.chargeDamage);
           this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
-          br.chargeCd = T.stalk ? T.stalk.rechargeCd : M.relentless ? 2 : 6;   // Old Ironhide wheels round and comes again
+          br.chargeCd = T.stalk !== undefined ? T.stalk.rechargeCd : M.relentless ? 2 : 6;   // Old Ironhide wheels round and comes again
           this.enter(a, br, after);
-        } else if (br.timer <= 0) { br.chargeCd = T.stalk ? T.stalk.rechargeCd : M.relentless ? 1.5 : 4; this.enter(a, br, after); }
+        } else if (br.timer <= 0) { br.chargeCd = T.stalk !== undefined ? T.stalk.rechargeCd : M.relentless ? 1.5 : 4; this.enter(a, br, after); }
         break;
       }
-      default: break;
+      case 'attack': case 'dead': case 'hide': case 'perch': case 'rise': case 'sidestep': break;
+      // no default
     }
     // keep every animal inside the chunk / off steep ground / out of trunks
     this.confine(a);
-    if (herd) this.updateHerd(herd);
+    if (herd !== null) this.updateHerd(herd);
   }
 
   private thinkCtx: ThinkCtx = {
@@ -549,7 +652,7 @@ export class AnimalManager {
     confine: (a) => this.confine(a),
   };
 
-  private enter(a: Animal, br: Brain, s: Animal['state']) {
+  private enter(a: Animal, br: Brain, s: Animal['state']): void {
     const rng = this.rng;
     const T = this.tuningFor(a);
     const sp = speciesDef(a.kind);
@@ -559,17 +662,17 @@ export class AnimalManager {
       case 'idle': br.timer = rng.range(3, 7); a.setMotion(a.desiredYaw, 0, 1.5); break;
       case 'graze': br.timer = rng.range(6, 14); a.setMotion(a.desiredYaw, 0, 1.5); break;
       case 'wander': {
-        const herd = a.herd >= 0 ? this.herds[a.herd] : null;
+        const herd = a.herd >= 0 ? this.herds[a.herd] ?? null : null;
         let ok = false;
         for (let i = 0; i < 12 && !ok; i++) {
           const ang = rng.range(0, Math.PI * 2), r = rng.range(5, 25);
           let tx = a.position.x + Math.cos(ang) * r, tz = a.position.z + Math.sin(ang) * r;
-          if (herd) { // stay within ~15 m of the herd centre
+          if (herd !== null) { // stay within ~15 m of the herd centre
             const hx = tx - herd.cx, hz = tz - herd.cz, hd = Math.hypot(hx, hz);
             if (hd > 15) { tx = herd.cx + hx / hd * 14; tz = herd.cz + hz / hd * 14; }
           }
           if (!inChunk(tx, tz, 20) || normalAt(tx, tz)[1] < 0.78 || cabinMask(tx, tz) > 0 || !this.isDry(tx, tz)) continue;
-          if (this.forest.nearby(tx, tz, 1.0).length) continue;
+          if (this.forest.nearby(tx, tz, 1.0).length > 0) continue;
           br.tx = tx; br.tz = tz; ok = true;
         }
         if (!ok) { a.state = 'idle'; br.timer = 2; break; }
@@ -596,7 +699,8 @@ export class AnimalManager {
         br.timer = a.mods.relentless ? 12 : 4; br.wary = T.waryTime;
         this.onSound?.((T.stalk?.roar ?? sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
         break;
-      default: break;
+      case 'attack': case 'dead': case 'hide': case 'perch': case 'rise': case 'sidestep': break;
+      // no default
     }
   }
 
@@ -605,14 +709,17 @@ export class AnimalManager {
    * later; otherwise (a head came up) they only get a nudge of awareness — a sentry freezing must not empty the
    * clearing, or there is never a shot.
    */
-  private alertHerd(a: Animal, bolt: boolean) {
+  private alertHerd(a: Animal, bolt: boolean): void {
     if (a.herd < 0) return;
+    const herd = this.herds[a.herd];
+    if (herd === undefined) return;
     const T = this.tuningFor(a);
     const r2 = T.herdAlertRadius * T.herdAlertRadius;
-    for (const m of this.herds[a.herd].members) {
+    for (const m of herd.members) {
       if (m === a || !m.alive) continue;
       if (m.position.distanceToSquared(a.position) > r2) continue;
-      const mb = this.brains.get(m)!;
+      const mb = this.brains.get(m);
+      if (mb === undefined) continue;
       if (m.state === 'flee' || m.state === 'charge' || m.state === 'stalk') continue;
       if (!bolt) { mb.awareness = Math.min(T.alertAt * 0.7, mb.awareness + 0.12); continue; }
       if (m.state !== 'alert') { mb.awareness = Math.max(mb.awareness, T.alertAt); this.enter(m, mb, 'alert'); }
@@ -624,14 +731,15 @@ export class AnimalManager {
    * Something loud landed at `point` (a bolt in a tree or the dirt): animals within impactSpook m bolt after a
    * short start, within impactAlert m their heads come up. `strength` scales both radii (1 = a bolt).
    */
-  disturb(point: THREE.Vector3, strength = 1) {
+  disturb(point: THREE.Vector3, strength = 1): void {
     if (this.calm) return;
     for (const a of this.animals) {
       if (!a.alive) continue;
       const T = this.tuningFor(a);
       const d = Math.hypot(point.x - a.position.x, point.z - a.position.z);
       if (d > T.impactAlert * strength) continue;
-      const br = this.brains.get(a)!;
+      const br = this.brains.get(a);
+      if (br === undefined) continue;
       if (a.state === 'flee' || a.state === 'charge' || a.state === 'stalk') continue;
       if (a.state !== 'alert') { br.awareness = Math.max(br.awareness, T.alertAt); this.enter(a, br, 'alert'); }
       if (d < T.impactSpook * strength) { br.spooked = true; br.freeze = Math.min(br.freeze, 0.25); }
@@ -640,7 +748,7 @@ export class AnimalManager {
   }
 
   /** desired heading with trunk repulsion, slope + edge avoidance */
-  private steer(a: Animal, yaw: number, speed: number, turnRate: number) {
+  private steer(a: Animal, yaw: number, speed: number, turnRate: number): void {
     let vx = Math.sin(yaw), vz = Math.cos(yaw);
     const px = a.position.x, pz = a.position.z;
     const look = 1.5 + speed * 0.45;
@@ -663,11 +771,11 @@ export class AnimalManager {
     a.setMotion(Math.atan2(vx, vz), speed, turnRate);
   }
 
-  private confine(a: Animal) {
+  private confine(a: Animal): void {
     const p = a.position;
     if (!this.isDry(p.x, p.z)) {
       // stepped into the pond: back up toward the last dry heading
-      p.x -= Math.sin(a.yaw) * 1.0; p.z -= Math.cos(a.yaw) * 1.0;
+      p.x -= Math.sin(a.yaw); p.z -= Math.cos(a.yaw);
       a.desiredYaw = a.yaw + Math.PI * 0.75;
     }
     const lim = CHUNK_HALF - 4; // hard clamp; steering keeps AI animals ≥ 20 m from the edge
@@ -680,15 +788,16 @@ export class AnimalManager {
     }
   }
 
-  private updateHerd(h: Herd) {
+  private updateHerd(h: Herd): void {
     let x = 0, z = 0, n = 0;
     for (const m of h.members) if (m.alive) { x += m.position.x; z += m.position.z; n++; }
-    if (n) { h.cx += (x / n - h.cx) * 0.2; h.cz += (z / n - h.cz) * 0.2; }
+    if (n > 0) { h.cx += (x / n - h.cx) * 0.2; h.cz += (z / n - h.cz) * 0.2; }
   }
 
   // ── combat ─────────────────────────────────────────────────────────────────────────────
 
-  private hitResult: AnimalHit = { animal: null as unknown as Animal, point: new THREE.Vector3(), distance: 0, headshot: false, damage: 0 };
+  /** the reused raycast() result (made on the first hit) */
+  private hitResult: AnimalHit | null = null;
 
   /** the DAMAGE model (Animal.ts): a body bolt from `dist` m (falloff past 40 m), ×headMul for the head */
   damageFor(headshot: boolean, dist: number): number { return damageFor(headshot, dist); }
@@ -717,8 +826,8 @@ export class AnimalManager {
       const tb = rayCapsule(origin, dir, _a, _b, a.dims.bodyRadius * a.scale);
       if (tb >= 0 && tb < best) { best = tb; bestA = a; bestHead = false; }
     }
-    if (!bestA) return null;
-    const h = this.hitResult;
+    if (bestA === null) return null;
+    const h = this.hitResult ??= { animal: bestA, point: new THREE.Vector3(), distance: 0, headshot: false, damage: 0 };
     h.animal = bestA; h.distance = best; h.headshot = bestHead;
     h.point.copy(origin).addScaledVector(dir, best);
     h.damage = this.damageFor(bestHead, h.point.distanceTo(this.playerPos));
@@ -759,7 +868,7 @@ export class AnimalManager {
   }
 
   /** every applyDamage lands here: blood, sounds, AI reaction, kill event */
-  private damaged = (a: Animal, amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3, died: boolean) => {
+  private damaged = (a: Animal, amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3, died: boolean): void => {
     this.blood.burst(hitPoint, dir, amount >= 80 ? 1.5 : 1);
     const sp = speciesDef(a.kind);
     this.onSound?.((sp.sounds?.hurt ?? (a.aggressive ? 'boar_squeal' : 'deer_call')) as AnimalSound, a.position);
@@ -768,14 +877,14 @@ export class AnimalManager {
     const headshot = _p.distanceToSquared(hitPoint) < (a.dims.headRadius * a.scale + 0.06) ** 2;
     this.onDamage?.(a, amount, hitPoint, headshot, died);
     const br = this.brains.get(a);
-    if (died) { this.onKill?.(a); if (br) br.timer = 0; return; }
-    if (sp.think) return;   // a self-thinking species reads animal.lastHitT / hp in its own tick
-    if (br && a.state !== 'charge') {
+    if (died) { this.onKill?.(a); if (br !== undefined) br.timer = 0; return; }
+    if (sp.think !== undefined) return;   // a self-thinking species reads animal.lastHitT / hp in its own tick
+    if (br !== undefined && a.state !== 'charge') {
       // a wounded animal bolts at once — no freeze; a boar this close turns on you instead
       const T = this.tuningFor(a);
       br.wary = T.waryTime;
       const M = a.mods;
-      if (T.stalk) {
+      if (T.stalk !== undefined) {
         // a hunter never runs from a hit — it comes for you from wherever it is (the charge times out into a stalk);
         // only a nearly dead, non-relentless one (a black bear under 20 %) may break off
         if (!M.relentless && a.hp / a.maxHp < T.stalk.fleeBelowHp && this.rng.next() < T.stalk.fleeChance) { br.spooked = true; this.enter(a, br, 'flee'); }
@@ -791,19 +900,19 @@ export class AnimalManager {
    * the stun) or, off a heavy, wheels away and comes again (the after-charge cooldown path). A blow on a standing animal
    * only delays whatever `damaged` decided.
    */
-  private staggered = (a: Animal, strength: number, running: boolean) => {
+  private staggered = (a: Animal, strength: number, running: boolean): void => {
     const br = this.brains.get(a);
-    if (!br || !running || a.state !== 'charge' || speciesDef(a.kind).think) return;
+    if (br === undefined || !running || a.state !== 'charge' || speciesDef(a.kind).think !== undefined) return;
     const T = this.tuningFor(a);
-    br.chargeCd = strength >= 0.75 ? (T.stalk ? T.stalk.rechargeCd : 1.4) : 0.3;
-    this.enter(a, br, T.stalk ? 'stalk' : 'alert');
+    br.chargeCd = strength >= 0.75 ? (T.stalk !== undefined ? T.stalk.rechargeCd : 1.4) : 0.3;
+    this.enter(a, br, T.stalk !== undefined ? 'stalk' : 'alert');
     br.freeze = 0.3 + strength * 0.8;
   };
 
   // ── debug ──────────────────────────────────────────────────────────────────────────────
 
-  private updateDebug() {
-    if (!this.debugMeshes.length) {
+  private updateDebug(): void {
+    if (this.debugMeshes.length === 0) {
       const mat = new THREE.MeshBasicMaterial({ color: 0x8fe3ff, wireframe: true });
       for (const a of this.animals) {
         const h = new THREE.Mesh(new THREE.SphereGeometry(a.dims.headRadius * a.scale, 10, 8), mat);
@@ -813,6 +922,7 @@ export class AnimalManager {
     }
     this.animals.forEach((a, i) => {
       const h = this.debugMeshes[i * 2], b = this.debugMeshes[i * 2 + 1];
+      if (h === undefined || b === undefined) return;
       a.headWorld(h.position);
       a.bodyCapsule(_a, _b);
       b.position.lerpVectors(_a, _b, 0.5);
@@ -870,99 +980,4 @@ function rayCapsule(o: THREE.Vector3, d: THREE.Vector3, a: THREE.Vector3, b: THR
   if (ta >= 0 && (best < 0 || ta < best)) best = ta;
   if (tb >= 0 && (best < 0 || tb < best)) best = tb;
   return best;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────────────────
-// Blood: a pooled particle burst + pooled ground decals
-// ─────────────────────────────────────────────────────────────────────────────────────────
-
-function makeDropTexture() {
-  const c = document.createElement('canvas'); c.width = c.height = 32;
-  const g = c.getContext('2d')!;
-  const grad = g.createRadialGradient(16, 16, 2, 16, 16, 15);
-  grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.7, 'rgba(255,255,255,0.9)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = grad; g.fillRect(0, 0, 32, 32);
-  return new THREE.CanvasTexture(c);
-}
-
-const MAX_P = 384, MAX_DECALS = 24;
-
-class BloodFX {
-  group = new THREE.Group();
-  private pos = new Float32Array(MAX_P * 3);
-  private vel = new Float32Array(MAX_P * 3);
-  private life = new Float32Array(MAX_P);
-  private points: THREE.Points;
-  private posAttr: THREE.BufferAttribute;
-  private next = 0;
-  private decals: THREE.Mesh[] = [];
-  private decalNext = 0;
-  private active = 0;
-
-  constructor(sky: Sky) {
-    const g = new THREE.BufferGeometry();
-    this.posAttr = new THREE.BufferAttribute(this.pos, 3);
-    this.posAttr.setUsage(THREE.DynamicDrawUsage);
-    g.setAttribute('position', this.posAttr);
-    g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-    const mat = new THREE.PointsMaterial({ color: new THREE.Color(0.09, 0.004, 0.003), size: 0.035, sizeAttenuation: true, transparent: true, opacity: 0.95, depthWrite: false, map: makeDropTexture(), alphaTest: 0.3 });
-    this.points = new THREE.Points(g, mat);
-    this.points.frustumCulled = false;
-    this.points.renderOrder = 5;
-    this.group.add(this.points);
-    for (let i = 0; i < MAX_P; i++) this.pos[i * 3 + 1] = -1000;
-    const dmat = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.035, 0.002, 0.002), roughness: 0.35, metalness: 0, transparent: true, opacity: 0.9, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-    sky.setupMaterial(dmat);
-    const dgeo = new THREE.CircleGeometry(1, 18);
-    // irregular splat outline
-    const pa = dgeo.attributes.position as THREE.BufferAttribute;
-    for (let i = 1; i < pa.count; i++) { const k = 0.6 + 0.4 * Math.abs(Math.sin(i * 7.3) * Math.cos(i * 3.1)); pa.setXY(i, pa.getX(i) * k, pa.getY(i) * k); }
-    for (let i = 0; i < MAX_DECALS; i++) {
-      const m = new THREE.Mesh(dgeo, dmat);
-      m.visible = false; m.receiveShadow = true; m.renderOrder = 2;
-      this.decals.push(m); this.group.add(m);
-    }
-  }
-
-  burst(at: THREE.Vector3, dir: THREE.Vector3, strength = 1) {
-    const n = Math.round(22 * strength);
-    for (let i = 0; i < n; i++) {
-      const k = this.next; this.next = (this.next + 1) % MAX_P;
-      this.pos[k * 3] = at.x; this.pos[k * 3 + 1] = at.y; this.pos[k * 3 + 2] = at.z;
-      // spray mostly along the shot direction (exit) with a wide cone
-      const s = 1.5 + Math.random() * 3.5;
-      this.vel[k * 3] = (dir.x * 0.6 + (Math.random() - 0.5) * 1.2) * s;
-      this.vel[k * 3 + 1] = (dir.y * 0.6 + (Math.random() - 0.2) * 1.2) * s;
-      this.vel[k * 3 + 2] = (dir.z * 0.6 + (Math.random() - 0.5) * 1.2) * s;
-      this.life[k] = 0.45 + Math.random() * 0.45;
-    }
-    this.active = Math.min(MAX_P, this.active + n);
-    // ground patch
-    const d = this.decals[this.decalNext]; this.decalNext = (this.decalNext + 1) % MAX_DECALS;
-    const gx = at.x + dir.x * 0.4, gz = at.z + dir.z * 0.4;
-    const gy = heightAt(gx, gz);
-    const nrm = normalAt(gx, gz);
-    d.position.set(gx, gy + 0.015, gz);
-    _d.set(nrm[0], nrm[1], nrm[2]);
-    d.quaternion.setFromUnitVectors(_c.set(0, 0, 1), _d);
-    d.rotateZ(Math.random() * Math.PI * 2);
-    const r = 0.14 + Math.random() * 0.14 * strength;
-    d.scale.set(r, r * (0.7 + Math.random() * 0.5), 1);
-    d.visible = true;
-  }
-
-  update(dt: number) {
-    if (this.active === 0) return;
-    let alive = 0;
-    for (let k = 0; k < MAX_P; k++) {
-      if (this.life[k] <= 0) continue;
-      this.life[k] -= dt;
-      if (this.life[k] <= 0) { this.pos[k * 3 + 1] = -1000; continue; }
-      alive++;
-      this.vel[k * 3 + 1] -= 9.8 * dt;
-      this.pos[k * 3] += this.vel[k * 3] * dt; this.pos[k * 3 + 1] += this.vel[k * 3 + 1] * dt; this.pos[k * 3 + 2] += this.vel[k * 3 + 2] * dt;
-    }
-    this.active = alive;
-    this.posAttr.needsUpdate = true;
-  }
 }

@@ -20,7 +20,7 @@ import { Horizon } from '../world/Horizon';
 import { CHUNK_HALF, ROAD_LENGTH } from '../core/config';
 import { heightAt } from '../world/Heightfield';
 
-if (!new URLSearchParams(location.search).has('chunk')) { location.search += (location.search ? '&' : '?') + 'chunk=driftwood-isle'; }
+if (!new URLSearchParams(location.search).has('chunk')) { location.search += `${location.search ? '&' : '?'}chunk=driftwood-isle`; }
 
 const world = await bootstrap();
 const T: Record<string, number> = {}; let _t0 = performance.now();

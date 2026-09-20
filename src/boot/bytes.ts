@@ -24,7 +24,7 @@ export function declareTotals(files: ChunkFiles): Record<ByteKey, { bytes: numbe
     let bytes = 0;
     for (const f of files[key]) {
       if (!(f in TABLE)) throw new Error(`boot: ${key} declares ${f} but public/assets has no such file`);
-      bytes += TABLE[f];
+      bytes += TABLE[f] ?? 0;
     }
     out[key] = { bytes, files: files[key].length };
   }
@@ -57,7 +57,7 @@ export function installByteCounter(plan: Plan<BootStep>, files: ChunkFiles): voi
       const rd = b.getReader();
       for (;;) { const { done, value } = await rd.read(); if (done) break; r.add(value.byteLength); }
       finished.add(p); plan.fileDone(key);
-    })().catch(() => {});
+    })().catch(() => undefined);
     return new Response(a, { status: res.status, statusText: res.statusText, headers: res.headers });
   };
 
@@ -69,7 +69,7 @@ export function installByteCounter(plan: Plan<BootStep>, files: ChunkFiles): voi
         const key = sourceOf.get(p);
         if (!key || seen.has(p) || finished.has(p)) continue;
         finished.add(p);
-        reader(key).add(e.encodedBodySize || e.transferSize || TABLE[p] || 0);
+        reader(key).add(e.encodedBodySize || e.transferSize || (TABLE[p] ?? 0) || 0);
         plan.fileDone(key);
       }
     });
@@ -102,7 +102,7 @@ export async function fetchImage(url: string, maxSize = Infinity, flip = true): 
   }
   const src = URL.createObjectURL(blob);
   try {
-    return await new Promise<HTMLImageElement>((res2, rej) => { const img = new Image(); img.onload = () => res2(img); img.onerror = rej; img.src = src; });
+    return await new Promise<HTMLImageElement>((resolve, reject) => { const img = new Image(); img.onload = () => { resolve(img); }; img.onerror = reject; img.src = src; });
   } finally { URL.revokeObjectURL(src); }
 }
 

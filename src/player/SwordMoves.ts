@@ -41,7 +41,7 @@ export interface Move {
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 const _q2 = new THREE.Quaternion();
 /** quaternion that takes +Y to `dir` then rolls about it */
-export function poseQuat(out: THREE.Quaternion, dir: THREE.Vector3, roll: number) {
+export function poseQuat(out: THREE.Quaternion, dir: THREE.Vector3, roll: number): THREE.Quaternion {
   out.setFromUnitVectors(Y_AXIS, dir);
   return out.multiply(_q2.setFromAxisAngle(Y_AXIS, roll));
 }

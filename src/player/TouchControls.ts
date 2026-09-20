@@ -41,9 +41,15 @@ const PAD_BOOST = 1.6;        // the LOOK pad in the bar is small — a thumb's 
 const TAP_PX = 12;            // a look-pad touch that travels less than this …
 const TAP_MS = 300;           // … and ends within this is a tap = fire
 
+/** a control the layer's own markup (above) must contain — a miss is a template typo, not a runtime state */
+function el(parent: ParentNode, sel: string): HTMLElement {
+  const e = parent.querySelector<HTMLElement>(sel);
+  if (e === null) throw new Error(`TouchControls: missing ${sel}`);
+  return e;
+}
+
 export class TouchControls {
   readonly active: boolean;
-  private root?: HTMLElement;
   private stickPointer = -1; private lookPointer = -1;
   private stickBase = { x: 0, y: 0 };
   private lookLast = { x: 0, y: 0 }; private lookRate = LOOK_RATE;
@@ -74,10 +80,10 @@ export class TouchControls {
         <div class="ws-touch-zone move"><u></u><span class="ws-touch-label">Move</span></div>
         <div class="ws-touch-zone look"><u></u><span class="ws-touch-label">Look</span></div>
       </div>`;
-    hud.appendChild(root);
-    this.root = root;
-    this.stick = root.querySelector('.ws-touch-stick')!;
-    this.knob = this.stick.querySelector('i')!;
+    hud.append(root);
+    const stick = this.stick = el(root, '.ws-touch-stick');
+    this.knob = el(stick, 'i');
+    const moveZone = el(root, '.ws-touch-zone.move');
 
     // ── aim assist: runs at the top of every player update (before the camera is posed) so a nudge shows the same frame ──
     const assist = this.assist = new AimAssist(root);
@@ -93,7 +99,7 @@ export class TouchControls {
     // ── stick + look: pointer events on the layer itself (buttons stop propagation) ──
     root.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'mouse' && !force) return;
-      const zone = root.querySelector<HTMLElement>('.ws-touch-zone.move')!.getBoundingClientRect();
+      const zone = moveZone.getBoundingClientRect();
       if (e.clientY < zone.top) return; // above the bar: not a control surface
       const inMove = e.clientX <= zone.right;
       if (inMove && this.stickPointer < 0) {
@@ -129,7 +135,7 @@ export class TouchControls {
         this.stickPointer = -1;
         this.player.touchMove.x = this.player.touchMove.y = 0;
         this.player.touchSprint = false;
-        this.stick!.classList.remove('show');
+        stick.classList.remove('show');
       } else if (e.pointerId === this.lookPointer) {
         this.lookPointer = -1;
         // a tap on the look pad (barely moved, quick) fires; a drag only looked. Cancelled touches never fire.
@@ -142,25 +148,25 @@ export class TouchControls {
 
     // ── buttons ──
     const btn = (sel: string, down: () => void, up?: () => void) => {
-      const b = root.querySelector<HTMLElement>(sel)!;
+      const b = el(root, sel);
       b.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); b.classList.add('down'); down(); });
       const end = (e: Event) => { e.stopPropagation(); b.classList.remove('down'); up?.(); };
       b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end); b.addEventListener('pointerleave', end);
     };
     // AIM is a toggle, not a hold: each press flips ADS and the button stays lit (.on) while it is latched
-    const aim = root.querySelector<HTMLElement>('.aim')!;
+    const aim = el(root, '.aim');
     aim.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.weapons.adsHeld = !this.weapons.adsHeld; aim.classList.toggle('on', this.weapons.adsHeld); });
     aim.addEventListener('pointerup', (e) => e.stopPropagation());
     // SWAP: crossbow ⇄ rifle (Weapons.swap, the Q key); the pill flashes .down while pressed, nothing latches. Hidden until a
     // second weapon is unlocked (the AR-15 pickup — Weapons.onUnlock)
     btn('.swap', () => { if (this.weapons.enabled) this.weapons.swap(); });
-    const swap = root.querySelector<HTMLElement>('.swap')!;
+    const swap = el(root, '.swap');
     const syncSwap = () => swap.classList.toggle('show', this.weapons.available.length > 1);
     const prevUnlock = this.weapons.onUnlock;
     this.weapons.onUnlock = (id) => { syncSwap(); prevUnlock?.(id); };
     syncSwap();
     // HOVER is a toggle too; the H key flips the same state, so the lit look follows the player, not the button
-    const hover = root.querySelector<HTMLElement>('.hover')!;
+    const hover = el(root, '.hover');
     hover.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.player.setHover(!this.player.hover); });
     hover.addEventListener('pointerup', (e) => e.stopPropagation());
     const prevHover = this.player.onHoverChange;
@@ -177,15 +183,15 @@ export class TouchControls {
     // main.ts can assign those callbacks freely (audio) without having to chain ours.
     btn('.surface', () => { this.player.touchSurface = true; }, () => { this.player.touchSurface = false; });
     root.classList.toggle('submerged', this.player.submerged);
-    btn('.ws-touch-pause', () => document.dispatchEvent(new Event('ws:pause')));
-    btn('.ws-touch-use', () => document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e', bubbles: true })));
+    btn('.ws-touch-pause', () => { document.dispatchEvent(new Event('ws:pause')); });
+    btn('.ws-touch-use', () => { document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e', bubbles: true })); });
     // the interact prompt ("[E] Open door") becomes a big USE button above the row, labelled with the action
-    const use = root.querySelector<HTMLElement>('.ws-touch-use')!;
+    const use = el(root, '.ws-touch-use');
     const bindPrompt = (prompt: HTMLElement) => {
       const sync = () => {
         const on = prompt.classList.contains('show');
         use.classList.toggle('show', on);
-        if (on) use.textContent = (prompt.textContent ?? '').replace(/^[A-Z]\s*/, '').trim() || 'Use';
+        if (on) use.textContent = prompt.textContent.replace(/^[A-Z]\s*/, '').trim() || 'Use';
       };
       new MutationObserver(sync).observe(prompt, { attributes: true, attributeFilter: ['class'], childList: true, subtree: true });
       sync();
@@ -199,20 +205,22 @@ export class TouchControls {
     }
   }
 
-  private applyStick(dx: number, dy: number) {
+  private applyStick(dx: number, dy: number): void {
     const len = Math.hypot(dx, dy);
     const nx = len > 0 ? dx / len : 0, ny = len > 0 ? dy / len : 0; // direction from the raw delta
     const mag = Math.min(1, len / STICK_RADIUS);
     const scaled = mag < DEADZONE ? 0 : (mag - DEADZONE) / (1 - DEADZONE);
-    if (len > STICK_RADIUS) { dx *= STICK_RADIUS / len; dy *= STICK_RADIUS / len; } // knob stays on the ring
+    let kx = dx, ky = dy;
+    if (len > STICK_RADIUS) { kx *= STICK_RADIUS / len; ky *= STICK_RADIUS / len; } // knob stays on the ring
     this.player.touchMove.x = nx * scaled;
     this.player.touchMove.y = -ny * scaled;
     this.player.touchSprint = mag > SPRINT_AT && -ny > 0.5;
-    this.showStick(this.stickBase.x, this.stickBase.y, dx, dy);
+    this.showStick(this.stickBase.x, this.stickBase.y, kx, ky);
   }
 
-  private showStick(bx: number, by: number, dx: number, dy: number) {
-    const s = this.stick!, k = this.knob!;
+  private showStick(bx: number, by: number, dx: number, dy: number): void {
+    const s = this.stick, k = this.knob;
+    if (s === undefined || k === undefined) return;
     s.style.left = `${bx}px`; s.style.top = `${by}px`;
     k.style.transform = `translate(${dx}px, ${dy}px)`;
     s.classList.add('show');

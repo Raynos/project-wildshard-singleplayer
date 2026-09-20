@@ -69,7 +69,7 @@ export function layoutFaunaCells(o: FaunaLayoutOpts): FaunaCell[] {
     const weights = o.groups.map((g) => Math.max(0, g.weight * (g.prefer ? g.prefer(td) : 1)));
     const total = weights.reduce((a, b) => a + b, 0) + (allowEmpty ? emptyW : 0);
     let acc = r * total;
-    for (let i = 0; i < o.groups.length; i++) { acc -= weights[i]; if (acc <= 0) return o.groups[i]; }
+    for (let i = 0; i < o.groups.length; i++) { acc -= weights[i] ?? 0; if (acc <= 0) return o.groups[i] ?? null; }
     return null;
   };
   const cells: (FaunaCell | null)[] = [];   // null = skipped (in an avoid disc)
@@ -98,7 +98,7 @@ export function layoutFaunaCells(o: FaunaLayoutOpts): FaunaCell[] {
   cells.forEach((c, i) => {
     if (!c) return;
     const g = c.group;
-    c.count = g ? g.count[0] + Math.floor(draws[i] * (g.count[1] - g.count[0] + 1)) : 0;
+    c.count = g ? g.count[0] + Math.floor((draws[i] ?? 0) * (g.count[1] - g.count[0] + 1)) : 0;
     out.push(c);
   });
   return out;

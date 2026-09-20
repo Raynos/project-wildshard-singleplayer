@@ -58,13 +58,13 @@ export class Trailside {
     };
   }
 
-  build(spec: TrailsideSpec) {
+  build(spec: TrailsideSpec): this {
     const rng = new Rng(SEED ^ 0x7a11);
     const parts: THREE.BufferGeometry[] = [];
     const add = (g: THREE.BufferGeometry, col: THREE.Color, jitter = 0.06) => {
       g.deleteAttribute('uv'); g.deleteAttribute('normal');
       const ni = g.index ? g.toNonIndexed() : g;
-      const n = ni.attributes.position.count, c = new Float32Array(n * 3);
+      const n = ni.getAttribute('position').count, c = new Float32Array(n * 3);
       for (let i = 0; i < n; i += 3) { const k = 1 - jitter + rng.next() * jitter * 2; for (let j = 0; j < 3; j++) { c[(i + j) * 3] = col.r * k; c[(i + j) * 3 + 1] = col.g * k; c[(i + j) * 3 + 2] = col.b * k; } }
       ni.setAttribute('color', new THREE.BufferAttribute(c, 3));
       parts.push(ni);
@@ -82,7 +82,9 @@ export class Trailside {
       const spacing = f.spacing ?? 2.6;
       const posts: THREE.Vector3[] = [];
       for (let i = 0; i < f.path.length - 1; i++) {
-        const [ax, az] = f.path[i], [bx, bz] = f.path[i + 1];
+        const pa = f.path[i], pb = f.path[i + 1];
+        if (!pa || !pb) continue;
+        const [ax, az] = pa, [bx, bz] = pb;
         const len = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.round(len / spacing));
         for (let k = i === 0 ? 0 : 1; k <= n; k++) { const t = k / n; const x = ax + (bx - ax) * t, z = az + (bz - az) * t; posts.push(new THREE.Vector3(x, heightAt(x, z), z)); }
       }
@@ -92,7 +94,9 @@ export class Trailside {
         this.colliders.push({ x: p.x, z: p.z, hw: 0.12, hd: 0.12, rot: 0, yTop: p.y + 1.2, yBottom: p.y - 1 });
       }
       for (let i = 0; i < posts.length - 1; i++) {
-        const a = posts[i].clone().setY(posts[i].y + 1.05), b = posts[i + 1].clone().setY(posts[i + 1].y + 1.05);
+        const pa = posts[i], pb = posts[i + 1];
+        if (!pa || !pb) continue;
+        const a = pa.clone().setY(pa.y + 1.05), b = pb.clone().setY(pb.y + 1.05);
         const m1 = a.clone().lerp(b, 0.33), m2 = a.clone().lerp(b, 0.67); m1.y -= 0.16; m2.y -= 0.16;
         beam(a, m1, 0.03, C.rope); beam(m1, m2, 0.03, C.rope); beam(m2, b, 0.03, C.rope);
       }
@@ -133,7 +137,7 @@ export class Trailside {
       this.colliders.push({ x: sg.x, z: sg.z, hw: 0.12, hd: 0.12, rot: 0, yTop: y + 2.4, yBottom: y - 1 });
     }
 
-    const geo = parts.length ? mergeGeometries(parts, false)! : new THREE.BufferGeometry();
+    const geo = parts.length > 0 ? mergeGeometries(parts, false) : new THREE.BufferGeometry();
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.88, metalness: 0, side: THREE.DoubleSide });
     this.sky.setupMaterial(mat);

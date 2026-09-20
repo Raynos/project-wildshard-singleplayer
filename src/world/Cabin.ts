@@ -39,7 +39,7 @@ import { TIER_CONFIG } from '../core/tier';
  * material: ~14 draw calls per cabin, props are instanced across cabins.
  */
 
-export interface Interactable { position: THREE.Vector3; radius: number; label: string; onInteract(): void }
+export interface Interactable { position: THREE.Vector3; radius: number; label: string; onInteract: () => void }
 
 const LOG = 0.25;           // log row pitch (m)
 const LOG_R = 0.112;        // log radius → ~2.6 cm chinking line between logs
@@ -110,119 +110,9 @@ interface LightAnchor { anchor: THREE.Object3D; color: number; intensity: number
 interface CabinLod { root: THREE.Object3D; detail: THREE.Object3D[]; far: THREE.Object3D[]; anchors: LightAnchor[]; detailOn: boolean; farOn: boolean }
 interface Swing { pivot: THREE.Object3D; seed: number }
 interface Floor { x: number; z: number; rot: number; hw: number; hd: number; y: number }
-
-export class Cabins {
-  group = new THREE.Group();
-  colliders: Collider[] = [];
-  interactables: Interactable[] = [];
-  firePits: { x: number; y: number; z: number }[] = [];
-  private doors: Door[] = [];
-  private fires: Fire[] = [];
-  private swings: Swing[] = [];
-  private particleMats = new Set<THREE.ShaderMaterial>();
-  private floors: Floor[] = [];
-  private lods: CabinLod[] = [];
-  /** phone tier: the one shared set of point lights (a constant NUM_POINT_LIGHTS keeps every shader from recompiling) */
-  private sharedLights: THREE.PointLight[] = [];
-  private nearestCabin = -1;
-  private tmpV = new THREE.Vector3();
-
-  constructor(private sky: Sky) {}
-
-  async build() {
-    const mats = await loadMats(this.sky);
-    const [firePitGltf, lanternGltf, crate, barrel, bucket, hatchet] = await Promise.all([
-      loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadGLTF('wooden_crate_02'), loadGLTF('wine_barrel_01'), loadGLTF('wooden_bucket_01'), loadGLTF('hatchet'),
-    ]);
-    const props = { crate: prepModel(crate.scene, this.sky), barrel: prepModel(barrel.scene, this.sky), bucket: prepModel(bucket.scene, this.sky), hatchet: prepModel(hatchet.scene, this.sky) };
-    CABIN_SITES.forEach((site, i) => {
-      const spec = SPECS[i];
-      const y = heightAt(site.x, site.z);
-      // per-cabin prop instances: each cabin's crates / barrels / buckets / hatchet are its own detail meshes
-      // (hidden with the rest of its hardware past cabinDetailDist) — 8 chunk-wide instanced meshes were always drawn
-      const propInstances: Record<string, THREE.Matrix4[]> = { crate: [], barrel: [], bucket: [], hatchet: [] };
-      const b = new CabinBuilder(this, spec, i, site.x, y, site.z, site.rot, mats, this.sky, propInstances);
-      b.build(firePitGltf.scene, lanternGltf.scene);
-      this.group.add(b.root);
-      for (const [k, list] of Object.entries(propInstances)) {
-        if (!list.length) continue;
-        for (const m of props[k as keyof typeof props]) {
-          const im = new THREE.InstancedMesh(m.geometry, m.material, list.length);
-          im.castShadow = true; im.receiveShadow = true;
-          const tmp = new THREE.Matrix4();
-          list.forEach((mat, j) => im.setMatrixAt(j, tmp.copy(mat).multiply(m.matrix)));
-          im.instanceMatrix.needsUpdate = true;
-          im.computeBoundingSphere();
-          this.group.add(im);
-          b.detail.push(im);
-        }
-      }
-      if (!TIER_CONFIG.cabinDetailShadows) for (const o of b.detail) o.traverse((c) => { c.castShadow = false; });
-      this.lods.push({ root: b.root, detail: b.detail, far: b.far, anchors: b.anchors, detailOn: true, farOn: false });
-    });
-    return { group: this.group, colliders: this.colliders, interactables: this.interactables };
-  }
-
-  /** world y of a floor / deck under (x,z) if inside a cabin or porch footprint */
-  floorHeightAt(x: number, z: number): number | undefined {
-    for (const f of this.floors) {
-      const c = Math.cos(f.rot), s = Math.sin(f.rot);
-      const lx = (x - f.x) * c - (z - f.z) * s, lz = (x - f.x) * s + (z - f.z) * c;
-      if (Math.abs(lx) <= f.hw && Math.abs(lz) <= f.hd) return f.y;
-    }
-    return undefined;
-  }
-
-  update(dt: number, t: number) {
-    // LOD: hardware (iron, glass, lantern, fire pit, flames …) only within cabinDetailDist; the 4 shared phone
-    // lights follow the nearest cabin
-    const cam = this.sky.viewCamera; cam.getWorldPosition(this.tmpV);
-    let nearest = -1, nearestD2 = Infinity;
-    const dd = TIER_CONFIG.cabinDetailDist * TIER_CONFIG.cabinDetailDist;
-    this.lods.forEach((l, i) => {
-      const d2 = l.root.position.distanceToSquared(this.tmpV);
-      if (d2 < nearestD2) { nearestD2 = d2; nearest = i; }
-      const on = d2 < dd;
-      if (on !== l.detailOn) { l.detailOn = on; for (const o of l.detail) o.visible = on; }
-      // past 2× the detail distance only the silhouette parts stay (log walls, roof, stone, deck, beams, smoke)
-      const far = d2 > dd * 4;
-      if (far !== l.farOn) { l.farOn = far; for (const o of l.far) o.visible = !far; }
-    });
-    if (this.sharedLights.length && nearest >= 0) {
-      const l = this.lods[nearest];
-      if (nearest !== this.nearestCabin) {
-        this.nearestCabin = nearest;
-        this.fires = this.fires.filter((f) => !this.sharedLights.includes(f.light));
-        this.sharedLights.forEach((light, i) => {
-          const a = l.anchors[i];
-          if (!a) { light.intensity = 0; return; }
-          light.color.set(a.color); light.distance = a.distance; light.decay = a.decay;
-          this.fires.push({ light, base: a.intensity, seed: a.seed });
-        });
-      }
-      this.sharedLights.forEach((light, i) => { const a = l.anchors[i]; if (a) a.anchor.getWorldPosition(light.position); });
-    }
-    for (const d of this.doors) {
-      const target = d.open ? 1 : 0;
-      if (d.t === target) continue;
-      d.t = Math.max(0, Math.min(1, d.t + Math.sign(target - d.t) * dt / 0.6));
-      const e = d.t < 0.5 ? 2 * d.t * d.t : 1 - Math.pow(-2 * d.t + 2, 2) / 2; // ease in-out
-      d.pivot.rotation.y = -e * 1.85;
-    }
-    for (const f of this.fires) {
-      const n = Math.sin(t * 11 + f.seed) * 0.5 + Math.sin(t * 23.7 + f.seed * 2.3) * 0.3 + Math.sin(t * 3.1 + f.seed) * 0.2;
-      f.light.intensity = f.base * (1 + 0.28 * n);
-    }
-    for (const sw of this.swings) { sw.pivot.rotation.z = Math.sin(t * 1.35 + sw.seed) * 0.05 + Math.sin(t * 2.9 + sw.seed * 1.7) * 0.015; sw.pivot.rotation.x = Math.cos(t * 1.1 + sw.seed) * 0.03; }
-    for (const m of this.particleMats) m.uniforms.uTime.value = t;
-  }
-
-  /** @internal */ _door(d: Door) { this.doors.push(d); this.colliders.push(d.collider); this.interactables.push(d.interactable); }
-  /** @internal */ _fire(f: Fire) { this.fires.push(f); }
-  /** @internal */ _swing(sw: Swing) { this.swings.push(sw); }
-  /** @internal */ _particles(m: THREE.ShaderMaterial) { this.particleMats.add(m); }
-  /** @internal */ _floor(f: Floor) { this.floors.push(f); }
-}
+type PropKind = 'crate' | 'barrel' | 'bucket' | 'hatchet';
+/** one (geometry, material, world matrix) part of a flattened glTF prop */
+interface PropPart { geometry: THREE.BufferGeometry; material: THREE.Material; matrix: THREE.Matrix4 }
 
 // ───────────────────────────── materials ─────────────────────────────
 
@@ -279,7 +169,8 @@ async function loadMats(sky: Sky): Promise<Mats> {
 
 function makeEndGrainTexture() {
   const c = document.createElement('canvas'); c.width = c.height = 256;
-  const g = c.getContext('2d')!;
+  const g = c.getContext('2d');
+  if (g === null) throw new Error('Cabin: no 2d canvas context');
   g.fillStyle = '#9d8b6c'; g.fillRect(0, 0, 256, 256);
   const rng = new Rng(SEED + 31);
   // weathering speckle
@@ -290,7 +181,7 @@ function makeEndGrainTexture() {
       const th = (a / 64) * Math.PI * 2;
       const rr = r * (1 + 0.05 * Math.sin(th * 3 + r) + 0.03 * Math.sin(th * 7));
       const x = 128 + Math.cos(th) * rr, y = 128 + Math.sin(th) * rr;
-      a ? g.lineTo(x, y) : g.moveTo(x, y);
+      if (a > 0) g.lineTo(x, y); else g.moveTo(x, y);
     }
     g.closePath();
     g.strokeStyle = rng.next() < 0.5 ? 'rgba(70,50,30,0.5)' : 'rgba(110,85,55,0.35)';
@@ -305,7 +196,8 @@ function makeEndGrainTexture() {
 
 function makeGlowTexture() {
   const c = document.createElement('canvas'); c.width = c.height = 128;
-  const g = c.getContext('2d')!;
+  const g = c.getContext('2d');
+  if (g === null) throw new Error('Cabin: no 2d canvas context');
   const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
   gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.35, 'rgba(255,255,255,0.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
   g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
@@ -314,7 +206,9 @@ function makeGlowTexture() {
 
 function makeNoiseTexture() {
   const s = 128, c = document.createElement('canvas'); c.width = c.height = s;
-  const g = c.getContext('2d')!, img = g.createImageData(s, s);
+  const g = c.getContext('2d');
+  if (g === null) throw new Error('Cabin: no 2d canvas context');
+  const img = g.createImageData(s, s);
   const rng = new Rng(SEED + 77);
   const oct = [8, 16, 32].map((n) => { const a = new Float32Array(n * n); for (let i = 0; i < a.length; i++) a[i] = rng.next(); return { n, a }; });
   const sm = (t: number) => t * t * (3 - 2 * t);
@@ -322,7 +216,7 @@ function makeNoiseTexture() {
     let v = 0, amp = 0.55, sum = 0;
     for (const { n, a } of oct) {
       const fx = (x / s) * n, fy = (y / s) * n, x0 = Math.floor(fx), y0 = Math.floor(fy), tx = sm(fx - x0), ty = sm(fy - y0);
-      const q = (i: number, j: number) => a[((j + n) % n) * n + ((i + n) % n)];
+      const q = (i: number, j: number) => a[((j + n) % n) * n + ((i + n) % n)] ?? 0;
       const vv = (q(x0, y0) * (1 - tx) + q(x0 + 1, y0) * tx) * (1 - ty) + (q(x0, y0 + 1) * (1 - tx) + q(x0 + 1, y0 + 1) * tx) * ty;
       v += vv * amp; sum += amp; amp *= 0.5;
     }
@@ -445,8 +339,8 @@ function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember', sky: Sky) {
 function makeParticles(mat: THREE.ShaderMaterial, count: number, rng: Rng) {
   const geo = new THREE.InstancedBufferGeometry();
   const quad = new THREE.PlaneGeometry(1, 1);
-  geo.setAttribute('position', quad.attributes.position);
-  geo.setAttribute('uv', quad.attributes.uv);
+  geo.setAttribute('position', quad.getAttribute('position'));
+  geo.setAttribute('uv', quad.getAttribute('uv'));
   geo.setIndex(quad.index);
   const seeds = new Float32Array(count * 4);
   for (let i = 0; i < seeds.length; i++) seeds[i] = rng.next();
@@ -457,6 +351,8 @@ function makeParticles(mat: THREE.ShaderMaterial, count: number, rng: Rng) {
 }
 
 const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+/** `instanceof THREE.Mesh` narrows to `Mesh<any, any>`; this keeps the default generics */
+const isMesh = (o: THREE.Object3D): o is THREE.Mesh => 'isMesh' in o;
 
 /**
  * Procedural moss / lichen overlay: value-noise patches in world space, denser where the `moss`
@@ -467,9 +363,9 @@ function installMoss(mat: THREE.MeshStandardMaterial, sky: Sky, kind: 'roof' | '
   const strength = kind === 'roof' ? 1.0 : 0.6;
   mat.onBeforeCompile = (shader) => {
     attachFogUniforms(shader);
-    shader.uniforms.uMossSun = { value: sky.sunDir };
-    shader.uniforms.uMossStrength = { value: strength };
-    shader.uniforms.uMossUpOnly = { value: kind === 'roof' ? 1.0 : 0.0 };
+    shader.uniforms['uMossSun'] = { value: sky.sunDir };
+    shader.uniforms['uMossStrength'] = { value: strength };
+    shader.uniforms['uMossUpOnly'] = { value: kind === 'roof' ? 1.0 : 0.0 };
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>
         attribute float moss; varying float vMoss; varying vec3 vMossPos; varying vec3 vMossN;`)
@@ -527,8 +423,8 @@ function installMoss(mat: THREE.MeshStandardMaterial, sky: Sky, kind: 'roof' | '
 
 /** planar UVs by dominant face normal, in the geometry's current space, metres / scale */
 function boxUV(geo: THREE.BufferGeometry, scale: number, uOff = 0, vOff = 0) {
-  const pos = geo.attributes.position as THREE.BufferAttribute, nor = geo.attributes.normal as THREE.BufferAttribute;
-  const uv = geo.attributes.uv as THREE.BufferAttribute;
+  const pos = geo.getAttribute('position'), nor = geo.getAttribute('normal');
+  const uv = geo.getAttribute('uv');
   for (let i = 0; i < pos.count; i++) {
     const nx = Math.abs(nor.getX(i)), ny = Math.abs(nor.getY(i)), nz = Math.abs(nor.getZ(i));
     let u: number, v: number;
@@ -540,7 +436,7 @@ function boxUV(geo: THREE.BufferGeometry, scale: number, uOff = 0, vOff = 0) {
   return geo;
 }
 function swapUV(geo: THREE.BufferGeometry) {
-  const uv = geo.attributes.uv as THREE.BufferAttribute;
+  const uv = geo.getAttribute('uv');
   for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getY(i), uv.getX(i));
   return geo;
 }
@@ -548,7 +444,7 @@ function swapUV(geo: THREE.BufferGeometry) {
 /** a horizontal log along +X of `len`, radius r, textured with one board of the log-wall set (or bark when `bark`) */
 function logGeo(len: number, r: number, board: number, vOff: number, segs = 14, bark = false) {
   const side = new THREE.CylinderGeometry(r, r, len, segs, 1, true);
-  const pos = side.attributes.position as THREE.BufferAttribute, uv = side.attributes.uv as THREE.BufferAttribute;
+  const pos = side.getAttribute('position'), uv = side.getAttribute('uv');
   for (let i = 0; i < pos.count; i++) {
     const th = Math.atan2(pos.getZ(i), pos.getX(i)) / (Math.PI * 2) + 0.5; // 0..1 around
     if (bark) uv.setXY(i, th * (r * 6.283) * 0.5, (pos.getY(i) + vOff) * 0.5); // pine_bark is a 2 m tile
@@ -560,7 +456,12 @@ function logGeo(len: number, r: number, board: number, vOff: number, segs = 14, 
   side.rotateZ(-Math.PI / 2); // +Y → +X
   const capA = new THREE.CircleGeometry(r, segs).rotateY(Math.PI / 2).translate(len / 2, 0, 0);
   const capB = new THREE.CircleGeometry(r, segs).rotateY(-Math.PI / 2).translate(-len / 2, 0, 0);
-  return { side, caps: mergeGeometries([capA, capB])! };
+  return { side, caps: mergeGeometries([capA, capB]) };
+}
+
+/** @types/three says mergeGeometries always returns a geometry; at runtime it returns null on an attribute mismatch */
+function mergeOrNull(list: THREE.BufferGeometry[]): THREE.BufferGeometry | null {
+  return mergeGeometries(list);
 }
 
 /** wall shape (rect or gable pentagon) with rectangular holes, extruded through the wall thickness; x = along, y = up, z = thickness */
@@ -581,9 +482,9 @@ function wallSlab(a0: number, a1: number, h: number, thick: number, openings: Op
 
 // ───────────────────────────── one cabin ─────────────────────────────
 
-const DETAIL_KEYS: MatKey[] = ['iron', 'cloth', 'char', 'chink'];
+const DETAIL_KEYS = new Set<MatKey>(['iron', 'cloth', 'char', 'chink']);
 /** merged parts that go too past 2× cabinDetailDist (log ends, woodpile bark, door frame) */
-const FAR_KEYS: MatKey[] = ['endGrain', 'bark', 'door'];
+const FAR_KEYS = new Set<MatKey>(['endGrain', 'bark', 'door']);
 
 class CabinBuilder {
   root = new THREE.Group();
@@ -599,13 +500,11 @@ class CabinBuilder {
   private ridgeY: number;
   private tanP: number;
   private m = new THREE.Matrix4();
-  private porchHeaderY = 0;
-  private porchPostX = 0;
 
   constructor(
     private owner: Cabins, private spec: CabinSpec, private index: number,
     private cx: number, private cy: number, private cz: number, private rot: number,
-    private mats: Mats, private sky: Sky, private propInstances: Record<string, THREE.Matrix4[]>,
+    private mats: Mats, private sky: Sky, private propInstances: Record<PropKind, THREE.Matrix4[]>,
   ) {
     this.rng = new Rng(SEED + 500 + index * 17);
     this.root.position.set(cx, cy, cz);
@@ -619,15 +518,15 @@ class CabinBuilder {
   // ── helpers ──
   private add(key: MatKey, geo: THREE.BufferGeometry, matrix?: THREE.Matrix4) {
     if (matrix) geo.applyMatrix4(matrix);
-    if (geo.index) geo = geo.toNonIndexed();
-    if ((key === 'roof' || key === 'stone') && !geo.attributes.moss) {
+    const g = geo.index ? geo.toNonIndexed() : geo;
+    if ((key === 'roof' || key === 'stone') && !g.hasAttribute('moss')) {
       // moss density hint: stone = near the ground, roof default = mid-slope
-      const pos = geo.attributes.position as THREE.BufferAttribute, moss = new Float32Array(pos.count);
+      const pos = g.getAttribute('position'), moss = new Float32Array(pos.count);
       for (let i = 0; i < pos.count; i++) moss[i] = key === 'stone' ? clamp01((0.9 - pos.getY(i)) / 1.1) : 0.35;
-      geo.setAttribute('moss', new THREE.BufferAttribute(moss, 1));
+      g.setAttribute('moss', new THREE.BufferAttribute(moss, 1));
     }
-    if (!this.parts.has(key)) this.parts.set(key, []);
-    this.parts.get(key)!.push(geo);
+    const list = this.parts.get(key);
+    if (list === undefined) this.parts.set(key, [g]); else list.push(g);
   }
   private box(key: MatKey, w: number, h: number, d: number, x: number, y: number, z: number, uvScale = 1, ry = 0, rz = 0, rx = 0) {
     const g = new THREE.BoxGeometry(w, h, d);
@@ -663,7 +562,7 @@ class CabinBuilder {
     light.position.set(x, y, z); parent.add(light);
     this.owner._fire({ light, base: intensity, seed });
   }
-  private placeProp(kind: string, x: number, y: number, z: number, ry: number, scale = 1) {
+  private placeProp(kind: PropKind, x: number, y: number, z: number, ry: number, scale = 1) {
     const local = new THREE.Matrix4().makeRotationY(ry).setPosition(x, y, z).scale(new THREE.Vector3(scale, scale, scale));
     this.propInstances[kind].push(new THREE.Matrix4().multiplyMatrices(this.root.matrixWorld, local));
   }
@@ -692,7 +591,7 @@ class CabinBuilder {
     this.chimney();
     this.porch();
     this.interior();
-    if (annexBox) this.annex(annexBox.ox, annexBox.oz, annexSide);
+    if (annexBox && a) this.annex(annexBox.ox, annexBox.oz, annexSide, a);
     if (this.spec.leanTo) this.leanTo(annexSide);
     else this.woodpile(-(W / 2) - 0.32, -annexSide * (L / 2 - 1.6), 0, 4, 1.8, { x: -(W / 2) - 0.25, z: -annexSide * (L / 2 + 0.9) });
     if (this.spec.firePit) this.firePit(firePit);
@@ -813,7 +712,7 @@ class CabinBuilder {
       const slope = run / cosP;
       const sheet = swapUV(boxUV(new THREE.BoxGeometry(slope, SHEET, len), 1.5, 0, this.rng.range(0, 1)));  // planks run down the slope
       { // moss hint: 0 at the ridge → 1 at the eave (local +x is down-slope on the +side, up-slope on the −side)
-        const pos = sheet.attributes.position as THREE.BufferAttribute, moss = new Float32Array(pos.count);
+        const pos = sheet.getAttribute('position'), moss = new Float32Array(pos.count);
         for (let i = 0; i < pos.count; i++) moss[i] = clamp01(0.5 + (side * pos.getX(i)) / slope);
         sheet.setAttribute('moss', new THREE.BufferAttribute(moss, 1));
       }
@@ -859,7 +758,7 @@ class CabinBuilder {
     pivot.position.set(x - 0.02, FLOOR + 0.02, dz - DW / 2);
     const leaf = new THREE.BoxGeometry(0.06, H, DW);
     {
-      const uv = leaf.attributes.uv as THREE.BufferAttribute, pos = leaf.attributes.position as THREE.BufferAttribute, nor = leaf.attributes.normal as THREE.BufferAttribute;
+      const uv = leaf.getAttribute('uv'), pos = leaf.getAttribute('position'), nor = leaf.getAttribute('normal');
       for (let i = 0; i < uv.count; i++) {
         if (Math.abs(nor.getX(i)) > 0.5) uv.setXY(i, 0.02 + (pos.getZ(i) / DW + 0.5) * 0.46, (pos.getY(i) / H + 0.5) * 1.05);
         else uv.setXY(i, 0.5 + pos.getY(i) * 0.5, 0.05 + pos.getZ(i) * 0.3);
@@ -876,13 +775,13 @@ class CabinBuilder {
     }
     iron.push(new THREE.TorusGeometry(0.045, 0.008, 6, 14).rotateY(Math.PI / 2).translate(0.045, 1.0, DW - 0.13));
     iron.push(new THREE.CylinderGeometry(0.012, 0.012, 0.09, 6).rotateZ(Math.PI / 2).translate(0.01, 1.0, DW - 0.13));
-    const ironMesh = new THREE.Mesh(mergeGeometries(iron.map((g) => g.toNonIndexed()))!, this.mats.iron);
+    const ironMesh = new THREE.Mesh(mergeGeometries(iron.map((g) => g.toNonIndexed())), this.mats.iron);
     ironMesh.castShadow = true;
     pivot.add(ironMesh); this.detail.push(ironMesh);
     const battens: THREE.BufferGeometry[] = [];
     for (const by of [0.35, H / 2, H - 0.35]) battens.push(boxUV(new THREE.BoxGeometry(0.03, 0.12, DW - 0.1), 1).translate(-0.045, by, DW / 2));
     battens.push(boxUV(new THREE.BoxGeometry(0.03, 0.12, Math.hypot(H - 0.7, DW - 0.1) - 0.1), 1).rotateX(Math.atan2(H - 0.7, DW - 0.1)).translate(-0.045, H / 2, DW / 2));
-    const battenMesh = new THREE.Mesh(mergeGeometries(battens.map((g) => g.toNonIndexed()))!, this.mats.beam);
+    const battenMesh = new THREE.Mesh(mergeGeometries(battens.map((g) => g.toNonIndexed())), this.mats.beam);
     battenMesh.castShadow = true;
     pivot.add(battenMesh); this.detail.push(battenMesh);
     this.root.add(pivot); this.far.push(doorMesh);
@@ -890,7 +789,7 @@ class CabinBuilder {
     const col = this.collider(x, dz, 0.08, DW / 2, 0, FLOOR + H);
     const d: Door = {
       pivot, open: false, t: 0, collider: col,
-      interactable: { position: this.worldPos(x + 0.5, FLOOR + 1.0, dz), radius: 2.4, label: 'Open door', onInteract: () => {} },
+      interactable: { position: this.worldPos(x + 0.5, FLOOR + 1.0, dz), radius: 2.4, label: 'Open door', onInteract: () => { /* bound below, once `d` exists */ } },
     };
     d.interactable.onInteract = () => {
       d.open = !d.open;
@@ -915,7 +814,7 @@ class CabinBuilder {
     fb(0.04, hh, 0.04, 0, 0, 0);
     fb(ww, 0.04, 0.04, 0, 0, 0);
     const m = new THREE.Matrix4().makeRotationY(alongZ ? -Math.PI / 2 : 0).setPosition(alongZ ? at : ac, yc, alongZ ? ac : at);
-    this.add('beam', mergeGeometries(g.map((x) => x.toNonIndexed()))!, m);
+    this.add('beam', mergeGeometries(g.map((x) => x.toNonIndexed())), m);
     glass.push(new THREE.PlaneGeometry(ww, hh).applyMatrix4(m));
   }
   private windows() {
@@ -929,8 +828,8 @@ class CabinBuilder {
     this.glassMesh(glass);
   }
   private glassMesh(glass: THREE.BufferGeometry[]) {
-    if (!glass.length) return;
-    const gm = new THREE.Mesh(mergeGeometries(glass)!, this.mats.glass);
+    if (glass.length === 0) return;
+    const gm = new THREE.Mesh(mergeGeometries(glass), this.mats.glass);
     gm.receiveShadow = true; gm.renderOrder = 2;
     this.root.add(gm); this.detail.push(gm);
   }
@@ -1001,7 +900,6 @@ class CabinBuilder {
       this.add('beam', rg, this.m);
     }
     const headerBottom = under(postX) - 0.02;
-    this.porchHeaderY = headerBottom; this.porchPostX = postX;
     this.box('beam', 0.14, 0.18, len, postX, headerBottom - 0.09, 0, 1);
     const postH = headerBottom - 0.18 - FLOOR;
     const posts = [-len / 2 + 0.12, len / 2 - 0.12];
@@ -1015,6 +913,7 @@ class CabinBuilder {
     const railY = FLOOR + 0.95;
     for (let i = 0; i < posts.length - 1; i++) {
       const a = posts[i], b = posts[i + 1];
+      if (a === undefined || b === undefined) continue;
       if (dz > a && dz < b) continue;
       const mid = (a + b) / 2, l = b - a - 0.14;
       this.box('beam', 0.09, 0.07, l, postX, railY, mid, 1);
@@ -1039,7 +938,7 @@ class CabinBuilder {
     const bx = -(W / 2) + LOG_R + 0.55;
     const bedZ = -chimSide * (L / 2 - LOG_R - 1.15);            // bed at the end away from the fireplace
     this.box('beam', 0.95, 0.12, 2.05, bx, FLOOR + 0.36, bedZ, 1);
-    for (const [dx, dz] of [[-0.42, -0.97], [0.42, -0.97], [-0.42, 0.97], [0.42, 0.97]]) this.box('beam', 0.08, 0.36, 0.08, bx + dx, FLOOR + 0.18, bedZ + dz, 1);
+    for (const [dx, dz] of [[-0.42, -0.97], [0.42, -0.97], [-0.42, 0.97], [0.42, 0.97]] as const) this.box('beam', 0.08, 0.36, 0.08, bx + dx, FLOOR + 0.18, bedZ + dz, 1);
     this.box('beam', 0.06, 0.55, 1.0, bx - 0.47, FLOOR + 0.55, bedZ, 1);
     this.cloth(0.88, 0.16, 1.95, bx, FLOOR + 0.5, bedZ, 0xd9cdb4);
     this.cloth(0.9, 0.08, 1.3, bx, FLOOR + 0.62, bedZ + 0.3 * chimSide, 0x6a3b2e);
@@ -1047,7 +946,7 @@ class CabinBuilder {
     this.collider(bx, bedZ, 0.5, 1.05, 0, FLOOR + 0.7);
     const tx = 0.4, tz = -chimSide * 0.4;
     this.box('beam', 1.25, 0.05, 0.8, tx, FLOOR + 0.75, tz, 1);
-    for (const [dx, dz] of [[-0.55, -0.32], [0.55, -0.32], [-0.55, 0.32], [0.55, 0.32]]) this.box('beam', 0.07, 0.73, 0.07, tx + dx, FLOOR + 0.365, tz + dz, 1);
+    for (const [dx, dz] of [[-0.55, -0.32], [0.55, -0.32], [-0.55, 0.32], [0.55, 0.32]] as const) this.box('beam', 0.07, 0.73, 0.07, tx + dx, FLOOR + 0.365, tz + dz, 1);
     this.collider(tx, tz, 0.62, 0.4, 0, FLOOR + 0.8);
     for (const s of [-1, 1]) this.chair(tx + this.rng.range(-0.15, 0.15), tz + s * 0.75, (s > 0 ? Math.PI : 0) + this.rng.range(-0.3, 0.3));
     const sz = -chimSide * (L / 2 - LOG_R - 0.16), sx = W / 2 - 1.5;
@@ -1063,11 +962,11 @@ class CabinBuilder {
     const g: THREE.BufferGeometry[] = [];
     const b = (w: number, h: number, d: number, px: number, py: number, pz: number) => g.push(boxUV(new THREE.BoxGeometry(w, h, d), 1, this.rng.next(), this.rng.next()).translate(px, py, pz));
     b(0.42, 0.04, 0.42, 0, 0.45, 0);
-    for (const [dx, dz] of [[-0.18, -0.18], [0.18, -0.18], [-0.18, 0.18], [0.18, 0.18]]) b(0.04, 0.45, 0.04, dx, 0.225, dz);
+    for (const [dx, dz] of [[-0.18, -0.18], [0.18, -0.18], [-0.18, 0.18], [0.18, 0.18]] as const) b(0.04, 0.45, 0.04, dx, 0.225, dz);
     for (const dx of [-0.18, 0.18]) b(0.04, 0.45, 0.04, dx, 0.68, -0.19);
     b(0.42, 0.14, 0.03, 0, 0.8, -0.19);
     this.m.makeRotationY(yaw).setPosition(x, FLOOR, z);
-    this.add('beam', mergeGeometries(g.map((x) => x.toNonIndexed()))!, this.m);
+    this.add('beam', mergeGeometries(g.map((gg) => gg.toNonIndexed())), this.m);
   }
   /** a drying animal hide folded over a rope line: irregular outline, two flaps either side of the rope */
   private hide(x: number, y: number, z: number, yaw: number) {
@@ -1077,14 +976,14 @@ class CabinBuilder {
       const a = (i / n) * Math.PI * 2;
       const r = 0.42 * (1 + 0.18 * Math.sin(a * 2 + 0.5) + 0.12 * Math.sin(a * 5 + 1.3) + this.rng.range(-0.05, 0.05));
       const px = Math.cos(a) * r * 1.15, py = Math.sin(a) * r;
-      i ? outline.lineTo(px, py) : outline.moveTo(px, py);
+      if (i > 0) outline.lineTo(px, py); else outline.moveTo(px, py);
     }
     outline.closePath();
     for (const sgn of [-1, 1]) {
       const g = new THREE.ExtrudeGeometry(outline, { depth: 0.015, bevelEnabled: false }).toNonIndexed();
       g.translate(0, -0.44, 0);                                   // hang from the rope
-      const c = new THREE.Color(0x120b06), col = new Float32Array(g.attributes.position.count * 3);
-      const pos = g.attributes.position as THREE.BufferAttribute;
+      const pos = g.getAttribute('position');
+      const c = new THREE.Color(0x120b06), col = new Float32Array(pos.count * 3);
       for (let i = 0; i < pos.count; i++) { const f = 0.75 + 0.35 * Math.abs(Math.sin(pos.getX(i) * 9 + pos.getY(i) * 7)); col[i * 3] = c.r * f; col[i * 3 + 1] = c.g * f; col[i * 3 + 2] = c.b * f; }
       g.setAttribute('color', new THREE.BufferAttribute(col, 3));
       this.m.makeRotationFromEuler(new THREE.Euler(sgn * 0.1, yaw, 0, 'YXZ')).setPosition(x, y, z);
@@ -1094,7 +993,7 @@ class CabinBuilder {
   }
   private cloth(w: number, h: number, d: number, x: number, y: number, z: number, color: number, yaw = 0, lean = 0) {
     const g = new THREE.BoxGeometry(w, h, d).toNonIndexed();
-    const c = new THREE.Color(color), col = new Float32Array(g.attributes.position.count * 3);
+    const c = new THREE.Color(color), col = new Float32Array(g.getAttribute('position').count * 3);
     for (let i = 0; i < col.length; i += 3) { col[i] = c.r * this.rng.range(0.85, 1.05); col[i + 1] = c.g * this.rng.range(0.85, 1.05); col[i + 2] = c.b; }
     g.setAttribute('color', new THREE.BufferAttribute(col, 3));
     if (lean) g.translate(0, -h / 2, lean > 0 ? d : -d);
@@ -1128,7 +1027,7 @@ class CabinBuilder {
       const a = this.rng.range(0, Math.PI * 2), d = this.rng.range(0.35, 1.2);
       const r = this.rng.range(0.06, 0.09), l = this.rng.range(0.32, 0.45);
       const wedge = new THREE.CylinderGeometry(r, r, l, 7, 1, false, 0, Math.PI);
-      const uv = wedge.attributes.uv as THREE.BufferAttribute, pos = wedge.attributes.position as THREE.BufferAttribute;
+      const uv = wedge.getAttribute('uv'), pos = wedge.getAttribute('position');
       for (let k = 0; k < uv.count; k++) uv.setXY(k, pos.getX(k) * 0.5 + this.rng.next(), pos.getY(k) * 0.5);
       this.m.makeRotationFromEuler(new THREE.Euler(this.rng.range(-0.1, 0.1), this.rng.range(0, 6.3), Math.PI / 2 + this.rng.range(-0.15, 0.15), 'YXZ')).setPosition(block.x + Math.cos(a) * d, r * 0.5, block.z + Math.sin(a) * d);
       this.add('bark', wedge, this.m);
@@ -1136,8 +1035,7 @@ class CabinBuilder {
   }
 
   // ── L-shaped annex on the gable end: shares the back wall line, own front + far gable walls, lower roof ──
-  private annex(ox: number, oz: number, side: number) {
-    const a = this.spec.annex!;
+  private annex(ox: number, oz: number, side: number, a: NonNullable<CabinSpec['annex']>) {
     const hza = a.L / 2 - LOG_R;
     this.foundation(a.W - 0.04, a.L, ox, oz);
     this.floorPlanks(a.W, a.L, ox, oz);
@@ -1199,9 +1097,8 @@ class CabinBuilder {
     const { W, porchDepth } = this.spec;
     const fx = W / 2 + porchDepth + 3.4, fz = -1.2;
     const pit = model.clone(true);
-    pit.traverse((o) => {
-      const mesh = o as THREE.Mesh;
-      if (mesh.isMesh) { mesh.castShadow = true; mesh.receiveShadow = true; this.sky.setupMaterial(mesh.material as THREE.Material); }
+    pit.traverse((mesh) => {
+      if (isMesh(mesh)) { mesh.castShadow = true; mesh.receiveShadow = true; this.sky.setupMaterial(mesh.material as THREE.Material); }
     });
     pit.position.set(fx, 0.19 - 0.06, fz);
     pit.rotation.y = this.rng.range(0, 6);
@@ -1267,9 +1164,8 @@ class CabinBuilder {
     this.box('iron', 0.42, 0.025, 0.025, x - 0.16, hangY + 0.03, z, 1);
     this.box('iron', 0.025, 0.2, 0.025, this.spec.W / 2 - LOG_R + 0.05, hangY - 0.07, z, 1);
     const lan = model.clone(true);
-    lan.traverse((o) => {
-      const mesh = o as THREE.Mesh;
-      if (!mesh.isMesh) return;
+    lan.traverse((mesh) => {
+      if (!isMesh(mesh)) return;
       mesh.castShadow = true;
       // rebuild the materials as plain MeshStandardMaterials (the glTF's physical brass + tangents
       // produced NaN fragments that bloom smeared over the whole frame)
@@ -1305,7 +1201,7 @@ class CabinBuilder {
     for (let i = 0; i < n; i++) {
       const side = this.rng.int(0, 3);
       const t = this.rng.range(-0.5, 0.5);
-      let x = 0, z = 0;
+      let x: number, z: number;
       if (side === 0) { x = W / 2 + 0.25 + this.rng.range(0, 0.5); z = t * L; }
       else if (side === 1) { x = -(W / 2) - 0.25 - this.rng.range(0, 0.5); z = t * L; }
       else if (side === 2) { z = L / 2 + 0.25 + this.rng.range(0, 0.5); x = t * W; }
@@ -1342,7 +1238,7 @@ class CabinBuilder {
     if (this.spec.bench === 'table') {
       const tx = x0 + D + 2.2, tz = -far * (L / 2 - 0.5);
       this.box('deck', 1.6, 0.06, 0.8, tx, 0.76, tz, 1.3);
-      for (const [dx, dz2] of [[-0.65, -0.3], [0.65, -0.3], [-0.65, 0.3], [0.65, 0.3]]) this.box('beam', 0.09, 0.74, 0.09, tx + dx, 0.37, tz + dz2, 1);
+      for (const [dx, dz2] of [[-0.65, -0.3], [0.65, -0.3], [-0.65, 0.3], [0.65, 0.3]] as const) this.box('beam', 0.09, 0.74, 0.09, tx + dx, 0.37, tz + dz2, 1);
       this.collider(tx, tz, 0.8, 0.4, 0, 0.8);
       for (const s of [-1, 1]) {
         this.box('deck', 1.5, 0.05, 0.28, tx, 0.45, tz + s * 0.7, 1.3);
@@ -1365,34 +1261,150 @@ class CabinBuilder {
 
   private finish() {
     for (const [key, list] of this.parts) {
-      const merged = mergeGeometries(list);
-      if (!merged) continue;
+      const merged = mergeOrNull(list);
+      if (merged === null) continue;
       merged.computeBoundingSphere();
       const mesh = new THREE.Mesh(merged, this.mats[key]);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       this.root.add(mesh);
-      if (DETAIL_KEYS.includes(key)) this.detail.push(mesh);
-      else if (FAR_KEYS.includes(key)) this.far.push(mesh);
+      if (DETAIL_KEYS.has(key)) this.detail.push(mesh);
+      else if (FAR_KEYS.has(key)) this.far.push(mesh);
     }
     this.parts.clear();
   }
 }
 
+// ───────────────────────────── the chunk's cabins ─────────────────────────────
+
+export class Cabins {
+  group = new THREE.Group();
+  colliders: Collider[] = [];
+  interactables: Interactable[] = [];
+  firePits: { x: number; y: number; z: number }[] = [];
+  private doors: Door[] = [];
+  private fires: Fire[] = [];
+  private swings: Swing[] = [];
+  private particleMats = new Set<THREE.ShaderMaterial>();
+  private floors: Floor[] = [];
+  private lods: CabinLod[] = [];
+  /** phone tier: the one shared set of point lights (a constant NUM_POINT_LIGHTS keeps every shader from recompiling) */
+  private sharedLights: THREE.PointLight[] = [];
+  private nearestCabin = -1;
+  private tmpV = new THREE.Vector3();
+
+  constructor(private sky: Sky) {}
+
+  async build(): Promise<{ group: THREE.Group; colliders: Collider[]; interactables: Interactable[] }> {
+    const mats = await loadMats(this.sky);
+    const [firePitGltf, lanternGltf, crate, barrel, bucket, hatchet] = await Promise.all([
+      loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadGLTF('wooden_crate_02'), loadGLTF('wine_barrel_01'), loadGLTF('wooden_bucket_01'), loadGLTF('hatchet'),
+    ]);
+    const props = { crate: prepModel(crate.scene, this.sky), barrel: prepModel(barrel.scene, this.sky), bucket: prepModel(bucket.scene, this.sky), hatchet: prepModel(hatchet.scene, this.sky) };
+    CABIN_SITES.forEach((site, i) => {
+      const spec = SPECS[i];
+      if (spec === undefined) throw new Error(`Cabins: no spec for site ${i}`);
+      const y = heightAt(site.x, site.z);
+      // per-cabin prop instances: each cabin's crates / barrels / buckets / hatchet are its own detail meshes
+      // (hidden with the rest of its hardware past cabinDetailDist) — 8 chunk-wide instanced meshes were always drawn
+      const propInstances: Record<PropKind, THREE.Matrix4[]> = { crate: [], barrel: [], bucket: [], hatchet: [] };
+      const b = new CabinBuilder(this, spec, i, site.x, y, site.z, site.rot, mats, this.sky, propInstances);
+      b.build(firePitGltf.scene, lanternGltf.scene);
+      this.group.add(b.root);
+      for (const k of Object.keys(propInstances) as PropKind[]) {
+        const list = propInstances[k];
+        if (list.length === 0) continue;
+        for (const m of props[k]) {
+          const im = new THREE.InstancedMesh(m.geometry, m.material, list.length);
+          im.castShadow = true; im.receiveShadow = true;
+          const tmp = new THREE.Matrix4();
+          list.forEach((mat, j) => { im.setMatrixAt(j, tmp.copy(mat).multiply(m.matrix)); });
+          im.instanceMatrix.needsUpdate = true;
+          im.computeBoundingSphere();
+          this.group.add(im);
+          b.detail.push(im);
+        }
+      }
+      if (!TIER_CONFIG.cabinDetailShadows) for (const o of b.detail) o.traverse((c) => { c.castShadow = false; });
+      this.lods.push({ root: b.root, detail: b.detail, far: b.far, anchors: b.anchors, detailOn: true, farOn: false });
+    });
+    return { group: this.group, colliders: this.colliders, interactables: this.interactables };
+  }
+
+  /** world y of a floor / deck under (x,z) if inside a cabin or porch footprint */
+  floorHeightAt(x: number, z: number): number | undefined {
+    for (const f of this.floors) {
+      const c = Math.cos(f.rot), s = Math.sin(f.rot);
+      const lx = (x - f.x) * c - (z - f.z) * s, lz = (x - f.x) * s + (z - f.z) * c;
+      if (Math.abs(lx) <= f.hw && Math.abs(lz) <= f.hd) return f.y;
+    }
+    return undefined;
+  }
+
+  update(dt: number, t: number): void {
+    // LOD: hardware (iron, glass, lantern, fire pit, flames …) only within cabinDetailDist; the 4 shared phone
+    // lights follow the nearest cabin
+    const cam = this.sky.viewCamera; cam.getWorldPosition(this.tmpV);
+    let nearest = -1, nearestD2 = Infinity;
+    const dd = TIER_CONFIG.cabinDetailDist * TIER_CONFIG.cabinDetailDist;
+    this.lods.forEach((l, i) => {
+      const d2 = l.root.position.distanceToSquared(this.tmpV);
+      if (d2 < nearestD2) { nearestD2 = d2; nearest = i; }
+      const on = d2 < dd;
+      if (on !== l.detailOn) { l.detailOn = on; for (const o of l.detail) o.visible = on; }
+      // past 2× the detail distance only the silhouette parts stay (log walls, roof, stone, deck, beams, smoke)
+      const far = d2 > dd * 4;
+      if (far !== l.farOn) { l.farOn = far; for (const o of l.far) o.visible = !far; }
+    });
+    const l = this.lods[nearest];
+    if (this.sharedLights.length > 0 && nearest >= 0 && l !== undefined) {
+      if (nearest !== this.nearestCabin) {
+        this.nearestCabin = nearest;
+        this.fires = this.fires.filter((f) => !this.sharedLights.includes(f.light));
+        this.sharedLights.forEach((light, i) => {
+          const a = l.anchors[i];
+          if (!a) { light.intensity = 0; return; }
+          light.color.set(a.color); light.distance = a.distance; light.decay = a.decay;
+          this.fires.push({ light, base: a.intensity, seed: a.seed });
+        });
+      }
+      this.sharedLights.forEach((light, i) => { const a = l.anchors[i]; if (a) a.anchor.getWorldPosition(light.position); });
+    }
+    for (const d of this.doors) {
+      const target = d.open ? 1 : 0;
+      if (d.t === target) continue;
+      d.t = Math.max(0, Math.min(1, d.t + Math.sign(target - d.t) * dt / 0.6));
+      const e = d.t < 0.5 ? 2 * d.t * d.t : 1 - (-2 * d.t + 2) ** 2 / 2; // ease in-out
+      d.pivot.rotation.y = -e * 1.85;
+    }
+    for (const f of this.fires) {
+      const n = Math.sin(t * 11 + f.seed) * 0.5 + Math.sin(t * 23.7 + f.seed * 2.3) * 0.3 + Math.sin(t * 3.1 + f.seed) * 0.2;
+      f.light.intensity = f.base * (1 + 0.28 * n);
+    }
+    for (const sw of this.swings) { sw.pivot.rotation.z = Math.sin(t * 1.35 + sw.seed) * 0.05 + Math.sin(t * 2.9 + sw.seed * 1.7) * 0.015; sw.pivot.rotation.x = Math.cos(t * 1.1 + sw.seed) * 0.03; }
+    for (const m of this.particleMats) { const u = m.uniforms['uTime']; if (u !== undefined) u.value = t; }
+  }
+
+  /** @internal */ _door(d: Door): void { this.doors.push(d); this.colliders.push(d.collider); this.interactables.push(d.interactable); }
+  /** @internal */ _fire(f: Fire): void { this.fires.push(f); }
+  /** @internal */ _swing(sw: Swing): void { this.swings.push(sw); }
+  /** @internal */ _particles(m: THREE.ShaderMaterial): void { this.particleMats.add(m); }
+  /** @internal */ _floor(f: Floor): void { this.floors.push(f); }
+}
+
 // ───────────────────────────── glTF helpers ─────────────────────────────
 
 const lodLoader = new GLTFLoader();
-export function loadLod(id: string) {
-  return new Promise<{ scene: THREE.Group }>((res, rej) => lodLoader.load(`/assets/models/${id}/${id}_lod.glb`, res, undefined, rej));
+export function loadLod(id: string): Promise<{ scene: THREE.Group }> {
+  return new Promise<{ scene: THREE.Group }>((resolve, reject) => { lodLoader.load(`/assets/models/${id}/${id}_lod.glb`, resolve, undefined, reject); });
 }
 
 /** flatten a glTF scene into (geometry, material, world matrix) triples with sky-aware materials */
-export function prepModel(scene: THREE.Object3D, sky: Sky) {
+export function prepModel(scene: THREE.Object3D, sky: Sky): PropPart[] {
   scene.updateMatrixWorld(true);
-  const out: { geometry: THREE.BufferGeometry; material: THREE.Material; matrix: THREE.Matrix4 }[] = [];
-  scene.traverse((o) => {
-    const m = o as THREE.Mesh;
-    if (!m.isMesh) return;
+  const out: PropPart[] = [];
+  scene.traverse((m) => {
+    if (!isMesh(m)) return;
     const mat = m.material as THREE.MeshStandardMaterial;
     for (const t of [mat.map, mat.normalMap, mat.roughnessMap, mat.aoMap]) if (t) t.anisotropy = 8;
     sky.setupMaterial(mat);

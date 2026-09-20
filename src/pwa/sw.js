@@ -112,7 +112,7 @@ self.addEventListener('activate', (event) => {
  */
 async function migrateStatic() {
   const old = (await caches.keys()).filter((k) => k.startsWith('ws-static-') && k !== STATIC);
-  if (!old.length) return;
+  if (old.length === 0) return;
   let sizes = null;
   try {
     const r = await fetch(abs('/asset-index.json'), { cache: 'no-store' });
@@ -150,7 +150,7 @@ async function purgeBaked() {
 
 /** Drop only the content-addressed entries this build no longer names. An empty bundle list → no prune (never a wipe). */
 async function pruneImmutable() {
-  if (!BUNDLE.length) return;
+  if (BUNDLE.length === 0) return;
   const names = new Set(BUNDLE.map((p) => new URL(p, self.registration.scope).pathname));
   const cache = await caches.open(IMMUTABLE_CACHE);
   for (const req of await cache.keys()) {
@@ -168,8 +168,9 @@ self.addEventListener('message', (event) => {
 
 async function reply(event, work) {
   const payload = await work.catch((e) => ({ type: 'VERSION', error: String(e) }));
-  const port = event.ports && event.ports[0];
+  const port = event.ports?.[0];
   if (port) port.postMessage(payload);
+  // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Client.postMessage(message, transfer) has no targetOrigin; a '*' here would be a bad transfer list
   else if (event.source) event.source.postMessage(payload);
 }
 
@@ -263,10 +264,10 @@ async function networkFirst(req, name, key) {
   const cache = await caches.open(name);
   try {
     const res = await fetch(req);
-    if (res.ok) cache.put(key || req, res.clone()).catch(() => undefined);
+    if (res.ok) cache.put(key ?? req, res.clone()).catch(() => undefined);
     return res;
   } catch (e) {
-    const hit = await cache.match(key || req, MATCH_OPTS);
+    const hit = await cache.match(key ?? req, MATCH_OPTS);
     if (hit) return hit;
     throw e;
   }

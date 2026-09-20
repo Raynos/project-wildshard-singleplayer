@@ -67,9 +67,12 @@ function loftFaces(rings: THREE.Vector3[][], segCol: THREE.Color[], jitter = 0.0
     for (let i = 0; i < 3; i++) col.push(k.r * j, k.g * j, k.b * j);
   };
   for (let r = 0; r < rings.length - 1; r++) {
-    const a = rings[r], b = rings[r + 1], n = a.length;
+    const a = rings[r], b = rings[r + 1];
+    if (a === undefined || b === undefined) continue;
+    const n = a.length;
     for (let i = 0; i < n; i++) {
       const a0 = a[i], a1 = a[(i + 1) % n], b0 = b[i], b1 = b[(i + 1) % n], k = segCol[i % segCol.length];
+      if (a0 === undefined || a1 === undefined || b0 === undefined || b1 === undefined || k === undefined) continue;
       push(a0, a1, b1, k);
       push(a0, b1, b0, k);
     }
@@ -127,12 +130,14 @@ export function buildIronSwordDisplay(sky: Sky): THREE.Group {
   rings.push(bladeSection(y0 + L * 0.94, w(0.88) * 0.66, t(0.88) * 0.8, 0.9));
   rings.push(bladeSection(y0 + L * 0.985, w(0.88) * 0.22, t(0.88) * 0.45, 1));
   const tip = new THREE.Vector3(0, y0 + L, 0);
-  rings.push(rings[0].map(() => tip.clone()));
+  const base = rings[0];
+  if (base === undefined) throw new Error('IronSword: no base ring');
+  rings.push(base.map(() => tip.clone()));
   const steelCols = [C.edge, C.flat, C.fuller, C.flat, C.edge, C.edge, C.flat, C.fuller, C.flat, C.edge];
   const blade = loftFaces(rings, steelCols, 0.035, 11);
   // ricasso cap over the guard (the blade's base face)
-  const base = rings[0], capPos: number[] = [], capCol: number[] = [];
-  for (let i = 0; i < base.length; i++) { const a = base[i], b = base[(i + 1) % base.length]; capPos.push(0, y0, 0, b.x, b.y, b.z, a.x, a.y, a.z); for (let k = 0; k < 3; k++) capCol.push(C.flat.r, C.flat.g, C.flat.b); }
+  const capPos: number[] = [], capCol: number[] = [];
+  for (let i = 0; i < base.length; i++) { const a = base[i], b = base[(i + 1) % base.length]; if (a === undefined || b === undefined) continue; capPos.push(0, y0, 0, b.x, b.y, b.z, a.x, a.y, a.z); for (let k = 0; k < 3; k++) capCol.push(C.flat.r, C.flat.g, C.flat.b); }
   const cap = new THREE.BufferGeometry(); cap.setAttribute('position', new THREE.Float32BufferAttribute(capPos, 3)); cap.setAttribute('color', new THREE.Float32BufferAttribute(capCol, 3)); cap.computeVertexNormals();
   const steel = new THREE.MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: 0.5, metalness: 0.65, envMapIntensity: 0.85 });
   steel.name = 'iron-sword-steel';
@@ -182,7 +187,8 @@ export function buildIronSwordDisplay(sky: Sky): THREE.Group {
 let haloTex: THREE.CanvasTexture | null = null;
 function makeHalo(): THREE.CanvasTexture {
   const S = 128, cvs = document.createElement('canvas'); cvs.width = cvs.height = S;
-  const ctx = cvs.getContext('2d')!;
+  const ctx = cvs.getContext('2d');
+  if (ctx === null) throw new Error('makeHalo: no 2d canvas context');
   const gr = ctx.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
   gr.addColorStop(0, 'rgba(255,255,255,0.55)'); gr.addColorStop(0.3, 'rgba(255,255,255,0.18)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
   ctx.fillStyle = gr; ctx.fillRect(0, 0, S, S);
@@ -191,7 +197,7 @@ function makeHalo(): THREE.CanvasTexture {
 }
 
 /** the world floor point for the pickup: the wreck's heeled deck at the broken midships planks, else the sand beside the hull */
-export function ironSwordSite(wreck: { floorHeightAt(x: number, z: number): number | undefined }, heightAt: (x: number, z: number) => number): THREE.Vector3 {
+export function ironSwordSite(wreck: { floorHeightAt: (x: number, z: number) => number | undefined }, heightAt: (x: number, z: number) => number): THREE.Vector3 {
   const h = WRECK.heading, cs = Math.cos(h), sn = Math.sin(h);
   // hull frame (Wreck.ts): local x = starboard, z = stern; world = R_y(heading) · local
   const lx = -0.7, lz = 4.2;
@@ -232,20 +238,20 @@ export class IronSwordPickup {
     opts.scene.add(this.light, this.halo);
   }
 
-  get onPickup() { return this.pickup.onPickup; }
+  get onPickup(): (() => void) | undefined { return this.pickup.onPickup; }
   set onPickup(fn: (() => void) | undefined) { this.pickup.onPickup = fn; }
-  get taken() { return this.pickup.taken; }
+  get taken(): boolean { return this.pickup.taken; }
   /** the player stepped inside / out of the prompt radius (main.ts → audio.pickupHum) */
-  get onNear() { return this.pickup.onNear; }
+  get onNear(): ((inside: boolean) => void) | undefined { return this.pickup.onNear; }
   set onNear(fn: ((inside: boolean) => void) | undefined) { this.pickup.onNear = fn; }
   /** pick it up now (E / walk-in): the orb bursts, `onPickup` fires; a no-op the second time */
-  take() { this.pickup.take(); }
+  take(): void { this.pickup.take(); }
 
-  dispose() {
+  dispose(): void {
     this.pickup.dispose();
     this.removeGlow();
   }
-  private removeGlow() {
+  private removeGlow(): void {
     if (this.gone) return;
     this.gone = true;
     this.scene.remove(this.light, this.halo);
@@ -253,7 +259,7 @@ export class IronSwordPickup {
   }
 
   /** `playerPos` = the player's feet: inside `takeRadius` of the floor point (and on its level) the sword is taken */
-  update(dt: number, t: number, renderer?: THREE.WebGLRenderer, camera?: THREE.PerspectiveCamera, playerPos?: THREE.Vector3) {
+  update(dt: number, t: number, renderer?: THREE.WebGLRenderer, camera?: THREE.PerspectiveCamera, playerPos?: THREE.Vector3): void {
     this.pickup.update(dt, t, renderer, camera);
     if (!this.pickup.taken) {
       if (playerPos && this.takeRadius > 0) {

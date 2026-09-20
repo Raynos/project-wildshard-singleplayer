@@ -65,9 +65,10 @@ const TERRAIN = buildTerrain(1337, {
     const trail = smoothstep(5.5 + n.get(x * 0.1, z * 0.1) * 1.5, 1.5, td) + t.cabinMask(x, z) * 0.3 + smoothstep(0.35, 0.6, t.pondMask(x, z)) * 0.7;
     const grassN = n.fbm(x * 0.012 + 50, z * 0.012, 4);
     const grass = smoothstep(-0.05, 0.35, grassN) * smoothstep(0.25, 0.08, slope) * (1 - smoothstep(2, 10, h) * 0.5);
-    let w0 = 1, w1 = clamp(grass, 0, 1), w2 = clamp(rock, 0, 1), w3 = clamp(trail, 0, 1);
+    let w1 = clamp(grass, 0, 1), w2 = clamp(rock, 0, 1);
+    const w3 = clamp(trail, 0, 1);
     // priority blend: trail > rock > grass > floor
-    w2 *= 1 - w3; w1 *= (1 - w3) * (1 - w2); w0 = Math.max(0, 1 - w1 - w2 - w3);
+    w2 *= 1 - w3; w1 *= (1 - w3) * (1 - w2); const w0 = Math.max(0, 1 - w1 - w2 - w3);
     return [w0, w1, w2, w3];
   },
 });

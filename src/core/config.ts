@@ -18,7 +18,7 @@ export let TREE_COUNT = 2600;
 export let SEED = 1337;
 
 /** @internal — called by the chunk registry; do not call from features. */
-export function _applyChunkConstants(c: { id: string; gridCoords: string; seed: number; treeCount: number }) {
+export function _applyChunkConstants(c: { id: string; gridCoords: string; seed: number; treeCount: number }): void {
   CHUNK_ID = c.id;
   CHUNK_COORDS = c.gridCoords;
   SEED = c.seed;

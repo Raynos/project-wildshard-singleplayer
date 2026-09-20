@@ -47,16 +47,16 @@ export interface Weapon {
   /** the animal under the crosshair (HUD range readout), or null */
   aimInfo: AimInfo | null;
 
-  onFire?: () => void;
-  onHit?: (kind: 'deer' | 'boar', headshot: boolean, killed: boolean) => void;
-  onImpact?: (surface: ImpactSurface, point: THREE.Vector3) => void;
-  onReloadStart?: () => void;
-  onReloadEnd?: () => void;
-  onDry?: () => void;
+  onFire?: (() => void) | undefined;
+  onHit?: ((kind: 'deer' | 'boar', headshot: boolean, killed: boolean) => void) | undefined;
+  onImpact?: ((surface: ImpactSurface, point: THREE.Vector3) => void) | undefined;
+  onReloadStart?: (() => void) | undefined;
+  onReloadEnd?: (() => void) | undefined;
+  onDry?: (() => void) | undefined;
 
   /** LMB / F / a tap on the touch LOOK pad: shoot, or swing */
-  tryFire(): void;
-  update(dt: number, t: number): void;
+  tryFire: () => void;
+  update: (dt: number, t: number) => void;
   /** top up the ammo (respawn); a no-op on a melee weapon */
-  addBolts(n: number): void;
+  addBolts: (n: number) => void;
 }

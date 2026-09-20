@@ -6,24 +6,39 @@ import { attachFogUniforms } from './Atmosphere';
 import { getActiveChunk } from '../chunks/registry';
 import { loadBakedTerrain } from './BakedTerrain';
 
+// ── low-poly palette (sRGB in, linear out via THREE.Color) ──
+const LP = {
+  seabed: new THREE.Color('#a39b76'),
+  wetSand: new THREE.Color('#c4ad78'),
+  sand: new THREE.Color('#dcc48a'),
+  grass: new THREE.Color('#6cae47'),
+  grassDark: new THREE.Color('#4d8c33'),
+  rock: new THREE.Color('#666a70'),
+  rockLight: new THREE.Color('#84888e'),
+  path: new THREE.Color('#d6bd84'),
+};
+const _tmpC = new THREE.Color(), _pathC = new THREE.Color();
+const ss = THREE.MathUtils.smoothstep;
+const hash2 = (x: number, z: number) => { const s = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return s - Math.floor(s); };
+
 export class Terrain {
   group = new THREE.Group();
   mesh!: THREE.Mesh;
   material!: THREE.MeshStandardMaterial;
   /** Bake a 0..1 canopy-density map (from Forest) into a per-vertex attribute → ambient darkening under trees. */
-  applyCanopy(tex: THREE.DataTexture) {
+  applyCanopy(tex: THREE.DataTexture): void {
     const { width: N, data } = tex.image as { width: number; data: Float32Array };
-    const pos = this.mesh.geometry.attributes.position as THREE.BufferAttribute;
+    const pos = this.mesh.geometry.getAttribute('position');
     const canopy = new Float32Array(pos.count);
     for (let i = 0; i < pos.count; i++) {
       const u = (pos.getX(i) + CHUNK_HALF) / CHUNK_SIZE, v = (pos.getZ(i) + CHUNK_HALF) / CHUNK_SIZE;
       const x = Math.min(N - 1, Math.max(0, Math.round(u * N))), z = Math.min(N - 1, Math.max(0, Math.round(v * N)));
-      canopy[i] = data[z * N + x];
+      canopy[i] = data[z * N + x] ?? 0;
     }
     this.mesh.geometry.setAttribute('canopy', new THREE.BufferAttribute(canopy, 1));
   }
 
-  async build() {
+  async build(): Promise<this> {
     if (getActiveChunk().style === 'lowpoly') return this.buildLowPoly();
     const [layers] = await Promise.all([loadPBRArray([...getActiveChunk().assets.groundLayers], 1024), loadBakedTerrain()]); // baked heights/splat → Heightfield lookups (BakedTerrain.ts)
     this.mesh = new THREE.Mesh(this.buildGeometry(), this.buildMaterial(layers));
@@ -82,8 +97,9 @@ export class Terrain {
     for (let iz = 0; iz < n; iz++) for (let ix = 0; ix < n; ix++) {
       const a = iz * res + ix, b = a + 1, cc = a + res, dd = cc + 1;
       // alternate the diagonal per cell so the facets don't all lean the same way; the last index is the provoking vertex
-      if ((ix + iz) & 1) { idx[k++] = a; idx[k++] = cc; idx[k++] = dd; idx[k++] = a; idx[k++] = dd; idx[k++] = b; }
-      else { idx[k++] = a; idx[k++] = cc; idx[k++] = b; idx[k++] = b; idx[k++] = cc; idx[k++] = dd; }
+      idx[k++] = a; idx[k++] = cc;
+      if ((ix + iz) & 1) { idx[k++] = dd; idx[k++] = a; idx[k++] = dd; idx[k++] = b; }
+      else { idx[k++] = b; idx[k++] = b; idx[k++] = cc; idx[k++] = dd; }
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -118,7 +134,10 @@ export class Terrain {
         ring.push([[x, heightAt(x, z) + 0.05, z], [x + s.n[0] * bulge, D * 0.55, z + s.n[1] * bulge], [x + s.n[0] * 2, D, z + s.n[1] * 2]]);
       }
       for (let i = 0; i < segs; i++) for (let k = 0; k < 2; k++) {
-        const [a0, a1] = [ring[i][k], ring[i][k + 1]], [b0, b1] = [ring[i + 1][k], ring[i + 1][k + 1]];
+        const ri = ring[i], rn = ring[i + 1];
+        if (!ri || !rn) continue;
+        const a0 = ri[k], a1 = ri[k + 1], b0 = rn[k], b1 = rn[k + 1];
+        if (!a0 || !a1 || !b0 || !b1) continue;
         const j = Math.abs((Math.sin(i * 7.31 + k * 3.7) * 1234.5) % 1);
         push(...a0, j); push(...b0, j); push(...a1, j);
         push(...b0, j); push(...b1, j); push(...a1, j);
@@ -139,7 +158,7 @@ export class Terrain {
     const res = TERRAIN_RES;
     const geo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, res - 1, res - 1);
     geo.rotateX(-Math.PI / 2);
-    const pos = geo.attributes.position as THREE.BufferAttribute;
+    const pos = geo.getAttribute('position');
     const splat = new Float32Array(pos.count * 4);
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i), z = pos.getZ(i);
@@ -301,24 +320,8 @@ export class Terrain {
   }
 }
 
-// ── low-poly palette (sRGB in, linear out via THREE.Color) ──
-const LP = {
-  seabed: new THREE.Color('#a39b76'),
-  wetSand: new THREE.Color('#c4ad78'),
-  sand: new THREE.Color('#dcc48a'),
-  grass: new THREE.Color('#6cae47'),
-  grassDark: new THREE.Color('#4d8c33'),
-  rock: new THREE.Color('#666a70'),
-  rockLight: new THREE.Color('#84888e'),
-  path: new THREE.Color('#d6bd84'),
-};
-const _tmpC = new THREE.Color(), _pathC = new THREE.Color();
-const ss = THREE.MathUtils.smoothstep;
-const hash2 = (x: number, z: number) => { const s = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return s - Math.floor(s); };
-
 /** One facet's colour from its height above the sea (m), slope (0 flat → 1 vertical) and position (jitter). */
 export function lowPolyGroundColor(out: THREE.Color, h: number, slope: number, x: number, z: number): THREE.Color {
-  const ss = THREE.MathUtils.smoothstep;
   if (h < 0) out.lerpColors(LP.seabed, LP.wetSand, ss(h, -3, 0));
   else out.lerpColors(LP.wetSand, LP.sand, ss(h, 0, 0.9));
   // grass takes over above the beach, darker in the folds

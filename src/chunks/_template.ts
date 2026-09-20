@@ -80,8 +80,9 @@ export const TEMPLATE: ChunkDef = {
       const rock = smoothstep(0.16, 0.34, slope) + smoothstep(0.55, 0.75, n2.fbm(x * 0.02, z * 0.02, 3) + smoothstep(14, 24, h) * 0.3);
       const trail = smoothstep(5.5 + n.get(x * 0.1, z * 0.1) * 1.5, 1.5, td) + t.cabinMask(x, z) * 0.3 + smoothstep(0.35, 0.6, t.pondMask(x, z)) * 0.7;
       const grass = smoothstep(-0.05, 0.35, n.fbm(x * 0.012 + 50, z * 0.012, 4)) * smoothstep(0.25, 0.08, slope);
-      let w0 = 1, w1 = clamp(grass, 0, 1), w2 = clamp(rock, 0, 1), w3 = clamp(trail, 0, 1);
-      w2 *= 1 - w3; w1 *= (1 - w3) * (1 - w2); w0 = Math.max(0, 1 - w1 - w2 - w3);   // priority: trail > rock > grass > base
+      let w1 = clamp(grass, 0, 1), w2 = clamp(rock, 0, 1);
+      const w3 = clamp(trail, 0, 1);
+      w2 *= 1 - w3; w1 *= (1 - w3) * (1 - w2); const w0 = Math.max(0, 1 - w1 - w2 - w3);   // priority: trail > rock > grass > base
       return [w0, w1, w2, w3];
     },
   }),

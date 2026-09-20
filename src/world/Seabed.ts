@@ -24,7 +24,7 @@ import type { Sky } from './Sky';
 
 export type SeabedKind = 'coral' | 'weed' | 'star';
 export interface SeabedSpec { kind: SeabedKind; x: number; z: number; s: number; rot: number; v: number }
-export interface SeabedLayout { items: SeabedSpec[]; school?: { x: number; z: number; y: number; r: number; n: number } }
+export interface SeabedLayout { items: SeabedSpec[]; school?: { x: number; z: number; y: number; r: number; n: number } | undefined }
 
 const CORAL = [
   new THREE.Color('#ff6f91'), new THREE.Color('#ff8c42'), new THREE.Color('#c86bff'), new THREE.Color('#fff0c8'),
@@ -91,7 +91,7 @@ export class Seabed {
     return { items, school };
   }
 
-  build(layout: SeabedLayout | SeabedSpec[]) {
+  build(layout: SeabedLayout | SeabedSpec[]): this {
     const specs = Array.isArray(layout) ? layout : layout.items;
     const rng = new Rng(0x5ea1 ^ 0xc0);
     const parts: THREE.BufferGeometry[] = [];
@@ -104,8 +104,8 @@ export class Seabed {
       /** push a facet in local space (rotated by p.rot, scaled by p.s, sat on the floor) */
       const tri = (a: number[], b: number[], d: number[], color: THREE.Color, wa: number, wb: number, wd: number) => {
         for (const v of [a, b, d]) {
-          const lx = v[0] * p.s, lz = v[2] * p.s;
-          pos.push(p.x + lx * cs - lz * sn, y + v[1] * p.s, p.z + lx * sn + lz * cs);
+          const lx = (v[0] ?? 0) * p.s, lz = (v[2] ?? 0) * p.s;
+          pos.push(p.x + lx * cs - lz * sn, y + (v[1] ?? 0) * p.s, p.z + lx * sn + lz * cs);
           col.push(color.r, color.g, color.b);
         }
         sway.push(wa, phase, wb, phase, wd, phase);
@@ -116,6 +116,7 @@ export class Seabed {
         for (let k = 0; k < n; k++) {
           c.copy(color).multiplyScalar(1 + (rng.next() * 2 - 1) * jitter);
           const a = r0[k], b = r0[(k + 1) % n], d = r1[(k + 1) % n], e = r1[k];
+          if (!a || !b || !d || !e) continue;
           tri(a, b, d, c, w0, w0, w1); tri(a, d, e, c, w0, w1, w1);
         }
       };
@@ -126,11 +127,12 @@ export class Seabed {
       };
       if (p.kind === 'coral') {
         const tint = CORAL[Math.floor(p.v * CORAL.length)];
+        if (tint === undefined) throw new Error('[seabed] coral tint index out of range');
         const shape = Math.floor(rng.next() * 4);
         if (shape === 0) {
           // brain / boulder coral: a squashed icosahedron, lumpy
           const g = new THREE.IcosahedronGeometry(0.55, 1);
-          const pp = g.attributes.position as THREE.BufferAttribute;
+          const pp = g.getAttribute('position');
           const lump = rng.range(0, 100);
           for (let i = 0; i < pp.count; i++) {
             // lumpy: a per-position hash (not per-vertex random — the geometry is non-indexed, shared corners must agree)
@@ -140,8 +142,8 @@ export class Seabed {
           }
           for (let i = 0; i < pp.count; i += 3) { // PolyhedronGeometry is non-indexed: three vertices per facet
             c.copy(tint).multiplyScalar(0.85 + rng.next() * 0.3);
-            const v = [i, i + 1, i + 2].map((j) => [pp.getX(j), pp.getY(j), pp.getZ(j)]);
-            tri(v[0], v[1], v[2], c, 0, 0, 0);
+            const v = (j: number) => [pp.getX(j), pp.getY(j), pp.getZ(j)];
+            tri(v(i), v(i + 1), v(i + 2), c, 0, 0, 0);
           }
           g.dispose();
         } else if (shape === 1) {
@@ -183,13 +185,14 @@ export class Seabed {
             const r0 = ring(bx, 0, bz, r * 1.15, 6), r1 = ring(bx, h, bz, r, 6, 0.3);
             strip(r0, r1, tint, 0, 0.02);
             const top = [bx, h - 0.06, bz]; c.copy(tint).multiplyScalar(0.55);
-            for (let k = 0; k < 6; k++) tri(r1[(k + 1) % 6], r1[k], top, c, 0.02, 0.02, 0.02);
+            for (let k = 0; k < 6; k++) { const a1 = r1[(k + 1) % 6], a0 = r1[k]; if (!a1 || !a0) continue; tri(a1, a0, top, c, 0.02, 0.02, 0.02); }
           }
         }
       } else if (p.kind === 'weed') {
         // a bed of 3–6 kelp ribbons: 5 segments each, waving more toward the tip; the width tapers and the ribbon twists
         const n = 3 + Math.floor(rng.next() * 4);
         const tint = WEED[Math.floor(p.v * WEED.length)];
+        if (tint === undefined) throw new Error('[seabed] weed tint index out of range');
         for (let f = 0; f < n; f++) {
           const a = rng.range(0, Math.PI * 2), d = rng.range(0, 0.45), h = rng.range(1.2, 2.6), segs = 5;
           const bx = Math.cos(a) * d, bz = Math.sin(a) * d, lean = rng.range(0, 0.35), la = rng.range(0, Math.PI * 2), w0 = rng.range(0.1, 0.16);
@@ -209,6 +212,7 @@ export class Seabed {
       } else {
         // starfish: five tapering arms around a raised centre, lying on the sand
         const tint = STAR[Math.floor(p.v * STAR.length)];
+        if (tint === undefined) throw new Error('[seabed] star tint index out of range');
         const top = [0, 0.09, 0];
         for (let k = 0; k < 5; k++) {
           const a0 = (k / 5) * Math.PI * 2, a1 = ((k + 1) / 5) * Math.PI * 2, am = (a0 + a1) / 2;
@@ -229,9 +233,9 @@ export class Seabed {
       parts.push(geo);
       this.count++;
     }
-    const geo = mergeGeometries(parts, false)!;
+    const geo = mergeGeometries(parts, false);
     geo.computeBoundingSphere();
-    this.tris = geo.attributes.position.count / 3;
+    this.tris = geo.getAttribute('position').count / 3;
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.8, metalness: 0, side: THREE.DoubleSide });
     mat.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
@@ -266,7 +270,7 @@ export class Seabed {
     const nose = [0, 0, -0.18], tail = [0, 0, 0.14], top = [0, 0.07, -0.02], bot = [0, -0.06, -0.02], l = [-0.035, 0, -0.03], r = [0.035, 0, -0.03];
     const t1 = [0, 0.07, 0.24], t2 = [0, -0.07, 0.24];
     const faces = [[nose, top, l], [nose, r, top], [nose, l, bot], [nose, bot, r], [tail, l, top], [tail, top, r], [tail, bot, l], [tail, r, bot], [tail, t1, t2], [tail, t2, t1]];
-    for (const f of faces) for (const v of f) pos.push(v[0], v[1], v[2]);
+    for (const f of faces) for (const v of f) pos.push(...v);
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     geo.computeVertexNormals();
@@ -274,6 +278,7 @@ export class Seabed {
     const n = s.n, colors = new Float32Array(n * 3), seeds = new Float32Array(n * 3);
     for (let i = 0; i < n; i++) {
       const cc = FISH[Math.floor(rng.next() * FISH.length)];
+      if (cc === undefined) throw new Error('[seabed] fish tint index out of range');
       colors[i * 3] = cc.r; colors[i * 3 + 1] = cc.g; colors[i * 3 + 2] = cc.b;
       seeds[i * 3] = rng.range(0, Math.PI * 2); seeds[i * 3 + 1] = rng.range(0.6, 1); seeds[i * 3 + 2] = rng.range(-1, 1);
     }
@@ -287,13 +292,13 @@ export class Seabed {
     this.update(0);
   }
 
-  update(dt: number) {
+  update(dt: number): void {
     this.uniforms.uTime.value += dt;
     const s = this.school, mesh = this.fish;
     if (!s || !mesh) return;
     const t = this.uniforms.uTime.value * 0.35, { m, p, q, e, s: sc, f } = this.tmp;
     for (let i = 0; i < s.n; i++) {
-      const ph = s.seeds[i * 3], spd = s.seeds[i * 3 + 1], off = s.seeds[i * 3 + 2];
+      const ph = s.seeds[i * 3] ?? 0, spd = s.seeds[i * 3 + 1] ?? 0, off = s.seeds[i * 3 + 2] ?? 0;
       const u = t * spd + ph;
       // lissajous loop around the school centre, each fish on its own offset ring; a little bob
       const x = s.x + Math.sin(u) * s.r * (1 + off * 0.25) + Math.cos(u * 2.3 + ph) * 0.6;

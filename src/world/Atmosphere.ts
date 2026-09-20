@@ -13,7 +13,7 @@ export const fogUniforms = {
 };
 
 let installed = false;
-export function installAtmosphere() {
+export function installAtmosphere(): void {
   if (installed) return;
   installed = true;
 
@@ -72,11 +72,11 @@ export function installAtmosphere() {
 
   // Inject the shared uniform objects into every material that compiles with fog.
   const proto = THREE.Material.prototype as unknown as { onBeforeCompile: (s: THREE.WebGLProgramParametersWithUniforms) => void };
-  proto.onBeforeCompile = function (shader) { attachFogUniforms(shader); };
+  proto.onBeforeCompile = function onBeforeCompile(shader) { attachFogUniforms(shader); };
 }
 
-export function attachFogUniforms(shader: { uniforms: Record<string, THREE.IUniform> }) {
-  for (const k of Object.keys(fogUniforms)) shader.uniforms[k] = (fogUniforms as Record<string, THREE.IUniform>)[k];
+export function attachFogUniforms(shader: { uniforms: Record<string, THREE.IUniform> }): void {
+  for (const k of Object.keys(fogUniforms) as (keyof typeof fogUniforms)[]) shader.uniforms[k] = fogUniforms[k];
 }
 
 // ─── underwater (the eye below the sea surface — Player.submerged) ───
@@ -92,11 +92,11 @@ const dry = { color: new THREE.Color(), sun: new THREE.Color(), dist: 0, height:
 const _c = new THREE.Color();
 
 /** the eye went under (true) / came back up (false) */
-export function setUnderwater(on: boolean) { underTarget = on ? 1 : 0; }
-export function isUnderwater() { return underTarget === 1; }
+export function setUnderwater(on: boolean): void { underTarget = on ? 1 : 0; }
+export function isUnderwater(): boolean { return underTarget === 1; }
 
 /** every frame (Player.update does it): lerps the fog uniforms + `fog.color` toward the underwater / dry set */
-export function updateUnderwater(dt: number, fog: THREE.Fog | THREE.FogExp2 | null) {
+export function updateUnderwater(dt: number, fog: THREE.Fog | THREE.FogExp2 | null): void {
   if (underBlend === underTarget) return;
   if (!dry.captured) {
     // the dry set is whatever the sky installed (Sky.ts); read it the first time the water asks for a change

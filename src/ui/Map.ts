@@ -17,12 +17,14 @@ import type { Minimap } from './Minimap';
 
 const FOG_BRIGHTNESS = 0.3;
 const ZOOM_MIN = 1, ZOOM_MAX = 6;
+const ctx2d = (c: HTMLCanvasElement): CanvasRenderingContext2D => { const ctx = c.getContext('2d'); if (!ctx) throw new Error('FullMap: no 2d context'); return ctx; };
 
 export class FullMap {
   readonly root: HTMLDivElement;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private fog = document.createElement('canvas');
+  private fc = ctx2d(this.fog);
   private open = false;
   // view: world point at the frame centre + zoom
   private cx = 0; private cz = 0; private _zoom = 1;
@@ -38,7 +40,7 @@ export class FullMap {
     Object.assign(this.root.style, { position: 'absolute', inset: '0', display: 'none', pointerEvents: 'auto', touchAction: 'none', userSelect: 'none', overflow: 'hidden' } as CSSStyleDeclaration);
     this.canvas = document.createElement('canvas');
     Object.assign(this.canvas.style, { position: 'absolute', inset: '0', width: '100%', height: '100%', touchAction: 'none' } as CSSStyleDeclaration);
-    this.ctx = this.canvas.getContext('2d')!;
+    this.ctx = ctx2d(this.canvas);
     this.root.append(this.canvas);
 
     // pan / pinch
@@ -55,9 +57,9 @@ export class FullMap {
   }
 
   /** put the map in its frame (the menu's MAP tab); the frame is the map's viewport */
-  mount(frame: HTMLElement) { frame.appendChild(this.root); }
+  mount(frame: HTMLElement): void { frame.append(this.root); }
   /** the minimap as a button: `onTap` (the menu opens on the Map tab) */
-  bindMinimap(onTap: () => void) {
+  bindMinimap(onTap: () => void): void {
     const m = this.minimap.root;
     m.style.pointerEvents = 'auto';
     m.style.cursor = 'pointer';
@@ -66,11 +68,11 @@ export class FullMap {
     m.addEventListener('pointerup', (e) => { e.stopPropagation(); onTap(); });
   }
 
-  get isOpen() { return this.open; }
-  get zoom() { return this._zoom; }
+  get isOpen(): boolean { return this.open; }
+  get zoom(): number { return this._zoom; }
   /** zoom about the frame centre (the menu's 1× / 2× / 4× chips) */
-  setZoom(z: number) { const r = this.canvas.getBoundingClientRect(); this.zoomTo(z, { x: r.left + r.width / 2, y: r.top + r.height / 2 }); }
-  show() {
+  setZoom(z: number): void { const r = this.canvas.getBoundingClientRect(); this.zoomTo(z, { x: r.left + r.width / 2, y: r.top + r.height / 2 }); }
+  show(): void {
     if (this.open) return;
     this.open = true;
     this.root.style.display = 'block';
@@ -79,11 +81,11 @@ export class FullMap {
     this.onToggle?.(true);
     this.onZoom?.(1);
   }
-  hide() { if (!this.open) return; this.open = false; this.root.style.display = 'none'; this.pointers.clear(); this.onToggle?.(false); }
+  hide(): void { if (!this.open) return; this.open = false; this.root.style.display = 'none'; this.pointers.clear(); this.onToggle?.(false); }
 
   private dpr = 1;
   /** size the canvas to its frame (call after the frame resizes) */
-  fit() {
+  fit(): void {
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = this.root.clientWidth || window.innerWidth, h = this.root.clientHeight || window.innerHeight;
     this.canvas.width = Math.round(w * this.dpr);
@@ -91,8 +93,9 @@ export class FullMap {
   }
   /** screen px (device) per metre at the current zoom */
   private ppm() { return (Math.min(this.canvas.width, this.canvas.height) * 0.9 / CHUNK_SIZE) * this._zoom; }
-  private dist() { const [a, b] = [...this.pointers.values()]; return Math.hypot(a.x - b.x, a.y - b.y); }
-  private mid() { const [a, b] = [...this.pointers.values()]; return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; }
+  private pair(): [{ x: number; y: number }, { x: number; y: number }] { const [a, b] = [...this.pointers.values()]; if (!a || !b) throw new Error('FullMap: pinch needs two pointers'); return [a, b]; }
+  private dist(): number { const [a, b] = this.pair(); return Math.hypot(a.x - b.x, a.y - b.y); }
+  private mid(): { x: number; y: number } { const [a, b] = this.pair(); return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; }
   private panBy(dxCss: number, dyCss: number) {
     const k = this.dpr / this.ppm();
     this.cx += dxCss * k;  // screen right = world −X (the minimap's convention: −X is east)
@@ -118,7 +121,7 @@ export class FullMap {
   private clamp() { const m = CHUNK_HALF * (1 - 0.5 / this._zoom); this.cx = Math.max(-m, Math.min(m, this.cx)); this.cz = Math.max(-m, Math.min(m, this.cz)); }
 
   /** Every frame while open. */
-  update(pos: { x: number; z: number }, yaw: number) {
+  update(pos: { x: number; z: number }, yaw: number): void {
     if (!this.open) return;
     const { terrain, cover } = this.minimap.layers;
     const ctx = this.ctx, W = this.canvas.width, H = this.canvas.height, ppm = this.ppm(), side = CHUNK_SIZE * ppm;
@@ -133,7 +136,7 @@ export class FullMap {
 
     // fog of war, same rule as the minimap: unexplored ground at FOG_BRIGHTNESS (fog canvas at screen res, clipped to the view)
     if (this.fog.width !== W || this.fog.height !== H) { this.fog.width = W; this.fog.height = H; }
-    const fc = this.fog.getContext('2d')!;
+    const fc = this.fc;
     fc.globalCompositeOperation = 'source-over';
     fc.clearRect(0, 0, W, H);
     fc.fillStyle = `rgba(0, 0, 0, ${1 - FOG_BRIGHTNESS})`;

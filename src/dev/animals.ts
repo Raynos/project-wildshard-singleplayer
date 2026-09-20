@@ -35,7 +35,8 @@ if (params.has('showcase')) {
   const hind = animals.spawn('deer', sx, sz - 9, 0, 'hind');
   showcase.push({ a: hind, cx: sx, cz: sz - 9 });
   // ?gait=walk&phase=0.3 freezes the stag and the boar at that gait phase (the hind keeps circling)
-  if (params.has('gait')) for (const s of [stag, boar]) s.debugGait = { gait: params.get('gait')!, phase: world.num('phase', 0) };
+  const gait = params.get('gait');
+  if (gait !== null) for (const s of [stag, boar]) s.debugGait = { gait, phase: world.num('phase', 0) };
   // freeze AI on the showcase animals: they are driven here
   for (const s of [stag, boar, hind]) s.herd = -2;
 }
@@ -63,7 +64,7 @@ if (kind) {
     const ang = (i / n) * Math.PI * 2 + 0.4, r = i === 0 ? 0 : 1.8 + (i % 2) * 0.9;
     const v = params.get('variant') ?? (kind === 'crab' ? (i === 0 ? 'big' : 'small') : undefined);
     const e = animals.spawn(kind, cx + Math.cos(ang) * r, cz + Math.sin(ang) * r, facing, v);
-    e.herd = herd; animals.herds[herd].members.push(e);
+    e.herd = herd; animals.herds[herd]?.members.push(e);
     enemies.push(e);
   }
 }
@@ -71,8 +72,8 @@ let poseT = 0;
 
 game.onUpdate((dt, t) => {
   animals.update(dt, t, player.position, player.sprinting);
-  if (enemies.length && params.get('pose') === 'attack') { poseT += dt; if (poseT > 2) { poseT = 0; for (const e of enemies) { e.mem.st = 2; e.mem.hit = 0; e.startAttack(kind === 'crab' ? 0.78 : kind === 'monkey' ? 1.0 : 0.9); } } }
-  if (enemies.length && params.get('pose') === 'walk') for (const e of enemies) { e.mem.st = 9; e.state = 'wander'; e.setMotion(e.yaw + 0.01, 1.2, 1); }
+  if (enemies.length > 0 && params.get('pose') === 'attack') { poseT += dt; if (poseT > 2) { poseT = 0; for (const e of enemies) { e.mem['st'] = 2; e.mem['hit'] = 0; e.startAttack(kind === 'crab' ? 0.78 : kind === 'monkey' ? 1.0 : 0.9); } } }
+  if (enemies.length > 0 && params.get('pose') === 'walk') for (const e of enemies) { e.mem['st'] = 9; e.state = 'wander'; e.setMotion(e.yaw + 0.01, 1.2, 1); }
   for (const s of showcase) {
     // walk a 3 m circle
     const w = 0.45, r = 3;

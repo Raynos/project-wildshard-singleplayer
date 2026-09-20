@@ -40,7 +40,7 @@ const CSS = `
 `;
 const ABOVE = 'linear-gradient(180deg, rgba(20,90,110,0) 42%, rgba(24,110,130,0.22) 62%, rgba(18,80,100,0.5) 100%)';
 const UNDER = 'linear-gradient(180deg, rgba(40,170,190,0.18) 0%, rgba(18,120,150,0.24) 55%, rgba(8,70,100,0.34) 100%)';
-const HINTS = ['', '<b>Space</b>Dive', '<b>Space</b>Dive <b>Shift</b>Surface'];
+const HINTS = ['', '<b>Space</b>Dive', '<b>Space</b>Dive <b>Shift</b>Surface'] as const;
 
 export class WaterLine {
   private el: HTMLDivElement;
@@ -50,19 +50,21 @@ export class WaterLine {
 
   constructor() {
     if (!document.getElementById('ws-waterline-css')) {
-      const st = document.createElement('style'); st.id = 'ws-waterline-css'; st.textContent = CSS; document.head.appendChild(st);
+      const st = document.createElement('style'); st.id = 'ws-waterline-css'; st.textContent = CSS; document.head.append(st);
     }
     const el = this.el = document.createElement('div');
     el.className = 'ws-waterline';
     el.style.background = ABOVE;
     el.innerHTML = '<i class="caustic"></i><i class="caustic2"></i><i class="vignette"></i><i class="deep"></i>';
-    this.deep = el.querySelector<HTMLElement>('.deep')!;
+    const deep = el.querySelector<HTMLElement>('.deep');
+    if (deep === null) throw new Error('WaterLine: .deep layer missing');
+    this.deep = deep;
     const hud = document.getElementById('hud');
-    if (hud?.parentNode) hud.parentNode.insertBefore(el, hud); else document.body.appendChild(el);
-    if (hud) { const h = this.hint = document.createElement('div'); h.className = 'ws-glass ws-dive-hint'; hud.appendChild(h); }
+    if (hud?.parentNode) hud.parentNode.insertBefore(el, hud); else document.body.append(el);
+    if (hud) { const h = this.hint = document.createElement('div'); h.className = 'ws-glass ws-dive-hint'; hud.append(h); }
   }
 
-  update(eyeAbove: number, _dt = 0) {
+  update(eyeAbove: number, _dt = 0): void {
     const under = eyeAbove < 0;
     if (under !== this.lastUnder) {
       this.lastUnder = under;
@@ -77,7 +79,7 @@ export class WaterLine {
   }
 
   /** desktop key hint under the crosshair: 0 none, 1 at the surface (dive), 2 submerged (dive · surface) */
-  setHint(mode: 0 | 1 | 2) {
+  setHint(mode: 0 | 1 | 2): void {
     if (mode === this.lastHint || !this.hint) return;
     this.lastHint = mode;
     if (mode) this.hint.innerHTML = HINTS[mode];

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
-import { loft, skinPlain, S, boneIndex, srgb, mix, sstep, type Paint } from './loft';
+import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
 import type { Animal } from '../Animal';
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
 
@@ -19,15 +19,24 @@ import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
  * away. On the ground it scampers on all fours.
  */
 
-type RGB = [number, number, number];
-const PALETTE: Record<string, RGB> = {
+const PALETTE = {
   fur: [0.78, 0.60, 0.36], back: [0.55, 0.40, 0.23], belly: [0.90, 0.80, 0.60],
   face: [0.20, 0.13, 0.09], muzzle: [0.84, 0.70, 0.56], hand: [0.24, 0.16, 0.11], earIn: [0.72, 0.48, 0.42], eye: [0.03, 0.02, 0.02],
-};
+} satisfies Record<string, RGB>;
+
+type Side = 'L' | 'R';
+/** the rig's bones by name — exactly the BoneDef list buildMonkey() emits (so the factory's bone map holds every key) */
+type MonkeyBones = Record<'body' | 'spine' | 'chest' | 'head' | `tail${1 | 2 | 3}` | `arm${Side}_${'sh' | 'el' | 'hand'}` | `leg${Side}_${'hip' | 'knee' | 'foot'}`, THREE.Bone>;
+/** `Animal.mem` as the monkey uses it (numbers only, the registry contract). The first `think` tick writes the first row;
+ *  the rest are set as it perches / drops / climbs / bites, and `animate` (which can run first) guards them (`|| 0`, truthiness). */
+interface MonkeyMem extends Record<string, number> {
+  init: number; cd: number; under: number; hitT: number; fled: number; onGround: number; st: number; hx: number; hz: number;
+  perch: number; px: number; pz: number; bx: number; bz: number; perchH: number;
+  drop: number; vy: number; land: number; climb: number; bite: number; hit: number; gt: number; fleeTo: number; bit: number;
+}
 
 function monkeyPaint(v: VariantDef): Paint {
-  const P: Record<string, THREE.Color> = {};
-  for (const k of Object.keys(PALETTE)) { const c = v.tint?.[k] ?? PALETTE[k]; P[k] = srgb(c[0], c[1], c[2]); }
+  const P = paletteColors(PALETTE, v.tint);
   return (out, x, _y, z, nx, ny, nz, part, t) => {
     switch (part) {
       case 'body': out.copy(P.fur); mix(out, out, P.back, sstep(0.2, -0.9, nz) * 0.8); mix(out, out, P.belly, sstep(0.3, 0.9, nz) * 0.8); break;
@@ -139,9 +148,10 @@ function buildMonkey(v: VariantDef, rng: Rng): AnimalSpecies {
 
 const R = (b: THREE.Bone, x: number, y: number, z: number) => b.rotation.set(x, y, z);
 const L = THREE.MathUtils.lerp;
+const _from = new THREE.Vector3(), _to = new THREE.Vector3();
 
-function animateMonkey(c: RigAnimCtx) {
-  const b = c.bones, t = c.t, seed = c.seed, m = c.mem, a = c.animal, dt = c.dt;
+function animateMonkey(c: RigAnimCtx): void {
+  const b = c.bones as MonkeyBones, t = c.t, seed = c.seed, m = c.mem as MonkeyMem, a = c.animal, dt = c.dt;
   // ── vertical: the drop (ballistic) and the climb (2.2 m/s up the trunk, sliding from the foot to the crown) run here, per frame ──
   if (m.drop) {
     m.vy = (m.vy || 0) - 9.8 * dt;
@@ -167,7 +177,7 @@ function animateMonkey(c: RigAnimCtx) {
   // body: sits low with the chest up; scampers pitched forward; a landing squat
   const landK = bump(m.land, 0, 0.35);
   b.body.position.y = c.dims.bodyY - 0.13 * sit - 0.08 * run - 0.05 * crouch - 0.12 * landK + 0.02 * Math.sin(ph * 2) * run + 0.005 * Math.sin(t * 1.6 + seed) - 0.30 * dead;
-  R(b.body, 0.25 * sit + 0.65 * run + 0.35 * crouch + 0.2 * fall + 0.35 * landK + 0.35 * c.flinch + 1.0 * dead - 0.6 * climb, 0, 0.04 * Math.sin(ph) * run);
+  R(b.body, 0.25 * sit + 0.65 * run + 0.35 * crouch + 0.2 * fall + 0.35 * landK + 0.35 * c.flinch + dead - 0.6 * climb, 0, 0.04 * Math.sin(ph) * run);
   R(b.spine, -0.15 * sit - 0.1 * run + 0.15 * c.brace + 0.2 * dead, look.yaw * 0.25, 0);
   R(b.chest, -0.1 * sit + 0.1 * c.brace, look.yaw * 0.25, 0);
   // head: looks at you; the bite lunges it forward
@@ -201,7 +211,7 @@ function animateMonkey(c: RigAnimCtx) {
     // legs: folded under while sitting, kicking while scampering, tucked while falling
     const hip = b[`leg${side}_hip`], knee = b[`leg${side}_knee`], foot = b[`leg${side}_foot`];
     const lsw = Math.sin(ph + (sx > 0 ? Math.PI : 0));
-    let hipX = -1.5 * sit + (-0.5 + 0.6 * lsw) * run - 1.0 * crouch - 1.2 * fall - 0.6 * dead - 0.9 * climb - 0.7 * landK;
+    let hipX = -1.5 * sit + (-0.5 + 0.6 * lsw) * run - crouch - 1.2 * fall - 0.6 * dead - 0.9 * climb - 0.7 * landK;
     let kneeX = 2.3 * sit + (0.9 + 0.5 * Math.max(0, lsw)) * run + 1.7 * crouch + 1.4 * fall + 0.8 * dead + 1.4 * climb + 1.2 * landK;
     if (climb) { const cs = Math.sin(t * 6 + (sx > 0 ? Math.PI : 0)); hipX += 0.4 * cs; kneeX += 0.3 * cs; }
     R(hip, hipX, 0, sx * (0.25 * sit + 0.1 + 0.4 * fall));
@@ -222,27 +232,30 @@ const ST_PERCH = 0, ST_GROUND_IDLE = 1, ST_ATTACK = 2, ST_DROP = 3, ST_GROUND = 
 const THROW_R = 14, THROW_DUR = 1.0, THROW_RELEASE = 0.62, BITE_R = 1.3, BITE_DAMAGE = 6, BITE_DUR = 0.7, UNDER_R = 2.6, UNDER_T = 2.0, RUN = 3.2;
 
 function pickPerch(a: Animal, c: ThinkCtx, minD: number, maxD: number, awayFrom?: THREE.Vector3): number {
-  const P = c.world.perches; if (!P?.length) return -1;
+  const P = c.world.perches; if (P === undefined || P.length === 0) return -1;
   let best = -1, bestScore = -Infinity;
   for (let i = 0; i < P.length; i++) {
-    const d = Math.hypot(P[i].x - a.position.x, P[i].z - a.position.z);
+    const p = P[i]; if (p === undefined) continue;
+    const d = Math.hypot(p.x - a.position.x, p.z - a.position.z);
     if (d < minD || d > maxD) continue;
-    const taken = c.herd?.some((h) => h !== a && h.alive && h.mem.perch === i) ? 1 : 0;
-    const away = awayFrom ? Math.hypot(P[i].x - awayFrom.x, P[i].z - awayFrom.z) : 0;
+    const taken = c.herd?.some((h) => h !== a && h.alive && h.mem['perch'] === i) ? 1 : 0;
+    const away = awayFrom ? Math.hypot(p.x - awayFrom.x, p.z - awayFrom.z) : 0;
     const score = away * 0.5 - d * 0.3 - taken * 30 + c.rng.next() * 3;
     if (score > bestScore) { bestScore = score; best = i; }
   }
   return best;
 }
-function setPerch(a: Animal, c: ThinkCtx, i: number) {
-  const m = a.mem, P = c.world.perches!, Bs = c.world.perchBases;
-  const p = P[i], base = Bs?.[i] ?? p;
+function setPerch(a: Animal, c: ThinkCtx, i: number): void {
+  const m = a.mem as MonkeyMem;
+  const p = c.world.perches?.[i];
+  if (p === undefined) throw new Error(`monkey: no perch ${i}`);   // i came from pickPerch
+  const base = c.world.perchBases?.[i] ?? p;
   m.perch = i; m.px = p.x; m.pz = p.z; m.bx = base.x; m.bz = base.z;
   m.perchH = Math.max(0.5, p.y - c.heightAt(p.x, p.z) + 0.05);
 }
 
-function thinkMonkey(a: Animal, c: ThinkCtx) {
-  const m = a.mem, rng = c.rng;
+function thinkMonkey(a: Animal, c: ThinkCtx): void {
+  const m = a.mem as MonkeyMem, rng = c.rng;
   if (!m.init) {
     m.init = 1; m.cd = rng.range(1, 3); m.under = 0; m.hitT = 0; m.fled = 0; m.onGround = 0;
     const i = pickPerch(a, c, 0, 12);
@@ -324,10 +337,10 @@ function thinkMonkey(a: Animal, c: ThinkCtx) {
       else if (d < THROW_R && d > 2.5 && m.cd <= 0) { m.st = ST_ATTACK; m.bite = 0; m.hit = 0; a.startAttack(THROW_DUR); c.sound('monkey_chatter'); }
       break;
     }
+    default: break;
   }
   if (m.onGround && !m.drop) c.confine(a);
 }
-const _from = new THREE.Vector3(), _to = new THREE.Vector3();
 
 registerSpecies({
   kind: 'monkey',

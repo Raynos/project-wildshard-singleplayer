@@ -55,7 +55,8 @@ export function exportCardTextures(renderer: THREE.WebGLRenderer, card: CardText
     const px = new Uint8Array(width * height * 4);
     if (rt) renderer.readRenderTargetPixels(rt, 0, 0, width, height, px);
     const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('[baked-cards] no 2d canvas context');
     const img = ctx.createImageData(width, height);
     for (let y = 0; y < height; y++) img.data.set(px.subarray((height - 1 - y) * width * 4, (height - y) * width * 4), y * width * 4); // bottom-up → top-down
     ctx.putImageData(img, 0, 0);

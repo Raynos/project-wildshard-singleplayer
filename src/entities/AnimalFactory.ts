@@ -99,7 +99,12 @@ export interface AnimalModel {
   eye: THREE.MeshPhysicalMaterial;
   /** SHELL_LAYERS fur-shell materials, innermost first (shared by every animal of this kind:variant); empty in 'lowpoly' */
   shells: THREE.MeshPhysicalMaterial[];
+  /** the fur's backlit rim colour (FurStyle.rim), needed to re-patch a cloned fur material; absent in 'lowpoly' */
+  rim?: THREE.Color;
 }
+
+/** one fur-shell layer's uniforms (see patchFur) */
+interface ShellLayer { layer: number; len: number; threshold: number; dark: number; strand: THREE.Texture }
 
 export interface AnimalRig {
   mesh: THREE.SkinnedMesh;
@@ -113,7 +118,7 @@ export interface AnimalRig {
 
 
 /** periodic value noise on a (px × py) lattice, sampled at (u,v) in [0,1) */
-function lattice(px: number, py: number, rng: Rng) {
+function lattice(px: number, py: number, rng: Rng): (u: number, v: number) => number {
   const grid = new Float32Array(px * py);
   for (let i = 0; i < grid.length; i++) grid[i] = rng.next();
   const sm = (t: number) => t * t * (3 - 2 * t);
@@ -122,12 +127,12 @@ function lattice(px: number, py: number, rng: Rng) {
     const x0 = Math.floor(x), y0 = Math.floor(y);
     const fx = sm(x - x0), fy = sm(y - y0);
     const x1 = (x0 + 1) % px, y1 = (y0 + 1) % py;
-    const a = grid[y0 * px + x0], b = grid[y0 * px + x1], c = grid[y1 * px + x0], d = grid[y1 * px + x1];
+    const a = grid[y0 * px + x0] ?? 0, b = grid[y0 * px + x1] ?? 0, c = grid[y1 * px + x0] ?? 0, d = grid[y1 * px + x1] ?? 0;
     return (a + (b - a) * fx) + ((c + (d - c) * fx) - (a + (b - a) * fx)) * fy;
   };
 }
 
-function makeFurTextures(seed: number, opts: { contrast: number; grizzle: number; normalStrength: number; bristle: number; strandLen: number; root: number }, kind: string) {
+function makeFurTextures(seed: number, opts: FurStyle['tex'], kind: string): { map: THREE.Texture; normalMap: THREE.Texture } {
   // baked to public/assets/baked/<slug>/tex/fur-<kind>-{map,normal} by scripts/bake-textures.mjs: the two 512² fields
   // below are ~350 ms of phone CPU per kind; `gen` runs them once only when a file is missing
   let gen: { ca: HTMLCanvasElement; cn: HTMLCanvasElement } | null = null;
@@ -139,7 +144,7 @@ function makeFurTextures(seed: number, opts: { contrast: number; grizzle: number
   return { map, normalMap };
 }
 
-function makeFurCanvases(seed: number, opts: { contrast: number; grizzle: number; normalStrength: number; bristle: number; strandLen: number; root: number }) {
+function makeFurCanvases(seed: number, opts: FurStyle['tex']): { ca: HTMLCanvasElement; cn: HTMLCanvasElement } {
   const S = 512;
   const rng = new Rng(seed);
   // fur strands: narrow across (x, ~2-3 mm at TEX_M), long along (y)
@@ -166,22 +171,22 @@ function makeFurCanvases(seed: number, opts: { contrast: number; grizzle: number
   }
   // albedo canvas (values ≤ 1 → material colour is carried by vertex colours)
   const ca = document.createElement('canvas'); ca.width = S; ca.height = S;
-  const ga = ca.getContext('2d')!;
+  const ga = canvas2d(ca);
   const ia = ga.createImageData(S, S);
   for (let i = 0; i < S * S; i++) {
-    const a = Math.min(1, Math.max(0.2, albedo[i] + 0.12));
+    const a = Math.min(1, Math.max(0.2, (albedo[i] ?? 0) + 0.12));
     const v = Math.round(a * 255);
     ia.data[i * 4] = v; ia.data[i * 4 + 1] = Math.round(v * 0.985); ia.data[i * 4 + 2] = Math.round(v * 0.96); ia.data[i * 4 + 3] = 255;
   }
   ga.putImageData(ia, 0, 0);
   // normal map from the strand height field
   const cn = document.createElement('canvas'); cn.width = S; cn.height = S;
-  const gn = cn.getContext('2d')!;
+  const gn = canvas2d(cn);
   const inn = gn.createImageData(S, S);
   const k = opts.normalStrength * 18;
   for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
-    const l = height[y * S + ((x - 1 + S) % S)], r = height[y * S + ((x + 1) % S)];
-    const d = height[((y - 1 + S) % S) * S + x], u = height[((y + 1) % S) * S + x];
+    const l = height[y * S + ((x - 1 + S) % S)] ?? 0, r = height[y * S + ((x + 1) % S)] ?? 0;
+    const d = height[((y - 1 + S) % S) * S + x] ?? 0, u = height[((y + 1) % S) * S + x] ?? 0;
     let nx = -(r - l) * k, ny = -(u - d) * k * 0.7, nz = 1;
     const len = Math.hypot(nx, ny, nz); nx /= len; ny /= len; nz /= len;
     const i = (y * S + x) * 4;
@@ -191,18 +196,26 @@ function makeFurCanvases(seed: number, opts: { contrast: number; grizzle: number
   return { ca, cn };
 }
 
+/** the 2d context of a canvas we just created (getContext is typed nullable; it only fails when the browser is out of contexts) */
+function canvas2d(c: HTMLCanvasElement): CanvasRenderingContext2D {
+  const g = c.getContext('2d');
+  if (g === null) throw new Error('AnimalFactory: could not get a 2d canvas context');
+  return g;
+}
+
 /** Tileable strand cross-section for fur shells: each dot is one hair; its value is the hair's length. */
-function makeStrandTexture(seed: number) {
+function makeStrandTexture(seed: number): THREE.CanvasTexture {
   const S = 256;
   const rng = new Rng(seed);
   const c = document.createElement('canvas'); c.width = c.height = S;
-  const g = c.getContext('2d')!;
+  const g = canvas2d(c);
   g.fillStyle = '#000'; g.fillRect(0, 0, S, S);
+  const wrap: [number, number][] = [[0, 0], [S, 0], [-S, 0], [0, S], [0, -S]];
   for (let i = 0; i < 5200; i++) {
     const x = rng.next() * S, y = rng.next() * S, r = 0.9 + rng.next() * 1.4;
-    const v = Math.round((0.18 + Math.pow(rng.next(), 0.7) * 0.82) * 255);
-    g.fillStyle = 'rgb(' + v + ',' + v + ',' + v + ')';
-    for (const [ox, oy] of [[0, 0], [S, 0], [-S, 0], [0, S], [0, -S]]) { g.beginPath(); g.arc(x + ox, y + oy, r, 0, Math.PI * 2); g.fill(); }
+    const v = Math.round((0.18 + rng.next() ** 0.7 * 0.82) * 255);
+    g.fillStyle = `rgb(${v},${v},${v})`;
+    for (const [ox, oy] of wrap) { g.beginPath(); g.arc(x + ox, y + oy, r, 0, Math.PI * 2); g.fill(); }
   }
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 4;
@@ -216,9 +229,10 @@ export const SHELL_LAYERS = 8;
 // ─────────────────────────────────────────────────────────────────────────────────────────
 
 /** small string hash → Rng seed, so a species' build() gets the same rng for the same kind:variant */
-function hashSeed(s: string) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+// oxlint-disable-next-line unicorn/prefer-code-point -- FNV-1a over UTF-16 code units: codePointAt would change the seed for any non-BMP id
+function hashSeed(s: string): number { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 
-const col3 = (c: [number, number, number]) => new THREE.Color(c[0], c[1], c[2]);
+const col3 = (c: [number, number, number]): THREE.Color => new THREE.Color(c[0], c[1], c[2]);
 
 export class AnimalFactory {
   private models = new Map<string, AnimalModel>();
@@ -227,43 +241,43 @@ export class AnimalFactory {
 
   readonly style: AnimalStyle;
 
-  constructor(private sky: Sky, opts: { style?: AnimalStyle } = {}) { this.style = opts.style ?? 'pbr'; }
+  constructor(private readonly sky: Sky, opts: { style?: AnimalStyle | undefined } = {}) { this.style = opts.style ?? 'pbr'; }
 
   /** The cached model for (kind, variant id). An unknown variant id falls back to the species' first variant. */
   model(kind: AnimalKind, variant?: string): AnimalModel {
     const species = speciesDef(kind);
     const v = variantDef(kind, variant);
-    const key = kind + ':' + v.id;
+    const key = `${kind}:${v.id}`;
     let m = this.models.get(key);
-    if (m) return m;
+    if (m !== undefined) return m;
     const lowPoly = this.style === 'lowpoly';
     setLowPoly(lowPoly);
     const sp = species.build(v, new Rng(hashSeed(key)));
     setLowPoly(false);
-    if (!sp.bones.length || sp.bones[0].name !== 'body') throw new Error(`species '${kind}': bones[0] must be 'body'`);
-    const furGeo = mergeGeometries(sp.furParts, false)!;
-    const hardGeo = mergeGeometries(sp.hardParts, false)!;
-    const eyeGeo = mergeGeometries(sp.eyeParts, false)!;
-    let geometry = mergeGeometries([furGeo, hardGeo, eyeGeo], true)!;
+    if (sp.bones[0]?.name !== 'body') throw new Error(`species '${kind}': bones[0] must be 'body'`);
+    const furGeo = mergeGeometries(sp.furParts, false);
+    const hardGeo = mergeGeometries(sp.hardParts, false);
+    const eyeGeo = mergeGeometries(sp.eyeParts, false);
+    let geometry = mergeGeometries([furGeo, hardGeo, eyeGeo], true);
     for (const g of [...sp.furParts, ...sp.hardParts, ...sp.eyeParts, furGeo, hardGeo, eyeGeo]) g.dispose();
     geometry.computeBoundingSphere();
-    geometry.boundingSphere!.radius += 0.6; // animated legs / neck / corpse roll never leave this
+    if (geometry.boundingSphere !== null) geometry.boundingSphere.radius += 0.6; // animated legs / neck / corpse roll never leave this
     geometry.computeBoundingBox();
 
     if (lowPoly) {
       // faceted: flat per-face normals, flat-shaded untextured materials, no fur shells
       geometry = facetGeometry(geometry);
       const lp = lowPolyMaterials();
-      if (species.eyeGlow) { lp.eye.emissive = col3(species.eyeGlow); lp.eye.emissiveIntensity = species.eyeGlowIntensity ?? 1; }   // the sailor's cyan eyes
+      if (species.eyeGlow !== undefined) { lp.eye.emissive = col3(species.eyeGlow); lp.eye.emissiveIntensity = species.eyeGlowIntensity ?? 1; }   // the sailor's cyan eyes
       this.sky.setupMaterial(lp.fur); this.sky.setupMaterial(lp.hard); this.sky.setupMaterial(lp.eye);
       m = { kind, variant: v.id, style: 'lowpoly', species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur: lp.fur, hard: lp.hard, eye: lp.eye, shells: [] };
       this.models.set(key, m);
       return m;
     }
 
-    const style: FurStyle = { ...species.fur, ...(v.fur ?? {}) };
+    const style: FurStyle = { ...species.fur, ...v.fur };
     let tex = this.tex.get(kind);
-    if (!tex) { tex = makeFurTextures(species.fur.texSeed, species.fur.tex, kind); this.tex.set(kind, tex); }
+    if (tex === undefined) { tex = makeFurTextures(species.fur.texSeed, species.fur.tex, kind); this.tex.set(kind, tex); }
     // MeshPhysicalMaterial for the sheen term (soft velvet), plus a backlit Fresnel rim patched in below.
     // Everything species-specific here is a uniform: the compiled program is shared by every kind.
     const fur = new THREE.MeshPhysicalMaterial({
@@ -272,13 +286,12 @@ export class AnimalFactory {
       sheen: Math.max(0.01, style.sheen), sheenRoughness: 0.7, sheenColor: col3(style.sheenColor),
       envMapIntensity: style.envMapIntensity, // less IBL fill so the sun side / shadow side contrast survives (fur self-shadows)
     });
-    if (style.emissive) { fur.emissive = col3(style.emissive); fur.emissiveIntensity = style.emissiveIntensity ?? 1; }
+    if (style.emissive !== undefined) { fur.emissive = col3(style.emissive); fur.emissiveIntensity = style.emissiveIntensity ?? 1; }
     const rim = col3(style.rim);
-    fur.userData.rimColor = rim;
-    this.patchFur(fur);
+    this.patchFur(fur, rim);
     const hard = new THREE.MeshStandardMaterial({ roughness: 0.5, metalness: 0, vertexColors: true, color: new THREE.Color(1, 1, 1), normalMap: tex.normalMap, normalScale: new THREE.Vector2(0.35, 0.35) });
     const eye = new THREE.MeshPhysicalMaterial({ roughness: 0.1, metalness: 0, vertexColors: true, color: new THREE.Color(1, 1, 1), clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.5 });
-    if (species.eyeGlow) { eye.emissive = col3(species.eyeGlow); eye.emissiveIntensity = species.eyeGlowIntensity ?? 1; }
+    if (species.eyeGlow !== undefined) { eye.emissive = col3(species.eyeGlow); eye.emissiveIntensity = species.eyeGlowIntensity ?? 1; }
     this.sky.setupMaterial(fur); this.sky.setupMaterial(hard); this.sky.setupMaterial(eye);
     // fur shells: the same material with the vertex offset + strand alpha test, one per layer
     const shells: THREE.MeshPhysicalMaterial[] = [];
@@ -286,14 +299,12 @@ export class AnimalFactory {
     const baseLen = style.shellLen;   // metres at the outermost layer for furLen = 1
     for (let i = 0; i < SHELL_LAYERS; i++) {
       const sm = fur.clone();
-      sm.userData.rimColor = rim;
       const k = (i + 1) / SHELL_LAYERS;
-      sm.userData.shell = { layer: k, len: baseLen * k, threshold: 0.1 + 0.82 * k * k, dark: 0.8 + 0.3 * k, strand };
-      this.patchFur(sm, i);
+      this.patchFur(sm, rim, { layer: k, len: baseLen * k, threshold: 0.1 + 0.82 * k * k, dark: 0.8 + 0.3 * k, strand }, i);
       this.sky.setupMaterial(sm);
       shells.push(sm);
     }
-    m = { kind, variant: v.id, style: 'pbr', species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur, hard, eye, shells };
+    m = { kind, variant: v.id, style: 'pbr', species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur, hard, eye, shells, rim };
     this.models.set(key, m);
     return m;
   }
@@ -305,13 +316,11 @@ export class AnimalFactory {
    * alpha-tested so hairs thin out toward the outer layers, and inner layers are darkened (root AO).
    * The patched source has no per-species text, so one program serves every kind (see customProgramCacheKey).
    */
-  private patchFur(fur: THREE.MeshPhysicalMaterial, shellIndex = -1) {
-    const rim = fur.userData.rimColor as THREE.Color;
-    const shell = fur.userData.shell as { layer: number; len: number; threshold: number; dark: number; strand: THREE.Texture } | undefined;
+  private patchFur(fur: THREE.MeshPhysicalMaterial, rim: THREE.Color, shell?: ShellLayer, shellIndex = -1): void {
     fur.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
-      shader.uniforms.furRimColor = { value: rim };
-      shader.uniforms.furSunDir = fogUniforms.fogSunDir;
+      shader.uniforms['furRimColor'] = { value: rim };
+      shader.uniforms['furSunDir'] = fogUniforms.fogSunDir;
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <clipping_planes_pars_fragment>', `#include <clipping_planes_pars_fragment>
           uniform vec3 furRimColor; uniform vec3 furSunDir;`)
@@ -329,12 +338,12 @@ export class AnimalFactory {
             outgoingLight += furRimColor * rimAmt * ( 0.15 + 0.85 * diffuseColor.rgb * 2.2 );
           }
           #include <opaque_fragment>`);
-      if (shell) {
-        shader.uniforms.shellLen = { value: shell.len };
-        shader.uniforms.shellComb = { value: new THREE.Vector3(0, -0.45, -0.25).multiplyScalar(shell.len * shell.layer) };
-        shader.uniforms.shellT = { value: shell.threshold };
-        shader.uniforms.shellDark = { value: shell.dark };
-        shader.uniforms.strandMap = { value: shell.strand };
+      if (shell !== undefined) {
+        shader.uniforms['shellLen'] = { value: shell.len };
+        shader.uniforms['shellComb'] = { value: new THREE.Vector3(0, -0.45, -0.25).multiplyScalar(shell.len * shell.layer) };
+        shader.uniforms['shellT'] = { value: shell.threshold };
+        shader.uniforms['shellDark'] = { value: shell.dark };
+        shader.uniforms['strandMap'] = { value: shell.strand };
         shader.vertexShader = shader.vertexShader
           .replace('#include <clipping_planes_pars_vertex>', `#include <clipping_planes_pars_vertex>
             attribute float furLen; uniform float shellLen; uniform vec3 shellComb; varying float vFurLen; varying vec2 vStrandUv;`)
@@ -351,14 +360,14 @@ export class AnimalFactory {
             diffuseColor.rgb *= shellDark;`);
       }
     };
-    fur.customProgramCacheKey = () => 'animal-fur' + (shell ? '-shell' + shellIndex : '');
+    fur.customProgramCacheKey = () => `animal-fur${shell !== undefined ? `-shell${shellIndex}` : ''}`;
   }
 
   /** Fur-shell meshes for one rig: SHELL_LAYERS SkinnedMeshes sharing geometry + skeleton, parented to the body mesh, all hidden. [] in 'lowpoly'. */
   createShells(rig: AnimalRig, model: AnimalModel): THREE.SkinnedMesh[] {
     const out: THREE.SkinnedMesh[] = [];
-    for (let i = 0; i < model.shells.length; i++) {
-      const sh = new THREE.SkinnedMesh(model.geometry, model.shells[i]);
+    for (const mat of model.shells) {
+      const sh = new THREE.SkinnedMesh(model.geometry, mat);
       sh.castShadow = false; sh.receiveShadow = true;
       sh.frustumCulled = false; sh.visible = false;
       rig.mesh.add(sh);
@@ -375,21 +384,30 @@ export class AnimalFactory {
     for (const d of model.bones) {
       const b = new THREE.Bone();
       b.name = d.name;
-      const parent = d.parent ? model.bones.find((p) => p.name === d.parent)! : null;
-      b.position.set(d.pos[0] - (parent ? parent.pos[0] : 0), d.pos[1] - (parent ? parent.pos[1] : 0), d.pos[2] - (parent ? parent.pos[2] : 0));
+      let parent: BoneDef | null = null;
+      if (d.parent) {
+        parent = model.bones.find((p) => p.name === d.parent) ?? null;
+        if (parent === null) throw new Error(`species '${model.kind}': bone '${d.name}' has an unknown parent '${d.parent}'`);
+      }
+      b.position.set(d.pos[0] - (parent !== null ? parent.pos[0] : 0), d.pos[1] - (parent !== null ? parent.pos[1] : 0), d.pos[2] - (parent !== null ? parent.pos[2] : 0));
       bones[d.name] = b; list.push(b);
-      if (d.parent) bones[d.parent].add(b);
+      if (parent !== null) {
+        const pb = bones[parent.name];
+        if (pb === undefined) throw new Error(`species '${model.kind}': bone '${d.name}' is listed before its parent '${parent.name}'`);
+        pb.add(b);
+      }
     }
     const fur = model.fur.clone();
-    if (model.style === 'pbr') {
-      fur.userData.rimColor = model.fur.userData.rimColor;
-      this.patchFur(fur as THREE.MeshPhysicalMaterial);   // clone() does not carry onBeforeCompile
+    if (model.style === 'pbr' && model.rim !== undefined) {
+      this.patchFur(fur as THREE.MeshPhysicalMaterial, model.rim);   // clone() does not carry onBeforeCompile
     }
     const v = (tint - 0.5) * (model.style === 'lowpoly' ? 0.3 : 0.2);
     fur.color.setRGB(0.9 + v, 0.9 + v * 0.9, 0.9 + v * 0.7);
     this.sky.setupMaterial(fur);
     const mesh = new THREE.SkinnedMesh(model.geometry, [fur, model.hard, model.eye]);
-    mesh.add(bones.body);
+    const root = bones['body'];
+    if (root === undefined) throw new Error(`species '${model.kind}': no 'body' bone`);
+    mesh.add(root);
     mesh.updateMatrixWorld(true);
     mesh.bind(new THREE.Skeleton(list));
     mesh.castShadow = true; mesh.receiveShadow = true;

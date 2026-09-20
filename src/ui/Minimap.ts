@@ -66,8 +66,8 @@ type RGB = [number, number, number];
 const mix = (a: RGB, b: RGB, t: number, out: RGB) => { out[0] = a[0] + (b[0] - a[0]) * t; out[1] = a[1] + (b[1] - a[1]) * t; out[2] = a[2] + (b[2] - a[2]) * t; return out; };
 const CARDINAL4 = ['N', 'E', 'S', 'W'];
 
-function canvas(w: number, h: number) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
-function ctx2d(c: HTMLCanvasElement) { return c.getContext('2d')!; }
+function canvas(w: number, h: number): HTMLCanvasElement { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function ctx2d(c: HTMLCanvasElement): CanvasRenderingContext2D { const ctx = c.getContext('2d'); if (!ctx) throw new Error('Minimap: no 2d context'); return ctx; }
 
 export class Minimap {
   readonly root: HTMLDivElement;
@@ -84,7 +84,7 @@ export class Minimap {
   private cover = canvas(Math.ceil(CHUNK_SIZE * COVER_PPM), Math.ceil(CHUNK_SIZE * COVER_PPM));
   private coverCtx = ctx2d(this.cover);
   private stamp: HTMLCanvasElement;
-  private lastStampX = NaN; private lastStampZ = NaN;
+  private lastStampX = Number.NaN; private lastStampZ = Number.NaN;
 
   private fog = canvas(1, 1);
   private fogCtx = ctx2d(this.fog);
@@ -108,7 +108,7 @@ export class Minimap {
     this.headingEl.className = 'ws-minimap-heading';
     this.headingEl.textContent = '000° N';
     this.root.append(this.canvas, this.nLabel, this.headingEl);
-    (parent ?? document.body).appendChild(this.root);
+    (parent ?? document.body).append(this.root);
     this.ctx = ctx2d(this.canvas);
 
     this.stamp = this.buildStamp();
@@ -123,27 +123,28 @@ export class Minimap {
   }
 
   /** The painted terrain layer and fog coverage, for the full map (src/ui/Map.ts). */
-  get layers() { if (this.layerDirty) this.paintLayer(); return { terrain: this.layer, cover: this.cover }; }
+  get layers(): { terrain: HTMLCanvasElement; cover: HTMLCanvasElement } { if (this.layerDirty) this.paintLayer(); return { terrain: this.layer, cover: this.cover }; }
 
-  setVisible(v: boolean) {
+  setVisible(v: boolean): void {
     if (v === this.visible) return;
     this.visible = v;
     this.root.classList.toggle('hidden', !v);
   }
 
   /** Forget everything explored (a new chunk, a respawn to a fresh shard). */
-  clearCoverage() {
+  clearCoverage(): void {
     this.coverCtx.clearRect(0, 0, this.cover.width, this.cover.height);
-    this.lastStampX = this.lastStampZ = NaN;
+    this.lastStampX = this.lastStampZ = Number.NaN;
   }
 
-  dispose() { this.ro?.disconnect(); this.root.remove(); }
+  dispose(): void { this.ro?.disconnect(); this.root.remove(); }
 
   // ── per frame ──
-  update(pos: { x: number; z: number }, yaw: number, animals: ReadonlyArray<MinimapAnimal>) {
+  update(pos: { x: number; z: number }, yaw: number, animals: readonly MinimapAnimal[]): void {
     if (!this.visible) return;
     if (this.layerDirty) this.paintLayer();
-    if (this.size === 0) { this.fit(); if (this.size === 0) return; }
+    if (this.size === 0) this.fit();
+    if (this.size === 0) return;
 
     // heading readout — the compass band's convention (HUD.ts): +Z is north, turning left decreases the heading
     let deg = 180 - (yaw * 180) / Math.PI; deg = ((deg % 360) + 360) % 360;
@@ -190,7 +191,7 @@ export class Minimap {
       const dx = a.position.x - pos.x, dz = a.position.z - pos.z;
       if (dx * dx + dz * dz > VIEW_RADIUS * VIEW_RADIUS) continue;
       const sx = c - dx * k, sy = c - dz * k;
-      const aggressive = a.aggressive ?? (hasSpecies(a.kind) && !!speciesDef(a.kind).aggressive);
+      const aggressive = a.aggressive ?? (hasSpecies(a.kind) && speciesDef(a.kind).aggressive === true);
       const hot = aggressive && (a.state !== undefined ? (a.state === 'charge' || a.state === 'stalk' || a.state === 'alert') : (a.hp !== undefined && a.maxHp !== undefined && a.hp < a.maxHp));
       const r = hot ? dot * (1 + 0.5 * pulse) : dot;
       if (hot) {
@@ -221,7 +222,7 @@ export class Minimap {
   }
 
   // ── sizing ──
-  private fit() {
+  private fit(): void {
     const css = this.root.clientWidth || DESKTOP_SIZE;
     const dpr = Math.min(3, window.devicePixelRatio || 1);
     const D = Math.round(css * dpr);
@@ -235,7 +236,7 @@ export class Minimap {
     this.vignette = g;
   }
 
-  private buildStamp() {
+  private buildStamp(): HTMLCanvasElement {
     const r = Math.ceil(REVEAL_RADIUS * COVER_PPM);
     const c = canvas(r * 2, r * 2), x = ctx2d(c);
     const g = x.createRadialGradient(r, r, r * 0.45, r, r, r);
@@ -245,19 +246,19 @@ export class Minimap {
   }
 
   // ── the terrain layer (once) ──
-  private paintLayer() {
+  private paintLayer(): void {
     const t0 = performance.now();
     this.layerDirty = false;
     const L = this.layer.width, ppm = LAYER_PPM, ctx = ctx2d(this.layer);
-    const toU = (x: number) => (CHUNK_HALF - x) * ppm;   // east (−X) → right
-    const toV = (z: number) => (CHUNK_HALF - z) * ppm;   // north (+Z) → up
+    const toU = (x: number): number => (CHUNK_HALF - x) * ppm;   // east (−X) → right
+    const toV = (z: number): number => (CHUNK_HALF - z) * ppm;   // north (+Z) → up
 
     // ground: sample heights on a HEIGHT_STEP grid, hillshade from the sampled slopes, upscale smoothly
     const N = Math.floor(CHUNK_SIZE / HEIGHT_STEP) + 1;
     const h = new Float32Array(N * N);
     for (let j = 0; j < N; j++) { const z = CHUNK_HALF - j * HEIGHT_STEP; for (let i = 0; i < N; i++) h[j * N + i] = heightAt(CHUNK_HALF - i * HEIGHT_STEP, z); }
     let hMin = Infinity, hMax = -Infinity;
-    for (let i = 0; i < h.length; i++) { if (h[i] < hMin) hMin = h[i]; if (h[i] > hMax) hMax = h[i]; }
+    for (let i = 0; i < h.length; i++) { const v = h[i] ?? 0; if (v < hMin) hMin = v; if (v > hMax) hMax = v; }
     const img = new ImageData(N, N), px = img.data, col: RGB = [0, 0, 0];
     const lx = -0.55, ly = 0.65, lz = -0.52; // light from the upper-left of the map (north-west), fairly low
     const chunk = getActiveChunk();
@@ -269,16 +270,17 @@ export class Minimap {
       const wx = CHUNK_HALF - i * HEIGHT_STEP, wz = CHUNK_HALF - j * HEIGHT_STEP;
       const grove = smoothstep(F.clearings[0], F.clearings[1], density.fbm(wx * F.densityFreq, wz * F.densityFreq, 3));
       const i0 = Math.max(0, i - 1), i1 = Math.min(N - 1, i + 1), j0 = Math.max(0, j - 1), j1 = Math.min(N - 1, j + 1);
-      const dhx = (h[j * N + i1] - h[j * N + i0]) / ((i1 - i0) * HEIGHT_STEP);
-      const dhy = (h[j1 * N + i] - h[j0 * N + i]) / ((j1 - j0) * HEIGHT_STEP);
+      const dhx = ((h[j * N + i1] ?? 0) - (h[j * N + i0] ?? 0)) / ((i1 - i0) * HEIGHT_STEP);
+      const dhy = ((h[j1 * N + i] ?? 0) - (h[j0 * N + i] ?? 0)) / ((j1 - j0) * HEIGHT_STEP);
       const inv = 1 / Math.hypot(dhx, dhy, 1);
       const nx = -dhx * inv, ny = inv, nz = -dhy * inv;
       const shade = 0.6 + 0.4 * Math.max(0, nx * lx + ny * ly + nz * lz) / Math.hypot(lx, ly, lz);
       const slope = 1 - ny;
-      const alt = (h[j * N + i] - hMin) / Math.max(1, hMax - hMin);
+      const hij = h[j * N + i] ?? 0;
+      const alt = (hij - hMin) / Math.max(1, hMax - hMin);
       let sh = shade;
       if (ocean) {
-        const depth = ocean.level - h[j * N + i];
+        const depth = ocean.level - hij;
         if (depth > 0) { mix(SEA_SHALLOW, SEA_DEEP, smoothstep(0, ocean.deepDepth, depth), col); sh = 1; }
         else { mix(SAND, GRASS_HI, smoothstep(1.5, 8, -depth), col); mix(col, ROCK, smoothstep(0.14, 0.4, slope), col); }
       } else {
@@ -310,7 +312,7 @@ export class Minimap {
     }
     // trails: a dark bed with a lighter dirt centre
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    const stroke = (w: number, style: string) => {
+    const stroke = (w: number, style: string): void => {
       ctx.lineWidth = w * ppm; ctx.strokeStyle = style; ctx.beginPath();
       for (const poly of TRAILS) { poly.forEach(([x, z], i) => (i ? ctx.lineTo(toU(x), toV(z)) : ctx.moveTo(toU(x), toV(z)))); }
       ctx.stroke();
@@ -338,8 +340,8 @@ export class Minimap {
       crowns.push(toU(cx), toV(cz), (3.4 + rng.range(0, 2.6)) * ppm);
     }
     ctx.fillStyle = CROWN_SHADOW;
-    for (let i = 0; i < crowns.length; i += 3) { ctx.beginPath(); ctx.arc(crowns[i] + 1.5 * ppm, crowns[i + 1] + 1.5 * ppm, crowns[i + 2] * 1.1, 0, Math.PI * 2); ctx.fill(); }
-    for (let i = 0; i < crowns.length; i += 3) { const r = crowns[i + 2]; ctx.drawImage(sprite, crowns[i] - r, crowns[i + 1] - r, r * 2, r * 2); }
+    for (let i = 0; i < crowns.length; i += 3) { ctx.beginPath(); ctx.arc((crowns[i] ?? 0) + 1.5 * ppm, (crowns[i + 1] ?? 0) + 1.5 * ppm, (crowns[i + 2] ?? 0) * 1.1, 0, Math.PI * 2); ctx.fill(); }
+    for (let i = 0; i < crowns.length; i += 3) { const u = crowns[i] ?? 0, v = crowns[i + 1] ?? 0, r = crowns[i + 2] ?? 0; ctx.drawImage(sprite, u - r, v - r, r * 2, r * 2); }
 
     // cabin roofs: a rotated rectangle with a ridge line and a soft shadow
     for (const c of CABIN_SITES) {
@@ -356,7 +358,7 @@ export class Minimap {
     this.paintMs = performance.now() - t0;
   }
 
-  private buildCrownSprite(r: number) {
+  private buildCrownSprite(r: number): HTMLCanvasElement {
     const c = canvas(r * 2, r * 2), x = ctx2d(c);
     const g = x.createRadialGradient(r * 0.7, r * 0.7, 0, r, r, r);
     g.addColorStop(0, CROWN_LIGHT); g.addColorStop(0.4, CROWN_MID); g.addColorStop(1, CROWN_DARK);

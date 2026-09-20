@@ -28,11 +28,11 @@ import { expectedDurations, saveTimings, type Timings } from './timing';
 
 export interface StepProgress {
   /** Progress in the step's own unit; the step's contribution becomes max(previous, done / (total + 1)). */
-  set(done: number, total: number, detail?: string): void;
+  set: (done: number, total: number, detail?: string) => void;
   /** The live detail line for this step (a count, a program total). */
-  detail(text: string): void;
+  detail: (text: string) => void;
 }
-export interface ByteProgress { add(n: number): void }
+export interface ByteProgress { add: (n: number) => void }
 
 export interface LogRow {
   key: BootStep; label: string; state: 'todo' | 'on' | 'ok';
@@ -51,12 +51,12 @@ export interface ProgressView {
 export type Sink = (view: ProgressView) => void;
 
 export interface Plan<R extends BootStep> {
-  step<K extends R, T>(key: K, work: (p: StepProgress) => T | Promise<T>): Promise<Plan<Exclude<R, K>> & { readonly value: T }>;
+  step: <K extends R, T>(key: K, work: (p: StepProgress) => T | Promise<T>) => Promise<Plan<Exclude<R, K>> & { readonly value: T }>;
   /** The byte counter for a source; hand it to the code that reads the bytes. */
-  reader(key: ByteKey): ByteProgress;
+  reader: (key: ByteKey) => ByteProgress;
   /** A file of a source finished (for the "n / m files" line). */
-  fileDone(key: ByteKey): void;
-  fail(message: string): void;
+  fileDone: (key: ByteKey) => void;
+  fail: (message: string) => void;
   /** Everything ran: both fractions are 1. Callable only on the exhausted plan type. */
   readonly done: [R] extends [never] ? () => void : never;
   readonly view: ProgressView;
@@ -76,18 +76,21 @@ export interface PlanOptions {
 }
 
 interface StepState { state: 'todo' | 'on' | 'ok'; fraction: number; sub: number; detail: string; t0: number; ms: number }
-const clamp01 = (x: number): number => (x > 1 ? 1 : x > 0 ? x : 0);
+interface SourceState { total: number; files: number; read: number; filesDone: number; closed: boolean }
+const clamp01 = (x: number): number => (x > 1 ? 1 : Math.max(x, 0));
 /** A running step never reads complete: its elapsed / expected term is capped just below 1. */
 const RUNNING_CAP = 0.995;
 
 export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep> {
   const now = options.now ?? (() => performance.now());
-  const steps = new Map<BootStep, StepState>();
-  for (const k of BOOT_STEPS) steps.set(k, { state: 'todo', fraction: 0, sub: 0, detail: '', t0: 0, ms: 0 });
-  const sources = new Map<ByteKey, { total: number; files: number; read: number; filesDone: number; closed: boolean }>();
-  for (const k of BYTE_SOURCES) sources.set(k, { total: Math.max(0, options.totals[k]?.bytes || 0), files: options.totals[k]?.files || 0, read: 0, filesDone: 0, closed: false });
+  const steps = {} as Record<BootStep, StepState>; // every key filled just below
+  for (const k of BOOT_STEPS) steps[k] = { state: 'todo', fraction: 0, sub: 0, detail: '', t0: 0, ms: 0 };
+  const sources = {} as Record<ByteKey, SourceState>;
+  for (const k of BYTE_SOURCES) sources[k] = { total: Math.max(0, options.totals[k].bytes || 0), files: options.totals[k].files || 0, read: 0, filesDone: 0, closed: false };
   let lastRead: ByteKey | null = null;
-  let current: BootStep = BOOT_STEPS[0]!;
+  const firstStep = BOOT_STEPS[0];
+  if (firstStep === undefined) throw new Error('boot plan: no steps');
+  let current: BootStep = firstStep;
   let error: string | null = null;
   let finished = false;
   let shownDownload = 0;
@@ -103,17 +106,17 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
     const t = now();
     let acc = 0, expectedTotal = 0, doneCount = 0;
     const rows: LogRow[] = BOOT_STEPS.map((k) => {
-      const s = steps.get(k)!;
+      const s = steps[k];
       const ok = s.state === 'ok';
       if (ok) doneCount++;
       const d = expected[k];
       // running: reported sub-progress or elapsed / expected, whichever is further — never 1
       const fraction = ok ? 1 : s.state === 'on' ? Math.max(s.fraction, Math.min(RUNNING_CAP, (t - s.t0) / d)) : 0;
-      acc += d * fraction; expectedTotal += d * 1; // the same additions as `acc` at done(): equal by arithmetic
+      acc += d * fraction; expectedTotal += d; // the same additions as `acc` at done() (fraction 1 everywhere): equal by arithmetic
       return { key: k, label: STEP_INFO[k].label, state: s.state, ms: s.state === 'on' ? t - s.t0 : s.ms, t0: s.t0, detail: s.detail, fraction, sub: ok ? 1 : s.sub };
     });
     let read = 0, total = 0, filesDone = 0, filesTotal = 0;
-    for (const s of sources.values()) {
+    for (const s of Object.values(sources)) {
       if (s.total <= 0) continue;
       total += s.total; read += credited(s);
       filesTotal += s.files; filesDone += s.closed ? s.files : Math.min(s.filesDone, s.files);
@@ -121,10 +124,10 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
     // The max() is the assertion that no future edit can make the screen run backwards.
     shownSetup = Math.max(shownSetup, expectedTotal > 0 ? acc / expectedTotal : 1);
     shownDownload = Math.max(shownDownload, total > 0 ? read / total : 1);
-    const last = lastRead ? sources.get(lastRead)! : null;
+    const last = lastRead ? sources[lastRead] : null;
     view = {
       download: shownDownload, setup: shownSetup, done: finished, error,
-      step: current, label: STEP_INFO[current].label, detail: steps.get(current)!.detail,
+      step: current, label: STEP_INFO[current].label, detail: steps[current].detail,
       bytes: lastRead && last ? { key: lastRead, label: byteLabel(lastRead), done: credited(last), total: last.total } : null,
       bytesRead: read, bytesTotal: total, filesDone, filesTotal, doneCount, rows,
     };
@@ -132,7 +135,7 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
   }
 
   function progressFor(key: BootStep): StepProgress {
-    const s = steps.get(key)!;
+    const s = steps[key];
     return {
       set(done, total, detail) {
         if (s.state !== 'on') return;
@@ -154,7 +157,7 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
     ticking = true;
     const frame = () => {
       ticking = false;
-      if (finished || error !== null || steps.get(current)!.state !== 'on') return;
+      if (finished || error !== null || steps[current].state !== 'on') return;
       publish();
       ticking = true;
       schedule(frame);
@@ -163,41 +166,41 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
   }
 
   async function run<T>(key: BootStep, work: (p: StepProgress) => T | Promise<T>): Promise<T> {
-    const s = steps.get(key);
-    if (!s || s.state !== 'todo' || finished) throw new Error(`boot plan: ${key} ${!s ? 'unknown' : finished ? 'after done()' : 'already ' + s.state}`);
+    const s = Object.hasOwn(steps, key) ? steps[key] : undefined; // a key outside BOOT_STEPS (a JS caller) is unknown
+    if (s?.state !== 'todo' || finished) throw new Error(`boot plan: ${key} ${s === undefined ? 'unknown' : finished ? 'after done()' : `already ${s.state}`}`);
     s.state = 'on'; s.t0 = now(); current = key;
     publish();
     tick();
     const value = await work(progressFor(key));
     s.state = 'ok'; s.fraction = 1; s.sub = 1; s.ms = now() - s.t0;
-    for (const bk of BYTE_SOURCES) if (closedBy(bk) === key) sources.get(bk)!.closed = true;
+    for (const bk of BYTE_SOURCES) if (closedBy(bk) === key) sources[bk].closed = true;
     publish();
     return value;
   }
 
-  const next = (value: unknown): Plan<BootStep> & { value: unknown } => Object.assign(Object.create(api) as Plan<BootStep> & { value: unknown }, { value });
   const api = {
     async step(key: BootStep, work: (p: StepProgress) => unknown) { return next(await run(key, work)); },
     reader(key: ByteKey): ByteProgress {
-      const s = sources.get(key)!;
+      const s = sources[key];
       return { add(n) { if (!(n > 0) || s.closed) return; s.read += n; lastRead = key; publish(); } };
     },
-    fileDone(key: ByteKey) { const s = sources.get(key)!; if (!s.closed) { s.filesDone++; publish(); } },
+    fileDone(key: ByteKey) { const s = sources[key]; if (!s.closed) { s.filesDone++; publish(); } },
     fail(message: string) { error = message; publish(); },
     done() {
       if (finished) return;
-      const missed = BOOT_STEPS.filter((k) => steps.get(k)!.state !== 'ok');
-      if (missed.length) throw new Error(`boot plan: ${missed.join(',')} not complete`);
+      const missed = BOOT_STEPS.filter((k) => steps[k].state !== 'ok');
+      if (missed.length > 0) throw new Error(`boot plan: ${missed.join(',')} not complete`);
       finished = true;
       publish();
       const measured: Timings = {};
-      for (const k of BOOT_STEPS) measured[k] = steps.get(k)!.ms;
+      for (const k of BOOT_STEPS) measured[k] = steps[k].ms;
       record(measured);
       // Arithmetic, not policy: Σw·1/Σw and ΣT/ΣT. The throw is the assertion that this file's math was not edited into a lie.
       if (view.download !== 1 || view.setup !== 1) throw new Error('boot plan: done() not at 1/1');
     },
     get view(): ProgressView { return view; },
   } as unknown as Plan<BootStep>;
+  function next(value: unknown): Plan<BootStep> & { value: unknown } { return Object.assign(Object.create(api) as Plan<BootStep> & { value: unknown }, { value }); }
   publish();
   return api;
 }
@@ -206,6 +209,6 @@ export const formatMB = (b: number): string => `${(b / 1048576).toFixed(b < 10 *
 
 /** Runs one step: what code outside main.ts (bootstrap) receives, so it need not know the plan type. */
 export type StepRunner = <T>(key: BootStep, work: (p: StepProgress) => T | Promise<T>) => Promise<T>;
-const noProgress: StepProgress = { set() {}, detail() {} };
+const noProgress: StepProgress = { set: () => undefined, detail: () => undefined };
 /** No loading screen (dev entries): run the work, report nothing. */
-export const runDirect: StepRunner = async (_key, work) => work(noProgress);
+export const runDirect: StepRunner = (_key, work) => Promise.resolve(work(noProgress));

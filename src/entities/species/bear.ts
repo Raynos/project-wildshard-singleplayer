@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef } from './registry';
-import { loft, tube, skinPlain, S, boneIndex, srgb, mix, sstep, paintNoise, setShag, isLowPoly, type Paint } from './loft';
+import { loft, tube, skinPlain, S, boneIndex, mix, sstep, paintNoise, setShag, isLowPoly, paletteColors, type Paint, type RGB } from './loft';
 import { bearPaintLow } from '../lowpoly';
 import type { HuntTuning } from '../AnimalManager';
 
@@ -20,37 +20,36 @@ import type { HuntTuning } from '../AnimalManager';
  * Palette keys (VariantDef.tint): base tip dark muzzle blaze nose claw eye pad.
  */
 
-const BEAR_PALETTE: Record<string, [number, number, number]> = {
+const BEAR_PALETTE = {
   // black bear: near-black coat with a warm brown cast in the light, tan muzzle
   base: [0.075, 0.062, 0.055], tip: [0.20, 0.16, 0.13], dark: [0.035, 0.03, 0.028],
   muzzle: [0.40, 0.29, 0.19], blaze: [0.82, 0.74, 0.58], nose: [0.04, 0.035, 0.035],
   claw: [0.12, 0.10, 0.085], eye: [0.02, 0.015, 0.01], pad: [0.10, 0.08, 0.07],
-};
+} satisfies Record<string, RGB>;
 
 /** brown / grizzly: mid brown with pale silver-blond guard-hair tips over the shoulders and back */
-const BROWN_TINT: Record<string, [number, number, number]> = {
+const BROWN_TINT: Record<string, RGB> = {
   base: [0.36, 0.25, 0.155], tip: [0.68, 0.56, 0.40], dark: [0.16, 0.115, 0.08],
   muzzle: [0.50, 0.40, 0.29], nose: [0.06, 0.045, 0.04], claw: [0.55, 0.48, 0.38], pad: [0.16, 0.12, 0.10],
 };
 
 /** Grizzled Sow: an old, silvered grizzly — paler base, near-white tips, a grey muzzle */
-const GRIZZLED_TINT: Record<string, [number, number, number]> = {
+const GRIZZLED_TINT: Record<string, RGB> = {
   base: [0.38, 0.30, 0.22], tip: [0.78, 0.72, 0.62], dark: [0.18, 0.14, 0.11],
   muzzle: [0.62, 0.56, 0.48], nose: [0.07, 0.06, 0.055], claw: [0.60, 0.54, 0.44], pad: [0.18, 0.14, 0.12],
 };
 
 /** Old Blackpaw: coal black with a rust sheen over the shoulders and a greyed muzzle */
-const BLACKPAW_TINT: Record<string, [number, number, number]> = {
+const BLACKPAW_TINT: Record<string, RGB> = {
   base: [0.06, 0.05, 0.045], tip: [0.26, 0.17, 0.11], dark: [0.028, 0.025, 0.024],
   muzzle: [0.50, 0.44, 0.36], nose: [0.035, 0.03, 0.03],
 };
 
 function bearPaint(v: VariantDef): Paint {
-  const P: Record<string, THREE.Color> = {};
-  for (const k of Object.keys(BEAR_PALETTE)) { const c = v.tint?.[k] ?? BEAR_PALETTE[k]; P[k] = srgb(c[0], c[1], c[2]); }
+  const P = paletteColors(BEAR_PALETTE, v.tint);
   const { base, tip, dark, muzzle, blaze, nose, claw, eye, pad } = P;
-  const hasBlaze = !!v.traits?.blaze;
-  const grizzle = Number(v.traits?.grizzle ?? 0.35);
+  const hasBlaze = Boolean(v.traits?.['blaze']);
+  const grizzle = Number(v.traits?.['grizzle'] ?? 0.35);
   return (out, x, y, z, nx, ny, nz, part, t, _a) => {
     const n1 = paintNoise.fbm(x * 3.5 + 23, z * 3.5 + y * 2.5, 3);
     const n2 = paintNoise.fbm(x * 12 - 40, z * 10 + y * 6, 2);
@@ -97,7 +96,7 @@ function bearPaint(v: VariantDef): Paint {
 }
 
 function buildBear(v: VariantDef, rng: Rng): AnimalSpecies {
-  const hump = Number(v.traits?.hump ?? 0);
+  const hump = Number(v.traits?.['hump'] ?? 0);
   setShag(0.028);
   const bones: BoneDef[] = [
     { name: 'body', parent: null, pos: [0, 0.66, -0.05] },
@@ -177,7 +176,7 @@ function buildBear(v: VariantDef, rng: Rng): AnimalSpecies {
     S(0, 0.63, -0.90, 0.01, 0.01, tl),
   ], 8, 'tail', paint, false, true));
   // legs: thick columns on flat plantigrade paws (a long foot lofted forward from the ankle) with five claws
-  const feet: [number, number][] = [];
+  const feetF: [number, number][] = [], feetB: [number, number][] = [];   // front / back, each L then R
   const paw = (x: number, z0: number, bone: number, len: number) => {
     fur.push(loft([
       S(x, 0.075, z0 - 0.02, 0.078, 0.05, bone),
@@ -203,7 +202,7 @@ function buildBear(v: VariantDef, rng: Rng): AnimalSpecies {
       S(sx * 0.18, 0.08, 0.43, 0.08, 0.075, fe),
     ], 12, 'leg', paint, false, true));
     paw(sx * 0.18, 0.36, fe, 0.24);
-    feet.push([sx * 0.18, 0.48]);
+    feetF.push([sx * 0.18, 0.48]);
     const hp = B(`B${side}_hip`), stf = B(`B${side}_stifle`), hk = B(`B${side}_hock`);
     fur.push(loft([
       S(sx * 0.15, 0.72, -0.53, 0.165, 0.25, body, hp, 0.3),
@@ -215,10 +214,10 @@ function buildBear(v: VariantDef, rng: Rng): AnimalSpecies {
       S(sx * 0.17, 0.08, -0.49, 0.08, 0.075, hk),
     ], 12, 'leg', paint, false, true));
     paw(sx * 0.17, -0.57, hk, 0.29);
-    feet.push([sx * 0.17, -0.40]);
+    feetB.push([sx * 0.17, -0.40]);
   }
   setShag(0);
-  const feetOrdered: [number, number][] = [feet[0], feet[2], feet[1], feet[3]];
+  const feetOrdered: [number, number][] = [...feetF, ...feetB];
   void rng;
   return {
     bones, furParts: fur, hardParts: hard, eyeParts: eyes,

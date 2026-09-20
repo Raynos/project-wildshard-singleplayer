@@ -31,14 +31,14 @@ import type { GameMenu } from './Menu';
 
 export interface HUDState {
   /** bolts carried; undefined = no ammo on this weapon (melee) → the ammo readouts are hidden */
-  bolts?: number; loaded: boolean; reloading: boolean; reloadProgress?: number;
+  bolts?: number | undefined; loaded: boolean; reloading: boolean; reloadProgress?: number | undefined;
   health: number; fps: number; pos: { x: number; z: number }; yaw: number; kills: number;
-  prompt?: string; speed?: number; ads?: boolean; maxBolts?: number;
+  prompt?: string | undefined; speed?: number | undefined; ads?: boolean | undefined; maxBolts?: number | undefined;
   /** generic ammo strip (Weapons.ts): `reserve` rounds beyond the magazine (hidden when 0), `ammoLabel` "Bolts" / "Rounds",
    *  `weaponName` tag ("CROSSBOW" / "AR-15"), `segments` bars over the magazine on the touch strip (4 crossbow, 6 rifle) */
-  reserve?: number; ammoLabel?: string; weaponName?: string; segments?: number;
+  reserve?: number | undefined; ammoLabel?: string | undefined; weaponName?: string | undefined; segments?: number | undefined;
   /** nearest animal for the compass paw: `bearing` in compass degrees (0 = north = +Z, 90 = east = −X) — see `bearingTo` */
-  nearest?: { bearing: number; distance: number; kind: string };
+  nearest?: { bearing: number; distance: number; kind: string } | undefined;
 }
 export interface HUDOptions { pointerLock?: boolean; maxBolts?: number }
 export type IntroStats = Record<string, string | { value: string; tone?: 'ok' | 'warn' }>;
@@ -57,7 +57,7 @@ const MARKER_INSET = 22; // px — a marker behind the player parks at the band'
 
 /** compass bearing (deg, 0 = north) of the point (tx, tz) seen from (x, z). North is +Z (the south-gate spawn's forward,
  *  yaw π, is `player.forward = (−sin yaw, −cos yaw)` = +Z) and the heading is `180 − yaw°`, which puts east at −X. */
-export function bearingTo(x: number, z: number, tx: number, tz: number) {
+export function bearingTo(x: number, z: number, tx: number, tz: number): number {
   const deg = (Math.atan2(-(tx - x), tz - z) * 180) / Math.PI;
   return ((deg % 360) + 360) % 360;
 }
@@ -72,6 +72,12 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, html?: 
   if (html !== undefined) e.innerHTML = html;
   return e;
 }
+/** `root.querySelector(sel)` for markup this file wrote itself (build time only): a miss is a bug, so it throws */
+function q(root: ParentNode, sel: string): HTMLElement {
+  const e = root.querySelector<HTMLElement>(sel);
+  if (!e) throw new Error(`HUD: no ${sel}`);
+  return e;
+}
 
 export class HUD {
   root: HTMLElement;
@@ -83,38 +89,40 @@ export class HUD {
   entered = false;
   private onEnter?: () => void;
 
-  private compassStrip!: HTMLElement;
+  private compassStrip!: HTMLElement; private band!: HTMLElement;
   private markHouse!: HTMLElement; private markPaw!: HTMLElement; private range!: HTMLElement;
   private animals: { x: number; z: number }[] = [];
   /** P2 touch layout: vitals + bolts strips rendered INTO the control bar's corners (`.ws-touch-bar`, TouchControls) */
   private bar?: { hval: HTMLElement; hbar: HTMLElement; bolts: HTMLElement; bcount: HTMLElement; segs: HTMLElement[]; segBox: HTMLElement; label: HTMLElement; weapon: HTMLElement; max: HTMLElement; reserve: HTMLElement };
-  private lastMark = { house: NaN, paw: NaN, range: '' };
+  private lastMark = { house: Number.NaN, paw: Number.NaN, range: '' };
   private ppd = 1.2; // compass px per degree — measured from the band (`--ppd`), see build()
   private feed!: HTMLElement; private toasts!: HTMLElement;
-  private fps!: HTMLElement; private coords!: HTMLElement;
+  private fps!: HTMLElement; private fpsNum!: HTMLElement; private coords!: HTMLElement;
   private healthVal!: HTMLElement; private healthBar!: HTMLElement;
-  private ammoCount!: HTMLElement; private ammoStatus!: HTMLElement; private ammoStatusText!: HTMLElement; private reloadBar!: HTMLElement; private pips: HTMLElement[] = [];
+  private ammoCount!: HTMLElement; private ammoNum!: HTMLElement; private ammoStatus!: HTMLElement; private ammoStatusText!: HTMLElement; private reloadBar!: HTMLElement; private pips: HTMLElement[] = [];
   private cross!: HTMLElement; private killX!: HTMLElement; private hitRing!: HTMLElement; private aim!: HTMLElement; private aimText = '';
   private prompt!: HTMLElement; private boundary!: HTMLElement; private flash!: HTMLElement;
-  private intro?: HTMLElement;
+  private intro?: HTMLElement | undefined;
   /** the in-game menu (src/ui/Menu.ts) — pause opens it on Settings; its close is our `onResume` */
   private _menu?: GameMenu;
-  private deck?: { cards: DeckCard[]; index: number; select: (i: number, smooth?: boolean) => void; activate: () => void };
-  private last: Partial<HUDState> & { statusKey?: string; headingDeg?: number; fpsShown?: number; noAmmo?: boolean } = {};
+  private deck?: { cards: DeckCard[]; index: number; select: (i: number, smooth?: boolean) => void; activate: () => void } | undefined;
+  private last: Partial<HUDState> & { statusKey?: string | undefined; headingDeg?: number | undefined; fpsShown?: number | undefined; noAmmo?: boolean | undefined } = {};
   private ammoPanel!: HTMLElement;
   private ammoLabel!: HTMLElement; private ammoMax!: HTMLElement; private ammoReserve!: HTMLElement; private ammoWeapon!: HTMLElement; private pipBox!: HTMLElement;
   private hitTimer = 0; private spread = 7;
 
   constructor(opts: HUDOptions = {}) {
     this.opts = { pointerLock: true, maxBolts: 30, ...opts };
-    this.root = document.getElementById('hud') ?? document.body.appendChild(el('div'));
+    const hud = document.getElementById('hud');
+    this.root = hud ?? el('div');
+    if (!hud) document.body.append(this.root);
     this.root.id = 'hud';
     this.build();
     // the touch layer may be built before or after the HUD (main.ts order): mount the bar strips as soon as it exists
     if (!this.mountBar()) { const mo = new MutationObserver(() => { if (this.mountBar()) mo.disconnect(); }); mo.observe(this.root, { childList: true }); }
     document.addEventListener('pointerlockchange', () => {
       if (!this.opts.pointerLock || !this.entered) return;
-      const locked = !!document.pointerLockElement;
+      const locked = Boolean(document.pointerLockElement); // undefined where pointer lock is absent (iOS)
       this.setPaused(!locked);
     });
     document.addEventListener('keydown', (e) => {
@@ -126,7 +134,7 @@ export class HUD {
     });
   }
 
-  private build() {
+  private build(): void {
     const r = this.root;
     // chunk panel
     const def = getActiveChunk();
@@ -136,8 +144,8 @@ export class HUD {
       <div class="ws-game-row"><span>grid</span><span>${def.gridCoords}</span></div>
       <div class="ws-game-row"><span>pos</span><span data-el="coords">+000 · +000</span></div>
       <div class="ws-game-tag"><i></i>Local build · unuploaded</div>`;
-    this.coords = chunk.querySelector('[data-el="coords"]')!;
-    r.appendChild(chunk);
+    this.coords = q(chunk, '[data-el="coords"]');
+    r.append(chunk);
 
     // compass: a slim band; the strip sits at the band's centre and slides by the heading (see setState)
     const compass = el('div', 'ws-game-compass');
@@ -146,59 +154,60 @@ export class HUD {
     this.compassStrip = el('div', 'ws-game-strip');
     for (let deg = -360; deg < 720; deg += 15) {
       const major = deg % 45 === 0;
-      const tick = el('i', 'ws-game-tick' + (major ? ' major' : ''));
+      const tick = el('i', `ws-game-tick${major ? ' major' : ''}`);
       tick.style.left = `calc(${deg + 360} * var(--ppd))`;
-      this.compassStrip.appendChild(tick);
+      this.compassStrip.append(tick);
     }
     for (let lap = -1; lap <= 1; lap++) for (const [deg, label, major] of CARDINALS) {
-      const c = el('div', 'ws-game-cardinal' + (major ? '' : ' minor') + (label === 'N' ? ' n' : ''), label);
+      const c = el('div', `ws-game-cardinal${major ? '' : ' minor'}${label === 'N' ? ' n' : ''}`, label);
       c.style.left = `calc(${deg + lap * 360 + 360} * var(--ppd))`;
-      this.compassStrip.appendChild(c);
+      this.compassStrip.append(c);
     }
-    band.appendChild(this.compassStrip);
-    this.markHouse = el('div', 'ws-game-mark house', SVG_HOUSE); band.appendChild(this.markHouse);
-    this.markPaw = el('div', 'ws-game-mark paw', SVG_PAW); band.appendChild(this.markPaw);
-    band.appendChild(el('div', 'ws-game-centre'));
-    compass.appendChild(band);
-    compass.appendChild(el('div', 'ws-game-notch'));
+    this.band = band;
+    band.append(this.compassStrip);
+    this.markHouse = el('div', 'ws-game-mark house', SVG_HOUSE); band.append(this.markHouse);
+    this.markPaw = el('div', 'ws-game-mark paw', SVG_PAW); band.append(this.markPaw);
+    band.append(el('div', 'ws-game-centre'));
+    compass.append(band);
+    compass.append(el('div', 'ws-game-notch'));
     // px/deg scales with the band (90 vw on a phone, fixed on desktop): ticks and cardinals are laid out in `--ppd` units
-    const fit = () => { const w = band.clientWidth; if (!w) return; this.ppd = w / BAND_DEGREES; band.style.setProperty('--ppd', `${this.ppd}px`); this.last.headingDeg = undefined; this.lastMark.house = this.lastMark.paw = NaN; };
+    const fit = (): void => { const w = band.clientWidth; if (!w) return; this.ppd = w / BAND_DEGREES; band.style.setProperty('--ppd', `${this.ppd}px`); this.last.headingDeg = undefined; this.lastMark.house = this.lastMark.paw = Number.NaN; };
     new ResizeObserver(fit).observe(band);
     fit();
-    this.range = el('div', 'ws-game-range'); compass.appendChild(this.range);
-    r.appendChild(compass);
+    this.range = el('div', 'ws-game-range'); compass.append(this.range);
+    r.append(compass);
 
-    this.feed = el('div', 'ws-game-feed'); r.appendChild(this.feed);
-    this.fps = el('div', 'ws-game-fps', '<b>60</b> FPS<br>R186 · WEBGL2'); r.appendChild(this.fps);
+    this.feed = el('div', 'ws-game-feed'); r.append(this.feed);
+    this.fps = el('div', 'ws-game-fps', '<b>60</b> FPS<br>R186 · WEBGL2'); r.append(this.fps); this.fpsNum = q(this.fps, 'b');
 
     // health
     const health = el('div', 'ws-glass ws-game-health');
     health.innerHTML = `<div class="ws-game-hrow"><span class="ws-label">Vitals</span><span class="ws-game-hval"><span class="v">100</span><small>/ 100</small></span></div><div class="ws-bar"><i style="width:100%"></i><u style="left:25%"></u><u style="left:50%"></u><u style="left:75%"></u></div>`;
-    this.healthVal = health.querySelector('.v')!; this.healthBar = health.querySelector('.ws-bar i')!;
-    r.appendChild(health);
+    this.healthVal = q(health, '.v'); this.healthBar = q(health, '.ws-bar i');
+    r.append(health);
 
     // ammo
     const ammo = el('div', 'ws-glass ws-game-ammo');
     ammo.innerHTML = `<div class="ws-game-arow"><span class="ws-label"><span class="ws-game-weapon">Crossbow</span><span class="l">Bolts</span></span><span class="ws-game-count"><span class="c">30</span> <small>/ <span class="m">${this.opts.maxBolts}</span></small><small class="ws-game-reserve"></small></span></div>
       <div class="ws-game-pips"></div><div class="ws-game-rbar"><i></i></div><div class="ws-game-status"><span class="s">Loaded</span><i></i></div>`;
     this.ammoPanel = ammo;
-    this.ammoCount = ammo.querySelector('.ws-game-count')!; this.ammoStatus = ammo.querySelector('.ws-game-status')!; this.ammoStatusText = ammo.querySelector('.ws-game-status .s')!; this.reloadBar = ammo.querySelector('.ws-game-rbar i')!;
-    this.ammoLabel = ammo.querySelector('.ws-label .l')!; this.ammoWeapon = ammo.querySelector('.ws-game-weapon')!; this.ammoMax = ammo.querySelector('.m')!; this.ammoReserve = ammo.querySelector('.ws-game-reserve')!;
-    this.pipBox = ammo.querySelector('.ws-game-pips')!;
+    this.ammoCount = q(ammo, '.ws-game-count'); this.ammoNum = q(this.ammoCount, '.c'); this.ammoStatus = q(ammo, '.ws-game-status'); this.ammoStatusText = q(ammo, '.ws-game-status .s'); this.reloadBar = q(ammo, '.ws-game-rbar i');
+    this.ammoLabel = q(ammo, '.ws-label .l'); this.ammoWeapon = q(ammo, '.ws-game-weapon'); this.ammoMax = q(ammo, '.m'); this.ammoReserve = q(ammo, '.ws-game-reserve');
+    this.pipBox = q(ammo, '.ws-game-pips');
     this.buildPips(this.opts.maxBolts ?? 30);
-    r.appendChild(ammo);
+    r.append(ammo);
 
     // crosshair
     this.cross = el('div', 'ws-game-cross', '<i class="t"></i><i class="b"></i><i class="l"></i><i class="r"></i><u></u><div class="ws-game-x"></div>');
-    this.killX = this.cross.querySelector('.ws-game-x')!;
-    r.appendChild(this.cross);
-    this.hitRing = el('div', 'ws-game-hitring'); r.appendChild(this.hitRing);
-    this.aim = el('div', 'ws-game-aim'); r.appendChild(this.aim);
+    this.killX = q(this.cross, '.ws-game-x');
+    r.append(this.cross);
+    this.hitRing = el('div', 'ws-game-hitring'); r.append(this.hitRing);
+    this.aim = el('div', 'ws-game-aim'); r.append(this.aim);
 
-    this.prompt = el('div', 'ws-glass ws-game-prompt'); r.appendChild(this.prompt);
-    this.boundary = el('div', 'ws-game-boundary', '<div class="ws-game-bt">Chunk boundary</div><div class="ws-game-bs">No-man\'s land beyond · nothing has been generated here</div>'); r.appendChild(this.boundary);
-    this.toasts = el('div', 'ws-game-toasts'); r.appendChild(this.toasts);
-    this.flash = el('div', 'ws-game-flash'); r.appendChild(this.flash);
+    this.prompt = el('div', 'ws-glass ws-game-prompt'); r.append(this.prompt);
+    this.boundary = el('div', 'ws-game-boundary', '<div class="ws-game-bt">Chunk boundary</div><div class="ws-game-bs">No-man\'s land beyond · nothing has been generated here</div>'); r.append(this.boundary);
+    this.toasts = el('div', 'ws-game-toasts'); r.append(this.toasts);
+    this.flash = el('div', 'ws-game-flash'); r.append(this.flash);
 
     // pause = the in-game menu on its Settings tab (src/ui/Menu.ts, attached by main.ts as `hud.menu`):
     // the touch PAUSE button (TouchControls), Escape on devices without pointer lock, and a released pointer lock
@@ -206,13 +215,13 @@ export class HUD {
     document.addEventListener('keydown', (e) => { if (e.code === 'Escape' && !this.opts.pointerLock && this.entered && !this.paused) this.setPaused(true); });
   }
 
-  private buildPips(n: number) {
+  private buildPips(n: number): void {
     this.pipBox.replaceChildren(); this.pips.length = 0;
-    for (let i = 0; i < n; i++) { const p = el('i'); this.pipBox.appendChild(p); this.pips.push(p); }
+    for (let i = 0; i < n; i++) { const p = el('i'); this.pipBox.append(p); this.pips.push(p); }
   }
 
   // ── per-frame state ──
-  setState(s: HUDState) {
+  setState(s: HUDState): void {
     const L = this.last;
     // the held weapon: label / name / magazine size / reserve (Weapons.ts) — rebuilds the pips + bars when the weapon changes
     const maxBolts = s.maxBolts ?? this.opts.maxBolts ?? 30, label = s.ammoLabel ?? 'Bolts', name = s.weaponName ?? 'Crossbow', segments = s.segments ?? 4, reserve = s.reserve ?? 0;
@@ -223,9 +232,10 @@ export class HUD {
       if (this.bar) { this.bar.label.textContent = label; this.bar.weapon.textContent = name; this.bar.max.textContent = String(maxBolts); this.buildSegs(segments); }
     }
     if (reserve !== L.reserve) { L.reserve = reserve; const txt = reserve > 0 ? `+ ${reserve}` : ''; this.ammoReserve.textContent = txt; if (this.bar) this.bar.reserve.textContent = txt; }
-    if (s.fps !== L.fpsShown) { L.fpsShown = s.fps; this.fps.firstElementChild!.textContent = String(s.fps); }
+    if (s.fps !== L.fpsShown) { L.fpsShown = s.fps; this.fpsNum.textContent = String(s.fps); }
     const hx = Math.round(s.pos.x), hz = Math.round(s.pos.z);
-    if (hx !== L.pos?.x || hz !== L.pos?.z) { L.pos = { x: hx, z: hz }; this.coords.textContent = `${fmt(hx)} · ${fmt(hz)}`; }
+    const lp = L.pos;
+    if (!lp || hx !== lp.x || hz !== lp.z) { L.pos = { x: hx, z: hz }; this.coords.textContent = `${fmt(hx)} · ${fmt(hz)}`; }
     // compass: +Z (the south-gate spawn's forward, yaw π) is north; turning left decreases the heading
     let deg = 180 - (s.yaw * 180) / Math.PI; deg = ((deg % 360) + 360) % 360;
     const degR = Math.round(deg * 2) / 2;
@@ -247,15 +257,15 @@ export class HUD {
     const bolts = s.bolts ?? 0;
     if (!noAmmo && bolts !== L.bolts) {
       L.bolts = bolts;
-      this.ammoCount.firstElementChild!.textContent = String(bolts);
+      this.ammoNum.textContent = String(bolts);
       this.ammoCount.classList.toggle('empty', bolts <= 0);
-      this.pips.forEach((p, i) => p.classList.toggle('off', i >= bolts));
+      this.pips.forEach((p, i) => { p.classList.toggle('off', i >= bolts); });
       this.syncBar('bolts');
     }
     const statusKey = noAmmo ? 'loaded' : bolts <= 0 && !s.loaded ? 'empty' : s.reloading ? 'reloading' : s.loaded ? 'loaded' : 'spent';
     if (statusKey !== L.statusKey) {
       L.statusKey = statusKey;
-      this.ammoStatus.className = 'ws-game-status ' + (statusKey === 'empty' ? 'empty' : statusKey === 'reloading' ? 'reloading' : '');
+      this.ammoStatus.className = `ws-game-status ${statusKey === 'empty' ? 'empty' : statusKey === 'reloading' ? 'reloading' : ''}`;
       const bow = label === 'Bolts';
       this.ammoStatusText.textContent = statusKey === 'empty' ? (bow ? 'No bolts' : reserve > 0 ? 'Empty · R to reload' : 'No rounds') : statusKey === 'reloading' ? (bow ? 'Spanning' : 'Reloading') : statusKey === 'loaded' ? (bow ? 'Loaded' : 'Ready') : (bow ? 'Spent · R to span' : 'R to reload');
       this.syncBar('status');
@@ -265,7 +275,7 @@ export class HUD {
     // crosshair spread
     const target = (s.ads ? 4 : 7) + (s.speed ?? 0) * 7 + (s.reloading ? 6 : 0);
     if (Math.abs(target - this.spread) > 0.05) { this.spread += (target - this.spread) * 0.2; this.cross.style.setProperty('--gap', `${this.spread.toFixed(1)}px`); }
-    if (s.ads !== L.ads) { L.ads = s.ads; this.cross.classList.toggle('ads', !!s.ads); }
+    if (s.ads !== L.ads) { L.ads = s.ads; this.cross.classList.toggle('ads', s.ads === true); }
     if (s.prompt !== L.prompt) {
       L.prompt = s.prompt;
       if (s.prompt) { this.prompt.innerHTML = s.prompt.replace(/^\[(\w+)\]\s*/, '<b>$1</b>'); this.prompt.classList.add('show'); }
@@ -276,7 +286,7 @@ export class HUD {
 
   /** touch (P2): heart · 100 · bar · VITALS in the bar's top-left corner, BOLTS · segments · 27 / 30 · bolt top-right.
    *  Rendered into TouchControls' `.ws-touch-bar` once it exists; the numbers are HUD state, so the HUD owns them. */
-  private mountBar() {
+  private mountBar(): boolean {
     if (this.bar) return true;
     const bar = this.root.querySelector<HTMLElement>('.ws-touch-bar');
     if (!bar) return false;
@@ -285,18 +295,18 @@ export class HUD {
     const bolts = el('div', 'ws-game-bolts', `<span class="ws-game-tiny"><span class="ws-game-weapon">${L.weaponName ?? 'Crossbow'}</span><span class="l">${L.ammoLabel ?? 'Bolts'}</span></span><span class="ws-game-segs">${'<i></i>'.repeat(segN)}</span><b class="ws-game-num"><span class="c">30</span><small> / <span class="m">${L.maxBolts ?? this.opts.maxBolts}</span></small><small class="ws-game-reserve">${reserve > 0 ? `+ ${reserve}` : ''}</small></b><i class="ws-game-glyph">${SVG_BOLT}</i>`);
     bar.append(vitals, bolts);
     if (this.last.noAmmo) bolts.style.display = 'none';
-    this.bar = { hval: vitals.querySelector('.ws-game-num')!, hbar: vitals.querySelector('.ws-game-vbar i')!, bolts, bcount: bolts.querySelector('.c')!, segs: Array.from(bolts.querySelectorAll<HTMLElement>('.ws-game-segs i')), segBox: bolts.querySelector('.ws-game-segs')!, label: bolts.querySelector('.ws-game-tiny .l')!, weapon: bolts.querySelector('.ws-game-weapon')!, max: bolts.querySelector('.m')!, reserve: bolts.querySelector('.ws-game-reserve')! };
+    this.bar = { hval: q(vitals, '.ws-game-num'), hbar: q(vitals, '.ws-game-vbar i'), bolts, bcount: q(bolts, '.c'), segs: Array.from(bolts.querySelectorAll<HTMLElement>('.ws-game-segs i')), segBox: q(bolts, '.ws-game-segs'), label: q(bolts, '.ws-game-tiny .l'), weapon: q(bolts, '.ws-game-weapon'), max: q(bolts, '.m'), reserve: q(bolts, '.ws-game-reserve') };
     this.syncBar('health'); this.syncBar('bolts'); this.syncBar('status');
     return true;
   }
   /** the touch strip's bars over the magazine: 4 for the crossbow, 6 for the rifle (rebuilt on a weapon change) */
-  private buildSegs(n: number) {
+  private buildSegs(n: number): void {
     const b = this.bar; if (!b || b.segs.length === n) return;
     b.segBox.innerHTML = '<i></i>'.repeat(n); b.segs = Array.from(b.segBox.querySelectorAll<HTMLElement>('i'));
     this.syncBar('bolts');
   }
 
-  private syncBar(what: 'health' | 'bolts' | 'status') {
+  private syncBar(what: 'health' | 'bolts' | 'status'): void {
     const b = this.bar, L = this.last;
     if (!b) return;
     if (what === 'health') {
@@ -308,7 +318,7 @@ export class HUD {
       const max = L.maxBolts ?? this.opts.maxBolts ?? 30, n = L.bolts ?? max;
       b.bcount.textContent = String(n);
       const lit = n <= 0 ? 0 : Math.max(1, Math.floor((n / max) * b.segs.length + 1e-6));
-      b.segs.forEach((seg, i) => seg.classList.toggle('off', i >= lit));
+      b.segs.forEach((seg, i) => { seg.classList.toggle('off', i >= lit); });
     } else {
       b.bolts.classList.toggle('empty', L.statusKey === 'empty');
       b.bolts.classList.toggle('reloading', L.statusKey === 'reloading');
@@ -316,10 +326,10 @@ export class HUD {
   }
 
   /** world positions of the live animals — the compass pins a paw at the nearest one within `PAW_RANGE` (empty = no paw) */
-  setAnimals(list: { x: number; z: number }[]) { this.animals = list; }
+  setAnimals(list: { x: number; z: number }[]): void { this.animals = list; }
 
   /** compass markers: the nearest cabin (house + "CABIN · 180 m") and the nearest animal (paw), each at its bearing on the band */
-  private updateMarkers(s: HUDState, heading: number) {
+  private updateMarkers(s: HUDState, heading: number): void {
     const { x, z } = s.pos;
     let cabin: { d: number; b: number } | null = null;
     for (const c of CABIN_SITES) {
@@ -332,18 +342,18 @@ export class HUD {
       const d = Math.hypot(a.x - x, a.z - z);
       if (d <= PAW_RANGE && (!paw || d < paw.d)) paw = { d, b: bearingTo(x, z, a.x, a.z) };
     }
-    this.placeMark(this.markHouse, 'house', cabin ? cabin.b - heading : NaN);
-    this.placeMark(this.markPaw, 'paw', paw ? paw.b - heading : NaN);
+    this.placeMark(this.markHouse, 'house', cabin ? cabin.b - heading : Number.NaN);
+    this.placeMark(this.markPaw, 'paw', paw ? paw.b - heading : Number.NaN);
     const range = cabin ? `Cabin · ${Math.round(cabin.d)} m` : '';
-    if (range !== this.lastMark.range) { this.lastMark.range = range; this.range.textContent = range; this.range.classList.toggle('show', !!range); }
+    if (range !== this.lastMark.range) { this.lastMark.range = range; this.range.textContent = range; this.range.classList.toggle('show', range !== ''); }
   }
 
-  private placeMark(m: HTMLElement, key: 'house' | 'paw', rel: number) {
-    let px = NaN;
+  private placeMark(m: HTMLElement, key: 'house' | 'paw', rel: number): void {
+    let px = Number.NaN;
     if (!Number.isNaN(rel)) {
-      rel = ((rel + 540) % 360) - 180; // −180..180 around the heading
-      const half = m.parentElement!.clientWidth / 2 - MARKER_INSET;
-      px = Math.round(Math.max(-half, Math.min(half, rel * this.ppd)) * 2) / 2;
+      const r = ((rel + 540) % 360) - 180; // −180..180 around the heading
+      const half = this.band.clientWidth / 2 - MARKER_INSET;
+      px = Math.round(Math.max(-half, Math.min(half, r * this.ppd)) * 2) / 2;
     }
     if (px === this.lastMark[key] || (Number.isNaN(px) && Number.isNaN(this.lastMark[key]))) return;
     this.lastMark[key] = px;
@@ -352,41 +362,41 @@ export class HUD {
   }
 
   /** range readout under the crosshair: "BOAR · 15 M" (null hides it) */
-  setAimInfo(info: { kind: string; distance: number } | null) {
+  setAimInfo(info: { kind: string; distance: number } | null): void {
     const text = info ? `${info.kind} · ${Math.round(info.distance)} m` : '';
     if (text === this.aimText) return;
     this.aimText = text;
     if (text) { this.aim.textContent = text; this.aim.classList.add('show'); } else this.aim.classList.remove('show');
   }
 
-  showHitMarker(headshot: boolean, killed: boolean) {
+  showHitMarker(headshot: boolean, killed: boolean): void {
     this.cross.classList.add('hit'); this.cross.classList.toggle('head', headshot);
     this.hitTimer = 10;
     this.hitRing.classList.remove('show'); void this.hitRing.offsetWidth; this.hitRing.classList.add('show');
     if (killed) { this.killX.classList.remove('show'); void this.killX.offsetWidth; this.killX.classList.add('show'); }
   }
 
-  killFeed(text: string) {
-    const item = el('div', 'ws-game-feed-item', text.replace(/\b(headshot|kill|killed)\b/gi, '<b>$1</b>'));
+  killFeed(text: string): void {
+    const item = el('div', 'ws-game-feed-item', text.replaceAll(/\b(headshot|kill|killed)\b/gi, '<b>$1</b>'));
     this.feed.prepend(item);
-    while (this.feed.children.length > 4) this.feed.lastElementChild!.remove();
-    setTimeout(() => { item.classList.add('out'); setTimeout(() => item.remove(), 500); }, 4200);
+    while (this.feed.children.length > 4) this.feed.lastElementChild?.remove();
+    setTimeout(() => { item.classList.add('out'); setTimeout(() => { item.remove(); }, 500); }, 4200);
   }
 
-  toast(text: string) {
+  toast(text: string): void {
     const t = el('div', 'ws-glass ws-game-toast', text);
-    this.toasts.appendChild(t);
-    while (this.toasts.children.length > 4) this.toasts.firstElementChild!.remove();
-    setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 500); }, 3200);
+    this.toasts.append(t);
+    while (this.toasts.children.length > 4) this.toasts.firstElementChild?.remove();
+    setTimeout(() => { t.classList.add('out'); setTimeout(() => { t.remove(); }, 500); }, 3200);
   }
 
-  damageFlash() { this.flash.classList.remove('show'); void this.flash.offsetWidth; this.flash.classList.add('show'); }
-  setBoundaryWarning(visible: boolean) { this.boundary.classList.toggle('show', visible); }
+  damageFlash(): void { this.flash.classList.remove('show'); void this.flash.offsetWidth; this.flash.classList.add('show'); }
+  setBoundaryWarning(visible: boolean): void { this.boundary.classList.toggle('show', visible); }
 
-  set menu(m: GameMenu) { this._menu = m; m.onClose = () => this.onResume?.(); m.onExit = () => this.exitToMenu(); }
-  get menu() { return this._menu!; }
-  setPaused(paused: boolean) { if (!this._menu || !this.entered) return; if (paused) this._menu.open('settings'); else this._menu.close(); }
-  get paused() { return !!this._menu?.isOpen; }
+  set menu(m: GameMenu) { this._menu = m; m.onClose = () => { this.onResume?.(); }; m.onExit = () => { this.exitToMenu(); }; }
+  get menu(): GameMenu { const m = this._menu; if (!m) throw new Error('HUD: no menu attached (hud.menu = …)'); return m; }
+  setPaused(paused: boolean): void { if (!this._menu || !this.entered) return; if (paused) this._menu.open('settings'); else this._menu.close(); }
+  get paused(): boolean { return this._menu?.isOpen ?? false; }
 
   /**
    * Title screen: the shard deck IS the menu. A horizontal snap carousel of shard cards over the
@@ -394,7 +404,7 @@ export class HUD {
    * another reloads with `?chunk=`); teasers from `PLACEHOLDERS` crossfade their hero art in behind
    * the deck and turn ENTER WORLD into COMING SOON. `stats` is accepted for API compatibility.
    */
-  showIntro(onEnter: () => void, _stats?: IntroStats) {
+  showIntro(onEnter: () => void, _stats?: IntroStats): void {
     this.onEnter = onEnter;
     this.root.classList.add('intro');
     const def = getActiveChunk();
@@ -417,7 +427,7 @@ export class HUD {
       <div class="ws-menu-head"><div class="ws-wordmark">Project <b>Wildshard</b></div></div>
       <div class="ws-menu-deck">
         <div class="ws-menu-cards"><div class="ws-menu-deck-track">${cards.map((c, i) => `
-          <button class="ws-menu-card${c.active ? ' active' : ''}${c.playable ? '' : ' soon'}" type="button" data-i="${i}" title="${c.blurb.replace(/"/g, '&quot;')}">
+          <button class="ws-menu-card${c.active ? ' active' : ''}${c.playable ? '' : ' soon'}" type="button" data-i="${i}" title="${c.blurb.replaceAll('"', '&quot;')}">
             <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-menu-card-tag ${c.tagTone}">${c.tag}</i></span>
             <b>${c.displayName}</b><small>${c.label}</small>
           </button>`).join('')}
@@ -426,28 +436,30 @@ export class HUD {
         <button class="ws-menu-enter" type="button"><b>Enter world</b><small>Press any key</small></button>
         <div class="ws-menu-row"><div class="ws-menu-sound">Sound on</div></div>
       </div>`;
-    const hero = intro.querySelector<HTMLElement>('.ws-menu-hero')!;
-    const list = intro.querySelector<HTMLElement>('.ws-menu-cards')!;
+    const hero = q(intro, '.ws-menu-hero');
+    const list = q(intro, '.ws-menu-cards');
     const cardEls = Array.from(list.querySelectorAll<HTMLElement>('.ws-menu-card'));
     const dots = Array.from(intro.querySelectorAll<HTMLElement>('.ws-menu-dots i'));
-    const enterBtn = intro.querySelector<HTMLButtonElement>('.ws-menu-enter')!;
-    const enterTitle = enterBtn.querySelector('b')!, enterHint = enterBtn.querySelector('small')!;
+    const enterBtn = intro.querySelector<HTMLButtonElement>('.ws-menu-enter');
+    if (!enterBtn) throw new Error('HUD: no .ws-menu-enter');
+    const enterTitle = q(enterBtn, 'b'), enterHint = q(enterBtn, 'small');
 
-    const portrait = () => innerWidth < innerHeight;
-    const heroUrl = (c: DeckCard) => (portrait() ? c.heroPortrait : c.heroLandscape) ?? '';
+    const portrait = (): boolean => innerWidth < innerHeight;
+    const heroUrl = (c: DeckCard): string => (portrait() ? c.heroPortrait : c.heroLandscape) ?? '';
     let index = Math.max(0, cards.findIndex((c) => c.active));
     // paginated track: one card per swipe, always centred — no native scroll, so it can't rest between cards
-    const track = list.querySelector<HTMLElement>('.ws-menu-deck-track')!;
-    const offsetOf = (i: number) => list.clientWidth / 2 - (cardEls[i].offsetLeft + cardEls[i].offsetWidth / 2);
-    const place = (i: number, extra = 0, animate = true) => {
+    const track = q(list, '.ws-menu-deck-track');
+    const offsetOf = (i: number): number => { const ce = cardEls[i]; return ce ? list.clientWidth / 2 - (ce.offsetLeft + ce.offsetWidth / 2) : 0; };
+    const place = (i: number, extra = 0, animate = true): void => {
       track.style.transition = animate ? 'transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
       track.style.transform = `translateX(${offsetOf(i) + extra}px)`;
     };
 
-    const apply = () => {
+    const apply = (): void => {
       const c = cards[index];
-      cardEls.forEach((e, i) => e.classList.toggle('selected', i === index));
-      dots.forEach((d, i) => d.classList.toggle('on', i === index));
+      if (!c) return;
+      cardEls.forEach((e, i) => { e.classList.toggle('selected', i === index); });
+      dots.forEach((d, i) => { d.classList.toggle('on', i === index); });
       // every card has hero art — the menu never shows the live world (it is paused underneath)
       const url = heroUrl(c);
       if (url) { hero.style.backgroundImage = `url('${url}')`; hero.classList.add('show'); }
@@ -457,14 +469,14 @@ export class HUD {
       enterTitle.textContent = c.playable ? 'Enter world' : 'Coming soon';
       enterHint.textContent = !c.playable ? 'Not yet playable' : c.active ? 'Press any key' : `Reloads with ${c.displayName}`;
     };
-    const select = (i: number, smooth = true) => {
-      i = Math.max(0, Math.min(cards.length - 1, i));
+    const select = (raw: number, smooth = true): void => {
+      const i = Math.max(0, Math.min(cards.length - 1, raw));
       place(i, 0, smooth);
       if (i !== index) { index = i; apply(); }
     };
-    const activate = () => {
+    const activate = (): void => {
       const c = cards[index];
-      if (!c.playable) return;
+      if (!c || !c.playable) return;
       if (c.active) this.enter(); else location.href = chunkUrl(c.slug);
     };
     // swipe → the track follows the finger (rubber-banded at the ends), release = one page in the swipe direction
@@ -480,45 +492,45 @@ export class HUD {
       const atEnd = (drag.dx > 0 && index === 0) || (drag.dx < 0 && index === cards.length - 1);
       place(index, atEnd ? drag.dx * 0.3 : drag.dx, false);
     });
-    const endDrag = (e: PointerEvent) => {
+    let swipedAt = 0; // a swipe's trailing click must not re-select the card under the finger
+    const endDrag = (e: PointerEvent): void => {
       if (!drag || e.pointerId !== drag.id) return;
       const { dx, t0 } = drag; drag = null;
       const v = dx / Math.max(1, performance.now() - t0); // px/ms
       if (Math.abs(dx) > 36 || (Math.abs(v) > 0.35 && Math.abs(dx) > 14)) { swipedAt = performance.now(); select(index + (dx < 0 ? 1 : -1)); }
       else place(index);
     };
-    let swipedAt = 0; // a swipe's trailing click must not re-select the card under the finger
     list.addEventListener('pointerup', endDrag); list.addEventListener('pointercancel', endDrag);
-    cardEls.forEach((e, i) => e.addEventListener('click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }));
-    dots.forEach((d, i) => d.addEventListener('click', (ev) => { ev.stopPropagation(); select(i); }));
+    cardEls.forEach((e, i) => { e.addEventListener('click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }); });
+    dots.forEach((d, i) => { d.addEventListener('click', (ev) => { ev.stopPropagation(); select(i); }); });
     enterBtn.addEventListener('click', (ev) => { ev.stopPropagation(); activate(); });
-    const soundBtn = intro.querySelector<HTMLElement>('.ws-menu-sound')!;
+    const soundBtn = q(intro, '.ws-menu-sound');
     if (this.soundOff) { soundBtn.classList.add('off'); soundBtn.textContent = 'Sound off'; }
     soundBtn.addEventListener('click', (e) => { e.stopPropagation(); this.soundOff = soundBtn.classList.toggle('off'); soundBtn.textContent = this.soundOff ? 'Sound off' : 'Sound on'; });
     // orientation flips swap the hero file and re-centre the selected card (card width is viewport-relative)
     let wasPortrait = portrait();
-    const onResize = () => {
+    const onResize = (): void => {
       if (!this.intro) { removeEventListener('resize', onResize); return; }
       place(index, 0, false);
       if (portrait() !== wasPortrait) { wasPortrait = portrait(); apply(); }
     };
     addEventListener('resize', onResize);
     // preload the hero art so the crossfade is instant (current orientation first, the other set later)
-    const preload = (p: boolean) => { for (const c of cards) { const u = (p ? c.heroPortrait : c.heroLandscape); if (u) new Image().src = u; } };
-    preload(portrait()); setTimeout(() => preload(!portrait()), 4000);
+    const preload = (p: boolean): void => { for (const c of cards) { const u = (p ? c.heroPortrait : c.heroLandscape); if (u) new Image().src = u; } };
+    preload(portrait()); setTimeout(() => { preload(!portrait()); }, 4000);
 
-    this.root.appendChild(intro);
+    this.root.append(intro);
     this.intro = intro;
     this.deck = { cards, get index() { return index; }, select, activate };
     apply();
-    requestAnimationFrame(() => place(index, 0, false)); // after layout: offsets need the intro in the DOM
+    requestAnimationFrame(() => { place(index, 0, false); }); // after layout: offsets need the intro in the DOM
   }
 
-  private enter() {
+  private enter(): void {
     if (!this.intro) return;
     const intro = this.intro; this.intro = undefined; this.deck = undefined;
     intro.classList.add('hide');
-    setTimeout(() => intro.remove(), Math.max(700, HERO_FADE_MS * 2));
+    setTimeout(() => { intro.remove(); }, Math.max(700, HERO_FADE_MS * 2));
     this.root.classList.remove('intro');
     this.entered = true;
     this.onSoundToggle?.(!this.soundOff); // the world is silent under the menu; the player's choice applies on entry
@@ -526,19 +538,19 @@ export class HUD {
   }
 
   /** dev: skip the intro entirely */
-  markEntered() { this.entered = true; this.root.classList.remove('intro'); }
+  markEntered(): void { this.entered = true; this.root.classList.remove('intro'); }
 
   /** Pause → "Exit to main menu": back to the chunk selection without a reload. The world stays loaded;
    *  `onExitToMenu` is where main.ts stops the loop / mutes audio. The next ENTER WORLD fires `onEnter` again. */
-  exitToMenu() {
+  exitToMenu(): void {
     if (!this.entered || this.intro) return;
     this._menu?.close(true);
     this.entered = false;
-    if (document.pointerLockElement) document.exitPointerLock?.();
+    if (document.pointerLockElement) document.exitPointerLock();
     this.onSoundToggle?.(false);
     this.onExitToMenu?.();
     if (this.onEnter) this.showIntro(this.onEnter);
   }
 }
 
-function fmt(n: number) { return (n >= 0 ? '+' : '−') + String(Math.abs(n)).padStart(3, '0'); }
+function fmt(n: number): string { return (n >= 0 ? '+' : '−') + String(Math.abs(n)).padStart(3, '0'); }

@@ -21,7 +21,7 @@ import { Horizon } from '../world/Horizon';
 import { CHUNK_HALF, ROAD_LENGTH } from '../core/config';
 import { heightAt } from '../world/Heightfield';
 
-if (!new URLSearchParams(location.search).has('chunk')) { location.search += (location.search ? '&' : '?') + 'chunk=driftwood-isle'; }
+if (!new URLSearchParams(location.search).has('chunk')) { location.search += `${location.search ? '&' : '?'}chunk=driftwood-isle`; }
 
 const world = await bootstrap();
 const { game, sky, player, chunk } = world;
@@ -79,7 +79,7 @@ game.scene.add(bushes.mesh);
 const seabedLayout = Seabed.scatterLagoon(chunk.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }]);
 const seabed = new Seabed(sky).build(seabedLayout);
 game.scene.add(seabed.mesh); if (seabed.fish) game.scene.add(seabed.fish);
-console.log('[seabed] ' + seabed.count + ' pieces, ' + seabed.tris + ' tris');
+console.log(`[seabed] ${seabed.count} pieces, ${seabed.tris} tris`);
 
 if (!game.camera.parent) game.scene.add(game.camera); // the weapon does this in main.ts: camera children (hands) and Player's fog lookup need it
 const hands = new Hands(sky, game.camera);

@@ -32,7 +32,7 @@ export class Ocean {
 
   constructor(private sky: Sky) {}
 
-  build() {
+  build(): this {
     const def = getActiveChunk().ocean;
     if (!def) throw new Error('Ocean.build(): the active chunk has no `ocean`');
     this.level = def.level;
@@ -41,7 +41,7 @@ export class Ocean {
     const fine = TIER_CONFIG.oceanCell, inner = CHUNK_HALF + 30, far = 4200; // 2.75 m desktop / 4 m phone (57 k → 30 k verts)
     const half: number[] = [];
     for (let v = 0; v <= inner + 1e-6; v += fine) half.push(v);
-    let v = half[half.length - 1], step = fine;
+    let v = half[half.length - 1] ?? 0, step = fine;
     const grow = fine > 3 ? 1.25 : 1.16; // the phone's far ring coarsens faster (13 rings instead of 34 per side)
     while (v < far) { step *= grow; v += step; half.push(v); }
     const coords = [...half.slice(1).reverse().map((c) => -c), ...half];
@@ -49,7 +49,7 @@ export class Ocean {
 
     const pos = new Float32Array(N * N * 3), depth = new Float32Array(N * N), seed = new Float32Array(N * N);
     for (let iz = 0; iz < N; iz++) for (let ix = 0; ix < N; ix++) {
-      const i = iz * N + ix, x = coords[ix], z = coords[iz];
+      const i = iz * N + ix, x = coords[ix] ?? 0, z = coords[iz] ?? 0;
       pos[i * 3] = x; pos[i * 3 + 1] = 0; pos[i * 3 + 2] = z;
       depth[i] = inChunk(x, z) ? def.level - heightAt(x, z) : def.deepDepth * 2;
       seed[i] = hash2(ix, iz);
@@ -59,8 +59,9 @@ export class Ocean {
     for (let iz = 0; iz < N - 1; iz++) for (let ix = 0; ix < N - 1; ix++) {
       const a = iz * N + ix, b = a + 1, c = a + N, d = c + 1;
       // alternate diagonals so the facets don't all lean one way
-      if ((ix + iz) & 1) { idx[k++] = a; idx[k++] = c; idx[k++] = d; idx[k++] = a; idx[k++] = d; idx[k++] = b; }
-      else { idx[k++] = a; idx[k++] = c; idx[k++] = b; idx[k++] = b; idx[k++] = c; idx[k++] = d; }
+      idx[k++] = a; idx[k++] = c;
+      if ((ix + iz) & 1) { idx[k++] = d; idx[k++] = a; idx[k++] = d; idx[k++] = b; }
+      else { idx[k++] = b; idx[k++] = b; idx[k++] = c; idx[k++] = d; }
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -130,7 +131,7 @@ export class Ocean {
     return this;
   }
 
-  update(dt: number) { this.uniforms.uTime.value += dt; }
+  update(dt: number): void { this.uniforms.uTime.value += dt; }
 }
 
 function hash2(x: number, z: number) { const s = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return s - Math.floor(s); }

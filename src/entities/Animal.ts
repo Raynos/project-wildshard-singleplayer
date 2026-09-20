@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { heightAt } from '../world/Heightfield';
-import { variantMods, type AnimalKind, type AnimalModel, type AnimalRig, type Rarity, type VariantMods, type RigAnimCtx } from './AnimalFactory';
+import { variantMods, type AnimalDims, type AnimalKind, type AnimalModel, type AnimalRig, type Rarity, type VariantMods, type RigAnimCtx } from './AnimalFactory';
 
 /**
  * Animal — one animal instance (any registered species): procedural skeletal animation + health.
@@ -56,7 +56,9 @@ const P_COUNT = 27;
 const G_IDLE = 0, G_GRAZE = 1, G_WALK = 2, G_TROT = 3, G_GALLOP = 4;
 
 interface GaitDef { offsets: [number, number, number, number]; stance: number; amp: number; lift: number; bob: number; pitch: number }
-const GAITS: Record<number, GaitDef> = {
+type MovingGait = typeof G_WALK | typeof G_TROT | typeof G_GALLOP;
+const MOVING_GAITS: readonly MovingGait[] = [G_WALK, G_TROT, G_GALLOP];
+const GAITS: Record<MovingGait, GaitDef> = {
   [G_WALK]: { offsets: [0.25, 0.75, 0.0, 0.5], stance: 0.62, amp: 0.36, lift: 0.9, bob: 0.012, pitch: 0.01 },
   [G_TROT]: { offsets: [0.0, 0.5, 0.5, 0.0], stance: 0.48, amp: 0.45, lift: 1.1, bob: 0.03, pitch: 0.02 },
   [G_GALLOP]: { offsets: [0.55, 0.68, 0.0, 0.12], stance: 0.36, amp: 0.66, lift: 1.5, bob: 0.06, pitch: 0.09 },
@@ -72,7 +74,11 @@ const pulse = (t: number, period: number, seed: number, width = 0.12) => {
 const _v = new THREE.Vector3();
 
 /** stagger (a sword blow, Sword.ts): push distance / hold time at strength 0 (light) and 1 (heavy), the push's duration */
-const STAGGER_PUSH = [0.6, 1.5], STAGGER_STUN = [0.4, 0.8], STAGGER_PUSH_T = 0.25;
+const STAGGER_PUSH = [0.6, 1.5] as const, STAGGER_STUN = [0.4, 0.8] as const, STAGGER_PUSH_T = 0.25;
+
+/** the bones Animal.ts poses by name on a quadruped rig (resolved once at construction; a custom rig only has body + head) */
+interface QuadBones { body: THREE.Bone; neck1: THREE.Bone; neck2: THREE.Bone; head: THREE.Bone; earL: THREE.Bone; earR: THREE.Bone; tail: THREE.Bone; belly: THREE.Bone }
+type LegBones = readonly [THREE.Bone, THREE.Bone, THREE.Bone];
 
 export class Animal {
   kind: AnimalKind;
@@ -110,6 +116,9 @@ export class Animal {
   private attackT = -1; private attackDur = 1;
 
   private bones: Record<string, THREE.Bone>;
+  /** the two bones every rig has (hit volumes), and the full quadruped set (null on a custom rig) */
+  private readonly bBody: THREE.Bone; private readonly bHead: THREE.Bone;
+  private quad: QuadBones | null = null;
   private model: AnimalModel;
   private pose = new Float32Array(P_COUNT);
   private tmp = new Float32Array(P_COUNT);
@@ -124,7 +133,7 @@ export class Animal {
   private deathT = -1; private deathSide = 1;
   private tiltPitch = 0; private tiltRoll = 0; private groundY = 0;
   private footDelta = new Float32Array(4);
-  private legDir: THREE.Bone[][] = [];
+  private legDir: LegBones[] = [];
   private lastFootPhase = new Float32Array(4);
   /** called when a hoof plants during a gait (index, phase strength) — the manager turns it into sounds */
   onFootfall?: (animal: Animal, strength: number) => void;
@@ -148,18 +157,26 @@ export class Animal {
     this.kind = model.kind;
     const v = model.variantDef;
     this.variant = v.id; this.rarity = v.rarity; this.label = v.label || model.species.label;
-    this.aggressive = !!model.species.aggressive;
+    this.aggressive = model.species.aggressive ?? false;
     this.mods = variantMods(model.species, v);
     this.mesh = rig.mesh; this.bones = rig.bones; this.model = model; this.seed = seed; this.scale = scale;
     this.maxHp = this.hp = v.hp ?? model.species.tuning?.hp ?? (model.kind === 'deer' ? 60 : 100);   // the manager re-reads the HuntTuning.hp
     this.mesh.scale.setScalar(scale);
     this.mesh.rotation.order = 'YXZ';
     this.custom = model.species.rig === 'custom';
-    const b = this.bones;
-    if (!this.custom) this.legDir = [
-      [b.FL_shoulder, b.FL_carpus, b.FL_fetlock], [b.FR_shoulder, b.FR_carpus, b.FR_fetlock],
-      [b.BL_hip, b.BL_stifle, b.BL_hock], [b.BR_hip, b.BR_stifle, b.BR_hock],
-    ];
+    const bone = (name: string): THREE.Bone => {
+      const bn = rig.bones[name];
+      if (bn === undefined) throw new Error(`animal '${model.kind}': rig has no bone '${name}'`);
+      return bn;
+    };
+    this.bBody = bone('body'); this.bHead = bone('head');
+    if (!this.custom) {
+      this.quad = { body: this.bBody, neck1: bone('neck1'), neck2: bone('neck2'), head: this.bHead, earL: bone('earL'), earR: bone('earR'), tail: bone('tail'), belly: bone('belly') };
+      this.legDir = [
+        [bone('FL_shoulder'), bone('FL_carpus'), bone('FL_fetlock')], [bone('FR_shoulder'), bone('FR_carpus'), bone('FR_fetlock')],
+        [bone('BL_hip'), bone('BL_stifle'), bone('BL_hock')], [bone('BR_hip'), bone('BR_stifle'), bone('BR_hock')],
+      ];
+    }
     this.gaitW[G_IDLE] = 1;
     this.rigCtx = {
       bones: this.bones, dims: model.dims, dt: 0, t: 0, seed, scale, speed: 0, strafe: 0, phase: 0, state: 'idle', alive: true,
@@ -168,10 +185,10 @@ export class Animal {
   }
   private rigCtx: RigAnimCtx;
 
-  get dims() { return this.model.dims; }
+  get dims(): AnimalDims { return this.model.dims; }
 
   /** place on the ground, facing `yaw` */
-  place(x: number, z: number, yaw: number) {
+  place(x: number, z: number, yaw: number): void {
     this.position.set(x, heightAt(x, z), z);
     this.groundY = this.position.y;
     this.yaw = this.desiredYaw = yaw;
@@ -179,17 +196,17 @@ export class Animal {
     this.mesh.rotation.y = yaw;
   }
 
-  setMotion(desiredYaw: number, desiredSpeed: number, turnRate = 2.5) {
+  setMotion(desiredYaw: number, desiredSpeed: number, turnRate = 2.5): void {
     this.desiredYaw = desiredYaw; this.desiredSpeed = desiredSpeed; this.turnRate = turnRate;
   }
   /** lateral desired speed, m/s, + = the animal's left (the crab sidesteps around you) */
-  setStrafe(mps: number) { this.desiredStrafe = mps; }
+  setStrafe(mps: number): void { this.desiredStrafe = mps; }
 
   /** begin an attack lasting `dur` s: `attackPhase` runs 0 → 1 (the species' animate poses the wind-up and the strike from it) */
-  startAttack(dur: number) { this.attackT = 0; this.attackDur = Math.max(0.05, dur); }
+  startAttack(dur: number): void { this.attackT = 0; this.attackDur = Math.max(0.05, dur); }
   /** 0..1 through the current attack, -1 when none (held at 1 until the next startAttack / cancelAttack) */
-  get attackPhase() { return this.attackT < 0 ? -1 : Math.min(1, this.attackT / this.attackDur); }
-  cancelAttack() { this.attackT = -1; }
+  get attackPhase(): number { return this.attackT < 0 ? -1 : Math.min(1, this.attackT / this.attackDur); }
+  cancelAttack(): void { this.attackT = -1; }
 
   // ── combat ─────────────────────────────────────────────────────────────────────────────
 
@@ -197,18 +214,18 @@ export class Animal {
   damageFor(headshot: boolean, dist: number): number { return damageFor(headshot, dist); }
 
   /** world-space head hit sphere centre */
-  headWorld(out: THREE.Vector3) {
-    const m = this.bones.head.matrixWorld.elements;
+  headWorld(out: THREE.Vector3): THREE.Vector3 {
+    const m = this.bHead.matrixWorld.elements;
     return out.set(m[12], m[13], m[14]);
   }
   /** world-space body capsule segment (a = rump, b = chest; or bottom → top for an upright rig, dims.capsuleAxis 'y') */
-  bodyCapsule(a: THREE.Vector3, b: THREE.Vector3) {
+  bodyCapsule(a: THREE.Vector3, b: THREE.Vector3): void {
     const d = this.model.dims;
-    const m = this.bones.body.matrixWorld.elements;
+    const m = this.bBody.matrixWorld.elements;
     // body bone world matrix: columns are the body axes in world space
     const cx = m[12], cy = m[13], cz = m[14];
     const o = d.capsuleAxis === 'y' ? 4 : 8;
-    const fx = m[o] * d.bodyHalfLen, fy = m[o + 1] * d.bodyHalfLen, fz = m[o + 2] * d.bodyHalfLen;
+    const fx = m[o] * d.bodyHalfLen, fy = (m[o + 1] ?? 0) * d.bodyHalfLen, fz = (m[o + 2] ?? 0) * d.bodyHalfLen;
     a.set(cx - fx, cy - fy, cz - fz); b.set(cx + fx, cy + fy, cz + fz);
   }
 
@@ -221,14 +238,15 @@ export class Animal {
    */
   applyDamage(amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3): boolean {
     if (!this.alive) return false;
+    let dealt = amount;
     if (this.mods.damageTaken !== 1) {
       this.headWorld(_v);
       const headshot = _v.distanceToSquared(hitPoint) < (this.model.dims.headRadius * this.scale + 0.06) ** 2;
-      if (!headshot) amount = Math.max(1, Math.round(amount * this.mods.damageTaken));
+      if (!headshot) dealt = Math.max(1, Math.round(dealt * this.mods.damageTaken));
     }
     const mul = this.model.species.damageMul;
-    if (mul) amount = Math.max(1, Math.round(amount * mul(this, hitPoint, dir)));
-    this.hp -= amount;
+    if (mul !== undefined) dealt = Math.max(1, Math.round(dealt * mul(this, hitPoint, dir)));
+    this.hp -= dealt;
     this.lastHitT = performance.now();
     // flinch away from the shot: project the shot direction into body space
     const cos = Math.cos(this.yaw), sin = Math.sin(this.yaw);
@@ -242,15 +260,15 @@ export class Animal {
       this.deathT = 0; this.deathSide = lx >= 0 ? -1 : 1; // pushed over away from the shot (legs face the shooter)
       for (let l = 0; l < 4; l++) this.legAbd[l] = ((l % 2 === 0) === (this.deathSide < 0)) ? 0.35 : 0.25;
       this.desiredSpeed = 0;
-      this.onDamaged?.(this, amount, hitPoint, dir, true);
+      this.onDamaged?.(this, dealt, hitPoint, dir, true);
       return true;
     }
-    this.onDamaged?.(this, amount, hitPoint, dir, false);
+    this.onDamaged?.(this, dealt, hitPoint, dir, false);
     return false;
   }
 
   /** true while a stagger holds it: the manager skips its think, it neither steers nor walks */
-  get stunned() { return this.stunT > 0; }
+  get stunned(): boolean { return this.stunT > 0; }
 
   /**
    * A melee blow (Sword.ts calls it right after applyDamage): the animal stops dead, is shoved along `dir` (world,
@@ -258,7 +276,7 @@ export class Animal {
    * swing) up to 1.5 m / 0.8 s at 1 (the heavy). Big animals (scale > 1) are shoved proportionally less. Bolts never
    * call this, so Pine Hollow's crossbow hunting is unchanged. `onStaggered` lets the manager break a running charge.
    */
-  stagger(dir: THREE.Vector3, strength = 0) {
+  stagger(dir: THREE.Vector3, strength = 0): void {
     if (!this.alive) return;
     const s = THREE.MathUtils.clamp(strength, 0, 1);
     const running = this.speed > 1.5;
@@ -276,7 +294,7 @@ export class Animal {
   // ── per-frame ──────────────────────────────────────────────────────────────────────────
 
   /** Integrate motion and animate. `t` = global seconds; `near` = within animation LOD range. */
-  update(dt: number, t: number, near: boolean) {
+  update(dt: number, t: number, near: boolean): void {
     const d = this.model.dims;
     if (this.alive && this.stunT > 0) {
       // staggered: no steering, no gait — shoved back along the blow with an ease-out, then held
@@ -329,14 +347,16 @@ export class Animal {
     else if (s < 4.6) { const k = THREE.MathUtils.clamp((s - 2.4) / 1.2, 0, 1); gw[G_TROT] = k; gw[G_WALK] = 1 - k; }
     else { const k = THREE.MathUtils.clamp((s - 4.6) / 1.4, 0, 1); gw[G_GALLOP] = k; gw[G_TROT] = 1 - k; }
     const bl = Math.min(1, dt * 6);
+    const W = this.gaitW;
     let wsum = 0;
-    for (let i = 0; i < 5; i++) { this.gaitW[i] += (gw[i] - this.gaitW[i]) * bl; wsum += this.gaitW[i]; }
-    for (let i = 0; i < 5; i++) this.gaitW[i] /= wsum;
+    for (let i = 0; i < 5; i++) { W[i] = (W[i] ?? 0) + ((gw[i] ?? 0) - (W[i] ?? 0)) * bl; wsum += W[i] ?? 0; }
+    for (let i = 0; i < 5; i++) W[i] = (W[i] ?? 0) / wsum;
 
     // gait phase: stride frequency from speed so hooves don't slide
-    const moving = this.gaitW[G_WALK] + this.gaitW[G_TROT] + this.gaitW[G_GALLOP];
+    const wWalk = W[G_WALK] ?? 0, wTrot = W[G_TROT] ?? 0, wGallop = W[G_GALLOP] ?? 0;
+    const moving = wWalk + wTrot + wGallop;
     if (moving > 0.01 && this.alive && !this.debugGait) {
-      const g = this.gaitW[G_GALLOP] > 0.5 ? GAITS[G_GALLOP] : this.gaitW[G_TROT] > 0.5 ? GAITS[G_TROT] : GAITS[G_WALK];
+      const g = wGallop > 0.5 ? GAITS[G_GALLOP] : wTrot > 0.5 ? GAITS[G_TROT] : GAITS[G_WALK];
       const stride = 2 * d.legLen * Math.sin(g.amp) * this.scale * (g === GAITS[G_GALLOP] ? 1.9 : g === GAITS[G_TROT] ? 1.35 : 1.0);
       const freq = Math.max(0.6, Math.hypot(this.speed, this.strafe) * g.stance / stride);
       this.phase = (this.phase + freq * dt) % 1;
@@ -369,9 +389,10 @@ export class Animal {
     pose.fill(0);
     const seed = this.seed;
     // ── blended base layers ──
-    if (this.gaitW[G_IDLE] > 0.001) { this.poseIdle(t, seed); this.accumulate(this.gaitW[G_IDLE]); }
-    if (this.gaitW[G_GRAZE] > 0.001) { this.poseGraze(t, seed); this.accumulate(this.gaitW[G_GRAZE]); }
-    for (const g of [G_WALK, G_TROT, G_GALLOP]) if (this.gaitW[g] > 0.001) { this.poseGait(GAITS[g], t, seed); this.accumulate(this.gaitW[g]); }
+    const wIdle = W[G_IDLE] ?? 0, wGraze = W[G_GRAZE] ?? 0;
+    if (wIdle > 0.001) { this.poseIdle(t, seed); this.accumulate(wIdle); }
+    if (wGraze > 0.001) { this.poseGraze(t, seed); this.accumulate(wGraze); }
+    for (const g of MOVING_GAITS) { const w = W[g] ?? 0; if (w > 0.001) { this.poseGait(GAITS[g], t, seed); this.accumulate(w); } }
 
     // ── alert look-at (additive) ──
     const lookTarget = this.alive ? this.lookWeight : 0;
@@ -383,36 +404,36 @@ export class Animal {
       ly = THREE.MathUtils.clamp(ly, -1.2, 1.2);
       const dist = Math.hypot(_v.x, _v.z);
       const lp = THREE.MathUtils.clamp(-Math.atan2(_v.y - d.bodyY * 1.6, dist), -0.5, 0.5);
-      pose[P_NECK_Y] += ly * 0.55 * this.lookAmt;
-      pose[P_HEAD_Y] += ly * 0.45 * this.lookAmt;
-      pose[P_HEAD_P] += lp * this.lookAmt;
+      this.add(P_NECK_Y, ly * 0.55 * this.lookAmt);
+      this.add(P_HEAD_Y, ly * 0.45 * this.lookAmt);
+      this.add(P_HEAD_P, lp * this.lookAmt);
       // head up (lifts out of a graze), ears pricked forward, neck raised
-      pose[P_NECK1] += (-0.15 - pose[P_NECK1]) * this.lookAmt; pose[P_NECK2] += (-0.05 - pose[P_NECK2]) * this.lookAmt;
-      pose[P_HEAD_P] += (0.12 - pose[P_HEAD_P]) * this.lookAmt * 0.8;
-      pose[P_EARL_P] -= 0.35 * this.lookAmt; pose[P_EARR_P] -= 0.35 * this.lookAmt;
-      pose[P_EARL_Y] += 0.25 * this.lookAmt; pose[P_EARR_Y] -= 0.25 * this.lookAmt;
+      this.blendTo(P_NECK1, -0.15, this.lookAmt); this.blendTo(P_NECK2, -0.05, this.lookAmt);
+      this.add(P_HEAD_P, (0.12 - (pose[P_HEAD_P] ?? 0)) * this.lookAmt * 0.8);
+      this.add(P_EARL_P, -0.35 * this.lookAmt); this.add(P_EARR_P, -0.35 * this.lookAmt);
+      this.add(P_EARL_Y, 0.25 * this.lookAmt); this.add(P_EARR_Y, -0.25 * this.lookAmt);
     }
 
     // ── hit flinch (additive, decays) ──
     if (this.flinch > 0.001) {
       const f = this.flinch;
-      pose[P_BODY_ROLL] += this.flinchRoll * f;
-      pose[P_BODY_PITCH] += this.flinchPitch * f;
-      pose[P_BODY_Y] -= 0.06 * f * d.bodyY;
-      pose[P_HEAD_P] += 0.35 * f; pose[P_NECK1] -= 0.2 * f;
-      pose[P_EARL_P] += 0.5 * f; pose[P_EARR_P] += 0.5 * f;
-      pose[P_TAIL_P] -= 0.6 * f;
+      this.add(P_BODY_ROLL, this.flinchRoll * f);
+      this.add(P_BODY_PITCH, this.flinchPitch * f);
+      this.add(P_BODY_Y, -0.06 * f * d.bodyY);
+      this.add(P_HEAD_P, 0.35 * f); this.add(P_NECK1, -0.2 * f);
+      this.add(P_EARL_P, 0.5 * f); this.add(P_EARR_P, 0.5 * f);
+      this.add(P_TAIL_P, -0.6 * f);
       this.flinch *= Math.exp(-dt * 5.5);
     }
     // ── stagger brace (held for the stun, then released): hunkered low, nose down, ears pinned, tail clamped ──
     if (this.brace > 0.001) {
       const b = smooth01(this.brace);
-      pose[P_BODY_Y] -= 0.14 * b * d.bodyY;
-      pose[P_BODY_PITCH] += 0.06 * b;
-      pose[P_NECK1] += 0.28 * b; pose[P_NECK2] += 0.12 * b; pose[P_HEAD_P] += 0.25 * b;
-      pose[P_EARL_P] += 0.6 * b; pose[P_EARR_P] += 0.6 * b;
-      pose[P_TAIL_P] -= 0.7 * b;
-      for (let l = 0; l < 4; l++) pose[P_LEG + l * 3 + 1] += 0.16 * b;   // knees bent: legs take the shove
+      this.add(P_BODY_Y, -0.14 * b * d.bodyY);
+      this.add(P_BODY_PITCH, 0.06 * b);
+      this.add(P_NECK1, 0.28 * b); this.add(P_NECK2, 0.12 * b); this.add(P_HEAD_P, 0.25 * b);
+      this.add(P_EARL_P, 0.6 * b); this.add(P_EARR_P, 0.6 * b);
+      this.add(P_TAIL_P, -0.7 * b);
+      for (let l = 0; l < 4; l++) this.add(P_LEG + l * 3 + 1, 0.16 * b);   // knees bent: legs take the shove
       if (this.stunT <= 0) this.brace *= Math.exp(-dt * 7);
     }
 
@@ -447,19 +468,19 @@ export class Animal {
   }
 
   /** Show `n` of the fur-shell layers (0 = none; spread across the 8 layers so 4 still spans the coat depth). */
-  setShellLevel(n: number) {
+  setShellLevel(n: number): void {
     if (n === this.shellLevel) return;
-    if (n > 0 && !this.shells.length && this.makeShells) this.shells = this.makeShells(this);
+    if (n > 0 && this.shells.length === 0 && this.makeShells !== undefined) this.shells = this.makeShells(this);
     this.shellLevel = n;
     const N = this.shells.length;
-    for (let i = 0; i < N; i++) this.shells[i].visible = false;
+    for (const sh of this.shells) sh.visible = false;
     if (this.hidden) return;
     // pick n layers evenly spaced, always including the outermost
-    for (let j = 0; j < Math.min(n, N); j++) this.shells[Math.round(((j + 1) * N) / Math.min(n, N)) - 1].visible = true;
+    for (let j = 0; j < Math.min(n, N); j++) { const sh = this.shells[Math.round(((j + 1) * N) / Math.min(n, N)) - 1]; if (sh !== undefined) sh.visible = true; }
   }
 
   /** Fade the (dead) animal out over 1.5 s, then hide it. Used when a carcass has been harvested. */
-  fadeOut() {
+  fadeOut(): void {
     if (this.fadeT >= 0 || this.hidden) return;
     this.fadeT = 0;
     this.setShellLevel(0);
@@ -470,7 +491,7 @@ export class Animal {
     this.mesh.material = this.fadeMats;
   }
 
-  private updateFade(dt: number) {
+  private updateFade(dt: number): void {
     if (this.fadeT < 0) return;
     this.fadeT += dt / 1.5;
     const k = Math.min(1, this.fadeT);
@@ -483,25 +504,27 @@ export class Animal {
    * Corpse: measure each hoof against the terrain and swing the ground-side legs down until the hooves
    * rest on it (the top-side legs lie across the body). Called by the manager at 10 Hz for dead animals.
    */
-  settleCorpse() {
+  settleCorpse(): void {
     if (this.alive || this.deathT < 0.6 || this.custom) return;
     const side = this.deathSide;
     for (let l = 0; l < 4; l++) {
       const down = (l % 2 === 0) === (side < 0);
-      const lo = this.legDir[l][2];
-      _v.set(0, -0.11, 0).applyMatrix4(lo.matrixWorld);              // hoof tip in world space (bone matrices carry the mesh scale)
+      const leg = this.legDir[l];
+      if (leg === undefined) continue;
+      _v.set(0, -0.11, 0).applyMatrix4(leg[2].matrixWorld);          // hoof tip in world space (bone matrices carry the mesh scale)
       const clr = _v.y - heightAt(_v.x, _v.z);
       // swing the leg toward the ground while the hoof is in the air, back if it digs in; top legs only drape so far
-      this.legAbd[l] = THREE.MathUtils.clamp(this.legAbd[l] + THREE.MathUtils.clamp(clr * 1.5, -0.12, 0.12), -0.15, down ? 1.2 : 0.4);
+      this.legAbd[l] = THREE.MathUtils.clamp((this.legAbd[l] ?? 0) + THREE.MathUtils.clamp(clr * 1.5, -0.12, 0.12), -0.15, down ? 1.2 : 0.4);
     }
   }
 
   // ── pose generators (write into this.tmp) ────────────────────────────────────────────
 
-  private accumulate(w: number) { const p = this.pose, t = this.tmp; for (let i = 0; i < P_COUNT; i++) p[i] += t[i] * w; }
-  private blendTo(i: number, v: number, k: number) { this.pose[i] += (v - this.pose[i]) * k; }
+  private accumulate(w: number): void { const p = this.pose, t = this.tmp; for (let i = 0; i < P_COUNT; i++) p[i] = (p[i] ?? 0) + (t[i] ?? 0) * w; }
+  private add(i: number, v: number): void { this.pose[i] = (this.pose[i] ?? 0) + v; }
+  private blendTo(i: number, v: number, k: number): void { const cur = this.pose[i] ?? 0; this.pose[i] = cur + (v - cur) * k; }
 
-  private poseIdle(t: number, seed: number) {
+  private poseIdle(t: number, seed: number): void {
     const p = this.tmp; p.fill(0);
     const br = Math.sin(t * 1.5 + seed * 3);                        // breathing
     p[P_BODY_Y] = 0.006 * br;
@@ -524,13 +547,13 @@ export class Animal {
     p[P_LEG + 0 * 3] = 0.03; p[P_LEG + 1 * 3] = -0.03;
   }
 
-  private poseGraze(t: number, seed: number) {
+  private poseGraze(t: number, seed: number): void {
     this.poseIdle(t, seed);
     const p = this.tmp;
     const gn = this.model.species.pose?.grazeNeck ?? (this.kind === 'boar' ? 0.3 : 1);
     // head to the ground; deer (grazeNeck 1) need the whole neck down, boars (0.3) only nose down a little
     p[P_NECK1] = 0.35 + 0.85 * gn; p[P_NECK2] = 0.2 + 0.75 * gn; p[P_HEAD_P] = 0.35 + 0.35 * gn;
-    p[P_NECK_Y] *= 0.6; p[P_HEAD_Y] *= 0.4;
+    p[P_NECK_Y] = (p[P_NECK_Y] ?? 0) * 0.6; p[P_HEAD_Y] = (p[P_HEAD_Y] ?? 0) * 0.4;
     // nibbling
     const nib = Math.sin(t * 6 + seed) * 0.5 + 0.5;
     p[P_HEAD_P] += 0.05 * nib; p[P_HEAD_Y] += 0.08 * Math.sin(t * 2.2 + seed);
@@ -539,12 +562,12 @@ export class Animal {
     p[P_EARL_Y] = 0.5 + 0.3 * pulse(t, 3.1, seed); p[P_EARR_Y] = -0.5 - 0.3 * pulse(t, 4.4, seed + 0.3);
   }
 
-  private poseGait(g: GaitDef, t: number, seed: number) {
+  private poseGait(g: GaitDef, t: number, seed: number): void {
     const p = this.tmp; p.fill(0);
     const ph = this.phase;
     const gallop = g === GAITS[G_GALLOP], trot = g === GAITS[G_TROT];
     for (let l = 0; l < 4; l++) {
-      const lp = (ph + g.offsets[l]) % 1;
+      const lp = (ph + (g.offsets[l] ?? 0)) % 1;
       const front = l < 2;
       let upper: number, mid: number, lower: number;
       if (lp < g.stance) {
@@ -552,7 +575,7 @@ export class Animal {
         upper = g.amp * (1 - 2 * u);                                 // foot on the ground sweeping back
         mid = 0.12 * g.lift * Math.sin(u * Math.PI) * 0.35;
         lower = 0.1 * Math.sin(u * Math.PI);
-        if (u < 0.08 && this.lastFootPhase[l] > 0.5) this.onFootfall?.(this, gallop ? 1 : trot ? 0.6 : 0.35);
+        if (u < 0.08 && (this.lastFootPhase[l] ?? 0) > 0.5) this.onFootfall?.(this, gallop ? 1 : trot ? 0.6 : 0.35);
         this.lastFootPhase[l] = 0;
       } else {
         const v = (lp - g.stance) / (1 - g.stance);
@@ -586,7 +609,7 @@ export class Animal {
   // ── terrain adaptation ──────────────────────────────────────────────────────────────────
 
   /** Sample the slope under the body (called by the manager at 10 Hz — heightAt is not free). */
-  sampleTerrain() {
+  sampleTerrain(): void {
     const d = this.model.dims;
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
     const L = d.bodyHalfLen * 0.9 * this.scale, W = d.halfWidth * this.scale;
@@ -599,7 +622,9 @@ export class Animal {
     // per-foot delta vs the tilted body plane
     const feet = d.feet;
     for (let i = 0; i < Math.min(4, feet.length); i++) {
-      const fx = feet[i][0] * this.scale, fz = feet[i][1] * this.scale;
+      const ft = feet[i];
+      if (ft === undefined) continue;
+      const fx = ft[0] * this.scale, fz = ft[1] * this.scale;
       const wx = this.position.x + cos * fx + sin * fz, wz = this.position.z - sin * fx + cos * fz;
       const planeY = this.groundY - Math.tan(this.tiltPitchT) * fz + Math.tan(this.tiltRollT) * fx;
       this.footDeltaT[i] = THREE.MathUtils.clamp(heightAt(wx, wz) - planeY, -0.35, 0.35);
@@ -607,52 +632,55 @@ export class Animal {
   }
   private tiltPitchT = 0; private tiltRollT = 0; private footDeltaT = new Float32Array(4);
 
-  private applyTerrain(dt: number) {
+  private applyTerrain(dt: number): void {
     const k = Math.min(1, dt * 5);
     this.tiltPitch += (this.tiltPitchT - this.tiltPitch) * k;
     this.tiltRoll += (this.tiltRollT - this.tiltRoll) * k;
     let minD = 0;
     for (let i = 0; i < 4; i++) {
-      this.footDelta[i] += (this.footDeltaT[i] - this.footDelta[i]) * k;
-      minD = Math.min(minD, this.footDelta[i]);
+      this.footDelta[i] = (this.footDelta[i] ?? 0) + ((this.footDeltaT[i] ?? 0) - (this.footDelta[i] ?? 0)) * k;
+      minD = Math.min(minD, this.footDelta[i] ?? 0);
     }
     if (!this.alive || this.custom) return;
     const legLen = this.model.dims.legLen;
     const p = this.pose;
     // lower the body so the lowest hoof reaches the ground, flex knees for feet on higher ground
-    p[P_BODY_Y] += minD * 0.7;
+    p[P_BODY_Y] = (p[P_BODY_Y] ?? 0) + minD * 0.7;
     for (let i = 0; i < 4; i++) {
-      const dlt = this.footDelta[i] - minD * 0.7;
+      const dlt = (this.footDelta[i] ?? 0) - minD * 0.7;
       if (dlt > 0.005) {
         const f = Math.min(1.2, dlt / legLen) * 1.6;
-        p[P_LEG + i * 3 + 1] += f;                 // knee/hock flex
-        p[P_LEG + i * 3] += (i < 2 ? 0.25 : -0.15) * f;
-        p[P_LEG + i * 3 + 2] += (i < 2 ? 0.2 : -0.35) * f;
+        this.add(P_LEG + i * 3 + 1, f);                 // knee/hock flex
+        this.add(P_LEG + i * 3, (i < 2 ? 0.25 : -0.15) * f);
+        this.add(P_LEG + i * 3 + 2, (i < 2 ? 0.2 : -0.35) * f);
       }
     }
   }
 
   // ── apply to bones ──────────────────────────────────────────────────────────────────────
 
-  private applyPose(dt: number) {
-    const p = this.pose, b = this.bones, d = this.model.dims;
-    b.body.position.y = d.bodyY + p[P_BODY_Y];
-    b.body.rotation.set(p[P_BODY_PITCH], p[P_BODY_YAW], p[P_BODY_ROLL], 'YXZ');
-    b.neck1.rotation.set(p[P_NECK1], p[P_NECK_Y] * 0.5, 0);
-    b.neck2.rotation.set(p[P_NECK2], p[P_NECK_Y] * 0.5, 0);
-    b.head.rotation.set(p[P_HEAD_P], p[P_HEAD_Y], 0);
-    b.earL.rotation.set(-p[P_EARL_P], 0, -p[P_EARL_Y]);   // ear pitch: + = laid back
-    b.earR.rotation.set(-p[P_EARR_P], 0, -p[P_EARR_Y]);
-    b.tail.rotation.set(p[P_TAIL_P], 0, p[P_TAIL_Y]);
+  private applyPose(dt: number): void {
+    const p = this.pose, b = this.quad, d = this.model.dims;
+    if (b === null) return;
+    b.body.position.y = d.bodyY + (p[P_BODY_Y] ?? 0);
+    b.body.rotation.set(p[P_BODY_PITCH] ?? 0, p[P_BODY_YAW] ?? 0, p[P_BODY_ROLL] ?? 0, 'YXZ');
+    b.neck1.rotation.set(p[P_NECK1] ?? 0, (p[P_NECK_Y] ?? 0) * 0.5, 0);
+    b.neck2.rotation.set(p[P_NECK2] ?? 0, (p[P_NECK_Y] ?? 0) * 0.5, 0);
+    b.head.rotation.set(p[P_HEAD_P] ?? 0, p[P_HEAD_Y] ?? 0, 0);
+    b.earL.rotation.set(-(p[P_EARL_P] ?? 0), 0, -(p[P_EARL_Y] ?? 0));   // ear pitch: + = laid back
+    b.earR.rotation.set(-(p[P_EARR_P] ?? 0), 0, -(p[P_EARR_Y] ?? 0));
+    b.tail.rotation.set(p[P_TAIL_P] ?? 0, 0, p[P_TAIL_Y] ?? 0);
     const dead = !this.alive ? smooth01(Math.max(0, this.deathT)) : 0;
     for (let l = 0; l < 4; l++) {
-      const [u, m, lo] = this.legDir[l];
-      u.rotation.x = -p[P_LEG + l * 3];
-      m.rotation.x = p[P_LEG + l * 3 + 1];
-      lo.rotation.x = p[P_LEG + l * 3 + 2];
+      const leg = this.legDir[l];
+      if (leg === undefined) continue;
+      const [u, m, lo] = leg;
+      u.rotation.x = -(p[P_LEG + l * 3] ?? 0);
+      m.rotation.x = p[P_LEG + l * 3 + 1] ?? 0;
+      lo.rotation.x = p[P_LEG + l * 3 + 2] ?? 0;
       // corpse: legs swing toward the ground (settled per hoof by settleCorpse); ground is local +X when the
       // body rolled onto its left side (side < 0), local -X otherwise
-      u.rotation.z = dead * this.legAbd[l] * (this.deathSide < 0 ? 1 : -1);
+      u.rotation.z = dead * (this.legAbd[l] ?? 0) * (this.deathSide < 0 ? 1 : -1);
     }
     // breathing: the belly bone swells (visible at a few metres), faster after running
     if (this.alive) {
@@ -665,7 +693,7 @@ export class Animal {
   }
   private breathPhase = 0;
 
-  private applyRoot() {
+  private applyRoot(): void {
     const m = this.mesh;
     m.position.copy(this.position);
     m.rotation.set(this.tiltPitch, this.yaw, this.tiltRoll, 'YXZ');

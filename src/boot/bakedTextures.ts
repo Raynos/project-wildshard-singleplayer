@@ -69,7 +69,7 @@ export function bakedTexture(name: string, make: () => THREE.Texture, opts: { lo
     return t;
   }
   const t = make();
-  if (BAKE_EXPORT) exported.set(name, { texture: t, lossless: !!opts.lossless });
+  if (BAKE_EXPORT) exported.set(name, { texture: t, lossless: Boolean(opts.lossless) });
   return t;
 }
 
@@ -80,16 +80,17 @@ function exportAll(): Record<string, { dataUrl: string; lossless: boolean; width
     const img = texture.image as HTMLCanvasElement | ImageBitmap | { data: Uint8Array | Uint8ClampedArray; width: number; height: number };
     const canvas = document.createElement('canvas');
     canvas.width = img.width; canvas.height = img.height;
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+    if (ctx === null) throw new Error('bake export: no 2d canvas context');
     if ('data' in img && !(img instanceof HTMLCanvasElement)) {
       const id = ctx.createImageData(img.width, img.height);
       const src = img.data;
       // a DataTexture's rows start at the bottom (flipY false); a file's start at the top
-      if (texture.flipY) id.data.set(src as unknown as Uint8ClampedArray);
+      if (texture.flipY) id.data.set(src);
       else for (let y = 0; y < img.height; y++) id.data.set((src as Uint8Array).subarray((img.height - 1 - y) * img.width * 4, (img.height - y) * img.width * 4), y * img.width * 4);
       ctx.putImageData(id, 0, 0);
     } else {
-      ctx.drawImage(img as CanvasImageSource, 0, 0);
+      ctx.drawImage(img, 0, 0);
     }
     out[name] = { dataUrl: canvas.toDataURL(lossless ? 'image/png' : 'image/jpeg', 0.92), lossless, width: img.width, height: img.height };
   }

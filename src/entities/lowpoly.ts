@@ -30,9 +30,9 @@ export function facetGeometry(geo: THREE.BufferGeometry, jitter = 0.12): THREE.B
   const g = geo.toNonIndexed();
   geo.dispose();
   g.computeVertexNormals();
-  const col = g.attributes.color as THREE.BufferAttribute;
-  const pos = g.attributes.position as THREE.BufferAttribute;
-  const skip = (v: number) => g.groups.some((gr) => NO_JITTER_GROUPS.has(gr.materialIndex ?? 0) && v >= gr.start && v < gr.start + gr.count);
+  const col = g.attributes['color'] as THREE.BufferAttribute;
+  const pos = g.attributes['position'] as THREE.BufferAttribute;
+  const skip = (v: number): boolean => g.groups.some((gr) => NO_JITTER_GROUPS.has(gr.materialIndex ?? 0) && v >= gr.start && v < gr.start + gr.count);
   for (let v = 0; v < pos.count; v += 3) {
     if (skip(v)) continue;
     // deterministic per-face hash from the centroid so instances of the same model match
@@ -44,7 +44,7 @@ export function facetGeometry(geo: THREE.BufferGeometry, jitter = 0.12): THREE.B
     for (let k = 0; k < 3; k++) col.setXYZ(v + k, col.getX(v + k) * m, col.getY(v + k) * m, col.getZ(v + k) * m);
   }
   g.computeBoundingSphere();
-  g.boundingSphere!.radius += 0.6;
+  if (g.boundingSphere !== null) g.boundingSphere.radius += 0.6;
   g.computeBoundingBox();
   return g;
 }
@@ -58,14 +58,14 @@ const scaled = (c: RGB3, k: number, warm = 1): THREE.Color => srgb(Math.min(1, c
  */
 export function boarPaintLow(v?: VariantDef): Paint {
   const t = v?.tint ?? {};
-  const baseC: RGB3 = t.base ?? [0.40, 0.255, 0.18];
+  const baseC: RGB3 = t['base'] ?? [0.40, 0.255, 0.18];
   const base = srgb(...baseC), back = scaled(baseC, 1.45, 1.04), belly = scaled(baseC, 0.66);
   const cheek = scaled(baseC, 1.32, 1.03), muzzle = scaled(baseC, 0.8);
-  const leg = scaled(baseC, 0.72), legDark = scaled(baseC, 0.42), hoof = srgb(...(t.hoof ?? [0.14, 0.10, 0.09]));
+  const leg = scaled(baseC, 0.72), legDark = scaled(baseC, 0.42), hoof = srgb(...(t['hoof'] ?? [0.14, 0.10, 0.09]));
   const crest = scaled(baseC, 1.2, 1.04), crestTip = scaled(baseC, 1.75, 1.08), earIn = srgb(0.52, 0.32, 0.30);
-  const snout = srgb(...(t.snout ?? [0.66, 0.40, 0.38]));
-  const tuskC: RGB3 = t.tusk ?? [0.95, 0.91, 0.80];
-  const tusk = srgb(...tuskC), tuskRoot = scaled(tuskC, 0.72), eye = srgb(...(t.eye ?? [0.02, 0.015, 0.01])), tail = scaled(baseC, 0.6);
+  const snout = srgb(...(t['snout'] ?? [0.66, 0.40, 0.38]));
+  const tuskC: RGB3 = t['tusk'] ?? [0.95, 0.91, 0.80];
+  const tusk = srgb(...tuskC), tuskRoot = scaled(tuskC, 0.72), eye = srgb(...(t['eye'] ?? [0.02, 0.015, 0.01])), tail = scaled(baseC, 0.6);
   return (out, x, y, _z, nx, ny, _nz, part, tt) => {
     switch (part) {
       case 'body':
@@ -96,13 +96,13 @@ export function boarPaintLow(v?: VariantDef): Paint {
 /** Driftwood Isle deer: tan pastel body, cream belly / throat / rump, dark hooves and nose, bone antlers. */
 export function deerPaintLow(v?: VariantDef): Paint {
   const t = v?.tint ?? {};
-  const bodyC: RGB3 = t.body ?? [0.62, 0.46, 0.30];
+  const bodyC: RGB3 = t['body'] ?? [0.62, 0.46, 0.30];
   const body = srgb(...bodyC), back = scaled(bodyC, 0.82), neck = scaled(bodyC, 0.94), muzzle = scaled(bodyC, 0.74);
-  const belly = srgb(...(t.belly ?? [0.86, 0.78, 0.62])), rump = scaled(t.belly ?? [0.86, 0.78, 0.62], 0.97);
-  const nose = srgb(...(t.nose ?? [0.10, 0.08, 0.07])), earIn = srgb(0.80, 0.70, 0.58);
-  const leg = scaled(bodyC, 0.84), legDark = scaled(bodyC, 0.55), hoof = srgb(...(t.hoof ?? [0.12, 0.09, 0.08]));
-  const antlerC: RGB3 = t.antler ?? [0.55, 0.44, 0.32];
-  const antler = srgb(...antlerC), antlerTip = scaled(antlerC, 1.55), eye = srgb(...(t.eye ?? [0.02, 0.015, 0.01]));
+  const belly = srgb(...(t['belly'] ?? [0.86, 0.78, 0.62])), rump = scaled(t['belly'] ?? [0.86, 0.78, 0.62], 0.97);
+  const nose = srgb(...(t['nose'] ?? [0.10, 0.08, 0.07])), earIn = srgb(0.80, 0.70, 0.58);
+  const leg = scaled(bodyC, 0.84), legDark = scaled(bodyC, 0.55), hoof = srgb(...(t['hoof'] ?? [0.12, 0.09, 0.08]));
+  const antlerC: RGB3 = t['antler'] ?? [0.55, 0.44, 0.32];
+  const antler = srgb(...antlerC), antlerTip = scaled(antlerC, 1.55), eye = srgb(...(t['eye'] ?? [0.02, 0.015, 0.01]));
   return (out, x, y, z, nx, ny, _nz, part, tt) => {
     switch (part) {
       case 'body': {
@@ -140,17 +140,17 @@ export function deerPaintLow(v?: VariantDef): Paint {
  */
 export function bearPaintLow(v?: VariantDef): Paint {
   const t = v?.tint ?? {};
-  const baseC: RGB3 = t.base ?? [0.075, 0.062, 0.055];
+  const baseC: RGB3 = t['base'] ?? [0.075, 0.062, 0.055];
   const black = baseC[0] < 0.15;
   // a black bear's low-poly base is lifted to a warm charcoal so its facets still show
   const bC: RGB3 = black ? [baseC[0] * 2.2 + 0.05, baseC[1] * 2.0 + 0.045, baseC[2] * 1.9 + 0.045] : baseC;
-  const base = srgb(...bC), tip = srgb(...(t.tip ?? (black ? [0.30, 0.25, 0.21] : [0.68, 0.56, 0.40])));
-  const dark = scaled(bC, 0.55), belly = scaled(bC, 0.62), muzzle = srgb(...(t.muzzle ?? [0.46, 0.34, 0.23]));
-  const blaze = srgb(...(t.blaze ?? [0.85, 0.78, 0.62])), nose = srgb(...(t.nose ?? [0.05, 0.04, 0.04]));
-  const claw = srgb(...(t.claw ?? (black ? [0.16, 0.14, 0.12] : [0.6, 0.53, 0.42]))), pad = srgb(...(t.pad ?? [0.12, 0.09, 0.08]));
-  const eye = srgb(...(t.eye ?? [0.02, 0.015, 0.01])), earIn = scaled(bC, 0.8);
-  const hasBlaze = !!v?.traits?.blaze;
-  const grizzle = Number(v?.traits?.grizzle ?? 0.35);
+  const base = srgb(...bC), tip = srgb(...(t['tip'] ?? (black ? [0.30, 0.25, 0.21] : [0.68, 0.56, 0.40])));
+  const dark = scaled(bC, 0.55), belly = scaled(bC, 0.62), muzzle = srgb(...(t['muzzle'] ?? [0.46, 0.34, 0.23]));
+  const blaze = srgb(...(t['blaze'] ?? [0.85, 0.78, 0.62])), nose = srgb(...(t['nose'] ?? [0.05, 0.04, 0.04]));
+  const claw = srgb(...(t['claw'] ?? (black ? [0.16, 0.14, 0.12] : [0.6, 0.53, 0.42]))), pad = srgb(...(t['pad'] ?? [0.12, 0.09, 0.08]));
+  const eye = srgb(...(t['eye'] ?? [0.02, 0.015, 0.01])), earIn = scaled(bC, 0.8);
+  const hasBlaze = Boolean(v?.traits?.['blaze']);
+  const grizzle = Number(v?.traits?.['grizzle'] ?? 0.35);
   return (out, x, y, z, nx, ny, nz, part, tt) => {
     switch (part) {
       case 'body':
@@ -187,13 +187,17 @@ export function crestSpikes(pts: [number, number, number, number, number, number
   const out: THREE.BufferGeometry[] = [];
   const P = pts.filter((p) => p[2] >= 0.03).sort((a, b) => a[0] - b[0]);   // rear → front
   if (P.length < 2) return out;
-  const z0 = P[0][0], z1 = P[P.length - 1][0], step = 0.082;
+  const first = P[0], last = P[P.length - 1];
+  if (first === undefined || last === undefined) return out;
+  const z0 = first[0], z1 = last[0], step = 0.082;
   const n = Math.max(2, Math.round((z1 - z0) / step));
   for (let i = 0; i <= n; i++) {
     const z = z0 + ((z1 - z0) * i) / n;
     let k = 0;
-    while (k < P.length - 2 && P[k + 1][0] < z) k++;
-    const a = P[k], b = P[k + 1], u = THREE.MathUtils.clamp((z - a[0]) / Math.max(1e-4, b[0] - a[0]), 0, 1);
+    while (k < P.length - 2 && (P[k + 1]?.[0] ?? Infinity) < z) k++;
+    const a = P[k], b = P[k + 1];
+    if (a === undefined || b === undefined) continue;
+    const u = THREE.MathUtils.clamp((z - a[0]) / Math.max(1e-4, b[0] - a[0]), 0, 1);
     const y = a[1] + (b[1] - a[1]) * u, ry = a[2] + (b[2] - a[2]) * u;
     const near = u < 0.5 ? a : b;
     // the PBR fin sits mostly inside the back (its fur shells do the work); the spikes start at the skin

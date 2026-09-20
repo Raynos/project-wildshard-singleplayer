@@ -52,8 +52,8 @@ export interface SwVersion {
 export interface WsSw {
   ready: Promise<void>;
   waiting: ServiceWorker | null;
-  adopt(): Promise<void>;
-  version(): Promise<SwVersion | null>;
+  adopt: () => Promise<void>;
+  version: () => Promise<SwVersion | null>;
 }
 
 declare global {
@@ -63,6 +63,9 @@ declare global {
 }
 
 const sw = typeof navigator === 'undefined' ? null : navigator.serviceWorker;
+
+// declared ahead of the functions that read it (they only run after registration; `boot()` is hoisted)
+const api: WsSw = { ready: boot(), waiting: null, adopt, version };
 
 function swAllowed(): boolean {
   if (!sw) return false;
@@ -80,7 +83,7 @@ function announce(w: ServiceWorker): void {
 function watch(reg: ServiceWorkerRegistration): void {
   const track = (w: ServiceWorker | null): void => {
     if (!w) return;
-    if (w.state === 'installed') return announce(w);
+    if (w.state === 'installed') { announce(w); return; }
     w.addEventListener('statechange', () => {
       if (w.state === 'installed' && sw?.controller) announce(w);
     });
@@ -103,13 +106,14 @@ async function adopt(): Promise<void> {
       },
       { once: true },
     );
+    // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter (that is Window.postMessage)
     w.postMessage({ type: 'SKIP_WAITING' });
   });
 }
 
-async function version(): Promise<SwVersion | null> {
+function version(): Promise<SwVersion | null> {
   const ctl = sw?.controller;
-  if (!ctl) return null;
+  if (!ctl) return Promise.resolve(null);
   return new Promise<SwVersion | null>((resolve) => {
     const ch = new MessageChannel();
     const timer = setTimeout(() => resolve(null), CAP_MS);
@@ -122,38 +126,37 @@ async function version(): Promise<SwVersion | null> {
 }
 
 function boot(): Promise<void> {
-  if (!swAllowed()) {
+  if (!sw || !swAllowed()) {
     // `?sw=0` / dev: make sure no earlier worker keeps serving a stale bundle underneath us.
     void sw?.getRegistrations().then((rs) => Promise.all(rs.map((r) => r.unregister()))).catch(() => undefined);
     return Promise.resolve();
   }
-  const s = sw!;
+  const s = sw;
   return new Promise<void>((resolve) => {
     const timer = setTimeout(resolve, CAP_MS);
-    const done = (): void => {
+    const settle = (): void => {
       clearTimeout(timer);
       resolve();
     };
-    const url = import.meta.env.DEV ? '/sw.js?sw=1' : '/sw.js';
-    void s.register(url, { scope: '/' }).then(
-      (reg) => {
-        watch(reg);
-        // Standalone installs live for days: keep discovering updates so the pill can offer them.
-        document.addEventListener('visibilitychange', () => {
-          if (!document.hidden) void reg.update().catch(() => undefined);
-        });
-        // First visit (or an evicted worker): wait for `clients.claim()`, so the boot's own bytes are cached.
-        if (!s.controller) s.addEventListener('controllerchange', done, { once: true });
-        else done();
-      },
-      () => done(),
-    );
+    void register(s, settle);
   });
 }
 
-const api: WsSw = { ready: boot(), waiting: null, adopt, version };
+async function register(s: ServiceWorkerContainer, settle: () => void): Promise<void> {
+  const url = import.meta.env.DEV ? '/sw.js?sw=1' : '/sw.js';
+  let reg: ServiceWorkerRegistration;
+  try { reg = await s.register(url, { scope: '/' }); } catch { settle(); return; }
+  watch(reg);
+  // Standalone installs live for days: keep discovering updates so the pill can offer them.
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) void reg.update().catch(() => undefined);
+  });
+  // First visit (or an evicted worker): wait for `clients.claim()`, so the boot's own bytes are cached.
+  if (!s.controller) s.addEventListener('controllerchange', settle, { once: true });
+  else settle();
+}
+
 if (typeof window !== 'undefined') window.__ws_sw = api;
 
 export const swReady = api.ready;
-export { adopt as swAdopt, version as swVersion };
-export default api;
+export { adopt as swAdopt, version as swVersion, api as wsSw };

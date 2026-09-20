@@ -39,16 +39,16 @@ import type { Weapon } from './Weapon';
  */
 
 export interface TargetAnimal {
-  applyDamage(amount: number, point: THREE.Vector3, dir: THREE.Vector3): boolean;
+  applyDamage: (amount: number, point: THREE.Vector3, dir: THREE.Vector3) => boolean;
   /** the damage model's number for a bolt: headshot ×2.5, body 32–40 with distance falloff (src/entities/Animal.ts) */
-  damageFor(headshot: boolean, dist: number): number;
+  damageFor: (headshot: boolean, dist: number) => number;
   /** species id (`Animal.kind`, any registered species — 'deer', 'boar', variants …) */
   kind: string;
   position: THREE.Vector3;
   alive: boolean;
 }
 export interface TargetHit { animal: TargetAnimal; point: THREE.Vector3; distance: number; headshot: boolean }
-export interface Targets { raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null }
+export interface Targets { raycast: (origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number) => TargetHit | null }
 export type ImpactSurface = 'wood' | 'ground' | 'flesh';
 export interface CrossbowWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 export interface CrossbowOptions { allowUnlocked?: boolean }
@@ -86,7 +86,7 @@ export const TRACER_ORDER = 1200; // after the viewmodel (1000) so the trail's f
 export const FOV_HIP = 72, FOV_ADS = 58; // ADS zooms 1.3× (tan 36° / 1.3 → 29.1° half-angle); the pose solve re-runs per FOV so the sight stays centred
 /** Vertical FOV to give the camera. Three's fov is vertical, so on a portrait phone a fixed 72° collapses the
  *  horizontal view to ~37°; widen it (Hor+ via the geometric mean of the aspect) so 72° hip → ~94° at 9:19.5. */
-export function fovForAspect(base: number, aspect: number) {
+export function fovForAspect(base: number, aspect: number): number {
   if (aspect >= 1) return base;
   return THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(base) / 2) / Math.sqrt(aspect)));
 }
@@ -107,7 +107,8 @@ const PEEP_Z = 0.10, PEEP_R = 0.01, PEEP_TUBE = 0.12, PEEP_R_WORLD = 0.0105, PEE
 
 // ───────────────────────────── procedural noise / textures ─────────────────────────────
 
-export function makeNoise(seed: number) {
+export interface Noise { hash: (x: number, y: number) => number; n: (x: number, y: number) => number; fbm: (x: number, y: number, oct?: number) => number }
+export function makeNoise(seed: number): Noise {
   const hash = (x: number, y: number) => {
     let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(seed, 1442695041)) | 0;
     h = Math.imul(h ^ (h >>> 13), 1274126177);
@@ -127,8 +128,8 @@ export function makeNoise(seed: number) {
   };
   return { hash, n, fbm };
 }
-export const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
-export const sstep = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+export const clamp01 = (v: number): number => (v < 0 ? 0 : Math.min(1, v));
+export const sstep = (a: number, b: number, x: number): number => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 
 export function dataTexture(data: Uint8Array, w: number, h: number, srgb: boolean, repeat = 1): THREE.DataTexture {
   const t = new THREE.DataTexture(data, w, h, THREE.RGBAFormat);
@@ -146,8 +147,8 @@ export function dataTexture(data: Uint8Array, w: number, h: number, srgb: boolea
 export function normalFromHeight(h: Float32Array, w: number, hgt: number, strength: number): THREE.DataTexture {
   const out = new Uint8Array(w * hgt * 4);
   for (let y = 0; y < hgt; y++) for (let x = 0; x < w; x++) {
-    const l = h[y * w + ((x + w - 1) % w)], r = h[y * w + ((x + 1) % w)];
-    const d = h[((y + hgt - 1) % hgt) * w + x], u = h[((y + 1) % hgt) * w + x];
+    const l = h[y * w + ((x + w - 1) % w)] ?? 0, r = h[y * w + ((x + 1) % w)] ?? 0;
+    const d = h[((y + hgt - 1) % hgt) * w + x] ?? 0, u = h[((y + 1) % hgt) * w + x] ?? 0;
     let nx = -(r - l) * strength, ny = -(u - d) * strength, nz = 1;
     const len = Math.hypot(nx, ny, nz); nx /= len; ny /= len; nz /= len;
     const i = (y * w + x) * 4;
@@ -175,7 +176,7 @@ function makeWalnut(seed: number): TexSet {
     const fleck = hash(x, y);
     const lum = (1 - band * 0.55) * (0.72 + fine * 0.5) * (0.82 + smudge * 0.32) * (0.96 + fleck * 0.08);
     const i = (y * W + x) * 4;
-    for (let c = 0; c < 3; c++) col[i + c] = clamp01((dark[c] + (light[c] - dark[c]) * lum) / 255) * 255;
+    for (let c = 0; c < 3; c++) { const dk = dark[c] ?? 0, lt = light[c] ?? 0; col[i + c] = clamp01((dk + (lt - dk) * lum) / 255) * 255; }
     col[i + 3] = 255;
     const rough = clamp01(0.74 + band * 0.12 + (fine - 0.5) * 0.14 - smudge * 0.08);
     arm[i] = (1 - band * 0.1) * 255; arm[i + 1] = rough * 255; arm[i + 2] = 0; arm[i + 3] = 255;
@@ -189,7 +190,8 @@ export function makeSteel(seed: number): TexSet {
   const S = 512;
   const { fbm, hash } = makeNoise(seed);
   const cvs = document.createElement('canvas'); cvs.width = cvs.height = S;
-  const ctx = cvs.getContext('2d')!;
+  const ctx = cvs.getContext('2d');
+  if (ctx === null) throw new Error('makeSteel: no 2d canvas context');
   const img = ctx.createImageData(S, S);
   const roughBase = new Float32Array(S * S), hgt = new Float32Array(S * S);
   for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
@@ -212,19 +214,20 @@ export function makeSteel(seed: number): TexSet {
   }
   for (let k = 0; k < 90; k++) {
     const x0 = rnd(k + 9000) * S, y0 = rnd(k + 9500) * S, r = 1 + rnd(k + 9800) * 3.5;
-    ctx.fillStyle = `rgba(${70 + rnd(k) * 40},${45 + rnd(k) * 25},${28},${0.35 + rnd(k + 300) * 0.4})`;
+    ctx.fillStyle = `rgba(${70 + rnd(k) * 40},${45 + rnd(k) * 25},28,${0.35 + rnd(k + 300) * 0.4})`;
     ctx.beginPath(); ctx.arc(x0, y0, r, 0, Math.PI * 2); ctx.fill();
   }
   const final = ctx.getImageData(0, 0, S, S).data;
   const col = new Uint8Array(S * S * 4), arm = new Uint8Array(S * S * 4);
   for (let p = 0; p < S * S; p++) {
     const i = p * 4;
-    col[i] = final[i]; col[i + 1] = final[i + 1]; col[i + 2] = final[i + 2]; col[i + 3] = 255;
-    const bright = (final[i] + final[i + 1] + final[i + 2]) / (3 * 128); // scratches are bright, pits dark
-    const rusty = final[i] > final[i + 2] + 12 ? 1 : 0;
-    const rough = clamp01(roughBase[p] + Math.max(0, bright - 1.05) * 0.5 + rusty * 0.45);
+    const fr = final[i] ?? 0, fg = final[i + 1] ?? 0, fb = final[i + 2] ?? 0;
+    col[i] = fr; col[i + 1] = fg; col[i + 2] = fb; col[i + 3] = 255;
+    const bright = (fr + fg + fb) / (3 * 128); // scratches are bright, pits dark
+    const rusty = fr > fb + 12 ? 1 : 0;
+    const rough = clamp01((roughBase[p] ?? 0) + Math.max(0, bright - 1.05) * 0.5 + rusty * 0.45);
     arm[i] = (1 - rusty * 0.35) * 255; arm[i + 1] = rough * 255; arm[i + 2] = (1 - rusty * 0.6) * 255; arm[i + 3] = 255;
-    hgt[p] += (bright - 1) * 0.6 - rusty * 0.8;
+    hgt[p] = (hgt[p] ?? 0) + (bright - 1) * 0.6 - rusty * 0.8;
   }
   return { map: dataTexture(col, S, S, true), normalMap: normalFromHeight(hgt, S, S, 1.4), armMap: dataTexture(arm, S, S, false) };
 }
@@ -273,7 +276,7 @@ function makeBoltAtlas(seed: number): TexSet {
   const col = new Uint8Array(S * S * 4), arm = new Uint8Array(S * S * 4), hgt = new Float32Array(S * S);
   for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
     const u = x / S, v = y / S, i = (y * S + x) * 4;
-    let r = 0, g = 0, b = 0, a = 255, rough = 0.6, metal = 0, ao = 1, h = 0;
+    let r: number, g: number, b: number, a = 255, rough: number, metal = 0, h: number; const ao = 1;
     if (v < 0.5) { // iron shaft: drawn/forged steel, fine longitudinal scratches, a little bluing
       const grain = fbm(u * 80, v * 4, 3), scratch = fbm(u * 260, v * 3, 2), mottle = fbm(u * 6, v * 12, 2);
       const lum = 0.42 + (grain - 0.5) * 0.22 + (scratch - 0.5) * 0.12 + (mottle - 0.5) * 0.1;
@@ -284,7 +287,7 @@ function makeBoltAtlas(seed: number): TexSet {
       r = 255 * lum * 0.97; g = 255 * lum; b = 255 * lum * 1.03; rough = 0.28 + (m - 0.5) * 0.25 + (scratch - 0.5) * 0.2; metal = 1; h = m * 0.5;
     } else { // feather: vane shape centred, barbs
       const lu = (u - 0.5) * 2, lv = (v - 0.5) * 2; // 0..1 each
-      const edge = 0.92 - Math.pow(lu, 1.6) * 0.75; // trailing edge profile
+      const edge = 0.92 - lu ** 1.6 * 0.75; // trailing edge profile
       const inside = lv < edge && lv > 0.04 && lu > 0.02 && lu < 0.98;
       const barb = Math.sin((lv * 24 + lu * 8) * Math.PI * 2) * 0.5 + 0.5;
       const stripe = lu > 0.35 && lu < 0.55 ? 0.35 : 1;
@@ -315,14 +318,17 @@ const DFG_FIX = /* glsl */`
 }
 #endif
 #include <lights_fragment_begin>`;
-export function fixIBL(mat: THREE.Material, name: string) {
+export function fixIBL(mat: THREE.Material, name: string): void {
+  // oxlint-disable-next-line typescript/unbound-method -- the previous hook is deliberately captured and re-invoked with `.call(this)` below
   const prev = mat.onBeforeCompile;
-  mat.onBeforeCompile = function (shader, renderer) {
+  mat.onBeforeCompile = function onBeforeCompile(shader, renderer) {
     prev.call(this, shader, renderer);
     shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_begin>', DFG_FIX);
   };
-  mat.customProgramCacheKey = () => name + '|dfgfix';
+  mat.customProgramCacheKey = () => `${name}|dfgfix`;
 }
+/** `Mesh` type guard for `Object3D.traverse` callbacks (three sets `isMesh` on every Mesh) */
+export function isMesh(o: THREE.Object3D): o is THREE.Mesh { return 'isMesh' in o; }
 
 // ───────────────────────────── geometry helpers ─────────────────────────────
 
@@ -331,17 +337,18 @@ function sweepRect(curve: THREE.Curve<THREE.Vector3>, segs: number, halfW: (t: n
   const up = new THREE.Vector3(0, 1, 0);
   const pos: number[] = [], nrm: number[] = [], uv: number[] = [], idx: number[] = [], col: number[] = [];
   const p = new THREE.Vector3(), T = new THREE.Vector3(), N = new THREE.Vector3(), B = new THREE.Vector3();
-  const faces = [[1, 1], [1, -1], [-1, -1], [-1, 1]]; // corners in (N, B) space, ring order
+  const faces: readonly (readonly [number, number])[] = [[1, 1], [1, -1], [-1, -1], [-1, 1]]; // corners in (N, B) space, ring order
   const c = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
   for (let s = 0; s <= segs; s++) {
     const t = s / segs;
     curve.getPointAt(t, p); curve.getTangentAt(t, T);
     N.crossVectors(T, up).normalize(); B.crossVectors(N, T).normalize();
     const hw = halfW(t), hh = halfH(t);
-    for (let k = 0; k < 4; k++) c[k].copy(p).addScaledVector(N, faces[k][0] * hw).addScaledVector(B, faces[k][1] * hh);
+    for (let k = 0; k < 4; k++) { const ck = c[k], fk = faces[k]; if (ck === undefined || fk === undefined) continue; ck.copy(p).addScaledVector(N, fk[0] * hw).addScaledVector(B, fk[1] * hh); }
     // four faces, each with two verts per ring (hard edges)
     for (let f = 0; f < 4; f++) {
       const a = c[f], b = c[(f + 1) % 4];
+      if (a === undefined || b === undefined) continue;
       const fn = new THREE.Vector3().subVectors(b, a).cross(T).normalize().negate();
       pos.push(a.x, a.y, a.z, b.x, b.y, b.z); nrm.push(fn.x, fn.y, fn.z, fn.x, fn.y, fn.z); uv.push(t * 6, 0, t * 6, 1);
       const wear = (f % 2 === 1 ? 0.8 : 0.28) * (0.85 + 0.3 * Math.abs(Math.sin(t * 23 + f))); // edges worn bright, flats blackened
@@ -391,7 +398,7 @@ function remapUV(g: THREE.BufferGeometry, u0: number, v0: number, su: number, sv
   return g;
 }
 /** Lighten vertex colour on bevel/edge vertices (normals off-axis) → worn, handled edges. */
-export function edgeWear(g: THREE.BufferGeometry, amount = 0.28) {
+export function edgeWear(g: THREE.BufferGeometry, amount = 0.28): void {
   const n = g.getAttribute('normal'), count = n.count;
   const colors = new Float32Array(count * 3);
   for (let i = 0; i < count; i++) {
@@ -403,8 +410,8 @@ export function edgeWear(g: THREE.BufferGeometry, amount = 0.28) {
   }
   g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 }
-export function stripExtra(g: THREE.BufferGeometry) { // non-indexed, only position/normal/uv, so merge works
-  if (g.index) g = g.toNonIndexed();
+export function stripExtra(geo: THREE.BufferGeometry): THREE.BufferGeometry { // non-indexed, only position/normal/uv, so merge works
+  const g = geo.index ? geo.toNonIndexed() : geo;
   for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal' && k !== 'uv') g.deleteAttribute(k);
   return g;
 }
@@ -431,7 +438,7 @@ function buildBoltGeometry(): THREE.BufferGeometry {
     vane.translate(0, 0, L / 2 - 0.06);
     parts.push(remapUV(vane, 0.5, 0.5, 0.5, 0.5));
   }
-  const g = mergeGeometries(parts.map(stripExtra), false)!;
+  const g = mergeGeometries(parts.map(stripExtra), false);
   g.computeBoundingSphere();
   return g;
 }
@@ -448,6 +455,7 @@ export class Puffs {
   private posAttr: THREE.BufferAttribute; private alphaAttr: THREE.BufferAttribute; private sizeAttr: THREE.BufferAttribute; private colAttr: THREE.BufferAttribute;
   private cursor = 0;
   private mat: THREE.ShaderMaterial;
+  private uScale: THREE.IUniform<number> = { value: 400 };
   private tmpSize = new THREE.Vector2();
   private rnd = () => Math.random();
 
@@ -461,7 +469,7 @@ export class Puffs {
     this.posAttr.setUsage(THREE.DynamicDrawUsage); this.alphaAttr.setUsage(THREE.DynamicDrawUsage); this.sizeAttr.setUsage(THREE.DynamicDrawUsage);
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
     this.mat = new THREE.ShaderMaterial({
-      uniforms: { uScale: { value: 400 } },
+      uniforms: { uScale: this.uScale },
       vertexShader: `attribute float aSize; attribute float aAlpha; attribute vec3 aColor; varying float vA; varying vec3 vC; uniform float uScale;
         void main(){ vA = aAlpha; vC = aColor; vec4 mv = modelViewMatrix * vec4(position,1.0); gl_PointSize = aSize * uScale / max(0.05,-mv.z); gl_Position = projectionMatrix * mv; }`,
       fragmentShader: `varying float vA; varying vec3 vC; void main(){ vec2 d = gl_PointCoord - 0.5; float r = dot(d,d)*4.0; if (r > 1.0 || vA <= 0.001) discard; float a = (1.0 - r) * (1.0 - r) * vA; gl_FragColor = vec4(vC, a); }`,
@@ -473,7 +481,7 @@ export class Puffs {
   }
 
   private tmpN = new THREE.Vector3();
-  emit(point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface) {
+  emit(point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface): void {
     const n = this.tmpN.copy(dir).negate();
     const cr = surface === 'flesh' ? 0.32 : surface === 'wood' ? 0.58 : 0.42;
     const cg = surface === 'flesh' ? 0.05 : surface === 'wood' ? 0.44 : 0.36;
@@ -494,20 +502,23 @@ export class Puffs {
     this.colAttr.needsUpdate = true;
   }
 
-  update(dt: number, renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera) {
+  update(dt: number, renderer: THREE.WebGLRenderer, camera: THREE.PerspectiveCamera): void {
     renderer.getDrawingBufferSize(this.tmpSize);
-    this.mat.uniforms.uScale.value = this.tmpSize.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+    this.uScale.value = this.tmpSize.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
     let any = false;
+    const pos = this.pos, vel = this.vel;
     for (let i = 0; i < MAX_PARTICLES; i++) {
-      if (this.life[i] <= 0) continue;
+      const life0 = this.life[i] ?? 0;
+      if (life0 <= 0) continue;
       any = true;
-      this.life[i] -= dt;
-      const g = this.life[i] > 0 ? this.life[i] / this.maxLife[i] : 0;
-      this.vel[i * 3 + 1] -= 3.5 * dt;
-      this.vel[i * 3] *= 0.94; this.vel[i * 3 + 1] *= 0.94; this.vel[i * 3 + 2] *= 0.94;
-      this.pos[i * 3] += this.vel[i * 3] * dt; this.pos[i * 3 + 1] += this.vel[i * 3 + 1] * dt; this.pos[i * 3 + 2] += this.vel[i * 3 + 2] * dt;
+      const life = life0 - dt; this.life[i] = life;
+      const g = life > 0 ? life / (this.maxLife[i] ?? 1) : 0;
+      const j = i * 3;
+      const vx = (vel[j] ?? 0) * 0.94, vy = ((vel[j + 1] ?? 0) - 3.5 * dt) * 0.94, vz = (vel[j + 2] ?? 0) * 0.94;
+      vel[j] = vx; vel[j + 1] = vy; vel[j + 2] = vz;
+      pos[j] = (pos[j] ?? 0) + vx * dt; pos[j + 1] = (pos[j + 1] ?? 0) + vy * dt; pos[j + 2] = (pos[j + 2] ?? 0) + vz * dt;
       this.alpha[i] = g * 0.85;
-      this.size[i] += dt * 0.06;
+      this.size[i] = (this.size[i] ?? 0) + dt * 0.06;
     }
     if (any) { this.posAttr.needsUpdate = true; this.alphaAttr.needsUpdate = true; this.sizeAttr.needsUpdate = true; }
   }
@@ -538,7 +549,7 @@ class Tracer {
     this.buf = new Float32Array((TRACER_POINTS - 1) * 6);
     this.geo = new LineSegmentsGeometry();
     this.geo.setPositions(this.buf);
-    this.ibuf = (this.geo.attributes.instanceStart as THREE.InterleavedBufferAttribute).data as THREE.InstancedInterleavedBuffer;
+    this.ibuf = (this.geo.getAttribute('instanceStart') as THREE.InterleavedBufferAttribute).data as THREE.InstancedInterleavedBuffer;
     this.ibuf.setUsage(THREE.DynamicDrawUsage);
     this.geo.instanceCount = 0;
     this.mat = new LineMaterial({ linewidth: TRACER_WIDTH, transparent: true, opacity: 1, depthTest: false, depthWrite: false, toneMapped: false, fog: false });
@@ -630,7 +641,7 @@ export class Crossbow implements Weapon {
 
   readonly model = new THREE.Group();
   private game: Game; private sky: Sky; private player: Player; private forest: Forest;
-  private targets?: Targets;
+  private targets: Targets | undefined;
 
   // viewmodel parts we animate
   private stringLeft!: THREE.Mesh; private stringRight!: THREE.Mesh; private serving!: THREE.Mesh;
@@ -638,6 +649,8 @@ export class Crossbow implements Weapon {
   private tipL = new THREE.Vector3(); private tipR = new THREE.Vector3();
   private nockRest = new THREE.Vector3(); private nockDrawn = new THREE.Vector3();
   private boltGeo!: THREE.BufferGeometry; private boltMat!: THREE.MeshStandardMaterial;
+  /** the bolt geometry's nock end (max z), measured from its bounding box */
+  private nockZ = 0;
 
   // animation state
   private draw = 1; private drawVel = 0; private drawTarget = 1;
@@ -668,7 +681,7 @@ export class Crossbow implements Weapon {
   constructor(world: CrossbowWorld, targets?: Targets, opts: CrossbowOptions = {}) {
     this.game = world.game; this.sky = world.sky; this.player = world.player; this.forest = world.forest;
     this.targets = targets;
-    this.allowUnlocked = !!opts.allowUnlocked;
+    this.allowUnlocked = opts.allowUnlocked ?? false;
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
     this.buildViewmodel();
     this.buildProjectiles();
@@ -680,8 +693,8 @@ export class Crossbow implements Weapon {
   }
 
   // ── input ──
-  inputAllowed() { return this.enabled && (this.player.locked || this.allowUnlocked); }
-  private bindInput() {
+  inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked); }
+  private bindInput(): void {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
       if (e.button === 0) this.tryFire();
@@ -698,13 +711,13 @@ export class Crossbow implements Weapon {
   }
 
   /** Pull the trigger. Fires if loaded, else starts a reload (and reports a dry click). */
-  tryFire() {
+  tryFire(): void {
     if (this.state.reloading || this.cooldown > 0) return;
     if (!this.state.loaded) { this.onDry?.(); this.reload(); return; }
     this.fire();
   }
 
-  fire() {
+  fire(): void {
     if (!this.state.loaded || this.state.reloading) return;
     this.state.loaded = false;
     this.state.bolts = Math.max(0, this.state.bolts - 1);
@@ -715,16 +728,16 @@ export class Crossbow implements Weapon {
     this.onFire?.();
   }
 
-  reload() {
+  reload(): void {
     if (this.state.reloading || this.state.loaded || this.state.bolts <= 0) return;
     this.state.reloading = true; this.reloadT = 0; this.state.reloadProgress = 0;
     this.onReloadStart?.();
   }
 
-  addBolts(n: number) { this.state.bolts = Math.min(MAX_BOLTS, this.state.bolts + n); }
+  addBolts(n: number): void { this.state.bolts = Math.min(MAX_BOLTS, this.state.bolts + n); }
 
   // ── viewmodel ──
-  private buildViewmodel() {
+  private buildViewmodel(): void {
     const walnut = makeWalnut(11), steel = makeSteel(23), leather = makeLeather(31), cord = makeCord();
     walnut.map.repeat.set(1, 4); walnut.normalMap.repeat.set(1, 4); walnut.armMap.repeat.set(1, 4);
     // Every material below carries the SAME map slots (map, normal, ao, roughness, metalness — the ARM texture
@@ -762,7 +775,7 @@ export class Crossbow implements Weapon {
     // rail strips (two lighter wood rails with a groove for the bolt)
     const railL = box(0.008, 0.005, 0.52, -0.011, 0.0025, -0.12), railR = box(0.008, 0.005, 0.52, 0.011, 0.0025, -0.12);
     const stockNI = stripExtra(stockGeo);
-    const woodGeo = mergeGeometries([stockNI, stripExtra(railL), stripExtra(railR)], false)!;
+    const woodGeo = mergeGeometries([stockNI, stripExtra(railL), stripExtra(railR)], false);
     edgeWear(woodGeo, 0.18);
     { // the groove rails sit in shadow of the bolt: darker, oil-soaked
       const c = woodGeo.getAttribute('color') as THREE.BufferAttribute;
@@ -781,7 +794,7 @@ export class Crossbow implements Weapon {
     brass.push(box(0.03, 0.002, 0.05, 0, -0.088, 0.25, 0.3)); // thumb plate on the grip top edge
     const bead = new THREE.SphereGeometry(0.0035, 10, 8); bead.translate(0, 0.009, -0.375); brass.push(bead); // foresight bead
     brass.push(cyl(0.0015, 0.0015, 0.008, 6, 0, 0.004, -0.375)); // bead post
-    const brassGeo = mergeGeometries(brass.map(stripExtra), false)!;
+    const brassGeo = mergeGeometries(brass.map(stripExtra), false);
     this.model.add(new THREE.Mesh(brassGeo, brassMat));
     // trigger (curved) + guard
     const trig = new THREE.TorusGeometry(0.022, 0.0032, 8, 14, Math.PI * 0.6); trig.rotateY(Math.PI / 2); trig.rotateX(Math.PI * 0.55); trig.translate(0, -0.075, 0.205); iron.push(trig);
@@ -794,7 +807,7 @@ export class Crossbow implements Weapon {
     const bandM = bandGeometry(0.048, 0.062, 0.016, 0.0025); bandM.translate(0, -0.031, 0.02); iron.push(bandM);
     const bandR = bandGeometry(0.046, 0.07, 0.016, 0.0025); bandR.translate(0, -0.045, 0.27); iron.push(bandR);
     // rivets on bands
-    for (const [z, y] of [[-0.27, -0.026], [0.02, -0.031], [0.27, -0.045]]) for (const sx of [-1, 1]) {
+    for (const [z, y] of [[-0.27, -0.026], [0.02, -0.031], [0.27, -0.045]] as const) for (const sx of [-1, 1]) {
       iron.push(cyl(0.003, 0.0035, 0.004, 8, sx * 0.028, y, z, 0, 0, Math.PI / 2));
     }
     // prod bridle: a saddle over the stock nose holding the prod
@@ -810,7 +823,7 @@ export class Crossbow implements Weapon {
     for (const tip of [this.tipL, this.tipR]) iron.push(box(0.022, 0.024, 0.012, tip.x, tip.y, tip.z));
     // butt plate
     const butt = box(0.046, 0.06, 0.006, 0, -0.115, 0.44, 0.4); iron.push(butt);
-    const ironGeo = mergeGeometries(iron.map(stripExtra), false)!;
+    const ironGeo = mergeGeometries(iron.map(stripExtra), false);
     this.model.add(new THREE.Mesh(ironGeo, ironMat));
 
     // ── prod (steel limbs) ──
@@ -855,7 +868,9 @@ export class Crossbow implements Weapon {
     this.loadedBolt.position.set(0, 0.0095, 0.128 - 0.18);
     this.model.add(this.loadedBolt);
     this.boltGeo.computeBoundingBox();
-    this.tipLocal.set(0, 0, this.boltGeo.boundingBox!.min.z);
+    const boltBox = this.boltGeo.boundingBox;
+    if (boltBox === null) throw new Error('Crossbow: bolt geometry has no bounding box');
+    this.tipLocal.set(0, 0, boltBox.min.z); this.nockZ = boltBox.max.z;
     this.tipModel.copy(this.tipLocal).add(this.loadedBolt.position);
 
     // ── rear peep sight: dark iron ring with a faint cyan inner edge, on a post rising from the rail (posed per frame) ──
@@ -879,18 +894,17 @@ export class Crossbow implements Weapon {
     clearer.renderOrder = 999; clearer.frustumCulled = false;
     clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
     this.model.add(clearer);
-    this.model.traverse((o) => {
-      const m = o as THREE.Mesh;
-      if (!m.isMesh) return;
-      m.frustumCulled = false; m.castShadow = false; m.receiveShadow = o !== clearer;
-      if (o === clearer) return;
+    this.model.traverse((m) => {
+      if (!isMesh(m)) return;
+      m.frustumCulled = false; m.castShadow = false; m.receiveShadow = m !== clearer;
+      if (m === clearer) return;
       m.renderOrder = 1000;
       for (const mat of Array.isArray(m.material) ? m.material : [m.material]) { mat.transparent = true; mat.depthWrite = true; }
     });
     this.model.scale.setScalar(1.35);
   }
 
-  private buildProjectiles() {
+  private buildProjectiles(): void {
     for (let i = 0; i < MAX_FLYING; i++) {
       const mesh = new THREE.Mesh(this.boltGeo, this.boltMat);
       mesh.visible = false; mesh.castShadow = true; mesh.frustumCulled = false;
@@ -906,31 +920,31 @@ export class Crossbow implements Weapon {
   private takeTracer(): Tracer | null {
     let best: Tracer | null = null;
     for (const t of this.tracers) { if (!t.active) return t; if (t.endTime >= 0 && (!best || t.endTime < best.endTime)) best = t; }
-    if (!best) best = this.tracers[0]; // all 8 still flying: recycle the first
+    best ??= this.tracers[0] ?? null; // all 8 still flying: recycle the first
     for (const b of this.bolts) if (b.tracer === best) b.tracer = null;
     return best;
   }
-  private endTracer(b: Bolt, point: THREE.Vector3) {
+  private endTracer(b: Bolt, point: THREE.Vector3): void {
     if (!b.tracer) return;
     b.tracer.finish(point, this.time);
     b.tracer = null;
   }
 
   /** world position of the loaded bolt's broadhead tip (the iron sight) */
-  tipWorld(out: THREE.Vector3) { return this.loadedBolt.localToWorld(out.copy(this.tipLocal)); }
+  tipWorld(out: THREE.Vector3): THREE.Vector3 { return this.loadedBolt.localToWorld(out.copy(this.tipLocal)); }
   /** The aim line is ALWAYS the camera forward (the crosshair / the peep ring's centre), hip or sighted — the user
    *  found sighted shots landing low when they flew along the eye→tip ray. Sighted bolts start at the tip, which is
    *  a few cm under the eye, and fly parallel to the forward: at any range that is the same point as the hip shot. */
-  aimRay(origin: THREE.Vector3, dir: THREE.Vector3) {
+  aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 {
     const cam = this.game.camera;
     cam.getWorldDirection(dir);
     origin.copy(cam.position);
     return dir;
   }
 
-  private spawnBolt() {
+  private spawnBolt(): void {
     let b = this.bolts.find((x) => !x.active);
-    if (!b) { b = this.bolts.reduce((a, x) => (x.age > a.age ? x : a)); }
+    b ??= this.bolts.reduce((a, x) => (x.age > a.age ? x : a));
     const cam = this.game.camera, a = sstep(0, 1, this.adsBlend);
     this.aimRay(_v3, _fwd);
     // spread: tight at ADS, a touch wider from the hip
@@ -963,7 +977,7 @@ export class Crossbow implements Weapon {
    * behind the tip, at depth D - A; asking for it at ADS_NUT_NDC_Y gives one linear equation in D. The near plane
    * (+ margin) caps how close the nut may come, which is what limits the 94° portrait frame.
    */
-  private solveAds(cam: THREE.PerspectiveCamera, scale: number) {
+  private solveAds(cam: THREE.PerspectiveCamera, scale: number): Crossbow['adsPose'] {
     const c = this.adsCache, o = this.adsPose;
     if (c.aspect === cam.aspect && c.fov === cam.fov && c.scale === scale) return o;
     c.aspect = cam.aspect; c.fov = cam.fov; c.scale = scale;
@@ -986,7 +1000,7 @@ export class Crossbow implements Weapon {
   }
 
   // ── per-frame ──
-  update(dt: number, t: number) {
+  update(dt: number, t: number): void {
     this.time = t;
     const p = this.player, cam = this.game.camera;
     this.cooldown = Math.max(0, this.cooldown - dt);
@@ -1102,7 +1116,7 @@ export class Crossbow implements Weapon {
       this.model.updateMatrixWorld(); // the pose was just set; the sight ray goes through the tip
       this.aimRay(_v3, _fwd);
       const hit = this.targets.raycast(_v3, _fwd, 120);
-      if (hit && hit.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; this.aimInfo = this.aimCache; }
+      if (hit?.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; this.aimInfo = this.aimCache; }
       else this.aimInfo = null;
     }
 
@@ -1112,7 +1126,7 @@ export class Crossbow implements Weapon {
     for (const tr of this.tracers) tr.update(t, cam, this.tracerRes);
   }
 
-  private updateString() {
+  private updateString(): void {
     const d = THREE.MathUtils.clamp(this.draw, -0.12, 1.05);
     const nock = _v1.copy(this.nockRest).lerp(this.nockDrawn, d);
     nock.y = this.nockRest.y + (1 - Math.abs(d - 0.5) * 2) * 0.002;
@@ -1121,7 +1135,7 @@ export class Crossbow implements Weapon {
     this.serving.position.copy(nock);
     this.serving.quaternion.setFromUnitVectors(X_AXIS, _v2.subVectors(this.tipR, this.tipL).normalize());
   }
-  private placeLeg(leg: THREE.Mesh, from: THREE.Vector3, to: THREE.Vector3) {
+  private placeLeg(leg: THREE.Mesh, from: THREE.Vector3, to: THREE.Vector3): void {
     leg.position.copy(from);
     _v3.subVectors(to, from);
     const len = _v3.length();
@@ -1130,20 +1144,21 @@ export class Crossbow implements Weapon {
   }
 
   // ── projectiles ──
-  private stepBolts(dt: number) {
+  private stepBolts(dt: number): void {
     for (const b of this.bolts) {
       if (!b.active) continue;
       b.age += dt;
       const sub = 4, h = dt / sub;
+      let stopped = false;
       for (let s = 0; s < sub; s++) {
         _v1.copy(b.pos); // previous
         b.vel.y -= GRAVITY * h;
         b.vel.multiplyScalar(1 - BOLT_DRAG * h * b.vel.length() * 0.1);
         b.pos.addScaledVector(b.vel, h);
-        if (this.testHit(b, _v1)) break;
+        if (this.testHit(b, _v1)) { stopped = true; break; }
         b.tracer?.addPoint(b.pos);
       }
-      if (!b.active) continue;
+      if (stopped) continue;
       if (Math.abs(b.pos.x) > CHUNK_HALF + 60 || Math.abs(b.pos.z) > CHUNK_HALF + 60 || b.pos.y < -150 || b.age > 12) { b.active = false; b.mesh.visible = false; this.endTracer(b, b.pos); continue; }
       b.mesh.position.copy(b.pos);
       _dir.copy(b.vel).normalize();
@@ -1218,7 +1233,7 @@ export class Crossbow implements Weapon {
     return -1;
   }
 
-  private stopBolt(b: Bolt, point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface, stick: boolean) {
+  private stopBolt(b: Bolt, point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface, stick: boolean): void {
     b.active = false; b.mesh.visible = false;
     this.endTracer(b, point);
     this.puffs.emit(point, dir, surface);
@@ -1234,18 +1249,18 @@ export class Crossbow implements Weapon {
     mesh.quaternion.setFromUnitVectors(NEG_Z, dir).multiply(_q.setFromAxisAngle(NEG_Z, b.roll));
     if (b.traced) { // permanent red dot on the nock so a traced bolt reads from a distance
       const dot = new THREE.Mesh(stuckDotGeo, glowMat); dot.renderOrder = TRACER_ORDER + 1;
-      dot.position.set(0, 0, this.boltGeo.boundingBox!.max.z);
+      dot.position.set(0, 0, this.nockZ);
       mesh.add(dot);
     }
     this.game.scene.add(mesh);
     this.stuck.push({ mesh });
   }
-  private removeStuck(i: number) {
+  private removeStuck(i: number): void {
     const s = this.stuck.splice(i, 1)[0];
-    this.game.scene.remove(s.mesh);
+    if (s !== undefined) this.game.scene.remove(s.mesh);
   }
 
   /** flying bolt count (for debugging / HUD) */
-  get inFlight() { let n = 0; for (const b of this.bolts) if (b.active) n++; return n; }
-  get stuckCount() { return this.stuck.length; }
+  get inFlight(): number { let n = 0; for (const b of this.bolts) if (b.active) n++; return n; }
+  get stuckCount(): number { return this.stuck.length; }
 }

@@ -18,10 +18,9 @@
  */
 import * as THREE from 'three';
 import type { Sky } from '../world/Sky';
-import type { Player } from './Player';
-import { SWIM_SPEED, STROKE_PERIOD } from './Player';
+import { SWIM_SPEED, STROKE_PERIOD, type Player } from './Player';
 import { getActiveChunk } from '../chunks/registry';
-import { fixIBL } from './Crossbow';
+import { fixIBL, isMesh } from './Crossbow';
 import { Rng } from '../core/rng';
 
 type Style = 'pbr' | 'lowpoly';
@@ -49,7 +48,7 @@ export class Hands {
   private blend = 0; private speed = 0; private phase = 0; private t = 0;
   private tmp = { p: new THREE.Vector3(), q: new THREE.Vector3(), e: new THREE.Vector3(), d: new THREE.Vector3(), fwd: new THREE.Vector3(0, 0, -1) };
 
-  constructor(private sky: Sky, private camera: THREE.PerspectiveCamera) {
+  constructor(sky: Sky, private camera: THREE.PerspectiveCamera) {
     this.style = getActiveChunk().style ?? 'pbr';
     const low = this.style === 'lowpoly';
     const rng = new Rng(0x5a1d);
@@ -60,7 +59,7 @@ export class Hands {
       const m = low
         ? new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.85, metalness: 0 })
         : new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0 });
-      m.name = 'hands-' + (color === GLOVE ? 'glove' : color === SLEEVE ? 'sleeve' : 'cuff');
+      m.name = `hands-${color === GLOVE ? 'glove' : color === SLEEVE ? 'sleeve' : 'cuff'}`;
       if (!low) fixIBL(m, m.name);
       sky.setupMaterial(m);
       return m;
@@ -72,7 +71,7 @@ export class Hands {
       if (!low) return geo;
       const g = geo.index ? geo.toNonIndexed() : geo;
       g.deleteAttribute('normal'); g.deleteAttribute('uv');
-      const n = g.attributes.position.count, col = new Float32Array(n * 3);
+      const n = g.getAttribute('position').count, col = new Float32Array(n * 3);
       for (let f = 0; f < n; f += 3) {
         const k = 1 + (rng.next() * 2 - 1) * jitter;
         for (let i = 0; i < 3; i++) { col[(f + i) * 3] = color.r * k; col[(f + i) * 3 + 1] = color.g * k; col[(f + i) * 3 + 2] = color.b * k; }
@@ -112,16 +111,15 @@ export class Hands {
     clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
     this.group.add(clearer);
     this.group.traverse((o) => {
-      const m = o as THREE.Mesh;
-      if (!m.isMesh || o === clearer) return;
-      m.frustumCulled = false; m.castShadow = false; m.receiveShadow = true; m.renderOrder = 1000;
-      const mat = m.material as THREE.Material; mat.transparent = true; mat.depthWrite = true;
+      if (!isMesh(o) || o === clearer) return;
+      o.frustumCulled = false; o.castShadow = false; o.receiveShadow = true; o.renderOrder = 1000;
+      const mat = o.material as THREE.Material; mat.transparent = true; mat.depthWrite = true;
     });
     this.group.visible = false;
     camera.add(this.group);
   }
 
-  update(dt: number, p: Player) {
+  update(dt: number, p: Player): void {
     const on = p.swimming;
     this.blend += ((on ? 1 : 0) - this.blend) * Math.min(1, dt * 14); // ~0.25 s
     if (this.blend < 0.005 && !on) { this.group.visible = this.visible = false; return; }
@@ -144,6 +142,7 @@ export class Hands {
 
     for (let i = 0; i < 2; i++) {
       const side = i === 0 ? 1 : -1, arm = this.arms[i];
+      if (arm === undefined) continue;
       // the left hand runs a hair behind the right so the pair doesn't read as one mirrored object
       const lag = i === 1 ? 0.03 : 0;
       const s = lag ? STROKE.getPointAt((this.phase + 1 - lag) % 1, this.tmp.d) : stroke;

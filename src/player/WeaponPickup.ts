@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Interactable } from '../world/Cabin';
+import { isMesh } from './Crossbow';
 
 /**
  * ItemPickup (exported as WeaponPickup too) — an item lying in the world for the player to find, presented like
@@ -89,7 +90,8 @@ const MOTE_FRAG = /* glsl */`
 /** radial light pool: bright centre fading to nothing at the edge */
 function makePoolTexture(): THREE.CanvasTexture {
   const S = 128, cvs = document.createElement('canvas'); cvs.width = cvs.height = S;
-  const ctx = cvs.getContext('2d')!;
+  const ctx = cvs.getContext('2d');
+  if (ctx === null) throw new Error('makePoolTexture: no 2d canvas context');
   const g = ctx.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
   g.addColorStop(0, 'rgba(255,255,255,0.7)'); g.addColorStop(0.35, 'rgba(255,255,255,0.28)'); g.addColorStop(1, 'rgba(255,255,255,0)');
   ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
@@ -109,25 +111,26 @@ function makeSigil(): THREE.BufferGeometry {
     tick.translate(0, SIGIL_OUTER_R - (long ? 0.065 : 0.045), 0); tick.rotateZ(a);
     parts.push(tick);
   }
-  const g = mergeGeometries(parts.map((p) => (p.index ? p.toNonIndexed() : p)), false)!;
+  const g = mergeGeometries(parts.map((p) => (p.index ? p.toNonIndexed() : p)), false);
   g.rotateX(-Math.PI / 2);
   return g;
 }
 
 const _size = new THREE.Vector2(), _eye = new THREE.Vector3(), _to = new THREE.Vector3(), _q = new THREE.Quaternion(), _up = new THREE.Vector3(0, 1, 0);
+const _q2 = new THREE.Quaternion(), _qIdentity = new THREE.Quaternion(), _xAxis = new THREE.Vector3(1, 0, 0);
 
 export class ItemPickup {
   readonly group = new THREE.Group();
   readonly interactable: Interactable;
   readonly tier: PickupTier;
-  onPickup?: () => void;
+  onPickup?: (() => void) | undefined;
   /** the player stepped inside (true) / out of (false) the prompt radius — main.ts plays the hum */
-  onNear?: (inside: boolean) => void;
+  onNear?: ((inside: boolean) => void) | undefined;
   taken = false;
   private scene: THREE.Scene;
   private holder = new THREE.Group();
   private sphere: THREE.Mesh; private sphereMat: THREE.ShaderMaterial;
-  private rings = new THREE.Group(); private ringPivots: THREE.Object3D[] = []; private ringMat: THREE.MeshBasicMaterial;
+  private rings = new THREE.Group(); private ringPivots: THREE.Object3D[] = []; private ringGeo: THREE.TorusGeometry; private ringMat: THREE.MeshBasicMaterial;
   private sigil: THREE.Mesh; private sigilMat: THREE.MeshBasicMaterial;
   private pool: THREE.Mesh; private poolMat: THREE.MeshBasicMaterial;
   private shock: THREE.Mesh; private shockMat: THREE.MeshBasicMaterial;
@@ -145,6 +148,7 @@ export class ItemPickup {
   private disposed = false;
   private glowing = new Map<THREE.MeshStandardMaterial, { colour: THREE.Color; intensity: number }>();
   private orb: THREE.Color; private sparkCol = new THREE.Color();
+  private uTime: THREE.IUniform<number> = { value: 0 }; private uRim: THREE.IUniform<number> = { value: RIM }; private uHaze: THREE.IUniform<number> = { value: HAZE }; private uScale: THREE.IUniform<number> = { value: 400 };
 
   constructor(opts: ItemPickupOptions) {
     this.scene = opts.scene;
@@ -160,7 +164,7 @@ export class ItemPickup {
     this.holder.position.y = HOVER;
     // the sphere: Fresnel rim + haze, additive, no depth write so the item inside and the wall behind show through
     this.sphereMat = new THREE.ShaderMaterial({
-      uniforms: { uColor: { value: colour }, uTime: { value: 0 }, uAlpha: { value: 1 }, uRim: { value: RIM }, uHaze: { value: HAZE } },
+      uniforms: { uColor: { value: colour }, uTime: this.uTime, uAlpha: { value: 1 }, uRim: this.uRim, uHaze: this.uHaze },
       vertexShader: SPHERE_VERT, fragmentShader: SPHERE_FRAG,
       transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.FrontSide, toneMapped: false,
     });
@@ -168,9 +172,9 @@ export class ItemPickup {
     this.sphere.position.y = HOVER; this.sphere.renderOrder = RENDER_ORDER + 1;
     // two orbit rings on tilted pivots, counter-rotating; the pivots' parent leans toward the player when close
     this.ringMat = new THREE.MeshBasicMaterial({ color: colour.clone().multiplyScalar(1.7), transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, fog: false });
-    const ringGeo = new THREE.TorusGeometry(RING_R, RING_TUBE, 6, 96); ringGeo.rotateX(Math.PI / 2); // a ring in the XZ plane
+    const ringGeo = this.ringGeo = new THREE.TorusGeometry(RING_R, RING_TUBE, 6, 96); ringGeo.rotateX(Math.PI / 2); // a ring in the XZ plane
     for (let i = 0; i < 2; i++) {
-      const pivot = new THREE.Object3D(); pivot.rotation.z = RING_TILT[i];
+      const pivot = new THREE.Object3D(); pivot.rotation.z = RING_TILT[i] ?? 0;
       const ring = new THREE.Mesh(ringGeo, this.ringMat); ring.renderOrder = RENDER_ORDER + 3;
       pivot.add(ring); this.rings.add(pivot); this.ringPivots.push(pivot);
     }
@@ -183,10 +187,10 @@ export class ItemPickup {
     g.setAttribute('aAlpha', (this.alphaAttr = new THREE.BufferAttribute(this.alpha, 1).setUsage(THREE.DynamicDrawUsage)));
     g.setAttribute('aColor', new THREE.BufferAttribute(this.col, 3));
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, HOVER, 0), SHOCK_R1 + 1);
-    this.moteMat = new THREE.ShaderMaterial({ uniforms: { uScale: { value: 400 } }, vertexShader: MOTE_VERT, fragmentShader: MOTE_FRAG, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
+    this.moteMat = new THREE.ShaderMaterial({ uniforms: { uScale: this.uScale }, vertexShader: MOTE_VERT, fragmentShader: MOTE_FRAG, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
     this.points = new THREE.Points(g, this.moteMat);
     this.points.renderOrder = RENDER_ORDER + 2; this.points.frustumCulled = false;
-    for (let i = 0; i < SPRITES; i++) { const c = i < MOTES && this.mSpark[i] ? this.sparkCol : colour; this.col[i * 3] = c.r; this.col[i * 3 + 1] = c.g; this.col[i * 3 + 2] = c.b; }
+    for (let i = 0; i < SPRITES; i++) { const c = i < MOTES && this.mSpark[i] === 1 ? this.sparkCol : colour; this.col[i * 3] = c.r; this.col[i * 3 + 1] = c.g; this.col[i * 3 + 2] = c.b; }
     // floor: sigil (crisp ring + outer ring + ticks) turning slowly over a soft light pool; a short-range point light
     this.sigilMat = new THREE.MeshBasicMaterial({ color: colour, transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false, fog: false });
     this.sigil = new THREE.Mesh(makeSigil(), this.sigilMat);
@@ -203,8 +207,9 @@ export class ItemPickup {
     this.light.position.y = HOVER;
     // the item glows faintly with the orb's colour while it sits inside (materials are shared with the viewmodel: restored on pickup)
     item.traverse((o) => {
-      const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
-      if (!m || !('emissive' in m) || this.glowing.has(m)) return;
+      if (!isMesh(o)) return;
+      const m = o.material;
+      if (Array.isArray(m) || !(m instanceof THREE.MeshStandardMaterial) || this.glowing.has(m)) return;
       this.glowing.set(m, { colour: m.emissive.clone(), intensity: m.emissiveIntensity });
       m.emissive.set(TIER_COLOUR[this.tier]); m.emissiveIntensity = ITEM_EMISSIVE;
     });
@@ -217,25 +222,25 @@ export class ItemPickup {
   }
 
   /** the prompt text after "[E]" */
-  get prompt() { return this.interactable.label; }
+  get prompt(): string { return this.interactable.label; }
   set prompt(v: string) { this.interactable.label = v; }
 
   /** a mote on its helix: angle, radius 0.5–0.75 m (just outside the sphere), rising from the bottom */
-  private spawnMote(i: number, anywhere: boolean) {
-    this.mAngle[i] = Math.random() * Math.PI * 2;
-    this.mRadius[i] = 0.5 + Math.random() * 0.25;
-    this.mY[i] = HOVER + (anywhere ? (Math.random() - 0.5) * 2 : -1) * SPHERE_R * 1.05;
+  private spawnMote(i: number, anywhere: boolean): void {
+    const ang = Math.random() * Math.PI * 2; this.mAngle[i] = ang;
+    const rad = 0.5 + Math.random() * 0.25; this.mRadius[i] = rad;
+    const y = HOVER + (anywhere ? (Math.random() - 0.5) * 2 : -1) * SPHERE_R * 1.05; this.mY[i] = y;
     this.mRise[i] = 0.16 + Math.random() * 0.14;
     this.mSpin[i] = (0.9 + Math.random() * 0.8) * (i % 2 ? 1 : -1);
-    this.mSpark[i] = i % SPARK_EVERY === 0 ? 1 : 0;
-    this.mSize[i] = (this.mSpark[i] ? 0.05 : 0.03) + Math.random() * 0.025;
-    const x = Math.cos(this.mAngle[i]) * this.mRadius[i], z = Math.sin(this.mAngle[i]) * this.mRadius[i];
-    this.pos[i * 3] = x; this.pos[i * 3 + 1] = this.mY[i]; this.pos[i * 3 + 2] = z;
-    for (let k = 0; k < TRAIL; k++) { const h = (i * TRAIL + k) * 3; this.hist[h] = x; this.hist[h + 1] = this.mY[i]; this.hist[h + 2] = z; }
+    const spark = i % SPARK_EVERY === 0 ? 1 : 0; this.mSpark[i] = spark;
+    this.mSize[i] = (spark ? 0.05 : 0.03) + Math.random() * 0.025;
+    const x = Math.cos(ang) * rad, z = Math.sin(ang) * rad;
+    this.pos[i * 3] = x; this.pos[i * 3 + 1] = y; this.pos[i * 3 + 2] = z;
+    for (let k = 0; k < TRAIL; k++) { const h = (i * TRAIL + k) * 3; this.hist[h] = x; this.hist[h + 1] = y; this.hist[h + 2] = z; }
   }
 
   /** pick it up: the item vanishes, the orb collapses then bursts, `onPickup` fires; a no-op the second time */
-  take() {
+  take(): void {
     if (this.taken) return;
     this.taken = true;
     this.interactable.radius = 0;
@@ -247,27 +252,27 @@ export class ItemPickup {
   }
 
   /** put the item's materials back the way they were (they are the viewmodel's) */
-  private unglow() {
+  private unglow(): void {
     for (const [m, o] of this.glowing) { m.emissive.copy(o.colour); m.emissiveIntensity = o.intensity; }
     this.glowing.clear();
   }
 
   /** remove it from the scene and free its GPU resources (also used by `?weapon=rifle`, which unlocks the rifle at load) */
-  dispose() {
+  dispose(): void {
     if (this.disposed) return;
     this.disposed = true; this.taken = true; this.interactable.radius = 0;
     this.unglow();
     if (this.near) { this.near = false; this.onNear?.(false); }
     this.scene.remove(this.group);
     this.sphere.geometry.dispose(); this.sphereMat.dispose(); this.points.geometry.dispose(); this.moteMat.dispose();
-    (this.ringPivots[0].children[0] as THREE.Mesh).geometry.dispose(); this.ringMat.dispose();
+    this.ringGeo.dispose(); this.ringMat.dispose();
     this.sigil.geometry.dispose(); this.sigilMat.dispose(); this.pool.geometry.dispose(); this.poolMat.dispose(); this.shock.geometry.dispose(); this.shockMat.dispose();
   }
 
-  update(dt: number, t: number, renderer?: THREE.WebGLRenderer, camera?: THREE.PerspectiveCamera) {
+  update(dt: number, t: number, renderer?: THREE.WebGLRenderer, camera?: THREE.PerspectiveCamera): void {
     if (this.disposed) return;
-    if (renderer && camera) { renderer.getDrawingBufferSize(_size); this.moteMat.uniforms.uScale.value = _size.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)); }
-    this.sphereMat.uniforms.uTime.value = t;
+    if (renderer && camera) { renderer.getDrawingBufferSize(_size); this.uScale.value = _size.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)); }
+    this.uTime.value = t;
     if (this.burstT >= 0) { this.stepBurst(dt); return; }
 
     // approach: the eye's distance to the orb (the prompt radius is measured the same way)
@@ -283,8 +288,8 @@ export class ItemPickup {
     this.bob += dt * Math.PI * 2 / BOB_PERIOD;
     const breath = 1 + Math.sin(this.pulse + PULSE_PHASE) * PULSE_DEPTH;
     const rimK = inside ? 1.5 : 1;
-    this.sphereMat.uniforms.uRim.value = RIM * breath * rimK;
-    this.sphereMat.uniforms.uHaze.value = HAZE * breath;
+    this.uRim.value = RIM * breath * rimK;
+    this.uHaze.value = HAZE * breath;
     this.holder.position.y = HOVER + Math.sin(this.bob) * BOB;
     this.holder.rotation.y += YAW_RATE * dt;
     this.poolMat.opacity = 0.45 + Math.sin(this.pulse + PULSE_PHASE) * 0.12;
@@ -293,7 +298,7 @@ export class ItemPickup {
     this.sigilMat.opacity = 0.75 + Math.sin(this.pulse) * 0.15;
 
     // rings: counter-rotate on their tilted pivots; the whole pair leans toward the player when close
-    for (let i = 0; i < 2; i++) this.ringPivots[i].rotation.y += RING_RATE[i] * dt * (1 + 0.5 * this.approach);
+    for (let i = 0; i < 2; i++) { const pivot = this.ringPivots[i]; if (pivot !== undefined) pivot.rotation.y += (RING_RATE[i] ?? 0) * dt * (1 + 0.5 * this.approach); }
     if (camera && this.approach > 0.001) {
       _to.set(_eye.x - this.group.position.x, 0, _eye.z - this.group.position.z);
       if (_to.lengthSq() > 1e-4) {
@@ -308,36 +313,38 @@ export class ItemPickup {
   }
 
   /** motes spiral up their helices; every TRAIL_DT the history shifts and the trail sprites follow; sparks flash */
-  private stepMotes(dt: number, t: number) {
+  private stepMotes(dt: number, t: number): void {
     const pos = this.pos, hist = this.hist;
     this.histTimer += dt;
     const shift = this.histTimer >= TRAIL_DT; if (shift) this.histTimer = 0;
     for (let i = 0; i < MOTES; i++) {
-      if (shift) { const h = i * TRAIL * 3; for (let k = TRAIL - 1; k > 0; k--) { hist[h + k * 3] = hist[h + (k - 1) * 3]; hist[h + k * 3 + 1] = hist[h + (k - 1) * 3 + 1]; hist[h + k * 3 + 2] = hist[h + (k - 1) * 3 + 2]; } hist[h] = pos[i * 3]; hist[h + 1] = pos[i * 3 + 1]; hist[h + 2] = pos[i * 3 + 2]; }
-      this.mAngle[i] += this.mSpin[i] * dt; this.mY[i] += this.mRise[i] * dt;
-      const y = (this.mY[i] - HOVER) / SPHERE_R; // -1 … 1 across the orb's height
+      if (shift) { const h = i * TRAIL * 3; hist.copyWithin(h + 3, h, h + (TRAIL - 1) * 3); hist[h] = pos[i * 3] ?? 0; hist[h + 1] = pos[i * 3 + 1] ?? 0; hist[h + 2] = pos[i * 3 + 2] ?? 0; }
+      this.mAngle[i] = (this.mAngle[i] ?? 0) + (this.mSpin[i] ?? 0) * dt; this.mY[i] = (this.mY[i] ?? 0) + (this.mRise[i] ?? 0) * dt;
+      const y = ((this.mY[i] ?? 0) - HOVER) / SPHERE_R; // -1 … 1 across the orb's height
       if (y > 1.1) this.spawnMote(i, false);
-      const r = this.mRadius[i] * (0.9 + 0.1 * Math.cos(y * Math.PI)); // the helix narrows toward the poles
-      pos[i * 3] = Math.cos(this.mAngle[i]) * r; pos[i * 3 + 1] = this.mY[i]; pos[i * 3 + 2] = Math.sin(this.mAngle[i]) * r;
+      const ang = this.mAngle[i] ?? 0, isSpark = (this.mSpark[i] ?? 0) !== 0, msz = this.mSize[i] ?? 0;
+      const r = (this.mRadius[i] ?? 0) * (0.9 + 0.1 * Math.cos(y * Math.PI)); // the helix narrows toward the poles
+      pos[i * 3] = Math.cos(ang) * r; pos[i * 3 + 1] = this.mY[i] ?? 0; pos[i * 3 + 2] = Math.sin(ang) * r;
       const fade = Math.max(0, 1 - Math.abs(y) * 0.85) * Math.min(1, (y + 1.05) * 4);
-      const spark = this.mSpark[i] ? 0.55 + 0.45 * Math.max(0, Math.sin(t * 9 + i * 1.7)) ** 6 * 3 : 1;
-      this.alpha[i] = 0.9 * fade * Math.min(1.6, spark); this.size[i] = this.mSize[i] * (this.mSpark[i] ? 0.7 + 0.5 * spark : 1);
+      const spark = isSpark ? 0.55 + 0.45 * Math.max(0, Math.sin(t * 9 + i * 1.7)) ** 6 * 3 : 1;
+      const ai = 0.9 * fade * Math.min(1.6, spark);
+      this.alpha[i] = ai; this.size[i] = msz * (isSpark ? 0.7 + 0.5 * spark : 1);
       for (let k = 0; k < TRAIL; k++) { // trails: smaller, dimmer copies at the previous samples
         const s = MOTES + i * TRAIL + k, h = (i * TRAIL + k) * 3, f = 1 - (k + 1) / (TRAIL + 1);
-        pos[s * 3] = hist[h]; pos[s * 3 + 1] = hist[h + 1]; pos[s * 3 + 2] = hist[h + 2];
-        this.alpha[s] = this.alpha[i] * f * 0.55; this.size[s] = this.mSize[i] * (0.35 + 0.4 * f);
+        pos[s * 3] = hist[h] ?? 0; pos[s * 3 + 1] = hist[h + 1] ?? 0; pos[s * 3 + 2] = hist[h + 2] ?? 0;
+        this.alpha[s] = ai * f * 0.55; this.size[s] = msz * (0.35 + 0.4 * f);
       }
     }
     this.posAttr.needsUpdate = true; this.alphaAttr.needsUpdate = true; this.sizeAttr.needsUpdate = true;
   }
 
   /** the pickup: collapse (COLLAPSE_TIME) → shockwave ring + BURST_MOTES motes flung out under gravity + light flash → dispose */
-  private stepBurst(dt: number) {
+  private stepBurst(dt: number): void {
     const was = this.burstT; this.burstT += dt;
     const tb = this.burstT;
     if (tb < COLLAPSE_TIME) {
       const p = tb / COLLAPSE_TIME;
-      this.sphere.scale.setScalar(1 - p * 0.85); this.sphereMat.uniforms.uRim.value = RIM * (1 + p * 2); this.sphereMat.uniforms.uHaze.value = HAZE * (1 + p * 3);
+      this.sphere.scale.setScalar(1 - p * 0.85); this.uRim.value = RIM * (1 + p * 2); this.uHaze.value = HAZE * (1 + p * 3);
       this.rings.scale.setScalar(1 - p * 0.8); this.light.intensity = LIGHT * (1 + p);
       return;
     }
@@ -364,24 +371,24 @@ export class ItemPickup {
     this.light.intensity = LIGHT * 3 * (1 - pf) + LIGHT * Math.max(0, 1 - ts / BURST_LIFE) * 0.4;
     this.poolMat.opacity = 0.9 * Math.max(0, 1 - ts / 0.5);
     let alive = false;
+    const vel = this.bVel, pos = this.pos;
     for (let i = 0; i < BURST_MOTES; i++) {
       const s = MOTES * (1 + TRAIL) + i;
-      if (this.bLife[i] <= 0) { this.alpha[s] = 0; continue; }
+      const life0 = this.bLife[i] ?? 0;
+      if (life0 <= 0) { this.alpha[s] = 0; continue; }
       alive = true;
-      this.bLife[i] -= dt;
-      this.bVel[i * 3 + 1] -= 9.8 * dt;
-      this.bVel[i * 3] *= 0.985; this.bVel[i * 3 + 2] *= 0.985;
-      this.pos[s * 3] += this.bVel[i * 3] * dt; this.pos[s * 3 + 1] += this.bVel[i * 3 + 1] * dt; this.pos[s * 3 + 2] += this.bVel[i * 3 + 2] * dt;
-      if (this.pos[s * 3 + 1] < 0.01) { this.pos[s * 3 + 1] = 0.01; this.bVel[i * 3 + 1] *= -0.3; this.bVel[i * 3] *= 0.6; this.bVel[i * 3 + 2] *= 0.6; }
-      this.alpha[s] = Math.min(1, this.bLife[i] / 0.35);
+      const life = life0 - dt; this.bLife[i] = life;
+      const j = i * 3, k = s * 3;
+      let vx = (vel[j] ?? 0) * 0.985, vy = (vel[j + 1] ?? 0) - 9.8 * dt, vz = (vel[j + 2] ?? 0) * 0.985;
+      const px = (pos[k] ?? 0) + vx * dt, pz = (pos[k + 2] ?? 0) + vz * dt; let py = (pos[k + 1] ?? 0) + vy * dt;
+      if (py < 0.01) { py = 0.01; vy *= -0.3; vx *= 0.6; vz *= 0.6; }
+      vel[j] = vx; vel[j + 1] = vy; vel[j + 2] = vz; pos[k] = px; pos[k + 1] = py; pos[k + 2] = pz;
+      this.alpha[s] = Math.min(1, life / 0.35);
     }
     this.posAttr.needsUpdate = true; this.alphaAttr.needsUpdate = true; this.sizeAttr.needsUpdate = true;
     if (!alive && ps >= 1) this.dispose();
   }
 }
 
-const _q2 = new THREE.Quaternion(), _qIdentity = new THREE.Quaternion(), _xAxis = new THREE.Vector3(1, 0, 0);
-
 /** the AR-15 was the first item; main.ts constructs it under this name */
-export const WeaponPickup = ItemPickup;
-export type WeaponPickup = ItemPickup;
+export { ItemPickup as WeaponPickup };

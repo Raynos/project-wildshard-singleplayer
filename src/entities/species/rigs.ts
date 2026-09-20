@@ -7,18 +7,18 @@ import type { RigAnimCtx, FurStyle } from './registry';
  * wants one).
  */
 
-export const smooth01 = (t: number) => { t = THREE.MathUtils.clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+export const smooth01 = (t: number): number => { const tt = THREE.MathUtils.clamp(t, 0, 1); return tt * tt * (3 - 2 * tt); };
 export const clamp = THREE.MathUtils.clamp;
 /** a unit bump: 0 → 1 → 0 over [a, b] */
-export const bump = (x: number, a: number, b: number) => (x <= a || x >= b ? 0 : Math.sin(((x - a) / (b - a)) * Math.PI));
+export const bump = (x: number, a: number, b: number): number => (x <= a || x >= b ? 0 : Math.sin(((x - a) / (b - a)) * Math.PI));
 /** 0 before a, 1 after b, smooth between */
-export const step = (x: number, a: number, b: number) => smooth01((x - a) / (b - a));
+export const step = (x: number, a: number, b: number): number => smooth01((x - a) / (b - a));
 
 const _v = new THREE.Vector3();
 const _look = { yaw: 0, pitch: 0 };
 
 /** the look target in the animal's frame: yaw (+ = to the animal's left) and pitch (+ = up), scaled by lookWeight, clamped */
-export function lookAngles(c: RigAnimCtx, eyeY: number, maxYaw = 1.2, maxPitch = 0.6) {
+export function lookAngles(c: RigAnimCtx, eyeY: number, maxYaw = 1.2, maxPitch = 0.6): { yaw: number; pitch: number } {
   if (c.lookWeight < 0.001) { _look.yaw = 0; _look.pitch = 0; return _look; }
   _v.subVectors(c.lookTarget, c.position);
   let ly = Math.atan2(_v.x, _v.z) - c.yaw;

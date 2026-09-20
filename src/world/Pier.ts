@@ -67,7 +67,7 @@ export class Pier {
     return [this.spec.x + across * this.cos + along * this.sin, this.spec.z - across * this.sin + along * this.cos];
   }
 
-  build() {
+  build(): this {
     const { length, width, deckY } = this.spec;
     const pileDepth = this.spec.pileDepth ?? 8;
     const rng = new Rng(SEED ^ 0x9e37);
@@ -75,7 +75,7 @@ export class Pier {
     const add = (g: THREE.BufferGeometry, col: THREE.Color, jitter = 0.08) => {
       g.deleteAttribute('uv'); g.deleteAttribute('normal');
       const nonIdx = g.index ? g.toNonIndexed() : g;
-      const n = nonIdx.attributes.position.count;
+      const n = nonIdx.getAttribute('position').count;
       const c = new Float32Array(n * 3);
       // one shade per face (every 3 vertices) so the facets read
       for (let i = 0; i < n; i += 3) {
@@ -143,7 +143,7 @@ export class Pier {
     // ── the sea end: a low kick board so the deck reads as an end, not a cut ──
     add(place(new THREE.BoxGeometry(width + 0.3, 0.22, 0.14), 0.02, 0, deckY + 0.05), C.plankDark, 0.05);
 
-    const geo = mergeGeometries(parts, false)!;
+    const geo = mergeGeometries(parts, false);
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.85, metalness: 0 });
     this.sky.setupMaterial(mat);
@@ -161,6 +161,7 @@ export class Pier {
     const bollard = this.bollards.find(onSide) ?? this.bollards[0];
     let post = this.posts[0], best = Infinity;
     for (const p of this.posts) { if (!onSide(p)) continue; const d = Math.hypot(p.x - x, p.z - sternZ); if (d < best) { best = d; post = p; } }
+    if (!bollard || !post) throw new Error('Pier.mooringsFor(): build() first');
     return [bollard, post];
   }
 

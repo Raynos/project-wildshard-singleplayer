@@ -43,6 +43,8 @@ const underUniforms = {
   uViewerPos: { value: new THREE.Vector3() },   // the player's camera (shadow passes see the light's cameraPosition)
 };
 
+const UP = new THREE.Vector3(0, 1, 0);
+
 export class Undergrowth {
   group = new THREE.Group();
   ferns!: THREE.InstancedMesh;
@@ -55,7 +57,7 @@ export class Undergrowth {
 
   constructor(private sky: Sky, private forest: Forest) {}
 
-  build() {
+  build(): this {
     underUniforms.uSunDir.value.copy(this.sky.sunDir);
     underUniforms.uSunColor.value.copy(this.sky.sunColor);
     const fernTex = makeFernTexture(), shrubTex = makeShrubTexture(), litterTex = makeLitterTexture();
@@ -85,15 +87,15 @@ export class Undergrowth {
     return this;
   }
 
-  update(_dt: number, playerPos: THREE.Vector3) { underUniforms.uViewerPos.value.copy(playerPos); }
+  update(_dt: number, playerPos: THREE.Vector3): void { underUniforms.uViewerPos.value.copy(playerPos); }
 
   private makeInstanced(geo: THREE.BufferGeometry, mat: THREE.Material, items: Placement[], shadow: boolean, tex?: THREE.Texture, wind = 0) {
     const mesh = new THREE.InstancedMesh(geo, mat, Math.max(1, items.length));
     mesh.frustumCulled = false;
     mesh.receiveShadow = true;
-    shadow = shadow && TIER_CONFIG.undergrowthShadows;
-    mesh.castShadow = shadow;
-    if (shadow && tex) {
+    const castShadow = shadow && TIER_CONFIG.undergrowthShadows;
+    mesh.castShadow = castShadow;
+    if (castShadow && tex) {
       const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: tex, alphaTest: 0.5, side: THREE.DoubleSide });
       depth.onBeforeCompile = (shader) => { patchUndergrowthVertex(shader, wind); };
       depth.customProgramCacheKey = () => 'under-depth'; // wind is a uniform: one depth program for every kind
@@ -120,7 +122,7 @@ export class Undergrowth {
 
   private makeMaterial(tex: THREE.Texture, key: string, wind: number, alphaTest: number) {
     const mat = new THREE.MeshStandardMaterial({ map: tex, alphaTest, side: THREE.DoubleSide, roughness: 0.8, metalness: 0 });
-    mat.name = 'under-' + key;
+    mat.name = `under-${key}`;
     mat.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
       Object.assign(shader.uniforms, underUniforms);
@@ -233,16 +235,15 @@ export class Undergrowth {
 }
 
 interface Placement { x: number; y: number; z: number; nx: number; ny: number; nz: number; rot: number; scale: number; r: number; g: number; b: number }
-const UP = new THREE.Vector3(0, 1, 0);
 
 /** Distance fade (scale to 0) + gentle wind, shared by the lit and the shadow-depth materials. */
 function patchUndergrowthVertex(shader: { vertexShader: string; uniforms: Record<string, THREE.IUniform> }, wind: number) {
-  shader.uniforms.uWindScale = { value: wind }; // per material, not baked into the source: the program is shared
-  shader.uniforms.uTime = windUniforms.uTime;
-  shader.uniforms.uWindStrength = windUniforms.uWindStrength;
-  shader.uniforms.uFadeFar = underUniforms.uFadeFar;
-  shader.uniforms.uFadeBand = underUniforms.uFadeBand;
-  shader.uniforms.uViewerPos = underUniforms.uViewerPos;
+  shader.uniforms['uWindScale'] = { value: wind }; // per material, not baked into the source: the program is shared
+  shader.uniforms['uTime'] = windUniforms.uTime;
+  shader.uniforms['uWindStrength'] = windUniforms.uWindStrength;
+  shader.uniforms['uFadeFar'] = underUniforms.uFadeFar;
+  shader.uniforms['uFadeBand'] = underUniforms.uFadeBand;
+  shader.uniforms['uViewerPos'] = underUniforms.uViewerPos;
   shader.vertexShader = shader.vertexShader
     .replace('#include <common>', /* glsl */`#include <common>
       uniform float uTime; uniform float uWindStrength; uniform float uWindScale; uniform float uFadeFar; uniform float uFadeBand; uniform vec3 uViewerPos;
@@ -390,11 +391,17 @@ function canvasTexture(c: HTMLCanvasElement) {
   return tex;
 }
 
+function ctx2d(c: HTMLCanvasElement): CanvasRenderingContext2D {
+  const g = c.getContext('2d');
+  if (!g) throw new Error('[undergrowth] no 2d canvas context');
+  return g;
+}
+
 /** Pinnate fern frond: base at the bottom, tip at the top. */
 function makeFernTexture() {
   const W = 512, H = 1024;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
-  const g = c.getContext('2d')!;
+  const g = ctx2d(c);
   g.scale(2, 2);
   const rng = new Rng(SEED + 701);
   const stemX = (t: number) => 128 + Math.sin(t * 2.2) * 6;
@@ -436,12 +443,12 @@ function drawPinna(g: CanvasRenderingContext2D, bx: number, by: number, ang: num
   }
   const hue = rng.range(-1, 1);
   const grad = g.createLinearGradient(bx, by, bx + dx * len, by + dy * len);
-  grad.addColorStop(0, `rgb(${52 + hue * 6},${82 + hue * 8},${34})`);
+  grad.addColorStop(0, `rgb(${52 + hue * 6},${82 + hue * 8},34)`);
   grad.addColorStop(1, `rgb(${78 + hue * 10 + t * 26},${116 + hue * 10 + t * 18},${46 + hue * 6})`);
   g.fillStyle = grad;
-  g.beginPath(); g.moveTo(left[0][0], left[0][1]);
-  for (let i = 1; i < left.length; i++) g.lineTo(left[i][0], left[i][1]);
-  for (let i = right.length - 1; i >= 0; i--) g.lineTo(right[i][0], right[i][1]);
+  g.beginPath();
+  left.forEach(([lx, ly], i) => { if (i === 0) g.moveTo(lx, ly); else g.lineTo(lx, ly); });
+  for (let i = right.length - 1; i >= 0; i--) { const r = right[i]; if (r) g.lineTo(r[0], r[1]); }
   g.closePath(); g.fill();
   // pinna midrib
   g.strokeStyle = 'rgba(150,170,80,0.55)'; g.lineWidth = 1.1;
@@ -452,7 +459,7 @@ function drawPinna(g: CanvasRenderingContext2D, bx: number, by: number, ang: num
 function makeShrubTexture() {
   const W = 512, H = 512;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
-  const g = c.getContext('2d')!;
+  const g = ctx2d(c);
   const rng = new Rng(SEED + 702);
   const twigs = 5;
   const leafSpots: [number, number, number][] = [];
@@ -485,7 +492,7 @@ function makeShrubTexture() {
 function makeStoneTexture() {
   const W = 256, H = 256;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
-  const g = c.getContext('2d')!;
+  const g = ctx2d(c);
   const rng = new Rng(SEED + 704);
   for (let i = 0; i < 26; i++) {
     const x = rng.range(24, W - 24), y = rng.range(24, H - 24), rx = rng.range(7, 16), ry = rx * rng.range(0.6, 0.9), a = rng.range(0, Math.PI);
@@ -503,11 +510,11 @@ function makeStoneTexture() {
 function makeMossTexture() {
   const S = 256;
   const c = document.createElement('canvas'); c.width = c.height = S;
-  const g = c.getContext('2d')!;
+  const g = ctx2d(c);
   const rng = new Rng(SEED + 705);
   // base cushion
   for (let i = 0; i < 40; i++) {
-    const ang = rng.range(0, Math.PI * 2), rad = Math.pow(rng.next(), 0.8) * S * 0.28;
+    const ang = rng.range(0, Math.PI * 2), rad = rng.next() ** 0.8 * S * 0.28;
     const x = S / 2 + Math.cos(ang) * rad, y = S / 2 + Math.sin(ang) * rad * 0.85, r = rng.range(10, 26);
     const v = rng.range(0, 1);
     g.fillStyle = `rgb(${30 + v * 16},${52 + v * 22},${18 + v * 8})`;
@@ -515,7 +522,7 @@ function makeMossTexture() {
   }
   // tufts: dense in the middle, thinning outwards, brighter specks on top
   for (let i = 0; i < 3200; i++) {
-    const ang = rng.range(0, Math.PI * 2), rad = Math.pow(rng.next(), 0.55) * S * 0.47;
+    const ang = rng.range(0, Math.PI * 2), rad = rng.next() ** 0.55 * S * 0.47;
     const x = S / 2 + Math.cos(ang) * rad, y = S / 2 + Math.sin(ang) * rad * 0.85, r = rng.range(1.2, 3.6);
     const v = rng.range(0, 1), bright = rng.next() < 0.18;
     g.fillStyle = bright ? `rgb(${92 + v * 30},${122 + v * 30},${44 + v * 10})` : `rgb(${34 + v * 26},${58 + v * 34},${20 + v * 10})`;
@@ -528,7 +535,7 @@ function makeMossTexture() {
 function makeReedTexture() {
   const W = 128, H = 512;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
-  const g = c.getContext('2d')!;
+  const g = ctx2d(c);
   const rng = new Rng(SEED + 706);
   g.lineCap = 'round';
   for (let b = 0; b < 7; b++) {
@@ -538,7 +545,7 @@ function makeReedTexture() {
     g.lineWidth = rng.range(3.5, 5.5);
     g.beginPath(); g.moveTo(x0, H); g.quadraticCurveTo(x0 + bendX * 0.4, (H + top) / 2, x0 + bendX, top); g.stroke();
     if (b % 3 === 0) {  // seed head
-      g.fillStyle = `rgb(${110 + v * 30},${70 + v * 20},${36})`;
+      g.fillStyle = `rgb(${110 + v * 30},${70 + v * 20},36)`;
       g.beginPath(); g.ellipse(x0 + bendX, top + 6, 4.5, 16, bendX * 0.01, 0, Math.PI * 2); g.fill();
     }
   }
@@ -549,7 +556,7 @@ function makeReedTexture() {
 function makeLitterTexture() {
   const W = 512, H = 512;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
-  const g = c.getContext('2d')!;
+  const g = ctx2d(c);
   const rng = new Rng(SEED + 703);
   g.lineCap = 'round';
   for (let i = 0; i < 220; i++) {
@@ -561,14 +568,14 @@ function makeLitterTexture() {
   }
   for (let i = 0; i < 14; i++) {
     const x = rng.range(40, W - 40), y = rng.range(40, H - 40), a = rng.range(0, Math.PI), l = rng.range(60, 170);
-    g.strokeStyle = `rgb(${62 + rng.range(0, 30)},${46 + rng.range(0, 20)},${28})`;
+    g.strokeStyle = `rgb(${62 + rng.range(0, 30)},${46 + rng.range(0, 20)},28)`;
     g.lineWidth = rng.range(5, 9);
     g.beginPath(); g.moveTo(x - Math.cos(a) * l / 2, y - Math.sin(a) * l / 2);
     g.lineTo(x + rng.range(-10, 10), y + rng.range(-10, 10)); g.lineTo(x + Math.cos(a) * l / 2, y + Math.sin(a) * l / 2); g.stroke();
   }
   for (let i = 0; i < 14; i++) {
     const x = rng.range(30, W - 30), y = rng.range(30, H - 30);
-    g.fillStyle = `rgb(${100 + rng.range(0, 40)},${68 + rng.range(0, 24)},${36})`;
+    g.fillStyle = `rgb(${100 + rng.range(0, 40)},${68 + rng.range(0, 24)},36)`;
     g.beginPath(); g.ellipse(x, y, rng.range(9, 15), rng.range(5, 8), rng.range(0, Math.PI), 0, Math.PI * 2); g.fill();
   }
   return canvasTexture(c);

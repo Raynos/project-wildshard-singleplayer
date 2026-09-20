@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import type { HuntTuning } from '../AnimalManager';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef } from './registry';
-import { loft, tube, skinPlain, S, boneIndex, srgb, mix, sstep, paintNoise, setShag, isLowPoly, type Paint } from './loft';
+import { loft, tube, skinPlain, S, boneIndex, mix, sstep, paintNoise, setShag, isLowPoly, paletteColors, type Paint, type RGB } from './loft';
 import { deerPaintLow } from '../lowpoly';
 
 /**
@@ -20,16 +20,16 @@ import { deerPaintLow } from '../lowpoly';
  * bodyDark neck mane belly rump legDark nose muzzle eyeRing earIn antler antlerTip hoof eye.
  */
 
-const ELK_PALETTE: Record<string, [number, number, number]> = {
+const ELK_PALETTE = {
   // pale tan barrel, dark chocolate neck + legs + belly, straw-cream rump patch, near-black mane
   body: [0.47, 0.37, 0.25], bodyDark: [0.35, 0.27, 0.18],
   neck: [0.19, 0.125, 0.08], mane: [0.11, 0.075, 0.05], belly: [0.26, 0.20, 0.14], rump: [0.82, 0.76, 0.62],
   legDark: [0.26, 0.19, 0.135], nose: [0.05, 0.04, 0.04], muzzle: [0.24, 0.19, 0.16], eyeRing: [0.16, 0.12, 0.10], earIn: [0.60, 0.53, 0.45],
   antler: [0.42, 0.32, 0.22], antlerTip: [0.80, 0.74, 0.62], hoof: [0.09, 0.075, 0.065], eye: [0.02, 0.015, 0.01],
-};
+} satisfies Record<string, RGB>;
 
 /** cream-white coat (leucistic): the mane and legs only a shade darker, pink nose, pale hooves + antlers */
-const PALE_TINT: Record<string, [number, number, number]> = {
+const PALE_TINT: Record<string, RGB> = {
   body: [0.88, 0.85, 0.78], bodyDark: [0.78, 0.74, 0.66],
   neck: [0.72, 0.66, 0.58], mane: [0.60, 0.54, 0.47], belly: [0.80, 0.76, 0.70], rump: [0.95, 0.93, 0.88],
   legDark: [0.72, 0.67, 0.60], nose: [0.55, 0.40, 0.40], muzzle: [0.80, 0.74, 0.70], eyeRing: [0.72, 0.64, 0.60], earIn: [0.88, 0.76, 0.74],
@@ -37,17 +37,16 @@ const PALE_TINT: Record<string, [number, number, number]> = {
 };
 
 /** the Imperial bull: a warmer, gold-cast coat with an even darker mane; the glow is in the fur override */
-const IMPERIAL_TINT: Record<string, [number, number, number]> = {
+const IMPERIAL_TINT: Record<string, RGB> = {
   body: [0.52, 0.40, 0.24], bodyDark: [0.40, 0.30, 0.17],
   neck: [0.22, 0.15, 0.09], mane: [0.14, 0.10, 0.07], belly: [0.28, 0.21, 0.14], rump: [0.92, 0.84, 0.62],
   antler: [0.52, 0.40, 0.24], antlerTip: [0.94, 0.86, 0.64],
 };
 
 function elkPaint(v: VariantDef): Paint {
-  const P: Record<string, THREE.Color> = {};
-  for (const k of Object.keys(ELK_PALETTE)) { const c = v.tint?.[k] ?? ELK_PALETTE[k]; P[k] = srgb(c[0], c[1], c[2]); }
+  const P = paletteColors(ELK_PALETTE, v.tint);
   const { body, bodyDark, neck, mane, belly, rump, legDark, nose, muzzle, eyeRing, earIn, antler, antlerTip, hoof, eye } = P;
-  return (out, x, y, z, nx, ny, nz, part, t, a) => {
+  return (out, x, y, z, _nx, ny, nz, part, t, _a) => {
     const n1 = paintNoise.fbm(x * 1.6 + 3, z * 1.6 + y * 1.1, 3);
     switch (part) {
       case 'body': {
@@ -102,13 +101,12 @@ function elkPaint(v: VariantDef): Paint {
     if (part === 'leg') m *= 1 - 0.3 * sstep(0.75, 1.3, y) - 0.2 * sstep(0.26, 0.16, Math.abs(x));
     if (part === 'neck' || part === 'crest') m *= 1 - 0.25 * sstep(-0.2, -0.8, ny);
     out.r *= m; out.g *= m; out.b *= m * 0.98;
-    void a;
   };
 }
 
 function buildElk(v: VariantDef, _rng: Rng): AnimalSpecies {
-  const bull = !!v.traits?.antlers;
-  const antlerScale = Number(v.traits?.antlerScale ?? 1);
+  const bull = Boolean(v.traits?.['antlers']);
+  const antlerScale = Number(v.traits?.['antlerScale'] ?? 1);
   // the barrel + legs + tail are the deer's stations scaled up (1.6 wide, 1.63 tall, 1.25 long, radii 1.62);
   // the neck, mane, head, ears and antlers are their own — that is where an elk stops being a big deer
   const KX = 1.6, KY = 1.63, KZ = 1.25, KR = 1.62;
@@ -212,7 +210,7 @@ function buildElk(v: VariantDef, _rng: Rng): AnimalSpecies {
   ], 8, 'tail', paint, false, true));
   setShag(0);
   // legs: long and heavy (the deer's, scaled)
-  const feet: [number, number][] = [];
+  const feetF: [number, number][] = [], feetB: [number, number][] = [];   // front / back, each L then R
   for (const side of ['L', 'R'] as const) {
     const sx = side === 'L' ? 1 : -1;
     const sh = B(`F${side}_shoulder`), ca = B(`F${side}_carpus`), fe = B(`F${side}_fetlock`);
@@ -233,7 +231,7 @@ function buildElk(v: VariantDef, _rng: Rng): AnimalSpecies {
       E(sx * 0.155, 0.0, 0.49, 0.037, 0.047, fe),
       E(sx * 0.155, -0.003, 0.49, 0.01, 0.01, fe),
     ], 10, 'hoof', paint));
-    feet.push([sx * 0.155 * KX, 0.49 * KZ]);
+    feetF.push([sx * 0.155 * KX, 0.49 * KZ]);
     const hp = B(`B${side}_hip`), stf = B(`B${side}_stifle`), hk = B(`B${side}_hock`);
     fur.push(loft([
       E(sx * 0.12, 0.96, -0.60, 0.11, 0.21, body, hp, 0.3),
@@ -253,12 +251,12 @@ function buildElk(v: VariantDef, _rng: Rng): AnimalSpecies {
       E(sx * 0.155, 0.0, -0.59, 0.037, 0.047, hk),
       E(sx * 0.155, -0.003, -0.59, 0.01, 0.01, hk),
     ], 10, 'hoof', paint));
-    feet.push([sx * 0.155 * KX, -0.59 * KZ]);
+    feetB.push([sx * 0.155 * KX, -0.59 * KZ]);
   }
   // antlers: a 6×6 rack — the main beam rises off the skull and sweeps BACK over the neck, the tines point
   // forward and up (brow, bez, trez, the long dagger, the fifth, and the beam tip). Scaled about its root.
   if (bull) {
-    const k = antlerScale, rk = Math.pow(antlerScale, 0.7);
+    const k = antlerScale, rk = antlerScale ** 0.7;
     for (const sx of [1, -1]) {
       const root: [number, number, number] = [sx * 0.09, 2.52, 1.48];
       const A = (p: [number, number, number]): [number, number, number] => [root[0] + (p[0] - root[0]) * k, root[1] + (p[1] - root[1]) * k, root[2] + (p[2] - root[2]) * k];
@@ -277,8 +275,8 @@ function buildElk(v: VariantDef, _rng: Rng): AnimalSpecies {
       if (k > 1.15) tine([sx * 0.53, 3.37, 0.58], [sx * 0.60, 3.52, 0.50], [sx * 0.68, 3.62, 0.40], 0.03); // royal / imperial: a 7th fork on the tip
     }
   }
-  // sort feet in FL, FR, BL, BR order (loop pushed FL, BL, FR, BR)
-  const feetOrdered: [number, number][] = [feet[0], feet[2], feet[1], feet[3]];
+  // feet in FL, FR, BL, BR order
+  const feetOrdered: [number, number][] = [...feetF, ...feetB];
   return {
     bones, furParts: fur, hardParts: hard, eyeParts: eyes,
     dims: { bodyY: 1.50, bodyHalfLen: 0.95, bodyRadius: 0.52, headRadius: 0.26, legLen: 1.50, feet: feetOrdered, halfWidth: 0.42 },

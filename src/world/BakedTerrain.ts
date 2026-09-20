@@ -16,6 +16,7 @@ import { _installBakedTerrain } from './Heightfield';
 import { getActiveChunk } from '../chunks/registry';
 import { landscapeHash } from '../chunks/terrain';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
+import type { ChunkTerrain } from '../chunks/ChunkDef';
 
 export interface BakedGrid { res: number; size: number; seed: number; /** fingerprint of the def's heightAt the bake was made from (0 = legacy, unhashed) */ landscapeHash: number; heights: Float32Array; splat: Uint8Array }
 
@@ -28,14 +29,14 @@ export function parseBakedTerrain(buf: ArrayBuffer): BakedGrid | null {
   const dv = new DataView(buf);
   if (buf.byteLength < 24 || dv.getUint8(0) !== 0x57 || dv.getUint8(1) !== 0x53 || dv.getUint8(2) !== 0x54 || dv.getUint8(3) !== 0x52) return null;
   if (dv.getUint32(4, true) !== 1) return null;
-  const res = dv.getUint32(8, true), size = dv.getFloat32(12, true), seed = dv.getUint32(16, true), landscapeHash = dv.getUint32(20, true);
+  const res = dv.getUint32(8, true), size = dv.getFloat32(12, true), seed = dv.getUint32(16, true), hash = dv.getUint32(20, true);
   const n = res * res;
   if (buf.byteLength !== 24 + n * 8) return null;
-  return { res, size, seed, landscapeHash, heights: new Float32Array(buf, 24, n), splat: new Uint8Array(buf, 24 + n * 4, n * 4) };
+  return { res, size, seed, landscapeHash: hash, heights: new Float32Array(buf, 24, n), splat: new Uint8Array(buf, 24 + n * 4, n * 4) };
 }
 
 /** Bilinear samplers over the grid, in the ChunkTerrain shapes. */
-export function bakedSamplers(g: BakedGrid) {
+export function bakedSamplers(g: BakedGrid): Pick<ChunkTerrain, 'heightAt' | 'normalAt' | 'splatAt'> {
   const { res, size, heights, splat } = g;
   const half = size / 2, inv = (res - 1) / size, last = res - 2;
   const cell = (v: number): [number, number] => {
@@ -46,8 +47,9 @@ export function bakedSamplers(g: BakedGrid) {
   const heightAt = (x: number, z: number): number => {
     const [ix, fx] = cell(x), [iz, fz] = cell(z);
     const i = iz * res + ix;
-    const a = heights[i]! + (heights[i + 1]! - heights[i]!) * fx;
-    const b = heights[i + res]! + (heights[i + res + 1]! - heights[i + res]!) * fx;
+    const h00 = heights[i] ?? 0, h10 = heights[i + 1] ?? 0, h01 = heights[i + res] ?? 0, h11 = heights[i + res + 1] ?? 0;
+    const a = h00 + (h10 - h00) * fx;
+    const b = h01 + (h11 - h01) * fx;
     return a + (b - a) * fz;
   };
   const normalAt = (x: number, z: number, eps = 0.6): [number, number, number] => {
@@ -63,12 +65,13 @@ export function bakedSamplers(g: BakedGrid) {
     const out: [number, number, number, number] = [0, 0, 0, 0];
     let sum = 0;
     for (let c = 0; c < 4; c++) {
-      const a = splat[i00 + c]! + (splat[i10 + c]! - splat[i00 + c]!) * fx;
-      const b = splat[i01 + c]! + (splat[i11 + c]! - splat[i01 + c]!) * fx;
+      const s00 = splat[i00 + c] ?? 0, s10 = splat[i10 + c] ?? 0, s01 = splat[i01 + c] ?? 0, s11 = splat[i11 + c] ?? 0;
+      const a = s00 + (s10 - s00) * fx;
+      const b = s01 + (s11 - s01) * fx;
       const w = a + (b - a) * fz;
       out[c] = w; sum += w;
     }
-    if (sum > 0) for (let c = 0; c < 4; c++) out[c] /= sum;
+    if (sum > 0) { out[0] /= sum; out[1] /= sum; out[2] /= sum; out[3] /= sum; }
     return out;
   };
   return { heightAt, normalAt, splatAt };

@@ -33,10 +33,11 @@ function installGpuTimer() {
   const orig = composer.render.bind(composer);
   composer.render = (dt?: number) => {
     // collect finished queries
-    while (pending.length) {
+    while (pending.length > 0) {
       const q = pending[0];
-      const avail = gl.getQueryParameter(q, gl.QUERY_RESULT_AVAILABLE);
-      const disjoint = gl.getParameter(ext.GPU_DISJOINT_EXT);
+      if (q === undefined) break;
+      const avail = gl.getQueryParameter(q, gl.QUERY_RESULT_AVAILABLE) as boolean;
+      const disjoint = gl.getParameter(ext.GPU_DISJOINT_EXT) as boolean;
       if (!avail) break;
       pending.shift();
       if (!disjoint) {
@@ -49,7 +50,7 @@ function installGpuTimer() {
       gl.deleteQuery(q);
     }
     if (pending.length < 4) {
-      const q = gl.createQuery()!;
+      const q = gl.createQuery();
       gl.beginQuery(ext.TIME_ELAPSED_EXT, q);
       orig(dt);
       gl.endQuery(ext.TIME_ELAPSED_EXT);

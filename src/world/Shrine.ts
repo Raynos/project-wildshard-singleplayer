@@ -27,7 +27,7 @@ const C = {
   moss: new THREE.Color('#5f9c3e'), rune: new THREE.Color('#7fd9ff'),
 };
 
-const DAIS_R = [6.5, 5.2, 3.9], STEP = 0.38;
+const DAIS_R = [6.5, 5.2, 3.9] as const, STEP = 0.38;
 const FIREFLIES = 90;
 
 export class Shrine {
@@ -48,16 +48,16 @@ export class Shrine {
   constructor(private sky: Sky, private spec: ShrineSpec) {}
 
   /** 0 = broad daylight (the fireflies barely show), 1 = dusk / night (the full cloud, the glyphs at their brightest) */
-  setDusk(k: number) { this.dusk = Math.max(0, Math.min(1, k)); }
+  setDusk(k: number): void { this.dusk = Math.max(0, Math.min(1, k)); }
 
-  build() {
+  build(): this {
     const rng = new Rng(SEED ^ 0x5417);
     const parts: THREE.BufferGeometry[] = [];
     const base = heightAt(this.spec.x, this.spec.z) + 0.05; this.baseY = base;
     const add = (g: THREE.BufferGeometry, col: THREE.Color, jitter = 0.08, mossTop = false) => {
       g.deleteAttribute('uv'); g.deleteAttribute('normal');
       const ni = g.index ? g.toNonIndexed() : g;
-      const p = ni.attributes.position as THREE.BufferAttribute;
+      const p = ni.getAttribute('position');
       const n = p.count, c = new Float32Array(n * 3), col3 = new THREE.Color();
       const a = new THREE.Vector3(), b = new THREE.Vector3(), d = new THREE.Vector3(), nrm = new THREE.Vector3();
       for (let i = 0; i < n; i += 3) {
@@ -114,7 +114,7 @@ export class Shrine {
       const wx = this.spec.x + lx * cs + lz * sn, wz = this.spec.z - lx * sn + lz * cs;
       const gy = heightAt(wx, wz);
       const g = new THREE.BoxGeometry(w, h, w * 0.6);
-      const pp = g.attributes.position as THREE.BufferAttribute;
+      const pp = g.getAttribute('position');
       for (let k = 0; k < pp.count; k++) if (pp.getY(k) > 0) pp.setXYZ(k, pp.getX(k) * 0.75 + rng.range(-0.08, 0.08), pp.getY(k) + rng.range(-0.15, 0.15), pp.getZ(k) * 0.8);
       const yaw = a + Math.PI / 2 + rng.range(-0.2, 0.2);
       g.rotateY(yaw); g.rotateZ(rng.range(-0.08, 0.08));
@@ -132,7 +132,7 @@ export class Shrine {
       add(g, C.stoneDark, 0.08, true);
     }
 
-    const geo = mergeGeometries(parts, false)!;
+    const geo = mergeGeometries(parts, false);
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.92, metalness: 0 });
     this.sky.setupMaterial(mat);
@@ -163,7 +163,7 @@ export class Shrine {
       const pts: [number, number][] = [];
       const k = rng.int(3, 5);
       for (let i = 0; i < k; i++) pts.push([rng.range(-0.16, 0.16), -h / 2 + (i / (k - 1)) * h]);
-      for (let i = 0; i < k - 1; i++) stroke(o, u, w, n, pts[i][0], pts[i][1], pts[i + 1][0], pts[i + 1][1]);
+      for (let i = 0; i < k - 1; i++) { const p = pts[i], q = pts[i + 1]; if (!p || !q) continue; stroke(o, u, w, n, p[0], p[1], q[0], q[1]); }
       if (rng.next() < 0.6) { const y = rng.range(-h * 0.3, h * 0.3); stroke(o, u, w, n, -0.14, y, 0.14, y + rng.range(-0.1, 0.1)); }
     };
     const U = new THREE.Vector3(), W = new THREE.Vector3(0, 1, 0), N = new THREE.Vector3(), O = new THREE.Vector3();
@@ -212,7 +212,8 @@ export class Shrine {
     g.setAttribute('position', this.ffAttr);
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(this.spec.x, top, this.spec.z), 14);
     const c = document.createElement('canvas'); c.width = c.height = 32;
-    const ctx = c.getContext('2d')!;
+    const ctx = c.getContext('2d');
+    if (!ctx) throw new Error('[shrine] no 2d canvas context');
     const grad = ctx.createRadialGradient(16, 16, 1, 16, 16, 15);
     grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.35, 'rgba(255,255,255,0.7)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = grad; ctx.fillRect(0, 0, 32, 32);
@@ -223,7 +224,7 @@ export class Shrine {
     this.update(0);
   }
 
-  update(dt: number) {
+  update(dt: number): void {
     this.t += dt;
     const t = this.t;
     // glyphs breathe (a slow pulse with a faster shimmer), brighter toward dusk
@@ -232,10 +233,11 @@ export class Shrine {
     // fireflies: every point drifts on its own orbit, flickering; the cloud fades in with dusk
     const S = this.ffSeed, P = this.ffPos, base = this.baseY;
     for (let i = 0; i < FIREFLIES; i++) {
-      const a = S[i * 4] + t * 0.12 * (1 + 0.5 * Math.sin(S[i * 4 + 3])), r = S[i * 4 + 1] + 0.6 * Math.sin(t * 0.7 + S[i * 4 + 3]);
-      const wob = Math.sin(t * 1.9 + S[i * 4 + 3] * 3) * 0.35;
+      const ph = S[i * 4 + 3] ?? 0;
+      const a = (S[i * 4] ?? 0) + t * 0.12 * (1 + 0.5 * Math.sin(ph)), r = (S[i * 4 + 1] ?? 0) + 0.6 * Math.sin(t * 0.7 + ph);
+      const wob = Math.sin(t * 1.9 + ph * 3) * 0.35;
       P[i * 3] = this.spec.x + Math.cos(a) * r + wob;
-      P[i * 3 + 1] = base + S[i * 4 + 2] + 0.25 * Math.sin(t * 1.3 + S[i * 4 + 3]);
+      P[i * 3 + 1] = base + (S[i * 4 + 2] ?? 0) + 0.25 * Math.sin(t * 1.3 + ph);
       P[i * 3 + 2] = this.spec.z + Math.sin(a) * r - wob * 0.6;
     }
     this.ffAttr.needsUpdate = true;
@@ -247,7 +249,7 @@ export class Shrine {
   /** the dais steps under (x, z) */
   floorHeightAt(x: number, z: number): number | undefined {
     const d = Math.hypot(x - this.spec.x, z - this.spec.z);
-    for (let i = DAIS_R.length - 1; i >= 0; i--) if (d <= DAIS_R[i] + 0.1) return this.baseY + STEP * (i + 1);
+    for (let i = DAIS_R.length - 1; i >= 0; i--) if (d <= (DAIS_R[i] ?? 0) + 0.1) return this.baseY + STEP * (i + 1);
     return undefined;
   }
 }

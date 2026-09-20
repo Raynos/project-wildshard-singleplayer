@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
-import { loft, skinPlain, S, boneIndex, srgb, mix, sstep, type Paint } from './loft';
+import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
 import type { Animal } from '../Animal';
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
 
@@ -20,16 +20,24 @@ import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
  * leading legs out and folds the trailing ones; claws up while engaged; the snap raises then slams them.
  */
 
-type RGB = [number, number, number];
-const PALETTE: Record<string, RGB> = {
+const PALETTE = {
   shell: [0.86, 0.34, 0.15], shellDark: [0.62, 0.20, 0.09], belly: [0.94, 0.83, 0.66],
   leg: [0.84, 0.40, 0.19], legTip: [0.42, 0.16, 0.07], claw: [0.90, 0.38, 0.17], clawTip: [0.96, 0.87, 0.74],
   stalk: [0.66, 0.28, 0.13], eye: [0.03, 0.02, 0.02], barnacle: [0.88, 0.87, 0.82],
-};
+} satisfies Record<string, RGB>;
+
+type Side = 'L' | 'R';
+type LegIdx = 0 | 1 | 2;
+/** the rig's bones by name — exactly the BoneDef list buildCrab() emits (so the factory's bone map holds every key) */
+type CrabBones = Record<'body' | 'head' | `claw${Side}_${'arm' | 'hand' | 'tip'}` | `leg${Side}${LegIdx}_${'hip' | 'knee'}`, THREE.Bone>;
+/** `Animal.mem` as the crab uses it (numbers only, the registry contract): every key is written by the first `think` tick */
+interface CrabMem extends Record<string, number> {
+  init: number; hx: number; hz: number; st: number; tm: number; sd: number; cd: number; hitT: number; shy: number; scat: number;
+  wander: number; tx: number; tz: number; hit: number;
+}
 
 function crabPaint(v: VariantDef): Paint {
-  const P: Record<string, THREE.Color> = {};
-  for (const k of Object.keys(PALETTE)) { const c = v.tint?.[k] ?? PALETTE[k]; P[k] = srgb(c[0], c[1], c[2]); }
+  const P = paletteColors(PALETTE, v.tint);
   return (out, _x, y, z, _nx, ny, _nz, part, t) => {
     switch (part) {
       case 'body':
@@ -49,10 +57,11 @@ function crabPaint(v: VariantDef): Paint {
   };
 }
 
-const LEG_Z = [0.08, -0.03, -0.14], LEG_FAN = [0.07, 0, -0.07];
+const LEG_IDX: readonly LegIdx[] = [0, 1, 2];
+const LEG_Z: Record<LegIdx, number> = [0.08, -0.03, -0.14], LEG_FAN: Record<LegIdx, number> = [0.07, 0, -0.07];
 
 function buildCrab(v: VariantDef, rng: Rng): AnimalSpecies {
-  const cs = Number(v.traits?.clawScale ?? 1);
+  const cs = Number(v.traits?.['clawScale'] ?? 1);
   const bones: BoneDef[] = [
     { name: 'body', parent: null, pos: [0, 0.20, 0] },
     { name: 'head', parent: 'body', pos: [0, 0.24, 0.22] },
@@ -64,7 +73,7 @@ function buildCrab(v: VariantDef, rng: Rng): AnimalSpecies {
       { name: `claw${side}_hand`, parent: `claw${side}_arm`, pos: [sx * 0.50, 0.18, 0.38] },
       { name: `claw${side}_tip`, parent: `claw${side}_hand`, pos: [sx * 0.60, 0.20, 0.52] },
     );
-    for (let i = 0; i < 3; i++) bones.push(
+    for (const i of LEG_IDX) bones.push(
       { name: `leg${side}${i}_hip`, parent: 'body', pos: [sx * 0.28, 0.17, LEG_Z[i]] },
       { name: `leg${side}${i}_knee`, parent: `leg${side}${i}_hip`, pos: [sx * 0.50, 0.38, LEG_Z[i] + LEG_FAN[i]] },
     );
@@ -122,7 +131,7 @@ function buildCrab(v: VariantDef, rng: Rng): AnimalSpecies {
       S(sx * 0.68, 0.235, 0.76, 0.008, 0.008, tip),
     ], 8, 'tip', paint, true, true));
     // legs: upper segment rising to the knee, lower segment down to a pointed foot
-    for (let i = 0; i < 3; i++) {
+    for (const i of LEG_IDX) {
       const hip = B(`leg${side}${i}_hip`), knee = B(`leg${side}${i}_knee`);
       const z = LEG_Z[i], fan = LEG_FAN[i];
       fur.push(loft([
@@ -147,8 +156,8 @@ function buildCrab(v: VariantDef, rng: Rng): AnimalSpecies {
 
 const TRIPOD_A = new Set(['L0', 'R1', 'L2']);
 
-function animateCrab(c: RigAnimCtx) {
-  const b = c.bones, t = c.t, seed = c.seed;
+function animateCrab(c: RigAnimCtx): void {
+  const b = c.bones as CrabBones, t = c.t, seed = c.seed;
   const moving = clamp(Math.hypot(c.speed, c.strafe) / 0.5, 0, 1);
   const strafeK = clamp(c.strafe / 1.3, -1, 1);
   const fwdK = clamp(c.speed / 1.5, -1, 1);
@@ -175,7 +184,7 @@ function animateCrab(c: RigAnimCtx) {
   // ── legs: two tripods, lift + swing; the sidestep reaches the leading legs out and folds the trailing ones ──
   for (const side of ['L', 'R'] as const) {
     const sx = side === 'L' ? 1 : -1;
-    for (let i = 0; i < 3; i++) {
+    for (const i of LEG_IDX) {
       const hip = b[`leg${side}${i}_hip`], knee = b[`leg${side}${i}_knee`];
       const lp = (c.phase + (TRIPOD_A.has(side + i) ? 0 : 0.5)) % 1;
       const swing = lp < 0.42 ? Math.sin((lp / 0.42) * Math.PI) : 0;           // in the air
@@ -203,8 +212,8 @@ function animateCrab(c: RigAnimCtx) {
 const ST_IDLE = 0, ST_ENGAGE = 1, ST_ATTACK = 2, ST_FLEE = 3;
 const ENGAGE_R = 9, SHY_R = 3, DISENGAGE_R = 18, SNAP_R = 1.6, SNAP_DAMAGE = 10, WINDUP = 0.5, SNAP_DUR = 0.78;
 
-function thinkCrab(a: Animal, c: ThinkCtx) {
-  const m = a.mem, rng = c.rng;
+function thinkCrab(a: Animal, c: ThinkCtx): void {
+  const m = a.mem as CrabMem, rng = c.rng;
   if (!m.init) { m.init = 1; m.hx = a.position.x; m.hz = a.position.z; m.st = ST_IDLE; m.tm = rng.range(1, 3); m.sd = rng.next() < 0.5 ? -1 : 1; m.cd = 0; m.hitT = 0; m.shy = 0; m.scat = 0; }
   const dx = c.player.x - a.position.x, dz = c.player.z - a.position.z, d = Math.hypot(dx, dz);
   const toPlayer = Math.atan2(dx, dz);
@@ -260,6 +269,7 @@ function thinkCrab(a: Animal, c: ThinkCtx) {
       if (m.tm <= 0) { m.st = ST_IDLE; m.tm = 2; m.hx = a.position.x; m.hz = a.position.z; a.setMotion(a.yaw, 0, 2); }
       break;
     }
+    default: break;
   }
   c.confine(a);
 }

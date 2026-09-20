@@ -195,7 +195,7 @@ export interface SpeciesDef {
   variants: VariantDef[];
   fur: FurStyle;
   /** build the mesh parts for one variant; called once per (kind, variant) and cached by the factory */
-  build(variant: VariantDef, rng: Rng): AnimalSpecies;
+  build: (variant: VariantDef, rng: Rng) => AnimalSpecies;
   /** true = turns on the player (charges) instead of only fleeing (boar, bear) */
   aggressive?: boolean;
   /** m/s while wandering (default: 1.1 aggressive / 1.3 not) */
@@ -233,7 +233,7 @@ const SPECIES = new Map<string, SpeciesDef>();
 
 /** Register a species (call once at module top level of `species/<kind>.ts`). Re-registering replaces it. */
 export function registerSpecies(def: SpeciesDef): SpeciesDef {
-  if (!def.variants.length) throw new Error(`species '${def.kind}' has no variants`);
+  if (def.variants.length === 0) throw new Error(`species '${def.kind}' has no variants`);
   SPECIES.set(def.kind, def);
   return def;
 }
@@ -251,7 +251,9 @@ export function speciesKinds(): string[] { return [...SPECIES.keys()]; }
 /** The variant table entry, or the species' first (fallback) variant for an unknown id. */
 export function variantDef(kind: string, id: string | undefined): VariantDef {
   const d = speciesDef(kind);
-  return (id && d.variants.find((v) => v.id === id)) || d.variants[0];
+  const first = d.variants[0];
+  if (first === undefined) throw new Error(`species '${kind}' has no variants`);   // registerSpecies rejects an empty table
+  return (id !== undefined && id !== '' ? d.variants.find((v) => v.id === id) : undefined) ?? first;
 }
 
 /** Fully-populated gameplay multipliers for a variant (missing keys → 1 / species default). */
@@ -271,20 +273,22 @@ export function variantMods(species: SpeciesDef, v: VariantDef): VariantMods {
  * `excludeLegendary` re-rolls a legendary into the rare tier (the manager caps legendaries at one alive per kind).
  */
 export function rollVariant(species: SpeciesDef, rng: Rng, allowed?: string[], excludeLegendary = false): VariantDef {
-  let pool = allowed?.length ? species.variants.filter((v) => allowed.includes(v.id)) : species.variants;
-  if (!pool.length) pool = species.variants;
-  const pick = (list: VariantDef[]) => {
+  let pool = allowed !== undefined && allowed.length > 0 ? species.variants.filter((v) => allowed.includes(v.id)) : species.variants;
+  if (pool.length === 0) pool = species.variants;
+  const pick = (list: VariantDef[]): VariantDef => {
     let total = 0;
     for (const v of list) total += Math.max(0, v.weight);
     let r = rng.next() * total;
     for (const v of list) { r -= Math.max(0, v.weight); if (r <= 0) return v; }
-    return list[list.length - 1];
+    const last = list[list.length - 1];
+    if (last === undefined) throw new Error(`species '${species.kind}' has no variants`);   // every list passed in is non-empty
+    return last;
   };
   let v = pick(pool);
   if (excludeLegendary && v.rarity === 'legendary') {
     const rare = pool.filter((x) => x.rarity === 'rare');
     const rest = pool.filter((x) => x.rarity !== 'legendary');
-    v = rare.length ? pick(rare) : rest.length ? pick(rest) : v;
+    v = rare.length > 0 ? pick(rare) : rest.length > 0 ? pick(rest) : v;
   }
   return v;
 }

@@ -22,7 +22,7 @@ export class Perf {
     this.root = document.createElement('div');
     this.root.className = 'ws-perf';
     this.root.innerHTML = '<b>—</b><span class="ws-perf-long"></span><span class="ws-perf-short"></span>';
-    document.body.appendChild(this.root);
+    document.body.append(this.root);
     document.querySelectorAll<HTMLElement>('.ws-game-fps').forEach((e) => { e.hidden = true; }); // the HUD's old faint readout; this meter replaces it
     if (new URLSearchParams(location.search).get('perf') === '0') { this.userHidden = true; this.root.hidden = true; }
     game.onUpdate(() => this.update(performance.now()));
@@ -31,10 +31,10 @@ export class Perf {
   }
 
   /** Hidden while the menu is up (the world is not rendering, so there is nothing to measure). */
-  setActive(on: boolean) { this.active = on; this.root.hidden = on ? this.userHidden || !dbg.meter : true; }
+  setActive(on: boolean): void { this.active = on; this.root.hidden = on ? this.userHidden || !dbg.meter : true; }
   private active = false;
   /** DBG pill toggled the meter */
-  refresh() { this.setActive(this.active); }
+  refresh(): void { this.setActive(this.active); }
   private userHidden = false;
 
   private update(now: number) {
@@ -43,16 +43,16 @@ export class Perf {
     const g = this.game;
     this.sorted.set(g.frameMs); this.sorted.sort();
     const n = this.sorted.findIndex((v) => v > 0); // unfilled slots are 0 and sort first
-    const valid = n < 0 ? 0 : this.sorted.length - n;
+    const valid = n === -1 ? 0 : this.sorted.length - n;
     if (valid < 10) return;
-    const q = (p: number) => this.sorted[n + Math.min(valid - 1, Math.floor(valid * p))];
+    const q = (p: number): number => this.sorted[n + Math.min(valid - 1, Math.floor(valid * p))] ?? 0;
     const p50 = q(0.5), p95 = q(0.95);
     const r = g.lastFrame;
     const gl = g.gl.events ? ` · gl lost ×${g.gl.events}${g.gl.restoredAt > g.gl.lostAt ? ` restored ${Math.round(g.gl.restoredAt - g.gl.lostAt)} ms` : ''}` : '';
     const text = `${Math.round(1000 / p50)}|${p50.toFixed(1)} / ${p95.toFixed(1)} ms · ${r.calls} calls · ${k(r.triangles)} tris · ${TIER} ${g.renderer.getPixelRatio().toFixed(2)}×${gl}`;
     if (text === this.lastText) return;
     this.lastText = text;
-    const [fps, rest] = text.split('|');
+    const [fps = '', rest = ''] = text.split('|');
     (this.root.firstElementChild as HTMLElement).textContent = fps;
     (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = rest;
     (this.root.querySelector('.ws-perf-short') as HTMLElement).textContent = `${Math.round(p50)} ms${gl}`; // phones: one short line (resume stats live in the resume modal)

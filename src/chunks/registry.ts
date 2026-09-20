@@ -18,7 +18,7 @@ import { _applyChunkConstants } from '../core/config';
 
 export const DEFAULT_CHUNK = 'pine-hollow';
 
-export const CHUNKS: ChunkDef[] = [
+export const CHUNKS: [ChunkDef, ...ChunkDef[]] = [
   PINE_HOLLOW,
   DRIFTWOOD_ISLE,
 ];
@@ -50,7 +50,7 @@ export function setActiveChunk(slug: string): ChunkDef {
   return active;
 }
 
-export function onActiveChunkChange(fn: (def: ChunkDef) => void) { listeners.push(fn); }
+export function onActiveChunkChange(fn: (def: ChunkDef) => void): void { listeners.push(fn); }
 
 /** URL for the same page with another chunk selected (other params kept). */
 export function chunkUrl(slug: string, from: string = location.href): string {

@@ -52,9 +52,11 @@ const C = {
 /** vertex part ids (aPart): what the vertex shader rotates */
 const PART = { body: 0, wingL: 1, wingR: 2, head: 3, legL: 4, legR: 5 } as const;
 /** pivots, gull-local (forward = +z, up = +y, right = +x) — mirrored in the shader */
-const SHOULDER_X = 0.06, SHOULDER_Y = 0.045, ELBOW_X = 0.36, NECK = [0, 0.05, 0.15], HIP = [0, -0.06, 0.0];
+type Vec3 = readonly [number, number, number];
+const SHOULDER_X = 0.06, SHOULDER_Y = 0.045, ELBOW_X = 0.36, NECK: Vec3 = [0, 0.05, 0.15], HIP: Vec3 = [0, -0.06, 0.0];
 
-const enum S { Perched, Hop, Takeoff, Wheel, Landing }
+// oxlint-disable-next-line oxc/no-const-enum -- inlined by rolldown; keeps the gull state machine branch-free
+const enum S { Perched = 0, Hop = 1, Takeoff = 2, Wheel = 3, Landing = 4 }
 
 interface Flock { cx: number; cz: number; r: number; alt: number; w: number; p1: number; p2: number; p3: number; p4: number }
 
@@ -64,7 +66,7 @@ interface Gull {
   yaw: number; pitch: number; roll: number;
   flap: number; fold: number; head: number; legs: number;
   perch: number;            // index into perches, or -1
-  flock: number;            // index into flocks
+  flock: Flock;             // the wheel loop this gull follows
   phase: number; scale: number; altOff: number;   // wheel path individuality
   t: number;                // state timer
   dur: number;              // state duration
@@ -124,7 +126,7 @@ export class Gulls {
     return out;
   }
 
-  build(spec: GullsSpec) {
+  build(spec: GullsSpec): this {
     this.rng = new Rng((spec.seed ?? 0x5ea1) ^ 0x9011);
     const rng = this.rng;
     this.flushR = spec.flushRadius ?? 4;
@@ -136,26 +138,29 @@ export class Gulls {
 
     // ── the flocks: three loose loops inside the circle ──
     const R = spec.radius, cx = spec.centre.x, cz = spec.centre.z;
-    const offs = [[0, 0], [-0.5, 0.35], [0.55, -0.25]];
+    const offs: readonly (readonly [number, number])[] = [[0, 0], [-0.5, 0.35], [0.55, -0.25]];
     for (let i = 0; i < 3; i++) {
+      const o = offs[i];
+      if (o === undefined) continue;
       const r = R * rng.range(0.32, 0.48), w = rng.range(9, 11) / r; // ~10 m/s around the loop
-      this.flocks.push({ cx: cx + offs[i][0] * R, cz: cz + offs[i][1] * R, r, alt: rng.range(18, 30), w: w * (i % 2 ? -1 : 1), p1: rng.range(0, 6.28), p2: rng.range(0, 6.28), p3: rng.range(0, 6.28), p4: rng.range(0, 6.28) });
+      this.flocks.push({ cx: cx + o[0] * R, cz: cz + o[1] * R, r, alt: rng.range(18, 30), w: w * (i % 2 ? -1 : 1), p1: rng.range(0, 6.28), p2: rng.range(0, 6.28), p3: rng.range(0, 6.28), p4: rng.range(0, 6.28) });
     }
 
     // ── the gulls: ~60 % perched, the rest wheeling ──
     const perched = Math.min(spec.perches.length, Math.round(n * 0.6));
     const order = spec.perches.map((_, i) => i);
-    for (let i = order.length - 1; i > 0; i--) { const j = rng.int(0, i); [order[i], order[j]] = [order[j], order[i]]; }
+    for (let i = order.length - 1; i > 0; i--) { const j = rng.int(0, i); const oi = order[i] ?? 0, oj = order[j] ?? 0; order[i] = oj; order[j] = oi; }
     for (let i = 0; i < n; i++) {
       const g: Gull = {
         state: S.Wheel, x: 0, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0, flap: 0.12, fold: 0, head: 0, legs: 1,
-        perch: -1, flock: i % 3, phase: rng.range(0, 6.28), scale: rng.range(0.75, 1.2), altOff: rng.range(-4, 8),
+        perch: -1, flock: this.flockAt(i % 3), phase: rng.range(0, 6.28), scale: rng.range(0.75, 1.2), altOff: rng.range(-4, 8),
         t: 0, dur: 1, timer: rng.range(20, 40), flush: this.flushR * rng.range(0.8, 1.25),
         flapT: 0, burst: 0, glide: rng.range(1, 4),
         headFrom: 0, headTo: 0, headT: 1, headDur: 1,
         ax: 0, ay: 0, az: 0, bx: 0, by: 0, bz: 0, tx: 0, ty: 0, tz: 0, yaw0: 0,
       };
-      if (i < perched) this.perchOn(g, order[i]);
+      const perch = order[i];
+      if (i < perched && perch !== undefined) this.perchOn(g, perch);
       else { g.t = rng.range(0, 100); this.wheelPos(g, this.time, _p); g.x = _p.x; g.y = _p.y; g.z = _p.z; }
       this.gulls.push(g);
     }
@@ -170,25 +175,30 @@ export class Gulls {
   private buildMesh(n: number) {
     const pos: number[] = [], col: number[] = [], part: number[] = [];
     const rng = new Rng(0x9011);
-    const tri = (a: number[], b: number[], c: number[], colour: THREE.Color, p: number, jitter = 0.05) => {
+    const tri = (a: Vec3, b: Vec3, c: Vec3, colour: THREE.Color, p: number, jitter = 0.05) => {
       pos.push(a[0], a[1], a[2], b[0], b[1], b[2], c[0], c[1], c[2]);
       const k = 1 - jitter + rng.next() * jitter * 2;
       for (let i = 0; i < 3; i++) { col.push(colour.r * k, colour.g * k, colour.b * k); part.push(p); }
     };
-    const quad = (a: number[], b: number[], c: number[], d: number[], colour: THREE.Color, p: number, jitter = 0.05) => { tri(a, b, c, colour, p, jitter); tri(a, c, d, colour, p, jitter); };
+    const quad = (a: Vec3, b: Vec3, c: Vec3, d: Vec3, colour: THREE.Color, p: number, jitter = 0.05) => { tri(a, b, c, colour, p, jitter); tri(a, c, d, colour, p, jitter); };
 
     // body: a lofted 6-sided fuselage, tail point → 3 rings → nose point. Grey back, white flanks / belly.
-    const rings: { z: number; rx: number; ry: number; y: number }[] = [
+    interface Ring { z: number; rx: number; ry: number; y: number }
+    const rings: readonly [Ring, Ring, Ring] = [
       { z: -0.17, rx: 0.05, ry: 0.035, y: 0.02 }, { z: -0.02, rx: 0.1, ry: 0.09, y: 0.0 }, { z: 0.11, rx: 0.085, ry: 0.08, y: 0.005 },
     ];
     const sides = 6;
-    const ringPt = (r: { z: number; rx: number; ry: number; y: number }, k: number) => { const a = (k / sides) * Math.PI * 2 + Math.PI / 6; return [Math.cos(a) * r.rx, r.y + Math.sin(a) * r.ry, r.z]; };
+    const ringPt = (r: Ring, k: number): Vec3 => { const a = (k / sides) * Math.PI * 2 + Math.PI / 6; return [Math.cos(a) * r.rx, r.y + Math.sin(a) * r.ry, r.z]; };
     const bodyCol = (k: number) => { const a = (k + 0.5) / sides * Math.PI * 2 + Math.PI / 6; return Math.sin(a) > 0.35 ? C.grey : Math.sin(a) < -0.5 ? C.belly : C.white; };
-    const tail = [0, 0.03, -0.31], nose = [0, 0.03, 0.2];
+    const tail: Vec3 = [0, 0.03, -0.31], nose: Vec3 = [0, 0.03, 0.2];
     for (let k = 0; k < sides; k++) {
       const k1 = (k + 1) % sides;
       tri(tail, ringPt(rings[0], k1), ringPt(rings[0], k), bodyCol(k), PART.body);
-      for (let r = 0; r < rings.length - 1; r++) quad(ringPt(rings[r], k), ringPt(rings[r], k1), ringPt(rings[r + 1], k1), ringPt(rings[r + 1], k), bodyCol(k), PART.body);
+      for (let r = 0; r < rings.length - 1; r++) {
+        const r0 = rings[r], r1 = rings[r + 1];
+        if (r0 === undefined || r1 === undefined) continue;
+        quad(ringPt(r0, k), ringPt(r0, k1), ringPt(r1, k1), ringPt(r1, k), bodyCol(k), PART.body);
+      }
       tri(ringPt(rings[2], k), ringPt(rings[2], k1), nose, bodyCol(k), PART.body);
     }
     // tail fan: a flat wedge behind the tail point
@@ -196,17 +206,17 @@ export class Gulls {
     // head: an icosahedron on the neck, a black eye-facet either side, a wedge beak
     {
       const g = new THREE.IcosahedronGeometry(0.058, 0);
-      const p = g.attributes.position as THREE.BufferAttribute;
-      const hc = [0, 0.11, 0.2];
+      const p = g.getAttribute('position');
+      const hc: Vec3 = [0, 0.11, 0.2];
       for (let i = 0; i < p.count; i += 3) {
-        const a = [p.getX(i) + hc[0], p.getY(i) * 0.9 + hc[1], p.getZ(i) * 1.1 + hc[2]];
-        const b = [p.getX(i + 1) + hc[0], p.getY(i + 1) * 0.9 + hc[1], p.getZ(i + 1) * 1.1 + hc[2]];
-        const c = [p.getX(i + 2) + hc[0], p.getY(i + 2) * 0.9 + hc[1], p.getZ(i + 2) * 1.1 + hc[2]];
+        const a: Vec3 = [p.getX(i) + hc[0], p.getY(i) * 0.9 + hc[1], p.getZ(i) * 1.1 + hc[2]];
+        const b: Vec3 = [p.getX(i + 1) + hc[0], p.getY(i + 1) * 0.9 + hc[1], p.getZ(i + 1) * 1.1 + hc[2]];
+        const c: Vec3 = [p.getX(i + 2) + hc[0], p.getY(i + 2) * 0.9 + hc[1], p.getZ(i + 2) * 1.1 + hc[2]];
         const mx = (a[0] + b[0] + c[0]) / 3 - hc[0], mz = (a[2] + b[2] + c[2]) / 3 - hc[2], my = (a[1] + b[1] + c[1]) / 3 - hc[1];
         const eye = Math.abs(mx) > 0.035 && mz > 0.015 && my > -0.01 && my < 0.04;
         tri(a, b, c, eye ? C.eye : C.white, PART.head, 0.04);
       }
-      const bb = [0, 0.1, 0.245], bt = [0, 0.085, 0.345];
+      const bb: Vec3 = [0, 0.1, 0.245], bt: Vec3 = [0, 0.085, 0.345];
       tri([-0.018, bb[1] + 0.012, bb[2]], [0.018, bb[1] + 0.012, bb[2]], bt, C.beak, PART.head, 0.02);
       tri([0.018, bb[1] + 0.012, bb[2]], [0.0, bb[1] - 0.02, bb[2]], bt, C.beak, PART.head, 0.02);
       tri([0.0, bb[1] - 0.02, bb[2]], [-0.018, bb[1] + 0.012, bb[2]], bt, C.beak, PART.head, 0.02);
@@ -288,12 +298,24 @@ export class Gulls {
   }
 
   // ─────────────── behaviour ───────────────
+  private flockAt(i: number): Flock {
+    const f = this.flocks[i];
+    if (f === undefined) throw new Error(`Gulls: no flock ${i}`);
+    return f;
+  }
+
+  private perchAt(i: number): THREE.Vector3 {
+    const p = this.perches[i];
+    if (p === undefined) throw new Error(`Gulls: no perch ${i}`);
+    return p;
+  }
+
   private perchOn(g: Gull, perch: number) {
-    const p = this.perches[perch];
+    const p = this.perchAt(perch);
     this.occupied[perch] = 1;
     g.perch = perch; g.state = S.Perched;
     g.x = p.x; g.y = p.y + FOOT; g.z = p.z;
-    g.yaw = this.perchYaw[perch]; g.pitch = 0; g.roll = 0;
+    g.yaw = this.perchYaw[perch] ?? 0; g.pitch = 0; g.roll = 0;
     g.flap = -0.3; g.fold = 0.2; g.legs = 0; g.head = 0;
     g.t = 0; g.timer = this.rng.range(1.5, 5);
     g.headFrom = g.headTo = 0; g.headT = 1; g.headDur = 1;
@@ -301,7 +323,7 @@ export class Gulls {
 
   /** the wheel path of gull g at time t (flock loop + the gull's own phase / scale / altitude) */
   private wheelPos(g: Gull, t: number, out: THREE.Vector3) {
-    const f = this.flocks[g.flock];
+    const f = g.flock;
     const a = f.w * t + g.phase, r = f.r * g.scale;
     out.x = f.cx + r * (Math.sin(a + f.p1) + 0.22 * Math.sin(2 * a + f.p2));
     out.z = f.cz + r * 0.85 * (Math.cos(a + f.p1) + 0.18 * Math.cos(3 * a + f.p3));
@@ -314,6 +336,7 @@ export class Gulls {
     for (let i = 0; i < this.perches.length; i++) {
       if (this.occupied[i]) continue;
       const p = this.perches[i];
+      if (p === undefined) continue;
       if (Math.hypot(p.x - player.x, p.z - player.z) < 10) continue;   // not right beside the player: it would flush again at once
       const score = Math.hypot(p.x - g.x, p.z - g.z) * (0.5 + this.rng.next());
       if (score < bestScore) { bestScore = score; best = i; }
@@ -355,7 +378,7 @@ export class Gulls {
     const d = Math.hypot(ax, az) || 1; ax /= d; az /= d;
     g.ax = g.x; g.ay = g.y; g.az = g.z;
     g.bx = g.x + ax * 5; g.by = g.y + 3.5; g.bz = g.z + az * 5;
-    g.flock = this.rng.int(0, 2); g.phase = this.rng.range(0, 6.28);
+    g.flock = this.flockAt(this.rng.int(0, 2)); g.phase = this.rng.range(0, 6.28);
     g.state = S.Takeoff; g.t = 0; g.dur = 2.6; g.legs = 0;
     g.burst = 8; g.flapT = 0;
     g.timer = this.rng.range(20, 40);
@@ -363,7 +386,7 @@ export class Gulls {
   }
 
   private startLanding(g: Gull, perch: number) {
-    const p = this.perches[perch];
+    const p = this.perchAt(perch);
     this.occupied[perch] = 1; g.perch = perch;
     g.ax = g.x; g.ay = g.y; g.az = g.z;
     g.tx = p.x; g.ty = p.y + FOOT; g.tz = p.z;
@@ -395,13 +418,14 @@ export class Gulls {
     g.roll += (roll - g.roll) * Math.min(1, dt * 2.5);
   }
 
-  update(dt: number, player: THREE.Vector3) {
+  update(dt: number, player: THREE.Vector3): void {
     if (dt <= 0) return;
     this.time += dt; this.uniforms.uTime.value = this.time;
     const t = this.time;
     let flying = 0;
     for (let i = 0; i < this.gulls.length; i++) {
       const g = this.gulls[i];
+      if (g === undefined) continue;
       switch (g.state) {
         case S.Perched: {
           const d = Math.hypot(g.x - player.x, g.z - player.z);
@@ -468,6 +492,7 @@ export class Gulls {
           flying++;
           break;
         }
+        default: break;
       }
       this.writeInstance(i);
     }
@@ -478,13 +503,15 @@ export class Gulls {
       this.callTimer = this.rng.range(5, 12);
       const k = this.rng.int(0, this.gulls.length - 1);
       let g = this.gulls[k];
-      if (flying > 0 && g.state === S.Perched) { for (let j = 0; j < this.gulls.length; j++) { const h = this.gulls[(k + j) % this.gulls.length]; if (h.state === S.Wheel) { g = h; break; } } }
+      if (g === undefined) return;
+      if (flying > 0 && g.state === S.Perched) { for (let j = 0; j < this.gulls.length; j++) { const h = this.gulls[(k + j) % this.gulls.length]; if (h !== undefined && h.state === S.Wheel) { g = h; break; } } }
       this.onCall?.(_q.set(g.x, g.y, g.z));
     }
   }
 
   private writeInstance(i: number) {
     const g = this.gulls[i];
+    if (g === undefined) return;
     _e.set(-g.pitch, g.yaw, g.roll, 'YXZ');
     _quat.setFromEuler(_e);
     _p.set(g.x, g.y, g.z);

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef } from './registry';
-import { loft, tube, skinPlain, S, boneIndex, srgb, mix, sstep, paintNoise, setShag, isLowPoly, type Paint } from './loft';
+import { loft, tube, skinPlain, S, boneIndex, srgb, mix, sstep, paintNoise, setShag, isLowPoly, paletteColors, type Paint, type RGB } from './loft';
 import { boarPaintLow, crestSpikes } from '../lowpoly';
 
 /**
@@ -12,36 +12,35 @@ import { boarPaintLow, crestSpikes } from '../lowpoly';
  * Palette keys (VariantDef.tint): base grizzle dark black snout tusk hoof eye cheek scar.
  */
 
-const BOAR_PALETTE: Record<string, [number, number, number]> = {
+const BOAR_PALETTE = {
   // dark grey-brown with grizzled pale bristle tips along the spine, pale tusks
   base: [0.36, 0.29, 0.225], grizzle: [0.58, 0.50, 0.40], dark: [0.16, 0.13, 0.10], black: [0.06, 0.05, 0.045],
   snout: [0.16, 0.09, 0.08], tusk: [0.90, 0.86, 0.74], hoof: [0.09, 0.075, 0.065], eye: [0.02, 0.015, 0.01], cheek: [0.40, 0.36, 0.30],
   scar: [0.80, 0.62, 0.56],   // bare, healed hide
-};
+} satisfies Record<string, RGB>;
 
 /** near-black coat: the grizzle is only a dull sheen, the cheeks barely lighter */
-const BLACK_TINT: Record<string, [number, number, number]> = {
+const BLACK_TINT: Record<string, RGB> = {
   base: [0.10, 0.09, 0.085], grizzle: [0.24, 0.22, 0.20], dark: [0.05, 0.045, 0.04], black: [0.03, 0.03, 0.03], cheek: [0.17, 0.15, 0.13], snout: [0.10, 0.07, 0.07],
 };
 
 /** grey-brown, heavily grizzled old boar */
-const SCARBACK_TINT: Record<string, [number, number, number]> = {
+const SCARBACK_TINT: Record<string, RGB> = {
   base: [0.34, 0.31, 0.27], grizzle: [0.60, 0.56, 0.50], dark: [0.15, 0.135, 0.12], cheek: [0.46, 0.43, 0.38], tusk: [0.86, 0.80, 0.66],
 };
 
 /** Old Ironhide: iron-grey, almost blue in the shade, with steel-pale bristle tips */
-const IRONHIDE_TINT: Record<string, [number, number, number]> = {
+const IRONHIDE_TINT: Record<string, RGB> = {
   base: [0.28, 0.29, 0.31], grizzle: [0.52, 0.54, 0.56], dark: [0.12, 0.125, 0.14], black: [0.05, 0.05, 0.06], cheek: [0.40, 0.41, 0.42],
   snout: [0.12, 0.10, 0.10], tusk: [0.80, 0.78, 0.70], hoof: [0.08, 0.08, 0.085],
 };
 
 function boarPaint(v: VariantDef): Paint {
-  const P: Record<string, THREE.Color> = {};
-  for (const k of Object.keys(BOAR_PALETTE)) { const c = v.tint?.[k] ?? BOAR_PALETTE[k]; P[k] = srgb(c[0], c[1], c[2]); }
+  const P = paletteColors(BOAR_PALETTE, v.tint);
   const { base, grizzle, dark, black, snout, tusk, hoof, eye, cheek, scar } = P;
   const tuskRoot = srgb(0.55, 0.48, 0.40);
-  const hasScar = !!v.traits?.scar;
-  return (out, x, y, z, nx, ny, nz, part, t, a) => {
+  const hasScar = Boolean(v.traits?.['scar']);
+  return (out, x, y, z, nx, ny, nz, part, t, _a) => {
     const n1 = paintNoise.fbm(x * 4 + 11, z * 4 + y * 3, 3);
     switch (part) {
       case 'body':
@@ -81,7 +80,7 @@ function boarPaint(v: VariantDef): Paint {
 }
 
 function buildBoar(v: VariantDef, rng: Rng): AnimalSpecies {
-  const tuskScale = Number(v.traits?.tuskScale ?? 1);
+  const tuskScale = Number(v.traits?.['tuskScale'] ?? 1);
   setShag(0.016);
   const bones: BoneDef[] = [
     { name: 'body', parent: null, pos: [0, 0.62, -0.02] },
@@ -142,7 +141,7 @@ function buildBoar(v: VariantDef, rng: Rng): AnimalSpecies {
     S(0, 0.418 + Y, 1.408, 0.02, 0.02, hd),
   ], 14, 'snout', paint));
   // tusks (lower, curving up and out) — scaled about the root in the jaw by tuskScale
-  const tk = tuskScale, trk = Math.pow(tuskScale, 0.6);
+  const tk = tuskScale, trk = tuskScale ** 0.6;
   for (const sx of [1, -1]) {
     const root: [number, number, number] = [sx * 0.05, 0.43 + Y, 1.22];
     const T = (p: [number, number, number]): [number, number, number] => [root[0] + (p[0] - root[0]) * tk, root[1] + (p[1] - root[1]) * tk, root[2] + (p[2] - root[2]) * tk];
@@ -168,7 +167,7 @@ function buildBoar(v: VariantDef, rng: Rng): AnimalSpecies {
     [0.86, 0.78, 0.02, hd, hd, 0], [0.74, 0.86, 0.06, n2, hd, 0.5], [0.58, 0.93, 0.09, n1, n2, 0.5], [0.42, 0.985, 0.10, body, n1, 0.4],
     [0.26, 0.965, 0.09, body, body, 0], [0.08, 0.915, 0.075, body, body, 0], [-0.12, 0.875, 0.06, body, body, 0], [-0.32, 0.85, 0.045, body, body, 0], [-0.5, 0.82, 0.025, body, body, 0], [-0.58, 0.80, 0.01, body, body, 0],
   ];
-  crestPts.reverse().forEach(([z, y, ry, b0, b1, w1]) => crestSt.push(S(0, y - 0.04 + Y, z, 0.022, ry * (0.85 + rng.next() * 0.3), b0, b1, w1, 1, 0.3)));
+  crestPts.reverse().forEach(([z, y, ry, b0, b1, w1]) => { crestSt.push(S(0, y - 0.04 + Y, z, 0.022, ry * (0.85 + rng.next() * 0.3), b0, b1, w1, 1, 0.3)); });
   if (lowPoly) fur.push(...crestSpikes(crestPts, Y, paint));
   else fur.push(loft(crestSt, 6, 'crest', paint));
   // tail with tuft
@@ -182,7 +181,7 @@ function buildBoar(v: VariantDef, rng: Rng): AnimalSpecies {
     S(0, 0.24 + Y, -0.74, 0.008, 0.008, tl),
   ], 8, 'tail', paint, false, true));
   // legs
-  const feet: [number, number][] = [];
+  const feetF: [number, number][] = [], feetB: [number, number][] = [];   // front / back, each L then R
   for (const side of ['L', 'R'] as const) {
     const sx = side === 'L' ? 1 : -1;
     const sh = B(`F${side}_shoulder`), ca = B(`F${side}_carpus`), fe = B(`F${side}_fetlock`);
@@ -201,7 +200,7 @@ function buildBoar(v: VariantDef, rng: Rng): AnimalSpecies {
       S(sx * 0.145, 0.0, 0.445, 0.038, 0.048, fe),
       S(sx * 0.145, -0.005, 0.445, 0.01, 0.01, fe),
     ], 10, 'hoof', paint));
-    feet.push([sx * 0.145, 0.445]);
+    feetF.push([sx * 0.145, 0.445]);
     const hp = B(`B${side}_hip`), stf = B(`B${side}_stifle`), hk = B(`B${side}_hock`);
     fur.push(loft([
       S(sx * 0.11, 0.62, -0.50, 0.13, 0.20, body, hp, 0.3),
@@ -218,10 +217,10 @@ function buildBoar(v: VariantDef, rng: Rng): AnimalSpecies {
       S(sx * 0.145, 0.0, -0.44, 0.038, 0.048, hk),
       S(sx * 0.145, -0.005, -0.44, 0.01, 0.01, hk),
     ], 10, 'hoof', paint));
-    feet.push([sx * 0.145, -0.44]);
+    feetB.push([sx * 0.145, -0.44]);
   }
   setShag(0);
-  const feetOrdered: [number, number][] = [feet[0], feet[2], feet[1], feet[3]];
+  const feetOrdered: [number, number][] = [...feetF, ...feetB];
   return {
     bones, furParts: fur, hardParts: hard, eyeParts: eyes,
     dims: { bodyY: 0.62, bodyHalfLen: 0.65, bodyRadius: 0.33, headRadius: 0.2, legLen: 0.58, feet: feetOrdered, halfWidth: 0.29 },

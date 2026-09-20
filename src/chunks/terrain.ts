@@ -61,7 +61,7 @@ export function buildTerrain(seed: number, spec: TerrainSpec): ChunkTerrain {
 
   function trailDistance(x: number, z: number): number {
     let d = Infinity;
-    for (const poly of trails) for (let i = 0; i < poly.length - 1; i++) d = Math.min(d, distToSegment(x, z, poly[i][0], poly[i][1], poly[i + 1][0], poly[i + 1][1]));
+    for (const poly of trails) for (let i = 0; i < poly.length - 1; i++) { const a = poly[i], b = poly[i + 1]; if (a && b) d = Math.min(d, distToSegment(x, z, a[0], a[1], b[0], b[1])); }
     return d;
   }
 
@@ -76,7 +76,7 @@ export function buildTerrain(seed: number, spec: TerrainSpec): ChunkTerrain {
 
   let _waterLevel: number | null = null;
   function waterLevel(): number {
-    if (_waterLevel === null) _waterLevel = oceanLevel !== null ? oceanLevel : pond ? landscape(pond.x, pond.z) + pondFill : -1e4; // ocean, or the pond fills the natural basin below its rim
+    _waterLevel ??= oceanLevel ?? (pond ? landscape(pond.x, pond.z) + pondFill : -1e4); // ocean, or the pond fills the natural basin below its rim
     return _waterLevel;
   }
 

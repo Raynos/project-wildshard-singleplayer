@@ -19,9 +19,9 @@ export type MixKey = LayerId | 'pulse.soft' | 'pulse.kick' | 'pulse.four' | 'lpf
 export type Mode = 'lydian' | 'dorian';
 export type ChordName = 'Dmaj7#11' | 'E7' | 'Bm9' | 'A' | 'Dm9' | 'Gm' | 'Am' | 'Bb';
 
-export interface NoteEv { t: number; d: number; n: number; v?: number }
+export interface NoteEv { t: number; d: number; n: number; v?: number | undefined }
 export interface ChordEv { t: number; chord: ChordName }
-export interface MixEv { t: number; key: MixKey; level: number; ramp?: number }
+export interface MixEv { t: number; key: MixKey; level: number; ramp?: number | undefined }
 export interface Segment {
   id: string;
   /** absolute start in seconds (trailer arrangements); undefined = follows the previous segment */
@@ -87,28 +87,29 @@ export function thirdAbove(n: number, scale = LYDIAN): number {
   const rel = n - ROOT, oct = Math.floor(rel / 12), pc = ((rel % 12) + 12) % 12;
   let deg = scale.indexOf(pc); if (deg < 0) deg = scale.findIndex((s) => s > pc) - 1;
   const up = deg + 2, o = oct + Math.floor(up / 7);
-  return ROOT + o * 12 + scale[((up % 7) + 7) % 7];
+  return ROOT + o * 12 + (scale[((up % 7) + 7) % 7] ?? 0);
 }
 
 // ─────────────────────────────────────────── pattern helpers ───────────────────────────────────────────
 const shift = (notes: NoteEv[], t0: number, rate = 1, semis = 0, v?: number): NoteEv[] =>
   notes.map((x) => ({ t: t0 + x.t / rate, d: x.d / rate, n: x.n + semis, v: v ?? x.v }));
 /** the motif starting at beat t0; rate 2 = eighth notes (the trailer); semis 12 = up the octave (the lift) */
-export const motif = (t0: number, rate = 1, semis = 0, v?: number) => shift(MOTIF, t0, rate, semis, v);
+export const motif = (t0: number, rate = 1, semis = 0, v?: number): NoteEv[] => shift(MOTIF, t0, rate, semis, v);
 /** the motif and its third, interleaved (the build) */
-export const motifThirds = (t0: number, rate = 1, semis = 0, v = 0.8) =>
+export const motifThirds = (t0: number, rate = 1, semis = 0, v = 0.8): NoteEv[] =>
   motif(t0, rate, semis).flatMap((x) => [x, { ...x, n: thirdAbove(x.n), v: v * 0.7 }]);
 /** bass roots: one note per chord change, held to the next (or every `every` beats) */
 const bassLine = (chords: ChordEv[], beats: number, every = 2, octave = 0, v = 0.9): NoteEv[] => {
   const out: NoteEv[] = [];
   for (let t = 0; t < beats; t += every) {
     const c = [...chords].reverse().find((x) => x.t <= t) ?? chords[0];
+    if (c === undefined) throw new Error('bassLine: no chords');
     out.push({ t, d: Math.min(every, beats - t) * 0.9, n: CHORD_ROOT[c.chord] + octave, v });
   }
   return out;
 };
 /** bass in eighths (combat / the build) */
-const bassEighths = (chords: ChordEv[], beats: number) => bassLine(chords, beats, 0.5, 0, 0.8).map((x, i) => ({ ...x, d: 0.4, v: i % 2 ? 0.6 : 0.85 }));
+const bassEighths = (chords: ChordEv[], beats: number) => bassLine(chords, beats, 0.5, 0, 0.8).map((x, i) => ({ t: x.t, n: x.n, d: 0.4, v: i % 2 ? 0.6 : 0.85 }));
 /** the pulse: shaker eighths (42) · tap on 2 & 4 (38) · kick on 1 & 3 (36) · the four-on-the-floor kicks on 2 & 4 (35) */
 const pulse = (beats: number, opts: { shaker?: boolean; tap?: boolean; kick?: boolean; four?: boolean; every?: number } = {}): NoteEv[] => {
   const out: NoteEv[] = [], bar = opts.every ?? 4;
@@ -121,6 +122,8 @@ const pulse = (beats: number, opts: { shaker?: boolean; tap?: boolean; kick?: bo
   }
   return out;
 };
+/** the notes at one velocity */
+const vel = (notes: NoteEv[], v: number): NoteEv[] => notes.map((x) => ({ t: x.t, d: x.d, n: x.n, v }));
 const bars = (...names: ChordName[]): ChordEv[] => names.map((chord, i) => ({ t: i * 4, chord }));
 const mix = (pairs: [MixKey, number, number?][], t = 0): MixEv[] => pairs.map(([key, level, ramp]) => ({ t, key, level, ramp }));
 
@@ -177,7 +180,7 @@ export const THEME: Arrangement = { name: 'theme', segments: [A, B, C, D, RING],
 // Each segment's bpm is chosen so its beat count fits its picture exactly (104 ± a few, the cut was timed to 104).
 const bpmFor = (beats: number, seconds: number) => (beats * 60) / seconds;
 const beatsIn = (seconds: number, bpm: number) => (seconds * bpm) / 60;
-const HALF = bars('Dmaj7#11', 'E7', 'Bm9', 'A').map((c) => ({ ...c, t: c.t / 2 })); // the motif in eighths: a chord every 2 beats
+const HALF = bars('Dmaj7#11', 'E7', 'Bm9', 'A').map((c) => ({ t: c.t / 2, chord: c.chord })); // the motif in eighths: a chord every 2 beats
 const T30: Segment[] = [
   { id: 't30-title', at: 0, bpm: 104, beats: beatsIn(1.5, 104), chords: [{ t: 0, chord: 'Dmaj7#11' }], notes: {},
     mix: [...mix([['drone', 0, 0], ['pad', 0, 0], ['pluck', 1], ['marimba', 1], ['bell', 1], ['bass', 0], ['pulse.soft', 0], ['pulse.kick', 0], ['pulse.four', 0], ['lpf', 20000], ['chorus', 0]]),
@@ -201,8 +204,8 @@ const T30: Segment[] = [
     mix: [...mix([['lpf', 20000, 5.0], ['chorus', 0, 2.5], ['pulse.soft', 0.8, 2], ['pad', 0.9, 4]])] },
   { id: 't30-lift', at: 21.5, bpm: bpmFor(6, 3.1), beats: 6, chords: [{ t: 0, chord: 'Dm9' }, { t: 2, chord: 'Gm' }, { t: 4, chord: 'A' }],
     notes: {
-      pluck: [{ t: 0, d: 0.5, n: 74 }, { t: 0.5, d: 0.5, n: 81 }, { t: 1, d: 0.5, n: 83 }, { t: 1.5, d: 0.5, n: 81 }, { t: 2, d: 0.5, n: 79 }, { t: 2.5, d: 0.5, n: 76 }, { t: 3, d: 1, n: 74 }, { t: 4, d: 0.5, n: 81 }, { t: 4.5, d: 0.5, n: 83 }, { t: 5, d: 1, n: 85 }].map((x) => ({ ...x, v: 0.95 })),
-      marimba: [{ t: 0, d: 0.5, n: 86 }, { t: 0.5, d: 0.5, n: 93 }, { t: 1, d: 0.5, n: 95 }, { t: 1.5, d: 0.5, n: 93 }, { t: 2, d: 0.5, n: 91 }, { t: 2.5, d: 0.5, n: 88 }, { t: 3, d: 1, n: 86 }, { t: 4, d: 0.5, n: 93 }, { t: 4.5, d: 0.5, n: 95 }, { t: 5, d: 1, n: 97 }].map((x) => ({ ...x, v: 0.75 })),
+      pluck: vel([{ t: 0, d: 0.5, n: 74 }, { t: 0.5, d: 0.5, n: 81 }, { t: 1, d: 0.5, n: 83 }, { t: 1.5, d: 0.5, n: 81 }, { t: 2, d: 0.5, n: 79 }, { t: 2.5, d: 0.5, n: 76 }, { t: 3, d: 1, n: 74 }, { t: 4, d: 0.5, n: 81 }, { t: 4.5, d: 0.5, n: 83 }, { t: 5, d: 1, n: 85 }], 0.95),
+      marimba: vel([{ t: 0, d: 0.5, n: 86 }, { t: 0.5, d: 0.5, n: 93 }, { t: 1, d: 0.5, n: 95 }, { t: 1.5, d: 0.5, n: 93 }, { t: 2, d: 0.5, n: 91 }, { t: 2.5, d: 0.5, n: 88 }, { t: 3, d: 1, n: 86 }, { t: 4, d: 0.5, n: 93 }, { t: 4.5, d: 0.5, n: 95 }, { t: 5, d: 1, n: 97 }], 0.75),
       bass: bassEighths([{ t: 0, chord: 'Dm9' }, { t: 2, chord: 'Gm' }, { t: 4, chord: 'A' }], 6), pulse: pulse(6, { every: 2, tap: false }),
     },
     mix: mix([['pad', 1, 1], ['drone', 1, 1], ['pulse.soft', 1, 1], ['pluck', 1], ['marimba', 1]]) },
@@ -238,6 +241,6 @@ export type ArrangementName = keyof typeof ARRANGEMENTS;
 /** the pickup sting: the first four motif notes on the bell, eighths */
 export const STING_PICKUP: NoteEv[] = MOTIF.slice(0, 4).map((x) => ({ t: x.t / 2, d: 0.9, n: x.n + 12, v: 0.6 }));
 /** the death sting: the minor turn — Dm9 then Gm — with a low D */
-export const STING_DEATH = { chords: ['Dm9', 'Gm'] as ChordName[], bass: [{ t: 0, d: 2, n: 38, v: 0.9 }] as NoteEv[] };
+export const STING_DEATH: { chords: [ChordName, ChordName]; bass: NoteEv[] } = { chords: ['Dm9', 'Gm'], bass: [{ t: 0, d: 2, n: 38, v: 0.9 }] };
 /** the chunk sting: the resolve chord — the trailer's end-card hit */
 export const STING_CHUNK: { chord: ChordName; bell: NoteEv[] } = { chord: 'Dmaj7#11', bell: [{ t: 0, d: 4, n: 74, v: 0.7 }, { t: 0, d: 4, n: 81, v: 0.4 }] };

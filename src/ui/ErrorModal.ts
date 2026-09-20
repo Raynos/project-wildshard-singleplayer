@@ -16,6 +16,10 @@ declare const __BUILD_ID__: string; // vite.config.ts define
 let root: HTMLElement | null = null;
 let count = 0;
 let firstText = '';
+// lib.dom says these always exist; they don't (clipboard needs a secure context, older Safari has no hardwareConcurrency)
+const nav: { clipboard?: Clipboard | undefined; hardwareConcurrency?: number | undefined } = navigator;
+
+function q(el: ParentNode, sel: string): HTMLElement { const e = el.querySelector<HTMLElement>(sel); if (!e) throw new Error(`ErrorModal: no ${sel}`); return e; }
 
 function build(): HTMLElement {
   const el = document.createElement('div');
@@ -49,18 +53,21 @@ function build(): HTMLElement {
         <span class="n"></span>
       </div>
     </div>`;
-  el.querySelector<HTMLButtonElement>('.reload')!.onclick = () => location.reload();
-  el.querySelector<HTMLButtonElement>('.close')!.onclick = () => { el.remove(); root = null; };
-  el.querySelector<HTMLButtonElement>('.copy')!.onclick = () => {
-    const text = `${el.querySelector('.msg')!.textContent}\n\n${el.querySelector('.stack')!.textContent}\n\n${el.querySelector('.meta')!.textContent}`;
-    void navigator.clipboard?.writeText(text).then(() => { el.querySelector('.copy')!.textContent = 'Copied'; }, () => { el.querySelector('.copy')!.textContent = 'Copy failed'; });
+  q(el, '.reload').onclick = () => { location.reload(); };
+  q(el, '.close').onclick = () => { el.remove(); root = null; };
+  const copyBtn = q(el, '.copy');
+  const copy = async (): Promise<void> => {
+    const clip = nav.clipboard; if (!clip) return;
+    const text = `${q(el, '.msg').textContent}\n\n${q(el, '.stack').textContent}\n\n${q(el, '.meta').textContent}`;
+    try { await clip.writeText(text); copyBtn.textContent = 'Copied'; } catch { copyBtn.textContent = 'Copy failed'; }
   };
+  copyBtn.onclick = () => { void copy(); };
   return el;
 }
 
 function meta(): string {
-  let build = ''; try { build = __BUILD_ID__; } catch { /* dev without the define */ }
-  return [`build ${build || 'unknown'} · ${new Date().toISOString()}`, location.href, navigator.userAgent, `${innerWidth}×${innerHeight} · dpr ${devicePixelRatio} · cores ${navigator.hardwareConcurrency ?? '?'}`].join('\n');
+  let id = ''; try { id = __BUILD_ID__; } catch { /* dev without the define */ }
+  return [`build ${id || 'unknown'} · ${new Date().toISOString()}`, location.href, navigator.userAgent, `${innerWidth}×${innerHeight} · dpr ${devicePixelRatio} · cores ${nav.hardwareConcurrency ?? '?'}`].join('\n');
 }
 
 /** Show the modal (first error wins the headline; later ones tick the counter). */
@@ -69,13 +76,14 @@ export function showError(message: string, stack = ''): void {
     count++;
     if (!root) {
       root = build();
-      (document.body ?? document.documentElement).appendChild(root);
+      const doc: { body: HTMLElement | null } = document; // null when we run from <head>
+      (doc.body ?? document.documentElement).append(root);
       firstText = message;
-      root.querySelector('.msg')!.textContent = message;
-      root.querySelector('.stack')!.textContent = stack || '(no stack)';
-      root.querySelector('.meta')!.textContent = meta();
+      q(root, '.msg').textContent = message;
+      q(root, '.stack').textContent = stack || '(no stack)';
+      q(root, '.meta').textContent = meta();
     }
-    root.querySelector('.n')!.textContent = count > 1 ? `+${count - 1} more (first: ${firstText.slice(0, 40)}…)` : '';
+    q(root, '.n').textContent = count > 1 ? `+${count - 1} more (first: ${firstText.slice(0, 40)}…)` : '';
   } catch { /* the modal must never throw */ }
 }
 
@@ -91,8 +99,9 @@ export function installErrorModal(): void {
   if (w.__wsErrorModal) return;
   w.__wsErrorModal = true;
   window.addEventListener('error', (e) => {
-    const d = e.error ? describe(e.error) : { message: e.message, stack: '' };
-    showError(d.message, d.stack || `${e.filename?.split('/').pop() ?? ''}:${e.lineno}:${e.colno}`);
+    const err: unknown = e.error;
+    const d = err !== undefined && err !== null ? describe(err) : { message: e.message, stack: '' };
+    showError(d.message, d.stack || `${e.filename.split('/').pop() ?? ''}:${e.lineno}:${e.colno}`);
   });
   window.addEventListener('unhandledrejection', (e) => { const d = describe(e.reason); showError(d.message, d.stack); });
 }

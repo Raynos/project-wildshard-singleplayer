@@ -14,12 +14,13 @@ const renderWav = async (name: ArrangementName, seconds: number, solo?: string[]
   const buf = await Music.renderOffline(name, seconds, { solo, state });
   const bytes = new Uint8Array(Music.toWav(buf));
   let s = ''; const CH = 0x8000;
-  for (let i = 0; i < bytes.length; i += CH) s += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + CH)));
+  for (let i = 0; i < bytes.length; i += CH) s += String.fromCodePoint(...bytes.subarray(i, i + CH));
   return btoa(s);
 };
 
-const ui = document.getElementById('music-dev')!;
-const btn = (label: string, fn: () => void) => { const b = document.createElement('button'); b.textContent = label; b.addEventListener('click', () => { audio.resume(); fn(); }); ui.appendChild(b); };
+const ui = document.getElementById('music-dev');
+if (!ui) throw new Error('music-dev: #music-dev element missing');
+const btn = (label: string, fn: () => void) => { const b = document.createElement('button'); b.textContent = label; b.addEventListener('click', () => { audio.resume(); fn(); }); ui.append(b); };
 btn('play theme', () => music.play('theme'));
 btn('play trailer30', () => music.play('trailer30'));
 btn('play trailer15', () => music.play('trailer15'));
@@ -28,7 +29,7 @@ for (const m of ['menu', 'calm', 'alert', 'combat'] as MusicMode[]) btn(m, () =>
 for (const s of ['pine', 'island'] as Shard[]) btn(s, () => music.setState({ shard: s }));
 btn('underwater', () => music.setState({ underwater: !music.state.underwater }));
 for (const s of ['pickup', 'death', 'chunk'] as StingName[]) btn(`sting ${s}`, () => music.sting(s));
-const pre = document.createElement('pre'); ui.appendChild(pre);
+const pre = document.createElement('pre'); ui.append(pre);
 let oscPeak = 0;
 setInterval(() => {
   const st = music.stats, live = music.engine.liveOsc(); oscPeak = Math.max(oscPeak, live);
