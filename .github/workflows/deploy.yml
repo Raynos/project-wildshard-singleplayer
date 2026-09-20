@@ -11,6 +11,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch: # re-deploy HEAD by hand: gh workflow run deploy
 
 concurrency:
   group: deploy-${{ github.ref }}
@@ -21,7 +22,7 @@ env:
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
   # deploy steps run only for pushes to main AND only once the token secret exists; until then the
   # gates still run and the job stays green so the missing token is a notice, not a red build.
-  DEPLOY: ${{ github.event_name == 'push' && secrets.VERCEL_TOKEN != '' }}
+  DEPLOY: ${{ github.event_name != 'pull_request' && secrets.VERCEL_TOKEN != '' }}
 
 jobs:
   build-and-deploy:
@@ -69,7 +70,7 @@ jobs:
 
       # ---- deploy (main only) ------------------------------------------------------------------
       - name: No token, no deploy
-        if: github.event_name == 'push' && env.DEPLOY != 'true'
+        if: github.event_name != 'pull_request' && env.DEPLOY != 'true'
         run: echo "::warning::VERCEL_TOKEN secret is not set — gates passed but nothing was deployed"
 
       - name: Vercel pull
