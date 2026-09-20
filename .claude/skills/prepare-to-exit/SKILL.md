@@ -1,24 +1,37 @@
 ---
 name: prepare-to-exit
-description: Checkpoint the session and prepare to exit — commit your own paths through a private index, flip the ledgers, queue every leftover, close your browser sessions, report, then print the BYE / OOPS banner. User-invoked only.
+description: Checkpoint the session and prepare to exit — commit your own paths through a private index, run the four gates on the exported tree, push (which deploys), confirm the CI run went live, flip the ledgers, queue every leftover, close your browser sessions, report, then print the BYE / OOPS banner. User-invoked only.
 disable-model-invocation: true
 ---
 
 # Prepare to exit
 
-Ported from `trials-gauntlet-demo` on 2026-09-19 and adapted to this repo (AGENTS.md is canon). Execute in order;
-don't paraphrase or shortcut. A deploy is its own ask — this skill only makes sure a deploy *could* be made from
-HEAD, it never runs one.
+Ported from `trials-gauntlet-demo` on 2026-09-19, re-cut on 2026-09-20 for continuous deployment (AGENTS.md is
+canon). Execute in order; don't paraphrase or shortcut.
 
 ## What is different here
 
+- **A push IS a deploy.** `.github/workflows/deploy.yml` runs on every push to `main`: typecheck → oxlint → css
+  check → vite build, and if all four are green it ships to production (`https://wildshard-singleplayer.vercel.app`,
+  ~1 min push-to-live). There is no separate deploy step to run and nobody "owns" deploys — but it means every
+  commit you push is a release, so **HEAD must pass all four gates before you push**, and a red CI run on your
+  push is your red. Never `vercel deploy` by hand unless CI itself is broken; `gh workflow run deploy` re-ships HEAD.
+- **The gates are strict and there is no cheating them.** `tsconfig.json` has every strictness flag TS 7 has;
+  `.oxlintrc.json` is type-aware with all seven categories at error and warnings denied. `any`, non-null `!`,
+  `@ts-ignore` / `@ts-expect-error`, `as unknown as`, blanket `oxlint-disable` and tsconfig `exclude`s are not fixes
+  — narrow the type. A per-line `oxlint-disable-next-line rule -- reason` is allowed only where the rule is
+  genuinely wrong at that spot (nine exist; each has a reason).
 - **One checkout, one git index, many sessions.** Two or three Claude sessions (herdr panes) plus their subagents
   edit this tree at once on `main`, no worktrees. The shared index is routinely stale or holds other people's
-  blobs. A plain `git commit` here has swept stale blobs into HEAD **four times** in one night (Audio.ts, main.ts,
-  Minimap.ts, Weapons.ts). So: **no `git commit` at all** — every commit goes through a private index (step 1).
-- **Deploys are built from a clean export of HEAD**, never the working tree, so *HEAD* is what has to be green.
+  blobs; on 2026-09-20 it was a whole older tree (49 phantom staged deletions). A plain `git commit` here has swept
+  stale blobs into HEAD **four times** in one night (Audio.ts, main.ts, Minimap.ts, Weapons.ts). So: **no
+  `git commit` at all** — every commit goes through a private index (step 1).
+- **What ships is a clean export of HEAD** (CI checks out the commit), never the working tree — so *HEAD* is what
+  has to be green, and the other sessions' dirty files never ship.
 - **Headless browsers pin the box.** Six open `agent-browser` sessions took the machine to load 20 and wedged the
   daemon. Close yours before the banner (step 5).
+- **The checkout lives at `~/projects/games/project-wildshard-singleplayer`** (moved from `~/projects/…` on
+  2026-09-20); the memory directory is keyed by that path.
 
 ## Steps
 
@@ -32,29 +45,37 @@ HEAD, it never runs one.
    git update-index --add --cacheinfo 100644,$(git hash-object -w <file>),<path>   # per file; 100755 for scripts
    T=$(git write-tree)
    git archive $T | tar -x -C <scratchpad>/tree && ln -s $PWD/node_modules <scratchpad>/tree/node_modules
-   $PWD/node_modules/.bin/tsc --noEmit -p <scratchpad>/tree/tsconfig.json        # the gate runs on the TREE, not the worktree
+   cd <scratchpad>/tree && PATH=$PWD/node_modules/.bin:$PATH   # the shims resolve through the symlink; never `pnpm exec` here
+   tsc --noEmit && oxlint && node scripts/check-css.mjs && vite build           # the FOUR gates, on the TREE, exactly as CI runs them
    C=$(git commit-tree $T -p $BASE -m "<subject>"); git update-ref refs/heads/main $C $BASE   # refuses if HEAD moved → redo
    unset GIT_INDEX_FILE
    ```
-   For a shared file (`src/main.ts`, `docs/tasks/ASKS.md`, `src/audio/Audio.ts`, `TouchControls.ts` …) apply only
-   your hunks to `git show $BASE:<path>`, never the worktree copy (it carries others' WIP). Subject states the
-   finding; end with the Co-Authored-By / Claude-Session lines. Gates: `tsc --noEmit` on the exported tree,
-   `node scripts/check-css.mjs` (prebuild), and `vite build` if you touched vite/pwa/build config. Say plainly what
-   is red and whose it is — another agent's uncommitted WIP in the worktree is not your red, but a red *HEAD* is
-   everyone's, and it blocks deploys.
-2. **Push after every commit.** `git push origin main`; on rejection `git fetch && git merge origin/main` (never
-   rebase, never stash), push again. Then verify nobody's files regressed in the commits between your `BASE` and
-   HEAD (`git rev-parse HEAD:<path>` for the files the last few commits touched) — the read-tree/commit-tree race
-   silently reverts a sibling's commit if HEAD moved in between. An unpushed commit at exit is an OOPS.
+   For a shared file (`src/main.ts`, `docs/tasks/ASKS.md`, `src/audio/Audio.ts`, `src/game/Inventory.ts`,
+   `TouchControls.ts` …) apply only your hunks to `git show $BASE:<path>`, never the worktree copy (it carries
+   others' WIP) — `git diff -- <path>` → keep your hunks → `git apply --cached` against the private index. Subject
+   states the finding; end with the Co-Authored-By / Claude-Session lines. Say plainly what is red and whose it
+   is — another agent's uncommitted WIP in the worktree is not your red, but a red *HEAD* is everyone's, and it
+   blocks every deploy until fixed.
+2. **Push after every commit — and watch it ship.** `git push origin main`; on rejection `git fetch && git merge
+   origin/main` (never rebase, never stash), re-run the gates on the merged tree, push again. Then:
+   ```
+   gh run list --limit 1                       # the run for your SHA
+   gh run watch <id> --exit-status             # ~1 min; red = your fix, now
+   curl -s https://wildshard-singleplayer.vercel.app/version.json   # "build":"<short sha>-…" must be your HEAD
+   ```
+   Also verify nobody's files regressed in the commits between your `BASE` and HEAD (`git rev-parse HEAD:<path>`
+   for the files the last few commits touched) — the read-tree/commit-tree race silently reverts a sibling's
+   commit if HEAD moved in between. An unpushed commit at exit is an OOPS; so is a pushed commit whose CI run
+   is red or still unknown.
 3. **Sync the worktree copies of your files to HEAD** (`git show HEAD:<path> > <path>`) for the files you committed
    as blobs — a private-index commit never writes the working tree, so the dev server on :5173 keeps serving the
    old code (this is how a trailer capture ran against a stale `main.ts` for an hour). Only for files whose worktree
    copy is an older version of *yours*; never overwrite a copy that carries someone else's hunks.
 4. **Ledgers.** Every ask you took this session is a row in `docs/tasks/ASKS.md` (the user's words, shortened) and
-   its status is true: **done** with the commit SHA / evidence path / live build id, **in flight** with the owner,
-   **needs pick** with what the user must choose, or **dropped** with the user's words. A plan you moved in
-   `docs/plans/*.md` has its rows ticked. If you deployed, the ASKS row carries the build id from
-   `https://wildshard-singleplayer.vercel.app/version.json`.
+   its status is true: **done** with the commit SHA and the live build id from `version.json`, **in flight** with
+   the owner, **needs pick** with what the user must choose, or **dropped** with the user's words. A plan you moved
+   in `docs/plans/*.md` has its rows ticked. Since every push deploys, a done row without a build id means the
+   push didn't happen or CI is red — go back to step 2.
 5. **Close every browser session you opened.** `agent-browser session list` must show none of yours
    (`agent-browser --session <s> close`); Playwright scripts must have `browser.close()`d. An open session renders
    the game at 60 fps forever and pins the box for everyone.
@@ -65,20 +86,22 @@ HEAD, it never runs one.
    RECORD, not a QUEUE. This is the step most likely to be skipped because everything *looks* clean; it is a banner
    precondition below.
 7. **Subagents and sibling sessions.** Don't kill running subagents to exit — a checkpoint resumes committed state;
-   live work notifies when done. List every agent still alive with what it holds and which files it owns. If you
-   are the session that owns production deploys (handed over via herdr), say so and either deploy HEAD or name who
-   deploys next. `TaskStop` only orphaned polling loops or if the user asks.
+   live work notifies when done. List every agent still alive with what it holds and which files it owns. If a
+   subagent of yours has uncommitted edits in the tree, either land them through step 1 or queue exactly what is
+   half-done (step 6) — an agent's WIP that nobody else will finish is an OOPS. `TaskStop` only orphaned polling
+   loops or if the user asks.
 8. **Memory.** If this session learned something the next one must know that the repo does not record (a tool
    gotcha, a user rule, a decision's why), write it to the memory directory and index it in `MEMORY.md`.
-9. **Report**, then the banner. The report names: commits (SHAs + one line each), the live build id and whether HEAD
-   is deployed, gates run on the exported tree and their results, what is left local (yours vs others' WIP), every
-   live agent, every open ask this session touched, browser sessions closed — so the user knows whether it is safe
-   to close.
+9. **Report**, then the banner. The report names: commits (SHAs + one line each), the CI run id and result for the
+   last push, the live build id and whether it equals HEAD, the four gates on the exported tree and their results,
+   what is left local (yours vs others' WIP), every live agent, every open ask this session touched, browser
+   sessions closed — so the user knows whether it is safe to close.
 
 Guardrails: never `rm -rf` / `find -delete` (`dcg` blocks it anyway — write scripts with the Write tool and move
 things aside instead). Never `git push --force`, never rewrite history, never `git stash` / `checkout` / `restore` /
-`reset` files you didn't author — other sessions' dirty files are theirs. Never deploy from the working tree. Don't
-`AskUserQuestion` on the way out — the banner is the question's answer.
+`reset` files you didn't author — other sessions' dirty files are theirs. Never `vercel deploy` from the working
+tree; never hand-deploy at all while CI is healthy. Don't `AskUserQuestion` on the way out — the banner is the
+question's answer.
 
 ## Last step — the sign-off banner (MANDATORY, ALWAYS)
 
@@ -95,14 +118,15 @@ The two banners answer **one** question — not "did the git commands succeed" b
 
 > **Is it safe to KILL this pane right now?**
 
-- **BYE — safe to close.** Your work is committed on `main` and pushed, HEAD type-checks on a clean export, your
-  browser sessions are closed, the session is at a coherent stopping point, **and the leftover-work sweep is done —
-  every ruling, finding and deferral this session produced has a row in `docs/tasks/ASKS.md` or a `docs/plans/`
-  table**. A BYE is a claim that nothing here will be lost.
+- **BYE — safe to close.** Your work is committed on `main` and pushed, **the CI run for your last push is green
+  and `version.json` serves your HEAD**, your browser sessions are closed, the session is at a coherent stopping
+  point, **and the leftover-work sweep is done — every ruling, finding and deferral this session produced has a
+  row in `docs/tasks/ASKS.md` or a `docs/plans/` table**. A BYE is a claim that nothing here will be lost.
 - **OOPS — do NOT close.** Any of these, and they weigh the same:
-  1. **Something is wrong.** HEAD doesn't type-check, a push is refused, a sibling's commit got reverted by yours,
-     a stranded commit with no queued reason — or you simply **don't know** whether it's sound. Uncertainty is an
-     OOPS: the banner is a safety signal, so it fails *loud*, not *optimistic*.
+  1. **Something is wrong.** A gate is red on HEAD, the CI run for your push failed or you didn't wait for it, a
+     push is refused, a sibling's commit got reverted by yours, a stranded commit with no queued reason — or you
+     simply **don't know** whether it's sound. Uncertainty is an OOPS: the banner is a safety signal, so it fails
+     *loud*, not *optimistic*.
   2. **Leftover work has no queue.** Something this session ruled, found or deferred lives only in a commit body,
      a subagent report, a memory note or a chat message. Queue it (it is five minutes) and *then* BYE; if you
      cannot, OOPS and name it.
