@@ -1,11 +1,11 @@
 /**
  * icons — inline SVG silhouettes for the in-game menu (src/ui/Menu.ts): the animals of the achievement rows,
- * the pack items, the two weapons and a few UI glyphs. Everything is `currentColor` so the CSS sets the tint;
+ * the pack items, the weapons and a few UI glyphs. Everything is `currentColor` so the CSS sets the tint;
  * every glyph is drawn in a 64×64 box from primitives (no artwork files to load).
  *
  *   icon('deer')  → '<svg …>…</svg>'
  */
-export type IconId = 'deer' | 'boar' | 'elk' | 'bear' | 'ghost' | 'ironhide' | 'meat' | 'hide' | 'tusk' | 'antlers' | 'claw' | 'shell' | 'coconut' | 'coin' | 'seaglass' | 'rope' | 'bolt' | 'crossbow' | 'rifle' | 'laurel' | 'lock' | 'check' | 'poi' | 'you';
+export type IconId = 'deer' | 'boar' | 'elk' | 'bear' | 'ghost' | 'ironhide' | 'meat' | 'hide' | 'tusk' | 'antlers' | 'claw' | 'shell' | 'coconut' | 'coin' | 'seaglass' | 'rope' | 'bolt' | 'crossbow' | 'sword' | 'rifle' | 'laurel' | 'lock' | 'check' | 'poi' | 'you';
 
 const wrap = (body: string, extra = '') => `<svg viewBox="0 0 64 64" fill="currentColor" stroke="none" ${extra}>${body}</svg>`;
 const S = 'fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"';
@@ -106,6 +106,15 @@ const CROSSBOW = `
   <path d="M8 44 L6 52 L11 52 L13 44 Z"/>
   <rect x="26" y="26" width="30" height="3" rx="1"/>`;
 
+/* straight arming sword, point up-right like the bolt: pommel · wrapped grip · crossguard · fullered blade */
+const SWORD = `
+  <g transform="rotate(-45 32 32) translate(32 32) scale(1.12) translate(-32 -32)">
+    <circle cx="5" cy="32" r="4.2"/>
+    <rect x="8" y="29" width="11" height="6" rx="1.4"/>
+    <path d="M18 21 L23.5 23 L23.5 41 L18 43 Z"/>
+    <path fill-rule="evenodd" d="M23.5 27.5 L52 27.5 L61.5 32 L52 36.5 L23.5 36.5 Z M27 31 L49 31 L49 33 L27 33 Z"/>
+  </g>`;
+
 const RIFLE = `
   <path d="M4 30 L18 30 L20 26 L44 26 L44 30 L62 30 L62 33 L44 33 L44 36 L30 36 L26 44 L20 44 L22 36 L18 36 L16 40 L6 40 Z"/>
   <rect x="32" y="36" width="7" height="12" rx="1" transform="skewX(-14)"/>
@@ -131,7 +140,7 @@ const GLYPHS: Record<IconId, string> = {
   ghost: DEER, ironhide: BOAR,
   meat: MEAT, hide: HIDE, tusk: TUSK, antlers: ANTLERS, bolt: BOLT,
   claw: CLAW, shell: SHELL, coconut: COCONUT, coin: COIN, seaglass: SEAGLASS, rope: ROPE,
-  crossbow: CROSSBOW, rifle: RIFLE,
+  crossbow: CROSSBOW, sword: SWORD, rifle: RIFLE,
   laurel: LAUREL, lock: LOCK, check: CHECK, poi: POI, you: YOU,
 };
 

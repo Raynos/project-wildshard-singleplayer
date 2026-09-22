@@ -236,7 +236,7 @@ async function main() {
   const skins = new SkinLocker();                          // legendary skins owned / worn (persisted; wired below)
   const menu = new GameMenu({
     fullMap, progress, inventory,
-    kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; return { id: w.id, name: (w.id === 'crossbow' ? 'Hunting crossbow' : w.id === 'sword' ? 'Wooden sword' : w.name) + (worn ? ` · ${worn.name}` : ''), ammoLabel: w.id === 'crossbow' ? 'Iron bolts' : w.id === 'rifle' ? 'Rounds' : '', ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? 'rifle' : 'crossbow' }; }),
+    kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; return { id: w.id, name: (w.id === 'crossbow' ? 'Hunting crossbow' : w.id === 'sword' ? 'Wooden sword' : w.name) + (worn ? ` · ${worn.name}` : ''), ammoLabel: w.id === 'crossbow' ? 'Iron bolts' : w.id === 'rifle' ? 'Rounds' : '', ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? 'rifle' : w.id === 'crossbow' ? 'crossbow' : 'sword' }; }),
     onEquip: (id) => weapons.select(id as WeaponId),
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume

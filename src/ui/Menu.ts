@@ -164,8 +164,8 @@ export class GameMenu {
         <i class="ws-gmenu-wicon">${icon(w.icon)}</i>
         <div class="ws-gmenu-wbody">
           <div class="ws-gmenu-wname">${esc(w.name)}</div>
-          <div class="ws-gmenu-wammo">${esc(w.ammoLabel)} · ${w.ammo} / ${w.magazine}${w.reserve ? ` + ${w.reserve}` : ''}</div>
-          <div class="ws-bar"><i style="width:${pct}%"></i></div>
+          ${w.ammoLabel ? `<div class="ws-gmenu-wammo">${esc(w.ammoLabel)} · ${w.ammo} / ${w.magazine}${w.reserve ? ` + ${w.reserve}` : ''}</div>
+          <div class="ws-bar"><i style="width:${pct}%"></i></div>` : '<div class="ws-gmenu-wammo">Melee</div>'}
         </div>
         <span class="ws-gmenu-chip">${w.equipped ? 'Equipped' : 'Hold'}</span>`, 'button');
       (card as HTMLButtonElement).type = 'button';
