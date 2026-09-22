@@ -119,7 +119,7 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 
 | P1 | **DPR 1.5 + AA on by default on phones** ("game changer for the crossbow") | **done** | `b-mu6i9vn4`; user confirmed 1.5 + AA stays the phone default |
 | P2 | **Deer less skittish** — "I need to be able to get close and shoot them" | **done** | `6bd73ad` / `b-mu6iff3u`: sight 30/14 m, hears a walker at 12 m, 4–7 s freeze, run 6.0 (< sprint 7.2), stops at 35–50 m |
-| P3 | Crossbow shader programs 8 → 4 with the look unchanged (load agent's patch) | **in flight** (2026-09-22, crossbow-programs agent) | prod anisotropy must stay |
+| P3 | Crossbow shader programs 8 → 4 with the look unchanged (load agent's patch) | **done** | `3ce85f6` (+ `f2f335f` LOAD-PERF row), live `f2f335f`: crossbow 8 → 4 programs (one Physical + vertex colour for stock / iron / brass / cord / leather / peep, bolt single-pass, depth clearer fog-free), total 79 → 77 (two were shared with other viewmodels); prod anisotropy kept; progress/141–142. Follow-up in flight: Hands.ts fixIBL group (−2), Rifle.ts onto the shared program (−1) |
 | P4 | Remove the DBG pill (tier / dpr / aa / meter) once the graphics defaults are settled | **in flight** (2026-09-22, small-fixes agent) | src/ui/Debug.ts + one line in main.ts + tier.ts overrides |
 | P5 | Cold first-launch bytes 30 MB → ~10 MB (baked PMREM instead of the 4 MB HDR, model textures to the phone tier, KTX2 for GPU memory) | **in flight** (2026-09-22, cold-bytes agent) | docs/plans/LOAD-PERF.md §P1; the SW cache migration (9f6c3e2) already makes it a one-time cost |
 | P6 | Shard 3 biome (shard 2 = Driftwood Isle, D1) | **open** | user: "I'll tell later" |
