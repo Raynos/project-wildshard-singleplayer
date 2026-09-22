@@ -92,6 +92,8 @@ on his laptop.
   or whose HUD drifted from the reference. Say which ones were re-rolled.
 - Make several different variants per question (a layout A / B / C…), not one. Then the user can pick
   one and name its letter.
+- **Commit JPEG, not PNG.** image_gen hands back 1.4–2 MB PNGs, and the uplink is slow.
+  `sips -s format jpeg -s formatOptions 88 X.png --out X.jpg && rm X.png` → ~300–450 KB each.
 
 ## Games
 

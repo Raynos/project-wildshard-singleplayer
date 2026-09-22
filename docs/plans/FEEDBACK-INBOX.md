@@ -60,9 +60,9 @@ Generated with codex CLI image_gen from live 1600×900 / 390×844 captures (reci
 
 | File | Shows |
 |---|---|
-| `A-desktop-sheet.png` | F8 → frozen frame, note sheet docked right |
-| `B-phone-sheet.png` | touch ✎ → bottom sheet, keyboard up |
-| `C-menu-tab.png` | MENU's 5th tab: compose + sent / queued history |
-| `D-annotate.png` | circle + arrow drawn on the frozen frame |
-| `E-phone-sent.png` | back in play: sent toast, ✎ badge, offline-queued chip |
-| `F-desktop-quick.png` | minimal one-line composer at the crosshair |
+| `A-desktop-sheet.jpg` | F8 → frozen frame, note sheet docked right |
+| `B-phone-sheet.jpg` | touch ✎ → bottom sheet, keyboard up |
+| `C-menu-tab.jpg` | MENU's 5th tab: compose + sent / queued history |
+| `D-annotate.jpg` | circle + arrow drawn on the frozen frame |
+| `E-phone-sent.jpg` | back in play: sent toast, ✎ badge, offline-queued chip |
+| `F-desktop-quick.jpg` | minimal one-line composer at the crosshair |
