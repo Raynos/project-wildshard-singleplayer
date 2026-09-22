@@ -32,7 +32,7 @@ import { Particles } from './world/Particles';
 import { Cabins } from './world/Cabin';
 import { Props } from './world/Props';
 import { AnimalManager } from './entities/AnimalManager';
-import { Crossbow, type Targets, type TargetHit } from './player/Crossbow';
+import { Crossbow, startViewmodelTextures, viewmodelTexturesReady, type Targets, type TargetHit } from './player/Crossbow';
 import { Rifle } from './player/Rifle';
 import { Weapons, type WeaponId } from './player/Weapons';
 import { WeaponPickup } from './player/WeaponPickup';
@@ -89,6 +89,7 @@ async function main() {
   const packed = new Set(pack ? pack.files.map(([p]) => p) : []);
   if (pack) streamPack(pack, plan, files);
   prefetch(bootFetches(getActiveChunk(), files).filter((p) => !packed.has(p)));
+  startViewmodelTextures(getActiveChunk().weapon !== 'sword'); // the crossbow's + rifle's textures, drawn in a worker while the world builds
   const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk } = world;
   const nolock = params.has('nolock');
@@ -228,7 +229,7 @@ async function main() {
   const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [] }).build() : null;
 
   // ── player kit: the shard's weapon + the AR-15 (Weapons.ts: 1 / 2 / Q, touch SWAP; the rifle is a cabin pickup), HUD, audio ──
-  await step('weapon', () => undefined); // synchronous below; the step marks it in the log
+  await step('weapon', () => viewmodelTexturesReady()); // the viewmodels' textures from the worker (usually long done); the build below is synchronous
   const targets: Targets = {
     raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null {
       const h = animals.raycast(origin, dir, maxDist);
@@ -239,7 +240,7 @@ async function main() {
   const crossbow: Weapon = chunk.weapon === 'sword'
     ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock })
     : new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
-  await macrotask(); // each viewmodel in its own task (they draw their textures on the CPU: one 0.6 s task at 4x together)
+  await macrotask(); // each viewmodel in its own task
   const rifle = new Rifle({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
   await macrotask();
   // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken
