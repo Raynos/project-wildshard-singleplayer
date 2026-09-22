@@ -18,6 +18,7 @@
 /* layout A ("edge docks", art/buttons-A-edges.png): AIM hugs the left edge, JUMP the right, HOVER is a small pill on the right edge halfway up — the centre stays clear of the crossbow */
 .ws-touch-disc.aim { left: calc(var(--disc) / 2 + 10px); }
 .ws-touch-disc.jump { left: calc(100% - var(--disc) / 2 - 10px); }
+.ws-touch.melee .ws-touch-disc.aim { display: none; } /* a sword is held: no ADS (TouchControls polls weapons.current) */
 /* swimming (TouchControls adds .swimming to the layer): JUMP gives its spot to DIVE, a held button; once the eye is under
    (.submerged) a SURFACE disc surfaces beside it, one disc-width in from the edge — hold to rise, gone again at the top */
 .ws-touch-disc.dive { left: calc(100% - var(--disc) / 2 - 10px); display: none; }

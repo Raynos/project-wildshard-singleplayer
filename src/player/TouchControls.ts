@@ -8,6 +8,9 @@
  * pad — a TAP on the look pad, under 12 px and 300 ms, fires; a drag only looks). Round glass discs sit above the bar
  * (K1 mockup): AIM over the MOVE pad, JUMP over the LOOK pad, a smaller HOVER between them (AIM and HOVER are toggles:
  * tap to latch, tap again to release — HOVER steps on / off the hoverboard, `player.setHover`, and mirrors the H key).
+ * AIM only shows for a ranged weapon: while a melee weapon is held (the Driftwood swords — `MELEE`, polled from
+ * `weapons.current.id`) the layer carries `.melee`, the disc is hidden and a latched ADS is released on the way in (so the
+ * sword never inherits a charging heavy). The sword heavy has no touch button for now.
  * While the player swims (`player.onSwimChange`) JUMP is swapped for a DIVE disc in the same spot — a HELD button that
  * drives `player.touchDive` → `player.diveHeld` (hold to go down). Once the eye is under (`player.submerged`, polled)
  * a SURFACE disc appears beside it (`player.touchSurface` → `player.surfaceHeld`, hold to come up) and hides again on
@@ -28,7 +31,7 @@
  * intro is gone (`#hud.intro` hides it), and never needs pointer lock — iOS has none.
  */
 import type { Player } from './Player';
-import type { Weapons } from './Weapons';
+import type { WeaponId, Weapons } from './Weapons';
 import { AimAssist } from './AimAssist';
 
 export const IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
@@ -40,6 +43,7 @@ const LOOK_RATE = 0.0095;     // rad per px (≈ 0.54°/px; a 200 px swipe turns
 const PAD_BOOST = 1.6;        // the LOOK pad in the bar is small — a thumb's travel there is worth more
 const TAP_PX = 12;            // a look-pad touch that travels less than this …
 const TAP_MS = 300;           // … and ends within this is a tap = fire
+const MELEE: ReadonlySet<WeaponId> = new Set<WeaponId>(['sword', 'sword-iron']); // no AIM disc while one of these is held
 
 /** a control the layer's own markup (above) must contain — a miss is a template typo, not a runtime state */
 function el(parent: ParentNode, sel: string): HTMLElement {
@@ -58,6 +62,7 @@ export class TouchControls {
   readonly assist?: AimAssist;
   private lookFrameDist = 0; private lookSpeed = 0; // px moved on the LOOK pad since the last frame / smoothed px/s
   private wasSubmerged = false; // the SURFACE disc follows player.submerged
+  private wasMelee = false; // the AIM disc hides while a melee weapon is held
 
   constructor(private player: Player, private weapons: Weapons, force = false) {
     this.active = force || IS_TOUCH;
@@ -87,12 +92,18 @@ export class TouchControls {
 
     // ── aim assist: runs at the top of every player update (before the camera is posed) so a nudge shows the same frame ──
     const assist = this.assist = new AimAssist(root);
+    const aim = el(root, '.aim');
     const prevPre = player.preUpdate;
     player.preUpdate = (dt) => {
       prevPre?.(dt);
       const speed = dt > 0 ? this.lookFrameDist / dt : 0; this.lookFrameDist = 0;
       this.lookSpeed += (speed - this.lookSpeed) * Math.min(1, dt * 15);
       if (weapons.enabled) assist.update(dt, player, weapons.adsHeld, this.lookSpeed);
+      const melee = MELEE.has(weapons.current.id);
+      if (melee !== this.wasMelee) {
+        this.wasMelee = melee; root.classList.toggle('melee', melee);
+        if (melee && weapons.adsHeld) { weapons.adsHeld = false; aim.classList.remove('on'); }
+      }
       if (player.submerged !== this.wasSubmerged) { this.wasSubmerged = player.submerged; root.classList.toggle('submerged', player.submerged); if (!player.submerged) player.touchSurface = false; }
     };
 
@@ -154,7 +165,6 @@ export class TouchControls {
       b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end); b.addEventListener('pointerleave', end);
     };
     // AIM is a toggle, not a hold: each press flips ADS and the button stays lit (.on) while it is latched
-    const aim = el(root, '.aim');
     aim.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.weapons.adsHeld = !this.weapons.adsHeld; aim.classList.toggle('on', this.weapons.adsHeld); });
     aim.addEventListener('pointerup', (e) => e.stopPropagation());
     // SWAP: crossbow ⇄ rifle (Weapons.swap, the Q key); the pill flashes .down while pressed, nothing latches. Hidden until a
