@@ -410,6 +410,11 @@ export function edgeWear(g: THREE.BufferGeometry, amount = 0.28): void {
   }
   g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 }
+/** An all-white (×1) vertex-colour attribute where a geometry has none, so it can share a vertex-coloured program. */
+export function whiteColors(g: THREE.BufferGeometry): void {
+  if (g.hasAttribute('color')) return;
+  g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(g.getAttribute('position').count * 3).fill(1), 3));
+}
 export function stripExtra(geo: THREE.BufferGeometry): THREE.BufferGeometry { // non-indexed, only position/normal/uv, so merge works
   const g = geo.index ? geo.toNonIndexed() : geo;
   for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal' && k !== 'uv') g.deleteAttribute(k);
@@ -740,18 +745,20 @@ export class Crossbow implements Weapon {
   private buildViewmodel(): void {
     const walnut = makeWalnut(11), steel = makeSteel(23), leather = makeLeather(31), cord = makeCord();
     walnut.map.repeat.set(1, 4); walnut.normalMap.repeat.set(1, 4); walnut.armMap.repeat.set(1, 4);
-    // Every material below carries the SAME map slots (map, normal, ao, roughness, metalness — the ARM texture
-    // feeds the last three, a flat 1×1 ARM where a set has none) and the same cache key, so the crossbow costs
-    // three programs (Physical + vertex colours: stock; the same + anisotropy: prod; Standard: iron, brass, cord,
-    // leather) instead of six — each one is ~150 ms of Metal shader compile on the iPhone. Uniform values still differ per material.
+    // Every lit material below is the SAME program: MeshPhysical + vertex colours, the same map slots (map, normal,
+    // ao, roughness, metalness — the ARM texture feeds the last three, a 1×1 ARM where a set has none) and the same
+    // cache key. Physical at its defaults (ior 1.5, specularIntensity 1, white specularColor) is exactly Standard's
+    // F0 0.04 / F90 1, and a mesh with no wear colours gets an all-white colour attribute (`whiteColors`), so iron,
+    // brass, cord, leather and the peep ring render as before and share the stock's program. The prod keeps its own
+    // (anisotropy is a define — the hero-weapon sheen stays). Each program is ~150 ms of Metal compile on the iPhone.
     const flatArm = dataTexture(new Uint8Array([255, 255, 0, 255]), 1, 1, false); // ao 1 · roughness 1 · metal 0
     const woodMat = new THREE.MeshPhysicalMaterial({ map: walnut.map, normalMap: walnut.normalMap, normalScale: new THREE.Vector2(0.75, 0.75), aoMap: walnut.armMap, roughnessMap: walnut.armMap, metalnessMap: walnut.armMap, roughness: 1, metalness: 0, vertexColors: true, envMapIntensity: 0.45, specularIntensity: 0.3 }); // low specularIntensity kills the grazing sunset sheen on the rail
-    const ironMat = new THREE.MeshStandardMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.7, 0.7), aoMap: steel.armMap, roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.5, metalness: 1, color: new THREE.Color(0.24, 0.23, 0.23), envMapIntensity: 0.6 });
+    const ironMat = new THREE.MeshPhysicalMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.7, 0.7), aoMap: steel.armMap, roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.5, metalness: 1, color: new THREE.Color(0.24, 0.23, 0.23), vertexColors: true, envMapIntensity: 0.6 });
     const prodMat = new THREE.MeshPhysicalMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.6, 0.6), aoMap: steel.armMap, roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.25, metalness: 1, color: new THREE.Color(0.55, 0.55, 0.57), vertexColors: true, anisotropy: 0.8, anisotropyRotation: 0, envMapIntensity: 0.7 }); // anisotropy kept (hero-weapon sheen): its define is the prod's own program
     steel.map.repeat.set(2, 2); steel.normalMap.repeat.set(2, 2); steel.armMap.repeat.set(2, 2);
-    const leatherMat = new THREE.MeshStandardMaterial({ map: leather.map, normalMap: leather.normalMap, aoMap: leather.armMap, roughnessMap: leather.armMap, metalnessMap: leather.armMap, roughness: 1, metalness: 0, envMapIntensity: 0.5 });
-    const cordMat = new THREE.MeshStandardMaterial({ map: cord.map, normalMap: cord.normalMap, aoMap: flatArm, roughnessMap: flatArm, metalnessMap: flatArm, roughness: 0.85, metalness: 0 });
-    const brassMat = new THREE.MeshStandardMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.3, 0.3), aoMap: steel.armMap, roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.1, metalness: 1, color: new THREE.Color(0.95, 0.66, 0.3), envMapIntensity: 1.0 });
+    const leatherMat = new THREE.MeshPhysicalMaterial({ map: leather.map, normalMap: leather.normalMap, aoMap: leather.armMap, roughnessMap: leather.armMap, metalnessMap: leather.armMap, roughness: 1, metalness: 0, vertexColors: true, envMapIntensity: 0.5 });
+    const cordMat = new THREE.MeshPhysicalMaterial({ map: cord.map, normalMap: cord.normalMap, aoMap: flatArm, roughnessMap: flatArm, metalnessMap: flatArm, roughness: 0.85, metalness: 0, vertexColors: true });
+    const brassMat = new THREE.MeshPhysicalMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.3, 0.3), aoMap: steel.armMap, roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.1, metalness: 1, color: new THREE.Color(0.95, 0.66, 0.3), vertexColors: true, envMapIntensity: 1.0 });
     ([['xbow-wood', woodMat], ['xbow-iron', ironMat], ['xbow-prod', prodMat], ['xbow-leather', leatherMat], ['xbow-cord', cordMat], ['xbow-brass', brassMat]] as [string, THREE.Material][]).forEach(([n, m]) => { m.name = n; fixIBL(m, 'xbow'); this.sky.setupMaterial(m); });
 
     // model space: -Z forward (bolt direction), +Y up, rail top at y=0. Nut at z=+0.14, prod at z=-0.30.
@@ -863,6 +870,10 @@ export class Crossbow implements Weapon {
     const atlas = makeBoltAtlas(41);
     this.boltGeo = buildBoltGeometry();
     this.boltMat = new THREE.MeshStandardMaterial({ map: atlas.map, normalMap: atlas.normalMap, aoMap: atlas.armMap, roughnessMap: atlas.armMap, metalnessMap: atlas.armMap, roughness: 1, metalness: 1, alphaTest: 0.5, side: THREE.DoubleSide });
+    // one DoubleSide pass: the viewmodel makes this material transparent (below), and three draws a transparent
+    // DoubleSide material as a BackSide + a FrontSide pass — two programs. The fletching is alpha-tested and the
+    // bolt writes depth, so one pass looks the same.
+    this.boltMat.forceSinglePass = true;
     this.boltMat.name = 'xbow-bolt'; fixIBL(this.boltMat, 'xbow'); this.sky.setupMaterial(this.boltMat);
     this.loadedBolt = new THREE.Mesh(this.boltGeo, this.boltMat);
     this.loadedBolt.position.set(0, 0.0095, 0.128 - 0.18);
@@ -874,7 +885,11 @@ export class Crossbow implements Weapon {
     this.tipModel.copy(this.tipLocal).add(this.loadedBolt.position);
 
     // ── rear peep sight: dark iron ring with a faint cyan inner edge, on a post rising from the rail (posed per frame) ──
-    const peepIron = new THREE.MeshStandardMaterial({ color: new THREE.Color(0.05, 0.05, 0.055), roughness: 0.9, metalness: 0.75, emissive: new THREE.Color(PEEP_CYAN), emissiveIntensity: 0.05 });
+    // the stock's program (see the materials above): 1×1 white albedo / ARM and a flat normal leave colour, roughness and metalness as set
+    const white = dataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1, true), whiteArm = dataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1, false);
+    const flatNormal = dataTexture(new Uint8Array([128, 128, 255, 255]), 1, 1, false);
+    const peepIron = new THREE.MeshPhysicalMaterial({ map: white, normalMap: flatNormal, aoMap: whiteArm, roughnessMap: whiteArm, metalnessMap: whiteArm, color: new THREE.Color(0.05, 0.05, 0.055), roughness: 0.9, metalness: 0.75, vertexColors: true, emissive: new THREE.Color(PEEP_CYAN), emissiveIntensity: 0.05 });
+    peepIron.name = 'xbow-peep'; fixIBL(peepIron, 'xbow'); this.sky.setupMaterial(peepIron);
     const peepGlow = new THREE.MeshBasicMaterial({ color: new THREE.Color(PEEP_CYAN), toneMapped: false, fog: false, opacity: 0.85 });
     this.peepMats.push(peepIron, peepGlow);
     const ringOuter = new THREE.Mesh(new THREE.TorusGeometry(PEEP_R, PEEP_R * PEEP_TUBE, 10, 40), peepIron);
@@ -890,7 +905,8 @@ export class Crossbow implements Weapon {
     // The clearer and the viewmodel live in the *transparent* queue (renderOrder 999/1000) so the
     // depth clear happens after every world transparent (boundary lines, mist, halos) has drawn —
     // otherwise those would paint over the whole scene with the cleared depth buffer.
-    const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true }));
+    // fog: false — it draws nothing, and without fog it shares the peep glow's (and the world's fogless MeshBasic) program
+    const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false }));
     clearer.renderOrder = 999; clearer.frustumCulled = false;
     clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
     this.model.add(clearer);
@@ -899,6 +915,7 @@ export class Crossbow implements Weapon {
       m.frustumCulled = false; m.castShadow = false; m.receiveShadow = m !== clearer;
       if (m === clearer) return;
       m.renderOrder = 1000;
+      if ((Array.isArray(m.material) ? m.material : [m.material]).some((mat) => mat.vertexColors)) whiteColors(m.geometry);
       for (const mat of Array.isArray(m.material) ? m.material : [m.material]) { mat.transparent = true; mat.depthWrite = true; }
     });
     this.model.scale.setScalar(1.35);
