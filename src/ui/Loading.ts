@@ -2,6 +2,7 @@ import { getActiveChunk } from '../chunks/registry';
 import { formatMB, type ProgressView } from '../boot/plan';
 import { TIER } from '../core/tier';
 import { PERFLOAD, barTrace } from '../boot/perflog';
+import { LOAD_SHELL_HTML } from '../boot/shell';
 import './loading.css';
 
 /**
@@ -11,7 +12,7 @@ import './loading.css';
  * clock, and one row per step with its wall ms and live detail. Nothing here eases, animates
  * on a timer or guesses. `done()` fades it out and resolves when it is gone.
  */
-type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'suFact' | 'suPct' | 'suBar' | 'rows' | 'foot';
+type ElKey = 'clock' | 'dlFact' | 'dlPct' | 'dlBar' | 'suFact' | 'suPct' | 'suBar' | 'rows' | 'foot' | 'slug' | 'tier';
 
 /** Write text only when it changed: an unchanged textContent write still dirties layout. */
 const set = (el: HTMLElement, text: string): void => { if (el.textContent !== text) el.textContent = text; };
@@ -28,34 +29,19 @@ export class Loading {
   constructor() {
     const chunk = getActiveChunk();
     const nav: { hardwareConcurrency?: number | undefined } = navigator; // Safari < 15.4 has no hardwareConcurrency
-    this.root = document.createElement('div');
-    this.root.className = 'ws-load';
-    this.root.innerHTML = `
-      <div class="ws-load-head">
-        <div class="ws-wordmark">Project <b>Wildshard</b></div>
-        <div class="ws-load-tagline">A world that does not exist yet, arriving one chunk at a time.</div>
-      </div>
-      <div class="ws-load-body">
-        <div class="ws-glass ws-load-panel">
-          <div class="ws-load-title">Loading chunk · <b>${chunk.slug}</b><span class="ws-load-clock" data-el="clock">00:00.0</span></div>
-          <div class="ws-load-meta ws-load-meta-1">
-            <div><span>tier</span><span>${TIER} · ${Math.round(innerWidth * devicePixelRatio)}×${Math.round(innerHeight * devicePixelRatio)} · ${nav.hardwareConcurrency ?? '?'} cores${window.__ws_sw ? ' · offline cache' : ''}</span></div>
-          </div>
-          <div class="ws-load-track">
-            <div class="ws-load-track-row"><span class="ws-load-track-name">download</span><span class="ws-load-track-fact" data-el="dlFact">—</span><span class="ws-load-track-pct" data-el="dlPct">0</span></div>
-            <div class="ws-load-bar"><div class="ws-load-fill" data-el="dlBar"></div></div>
-          </div>
-          <div class="ws-load-track">
-            <div class="ws-load-track-row"><span class="ws-load-track-name">setup</span><span class="ws-load-track-fact" data-el="suFact">—</span><span class="ws-load-track-pct" data-el="suPct">0</span></div>
-            <div class="ws-load-bar"><div class="ws-load-fill" data-el="suBar"></div></div>
-          </div>
-          <div class="ws-load-log" data-el="rows"></div>
-        </div>
-      </div>
-      <div class="ws-load-foot"><span>local build · unuploaded</span><span data-el="foot">an in-progress private project</span></div>`;
-    document.body.append(this.root);
+    // index.html paints this panel from its first bytes (src/boot/shell.ts): adopt it; a page without it gets a fresh one
+    const shell = document.querySelector<HTMLElement>('.ws-load[data-shell]');
+    if (shell) { this.root = shell; delete shell.dataset['shell']; }
+    else {
+      this.root = document.createElement('div');
+      this.root.className = 'ws-load';
+      this.root.innerHTML = LOAD_SHELL_HTML;
+      document.body.append(this.root);
+    }
     const el = (key: ElKey): HTMLElement => { const e = this.root.querySelector<HTMLElement>(`[data-el="${key}"]`); if (!e) throw new Error(`Loading: no [data-el="${key}"]`); return e; };
-    this.els = { clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot') };
+    this.els = { slug: el('slug'), tier: el('tier'), clock: el('clock'), dlFact: el('dlFact'), dlPct: el('dlPct'), dlBar: el('dlBar'), suFact: el('suFact'), suPct: el('suPct'), suBar: el('suBar'), rows: el('rows'), foot: el('foot') };
+    this.els.slug.textContent = chunk.slug;
+    this.els.tier.textContent = `${TIER} · ${Math.round(innerWidth * devicePixelRatio)}×${Math.round(innerHeight * devicePixelRatio)} · ${nav.hardwareConcurrency ?? '?'} cores${window.__ws_sw ? ' · offline cache' : ''}`;
     this.rowsEl = this.els.rows;
     const tick = (): void => { this.tickClock(); this.raf = requestAnimationFrame(tick); };
     tick();
