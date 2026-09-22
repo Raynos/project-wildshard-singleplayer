@@ -1,6 +1,6 @@
 # Play performance — 60 FPS on the phone tier
 
-**State:** `blocked` 2026-09-22 — levers 1–7 landed; waiting on the iPhone meter line for levers 4–7 (§2) before deciding what is left.
+**State:** `in progress` 2026-09-22 — finish line: the phone tier (`?tier=phone`, 390×844) holds ≤ 150 calls / ≤ 2.0 M tris at every pose in §0 (Pine Hollow gate, cabin, pond) **and** at four Driftwood poses (pier spawn, beach, wreck cove, ring shrine), desktop unchanged, **and** one iPhone meter reading ≥ 55 fps (p50 ≤ 18 ms) in each shard. Cabin pose was 155 calls at lever 7; Driftwood never measured against the budget. Owner: E4 (play-perf agent).
 
 Ruler: `game.lastFrame` (calls / triangles for the whole composer frame) read headless via agent-browser,
 `?tier=phone&skipintro=1&nolock=1` at 390×844. Headless frame ms is vsync-pinned (16.7) so **counts are the

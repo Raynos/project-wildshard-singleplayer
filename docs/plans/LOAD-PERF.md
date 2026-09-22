@@ -1,6 +1,6 @@
 # Plan: 100× faster load & start (benchmaxx)
 
-**State:** `in progress` 2026-09-22 — levers through Round 2 landed; open: L1 (iPhone reading pending), P3 crossbow programs 8 → 4, P5 cold bytes 30 → ~10 MB (ASKS).
+**State:** `in progress` 2026-09-22 — finish line: every row of `bench.budget.json` passes on `pnpm bench:ci -- --query=tier=phone --viewport=390x844` (4× CPU, wifi + 4G, cold + warm) **and** one iPhone home-screen reading of a warm launch ≤ 3 s. Live b81fee6: 1 / 8 pass (4G warm play 15.2 s, cold 83 s, 79 MB first launch, 1.3 s longest task, 97 requests, title 1.36 s). Owners: bytes / SW / baked sky = P5 cold-bytes agent (E1); load-step CPU, long tasks, title shell = E4 (this plan's owner). P3 landed `3ce85f6`.
 
 ## Status (2026-09-17, load-speed agent) — measured before → after per lever
 
