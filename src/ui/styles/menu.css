@@ -70,3 +70,22 @@
   .ws-menu .ws-menu-row { margin-top: 8px; }
   .ws-menu .ws-menu-sound { font-size: 9px; }
 }
+
+/* ─── title screen on a landscape phone (iPhone ~402, Android ~360–411 CSS px tall): the desktop deck is ~530 px tall,
+   so ENTER WORLD fell below the screen. Size the card from the height instead: everything that isn't the card image
+   (wordmark, card labels, dots, ENTER, sound row) is ~235 px, the 16:9 image gets the rest. ─── */
+@media (orientation: landscape) and (max-height: 500px) {
+  .ws-menu .ws-menu-head { padding: calc(10px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-left, 0px)) 0; }
+  .ws-menu .ws-wordmark { font-size: 12px; letter-spacing: 0.3em; }
+  .ws-menu .ws-wordmark b { font-size: 24px; }
+  .ws-menu .ws-wordmark::after { margin-top: 5px; }
+  .ws-menu .ws-menu-deck { --card-w: calc((100vh - 235px) * 16 / 9 + 12px); --card-gap: 14px; padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)); }
+  .ws-menu-cards { padding-top: 6px; padding-bottom: 6px; }
+  .ws-menu-card b { font-size: 17px; padding-top: 5px; }
+  .ws-menu-card small { font-size: 9px; padding: 2px 10px 7px; }
+  .ws-menu-dots { margin-top: 2px; }
+  .ws-menu-enter { margin-top: 8px; padding: 10px 16px; }
+  .ws-menu-enter b { font-size: 19px; }
+  .ws-menu-enter small { display: none; }
+  .ws-menu .ws-menu-row { margin-top: 6px; }
+}

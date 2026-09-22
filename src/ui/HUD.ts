@@ -213,6 +213,10 @@ export class HUD {
     // the touch PAUSE button (TouchControls), Escape on devices without pointer lock, and a released pointer lock
     document.addEventListener('ws:pause', () => { if (this.entered) this.setPaused(!this.paused); });
     document.addEventListener('keydown', (e) => { if (e.code === 'Escape' && !this.opts.pointerLock && this.entered && !this.paused) this.setPaused(true); });
+    // native shells (src/native/lifecycle.ts): the app went to the background → pause, never unpause;
+    // Android Back → close the menu or pause; preventDefault() tells the shell it was used (else it minimizes the app)
+    document.addEventListener('ws:background', () => { if (this.entered && !this.paused) this.setPaused(true); });
+    document.addEventListener('ws:back', (e) => { if (!this.entered) return; e.preventDefault(); this.setPaused(!this.paused); });
   }
 
   private buildPips(n: number): void {

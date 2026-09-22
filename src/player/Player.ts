@@ -153,7 +153,9 @@ export class Player {
     this.board = new Hoverboard(camera, HOVER_TOP);
   }
 
-  lock(): void { if ('requestPointerLock' in this.canvas) void this.canvas.requestPointerLock(); } // absent on iOS Safari — touch input never needs it
+  // absent on iOS Safari; present but rejecting ("UnknownError") in the Android WebView — touch input never needs it,
+  // and an unhandled rejection would raise the uncaught-exception modal on ENTER WORLD
+  lock(): void { if ('requestPointerLock' in this.canvas) this.canvas.requestPointerLock().catch(() => { /* no pointer lock here: touch play */ }); }
 
   /** step on / off the hoverboard. Off: the board fades and gravity lands you; on: the spring lifts you to ride height. */
   setHover(on: boolean): void {

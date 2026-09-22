@@ -59,6 +59,7 @@ export class GameMenu {
   constructor(private opts: GameMenuOptions) {
     const def = getActiveChunk();
     this.root = el('ws-gmenu');
+    this.root.inert = true; // closed until open()
     this.sheet = el('ws-gmenu-sheet ws-glass');
     this.sheet.innerHTML = `
       <div class="ws-gmenu-head">
@@ -122,6 +123,7 @@ export class GameMenu {
     if (this._open) return;
     this._open = true;
     this.root.classList.add('show');
+    this.root.inert = false;
     this.refresh();
     if (tab === 'map') this.opts.fullMap.show();
     this.onOpen?.(tab);
@@ -131,6 +133,7 @@ export class GameMenu {
     if (!this._open) return;
     this._open = false;
     this.root.classList.remove('show');
+    this.root.inert = true; // faded to opacity 0 but still in the DOM: out of the tab order and the accessibility tree (VoiceOver / XCUITest)
     this.opts.fullMap.hide();
     if (!silent) this.onClose?.();
   }

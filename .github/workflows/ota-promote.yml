@@ -1,0 +1,153 @@
+# OTA promote: ship the current main to every installed native app (docs/plans/NATIVE-APPS.md N-D).
+#
+#   gh workflow run ota-promote                                   # both platforms, native 1.0.0–1.0.0, 30-day expiry
+#   gh workflow run ota-promote -f platforms=android -f native_min=1.0.0 -f native_max=1.0.2 -f expiry_days=60
+#
+# Manual on purpose: a push reaches the website in a minute, but a promote reaches every phone. Builds the native web
+# bundle (`pnpm build:native` → dist-native/), signs a per-file manifest per platform with the OTA private key
+# (scripts/ota-release.mjs), and deploys the static channel to the separate `wildshard-updates` Vercel project. It
+# never touches the game site. The sequence is this workflow's run number (monotonic). Phones download only the files
+# whose hashes changed and switch to the new bundle at their next cold start.
+#
+# iOS (App Review §2.5.2): OTA carries fixes, tuning, art and content only — a new shard, weapon or mode is a store
+# release. Android may take either.
+#
+# Secrets: OTA_SIGNING_KEY (PEM, RSA-3072 private key — the public half is src/native/ota-config.ts),
+# VERCEL_UPDATES_TOKEN (project-scoped token for wildshard-updates, made in the Vercel dashboard),
+# VERCEL_UPDATES_PROJECT_ID (prj_… of wildshard-updates), VERCEL_ORG_ID (team id, shared with deploy.yml).
+name: ota-promote
+
+on:
+  workflow_dispatch:
+    inputs:
+      platforms:
+        description: Which channel(s) to advance
+        type: choice
+        options: [both, ios, android]
+        default: both
+      native_min:
+        description: Oldest native app version (major.minor.patch) that may install this bundle
+        type: string
+        default: 1.0.0
+      native_max:
+        description: Newest native app version that may install this bundle
+        type: string
+        default: 1.0.0
+      expiry_days:
+        description: Days until the signed manifest expires (phones reject it afterwards; promote again to refresh)
+        type: string
+        default: '30'
+
+concurrency:
+  group: ota-promote
+  cancel-in-progress: false
+
+env:
+  OTA_ORIGIN: https://wildshard-updates.vercel.app
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Secrets present
+        env:
+          OTA_SIGNING_KEY: ${{ secrets.OTA_SIGNING_KEY }}
+          VERCEL_UPDATES_TOKEN: ${{ secrets.VERCEL_UPDATES_TOKEN }}
+          VERCEL_UPDATES_PROJECT_ID: ${{ secrets.VERCEL_UPDATES_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        run: |
+          missing=0
+          for name in OTA_SIGNING_KEY VERCEL_UPDATES_TOKEN VERCEL_UPDATES_PROJECT_ID VERCEL_ORG_ID; do
+            if [ -z "${!name}" ]; then echo "::error::Actions secret $name is not set"; missing=1; fi
+          done
+          if [ -z "$VERCEL_UPDATES_TOKEN" ]; then
+            echo "::error::VERCEL_UPDATES_TOKEN: create a token scoped to the wildshard-updates project at https://vercel.com/account/settings/tokens (scope raynos-projects), then: gh secret set VERCEL_UPDATES_TOKEN -R ${{ github.repository }}"
+          fi
+          exit $missing
+
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /*
+            !/progress/
+            !/art/
+            !/sources/
+            !/docs/
+          sparse-checkout-cone-mode: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build native bundle
+        run: pnpm run build:native
+
+      - name: Sign release
+        env:
+          OTA_SIGNING_KEY: ${{ secrets.OTA_SIGNING_KEY }}
+          PLATFORMS: ${{ inputs.platforms == 'both' && 'ios,android' || inputs.platforms }}
+          SEQUENCE: ${{ github.run_number }}
+          NATIVE_MIN: ${{ inputs.native_min }}
+          NATIVE_MAX: ${{ inputs.native_max }}
+          EXPIRY_DAYS: ${{ inputs.expiry_days }}
+        run: |
+          node scripts/ota-release.mjs \
+            --dist dist-native \
+            --out "$RUNNER_TEMP/ota-site" \
+            --platforms "$PLATFORMS" \
+            --sequence "$SEQUENCE" \
+            --native-min "$NATIVE_MIN" \
+            --native-max "$NATIVE_MAX" \
+            --expiry-days "$EXPIRY_DAYS" \
+            --carry-from "$OTA_ORIGIN"
+
+      # Static site, no build step (deploy/ota/vercel.json: framework null, outputDirectory '.'). The CLI resumes an
+      # interrupted upload (files are deduplicated by hash), so a flaky upload is retried rather than failed.
+      - name: Deploy to wildshard-updates
+        working-directory: ${{ runner.temp }}/ota-site
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_UPDATES_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_UPDATES_TOKEN }}
+        run: |
+          mkdir -p .vercel
+          printf '{"projectId":"%s","orgId":"%s"}' "$VERCEL_PROJECT_ID" "$VERCEL_ORG_ID" > .vercel/project.json
+          for attempt in 1 2 3; do
+            if url=$(pnpm dlx vercel@latest deploy --prod --yes --token="$VERCEL_TOKEN"); then
+              echo "deployed $url"; exit 0
+            fi
+            echo "::warning::vercel deploy attempt $attempt failed"
+            sleep 10
+          done
+          exit 1
+
+      - name: Verify live channel
+        run: |
+          want=$(node -p "require('$RUNNER_TEMP/ota-site/release.json').bundleId")
+          for platform in $(node -p "Object.keys(require('$RUNNER_TEMP/ota-site/release.json').platforms).join(' ')"); do
+            ok=0
+            for attempt in 1 2 3 4 5 6; do
+              live=$(curl -fsS -H 'Cache-Control: no-cache' "$OTA_ORIGIN/$platform/v1/manifest.json" \
+                | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const m=JSON.parse(Buffer.from(JSON.parse(s).payload,'base64url'));console.log(m.sequence+' '+m.bundleId)})") || true
+              if [ "$live" = "${{ github.run_number }} $want" ]; then ok=1; break; fi
+              sleep 10
+            done
+            if [ $ok != 1 ]; then echo "::error::$platform channel serves '$live', expected '${{ github.run_number }} $want'"; exit 1; fi
+            echo "$platform: sequence ${{ github.run_number }}, bundle $want"
+          done
+          {
+            echo "### OTA promoted \`$want\` (sequence ${{ github.run_number }})"
+            echo '```json'
+            cat "$RUNNER_TEMP/ota-site/release.json"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
