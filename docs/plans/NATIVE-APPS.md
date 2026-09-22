@@ -1,6 +1,6 @@
 # Plan: Wildshard on the App Store and Google Play
 
-**State:** `blocked` 2026-09-22 — shells, native saves/lifecycle and the signed OTA channel are built (E7); simulator + emulator E2E pass; waits on the user: Apple + Play accounts (signing, TestFlight, Play tracks) and the `VERCEL_UPDATES_TOKEN` secret (OTA promotes).
+**State:** `blocked` 2026-09-22 — shells, native saves/lifecycle and the signed OTA channel are built (E23); simulator + emulator E2E pass. Waits on the user for the stores (E24: Apple + Play accounts, `VERCEL_UPDATES_TOKEN`); open for an agent meanwhile (E29): store listing kit, privacy / support pages, upgrade + OTA + context-loss drills.
 
 ## Where this comes from
 
