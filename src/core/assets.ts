@@ -101,17 +101,21 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
     return t;
   };
   const buildGPU = async (kind: (typeof kinds)[number], srgb: boolean, renderer: THREE.WebGLRenderer) => {
-    const t = finish(new THREE.DataArrayTexture(null, size, size, ids.length), srgb);
+    // Each kind's array is as big as its files (capped at `size`), never scaled up: the phone's half-res ARM
+    // planes make a 512² ARM array. Scaling them to 1024 at decode (resizeQuality 'high') ran on the main
+    // thread, ~75 ms a layer at 4x CPU — 0.3 s of the terrain step for texels the file never had.
+    const layers = await Promise.all(ids.map((id) => fetchImage(texUrl(id, kind), size, false)));
+    const n = Math.min(size, Math.max(1, ...layers.map((l) => Math.max(l.width, l.height))));
+    const t = finish(new THREE.DataArrayTexture(null, n, n, ids.length), srgb);
     t.source.dataReady = false;          // allocate the storage (texStorage3D, all mip levels), upload nothing
     renderer.initTexture(t);
-    const layers = await Promise.all(ids.map((id) => load(texUrl(id, kind))));
     let ctx: CanvasRenderingContext2D | null = null;
     for (const [i, layer] of layers.entries()) {
       let im: TexImageSource = layer;
-      if (im.width !== size || im.height !== size) { // a smaller source: scale it on a canvas (the old path) instead of failing the copy
-        ctx ??= Object.assign(document.createElement('canvas'), { width: size, height: size }).getContext('2d');
+      if (im.width !== n || im.height !== n) { // a layer of another size than its kind's largest: scale it on a canvas instead of failing the copy
+        ctx ??= Object.assign(document.createElement('canvas'), { width: n, height: n }).getContext('2d');
         if (ctx === null) throw new Error('loadPBRArray: no 2d canvas context');
-        ctx.drawImage(im, 0, 0, size, size);
+        ctx.drawImage(im, 0, 0, n, n);
         im = ctx.canvas;
       }
       const src = new THREE.Texture(im as HTMLImageElement); // never uploaded itself: copyTextureToTexture reads its image
