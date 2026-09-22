@@ -8,7 +8,7 @@
 # Prints the new file's path. Fill in Status / evidence with Edit, then commit it: git commit -m "…" -- <path>
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
-ask="${1:?usage: scripts/ask-new.sh \"<the user's words>\" [series letter]}"
+ask="${1:?usage: scripts/ask-new.sh \"<the ask, in the user words>\" [series letter]}"
 series="${2:-E}"
 dir=docs/tasks/asks
 mkdir -p "$dir"

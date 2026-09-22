@@ -1,110 +1,139 @@
 ---
 name: prepare-to-exit
-description: Checkpoint the session and prepare to exit — commit your own paths through a private index, run the four gates on the exported tree, push (which deploys), confirm the CI run went live, flip the ledgers, queue every leftover, close your browser sessions, report, then print the BYE / OOPS banner. User-invoked only.
+description: Checkpoint the session and prepare to exit — pathspec-commit only your paths (private index for shared files), run the four gates on a clean export of HEAD, push through the push lock (a push deploys), confirm the CI run went live, flip your ask files and plan State lines, queue every leftover, close your browsers, report, then print the BYE / OOPS banner. User-invoked only.
 disable-model-invocation: true
 ---
 
 # Prepare to exit
 
-Ported from `trials-gauntlet-demo` on 2026-09-19, re-cut on 2026-09-20 for continuous deployment (AGENTS.md is
-canon). Execute in order; don't paraphrase or shortcut.
+Ported from `~/projects/game-demos/trials-gauntlet-demo` on 2026-09-19, re-cut on 2026-09-20 for continuous
+deployment, and again on 2026-09-22 (E27) for the E21 multi-agent git rules. AGENTS.md is canon; where this file
+and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in order; don't paraphrase or shortcut.
 
 ## What is different here
 
 - **A push IS a deploy.** `.github/workflows/deploy.yml` runs on every push to `main`: typecheck → oxlint → css
   check → vite build, and if all four are green it ships to production (`https://wildshard-singleplayer.vercel.app`,
-  ~1 min push-to-live). There is no separate deploy step to run and nobody "owns" deploys — but it means every
-  commit you push is a release, so **HEAD must pass all four gates before you push**, and a red CI run on your
-  push is your red. Never `vercel deploy` by hand unless CI itself is broken; `gh workflow run deploy` re-ships HEAD.
-- **The gates are strict and there is no cheating them.** `tsconfig.json` has every strictness flag TS 7 has;
-  `.oxlintrc.json` is type-aware with all seven categories at error and warnings denied. `any`, non-null `!`,
+  ~1 min push-to-live). There is no separate deploy step — but every commit you push is a release, so **HEAD must
+  pass all four gates on a clean export before you push**, and a red CI run on your push is your red. Never
+  `vercel deploy` by hand while CI is healthy; `gh workflow run deploy` re-ships HEAD.
+- **The gates are strict and there is no cheating them.** `tsconfig.json` has every strictness flag on;
+  `.oxlintrc.json` is type-aware with every category at error and zero warnings. `any`, non-null `!`,
   `@ts-ignore` / `@ts-expect-error`, `as unknown as`, blanket `oxlint-disable` and tsconfig `exclude`s are not fixes
-  — narrow the type. A per-line `oxlint-disable-next-line rule -- reason` is allowed only where the rule is
-  genuinely wrong at that spot (nine exist; each has a reason).
-- **One checkout, one git index, many sessions.** Two or three Claude sessions (herdr panes) plus their subagents
-  edit this tree at once on `main`, no worktrees. The shared index is routinely stale or holds other people's
-  blobs; on 2026-09-20 it was a whole older tree (49 phantom staged deletions). A plain `git commit` here has swept
-  stale blobs into HEAD **four times** in one night (Audio.ts, main.ts, Minimap.ts, Weapons.ts). So: **no
-  `git commit` at all** — every commit goes through a private index (step 1).
+  — narrow the type. A per-line `oxlint-disable-next-line <rule> -- <reason>` only where the rule is genuinely
+  wrong at that spot.
+- **One checkout, one git index, one local `main`, up to ~10 agents.** Parallel Claude sessions (herdr panes) and
+  their subagents all edit this tree on `main`, no worktrees. Other agents leave files **staged** in the shared
+  index (28 foreign files swept into one commit on 2026-09-22), so nothing you do may snapshot that index. Hooks
+  enforce it: `.claude/hooks/guard-git-add-all.sh` blocks `git add -A` / `.` / `-u`, `git add <tracked file>`,
+  `git commit -a` and any `git commit` without `-- <paths>`; `.claude/hooks/guard-bash-safety.sh` blocks a bare
+  `git push` and tree-wide `restore .` / `checkout .` / bare `stash` / `reset --hard` / `clean -f`; `dcg` blocks
+  `rm -rf` and `>` onto computed paths.
+- **The uplink is ~10–100 KB/s.** Six parallel pushes of one pack hung 15+ minutes (E19). Push only through
+  `scripts/push-main.sh` (it holds `.git/push.lock`), and keep packs small: `.githooks/pre-commit` refuses a
+  `progress/` image over 500 KB, and mockups under `art/<subject>/round-<n>-<label>/` are committed as JPEG.
 - **What ships is a clean export of HEAD** (CI checks out the commit), never the working tree — so *HEAD* is what
-  has to be green, and the other sessions' dirty files never ship.
-- **Headless browsers pin the box.** Six open `agent-browser` sessions took the machine to load 20 and wedged the
-  daemon. Close yours before the banner (step 5).
-- **The checkout lives at `~/projects/games/project-wildshard-singleplayer`** (moved from `~/projects/…` on
-  2026-09-20); the memory directory is keyed by that path.
+  has to be green, and other agents' dirty files never ship.
+- **Game browsers are a shared lane: at most 3 open machine-wide.** Each open game tab costs ~1.5 cores for as
+  long as it lives; SwiftShader ~3 per page. Close yours before the banner (step 6).
+- **Paths.** The checkout is `~/projects/games/wildshard-singleplayer`; its memory directory is
+  `~/.claude/projects/-Users-raynos-projects-games-wildshard-singleplayer/memory/` (index `MEMORY.md`).
 
 ## Steps
 
-1. **Commit only your paths, through a private index pinned to a captured base.** `git status` and
-   `git diff --cached --stat` first: if anything you didn't author is staged or the index shows deletions of
-   files that exist, the shared index is stale — **do not fix it with `git reset` for other people**; just don't
-   use it. Recipe (also in the memory note `shared-index-private-commits`):
+1. **Commit only your paths.** First `git config core.hooksPath` must print `.githooks` (else the pre-commit
+   image check and the post-commit ledger don't run — `git config core.hooksPath .githooks`). Then `git status`:
+   list exactly which paths you (and your subagents) authored this session.
+   - **Default — a pathspec commit.** An edit to a tracked file is never staged; commit it directly:
+     `git commit -m "<subject>" -- path/a path/b` (git's `--only`: HEAD + those paths' working-tree copies, the
+     shared index untouched). A **new** file: `git add path/new` first, then the same pathspec commit. Then
+     `git show --stat HEAD` must list only your paths — if it doesn't, stop and say so; never `reset` to fix it
+     while other agents may have committed on top.
+   - **A shared file with someone else's hunks** (`git diff -- <path>` shows lines you didn't write — typical for
+     `src/main.ts`, `src/audio/Audio.ts`, `src/player/*.ts`, `src/ui/Menu.ts`, `AGENTS.md`, a `docs/plans/*.md`):
+     a pathspec commit would ship their half-done work inside yours. Either wait for them, or commit only your
+     hunks through a private index pinned to a captured base:
+     ```
+     BASE=$(git rev-parse HEAD)                                   # capture ONCE, before read-tree
+     export GIT_INDEX_FILE=<scratchpad>/idx; git read-tree $BASE
+     git diff $BASE -- <path>                                     # → keep only your hunks in <scratchpad>/mine.patch
+     git apply --cached <scratchpad>/mine.patch                   # applies to $BASE's blob, never the worktree copy
+     git update-index --add --cacheinfo 100644,$(git hash-object -w <file>),<path>   # whole files that are all yours
+     T=$(git write-tree)
+     C=$(git commit-tree $T -p $BASE -m "<subject>"); git update-ref refs/heads/main $C $BASE   # refuses if HEAD moved → redo
+     unset GIT_INDEX_FILE
+     ```
+     `commit-tree` skips `.githooks`, so check any `progress/` image you add is ≤ 500 KB yourself.
+   - The subject states the finding; end every message with the Co-Authored-By / Claude-Session lines. Say plainly
+     what is red and whose it is — another agent's uncommitted WIP is not your red, but a red *HEAD* is everyone's.
+2. **The four gates on a clean export of HEAD — before the push.**
    ```
-   BASE=$(git rev-parse HEAD)                                   # capture ONCE, before read-tree
-   export GIT_INDEX_FILE=<scratchpad>/idx; git read-tree $BASE
-   git update-index --add --cacheinfo 100644,$(git hash-object -w <file>),<path>   # per file; 100755 for scripts
-   T=$(git write-tree)
-   git archive $T | tar -x -C <scratchpad>/tree && ln -s $PWD/node_modules <scratchpad>/tree/node_modules
-   cd <scratchpad>/tree && PATH=$PWD/node_modules/.bin:$PATH   # the shims resolve through the symlink; never `pnpm exec` here
-   tsc --noEmit && oxlint && node scripts/check-css.mjs && vite build           # the FOUR gates, on the TREE, exactly as CI runs them
-   C=$(git commit-tree $T -p $BASE -m "<subject>"); git update-ref refs/heads/main $C $BASE   # refuses if HEAD moved → redo
-   unset GIT_INDEX_FILE
+   D=<scratchpad>/tree-$(git rev-parse --short HEAD); mkdir -p $D   # a fresh dir per HEAD (rm -rf is blocked)
+   git archive HEAD | tar -x -C $D && ln -s $PWD/node_modules $D/node_modules
+   cd $D && PATH=$PWD/node_modules/.bin:$PATH     # the shims resolve through the symlink; never `pnpm exec` here
+   tsc --noEmit && oxlint && node scripts/check-css.mjs && vite build
    ```
-   For a shared file (`src/main.ts`, `docs/tasks/ASKS.md`, `src/audio/Audio.ts`, `src/game/Inventory.ts`,
-   `TouchControls.ts` …) apply only your hunks to `git show $BASE:<path>`, never the worktree copy (it carries
-   others' WIP) — `git diff -- <path>` → keep your hunks → `git apply --cached` against the private index. Subject
-   states the finding; end with the Co-Authored-By / Claude-Session lines. Say plainly what is red and whose it
-   is — another agent's uncommitted WIP in the worktree is not your red, but a red *HEAD* is everyone's, and it
-   blocks every deploy until fixed.
-2. **Push after every commit — and watch it ship.** `scripts/push-main.sh` (a bare `git push` is blocked: one
-   push at a time over the slow uplink; if another push holds the lock yours stays local and that push carries it —
-   `git log origin/main..main` empty = shipped). On rejection `git fetch && git merge origin/main` (never rebase,
-   never stash), re-run the gates on the merged tree, push again. Then:
+   Red on something you committed → fix it with a new pathspec commit and re-run (never `--amend`: other agents'
+   commits may already sit on top of yours in the shared `main`). Red on someone else's commit → name the commit
+   and its owner in the report; don't push over a red HEAD.
+3. **Push through the lock — and watch it ship.** `scripts/push-main.sh`. If another push holds the lock it exits
+   0 with your commits still local — the push in flight re-checks `origin/main..main` before it lets go, so it
+   carries them; re-check later: `git log origin/main..main` empty = shipped. Rejected (non-fast-forward) →
+   `git fetch && git merge origin/main` (never rebase, never stash), gates again on the merged HEAD, push again.
+   Then:
    ```
-   gh run list --limit 1                       # the run for your SHA
-   gh run watch <id> --exit-status             # ~1 min; red = your fix, now
-   curl -s https://wildshard-singleplayer.vercel.app/version.json   # "build":"<short sha>-…" must be your HEAD
+   gh run watch $(gh run list --limit 1 --json databaseId -q '.[0].databaseId') --exit-status   # ~1 min; red = your fix, now
+   curl -s https://wildshard-singleplayer.vercel.app/version.json   # "build":"<short sha>-…" must be HEAD (or a later HEAD that contains yours)
    ```
-   Also verify nobody's files regressed in the commits between your `BASE` and HEAD (`git rev-parse HEAD:<path>`
-   for the files the last few commits touched) — the read-tree/commit-tree race silently reverts a sibling's
-   commit if HEAD moved in between. An unpushed commit at exit is an OOPS; so is a pushed commit whose CI run
-   is red or still unknown.
-3. **Sync the worktree copies of your files to HEAD** (`git show HEAD:<path> > <path>`) for the files you committed
-   as blobs — a private-index commit never writes the working tree, so the dev server on :5173 keeps serving the
-   old code (this is how a trailer capture ran against a stale `main.ts` for an hour). Only for files whose worktree
-   copy is an older version of *yours*; never overwrite a copy that carries someone else's hunks.
-4. **Ledgers.** Every ask you took this session has its file `docs/tasks/asks/<ID>.md` (made by
-   `scripts/ask-new.sh`, the user's words, shortened) and its `**Status:**` line is true: **done** with the commit SHA and the live build id from `version.json`, **in flight** with
-   the owner, **needs pick** with what the user must choose, or **dropped** with the user's words. A plan you moved
-   in `docs/plans/*.md` has its rows ticked and its State line true (AGENTS.md → Plans); a plan that finished is
-   moved to `project/archive/<date>-<name>.md` in that commit. Since every push deploys, a done ask without a build id means the
-   push didn't happen or CI is red — go back to step 2.
-5. **Close every browser session you opened.** `agent-browser session list` must show none of yours
-   (`agent-browser --session <s> close`); Playwright scripts must have `browser.close()`d. An open session renders
-   the game at 60 fps forever and pins the box for everyone.
-6. **Leftover-work sweep — a QUEUE, not a record.** Anything this session ruled, found, deferred or decided but did
+   After a private-index commit, also check nobody's work regressed between your `BASE` and HEAD
+   (`git show --stat` the commits in `$BASE..HEAD`, `git rev-parse HEAD:<path>` for the files they touched) — the
+   read-tree / commit-tree race silently reverts a sibling's commit if HEAD moved in between. An unpushed commit at
+   exit is an OOPS; so is a pushed commit whose CI run is red or still unknown.
+4. **Sync the worktree after a private-index commit.** It never writes the working tree, so the dev server on :5173
+   keeps serving the old code. Bring *your* files to HEAD with the Write / Edit tool (or `git show HEAD:<path>`
+   into a literal path) — only where the worktree copy is an older version of *yours*; never overwrite a copy that
+   carries someone else's hunks. Pathspec commits need no sync.
+5. **Ledgers.** Every ask you took this session has its own file `docs/tasks/asks/<ID>.md` (claimed with
+   `scripts/ask-new.sh "<the user's words>"` — never a new row in the legacy `docs/tasks/ASKS.md`), and its
+   `**Status:**` line is true: `done` with the commit SHA and the live build id from `version.json`,
+   `in flight (<date>, <owner>)`, `needs pick` with exactly what the user must choose, or `dropped` with the user's
+   words. Ask files never move or get deleted. A plan you moved has its rows ticked and its line-3 **State** line
+   rewritten (not appended) to the truth; a plan that finished is moved **in the same commit** to
+   `project/archive/<YYYY-MM-DD>-<name>.md` with State `archived <today> (finished <date>)` plus where the leftovers
+   went, and the links to it fixed. A `done` ask without a build id means the push didn't happen or CI is red —
+   go back to step 3. Edit shared ledgers with Edit or `>>`, never `>`.
+6. **Close every browser and emulator you opened.** `agent-browser session list` shows none of yours
+   (`agent-browser --session <s> close`); `pgrep -fl chrome-headless-shell` has nothing you started; Playwright
+   scripts have `browser.close()`d; an Android emulator you booted is gone (`adb -s <serial> emu kill`). An open
+   game tab renders at 60 fps forever and eats a slot of the 3-browser lane for everyone.
+7. **Leftover-work sweep — a QUEUE, not a record.** Anything this session ruled, found, deferred or decided but did
    not build must have a home an agent or the human starts from: an **open ask file in `docs/tasks/asks/`** (the
-   session-brief hook prints open rows at every session start — that is the only queue anyone reads), or a **row in a
-   `docs/plans/*.md` checkpoint table**. A commit body, a subagent report, a memory note or a chat message is a
-   RECORD, not a QUEUE. This is the step most likely to be skipped because everything *looks* clean; it is a banner
-   precondition below.
-7. **Subagents and sibling sessions.** Don't kill running subagents to exit — a checkpoint resumes committed state;
+   session-brief hook prints every ask whose Status isn't done / dropped, and every live plan's State line, at
+   each session start — that is the only queue anyone reads), or a **row in a `docs/plans/*.md` checkpoint table**
+   whose State line names it. Something only the user can do (an account, a pick, a phone reading) is an ask with
+   `needs pick` / `needs you` and exactly what they must do. A commit body, a subagent report, a memory note or a
+   chat message is a RECORD, not a QUEUE. This is the step most likely to be skipped because everything *looks*
+   clean; it is a banner precondition below.
+8. **Subagents and sibling sessions.** Don't kill running subagents to exit — a checkpoint resumes committed state;
    live work notifies when done. List every agent still alive with what it holds and which files it owns. If a
    subagent of yours has uncommitted edits in the tree, either land them through step 1 or queue exactly what is
-   half-done (step 6) — an agent's WIP that nobody else will finish is an OOPS. `TaskStop` only orphaned polling
+   half-done (step 7) — an agent's WIP that nobody else will finish is an OOPS. Sibling sessions are found with
+   ListAgents (herdr: mind `HERDR_SOCKET_PATH`, there is more than one server). `TaskStop` only orphaned polling
    loops or if the user asks.
-8. **Memory.** If this session learned something the next one must know that the repo does not record (a tool
-   gotcha, a user rule, a decision's why), write it to the memory directory and index it in `MEMORY.md`.
-9. **Report**, then the banner. The report names: commits (SHAs + one line each), the CI run id and result for the
-   last push, the live build id and whether it equals HEAD, the four gates on the exported tree and their results,
-   what is left local (yours vs others' WIP), every live agent, every open ask this session touched, browser
-   sessions closed — so the user knows whether it is safe to close.
+9. **Memory.** If this session learned something the next one must know that the repo does not record (a tool
+   gotcha, a user rule, a decision's why), write it to the memory directory above and index it in `MEMORY.md`.
+   Don't duplicate what AGENTS.md or a commit already says.
+10. **Report**, then the banner. The report names: commits (SHAs + one line each), the CI run id and result for the
+    last push, the live build id and whether it contains HEAD, the four gates on the exported tree and their
+    results, what is left local (yours vs others' WIP), every live agent, every ask file this session touched and
+    its Status, browsers / emulators closed — so the user knows whether it is safe to close.
 
-Guardrails: never `rm -rf` / `find -delete` (`dcg` blocks it anyway — write scripts with the Write tool and move
-things aside instead). Never `git push --force`, never rewrite history, never `git stash` / `checkout` / `restore` /
-`reset` files you didn't author — other sessions' dirty files are theirs. Never `vercel deploy` from the working
-tree; never hand-deploy at all while CI is healthy. Don't `AskUserQuestion` on the way out — the banner is the
-question's answer.
+Guardrails: never `rm -rf` / `find -delete` (`dcg` blocks it — write scripts with the Write tool and move things
+aside instead). Never `git push --force`, never rewrite pushed or shared history, never `git stash` / `checkout` /
+`restore` / `reset` files you didn't author — other agents' dirty and staged files are theirs. `SKIP_SWEEPGUARD=1` /
+`SKIP_PUSHLOCK=1` only deliberately and rarely (every sweep-guard escape lands in `project/sweepguard-ledger.md`).
+Never `vercel deploy` from the working tree; never hand-deploy at all while CI is healthy. Don't `AskUserQuestion`
+on the way out — the banner is the question's answer.
 
 ## Last step — the sign-off banner (MANDATORY, ALWAYS)
 
