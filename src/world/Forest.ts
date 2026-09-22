@@ -74,6 +74,7 @@ export class Forest {
       this.tmpM.toArray(this.mats, i * 16);
       this.tints[i * 3] = t.tint.r; this.tints[i * 3 + 1] = t.tint.g; this.tints[i * 3 + 2] = t.tint.b;
     });
+    if (this.trees.length === 0) return this; // nothing to draw: no instanced / batched meshes (a 0-instance BatchedMesh is not a thing)
     if (this.path === 'batched') { this.buildBatched(); return this; }
     this.factory.variants.forEach((v, vi) => {
       const count = this.trees.filter((t) => t.variant === vi).length;
@@ -140,6 +141,7 @@ export class Forest {
   }
 
   private place() {
+    if (this.factory.variants.length === 0) return; // a treeless factory (ChunkTrees.factory 'none')
     const F = getActiveChunk().forest;
     const rng = new Rng(SEED + 99);
     const density = new Noise2D(SEED + 5);

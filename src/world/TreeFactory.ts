@@ -53,6 +53,20 @@ export class TreeFactory {
     this.multiDraw = renderer.extensions.has('WEBGL_multi_draw') && !new URLSearchParams(location.search).has('nobatch');
   }
 
+  /**
+   * A factory with no tree variants (ChunkTrees.factory `'none'`): untextured stand-in materials that are
+   * never drawn, nothing fetched, no geometry, no branch-card bake. Forest plants nothing with it.
+   */
+  buildEmpty(): this {
+    this.barkMaterial = new THREE.MeshStandardMaterial();
+    this.needleMaterial = new THREE.MeshStandardMaterial();
+    this.twigMaterial = new THREE.MeshStandardMaterial();
+    this.farMaterial = new THREE.MeshStandardMaterial();
+    this.needleDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
+    this.twigDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
+    return this;
+  }
+
   async build(): Promise<this> {
     const atlas = `/assets/tex/${this.opts.twigAtlas}`;
     const [twigDiff, twigNor, twigArm, bark] = await Promise.all([
