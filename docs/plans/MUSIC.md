@@ -1,100 +1,93 @@
-# Project Wildshard — the first original music
+# Project Wildshard — the music
 
-**State:** `in progress` 2026-09-22 — build steps 1–4 landed and live (D35); open: step 5 "listen on the phone" (D41, the user's ears) and the "later" paragraph (D42, music agent).
+**State:** `in progress` 2026-09-22 — v1 (the synth score, D35) is live; the user heard it: "super basic, we need better music". v2 = music composed locally by open-weight models, three styles side by side with an in-game switch; decisions below are the user's (E5). Open: every row of the v2 table.
 
-One theme, written once, used three ways: the 30 s trailer cut, the title screen, and the game itself as an
-adaptive score. It has to be *ours* (no licensing, no AI-generated audio of uncertain provenance), it has to
-weigh nothing on the phone, and it has to sound like the world: a place that does not exist yet, arriving one
-chunk at a time — wonder first, adventure second, a little melancholy underneath.
+## What changed (2026-09-22, the user after listening — ASKS D41 → E5)
 
-## The decision: the music is code, like everything else here
+v1 made the music out of code: a D-Lydian motif played by 7 WebAudio patches. It works, costs zero bytes, and
+sounds like a chiptune. The user's verdict: *"It's super basic, we need better music — how do we generate music
+with top tier local open weight models?"* v1 had rejected AI audio (provenance, not adaptive); the user overrules
+the first reason, and v2 solves the second with stems.
 
-Every sound in the game is already synthesised in WebAudio (`src/audio/Audio.ts`, no files). The music follows
-the same rule: a **score written as data** (notes, bars, layers) played by a small **WebAudio instrument set**.
-The same score renders offline (OfflineAudioContext → WAV) for the trailer and plays live in the game, where
-layers fade in and out with what the player is doing. Zero bytes downloaded, one source of truth, exportable
-to MIDI the day a human composer joins.
+| decision | the user's pick |
+|---|---|
+| model licences | permissive **or revenue-capped** is fine: ACE-Step 1.5 (MIT), MiniMax Music 3 (free < $20M revenue), Stable Audio Open (free < $1M), Magenta RT (Apache); a bake-off decides by ear |
+| the melody | **the model composes**; the v1 motif is not kept for its own sake |
+| the style | **generate three and let me switch in game**: ① sparse piano + ambient (BotW), ② warm orchestral (Ghibli / Ori), ③ folk-adventure (Sea of Thieves) |
+| the sound bar | better synth **and** real instruments, **and** open-weight models making it locally |
+| byte budget | **~3–5 MB per style, lazy**: loads after the player is in; the synth theme plays until it arrives and stays the offline fallback; cold load (P5) untouched |
+| second theme (D42) | **Driftwood Isle** gets its own theme (Pine Hollow keeps the first) |
+| shrine hum (D42) | **always, by proximity**: spatialised, ~20 m, the score ducks a little near it |
 
-Rejected: a commissioned track (later, once the theme is proven), AI-generated audio (ownership + not adaptive),
-a soundfont/sample player (megabytes on the phone, one fixed mix).
+## The pipeline: generate locally, ship stems, mix adaptively
 
-## The theme
+Everything is generated on this Mac (M5 Max, 128 GB unified memory — the ACE-Step 4B XL DiT + 4B LM fit without
+offload); nothing leaves the machine, no per-track fees.
 
-- **Key / mode:** D Lydian (the raised 4th is the "wonder" note; it also keeps the island bright).
-  Combat and the wreck darken it to D Dorian without changing the melody notes.
-- **Tempo:** 104 BPM (the 30 s cut was timed to a 104 pulse; the game plays it at 96 for calm, 112 in combat).
-- **Motif (4 bars, the thing you hum):** `D  A  G#  A | E  D  · · | D  A  B  A | G# E  D  ·` — a rising fifth,
-  the Lydian 4th leaning on the 5th, and a fall home. Two bars of question, two of answer.
-- **Sound palette (instruments = WebAudio patches, all in `src/audio/Music.ts`):**
-  - *Drone*: two detuned saws through a slow low-pass, an octave apart — the "this world is huge" floor.
-  - *Pad*: 4-voice chord, triangle + sine, slow attack, chorus by detune — the sky.
-  - *Pluck*: Karplus-Strong-ish (noise burst → feedback delay) — the wooden pier / the crossbow's world. Carries the motif.
-  - *Marimba*: sine + 4th-harmonic sine, short exponential decay — the island's colour, carries the motif on Driftwood.
-  - *Bass*: sine + a little saw, sidechained to the pulse.
-  - *Pulse*: filtered noise "shaker" + low sine kick, four-on-the-floor only in combat; a soft 2-and-4 tap otherwise.
-  - *Bell / sting*: FM (2 operators) for the pickup and the end-card hit.
-- **Form (32 bars ≈ 74 s at 104; loops at bar 32 → bar 9):**
-  A intro (drone + pad, 8 bars) · B theme (pluck/marimba motif over the pad, 8) · C build (bass + soft pulse,
-  motif harmonised in thirds, 8) · D lift (full layers, motif up an octave, 8) · ring-out (2 bars).
+1. **Bake-off** (`scripts/music/gen/`): each candidate model gets the same brief per style — key, BPM, mood
+   ("a world arriving one chunk at a time: wonder first, adventure second, melancholy underneath"),
+   instrumentation for the style, instrumental only. ~10 takes per model per style → a local listening page.
+   Weighed on: does it sound like a real recording, does it loop, does it hold a melody you can hum, licence.
+2. **Pick per style** — the user listens to a shortlist (best 3 per style) and picks one theme per style.
+3. **Make it adaptive from the pick**: fixed BPM/key/time signature (ACE-Step conditions on all three), so every
+   piece sits on the same bar grid —
+   - *calm* bed (the picked track, trimmed to a bar-exact loop; the seam fixed with **repaint**),
+   - *tension* layer (**lego/layering**: percussion + low strings/bass added over the calm bed, same grid),
+   - *title* cut (the full-arrangement take, 60–75 s),
+   - **stem extract** where one track needs to become layers.
+   Driftwood gets its own calm bed per style, same method, a brighter brief.
+4. **Stings + shrine hum** as short one-shots (pickup, death, chunk-entered; the shrine drone) — from the same
+   model (Stable Audio Open is strong at one-shots) or a CC0 sample, whichever fits the style.
+5. **Encode**: AAC-LC `.m4a` (plays and `decodeAudioData`s everywhere incl. iOS Safari), ~96 kb/s stereo, loops
+   with a bar-exact length written into a manifest (`public/assets/music/<style>/music.json`: files, BPM, bars,
+   loop points, LUFS). Loudness normalised to one target across styles so switching doesn't jump.
 
-## The 30 s trailer version (fits `scripts/trailer/edl-30.txt` exactly)
-
-| time | picture | music |
-|---|---|---|
-| 0.0 – 1.5 | title card | drone fades in, one pad chord (Dmaj7♯11) |
-| 1.5 – 3.5 | the citadel vision | pad swells; the bell states the first two motif notes (D → A) |
-| 3.5 – 8.0 | Pine Hollow trail / ridge | pluck plays the full motif once, sparse, no pulse |
-| 8.0 – 12.8 | pier walk, planet, boars | marimba takes the motif (brighter), bass enters, soft 2-and-4 |
-| 12.8 – 16.4 | sword combo, heavy, swim, dive | pulse to four-on-the-floor at 12.8 (the first swing); Dorian colour on the heavy; underwater = low-pass sweep on the whole mix at 15.0–16.4 |
-| 16.4 – 21.5 | stairs, bridge, wreck | build: motif in thirds, filter opening; at 21.5 (the sailor rises) one bar of the minor turn |
-| 21.5 – 24.6 | shrine | lift: motif up the octave, all layers |
-| 24.6 – 28.1 | hero shot → end card | the resolve chord lands on 24.6; bell hit + ring-out on the end card at 24.6+; silence by 28.1 |
-
-Rendered offline at 48 kHz stereo → `scripts/trailer/score-30.wav` → `cut.sh` uses it instead of the synth bed
-(`-i score-30.wav` replaces the lavfi inputs). The 15 s cut gets a 15 s edit of the same render (intro → motif → hit).
+Everything above is reproducible: prompts, seeds, model + version, and the trim points live in
+`scripts/music/gen/<style>.json`, so a re-roll is one command.
 
 ## In the game
 
-`src/audio/Music.ts` — `new Music(audio)` (shares the AudioContext and the master bus; its own `music` gain
-with a pause-menu volume), `music.play(theme)`, `music.setState({ shard, mode, intensity, underwater })`,
-`music.sting('pickup' | 'death' | 'chunk')`. State changes crossfade layers **on the next bar** so nothing
-jumps mid-phrase; the sequencer schedules 2 bars ahead on the AudioContext clock (no per-frame work).
+`src/audio/Music.ts` keeps its API (`play`, `setState`, `sting`) and gains a **stem player** beside the synth:
 
-| where | what plays |
-|---|---|
-| title / menu | A + B, full, the trailer voicing (this is the "Wildshard theme") |
-| Pine Hollow calm | drone + pad only, motif every ~40 s on the pluck, 96 BPM |
-| Driftwood calm | drone + marimba motif, gulls and surf carry the rest, 96 BPM |
-| alert (an animal has noticed you, `AnimalManager` state alert/stalk) | bass + soft pulse fade in |
-| combat (a charge, a hit taken, a swing landing) | four-on-the-floor, Dorian, 112 BPM; decays to alert 8 s after the last hit |
-| underwater (`player.submerged`) | whole music bus through a 600 Hz low-pass + slow chorus |
-| pickup (iron sword, skins) | `sting('pickup')`: the bell plays the first four motif notes |
-| death / respawn | `sting('death')`: the minor turn, one bar, then silence for 6 s |
-| entering a chunk (first frame) | `sting('chunk')`: the resolve chord — the same hit as the trailer's end card |
-
-Hooks already exist for all of it: `animals.onCharge`, `onHit`, `player.onSubmerge/onSurface`, the pickup
-`onPickup`, `respawn()`, `hud.onResume/onExitToMenu`. `Music` is wired in `src/main.ts` next to `Audio`.
+- Sources per style: `synth` (v1, zero bytes, improved: a convolver reverb + better pluck/pad), `piano`,
+  `orchestral`, `folk`. The selected style's files load **after** the player enters the world (never during
+  boot); until they decode, the synth plays; if they fail (offline), the synth stays.
+- Vertical mixing: calm bed always; the tension layer's gain follows `intensity` (alert 0.5, combat 1), faded on
+  the bar grid; underwater = the existing low-pass + chorus on the music bus. Title screen = the title cut.
+- Shard: Pine Hollow → theme 1, Driftwood → theme 2 (crossfade on the bar when the shard changes).
+- **The switch**: pause menu → **Music style** cycler (Synth · Piano · Orchestral · Folk), next to the Music
+  slider; persisted in Settings (`musicStyle`); `?music=<style>` in the URL for quick links. Switching
+  crossfades on the next bar and lazily loads that style (one style resident at a time — the budget is per style).
+- Shrine hum: a `PannerNode` at the shrine, audible within ~20 m, the score ducked −3 dB inside 10 m.
 
 ## Budget and acceptance
 
-- ≤ 12 oscillators + 6 filters live at once, no ScriptProcessor / AudioWorklet (phone-safe); measured CPU < 2 %
-  of a frame on the phone tier.
-- No clicks: every voice through an envelope; layer crossfades ≥ 1 bar; tempo changes only on a bar.
-- Loop point inaudible (the pad's tail overlaps the loop by one bar).
-- The theme is recognisable from the marimba alone in 4 bars (play it to someone, they hum it back).
-- The trailer render and the in-game title theme are the same code path (`renderOffline()` vs `play()`).
-- A MIDI export (`scripts/music/export-midi.mjs`) of the score, so a composer can take it further.
+- ≤ 5 MB per style on the wire (both biomes' beds + tension layers + title + stings); 0 bytes before the player is
+  in the world; ≤ 1 decoded style resident (~40 MB of PCM at 48 kHz stereo for ~3.5 min — check the phone tier,
+  mono tension layers or 44.1 kHz if it pinches).
+- No clicks: loops bar-exact and seam-repainted; crossfades ≥ 1 bar; no audible gap when the stems take over
+  from the synth.
+- Loudness: all styles within ±1 LU of each other.
+- CPU: stem playback is `AudioBufferSourceNode`s — no worklets; the synth is off while stems play.
+- Provenance recorded per shipped file (model, version, licence, prompt, seed) in the manifest.
 
-## How it gets built (one agent, ~a night)
+## How it gets built
 
-1. `src/audio/Music.ts`: instruments (7 patches), a bar/beat sequencer on the AudioContext clock, the layer
-   mixer with bar-aligned crossfades, `setState` mapping, stings.
-2. `src/audio/score/wildshard-theme.ts`: the theme as data (motif, harmony per bar, per-layer patterns, the
-   Lydian/Dorian switch), plus the 30 s trailer arrangement as a second arrangement of the same material.
-3. `scripts/music/render.mjs`: Playwright page → `OfflineAudioContext` → WAV for `score-30.wav` / `score-15.wav`
-   / the loop; `scripts/trailer/cut.sh` takes `--score <wav>`.
-4. `src/main.ts` wiring (parent): state from the hooks above, the pause menu's MUSIC volume switch.
-5. Listen on the phone; re-cut the 30 s trailer with the real score; deploy.
+| # | checkpoint | status |
+|---|---|---|
+| 1 | Local model set-up on the Mac: ACE-Step 1.5 (XL + LM), Stable Audio Open, MiniMax Music 3 if open weights run locally; smoke test: one 60 s take each, timed | open |
+| 2 | Bake-off: ~10 takes × model × 3 styles (Pine Hollow brief) → `progress/music/bakeoff/` + a local listening page (and an Artifact for the phone) | open |
+| 3 | **User pick** — one track per style from the shortlist (the user's ears; blocks 4) | open |
+| 4 | Adaptive assets per style: calm loop (repaint seam), tension layer (lego), title cut, Driftwood bed, stings; encode + normalise + manifest | open |
+| 5 | Music.ts stem player + synth fallback + lazy load after enter; synth patches improved (reverb, pluck, pad) | open |
+| 6 | Pause-menu **Music style** switch + `?music=`; Settings `musicStyle` | open |
+| 7 | Shrine hum by proximity (Driftwood) | open |
+| 8 | Re-cut the 15 s / 30 s trailers with the user's favourite style; deploy; the user listens on the phone | open |
 
-Later, if it earns it: a second theme per biome (the citadel / centre chunk gets its own), a composer pass from
-the MIDI export, a diegetic version (the shrine hums the motif's first interval).
+## v1 (landed, D35 — still the synth fallback)
+
+`src/audio/Music.ts` + `src/audio/score/wildshard-theme.ts`: D-Lydian motif `D A G# A | E D · · | D A B A | G# E D ·`,
+104 BPM (96 calm / 112 combat, Dorian), 7 WebAudio patches (drone, pad, pluck, marimba, bass, pulse, FM bell),
+32-bar form looping 32 → 9, 2-bar-ahead sequencer, bar-aligned crossfades, stings, `renderOffline()` for the
+trailer (`scripts/music/render.mjs`), MIDI export (`scripts/music/wildshard-theme.mid`). Wired in `src/main.ts`
+(menu / calm / alert / combat / underwater / pickup / death / chunk). Trailers `/trailer-15.mp4`, `/trailer-30.mp4`.
