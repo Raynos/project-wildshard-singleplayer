@@ -6,7 +6,7 @@
 
 /* Loading screen facts panel (src/ui/Loading.ts). Base panel/wordmark styles live in hud.css. */
 /* base */
-.ws-load { position: fixed; inset: 0; z-index: 20; font-family: var(--ws-mono); color: var(--ws-text); background: radial-gradient(ellipse at 50% 30%, #0d1a26 0%, #06090f 60%, #030508 100%); display: flex; flex-direction: column; justify-content: space-between; user-select: none; transition: opacity 0.7s ease; }
+.ws-load { position: fixed; inset: 0; z-index: 20; font-family: var(--ws-mono); color: var(--ws-text); background: radial-gradient(ellipse at 50% 30%, #0d1a26 0%, #06090f 60%, #030508 100%); display: flex; flex-direction: column; justify-content: space-between; user-select: none; transition: opacity 0.25s ease; }
 .ws-load.hide { opacity: 0; pointer-events: none; }
 .ws-load::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(143, 227, 255, 0.025) 0 1px, transparent 1px 3px); pointer-events: none; }
 .ws-load .ws-load-head { padding: 34px 44px 0; }
