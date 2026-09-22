@@ -53,6 +53,45 @@
 with openai image generation, the mockup images are screenshots of the wildshard
 singleplayer demo running in Chrome, as if a playtester was hitting print screen
 on his laptop.
+- **Where they go:** every mockup / concept image / art asset lives in
+  `art/<subject>/round-<n>-<label>/` (e.g. `art/hud/round-7-sword-touch/`,
+  `art/feedback/round-1-inbox/`; next free round per subject). Never loose in `art/`, never a new
+  top-level folder (`mockups/`, `renders/` …). Existing `art/` files are not moved or renamed.
+  `art/README.md` is the index. The plan that asked for them lists each file and what it shows.
+- **Start from a live capture, not from nothing.** Take the real game's frame first
+  (`agent-browser --session <s> set viewport 1600 900`, or `390 844` + `?touch&tier=phone` for the
+  phone; `open "https://wildshard-singleplayer.vercel.app/?skipintro&nolock&weapon=sword"`; wait for
+  the load (~60–120 s headless); `screenshot`; `close`). Save it in the session scratchpad and pass it
+  with `-i`. codex then **edits** that frame, so the world, the camera and the existing HUD stay true
+  and only the new thing is invented. Shots in `progress/` have no HUD, so they are poor UI references.
+- **One image per headless run, runs in parallel** (one `&` per variant, then `wait`; 4–6 at once is
+  fine, each takes a few minutes):
+
+  ```bash
+  codex exec -s workspace-write --skip-git-repo-check -C "$REPO" --add-dir ~/.codex/generated_images \
+    -i "$SP/ref-desktop.png" -o "$SP/<id>.last.txt" "<COMMON><SCREEN>
+  TASK FOR CODEX: Use the built-in image_gen tool to EDIT the attached reference screenshot into
+  exactly ONE 16:9 landscape image as described above (keep the world, camera and existing HUD; add
+  the new UI in the same UI language). One generation only. Then copy the PNG that YOUR image_gen
+  call produced (its path is in the tool result; other runs are writing to ~/.codex/generated_images
+  at the same time, so never 'the newest file') into
+  $REPO/art/<subject>/round-<n>-<label>/<id>.png. Create or modify no other file." > "$SP/<id>.log" 2>&1
+  ```
+
+  The model and effort come from `~/.codex/config.toml`. `image_gen` is codex's built-in tool (the
+  system `imagegen` skill), so it needs no `OPENAI_API_KEY`. Write the prompts and the runner script
+  into the scratchpad with the Write tool: the `dcg` hook blocks shell redirects to computed paths.
+- **The prompt has two blocks.** COMMON is shared by every run. It says what the game is (low-poly
+  stylized first person, Driftwood Isle) and that the image must read as a real print-screen of it,
+  not concept art, with no device frame, browser chrome or watermark. It also carries the UI language:
+  dark navy glass `#0d1b26` ~80 %, 1 px cyan `#8fe3ff` hairlines with corner brackets, letter-spaced
+  monospace uppercase labels, no gradients or emoji. SCREEN is one variant: what is on screen, where
+  (the left 30 %, under PAUSE …), and **every string of UI text verbatim, in quotes**. Unquoted text
+  comes back garbled.
+- **Look at every image before you report it** (Read the PNG). Re-run a variant whose text is garbled
+  or whose HUD drifted from the reference. Say which ones were re-rolled.
+- Make several different variants per question (a layout A / B / C…), not one. Then the user can pick
+  one and name its letter.
 
 ## Games
 
