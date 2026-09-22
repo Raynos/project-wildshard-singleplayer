@@ -88,6 +88,19 @@ export const macrotask = (): Promise<void> => new Promise((resolve) => {
   c.port2.postMessage(0);
 });
 
+/**
+ * A yield point that ends the task only once it has run `budgetMs` (wall): sprinkle `await slice()` between
+ * builders of uneven size — the ones a shard skips cost nothing, the heavy runs still break under ~100 ms.
+ */
+export function slicer(budgetMs = 30): () => Promise<void> {
+  let t0 = performance.now();
+  return async () => {
+    if (performance.now() - t0 < budgetMs) return;
+    await macrotask();
+    t0 = performance.now();
+  };
+}
+
 interface StepState { state: 'todo' | 'on' | 'ok'; fraction: number; sub: number; detail: string; t0: number; ms: number }
 interface SourceState { total: number; files: number; read: number; filesDone: number; closed: boolean }
 const clamp01 = (x: number): number => (x > 1 ? 1 : Math.max(x, 0));

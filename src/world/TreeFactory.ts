@@ -66,6 +66,7 @@ export class TreeFactory {
     const params = new URLSearchParams(location.search);
     const baked = await loadBakedCards(getActiveChunk().slug);
     const card = baked ?? this.bakeBranchCard(twigDiff, twigNor, twigArm);
+    if (!baked) await macrotask(); // the runtime bake (a shard without baked cards) is a task of its own
     if (params.has('bakecards')) exportCardTextures(this.renderer, baked ? this.bakeBranchCard(twigDiff, twigNor, twigArm) : card);
 
     this.barkMaterial = new THREE.MeshStandardMaterial({

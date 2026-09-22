@@ -71,7 +71,10 @@ export class Terrain {
     };
     mat.customProgramCacheKey = () => 'terrain-lowpoly';
     this.material = mat;
-    this.mesh = new THREE.Mesh(this.buildLowPolyGeometry(), mat);
+    const rows = this.buildLowPolyGeometry();
+    let r = rows.next();
+    while (r.done !== true) { await macrotask(); r = rows.next(); } // a band of rows per task: the 256² grid was one ~120 ms task at 4x CPU
+    this.mesh = new THREE.Mesh(r.value, mat);
     this.mesh.receiveShadow = true;
     this.mesh.castShadow = false;
     this.group.add(this.mesh);
@@ -79,20 +82,24 @@ export class Terrain {
     return this;
   }
 
-  private buildLowPolyGeometry() {
+  /** The low-poly grid; yields after every band of 64 rows (the caller ends the task there). */
+  private *buildLowPolyGeometry(): Generator<void, THREE.BufferGeometry, undefined> {
     const res = TERRAIN_RES, n = res - 1, d = CHUNK_SIZE / n;
     const pos = new Float32Array(res * res * 3), col = new Uint8Array(res * res * 3);
     const wl = getActiveChunk().ocean?.level ?? -1e4;
     const c = new THREE.Color();
-    for (let iz = 0; iz < res; iz++) for (let ix = 0; ix < res; ix++) {
-      const i = iz * res + ix, x = -CHUNK_HALF + ix * d, z = -CHUNK_HALF + iz * d;
-      const y = heightAt(x, z);
-      pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
-      const [, ny] = normalAt(x, z, d * 0.5);
-      lowPolyGroundColor(c, y - wl, 1 - ny, x, z);
-      // the sand paths: trails above the beach are painted sand over the grass (a 3 m bed with a soft edge)
-      if (y - wl > 1.5) { const td = trailDistance(x, z); if (td < 4.5) { _pathC.copy(LP.path).multiplyScalar(0.94 + hash2(x, z) * 0.12); c.lerp(_pathC, 1 - ss(td, 2.2, 4.5)); } }
-      col[i * 3] = Math.round(c.r * 255); col[i * 3 + 1] = Math.round(c.g * 255); col[i * 3 + 2] = Math.round(c.b * 255);
+    for (let iz = 0; iz < res; iz++) {
+      if (iz > 0 && iz % 64 === 0) yield;
+      for (let ix = 0; ix < res; ix++) {
+        const i = iz * res + ix, x = -CHUNK_HALF + ix * d, z = -CHUNK_HALF + iz * d;
+        const y = heightAt(x, z);
+        pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
+        const [, ny] = normalAt(x, z, d * 0.5);
+        lowPolyGroundColor(c, y - wl, 1 - ny, x, z);
+        // the sand paths: trails above the beach are painted sand over the grass (a 3 m bed with a soft edge)
+        if (y - wl > 1.5) { const td = trailDistance(x, z); if (td < 4.5) { _pathC.copy(LP.path).multiplyScalar(0.94 + hash2(x, z) * 0.12); c.lerp(_pathC, 1 - ss(td, 2.2, 4.5)); } }
+        col[i * 3] = Math.round(c.r * 255); col[i * 3 + 1] = Math.round(c.g * 255); col[i * 3 + 2] = Math.round(c.b * 255);
+      }
     }
     const idx = new Uint32Array(n * n * 6);
     let k = 0;

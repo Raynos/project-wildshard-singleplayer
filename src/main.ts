@@ -50,7 +50,7 @@ import { getNumber, onNumber } from './ui/Settings';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
 import { setAimTargets } from './player/AimTargets';
-import { createBootPlan, macrotask, type StepRunner } from './boot/plan';
+import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
 import { declareTotals, installByteCounter } from './boot/bytes';
 import { chunkFiles } from './boot/manifest';
 import { getActiveChunk } from './chunks/registry';
@@ -88,6 +88,7 @@ async function main() {
 
   // ── world dressing ──
   const dressing = await step('edge', async () => {
+    const slice = slicer(); // between the builders below: a task ends once it has run ~30 ms (Driftwood's pier … cove were one 0.3–0.5 s task)
     const boundary = new Boundary(sky).build();
     game.scene.add(boundary.group);
     await macrotask(); // boundary · water · horizon each in its own task
@@ -110,26 +111,35 @@ async function main() {
       player.colliders.push(...boat.colliders);
       player.platforms.push((x, z) => boat.floorHeightAt(x, z));
     }
+    await slice();
     // faceted shore boulders along the beach
     const rockSpecs = isOcean ? Boulders.scatterShore(chunk.seed) : [];
     const rocks = isOcean ? new Boulders(sky).build(rockSpecs) : null;
     if (rocks) { game.scene.add(rocks.mesh); player.colliders.push(...rocks.colliders); }
+    await slice();
     // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
     const hut = isOcean ? new Hut(sky, HUT).build() : null;
     if (hut) { game.scene.add(hut.group); player.colliders.push(...hut.colliders); player.platforms.push((x, z) => hut.floorHeightAt(x, z)); }
+    await slice();
     // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
     const lookout = isOcean ? new Lookout(sky, LOOKOUT).build() : null;
     if (lookout) { game.scene.add(lookout.group); player.colliders.push(...lookout.colliders); player.platforms.push((x, z) => lookout.floorHeightAt(x, z)); }
+    await slice();
     const wreck = isOcean ? new Wreck(sky, WRECK).build() : null;
     if (wreck) { game.scene.add(wreck.group); player.colliders.push(...wreck.colliders); player.platforms.push((x, z) => wreck.floorHeightAt(x, z)); }
+    await slice();
     // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
     const shrine = isOcean ? new Shrine(sky, SHRINE).build() : null;
     if (shrine) { game.scene.add(shrine.group); player.colliders.push(...shrine.colliders); player.platforms.push((x, z) => shrine.floorHeightAt(x, z)); }
-    const jetties = sea ? JETTIES.map((j) => new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: sea.level + 1.2 }).build()) : [];
+    await slice();
+    const jetties: ReturnType<Pier['build']>[] = [];
+    if (sea) for (const j of JETTIES) { jetties.push(new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: sea.level + 1.2 }).build()); await slice(); }
     for (const j of jetties) { game.scene.add(j.group); player.colliders.push(...j.colliders); player.platforms.push((x, z) => j.floorHeightAt(x, z)); }
+    await slice();
     const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
     const bushes = isOcean ? new Bushes(sky).build(Bushes.scatterIsland(chunk.seed, undefined, AVOID)) : null;
     if (bushes) game.scene.add(bushes.mesh);
+    await slice();
     // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
     const gulls = pier && boat && rocks && sea ? new Gulls(sky).build({
       perches: [
@@ -142,21 +152,27 @@ async function main() {
       centre: new THREE.Vector3(0, 0, -205), radius: 90,
     }) : null;
     if (gulls) game.scene.add(gulls.group);
+    await slice();
     // sand paths between the POIs: plank steps up the crag, rope fences, signposts
     const trailside = isOcean ? new Trailside(sky).build(Trailside.forIsland()) : null;
     if (trailside) { game.scene.add(trailside.mesh); player.colliders.push(...trailside.colliders); }
+    await slice();
     // the swaying rope bridge over the tidal creek on the hut → lookout path
     const bridge = isOcean ? new RopeBridge(sky, BRIDGE).build() : null;
     if (bridge) { game.scene.add(bridge.mesh); player.colliders.push(...bridge.colliders); player.platforms.push((x, z) => bridge.floorHeightAt(x, z)); }
+    await slice();
     // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
     const seabed = isOcean ? new Seabed(sky).build(Seabed.scatterLagoon(chunk.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }])) : null;
     if (seabed) { game.scene.add(seabed.mesh); if (seabed.fish) game.scene.add(seabed.fish); }
+    await slice();
     // coconut palms (one draw call, fronds sway in update)
     const palmSpecs = isOcean ? Palms.scatterIsland(chunk.seed, undefined, AVOID) : [];
     const palms = isOcean ? new Palms(sky).build(palmSpecs) : null;
+    await slice();
     // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
     const cove = isOcean ? new Cove(sky).build(Cove.forIsland()) : null;
     if (cove) { game.scene.add(cove.group); player.colliders.push(...cove.colliders); }
+    await slice();
     if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
     await macrotask();
     const horizon = new Horizon(sky).build();
@@ -223,11 +239,13 @@ async function main() {
   const weapons = new Weapons(crossbow, rifle, ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : []); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
   new TouchControls(player, weapons, params.has('touch')); // on-screen FPS controls on coarse-pointer devices (?touch=1 forces)
   weapons.adsHeld = params.has('ads');
+  await macrotask();
   const hud = new HUD({ pointerLock: !nolock });
   const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
   const minimap = new Minimap(); // circular minimap (Heightfield is installed by now)
   const fullMap = new FullMap(minimap); // the menu's MAP tab (Menu.ts mounts it); tap the minimap / M to open
   const keepAlive = new KeepAlive();
+  await macrotask();
   const audio = new Audio();
   // the Wildshard theme (docs/plans/MUSIC.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
   const music = new Music(audio);
@@ -438,6 +456,7 @@ async function main() {
     });
   });
 
+  await macrotask();
   game.buildComposer();
   // Compile programs in batches with a visible count, then draw the first frames as a step —
   // instead of the first render() compiling ~100 programs in one stall (minutes on iOS).
