@@ -54,6 +54,7 @@ import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan'
 import { declareTotals, installByteCounter } from './boot/bytes';
 import { chunkFiles } from './boot/manifest';
 import { bootFetches, prefetch } from './boot/prefetch';
+import { packFor, streamPack } from './boot/pack';
 import { getActiveChunk } from './chunks/registry';
 import { Audio } from './audio/Audio';
 import { Music } from './audio/Music';
@@ -82,7 +83,12 @@ async function main() {
   const step: StepRunner = (key, work) => plan.step(key, work).then((p) => p.value);
   // let the service worker take control first (≤ 2.5 s, never fatal) so the first visit's bytes are cached
   await window.__ws_sw?.ready;
-  prefetch(bootFetches(getActiveChunk(), files)); // this shard's files in flight now, in step order; each step builds as its files land (src/boot/prefetch.ts)
+  // this shard's files in flight now, in step order; each step builds as its files land — as one pack when the build has
+  // one (src/boot/pack.ts), else file by file (src/boot/prefetch.ts); anything the pack lacks still goes file by file
+  const pack = packFor(getActiveChunk());
+  const packed = new Set(pack ? pack.files.map(([p]) => p) : []);
+  if (pack) streamPack(pack, plan, files);
+  prefetch(bootFetches(getActiveChunk(), files).filter((p) => !packed.has(p)));
   const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk } = world;
   const nolock = params.has('nolock');

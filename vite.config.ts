@@ -23,7 +23,8 @@ function assetIndex(): string {
   const walk = (dir: string, pub: string) => {
     for (const name of readdirSync(dir)) {
       const p = join(dir, name); const st = statSync(p);
-      if (st.isDirectory()) walk(p, `${pub}/${name}`); else out[`${pub}/${name}`] = st.size;
+      if (st.isDirectory()) { if (`${pub}/${name}` !== '/assets/packs') walk(p, `${pub}/${name}`); } // packs: generated from these very files, below
+      else out[`${pub}/${name}`] = st.size;
     }
   };
   try { walk('public/assets', '/assets'); } catch { /* no assets dir */ }
@@ -56,6 +57,12 @@ function writeBytesModule() {
   if (!existsSync(out) || readFileSync(out, 'utf8') !== src) writeFileSync(out, src);
 }
 writeBytesModule();
+
+// Boot packs (scripts/bake-packs.mjs → public/assets/packs/<slug>.<tier>-<hash>.bin + src/boot/packs.generated.ts): each
+// shard's boot files for a tier as one streamed file (src/boot/pack.ts). After the byte table: the tier's file names
+// come from it. Never fatal — without a pack the boot fetches file by file.
+try { execSync('node --import ./scripts/bake-loader.mjs scripts/bake-packs.mjs', { stdio: 'inherit' }); }
+catch (e) { console.warn('[pack] boot packs failed — the boot fetches file by file', e); }
 
 const versionPlugin = (): Plugin => ({
   name: 'wildshard-version',

@@ -52,7 +52,7 @@ const STATIC_OPTIONAL = ['/apple-touch-icon.png', '/favicon.png', '/icon-192.png
 
 /** Vite's hashed output sits directly under /assets/ — the unhashed Poly Haven dirs are one level deeper. */
 const IMMUTABLE_RE = /^\/assets\/[^/]+-[\w-]{8}\.\w+$/;
-const STATIC_RE = /^\/assets\/(tex|models|hdri|baked)\/|^\/basis\/|^\/fonts\/|^\/(apple-touch-icon|favicon|icon-\d+)\.png$/;
+const STATIC_RE = /^\/assets\/(tex|models|hdri|baked|packs)\/|^\/basis\/|^\/fonts\/|^\/(apple-touch-icon|favicon|icon-\d+)\.png$/;
 const NETWORK_FIRST_RE = /^\/(asset-index\.json|sw\.js|manifest\.webmanifest)$/;
 
 const IMAGE_RE = /\.(jpe?g|png|webp|avif|gif|svg)$/;
