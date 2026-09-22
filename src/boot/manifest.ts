@@ -4,10 +4,11 @@
  * still engine-fixed (docs/SHARDS.md), so those lists are fixed here too.
  */
 import type { ChunkDef } from '../chunks/ChunkDef';
-import type { ChunkFiles } from './bytes';
+import { tierUrl, type ChunkFiles } from './bytes';
 import { pbrUrls } from '../core/assets';
 import { bakedTerrainUrl } from '../world/BakedTerrain';
 import { bakedCardUrls } from '../world/BakedCards';
+import { bakedSkyUrls } from '../world/BakedSky';
 import { bakedTextureUrls } from './bakedTextures';
 import { PUBLIC_BYTES } from './bytes.generated';
 
@@ -28,5 +29,9 @@ export function chunkFiles(def: ChunkDef): ChunkFiles {
   ]).filter((f) => !terrain.includes(f) && !trees.includes(f)); // pine_bark, rock_ground: counted where first loaded
   const props = uniq([...lod('rock_moss_set_01'), ...lod('tree_stump_01'), ...lod('dead_tree_trunk')]);
   const skyJson = `/assets/baked/${def.slug}/sky.json`;
-  return { sky: [`/assets/hdri/${def.sky.hdri}_2k.hdr`, ...(skyJson in PUBLIC_BYTES ? [skyJson] : [])], baked: bakedTextureUrls(def.slug), terrain, trees, cabins, props };
+  const pair = bakedSkyUrls(def.sky.hdri); // the gain-mapped JPEG + PNG in place of the .hdr (src/world/BakedSky.ts)
+  const sky = [...(pair ? [pair.color, pair.gain] : [`/assets/hdri/${def.sky.hdri}_2k.hdr`]), ...(skyJson in PUBLIC_BYTES ? [skyJson] : [])];
+  // the phone tier's .phone.webp / .phone.jpg copies (fetchImage fetches through the same map)
+  const t = (xs: string[]) => xs.map(tierUrl);
+  return { sky: t(sky), baked: t(bakedTextureUrls(def.slug)), terrain: t(terrain), trees: t(trees), cabins: t(cabins), props: t(props) };
 }

@@ -9,6 +9,7 @@ import { getActiveChunk } from '../chunks/registry';
 import type { ChunkSky } from '../chunks/ChunkDef';
 import { bakedTexture, preloadBakedTextures } from '../boot/bakedTextures';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
+import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
 
 /** how far the planet group sits from the camera (Game.ts re-places it every frame along `planetDir`) */
 export const PLANET_DIST = 1700;
@@ -48,7 +49,11 @@ export class Sky {
     const qn = (k: string, d: number) => { const v = qs.get(k); return v === null ? d : Number.parseFloat(v); };
     const hdriName = qs.get('hdri') ?? S.hdri;
     // baked procedural textures (clouds, fur…) and the baked sun / horizon (scripts/bake-sky.mjs) ride along with the HDR
-    const [hdr, , baked] = await Promise.all([loadHDR(`/assets/hdri/${hdriName}_2k.hdr`), preloadBakedTextures(), loadBakedSky(hdriName)]);
+    // the HDR itself: the gain-mapped JPEG + PNG pair (~0.3 MB, BakedSky.ts) when the build has it, else the 4–5 MB .hdr
+    const pair = bakedSkyUrls(hdriName);
+    const hdrUrl = `/assets/hdri/${hdriName}_2k.hdr`;
+    const loadSky = pair ? loadSkyPair(pair).catch((e: unknown) => { console.warn(`[sky] gain-mapped pair not used (${String(e)}); loading the .hdr`); return loadHDR(hdrUrl); }) : loadHDR(hdrUrl);
+    const [hdr, , baked] = await Promise.all([loadSky, preloadBakedTextures(), loadBakedSky(hdriName)]);
     if (baked) this.sunDir.fromArray(baked.sunDir).normalize();
     else this.findSun(hdr);
     hdr.mapping = THREE.EquirectangularReflectionMapping;

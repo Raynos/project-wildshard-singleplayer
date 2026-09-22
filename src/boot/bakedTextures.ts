@@ -31,7 +31,7 @@ const dir = (slug: string) => `/assets/baked/${slug}/tex/`;
 /** Every baked texture file the build has for this chunk (declared in the boot manifest). */
 export function bakedTextureUrls(slug: string): string[] {
   const p = dir(slug);
-  return Object.keys(PUBLIC_BYTES).filter((k) => k.startsWith(p));
+  return Object.keys(PUBLIC_BYTES).filter((k) => k.startsWith(p) && !k.includes('.phone.')); // phone copies: through tierUrl
 }
 
 function urlFor(slug: string, name: string): string | null {

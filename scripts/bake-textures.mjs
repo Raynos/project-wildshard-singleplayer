@@ -51,7 +51,7 @@ try {
     if (!existsSync(path) || !readFileSync(path).equals(buf)) { writeFileSync(path, buf); changed++; }
     files[file] = { bytes: buf.length, width, height };
   }
-  for (const f of readdirSync(dir)) if (!wanted.has(f)) { rmSync(resolve(dir, f)); changed++; }
+  for (const f of readdirSync(dir)) if (!wanted.has(f) && !f.includes('.phone.')) { rmSync(resolve(dir, f)); changed++; } // .phone.* copies: scripts/tex-tiers.mjs (re-run it after a re-bake)
   writeFileSync(meta, `${JSON.stringify({ hash: digest, version: VERSION, files }, null, 2)}\n`);
   console.log(`bake-textures: ${SLUG} → ${Object.entries(files).map(([f, v]) => `${f} ${(v.bytes / 1024).toFixed(0)} KB`).join(' · ')} (${digest}) — ${changed} file(s) changed; commit public/assets/baked/${SLUG}/`);
 } finally {

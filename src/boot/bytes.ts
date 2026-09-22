@@ -13,6 +13,7 @@
 import type { Plan, ByteProgress } from './plan';
 import type { BootStep, ByteKey } from './steps';
 import { PUBLIC_BYTES } from './bytes.generated';
+import { TIER_CONFIG } from '../core/tier';
 
 export type ChunkFiles = Readonly<Record<ByteKey, readonly string[]>>;
 type Bytes = Record<string, number>;
@@ -29,6 +30,19 @@ export function declareTotals(files: ChunkFiles): Record<ByteKey, { bytes: numbe
     out[key] = { bytes, files: files[key].length };
   }
   return out;
+}
+
+/**
+ * The phone tier's copy of an image when the build has one — `name.phone.webp` (PNG sources: lossy colour, lossless
+ * alpha) or `name.phone.jpg` beside `name.<ext>`, ≤ 1024² (scripts/tex-tiers.mjs). `fetchImage` fetches through it and
+ * the boot manifest declares through it, so the bytes declared are the bytes downloaded. Any other tier / file: as is.
+ */
+export function tierUrl(url: string): string {
+  if (TIER_CONFIG.maxTexture > 1024) return url;
+  const m = /^(.*)\.(png|jpg)$/.exec(url);
+  if (!m) return url;
+  for (const ext of ['webp', 'jpg']) { const u = `${m[1]}.phone.${ext}`; if (u in TABLE) return u; }
+  return url;
 }
 
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };
@@ -82,7 +96,8 @@ export function installByteCounter(plan: Plan<BootStep>, files: ChunkFiles): voi
  * file is larger (the phone tier's 1024 cap). `flip` matches three's ImageBitmapLoader (then
  * texture.flipY must be false); pass false for canvas work that keeps the file's orientation.
  */
-export async function fetchImage(url: string, maxSize = Infinity, flip = true): Promise<ImageBitmap | HTMLImageElement> {
+export async function fetchImage(file: string, maxSize = Infinity, flip = true): Promise<ImageBitmap | HTMLImageElement> {
+  const url = tierUrl(file);
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${res.status} ${url}`);
   const blob = await res.blob();
