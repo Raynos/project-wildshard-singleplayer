@@ -46,6 +46,15 @@
   `git log origin/main..main`, and the push actually succeeding.
 - Every screenshot session must be closed (`agent-browser --session <s> close`) before you
   report — an open one keeps rendering the game and pins the box.
+- **Game browsers are a shared lane: at most 3 open across all agents on this machine.** Check
+  `agent-browser session list` and `pgrep -fl chrome-headless-shell` before you open one; if 3
+  are already running, wait or reuse your own session. Each open game tab costs ~1.5 cores for as
+  long as it is open (agent-browser now closes idle sessions after 5 min, via `idleTimeout` in
+  `~/.agent-browser/config.json`). Render on the GPU: agent-browser does by default, and Playwright scripts
+  pass `--use-angle=metal` like `scripts/bench-load.mjs`. **SwiftShader (`--use-angle=swiftshader`,
+  Android `-gpu swiftshader_indirect`) only when the user asks for it**: it draws on the CPU,
+  ~3 cores per page. No `--disable-frame-rate-limit`. One Android emulator at a time, killed
+  (`adb -s <serial> emu kill`) when the run ends.
 
 ## Mockups
 
