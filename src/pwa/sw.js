@@ -22,7 +22,7 @@
  *                           asset-index.json.
  *
  *   install   precache the critical shell (strict — a failed shell fails install, so the old worker keeps
- *             serving), then the bundle + icons (tolerant, only what is missing).
+ *             serving), then the bundle's code + icons (tolerant, only what is missing; hashed images on use).
  *   activate  migrate the previous ws-static-* entries whose size still matches asset-index.json into the new
  *             static cache, drop stale ws-shell/ws-static caches, prune (never wipe) the immutable cache, claim.
  *   fetch     hashed bundle: cache-first into ws-immutable;
@@ -55,6 +55,8 @@ const IMMUTABLE_RE = /^\/assets\/[^/]+-[\w-]{8}\.\w+$/;
 const STATIC_RE = /^\/assets\/(tex|models|hdri|baked)\/|^\/basis\/|^\/fonts\/|^\/(apple-touch-icon|favicon|icon-\d+)\.png$/;
 const NETWORK_FIRST_RE = /^\/(asset-index\.json|sw\.js|manifest\.webmanifest)$/;
 
+const IMAGE_RE = /\.(jpe?g|png|webp|avif|gif|svg)$/;
+
 const cacheFor = (pathname) => (IMMUTABLE_RE.test(pathname) ? IMMUTABLE_CACHE : STATIC);
 
 /**
@@ -84,7 +86,9 @@ self.addEventListener('install', (event) => {
       // The entry chunk was requested by the HTML before this worker controlled anything (a first visit), so
       // it never passed through `fetch` below; name it here or the second boot is not all-cache. Immutable on
       // the host, so this is served by the HTTP cache, not the network, when the page just fetched it.
-      await fillMissing(await caches.open(IMMUTABLE_CACHE), BUNDLE);
+      // Code and styles only: the hashed images (every shard's hero stills, portrait AND landscape, ~2 MB) are cached
+      // by cacheFirst when the menu actually shows one — a phone never shows the landscape set (ask P5, cold bytes).
+      await fillMissing(await caches.open(IMMUTABLE_CACHE), BUNDLE.filter((p) => !IMAGE_RE.test(p)));
       await fillMissing(await caches.open(STATIC), STATIC_OPTIONAL);
     })(),
   );
