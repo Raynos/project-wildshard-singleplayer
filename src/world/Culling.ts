@@ -49,6 +49,62 @@ export class CulledInstances {
 }
 
 /**
+ * CulledInstances for several shapes that share one material: a BatchedMesh (WEBGL_multi_draw) with one geometry per
+ * shape and one instance per placement — one draw call and one shadow draw for all of them instead of one each.
+ * A view change flips per-instance visibility by range / angular size / padded frustum (same rules as above); three
+ * then culls the live instances against each camera it renders with (view and shadow) itself.
+ *
+ *   const b = new CulledBatch(geometries, material, placements, maxDist, keepNear, minAngular);
+ *   group.add(b.mesh); forest.onViewChange((f, v) => b.cull(f, v));
+ *
+ * `placements`: { shape (index into geometries), matrix (world) } per instance.
+ */
+export class CulledBatch {
+  readonly mesh: THREE.BatchedMesh;
+  private bounds: Float32Array;
+  private sphere = new THREE.Sphere();
+  constructor(
+    geometries: THREE.BufferGeometry[], material: THREE.Material,
+    placements: { shape: number; matrix: THREE.Matrix4 }[],
+    private maxDist: number,
+    private keepNear = 40,
+    private minAngular = 0,
+  ) {
+    let v = 0, ix = 0;
+    for (const g of geometries) { v += g.getAttribute('position').count; ix += g.index ? g.index.count : g.getAttribute('position').count; }
+    const bm = this.mesh = new THREE.BatchedMesh(placements.length, v, ix, material);
+    bm.sortObjects = false; bm.perObjectFrustumCulled = true;
+    const ids = geometries.map((g) => bm.addGeometry(g));
+    const spheres = geometries.map((g) => { g.computeBoundingSphere(); return g.boundingSphere; });
+    this.bounds = new Float32Array(placements.length * 4);
+    const c = new THREE.Vector3(), sc = new THREE.Vector3();
+    placements.forEach((p, i) => {
+      const gid = ids[p.shape], bs = spheres[p.shape];
+      if (gid === undefined || !bs) throw new Error(`[culling] no geometry for shape ${p.shape}`);
+      const id = bm.addInstance(gid);
+      bm.setMatrixAt(id, p.matrix);
+      c.copy(bs.center).applyMatrix4(p.matrix); sc.setFromMatrixScale(p.matrix);
+      this.bounds[i * 4] = c.x; this.bounds[i * 4 + 1] = c.y; this.bounds[i * 4 + 2] = c.z; this.bounds[i * 4 + 3] = bs.radius * Math.max(sc.x, sc.y, sc.z);
+    });
+  }
+
+  cull(frustum: THREE.Frustum, viewer: THREE.Vector3): void {
+    const b = this.bounds, n = b.length >> 2, bm = this.mesh;
+    const keep2 = this.keepNear * this.keepNear, max2 = this.maxDist * this.maxDist;
+    for (let i = 0; i < n; i++) {
+      const x = b[i * 4] ?? 0, y = b[i * 4 + 1] ?? 0, z = b[i * 4 + 2] ?? 0, r = b[i * 4 + 3] ?? 0;
+      const dx = x - viewer.x, dy = y - viewer.y, dz = z - viewer.z, d2 = dx * dx + dy * dy + dz * dz;
+      let vis = d2 <= max2;
+      if (vis && d2 > keep2) {
+        if (this.minAngular > 0 && r * r < this.minAngular * this.minAngular * d2) vis = false;
+        else { this.sphere.center.set(x, y, z); this.sphere.radius = r; vis = frustum.intersectsSphere(this.sphere); }
+      }
+      bm.setVisibleAt(i, vis);
+    }
+  }
+}
+
+/**
  * Same idea for thousands of small static instances (ferns, litter …): instances are bucketed into
  * `cell` m squares once; a view change tests ~250 cell spheres, then copies the instances of the cells
  * that pass (plus a per-instance range check). Per-instance colour rides along.
