@@ -327,6 +327,29 @@ export function fixIBL(mat: THREE.Material, name: string): void {
   };
   mat.customProgramCacheKey = () => `${name}|dfgfix`;
 }
+/** fixIBL's cache group for every viewmodel material (crossbow, rifle, swim hands, their skins): all of them apply
+ *  the same patch, so one group lets identical shaders share a program. */
+export const VIEWMODEL_GROUP = 'viewmodel';
+let vmFillers: { white: THREE.DataTexture; arm: THREE.DataTexture; flatNormal: THREE.DataTexture } | null = null;
+/**
+ * The viewmodels' shared lit material — one program for the crossbow (bar the anisotropic prod), the rifle and the
+ * pbr swim hands: MeshPhysical + vertex colours + all five map slots, the dfg fix and the sky's CSM. Physical at its
+ * defaults (ior 1.5, specularIntensity 1) is exactly Standard's F0 0.04 / F90 1. Slots left out get 1×1 fillers
+ * (white albedo, white ARM = ao · roughness · metalness × 1, flat normal) so colour / roughness / metalness read as
+ * set. The meshes need a colour attribute: `whiteColors` where they have no wear colours. Each program saved is
+ * ~150 ms of cold Metal compile on the iPhone.
+ */
+export function viewmodelMaterial(sky: Sky, name: string, params: THREE.MeshPhysicalMaterialParameters): THREE.MeshPhysicalMaterial {
+  vmFillers ??= {
+    white: dataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1, true),
+    arm: dataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1, false),
+    flatNormal: dataTexture(new Uint8Array([128, 128, 255, 255]), 1, 1, false),
+  };
+  const f = vmFillers;
+  const m = new THREE.MeshPhysicalMaterial({ map: f.white, normalMap: f.flatNormal, aoMap: f.arm, roughnessMap: f.arm, metalnessMap: f.arm, vertexColors: true, ...params });
+  m.name = name; fixIBL(m, VIEWMODEL_GROUP); sky.setupMaterial(m);
+  return m;
+}
 /** `Mesh` type guard for `Object3D.traverse` callbacks (three sets `isMesh` on every Mesh) */
 export function isMesh(o: THREE.Object3D): o is THREE.Mesh { return 'isMesh' in o; }
 
@@ -758,7 +781,7 @@ export class Crossbow implements Weapon {
     const leatherMat = new THREE.MeshPhysicalMaterial({ map: leather.map, normalMap: leather.normalMap, aoMap: leather.armMap, roughnessMap: leather.armMap, metalnessMap: leather.armMap, roughness: 1, metalness: 0, vertexColors: true, envMapIntensity: 0.5 });
     const cordMat = new THREE.MeshPhysicalMaterial({ map: cord.map, normalMap: cord.normalMap, aoMap: flatArm, roughnessMap: flatArm, metalnessMap: flatArm, roughness: 0.85, metalness: 0, vertexColors: true });
     const brassMat = new THREE.MeshPhysicalMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.3, 0.3), aoMap: steel.armMap, roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.1, metalness: 1, color: new THREE.Color(0.95, 0.66, 0.3), vertexColors: true, envMapIntensity: 1.0 });
-    ([['xbow-wood', woodMat], ['xbow-iron', ironMat], ['xbow-prod', prodMat], ['xbow-leather', leatherMat], ['xbow-cord', cordMat], ['xbow-brass', brassMat]] as [string, THREE.Material][]).forEach(([n, m]) => { m.name = n; fixIBL(m, 'xbow'); this.sky.setupMaterial(m); });
+    ([['xbow-wood', woodMat], ['xbow-iron', ironMat], ['xbow-prod', prodMat], ['xbow-leather', leatherMat], ['xbow-cord', cordMat], ['xbow-brass', brassMat]] as [string, THREE.Material][]).forEach(([n, m]) => { m.name = n; fixIBL(m, VIEWMODEL_GROUP); this.sky.setupMaterial(m); });
 
     // model space: -Z forward (bolt direction), +Y up, rail top at y=0. Nut at z=+0.14, prod at z=-0.30.
     // ── stock: side profile extruded along X with bevels ──
@@ -873,7 +896,7 @@ export class Crossbow implements Weapon {
     // DoubleSide material as a BackSide + a FrontSide pass — two programs. The fletching is alpha-tested and the
     // bolt writes depth, so one pass looks the same.
     this.boltMat.forceSinglePass = true;
-    this.boltMat.name = 'xbow-bolt'; fixIBL(this.boltMat, 'xbow'); this.sky.setupMaterial(this.boltMat);
+    this.boltMat.name = 'xbow-bolt'; fixIBL(this.boltMat, VIEWMODEL_GROUP); this.sky.setupMaterial(this.boltMat);
     this.loadedBolt = new THREE.Mesh(this.boltGeo, this.boltMat);
     this.loadedBolt.position.set(0, 0.0095, 0.128 - 0.18);
     this.model.add(this.loadedBolt);
@@ -884,11 +907,8 @@ export class Crossbow implements Weapon {
     this.tipModel.copy(this.tipLocal).add(this.loadedBolt.position);
 
     // ── rear peep sight: dark iron ring with a faint cyan inner edge, on a post rising from the rail (posed per frame) ──
-    // the stock's program (see the materials above): 1×1 white albedo / ARM and a flat normal leave colour, roughness and metalness as set
-    const white = dataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1, true), whiteArm = dataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1, false);
-    const flatNormal = dataTexture(new Uint8Array([128, 128, 255, 255]), 1, 1, false);
-    const peepIron = new THREE.MeshPhysicalMaterial({ map: white, normalMap: flatNormal, aoMap: whiteArm, roughnessMap: whiteArm, metalnessMap: whiteArm, color: new THREE.Color(0.05, 0.05, 0.055), roughness: 0.9, metalness: 0.75, vertexColors: true, emissive: new THREE.Color(PEEP_CYAN), emissiveIntensity: 0.05 });
-    peepIron.name = 'xbow-peep'; fixIBL(peepIron, 'xbow'); this.sky.setupMaterial(peepIron);
+    // the stock's program (see the materials above): 1×1 filler maps leave colour, roughness and metalness as set
+    const peepIron = viewmodelMaterial(this.sky, 'xbow-peep', { color: new THREE.Color(0.05, 0.05, 0.055), roughness: 0.9, metalness: 0.75, emissive: new THREE.Color(PEEP_CYAN), emissiveIntensity: 0.05 });
     const peepGlow = new THREE.MeshBasicMaterial({ color: new THREE.Color(PEEP_CYAN), toneMapped: false, fog: false, opacity: 0.85 });
     this.peepMats.push(peepIron, peepGlow);
     const ringOuter = new THREE.Mesh(new THREE.TorusGeometry(PEEP_R, PEEP_R * PEEP_TUBE, 10, 40), peepIron);

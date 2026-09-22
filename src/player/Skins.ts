@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { Sky } from '../world/Sky';
-import { fixIBL, isMesh, type Crossbow } from './Crossbow';
+import { fixIBL, isMesh, VIEWMODEL_GROUP, type Crossbow } from './Crossbow';
 
 /**
  * Weapon skins — the legendary drops (art/skin-*.png). A skin restyles the EXISTING crossbow / AR-15 model: the
@@ -96,7 +96,7 @@ export function skinFor(kind: string, variant: string | undefined): SkinDef | nu
 
 interface SkinState { id: SkinId; originals: Map<THREE.Mesh, THREE.Material | THREE.Material[]>; clones: Map<string, THREE.Material>; extras: THREE.Object3D[] }
 const STATE = new WeakMap<THREE.Object3D, SkinState>();
-const GROUP: Record<WeaponKind, string> = { crossbow: 'xbow', rifle: 'rifle' }; // fixIBL's program-cache group
+const GROUP: Record<WeaponKind, string> = { crossbow: VIEWMODEL_GROUP, rifle: VIEWMODEL_GROUP }; // fixIBL's program-cache group — one for every viewmodel (Crossbow.viewmodelMaterial)
 
 let white: THREE.DataTexture | undefined;
 function whiteTex() {
@@ -173,7 +173,7 @@ export function crossbowDisplayModel(crossbow: Crossbow, sky: Sky): THREE.Group 
     const mat = m.material as THREE.Material;
     if (!mat.name || !mat.colorWrite || (!m.visible && mat.name !== 'xbow-bolt')) { drop.push(m); return; } // the depth clearer, hidden effects
     const copy = mat.clone(); copy.name = mat.name; copy.transparent = false; copy.depthWrite = true; // the viewmodel draws in the transparent queue; the drop must not
-    fixIBL(copy, 'xbow'); sky.setupMaterial(copy);
+    fixIBL(copy, VIEWMODEL_GROUP); sky.setupMaterial(copy);
     m.material = copy; m.visible = true;
     m.castShadow = true; m.receiveShadow = true; m.renderOrder = 0; m.frustumCulled = true;
     m.onBeforeRender = () => { /* a world copy needs no depth clear */ };

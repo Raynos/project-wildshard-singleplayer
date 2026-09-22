@@ -6,7 +6,7 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { heightAt } from '../world/Heightfield';
 import { getSetting } from '../ui/Settings';
 import {
-  Puffs, fixIBL, fovForAspect, FOV_HIP, FOV_ADS, makeNoise, makeSteel, dataTexture, normalFromHeight, box, cyl, stripExtra, sstep, clamp01,
+  Puffs, viewmodelMaterial, whiteColors, fovForAspect, FOV_HIP, FOV_ADS, makeNoise, makeSteel, dataTexture, normalFromHeight, box, cyl, stripExtra, sstep, clamp01,
   TRACER_RED, TRACER_ORDER, isMesh, type TexSet, type Targets, type ImpactSurface, type CrossbowWorld, type CrossbowOptions,
 } from './Crossbow';
 import type { KitWeapon, WeaponState, AimInfo } from './Weapons';
@@ -17,7 +17,7 @@ import type { KitWeapon, WeaponState, AimInfo } from './Weapons';
  * handguard under a full-length Picatinny rail, 14.5" barrel with an A2 flash hider, gas block with a fixed front post
  * between ears, flip-up rear ghost ring, charging handle, forward assist, dust cover, 30-round PMAG, pistol grip,
  * collapsible stock on a buffer tube. Dark anodised aluminium + black polymer + steel, all through `sky.setupMaterial`
- * with IDENTICAL map slots and one program cache key ('rifle') so the whole rifle is one lit program.
+ * on the viewmodels' shared lit material (Crossbow.viewmodelMaterial), so the rifle compiles no program of its own.
  *
  *   const rifle = new Rifle({ game, sky, player, forest }, targets, { allowUnlocked });
  *   weapons = new Weapons(crossbow, rifle);   // the manager calls setActive / update / drives `holster`
@@ -357,13 +357,15 @@ export class Rifle implements KitWeapon {
     const alu = makeAnodised(53), poly = makePolymer(59), steel = makeSteel(61);
     alu.map.repeat.set(3, 1); alu.normalMap.repeat.set(3, 1); alu.armMap.repeat.set(3, 1);
     steel.map.repeat.set(2, 2); steel.normalMap.repeat.set(2, 2); steel.armMap.repeat.set(2, 2);
-    // one program: every material is MeshStandard with the same five map slots (ARM feeds ao/rough/metal) and the 'rifle' cache key
-    const std = (t: TexSet, extra: THREE.MeshStandardMaterialParameters) => new THREE.MeshStandardMaterial({ map: t.map, normalMap: t.normalMap, aoMap: t.armMap, roughnessMap: t.armMap, metalnessMap: t.armMap, roughness: 1, metalness: 1, ...extra });
-    const aluMat = std(alu, { normalScale: new THREE.Vector2(0.6, 0.6), color: new THREE.Color(0.9, 0.9, 0.92), envMapIntensity: 0.55 });
-    const polyMat = std(poly, { normalScale: new THREE.Vector2(0.8, 0.8), color: new THREE.Color(0.95, 0.95, 0.95), envMapIntensity: 0.35 });
-    const steelMat = std(steel, { normalScale: new THREE.Vector2(0.5, 0.5), color: new THREE.Color(0.4, 0.4, 0.42), roughness: 1.2, envMapIntensity: 0.7 });
-    this.brassMat = std(steel, { normalScale: new THREE.Vector2(0.3, 0.3), color: new THREE.Color(0.95, 0.68, 0.32), roughness: 0.9, envMapIntensity: 1.0 });
-    ([['rifle-alu', aluMat], ['rifle-poly', polyMat], ['rifle-steel', steelMat], ['rifle-brass', this.brassMat]] as [string, THREE.Material][]).forEach(([n, m]) => { m.name = n; fixIBL(m, 'rifle'); this.sky.setupMaterial(m); });
+    // no program of its own: every material is the viewmodels' shared lit one (Crossbow.viewmodelMaterial — MeshPhysical
+    // at Standard-equivalent defaults, vertex colours, the five map slots with the ARM feeding ao/rough/metal), the
+    // crossbow's program; the meshes get white vertex colours below. The ejected brass (opaque, in the world) is the
+    // one opaque variant of it.
+    const std = (name: string, t: TexSet, extra: THREE.MeshPhysicalMaterialParameters) => viewmodelMaterial(this.sky, name, { map: t.map, normalMap: t.normalMap, aoMap: t.armMap, roughnessMap: t.armMap, metalnessMap: t.armMap, roughness: 1, metalness: 1, ...extra });
+    const aluMat = std('rifle-alu', alu, { normalScale: new THREE.Vector2(0.6, 0.6), color: new THREE.Color(0.9, 0.9, 0.92), envMapIntensity: 0.55 });
+    const polyMat = std('rifle-poly', poly, { normalScale: new THREE.Vector2(0.8, 0.8), color: new THREE.Color(0.95, 0.95, 0.95), envMapIntensity: 0.35 });
+    const steelMat = std('rifle-steel', steel, { normalScale: new THREE.Vector2(0.5, 0.5), color: new THREE.Color(0.4, 0.4, 0.42), roughness: 1.2, envMapIntensity: 0.7 });
+    this.brassMat = std('rifle-brass', steel, { normalScale: new THREE.Vector2(0.3, 0.3), color: new THREE.Color(0.95, 0.68, 0.32), roughness: 0.9, envMapIntensity: 1.0 });
 
     // model space: -Z forward (bore), +Y up, bore axis at y = 0; receiver z -0.10 … +0.13, muzzle at MUZZLE_Z
     const A: THREE.BufferGeometry[] = [], P: THREE.BufferGeometry[] = [], S: THREE.BufferGeometry[] = [];
@@ -455,6 +457,7 @@ export class Rifle implements KitWeapon {
       m.frustumCulled = false; m.castShadow = false; m.receiveShadow = m !== clearer;
       if (m === clearer) return;
       m.renderOrder = this.flashQuads.includes(m) ? 1001 : 1000;
+      if ((Array.isArray(m.material) ? m.material : [m.material]).some((mat) => mat.vertexColors)) whiteColors(m.geometry);
       for (const mat of Array.isArray(m.material) ? m.material : [m.material]) { mat.transparent = true; if (mat !== flashMat) mat.depthWrite = true; }
     });
   }
@@ -473,7 +476,7 @@ export class Rifle implements KitWeapon {
   }
 
   private buildEffects() {
-    const caseGeo = new THREE.CylinderGeometry(0.0047, 0.0047, 0.045, 8); caseGeo.rotateX(Math.PI / 2);
+    const caseGeo = new THREE.CylinderGeometry(0.0047, 0.0047, 0.045, 8); caseGeo.rotateX(Math.PI / 2); whiteColors(caseGeo); // brassMat reads vertex colours
     for (let i = 0; i < BRASS_COUNT; i++) {
       const mesh = new THREE.Mesh(caseGeo, this.brassMat);
       mesh.visible = false; mesh.frustumCulled = false;

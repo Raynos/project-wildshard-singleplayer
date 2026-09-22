@@ -2,7 +2,7 @@
  * Hands — the first-person viewmodel while swimming: no weapon, just the player's two forearms and hands doing a
  * looping breaststroke at the water line. The hands ALWAYS wear white gloves (a mitten shape with a thumb, over a plain
  * sleeve cuff — no finger detail by design). Styled per shard: `getActiveChunk().style ?? 'pbr'` —
- *   'pbr'     smooth-shaded MeshStandardMaterial (roughness 0.7), IBL-fixed like the crossbow
+ *   'pbr'     smooth-shaded, on the viewmodels' shared lit program (Crossbow.viewmodelMaterial), IBL-fixed like the crossbow
  *   'lowpoly' faceted: non-indexed geometry, flat vertex colours with a per-facet jitter, `flatShading: true`
  * Both are lit through `sky.setupMaterial()` (CSM shadows + fog). Parented to the camera with its own depth clear
  * (renderOrder 999 / 1000, like the crossbow and the hoverboard) so the arms never clip into the water or the pier.
@@ -20,7 +20,7 @@ import * as THREE from 'three';
 import type { Sky } from '../world/Sky';
 import { SWIM_SPEED, STROKE_PERIOD, type Player } from './Player';
 import { getActiveChunk } from '../chunks/registry';
-import { fixIBL, isMesh } from './Crossbow';
+import { isMesh, viewmodelMaterial, whiteColors } from './Crossbow';
 import { Rng } from '../core/rng';
 
 type Style = 'pbr' | 'lowpoly';
@@ -54,13 +54,14 @@ export class Hands {
     const rng = new Rng(0x5a1d);
     const seg = low ? 7 : 18;
 
-    // ── materials: one per part in pbr (plain colours), one shared flat-shaded vertex-colour material in lowpoly ──
+    // ── materials: one per part in pbr (plain colours) — all three on the viewmodels' shared lit program (the
+    //    crossbow's / rifle's: filler maps, white vertex colours, no program of their own) — and one shared
+    //    flat-shaded vertex-colour material in lowpoly ──
     const mk = (color: THREE.Color, rough: number) => {
-      const m = low
-        ? new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.85, metalness: 0 })
-        : new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0 });
-      m.name = `hands-${color === GLOVE ? 'glove' : color === SLEEVE ? 'sleeve' : 'cuff'}`;
-      if (!low) fixIBL(m, m.name);
+      const name = `hands-${color === GLOVE ? 'glove' : color === SLEEVE ? 'sleeve' : 'cuff'}`;
+      if (!low) return viewmodelMaterial(sky, name, { color, roughness: rough, metalness: 0 });
+      const m = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.85, metalness: 0 });
+      m.name = name;
       sky.setupMaterial(m);
       return m;
     };
@@ -68,7 +69,7 @@ export class Hands {
 
     /** lowpoly: drop the index, paint every facet a jittered flat colour (a hair darker/lighter per face so the facets read) */
     const facet = (geo: THREE.BufferGeometry, color: THREE.Color, jitter: number) => {
-      if (!low) return geo;
+      if (!low) { whiteColors(geo); return geo; } // pbr: the shared program reads vertex colours — white = ×1
       const g = geo.index ? geo.toNonIndexed() : geo;
       g.deleteAttribute('normal'); g.deleteAttribute('uv');
       const n = g.getAttribute('position').count, col = new Float32Array(n * 3);
