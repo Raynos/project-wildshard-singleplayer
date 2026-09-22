@@ -5,7 +5,7 @@
  *
  *   icon('deer')  → '<svg …>…</svg>'
  */
-export type IconId = 'deer' | 'boar' | 'elk' | 'bear' | 'ghost' | 'ironhide' | 'meat' | 'hide' | 'tusk' | 'antlers' | 'bolt' | 'crossbow' | 'rifle' | 'laurel' | 'lock' | 'check' | 'poi' | 'you';
+export type IconId = 'deer' | 'boar' | 'elk' | 'bear' | 'ghost' | 'ironhide' | 'meat' | 'hide' | 'tusk' | 'antlers' | 'claw' | 'shell' | 'coconut' | 'coin' | 'seaglass' | 'rope' | 'bolt' | 'crossbow' | 'rifle' | 'laurel' | 'lock' | 'check' | 'poi' | 'you';
 
 const wrap = (body: string, extra = '') => `<svg viewBox="0 0 64 64" fill="currentColor" stroke="none" ${extra}>${body}</svg>`;
 const S = 'fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"';
@@ -63,6 +63,36 @@ const TUSK = `
 const ANTLERS = `
   <path d="M32 58 L32 30 M32 30 C22 28 14 20 12 8 M32 30 C42 28 50 20 52 8 M22 26 L16 18 M42 26 L48 18 M18 16 L10 14 M46 16 L54 14 M27 29 L24 36 M37 29 L40 36" ${S} stroke-width="3.5"/>`;
 
+/* Driftwood Isle loot: crab claw, reef shell, coconut, doubloon, sea glass, old rope */
+const circle = (cx: number, cy: number, r: number) => `M${cx - r} ${cy} a${r} ${r} 0 1 0 ${2 * r} 0 a${r} ${r} 0 1 0 ${-2 * r} 0 Z`;
+
+const CLAW = `
+  <path d="M6 58 L20 42 L26 48 L10 62 Z"/>
+  <ellipse cx="30" cy="37" rx="15" ry="11" transform="rotate(-40 30 37)"/>
+  <path d="M26 28 C30 14 42 5 56 5 C50 11 44 18 40 30 Z"/>
+  <path d="M40 42 C48 38 56 30 60 18 C62 32 54 44 42 48 Z"/>`;
+
+const SHELL = `
+  <path d="M6 36 C8 24 19 18 32 18 C45 18 56 24 58 36 C56 46 46 52 32 52 C18 52 8 46 6 36 Z"/>
+  <path d="M8 32 L1 28 L7 38 Z M56 32 L63 28 L57 38 Z M12 24 L8 16 L17 21 Z M52 24 L56 16 L47 21 Z M20 50 L16 58 L25 52 Z M44 50 L48 58 L39 52 Z"/>
+  <path d="M25 18 L24 11 M39 18 L40 11" ${S} stroke-width="2.4"/>
+  <circle cx="24" cy="10" r="3"/><circle cx="40" cy="10" r="3"/>`;
+
+const COCONUT = `
+  <path fill-rule="evenodd" d="${circle(32, 36, 22)} ${circle(25, 28, 3)} ${circle(37, 26, 3)} ${circle(31, 37, 3)}"/>
+  <path d="M28 14 L24 6 M32 14 L32 4 M36 14 L40 6" ${S} stroke-width="2.4"/>`;
+
+const COIN = `
+  <path fill-rule="evenodd" d="M32 8 C46 7 57 18 56 32 C57 46 46 57 32 56 C18 57 7 46 8 32 C7 18 18 7 32 8 Z ${circle(32, 32, 18)} ${circle(32, 32, 15)} M29 20 H35 V29 H44 V35 H35 V44 H29 V35 H20 V29 H29 Z"/>`;
+
+const SEAGLASS = `
+  <path fill-rule="evenodd" d="M8 38 L16 20 L34 12 L50 20 L52 38 L38 50 L18 50 Z M20 24 L30 19 L25 30 Z"/>
+  <path d="M42 50 L50 42 L60 46 L58 56 L48 58 Z"/>`;
+
+const ROPE = `
+  <path d="M28 32 A4 4 0 0 1 36 32 A8 8 0 0 1 20 32 A12 12 0 0 1 44 32 A16 16 0 0 1 12 32 A20 20 0 0 1 52 32 C52 42 56 50 60 56" ${S} stroke-width="4.2"/>
+  <path d="M58 54 L62 60 M60 52 L64 57" ${S} stroke-width="1.8"/>`;
+
 const BOLT = `
   <path d="M8 56 L52 12" ${S} stroke-width="3.5"/>
   <path d="M52 12 L58 6 L54 16 Z"/>
@@ -100,6 +130,7 @@ const GLYPHS: Record<IconId, string> = {
   deer: DEER, elk: ELK, boar: BOAR, bear: BEAR,
   ghost: DEER, ironhide: BOAR,
   meat: MEAT, hide: HIDE, tusk: TUSK, antlers: ANTLERS, bolt: BOLT,
+  claw: CLAW, shell: SHELL, coconut: COCONUT, coin: COIN, seaglass: SEAGLASS, rope: ROPE,
   crossbow: CROSSBOW, rifle: RIFLE,
   laurel: LAUREL, lock: LOCK, check: CHECK, poi: POI, you: YOU,
 };

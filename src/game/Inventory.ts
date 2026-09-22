@@ -1,5 +1,6 @@
 /**
- * Inventory — the pack: what harvesting a carcass leaves you with (venison, hides, tusks, antlers). Counts
+ * Inventory — the pack: what harvesting a carcass leaves you with (venison, hides, tusks, antlers; on Driftwood Isle
+ * crab claws, coconuts and the drowned sailor's doubloon). Counts
  * only, 12 slots, one slot per item kind; persisted per shard ('ws.inventory.v1'). Weapons and ammo are not
  * here — the menu's Inventory tab reads those live from Weapons.
  *
@@ -8,7 +9,8 @@
  */
 import type { IconId } from '../ui/icons';
 
-export type ItemId = 'venison' | 'deer-hide' | 'boar-meat' | 'boar-hide' | 'boar-tusk' | 'antlers' | 'elk-meat' | 'elk-hide' | 'bear-pelt' | 'bear-claw';
+export type ItemId = 'venison' | 'deer-hide' | 'boar-meat' | 'boar-hide' | 'boar-tusk' | 'antlers' | 'elk-meat' | 'elk-hide' | 'bear-pelt' | 'bear-claw'
+  | 'crab-meat' | 'crab-claw' | 'crab-shell' | 'coconut' | 'monkey-fur' | 'silver-fur' | 'doubloon' | 'sea-glass' | 'old-rope';
 
 export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'venison': { label: 'Venison', icon: 'meat' },
@@ -21,6 +23,16 @@ export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'elk-hide': { label: 'Elk hide', icon: 'hide' },
   'bear-pelt': { label: 'Bear pelt', icon: 'hide' },
   'bear-claw': { label: 'Bear claw', icon: 'tusk' },
+  // Driftwood Isle
+  'crab-meat': { label: 'Crab meat', icon: 'meat' },
+  'crab-claw': { label: 'Crab claw', icon: 'claw' },
+  'crab-shell': { label: 'Reef shell', icon: 'shell' },
+  'coconut': { label: 'Coconut', icon: 'coconut' },
+  'monkey-fur': { label: 'Monkey fur', icon: 'hide' },
+  'silver-fur': { label: 'Silver fur', icon: 'hide' },
+  'doubloon': { label: 'Salt-crusted doubloon', icon: 'coin' },
+  'sea-glass': { label: 'Sea glass', icon: 'seaglass' },
+  'old-rope': { label: 'Old rope', icon: 'rope' },
 };
 
 /** what a carcass of (kind, variant) yields when harvested */
@@ -30,6 +42,9 @@ export function harvestOf(kind: string, variant?: string): ItemId[] {
     case 'boar': return variant === 'sow' ? ['boar-meat', 'boar-hide'] : ['boar-meat', 'boar-hide', 'boar-tusk'];
     case 'elk': return /bull|imperial/.test(variant ?? '') ? ['elk-meat', 'elk-hide', 'antlers'] : ['elk-meat', 'elk-hide']; // cows carry no rack
     case 'bear': return ['bear-pelt', 'bear-claw'];
+    case 'crab': return variant === 'big' ? ['crab-meat', 'crab-claw', 'crab-shell'] : ['crab-meat', 'crab-claw']; // only the big one's shell is worth keeping
+    case 'monkey': return variant === 'elder' ? ['coconut', 'silver-fur'] : ['coconut', 'monkey-fur']; // every monkey was carrying one
+    case 'sailor': return ['doubloon', 'sea-glass', 'old-rope']; // the drowned sailor's pockets
     default: return [];
   }
 }

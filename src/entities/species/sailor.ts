@@ -17,7 +17,7 @@ import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
  * 1.1 m/s while you stay inside `hold.guardR` of the hold — it guards the iron sword, it does not chase you down the
  * beach. Inside 1.8 m it winds the cutlass up over its head for 0.6 s and SWINGS: 18 damage within 1.9 m. When you
  * leave, it drifts back to its spot and sinks under the deck again. Dies into a splash of droplets (Enemies.ts: the
- * light goes out) and dissolves (`corpseFade`). With no hold (the dev harness) it stands guard where it was placed.
+ * light goes out) and dissolves when harvested, or on its own after a minute (`corpseFade`). With no hold (the dev harness) it stands guard where it was placed.
  */
 
 const PALETTE = {
@@ -292,7 +292,7 @@ registerSpecies({
   aggressive: true,
   walkSpeed: SHAMBLE,
   chargeDamage: SWING_DAMAGE,
-  corpseFade: 2.5,
+  corpseFade: 60, // was 2.5 s — gone before you could reach it; now it lies a minute to be looted (harvesting dissolves it at once)
   eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.0,
   sounds: { call: 'sailor_groan', hurt: 'sailor_groan', callEvery: [12, 30] },
   variants: [
