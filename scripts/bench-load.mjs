@@ -45,6 +45,7 @@ const HELP = `bench-load — headless load-performance ruler
   --no-build             reuse dist/ as is
   --port=4175            vite preview port
   --viewport=1280x720    page size (DPR 1)
+  --query=tier=phone     extra URL params appended to the page URL (e.g. tier=phone&skipintro=1)
   --gpu=metal            metal = the host GPU through ANGLE (same stack as iOS Safari); swiftshader = software GL
   --ci                   check bench.budget.json; exit code = number of rows over budget
   --compare a.json b.json   print a before/after table of two result files and exit
@@ -66,6 +67,7 @@ const TIMEOUT_MS = Number(flag('timeout', '180')) * 1000;
 const PORT = Number(flag('port', '4175'));
 const [VW, VH] = flag('viewport', '1280x720').split('x').map(Number);
 const GPU = flag('gpu', 'metal');
+const QUERY = flag('query', ''); // extra URL params, e.g. --query=tier=phone&skipintro=1
 const CI = has('ci');
 let URL_BASE = flag('url', '');
 
@@ -226,7 +228,7 @@ async function runOnce(ctx, cond, cache, label) {
   await page.addInitScript(INIT_SCRIPT);
   let status = 'ok';
   try {
-    await page.goto(`${URL_BASE}/?nolock=1&bench=1`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
+    await page.goto(`${URL_BASE}/?nolock=1&bench=1${QUERY ? `&${QUERY}` : ''}`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
     await page.waitForFunction(() => window.__bench_play > 0, null, { timeout: TIMEOUT_MS, polling: 100 });
     await page.waitForTimeout(1500); // let the first frames land so renderer.info / long tasks settle
   } catch (e) {
