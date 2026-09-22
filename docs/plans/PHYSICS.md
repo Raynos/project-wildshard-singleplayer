@@ -1,8 +1,8 @@
 # Plan: Rapier physics — one collision world for everything in both shards
 
-**State:** `draft` 2026-09-22 — the user's picks are in: **Rapier 3D, committed, no switch**; both shards;
-every model / weapon / item / enemy collides (E22). Waiting on the user's go (and the 3 picks under Decisions) before P0.
-Nothing built.
+**State:** `draft` 2026-09-22 — the plan is complete and every decision is the user's (E22, E23): Rapier 3D,
+committed, no switch; both shards; everything collides; navmesh (P6b) and capped ragdolls (P8) in. **Not started on
+the user's word** ("don't start the plan yet, we are just writing the plan") — waits on their go for P0.
 
 ## Decisions made (the user, 2026-09-22)
 
@@ -12,6 +12,19 @@ Nothing built.
 - **Both worlds** — Pine Hollow and Driftwood Isle.
 - **Everything collides** — terrain, every structure and prop, the player, every weapon and projectile, every
   item and pickup, every animal and enemy.
+- **Baseline = measure before and after**: P0 records everything before any Rapier code; P9 re-runs it and makes
+  the physics build the bench baseline. Budgets are not raised to fit.
+- **Not started yet** — the plan is written; the start (and whether it runs beside LOAD-PERF / PLAY-PERF) is the
+  user's call when they give the go.
+- **Ragdolls on every tier, capped** — phone 2 live, desktop 6; a settled body freezes to a static pose.
+- **Navmesh is in** — P6b, navcat, a baked navmesh per shard.
+- **The player pushes light things and gets shoved** — coconuts, loot and brass nudge away; a boar charge or crab
+  pinch knocks you back through the controller; nothing big moves.
+- **Doors: interact to open, solid when shut** — E / tap swings a kinematic hinge; never stuck on the player.
+- **Stricter climbing: step 0.35 m, max slope 40°** — crags and big rocks need a jump or a path.
+- **iPhone readings gate P6 and P8** — the user takes one PLAY-PERF meter reading after each (≥ 55 fps both shards).
+- (not asked — the iOS app targets iOS 17, so WASM SIMD is always there: **SIMD build only**, no fallback; the web
+  build on Safari < 16.4 is unsupported.)
 
 ## Where we start (surveyed 2026-09-22)
 
@@ -60,8 +73,7 @@ Rules:
   collider build busts the 100 ms long-task budget, P9 bakes them into `public/assets/baked/<slug>/colliders.bin`.
 - **Loading:** the plain `.wasm` (not the base64 `-compat` build: +33 % bytes and a blocking decode), streamed with
   `WebAssembly.instantiateStreaming` during the title screen, `application/wasm` in `vercel.json`, in the
-  service worker's asset index and the boot plan's byte counter; non-SIMD build only if P1 finds an
-  iOS < 16.4 device we support.
+  service worker's asset index and the boot plan's byte counter; SIMD build only (the iOS app targets 17.0).
 - **Single-threaded forever**: Capacitor never gets `crossOriginIsolated` (iOS `capacitor://`, Android WebView),
   so no WASM threads and no physics worker — the controller needs synchronous answers each frame anyway.
 
@@ -74,18 +86,18 @@ Each phase ships on its own: commit → CI green → live → evidence in the ro
 |---|---|---|---|---|
 | **P0** | **Baseline** (before a line of Rapier) | `pnpm bench:ci` phone tier both shards (cold/warm, wifi/4G), PLAY-PERF counts at every §0 + Driftwood pose, per-frame JS ms of `Player.update` + weapons + `AnimalManager.update` (4× CPU), JS / total bytes, and **walk clips** of the fixed route per shard (pier → hut stairs → bridge → lookout → wreck deck; gate → cabin porch → pond) | — | `docs/plans/PHYSICS.md` §Baseline table + `progress/physics/p0-*.webm`; the numbers every later row is measured against |
 | **P1** | **Engine in** | `src/physics/` skeleton; streamed WASM load at the title; fixed-step loop wired into `Game.ts`; terrain **heightfield** from the baked grid; 4 chunk-edge walls; `?physics=debug` | the invisible-wall clamp (`Player.ts` `lim`) | WASM bytes + init ms in the bench (phone tier); heightfield vs rendered mesh ≤ 2 cm over 10 k samples (the triangle diagonal must match `PlaneGeometry`'s); debug screenshot per shard |
-| **P2** | **Player on the controller** | `Character.ts` capsule; walk / sprint / crouch / jump / double-jump / land on the KCC; hover + swim branches drive the KCC's desired move | `groundAt()`, `collide()`, the trunk-circle + OBB code | P0 walk route replayed: same speeds, jump height, landing impulse; no stuck spots; clip beside the P0 clip |
-| **P3** | **Pine Hollow static world** | 1 770 trunk capsules (from `Forest`), 3 cabins (walls, chimneys, rails, furniture, porch + floors as colliders, **doors as kinematic bodies** that swing), 380 boulders (hulls), 70 stumps + 55 logs (capsules / hulls — solid for the first time), ferns / grass none | every `Collider` + `floorHeightAt` in `Cabin.ts`, `Props.ts`, `Boulders.ts`; `Player.colliders` / `platforms` | debug-draw screenshots at gate / cabin / pond; a door that blocks shut and swings open; can't walk through a stump |
-| **P4** | **Driftwood static world** | pier + 3 jetties, **boat as a kinematic body** on its bob (floor moves with it), hut (deck, stairs, walls), lookout (platform, ramp), wreck (hull + tilted deck trimesh), shrine dais, **cove cave as a trimesh you can walk into**, palms (capsules), trailside posts / fences / signs, rope bridge (static walk surface; sway stays visual), shore rocks (hulls), coral heads the swimmer bumps | every `Collider` + `floorHeightAt` in the 11 Driftwood world files | debug screenshots at the 4 Driftwood poses; stand in the boat while it bobs; walk into the cave |
+| **P2** | **Player on the controller** | `Character.ts` capsule; walk / sprint / crouch / jump / double-jump / land on the KCC — **autostep 0.35 m, max climb 40°, slide above it**, snap-to-ground; hover + swim branches drive the KCC's desired move; the capsule pushes `ITEM` / `DEBRIS` bodies (never `WORLD`); creature contacts shove the player back a step through the controller | `groundAt()`, `collide()`, the trunk-circle + OBB code | P0 walk route replayed: same speeds, jump height, landing impulse; no stuck spots; every step on the route ≤ 0.35 m and every required path ≤ 40° (anything steeper that the route needs gets a ramp collider in P3 / P4); clip beside the P0 clip |
+| **P3** | **Pine Hollow static world** | 1 770 trunk capsules (from `Forest`), 3 cabins (walls, chimneys, rails, furniture, porch + floors as colliders, **doors: E / tap swings a kinematic hinge**, solid when shut, never pinned on the player), 380 boulders (hulls), 70 stumps + 55 logs (capsules / hulls — solid for the first time), ferns / grass none | every `Collider` + `floorHeightAt` in `Cabin.ts`, `Props.ts`, `Boulders.ts`; `Player.colliders` / `platforms` | debug-draw screenshots at gate / cabin / pond; a shut door blocks, E opens it; porch steps ≤ 0.35 m; can't walk through a stump |
+| **P4** | **Driftwood static world** | pier + 3 jetties, **boat as a kinematic body** on its bob (floor moves with it), hut (deck, stairs, walls), lookout (platform, ramp), wreck (hull + tilted deck trimesh), shrine dais, **cove cave as a trimesh you can walk into**, palms (capsules), trailside posts / fences / signs, rope bridge (static walk surface; sway stays visual), shore rocks (hulls), coral heads the swimmer bumps | every `Collider` + `floorHeightAt` in the 11 Driftwood world files | debug screenshots at the 4 Driftwood poses; stand in the boat while it bobs; walk into the cave; the crag's plank steps, hut stairs and lookout ramp climbable at 0.35 m / 40° |
 | **P5** | **Weapons and queries** | crossbow bolts `castShape` per substep against world + hitboxes (stick in wood by `Surface`, glance off stone), rifle hitscan `castRay`, **sword + iron sword swing as a shape sweep** (walls stop it), aim assist + interact + pickup gated by `lineOfSight`, impact FX / sounds by `Surface` | `segmentCylinder`, terrain bisection in `Crossbow.ts` / `Rifle.ts`, distance-only interact in `main.ts:436` | a bolt stuck in a cabin wall and in a palm; no hit through a wall; no door opened through a wall; clips |
-| **P6** | **Creatures collide** | every animal and enemy (deer, boar, crab, monkey, drowned sailor) = a kinematic capsule moved by the KCC (walls, rocks, platforms, each other, the player); **hitboxes** (head ball + body capsule, per bone where rigged) as `HITBOX` colliders; boar charge + crab pinch as contact events against the player capsule; knockback / stagger through the KCC so it stops at walls | `AnimalManager.raycast` sphere / capsule math, `confine`'s trunk push-out, `CHARGE_HIT_DIST` check | a boar that charges into a cabin wall and stops; crabs walking round rocks; headshot rate unchanged vs P0 on the dev showcase |
+| **P6** | **Creatures collide** | every animal and enemy (deer, boar, crab, monkey, drowned sailor) = a kinematic capsule moved by the KCC (walls, rocks, platforms, each other, the player); **hitboxes** (head ball + body capsule, per bone where rigged) as `HITBOX` colliders; boar charge + crab pinch as contact events against the player capsule; knockback / stagger through the KCC so it stops at walls | `AnimalManager.raycast` sphere / capsule math, `confine`'s trunk push-out, `CHARGE_HIT_DIST` check | a boar that charges into a cabin wall and stops; a charge that connects shoves the player back; headshot rate unchanged vs P0 on the dev showcase; **the user's iPhone reading ≥ 55 fps in both shards** |
+| **P6b** | **Navmesh** | navcat (pure JS, ~96 KB) navmesh baked per shard by `scripts/bake-chunk.mjs` from the P3 / P4 colliders (agent radius per species: crab, monkey, sailor, deer, boar); wander / flee / charge / patrol get paths; crowd avoidance for herds; the KCC still resolves the final move | `steer`'s edge / slope / trunk bending and `AnimalManager` wander sampling | crabs route round the hut and tidepools instead of sliding along them; a fleeing deer takes the gap between cabins; navmesh bytes + query ms in the bench |
 | **P7** | **Items and debris are bodies** | coconuts (thrown, bounce, roll down the beach, float), rifle brass, loot / carcass drops, weapon pickups settle on what's under them, blood droplets ray-land on any surface; sleeping + a per-tier cap on live dynamic bodies | the hand integrators in `Enemies.ts`, `Rifle.ts`, `WeaponPickup.ts`, `AnimalManager.ts` BloodFX landing | a coconut rolling down the dune into the water (clip); brass on the pier deck, not under it |
-| **P8** | **Ragdolls** | per-species ragdoll (capsules on the rig's bones, spherical / revolute joints with limits), blended in from the death pose, frozen to a static pose once asleep; the hit's impulse throws it; tier cap (phone: 2 live ragdolls) | the keyframed death blend + `settleCorpse` IK in `Animal.ts:440-519` | clip per species: a deer dying down a slope, a crab flipped by the sword, the sailor falling off the wreck deck |
+| **P8** | **Ragdolls** | per-species ragdoll (capsules on the rig's bones, spherical / revolute joints with limits), blended in from the death pose, frozen to a static pose once asleep; the hit's impulse throws it; tier cap (phone: 2 live ragdolls) | the keyframed death blend + `settleCorpse` IK in `Animal.ts:440-519` | clip per species: a deer dying down a slope, a crab flipped by the sword, the sailor falling off the wreck deck; **the user's iPhone reading ≥ 55 fps in both shards** with 2 ragdolls live |
 | **P9** | **Re-baseline and close** | P0's measurements re-run on the final build; `progress/bench/latest.md` and PLAY-PERF / LOAD-PERF numbers updated to the physics build; collider bake if P3 / P4 busted the long-task budget; README / AGENTS note that `src/physics/` owns collision | anything left of the old code | the §Baseline table's "after" column filled; plan archived |
 
-Later, not in this plan (open ASKS rows when it finishes): **navcat navmesh** for animal pathing (Rapier
-stops them walking through walls; a navmesh makes them route *around* the hut instead of sliding along it),
-**Rapier soft-body rope** for the bridge once it's released (unreleased on 0.20.0).
+Later, not in this plan (an open ASKS row when it finishes): **Rapier soft-body rope** for the bridge once it's
+released (unreleased on 0.20.0).
 
 ## Budgets (phone tier, 4× CPU; measured against P0)
 
@@ -96,8 +108,9 @@ stops them walking through walls; a navmesh makes them route *around* the hut in
 | Collider build per shard | sliced ≤ 30 ms per task; total reported in the boot plan |
 | Physics per frame (step + controller + queries) | ≤ 1.5 ms p50 / 3 ms p95 on the phone tier; desktop unchanged from P0 |
 | Live bodies | phone: ≤ 40 dynamic awake, ≤ 2 ragdolls; desktop: ≤ 150 / 6 |
+| Navmesh | ≤ 150 KB per shard on the wire; path queries ≤ 0.3 ms per frame (phone) |
 | Draw calls / tris | unchanged — the debug view is dev-only |
-| iPhone | the PLAY-PERF meter still ≥ 55 fps in both shards after P6 and after P8 |
+| iPhone | the user's PLAY-PERF meter reading ≥ 55 fps in both shards after P6 and after P8 (the only two phone chores in the plan) |
 
 ## Why Rapier (E20 research, 2026-09-22)
 
@@ -123,15 +136,12 @@ switch — P0's baseline is the control instead.
 
 1. **WASM compile on an iPhone** — unmeasured anywhere; P1 measures it first, before anything else depends on it.
 2. **Feel regressions** in the walk / jump / hover / swim loop once the controller changes — P0 clips + numbers are the guard; the user's thumbs are the judge.
-3. **Frame time on the phone** while PLAY-PERF is still short of 55 fps — P6 (creatures) and P8 (ragdolls) are the expensive phases, each gated on the iPhone meter.
+3. **Frame time on the phone** while PLAY-PERF is still short of 55 fps — P6 (creatures), P6b (paths) and P8 (ragdolls) are the expensive phases; P6 and P8 are gated on the iPhone meter.
 4. **Shared tree** — `Player.ts`, the world builders and `main.ts` are touched by other agents (HUD, model, perf). Each phase names its files in its commit and goes in small commits.
 5. **The rope bridge and boat** are the moving-surface edge cases (#488); both have a named fallback above.
+6. **Stricter climbing (0.35 m / 40°) can cut today's routes** — dunes, crag paths and porch steps walked today may need ramps; P2 finds them, P3 / P4 fix them.
 
-## Decisions (the user's)
+## Decisions
 
-1. **Go** — and start now, in parallel with LOAD-PERF / PLAY-PERF (they fight over the same bytes and ms; physics
-   touches different files), or queue it after them?
-2. **"Update the baseline"** — read here as *measure everything before (P0) and re-baseline the bench on the
-   physics build at the end (P9)*. Right, or did you mean something else?
-3. **Ragdolls (P8) and navmesh** — ragdolls in v1 as written, and navmesh as a follow-up plan; or pull navmesh in
-   (P6b) now?
+All made (E22, E23 — see §Decisions made). Open: only **the go**, and at that point whether P0 starts
+beside LOAD-PERF / PLAY-PERF or after them.
