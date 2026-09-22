@@ -1,6 +1,6 @@
 # Plan: 100× faster load & start (benchmaxx)
 
-**State:** `in progress` 2026-09-22 — finish line: every row of `bench.budget.json` passes on `pnpm bench:ci -- --query=tier=phone --viewport=390x844` (4× CPU, wifi + 4G, cold + warm) **and** one iPhone home-screen reading of a warm launch ≤ 3 s. Live b81fee6: 1 / 8 pass (4G warm play 15.2 s, cold 83 s, 79 MB first launch, 1.3 s longest task, 97 requests, title 1.36 s). Owners: bytes / SW / baked sky = P5 cold-bytes agent (E1); load-step CPU, long tasks, title shell = E4 (this plan's owner). P3 landed `3ce85f6`.
+**State:** `in progress` 2026-09-22 — finish line: every row of `bench.budget.json` passes on `pnpm bench:ci -- --query=tier=phone --viewport=390x844` (4× CPU, wifi + 4G, cold + warm) for **both shards** (Driftwood = the default, and `chunk=pine-hollow`) **and** one iPhone reading of a warm launch ≤ 3 s. At `39ad6c4`: **Driftwood 7 / 8** (title 0.50 s, 3.04 MB, 20 requests, warm transfer 0, cold 4G 4.89 s, warm 4G 2.22 s, SW) — fails longest task 399 ms (launch-time cloud / gas-giant / rifle textures, `new Audio()`); **Pine Hollow 4 / 8** (title, 11.75 MB, warm transfer, SW pass) — fails requests 98, cold 4G 13.2 s, warm 4G 3.57 s, longest task 290 ms (crossbow textures). Owners: placement bake + step CPU = E4 load-cpu; texture bakes, weapons, packing, bytes = E1 (asked); `Audio()` = music owner.
 
 ## Status (2026-09-17, load-speed agent) — measured before → after per lever
 
