@@ -1301,7 +1301,8 @@ export class Cabins {
     const [mats, [firePitGltf, lanternGltf, crate, barrel, bucket, hatchet]] = await Promise.all([loadMats(this.sky), Promise.all([
       loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadGLTF('wooden_crate_02'), loadGLTF('wine_barrel_01'), loadGLTF('wooden_bucket_01'), loadGLTF('hatchet'),
     ])]);
-    const props = { crate: prepModel(crate.scene, this.sky), barrel: prepModel(barrel.scene, this.sky), bucket: prepModel(bucket.scene, this.sky), hatchet: prepModel(hatchet.scene, this.sky) };
+    // each model's parts share one material: merged into one part, a cabin's crates / barrels / buckets are one draw each (9 → 4)
+    const props = { crate: mergeParts(prepModel(crate.scene, this.sky)), barrel: mergeParts(prepModel(barrel.scene, this.sky)), bucket: mergeParts(prepModel(bucket.scene, this.sky)), hatchet: mergeParts(prepModel(hatchet.scene, this.sky)) };
     for (const [i, site] of CABIN_SITES.entries()) {
       if (i > 0) await macrotask(); // one cabin per task: the whole homestead in one go was a 180 ms long task at 4x CPU
       const spec = SPECS[i];
@@ -1399,6 +1400,25 @@ export class Cabins {
 const lodLoader = new GLTFLoader();
 export function loadLod(id: string): Promise<{ scene: THREE.Group }> {
   return new Promise<{ scene: THREE.Group }>((resolve, reject) => { lodLoader.load(`/assets/models/${id}/${id}_lod.glb`, resolve, undefined, reject); });
+}
+
+/**
+ * Collapse the parts that share a material into one part (their matrices baked into the geometry) — the same pixels, one
+ * draw instead of one per glTF mesh. Parts whose attributes do not line up for a merge stay as they are.
+ */
+export function mergeParts(parts: PropPart[]): PropPart[] {
+  const byMat = new Map<THREE.Material, PropPart[]>();
+  for (const p of parts) { const l = byMat.get(p.material); if (l === undefined) byMat.set(p.material, [p]); else l.push(p); }
+  const out: PropPart[] = [];
+  for (const [material, list] of byMat) {
+    const first = list[0];
+    if (list.length === 1 && first !== undefined) { out.push(first); continue; }
+    const merged = mergeOrNull(list.map((p) => p.geometry.clone().applyMatrix4(p.matrix)));
+    if (merged === null) { out.push(...list); continue; }
+    merged.computeBoundingSphere();
+    out.push({ geometry: merged, material, matrix: new THREE.Matrix4() });
+  }
+  return out;
 }
 
 /** flatten a glTF scene into (geometry, material, world matrix) triples with sky-aware materials */
