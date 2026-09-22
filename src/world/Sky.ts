@@ -10,6 +10,7 @@ import type { ChunkSky } from '../chunks/ChunkDef';
 import { bakedTexture, preloadBakedTextures } from '../boot/bakedTextures';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
+import { macrotask } from '../boot/plan';
 
 /** how far the planet group sits from the camera (Game.ts re-places it every frame along `planetDir`) */
 export const PLANET_DIST = 1700;
@@ -57,8 +58,13 @@ export class Sky {
     if (baked) this.sunDir.fromArray(baked.sunDir).normalize();
     else this.findSun(hdr);
     hdr.mapping = THREE.EquirectangularReflectionMapping;
+    // three tasks, not one 130 ms one at 4x CPU: the PMREM program compile, the 2048x1024 half-float upload, then the
+    // cube-UV render + blur passes (same calls, same result — only the task boundaries move)
     const pmrem = new THREE.PMREMGenerator(this.renderer);
     pmrem.compileEquirectangularShader();
+    await macrotask();
+    this.renderer.initTexture(hdr);
+    await macrotask();
     const env = pmrem.fromEquirectangular(hdr).texture;
     pmrem.dispose();
     this.scene.environment = env;
