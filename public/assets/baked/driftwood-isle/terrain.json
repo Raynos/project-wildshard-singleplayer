@@ -1,14 +1,15 @@
 {
-  "hash": "1040b30f99dcf8e5",
+  "hash": "6e3daec5b8f5e8c3",
   "version": 1,
   "res": 256,
   "size": 500,
   "seed": 24225,
   "landscapeHash": 86946107,
   "bytes": 524312,
+  "placement": null,
   "heightRange": [
     -5,
     38.16998818109816
   ],
-  "bakedAt": "2026-09-20T21:09:59.671Z"
+  "bakedAt": "2026-09-22T22:39:47.006Z"
 }

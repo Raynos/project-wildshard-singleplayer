@@ -7,6 +7,7 @@ import { TIER_CONFIG } from '../core/tier';
 import { getActiveChunk } from '../chunks/registry';
 import { loadBakedCards, exportCardTextures } from './BakedCards';
 import { macrotask } from '../boot/plan';
+import { TREE_SPECS } from './placement';
 
 /**
  * Pine trees built from a runtime-baked "branch card".
@@ -169,13 +170,7 @@ export class TreeFactory {
     this.needleDepth.customProgramCacheKey = () => 'tree-depth';
 
     const rng = new Rng(4242);
-    const specs = [
-      { height: 22, trunk: 0.42, seed: 1 },
-      { height: 17, trunk: 0.34, seed: 2 },
-      { height: 26, trunk: 0.5, seed: 3 },
-      { height: 13, trunk: 0.27, seed: 4 },
-    ];
-    for (const [i, s] of specs.entries()) {
+    for (const [i, s] of TREE_SPECS.entries()) { // src/world/placement.ts: the forest plants by the same heights / trunk radii
       if (i > 0) await macrotask(); // a variant per task (all four + the impostor bake: one ~150 ms task at 4x CPU)
       const hi = this.buildTree(s.height, s.trunk, new Rng(s.seed * 77 + 1), 1.0);
       const lo = this.buildTree(s.height, s.trunk, new Rng(s.seed * 77 + 1), 0.45);

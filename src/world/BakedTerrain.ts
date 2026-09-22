@@ -18,7 +18,25 @@ import { landscapeHash } from '../chunks/terrain';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import type { ChunkTerrain } from '../chunks/ChunkDef';
 
-export interface BakedGrid { res: number; size: number; seed: number; /** fingerprint of the def's heightAt the bake was made from (0 = legacy, unhashed) */ landscapeHash: number; heights: Float32Array; splat: Uint8Array }
+export interface BakedGrid { res: number; size: number; seed: number; /** fingerprint of the def's heightAt the bake was made from (0 = legacy, unhashed) */ landscapeHash: number; heights: Float32Array; splat: Uint8Array; /** the undergrowth decision log, when the bake has one */ undergrowth: BakedPlacement | null }
+
+/**
+ * The build's undergrowth decision log (src/world/placement.ts), a section after the grid in terrain.bin:
+ * 'WSPL' · u32 version=1 · u32 decisions · u32 kinds · u32[kinds] counts · f64 checksum sum · u8[⌈decisions/8⌉] bits.
+ */
+export interface BakedPlacement { length: number; bits: Uint8Array; checksum: { counts: number[]; sum: number } }
+
+function parsePlacement(buf: ArrayBuffer, at: number): BakedPlacement | null {
+  const dv = new DataView(buf);
+  if (buf.byteLength < at + 16 || dv.getUint8(at) !== 0x57 || dv.getUint8(at + 1) !== 0x53 || dv.getUint8(at + 2) !== 0x50 || dv.getUint8(at + 3) !== 0x4c) return null;
+  if (dv.getUint32(at + 4, true) !== 1) return null;
+  const length = dv.getUint32(at + 8, true), kinds = dv.getUint32(at + 12, true);
+  const head = at + 16 + kinds * 4 + 8;
+  if (buf.byteLength !== head + ((length + 7) >> 3)) return null;
+  const counts: number[] = [];
+  for (let k = 0; k < kinds; k++) counts.push(dv.getUint32(at + 16 + k * 4, true));
+  return { length, bits: new Uint8Array(buf, head, (length + 7) >> 3), checksum: { counts, sum: dv.getFloat64(at + 16 + kinds * 4, true) } };
+}
 
 export const bakedTerrainUrl = (slug: string): string | null => {
   const url = `/assets/baked/${slug}/terrain.bin`;
@@ -31,8 +49,10 @@ export function parseBakedTerrain(buf: ArrayBuffer): BakedGrid | null {
   if (dv.getUint32(4, true) !== 1) return null;
   const res = dv.getUint32(8, true), size = dv.getFloat32(12, true), seed = dv.getUint32(16, true), hash = dv.getUint32(20, true);
   const n = res * res;
-  if (buf.byteLength !== 24 + n * 8) return null;
-  return { res, size, seed, landscapeHash: hash, heights: new Float32Array(buf, 24, n), splat: new Uint8Array(buf, 24 + n * 4, n * 4) };
+  if (buf.byteLength < 24 + n * 8) return null;
+  const undergrowth = buf.byteLength > 24 + n * 8 ? parsePlacement(buf, 24 + n * 8) : null;
+  if (buf.byteLength > 24 + n * 8 && !undergrowth) return null;
+  return { res, size, seed, landscapeHash: hash, heights: new Float32Array(buf, 24, n), splat: new Uint8Array(buf, 24 + n * 4, n * 4), undergrowth };
 }
 
 /** Bilinear samplers over the grid, in the ChunkTerrain shapes. */
@@ -78,6 +98,12 @@ export function bakedSamplers(g: BakedGrid): Pick<ChunkTerrain, 'heightAt' | 'no
 }
 
 let installedFor: string | null = null;
+let installedPlacement: { slug: string; placement: BakedPlacement } | null = null;
+
+/** The active chunk's undergrowth decision log from its installed bake, if it has one (src/world/Undergrowth.ts). */
+export function bakedUndergrowth(): BakedPlacement | null {
+  return installedPlacement !== null && installedPlacement.slug === getActiveChunk().slug ? installedPlacement.placement : null;
+}
 
 /** Fetch the active chunk's bake and install it; resolves either way. Idempotent per chunk. */
 export async function loadBakedTerrain(): Promise<boolean> {
@@ -99,6 +125,7 @@ export async function loadBakedTerrain(): Promise<boolean> {
     if (getActiveChunk() !== def) return false;
     _installBakedTerrain(bakedSamplers(grid));
     installedFor = def.slug;
+    installedPlacement = grid.undergrowth ? { slug: def.slug, placement: grid.undergrowth } : null;
     return true;
   } catch (e) {
     console.warn(`[baked] terrain for ${def.slug} not used (${(e as Error).message}); computing at launch`);

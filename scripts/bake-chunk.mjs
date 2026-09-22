@@ -16,6 +16,9 @@
 // Format (little-endian): 'WSTR' u32 version=1 · u32 res · f32 size · u32 seed · u32 landscapeHash (0 = unhashed legacy) ·
 //   f32[res²] height · u8[res²·4] splat weights (each row sums to ≈ 255) — vertex i = iz·res + ix at
 //   (x, z) = (−half + ix·d, −half + iz·d), d = size / (res − 1).
+//   Then, for a shard that grows undergrowth, the placement decision log (src/world/placement.ts — the forest
+//   planted on this grid, then every undergrowth candidate's kept / skipped bit, ~17 KB): 'WSPL' u32 version=1 ·
+//   u32 decisions · u32 kinds · u32[kinds] counts · f64 checksum sum · u8[⌈decisions/8⌉] bits.
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -32,7 +35,39 @@ const { landscapeHash } = await import(pathToFileURL(resolve(ROOT, 'src/chunks/t
 
 // every chunk module that exports a ChunkDef (has slug + terrain); the registry itself needs `location`
 const chunkFiles = readdirSync(resolve(ROOT, 'src/chunks')).filter((f) => f.endsWith('.ts') && !/^(registry|terrain|ChunkDef|_template|placeholders)\.ts$/.test(f));
-const shared = ['src/chunks/terrain.ts', 'src/core/noise.ts', 'src/core/rng.ts', 'src/core/config.ts', 'scripts/bake-chunk.mjs'].map((f) => readFileSync(resolve(ROOT, f)));
+const shared = ['src/chunks/terrain.ts', 'src/core/noise.ts', 'src/core/rng.ts', 'src/core/config.ts', 'scripts/bake-chunk.mjs',
+  // the placement decision log: the placer, the samplers it plants on, the field they are bound into
+  'src/world/placement.ts', 'src/world/BakedTerrain.ts', 'src/world/Heightfield.ts'].map((f) => readFileSync(resolve(ROOT, f)));
+
+// the game's placement code runs here as it runs in the browser (the registry reads `location` at init)
+if (!('location' in globalThis)) Object.assign(globalThis, { location: new URL('http://localhost/') });
+const registry = await import(pathToFileURL(resolve(ROOT, 'src/chunks/registry.ts')).href);
+const heightfield = await import(pathToFileURL(resolve(ROOT, 'src/world/Heightfield.ts')).href);
+const bakedTerrain = await import(pathToFileURL(resolve(ROOT, 'src/world/BakedTerrain.ts')).href);
+const placement = await import(pathToFileURL(resolve(ROOT, 'src/world/placement.ts')).href);
+
+/** The undergrowth decision log for `def` planted on the grid in `gridBuf` — null for a shard that grows none (main.ts: no forest carpet at sea). */
+function placementSection(def, gridBuf) {
+  if (def.ocean || !registry.findChunk(def.slug)) return null;
+  registry.setActiveChunk(def.slug);
+  heightfield._installBakedTerrain(bakedTerrain.bakedSamplers(bakedTerrain.parseBakedTerrain(gridBuf))); // as loadBakedTerrain does at launch
+  const variants = def.trees.factory === 'none' ? [] : placement.TREE_SPECS.map((s) => ({ trunkRadius: s.trunk, height: s.height }));
+  const { trees, grid } = placement.placeForest(variants);
+  if (trees.length === 0) return null;
+  const log = placement.DecisionLog.record();
+  const run = placement.placeUndergrowth(trees, grid, log);
+  let r = run.next(); while (!r.done) r = run.next();
+  const { counts, sum } = placement.placementChecksum(r.value);
+  const bits = log.bits();
+  const out = new ArrayBuffer(16 + counts.length * 4 + 8 + bits.length);
+  const dv = new DataView(out);
+  dv.setUint8(0, 0x57); dv.setUint8(1, 0x53); dv.setUint8(2, 0x50); dv.setUint8(3, 0x4c); // 'WSPL'
+  dv.setUint32(4, 1, true); dv.setUint32(8, log.count, true); dv.setUint32(12, counts.length, true);
+  counts.forEach((c, k) => dv.setUint32(16 + k * 4, c, true));
+  dv.setFloat64(16 + counts.length * 4, sum, true);
+  new Uint8Array(out, 16 + counts.length * 4 + 8).set(bits);
+  return { bytes: new Uint8Array(out), decisions: log.count, counts, trees: trees.length };
+}
 
 let stale = 0, written = 0;
 for (const file of chunkFiles) {
@@ -79,9 +114,13 @@ for (const file of chunkFiles) {
         splat[i * 4] = q[0]; splat[i * 4 + 1] = q[1]; splat[i * 4 + 2] = q[2]; splat[i * 4 + 3] = q[3];
       }
     }
+    const tp = performance.now();
+    const section = placementSection(def, buf);
+    const bytes = section ? Buffer.concat([Buffer.from(buf), section.bytes]) : Buffer.from(buf);
+    if (section) console.log(`bake: ${def.slug} placement: ${section.trees} trees, ${section.decisions} undergrowth candidates → ${section.counts.join(' / ')} kept, ${section.bytes.length} B in ${Math.round(performance.now() - tp)} ms`);
     mkdirSync(dir, { recursive: true });
-    writeFileSync(bin, Buffer.from(buf));
-    writeFileSync(meta, `${JSON.stringify({ hash: digest, version: VERSION, res, size: CHUNK_SIZE, seed: def.seed, landscapeHash: lhash, bytes: buf.byteLength, heightRange: [min, max], bakedAt: new Date().toISOString() }, null, 2)}\n`);
+    writeFileSync(bin, bytes);
+    writeFileSync(meta, `${JSON.stringify({ hash: digest, version: VERSION, res, size: CHUNK_SIZE, seed: def.seed, landscapeHash: lhash, bytes: bytes.byteLength, placement: section ? { decisions: section.decisions, counts: section.counts } : null, heightRange: [min, max], bakedAt: new Date().toISOString() }, null, 2)}\n`);
     written++;
     console.log(`bake: ${def.slug} terrain ${res}² → ${(buf.byteLength / 1024).toFixed(0)} KB in ${Math.round(performance.now() - t0)} ms (h ${min.toFixed(1)}…${max.toFixed(1)} m, ${digest})`);
   }

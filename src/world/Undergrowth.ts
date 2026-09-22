@@ -1,8 +1,6 @@
 import * as THREE from 'three';
-import { CHUNK_HALF, SEED } from '../core/config';
+import { SEED } from '../core/config';
 import { Rng } from '../core/rng';
-import { Noise2D, smoothstep, lerp } from '../core/noise';
-import { heightAt, normalAt, splatAt, trailDistance, cabinMask, inChunk, pondMask, waterLevel, POND } from './Heightfield';
 import { attachFogUniforms } from './Atmosphere';
 import { windUniforms } from './TreeFactory';
 import type { Sky } from './Sky';
@@ -10,6 +8,8 @@ import { noReflect } from './Water';
 import type { Forest } from './Forest';
 import { TIER_CONFIG } from '../core/tier';
 import { CelledInstances } from './Culling';
+import { DecisionLog, placeUndergrowth, placementChecksum, sameChecksum, type Placement, type UnderPlacements } from './placement';
+import { bakedUndergrowth } from './BakedTerrain';
 
 /**
  * Forest-floor undergrowth: instanced ferns, low round-leaf shrubs and needle/twig litter.
@@ -32,7 +32,6 @@ import { CelledInstances } from './Culling';
  * Public: `group`, `ferns`, `shrubs`, `litter`, `stones`, `moss`, `reeds` (InstancedMesh), `counts`.
  */
 
-const FERN_MAX = 6000, SHRUB_MAX = 1500, LITTER_MAX = 5000, STONE_MAX = 3000, MOSS_MAX = 3000, REED_MAX = 1500;
 const FADE_FAR = TIER_CONFIG.undergrowthFar, FADE_BAND = Math.min(25, FADE_FAR * 0.3);
 
 const underUniforms = {
@@ -91,7 +90,7 @@ export class Undergrowth {
     const reedMat = this.makeMaterial(reedTex, 'reed', 0.5, 0.45);
     yield;
 
-    const place = yield* this.place();
+    const place = yield* this.placements();
     this.ferns = this.makeInstanced(buildFernGeometry(), fernMat, place.ferns, true, fernTex, 0.35);
     this.shrubs = this.makeInstanced(buildShrubGeometry(), shrubMat, place.shrubs, true, shrubTex, 0.25);
     this.litter = this.makeInstanced(buildLitterGeometry(1.4), litterMat, place.litter, false);
@@ -101,6 +100,22 @@ export class Undergrowth {
     this.counts = { ferns: place.ferns.length, shrubs: place.shrubs.length, litter: place.litter.length, stones: place.stones.length, moss: place.moss.length, reeds: place.reeds.length };
     this.group.add(this.ferns, this.shrubs, this.litter, this.stones, this.moss, this.reeds);
     noReflect(this.group);
+  }
+
+  /**
+   * Where everything goes (src/world/placement.ts): the build's decision log replayed when the chunk's
+   * terrain.bin carries one that fits this build — no candidate tested at launch — else the tests run.
+   */
+  private *placements(): Generator<void, UnderPlacements, undefined> {
+    const baked = bakedUndergrowth();
+    if (baked) {
+      try {
+        const p = yield* placeUndergrowth(this.forest.trees, this.forest, DecisionLog.replay(baked.bits, baked.length));
+        if (sameChecksum(placementChecksum(p), baked.checksum)) return p;
+        console.warn('[baked] undergrowth decision log does not fit this build; placing at launch');
+      } catch (e) { console.warn(`[baked] undergrowth decision log not used (${(e as Error).message}); placing at launch`); }
+    }
+    return yield* placeUndergrowth(this.forest.trees, this.forest, DecisionLog.record());
   }
 
   update(_dt: number, playerPos: THREE.Vector3): void { underUniforms.uViewerPos.value.copy(playerPos); }
@@ -165,101 +180,8 @@ export class Undergrowth {
     return mat;
   }
 
-  // ------------------------------------------------------------------ placement
-  /** Every kind's placement; yields between the passes (one rng stream, so the order of passes is fixed). */
-  private *place(): Generator<void, Record<'ferns' | 'shrubs' | 'litter' | 'stones' | 'moss' | 'reeds', Placement[]>, undefined> {
-    const rng = new Rng(SEED + 77);
-    const cluster = new Noise2D(SEED + 78);
-    const ferns: Placement[] = [], shrubs: Placement[] = [], litter: Placement[] = [], stones: Placement[] = [], moss: Placement[] = [], reeds: Placement[] = [];
-    const half = CHUNK_HALF - 8;
-    const wl = waterLevel();
-    type Kind = 'fern' | 'shrub' | 'litter' | 'stone' | 'moss' | 'reed';
-    const tryPlace = (kind: Kind, x: number, z: number) => {
-      if (!inChunk(x, z, 8)) return;
-      const td = trailDistance(x, z);
-      const pm = pondMask(x, z);
-      const y = heightAt(x, z);
-      const depth = wl - y;                       // > 0 under water
-      if (kind === 'reed') {
-        if (depth < -0.55 || depth > 0.35 || pm < 0.05) return;
-      } else {
-        if (depth > -0.1) return;                  // nothing else grows in the water
-        if (td < (kind === 'litter' || kind === 'stone' ? 3 : 5.5)) return;
-        if (cabinMask(x, z) > 0.02) return;
-      }
-      const c = cluster.fbm(x * 0.02 + (kind === 'shrub' ? 40 : 0), z * 0.02, 3);
-      const verge = td < 10 || (pm > 0.03 && depth < -0.1);   // trail edge or pond rim: ferns like it here
-      if (kind === 'fern' && c < 0.12 && !verge) return;
-      if (kind === 'shrub' && c < -0.1) return;
-      // every test is pure and none draws from `rng`, so their order is free: the grid lookups first,
-      // the tree query (the expensive one, ~10^5 calls) last — same placements, a fraction of the queries
-      const nrm = normalAt(x, z, 0.8);
-      if (nrm[1] < (kind === 'moss' ? 0.7 : 0.8)) return;
-      const [f, g, r, t] = splatAt(x, z);
-      if (r > (kind === 'stone' || kind === 'moss' ? 0.6 : 0.25)) return;
-      if (kind === 'fern' && f < 0.55 && !(verge && t < 0.5 && f + g > 0.4)) return;
-      if (kind === 'shrub' && f + g < 0.6) return;
-      if (kind === 'litter' && f < 0.5) return;
-      if (kind === 'stone' && f + r < 0.5) return;
-      const near = this.forest.nearby(x, z, 12);
-      let canopy = 0, trunkD = 1e9;
-      for (const tr of near) { const d = Math.hypot(tr.x - x, tr.z - z); if (d < tr.r + (kind === 'moss' ? 0.1 : 0.45)) return; if (d < 12) canopy++; trunkD = Math.min(trunkD, d - tr.r); }
-      if (kind === 'fern' && canopy < 2 && !verge) return;
-      if ((kind === 'litter' || kind === 'stone') && canopy < 1) return;
-      if (kind === 'moss' && trunkD > 2.2) return;
-      const hue = rng.next();
-      const base = { x, y, z, nx: nrm[0], ny: nrm[1], nz: nrm[2], rot: rng.range(0, Math.PI * 2) };
-      if (kind === 'fern') {
-        const scale = rng.range(0.9, 1.6) * (0.8 + 0.2 * smoothstep(0, 0.5, c));
-        ferns.push({ ...base, y: y - 0.02, scale, r: lerp(0.5, 0.78, hue), g: lerp(0.72, 0.82, hue), b: lerp(0.48, 0.6, hue) });
-      } else if (kind === 'shrub') {
-        shrubs.push({ ...base, y: y - 0.03, scale: rng.range(0.8, 1.5), r: lerp(0.8, 1.0, hue), g: lerp(0.9, 0.8, hue), b: lerp(0.6, 0.55, hue) });
-      } else if (kind === 'litter') {
-        litter.push({ ...base, y: y + 0.06, scale: rng.range(0.8, 1.5), r: lerp(0.7, 0.9, hue), g: lerp(0.68, 0.82, hue), b: lerp(0.62, 0.75, hue) });
-      } else if (kind === 'stone') {
-        stones.push({ ...base, y: y + 0.06, scale: rng.range(0.6, 1.3), r: lerp(0.75, 1.0, hue), g: lerp(0.75, 0.98, hue), b: lerp(0.75, 0.95, hue) });
-      } else if (kind === 'moss') {
-        moss.push({ ...base, y: y + 0.05, scale: rng.range(0.7, 1.6), r: lerp(0.6, 0.85, hue), g: lerp(0.62, 0.78, hue), b: lerp(0.5, 0.62, hue) });
-      } else {
-        reeds.push({ ...base, y: y - 0.05, scale: rng.range(0.8, 1.2) * (depth > 0 ? 1.1 : 1), r: lerp(0.75, 1.0, hue), g: lerp(0.85, 0.95, hue), b: lerp(0.45, 0.6, hue) });
-      }
-    };
-    const anywhere = (kind: Kind) => tryPlace(kind, rng.range(-half, half), rng.range(-half, half));
-    for (let i = 0; i < 30000 && ferns.length < FERN_MAX * 0.7; i++) anywhere('fern');
-    yield;
-    // trail verges + pond rim: sample near the trails / pond directly so the verge fills up
-    for (let i = 0; i < 12000 && ferns.length < FERN_MAX; i++) {
-      if (rng.next() < 0.75) {
-        const x = rng.range(-half, half), z = rng.range(-half, half);
-        tryPlace('fern', x, z);
-      } else {
-        const a = rng.range(0, Math.PI * 2), d = POND.r + rng.range(-4, 14);
-        tryPlace('fern', POND.x + Math.cos(a) * d, POND.z + Math.sin(a) * d);
-      }
-    }
-    yield;
-    for (let i = 0; i < 9000 && shrubs.length < SHRUB_MAX; i++) anywhere('shrub');
-    yield;
-    for (let i = 0; i < 18000 && litter.length < LITTER_MAX; i++) anywhere('litter');
-    yield;
-    for (let i = 0; i < 12000 && stones.length < STONE_MAX; i++) anywhere('stone');
-    yield;
-    // moss: sample right at the trunks
-    for (let i = 0; i < 14000 && moss.length < MOSS_MAX; i++) {
-      const t = rng.pick(this.forest.trees);
-      const a = rng.range(0, Math.PI * 2), d = t.r + rng.range(0.15, 1.6);
-      tryPlace('moss', t.x + Math.cos(a) * d, t.z + Math.sin(a) * d);
-    }
-    yield;
-    for (let i = 0; i < 40000 && reeds.length < REED_MAX; i++) {
-      const a = rng.range(0, Math.PI * 2), d = rng.range(POND.r * 0.3, POND.r + 10);
-      tryPlace('reed', POND.x + Math.cos(a) * d, POND.z + Math.sin(a) * d);
-    }
-    return { ferns, shrubs, litter, stones, moss, reeds };
-  }
 }
 
-interface Placement { x: number; y: number; z: number; nx: number; ny: number; nz: number; rot: number; scale: number; r: number; g: number; b: number }
 
 /** Distance fade (scale to 0) + gentle wind, shared by the lit and the shadow-depth materials. */
 function patchUndergrowthVertex(shader: { vertexShader: string; uniforms: Record<string, THREE.IUniform> }, wind: number) {
