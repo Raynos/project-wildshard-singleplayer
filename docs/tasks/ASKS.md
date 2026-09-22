@@ -1,5 +1,10 @@
 # The user's asks — one ledger, every request, its status, its evidence
 
+> **Frozen 2026-09-22 (E21): this table is history. Every ask now has its own file,
+> `docs/tasks/asks/<ID>.md`, made by `scripts/ask-new.sh`; don't add rows here.** A row that was still open
+> moved to its file under the same id, and the file is the live copy (this row's status is stale). One shared
+> table meant ids handed out twice and a truncated file that wiped every uncommitted row.
+
 Kept current by the parent at every commit and every time the user asks for something. Newest at the bottom;
 a row never leaves — it moves from **open** to **done** (with the commit / evidence) or **dropped** (with the
 user's words). If it is not in here, it was not asked, or the parent forgot — say so.
@@ -233,3 +238,4 @@ Two Claude sessions work this checkout (herdr panes "Wildshard prototype 1" = lo
 | E24 | (from E23) **Needs you** to put the apps in the stores: enrol Apple Developer ($99/yr) + Play Console ($25); create the `VERCEL_UPDATES_TOKEN` secret (dashboard token for `wildshard-updates`, then `gh secret set VERCEL_UPDATES_TOKEN`); back up `~/.config/wildshard/ota-signing.pem` offline; recruit 12 Play closed testers | **needs you** | docs/plans/NATIVE-APPS.md N-C / N-D; after enrolment the next agent wires signing + fastlane (TestFlight / Play internal) |
 | E25 | "why is the CPU maxxed why is headless chrome using so much CPU ? … learnings from game demos scaffold" + "tell the trials gauntlet loop to stop doing whatever its doing with android" (picks: agent-browser idle 5 min, trials → Metal + serial, written rule max 3, stop neither ACE-Step nor emulator) | **done** (2026-09-22) | Cause: trials `clip.ts` ×3 on SwiftShader (~5 cores) + trials `native/gate.ts android` emulator `rockhop_api36` on `swiftshader_indirect` (~5 cores) + open agent-browser game tabs (~1.5 cores each). `~/.agent-browser/config.json` `idleTimeout: "5m"` (verified `AGENT_BROWSER_IDLE_TIMEOUT_MS=300000`); trials session messaged to kill the emulator and run clips on Metal one at a time; AGENTS.md render-lane rule. |
 | E23 | "Ask me any **questions or decisions to finish** the Rapier physics plan" | **done** | 8 picks folded into `docs/plans/PHYSICS.md`: not started yet (writing only), baseline = before/after, ragdolls all tiers capped, navmesh in (P6b), player pushes light things + gets shoved, doors interact-to-open, step 0.35 m / 40°, iPhone readings at P6 + P8 |
+| E24 | "lol **fix the commit guard** if you can't do multi-line commits" | **done** | `.claude/hooks/guard-git-add-all.sh`: not multi-line — an apostrophe inside a double-quoted `-m` paired with a later quote and ate the ` -- <pathspec>`; now one perl pass strips both quote kinds left to right; 10/10 shape tests (5 allow, 5 still block). The hook file itself is untracked (another session's WIP), so the fix is in the worktree, not committed |
