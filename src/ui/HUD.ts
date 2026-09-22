@@ -46,7 +46,7 @@ export type IntroStats = Record<string, string | { value: string; tone?: 'ok' | 
 /** One card in the title-screen deck: an authored chunk (playable) or a teaser (coming soon). */
 interface DeckCard {
   slug: string; displayName: string; label: string; thumbnail: string; tag: string; tagTone: 'ok' | 'soon' | '';
-  playable: boolean; active: boolean; heroPortrait?: string; heroLandscape?: string; blurb: string;
+  playable: boolean; active: boolean; heroPortrait?: string; heroLandscape?: string; blurb: string; experimental: boolean;
 }
 const HERO_FADE_MS = 350;
 
@@ -412,12 +412,12 @@ export class HUD {
       ...CHUNKS.map((c): DeckCard => ({
         slug: c.slug, displayName: c.displayName, thumbnail: c.thumbnail, blurb: c.blurb,
         label: `${c.biome} · ${c.gridCoords} · ${CHUNK_SIZE} m shard`,
-        tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def,
+        tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def, experimental: c.experimental === true,
         heroPortrait: c.heroPortrait, heroLandscape: c.heroLandscape,
       })),
       ...PLACEHOLDERS.map((t): DeckCard => ({
         slug: t.slug, displayName: t.displayName, thumbnail: t.thumbnail, blurb: t.blurb,
-        label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false,
+        label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false, experimental: false,
         heroPortrait: t.heroPortrait, heroLandscape: t.heroLandscape,
       })),
     ];
@@ -428,7 +428,7 @@ export class HUD {
       <div class="ws-menu-deck">
         <div class="ws-menu-cards"><div class="ws-menu-deck-track">${cards.map((c, i) => `
           <button class="ws-menu-card${c.active ? ' active' : ''}${c.playable ? '' : ' soon'}" type="button" data-i="${i}" title="${c.blurb.replaceAll('"', '&quot;')}">
-            <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-menu-card-tag ${c.tagTone}">${c.tag}</i></span>
+            <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-menu-card-tag ${c.tagTone}">${c.tag}</i>${c.experimental ? '<i class="ws-menu-card-exp">Experimental</i>' : ''}</span>
             <b>${c.displayName}</b><small>${c.label}</small>
           </button>`).join('')}
         </div></div>
@@ -467,7 +467,7 @@ export class HUD {
       enterBtn.classList.toggle('soon', !c.playable);
       enterBtn.disabled = !c.playable;
       enterTitle.textContent = c.playable ? 'Enter world' : 'Coming soon';
-      enterHint.textContent = !c.playable ? 'Not yet playable' : c.active ? 'Press any key' : `Reloads with ${c.displayName}`;
+      enterHint.textContent = !c.playable ? 'Not yet playable' : c.experimental ? 'Experimental shard — rough edges ahead' : c.active ? 'Press any key' : `Reloads with ${c.displayName}`;
     };
     const select = (raw: number, smooth = true): void => {
       const i = Math.max(0, Math.min(cards.length - 1, raw));

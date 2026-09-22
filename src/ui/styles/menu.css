@@ -27,6 +27,11 @@
 .ws-menu-card .ws-menu-card-tag { position: absolute; right: 8px; top: 8px; z-index: 1; font-style: normal; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; padding: 3px 8px; color: var(--ws-cyan); border: 1px solid var(--ws-cyan-line); background: var(--ws-glass-deep); }
 .ws-menu-card .ws-menu-card-tag.ok { color: #7cf2a7; border-color: rgba(124, 242, 167, 0.6); box-shadow: 0 0 10px rgba(124, 242, 167, 0.3); }
 .ws-menu-card .ws-menu-card-tag.soon { color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.5); }
+/* an experimental shard (ChunkDef.experimental): a hazard-taped amber band straight across the card image, sized off the card */
+.ws-menu-card .ws-menu-card-exp { position: absolute; left: 0; right: 0; top: 50%; z-index: 2; transform: translateY(-50%); padding: calc(var(--card-w) * 0.022 + 6px) 0; font-style: normal; font-family: var(--ws-display); font-weight: 700; font-size: calc(var(--card-w) * 0.085); line-height: 1; letter-spacing: 0.2em; text-indent: 0.2em; text-transform: uppercase; color: #140d02; background: var(--ws-amber); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 6px 24px rgba(0, 0, 0, 0.55), 0 0 32px rgba(255, 181, 71, 0.45); }
+.ws-menu-card .ws-menu-card-exp::before, .ws-menu-card .ws-menu-card-exp::after { content: ''; position: absolute; left: 0; right: 0; height: calc(var(--card-w) * 0.012 + 3px); background: repeating-linear-gradient(-45deg, #140d02 0 8px, var(--ws-amber) 8px 16px); }
+.ws-menu-card .ws-menu-card-exp::before { top: 0; }
+.ws-menu-card .ws-menu-card-exp::after { bottom: 0; }
 .ws-menu-card b { display: block; padding: 8px 12px 0; font-family: var(--ws-display); font-weight: 700; font-size: 24px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; line-height: 1.1; }
 .ws-menu-card small { display: block; padding: 4px 12px 12px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ws-text-dim); line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ws-menu-dots { display: flex; gap: 8px; margin-top: 6px; }

@@ -80,7 +80,8 @@ export const PINE_HOLLOW: ChunkDef = {
   gridCoords: '(+3, −2)',
   seed: 1337,
   treeCount: 2600,
-  biome: 'Boreal pine forest · EXPERIMENTAL',
+  biome: 'Boreal pine forest',
+  experimental: true,
   blurb: 'Experimental — Scots pines on a rolling shard with three log cabins in a sheltered hollow and a still pond below the ridge. Deer graze the trail edges; boar root under the canopy.',
   thumbnail, heroPortrait, heroLandscape,
 
