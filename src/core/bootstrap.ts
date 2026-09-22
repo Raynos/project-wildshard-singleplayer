@@ -34,7 +34,7 @@ export interface World {
  * Builds the base chunk (renderer, sky, terrain, forest, player) and returns the handles.
  * Feature entry points (dev/*.html) and main.ts both start here.
  *
- * URL params: ?chunk=<slug>  which shard (default pine-hollow, see src/chunks/registry.ts)
+ * URL params: ?chunk=<slug>  which shard (default driftwood-isle, see src/chunks/registry.ts)
  *             ?x=&z=&yaw=&pitch=  spawn pose (metres / radians)
  */
 export async function bootstrap(step: StepRunner = runDirect): Promise<World> {

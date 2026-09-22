@@ -16,11 +16,11 @@ import { PINE_HOLLOW } from './pine-hollow';
 import { DRIFTWOOD_ISLE } from './driftwood-isle';
 import { _applyChunkConstants } from '../core/config';
 
-export const DEFAULT_CHUNK = 'pine-hollow';
+export const DEFAULT_CHUNK = 'driftwood-isle';
 
 export const CHUNKS: [ChunkDef, ...ChunkDef[]] = [
-  PINE_HOLLOW,
   DRIFTWOOD_ISLE,
+  PINE_HOLLOW,
 ];
 
 export function chunkSlugFromUrl(search = location.search): string {
