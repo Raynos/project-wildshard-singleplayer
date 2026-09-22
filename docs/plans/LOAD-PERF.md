@@ -1,5 +1,7 @@
 # Plan: 100× faster load & start (benchmaxx)
 
+**State:** `in progress` 2026-09-22 — levers through Round 2 landed; open: L1 (iPhone reading pending), P3 crossbow programs 8 → 4, P5 cold bytes 30 → ~10 MB (ASKS).
+
 ## Status (2026-09-17, load-speed agent) — measured before → after per lever
 
 Desktop = headless Chrome, ANGLE Metal, `?tier=phone&skipintro=1&nolock=1&perfload=1` (the `?perfload=1`

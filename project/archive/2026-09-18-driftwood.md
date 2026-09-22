@@ -1,5 +1,7 @@
 # Driftwood Isle — the plan
 
+**State:** `archived` 2026-09-22 (finished 2026-09-18) — C0–C16 built and live since build b-mu6r3wl0. Leftovers are ASKS rows D38 (day/night clock), D39 (enemy harvest loot), D40 (sword glyph).
+
 > **Status 2026-09-18 09:25:** every checkpoint C0–C16 is built and live at https://wildshard-singleplayer.vercel.app (build b-mu6r3wl0). Open follow-ups: a day/night clock (the sailor walks the beach at night), harvest loot for the new enemies, a sword glyph in the Inventory kit.
 
 The second shard: a low-poly tropical island in open ocean, first person, wooden sword instead of the

@@ -27,3 +27,8 @@ like a genuine PS5 game
 Playable: `pnpm install && pnpm assets && pnpm dev` → http://localhost:5173 (see `docs/RUNNING.md`).
 Target look: `art/` (codex/OpenAI image-gen mockups); gap list: `docs/AAA-PLAN.md`;
 progress photos, `timelapse.mp4` and `progress-video.mp4`: `progress/`.
+
+## Plans
+
+Live plans are in `docs/plans/` — each opens with a **State** line (`draft` · `in progress` · `blocked`).
+Finished or dropped plans move to `project/archive/<date>-<name>.md`. The rules are in `AGENTS.md` → Plans.

@@ -5,6 +5,26 @@
 - Every user ask → a row in `docs/tasks/ASKS.md` before you start; flip it when it lands; rows never
   leave. `.claude/hooks/session-brief.sh` prints the open rows at session start — relay them first.
 
+## Plans (`docs/plans/`) and their state
+
+- A plan is a `docs/plans/<NAME>.md` with a checkpoint / lever table. Line 3, right under the title,
+  is its **State** line — `**State:** \`<state>\` <YYYY-MM-DD> — <one line: what landed, what is open,
+  who or what it waits on>`. The session brief prints it, so keep it true; rewrite it (don't append)
+  whenever the state or the open work changes. The plan's detailed status tables stay below it.
+- States, in order:
+  - `draft` — written, waiting on the user's go. Nothing gets built from a draft.
+  - `in progress` — being built; the line names the open rows and their owners / ASKS ids.
+  - `blocked` — nothing to build until something named arrives (a phone reading, a user pick).
+  - `finished` — every row is built, deployed and ticked, and every leftover is an **open ASKS row**
+    (a plan table is not a queue once it is archived).
+  - `archived` — a finished plan, moved **in the same commit it finishes** to
+    `project/archive/<YYYY-MM-DD>-<name>.md` (the date it finished), the State line reading
+    `archived <today> (finished <date>)` plus where the leftovers went. So `docs/plans/` only ever
+    holds live plans (`draft` / `in progress` / `blocked`).
+  - `dropped` — the user dropped it: State line with their words, then archived like a finished one.
+- Moving a plan: fix the links to it in docs and code comments; `docs/tasks/ASKS.md` rows keep the
+  old path (they are history).
+
 ## Version control
 
 - Commit early and often with small commits, and `git push origin main` after every commit —

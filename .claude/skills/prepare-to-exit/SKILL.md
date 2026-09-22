@@ -74,7 +74,8 @@ canon). Execute in order; don't paraphrase or shortcut.
 4. **Ledgers.** Every ask you took this session is a row in `docs/tasks/ASKS.md` (the user's words, shortened) and
    its status is true: **done** with the commit SHA and the live build id from `version.json`, **in flight** with
    the owner, **needs pick** with what the user must choose, or **dropped** with the user's words. A plan you moved
-   in `docs/plans/*.md` has its rows ticked. Since every push deploys, a done row without a build id means the
+   in `docs/plans/*.md` has its rows ticked and its State line true (AGENTS.md → Plans); a plan that finished is
+   moved to `project/archive/<date>-<name>.md` in that commit. Since every push deploys, a done row without a build id means the
    push didn't happen or CI is red — go back to step 2.
 5. **Close every browser session you opened.** `agent-browser session list` must show none of yours
    (`agent-browser --session <s> close`); Playwright scripts must have `browser.close()`d. An open session renders

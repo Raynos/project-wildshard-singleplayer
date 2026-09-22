@@ -1,5 +1,7 @@
 # Play performance — 60 FPS on the phone tier
 
+**State:** `blocked` 2026-09-22 — levers 1–7 landed; waiting on the iPhone meter line for levers 4–7 (§2) before deciding what is left.
+
 Ruler: `game.lastFrame` (calls / triangles for the whole composer frame) read headless via agent-browser,
 `?tier=phone&skipintro=1&nolock=1` at 390×844. Headless frame ms is vsync-pinned (16.7) so **counts are the
 ruler**; the user's iPhone meter is the truth for ms. Poses: gate `x=0&z=-200&yaw=3.1416`, cabin

@@ -46,7 +46,7 @@ That loop speed is the whole ballgame for visual work.
 
 Nine agents over the night (world, sword, boar, swim, combo, ambient, dive, loot, enemies), each
 with a file set, a mockup, a dev harness, and a screenshot obligation; one parent owning `main.ts`,
-`docs/plans/DRIFTWOOD.md`, `docs/tasks/ASKS.md` and every deploy. The plan and the ask ledger were
+`docs/plans/DRIFTWOOD.md` (now `project/archive/2026-09-18-driftwood.md`), `docs/tasks/ASKS.md` and every deploy. The plan and the ask ledger were
 the shared memory. The tax: a shared git index in one checkout bit four times; the fix was
 committing through a private index pinned to a captured base (`GIT_INDEX_FILE` + `read-tree $BASE`
 + `commit-tree -p $BASE` + `update-ref … $C $BASE`). Still far cheaper than serial.

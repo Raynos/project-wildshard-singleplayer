@@ -1,5 +1,7 @@
 # Project Wildshard — the first original music
 
+**State:** `in progress` 2026-09-22 — build steps 1–4 landed and live (D35); open: step 5 "listen on the phone" (D41, the user's ears) and the "later" paragraph (D42, music agent).
+
 One theme, written once, used three ways: the 30 s trailer cut, the title screen, and the game itself as an
 adaptive score. It has to be *ours* (no licensing, no AI-generated audio of uncertain provenance), it has to
 weigh nothing on the phone, and it has to sound like the world: a place that does not exist yet, arriving one
