@@ -56,8 +56,10 @@ canon). Execute in order; don't paraphrase or shortcut.
    states the finding; end with the Co-Authored-By / Claude-Session lines. Say plainly what is red and whose it
    is — another agent's uncommitted WIP in the worktree is not your red, but a red *HEAD* is everyone's, and it
    blocks every deploy until fixed.
-2. **Push after every commit — and watch it ship.** `git push origin main`; on rejection `git fetch && git merge
-   origin/main` (never rebase, never stash), re-run the gates on the merged tree, push again. Then:
+2. **Push after every commit — and watch it ship.** `scripts/push-main.sh` (a bare `git push` is blocked: one
+   push at a time over the slow uplink; if another push holds the lock yours stays local and that push carries it —
+   `git log origin/main..main` empty = shipped). On rejection `git fetch && git merge origin/main` (never rebase,
+   never stash), re-run the gates on the merged tree, push again. Then:
    ```
    gh run list --limit 1                       # the run for your SHA
    gh run watch <id> --exit-status             # ~1 min; red = your fix, now
@@ -71,17 +73,17 @@ canon). Execute in order; don't paraphrase or shortcut.
    as blobs — a private-index commit never writes the working tree, so the dev server on :5173 keeps serving the
    old code (this is how a trailer capture ran against a stale `main.ts` for an hour). Only for files whose worktree
    copy is an older version of *yours*; never overwrite a copy that carries someone else's hunks.
-4. **Ledgers.** Every ask you took this session is a row in `docs/tasks/ASKS.md` (the user's words, shortened) and
-   its status is true: **done** with the commit SHA and the live build id from `version.json`, **in flight** with
+4. **Ledgers.** Every ask you took this session has its file `docs/tasks/asks/<ID>.md` (made by
+   `scripts/ask-new.sh`, the user's words, shortened) and its `**Status:**` line is true: **done** with the commit SHA and the live build id from `version.json`, **in flight** with
    the owner, **needs pick** with what the user must choose, or **dropped** with the user's words. A plan you moved
    in `docs/plans/*.md` has its rows ticked and its State line true (AGENTS.md → Plans); a plan that finished is
-   moved to `project/archive/<date>-<name>.md` in that commit. Since every push deploys, a done row without a build id means the
+   moved to `project/archive/<date>-<name>.md` in that commit. Since every push deploys, a done ask without a build id means the
    push didn't happen or CI is red — go back to step 2.
 5. **Close every browser session you opened.** `agent-browser session list` must show none of yours
    (`agent-browser --session <s> close`); Playwright scripts must have `browser.close()`d. An open session renders
    the game at 60 fps forever and pins the box for everyone.
 6. **Leftover-work sweep — a QUEUE, not a record.** Anything this session ruled, found, deferred or decided but did
-   not build must have a home an agent or the human starts from: an **open row in `docs/tasks/ASKS.md`** (the
+   not build must have a home an agent or the human starts from: an **open ask file in `docs/tasks/asks/`** (the
    session-brief hook prints open rows at every session start — that is the only queue anyone reads), or a **row in a
    `docs/plans/*.md` checkpoint table**. A commit body, a subagent report, a memory note or a chat message is a
    RECORD, not a QUEUE. This is the step most likely to be skipped because everything *looks* clean; it is a banner
@@ -121,8 +123,8 @@ The two banners answer **one** question — not "did the git commands succeed" b
 
 - **BYE — safe to close.** Your work is committed on `main` and pushed, **the CI run for your last push is green
   and `version.json` serves your HEAD**, your browser sessions are closed, the session is at a coherent stopping
-  point, **and the leftover-work sweep is done — every ruling, finding and deferral this session produced has a
-  row in `docs/tasks/ASKS.md` or a `docs/plans/` table**. A BYE is a claim that nothing here will be lost.
+  point, **and the leftover-work sweep is done — every ruling, finding and deferral this session produced has an
+  ask file in `docs/tasks/asks/` or a `docs/plans/` table**. A BYE is a claim that nothing here will be lost.
 - **OOPS — do NOT close.** Any of these, and they weigh the same:
   1. **Something is wrong.** A gate is red on HEAD, the CI run for your push failed or you didn't wait for it, a
      push is refused, a sibling's commit got reverted by yours, a stranded commit with no queued reason — or you

@@ -2,8 +2,13 @@
 
 ## The user's asks
 
-- Every user ask → a row in `docs/tasks/ASKS.md` before you start; flip it when it lands; rows never
-  leave. `.claude/hooks/session-brief.sh` prints the open rows at session start — relay them first.
+- Every user ask → **its own file** before you start: `scripts/ask-new.sh "<the user's words>"`
+  claims the next id and creates `docs/tasks/asks/<ID>.md` (the file is the claim, so two agents
+  never get the same id). Keep its `**Status:**` line true — `open` / `in flight (<date>, <owner>)` /
+  `needs pick` / `done` / `dropped` — with the commit and build id as evidence underneath; flip it
+  when it lands; files never leave. `.claude/hooks/session-brief.sh` prints the open ones at session
+  start — relay them first. `docs/tasks/ASKS.md` is the legacy table (history up to 2026-09-22): don't
+  add rows there; a legacy row that is still open moves to its own file under the same id.
 
 ## Plans (`docs/plans/`) and their state
 
@@ -27,7 +32,7 @@
 
 ## Version control
 
-- Commit early and often with small commits, and `git push origin main` after every commit —
+- Commit early and often with small commits, and `scripts/push-main.sh` after every commit —
   don't let local commits pile up. **A push is a deploy** (see Deploy), so before you push,
   HEAD must pass the four CI gates on a clean export of the tree — `tsc --noEmit`, `oxlint`,
   `node scripts/check-css.mjs`, `vite build` — not just the files you touched.
@@ -36,14 +41,42 @@
   gate: no `any`, no non-null `!`, no `@ts-ignore` / `@ts-expect-error`, no `as unknown as`, no
   tsconfig `exclude`, no blanket `oxlint-disable`. A per-line
   `oxlint-disable-next-line <rule> -- <reason>` only where the rule is genuinely wrong there.
-- **Shared-tree safety** — this checkout has **more than one agent editing the working tree at
-  once** (parallel Claude sessions and their subagents, all on `main`, no worktrees). **NEVER**
-  `git stash`, `checkout`, `restore`, `git rm`, or otherwise mutate files you didn't author.
-  Stage **only your own files, by explicit path** (`git add path/a path/b` — never `git add -A`,
-  `git add .`, or `git commit -a`), and leave everyone else's uncommitted WIP untouched. Deploy
-  from a clean export of HEAD (`git archive HEAD | tar -x -C <dir>`), never from the working
-  tree, so nobody's half-finished files ship. Verify before you claim: `git status`,
-  `git log origin/main..main`, and the push actually succeeding.
+- **Shared-tree safety** — this checkout has **up to ~10 agents editing the working tree at
+  once** (parallel Claude sessions and their subagents, all on `main`, no worktrees), sharing
+  **one working tree, one git index and one local `main`**. **NEVER** `git stash`, `checkout`,
+  `restore`, `git rm`, or otherwise mutate files you didn't author, and leave everyone else's
+  uncommitted WIP untouched. Verify before you claim: `git status`, `git log origin/main..main`
+  (empty = shipped), and `version.json`.
+- **Commit with a pathspec, never from the shared index** — enforced by
+  `.claude/hooks/guard-git-add-all.sh` (ported from kami-kakushi):
+  - an edit to a tracked file is never staged; commit it directly:
+    `git commit -m "…" -- path/a path/b` (commits those paths' working-tree copies, nothing else);
+  - `git add` only for a **new** file, then the same pathspec commit;
+  - blocked: `git add -A` / `.` / `-u`, `git add <tracked file>`, `git commit -a`, and any
+    `git commit` without `-- <paths>`. Rare deliberate escape: `SKIP_SWEEPGUARD=1`, and every use
+    lands in `project/sweepguard-ledger.md` (auto-committed by `.githooks/post-commit`).
+  - A pathspec commit takes the **whole file**. If a file you're committing also carries another
+    agent's uncommitted hunk (`git diff -- <path>` shows lines you didn't write), don't ship their
+    half-done work inside yours: wait for them, or commit only your hunks (the private-index recipe,
+    `.claude/skills/prepare-to-exit/SKILL.md` step 1).
+- **Push with `scripts/push-main.sh`, never `git push`** — enforced by
+  `.claude/hooks/guard-bash-safety.sh`. The uplink is ~10–100 KB/s and six parallel pushes of the
+  same pack hung for 15+ minutes (E19). The script takes `.git/push.lock`; if another push holds it,
+  your commits stay local and it exits 0 — that push re-checks `origin/main..main` before it lets go,
+  so it carries yours. Escape (rare): `SKIP_PUSHLOCK=1`.
+- **No tree-wide destructive git, no escape** (same hook): `git restore .` / `checkout .`, a bare
+  `git stash`, `git reset --hard`, `git clean -f` without paths are blocked; name the paths you
+  authored instead.
+- **Keep pushes small.** `.githooks/pre-commit` refuses a `progress/` image over 500 KB: save
+  screenshots as JPEG / WebP. `.gitattributes` marks binaries `-delta`.
+- **Hooks on:** every checkout runs `git config core.hooksPath .githooks` once (the session brief
+  warns when it's off). The Claude hooks are in `.claude/settings.json`; an edit there takes effect
+  on a session restart.
+- Never open a shared file for writing before you've read it: `open(p, 'w').write(f(open(p).read()))`
+  truncates first and reads nothing (it wiped every uncommitted ASKS row on 2026-09-22). Append with
+  `>>` or Edit; never `>` onto a shared file.
+- Deploy from a clean export of HEAD (`git archive HEAD | tar -x -C <dir>`), never from the working
+  tree, so nobody's half-finished files ship.
 - Every screenshot session must be closed (`agent-browser --session <s> close`) before you
   report — an open one keeps rendering the game and pins the box.
 - **Game browsers are a shared lane: at most 3 open across all agents on this machine.** Check
@@ -118,7 +151,7 @@ on his laptop.
   no deploy and the run is red on GitHub; that is your red to fix, now.
 - After every push: `gh run watch $(gh run list --limit 1 --json databaseId -q '.[0].databaseId')
   --exit-status`, then confirm `https://wildshard-singleplayer.vercel.app/version.json` reports
-  your HEAD's short SHA. Put that build id in the ASKS row.
+  your HEAD's short SHA. Put that build id in the ask's file.
 - Don't `vercel deploy` by hand while CI is healthy; `gh workflow run deploy` re-ships HEAD.
   The deploy uses a project-scoped Vercel token held in the repo's Actions secrets, so any
   collaborator's push deploys — nobody needs a Vercel login.

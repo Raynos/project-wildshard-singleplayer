@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# pre-commit: keep pushes small. Every push is one pack over a ~10–100 KB/s uplink shared by every agent (E19), and
+# progress/ screenshots were most of it (2–4 MB PNGs). An image added or changed under progress/ must be ≤ 500 KB:
+# save JPEG / WebP (`cwebp -q 82 in.png -o out.webp`, `sips -s format jpeg in.png --out out.jpg`). Videos exempt.
+# Escape (rare): git commit --no-verify.
+set -uo pipefail
+
+LIMIT=512000
+bad=""
+while IFS= read -r f; do
+  [ -n "$f" ] || continue
+  case "$f" in
+    progress/*.png | progress/*.jpg | progress/*.jpeg | progress/*.webp) ;;
+    *) continue ;;
+  esac
+  size="$(git cat-file -s ":$f" 2>/dev/null || echo 0)"
+  if [ "$size" -gt "$LIMIT" ]; then bad="$bad  $f ($((size / 1024)) KB)"$'\n'; fi
+done < <(git diff --cached --name-only --diff-filter=AM)
+
+if [ -n "$bad" ]; then
+  cat >&2 <<EOF
+BLOCKED by .githooks/pre-commit: progress/ images over 500 KB — every push crawls over a slow shared uplink.
+$bad
+Save them as JPEG / WebP instead:
+    cwebp -q 82 shot.png -o shot.webp
+    sips -s format jpeg shot.png --out shot.jpg
+EOF
+  exit 1
+fi
+exit 0

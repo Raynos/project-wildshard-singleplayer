@@ -1,0 +1,16 @@
+# Already-compressed binaries: skip git's delta search on commit / push (it finds nothing in them and costs CPU on
+# every push; E21). Keep them small at the source: progress/ images ≤ 500 KB (.githooks/pre-commit).
+*.png   binary -delta
+*.jpg   binary -delta
+*.jpeg  binary -delta
+*.webp  binary -delta
+*.ktx2  binary -delta
+*.glb   binary -delta
+*.bin   binary -delta
+*.hdr   binary -delta
+*.exr   binary -delta
+*.mp4   binary -delta
+*.mp3   binary -delta
+*.ogg   binary -delta
+*.wav   binary -delta
+*.woff2 binary -delta

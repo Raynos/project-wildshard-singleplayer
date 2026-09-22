@@ -6,12 +6,27 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT" || exit 0
 echo "== session brief (.claude/hooks/session-brief.sh) =="
-echo "-- open asks (docs/tasks/ASKS.md: every row not done/dropped) --"
+echo "-- open asks (docs/tasks/asks/<ID>.md: every file whose Status is not done/dropped) --"
+open=""
+for f in docs/tasks/asks/*.md; do
+  [ -f "$f" ] || continue
+  st="$(grep -m1 -E '^\*\*Status:\*\*' "$f" | sed -E 's/^\*\*Status:\*\* *//' || true)"
+  printf '%s' "$st" | grep -qiE '^(done|dropped|closed)' && continue
+  ask="$(grep -m1 -E '^\*\*Ask:\*\*' "$f" | sed -E 's/^\*\*Ask:\*\* *//' | cut -c1-160 || true)"
+  open="$open$(basename "$f" .md) | ${st:-(no Status line)} | $ask"$'\n'
+done
+# the legacy table (docs/tasks/ASKS.md) is history; a row still open there was never moved to its own file
+legacy=""
 if [ -f docs/tasks/ASKS.md ]; then
-  # ids are a bare number or a lettered series (D12, G3, V2, L1, MK1A…): anything alphanumeric in the first column
-  open="$(grep -E '^\| [A-Z0-9-]+ \|' docs/tasks/ASKS.md | grep -vE '^\| # ' | grep -vE '\| \*\*(done|dropped|closed)' | cut -d'|' -f2-4 || true)"
-  if [ -n "$open" ]; then printf '%s\n' "$open"; else echo "(none open)"; fi
-else echo "(missing)"; fi
+  while IFS= read -r row; do
+    id="$(printf '%s' "$row" | cut -d'|' -f2 | tr -d ' ')"
+    [ -f "docs/tasks/asks/$id.md" ] && continue # moved: the file is the live copy
+    legacy="$legacy$(printf '%s' "$row" | cut -d'|' -f2-4)"$'\n'
+  done < <(grep -E '^\| [A-Z0-9-]+ \|' docs/tasks/ASKS.md | grep -vE '^\| # ' | grep -vE '\| \*\*(done|dropped|closed)' || true)
+fi
+[ -n "$open" ] && printf '%s' "$open"
+[ -n "$legacy" ] && printf 'legacy ASKS.md rows still open (move each to docs/tasks/asks/<ID>.md):\n%s' "$legacy"
+[ -z "$open$legacy" ] && echo "(none open)"
 echo ""
 echo "-- live plans (docs/plans/*.md State line; finished ones belong in project/archive/) --"
 found=0
@@ -25,5 +40,9 @@ done
 echo ""
 echo "-- recent commits --"
 git log --oneline -8 2>/dev/null || true
+if [ "$(git config core.hooksPath 2>/dev/null)" != ".githooks" ]; then
+  echo ""
+  echo "!! git hooks are OFF in this checkout: run  git config core.hooksPath .githooks  (AGENTS.md → Version control)"
+fi
 echo ""
-echo "Next: relay the open asks if non-empty; add every new ask to docs/tasks/ASKS.md before starting it"
+echo "Next: relay the open asks if non-empty; every new ask gets its own file before you start it: scripts/ask-new.sh \"<the user's words>\""
