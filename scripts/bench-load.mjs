@@ -146,7 +146,7 @@ const COLLECT = `(() => {
     domContentLoadedMs: nav ? Math.round(nav.domContentLoadedEventEnd) : null, loadEventMs: nav ? Math.round(nav.loadEventEnd) : null,
     // encodedBodySize by URL: the size of a response the HTTP cache served (transferSize 0), used when asset-index.json has no row
     sizes: Object.fromEntries(performance.getEntriesByType('resource').filter((r) => r.encodedBodySize > 0).map((r) => [r.name, r.encodedBodySize])),
-    longTasks: long.length, longTaskMs: long.reduce((s, e) => s + e[1], 0), longTaskMaxMs: maxLong,
+    longList: long, longTasks: long.length, longTaskMs: long.reduce((s, e) => s + e[1], 0), longTaskMaxMs: maxLong,
     steps: W.__bench_steps || [],
     heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null,
     textures: info ? info.memory.textures : null, geometries: info ? info.memory.geometries : null, programs: info ? info.programs.length : null,

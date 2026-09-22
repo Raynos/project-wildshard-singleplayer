@@ -115,10 +115,10 @@ export async function fetchImage(file: string, maxSize = Infinity, flip = true, 
         // one decode at natural size to learn the dimensions is what we are avoiding: probe the header cheaply
         const dim = await imageSize(blob);
         if (dim && exact && (dim.w !== maxSize || dim.h !== maxSize)) {
-          opts.resizeWidth = maxSize; opts.resizeHeight = maxSize; opts.resizeQuality = 'high';
+          opts.resizeWidth = maxSize; opts.resizeHeight = maxSize; opts.resizeQuality = 'medium';
         } else if (dim && Math.max(dim.w, dim.h) > maxSize) {
           const k = maxSize / Math.max(dim.w, dim.h);
-          opts.resizeWidth = Math.round(dim.w * k); opts.resizeHeight = Math.round(dim.h * k); opts.resizeQuality = 'high';
+          opts.resizeWidth = Math.round(dim.w * k); opts.resizeHeight = Math.round(dim.h * k); opts.resizeQuality = 'medium';
         }
       }
       return await createImageBitmap(blob, opts);
