@@ -8,13 +8,16 @@
 //    difference anyone can see at 1k. Re-encoded IN PLACE (both tiers) at q85, normal maps with 4:4:4 chroma (their
 //    R and G are independent data, 4:2:0 would smear them). Same for the JPEGs embedded in the `<id>_lod.glb`
 //    props (scripts/simplify-models.mjs copies them in at q99). A file already ≤ q90 is left alone.
-// 3. `.phone.<ext>` siblings, picked by `tierUrl()` (src/boot/bytes.ts) on the phone tier for anything that goes
-//    through fetchImage and is declared by the boot manifest (src/boot/manifest.ts maps its lists through the
-//    same function, so declared bytes = downloaded bytes):
-//      PNGs  → lossy WebP q90 with lossless alpha (`-exact` keeps the colour under transparent texels, which
-//              bilinear filtering and the mip chain still read), capped at 1024 px — card-albedo, twig_rgba, fur normals
-//      JPEGs over 1024 px or above q90 → ≤ 1024 px, q85 — branch-card normal / ARM planes, twig normal / ARM
-//    A sibling that is not ≥ 15 % smaller than its source is not written (the phone takes the source).
+// 3. `.phone.webp` copies, picked by `tierUrl()` (src/boot/bytes.ts) on the phone tier — for fetchImage, and for
+//    three's loaders through DefaultLoadingManager's URL modifier (glTF textures). The boot manifest declares
+//    through the same function, so declared bytes = downloaded bytes. WebP q75 (-sharp_yuv) is ~20–25 % smaller
+//    than the q82 JPEG it replaces AND measures lower error against the source (forest_ground_04: 0.024 vs 0.032); PNG alpha stays lossless (-exact keeps the RGB under transparent
+//    texels, which bilinear filtering and the mips still read). Capped at 1024 px (the phone's maxTexture), AO /
+//    roughness / metalness planes of the Poly Haven sets and props at 512 px. Encoded from the best source there
+//    is (the original 2k map, not its q82 _1k copy). A copy that is not ≥ 15 % smaller is not kept.
+// 4. `<id>_lod.phone.glb`: the LOD props with their embedded JPEGs as WebP (EXT_texture_webp, which three's
+//    GLTFLoader reads), ARM planes at 512 px.
+//    `--force` re-encodes every phone copy (after changing the settings above).
 import { readdirSync, existsSync, statSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
@@ -66,13 +69,7 @@ for (const id of readdirSync(MODELS)) {
  * bufferView re-packed (4-byte aligned) in its original order. Returns bytes saved (0 = untouched).
  */
 function squeezeGlb(path) {
-  const b = readFileSync(path);
-  if (b.readUInt32LE(0) !== 0x46546c67) throw new Error(`${path}: not a GLB`);
-  const jsonLen = b.readUInt32LE(12);
-  const json = JSON.parse(b.subarray(20, 20 + jsonLen).toString('utf8'));
-  const binStart = 20 + jsonLen + 8;
-  const bin = b.subarray(binStart, binStart + b.readUInt32LE(20 + jsonLen));
-  const views = json.bufferViews.map((v) => bin.subarray(v.byteOffset ?? 0, (v.byteOffset ?? 0) + v.byteLength));
+  const { json, views, size } = readGlb(path);
   let changed = false;
   for (const img of json.images ?? []) {
     if (img.mimeType !== 'image/jpeg' || img.bufferView === undefined) continue;
@@ -80,6 +77,22 @@ function squeezeGlb(path) {
     if (out && out.length < views[img.bufferView].length) { views[img.bufferView] = out; changed = true; }
   }
   if (!changed) return 0;
+  return size - writeGlb(path, json, views);
+}
+
+function readGlb(path) {
+  const b = readFileSync(path);
+  if (b.readUInt32LE(0) !== 0x46546c67) throw new Error(`${path}: not a GLB`);
+  const jsonLen = b.readUInt32LE(12);
+  const json = JSON.parse(b.subarray(20, 20 + jsonLen).toString('utf8'));
+  const binStart = 20 + jsonLen + 8;
+  const bin = b.subarray(binStart, binStart + b.readUInt32LE(20 + jsonLen));
+  const views = json.bufferViews.map((v) => bin.subarray(v.byteOffset ?? 0, (v.byteOffset ?? 0) + v.byteLength));
+  return { json, views, size: b.length };
+}
+
+/** Write a GLB whose bufferViews are `views`, re-packed 4-byte aligned in order. Returns the file size. */
+function writeGlb(path, json, views) {
   const parts = []; let off = 0;
   json.bufferViews.forEach((v, i) => {
     v.byteOffset = off; v.byteLength = views[i].length;
@@ -95,38 +108,84 @@ function squeezeGlb(path) {
   const bh = Buffer.alloc(8); bh.writeUInt32LE(newBin.length, 0); bh.writeUInt32LE(0x004e4942, 4);
   const total = 12 + 8 + jsonBuf.length + 8 + newBin.length; header.writeUInt32LE(total, 8);
   writeFileSync(path, Buffer.concat([header, jh, jsonBuf, bh, newBin]));
-  return b.length - total;
+  return total;
 }
 
-// ── 3. .phone.<ext> siblings ──
-const PHONE_MAX = 1024;
-/** The files the phone fetches through fetchImage that are worth a phone copy. */
-function phoneSources() {
-  const out = [];
-  const walk = (dir) => { for (const n of readdirSync(dir)) { const p = join(dir, n); if (statSync(p).isDirectory()) walk(p); else out.push(p); } };
+// ── 3. .phone.webp siblings ──
+const force = process.argv.includes('--force');
+const PHONE_MAX = 1024, ARM_MAX = 512;
+/** AO / roughness / metalness planes: low-frequency, the phone gets them at half resolution */
+const isArm = (p) => /(^|[_/-])(arm|rough|roughness|metal|metallic)([_.-]|$)/i.test(p.split('/').pop() ?? p);
+/**
+ * [file the other tiers download, best source to encode from, max px] for every image the phone fetches: baked planes (cards, fur, clouds, planet),
+ * the twig atlas, every Poly Haven set (encoded from the ORIGINAL map, not the q82 _1k copy — one lossy pass, not
+ * two) and the glTF props' textures (through the loaders' URL modifier, src/boot/bytes.ts).
+ */
+function phoneJobs() {
+  const jobs = [];
+  const walk = (dir) => { for (const n of readdirSync(dir)) { const p = join(dir, n); if (statSync(p).isDirectory()) walk(p); else if (/\.(png|jpg)$/.test(n) && !n.includes('.phone.')) jobs.push([p, p, PHONE_MAX]); } };
   walk('public/assets/baked');
-  for (const id of readdirSync(ROOT)) { const d = join(ROOT, id); if (statSync(d).isDirectory()) for (const n of readdirSync(d)) if (/^twig_(rgba|nor_gl|arm)\./.test(n)) out.push(join(d, n)); }
-  return out.filter((p) => /\.(png|jpg)$/.test(p) && !p.includes('.phone.'));
-}
-let phoneMade = 0, phoneKept = 0, phoneSkipped = 0;
-for (const src of phoneSources()) {
-  const png = src.endsWith('.png');
-  const out = src.replace(/\.(png|jpg)$/, png ? '.phone.webp' : '.phone.jpg');
-  const [w, h, q] = identify('%w %h %Q', src).split(' ').map(Number);
-  const big = Math.max(w, h) > PHONE_MAX;
-  if (!png && !big && !(q > 90)) { if (existsSync(out)) rmSync(out); continue; }
-  if (fresh(out, src)) { phoneKept++; continue; }
-  const resize = big ? ['-resize', `${PHONE_MAX}x${PHONE_MAX}`] : [];
-  if (png) {
-    const tmp = `${out}.tmp.png`;
-    // channels resized separately: magick's default alpha-weighted resize blackens the RGB under transparent texels
-    execFileSync('magick', [src, ...(big ? ['-separate', ...resize, '-combine'] : []), '-strip', tmp]);
-    execFileSync('cwebp', ['-quiet', '-q', '90', '-alpha_q', '100', '-exact', '-m', '6', tmp, '-o', out]);
-    rmSync(tmp);
-  } else {
-    execFileSync('magick', [src, ...resize, ...jpegArgs(src), out]);
+  for (const id of readdirSync(ROOT)) {
+    const d = join(ROOT, id);
+    if (!statSync(d).isDirectory()) continue;
+    for (const n of readdirSync(d)) if (/^twig_(rgba|nor_gl|arm)\.(png|jpg)$/.test(n)) jobs.push([join(d, n), join(d, n), PHONE_MAX]);
+    for (const kind of ['diffuse', 'nor_gl', 'arm']) {
+      const src = join(d, `${kind}.jpg`);
+      if (!existsSync(src)) continue;
+      const served = existsSync(join(d, `${kind}_1k.jpg`)) ? join(d, `${kind}_1k.jpg`) : src; // what texUrl() names
+      jobs.push([served, src, kind === 'arm' ? ARM_MAX : PHONE_MAX]);
+    }
   }
-  if (statSync(out).size > statSync(src).size * 0.85) { rmSync(out); phoneSkipped++; continue; }
+  for (const id of readdirSync(MODELS)) {
+    const t = join(MODELS, id, 'textures');
+    if (existsSync(t)) for (const n of readdirSync(t)) if (n.endsWith('.jpg') && !n.includes('.phone.')) jobs.push([join(t, n), join(t, n), isArm(n) ? ARM_MAX : PHONE_MAX]);
+  }
+  return jobs;
+}
+function phoneName(p) { return p.replace(/\.(png|jpg)$/, '.phone.webp'); }
+
+/** WebP of `src` (a file or a JPEG buffer) capped at `max` px. PNG alpha stays lossless; RGB under it is kept (-exact). */
+function webp(src, max, out) {
+  const tmp = `${out}.tmp.png`;
+  const input = Buffer.isBuffer(src) ? ['jpg:-'] : [src];
+  const [w, h] = execFileSync('magick', ['identify', '-format', '%w %h', ...input], Buffer.isBuffer(src) ? { input: src } : {}).toString().trim().split(' ').map(Number);
+  const resize = Math.max(w, h) > max ? ['-separate', '-resize', `${max}x${max}`, '-combine'] : []; // per channel: the default alpha-weighted resize blackens the RGB under transparent texels
+  execFileSync('magick', [...input, ...resize, '-strip', tmp], Buffer.isBuffer(src) ? { input: src } : {});
+  execFileSync('cwebp', ['-quiet', '-q', '75', '-sharp_yuv', '-alpha_q', '100', '-exact', '-m', '6', tmp, '-o', out]);
+  rmSync(tmp);
+}
+
+let phoneMade = 0, phoneKept = 0, phoneSkipped = 0;
+const want = new Set();
+for (const [served, src, max] of phoneJobs()) {
+  const out = phoneName(served);
+  if (!force && fresh(out, src)) { phoneKept++; want.add(out); continue; }
+  webp(src, max, out);
+  // not worth a second file unless it is ≥ 15 % smaller than what the desktop tier downloads
+  if (statSync(out).size > statSync(served).size * 0.85) { rmSync(out); phoneSkipped++; continue; }
+  want.add(out); phoneMade++;
+}
+
+// ── 4. <id>_lod.phone.glb: the props' embedded JPEGs as WebP (EXT_texture_webp), ARM planes at half resolution ──
+for (const id of readdirSync(MODELS)) {
+  const glb = join(MODELS, id, `${id}_lod.glb`), out = join(MODELS, id, `${id}_lod.phone.glb`);
+  if (!existsSync(glb)) continue;
+  want.add(out);
+  if (!force && fresh(out, glb)) { phoneKept++; continue; }
+  const { json, views } = readGlb(glb);
+  const tmp = `${out}.img.webp`;
+  (json.images ?? []).forEach((img, i) => {
+    if (img.mimeType !== 'image/jpeg' || img.bufferView === undefined) return;
+    webp(views[img.bufferView], isArm(img.name ?? '') ? ARM_MAX : PHONE_MAX, tmp);
+    views[img.bufferView] = readFileSync(tmp); rmSync(tmp);
+    img.mimeType = 'image/webp';
+    for (const t of json.textures ?? []) if (t.source === i) { t.extensions = { ...t.extensions, EXT_texture_webp: { source: i } }; delete t.source; }
+  });
+  for (const k of ['extensionsUsed', 'extensionsRequired']) json[k] = [...new Set([...(json[k] ?? []), 'EXT_texture_webp'])];
+  writeGlb(out, json, views);
   phoneMade++;
 }
-console.log(`tex-tiers: ${made} _1k written, ${kept} up to date · ${squeezed} model files squeezed (−${(saved / 1048576).toFixed(1)} MB) · ${phoneMade} .phone siblings written, ${phoneKept} up to date, ${phoneSkipped} not worth it`);
+// stale phone copies (a source that went away, or a sibling that stopped paying for itself)
+const sweep = (dir) => { for (const n of readdirSync(dir)) { const p = join(dir, n); if (statSync(p).isDirectory()) sweep(p); else if (n.includes('.phone.') && !want.has(p)) { rmSync(p); phoneSkipped++; } } };
+sweep('public/assets');
+console.log(`tex-tiers: ${made} _1k written, ${kept} up to date · ${squeezed} model files squeezed (−${(saved / 1048576).toFixed(1)} MB) · ${phoneMade} phone copies written, ${phoneKept} up to date, ${phoneSkipped} dropped`);

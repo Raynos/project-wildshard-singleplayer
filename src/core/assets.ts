@@ -90,7 +90,7 @@ export function loadHDR(url: string): Promise<THREE.DataTexture> {
 export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize): Promise<{ map: THREE.DataArrayTexture; normalMap: THREE.DataArrayTexture; armMap: THREE.DataArrayTexture }> {
   const kinds = ['diffuse', 'nor_gl', 'arm'] as const;
   // decoded straight to the layer size (no flip: the layer keeps the file's orientation either way)
-  const load = (url: string) => fetchImage(url, size, false);
+  const load = (url: string) => fetchImage(url, size, false, true); // exact: the phone's half-res ARM planes scale up off-thread
   const finish = (t: THREE.DataArrayTexture, srgb: boolean) => {
     t.format = THREE.RGBAFormat; t.type = THREE.UnsignedByteType;
     t.wrapS = t.wrapT = THREE.RepeatWrapping;

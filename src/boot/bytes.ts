@@ -13,6 +13,7 @@
 import type { Plan, ByteProgress } from './plan';
 import type { BootStep, ByteKey } from './steps';
 import { PUBLIC_BYTES } from './bytes.generated';
+import { DefaultLoadingManager } from 'three';
 import { TIER_CONFIG } from '../core/tier';
 
 export type ChunkFiles = Readonly<Record<ByteKey, readonly string[]>>;
@@ -33,17 +34,21 @@ export function declareTotals(files: ChunkFiles): Record<ByteKey, { bytes: numbe
 }
 
 /**
- * The phone tier's copy of an image when the build has one — `name.phone.webp` (PNG sources: lossy colour, lossless
- * alpha) or `name.phone.jpg` beside `name.<ext>`, ≤ 1024² (scripts/tex-tiers.mjs). `fetchImage` fetches through it and
- * the boot manifest declares through it, so the bytes declared are the bytes downloaded. Any other tier / file: as is.
+ * The phone tier's copy of a file when the build has one (scripts/tex-tiers.mjs): `name.phone.webp` beside an image
+ * (WebP ~20–25 % under the JPEG at lower error, ≤ 1024 px, AO / roughness / metalness planes at 512 px) and
+ * `name.phone.glb` beside a GLB (its textures as WebP). `fetchImage` and three's loaders (the URL modifier below) fetch
+ * through it and the boot manifest declares through it, so the bytes declared are the bytes downloaded. Any other
+ * tier / file: as is.
  */
 export function tierUrl(url: string): string {
   if (TIER_CONFIG.maxTexture > 1024) return url;
-  const m = /^(.*)\.(png|jpg)$/.exec(url);
+  const m = /^(.*)\.(png|jpg|glb)$/.exec(url);
   if (!m) return url;
-  for (const ext of ['webp', 'jpg']) { const u = `${m[1]}.phone.${ext}`; if (u in TABLE) return u; }
-  return url;
+  const u = `${m[1]}.phone.${m[2] === 'glb' ? 'glb' : 'webp'}`;
+  return u in TABLE ? u : url;
 }
+// three's GLTFLoader (props, cabin clutter, their textures) and every other loader on the default manager
+DefaultLoadingManager.setURLModifier(tierUrl);
 
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };
 
@@ -93,10 +98,12 @@ export function installByteCounter(plan: Plan<BootStep>, files: ChunkFiles): voi
 
 /**
  * Decode an image off the main thread through the counted fetch, downscaled to `maxSize` when the
- * file is larger (the phone tier's 1024 cap). `flip` matches three's ImageBitmapLoader (then
- * texture.flipY must be false); pass false for canvas work that keeps the file's orientation.
+ * file is larger (the phone tier's 1024 cap) — or, with `exact`, scaled to exactly maxSize² either way
+ * (a texture-array layer fed by a half-resolution phone ARM plane). `flip` matches three's
+ * ImageBitmapLoader (then texture.flipY must be false); pass false for canvas work that keeps the
+ * file's orientation.
  */
-export async function fetchImage(file: string, maxSize = Infinity, flip = true): Promise<ImageBitmap | HTMLImageElement> {
+export async function fetchImage(file: string, maxSize = Infinity, flip = true, exact = false): Promise<ImageBitmap | HTMLImageElement> {
   const url = tierUrl(file);
   const res = await fetch(url);
   if (!res.ok) throw new Error(`${res.status} ${url}`);
@@ -107,7 +114,9 @@ export async function fetchImage(file: string, maxSize = Infinity, flip = true):
       if (Number.isFinite(maxSize)) {
         // one decode at natural size to learn the dimensions is what we are avoiding: probe the header cheaply
         const dim = await imageSize(blob);
-        if (dim && Math.max(dim.w, dim.h) > maxSize) {
+        if (dim && exact && (dim.w !== maxSize || dim.h !== maxSize)) {
+          opts.resizeWidth = maxSize; opts.resizeHeight = maxSize; opts.resizeQuality = 'high';
+        } else if (dim && Math.max(dim.w, dim.h) > maxSize) {
           const k = maxSize / Math.max(dim.w, dim.h);
           opts.resizeWidth = Math.round(dim.w * k); opts.resizeHeight = Math.round(dim.h * k); opts.resizeQuality = 'high';
         }
@@ -121,10 +130,17 @@ export async function fetchImage(file: string, maxSize = Infinity, flip = true):
   } finally { URL.revokeObjectURL(src); }
 }
 
-/** Width/height from the JPEG / PNG header — a few bytes, no decode. */
+/** Width/height from the JPEG / PNG / WebP header — a few bytes, no decode. */
 async function imageSize(blob: Blob): Promise<{ w: number; h: number } | null> {
   const head = new DataView(await blob.slice(0, 65536).arrayBuffer());
   if (head.byteLength > 24 && head.getUint32(0) === 0x89504e47) return { w: head.getUint32(16), h: head.getUint32(20) }; // PNG IHDR
+  if (head.byteLength > 30 && head.getUint32(0) === 0x52494646 && head.getUint32(8) === 0x57454250) { // RIFF…WEBP
+    const chunk = head.getUint32(12);
+    if (chunk === 0x56503820) return { w: head.getUint16(26, true) & 0x3fff, h: head.getUint16(28, true) & 0x3fff }; // 'VP8 '
+    if (chunk === 0x5650384c) { const b = head.getUint32(21, true); return { w: (b & 0x3fff) + 1, h: ((b >>> 14) & 0x3fff) + 1 }; } // 'VP8L'
+    if (chunk === 0x56503858) return { w: (head.getUint32(24, true) & 0xffffff) + 1, h: (head.getUint32(27, true) & 0xffffff) + 1 }; // 'VP8X'
+    return null;
+  }
   if (head.byteLength > 4 && head.getUint16(0) === 0xffd8) { // JPEG: walk the segments to SOF0/2
     let o = 2;
     while (o + 9 < head.byteLength) {
