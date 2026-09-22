@@ -29,9 +29,9 @@ import { REST, CHARGE, SPRINT, COMBO, SLASH, HEAVY, type Move } from './SwordMov
  * finisher the next tap restarts at 1; so does a tap more than COMBO_GAP s after the last swing ended. Damage per
  * swing ×1 / ×1 / ×1.33 of the blade's base (wood 12 / 12 / 16).
  *
- * HEAVY (RMB held / the touch AIM disc — `adsHeld`; the disc should read "HEAVY"): a toggle-on / press starts the
+ * HEAVY (RMB click-toggle / the touch AIM disc — `adsHeld`; the disc should read "HEAVY"): a toggle-on / press starts the
  * charge — the blade rises over the right shoulder (CHARGE pose) and after HEAVY_CHARGE s the heavy is ready; the
- * release (toggle-off / RMB up) throws a wide, slower overhead chop for ×2 (wood 24) with a longer hit-stop, a thick
+ * release (toggle-off: RMB again) throws a wide, slower overhead chop for ×2 (wood 24) with a longer hit-stop, a thick
  * pale trail with a glint at the tip, and a heavy stagger. Releasing before the charge is full queues the release for
  * when it is. The player keeps walking / strafing while charging (strafing is the dodge — there is no block).
  * `state.ads` is true while charging (the HUD's ADS state); `charging` / `charge` (0..1) are readable for a meter.
@@ -391,9 +391,8 @@ export class Sword implements Weapon {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
       if (e.button === 0) this.tryFire();
-      if (e.button === 2) this.mouseHeld = true;
+      if (e.button === 2) this.mouseHeld = !this.mouseHeld; // toggle, not hold (trackpad), like the touch AIM latch
     });
-    document.addEventListener('mouseup', (e) => { if (e.button === 2) this.mouseHeld = false; });
     document.addEventListener('contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
     document.addEventListener('keydown', (e) => {
       if (!this.inputAllowed() || e.repeat) return;
@@ -445,7 +444,7 @@ export class Sword implements Weapon {
   get swingName(): Move['name'] | null { return this.move?.name ?? null; }
   /** true while the running swing is the heavy */
   get heavySwing(): boolean { return this.move === HEAVY; }
-  /** true while the heavy is being charged (RMB / AIM disc held) */
+  /** true while the heavy is being charged (RMB / AIM disc toggled on) */
   get chargingHeavy(): boolean { return this.charging; }
   /** 0..1 heavy charge (1 = ready to release) */
   get charge(): number { return this.charging ? clamp01(this.chargeT / HEAVY_CHARGE) : 0; }
@@ -586,6 +585,7 @@ export class Sword implements Weapon {
     if (Math.abs(targetFov - this.fov) > 0.01) { this.fov = targetFov; cam.fov = this.fov; cam.updateProjectionMatrix(); this.sky.csm.updateFrustums(); }
 
     // heavy: the hold (RMB / touch AIM latch) — edge on = start charging (after the running swing, if any), edge off = release
+    if (!this.enabled) this.mouseHeld = false; // pause / holster drop the RMB toggle
     const held = (this.mouseHeld || this.adsHeld) && this.enabled;
     if (held && !this.heldPrev) { if (this.move) this.chargePending = true; else this.beginCharge(); }
     if (!held && this.heldPrev) { this.chargePending = false; if (this.charging) { if (this.chargeT >= HEAVY_CHARGE) this.releaseHeavy(); else this.releaseQueued = true; } }

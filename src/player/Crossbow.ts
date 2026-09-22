@@ -20,7 +20,7 @@ import type { Weapon } from './Weapon';
  *   const crossbow = new Crossbow({ game, sky, player, forest }, targets?, { allowUnlocked?: boolean });
  *   game.onUpdate((dt, t) => crossbow.update(dt, t));   // register AFTER player.update
  *
- * Input (only while `player.locked`, or always when `allowUnlocked`): LMB / `F` fire, RMB (hold) ADS,
+ * Input (only while `player.locked`, or always when `allowUnlocked`): LMB / `F` fire, RMB (click to toggle) ADS,
  * `R` reload. `crossbow.enabled = false` mutes input (intro / pause). `crossbow.adsHeld` can be forced.
  *
  * Events (assign callbacks):
@@ -703,9 +703,8 @@ export class Crossbow implements Weapon {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
       if (e.button === 0) this.tryFire();
-      if (e.button === 2) this.mouseAds = true;
+      if (e.button === 2) this.mouseAds = !this.mouseAds; // toggle, not hold: a trackpad can't hold a two-finger click and still look around
     });
-    document.addEventListener('mouseup', (e) => { if (e.button === 2) this.mouseAds = false; });
     document.addEventListener('contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
     document.addEventListener('keydown', (e) => {
       if (!this.inputAllowed() || e.repeat) return;
@@ -1048,6 +1047,7 @@ export class Crossbow implements Weapon {
     } else { this.loadedBolt.position.z = 0.128 - 0.18; this.loadedBolt.position.y = 0.0095; }
 
     // ADS + FOV
+    if (p.sprinting || !this.enabled) this.mouseAds = false; // sprinting / pause / holster drop the RMB toggle
     this.state.ads = (this.mouseAds || this.adsHeld) && this.enabled && !this.state.reloading && !p.sprinting;
     { const step = dt / ADS_BLEND_TIME; this.adsBlend = clamp01(this.adsBlend + THREE.MathUtils.clamp((this.state.ads ? 1 : 0) - this.adsBlend, -step, step)); }
     const targetFov = fovForAspect(FOV_HIP + (FOV_ADS - FOV_HIP) * sstep(0, 1, this.adsBlend), cam.aspect);

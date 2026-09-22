@@ -220,9 +220,8 @@ export class Rifle implements KitWeapon {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
       if (e.button === 0) this.tryFire();
-      if (e.button === 2) this.mouseAds = true;
+      if (e.button === 2) this.mouseAds = !this.mouseAds; // toggle, not hold: a trackpad can't hold a two-finger click and still look around
     });
-    document.addEventListener('mouseup', (e) => { if (e.button === 2) this.mouseAds = false; });
     document.addEventListener('contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
     document.addEventListener('keydown', (e) => {
       if (!this.inputAllowed() || e.repeat) return;
@@ -560,6 +559,7 @@ export class Rifle implements KitWeapon {
     if (this.flashLightT > 0) { this.flashLightT -= dt; this.flashLight.intensity = this.flashLightT <= 0 ? 0 : FLASH_LIGHT * clamp01(this.flashLightT / FLASH_LIGHT_TIME); }
 
     // ADS + FOV (only the held weapon owns the camera FOV)
+    if (p.sprinting || !this.enabled) this.mouseAds = false; // sprinting / pause / holster drop the RMB toggle
     s.ads = (this.mouseAds || this.adsHeld) && this.enabled && !s.reloading && !p.sprinting;
     { const step = dt / ADS_BLEND_TIME; this.adsBlend = clamp01(this.adsBlend + THREE.MathUtils.clamp((s.ads ? 1 : 0) - this.adsBlend, -step, step)); }
     const targetFov = fovForAspect(FOV_HIP + (FOV_ADS - FOV_HIP) * sstep(0, 1, this.adsBlend), cam.aspect);
