@@ -64,13 +64,13 @@ export class Hoverboard {
     const discGeo = new THREE.CylinderGeometry(0.075, 0.095, 0.022, 24);
     const discMat = new THREE.MeshStandardMaterial({ color: 0x0d2a36, emissive: CYAN, emissiveIntensity: 3, roughness: 0.3, metalness: 0.2 });
     const haloGeo = new THREE.CircleGeometry(0.15, 24); haloGeo.rotateX(-Math.PI / 2);
-    this.glow = new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide });
+    this.glow = new THREE.MeshBasicMaterial({ color: CYAN, transparent: true, opacity: 0.35, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }); // fogless (a metre from the eye fog is nil): the crossbow tracer glow's two programs instead of two of its own
     for (const z of [-LEN * 0.3, LEN * 0.3]) {
       const d = new THREE.Mesh(discGeo, discMat); d.position.set(0, -THICK / 2 - 0.02, z); g.add(d);
       const h = new THREE.Mesh(haloGeo, this.glow); h.position.set(0, -THICK / 2 - 0.045, z); g.add(h);
     }
     // depth clear so the deck never clips into the terrain; everything renders in the transparent queue after it
-    const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true }));
+    const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false })); // fogless: draws nothing, shares the fogless MeshBasic program (as the crossbow's);
     clearer.renderOrder = 999; clearer.frustumCulled = false;
     clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
     g.add(clearer);
