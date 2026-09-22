@@ -36,6 +36,29 @@ describe('harvestOf', () => {
     for (const v of ['black', 'brown', 'black-old', 'brown-old']) expect(harvestOf('bear', v)).toEqual(['bear-pelt', 'bear-claw']);
   });
 
+  it('crab: meat + claw, the big reef crab adds its shell', () => {
+    expect(harvestOf('crab', 'small')).toEqual(['crab-meat', 'crab-claw']);
+    expect(harvestOf('crab', 'big')).toEqual(['crab-meat', 'crab-claw', 'crab-shell']);
+    expect(harvestOf('crab')).toEqual(['crab-meat', 'crab-claw']);
+  });
+
+  it('monkey: a coconut + fur, the grey elder\'s fur is silver', () => {
+    expect(harvestOf('monkey', 'monkey')).toEqual(['coconut', 'monkey-fur']);
+    expect(harvestOf('monkey', 'elder')).toEqual(['coconut', 'silver-fur']);
+    expect(harvestOf('monkey')).toEqual(['coconut', 'monkey-fur']);
+  });
+
+  it('sailor: the drowned sailor\'s pockets', () => {
+    expect(harvestOf('sailor', 'sailor')).toEqual(['doubloon', 'sea-glass', 'old-rope']);
+    expect(harvestOf('sailor')).toEqual(['doubloon', 'sea-glass', 'old-rope']);
+  });
+
+  it('the Driftwood Isle enemies (crab / monkey / sailor): every variant yields at least one item', () => {
+    for (const kind of ['crab', 'monkey', 'sailor']) {
+      for (const v of speciesDef(kind).variants) expect(harvestOf(kind, v.id).length, `${kind}/${v.id}`).toBeGreaterThan(0);
+    }
+  });
+
   it('an unknown kind yields nothing', () => {
     expect(harvestOf('unicorn', 'sparkly')).toEqual([]);
   });
