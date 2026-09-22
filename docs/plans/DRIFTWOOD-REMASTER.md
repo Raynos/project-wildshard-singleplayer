@@ -24,6 +24,26 @@ There is no `BRIEF.md`; the brief is `docs/SUBAGENT-BRIEF.md` (+ `sources/wildsh
 | "Feel like playtesting a standalone chunk" + Wildshard features: pickups, quests, NPC quest givers, puzzles (plates, keys, locked doors), chests, achievements, titles (`sources/wildshard/GAME-REFERENCES.md`) | One pickup (iron sword). No quests, NPCs, chests, keys, doors, collectibles, secrets; **no Driftwood achievement table** (`achievements.ts:41`); nothing respawns; the full map shows Pine Hollow's cabins / pond (`Map.ts:164`) | **the biggest gap** — ~5 minutes of content |
 | Fundamentals: 500 m chunk, 4 entry roads at edge midpoints (FUNDAMENTALS) | yes — the jetties are the submerged sandbars | ok |
 
+### What the phone sees (live captures, 390×844, 2026-09-22)
+
+`progress/148-e7-driftwood-audit-before.webp` (beach, hut, palm grove, plateau stair, lookout, shrine,
+crab, pier) against `art/driftwood-fp-*.png`:
+
+- **The sky is 50–60 % of every portrait frame and it is the wrong art style**: photoreal cirrus HDRI,
+  heavy haze + grain washing everything to low contrast, and the planet drawn *behind* the cirrus
+  streaks so it reads as a smudge. The mockups: saturated blue, faceted cumulus, a crisp planet.
+- **The island is empty**: vast flat green / beige planes with no ground cover, flowers, rocks or
+  props between POIs; the mockups have something in every square metre. POIs read tiny and far apart.
+- **The sword viewmodel fills ~60 % of the frame**: an over-long flat brown blade, a fist of brown
+  boxes and a grey block forearm, which reads as a placeholder. The mockups show a short, chunky wooden sword held
+  low-right in a hand.
+- **POIs are skeletons of their mockups**: the shrine is a grey torus on a slab (mockup: vine-hung
+  monolith, glyph pillars, gull statues, stair, spring pool, jungle); the lookout is a bare frame; the
+  wreck is a dark box on flat sand (mockup: heeled hull on the reef under a cliff waterfall + cave).
+- **Water** from the beach is an opaque flat cyan plane with a hard seam; no shallows, no foam line.
+- Small bugs: the minimap is half black at the pier spawn; the crab shows two labels at once
+  ("BIG REEF CRAB" plate + "CRAB · 3 M" readout).
+
 ### Bugs found (fix first — Track 0)
 
 | # | Bug | Evidence |
@@ -52,6 +72,7 @@ go in `art/driftwood-isle/round-4-remaster/`. Order inside a track is the build 
 | 0.2 | B2 / B3: a per-weapon death message, no bolts on the sword shard, a real hurt sound + a directional hurt arc on the HUD | open |
 | 0.3 | B7: a fixed pool of point lights, driven by intensity only (never add / remove / toggle `visible`) | open |
 | 0.4 | B8 + B9: skip forest particles / rifle on an ocean shard; footstep surface from a per-module `surfaceAt(x, z)` (planks on every deck) | open |
+| 0.6 | Viewmodel: sword length / FOV framing to the mockup (short, low-right), one label per enemy, the minimap at the pier spawn | open (sword geometry → E8) |
 | 0.5 | B6: re-capture the hero + deck card in engine **after** Track L lands (until then restore `743f435`'s captures) | open |
 
 ### Track L — the look (lighting, sky, fog, post) — the cheapest 10×
