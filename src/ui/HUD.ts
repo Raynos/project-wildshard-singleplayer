@@ -519,9 +519,15 @@ export class HUD {
       if (portrait() !== wasPortrait) { wasPortrait = portrait(); apply(); }
     };
     addEventListener('resize', onResize);
-    // preload the hero art so the crossfade is instant (current orientation first, the other set later)
-    const preload = (p: boolean): void => { for (const c of cards) { const u = (p ? c.heroPortrait : c.heroLandscape); if (u) new Image().src = u; } };
-    preload(portrait()); setTimeout(() => { preload(!portrait()); }, 4000);
+    // hero art is ~0.2–0.3 MB a file and every card has two (portrait + landscape): only the selected card's, in the
+    // orientation on screen, loads with the menu (apply() above). A neighbour's loads when a swipe or a card tap starts
+    // toward it, so the crossfade on release is usually instant; the other orientation only on a real flip (onResize →
+    // apply()). Preloading all six up front was 1.7 MB of every cold launch (LOAD-PERF, first-launch transfer).
+    const warmed = new Set<string>();
+    const warm = (i: number): void => { const c = cards[i]; const u = c ? heroUrl(c) : ''; if (u && !warmed.has(u)) { warmed.add(u); new Image().src = u; } };
+    const warmNeighbours = (): void => { warm(index - 1); warm(index + 1); };
+    list.addEventListener('pointerdown', warmNeighbours);
+    dots.forEach((d, i) => { d.addEventListener('pointerdown', () => { warm(i); }); });
 
     this.root.append(intro);
     this.intro = intro;
