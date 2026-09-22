@@ -1,7 +1,7 @@
 # Plan: Rapier physics — one collision world for everything in both shards
 
-**State:** `draft` 2026-09-22 — the user's picks are in (E21): **Rapier 3D, committed, no switch**; both shards;
-every model / weapon / item / enemy collides. Waiting on the user's go (and the 3 picks under Decisions) before P0.
+**State:** `draft` 2026-09-22 — the user's picks are in: **Rapier 3D, committed, no switch**; both shards;
+every model / weapon / item / enemy collides (E22). Waiting on the user's go (and the 3 picks under Decisions) before P0.
 Nothing built.
 
 ## Decisions made (the user, 2026-09-22)
