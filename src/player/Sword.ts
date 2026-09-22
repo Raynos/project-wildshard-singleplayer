@@ -13,7 +13,7 @@ import { REST, CHARGE, SPRINT, COMBO, SLASH, HEAVY, type Move } from './SwordMov
  * with a rounded tip, plain crossguard, leather-wrapped grip, dark pommel) held in two low-poly hands lower-right,
  * a three-hit light combo and a charged heavy, each swing with its own arc and additive trail, a melee hit test and
  * hit-stun / knockback on what it hits. Faceted flat-shaded vertex colours, no textures (mockups:
- * art/driftwood-fp-sword-wooden.png, art/driftwood-fp-sword-iron.png). The iron sword is the same rig with
+ * art/driftwood-isle/round-2-first-person/driftwood-fp-sword-wooden.png, art/driftwood-isle/round-2-first-person/driftwood-fp-sword-iron.png). The iron sword is the same rig with
  * `{ blade: 'iron' }`: steel blade, 28 base damage.
  *
  *   const sword = new Sword({ game, sky, player, forest }, targets?, { allowUnlocked?: boolean, blade?: 'wood' | 'iron' });

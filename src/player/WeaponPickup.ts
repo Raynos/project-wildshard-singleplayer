@@ -5,7 +5,7 @@ import { isMesh } from './Crossbow';
 
 /**
  * ItemPickup (exported as WeaponPickup too) — an item lying in the world for the player to find, presented like
- * art/pickup-A-bubble.png and then some: the item floats HOVER m over the floor point (bobbing ±BOB on a BOB_PERIOD sine,
+ * art/pickups/round-1/pickup-A-bubble.png and then some: the item floats HOVER m over the floor point (bobbing ±BOB on a BOB_PERIOD sine,
  * yawing YAW_RATE), inside a translucent sphere (SPHERE_R × 2 = 1.3 m Ø) with a bright Fresnel rim and an inner haze that
  * BREATHE (±25 % on a PULSE_PERIOD cycle, out of phase with the bob); two thin rings orbit the sphere on tilted axes,
  * counter-rotating; a sigil (crisp ring + faint outer ring with 24 ticks) turns slowly on the floor under a soft light

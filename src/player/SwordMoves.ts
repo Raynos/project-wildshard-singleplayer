@@ -7,7 +7,7 @@ import * as THREE from 'three';
  * and a follow-through key; the swing starts from wherever the sword IS (the rest pose, or the previous swing's
  * follow-through when the combo chains) and recovers to REST.
  *
- *   1 · slash      right → left, horizontal — the wooden-sword mockup (art/driftwood-fp-sword-wooden.png)
+ *   1 · slash      right → left, horizontal — the wooden-sword mockup (art/driftwood-isle/round-2-first-person/driftwood-fp-sword-wooden.png)
  *   2 · backhand   left → right, rising a little — cocked from where the slash left the blade
  *   3 · finisher   raised high on the right, an overhead diagonal down to the lower left (the iron mockup's arc)
  *   H · heavy      charged overhead (CHARGE key held with the blade raised), released into a wide slow overhead chop

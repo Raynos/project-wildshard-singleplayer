@@ -6,7 +6,7 @@ import type { Animal } from '../Animal';
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
 
 /**
- * Reef Crab — Wreck Cove's tidepool crab (art/driftwood-enemy-1-crab.png): a wide domed orange-red carapace with
+ * Reef Crab — Wreck Cove's tidepool crab (art/driftwood-isle/round-3-enemies/driftwood-enemy-1-crab.png): a wide domed orange-red carapace with
  * a pale underside and a crust of barnacles, two eyestalks, six jointed legs and two big pincers. Groups of 3–5 —
  * one BIG (scale ~1.8, 70 hp, claws a quarter larger) and the rest small (scale ~0.85, 25 hp). Custom rig
  * (`rig: 'custom'`): body (root) + head (eyestalk root) + per side: claw arm / hand / tip, three legs × hip / knee.

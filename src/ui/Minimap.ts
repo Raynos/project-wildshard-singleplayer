@@ -1,5 +1,5 @@
 /**
- * Minimap — the circular top-down map top-right of the HUD (mockup B, art/minimap-k1-B-terrain.png).
+ * Minimap — the circular top-down map top-right of the HUD (mockup B, art/minimap/round-1/minimap-k1-B-terrain.png).
  *
  *   const minimap = new Minimap();                                    // mounts into #hud
  *   minimap.update(player.position, player.yaw, animals.animals);     // every frame

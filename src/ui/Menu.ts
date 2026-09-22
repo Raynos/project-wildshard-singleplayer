@@ -1,5 +1,5 @@
 /**
- * The in-game MENU — one overlay, four tabs: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (art/menu-tab-*.png).
+ * The in-game MENU — one overlay, four tabs: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (art/menu/round-2-tabs/menu-tab-*.png).
  * Replaces the old pause box and the stand-alone full-map screen: tapping the minimap (or M) opens it on
  * the Map tab, the pause button / Esc opens it on Settings (Resume, Exit to main menu and the switches live
  * there). Styled by src/ui/styles/gmenu.css (prefix ws-gmenu-). The world keeps running underneath, as the

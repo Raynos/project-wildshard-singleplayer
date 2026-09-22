@@ -1,6 +1,6 @@
 # Plan: closing the gap to the `art/` mockups
 
-The mockups (`art/mockup-01…05`) define the target look. What they have that the engine
+The mockups (`art/pine-hollow/round-1-target-look/mockup-01…05`) define the target look. What they have that the engine
 build does not, ranked by how much of the "PS5 feel" each one buys us:
 
 | # | Gap | What the mockups do | What we build | Owner |
