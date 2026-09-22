@@ -1,0 +1,16 @@
+{
+  "hash": "8a5f456bc8341ee4",
+  "version": 1,
+  "files": {
+    "giant.jpg": {
+      "bytes": 25127,
+      "width": 512,
+      "height": 256
+    },
+    "clouds.jpg": {
+      "bytes": 63536,
+      "width": 512,
+      "height": 512
+    }
+  }
+}
