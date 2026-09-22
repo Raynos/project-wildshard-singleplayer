@@ -73,7 +73,20 @@ export interface PlanOptions {
   record?: (measured: Timings) => void;
   /** Per-frame republish while a step runs (default: requestAnimationFrame; tests pass their own or none). */
   schedule?: ((fn: () => void) => void) | null;
+  /**
+   * Awaited after every step (default in a browser: one macrotask). A step's work and the next step's
+   * start otherwise chain through microtasks inside ONE task — the 0.75–1.3 s long tasks of
+   * docs/plans/LOAD-PERF.md were forest + edge + grass and animals + weapon glued together.
+   */
+  yieldTask?: (() => Promise<void>) | null;
 }
+
+/** End the current task: the next step starts in a fresh one (a MessageChannel hop — no 4 ms timer clamp). */
+export const macrotask = (): Promise<void> => new Promise((resolve) => {
+  const c = new MessageChannel();
+  c.port1.onmessage = () => { c.port1.close(); resolve(); };
+  c.port2.postMessage(0);
+});
 
 interface StepState { state: 'todo' | 'on' | 'ok'; fraction: number; sub: number; detail: string; t0: number; ms: number }
 interface SourceState { total: number; files: number; read: number; filesDone: number; closed: boolean }
@@ -100,6 +113,7 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
   const record = options.record ?? saveTimings;
   const schedule = options.schedule === undefined ? (typeof requestAnimationFrame === 'function' ? (fn: () => void) => { requestAnimationFrame(fn); } : null) : options.schedule;
   let ticking = false;
+  const yieldTask = options.yieldTask === undefined ? (typeof window !== 'undefined' && typeof MessageChannel === 'function' ? macrotask : null) : options.yieldTask;
   const credited = (s: { total: number; read: number; closed: boolean }): number => (s.closed ? s.total : Math.min(s.read, s.total));
 
   function publish(): void {
@@ -179,7 +193,7 @@ export function createBootPlan(sink: Sink, options: PlanOptions): Plan<BootStep>
   }
 
   const api = {
-    async step(key: BootStep, work: (p: StepProgress) => unknown) { return next(await run(key, work)); },
+    async step(key: BootStep, work: (p: StepProgress) => unknown) { const value = await run(key, work); if (yieldTask) await yieldTask(); return next(value); },
     reader(key: ByteKey): ByteProgress {
       const s = sources[key];
       return { add(n) { if (!(n > 0) || s.closed) return; s.read += n; lastRead = key; publish(); } };

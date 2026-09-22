@@ -5,6 +5,7 @@ import { loadPBR, loadPBRArray, pbrMaterial } from '../core/assets';
 import { attachFogUniforms } from './Atmosphere';
 import { getActiveChunk } from '../chunks/registry';
 import { loadBakedTerrain } from './BakedTerrain';
+import { macrotask } from '../boot/plan';
 
 // ── low-poly palette (sRGB in, linear out via THREE.Color) ──
 const LP = {
@@ -41,6 +42,7 @@ export class Terrain {
   async build(): Promise<this> {
     if (getActiveChunk().style === 'lowpoly') return this.buildLowPoly();
     const [layers] = await Promise.all([loadPBRArray([...getActiveChunk().assets.groundLayers], 1024), loadBakedTerrain()]); // baked heights/splat → Heightfield lookups (BakedTerrain.ts)
+    await macrotask(); // the layer copies above and the mesh below were one ~110 ms task at 4x CPU
     this.mesh = new THREE.Mesh(this.buildGeometry(), this.buildMaterial(layers));
     this.mesh.receiveShadow = true;
     this.mesh.castShadow = false;

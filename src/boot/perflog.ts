@@ -9,7 +9,7 @@ import type * as THREE from 'three';
 export const PERFLOAD = typeof location !== 'undefined' && new URLSearchParams(location.search).has('perfload');
 
 /** three's WebGLProgram, the parts the boot reads (r.info.programs is typed as `unknown` entries) */
-export interface ProgramLike { type: string; name: string; cacheKey: string; usedTimes: number; id: number; isReady: () => boolean; program: WebGLProgram }
+export interface ProgramLike { type: string; name: string; cacheKey: string; usedTimes: number; id: number; isReady: () => boolean; program: WebGLProgram; getUniforms: () => unknown }
 type Programs = readonly ProgramLike[];
 
 export interface PerfRow { phase: string; ms: number; programs: number; detail: string }

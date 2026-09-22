@@ -50,7 +50,7 @@ import { getNumber, onNumber } from './ui/Settings';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
 import { setAimTargets } from './player/AimTargets';
-import { createBootPlan, type StepRunner } from './boot/plan';
+import { createBootPlan, macrotask, type StepRunner } from './boot/plan';
 import { declareTotals, installByteCounter } from './boot/bytes';
 import { chunkFiles } from './boot/manifest';
 import { getActiveChunk } from './chunks/registry';
@@ -87,9 +87,10 @@ async function main() {
   const sea = chunk.ocean, isOcean = sea !== undefined; // open-water shard (Driftwood Isle): ocean + pier, no forest carpet / cabins / props
 
   // ── world dressing ──
-  const dressing = await step('edge', () => {
+  const dressing = await step('edge', async () => {
     const boundary = new Boundary(sky).build();
     game.scene.add(boundary.group);
+    await macrotask(); // boundary · water · horizon each in its own task
     const water = !isOcean && hasPond() ? new Water(sky).build() : null;
     if (water) game.scene.add(water.mesh);
     const ocean = isOcean ? new Ocean(sky).build() : null;
@@ -157,16 +158,18 @@ async function main() {
     const cove = isOcean ? new Cove(sky).build(Cove.forIsland()) : null;
     if (cove) { game.scene.add(cove.group); player.colliders.push(...cove.colliders); }
     if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
+    await macrotask();
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
     return { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon };
   });
   const { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon } = dressing;
 
-  const carpet = await step('grass', () => {
+  const carpet = await step('grass', async () => {
     // no forest carpet over open water (grass scattered the whole sea floor for 19 s)
     const grass = isOcean ? null : new Grass(sky, forest).build();
-    const under = isOcean ? null : new Undergrowth(sky, forest).build();
+    await macrotask();
+    const under = isOcean ? null : await new Undergrowth(sky, forest).buildAsync(macrotask); // a task per placement pass
     const particles = new Particles(sky, forest).build();
     if (grass && under) game.scene.add(grass.group, under.group);
     game.scene.add(particles.group);
@@ -192,8 +195,8 @@ async function main() {
     return built;
   });
 
-  const animals = await step('animals', (p) => {
-    const a = new AnimalManager(game.scene, sky, forest).build();
+  const animals = await step('animals', async (p) => {
+    const a = await new AnimalManager(game.scene, sky, forest).buildAsync(macrotask); // a task per herd, not one long one
     p.detail(`${a.animals.length} animals`);
     return a;
   });
@@ -212,7 +215,9 @@ async function main() {
   const crossbow: Weapon = chunk.weapon === 'sword'
     ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock })
     : new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
+  await macrotask(); // each viewmodel in its own task (they draw their textures on the CPU: one 0.6 s task at 4x together)
   const rifle = new Rifle({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
+  await macrotask();
   // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken
   const ironSword = chunk.weapon === 'sword' ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, blade: 'iron' }) : null;
   const weapons = new Weapons(crossbow, rifle, ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : []); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup

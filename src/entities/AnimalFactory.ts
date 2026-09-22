@@ -412,6 +412,11 @@ export class AnimalFactory {
     mesh.bind(new THREE.Skeleton(list));
     mesh.castShadow = true; mesh.receiveShadow = true;
     mesh.frustumCulled = true;
+    // Cull against the model's padded bind-pose sphere (radius + 0.6 m: legs / neck / corpse roll never leave it).
+    // Left null, SkinnedMesh.computeBoundingSphere skins every vertex on the CPU the first time the frustum test
+    // sees the rig — ~260 ms of the first frame at 4× CPU for the herds (docs/plans/LOAD-PERF.md Status).
+    const bs = model.geometry.boundingSphere;
+    if (bs !== null) mesh.boundingSphere = bs.clone();
     return { mesh, bones, materials: [fur, model.hard, model.eye] };
   }
 }

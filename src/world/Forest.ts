@@ -16,6 +16,8 @@ const FAR_DIST = TIER_CONFIG.treeLoDist;   // metres: beyond this, the 2-quad ba
 const TWIG_DIST = TIER_CONFIG.treeTwigDist; // metres: within this, individual twig quads are drawn on the branches
 const KEEP_NEAR = Math.max(45, TIER_CONFIG.shadowFar * 0.5); // metres: trees this close are never frustum-culled (their shadows reach into view)
 const CULL_FOV_PAD = 24;                    // degrees added to the camera FOV for the cull frustum
+/** A 16 m grid cell as one integer (exact for cells within 2^20 of the origin: any coordinate a query meets in play). */
+const cellKey = (cx: number, cz: number): number => (cx + 1048576) * 2097152 + (cz + 1048576);
 
 /**
  * Per-frame bucketing: every tree has one precomputed matrix; on move (> 1.5 m) or turn (> 3°) the
@@ -34,7 +36,8 @@ export class Forest {
   private twigs: THREE.InstancedMesh[] = [];
   private lastLodPos = new THREE.Vector3(1e9, 0, 0);
   private lastDir = new THREE.Vector3(0, 0, 0);
-  private grid = new Map<string, TreeInstance[]>();
+  /** 16 m buckets keyed by `cellKey`: a number, not a template string: `nearby` runs ~10^5 times while the undergrowth is placed */
+  private grid = new Map<number, TreeInstance[]>();
   private mats!: Float32Array;   // 16 floats per tree
   private tints!: Float32Array;  // 3 floats per tree
   /** batched path (WEBGL_multi_draw): one BatchedMesh per material, one instance per tree, LOD = geometry id + visibility */
@@ -197,14 +200,14 @@ export class Forest {
     return tex;
   }
 
-  private key(x: number, z: number) { return `${Math.floor(x / 16)},${Math.floor(z / 16)}`; }
+  private key(x: number, z: number) { return cellKey(Math.floor(x / 16), Math.floor(z / 16)); }
 
   /** trees whose trunk might intersect a circle at (x,z) — for collision */
   nearby(x: number, z: number, radius = 2): TreeInstance[] {
     const out: TreeInstance[] = [];
     const cx = Math.floor(x / 16), cz = Math.floor(z / 16);
     for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
-      const list = this.grid.get(`${cx + i},${cz + j}`);
+      const list = this.grid.get(cellKey(cx + i, cz + j));
       if (list) for (const t of list) if (Math.hypot(t.x - x, t.z - z) < radius + t.r + 3) out.push(t);
     }
     return out;

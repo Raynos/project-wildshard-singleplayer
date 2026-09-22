@@ -58,6 +58,22 @@ export class Undergrowth {
   constructor(private sky: Sky, private forest: Forest) {}
 
   build(): this {
+    const g = this.stages();
+    while (g.next().done !== true) { /* every stage in one go */ }
+    return this;
+  }
+
+  /**
+   * `build()` with the event loop let in between its stages (`pause`, e.g. a macrotask): the textures, then
+   * each kind's placement pass. Same rolls, same placements; in one call it was a ~290 ms task at 4x CPU.
+   */
+  async buildAsync(pause: () => Promise<void>): Promise<this> {
+    const g = this.stages();
+    while (g.next().done !== true) await pause();
+    return this;
+  }
+
+  private *stages(): Generator<void, void, undefined> {
     underUniforms.uSunDir.value.copy(this.sky.sunDir);
     underUniforms.uSunColor.value.copy(this.sky.sunColor);
     const fernTex = makeFernTexture(), shrubTex = makeShrubTexture(), litterTex = makeLitterTexture();
@@ -73,8 +89,9 @@ export class Undergrowth {
     // flat ground layers: pull towards the camera so the terrain mesh (±5 cm off heightAt) never swallows them
     for (const m of [litterMat, stoneMat, mossMat]) { m.polygonOffset = true; m.polygonOffsetFactor = -2; m.polygonOffsetUnits = -2; }
     const reedMat = this.makeMaterial(reedTex, 'reed', 0.5, 0.45);
+    yield;
 
-    const place = this.place();
+    const place = yield* this.place();
     this.ferns = this.makeInstanced(buildFernGeometry(), fernMat, place.ferns, true, fernTex, 0.35);
     this.shrubs = this.makeInstanced(buildShrubGeometry(), shrubMat, place.shrubs, true, shrubTex, 0.25);
     this.litter = this.makeInstanced(buildLitterGeometry(1.4), litterMat, place.litter, false);
@@ -84,7 +101,6 @@ export class Undergrowth {
     this.counts = { ferns: place.ferns.length, shrubs: place.shrubs.length, litter: place.litter.length, stones: place.stones.length, moss: place.moss.length, reeds: place.reeds.length };
     this.group.add(this.ferns, this.shrubs, this.litter, this.stones, this.moss, this.reeds);
     noReflect(this.group);
-    return this;
   }
 
   update(_dt: number, playerPos: THREE.Vector3): void { underUniforms.uViewerPos.value.copy(playerPos); }
@@ -150,7 +166,8 @@ export class Undergrowth {
   }
 
   // ------------------------------------------------------------------ placement
-  private place() {
+  /** Every kind's placement; yields between the passes (one rng stream, so the order of passes is fixed). */
+  private *place(): Generator<void, Record<'ferns' | 'shrubs' | 'litter' | 'stones' | 'moss' | 'reeds', Placement[]>, undefined> {
     const rng = new Rng(SEED + 77);
     const cluster = new Noise2D(SEED + 78);
     const ferns: Placement[] = [], shrubs: Placement[] = [], litter: Placement[] = [], stones: Placement[] = [], moss: Placement[] = [], reeds: Placement[] = [];
@@ -174,12 +191,8 @@ export class Undergrowth {
       const verge = td < 10 || (pm > 0.03 && depth < -0.1);   // trail edge or pond rim: ferns like it here
       if (kind === 'fern' && c < 0.12 && !verge) return;
       if (kind === 'shrub' && c < -0.1) return;
-      const near = this.forest.nearby(x, z, 12);
-      let canopy = 0, trunkD = 1e9;
-      for (const t of near) { const d = Math.hypot(t.x - x, t.z - z); if (d < t.r + (kind === 'moss' ? 0.1 : 0.45)) return; if (d < 12) canopy++; trunkD = Math.min(trunkD, d - t.r); }
-      if (kind === 'fern' && canopy < 2 && !verge) return;
-      if ((kind === 'litter' || kind === 'stone') && canopy < 1) return;
-      if (kind === 'moss' && trunkD > 2.2) return;
+      // every test is pure and none draws from `rng`, so their order is free: the grid lookups first,
+      // the tree query (the expensive one, ~10^5 calls) last — same placements, a fraction of the queries
       const nrm = normalAt(x, z, 0.8);
       if (nrm[1] < (kind === 'moss' ? 0.7 : 0.8)) return;
       const [f, g, r, t] = splatAt(x, z);
@@ -188,6 +201,12 @@ export class Undergrowth {
       if (kind === 'shrub' && f + g < 0.6) return;
       if (kind === 'litter' && f < 0.5) return;
       if (kind === 'stone' && f + r < 0.5) return;
+      const near = this.forest.nearby(x, z, 12);
+      let canopy = 0, trunkD = 1e9;
+      for (const tr of near) { const d = Math.hypot(tr.x - x, tr.z - z); if (d < tr.r + (kind === 'moss' ? 0.1 : 0.45)) return; if (d < 12) canopy++; trunkD = Math.min(trunkD, d - tr.r); }
+      if (kind === 'fern' && canopy < 2 && !verge) return;
+      if ((kind === 'litter' || kind === 'stone') && canopy < 1) return;
+      if (kind === 'moss' && trunkD > 2.2) return;
       const hue = rng.next();
       const base = { x, y, z, nx: nrm[0], ny: nrm[1], nz: nrm[2], rot: rng.range(0, Math.PI * 2) };
       if (kind === 'fern') {
@@ -207,6 +226,7 @@ export class Undergrowth {
     };
     const anywhere = (kind: Kind) => tryPlace(kind, rng.range(-half, half), rng.range(-half, half));
     for (let i = 0; i < 30000 && ferns.length < FERN_MAX * 0.7; i++) anywhere('fern');
+    yield;
     // trail verges + pond rim: sample near the trails / pond directly so the verge fills up
     for (let i = 0; i < 12000 && ferns.length < FERN_MAX; i++) {
       if (rng.next() < 0.75) {
@@ -217,15 +237,20 @@ export class Undergrowth {
         tryPlace('fern', POND.x + Math.cos(a) * d, POND.z + Math.sin(a) * d);
       }
     }
+    yield;
     for (let i = 0; i < 9000 && shrubs.length < SHRUB_MAX; i++) anywhere('shrub');
+    yield;
     for (let i = 0; i < 18000 && litter.length < LITTER_MAX; i++) anywhere('litter');
+    yield;
     for (let i = 0; i < 12000 && stones.length < STONE_MAX; i++) anywhere('stone');
+    yield;
     // moss: sample right at the trunks
     for (let i = 0; i < 14000 && moss.length < MOSS_MAX; i++) {
       const t = rng.pick(this.forest.trees);
       const a = rng.range(0, Math.PI * 2), d = t.r + rng.range(0.15, 1.6);
       tryPlace('moss', t.x + Math.cos(a) * d, t.z + Math.sin(a) * d);
     }
+    yield;
     for (let i = 0; i < 40000 && reeds.length < REED_MAX; i++) {
       const a = rng.range(0, Math.PI * 2), d = rng.range(POND.r * 0.3, POND.r + 10);
       tryPlace('reed', POND.x + Math.cos(a) * d, POND.z + Math.sin(a) * d);

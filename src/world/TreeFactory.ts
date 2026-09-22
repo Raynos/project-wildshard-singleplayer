@@ -6,6 +6,7 @@ import { attachFogUniforms } from './Atmosphere';
 import { TIER_CONFIG } from '../core/tier';
 import { getActiveChunk } from '../chunks/registry';
 import { loadBakedCards, exportCardTextures } from './BakedCards';
+import { macrotask } from '../boot/plan';
 
 /**
  * Pine trees built from a runtime-baked "branch card".
@@ -159,12 +160,14 @@ export class TreeFactory {
       { height: 26, trunk: 0.5, seed: 3 },
       { height: 13, trunk: 0.27, seed: 4 },
     ];
-    for (const s of specs) {
+    for (const [i, s] of specs.entries()) {
+      if (i > 0) await macrotask(); // a variant per task (all four + the impostor bake: one ~150 ms task at 4x CPU)
       const hi = this.buildTree(s.height, s.trunk, new Rng(s.seed * 77 + 1), 1.0);
       const lo = this.buildTree(s.height, s.trunk, new Rng(s.seed * 77 + 1), 0.45);
       this.variants.push({ trunk: hi.trunk, cardsHi: hi.cards, cardsLo: lo.cards, twigs: hi.twigs, far: new THREE.BufferGeometry(), height: s.height, trunkRadius: s.trunk });
     }
     void rng;
+    await macrotask();
     this.bakeImpostors(card.albedo, bark.map);
     return this;
   }

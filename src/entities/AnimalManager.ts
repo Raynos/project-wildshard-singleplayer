@@ -302,7 +302,23 @@ export class AnimalManager {
   build(): this {
     this.blood = new BloodFX(this.sky);
     this.group.add(this.blood.group);
-    this.spawnHerds();
+    for (const _herd of this.spawnHerds()) { /* all herds in one go */ }
+    return this.finish();
+  }
+
+  /**
+   * `build()` with the event loop let in between herds (`pause`, e.g. a macrotask): the same herds, the
+   * same rolls — each herd's first animal of a species builds its model (lofted body + fur), and all of
+   * them in one call was a 250–650 ms main-thread task of the boot's `animals` step at 4x CPU.
+   */
+  async buildAsync(pause: () => Promise<void>): Promise<this> {
+    this.blood = new BloodFX(this.sky);
+    this.group.add(this.blood.group);
+    for (const _herd of this.spawnHerds()) await pause();
+    return this.finish();
+  }
+
+  private finish(): this {
     if (!TIER_CONFIG.reflectDetail) noReflect(this.group);
     this.scene.add(this.group);
     return this;
@@ -330,7 +346,8 @@ export class AnimalManager {
   /** a shard with no forest trees (Driftwood Isle: palms are not Forest trees) — every spot is a clearing, a canopy ask is moot */
   private get treeless(): boolean { return this.forest.trees.length === 0; }
 
-  private spawnHerds(): void {
+  /** Places the shard's herds, yielding after each one (`build` drains it, `buildAsync` pauses between). */
+  private *spawnHerds(): Generator<number, void, undefined> {
     const rng = this.rng;
     // herd placement comes from the shard: each HerdPlan asks for a clearing (or canopy) in a band of
     // distances off the trails, optionally in a ring around an anchor (a trail, a cabin…).
@@ -374,6 +391,7 @@ export class AnimalManager {
         a.herd = this.herds.length - 1;
         herd.members.push(a);
       }
+      yield this.herds.length;
     }
   }
 

@@ -9,6 +9,7 @@ import { attachFogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
 import type { Collider } from '../player/Player';
 import { TIER_CONFIG } from '../core/tier';
+import { macrotask } from '../boot/plan';
 
 /**
  * The three log cabins of the chunk.
@@ -1296,12 +1297,13 @@ export class Cabins {
   constructor(private sky: Sky) {}
 
   async build(): Promise<{ group: THREE.Group; colliders: Collider[]; interactables: Interactable[] }> {
-    const mats = await loadMats(this.sky);
-    const [firePitGltf, lanternGltf, crate, barrel, bucket, hatchet] = await Promise.all([
+    // the seven PBR sets and the six models in one round of fetches (they were two, back to back)
+    const [mats, [firePitGltf, lanternGltf, crate, barrel, bucket, hatchet]] = await Promise.all([loadMats(this.sky), Promise.all([
       loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadGLTF('wooden_crate_02'), loadGLTF('wine_barrel_01'), loadGLTF('wooden_bucket_01'), loadGLTF('hatchet'),
-    ]);
+    ])]);
     const props = { crate: prepModel(crate.scene, this.sky), barrel: prepModel(barrel.scene, this.sky), bucket: prepModel(bucket.scene, this.sky), hatchet: prepModel(hatchet.scene, this.sky) };
-    CABIN_SITES.forEach((site, i) => {
+    for (const [i, site] of CABIN_SITES.entries()) {
+      if (i > 0) await macrotask(); // one cabin per task: the whole homestead in one go was a 180 ms long task at 4x CPU
       const spec = SPECS[i];
       if (spec === undefined) throw new Error(`Cabins: no spec for site ${i}`);
       const y = heightAt(site.x, site.z);
@@ -1327,7 +1329,7 @@ export class Cabins {
       }
       if (!TIER_CONFIG.cabinDetailShadows) for (const o of b.detail) o.traverse((c) => { c.castShadow = false; });
       this.lods.push({ root: b.root, detail: b.detail, far: b.far, anchors: b.anchors, detailOn: true, farOn: false });
-    });
+    }
     return { group: this.group, colliders: this.colliders, interactables: this.interactables };
   }
 

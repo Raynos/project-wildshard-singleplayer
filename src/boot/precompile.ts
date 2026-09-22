@@ -248,7 +248,6 @@ export async function runPrecompile(
 ): Promise<PrecompileReport> {
   const parallel = renderer.extensions.has('KHR_parallel_shader_compile');
   const before = snapshotPrograms(renderer);
-  const gl = renderer.getContext();
   const created: ProgramLike[] = [];
   const total = () => jobs.length + Math.max(created.length, 1) + textures.length;
   const mode = parallel ? 'parallel' : 'serial';
@@ -289,13 +288,15 @@ export async function runPrecompile(
   // Phase B: resolve each link. COMPLETION_STATUS only says the front end is done — ANGLE Metal
   // builds the Metal library on the first LINK_STATUS / uniform query (~20 ms a program with a cold
   // shader cache), which the first frame would otherwise pay for every program in one stall. One
-  // query per program, time-boxed per frame so the count keeps moving; without the extension this
-  // is also where the link itself blocks.
+  // resolve per program, time-boxed per frame so the count keeps moving; without the extension this
+  // is also where the link itself blocks. The resolve is three's own first use (`getUniforms()`: the
+  // link-status + info-log checks, every uniform / attribute location), which the first draw of each
+  // program otherwise ran inside the first frame (~45 ms of onFirstUse at 4x CPU).
   const tB = performance.now();
   let tSlice = tB;
   const skipResolve = PERFLOAD && new URLSearchParams(location.search).has('noresolve'); // A/B for the instrumentation
   for (const [i, p] of created.entries()) {
-    if (!skipResolve) gl.getProgramParameter(p.program, gl.LINK_STATUS);
+    if (!skipResolve) p.getUniforms();
     onProgress?.(jobs.length + (parallel ? n : 0) + i + 1, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
     if (performance.now() - tSlice > 12) { await frame(); tSlice = performance.now(); }
   }
