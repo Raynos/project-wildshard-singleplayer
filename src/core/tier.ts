@@ -27,6 +27,8 @@ export const TIER_CONFIG = {
     // cabins: hardware / lantern / fire pit / flames only within this; 4 shared point lights follow the nearest cabin
     // instead of 12 in every shader (NUM_POINT_LIGHTS is per-fragment cost on everything, grass included)
     cabinDetailDist: 70, cabinDetailShadows: false, sharedCabinLights: true, beaconLights: false,
+    // item pickups (WeaponPickup): the floating item within this, the orb (sphere / rings / motes / sigil) within this
+    pickupItemDist: 22, pickupOrbDist: 120,
     // pond planar reflection: render-target width (height = half), and whether the carpet layers reflect
     reflectionWidth: 512, reflectDetail: false,
     // post: god rays samples / resolution scale, volumetric march steps, SMAA preset
@@ -45,6 +47,7 @@ export const TIER_CONFIG = {
     grassRadius: 55, grassSlots: 96, grassQuads: 5,
     undergrowthFar: 110, propsFar: 700, propsMinAngular: 0.0012,
     cabinDetailDist: 160, cabinDetailShadows: true, sharedCabinLights: false, beaconLights: true,
+    pickupItemDist: Infinity, pickupOrbDist: Infinity,
     reflectionWidth: 1024, reflectDetail: true,
     godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, volumetricScale: 1, smaa: 'high' as 'off' | 'low' | 'high', bloomLevels: 8,
     oceanCell: 2.75, palmCount: 150, palmFrondSegs: 6, bushCount: 260, bushDetail: 1, bushShadows: true, boulderShadows: true,

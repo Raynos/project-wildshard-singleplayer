@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Interactable } from '../world/Cabin';
 import { isMesh } from './Crossbow';
+import { TIER_CONFIG } from '../core/tier';
 
 /**
  * ItemPickup (exported as WeaponPickup too) — an item lying in the world for the player to find, presented like
@@ -280,6 +281,11 @@ export class ItemPickup {
     if (camera) { _eye.setFromMatrixPosition(camera.matrixWorld); _to.subVectors(_eye, this.interactable.position); dist = _to.length(); }
     const inside = dist <= this.interactable.radius;
     if (inside !== this.near) { this.near = inside; this.onNear?.(inside); }
+    // draw distance by tier (tier.ts): the item model is ~10 draws + its shadow casters, the orb 6 more — the AR-15 sits
+    // inside cabin 1 and was drawn from every corner of the chunk. The light stays (a changing light count recompiles).
+    const orbOn = dist < TIER_CONFIG.pickupOrbDist;
+    this.holder.visible = dist < TIER_CONFIG.pickupItemDist;
+    this.sphere.visible = orbOn; this.rings.visible = orbOn; this.points.visible = orbOn; this.sigil.visible = orbOn; this.pool.visible = orbOn;
     const nearK = dist < NEAR_DIST ? 1 : 0;
     this.approach += (nearK - this.approach) * Math.min(1, dt * 3);
 
@@ -309,7 +315,7 @@ export class ItemPickup {
     } else this.rings.quaternion.slerp(_qIdentity, Math.min(1, dt * 2.5));
     this.ringMat.opacity = 0.75 + Math.sin(this.pulse * 1.5) * 0.15 + 0.1 * this.approach;
 
-    this.stepMotes(dt, t);
+    if (orbOn) this.stepMotes(dt, t);
   }
 
   /** motes spiral up their helices; every TRAIL_DT the history shifts and the trail sprites follow; sparks flash */
