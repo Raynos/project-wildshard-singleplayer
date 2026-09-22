@@ -7,7 +7,6 @@
 import type { Game } from '../core/Game';
 import { TIER } from '../core/tier';
 import './perf.css';
-import { dbg } from './Debug';
 
 const PAINT_MS = 500;
 const k = (n: number) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(n));
@@ -31,10 +30,7 @@ export class Perf {
   }
 
   /** Hidden while the menu is up (the world is not rendering, so there is nothing to measure). */
-  setActive(on: boolean): void { this.active = on; this.root.hidden = on ? this.userHidden || !dbg.meter : true; }
-  private active = false;
-  /** DBG pill toggled the meter */
-  refresh(): void { this.setActive(this.active); }
+  setActive(on: boolean): void { this.root.hidden = on ? this.userHidden : true; }
   private userHidden = false;
 
   private update(now: number) {

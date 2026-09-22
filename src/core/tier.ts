@@ -9,15 +9,13 @@ const params = new URLSearchParams(location.search);
 const ua = navigator.userAgent;
 const isIPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
 const mobileUA = /iPhone|iPad|iPod|Android/i.test(ua) || isIPadOS;
-const dbgFlags = (() => { try { return JSON.parse(localStorage.getItem('ws.debug') ?? '{}') as { tier?: string; dpr?: string; aa?: string }; } catch { return {}; } })(); // DBG pill (src/ui/Debug.ts)
-const dbgTier = dbgFlags.tier;
-const forced = (params.get('tier') ?? (dbgTier === 'phone' || dbgTier === 'desktop' ? dbgTier : null)) as Tier | null;
+const forced = params.get('tier');
 
 export const TIER: Tier = forced === 'phone' || forced === 'desktop' ? forced : mobileUA ? 'phone' : 'desktop';
 
 export const TIER_CONFIG = {
   phone: {
-    maxTexture: 1024, layerSize: 512, dpr: 1.5, ao: false, // DPR 1.5 + SMAA on: confirmed by the user as the phone default (the crossbow at 1.0 was unacceptable); DBG dpr knob still overrides
+    maxTexture: 1024, layerSize: 512, dpr: 1.5, ao: false, // DPR 1.5 + SMAA on: confirmed by the user as the phone default (the crossbow at 1.0 was unacceptable); Settings ▸ Render scale overrides
     // shadows: one cascade to 80 m, 1024² — the 2-cascade rig re-drew the whole world twice (9.8 M tris)
     cascades: 1, shadowMapSize: 1024, shadowFar: 80, shadowMargin: 60, softShadows: false,
     undergrowthShadows: false, animalShadowDist: 30, animalHideDist: 150, furShells: false,
@@ -53,7 +51,27 @@ export const TIER_CONFIG = {
   },
 }[TIER];
 
-// DBG overrides (src/ui/Debug.ts): render scale and SMAA, so the sharpness/fps trade-off can be dialled on the phone
-if (dbgFlags.dpr && dbgFlags.dpr !== 'auto') TIER_CONFIG.dpr = Number(dbgFlags.dpr);
-if (dbgFlags.aa === 'on' && TIER_CONFIG.smaa === 'off') TIER_CONFIG.smaa = 'low';
-if (dbgFlags.aa === 'off') TIER_CONFIG.smaa = 'off';
+/**
+ * The player's graphics prefs — the menu's Settings ▸ Graphics rows (src/ui/Menu.ts), read once at boot, so a
+ * change needs a restart. 'auto' = the tier default above. The old DBG pill kept a tier / dpr / aa / meter
+ * override under 'ws.debug'; the pill is gone and that key is dropped once so a stale override stops applying.
+ */
+export interface GfxPrefs { dpr: 'auto' | '1' | '1.25' | '1.5'; aa: 'auto' | 'on' | 'off' }
+const GFX_KEY = 'ws.gfx.v1';
+function readGfxPrefs(): GfxPrefs {
+  const prefs: GfxPrefs = { dpr: 'auto', aa: 'auto' };
+  try {
+    localStorage.removeItem('ws.debug');
+    const raw = JSON.parse(localStorage.getItem(GFX_KEY) ?? '{}') as Partial<Record<string, unknown>>;
+    const dpr = raw['dpr'], aa = raw['aa'];
+    if (dpr === '1' || dpr === '1.25' || dpr === '1.5') prefs.dpr = dpr;
+    if (aa === 'on' || aa === 'off') prefs.aa = aa;
+  } catch { /* private mode / disabled storage: tier defaults */ }
+  return prefs;
+}
+export const gfxPrefs: GfxPrefs = readGfxPrefs();
+export function saveGfxPrefs(): void { try { localStorage.setItem(GFX_KEY, JSON.stringify(gfxPrefs)); } catch { /* private mode */ } }
+
+if (gfxPrefs.dpr !== 'auto') TIER_CONFIG.dpr = Number(gfxPrefs.dpr);
+if (gfxPrefs.aa === 'on' && TIER_CONFIG.smaa === 'off') TIER_CONFIG.smaa = 'low';
+if (gfxPrefs.aa === 'off') TIER_CONFIG.smaa = 'off';

@@ -47,7 +47,6 @@ import { GameMenu } from './ui/Menu';
 import { Progress } from './game/Progress';
 import { Inventory, harvestOf, ITEMS } from './game/Inventory';
 import { getNumber, onNumber } from './ui/Settings';
-import { Debug } from './ui/Debug';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
 import { setAimTargets } from './player/AimTargets';
@@ -224,7 +223,6 @@ async function main() {
   const minimap = new Minimap(); // circular minimap (Heightfield is installed by now)
   const fullMap = new FullMap(minimap); // the menu's MAP tab (Menu.ts mounts it); tap the minimap / M to open
   const keepAlive = new KeepAlive();
-  const debug = new Debug(() => perf.refresh()); // TEMPORARY: tier/dpr/aa/meter knobs (src/ui/Debug.ts)
   const audio = new Audio();
   // the Wildshard theme (docs/plans/MUSIC.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
   const music = new Music(audio);
@@ -348,16 +346,16 @@ async function main() {
     void keepAlive.start(); // screen wake lock — needs this user gesture
     weapons.setEnabled(true);
     weapons.visible = true;
-    perf.setActive(true); debug.setActive(true);
+    perf.setActive(true);
     if (tour.active && !params.has('tour')) { tour.active = false; respawn(); }
     if (!nolock) player.lock();
   };
   hud.onResume = enter;
-  hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); debug.setActive(false); music.setState({ mode: 'menu' }); }; // the HUD mutes audio and clears `entered`; the gate does the rest
+  hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); music.setState({ mode: 'menu' }); }; // the HUD mutes audio and clears `entered`; the gate does the rest
   // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
   game.frameGate = () => hud.entered;
   if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.muted = true; hud.showIntro(enter); }
-  else { hud.markEntered(); weapons.setEnabled(!nolock || params.has('skipintro')); debug.setActive(true); }
+  else { hud.markEntered(); weapons.setEnabled(!nolock || params.has('skipintro')); }
   document.addEventListener('keydown', () => audio.resume(), { once: true });
   document.addEventListener('mousedown', () => audio.resume(), { once: true });
 

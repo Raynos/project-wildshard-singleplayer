@@ -18,7 +18,7 @@ import type { Progress } from '../game/Progress';
 import { PACK_SLOTS, type Inventory } from '../game/Inventory';
 import { icon, type IconId } from './icons';
 import { getSetting, setSetting, onSetting, getNumber, setNumber, type SettingKey } from './Settings';
-import { dbg } from './Debug';
+import { gfxPrefs, saveGfxPrefs } from '../core/tier';
 
 export type MenuTab = 'map' | 'inventory' | 'achievements' | 'settings';
 const TABS: { id: MenuTab; label: string }[] = [
@@ -236,7 +236,7 @@ export class GameMenu {
     };
     p.append(el('ws-gmenu-label', 'Gameplay'), sw('aimAssist', 'Aim assist'), sw('tracers', 'Tracer bolts'));
 
-    // graphics: the boot flags from src/ui/Debug.ts (tier.ts reads them at start-up → reload to apply)
+    // graphics: the boot prefs in src/core/tier.ts (read at start-up → reload to apply)
     const seg = (label: string, options: { v: string; text: string }[], get: () => string, set: (v: string) => void) => {
       const row = el('ws-gmenu-row', `<span class="ws-gmenu-swlabel">${label}</span>`);
       const box = el('ws-gmenu-seg');
@@ -250,10 +250,9 @@ export class GameMenu {
     };
     const dprOpts = [{ v: '1', text: '1.0×' }, { v: '1.25', text: '1.25×' }, { v: '1.5', text: '1.5×' }, { v: 'auto', text: 'Auto' }];
     const aaOpts = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }, { v: 'auto', text: 'Auto' }];
-    const saveDbg = () => { try { localStorage.setItem('ws.debug', JSON.stringify(dbg)); } catch { /* private mode */ } };
     p.append(el('ws-gmenu-label', 'Graphics'),
-      seg('Render scale', dprOpts, () => dbg.dpr, (v) => { dbg.dpr = v as typeof dbg.dpr; saveDbg(); }),
-      seg('Anti-aliasing', aaOpts, () => dbg.aa, (v) => { dbg.aa = v as typeof dbg.aa; saveDbg(); }));
+      seg('Render scale', dprOpts, () => gfxPrefs.dpr, (v) => { if (v === 'auto' || v === '1' || v === '1.25' || v === '1.5') { gfxPrefs.dpr = v; saveGfxPrefs(); } }),
+      seg('Anti-aliasing', aaOpts, () => gfxPrefs.aa, (v) => { if (v === 'auto' || v === 'on' || v === 'off') { gfxPrefs.aa = v; saveGfxPrefs(); } }));
     const apply = el('ws-gmenu-apply', 'Restart to apply', 'button') as HTMLButtonElement; apply.type = 'button'; apply.hidden = true;
     apply.addEventListener('click', () => location.reload());
     p.append(apply);
@@ -275,7 +274,7 @@ export class GameMenu {
     p.append(el('ws-gmenu-label', 'Audio'), vol, mus);
     return apply;
   }
-  /** the render scale / AA rows changed a boot flag (src/ui/Debug.ts `dbg`) — only a reload applies it */
+  /** the render scale / AA rows changed a boot pref (src/core/tier.ts `gfxPrefs`) — only a reload applies it */
   private applyBtn: HTMLButtonElement;
   private markReload(): void { this.applyBtn.hidden = false; }
 }
