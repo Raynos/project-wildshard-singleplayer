@@ -7,6 +7,19 @@ pnpm dev           # http://localhost:5173
 pnpm build         # tsc + vite build → dist/
 ```
 
+## Tests
+```
+pnpm test                          # vitest run — the whole suite, well under a second
+pnpm exec vitest                   # watch mode
+pnpm exec vitest run test/chunks   # one file
+```
+Unit tests for the pure logic live in `test/*.test.ts` (outside `src/`, so no `import.meta.glob` can pull one into
+the bundle): RNG / noise determinism, the boot plan's progress invariants, inventory + harvest yields, achievements /
+titles, settings, the species registry and every shard's ChunkDef + terrain contract. They run in plain node
+(`vitest.config.ts`, deliberately separate from `vite.config.ts`, which bakes terrain on load); `test/setup.ts` stubs
+`localStorage` (fresh per test) and `location`. Tests are in the `tsc` / `oxlint` gates like any source file, and
+CI runs `pnpm test` as the **Test** step between Lint and the CSS check — a red test means no deploy.
+
 ## Controls
 WASD move · Shift sprint · Ctrl/C crouch · Space jump · LMB fire · RMB aim · R span · E interact (doors, harvest carcasses) · Esc release cursor
 

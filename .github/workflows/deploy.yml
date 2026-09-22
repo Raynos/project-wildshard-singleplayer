@@ -62,6 +62,9 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
+      - name: Test
+        run: pnpm test
+
       - name: CSS check
         run: node scripts/check-css.mjs
 
