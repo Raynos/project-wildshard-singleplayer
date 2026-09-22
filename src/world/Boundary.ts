@@ -125,7 +125,8 @@ export class Boundary {
       this.beaconMats = {
         pole: poleMat,
         head: new THREE.MeshBasicMaterial({ color: new THREE.Color(0.5, 1.4, 1.8), toneMapped: false, fog: false }),
-        beam: new THREE.MeshBasicMaterial({ color: new THREE.Color(0.3, 0.8, 1.0), transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false }),
+        // additive + no depth write: back / front order cannot matter, so one pass instead of three's two for a transparent DoubleSide
+        beam: new THREE.MeshBasicMaterial({ color: new THREE.Color(0.3, 0.8, 1.0), transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, forceSinglePass: true, fog: false }),
       };
     }
     return this.beaconMats;

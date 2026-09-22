@@ -484,6 +484,10 @@ function wallSlab(a0: number, a1: number, h: number, thick: number, openings: Op
 // ───────────────────────────── one cabin ─────────────────────────────
 
 const DETAIL_KEYS = new Set<MatKey>(['iron', 'cloth', 'char', 'chink']);
+/** a layer only the sun's shadow cameras render (Cabins.build enables it on them): the cabins' shadow-caster proxies */
+const SHADOW_LAYER = 9;
+/** never drawn in a view (layer), only its depth: front-sided like every cabin material, so the shadow side matches */
+const shadowProxyMaterial = new THREE.MeshBasicMaterial({ colorWrite: false });
 /** merged parts that go too past 2× cabinDetailDist (log ends, woodpile bark, door frame) */
 const FAR_KEYS = new Set<MatKey>(['endGrain', 'bark', 'door']);
 
@@ -1261,16 +1265,29 @@ class CabinBuilder {
   }
 
   private finish() {
+    // the static shadow casters go into the shadow map as two position-only proxies (the silhouette set, and the far
+    // set that hides with the far LOD) on SHADOW_LAYER, which only the sun's shadow cameras see: 2 shadow draws per
+    // cabin instead of 7, the same depth (same triangles, all front-sided materials)
+    const core: THREE.BufferGeometry[] = [], farSet: THREE.BufferGeometry[] = [];
     for (const [key, list] of this.parts) {
       const merged = mergeOrNull(list);
       if (merged === null) continue;
       merged.computeBoundingSphere();
       const mesh = new THREE.Mesh(merged, this.mats[key]);
-      mesh.castShadow = true;
       mesh.receiveShadow = true;
       this.root.add(mesh);
-      if (DETAIL_KEYS.has(key)) this.detail.push(mesh);
-      else if (FAR_KEYS.has(key)) this.far.push(mesh);
+      if (DETAIL_KEYS.has(key)) { mesh.castShadow = true; this.detail.push(mesh); continue; }
+      const pos = new THREE.BufferGeometry(); pos.setAttribute('position', merged.getAttribute('position'));
+      if (FAR_KEYS.has(key)) { this.far.push(mesh); farSet.push(pos); } else core.push(pos);
+    }
+    for (const [list, far] of [[core, false], [farSet, true]] as const) {
+      const g = list.length > 0 ? mergeOrNull(list) : null;
+      if (g === null) continue;
+      g.computeBoundingSphere();
+      const proxy = new THREE.Mesh(g, shadowProxyMaterial);
+      proxy.castShadow = true; proxy.layers.set(SHADOW_LAYER);
+      this.root.add(proxy);
+      if (far) this.far.push(proxy);
     }
     this.parts.clear();
   }
@@ -1314,6 +1331,7 @@ export class Cabins {
       const b = new CabinBuilder(this, spec, i, site.x, y, site.z, site.rot, mats, this.sky, propInstances);
       b.build(firePitGltf.scene, lanternGltf.scene);
       this.group.add(b.root);
+      for (const l of this.sky.csm.lights) l.shadow.camera.layers.enable(SHADOW_LAYER);
       for (const k of Object.keys(propInstances) as PropKind[]) {
         const list = propInstances[k];
         if (list.length === 0) continue;
