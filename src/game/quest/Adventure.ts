@@ -57,6 +57,8 @@ export interface AdventureWorld<A extends { kind: string; position: THREE.Vector
   progress?: ProgressSink;
   /** the full map (the menu's MAP tab): shows the island's places with discovery + the quest markers (A5) */
   fullMap?: { setPois: (source: () => MapPoi[]) => void };
+  /** the iron sword in the wreck's hold (IronSword.ts) — guarded until the drowned sailor is beaten (B4 / D6) */
+  ironDrop?: { guard: (() => string | null) | null; onGuarded?: ((reason: string) => void) | undefined } | null;
 }
 
 export interface Adventure {
@@ -147,6 +149,10 @@ export function installAdventure<A extends { kind: string; position: THREE.Vecto
   const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null };
   adventure.spine = installSpine(adventure, w);
   if (w.progress) installFeats(adventure, w, w.progress);
+  if (w.ironDrop) {
+    w.ironDrop.guard = () => (flags.has('dead:sailor') ? null : 'The drowned sailor guards the rack');
+    w.ironDrop.onGuarded = (why) => { w.hud.toast(`${why} — beat him first`); sfx.interact('locked'); };
+  }
   const places = installPlaces(adventure, (t) => { w.hud.toast(t); });
   adventure.places = places;
   w.fullMap?.setPois(places.mapPois);
