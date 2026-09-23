@@ -9,6 +9,7 @@ import { Animal, damageFor } from './Animal';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from '../core/tier';
 import { noReflect } from '../world/Water';
+import { worldTime } from '../core/time';
 
 /**
  * AnimalManager — spawns the chunk's huntable wildlife (the active ChunkDef's `fauna` herd plans),
@@ -497,7 +498,7 @@ export class AnimalManager {
       for (let k = 0; k < SHELL_MAX; k++) if (si[k] === i) { const d = Math.sqrt(sd[k] ?? Infinity); level = d < 6 ? 8 : d < 11 ? 6 : 4; }
       this.animals[i]?.setShellLevel(level);
     }
-    this.blood.update(dt);
+    this.blood.update(worldTime.realDt || dt); // blood keeps flying through a hit-stop (worldTime, Game.hitStop)
     if (this.debug) this.updateDebug();
   }
 

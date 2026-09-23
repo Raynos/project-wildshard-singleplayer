@@ -9,6 +9,7 @@ import type { Weapon, WeaponState, AimInfo } from './Weapon';
 import { REST, CHARGE, SPRINT, COMBO, SLASH, HEAVY, type Move } from './SwordMoves';
 import { getAimTargets, meleeLock, targetRadius, type AimTarget } from './AimTargets';
 import { segmentBlocked } from './MeleeSweep';
+import { worldTime } from '../core/time';
 
 /**
  * Sword — the Driftwood Isle melee weapon (`ChunkDef.weapon === 'sword'`): a low-poly wooden sword (pale carved blade
@@ -55,7 +56,8 @@ import { segmentBlocked } from './MeleeSweep';
  * against `player.colliders` (MeleeSweep.segmentBlocked). A hit: `applyDamage(damage, point, dir)`, then
  * `stagger(pushDir, strength)` when the target has one (Animal.ts: light 0.6 m / 0.4 s, heavy 1.5 m / 0.8 s, breaks a
  * running charge), `onHit(kind, false, killed)` + `onImpact('flesh', point)` fire (Combat's damage float and the HUD
- * hit marker work unchanged), the swing hit-stops for a beat (the first hit only) and a star burst pops at the point.
+ * hit marker work unchanged), the first hit stops the world for the move's hit-stop (Game.hitStop: 60 / 90 / 140 ms for
+ * combo / finisher / heavy — C2) and a star burst pops at the point.
  *
  * Events: onFire() every swing (light AND heavy: play the whoosh; Combat's MISS judgement taps it) · onHeavy() on the
  * heavy's release, after onFire (a deeper whoosh layer: Audio.swordHeavy) · onHit(kind, headshot=false, killed) ·
@@ -376,7 +378,7 @@ export class Sword implements Weapon {
   private comboIdx = 0;          // index into COMBO of the NEXT light swing
   private lastSwingEnd = -1e9;
   private cooldown = 0;
-  private hitDone = false; private hitStop = 0;
+  private hitDone = false;
   private jolt = 0;
   // heavy
   private mouseHeld = false; private heldPrev = false;
@@ -450,7 +452,7 @@ export class Sword implements Weapon {
     if (next !== undefined) this.startSwing(next);
   }
   private startSwing(move: Move): void {
-    this.move = move; this.swingT = 0; this.hitDone = false; this.hitStop = 0; this.queued = false;
+    this.move = move; this.swingT = 0; this.hitDone = false; this.queued = false;
     this.struckN = 0; this.struck.fill(null); this.sweepHave = false;
     this.fromPos.copy(this.basePos); this.fromQ.copy(this.baseQ);
     this.trailN = 0; this.trail.visible = false;
@@ -648,7 +650,9 @@ export class Sword implements Weapon {
     // knockback: away from the player, biased the way the sweep travels (Animal.stagger flattens it)
     _push.set(_fwd.x, 0, _fwd.z).normalize().multiplyScalar(0.8).addScaledVector(_v2, 0.5 * move.sweep);
     if (!killed) (animal as unknown as { stagger?: (dir: THREE.Vector3, strength: number) => void }).stagger?.(_push, move.stagger);
-    if (!this.hitDone) { this.hitDone = true; this.hitStop = move.hitStop; this.jolt = move === HEAVY ? 1.6 : 1; }
+    // hit-stop (C2): the first contact of a swing stops the WORLD (Game.hitStop — the swing, the target, the player) for the
+    // move's 60 / 90 / 140 ms; the stars, trail fade and camera kick run on worldTime.realDt through it
+    if (!this.hitDone) { this.hitDone = true; this.game.hitStop(move.hitStop * this.swingScale); this.jolt = move === HEAVY ? 1.6 : 1; }
     this.stars.burst(point, _fwd, move === HEAVY ? 14 : 9);
     this.onHit?.(animal.kind, false, killed);
     this.onImpact?.('flesh', point);
@@ -693,10 +697,10 @@ export class Sword implements Weapon {
       if (this.releaseQueued && this.chargeT >= HEAVY_CHARGE) this.releaseHeavy();
     } else if (this.chargePending && !this.move) this.beginCharge();
 
-    // swing clock (hit-stop holds it on contact); a queued combo swing chains the moment the active window closes
+    // swing clock (a hit-stop slows it with the whole world: dt is scaled, Game.hitStop); a queued combo swing chains the moment the active window closes
     let move = this.move;
     if (move) {
-      if (this.hitStop > 0) this.hitStop -= dt; else this.swingT += dt / this.swingScale;
+      this.swingT += dt / this.swingScale;
       const next = this.queued && this.swingT >= move.slashEnd + CHAIN_LAG && this.comboIdx < COMBO.length ? COMBO[this.comboIdx++] : undefined;
       if (next !== undefined) { this.startSwing(next); move = this.move; }
       else if (this.swingT >= move.total) { this.move = move = null; this.lastSwingEnd = t; this.cooldown = COOLDOWN; }
@@ -780,7 +784,7 @@ export class Sword implements Weapon {
     // the heavy's tip glint: on through the chop's active window, then winks out
     const glintOn = move === HEAVY && active;
     if (glintOn) { this.rig.updateMatrix(); this.glint.set(_v2.set(0, this.tipY + 0.02, 0).applyMatrix4(this.rig.matrix)); }
-    this.glint.update(dt, t, glintOn);
+    this.glint.update(worldTime.realDt, t, glintOn);
 
     // aim readout (HUD "BOAR · 15 M")
     if (this.targets && (++this.aimFrame & 3) === 0) {
@@ -789,6 +793,6 @@ export class Sword implements Weapon {
       if (hit?.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; this.aimInfo = this.aimCache; }
       else this.aimInfo = null;
     }
-    this.stars.update(dt, this.game.renderer, cam);
+    this.stars.update(worldTime.realDt, this.game.renderer, cam); // particles keep flying through a hit-stop
   }
 }

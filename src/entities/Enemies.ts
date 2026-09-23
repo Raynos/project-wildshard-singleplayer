@@ -7,6 +7,7 @@ import type { PalmSpec } from '../world/Palms';
 import type { AnimalManager } from './AnimalManager';
 import type { Animal } from './Animal';
 import { WRECK } from '../chunks/driftwood-isle';
+import { worldTime } from '../core/time';
 
 /**
  * Enemies — Driftwood Isle's three enemy species placed into the island's spaces, plus the pieces their AIs need
@@ -261,17 +262,18 @@ export class Enemies {
     if (dirty) this.coconuts.instanceMatrix.needsUpdate = true;
     // ── droplets ──
     if (this.dActive) {
+      const rdt = worldTime.realDt || dt; // droplets keep falling through a hit-stop
       let alive = 0;
       const life = this.dLife, pos = this.dPos, vel = this.dVel;
       for (let k = 0; k < DROPS; k++) {
         const l0 = life[k] ?? 0;
         if (l0 <= 0) continue;
-        life[k] = l0 - dt;
+        life[k] = l0 - rdt;
         if ((life[k] ?? 0) <= 0) { pos[k * 3 + 1] = -1000; continue; }
         alive++;
         const j = k * 3;
-        vel[j + 1] = (vel[j + 1] ?? 0) - G * dt;
-        pos[j] = (pos[j] ?? 0) + (vel[j] ?? 0) * dt; pos[j + 1] = (pos[j + 1] ?? 0) + (vel[j + 1] ?? 0) * dt; pos[j + 2] = (pos[j + 2] ?? 0) + (vel[j + 2] ?? 0) * dt;
+        vel[j + 1] = (vel[j + 1] ?? 0) - G * rdt;
+        pos[j] = (pos[j] ?? 0) + (vel[j] ?? 0) * rdt; pos[j + 1] = (pos[j + 1] ?? 0) + (vel[j + 1] ?? 0) * rdt; pos[j + 2] = (pos[j + 2] ?? 0) + (vel[j + 2] ?? 0) * rdt;
       }
       this.dActive = alive;
       this.dAttr.needsUpdate = true;

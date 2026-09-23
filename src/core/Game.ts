@@ -13,6 +13,10 @@ import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from './tier';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
+import { worldTime } from './time';
+
+/** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
+const HIT_STOP_SCALE = 0.04;
 
 export class Game {
   renderer: THREE.WebGLRenderer;
@@ -117,6 +121,14 @@ export class Game {
 
   onUpdate(fn: (dt: number, t: number) => void): void { this.updaters.push(fn); }
 
+  private stopLeft = 0;
+  /**
+   * Hit-stop (C2): for `seconds` of real time every updater gets `dt × HIT_STOP_SCALE` — the swing, the target, the
+   * player hang on the contact frame — while `worldTime.realDt` (src/core/time.ts) keeps the real step for what must keep
+   * moving (particles, camera shake). Overlapping stops take the longer. The sky and the post chain always run real time.
+   */
+  hitStop(seconds: number): void { this.stopLeft = Math.max(this.stopLeft, seconds); }
+
   /**
    * Build every program the first frame would otherwise compile in one stall — the scene's
    * materials, the shadow-depth variants, the sky background and the post chain — with progress
@@ -191,17 +203,22 @@ export class Game {
       if (!forceFrame && !this.frameGate()) { this.clock.getDelta(); return; } // keep the clock moving so the next frame's dt is sane
       forceFrame = false;
       this.renderer.info.reset();
-      const dt = Math.min(0.1, this.clock.getDelta());
+      const realDt = Math.min(0.1, this.clock.getDelta());
       const t = this.clock.elapsedTime;
+      // world time scale (hit-stop): updaters see the scaled step, realDt stays in worldTime for particles / camera
+      let scale = 1;
+      if (this.stopLeft > 0) { this.stopLeft -= realDt; scale = HIT_STOP_SCALE; }
+      worldTime.scale = scale; worldTime.realDt = realDt;
+      const dt = realDt * scale;
       for (const u of this.updaters) u(dt, t);
-      sky.update(dt);
+      sky.update(realDt);
       // planet + sun disc travel with the camera so they stay "infinitely" far
       sky.clouds.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.sunDir, 1500);
-      composer.render(dt);
+      composer.render(realDt);
       if (this.captures.length > 0) this.flushCaptures();
       this.lastFrame.calls = this.renderer.info.render.calls; this.lastFrame.triangles = this.renderer.info.render.triangles;
-      this.frameMs[this.frameI] = dt * 1000; this.frameI = (this.frameI + 1) % this.frameMs.length;
-      this.stats.frames++; this.stats.acc += dt;
+      this.frameMs[this.frameI] = realDt * 1000; this.frameI = (this.frameI + 1) % this.frameMs.length;
+      this.stats.frames++; this.stats.acc += realDt;
       if (this.stats.acc >= 0.5) { this.stats.fps = Math.round(this.stats.frames / this.stats.acc); this.stats.frames = 0; this.stats.acc = 0; }
     };
     loop();
