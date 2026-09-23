@@ -20,6 +20,7 @@ import { Noise2D, smoothstep, clamp, lerp } from '../core/noise';
 import { CHUNK_HALF, ROAD_LENGTH } from '../core/config';
 import { buildTerrain } from './terrain';
 import { spruceMask, NALATI_GULLIES } from '../world/spruceMask';
+import { inSpruceClearing } from '../world/nalati/clearings';
 import type { ChunkDef, ChunkTerrain, RGB, Vec2 } from './ChunkDef';
 import thumbnail from './thumbs/nalati-grasslands.jpg';
 import heroPortrait from './thumbs/nalati-grasslands-portrait.jpg';
@@ -396,7 +397,7 @@ export const NALATI_GRASSLANDS: ChunkDef = {
     maxSlope: 0.6,
     tintHue: 0.3, tintHueJitter: [-0.06, 0.06], tintSat: [0.05, 0.25], tintLight: [0.8, 0.95],
     largeVariantChance: 0.15,
-    mask: spruceMask({ gullies: NALATI_GULLIES, normalAt: TERRAIN.normalAt, seed: SEED }),
+    mask: ((spruce) => (x: number, z: number) => (inSpruceClearing(x, z) ? 0 : spruce(x, z)))(spruceMask({ gullies: NALATI_GULLIES, normalAt: TERRAIN.normalAt, seed: SEED })), // no spruce in the camp yard, the pasture or any POI (clearings.ts)
   },
   fauna: [], // wolves, horses and sheep: the creatures agent (B4)
   sky: {

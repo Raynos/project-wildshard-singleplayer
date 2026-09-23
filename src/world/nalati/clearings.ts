@@ -24,3 +24,13 @@ export function inPoiClearing(x: number, z: number, margin = 0): boolean {
   for (const c of POI_CLEARINGS) { const dx = x - c.x, dz = z - c.z, r = c.r + margin; if (dx * dx + dz * dz < r * r) return true; }
   return false;
 }
+
+/** the sheep pasture (the flock grazes within 40 m of (−120, 205): Wildlife NALATI_WILDLIFE) — open grass, no trees; the
+ *  dressing's flowers / stones may still sit in it, so it is not a POI clearing */
+export const PASTURE_CLEARING: Clearing = { x: -120, z: 205, r: 44 };
+
+/** where no spruce may grow: every POI clearing + the sheep pasture (the chunk def's `forest.mask`) */
+export function inSpruceClearing(x: number, z: number): boolean {
+  const dx = x - PASTURE_CLEARING.x, dz = z - PASTURE_CLEARING.z;
+  return dx * dx + dz * dz < PASTURE_CLEARING.r * PASTURE_CLEARING.r || inPoiClearing(x, z, 4);
+}

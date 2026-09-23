@@ -2,6 +2,7 @@ import { SEED, CHUNK_HALF } from '../core/config';
 import { Noise2D, smoothstep, lerp } from '../core/noise';
 import { heightAt, normalAt, splatAt, trailDistance, cabinMask, pondMask, waterLevel, inChunk } from './Heightfield';
 import { getActiveChunk, onActiveChunkChange } from '../chunks/registry';
+import { RIVER } from '../chunks/nalati-grasslands';
 
 /**
  * The painterly grass *field*: how tall the grass stands, how golden it is and which flowers grow, as pure
@@ -55,9 +56,9 @@ const NALATI_TALL: Zone[] = [
   { x: 205, z: -175, r: 26, h: TALL_GRASS },   // SW corner fold
   { x: 45, z: -35, r: 18, h: TALL_GRASS },     // rim-top patch by the waterfall
 ];
-/** the Kunes corridor — keep in step with `RIVER` in src/chunks/nalati-grasslands.ts (centreline z, half-width) */
-const riverZ = (x: number): number => 160 - 0.058 * x + 7 * Math.sin(x * 0.013);
-const riverHalf = (x: number): number => (19 + 5 * Math.sin(x * 0.009 + 2.1) + 3 * Math.sin(x * 0.031)) * lerp(0.62, 1, smoothstep(8, 60, Math.abs(x)));
+/** the Kunes corridor: the chunk def's own `RIVER` (centreline z, half-width) — one formula for the terrain, the water and the grass */
+const riverZ = RIVER.z;
+const riverHalf = RIVER.half;
 
 let noise = new Noise2D(SEED + 911);
 let noise2 = new Noise2D(SEED + 912);
