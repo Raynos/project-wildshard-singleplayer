@@ -60,10 +60,27 @@ const SLIDE_ACCEL = 5;                // … reached at this rate (/s)
 // ── dash (on foot): the DODGE (Left Alt / the DODGE disc) and the sword's lunge (Sword.ts) — a short fixed-velocity burst ──
 const DODGE_DIST = 3;                 // m …
 const DODGE_TIME = 0.25;              // … over this long (12 m/s), toward the move input; no input = a backstep
+/** E63 — the two dodge feels Jake plays side by side (docs/plans/DODGE-FEEL.md): T "lean + smear", V "grounded roll-dip" */
+export type DodgeStyle = 'T' | 'V';
+/** the running dodge, for the viewmodel (Sword.ts) and the screen FX (SpeedLines.ts): `t` ms since it started (-1 = none),
+ *  `side` −1 left … +1 right, `back` a backstep (no input) */
+export const dodgeFx: { style: DodgeStyle; t: number; side: number; back: boolean; id: number } = { style: 'T', t: -1, side: 0, back: false, id: 0 };
+/** the shared envelope (DODGE-FEEL "Shared timeline"): load 0–40 ms, burst to 120, hold to 250, then an underdamped spring
+ *  (ζ ≈ 0.55, ω ≈ 13 rad/s) that overshoots ~12 % at ~390 ms and settles by ~500 */
+const sstep01 = (x: number): number => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
+export function dodgeEnv(ms: number): number {
+  if (ms < 0) return 0;
+  if (ms < 40) return 0.25 * (ms / 40) ** 2;
+  if (ms < 120) { const u = (ms - 40) / 80; return 0.25 + 0.75 * (1 - (1 - u) ** 3); }
+  if (ms < 250) return 1 - 0.15 * ((ms - 120) / 130);
+  const r = (ms - 250) / 1000;
+  return 0.85 * Math.exp(-7.15 * r) * Math.cos(10.86 * r);
+}
+const DODGE_FX_END = 700;              // ms: every dodge curve has settled
 const DODGE_COOLDOWN = 0.8;           // s from one dodge's start to the next (E59: 0.6 → 0.8, shown as a sweep on the DODGE disc)
 const DASH_PROBE = 0.5;               // m ahead of the feet: deep water there (no deck under it) ends a dash — it never carries you off a pier
 const DODGE_DIP = 0.07;               // m the eye drops at a dodge's start (the land-impulse spring brings it back)
-const DODGE_ROLL = 0.06;              // rad of camera lean into a fully sideways dodge
+const DODGE_ROLL = 0.122;             // rad of camera lean into a fully sideways T dodge at its peak (7°, E63; 0.06 before)
 const DODGE_FOV_KICK = 5;             // ° wider while a dodge runs …
 const LUNGE_FOV_KICK = 7;             // … and a lunge (Sword.ts reads `fovKick`)
 
@@ -147,7 +164,7 @@ export class Player {
   private lastBobPhase = 0;
   // ── dash: dodge + lunge (see `dodge()` / `dash()`) ──
   /** the DODGE disc was tapped (TouchControls) — consumed next update, like `touchJump` */
-  touchDodge = false;
+  touchDodge: false | DodgeStyle = false; // E63: which dodge button was pressed
   /** a sword swing is running (Sword.ts sets it every frame): the look speed takes the 'swingLook' factor */
   swinging = false;
   /** look-speed multiplier for mouse AND touch (Settings 'look', × 'swingLook' while swinging) — TouchControls reads it too */
@@ -158,7 +175,8 @@ export class Player {
   /** degrees to widen the view by: kicked by a dodge / lunge, held while the dash runs, eased out after — Sword.ts adds it to its FOV */
   fovKick = 0;
   private dashT = 0; private dashVx = 0; private dashVz = 0; private dodgeCd = 0;
-  private dashRoll = 0; // camera lean into a sideways dodge (rad), eased out
+  private dashRoll = 0; // camera lean into a sideways dodge (rad), from the dodge envelope
+  private dodgeClock = -1; // ms since the running dodge started (-1 = none): the E63 feel curves
   /** true while a dodge / lunge burst is carrying the player */
   get dashing(): boolean { return this.dashT > 0; }
   /** the dodge cooldown still to run, 1 → 0 (0 = ready) — the touch DODGE disc's clock sweep (E59) */
@@ -169,7 +187,7 @@ export class Player {
       this.keys.add(e.code);
       if (e.code === 'Space') e.preventDefault();
       if (e.code === 'KeyH' && !e.repeat) this.setHover(!this.hover);
-      if (e.code === 'AltLeft') { e.preventDefault(); if (!e.repeat && this.locked) this.dodge(); } // Alt alone would focus the browser's menu bar
+      if (e.code === 'AltLeft') { e.preventDefault(); if (!e.repeat && this.locked) this.dodge(e.shiftKey ? 'V' : 'T'); } // Alt alone would focus the browser's menu bar
     });
     document.addEventListener('keyup', (e) => { this.keys.delete(e.code); });
     document.addEventListener('mousemove', (e) => {
@@ -236,8 +254,9 @@ export class Player {
     this.onLunge?.();
     return true;
   }
-  /** DODGE (Left Alt / the DODGE disc): DODGE_DIST m in DODGE_TIME s toward the move input, a backstep with none; DODGE_COOLDOWN s between */
-  dodge(): boolean {
+  /** DODGE (Left Alt = T, Left Alt + Shift = V / the T DODGE and V DODGE discs): DODGE_DIST m in DODGE_TIME s toward the
+   *  move input, a backstep with none; DODGE_COOLDOWN s between. `style` only changes the feel (E63) */
+  dodge(style: DodgeStyle = 'T'): boolean {
     if (this.dodgeCd > 0 || !this.canDash) return false;
     const k = this.keys;
     const fwd = Math.max(-1, Math.min(1, (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0) + this.touchMove.y));
@@ -249,10 +268,10 @@ export class Player {
     const v = DODGE_DIST / DODGE_TIME;
     if (!this.dash(mx * v, mz * v, DODGE_TIME)) return false;
     this.dodgeCd = DODGE_COOLDOWN;
-    // feel: a dip (the knees load), a lean into a sideways dodge, a small FOV kick
-    this.landImpulse = Math.max(this.landImpulse, DODGE_DIP);
-    this.dashRoll = -(mx * cos - mz * sin) * DODGE_ROLL; // + = the dodge goes right → roll right
-    this.fovKick = Math.max(this.fovKick, DODGE_FOV_KICK);
+    // feel (E63): the camera / viewmodel / screen curves run off one clock — see the camera block in update()
+    const side = len < 0.2 ? 0 : Math.max(-1, Math.min(1, -(mx * cos - mz * sin))); // + = the dodge goes right
+    this.dodgeClock = 0;
+    dodgeFx.style = style; dodgeFx.t = 0; dodgeFx.side = side; dodgeFx.back = len < 0.2; dodgeFx.id++;
     this.onDodge?.();
     return true;
   }
@@ -290,7 +309,7 @@ export class Player {
     this.diveHeld = swim && (k.has('Space') || this.touchDive);
     this.surfaceHeld = swim && (k.has('ShiftLeft') || k.has('ShiftRight') || this.touchSurface);
     this.dodgeCd = Math.max(0, this.dodgeCd - dt);
-    if (this.touchDodge) { this.touchDodge = false; this.dodge(); }
+    if (this.touchDodge !== false) { const st = this.touchDodge; this.touchDodge = false; this.dodge(st); }
     if (hover || swim) this.dashT = 0;
 
     // ground: terrain, or a platform if we are at/above it (step up ≤ 0.5 m)
@@ -523,8 +542,27 @@ export class Player {
     this.eyeOffset += (targetEye - this.eyeOffset) * Math.min(1, dt * 10);
     this.landImpulse *= Math.exp(-dt * 9);
     // dodge / lunge feel: the lean eases out, the FOV kick holds while the dash runs and eases out after
-    this.dashRoll *= Math.exp(-dt * 7);
     if (this.dashT <= 0) this.fovKick *= Math.exp(-dt * 8);
+    // the dodge feel (E63, docs/plans/DODGE-FEEL.md): T leans 7° into the side, leads 4 cm, dips 7 cm, +5° FOV, all on the
+    // shared envelope; V dives 22 cm and tips the view 4° down toward the landing, leans 3°, +10° FOV; a backstep pitches up
+    let dodgeDip = 0, dodgeLead = 0, dodgePitch = 0; this.dashRoll = 0;
+    if (this.dodgeClock >= 0) {
+      this.dodgeClock += dt * 1000;
+      const ms = this.dodgeClock, e = dodgeEnv(ms), side = dodgeFx.side;
+      if (dodgeFx.style === 'V') {
+        const dip = ms < 40 ? 0.05 * (ms / 40) : ms < 150 ? 0.05 + 0.17 * (1 - (1 - (ms - 40) / 110) ** 2) : ms < 200 ? 0.22
+          : (() => { const r = (ms - 200) / 1000, v = 0.22 * Math.exp(-7.15 * r) * Math.cos(10.86 * r); return v < 0 ? v * 0.6 : v; })();
+        dodgeDip = dip; dodgePitch = -(4 * Math.PI / 180) * (dip / 0.22); this.dashRoll = side * (3 * Math.PI / 180) * e;
+        const fov = ms < 60 ? 10 * (1 - (1 - ms / 60) ** 2) : ms < 200 ? 10 : ms < 450 ? 10 * (1 - sstep01((ms - 200) / 250)) : 0;
+        this.fovKick = Math.max(this.fovKick, fov);
+      } else {
+        dodgeDip = DODGE_DIP * e; dodgeLead = 0.04 * side * e;
+        if (dodgeFx.back) dodgePitch = (1.5 * Math.PI / 180) * e; else this.dashRoll = side * DODGE_ROLL * e;
+        if (ms < 450) this.fovKick = Math.max(this.fovKick, DODGE_FOV_KICK * Math.max(0, e));
+      }
+      if (ms > DODGE_FX_END) this.dodgeClock = -1;
+    }
+    dodgeFx.t = this.dodgeClock;
     if (this.fovKick < 0.02) this.fovKick = 0;
     this.hoverBlend += ((hover ? 1 : 0) - this.hoverBlend) * Math.min(1, dt * 4);
     if (!hover && !swim) this.bobTime += dt * (this.sprinting ? 11.5 : 8.5) * Math.min(1, hSpeed / 2);
@@ -539,10 +577,10 @@ export class Player {
     this.roll += (rollT - this.roll) * Math.min(1, dt * 5);
     this.pitchLean += (pitchT - this.pitchLean) * Math.min(1, dt * 3);
 
-    this.camera.position.set(this.position.x + bobX * cos, this.position.y + this.eyeOffset + bobY - this.landImpulse, this.position.z - bobX * sin);
+    this.camera.position.set(this.position.x + (bobX + dodgeLead) * cos, this.position.y + this.eyeOffset + bobY - this.landImpulse - dodgeDip, this.position.z - (bobX + dodgeLead) * sin);
     this.camera.rotation.set(0, 0, 0, 'YXZ');
     this.camera.rotation.y = this.yaw;
-    this.camera.rotation.x = this.pitch + this.pitchLean;
+    this.camera.rotation.x = this.pitch + this.pitchLean + dodgePitch;
     this.camera.rotation.z = Math.sin(this.bobTime) * bobAmp * 0.25 - str * 0.012 * (1 - this.hoverBlend) + this.roll + this.dashRoll;
 
     this.board.update(dt, this);

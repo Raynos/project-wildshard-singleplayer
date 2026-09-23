@@ -96,6 +96,9 @@
    DODGE's bottom 8 px above the bar */
 .ws-touch-disc.dodge { left: calc(100% - var(--disc) / 2 - 50px); bottom: calc(var(--bar) + 8px); }
 .ws-touch-disc.dodge svg { width: 34%; height: 34%; fill: none; }
+/* E63: V DODGE sits one disc left of T DODGE on the same row while Jake compares the two feels; the labels are longer */
+.ws-touch-disc.dodge.v { left: calc(100% - var(--disc) * 1.5 - 58px); }
+.ws-touch-disc.dodge span { font-size: 7.5px; letter-spacing: 0.14em; white-space: nowrap; }
 .ws-touch.swimming .ws-touch-disc.dodge { display: none; }
 /* DODGE cooldown (E59, TouchControls polls player.dodgeCooldown into --cd 1 → 0): a dark clock sweep over the disc that
    unwinds clockwise from 12 o'clock, the icon and label dimmed while it runs; a cyan flash when the dodge is back (.ready)
