@@ -5,6 +5,8 @@ import { attachFogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
 import { getActiveChunk } from '../chunks/registry';
 import type { ChunkHorizon } from '../chunks/ChunkDef';
+import { LOOK_V2 } from '../nalati/look/flag';
+import { NALATI_HORIZON_V2 } from '../nalati/look/horizon';
 
 /**
  * What lies beyond the chunk: a sea of clouds far below the slab (the Wildshard grid hangs in
@@ -23,9 +25,10 @@ export class Horizon {
 
   build(): this {
     const def = getActiveChunk();
-    if (def.horizon) { // a shard's own painted horizon (Nalati)
-      this.buildBands(def.horizon);
-      if (def.horizon.cloudSea) this.buildCloudSea();
+    const own = LOOK_V2 ? NALATI_HORIZON_V2 : def.horizon; // Nalati look v2: the rings re-aimed to layout v2 (src/nalati/look/horizon.ts)
+    if (own) { // a shard's own painted horizon (Nalati)
+      this.buildBands(own);
+      if (own.cloudSea) this.buildCloudSea();
       return this;
     }
     const ocean = Boolean(def.ocean);
