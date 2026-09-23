@@ -17,11 +17,12 @@ import { RIVER } from '../chunks/nalati-grasslands';
  * The field is sampled on a 4 m lattice (cached per chunk) and bilinearly interpolated, so it is smooth, cheap
  * to query many times a frame, and identical for the seeder and the senses.
  *
- * Nalati (`docs/design/nalati/stealth-and-storms.md`, `geography-and-map.md` §3): grazed turf 0.12–0.3 m at
- * the camp, the sheep pasture, the horse plains, the balbal knoll and along the trails; 0.5–0.7 m meadow
- * everywhere else; **1.0–1.25 m feather-grass stealth fields** — hand-placed (river banks, the wolf spur by
- * the east gully, five plateau fields) plus elongated E–W bands in the plateau's folds. Other shards (only via
- * the `?grass=painterly` dev switch) get a plain meadow with noise bands.
+ * Nalati (`docs/design/nalati/stealth-and-storms.md`, `geography-and-map.md` §3): short trodden grass only in the
+ * camp yard, the corral, the bridge heads, the summer hearth and inside the balbal circle; bare yurt floors and road
+ * beds with a lush verge right up to the dirt; a knee-high 0.66–0.72 m meadow everywhere else (look pass: the
+ * mockups carry lush grass and flower drifts everywhere); **1.0–1.25 m feather-grass stealth fields** — hand-placed
+ * (river banks, the wolf spur by the east gully, five plateau fields) plus elongated E–W bands in the plateau's
+ * folds. Other shards (only via the `?grass=painterly` dev switch) get a plain meadow with noise bands.
  */
 
 const LATTICE = 4;
@@ -35,17 +36,27 @@ export const MEADOW_GRASS = 0.6;
 interface Zone { x: number; z: number; r: number; h: number }
 
 // ── Nalati layout (engine coords: +z north, −x east) ──────────────────────────────────────────────
-/** grazed / trodden places: the height inside r, easing out to the field over another 0.6 r */
+/**
+ * Trodden yards only (look pass round 2: the mockups carry knee-high grass right up to the yurts and the path): the
+ * height inside r, easing back to the lush meadow over another 0.8 r. The open pastures are meadow, not lawn.
+ */
 const NALATI_SHORT: Zone[] = [
-  { x: 95, z: 205, r: 34, h: 0.14 },     // nomad camp
-  { x: 0, z: 160, r: 14, h: 0.2 },       // bridge heads
-  { x: -120, z: 205, r: 50, h: 0.28 },   // sheep pasture
-  { x: 140, z: -120, r: 52, h: 0.4 },    // horse plains (grazed by the herd)
-  { x: 20, z: -170, r: 17, h: 0.2 },     // balbal circle knoll
-  { x: 95, z: -200, r: 18, h: 0.16 },    // summer yurts
-  { x: 170, z: -20, r: 20, h: 0.22 },    // Eagle Rock tor foot
-  { x: -140, z: -105, r: 20, h: 0.35 },  // the great kurgan
+  { x: 95, z: 205, r: 9, h: 0.16 },      // the camp yard, inside the ring of yurts
+  { x: 122, z: 214, r: 7, h: 0.2 },      // the corral (the horses stand in it)
+  { x: 0, z: 160, r: 7, h: 0.2 },        // bridge heads
+  { x: 95, z: -200, r: 5.5, h: 0.18 },   // the summer camp's hearth yard
+  { x: 20, z: -170, r: 9, h: 0.32 },     // inside the balbal circle
 ];
+/** yurt footprints (bare felt floor + a trodden ring) — keep in step with NomadCamp.ts YURTS / SummerCamp.ts `Y` */
+const polar = (cx: number, cz: number, deg: number, d: number, r: number): Zone => ({ x: cx + Math.cos((deg * Math.PI) / 180) * d, z: cz + Math.sin((deg * Math.PI) / 180) * d, r, h: 0 });
+const NALATI_YURTS: Zone[] = [
+  polar(95, 205, 128, 13.5, 3.0), polar(95, 205, 88, 14.5, 3.5), polar(95, 205, 46, 13, 2.8),
+  polar(95, 205, 2, 13.5, 3.1), polar(95, 205, -44, 13, 2.7), polar(95, 205, -92, 13.5, 3.2),
+  polar(95, -200, 70, 9, 2.9), polar(95, -200, 175, 9.5, 2.6), polar(95, -200, -60, 9, 2.7),
+];
+/** the valley's lush meadow (m) and the plateau's */
+const MEADOW_VALLEY = 0.66;
+const MEADOW_PLATEAU = 0.72;
 /** feather-grass stealth fields */
 const NALATI_TALL: Zone[] = [
   { x: -135, z: 25, r: 30, h: TALL_GRASS },    // wolf country: the spur beside the east gully (den)
@@ -62,7 +73,7 @@ const riverHalf = RIVER.half;
 
 let noise = new Noise2D(SEED + 911);
 let noise2 = new Noise2D(SEED + 912);
-const STRIDE = 7; // per corner: height, tone, flower drift, drift species, ground r, g, b
+const STRIDE = 8; // per corner: height, tone, flower drift, drift species, ground r, g, b, grass bloom
 let lattice = new Float32Array(LN * LN * STRIDE).fill(Number.NaN);
 let nalati = getActiveChunk().slug === 'nalati-grasslands';
 onActiveChunkChange((def) => {
@@ -85,12 +96,12 @@ function evalField(x: number, z: number, out: Float32Array, o: number): void {
   const paint = getActiveChunk().groundColor;
   if (paint) paint(x, z, y, 1 - ny, getActiveChunk().terrain, rgb); else { rgb[0] = 0.12; rgb[1] = 0.2; rgb[2] = 0.05; }
   out[o + 4] = rgb[0]; out[o + 5] = rgb[1]; out[o + 6] = rgb[2];
-  if (!inChunk(x, z, 0.5)) { out[o] = 0; out[o + 1] = 0; out[o + 2] = 0; out[o + 3] = 0; return; }
+  if (!inChunk(x, z, 0.5)) { out[o] = 0; out[o + 1] = 0; out[o + 2] = 0; out[o + 3] = 0; out[o + 7] = 0; return; }
   const n1 = noise.fbm(x * 0.021, z * 0.021, 3);     // meadow undulation
   const tone0 = nalati ? smoothstep(2, 26, y) : 0.35;
   let tone = Math.min(1, Math.max(0, tone0 + 0.22 * noise2.fbm(x * 0.013, z * 0.013, 2)));
   // base meadow
-  let h = (nalati ? lerp(0.6, 0.68, tone0) : 0.55) * (1 + 0.16 * n1);
+  let h = (nalati ? lerp(MEADOW_VALLEY, MEADOW_PLATEAU, tone0) : 0.55) * (1 + 0.16 * n1);
   if (nalati) {
     // plateau folds: elongated E–W bands of feather grass (x stretched 2.4×)
     if (y > 22) {
@@ -103,7 +114,7 @@ function evalField(x: number, z: number, out: Float32Array, o: number): void {
     const bank = smoothstep(half + 2, half + 5, dr) * (1 - smoothstep(half + 12, half + 18, dr)) * smoothstep(22, 34, Math.abs(x)) * (y < 2 ? 1 : 0);
     h = lerp(h, TALL_GRASS * 0.95, bank);
     for (const zn of NALATI_TALL) h = lerp(h, zn.h * (0.95 + 0.1 * n1), zoneWeight(zn, x, z, 0.5));
-    for (const zn of NALATI_SHORT) h = lerp(h, zn.h, zoneWeight(zn, x, z, 0.6));
+    for (const zn of NALATI_SHORT) h = lerp(h, zn.h, zoneWeight(zn, x, z, 0.8));
     // the Crags: short above +45, bare snow / rock above +54
     h *= 1 - smoothstep(38, 48, y) * 0.7;
     if (y > 54) h = 0;
@@ -121,8 +132,12 @@ function evalField(x: number, z: number, out: Float32Array, o: number): void {
   h *= 1 - 0.85 * cabinMask(x, z);
   if (pondMask(x, z) > 0.02 || y < waterLevel() + 0.15) h = 0;
   out[o] = h; out[o + 1] = tone;
-  // flower drifts: blobs 8–25 m across, sharp-edged (a drift, not a sprinkle), each mostly one species
+  // flower drifts: blobs 8–25 m across, sharp-edged (a drift, not a sprinkle), each mostly one species (the
+  // dressing reads these for its 3D lupins / daisies)
   out[o + 2] = smoothstep(0.22, 0.42, noise2.fbm(x * 0.045 + 40, z * 0.045 - 12, 2));
+  // the grass's own bloom: the drifts above plus broad soft meadows of flowers 20–60 m across (only the grass's
+  // small heads use it — the dressing's 3D lupins / daisies stay on the tighter drifts)
+  out[o + 7] = Math.max(out[o + 2] ?? 0, 0.7 * smoothstep(0.0, 0.35, noise2.fbm(x * 0.02 - 13, z * 0.02 + 57, 2)));
   out[o + 3] = 0.5 + 0.5 * noise.get(x * 0.021 - 71, z * 0.021 + 33);
 }
 
@@ -147,9 +162,10 @@ function sample(x: number, z: number, ch: number): number {
  *  lattice cannot hold a 3 m path */
 export function trailGrass(h: number, td: number): number {
   // Nalati's roads are painted dirt ~3.6–4.4 m either side of the centreline (the def's groundColor)
+  // a lush verge right up to the dirt: a short fringe for half a metre, the full meadow a metre and a half out
   const bed = nalati ? 3.9 : 1.6;
-  if (td >= bed + 5.4) return h;
-  return td < bed ? 0 : lerp(Math.min(h, 0.14), h, smoothstep(bed + 0.6, bed + 5.4, td)) * smoothstep(bed, bed + 0.6, td);
+  if (td >= bed + 1.8) return h;
+  return td < bed ? 0 : lerp(Math.min(h, 0.22), h, smoothstep(bed + 0.3, bed + 1.8, td)) * smoothstep(bed, bed + 0.35, td);
 }
 
 /**
@@ -161,8 +177,11 @@ export function grassBaseHeightAt(x: number, z: number, td = trailDistance(x, z)
   if (!inChunk(x, z, 0.5)) return 0;
   if (heightAt(x, z) < waterLevel() + 0.15) return 0;
   const h = trailGrass(sample(x, z, 0), td);
+  if (!nalati || h <= 0) return h;
+  // the yurt floors stay bare
+  for (const y of NALATI_YURTS) { const dx = x - y.x, dz = z - y.z; if (dx * dx + dz * dz < (y.r + 0.3) ** 2) return 0; }
   // `exact`: also read the painted ground at the point (a road bed / gravel bar edge the 4 m lattice blurs)
-  return exact && nalati && h > 0 ? h * smoothstep(0.35, 0.6, splatAt(x, z)[0]) : h;
+  return exact ? h * smoothstep(0.35, 0.6, splatAt(x, z)[0]) : h;
 }
 
 /** 0 = fresh valley green … 1 = plateau gold */
@@ -185,12 +204,13 @@ export function groundColorAt(x: number, z: number, out: [number, number, number
  */
 export function flowerKindAt(x: number, z: number, h: number, r: number, r2: number): number {
   if (h < 0.18) return 0;
-  const p = 0.012 + 0.7 * flowerPatchAt(x, z);
+  const p = 0.02 + 0.8 * sample(x, z, 7);
   if (r >= p) return 0;
   const plateau = grassToneAt(x, z) > 0.5;
   const sp = sample(x, z, 3);
   // the drift's species: plateau → sage (most) / edelweiss / buttercup; valley → buttercup / daisy / sage
-  const own = plateau ? (sp < 0.55 ? 1 : sp < 0.8 ? 2 : 3) : (sp < 0.5 ? 3 : sp < 0.8 ? 2 : 1);
-  if (r2 < 0.8) return own;
-  return 1 + (Math.floor(((r2 - 0.8) / 0.2) * 3) % 3);
+  // plateau: edelweiss / sage / buttercup; valley: buttercup / daisy / sage — each drift leans to one, a third mixed
+  const own = plateau ? (sp < 0.3 ? 1 : sp < 0.75 ? 2 : 3) : (sp < 0.5 ? 3 : sp < 0.85 ? 2 : 1);
+  if (r2 < 0.65) return own;
+  return 1 + (Math.floor(((r2 - 0.65) / 0.35) * 3) % 3);
 }

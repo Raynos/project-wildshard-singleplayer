@@ -11,6 +11,7 @@ import { wind, WIND_GLSL } from './Wind';
 import { trample, TRAMPLE_GLSL } from './GrassTrample';
 import { grassBaseHeightAt, grassToneAt, flowerKindAt, groundColorAt } from './GrassField';
 import { painterlyUniforms } from './painterly';
+import { dressingCover } from './nalati/dressing';
 
 /**
  * The painterly grass carpet (Nalati, style B — `art/nalati-grasslands/round-1/1-art-style/style-B-painterly.png`,
@@ -23,7 +24,7 @@ import { painterlyUniforms } from './painterly';
  * Individual blades, not textured cards — no texture, no alpha test, no discard, so the tile GPUs keep their
  * hidden-surface removal. Two instanced draws:
  *
- *  - **near** (≤ 20 m desktop / 10 m phone): clumps of 16 (phone 11) wide, soft, leaf-shaped blades — 4 (phone 3)
+ *  - **near** (≤ 20 m desktop / 12 m phone): clumps of 16 (phone 11, 1.25× broader) wide, soft, leaf-shaped blades — 4 (phone 3)
  *    segments, full width to two thirds then a pointed tip, rounded normals across the width, arcing over under
  *    their own weight — plus two flower stems whose heads (purple sage spike · white edelweiss · yellow buttercup,
  *    camera-facing) collapse when the clump carries no flower;
@@ -46,11 +47,15 @@ import { painterlyUniforms } from './painterly';
  * through the same two soft cel bands (`pCel`), the unlit part takes the painted shade tint `uPShade`, the
  * hemisphere / sky fill stays as ambient; grass wraps the light a little (thin leaves), glows when backlit and
  * carries the gust sheen. MeshStandardMaterial through `sky.setupMaterial` for CSM shadows + fog.
+ *
+ * Planned (parent, N7): when the painted grass + flower alpha-card atlas lands (src/world/nalatiTextures.ts), the
+ * near layer switches to painted cards (denser, finer blades for the same cost) on this same cell / wind / trample /
+ * field scheme, fading into the painted terrain textures; the far layer stays geometry.
  */
 
 const PHONE = TIER === 'phone';
 const CELL = 4;
-const NEAR_R = PHONE ? 10 : 20;          // metres: clump ring
+const NEAR_R = PHONE ? 12 : 20;          // metres: clump ring
 const FAR_R = PHONE ? 42 : 60;           // metres: stroke ring
 const BAND = 5;                          // metres: near ↔ far cross-fade band (inside NEAR_R)
 const FADE = 6;                          // metres: outer fade of the far ring (the colour melts into the ground before it)
@@ -265,7 +270,7 @@ vec3 bladePos;
   vSheen = g * sqrt( g ) * uWindGustiness * smoothstep( 1.0, 6.0, spd ) * smoothstep( 0.25, 1.0, t ) * uLook.x;
   if ( kind < 1.5 ) {
     // leaf: full width to ~2/3, then a soft point; a little narrower at the base
-    float w = aShape.y * vis * ( 1.0 - pow( t, 2.4 ) ) * ( 0.8 + 0.2 * smoothstep( 0.0, 0.25, t ) );
+    float w = aShape.y * vis * ( 1.0 - pow( t, 2.4 ) ) * ( 0.8 + 0.2 * smoothstep( 0.0, 0.25, t ) ) * ${PHONE ? '1.25' : '1.0'}; // phone: fewer, broader blades
     w *= mix( 1.35, 1.0, smoothstep( 0.15, 0.55, H0 ) ); // grazed turf splays broader
     bladePos = c + wdir * aBlade.w * w * 0.5;
     vec3 n = normalize( cross( wdir, tang ) );
@@ -279,10 +284,10 @@ vec3 bladePos;
     vec3 toCam = normalize( cameraPosition - c );
     vec3 right = normalize( cross( vec3( 0.0, 1.0, 0.0 ), toCam ) );
     vec3 upv = cross( toCam, right );
-    vec2 sz = fkind < 1.5 ? vec2( 0.012, 0.1 ) : ( fkind < 2.5 ? vec2( 0.03, 0.03 ) : vec2( 0.022, 0.022 ) );
+    vec2 sz = fkind < 1.5 ? vec2( 0.016, 0.12 ) : ( fkind < 2.5 ? vec2( 0.034, 0.034 ) : vec2( 0.027, 0.027 ) );
     sz *= ${near ? '1.0' : '1.6'} * ( 0.8 + 0.5 * fract( irnd * 13.1 + second * 0.37 ) ) * vis;
     bladePos = c + right * aShape.y * sz.x + upv * ( aBlade.w * sz.y + ( fkind < 1.5 ? sz.y * 0.8 : 0.0 ) );
-    objectNormal = normalize( toCam * 0.4 + vec3( 0.0, 1.0, 0.0 ) );
+    objectNormal = vec3( 0.0, 1.0, 0.0 ); // lit like the meadow under it (a camera-facing normal went blue in the shade band)
     vec3 fc = fkind < 1.5 ? uFlower1 : ( fkind < 2.5 ? uFlower2 : uFlower3 );
     vec3 centre = fkind < 1.5 ? uFlower1b : ( fkind < 2.5 ? vec3( 0.9, 0.72, 0.25 ) : vec3( 0.95, 0.45, 0.04 ) );
     col = kind > 2.5 ? centre : fc;
@@ -318,6 +323,11 @@ const FRAG_RELIGHT = /* glsl */`
   float wetG = uPWet;
   vec3 irr = sunC * ( band + back * 0.85 * uLook.y * ( 1.0 + wetG ) + vSheen * 0.9 * sunlit * ( 1.0 + 1.6 * wetG ) ) + uPShade * ( 1.0 - band ) * 0.45;
   reflectedLight.directDiffuse = alb * ( 1.0 - 0.3 * wetG ) * RECIPROCAL_PI * irr * uLook.z + uSheenAdd * vSheen * sunlit * ( 0.1 + 0.25 * wetG );
+  // wet: blades seen edge-on catch the sky (a cool silver sheen on the upper blade, strongest looking into the light)
+  if ( wetG > 0.0 ) {
+    float fres = pow( 1.0 - abs( dot( normalize( normal ), normalize( vViewPosition ) ) ), 3.0 );
+    reflectedLight.directDiffuse += vec3( 0.55, 0.66, 0.82 ) * fres * wetG * vGT * ( 0.18 + 0.35 * back );
+  }
   reflectedLight.indirectDiffuse *= ( 0.85 + 0.25 * vGT ) * uLook.w;
   reflectedLight.directSpecular = vec3( 0.0 );
   reflectedLight.indirectSpecular = vec3( 0.0 );
@@ -369,6 +379,9 @@ class Layer {
   /** live instances (height > 0) — for the perf report */
   live = 0;
   private liveBy: Int32Array;
+
+  /** forget every seeded cell: they all reseed over the next frames (nearest first) */
+  reseed(): void { this.keyX.fill(0x7fffffff); this.keyZ.fill(0x7fffffff); this.lastX = 0x7fffffff; this.lastZ = 0x7fffffff; }
 
   constructor(geo: THREE.InstancedBufferGeometry, mat: THREE.Material, readonly n: number, readonly k: number,
     private readonly seedCell: (cx: number, cz: number, s: Slots, base: number) => number) {
@@ -445,6 +458,13 @@ class Layer {
 
 // ---------------------------------------------------------------------------------- the carpet
 
+const carpets = new Set<GrassPainterly>();
+/**
+ * Reseed every painterly carpet: call once the Nalati dressing is built (`dressingCover` is 0 until then, so the
+ * cells seeded at boot still grow through its boulders) — src/nalati/index.ts after `new NalatiDressing(...).build()`.
+ */
+export function reseedPainterlyGrass(): void { for (const c of carpets) c.reseed(); }
+
 export class GrassPainterly {
   group = new THREE.Group();
   near!: Layer;
@@ -455,7 +475,10 @@ export class GrassPainterly {
   private lastPZ = Number.NaN;
   private gnd: [number, number, number] = [0, 0, 0];
 
-  constructor(private sky: Sky, private forest: Forest) {}
+  constructor(private sky: Sky, private forest: Forest) { carpets.add(this); }
+
+  /** reseed every cell (the dressing landed, the field changed) — also `reseedPainterlyGrass()` */
+  reseed(): void { this.near.reseed(); this.far.reseed(); }
 
   build(): this {
     // the painterly sun reference (unshadowed colour × intensity, direction) — painterly.ts keeps the same numbers
@@ -512,6 +535,7 @@ export class GrassPainterly {
       const hv = rng.range(0.7, 1.2), yaw = rng.range(0, Math.PI * 2), rnd = rng.next(), f1 = rng.next(), f2 = rng.next(), tv = rng.next(), f3 = rng.next();
       const i = base + k;
       let h = grassBaseHeightAt(x, z, nearTrail ? trailDistance(x, z) : Infinity, nearTrail || edge) * hv;
+      if (h > 0.04) h *= 1 - dressingCover(x, z); // no blades through the dressing's boulders / shrubs
       if (h > 0.04) for (const tr of trees) { const dx = tr.x - x, dz = tr.z - z; if (dx * dx + dz * dz < (tr.r + 0.35) ** 2) { h = 0; break; } }
       if (h <= 0.04) { data[i * 4] = 0; pos[i * 4 + 1] = -1e4; continue; }
       live++;
