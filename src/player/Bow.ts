@@ -9,6 +9,7 @@ import { wind as worldWind } from '../world/Wind';
 import { getSetting, setSetting } from '../ui/Settings';
 import { fovForAspect, FOV_HIP, FOV_ADS, type ImpactSurface, type Targets, type TargetHit } from './Crossbow';
 import { Projectiles, type ProjectileKind, type WindField } from './Projectiles';
+import { gloveFist, riderArm, placeArm } from './nalatiArms';
 import type { Weapon } from './Weapon';
 
 /**
@@ -76,7 +77,7 @@ export const QUIVER_MAX = 24;
 const DRAW_TIME = 0.75;          // s to full draw on foot
 const MIN_LOOSE = 0.25;          // below this a release is a let-down
 const HOLD_STEADY = 2.5, HOLD_TIRE = 4.0, TIRED_TIME = 1.1, SWAY_MAX = THREE.MathUtils.degToRad(1.5);
-const RENOCK_TIME = 0.42;        // s from a loose to the next arrow on the string
+const RENOCK_TIME = 0.62;        // s from a loose to the next arrow on the string: follow-through, down to the quiver, back up with an arrow
 const SNAP_P = 0.6, SNAP_DELAY = 0.35;
 const SPEED_BASE = 30, SPEED_DRAW = 28;
 const DAMAGE_SCALE = 1.2;        // × the bolt model's 32–40 → 38–48 at full draw
@@ -97,9 +98,8 @@ const C = (hex: number) => new THREE.Color(hex);
 const PAL = {
   lacquer: C(0x7a3a1c), lacquerDark: C(0x4a2412), ornament: C(0xe0c080), birch: C(0x9a7650), horn: C(0x2a1a10),
   bone: C(0xe6dcc2), boneDark: C(0x5a4a38), sinew: C(0xd8c8a0), leather: C(0x3c2414), leatherHi: C(0x5a3a22),
-  string: C(0xc8bca0), glove: C(0x7a5232), gloveDark: C(0x563620), skin: C(0xc89478),
-  wool: C(0xdccbaa), woolShade: C(0xc4b08c), red: C(0xa82a1c), redDark: C(0x6a140e), fur: C(0xf2ece0), furShade: C(0xc8bca4),
-  jade: C(0x9ec8a8), shaft: C(0xc8a070), shaftDark: C(0x8a6440), head: C(0x3a3c40), feather: C(0xece6da), featherBar: C(0x4a3a30),
+  string: C(0xd4c8a8), serving: C(0x4a3424), hornHoney: C(0x9a6a34), birchBark: C(0xd8bc92), lenticel: C(0x4a3424), gold: C(0xe0b864),
+  shaft: C(0xc8a070), shaftDark: C(0x8a6440), head: C(0x3a3c40), feather: C(0xece6da), featherBar: C(0x4a3a30),
   crest: C(0xa82a1c),
 };
 
@@ -121,22 +121,6 @@ function paint(g: THREE.BufferGeometry, c: THREE.Color, jitter = 0.06, seed = 7)
   }
   g.setAttribute('color', new THREE.BufferAttribute(out, 3));
   return pnc(g);
-}
-/** a capsule from a to b (radius r), painted */
-function capsule(a: THREE.Vector3, b: THREE.Vector3, r: number, c: THREE.Color, seed = 3): THREE.BufferGeometry {
-  const d = new THREE.Vector3().subVectors(b, a), len = d.length();
-  const g = new THREE.CapsuleGeometry(r, Math.max(0.0001, len), 4, 10);
-  g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()));
-  g.translate((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
-  return paint(g, c, 0.05, seed);
-}
-/** an ellipsoid at p with radii r, painted */
-function blob(p: THREE.Vector3, r: THREE.Vector3, c: THREE.Color, seed = 5, rot?: THREE.Euler): THREE.BufferGeometry {
-  const g = new THREE.SphereGeometry(1, 16, 12);
-  g.scale(r.x, r.y, r.z);
-  if (rot) g.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(rot));
-  g.translate(p.x, p.y, p.z);
-  return paint(g, c, 0.06, seed);
 }
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
@@ -200,9 +184,11 @@ const _b1 = new THREE.Vector3(), _b2 = new THREE.Vector3(), _b3 = new THREE.Vect
 const GRIP_H = 0.07, LIMB_W = 0.42, SIYAH = 0.15, SIYAH_KINK = 0.95;
 const KAPPA_REST = 2.1, KAPPA_DRAW = 1.35;
 const BRACE_Z = 0.163, DRAW_LEN = 0.58; // string at rest / pulled back at full draw (bow-local)
-const ARROW_X = 0.017, ARROW_Y = 0.034; // the arrow's line past the grip (right side, on the fist)
+const ARROW_X = 0.02, ARROW_Y = 0.058; // the arrow's line past the grip: on top of the left thumb, right of the bow (a thumb draw)
 const BOW_LEN = GRIP_H + LIMB_W + SIYAH;
-const RADIAL = 12, STRING_RADIAL = 6, STRING_R = 0.0021;
+const RADIAL = 16, STRING_RADIAL = 6, STRING_R = 0.0021;
+/** each string leg: tip → the serving's start (two rings a hair apart: a crisp colour change) → the nock */
+const STRING_RINGS = 4, SERVING = 0.085;
 
 /** the limb centreline at arc length u (≥ 0) from the grip, for draw p; sign +1 upper, −1 lower. Writes pos + tangent. */
 function limbAt(u: number, sign: number, p: number, pos: THREE.Vector3, tan: THREE.Vector3): void {
@@ -222,36 +208,65 @@ function limbAt(u: number, sign: number, p: number, pos: THREE.Vector3, tan: THR
 /** half width (x) and half thickness (belly-back) at u */
 function limbSection(u: number): [number, number] {
   if (u <= GRIP_H) { const g = 1 - (u / GRIP_H) ** 2; return [0.016 + 0.002 * g, 0.018 + 0.006 * g]; }
-  if (u <= GRIP_H + LIMB_W) { const t = (u - GRIP_H) / LIMB_W; return [0.019 - 0.006 * t, 0.013 - 0.004 * t]; }
-  const t = (u - GRIP_H - LIMB_W) / SIYAH; return [0.011 - 0.003 * t, 0.015 - 0.004 * t];
+  const w = u - GRIP_H;
+  const bind = binding(w) ? 0.0013 : 0;                                         // sinew cord stands proud
+  if (w <= LIMB_W) { const t = w / LIMB_W; return [0.019 - 0.006 * t + bind, 0.013 - 0.004 * t + bind]; }
+  const t = (w - LIMB_W) / SIYAH;
+  const bridge = 0.0045 * Math.exp(-(((t - 0.1) / 0.07) ** 2));               // the string bridge on the ear's belly
+  return [0.011 - 0.003 * t, 0.015 - 0.004 * t + bridge];
 }
+/** the sinew bindings: where the grip meets the limb, and where the limb meets the bone ear */
+function binding(w: number): boolean { return (w > 0 && w < 0.018) || Math.abs(w - LIMB_W) < 0.014; }
+/** the leather grip's spiral wrap, as a radius multiplier */
+function gripRidge(u: number, ph: number, sign: number): number { return u < GRIP_H ? 1 + 0.07 * Math.max(0, Math.sin(u * 280 * sign + ph * 2)) ** 3 : 1; }
+/** build-time value noise for the painted grain */
+function grain(x: number, y: number): number { const h = (a: number, b: number) => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); }; const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi; const a = h(xi, yi), b = h(xi + 1, yi), c = h(xi, yi + 1), d = h(xi + 1, yi + 1); const uu = xf * xf * (3 - 2 * xf), vv = yf * yf * (3 - 2 * yf); return a + (b - a) * uu + (c - a) * vv + (a - b - c + d) * uu * vv; }
 function mix3(out: number[], a: THREE.Color, b: THREE.Color, t: number, k = 1): void { out.push((a.r + (b.r - a.r) * t) * k, (a.g + (b.g - a.g) * t) * k, (a.b + (b.b - a.b) * t) * k); }
 /** the painted colour at arc length u, ring angle φ (sin φ > 0 = belly, toward the archer) */
 function limbColor(out: number[], u: number, phi: number, sign: number): void {
-  const belly = Math.sin(phi), side = Math.abs(Math.cos(phi));
+  const belly = Math.sin(phi);
   const w = u - GRIP_H;
-  if (u <= GRIP_H) { // leather grip, spiral-wrapped
-    const wrap = 0.5 + 0.5 * Math.sin(u * 260 + phi * 2 + sign * 1.3);
-    mix3(out, PAL.leather, PAL.leatherHi, wrap * 0.6); return;
+  if (u <= GRIP_H) { // leather grip, spiral-wrapped: the ridge catches light, the groove is dark
+    const wrap = Math.max(0, Math.sin(u * 280 * sign + phi * 2)) ** 3;
+    mix3(out, PAL.leather, PAL.leatherHi, 0.15 + wrap * 0.75, 0.85 + 0.15 * wrap); return;
   }
-  if (w < 0.016 || Math.abs(w - LIMB_W) < 0.013) { const b = 0.5 + 0.5 * Math.sin(u * 900); mix3(out, PAL.sinew, PAL.bone, b * 0.4, 0.9 + 0.1 * b); return; } // sinew bindings
-  if (w > LIMB_W) { // bone siyah, a dark nock groove at the tip
-    const tip = u > BOW_LEN - 0.02 ? 1 : 0;
-    mix3(out, PAL.bone, PAL.boneDark, tip * 0.8 + (1 - belly) * 0.08); return;
+  if (binding(w)) { // sinew cord: tight turns, pale where they bulge
+    const b = Math.max(0, Math.sin(u * 1500 * sign + phi)) ** 2;
+    mix3(out, PAL.sinew, PAL.bone, b * 0.5, 0.78 + 0.22 * b); return;
   }
-  if (belly < -0.2) { mix3(out, PAL.birch, PAL.lacquerDark, 0.15 + 0.2 * side); return; } // the back: birch bark
-  // the belly: dark red-brown lacquer with a cream ram's-horn scroll near the grip and a thin line to the siyah
+  if (w > LIMB_W) { // bone ear: warm cream with grain, the nock groove dark at the tip, the bridge a shade darker
+    const t = (w - LIMB_W) / SIYAH, g = grain(u * 90, phi * 2);
+    const tip = u > BOW_LEN - 0.018 ? 0.85 : 0;
+    mix3(out, PAL.bone, PAL.boneDark, Math.max(tip, 0.12 * g + 0.25 * Math.exp(-(((t - 0.1) / 0.07) ** 2)) * Math.max(0, belly)));
+    return;
+  }
   const t = w / LIMB_W;
+  if (belly < -0.38) { // the back: birch bark, pale, with dark lenticel dashes across the limb
+    const len = grain(u * 170, phi * 1.5 + sign * 7);
+    const dash = len > 0.78 ? 1 : 0;
+    mix3(out, PAL.birchBark, PAL.lenticel, dash * 0.85 + 0.12 * grain(u * 30, phi), 0.92 + 0.08 * grain(u * 60, 3));
+    return;
+  }
+  if (belly < 0.38) { // the sides: sinew under red-brown lacquer, a thin gold rule along the belly edge
+    const rule = Math.abs(belly - 0.3) < 0.09 ? 1 : 0;
+    mix3(out, PAL.lacquer, PAL.gold, rule * 0.85, 0.9 + 0.1 * grain(u * 40, phi * 3)); return;
+  }
+  // the belly: horn — honey and near-black streaks running along the limb — with the painted ram's-horn scroll near
+  // the grip and a fine centre line out to the ear
+  const streak = 0.5 + 0.5 * Math.sin(u * 60 + 3 * Math.sin(u * 9 + sign) + phi * 3);
   let orn = 0;
   if (t > 0.05 && t < 0.42) {
-    const s = (t - 0.05) / 0.37;                         // 0..1 along the ornament
-    const across = Math.cos(phi) * 0.5 + 0.5;           // 0..1 across the belly
-    const curl = 0.5 + 0.34 * Math.sin(s * Math.PI * 3.2);
-    orn = Math.max(0, 1 - Math.abs(across - curl) * 5.5) * (s < 0.95 ? 1 : 0);
-    if (s < 0.05 || s > 0.9) orn = Math.max(orn, 0.9);  // border bars
-  } else if (t >= 0.42 && t < 0.97) orn = Math.max(0, 1 - Math.abs(Math.cos(phi)) * 4) * 0.7; // a centre line
-  const base = belly > 0.2 ? PAL.lacquer : PAL.horn;
-  mix3(out, base, PAL.ornament, Math.min(1, orn));
+    const sAl = (t - 0.05) / 0.37;                       // 0..1 along the ornament
+    const across = (Math.cos(phi) / 0.92) * 0.5 + 0.5;  // 0..1 across the belly
+    const curl = 0.5 + 0.3 * Math.sin(sAl * Math.PI * 3.2);
+    orn = Math.max(0, 1 - Math.abs(across - curl) * 5) * (sAl < 0.95 ? 1 : 0);
+    const bay = Math.hypot((across - (curl > 0.5 ? 0.22 : 0.78)) * 1.4, ((sAl * 3.2 * 0.5) % 1) - 0.5);
+    orn = Math.max(orn, bay < 0.16 ? 0.9 : 0);          // a dot in each bay of the scroll
+    if (sAl < 0.04 || sAl > 0.92) orn = Math.max(orn, 0.95); // border bars
+  } else if (t >= 0.42 && t < 0.97) orn = Math.max(0, 1 - Math.abs(Math.cos(phi)) * 5) * 0.75;
+  const hornR = PAL.horn.r + (PAL.hornHoney.r - PAL.horn.r) * streak, hornG = PAL.horn.g + (PAL.hornHoney.g - PAL.horn.g) * streak, hornB = PAL.horn.b + (PAL.hornHoney.b - PAL.horn.b) * streak;
+  const o = Math.min(1, orn);
+  out.push(hornR + (PAL.ornament.r - hornR) * o, hornG + (PAL.ornament.g - hornG) * o, hornB + (PAL.ornament.b - hornB) * o);
 }
 
 /** The bow + the left fist: one geometry. The first `dynVerts` vertices (limbs + string) are rewritten by `shape(p)`. */
@@ -278,7 +293,7 @@ class BowMesh {
     }
     const rings = this.ringU.length;
     this.limbVerts = rings * (RADIAL + 1) + 2; // + the two tip caps
-    const stringVerts = 4 * STRING_RADIAL;
+    const stringVerts = 2 * STRING_RINGS * STRING_RADIAL;
     this.dynVerts = this.limbVerts + stringVerts;
     // static parts appended after the dynamic range
     const stat = mergeGeometries(staticParts, false);
@@ -299,13 +314,16 @@ class BowMesh {
     }
     const capBot = rings * (RADIAL + 1), capTop = capBot + 1, lastRing = (rings - 1) * (RADIAL + 1);
     for (let k = 0; k < RADIAL; k++) { idx.push(capBot, k + 1, k); idx.push(capTop, lastRing + k, lastRing + k + 1); }
-    // string: two legs × two rings
-    for (let i = 0; i < stringVerts; i++) mix3(col, PAL.string, PAL.string, 0, 0.9 + 0.1 * ((i * 7) % 3) / 2);
-    for (let leg = 0; leg < 2; leg++) {
-      const o = this.limbVerts + leg * 2 * STRING_RADIAL;
+    // string: two legs × STRING_RINGS rings — linen from the tips, a dark serving over the last SERVING m to the nock
+    for (let leg = 0; leg < 2; leg++) for (let ring = 0; ring < STRING_RINGS; ring++) for (let k = 0; k < STRING_RADIAL; k++) {
+      const serv = ring >= 2;
+      mix3(col, serv ? PAL.serving : PAL.string, serv ? PAL.serving : PAL.string, 0, 0.9 + 0.1 * (k % 2));
+    }
+    for (let leg = 0; leg < 2; leg++) for (let ring = 0; ring < STRING_RINGS - 1; ring++) {
+      const o = this.limbVerts + (leg * STRING_RINGS + ring) * STRING_RADIAL;
       for (let k = 0; k < STRING_RADIAL; k++) {
         const a = o + k, a1 = o + ((k + 1) % STRING_RADIAL), b = a + STRING_RADIAL, b1 = a1 + STRING_RADIAL;
-        idx.push(a, b, a1, a1, b, b1);
+        idx.push(a, a1, b, a1, b1, b);
       }
     }
     // static
@@ -346,7 +364,8 @@ class BowMesh {
       for (let k = 0; k <= RADIAL; k++) {
         const ph = (k / RADIAL) * Math.PI * 2, cp = Math.cos(ph), sp = Math.sin(ph);
         const j = (r * (RADIAL + 1) + k) * 3;
-        P[j] = cp * hw; P[j + 1] = c.y + n.y * sp * ht; P[j + 2] = c.z + n.z * sp * ht;
+        const rr = gripRidge(u, ph, sign);
+        P[j] = cp * hw * rr; P[j + 1] = c.y + n.y * sp * ht * rr; P[j + 2] = c.z + n.z * sp * ht * rr;
         const ex = cp / hw, en = sp / ht, l = Math.hypot(ex, en) || 1;
         N[j] = ex / l; N[j + 1] = (n.y * en) / l; N[j + 2] = (n.z * en) / l;
       }
@@ -372,97 +391,21 @@ class BowMesh {
     const d = _b1.subVectors(b, a).normalize();
     const e1 = _b2.set(1, 0, 0); e1.addScaledVector(d, -e1.dot(d)).normalize();
     const e2 = _b3.crossVectors(d, e1);
-    const o = this.limbVerts + leg * 2 * STRING_RADIAL;
-    for (let end = 0; end < 2; end++) {
-      const c = end === 0 ? a : b;
+    const o = this.limbVerts + leg * STRING_RINGS * STRING_RADIAL;
+    const len = a.distanceTo(b), sv = Math.max(0, 1 - SERVING / Math.max(len, 1e-3));
+    const at = [0, Math.max(0, sv - 0.004), sv, 1];
+    for (let ring = 0; ring < STRING_RINGS; ring++) {
+      const f = at[ring] ?? 1, rad = STRING_R * (ring >= 2 ? 1.3 : 1);
+      const cx = a.x + (b.x - a.x) * f, cy = a.y + (b.y - a.y) * f, cz = a.z + (b.z - a.z) * f;
       for (let k = 0; k < STRING_RADIAL; k++) {
         const ph = (k / STRING_RADIAL) * Math.PI * 2, cp = Math.cos(ph), sp = Math.sin(ph);
-        const j = (o + end * STRING_RADIAL + k) * 3;
+        const j = (o + ring * STRING_RADIAL + k) * 3;
         const nx = e1.x * cp + e2.x * sp, ny = e1.y * cp + e2.y * sp, nz = e1.z * cp + e2.z * sp;
-        this.pos[j] = c.x + nx * STRING_R; this.pos[j + 1] = c.y + ny * STRING_R; this.pos[j + 2] = c.z + nz * STRING_R;
+        this.pos[j] = cx + nx * rad; this.pos[j + 1] = cy + ny * rad; this.pos[j + 2] = cz + nz * rad;
         this.nrm[j] = nx; this.nrm[j + 1] = ny; this.nrm[j + 2] = nz;
       }
     }
   }
-}
-
-/** The left fist round the grip (bow-local, static — merged into the bow mesh). Knuckles face left-forward, the thumb
- *  lies over the index finger on the right, where the arrow passes. */
-function leftFist(): THREE.BufferGeometry[] {
-  const g: THREE.BufferGeometry[] = [];
-  g.push(blob(V(-0.008, -0.006, 0.012), V(0.034, 0.05, 0.034), PAL.glove, 21));              // palm + fingers mass
-  for (let i = 0; i < 4; i++) {                                                                  // finger rolls across the front
-    const y = 0.024 - i * 0.021;
-    g.push(capsule(V(-0.03, y, -0.004), V(0.018, y - 0.002, -0.018), 0.0112 - i * 0.0006, i % 2 ? PAL.gloveDark : PAL.glove, 22 + i));
-  }
-  g.push(blob(V(-0.026, -0.006, 0.05), V(0.03, 0.04, 0.046), PAL.glove, 27));                  // back of the hand toward the wrist
-  g.push(capsule(V(-0.022, 0.03, 0.03), V(0.014, 0.03, -0.006), 0.0115, PAL.glove, 28));       // thumb over the index finger
-  g.push(capsule(V(0.014, 0.03, -0.006), V(0.022, 0.028, -0.02), 0.0095, PAL.gloveDark, 29));  // thumb tip
-  for (const p of g) p.scale(1.3, 1.25, 1.3);
-  return g;
-}
-
-/** The right hand hooking the string (frame: the nock at the origin, bow-local axes). A thumb draw with a jade ring. */
-function rightHand(): THREE.BufferGeometry {
-  const g: THREE.BufferGeometry[] = [];
-  g.push(blob(V(0.026, -0.022, 0.034), V(0.032, 0.042, 0.046), PAL.glove, 31, new THREE.Euler(0.2, 0, -0.35)));   // fist
-  g.push(capsule(V(0.022, -0.012, 0.008), V(-0.008, -0.008, -0.004), 0.0105, PAL.glove, 32));  // thumb round the string
-  const ring = new THREE.TorusGeometry(0.0118, 0.0042, 6, 14); ring.rotateY(Math.PI / 2); ring.rotateZ(0.2); ring.translate(0.008, -0.01, 0.002);
-  g.push(paint(ring, PAL.jade, 0.08, 33));                                                        // archer's thumb ring
-  g.push(capsule(V(0.03, 0.006, 0.02), V(-0.004, 0.004, 0.0), 0.0098, PAL.gloveDark, 34));     // index curled over the thumb
-  for (let i = 0; i < 3; i++) g.push(capsule(V(0.04, -0.018 - i * 0.017, 0.03), V(0.022, -0.02 - i * 0.017, 0.006), 0.0098, PAL.glove, 35 + i)); // curled fingers
-  g.push(blob(V(0.04, -0.03, 0.07), V(0.03, 0.036, 0.042), PAL.glove, 39));                    // back of the hand to the wrist
-  return mergeGeometries(g, false);
-}
-
-/** A forearm sleeve along +Y from the wrist (y = 0): a fur cuff, then cream wool with a red ram's-horn band. */
-function sleeve(len: number, seed: number): THREE.BufferGeometry {
-  const RAD = 40;
-  const ys: number[] = [];
-  for (let y = 0; y <= len + 1e-6; y += y < 0.62 ? 0.0065 : 0.04) ys.push(Math.min(y, len));
-  const pos: number[] = [], nrm: number[] = [], col: number[] = [], idx: number[] = [];
-  let s = seed;
-  const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
-  for (const y of ys) {
-    const cuff = y < 0.042;
-    const r = cuff ? 0.047 + 0.006 * Math.sin((y / 0.042) * Math.PI) : 0.036 + Math.min(1, (y - 0.042) / 0.45) * 0.02;
-    for (let k = 0; k <= RAD; k++) {
-      const ph = (k / RAD) * Math.PI * 2;
-      let rr = r;
-      let c: THREE.Color;
-      let tint: number;
-      if (cuff) { rr += (rnd() - 0.5) * 0.006; c = rnd() < 0.3 ? PAL.furShade : PAL.fur; tint = 0.9 + rnd() * 0.12; }
-      else {
-        c = PAL.wool;
-        const rep = (y - 0.042) % 0.3 + 0.042; // the ornament band repeats up the sleeve
-        const b0 = 0.06, b1 = 0.19;
-        if (rep > b0 && rep < b1) {
-          const b = (rep - b0) / (b1 - b0), a = (k / RAD) * 5 % 1;
-          const scroll = 0.5 + 0.26 * Math.sin(a * Math.PI * 2);
-          const hook1 = Math.hypot((a - 0.25) * 1.2, b - 0.8), hook2 = Math.hypot((a - 0.75) * 1.2, b - 0.2);
-          const red = Math.abs(b - scroll) < 0.12 || (hook1 > 0.06 && hook1 < 0.15) || (hook2 > 0.06 && hook2 < 0.15) || b < 0.1 || b > 0.9;
-          c = red ? PAL.red : PAL.wool;
-          if (b < 0.1 || b > 0.9) c = PAL.redDark;
-        } else if (rep > 0.215 && rep < 0.235) c = PAL.red;
-        tint = 0.94 + rnd() * 0.08;
-        if (Math.sin(ph * 3 + y * 40) > 0.6) tint *= 0.93; // wool folds
-      }
-      pos.push(Math.cos(ph) * rr, y, Math.sin(ph) * rr);
-      nrm.push(Math.cos(ph), cuff ? 0 : -0.1, Math.sin(ph));
-      col.push(c.r * tint, c.g * tint, c.b * tint);
-    }
-  }
-  for (let i = 0; i < ys.length - 1; i++) for (let k = 0; k < RAD; k++) {
-    const a = i * (RAD + 1) + k, b = a + RAD + 1;
-    idx.push(a, a + 1, b, a + 1, b + 1, b);
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  g.setIndex(idx);
-  g.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, len / 2, 0), len);
-  return g;
 }
 
 // ───────────────────────────── the drop arc ─────────────────────────────
@@ -534,18 +477,32 @@ const NEG_Z = new THREE.Vector3(0, 0, -1), POS_Z = new THREE.Vector3(0, 0, 1), Y
 
 /** a camera-space pose of the bow's grip: position + aim point (−Z of the bow points at it) + cant (roll, rad) */
 interface GripPose { pos: THREE.Vector3; aim: THREE.Vector3; cant: number; pitch: number }
+/** the fists (nalatiArms.ts): the left closed on the grip, the right a tight thumb-draw fist hooked on the string */
+const L_FIST = { R: 0.021, mirror: true, yaw: -0.32 };
+const R_FIST = { R: 0.009, thumbRing: true, yaw: 0.55 };
+/** the drawing hand is pronated (a thumb draw: the back of the hand and the knuckles up toward the eye), rolled this far
+ *  about its forearm; its thumb hook (`Fist.hook`) sits on the string just under the arrow's nock */
+const R_FIST_ROLL = 1.35, HOOK_BELOW_NOCK = 0.006;
+const _rollQ = new THREE.Quaternion(), _rDir = new THREE.Vector3();
+/** the right forearm keeps this heading (rig space) wherever the hand is — the elbow follows the hand, so the arm never
+ *  stretches forward to the string (the old "reaching" glitch); portrait turns it further down */
+const R_ARM_DIR = V(0.6, -0.42, 0.68).normalize(), R_ARM_DIR_PORT = V(0.42, -0.62, 0.66).normalize();
+/** the re-nock: follow-through (the hand flies back off the string), down to the quiver at the hip, back up with an arrow */
+const RN_FOLLOW = 0.18, RN_DROP = 0.52, RN_EARLY = 0.4, FOLLOW_OFF = V(0.035, 0.012, 0.075), QUIVER_OFF = V(0.3, -0.55, 0.12);
+
 /* Poses in rig space (camera space / VM_SCALE). REST = the bow lowered and canted (style-B mockup: the left fist lower
  * right, no arrow). DRAWN = the fist right of centre, the bow canted ~20°, the arrow converging on the crosshair a
  * couple of metres out so it reads as pointing at it (combat-C). Portrait phones get their own (narrower frame). */
 const VM_SCALE = 0.72;
+/** the viewmodel's shade-side fill (painterly `shade`; 1 = the world's) */
+export const VM_SHADE = 2.4;
 const POSE = {
   rest: { pos: V(0.34, -0.42, -0.86), aim: V(-0.1, 0.25, -4), cant: -0.62, pitch: -0.14 },
-  drawn: { pos: V(0.24, -0.156, -1.046), aim: V(0, 0, -5.5), cant: -0.36, pitch: 0 },
+  drawn: { pos: V(0.22, -0.17, -1.12), aim: V(0, 0, -5.5), cant: -0.36, pitch: 0 },
   restPort: { pos: V(0.17, -0.5, -0.9), aim: V(-0.05, 0.12, -4), cant: -0.5, pitch: -0.12 },
   drawnPort: { pos: V(0.07, -0.1, -1.08), aim: V(0, 0, -5.5), cant: -0.3, pitch: 0 },
 } satisfies Record<string, GripPose>;
-const L_ELBOW = V(-0.42, -0.52, -0.3), R_ELBOW = V(0.62, -0.4, 0.05);
-const L_ELBOW_PORT = V(-0.2, -0.75, -0.32), R_ELBOW_PORT = V(0.4, -0.6, 0.05);
+const L_ELBOW = V(-0.42, -0.52, -0.3), L_ELBOW_PORT = V(-0.2, -0.75, -0.32);
 
 export class Bow implements Weapon {
   readonly hasAmmo = true;
@@ -561,6 +518,8 @@ export class Bow implements Weapon {
   /** 0..1 weapon-swap blend driven by Weapons.ts (1 = dropped out of the frame) */
   holster = 0;
   aimInfo: { kind: string; distance: number } | null = null;
+  /** dev: > 0 = the viewmodel held up close and turned for inspection (`inspectYaw` rad, `inspectPitch`) — `?inspect=1` in the harness */
+  inspect = 0; inspectYaw = 0; inspectPitch = 0;
 
   // ── the saddle's knobs (B7) — see the header ──
   drawSpeedScale = 1;
@@ -591,6 +550,9 @@ export class Bow implements Weapon {
   private readonly nocked: THREE.Mesh;
   private readonly rHand: THREE.Mesh;
   private readonly lSleeve: THREE.Mesh; private readonly rSleeve: THREE.Mesh;
+  private readonly lWrist: THREE.Vector3; private readonly rWrist: THREE.Vector3; private readonly rHook: THREE.Vector3; private readonly rWristDir: THREE.Vector3;
+  /** the hand's nock point (rig space) at the last loose — the follow-through starts there */
+  private readonly releasePos = new THREE.Vector3(); private readonly handPos = new THREE.Vector3();
   private readonly arc: DropArc;
   private readonly mat: THREE.Material;
 
@@ -619,14 +581,19 @@ export class Bow implements Weapon {
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
 
     // one painterly program for the whole viewmodel; drawn after the depth clear (renderOrder 999 / 1000, like Crossbow)
-    this.mat = painterlyMaterial(this.sky, { rim: 0.55, bands: 0.7, transparent: true, depthWrite: true });
-    this.bowMesh = new BowMesh(leftFist());
+    // shade > 1: the painted sky tint is ADDED on the shade side (painterly.ts), so it doubles as the viewmodel's cool fill —
+    // an arm turned away from the sun reads as a cool-shadowed sleeve, not a black hole
+    this.mat = painterlyMaterial(this.sky, { rim: 0.55, bands: 0.7, shade: VM_SHADE, transparent: true, depthWrite: true });
+    const lf = gloveFist(L_FIST), rf = gloveFist(R_FIST);
+    this.lWrist = lf.wrist; this.rWrist = rf.wrist; this.rHook = rf.hook; this.rWristDir = rf.wristDir;
+    _rollQ.setFromAxisAngle(rf.wristDir, R_FIST_ROLL); // pronate about the forearm itself, so the forearm keeps its heading
+    this.bowMesh = new BowMesh([lf.geometry]);
     const bow = new THREE.Mesh(this.bowMesh.geometry, this.mat);
     this.bowPivot.add(bow);
     this.nocked = new THREE.Mesh(buildArrowGeometry(), this.mat);
-    this.rHand = new THREE.Mesh(rightHand(), this.mat);
-    this.lSleeve = new THREE.Mesh(sleeve(1.0, 41), this.mat);
-    this.rSleeve = new THREE.Mesh(sleeve(0.8, 43), this.mat);
+    this.rHand = new THREE.Mesh(rf.geometry, this.mat);
+    this.lSleeve = new THREE.Mesh(riderArm(1.0, 1), this.mat);
+    this.rSleeve = new THREE.Mesh(riderArm(0.9, 2), this.mat);
     this.model.add(this.bowPivot, this.nocked, this.rHand, this.lSleeve, this.rSleeve);
     const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false }));
     clearer.renderOrder = 999; clearer.frustumCulled = false;
@@ -704,6 +671,7 @@ export class Bow implements Weapon {
     this.state.bolts--;
     this.drawT = 0; this.p = 0; this.holdT = 0;
     this.renockT = RENOCK_TIME;
+    this.releasePos.copy(this.handPos);
     this.recoil = 0.6 + 0.4 * p;
     this.onFire?.(); this.onLoose?.(p);
   }
@@ -737,7 +705,9 @@ export class Bow implements Weapon {
     if (!this.enabled) { this.mouseDraw = false; this.mouseAds = false; this.snapT = -1; this.looseQueued = false; }
 
     // ── the draw ──
-    const blocked = !this.enabled || this.state.bolts <= 0 || this.renockT > 0 || this.tiredT > 0 || pl.sprinting || pl.swimming;
+    // the next draw may start while the hand is still coming up from the quiver (RN_EARLY of the re-nock left): the
+    // string comes back to meet the hand halfway, instead of the hand reaching all the way out to the braced string
+    const blocked = !this.enabled || this.state.bolts <= 0 || this.renockT > RENOCK_TIME * RN_EARLY || this.tiredT > 0 || pl.sprinting || pl.swimming;
     const want = !blocked && (this.mouseDraw || this.adsHeld || this.snapT >= 0);
     if (want && !this.wasWanting) this.onDrawStart?.();
     if (!want && this.wasWanting && this.p > 0.05) this.onLetDown?.();
@@ -855,32 +825,51 @@ export class Bow implements Weapon {
       .multiply(_q1.setFromAxisAngle(POS_Z, cant))
       .multiply(_q2.setFromAxisAngle(_v3.set(1, 0, 0), pitch - this.recoil * 0.08 + this.lagPitch * 0.4 * lagK))
       .multiply(_q3.setFromAxisAngle(Y_AXIS, this.lagYaw * 0.5 * lagK));
+    if (this.inspect > 0) { // dev: the grip up close, turned
+      g.set(0.02, -0.02, -0.5);
+      this.gripQuat.setFromAxisAngle(Y_AXIS, this.inspectYaw).multiply(_q1.setFromAxisAngle(_v3.set(1, 0, 0), this.inspectPitch));
+    }
     this.bowPivot.position.copy(g); this.bowPivot.quaternion.copy(this.gripQuat);
 
-    // the nocked arrow + the right hand ride the string (hidden while lowered and during the re-nock dip)
+    // ── the right hand: on the string while drawing; after a loose it follows through, drops to the quiver and comes
+    //    back up with the next arrow, which it lays on the string (the draw only starts once it is there) ──
     const nock = _v2.copy(this.bowMesh.nock).applyQuaternion(this.gripQuat).add(g);
-    const renock = this.renockT > 0 ? Math.sin((1 - this.renockT / RENOCK_TIME) * Math.PI) : 0; // the hand dips to the quiver and back
-    const handVis = r > 0.25 && this.state.bolts > 0;
-    this.rHand.visible = r > 0.25; this.rSleeve.visible = r > 0.25;
-    this.rHand.position.copy(nock); this.rHand.quaternion.copy(this.gripQuat);
-    if (renock > 0) this.rHand.position.addScaledVector(_v3.set(0.35, -0.55, 0.25), renock); // down to the quiver at the hip and back
-    this.nocked.visible = handVis && this.renockT < RENOCK_TIME * 0.35;
-    // the arrow lies from the nock on the string to the rest on the fist, right of the grip (a thumb draw)
-    const nz = this.bowMesh.nock.z;
-    _v3.set(ARROW_X, 0, -nz).normalize();
-    this.nocked.quaternion.copy(this.gripQuat).multiply(_q1.setFromUnitVectors(NEG_Z, _v3));
-    this.nocked.position.set(0, ARROW_Y, nz).addScaledVector(_v3, ARROW_LEN).applyQuaternion(this.gripQuat).add(g);
-    // the sleeves: from each wrist back to its elbow (fixed points off the bottom of the frame)
-    const le = _v3.lerpVectors(L_ELBOW, L_ELBOW_PORT, port);
-    this.placeSleeve(this.lSleeve, _v1.set(-0.028, -0.012, 0.075).applyQuaternion(this.gripQuat).add(g), le);
-    const re = _dir.lerpVectors(R_ELBOW, R_ELBOW_PORT, port);
-    this.placeSleeve(this.rSleeve, _v1.set(0.044, -0.034, 0.1).applyQuaternion(this.rHand.quaternion).add(this.rHand.position), re);
-  }
-
-  private placeSleeve(m: THREE.Mesh, wrist: THREE.Vector3, elbow: THREE.Vector3): void {
-    m.position.copy(wrist);
-    const d = _fwd.subVectors(elbow, wrist).normalize();
-    m.quaternion.setFromUnitVectors(Y_AXIS, d);
+    const H = this.handPos;
+    let arrowInHand = this.state.bolts > 0;
+    if (this.renockT > 0) {
+      const u = 1 - this.renockT / RENOCK_TIME;
+      const follow = _v3.copy(this.releasePos).add(FOLLOW_OFF);
+      if (u < RN_FOLLOW) H.lerpVectors(this.releasePos, follow, sstep(0, 1, u / RN_FOLLOW));
+      else if (u < RN_DROP) { const k = (u - RN_FOLLOW) / (RN_DROP - RN_FOLLOW); H.copy(follow).lerp(_v1.copy(this.releasePos).add(QUIVER_OFF), k * k); }
+      else { const k = (u - RN_DROP) / (1 - RN_DROP); H.copy(this.releasePos).add(QUIVER_OFF).lerp(nock, 1 - (1 - k) ** 3); }
+      arrowInHand &&= u >= RN_DROP;
+    } else H.copy(nock);
+    const raised = r > 0.25;
+    this.rHand.visible = raised; this.rSleeve.visible = raised;
+    this.rHand.quaternion.copy(this.gripQuat).multiply(_rollQ);
+    this.rHand.position.copy(this.rHook).applyQuaternion(this.rHand.quaternion).negate().add(H);
+    this.rHand.position.addScaledVector(_v3.set(0, 1, 0).applyQuaternion(this.gripQuat), -HOOK_BELOW_NOCK);
+    if (this.inspect === 2) { // dev: the drawing hand alone, up close, turned
+      this.bowPivot.position.y = -5;
+      this.rHand.quaternion.setFromAxisAngle(Y_AXIS, this.inspectYaw).multiply(_q1.setFromAxisAngle(_v3.set(1, 0, 0), this.inspectPitch)).multiply(_rollQ);
+      this.rHand.position.set(0, -0.06, -0.38);
+    }
+    // the arrow: from the hand's nock point to the rest on the left thumb (it swings in as the hand comes up)
+    this.nocked.visible = raised && arrowInHand;
+    const rest = _v1.set(ARROW_X, ARROW_Y, 0).applyQuaternion(this.gripQuat).add(g);
+    _dir.subVectors(rest, H).normalize();
+    this.nocked.quaternion.setFromUnitVectors(NEG_Z, _dir);
+    this.nocked.position.copy(H).addScaledVector(_dir, ARROW_LEN);
+    // ── the forearms: each sleeve from its glove's wrist; the left heads for a fixed elbow (the bow arm is straight),
+    //    the right keeps its heading (the elbow travels with the hand) ──
+    const lw = _v1.copy(this.lWrist).applyQuaternion(this.gripQuat).add(g);
+    const ld = _v3.lerpVectors(L_ELBOW, L_ELBOW_PORT, port).sub(lw).normalize();
+    placeArm(this.lSleeve, lw.addScaledVector(ld, -0.02), ld);
+    const rw = _v1.copy(this.rWrist).applyQuaternion(this.rHand.quaternion).add(this.rHand.position);
+    // the sleeve continues the glove's own forearm line, pulled toward down-right so it leaves the frame at the corner
+    _rDir.copy(this.rWristDir).applyQuaternion(this.rHand.quaternion);
+    const rd = _v3.lerpVectors(R_ARM_DIR, R_ARM_DIR_PORT, port).lerp(_rDir, 0.5).normalize();
+    placeArm(this.rSleeve, rw.addScaledVector(rd, -0.02), rd);
   }
 
   /** dev: arrows stuck in the world */

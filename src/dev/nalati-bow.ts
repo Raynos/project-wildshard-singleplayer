@@ -129,6 +129,7 @@ const nolock = params.has('nolock');
 const bow = new Bow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
 bow.wind = wind;
 bow.adsHeld = params.has('draw');
+bow.inspect = Math.round(num('inspect', 0)); bow.inspectYaw = num('iyaw', 0.6); bow.inspectPitch = num('ipitch', 0);
 const hud = new HUD({ pointerLock: !nolock });
 const audio = new Audio();
 let kills = 0;
