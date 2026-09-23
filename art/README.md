@@ -118,3 +118,12 @@ Live captures, not codex images: the deployed sword HUD with each control's live
 green = right (look) thumb. The rings are about 130 CSS px of thumb travel around each thumb's resting spot, and a red box
 is outside that ring. `A-portrait-thumb-reach.jpg` is 390×844. `B-landscape-broken.jpg` is 844×390, where the minimap
 hides JUMP / DODGE / HOVER (this led to the E38 rotate-to-portrait gate). Analysis: docs/plans/HUD-REFINEMENTS.md → "E37 thumb-flow audit".
+
+### Touch HUD layout board (`art/hud/round-9-layout-board/`, 2026-09-22, E37)
+
+codex edits of the live 390×844 sword frame (`before-live.jpg`), one run each. `board.jpg` puts BEFORE next to A, B and C.
+**A** keeps the bar: ATTACK takes the LOOK pad's place ("HOLD = HEAVY"), DODGE and JUMP sit beside it, and SWAP / HOVER
+are chips on the centre seam. VITALS moves under PAUSE. **B** drops the bar: a floating stick with a sprint lock, and a
+CoD Mobile arc of ATTACK / DODGE / JUMP. SWAP / HOVER sit at the bottom centre. **C** is B's layout with the crossbow:
+FIRE and AIM on the right, a small left FIRE copy above the stick, and a BOLTS readout beside VITALS. None was re-rolled.
+Plan rows: docs/plans/HUD-REFINEMENTS.md R12–R18.

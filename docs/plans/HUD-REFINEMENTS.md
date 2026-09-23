@@ -1,6 +1,6 @@
 # Plan: tentative HUD / touch-control refinements
 
-**State:** `draft` 2026-09-22 — **ideas only: Jake has approved none of them.** He is playing the sword touch HUD (E11, live `6eafcb4`) and the see-through bar (E34, `6660585`) first; nothing below gets built until he picks a row by name. Parked here so the ideas aren't lost (E35). E37 added the thumb-flow audit (F1–F10) and R12–R18. Waits on Jake's pick of a thumb map.
+**State:** `draft` 2026-09-22 — **ideas only: Jake has approved none of them.** He is playing the sword touch HUD (E11, live `6eafcb4`) and the see-through bar (E34, `6660585`) first; nothing below gets built until he picks a row by name. Parked here so the ideas aren't lost (E35). E37 added the thumb-flow audit (F1–F10), R12–R18 and a layout board (A / B / C, `art/hud/round-9-layout-board/board.jpg`). Waits on Jake's letter.
 
 ## Read this first
 
@@ -66,7 +66,7 @@ is "what must the other thumb keep doing while this one presses?"
 | F9 | **There is a 44 px gap and a VITALS strip between the bar and the discs.** | The thumb has to hop over a non-control strip to reach HEAVY / JUMP. The discs could sit right on the bar's edge. |
 | F10 | **Landscape is broken:** the minimap covers JUMP / DODGE / HOVER and the debug panel covers HEAVY (`B-landscape-broken.jpg`). | Fixed by E38: the game is portrait-only, and a full-screen rotate-to-portrait gate shows in landscape on phones. |
 
-**Proposed portrait thumb map (idea, not approved; a decision-board mockup comes next if Jake wants it):**
+**Proposed portrait thumb map (idea, not approved).** Decision board: `art/hud/round-9-layout-board/board.jpg`. A keeps the bar, B has no bar and a CoD Mobile arc, C is B with the crossbow.
 
 | Thumb | Holds / presses | Why |
 |---|---|---|
