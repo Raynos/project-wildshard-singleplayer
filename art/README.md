@@ -111,3 +111,10 @@ Base = an in-engine phone-tier screenshot at the trail pose with the HUD hidden 
 &x=0&z=-200&yaw=3.1416`, viewport 390×844 @3×), given to codex as the edit target with the invariants
 repeated. F icon rail · G refined row · H split cluster (thumb-reachable) · I rings · J staging console.
 Parallel-run rule: each run copies the path its own image_gen result reported, never "the newest file".
+
+### Touch HUD thumb-reach audit (`art/hud/round-8-thumb-audit/`, 2026-09-22, E37)
+
+Live captures, not codex images: the deployed sword HUD with each control's live rect drawn in. Orange = left (move) thumb,
+green = right (look) thumb. The rings are about 130 CSS px of thumb travel around each thumb's resting spot, and a red box
+is outside that ring. `A-portrait-thumb-reach.jpg` is 390×844. `B-landscape-broken.jpg` is 844×390, where the minimap
+hides JUMP / DODGE / HOVER (this led to the E38 rotate-to-portrait gate). Analysis: docs/plans/HUD-REFINEMENTS.md → "E37 thumb-flow audit".
