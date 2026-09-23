@@ -208,7 +208,7 @@ export class Sky {
       paintedAir.fogCloudTex.value = tex;
       this.cloudUniforms.uSunDir.value.copy(this.sunDir);
       this.cloudUniforms.uSunColor.value.set(...getActiveChunk().sky.cloudSunColor);
-      this.clouds = buildPainterlyClouds(this.cloudUniforms, (this.scene.fog as THREE.Fog).color);
+      this.clouds = buildPainterlyClouds(this.cloudUniforms, (this.scene.fog as THREE.Fog).color, tex);
       this.scene.add(this.clouds);
       return;
     }

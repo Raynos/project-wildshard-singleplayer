@@ -111,6 +111,7 @@ export class Game {
     const split = new GradeEffect(G);
     this.post = { grade: split, saturation: grade, contrast, bloom };
     const grain = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: true });
+    // oxlint-disable-next-line typescript/no-unsafe-member-access -- BlendMode.opacity is postprocessing's bare three `Uniform`, which the type-aware linter resolves as an error type; the value is a number
     grain.blendMode.opacity.value = 0.12;
     // one EffectPass for the whole chain: one program and one full-screen pass fewer per frame
     composer.addPass(new EffectPass(this.camera, vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain));

@@ -73,6 +73,8 @@ export class VolumetricsEffect extends Effect {
    *               effect only composites it; 1 → the march runs in the effect's own fragment (desktop, as before)
    */
   constructor(camera: PerspectiveCamera, blueNoise: Texture, steps = 14, private readonly scale = 1) {
+    // held as our own typed uniform: the Effect's uniform map is typed loosely (postprocessing's bare `Uniform`)
+    const scatter = new Uniform<Texture | null>(null);
     super('VolumetricsEffect', scale < 1
       ? /* glsl */`
         uniform sampler2D tScatter;
@@ -85,7 +87,7 @@ export class VolumetricsEffect extends Effect {
         }`, {
       blendFunction: BlendFunction.SRC,
       attributes: EffectAttribute.DEPTH,
-      uniforms: new Map<string, Uniform>(scale < 1 ? [['tScatter', new Uniform(null)]] : []),
+      uniforms: new Map<string, Uniform>(scale < 1 ? [['tScatter', scatter]] : []),
     });
     this.camera = camera;
     this.nearU = new Uniform(camera.near); this.farU = new Uniform(camera.far);
@@ -106,8 +108,7 @@ export class VolumetricsEffect extends Effect {
     };
     if (scale < 1) {
       this.rt = new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false, minFilter: LinearFilter, magFilter: LinearFilter });
-      const tScatter = this.uniforms.get('tScatter');
-      if (tScatter !== undefined) tScatter.value = this.rt.texture;
+      scatter.value = this.rt.texture;
       this.marchMat = new ShaderMaterial({
         uniforms: { ...this.marchUniforms, depthBuffer: this.depthU, cameraNear: this.nearU, cameraFar: this.farU },
         defines: { DEPTH_PACKING: '0' },

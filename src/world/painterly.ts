@@ -42,6 +42,7 @@
  *   syncPainterlySun(sky)         copy the sun's colour × intensity and direction into the shared uniforms
  *   updatePainterly(dt)           advance the shared sway clock (the shard's update hook calls it once a frame)
  *   setPainterlyLook(look)        the shard-wide look: shadow tint, rim colour, wind strength (all shared uniforms)
+ *   painterlyUniforms.uPWarm / uPFloor   the warm terminator band, and the painted floor that keeps dark paint off black
  *   painterlyUniforms             the shared uniform objects (read-only use: other shaders — grass — may sample the
  *                                 same shadow tint / rim colour / clock so they match)
  *
@@ -89,6 +90,12 @@ export const painterlyUniforms = {
   uPWind: { value: new THREE.Vector3(0.8, 0.6, 1) },
   /** the painted ramp's temperature: the band just past the terminator warms and saturates (a painter's warm edge), 0 = off */
   uPWarm: { value: 0.8 },
+  /**
+   * the painted floor: dark albedo channels are lifted toward 0.22 by the shade tint × this, everywhere the surface is lit
+   * indirectly — a black horse, dark felt, the bow grip read as deep blue-violet in shade, never black (the mockups
+   * never go near-black). Scales with `uPShade`, so night (a dim shade tint) keeps its darks. 0 = off.
+   */
+  uPFloor: { value: 3.0 },
 };
 
 /** Advance the shared clock that drives `sway`. */
@@ -147,6 +154,7 @@ uniform vec3 uPSunDir;
 uniform vec3 uPShade;
 uniform vec3 uPRimColor;
 uniform float uPWarm;
+uniform float uPFloor;
 uniform float uPRim;
 uniform float uPBands;
 uniform float uPShadeAmt;
@@ -185,6 +193,8 @@ void RE_Direct_Lambert( const in IncidentLight directLight, const in vec3 geomet
 
 void RE_IndirectDiffuse_Lambert( const in vec3 irradiance, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in LambertMaterial material, inout ReflectedLight reflectedLight ) {
   reflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );
+  // the painted floor (see uPFloor): only the channels darker than 0.22 gain, so bright paint is untouched
+  reflectedLight.indirectDiffuse += uPShade * uPFloor * BRDF_Lambert( max( vec3( 0.22 ) - material.diffuseColor, vec3( 0.0 ) ) );
 }
 
 #define RE_Direct RE_Direct_Lambert

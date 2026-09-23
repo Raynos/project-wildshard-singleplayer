@@ -13,7 +13,7 @@
  *   · the high PUFFS — the old planar cloud layer (a tileable fbm), thresholded into sparse puffs, cel-lit from the
  *     density gradient.
  *
- *   const clouds = buildPainterlyClouds(cloudUniforms, hazeColor);   // → THREE.Group (Sky.clouds for a painted sky)
+ *   const clouds = buildPainterlyClouds(cloudUniforms, hazeColor, fbmTexture);   // → THREE.Group (Sky.clouds for a painted sky)
  *
  * `cloudUniforms` is Sky's shared set (uTime, uSunDir, uSunColor, uLight — the day/night rig drives them through
  * `sky.setCloudLight`), plus `uDrift` (xy, the wind drift in uv, advanced by Sky.update).
@@ -84,6 +84,19 @@ function rasterCumulus(W: number, H: number, clusters: Cluster[], rng: Rng, wrap
       }
     }
   }
+  // A → a soft coverage field (two separable box blurs, radius 4 px): the edge sits at 0.5, the shader erodes it with
+  // noise into fluffy, broken cloud edges (it only ever eats inward, so the stored normals are always valid)
+  const R = 4, cov = new Float32Array(W * H), tmp = new Float32Array(W * H);
+  for (let i = 0; i < W * H; i++) cov[i] = (data[i * 4 + 3] ?? 0) / 255;
+  const at = (x: number, y: number): number => {
+    const yy = wrapY ? ((y % H) + H) % H : Math.min(H - 1, Math.max(0, y));
+    return yy * W + (((x % W) + W) % W);
+  };
+  for (let pass = 0; pass < 2; pass++) {
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { let sum = 0; for (let k = -R; k <= R; k++) sum += cov[at(x + k, y)] ?? 0; tmp[y * W + x] = sum / (2 * R + 1); }
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { let sum = 0; for (let k = -R; k <= R; k++) sum += tmp[at(x, y + k)] ?? 0; cov[y * W + x] = sum / (2 * R + 1); }
+  }
+  for (let i = 0; i < W * H; i++) data[i * 4 + 3] = Math.round(Math.min(1, cov[i] ?? 0) * 255);
   const tex = new THREE.DataTexture(data, W, H, THREE.RGBAFormat);
   tex.wrapS = THREE.RepeatWrapping; tex.wrapT = wrapY ? THREE.RepeatWrapping : THREE.ClampToEdgeWrapping;
   tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearMipmapLinearFilter; tex.generateMipmaps = true;
@@ -118,11 +131,22 @@ function makePuffSheet(seed: number): THREE.DataTexture {
 
 /** the soft three-band cloud ramp + colours shared by both layers (GLSL) */
 const CLOUD_LIGHT = /* glsl */`
-  uniform vec3 uSunDir; uniform vec3 uSunColor; uniform vec3 uLight; uniform vec3 uHaze;
+  uniform vec3 uSunDir; uniform vec3 uSunColor; uniform vec3 uLight; uniform vec3 uHaze; uniform sampler2D tNoise;
+  // the painted edge: the soft coverage (edge at 0.5) eaten inward by noise → fluffy, broken rims
+  float cloudEdge( float soft, float n ) {
+    float t = 0.5 + max( 0.0, 0.52 - n ) * 0.9;
+    return smoothstep( t - 0.05, t + 0.05, soft );
+  }
+  // a brushy wobble on the billow normal, so the light breaks up inside a billow like dabs of paint
+  vec3 cloudNormal( vec3 T, vec3 U, vec3 d, vec2 nxy, vec2 uvN ) {
+    float nz = sqrt( max( 0.0, 1.0 - dot( nxy, nxy ) ) );
+    vec2 w = vec2( texture2D( tNoise, uvN ).r, texture2D( tNoise, uvN * 1.7 + vec2( 0.43, 0.19 ) ).r ) - 0.5;
+    return normalize( T * ( nxy.x + w.x * 0.55 ) + U * ( nxy.y + w.y * 0.55 ) - d * nz );
+  }
   vec3 cloudLight( vec3 N, vec3 d, float occ ) {
     float l = dot( N, uSunDir ) * 0.5 + 0.5;                                  // wrapped: clouds scatter
-    float band = 0.4 * smoothstep( 0.4, 0.46, l ) + 0.6 * smoothstep( 0.6, 0.66, l );
-    vec3 shade = vec3( 0.46, 0.55, 0.76 );                                   // blue-grey bellies
+    float band = 0.35 * smoothstep( 0.32, 0.5, l ) + 0.65 * smoothstep( 0.54, 0.74, l );
+    vec3 shade = vec3( 0.52, 0.6, 0.8 );                                     // blue-grey bellies
     vec3 lit = vec3( 1.32, 1.26, 1.14 ) * mix( vec3( 1.0 ), uSunColor, 0.5 ); // warm white tops
     vec3 c = mix( shade, lit, band ) * ( 0.66 + 0.34 * occ );
     // the silver lining: toward the sun the thin edges glow
@@ -132,7 +156,7 @@ const CLOUD_LIGHT = /* glsl */`
   }
 `;
 
-export function buildPainterlyClouds(u: CloudUniforms, haze: THREE.Color, seed = 0x5c1d): THREE.Group {
+export function buildPainterlyClouds(u: CloudUniforms, haze: THREE.Color, noise: THREE.Texture, seed = 0x5c1d): THREE.Group {
   const group = new THREE.Group();
   group.name = 'painterly-clouds';
   const hazeU = { value: haze.clone() };
@@ -143,7 +167,7 @@ export function buildPainterlyClouds(u: CloudUniforms, haze: THREE.Color, seed =
   // polar angle from +y: EL_MAX … −2° elevation
   const bankGeo = new THREE.SphereGeometry(CLOUD_R, 96, 10, 0, Math.PI * 2, (90 - EL_MAX - 1) * d2r, (EL_MAX + 3) * d2r);
   const bank = new THREE.Mesh(bankGeo, new THREE.ShaderMaterial({
-    uniforms: { ...u, tAtlas: { value: atlas }, uHaze: hazeU, uElMax: { value: EL_MAX * d2r } },
+    uniforms: { ...u, tAtlas: { value: atlas }, tNoise: { value: noise }, uHaze: hazeU, uElMax: { value: EL_MAX * d2r } },
     transparent: true, depthWrite: false, side: THREE.BackSide, fog: false,
     vertexShader: /* glsl */`
       varying vec3 vDir;
@@ -156,14 +180,15 @@ export function buildPainterlyClouds(u: CloudUniforms, haze: THREE.Color, seed =
         vec3 d = normalize( vDir );
         float el = asin( clamp( d.y, -1.0, 1.0 ) );
         float az = atan( -d.x, d.z ) / 6.2831853;
-        vec4 a = texture2D( tAtlas, vec2( az + uDrift.x * 0.02, el / uElMax ) );
-        float alpha = a.a * smoothstep( -0.012, 0.03, el );
+        vec2 uv = vec2( az + uDrift.x * 0.02, el / uElMax );
+        vec4 a = texture2D( tAtlas, uv );
+        if ( a.a < 0.45 ) discard;
+        vec2 uvN = vec2( uv.x * 90.0, uv.y * 7.5 );
+        float alpha = cloudEdge( a.a, texture2D( tNoise, uvN * 0.8 ).r ) * smoothstep( -0.012, 0.03, el );
         if ( alpha < 0.004 ) discard;
-        vec2 nxy = a.rg * 2.0 - 1.0;
-        float nz = sqrt( max( 0.0, 1.0 - dot( nxy, nxy ) ) );
         vec3 T = normalize( cross( d, vec3( 0.0, 1.0, 0.0 ) ) );
         vec3 U = cross( T, d );
-        vec3 N = normalize( T * nxy.x + U * nxy.y - d * nz );
+        vec3 N = cloudNormal( T, U, d, a.rg * 2.0 - 1.0, uvN * 2.0 );
         vec3 c = cloudLight( N, d, a.b );
         // the low bank sinks into the horizon haze (aerial perspective of the sky)
         c = mix( c, uHaze * uLight, smoothstep( 0.16, 0.0, el ) * 0.55 );
@@ -178,7 +203,7 @@ export function buildPainterlyClouds(u: CloudUniforms, haze: THREE.Color, seed =
   const sheet = makePuffSheet(seed);
   const domeGeo = new THREE.SphereGeometry(CLOUD_R, 48, 16, 0, Math.PI * 2, 0, Math.PI * 0.5);
   const dome = new THREE.Mesh(domeGeo, new THREE.ShaderMaterial({
-    uniforms: { ...u, tSheet: { value: sheet }, uHaze: hazeU },
+    uniforms: { ...u, tSheet: { value: sheet }, tNoise: { value: noise }, uHaze: hazeU },
     transparent: true, depthWrite: false, side: THREE.BackSide, fog: false,
     vertexShader: /* glsl */`
       varying vec3 vDir;
@@ -192,13 +217,12 @@ export function buildPainterlyClouds(u: CloudUniforms, haze: THREE.Color, seed =
         if ( d.y < 0.2 ) discard;                                   // the low sky belongs to the bank
         vec2 p = d.xz / ( d.y + 0.25 ) * 0.42 + uDrift;
         vec4 a = texture2D( tSheet, p );
-        float alpha = a.a * smoothstep( 0.2, 0.36, d.y );
+        if ( a.a < 0.45 ) discard;
+        float alpha = cloudEdge( a.a, texture2D( tNoise, p * 9.0 ).r ) * smoothstep( 0.2, 0.36, d.y );
         if ( alpha < 0.004 ) discard;
-        vec2 nxy = a.rg * 2.0 - 1.0;
-        float nz = sqrt( max( 0.0, 1.0 - dot( nxy, nxy ) ) );
         vec3 T = normalize( cross( d, vec3( 0.0, 1.0, 0.0 ) ) );
         vec3 U = cross( T, d );
-        vec3 N = normalize( T * nxy.x + U * nxy.y - d * nz );
+        vec3 N = cloudNormal( T, U, d, a.rg * 2.0 - 1.0, p * 18.0 );
         gl_FragColor = vec4( cloudLight( N, d, a.b ), alpha );
       }`,
   }));

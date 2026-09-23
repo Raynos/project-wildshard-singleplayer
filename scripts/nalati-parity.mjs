@@ -48,10 +48,10 @@ export const POSES = [
     x: 64, z: 203, yaw: 0.05, pitch: 0.04 },
   // the road side of the hitching rail, the tied horse (B8) in front, looking W over the camp into the low sun (golden hour)
   { id: 'rail', mockup: 'round-2/2-creatures/taming-3-bonded.png', what: 'camp detail, props, close models',
-    x: 73.5, z: 206, yaw: -1.3, pitch: -0.06, time: 'golden' },
+    x: 73.5, z: 206, yaw: -1.3, pitch: -0.06, time: 17.8 },
   // the kurgan field at golden hour, the great kurgan ahead, the range behind
   { id: 'kurgan', mockup: 'round-2/4-named-elites/elite-2-kokbori-sky-wolf.png', what: 'stones, dusk light',
-    x: -128, z: -62, yaw: 0.22, pitch: -0.02, time: 'golden' },
+    x: -128, z: -62, yaw: 0.22, pitch: -0.02, time: 17.8 },
 ];
 
 const TIERS = {
