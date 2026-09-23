@@ -226,7 +226,7 @@ function mix3(out: number[], a: THREE.Color, b: THREE.Color, t: number, k = 1): 
 /** the painted colour at arc length u, ring angle φ (sin φ > 0 = belly, toward the archer) */
 /** the colours the limbs + string are painted from (`Bow.setStyle` swaps the set and repaints) */
 interface LimbPalette { leather: THREE.Color; leatherHi: THREE.Color; sinew: THREE.Color; bone: THREE.Color; boneDark: THREE.Color; birchBark: THREE.Color; lenticel: THREE.Color; lacquer: THREE.Color; gold: THREE.Color; horn: THREE.Color; hornHoney: THREE.Color; ornament: THREE.Color; string: THREE.Color; serving: THREE.Color }
-export type BowStyle = 'recurve' | 'golden';
+export type BowStyle = 'recurve' | 'golden' | 'sky-wolf';
 const LIMB_STYLES: Record<BowStyle, LimbPalette> = {
   recurve: { leather: PAL.leather, leatherHi: PAL.leatherHi, sinew: PAL.sinew, bone: PAL.bone, boneDark: PAL.boneDark, birchBark: PAL.birchBark, lenticel: PAL.lenticel, lacquer: PAL.lacquer, gold: PAL.gold, horn: PAL.horn, hornHoney: PAL.hornHoney, ornament: PAL.ornament, string: PAL.string, serving: PAL.serving },
   // the Golden Bow (the Golden King's reward, src/player/GoldenBow.ts): gold-sheathed limbs, the scroll burnished bright
@@ -236,6 +236,13 @@ const LIMB_STYLES: Record<BowStyle, LimbPalette> = {
     birchBark: C(0xc8902a), lenticel: C(0x6a4410), lacquer: C(0xb87818), gold: new THREE.Color(1.6, 1.2, 0.5),
     horn: C(0x8a5210), hornHoney: C(0xe0a030), ornament: new THREE.Color(1.5, 1.15, 0.45),
     string: new THREE.Color(3.2, 2.6, 1.3), serving: C(0xd8a040),
+  },
+  // the SKY-WOLF skin (Kokbori's drop, B15 src/player/nalatiSkins.ts): blue-grey horn limbs, wolf-bone ears, a silver string
+  'sky-wolf': {
+    leather: C(0x2e3440), leatherHi: C(0x56606e), sinew: C(0xb8c4d0), bone: C(0xe6ecf2), boneDark: C(0x6a7684),
+    birchBark: C(0x7c8a9a), lenticel: C(0x3a4452), lacquer: C(0x4a5a6e), gold: C(0xc8d4e0),
+    horn: C(0x3c4a5c), hornHoney: C(0x8a9cb2), ornament: C(0xd8e4f0),
+    string: new THREE.Color(1.6, 1.7, 1.9), serving: C(0x9aa6b4),
   },
 };
 let LIMB: LimbPalette = LIMB_STYLES.recurve;

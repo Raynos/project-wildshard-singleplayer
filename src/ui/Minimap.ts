@@ -20,6 +20,12 @@
  *   4. the player arrow, a rim vignette. The cyan rim, 45° ticks, "N" and the heading readout are CSS.
  *
  * Nothing is allocated per frame: every canvas, gradient and sprite is built at construction or on resize.
+ *
+ * NALATI (`chunk.style === 'painterly'`, plan row B15): the ground is painted in the shard's own colours instead — the green
+ * valley, the gold-olive Sky Grassland, grey rock on the escarpment, snow over the snow line, the Kunes' braided channels
+ * (glacial blue) and gravel bars, the plateau brook, the spruce gullies stippled from the chunk's own spruce mask — and the
+ * map-01 names (NOMAD CAMP, KUNES RIVER, SKY GRASSLAND, …: `mapPois()`, read from the chunk def / layout, never
+ * hard-coded) sit on the map. A wolf lying hidden in long grass (`mem.hidden`, Pack.ts) is not on it (the stealth rule).
  */
 import { CHUNK_HALF, CHUNK_SIZE, SEED } from '../core/config';
 import { heightAt, trailDistance, TRAILS, CABIN_SITES, POND, hasPond } from '../world/Heightfield';
@@ -27,6 +33,9 @@ import { Noise2D, smoothstep } from '../core/noise';
 import { Rng } from '../core/rng';
 import { getActiveChunk, onActiveChunkChange } from '../chunks/registry';
 import { hasSpecies, speciesDef } from '../entities/species/registry';
+import * as NALATI_DEF from '../chunks/nalati-grasslands';
+import { nalatiWetAt } from '../nalati/wet';
+import { NALATI_WILDLIFE } from '../entities/Wildlife';
 
 export interface MinimapAnimal {
   kind: string;
@@ -39,6 +48,70 @@ export interface MinimapAnimal {
   hp?: number;
   maxHp?: number;
   state?: string;
+  /** Animal.mem — a wolf with `hidden` 1 (lying still in long grass, Pack.ts) is off the map */
+  mem?: Record<string, number>;
+}
+
+/** a named place on the maps (the minimap's labels, the full map's pins) */
+export interface MapPoi { x: number; z: number; label: string; color: string }
+
+// ── Nalati's map, read BY NAME from the chunk def at runtime (layout v2 is being rebuilt: consts come and go, so nothing
+//    here imports one; the ground colours are by height / slope / the river, which follow any terrain) ──
+const NDEF = new Map<string, unknown>(Object.entries(NALATI_DEF));
+const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+function defXZ(name: string): { x: number; z: number } | null {
+  const v = NDEF.get(name);
+  return isObj(v) && typeof v['x'] === 'number' && typeof v['z'] === 'number' ? { x: v['x'], z: v['z'] } : null;
+}
+function defNum(name: string, d: number): number { const v = NDEF.get(name); return typeof v === 'number' ? v : d; }
+function defFn(name: string): ((x: number, z: number) => number) | null {
+  const v = NDEF.get(name);
+  return typeof v === 'function' ? (x: number, z: number) => { const r: unknown = Reflect.apply(v, undefined, [x, z]); return typeof r === 'number' ? r : 0; } : null;
+}
+const labelled = (list: unknown, color: string): MapPoi[] => {
+  const out: MapPoi[] = [];
+  if (Array.isArray(list)) for (const e of list) if (isObj(e) && typeof e['label'] === 'string' && typeof e['x'] === 'number' && typeof e['z'] === 'number') out.push({ x: e['x'], z: e['z'], label: e['label'], color: typeof e['color'] === 'string' ? e['color'] : color });
+  return out;
+};
+const POI_COLOR = '#f0e6c8', ZONE_COLOR = '#e8f2ff';
+
+/** Nalati's zone names (NALATI GRASSLANDS / SKY GRASSLAND / SNOW LOTUS VALLEY): the def's `NALATI_MAP.zones` */
+export function mapZones(): MapPoi[] {
+  if (getActiveChunk().style !== 'painterly') return [];
+  const m = NDEF.get('NALATI_MAP');
+  return isObj(m) ? labelled(m['zones'], ZONE_COLOR) : [];
+}
+
+/** the active shard's named places: Nalati's (the def's `NALATI_MAP.pois`, else whichever named consts it exports), else the
+ *  cabins + the pond */
+export function mapPois(): MapPoi[] {
+  if (getActiveChunk().style === 'painterly') {
+    const m = NDEF.get('NALATI_MAP');
+    const listed = isObj(m) ? labelled(m['pois'], POI_COLOR) : [];
+    if (listed.length > 0) return listed;
+    const out: MapPoi[] = [];
+    const add = (label: string, p: { x: number; z: number } | null, color = POI_COLOR): void => { if (p !== null) out.push({ x: p.x, z: p.z, label, color }); };
+    add('NOMAD CAMP', defXZ('CAMP')); add('BRIDGE', defXZ('BRIDGE')); add('SHEEP PASTURE', defXZ('PASTURE'));
+    add('EAGLE ROCK', defXZ('EAGLE_ROCK')); add('THE CRAGS', defXZ('CRAGS')); add('SUMMER CAMP', defXZ('SUMMER_YURTS'));
+    add('WIND CAIRN', defXZ('CAIRN')); add('KOKPAR FIELD', defXZ('KOKPAR')); add('RUINED WATCHTOWER', defXZ('WATCHTOWER'));
+    add('GLACIER', defXZ('GLACIER')); add('SNOW LEOPARD CAVE', defXZ('LEOPARD_CAVE'));
+    const kurgans = NDEF.get('KURGANS');
+    if (Array.isArray(kurgans)) {
+      const great: unknown = kurgans.find((k: unknown) => isObj(k) && k['great'] === true) ?? kurgans[0];
+      if (isObj(great) && typeof great['x'] === 'number' && typeof great['z'] === 'number') add('KURGAN FIELD', { x: great['x'], z: great['z'] });
+    }
+    const herd = NALATI_WILDLIFE.herds[0];
+    if (herd) add('HORSE PLAINS', herd);
+    const bridge = defXZ('BRIDGE'), rz = NDEF.get('RIVER');
+    if (bridge !== null && isObj(rz) && typeof rz['z'] === 'function') {
+      const x = bridge.x - 90, z: unknown = Reflect.apply(rz['z'], undefined, [x]);
+      if (typeof z === 'number') add('KUNES RIVER', { x, z }, '#a8d8f0');
+    }
+    return out;
+  }
+  const out: MapPoi[] = CABIN_SITES.map((c, i) => ({ x: c.x, z: c.z, label: `CABIN ${i + 1}`, color: '#8fe3ff' }));
+  if (hasPond()) out.push({ x: POND.x, z: POND.z, label: 'THE POND', color: '#6fb8e8' });
+  return out;
 }
 
 const VIEW_RADIUS = 110;          // metres from the player to the rim
@@ -69,6 +142,26 @@ const CARDINAL4 = ['N', 'E', 'S', 'W'];
 function canvas(w: number, h: number): HTMLCanvasElement { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
 function ctx2d(c: HTMLCanvasElement): CanvasRenderingContext2D { const ctx = c.getContext('2d'); if (!ctx) throw new Error('Minimap: no 2d context'); return ctx; }
 
+/** Nalati's painted ground at one sample, by HEIGHT (so it follows any layout): the lowland green, the gold-green high
+ *  meadow, grey rock where it is steep, snow over the def's SNOW_LINE, the Kunes' glacial channels + gravel bars (the def's
+ *  riverMask), meltwater / the brook (nalatiWetAt), a darker floor where the spruce mask keeps trees */
+const RIVER_MASK = defFn('riverMask');
+function nalatiGround(x: number, z: number, h: number, slope: number, spruce: number, out: RGB): void {
+  const VALLEY: RGB = [92, 128, 58], MEADOW: RGB = [176, 164, 86], MEADOW_HI: RGB = [192, 178, 104];
+  const ROCK_N: RGB = [132, 130, 126], SNOW: RGB = [234, 238, 244], SPRUCE_FLOOR: RGB = [52, 70, 44];
+  const CHANNEL: RGB = [112, 164, 194], GRAVEL: RGB = [180, 172, 154], MELT: RGB = [100, 156, 190];
+  const snowLine = defNum('SNOW_LINE', 55);
+  const high = smoothstep(2, 18, h);                                       // off the valley floor onto the high meadow
+  mix(VALLEY, MEADOW, high, out);
+  mix(out, MEADOW_HI, smoothstep(28, 40, h) * 0.5, out);
+  mix(out, SPRUCE_FLOOR, Math.min(1, spruce) * 0.55, out);
+  mix(out, ROCK_N, smoothstep(0.16, 0.42, slope), out);
+  mix(out, SNOW, smoothstep(snowLine - 4, snowLine + 6, h), out);
+  const rm = RIVER_MASK?.(x, z) ?? 0;
+  if (rm > 0.35) { mix(GRAVEL, CHANNEL, smoothstep(0.55, 0.8, rm), out); return; }
+  if (high > 0.5 && nalatiWetAt(x, z)) mix(out, MELT, 0.9, out);
+}
+
 export class Minimap {
   readonly root: HTMLDivElement;
   private canvas: HTMLCanvasElement;
@@ -78,6 +171,9 @@ export class Minimap {
 
   private layer = canvas(CHUNK_SIZE * LAYER_PPM, CHUNK_SIZE * LAYER_PPM);
   private layerDirty = true;
+  /** the named places drawn on the minimap (Nalati only: the cabins / pond read without) */
+  private pois: MapPoi[] = [];
+  private zones: MapPoi[] = [];
   /** last paint time of the terrain layer, ms */
   paintMs = 0;
 
@@ -187,7 +283,7 @@ export class Minimap {
     const dot = 1.75 * this.dpr, outline = this.dpr;
     ctx.lineWidth = outline;
     for (const a of animals) {
-      if (a.alive === false || (a.hp !== undefined && a.hp <= 0)) continue;
+      if (a.alive === false || (a.hp !== undefined && a.hp <= 0) || a.mem?.['hidden'] === 1) continue;
       const dx = a.position.x - pos.x, dz = a.position.z - pos.z;
       if (dx * dx + dz * dz > VIEW_RADIUS * VIEW_RADIUS) continue;
       const sx = c - dx * k, sy = c - dz * k;
@@ -205,6 +301,29 @@ export class Minimap {
         ctx.beginPath(); ctx.arc(sx, sy, r + 2.2 * this.dpr, 0, Math.PI * 2);
         ctx.strokeStyle = a.rarity === 'legendary' ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.7)'; ctx.stroke();
         ctx.strokeStyle = DOT_OUTLINE;
+      }
+    }
+
+    // 3b. the place names (Nalati): small caps over the terrain, only those in view
+    if (this.zones.length > 0) {
+      ctx.font = `700 ${Math.round(9 * this.dpr)}px Rajdhani, sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineWidth = 3 * this.dpr;
+      for (const p of this.zones) {
+        const dx = p.x - pos.x, dz = p.z - pos.z;
+        if (dx * dx + dz * dz > (VIEW_RADIUS - 20) * (VIEW_RADIUS - 20)) continue;
+        ctx.strokeStyle = 'rgba(8, 12, 18, 0.7)'; ctx.strokeText(p.label, c - dx * k, c - dz * k);
+        ctx.fillStyle = 'rgba(232, 242, 255, 0.8)'; ctx.fillText(p.label, c - dx * k, c - dz * k);
+      }
+    }
+    if (this.pois.length > 0) {
+      ctx.font = `600 ${Math.round(7.5 * this.dpr)}px JetBrains Mono, Menlo, monospace`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineWidth = 2.5 * this.dpr;
+      for (const p of this.pois) {
+        const dx = p.x - pos.x, dz = p.z - pos.z;
+        if (dx * dx + dz * dz > (VIEW_RADIUS - 12) * (VIEW_RADIUS - 12)) continue;
+        const sx = c - dx * k, sy = c - dz * k;
+        ctx.strokeStyle = 'rgba(8, 12, 18, 0.8)'; ctx.strokeText(p.label, sx, sy);
+        ctx.fillStyle = p.color; ctx.fillText(p.label, sx, sy);
       }
     }
 
@@ -265,6 +384,10 @@ export class Minimap {
     const F = chunk.forest;
     const ocean = chunk.ocean ?? null; // open-water shard: sea by depth, sand where the floor breaks the surface, no forest
     const SEA_DEEP: RGB = [22, 74, 128], SEA_SHALLOW: RGB = [78, 196, 214], SAND: RGB = [226, 206, 150];
+    const painted = chunk.style === 'painterly';   // Nalati: its own palette (nalatiGround), its names, no pines / cabins
+    const spruce = painted ? chunk.forest.mask : undefined;
+    this.pois = painted ? mapPois() : [];
+    this.zones = painted ? mapZones() : [];
     const density = new Noise2D(SEED + 5);   // Forest.ts thins its tree candidates with this field: groves are dark floor, clearings meadow
     for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
       const wx = CHUNK_HALF - i * HEIGHT_STEP, wz = CHUNK_HALF - j * HEIGHT_STEP;
@@ -279,7 +402,9 @@ export class Minimap {
       const hij = h[j * N + i] ?? 0;
       const alt = (hij - hMin) / Math.max(1, hMax - hMin);
       let sh = shade;
-      if (ocean) {
+      if (painted) {
+        nalatiGround(wx, wz, hij, slope, spruce?.(wx, wz) ?? 0, col);
+      } else if (ocean) {
         const depth = ocean.level - hij;
         if (depth > 0) { mix(SEA_SHALLOW, SEA_DEEP, smoothstep(0, ocean.deepDepth, depth), col); sh = 1; }
         else { mix(SAND, GRASS_HI, smoothstep(1.5, 8, -depth), col); mix(col, ROCK, smoothstep(0.14, 0.4, slope), col); }
@@ -304,6 +429,28 @@ export class Minimap {
       ctx.beginPath(); ctx.arc(u, v, r * 0.98, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
     }
 
+    if (painted) {
+      // the spruce: a stipple of dark crowns where the chunk's own spruce mask keeps trees
+      if (spruce) {
+        const rng = new Rng(SEED + 4242);
+        for (let x = -CHUNK_HALF + 3; x < CHUNK_HALF - 3; x += 4.2) for (let z = -CHUNK_HALF + 3; z < CHUNK_HALF - 3; z += 4.2) {
+          const cx = x + rng.range(-1.6, 1.6), cz = z + rng.range(-1.6, 1.6);
+          if (rng.next() > spruce(cx, cz) * 0.85) continue;
+          const r = (1.6 + rng.range(0, 1.1)) * ppm;
+          ctx.fillStyle = 'rgba(14, 26, 18, 0.45)'; ctx.beginPath(); ctx.arc(toU(cx) + 0.8 * ppm, toV(cz) + 0.8 * ppm, r, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = rng.next() < 0.5 ? '#2c4a30' : '#38583a'; ctx.beginPath(); ctx.arc(toU(cx), toV(cz), r, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      // the roads (the N road, the sky road's hairpins …): the chunk's trails, a warm dirt line
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      for (const [w, style] of [[6, 'rgba(70, 54, 36, 0.8)'], [3.5, '#b89c70']] as const) {
+        ctx.lineWidth = w * ppm; ctx.strokeStyle = style; ctx.beginPath();
+        for (const poly of TRAILS) poly.forEach(([x, z], i) => (i ? ctx.lineTo(toU(x), toV(z)) : ctx.moveTo(toU(x), toV(z))));
+        ctx.stroke();
+      }
+      this.paintMs = performance.now() - t0;
+      return;
+    }
     if (ocean) {
       // the south pier (src/world/Pier.ts: 4 m deck from the edge midpoint 60 m north) — the entry roads are submerged sandbars
       ctx.fillStyle = '#b8945e';

@@ -29,7 +29,7 @@ const TABS: { id: MenuTab; label: string }[] = [
   { id: 'map', label: 'Map' }, { id: 'inventory', label: 'Inventory' }, { id: 'achievements', label: 'Achievements' }, { id: 'settings', label: 'Settings' },
   { id: 'feedback', label: 'Feedback' }, // only while the review inbox is unlocked (syncReview)
 ];
-const HINTS: Record<MenuTab, string> = { map: 'Drag to pan · pinch to zoom', inventory: 'Tap a weapon to hold it', achievements: 'Tap an earned title to wear it', settings: 'Tap outside or Esc to resume', feedback: 'Enter sends · the frame under the menu goes with it' };
+const HINTS: Record<MenuTab, string> = { map: 'Drag to pan · pinch to zoom', inventory: 'Tap a weapon to hold it · a skin to wear it', achievements: 'Tap an earned title to wear it', settings: 'Tap outside or Esc to resume', feedback: 'Enter sends · the frame under the menu goes with it' };
 
 /** the weapons as the Inventory tab shows them — read live from Weapons (src/player/Weapons.ts) */
 export interface KitEntry { id: string; name: string; ammoLabel: string; ammo: number; magazine: number; reserve: number; equipped: boolean; icon: IconId }
@@ -42,7 +42,11 @@ export interface GameMenuOptions {
   kit: () => KitEntry[];
   /** hold a weapon from the Inventory tab */
   onEquip?: (id: string) => void;
+  /** the shard's wearable skins you own (Nalati: src/player/nalatiSkins.ts) — listed under the weapons, tap to wear / take off */
+  skins?: () => SkinRow[];
+  onWearSkin?: (id: string) => void;
 }
+export interface SkinRow { id: string; name: string; blurb: string; worn: boolean }
 
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
 const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
@@ -191,6 +195,22 @@ export class GameMenu {
       (card as HTMLButtonElement).type = 'button';
       card.addEventListener('click', () => { if (!w.equipped) { this.opts.onEquip?.(w.id); this.renderInventory(); } });
       p.append(card);
+    }
+    const skins = this.opts.skins?.() ?? [];
+    if (skins.length > 0) {
+      p.append(el('ws-gmenu-label', 'Skins'));
+      for (const s of skins) {
+        const card = el(`ws-gmenu-weapon${s.worn ? ' equipped' : ''}`, `
+          <i class="ws-gmenu-wicon">${icon('laurel')}</i>
+          <div class="ws-gmenu-wbody">
+            <div class="ws-gmenu-wname">${esc(s.name)}</div>
+            <div class="ws-gmenu-wammo">${esc(s.blurb)}</div>
+          </div>
+          <span class="ws-gmenu-chip">${s.worn ? 'Worn' : 'Wear'}</span>`, 'button');
+        (card as HTMLButtonElement).type = 'button';
+        card.addEventListener('click', () => { this.opts.onWearSkin?.(s.id); this.renderInventory(); });
+        p.append(card);
+      }
     }
     const items = this.opts.inventory.items;
     p.append(el('ws-gmenu-label', `Pack · ${items.length} / ${PACK_SLOTS}`));

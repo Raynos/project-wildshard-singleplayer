@@ -54,7 +54,7 @@ import { getNumber, onNumber } from './ui/Settings';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
 import { setAimTargets, meleeLock } from './player/AimTargets';
-import { pastRidden } from './player/riding';
+import { pastRidden, riding } from './player/riding';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
 import { declareTotals, installByteCounter } from './boot/bytes';
 import { chunkFiles } from './boot/manifest';
@@ -292,8 +292,9 @@ async function main() {
   const skins = new SkinLocker();                          // legendary skins owned / worn (persisted; wired below)
   const menu = new GameMenu({
     fullMap, progress, inventory,
-    kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; return { id: w.id, name: (w.id === 'crossbow' ? 'Hunting crossbow' : w.id === 'sword' ? 'Wooden sword' : w.name) + (worn ? ` · ${worn.name}` : ''), ammoLabel: w.id === 'crossbow' ? 'Iron bolts' : w.id === 'rifle' ? 'Rounds' : '', ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? 'rifle' : w.id === 'crossbow' ? 'crossbow' : 'sword' }; }),
+    kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; return { id: w.id, name: (w.id === 'crossbow' ? 'Hunting crossbow' : w.id === 'sword' ? 'Wooden sword' : w.name) + (worn ? ` · ${worn.name}` : ''), ammoLabel: w.id === 'crossbow' ? 'Iron bolts' : w.id === 'rifle' ? 'Rounds' : w.id === 'bow' ? 'Arrows' : '', ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? 'rifle' : w.id === 'crossbow' || w.id === 'bow' ? 'crossbow' : 'sword' }; }),
     onEquip: (id) => weapons.select(id as WeaponId),
+    skins: () => nalatiNow()?.skins.entries() ?? [], onWearSkin: (id) => { nalatiNow()?.skins.toggle(id); }, // Nalati's wearable skins (B15)
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); });
@@ -365,7 +366,10 @@ async function main() {
     if (killed) { kills++; audio.kill(); }
     buzz(killed ? HAPTIC.kill : HAPTIC.hit);
   };
-  setAimTargets(animals.animals); // aim assist reads the live array
+  // aim assist reads the live array; Nalati hands it a filtered copy each frame (B9 / B15: a wolf hidden in long grass, the
+  // horse you ride and the camp horses / Tulpar are not targets — the sabre's pass side reads the same list)
+  const aimList: typeof animals.animals = [];
+  setAimTargets(painterly ? aimList : animals.animals);
   // the AR-15 is found, not issued: a floating pickup on the floor of cabin 1 (the hollow), inside by the door wall
   // (cabin local frame: door on +X, chimney end -Z — Cabin.ts); "[E] Take AR-15" through the door / harvest prompt path
   const rifleDrop = (() => {
@@ -443,9 +447,11 @@ async function main() {
     animals, wildlife, ride, sabre: nalatiKit?.sabre ?? null, setWeaponsEnabled: (on) => { weapons.setEnabled(on); }, refill: () => { nalatiKit?.refill(); }, interactables, params,
     hurt: (dmg, why) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); if (why) hud.toast(why); audio.land(true); },
     toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, record: (k, v) => { progress.recordKill(k, v); }, pickupHum: (on) => { audio.pickupHum(on); },
+    ownSkin: (id) => { nalatiNow()?.skins.own(id); },
     music: (e) => { if (e === 'death' || e === 'pickup') music.sting(e); else if (e === 'victory') music.sting('chunk'); else music.combat(1); },
   });
   if (ride) ride.taming.onBreaking = (on) => { weapons.visible = !on; weapons.setEnabled(!on); }; // both hands in the mane while he bucks
+  if (ride) ride.taming.onBonded = () => { progress.recordKill('tame'); }; // B15: the Horse Sense achievement
   player.onStep = (sprinting) => (player.wading ? audio.wadeStep(player.depth, sprinting)
     : audio.footstep(sprinting, pier?.floorHeightAt(player.position.x, player.position.z) !== undefined ? 'planks'
       : sea !== undefined && heightAt(player.position.x, player.position.z) - sea.level < 2.6 ? 'sand' : 'litter'));
@@ -533,6 +539,7 @@ async function main() {
     // swimming holsters the weapon (hands only; Hands.ts follows)
     if (player.swimming !== swimHold) { swimHold = player.swimming; weapons.visible = !swimHold; weapons.setEnabled(!swimHold); }
     animals.update(dt, t, player.position, player.sprinting);
+    if (painterly) { aimList.length = 0; for (const a of animals.animals) if (a.mem['hidden'] !== 1 && a.mem['owned'] !== 1 && a !== riding.horse) aimList.push(a); }
     weapons.update(dt, t); // every weapon ticks (bolts in flight keep flying while the rifle is out)
     rifleDrop?.update(dt, t, game.renderer, game.camera);
     ironDrop?.update(dt, t, game.renderer, game.camera, player.position); // walk-to-pick-me-up

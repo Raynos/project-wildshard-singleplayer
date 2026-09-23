@@ -12,8 +12,7 @@
  *   fullMap.setZoom(2) / fullMap.zoom / fullMap.onZoom / fullMap.fit()
  */
 import { CHUNK_HALF, CHUNK_SIZE } from '../core/config';
-import { CABIN_SITES, POND, hasPond } from '../world/Heightfield';
-import type { Minimap } from './Minimap';
+import { mapPois, mapZones, type Minimap } from './Minimap';
 
 const FOG_BRIGHTNESS = 0.3;
 const ZOOM_MIN = 1, ZOOM_MAX = 6;
@@ -31,6 +30,8 @@ export class FullMap {
   private pointers = new Map<number, { x: number; y: number }>();
   private pinchDist = 0; private pinchZoom = 1;
   onToggle?: (open: boolean) => void;
+  private pois: ReturnType<typeof mapPois> | null = null;
+  private zones: ReturnType<typeof mapZones> | null = null;
   /** the zoom changed (pinch / wheel / setZoom) — the menu's zoom chips follow */
   onZoom?: (zoom: number) => void;
 
@@ -161,8 +162,21 @@ export class FullMap {
       ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)'; ctx.lineWidth = 3 * this.dpr; ctx.strokeText(label, px, py + r + 3 * this.dpr);
       ctx.fillText(label, px, py + r + 3 * this.dpr);
     };
-    CABIN_SITES.forEach((c, i) => poi(c.x, c.z, `CABIN ${i + 1}`, '#8fe3ff'));
-    if (hasPond()) poi(POND.x, POND.z, 'THE POND', '#6fb8e8');
+    // the zones (Nalati: NALATI GRASSLANDS / SKY GRASSLAND / SNOW LOTUS VALLEY), big and letter-spaced, under the pins
+    this.zones ??= mapZones();
+    if (this.zones.length > 0) {
+      ctx.save();
+      ctx.font = `700 ${Math.round(fs * 1.9)}px Rajdhani, sans-serif`; ctx.textBaseline = 'middle';
+      ctx.letterSpacing = `${Math.round(fs * 0.35)}px`;
+      for (const z of this.zones) {
+        ctx.strokeStyle = 'rgba(6, 10, 18, 0.6)'; ctx.lineWidth = 4 * this.dpr; ctx.strokeText(z.label, sx(z.x), sz(z.z));
+        ctx.fillStyle = 'rgba(232, 242, 255, 0.78)'; ctx.fillText(z.label, sx(z.x), sz(z.z));
+      }
+      ctx.restore();
+      ctx.textBaseline = 'top';
+    }
+    this.pois ??= mapPois();   // Nalati: the named places from the chunk def; elsewhere the cabins + the pond (Minimap.ts)
+    for (const p of this.pois) poi(p.x, p.z, p.label, p.color);
 
     // you
     const deg = 180 - (yaw * 180) / Math.PI;

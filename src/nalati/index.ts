@@ -47,6 +47,7 @@ import { wireSound, type NalatiSound } from './sound';
 import { LOOK_V2, wireLookV2 } from './look';
 import { wireRide, type Ride } from './ride';
 import { wireStormTitan, type StormTitan } from './stormTitan';
+import { NalatiSkinLocker, NalatiSkinPainter } from '../player/nalatiSkins';
 import { HITCHING_RAIL } from '../world/nalati/layout';
 import { heightAt } from '../world/Heightfield';
 
@@ -106,6 +107,9 @@ export interface Nalati {
   /** Jel Ata the Storm Titan (B14; src/nalati/stormTitan.ts): main.ts `titan.bind({...})` once the kit / ride / HUD exist,
    *  `titan.onPlayerDeath()` in its death check; `titan.engaged` holds the storm and stands the elites down */
   titan: StormTitan;
+  /** the wearable skins (B15; src/player/nalatiSkins.ts): the elites' drops + the Sky-Marked Saddle, owned / worn per slot —
+   *  main.ts's menu lists `skins.entries()` in the Inventory tab and wears them with `skins.toggle(id)` */
+  skins: NalatiSkinLocker;
 }
 
 export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
@@ -286,7 +290,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
 
   const stealth = new Stealth({ player, wildlife: () => wildlife, isMounted: () => extra.mounted }); // B9, wired below
   const nalati: Nalati = {
-    water, pois, weather, groups, boss, elites, wildlife, stealth, ride, titan,
+    water, pois, weather, groups, boss, elites, wildlife, stealth, ride, titan, skins: new NalatiSkinLocker(),
     attachAnimals(animals) {
       animals.wetAt = nalatiWetAt;
       const w = new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed }).build();
@@ -386,6 +390,26 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
       else if (devT > 1.8 && devNext !== undefined) { devNext?.(); devMode = null; }
     });
   }
+  // ── wearable skins (B15; src/player/nalatiSkins.ts): the elites' drops (mirrored from elites.skins once a second) and the
+  //    Titan's saddle, painted on the kit and on the horse you ride / your bonded horse ──
+  {
+    const bind = nalati.bindPlay;
+    let painter: NalatiSkinPainter | null = null, syncT = 0;
+    nalati.bindPlay = (p) => {
+      bind(p);
+      painter = new NalatiSkinPainter(nalati.skins, {
+        sabre: p.kit?.sabre ?? null, bow: p.kit?.bow ?? null,
+        golden: () => boss.golden?.applied === true, naizagai: () => titan.naizagai?.applied === true,
+        tulpar: () => ride?.taming.tulpar ?? null,
+      });
+    };
+    updates.push((dt) => {
+      syncT -= dt;
+      if (syncT <= 0) { syncT = 1; for (const id of elites.skins) nalati.skins.own(id); }
+      painter?.update();
+    });
+  }
+
   // ── sound (B16 audio): wraps attachAnimals / bindPlay / wildEnv.onEvent for the creatures and the kit — src/nalati/sound.ts ──
   const sound = wireSound(nalati, { player: ctx.player, weather });
   nalati.sound = sound;
