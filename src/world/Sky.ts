@@ -132,6 +132,7 @@ export class Sky {
     this.scene.background = null;
     this.refreshEnvironment();
     this.scene.environmentIntensity = S.envIntensity;
+    toonUniforms.uFogZenith.value.copy(st.u.uZenith.value); // the colour-ramp fog (L3) fades into the dome's own gradient
     return st.u.uHorizon.value.clone();
   }
 

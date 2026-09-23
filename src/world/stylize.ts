@@ -43,6 +43,12 @@ export const toonUniforms = {
   uCloudTime: { value: 0 },
   uCloudWind: { value: new THREE.Vector2(3.2, 1.4) },
   uCloudScale: { value: 34 },
+  /** L3 colour-ramp fog: the sky's zenith (the far ramp is the dome's own gradient), the mid-distance aerial tint, and
+   *  the distance ramp in metres (crisp before `start`, fully the sky by `end`) */
+  uFogZenith: { value: new THREE.Color(0.055, 0.2, 0.78) },
+  uFogNear: { value: new THREE.Color(0.5, 0.6, 0.98) },
+  uFogStart: { value: 90 },
+  uFogEnd: { value: 1150 },
 };
 
 const TOON_GLSL = /* glsl */`
@@ -125,6 +131,40 @@ void RE_IndirectSpecular_Toon( const in vec3 radiance, const in vec3 irradiance,
 #endif
 `;
 
+/**
+ * L3 — colour-ramp fog (Firewatch): distance × height. Before `uFogStart` the island is crisp; out to `uFogEnd` the
+ * colour ramps from a cool aerial blue-violet into the sky dome's own gradient in that direction (so the sea's horizon
+ * dissolves into the sky seamlessly), warmer toward the sun; high ground keeps more contrast than the water line. The
+ * old exponential terms still run (with Driftwood's thin dry densities) so the underwater blend in Atmosphere.ts works.
+ */
+const RAMP_FOG_PARS = /* glsl */`
+#ifdef USE_FOG
+  uniform vec3 uFogZenith; uniform vec3 uFogNear; uniform float uFogStart; uniform float uFogEnd;
+#endif`;
+
+const RAMP_FOG = /* glsl */`
+#ifdef USE_FOG
+  {
+    vec3 ray = vFogWorldPos - cameraPosition;
+    float rayLen = length( ray );
+    vec3 viewDir = ray / max( rayLen, 1e-3 );
+    // the old exponential height + distance fog (underwater drives these up)
+    float dy = vFogWorldPos.y - cameraPosition.y;
+    float camF = exp( - fogHeightFalloff * ( cameraPosition.y - fogHeight ) );
+    float t = fogHeightFalloff * dy;
+    float integ = abs( t ) > 1e-3 ? ( 1.0 - exp( - t ) ) / t : 1.0;
+    float expF = clamp( 1.0 - exp( - ( fogHeightDensity * camF * integ * rayLen + fogDistDensity * rayLen ) ), 0.0, 1.0 );
+    // the ramp
+    float r = smoothstep( uFogStart, uFogEnd, rayLen );
+    float rampF = pow( r, 0.8 ) * mix( 1.0, 0.72, smoothstep( 4.0, 40.0, vFogWorldPos.y ) );
+    float e = max( viewDir.y, 0.0 );
+    vec3 skyCol = mix( fogColor, uFogZenith, pow( smoothstep( 0.0, 0.75, e ), 0.62 ) );
+    vec3 col = mix( uFogNear, skyCol, smoothstep( 0.0, 0.55, r ) );
+    col += fogSunColor * pow( max( dot( viewDir, fogSunDir ), 0.0 ), 8.0 ) * 0.3 * r;
+    gl_FragColor.rgb = mix( gl_FragColor.rgb, col, max( rampF, expF ) );
+  }
+#endif`;
+
 let installed = false;
 export function isStylized(): boolean { return installed; }
 
@@ -134,6 +174,9 @@ export function installStylize(): void {
   const chunk = THREE.ShaderChunk.lights_physical_pars_fragment;
   const defs = '#define RE_Direct				RE_Direct_Physical';
   if (!chunk.includes(defs)) { console.warn('[stylize] three chunk changed: lights_physical_pars_fragment has no RE_Direct define; toon lighting off'); return; }
+  // L3: the colour-ramp fog replaces Atmosphere's exponential fog on this shard (installAtmosphere ran first, in Game)
+  THREE.ShaderChunk.fog_pars_fragment += RAMP_FOG_PARS;
+  THREE.ShaderChunk.fog_fragment = RAMP_FOG;
   THREE.ShaderChunk.lights_physical_pars_fragment = chunk.replace('#define RE_IndirectSpecular		RE_IndirectSpecular_Physical', `#define RE_IndirectSpecular		RE_IndirectSpecular_Physical
 ${TOON_GLSL}`);
 }
