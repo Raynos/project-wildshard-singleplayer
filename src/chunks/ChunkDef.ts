@@ -264,4 +264,9 @@ export interface ChunkDef {
   weapon?: ChunkWeapon;
   /** open water over the whole shard; omitted = dry land with an optional pond */
   ocean?: OceanDef;
+  /** named places — Explore World's mini map pins them and flies to them (src/explore/MiniMap.ts); omitted = none */
+  pois?: ChunkPoi[];
 }
+
+/** a named place on the shard: world XZ in metres; `r` ≈ its size (how far back the fly-to camera stands) */
+export interface ChunkPoi { id: string; name: string; x: number; z: number; r?: number }

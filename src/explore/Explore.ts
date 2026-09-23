@@ -28,6 +28,7 @@ import type { World } from '../core/bootstrap';
 import { ModelExplorer } from './ModelExplorer';
 import { driftwoodCatalog, type CatalogEntry, type CatalogHandles } from './catalog';
 import { Select, type SelectTarget } from './Select';
+import { MiniMap } from './MiniMap';
 import modelsArt from './img/models.webp';
 import worldArt from './img/world.webp';
 
@@ -132,6 +133,7 @@ export class Explore {
     hold('.ws-x-up', 1); hold('.ws-x-down', -1);
     document.addEventListener('keydown', this.onKey);
     game.onUpdate((dt) => { this.update(dt); });
+    if ((host.world.chunk.pois ?? []).length > 0) this.map = new MiniMap(this, host.world);
     const models = host.models;
     if (models) {
       const entries = driftwoodCatalog({ ...models, sky: host.world.sky, scene: game.scene });
@@ -142,6 +144,7 @@ export class Explore {
   }
 
   private select: Select | null = null;
+  private map: MiniMap | null = null;
 
   /** ORBIT on a selection: one finger (phone) / Alt-drag (desktop) turns around it; off = free flight again */
   setOrbit(on: boolean, centre?: THREE.Vector3): void {
@@ -193,12 +196,12 @@ export class Explore {
       }
       this.root.classList.toggle('touch', touchDevice());
     }
-    const c = opts.cam;
-    if (c && c.length >= 3 && c.every((v) => Number.isFinite(v))) {
+    this.setMode(mode, opts.model !== undefined ? { model: opts.model } : {});
+    const c = opts.cam; // after setMode: entering the world from the hub puts the camera home, a `cam` (a note's "go there") wins
+    if (mode === 'world' && c && c.length >= 3 && c.every((v) => Number.isFinite(v))) {
       const [x = 0, y = 0, z = 0, yaw = 0, pitch = 0] = c;
       this.cam.placeAt(new THREE.Vector3(x, y, z)); this.cam.setAngles(yaw, pitch);
-    } else if (mode === 'world') this.cam.placeAt(HOME.pos, HOME.look);
-    this.setMode(mode, opts.model !== undefined ? { model: opts.model } : {});
+    }
   }
 
   /** leave to the title; the player is put back where they were */
@@ -228,7 +231,7 @@ export class Explore {
     this.tabs.querySelectorAll<HTMLElement>('button').forEach((b) => { b.classList.toggle('on', b.dataset['m'] === mode); });
     this.cam.enabled = mode === 'world' && !this.held;
     if (this.fly) this.fly.enabled = mode === 'world';
-    if (mode !== 'world') this.cam.move.set(0, 0, 0);
+    if (mode !== 'world') { this.cam.move.set(0, 0, 0); this.map?.close(); }
     if (mode === 'world' && prev === 'hub') this.cam.placeAt(HOME.pos, HOME.look);
     for (const [m, p] of this.panes) { if (m === mode) p.show(opts); else p.hide(); }
   }
@@ -295,7 +298,8 @@ export class Explore {
     const t = e.target;
     if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement) return;
     if (e.code === 'F8') { e.preventDefault(); void this.note(); }
-    else if (e.code === 'Escape' && !this.held) { if (this.mode === 'hub') this.close(); else this.setMode('hub'); }
+    else if (e.code === 'Escape' && !this.held) { if (this.map?.isOpen === true) this.map.close(); else if (this.mode === 'hub') this.close(); else this.setMode('hub'); }
+    else if (e.code === 'KeyM' && this.mode === 'world') this.map?.toggle();
     else if (e.code === 'Digit1') this.setMode('model');
     else if (e.code === 'Digit2') this.setMode('world');
   };
@@ -321,6 +325,7 @@ export class Explore {
         if (f.t >= 1) { this.flight = null; this.cam.placeAt(f.to, f.look); if (this.landing) { this.select?.selectEntry(this.landing); this.landing = null; } }
       } else this.cam.update(dt);
       this.select?.update();
+      this.map?.update();
     }
     this.panes.get(this.mode)?.update(dt);
     this.readoutT -= dt;

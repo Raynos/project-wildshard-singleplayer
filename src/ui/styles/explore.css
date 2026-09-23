@@ -108,6 +108,26 @@
 .ws-x-select-actions button { padding: 6px 9px; background: rgba(143, 227, 255, 0.12); border: 1px solid var(--ws-cyan-line); font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; }
 .ws-x-select-actions .ws-x-open { color: var(--ws-cyan); border-color: var(--ws-cyan); }
 
+/* ─── the mini map (src/explore/MiniMap.ts; mockups g11 / g12): a MAP button under the bar, a glass sheet ─── */
+.ws-x-mapbtn { position: absolute; right: 14px; top: calc(68px + env(safe-area-inset-top, 0px)); display: none; align-items: center; gap: 6px; padding: 7px 10px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-cyan); }
+.ws-x-mapbtn svg { width: 18px; height: 18px; }
+.ws-x[data-mode="world"] .ws-x-mapbtn { display: flex; }
+.ws-x-map { position: absolute; right: 14px; top: calc(108px + env(safe-area-inset-top, 0px)); display: none; flex-direction: column; gap: 8px; width: min(420px, calc(100vw - 28px)); padding: 10px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.ws-x-map.show { display: flex; }
+.ws-x:not([data-mode="world"]) .ws-x-map { display: none; }
+.ws-x-map-head { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; }
+.ws-x-map-head b { font-family: var(--ws-display); font-size: 17px; letter-spacing: 0.14em; text-transform: uppercase; }
+.ws-x-map-head small { flex: 1 1 60%; order: 3; font-size: 9px; letter-spacing: 0.12em; color: var(--ws-text-dim); }
+.ws-x-map-head button { margin-left: auto; padding: 5px 9px; background: rgba(143, 227, 255, 0.12); border: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; }
+.ws-x-map-head .ws-x-map-close { margin-left: 0; }
+.ws-x-map-board { position: relative; aspect-ratio: 1; border: 1px solid var(--ws-cyan-line); cursor: crosshair; }
+.ws-x-map-board canvas { display: block; width: 100%; height: 100%; image-rendering: auto; }
+.ws-x-pin { position: absolute; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 4px; padding: 0; background: none; border: 0; }
+.ws-x-pin i { width: 12px; height: 12px; border-radius: 50%; background: var(--ws-cyan); border: 2px solid #06121c; box-shadow: 0 0 10px var(--ws-cyan); }
+.ws-x-pin span { padding: 2px 5px; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); }
+.ws-x-pin:hover span, .ws-x-pin:focus-visible span { border-color: var(--ws-cyan); color: var(--ws-cyan); }
+.ws-x-map-me { position: absolute; width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 16px solid var(--ws-amber); filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.8)); pointer-events: none; }
+
 /* phone portrait */
 @media (max-width: 700px) {
   .ws-x-top { left: 8px; right: 8px; gap: 8px; padding: 6px 6px 6px 10px; }
@@ -127,6 +147,8 @@
   .ws-x-views button, .ws-x-lights button { padding: 6px 8px; font-size: 9px; letter-spacing: 0.1em; }
   .ws-x-sheet { left: 8px; right: 76px; }
   .ws-x-sheet-head b { font-size: 18px; }
+  .ws-x-map { left: 8px; right: 8px; top: auto; bottom: max(90px, calc(env(safe-area-inset-bottom, 0px) + 84px)); width: auto; }
+  .ws-x-mapbtn { top: calc(62px + env(safe-area-inset-top, 0px)); right: 8px; }
   .ws-x-stats { font-size: 9px; letter-spacing: 0.08em; }
 }
 @media (max-width: 700px) {

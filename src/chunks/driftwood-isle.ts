@@ -21,7 +21,7 @@ const SEED = 0x5ea1;
 export const OCEAN: OceanDef = {
   level: 0.8,
   // albedo (linear); the sun + sky here add up to ~3× so the palette stays under 0.5 or it tone-maps to white
-  shallowColor: [0.0, 1.0, 0.6],
+  shallowColor: [0.0, 0.8, 0.88],
   deepColor: [0.008, 0.15, 0.52],
   deepDepth: 6,
 };
@@ -76,6 +76,14 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   style: 'lowpoly',
   weapon: 'sword',
   ocean: OCEAN,
+  pois: [
+    { id: 'jetty', name: 'Jetty', x: 0, z: -CHUNK_HALF + 24, r: 16 },
+    { id: 'hut', name: 'Hut', x: HUT.x, z: HUT.z, r: 12 },
+    { id: 'shrine', name: 'Ring shrine', x: SHRINE.x, z: SHRINE.z, r: 16 },
+    { id: 'lookout', name: 'Lookout', x: LOOKOUT.x, z: LOOKOUT.z, r: 12 },
+    { id: 'wreck', name: 'Wreck cove', x: WRECK.x, z: WRECK.z, r: 20 },
+    { id: 'bridge', name: 'Rope bridge', x: (BRIDGE.a[0] + BRIDGE.b[0]) / 2, z: (BRIDGE.a[1] + BRIDGE.b[1]) / 2, r: 12 },
+  ],
 
   terrain: buildTerrain(SEED, {
     oceanLevel: OCEAN.level,
