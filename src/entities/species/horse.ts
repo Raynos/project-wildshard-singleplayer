@@ -553,6 +553,7 @@ registerSpecies({
     {
       id: 'camp-bay', label: 'Camp horse', weight: 0, rarity: 'common', scale: [1.0, 1.0], traits: { tack: 1 },
     },
+    { id: 'tulpar', label: 'Tulpar', weight: 0, rarity: 'rare', scale: [1.08, 1.08], hp: 150, tint: BLACK, traits: { tack: 1, mane: 1.7, stallion: 1 } },
     { id: 'camp-black', label: 'Camp horse', weight: 0, rarity: 'common', scale: [1.02, 1.02], tint: BLACK, traits: { tack: 1, blaze: 1, mane: 1.3 } },
     {
       id: 'stallion', label: 'Black stallion', weight: 0, rarity: 'rare', scale: [1.08, 1.08], hp: 150, tint: BLACK,

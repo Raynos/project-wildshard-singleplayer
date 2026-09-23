@@ -60,6 +60,8 @@ export class HorseHerd {
   trust = 0;
   /** the stallion's ALERT, 0..100 */
   alert = 0;
+  /** true while taming (B8, src/game/Taming.ts) owns `alert` — the herd stops writing it */
+  alertOwned = false;
   get calm(): number { return 1 - this.alert / 100; }
   ridden: Animal | null = null;
   onBeaten?: ((stallion: Animal, herd: HorseHerd) => void) | undefined;
@@ -128,6 +130,10 @@ export class HorseHerd {
 
   /** the flight becomes a stampede, away from (x, z) */
   stampede(x: number, z: number): void { this.startFlight(x, z, true); }
+  /** the stallion leads the herd away from (x, z) at a gallop (taming: ALERT maxed with some trust) — not a stampede */
+  leadAway(x: number, z: number): void { this.startFlight(x, z, false); }
+  /** the stallion leaves the herd for good (tamed): the herd grazes on without a guard */
+  releaseStallion(): void { if (this.stallion !== null) { this.stallion.mem['ridden'] = 1; this.stallion = null; } this.alertOwned = false; }
 
   private centre(): void {
     let x = 0, z = 0, n = 0;
@@ -205,7 +211,7 @@ export class HorseHerd {
     }
     // the stallion's ALERT (0..100): his senses, pushed up by his warnings
     const st = this.stallion;
-    if (st?.alive === true) {
+    if (st?.alive === true && !this.alertOwned) {
       const base = (st.mem['aw'] ?? 0) * 70 + (this.stallionState === 'warn' ? 20 : this.stallionState === 'display' || this.stallionState === 'charge' ? 30 : 0);
       this.alert += (THREE.MathUtils.clamp(base, 0, 100) - this.alert) * Math.min(1, dt * 2);
     }
@@ -491,6 +497,8 @@ export class HorseHerd {
 
 /** SpeciesDef.think for the horse */
 export function thinkHorse(a: Animal, c: ThinkCtx): void {
+  // ridden (Mount.ts drives it) or owned (a camp horse / Tulpar: Mount.ts's companion logic) — no herd AI at all
+  if ((a.mem['ridden'] ?? 0) === 1 || (a.mem['owned'] ?? 0) === 1) return;
   const h = HorseHerd.forThink(a, c);
   if (h === null || !a.alive) { a.setMotion(a.yaw, 0, 1); return; }
   h.tick(c);
@@ -499,7 +507,9 @@ export function thinkHorse(a: Animal, c: ThinkCtx): void {
 
 /** SpeciesDef.damageMul: the stallion cannot be killed outright — hits shrink as his hp falls toward 20 % (he is BEATEN at 25 %) */
 export function horseDamageMul(a: Animal): number {
-  if (a.variant !== 'stallion') return 1;
   const f = a.hp / a.maxHp;
+  // the rideable horses (camp horses, Tulpar — `mem.owned`) can't die: they bolt at 20 % (Mount.ts) and hits shrink toward 10 %
+  if ((a.mem['owned'] ?? 0) === 1) return THREE.MathUtils.clamp((f - 0.1) / 0.9, 0, 1);
+  if (a.variant !== 'stallion') return 1;
   return THREE.MathUtils.clamp((f - 0.2) / 0.8, 0, 1);
 }

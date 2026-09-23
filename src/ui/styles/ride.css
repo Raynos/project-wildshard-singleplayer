@@ -1,0 +1,49 @@
+/* ─── riding + taming (Nalati B7 / B8 — src/ui/RideHUD.ts) ─── prefix ws-ride- ─── */
+/* STEED: an amber bar under VITALS (desktop: a panel over the health panel; touch: a strip over the vitals strip) */
+.ws-ride-steed { position: absolute; left: 22px; bottom: 92px; width: 250px; padding: 7px 14px 9px; display: none; pointer-events: none; }
+.ws-ride-steed.show { display: block; }
+.ws-ride-steed .ws-ride-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ws-ride-steed .ws-ride-glyph { width: 18px; height: 18px; display: block; }
+.ws-ride-steed .ws-ride-glyph svg { width: 100%; height: 100%; fill: #fff; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6)); }
+.ws-ride-steed .ws-ride-gait { font-family: var(--ws-mono); font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: #ffd98a; }
+.ws-ride-steed .ws-ride-name { font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.12em; color: #fff; text-transform: uppercase; }
+.ws-ride-steed .ws-ride-sbar { position: relative; margin-top: 6px; height: 5px; background: rgba(255, 196, 74, 0.16); overflow: hidden; }
+.ws-ride-steed .ws-ride-sbar i { position: absolute; left: 0; top: 0; bottom: 0; background: #ffc44a; box-shadow: 0 0 10px rgba(255, 196, 74, 0.7); transition: width 0.2s linear; }
+.ws-ride-steed.winded .ws-ride-sbar i { background: #ff7a4a; }
+/* touch: a compact strip riding above the VITALS strip in the control bar's corner */
+.ws-ride-steed.ws-ride-touch { left: 12px; bottom: calc(100% + 34px); width: auto; height: 22px; padding: 3px 9px; background: var(--ws-glass-deep); border: 1px solid rgba(255, 196, 74, 0.45); display: none; }
+.ws-ride-steed.ws-ride-touch.show { display: flex; align-items: center; gap: 7px; }
+.ws-ride-steed.ws-ride-touch .ws-ride-glyph { width: 15px; height: 15px; }
+.ws-ride-steed.ws-ride-touch .ws-ride-sbar { margin-top: 0; width: 120px; height: 4px; }
+/* GALLOP (touch): where JUMP was, amber when held */
+.ws-ride-gallop { left: calc(100% - var(--disc) / 2 - 10px); }
+.ws-ride-gallop.down, .ws-ride-lean.down, .ws-ride-offer.down { background: radial-gradient(circle at 50% 35%, rgba(255, 196, 74, 0.45), rgba(40, 24, 6, 0.85) 70%); border-color: #ffc44a; }
+.ws-ride-gallop.winded { opacity: 0.45; }
+/* the HORSE tab over HOVER: far = whistle, near = mount */
+.ws-ride-horse { left: auto; right: 0; bottom: auto; top: calc(46% - 60px); margin-left: 0; width: 52px; height: 52px; border-radius: 12px 0 0 12px; border-right: none; font-size: 7px; gap: 2px; }
+.ws-ride-horse::before, .ws-ride-horse::after { display: none; }
+/* taming: LEAN L / LEAN R where AIM and GALLOP sit; OFFER where AIM sits */
+.ws-ride-lean.l, .ws-ride-offer { left: calc(var(--disc) / 2 + 10px); }
+.ws-ride-lean.r { left: calc(100% - var(--disc) / 2 - 10px); }
+/* the TRUST arc (top centre) and the stallion's ALERT ear (over his head) */
+.ws-ride-trust { position: absolute; left: 50%; top: calc(var(--ws-top, 14px) + 44px); width: 260px; margin-left: -130px; display: none; flex-direction: column; align-items: center; pointer-events: none; }
+.ws-ride-trust.show { display: flex; }
+.ws-ride-trust svg { width: 260px; height: 64px; overflow: visible; }
+.ws-ride-trust .ws-ride-cap { font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--ws-text); margin-top: -10px; text-shadow: 0 0 8px rgba(0, 0, 0, 0.8); }
+.ws-ride-ear { position: absolute; left: 0; top: 0; width: 30px; height: 30px; margin: -15px 0 0 -15px; display: none; pointer-events: none; }
+.ws-ride-ear.show { display: block; }
+.ws-ride-ear svg { width: 100%; height: 100%; filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.7)); }
+/* the HOLD ON gauge (bottom centre while breaking): TAMING n/5, a red–green–red arc and the cyan marker */
+.ws-ride-hold { position: absolute; left: 50%; bottom: 150px; width: 340px; margin-left: -170px; display: none; flex-direction: column; align-items: center; pointer-events: none; }
+.ws-ride-hold.show { display: flex; }
+.ws-ride-hold .ws-ride-round { font-family: var(--ws-mono); font-size: 12px; letter-spacing: 0.32em; color: var(--ws-cyan); text-shadow: 0 0 8px rgba(0, 0, 0, 0.8); margin-bottom: 4px; }
+.ws-ride-hold svg { width: 340px; height: 58px; overflow: visible; }
+.ws-ride-hold .ws-ride-cap { font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.34em; text-transform: uppercase; color: #fff; text-shadow: 0 0 8px rgba(0, 0, 0, 0.8); }
+.ws-ride-hold.danger .ws-ride-cap { color: #ff7a6a; }
+#hud.touch .ws-ride-hold { bottom: calc(max(15vh, 104px) + 150px); width: 300px; margin-left: -150px; }
+#hud.touch .ws-ride-hold svg { width: 300px; }
+/* a mountable horse's name tag (TULPAR ♥) */
+.ws-ride-tag { position: absolute; left: 0; top: 0; padding: 4px 10px 4px 8px; display: none; align-items: center; gap: 6px; transform: translate(-50%, -100%); background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); border-radius: 14px; font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase; color: #fff; pointer-events: none; white-space: nowrap; }
+.ws-ride-tag.show { display: flex; }
+.ws-ride-tag svg { width: 14px; height: 14px; fill: var(--ws-cyan); }
+.ws-ride-tag .ws-ride-heart { color: #7fe3ff; }

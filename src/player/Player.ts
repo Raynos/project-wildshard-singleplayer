@@ -143,6 +143,9 @@ export class Player {
   onStep?: (sprinting: boolean) => void;
   /** runs first thing in update(), before input is read and the camera is posed — the touch aim assist nudges yaw/pitch here */
   preUpdate?: (dt: number) => void;
+  /** riding (Nalati B7, src/player/Mount.ts): while set, update() hands the whole frame to it — it reads the input, drives
+   *  the horse, places the player on it and poses the camera — and walking / swimming / the board are skipped */
+  ride: { drive: (dt: number) => void } | null = null;
   private lastBobPhase = 0;
   // ── dash: dodge + lunge (see `dodge()` / `dash()`) ──
   /** the DODGE disc was tapped (TouchControls) — consumed next update, like `touchJump` */
@@ -266,6 +269,7 @@ export class Player {
   update(dtRaw: number): void {
     const dt = Math.min(dtRaw, 0.05);
     this.preUpdate?.(dt);
+    if (this.ride !== null) { this.ride.drive(dt); return; }
     const k = this.keys;
     const fwd = Math.max(-1, Math.min(1, (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0) + this.touchMove.y));
     const str = Math.max(-1, Math.min(1, (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + this.touchMove.x));
