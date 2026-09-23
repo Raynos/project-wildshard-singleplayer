@@ -436,13 +436,13 @@ export const NALATI_GRASSLANDS: ChunkDef = {
     hdri: 'kloofendal_48d_partly_cloudy_puresky', // unused: the sky is painted (below)
     painted: { zenith: [0.1, 0.28, 0.85], horizon: [0.62, 0.78, 0.98], ground: [0.3, 0.36, 0.3], glow: [0.5, 0.4, 0.25] },
     sun: { azimuth: 250, elevation: 26 },
-    sunColor: [1.0, 0.9, 0.74],
-    sunIntensity: 2.4,
+    sunColor: [1.0, 0.85, 0.64], // a warm late-afternoon key (look pass lever 2: warm light, cool painted shade)
+    sunIntensity: 2.8,
     envIntensity: 0.6,
     bgIntensity: 1.0,
     fogSunColor: [1.0, 0.88, 0.7],
     cloudSunColor: [1.0, 0.93, 0.82],
-    hemiSky: 0x9cc4ff, hemiGround: 0x7a7436, hemiIntensity: 0.7, // a strong warm bounce off the grass lifts every shade side (look pass lever 2)
+    hemiSky: 0x9cc4ff, hemiGround: 0x7a7436, hemiIntensity: 0.5, // a warm bounce off the grass lifts every shade side — kept low enough for strong value contrast (look pass lever 2)
     // the ringed giant high in the SSW over the snow range — ahead and to the right from the spawn, lit from the WSW sun
     planet: { azimuth: 205, elevation: 23, size: 26, tilt: 2, roll: -20 },
   },
@@ -450,14 +450,14 @@ export const NALATI_GRASSLANDS: ChunkDef = {
     fogHeight: -30.0,
     fogHeightFalloff: 0.05,
     fogHeightDensity: 0.0006,
-    fogDistDensity: 0.0011, // the painterly aerial perspective (Atmosphere.ts paintedAir): ~10 % at 150 m, 25 % at 500 m, 55 % on the far range
+    fogDistDensity: 0.002, // the painterly aerial perspective (Atmosphere.ts paintedAir), pushed hard for the 500 m slab: ~20 % at 150 m, 45 % at 500 m
     volumetricSunColor: [1.0, 0.9, 0.72],
     // thin, high: a clear mountain afternoon (the default forest haze sits exactly on the valley floor and milks it out)
     volumetric: { height: -30, falloff: 0.06, density: 0.0009, strength: 0.35 },
   },
   grade: {
     // (the painterly chain tone-maps with Khronos Neutral, which keeps the saturation AgX bleached — Game.buildPainterlyChain)
-    saturation: 0.1, brightness: 0.0, contrast: 0.1,
+    saturation: 0.1, brightness: 0.0, contrast: 0.15,
     bloomIntensity: 0.35, bloomThreshold: 0.86,
     shadowTint: [0.9, 0.96, 1.1], highTint: [1.05, 1.01, 0.94],
     lift: [0.0, 0.004, 0.018], gain: [1.02, 1.02, 1.0], gamma: 1.0,
