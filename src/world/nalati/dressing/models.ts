@@ -274,7 +274,7 @@ function spike(r: number, len: number, deep: THREE.Color, mid: THREE.Color, tip:
   for (let k = 0; k <= segs; k++) {
     const t = k / segs;
     const swell = k % 2 === 0 ? 1 : 0.72;
-    prof.push([Math.max(0.004, r * (1 - t) ** 0.75 * swell * (k === 0 ? 0.8 : 1)), t * len]);
+    prof.push([Math.max(0.004, r * (1 - t * 0.85) ** 0.6 * swell * (k === 0 ? 0.8 : 1)), t * len]);
   }
   prof.push([0.002, len + r * 0.4]);
   const g = new THREE.LatheGeometry(prof.map(([a, b]) => new THREE.Vector2(a, b)), sides);
@@ -295,7 +295,7 @@ export function lupinGeo(seed: number, lite = false): THREE.BufferGeometry {
   const n = lite ? 5 : 7;
   for (let i = 0; i < n; i++) {
     const a = (i / n) * Math.PI * 2 + rng.range(-0.5, 0.5), d = i === 0 ? 0 : rng.range(0.06, 0.2);
-    const h = rng.range(0.42, 0.75), len = rng.range(0.2, 0.34), r = rng.range(0.04, 0.055);
+    const h = rng.range(0.42, 0.72), len = rng.range(0.2, 0.32), r = rng.range(0.05, 0.068);
     const tilt = M(Math.cos(a) * d, 0, Math.sin(a) * d, a, 1, 1, 1, rng.range(0.04, 0.2) * (d > 0 ? 1 : 0.3), 0);
     const base = h - len;
     parts.push(part(new THREE.CylinderGeometry(0.006, 0.01, base + 0.02, 3, 1, true).translate(0, (base + 0.02) / 2, 0), DC.stem, tilt));

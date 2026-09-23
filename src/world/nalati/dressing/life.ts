@@ -269,7 +269,7 @@ export class DressLife {
       const ang = (beat * 1.15 + 0.25) * (1 - glide) + 0.15 * glide;
       const yaw = Math.atan2(-f.vx, -f.vz);
       _e.set(-0.25, yaw, 0, 'YXZ');
-      _m.compose(_p.set(f.x, f.y, f.z), _q.setFromEuler(_e), _s.set(1.25, 1.25, 1.25));
+      _m.compose(_p.set(f.x, f.y, f.z), _q.setFromEuler(_e), _s.set(1.7, 1.7, 1.7));
       _mf.makeRotationZ(ang);
       bm.setMatrixAt(n++, _mw.multiplyMatrices(_m, _mf));
       _mf.makeRotationZ(-ang); _mf.premultiply(_mw.makeScale(-1, 1, 1));

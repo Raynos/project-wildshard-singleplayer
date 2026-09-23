@@ -35,6 +35,37 @@ const PHONE = TIER === 'phone';
 /** per-layer draw-distance scale on this tier */
 const FAR = PHONE ? { rock: 0.6, small: 0.55, shrub: 0.6, flower: 0.55 } : { rock: 1, small: 1, shrub: 1, flower: 1 };
 
+// ── ground cover: where a boulder / slab / shrub sits, for the grass seeder (grass should not grow through rock) ──
+const COVER_CELL = 4;
+const cover = new Map<number, number[]>();
+const coverKey = (ix: number, iz: number): number => (ix + 100) * 1000 + (iz + 100);
+function addCover(list: readonly Inst[], k: number): void {
+  for (const it of list) {
+    const r = Math.max(it.sx, it.sz) * k;
+    const key = coverKey(Math.floor(it.x / COVER_CELL), Math.floor(it.z / COVER_CELL));
+    let l = cover.get(key); if (!l) cover.set(key, (l = []));
+    l.push(it.x, it.z, r);
+  }
+}
+/**
+ * 0 … 1: how much a dressing rock or shrub covers the ground at (x, z) — 1 inside its footprint, easing to 0 over its
+ * rim. For the grass seeder (GrassPainterly): `height *= 1 - dressingCover(x, z)` keeps blades out of the boulders.
+ * All zero until the dressing has been built (the carpet's cells built before it keep their grass until reseeded).
+ */
+export function dressingCover(x: number, z: number): number {
+  const ix = Math.floor(x / COVER_CELL), iz = Math.floor(z / COVER_CELL);
+  let best = 0;
+  for (let a = ix - 1; a <= ix + 1; a++) for (let b = iz - 1; b <= iz + 1; b++) {
+    const l = cover.get(coverKey(a, b));
+    if (!l) continue;
+    for (let i = 0; i + 2 < l.length; i += 3) {
+      const r = l[i + 2] ?? 0, d = Math.hypot(x - (l[i] ?? 0), z - (l[i + 1] ?? 0));
+      if (d < r) best = Math.max(best, Math.min(1, (r - d) / (r * 0.25)));
+    }
+  }
+  return best;
+}
+
 export class NalatiDressing {
   group = new THREE.Group();
   layers: DressLayer[] = [];
@@ -84,6 +115,8 @@ export class NalatiDressing {
     add('daisy', daisyGeo(0xda15), flower, plan.daisy, FAR.flower);
     add('reed', reedGeo(0x4eed), reed, plan.reed, FAR.shrub);
     lap('layers');
+    cover.clear();
+    addCover(plan.boulder, 0.9); addCover(plan.slab, 1.1); addCover(plan.juniper, 0.85); addCover(plan.rose, 0.5); addCover(plan.willow, 0.4);
     await yieldTask();
     t0 = performance.now();
 
