@@ -1,6 +1,6 @@
 # Project Wildshard — the music
 
-**State:** `in progress` 2026-09-22 — v1 (the synth score, D35) is live; the user heard it: "super basic, we need better music". v2 = music composed locally by open-weight models, three styles side by side with an in-game switch; decisions below are the user's (E5). Rows 1–2 running (bake-off agent: HeartMuLa takes landing, Stable Audio Open + MiniMax Music 3 next, one model at a time); **ACE-Step dropped** (user: too heavy for this machine). Row 3 waits on the user's ears.
+**State:** `blocked` 2026-09-22 — rows 1–2 done (`ec5665e`): 4 local models ran (HeartMuLa, MiniMax Music 3, Stable Audio Open 1.0 + Small; ACE-Step dropped, too heavy), 102 takes, a 9-track shortlist in `art/music/round-1-bakeoff/` (listening page: https://claude.ai/artifact/SCH5wc5xFCJHLvfNtYDwE3). Waiting on the user (E5): one pick per style, and the licence terms (Stability registration + credit / MiniMax on-screen credit).
 
 ## What changed (2026-09-22, the user after listening — ASKS D41 → E5)
 
@@ -80,8 +80,8 @@ Everything above is reproducible: prompts, seeds, model + version, and the trim 
 
 | # | checkpoint | status |
 |---|---|---|
-| 1 | Local model set-up on the Mac: HeartMuLa (MLX), Stable Audio Open (Small + 1.0), MiniMax Music 3 (MPS port); ~~ACE-Step 1.5~~ dropped (too heavy); smoke test: one 60 s take each, timed | in progress |
-| 2 | Bake-off: ~10 takes × model × 3 styles (Pine Hollow brief) → `art/music/round-1-bakeoff/` + a listening page (and an Artifact for the phone) | in progress |
+| 1 | Local model set-up on the Mac: HeartMuLa (MLX), Stable Audio Open (Small + 1.0), MiniMax Music 3 (MPS, diffusers 0.40 — no port needed); ~~ACE-Step 1.5~~ dropped (too heavy); speeds / memory in `~/projects/localai/docs/music-models.md` | done `ec5665e` |
+| 2 | Bake-off: ~10 takes × model × 3 styles (Pine Hollow brief) → `art/music/round-1-bakeoff/` + a listening page (and an Artifact for the phone) | done `ec5665e` — 102 takes, shortlist 3 per style; SAO 1.0 scores best but stops at 47 s, MiniMax writes full themes but ignores the key, HeartMuLa hums |
 | 3 | **User pick** — one track per style from the shortlist (the user's ears; blocks 4) | open |
 | 4 | Adaptive assets per style: calm loop (repaint seam), tension layer (lego), title cut, Driftwood bed, stings; encode + normalise + manifest | open |
 | 5 | Music.ts stem player + synth fallback + lazy load after enter; synth patches improved (reverb, pluck, pad) | open |
