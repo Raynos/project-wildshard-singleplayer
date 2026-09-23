@@ -21,7 +21,7 @@ const SEED = 0x5ea1;
 export const OCEAN: OceanDef = {
   level: 0.8,
   // albedo (linear); the sun + sky here add up to ~3× so the palette stays under 0.5 or it tone-maps to white
-  shallowColor: [0.1, 0.78, 0.7],
+  shallowColor: [0.0, 1.0, 0.6],
   deepColor: [0.008, 0.15, 0.52],
   deepDepth: 6,
 };
@@ -81,8 +81,8 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
     oceanLevel: OCEAN.level,
     /**
      * The island: a noise-warped disc centred a little north of the chunk centre. `m` is signed
-     * metres inside the shoreline. Out to sea the floor is 5 m down and shelves up over the last
-     * 60 m (the turquoise lagoon over sand); the beach climbs from the water line to ~2.6 m over
+     * metres inside the shoreline. Out to sea the floor is 2.6 m down and shelves up over the last
+     * 130 m (a wide, clear turquoise lagoon over sand — 1.5–2.5 m deep around the pier); the beach climbs from the water line to ~2.6 m over
      * 25 m, then the interior rises gently to grass at ~6 m. The plateau, cliffs and lookout are
      * added on top as their pieces land. Entry roads are forced to 0 by buildTerrain (sandbars).
      */
@@ -96,7 +96,7 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
       // the shelf and the beach keep a real slope through the water line (a smoothstep there would flatten
       // the shallows into a 20 m wide foam sheet)
       let h = m < 0
-        ? -5.0 + clamp(1 + m / 70, 0, 1) ** 1.6 * (sea + 5.0)                              // shelf up to the water line
+        ? -2.6 + clamp(1 + m / 130, 0, 1) ** 1.1 * (sea + 2.6)                             // a wide sandy lagoon: 1.5–2.5 m under the pier (clear turquoise over sand, the spawn mockup)
         : sea + clamp(m / 26, 0, 1) ** 0.85 * 1.8 + smoothstep(20, 90, m) * 3.6;            // beach, then the grassy interior
       h += n.fbm(x * 0.04, z * 0.04, 2) * 0.25 * smoothstep(-10, 15, m);       // small dune / ground bumps on land
       // the hut plateau: a flat-topped crag with a craggy (noise-warped) rim and a gentler ramp on the south side

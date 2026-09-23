@@ -148,15 +148,15 @@ export class Ocean {
             vec3 fn = normalize(cross(dFdx(vOceanW), dFdy(vOceanW))); fn *= sign(fn.y);
             // Beer–Lambert: opacity from the path through the water (steeper view = clearer)
             float path = col / max(abs(V.y), 0.22);
-            float opac = 1.0 - exp(-path * 0.95);
-            float t = sqrt(clamp(still / uDeepDepth, 0.0, 1.0));
+            float opac = 1.0 - exp(-path * 0.5);
+            float t = pow(clamp(still / uDeepDepth, 0.0, 1.0), 1.2);   // the lagoon stays turquoise; blue only where it is really deep
             vec3 water = mix(uShallow, uDeep, t);
             water *= clamp(1.0 + fn.x * 3.4 + fn.z * 2.0, 0.68, 1.38);  // facet grade: every triangle reads
             // ── foam (W2) ──
             float n = vnoise(vOceanW.xz * 0.35 + uTime * 0.12);
             float edge = still + sin(uTime * 1.3 + vOceanW.x * 0.9 + vOceanW.z * 0.4) * 0.1 - vCrest * 0.35;
             float shore = 1.0 - smoothstep(0.1 + n * 0.1, 0.16 + n * 0.1, edge);   // a crisp breaking line
-            float lines = smoothstep(0.78, 0.86, fract(still * 1.25 - uTime * 0.28 + n * 0.35)) * (1.0 - smoothstep(0.25, 1.8, still)) * 0.85;
+            float lines = smoothstep(0.78, 0.86, fract(still * 1.25 - uTime * 0.28 + n * 0.35)) * (1.0 - smoothstep(0.12, 0.6, still)) * 0.85;   // only over the last half-metre: the lagoon is shallow everywhere
             float ring = smoothstep(0.35, 0.6, sea.g + (n - 0.5) * 0.3) * (0.75 + 0.25 * sin(uTime * 2.4 + sea.g * 9.0));
             float cap = smoothstep(0.24, 0.3, vCrest) * step(0.72, vnoise(vOceanW.xz * 0.22 + 3.1)) * 0.9;
             float foam = clamp(max(max(shore, lines), max(ring * inC, cap)), 0.0, 1.0);
@@ -169,7 +169,7 @@ export class Ocean {
             float fres = 0.02 + 0.98 * pow(1.0 - max(dot(fn, V), 0.0), 5.0);
             float sd = max(dot(R, fogSunDir), 0.0);
             float glint = smoothstep(0.9965, 0.9985, sd) * 5.0 + pow(sd, 90.0) * 0.5;
-            waterAdd = (skyR * fres * 0.4 + fogSunColor * glint) * (1.0 - foam) + fogSunColor * foam * 0.5; // foam reads white, not lavender
+            waterAdd = (skyR * fres * 0.28 + fogSunColor * glint) * (1.0 - foam) + fogSunColor * foam * 0.5; // foam reads white, not lavender
             waterA = max(waterA, fres * 0.5);
             if (!gl_FrontFacing) { waterA = 0.85; waterAdd = vec3(0.0); } // from below: the surface is a bright ceiling
           }`)

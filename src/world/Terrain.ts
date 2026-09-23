@@ -9,7 +9,7 @@ import { macrotask } from '../boot/plan';
 
 // ── low-poly palette (sRGB in, linear out via THREE.Color) ──
 const LP = {
-  seabed: new THREE.Color('#a39b76'),
+  seabed: new THREE.Color('#4fb3a6'),   // the lagoon floor as seen through the water (Beer–Lambert's green-cyan baked in: the sea over it is clear)
   wetSand: new THREE.Color('#c4ad78'),
   sand: new THREE.Color('#dcc48a'),
   grass: new THREE.Color('#6cae47'),
@@ -331,7 +331,7 @@ export class Terrain {
 
 /** One facet's colour from its height above the sea (m), slope (0 flat → 1 vertical) and position (jitter). */
 export function lowPolyGroundColor(out: THREE.Color, h: number, slope: number, x: number, z: number): THREE.Color {
-  if (h < 0) out.lerpColors(LP.seabed, LP.wetSand, ss(h, -3, 0));
+  if (h < 0) out.lerpColors(LP.seabed, LP.wetSand, ss(h, -1.6, 0));
   else out.lerpColors(LP.wetSand, LP.sand, ss(h, 0, 0.9));
   // grass takes over above the beach, darker in the folds
   const g = ss(h, 2.2, 4.5);
