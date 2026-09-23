@@ -1,149 +1,129 @@
 # Nalati Grasslands — the mega plan
 
-**State:** `draft` 2026-09-22 — the user locked: painterly style (B), combat = horse archery + bow on foot + mounted sabre + spear (no eagle for now), wolves / horses / taming, snow leopard as a named elite, the Kurgan King as a full boss, ghost riders, grass stealth, steppe storms, every map POI. Open: round-2 mockups + design sections (geography & the 500 m scale problem, 20 maps, combat, elites & bosses, crouch/jump controls) from four subagents, then the user's go (E11).
+**State:** `in progress` 2026-09-22 — every decision below is the user's (N5); the user: "build the entire plan autonomously" (N6). Wave 1 (B0–B6: world + painterly look, grass + wind, bow, sabre + spear, wolves + horses + sheep, POIs, spruce) is being built by six subagents on branch `nalati-grasslands`; wave 2 (B7–B16) starts as wave 1 lands. Nothing is deployed yet.
 
-The third shard (ASKS P6). A high alpine steppe in the Tian Shan: an ocean of wind-combed grass under a
-huge sky, horse herds and sheep flocks, white yurts, spruce forest on the north slopes, the Sky Grassland
-plateau rolling on to the snow mountains, kurgan burial mounds crowned with balbal stone warriors, the
-braided Kunes river. Where Pine Hollow is *trees* and Driftwood is *water*, Nalati is *wind and distance*:
-the grass is the terrain, the cover and the weather gauge at once.
+The third shard (ASKS P6). A high alpine steppe in the Tian Shan, laid out like the real Nalati: you arrive in the
+Kunes river valley (yurts, sheep, the bridge), climb spruce gullies up the escarpment, and the **Sky Grassland**
+opens up — a wind-combed plateau that rolls on past the slab edge to the snow mountains. Horse herds, wolves in
+the grass, kurgan burial mounds crowned with balbal stones, storms that cross the whole sky. Where Pine Hollow is
+*trees* and Driftwood is *water*, Nalati is *wind and distance*: the grass is the terrain, the cover and the
+weather gauge at once.
 
-Branch `nalati-grasslands`, worktree `../wildshard-nalati-grasslands` (E10). The shard is a menu teaser
-today (`src/chunks/placeholders.ts`, "Alpine steppe", hero art in
-`art/hero-images/round-1-coming-soon/hero-nalati-grasslands-*.png`).
+Branch `nalati-grasslands`, worktree `../wildshard-nalati-grasslands`. The shard is a menu teaser on main today
+(`src/chunks/placeholders.ts`). Asks: `docs/tasks/asks/N4.md` (branch), `N5.md` (this plan), `N6.md` (the build).
 
-## The pitch in one line
+## The pitch
 
-**Tame a wild steppe horse, hunt wolves from the saddle across a sea of grass, hide from them in it, ride
-out the storms, and break the stone warriors — and the Golden King — that sleep in the kurgans.**
+**Tame a wild steppe horse, hunt wolves from the saddle across a sea of grass, hide from them in it, ride out the
+storms, and break the named beasts of the plateau — and the two kings: the Golden King in his kurgan and the
+Storm Titan in the sky.**
 
-## Decisions
+## Design sections (the detail lives here)
 
-| # | decision | the user's pick (2026-09-22) | detail |
+| section | file |
+|---|---|
+| real geography, the 500 m problem, the POI layout with coordinates | `docs/design/nalati/geography-and-map.md` |
+| bow, sabre, spear + javelins, horse archery, weapon switching, numbers | `docs/design/nalati/combat.md` |
+| wolves (pack AI), wild horses (herd AI), taming, riding | `docs/design/nalati/wolves-horses-taming.md` |
+| grass stealth (detection model), steppe storms (lifecycle) | `docs/design/nalati/stealth-and-storms.md` |
+| named elites system + the five, bosses system + Golden King + Storm Titan | `docs/design/nalati/elites-and-bosses.md` |
+| crouch / jump / mounted controls, touch + desktop | `docs/design/nalati/controls.md` |
+
+Where this plan and a design section disagree, **this table of decisions wins**.
+
+## Decisions (all the user's, 2026-09-22)
+
+| topic | decision |
+|---|---|
+| **Art style** | **B — stylized painterly** (`art/nalati-grasslands/round-1/1-art-style/style-B-painterly.png`; every round-2/3 mockup is in it) |
+| **Combat** | **horse archery · recurve bow on foot · mounted sabre · spear**. **Javelins are thrown from the spear slot** (3 weapon slots: bow, sabre, spear). Eagle hunter: parked, not in this build |
+| **Arrow drop arc** | a faint dotted arc while drawing, **on by default on touch**; arrows at half gravity so the arc reads |
+| **Enemies** | steppe wolves (packs), wild horses + stallion taming, balbal stone warriors (dusk), ghost riders (night) |
+| **Named elites** | a new engine system (minibosses). Five: **Aqbars the Pale** (snow leopard, the Crags), **Kokbori** (she-wolf pack mother, dusk), **Qyran the Storm-Wing** (golden eagle, storms only), **Qara Batyr the Unburied** (ghost-rider captain, night), **Argymaq the Unbroken** (feral black stallion, the Crags' high pasture — beaten to BROKEN, then tamed; the best mount). Tas Ata dropped (the balbal circle keeps ordinary balbals); Qonyr the bear is the alternate |
+| **Elite drops / titles** | **cosmetic only** (a guaranteed skin + trophy item); **joke titles** kept ("Crazy Cat Person", "Night Shift", …) |
+| **Elite health bar** | **over the head until the fight starts, then pinned top-centre** |
+| **Bosses** | a new engine system. **Two in Nalati:** **the Golden King** (the great kurgan dungeon, on foot, drops the **Golden Bow**) and **Jel Ata the Storm Titan** (the Sky Grassland, on horseback, **only during a natural storm**, drops the **Naizagai** storm sabre + the Sky-Marked Saddle skin) |
+| **Boss retry** | **phase checkpoints**: die → back at the start of the phase you reached |
+| **Horse** | one horse, **can't die** (at 0 it bolts, returns to the hitching rail after a rest); named TULPAR (Argymaq replaces it once won) |
+| **Riding** | JUMP → GALLOP (hold), AIM → DRAW, HOVER → DISMOUNT; **auto lean-low at full gallop** and the horse jumps ditches by itself; look 170° while the horse runs straight (Parthian shot) |
+| **Crouch** | **option D: a CROUCH disc stacked above JUMP that appears only in long grass**; crouch is a **toggle**; leaving the grass **stands you up**. Desktop: the existing C / Ctrl crouch, gated like touch |
+| **Storms** | every **20–30 min** of play; **lightning can hit you** (60, a GET LOW warning first); the Storm Titan and Qyran only in storms |
+| **Time of day** | a **day/night clock** (shared with D38): balbals wake at dusk, ghost riders + Qara Batyr at night, Kokbori at dusk |
+| **Map** | **map-01's layout**, **true north**, **spawn on the north road** in the valley, the **main camp in the valley** + 2–3 summer yurts on the plateau; every POI on map-01 is in |
+| **Scale (500 m)** | keep the 500 m slab: a **stepped climb** (valley −10 → escarpment → plateau +30…36 → crags +75) + a **Nalati horizon ring** (the plateau rolling on, the snow range south) + forced perspective |
+
+## The look — painterly
+
+The engine has `style: 'pbr'` (Pine Hollow) and `'lowpoly'` (Driftwood). Nalati adds **`'painterly'`**: a
+cel/toon ramp in the lit shader (2–3 soft bands, a painted sky-tinted shadow colour instead of black), rim light,
+gradient-painted terrain (height / slope / noise → a palette ramp, no photo textures), soft smooth geometry
+(not faceted), painted billboard clouds, and the grass carpet as the hero. One shared painterly material
+factory so every creature, yurt and prop gets the same ramp. Budget: phone tier ≤ 150 calls / ≤ 2.0 M tris,
+60 fps (PLAY-PERF).
+
+## Engine features Nalati adds
+
+1. **Mounts** — ride a tamed horse (walk / trot / canter / gallop, STEED stamina, weapons from the saddle).
+2. **Living grass + stealth** — one `Wind` object (grass, clouds, flags, smoke, arrow drift), grass that parts
+   and stays trampled, `grassHeightAt(x, z)`, the HIDDEN / NOTICED / DETECTED eye pip.
+3. **Weather** — steppe storms (six phases, lightning, stampedes) on a day/night clock.
+4. **Named elites** and 5. **Bosses** — systems every later shard reuses.
+
+## The world (map-01, true north; coordinates in `geography-and-map.md` §3)
+
+Valley (north): **N road** (spawn at (0, +232) facing south) · **Kunes river** (braided, east → west) ·
+**bridge** · **nomad camp** (6 yurts, corral, hitching rail — the hub) · **sheep pasture**. Middle: **spruce
+forest** in three gullies · the **sky road** switchbacks · **waterfall**. Plateau (south): **Eagle Rock** ·
+**Sky Grassland** · **horse plains** · **kurgan field** + the **great kurgan** (dungeon) · **balbal circle** ·
+**summer yurts** · the Titan's **cairn**. SE corner: **the Crags** (Aqbars, Argymaq). Four entry roads at the
+edge midpoints (engine rule). Beyond the slab: the Nalati horizon ring.
+
+## Build — waves and owners
+
+Every row: built on the branch, wired into the game, 60 fps on the phone tier, a screenshot in `progress/`
+(JPEG ≤ 500 KB), then shipped (see Deploy). ✅ = shipped.
+
+### Wave 1 — foundation (parallel)
+
+| # | row | owner | files it owns |
 |---|---|---|---|
-| N1 | **Art style** | **B — stylized painterly** (locked) | `art/nalati-grasslands/round-1/1-art-style/style-B-painterly.png`: soft cel shading, painted gradients, rim light, thousands of swaying grass blades with rolling wind waves. A new `ChunkDef.style` (`'painterly'`) beside `'pbr'` and `'lowpoly'` — see "The look" |
-| N2 | **Combat** | **A horse archery · C recurve bow on foot · D mounted sabre · B spear (+ javelins)**; eagle hunter skipped for now | `docs/design/nalati/combat.md` (round 2) |
-| N3 | **Enemies** | **wolves, wild horses + horse taming, snow leopard = named elite, Kurgan King = full boss, ghost riders** | `docs/design/nalati/wolves-horses-taming.md`, `elites-and-bosses.md` |
-| N4 | **New systems** | **named elites (minibosses)** and **bosses** as engine notions; **grass stealth**; **steppe storms** | below |
-| N5 | **Map** | **every POI on the map is in**; the layout follows the real Nalati (valley → spruce slopes → Sky Grassland → snow peaks) | `docs/design/nalati/geography-and-map.md`, 20 map mockups |
-| N6 | **Crouch + jump on touch** | open — options mocked up | `docs/design/nalati/controls.md` |
-| N7 | **500 m vs "vast among vast"** | open — the slab is a fixed 500 m; options (horizon ring, forced scale, a stepped climb, bigger/multiple chunks) | `geography-and-map.md` |
-| N8 | **Time of day** | open — dusk/night enemies (balbals, ghost riders) want a clock (shared with D38) | |
+| B0 | **The steppe**: `ChunkDef` (`style: 'painterly'`), registry entry (third, SUPER EXPERIMENTAL), the stepped-climb landscape + river bed + water, painterly terrain + the shared painterly material, sky/planet/fog/grade (late sun WSW), spawn N, the Nalati horizon ring, the `src/nalati/` wiring hook in `main.ts` | world-agent | `src/chunks/nalati-grasslands.ts`, `src/nalati/index.ts`, `src/world/painterly.ts`, painterly branches in `Terrain.ts` / `Horizon.ts`, `ChunkDef.ts`, `registry.ts`, `placeholders.ts`, `main.ts` hook |
+| B1 | **Grass + wind**: painterly dense grass carpet, `Wind` object, trample / parting interaction, `grassHeightAt`, tall-grass bands | grass-agent | `src/world/Grass.ts` (painterly mode), `src/world/Wind.ts`, `src/world/GrassTrample.ts` |
+| B2 | **Bow**: recurve bow viewmodel, hold-draw-release, arrows (drop, wind drift, recoverable), drop arc on touch, `Projectiles` | bow-agent | `src/player/Bow.ts`, `src/player/Projectiles.ts` |
+| B3 | **Sabre + spear**: curved sabre (Driftwood combo), spear (thrust, brace) + 3 javelins thrown from the spear slot, the 3-slot weapon strip | melee-agent | `src/player/Sabre.ts`, `src/player/Spear.ts`, the weapon strip in `Weapons.ts` / HUD |
+| B4 | **Creatures**: wolf (pack AI), wild horse (herd AI, stallion), sheep flock (+ ambient marmots) | creature-agent | `src/entities/species/{wolf,horse,sheep}.ts`, `src/entities/{Pack,Herd}.ts` |
+| B5 | **POIs**: yurts + camp, bridge, fences, kurgan mounds, balbal statues (static), Eagle Rock, the cairn, summer yurts, the Crags rocks | poi-agent | `src/world/nalati/*.ts` |
+| B6 | **Spruce**: a Tian Shan spruce tree factory (tall narrow cones, painterly) for the gullies | spruce-agent | `src/world/Spruce.ts`, `TREE_FACTORIES` entry |
 
-## The look — painterly (N1)
+### Wave 2 — the game (as wave 1 lands)
 
-Style B is the one the engine does *not* have yet: Pine Hollow is textured PBR, Driftwood is faceted
-vertex colour. Painterly means: a toon/cel ramp in the lit shader (2–3 soft bands + a painted
-sky-tinted shadow colour instead of black), rim light on silhouettes, gradient-painted terrain (height /
-slope / noise → a palette ramp, no photo textures), clouds as painted billboards, and the grass carpet as the
-hero — thousands of blades with colour graded root to tip and visible gust waves (`Grass.ts` already draws a
-75k-clump one-draw-call carpet with gust-front wind; it needs the painterly blade shading and a much denser
-near field). Creatures, yurts and props are smooth low-to-mid poly with the same ramp. The same painterly
-ramp is a reusable `style` for later shards.
-
-## The three brand-new engine features
-
-With the eagle parked, the three are:
-
-### F1 — Mounts (the steppe horse, earned by taming)
-
-The first thing in Wildshard you *ride*. Wild horses are *tamed*, not found: approach the herd crouched, the
-stallion challenges, calm it (TRUST), hold on through the bucking (balance mini-game) → it is yours, named,
-waiting at the camp's hitching rail. Riding: first person from the saddle (eye ~2.6 m), head, ears and mane
-in the lower frame; walk / trot / canter / gallop on the MOVE stick, GALLOP disc with a STEED stamina bar;
-bow (DRAW) and sabre (SLASH) from the saddle, a Parthian shot backwards. The horse panics at wolves and
-throws you if pushed. Engine: a `Mount` entity on the quadruped rig, `Player.mount` mode beside `hover`,
-gait blend by speed. Reusable: elk in Pine Hollow next.
-
-### F2 — Living grass + stealth
-
-One wind object drives grass, clouds, trees, flags, smoke **and arrow drift** (a WIND chip under the
-minimap). Grass bends away from every mover and stays trampled: wolves in tall grass are seen by the wave
-they push; herds leave roads you can track. **Crouch in tall grass → HIDDEN** (an eye pip); animal senses
-read grass height at your position, and wolves use it on you too. Engine: a per-cell interaction texture
-around the player read by the grass vertex shader, `grassHeightAt(x, z)` for senses, still one draw call.
-
-### F3 — Steppe storms (weather)
-
-Storm fronts roll across the shard: the sky splits gold / slate, a rain curtain, lightning strikes the highest
-thing (a lone tree, you on a horse on a ridge), the grass flattens, herds bolt, visibility drops, arrows drift
-hard, wolves hunt in it; afterwards a rainbow and wet shine. Engine-wide weather: a `Weather` state machine
-driving sky, fog, grade, wind, particles, audio and AI.
-
-Plus two engine **systems** Nalati introduces: **named elites** (minibosses with a name, a gold bar, a lair,
-a signature move, a unique drop and a title — the snow leopard first) and **bosses** (an arena, a name card,
-phases, adds, a legendary reward — the Golden King). Spec: `docs/design/nalati/elites-and-bosses.md`.
-
-## Enemy roster
-
-| enemy | tier | where | behaviour | mockup |
-|---|---|---|---|---|
-| **Steppe wolves** (packs of 3–5) | common | tall grass everywhere, wider at dusk | circle and flank inside the grass; you see the grass part; one lunges while the others close; the alpha howls to regroup; they chase riders and spook the horse | round-1 `enemy-1-wolf-pack`, round-2 `2-creatures/wolf-*` |
-| **Wild horses** (herd + stallion) | neutral → taming | the horse plains | the herd grazes and flees; the stallion guards the mares, rears, charges, kicks — beat it without killing → TAME → your mount (F1) | round-2 `2-creatures/horses-*`, `taming-*` |
-| **Balbal stone warriors** | heavy | kurgan field + balbal circle, wake at dusk | tear out of the ground, slow stone-sword slams; arrows chip, sabre breaks; glowing cracks are weak points | round-1 `enemy-2-balbal-warriors` |
-| **Ghost riders** | mounted, night | ridge lines at night | spectral horse archers in a line; ride them down or shoot them out of the saddle | round-1 `enemy-6-ghost-riders` |
-| **Snow leopard (irbis)** | **named elite** | the crags | stalks ledges, pounces from above, retreats when hurt; a name, a gold bar, a legendary pelt | round-1 `enemy-4-snow-leopard`, round-2 `4-named-elites/` |
-| + four more **named elites** | named elite | — | from the elites design section | round-2 `4-named-elites/` |
-| **The Golden King** | **boss** | the great kurgan | the full boss fight; guards the legendary golden bow | round-1 `enemy-5-kurgan-king`, round-2 `5-bosses/` |
-
-Ambient: sheep flocks with a sheepdog and shepherd's yurt, marmots that whistle and give you away, cranes on
-the river, kites circling, a fox.
-
-## Every other gameplay element
-
-What a Nalati session is made of, beyond combat and the three features. ✚ = new for this shard,
-◎ = exists in the engine and gets a Nalati skin.
-
-| area | element | |
+| # | row | depends on |
 |---|---|---|
-| Movement | walk / sprint / jump / hover board | ◎ |
-| | **crouch** (stealth in grass; the JUMP disc becomes CROUCH while hidden) | ✚ |
-| | **riding** (F1) | ✚ |
-| | fording the river (wade; swimming from Driftwood in the deep pools) | ◎ |
-| Weapons | **composite recurve bow** — hold to draw, release to loose, arrow drop + wind drift, arrows recoverable from the ground | ✚ (the crossbow's ballistics + a draw) |
-| | **sabre** — the sword's three-hit combo, curved arcs, from the saddle a single wide slash | ◎ |
-| | **the golden bow** — legendary pickup in the kurgan (the iron-sword pattern) | ✚ |
-| | fire arrows (stretch, with grassfire) | ✚ |
-| Enemies | the six above, species registry entries with a `lowpoly` paint | ✚ |
-| Hunting & harvest | wolf pelt, wolf fang, horsehair, stone shard (balbal), snow-leopard pelt (legendary), gold plaque (king), marmot fur, eagle feather | ✚ items in `Inventory` |
-| Loot & pickups | the golden bow, arrow bundles in the camp, a saddle upgrade | ✚ |
-| Places (POIs) | **Nomad camp** (spawn hub: yurts, hitching rail, eagle perch, stove smoke), **Kurgan field** (mounds + balbals + the great kurgan dungeon), **Balbal circle** (central hill), **River + bridge** (braided river, log bridge, a water mill), **Larch groves** (north folds), **The crags** (snow-leopard ledges, the high point), **Horse plains** (the herd), **Eagle rock** (a lone tor, the view) | ✚ one file each (`build()`, `colliders`, `floorHeightAt`) |
-| Map & HUD | minimap + full map in grassland colours, fog of war, WIND chip, STEED bar, EAGLE disc, HIDDEN pip | ◎ + ✚ |
-| Time & weather | day/night clock (N5) and, if picked, storms | ✚ |
-| Achievements & titles | e.g. *Wolfbane* (10 wolves), *Horse Lord* (tame the stallion), *Stonebreaker* (5 balbals), *Irbis* (the leopard), *Kurgan Robber* (the king), *Eagle Eye* (50 marks), *Ride the Night* (a ghost rider from the saddle) | ◎ new table |
-| Audio | wind in grass (layered by gust), hoof gaits by ground, eagle cry, wolf howls at dusk, marmot whistles, balbal grinding stone; music in the MUSIC v2 **folk** style (dombra / kobyz) | ◎ + ✚ |
-| Menu & loading | hero art (style-picked), loading steps for a grass shard, title-screen card leaves "Not yet playable" | ◎ |
-| Chunk contract | 500 m slab, four entry roads (the south road is the spawn track), boundary wall | ◎ fixed |
+| B7 | **Riding** — `Mount`, `Player.mount`, gaits, GALLOP, STEED, mounted DRAW / SLASH, dismount | B4 horse, B2, B3 |
+| B8 | **Taming** — TRUST approach, bucking balance, TULPAR at the rail, whistle | B7 |
+| B9 | **Crouch + stealth** — the context CROUCH disc, detection model, eye pip, wolves reading grass | B1, B4 |
+| B10 | **Day/night clock + storms** — `Weather`, six storm phases, lightning, stampedes, dusk / night triggers | B0, B1 |
+| B11 | **Balbal warriors + ghost riders** | B10, B5 |
+| B12 | **Named elites system** + Aqbars, Kokbori, Qyran, Qara Batyr, Argymaq | B4, B9, B10, B11 |
+| B13 | **Boss system** + **the Golden King** (kurgan dungeon, 3 phases, phase checkpoints, Golden Bow) | B5, B11 |
+| B14 | **the Storm Titan** (storm-only, mounted, Naizagai + saddle) | B7, B10, B13 |
+| B15 | **Inventory items, achievements + joke titles, skins, map/minimap for Nalati** | B12, B13 |
+| B16 | **Audio + folk music** (wind layers, hooves, wolves, storm; MUSIC v2 folk style), **menu / loading / hero art**, the card drops SUPER EXPERIMENTAL | all |
 
-## Checkpoints, in order (after the picks — each is a deploy)
+## Deploy
 
-| # | checkpoint | what you can do |
-|---|---|---|
-| N0 | **The steppe** — `src/chunks/nalati-grasslands.ts` (style D), rolling landscape, river bed, the grass carpet, sky + planet, spawn on the south road | walk into the grass and look |
-| N1 | **Bow** — recurve bow viewmodel behind `Weapon`, hold-draw-release, arrow drop | shoot at nothing |
-| N2 | **Wind** (F2 part 1) — one wind object for grass, clouds, trees, flags, arrows; WIND chip | watch the gusts roll |
-| N3 | **Nomad camp** POI + marmots + sheep | walk into camp |
-| N4 | **Wolves** + grass parting / trample (F2 part 2) + crouch / HIDDEN | the first hunt |
-| N5 | **Sabre** swap (the sword combo, curved) | melee |
-| N6 | **Horse herd + stallion + taming** | earn the horse |
-| N7 | **Riding** (F1) — mount, gaits, GALLOP, steed stamina | ride |
-| N8 | **Mounted combat** — bow and sabre from the saddle | hunt wolves from horseback |
-| N9 | **Golden eagle** (F3) — launch, mark, stoop, eagle eye | hunt with the eagle |
-| N10 | **River + bridge + larch groves** | cross the river |
-| N11 | **Kurgan field + balbals** (dusk wake) + day/night clock | break the stones |
-| N12 | **The great kurgan dungeon + the Golden King + golden bow** | the legendary |
-| N13 | **The crags + snow leopard** | the elite |
-| N14 | **Ghost riders** (night) | ride the night |
-| N15 | **Inventory items, achievements, titles** | the grind |
-| N16 | **Audio + folk music** | |
-| N17 | **Menu + loading + hero art** from an in-engine shot; card drops SUPER EXPERIMENTAL | |
-| N18 | (stretch) grassfire, storms | |
-
-Budget, every row: phone tier ≤ 150 calls / ≤ 2.0 M tris (PLAY-PERF), 60 fps on the phone, a screenshot
-in `progress/`. The grass stays one instanced draw; creatures share the lowpoly lit program.
+The branch has no deploy of its own (CI deploys `main`). A checkpoint ships by merging `origin/main` into the
+branch, passing the four gates on a clean export (`tsc --noEmit`, `oxlint`, `check-css`, `vite build`, plus
+`pnpm test`), and pushing the branch head to `main` through the push lock. As with Driftwood: ship the first
+walkable steppe half-broken (behind the SUPER EXPERIMENTAL card), then keep shipping. Pine Hollow and Driftwood
+must stay byte-for-byte unchanged in behaviour.
 
 ## Mockups
 
-Round 1 (2026-09-22, codex `gpt-6-sol`, 21 parallel runs): `art/nalati-r1-*.png` — four art styles of the
-same spawn view, five combat systems, six enemies, two feature shots (stealth, storm), four concept pieces
-(camp, kurgan field, river gorge, top-down map). Round 2 re-renders the picks in the chosen style.
+- `art/nalati-grasslands/round-1/` — 4 art styles, 5 combat, 6 enemies, 2 features, 4 concept pieces (the user
+  picked style B, combat A / B / C / D).
+- `art/nalati-grasslands/round-2/` — painterly: `1-combat` (7), `2-creatures` (8), `3-features` (5),
+  `4-named-elites` (5), `5-bosses` (6), `6-maps` (20 + the OpenTopoMap reference; the user picked map-01),
+  `7-controls` (9).
+- `art/nalati-grasslands/round-3/` — `1-elite-swap` (Argymaq ✔ / Qonyr), `2-storm-titan` (5),
+  `3-crouch-disc` (3, option D as picked).
