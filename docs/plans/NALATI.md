@@ -97,15 +97,15 @@ user: D, E and A are the closest). Round 8 (`round-8-three-zones/`): the user pi
 | B4 | Wolves (pack AI), horses (herd + stallion), sheep + dog, marmots | ✅ |
 | B5 | POIs: camp, bridge, roads, summer camp, kurgans, balbals, Eagle Rock, cairn, Crags | ✅ |
 | B6 | Spruce | ✅ |
-| B7 | Riding | 🟡 built (`Mount.ts`, `RideHUD`), **only on `dev/nalati-ride.html` — not wired into the shard** |
-| B8 | Taming | 🟡 built (`Taming.ts`), same; the bonding end (round 5 → TULPAR saved) unverified |
+| B7 | Riding | ✅ in the shard (`cb56bf5`): mount a camp horse, gallop, shoot from the saddle, dismount |
+| B8 | Taming | ✅ (`cb56bf5`): 5 bucking rounds → TULPAR bonded + saved; breaking Argymaq replaces him (one-horse rule) |
 | B9 | Crouch + stealth | ✅ |
 | B10 | Day/night + storms | ✅ |
-| B11 | Balbal warriors + ghost riders | 🟡 the ghost riders' horse + rider bodies don't render (only the mist) |
-| B12 | Named elites | ✅ (taming hand-off for Argymaq open) |
+| B11 | Balbal warriors + ghost riders | ✅ bodies render (`37b3115`: the ghost material now chains Atmosphere's shader hook) |
+| B12 | Named elites | ✅ (Argymaq → BROKEN → taming fixed, `HorseHerd.adoptStallion`) |
 | B13 | Boss system + Golden King + Golden Bow | ✅ (played in god mode only) |
-| B14 | Storm Titan + Naizagai | ❌ not started (plan: `handoff/storm-titan.md`) |
-| B15 | Items ✅, joke titles ✅ (partly), wearable elite skins ❌, Nalati map / minimap ❌ | 🟡 |
+| B14 | Storm Titan + Naizagai | ✅ (`2691bde`): 3 phases, checkpoints, the reward at the cairn; look is a first pass (paler, blobbier than the mockups) |
+| B15 | Items, joke titles, tame + Titan achievements, wearable skins, the Nalati map / minimap, hidden wolves off minimap + aim assist | ✅ (`984fe3d`); map names follow `NALATI_MAP` from the def |
 | B16 | Audio ✅ · menu card / loading / hero art ❌ | 🟡 |
 | L | The look (mockup parity) | 🟡 ~30 % — painted textures, backdrop, dressing, 18 models generated; **v2 render path not started; models not in the world** |
 
