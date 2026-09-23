@@ -134,10 +134,10 @@ describe('Settings OPTIONS (setting / saveSetting)', () => {
   };
   const reset = () => { vi.stubGlobal('location', new URL('http://localhost:5173/')); };
 
-  it('defaults: WebGL, procedural island, auto tier, auto touch, horizon on, live clock', async () => {
+  it('defaults: WebGL, Blender island, auto tier, auto touch, horizon on, live clock', async () => {
     const s = await fresh();
     expect([s.setting('gpu'), s.setting('island'), s.setting('tier'), s.setting('touch'), s.setting('matte'), s.setting('time')])
-      .toEqual(['webgl', 'procedural', 'auto', 'auto', 'on', 'live']);
+      .toEqual(['webgl', 'blender', 'auto', 'auto', 'on', 'live']);
     expect(s.pendingReload()).toEqual([]);
   });
 
@@ -179,14 +179,14 @@ describe('Settings OPTIONS (setting / saveSetting)', () => {
     const s = await fresh();
     const fn = vi.fn<(v: string) => void>();
     s.onSettingChange('island', fn);
-    s.saveSetting('island', 'blender');
-    s.saveSetting('island', 'blender');
-    expect(s.setting('island')).toBe('procedural');
-    expect(s.savedSetting('island')).toBe('blender');
-    expect(fn.mock.calls).toEqual([['blender']]);
+    s.saveSetting('island', 'procedural');
+    s.saveSetting('island', 'procedural');
+    expect(s.setting('island')).toBe('blender');
+    expect(s.savedSetting('island')).toBe('procedural');
+    expect(fn.mock.calls).toEqual([['procedural']]);
     expect(s.pendingReload()).toEqual(['island']);
     const next = await fresh();
-    expect(next.setting('island')).toBe('blender');
+    expect(next.setting('island')).toBe('procedural');
     expect(next.pendingReload()).toEqual([]);
   });
 
@@ -207,10 +207,10 @@ describe('Settings OPTIONS (setting / saveSetting)', () => {
   });
 
   it('carries the pre-E55 island pick (ws.island.v1) over once', async () => {
-    localStorage.setItem('ws.island.v1', 'blender');
-    expect((await fresh()).setting('island')).toBe('blender');
-    localStorage.setItem(STORE, JSON.stringify({ island: 'procedural' }));
-    expect((await fresh()).setting('island')).toBe('procedural'); // the new store wins once it has a pick
+    localStorage.setItem('ws.island.v1', 'procedural');
+    expect((await fresh()).setting('island')).toBe('procedural');
+    localStorage.setItem(STORE, JSON.stringify({ island: 'blender' }));
+    expect((await fresh()).setting('island')).toBe('blender'); // the new store wins once it has a pick
   });
 
   it('settingsReloadUrl drops every option / audio override and the extras, keeps the chunk and the dev params', async () => {
