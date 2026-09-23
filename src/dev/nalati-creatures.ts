@@ -5,6 +5,7 @@
 //   &scene=pack     a 5-wolf pack 40 m ahead (&hunt=1: it already knows you — shadow → encircle → lunges)
 //   &scene=herd     the horse herd 35 m ahead with foals and the black stallion (&stampede=4: stampede after 4 s)
 //   &scene=flock    40 sheep + the sheepdog 18 m ahead (&wolf=1: one wolf trots through them)
+//   &scene=crowd    5 wolves + 15 horses + 40 sheep + the dog in front of you (the perf case; &scene=none for the baseline)
 //   &scene=all      (default) the shard's NALATI_WILDLIFE layout (den, horse plains, pasture)
 //   &grass=1        the grass carpet (+ grassHeightAt / trample / wind hooked into wildEnv when the grass modules exist)
 //   &calm=1         animals ignore you
@@ -52,6 +53,12 @@ let layout: WildlifeLayout = { packs: [], herds: [], flocks: [] };
 if (scene === 'all') layout = (await import('../entities/Wildlife')).NALATI_WILDLIFE;
 if (scene === 'pack') { const [x, z] = ahead(num('dist', 40)); layout.packs.push({ x, z, variants: ['alpha', 'grey', 'tawny', 'grey', 'scout'] }); }
 if (scene === 'herd') { const [x, z] = ahead(num('dist', 35)); layout.herds.push({ x, z, mares: num('mares', 11), foals: 3, stallion: true }); }
+if (scene === 'crowd') {   // the perf case: 5 wolves + 15 horses + 40 sheep all in view (&calm=1 keeps them in place)
+  const [px, pz] = ahead(16, -2), [hx, hz] = ahead(42, 1), [fx, fz] = ahead(28, 3);
+  layout.packs.push({ x: px, z: pz, variants: ['alpha', 'grey', 'tawny', 'grey', 'scout'] });
+  layout.herds.push({ x: hx, z: hz, mares: 11, foals: 3, stallion: true });
+  layout.flocks.push({ x: fx, z: fz, count: 40, dog: true, range: 12 });
+}
 if (scene === 'flock') { const [x, z] = ahead(num('dist', 18)); layout.flocks.push({ x, z, count: num('sheep', 40), dog: true, range: 20 }); }
 const wildlife = new Wildlife(animals, { scene: game.scene, sky, seed: chunk.seed, layout }).build();
 wildlife.onSound = (name) => { if (params.has('logsound')) console.log('[creatures] sound', name); };
