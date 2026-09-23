@@ -8,6 +8,7 @@ import { heightAt, normalAt, inChunk, waterLevel } from '../world/Heightfield';
 import { HorseHerd } from '../entities/Herd';
 import { HORSE_SPEED } from '../entities/species/horse';
 import { wildEnv } from '../entities/wildEnv';
+import { riding } from './riding';
 
 /**
  * Mount — riding a horse (Nalati row B7; docs/design/nalati/wolves-horses-taming.md "Riding", controls.md "The mounted
@@ -144,7 +145,7 @@ export class Mount {
     if (this.horse !== null || !this.canRide(a)) return false;
     const p = this.player;
     p.setHover(false);
-    this.horse = a;
+    this.horse = a; riding.horse = a;
     this.breaking = breaking;
     const herd = HorseHerd.of(a);
     if (herd !== null) herd.setRidden(a); else a.mem['ridden'] = 1;
@@ -173,7 +174,7 @@ export class Mount {
     p.velocity.set(0, 0, 0);
     p.onGround = true;
     p.ride = null;
-    this.horse = null;
+    this.horse = null; riding.horse = null;
     this.breaking = false; this.breakRoll = 0; this.breakShake = 0;
     const herd = HorseHerd.of(a);
     if (herd?.ridden === a) herd.setRidden(null); else a.mem['ridden'] = 0;

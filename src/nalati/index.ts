@@ -44,6 +44,9 @@ import { wireNightEnemies } from './nightEnemies';
 import { Stealth } from './stealth';
 import { PaintedBackdrop } from '../world/PaintedBackdrop';
 import { wireSound, type NalatiSound } from './sound';
+import { wireRide, type Ride } from './ride';
+import { HITCHING_RAIL } from '../world/nalati/layout';
+import { heightAt } from '../world/Heightfield';
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ChunkDef }
 
@@ -94,6 +97,10 @@ export interface Nalati {
   /** the steppe's sound (B16 audio; src/nalati/sound.ts): creatures, hooves, the grassland bed, the kit's voices — set just
    *  before wireNalati returns; main.ts: `sound.bind(audio, music)`, `sound.fire(id)` / `sound.impact(…)` in the weapon hooks */
   sound?: NalatiSound;
+  /** riding + taming (creatures agent B7 / B8; src/nalati/ride.ts): built in `attachAnimals`. main.ts pushes
+   *  `ride.interactable` (the one nearest horse prompt: Mount / Dismount / Break the stallion) into its interactables and
+   *  hands `ride.taming` to `elites.bind` (Argymaq, BROKEN → the bucking rounds) */
+  ride: Ride | null;
 }
 
 export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
@@ -169,7 +176,10 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
 
   // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/nalati/elites.ts ──
   const elites = wireElites({ game, sky, player: ctx.player, ledges: pois.cragLedges, phase: () => weather.clock.phase, storm: () => weather.weather.stormActive });
-  updates.push((dt, t) => { elites.update(dt, t); });
+  updates.push((dt, t) => {
+    elites.update(dt, t);
+    for (const s of elites.scripts) if (s.animal !== null) s.animal.mem['noHeadBar'] = 1;   // the elite's own bar, not the combat one
+  });
 
   // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager — `attachAnimals` below (main.ts calls it after its animals step) ──
 
@@ -194,6 +204,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   // Wildlife reads position / forward / crouching; Player.forward allocates, so a reused view of it
   const wildPlayer = { position: player.position, forward: new Vector3(0, 0, -1), crouching: false };
   const extra = { mounted: false, health01: 1 };
+  let ride: Ride | null = null;   // riding + taming (B7 / B8) — wired in the riding section below
   // the braced spear kills a lunging wolf outright (combat.md): checked a little outside the spear's own contact reach, so
   // it lands before a glancing brace hit could stagger the wolf out of its lunge
   const BRACE_KILL_REACH = 3.1, BRACE_KILL_COS = Math.cos(32 * Math.PI / 180);
@@ -238,6 +249,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
     wildPlayer.forward.set(-Math.sin(player.yaw), 0, -Math.cos(player.yaw));
     wildPlayer.crouching = player.crouching;
     extra.health01 = play?.health01() ?? 1;
+    extra.mounted = ride?.mounted ?? false;   // B9: mounting stands you up; the packs get two tokens; a gallop stampedes the herd
     wildEnv.wind.x = wind.dirX; wildEnv.wind.z = wind.dirZ; wildEnv.wind.strength = Math.min(1, wind.speed / 10);
     wildlife.update(dt, t, wildPlayer, extra);
     braceKills();
@@ -259,7 +271,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
 
   const stealth = new Stealth({ player, wildlife: () => wildlife, isMounted: () => extra.mounted }); // B9, wired below
   const nalati: Nalati = {
-    water, pois, weather, groups, boss, elites, wildlife, stealth,
+    water, pois, weather, groups, boss, elites, wildlife, stealth, ride,
     attachAnimals(animals) {
       animals.wetAt = nalatiWetAt;
       const w = new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed }).build();
@@ -306,6 +318,58 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
     nalati.sheepTarget = (o, d, m, h) => night.target(o, d, m, sheepT(o, d, m, h));
   }
 
+  /** dev (`?ride=`): mount = on a camp horse at the rail · gallop = on it at the spawn, down the road · camp = at the rail on foot · herd = 30 m from the nearest wild
+   *  stallion · break = the bucking rounds on him · argymaq = beside Argymaq, beaten (with `?elite=argymaq`, the break prompt) */
+  let devMode: string | null = null, devT = 0, devNext: (() => void) | null | undefined;
+  const devRide = (r: Ride, w: Wildlife, mode: string): (() => void) | null => {
+    const face = (x: number, z: number): void => { player.yaw = Math.atan2(-(x - player.position.x), -(z - player.position.z)); player.pitch = -0.05; };
+    const put = (x: number, z: number): void => { player.position.set(x, heightAt(x, z), z); };
+    if (mode === 'mount' || mode === 'camp' || mode === 'gallop') {
+      const h = w.campHorses[0];
+      if (h === undefined) return null;
+      put(HITCHING_RAIL.x - 6, HITCHING_RAIL.z - 3); face(h.position.x, h.position.z);
+      if (mode !== 'camp') r.mount.mount(h);
+      // gallop: the camp horse out on the north road at the spawn, heading down it (open ground for a run)
+      if (mode === 'gallop') { const sp = ctx.chunk.spawn; r.mount.teleport(sp.x, sp.z, sp.yaw + Math.PI); }
+      return null;
+    }
+    const herd = mode === 'argymaq' ? w.herds.find((h) => h.stallion?.kind === 'argymaq') : w.herds.find((h) => h.stallion?.kind === 'horse');
+    const st = herd?.stallion ?? null;
+    if (herd === undefined || st === null) return null;
+    const dx = st.position.x - herd.cx, dz = st.position.z - herd.cz, l = Math.hypot(dx, dz) || 1, d = mode === 'herd' ? 30 : 2.6;
+    put(st.position.x + (dx / l) * d, st.position.z + (dz / l) * d); face(st.position.x, st.position.z);
+    if (mode === 'argymaq') st.hp = Math.min(st.hp, st.maxHp * 0.2);   // the herd reads him BEATEN → the break prompt
+    return mode === 'break' ? () => { r.taming.forceBreak(); } : null;   // once Taming has picked the nearest stallion
+  };
+  // ── riding + taming (creatures agent B7 / B8; src/nalati/ride.ts, src/player/Mount.ts, src/game/Taming.ts): the camp's two
+  //    saddled horses, TULPAR (or ARGYMAQ, who replaces him), the bucking rounds; `?ride=mount|gallop|camp|herd|break|argymaq` (dev) ──
+  {
+    const attach = nalati.attachAnimals, bind = nalati.bindPlay, impact = nalati.onImpact;
+    nalati.attachAnimals = (animals) => {
+      const w = attach(animals);
+      ride = wireRide({ player, forest: ctx.forest, animals, wildlife: w, camera: game.camera });
+      nalati.ride = ride;
+      return w;
+    };
+    nalati.bindPlay = (p) => {
+      bind(p);
+      ride?.bind({ kit: p.kit, toast: p.toast });   // hurt → animals.onCharge (main's damage path)
+      devMode = new URLSearchParams(location.search).get('ride');
+    };
+    nalati.onImpact = (surface, point) => {
+      impact(surface, point);
+      // a landing arrow / javelin (not a blow at arm's length): TRUST −30 near a stallion
+      if (Math.hypot(point.x - player.position.x, point.z - player.position.z) >= 4.5) ride?.noteShot(point.x, point.z);
+    };
+    updates.push((dt) => {
+      ride?.update(dt);
+      // dev `?ride=`: 1 s of play in (the elites have spawned Argymaq), then the follow-up 0.8 s later
+      if (devMode === null || ride === null || wildlife === null) return;
+      devT += dt;
+      if (devT > 1 && devNext === undefined) devNext = devRide(ride, wildlife, devMode);
+      else if (devT > 1.8 && devNext !== undefined) { devNext?.(); devMode = null; }
+    });
+  }
   // ── sound (B16 audio): wraps attachAnimals / bindPlay / wildEnv.onEvent for the creatures and the kit — src/nalati/sound.ts ──
   const sound = wireSound(nalati, { player: ctx.player, weather });
   nalati.sound = sound;

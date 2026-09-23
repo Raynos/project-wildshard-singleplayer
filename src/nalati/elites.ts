@@ -720,7 +720,7 @@ class Argymaq extends Base {
     const a = this.env.animals.spawn(ARGYMAQ, c.x, c.z, 0, 'stallion');
     const hi = herd.members[0]?.herd ?? -1;
     a.herd = hi; if (hi >= 0) this.env.animals.herds[hi]?.members.push(a);
-    herd.members.push(a); herd.stallion = a;
+    herd.adoptStallion(a);   // his brain finds this herd (HorseHerd.of): BEATEN → the taming row's break prompt
     // the blue-black coat
     const mats = Array.isArray(a.mesh.material) ? a.mesh.material : [a.mesh.material];
     for (const m of mats) if (m instanceof THREE.MeshLambertMaterial) m.color.setRGB(0.62, 0.64, 0.72);

@@ -54,6 +54,7 @@ import { getNumber, onNumber } from './ui/Settings';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
 import { setAimTargets, meleeLock } from './player/AimTargets';
+import { pastRidden } from './player/riding';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
 import { declareTotals, installByteCounter } from './boot/bytes';
 import { chunkFiles } from './boot/manifest';
@@ -239,6 +240,8 @@ async function main() {
   });
   const nalatiNow = (): Nalati | null => nalati; // (a closure: TS narrows the `let` to null after the props step's callback)
   const wildlife = nalatiNow()?.attachAnimals(animals) ?? null; // Nalati's wolves / horses / sheep over the AnimalManager (src/nalati/index.ts)
+  const ride = nalatiNow()?.ride ?? null; // Nalati's riding + taming (src/nalati/ride.ts): ONE prompt, always the nearest horse action
+  if (ride) interactables.push(ride.interactable);
   // the island's enemies (Enemies.ts): reef crabs at the tidepools, coconut monkeys in the groves, the drowned sailor in the wreck's hold
   const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [] }).build() : null;
 
@@ -246,7 +249,7 @@ async function main() {
   await step('weapon', () => viewmodelTexturesReady()); // the viewmodels' textures from the worker (usually long done); the build below is synchronous
   const targets: Targets = {
     raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null {
-      const h = animals.raycast(origin, dir, maxDist);
+      const h = pastRidden(() => animals.raycast(origin, dir, maxDist)); // never the horse you ride (src/player/riding.ts)
       const hit = h ? { animal: h.animal as unknown as TargetHit['animal'], point: h.point, distance: h.distance, headshot: h.headshot } : null; // Animal.kind is any species id; the weapons only read deer / boar
       return wildlife ? nalatiNow()?.sheepTarget(origin, dir, maxDist, hit) ?? hit : hit; // Nalati: the sheep flock is a target too
     },
@@ -429,11 +432,12 @@ async function main() {
   });
   // Nalati's named elites (src/nalati/elites.ts, B12): lairs, bars, banners, drops — taming (B8) hands in when it is wired
   nalatiNow()?.elites.bind({
-    animals, wildlife, taming: null, ghosts: null, interactables, params,
+    animals, wildlife, taming: ride?.taming ?? null, ghosts: null, interactables, params,
     toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, addItem: (id) => { inventory.add(id); }, record: (k, v) => { progress.recordKill(k, v); },
     pickupHum: (on) => { audio.pickupHum(on); }, sound: (n, at) => { audio.animal(n, at, player.position, player.yaw); },
     sting: (e) => { if (e === 'kill') music.sting('chunk'); else music.combat(e === 'phase2' ? 1 : 0.8); },
   });
+  if (ride) ride.taming.onBreaking = (on) => { weapons.visible = !on; weapons.setEnabled(!on); }; // both hands in the mane while he bucks
   player.onStep = (sprinting) => (player.wading ? audio.wadeStep(player.depth, sprinting)
     : audio.footstep(sprinting, pier?.floorHeightAt(player.position.x, player.position.z) !== undefined ? 'planks'
       : sea !== undefined && heightAt(player.position.x, player.position.z) - sea.level < 2.6 ? 'sand' : 'litter'));
@@ -537,7 +541,7 @@ async function main() {
     // slow health regen; death → respawn at the gate
     if (health < 100 && performance.now() - lastHurt > 6000) health = Math.min(100, health + dt * 4);
     // a death in a boss fight is handled there (back at the phase checkpoint, arrows refilled); anywhere else → the gate
-    if (health <= 0) { health = 100; hud.damageFlash(); if (nalati?.boss.onPlayerDeath() !== true) { hud.toast('Gored — respawning at the south gate'); respawn(); crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); } nalatiKit?.refill(); }
+    if (health <= 0) { health = 100; hud.damageFlash(); if (ride?.mounted === true) ride.mount.dismount(); if (nalati?.boss.onPlayerDeath() !== true) { hud.toast('Gored — respawning at the south gate'); respawn(); crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); } nalatiKit?.refill(); }
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 && hud.entered);
@@ -571,6 +575,6 @@ async function main() {
   game.start();
   await loading.done();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
-  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, cove, enemies, hands, grass, under, particles, cabins, props, animals, wildlife, crossbow, hud, audio };
+  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, cove, enemies, hands, grass, under, particles, cabins, props, animals, wildlife, crossbow, hud, audio, nalati: nalatiNow(), ride, weapons };
 }
 main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));

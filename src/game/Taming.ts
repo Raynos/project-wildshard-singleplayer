@@ -31,6 +31,9 @@ import { heightAt } from '../world/Heightfield';
  *   he leads the herd away. The camera tilts with the balance (≤ 25°) and shakes on each buck.
  * 3 · BONDED: he is TULPAR — saddled and bridled (the `tulpar` variant), yours: mountable, whistled (X / HORSE),
  *   can't die, rests at the hitching rail. Remembered across sessions (localStorage 'ws.nalati.tulpar').
+ * ONE HORSE (plan decision): once bonded, the wild stallions are left alone — except ARGYMAQ (the elite, kind
+ *   'argymaq', src/nalati/elites.ts). Break him and he REPLACES Tulpar: the old horse leaves the rail for good, the new
+ *   one is saddled at Argymaq's ×1.3 in his blue-black coat, named ARGYMAQ (stored as 'argymaq').
  */
 
 export interface TamingOpts {
@@ -50,12 +53,16 @@ interface Move { kind: 'buck' | 'spin' | 'rear'; dir: number; at: number; power:
 const RANGE = 40, ROUNDS = 5, ROUND_T = 3.5, TELEGRAPH = 0.3;
 const LEAN_ACC = 6.2, DAMP = 2.4, RED = 0.72, THROW_T = 0.4;
 const STORE = 'ws.nalati.tulpar';
+/** the elite stallion's kind (src/nalati/elites.ts ARGYMAQ) — the one horse that may replace a bonded Tulpar */
+const ARGYMAQ_KIND = 'argymaq';
 const _v = new THREE.Vector3(), _f = new THREE.Vector3();
 
 export class Taming {
   phase: 'wild' | 'breaking' | 'bonded' = 'wild';
   /** your bonded horse */
   tulpar: Animal | null = null;
+  /** the bonded horse is Argymaq (the elite) — the best horse; nothing replaces him */
+  isArgymaq = false;
   /** the MOUNT prompt on the stallion (radius 0 until he lets you) */
   readonly interactable: Interactable = { position: new THREE.Vector3(0, -1e4, 0), radius: 0, label: 'Mount the stallion', onInteract: () => { this.startBreaking(); } };
   /** what RideHUD draws */
@@ -87,9 +94,9 @@ export class Taming {
       if (name !== 'pack-driven-off' && name !== 'pack-break') return;
       for (const h of this.opts.herds()) if (!this.drove.has(h) && Math.hypot(h.cx - x, h.cz - z) < 40 && this.opts.player.position.distanceTo(_v.set(h.cx, this.opts.player.position.y, h.cz)) < 60) { this.drove.add(h); h.addTrust(30); this.opts.toast?.('The herd saw you drive the wolves off · TRUST +30'); }
     };
-    let saved = false;
-    try { saved = localStorage.getItem(STORE) === '1'; } catch { /* no storage: not remembered */ }
-    if (saved) this.spawnTulpar(this.opts.rest.x + 2.6, this.opts.rest.z + 3.5, Math.atan2(this.opts.rest.face.x, this.opts.rest.face.z));
+    let saved: string | null = null;
+    try { saved = localStorage.getItem(STORE); } catch { /* no storage: not remembered */ }
+    if (saved === '1' || saved === ARGYMAQ_KIND) this.spawnTulpar(this.opts.rest.x + 2.6, this.opts.rest.z + 3.5, Math.atan2(this.opts.rest.face.x, this.opts.rest.face.z), saved === ARGYMAQ_KIND);
   }
 
   /** an arrow / javelin landed at (x, z): −30 TRUST and ALERT full if a stallion is within 40 m */
@@ -112,7 +119,7 @@ export class Taming {
     let herd: HorseHerd | null = null, st: Animal | null = null, bd = Infinity;
     for (const h of this.opts.herds()) {
       const s = h.stallion;
-      if (s === null || !s.alive) continue;
+      if (s === null || !s.alive || !this.canTame(s)) continue;
       const d = s.position.distanceTo(p.position);
       if (d < bd) { bd = d; herd = h; st = s; }
     }
@@ -159,13 +166,17 @@ export class Taming {
     this.view.offer = bd < 12 && herd.alert < 33;
   }
 
+  /** one horse: before a bond any stallion; after it only Argymaq (once) */
+  canTame(s: Animal): boolean { return this.tulpar === null || (s.kind === ARGYMAQ_KIND && !this.isArgymaq); }
+
   // ── 2 · breaking him ─────────────────────────────────────────────────────────────────────────────────────────────
 
   private startBreaking(): void {
     const st = this.stallion, herd = this.herd;
-    if (st === null || herd === null || this.phase !== 'wild') return;
+    if (st === null || herd === null || this.phase === 'breaking' || !this.canTame(st)) return;
     if (!this.opts.mount.mount(st, true)) return;
     this.phase = 'breaking';
+    this.interactable.radius = 0;   // no MOUNT prompt while you ride him out
     herd.alertOwned = true;
     this.opts.player.yaw = st.yaw - Math.PI; this.opts.player.pitch = -0.1;   // down his neck
     this.onBreaking?.(true);
@@ -232,7 +243,7 @@ export class Taming {
 
   private endBreaking(won: boolean): void {
     const m = this.opts.mount, st = this.stallion, herd = this.herd;
-    this.phase = 'wild';
+    this.phase = this.tulpar !== null ? 'bonded' : 'wild';
     this.view.round = null; this.view.danger = false;
     m.breakRoll = 0; m.breakShake = 0;
     this.onBreaking?.(false);
@@ -247,23 +258,40 @@ export class Taming {
       return;
     }
     // ── 3 · bonded: the stallion leaves the herd and comes back saddled as TULPAR (you stay on him) ──
-    const x = st.position.x, z = st.position.z, yaw = st.yaw;
+    const x = st.position.x, z = st.position.z, yaw = st.yaw, argymaq = st.kind === ARGYMAQ_KIND;
     m.dismount();
     herd.releaseStallion();
     st.hidden = true; st.mesh.visible = false; st.position.y = -1e4;
-    const t = this.spawnTulpar(x, z, yaw);
+    // the one-horse rule: Argymaq replaces the Tulpar you had — he leaves the rail for good
+    const old = this.tulpar;
+    if (old !== null) {
+      m.removeMountable(old);
+      old.hidden = true; old.mesh.visible = false; old.alive = false; old.position.y = -1e4;
+      const i = this.opts.animals.animals.indexOf(old); if (i !== -1) this.opts.animals.animals.splice(i, 1);
+      old.mesh.removeFromParent();
+      this.tulpar = null;
+    }
+    const t = this.spawnTulpar(x, z, yaw, argymaq);
     m.mount(t);
-    try { localStorage.setItem(STORE, '1'); } catch { /* not remembered */ }
-    this.opts.toast?.('TULPAR is yours · he waits at the camp\'s hitching rail · whistle (X / HORSE) to call him');
+    try { localStorage.setItem(STORE, argymaq ? ARGYMAQ_KIND : '1'); } catch { /* not remembered */ }
+    this.opts.toast?.(argymaq
+      ? 'ARGYMAQ is yours — he takes Tulpar\'s place at the camp\'s rail · whistle (X / HORSE) to call him'
+      : 'TULPAR is yours · he waits at the camp\'s hitching rail · whistle (X / HORSE) to call him');
     this.onBonded?.(t);
   }
 
-  private spawnTulpar(x: number, z: number, yaw: number): Animal {
+  private spawnTulpar(x: number, z: number, yaw: number, argymaq = false): Animal {
     const t = this.opts.animals.spawn('horse', x, z, yaw, 'tulpar');
     t.place(x, z, yaw); t.position.y = heightAt(x, z);
     t.mem['whistle'] = 1;
-    this.opts.mount.addMountable(t, 'Tulpar');
-    this.tulpar = t;
+    if (argymaq) {
+      // Argymaq's size and his blue-black coat under Tulpar's saddle (elites.ts spawns him ×1.3, coat 0.62 / 0.64 / 0.72)
+      t.scale = 1.3; t.mesh.scale.setScalar(1.3);
+      const mats = Array.isArray(t.mesh.material) ? t.mesh.material : [t.mesh.material];
+      for (const mt of mats) if (mt instanceof THREE.MeshLambertMaterial) mt.color.setRGB(0.62, 0.64, 0.72);
+    }
+    this.opts.mount.addMountable(t, argymaq ? 'Argymaq' : 'Tulpar');
+    this.tulpar = t; this.isArgymaq = argymaq;
     this.phase = 'bonded';
     return t;
   }

@@ -133,6 +133,10 @@ export class HorseHerd {
   /** the stallion leads the herd away from (x, z) at a gallop (taming: ALERT maxed with some trust) — not a stampede */
   leadAway(x: number, z: number): void { this.startFlight(x, z, false); }
   /** the stallion leaves the herd for good (tamed): the herd grazes on without a guard */
+  /** a stallion of another kind joins this herd as its stallion (the elite Argymaq, src/nalati/elites.ts). Without the
+   *  registration his brain (thinkHorse → forThink) found no herd and built a fresh one every tick — he was never BEATEN
+   *  and the mares were re-homed into throwaway herds (HorseHerd.all grew at 10 Hz) */
+  adoptStallion(a: Animal): void { if (!this.members.includes(a)) this.members.push(a); herdOf.set(a, this); this.stallion = a; this.setStallion('watch'); }
   releaseStallion(): void { if (this.stallion !== null) { this.stallion.mem['ridden'] = 1; this.stallion = null; } this.alertOwned = false; }
 
   private centre(): void {
