@@ -42,6 +42,9 @@ export const toonUniforms = {
   uCloudShadow: { value: 0.6 },
   /** 0 = day … 1 = night (DayNight): the sea darkens its lagoon tint by it */
   uToonNight: { value: 0 },
+  /** W4 caustics: the sea's still level (m; −1e4 = no sea) and their strength */
+  uSeaLevel: { value: -1e4 },
+  uCaustics: { value: 1.6 },
   uCloudTime: { value: 0 },
   uCloudWind: { value: new THREE.Vector2(3.2, 1.4) },
   uCloudScale: { value: 34 },
@@ -61,6 +64,8 @@ uniform vec3 uToonTerm;
 uniform float uToonShadeGrade;
 uniform float uCloudShadow;
 uniform float uToonNight;
+uniform float uSeaLevel;
+uniform float uCaustics;
 uniform float uCloudTime;
 uniform vec2 uCloudWind;
 uniform float uCloudScale;
@@ -79,6 +84,21 @@ float toonCloud( vec3 viewPos ) {
 	float n = toonNoise( p ) * 0.65 + toonNoise( p * 2.3 + 7.1 ) * 0.35;
 	return 1.0 - uCloudShadow * smoothstep( 0.5, 0.6, n );
 }
+/** W4: sunlight focused by the swell onto everything under the sea — bright filaments where two drifting noise
+ *  fields cross, strongest just under the surface, fading with depth (0 above the water and on the sea surface itself) */
+float toonCaustics( vec3 viewPos ) {
+	#ifdef OCEAN_SURFACE
+	return 0.0;
+	#else
+	vec3 w = cameraPosition + ( vec4( viewPos, 0.0 ) * viewMatrix ).xyz;
+	float d = uSeaLevel - w.y;
+	if ( d <= 0.0 ) return 0.0;
+	vec2 p = w.xz * 0.42; float t = uCloudTime * 0.55;
+	float a = toonNoise( p + vec2( t * 0.31, t * 0.17 ) ), b = toonNoise( p * 1.63 - vec2( t * 0.21, -t * 0.29 ) + 3.7 );
+	float c = pow( 1.0 - abs( a - b ), 9.0 );
+	return c * uCaustics * smoothstep( 0.0, 0.35, d ) * exp( -d * 0.22 );
+	#endif
+}
 
 void RE_Direct_Toon( const in IncidentLight directLight, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {
 	#if NUM_DIR_LIGHTS > 0
@@ -92,7 +112,7 @@ void RE_Direct_Toon( const in IncidentLight directLight, const in vec3 geometryP
 		float grade = 0.8 + 0.2 * saturate( NdL );                  // the lit band keeps a faint facet grade
 		vec3 alb = material.diffuseContribution;
 		float cloud = toonCloud( geometryPosition );                  // L4: drifting cloud shade dims the lit band, never flips it
-		vec3 irr = sunCol * ( band * grade * cloud + ( 1.0 - band ) * uToonShadeGrade * saturate( NdL ) * 0.5 );
+		vec3 irr = sunCol * ( band * ( grade * cloud + toonCaustics( geometryPosition ) * cloud ) + ( 1.0 - band ) * uToonShadeGrade * saturate( NdL ) * 0.5 );
 		// the terminator: a thin warm, saturated band where the ramp turns (kept faint: on a flat-shaded model a whole
 		// facet sits in it, and PCF acne makes a shadow-ratio edge unreliable)
 		float term = band * ( 1.0 - band ) * 4.0;
@@ -165,6 +185,7 @@ const RAMP_FOG = /* glsl */`
     vec3 skyCol = mix( fogColor, uFogZenith, pow( smoothstep( 0.0, 0.75, e ), 0.62 ) );
     vec3 col = mix( uFogNear, skyCol, smoothstep( 0.0, 0.55, r ) );
     col += fogSunColor * pow( max( dot( viewDir, fogSunDir ), 0.0 ), 8.0 ) * 0.3 * r;
+    col = mix( col, fogColor, clamp( ( expF - rampF ) * 4.0, 0.0, 1.0 ) );   // under the sea the dense turquoise fog wins, in its own colour
     gl_FragColor.rgb = mix( gl_FragColor.rgb, col, max( rampF, expF ) );
   }
 #endif`;

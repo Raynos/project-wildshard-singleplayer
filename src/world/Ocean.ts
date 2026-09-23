@@ -29,7 +29,7 @@ import { getActiveChunk } from '../chunks/registry';
 import type { Sky } from './Sky';
 import { TIER_CONFIG } from '../core/tier';
 import { WAVES_GLSL, waveClock } from './waves';
-import { isStylized } from './stylize';
+import { isStylized, toonUniforms } from './stylize';
 
 const SEA_RES = 512; // the sea-floor texture: ~1 m per texel over the chunk
 
@@ -51,6 +51,7 @@ export class Ocean {
     const def = getActiveChunk().ocean;
     if (!def) throw new Error('Ocean.build(): the active chunk has no `ocean`');
     this.level = def.level;
+    toonUniforms.uSeaLevel.value = def.level; // the caustics under it (stylize.ts, W4)
 
     // ── grid coordinates: fine over the chunk, coarsening outward to the horizon ──
     const fine = TIER_CONFIG.oceanCell, inner = CHUNK_HALF + 30, far = 4200; // 2.75 m desktop / 4 m phone (57 k → 30 k verts)
@@ -102,6 +103,7 @@ export class Ocean {
       color: 0xffffff, flatShading: true, roughness: 0.9, metalness: 0.0, side: THREE.DoubleSide,
       transparent: true, premultipliedAlpha: true, depthWrite: true,
     });
+    mat.defines = { OCEAN_SURFACE: '' }; // no caustics on the surface itself (stylize.ts)
     mat.forceSinglePass = true; // a transparent DoubleSide material is otherwise drawn twice (back faces, then front)
     const shallow = new THREE.Vector3(...def.shallowColor), deep = new THREE.Vector3(...def.deepColor);
     mat.onBeforeCompile = (shader) => {
@@ -172,7 +174,16 @@ export class Ocean {
             float glint = smoothstep(0.9965, 0.9985, sd) * 5.0 + pow(sd, 90.0) * 0.5;
             waterAdd = (skyR * fres * 0.28 + fogSunColor * glint) * (1.0 - foam) + fogSunColor * foam * 0.5; // foam reads white, not lavender
             waterA = max(waterA, fres * 0.5);
-            if (!gl_FrontFacing) { waterA = 0.85; waterAdd = vec3(0.0); } // from below: the surface is a bright ceiling
+            if (!gl_FrontFacing) {
+              // from below (W4): Snell's window — inside ~49° of straight up the sky shows through, bright; outside it the
+              // surface is a mirror of the deep water (total internal reflection)
+              float up = abs(dot(fn, V));
+              float win = smoothstep(0.6, 0.7, up);
+              vec3 skyU = mix(fogColor, uFogZenith, 0.5) * 1.4;
+              waterA = 1.0;
+              waterAdd = mix(uDeep * 1.6 + uShallow * 0.15, skyU, win);
+              diffuseColor.rgb = vec3(0.0);
+            }
           }`)
         .replace('#include <opaque_fragment>', /* glsl */`
           {
