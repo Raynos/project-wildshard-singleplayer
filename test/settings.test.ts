@@ -79,4 +79,31 @@ describe('Settings', () => {
     s.setNumber('volume', 0.3);
     expect(s.getNumber('volume')).toBe(0.3);
   });
+
+  it('musicStyle: piano by default, persisted, validated, notifies once per change', async () => {
+    const s = await fresh();
+    expect(s.getMusicStyle()).toBe('piano');
+    const fn = vi.fn<(v: string) => void>();
+    s.onMusicStyle(fn);
+    s.setMusicStyle('folk');
+    s.setMusicStyle('folk');
+    expect(fn.mock.calls).toEqual([['folk']]);
+    expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ musicStyle: 'folk', volume: 0.8 });
+    expect((await fresh()).getMusicStyle()).toBe('folk');
+    localStorage.setItem(STORE, JSON.stringify({ musicStyle: 'dubstep' }));
+    expect((await fresh()).getMusicStyle()).toBe('piano');
+  });
+
+  it('?music=<style> overrides the saved style without persisting it', async () => {
+    localStorage.setItem(STORE, JSON.stringify({ musicStyle: 'orchestral' }));
+    vi.stubGlobal('location', new URL('http://localhost:5173/?music=synth'));
+    try {
+      const s = await fresh();
+      expect(s.getMusicStyle()).toBe('synth');
+      s.setNumber('volume', 0.4); // an unrelated write keeps the saved pick
+      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ musicStyle: 'orchestral' });
+      s.setMusicStyle('folk');
+      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ musicStyle: 'folk' });
+    } finally { vi.stubGlobal('location', new URL('http://localhost:5173/')); }
+  });
 });

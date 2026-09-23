@@ -19,8 +19,19 @@
 // switch change on a bar (pending bars are cancelled and rescheduled when the state changes). Under water the whole
 // music bus runs through a 600 Hz low-pass and a slow chorus. `renderOffline` runs the identical scheduler on an
 // OfflineAudioContext — the trailer render and the live playback are one code path.
+//
+// v3 (docs/plans/MUSIC.md rows 7–8): a STEM PLAYER beside the synth (src/audio/Stems.ts). Settings 'musicStyle' picks
+// piano / orchestral / folk (MiniMax-Music3 stems in public/assets/music/<style>/) or synth. The stems load only after
+// play() (the player is in the world) — never at boot; the synth plays until they decode, stays on a fetch / decode
+// failure, and hands over on a bar (synth fades out over the stem deck's first bar, then stops scheduling). Slots: menu →
+// 'title', Pine Hollow → 'pine', Driftwood → 'island'. calm / alert / combat drive the tension stem's gain (0 / 0.5 / 1)
+// on the deck's bar grid. Underwater is the same low-pass (the stems run through the engine's bus). A slot or style change
+// crossfades over at least a bar; one style is resident at a time (a style switch hands the old one over to the synth,
+// releases its buffers, then loads the new one — so the synth bridges the gap). `music.duck(k)` scales the whole bus
+// (the Driftwood shrine's −3 dB, src/audio/ShrineHum.ts).
 import type { Audio } from './Audio';
-import { getNumber, setNumber, onNumber } from '../ui/Settings';
+import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle } from '../ui/Settings';
+import { Deck, StemLoader, type SlotAudio, type SlotName } from './Stems';
 import {
   ARRANGEMENTS, CHORDS, CHORD_ROOT, DORIAN_OF, STING_CHUNK, STING_DEATH, STING_PICKUP, dorianPitch,
   type Arrangement, type ArrangementName, type ChordName, type LayerId, type MixKey, type NoteEv, type Segment,
@@ -54,6 +65,8 @@ class Engine {
   readonly bus: GainNode;
   /** the sequencer's layers sum here; the death sting ducks it while the sting itself bypasses (stingBus) */
   readonly seq: GainNode;
+  /** the synth's share of the bus: 1 alone, faded to 0 while the stems play (Music hands over on a bar) */
+  readonly synthMix: GainNode;
   readonly stingBus: GainNode;
   readonly lpf: BiquadFilterNode;
   readonly chorusWet: GainNode;
@@ -99,7 +112,7 @@ class Engine {
     lfo.connect(lg).connect(delay.delayTime); lfo.start();
     this.chorusWet = c.createGain(); this.chorusWet.gain.value = 0;
     this.lpf.connect(delay).connect(this.chorusWet).connect(dest);
-    this.seq = c.createGain(); this.seq.connect(this.bus);
+    this.seq = c.createGain(); this.synthMix = c.createGain(); this.seq.connect(this.synthMix).connect(this.bus);
     this.stingBus = c.createGain(); this.stingBus.gain.value = 1; this.stingBus.connect(this.bus);
     // layers
     for (const k of GAIN_KEYS) { const g = c.createGain(); g.gain.value = 0; this.gains[k] = g; this.targets[k] = 0; }
@@ -444,29 +457,54 @@ class Engine {
   }
 }
 
-/** the live game wrapper: timer, state, volume, stings, the offline render */
+/** the tension stem's gain per mode (docs/plans/MUSIC.md v3: calm 0, alert ~0.5, combat 1; the title cut has none) */
+const TENSION: Record<MusicMode, number> = { menu: 0, calm: 0, alert: 0.5, combat: 1 };
+/** the stems start loading this long after play() — the first frames in the world stay clear */
+const STEM_DELAY_MS = 1200;
+const holdAt = (p: AudioParam, t: number) => {
+  const cp: { cancelAndHoldAtTime?: (t: number) => void } = p; // Firefox has no cancelAndHoldAtTime
+  if (cp.cancelAndHoldAtTime) cp.cancelAndHoldAtTime(t); else { p.cancelScheduledValues(t); p.setValueAtTime(p.value, t); }
+};
+
+/** the live game wrapper: timer, state, volume, stings, the stem player, the offline render */
 export class Music {
-  /** ctx + the music bus (`volume` × the Settings 'music' slider → audio.master) + the engine, built on first use
-   *  (play, after the first gesture) so boot never creates the AudioContext; state set before then waits in `pending` */
-  private rig: { ctx: AudioContext; out: GainNode; engine: Engine } | undefined;
+  /** ctx + the music bus (`volume` × the Settings 'music' slider → duck → audio.master) + the engine + the stems' bus, built on
+   *  first use (play, after the first gesture) so boot never creates the AudioContext; state set before then waits in `pending` */
+  private rig: { ctx: AudioContext; out: GainNode; duckGain: GainNode; engine: Engine; stemBus: GainNode } | undefined;
   private pending: MusicState = { shard: 'pine', mode: 'menu', intensity: 0, underwater: false };
   private timer = 0;
   private _volume: number;
   private playing: ArrangementName | undefined;
   private combatTimer = 0;
+  // ── v3: the stems ──
+  private _style: MusicStyle = getMusicStyle();
+  private loader: StemLoader | undefined;
+  private deck: Deck | undefined;
+  /** the synth sequencer is scheduling (its timer runs); `synthGen` voids a pending stop when it is restarted mid-fade */
+  private synthOn = false;
+  private synthGen = 0;
+  /** play() arms the stems after STEM_DELAY_MS; nothing is fetched before */
+  private armed = false;
+  private armTimer = 0;
+  private loading = new Set<string>();
+  /** `style/slot` that failed this session — the synth keeps playing; a style change retries */
+  private failed = new Set<string>();
+  private _duck = 1;
 
   constructor(private readonly audio: Audio) {
     this._volume = getNumber('music');
     onNumber('music', (v) => { this._volume = v; if (this.rig) this.rig.out.gain.setTargetAtTime(v, this.rig.ctx.currentTime, 0.05); });
+    onMusicStyle((v) => { this._style = v; this.failed.clear(); this.sync(); });
   }
 
   private build(): NonNullable<Music['rig']> {
     if (this.rig) return this.rig;
-    const ctx = this.audio.ctx, out = ctx.createGain();
-    out.gain.value = this._volume;
-    out.connect(this.audio.master);
+    const ctx = this.audio.ctx, out = ctx.createGain(), duckGain = ctx.createGain();
+    out.gain.value = this._volume; duckGain.gain.value = this._duck;
+    out.connect(duckGain).connect(this.audio.master);
     const engine = new Engine(ctx, out);
-    this.rig = { ctx, out, engine };
+    const stemBus = ctx.createGain(); stemBus.connect(engine.bus); // through the engine's low-pass + chorus: underwater muffles the stems too
+    this.rig = { ctx, out, duckGain, engine, stemBus };
     this.setState(this.pending);
     return this.rig;
   }
@@ -479,19 +517,26 @@ export class Music {
   get volume(): number { return this._volume; }
   set volume(v: number) { setNumber('music', v); }
   get isPlaying(): boolean { return this.playing !== undefined; }
+  get style(): MusicStyle { return this._style; }
+  /** diagnostics (dev / headless checks): what is sounding, the tension stem's live gain, what was fetched and how long it took */
+  get stems(): { style: MusicStyle; source: 'synth' | 'stems'; slot: SlotName | undefined; tension: number | undefined; synthOn: boolean; synthMix: number | undefined; duck: number | undefined; loads: { file: string; bytes: number; ms: number }[]; failed: string[] } {
+    return {
+      style: this._style, source: this.deck ? 'stems' : 'synth', slot: this.deck?.slot, tension: this.deck?.tensionGain?.gain.value,
+      synthOn: this.synthOn, synthMix: this.rig?.engine.synthMix.gain.value, duck: this.rig?.duckGain.gain.value,
+      loads: this.loader ? [...this.loader.log] : [], failed: [...this.failed],
+    };
+  }
 
-  /** start an arrangement (the game uses 'theme'); restarts if already playing */
+  /** start an arrangement (the game uses 'theme'); restarts if already playing. The stems follow after STEM_DELAY_MS. */
   play(name: ArrangementName = 'theme'): void {
-    this.stopTimer();
-    const arr = ARRANGEMENTS[name], t = this.ctx.currentTime + 0.05;
-    if (this.playing) this.engine.end(t);
-    this.engine.seq.gain.cancelScheduledValues(t); this.engine.seq.gain.setValueAtTime(1, t);
-    this.engine.begin(arr, t);
+    const t = this.ctx.currentTime + 0.05;
+    if (this.playing) { this.stopTimer(); this.synthOn = false; this.engine.end(t); this.deck?.fadeOut(t, 0.05); this.deck = undefined; }
     this.playing = name;
-    this.pump();
-    this.timer = window.setInterval(() => this.pump(), TICK_MS);
+    this.startSynth(t, 0);
+    const arr = ARRANGEMENTS[name];
     const idle = (window as unknown as { requestIdleCallback?: (fn: () => void) => void }).requestIdleCallback;
     if (idle) idle(() => this.engine.warm(arr)); else window.setTimeout(() => this.engine.warm(arr), 300);
+    if (name === 'theme' && !this.armed) { window.clearTimeout(this.armTimer); this.armTimer = window.setTimeout(() => { this.armed = true; this.sync(); }, STEM_DELAY_MS); }
   }
   private pump() {
     const spb = this.engine.currentSpb();
@@ -499,14 +544,114 @@ export class Music {
   }
   private stopTimer() { if (this.timer) { clearInterval(this.timer); this.timer = 0; } }
 
+  /** the synth sequencer on (from the top of the arrangement if it was off), its share of the bus up over `fade` from `t` */
+  private startSynth(t: number, fade: number): void {
+    const e = this.engine, g = e.synthMix.gain;
+    this.synthGen++; // voids a stop still pending from a fade-out
+    if (!this.synthOn) {
+      e.seq.gain.cancelScheduledValues(t); e.seq.gain.setValueAtTime(1, t);
+      e.begin(ARRANGEMENTS[this.playing ?? 'theme'], t);
+      this.synthOn = true;
+      this.pump();
+      this.timer = window.setInterval(() => this.pump(), TICK_MS);
+      g.cancelScheduledValues(t); g.setValueAtTime(fade > 0 ? 0 : 1, t);
+    } else holdAt(g, t);
+    if (fade > 0) g.linearRampToValueAtTime(1, t + fade);
+  }
+  /** the synth's share down over `fade` from `t`, then its scheduler stops (no CPU while the stems play) */
+  private stopSynth(t: number, fade: number): void {
+    if (!this.synthOn) return;
+    const g = this.engine.synthMix.gain;
+    holdAt(g, t); g.linearRampToValueAtTime(0, t + fade);
+    const gen = ++this.synthGen;
+    window.setTimeout(() => {
+      if (gen !== this.synthGen || !this.synthOn) return; // restarted meanwhile
+      this.stopTimer(); this.synthOn = false; this.engine.end(this.ctx.currentTime);
+    }, Math.max(0, t + fade - this.ctx.currentTime) * 1000 + 150);
+  }
+
+  // ─────────────── the stems (docs/plans/MUSIC.md v3 row 7) ───────────────
+  /** the slot the state asks for: the title cut on the menu (only while it can be heard — the title screen is muted), else the shard's theme */
+  private wantSlot(): SlotName {
+    const s = this.state, shard: SlotName = s.shard === 'island' ? 'island' : 'pine';
+    if (s.mode !== 'menu') return shard;
+    return this.audio.muted ? (this.deck?.slot ?? shard) : 'title';
+  }
+  private tension(): number { return TENSION[this.state.mode]; }
+
+  /** bring what plays in line with the style + state: hand over to / from the synth, switch decks, move the tension stem */
+  private sync(): void {
+    if (!this.rig || !this.playing || !this.armed) return;
+    const now = this.rig.ctx.currentTime, style = this._style;
+    // another style (or the synth) was picked: hand the deck to the synth and release that style's buffers
+    if (this.loader !== undefined && this.loader.style !== style) { this.toSynth(now); this.loader.release(); this.loader = undefined; }
+    if (style === 'synth') { this.toSynth(now); return; }
+    const slot = this.wantSlot();
+    this.deck?.setTension(this.tension(), now); // a deck of another slot plays on (at the right level) while the new one loads
+    if (this.deck?.slot === slot) return;
+    const key = `${style}/${slot}`;
+    if (this.failed.has(key) || this.loading.has(key)) return;
+    this.loader ??= new StemLoader(this.rig.ctx, style);
+    const loader = this.loader;
+    this.loading.add(key);
+    void this.load(loader, slot, key);
+  }
+  private async load(loader: StemLoader, slot: SlotName, key: string): Promise<void> {
+    let a: SlotAudio;
+    try { a = await loader.slot(slot); }
+    catch (err: unknown) {
+      this.loading.delete(key);
+      this.failed.add(key);
+      console.info(`[music] ${key}: ${err instanceof Error ? err.message : String(err)} — the synth plays on`);
+      if (this.rig && this.loader === loader && !this.deck && this.playing && !this.synthOn) this.startSynth(this.rig.ctx.currentTime + 0.05, 1);
+      return;
+    }
+    this.loading.delete(key);
+    if (this.loader !== loader || !this.playing) return; // the style changed meanwhile: `release()` already dropped it
+    if (this.wantSlot() !== slot) { if (this.deck?.slot !== slot) loader.forget(slot); this.sync(); return; }
+    this.startDeck(a);
+    await loader.loadStings();
+  }
+
+  /** a decoded slot takes over on a bar: from the synth (its bar grid) or from the other deck (that deck's grid), faded over ≥ 1 bar */
+  private startDeck(a: SlotAudio): void {
+    if (!this.rig) return;
+    const now = this.rig.ctx.currentTime, old = this.deck;
+    const bar = (60 / a.spec.bpm) * a.spec.beatsPerBar;
+    let t: number, fade: number;
+    if (old) {
+      t = old.nextBar(now + 0.05); fade = Math.max(bar, old.bar, 2);
+      old.fadeOut(t, fade);
+      if (old.slot !== a.slot) this.loader?.forget(old.slot); // one slot resident: the deck still holds the buffers until it ends
+    } else {
+      t = this.synthOn ? Math.max(now + 0.05, this.engine.nextBarAfter(now + 0.05)) : now + 0.05; fade = Math.max(bar, 2);
+    }
+    this.deck = new Deck(this.rig.ctx, a, this.rig.stemBus, t, fade, this.tension());
+    this.stopSynth(t, fade);
+  }
+
+  /** the deck (if any) out over a bar on its grid, the synth back in under it */
+  private toSynth(now: number): void {
+    const d = this.deck;
+    if (!d) { if (!this.synthOn && this.playing) this.startSynth(now + 0.05, 1); return; }
+    const t = d.nextBar(now + 0.05), fade = Math.max(d.bar, 2);
+    d.fadeOut(t, fade); this.deck = undefined;
+    this.loader?.forget(d.slot);
+    this.startSynth(t, fade);
+  }
+
   /** fade over a bar and silence every voice */
   stop(): void {
     if (!this.playing) return;
-    this.stopTimer();
-    const t = this.ctx.currentTime, bar = this.engine.currentSpb() * 4;
-    const g = this.engine.seq.gain;
-    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, t + bar);
-    this.engine.end(t + bar);
+    const t = this.ctx.currentTime;
+    window.clearTimeout(this.armTimer); this.armed = false;
+    if (this.synthOn) {
+      this.stopTimer(); this.synthOn = false; this.synthGen++;
+      const bar = this.engine.currentSpb() * 4, g = this.engine.seq.gain;
+      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, t + bar);
+      this.engine.end(t + bar);
+    }
+    if (this.deck) { this.deck.fadeOut(t, this.deck.bar); this.deck = undefined; }
     this.playing = undefined;
   }
 
@@ -522,8 +667,8 @@ export class Music {
       this.engine.setLevel('chorus', s.underwater ? 0.55 : 0, now, 0.6);
     }
     if (this.playing && (s.mode !== prev.mode || s.shard !== prev.shard || s.intensity !== prev.intensity)) {
-      this.engine.cancelPending(now);
-      this.pump();
+      if (this.synthOn) { this.engine.cancelPending(now); this.pump(); }
+      this.sync();
     }
   }
   /** a combat event (a charge, a hit landed or taken): combat now, decaying to alert 8 s after the last one */
@@ -533,7 +678,26 @@ export class Music {
     this.combatTimer = window.setTimeout(() => { if (this.state.mode === 'combat') this.setState({ mode: 'alert', intensity: 0.5 }); }, 8000);
   }
 
-  sting(name: StingName): void { if (this.rig) this.rig.engine.sting(name, this.rig.ctx.currentTime + 0.02); }
+  /** the style's sting file while its stems play, else the synth sting; the death sting ducks the stems like the synth (a bar down, 6 s out, a bar back) */
+  sting(name: StingName): void {
+    if (!this.rig) return;
+    const { ctx, engine, stemBus } = this.rig, t = ctx.currentTime + 0.02, deck = this.deck;
+    const buf = deck ? this.loader?.sting(name) : undefined;
+    if (buf) { const src = ctx.createBufferSource(); src.buffer = buf; src.connect(engine.stingBus); src.start(t); }
+    else engine.sting(name, t);
+    if (name === 'death' && deck) {
+      const g = stemBus.gain, bar = deck.bar;
+      holdAt(g, t); g.linearRampToValueAtTime(0, t + bar); g.setValueAtTime(0, t + bar + 6); g.linearRampToValueAtTime(1, t + bar * 2 + 6);
+    }
+  }
+
+  /** scale the whole music bus (1 = untouched): the shrine ducks it −3 dB up close. Cheap to call per frame — only a real change schedules. */
+  duck(k: number): void {
+    const v = Math.min(1, Math.max(0, k));
+    if (Math.abs(v - this._duck) < 0.004) return;
+    this._duck = v;
+    if (this.rig) this.rig.duckGain.gain.setTargetAtTime(v, this.rig.ctx.currentTime, 0.25);
+  }
 
   /** the same instruments and scheduler on an OfflineAudioContext (48 kHz stereo) → an AudioBuffer of `seconds` */
   static async renderOffline(name: ArrangementName, seconds: number, opts: { state?: Partial<MusicState> | undefined; solo?: string[] | undefined } = {}): Promise<AudioBuffer> {

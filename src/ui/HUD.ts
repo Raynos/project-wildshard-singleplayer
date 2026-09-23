@@ -441,7 +441,7 @@ export class HUD {
         </div></div>
         <div class="ws-menu-dots">${cards.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
         <button class="ws-menu-enter" type="button"><b>Enter world</b><small>Press any key</small></button>
-        <div class="ws-menu-row"><div class="ws-menu-sound">Sound on</div></div>
+        <div class="ws-menu-row"><div class="ws-menu-sound">Sound on</div><div class="ws-menu-credit">Music: MiniMax-Music3</div></div>
       </div>`;
     const hero = q(intro, '.ws-menu-hero');
     const list = q(intro, '.ws-menu-cards');

@@ -15,7 +15,9 @@
  *   ws-immutable            content-addressed, therefore forever: /assets/<name>-<8>.{js,css,jpg}. `activate`
  *                           prunes it to __BUNDLE__ — it never deletes it wholesale.
  *   ws-static-<assets>      unhashed but rarely edited: /assets/tex|models|hdri/**, /basis/**, /fonts/**, root
- *                           icons. Keyed by a hash of public/ alone, so a JS-only deploy does NOT re-download
+ *                           icons, and the music / sfx audio (the .m4a files under /assets/music and /assets/sfx:
+ *                           NOT precached — fetched after the player enters the world, docs/plans/MUSIC.md v3 — and
+ *                           cached on that first use). Keyed by a hash of public/ alone, so a JS-only deploy does NOT re-download
  *                           the 70 MB the boot streams. Cached on use — the boot fetches everything up front
  *                           anyway, and every one of those requests passes through `cacheFirst` below.
  *   ws-shell-<build>        the few KB that change every build: index.html, manifest.webmanifest,
@@ -26,7 +28,8 @@
  *   activate  migrate the previous ws-static-* entries whose size still matches asset-index.json into the new
  *             static cache, drop stale ws-shell/ws-static caches, prune (never wipe) the immutable cache, claim.
  *   fetch     hashed bundle: cache-first into ws-immutable;
- *             tex / models / hdri / basis / fonts / icons: cache-first into the static cache;
+ *             tex / models / hdri / basis / fonts / icons / music + sfx audio: cache-first into the static cache;
+ *             the music / sfx manifests (music.json, sfx.json): network-first (their loop points must match the files);
  *             the document: cache-first with a background revalidate (a flapping link must never hold the
  *             first paint); a `?v=` reload from the build pill (src/ui/Update.ts) is network-first;
  *             asset-index.json / sw.js / manifest.webmanifest: network-first, cache fallback;
@@ -52,7 +55,7 @@ const STATIC_OPTIONAL = ['/apple-touch-icon.png', '/favicon.png', '/icon-192.png
 
 /** Vite's hashed output sits directly under /assets/ — the unhashed Poly Haven dirs are one level deeper. */
 const IMMUTABLE_RE = /^\/assets\/[^/]+-[\w-]{8}\.\w+$/;
-const STATIC_RE = /^\/assets\/(tex|models|hdri|baked|packs)\/|^\/basis\/|^\/fonts\/|^\/(apple-touch-icon|favicon|icon-\d+)\.png$/;
+const STATIC_RE = /^\/assets\/(tex|models|hdri|baked|packs)\/|^\/assets\/(music|sfx)\/.+\.m4a$|^\/basis\/|^\/fonts\/|^\/(apple-touch-icon|favicon|icon-\d+)\.png$/;
 const NETWORK_FIRST_RE = /^\/(asset-index\.json|sw\.js|manifest\.webmanifest)$/;
 
 const IMAGE_RE = /\.(jpe?g|png|webp|avif|gif|svg)$/;

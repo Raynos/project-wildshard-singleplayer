@@ -61,6 +61,7 @@ import { packFor, streamPack } from './boot/pack';
 import { getActiveChunk } from './chunks/registry';
 import { Audio } from './audio/Audio';
 import { Music } from './audio/Music';
+import { ShrineHum } from './audio/ShrineHum';
 import { installErrorModal, showError } from './ui/ErrorModal';
 import { onReview, queuedCount, quickNote } from './ui/review';
 import type { Feedback } from './ui/Feedback';
@@ -267,6 +268,8 @@ async function main() {
   // the Wildshard theme (docs/plans/MUSIC.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
   const music = new Music(audio);
   music.setState({ shard: chunk.ocean ? 'island' : 'pine', mode: 'menu', intensity: 0, underwater: false });
+  // the ring shrine hums by proximity and ducks the score up close (docs/plans/MUSIC.md v3 row 9)
+  const shrineHum = shrine ? new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z }) : null;
   const respawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } music.sting('death'); };
   let kills = 0, health = 100, lastHurt = 0, swimHold = false;
   const harvested = new Set<object>();
@@ -425,7 +428,8 @@ async function main() {
   const menuFirst = !params.has('skipintro') && !params.has('tour');
   const enter = () => {
     audio.resume();
-    if (!music.isPlaying) { music.play('theme'); music.sting('chunk'); } // the resolve chord on the first frame in
+    audio.loadSamples(); // sfx.json's beds / hums / one-shots, now that the player is in (a no-op after the first time)
+    if (!music.isPlaying) { music.play('theme'); music.sting('chunk'); } // the resolve chord on the first frame in; the stems follow
     music.setState({ mode: 'calm', intensity: 0 });
     void keepAlive.start(); // screen wake lock — needs this user gesture
     weapons.setEnabled(true);
@@ -494,6 +498,7 @@ async function main() {
     ironDrop?.update(dt, t, game.renderer, game.camera, player.position); // walk-to-pick-me-up
     for (const d of skinDrops) d.update(dt, t, game.renderer, game.camera);
     audio.listenerYaw = player.yaw;
+    shrineHum?.update(game.camera);
 
     // nearest interactable
     nearest = undefined; let best = 1e9;
@@ -538,6 +543,6 @@ async function main() {
   game.start();
   await loading.done();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
-  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio };
+  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum };
 }
 main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));
