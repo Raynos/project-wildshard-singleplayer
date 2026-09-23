@@ -70,6 +70,8 @@ const STATIC_RE = /^\/assets\/(tex|models|hdri|baked|packs)\/|^\/assets\/(music|
 const NETWORK_FIRST_RE = /^\/(asset-index\.json|sw\.js|manifest\.webmanifest)$/;
 
 const IMAGE_RE = /\.(jpe?g|png|webp|avif|gif|svg)$/;
+// the opt-in WebGPU renderer (?gpu=webgpu, src/gpu/): ~240 kB gz of three/webgpu that no default boot loads — cached when used
+const OPT_IN = '/assets/GpuPath-';
 
 /** the device says it has no network: answer from the cache instead of a fetch that can only fail */
 const offline = () => !self.navigator.onLine;
@@ -105,7 +107,7 @@ self.addEventListener('install', (event) => {
       // the host, so this is served by the HTTP cache, not the network, when the page just fetched it.
       // Code and styles only: the hashed images (every shard's hero stills, portrait AND landscape, ~2 MB) are cached
       // by cacheFirst when the menu actually shows one — a phone never shows the landscape set (ask P5, cold bytes).
-      await fillMissing(await caches.open(IMMUTABLE_CACHE), BUNDLE.filter((p) => !IMAGE_RE.test(p)));
+      await fillMissing(await caches.open(IMMUTABLE_CACHE), BUNDLE.filter((p) => !IMAGE_RE.test(p) && !p.includes(OPT_IN)));
       await fillMissing(await caches.open(STATIC), [...STATIC_OPTIONAL, ...FONTS]);
     })(),
   );

@@ -14,6 +14,8 @@ import { TIER_CONFIG } from './tier';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 import { worldTime } from './time';
+import { GPU_MODE } from '../gpu/flag';
+import type { GpuPath } from '../gpu/GpuPath';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
@@ -24,6 +26,9 @@ export class Game {
   camera: THREE.PerspectiveCamera;
   private _composer: EffectComposer | null = null;
   private _sky: Sky | null = null;
+  /** ?gpu=webgpu (src/gpu/): the WebGPURenderer path draws the canvas; `renderer` is then an offscreen WebGL one for legacy callers */
+  gpu: GpuPath | null = null;
+  private gpuReady: Promise<GpuPath> | null = null;
   // oxlint-disable-next-line typescript/no-deprecated -- Clock→Timer changes getDelta semantics; migrate separately
   clock = new THREE.Clock();
   private updaters: ((dt: number, t: number) => void)[] = [];
@@ -62,7 +67,7 @@ export class Game {
 
   constructor(public canvas: HTMLCanvasElement) {
     installAtmosphere();
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false, depth: true });
+    this.renderer = new THREE.WebGLRenderer({ canvas: GPU_MODE ? document.createElement('canvas') : canvas, antialias: false, powerPreference: 'high-performance', stencil: false, depth: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, TIER_CONFIG.dpr));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.toneMapping = THREE.NoToneMapping; // tone mapping happens in the composer
@@ -72,9 +77,12 @@ export class Game {
     setAnisotropy(this.renderer);
     this.camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.08, 2600);
     window.addEventListener('resize', () => this.resize());
+    const mode = GPU_MODE;
+    if (mode) this.gpuReady = import('../gpu/GpuPath').then((m) => m.GpuPath.create(canvas, mode));
   }
 
   async buildSky(): Promise<Sky> {
+    if (this.gpuReady) { this.gpu = await this.gpuReady; this.resize(); }
     this._sky = await new Sky(this.scene, this.camera, this.renderer).build();
     return this._sky;
   }
@@ -128,6 +136,7 @@ export class Game {
       composer.addPass(new EffectPass(this.camera, smaa));
     }
     this._composer = composer;
+    this.gpu?.build(this.scene, this.camera, this.sky, this.renderer);
   }
 
   onUpdate(fn: (dt: number, t: number) => void): void { this.updaters.push(fn); }
@@ -146,6 +155,7 @@ export class Game {
    * (src/boot/precompile.ts). Returns the distinct material count.
    */
   async precompile(onProgress?: (done: number, total: number, detail: string) => void): Promise<number> {
+    if (this.gpu) return this.gpu.precompile(onProgress);
     // r186 removed PCFSoftShadowMap: the first shadow pass silently flips the type to PCF, and
     // shadowMapType is in every program's cache key — so everything compiled here would be
     // compiled AGAIN by the first frame (desktop 105 → 179 programs). Settle it before compiling.
@@ -167,6 +177,7 @@ export class Game {
    * every pipeline), then the full composer (screen-quad shaders compileAsync cannot reach).
    */
   async firstFrame(onProgress?: (done: number, total: number, detail: string) => void): Promise<void> {
+    if (this.gpu) { await this.gpu.firstFrame(onProgress); return; }
     const frame = (): Promise<void> => new Promise((resolve) => { requestAnimationFrame(() => { setTimeout(resolve, 0); }); }); // rAF alone resumes before the paint
     onProgress?.(0, 2, 'world + shadows');
     await frame();
@@ -193,11 +204,12 @@ export class Game {
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
     this._composer?.setSize(w, h); // a resize can land before buildComposer() / buildSky()
+    this.gpu?.resize(w, h);
     this._sky?.csm.updateFrustums();
   }
 
   start(): void {
-    const composer = this.composer, sky = this.sky; // both built before start() (buildComposer reads the sky)
+    const composer = this.composer, sky = this.sky, gpu = this.gpu; // both built before start() (buildComposer reads the sky)
     this.clock.start();
     this.renderer.info.autoReset = false; // the composer renders several passes per frame: count the whole frame
     // Returning from the background: draw one frame at once (bypassing the gate). The 1–2 s of black on an
@@ -231,9 +243,10 @@ export class Game {
       sky.update(realDt);
       // planet + sun disc travel with the camera so they stay "infinitely" far
       sky.clouds.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.sunDir, 1500);
-      composer.render(realDt);
+      if (gpu) gpu.render(); else composer.render(realDt);
       if (this.captures.length > 0) this.flushCaptures();
-      this.lastFrame.calls = this.renderer.info.render.calls; this.lastFrame.triangles = this.renderer.info.render.triangles;
+      if (gpu) { this.lastFrame.calls = gpu.info.calls; this.lastFrame.triangles = gpu.info.triangles; }
+      else { this.lastFrame.calls = this.renderer.info.render.calls; this.lastFrame.triangles = this.renderer.info.render.triangles; }
       this.frameMs[this.frameI] = realDt * 1000; this.frameI = (this.frameI + 1) % this.frameMs.length;
       this.stats.frames++; this.stats.acc += realDt;
       if (this.stats.acc >= 0.5) { this.stats.fps = Math.round(this.stats.frames / this.stats.acc); this.stats.frames = 0; this.stats.acc = 0; }
