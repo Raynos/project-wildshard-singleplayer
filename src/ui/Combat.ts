@@ -169,7 +169,7 @@ export class Combat {
     _o.setFromMatrixPosition(this.camera.matrixWorld);
     for (let i = 0; i < list.length; i++) {
       const a = list[i];
-      if (a === undefined || a.hidden) continue;
+      if (a === undefined || a.hidden || a.mem['noHeadBar'] === 1) continue;   // a boss has its own wide bar (src/game/Boss.ts)
       const show = now - a.lastHitT < BAR_HOLD || a === this.aimed;
       if (!show) continue;
       const d2 = a.position.distanceToSquared(_o);

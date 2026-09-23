@@ -77,10 +77,10 @@ const FALLEN = [
 ] as const;
 
 const C = {
-  larch: new THREE.Color('#7b5536'), larchDark: new THREE.Color('#5a3b24'), larchOld: new THREE.Color('#6c5a48'),
-  board: new THREE.Color('#6e4c30'), boardDust: new THREE.Color('#8d7453'),
+  larch: new THREE.Color('#6f5238'), larchDark: new THREE.Color('#4c3826'), larchOld: new THREE.Color('#6b5f52'),
+  board: new THREE.Color('#5c4430'), boardDust: new THREE.Color('#7d6a52'),
   earth: new THREE.Color('#4a3524'), black: new THREE.Color('#0c0806'),
-  felt: new THREE.Color('#8e1c14'), feltDark: new THREE.Color('#5a0f0b'), cream: new THREE.Color('#e7d3a4'), ochre: new THREE.Color('#c08a3a'),
+  felt: new THREE.Color('#8a2619'), feltDark: new THREE.Color('#4f150e'), cream: new THREE.Color('#e2cfa0'), ochre: new THREE.Color('#b0843e'),
   gold: new THREE.Color('#f2c14e'), goldDark: new THREE.Color('#9a6a1c'), bronze: new THREE.Color('#8a5a2a'),
   stone: new THREE.Color('#8f8b83'), fur: new THREE.Color('#cfc3ad'), sand: new THREE.Color('#d8b57a'),
   day: new THREE.Color('#9fb4c8'),
@@ -221,13 +221,13 @@ function feltPainter(w: number, h: number, horses: number, horizontal: boolean):
 // ─────────────────────────────── the bake ───────────────────────────────
 
 interface Lamp { x: number; y: number; z: number; r: number; i: number; c: THREE.Color }
-const WARM = new THREE.Color(1.0, 0.56, 0.24), DAY = new THREE.Color(1.0, 0.86, 0.6), LAMP = new THREE.Color(1.0, 0.62, 0.3);
+const WARM = new THREE.Color(1.0, 0.7, 0.44), DAY = new THREE.Color(1.0, 0.93, 0.78), LAMP = new THREE.Color(1.0, 0.72, 0.48);
 export const BRAZIERS = [{ x: -6.6, z: 6.6 }, { x: 6.6, z: 6.6 }, { x: -6.6, z: -6.4 }, { x: 6.6, z: -6.4 }];
 const LAMPS: Lamp[] = [
-  ...BRAZIERS.map((b) => ({ x: b.x, y: 1.5, z: b.z, r: 9.5, i: 2.1, c: WARM })),
-  { x: 0, y: 2.0, z: 12.6, r: 5.5, i: 1.2, c: LAMP }, { x: 0, y: 2.0, z: 18.2, r: 5.5, i: 1.1, c: LAMP },
+  ...BRAZIERS.map((b) => ({ x: b.x, y: 1.5, z: b.z, r: 9.5, i: 1.5, c: WARM })),
+  { x: 0, y: 2.0, z: 12.6, r: 5, i: 0.75, c: LAMP }, { x: 0, y: 2.0, z: 18.2, r: 5, i: 0.7, c: LAMP },
 ];
-const AMBIENT = new THREE.Color(0.2, 0.135, 0.09);
+const AMBIENT = new THREE.Color(0.15, 0.13, 0.115);
 const _n = new THREE.Vector3(), _d = new THREE.Vector3(), _l = new THREE.Color();
 
 /** the light at a chamber-local point with normal n (the unlit interior's whole lighting model, baked once) */
@@ -247,7 +247,7 @@ function lightAt(x: number, y: number, z: number, n: THREE.Vector3, out: THREE.C
   const dx = x - (COFFIN.x + 0.3), dz = z - (COFFIN.z + 0.2), dr = Math.hypot(dx, dz);
   const pool = (1 - THREE.MathUtils.smoothstep(dr, 1.2, 3.0)) * Math.max(0, n.y);
   const halo = (1 - THREE.MathUtils.smoothstep(dr, 0.5, 5.5)) * 0.35;
-  out.r += DAY.r * (pool * 2.1 + halo); out.g += DAY.g * (pool * 2.1 + halo); out.b += DAY.b * (pool * 2.1 + halo);
+  out.r += DAY.r * (pool * 1.8 + halo); out.g += DAY.g * (pool * 1.8 + halo); out.b += DAY.b * (pool * 1.8 + halo);
   // the pedestal's shaft, faint until the victory lights it (the FX does that)
   const pr = Math.hypot(x - PEDESTAL.x, z - PEDESTAL.z);
   const pp = (1 - THREE.MathUtils.smoothstep(pr, 0.6, 2.2)) * 0.5;
@@ -508,7 +508,7 @@ export class KurganDungeon {
       kit.add(log(sx * DW, 2.65, nz - 1.1, sx * DW, nz + 1.1, 0.2), C.larchOld);
       const g = balbalGeometry(nz > 16 ? 1 : 0, 0xba1 + Math.round(nz * 10) + sx);
       g.applyMatrix4(M(sx * (DW + 0.55), 0, nz, sx > 0 ? Math.PI / 2 : -Math.PI / 2, 1.0));
-      kit.add(g, (p) => new THREE.Color(0.6, 0.58, 0.55).multiplyScalar(0.9 + 0.1 * Math.sin(p.y * 7)), { brush: 0.08 });
+      kit.add(g, (p) => new THREE.Color(0.4, 0.39, 0.37).multiplyScalar(0.85 + 0.15 * Math.sin(p.y * 7)), { brush: 0.08 });
     }
     // the door frame between the dromos and the chamber: massive larch posts and a lintel
     for (const sx of [-1, 1]) kit.add(pole(v3(sx * (DOOR_W + 0.05), -0.1, CH + 0.3), v3(sx * (DOOR_W + 0.05), DOOR_H + 0.35, CH + 0.3), 0.3, 0.27, 10), C.larchDark, { brush: 0.14 });
@@ -611,7 +611,7 @@ export class KurganDungeon {
       const kit = new PaintKit(0x2b + i);
       const g0 = balbalGeometry(i % 2, 0xba7 + i * 3);
       g0.applyMatrix4(M(0, 0, 0, 0, 1.2));
-      kit.add(g0, (p) => new THREE.Color(0.62, 0.6, 0.56).multiplyScalar(0.9 + 0.1 * Math.sin(p.y * 7)), { brush: 0.06 });
+      kit.add(g0, (p) => new THREE.Color(0.4, 0.39, 0.37).multiplyScalar(0.85 + 0.15 * Math.sin(p.y * 7)), { brush: 0.08 });
       const g = kit.finish();
       const sx = Math.sign(n.x);
       g.applyMatrix4(M(n.x + sx * 0.55, 0, n.z, n.yaw + Math.PI));
@@ -667,7 +667,7 @@ export class KurganDungeon {
       m.position.set(x, 0, z); m.rotation.z = 0.1;
       this.shafts.push({ mesh: m, mat, base, target: base });
     };
-    shaft(COFFIN.x + 0.3, COFFIN.z + 0.1, PLANK_Y + 1.5, 1.35, 1.1, 0.55);
+    shaft(COFFIN.x + 0.3, COFFIN.z + 0.1, PLANK_Y + 1.5, 1.3, 1.25, 0.38);
     shaft(PEDESTAL.x, PEDESTAL.z, PLANK_Y + 0.5, 0.75, 0.65, 0.0);
     // flames: one merged mesh of crossed cards over the braziers and the dromos lamps
     {
@@ -683,9 +683,10 @@ export class KurganDungeon {
     }
     // gold rings (the sunburst): flat annuli on the floor, radius set per use
     for (let i = 0; i < 2; i++) {
-      const g = annulus(0.9, 1.0, 96);
-      const mat = reg(fxMaterial(FX.ring, new THREE.Color(2.2, 1.5, 0.45), 0));
-      mat.uniforms.uP.value.x = 1.5;
+      const g = annulus(0.84, 1.0, 128);
+      const mat = reg(fxMaterial(FX.ring, new THREE.Color(3.2, 2.1, 0.6), 0));
+      mat.uniforms.uP.value.x = 0.9;
+      mat.depthTest = false;                           // the ring reads over the drifts and the rugs
       const m = add(new THREE.Mesh(g, mat), 14); m.visible = false;
       this.rings.push({ mesh: m, mat });
     }

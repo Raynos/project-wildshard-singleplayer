@@ -10,7 +10,8 @@
 import type { IconId } from '../ui/icons';
 
 export type ItemId = 'venison' | 'deer-hide' | 'boar-meat' | 'boar-hide' | 'boar-tusk' | 'antlers' | 'elk-meat' | 'elk-hide' | 'bear-pelt' | 'bear-claw'
-  | 'crab-meat' | 'crab-claw' | 'crab-shell' | 'coconut' | 'monkey-fur' | 'silver-fur' | 'doubloon' | 'sea-glass' | 'old-rope';
+  | 'crab-meat' | 'crab-claw' | 'crab-shell' | 'coconut' | 'monkey-fur' | 'silver-fur' | 'doubloon' | 'sea-glass' | 'old-rope'
+  | 'gold-plaque';
 
 export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'venison': { label: 'Venison', icon: 'meat' },
@@ -33,6 +34,8 @@ export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'doubloon': { label: 'Salt-crusted doubloon', icon: 'coin' },
   'sea-glass': { label: 'Sea glass', icon: 'seaglass' },
   'old-rope': { label: 'Old rope', icon: 'rope' },
+  // Nalati Grasslands — boss trophies (src/nalati/kurganBoss.ts)
+  'gold-plaque': { label: "Golden King's plaque", icon: 'coin' },
 };
 
 /** what a carcass of (kind, variant) yields when harvested */

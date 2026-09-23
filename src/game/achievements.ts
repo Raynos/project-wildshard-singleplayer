@@ -37,8 +37,14 @@ const PINE_HOLLOW: AchievementDef[] = [
   { id: 'ironhide', name: 'Old Ironhide', goal: 'Kill Old Ironhide', count: 1, kind: 'boar', variant: 'ironhide', title: "Ironhide's Retirement Plan", icon: 'ironhide' },
 ];
 
+/** Nalati Grasslands (docs/design/nalati/elites-and-bosses.md): the bosses first (B13, B14); the elites + the rest are B15's */
+const NALATI: AchievementDef[] = [
+  { id: 'golden-king', name: 'Kurgan Robber', goal: 'Defeat the Golden King', count: 1, kind: 'golden-king', variant: 'king', title: 'Grave Robber (Licensed)', icon: 'laurel' },
+];
+
 const TABLES: Record<string, AchievementDef[]> = {
   'chunk://local/pine-hollow': PINE_HOLLOW,
+  'chunk://local/nalati-grasslands': NALATI,
 };
 
 export function achievementsFor(chunkId: string): AchievementDef[] { return TABLES[chunkId] ?? []; }
