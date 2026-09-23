@@ -272,7 +272,10 @@ export class AnimalFactory {
       const glow = oneMaterial(geometry, species.eyeGlow !== undefined ? 2 : null);
       if (species.eyeGlow !== undefined) { lp.eye.emissive = col3(species.eyeGlow); lp.eye.emissiveIntensity = species.eyeGlowIntensity ?? 1; }   // the sailor's cyan eyes
       if (glow) patchEyeGlow(lp.fur, lp.eye.emissive, lp.eye.emissiveIntensity);
-      if (sp.map) lp.fur.map = sp.map; // a generated model's own paint (the Drowned Captain), before the program compiles
+      if (sp.map) { // a generated model's own paint (the Drowned Captain), set before the program compiles
+        lp.fur.map = sp.map;
+        if (sp.selfLight !== undefined && sp.selfLight > 0) { lp.fur.emissiveMap = sp.map; lp.fur.emissive.setRGB(1, 1, 1); lp.fur.emissiveIntensity = sp.selfLight; }
+      }
       this.sky.setupMaterial(lp.fur); this.sky.setupMaterial(lp.hard); this.sky.setupMaterial(lp.eye);
       m = { kind, variant: v.id, style: 'lowpoly', species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur: lp.fur, hard: lp.hard, eye: lp.eye, shells: [] };
       this.models.set(key, m);
