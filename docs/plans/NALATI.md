@@ -53,6 +53,7 @@ Where this plan and a design section disagree, **this table of decisions wins**.
 | **Scale (500 m)** | keep the 500 m slab: a **stepped climb** (valley −10 → escarpment → plateau +30…36 → crags +75) + a **Nalati horizon ring** (the plateau rolling on, the snow range south) + forced perspective |
 | **Budgets (2026-09-23)** | Nalati may download **~25 MB** (painted textures, backdrop, models; phone-tier textures); the phone target for Nalati is **30 fps** so the phone gets the full look (desktop stays 60) |
 | **Asset pipeline (2026-09-23)** | **local image-to-3D** (TRELLIS 2 + Hunyuan3D, in `~/projects/localai`, memory shared with the music session via `.model.lock`) + **Blender** bake/decimate + **CC0 / CC-BY** stylized packs (credits in `public/assets/nalati/sourced/CREDITS.md`) |
+| **Scope to "done" (2026-09-23)** | the user does **polish and balance himself, after the branch is merged**; before the merge we finish the look (v2), the remaining systems, and **shipping: menu card, loading screen, hero art** from in-engine shots |
 
 ## The look — painterly
 
