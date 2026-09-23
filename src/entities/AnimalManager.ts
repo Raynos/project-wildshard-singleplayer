@@ -892,8 +892,8 @@ export class AnimalManager {
 
   /** every applyDamage lands here: blood, sounds, AI reaction, kill event */
   private damaged = (a: Animal, amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3, died: boolean): void => {
-    this.blood.burst(hitPoint, dir, amount >= 80 ? 1.5 : 1);
     const sp = speciesDef(a.kind);
+    if (sp.blood !== false) this.blood.burst(hitPoint, dir, amount >= 80 ? 1.5 : 1);
     this.onSound?.((sp.sounds?.hurt ?? (a.aggressive ? 'boar_squeal' : 'deer_call')) as AnimalSound, a.position);
     // headshot = the hit point sits inside the head sphere (a hair of slack for the ray step)
     a.headWorld(_p);

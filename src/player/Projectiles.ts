@@ -59,6 +59,15 @@ export interface ProjectileKind {
   maxFlying: number;
   /** stuck ones kept (oldest evicted) */
   maxStuck: number;
+  /** false = it never sticks (a ghost arrow comes apart on impact) — default true */
+  stick?: boolean;
+  /** false = it flies through animals (an enemy's arrow) — default true */
+  hitsAnimals?: boolean;
+  /** false = no impact dust puff (the owner draws its own) — default true */
+  puffs?: boolean;
+  /** an ENEMY projectile: it hits the player's body (a vertical capsule from the feet, this radius / height) and calls
+   *  `onPlayerHit` — the ghost riders' arrows (src/nalati/ghostRiders.ts) */
+  hurtsPlayer?: { radius: number; height: number };
 }
 
 export interface ProjectileWorld { game: Game; sky: Sky; player: Player; forest: Forest }
@@ -98,6 +107,8 @@ export class Projectiles {
   onImpact?: ((surface: ImpactSurface, point: THREE.Vector3) => void) | undefined;
   /** a stuck one was picked up: survived → +1 in the quiver; false = it broke */
   onRecover?: ((survived: boolean) => void) | undefined;
+  /** an enemy projectile (`kind.hurtsPlayer`) struck the player at `point`, flying along `dir` */
+  onPlayerHit?: ((point: THREE.Vector3, dir: THREE.Vector3) => void) | undefined;
   /** the pickup only happens while this says yes (quiver not full) */
   canRecover: () => boolean = () => true;
   readonly mesh: THREE.InstancedMesh;
@@ -286,7 +297,17 @@ export class Projectiles {
     if (segLen < 1e-6) return false;
     _dir.multiplyScalar(1 / segLen);
 
-    if (this.targets) {
+    const hp = this.kind.hurtsPlayer;
+    if (hp !== undefined) {
+      const t = segmentCapsule(prev, _dir, segLen, this.player.position, hp.radius, hp.height);
+      if (t >= 0) {
+        _v2.copy(prev).addScaledVector(_dir, t);
+        this.onPlayerHit?.(_v2, _dir);
+        this.stop(f, _v2, _dir, 'flesh', null, false);
+        return true;
+      }
+    }
+    if (this.targets && this.kind.hitsAnimals !== false) {
       const hit = this.targets.raycast(prev, _dir, segLen);
       if (hit) {
         const a = hit.animal;
@@ -343,9 +364,9 @@ export class Projectiles {
   private stop(f: Flying, point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface, animal: TargetAnimal | null, stick: boolean): void {
     const roll = f.roll;
     this.endFlying(f);
-    this.puffs.emit(point, dir, surface);
+    if (this.kind.puffs !== false) this.puffs.emit(point, dir, surface);
     this.onImpact?.(surface, point);
-    if (!stick) return;
+    if (!stick || this.kind.stick === false) return;
     if (this.stuck.length >= this.kind.maxStuck) this.removeStuck(0);
     const slot = this.freeStuckSlots.pop();
     if (slot === undefined) return;
@@ -420,6 +441,23 @@ function segmentCylinder(o: THREE.Vector3, d: THREE.Vector3, len: number, cx: nu
     rr = r * (1 - 0.8 * Math.min(1, Math.max(0, (y - yBot) / (yTop - yBot))));
   }
   return -1;
+}
+
+/** where along o + d·[0, len] the segment first comes within `r` of the vertical axis from `feet` to `feet + h`, or −1 */
+function segmentCapsule(o: THREE.Vector3, d: THREE.Vector3, len: number, feet: THREE.Vector3, r: number, h: number): number {
+  // horizontal: solve |(o + d t − feet)_xz| = r; then check the height at that t (the caps are ignored: a body, not a pill)
+  const ox = o.x - feet.x, oz = o.z - feet.z;
+  const a = d.x * d.x + d.z * d.z;
+  if (a < 1e-8) return -1;
+  const b = 2 * (ox * d.x + oz * d.z), c = ox * ox + oz * oz - r * r;
+  const disc = b * b - 4 * a * c;
+  if (disc < 0) return -1;
+  const sq = Math.sqrt(disc);
+  let t = (-b - sq) / (2 * a);
+  if (t < 0) t = c < 0 ? 0 : -1;                       // starts inside the body's circle
+  if (t < 0 || t > len) return -1;
+  const y = o.y + d.y * t - feet.y;
+  return y >= 0 && y <= h ? t : -1;
 }
 
 /** slab test of the segment against an oriented box (Player.ts's collider: centre, half sizes, rotation about Y, y range); t or −1 */

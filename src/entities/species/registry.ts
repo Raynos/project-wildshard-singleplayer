@@ -234,6 +234,8 @@ export interface SpeciesDef {
   corpseFade?: number;
   /** self-lit eyes (linear rgb) × intensity — the Drowned Sailor's cyan stare; the eye material is per species */
   eyeGlow?: [number, number, number]; eyeGlowIntensity?: number;
+  /** false = hits draw no blood (stone, ghosts: the balbals and the ghost riders draw their own chips / mist) */
+  blood?: boolean;
 }
 
 const SPECIES = new Map<string, SpeciesDef>();
