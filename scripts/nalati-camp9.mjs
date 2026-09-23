@@ -41,11 +41,11 @@ mkdirSync(OUT, { recursive: true });
 
 const P = DEF.anchorP;
 const query = (touch) => [
-  'chunk=nalati-grasslands', 'nolock=1', 'skipintro=1', 'weather=clear', 'clock=0', 'perf=0', `tier=${TIER}`, touch ? 'touch' : '',
+  'chunk=nalati-grasslands', 'mute=1', 'nolock=1', 'skipintro=1', 'weather=clear', 'clock=0', 'perf=0', `tier=${TIER}`, touch ? 'touch' : '',
   `x=${P.x}`, `z=${P.z}`, 'yaw=-0.95', 'pitch=-0.1', LOOK ? `look=${LOOK}` : '', EXTRA,
 ].filter(Boolean).join('&');
 
-const browser = await chromium.launch({ args: ['--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const rows = [];
 try {
   const groups = [

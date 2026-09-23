@@ -29,11 +29,11 @@ const VIEWS = [
   { id: 'fp-4-eagle-rock', cam: [170, 52, -20], at: [0, 0, 180], fov: 60 },
 ];
 
-const browser = await chromium.launch({ args: ['--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const page = await (await browser.newContext({ viewport: { width: 1600, height: 900 } })).newPage();
   const errors = []; page.on('pageerror', (e) => errors.push(e.message.slice(0, 160)));
-  await page.goto(`${URL_BASE}/?chunk=nalati-grasslands&nolock=1&skipintro=1&weather=clear&clock=0&perf=0&tier=desktop`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${URL_BASE}/?chunk=nalati-grasslands&mute=1&nolock=1&skipintro=1&weather=clear&clock=0&perf=0&tier=desktop`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => Boolean(window.__world && window.__weather), undefined, { timeout: 300000, polling: 1000 });
   await page.addStyleTag({ content: '#hud,#hud *{display:none!important}' });
   await page.evaluate(() => {

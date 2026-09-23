@@ -41,13 +41,13 @@ const SUBJECTS = [
 const SPOT = { x: 41, z: -143 }; // on the balbal knoll's flat top, off the central dais (short grass inside the ring)
 const W = 900, H = 900;
 
-const browser = await chromium.launch({ args: ['--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
-  const q = ['chunk=nalati-grasslands', 'nolock=1', 'skipintro=1', 'weather=clear', 'clock=0', 'perf=0', 'tier=desktop', `x=${SPOT.x}`, `z=${SPOT.z + 30}`].join('&');
+  const q = ['chunk=nalati-grasslands', 'mute=1', 'nolock=1', 'skipintro=1', 'weather=clear', 'clock=0', 'perf=0', 'tier=desktop', `x=${SPOT.x}`, `z=${SPOT.z + 30}`].join('&');
   await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => Boolean(window.__world && window.__weather), undefined, { timeout: 300000, polling: 1000 });
   await page.addStyleTag({ content: '#hud,#hud *,.ws-touch,[class*="elite"],[class*="banner"]{display:none!important}' });

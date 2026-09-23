@@ -52,7 +52,7 @@ frames.push(['plateau', 'plateau S', 0, -120, 0, 0.0], ['plateau', 'plateau W', 
 const list = frames.filter((f) => only.length === 0 || only.includes(f[0]));
 
 const query = ['chunk=nalati-grasslands', 'nolock=1', 'skipintro=1', 'weather=clear', 'clock=0', 'perf=0', 'tier=phone', 'x=68', 'z=204.3', 'yaw=-0.95', LOOK ? `look=${LOOK}` : '', EXTRA].filter(Boolean).join('&');
-const browser = await chromium.launch({ args: ['--use-angle=metal', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const rows = [];
 try {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1.5, hasTouch: true });
