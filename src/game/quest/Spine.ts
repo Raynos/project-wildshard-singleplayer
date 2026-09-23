@@ -35,7 +35,7 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   const dialogue = new DialogueBox();
 
   // ── Wendell at his campfire in front of the hut steps (hut local frame: the door faces −z) ──
-  const feet = place({ poi: 'hut', x: 2.4, z: -8.2, yaw: Math.PI + 0.35 });
+  const feet = place({ poi: 'hut', anchor: 'hut.npc', x: 2.4, z: -8.2, yaw: Math.PI + 0.35 });
   const fire = place({ poi: 'hut', x: 0.7, z: -9.8 });
   const castaway = new Castaway(w.sky, feet, fire).build();
   w.game.scene.add(castaway.group);

@@ -47,6 +47,7 @@ export class Castaway {
   private arm!: THREE.Mesh;
   private flames!: THREE.Mesh;
   private smoke!: THREE.Points;
+  private smokeMat!: THREE.PointsMaterial;
   private sPos = new Float32Array(SMOKE * 3);
   private sAge = new Float32Array(SMOKE);
   private sAttr!: THREE.BufferAttribute;
@@ -145,7 +146,7 @@ export class Castaway {
     g.setAttribute('position', this.sAttr);
     g.boundingSphere = new THREE.Sphere(V(f.x, f.y + 12, f.z), 20);
     for (let i = 0; i < SMOKE; i++) { this.sAge[i] = i / SMOKE; this.placeSmoke(i); }
-    const smokeMat = new THREE.PointsMaterial({ color: new THREE.Color(0.78, 0.76, 0.74), size: 5.5, sizeAttenuation: true, transparent: true, opacity: 0.42, depthWrite: false, map: puffTexture(), fog: true });
+    const smokeMat = this.smokeMat = new THREE.PointsMaterial({ color: new THREE.Color(0.78, 0.76, 0.74), size: 5.5, sizeAttenuation: true, transparent: true, opacity: 0.42, depthWrite: false, map: puffTexture(), fog: true });
     smokeMat.name = 'castaway-smoke';
     this.smoke = new THREE.Points(g, smokeMat);
     this.smoke.renderOrder = 4;
@@ -164,7 +165,7 @@ export class Castaway {
     const age = this.sAge[i] ?? 0, f = this.fireLocal, j = i * 3;
     const rise = age * 22, drift = age * age * 6;
     this.sPos[j] = f.x + Math.sin(i * 7.1) * 0.25 * (0.3 + age) + drift;
-    this.sPos[j + 1] = f.y + 0.6 + rise;
+    this.sPos[j + 1] = f.y + 2.4 + rise;   // the column starts over your head: close up you stand under it, not in it
     this.sPos[j + 2] = f.z + Math.cos(i * 3.3) * 0.25 * (0.3 + age) + drift * 0.4;
   }
 
@@ -205,6 +206,8 @@ export class Castaway {
     const fl = 1 + Math.sin(t * 13) * 0.1 + Math.sin(t * 31 + 2) * 0.06;
     this.flames.scale.set(1 + Math.sin(t * 17) * 0.05, fl, 1 + Math.cos(t * 19) * 0.05);
     this.flames.rotation.y = t * 0.6;
+    // the column is the far breadcrumb; up close it thins out so it never fogs the view
+    this.smokeMat.opacity = 0.1 + 0.32 * THREE.MathUtils.smoothstep(d, 8, 30);
     if (d > 260) return;
     for (let i = 0; i < SMOKE; i++) { let a = (this.sAge[i] ?? 0) + dt / 9; if (a > 1) a -= 1; this.sAge[i] = a; this.placeSmoke(i); }  // one puff every ~0.5 s up a ~22 m column
     this.sAttr.needsUpdate = true;
