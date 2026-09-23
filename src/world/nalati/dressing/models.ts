@@ -317,7 +317,7 @@ export function daisyGeo(seed: number): THREE.BufferGeometry {
   const n = 8;
   for (let i = 0; i < n; i++) {
     const a = (i / n) * Math.PI * 2 + rng.range(-0.4, 0.4), d = rng.range(0.03, 0.22);
-    const h = rng.range(0.22, 0.42), yellow = i % 3 === 2;
+    const h = rng.range(0.22, 0.42), yellow = i % 2 === 1;
     const lean = rng.range(0.05, 0.3);
     const tilt = M(Math.cos(a) * d, 0, Math.sin(a) * d, a, 1, 1, 1, lean, 0);
     parts.push(part(new THREE.CylinderGeometry(0.005, 0.008, h, 3, 1, true).translate(0, h / 2, 0), DC.stem, tilt));

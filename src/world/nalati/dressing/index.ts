@@ -25,7 +25,7 @@ import { Flutter } from '../Flutter';
 import { DressLayer, type Inst } from './layer';
 import { planDressing, type DressPlan } from './place';
 import { boulderGeo, slabGeo, stoneGeo, juniperGeo, roseGeo, willowGeo, lupinGeo, daisyGeo, reedGeo } from './models';
-import { buildStatics } from './statics';
+import { buildStatics, buildCampClutter } from './statics';
 import { DressLife } from './life';
 import type { Sky } from '../../Sky';
 import type { Forest } from '../../Forest';
@@ -136,6 +136,10 @@ export class NalatiDressing {
 
   addTo(scene: THREE.Object3D, player: { colliders: Collider[] }): void {
     scene.add(this.group);
+    // the camps' clutter goes in now that the POIs' colliders are on the player: it keeps clear of their set pieces
+    const cl = buildCampClutter(this.sky, player.colliders);
+    if (cl.mesh) { this.group.add(cl.mesh); this.props.push(cl.mesh); this.propTris += cl.tris; }
+    this.colliders.push(...cl.colliders);
     player.colliders.push(...this.colliders);
     if (import.meta.env.DEV) Object.assign(window, { __nalatiDressing: this }); // dev: stats / poking from the console
   }

@@ -122,6 +122,7 @@ export async function planDressing(forest: Forest | null, yieldTask: () => Promi
   // (forest.nearby() is a generous broad phase — it pads by the trunk radius + 3 m — so test the real distance)
   const nearTree = (x: number, z: number, r: number): boolean => (forest ? forest.nearby(x, z, r).some((t) => Math.hypot(t.x - x, t.z - z) < r + t.r) : false);
 
+  campAndBanks(plan, occ, nearTree);
   rocks(plan, occ, nearTree); await yieldTask();
   roadStones(plan);
   gravelBars(plan); await yieldTask();
@@ -132,6 +133,62 @@ export async function planDressing(forest: Forest | null, yieldTask: () => Promi
   landmarks(plan, occ);
   roadFences(plan);
   return plan;
+}
+
+// ── the camp's edges and the river banks by it (round-4 camp 9-angle, gap #10) ────────────────────────
+
+/**
+ * Mossy boulders with shrubs round them along both banks of the Kunes from the bridge to past the camp (the FP-left
+ * and god views look straight down this reach), and a loose ring of rocks + rose / juniper clumps round the camp just
+ * outside its clearing — the mockups frame the yard with them. Runs first, so the general passes fill in round it.
+ */
+function campAndBanks(plan: DressPlan, occ: Occupancy, nearTree: (x: number, z: number, r: number) => boolean): void {
+  const rng = new Rng(SEED + 5);
+  const mossy = (): { r: number; g: number; b: number } => { const k = rng.range(0.86, 1.05); return { r: k * 0.94, g: k, b: k * 0.86 }; };
+  const rock = (x: number, z: number, r: number): boolean => {
+    const h = heightAt(x, z);
+    if (blocked(x, z, h, { road: 3.4 + r, poi: 1 + r }) || h < RIVER.level + 0.25 || nearTree(x, z, r + 0.4) || !occ.free(x, z, r)) return false;
+    occ.add(x, z, r);
+    const into = rng.next() < 0.75 ? plan.boulder : plan.slab;
+    addRock(plan, rng, into, x, z, h, r, into === plan.slab);
+    const last = into[into.length - 1];
+    if (last) Object.assign(last, mossy());
+    return true;
+  };
+  const shrub = (x: number, z: number, kind: 'willow' | 'rose' | 'juniper', size: number): void => {
+    const h = heightAt(x, z), foot = size * (kind === 'juniper' ? 0.95 : 0.6);
+    if (blocked(x, z, h, { road: 3.8 + foot * 0.5, poi: 1 + foot }) || h < RIVER.level + 0.3 || nearTree(x, z, foot) || !occ.free(x, z, foot)) return;
+    occ.add(x, z, foot * 0.8);
+    const tone = rng.range(0.9, 1.08);
+    const inst: Inst = { x, y: h - 0.08 * size, z, yaw: rng.range(0, Math.PI * 2), sx: size * rng.range(0.9, 1.15), sy: size * rng.range(0.85, 1.1), sz: size * rng.range(0.9, 1.15), far: 170 + size * 50, r: tone, g: tone, b: tone };
+    lean(inst, x, z, 0.35);
+    plan[kind].push(inst);
+  };
+  // the banks: a group every ~9 m, on the grass lip just above the gravel, a boulder or two + shrubs tucked against them
+  for (let x = -40; x < 200; x += rng.range(6, 12)) {
+    if (Math.abs(x) < 16) continue; // the bridge ramps
+    for (const side of [1, -1]) {
+      if (rng.next() < 0.3) continue;
+      const off = RIVER.half(x) + rng.range(0.5, 6);
+      const cx = x + rng.range(-2, 2), cz = RIVER.z(cx) + side * off;
+      const big = 0.55 + rng.next() ** 1.8 * 1.1;
+      const placed = rock(cx, cz, big);
+      if (placed && rng.next() < 0.6) { const a = rng.range(0, Math.PI * 2); rock(cx + Math.cos(a) * big * 1.7, cz + Math.sin(a) * big * 1.7, big * rng.range(0.35, 0.6)); }
+      const n = rng.int(1, 3);
+      for (let k = 0; k < n; k++) {
+        const a = rng.range(0, Math.PI * 2), d = big + rng.range(0.8, 2.5);
+        shrub(cx + Math.cos(a) * d, cz + Math.sin(a) * d, rng.next() < 0.6 ? 'willow' : rng.next() < 0.5 ? 'rose' : 'juniper', rng.range(0.8, 1.4));
+      }
+    }
+  }
+  // the camp's edges: rocks + rose / juniper clumps in a loose ring 31–46 m out (the slab's north lip at z 245 bounds it)
+  for (let i = 0, got = 0; i < 400 && got < 30; i++) {
+    const a = rng.range(0, Math.PI * 2), d = rng.range(31, 46);
+    const x = CAMP.x + Math.cos(a) * d, z = CAMP.z + Math.sin(a) * d;
+    if (z > 243 || Math.hypot(x - (CAMP.x + 27), z - (CAMP.z + 9)) < 14) continue;
+    if (rng.next() < 0.45) { if (rock(x, z, 0.45 + rng.next() ** 2 * 0.9)) got++; }
+    else { shrub(x, z, rng.next() < 0.65 ? 'rose' : 'juniper', rng.range(0.8, 1.3)); got++; }
+  }
 }
 
 // ── rocks ───────────────────────────────────────────────────────────────────────────────────────────
@@ -358,8 +415,8 @@ function flowers(plan: DressPlan, occ: Occupancy, nearTree: (x: number, z: numbe
     const h = heightAt(x, z);
     if (!okFlower(x, z, h)) continue;
     const tone = grassToneAt(x, z);
-    // the plateau's drifts are mostly purple sage; the valley's mostly edelweiss + buttercup (the mockups)
-    const lupin = rng.next() < (tone > 0.5 ? 0.7 : 0.45);
+    // mostly white edelweiss + yellow buttercup with purple patches (round-4 camp targets: the lupins were too many)
+    const lupin = rng.next() < (tone > 0.5 ? 0.3 : 0.2);
     const R = rng.range(2.5, 8), n = Math.round(R * R * rng.range(0.7, 1.2));
     let placed = 0;
     for (let k = 0; k < n; k++) {
@@ -369,7 +426,7 @@ function flowers(plan: DressPlan, occ: Occupancy, nearTree: (x: number, z: numbe
       if (!okFlower(cx, cz, ch)) continue;
       // the heart outlives the edges with distance; a few of the other kind mixed in
       const far = lerp(160, 45, u) * rng.range(0.8, 1.1);
-      clump(cx, cz, ch, rng.next() < 0.88 ? lupin : !lupin, far, lerp(1.15, 0.85, u));
+      clump(cx, cz, ch, rng.next() < (lupin ? 0.9 : 0.95) ? lupin : !lupin, far, lerp(1.15, 0.85, u));
       placed++;
     }
     if (placed > 4) plan.drifts.push({ x, y: h, z, r: R });
@@ -380,7 +437,7 @@ function flowers(plan: DressPlan, occ: Occupancy, nearTree: (x: number, z: numbe
     const h = heightAt(x, z);
     if (!okFlower(x, z, h)) continue;
     if (rng.next() > 0.3 + flowerPatchAt(x, z) * 0.4) continue;
-    clump(x, z, h, rng.next() < 0.5, rng.range(40, 70), rng.range(0.8, 1.0));
+    clump(x, z, h, rng.next() < 0.15, rng.range(40, 70), rng.range(0.8, 1.0));
   }
 }
 
@@ -518,26 +575,66 @@ function roadFences(plan: DressPlan): void {
 
 // ── camp clutter spots (loose things round the yurt rings; the POI agent builds the structures) ─────
 
-/** loose-clutter anchors round the nomad camp and the summer camp, outside the yurt rings, off the corral / rail */
-export function campClutterSpots(): { x: number; z: number; yaw: number; kind: number }[] {
+/** true when (x, z) is within `m` metres of any oriented collider box (the POI set pieces, the outcrops …) */
+function nearCollider(x: number, z: number, avoid: readonly Collider[], m: number): boolean {
+  for (const c of avoid) {
+    const dx = x - c.x, dz = z - c.z;
+    if (dx * dx + dz * dz > (c.hw + c.hd + m + 1) ** 2) continue;
+    const cos = Math.cos(-c.rot), sin = Math.sin(-c.rot);
+    const lx = dx * cos - dz * sin, lz = dx * sin + dz * cos;
+    if (Math.abs(lx) < c.hw + m && Math.abs(lz) < c.hd + m) return true;
+  }
+  return false;
+}
+
+/** the camp spur's last leg, (40, 202) → (CAMP.x − 14, CAMP.z): the track the camp approach looks along */
+const SPUR_A: [number, number] = [40, 202], SPUR_B: [number, number] = [CAMP.x - 14, CAMP.z];
+
+/**
+ * Loose-clutter anchors (kind 0 firewood · 1 dung cakes · 2 chopping block · 3 pots · 4 sacks · 5 felts · 6 kumis churn),
+ * placed where the camp approach SEES them (round-4 camp 9-angle, gap #8), not behind the yurts:
+ *   · the yard's open east mouth (between the yurts at 128° and 268°), 9–16 m out — the FP-front view's middle ground;
+ *   · both verges of the spur track between the road and the yard, 3.8–7 m off it (the near field of FP front / back);
+ *   · a few behind / between the yurts (the god views), and round the summer camp.
+ * Every spot keeps 1 m off the POI agent's colliders (`avoid` = the player's colliders once the POIs are in), clear of the
+ * hitching rail + its horses and the corral, and 2.4 m from the next.
+ */
+export function campClutterSpots(avoid: readonly Collider[] = []): { x: number; z: number; yaw: number; kind: number }[] {
   const rng = new Rng(SEED + 91);
   const out: { x: number; z: number; yaw: number; kind: number }[] = [];
-  const corral = { x: CAMP.x + 27, z: CAMP.z + 9, r: 11 }, rail = { x: CAMP.x - 17, z: CAMP.z + 3, r: 5 };
-  const ring = (cx: number, cz: number, d0: number, d1: number, n: number, yurtA: number[], yurtD: number) => {
-    let got = 0;
-    for (let i = 0; i < n * 8 && got < n; i++) {
+  const corral = { x: CAMP.x + 27, z: CAMP.z + 9, r: 12 };
+  const yurts = (cx: number, cz: number, angles: number[], d: number) => angles.map((a) => ({ x: cx + Math.cos((a * Math.PI) / 180) * d, z: cz + Math.sin((a * Math.PI) / 180) * d }));
+  const campYurts = yurts(CAMP.x, CAMP.z, [128, 88, 46, 2, -44, -92], 13.8), summerYurts = yurts(SUMMER_YURTS.x, SUMMER_YURTS.z, [70, 175, -60], 9.2);
+  const ok = (x: number, z: number, ys: { x: number; z: number }[], trackPad: number): boolean => {
+    if (ys.some((y) => Math.hypot(x - y.x, z - y.z) < 4.8)) return false;
+    if (Math.hypot(x - corral.x, z - corral.z) < corral.r) return false;
+    if (x > 70.5 && x < 83 && z > 200.5 && z < 215.5) return false;              // the hitching rail and its two horses
+    if (trailDistance(x, z) < trackPad || wet(x, z, heightAt(x, z)) || nearCollider(x, z, avoid, 1.0)) return false;
+    return !out.some((q) => Math.hypot(q.x - x, q.z - z) < 2.4);
+  };
+  const push = (x: number, z: number, kinds: number[]) => { out.push({ x, z, yaw: rng.range(0, Math.PI * 2), kind: kinds[rng.int(0, kinds.length - 1)] ?? 3 }); };
+  // the yard mouth
+  for (let i = 0, got = 0; i < 90 && got < 8; i++) {
+    const a = rng.range(140, 255) * Math.PI / 180, d = rng.range(9, 16);
+    const x = CAMP.x + Math.cos(a) * d, z = CAMP.z + Math.sin(a) * d;
+    if (ok(x, z, campYurts, 2.6)) { push(x, z, [0, 2, 3, 4, 5, 6]); got++; }
+  }
+  // the spur track's verges
+  const len = Math.hypot(SPUR_B[0] - SPUR_A[0], SPUR_B[1] - SPUR_A[1]), ux = (SPUR_B[0] - SPUR_A[0]) / len, uz = (SPUR_B[1] - SPUR_A[1]) / len;
+  for (let i = 0, got = 0; i < 90 && got < 8; i++) {
+    const t = rng.range(0.25, 1.05) * len, side = rng.next() < 0.5 ? -1 : 1, off = rng.range(3.8, 7);
+    const x = SPUR_A[0] + ux * t - uz * off * side, z = SPUR_A[1] + uz * t + ux * off * side;
+    if (ok(x, z, campYurts, 3.4)) { push(x, z, [0, 1, 3, 4, 6]); got++; }
+  }
+  // behind / between the yurts, and the summer camp
+  const ring = (cx: number, cz: number, d0: number, d1: number, n: number, ys: { x: number; z: number }[]) => {
+    for (let i = 0, got = 0; i < n * 10 && got < n; i++) {
       const a = rng.range(0, Math.PI * 2), d = rng.range(d0, d1);
       const x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d;
-      // behind / between the yurts: stay 4.6 m off every yurt centre
-      if (yurtA.some((ya) => { const t = (ya * Math.PI) / 180; return Math.hypot(x - (cx + Math.cos(t) * yurtD), z - (cz + Math.sin(t) * yurtD)) < 4.6; })) continue;
-      if (Math.hypot(x - corral.x, z - corral.z) < corral.r || Math.hypot(x - rail.x, z - rail.z) < rail.r) continue;
-      if (trailDistance(x, z) < 3.2 || wet(x, z, heightAt(x, z))) continue;
-      if (out.some((q) => Math.hypot(q.x - x, q.z - z) < 2.2)) continue;
-      out.push({ x, z, yaw: rng.range(0, Math.PI * 2), kind: rng.int(0, 5) });
-      got++;
+      if (ok(x, z, ys, 3.2)) { push(x, z, [0, 1, 2, 3, 4, 5, 6]); got++; }
     }
   };
-  ring(CAMP.x, CAMP.z, 17.5, 24, 16, [128, 88, 46, 2, -44, -92], 13.8);
-  ring(SUMMER_YURTS.x, SUMMER_YURTS.z, 12.5, 17, 7, [70, 175, -60], 9.2);
+  ring(CAMP.x, CAMP.z, 17.5, 24, 7, campYurts);
+  ring(SUMMER_YURTS.x, SUMMER_YURTS.z, 12.5, 17, 7, summerYurts);
   return out;
 }

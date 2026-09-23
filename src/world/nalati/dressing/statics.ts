@@ -161,15 +161,6 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
     put(g.x, g.z, kit.finish({ ground, aoH: 0.4, ao: false }));
   }
 
-  // ── camp clutter ──
-  for (const s of campClutterSpots()) {
-    const kit = new PaintKit(rng.int(1, 1e6));
-    const gy = ground(s.x, s.z);
-    clutter(kit, rng, s.kind, s.x, gy, s.z, s.yaw);
-    put(s.x, s.z, kit.finish({ ground, aoH: 0.35, ao: { strength: 0.45 } }));
-    if (s.kind === 0 || s.kind === 1) colliders.push({ x: s.x, z: s.z, hw: 0.55, hd: 0.55, rot: 0, yBottom: gy - 1, yTop: gy + 1.2 });
-  }
-
   const meshes: THREE.Mesh[] = [];
   let tris = 0;
   for (const [k, list] of regions) {
@@ -186,7 +177,27 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
   return { meshes, tris, colliders };
 }
 
-/** one loose-clutter group at (x, y, z): 0 firewood tipi · 1 dung-cake stack · 2 chopping block + rounds · 3 pots + bucket · 4 sacks · 5 folded felts */
+/**
+ * The camps' loose clutter as one merged mesh. Built after the POIs are in (`avoid` = the player's colliders then, the
+ * POI agent's set pieces among them), so nothing lands inside a stove, a cart or a rug rack.
+ */
+export function buildCampClutter(sky: Sky, avoid: readonly Collider[]): { mesh: THREE.Mesh | null; colliders: Collider[]; tris: number; spots: number } {
+  const rng = new Rng(0xc1a7);
+  const kit = new PaintKit(0xc1a8);
+  const colliders: Collider[] = [];
+  const spots = campClutterSpots(avoid);
+  for (const s of spots) {
+    const gy = ground(s.x, s.z);
+    clutter(kit, rng, s.kind, s.x, gy, s.z, s.yaw);
+    if (s.kind === 0 || s.kind === 1 || s.kind === 6) colliders.push({ x: s.x, z: s.z, hw: 0.55, hd: 0.55, rot: 0, yBottom: gy - 1, yTop: gy + 1.2 });
+  }
+  if (kit.empty) return { mesh: null, colliders, tris: 0, spots: 0 };
+  const mesh = kit.mesh(sky, { ground, aoH: 0.35, ao: { strength: 0.45 } });
+  mesh.name = 'nalati-dress-camp-clutter';
+  return { mesh, colliders, tris: mesh.geometry.getAttribute('position').count / 3, spots: spots.length };
+}
+
+/** one loose-clutter group at (x, y, z): 0 firewood tipi · 1 dung-cake stack · 2 chopping block + rounds · 3 pots + bucket · 4 sacks · 5 folded felts · 6 kumis churn */
 function clutter(kit: PaintKit, rng: Rng, kind: number, x: number, y: number, z: number, yaw: number): void {
   const at = (dx: number, dz: number) => { const c = Math.cos(yaw), s = Math.sin(yaw); const wx = x + dx * c + dz * s, wz = z - dx * s + dz * c; return { x: wx, z: wz, y: ground(wx, wz) }; };
   switch (kind) {
@@ -230,6 +241,15 @@ function clutter(kit: PaintKit, rng: Rng, kind: number, x: number, y: number, z:
         kit.add(blob(0.22, rng, 2, 1.3, 0.12), C.sack, { matrix: M(p.x, p.y + 0.2, p.z, rng.range(0, 6), 1, 1, 0.85, rng.range(-0.2, 0.2), rng.range(-0.25, 0.25)), brush: 0.12 });
         kit.add(new THREE.CylinderGeometry(0.04, 0.05, 0.08, 6), C.rope, { matrix: M(p.x, p.y + 0.48, p.z) });
       }
+      break;
+    }
+    case 6: { // a kumis churn: a tall staved tub with iron hoops, a dasher standing in it, a leather lid
+      kit.add(lathe([[0.001, 0], [0.24, 0], [0.26, 0.05], [0.24, 0.62], [0.2, 0.86], [0.21, 0.9], [0.001, 0.88]], 14), (p) => (Math.abs(p.y - 0.12) < 0.03 || Math.abs(p.y - 0.72) < 0.03 ? C.iron : p.y > 0.86 ? C.sack : C.bark), { matrix: M(x, y - 0.03, z, yaw), brush: 0.12 });
+      const top = v3(x + 0.04, y + 1.45, z), base = v3(x, y + 0.6, z);
+      kit.add(pole(base, top, 0.022, 0.02, 5), C.wood);
+      kit.add(new THREE.CylinderGeometry(0.1, 0.1, 0.03, 8), C.wood, { matrix: M(x + 0.04, y + 1.4, z) });
+      const b = at(0.55, 0.2);
+      kit.add(lathe([[0.001, 0], [0.13, 0], [0.16, 0.26], [0.001, 0.22]], 10), C.bark, { matrix: M(b.x, b.y - 0.02, b.z) });
       break;
     }
     default: { // folded felts stacked on a low stand
