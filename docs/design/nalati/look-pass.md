@@ -108,3 +108,28 @@ surface carries painted high-frequency detail, and their backdrop is a matte-pai
   geometry. That gives a reachable target per pose next to the mockup.
 - Owner of the assets: the painted-asset agent; adoption by the terrain, grass, POI and spruce owners; the
   look-director stays the arbiter.
+
+## The clean-room result (2026-09-23): the new render path
+
+The user asked for a from-scratch approach ("the gap seems like a canyon … brand new from scratch"). A clean-room agent
+saw only the camp 9-angle sheets and three.js and built a one-file prototype of the FP-front view
+(`dev/nalati-cleanroom/`; compare shot `compare-final-phone-3way.jpg`: old engine | prototype | target). It closes
+most of the gap at 124 calls / 369 k tris on the phone tier. What it found, ranked:
+
+1. **Paint everything far:** sky, clouds, gas giant, snow range, far foothills = painted panorama layers (~60 % of the
+   frame, ~1 MB) — the biggest single win.
+2. **Fog colour sampled from the painting**, so 3D dissolves into the painted horizon.
+3. **Values:** the target is olive-golden and ~35 % darker than our lime greens, with deep grass roots; one shared
+   in-shader grade (warm key, cool shade, a touch of contrast).
+4. **The lighting cheat:** objects lit by a higher, more side-on light than the painted sun, so the foreground reads
+   warm and front-lit.
+5. **Density with zero per-blade storage:** GPU-built grass tiles in three rings, shader-drawn flowers, 1,300+ painted
+   spruce sprites in one draw call.
+6. **Bake shadows / contact darkening once** into a texture sampled by ground, grass and flowers.
+7. **Layout from the capture, not the mockup** (the mockups are stretched ~1.44×).
+
+Decision (parent, 2026-09-23): this architecture becomes the Nalati render path — ported by its author (the port
+lead) behind `?look=v2` in `src/nalati/look/`, default once it beats the current look at all 9 camp angles. It
+replaces the painterly sky / clouds / PainterlyRange, the current grass look and the far forest; gameplay hooks
+(Wind, trample, grassHeightAt, stealth, weather) stay. Models: the sourced CC0 set (`public/assets/nalati/sourced/`)
+and the local image-to-3D models (`public/assets/nalati/models/`).

@@ -1,6 +1,6 @@
 # Nalati Grasslands — the mega plan
 
-**State:** `in progress` 2026-09-22 — wave 1 largely landed on branch `nalati-grasslands` (world, painterly material, grass + wind, bow, sabre + spear, wolves / horses / sheep, spruce; POIs in flight); B10 weather + B13 Golden King started. **Top priority now: the look pass (N7)** — the user: the mockups are "a hundred times better" than the engine; a look-director + dressing agent + every build agent on its own models, to mockup parity (`docs/design/nalati/look-pass.md`). Nothing deployed yet.
+**State:** `in progress` 2026-09-23 — gameplay rows built on the local branch (B0–B13, B16 audio; B9 stealth in flight). **The look:** a clean-room prototype (`dev/nalati-cleanroom/`) beat every in-engine pass; its architecture (painted panorama + fog from it, in-shader grade, GPU grass rings, baked shadows) is being ported as the Nalati render path (`?look=v2`, port lead); models from CC0 sources (`public/assets/nalati/sourced/`, `58c6608`) + local image-to-3D (TRELLIS 2 / Hunyuan3D, in flight). Local only — nothing pushed (N6, N7, N8).
 
 The third shard (ASKS P6). A high alpine steppe in the Tian Shan, laid out like the real Nalati: you arrive in the
 Kunes river valley (yurts, sheep, the bridge), climb spruce gullies up the escarpment, and the **Sky Grassland**
