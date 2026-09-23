@@ -6,9 +6,9 @@ import type { Player } from '../player/Player';
 import type { Forest } from '../world/Forest';
 import type { Targets, TargetHit, ImpactSurface } from './Crossbow';
 import type { Weapon, WeaponState, AimInfo } from './Weapon';
-import { REST, CHARGE, SPRINT, COMBO, SLASH, HEAVY, type Move } from './SwordMoves';
+import { REST, CHARGE, SPRINT, COMBO, SLASH, FINISHER, HEAVY, type Move } from './SwordMoves';
 import { getAimTargets, meleeLock, targetRadius, type AimTarget } from './AimTargets';
-import { segmentBlocked } from './MeleeSweep';
+import { segmentBlocked, segmentEntry } from './MeleeSweep';
 import { worldTime } from '../core/time';
 import { CameraFX } from './CameraFX';
 import { Impacts } from '../fx/Impacts';
@@ -71,6 +71,19 @@ import { Impacts } from '../fx/Impacts';
  */
 
 export interface SwordWorld { game: Game; sky: Sky; player: Player; forest: Forest }
+
+/**
+ * The combat events of whichever sword is in hand — both rigs (wooden, iron) publish here, so main.ts wires the island's
+ * sound layers (IslandSfx, S3) once instead of per rig:
+ *   onSwing(speed 0..1, heavy, dir)          every swing as it starts: dir −1 = the blade sweeps right → left, +1 left → right
+ *   onStrike(kind, point, strength, killed)  every blade hit: the struck species, the world point, 0.5 combo … 1 heavy
+ *   onClang(point, strength)                 the blade tip met a wall / trunk / rock (once per swing; hit-stop + chips too)
+ */
+export const swordEvents: {
+  onSwing?: ((speed: number, heavy: boolean, dir: -1 | 1) => void) | undefined;
+  onStrike?: ((kind: string, point: THREE.Vector3, strength: number, killed: boolean) => void) | undefined;
+  onClang?: ((point: THREE.Vector3, strength: number) => void) | undefined;
+} = {};
 export interface SwordOptions { allowUnlocked?: boolean; blade?: 'wood' | 'iron' }
 
 const DAMAGE_WOOD = 12, DAMAGE_IRON = 28;
@@ -382,7 +395,7 @@ export class Sword implements Weapon {
   private comboIdx = 0;          // index into COMBO of the NEXT light swing
   private lastSwingEnd = -1e9;
   private cooldown = 0;
-  private hitDone = false; private kicked = false;
+  private hitDone = false; private kicked = false; private clanged = false;
   private fx: CameraFX;
   private impacts: Impacts;
   private iron: boolean;
@@ -463,7 +476,7 @@ export class Sword implements Weapon {
     if (next !== undefined) this.startSwing(next);
   }
   private startSwing(move: Move): void {
-    this.move = move; this.swingT = 0; this.hitDone = false; this.kicked = false; this.queued = false;
+    this.move = move; this.swingT = 0; this.hitDone = false; this.kicked = false; this.clanged = false; this.queued = false;
     this.struckN = 0; this.struck.fill(null); this.sweepHave = false;
     this.fromPos.copy(this.basePos); this.fromQ.copy(this.baseQ);
     this.trailN = 0; this.trail.visible = false;
@@ -477,6 +490,7 @@ export class Sword implements Weapon {
     }
     this.onFire?.();
     if (move === HEAVY) this.onHeavy?.();
+    swordEvents.onSwing?.(move === HEAVY ? 1 : move === FINISHER ? 0.85 : 0.7, move === HEAVY, move.sweep > 0 ? -1 : 1);
   }
   /** the animal a swing would lunge onto: alive, within `range` m (feet → body edge), inside ±LUNGE_CONE of the view, near the
    *  feet's height — the smallest angle wins, distance breaking near-ties */
@@ -638,6 +652,7 @@ export class Sword implements Weapon {
   }
   private sweepHit(move: Move, active: boolean): void {
     this.bladeDirs(_g1, _t1);
+    if (active && !this.clanged) this.clangTest(move);
     if (!active || this.targets === undefined || !this.sweepHave || !this.anyInReach()) { this.sweepGrip.copy(_g1); this.sweepTip.copy(_t1); this.sweepHave = true; return; }
     const cam = this.game.camera;
     const ang = Math.max(this.sweepGrip.angleTo(_g1), this.sweepTip.angleTo(_t1));
@@ -665,6 +680,22 @@ export class Sword implements Weapon {
     }
     this.sweepGrip.copy(_g1); this.sweepTip.copy(_t1);
   }
+  /** the blade tip meeting a wall / trunk / rock (a box the eye is not in) along the tip ray, once per swing: a clang, chips, a short stop */
+  private clangTest(move: Move): void {
+    const cam = this.game.camera, e = cam.position;
+    _dir.copy(_t1).applyQuaternion(cam.quaternion);
+    const len = REACH * 0.9;
+    const f = segmentEntry(e.x, e.y, e.z, e.x + _dir.x * len, e.y + _dir.y * len, e.z + _dir.z * len, this.player.colliders);
+    if (f < 0) return;
+    this.clanged = true;
+    const point = _hitPoint.copy(e).addScaledVector(_dir, len * f);
+    const k = move === HEAVY ? 1 : move === FINISHER ? 0.75 : 0.5;
+    _v3.copy(_dir).negate();
+    this.impacts.burst('wood', point, _v3, Math.round(6 + 6 * k));
+    if (this.iron) this.impacts.burst('sparks', point, _v3, Math.round(6 + 8 * k));
+    if (!this.hitDone) { this.game.hitStop(0.045 * this.swingScale); this.jolt = 0.8; this.fx.kick(move.kick.pitch * 0.3, -move.kick.roll * 0.4); }
+    swordEvents.onClang?.(point, k);
+  }
   /** a live animal's body is within REACH (+ its radius, + a metre of slack) of the eye */
   private anyInReach(): boolean {
     const e = this.game.camera.position;
@@ -687,6 +718,7 @@ export class Sword implements Weapon {
     const point = _hitPoint.copy(hit.point); // the raycast result object is reused by the next ray
     const animal = hit.animal;
     const killed = animal.applyDamage(dmg, point, _v1);
+    (animal as unknown as { hitFlash?: (strength: number) => void }).hitFlash?.(move === HEAVY ? 1 : 0.8); // the white hit flash (C5, Animal.ts)
     // knockback: away from the player, biased the way the sweep travels (Animal.stagger flattens it)
     _push.set(_fwd.x, 0, _fwd.z).normalize().multiplyScalar(0.8).addScaledVector(_v2, 0.5 * move.sweep);
     if (!killed) (animal as unknown as { stagger?: (dir: THREE.Vector3, strength: number) => void }).stagger?.(_push, move.stagger);
@@ -701,6 +733,7 @@ export class Sword implements Weapon {
     else if (animal.kind === 'sailor') this.impacts.burst('wood', point, _push, Math.round(8 * heavyK));
     else { _v3.set(point.x, animal.position.y + 0.05, point.z); this.impacts.burst('sand', _v3, _push, Math.round(10 * heavyK)); }
     if (this.iron && (animal.kind === 'crab' || animal.kind === 'sailor')) this.impacts.burst('sparks', point, _push, Math.round(10 * heavyK));
+    swordEvents.onStrike?.(animal.kind, point, move === HEAVY ? 1 : move === FINISHER ? 0.75 : 0.5, killed);
     this.onHit?.(animal.kind, false, killed);
     this.onImpact?.('flesh', point);
   }

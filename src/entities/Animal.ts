@@ -21,6 +21,13 @@ import { variantMods, type AnimalDims, type AnimalKind, type AnimalModel, type A
  *   animal.stagger(dir, strength)     a melee blow: pushed STAGGER_PUSH m along `dir` over 0.25 s, AI frozen (`stunned`)
  *                                     for 0.4–0.8 s in a braced flinch; strength 0 = light (0.6 m / 0.4 s), 1 = heavy (1.5 m / 0.8 s)
  *   animal.headWorld(out) / bodyCapsule(a, b)  — hit volumes (world space)
+ *   animal.hitFlash(strength)         a melee blow's white flash (Sword.ts): the body's per-animal material glows white and
+ *                                     fades over FLASH_T s (world time — it holds through a hit-stop)
+ *   animal.attackTurnCap              rad/s the heading may turn while an attack runs (Infinity = free; the Driftwood manager
+ *                                     sets ATTACK_TURN so a committed swing can be strafed out of — "strafe is the dodge")
+ *   A stagger CANCELS a running attack (a hit interrupts a wind-up: the species' think sees attackPhase < 0 and recovers).
+ *   Custom rigs lean away from the blow (the root tilts by the directional flinch); quadrupeds with an attack running (the
+ *   manager's charge wind-up) drop the head, lower the front and paw the ground (poseWindup).
  *
  * The AnimalManager owns AI state and calls animal.setMotion(desiredYaw, desiredSpeed).
  *
@@ -75,6 +82,8 @@ const _v = new THREE.Vector3();
 
 /** stagger (a sword blow, Sword.ts): push distance / hold time at strength 0 (light) and 1 (heavy), the push's duration */
 const STAGGER_PUSH = [0.6, 1.5] as const, STAGGER_STUN = [0.4, 0.8] as const, STAGGER_PUSH_T = 0.25;
+/** the melee hit flash: seconds to fade, emissive intensity at strength 1 */
+const FLASH_T = 0.14, FLASH_I = 0.9;
 
 /** the bones Animal.ts poses by name on a quadruped rig (resolved once at construction; a custom rig only has body + head) */
 interface QuadBones { body: THREE.Bone; neck1: THREE.Bone; neck2: THREE.Bone; head: THREE.Bone; earL: THREE.Bone; earR: THREE.Bone; tail: THREE.Bone; belly: THREE.Bone }
@@ -114,6 +123,11 @@ export class Animal {
   /** per-animal scratch for a species' think / animate (numbers only) */
   mem: Record<string, number> = {};
   private attackT = -1; private attackDur = 1;
+  /** rad/s the heading may turn while an attack runs (see the header) */
+  attackTurnCap = Infinity;
+  /** the per-animal body material (AnimalFactory clones the fur per instance for its tint) the hit flash drives, or null */
+  private flashMat: THREE.MeshStandardMaterial | null = null;
+  private flashBase = new THREE.Color(); private flashBaseI = 1; private flash = 0;
 
   private bones: Record<string, THREE.Bone>;
   /** the two bones every rig has (hit volumes), and the full quadruped set (null on a custom rig) */
@@ -181,6 +195,8 @@ export class Animal {
       ];
     }
     this.gaitW[G_IDLE] = 1;
+    const fur = rig.materials[0];
+    if (fur !== undefined && fur !== model.hard) { this.flashMat = fur; this.flashBase.copy(fur.emissive); this.flashBaseI = fur.emissiveIntensity; }
     this.rigCtx = {
       bones: this.bones, dims: model.dims, dt: 0, t: 0, seed, scale, speed: 0, strafe: 0, phase: 0, state: 'idle', alive: true,
       deathT: -1, flinch: 0, brace: 0, attack: -1, lookTarget: this.lookTarget, lookWeight: 0, position: this.position, yaw: 0, mem: this.mem, animal: this,
@@ -206,10 +222,26 @@ export class Animal {
   setStrafe(mps: number): void { this.desiredStrafe = mps; }
 
   /** begin an attack lasting `dur` s: `attackPhase` runs 0 → 1 (the species' animate poses the wind-up and the strike from it) */
-  startAttack(dur: number): void { this.attackT = 0; this.attackDur = Math.max(0.05, dur); }
+  startAttack(dur: number): void { this.attackT = 0; this.attackDur = Math.max(0.05, dur); this.onAttack?.(this, this.attackDur); }
+  /** set by the manager: an attack (a wind-up) just started — the telegraph's sound cue */
+  onAttack?: ((animal: Animal, dur: number) => void) | undefined;
   /** 0..1 through the current attack, -1 when none (held at 1 until the next startAttack / cancelAttack) */
   get attackPhase(): number { return this.attackT < 0 ? -1 : Math.min(1, this.attackT / this.attackDur); }
   cancelAttack(): void { this.attackT = -1; }
+
+  /** a melee blow's white flash (0..1): the body glows white and fades over FLASH_T s (see the header) */
+  hitFlash(strength = 1): void {
+    if (this.flashMat === null) return;
+    this.flash = Math.max(this.flash, THREE.MathUtils.clamp(strength, 0, 1));
+    this.applyFlash();
+  }
+  private applyFlash(): void {
+    const m = this.flashMat;
+    if (m === null) return;
+    const k = this.flash;
+    if (k <= 0) { m.emissive.copy(this.flashBase); m.emissiveIntensity = this.flashBaseI; return; }
+    m.emissive.setRGB(1, 1, 1).lerp(this.flashBase, 1 - k); m.emissiveIntensity = THREE.MathUtils.lerp(this.flashBaseI, FLASH_I, k);
+  }
 
   // ── combat ─────────────────────────────────────────────────────────────────────────────
 
@@ -291,6 +323,7 @@ export class Animal {
     this.brace = 1;
     this.speed = 0; this.desiredSpeed = 0;
     this.flinch = Math.max(this.flinch, 0.8 + 0.2 * s);
+    this.cancelAttack(); // a hit interrupts a wind-up
     this.onStaggered?.(this, s, running);
   }
 
@@ -299,6 +332,7 @@ export class Animal {
   /** Integrate motion and animate. `t` = global seconds; `near` = within animation LOD range. */
   update(dt: number, t: number, near: boolean): void {
     const d = this.model.dims;
+    if (this.flash > 0) { this.flash = Math.max(0, this.flash - dt / FLASH_T); this.applyFlash(); }
     if (this.alive && this.stunT > 0) {
       // staggered: no steering, no gait — shoved back along the blow with an ease-out, then held
       this.stunT -= dt; this.speed = 0;
@@ -314,7 +348,7 @@ export class Animal {
       // heading + speed steering
       let dy = this.desiredYaw - this.yaw;
       dy = Math.atan2(Math.sin(dy), Math.cos(dy));
-      const maxTurn = this.turnRate * dt;
+      const maxTurn = (this.attackT >= 0 ? Math.min(this.turnRate, this.attackTurnCap) : this.turnRate) * dt;
       this.yaw += THREE.MathUtils.clamp(dy, -maxTurn, maxTurn);
       const accel = this.desiredSpeed > this.speed ? 7 : 11;
       this.speed += THREE.MathUtils.clamp(this.desiredSpeed - this.speed, -accel * dt, accel * dt);
@@ -440,6 +474,9 @@ export class Animal {
       if (this.stunT <= 0) this.brace *= Math.exp(-dt * 7);
     }
 
+    // ── attack wind-up (the manager's charge telegraph on a melee shard): head down, front low, a front hoof paws ──
+    if (this.alive && this.attackT >= 0) this.poseWindup(t);
+
     // ── death collapse ──
     if (this.deathT >= 0) {
       this.deathT = Math.min(1, this.deathT + dt / 0.8);
@@ -541,6 +578,21 @@ export class Animal {
       // swing the leg toward the ground while the hoof is in the air, back if it digs in; top legs only drape so far
       this.legAbd[l] = THREE.MathUtils.clamp((this.legAbd[l] ?? 0) + THREE.MathUtils.clamp(clr * 1.5, -0.12, 0.12), -0.15, down ? 1.2 : 0.4);
     }
+  }
+
+  /** the charge telegraph, additive on the pose: eased in over the first 30 % of the attack, held, eased out in the last 15 % */
+  private poseWindup(t: number): void {
+    const ph = this.attackPhase;
+    const env = smooth01(Math.min(1, ph / 0.3)) * smooth01(Math.min(1, (1 - ph) / 0.15));
+    if (env <= 0.001) return;
+    this.add(P_BODY_PITCH, 0.1 * env);                       // nose down, rump up
+    this.add(P_BODY_Y, -0.05 * env * this.model.dims.bodyY);
+    this.add(P_NECK1, 0.45 * env); this.add(P_NECK2, 0.15 * env); this.add(P_HEAD_P, 0.25 * env);
+    this.add(P_EARL_P, 0.55 * env); this.add(P_EARR_P, 0.55 * env);  // ears pinned
+    this.add(P_TAIL_P, 0.6 * env);                          // tail up
+    const paw = Math.max(0, Math.sin(t * 13 + this.seed * 5));        // the front-right hoof scrapes back, twice a second
+    this.add(P_LEG + 1 * 3, (-0.35 + 0.7 * paw) * env); this.add(P_LEG + 1 * 3 + 1, 0.45 * paw * env);
+    this.add(P_LEG + 2 * 3 + 1, 0.12 * env); this.add(P_LEG + 3 * 3 + 1, 0.12 * env);  // hind legs load
   }
 
   // ── pose generators (write into this.tmp) ────────────────────────────────────────────
@@ -721,7 +773,9 @@ export class Animal {
   private applyRoot(): void {
     const m = this.mesh;
     m.position.copy(this.position);
-    m.rotation.set(this.tiltPitch, this.yaw, this.tiltRoll, 'YXZ');
+    // a custom rig has no flinch in its bones' pose code here: the whole body leans away from the blow instead
+    const f = this.custom && this.alive ? this.flinch * 1.8 : 0;
+    m.rotation.set(this.tiltPitch + this.flinchPitch * f, this.yaw, this.tiltRoll + this.flinchRoll * f, 'YXZ');
   }
 }
 

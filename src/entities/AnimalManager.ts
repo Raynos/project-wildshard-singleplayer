@@ -46,6 +46,8 @@ import { worldTime } from '../core/time';
  *   animals.onKill   = (animal) => …
  *   animals.onCharge = (animal, damage) => …          a boar reached the player
  *   animals.onSound  = (name, position) => …          'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal'
+ *   animals.onWindup = (animal) => …                  melee shards: an attack's wind-up began (the charge telegraph, a crab's
+ *                                                     claw raise, the sailor's cutlass) — play its cue (IslandSfx.windup)
  *   animals.animals: Animal[]   animals.alive (count)
  *
  * Species + variants: every kind comes from the species registry (`src/entities/species/<kind>.ts`, see
@@ -66,6 +68,17 @@ import { worldTime } from '../core/time';
  * the same `onCharge(animal, damage)`. `animals.enemyWorld` (EnemyWorld) is what the shard hands those AIs: palm
  * perches, the coconut thrower, the wreck's hold — Enemies.ts fills it; a missing piece degrades to ground behaviour.
  * `animals.addHerd(kind, cx, cz)` makes a herd for such a spawner (`spawn()` then `animal.herd = index`).
+ *
+ * MELEE SHARDS (`ChunkDef.weapon === 'sword'`, Driftwood C5 — Pine Hollow's crossbow hunting is untouched): every attack
+ * is telegraphed and lands on an arc, so strafing is the dodge.
+ *   • A charge starts with a WIND-UP (CHARGE_WINDUP: boar 0.55 s, bear 0.65 s): the animal stops, turns to you, drops its
+ *     head and paws the ground (Animal.poseWindup) with the roar / grunt as the cue, then runs. A sword blow during the
+ *     wind-up interrupts it (Animal.stagger cancels the attack → `staggered` sends it back to alert / stalk).
+ *   • A running charge connects per frame, not at 10 Hz, and only if you are inside CHARGE_ARC of its heading when it
+ *     reaches you; inside the last CHARGE_COMMIT m it can barely turn — sidestep late and it thunders past.
+ *   • The self-thinking species' strikes (crab snap, monkey bite, cutlass) only hurt inside HURT_ARC of the attacker's
+ *     facing, and while an attack runs the animal turns at most ATTACK_TURN rad/s (Animal.attackTurnCap): a wind-up
+ *     commits to a direction you can step out of.
  */
 
 export interface AnimalHit { animal: Animal; point: THREE.Vector3; distance: number; headshot: boolean; damage: number }
@@ -86,6 +99,7 @@ interface Brain {
   spooked: boolean;     // alert: bolt as soon as the freeze ends, whatever the senses say (herd panic, impact, hit)
   wary: number;         // seconds of sharpened senses left after a scare
   sensed: boolean;      // the player was sensed this think
+  windup: number;       // melee shards: seconds of charge wind-up left (0 = running / none)
 }
 
 /** One animal kind's hunting-loop numbers. Player speeds for reference: crouch 2.2, walk 4.3, sprint 7.2 m/s. */
@@ -162,6 +176,10 @@ export const BOAR_TUNING: HuntTuning = {
 
 const DEER_WALK = 1.3, BOAR_WALK = 1.1, BOAR_CHARGE = 7.5, CHARGE_HIT_DIST = 1.4;   // species defaults (SpeciesDef.walkSpeed / chargeSpeed override)
 const CHARGE_WHEN_HIT_DIST = 25;   // a wounded boar this close turns on you instead of running
+/** melee shards (see the header): the charge wind-up per species (s), the contact arc (half-angle, rad), the self-thinking species' strike arc, the turn cap while attacking */
+const CHARGE_WINDUP: Record<string, number> = { boar: 0.55, bear: 0.65 }, CHARGE_WINDUP_DEFAULT = 0.5;
+const CHARGE_ARC = THREE.MathUtils.degToRad(50), HURT_ARC = THREE.MathUtils.degToRad(70), ATTACK_TURN = 1.5;
+const CHARGE_COMMIT = 4.5, CHARGE_COMMIT_TURN = 1.1;   // m from the player inside which a charge stops tracking, and its turn rate there (rad/s)
 const ANIM_LOD = 140;
 const SHELL_DIST = 18, SHELL_MAX = 4;   // fur shells: nearest SHELL_MAX animals within SHELL_DIST m
 
@@ -275,6 +293,8 @@ export class AnimalManager {
   onKill?: (animal: Animal) => void;
   onCharge?: (animal: Animal, damage: number) => void;
   onSound?: (name: AnimalSound, position: THREE.Vector3) => void;
+  /** melee shards: an attack's wind-up began (see the header) */
+  onWindup?: ((animal: Animal) => void) | undefined;
   /** every non-lethal AND lethal hit: amount actually dealt, world hit point, whether it was the head (Combat draws the numbers) */
   onDamage?: (animal: Animal, amount: number, hitPoint: THREE.Vector3, headshot: boolean, died: boolean) => void;
   debug = false;
@@ -291,6 +311,8 @@ export class AnimalManager {
   private playerPrev = new THREE.Vector3(); private playerSpeed = 0; private playerInit = false;
   private shellDist = new Float64Array(SHELL_MAX);
   private shellIdx = new Int32Array(SHELL_MAX);
+  /** a melee shard (the sword): telegraphed charges, attacks on an arc (see the header) */
+  private readonly melee = getActiveChunk().weapon === 'sword';
 
   /** `opts.style` forces the render style (dev harness); production reads `ChunkDef.style` ('pbr' | 'lowpoly') */
   constructor(private readonly scene: THREE.Scene, private readonly sky: Sky, private readonly forest: Forest, opts: { style?: AnimalStyle | undefined } = {}) {
@@ -440,8 +462,9 @@ export class AnimalManager {
     const tune = this.tuningFor(a);
     this.brains.set(a, {
       timer: this.rng.range(1, 4), tx: x, tz: z, fleeT: 0, fleeUntil: this.rng.range(tune.fleeUntil, tune.fleeUntilMax), chargeCd: 0,
-      callT: this.rng.range(10, 60), awareness: 0, freeze: 0, spooked: false, wary: 0, sensed: false,
+      callT: this.rng.range(10, 60), awareness: 0, freeze: 0, spooked: false, wary: 0, sensed: false, windup: 0,
     });
+    if (this.melee) { a.attackTurnCap = ATTACK_TURN; a.onAttack = (who) => { this.onWindup?.(who); }; }
     return a;
   }
 
@@ -482,6 +505,7 @@ export class AnimalManager {
       const d2 = a.position.distanceToSquared(playerPos);
       const near = d2 < ANIM_LOD * ANIM_LOD;
       a.update(dt, t, near);
+      if (this.melee && a.state === 'charge' && a.alive && !a.stunned) this.chargeContact(a, playerPos);
       // draw / shadow distance by tier: a deer at 150 m is a few pixels on a phone, and only near animals shadow
       a.mesh.visible = d2 < TIER_CONFIG.animalHideDist * TIER_CONFIG.animalHideDist;
       a.mesh.castShadow = d2 < TIER_CONFIG.animalShadowDist * TIER_CONFIG.animalShadowDist;
@@ -519,7 +543,7 @@ export class AnimalManager {
       const herd = a.herd >= 0 ? this.herds[a.herd] ?? null : null;
       c.dt = dt; c.t = performance.now() * 0.001; c.player = player; c.playerSpeed = sprinting ? 7.2 : this.playerSpeed;
       c.calm = this.calm; c.herd = herd !== null ? herd.members : null; c.world = this.enemyWorld;
-      c.hurt = (damage) => { this.onCharge?.(a, damage); };
+      c.hurt = (damage) => { if (!this.melee || this.facing(a, player, HURT_ARC)) this.onCharge?.(a, damage); }; // melee shards: only in front of it
       c.sound = (name) => { this.onSound?.(name as AnimalSound, a.position); };
       a.sampleTerrain();
       self(a, c);
@@ -645,16 +669,21 @@ export class AnimalManager {
         break;
       }
       case 'charge': {
+        if (br.windup > 0) {
+          // melee shard: the telegraph — stand, face the player, head down, paw (Animal.poseWindup); then run
+          br.windup -= dt;
+          a.setMotion(Math.atan2(dx, dz), 0, 3.0);
+          a.lookTarget.copy(player); a.lookWeight = 1;
+          if (br.windup <= 0) { br.windup = 0; a.cancelAttack(); }
+          break;
+        }
         br.timer -= dt;
-        this.steer(a, Math.atan2(dx, dz), (sp.chargeSpeed ?? BOAR_CHARGE) * M.speed, 4.0);
+        // melee shards: the last CHARGE_COMMIT m are committed (it can barely turn) — a late sidestep makes it thunder past
+        this.steer(a, Math.atan2(dx, dz), (sp.chargeSpeed ?? BOAR_CHARGE) * M.speed, this.melee && dPlayer < CHARGE_COMMIT ? CHARGE_COMMIT_TURN : 4.0);
         a.lookTarget.copy(player); a.lookWeight = 0.5;
         const after: Animal['state'] = T.stalk !== undefined ? 'stalk' : 'flee';   // a hunter keeps pressing; a boar wheels away
-        if (dPlayer < CHARGE_HIT_DIST * Math.max(1, a.scale)) {
-          this.onCharge?.(a, M.chargeDamage);
-          this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
-          br.chargeCd = T.stalk !== undefined ? T.stalk.rechargeCd : M.relentless ? 2 : 6;   // Old Ironhide wheels round and comes again
-          this.enter(a, br, after);
-        } else if (br.timer <= 0) { br.chargeCd = T.stalk !== undefined ? T.stalk.rechargeCd : M.relentless ? 1.5 : 4; this.enter(a, br, after); }
+        if (!this.melee && dPlayer < CHARGE_HIT_DIST * Math.max(1, a.scale)) this.chargeHit(a, br);   // melee shards connect per frame on an arc (chargeContact)
+        else if (br.timer <= 0) { br.chargeCd = T.stalk !== undefined ? T.stalk.rechargeCd : M.relentless ? 1.5 : 4; this.enter(a, br, after); }
         break;
       }
       case 'attack': case 'dead': case 'hide': case 'perch': case 'rise': case 'sidestep': break;
@@ -663,6 +692,33 @@ export class AnimalManager {
     // keep every animal inside the chunk / off steep ground / out of trunks
     this.confine(a);
     if (herd !== null) this.updateHerd(herd);
+  }
+
+  /** a charge reached the player: the damage, the grunt, the cooldown, and back to stalk (hunters) / flee (a boar wheels away) */
+  private chargeHit(a: Animal, br: Brain): void {
+    const T = this.tuningFor(a), sp = speciesDef(a.kind);
+    this.onCharge?.(a, a.mods.chargeDamage);
+    this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
+    br.chargeCd = T.stalk !== undefined ? T.stalk.rechargeCd : a.mods.relentless ? 2 : 6;   // Old Ironhide wheels round and comes again
+    this.enter(a, br, T.stalk !== undefined ? 'stalk' : 'flee');
+  }
+
+  /** melee shards, every frame: a running charge connects when it reaches the player AND the player is inside CHARGE_ARC of its heading */
+  private chargeContact(a: Animal, player: THREE.Vector3): void {
+    const br = this.brains.get(a);
+    if (br === undefined || br.windup > 0) return;
+    const dx = player.x - a.position.x, dz = player.z - a.position.z;
+    const reach = CHARGE_HIT_DIST * Math.max(1, a.scale);
+    if (dx * dx + dz * dz > reach * reach || Math.abs(player.y - a.position.y) > 2.5) return;
+    if (!this.facing(a, player, CHARGE_ARC)) return; // it runs past a player who stepped aside
+    this.chargeHit(a, br);
+  }
+
+  /** the player is within ±`arc` of the animal's heading */
+  private facing(a: Animal, player: THREE.Vector3, arc: number): boolean {
+    let rel = Math.atan2(player.x - a.position.x, player.z - a.position.z) - a.yaw;
+    rel = Math.atan2(Math.sin(rel), Math.cos(rel));
+    return Math.abs(rel) <= arc;
   }
 
   private thinkCtx: ThinkCtx = {
@@ -717,6 +773,9 @@ export class AnimalManager {
         break;
       case 'charge':
         br.timer = a.mods.relentless ? 12 : 4; br.wary = T.waryTime;
+        // melee shard: the charge opens with a readable wind-up (think 'charge'; the roar below is its cue)
+        br.windup = this.melee ? CHARGE_WINDUP[a.kind] ?? CHARGE_WINDUP_DEFAULT : 0;
+        if (br.windup > 0) { a.startAttack(br.windup); a.setMotion(a.yaw, 0, 3); }
         this.onSound?.((T.stalk?.roar ?? sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
         break;
       case 'attack': case 'dead': case 'hide': case 'perch': case 'rise': case 'sidestep': break;
@@ -922,8 +981,16 @@ export class AnimalManager {
    */
   private staggered = (a: Animal, strength: number, running: boolean): void => {
     const br = this.brains.get(a);
-    if (br === undefined || !running || a.state !== 'charge' || speciesDef(a.kind).think !== undefined) return;
+    if (br === undefined || a.state !== 'charge' || speciesDef(a.kind).think !== undefined) return;
     const T = this.tuningFor(a);
+    if (br.windup > 0) {
+      // a blow during the wind-up interrupts the charge (melee shards): glare, then come again once the cooldown lets it
+      br.windup = 0; br.chargeCd = 1.0 + strength;
+      this.enter(a, br, T.stalk !== undefined ? 'stalk' : 'alert');
+      br.freeze = 0.4 + strength * 0.6;
+      return;
+    }
+    if (!running) return;
     br.chargeCd = strength >= 0.75 ? (T.stalk !== undefined ? T.stalk.rechargeCd : 1.4) : 0.3;
     this.enter(a, br, T.stalk !== undefined ? 'stalk' : 'alert');
     br.freeze = 0.3 + strength * 0.8;

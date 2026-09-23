@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { segmentBlocked, segmentHitsBox, insideBox, type BoxCollider } from '../src/player/MeleeSweep';
+import { segmentBlocked, segmentHitsBox, segmentEntry, insideBox, type BoxCollider } from '../src/player/MeleeSweep';
 
 // a 2 m × 0.2 m wall along x at z = 1, 0..3 m high
 const wall: BoxCollider = { x: 0, z: 1, hw: 1, hd: 0.1, rot: 0, yTop: 3, yBottom: 0 };
@@ -24,5 +24,11 @@ describe('MeleeSweep (the sword hit test occlusion, C1 / B5)', () => {
     const turned: BoxCollider = { ...wall, rot: Math.PI / 2 };
     expect(segmentHitsBox(turned, -1, 1, 1.5, 1, 1, 1.5)).toBe(true);    // crosses x = 0 at z = 1.5 (inside |dz| ≤ 1)
     expect(segmentHitsBox(turned, -1, 1, 2.5, 1, 1, 2.5)).toBe(false);   // z = 2.5 is past its end
+  });
+  it('segmentEntry finds where the blade tip meets a wall, not a box the eye stands in', () => {
+    expect(segmentEntry(0, 1.6, 0, 0, 1.6, 2, [wall])).toBeCloseTo(0.45, 5);   // the wall's near face at z = 0.9
+    expect(segmentEntry(1.5, 1.6, 0, 1.5, 1.6, 2, [wall])).toBe(-1);
+    const room: BoxCollider = { x: 0, z: 0, hw: 3, hd: 3, rot: 0, yTop: 3, yBottom: 0 };
+    expect(segmentEntry(0, 1.6, 0, 0, 1.6, 2, [room])).toBe(-1);
   });
 });

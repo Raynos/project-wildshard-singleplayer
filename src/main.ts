@@ -22,7 +22,7 @@ import { Bushes } from './world/Bushes';
 import { Gulls } from './world/Gulls';
 import { Trailside } from './world/Trailside';
 import { Hands } from './player/Hands';
-import { Sword } from './player/Sword';
+import { Sword, swordEvents } from './player/Sword';
 import { CameraFX } from './player/CameraFX';
 import { IronSwordPickup, ironSwordSite } from './player/IronSword';
 import { installAdventure } from './game/quest/Adventure';
@@ -339,8 +339,8 @@ async function main() {
   onNumber('volume', masterGain);
 
   const hands = new Hands(sky, game.camera); // white-gloved swimming hands (shown only while player.swimming)
-  if (chunk.weapon === 'sword') (crossbow as Sword).onHeavy = () => audio.swordHeavy(); // the charged overhead (Weapons does not forward it)
-  weapons.onFire = () => (weapons.current.id === 'rifle' ? audio.rifleFire() : chunk.weapon === 'sword' ? audio.swordSwing() : audio.crossbowFire());
+  if (chunk.weapon === 'sword') (crossbow as Sword).onHeavy = () => { if (!isOcean) audio.swordHeavy(); }; // the charged overhead (Weapons does not forward it); the island's is swordEvents.onSwing
+  weapons.onFire = () => { if (weapons.current.id === 'rifle') audio.rifleFire(); else if (chunk.weapon !== 'sword') audio.crossbowFire(); else if (!isOcean) audio.swordSwing(); }; // the island's whoosh: swordEvents.onSwing
   weapons.onDry = () => audio.dryFire();
   weapons.onReloadStart = () => (weapons.current.id === 'rifle' ? audio.rifleReload() : audio.reload());
   weapons.onSwap = () => audio.weaponSwap();
@@ -348,7 +348,7 @@ async function main() {
     const dx = point.x - player.position.x, dz = point.z - player.position.z, d = Math.hypot(dx, dz);
     const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
     const pan = d > 1 ? ((dx * rx + dz * rz) / d) * 0.7 : 0, gain = 1 / (1 + d / 12);
-    if (weapons.current.id !== 'rifle' && chunk.weapon === 'sword') audio.swordHit(surface, pan, gain); else audio.boltImpact(surface, pan, gain);
+    if (weapons.current.id !== 'rifle' && chunk.weapon === 'sword') { if (!isOcean) audio.swordHit(surface, pan, gain); } else audio.boltImpact(surface, pan, gain); // the island's: swordEvents.onStrike
   };
   weapons.onHit = (_kind, headshot, killed) => {
     music.combat(0.7);
@@ -431,6 +431,18 @@ async function main() {
   const surfaces = sea ? new SurfaceMap({ sea: sea.level, heightAt, trailDistance, decks: [pier, ...jetties, boat, hut, lookout, bridge, wreck], stone: [shrine] }) : null;
   // the island's zoned soundscape + reverb rooms (S1 / S2): surf on the shoreline, palms, jungle, cove + waterfall, lookout wind; hold / cave / shrine reverb
   animals.onSound = (name, pos) => { if (!islandSfx?.animal(name, pos)) audio.animal(name, pos, player.position, player.yaw); }; // the island's enemies from the bank (S3)
+  // the sword's combat layers on the island (S3 bank via IslandSfx; Pine Hollow has no sword): a whoosh per swing, an impact per blade
+  // hit by material (+ a death bark), a clang where the blade meets a wall / trunk, each enemy wind-up's cue (C5)
+  if (islandSfx) {
+    swordEvents.onSwing = (speed, heavy, dir) => { islandSfx.whoosh(speed, { heavy, dir }); };
+    swordEvents.onStrike = (kind, point, strength, killed) => {
+      islandSfx.impact(kind === 'crab' ? 'shell' : kind === 'sailor' ? 'wood' : 'flesh', strength, point);
+      const enemy = kind === 'boar' || kind === 'crab' || kind === 'monkey' || kind === 'sailor' ? kind : null;
+      if (killed && enemy !== null) islandSfx.vocal(enemy, point, 1.3);
+    };
+    swordEvents.onClang = (point, strength) => { islandSfx.impact('wood', strength, point); };
+    animals.onWindup = (a) => { const e = a.kind === 'crab' ? 'crab' : a.kind === 'sailor' ? 'sailor' : a.kind === 'boar' || a.kind === 'bear' ? 'boar' : null; if (e !== null) islandSfx.windup(e, a.position); };
+  }
   const ambience = sea ? new IslandAmbience(audio, { sea: sea.level, heightAt, palms: palmSpecs, wreck, cove: Cove.forIsland() }) : null;
   player.onStep = (sprinting) => {
     const p = player.position;
