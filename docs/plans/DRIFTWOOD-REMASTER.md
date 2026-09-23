@@ -109,7 +109,7 @@ Owner: session `wildshard-singleplayer-8d` (E8), files `src/world/{Boat,Pier,Hut
 |---|---|---|
 | M1 | `lowpolyKit`: one merged mesh + one shared material per model, voxel AO bake | built `8ce9efd`, not wired |
 | M2 | Every POI to its mockup (`art/driftwood-*` fp + poi rounds): pier, boat, hut (**with an interior**), lookout, bridge, wreck (**with a hold you can enter**), shrine, cove (**open cave mouth**), palms (fluffy sphere-normal fronds, 3-layer wind), boulders, props | **in progress** — WRECK **done** `0b918f5` (LowPolyKit, half sunk on the reef at the cove mouth, enterable hold with lanterns and no runtime lights, anchors + `holdBounds`, 18.2 k tris, 39 colliders; phone wreck pose 117 → 115 calls; progress/168-model-m2-*); next: cove cave → shrine → hut + lookout → pier / boat |
-| M3 | Creatures to their mockups: boar, bear, crab, monkey, drowned sailor — silhouettes, one material each (the draw-call fix), squash on hit | in flight |
+| M3 | Creatures to their mockups: boar, bear, crab, monkey, drowned sailor — silhouettes, one material each (the draw-call fix), squash on hit | **in progress** — one material + one draw per creature, a per-animal body clone takes the hit flash, monkey bite wind-up 0.41 s: `775dca1` (live aa7c5f3-mudot9it; phone wreck pose 115 → 92 calls, pier 84, beach 82, shrine 69; progress/169-model-m3-*); silhouettes to the mockups + the Drowned Captain mesh still open |
 | M4 | **Ground cover**: instanced low-poly grass / ferns / flowers near the player (20–25 m, 16 m cells, dithered fade, bends away from the player) | open (M or L, ask E8) |
 | M5 | Motion: bushes, banner, sails, flags sway (shared wind uniform); sway-aware depth materials so shadows move | open |
 
