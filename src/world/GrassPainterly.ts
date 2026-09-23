@@ -12,6 +12,7 @@ import { trample, TRAMPLE_GLSL } from './GrassTrample';
 import { grassBaseHeightAt, grassToneAt, flowerKindAt, groundColorAt } from './GrassField';
 import { painterlyUniforms } from './painterly';
 import { dressingCover } from './nalati/dressing';
+import { reseedGrassV2 } from '../nalati/look/grass';
 
 /**
  * The painterly grass carpet (Nalati, style B — `art/nalati-grasslands/round-1/1-art-style/style-B-painterly.png`,
@@ -463,7 +464,7 @@ const carpets = new Set<GrassPainterly>();
  * Reseed every painterly carpet: call once the Nalati dressing is built (`dressingCover` is 0 until then, so the
  * cells seeded at boot still grow through its boulders) — src/nalati/index.ts after `new NalatiDressing(...).build()`.
  */
-export function reseedPainterlyGrass(): void { for (const c of carpets) c.reseed(); }
+export function reseedPainterlyGrass(): void { for (const c of carpets) c.reseed(); reseedGrassV2(); }
 
 export class GrassPainterly {
   group = new THREE.Group();

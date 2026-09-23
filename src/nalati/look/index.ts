@@ -19,6 +19,7 @@ import { SkyDomeV2 } from './sky';
 import { fogLut } from './fog';
 import { updateTint } from './tint';
 import { LightCheat } from './light';
+import { grassV2Uniforms } from './grass';
 import { getActiveChunk } from '../../chunks/registry';
 
 export { LOOK_V2 } from './flag';
@@ -50,6 +51,7 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
     updateTint(look, w);
     cheat.apply(look); // step 4: the key swung round + lifted, the fill lower and cooler (light.ts)
     u.uSunNow.value.copy(look.sunDir);
+    grassV2Uniforms.uSunView.value.copy(look.sunDir); // the grass glows looking into the (painted, real) sun
     // night: the painted sky fades out above the ridge line, the rig's stars show through (it is hidden by day: no overdraw)
     const night = smooth(2, -9, weather.clock.sunElevation);
     u.uNight.value = night;

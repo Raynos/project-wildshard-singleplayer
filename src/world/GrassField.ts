@@ -190,6 +190,12 @@ export function grassToneAt(x: number, z: number): number { return sample(x, z, 
 /** 0..1 flower-drift strength */
 export function flowerPatchAt(x: number, z: number): number { return sample(x, z, 2); }
 
+/** 0..1 the grass's own bloom (the drifts + the broad soft flower meadows) — what `flowerKindAt` draws its odds from */
+export function grassBloomAt(x: number, z: number): number { return sample(x, z, 7); }
+
+/** 0..1 which species a drift leans to (see `flowerKindAt`) */
+export function flowerSpeciesAt(x: number, z: number): number { return sample(x, z, 3); }
+
 /** the painted ground colour (linear RGB) under the grass at (x, z) — the def's `groundColor`, lattice-sampled */
 export function groundColorAt(x: number, z: number, out: [number, number, number]): [number, number, number] {
   out[0] = sample(x, z, 4); out[1] = sample(x, z, 5); out[2] = sample(x, z, 6);
