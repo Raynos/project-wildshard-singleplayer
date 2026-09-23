@@ -146,6 +146,73 @@ def main() -> None:
 
 # ---------------------------------------------------------------- page
 
+PAGE_CSS = """:root {
+  --ground: #eef2f1; --surface: #ffffff; --ink: #14201e; --muted: #56655f; --line: #d3dcd9;
+  --accent: #0f6e66; --accent-soft: #dcefeb; --warn: #9a5b00; --warn-soft: #fbefd9; --bad: #a3222b; --bad-soft: #f8dfe1;
+  --good: #1d6b3a; --good-soft: #def1e4;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #0d1413; --surface: #141d1c; --ink: #e2ebe8; --muted: #93a39e; --line: #26332f;
+    --accent: #5fc9b9; --accent-soft: #173330; --warn: #e3a64a; --warn-soft: #33270f; --bad: #f08a91; --bad-soft: #3a1a1d;
+    --good: #7fd49c; --good-soft: #15301f;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #0d1413; --surface: #141d1c; --ink: #e2ebe8; --muted: #93a39e; --line: #26332f;
+  --accent: #5fc9b9; --accent-soft: #173330; --warn: #e3a64a; --warn-soft: #33270f; --bad: #f08a91; --bad-soft: #3a1a1d;
+  --good: #7fd49c; --good-soft: #15301f;
+}
+body { background: var(--ground); color: var(--ink); font: 15px/1.55 "IBM Plex Sans", system-ui, sans-serif; }
+.wrap { max-width: 980px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 64px; }
+h1, h2, h3 { font-family: "Newsreader", Georgia, serif; font-weight: 600; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 6vw, 46px); line-height: 1.05; letter-spacing: -0.01em; }
+.lede { max-width: 62ch; color: var(--muted); margin: 12px 0 0; }
+.brief { margin: 22px 0 0; padding: 14px 16px; border-left: 3px solid var(--accent); background: var(--surface); max-width: 70ch; }
+.brief p { margin: 0; font-family: "Newsreader", Georgia, serif; font-size: 18px; line-height: 1.45; }
+.brief small { display: block; margin-top: 6px; color: var(--muted); font: 12px/1.4 "IBM Plex Mono", monospace; }
+nav.jump { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 0; }
+nav.jump a { color: var(--accent); text-decoration: none; border: 1px solid var(--line); background: var(--surface); padding: 6px 12px; border-radius: 999px; font-weight: 500; }
+nav.jump a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.style { margin-top: 44px; }
+.style-head { display: grid; gap: 4px; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+.style-head h2 { font-size: 30px; }
+.ref { margin: 0; color: var(--muted); font-style: italic; font-family: "Newsreader", Georgia, serif; font-size: 17px; }
+.spec { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 4px 0 0; font: 12px/1.4 "IBM Plex Mono", monospace; color: var(--muted); letter-spacing: 0.02em; text-transform: uppercase; }
+.takes { display: grid; gap: 14px; margin-top: 16px; }
+.take { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 10px; }
+.take-head { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+.rank { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--surface); font: 600 16px/1 "IBM Plex Mono", monospace; }
+.take h3 { font-size: 20px; }
+.seed { font: 400 13px "IBM Plex Mono", monospace; color: var(--muted); margin-left: 6px; }
+.meta { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.score { font: 500 14px "IBM Plex Mono", monospace; color: var(--accent); background: var(--accent-soft); padding: 4px 8px; border-radius: 6px; font-variant-numeric: tabular-nums; }
+audio { width: 100%; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 12px/1.3 "IBM Plex Mono", monospace; padding: 3px 8px; border-radius: 6px; background: var(--ground); color: var(--ink); }
+.chip b { font-weight: 500; color: var(--muted); }
+.chip.good { background: var(--good-soft); } .chip.good b { color: var(--good); }
+.chip.warn { background: var(--warn-soft); } .chip.warn b { color: var(--warn); }
+.chip.bad { background: var(--bad-soft); } .chip.bad b { color: var(--bad); }
+details summary { cursor: pointer; color: var(--accent); font-weight: 500; }
+.prompt { margin: 6px 0 0; color: var(--muted); font-size: 14px; max-width: 75ch; }
+details.all { margin-top: 14px; }
+.tablewrap { overflow-x: auto; margin-top: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font: 12.5px/1.4 "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; font-size: 11px; }
+td.n { text-align: right; }
+tr.on td { background: var(--accent-soft); }
+.models td { white-space: normal; vertical-align: top; min-width: 110px; }
+.notes { margin-top: 48px; display: grid; gap: 14px; }
+.notes h2 { font-size: 26px; }
+.notes p, .notes li { max-width: 75ch; }
+.empty { color: var(--muted); }
+@media (max-width: 560px) { .take-head { grid-template-columns: auto 1fr; } .score { grid-column: 2; justify-self: start; } }
+"""
+
 def esc(x: object) -> str:
     return html.escape(str(x), quote=True)
 
@@ -240,72 +307,7 @@ def page(out: dict, briefs: dict, models: dict) -> str:
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-:root {{
-  --ground: #eef2f1; --surface: #ffffff; --ink: #14201e; --muted: #56655f; --line: #d3dcd9;
-  --accent: #0f6e66; --accent-soft: #dcefeb; --warn: #9a5b00; --warn-soft: #fbefd9; --bad: #a3222b; --bad-soft: #f8dfe1;
-  --good: #1d6b3a; --good-soft: #def1e4;
-}}
-@media (prefers-color-scheme: dark) {{
-  :root:not([data-theme="light"]) {{
-    color-scheme: dark;
-    --ground: #0d1413; --surface: #141d1c; --ink: #e2ebe8; --muted: #93a39e; --line: #26332f;
-    --accent: #5fc9b9; --accent-soft: #173330; --warn: #e3a64a; --warn-soft: #33270f; --bad: #f08a91; --bad-soft: #3a1a1d;
-    --good: #7fd49c; --good-soft: #15301f;
-  }}
-}}
-:root[data-theme="dark"] {{
-  color-scheme: dark;
-  --ground: #0d1413; --surface: #141d1c; --ink: #e2ebe8; --muted: #93a39e; --line: #26332f;
-  --accent: #5fc9b9; --accent-soft: #173330; --warn: #e3a64a; --warn-soft: #33270f; --bad: #f08a91; --bad-soft: #3a1a1d;
-  --good: #7fd49c; --good-soft: #15301f;
-}}
-body {{ background: var(--ground); color: var(--ink); font: 15px/1.55 "IBM Plex Sans", system-ui, sans-serif; }}
-.wrap {{ max-width: 980px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 64px; }}
-h1, h2, h3 {{ font-family: "Newsreader", Georgia, serif; font-weight: 600; text-wrap: balance; margin: 0; }}
-h1 {{ font-size: clamp(30px, 6vw, 46px); line-height: 1.05; letter-spacing: -0.01em; }}
-.lede {{ max-width: 62ch; color: var(--muted); margin: 12px 0 0; }}
-.brief {{ margin: 22px 0 0; padding: 14px 16px; border-left: 3px solid var(--accent); background: var(--surface); max-width: 70ch; }}
-.brief p {{ margin: 0; font-family: "Newsreader", Georgia, serif; font-size: 18px; line-height: 1.45; }}
-.brief small {{ display: block; margin-top: 6px; color: var(--muted); font: 12px/1.4 "IBM Plex Mono", monospace; }}
-nav.jump {{ display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 0; }}
-nav.jump a {{ color: var(--accent); text-decoration: none; border: 1px solid var(--line); background: var(--surface); padding: 6px 12px; border-radius: 999px; font-weight: 500; }}
-nav.jump a:focus-visible, summary:focus-visible {{ outline: 2px solid var(--accent); outline-offset: 2px; }}
-.style {{ margin-top: 44px; }}
-.style-head {{ display: grid; gap: 4px; border-bottom: 1px solid var(--line); padding-bottom: 12px; }}
-.style-head h2 {{ font-size: 30px; }}
-.ref {{ margin: 0; color: var(--muted); font-style: italic; font-family: "Newsreader", Georgia, serif; font-size: 17px; }}
-.spec {{ display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 4px 0 0; font: 12px/1.4 "IBM Plex Mono", monospace; color: var(--muted); letter-spacing: 0.02em; text-transform: uppercase; }}
-.takes {{ display: grid; gap: 14px; margin-top: 16px; }}
-.take {{ background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 10px; }}
-.take-head {{ display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }}
-.rank {{ width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--surface); font: 600 16px/1 "IBM Plex Mono", monospace; }}
-.take h3 {{ font-size: 20px; }}
-.seed {{ font: 400 13px "IBM Plex Mono", monospace; color: var(--muted); margin-left: 6px; }}
-.meta {{ margin: 2px 0 0; color: var(--muted); font-size: 13px; }}
-.score {{ font: 500 14px "IBM Plex Mono", monospace; color: var(--accent); background: var(--accent-soft); padding: 4px 8px; border-radius: 6px; font-variant-numeric: tabular-nums; }}
-audio {{ width: 100%; }}
-.chips {{ display: flex; flex-wrap: wrap; gap: 6px; }}
-.chip {{ font: 12px/1.3 "IBM Plex Mono", monospace; padding: 3px 8px; border-radius: 6px; background: var(--ground); color: var(--ink); }}
-.chip b {{ font-weight: 500; color: var(--muted); }}
-.chip.good {{ background: var(--good-soft); }} .chip.good b {{ color: var(--good); }}
-.chip.warn {{ background: var(--warn-soft); }} .chip.warn b {{ color: var(--warn); }}
-.chip.bad {{ background: var(--bad-soft); }} .chip.bad b {{ color: var(--bad); }}
-details summary {{ cursor: pointer; color: var(--accent); font-weight: 500; }}
-.prompt {{ margin: 6px 0 0; color: var(--muted); font-size: 14px; max-width: 75ch; }}
-details.all {{ margin-top: 14px; }}
-.tablewrap {{ overflow-x: auto; margin-top: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }}
-table {{ border-collapse: collapse; width: 100%; font: 12.5px/1.4 "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }}
-th, td {{ padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }}
-th {{ color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; font-size: 11px; }}
-td.n {{ text-align: right; }}
-tr.on td {{ background: var(--accent-soft); }}
-.models td {{ white-space: normal; vertical-align: top; min-width: 110px; }}
-.notes {{ margin-top: 48px; display: grid; gap: 14px; }}
-.notes h2 {{ font-size: 26px; }}
-.notes p, .notes li {{ max-width: 75ch; }}
-.empty {{ color: var(--muted); }}
-@media (max-width: 560px) {{ .take-head {{ grid-template-columns: auto 1fr; }} .score {{ grid-column: 2; justify-self: start; }} }}
-</style>
+{PAGE_CSS}</style>
 <div class="wrap">
   <header>
     <h1>Wildshard music bake-off</h1>
