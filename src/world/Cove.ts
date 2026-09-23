@@ -6,7 +6,7 @@
  * the mouth, a torch beside it. Inside: an antechamber with a tide pool, a narrow passage (the adventure's sluice gate
  * fits it: 2.5 m wide), then a raised alcove lit by glowing cyan crystals. Crystal and torch light are baked into the
  * vertex colours (no runtime light); the flames / crystals are one unlit draw. Tidepools among rock rims on the cove flats
- * (a ripple shader, the reef crabs' homes) and the cascade down the crag with its plunge pool stay as before.
+ * (a ripple shader, the reef crabs' homes) and the cascade (the look-agent's Waterfall curtain, W5) over the crag into its plunge pool.
  *
  * Draws: rocks + cave (one LowPolyKit mesh on lowPolyMaterial), glow, pools, cascade.
  *
@@ -26,6 +26,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { heightAt } from './Heightfield';
 import { attachFogUniforms } from './Atmosphere';
+import { Waterfall } from './Waterfall';
 import { SEED } from '../core/config';
 import { LowPolyKit, rock, log, tris, bakeLight, lowPolyMaterial, type BakedLight } from './lowpolyKit';
 import type { Collider } from '../player/Player';
@@ -65,6 +66,7 @@ export class Cove {
   caveBounds: CaveBounds = { x: 0, z: 0, r: 0, yMin: 0, yMax: 0 };
   private uniforms = { uTime: { value: 0 } };
   private t = 0;
+  private fall: Waterfall | null = null;
   private cave: CoveSpec['cave'] = { x: 0, z: 0, yaw: 0, w: 0, h: 0, depth: 0 };
 
   constructor(private sky: Sky) {}
@@ -142,24 +144,10 @@ export class Cove {
     }
 
     // ── the cascade: a ribbon of quads hugging the crag face, foam bands scroll down it; a plunge pool at the foot ──
-    const fallParts: THREE.BufferGeometry[] = [];
     {
       const [tx, tz] = spec.fall.top, [fx, fz] = spec.fall.foot;
-      const N = 14, w = spec.fall.width;
+      const w = spec.fall.width;
       const dx = fx - tx, dz = fz - tz, len = Math.hypot(dx, dz), sx = -dz / len, sz = dx / len;
-      const pos: number[] = [], uv: number[] = [];
-      for (let i = 0; i <= N; i++) {
-        const u = i / N, x = tx + dx * u, z = tz + dz * u;
-        const y = heightAt(x, z) + 0.16 + 0.12 * Math.sin(u * 9) * (1 - u), ww = w * (0.55 + 0.45 * u);
-        pos.push(x - sx * ww / 2, y, z - sz * ww / 2, x + sx * ww / 2, y, z + sz * ww / 2);
-        uv.push(0, u * 6, 1, u * 6);
-      }
-      const idx: number[] = [];
-      for (let i = 0; i < N; i++) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
-      const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
-      g.computeVertexNormals();
-      fallParts.push(g.toNonIndexed());
       for (let i = 0; i < 9; i++) {
         const u = rng.range(0.05, 0.95), side = i % 2 ? 1 : -1, r = rng.range(0.35, 0.8);
         const x = tx + dx * u + sx * side * (w * 0.7 + rng.range(0, 0.5)), z = tz + dz * u + sz * side * (w * 0.7 + rng.range(0, 0.5));
@@ -308,14 +296,12 @@ export class Cove {
     poolMesh.receiveShadow = true; poolMesh.renderOrder = 1;
     this.group.add(poolMesh);
 
-    const fall = mergeGeometries(fallParts, false);
-    fall.computeBoundingSphere();
-    const fmat = new THREE.MeshStandardMaterial({ color: new THREE.Color('#bfe6f0'), roughness: 0.5, metalness: 0, transparent: true, opacity: 0.92, side: THREE.DoubleSide });
-    this.patchFall(fmat);
-    this.sky.setupMaterial(fmat);
-    const fallMesh = new THREE.Mesh(fall, fmat);
-    fallMesh.renderOrder = 2;
-    this.group.add(fallMesh);
+    {
+      const [tx, tz] = spec.fall.top, [fx, fz] = spec.fall.foot, dx = fx - tx, dz = fz - tz, len = Math.hypot(dx, dz);
+      const px = fx + (dx / len) * 1.2, pz = fz + (dz / len) * 1.2;
+      this.fall = new Waterfall({ lip: new THREE.Vector3(tx, heightAt(tx, tz) + 0.3, tz), foot: new THREE.Vector3(px, heightAt(fx, fz) + 0.06, pz), width: 2.2 }).build();
+      this.group.add(this.fall.group);
+    }
 
     // ── colliders: the cave walls (a 2.5 m throat at the passage), the back wall, the outer mass ──
     const box = (lx: number, lz: number, hw: number, hd: number, y0: number, y1: number): void => {
@@ -375,31 +361,9 @@ export class Cove {
     mat.customProgramCacheKey = () => key;
   }
 
-  /** the cascade: bands of foam scroll down the ribbon (uv.y runs top → foot), with a little sideways wobble */
-  private patchFall(mat: THREE.MeshStandardMaterial) {
-    const u = this.uniforms;
-    mat.onBeforeCompile = (shader) => {
-      attachFogUniforms(shader);
-      shader.uniforms['uTime'] = u.uTime;
-      shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', '#include <common>\nvarying vec2 vFuv;')
-        .replace('#include <uv_vertex>', '#include <uv_vertex>\nvFuv = uv;');
-      shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', '#include <common>\nuniform float uTime; varying vec2 vFuv;')
-        .replace('#include <color_fragment>', `#include <color_fragment>
-          {
-            float band = 0.5 + 0.5 * sin((vFuv.y - uTime * 1.6) * 6.28 + sin(vFuv.x * 12.0 + uTime * 3.0) * 0.6);
-            float foam = smoothstep(0.55, 0.95, band) * 0.6 + smoothstep(0.85, 1.0, vFuv.y) * 0.4;
-            float edge = smoothstep(0.0, 0.18, vFuv.x) * smoothstep(1.0, 0.82, vFuv.x);
-            diffuseColor.rgb = mix(vec3(0.45, 0.72, 0.8), vec3(0.98, 1.0, 1.0), foam);
-            diffuseColor.a *= 0.55 + 0.45 * edge;
-          }`);
-    };
-    mat.customProgramCacheKey = () => 'cove-fall';
-  }
-
   update(dt: number): void {
     this.t += dt;
     this.uniforms.uTime.value = this.t;
+    this.fall?.update(dt);
   }
 }

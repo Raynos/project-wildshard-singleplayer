@@ -143,9 +143,9 @@ export class GroundCover {
     kind('tuft', tuftGeo, 5200, [0.9, 1.5],
       (h, sl, td) => (grass(h, sl) * 1.6 + beach(h) * 0.18 + this.dune(h) * 0.7) * off(td),
       (h, r, out) => { const b = beach(h); out.setRGB(1 + b * 0.35 + r.range(-0.08, 0.08), 1 + b * 0.12 + r.range(-0.06, 0.06), 1 - b * 0.35); });
-    kind('fern', fernGeo, 900, [0.7, 1.4], (h, sl, td, sd, palm) => (grass(h, sl) * (0.03 + jungle(sd) * 0.35) + this.edge(h, sl) * 0.2 + palm * 0.35) * off(td));
-    kind('hibiscus', hibGeo, 600, [0.8, 1.3], (h, sl, td, sd, palm) => (grass(h, sl) * (0.025 + jungle(sd) * 0.08) + this.edge(h, sl) * 0.12 + palm * 0.2) * off(td));
-    kind('daisy', daisyGeo, 700, [0.8, 1.4], (h, sl, td) => (grass(h, sl) * 0.07 + this.edge(h, sl) * 0.15) * off(td));
+    kind('fern', fernGeo, 1400, [0.7, 1.4], (h, sl, td, sd, palm) => (grass(h, sl) * (0.03 + jungle(sd) * 0.35) + this.edge(h, sl) * 0.45 + palm * 0.45) * off(td));
+    kind('hibiscus', hibGeo, 900, [0.8, 1.3], (h, sl, td, sd, palm) => (grass(h, sl) * (0.025 + jungle(sd) * 0.08) + this.edge(h, sl) * 0.3 + palm * 0.28) * off(td));
+    kind('daisy', daisyGeo, 800, [0.8, 1.4], (h, sl, td) => (grass(h, sl) * 0.07 + this.edge(h, sl) * 0.3) * off(td));
     kind('pebble', pebbleGeo, 400, [0.7, 1.5], (h, sl, td) => (grass(h, sl) * 0.03 + beach(h) * 0.05) * (0.4 + 0.6 * off(td)));
     // (E43) the beach: a shell / starfish / pebble scatter every 1-2 m on the sand, beach grass on the dune crest, and a
     // dense fringe of ferns, hibiscus, flowers and bushes along the sand -> grass edge and round every palm's foot
@@ -155,19 +155,21 @@ export class GroundCover {
         for (let i = 0; i < 5; i++) { const a0 = -0.9 + i * 0.36, a1 = a0 + 0.36; v.push(x, 0.02, z - r * 0.5, x + Math.sin(a0) * r, 0.02 + r * 0.25 * Math.cos(a0 * 1.2), z + Math.cos(a0) * r * 0.6, x + Math.sin(a1) * r, 0.02 + r * 0.25 * Math.cos(a1 * 1.2), z + Math.cos(a1) * r * 0.6); }
         k.add(tris(v), col, { jitter: 0.08 });
       };
-      const star = (x: number, z: number, r: number, col: string) => {
-        const v: number[] = [];
-        for (let a = 0; a < 5; a++) { const t = (a / 5) * Math.PI * 2, l = t + 0.63, rr = t - 0.63; v.push(x, 0.05, z, x + Math.cos(rr) * r * 0.35, 0.01, z + Math.sin(rr) * r * 0.35, x + Math.cos(t) * r, 0.01, z + Math.sin(t) * r, x, 0.05, z, x + Math.cos(t) * r, 0.01, z + Math.sin(t) * r, x + Math.cos(l) * r * 0.35, 0.01, z + Math.sin(l) * r * 0.35); }
-        k.add(tris(v), col, { jitter: 0.06 });
-      };
-      shell(0, 0, 0.09, '#f3e6d4'); shell(0.35, 0.25, 0.07, '#f0c9b8'); star(-0.3, 0.2, 0.12, '#e8622a');
+      shell(0, 0, 0.09, '#f3e6d4'); shell(0.35, 0.25, 0.07, '#f0c9b8'); shell(-0.28, 0.18, 0.06, '#e9dcc8');
       k.addTopped(rock(0.07, 0, rng, 0.6, 0.25), '#8d8a84', '#9a968e', { matrix: new THREE.Matrix4().makeTranslation(0.2, 0.01, -0.3), jitter: 0.08 });
       k.addTopped(rock(0.05, 0, rng, 0.6, 0.25), '#a7a39b', '#b0aca4', { matrix: new THREE.Matrix4().makeTranslation(-0.1, 0.01, -0.35), jitter: 0.08 });
     }, 0x6c06);
     kind('shells', shellGeo, 1600, [1.3, 2.3], (h) => beach(h) * 0.8,
       (_h, r, out) => { const v = r.next(); out.setRGB(v < 0.3 ? 1.0 : 1.05, v < 0.3 ? 0.85 : 1.0, 0.95); });
+    const starGeo = geo((k) => {
+      const v: number[] = [];
+      for (let a = 0; a < 5; a++) { const t = (a / 5) * Math.PI * 2, l = t + 0.63, rr = t - 0.63; v.push(0, 0.05, 0, Math.cos(rr) * 0.042, 0.01, Math.sin(rr) * 0.042, Math.cos(t) * 0.12, 0.01, Math.sin(t) * 0.12, 0, 0.05, 0, Math.cos(t) * 0.12, 0.01, Math.sin(t) * 0.12, Math.cos(l) * 0.042, 0.01, Math.sin(l) * 0.042); }
+      k.add(tris(v), '#f07a3a', { jitter: 0.06 });
+    }, 0x6c09);
+    kind('starfish', starGeo, 300, [1.1, 1.8], (h) => beach(h) * 0.09,
+      (_h, r, out) => { const v = r.next(); if (v < 0.25) out.setRGB(0.55, 0.45, 1.3); else if (v < 0.5) out.setRGB(1.05, 0.95, 0.6); else out.setRGB(1, 1, 1); });
     const bushGeo = geo(broadClump(rng, 1.0), 0x6c07);
-    kind('bush', bushGeo, 500, [0.7, 1.4], (h, sl, td, sd, palm) => (this.edge(h, sl) * 0.12 + palm * 0.25 + grass(h, sl) * 0.012) * off(td) + jungle(sd) * grass(h, sl) * 0.06);
+    kind('bush', bushGeo, 900, [0.8, 1.6], (h, sl, td, sd, palm) => (this.edge(h, sl) * 0.3 + palm * 0.3 + grass(h, sl) * 0.015) * off(td) + jungle(sd) * grass(h, sl) * 0.06);
     this.buildDriftwood();
     this.group.name = 'ground-cover';
     return this;
