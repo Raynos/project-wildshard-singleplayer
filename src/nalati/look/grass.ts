@@ -44,7 +44,7 @@ const PHONE = TIER === 'phone';
 interface RingCfg { T: number; G: number; s: number; w: number; seg: number }
 const RINGS: RingCfg[] = PHONE
   ? [{ T: 4, G: 8, s: 0.08, w: 0.045, seg: 3 }, { T: 8, G: 12, s: 0.2, w: 0.1, seg: 2 }, { T: 16, G: 14, s: 0.45, w: 0.2, seg: 1 }]
-  : [{ T: 4, G: 8, s: 0.055, w: 0.032, seg: 4 }, { T: 8, G: 14, s: 0.14, w: 0.075, seg: 3 }, { T: 16, G: 18, s: 0.32, w: 0.15, seg: 2 }];
+  : [{ T: 4, G: 8, s: 0.06, w: 0.034, seg: 3 }, { T: 8, G: 14, s: 0.15, w: 0.08, seg: 3 }, { T: 16, G: 18, s: 0.34, w: 0.16, seg: 2 }];
 const FLOWERS = PHONE ? { T: 8, G: 10, s: 0.3 } : { T: 8, G: 14, s: 0.22 };
 const MAX_TILES = 256;
 
