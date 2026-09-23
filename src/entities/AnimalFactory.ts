@@ -7,8 +7,7 @@ import { bakedTexture } from '../boot/bakedTextures';
 import { speciesDef, variantDef, type SpeciesDef, type VariantDef, type AnimalDims, type BoneDef, type FurStyle } from './species/registry';
 import { setLowPoly } from './species/loft';
 import { facetGeometry, lowPolyMaterials } from './lowpoly';
-import { preloadCreatureGlbs, creatureHull, skinCreatureGlb } from './glbCreatures';
-import { loadModelRaw } from '../world/nalati/glbPaint';
+import { preloadCreatureGlbs, creatureHull, skinCreatureGlb, loadCreatureRig } from './glbCreatures';
 import { painterlyAnimalMaterial } from './painterlyAnimals';
 
 // every species file registers itself on import: drop `src/entities/species/<kind>.ts` in and it exists
@@ -257,7 +256,7 @@ export class AnimalFactory {
     const m = this.models.get(key), rigs = this.pendingRigs.get(key);
     this.pendingRigs.delete(key);
     if (!m) return;
-    const hull = skinCreatureGlb(m.kind, m.variant, m.geometry);
+    const hull = skinCreatureGlb(m.kind, m.variant, m.bones);
     if (!hull) return;
     const old = m.geometry;
     m.geometry = hull.geometry; m.map = hull.map;
@@ -307,13 +306,13 @@ export class AnimalFactory {
       // a generated hull skinned to this skeleton (?creatures=glb, glbCreatures.ts). While it is still loading the
       // procedural mesh stands in, and every rig made from it is upgraded in place when the hull arrives (upgradeHull)
       const hullName = creatureHull(kind, v.id);
-      const hull = hullName !== null ? skinCreatureGlb(kind, v.id, geometry) : null;
+      const hull = hullName !== null ? skinCreatureGlb(kind, v.id, sp.bones) : null;
       if (hull) { geometry.dispose(); geometry = hull.geometry; }
       m = { kind, variant: v.id, style: 'painterly', species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur: mat, hard: mat, eye: mat, shells: [], map: hull?.map ?? null };
       this.models.set(key, m);
       if (hullName !== null && !hull) {
         this.pendingRigs.set(key, []);
-        loadModelRaw(hullName).then(() => { this.upgradeHull(key); return null; }).catch(() => { this.pendingRigs.delete(key); });
+        loadCreatureRig(hullName).then(() => { this.upgradeHull(key); return null; }).catch(() => { this.pendingRigs.delete(key); });
       }
       return m;
     }
