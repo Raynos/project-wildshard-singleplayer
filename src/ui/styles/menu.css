@@ -58,7 +58,6 @@
 .ws-menu .ws-menu-sound::after { content: ''; display: inline-block; width: 6px; height: 6px; background: var(--ws-cyan); margin-left: 10px; box-shadow: 0 0 8px var(--ws-cyan); vertical-align: 1px; }
 .ws-menu .ws-menu-sound.off::after { background: transparent; border: 1px solid var(--ws-cyan-dim); box-shadow: none; }
 .ws-menu .ws-menu-settings { padding: 3px 9px; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.06); border: 1px solid var(--ws-cyan-line); font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-cyan); pointer-events: auto; cursor: pointer; flex: none; white-space: nowrap; } /* main menu ▸ Settings (src/ui/BootSettings.ts, E55) */
-.ws-menu .ws-menu-credit { padding: 4px 6px; font-size: 9px; line-height: 1.6; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-text-dim); opacity: 0.7; } /* the MiniMax-Music3 licence credit (project/archive/2026-09-23-music.md v3) */
 
 /* ─── title screen on a phone-width viewport: the deck fills the lower third, world above ─── */
 @media (max-width: 700px) {
@@ -80,7 +79,7 @@
   .ws-menu-mode b { font-size: 16px; letter-spacing: 0.14em; }
   .ws-menu .ws-menu-row { margin-top: 8px; }
   .ws-menu .ws-menu-sound, .ws-menu .ws-menu-settings { font-size: 9px; }
-  .ws-menu .ws-menu-row { gap: 12px; align-items: center; padding: 0 14px; } /* SETTINGS + SOUND + the credit fit 390 px */
+  .ws-menu .ws-menu-row { gap: 12px; align-items: center; padding: 0 14px; } /* SETTINGS + SOUND on one row (the credits moved to Settings ▸ Credits, E64) */
   .ws-menu .ws-menu-sound { flex: none; white-space: nowrap; }
 }
 

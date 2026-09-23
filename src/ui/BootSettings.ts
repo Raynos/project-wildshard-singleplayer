@@ -14,7 +14,8 @@ import { AUTO_TIER, TIER, gfxPrefs, saveGfxPrefs } from '../core/tier';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { getActiveChunk } from '../chunks/registry';
 import { askReload } from './ReloadPrompt';
-import { BOOT_OPTIONS, pendingReload, saveSetting, savedSetting, setting, settingFromUrl, settingParams, settingsReloadUrl, type OptionKey, type OptionValue } from './Settings';
+import { MUSIC_CREDIT, sfxCredit } from '../audio/credits';
+import { BOOT_OPTIONS, getSfxSet, pendingReload, saveSetting, savedSetting, setting, settingFromUrl, settingParams, settingsReloadUrl, type OptionKey, type OptionValue } from './Settings';
 
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
 
@@ -111,6 +112,9 @@ function build(): HTMLElement {
   const overridden = BOOT_OPTIONS.filter((k) => settingFromUrl(k));
   if (overridden.length > 0) p.append(el('ws-gmenu-note', `This load’s address sets ${overridden.map((k) => `${optionLabel(k)} (?${settingParams(k).join(' / ?')})`).join(', ')}; Apply &amp; reload drops it.`));
   p.append(status, apply);
+  // credits (E64 — Jake: "get that music attribution out of here and move it to a dedicated credits page"): the title used to
+  // print them under the cards; they live here now, and in the pause menu ▸ Settings ▸ Audio next to the pickers
+  p.append(el('ws-gmenu-label', 'Credits'), ...[MUSIC_CREDIT, sfxCredit(getSfxSet())].filter((t) => t !== '').map((t) => el('ws-gmenu-note', t)));
 
   apply.addEventListener('click', () => {
     const next = settingsReloadUrl(location.href, TITLE_SKIPPERS);

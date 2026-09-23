@@ -3,9 +3,7 @@ import { CHUNKS, getActiveChunk, chunkUrl } from '../chunks/registry';
 import { PLACEHOLDERS } from '../chunks/placeholders';
 import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
-import { getSfxSet } from './Settings';
 import { openBootSettings } from './BootSettings';
-import { MUSIC_CREDIT, sfxCredit } from '../audio/credits';
 
 /**
  * HUD — DOM overlay in `#hud`, styled by `src/ui/styles/game.css` / `menu.css` (the in-game menu is src/ui/Menu.ts + gmenu.css) on top of `base.css` (Wildshard glass identity; one class prefix per screen, see scripts/check-css.mjs).
@@ -456,7 +454,7 @@ export class HUD {
           <button class="ws-menu-mode ws-menu-play" type="button"><span class="ws-menu-mode-glyph">${GLYPH_SWORD}</span><b>Enter world</b><small></small></button>
           <button class="ws-menu-mode ws-menu-explore" type="button"><span class="ws-menu-mode-glyph">${GLYPH_EYE}</span><b>Explore world</b><small>Fly · inspect</small></button>
         </div>
-        <div class="ws-menu-row"><button class="ws-menu-settings" type="button">Settings</button><div class="ws-menu-sound">Sound on</div><div class="ws-menu-credit">${[MUSIC_CREDIT, sfxCredit(getSfxSet())].filter((t) => t !== '').join(' · ')}</div></div>
+        <div class="ws-menu-row"><button class="ws-menu-settings" type="button">Settings</button><div class="ws-menu-sound">Sound on</div></div>
       </div>`;
     const hero = q(intro, '.ws-menu-hero');
     const list = q(intro, '.ws-menu-cards');
