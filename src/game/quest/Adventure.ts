@@ -23,6 +23,7 @@ import type { PoiId, Place } from '../../world/interact/types';
 import { ITEMS, type ItemId } from '../Inventory';
 import type { Audio } from '../../audio/Audio';
 import { IslandSfx } from '../../audio/IslandSfx';
+import { installSpine, type Spine } from './Spine';
 
 /** a named point a model module exports (`anchors`, world coords) for the adventure to place things at */
 export interface Anchor { x: number; y?: number; z: number; yaw?: number }
@@ -54,6 +55,8 @@ export interface AdventureWorld<A extends { kind: string; position: THREE.Vector
 export interface Adventure {
   flags: Flags;
   kit: Interactables;
+  /** the quest spine (A1): quest state, objective line, the castaway — set once installed */
+  spine: Spine | null;
   place: (p: Place) => { x: number; y: number; z: number; yaw: number };
   floorAt: (x: number, z: number) => number;
 }
@@ -131,7 +134,8 @@ export function installAdventure<A extends { kind: string; position: THREE.Vecto
     }
   }
 
-  const adventure: Adventure = { flags, kit, place, floorAt };
+  const adventure: Adventure = { flags, kit, place, floorAt, spine: null };
+  adventure.spine = installSpine(adventure, w);
   Object.assign(window, { __adventure: adventure });
   return adventure;
 }
