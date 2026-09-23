@@ -29,8 +29,8 @@ export function inPoiClearing(x: number, z: number, margin = 0): boolean {
  *  dressing's flowers / stones may still sit in it, so it is not a POI clearing */
 export const PASTURE_CLEARING: Clearing = { x: -120, z: 205, r: 44 };
 
-/** where no spruce may grow: every POI clearing + the sheep pasture (the chunk def's `forest.mask`) */
+/** where no spruce may grow: every POI clearing (+ 8 m: no lone tree at the camp yard's edge) + the sheep pasture (the chunk def's `forest.mask`) */
 export function inSpruceClearing(x: number, z: number): boolean {
   const dx = x - PASTURE_CLEARING.x, dz = z - PASTURE_CLEARING.z;
-  return dx * dx + dz * dz < PASTURE_CLEARING.r * PASTURE_CLEARING.r || inPoiClearing(x, z, 4);
+  return dx * dx + dz * dz < PASTURE_CLEARING.r * PASTURE_CLEARING.r || inPoiClearing(x, z, 8);
 }
