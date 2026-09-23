@@ -142,3 +142,18 @@ and replaces the 4-row quest block. **G:** one chip, "GLYPH SHARDS 0/3 | SEA CAV
 ring (objective diamond + "230 M" at its bearing, a "SHARDS 0/3" tab under the ring, a dim "SEA CAVE" line). **I:** a CoD-style
 waypoint in the world ("SEA CAVE 230 M") plus a "SHARDS 0/3" pill. `board.jpg` = BEFORE + G/H/I. None re-rolled; G garbled
 the untouched ATTACK sub-label.
+
+### Lock-on HUD (`art/combat/round-1-lockon/`, 2026-09-23, E50)
+
+codex edits of one live 390×844 capture of the crab tidepool north of the wreck (`before-live.jpg`; `ref-clean.jpg` is the
+same frame with the lunge brackets and HP tag hidden, the edit source), with E46's 45 / 55 bar split injected from the
+working tree. HUD-only edits: the world is kept as captured. Plan: `docs/plans/LOCK-ON.md` (draft).
+**Board 1 (`board-1-button.jpg`, LOCK button, "available" state):** **J** a LOCK disc on the right-thumb arc left of DODGE,
+**K** a LOCK chip on top of the LOOK pad, **L** no button (a "TAP TO LOCK" ring on the enemy), **M** a LOCK | HOVER split pill.
+**Board 2 (`board-2-locked.jpg`, the locked view):** **N** Zelda ▼ + corner brackets + "REEF CRAB" tag, edge chevron "4 M",
+SWITCH pad, ORBIT stick; **O** ring reticle, fixed top banner, hollow diamonds on the other crabs, FLICK pad; **P** a ground
+ring, "REEF CRAB · 3 M" under the crosshair, bare chevron, vignette; **Q** a dot reticle that turns amber on a wind-up, a
+bottom banner. **Board 3 (`board-3-storyboards.jpg`, N's language, captured at 3 poses):** **R1→R2** flick left on the pad,
+the lock jumps to the next crab; **S1→S2** hold MOVE left, circle the crab. Re-rolled: J and K (the first J put LOCK
+inside the bar and shoved DODGE along; the first K garbled the quest title into "WRETCHED ISLE"), L (dropped the quest title), O (LOCK
+inside the bar), R1 / R2 / S1 / S2 (LOCK and DODGE drifted into the bar; the storyboards now carry no LOCK disc).
