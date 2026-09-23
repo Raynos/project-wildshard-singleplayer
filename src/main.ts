@@ -410,7 +410,6 @@ async function main() {
   if (skinParam && skinParam in SKINS) { const s = SKINS[skinParam as SkinId]; skins.own(s.id); wearSkin(s); if (s.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle', true); } }
   if (dropParam && dropParam in SKINS) { const f = 4.5; spawnSkinDrop(SKINS[dropParam as SkinId], new THREE.Vector3(player.position.x - Math.sin(player.yaw) * f, 0, player.position.z - Math.cos(player.yaw) * f)); }
   new Combat(game, animals, weapons, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
-  animals.onSound = (name, pos) => audio.animal(name, pos, player.position, player.yaw);
   // taking a hit (B3): the arc points at the attacker (src/ui/HurtArc.ts), a hurt grunt panned toward it (Audio.hurt — it
   // used to be the landing thud), and the killer is remembered for the death toast (B2)
   const hurtArc = new HurtArc();
@@ -428,6 +427,7 @@ async function main() {
   const islandSfx = sea ? new IslandSfx(audio) : null;
   const surfaces = sea ? new SurfaceMap({ sea: sea.level, heightAt, trailDistance, decks: [pier, ...jetties, boat, hut, lookout, bridge, wreck], stone: [shrine] }) : null;
   // the island's zoned soundscape + reverb rooms (S1 / S2): surf on the shoreline, palms, jungle, cove + waterfall, lookout wind; hold / cave / shrine reverb
+  animals.onSound = (name, pos) => { if (!islandSfx?.animal(name, pos)) audio.animal(name, pos, player.position, player.yaw); }; // the island's enemies from the bank (S3)
   const ambience = sea ? new IslandAmbience(audio, { sea: sea.level, heightAt, palms: palmSpecs, wreck, cove: Cove.forIsland() }) : null;
   player.onStep = (sprinting) => {
     const p = player.position;

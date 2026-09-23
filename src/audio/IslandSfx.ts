@@ -14,6 +14,8 @@
  *   sfx.vocal(enemy, at, intensity?)    // 'boar' grunt · 'crab' clack · 'monkey' screech · 'sailor' moan (aggro / hurt barks)
  *   sfx.windup(enemy, at)               // the telegraph, as the wind-up pose starts: 'boar' hoof scrape · 'crab' claw raise · 'sailor' lantern flare
  *   sfx.plunge(up)                      // crossing the water surface (Player.onSubmerge → false, onSurface → true), over audio.dive()/surface()
+ *   sfx.animal(name, at)                // AnimalManager.onSound on the island: the enemies' calls from the bank (boar grunt, crab
+ *                                       //   clack, monkey shriek, sailor moan); false = not covered, play audio.animal()
  *
  * Player hurt / death are on Audio itself (both shards): `audio.hurt(intensity)`, `audio.death()`.
  */
@@ -77,6 +79,14 @@ export class IslandSfx {
 
   windup(enemy: WindupEnemy, at?: At): void {
     this.audio.voices.play(`windup-${enemy}`, { gain: WINDUP_LEVEL[enemy], at });
+  }
+
+  /** the island's creature calls (AnimalManager.onSound names) from the bank; returns false for a name it does not cover */
+  animal(name: string, at: At): boolean {
+    const e: Enemy | undefined = name === 'boar_grunt' ? 'boar' : name === 'crab_click' ? 'crab' : name === 'monkey_shriek' ? 'monkey' : name === 'sailor_groan' ? 'sailor' : undefined;
+    if (e === undefined) return false;
+    this.vocal(e, at);
+    return true;
   }
 
   plunge(up: boolean): void { this.audio.voices.play(up ? 'plunge-up' : 'plunge-down', { gain: up ? 0.35 : 0.5 }); }
