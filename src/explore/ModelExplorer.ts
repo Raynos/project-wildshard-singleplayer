@@ -27,6 +27,8 @@ const THUMB_W = 240, THUMB_H = 180;
 
 /** a mesh with three's default generics (instanceof narrows to Mesh<any>) */
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
+/** 86 tris · 5.3k tris */
+const trisLabel = (n: number): string => (n < 1000 ? `${n} tris` : `${(n / 1000).toFixed(1)}k tris`);
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
 
 export class ModelExplorer implements ExplorePane {
@@ -35,6 +37,8 @@ export class ModelExplorer implements ExplorePane {
   private readonly sheet: HTMLElement;
   private readonly studio = new THREE.Group();
   private readonly floor: THREE.Group;
+  private readonly contact: THREE.Mesh;
+  private savedBackground: THREE.Scene['background'] | undefined;
   private current: CatalogEntry | null = null;
   private filter: Category | 'all' = 'all';
   private view: View = 'solid';
@@ -80,13 +84,23 @@ export class ModelExplorer implements ExplorePane {
     this.sheet.querySelector('.ws-x-back')?.addEventListener('click', () => { this.openCatalog(); });
     this.sheet.querySelector('.ws-x-inworld')?.addEventListener('click', () => { const e = this.current; if (e) this.explore.viewInWorld(e); });
 
-    // the turntable floor: a dark glass disc, a cyan rim and a faint grid, sized to the model
+    // the studio (X11, target art/build-world/round-6-midway/07): a dark floor whose grid fades into the dark, a raised
+    // glass disc with a glowing cyan rim (HDR colour → the bloom picks it up), a soft contact shadow; the day sky is
+    // swapped for a deep blue gradient while a model is on show (studioBackdrop). Everything unit-sized; frameModel scales it.
     this.floor = new THREE.Group();
-    const disc = new THREE.Mesh(new THREE.CircleGeometry(1, 64).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x0b1622, transparent: true, opacity: 0.88, depthWrite: false, fog: false }));
-    const rim = new THREE.Mesh(new THREE.RingGeometry(0.985, 1.0, 96).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x8fe3ff, transparent: true, opacity: 0.9, fog: false, toneMapped: false }));
-    const grid = new THREE.GridHelper(2, 16, 0x2a5a70, 0x1a3444); (grid.material as THREE.Material).transparent = true; (grid.material as THREE.Material).opacity = 0.5;
-    rim.position.y = 0.004; grid.position.y = 0.002;
-    this.floor.add(disc, rim, grid);
+    const grid = new THREE.Mesh(new THREE.PlaneGeometry(7, 7).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: fadingGrid(), transparent: true, opacity: 0.55, depthWrite: false, fog: false }));
+    grid.position.y = -0.002;
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.04, 0.06, 72), new THREE.MeshStandardMaterial({ color: 0x0e2233, metalness: 0.55, roughness: 0.28 }));
+    disc.position.y = -0.03; disc.receiveShadow = true;
+    world.sky.setupMaterial(disc.material);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(1.03, 0.012, 8, 128).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial({ color: new THREE.Color(0x8fe3ff).multiplyScalar(2.6), fog: false, toneMapped: false }));
+    rim.position.y = 0.002;
+    const glow = new THREE.Mesh(new THREE.RingGeometry(1.0, 1.35, 96).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: rimGlow(), transparent: true, depthWrite: false, fog: false, toneMapped: false, blending: THREE.AdditiveBlending }));
+    glow.position.y = -0.001;
+    this.contact = new THREE.Mesh(new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: contactShadow(), transparent: true, depthWrite: false, fog: false, opacity: 0.75 }));
+    this.contact.position.y = 0.004;
+    this.floor.add(grid, disc, glow, rim);
+    this.studio.add(this.contact);
     this.studio.add(this.floor);
     this.studio.visible = false;
     world.game.scene.add(this.studio);
@@ -144,7 +158,7 @@ export class ModelExplorer implements ExplorePane {
     box.replaceChildren();
     for (const e of this.entries) {
       if (this.filter !== 'all' && e.category !== this.filter) continue;
-      const card = html('button', 'ws-x-model', `<span class="ws-x-model-thumb"></span><b>${e.name}</b><small>${e.live ? `${(measure(e.object()).tris / 1000).toFixed(1)}k tris` : 'built on view'}</small>`);
+      const card = html('button', 'ws-x-model', `<span class="ws-x-model-thumb"></span><b>${e.name}</b><small>${e.live ? trisLabel(measure(e.object()).tris) : 'built on view'}</small>`);
       (card as HTMLButtonElement).type = 'button';
       const thumb = this.thumbs.get(e.id);
       if (thumb) card.querySelector('.ws-x-model-thumb')?.append(thumb);
@@ -185,9 +199,9 @@ export class ModelExplorer implements ExplorePane {
 
   /** show only `o` (+ the sky, the lights, the studio floor) */
   private isolate(o: THREE.Object3D): void {
-    const { scene, sky } = this.world.game;
-    const keep = new Set<THREE.Object3D>([this.studio, sky.clouds, sky.sunDisc, sky.planet]);
-    if (sky.stylized) keep.add(sky.stylized.dome);
+    const { scene } = this.world.game;
+    const keep = new Set<THREE.Object3D>([this.studio]);
+    if (this.savedBackground === undefined) { this.savedBackground = scene.background; scene.background = studioBackdrop(); }
     let root: THREE.Object3D = o;
     while (root.parent && root.parent !== scene) root = root.parent;
     keep.add(root);
@@ -203,6 +217,7 @@ export class ModelExplorer implements ExplorePane {
     for (const [c, v] of this.hidden) c.visible = v;
     this.hidden.clear();
     this.studio.visible = false;
+    if (this.savedBackground !== undefined) { this.world.game.scene.background = this.savedBackground; this.savedBackground = undefined; }
   }
 
   private frameModel(o: THREE.Object3D): void {
@@ -210,11 +225,15 @@ export class ModelExplorer implements ExplorePane {
     const size = box.getSize(new THREE.Vector3()), centre = box.getCenter(new THREE.Vector3());
     const r = Math.max(size.x, size.z) * 0.5;
     this.floor.position.set(centre.x, box.min.y, centre.z);
-    this.floor.scale.setScalar(Math.max(1.5, r * 1.35));
-    this.target.copy(centre);
+    this.floor.scale.setScalar(Math.max(0.8, r * 1.18));
+    this.contact.position.set(centre.x, box.min.y + 0.004, centre.z);
+    this.contact.scale.set(Math.max(0.4, size.x * 0.62), 1, Math.max(0.4, size.z * 0.62));
+    // aim below the centre so the model rides above the bottom sheet
+    this.target.copy(centre); this.target.y -= size.y * 0.18;
     const cam = this.world.game.camera;
-    const fit = box.getBoundingSphere(new THREE.Sphere()).radius / Math.sin((cam.fov * Math.PI) / 360) * (cam.aspect < 1 ? 1.25 / Math.max(0.5, cam.aspect) : 1.05);
-    this.dist = fit; this.minDist = Math.max(0.6, fit * 0.12); this.maxDist = fit * 3;
+    const vHalf = Math.tan((cam.fov * Math.PI) / 360), hHalf = vHalf * cam.aspect;
+    const fit = Math.max(r / (0.8 * hHalf), (size.y * 0.5) / (0.55 * vHalf)) + r * 0.6; // ≈ 60 % of a portrait screen's width
+    this.dist = fit; this.minDist = Math.max(0.6, fit * 0.15); this.maxDist = fit * 3;
     // open on the lit side: the camera sits between the sun and the model, a little off-axis so the form reads
     const sun = this.world.game.sky.sunDir;
     this.yaw = Math.atan2(sun.x, sun.z) + 0.55; this.pitch = 0.3; this.idle = 0;
@@ -266,7 +285,8 @@ export class ModelExplorer implements ExplorePane {
     TIERS.forEach((tier, i) => {
       let t = byTier.get(tier);
       if (!t) { t = build(tier); byTier.set(tier, t); }
-      t.position.set((i - (TIERS.length - 1) / 2) * gap * 2, 0, 0); // batch members are built in world space: offset from where the one on show stands
+      const k = (i - (TIERS.length - 1) / 2) * gap * 2; // along the camera's right axis, so the two never stand one behind the other
+      t.position.set(Math.cos(this.yaw) * k, 0, -Math.sin(this.yaw) * k); // batch members are built in world space: offset from where the one on show stands
       this.studio.add(t);
       const m = measure(t);
       const label = html('div', 'ws-x-tierlabel', `<b>${tier}</b><small>${m.tris.toLocaleString()} tris</small>`);
@@ -363,7 +383,7 @@ export class ModelExplorer implements ExplorePane {
     const e = this.current;
     if (e) {
       this.idle += dt;
-      if (this.idle > 2.5 && !this.drag) this.yaw += dt * 0.22; // the turntable turns while you look
+      if (this.idle > 2.5 && !this.drag && this.tierShown.length === 0) this.yaw += dt * 0.22; // the turntable turns while you look (not while comparing tiers)
       const cp = Math.cos(this.pitch);
       camera.position.set(this.target.x + Math.sin(this.yaw) * cp * this.dist, this.target.y + Math.sin(this.pitch) * this.dist, this.target.z + Math.cos(this.yaw) * cp * this.dist);
       camera.lookAt(this.target);
@@ -397,7 +417,11 @@ export class ModelExplorer implements ExplorePane {
     this.isolate(o);
     this.frameModel(o);
     const cp = Math.cos(this.pitch);
-    const d = this.dist * (cam.aspect < 1 ? 0.5 : 0.68); // the thumbnail is a centre crop of the frame: frame tighter
+    // the card is a 4:3 centre crop: on a portrait screen it spans the full width (frameModel's width fit holds), on a
+    // landscape one the full height — frame on the model's own centre, not the turntable's raised aim
+    const bb = new THREE.Box3().setFromObject(o);
+    bb.getCenter(this.target);
+    const d = this.dist * (cam.aspect < 1 ? 1.08 : 0.8);
     cam.position.set(this.target.x + Math.sin(this.yaw) * cp * d, this.target.y + Math.sin(this.pitch) * d, this.target.z + Math.cos(this.yaw) * cp * d);
     cam.lookAt(this.target);
     game.composer.render(0);
@@ -412,6 +436,66 @@ export class ModelExplorer implements ExplorePane {
     const slot = this.grid.querySelector(`.ws-x-model[data-id="${e.id}"] .ws-x-model-thumb`);
     if (slot && !slot.firstChild) slot.append(c);
     const small = this.grid.querySelector(`.ws-x-model[data-id="${e.id}"] small`);
-    if (small && !e.live) small.textContent = `${(measure(o).tris / 1000).toFixed(1)}k tris`;
+    if (small && !e.live) small.textContent = trisLabel(measure(o).tris);
   }
+}
+
+/** the studio's backdrop: deep blue at the horizon line, near-black above and below (a canvas the renderer stretches to the screen) */
+let backdrop: THREE.CanvasTexture | null = null;
+function studioBackdrop(): THREE.CanvasTexture {
+  if (backdrop) return backdrop;
+  const c = document.createElement('canvas'); c.width = 4; c.height = 256;
+  const g = c.getContext('2d');
+  if (g) {
+    const v = g.createLinearGradient(0, 0, 0, 256);
+    v.addColorStop(0, '#04080f'); v.addColorStop(0.42, '#0d2236'); v.addColorStop(0.58, '#123049'); v.addColorStop(1, '#03060b');
+    g.fillStyle = v; g.fillRect(0, 0, 4, 256);
+  }
+  backdrop = new THREE.CanvasTexture(c); backdrop.colorSpace = THREE.SRGBColorSpace;
+  return backdrop;
+}
+
+/** a cyan grid on the studio floor that fades out radially into the dark */
+function fadingGrid(): THREE.CanvasTexture {
+  const n = 512, c = document.createElement('canvas'); c.width = c.height = n;
+  const g = c.getContext('2d');
+  if (g) {
+    g.strokeStyle = 'rgba(110, 190, 230, 0.35)'; g.lineWidth = 1;
+    const step = n / 20;
+    g.beginPath();
+    for (let i = 0; i <= 20; i++) { const p = Math.round(i * step) + 0.5; g.moveTo(p, 0); g.lineTo(p, n); g.moveTo(0, p); g.lineTo(n, p); }
+    g.stroke();
+    g.globalCompositeOperation = 'destination-in';
+    const r = g.createRadialGradient(n / 2, n / 2, n * 0.08, n / 2, n / 2, n * 0.5);
+    r.addColorStop(0, 'rgba(0,0,0,0.8)'); r.addColorStop(0.4, 'rgba(0,0,0,0.25)'); r.addColorStop(0.75, 'rgba(0,0,0,0)');
+    g.fillStyle = r; g.fillRect(0, 0, n, n);
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  return t;
+}
+
+/** a soft halo just outside the disc's rim */
+function rimGlow(): THREE.CanvasTexture {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 4;
+  const g = c.getContext('2d');
+  if (g) {
+    const v = g.createLinearGradient(0, 0, 256, 0);
+    v.addColorStop(0, 'rgba(143, 227, 255, 0.55)'); v.addColorStop(0.25, 'rgba(143, 227, 255, 0.18)'); v.addColorStop(1, 'rgba(143, 227, 255, 0)');
+    g.fillStyle = v; g.fillRect(0, 0, 256, 4);
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+/** a radial dark blob: the soft contact shadow under the model (the sun's CSM shadow lands on the disc too) */
+function contactShadow(): THREE.CanvasTexture {
+  const n = 128, c = document.createElement('canvas'); c.width = c.height = n;
+  const g = c.getContext('2d');
+  if (g) {
+    const r = g.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
+    r.addColorStop(0, 'rgba(0, 4, 10, 0.85)'); r.addColorStop(0.5, 'rgba(0, 4, 10, 0.45)'); r.addColorStop(1, 'rgba(0, 4, 10, 0)');
+    g.fillStyle = r; g.fillRect(0, 0, n, n);
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  return t;
 }
