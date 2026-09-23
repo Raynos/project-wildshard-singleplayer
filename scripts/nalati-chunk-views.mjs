@@ -47,18 +47,18 @@ try {
       for (const c of cam.children) c.visible = false;
     });
   });
-  await new Promise((r) => { setTimeout(r, 12000); });
+  await new Promise((resolve) => { setTimeout(resolve, 12000); });
   for (const v of VIEWS) {
     await page.evaluate((vv) => {
       window.__cv = vv;
       // stream the world around the camera (grass, dressing and culling follow the player)
       window.__world.player.spawn(vv.cam[0], vv.cam[2], 0);
     }, v);
-    await new Promise((r) => { setTimeout(r, 6000); });
+    await new Promise((resolve) => { setTimeout(resolve, 6000); });
     writeFileSync(resolvePath(OUT, `capture-${v.id}.jpg`), await page.screenshot({ type: 'jpeg', quality: 86 }));
     console.log(`captured ${v.id}`);
   }
-  if (errors.length) console.log('page errors:', errors.slice(0, 3).join(' | '));
+  if (errors.length > 0) console.log('page errors:', errors.slice(0, 3).join(' | '));
 } finally {
   await browser.close();
 }
