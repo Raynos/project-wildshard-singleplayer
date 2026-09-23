@@ -12,6 +12,7 @@ import { HORSE_SPEED } from '../entities/species/horse';
 import { GHOST_RIDER, riderGeometry, ghostSeat, ghostRiderPoints } from '../entities/species/ghostRider';
 import { Projectiles, type ProjectileKind } from '../player/Projectiles';
 import { NightParticles, FLAG_RISE, FLAG_GROW } from './nightFx';
+import { BOWL } from '../chunks/nalatiLayout';
 
 /**
  * Ghost riders — the night half of row B11 (docs/plans/NALATI.md; elites-and-bosses.md E5; mockups
@@ -54,11 +55,12 @@ interface Rider {
 interface Line { riders: Rider[]; s: number; mode: 'patrol' | 'engage'; theta: number; dir: number; engagedT: number }
 interface GhostMat { mat: THREE.MeshLambertMaterial; fade: THREE.IUniform<number> }
 
-/** the ridge loop the lines ride (x, z; +x = west, +z = north): along the escarpment rim, round the Sky Grassland */
-const RIDGE: readonly (readonly [number, number])[] = [
-  [175, -44], [110, -50], [40, -47], [-30, -45], [-100, -40], [-165, -46], [-212, -80], [-214, -124], [-158, -150],
-  [-100, -176], [-35, -192], [30, -184], [92, -168], [158, -150], [204, -112], [206, -72],
-];
+/** the ridge loop the lines ride (x, z; +x = west, +z = north): round the Sky Grassland's bowl just inside its rims
+ *  (layout v2: the bowl's squircle, src/chunks/nalatiLayout.ts BOWL, at 85 % of its size), 16 points */
+const RIDGE: readonly (readonly [number, number])[] = Array.from({ length: 16 }, (_, i): readonly [number, number] => {
+  const t = (i / 16) * Math.PI * 2, c = Math.cos(t), sn = Math.sin(t);
+  return [BOWL.x + BOWL.ax * 0.85 * Math.sign(c) * Math.abs(c) ** (2 / 3), BOWL.z + BOWL.az * 0.85 * Math.sign(sn) * Math.abs(sn) ** (2 / 3)];
+});
 const SPACING = 11, CIRCLE_R = 34, ENGAGE = 70, DISENGAGE = 115, SHOOT = 62;
 const ARROW_SPEED = 34, ARROW_G = 5, ARROW_DMG = 10, RESPAWN = 60;
 const GALLOP = 11.5;

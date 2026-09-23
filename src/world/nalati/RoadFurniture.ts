@@ -1,7 +1,7 @@
 /**
  * RoadFurniture — split-rail fences along the valley roads (the N road from the gate to the bridge, the camp spur,
  * keeping the sheep pasture off the road) and carved signposts at the junctions (the camp turn, the foot of the sky
- * road, the rim where the sky road tops out, the kurgan turn on the E road). The posts and boards are in the merged
+ * road, the gateway where it tops out, the bowl's crossroads, the E road's turn). The posts and boards are in the merged
  * POI mesh; the lettering is one small canvas atlas on one extra mesh (a painterly material with a map).
  *
  *   const roads = buildRoadFurniture(ctx);   // PoiPiece (object = a group of the two meshes)
@@ -11,6 +11,7 @@ import { PaintKit, M, pole, v3 } from './paint';
 import { addFence, PC } from './props';
 import { painterlyMaterial } from '../painterly';
 import { CAMP } from './layout';
+import { PASTURE, HORSE_PLAINS, KOKPAR, EAGLE_ROCK, SUMMER_YURTS, WATCHTOWER, KURGANS } from '../../chunks/nalatiLayout';
 import type { Collider } from '../../player/Player';
 import type { PoiCtx, PoiPiece } from './types';
 
@@ -19,13 +20,18 @@ interface Signpost { x: number; z: number; boards: Board[] }
 
 const dirTo = (x0: number, z0: number, x1: number, z1: number) => Math.atan2(x1 - x0, z1 - z0);
 /** compass directions as `dir` yaws: +z north, +x west */
-const N = 0, S = Math.PI, W = Math.PI / 2, E = -Math.PI / 2;
+const N = 0, S = Math.PI, W = Math.PI / 2;
 
+/** the kurgan field's middle (the mounds other than the great one) */
+const KF = KURGANS.filter((k) => k.great !== true).reduce((a, k, _, l) => ({ x: a.x + k.x / l.length, z: a.z + k.z / l.length }), { x: 0, z: 0 });
+/** signposts at the junctions of layout v2 (src/chunks/nalatiLayout.ts): the camp turn on the N road, the sky road's
+ *  foot at the bridge, the gateway at its top, the bowl's crossroads, the E road's turn */
 const SIGNS: Signpost[] = [
-  { x: -5.2, z: 191, boards: [{ text: 'NOMAD CAMP', dir: dirTo(0, 196, CAMP.x, CAMP.z) }, { text: 'SKY GRASSLAND', dir: S }, { text: 'SHEEP PASTURE', dir: E + 0.15 }] },
-  { x: 6.5, z: 131, boards: [{ text: 'SKY ROAD', dir: S + 0.3 }, { text: 'KUNES BRIDGE', dir: N }] },
-  { x: 26, z: -30, boards: [{ text: 'EAGLE ROCK', dir: W }, { text: 'KURGAN FIELD', dir: E - 0.3 }, { text: 'BALBAL CIRCLE', dir: S }, { text: 'VALLEY · CAMP', dir: N }] },
-  { x: -168, z: -40, boards: [{ text: 'KURGAN FIELD', dir: dirTo(-168, -40, -118, -82) }, { text: 'E ROAD', dir: dirTo(-168, -40, -250, 0) }] },
+  { x: -5.2, z: 217, boards: [{ text: 'NOMAD CAMP', dir: dirTo(0, 214, CAMP.x, CAMP.z) }, { text: 'SKY GRASSLAND', dir: S }, { text: 'SHEEP PASTURE', dir: dirTo(0, 217, PASTURE.x, PASTURE.z) }] },
+  { x: -6, z: 152, boards: [{ text: 'SKY ROAD', dir: W + 0.1 }, { text: 'KUNES BRIDGE', dir: N }] },
+  { x: 127, z: 75, boards: [{ text: 'HORSE PLAINS', dir: dirTo(127, 75, HORSE_PLAINS.x, HORSE_PLAINS.z) }, { text: 'EAGLE ROCK', dir: dirTo(127, 75, EAGLE_ROCK.x, EAGLE_ROCK.z) }, { text: 'W ROAD', dir: dirTo(127, 75, 250, 0) }, { text: 'VALLEY · CAMP', dir: dirTo(127, 75, 92, 90) }] },
+  { x: 12, z: 14, boards: [{ text: 'SNOW LOTUS VALLEY', dir: S }, { text: 'KOKPAR FIELD', dir: dirTo(12, 14, KOKPAR.x, KOKPAR.z) }, { text: 'SUMMER CAMP', dir: dirTo(12, 14, SUMMER_YURTS.x, SUMMER_YURTS.z) }, { text: 'HORSE PLAINS', dir: dirTo(12, 14, HORSE_PLAINS.x, HORSE_PLAINS.z) }] },
+  { x: -170, z: 22, boards: [{ text: 'KURGAN FIELD', dir: dirTo(-170, 22, KF.x, KF.z) }, { text: 'WATCHTOWER', dir: dirTo(-170, 22, WATCHTOWER.x, WATCHTOWER.z) }, { text: 'E ROAD', dir: dirTo(-170, 22, -250, 0) }] },
 ];
 
 const LABEL_H = 64, ATLAS_W = 512;
@@ -59,12 +65,12 @@ export function buildRoadFurniture(ctx: PoiCtx): PoiPiece {
 
   // ── fences ──
   // N road, both sides, gate to the bridge; the west side opens for the camp spur
-  addFence(kit, ground, [[5.8, 244], [5.6, 214], [6.0, 202]], colliders);
-  addFence(kit, ground, [[5.4, 189], [5.8, 183]], colliders);
-  addFence(kit, ground, [[-5.8, 244], [-5.6, 220], [-5.9, 198], [-5.5, 182]], colliders);
-  // the camp spur's south side, and a paddock fence off the pasture
-  addFence(kit, ground, [[9, 191], [26, 194], [42, 196.5], [60, 199]], colliders);
-  addFence(kit, ground, [[-12, 238], [-40, 236], [-70, 231], [-96, 228]], colliders, { h: 1.0, spacing: 2.8 });
+  addFence(kit, ground, [[5.8, 244], [5.6, 232], [6.0, 221]], colliders);
+  addFence(kit, ground, [[5.4, 209], [5.8, 196], [5.6, 190]], colliders);
+  addFence(kit, ground, [[-5.8, 244], [-5.6, 224], [-5.9, 206], [-5.5, 190]], colliders);
+  // the camp spur's south side, and the pasture's paddock fence on its road side
+  addFence(kit, ground, [[9, 210], [26, 212.5], [42, 214.5], [60, 213]], colliders);
+  addFence(kit, ground, [[PASTURE.x + PASTURE.r + 4, 242], [PASTURE.x + PASTURE.r + 3, 222], [PASTURE.x + PASTURE.r + 5, 200]], colliders, { h: 1.0, spacing: 2.8 });
 
   // ── signposts ──
   const labels: string[] = [];

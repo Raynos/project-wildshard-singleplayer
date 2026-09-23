@@ -1,8 +1,8 @@
 /**
- * KurganField — the Wusun-period burial mounds on the SE plateau (map-01 "KURGAN FIELD"). The domes themselves are
+ * KurganField — the Wusun-period burial mounds in the east of the Sky Grassland's bowl (layout v2 "KURGAN FIELD"). The domes themselves are
  * terrain (B0's landscape adds `KURGANS`, so the grass grows on them); this dresses them: a kerb ring of set stones
  * at every mound's foot (doubled round the great one, a few stones fallen or missing), loose stones in the grass,
- * and the GREAT KURGAN's entrance — a timber-framed dromos head in its NW flank: two massive larch posts and a double
+ * and the GREAT KURGAN's entrance — a timber-framed dromos head in its west flank: two massive larch posts and a double
  * lintel, flaring log wing-walls, a turf hood that carries the mound's line out over the passage, a raised timber
  * threshold, and a pitch-dark passage 2 m in (sealed for now; B13 builds what's beyond).
  *
@@ -167,8 +167,16 @@ export function buildKurganField(ctx: PoiCtx): { piece: PoiPiece; entrance: Kurg
   });
   { const bw = L(0, 0, dep + 0.1); colliders.push({ x: bw.x, z: bw.z, hw: cw / 2 + 0.3, hd: 0.3, rot: -yawIn, yBottom: floorY - 2, yTop: lintelY + 2 }); }
 
-  // ── crown balbals: stood on three mounds, facing east (the rising sun, as they did) ──
-  const balbalSpots = KURGAN_BALBALS.map((i) => KURGANS[i]).filter((k) => k !== undefined).map((k, i) => ({ x: k.x + 0.5, z: k.z - 0.3, yaw: Math.PI / 2 + (i - 1) * 0.25, scale: 1.05 + i * 0.05 }));
+  // ── crown balbals: a pair on every small mound, side by side on its crown, facing east (the rising sun, as they did) —
+  // since layout v2 cut the balbal circle these are all the shard's balbals (B11 wakes them) ──
+  const balbalSpots: { x: number; z: number; yaw: number; scale: number }[] = [];
+  KURGAN_BALBALS.map((i) => KURGANS[i]).filter((k) => k !== undefined).forEach((k, i) => {
+    for (const side of [-1, 1]) {
+      const yaw = Math.PI / 2 + ((i % 3) - 1) * 0.2 + side * 0.08;
+      // side by side across the facing direction (east = −x), 0.75 m either side of the crown
+      balbalSpots.push({ x: k.x + 0.3, z: k.z + side * 0.75, yaw, scale: 1.0 + ((i + (side > 0 ? 1 : 0)) % 3) * 0.06 });
+    }
+  });
 
   const mesh = kit.mesh(sky, { ground });
   mesh.name = 'nalati-kurgans';

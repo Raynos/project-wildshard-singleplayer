@@ -69,6 +69,9 @@ function placementSection(def, gridBuf) {
   return { bytes: new Uint8Array(out), decisions: log.count, counts, trees: trees.length };
 }
 
+/** per-chunk sources beyond the chunk file that shape its landscape (so editing them re-bakes it) */
+const EXTRA_DEPS = { 'nalati-grasslands.ts': ['src/chunks/nalatiLayout.ts', 'src/world/nalati/clearings.ts'] };
+
 let stale = 0, written = 0;
 for (const file of chunkFiles) {
   const mod = await import(pathToFileURL(resolve(ROOT, 'src/chunks', file)).href);
@@ -77,6 +80,7 @@ for (const file of chunkFiles) {
     const res = TERRAIN_RES;
     const hash = createHash('sha1');
     hash.update(`v${VERSION}:${res}:${CHUNK_SIZE}:`); hash.update(readFileSync(resolve(ROOT, 'src/chunks', file)));
+    for (const dep of EXTRA_DEPS[file] ?? []) hash.update(readFileSync(resolve(ROOT, dep)));
     for (const s of shared) hash.update(s);
     const digest = hash.digest('hex').slice(0, 16);
     const dir = resolve(OUT, def.slug);

@@ -24,6 +24,7 @@ import { painterlyMaterial } from '../world/painterly';
 import { fxMaterial, FX, type FxMaterial } from '../world/nalati/KurganDungeon';
 import { PaintKit, M, pole, v3, blob } from '../world/nalati/paint';
 import { EAGLE_ROCK, CRAG_CAVE } from '../world/nalati/layout';
+import { KOKBORI_DEN, QARA_CAIRN, ARGYMAQ_PASTURE } from '../chunks/nalatiLayout';
 
 /**
  * Nalati's five NAMED ELITES (plan NALATI.md row B12; design docs/design/nalati/elites-and-bosses.md §1 "The five Nalati
@@ -65,12 +66,8 @@ import { EAGLE_ROCK, CRAG_CAVE } from '../world/nalati/layout';
 
 // ─────────────────────────────── the defs ───────────────────────────────
 
-/** the tall-grass basin west (+x) of the horse plains: Kokbori's den on a rocky rise */
-const KOKBORI_DEN = { x: 186, z: -96 };
-/** the burial cairn on the rim ridge: Qara Batyr's lair */
-const QARA_CAIRN = { x: -62, z: -46 };
-/** the Crags' western shoulder, the high pasture (+45…+55 m): Argymaq's herd */
-const ARGYMAQ_PASTURE = { x: -128, z: -206 };
+// the lairs (layout v2, src/chunks/nalatiLayout.ts): Kokbori's den on the rocky NE rim above the kurgan field, Qara
+// Batyr's burial cairn on the bowl's south rim, Argymaq's high pasture on a bench of the Crags (+52)
 
 export const ELITE_DEFS: Record<string, EliteDef> = {
   aqbars: {

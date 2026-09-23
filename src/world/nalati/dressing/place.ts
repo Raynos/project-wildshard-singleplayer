@@ -21,7 +21,7 @@ import { Rng } from '../../../core/rng';
 import { Noise2D, smoothstep, clamp, lerp } from '../../../core/noise';
 import { heightAt, normalAt, trailDistance, inChunk, TRAILS } from '../../Heightfield';
 import { grassBaseHeightAt, grassToneAt, flowerPatchAt } from '../../GrassField';
-import { RIVER, riverMask, BROOK, CRAGS, SW_SPUR, SNOW_LINE, KURGANS, CAMP, SUMMER_YURTS, SKY_ROAD } from '../../../chunks/nalati-grasslands';
+import { RIVER, riverMask, BROOK, CRAGS, WEST_CRAGS, SNOW_LINE, KURGANS, CAMP, SUMMER_YURTS, SKY_ROAD, CAMP_SPUR, zoneAt, snowValleyX, snowValleyHalf, glacierMask } from '../../../chunks/nalati-grasslands';
 import { inPoiClearing } from '../clearings';
 import type { Forest } from '../../Forest';
 import type { Collider } from '../../../player/Player';
@@ -52,9 +52,9 @@ function segD(px: number, pz: number, ax: number, az: number, bx: number, bz: nu
   const t = l2 > 0 ? clamp(((px - ax) * vx + (pz - az) * vz) / l2, 0, 1) : 0;
   return Math.hypot(px - (ax + vx * t), pz - (az + vz * t));
 }
-/** metres to the plateau brook's centreline */
+/** metres to the meltwater stream's centreline (Snow Lotus Valley; `BROOK`) */
 export function brookDistance(x: number, z: number): number {
-  if (z > -20 || z < -180 || x < -160 || x > 70) return Infinity;
+  if (z > -80 || z < -256 || x < -70 || x > 25) return Infinity;
   let best = Infinity;
   for (let i = 0; i + 1 < BROOK.length; i++) {
     const a = BROOK[i], b = BROOK[i + 1];
@@ -124,6 +124,7 @@ export async function planDressing(forest: Forest | null, yieldTask: () => Promi
 
   campAndBanks(plan, occ, nearTree);
   rocks(plan, occ, nearTree); await yieldTask();
+  scree(plan, occ); await yieldTask();
   roadStones(plan);
   gravelBars(plan); await yieldTask();
   shrubs(plan, occ, nearTree); await yieldTask();
@@ -207,8 +208,9 @@ function rocks(plan: DressPlan, occ: Occupancy, nearTree: (x: number, z: number,
     const rm = riverMask(x, z);
     const edge = Math.abs(z - RIVER.z(x)) - RIVER.half(x);
     const bank = rm < 0.6 && edge > -2 && edge < 10 ? 0.45 : 0;
-    const dCr = Math.hypot(x - CRAGS.x, z - CRAGS.z), dSw = Math.hypot(x - SW_SPUR.x, z - SW_SPUR.z);
-    const massif = smoothstep(170, 90, dCr) * 0.7 + smoothstep(130, 70, dSw) * 0.6;
+    const dCr = Math.hypot(x - CRAGS.x, z - CRAGS.z), dSw = Math.hypot(x - WEST_CRAGS.x, z - WEST_CRAGS.z);
+    const massif = smoothstep(170, 90, dCr) * 0.7 + smoothstep(130, 70, dSw) * 0.6 + zoneAt(x, z)[2] * 0.45;
+    if (glacierMask(x, z) > 0.2) continue;
     const p = Math.min(1, 0.1 + smoothstep(0.06, 0.3, s) * 0.55 + bank + massif);
     if (coin > cl * 0.3 * p) continue;
     const big = 0.4 + rng.next() ** 2.2 * (s > 0.2 || massif > 0.3 ? 2.1 : 1.5);
@@ -259,6 +261,29 @@ function addStone(plan: DressPlan, rng: Rng, x: number, z: number, h: number, r:
   plan.stone.push(inst);
 }
 
+
+// ── scree: Snow Lotus Valley's floor and fans (layout v2) ─────────────────────────────────────────────
+
+/** grey stones strewn thick over the snow valley's floor and the fans at the foot of its walls, boulders among them */
+function scree(plan: DressPlan, occ: Occupancy): void {
+  const rng = new Rng(SEED + 17), fan = new Noise2D(SEED + 18);
+  for (let i = 0; i < 26000; i++) {
+    const z = rng.range(-247, -58), xv = snowValleyX(z), hw = snowValleyHalf(z) + 34;
+    const x = xv + rng.range(-hw, hw);
+    // fans: denser toward the walls (where the scree runs out) and in noise lobes
+    const edge = Math.abs(x - xv) / hw, f = smoothstep(-0.2, 0.5, fan.fbm(x * 0.03, z * 0.03, 2));
+    if (rng.next() > 0.25 + edge * 0.45 + f * 0.3) continue;
+    const h = heightAt(x, z);
+    if (h > SNOW_LINE + 4 || blocked(x, z, h, { road: 3.2, poi: 1, brook: 1.6 }) || glacierMask(x, z) > 0.1) continue;
+    const big = rng.next() < 0.04 + edge * 0.05;
+    if (big) {
+      const r = 0.5 + rng.next() ** 2 * 1.4;
+      if (!occ.free(x, z, r)) continue;
+      occ.add(x, z, r);
+      addRock(plan, rng, rng.next() < 0.5 ? plan.slab : plan.boulder, x, z, h, r, false);
+    } else addStone(plan, rng, x, z, h, rng.range(0.08, 0.34), rng.range(45, 85), grey(rng, 0.9, 1.15));
+  }
+}
 
 // ── stones along the roads ──────────────────────────────────────────────────────────────────────────
 
@@ -374,9 +399,9 @@ function shrubs(plan: DressPlan, occ: Occupancy, nearTree: (x: number, z: number
     const pk = patch(x, z), coin = rng.next();
     if (coin > (0.15 + pk * 1.5) * 0.2) continue;
     const h = heightAt(x, z);
-    if (h > SNOW_LINE - 6) continue;
+    if (h > SNOW_LINE - 6 || rng.next() < zoneAt(x, z)[2] * 0.75) continue;
     const s = slopeAt(x, z);
-    const dCr = Math.hypot(x - CRAGS.x, z - CRAGS.z), dSw = Math.hypot(x - SW_SPUR.x, z - SW_SPUR.z);
+    const dCr = Math.hypot(x - CRAGS.x, z - CRAGS.z), dSw = Math.hypot(x - WEST_CRAGS.x, z - WEST_CRAGS.z);
     const rocky = smoothstep(0.08, 0.3, s) + smoothstep(170, 90, dCr) * 0.7 + smoothstep(130, 70, dSw) * 0.6;
     if (rocky > 0.35 || h > 22) {
       const p = Math.min(1, 0.05 + rocky * 0.35);
@@ -395,7 +420,7 @@ function shrubs(plan: DressPlan, occ: Occupancy, nearTree: (x: number, z: number
 function flowers(plan: DressPlan, occ: Occupancy, nearTree: (x: number, z: number, r: number) => boolean): void {
   const rng = new Rng(SEED + 51);
   const okFlower = (x: number, z: number, h: number): boolean =>
-    h < SNOW_LINE - 8 && !blocked(x, z, h, { road: 2.9, poi: 0.5, brook: 1.8 }) && slopeAt(x, z) < 0.42 && !nearTree(x, z, 0.8) && occ.free(x, z, 0.15);
+    h < SNOW_LINE - 8 && rng.next() > zoneAt(x, z)[2] * 0.8 && !blocked(x, z, h, { road: 2.9, poi: 0.5, brook: 1.8 }) && slopeAt(x, z) < 0.42 && !nearTree(x, z, 0.8) && occ.free(x, z, 0.15);
   const clump = (x: number, z: number, h: number, lupin: boolean, far: number, sz: number): void => {
     // stand above the grass round it (the clumps are the flowers the carpet's dots can't be at 60 m)
     const gh = grassBaseHeightAt(x, z);
@@ -511,18 +536,19 @@ function woods(plan: DressPlan, occ: Occupancy, forest: Forest | null): void {
 
 // ── ovoo cairns + ribbon poles at the viewpoints ────────────────────────────────────────────────────
 
-/** hand-picked view spots (engine coords); each is nudged off the road / POIs if it has to be */
+/** hand-picked view spots (engine coords, layout v2); each is nudged off the road / POIs if it has to be */
 const OVOOS: [number, number][] = [
-  [30, -46],      // where the sky road tops out on the rim, looking back down the valley
-  [74, -34],      // beside the waterfall lip
-  [-60, -40],     // over the central gully
-  [-172, -44],    // over the east gully, where the E road comes up
-  [138, -44],     // over the west gully
-  [14, -222],     // the S road's saddle between the massifs
-  [-128, -168],   // the Crags' foot, where the brook rises
-  [214, -12],     // the W road's crest beyond Eagle Rock
+  [72, 100],      // where the sky road tops out on the north rim, looking back down the valley
+  [150, 106],     // the north rim, west
+  [-128, 112],    // the north rim above the kurgan field
+  [34, -54],      // the bowl's south rim over the head of Snow Lotus Valley
+  [104, -58],     // the south rim, west
+  [-196, -44],    // the east rim by the watchtower
+  [198, -8],      // the W road's crest beyond Eagle Rock
+  [2, -128],      // Snow Lotus Valley's floor, the stream beside it
+  [-12, -214],    // the valley's mouth above the S gate
 ];
-const POLES: [number, number][] = [[-22, 118], [50, 60], [-40, 12], [118, -118], [-80, -196], [180, -150]];
+const POLES: [number, number][] = [[-10, 150], [44, 96], [-40, 14], [112, -66], [-24, -186], [158, 44], [-150, 40]];
 
 function landmarks(plan: DressPlan, occ: Occupancy): void {
   const rng = new Rng(SEED + 81);
@@ -587,8 +613,8 @@ function nearCollider(x: number, z: number, avoid: readonly Collider[], m: numbe
   return false;
 }
 
-/** the camp spur's last leg, (40, 202) → (CAMP.x − 14, CAMP.z): the track the camp approach looks along */
-const SPUR_A: [number, number] = [40, 202], SPUR_B: [number, number] = [CAMP.x - 14, CAMP.z];
+/** the camp spur's last leg (CAMP_SPUR): the track the camp approach looks along */
+const SPUR_A: [number, number] = CAMP_SPUR[1] ?? [40, 204], SPUR_B: [number, number] = [CAMP.x - 14, CAMP.z];
 
 /**
  * Loose-clutter anchors (kind 0 firewood · 1 dung cakes · 2 chopping block · 3 pots · 4 sacks · 5 felts · 6 kumis churn),
@@ -608,7 +634,7 @@ export function campClutterSpots(avoid: readonly Collider[] = []): { x: number; 
   const ok = (x: number, z: number, ys: { x: number; z: number }[], trackPad: number): boolean => {
     if (ys.some((y) => Math.hypot(x - y.x, z - y.z) < 4.8)) return false;
     if (Math.hypot(x - corral.x, z - corral.z) < corral.r) return false;
-    if (x > 70.5 && x < 83 && z > 200.5 && z < 215.5) return false;              // the hitching rail and its two horses
+    if (x > CAMP.x - 24.5 && x < CAMP.x - 12 && z > CAMP.z - 4.5 && z < CAMP.z + 10.5) return false; // the hitching rail and its two horses
     if (trailDistance(x, z) < trackPad || wet(x, z, heightAt(x, z)) || nearCollider(x, z, avoid, 1.0)) return false;
     return !out.some((q) => Math.hypot(q.x - x, q.z - z) < 2.4);
   };

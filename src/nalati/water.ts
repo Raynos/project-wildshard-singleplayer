@@ -1,9 +1,9 @@
 /**
- * Nalati's water: the braided Kunes (a strip over its gravel corridor), the plateau brook (a ribbon down its bed) and
- * the waterfall at the rim notch (a sheet down the head wall + a foam pool). One shared shader, painterly: the colour
+ * Nalati's water: the braided Kunes (a strip over its gravel corridor) and the meltwater stream in Snow Lotus Valley
+ * (`BROOK`: a ribbon down its bed; the waterfall is cut, layout v2). One shared shader, painterly: the colour
  * comes from the water's depth over the terrain (turquoise over the gravel bars → deep blue in the channels), a pale
  * sky sheen at grazing angles, and white flow streaks that run downstream — westward (+x) on the river, down the
- * ribbon on the brook and the fall. Fogged like everything else. Three draw calls, one program.
+ * ribbon on the brook. Fogged like everything else. Two draw calls, one program.
  *
  *   const water = new NalatiWater(sky).build();  scene.add(water.group);  water.update(dt);
  *   water.setLight({ brightness, sky, sun });  water.setRain(0..1);   // day/night + weather (src/nalati/weather.ts)
@@ -12,7 +12,7 @@ import * as THREE from 'three';
 import { heightAt } from '../world/Heightfield';
 import { attachFogUniforms } from '../world/Atmosphere';
 import type { Sky } from '../world/Sky';
-import { RIVER, BROOK, WATERFALL } from '../chunks/nalati-grasslands';
+import { RIVER, BROOK } from '../chunks/nalati-grasslands';
 import { CHUNK_HALF } from '../core/config';
 import { LOOK_V2 } from './look/flag';
 
@@ -138,7 +138,7 @@ export class NalatiWater {
     Object.assign(mat.uniforms, this.uniforms);
     attachFogUniforms(mat);
     mat.customProgramCacheKey = () => 'nalati-water';
-    this.group.add(this.river(mat), this.brook(mat), this.waterfall(mat));
+    this.group.add(this.river(mat), this.brook(mat)); // (the waterfall is cut: layout v2)
     this.group.traverse((o) => { o.renderOrder = 1; });
     return this;
   }
@@ -212,38 +212,6 @@ export class NalatiWater {
       const a = i * 3 + j, b = a + 3;
       idx.push(a, b, a + 1, a + 1, b, b + 1);
     }
-    return mesh(mat, pos, idx, { depth, flow, across, fall });
-  }
-
-  /** the waterfall: a sheet from the notch lip down the head wall to the ravine floor, bowed slightly outward, + its pool */
-  private waterfall(mat: THREE.Material): THREE.Mesh {
-    const pos: number[] = [], depth: number[] = [], flow: number[] = [], across: number[] = [], fall: number[] = [], idx: number[] = [];
-    const lipZ = WATERFALL.z + 1, rows = 16, cols = 6, half = 2.6;
-    const top = heightAt(WATERFALL.x, lipZ - 3) + 0.4;
-    // walk downstream (+z, toward the valley) until the ground has dropped: that is the foot of the fall
-    let footZ = lipZ, footY = top;
-    for (let z = lipZ; z < lipZ + 40; z += 0.5) { const y = heightAt(WATERFALL.x, z); if (y < footY) { footY = y; footZ = z; } if (top - y > 4 && heightAt(WATERFALL.x, z + 2) > y - 0.3) break; }
-    for (let r = 0; r <= rows; r++) {
-      const t = r / rows;
-      const y = top + (footY + 0.3 - top) * t;
-      const z = lipZ + (footZ - lipZ) * Math.sqrt(t) + Math.sin(t * Math.PI) * 1.2; // the sheet leaps out, then drops
-      for (let c = 0; c <= cols; c++) {
-        const u = (c / cols) * 2 - 1;
-        pos.push(WATERFALL.x + u * half * (0.7 + t * 0.6), y, z); depth.push(1); flow.push(t * 0.4); across.push(u); fall.push(2);
-      }
-    }
-    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-      const a = r * (cols + 1) + c, b = a + cols + 1;
-      idx.push(a, b, a + 1, a + 1, b, b + 1);
-    }
-    // the plunge pool: a foamy disc at the foot
-    const base = pos.length / 3, seg = 18, pr = 5.5;
-    pos.push(WATERFALL.x, footY + 0.35, footZ + 2); depth.push(1.2); flow.push(0); across.push(0); fall.push(3);
-    for (let k = 0; k <= seg; k++) {
-      const a = (k / seg) * Math.PI * 2, x = WATERFALL.x + Math.cos(a) * pr, z = footZ + 2 + Math.sin(a) * pr;
-      pos.push(x, footY + 0.35, z); depth.push(1); flow.push(k / seg); across.push(1); fall.push(3);
-    }
-    for (let k = 0; k < seg; k++) idx.push(base, base + 2 + k, base + 1 + k);
     return mesh(mat, pos, idx, { depth, flow, across, fall });
   }
 }

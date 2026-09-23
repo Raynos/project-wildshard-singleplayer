@@ -10,6 +10,7 @@ import { Flock, dogWolves } from './Flock';
 import { wildEnv } from './wildEnv';
 import { Marmots } from './Marmots';
 import { HITCH_HORSE_SPOTS } from '../world/nalati/layout';
+import { KOKBORI_DEN, HORSE_PLAINS, PASTURE } from '../chunks/nalatiLayout';
 
 /**
  * Wildlife — Nalati's creatures placed into the shard (row B4; the Driftwood `Enemies.ts` pattern): wolf packs, wild
@@ -43,12 +44,13 @@ export interface WildlifeLayout {
   campHorses?: boolean;
 }
 
-/** map-01 (docs/design/nalati/geography-and-map.md §3): the den in the east gully, the herd on the horse plains, the flock on the NE pasture */
+/** layout v2 (src/chunks/nalatiLayout.ts): the pack below Kokbori's den on the NE rim, the AI herd on the horse plains
+ *  (the hundreds round it are the instanced far herds), the flock on the pasture */
 export const NALATI_WILDLIFE: WildlifeLayout = {
-  packs: [{ x: -150, z: 25, variants: ['alpha', 'grey', 'tawny', 'grey', 'scout'] }],
-  herds: [{ x: 140, z: -120, mares: 11, foals: 3, stallion: true }],
-  flocks: [{ x: -120, z: 205, count: 40, dog: true, range: 40 }],
-  marmots: { sites: 7, box: { x0: -200, x1: 220, z0: -200, z1: -40 } },   // the Sky Grassland
+  packs: [{ x: KOKBORI_DEN.x + 22, z: KOKBORI_DEN.z - 30, variants: ['alpha', 'grey', 'tawny', 'grey', 'scout'] }],
+  herds: [{ x: HORSE_PLAINS.x, z: HORSE_PLAINS.z, mares: 11, foals: 3, stallion: true }],
+  flocks: [{ x: PASTURE.x, z: PASTURE.z, count: 40, dog: true, range: PASTURE.r }],
+  marmots: { sites: 7, box: { x0: -160, x1: 170, z0: -30, z1: 95 } },   // the Sky Grassland's bowl
   campHorses: true,
 };
 

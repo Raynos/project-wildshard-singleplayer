@@ -1,6 +1,6 @@
 /**
- * Crags — rock dressing for the snowy granite massif in the SE corner (map-01 "THE CRAGS"; the massif itself is B0's
- * terrain). Weathered granite outcrops break out of its steep faces (snow settles on their tops above the snow line),
+ * Crags — rock dressing for the snow ring's two granite massifs (layout v2: the Crags in the east, the west massif with
+ * the leopard's cave; the massifs themselves are the chunk def's terrain). Weathered granite outcrops break out of its steep faces (snow settles on their tops above the snow line),
  * a handful of flat LEDGES stick out of the slopes — walkable, the snow leopard's (Aqbars, B12) lookouts — and the
  * LEDGE CAVE at `CRAG_CAVE`: an arch of three great blocks round a pitch-dark mouth, a ledge slab in front of it
  * with old bones on it.
@@ -10,7 +10,7 @@
 import * as THREE from 'three';
 import { PaintKit, M, pole, v3, blob } from './paint';
 import { graniteBlock } from './EagleRock';
-import { CRAGS, CRAG_CAVE } from './layout';
+import { CRAGS, WEST_CRAGS, CRAG_CAVE } from './layout';
 import type { Collider } from '../../player/Player';
 import type { Platform, PoiCtx, PoiPiece } from './types';
 
@@ -40,9 +40,10 @@ export function buildCrags(ctx: PoiCtx): { piece: PoiPiece; ledges: Ledge[]; cav
   // ── outcrops on the steep faces ──
   const placed: { x: number; z: number; r: number }[] = [];
   const free = (x: number, z: number, r: number) => placed.every((p) => Math.hypot(p.x - x, p.z - z) > p.r + r) && Math.hypot(x - cave.x, z - cave.z) > 14 && x > -249 && z > -249;
-  for (let tries = 0; tries < 700 && placed.length < 34; tries++) {
+  for (let tries = 0; tries < 1400 && placed.length < 60; tries++) {
+    const M0 = tries % 2 === 0 ? CRAGS : WEST_CRAGS;                                     // both massifs of the snow ring
     const a = rng.range(0, Math.PI * 2), d = rng.range(14, 105);
-    const x = CRAGS.x + Math.cos(a) * d, z = CRAGS.z + Math.sin(a) * d;
+    const x = M0.x + Math.cos(a) * d, z = M0.z + Math.sin(a) * d;
     if (Math.abs(x) > 248 || Math.abs(z) > 248) continue;
     const gy = ground(x, z), sl = slopeAt(x, z);
     if (gy < 38 || sl < 0.42) continue;
@@ -69,11 +70,11 @@ export function buildCrags(ctx: PoiCtx): { piece: PoiPiece; ledges: Ledge[]; cav
     colliders.push({ x, z, hw: s * 0.55, hd: s * 0.4, rot: -yaw, yBottom: gy - 3, yTop: gy + h * 0.55 });
   }
 
-  // ── ledges: flat slabs jutting from moderate slopes on the plateau-facing flanks ──
+  // ── ledges: flat slabs jutting from moderate slopes on the west massif's valley-facing flanks (round Aqbars' cave) ──
   const ledges: Ledge[] = [];
   for (let tries = 0; tries < 500 && ledges.length < 6; tries++) {
-    const a = rng.range(Math.PI * 0.05, Math.PI * 0.95), d = rng.range(28, 80);            // the N / W / NW flanks (+x / +z)
-    const x = CRAGS.x + Math.cos(a) * d, z = CRAGS.z + Math.sin(a) * d;
+    const a = rng.range(Math.PI * 0.45, Math.PI * 1.2), d = rng.range(28, 80);            // the N / NE / E flanks (+z / −x)
+    const x = WEST_CRAGS.x + Math.cos(a) * d, z = WEST_CRAGS.z + Math.sin(a) * d;
     const gy = ground(x, z), sl = slopeAt(x, z);
     if (gy < 40 || gy > 70 || sl < 0.3 || sl > 1.2 || !free(x, z, 3.2)) continue;
     const dh = downhill(x, z), yaw = Math.atan2(dh.x, dh.z);

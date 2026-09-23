@@ -27,7 +27,7 @@ import { wind } from '../world/Wind';
 import { wildEnv } from '../entities/wildEnv';
 import { lightLevel } from '../world/DayNight';
 import { trailDistance } from '../world/Heightfield';
-import { RIVER, BRIDGE, CAMP, SUMMER_YURTS, WATERFALL, BROOK, riverMask } from '../chunks/nalati-grasslands';
+import { RIVER, BRIDGE, CAMP, SUMMER_YURTS, GLACIER, BROOK, riverMask } from '../chunks/nalati-grasslands';
 
 export interface NalatiSound {
   bind: (audio: Audio, music?: Music) => void;
@@ -169,7 +169,7 @@ export function wireSound(nalati: Nalati, ctx: { player: Player; weather: Nalati
         bedT = 0.25;
         const river = smooth(70, 6, Math.abs(p.z - RIVER.z(p.x)) - RIVER.half(p.x));
         const brook = smooth(24, 2, brookDistance(p.x, p.z)) * 0.45;
-        const fall = smooth(110, 12, Math.hypot(p.x - WATERFALL.x, p.z - WATERFALL.z));
+        const fall = smooth(90, 10, Math.hypot(p.x - GLACIER.x1, p.z - GLACIER.z1)) * 0.6; // the meltwater roaring out from under the glacier's snout
         const camp = Math.max(smooth(45, 6, Math.hypot(p.x - CAMP.x, p.z - CAMP.z)), 0.6 * smooth(30, 5, Math.hypot(p.x - SUMMER_YURTS.x, p.z - SUMMER_YURTS.z)));
         const night = smooth(0.75, 0.45, lightLevel(clock));
         // in the kurgan's sealed chamber the steppe is gone (the boss fight has its own sound)

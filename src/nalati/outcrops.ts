@@ -1,13 +1,13 @@
 /**
  * Escarpment rock outcrops (Nalati look pass, lever 5; world agent): weathered granite breaking out of the steep ground
- * — the gully walls, the spur shoulders, the upper face under the rim and the waterfall's head wall — as real, smooth
+ * — the escarpment's ravines and rock bands, the upper face under the north rim, Snow Lotus Valley's walls — as real, smooth
  * meshes (soft-bevelled blocks with a couple of rounded stones leaning on them), painted like the POI rocks: warm
  * granite, lichen on the tops, a darker foot where they sink into the turf. The Crags and Eagle Rock are the POI
  * agent's (src/world/nalati/Crags.ts, EagleRock.ts); the loose scatter is the dressing agent's.
  *
  * Placed from the terrain alone (seeded, deterministic): candidates on a jittered 7 m grid over the escarpment band,
- * kept where the ground is steep, clustered by a noise field, kept off the roads, the river, the POI clearings and the
- * fall. One merged mesh on the shared painterly POI material — one draw call (+ its shadow).
+ * kept where the ground is steep, clustered by a noise field, kept off the roads, the river, the stream and the POI
+ * clearings. One merged mesh on the shared painterly POI material — one draw call (+ its shadow).
  *
  *   const rocks = buildOutcrops(sky);   scene.add(rocks.mesh);   player.colliders.push(...rocks.colliders);
  */
@@ -17,7 +17,7 @@ import { graniteBlock } from '../world/nalati/EagleRock';
 import { inPoiClearing } from '../world/nalati/clearings';
 import { heightAt, normalAt, trailDistance } from '../world/Heightfield';
 import { Noise2D } from '../core/noise';
-import { riverMask, rimZAt, RIVER, WATERFALL, RIM_Z } from '../chunks/nalati-grasslands';
+import { riverMask, rimZAt, RIVER, RIM_Z, snowValleyX, snowValleyHalf, SNOW_LINE, brookMask } from '../chunks/nalati-grasslands';
 import type { Collider } from '../player/Player';
 import type { Sky } from '../world/Sky';
 
@@ -27,6 +27,7 @@ const C = {
   cool: new THREE.Color('#7f8189'),
   lichen: new THREE.Color('#b3a35a'),
   moss: new THREE.Color('#5f7433'),
+  snow: new THREE.Color('#eef2f7'),
 };
 
 export interface Outcrops { mesh: THREE.Mesh; colliders: Collider[]; count: number; triangles: number }
@@ -38,15 +39,14 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
   const colliders: Collider[] = [];
   let count = 0;
   const step = 8;
-  for (let gx = -244; gx <= 244; gx += step) for (let gz = RIM_Z - 30; gz <= 150; gz += step) {
+  for (let gx = -244; gx <= 244; gx += step) for (let gz = RIM_Z - 10; gz <= 160; gz += step) {
     const x = gx + rng.range(-step * 0.45, step * 0.45), z = gz + rng.range(-step * 0.45, step * 0.45);
     const [nx, ny, nz] = normalAt(x, z, 1.5);
     const slope = 1 - ny;
     if (slope < 0.045) continue; // 1 − n.y: 0.045 ≈ 17°, 0.13 ≈ 30°
     const y0 = heightAt(x, z);
-    if (y0 < -8.5 || y0 > 40) continue;
+    if (y0 < -8.5 || y0 > 46) continue;
     if (trailDistance(x, z) < 7 || riverMask(x, z) > 0 || inPoiClearing(x, z, 4)) continue;
-    if (Math.abs(x - WATERFALL.x) < 7 && z > WATERFALL.z - 6 && z < WATERFALL.z + 20) continue; // keep the fall's sheet clear
     if (Math.abs(x) > 238 || Math.abs(z) > 238) continue;
     // clustered: groups of rock on the steepest ground, bare grass between
     const c = cluster.fbm(x * 0.018, z * 0.018, 3);
@@ -84,7 +84,7 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
     const c = cluster.fbm(x * 0.03 + 40, 3.3, 2);
     if (c < -0.12 || rng.next() > 0.75) continue;
     const z = rimZAt(x) + rng.range(4, 12);
-    if (trailDistance(x, z) < 8 || inPoiClearing(x, z, 4) || Math.abs(x - WATERFALL.x) < 6) continue;
+    if (trailDistance(x, z) < 8 || inPoiClearing(x, z, 4)) continue;
     const [nx, ny, nz] = normalAt(x, z, 1.5);
     if (1 - ny < 0.04) continue;
     const size = 1.2 + rng.next() * 2.2;
@@ -97,20 +97,22 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
     if (h > 1.1) colliders.push({ x, z, hw: w * 0.42, hd: d * 0.42, rot: yaw, yTop: y + h * 0.5, yBottom: y - h });
     count++;
   }
-  // the waterfall's ravine: rock walls either side from the head wall down to the valley, a jumble at the fall's foot
-  for (let z = WATERFALL.z - 2; z <= 80; z += 3.2) {
-    const t = (z - WATERFALL.z) / 110; // 0 at the head wall → 1 at the ravine mouth
+  // Snow Lotus Valley's walls: cool granite breaking out of the scree either side of the floor, snow on their tops high up
+  for (let z = -58; z >= -242; z -= 3.6) {
+    const xv = snowValleyX(z), half = snowValleyHalf(z);
     for (const side of [-1, 1]) {
-      if (rng.next() > 0.85 - t * 0.4) continue;
-      const x = WATERFALL.x + side * rng.range(4.5, 10 + t * 6);
-      if (trailDistance(x, z) < 5) continue;
+      if (rng.next() > 0.7) continue;
+      const x = xv + side * (half + rng.range(3, 26));
+      if (Math.abs(x) > 238 || trailDistance(x, z) < 6 || brookMask(x, z) > 0 || inPoiClearing(x, z, 4)) continue;
       const [nx, ny, nz] = normalAt(x, z, 1.5);
-      const size = rng.range(1.1, 2.6) * (1.2 - t * 0.5);
+      if (1 - ny < 0.06) continue;
+      const size = rng.range(1.2, 3.2);
       const w = size * rng.range(1.2, 2.2), h = size * rng.range(1.0, 1.8), d = size * rng.range(1.0, 1.6);
       const yaw = Math.atan2(nx, nz) + Math.PI / 2 + rng.range(-0.4, 0.4);
-      const y = heightAt(x, z) - h * 0.28;
-      kit.add(graniteBlock(w, h, d, rng.int(1, 1e6), 0.26), rng.next() < 0.5 ? C.granite : C.cool, {
-        matrix: M(x, y, z, yaw, 1, 1, 1, (1 - ny) * 0.8, 0), top: { color: C.moss, threshold: 0.6, amount: 0.45 }, brush: 0.14, foot: 0.7,
+      const y0 = heightAt(x, z), y = y0 - h * 0.28;
+      kit.add(graniteBlock(w, h, d, rng.int(1, 1e6), 0.26), rng.next() < 0.6 ? C.cool : C.granite, {
+        matrix: M(x, y, z, yaw, 1, 1, 1, (1 - ny) * 0.8, 0),
+        top: y0 > SNOW_LINE - 6 ? { color: C.snow, threshold: 0.45, amount: 0.9 } : { color: C.lichen, threshold: 0.6, amount: 0.4 }, brush: 0.14, foot: 0.7,
       });
       if (h > 1.1) colliders.push({ x, z, hw: w * 0.42, hd: d * 0.42, rot: yaw, yTop: y + h * 0.5, yBottom: y - h });
       count++;

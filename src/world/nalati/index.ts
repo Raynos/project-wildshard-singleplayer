@@ -22,11 +22,10 @@ import { buildBridge } from './Bridge';
 import { buildRoadFurniture } from './RoadFurniture';
 import { buildSummerCamp } from './SummerCamp';
 import { buildKurganField, type KurganEntrance } from './KurganField';
-import { buildBalbals, balbalRingSpots, buildBalbalCircleDressing, type Balbals } from './Balbals';
+import { buildBalbals, type Balbals } from './Balbals';
 import { buildEagleRock } from './EagleRock';
 import { buildCairn } from './Cairn';
 import { buildCrags, type Ledge } from './Crags';
-import { BALBAL_CIRCLE } from './layout';
 import type { Collider } from '../../player/Player';
 import type { Sky } from '../Sky';
 import type { Ground, Platform, PoiCtx, PoiPiece } from './types';
@@ -44,7 +43,7 @@ export class NalatiPOIs {
   platforms: Platform[] = [];
   /** build ms per piece */
   timings: Record<string, number> = {};
-  /** every balbal statue (the ring first, then the kurgan crowns) — B11 wakes them */
+  /** every balbal statue (on the kurgan crowns) — B11 wakes them */
   balbals: Balbals | null = null;
   /** the great kurgan's doorway (B13) */
   kurganEntrance: KurganEntrance | null = null;
@@ -73,8 +72,8 @@ export class NalatiPOIs {
     run('summerCamp', buildSummerCamp);
     let crownSpots: { x: number; z: number; yaw: number; scale: number }[] = [];
     run('kurgans', (c) => { const k = buildKurganField(c); this.kurganEntrance = k.entrance; crownSpots = k.balbalSpots; return k.piece; });
-    run('balbalCircle', (c) => buildBalbalCircleDressing(c, BALBAL_CIRCLE.x, BALBAL_CIRCLE.z, BALBAL_CIRCLE.r));
-    run('balbals', (c) => { const b = buildBalbals(c, [...balbalRingSpots(BALBAL_CIRCLE.x, BALBAL_CIRCLE.z, BALBAL_CIRCLE.r, BALBAL_CIRCLE.count), ...crownSpots]); this.balbals = b.balbals; return b.piece; });
+    // the balbals stand only on the kurgan crowns (layout v2: the balbal circle is cut)
+    run('balbals', (c) => { const b = buildBalbals(c, crownSpots); this.balbals = b.balbals; return b.piece; });
     run('eagleRock', buildEagleRock);
     run('cairn', (c) => { const k = buildCairn(c); this.cairnTieSpot = k.tieSpot; return k.piece; });
     run('crags', (c) => { const k = buildCrags(c); this.cragLedges = k.ledges; this.cragCave = k.cave; return k.piece; });
