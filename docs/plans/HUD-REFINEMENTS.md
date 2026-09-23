@@ -1,6 +1,6 @@
 # Plan: tentative HUD / touch-control refinements
 
-**State:** `in progress` 2026-09-23 — **layout E is live and re-split 45 / 55** (E42 built R12 / R14 / R15 / R17 / R18; E46 moved ATTACK onto the divider, sized the LOOK pad to match, fixed Jake's iPhone bugs — hold-for-heavy, double-tap zoom, text select, the black strip under the bar in the home-screen app). R3–R11, R13's left FIRE copy and R16 stay ideas, unapproved; nothing more is built until Jake names one.
+**State:** `in progress` 2026-09-23 — layout E is live with the true 45 / 55 split and the home-screen app's black strip fixed (E58, `0c5f16f`: the page now sits below the status bar). Open, built by the main session in this order: E61 app-switch resume screen · E47 compact FPS pill · E59 DODGE cooldown sweep · E63 T / V dodge buttons · E64 credits page. E48 dropped (E58). Lock-on (E50, docs/plans/LOCK-ON.md) waits on Jake's go.
 
 ## Read this first
 
@@ -121,6 +121,18 @@ actual attack button literally on the divider line" / "the actual looking right 
 | DODGE / JUMP | One size (`--disc`), an even diagonal at the right edge. AIM (ranged) sits up-right of FIRE, clear of the pill, left of DODGE. |
 | iOS | The layer cancels its own touch events (non-passive touchstart / touchmove / touchend), pinch gestures, dragstart / contextmenu / selectstart; every element gets draggable="false" and touch-action / user-select / touch-callout / user-drag none; ATTACK captures its own touch and only a lift or cancel ends a hold. Measured in the iOS 26.5 Safari simulator with real XCUITest touches: live E42 — a 1.6 s hold never charged (heavy 0), a double tap zoomed to 1.6×; E46 — the hold charges and chops (heavy 1, 0 pointercancel), no zoom (`progress/198`). |
 | Black strip | An iOS home-screen app reports `innerHeight` / `100vh` a status bar short; `src/core/viewport.ts` measures the real height (`--ws-vh`), and the canvas, #hud and the projections (lock-on, damage floats, aim-assist debug) use it. Not reproducible in the simulator tab; Jake tests it in the home-screen app. |
+
+## Queue (2026-09-23, main session, one at a time)
+
+| Ask | What | State |
+|---|---|---|
+| E58 | Black strip in the home-screen app + true 45 / 55 (ATTACK's left edge on the divider) | done `0c5f16f` |
+| E61 | Tiny "RESUMING" screen on an app switch (blurred last frame), no first-boot loader on a recovery reload | next — WIP in tree (Resume.ts, GpuRecovery.ts); its main.ts hunk was lost in the 16:05 truncation, re-apply |
+| E47 | Compact FPS pill beside PAUSE ("59 fps 17 ms"); tap → full stats over the minimap; VITALS up a row | WIP in tree (Perf.ts, perf.css, game.css, touch.css) |
+| E59 | DODGE cooldown (~0.8 s) with a clock sweep on the disc | open |
+| E63 | Dodge feel T (lean + smear) and V (roll-dip) as two buttons, "T DODGE" / "V DODGE", Jake deletes one after playing | open (docs/plans/DODGE-FEEL.md) |
+| E64 | Music / SFX attribution off the title → a Credits page | open |
+| E48 | Raise PAUSE / minimap into the status band in standalone | dropped — E58 put the page below the status bar |
 
 ## Status
 
