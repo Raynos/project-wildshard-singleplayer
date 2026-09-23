@@ -133,3 +133,35 @@ lead) behind `?look=v2` in `src/nalati/look/`, default once it beats the current
 replaces the painterly sky / clouds / PainterlyRange, the current grass look and the far forest; gameplay hooks
 (Wind, trample, grassHeightAt, stealth, weather) stay. Models: the sourced CC0 set (`public/assets/nalati/sourced/`)
 and the local image-to-3D models (`public/assets/nalati/models/`).
+
+### The camp 9-angle set (`scripts/nalati-camp9.mjs`)
+
+The nine fixed cameras round the nomad camp (`art/nalati-grasslands/round-4-camp-9angle/poses.json`: 4 first-person at
+the phone tier 390×844 @1.5 with the touch HUD, 5 free cameras from above at 1600×900 with the HUD hidden) re-shot and
+measured per render step, against the round-4 codex remasters:
+
+```bash
+node scripts/nalati-camp9.mjs --tag=v2-step1 --look=v2     # the port's render path (?look=v2)
+node scripts/nalati-camp9.mjs --tag=v1-baseline            # the shipping path
+```
+
+Output in `progress/nalati-look/camp9/`: `<tag>-<n>-<id>.jpg` per angle, `<tag>-sheet-engine.jpg` (3×3),
+`<tag>-sheet-pairs.jpg` (engine | target, 3×3) and `<tag>-budget.md` (frame p50 / p95, calls, tris per angle against
+the phone budget ≤ 150 calls / ≤ 2.0 M tris). Frame ms are vsync-capped (16.7 = keeping up), a Mac reading, not an
+iPhone one. `v1-baseline` (2026-09-23): every angle 105–120 calls, 1.48–1.94 M tris, p50 16.7 ms.
+
+### Paint-over targets (`scripts/nalati-paintover.mjs`)
+
+`node scripts/nalati-parity.mjs --tiers=po-desktop,po-phone --engine-frames` saves the engine frames of the six poses at
+the image model's sizes; `node scripts/nalati-paintover.mjs --runner=<codex-run2.py> --work=<scratch>` has codex
+repaint each one in the style-B look while keeping its camera, layout and HUD. The results
+(`art/nalati-grasslands/round-5-paintover/`) show up in the parity sheets as engine | paint-over | mockup.
+
+### Decisions so far (look-director)
+
+- **Kuwahara painterly filter: off** (`?kuwahara=1` to look again). At parity it smears the felt ornaments and grass
+  tufts into watercolour, and the mockups are crisp, detailed digital paint. Cost ~2 ms at 1600×900.
+- **Procedural painted range (PainterlyRange.ts): opt-in fallback** (`?paintedrange=1`). The snow range is now the
+  painted 360° backdrop (PaintedBackdrop.ts).
+- **Post chain (painterly):** Khronos Neutral tone map, no grain and no chromatic fringe, cool-blue AO, bloom only on
+  highlights, then PaintGrade (greens lean warm, vibrance, a painted value range).
