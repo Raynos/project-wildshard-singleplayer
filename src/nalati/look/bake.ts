@@ -22,6 +22,8 @@ const SIZE = TIER === 'phone' ? 1024 : 2048;
 const AO_SIZE = 1024;
 const HALF = 262;          // the slab (±250) and a margin
 const REBAKE_COS = Math.cos(1.5 * Math.PI / 180);
+/** phone: the static casters cast only into the bake, not the realtime shadow map (see `add`) */
+export const PHONE_STATIC_OFF_CSM = TIER === 'phone';
 
 export const bakeUniforms = {
   tBakeShadow: { value: null as THREE.Texture | null },
@@ -139,10 +141,30 @@ export class StaticBake {
     if (typeof window !== 'undefined') Object.assign(window, { __bake: this });
   }
 
-  /** put every mesh under `root` into the bake (static things only) */
+  private readonly roots: THREE.Object3D[] = [];
+  private seen = 0;
+
+  /**
+   * put every mesh under `root` into the bake (static things only). On the phone they also leave the realtime
+   * shadow map: the bake is their shadow there (the terrain and the grass read it), so the CSM pass draws only what
+   * moves — every static caster drawn a second time each frame was ~20 calls and ~0.4 M triangles.
+   */
   add(root: THREE.Object3D): void {
-    root.traverse((o) => { if (o instanceof THREE.Mesh) o.layers.enable(LAYER); });
+    this.roots.push(root);
+    this.sweep();
     this.dirty = true;
+  }
+
+  /** the groups stream in (the dressing, the GLB props): pick up meshes added since — cheap, call it every second or two */
+  sweep(): void {
+    let n = 0;
+    for (const root of this.roots) root.traverse((o) => {
+      if (!(o instanceof THREE.Mesh)) return;
+      n++;
+      o.layers.enable(LAYER);
+      if (PHONE_STATIC_OFF_CSM) o.castShadow = false;
+    });
+    if (n !== this.seen) { this.seen = n; this.dirty = true; }
   }
 
   /** the casters changed (the dressing landed, a model streamed in) */

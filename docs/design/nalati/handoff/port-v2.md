@@ -22,6 +22,34 @@ Open: near-field painted grass cards (0–3 m) not added (the blades hold up at 
 straight line from far above; the cloud deck is a shader (no volume); terrain shading by zone + the horizon re-aim for
 layout v2 (`docs/design/nalati/layout-v2.md`) wait on the new landscape.
 
+## Phone tier (`?tier=phone`, polish agent 2026-09-23)
+
+Measured headless (390×844 @1.5, Metal) with `?perf=1` and a per-object draw probe; budget **≤ ~110 calls, ≤ 1.6 M
+triangles** at every pose (the real-phone 30 fps target can't be measured here). The frame meter's `?perf=1` adds the
+check: the worst calls / triangles of the last ~10 s vs that budget, `OK` / `OVER` (red when over), and
+`window.__perfBudget` for scripts (src/ui/Perf.ts).
+
+| setting (phone) | value | where |
+|---|---|---|
+| MSAA | ×2 (desktop ×4); off when the player turns AA off | `look/grade.ts` `buildLookV2Chain` |
+| static casters (POIs, dressing, outcrops, spruce, GLB props) | **out of the realtime shadow map**: they shadow through the bake only (terrain + grass read `bakedShadow`); swept every 2 s for streamed-in meshes | `look/bake.ts` `PHONE_STATIC_OFF_CSM`, `sweep()`; `terrainSurface.ts` (the key light × `bakedShadow` in the light loop) |
+| realtime shadow map | 1 cascade to 80 m (tier), **512²** — only what moves casts (creatures, the player) | `look/index.ts` |
+| baked shadow / contact | 1024² / 1024² over the slab, re-baked on a 1.5° key swing | `look/bake.ts` |
+| grass rings | 4 / 8 / 16 m tiles × 8 / 12 / 14, spacing 0.085 / 0.20 / 0.45 m, 3 / 2 / 1 segments; flowers 0.3 m; near cards 0.2 m on 2 m tiles to ~3.4 m | `look/grass.ts` |
+| Storm Titan | puffs icosahedron detail 2, 1 bud per puff (desktop 2); flame tongues 8 × 6; smoke pool 90 (desktop 200) | `stormTitan.ts`, `stormTitanLook.ts` |
+
+| pose (layout v2) | before (calls · M tris) | after |
+|---|---|---|
+| camp, looking W (115, 205) | 106 · 1.75 | 81 · 1.32 |
+| camp, looking S (88, 232) | 108 · 1.52 | 83 · 1.09 |
+| bowl, looking N (0, 20) | 112 · 1.69 | 79 · 1.20 |
+| horse plains, looking E (40, 36) | 108 · 1.43 | 95 · 1.10 |
+| Titan fight, phase 1 looking S | — | 81 · 1.23 |
+| Titan fight, phase 3 looking N over the fire | 115 · 1.75 | 94 · 1.40 |
+
+Left for the owners: the sheep flock still casts its whole InstancedMesh into the shadow map (~0.1 M tris a frame,
+`src/entities/Flock.ts`); ~6 draws a frame are `Points` particle layers that could merge.
+
 ## The user's hard rules (2026-09-23, after playing the prototype — these override the prototype)
 
 "so many cardboard cutouts … it only looks good for screenshots, when you move around you can see it's a scam … the

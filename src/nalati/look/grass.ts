@@ -6,7 +6,7 @@
  * is `tile origin + (gl_InstanceID's cell) × spacing + hash jitter`. Each ring is ONE instanced draw: the CPU culls the
  * ring's tiles against the frustum every frame and writes the visible tiles' origins into a small float texture; the
  * vertex shader finds its tile as `gl_InstanceID / bladesPerTile`. Three rings, finer near (phone 4 / 8 / 16 m tiles,
- * 0.08 / 0.20 / 0.45 m spacing, 3 / 2 / 1 segments); each ring skips the inner ring's square per blade (the tile
+ * 0.085 / 0.20 / 0.45 m spacing, 3 / 2 / 1 segments); each ring skips the inner ring's square per blade (the tile
  * straddling it too) and the last ring fades out radially. Flowers are a fourth draw: camera-facing SDF heads
  * (buttercup, daisy, lupine spike, edelweiss) — no texture bytes. The near field (0 – ~3 m, where a blade is a big dark
  * spike on the phone's 94° lens) is a fifth draw: the painted card atlas (GRASS_CARDS) as clumps of 3 crossed quads on a
@@ -47,7 +47,7 @@ const PHONE = TIER === 'phone';
 
 interface RingCfg { T: number; G: number; s: number; w: number; seg: number }
 const RINGS: RingCfg[] = PHONE
-  ? [{ T: 4, G: 8, s: 0.08, w: 0.045, seg: 3 }, { T: 8, G: 12, s: 0.2, w: 0.1, seg: 2 }, { T: 16, G: 14, s: 0.45, w: 0.2, seg: 1 }]
+  ? [{ T: 4, G: 8, s: 0.085, w: 0.047, seg: 3 }, { T: 8, G: 12, s: 0.2, w: 0.1, seg: 2 }, { T: 16, G: 14, s: 0.45, w: 0.2, seg: 1 }]
   : [{ T: 4, G: 8, s: 0.06, w: 0.034, seg: 3 }, { T: 8, G: 14, s: 0.15, w: 0.08, seg: 3 }, { T: 16, G: 18, s: 0.34, w: 0.16, seg: 2 }];
 const FLOWERS = PHONE ? { T: 8, G: 10, s: 0.3 } : { T: 8, G: 14, s: 0.22 };
 /** the near field (0 – ~3 m): painted card clumps (GRASS_CARDS), 3 crossed quads each; the blades thin out under them */
@@ -319,7 +319,7 @@ void main() {
   float patchN = gFbm(xz * .09);
   float dist = length(xz - cameraPosition.xz);
   // a clump the field's height (a painted clump is a tuft: its tallest stems reach the field height)
-  float h = clamp(H0 * mix(.62, 1.05, r) * mix(.8, 1.12, patchN), 0., 1.25);
+  float h = clamp(H0 * mix(.62, 1.05, r) * mix(.8, 1.12, patchN), 0., 1.);   // capped: a taller painted clump is all giant leaves at the lens
   h *= smoothstep(.24, .4, H0);                              // short turf is the blades' (they are no spikes there)
   h *= 1. - smoothstep(uNear.x, uNear.y, dist);
   if (h < .06) { gl_Position = vec4(0., 0., -2., 1.); return; }

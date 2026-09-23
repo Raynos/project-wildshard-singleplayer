@@ -20,7 +20,7 @@ import { fogLut } from './fog';
 import { updateTint } from './tint';
 import { LightCheat } from './light';
 import { grassV2Uniforms, grassMood, terrainHeightTexture } from './grass';
-import { StaticBake } from './bake';
+import { StaticBake, PHONE_STATIC_OFF_CSM } from './bake';
 import { applyCloudSeaV2 } from './cloudSea';
 import type { Forest } from '../../world/Forest';
 import { getActiveChunk } from '../../chunks/registry';
@@ -58,7 +58,15 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   const bake = new StaticBake(game.renderer, game.scene, terrainHeightTexture());
   for (const k of ['pois', 'dressing', 'outcrops'] as const) { const g = ctx.groups[k]; if (g) bake.add(g); }
   bake.add(ctx.forest.group);
-  ctx.updates.push(() => {
+  // phone: the realtime shadow map now holds only what moves (the creatures, the player — bake.ts), so 512² does
+  if (PHONE_STATIC_OFF_CSM) {
+    sky.csm.shadowMapSize = 512;
+    for (const l of sky.csm.lights) { l.shadow.mapSize.set(512, 512); l.shadow.map?.dispose(); l.shadow.map = null; }
+  }
+  let sweepT = 0;
+  ctx.updates.push((dt) => {
+    sweepT -= dt;
+    if (sweepT <= 0) { sweepT = 2; bake.sweep(); } // streamed-in casters join the bake (and leave the phone's CSM)
     const look = weather.look, w = weather.weather;
     updateTint(look, w);
     cheat.apply(look); // step 4: the key swung round + lifted, the fill lower and cooler (light.ts)

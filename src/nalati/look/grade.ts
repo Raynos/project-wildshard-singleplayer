@@ -110,11 +110,12 @@ export class GradeV2Effect extends Effect {
 }
 
 /**
- * The v2 composer: RenderPass (MSAA ×4 unless the player turned anti-aliasing off) → one EffectPass (desktop: bloom,
+ * The v2 composer: RenderPass (MSAA ×4, phone ×2, unless the player turned anti-aliasing off) → one EffectPass (desktop: bloom,
  * then the grade; phone: the grade alone). `Game.buildComposer` returns this in v2 (one line).
  */
 export function buildLookV2Chain(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.PerspectiveCamera): EffectComposer {
-  const msaa = TIER_CONFIG.smaa === 'off' ? 0 : 4;
+  // phone: MSAA ×2 (the fill rate of ×4 at DPR 1.5 on a tile GPU, for edges the grass hides anyway); desktop ×4
+  const msaa = TIER_CONFIG.smaa === 'off' ? 0 : TIER === 'phone' ? 2 : 4;
   const composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType, multisampling: Math.min(msaa, renderer.capabilities.maxSamples) });
   composer.addPass(new RenderPass(scene, camera));
   const grade = new GradeV2Effect();

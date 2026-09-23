@@ -24,7 +24,7 @@ import * as THREE from 'three';
 import { TEX_METRES, TEX_MEAN, type NalatiTexName } from '../world/nalatiTextures';
 import { LOOK_V2 } from './look/flag';
 import { V2_OLIVE_GLSL } from './look/light';
-import { LOOK_BAKE_GLSL, bakeUniforms } from './look/bake';
+import { LOOK_BAKE_GLSL, bakeUniforms, PHONE_STATIC_OFF_CSM } from './look/bake';
 
 export type TerrainTextures = Record<'meadow' | 'path' | 'gravel' | 'rock' | 'snow', THREE.Texture>;
 
@@ -176,6 +176,13 @@ export function applyTerrainSurface(mat: THREE.Material, tex: TerrainTextures): 
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>\n${FRAG_PARS}`)
       .replace('#include <color_fragment>', FRAG_MAIN);
+    // look v2, phone: the static casters are out of the realtime shadow map (look/bake.ts) — the key light on the
+    // ground is shadowed by the bake instead (CSM still adds what moves)
+    if (LOOK_V2 && PHONE_STATIC_OFF_CSM) {
+      shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_begin>', THREE.ShaderChunk.lights_fragment_begin
+        .replaceAll('getDirectionalLightInfo( directionalLight, directLight );', 'getDirectionalLightInfo( directionalLight, directLight );\n\t\t\tdirectLight.color *= bakedShadow( vTWorld );')
+        .replaceAll('getDirectionalLightInfo( directionalLights[0], directLight );', 'getDirectionalLightInfo( directionalLights[0], directLight );\n\t\tdirectLight.color *= bakedShadow( vTWorld );'));
+    }
   };
   mat.customProgramCacheKey = () => (LOOK_V2 ? 'painterly-terrain-v2' : 'painterly-terrain');
 }
