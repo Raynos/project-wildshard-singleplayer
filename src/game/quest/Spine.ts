@@ -12,7 +12,7 @@ import { QuestState, lineFor, type QuestMarker } from './quest';
 import { CASTAWAY, DRIFTWOOD_QUEST } from './driftwood';
 import { DialogueBox, ObjectiveLine } from './QuestUI';
 import { Castaway } from '../../entities/npc/Castaway';
-import type { Adventure, AdventureWorld } from './Adventure';
+import type { Adventure, AdventureWorld, AdvAnimal } from './Adventure';
 import type { Interactable } from '../../world/Cabin';
 
 export interface LiveMarker { id: string; label: string; x: number; z: number }
@@ -28,7 +28,7 @@ export interface Spine {
 
 const TALK_R = 3.2;
 
-export function installSpine<A extends { kind: string; position: THREE.Vector3 }>(adv: Adventure, w: AdventureWorld<A>): Spine {
+export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>): Spine {
   const { flags, kit, place } = adv;
   const quest = new QuestState(DRIFTWOOD_QUEST, flags);
   const objective = new ObjectiveLine();

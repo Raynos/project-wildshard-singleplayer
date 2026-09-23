@@ -6,14 +6,13 @@
  *
  * The vista bench: sitting turns you to the view it was placed for and holds you there a moment.
  */
-import type * as THREE from 'three';
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from '../../world/interact/driftwood';
 import { QUEST_DONE } from './driftwood';
-import type { Adventure, AdventureWorld } from './Adventure';
+import type { Adventure, AdventureWorld, AdvAnimal } from './Adventure';
 
 export interface ProgressSink { recordEvent: (event: string, total?: number) => void }
 
-export function installFeats<A extends { kind: string; position: THREE.Vector3 }>(adv: Adventure, w: AdventureWorld<A>, progress: ProgressSink): void {
+export function installFeats<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, progress: ProgressSink): void {
   const { flags } = adv;
   const sync = (): void => {
     if (flags.has('talked:castaway')) progress.recordEvent('talked', 1);

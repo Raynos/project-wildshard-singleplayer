@@ -4,7 +4,8 @@
 /* ── objective line: right-aligned under the minimap (its top is set from the minimap's rect in JS) ── */
 .ws-quest-obj { position: absolute; right: 12px; top: 180px; max-width: min(62vw, 340px); display: flex; flex-direction: column; align-items: flex-end; gap: 3px; opacity: 0; transform: translateX(8px); transition: opacity 0.35s, transform 0.35s; pointer-events: none; }
 .ws-quest-obj.show { opacity: 1; transform: none; }
-.ws-quest-obj.show.dim { opacity: 0.12; } /* a HUD toast is up (on the phone the toasts run under the minimap too) */
+.ws-quest-obj.show.dim { opacity: 0.12; }
+.ws-quest-obj.ws-quest-hide { opacity: 0; transition: opacity 1.2s; } /* the reward caption has the screen */ /* a HUD toast is up (on the phone the toasts run under the minimap too) */
 .ws-quest-obj-title { font-family: var(--ws-mono); font-size: 8.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ws-cyan-dim); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9); }
 .ws-quest-obj-line { display: flex; align-items: center; gap: 7px; padding: 5px 9px 5px 8px; background: var(--ws-glass); border: 1px solid var(--ws-cyan-line); border-right: 2px solid var(--ws-cyan); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .ws-quest-obj-line b { font-family: var(--ws-display); font-weight: 600; font-size: 15px; line-height: 1.1; letter-spacing: 0.03em; color: var(--ws-text); text-align: right; }
@@ -27,6 +28,19 @@
 #hud.touch .ws-quest-talk-foot b { padding: 4px 10px; margin: -4px -6px -4px 0; border: 1px solid var(--ws-cyan-line); background: rgba(143, 227, 255, 0.08); }
 #hud.intro .ws-quest-talk { display: none; }
 
+/* ── the boss bar (the Drowned Captain): top centre, under the safe area ── */
+.ws-quest-boss { position: absolute; left: 50%; top: calc(var(--ws-top) + 58px); width: min(62vw, 420px); transform: translate(-50%, -6px); opacity: 0; transition: opacity 0.4s, transform 0.4s; pointer-events: none; }
+.ws-quest-boss.show { opacity: 1; transform: translate(-50%, 0); }
+.ws-quest-boss-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+.ws-quest-boss-name { font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.16em; text-transform: uppercase; color: #eafcff; text-shadow: 0 0 10px rgba(143, 227, 255, 0.5), 0 1px 3px rgba(0, 0, 0, 0.9); }
+.ws-quest-boss-pips { display: flex; gap: 5px; }
+.ws-quest-boss-pips i { width: 7px; height: 7px; transform: rotate(45deg); border: 1px solid var(--ws-cyan-line); background: rgba(6, 10, 18, 0.6); }
+.ws-quest-boss-pips i.on { background: var(--ws-cyan); box-shadow: 0 0 6px rgba(143, 227, 255, 0.8); }
+.ws-quest-boss-track { position: relative; height: 7px; background: rgba(6, 10, 18, 0.75); border: 1px solid rgba(143, 227, 255, 0.45); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4); overflow: hidden; }
+.ws-quest-boss-fill { position: absolute; inset: 0; transform-origin: 0 50%; background: var(--ws-cyan); box-shadow: 0 0 10px rgba(143, 227, 255, 0.7); transition: transform 0.25s ease-out; }
+.ws-quest-boss.rage .ws-quest-boss-fill { background: var(--ws-red); box-shadow: 0 0 10px rgba(255, 90, 74, 0.7); }
+#hud.intro .ws-quest-boss { display: none; }
+
 /* ── the reward caption (the golden-hour view) ── */
 .ws-quest-reward { position: absolute; left: 0; right: 0; top: 22%; display: flex; flex-direction: column; align-items: center; gap: 6px; opacity: 0; transition: opacity 1.6s; pointer-events: none; text-align: center; }
 .ws-quest-reward.show { opacity: 1; }
@@ -40,4 +54,8 @@
   .ws-quest-talk { bottom: calc(env(safe-area-inset-bottom, 0px) + 168px); padding: 10px 13px; }
   .ws-quest-talk-text { font-size: 16px; }
   .ws-quest-reward-title { font-size: 28px; }
+  /* the phone's minimap owns the top-right: the bar sits top-left, under the vitals, clear of the minimap column */
+  .ws-quest-boss { left: 12px; width: calc(100vw - 34vw - 36px); transform: translateY(-6px); }
+  .ws-quest-boss.show { transform: none; }
+  .ws-quest-boss-name { font-size: 12.5px; letter-spacing: 0.12em; }
 }

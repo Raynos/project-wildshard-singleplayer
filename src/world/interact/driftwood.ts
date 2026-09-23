@@ -71,7 +71,7 @@ export const DRIFTWOOD_INTERACT: InteractTable = {
       requires: { all: ['open:sluice'] }, lockedLabel: 'Behind the tide gate', sets: ['shard:cave'], toast: 'Glyph shard — the Sea Cave' },
 
     // ── SHRINE: the altar the three shards are set into (the Captain rises when it is used) ──
-    { kind: 'altar', id: 'altar', label: 'Set the glyph shards', fills: [...SHARD_FLAGS], at: { poi: 'shrine', anchor: 'shrine.altar', x: 0, z: -2.4 },
+    { kind: 'altar', id: 'altar', label: 'Set the glyph shards', fills: [...SHARD_FLAGS], at: { poi: 'shrine', anchor: 'shrine.altar', x: 0, z: 2.4 },
       requires: { all: [...SHARD_FLAGS] }, lockedLabel: 'Three empty sockets — the glyph shards are out on the island',
       sets: ['quest:shrine-set'], toast: 'The shards lock into place — the ring wakes' },
 

@@ -140,6 +140,33 @@ export class DialogueBox {
   }
 }
 
+/** the boss's health across the top of the screen: name, phase pips, a draining bar (the Drowned Captain, A6) */
+export class BossBar {
+  readonly root = el('div', 'ws-quest-boss');
+  private fill: HTMLElement;
+  private pips: HTMLElement[] = [];
+  private shown = false;
+  private lastF = -1;
+  private lastP = -1;
+  constructor(name = 'The Drowned Captain') {
+    const head = el('div', 'ws-quest-boss-head', this.root);
+    el('span', 'ws-quest-boss-name', head).textContent = name;
+    const pips = el('span', 'ws-quest-boss-pips', head);
+    for (let i = 0; i < 3; i++) this.pips.push(el('i', '', pips));
+    const track = el('div', 'ws-quest-boss-track', this.root);
+    this.fill = el('div', 'ws-quest-boss-fill', track);
+    hudRoot().append(this.root);
+  }
+  /** `f` 0..1 of his health, `phase` 1..3 */
+  set(show: boolean, f: number, phase: number): void {
+    if (show !== this.shown) { this.shown = show; this.root.classList.toggle('show', show); }
+    if (!show) return;
+    const q = Math.round(f * 200) / 200;
+    if (q !== this.lastF) { this.lastF = q; this.fill.style.transform = `scaleX(${Math.max(0, q)})`; }
+    if (phase !== this.lastP) { this.lastP = phase; this.pips.forEach((p, i) => { p.classList.toggle('on', i < phase); }); this.root.classList.toggle('rage', phase >= 3); }
+  }
+}
+
 export class RewardCaption {
   readonly root = el('div', 'ws-quest-reward');
   constructor(kicker: string, title: string, sub: string) {

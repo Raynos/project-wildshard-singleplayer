@@ -26,6 +26,7 @@ import { IslandSfx } from '../../audio/IslandSfx';
 import { installSpine, type Spine } from './Spine';
 import { installFeats, type ProgressSink } from './Feats';
 import { installPlaces, type Places } from './Places';
+import { installFinale, type Finale } from './Finale';
 import type { MapPoi } from '../../ui/Map';
 
 /** a named point a model module exports (`anchors`, world coords) for the adventure to place things at */
@@ -37,7 +38,10 @@ function anchorsOf(m: object | null | undefined): Record<string, Anchor> | undef
   return typeof a === 'object' && a !== null ? (a as Record<string, Anchor>) : undefined;
 }
 
-export interface AdventureWorld<A extends { kind: string; position: THREE.Vector3 } = { kind: string; position: THREE.Vector3 }> {
+/** what the adventure reads of an animal (Animal.ts satisfies it) */
+export interface AdvAnimal { kind: string; position: THREE.Vector3; mem: Record<string, number>; hp: number; maxHp: number; alive: boolean; herd: number }
+
+export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   game: { scene: THREE.Scene; camera: THREE.Camera; onUpdate: (fn: (dt: number, t: number) => void) => void };
   sky: Sky;
   player: { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; pitch: number; colliders: Collider[]; platforms: ((x: number, z: number) => number | undefined)[] };
@@ -47,17 +51,19 @@ export interface AdventureWorld<A extends { kind: string; position: THREE.Vector
   hud: { toast: (text: string) => void };
   /** the game's Audio: the kit's sounds are IslandSfx.interact (S4) — chests, locks, levers, plates, doors, pickups, the beacon */
   audio: Audio;
-  music: { sting: (name: 'pickup' | 'death' | 'chunk') => void };
+  music: { sting: (name: 'pickup' | 'death' | 'chunk') => void; combat?: (intensity: number) => void };
   inventory: { add: (id: ItemId, n?: number) => void };
   pois: Partial<Record<Exclude<PoiId, 'world'>, object | null>>;
   /** the animal manager: its onKill is chained (the sailor drops the hold key, the captain ends the fight) */
-  animals: { onKill?: ((a: A) => void) | undefined };
+  animals: { onKill?: ((a: A) => void) | undefined; spawn?: (kind: string, x: number, z: number, yaw: number, variant?: string) => A };
   params?: URLSearchParams;
   /** shard achievements (Progress.recordEvent) — the adventure's event achievements (A4) */
   progress?: ProgressSink;
   /** the full map (the menu's MAP tab): shows the island's places with discovery + the quest markers (A5) */
   fullMap?: { setPois: (source: () => MapPoi[]) => void };
   /** the iron sword in the wreck's hold (IronSword.ts) — guarded until the drowned sailor is beaten (B4 / D6) */
+  /** show / hide the weapon viewmodel (the golden-hour reward view lowers it) */
+  setViewmodel?: (on: boolean) => void;
   ironDrop?: { guard: (() => string | null) | null; onGuarded?: ((reason: string) => void) | undefined } | null;
 }
 
@@ -68,8 +74,12 @@ export interface Adventure {
   spine: Spine | null;
   /** the island's named places + discovery (A5) */
   places: Places | null;
+  /** the Drowned Captain + the golden-hour reward (A6) */
+  finale: Finale | null;
   place: (p: Place) => { x: number; y: number; z: number; yaw: number };
   floorAt: (x: number, z: number) => number;
+  /** register a computed anchor (`<poi>.<name>`) that placements and quest markers can name */
+  setAnchor: (name: string, a: Anchor) => void;
 }
 
 const CAVE = Cove.forIsland().cave;
@@ -81,7 +91,7 @@ const FRAMES: Record<Exclude<PoiId, 'world'>, { x: number; z: number; rot: numbe
   pier: { x: PIER.x, z: PIER.z, rot: 0 },
 };
 
-export function installAdventure<A extends { kind: string; position: THREE.Vector3 }>(w: AdventureWorld<A>): Adventure | null {
+export function installAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): Adventure | null {
   if (w.chunk.slug !== 'driftwood-isle') return null;
   const flags = new Flags(w.chunk.id);
   if (w.params?.has('resetquest')) flags.reset();
@@ -91,7 +101,11 @@ export function installAdventure<A extends { kind: string; position: THREE.Vecto
     for (const p of w.player.platforms) { const f = p(x, z); if (f !== undefined && f > y) y = f; }
     return y;
   };
+  /** anchors the adventure computes itself (the finale's reward spot) — consulted before the models' */
+  const ownAnchors: Record<string, Anchor> = {};
   const place = (p: Place): { x: number; y: number; z: number; yaw: number } => {
+    const own = p.anchor !== undefined ? ownAnchors[p.anchor] : undefined;
+    if (own) return { x: own.x, z: own.z, y: own.y ?? floorAt(own.x, own.z), yaw: own.yaw ?? 0 };
     if (p.anchor !== undefined) {
       const [poi, name] = p.anchor.split('.');
       const a = poi !== undefined && name !== undefined ? anchorsOf(w.pois[poi as Exclude<PoiId, 'world'>])?.[name] : undefined;
@@ -146,7 +160,7 @@ export function installAdventure<A extends { kind: string; position: THREE.Vecto
     }
   }
 
-  const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null };
+  const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null, finale: null, setAnchor: (name, a) => { ownAnchors[name] = a; } };
   adventure.spine = installSpine(adventure, w);
   if (w.progress) installFeats(adventure, w, w.progress);
   if (w.ironDrop) {
@@ -156,6 +170,7 @@ export function installAdventure<A extends { kind: string; position: THREE.Vecto
   const places = installPlaces(adventure, (t) => { w.hud.toast(t); });
   adventure.places = places;
   w.fullMap?.setPois(places.mapPois);
+  adventure.finale = installFinale(adventure, w);
   let placeT = 0;
   w.game.onUpdate((_dt, t) => { if (t - placeT > 0.25) { placeT = t; places.update(w.player.position.x, w.player.position.z); } });
   Object.assign(window, { __adventure: adventure });
