@@ -31,6 +31,7 @@ export type TerrainTextures = Record<'meadow' | 'path' | 'gravel' | 'rock' | 'sn
 const VERT_PARS = /* glsl */`
 attribute vec4 surf;
 attribute vec2 rdir;
+${LOOK_V2 ? 'attribute vec3 zone;\nvarying vec3 vZone;' : ''}
 varying vec4 vSurf;
 varying vec2 vRdir;
 varying vec3 vTWorld;
@@ -40,11 +41,13 @@ const VERT_MAIN = /* glsl */`
 #include <worldpos_vertex>
 vSurf = surf;
 vRdir = rdir;
+${LOOK_V2 ? 'vZone = zone;' : ''}
 vTWorld = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;
 vTNormal = normalize( mat3( modelMatrix ) * objectNormal );
 `;
 
 const FRAG_PARS = /* glsl */`
+${LOOK_V2 ? 'varying vec3 vZone;' : ''}
 varying vec4 vSurf;
 varying vec2 vRdir;
 varying vec3 vTWorld;
@@ -72,6 +75,28 @@ vec3 tTriplanar( sampler2D t, vec3 p, vec3 n, float s ) {
 }
 `;
 
+/**
+ * look v2: the three zones of layout v2 (src/nalati/look/zones.ts → the per-vertex `zone` weights) — the valley a lush
+ * fresh green, the bowl gold, the snow ring cold: blue-grey scree on the gentle ground, granite on the steep, snowfields
+ * lying in the hollows and on the flats (a slow noise), all on the painted textures. The slab's walls carry no zone.
+ */
+const ZONES_V2 = /* glsl */`
+  {
+    vec3 zw = vZone;
+    float n = normalize( vTNormal ).y;
+    diffuseColor.rgb *= mix( vec3( 1.0 ), vec3( 0.86, 1.1, 0.8 ), zw.x * 0.55 );     // valley: lush, fresh green
+    diffuseColor.rgb *= mix( vec3( 1.0 ), vec3( 1.2, 1.02, 0.6 ), zw.y * 0.65 );      // the bowl: gold
+    if ( zw.z > 0.01 ) {
+      vec3 scree = tTiled( tGravel, wp * uTexScale.z * 0.6 ) * vec3( 0.86, 0.92, 1.04 );
+      vec3 granite = tTriplanar( tRock, vTWorld, normalize( vTNormal ), uTexScale.w ) / uMeanRock * vec3( 0.42, 0.44, 0.5 );
+      vec3 cold = mix( scree, granite, smoothstep( 0.8, 0.6, n ) );
+      float field = smoothstep( 0.5, 0.64, tNoise( wp * 0.03 + 5.0 ) * 0.6 + tNoise( wp * 0.1 - 2.0 ) * 0.4 + ( n - 0.8 ) * 0.9 );
+      cold = mix( cold, tTiled( tSnow, wp * uSnowScale ) * vec3( 0.97, 1.0, 1.06 ), field );
+      diffuseColor.rgb = mix( diffuseColor.rgb, cold, zw.z * ( 1.0 - vSurf.y ) );
+    }
+  }
+`;
+
 const FRAG_MAIN = /* glsl */`
 #include <color_fragment>
 {
@@ -88,6 +113,8 @@ const FRAG_MAIN = /* glsl */`
   float detailAmt = 0.9 - 0.45 * smoothstep( 60.0, 260.0, dist );
   diffuseColor.rgb = ground * mix( vec3( 1.0 ), meadow, detailAmt );
   ground = diffuseColor.rgb;
+
+  ${LOOK_V2 ? ZONES_V2 : ''}
 
   // ── rock: painted granite, triplanar, tinted by the macro colour ──
   if ( vSurf.w > 0.02 ) {

@@ -8,6 +8,8 @@ import { loadBakedTerrain } from './BakedTerrain';
 import { macrotask } from '../boot/plan';
 import { painterlyMaterial } from './painterly';
 import { applyTerrainSurface } from '../nalati/terrainSurface';
+import { LOOK_V2 } from '../nalati/look/flag';
+import { zoneWeights } from '../nalati/look/zones';
 import { loadNalatiTextures } from './nalatiTextures';
 import { Noise2D } from '../core/noise';
 import type { RGB } from '../chunks/ChunkDef';
@@ -125,6 +127,7 @@ export class Terrain {
     const H = (ix: number, iz: number) => hs[Math.min(n, Math.max(0, iz)) * res + Math.min(n, Math.max(0, ix))] ?? 0;
     const pos = new Float32Array(res * res * 3), nrm = new Float32Array(res * res * 3), col = new Float32Array(res * res * 3);
     const surf = new Float32Array(res * res * 4), rdir = new Float32Array(res * res * 2);
+    const zone = LOOK_V2 ? new Float32Array(res * res * 3) : null, zw: [number, number, number] = [0, 0, 0]; // look v2: layout v2's zones (src/nalati/look/zones.ts)
     const road: [number, number, number] = [0, 0, 0];
     const out: RGB = [0, 0, 0];
     const segs = trailSegments();
@@ -145,6 +148,7 @@ export class Terrain {
         const [gravel = 0, rock = 0, snow = 0] = def.surfaceAt?.(x, z, y, slope) ?? [];
         signedTrailDistance(segs, x, z, 9, road); rdir[i * 2] = road[1]; rdir[i * 2 + 1] = road[2];
         surf[i * 4] = road[0]; surf[i * 4 + 1] = gravel; surf[i * 4 + 2] = snow; surf[i * 4 + 3] = rock;
+        if (zone) { zoneWeights(x, z, y, slope, zw); zone[i * 3] = zw[0]; zone[i * 3 + 1] = zw[1]; zone[i * 3 + 2] = zw[2]; }
       }
     }
     const idx = new Uint32Array(n * n * 6);
@@ -159,6 +163,7 @@ export class Terrain {
     geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
     geo.setAttribute('surf', new THREE.BufferAttribute(surf, 4));
     geo.setAttribute('rdir', new THREE.BufferAttribute(rdir, 2));
+    if (zone) geo.setAttribute('zone', new THREE.BufferAttribute(zone, 3));
     geo.setIndex(new THREE.BufferAttribute(idx, 1));
     geo.computeBoundingSphere();
     return geo;
@@ -223,6 +228,7 @@ export class Terrain {
     geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
     geo.setAttribute('surf', new THREE.Float32BufferAttribute(surf, 4));
     geo.setAttribute('rdir', new THREE.Float32BufferAttribute(rdir, 2));
+    if (LOOK_V2) geo.setAttribute('zone', new THREE.Float32BufferAttribute(new Float32Array((verts.length / 3) * 3), 3)); // the walls carry no zone
     geo.setIndex(idx);
     geo.computeVertexNormals();
     geo.computeBoundingSphere();
