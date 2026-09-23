@@ -89,7 +89,7 @@ export class Horizon {
         for (const t of ROWS) {
           const y = ring.base + h * t, k = 1 - ((1 - t) * h * 1.1) / ring.r;
           pos.push(cx * ring.r * k, y, sz * ring.r * k);
-          nrm.push(nx * (1.1 - t * 0.5), 0.5 + t * 0.8, nz * (1.1 - t * 0.5)); // tipping up toward the crest: the tops take the sky light
+          nrm.push(nx * (1.1 - t * 0.6), 0.7 + t * 1.3, nz * (1.1 - t * 0.6)); // tipping up toward the crest: the tops catch the sun
           c.copy(body).lerp(top, t * t);
           c.lerp(snowC, THREE.MathUtils.smoothstep(y, snowY - 8, snowY + 22) * (0.75 + 0.25 * t));
           col.push(c.r, c.g, c.b);

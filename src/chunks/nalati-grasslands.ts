@@ -348,7 +348,7 @@ export const NALATI_GRASSLANDS: ChunkDef = {
       },
       // far: the Nalati range, big and white across the whole south; lower blue ranges round the rest
       {
-        r: 2450, base: -200, floor: -200, color: [0.08, 0.11, 0.17], top: [0.2, 0.23, 0.31], snowLine: 0.5, haze: 0.2,
+        r: 2450, base: -200, floor: -200, color: [0.07, 0.09, 0.14], top: [0.16, 0.18, 0.25], snowLine: 0.48, haze: 0.13,
         bands: [
           { azimuth: 180, spread: 95, height: 720, rough: 0.9 },
           { azimuth: 125, spread: 40, height: 560, rough: 0.9 },

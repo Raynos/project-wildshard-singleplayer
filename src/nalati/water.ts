@@ -57,8 +57,11 @@ void main() {
   float riffle = 1.0 - smoothstep(0.05, 0.5, d);
   float foam = clamp(streak * (0.25 + 0.75 * riffle) + riffle * 0.25 + vFall * (0.35 + streak * 0.6), 0.0, 1.0);
   col = mix(col, uFoam, foam * 0.8);
+  // the fall: vertical white ropes over a green-turquoise sheet, racing down
+  float rope = smoothstep(0.35, 0.85, vnoise(vec2(vAcross * 11.0, vFlow * 55.0 - uTime * 3.2)) * 0.75 + vnoise(vec2(vAcross * 29.0 + 3.0, vFlow * 120.0 - uTime * 4.1)) * 0.35);
+  col = mix(col, mix(uShallow * 1.4, uFoam, 0.25 + 0.75 * rope), step(0.9, vFall));
   // the edge: fade out where the water thins over the bank
-  float alpha = mix(smoothstep(0.0, 0.12, vDepth) * 0.92, 0.9, vFall);
+  float alpha = mix(smoothstep(0.0, 0.12, vDepth) * 0.92, 0.72 + 0.25 * rope, step(0.9, vFall));
   gl_FragColor = vec4(col, alpha);
   #include <fog_fragment>
 }`;
@@ -131,11 +134,13 @@ export class NalatiWater {
       if (!p || !q || !o) continue;
       const tx = q.x - o.x, tz = q.y - o.y, tl = Math.hypot(tx, tz) || 1;
       const sx = -tz / tl, sz = tx / tl;
+      // draped: each vertex just over the ground under it (the 2 m terrain grid only half-resolves the bed, so a flat
+      // surface at the bed's level would float over the rendered banks and read as a line across the hill)
       const yBed = heightAt(p.x, p.y);
-      const y = yBed + 0.55;
       for (const u of [-1, 0, 1]) {
         const x = p.x + sx * half * u, z = p.y + sz * half * u;
-        pos.push(x, y, z); depth.push(y - heightAt(x, z)); flow.push(i / pts.length * 0.35); across.push(u); fall.push(0);
+        const y = Math.min(yBed + 0.6, heightAt(x, z) + 0.3);
+        pos.push(x, y, z); depth.push(u === 0 ? 0.5 : 0.08); flow.push(i / pts.length * 0.35); across.push(u); fall.push(0);
       }
     }
     for (let i = 0; i < pts.length - 1; i++) for (let j = 0; j < 2; j++) {
