@@ -50,7 +50,9 @@ const LOOK_RATE = 0.0095;     // rad per px (≈ 0.54°/px; a 200 px swipe turns
 const PAD_BOOST = 1.6;        // the LOOK pad in the bar is small — a thumb's travel there is worth more
 const TAP_PX = 12;            // a look-pad touch that travels less than this …
 const TAP_MS = 300;           // … and ends within this is a tap = fire
-const MELEE: ReadonlySet<WeaponId> = new Set<WeaponId>(['sword', 'sword-iron']); // HEAVY instead of AIM while one of these is held
+const MELEE: ReadonlySet<WeaponId> = new Set<WeaponId>(['sword', 'sword-iron', 'sabre']); // HEAVY instead of AIM while one of these is held
+/** Nalati's spear (Spear.ts): THROW (held, a javelin) takes AIM's spot and BRACE (held) takes JUMP's (combat-B mockup) */
+const SPEAR: ReadonlySet<WeaponId> = new Set<WeaponId>(['spear']);
 const LUNGE_TURN_RATE = 6;    // /s — exponential ease of the lunge camera turn (≈ 60 % of the bearing over a 0.15 s lunge)
 const LUNGE_TURN_MAX = 150 * Math.PI / 180; // rad/s cap on it
 
@@ -72,6 +74,7 @@ export class TouchControls {
   private lookFrameDist = 0; private lookSpeed = 0; // px moved on the LOOK pad since the last frame / smoothed px/s
   private wasSubmerged = false; // the SURFACE disc follows player.submerged
   private wasMelee = false; // the AIM disc hides while a melee weapon is held
+  private wasSpear = false; // THROW + BRACE replace AIM + JUMP while the spear is held
   private chargeShown = -1; // the HEAVY disc's ring (--charge) as last painted
   private lookInPad = true; // the look touch started in the LOOK pad (only those may tap-fire)
 
@@ -90,6 +93,8 @@ export class TouchControls {
       <button class="ws-touch-disc dodge" type="button"><svg viewBox="0 0 24 24"><path d="M5 5.5 11.5 12 5 18.5M12.5 5.5 19 12l-6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Dodge</span></button>
       <button class="ws-touch-disc swap" type="button"><svg viewBox="0 0 24 24"><path d="M4 8h13M13.5 4.5 17 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 16H7M10.5 12.5 7 16l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Swap</span></button>
       <button class="ws-touch-disc hover" type="button"><svg viewBox="0 0 24 24"><path d="M2 9.5c0-1.4 1.1-2.5 2.5-2.5h15c1.4 0 2.5 1.1 2.5 2.5S20.9 12 19.5 12h-15C3.1 12 2 10.9 2 9.5z"/><path d="M6 15.5h12M8.5 19h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity="0.7"/></svg><span>Hover</span></button>
+      <button class="ws-touch-disc throw" type="button"><svg viewBox="0 0 24 24"><path d="M4 20 18.5 5.5M13 5h6v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20l2.5-5.5L9.5 17.5z"/></svg><span>Throw</span></button>
+      <button class="ws-touch-disc brace" type="button"><svg viewBox="0 0 24 24"><path d="M9 3.5 3.5 5.5v5c0 4 2.4 6.6 5.5 8 3.1-1.4 5.5-4 5.5-8v-5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 21 21 3.5M16 3.5h5v5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Brace</span></button>
       <button class="ws-touch-disc jump" type="button"><svg viewBox="0 0 24 24"><path d="M12 2.5 4 11h5v10.5h6V11h5z"/></svg><span>Jump</span></button>
       <button class="ws-touch-disc surface" type="button"><svg viewBox="0 0 24 24"><path d="M12 21.5V9M7.5 13.5 12 9l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 5.5c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4 1.7-1.4 3.4-1.4 1.6 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>Surface</span></button>
       <button class="ws-touch-disc dive" type="button"><svg viewBox="0 0 24 24"><path d="M12 2v11.5M7.5 9.5 12 14l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 18.5c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4 1.7-1.4 3.4-1.4 1.6 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 22c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/></svg><span>Dive</span></button>
@@ -114,10 +119,11 @@ export class TouchControls {
       if (weapons.enabled) assist.update(dt, player, weapons.adsHeld, this.lookSpeed);
       // AIM (ranged) ⇄ HEAVY (melee) share the one latch (`weapons.adsHeld`); crossing between the two drops it, so a sword
       // never comes up charging and a crossbow never comes up sighted from the other's latch
-      const melee = MELEE.has(weapons.current.id);
-      if (melee !== this.wasMelee) {
-        this.wasMelee = melee; root.classList.toggle('melee', melee);
+      const melee = MELEE.has(weapons.current.id), spear = SPEAR.has(weapons.current.id);
+      if (melee !== this.wasMelee || spear !== this.wasSpear) {
+        this.wasMelee = melee; this.wasSpear = spear; root.classList.toggle('melee', melee); root.classList.toggle('spear', spear);
         if (weapons.adsHeld) weapons.adsHeld = false;
+        if (weapons.altHeld) weapons.altHeld = false;
         aim.classList.remove('on'); heavy.classList.remove('on');
       }
       if (melee) {
@@ -212,6 +218,9 @@ export class TouchControls {
     this.player.onHoverChange = (on) => { hover.classList.toggle('on', on); prevHover?.(on); };
     hover.classList.toggle('on', this.player.hover);
     btn('.jump', () => { this.player.touchJump = true; });
+    // the spear (Nalati): THROW = hold to wind a javelin up, release to throw; BRACE = hold to plant the spear (Spear.ts)
+    btn('.throw', () => { if (this.weapons.enabled) this.weapons.adsHeld = true; }, () => { this.weapons.adsHeld = false; });
+    btn('.brace', () => { if (this.weapons.enabled) this.weapons.altHeld = true; }, () => { this.weapons.altHeld = false; });
     // DIVE replaces JUMP while swimming: a held control (down = held), released on up / cancel / leave
     btn('.dive', () => { this.player.touchDive = true; }, () => { this.player.touchDive = false; });
     const prevSwim = this.player.onSwimChange;

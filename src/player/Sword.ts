@@ -6,7 +6,7 @@ import type { Player } from '../player/Player';
 import type { Forest } from '../world/Forest';
 import type { Targets, ImpactSurface } from './Crossbow';
 import type { Weapon, WeaponState, AimInfo } from './Weapon';
-import { REST, CHARGE, SPRINT, COMBO, SLASH, HEAVY, type Move } from './SwordMoves';
+import { REST, CHARGE, SPRINT, COMBO, SLASH, HEAVY, type Move, type Key } from './SwordMoves';
 import { getAimTargets, meleeLock, targetRadius, type AimTarget } from './AimTargets';
 
 /**
@@ -60,7 +60,16 @@ import { getAimTargets, meleeLock, targetRadius, type AimTarget } from './AimTar
  */
 
 export interface SwordWorld { game: Game; sky: Sky; player: Player; forest: Forest }
-export interface SwordOptions { allowUnlocked?: boolean; blade?: 'wood' | 'iron' }
+/** a replacement viewmodel (the Nalati sabre, Sabre.ts): sword model space as buildSword's; `tipX` = the tip's sideways
+ *  offset for a curved blade (the trail ribbon and the glint follow the curve); the material is already set up for the sky */
+export interface SwordRig { sword: THREE.BufferGeometry; arms: THREE.BufferGeometry; tipY: number; baseY: number; tipX?: number; material: THREE.Material }
+/** the poses + moves a rig swings (default: SwordMoves.ts's REST / CHARGE / SPRINT / COMBO / HEAVY) */
+export interface SwordMoveSet { rest: Key; charge: Key; sprint: Key; combo: Move[]; heavy: Move }
+export interface SwordOptions {
+  allowUnlocked?: boolean; blade?: 'wood' | 'iron';
+  /** a custom viewmodel + moves + numbers (the sabre); omitted = the wooden / iron sword exactly as before */
+  rig?: SwordRig; moves?: SwordMoveSet; damage?: number; reach?: number;
+}
 
 const DAMAGE_WOOD = 12, DAMAGE_IRON = 28;
 export const REACH = 2.2;            // m from the eye
@@ -321,7 +330,7 @@ class Glint {
 
 export class Sword implements Weapon {
   readonly hasAmmo = false;
-  readonly reach = REACH;
+  readonly reach: number;
   readonly state: WeaponState = { loaded: true, reloading: false, reloadProgress: 0, ads: false };
   enabled = true;
   allowUnlocked = false;
@@ -347,12 +356,16 @@ export class Sword implements Weapon {
   onReloadStart?: () => void;
   onReloadEnd?: () => void;
   onDry?: () => void;
+  /** a swing connected (after onHit): the move and whether it killed — for a subclass's own bookkeeping (the sabre's pass
+   *  chain); the kit manager never touches it, unlike onHit */
+  onMoveHit?: (move: Move, killed: boolean) => void;
 
   readonly model = new THREE.Group();
-  private game: Game; private sky: Sky; private player: Player;
+  protected game: Game; protected sky: Sky; protected player: Player;
   private targets: Targets | undefined;
   private rig = new THREE.Group(); private armRig = new THREE.Group();
-  private tipY = 0; private baseY = 0;
+  private tipY = 0; private baseY = 0; private tipX = 0;
+  private mv: SwordMoveSet = { rest: REST, charge: CHARGE, sprint: SPRINT, combo: COMBO, heavy: HEAVY };
 
   // swing / combo state
   private move: Move | null = null;
@@ -389,9 +402,11 @@ export class Sword implements Weapon {
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
-    this.damage = opts.blade === 'iron' ? DAMAGE_IRON : DAMAGE_WOOD;
+    this.damage = opts.damage ?? (opts.blade === 'iron' ? DAMAGE_IRON : DAMAGE_WOOD);
+    this.reach = opts.reach ?? REACH;
+    if (opts.moves) { this.mv = opts.moves; this.basePos.copy(opts.moves.rest.pos); this.baseQ.copy(opts.moves.rest.q); }
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
-    this.buildViewmodel(opts.blade ?? 'wood');
+    this.buildViewmodel(opts.blade ?? 'wood', opts.rig);
     this.buildTrail();
     const cam = this.game.camera;
     cam.add(this.model);
@@ -425,28 +440,36 @@ export class Sword implements Weapon {
   tryFire(): void {
     if (!this.enabled || this.charging) return;
     if (this.move) {
-      if (this.move !== HEAVY && this.comboIdx < COMBO.length) this.queued = true;
+      if (this.move !== this.mv.heavy && this.comboIdx < this.mv.combo.length) this.queued = true;
       return;
     }
     if (this.cooldown > 0) return;
-    if (this.comboIdx >= COMBO.length || this.time - this.lastSwingEnd > COMBO_GAP) this.comboIdx = 0;
-    const next = COMBO[this.comboIdx++];
+    if (this.comboIdx >= this.mv.combo.length || this.time - this.lastSwingEnd > COMBO_GAP) this.comboIdx = 0;
+    const next = this.mv.combo[this.comboIdx++];
     if (next !== undefined) this.startSwing(next);
   }
-  private startSwing(move: Move): void {
+  /** start one specific move (outside the combo — the sabre's mounted pass slash): false when a swing or charge is running.
+   *  `lunge` false = no dash onto the target (in the saddle the horse does the moving). Ends the combo. */
+  strike(move: Move, lunge = true): boolean {
+    if (!this.enabled || this.charging || this.move !== null || this.cooldown > 0) return false;
+    this.comboIdx = this.mv.combo.length;
+    this.startSwing(move, lunge);
+    return true;
+  }
+  private startSwing(move: Move, lunge = true): void {
     this.move = move; this.swingT = 0; this.hitDone = false; this.hitStop = 0; this.queued = false;
     this.fromPos.copy(this.basePos); this.fromQ.copy(this.baseQ);
     this.trailN = 0; this.trail.visible = false;
     this.trailStyle = move.trail; this.trailColor.value.copy(move.trail.color);
     // lunge onto the locked animal (a chained combo swing re-locks, so a fleeing target is chased swing by swing)
-    const lock = this.findLunge(move === HEAVY ? LUNGE_RANGE_HEAVY : LUNGE_RANGE);
+    const lock = lunge ? this.findLunge(move === this.mv.heavy ? LUNGE_RANGE_HEAVY : LUNGE_RANGE) : null;
     this.lungeTarget = lock;
     if (lock) {
       const p = this.player.position, go = Math.hypot(lock.position.x - p.x, lock.position.z - p.z) - targetRadius(lock) - LUNGE_STOP;
       this.player.dashTo(lock.position.x, lock.position.z, targetRadius(lock) + LUNGE_STOP, THREE.MathUtils.clamp(go / LUNGE_SPEED, LUNGE_MIN_T, LUNGE_MAX_T));
     }
     this.onFire?.();
-    if (move === HEAVY) this.onHeavy?.();
+    if (move === this.mv.heavy) this.onHeavy?.();
   }
   /** the animal a swing would lunge onto: alive, within `range` m (feet → body edge), inside ±LUNGE_CONE of the view, near the
    *  feet's height — the smallest angle wins, distance breaking near-ties */
@@ -466,7 +489,7 @@ export class Sword implements Weapon {
     return best;
   }
   private beginCharge(): void { this.charging = true; this.chargeT = 0; this.releaseQueued = false; this.chargePending = false; this.comboIdx = 0; }
-  private releaseHeavy(): void { this.charging = false; this.releaseQueued = false; this.comboIdx = 0; this.startSwing(HEAVY); }
+  private releaseHeavy(): void { this.charging = false; this.releaseQueued = false; this.comboIdx = 0; this.startSwing(this.mv.heavy); }
 
   /** no ammo to add / nothing to reload */
   addBolts(_n: number): void { /* melee */ }
@@ -483,21 +506,25 @@ export class Sword implements Weapon {
   /** the running swing's name ('slash' | 'backhand' | 'finisher' | 'heavy'), or null */
   get swingName(): Move['name'] | null { return this.move?.name ?? null; }
   /** true while the running swing is the heavy */
-  get heavySwing(): boolean { return this.move === HEAVY; }
+  get heavySwing(): boolean { return this.move === this.mv.heavy; }
   /** true while the heavy is being charged (RMB / HEAVY disc toggled on) */
   get chargingHeavy(): boolean { return this.charging; }
   /** 0..1 heavy charge (1 = ready to release) */
   get charge(): number { return this.charging ? clamp01(this.chargeT / HEAVY_CHARGE) : 0; }
   /** which light swing the next tap throws (1..3) */
-  get comboStep(): number { return this.comboIdx >= COMBO.length || (this.move === null && this.time - this.lastSwingEnd > COMBO_GAP) ? 1 : this.comboIdx + 1; }
+  get comboStep(): number { return this.comboIdx >= this.mv.combo.length || (this.move === null && this.time - this.lastSwingEnd > COMBO_GAP) ? 1 : this.comboIdx + 1; }
 
   // ── viewmodel ──
-  private buildViewmodel(blade: 'wood' | 'iron'): void {
-    const { sword, arms, tipY, baseY } = buildSword(blade);
-    this.tipY = tipY; this.baseY = baseY;
-    const mat = new THREE.MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: 0.82, metalness: blade === 'iron' ? 0.6 : 0, envMapIntensity: 0.6 });
-    mat.name = 'sword'; mat.customProgramCacheKey = () => 'sword-lowpoly';
-    this.sky.setupMaterial(mat);
+  private buildViewmodel(blade: 'wood' | 'iron', custom?: SwordRig): void {
+    const { sword, arms, tipY, baseY } = custom ?? buildSword(blade);
+    this.tipY = tipY; this.baseY = baseY; this.tipX = custom?.tipX ?? 0;
+    let mat: THREE.Material;
+    if (custom) mat = custom.material;
+    else {
+      mat = new THREE.MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: 0.82, metalness: blade === 'iron' ? 0.6 : 0, envMapIntensity: 0.6 });
+      mat.name = 'sword'; mat.customProgramCacheKey = () => 'sword-lowpoly';
+      this.sky.setupMaterial(mat);
+    }
     mat.transparent = true; mat.depthWrite = true; // transparent queue, after the depth clear (see below)
     for (const [g, rig] of [[sword, this.rig], [arms, this.armRig]] as [THREE.BufferGeometry, THREE.Group][]) {
       const mesh = new THREE.Mesh(g, mat);
@@ -536,8 +563,9 @@ export class Sword implements Weapon {
   private trailSample(): void {
     // the ribbon spans the blade from the move's `from` fraction to the tip, in the model's (camera) space
     this.rig.updateMatrix();
-    _v1.set(0, this.baseY + (this.tipY - this.baseY) * this.trailStyle.from, 0).applyMatrix4(this.rig.matrix);
-    _v2.set(0, this.tipY + 0.03, 0).applyMatrix4(this.rig.matrix);
+    const from = this.trailStyle.from;
+    _v1.set(this.tipX * from * from, this.baseY + (this.tipY - this.baseY) * from, 0).applyMatrix4(this.rig.matrix); // a curved blade: the offset grows ~ quadratically
+    _v2.set(this.tipX, this.tipY + 0.03, 0).applyMatrix4(this.rig.matrix);
     if (this.trailN > 0) { // skip a sample the tip has not moved for (hit-stop): no zero-width quads
       const l = (this.trailHead - 1 + TRAIL_SAMPLES) % TRAIL_SAMPLES;
       if (_v2.distanceToSquared(_v3.set(this.trailB[l * 3] ?? 0, this.trailB[l * 3 + 1] ?? 0, this.trailB[l * 3 + 2] ?? 0)) < 1e-4) return;
@@ -582,7 +610,7 @@ export class Sword implements Weapon {
       _e.y = yaw; _e.x = pitch;
       _q.setFromEuler(_e); _q.premultiply(cam.quaternion);
       _dir.set(0, 0, -1).applyQuaternion(_q);
-      const hit = this.targets.raycast(_v3, _dir, REACH);
+      const hit = this.targets.raycast(_v3, _dir, move.reach ?? this.reach);
       if (!hit || !hit.animal.alive) continue;
       // strike direction = the sweep (across the forward, the move's way), not the ray: the flinch reads as a side-on blow;
       // an overhead chop (sweep ≈ 0) drives forward and down
@@ -594,10 +622,11 @@ export class Sword implements Weapon {
       // knockback: away from the player, biased the way the sweep travels (Animal.stagger flattens it)
       _push.set(_fwd.x, 0, _fwd.z).normalize().multiplyScalar(0.8).addScaledVector(_v2, 0.5 * move.sweep);
       if (!killed) (hit.animal as unknown as { stagger?: (dir: THREE.Vector3, strength: number) => void }).stagger?.(_push, move.stagger);
-      this.hitDone = true; this.hitStop = move.hitStop; this.jolt = move === HEAVY ? 1.6 : 1;
-      this.stars.burst(hit.point, _fwd, move === HEAVY ? 14 : 9);
+      this.hitDone = true; this.hitStop = move.hitStop; this.jolt = move === this.mv.heavy ? 1.6 : 1;
+      this.stars.burst(hit.point, _fwd, move === this.mv.heavy ? 14 : 9);
       this.onHit?.(hit.animal.kind, false, killed);
       this.onImpact?.('flesh', hit.point);
+      this.onMoveHit?.(move, killed);
       return;
     }
   }
@@ -609,7 +638,7 @@ export class Sword implements Weapon {
     if (t < k[0].t) { aPos = this.fromPos; aQ = this.fromQ; bPos = k[0].pos; bQ = k[0].q; t0 = 0; t1 = k[0].t; f = easeIn(clamp01((t - t0) / (t1 - t0))); }
     else if (t < k[1].t) { aPos = k[0].pos; aQ = k[0].q; bPos = k[1].pos; bQ = k[1].q; t0 = k[0].t; t1 = k[1].t; f = easeOut(clamp01((t - t0) / (t1 - t0))); } // snap into the slash
     else if (t < k[2].t) { aPos = k[1].pos; aQ = k[1].q; bPos = k[2].pos; bQ = k[2].q; t0 = k[1].t; t1 = k[2].t; f = clamp01((t - t0) / (t1 - t0)); }
-    else { aPos = k[2].pos; aQ = k[2].q; bPos = REST.pos; bQ = REST.q; t0 = k[2].t; t1 = move.total; f = sstep(0, 1, clamp01((t - t0) / (t1 - t0))); } // settle out of it
+    else { aPos = k[2].pos; aQ = k[2].q; bPos = this.mv.rest.pos; bQ = this.mv.rest.q; t0 = k[2].t; t1 = move.total; f = sstep(0, 1, clamp01((t - t0) / (t1 - t0))); } // settle out of it
     outPos.copy(aPos).lerp(bPos, f);
     outQ.slerpQuaternions(aQ, bQ, f);
   }
@@ -645,7 +674,7 @@ export class Sword implements Weapon {
     let move = this.move;
     if (move) {
       if (this.hitStop > 0) this.hitStop -= dt; else this.swingT += dt / this.swingScale;
-      const next = this.queued && this.swingT >= move.slashEnd + CHAIN_LAG && this.comboIdx < COMBO.length ? COMBO[this.comboIdx++] : undefined;
+      const next = this.queued && this.swingT >= move.slashEnd + CHAIN_LAG && this.comboIdx < this.mv.combo.length ? this.mv.combo[this.comboIdx++] : undefined;
       if (next !== undefined) { this.startSwing(next); move = this.move; }
       else if (this.swingT >= move.total) { this.move = move = null; this.lastSwingEnd = t; this.cooldown = COOLDOWN; }
     }
@@ -685,15 +714,15 @@ export class Sword implements Weapon {
     // base pose: rest, or the swing, blended toward the charge / sprint poses
     const pos = _v1, q = _q;
     if (move) this.evalSwing(move, this.swingT, pos, q);
-    else { pos.copy(REST.pos); q.copy(REST.q); }
+    else { pos.copy(this.mv.rest.pos); q.copy(this.mv.rest.q); }
     const c = sstep(0, 1, this.chargeBlend), sp = this.sprintBlend;
     if (c > 0) {
-      pos.lerp(CHARGE.pos, c); q.slerp(CHARGE.q, c);
+      pos.lerp(this.mv.charge.pos, c); q.slerp(this.mv.charge.q, c);
       // charged: a taut tremble in the raised blade, and a small lift as it comes ready
       const ready = this.charge;
       pos.x += Math.sin(t * 43) * 0.0025 * ready * c; pos.y += (Math.sin(t * 37) * 0.002 + 0.02 * ready) * c;
     }
-    if (sp > 0) { pos.lerp(SPRINT.pos, sp); q.slerp(SPRINT.q, sp); }
+    if (sp > 0) { pos.lerp(this.mv.sprint.pos, sp); q.slerp(this.mv.sprint.q, sp); }
     this.basePos.copy(pos); this.baseQ.copy(q);
 
     // idle sway / walk bob (counter-phase to the camera bob) / look lag / hit jolt — full at the hip, 30 % in the charge
@@ -716,7 +745,7 @@ export class Sword implements Weapon {
     this.rig.position.copy(this.posePos); this.rig.quaternion.copy(this.poseQ);
     // forearms: pinned to the hands, but only part of the way round with the sword (the wrists bend, the elbows stay put)
     this.armRig.position.copy(this.posePos);
-    this.armRig.quaternion.copy(REST.q).slerp(this.poseQ, ARM_FOLLOW);
+    this.armRig.quaternion.copy(this.mv.rest.q).slerp(this.poseQ, ARM_FOLLOW);
 
     // trail: sample through the slash, then fade
     if (active) this.trailSample();
@@ -726,8 +755,8 @@ export class Sword implements Weapon {
       if (t - (this.trailT[newest] ?? t) > this.trailStyle.life * this.swingScale) this.trailN = 0; // every sample has faded: drop the ribbon
     }
     // the heavy's tip glint: on through the chop's active window, then winks out
-    const glintOn = move === HEAVY && active;
-    if (glintOn) { this.rig.updateMatrix(); this.glint.set(_v2.set(0, this.tipY + 0.02, 0).applyMatrix4(this.rig.matrix)); }
+    const glintOn = move === this.mv.heavy && active;
+    if (glintOn) { this.rig.updateMatrix(); this.glint.set(_v2.set(this.tipX, this.tipY + 0.02, 0).applyMatrix4(this.rig.matrix)); }
     this.glint.update(dt, t, glintOn);
 
     // aim readout (HUD "BOAR · 15 M")

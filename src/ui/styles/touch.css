@@ -62,3 +62,30 @@
 .ws-touch-use { position: absolute; left: 12px; right: 12px; bottom: calc(var(--bar) + 44px + var(--disc) + 12px); height: 60px; display: none; align-items: center; justify-content: center; appearance: none; -webkit-appearance: none; margin: 0; padding: 0; border-radius: 8px; background: rgba(143, 227, 255, 0.16); border: 1px solid var(--ws-cyan); border-left: 4px solid var(--ws-cyan); box-shadow: 0 0 22px rgba(143, 227, 255, 0.25); color: #fff; font-family: var(--ws-display); font-weight: 700; font-size: 19px; letter-spacing: 0.24em; text-transform: uppercase; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .ws-touch-use.show { display: flex; }
 .ws-touch-use.down { background: rgba(143, 227, 255, 0.34); }
+/* ─── Nalati (B3, art/nalati-grasslands/round-2/1-combat/): the spear's THROW + BRACE discs and the 3-slot weapon strip ─── */
+/* the spear held (.spear, TouchControls polls weapons.current): THROW (held — wind a javelin up, release to throw) takes AIM's
+   spot, BRACE (held — plant the spear) takes JUMP's (combat-B-spear-brace.png) */
+.ws-touch-disc.throw { left: calc(var(--disc) / 2 + 10px); display: none; }
+.ws-touch-disc.brace { left: calc(100% - var(--disc) / 2 - 10px); display: none; }
+.ws-touch.spear .ws-touch-disc.aim, .ws-touch.spear .ws-touch-disc.jump { display: none; }
+.ws-touch.spear .ws-touch-disc.throw, .ws-touch.spear:not(.swimming) .ws-touch-disc.brace { display: flex; }
+.ws-touch-disc.throw svg, .ws-touch-disc.brace svg { width: 42%; height: 42%; }
+/* the weapon strip (src/ui/WeaponStrip.ts; combat-E-weapon-swap.png, 3 slots per the plan): square glass slots, the held one
+   outlined in cyan, ammo in the corner; tap = hold it, tap the held one = back to the last. It replaces the SWAP pill (.strip).
+   Touch: right of the left disc, level with it. Desktop (.desk, controls-desktop-keys.png): a hotbar bottom-centre, key numbers. */
+.ws-touch.strip .ws-touch-disc.swap { display: none; }
+.ws-touch-strip { --slot: 42px; position: absolute; left: calc(var(--disc) + 24px); bottom: calc(var(--bar) + 44px + (var(--disc) - var(--slot)) / 2); display: flex; gap: 6px; z-index: 3; pointer-events: auto; touch-action: none; }
+.ws-touch-strip.desk { --slot: 64px; left: 50%; bottom: 22px; transform: translateX(-50%); gap: 8px; }
+#hud.intro .ws-touch-strip { display: none; }
+.ws-touch-slot { position: relative; width: var(--slot); height: var(--slot); padding: 0; appearance: none; -webkit-appearance: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 7px; background: radial-gradient(circle at 50% 30%, rgba(24, 34, 48, 0.7), rgba(6, 10, 18, 0.82) 75%); border: 1px solid rgba(143, 227, 255, 0.4); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(143, 227, 255, 0.15); color: rgba(230, 242, 248, 0.85); font-family: var(--ws-mono); touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }
+.ws-touch-slot svg { display: block; width: 62%; height: 62%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.6)); }
+.ws-touch-strip.desk .ws-touch-slot svg { width: 48%; height: 48%; }
+.ws-touch-slot.on { border-color: var(--ws-cyan); color: var(--ws-cyan); background: radial-gradient(circle at 50% 30%, rgba(143, 227, 255, 0.2), rgba(6, 10, 18, 0.85) 75%); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 18px rgba(143, 227, 255, 0.45), inset 0 0 0 1.5px var(--ws-cyan); }
+.ws-touch-slot.down { background: radial-gradient(circle at 50% 30%, rgba(143, 227, 255, 0.35), rgba(143, 227, 255, 0.15) 75%); }
+.ws-touch-slot-key { position: absolute; left: 5px; top: 4px; display: none; min-width: 12px; padding: 1px 3px; border: 1px solid rgba(143, 227, 255, 0.45); border-radius: 3px; font-style: normal; font-size: 8.5px; line-height: 1; color: rgba(230, 242, 248, 0.85); }
+.ws-touch-strip.desk .ws-touch-slot-key { display: block; }
+.ws-touch-slot-name { display: none; font-size: 8px; letter-spacing: 0.24em; text-transform: uppercase; line-height: 1; }
+.ws-touch-strip.desk .ws-touch-slot-name { display: block; }
+.ws-touch-slot-ammo { position: absolute; right: 4px; bottom: 3px; font-family: var(--ws-display); font-weight: 700; font-size: 11px; line-height: 1; color: #fff; font-variant-numeric: tabular-nums; }
+.ws-touch-strip.desk .ws-touch-slot-ammo { right: 6px; top: 5px; bottom: auto; font-size: 12px; }
+.ws-touch-slot-ammo.empty { color: var(--ws-red); }

@@ -49,6 +49,8 @@ export interface TargetAnimal {
   kind: string;
   position: THREE.Vector3;
   alive: boolean;
+  /** a melee / javelin blow's knock-back (Animal.stagger: 0 light … 1 heavy, breaks a running charge); absent on targets without one */
+  stagger?: (dir: THREE.Vector3, strength: number) => void;
 }
 export interface TargetHit { animal: TargetAnimal; point: THREE.Vector3; distance: number; headshot: boolean }
 export interface Targets { raycast: (origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number) => TargetHit | null }

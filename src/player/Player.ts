@@ -147,6 +147,8 @@ export class Player {
   // ── dash: dodge + lunge (see `dodge()` / `dash()`) ──
   /** the DODGE disc was tapped (TouchControls) — consumed next update, like `touchJump` */
   touchDodge = false;
+  /** walking speed multiplier a weapon may pin (the Nalati spear's BRACE: 0 = planted, the view still turns) */
+  moveScale = 1;
   /** a sword swing is running (Sword.ts sets it every frame): the look speed takes the 'swingLook' factor */
   swinging = false;
   /** look-speed multiplier for mouse AND touch (Settings 'look', × 'swingLook' while swinging) — TouchControls reads it too */
@@ -273,7 +275,7 @@ export class Player {
     const wadeT = !hover && !swim && this.onGround ? Math.min(1, this.depth / WADE_MAX) : 0;
     this.crouching = !hover && !swim && (k.has('ControlLeft') || k.has('KeyC'));
     this.sprinting = !hover && !swim && this.depth < NO_SPRINT_DEPTH && (k.has('ShiftLeft') || this.touchSprint) && fwd > 0 && !this.crouching;
-    const speed = (this.crouching ? 2.2 : this.sprinting ? 7.2 : 4.3) * (1 - 0.55 * wadeT);
+    const speed = (this.crouching ? 2.2 : this.sprinting ? 7.2 : 4.3) * (1 - 0.55 * wadeT) * this.moveScale;
     this.waveTime += dt;
 
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);

@@ -24,7 +24,7 @@ export interface Trail {
   color: THREE.Color; alpha: number; inner: number; life: number;
 }
 export interface Move {
-  name: 'slash' | 'backhand' | 'finisher' | 'heavy';
+  name: 'slash' | 'backhand' | 'finisher' | 'heavy' | 'pass-left' | 'pass-right';
   keys: [Key, Key, Key];
   windup: number; slashEnd: number; total: number;
   /** × the blade's base damage (wood 12) */
@@ -35,6 +35,8 @@ export interface Move {
   sweep: number;
   hitStop: number;
   fan: { yaws: number[]; pitches: number[] };
+  /** hit-test reach in m from the eye; omitted = the weapon's (Sword REACH 2.2) — the sabre's mounted pass reaches 2.8 */
+  reach?: number;
   trail: Trail;
 }
 
