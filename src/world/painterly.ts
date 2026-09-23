@@ -38,6 +38,8 @@
  *       sway           wind sway in metres per (local metre above the origin)² — foliage / flags (default 0); leans
  *                      downwind in world space whatever the instance's rotation (Mesh / InstancedMesh / BatchedMesh)
  *       emissive       self-light colour (default black) — a lantern, embers
+ *       map            a base-colour texture (sRGB) × colour × vertex colours — the generated GLB models' atlases
+ *                      (src/world/nalati/glbPaint.ts). three forks a USE_MAP sibling program, shared by every mapped one
  *       side / transparent / opacity / depthWrite / alphaTest   passed through to the material
  *   syncPainterlySun(sky)         copy the sun's colour × intensity and direction into the shared uniforms
  *   updatePainterly(dt)           advance the shared sway clock (the shard's update hook calls it once a frame)
@@ -62,6 +64,7 @@ export interface PainterlyOpts {
   shade?: number;
   sway?: number;
   emissive?: THREE.ColorRepresentation;
+  map?: THREE.Texture | null;
   side?: THREE.Side;
   transparent?: boolean;
   opacity?: number;
@@ -261,6 +264,7 @@ export function painterlyMaterial(sky: Sky | null, opts: PainterlyOpts = {}): TH
     color: opts.color ?? 0xffffff,
     vertexColors: true,
     emissive: opts.emissive ?? 0x000000,
+    map: opts.map ?? null,
     side: opts.side ?? THREE.FrontSide,
     transparent: opts.transparent ?? false,
     opacity: opts.opacity ?? 1,

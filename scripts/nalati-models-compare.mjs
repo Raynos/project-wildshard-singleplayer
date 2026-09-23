@@ -10,6 +10,7 @@
 //
 //   node scripts/nalati-models-compare.mjs                 # every subject, desktop tier
 //   node scripts/nalati-models-compare.mjs --only=wolf,yurt
+//   node scripts/nalati-models-compare.mjs --paint=0        # the GLB's glTF material, not the painterly path
 // Needs the dev server (this worktree: http://127.0.0.1:5188). One headless Chromium on Metal, closed at the end.
 import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
@@ -22,6 +23,7 @@ const argv = process.argv.slice(2);
 const flag = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
 const URL_BASE = flag('url', 'http://127.0.0.1:5188');
 const only = flag('only', '').split(',').filter(Boolean);
+const PAINT = flag('paint', '1') !== '0'; // --paint=0: the GLB's own glTF material instead of glbPaint.ts
 
 // subject → how to build the procedural twin
 const SUBJECTS = [
@@ -63,7 +65,7 @@ try {
     const gy = heightAt(spot.x, spot.z);
     const root = new THREE.Group(); root.position.set(spot.x, gy, spot.z); w.game.scene.add(root);
     const cam = w.game.camera;
-    window.__mc = { THREE, loader, root, gy, pose: null, cur: [] };
+    window.__mc = { THREE, loader, root, gy, pose: null, cur: [], paint: spot.paint };
     w.game.onUpdate(() => {
       const p = window.__mc.pose; if (!p) return;
       cam.position.set(p.x, p.y, p.z); cam.lookAt(p.tx, p.ty, p.tz);
@@ -87,9 +89,17 @@ try {
         const rig = w.animals.factory.instantiate(model, 0.5);
         proc = rig.mesh;
       }
-      const gltf = await new Promise((res, rej) => mc.loader.load(`/assets/nalati/models/${s.name}.glb`, res, undefined, rej));
-      const glb = gltf.scene;
-      glb.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; w.sky.setupMaterial?.(o.material); } });
+      let glb;
+      if (mc.paint) {
+        // the game's own path: glbPaint.ts (meshopt, the painterly material with the atlas as its map)
+        const { loadNalatiModel } = await import('/src/world/nalati/glbPaint.ts');
+        const m = await loadNalatiModel(w.sky, s.name);
+        glb = new THREE.Group(); const mesh = new THREE.Mesh(m.geometry, m.material); mesh.castShadow = mesh.receiveShadow = true; glb.add(mesh);
+      } else {
+        const gltf = await new Promise((res, rej) => mc.loader.load(`/assets/nalati/models/${s.name}.glb`, res, undefined, rej));
+        glb = gltf.scene;
+        glb.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; w.sky.setupMaterial?.(o.material); } });
+      }
       proc.traverse?.((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
       // match heights: the GLB takes the procedural model's height
       const bp = new THREE.Box3().setFromObject(proc), bg = new THREE.Box3().setFromObject(glb);
@@ -106,7 +116,7 @@ try {
       return { hp, hg, procTris: 0 };
     };
     window.__mcShow = (which) => { const mc = window.__mc; mc.proc.visible = which === 'proc'; mc.glb.visible = which === 'glb'; };
-  }, SPOT);
+  }, { ...SPOT, paint: PAINT });
   await new Promise((r) => { setTimeout(r, 8000); });
 
   const results = [];
@@ -143,10 +153,10 @@ try {
       x.font = '600 20px ui-sans-serif, system-ui'; x.fillStyle = '#ffd98a'; x.fillText(a.label, G, 24);
       x.font = '600 16px ui-monospace, monospace'; x.fillStyle = '#9fe6ff';
       x.fillText('YESTERDAY · procedural, in game', G + 4, TOP + S + 21);
-      x.fillText('TODAY · TRELLIS.2 + Blender, in game', G * 2 + S + 4, TOP + S + 21);
+      x.fillText(a.paint ? 'TODAY · generated GLB, painterly, in game' : 'TODAY · generated GLB, glTF material', G * 2 + S + 4, TOP + S + 21);
       x.fillText('MOCKUP · the reference image', G * 3 + S * 2 + 4, TOP + S + 21);
       return c.toDataURL('image/jpeg', 0.85).split(',')[1];
-    }, { p: `data:image/jpeg;base64,${r.shots.proc.toString('base64')}`, g: `data:image/jpeg;base64,${r.shots.glb.toString('base64')}`, t: `data:image/jpeg;base64,${tt}`, label: r.s.label });
+    }, { p: `data:image/jpeg;base64,${r.shots.proc.toString('base64')}`, g: `data:image/jpeg;base64,${r.shots.glb.toString('base64')}`, t: `data:image/jpeg;base64,${tt}`, label: r.s.label, paint: PAINT });
     writeFileSync(resolvePath(OUT, `${r.s.name}-3up.jpg`), Buffer.from(b64, 'base64'));
     cells.push(b64);
   }
