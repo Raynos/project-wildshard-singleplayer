@@ -4,6 +4,7 @@ import type { AnimalManager } from '../entities/AnimalManager';
 import type { Animal } from '../entities/Animal';
 import type { Weapon } from '../player/Weapon';
 import { TIER } from '../core/tier';
+import { viewportHeight } from '../core/viewport';
 import './styles/combat.css';
 
 /**
@@ -95,7 +96,7 @@ export class Combat {
     }
     for (let i = 0; i < PENDING_MAX; i++) this.pending.push({ animal: null, t: 0, deadline: 0, active: false });
 
-    const measure = (): void => { this.w = window.innerWidth; this.h = window.innerHeight; };
+    const measure = (): void => { this.w = window.innerWidth; this.h = viewportHeight(); };
     measure(); window.addEventListener('resize', measure);
 
     tap(weapon, 'onFire', () => { this.fired(); });

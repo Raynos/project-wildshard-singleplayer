@@ -14,6 +14,7 @@ import { TIER_CONFIG } from './tier';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 import { worldTime } from './time';
+import { installViewport, viewportHeight } from './viewport';
 import { GPU_MODE } from '../gpu/flag';
 import type { GpuPath } from '../gpu/GpuPath';
 
@@ -67,15 +68,16 @@ export class Game {
 
   constructor(public canvas: HTMLCanvasElement) {
     installAtmosphere();
+    installViewport(); // --ws-vh: the real height (an iOS home-screen app reports innerHeight a status bar short — viewport.ts)
     this.renderer = new THREE.WebGLRenderer({ canvas: GPU_MODE ? document.createElement('canvas') : canvas, antialias: false, powerPreference: 'high-performance', stencil: false, depth: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, TIER_CONFIG.dpr));
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(window.innerWidth, viewportHeight());
     this.renderer.toneMapping = THREE.NoToneMapping; // tone mapping happens in the composer
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap; // r186 removed PCFSoft: it renders PCF anyway, and the type is in every program's cache key
     setAnisotropy(this.renderer);
-    this.camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.08, 2600);
+    this.camera = new THREE.PerspectiveCamera(72, window.innerWidth / viewportHeight(), 0.08, 2600);
     window.addEventListener('resize', () => this.resize());
     const mode = GPU_MODE;
     if (mode) this.gpuReady = import('../gpu/GpuPath').then((m) => m.GpuPath.create(canvas, mode));
@@ -94,7 +96,7 @@ export class Game {
     composer.addPass(this.renderPass);
 
     if (TIER_CONFIG.ao) {
-      const ao = new N8AOPostPass(this.scene, this.camera, window.innerWidth, window.innerHeight);
+      const ao = new N8AOPostPass(this.scene, this.camera, window.innerWidth, viewportHeight());
       ao.configuration.aoRadius = 2.5;
       ao.configuration.distanceFalloff = 1.0;
       ao.configuration.intensity = 2.5;
@@ -199,7 +201,7 @@ export class Game {
   }
 
   resize(): void {
-    const w = window.innerWidth, h = window.innerHeight;
+    const w = window.innerWidth, h = viewportHeight();
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);

@@ -11,6 +11,7 @@
  */
 import * as THREE from 'three';
 import { meleeLock, targetRadius } from '../player/AimTargets';
+import { viewportHeight } from '../core/viewport';
 
 const _c = new THREE.Vector3(), _e = new THREE.Vector3(), _right = new THREE.Vector3();
 
@@ -37,7 +38,7 @@ export class LockOn {
       _c.project(this.camera);
       if (_c.z > 1 || _c.z < -1) show = false;
       else {
-        const vw = innerWidth, vh = innerHeight;
+        const vw = innerWidth, vh = viewportHeight();
         const x = (_c.x + 1) / 2 * vw, y = (1 - _c.y) / 2 * vh;
         const half = Math.max(22, Math.min(vw * 0.4, Math.abs(_e.x - _c.x) / 2 * vw));
         this.place(Math.round(x), Math.round(y), Math.round(half * 2), Math.round(half * 1.6));

@@ -29,6 +29,7 @@ import * as THREE from 'three';
 import type { Player } from './Player';
 import { getAimTargets, type AimTarget } from './AimTargets';
 import { getSetting } from '../ui/Settings';
+import { viewportHeight } from '../core/viewport';
 
 const DEG = Math.PI / 180;
 const RANGE = 60;                                            // m — nothing farther gets any help
@@ -183,7 +184,7 @@ export class AimAssist {
     aimPoint(best.target, _aim);
     _ndc.copy(_aim).project(cam);
     if (_ndc.z > 1) { d.style.display = 'none'; return; }
-    const w = innerWidth, h = innerHeight;
+    const w = innerWidth, h = viewportHeight();
     const x = (_ndc.x + 1) / 2 * w, y = (1 - _ndc.y) / 2 * h;
     const r = Math.tan(best.radius) / Math.tan(cam.fov * DEG / 2) * h / 2;
     d.style.display = 'block';

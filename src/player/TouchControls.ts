@@ -3,36 +3,44 @@
  *
  *   const touch = new TouchControls(player, weapons);    // no-op on mouse/trackpad devices (`touch.active === false`)
  *
- * Layout E (E42, Jake's pick from art/hud/round-10-look-zone/board.jpg; target art/hud/round-10-look-zone/E.jpg), portrait,
- * styled in src/ui/styles/touch.css (prefix `ws-touch-`). A see-through glass control bar (67 % solid) runs across the
- * bottom ~15 % of the screen, split by a centre divider into two thumb zones:
+ * Layout E (E42, Jake's pick from art/hud/round-10-look-zone/board.jpg), re-split 45 / 55 in E46 (Jake: "attack shouldn't
+ * be wider than look" / "place the actual attack button literally on the divider line"), portrait, styled in
+ * src/ui/styles/touch.css (prefix `ws-touch-`). A see-through glass control bar (67 % solid) runs across the bottom ~15 % of
+ * the screen, split by a divider at 45 % (`--split`) into two thumb zones:
  *
- *  - MOVE (left half of the bar): an anchored stick that is always drawn: a thin cyan ring with a glowing cyan knob
- *    resting at its centre. A touch anywhere in the MOVE zone grabs it; the knob follows the thumb inside the ring. Pushing
- *    past SPRINT_AT while heading forward sprints, and the ring's top arc lights with a small SPRINT tick. Not floating
- *    (declined in E11). The left half above the bar is not a control surface.
- *  - Right half, two separate right-thumb controls, so look and attack are never guessed from tap-vs-drag:
- *    - LOOK pad (the bar's bottom-right corner, a dashed rounded square): dragging turns the camera and NEVER attacks.
- *      The whole right half of the screen above the bar looks too (CoD Mobile free-look), and so does the rest of the
- *      bar's right half.
- *    - ATTACK disc (inboard, between the divider and the LOOK pad, its top poking above the bar): touch-down fires at once
- *      (`weapons.tryFire()`); dragging from it after the touch turns the camera while the finger is held (pointer capture
- *      on the layer). With a MELEE weapon (the Driftwood swords, `MELEE`, polled from `weapons.current.id`, the layer carries
- *      `.melee`), holding it still (under HOLD_PX of travel) for HOLD_MS starts the heavy charge (`weapons.adsHeld = true`,
- *      the `.ws-touch-charge` ring fills with `weapons.current.charge`) and lifting releases the chop (`adsHeld = false`;
- *      Sword.ts queues an early release). A fast tap-tap-tap stays a light combo: each tap lifts before HOLD_MS.
- *      With a ranged weapon the same disc reads FIRE (fire on down, drag = look, no hold). There is no separate HEAVY disc.
+ *  - MOVE (the bar's left 45 %): an anchored stick that is always drawn: a thin cyan ring with a glowing cyan knob resting
+ *    at its centre, centred in what the ATTACK disc leaves free. A touch anywhere in the MOVE zone grabs it; the knob
+ *    follows the thumb inside the ring. Pushing past SPRINT_AT while heading forward sprints: the ring's top arc lights and
+ *    a SPRINT tag lights just above the bar over the stick. Not floating (declined in E11). The left 45 % above the bar is not a control surface.
+ *  - LOOK (the bar's right 55 %, and the right 55 % of the screen above it — CoD Mobile free-look): dragging turns the
+ *    camera and NEVER attacks. The LOOK pad (a dashed rounded square as wide as ATTACK, centred in the section's free part)
+ *    is its visual, lit while a drag that started in the bar is looking.
+ *  - ATTACK disc, centred ON the divider, on the bar's centre line; a touch on the disc is ATTACK even where it overlaps
+ *    either zone. Touch-down fires at once (`weapons.tryFire()`, the disc flashes); the disc then captures the touch, so a
+ *    drag from it turns the camera while the finger is held. With a MELEE weapon (the Driftwood swords, `MELEE`, polled
+ *    from `weapons.current.id`, the layer carries `.melee`), holding it still (under HOLD_PX of travel) for HOLD_MS starts
+ *    the heavy charge (`weapons.adsHeld = true`, the `.ws-touch-charge` ring fills with `weapons.current.charge`) and lifting
+ *    releases the chop (`adsHeld = false`; Sword.ts queues an early release). Only a lift or a cancel ends the hold — no
+ *    pointerleave, so a thumb rolling off the disc's edge keeps the charge. A fast tap-tap-tap stays a light combo: each
+ *    tap lifts before HOLD_MS. With a ranged weapon the same disc reads FIRE (fire on down, drag = look, no hold).
+ *  - iOS WebKit (E46, Jake's iPhone): the layer cancels its own touch events (non-passive touchstart / touchmove /
+ *    touchend), pinch gestures, dragstart / contextmenu / selectstart, and marks every element draggable="false"; with
+ *    touch.css's touch-action / user-select / touch-callout / user-drag none on every element that kills the double-tap
+ *    zoom, the text selection / loupe / callout and the drag-lift ghost of a long-pressed button, which had stolen the
+ *    ATTACK hold (the heavy never charged). Pointer events still fire. The listeners sit on the layer only, which is
+ *    hidden while the title / menus are up, so their taps (the build pill, the cards) keep their clicks.
  *  - Every look surface turns at ONE rate: LOOK_RATE × `player.lookMult` (Settings Look / Swing turn speed) × aim-assist
  *    friction — the old 1.6× LOOK-pad boost is gone (E37 audit F6), so a swipe turns the same wherever it starts.
- *  - Right-thumb arc, just above the bar at the right edge: DODGE (lower-left) and JUMP (upper-right) in a short diagonal
- *    over the LOOK pad. DODGE sets `player.touchDodge` → Player.dodge (toward the stick, a backstep with it centred) and
+ *  - Right-thumb arc, just above the bar at the right edge: DODGE (lower-left) and JUMP (upper-right), one size, in a short
+ *    even diagonal. DODGE sets `player.touchDodge` → Player.dodge (toward the stick, a backstep with it centred) and
  *    hides while swimming. While the player swims (`player.onSwimChange`) JUMP gives its spot to DIVE, a HELD button
  *    (`player.touchDive` → `player.diveHeld`); once the eye is under (`player.submerged`, polled) SURFACE appears in
  *    DODGE's spot (`player.touchSurface`, hold to come up) and hides again on surfacing.
- *  - AIM (ranged kit only): the iron-sights toggle latch (`weapons.adsHeld`, tap on / tap off, lit `.on`) sits right above
- *    the FIRE disc, left of DODGE, on the same thumb. Crossing between melee and ranged drops the latch, so a sword never
+ *  - AIM (ranged kit only): the iron-sights toggle latch (`weapons.adsHeld`, tap on / tap off, lit `.on`) sits up-right of
+ *    the FIRE disc, clear of the pill, left of DODGE, on the same thumb. Crossing between melee and ranged drops the latch, so a sword never
  *    comes up charging and a crossbow never comes up sighted.
- *  - SWAP | HOVER: one split pill on the bar's centre divider, straddling its top edge. SWAP calls `weapons.swap()` (the Q
+ *  - SWAP | HOVER: one split pill over the divider, seated on the bar's top edge above the ATTACK disc (its charge ring
+ *    clear). SWAP calls `weapons.swap()` (the Q
  *    key) and only shows once a second weapon is unlocked (`weapons.onUnlock`); without it the pill is just HOVER, a
  *    toggle (`player.setHover`, mirrors the H key; lit `.on` while riding).
  *  - PAUSE top-left; under it the `?perf` frame meter, then a status column (`.ws-touch-status`) that the HUD (HUD.ts) fills
@@ -109,15 +117,25 @@ export class TouchControls {
       <button class="ws-touch-disc dive" type="button"><svg viewBox="0 0 24 24"><path d="M12 2v11.5M7.5 9.5 12 14l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 18.5c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4 1.7-1.4 3.4-1.4 1.6 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 22c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/></svg><span>Dive</span></button>
       <button class="ws-touch-pause" type="button">Pause</button>
       <div class="ws-touch-bar">
-        <div class="ws-touch-zone move"><span class="ws-touch-label">Move</span><div class="ws-touch-stick"><b>Sprint</b><i></i></div></div>
+        <div class="ws-touch-zone move"><span class="ws-touch-label">Move</span><div class="ws-touch-stick"><i></i></div><b class="ws-touch-sprint">Sprint</b></div>
         <div class="ws-touch-zone look"><div class="ws-touch-lookpad"><svg viewBox="0 0 24 24"><path d="M12 2.5 15.2 6.5H8.8zM12 21.5 8.8 17.5h6.4zM2.5 12 6.5 8.8v6.4zM21.5 12 17.5 15.2V8.8z"/></svg><span>Look</span></div></div>
       </div>
       <button class="ws-touch-attack" type="button"><i class="ws-touch-charge"></i><svg class="melee" viewBox="0 0 24 24"><path d="M20.5 3.5 9.2 14.8M20.5 3.5l-.6 4.2M20.5 3.5l-4.2.6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.6 12.2l5.2 5.2M8.4 15.6 4 20" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg><svg class="ranged" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.2"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="melee">Attack</span><span class="ranged">Fire</span><small class="melee">Hold = heavy</small></button>
       <div class="ws-touch-pill"><button class="swap" type="button">Swap</button><button class="hover" type="button">Hover</button></div>`;
     hud.append(root);
+    // ── iOS WebKit hardening (E46 — Jake's iPhone): a long press on a button lifted a drag preview of the ATTACK disc (and
+    //    fired pointercancel, so the heavy never charged), a quick double tap zoomed, a press selected text. Pointer events
+    //    still fire when the touch events are cancelled, so: cancel every touch on the layer (kills double-tap zoom, the
+    //    long-press selection / callout / loupe / drag lift), no pinch, nothing draggable, no context menu or selection.
+    //    touch.css adds touch-action: none + user-select / touch-callout / user-drag none on every element of the layer. ──
+    const cancel = (e: Event): void => { if (e.cancelable) e.preventDefault(); };
+    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) root.addEventListener(t, cancel, { passive: false });
+    for (const t of ['dragstart', 'contextmenu', 'selectstart'] as const) root.addEventListener(t, cancel);
+    for (const t of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(t, cancel, { passive: false });
+    for (const n of root.querySelectorAll('*')) n.setAttribute('draggable', 'false');
     const stick = this.stick = el(root, '.ws-touch-stick');
     this.knob = el(stick, 'i');
-    const moveZone = el(root, '.ws-touch-zone.move');
+    const moveZone = el(root, '.ws-touch-zone.move'), lookpad = el(root, '.ws-touch-lookpad');
 
     // ── aim assist: runs at the top of every player update (before the camera is posed) so a nudge shows the same frame ──
     const assist = this.assist = new AimAssist(root);
@@ -157,14 +175,17 @@ export class TouchControls {
       if (!inBar && e.clientX <= zone.right) return; // above the bar on the left: not a control surface
       if (inMove && this.stickPointer < 0) {
         this.stickPointer = e.pointerId;
-        // the stick is anchored at the MOVE zone's centre; a touch anywhere in the zone grabs it
-        this.stickBase = { x: zone.left + zone.width / 2, y: zone.top + zone.height / 2 };
+        // the stick is anchored (its ring's centre, left of the ATTACK disc); a touch anywhere in the MOVE zone grabs it
+        const ring = stick.getBoundingClientRect();
+        this.stickBase = { x: ring.left + ring.width / 2, y: ring.top + ring.height / 2 };
         stick.classList.add('held');
         this.applyStick(e.clientX - this.stickBase.x, e.clientY - this.stickBase.y);
       } else if (!inMove && this.lookPointer < 0) {
-        // the whole right half looks (the LOOK pad, the rest of the bar's right half, the screen above it) — and never attacks
+        // the whole right 55 % looks (the bar's LOOK section, the screen above it) — and never attacks. A drag that starts in
+        // the bar lights the LOOK pad while it lasts.
         this.lookPointer = e.pointerId;
         this.lookLast = { x: e.clientX, y: e.clientY };
+        lookpad.classList.toggle('active', inBar);
       } else return;
       root.setPointerCapture(e.pointerId);
       e.preventDefault();
@@ -191,6 +212,7 @@ export class TouchControls {
         this.showKnob(0, 0);
       } else if (e.pointerId === this.lookPointer) {
         this.lookPointer = -1;
+        lookpad.classList.remove('active');
       } else if (e.pointerId === this.attackPointer) {
         this.attackPointer = -1;
         attack.classList.remove('down');
@@ -200,19 +222,23 @@ export class TouchControls {
     };
     root.addEventListener('pointerup', release);
     root.addEventListener('pointercancel', release);
-    root.addEventListener('contextmenu', (e) => e.preventDefault());
 
-    // ── ATTACK / FIRE: fires on touch-down; the touch then belongs to the layer (pointer capture), so a drag from the disc
-    //    turns the camera while the finger is held, and a still hold (melee) becomes the heavy — see preUpdate above ──
+    // ── ATTACK / FIRE: fires on touch-down; the disc then captures the touch (its move / up events bubble to the layer's
+    //    handlers above), so a drag from it turns the camera while the finger is held and a still hold (melee) becomes the
+    //    heavy — see preUpdate. Only a lift (pointerup) or a cancel ends it: no pointerleave, so a thumb rolling off the
+    //    disc's edge keeps the charge, and a lost capture doesn't end it either. ──
     attack.addEventListener('pointerdown', (e) => {
       e.stopPropagation(); e.preventDefault();
       if (e.pointerType === 'mouse' && !force) return;
       if (this.attackPointer >= 0) return; // one finger on the disc at a time
       this.attackPointer = e.pointerId;
       this.attackLast = { x: e.clientX, y: e.clientY }; this.attackPath = 0; this.attackT0 = performance.now();
-      root.setPointerCapture(e.pointerId);
+      attack.setPointerCapture(e.pointerId);
       attack.classList.add('down');
-      if (this.weapons.enabled) this.weapons.tryFire();
+      if (this.weapons.enabled) {
+        this.weapons.tryFire();
+        attack.classList.remove('fire'); void attack.offsetWidth; attack.classList.add('fire'); // restart the swing flash
+      }
     });
 
     // ── buttons ──
@@ -305,7 +331,7 @@ export class TouchControls {
     if (this.knob !== undefined) this.knob.style.transform = `translate(${dx}px, ${dy}px)`;
   }
 
-  /** a look drag from any surface (the LOOK pad, the right half, an ATTACK drag): one rate × Look speed × aim-assist friction */
+  /** a look drag from any surface (the LOOK section, the right 55 % above the bar, an ATTACK drag): one rate × Look speed × aim-assist friction */
   private look(dx: number, dy: number): void {
     this.lookFrameDist += Math.hypot(dx, dy);
     this.assist?.noteLook(dx, dy);

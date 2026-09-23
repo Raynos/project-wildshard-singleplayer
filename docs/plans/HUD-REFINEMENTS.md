@@ -1,6 +1,6 @@
 # Plan: tentative HUD / touch-control refinements
 
-**State:** `in progress` 2026-09-23 — **Jake picked touch layout E** (E42, `art/hud/round-10-look-zone/E.jpg`): the HUD build agent built R12 (ATTACK disc, R1 + R2 semantics), R14, R15, R17 (one look rate), R18, the 67 %-solid bar and the MOVE-stick remaster (see "E42: layout E" below). R3–R11, R13 (left FIRE copy), R16 stay ideas, unapproved; nothing more is built until Jake names one.
+**State:** `in progress` 2026-09-23 — **layout E is live and re-split 45 / 55** (E42 built R12 / R14 / R15 / R17 / R18; E46 moved ATTACK onto the divider, sized the LOOK pad to match, fixed Jake's iPhone bugs — hold-for-heavy, double-tap zoom, text select, the black strip under the bar in the home-screen app). R3–R11, R13's left FIRE copy and R16 stay ideas, unapproved; nothing more is built until Jake names one.
 
 ## Read this first
 
@@ -104,12 +104,30 @@ comment = the layout), `src/ui/styles/touch.css`, `game.css` (VITALS / BOLTS), `
 | Bar | 67 % solid (`rgba(6, 10, 18, 0.67)`), was 75 %. |
 | Stick | Always drawn: a thin cyan ring (radius = full deflection) with a glowing cyan knob at rest; the knob follows the thumb; past the sprint threshold forward the ring's top arc lights with a SPRINT tick. Still anchored (grab anywhere in the MOVE zone), not floating. |
 
+## E46: 45 / 55 and the iPhone fixes (2026-09-23)
+
+Jake played E on his iPhone (Safari tab and home-screen app): "Hold for heavy doesn't work for me", "quick double tap still
+does a weird Safari browser mini zoom", "or Safari text select", a black strip under the bar in the home-screen app, then
+the layout: "attack shouldn't be wider than look, they should be equal width" / "45/55 is better, and we can place the
+actual attack button literally on the divider line" / "the actual looking right hand touch pad is 55% of the screen".
+
+| Item | What E46 built |
+|---|---|
+| Split | The bar's MOVE / LOOK divider moved from 50 % to 45 % (`--split`); the free-look area above the bar is the right 55 % too. |
+| ATTACK | Centred ON the divider, on the bar's centre line (above the home-indicator inset); a touch on the disc is ATTACK in either zone. Same semantics. It flashes on each swing. |
+| LOOK pad | As wide as ATTACK, vertically centred, centred between ATTACK's right edge and the screen edge; lights while a drag that started in the bar is looking. |
+| Stick | Centred in what ATTACK leaves of the MOVE zone (16 px clear at 390, 24 at 430). SPRINT is now a lit tag just above the bar over the stick (the knob covered the old spot). |
+| Pill | SWAP \| HOVER stays on the divider, seated on the bar's top edge above ATTACK (16 px clear of the disc, 10 of its charge ring); each half's hit area is 44 px tall. |
+| DODGE / JUMP | One size (`--disc`), an even diagonal at the right edge. AIM (ranged) sits up-right of FIRE, clear of the pill, left of DODGE. |
+| iOS | The layer cancels its own touch events (non-passive touchstart / touchmove / touchend), pinch gestures, dragstart / contextmenu / selectstart; every element gets draggable="false" and touch-action / user-select / touch-callout / user-drag none; ATTACK captures its own touch and only a lift or cancel ends a hold. Measured in the iOS 26.5 Safari simulator with real XCUITest touches: live E42 — a 1.6 s hold never charged (heavy 0), a double tap zoomed to 1.6×; E46 — the hold charges and chops (heavy 1, 0 pointercancel), no zoom (`progress/198`). |
+| Black strip | An iOS home-screen app reports `innerHeight` / `100vh` a status bar short; `src/core/viewport.ts` measures the real height (`--ws-vh`), and the canvas, #hud and the projections (lock-on, damage floats, aim-assist debug) use it. Not reproducible in the simulator tab; Jake tests it in the home-screen app. |
+
 ## Status
 
 | # | State |
 |---|---|
 | R1, R2 | built as R12's semantics (E42) |
 | R3–R11 | idea — not approved |
-| R12, R14, R15, R17, R18 | built — layout E (E42) |
+| R12, R14, R15, R17, R18 | built — layout E (E42), re-split 45 / 55 with the iPhone fixes (E46) |
 | R13 | AIM on the right built (E42); the left FIRE copy is an idea — not approved |
 | R16 | idea — not approved (E37 audit) |

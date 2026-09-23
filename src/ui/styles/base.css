@@ -22,9 +22,11 @@
 }
 
 html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; background: #050810; touch-action: manipulation; overscroll-behavior: none; -webkit-text-size-adjust: 100%; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-#game { display: block; width: 100vw; height: 100vh; touch-action: none; }
+/* #game and #hud are sized by --ws-vh (src/core/viewport.ts: the real height — an iOS home-screen app reports 100vh / innerHeight
+   a status bar short and left a black strip over the home indicator, E46); fixed, so body's overflow clip can't cut them */
+#game { position: fixed; left: 0; top: 0; display: block; width: 100vw; height: var(--ws-vh, 100vh); touch-action: none; }
 #hud button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-#hud { position: fixed; inset: 0; pointer-events: none; font-family: var(--ws-mono); color: var(--ws-text); user-select: none; overflow: hidden; }
+#hud { position: fixed; inset: 0 0 auto; height: var(--ws-vh, 100%); pointer-events: none; font-family: var(--ws-mono); color: var(--ws-text); user-select: none; overflow: hidden; }
 #hud * { box-sizing: border-box; }
 
 .ws-glass {
