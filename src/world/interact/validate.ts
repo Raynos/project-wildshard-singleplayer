@@ -33,6 +33,7 @@ export function validateTable(t: InteractTable, opts: { items?: readonly string[
     perKind.set(d.kind, (perKind.get(d.kind) ?? 0) + 1);
     const a = d.at;
     if (!finite(a.x, a.z, a.y, a.dy, a.yaw)) errs.push(`${where}: non-finite placement`);
+    if (d.reach !== undefined && !(d.reach >= 0.8 && d.reach <= 6)) errs.push(`${where}: reach out of range`);
     if (a.poi === 'world') { if (Math.abs(a.x) > CHUNK_HALF || Math.abs(a.z) > CHUNK_HALF) errs.push(`${where}: outside the chunk`); }
     else if (Math.hypot(a.x, a.z) > LIMITS.localReach) errs.push(`${where}: ${Math.round(Math.hypot(a.x, a.z))} m from its POI (max ${LIMITS.localReach})`);
     for (const f of flagsRead(d)) if (!raised.has(f)) errs.push(`${where}: reads flag '${f}' that nothing raises (declare it in external?)`);

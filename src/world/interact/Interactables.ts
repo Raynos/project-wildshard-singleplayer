@@ -321,6 +321,11 @@ export class Interactables {
   private promptRadius(lv: Live): number {
     if (!lv.shown) return 0;
     const d = lv.def;
+    if (d.reach !== undefined) return this.baseRadius(lv) > 0 ? d.reach : 0;
+    return this.baseRadius(lv);
+  }
+  private baseRadius(lv: Live): number {
+    const d = lv.def;
     switch (d.kind) {
       case 'chest': return this.has(`open:${d.id}`) ? 0 : PROMPT_R;
       case 'door': return lv.anim > 0.02 && d.look !== 'plank' ? 0 : d.opensWhen !== undefined && d.lock === undefined && d.requires === undefined ? 0 : PROMPT_R;

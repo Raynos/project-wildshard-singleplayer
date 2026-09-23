@@ -75,8 +75,8 @@ export const DRIFTWOOD_INTERACT: InteractTable = {
       requires: { all: [...SHARD_FLAGS] }, lockedLabel: 'Three empty sockets — the glyph shards are out on the island',
       sets: ['quest:shrine-set'], toast: 'The shards lock into place — the ring wakes' },
 
-    // ── A4: the dive treasure off the wreck reef, the vista bench on the plateau rim, the sea glass ──
-    { kind: 'chest', id: 'reef-treasure', look: 'treasure', at: { poi: 'world', x: 182, z: -30 }, loot: [{ item: 'doubloon', n: 8 }, { flag: 'found:reef-treasure', label: 'a pearl necklace' }],
+    // ── A4: the dive treasure on the deepest shelf of the island (3 m, north-east of Wreck Cove — reach 1.6: dive for it), the vista bench on the plateau rim, the sea glass ──
+    { kind: 'chest', id: 'reef-treasure', look: 'treasure', reach: 1.6, at: { poi: 'world', x: 232, z: 48 }, loot: [{ item: 'doubloon', n: 8 }, { flag: 'found:reef-treasure', label: 'a pearl necklace' }],
       toast: 'Sunken treasure!' },
     { kind: 'bench', id: 'vista-bench', label: 'Sit and take in the view', at: { poi: 'world', x: -46, z: -100, yaw: 2.8 }, toast: '' },   // on the plateau's south rim, over the lagoon, the pier and the boat
     ...glass,

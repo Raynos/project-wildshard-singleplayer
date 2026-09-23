@@ -63,6 +63,8 @@ interface Base {
   sets?: string[];
   /** a toast when it fires */
   toast?: string;
+  /** "[E]" reach in metres from the eye (default 2.5) — short for a dive treasure, so it has to be swum down to */
+  reach?: number;
 }
 
 export interface ChestDef extends Base { kind: 'chest'; /** a key id; the chest is locked without `key:<lock>` */ lock?: string; loot: Loot[]; /** 'crate' (plain) | 'chest' (banded) | 'strongbox' (iron, small) */ look?: 'chest' | 'strongbox' | 'treasure' }
