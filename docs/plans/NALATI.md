@@ -63,7 +63,7 @@ trying to CRAM way too many biomes in." The chunk becomes **three clearly distin
 **Cut:** spruce forest, mill, waterfall, tarn, balbal circle ("I'll sacrifice balbal and spruce forests for getting
 the snow lotus valley in there"). Balbal warriors keep their statues on the kurgan mounds. Herds in the hundreds, the
 kokpar field and the watchtower are in. Layout mockups: `art/nalati-grasslands/round-7-world-redesign/` (A–F, the
-user: D, E and A are the closest), round 8 for the three-zone layout + Snow Lotus Valley.
+user: D, E and A are the closest). Round 8 (`round-8-three-zones/`): the user picked **layout 4 — the bowl + the snow ring** (the Sky Grassland a golden bowl in the centre, the green valley wrapping the north, Snow Lotus Valley a snowy horseshoe round the south and east). Spec + coordinates: `docs/design/nalati/layout-v2.md`.
 
 ### Look (2026-09-22 / 23)
 
