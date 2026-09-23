@@ -1,6 +1,6 @@
 # Driftwood Isle — the remaster (10× quality and polish)
 
-**State:** `in progress` 2026-09-22 — the user: "we will need a full remaster". The audit is done (E7, below). Track M (models) is being built by the model agent (E8, `8ce9efd` lowpolyKit). Tracks 0 / L / W / C / A / S have no owner yet, and the picks under **Decisions** gate L1, L4, A1 and C5. Perf is measured by PLAY-PERF (its finish line already includes four Driftwood poses).
+**State:** `in progress` 2026-09-22 — the user: "we will need a full remaster"; audit done (E7), every pick made (D1–D8). Building: Track M = E8 model agent (`8ce9efd` lowpolyKit); Tracks L + W = look-agent, 0 + C = feel-agent, A = adventure-agent, S = sound-agent (this session integrates, deploys, screenshots). Perf is gated by PLAY-PERF's four Driftwood poses.
 
 Driftwood was built in one night (2026-09-18, `project/archive/2026-09-18-driftwood.md`): C0–C16,
 129 commits, all live. It is a complete *scene* and a thin *game*. This plan turns it into the shard
@@ -82,13 +82,13 @@ Reference: BotW / Wind Waker (two-band ramp, rim), Firewatch (colour-ramp fog), 
 
 | # | Row | Cost | Status |
 |---|---|---|---|
-| L1 | **Stylized lighting model** on `lowPolyMaterial` + terrain + animals: two-band `smoothstep` ramp on N·L×shadow, **coloured shadows** (blue-violet, never black), a thin Genshin terminator band, rim light on the lit side, hemisphere fill with a warm sand bounce. Lambert-based (cheaper than GGX on the phone) | S | needs pick D1 |
-| L2 | **Stylized sky**: replace the photoreal HDRI with a gradient sky dome + faceted cumulus meshes with a silver-lining fresnel, slow drift; keeps the planet + gulls. Prerequisite for day/night | M | needs pick D2 |
+| L1 | **Stylized lighting model** on `lowPolyMaterial` + terrain + animals: two-band `smoothstep` ramp on N·L×shadow, **coloured shadows** (blue-violet, never black), a thin Genshin terminator band, rim light on the lit side, hemisphere fill with a warm sand bounce. Lambert-based (cheaper than GGX on the phone) | S | open (D1 picked) |
+| L2 | **Stylized sky**: replace the photoreal HDRI with a gradient sky dome + faceted cumulus meshes with a silver-lining fresnel, slow drift; keeps the planet + gulls. Prerequisite for day/night | M | open (D2 picked) |
 | L3 | **Colour-ramp fog** (distance × height, sun-side ramp) replacing the exponential fog: the horizon hazes into the sky gradient, hilltops stay crisp | S | open |
 | L4 | **Cloud shadows**: scrolling noise multiplied into the direct light (1 fetch) | S | open |
 | L5 | **Post for the stylized look**: bloom only above 1.0 (sun, glyphs, fireflies, water sparkle), a LUT grade in the one `EffectPass`, AA picked by measurement on the iPhone (MSAA ×4 vs SMAA), n8ao half-res or off on phone (the AO is baked) | S | open |
 | L6 | **Terrain**: shadow casting on (desktop; phone if the budget allows), a wet-sand band above the water line, per-face gradients by height / slope, grass-top lips on cliff edges (the mockup look) | M | open |
-| L7 | **Day / night clock** (D38): sun + sky + fog presets (dawn, midday, golden hour, night) blended over time; drives `EnemyWorld.night` (sailor on the beach), `shrine.setDusk` (glyphs, fireflies), lanterns | M | needs pick D3 |
+| L7 | **Day / night clock** (D38): sun + sky + fog presets (dawn, midday, golden hour, night) blended over time; drives `EnemyWorld.night` (sailor on the beach), `shrine.setDusk` (glyphs, fireflies), lanterns | M | open (D3: 20 + 4 min) |
 
 ### Track W — water (the island's signature)
 
@@ -121,7 +121,7 @@ Owner: session `wildshard-singleplayer-8d` (E8), files `src/world/{Boat,Pier,Hut
 | C2 | **Hit-stop** via a world time-scale hook in `Game.ts` (60 / 90 / 140 ms for combo / finisher / heavy), audio + particles keep running | S | open |
 | C3 | **Camera kick** along the swing (spring-damped 1–3° roll / pitch), a −2° FOV punch on heavies, small trauma² shake when hit | S | open |
 | C4 | **Sword trail** (ring buffer of blade base / tip, additive strip, 1 call) + impact particles per material (sand, wood chips, shell shards, sparks) from one pooled instanced system | S | open |
-| C5 | **Enemy reactions + telegraphs**: white hit flash, directional flinch, knockback along the swing, stagger on heavy; 400–700 ms wind-ups with a readable pose + sound cue (boar hoof scrape, crab claw raise, sailor lantern flare); a hit interrupts a wind-up; enemy attacks resolve on a hit arc, not a 10 Hz distance check | M | needs pick D4 |
+| C5 | **Enemy reactions + telegraphs**: white hit flash, directional flinch, knockback along the swing, stagger on heavy; 400–700 ms wind-ups with a readable pose + sound cue (boar hoof scrape, crab claw raise, sailor lantern flare); a hit interrupts a wind-up; enemy attacks resolve on a hit arc, not a 10 Hz distance check | M | open (D4: floats stay) |
 | C6 | **Player defence**: coordinate with the HUD agent's sword touch work (E11: dodge / lunge / heavy mockups in `art/hud/round-7-sword-touch/`) — the original "no block, no dodge" rule is being revisited there | — | owner: HUD agent |
 
 ### Track A — the island adventure (20–30 minutes)
@@ -133,7 +133,7 @@ fills the ring.*
 
 | # | Row | Cost | Status |
 |---|---|---|---|
-| A1 | **The quest spine**: a castaway NPC at the hut gives the one quest; an objective line on the HUD; three **glyph shards** (lookout summit, wreck hold, sea cave) open the **Ring Shrine** → the guardian fight → a reward (the iron sword moves here, or a third weapon) | L | needs pick D5 |
+| A1 | **The quest spine**: a castaway NPC at the hut gives the one quest; an objective line on the HUD; three **glyph shards** (lookout summit, wreck hold, sea cave) open the **Ring Shrine** → the guardian fight → the golden-hour reward view (the iron sword stays in the wreck hold, D6) | L | open (D5 + D6 picked) |
 | A2 | **Interactables kit** (reusable for every shard, and the chunk-format config later): chests (+ locked), keys, doors, levers, pressure plates, a pushable barrel — data-driven, no code per placement | M | open |
 | A3 | **POI mini-puzzles**: lookout — climb and light the beacon; wreck hold — a key / lever sequence below deck with the sailor; sea cave — a pressure-plate tide puzzle; each ends in a shard | M | open |
 | A4 | **Breadcrumbs + collectibles**: 12–15 sea-glass pieces along paths, gull flights toward POIs, a dive treasure, a vista bench; a **Driftwood achievement + title table** | S | open |
@@ -158,22 +158,45 @@ four poses before and after, and puts the numbers in its commit. Budget addition
 become instanced with cell culling (the forest's `Culling.ts` path), animals one material each, ocean
 chunked + culled.
 
-## 3. Decisions (the user's)
+## 3. Decisions (the user's, 2026-09-22)
 
-| # | Question | Recommendation |
+| # | Question | Pick |
 |---|---|---|
-| D1 | Lighting: **toon two-band ramp + coloured shadows + rim** (BotW / Wind Waker) vs keep the soft PBR facets | the ramp — it is what the mockups read as, and it is the cheapest 10× |
-| D2 | Sky: **stylized gradient sky + faceted cumulus** instead of the photoreal HDRI | yes — the HDRI is the single most "wrong" pixel area on screen, and day / night needs it |
-| D3 | Day / night: a real clock (e.g. 12-minute day) vs fixed presets (always midday, golden hour at the finale) | presets first, the clock after A1 |
-| D4 | Damage numbers: keep the MMO floats or go BotW / Skyrim (hit marker + health-bar flash only) | drop the numbers on Driftwood, keep them for Pine Hollow |
-| D5 | Adventure spine: castaway + three glyph shards + shrine guardian (above) vs something else | the spine above — it reuses every POI that exists |
+| D1 | Lighting | **toon two-band ramp + coloured shadows + rim** (BotW / Wind Waker) |
+| D2 | Sky | **stylized gradient sky + faceted cumulus** replaces the photoreal HDRI |
+| D3 | Day / night | **a real clock now**: **20 min day / 4 min night**; night is moonlit blue and playable, not black |
+| D4 | Damage numbers | **keep the MMO floats** (Driftwood too) |
+| D5 | Adventure spine | **castaway + three glyph shards → Ring Shrine → Drowned Captain → golden-hour reward** |
+| D6 | Iron sword | **stays in the wreck — in the new enterable hold, guarded**: beat the drowned sailor to take it |
+| D7 | Staffing | **four track agents now** (look + water, feel + fixes, adventure, sound) + E8 on models |
+| D8 | Scope | **Driftwood only** — Pine Hollow stays photoreal PBR, byte-for-byte |
 
-## 4. How it gets built
+## 4. How it gets built — owners and files
 
-Same as the night it was built: parallel agents with hard file ownership, one integrator for
-`main.ts`, commits by explicit path, **no `git push`** (the push coordinator ships, E19). Proposed
-owners: look-agent (Track L + W: `Sky.ts`, `Atmosphere.ts`, `Ocean.ts`, `Seabed.ts`, a new
-`src/world/stylize.ts` that `lowPolyMaterial` calls — one line in E8's file), feel-agent (Track 0 + C:
-`Sword.ts`, `SwordMoves.ts`, `Combat.ts`, `Game.ts` time scale, `Enemies.ts` / species AI state only —
-geometry stays E8's), adventure-agent (Track A: new `src/game/quest/*`, `src/world/interact/*`,
-`Map.ts`, `achievements.ts`), sound-agent (Track S: `src/audio/*` minus `Music.ts`). Track M = E8.
+Same as the night it was built: parallel agents with hard file ownership, commits by explicit path,
+small deploys. Every agent reads `AGENTS.md` and `docs/SUBAGENT-BRIEF.md` first. **Pine Hollow must stay
+byte-for-byte** (D8): every change is behind `chunk.style === 'lowpoly'` / `chunk.ocean`.
+
+| Agent | Rows | Owns (may edit) | Coordinates with |
+|---|---|---|---|
+| **model agent** (E8, session `wildshard-singleplayer-8d`) | M1–M5, sword + iron-sword geometry and the double linear-conversion fix | `src/world/{Boat,Pier,Hut,Lookout,RopeBridge,Wreck,Shrine,Palms,Boulders,Bushes,Cove,Props,Trailside,Gulls,lowpolyKit}.ts`, `src/entities/species/*`, `src/entities/lowpoly.ts`, sword meshes | everyone: the wreck hold and cave interior are its geometry; the others place things in them |
+| **look-agent** | L1–L7, W1–W5 | new `src/world/stylize.ts` (the ramp patch; `lowPolyMaterial` in lowpolyKit calls it — one line, E8 adds it), new `src/world/DayNight.ts` (the clock, D3), `Sky.ts` / `Atmosphere.ts` / `BakedSky.ts` (low-poly path only), `Ocean.ts`, `Seabed.ts`, `Horizon.ts`, `Terrain.ts` (low-poly path), new `src/world/Waterfall.ts` (E8 places it in the cove), `Game.ts` `buildComposer()` for the low-poly grade, `src/chunks/driftwood-isle.ts` sky / atmosphere / grade fields | E8 (stylize hook, sway depth), feel-agent (`Game.ts`: look owns the composer, feel owns the time scale), PLAY-PERF |
+| **feel-agent** | 0.1–0.3, 0.6 (framing), C1–C5 | `Sword.ts` (hit test, trail, framing — not the mesh), `SwordMoves.ts`, `Weapons.ts`, `ui/Combat.ts`, `Game.ts` time-scale hook, new `src/player/CameraFX.ts`, new `src/fx/Impacts.ts`, `entities/{Animal,AnimalManager,Enemies}.ts` (reactions, telegraphs, attack arcs), `WeaponPickup.ts` + light pool, `main.ts` combat / death / hurt lines | E8 (anything in `species/*`: ask first), HUD agent w6 (hurt arc in `HUD.ts`, sword touch E11), sound-agent (hurt / impact sounds) |
+| **adventure-agent** | A1–A7, B4 + D6 (the guarded iron sword) | new `src/game/quest/*`, new `src/world/interact/*` (chests, keys, doors, levers, plates, barrel), new `src/entities/npc/*` (the castaway, built with lowpolyKit), `ui/Map.ts` (island POIs), `game/achievements.ts` (Driftwood table), new `src/world/Zipline.ts`, `IronSword.ts` pickup logic, the Drowned Captain's AI (new species file; its mesh from E8) | E8 (hold / cave / shrine geometry), feel-agent (`Enemies.ts` respawn), HUD agent (objective line) |
+| **sound-agent** | S1–S3, B9 footsteps, the audio half of B3 | `src/audio/*` except `Music.ts` / `score/*` (E5), `main.ts` footstep lines | E5 music (hooks only), feel-agent (combat calls) |
+| **this session (E7)** | 0.4 (B8), 0.5 (B6 hero re-capture), integration, the plan + ASKS rows, deploy watch | `docs/plans/DRIFTWOOD-REMASTER.md`, E7 row | all |
+
+Rules for this plan (on top of AGENTS.md):
+- **Shared files** (`src/main.ts`, `Game.ts`, `docs/tasks/ASKS.md`) carry other agents' uncommitted hunks. Stage only
+  your own: if `git diff <file>` shows foreign hunks, commit through a private index pinned to HEAD
+  (`GIT_INDEX_FILE=… git read-tree HEAD`, `git apply --cached` of a patch holding only your hunks,
+  `git commit-tree -p HEAD`, `git update-ref refs/heads/main $C $HEAD`), then `git reset -q -- <your paths>`
+  so the shared index agrees with HEAD.
+- **Push**: four gates on a clean `git archive HEAD` export, then `lockf -k -t 900 .git/push.lock git push origin main`;
+  watch the run, check `/version.json`.
+- **Screenshots**: headless agent-browser, your own session name, before + after at 390×844, small
+  WebP / JPEG in `progress/` (next free number); always `close` the session.
+- **Perf**: `game.lastFrame` calls / tris at the four Driftwood poses (pier, beach, wreck cove, ring shrine)
+  on `?tier=phone`, before and after, in the commit message.
+- Only this session edits this plan and the E7 row; report what landed (commit, build id, screenshot)
+  to the integrator and it flips the rows.
