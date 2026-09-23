@@ -1,8 +1,26 @@
 # Handoff: the Nalati look-v2 port (port lead, 2026-09-23)
 
 The clean-room prototype (`dev/nalati-cleanroom/`, PLAN.md there) is the reference. This note covers what was ported
-into the shard, what is left in order, the user's hard rules, and how to test. **Status: stopped at wrap-up (token
-budget). No render-path code is in the tree yet. `?look=v2` does not exist yet, so the tree boots exactly as before.**
+into the shard, what is left in order, the user's hard rules, and how to test. **Status (2026-09-23, the look agent):
+steps 1–7 built — v2 is the Nalati default; `?look=v1` brings the old path back. Code in `src/nalati/look/`
+(index.ts lists the one-line hooks). See "Built" below; the steps further down are the original plan, kept as the spec.**
+
+## Built (look agent, 2026-09-23)
+
+| step | commit | what | measured (camp 9, phone tier) |
+|---|---|---|---|
+| 1 sky dome | `95eafd4` | `look/sky.ts`: the round-6 panorama on a far-plane sphere; slice seams repaired + wrap made continuous (`scripts/nalati-panorama.py`, which also writes `look/panoramaData.ts`: horizon row, ridge line, fog LUT); zenith blend 30°→52°→88°; night fades the painted sky above the ridge into the rig's stars; storm veil / moon / key tint (`look/tint.ts`) | — |
+| 2 fog | `d05788b` | `look/fog.ts`: 256×1 LUT from the painting, un-graded, re-tinted by the same `v2Regrade` as the dome | — |
+| 3 grade | `f1a7540` | `look/grade.ts`: MSAA ×4 → one EffectPass (bloom on desktop); dome + fog write the exact inverse | 79–94 calls (v1 105–120) |
+| 4 light | `0969ba4` | `look/light.ts`: key +40° / +15°, fill lower + cooler, `v2Olive` ground values | 80–95 calls |
+| 5 grass | `bf9925a` | `look/grass.ts`: 3 GPU rings + SDF flowers, 4 draws, CPU tile culling into a float texture, the GrassField lattice + a 1 m mask (roads, yurts, splat, dressingCover, trunks); Wind / trample / stealth hooks unchanged | 82–97 calls, 1.28–1.89 M tris |
+| 6 bake | `6b70c37` | `look/bake.ts`: static casters' depth map from the key (2048² / phone 1024²) + a top-down contact map, re-baked on a 1.5° key swing | same |
+| A3 | `545ca03` | `look/cloudSea.ts` (the deck under the slab, not a pale panel), turquoise braids (`water.ts`), gold-green meadow patches (`terrainSurface.ts`), thinner fog from above | 97–105 calls, 1.30–1.90 M (with the GLB props now in; v1 116–128) |
+| 7 default | (this) | `look/flag.ts`: on unless `?look=v1` | `progress/nalati-look/camp9/v2-step7-*`, `progress/nalati-look/walk/v2-step7-strip.jpg` |
+
+Open: near-field painted grass cards (0–3 m) not added (the blades hold up at the feet); the slab lip is still a
+straight line from far above; the cloud deck is a shader (no volume); terrain shading by zone + the horizon re-aim for
+layout v2 (`docs/design/nalati/layout-v2.md`) wait on the new landscape.
 
 ## The user's hard rules (2026-09-23, after playing the prototype — these override the prototype)
 
