@@ -68,7 +68,12 @@ function ghostMaterial(captain = false): GhostMat {
   const fade: THREE.IUniform<number> = { value: 0 };
   const mat = new THREE.MeshLambertMaterial({ color: 0x000000, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
   const core = captain ? 'vec3(0.1, 0.5, 0.42)' : 'vec3(0.08, 0.42, 0.52)', rim = captain ? 'vec3(0.6, 2.4, 1.9)' : 'vec3(0.45, 1.9, 2.3)';
-  mat.onBeforeCompile = (sh) => {
+  // chain the prototype hook (Atmosphere.ts attaches the painted air's fog + cloud-shadow uniforms there). Replacing it left
+  // `fogCloudTex` (sampler2D) unbound on texture unit 0 next to the shadow map's sampler2DShadow: "two textures of different
+  // types use the same sampler location" — WebGL drops the draw, so the bodies never rendered (only the mist did; B11)
+  const base = mat.onBeforeCompile.bind(mat);
+  mat.onBeforeCompile = (sh, renderer) => {
+    base(sh, renderer);
     sh.uniforms['uGFade'] = fade; sh.uniforms['uGTime'] = GHOST_TIME;
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', '#include <common>\nuniform float uGFade;\nuniform float uGTime;')
