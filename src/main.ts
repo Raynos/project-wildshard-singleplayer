@@ -90,7 +90,7 @@ async function main() {
   const loading = new Loading();
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/boot/plan.ts).
   // Declared bytes come from the chunk's file list; every /assets fetch is counted on its way in.
-  const files = bootFiles(getActiveChunk()); // + the title / explore art and every audio file (docs/plans/PRELOAD-OFFLINE.md)
+  const files = bootFiles(getActiveChunk()); // + the title / explore art and every audio file (project/archive/2026-09-23-preload-offline.md)
   const plan = createBootPlan((view) => loading.paint(view), { totals: declareTotals(files) });
   installByteCounter(plan, files);
   // a boot that throws shows WHY: the loading panel's foot line + the uncaught-exception modal (src/ui/ErrorModal.ts)
@@ -105,7 +105,7 @@ async function main() {
   const packed = new Set(pack ? pack.files.map(([p]) => p) : []);
   const packStreamed = pack ? streamPack(pack, plan, files) : Promise.resolve();
   prefetch(bootFetches(getActiveChunk(), files).filter((p) => !packed.has(p)));
-  // then the title art and ALL audio (docs/plans/PRELOAD-OFFLINE.md), after the pack so they do not split the pipe with the
+  // then the title art and ALL audio (project/archive/2026-09-23-preload-offline.md), after the pack so they do not split the pipe with the
   // world's files; the selected style + set are decoded as their bytes land — nothing is fetched after the bar
   prefetchAfter(extraFetches(files), packStreamed);
   const menuLoad = startMenuPreload(files, getActiveChunk()), audioLoad = startAudioPreload(files, getActiveChunk());

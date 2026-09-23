@@ -13,7 +13,7 @@
  *   __FONTS__     the self-hosted /fonts/*.woff2 — precached at install (the first visit's CSS fetched them before
  *                 this worker controlled the page, so without this an offline launch had no type).
  *
- * OFFLINE (docs/plans/PRELOAD-OFFLINE.md): after one complete load the same shard boots and plays with the network off.
+ * OFFLINE (project/archive/2026-09-23-preload-offline.md): after one complete load the same shard boots and plays with the network off.
  * The shell + code + fonts are precached here; every file the loading bar declares (the shard's pack / files, the title
  * art, and ALL audio — every music style and every sound-effect set) passes through `cacheFirst` / `networkFirst` below
  * while the bar downloads it, so it is stored on that single download (nothing is fetched twice). A style / set switch in

@@ -59,7 +59,7 @@ function writeBytesModule() {
 writeBytesModule();
 
 // src/boot/audio.generated.ts: every music style's music.json and every sound-effect set's sfx.json (public/assets/music/<style>/,
-// public/assets/sfx/<set>/), compiled into the bundle minus their provenance notes (docs/plans/PRELOAD-OFFLINE.md). The boot
+// public/assets/sfx/<set>/), compiled into the bundle minus their provenance notes (project/archive/2026-09-23-preload-offline.md). The boot
 // declares and downloads every file they list at the loading bar and decodes the selected style + set there, so nothing
 // fetches a manifest at runtime and the hashed bundle always carries the loop points of the files it ships with.
 function writeAudioModule() {
@@ -87,7 +87,7 @@ writeAudioModule();
 
 // src/boot/art.generated.ts: the byte sizes of the title / explore art the bundle imports (shard cards' thumbnails and hero
 // stills, the Explore panels) — Vite copies them to /assets/<name>-<hash>.<ext> byte for byte, so the source size is the size
-// the boot declares for the loading bar's "art" source (src/boot/art.ts pairs these keys with the hashed URLs).
+// the boot declares for the loading bar's "art" source (src/boot/extras.ts pairs these keys with the hashed URLs).
 function writeArtModule() {
   const rows: string[] = [];
   for (const dir of ['src/chunks/thumbs', 'src/explore/img']) {

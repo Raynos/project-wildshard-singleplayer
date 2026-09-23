@@ -1,5 +1,5 @@
 /**
- * Every audio file the game can play, for the loading bar (docs/plans/PRELOAD-OFFLINE.md, the user's pick: "the shard being
+ * Every audio file the game can play, for the loading bar (project/archive/2026-09-23-preload-offline.md, the user's pick: "the shard being
  * launched + ALL audio"). The lists come from the manifests the build compiled in (src/boot/audio.generated.ts, written by
  * vite.config.ts from public/assets/music/<style>/music.json and public/assets/sfx/<set>/sfx.json), crossed with the styles
  * and sets the Settings menu offers (MUSIC_STYLES / SFX_SETS) — neither list is spelled out here, so a set renamed or added

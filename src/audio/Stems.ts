@@ -9,7 +9,7 @@
 // bar k starts at t0 + loopStart + k · bar. Every gain move (tension, crossfades) lands on that grid.
 //
 // Nothing here fetches: the manifests are compiled into the bundle (src/boot/audio.generated.ts) and the files are read by the
-// caller — the boot's counted fetch at the loading bar, or Cache Storage for a style switch (docs/plans/PRELOAD-OFFLINE.md).
+// caller — the boot's counted fetch at the loading bar, or Cache Storage for a style switch (project/archive/2026-09-23-preload-offline.md).
 // `decodeStyle` decodes one style's slots + stings; a slot whose file is missing or will not decode is left out, and Music
 // keeps the synth for it.
 import type { MusicStyle } from '../ui/Settings';

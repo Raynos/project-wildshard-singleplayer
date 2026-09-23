@@ -1,5 +1,5 @@
 /**
- * The loading bar's last two jobs (docs/plans/PRELOAD-OFFLINE.md, the user: "everything should be loaded at the loading bar
+ * The loading bar's last two jobs (project/archive/2026-09-23-preload-offline.md, the user: "everything should be loaded at the loading bar
  * … No cheating and background loading"): what the title menu, the Explore viewer and the audio used to fetch after
  * "playable" — found by the row-1 audit (headless request log, both shards) — is downloaded, counted and decoded here.
  *

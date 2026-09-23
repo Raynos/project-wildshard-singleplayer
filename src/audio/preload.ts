@@ -1,4 +1,4 @@
-// src/audio/preload.ts — audio decoded at the loading bar, not after it (docs/plans/PRELOAD-OFFLINE.md rows 3–4).
+// src/audio/preload.ts — audio decoded at the loading bar, not after it (project/archive/2026-09-23-preload-offline.md rows 3–4).
 //
 //   decodeBytes(bytes)                 → AudioBuffer, decoded on one shared OfflineAudioContext at the files' rate (48 kHz)
 //   cachedBytes(url)                   → the file's bytes from Cache Storage (the service worker stored it while the bar

@@ -18,12 +18,12 @@ const STEP_ROWS = [
   ['props', 'Props', 1],
   ['animals', 'Herds', 1],
   ['weapon', 'Crossbow · HUD', 1],
-  // docs/plans/PRELOAD-OFFLINE.md: the title / explore art and the lazy UI code (before the title builds its deck)
+  // project/archive/2026-09-23-preload-offline.md: the title / explore art and the lazy UI code (before the title builds its deck)
   ['menu', 'Title art · explore', 1],
   ['shaders', 'Shaders', 3],
   ['firstFrame', 'First frame', 3],
   // last, so the shaders compile while it downloads: every audio file (all styles, all sets), the selected music style +
-  // sound-effect set decoded as their bytes land — nothing is fetched after the bar (docs/plans/PRELOAD-OFFLINE.md)
+  // sound-effect set decoded as their bytes land — nothing is fetched after the bar (project/archive/2026-09-23-preload-offline.md)
   ['audio', 'Audio · music + sound effects', 3],
 ] as const satisfies readonly (readonly [string, string, number])[];
 export type BootStep = (typeof STEP_ROWS)[number][0];

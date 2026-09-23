@@ -22,7 +22,7 @@
 //
 // v3 (docs/plans/MUSIC.md rows 7–8): a STEM PLAYER beside the synth (src/audio/Stems.ts). Settings 'musicStyle' picks
 // piano / orchestral / folk (MiniMax-Music3 stems in public/assets/music/<style>/) or synth. Every style's files are downloaded
-// at the loading bar and the selected style's title + this shard's slot + stings are decoded there (docs/plans/PRELOAD-OFFLINE.md;
+// at the loading bar and the selected style's title + this shard's slot + stings are decoded there (project/archive/2026-09-23-preload-offline.md;
 // `useBank`), so play() starts the stems at once; the synth plays for a style / slot the build lacks or that failed to decode.
 // Slots: menu → 'title' (main.ts starts the music on the title screen's first gesture), Pine Hollow → 'pine', Driftwood → 'island';
 // ENTER WORLD / exit-to-menu crossfade between them over a bar. calm / alert / combat drive the tension stem's gain (0 / 0.5 / 1)

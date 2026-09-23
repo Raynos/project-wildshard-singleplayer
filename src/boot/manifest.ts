@@ -45,7 +45,7 @@ export function chunkFiles(def: ChunkDef): ChunkFiles {
     trees: t(treeless ? [] : trees),
     cabins: t(ocean ? [] : cabins),
     props: t(ocean ? [] : props),
-    // filled by src/boot/extras.ts `bootFiles` (docs/plans/PRELOAD-OFFLINE.md): the title / explore art (bundled, hashed URLs)
+    // filled by src/boot/extras.ts `bootFiles` (project/archive/2026-09-23-preload-offline.md): the title / explore art (bundled, hashed URLs)
     // and every audio file of every style and set (the lists follow the menu's Settings, a module Node's type stripping cannot
     // load — this file also runs in scripts/bake-packs.mjs, and neither goes in a shard's boot pack)
     art: [], music: [], sfx: [],

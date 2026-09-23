@@ -11,7 +11,7 @@
  *                 unhashed art) survives a JS-only deploy instead of being re-downloaded.
  *   __BUNDLE__    the emitted `/assets/<name>-<hash>.*` paths: precached at install, and the prune list.
  *   __FONTS__     the self-hosted `/fonts/*.woff2`: precached at install, so an offline launch has its type even though
- *                 the first visit's CSS asked for them before the worker controlled the page (docs/plans/PRELOAD-OFFLINE.md).
+ *                 the first visit's CSS asked for them before the worker controlled the page (project/archive/2026-09-23-preload-offline.md).
  *
  * Preview: replays the `vercel.json` header rules (last match wins, same as the host) so the bench measures
  * what production sends — `immutable` on the hashed bundle, `no-store` on the document/sw.js/version.json.
