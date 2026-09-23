@@ -11,7 +11,7 @@
  *   alpha is their Cycles-baked AO; meshopt-compressed.
  * - placements.bin (f32 × 10: proto, x, y, z, quaternion, scale, tint) + island.json (colliders, extra palms, bake notes):
  *   the prototypes are merged here into 2×2 tiles × {casters, ground cover} — one draw per tile, culled per tile. The phone
- *   builds every palm / rock / log and 55 % of the small cover (the file is ordered so that is a prefix).
+ *   builds every palm / rock / log and 70 % of the small cover (the file is ordered so that is a prefix).
  * - lm-ao / lm-bounce (.phone).webp: the terrain's baked GI — sky AO (5 m) and the sun's one-to-three-bounce indirect light.
  *
  * Lighting (the decision, see scripts/blender/README.md): the sun and its shadows stay dynamic (the toon ramp + CSM on the
@@ -35,18 +35,24 @@ import type { Collider } from '../player/Player';
 import type { PalmSpec } from './Palms';
 
 const BASE = '/assets/models/driftwood-blender/';
-/** tiles per side for the merged props */
-const PT = 2;
+/** tiles per side: the casters (palms, rocks, logs; near + far copies) and the ground cover */
+const CT = TIER === 'phone' ? 6 : 3, VT = TIER === 'phone' ? 8 : 4;
 /** the phone's share of the small ground cover (the palms, rocks and logs always build) */
-const PHONE_COVER = 0.55;
+const PHONE_COVER = 0.7;
+/** past this (m, camera to the tile's rect) a caster tile draws its far copy / a cover tile is not drawn */
+/** how much of the terrain's baked AO reaches the direct sun (0 = physically only the fill) */
+const AO_DIRECT = 0.45;
+const LOD_D = TIER === 'phone' ? 24 : 110, COVER_D = TIER === 'phone' ? 32 : 150;
 
-interface Bucket { items: number[]; verts: number; indices: number }
+interface Tile { x0: number; x1: number; z0: number; z1: number; near: THREE.Mesh; far: THREE.Mesh | null; cover: boolean }
 
 interface IslandMeta {
   version: number;
   protos: { name: string; kind: string; tris: number }[];
   placements: number;
   mustDraw: number;
+  /** proto index → its far (LOD) proto */
+  lod: Record<string, number>;
   colliders: Collider[];
   extraPalms: PalmSpec[];
   bake: { bounceGain: number; refSun: [number, number, number] };
@@ -127,6 +133,7 @@ export class BlenderIsland {
   private terrainMat!: THREE.MeshStandardMaterial;
   private meta!: IslandMeta;
   private sunLum = 0;
+  private tiles: Tile[] = [];
 
   static async install(ctx: BlenderIslandCtx): Promise<BlenderIsland> {
     const island = new BlenderIsland();
@@ -150,7 +157,12 @@ export class BlenderIsland {
 
     // ── materials: the shard's toon lighting (stylize.ts), fog, CSM — plus the bake ──
     const terrainMat = this.terrainMat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.92, metalness: 0, aoMap: ao, aoMapIntensity: 1, lightMap: bounce, lightMapIntensity: 0 });
-    terrainMat.onBeforeCompile = (s) => { attachFogUniforms(s); };
+    terrainMat.onBeforeCompile = (sh) => {
+      attachFogUniforms(sh);
+      // the baked AO also grounds the direct light a little: contact shade under the palms, the rocks, the pier
+      sh.fragmentShader = sh.fragmentShader.replace('#include <aomap_fragment>', `#include <aomap_fragment>
+	reflectedLight.directDiffuse *= mix( 1.0, ambientOcclusion, ${AO_DIRECT.toFixed(2)} );`);
+    };
     terrainMat.customProgramCacheKey = () => 'island-terrain';
     ctx.sky.setupMaterial(terrainMat);
     const propsMat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
@@ -174,7 +186,9 @@ export class BlenderIsland {
     for (const o of found) {
       const pi = protoIndex.get(o.name);
       if (pi === undefined) {
-        // a terrain tile: keep its node transform (meshopt's dequantisation lives there)
+        // a terrain tile — the 1 m grid on desktop, the 2 m one (terrainlo_*) on the phone; keep its node transform (meshopt's
+        // dequantisation lives there)
+        if (o.name.startsWith('terrainlo') !== phone) continue;
         const m = new THREE.Mesh(o.geometry, terrainMat);
         m.matrixAutoUpdate = false; m.matrix.copy(o.matrixWorld); m.matrixWorld.copy(o.matrixWorld);
         m.name = `island-${o.name}`; m.castShadow = true; m.receiveShadow = true;
@@ -199,32 +213,35 @@ export class BlenderIsland {
       protos[pi] = { pos, col, index };
     }
 
-    // ── merge the placements into tiles ──
+    // ── merge the placements into tiles: casters (palms, rocks, logs) 4×4, each with a far copy (the LOD palms);
+    //    ground cover 8×8, drawn only near the camera ──
     const f = new Float32Array(place);
     const count = f.length / 10;
-    const cover = phone ? Math.round((count - meta.mustDraw) * PHONE_COVER) : count - meta.mustDraw;
+    const cover = Math.round((count - meta.mustDraw) * (phone ? PHONE_COVER : 1));
     const used = meta.mustDraw + cover;
-    const buckets: Bucket[] = [];
-    for (let i = 0; i < PT * PT * 2; i++) buckets.push({ items: [], verts: 0, indices: 0 });
-    const caster = (kind: string) => kind === 'palm' || kind === 'rock' || kind === 'prop';
+    const lodOf = new Map<number, number>(Object.entries(meta.lod).map(([k, lo]) => [Number(k), lo]));
+    const tileOf = (x: number, z: number, n: number) => {
+      const tx = Math.min(n - 1, Math.max(0, Math.floor((x - area.x0) / (area.x1 - area.x0) * n)));
+      const tz = Math.min(n - 1, Math.max(0, Math.floor((z - area.z0) / (area.z1 - area.z0) * n)));
+      return tz * n + tx;
+    };
+    const casters: number[][] = Array.from({ length: CT * CT }, () => []), covers: number[][] = Array.from({ length: VT * VT }, () => []);
     for (let i = 0; i < used; i++) {
-      const pi = f[i * 10] ?? 0, x = f[i * 10 + 1] ?? 0, z = f[i * 10 + 3] ?? 0;
-      const pr = protos[pi], kind = meta.protos[pi]?.kind ?? 'small';
-      if (pr === undefined) continue;
-      const tx = Math.min(PT - 1, Math.max(0, Math.floor((x - area.x0) / (area.x1 - area.x0) * PT)));
-      const tz = Math.min(PT - 1, Math.max(0, Math.floor((z - area.z0) / (area.z1 - area.z0) * PT)));
-      const b = buckets[((tz * PT + tx) * 2) + (caster(kind) ? 0 : 1)];
-      if (b === undefined) continue;
-      b.items.push(i); b.verts += pr.pos.length / 3; b.indices += pr.index.length;
+      const pi = f[i * 10] ?? 0, kind = meta.protos[pi]?.kind ?? 'small';
+      const x = f[i * 10 + 1] ?? 0, z = f[i * 10 + 3] ?? 0;
+      if (kind === 'palm' || kind === 'rock' || kind === 'prop') casters[tileOf(x, z, CT)]?.push(i); else covers[tileOf(x, z, VT)]?.push(i);
     }
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), t = new THREE.Vector3();
     const e = m.elements;
-    for (const [bi, b] of buckets.entries()) {
-      if (b.items.length === 0) continue;
-      const pos = new Float32Array(b.verts * 3), col = new Uint8Array(b.verts * 4), index = new Uint32Array(b.indices);
+    const merge = (items: number[], far: boolean): THREE.BufferGeometry | null => {
+      let verts = 0, indices = 0;
+      const pick = (i: number) => { const pi = f[i * 10] ?? 0; return protos[far ? lodOf.get(pi) ?? pi : pi]; };
+      for (const i of items) { const pr = pick(i); if (pr) { verts += pr.pos.length / 3; indices += pr.index.length; } }
+      if (indices === 0) return null;
+      const pos = new Float32Array(verts * 3), col = new Uint8Array(verts * 4), index = new Uint32Array(indices);
       let vo = 0, io = 0;
-      for (const i of b.items) {
-        const o = i * 10, pr = protos[f[o] ?? 0];
+      for (const i of items) {
+        const o = i * 10, pr = pick(i);
         if (pr === undefined) continue;
         t.set(f[o + 1] ?? 0, f[o + 2] ?? 0, f[o + 3] ?? 0); q.set(f[o + 4] ?? 0, f[o + 5] ?? 0, f[o + 6] ?? 0, f[o + 7] ?? 1);
         const sc = f[o + 8] ?? 1, tint = f[o + 9] ?? 1;
@@ -248,11 +265,29 @@ export class BlenderIsland {
       geo.setIndex(new THREE.BufferAttribute(index, 1));
       geo.computeVertexNormals(); // the CSM normal bias (flat lighting ignores them): without them the facets streak with acne
       geo.computeBoundingSphere();
+      return geo;
+    };
+    const rect = (k: number, n: number) => {
+      const w = (area.x1 - area.x0) / n, d = (area.z1 - area.z0) / n, tx = k % n, tz = Math.floor(k / n);
+      return { x0: area.x0 + tx * w, x1: area.x0 + (tx + 1) * w, z0: area.z0 + tz * d, z1: area.z0 + (tz + 1) * d };
+    };
+    const add = (geo: THREE.BufferGeometry, name: string, cast: boolean) => {
       const mesh = new THREE.Mesh(geo, propsMat);
-      mesh.name = `island-props-${bi >> 1}-${bi & 1 ? 'cover' : 'casters'}`;
-      mesh.castShadow = (bi & 1) === 0; mesh.receiveShadow = true;
+      mesh.name = name; mesh.castShadow = cast; mesh.receiveShadow = true;
       this.group.add(mesh);
-      this.stats.propTris += b.indices / 3;
+      return mesh;
+    };
+    for (const [k, items] of casters.entries()) {
+      const hi = merge(items, false), lo = merge(items, true);
+      if (!hi || !lo) continue;
+      this.tiles.push({ ...rect(k, CT), near: add(hi, `island-casters-${k}`, true), far: add(lo, `island-casters-${k}-far`, !phone), cover: false }); // the phone's 80 m cascade: far palms cast none
+      this.stats.propTris += (hi.getIndex()?.count ?? 0) / 3;
+    }
+    for (const [k, items] of covers.entries()) {
+      const g = merge(items, false);
+      if (!g) continue;
+      this.tiles.push({ ...rect(k, VT), near: add(g, `island-cover-${k}`, false), far: null, cover: true });
+      this.stats.propTris += (g.getIndex()?.count ?? 0) / 3;
     }
     this.stats.placements = used;
     this.stats.draws = this.group.children.length;
@@ -299,5 +334,11 @@ export class BlenderIsland {
     const elev = Math.max(0, sky.sunDir.y) / Math.max(0.2, this.meta.bake.refSun[1]);
     this.sunLum = lum * elev;
     this.terrainMat.lightMapIntensity = this.sunLum / this.meta.bake.bounceGain;
+    const cam = sky.viewCamera.position;
+    for (const t of this.tiles) {
+      const dx = Math.max(t.x0 - cam.x, 0, cam.x - t.x1), dz = Math.max(t.z0 - cam.z, 0, cam.z - t.z1), d = Math.hypot(dx, dz);
+      if (t.cover) t.near.visible = d < COVER_D;
+      else { t.near.visible = d < LOD_D; if (t.far) t.far.visible = !t.near.visible; }
+    }
   }
 }

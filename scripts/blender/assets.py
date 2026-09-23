@@ -179,9 +179,10 @@ def rock(rng, size=1.0, squash=0.7, cuts=6, moss=0.0, tone=None):
 
 # ── palms: a curved ringed trunk, a crown of feathery drooping fronds, a coconut cluster ──
 
-def palm(rng, h=7.0, lean=0.2, fronds=12, young=7):
+def palm(rng, h=7.0, lean=0.2, fronds=12, young=7, lod=0):
+    """lod 1: the far palm — the same crown with 4 segments per frond, a 5-sided 6-segment trunk, no coconuts"""
     part = Part()
-    segs, sides = 12, 7
+    segs, sides = (12, 7) if lod == 0 else (6, 5)
     pts, radii, cols = [], [], []
     for s in range(segs + 1):
         t = s / segs
@@ -196,11 +197,11 @@ def palm(rng, h=7.0, lean=0.2, fronds=12, young=7):
     # the crown's bulb
     ico(part, top + Vector((0, 0, -0.05)), 0.34, P['trunkTop'], rng, squash=0.9)
     # coconuts
-    for k in range(rng.randint(4, 7)):
+    for k in range(rng.randint(4, 7) if lod == 0 else 0):
         a = k / 6 * math.tau + rng.uniform(-0.3, 0.3)
         ico(part, top + Vector((math.cos(a) * 0.33, math.sin(a) * 0.33, -0.3 - (k % 2) * 0.16)), rng.uniform(0.15, 0.2), P['nutGreen'] if k % 3 == 0 else P['nut'], rng, wob=0.05)
     # fronds: a midrib arcing out and down; leaflet pairs folded into a shallow V along it
-    for f in range(fronds + young):
+    for f in range(fronds + (young if lod == 0 else 0)):
         yng = f >= fronds
         n = young if yng else fronds
         fi = (f - fronds + 0.5) if yng else f
@@ -212,7 +213,7 @@ def palm(rng, h=7.0, lean=0.2, fronds=12, young=7):
         shade = rng.random()
         base = P['frondYoung'] if yng and shade < 0.5 else P['frondDark'] if shade < 0.28 else P['frondLight'] if shade > 0.72 else P['frond']
         spine = lambda t: top + d * (L * t) + Vector((0, 0, rise * math.sin(t * math.pi * 0.6) - droop * t * t))
-        nseg = 9
+        nseg = 7 if lod == 0 else 3
         rib = [spine(s / nseg) for s in range(nseg + 1)]
         # a broad frond: a solid V-folded blade either side of the rib, its edge cut into leaflets (serrated), so the
         # crown reads as full fans of leaf, not a spray of needles

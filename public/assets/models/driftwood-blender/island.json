@@ -11,102 +11,157 @@
   {
    "name": "palm0",
    "kind": "palm",
-   "tris": 1033
+   "tris": 3134
+  },
+  {
+   "name": "palm0_lo",
+   "kind": "lod",
+   "tris": 227
   },
   {
    "name": "palm1",
    "kind": "palm",
-   "tris": 1033
+   "tris": 3208
+  },
+  {
+   "name": "palm1_lo",
+   "kind": "lod",
+   "tris": 227
   },
   {
    "name": "palm2",
    "kind": "palm",
-   "tris": 1049
+   "tris": 3134
+  },
+  {
+   "name": "palm2_lo",
+   "kind": "lod",
+   "tris": 227
   },
   {
    "name": "palm3",
    "kind": "palm",
-   "tris": 1085
+   "tris": 1991
+  },
+  {
+   "name": "palm3_lo",
+   "kind": "lod",
+   "tris": 227
   },
   {
    "name": "palm4",
    "kind": "palm",
-   "tris": 957
+   "tris": 1968
   },
   {
-   "name": "palm5",
+   "name": "palm4_lo",
+   "kind": "lod",
+   "tris": 227
+  },
+  {
+   "name": "bpalm0",
+   "kind": "palm",
+   "tris": 853
+  },
+  {
+   "name": "bpalm0_lo",
+   "kind": "lod",
+   "tris": 239
+  },
+  {
+   "name": "bpalm1",
+   "kind": "palm",
+   "tris": 833
+  },
+  {
+   "name": "bpalm1_lo",
+   "kind": "lod",
+   "tris": 227
+  },
+  {
+   "name": "bpalm2",
    "kind": "palm",
    "tris": 921
   },
   {
-   "name": "palm6",
-   "kind": "palm",
-   "tris": 1105
+   "name": "bpalm2_lo",
+   "kind": "lod",
+   "tris": 251
   },
   {
-   "name": "palm7",
+   "name": "bpalm3",
    "kind": "palm",
-   "tris": 1029
+   "tris": 825
+  },
+  {
+   "name": "bpalm3_lo",
+   "kind": "lod",
+   "tris": 239
   },
   {
    "name": "rock0",
    "kind": "rock",
-   "tris": 132
+   "tris": 600
   },
   {
    "name": "rock1",
    "kind": "rock",
-   "tris": 130
+   "tris": 420
   },
   {
    "name": "rock2",
    "kind": "rock",
-   "tris": 134
+   "tris": 222
   },
   {
    "name": "rock3",
    "kind": "rock",
-   "tris": 142
+   "tris": 260
   },
   {
-   "name": "rock4",
+   "name": "rockb0",
    "kind": "rock",
-   "tris": 142
+   "tris": 140
   },
   {
-   "name": "rock5",
+   "name": "rockb1",
    "kind": "rock",
-   "tris": 106
+   "tris": 122
+  },
+  {
+   "name": "rockb2",
+   "kind": "rock",
+   "tris": 114
   },
   {
    "name": "cliff0",
    "kind": "rock",
-   "tris": 124
+   "tris": 90
   },
   {
    "name": "cliff1",
    "kind": "rock",
-   "tris": 116
+   "tris": 84
   },
   {
    "name": "cliff2",
    "kind": "rock",
-   "tris": 102
+   "tris": 120
   },
   {
    "name": "cliff3",
    "kind": "rock",
-   "tris": 130
+   "tris": 96
   },
   {
    "name": "cliff4",
    "kind": "rock",
-   "tris": 132
+   "tris": 100
   },
   {
    "name": "cliff5",
    "kind": "rock",
-   "tris": 116
+   "tris": 82
   },
   {
    "name": "shell0",
@@ -146,42 +201,47 @@
   {
    "name": "pebble0",
    "kind": "small",
-   "tris": 60
+   "tris": 40
   },
   {
    "name": "pebble1",
    "kind": "small",
-   "tris": 20
+   "tris": 40
   },
   {
    "name": "pebble2",
    "kind": "small",
-   "tris": 20
+   "tris": 60
   },
   {
    "name": "pebble3",
    "kind": "small",
-   "tris": 60
+   "tris": 20
   },
   {
    "name": "drift0",
    "kind": "prop",
-   "tris": 85
+   "tris": 260
   },
   {
    "name": "drift1",
    "kind": "prop",
-   "tris": 85
+   "tris": 260
   },
   {
    "name": "drift2",
    "kind": "prop",
-   "tris": 85
+   "tris": 260
   },
   {
    "name": "drift3",
    "kind": "prop",
-   "tris": 85
+   "tris": 260
+  },
+  {
+   "name": "coconuts0",
+   "kind": "prop",
+   "tris": 120
   },
   {
    "name": "beachgrass0",
@@ -241,7 +301,7 @@
   {
    "name": "hibiscus1",
    "kind": "plant",
-   "tris": 170
+   "tris": 150
   },
   {
    "name": "hibiscus2",
@@ -271,17 +331,17 @@
   {
    "name": "bush0",
    "kind": "plant",
-   "tris": 120
+   "tris": 100
   },
   {
    "name": "bush1",
    "kind": "plant",
-   "tris": 120
+   "tris": 100
   },
   {
    "name": "bush2",
    "kind": "plant",
-   "tris": 80
+   "tris": 120
   },
   {
    "name": "flowerbush0",
@@ -291,22 +351,22 @@
   {
    "name": "flowerbush1",
    "kind": "plant",
-   "tris": 142
+   "tris": 136
   },
   {
    "name": "smallrock0",
    "kind": "prop",
-   "tris": 122
+   "tris": 154
   },
   {
    "name": "smallrock1",
    "kind": "prop",
-   "tris": 122
+   "tris": 136
   },
   {
    "name": "smallrock2",
    "kind": "prop",
-   "tris": 106
+   "tris": 114
   }
  ],
  "terrain": [
@@ -315,23 +375,41 @@
   "terrain_0_1",
   "terrain_1_1"
  ],
+ "terrainPhone": [
+  "terrainlo_0_0",
+  "terrainlo_1_0",
+  "terrainlo_0_1",
+  "terrainlo_1_1"
+ ],
  "terrainTris": 89496,
- "placements": 13080,
- "mustDraw": 796,
+ "placements": 16675,
+ "mustDraw": 922,
+ "lod": {
+  "0": 1,
+  "2": 3,
+  "4": 5,
+  "6": 7,
+  "8": 9,
+  "10": 11,
+  "12": 13,
+  "14": 15,
+  "16": 17
+ },
  "counts": {
-  "shell": 405,
-  "star": 133,
-  "pebble": 497,
-  "drift": 107,
-  "beachgrass": 469,
-  "tuft": 5884,
-  "fern": 2148,
-  "hibiscus": 632,
-  "yellow": 649,
-  "white": 483,
-  "bush": 715,
-  "flowerbush": 269,
-  "smallrock": 385
+  "shell": 915,
+  "star": 268,
+  "pebble": 538,
+  "drift": 47,
+  "beachgrass": 798,
+  "tuft": 7172,
+  "fern": 2529,
+  "hibiscus": 775,
+  "yellow": 912,
+  "white": 596,
+  "bush": 900,
+  "flowerbush": 350,
+  "coconuts": 171,
+  "smallrock": 400
  },
  "palms": {
   "game": 89,
@@ -2367,8 +2445,8 @@
   ],
   "samples": 192,
   "quick": false,
-  "aoMean": 0.8296295404434204,
-  "bounceMean": 0.0027282144874334335
+  "aoMean": 0.8038035035133362,
+  "bounceMean": 0.00246369163505733
  },
- "builtIn": 38.0
+ "builtIn": 36.8
 }

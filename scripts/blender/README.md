@@ -11,8 +11,12 @@ place of the procedural cove; `?island=procedural` is the default TypeScript isl
 | 3 | `run.sh` | meshopt (`gltf-transform meshopt`), lightmaps to WebP (desktop 2048 / 1024, phone half), copy into `public/`. |
 
 The area is `src/world/blenderArea.ts` (x −110.8…110.8, z −214.7…−20.6: the pier landing, the crescent beach, the plank
-stair, the hut plateau). Everything is modelled from code; no downloaded asset is used, so there is no third-party
-licence to carry.
+stair, the hut plateau). Terrain, crag slabs, plants and beach scatter are modelled from code (`assets.py`); the palms,
+shore boulders, driftwood and coconuts are the asset-agent's kit (`public/assets/models/driftwood-hero/`, image-to-3D, and
+`driftwood-cc0/`, CC0 1.0 — licences in `scripts/img2mesh/CC0.md`), imported by `build_island.py`. The kit palms are
+used as authored near the camera (collapse-decimating tore their trunks apart); their far cut is the code palm at the same
+height / lean in their own colours. The game draws the props as 4×4 / 3×3 caster tiles (near + far copy) and 8×8 / 4×4
+cover tiles (drawn within 32 m on phone, 150 m desktop), phone / desktop.
 
 ## Lighting: what is baked and what stays live (the decision)
 
