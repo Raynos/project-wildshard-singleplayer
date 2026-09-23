@@ -6,6 +6,7 @@ import { NO_FUR, smooth01, bump, clamp } from './rigs';
 import { thinkHorse, horseDamageMul } from '../Herd';
 import type { Animal } from '../Animal';
 import { lock, hash01, wrapPatch, type V3, type Skin, type Section } from '../creatureKit';
+import { wildEnv } from '../wildEnv';
 
 /**
  * Wild steppe horse (Nalati, row B4) — a stocky Kazakh horse, 1.42 m at the withers: bay / chestnut / black / dun / grey
@@ -45,7 +46,7 @@ const HORSE = {
 } satisfies Record<string, RGB>;
 
 const CHESTNUT: Record<string, RGB> = { coat: [0.62, 0.32, 0.14], belly: [0.70, 0.42, 0.22], points: [0.58, 0.30, 0.13], mane: [0.78, 0.52, 0.28], muzzle: [0.40, 0.24, 0.15], dorsal: [0.62, 0.32, 0.14] };
-const BLACK: Record<string, RGB> = { coat: [0.13, 0.12, 0.125], belly: [0.16, 0.145, 0.14], points: [0.06, 0.055, 0.058], mane: [0.045, 0.04, 0.045], muzzle: [0.14, 0.12, 0.12], earIn: [0.10, 0.08, 0.08], dorsal: [0.13, 0.12, 0.125] };
+const BLACK: Record<string, RGB> = { coat: [0.16, 0.15, 0.155], belly: [0.18, 0.165, 0.16], points: [0.07, 0.065, 0.068], mane: [0.05, 0.045, 0.05], muzzle: [0.14, 0.12, 0.12], earIn: [0.10, 0.08, 0.08], dorsal: [0.13, 0.12, 0.125] };
 const DUN: Record<string, RGB> = { coat: [0.76, 0.62, 0.42], belly: [0.84, 0.74, 0.56], points: [0.10, 0.08, 0.07], mane: [0.10, 0.08, 0.07], muzzle: [0.30, 0.24, 0.20], dorsal: [0.24, 0.17, 0.12] };
 const GREY: Record<string, RGB> = { coat: [0.80, 0.80, 0.78], belly: [0.88, 0.88, 0.86], points: [0.36, 0.35, 0.35], mane: [0.55, 0.54, 0.53], muzzle: [0.24, 0.22, 0.22], earIn: [0.45, 0.40, 0.40], dorsal: [0.80, 0.80, 0.78] };
 const FOAL_BAY: Record<string, RGB> = { coat: [0.66, 0.45, 0.30], belly: [0.76, 0.60, 0.44], points: [0.72, 0.58, 0.44], mane: [0.30, 0.22, 0.16], muzzle: [0.42, 0.33, 0.28], dorsal: [0.66, 0.45, 0.30] };
@@ -68,6 +69,7 @@ function horsePaint(v: VariantDef): Paint {
         out.multiplyScalar(1 - 0.22 * crease);
         mix(out, out, P.belly, sstep(-0.3, -0.85, ny) * 0.8);
         out.multiplyScalar(1 - 0.25 * sstep(-0.4, -0.95, ny) - 0.18 * sstep(0.95, 0.8, y));
+        out.multiplyScalar(1 + 0.28 * sstep(0.25, 0.85, ny));   // the painted sky-light along the back (a black coat reads blue-grey there)
         mix(out, out, P.dorsal, sstep(0.9, 0.98, ny) * sstep(0.05, 0.02, Math.abs(x)));
         if (dappled) mix(out, out, P.points, sstep(0.55, 0.85, Math.sin(x * 23 + z * 7) * Math.sin(z * 19 - y * 11)) * 0.25 * sstep(0.2, -0.3, ny));
         break;
@@ -212,7 +214,7 @@ function buildHorse(v: VariantDef, _rng: Rng): AnimalSpecies {
     const lerp = (p: number, q: number): number => p + (q - p) * f;
     const cy = lerp(a1.y, a2.y), cz = lerp(a1.z, a2.z), uy = lerp(c0[2], c1[2]), uz = lerp(c0[3], c1[3]);
     const rx = lerp(a1.rx, a2.rx), ry = lerp(a1.ry * a1.top, a2.ry * a2.top);
-    const L = (foal ? 0.07 : 0.2) * maneK * (0.8 + 0.4 * hash01(i, 5)) * (u < 1.6 ? 0.7 : 1);
+    const L = (foal ? 0.07 : 0.27) * maneK * (0.8 + 0.4 * hash01(i, 5)) * (u < 1.6 ? 0.7 : 1);
     const root = u < 2.8 ? n1 : n2, mb = u < 2.8 ? mb1 : mb2;
     const side = maneSide;
     const pts: V3[] = [];
@@ -228,7 +230,7 @@ function buildHorse(v: VariantDef, _rng: Rng): AnimalSpecies {
       pts.push(p);
     }
     const skins: Skin[] = pts.map((_, k) => (k === 0 ? [root, root, 0] : k < 2 ? [root, mb, 0.5] : [mb, mb, 0]));
-    fur.push(lock(pts, 0.05 + 0.015 * hash01(i, 2), 0.01, skins, 'mane', paint, 'z', 5));
+    fur.push(lock(pts, 0.058 + 0.02 * hash01(i, 2), 0.012, skins, 'mane', paint, 'z', 5));
   }
   // forelock: three locks over the brow
   for (let i = 0; i < 3; i++) {
@@ -263,11 +265,11 @@ function buildHorse(v: VariantDef, _rng: Rng): AnimalSpecies {
     S(0, 1.36 - 0.88 * tk, -0.995, 0.02, 0.02, t3),
   ], 12, 'tail', paint, false, true));
   // the tail's hair: strands from the dock, splaying and falling, each a little different — tips on tail3 so they stream
-  const nStr = foal ? 5 : 8;
+  const nStr = foal ? 6 : 12;
   for (let i = 0; i < nStr; i++) {
     const a = (i / nStr) * Math.PI * 2 + 0.3;
     const sx = Math.cos(a), sy = Math.sin(a);
-    const len = (0.78 + 0.14 * hash01(i, 7)) * tk;
+    const len = (0.88 + 0.14 * hash01(i, 7)) * tk;
     const pts: V3[] = [
       [sx * 0.02, 1.34 + sy * 0.02, -0.86],
       [sx * 0.045, 1.24 + sy * 0.03, -0.94],
@@ -277,7 +279,7 @@ function buildHorse(v: VariantDef, _rng: Rng): AnimalSpecies {
       [sx * 0.06, 1.36 - len, -0.99],
     ];
     const skins: Skin[] = [[body, tl, 0.5], [tl, tl, 0], [tl, t2, 0.5], [t2, t2, 0], [t2, t3, 0.6], [t3, t3, 0]];
-    fur.push(lock(pts, 0.032, 0.02, skins, 'tail', paint, 'x', 5));
+    fur.push(lock(pts, 0.042 + 0.012 * hash01(i, 3), 0.022, skins, 'tail', paint, 'x', 5));
   }
   // legs
   const feetF: [number, number][] = [], feetB: [number, number][] = [];
@@ -336,16 +338,31 @@ const LEATHER = srgb(0.38, 0.21, 0.11), LEATHER_DARK = srgb(0.22, 0.12, 0.07), B
 const tackPaint: Paint = (out, _x, _y, _z, _nx, ny, _nz, part, t, a) => {
   switch (part) {
     case 'blanket': {
-      // red felt, a cream ornament band (a running hook motif) near the hem, a fleece fringe at the hem
+      // red felt (taming-3 / camp mockups): a fleece edge at the hem, a border of cream-and-black interlocking diamonds
+      // between dark rules, the field with a cream ram's-horn medallion on each flank; darker in the folds
       const hem = Math.min(a, 1 - a);                                 // 0 at the hem … 0.5 over the spine
+      const end = Math.min(t, 1 - t);                                 // 0 at the front / back edge
+      const edge = Math.min(hem * 1.6, end);                          // distance in from the nearest edge
       out.copy(FELT);
-      const band = sstep(0.06, 0.09, hem) * sstep(0.16, 0.13, hem);
-      const motif = 0.5 + 0.5 * Math.sin(t * 38) * Math.sin(hem * 70);
-      mix(out, out, ORNAMENT, band * sstep(0.35, 0.65, motif));
-      mix(out, out, FELT_DARK, sstep(0.13, 0.17, hem) * sstep(0.22, 0.18, hem) * 0.8);
-      mix(out, out, FLEECE, sstep(0.035, 0.02, hem));
+      // the border band: diamonds along it (a zig-zag lattice), cream on black
+      const inBand = sstep(0.045, 0.06, edge) * sstep(0.16, 0.145, edge);
+      const along = hem * 1.6 < end ? t * 22 : a * 30;
+      const across = (edge - 0.06) / 0.095;
+      const zig = Math.abs(((along % 1) + 1) % 1 - 0.5) * 2;           // 0..1 triangle wave
+      const dia = Math.abs(across - 0.5) * 2 + zig * 0.9;
+      mix(out, out, FELT_DARK, inBand * 0.9);
+      mix(out, out, ORNAMENT, inBand * sstep(0.95, 0.75, dia));
+      mix(out, out, FELT_DARK, sstep(0.16, 0.175, edge) * sstep(0.2, 0.185, edge));   // the inner rule
+      // the medallion: a cream ring with four horn curls, centred on each flank
+      const fx = (t - 0.5) * 1.3, fy = (hem - 0.3) * 2.2;
+      const rr = Math.hypot(fx, fy), ang = Math.atan2(fy, fx);
+      const ringM = sstep(0.03, 0.01, Math.abs(rr - 0.2)) + sstep(0.025, 0.008, Math.abs(rr - 0.12 - 0.05 * Math.cos(ang * 4)));
+      mix(out, out, ORNAMENT, Math.min(1, ringM) * sstep(0.34, 0.3, rr) * 0.95);
+      mix(out, out, FLEECE, sstep(0.045, 0.025, edge));             // the fleece edge
+      out.multiplyScalar(0.88 + 0.12 * Math.sin(a * 44 + t * 3) ** 2); // felt folds
       break;
     }
+    case 'tassel': mix(out, FELT, ORNAMENT, sstep(0.75, 1, t) * 0.6); break;
     case 'saddle': mix(out, LEATHER, LEATHER_DARK, sstep(0.3, -0.5, ny) * 0.7 + sstep(0.1, 0.0, Math.min(t, 1 - t)) * 0.4); break;
     case 'strap': out.copy(STRAP); break;
     case 'brass': out.copy(BRASS); break;
@@ -365,7 +382,21 @@ function addTack(hard: THREE.BufferGeometry[], torso: Station[], B: (n: string) 
   };
   const onBody = (): Skin => [body, body, 0];
   // the felt blanket: over the back from the withers to the loin, down to mid-barrel each side
-  hard.push(wrapPatch(section, 0.0, 0.62, -1.35, 1.35, (u, v) => 0.012 + 0.006 * Math.sin(u * Math.PI) + 0.004 * Math.sin(v * 40), 14, 24, onBody, 'blanket', tackPaint));
+  const Z0 = -0.12, Z1 = 0.7, A = 1.5;
+  hard.push(wrapPatch(section, Z0, Z1, -A, A, (u, v) => 0.014 + 0.006 * Math.sin(u * Math.PI) + 0.004 * Math.sin(v * 40) + 0.05 * sstep(0.2, 0.0, Math.min(v, 1 - v)), 18, 30, onBody, 'blanket', tackPaint));
+  // red wool tassels at the blanket's four lower corners
+  for (const sx of [1, -1]) for (const z of [Z0 + 0.03, Z1 - 0.03]) {
+    const s = section(z);
+    const x = sx * (Math.sin(A) * s.rx + 0.06), y = s.y + Math.cos(A) * s.ry - 0.02;
+    hard.push(tube([[x, y, z], [x * 1.02, y - 0.1, z], [x * 1.03, y - 0.19, z]], 0.012, 0.03, body, 'tassel', tackPaint, 6));
+  }
+  // brass studs along the saddle skirt
+  for (const sx of [1, -1]) for (let i = 0; i < 5; i++) {
+    const z = 0.18 + i * 0.07, s = section(z);
+    const st = new THREE.SphereGeometry(0.013, 6, 4);
+    st.translate(sx * Math.sin(0.9) * (s.rx + 0.045), s.y + Math.cos(0.9) * (s.ry + 0.045), z);
+    hard.push(skinPlain(st, body, 'brass', tackPaint));
+  }
   // the saddle seat + skirts, pommel and cantle
   hard.push(wrapPatch(section, 0.14, 0.5, -0.95, 0.95, (u) => 0.03 + 0.035 * Math.sin(u * Math.PI) ** 0.5 + 0.05 * sstep(0.85, 1, u) + 0.03 * sstep(0.15, 0, u), 10, 16, onBody, 'saddle', tackPaint));
   const top = (z: number): number => { const s = section(z); return s.y + s.ry; };
@@ -483,13 +514,18 @@ function horsePostPose(c: RigAnimCtx): void {
   if (eR !== undefined) eR.rotation.x += 1.2 * pin - 0.3 * headUp;
   // mane: falls to one side, swings with the stride, streams back at speed
   // (the locks fall to the right in the model; the bones lift them back and out at speed and swing them with the stride)
-  const swing = Math.sin(c.phase * Math.PI * 2 - 1.2) * (0.1 + 0.22 * run) + 0.05 * Math.sin(c.t * 1.7 + c.seed * 3) + 0.03 * Math.sin(c.t * 4.1 + c.seed);
+  // the steppe wind lifts the mane and the tail even standing (wildEnv.wind: the gusts' strength, which side it comes from)
+  const w = wildEnv.wind, ws = w.strength * (1 - run);
+  const across = w.x * Math.cos(c.yaw) - w.z * Math.sin(c.yaw);   // + = the wind blows toward the horse's left
+  const gust = 0.6 + 0.4 * Math.sin(c.t * 0.9 + c.seed * 5) + 0.25 * Math.sin(c.t * 3.7 + c.seed);
+  const swing = Math.sin(c.phase * Math.PI * 2 - 1.2) * (0.1 + 0.22 * run) + 0.05 * Math.sin(c.t * 1.7 + c.seed * 3) + 0.03 * Math.sin(c.t * 4.1 + c.seed)
+    + ws * gust * (0.25 * across + 0.06 * Math.sin(c.t * 5.3 + c.seed * 2));
   m1.rotation.set(-0.35 * run - 0.1 * rear, 0, 0.25 * run + swing * 0.7);
   m2.rotation.set(-0.45 * run - 0.1 * rear, 0, 0.3 * run + swing);
   // tail: the dock lifts when running (Animal.ts' gallopTail), the hair lags and streams
   const lag = Math.sin(c.phase * Math.PI * 2 - 2.0);
-  t2.rotation.set(-0.2 * run + 0.06 * lag * run + 0.3 * buck, 0, 0.1 * Math.sin(c.t * 1.1 + c.seed * 4) * (1 - run) + 0.08 * lag * run);
-  t3.rotation.set(-0.35 * run + 0.08 * lag * run, 0, 0.14 * Math.sin(c.t * 1.1 - 0.8 + c.seed * 4) * (1 - run) + 0.1 * lag * run);
+  t2.rotation.set(-0.2 * run + 0.06 * lag * run + 0.3 * buck - 0.12 * ws * gust, 0, 0.1 * Math.sin(c.t * 1.1 + c.seed * 4) * (1 - run) + 0.08 * lag * run + 0.3 * ws * gust * across);
+  t3.rotation.set(-0.35 * run + 0.08 * lag * run - 0.15 * ws * gust, 0, 0.14 * Math.sin(c.t * 1.1 - 0.8 + c.seed * 4) * (1 - run) + 0.1 * lag * run + 0.35 * ws * gust * across);
   void t1;
 }
 

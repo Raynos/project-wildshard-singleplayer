@@ -11,7 +11,7 @@ import { painterlyMaterial } from '../world/painterly';
  *   `color`); it is one program for every creature (painterly's constant cache key; skinning / instancing fork siblings).
  */
 export function painterlyAnimalMaterial(sky: Sky, glow?: [number, number, number], glowIntensity = 1): THREE.MeshLambertMaterial {
-  const m = painterlyMaterial(sky, { rim: 0.55, bands: 0.85 });
+  const m = painterlyMaterial(sky, { rim: 0.8, bands: 0.85 });   // a strong rim: silhouettes catch the low sun (the camp mockups)
   if (glow !== undefined) { m.emissive.setRGB(glow[0], glow[1], glow[2]); m.emissiveIntensity = glowIntensity; }
   return m;
 }
