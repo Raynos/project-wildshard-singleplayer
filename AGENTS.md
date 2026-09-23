@@ -153,6 +153,16 @@ on his laptop.
 - A finished game will run at 60 FPS only.
 - A finished game will have AAA graphics that are photo realistic worthy of PS5
 
+## Audio engines (the user, 2026-09-23)
+
+- **Music: MiniMax Music 3**, generated locally (weights in `~/projects/weights`). New music is made with it and
+  nothing else; the in-game credit "Music: MiniMax-Music3" is a licence condition.
+- **Sound effects: every sound is generated twice**, once with **MOSS-SoundEffect v2** and once with
+  **Stable Audio 3 Medium**, and **the better take of the two ships**, picked per sound. The game has one merged
+  set, not a set per model. Both credits show ("Powered by Stability AI" is a Stability licence condition).
+- Local model runs: one model at a time, under `lockf -k ~/projects/localai/.model.lock`, and evict after.
+  How-tos and traps: `~/projects/localai/docs/music-models.md`; pipeline scripts: `scripts/music/gen/`.
+
 ## Deploy
 
 - **Continuous deployment: every push to `main` deploys.** `.github/workflows/deploy.yml`
