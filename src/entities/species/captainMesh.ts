@@ -19,6 +19,8 @@ import type { BoneDef } from './registry';
  */
 const URL_GLB = '/assets/models/driftwood-hero/captain/captain.glb';
 const HEIGHT = 1.9;
+/** metres from the centre line below which a vertex under the shoulders never rides an arm bone (the coat skirt) */
+const ARM_MIN_X = 0.36;
 let source: THREE.BufferGeometry | null = null;
 let texture: THREE.Texture | null = null;
 let loading: Promise<void> | null = null;
@@ -64,6 +66,9 @@ async function load(): Promise<void> {
   } catch (e: unknown) { console.warn('[captain] generated mesh not loaded, using the stand-in:', e); }
 }
 
+/** the generated mesh has loaded (buildCaptain then fits the rig to it before binding) */
+export function captainMeshLoaded(): boolean { return source !== null; }
+
 export function preloadCaptainMesh(): Promise<void> {
   loading ??= load();
   return loading;
@@ -82,20 +87,25 @@ export function captainMeshFor(bones: BoneDef[]): { parts: [THREE.BufferGeometry
   g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3)); // white: the texture carries the albedo
   // bind pose segments: each bone to each of its children, a leaf bone as a point
   const at = new Map(bones.map((b) => [b.name, new THREE.Vector3(...b.pos)]));
-  const segs: { a: THREE.Vector3; b: THREE.Vector3; bone: number }[] = [];
+  const segs: { a: THREE.Vector3; b: THREE.Vector3; bone: number; arm: boolean }[] = [];
   bones.forEach((b, i) => {
     const kids = bones.filter((c) => c.parent === b.name);
     const a = at.get(b.name);
     if (a === undefined) return;
-    if (kids.length === 0) segs.push({ a, b: a, bone: i });
-    for (const c of kids) { const e = at.get(c.name); if (e) segs.push({ a, b: e, bone: i }); }
+    const arm = b.name.startsWith('arm');
+    if (kids.length === 0) segs.push({ a, b: a, bone: i, arm });
+    for (const c of kids) { const e = at.get(c.name); if (e) segs.push({ a, b: e, bone: i, arm }); }
   });
   const si = new Uint16Array(n * 4), sw = new Float32Array(n * 4);
   const p = new THREE.Vector3(), ab = new THREE.Vector3(), q = new THREE.Vector3();
   for (let i = 0; i < n; i++) {
     p.fromBufferAttribute(pos, i);
     let best = Infinity, bone = 0;
+    // the coat skirt hangs beside the hands: below the shoulders only what sits well out from the body rides an arm bone
+    // (E70 round 3: the fitted, lower hands otherwise swung coat-tail facets with the arm)
+    const coat = p.y < 1.3 && Math.abs(p.x) < ARM_MIN_X;
     for (const s of segs) {
+      if (coat && s.arm) continue;
       ab.subVectors(s.b, s.a);
       const len2 = ab.lengthSq();
       const t = len2 > 1e-9 ? Math.min(1, Math.max(0, q.subVectors(p, s.a).dot(ab) / len2)) : 0;

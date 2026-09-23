@@ -4,7 +4,7 @@ import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, typ
 import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
 import type { Animal } from '../Animal';
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
-import { captainMeshFor } from './captainMesh';
+import { captainMeshFor, captainMeshLoaded } from './captainMesh';
 
 /**
  * The Drowned Captain — Driftwood Isle's guardian boss (DRIFTWOOD-REMASTER A6, D5): Captain Brine of the Gull's Lament,
@@ -94,6 +94,19 @@ function buildCaptain(v: VariantDef, rng: Rng): AnimalSpecies {
       { name: `leg${side}_foot`, parent: `leg${side}_knee`, pos: [sx * 0.12, 0.07, 0.02] },
     );
   }
+  // the generated captain (captainMesh.ts) hangs his arms lower and wider than the loft stand-in, and stands wider: fit the
+  // limb joints to the mesh (measured band by band, E70 round 3) so the elbows and shoulders pivot where his arms bend
+  if (captainMeshLoaded()) {
+    const fit: Record<string, [number, number, number]> = {
+      _sh: [0.26, 1.42, 0], _el: [0.40, 1.12, 0.02], _hand: [0.47, 0.84, 0.05], _hip: [0.12, 0.90, 0], _knee: [0.16, 0.48, 0.01], _foot: [0.17, 0.08, 0.02],
+    };
+    for (const b of bones) {
+      const side = b.name.includes('L_') ? 1 : b.name.includes('R_') ? -1 : 0;
+      const key = Object.keys(fit).find((k) => b.name.endsWith(k));
+      const f = key === undefined ? undefined : fit[key];
+      if (side !== 0 && f) b.pos = [side * f[0], f[1], f[2]];
+    }
+  }
   const B = boneIndex(bones);
   const paint = captainPaint(v);
   const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [], eyes: THREE.BufferGeometry[] = [];
@@ -108,7 +121,7 @@ function buildCaptain(v: VariantDef, rng: Rng): AnimalSpecies {
   // bound to these same bones, so animateCaptain() drives it unchanged; the glowing eye spheres ride on top. Until the
   // file is in (or if it fails) the loft stand-in below is built instead.
   const generated = captainMeshFor(bones);
-  if (generated) return { bones, furParts: [generated.parts[0]], hardParts: [generated.parts[1]], eyeParts: eyes, dims: CAPTAIN_DIMS, ...(generated.map ? { map: generated.map, selfLight: 0.35 } : {}), facetJitter: 0 };
+  if (generated) return { bones, furParts: [generated.parts[0]], hardParts: [generated.parts[1]], eyeParts: eyes, dims: CAPTAIN_DIMS, ...(generated.map ? { map: generated.map, selfLight: 0.5 } : {}), facetJitter: 0 };
   // the tricorn: a flat brim turned up in three corners + a low crown
   hard.push(loft([S(0, 1.72, -0.01, 0.2, 0.2, head), S(0, 1.75, -0.01, 0.23, 0.23, head), S(0, 1.79, -0.01, 0.13, 0.13, head), S(0, 1.86, -0.01, 0.11, 0.11, head), S(0, 1.88, -0.01, 0.02, 0.02, head)], 3, 'hat', paint, true, true));
   // a beard of kelp hanging off the jaw
