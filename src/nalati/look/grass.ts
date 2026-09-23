@@ -37,6 +37,7 @@ import { dressingCover } from '../../world/nalati/dressing';
 import type { Sky } from '../../world/Sky';
 import type { Forest } from '../../world/Forest';
 import { macrotask } from '../../boot/plan';
+import { LOOK_BAKE_GLSL, bakeUniforms } from './bake';
 
 const PHONE = TIER === 'phone';
 
@@ -78,8 +79,8 @@ float groundH(vec2 xz) { return texture(tHeight, hUV(xz)).r; }
 const LIGHT = /* glsl */`
 uniform vec3 uPSunDir; uniform vec3 uPSunRef; uniform vec3 uSunView;
 uniform vec3 uHemiSky; uniform vec3 uHemiGround; uniform float uHemiI; uniform float uGrassGain;
-vec3 gLight(vec3 n, float wrap) {
-  float ndl = clamp((dot(n, uPSunDir) + wrap) / (1. + wrap), 0., 1.);
+vec3 gLight(vec3 n, float wrap, float sh) {
+  float ndl = clamp((dot(n, uPSunDir) + wrap) / (1. + wrap), 0., 1.) * sh;
   vec3 amb = mix(uHemiGround, uHemiSky, n.y * .5 + .5) * uHemiI * 1.75;
   return (uPSunRef * (0.78 / 2.8) * ndl + amb) * uGrassGain;
 }
@@ -87,13 +88,14 @@ vec3 gLight(vec3 n, float wrap) {
 
 const BLADE_VS = /* glsl */`
 ${COMMON}
+${LOOK_BAKE_GLSL}
 ${WIND_GLSL}
 ${TRAMPLE_GLSL}
 attribute float aT; attribute float aSide;
 uniform float uSpacing; uniform float uPerSide; uniform float uWidth; uniform float uFade0; uniform float uFade1;
 uniform vec4 uHole;       // inner ring square: centre x, z, half size, on
 uniform float uTime;
-varying float vT; varying vec3 vFogWorldPos; varying float vFogDepth; varying vec3 vN; varying vec3 vCol; varying float vSelf;
+varying float vT; varying vec3 vFogWorldPos; varying float vFogDepth; varying vec3 vN; varying vec3 vCol; varying float vSelf; varying float vSh;
 void main() {
   float per = uPerSide * uPerSide;
   float tile = floor(float(gl_InstanceID) / per);
@@ -152,6 +154,8 @@ void main() {
   vSelf = mix(.12, 1., pow(t, .9)) * mix(.55, 1., r);
   vT = t;
   vFogWorldPos = p;
+  vSh = bakedShadow(p + vec3(0., .12, 0.));
+  vSelf *= mix(bakedContact(root), 1., t * .5);   // the contact shade under the yurts / rocks / trunks, most at the roots
   vec4 mv = viewMatrix * vec4(p, 1.);
   vFogDepth = -mv.z;
   gl_Position = projectionMatrix * mv;
@@ -160,19 +164,20 @@ void main() {
 const BLADE_FS = /* glsl */`
 ${LIGHT}
 #include <fog_pars_fragment>
-varying float vT; varying vec3 vN; varying vec3 vCol; varying float vSelf;
+varying float vT; varying vec3 vN; varying vec3 vCol; varying float vSelf; varying float vSh;
 void main() {
   vec3 v = normalize(vFogWorldPos - cameraPosition);
   float back = pow(clamp(dot(v, uSunView), 0., 1.), 4.) * vT * vT;      // translucent against the sun
-  vec3 lit = vCol * gLight(normalize(vN), .25) * .8 + uPSunRef * (0.78 / 2.8) * back * vec3(.55, .5, .08) * .9 * uGrassGain;
+  vec3 lit = vCol * gLight(normalize(vN), .25, vSh) * .8 + uPSunRef * (0.78 / 2.8) * back * vec3(.55, .5, .08) * .9 * uGrassGain * vSh;
   gl_FragColor = vec4(lit * vSelf, 1.);
   #include <fog_fragment>
 }`;
 
 const FLOWER_VS = /* glsl */`
 ${COMMON}
+${LOOK_BAKE_GLSL}
 uniform float uSpacing; uniform float uPerSide; uniform float uFade0; uniform float uFade1; uniform float uTime;
-varying vec2 vUv; varying float vType; varying vec3 vFogWorldPos; varying float vFogDepth; varying float vSeed;
+varying vec2 vUv; varying float vType; varying vec3 vFogWorldPos; varying float vFogDepth; varying float vSeed; varying float vSh;
 void main() {
   float per = uPerSide * uPerSide;
   float tile = floor(float(gl_InstanceID) / per);
@@ -204,6 +209,7 @@ void main() {
   float sway = sin(uTime * 2. + r * 30.) * .03 * position.y;
   vec3 p = vec3(xz.x, groundH(xz) - .02, xz.y) + vec3(right.x, 0., right.y) * (position.x * w + sway) + vec3(0., position.y * h * s, 0.);
   vUv = position.xy + vec2(.5, 0.); vType = type; vFogWorldPos = p; vSeed = r;
+  vSh = bakedShadow(p + vec3(0., .12, 0.)) * bakedContact(p) + 0.001;
   vec4 mv = viewMatrix * vec4(p, 1.);
   vFogDepth = -mv.z;
   gl_Position = projectionMatrix * mv;
@@ -212,7 +218,7 @@ void main() {
 const FLOWER_FS = /* glsl */`
 ${LIGHT}
 #include <fog_pars_fragment>
-varying vec2 vUv; varying float vType; varying float vSeed;
+varying vec2 vUv; varying float vType; varying float vSeed; varying float vSh;
 float sdSeg(vec2 p, vec2 a, vec2 b) { vec2 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0., 1.); return length(pa - ba * h); }
 void main() {
   vec2 p = vUv;
@@ -251,7 +257,7 @@ void main() {
     col = mix(stemC, col, star);
   }
   if (a < .5) discard;
-  gl_FragColor = vec4(col * gLight(vec3(0., 1., 0.), .5) * .6, 1.);
+  gl_FragColor = vec4(col * gLight(vec3(0., 1., 0.), .5, vSh) * .6, 1.);
   #include <fog_fragment>
 }`;
 
@@ -292,6 +298,18 @@ interface Ring {
 
 const smooth01 = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
+let heightTex: THREE.DataTexture | null = null;
+/** the terrain height at 1 m over [−256, 256] (half float, linear) — the blades stand on it, the bake reads it */
+export function terrainHeightTexture(): THREE.DataTexture {
+  if (heightTex) return heightTex;
+  const hd = new Uint16Array(HN * HN);
+  for (let j = 0; j < HN; j++) for (let i = 0; i < HN; i++) hd[j * HN + i] = THREE.DataUtils.toHalfFloat(heightAt(H_ORG + i + 0.5, H_ORG + j + 0.5));
+  const t = new THREE.DataTexture(hd, HN, HN, THREE.RedFormat, THREE.HalfFloatType);
+  t.magFilter = t.minFilter = THREE.LinearFilter; t.needsUpdate = true;
+  heightTex = t;
+  return t;
+}
+
 const instances = new Set<GrassV2>();
 /** the dressing landed: every v2 carpet re-bakes its mask (GrassPainterly's `reseedPainterlyGrass` calls it) */
 export function reseedGrassV2(): void { for (const g of instances) g.reseed(); }
@@ -312,11 +330,7 @@ export class GrassV2 {
 
   constructor(private readonly sky: Sky, private readonly forest: Forest) {
     instances.add(this);
-    // the height the blades stand on (1 m, half float)
-    const hd = new Uint16Array(HN * HN);
-    for (let j = 0; j < HN; j++) for (let i = 0; i < HN; i++) hd[j * HN + i] = THREE.DataUtils.toHalfFloat(heightAt(H_ORG + i + 0.5, H_ORG + j + 0.5));
-    const tHeight = new THREE.DataTexture(hd, HN, HN, THREE.RedFormat, THREE.HalfFloatType);
-    tHeight.magFilter = tHeight.minFilter = THREE.LinearFilter; tHeight.needsUpdate = true;
+    const tHeight = terrainHeightTexture();
     // the field: GrassField's own 4 m lattice (height, tone, bloom, species) and the painted ground colour
     const fd = new Uint8Array(LN * LN * 4), gd = new Uint8Array(LN * LN * 4);
     const rgb: [number, number, number] = [0, 0, 0];
@@ -343,7 +357,7 @@ export class GrassV2 {
       tHeight: { value: m.tHeight }, tMask: { value: m.tMask }, tField: { value: m.tField }, tGround: { value: m.tGround },
       uHXf: { value: new THREE.Vector4(H_ORG, H_ORG, 1 / HN, HN) },
       uFXf: { value: new THREE.Vector4(-CHUNK_HALF, -CHUNK_HALF, 1 / LAT, LN) },
-      uPSunDir: painterlyUniforms.uPSunDir, uPSunRef: painterlyUniforms.uPSunRef,
+      uPSunDir: painterlyUniforms.uPSunDir, uPSunRef: painterlyUniforms.uPSunRef, ...bakeUniforms,
       ...grassV2Uniforms,
       ...THREE.UniformsLib.fog, ...fogUniforms, ...paintedAir,
     };

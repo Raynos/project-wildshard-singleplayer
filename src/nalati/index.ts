@@ -162,7 +162,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   //    procedural PainterlyRange (hidden while the painting shows). `?backdrop=0` = off, for before / after shots. ──
   // Look v2 (?look=v2, src/nalati/look/): ONE seamless 360° panorama on a sky dome instead — the painting is the sky, the
   // clouds, the planet, the sun and the far range; the fog takes its colour from it (docs/design/nalati/handoff/port-v2.md)
-  if (LOOK_V2) await wireLookV2({ game, sky, weather, updates, groups });
+  if (LOOK_V2) await wireLookV2({ game, sky, weather, updates, groups, forest: ctx.forest });
   else if (new URLSearchParams(location.search).get('backdrop') !== '0') {
     void (async () => {
       const bd = await PaintedBackdrop.load(game.renderer);

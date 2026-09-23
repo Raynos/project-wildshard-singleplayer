@@ -51,7 +51,7 @@ for (const [n, y] of COMPASS) frames.push(['eagle', `eagle ${n}`, 170, -20, y, -
 frames.push(['plateau', 'plateau S', 0, -120, 0, 0.0], ['plateau', 'plateau W', 0, -120, -Math.PI / 2, 0.0]);
 const list = frames.filter((f) => only.length === 0 || only.includes(f[0]));
 
-const query = ['chunk=nalati-grasslands', 'nolock=1', 'skipintro=1', 'weather=clear', 'clock=0', 'perf=0', 'tier=phone', 'x=68', 'z=204.3', 'yaw=-0.95', LOOK ? `look=${LOOK}` : '', EXTRA].filter(Boolean).join('&');
+const query = ['chunk=nalati-grasslands', 'mute=1', 'nolock=1', 'skipintro=1', 'weather=clear', 'clock=0', 'perf=0', 'tier=phone', 'x=68', 'z=204.3', 'yaw=-0.95', LOOK ? `look=${LOOK}` : '', EXTRA].filter(Boolean).join('&');
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const rows = [];
 try {

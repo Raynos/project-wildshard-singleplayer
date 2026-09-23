@@ -9,7 +9,7 @@
  * wireLookV2: the panorama sky dome (sky.ts) in place of the v1 sky's painted clouds / planet / sun disc / backdrop
  * (the rig's star dome and the moon stay for the night), the far geometric ranges stood down (the painting is the far
  * range; Horizon rings 0 + 1 and the cloud sea stay in front), and one updater after the weather rig that re-tints the
- * painting and the fog for the hour and the storm, then applies the lighting cheat (light.ts).
+ * painting and the fog for the hour and the storm, then applies the lighting cheat (light.ts) and keeps the static bake (bake.ts) on the key.
  */
 import * as THREE from 'three';
 import type { Game } from '../../core/Game';
@@ -19,7 +19,9 @@ import { SkyDomeV2 } from './sky';
 import { fogLut } from './fog';
 import { updateTint } from './tint';
 import { LightCheat } from './light';
-import { grassV2Uniforms } from './grass';
+import { grassV2Uniforms, terrainHeightTexture } from './grass';
+import { StaticBake } from './bake';
+import type { Forest } from '../../world/Forest';
 import { getActiveChunk } from '../../chunks/registry';
 
 export { LOOK_V2 } from './flag';
@@ -29,6 +31,8 @@ export interface LookV2Ctx {
   /** wireNalati's per-frame list: the look's updater is pushed here, after the weather's */
   updates: ((dt: number, t: number) => void)[];
   groups: Record<string, THREE.Object3D>;
+  /** the spruce (a static caster for the bake) */
+  forest: Forest;
 }
 
 const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
@@ -46,10 +50,15 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   const rigDome = weather.rig.dome;
   const u = dome.uniforms;
   const cheat = new LightCheat(sky, getActiveChunk().grade.saturation);
+  // step 6: the static casters' shadows + contact shade, baked (bake.ts) — re-baked as the key swings
+  const bake = new StaticBake(game.renderer, game.scene, terrainHeightTexture());
+  for (const k of ['pois', 'dressing', 'outcrops'] as const) { const g = ctx.groups[k]; if (g) bake.add(g); }
+  bake.add(ctx.forest.group);
   ctx.updates.push(() => {
     const look = weather.look, w = weather.weather;
     updateTint(look, w);
     cheat.apply(look); // step 4: the key swung round + lifted, the fill lower and cooler (light.ts)
+    bake.update(sky.sunDir); // step 6: after the cheat, so the baked shadows fall from the key
     u.uSunNow.value.copy(look.sunDir);
     grassV2Uniforms.uSunView.value.copy(look.sunDir); // the grass glows looking into the (painted, real) sun
     // night: the painted sky fades out above the ridge line, the rig's stars show through (it is hidden by day: no overdraw)

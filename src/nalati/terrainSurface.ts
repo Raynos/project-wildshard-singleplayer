@@ -24,6 +24,7 @@ import * as THREE from 'three';
 import { TEX_METRES, TEX_MEAN, type NalatiTexName } from '../world/nalatiTextures';
 import { LOOK_V2 } from './look/flag';
 import { V2_OLIVE_GLSL } from './look/light';
+import { LOOK_BAKE_GLSL, bakeUniforms } from './look/bake';
 
 export type TerrainTextures = Record<'meadow' | 'path' | 'gravel' | 'rock' | 'snow', THREE.Texture>;
 
@@ -64,7 +65,7 @@ vec3 tTiled( sampler2D t, vec2 p ) {
   vec3 b = texture2D( t, q ).rgb;
   return mix( a, b, smoothstep( 0.3, 0.7, tNoise( p * 0.21 ) ) );
 }
-${LOOK_V2 ? V2_OLIVE_GLSL : ''}
+${LOOK_V2 ? V2_OLIVE_GLSL + LOOK_BAKE_GLSL : ''}
 vec3 tTriplanar( sampler2D t, vec3 p, vec3 n, float s ) {
   vec3 w = pow( abs( n ), vec3( 4.0 ) ); w /= ( w.x + w.y + w.z );
   return texture2D( t, p.zy * s ).rgb * w.x + texture2D( t, p.xz * s ).rgb * w.y + texture2D( t, p.xy * s ).rgb * w.z;
@@ -114,6 +115,8 @@ const FRAG_MAIN = /* glsl */`
     diffuseColor.rgb = mix( diffuseColor.rgb, dirt, road );
   }
 
+  ${LOOK_V2 ? 'diffuseColor.rgb *= bakedContact( vTWorld ); // look v2: the contact shade round the yurts / rocks / trunks (look/bake.ts)' : ''}
+
   // ── snow ──
   if ( vSurf.z > 0.02 ) {
     vec3 snow = tTiled( tSnow, wp * uSnowScale ) * 1.05;
@@ -136,6 +139,7 @@ export function applyTerrainSurface(mat: THREE.Material, tex: TerrainTextures): 
   mat.onBeforeCompile = (shader, renderer) => {
     base(shader, renderer);
     Object.assign(shader.uniforms, uniforms);
+    if (LOOK_V2) Object.assign(shader.uniforms, bakeUniforms);
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${VERT_PARS}`)
       .replace('#include <worldpos_vertex>', VERT_MAIN);
