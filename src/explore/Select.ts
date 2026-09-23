@@ -1,12 +1,13 @@
 /**
- * Select — tap / click a model in the World Explorer (project/archive/2026-09-23-explore-world.md X4; mockups round-3 p09, round-4 g09 / g13):
- * a cyan box with its dimensions, and a glass card anchored to it — name · source file · tris — with OPEN IN MODEL
- * EXPLORER (the turntable), ORBIT (one finger / Alt-drag turns around it) and ✕.
+ * Select — tap / click a model in the World Explorer (project/archive/2026-09-23-explore-world.md X4; mockups round-3 p09, round-4 g09 / g13;
+ * E67: round-6 midway 04): a cyan box, its size in a tag over the box's top, and a glass card standing beside it —
+ * name · source file · tris — with OPEN IN MODEL EXPLORER (the turntable), ORBIT (one finger / Alt-drag turns around
+ * it) and ✕.
  *
  *   const sel = new Select(explore, world, targets);   // targets: what a tap can hit (catalog entries, batched meshes, animals)
  *   sel.pick(clientX, clientY)   // from TouchFly.onTap or a desktop left click
  *   sel.selectEntry(entry)       // VIEW IN WORLD lands with the model selected
- *   sel.update()                 // every frame: the card follows the box on screen
+ *   sel.update()                 // every frame: the tag and the card follow the box on screen
  */
 import * as THREE from 'three';
 import type { World } from '../core/bootstrap';
@@ -32,6 +33,8 @@ export class Select {
   private readonly helper: THREE.Box3Helper;
   private readonly box = new THREE.Box3();
   private readonly card: HTMLElement;
+  private readonly dim: HTMLElement;
+  private readonly corner = new THREE.Vector3();
   private readonly tmp = new THREE.Vector3();
   private current: { entry: CatalogEntry; label: string } | null = null;
   private down: { x: number; y: number; t: number } | null = null;
@@ -44,10 +47,10 @@ export class Select {
     this.helper.visible = false;
     world.game.scene.add(this.helper);
     this.card = html('div', 'ws-x-select', `
-      <div class="ws-x-select-dim"></div>
       <b></b><small></small>
       <div class="ws-x-select-actions"><button type="button" class="ws-x-open">Open in model explorer</button><button type="button" class="ws-x-orbit">Orbit</button><button type="button" class="ws-x-deselect" aria-label="Deselect">✕</button></div>`);
-    explore.root.append(this.card);
+    this.dim = html('div', 'ws-x-select-dim');
+    explore.root.append(this.dim, this.card);
     this.card.querySelector('.ws-x-open')?.addEventListener('click', () => { const c = this.current; if (c) { this.clear(); this.explore.setMode('model', { model: c.entry.id }); } });
     this.card.querySelector('.ws-x-orbit')?.addEventListener('click', () => { this.orbit(); });
     this.card.querySelector('.ws-x-deselect')?.addEventListener('click', () => { this.clear(); });
@@ -95,6 +98,7 @@ export class Select {
     this.current = null;
     this.helper.visible = false;
     this.card.classList.remove('show');
+    this.dim.classList.remove('show');
     this.explore.setOrbit(false);
   }
 
@@ -107,11 +111,12 @@ export class Select {
     this.current = { entry, label };
     this.helper.visible = true;
     const size = this.box.getSize(this.tmp);
-    const dim = this.card.querySelector('.ws-x-select-dim'), b = this.card.querySelector('b'), small = this.card.querySelector('small');
-    if (dim) dim.textContent = `${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)} m`;
+    const b = this.card.querySelector('b'), small = this.card.querySelector('small');
+    this.dim.textContent = `${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)} m`;
     if (b) b.textContent = label;
     if (small) small.textContent = `${entry.file} · ${(entry.live ? measure(entry.object()).tris : 0) > 0 ? `${measure(entry.object()).tris.toLocaleString()} tris` : 'open to measure'}`;
     this.card.classList.add('show');
+    this.dim.classList.add('show');
     this.update();
   }
 
@@ -120,17 +125,32 @@ export class Select {
     this.explore.setOrbit(true, this.box.getCenter(new THREE.Vector3()));
   }
 
-  /** every frame: the card sits under the box's bottom-centre on screen (hidden when it is behind the camera) */
+  /**
+   * every frame: the box's screen rectangle (its eight corners projected) places the size tag over its top edge and the
+   * card beside it — right if it fits, else left, else under it; both hide while the box is behind the camera
+   */
   update(): void {
     if (!this.current || this.explore.mode !== 'world') { if (this.current && this.explore.mode !== 'world') this.clear(); return; }
     const { camera } = this.world.game;
-    const p = this.box.getCenter(this.tmp);
-    p.y = this.box.min.y;
-    p.project(camera);
-    if (p.z > 1) { this.card.style.visibility = 'hidden'; return; }
-    this.card.style.visibility = '';
-    const x = (p.x * 0.5 + 0.5) * innerWidth, y = (-p.y * 0.5 + 0.5) * innerHeight;
-    const w = this.card.offsetWidth, h = this.card.offsetHeight;
-    this.card.style.transform = `translate(${Math.round(Math.max(8, Math.min(innerWidth - w - 8, x - w / 2)))}px, ${Math.round(Math.max(70, Math.min(innerHeight - h - 90, y + 12)))}px)`;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, behind = false;
+    for (let i = 0; i < 8; i++) {
+      const p = this.corner.set(i & 1 ? this.box.max.x : this.box.min.x, i & 2 ? this.box.max.y : this.box.min.y, i & 4 ? this.box.max.z : this.box.min.z).project(camera);
+      if (p.z > 1) { behind = true; break; }
+      const x = (p.x * 0.5 + 0.5) * innerWidth, y = (-p.y * 0.5 + 0.5) * innerHeight;
+      x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+    }
+    const hide = behind ? 'hidden' : '';
+    this.card.style.visibility = hide; this.dim.style.visibility = hide;
+    if (behind) return;
+    const W = innerWidth, H = innerHeight, pad = 8, top = 70, bottom = 90;
+    const clamp = (v: number, lo: number, hi: number): number => Math.round(Math.max(lo, Math.min(hi, v)));
+    const dw = this.dim.offsetWidth, dh = this.dim.offsetHeight;
+    this.dim.style.transform = `translate(${clamp((x0 + x1) / 2 - dw / 2, pad, W - dw - pad)}px, ${clamp(y0 - dh - 6, top, H - dh - bottom)}px)`;
+    const w = this.card.offsetWidth, h = this.card.offsetHeight, mid = (y0 + y1) / 2 - h / 2;
+    let cx: number, cy: number;
+    if (x1 + 10 + w <= W - pad) { cx = x1 + 10; cy = mid; }
+    else if (x0 - 10 - w >= pad) { cx = x0 - 10 - w; cy = mid; }
+    else { cx = (x0 + x1) / 2 - w / 2; cy = y1 + 12; }
+    this.card.style.transform = `translate(${clamp(cx, pad, W - w - pad)}px, ${clamp(cy, top, H - h - bottom)}px)`;
   }
 }

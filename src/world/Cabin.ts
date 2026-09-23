@@ -1352,6 +1352,9 @@ export class Cabins {
     return { group: this.group, colliders: this.colliders, interactables: this.interactables };
   }
 
+  /** each cabin's own root, in CABIN_SITES order (Explore's catalog shows one at a time) */
+  get roots(): readonly THREE.Object3D[] { return this.lods.map((l) => l.root); }
+
   /** world y of a floor / deck under (x,z) if inside a cabin or porch footprint */
   floorHeightAt(x: number, z: number): number | undefined {
     for (const f of this.floors) {

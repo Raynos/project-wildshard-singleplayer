@@ -28,8 +28,10 @@ describe('Explore World', () => {
     expect(url.searchParams.get('at')).toBe('1,2,3,0,0');
   });
 
-  it("Driftwood's points of interest are named, unique and inside the shard", () => {
-    const pois = findChunk('driftwood-isle')?.pois ?? [];
+  const EXPLORABLE = ['driftwood-isle', 'pine-hollow']; // D4 → E66: Pine Hollow joined Driftwood
+
+  it.each(EXPLORABLE)("%s's points of interest are named, unique and inside the shard", (slug) => {
+    const pois = findChunk(slug)?.pois ?? [];
     expect(pois.length).toBeGreaterThanOrEqual(6);
     expect(new Set(pois.map((p) => p.id)).size).toBe(pois.length);
     for (const p of pois) {
@@ -39,12 +41,12 @@ describe('Explore World', () => {
     }
   });
 
-  it('only Driftwood carries points of interest for now (D4: Explore is Driftwood-only)', () => {
-    for (const c of CHUNKS) if (c.slug !== 'driftwood-isle') expect(c.pois ?? [], c.slug).toEqual([]);
+  it('only the explorable shards carry points of interest', () => {
+    for (const c of CHUNKS) if (!EXPLORABLE.includes(c.slug)) expect(c.pois ?? [], c.slug).toEqual([]);
   });
 
-  it('EXPLORE WORLD is switched on per shard — Driftwood today (D4; X10 made the viewer itself shard-agnostic)', () => {
-    for (const c of CHUNKS) expect(c.explore === true, c.slug).toBe(c.slug === 'driftwood-isle');
+  it('EXPLORE WORLD is switched on per shard — Driftwood and Pine Hollow (E66; X10 made the viewer itself shard-agnostic)', () => {
+    for (const c of CHUNKS) expect(c.explore === true, c.slug).toBe(EXPLORABLE.includes(c.slug));
   });
 
   it('the model registry keeps one entry per id (a shard re-registering after a rebuild replaces it)', () => {

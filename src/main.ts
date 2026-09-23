@@ -78,7 +78,7 @@ import { onReview, queuedCount, quickNote } from './ui/review';
 import { rotateGated } from './ui/RotateGate';
 import type { Feedback } from './ui/Feedback';
 import type { Explore, ExploreMode } from './explore/Explore';
-import { registerDriftwoodModels } from './explore/catalog';
+import { registerDriftwoodModels, registerPineHollowModels } from './explore/catalog';
 import { TIER } from './core/tier';
 import { islandMode } from './world/blenderArea';
 
@@ -119,6 +119,8 @@ async function main() {
   const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk } = world;
   const nolock = params.has('nolock');
+  // what the view-dependent layers (ground cover, grass, mist) fill around: the player, or Explore's free camera (E66)
+  const viewer = (): THREE.Vector3 => (world.freeCamera ? game.camera.position : player.position);
   const sea = chunk.ocean, isOcean = sea !== undefined; // open-water shard (Driftwood Isle): ocean + pier, no forest carpet / cabins / props
 
   // ── world dressing ──
@@ -211,7 +213,7 @@ async function main() {
     if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
     // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
     const cover = sea ? new GroundCover(sky, { sea: sea.level, palms: palmSpecs }).build() : null;
-    if (cover) { game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, player.position)); }
+    if (cover) { game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer())); }
     ocean?.foamAround(player.colliders); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
     await macrotask();
     const horizon = new Horizon(sky).build();
@@ -275,6 +277,7 @@ async function main() {
   const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [] }).build() : null;
   // the island's models, for Explore World's catalog and tap-to-select (src/explore/registry.ts: a shard registers what it built)
   if (isOcean) registerDriftwoodModels({ sky, hut, lookout, wreck, shrine, pier, jetties, boat, bridge, cove, palms, bushes, palmSpecs });
+  else if (chunk.slug === 'pine-hollow') registerPineHollowModels({ sky, cabins, water, forest, props, at: { x: chunk.spawn.x + 8, z: chunk.spawn.z + 30 } });
   const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;
   if (dayNight) onSettingChange('time', (t) => { dayNight.setTime(t); }); // pause menu ▸ Settings ▸ Time of day (E55)
@@ -540,7 +543,8 @@ async function main() {
     weapons.setEnabled(false); weapons.visible = false;
     perf.setActive(false); // the Explore readout carries fps / calls / tris
     const { Explore: X } = await import('./explore/Explore');
-    explore ??= new X({ world, onExit: exitExplore, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], creatures: animals.animals });
+    explore ??= new X({ world, onExit: exitExplore, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], creatures: animals.animals,
+      overhead: [grass?.group, under?.group, particles?.group, gulls?.group, dressing.cover?.group].filter((g) => g !== undefined) });
     explore.open(mode, opts);
   };
   const exploreParam = params.get('explore');
@@ -550,7 +554,7 @@ async function main() {
   game.frameGate = () => (hud.entered || exploring()) && !feedbackHeld && !rotateGated(); // … and the review composer freezes it on the captured frame; the rotate page (E38) stops it too
   if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.worldMuted = true; hud.showIntro(enter); }
   else { hud.markEntered(); weapons.setEnabled(!nolock || params.has('skipintro')); }
-  // ?explore=hub|world|model[&cam=x,y,z,yaw,pitch][&model=id] — straight into the viewer (Driftwood only, D4; a note's "go there")
+  // ?explore=hub|world|model[&cam=x,y,z,yaw,pitch][&model=id] — straight into the viewer (a shard with ChunkDef.explore — D4, E66; a note's "go there")
   if (exploreParam !== null && chunk.explore === true) {
     const cam = (params.get('cam') ?? '').split(',').filter((v) => v !== '').map(Number);
     const model = params.get('model');
@@ -602,9 +606,9 @@ async function main() {
     if (dayNight) { shrine?.setDusk(dayNight.dusk); if (ambience) ambience.night = dayNight.night; }
     hands.update(dt, player);
     horizon.update(dt, game.camera);
-    grass?.update(dt, player.position);
-    under?.update(dt, player.position);
-    particles?.update(dt, player.position, game.camera);
+    grass?.update(dt, viewer());
+    under?.update(dt, viewer());
+    particles?.update(dt, viewer(), game.camera);
     cabins?.update(dt, t);
     // swimming holsters the weapon (hands only; Hands.ts follows)
     if (player.swimming !== swimHold) { swimHold = player.swimming; weapons.visible = !swimHold; weapons.setEnabled(!swimHold); }

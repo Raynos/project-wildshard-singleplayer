@@ -417,7 +417,7 @@ export class HUD {
    * Title screen: the shard deck IS the menu. A horizontal snap carousel of shard cards over the live world (the
    * neighbours peek in from the edges, dots below — a swipe steps the shard); the centred card is the selection. Under it
    * two compact buttons: ENTER WORLD (play; the active shard enters, another reloads with `?chunk=`) and EXPLORE WORLD
-   * (the viewer, project/archive/2026-09-23-explore-world.md; Driftwood only, D4). Teasers from `PLACEHOLDERS` crossfade their hero art in
+   * (the viewer, project/archive/2026-09-23-explore-world.md; the shards whose ChunkDef.explore is on — D4, E66). Teasers from `PLACEHOLDERS` crossfade their hero art in
    * behind the deck and turn ENTER WORLD into COMING SOON. `stats` is accepted for API compatibility. (The user,
    * 2026-09-23, on the p12 split panels: "way too big … it does not make it obvious you can swipe" — back to the deck.)
    */
@@ -489,7 +489,7 @@ export class HUD {
       enterBtn.disabled = !c.playable;
       enterTitle.textContent = c.playable ? 'Enter world' : 'Coming soon';
       enterHint.textContent = !c.playable ? 'Not yet playable' : c.experimental ? 'Experimental · rough edges' : c.active ? 'Play' : `Reloads with ${c.displayName}`;
-      exploreBtn.classList.toggle('off', !c.explore); // the shard's ChunkDef.explore (Driftwood today — project/archive/2026-09-23-explore-world.md D4)
+      exploreBtn.classList.toggle('off', !c.explore); // the shard's ChunkDef.explore (Driftwood + Pine Hollow — project/archive/2026-09-23-explore-world.md D4, E66)
     };
     const select = (raw: number, smooth = true): void => {
       const i = Math.max(0, Math.min(cards.length - 1, raw));

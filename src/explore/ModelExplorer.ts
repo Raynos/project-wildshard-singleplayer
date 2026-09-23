@@ -45,6 +45,8 @@ export class ModelExplorer implements ExplorePane {
   private readonly floor: THREE.Group;
   private readonly contact: THREE.Mesh;
   private savedBackground: THREE.Scene['background'] | undefined;
+  /** the built-on-view models standing in the studio (one of a batch, the creatures): only the one on show is visible */
+  private readonly fresh = new Set<THREE.Object3D>();
   private current: CatalogEntry | null = null;
   private filter: Category | 'all' = 'all';
   private view: View = 'solid';
@@ -196,7 +198,7 @@ export class ModelExplorer implements ExplorePane {
     this.current = e;
     this.el.dataset['view'] = 'model';
     const o = e.object();
-    if (!e.live && o.parent !== this.studio) this.studio.add(o);
+    if (!e.live && o.parent !== this.studio) { this.studio.add(o); this.fresh.add(o); }
     this.isolate(o);
     this.frameModel(o);
     this.setView(this.view);
@@ -231,12 +233,17 @@ export class ModelExplorer implements ExplorePane {
     const { scene } = this.world.game;
     const keep = new Set<THREE.Object3D>([this.studio]);
     if (this.savedBackground === undefined) { this.savedBackground = scene.background; scene.background = studioBackdrop(); }
-    let root: THREE.Object3D = o;
-    while (root.parent && root.parent !== scene) root = root.parent;
-    keep.add(root);
-    for (const c of scene.children) {
-      if (!this.hidden.has(c)) this.hidden.set(c, c.visible);
-      c.visible = keep.has(c) || c instanceof THREE.Light;
+    // every level from the model up to the scene: its siblings go (one cabin out of the homestead group, one jetty
+    // out of the pier), the lights stay
+    for (let node: THREE.Object3D = o; node.parent; node = node.parent) {
+      keep.add(node);
+      for (const c of node.parent.children) {
+        if (keep.has(c) || c === node) continue;
+        if (node.parent === this.studio && !this.fresh.has(c)) continue; // the studio's own children are the stage
+        if (!this.hidden.has(c)) this.hidden.set(c, c.visible);
+        c.visible = c instanceof THREE.Light;
+      }
+      if (node.parent === scene) break;
     }
     this.studio.visible = true;
     o.visible = true;
@@ -581,7 +588,7 @@ export class ModelExplorer implements ExplorePane {
     const cam = game.camera;
     const pos = cam.position.clone(), quat = cam.quaternion.clone();
     const o = e.object();
-    if (!e.live && o.parent !== this.studio) this.studio.add(o);
+    if (!e.live && o.parent !== this.studio) { this.studio.add(o); this.fresh.add(o); }
     this.isolate(o);
     this.frameModel(o);
     const cp = Math.cos(this.pitch);

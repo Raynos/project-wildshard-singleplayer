@@ -11,6 +11,8 @@ import type { Collider } from '../player/Player';
 import { CulledInstances, CulledBatch } from './Culling';
 import { TIER_CONFIG } from '../core/tier';
 
+export type PropKind = 'rock' | 'stump' | 'log';
+
 /**
  * Forest props: mossy boulders, cut stumps, fallen logs and a few low bushes around the cabins.
  *
@@ -29,15 +31,19 @@ export class Props {
   group = new THREE.Group();
   colliders: Collider[] = [];
   counts = { rocks: 0, stumps: 0, logs: 0, bushes: 0 };
+  /** the loaded shapes, kept for Explore's catalog (it builds one of each on its own) */
+  readonly parts: Partial<Record<PropKind, ReturnType<typeof prepModel>>> = {};
+  /** every draw of each kind, for Explore's tap-to-select */
+  readonly meshes: { kind: PropKind; mesh: THREE.Object3D }[] = [];
   withBushes = false;
 
   constructor(private sky: Sky, private forest: Forest) {}
 
   async build(): Promise<THREE.Group> {
     const [rocks, stump, trunk] = await Promise.all([loadLod('rock_moss_set_01'), loadLod('tree_stump_01'), loadLod('dead_tree_trunk')]);
-    this.rocks(prepModel(rocks.scene, this.sky));
-    this.stumps(prepModel(stump.scene, this.sky));
-    this.logs(prepModel(trunk.scene, this.sky));
+    this.rocks(this.parts.rock = prepModel(rocks.scene, this.sky));
+    this.stumps(this.parts.stump = prepModel(stump.scene, this.sky));
+    this.logs(this.parts.log = prepModel(trunk.scene, this.sky));
     // bushes: implemented but off by default — low-poly clumps read as blobs next to the photoscans
     if (this.withBushes) this.bushes();
     if (!TIER_CONFIG.reflectDetail) noReflect(this.group);
@@ -58,7 +64,7 @@ export class Props {
   }
 
   /** one draw call per shape, but only the instances in the padded view frustum / within range are live (see Culling.ts) */
-  private instanced(geometry: THREE.BufferGeometry, material: THREE.Material, matrices: THREE.Matrix4[], local: THREE.Matrix4) {
+  private instanced(kind: PropKind | 'bush', geometry: THREE.BufferGeometry, material: THREE.Material, matrices: THREE.Matrix4[], local: THREE.Matrix4) {
     if (matrices.length === 0) return;
     const im = new THREE.InstancedMesh(geometry, material, matrices.length);
     im.castShadow = true; im.receiveShadow = true;
@@ -75,6 +81,7 @@ export class Props {
     const culled = new CulledInstances(im, all, bounds, TIER_CONFIG.propsFar, 40, TIER_CONFIG.propsMinAngular);
     this.forest.onViewChange((f, v) => culled.cull(f, v));
     this.group.add(im);
+    if (kind !== 'bush') this.meshes.push({ kind, mesh: im });
   }
 
   /** compose a matrix that sits an object on the terrain, aligned to the normal, yawed and scaled */
@@ -135,7 +142,8 @@ export class Props {
       batch.mesh.castShadow = true; batch.mesh.receiveShadow = true;
       this.forest.onViewChange((f, v) => batch.cull(f, v));
       this.group.add(batch.mesh);
-    } else for (const s of shapes) this.instanced(s.geometry, s.material, s.mats, s.local);
+      this.meshes.push({ kind: 'rock', mesh: batch.mesh });
+    } else for (const s of shapes) this.instanced('rock', s.geometry, s.material, s.mats, s.local);
     this.counts.rocks = n;
   }
 
@@ -161,7 +169,7 @@ export class Props {
       const scale = rng.range(0.8, 1.35);
       mats.push(Props.place(x, z, rng.range(0, Math.PI * 2), scale, 0.06 * scale, 0.7));
     }
-    for (const p of parts) this.instanced(p.geometry, p.material, mats, p.matrix);
+    for (const p of parts) this.instanced('stump', p.geometry, p.material, mats, p.matrix);
     this.counts.stumps = mats.length;
   }
 
@@ -203,7 +211,7 @@ export class Props {
       // the terrain mesh is ~2 m per vertex, so lift thin logs a little above the analytic height rather than let them sink
       mats.push(new THREE.Matrix4().compose(new THREE.Vector3(x, ym - bottom * scale + 0.14 * scale, z), q, new THREE.Vector3(scale, scale, scale)));
     }
-    for (const p of parts) this.instanced(p.geometry, p.material, mats, p.matrix);
+    for (const p of parts) this.instanced('log', p.geometry, p.material, mats, p.matrix);
     this.counts.logs = mats.length;
   }
 
@@ -238,7 +246,7 @@ export class Props {
         placed++;
       }
     }
-    this.instanced(geo, mat, mats, new THREE.Matrix4());
+    this.instanced('bush', geo, mat, mats, new THREE.Matrix4());
     this.counts.bushes = mats.length;
   }
 }

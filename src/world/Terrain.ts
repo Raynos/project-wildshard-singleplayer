@@ -237,7 +237,7 @@ export class Terrain {
           float camDist = length(vWPos - cameraPosition);
           vec2 tuv = vWPos.xz;
           vec4 w = vSplat;
-          w = pow(w, vec4(2.2)); w /= (w.x + w.y + w.z + w.w);
+          w = pow(max(w, vec4(0.0)), vec4(2.2)); w /= max(w.x + w.y + w.z + w.w, 1e-5); // guarded: a 0 / 0 here was a NaN pixel, and bloom spreads one NaN into a black square (E67)
           vec4 alb = vec4(0.0);
           vec3 nrm = vec3(0.0);
           vec3 arm = vec3(0.0);
@@ -254,7 +254,7 @@ export class Terrain {
           alb.rgb *= macro * macro2;
           alb.rgb *= mix(1.0, 0.55, vCanopy);
           diffuseColor *= alb;
-          vec3 splatNormal = normalize(nrm);
+          vec3 splatNormal = dot(nrm, nrm) > 1e-8 ? normalize(nrm) : vec3(0.0, 0.0, 1.0);
           vec3 splatArm = arm;`)
         .replace('#include <normal_fragment_maps>', `
           {

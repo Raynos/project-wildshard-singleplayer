@@ -47,6 +47,9 @@ export interface ExploreHost {
   /** the shard's live animals (ambient AI): the catalog gets one creature per species, a tap on one opens its species.
    *  The models themselves come from the registry (src/explore/registry.ts) — whatever the shard's setup registered. */
   creatures?: readonly { mesh: THREE.Object3D; kind: string; position: THREE.Vector3; scale: number }[];
+  /** left out of the map's top-down shot (MiniMap): the layers that only fill in around the eye — grass, undergrowth,
+   *  mist, ground cover, gulls — which from 1.4 km up are dark tiles, not detail */
+  overhead?: THREE.Object3D[];
 }
 
 /** a mode that lives in its own module (Model Explorer, …): shown / hidden with its tab, ticked while shown */
@@ -58,11 +61,13 @@ export interface ExplorePane {
   context: () => Record<string, ContextValue>;
 }
 
-/** the World Explorer's first view: up and behind the shard's spawn, looking the way the spawn faces */
+/** the World Explorer's first view: up and behind the shard's spawn, looking the way the spawn faces — over the
+ *  canopy on a forest shard (its pines reach 26 m), so the first frame is the land, not a trunk */
 function homeView(world: World): { pos: THREE.Vector3; look: THREE.Vector3 } {
   const s = world.chunk.spawn, fx = -Math.sin(s.yaw), fz = -Math.cos(s.yaw);
   const ground = Math.max(heightAt(s.x, s.z), world.chunk.ocean?.level ?? -Infinity);
-  return { pos: new THREE.Vector3(s.x - fx * 12 - fz * 12, ground + 26, s.z - fz * 12 + fx * 12), look: new THREE.Vector3(s.x + fx * 150, ground + 4, s.z + fz * 150) };
+  const up = world.forest.trees.length > 0 ? 42 : 26;
+  return { pos: new THREE.Vector3(s.x - fx * 12 - fz * 12, ground + up, s.z - fz * 12 + fx * 12), look: new THREE.Vector3(s.x + fx * 150, ground + 4, s.z + fz * 150) };
 }
 const SPEEDS = [['Slow', 4], ['Normal', 12], ['Fast', 40]] as const;
 const PARK = new THREE.Vector3(0, -600, -CHUNK_HALF * 12); // where the player waits: out of every animal's senses
@@ -104,9 +109,10 @@ export class Explore {
       <button class="ws-x-close" type="button" aria-label="Back to the title">✕</button>`);
     this.tabs = top.querySelector<HTMLElement>('.ws-x-tabs') ?? top;
     this.readout = html('div', 'ws-x-readout');
+    const shard = host.world.chunk, own = shard.slug === 'driftwood-isle'; // the hub art is Driftwood's; another shard shows its picker art
     this.hubEl = html('div', 'ws-x-hub', `
-      <button class="ws-x-card" type="button" data-m="model"><span class="ws-x-card-art" style="background-image:url('${modelsArt}')"></span><span class="ws-x-card-text"><b>Model explorer</b><small>Inspect every model up close</small></span><span class="ws-x-card-go">›</span></button>
-      <button class="ws-x-card" type="button" data-m="world"><span class="ws-x-card-art" style="background-image:url('${worldArt}')"></span><span class="ws-x-card-text"><b>World explorer</b><small>Fly over the island in god mode · driftwood-isle</small></span><span class="ws-x-card-go">›</span></button>`);
+      <button class="ws-x-card" type="button" data-m="model"><span class="ws-x-card-art" style="background-image:url('${own ? modelsArt : shard.thumbnail}')"></span><span class="ws-x-card-text"><b>Model explorer</b><small>Inspect every model up close</small></span><span class="ws-x-card-go">›</span></button>
+      <button class="ws-x-card" type="button" data-m="world"><span class="ws-x-card-art" style="background-image:url('${own ? worldArt : shard.heroLandscape}')"></span><span class="ws-x-card-text"><b>World explorer</b><small>Fly over ${shard.displayName} in god mode · ${shard.slug}</small></span><span class="ws-x-card-go">›</span></button>`);
     this.flyEl = html('div', 'ws-x-fly', `
       <div class="ws-x-rail">
         <button class="ws-x-btn ws-x-up" type="button" aria-label="Up">▲</button>
@@ -136,7 +142,7 @@ export class Explore {
     hold('.ws-x-up', 1); hold('.ws-x-down', -1);
     document.addEventListener('keydown', this.onKey);
     game.onUpdate((dt) => { this.update(dt); });
-    if ((host.world.chunk.pois ?? []).length > 0) this.map = new MiniMap(this, host.world);
+    if ((host.world.chunk.pois ?? []).length > 0) this.map = new MiniMap(this, host.world, host.overhead ?? []);
     if (hasCompareTargets(host.world.chunk.slug)) this.compare = new Compare(this, host.world);
     const { chunk } = host.world;
     const entries = catalogEntries(host.world.sky, host.creatures ?? [], chunk.style === 'lowpoly' ? 'lowpoly' : 'pbr', chunk.spawn);

@@ -18,7 +18,7 @@
 .ws-x[data-mode="hub"] .ws-x-tabs { visibility: hidden; }
 
 /* readout under the bar (world mode) */
-.ws-x-readout { position: absolute; white-space: pre; line-height: 1.6; left: 14px; top: calc(66px + env(safe-area-inset-top, 0px)); font-size: 10px; letter-spacing: 0.14em; color: var(--ws-cyan-dim); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
+.ws-x-readout { position: absolute; white-space: pre; line-height: 1.6; left: 14px; top: calc(66px + env(safe-area-inset-top, 0px)); padding: 4px 9px; font-size: 10px; letter-spacing: 0.14em; color: #bfeeff; background: rgba(13, 27, 38, 0.62); border: 1px solid var(--ws-cyan-faint); border-top: 0; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
 .ws-x:not([data-mode="world"]) .ws-x-readout { display: none; }
 
 /* hub: two cards over the orbiting island */
@@ -38,14 +38,15 @@
 .ws-x[data-mode="world"] .ws-x-fly { display: block; }
 .ws-x-rail { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); display: none; flex-direction: column; align-items: flex-end; gap: 10px; pointer-events: auto; }
 .ws-x.touch .ws-x-rail { display: flex; }
-.ws-x-btn { width: 52px; height: 52px; border-radius: 50%; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); font-size: 16px; color: var(--ws-cyan); touch-action: none; }
+.ws-x.mapopen .ws-x-rail { top: calc(96px + env(safe-area-inset-top, 0px)); transform: none; } /* the map sheet has the lower half: the rail rides above it */
+.ws-x-btn { width: 56px; height: 56px; border-radius: 50%; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: 18px; color: #eaf8ff; touch-action: none; }
 .ws-x-btn.on { background: rgba(143, 227, 255, 0.28); border-color: var(--ws-cyan); }
-.ws-x-chip { padding: 7px 10px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; }
+.ws-x-chip { padding: 8px 11px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; }
 .ws-x-hint { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); padding: 6px 12px; font-size: 10px; letter-spacing: 0.12em; white-space: nowrap; color: var(--ws-text-dim); background: var(--ws-glass); border: 1px solid var(--ws-cyan-faint); }
 .ws-x.touch .ws-x-hint { display: none; }
-.ws-x-stick { position: absolute; left: max(22px, env(safe-area-inset-left, 0px)); bottom: max(28px, env(safe-area-inset-bottom, 0px)); width: 124px; height: 124px; border-radius: 50%; background: rgba(6, 10, 18, 0.35); border: 1px solid var(--ws-cyan-line); pointer-events: auto; touch-action: none; }
+.ws-x-stick { position: absolute; left: max(22px, env(safe-area-inset-left, 0px)); bottom: max(24px, env(safe-area-inset-bottom, 0px)); width: 128px; height: 128px; border-radius: 50%; background: radial-gradient(circle, rgba(13, 27, 38, 0.2) 40%, rgba(13, 27, 38, 0.55)); border: 1px solid var(--ws-cyan-line); box-shadow: inset 0 0 18px rgba(143, 227, 255, 0.12); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); pointer-events: auto; touch-action: none; }
 .ws-x-stick i { position: absolute; left: 50%; top: 50%; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; background: rgba(143, 227, 255, 0.22); border: 1px solid var(--ws-cyan); box-shadow: 0 0 14px rgba(143, 227, 255, 0.35); }
-.ws-x-stick b { position: absolute; left: 0; right: 0; bottom: -18px; text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-x-stick b { position: absolute; left: 0; right: 0; bottom: 12px; text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 0.28em; text-transform: uppercase; color: #cfefff; pointer-events: none; }
 .ws-x-stick.on i { background: rgba(143, 227, 255, 0.4); }
 
 /* ✎ — one button, every mode */
@@ -151,35 +152,51 @@
 .ws-x-model .ws-x-model-thumb { box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.55); }
 
 /* ─── the selection card (src/explore/Select.ts; mockups p09 / g09 / g13): anchored under the picked model ─── */
-.ws-x-select { position: absolute; left: 0; top: 0; display: none; flex-direction: column; gap: 4px; max-width: min(340px, calc(100vw - 16px)); padding: 9px 11px 10px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); box-shadow: 0 0 18px rgba(143, 227, 255, 0.25), 0 12px 40px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.ws-x-select { position: absolute; left: 0; top: 0; display: none; flex-direction: column; gap: 3px; width: 200px; max-width: calc(100vw - 16px); padding: 9px 10px 10px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); box-shadow: 0 0 18px rgba(143, 227, 255, 0.25), 0 12px 40px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .ws-x-select.show { display: flex; }
 .ws-x:not([data-mode="world"]) .ws-x-select { display: none; }
-.ws-x-select .ws-x-select-dim { font-size: 9px; letter-spacing: 0.16em; color: var(--ws-cyan); }
-.ws-x-select b { font-family: var(--ws-display); font-size: 18px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; }
-.ws-x-select small { font-size: 10px; color: var(--ws-text-dim); }
-.ws-x-select-actions { display: flex; gap: 6px; margin-top: 4px; }
-.ws-x-select-actions button { padding: 6px 9px; background: rgba(143, 227, 255, 0.12); border: 1px solid var(--ws-cyan-line); font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; }
-.ws-x-select-actions .ws-x-open { color: var(--ws-cyan); border-color: var(--ws-cyan); }
+.ws-x-select b { font-family: var(--ws-display); font-size: 16px; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-x-select small { font-size: 9px; letter-spacing: 0.04em; color: var(--ws-text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-x-select-actions { display: grid; grid-template-columns: 1fr 38px; gap: 6px; margin-top: 6px; }
+.ws-x-select-actions button { padding: 8px 6px; background: rgba(143, 227, 255, 0.08); border: 1px solid var(--ws-cyan-line); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; }
+.ws-x-select-actions .ws-x-open { grid-column: 1 / -1; color: var(--ws-cyan); border-color: var(--ws-cyan); background: rgba(143, 227, 255, 0.14); }
+.ws-x-select-dim { position: absolute; left: 0; top: 0; display: none; padding: 3px 8px; font-size: 10px; letter-spacing: 0.12em; white-space: nowrap; color: #eaf8ff; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); pointer-events: none; }
+.ws-x-select-dim.show { display: block; }
+.ws-x:not([data-mode="world"]) .ws-x-select-dim { display: none; }
 
 /* ─── the mini map (src/explore/MiniMap.ts; mockups g11 / g12): a MAP button under the bar, a glass sheet ─── */
-.ws-x-mapbtn { position: absolute; right: 14px; top: calc(68px + env(safe-area-inset-top, 0px)); display: none; align-items: center; gap: 6px; padding: 7px 10px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-cyan); }
+.ws-x-mapbtn { position: absolute; right: 14px; top: calc(68px + env(safe-area-inset-top, 0px)); display: none; align-items: center; gap: 8px; padding: 8px 12px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #eaf8ff; }
+.ws-x-mapbtn.on { border-color: var(--ws-cyan); color: var(--ws-cyan); box-shadow: 0 0 14px rgba(143, 227, 255, 0.3); }
 .ws-x-mapbtn svg { width: 18px; height: 18px; }
 .ws-x[data-mode="world"] .ws-x-mapbtn { display: flex; }
-.ws-x-map { position: absolute; right: 14px; top: calc(108px + env(safe-area-inset-top, 0px)); display: none; flex-direction: column; gap: 8px; width: min(420px, calc(100vw - 28px)); padding: 10px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-.ws-x-map.show { display: flex; }
+.ws-x-map { position: absolute; right: 14px; bottom: max(14px, env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 10px; width: min(440px, calc(100vw - 28px)); padding: 8px 14px 14px; pointer-events: none; visibility: hidden; transform: translateY(calc(100% + 24px)); transition: transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s 0.34s; background: linear-gradient(180deg, rgba(13, 27, 38, 0.92), rgba(8, 18, 28, 0.94)); border: 1px solid var(--ws-cyan); border-radius: 14px 14px 4px 4px; box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.5), 0 0 24px rgba(143, 227, 255, 0.18); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.ws-x-map.show { pointer-events: auto; visibility: visible; transform: none; transition: transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s; }
 .ws-x:not([data-mode="world"]) .ws-x-map { display: none; }
-.ws-x-map-head { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; }
-.ws-x-map-head b { font-family: var(--ws-display); font-size: 17px; letter-spacing: 0.14em; text-transform: uppercase; }
-.ws-x-map-head small { flex: 1 1 60%; order: 3; font-size: 9px; letter-spacing: 0.12em; color: var(--ws-text-dim); }
-.ws-x-map-head button { margin-left: auto; padding: 5px 9px; background: rgba(143, 227, 255, 0.12); border: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; }
-.ws-x-map-head .ws-x-map-close { margin-left: 0; }
-.ws-x-map-board { position: relative; aspect-ratio: 1; border: 1px solid var(--ws-cyan-line); cursor: crosshair; }
+.ws-x-map-grab { display: block; align-self: center; width: 46px; height: 4px; border-radius: 2px; background: rgba(143, 227, 255, 0.55); }
+.ws-x-map-head { display: flex; align-items: center; gap: 8px; }
+.ws-x-map-head > div { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.ws-x-map-head b { font-family: var(--ws-display); font-size: 24px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ws-cyan); text-shadow: 0 0 14px rgba(143, 227, 255, 0.35); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-x-map-head small { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-x-map-head button { display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; background: rgba(143, 227, 255, 0.06); border: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; }
+.ws-x-map-head button svg { width: 16px; height: 16px; }
+.ws-x-map-head .ws-x-map-close { justify-content: center; width: 36px; padding: 0; font-size: 14px; }
+.ws-x-map-board { position: relative; aspect-ratio: 1; overflow: hidden; border: 1px solid var(--ws-cyan-line); border-radius: 6px; background: #0b3448; cursor: crosshair; }
 .ws-x-map-board canvas { display: block; width: 100%; height: 100%; image-rendering: auto; }
-.ws-x-pin { position: absolute; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 4px; padding: 0; background: none; border: 0; }
-.ws-x-pin i { width: 12px; height: 12px; border-radius: 50%; background: var(--ws-cyan); border: 2px solid #06121c; box-shadow: 0 0 10px var(--ws-cyan); }
-.ws-x-pin span { padding: 2px 5px; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); }
+.ws-x-map-board::after { content: ''; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 40px rgba(4, 14, 22, 0.55); }
+.ws-x-pin { position: absolute; z-index: 1; transform: translate(-9px, -50%); display: flex; align-items: center; gap: 0; padding: 0; background: none; border: 0; }
+.ws-x-pin i { position: relative; z-index: 1; flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%; background: #06121c; border: 3px solid var(--ws-cyan); box-shadow: 0 0 10px rgba(143, 227, 255, 0.7); }
+.ws-x-pin i::after { content: ''; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: #eaf8ff; }
+.ws-x-pin span { margin-left: -4px; padding: 3px 8px 3px 10px; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; color: #eaf8ff; background: rgba(8, 18, 28, 0.86); border: 1px solid var(--ws-cyan-line); border-radius: 0 4px 4px 0; }
+.ws-x-pin.flip { flex-direction: row-reverse; transform: translate(calc(-100% + 9px), -50%); }
+.ws-x-pin.flip span { margin: 0 -4px 0 0; padding: 3px 10px 3px 8px; border-radius: 4px 0 0 4px; }
 .ws-x-pin:hover span, .ws-x-pin:focus-visible span { border-color: var(--ws-cyan); color: var(--ws-cyan); }
-.ws-x-map-me { position: absolute; width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 16px solid var(--ws-amber); filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.8)); pointer-events: none; }
+.ws-x-map-me { position: absolute; z-index: 2; width: 72px; height: 72px; pointer-events: none; filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.7)); }
+.ws-x-map-me svg { display: block; width: 100%; height: 100%; }
+.ws-x-map-north { position: absolute; left: 12px; bottom: 44px; display: flex; flex-direction: column; align-items: center; font-family: var(--ws-display); font-size: 15px; color: #eaf8ff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); pointer-events: none; }
+.ws-x-map-north svg { width: 12px; height: 12px; }
+.ws-x-map-scale { position: absolute; left: 12px; bottom: 10px; display: flex; justify-content: space-between; height: 22px; font-size: 9px; color: #eaf8ff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); pointer-events: none; }
+.ws-x-map-scale i { position: absolute; left: 0; right: 0; top: 0; height: 6px; border: 1.5px solid #eaf8ff; border-top: 0; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8)); }
+.ws-x-map-scale span { position: relative; top: 9px; width: 0; display: flex; justify-content: center; white-space: nowrap; }
 
 /* ─── compare with the mockup (src/explore/Compare.ts; mockup p06): picker, then the mockup over the live frame ─── */
 .ws-x-comparebtn { position: absolute; right: 14px; top: calc(108px + env(safe-area-inset-top, 0px)); display: none; align-items: center; gap: 6px; padding: 7px 10px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid rgba(255, 181, 71, 0.5); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-amber); }
@@ -235,7 +252,8 @@
   .ws-x-sheet-head b { font-size: 18px; }
   .ws-x-creature { left: 8px; right: 8px; bottom: max(214px, calc(env(safe-area-inset-bottom, 0px) + 208px)); }
   .ws-x-clips button, .ws-x-creature-row button, .ws-x-variants button { padding: 6px 7px; font-size: 9px; letter-spacing: 0.08em; }
-  .ws-x-map { left: 8px; right: 8px; top: auto; bottom: max(90px, calc(env(safe-area-inset-bottom, 0px) + 84px)); width: auto; }
+  .ws-x-map { left: 6px; right: 6px; bottom: max(6px, env(safe-area-inset-bottom, 0px)); width: auto; padding: 8px 12px 12px; }
+  .ws-x-map-head b { font-size: 20px; }
   .ws-x-mapbtn { top: calc(62px + env(safe-area-inset-top, 0px)); right: 8px; }
   .ws-x-comparebtn { top: calc(100px + env(safe-area-inset-top, 0px)); right: 8px; }
   .ws-x-compare-bar b { display: none; }

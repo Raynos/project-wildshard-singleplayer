@@ -49,7 +49,7 @@ export class Forest {
   /** Called whenever the tree buckets are refilled (view moved > 1.5 m or turned > 3°), with the padded cull frustum. */
   onViewChange(fn: (frustum: THREE.Frustum, viewer: THREE.Vector3) => void): void { this.viewListeners.push(fn); this.lastLodPos.set(1e9, 0, 0); }
 
-  constructor(private factory: TreeFactory, private sky: Sky) { this.path = factory.multiDraw ? 'batched' : 'instanced'; }
+  constructor(readonly factory: TreeFactory, private sky: Sky) { this.path = factory.multiDraw ? 'batched' : 'instanced'; }
 
   /** Soft canopy-density texture (for terrain darkening under trees, and grass thinning). */
   canopyMap!: THREE.DataTexture;

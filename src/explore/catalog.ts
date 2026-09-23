@@ -2,6 +2,7 @@
  * The Model Explorer's catalog (project/archive/2026-09-23-explore-world.md X3, made generic in X10).
  *
  *   registerDriftwoodModels(handles)          // Driftwood's setup (main.ts, at boot): the hut, wreck, … into the registry
+ *   registerPineHollowModels(handles)         // Pine Hollow's (E66): the cabins, the pond, a pine, a boulder / stump / log
  *   catalogEntries(sky, animals, style, at)   // Explore: every registered model + one creature per species present
  *   measure(object)                           // tris / draw calls
  *
@@ -18,6 +19,9 @@ import { AnimalFactory, type AnimalStyle } from '../entities/AnimalFactory';
 import { Animal } from '../entities/Animal';
 import { speciesDef } from '../entities/species/registry';
 import type { Sky } from '../world/Sky';
+import type { Forest, TreeInstance } from '../world/Forest';
+import type { Props, PropKind } from '../world/Props';
+import { heightAt } from '../world/Heightfield';
 import { withTier } from './tiers';
 import { registerModel, registerPick, registeredModels, type ModelCategory, type RegisteredModel } from './registry';
 
@@ -86,6 +90,99 @@ export function registerDriftwoodModels(h: DriftwoodModels): void {
     },
   });
   if (h.bushes) registerPick({ object: h.bushes.mesh, entry: 'bush', boxAt: (pt) => around(new THREE.Vector3(pt.x, pt.y - 1, pt.z), 1.4, 1.8) });
+}
+
+// ── Pine Hollow's models (E66): the three log cabins, the pond, one Scots pine out of the forest, one of each prop ──
+
+export interface PineHollowModels {
+  sky: Sky;
+  cabins?: { roots: readonly THREE.Object3D[] } | null;
+  water?: Meshed;
+  forest?: Forest | null;
+  props?: Props | null;
+  /** where the fresh ones are built (they stand on the terrain there; the studio floor follows them) */
+  at: { x: number; z: number };
+}
+
+const CABIN_NAMES = ['Log cabin · hollow', 'Log cabin · east', 'Log cabin · ridge'] as const;
+
+export function registerPineHollowModels(h: PineHollowModels): void {
+  (h.cabins?.roots ?? []).forEach((root, i) => {
+    registerModel({ id: `cabin-${i + 1}`, name: CABIN_NAMES[i] ?? `Log cabin ${i + 1}`, category: 'buildings', file: 'src/world/Cabin.ts', live: true, object: () => root });
+  });
+  const pond = h.water?.mesh;
+  if (pond) registerModel({ id: 'pond', name: 'Still pond', category: 'nature', file: 'src/world/Water.ts', live: true, object: () => pond });
+
+  const fresh = (id: string, name: string, file: string, build: () => THREE.Object3D): void => {
+    let o: THREE.Object3D | null = null;
+    registerModel({ id, name, category: 'nature', file, live: false, object: () => (o ??= build()) });
+  };
+  const { forest, props } = h;
+  if (forest && forest.factory.variants.length > 0) fresh('pine', 'Scots pine', 'src/world/TreeFactory.ts', () => pineSpecimen(forest, h.at.x, h.at.z));
+  const part = (kind: PropKind, id: string, name: string): void => {
+    const parts = props?.parts[kind];
+    if (parts && parts.length > 0) fresh(id, name, 'src/world/Props.ts', () => propSpecimen(kind, parts, h.at.x, h.at.z));
+  };
+  part('rock', 'boulder', 'Mossy boulder');
+  part('stump', 'stump', 'Tree stump');
+  part('log', 'log', 'Fallen log');
+
+  // a tap on the forest / the props selects the one under the finger
+  const around = (x: number, y: number, z: number, r: number, hgt: number): THREE.Box3 => new THREE.Box3(new THREE.Vector3(x - r, y - 0.2, z - r), new THREE.Vector3(x + r, y + hgt, z + r));
+  if (forest) registerPick({
+    object: forest.group, entry: 'pine',
+    boxAt: (pt) => {
+      let best: TreeInstance | undefined, bd = Infinity;
+      for (const t of forest.nearby(pt.x, pt.z, 10)) { const d = (t.x - pt.x) ** 2 + (t.z - pt.z) ** 2; if (d < bd) { bd = d; best = t; } }
+      return best ? around(best.x, best.y, best.z, Math.max(2, best.height * 0.16), best.height) : around(pt.x, pt.y - 10, pt.z, 3, 14);
+    },
+  });
+  const ids: Record<PropKind, string> = { rock: 'boulder', stump: 'stump', log: 'log' };
+  for (const m of props?.meshes ?? []) registerPick({ object: m.mesh, entry: ids[m.kind], boxAt: (pt) => around(pt.x, pt.y - (m.kind === 'rock' ? 1.2 : 0.6), pt.z, m.kind === 'log' ? 2.6 : 1.2, m.kind === 'rock' ? 2 : 1) });
+}
+
+/**
+ * the tallest pine variant on its own: the forest's own geometry and materials, full detail (cards + twigs + trunk),
+ * standing exactly on the nearest real tree of that variant — so VIEW IN WORLD lands on a pine that is there
+ */
+function pineSpecimen(forest: Forest, x: number, z: number): THREE.Object3D {
+  const f = forest.factory;
+  let vi = 0;
+  f.variants.forEach((c, i) => { if (c.height > (f.variants[vi]?.height ?? 0)) vi = i; });
+  const v = f.variants[vi];
+  const g = new THREE.Group();
+  if (!v) return g;
+  let real: TreeInstance | undefined, bd = Infinity;
+  for (const t of forest.trees) { const d = (t.x - x) ** 2 + (t.z - z) ** 2; if (t.variant === vi && d < bd) { bd = d; real = t; } }
+  const crown = new THREE.Mesh(v.cardsHi, f.needleMaterial), twigs = new THREE.Mesh(v.twigs, f.twigMaterial);
+  crown.customDepthMaterial = f.needleDepth; twigs.customDepthMaterial = f.twigDepth;
+  for (const m of [new THREE.Mesh(v.trunk, f.barkMaterial), crown, twigs]) { m.castShadow = true; m.receiveShadow = true; g.add(m); }
+  if (real) { g.position.set(real.x, real.y, real.z); g.rotation.y = real.rot; g.scale.setScalar(real.scale); }
+  else g.position.set(x, heightAt(x, z), z);
+  return g;
+}
+
+/** one prop on its own: the largest part of the set (the boulders are six shapes), standing on its base */
+function propSpecimen(kind: PropKind, parts: NonNullable<Props['parts'][PropKind]>, x: number, z: number): THREE.Object3D {
+  const g = new THREE.Group();
+  const pick = kind === 'rock' ? [...parts].sort((a, b) => volume(b.geometry) - volume(a.geometry)).slice(0, 1) : parts;
+  for (const p of pick) {
+    const m = new THREE.Mesh(p.geometry, p.material);
+    m.applyMatrix4(p.matrix);
+    m.castShadow = true; m.receiveShadow = true;
+    g.add(m);
+  }
+  const box = new THREE.Box3().setFromObject(g), c = box.getCenter(new THREE.Vector3());
+  for (const m of g.children) m.position.sub(new THREE.Vector3(c.x, box.min.y, c.z));
+  g.position.set(x, heightAt(x, z), z);
+  if (kind === 'log') g.scale.setScalar(1.4);
+  return g;
+}
+
+function volume(geo: THREE.BufferGeometry): number {
+  geo.computeBoundingBox();
+  const s = geo.boundingBox?.getSize(new THREE.Vector3());
+  return s ? s.x * s.y * s.z : 0;
 }
 
 // ── the catalog Explore shows: every registered model + a creature per species on the shard ──

@@ -83,7 +83,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   game.onUpdate((dt) => {
     if (tour.active) { tour.setTime(tour.time); player.position.copy(game.camera.position); player.position.y -= 1.7; }
     else if (!world.freeCamera) player.update(dt);
-    forest.update(dt, player.position);
+    forest.update(dt, world.freeCamera ? game.camera.position : player.position); // Explore's free camera: LOD around the eye, not the parked player
   });
   (window as unknown as { __hf: unknown }).__hf = Heightfield;
   return world;
