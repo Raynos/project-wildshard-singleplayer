@@ -44,7 +44,7 @@ const HORSE = {
 } satisfies Record<string, RGB>;
 
 const CHESTNUT: Record<string, RGB> = { coat: [0.62, 0.32, 0.14], belly: [0.70, 0.42, 0.22], points: [0.58, 0.30, 0.13], mane: [0.78, 0.52, 0.28], muzzle: [0.40, 0.24, 0.15], dorsal: [0.62, 0.32, 0.14] };
-const BLACK: Record<string, RGB> = { coat: [0.075, 0.068, 0.072], belly: [0.10, 0.09, 0.09], points: [0.035, 0.032, 0.035], mane: [0.03, 0.028, 0.03], muzzle: [0.14, 0.12, 0.12], earIn: [0.10, 0.08, 0.08], dorsal: [0.075, 0.068, 0.072] };
+const BLACK: Record<string, RGB> = { coat: [0.13, 0.12, 0.125], belly: [0.16, 0.145, 0.14], points: [0.06, 0.055, 0.058], mane: [0.045, 0.04, 0.045], muzzle: [0.14, 0.12, 0.12], earIn: [0.10, 0.08, 0.08], dorsal: [0.13, 0.12, 0.125] };
 const DUN: Record<string, RGB> = { coat: [0.76, 0.62, 0.42], belly: [0.84, 0.74, 0.56], points: [0.10, 0.08, 0.07], mane: [0.10, 0.08, 0.07], muzzle: [0.30, 0.24, 0.20], dorsal: [0.24, 0.17, 0.12] };
 const GREY: Record<string, RGB> = { coat: [0.80, 0.80, 0.78], belly: [0.88, 0.88, 0.86], points: [0.36, 0.35, 0.35], mane: [0.55, 0.54, 0.53], muzzle: [0.24, 0.22, 0.22], earIn: [0.45, 0.40, 0.40], dorsal: [0.80, 0.80, 0.78] };
 const FOAL_BAY: Record<string, RGB> = { coat: [0.66, 0.45, 0.30], belly: [0.76, 0.60, 0.44], points: [0.72, 0.58, 0.44], mane: [0.30, 0.22, 0.16], muzzle: [0.42, 0.33, 0.28], dorsal: [0.66, 0.45, 0.30] };
@@ -295,13 +295,16 @@ function horsePostPose(c: RigAnimCtx): void {
   const pin = ez('pin', alive ? clamp(m['pin'] ?? 0, 0, 1) : 0, 6);
   const speed = c.speed;
   const run = clamp((speed - 3) / 9, 0, 1);
+  // Animal.ts rewrites the body bone's y every frame but never its z: keep the bind z and set z absolutely
+  const bz = m['_bz'] ?? (m['_bz'] = body.position.z);
+  body.position.z = bz;
 
   // rearing: pivot on the hind feet (raise the body bone so the hips stay put), forelegs fold, neck up
   if (rear > 0.001) {
-    const th = rear * 0.95;
+    const th = rear * 0.78;
     body.rotation.x -= th;
-    body.position.y += 0.62 * Math.sin(th);
-    body.position.z -= 0.62 * (1 - Math.cos(th)) * 0.5;
+    body.position.y += 0.6 * Math.sin(th);
+    body.position.z = bz - 0.31 * (1 - Math.cos(th));
     n1.rotation.x -= 0.35 * rear; head.rotation.x += 0.25 * rear;
     for (const s of ['L', 'R'] as const) {
       const sh = b[`F${s}_shoulder`], ca = b[`F${s}_carpus`], fe = b[`F${s}_fetlock`], hp = b[`B${s}_hip`], stf = b[`B${s}_stifle`];

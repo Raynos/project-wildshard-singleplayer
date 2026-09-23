@@ -354,7 +354,7 @@ export class Pack {
         const ang = bearing + step;
         const px = tgt.x + Math.sin(ang) * R, pz = tgt.z + Math.cos(ang) * R;
         const pd = Math.hypot(px - a.position.x, pz - a.position.z);
-        low = 0.5;
+        low = 0.25;   // on the ring: slinking, head still over the grass
         if (pd > 1.2) this.steerSep(a, c, Math.atan2(px - a.position.x, pz - a.position.z), pd > 10 ? RUN * 0.85 : pd > 3 ? TROT * 1.2 : 2.2, 4);
         else a.setMotion(toTgt, 0, 3);
         break;

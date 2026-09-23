@@ -76,13 +76,14 @@ if (scene === 'lineup') {
   const [fx, fz] = ahead(7, 4.5);
   wildlife.spawnFlock(fx, fz, 7, false, 3);
 }
-if (params.has('hunt')) for (const p of wildlife.packs) p.awareness = 1;
+const hunt = params.has('hunt');
 const stampedeAt = num('stampede', -1);
 if (scene === 'flock' && params.has('wolf')) { const [x, z] = ahead(60, -20); wildlife.spawnPack(x, z, ['grey']); }
 
 let t0 = -1;
 game.onUpdate((dt, t) => {
   if (t0 < 0) t0 = t;
+  if (hunt) for (const p of wildlife.packs) p.awareness = Math.max(p.awareness, 0.6);   // it knows you're here
   animals.update(dt, t, player.position, player.sprinting);
   wildlife.update(dt, t, player);
   if (wm !== undefined) { wildEnv.wind.x = wm.wind.dirX; wildEnv.wind.z = wm.wind.dirZ; wildEnv.wind.strength = Math.min(1, wm.wind.speed / 10); }

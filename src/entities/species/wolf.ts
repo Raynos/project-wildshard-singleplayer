@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from './registry';
-import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
+import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, paintNoise, type Paint, type RGB } from './loft';
 import { NO_FUR, smooth01, bump, clamp } from './rigs';
 import { thinkWolf } from '../Pack';
 
@@ -23,16 +23,16 @@ import { thinkWolf } from '../Pack';
  */
 
 const WOLF = {
-  back: [0.34, 0.31, 0.28], side: [0.63, 0.53, 0.40], cream: [0.90, 0.86, 0.78], leg: [0.66, 0.55, 0.41],
+  back: [0.20, 0.185, 0.175], side: [0.60, 0.52, 0.42], cream: [0.90, 0.86, 0.78], leg: [0.66, 0.55, 0.41],
   dark: [0.14, 0.12, 0.11], nose: [0.05, 0.045, 0.045], earIn: [0.82, 0.70, 0.58], eye: [0.86, 0.60, 0.16],
   mouth: [0.42, 0.10, 0.10], scar: [0.80, 0.55, 0.52],
 } satisfies Record<string, RGB>;
 
 /** Greymane, the pack alpha: silver back, pale ruff */
-const ALPHA_TINT: Record<string, RGB> = { back: [0.44, 0.44, 0.45], side: [0.72, 0.70, 0.66], cream: [0.95, 0.94, 0.91], leg: [0.70, 0.66, 0.60] };
-const TAWNY_TINT: Record<string, RGB> = { back: [0.42, 0.34, 0.26], side: [0.72, 0.55, 0.34], leg: [0.72, 0.56, 0.37], cream: [0.92, 0.84, 0.70] };
+const ALPHA_TINT: Record<string, RGB> = { back: [0.34, 0.34, 0.36], side: [0.72, 0.70, 0.66], cream: [0.95, 0.94, 0.91], leg: [0.70, 0.66, 0.60] };
+const TAWNY_TINT: Record<string, RGB> = { back: [0.30, 0.24, 0.19], side: [0.72, 0.55, 0.34], leg: [0.72, 0.56, 0.37], cream: [0.92, 0.84, 0.70] };
 const DARK_TINT: Record<string, RGB> = { back: [0.15, 0.14, 0.14], side: [0.32, 0.30, 0.28], leg: [0.36, 0.33, 0.30], cream: [0.62, 0.58, 0.52] };
-const SCOUT_TINT: Record<string, RGB> = { back: [0.45, 0.40, 0.34], side: [0.72, 0.62, 0.48], leg: [0.74, 0.64, 0.50] };
+const SCOUT_TINT: Record<string, RGB> = { back: [0.32, 0.29, 0.25], side: [0.72, 0.62, 0.48], leg: [0.74, 0.64, 0.50] };
 
 /** the sheepdog: a black-and-white collie (species/sheepdog.ts) */
 export const COLLIE_TINT: Record<string, RGB> = {
@@ -49,14 +49,14 @@ function canidPaint(v: VariantDef): Paint {
       case 'body': {
         out.copy(P.side);
         // the saddle: dark over the back and shoulders, softening toward the flanks
-        mix(out, out, P.back, sstep(0.15, 0.75, ny) * (0.55 + 0.45 * sstep(-0.5, 0.2, z)));
+        mix(out, out, P.back, sstep(-0.05, 0.6, ny + 0.15 * paintNoise.fbm(x * 6 + 3, z * 5, 2)) * (0.6 + 0.4 * sstep(-0.5, 0.2, z)));
         mix(out, out, P.cream, sstep(-0.25, -0.75, ny));                                        // belly
         if (dog) mix(out, out, P.cream, sstep(0.18, 0.34, z) * sstep(0.2, -0.4, ny) * 0.95);    // white chest bib
         break;
       }
       case 'neck':
         out.copy(P.side);
-        mix(out, out, P.back, sstep(0.3, 0.9, ny) * 0.8);
+        mix(out, out, P.back, sstep(0.1, 0.8, ny) * 0.85);
         mix(out, out, P.cream, sstep(-0.05, -0.6, ny) + (dog ? sstep(0.15, 0.55, t) * 0.9 : 0));  // throat (the collie's white collar)
         break;
       case 'head': {
@@ -92,6 +92,8 @@ function canidPaint(v: VariantDef): Paint {
 export function buildCanid(v: VariantDef, _rng: Rng): AnimalSpecies {
   const dog = Boolean(v.traits?.['dog']);
   const ruff = Number(v.traits?.['ruff'] ?? 1);
+  // girth: a wolf is deep-chested and thick-coated — the lofts below are the lean skeleton, these fill it out
+  const TW = 1.18, TH = 1.1, LW = dog ? 1.15 : 1.3, HW = dog ? 1.08 : 1.18;
   const bones: BoneDef[] = [
     { name: 'body', parent: null, pos: [0, 0.66, -0.02] },
     { name: 'neck1', parent: 'body', pos: [0, 0.73, 0.38] },
@@ -121,47 +123,47 @@ export function buildCanid(v: VariantDef, _rng: Rng): AnimalSpecies {
   const body = B('body'), n1 = B('neck1'), n2 = B('neck2'), hd = B('head'), bl = B('belly'), jw = B('jaw');
   // torso: tucked waist, deep narrow chest, the ruff swelling over the shoulders
   fur.push(loft([
-    S(0, 0.665, -0.57, 0.02, 0.02, body),
-    S(0, 0.67, -0.55, 0.085, 0.095, body),
-    S(0, 0.665, -0.49, 0.125, 0.135, body),
-    S(0, 0.66, -0.39, 0.135, 0.145, body),
-    S(0, 0.655, -0.24, 0.125, 0.13, body, bl, 0.4, 1.0, 0.85),
-    S(0, 0.66, -0.07, 0.135, 0.16, body, bl, 0.6, 1.0, 1.0),
-    S(0, 0.665, 0.10, 0.145, 0.19, body, bl, 0.4, 1.0, 1.12),
-    S(0, 0.675, 0.24, 0.15, 0.205, body, n1, 0.1, 1.05, 1.15),
-    S(0, 0.695, 0.36, 0.14 * ruff, 0.19, body, n1, 0.4, 1.12, 1.05),
-    S(0, 0.715, 0.45, 0.11, 0.14, n1, n2, 0.3),
-    S(0, 0.72, 0.49, 0.03, 0.04, n1),
+    S(0, 0.665, -0.57, (0.02) * TW, (0.02) * TH, body),
+    S(0, 0.67, -0.55, (0.085) * TW, (0.095) * TH, body),
+    S(0, 0.665, -0.49, (0.125) * TW, (0.135) * TH, body),
+    S(0, 0.66, -0.39, (0.135) * TW, (0.145) * TH, body),
+    S(0, 0.655, -0.24, (0.125) * TW, (0.13) * TH, body, bl, 0.4, 1.0, 0.85),
+    S(0, 0.66, -0.07, (0.135) * TW, (0.16) * TH, body, bl, 0.6, 1.0, 1.0),
+    S(0, 0.665, 0.10, (0.145) * TW, (0.19) * TH, body, bl, 0.4, 1.0, 1.12),
+    S(0, 0.675, 0.24, (0.15) * TW, (0.205) * TH, body, n1, 0.1, 1.05, 1.15),
+    S(0, 0.695, 0.36, (0.14 * ruff) * TW, (0.19) * TH, body, n1, 0.4, 1.12, 1.05),
+    S(0, 0.715, 0.45, (0.11) * TW, (0.14) * TH, n1, n2, 0.3),
+    S(0, 0.72, 0.49, (0.03) * TW, (0.04) * TH, n1),
   ], 18, 'body', paint));
   // neck with the ruff
   fur.push(loft([
-    S(0, 0.69, 0.28, 0.145, 0.19, body, n1, 0.2),
-    S(0, 0.745, 0.40, 0.14 * ruff, 0.165 * ruff, n1),
-    S(0, 0.795, 0.50, 0.125 * ruff, 0.14 * ruff, n1, n2, 0.6),
-    S(0, 0.845, 0.575, 0.10, 0.11, n2, hd, 0.5),
-    S(0, 0.875, 0.62, 0.075, 0.08, hd),
-    S(0, 0.885, 0.64, 0.03, 0.03, hd),
+    S(0, 0.69, 0.28, (0.145) * TW, (0.19) * TH, body, n1, 0.2),
+    S(0, 0.745, 0.40, (0.14 * ruff) * TW, (0.165 * ruff) * TH, n1),
+    S(0, 0.795, 0.50, (0.125 * ruff) * TW, (0.14 * ruff) * TH, n1, n2, 0.6),
+    S(0, 0.845, 0.575, (0.10) * TW, (0.11) * TH, n2, hd, 0.5),
+    S(0, 0.875, 0.62, (0.075) * TW, (0.08) * TH, hd),
+    S(0, 0.885, 0.64, (0.03) * TW, (0.03) * TH, hd),
   ], 16, 'neck', paint, false, true));
   // head: broad skull and cheeks, a long tapering muzzle (the upper jaw; the lower jaw is its own part on the `jaw` bone)
   const mz = dog ? 0.8 : 1;   // the collie's shorter muzzle
   fur.push(loft([
-    S(0, 0.86, 0.575, 0.07, 0.075, hd),
-    S(0, 0.875, 0.615, 0.095, 0.09, hd),
-    S(0, 0.878, 0.665, 0.10, 0.088, hd),
-    S(0, 0.868, 0.715, 0.083, 0.072, hd, hd, 0, 1.0, 0.9),
-    S(0, 0.848, 0.715 + 0.06 * mz, 0.056, 0.052, hd, hd, 0, 1.0, 0.7),
-    S(0, 0.836, 0.715 + 0.12 * mz, 0.045, 0.043, hd, hd, 0, 1.0, 0.6),
-    S(0, 0.83, 0.715 + 0.175 * mz, 0.038, 0.035, hd, hd, 0, 1.0, 0.6),
-    S(0, 0.829, 0.715 + 0.205 * mz, 0.028, 0.027, hd),
-    S(0, 0.828, 0.715 + 0.215 * mz, 0.01, 0.01, hd),
+    S(0, 0.86, 0.575, 0.07 * HW, 0.075 * HW, hd),
+    S(0, 0.875, 0.615, 0.095 * HW, 0.09 * HW, hd),
+    S(0, 0.878, 0.665, 0.10 * HW, 0.088 * HW, hd),
+    S(0, 0.868, 0.715, 0.083 * HW, 0.072 * HW, hd, hd, 0, 1.0, 0.9),
+    S(0, 0.848, 0.715 + 0.06 * mz, 0.056 * HW, 0.052 * HW, hd, hd, 0, 1.0, 0.7),
+    S(0, 0.836, 0.715 + 0.12 * mz, 0.045 * HW, 0.043 * HW, hd, hd, 0, 1.0, 0.6),
+    S(0, 0.83, 0.715 + 0.175 * mz, 0.038 * HW, 0.035 * HW, hd, hd, 0, 1.0, 0.6),
+    S(0, 0.829, 0.715 + 0.205 * mz, 0.028 * HW, 0.027 * HW, hd),
+    S(0, 0.828, 0.715 + 0.215 * mz, 0.01 * HW, 0.01 * HW, hd),
   ], 16, 'head', paint));
   // lower jaw (hinged at the back of the cheek)
   fur.push(loft([
-    S(0, 0.815, 0.67, 0.06, 0.03, hd, jw, 0.6),
-    S(0, 0.807, 0.72 + 0.03 * mz, 0.045, 0.024, jw),
-    S(0, 0.806, 0.72 + 0.10 * mz, 0.034, 0.02, jw),
-    S(0, 0.807, 0.72 + 0.16 * mz, 0.026, 0.016, jw),
-    S(0, 0.809, 0.72 + 0.185 * mz, 0.01, 0.008, jw),
+    S(0, 0.815, 0.67, 0.06 * HW, 0.03 * HW, hd, jw, 0.6),
+    S(0, 0.807, 0.72 + 0.03 * mz, 0.045 * HW, 0.024 * HW, jw),
+    S(0, 0.806, 0.72 + 0.10 * mz, 0.034 * HW, 0.02 * HW, jw),
+    S(0, 0.807, 0.72 + 0.16 * mz, 0.026 * HW, 0.016 * HW, jw),
+    S(0, 0.809, 0.72 + 0.185 * mz, 0.01 * HW, 0.008 * HW, jw),
   ], 12, 'jaw', paint));
   // ears: tall triangles (the collie's tips fold forward)
   for (const sx of [1, -1]) {
@@ -175,10 +177,10 @@ export function buildCanid(v: VariantDef, _rng: Rng): AnimalSpecies {
     ], 8, 'ear', paint, true, true, 'z'));
     const eye = new THREE.SphereGeometry(0.0145, 10, 8);
     eye.scale(1, 0.8, 1);
-    eye.translate(sx * 0.046, 0.888, 0.705);
+    eye.translate(sx * 0.053 * HW, 0.889, 0.728);
     eyes.push(skinPlain(eye, hd, 'eye', paint));
     const pupil = new THREE.SphereGeometry(0.007, 6, 5);
-    pupil.translate(sx * 0.052, 0.889, 0.715);
+    pupil.translate(sx * 0.058 * HW, 0.89, 0.737);
     eyes.push(skinPlain(pupil, hd, 'pupil', paint));
   }
   // the brush: hangs from the rump, thick in the middle
@@ -199,36 +201,36 @@ export function buildCanid(v: VariantDef, _rng: Rng): AnimalSpecies {
     const sx = side === 'L' ? 1 : -1;
     const sh = B(`F${side}_shoulder`), ca = B(`F${side}_carpus`), fe = B(`F${side}_fetlock`);
     fur.push(loft([
-      S(sx * 0.085, 0.67, 0.335, 0.06, 0.10, body, sh, 0.3),
-      S(sx * 0.10, 0.52, 0.35, 0.05, 0.068, body, sh, 0.8),
-      S(sx * 0.10, 0.38, 0.36, 0.034, 0.044, sh),
-      S(sx * 0.10, 0.285, 0.36, 0.027, 0.031, sh, ca, 0.5),
-      S(sx * 0.10, 0.17, 0.365, 0.022, 0.026, ca),
-      S(sx * 0.10, 0.085, 0.37, 0.024, 0.028, ca, fe, 0.5),
-      S(sx * 0.10, 0.05, 0.378, 0.027, 0.028, fe),
+      S(sx * 0.085, 0.67, 0.335, 0.06 * LW, 0.10 * LW, body, sh, 0.3),
+      S(sx * 0.10, 0.52, 0.35, 0.05 * LW, 0.068 * LW, body, sh, 0.8),
+      S(sx * 0.10, 0.38, 0.36, 0.034 * LW, 0.044 * LW, sh),
+      S(sx * 0.10, 0.285, 0.36, 0.027 * LW, 0.031 * LW, sh, ca, 0.5),
+      S(sx * 0.10, 0.17, 0.365, 0.022 * LW, 0.026 * LW, ca),
+      S(sx * 0.10, 0.085, 0.37, 0.024 * LW, 0.028 * LW, ca, fe, 0.5),
+      S(sx * 0.10, 0.05, 0.378, 0.027 * LW, 0.028 * LW, fe),
     ], 10, 'leg', paint, false, true));
     hard.push(loft([
-      S(sx * 0.10, 0.03, 0.35, 0.026, 0.02, fe),
-      S(sx * 0.10, 0.032, 0.38, 0.034, 0.03, fe),
-      S(sx * 0.10, 0.024, 0.41, 0.03, 0.022, fe),
-      S(sx * 0.10, 0.016, 0.428, 0.014, 0.01, fe),
+      S(sx * 0.10, 0.03, 0.35, 0.026 * LW, 0.02 * LW, fe),
+      S(sx * 0.10, 0.032, 0.38, 0.034 * LW, 0.03 * LW, fe),
+      S(sx * 0.10, 0.024, 0.41, 0.03 * LW, 0.022 * LW, fe),
+      S(sx * 0.10, 0.016, 0.428, 0.014 * LW, 0.01 * LW, fe),
     ], 10, 'paw', paint));
     feetF.push([sx * 0.10, 0.40]);
     const hp = B(`B${side}_hip`), stf = B(`B${side}_stifle`), hk = B(`B${side}_hock`);
     fur.push(loft([
-      S(sx * 0.075, 0.69, -0.40, 0.07, 0.12, body, hp, 0.3),
-      S(sx * 0.095, 0.55, -0.37, 0.064, 0.10, body, hp, 0.8),
-      S(sx * 0.105, 0.44, -0.35, 0.048, 0.058, hp, stf, 0.5),
-      S(sx * 0.11, 0.34, -0.42, 0.034, 0.04, stf),
-      S(sx * 0.11, 0.235, -0.495, 0.027, 0.03, stf, hk, 0.5),
-      S(sx * 0.11, 0.14, -0.485, 0.022, 0.026, hk),
-      S(sx * 0.11, 0.05, -0.475, 0.026, 0.028, hk),
+      S(sx * 0.075, 0.69, -0.40, 0.07 * LW, 0.12 * LW, body, hp, 0.3),
+      S(sx * 0.095, 0.55, -0.37, 0.064 * LW, 0.10 * LW, body, hp, 0.8),
+      S(sx * 0.105, 0.44, -0.35, 0.048 * LW, 0.058 * LW, hp, stf, 0.5),
+      S(sx * 0.11, 0.34, -0.42, 0.034 * LW, 0.04 * LW, stf),
+      S(sx * 0.11, 0.235, -0.495, 0.027 * LW, 0.03 * LW, stf, hk, 0.5),
+      S(sx * 0.11, 0.14, -0.485, 0.022 * LW, 0.026 * LW, hk),
+      S(sx * 0.11, 0.05, -0.475, 0.026 * LW, 0.028 * LW, hk),
     ], 10, 'leg', paint, false, true));
     hard.push(loft([
-      S(sx * 0.11, 0.03, -0.50, 0.026, 0.02, hk),
-      S(sx * 0.11, 0.032, -0.47, 0.033, 0.03, hk),
-      S(sx * 0.11, 0.024, -0.44, 0.029, 0.022, hk),
-      S(sx * 0.11, 0.016, -0.424, 0.013, 0.01, hk),
+      S(sx * 0.11, 0.03, -0.50, 0.026 * LW, 0.02 * LW, hk),
+      S(sx * 0.11, 0.032, -0.47, 0.033 * LW, 0.03 * LW, hk),
+      S(sx * 0.11, 0.024, -0.44, 0.029 * LW, 0.022 * LW, hk),
+      S(sx * 0.11, 0.016, -0.424, 0.013 * LW, 0.01 * LW, hk),
     ], 10, 'paw', paint));
     feetB.push([sx * 0.11, -0.46]);
   }
@@ -255,7 +257,7 @@ export function canidPostPose(c: RigAnimCtx): void {
   // the lunge: coil (body drops, head low) → spring (body pitches up, forelegs reach) → snap (jaw)
   const coil = a >= 0 ? bump(a, 0, 0.42) : 0, spring = a >= 0 ? bump(a, 0.3, 0.8) : 0, snap = a >= 0 ? bump(a, 0.62, 1) : 0;
   const crouch = Math.max(low * 0.7, coil);
-  body.position.y -= 0.12 * crouch + 0.02 * snarl;
+  body.position.y += -0.12 * crouch - 0.02 * snarl + 0.28 * spring * spring;   // the spring leaves the ground
   body.rotation.x += 0.06 * crouch - 0.22 * spring;
   // head: level and forward when stalking, thrown back to howl
   n1.rotation.x += 0.25 * crouch - 0.9 * howl;

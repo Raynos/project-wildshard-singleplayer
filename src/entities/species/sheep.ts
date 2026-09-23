@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { loft, S, mix, sstep, srgb, setShag, type Paint } from './loft';
+import { loft, S, mix, sstep, srgb, setShag, paintNoise, type Paint } from './loft';
 
 /**
  * Fat-tailed steppe sheep — the MODEL of the camp flock (Nalati, row B4). Sheep are not AnimalManager animals: a flock
@@ -26,9 +26,14 @@ export const SHEEP_PIVOTS: [number, number, number][] = [
 const WOOL = srgb(0.93, 0.88, 0.78), WOOL_SHADE = srgb(0.78, 0.72, 0.62), FACE = srgb(0.30, 0.20, 0.14), NOSE = srgb(0.12, 0.09, 0.08);
 const LEG = srgb(0.26, 0.19, 0.15), HOOF = srgb(0.08, 0.07, 0.06), EAR_IN = srgb(0.62, 0.42, 0.38), EYE = srgb(0.03, 0.025, 0.02);
 
-const sheepPaint: Paint = (out, _x, y, _z, _nx, ny, _nz, part, t) => {
+const sheepPaint: Paint = (out, x, y, z, _nx, ny, _nz, part, t) => {
   switch (part) {
-    case 'body': mix(out, WOOL, WOOL_SHADE, sstep(0.0, -0.8, ny) * 0.8 + sstep(0.5, 0.3, y) * 0.3); break;
+    case 'body': {
+      mix(out, WOOL, WOOL_SHADE, sstep(0.0, -0.8, ny) * 0.8 + sstep(0.5, 0.3, y) * 0.3);
+      const curl = 1 + 0.09 * paintNoise.fbm(x * 14 + z * 3, z * 14 - y * 9, 2);   // painted curls
+      out.multiplyScalar(curl);
+      break;
+    }
     case 'neck': mix(out, WOOL, WOOL_SHADE, 0.2); break;
     case 'head': mix(out, FACE, NOSE, sstep(0.8, 0.97, t)); break;
     case 'ear': mix(out, FACE, EAR_IN, sstep(0.2, 0.8, -ny) * 0.6); break;
@@ -42,7 +47,7 @@ const sheepPaint: Paint = (out, _x, y, _z, _nx, ny, _nz, part, t) => {
 export function buildSheepGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   const BODY = 0, HEAD = 1, TAIL = 6;
-  setShag(0.03);   // lumpy wool
+  setShag(0.055);  // lumpy wool
   parts.push(loft([
     S(0, 0.60, -0.50, 0.03, 0.03, BODY),
     S(0, 0.61, -0.47, 0.17, 0.17, BODY, TAIL, 0.4),
@@ -54,13 +59,12 @@ export function buildSheepGeometry(): THREE.BufferGeometry {
     S(0, 0.66, 0.43, 0.13, 0.15, BODY, HEAD, 0.6),
     S(0, 0.67, 0.46, 0.03, 0.03, HEAD),
   ], 18, 'body', sheepPaint));
-  // the fat rump / tail: a heavy pad under the back of the fleece
+  // the fat rump: a heavier, lower back end (the fat tail sits inside the fleece)
   parts.push(loft([
-    S(0, 0.56, -0.40, 0.05, 0.05, TAIL),
-    S(0, 0.52, -0.47, 0.16, 0.13, TAIL),
-    S(0, 0.44, -0.50, 0.17, 0.12, TAIL),
-    S(0, 0.36, -0.48, 0.11, 0.07, TAIL),
-    S(0, 0.33, -0.46, 0.03, 0.03, TAIL),
+    S(0, 0.55, -0.30, 0.10, 0.10, BODY, TAIL, 0.5),
+    S(0, 0.50, -0.38, 0.19, 0.14, TAIL),
+    S(0, 0.46, -0.42, 0.17, 0.11, TAIL),
+    S(0, 0.44, -0.44, 0.06, 0.05, TAIL),
   ], 12, 'body', sheepPaint));
   setShag(0);
   // neck + head: short woolly neck, a dark narrow face, a roman nose
