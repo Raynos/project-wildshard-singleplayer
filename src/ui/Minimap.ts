@@ -59,6 +59,7 @@ const TRAIL_EDGE = 'rgba(80, 64, 44, 0.85)', TRAIL = '#a08a66';
 const CROWN_DARK = '#2b4229', CROWN_MID = '#3c5a34', CROWN_LIGHT = '#66864a', CROWN_SHADOW = 'rgba(18, 34, 20, 0.5)';
 const ROOF = '#74523a', ROOF_RIDGE = '#9a7a58', ROOF_SHADOW = 'rgba(0, 0, 0, 0.45)';
 const VOID = '#0b1016';
+const OPEN_SEA = 'rgb(22, 74, 128)';                                        // an ocean shard past the painted map: the deep-sea colour (SEA_DEEP)
 const DOT_PASSIVE = '#ffe066', DOT_AGGRESSIVE = '#ff5a4a', DOT_OUTLINE = 'rgba(6, 10, 18, 0.9)';
 const ARROW = '#ffffff';
 
@@ -166,7 +167,7 @@ export class Minimap {
     const ctx = this.ctx;
     ctx.save();
     ctx.beginPath(); ctx.arc(c, c, c, 0, Math.PI * 2); ctx.clip();
-    ctx.fillStyle = VOID; ctx.fillRect(0, 0, D, D);
+    ctx.fillStyle = getActiveChunk().ocean ? OPEN_SEA : VOID; ctx.fillRect(0, 0, D, D); // the island's sea runs on past the chunk edge (the pier spawn looks off it)
 
     // 1. terrain, the player centred, north up (layer u = (HALF − x) · ppm so east (−X) is screen right)
     const lr = VIEW_RADIUS * LAYER_PPM;

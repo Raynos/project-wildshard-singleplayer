@@ -369,9 +369,8 @@ export class Sword implements Weapon {
   swingScale = 1;
   /** 0..1 weapon-swap blend (a Weapons manager drives it): 1 = dropped out of the frame; 0 = held */
   holster = 0;
-  aimInfo: AimInfo | null = null;
-  private aimFrame = 0;
-  private aimCache: AimInfo = { kind: 'deer', distance: 0 };
+  /** always null: a melee weapon shows no range readout — the aimed enemy's plate is its label (Combat.ts) */
+  readonly aimInfo: AimInfo | null = null;
 
   onFire?: () => void;
   /** the heavy's release (after onFire): a deeper whoosh — Audio.swordHeavy() */
@@ -875,13 +874,8 @@ export class Sword implements Weapon {
     if (glintOn) { this.rig.updateMatrix(); this.glint.set(_v2.set(0, this.tipY + 0.02, 0).applyMatrix4(this.rig.matrix)); }
     this.glint.update(worldTime.realDt, t, glintOn);
 
-    // aim readout (HUD "BOAR · 15 M")
-    if (this.targets && (++this.aimFrame & 3) === 0) {
-      cam.getWorldDirection(_fwd);
-      const hit = this.targets.raycast(cam.position, _fwd, 120);
-      if (hit?.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; this.aimInfo = this.aimCache; }
-      else this.aimInfo = null;
-    }
+    // no aim readout ("BOAR · 15 M") on a melee weapon: the aimed enemy's name plate + health bar (Combat.ts) is its one label
+    // (0.6: the plate and the readout showed at once); aimInfo stays null
     this.stars.update(worldTime.realDt, this.game.renderer, cam); // particles keep flying through a hit-stop
   }
 }
