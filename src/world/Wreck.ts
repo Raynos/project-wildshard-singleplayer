@@ -35,6 +35,12 @@ import { LowPolyKit, log, beam, plank, rock, rope, sagLine, tris, bakeLight, low
 import { swayDepthMaterial } from './wind';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
+import { boxDesc, type ColliderDesc } from './registry';
+
+/** a world-height plane over the hull-aligned horizontal local (lx, lz): y = a + bx·lx + bz·lz */
+interface Plane { a: number; bx: number; bz: number }
+/** half the thickness of a floor slab (m) */
+const SLAB = 0.15;
 
 export interface WreckSpec {
   x: number; z: number; heading: number;
@@ -695,6 +701,74 @@ export class Wreck {
   private anchor(x: number, z: number, yaw: number): WreckAnchor {
     const p = this.F(x, 0, z);
     return { x: p.x, y: p.y, z: p.z, yaw: this.spec.heading + yaw };
+  }
+
+  /** PHYSICS P4: this builder's static collision in world space — its walls / posts (the legacy boxes) and every floor
+   *  `floorHeightAt` describes, as real geometry. src/physics/pieces.ts turns it into Rapier colliders.
+   *
+   *  Every floor is a slab whose top lies in the plane `floorHeightAt` uses there (the pitched hold floor, the heeled
+   *  bow / quarter decks, the hatch-cover ramp), over the same hull-aligned footprint: the hold one row per `floorW`
+   *  row, the decks one strip per 0.25 m of hull length. The hold stair is treads, never a ramp (see below). */
+  colliderDescs(): ColliderDesc[] {
+    const out: ColliderDesc[] = this.colliders.map((c) => boxDesc(c));
+    const fp = this.floorPlane;
+    // the hold floor: one slab per run of equal-width 0.25 m rows (floorHalf rounds z to the nearest row)
+    const rows = this.floorW.length;
+    for (let i = 0; i < rows;) {
+      const w = this.floorW[i] ?? [1.5, 1.5];
+      let j = i + 1;
+      while (j < rows && this.floorW[j]?.[0] === w[0] && this.floorW[j]?.[1] === w[1]) j++;
+      const z0 = Math.max(HOLD_Z0, HOLD_Z0 + (i - 0.5) * 0.25), z1 = Math.min(HOLD_Z1, HOLD_Z0 + (j - 0.5) * 0.25);
+      out.push(this.planeBox(fp, -w[0], w[1], z0, z1));
+      i = j;
+    }
+    // the stair up the port side to the forecastle, as treads from the floor at its foot
+    {
+      const xc = (STAIR.x0 + STAIR.x1) / 2, at = (lz: number): number => fp.a + fp.bx * xc + fp.bz * lz;
+      // the mesh's 8 planks rise 0.325 m in the floor frame, 0.342 m in the world once the hull's pitch is added: a step
+      // the character (0.35 m autostep less its 0.02 m skin) stalls on. So the treads rise 0.325 m in the world, and a
+      // 9th tread of the same run carries the stair on under the forecastle's aft edge (it hides in the deck there)
+      const count = 9, rise = BOW_DECK / 8, run = (STAIR.z0 - STAIR.z1) / 8, zTop = STAIR.z0 - run * count;
+      out.push({ kind: 'treads', from: this.world(xc, at(STAIR.z0), STAIR.z0), to: this.world(xc, at(STAIR.z0) + rise * count, zTop), width: STAIR.x1 - STAIR.x0, count });
+    }
+    // the hatch-cover ramp out of the breach: level floor out to the ramp's head where a row stops short of it, then
+    // the slope down to the sand
+    {
+      const rz0 = BREACH_Z0 + 0.25, rz1 = BREACH_Z1 - 0.25;
+      for (let i = 0; i < rows; i++) {
+        const z0 = Math.max(rz0, HOLD_Z0 + (i - 0.5) * 0.25), z1 = Math.min(rz1, HOLD_Z0 + (i + 0.5) * 0.25), sw = this.floorW[i]?.[1] ?? 1.5;
+        if (z1 > z0 && sw < this.rampX0 - 0.005) out.push(this.planeBox(fp, sw, this.rampX0, z0, z1));
+      }
+      const g = this.rampGround / this.rampLen;
+      out.push(this.planeBox({ a: fp.a - g * this.rampX0, bx: fp.bx + g, bz: fp.bz }, this.rampX0, this.rampX0 + this.rampLen, rz0, rz1));
+    }
+    // the forecastle and the quarterdeck: strips as wide as the deck gets across each (so no floor point is missed)
+    const decks: [Plane, number, number, number][] = [[this.bowPlane, -L / 2 + 1.2, HOLD_Z0, BOW_DECK], [this.quarterPlane, HOLD_Z1, L / 2 - 0.2, QUARTER_DECK]];
+    for (const [pl, za, zb, y] of decks) {
+      for (let z0 = za; z0 < zb - 1e-6; z0 += 0.25) {
+        const z1 = Math.min(zb, z0 + 0.25), w = Math.max(halfWidthAt(tOf(z0), y), halfWidthAt(tOf(z1), y)) - 0.3;
+        if (w > 0) out.push(this.planeBox(pl, -w, w, z0, z1));
+      }
+    }
+    return out;
+  }
+
+  /** hull-aligned horizontal local (lx, y, lz) → world */
+  private world(lx: number, y: number, lz: number): { x: number; y: number; z: number } {
+    return { x: this.spec.x + lx * this.cs + lz * this.sn, y, z: this.spec.z - lx * this.sn + lz * this.cs };
+  }
+
+  /** a SLAB-thick box whose top lies in the plane `pl` over the local footprint lx0‥lx1 × lz0‥lz1 */
+  private planeBox(pl: Plane, lx0: number, lx1: number, lz0: number, lz1: number): ColliderDesc {
+    // the slab's axes in the hull-aligned frame: e1 along lx in the plane, n its normal, e3 = e1 × n (≈ along lz)
+    const e1 = new THREE.Vector3(1, pl.bx, 0).normalize();
+    const n = new THREE.Vector3(-pl.bx, 1, -pl.bz).normalize();
+    const e3 = new THREE.Vector3().crossVectors(e1, n);
+    const lxc = (lx0 + lx1) / 2, lzc = (lz0 + lz1) / 2;
+    const c = new THREE.Vector3(lxc, pl.a + pl.bx * lxc + pl.bz * lzc, lzc).addScaledVector(n, -SLAB);
+    const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(e1, n, e3).premultiply(new THREE.Matrix4().makeRotationY(this.spec.heading)));
+    const w = this.world(c.x, c.y, c.z);
+    return { kind: 'box', ...w, hx: (lx1 - lx0) / 2 / e1.x, hy: SLAB, hz: (lz1 - lz0) / 2 / e3.z, rot: { x: q.x, y: q.y, z: q.z, w: q.w } };
   }
 
   /** the walkable wood under (x, z): the hold floor, the stair, the breach ramp, the forecastle and the quarterdeck */

@@ -8,6 +8,8 @@ import type { Sky } from './Sky';
 import { noReflect } from './Water';
 import type { Forest } from './Forest';
 import type { Collider } from '../player/Player';
+import type { ColliderDesc } from './registry';
+import type { Material } from '../physics/surface';
 import { CulledInstances, CulledBatch } from './Culling';
 import { TIER_CONFIG } from '../core/tier';
 
@@ -25,7 +27,43 @@ export type PropKind = 'rock' | 'stump' | 'log';
  * (see scripts/simplify-models.mjs). Placement is deterministic (Rng(SEED+…)), follows the
  * terrain normal, sinks into the ground, avoids tree trunks via `forest.nearby`, keeps off the
  * trails (trailDistance > 4 for logs) and out of the cabin pads (cabinMask < 0.2, stumps excepted).
+ *
+ * PHYSICS P3: `colliderDescs()` is their real collision — rocks and stumps as convex hulls of the vertices they draw,
+ * fallen logs as capsules lying along the log.
  */
+
+/** PHYSICS P3: a rock collides once this much of it shows above the ground; lower ones the capsule's 0.35 m autostep walks over */
+const ROCK_SOLID_ABOVE = 0.35;
+
+/**
+ * A shape's convex-hull stand-in: the geometry's support point in each of 162 directions (an icosphere's vertices),
+ * deduplicated — every one is a vertex of the drawn hull, and 30–77 of them (median 53) trace its top to within 5 cm on
+ * 91 % of it (p95 6 cm; node probe, P3), so Rapier's quickhull runs on ~50 points a copy, not the photoscan's ~1000
+ * (the full vertex sets cost 6× the build time).
+ */
+const DIRS: number[] = (() => {
+  const p = new THREE.IcosahedronGeometry(1, 2).getAttribute('position'), seen = new Set<string>(), out: number[] = [];
+  for (let i = 0; i < p.count; i++) {
+    const key = `${p.getX(i).toFixed(4)},${p.getY(i).toFixed(4)},${p.getZ(i).toFixed(4)}`;
+    if (!seen.has(key)) { seen.add(key); out.push(p.getX(i), p.getY(i), p.getZ(i)); }
+  }
+  return out;
+})();
+function supportPoints(g: THREE.BufferGeometry, m: THREE.Matrix4): Float32Array {
+  const pos = g.getAttribute('position'), v = new THREE.Vector3(), pts: number[] = [];
+  for (let i = 0; i < pos.count; i++) { v.fromBufferAttribute(pos, i).applyMatrix4(m); pts.push(v.x, v.y, v.z); }
+  const picked = new Set<number>();
+  for (let d = 0; d < DIRS.length; d += 3) {
+    const dx = DIRS[d] ?? 0, dy = DIRS[d + 1] ?? 0, dz = DIRS[d + 2] ?? 0;
+    let best = -Infinity, at = 0;
+    for (let i = 0; i < pts.length; i += 3) { const s = (pts[i] ?? 0) * dx + (pts[i + 1] ?? 0) * dy + (pts[i + 2] ?? 0) * dz; if (s > best) { best = s; at = i; } }
+    picked.add(at);
+  }
+  const out = new Float32Array(picked.size * 3);
+  let k = 0;
+  for (const i of picked) { out[k++] = pts[i] ?? 0; out[k++] = pts[i + 1] ?? 0; out[k++] = pts[i + 2] ?? 0; }
+  return out;
+}
 
 export class Props {
   group = new THREE.Group();
@@ -36,6 +74,9 @@ export class Props {
   /** every draw of each kind, for Explore's tap-to-select */
   readonly meshes: { kind: PropKind; mesh: THREE.Object3D }[] = [];
   withBushes = false;
+  /** PHYSICS P3: what `colliderDescs()` places — a hull's model-space points under each placement matrix, and each log's capsule */
+  private solids: { points: Float32Array; matrix: THREE.Matrix4; surface: Material }[] = [];
+  private logCapsules: { matrix: THREE.Matrix4; centre: THREE.Vector3; halfLen: number; radius: number }[] = [];
 
   constructor(private sky: Sky, private forest: Forest) {}
 
@@ -105,7 +146,7 @@ export class Props {
       const local = new THREE.Matrix4().makeTranslation(-c.x, -bb.min.y, -c.z); // centred, base on y=0
       const radius = Math.max(bb.max.x - bb.min.x, bb.max.z - bb.min.z) / 2;
       const height = bb.max.y - bb.min.y;
-      return { ...p, local, radius, height, mats: [] as THREE.Matrix4[] };
+      return { ...p, local, radius, height, mats: [] as THREE.Matrix4[], hull: supportPoints(g, new THREE.Matrix4()) };
     });
     let n = 0, tries = 0;
     while (n < 380 && tries++ < 30000) {
@@ -128,8 +169,10 @@ export class Props {
       if (!this.treeFree(x, z, r * 0.6)) continue;
       if (td < r + 2) continue;
       const sink = shape.height * scale * (0.18 + 0.35 * smoothstep(0.05, 0.3, slope) + rng.range(0, 0.1));
-      shape.mats.push(Props.place(x, z, rng.range(0, Math.PI * 2), scale, sink, 0.85));
+      const m = Props.place(x, z, rng.range(0, Math.PI * 2), scale, sink, 0.85);
+      shape.mats.push(m);
       const above = shape.height * scale - sink;                  // height showing above ground
+      if (above > ROCK_SOLID_ABOVE) this.solids.push({ points: shape.hull, matrix: new THREE.Matrix4().multiplyMatrices(m, shape.local), surface: 'rock' });
       if (above > 1.0) this.colliders.push({ x, z, hw: r * 0.6, hd: r * 0.6, rot: 0, yTop: heightAt(x, z) + above, yBottom: heightAt(x, z) - 1 });
       n++;
     }
@@ -169,7 +212,11 @@ export class Props {
       const scale = rng.range(0.8, 1.35);
       mats.push(Props.place(x, z, rng.range(0, Math.PI * 2), scale, 0.06 * scale, 0.7));
     }
-    for (const p of parts) this.instanced('stump', p.geometry, p.material, mats, p.matrix);
+    for (const p of parts) {
+      this.instanced('stump', p.geometry, p.material, mats, p.matrix);
+      const hull = supportPoints(p.geometry, p.matrix);
+      for (const m of mats) this.solids.push({ points: hull, matrix: m, surface: 'wood' });
+    }
     this.counts.stumps = mats.length;
   }
 
@@ -183,6 +230,16 @@ export class Props {
     const bb = p0.geometry.boundingBox;
     if (!bb) throw new Error('[props] no bounding box');
     const halfLen = (bb.max.x - bb.min.x) / 2, bottom = bb.min.y;
+    // the collision capsule: along local X through the cross-section's centre, as thick as the bark's mean distance from
+    // that axis over the middle 80 % of the length (the root flare and the broken tip are the ends' 10 %)
+    const centre = new THREE.Vector3(), pos = p0.geometry.getAttribute('position');
+    bb.getCenter(centre);
+    let rSum = 0, rN = 0;
+    for (let i = 0; i < pos.count; i++) {
+      if (Math.abs(pos.getX(i) - centre.x) > halfLen * 0.8) continue;
+      rSum += Math.hypot(pos.getY(i) - centre.y, pos.getZ(i) - centre.z); rN++;
+    }
+    const logRadius = rN > 0 ? rSum / rN : Math.min(bb.max.y - bb.min.y, bb.max.z - bb.min.z) / 2;
     let tries = 0;
     while (mats.length < 55 && tries++ < 30000) {
       let x: number, z: number;
@@ -212,7 +269,37 @@ export class Props {
       mats.push(new THREE.Matrix4().compose(new THREE.Vector3(x, ym - bottom * scale + 0.14 * scale, z), q, new THREE.Vector3(scale, scale, scale)));
     }
     for (const p of parts) this.instanced('log', p.geometry, p.material, mats, p.matrix);
+    for (const m of mats) this.logCapsules.push({ matrix: new THREE.Matrix4().multiplyMatrices(m, p0.matrix), centre, halfLen, radius: logRadius });
     this.counts.logs = mats.length;
+  }
+
+  /**
+   * PHYSICS P3: this builder's static collision in world space — every rock showing more than ROCK_SOLID_ABOVE above
+   * the ground and every stump as a convex hull of its drawn vertices (their support points, see `supportPoints`), every
+   * fallen log as one capsule lying along it (solid for the first time). The legacy boxes (large boulders only) stay in
+   * `colliders` for the melee sweep. src/physics/pieces.ts turns it into Rapier colliders. Props have no floors.
+   */
+  colliderDescs(): ColliderDesc[] {
+    const out: ColliderDesc[] = [];
+    const v = new THREE.Vector3(), o = new THREE.Vector3(), q = new THREE.Quaternion(), sc = new THREE.Vector3();
+    for (const s of this.solids) {
+      o.setFromMatrixPosition(s.matrix);
+      const pts = new Float32Array(s.points.length);
+      for (let i = 0; i < pts.length; i += 3) {
+        v.set(s.points[i] ?? 0, s.points[i + 1] ?? 0, s.points[i + 2] ?? 0).applyMatrix4(s.matrix).sub(o);
+        pts[i] = v.x; pts[i + 1] = v.y; pts[i + 2] = v.z;
+      }
+      out.push({ kind: 'hull', x: o.x, y: o.y, z: o.z, points: pts, surface: s.surface });
+    }
+    const up = new THREE.Vector3(0, 1, 0), axis = new THREE.Vector3();
+    for (const l of this.logCapsules) {
+      l.matrix.decompose(o, q, sc);
+      v.copy(l.centre).applyMatrix4(l.matrix);
+      axis.set(1, 0, 0).applyQuaternion(q);                   // the log's local X: a capsule's axis is its +Y
+      const r = l.radius * sc.x, rot = new THREE.Quaternion().setFromUnitVectors(up, axis);
+      out.push({ kind: 'capsule', x: v.x, y: v.y, z: v.z, halfHeight: Math.max(0.05, l.halfLen * sc.x - r), radius: r, rot: { x: rot.x, y: rot.y, z: rot.z, w: rot.w }, surface: 'wood' });
+    }
+    return out;
   }
 
   // ── low bushes near the cabins: clumps of dark needle-ish spheres, kept subtle ──

@@ -14,6 +14,7 @@ import { heightAt, normalAt, waterLevel, inChunk } from './Heightfield';
 import { Rng } from '../core/rng';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
+import type { ColliderDesc } from './registry';
 import { TIER_CONFIG } from '../core/tier';
 import { WRECK } from '../chunks/driftwood-isle';
 
@@ -25,6 +26,8 @@ export class Boulders {
   mesh!: THREE.Mesh;
   colliders: Collider[] = [];
   count = 0;
+  /** PHYSICS P4: a convex hull of each colliding rock's drawn vertices (see colliderDescs) */
+  private hulls: ColliderDesc[] = [];
 
   constructor(private sky: Sky) {}
 
@@ -93,7 +96,13 @@ export class Boulders {
       }
       ni.setAttribute('color', new THREE.BufferAttribute(col, 3));
       parts.push(ni);
-      if (b.r > 0.9) this.colliders.push({ x: b.x, z: b.z, hw: b.r * 0.8, hd: b.r * 0.8, rot: b.rot ?? 0, yTop: y + b.r * 1.2, yBottom: y - 2 });
+      if (b.r > 0.9) {
+        this.colliders.push({ x: b.x, z: b.z, hw: b.r * 0.8, hd: b.r * 0.8, rot: b.rot ?? 0, yTop: y + b.r * 1.2, yBottom: y - 2 });
+        // the same rock as a hull of its drawn (jittered, squashed, leaned) vertices, relative to its centre
+        const cy = y + b.r * (b.squash ?? 0.7) * 0.35, pts = new Float32Array(p.count * 3);
+        for (let i = 0; i < p.count; i++) { pts[i * 3] = p.getX(i) - b.x; pts[i * 3 + 1] = p.getY(i) - cy; pts[i * 3 + 2] = p.getZ(i) - b.z; }
+        this.hulls.push({ kind: 'hull', x: b.x, y: cy, z: b.z, points: pts });
+      }
       this.count++;
     }
     // an empty scatter (a stale terrain, a def with no land) must not throw in mergeGeometries: an empty mesh instead
@@ -106,4 +115,11 @@ export class Boulders {
     this.mesh.castShadow = TIER_CONFIG.boulderShadows; this.mesh.receiveShadow = true;
     return this;
   }
+
+  /**
+   * PHYSICS P4: this builder's static collision in world space — each rock that has a legacy box (r > 0.9 m; the
+   * small ones stay walk-through, as today) as a convex hull of the vertices it draws. The boxes stay in `colliders`
+   * for the melee sweep and foam. src/physics/pieces.ts turns it into Rapier colliders. Rocks have no floors.
+   */
+  colliderDescs(): ColliderDesc[] { return this.hulls.slice(); }
 }

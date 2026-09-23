@@ -10,6 +10,7 @@
  * Dev: `?resetquest` forgets this shard's adventure flags on load; `window.__adventure` = { flags, kit, … }.
  */
 import * as THREE from 'three';
+import type { WorldRegistry } from '../../world/registry';
 import { heightAt } from '../../world/Heightfield';
 import { HUT, LOOKOUT, WRECK, SHRINE, PIER, OCEAN } from '../../chunks/driftwood-isle';
 import { Cove } from '../../world/Cove';
@@ -47,7 +48,7 @@ export interface AdvAnimal { kind: string; variant?: string; position: THREE.Vec
 export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   game: { scene: THREE.Scene; camera: THREE.Camera; onUpdate: (fn: (dt: number, t: number) => void) => void };
   sky: Sky;
-  player: { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; pitch: number; colliders: Collider[]; platforms: ((x: number, z: number) => number | undefined)[] };
+  player: { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; pitch: number; carried: boolean; colliders: Collider[]; platforms: ((x: number, z: number) => number | undefined)[] };
   chunk: { slug: string; id: string };
   /** main.ts's interactable list ("[E] …" prompts, the touch USE button) */
   prompts: Interactable[];
@@ -67,6 +68,8 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   /** the iron sword in the wreck's hold (IronSword.ts) — guarded until the drowned sailor is beaten (B4 / D6) */
   /** the rope bridge's walkable floor (RopeBridge.floorHeightAt) — the camera sways while you cross (A7) */
   bridgeFloor?: ((x: number, z: number) => number | undefined) | undefined;
+  /** the world registry (PHYSICS P4): registered pieces' floors for placement; a piece added here collides */
+  registry?: WorldRegistry | undefined;
   /** show / hide the weapon viewmodel (the golden-hour reward view lowers it) */
   setViewmodel?: (on: boolean) => void;
   ironDrop?: { guard: (() => string | null) | null; onGuarded?: ((reason: string) => void) | undefined } | null;
@@ -108,6 +111,8 @@ export function installAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): Adv
   const floorAt = (x: number, z: number): number => {
     let y = heightAt(x, z);
     for (const p of w.player.platforms) { const f = p(x, z); if (f !== undefined && f > y) y = f; }
+    const r = w.registry?.floorAt(x, z);
+    if (r !== undefined && r > y) y = r;
     return y;
   };
   /** anchors the adventure computes itself (the finale's reward spot) — consulted before the models' */
@@ -183,10 +188,12 @@ export function installAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): Adv
     const from = place({ poi: 'lookout', anchor: 'lookout.zipTop', x: 0, z: 0 }), cave = place({ poi: 'cave', anchor: 'cave.caveFloor', x: 0, z: 0 });
     const lx = from.x + (cave.x - from.x) * 0.47, lz = from.z + (cave.z - from.z) * 0.47;
     const zip = new Zipline(w.sky, { top: new THREE.Vector3(lx, heightAt(lx, lz), lz), bottom: new THREE.Vector3(132, heightAt(132, 12), 12) }).build();
-    w.game.scene.add(zip.group);
-    w.player.platforms.push((x, z) => zip.floorHeightAt(x, z));
+    // the launch deck collides as real geometry (PHYSICS P4); without a registry (dev scenes) it's a floor function
+    if (w.registry) w.registry.add({ id: 'zipline', name: 'Zipline', category: 'buildings', file: 'src/world/Zipline.ts', object: zip.group, colliders: zip.colliderDescs(), surface: 'planks', floor: (x, z) => zip.floorHeightAt(x, z), solidFloor: true });
+    else { w.game.scene.add(zip.group); w.player.platforms.push((x, z) => zip.floorHeightAt(x, z)); }
     w.prompts.push(zip.prompt);
     zip.onRide = (on) => {
+      w.player.carried = on; // the cable owns the position while riding (PHYSICS P2: the fixed step leaves it alone)
       w.setViewmodel?.(!on);
       if (!on) { flags.set('used:zipline'); sfx.interact('plate', zip.b); }
       else sfx.interact('lever', zip.a);

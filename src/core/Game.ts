@@ -18,9 +18,13 @@ import { setting, onSettingChange } from '../ui/Settings';
 import { GPU_MODE } from '../gpu/flag';
 import type { GpuPath } from '../gpu/GpuPath';
 import { installViewport, viewportHeight } from './viewport';
+import { FIXED_STEP } from './fixedStep';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
+const MAX_FIXED_STEPS = 3; // per frame; past it the backlog is dropped (a stall never replays as a burst)
+/** the three slots of one fixed step, in order: `pre` readies the world, `step` advances it, `post` moves against it */
+export type FixedPhase = 'pre' | 'step' | 'post';
 
 export class Game {
   renderer: THREE.WebGLRenderer;
@@ -34,6 +38,15 @@ export class Game {
   // oxlint-disable-next-line typescript/no-deprecated -- Clock→Timer changes getDelta semantics; migrate separately
   clock = new THREE.Clock();
   private updaters: ((dt: number, t: number) => void)[] = [];
+  // Frame phases (PHYSICS P2 / ENGINE-FIT E2): input → fixed steps (pre → step → post, × 0‥3) → update (`onUpdate`) → late → render
+  private inputs: ((dt: number) => void)[] = [];
+  private fixed: Record<FixedPhase, ((dt: number) => void)[]> = { pre: [], step: [], post: [] };
+  private lates: ((dt: number) => void)[] = [];
+  private fixedAcc = 0;
+  /** 0‥1: how far this frame's render sits past the last fixed step (interpolate anything the fixed step moves) */
+  alpha = 0;
+  /** fixed steps run this frame (0 during most of a hit-stop) */
+  fixedSteps = 0;
   stats = { fps: 0, frames: 0, acc: 0 };
   /** last 120 frame times in ms (ring; `frameI` is the next slot) — the perf meter reads p50/p95 from it */
   frameMs = new Float32Array(120); frameI = 0;
@@ -174,6 +187,27 @@ export class Game {
   }
 
   onUpdate(fn: (dt: number, t: number) => void): void { this.updaters.push(fn); }
+  /** First in the frame: read controls into intents the fixed steps consume (the player's move, a queued jump). */
+  onInput(fn: (dt: number) => void): void { this.inputs.push(fn); }
+  /** Once per fixed step (dt = FIXED_STEP), in phase order. */
+  onFixed(phase: FixedPhase, fn: (dt: number) => void): void { this.fixed[phase].push(fn); }
+  /** After every updater: things that pose from this frame's final state (the camera from the interpolated player). */
+  onLate(fn: (dt: number) => void): void { this.lates.push(fn); }
+
+  /** Run the fixed steps this frame's (scaled) dt owes: hit-stop slows them with everything else. */
+  private runFixed(dt: number): void {
+    this.fixedAcc += dt;
+    let n = 0;
+    while (this.fixedAcc >= FIXED_STEP && n < MAX_FIXED_STEPS) {
+      for (const f of this.fixed.pre) f(FIXED_STEP);
+      for (const f of this.fixed.step) f(FIXED_STEP);
+      for (const f of this.fixed.post) f(FIXED_STEP);
+      this.fixedAcc -= FIXED_STEP; n++;
+    }
+    if (n === MAX_FIXED_STEPS && this.fixedAcc >= FIXED_STEP) this.fixedAcc %= FIXED_STEP;
+    this.alpha = this.fixedAcc / FIXED_STEP;
+    this.fixedSteps = n;
+  }
 
   private stopLeft = 0;
   /**
@@ -273,7 +307,10 @@ export class Game {
       if (this.stopLeft > 0) { this.stopLeft -= realDt; scale = HIT_STOP_SCALE; }
       worldTime.scale = scale; worldTime.realDt = realDt;
       const dt = realDt * scale;
+      for (const u of this.inputs) u(dt);
+      this.runFixed(dt);
       for (const u of this.updaters) u(dt, t);
+      for (const u of this.lates) u(dt);
       sky.update(realDt);
       // planet + sun disc travel with the camera so they stay "infinitely" far
       sky.clouds.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.sunDir, 1500);

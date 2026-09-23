@@ -12,6 +12,7 @@ const STEP_ROWS = [
   ['terrain', 'Terrain · heightfield + splat', 2],
   ['cards', 'Pine branch cards', 1],
   ['forest', 'Forest', 2],
+  ['physics', 'Physics · Rapier · navmesh', 1],
   ['edge', 'Chunk edge · water · horizon', 1],
   ['grass', 'Grass · ferns · litter', 2],
   ['cabins', 'Cabins', 2],
@@ -37,9 +38,9 @@ export const BOOT_STEPS = STEP_ROWS.map((row) => row[0]) as readonly BootStep[];
  * the number because it is in this table, and complete because its step is — `done()` reads 1
  * by arithmetic, never by reclassification.
  */
-export const BYTE_SOURCES = ['sky', 'baked', 'terrain', 'trees', 'cabins', 'props', 'art', 'music', 'sfx'] as const;
+export const BYTE_SOURCES = ['sky', 'baked', 'terrain', 'trees', 'physics', 'cabins', 'props', 'art', 'music', 'sfx'] as const;
 export type ByteKey = (typeof BYTE_SOURCES)[number];
-const CLOSED_BY: Record<ByteKey, BootStep> = { sky: 'sky', baked: 'sky', terrain: 'terrain', trees: 'cards', cabins: 'cabins', props: 'props', art: 'menu', music: 'audio', sfx: 'audio' };
+const CLOSED_BY: Record<ByteKey, BootStep> = { sky: 'sky', baked: 'sky', terrain: 'terrain', trees: 'cards', physics: 'physics', cabins: 'cabins', props: 'props', art: 'menu', music: 'audio', sfx: 'audio' };
 export const closedBy = (key: ByteKey): BootStep => CLOSED_BY[key];
 const LABELS: Partial<Record<ByteKey, string>> = { trees: 'pine bark · twigs', baked: 'baked textures', art: 'title art', music: 'music · every style', sfx: 'sound effects · every set' };
 export const byteLabel = (key: ByteKey): string => LABELS[key] ?? STEP_INFO[closedBy(key)].label.toLowerCase();

@@ -19,6 +19,7 @@ import * as THREE from 'three';
 import { LowPolyKit, log, beam, plank, rope, rock, lowPolyMaterial } from './lowpolyKit';
 import type { Sky } from './Sky';
 import type { Interactable } from './Cabin';
+import type { ColliderDesc } from './registry';
 
 export interface ZiplineSpec { top: THREE.Vector3; bottom: THREE.Vector3; /** sag in metres at mid-span per 100 m (default 1.6) */ sag?: number }
 
@@ -118,6 +119,22 @@ export class Zipline {
     const d = this.deck, dx = x - d.x, dz = z - d.z, c = Math.cos(d.yaw), s = Math.sin(d.yaw);
     const lx = dx * c - dz * s, lz = dx * s + dz * c;
     return Math.abs(lx) <= d.hw && Math.abs(lz) <= d.hd ? d.y : undefined;
+  }
+
+  /**
+   * PHYSICS P4: this builder's static collision in world space — every floor `floorHeightAt` describes, as real
+   * geometry (it has no legacy boxes). src/physics/pieces.ts turns it into Rapier colliders. The launch deck: a 0.2 m
+   * slab, its top the deck floor, its footprint the deck's. The deck stands 0.37–0.85 m off the rock (DECK_H); the old
+   * 0.5 m step-up climbed it only on its +x side (0.37–0.47 m, the side toward the lookout path; the back has the rail,
+   * the front is the cliff), so that side gets one tread 0.24 m under the deck, 0.45 m deep, down into the rock.
+   */
+  colliderDescs(): ColliderDesc[] {
+    const d = this.deck, hy = 0.1, c = Math.cos(d.yaw), s = Math.sin(d.yaw);
+    const step = 0.24, depth = 0.45, lx = d.hw + depth / 2, bottom = d.y - 1.6, th = (d.y - step - bottom) / 2;
+    return [
+      { kind: 'box', x: d.x, y: d.y - hy, z: d.z, hx: d.hw, hy, hz: d.hd, yaw: d.yaw },
+      { kind: 'box', x: d.x + lx * c, y: bottom + th, z: d.z - lx * s, hx: depth / 2, hy: th, hz: d.hd, yaw: d.yaw },
+    ];
   }
 
   get isRiding(): boolean { return this.riding; }

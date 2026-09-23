@@ -25,6 +25,48 @@ function distToSegment(px: number, pz: number, ax: number, az: number, bx: numbe
   return Math.sqrt(dx * dx + dz * dz);
 }
 
+/** a graded path's cut / fill: full within GRADE_IN metres of its centreline, faded out by GRADE_OUT; sampled every GRADE_STEP */
+const GRADE_IN = 3, GRADE_OUT = 7, GRADE_STEP = 0.5;
+/** the shelf starts this far (m, along the path) before the first spot the grading moves, and runs on as far past the last */
+const GRADE_LEAD = 5;
+
+/**
+ * A graded path (TerrainSpec.graded): the ground along the polyline every GRADE_STEP, and the shelf that climbs no
+ * steeper than `maxGrade` — the mean of the profile's upper and lower `maxGrade` envelopes (the highest / lowest
+ * profiles that slope that gently and never cross the ground). Both equal the ground wherever it is already that
+ * gentle; at a crag step the shelf is half cut into the top, half filled below. `need` says where the shelf replaces
+ * the ground (levelled across, so the crag's roughness beside the line doesn't come back between grid vertices): 1
+ * within GRADE_LEAD of any sample the grading moved by 0.4 m or more, 0 where nothing within it moved 5 cm.
+ */
+function gradeProfile(poly: Vec2[], maxGrade: number, ground: (x: number, z: number) => number) {
+  const cum: number[] = [0];
+  for (let k = 1; k < poly.length; k++) { const a = poly[k - 1], b = poly[k]; cum.push((cum[k - 1] ?? 0) + (a && b ? Math.hypot(b[0] - a[0], b[1] - a[1]) : 0)); }
+  const total = cum[cum.length - 1] ?? 0, n = Math.max(2, Math.ceil(total / GRADE_STEP) + 1);
+  const g: number[] = [];
+  let k = 0;
+  for (let i = 0; i < n; i++) {
+    const s = Math.min(total, i * GRADE_STEP);
+    while (k < poly.length - 2 && s > (cum[k + 1] ?? 0)) k++;
+    const a = poly[k], b = poly[k + 1], l = (cum[k + 1] ?? 0) - (cum[k] ?? 0), t = l > 0 ? (s - (cum[k] ?? 0)) / l : 0;
+    g.push(a && b ? ground(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t) : 0);
+  }
+  const up = [...g], dn = [...g], rise = maxGrade * GRADE_STEP;
+  for (let i = 1; i < n; i++) { up[i] = Math.max(up[i] ?? 0, (up[i - 1] ?? 0) - rise); dn[i] = Math.min(dn[i] ?? 0, (dn[i - 1] ?? 0) + rise); }
+  for (let i = n - 2; i >= 0; i--) { up[i] = Math.max(up[i] ?? 0, (up[i + 1] ?? 0) - rise); dn[i] = Math.min(dn[i] ?? 0, (dn[i + 1] ?? 0) + rise); }
+  const xs = poly.map((p) => p[0]), zs = poly.map((p) => p[1]);
+  const shelf = g.map((_, i) => ((up[i] ?? 0) + (dn[i] ?? 0)) / 2), moved = shelf.map((v, i) => Math.abs(v - (g[i] ?? 0)));
+  const lead = Math.round(GRADE_LEAD / GRADE_STEP);
+  const need = moved.map((_, i) => {
+    let m = 0;
+    for (let j = Math.max(0, i - lead); j <= Math.min(n - 1, i + lead); j++) m = Math.max(m, moved[j] ?? 0);
+    return smoothstep(0.05, 0.4, m);
+  });
+  return {
+    poly, cum, shelf, need,
+    x0: Math.min(...xs) - GRADE_OUT, x1: Math.max(...xs) + GRADE_OUT, z0: Math.min(...zs) - GRADE_OUT, z1: Math.max(...zs) + GRADE_OUT,
+  };
+}
+
 /** 0..1: how much this point is inside the mandated flat entry road at an edge midpoint */
 function entryRoadMask(x: number, z: number): number {
   const half = ROAD_WIDTH / 2 + 3;
@@ -58,6 +100,33 @@ export function buildTerrain(seed: number, spec: TerrainSpec): ChunkTerrain {
   const pondFill = spec.pondFill ?? 1.0;
   const oceanLevel = spec.oceanLevel ?? null;
   const landscape = (x: number, z: number) => spec.landscape(x, z, noise);
+  const graded = (spec.graded?.paths ?? []).map((poly) => gradeProfile(poly, spec.graded?.maxGrade ?? 1, landscape));
+  /** a graded path's pull on (x, z): the shelf height there, and how far toward it (1 within GRADE_IN of a stretch
+   *  that needed grading, 0 past GRADE_OUT or where the ground was gentle anyway) */
+  const _grade = { y: 0, w: 0 };
+  function gradeAt(x: number, z: number): { y: number; w: number } {
+    let best = GRADE_OUT, y = 0, need = 0;
+    for (const g of graded) {
+      if (x < g.x0 || x > g.x1 || z < g.z0 || z > g.z1) continue;
+      for (let k = 0; k + 1 < g.poly.length; k++) {
+        const a = g.poly[k], b = g.poly[k + 1];
+        if (!a || !b) continue;
+        const vx = b[0] - a[0], vz = b[1] - a[1], l2 = vx * vx + vz * vz;
+        const raw = l2 > 0 ? ((x - a[0]) * vx + (z - a[1]) * vz) / l2 : 0, t = clamp(raw, 0, 1);
+        // past the path's first or last point the shelf stops (square ends): the bridge the path meets there keeps
+        // its gully
+        const past = (k === 0 && raw < 0) || (k === g.poly.length - 2 && raw > 1);
+        const d = past ? GRADE_OUT : Math.hypot(x - a[0] - vx * t, z - a[1] - vz * t);
+        if (d >= best) continue;
+        best = d;
+        const f = ((g.cum[k] ?? 0) + t * Math.sqrt(l2)) / GRADE_STEP, i = Math.min(g.shelf.length - 2, Math.floor(f)), u = f - i;
+        y = (g.shelf[i] ?? 0) * (1 - u) + (g.shelf[i + 1] ?? 0) * u;
+        need = (g.need[i] ?? 0) * (1 - u) + (g.need[i + 1] ?? 0) * u;
+      }
+    }
+    _grade.y = y; _grade.w = need * smoothstep(GRADE_OUT, GRADE_IN, best);
+    return _grade;
+  }
 
   function trailDistance(x: number, z: number): number {
     let d = Infinity;
@@ -89,6 +158,7 @@ export function buildTerrain(seed: number, spec: TerrainSpec): ChunkTerrain {
 
   function heightAt(x: number, z: number): number {
     let h = landscape(x, z);
+    if (graded.length > 0) { const g = gradeAt(x, z); if (g.w > 0) h = lerp(h, g.y, g.w); }
     // pond basin: dish down to ~3 m below the water line
     const pm = pondMask(x, z);
     if (pm > 0) h = lerp(h, Math.min(h, waterLevel() - 1.6 - pm * 1.6), smoothstep(0.0, 0.5, pm));

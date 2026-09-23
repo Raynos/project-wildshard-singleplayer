@@ -1,18 +1,22 @@
 import * as THREE from 'three';
-import { heightAt, normalAt, pondMask, waterLevel } from '../world/Heightfield';
+import { heightAt, pondMask, waterLevel } from '../world/Heightfield';
 import { getActiveChunk } from '../chunks/registry';
-import { CHUNK_HALF } from '../core/config';
-import type { Forest } from '../world/Forest';
 import { Hoverboard } from './Hoverboard';
 import { WaterLine } from './WaterLine';
 import { setUnderwater, updateUnderwater } from '../world/Atmosphere';
 import { waveHeight } from '../world/waves';
 import { getNumber } from '../ui/Settings';
+import { CharacterMotor } from '../physics/CharacterMotor';
+import { floorBelow } from '../physics/query';
+import type { Physics } from '../physics/Physics';
 
 export interface Collider { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }
 
 const EYE = 1.68;
 const RADIUS = 0.38;
+const BODY_HEIGHT = 1.8;               // the capsule, feet to crown
+const STEP_UP = 0.35;                  // m climbed without a jump (PHYSICS.md: stricter than the old 0.5)
+const MAX_CLIMB_DEG = 40;              // steeper ground is a wall to walk into (the old SLOPE_WALK let 44° through)
 const GRAVITY = 22;
 
 // ── hoverboard (toggle: H / the HOVER touch button) ──
@@ -51,10 +55,8 @@ const SURFACE_SPEED = 2.0;            // … and ascent while SURFACE is held
 const DIVE_EASE = 5;                  // /s — a short ease-in / ease-out on the vertical speed (a heavy, watery start)
 const DIVE_ENTER = 0.35;              // m below the float height at which the dive "latches" (neutral buoyancy from here down)
 const DIVE_SWIM = 0.85;               // horizontal swim speed underwater, as a fraction of the surface swim
-// ── slopes (on foot, on terrain — not platforms, not water, never the hoverboard) ──
-const SLOPE_WALK = 0.72;              // ground normal y below this (≈ 44°) is too steep to walk UP: the uphill part of the move is cancelled
-const SLOPE_SLIDE = 0.6;              // below this (≈ 53°) you slide down it with no control
-const SLOPE_PROBE = 0.6;              // m ahead of the feet, along the move, where the slope is also sampled (so a wall stops you before you're on it)
+// ── slopes (on foot, on terrain — not platforms, not water, never the hoverboard): past MAX_CLIMB_DEG the motor won't climb ──
+const SLOPE_SLIDE = 0.6;              // ground normal y below this (≈ 53°) under the feet: you slide down it with no control
 const SLIDE_SPEED = 3.2;              // m/s down the fall line while sliding …
 const SLIDE_ACCEL = 5;                // … reached at this rate (/s)
 // ── dash (on foot): the DODGE (Left Alt / the DODGE disc) and the sword's lunge (Sword.ts) — a short fixed-velocity burst ──
@@ -83,6 +85,9 @@ const DODGE_DIP = 0.07;               // m the eye drops at a dodge's start (the
 const DODGE_ROLL = 0.122;             // rad of camera lean into a fully sideways T dodge at its peak (7°, E63; 0.06 before)
 const DODGE_FOV_KICK = 5;             // ° wider while a dodge runs …
 const LUNGE_FOV_KICK = 7;             // … and a lunge (Sword.ts reads `fovKick`)
+// ── shove: a creature's hit knocks you back a step, through the controller (a wall behind you stops it) ──
+const SHOVE_TIME = 0.18;              // s of the burst; the speed fades to 0 over it
+const SHOVE_HOP = 1.6;                // m/s up, so it reads as a knock, not a slide
 
 export class Player {
   position = new THREE.Vector3(0, 0, 0);
@@ -95,6 +100,7 @@ export class Player {
   speedFactor = 0;   // for headbob / audio
   bobTime = 0;
   locked = false;
+  /** the world's hand-made boxes; src/physics/bridge.ts mirrors them into Rapier until P4 / P3 replace them */
   colliders: Collider[] = [];
   /** extra walkable surfaces (cabin floors, porch decks): return a world y or undefined */
   platforms: ((x: number, z: number) => number | undefined)[] = [];
@@ -177,12 +183,24 @@ export class Player {
   private dashT = 0; private dashVx = 0; private dashVz = 0; private dodgeCd = 0;
   private dashRoll = 0; // camera lean into a sideways dodge (rad), from the dodge envelope
   private dodgeClock = -1; // ms since the running dodge started (-1 = none): the E63 feel curves
+  private shoveT = 0; private shoveVx = 0; private shoveVz = 0;
+  /** something else owns the position (the zipline's cable, the finale's reward shot): the fixed step leaves it alone */
+  carried = false;
+  // ── the fixed step (PHYSICS.md P2): input() reads intents, step() moves at 60 Hz, update() poses the camera ──
+  private inFwd = 0; private inStr = 0; private jumpQueued = false;
+  /** the feet before the last fixed step: update() interpolates the camera between it and `position` */
+  private readonly prevFeet = new THREE.Vector3();
+  private readonly renderFeet = new THREE.Vector3();
+  private readonly want = { x: 0, y: 0, z: 0 };
+  /** the capsule + Rapier character controller that collides the move (src/physics/CharacterMotor.ts) */
+  readonly motor: CharacterMotor;
   /** true while a dodge / lunge burst is carrying the player */
   get dashing(): boolean { return this.dashT > 0; }
   /** the dodge cooldown still to run, 1 → 0 (0 = ready) — the touch DODGE disc's clock sweep (E59) */
   get dodgeCooldown(): number { return this.dodgeCd / DODGE_COOLDOWN; }
 
-  constructor(public camera: THREE.PerspectiveCamera, private forest: Forest, private canvas: HTMLCanvasElement) {
+  constructor(public camera: THREE.PerspectiveCamera, private readonly physics: Physics, private canvas: HTMLCanvasElement) {
+    this.motor = new CharacterMotor(physics, { radius: RADIUS, height: BODY_HEIGHT, step: STEP_UP, maxClimbDeg: MAX_CLIMB_DEG, snap: 0.3, group: 'PLAYER', blockedBy: ['WORLD', 'CREATURE', 'ITEM'], owner: this, weight: 80 });
     document.addEventListener('keydown', (e) => {
       this.keys.add(e.code);
       if (e.code === 'Space') e.preventDefault();
@@ -230,6 +248,8 @@ export class Player {
 
   spawn(x: number, z: number, yaw: number): void {
     this.position.set(x, heightAt(x, z), z);
+    this.motor.release();
+    this.prevFeet.copy(this.position);
     this.yaw = yaw; this.pitch = 0;
     this.velocity.set(0, 0, 0);
     this.setSwimming(false); this.inWater = false; this.depth = 0; this.wading = false;
@@ -275,23 +295,53 @@ export class Player {
     this.onDodge?.();
     return true;
   }
+  /** A creature hit you from (fromX, fromZ): knocked `speed` m/s away from it, fading over SHOVE_TIME (≈ a step at 6 m/s). */
+  shove(fromX: number, fromZ: number, speed: number): void {
+    if (this.hover || this.swimming) return;
+    const dx = this.position.x - fromX, dz = this.position.z - fromZ, d = Math.hypot(dx, dz);
+    const ux = d > 1e-3 ? dx / d : Math.sin(this.yaw), uz = d > 1e-3 ? dz / d : Math.cos(this.yaw); // on top of us: straight back
+    this.shoveVx = ux * speed; this.shoveVz = uz * speed; this.shoveT = SHOVE_TIME;
+    this.dashT = 0;
+    if (this.onGround) { this.velocity.y = Math.max(this.velocity.y, SHOVE_HOP); this.onGround = false; }
+  }
   /** deep water at (x, z) with no deck over it — where a dash must not carry you */
   private deepAt(x: number, z: number): boolean {
     const ws = this.waterSurfaceAt(x, z);
     if (ws === null || ws - heightAt(x, z) <= WADE_MAX) return false;
     for (const p of this.platforms) { const y = p(x, z); if (y !== undefined && y > ws - 0.5) return false; }
-    return true;
+    const deck = floorBelow(this.physics, x, z, ws + 3, 3.5, this.motor.collider); // a pier / jetty / boat deck over the water
+    return deck === undefined || deck <= ws - 0.5;
   }
 
-  update(dtRaw: number): void {
+  /**
+   * Frame start (Game's input phase): the aim assist's nudge, then the controls read into intents the fixed steps
+   * consume — the move stick / keys, a jump press (an EDGE, queued until a step takes it), a tapped dodge.
+   */
+  input(dtRaw: number): void {
     const dt = Math.min(dtRaw, 0.05);
     this.preUpdate?.(dt);
     const k = this.keys;
-    const fwd = Math.max(-1, Math.min(1, (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0) + this.touchMove.y));
-    const str = Math.max(-1, Math.min(1, (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + this.touchMove.x));
+    this.inFwd = Math.max(-1, Math.min(1, (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0) + this.touchMove.y));
+    this.inStr = Math.max(-1, Math.min(1, (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + this.touchMove.x));
+    // jump is an EDGE (press), not a held state — so holding Space can't chain a double jump
+    const jumpDown = k.has('Space') || this.touchJump; this.touchJump = false;
+    if (jumpDown && !this.jumpWasDown) this.jumpQueued = true;
+    this.jumpWasDown = jumpDown;
+    if (this.touchDodge !== false) { const st = this.touchDodge; this.touchDodge = false; this.dodge(st); }
+  }
+
+  /** Explore's free camera / the tour own the view: the body leaves the world's way until they hand it back. */
+  setBodyEnabled(on: boolean): void { this.motor.setEnabled(on); }
+
+  /** One fixed step (Game's `post` slot, dt = FIXED_STEP): the move, against the stepped physics world. */
+  step(dt: number): void {
+    this.prevFeet.copy(this.position);
+    if (this.carried) { this.velocity.set(0, 0, 0); this.onGround = false; return; }
+    const k = this.keys;
+    const fwd = this.inFwd, str = this.inStr;
     const hover = this.hover;
     const swim = this.swimming && !hover;
-    // wading: how deep the feet are right now (last frame's resolve) — slows walking, kills sprint past the knee
+    // wading: how deep the feet are right now (last step's resolve) — slows walking, kills sprint past the knee
     const wadeT = !hover && !swim && this.onGround ? Math.min(1, this.depth / WADE_MAX) : 0;
     this.crouching = !hover && !swim && (k.has('ControlLeft') || k.has('KeyC'));
     this.sprinting = !hover && !swim && this.depth < NO_SPRINT_DEPTH && (k.has('ShiftLeft') || this.touchSprint) && fwd > 0 && !this.crouching;
@@ -302,39 +352,50 @@ export class Player {
     let mx = (-sin * fwd + cos * str), mz = (-cos * fwd - sin * str);
     const len = Math.hypot(mx, mz);
     if (len > 1) { mx /= len; mz /= len; }
-    // jump is an EDGE (press), not a held state — so holding Space can't chain a double jump
-    const jumpDown = k.has('Space') || this.touchJump; this.touchJump = false;
-    const jump = jumpDown && !this.jumpWasDown && !swim; this.jumpWasDown = jumpDown;
+    const jump = this.jumpQueued && !swim; this.jumpQueued = false;
     // while swimming Space / the DIVE disc and Shift / the SURFACE disc are HELD controls (the swim branch reads them)
     this.diveHeld = swim && (k.has('Space') || this.touchDive);
     this.surfaceHeld = swim && (k.has('ShiftLeft') || k.has('ShiftRight') || this.touchSurface);
     this.dodgeCd = Math.max(0, this.dodgeCd - dt);
-    if (this.touchDodge !== false) { const st = this.touchDodge; this.touchDodge = false; this.dodge(st); }
     if (hover || swim) this.dashT = 0;
 
-    // ground: terrain, or a platform if we are at/above it (step up ≤ 0.5 m)
+    // ground for the hover spring, the swim float and the water depth: terrain, or a deck / floor / stair platform we
+    // are at or above (step up ≤ 0.5 m). Walking collides through the motor; this is the P2 bridge for the platforms
+    // (floor functions) that are not Rapier colliders until P4 / P3.
     const groundAt = () => {
-      let g = heightAt(this.position.x, this.position.z);
-      this.onPlatform = false;
+      const p = this.position;
+      let g = heightAt(p.x, p.z);
+      for (const f of this.platforms) {
+        const y = f(p.x, p.z);
+        if (y !== undefined && y > g && p.y >= y - 0.5) g = y;
+      }
+      // decks, floors, stairs, rocks as colliders (P4): the first surface below the feet + 0.5 m
+      const c = floorBelow(this.physics, p.x, p.z, p.y + 0.5, 80, this.motor.collider);
+      return c !== undefined && c > g ? c : g;
+    };
+    /** the highest platform floor under the feet that they can stand on (at or above it, or ≤ 0.5 m below its top) */
+    const platformAt = (): number | undefined => {
+      let best: number | undefined;
       for (const p of this.platforms) {
         const y = p(this.position.x, this.position.z);
-        if (y !== undefined && y > g && this.position.y >= y - 0.5) { g = y; this.onPlatform = true; }
+        if (y !== undefined && this.position.y >= y - 0.5 && (best === undefined || y > best)) best = y;
       }
-      return g;
+      return best;
     };
+    const want = this.want;
 
     if (hover) {
       // ── hoverboard: momentum steering — velocity is pulled toward the input direction at a fixed rate, glides with no input ──
       const v = this.velocity;
       const inAir = this.hoverBob > 0.35;                            // above the ride height (hop / ledge): half the grip
       const grip = inAir ? 0.5 : 1;
-      const want = len > 0.02;
-      const tx = want ? mx * HOVER_TOP : 0, tz = want ? mz * HOVER_TOP : 0;
+      const wantMove = len > 0.02;
+      const tx = wantMove ? mx * HOVER_TOP : 0, tz = wantMove ? mz * HOVER_TOP : 0;
       const dx = tx - v.x, dz = tz - v.z, dl = Math.hypot(dx, dz);
-      const rate = (want ? HOVER_ACCEL : HOVER_DECEL) * grip;
-      const step = Math.min(dl, rate * dt);
+      const rate = (wantMove ? HOVER_ACCEL : HOVER_DECEL) * grip;
+      const stepV = Math.min(dl, rate * dt);
       const vfx = v.x, vfz = v.z;
-      if (dl > 1e-6) { v.x += dx / dl * step; v.z += dz / dl * step; }
+      if (dl > 1e-6) { v.x += dx / dl * stepV; v.z += dz / dl * stepV; }
       // carve: the sideways component (relative to the heading) is pulled toward what the stick asks for much faster
       // than the forward one — turn at speed and the old momentum, now sideways, bleeds off instead of sliding you
       const fx = -sin, fz = -cos, rx = cos, rz = -sin;
@@ -346,10 +407,10 @@ export class Player {
       const af = ((v.x - vfx) * fx + (v.z - vfz) * fz) / dt;
       this.hoverAccel += (af - this.hoverAccel) * Math.min(1, dt * 8);
 
+      // across: walls, posts and trunks stop the board; the terrain never does (the repulsors glide up anything)
+      want.x = v.x * dt; want.y = 0; want.z = v.z * dt;
+      this.motor.move(this.position, want, true);
       // ride height: a stiff, slightly under-damped spring to ground + HOVER_HEIGHT (no gravity — the repulsors hold you)
-      this.position.x += v.x * dt;
-      this.position.z += v.z * dt;
-      this.collide();
       const ws = this.waterSurfaceAt(this.position.x, this.position.z);
       const g = Math.max(groundAt(), ws ?? -Infinity); // the repulsors ride the water surface, not the seabed
       const target = g + HOVER_HEIGHT;
@@ -369,6 +430,7 @@ export class Player {
       if (this.position.y < g) { this.position.y = g; if (v.y < 0) v.y = 0; } // steep slope / bump: the board never goes under
       this.hoverBob = this.position.y - target;
       this.onGround = !this.hoverAir && Math.abs(this.hoverBob) < 0.3; // "grounded" = riding near the ride height (jump allowed)
+      this.onPlatform = false;
       this.waterSurface = ws; this.depth = 0; this.wading = false;
     } else if (swim) {
       // ── swimming: sluggish horizontal drift, buoyancy (not gravity) eases the feet to the float height; no jump / sprint / crouch ──
@@ -376,18 +438,17 @@ export class Player {
       const swimSpeed = SWIM_SPEED * (this.diving ? DIVE_SWIM : 1); // a touch slower under the surface
       v.x += (mx * swimSpeed - v.x) * Math.min(1, SWIM_ACCEL * dt);
       v.z += (mz * swimSpeed - v.z) * Math.min(1, SWIM_ACCEL * dt);
-      const x0 = this.position.x, z0 = this.position.z;
-      this.position.x += v.x * dt;
-      this.position.z += v.z * dt;
-      this.collide(); // pilings, walls: still solid in the water
+      want.x = v.x * dt; want.y = 0; want.z = v.z * dt;
+      const r = this.motor.move(this.position, want, true); // pilings, walls, hulls: still solid in the water
       const p = this.position;
       // pinned against a piling / bollard while hauling out: let go of the climb (and don't grab again for a beat) so we
       // sink back to the float height instead of hanging in the air beside the deck
-      const blocked = Math.hypot(p.x - x0, p.z - z0) < Math.hypot(v.x, v.z) * dt * 0.25;
+      const blocked = r.horizontalFreedom < 0.25;
       if (this.climbTo !== null && blocked) { this.climbTo = null; this.climbCooldown = 0.6; }
       this.climbCooldown = Math.max(0, this.climbCooldown - dt);
       const ws = this.waterSurfaceAt(p.x, p.z);
       const g = groundAt();
+      this.onPlatform = false;
       if (ws === null) {
         // drifted off the water (the pond's mask edge) — back on foot; gravity takes it from here
         this.setSwimming(false); this.onGround = false; this.waterSurface = null; this.depth = 0; this.wading = false;
@@ -403,6 +464,12 @@ export class Player {
             const y = pl(px, pz);
             if (y !== undefined && y > ws - 0.3 && y - ws < CLIMB_REACH && (ahead === undefined || y < ahead)) ahead = y;
           }
+          // decks as colliders (P4): a surface within reach over the water here / just ahead
+          const top = ws + CLIMB_REACH + 0.2;
+          const overHere = floorBelow(this.physics, p.x, p.z, top, CLIMB_REACH + 0.5, this.motor.collider);
+          if (overHere !== undefined && overHere > ws - 0.3) here = true;
+          const y = floorBelow(this.physics, px, pz, top, CLIMB_REACH + 0.5, this.motor.collider);
+          if (y !== undefined && y > ws - 0.3 && y - ws < CLIMB_REACH && (ahead === undefined || y < ahead)) ahead = y;
           if (ahead !== undefined && this.climbCooldown === 0 && (!here || this.climbTo !== null)) this.climbTo = ahead;
           else if (this.climbTo !== null && ahead === undefined && !here) this.climbTo = null;
         } else this.climbTo = null;
@@ -420,8 +487,8 @@ export class Player {
           if (!climbing && (this.diving || this.diveHeld)) {
             // ── diving: the vertical speed is driven, not sprung — DIVE eases you down, SURFACE eases you up, neither holds
             // the depth (neutral buoyancy: no bobbing back up). The seabed / a collider still stops you.
-            const want = this.diveHeld && !this.surfaceHeld ? -DIVE_SPEED : this.surfaceHeld ? SURFACE_SPEED : 0;
-            v.y += (want - v.y) * Math.min(1, DIVE_EASE * dt);
+            const wantV = this.diveHeld && !this.surfaceHeld ? -DIVE_SPEED : this.surfaceHeld ? SURFACE_SPEED : 0;
+            v.y += (wantV - v.y) * Math.min(1, DIVE_EASE * dt);
             p.y += v.y * dt;
             if (p.y < g) { p.y = g; if (v.y < 0) v.y = 0; }
             if (p.y < floatY - DIVE_ENTER) this.diving = true;
@@ -452,33 +519,26 @@ export class Player {
     } else {
       let accel = this.onGround ? 14 : 3;
       let wx = mx * speed, wz = mz * speed; // the velocity the input asks for
-      // ── too steep: cliffs, crags and rock walls are not stairs. On terrain (not a deck / floor platform, not in the water)
-      // the ground normal under the feet and a step ahead along the move is checked: past SLOPE_WALK the uphill part of the
-      // move is cancelled (you slide along the contour), past SLOPE_SLIDE you slide down it with no control. The hoverboard
-      // never comes here (its repulsors glide up anything); downhill and flat are untouched.
+      // ── too steep: the controller won't climb ground past MAX_CLIMB_DEG (it's a wall); past SLOPE_SLIDE (the ground
+      // the feet stood on last step, from the motor's contact normal) you slide down the fall line with no control.
+      // Decks and floors (platforms) are never too steep; the hoverboard and the water never come here.
       this.sliding = false;
-      if (this.onGround && !this.onPlatform && !this.wading) {
-        const p = this.position;
-        let [nx, ny, nz] = normalAt(p.x, p.z, 0.6);
-        if (len > 0.05) {
-          const [ax, ay, az] = normalAt(p.x + mx / len * SLOPE_PROBE, p.z + mz / len * SLOPE_PROBE, 0.6);
-          if (ay < ny) { nx = ax; ny = ay; nz = az; }
-        }
-        if (ny < SLOPE_WALK) {
-          const dl = Math.hypot(nx, nz) || 1, dx = nx / dl, dz = nz / dl; // the downhill direction (the normal leans down the slope)
-          const up = -(wx * dx + wz * dz);
-          if (up > 0) { wx += dx * up; wz += dz * up; }
-          if (ny < SLOPE_SLIDE) { wx = dx * SLIDE_SPEED; wz = dz * SLIDE_SPEED; accel = SLIDE_ACCEL; this.sliding = true; }
-          else accel = Math.min(accel, 8); // feet scrabbling on the steep face: less grip
-        }
+      const last = this.motor.result;
+      if (this.onGround && !this.onPlatform && !this.wading && last.groundNormalY < SLOPE_SLIDE) {
+        wx = last.downhillX * SLIDE_SPEED; wz = last.downhillZ * SLIDE_SPEED; accel = SLIDE_ACCEL; this.sliding = true;
       }
-      if (this.dashT > 0) {
+      if (this.shoveT > 0) {
+        // knocked back: the shove overrides the input and fades out; the motor below stops it at a wall
+        this.shoveT = Math.max(0, this.shoveT - dt);
+        const k2 = this.shoveT / SHOVE_TIME;
+        this.velocity.x = this.shoveVx * k2; this.velocity.z = this.shoveVz * k2;
+      } else if (this.dashT > 0) {
         // dash (dodge / lunge): the burst overrides the input; deep water just ahead (off a pier edge, no deck) ends it on the spot
         this.dashT -= dt;
         const dl = Math.hypot(this.dashVx, this.dashVz) || 1;
         if (this.deepAt(this.position.x + this.dashVx / dl * DASH_PROBE, this.position.z + this.dashVz / dl * DASH_PROBE)) { this.dashT = 0; this.velocity.x = this.velocity.z = 0; }
         else if (this.dashT > 0) { this.velocity.x = this.dashVx; this.velocity.z = this.dashVz; }
-        else { this.velocity.x = this.dashVx * 0.25; this.velocity.z = this.dashVz * 0.25; } // the last frame: brake, so a lunge stops where it aimed
+        else { this.velocity.x = this.dashVx * 0.25; this.velocity.z = this.dashVz * 0.25; } // the last step: brake, so a lunge stops where it aimed
       } else {
         this.velocity.x += (wx - this.velocity.x) * Math.min(1, accel * dt);
         this.velocity.z += (wz - this.velocity.z) * Math.min(1, accel * dt);
@@ -490,23 +550,32 @@ export class Player {
       else if (jump && !this.onGround && this.jumpsLeft > 0) { this.jumpsLeft--; this.velocity.y = Math.max(this.velocity.y, 0) * 0.3 + DOUBLE_JUMP; this.onJump?.(); } // double jump
       this.velocity.y -= GRAVITY * dt;
 
-      this.position.x += this.velocity.x * dt;
-      this.position.z += this.velocity.z * dt;
-      this.position.y += this.velocity.y * dt;
-
-      this.collide();
+      // the move: walls, posts, trunks and the terrain stop it, steps ≤ 0.35 m are climbed, the feet snap down slopes
+      want.x = this.velocity.x * dt; want.y = this.velocity.y * dt; want.z = this.velocity.z * dt;
+      // standing on something that moves (the boat on the swell): the feet ride the deck's new pose first, and the move
+      // gets no downward push (the controller's slide would spread it along the moving contact into a sideways drift)
+      const riding = this.onGround && this.motor.carry(this.position);
+      if (riding && this.velocity.y <= 0) want.y = 0;
+      const r = this.motor.move(this.position, want, false);
+      // a dash that runs into a wall ends there, not grinding along it
+      if (this.dashT > 0 && r.horizontalFreedom < 0.3) { this.dashT = 0; this.velocity.x *= 0.25; this.velocity.z *= 0.25; }
+      // the P2 bridge: decks, floors and stairs are still floor functions — stand on one we are on or just under
+      let grounded = r.grounded;
+      this.onPlatform = false;
+      const plat = platformAt();
+      if (plat !== undefined && this.position.y - plat <= 0.05 && this.velocity.y <= 0) { this.position.y = plat; grounded = true; this.onPlatform = true; }
 
       const g = groundAt();
       const ws = this.waterSurfaceAt(this.position.x, this.position.z);
       const groundDepth = ws === null ? 0 : ws - g;
       const wet = ws !== null && this.position.y < ws;
       if (wet && groundDepth > SWIM_IN) {
-        // deep enough to float: hand over to the swim branch (this frame's fall speed is mostly eaten by the splash)
+        // deep enough to float: hand over to the swim branch (this step's fall speed is mostly eaten by the splash)
         this.setSwimming(true);
         this.entryKeep = this.velocity.y < -6 ? 0.45 : 0.3; // a hard plunge keeps enough speed to dip the head under for a beat
         this.velocity.y *= this.entryKeep; this.onGround = false; this.strokeTime = 0;
         if (this.position.y < g) this.position.y = g;
-      } else if (this.position.y <= g) {
+      } else if (grounded) {
         if (!this.onGround) {
           // landing in water is soft: the splash takes the impact (never the hard-landing damage path past ankle depth)
           const cushion = wet ? Math.min(1, groundDepth / 0.5) : 0;
@@ -514,8 +583,9 @@ export class Player {
           this.landImpulse = Math.min(0.35, -this.velocity.y * 0.03) * (1 - 0.7 * cushion);
           this.onLand?.(hard);
         }
-        this.position.y = g; this.velocity.y = 0; this.onGround = true;
-      } else if (this.position.y - g > 0.05) this.onGround = false;
+        if (this.velocity.y < 0) this.velocity.y = 0;
+        this.onGround = true;
+      } else this.onGround = false;
       this.waterSurface = ws;
       this.depth = ws === null ? 0 : Math.max(0, ws - this.position.y);
       this.wading = this.onGround && this.depth > 0.02;
@@ -529,13 +599,22 @@ export class Player {
       if (inWater) this.onEnterWater?.(Math.max(0, -this.velocity.y / (this.swimming ? this.entryKeep : 1)) + Math.hypot(this.velocity.x, this.velocity.z) * 0.3);
       else this.onExitWater?.();
     }
+  }
 
-    // chunk boundary: invisible wall (the chunk floats — nothing to walk onto)
-    const lim = CHUNK_HALF - 1.2;
-    this.position.x = Math.max(-lim, Math.min(lim, this.position.x));
-    this.position.z = Math.max(-lim, Math.min(lim, this.position.z));
+  /**
+   * Every frame (after the fixed steps): the camera, posed from the feet interpolated between the last two steps by
+   * `alpha` (Game.alpha) so it glides at any frame rate and through a hit-stop, where a step lands only every ~25 frames.
+   */
+  update(dtRaw: number, alpha = 1): void {
+    const dt = Math.min(dtRaw, 0.05);
+    const hover = this.hover;
+    const swim = this.swimming && !hover;
+    const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
+    // a teleport (respawn, Explore's park, a quest's move) is not a glide
+    const feet = this.renderFeet;
+    if (this.prevFeet.distanceToSquared(this.position) > 25) feet.copy(this.position);
+    else feet.lerpVectors(this.prevFeet, this.position, Math.max(0, Math.min(1, alpha)));
 
-    // camera
     const hSpeed = Math.hypot(this.velocity.x, this.velocity.z);
     this.speedFactor = (this.onGround || swim) && !hover ? hSpeed / 7.2 : 0;
     const targetEye = this.crouching ? EYE - 0.65 : EYE;
@@ -577,11 +656,11 @@ export class Player {
     this.roll += (rollT - this.roll) * Math.min(1, dt * 5);
     this.pitchLean += (pitchT - this.pitchLean) * Math.min(1, dt * 3);
 
-    this.camera.position.set(this.position.x + (bobX + dodgeLead) * cos, this.position.y + this.eyeOffset + bobY - this.landImpulse - dodgeDip, this.position.z - (bobX + dodgeLead) * sin);
+    this.camera.position.set(feet.x + (bobX + dodgeLead) * cos, feet.y + this.eyeOffset + bobY - this.landImpulse - dodgeDip, feet.z - (bobX + dodgeLead) * sin);
     this.camera.rotation.set(0, 0, 0, 'YXZ');
     this.camera.rotation.y = this.yaw;
     this.camera.rotation.x = this.pitch + this.pitchLean + dodgePitch;
-    this.camera.rotation.z = Math.sin(this.bobTime) * bobAmp * 0.25 - str * 0.012 * (1 - this.hoverBlend) + this.roll + this.dashRoll;
+    this.camera.rotation.z = Math.sin(this.bobTime) * bobAmp * 0.25 - this.inStr * 0.012 * (1 - this.hoverBlend) + this.roll + this.dashRoll;
 
     this.board.update(dt, this);
     // water line: tint the bottom of the view as the eye nears / dips under the surface; under it, the underwater look
@@ -595,30 +674,5 @@ export class Player {
     updateUnderwater(dt, (this.camera.parent as THREE.Scene | null)?.fog ?? null);
     this.waterLine.update(eyeAbove, dt);
     this.waterLine.setHint(!swim ? 0 : submerged ? 2 : 1);
-  }
-
-  private collide() {
-    // trees (cylinders)
-    const p = this.position;
-    for (const t of this.forest.nearby(p.x, p.z, RADIUS)) {
-      const dx = p.x - t.x, dz = p.z - t.z;
-      const d = Math.hypot(dx, dz), min = t.r + RADIUS;
-      if (d < min && d > 1e-4) { p.x = t.x + (dx / d) * min; p.z = t.z + (dz / d) * min; }
-    }
-    // oriented boxes (cabin walls etc.)
-    for (const c of this.colliders) {
-      if (p.y + 0.2 > c.yTop || p.y + 1.6 < c.yBottom) continue;
-      const cos = Math.cos(-c.rot), sin = Math.sin(-c.rot);
-      const lx = (p.x - c.x) * cos - (p.z - c.z) * sin;
-      const lz = (p.x - c.x) * sin + (p.z - c.z) * cos;
-      const ox = c.hw + RADIUS - Math.abs(lx), oz = c.hd + RADIUS - Math.abs(lz);
-      if (ox > 0 && oz > 0) {
-        let nx = lx, nz = lz;
-        if (ox < oz) { nx = Math.sign(lx || 1) * (c.hw + RADIUS); } else { nz = Math.sign(lz || 1) * (c.hd + RADIUS); }
-        const c2 = Math.cos(c.rot), s2 = Math.sin(c.rot);
-        p.x = c.x + nx * c2 - nz * s2;
-        p.z = c.z + nx * s2 + nz * c2;
-      }
-    }
   }
 }

@@ -163,6 +163,32 @@ on his laptop.
 - Local model runs: one model at a time, under `lockf -k ~/projects/localai/.model.lock`, and evict after.
   How-tos and traps: `~/projects/localai/docs/music-models.md`; pipeline scripts: `scripts/music/gen/`.
 
+## Physics (Rapier, PHYSICS.md — since the physics merge)
+
+- **`src/physics/` owns collision.** It is the only code that imports Rapier. Nothing else hand-rolls a collision test:
+  no ray-vs-box maths, no terrain bisection, no push-out loops. Ask `src/physics/query.ts` (`castRay`,
+  `castSegment`, `lineOfSight`, `sweepBall`, `floorBelow`). Code that isn't handed the world gets it from
+  `activePhysics()`. `heightAt()` stays for placement and drawing only.
+- **A new static thing collides by registering.** The builder emits `colliderDescs(): ColliderDesc[]` beside the
+  geometry it draws:
+  - box / capsule / ball / hull;
+  - `treads` for any stair: rise ≤ 0.35 m and tread depth ≥ 0.36 m, or the capsule rides the edges;
+  - trimesh only for walk-inside shapes.
+  Then register it with `registry.add({ id, name, category, file, object, colliders, surface, floor?, solidFloor,
+  model? })` (src/world/registry.ts). A moving piece `follows` its Object3D, which puts it on a kinematic body. `model`
+  puts it in Explore's catalog: it is the one registry, so never register a built thing a second time for Explore.
+  Don't push into `player.colliders`: that list is the legacy bridge for boxes that move (interactables, NPCs, dev
+  scenes).
+- **The player walks on colliders.** Step 0.35 m, max climb 40° (the user's picks). A walkable surface needs real
+  geometry. A path over a crag is graded into the terrain (`TerrainSpec.graded`, never inside the Blender cove's
+  baked area); a steep one gets a walkway from `src/physics/paths.ts`. After changing a builder's colliders, re-run
+  `node scripts/physics-baseline.mjs --no-build --mode=walk` (and `--trails`): 0 stuck is the bar. If structures
+  moved, re-bake the navmesh (`node --experimental-transform-types --import ./scripts/bake-loader.mjs
+  scripts/bake-navmesh.mjs`; `--check` tells you when it's stale).
+- **Moving things** go in Game's fixed step (`game.onFixed('pre' | 'step' | 'post')`, 60 Hz, hit-stop slows it) and
+  are interpolated with `game.alpha`. Dynamic bodies go through `src/physics/bodies.ts`, which enforces the per-tier
+  caps (phone 40 awake / 2 ragdolls).
+
 ## Deploy
 
 - **Continuous deployment: every push to `main` deploys.** `.github/workflows/deploy.yml`

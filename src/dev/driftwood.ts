@@ -103,7 +103,7 @@ game.scene.add(boundary.group);
 const horizon = new Horizon(sky).build();
 game.scene.add(horizon.group);
 
-game.onUpdate((dt, t) => { ocean?.update(dt); boat.update(dt); palms.update(dt); bridge.update(dt); boundary.update(dt, t); horizon.update(dt, game.camera); });
+game.onUpdate((dt, t) => { ocean?.update(dt); boat.update(dt); palms.update(dt); boundary.update(dt, t); horizon.update(dt, game.camera); });
 
 (window as unknown as { __world: unknown }).__world = { ...world, ocean, pier, jetties, boat, rocks, hut, palms, lookout, wreck, shrine, bushes, trailside, bridge, boundary, horizon, heightAt, buildMs: T };
 game.buildComposer();

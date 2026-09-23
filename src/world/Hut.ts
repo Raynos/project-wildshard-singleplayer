@@ -19,6 +19,7 @@ import { heightAt } from './Heightfield';
 import { SEED } from '../core/config';
 import { LowPolyKit, log, plank, rope, tris, bakeLight, lowPolyMaterial, type BakedLight } from './lowpolyKit';
 import type { Collider } from '../player/Player';
+import { boxDesc, type ColliderDesc } from './registry';
 import type { Sky } from './Sky';
 
 export interface HutSpec { x: number; z: number; rot: number }
@@ -36,6 +37,7 @@ const W = 6.4, D = 5.4;              // cabin footprint
 const PORCH = 2.2;                    // porch depth around the front and sides
 const WALL_H = 2.6, DOOR_W = 1.1;
 const LIFT = 1.1;                     // floor over the ground at the centre
+const TABLE = { x: -1.5, z: 0.9, w: 1.4, d: 0.85, h: 0.82, yaw: 0.05 }; // the chart table inside (hut-local, top over the floor)
 
 export class Hut {
   group = new THREE.Group();
@@ -45,7 +47,7 @@ export class Hut {
   floorY = 0;
   private cos = 1; private sin = 0;
   private deck = { w: 0, d: 0, z: 0 };
-  private steps = { z0: 0, len: 0, w: 0 };
+  private steps = { z0: 0, len: 0, w: 0, n: 0, top: 0 };
 
   constructor(private sky: Sky, private spec: HutSpec) { this.cos = Math.cos(spec.rot); this.sin = Math.sin(spec.rot); }
 
@@ -189,7 +191,7 @@ export class Hut {
       kit.add(plank(stepsW, 0.4, 0.09, rng, 0.012), i % 2 ? C.deckB : C.deck, { matrix: this.M(0, y, z) });
     }
     for (const s of [-1, 1]) { const top = this.V(s * (stepsW / 2 - 0.05), fy - 0.1, stepsZ0), foot = this.V(s * (stepsW / 2 - 0.05), 0, stepsZ0 - nSteps * 0.4 - 0.1); foot.y = heightAt(foot.x, foot.z) - 0.05; kit.add(log(top, foot, 0.08, 0.08, 5), C.log); }
-    this.steps = { z0: stepsZ0, len: nSteps * 0.4, w: stepsW };
+    this.steps = { z0: stepsZ0, len: nSteps * 0.4, w: stepsW, n: nSteps, top: fy - LIFT / nSteps + 0.05 + 0.045 };
 
     // ── inside: rug, hammock, table + chart + candle, stools, shelves, barrel, crates, net + oars, hanging lantern ──
     {
@@ -206,8 +208,8 @@ export class Hut {
       }
       kit.add(rope([h0, h0.clone().add(new THREE.Vector3(0, 0.6, 0))], 0.02), C.rope); kit.add(rope([h1, h1.clone().add(new THREE.Vector3(0, 0.6, 0))], 0.02), C.rope);
       // table, chart, candle, stools
-      const tx = -1.5, tz = 0.9;
-      box(1.4, 0.07, 0.85, tx, fy + 0.78, tz, C.boardB, 0.05);
+      const tx = TABLE.x, tz = TABLE.z;
+      box(TABLE.w, 0.07, TABLE.d, tx, fy + 0.78, tz, C.boardB, TABLE.yaw);
       for (const [dx, dz] of [[-0.6, -0.34], [0.6, -0.34], [-0.6, 0.34], [0.6, 0.34]] as const) box(0.08, 0.76, 0.08, tx + dx, fy + 0.38, tz + dz, C.post);
       box(0.6, 0.01, 0.44, tx - 0.15, fy + 0.82, tz, C.paper, 0.2, 0.04);
       kit.add(new THREE.CylinderGeometry(0.035, 0.035, 0.46, 5).rotateZ(Math.PI / 2), C.paper, { matrix: this.M(tx + 0.35, fy + 0.85, tz + 0.2, 0.3) });
@@ -285,6 +287,23 @@ export class Hut {
     this.anchors['door'] = A(0, -D / 2, fy, Math.PI);
     this.anchors['porch'] = A(0, -D / 2 - 1.1, fy, Math.PI);
     return this;
+  }
+
+  /**
+   * PHYSICS P4: this builder's static collision in world space — its walls / posts (the legacy boxes) and every floor
+   * `floorHeightAt` describes, as real geometry. src/physics/pieces.ts turns it into Rapier colliders.
+   * The deck (cabin floor + porch) is one slab whose top is the floor; the front steps are the four treads the mesh
+   * draws (0.275 m each, the top one 0.18 m under the deck); the chart table is solid (it had no box before).
+   */
+  colliderDescs(): ColliderDesc[] {
+    const out: ColliderDesc[] = this.colliders.map((c) => boxDesc(c));
+    const yaw = this.spec.rot, fy = this.floorY, slab = 0.15;
+    const at = (lx: number, y: number, lz: number) => { const [x, z] = this.toWorld(lx, lz); return { x, y, z }; };
+    out.push({ kind: 'box', ...at(0, fy - slab, this.deck.z), hx: this.deck.w / 2, hy: slab, hz: this.deck.d / 2, yaw });
+    const { z0, len, w, n, top } = this.steps, rise = LIFT / n;
+    out.push({ kind: 'treads', from: at(0, top - n * rise, z0 - len), to: at(0, top, z0), width: w, count: n });
+    out.push({ kind: 'box', ...at(TABLE.x, fy + TABLE.h / 2, TABLE.z), hx: TABLE.w / 2, hy: TABLE.h / 2, hz: TABLE.d / 2, yaw: yaw + TABLE.yaw });
+    return out;
   }
 
   /** deck / floor height under (x, z), the steps ramp down in front, else undefined */

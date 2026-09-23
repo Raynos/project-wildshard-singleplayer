@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import type { Game } from '../core/Game';
 import { worldTime } from '../core/time';
+import { activePhysics } from '../physics/active';
+import { floorBelow } from '../physics/query';
 
 /**
  * Impacts — the sword's contact debris (Driftwood C4): one pooled InstancedMesh of tiny faceted chunks (POOL instances,
@@ -15,7 +17,8 @@ import { worldTime } from '../core/time';
  *   const impacts = Impacts.for(game);                  // one per game; built into the scene at boot (so it is precompiled)
  *   impacts.burst('shell', point, dir, 10);             // dir = the blow's direction (the chunks fly along it + up)
  *
- * Every chunk has velocity, gravity, drag, spin, a floor (the height it was spawned over, minus a little) it settles on,
+ * Every chunk has velocity, gravity, drag, spin, a floor it settles on (PHYSICS P7: the world surface under the burst —
+ * the deck, the rock, the sand — found by one ray down at spawn; no world or none within reach: a little under the point),
  * and shrinks out over its life. Runs on `worldTime.realDt` (keeps flying through a hit-stop). The pool is a ring: the
  * oldest chunk is recycled. No allocations after construction.
  */
@@ -23,6 +26,8 @@ import { worldTime } from '../core/time';
 export type ImpactKind = 'sand' | 'wood' | 'shell' | 'sparks';
 
 const POOL = 128;
+/** the floor ray starts this far over the burst point and reaches this far under it */
+const FLOOR_UP = 0.1, FLOOR_DOWN = 3;
 const GRAVITY: Record<ImpactKind, number> = { sand: 7, wood: 11, shell: 12, sparks: 4 };
 const LIFE: Record<ImpactKind, [number, number]> = { sand: [0.35, 0.6], wood: [0.5, 0.9], shell: [0.5, 0.9], sparks: [0.18, 0.35] };
 const SPEED: Record<ImpactKind, [number, number]> = { sand: [0.8, 2.2], wood: [1.6, 3.4], shell: [1.8, 3.6], sparks: [3.5, 7] };
@@ -77,6 +82,10 @@ export class Impacts {
   burst(kind: ImpactKind, point: THREE.Vector3, dir: THREE.Vector3, n: number): void {
     const cols = COLOURS[kind];
     const dl = Math.hypot(dir.x, dir.z) || 1, dx = dir.x / dl, dz = dir.z / dl;
+    const physics = activePhysics();
+    const hit = physics ? floorBelow(physics, point.x, point.z, point.y + FLOOR_UP, FLOOR_UP + FLOOR_DOWN) : undefined;
+    // a ray that starts inside something (sparks off a bulkhead's face) says nothing
+    const floor = hit !== undefined && hit < point.y + FLOOR_UP - 0.01 ? hit : point.y - (kind === 'sand' ? 0.05 : 0.9);
     for (let k = 0; k < n; k++) {
       const i = this.next; this.next = (this.next + 1) % POOL;
       const j = i * 3;
@@ -92,7 +101,7 @@ export class Impacts {
       this.spin[j] = (this.rand() - 0.5) * spinK; this.spin[j + 1] = (this.rand() - 0.5) * spinK; this.spin[j + 2] = (this.rand() - 0.5) * spinK;
       const l = this.range(LIFE[kind]); this.life[i] = l; this.life0[i] = l;
       this.size[i] = this.range(SIZE[kind]); this.streak[i] = kind === 'sparks' ? 1 : 0;
-      this.floor[i] = point.y - (kind === 'sand' ? 0.05 : 0.9);
+      this.floor[i] = floor;
       this.grav[i] = GRAVITY[kind]; this.drag[i] = DRAG[kind];
       const c = cols[Math.floor(this.rand() * cols.length)] ?? cols[0];
       if (c !== undefined) this.mesh.setColorAt(i, c);

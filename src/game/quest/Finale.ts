@@ -82,7 +82,7 @@ export function installFinale<A extends AdvAnimal>(adv: Adventure, w: AdventureW
 
     // the reward
     if (reward < 0 && flags.has('dead:captain') && !flags.has('seen:reward') && Math.hypot(pp.x - rewardAt.x, pp.z - rewardAt.z) < 7) {
-      reward = 0; from.copy(pp); fromYaw = w.player.yaw; fromPitch = w.player.pitch; fromPhase = w.sky.dayNight?.phase ?? 0;
+      reward = 0; w.player.carried = true; from.copy(pp); fromYaw = w.player.yaw; fromPitch = w.player.pitch; fromPhase = w.sky.dayNight?.phase ?? 0;
       caption.show(true);
       w.setViewmodel?.(false);                                   // nothing between you and the view
       adv.spine?.objective.root.classList.add('ws-quest-hide');   // the caption has the screen
@@ -97,7 +97,7 @@ export function installFinale<A extends AdvAnimal>(adv: Adventure, w: AdventureW
       const dn = w.sky.dayNight;
       if (dn) { const ahead = ((GOLDEN - fromPhase) % 1 + 1) % 1; dn.phase = (fromPhase + ahead * THREE.MathUtils.smoothstep(reward, 0, 3.5)) % 1; }
       if (reward > HOLD_S) {
-        reward = -2; caption.show(false); flags.set('seen:reward');
+        reward = -2; w.player.carried = false; caption.show(false); flags.set('seen:reward');
         w.setViewmodel?.(true); adv.spine?.objective.root.classList.remove('ws-quest-hide');
       }
     }

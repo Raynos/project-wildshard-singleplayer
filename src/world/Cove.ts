@@ -31,6 +31,7 @@ import { SEED } from '../core/config';
 import { LowPolyKit, rock, log, tris, bakeLight, lowPolyMaterial, type BakedLight } from './lowpolyKit';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
+import { boxDesc, type ColliderDesc } from './registry';
 
 export interface CaveBounds { x: number; z: number; r: number; yMin: number; yMax: number }
 export interface CoveAnchor { x: number; y: number; z: number; yaw: number }
@@ -56,7 +57,18 @@ const ANTE = { z1: 5.2, hw: 2.8, ceil: 3.8 };
 const PASS = { z0: 5.2, z1: 6.4, hw: 1.25, ceil: 2.9 };
 const ALC = { z0: 6.4, hw: 2.0, ceil: 3.4 };
 const RAMP = { z0: 5.8, z1: 6.8 };
+/** PHYSICS P4: the ramp's collision treads (see `colliderDescs`): 4 × 0.375 m, centred on the drawn ramp's middle, 5 cm clear of the sluice leaf */
+const STEPS = { z0: 5.65, z1: 7.15 };
 const FLOOR = 1.2, ALC_FLOOR = 2.2;
+/**
+ * PHYSICS P4: the baked terrain rises through the cave floor from lz ≈ 5 and stands over the alcove floor from lz ≈ 7,
+ * so the physics heightfield is pushed under the cave inside this rectangle (local, from the mouth). It starts 1 m in
+ * (the grid row at the mouth keeps its height: the beach walks straight onto the floor slab) and ends past the back
+ * wall; ±4.2 m takes every grid column whose triangles reach the floor. `BACKFILL` walls off the triangles that climb
+ * back out of the cut behind the back wall (one grid cell, ~2 m, past its far edge).
+ */
+const CUT = { hw: 4.2, z0: 1.0, z1: 10.2, below: FLOOR - 0.6 };
+const BACKFILL = { hw: CUT.hw + 2.0, z1: CUT.z1 + 2.0 };
 
 export class Cove {
   group = new THREE.Group();
@@ -329,6 +341,46 @@ export class Cove {
     // the barrel that washed up by the wreck's bow, ~8 m from the plates
     this.anchors['barrelStart'] = { x: 147.5, y: heightAt(147.5, 3.5), z: 3.5, yaw: 0 };
     return this;
+  }
+
+  /**
+   * PHYSICS P4: this builder's static collision in world space — its walls / posts (the legacy boxes) and every floor
+   * `floorHeightAt` describes, as real geometry. src/physics/pieces.ts turns it into Rapier colliders.
+   *
+   * The nine wall boxes; the floor as three slabs (the antechamber and the passage at 1.2 m, the alcove at 2.2 m); the
+   * ramp between them as the four steps the mesh draws (0.25 m rise), alcove-wide so the upper ones meet the alcove's
+   * wider floor; and a back-fill block behind the back wall over the far side of `terrainCuts()` — the heightfield
+   * under the cave must be cut for any of this floor to be the floor.
+   *
+   * The drawn ramp is 45° (1 m up over lz 5.8–6.8): four treads 0.25 deep are narrower than the 0.38 m capsule, which
+   * then rides their edges as a 45° slope and stops. So the treads run 0.375 m each (34°), lz 5.65–7.15 — from just
+   * behind the sluice door (its leaf ends at lz ≈ 5.61) to 0.35 m into the alcove, whose floor the top tread is flush
+   * with; the collision is within one rise (0.25 m) of the drawn steps all along.
+   */
+  colliderDescs(): ColliderDesc[] {
+    const c = this.cave, out: ColliderDesc[] = this.colliders.map((b) => boxDesc(b, 'rock'));
+    const slab = (hw: number, lz0: number, lz1: number, top: number, bottom: number): ColliderDesc => {
+      const [x, z] = this.W(0, (lz0 + lz1) / 2);
+      return { kind: 'box', x, y: (top + bottom) / 2, z, hx: hw, hy: (top - bottom) / 2, hz: (lz1 - lz0) / 2, yaw: c.yaw, surface: 'rock' };
+    };
+    const base = CUT.below - 0.4;
+    out.push(slab(ANTE.hw + 0.1, -0.3, PASS.z0, FLOOR, base));
+    out.push(slab(PASS.hw + 0.1, PASS.z0, STEPS.z0, FLOOR, base));
+    out.push(slab(ALC.hw + 0.1, STEPS.z1, c.depth, ALC_FLOOR, base));
+    const at = (lz: number, y: number) => { const [x, z] = this.W(0, lz); return { x, y, z }; };
+    out.push({ kind: 'treads', from: at(STEPS.z0, FLOOR), to: at(STEPS.z1, ALC_FLOOR), width: (ALC.hw + 0.1) * 2, count: 4, surface: 'rock' });
+    out.push(slab(BACKFILL.hw, c.depth + 0.8, BACKFILL.z1, FLOOR + 7, base));
+    return out;
+  }
+
+  /**
+   * PHYSICS P4: where the terrain heightfield must be pushed down for the cave to be walkable — every heightfield
+   * vertex inside a rectangle (centre x, z; half-extents hw across, hd along; turned `yaw` about +Y like a
+   * ColliderDesc) takes min(its height, `below`). `below` is under the cave floor.
+   */
+  terrainCuts(): { x: number; z: number; hw: number; hd: number; yaw: number; below: number }[] {
+    const [x, z] = this.W(0, (CUT.z0 + CUT.z1) / 2);
+    return [{ x, z, hw: CUT.hw, hd: (CUT.z1 - CUT.z0) / 2, yaw: this.cave.yaw, below: CUT.below }];
   }
 
   /** the cave's walkable floor under (x, z), else undefined */

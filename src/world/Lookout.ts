@@ -22,6 +22,7 @@ import { LowPolyKit, log, plank, rope, sagLine, tris, lowPolyMaterial } from './
 import { Cove } from './Cove';
 import { swayDepthMaterial } from './wind';
 import type { Collider } from '../player/Player';
+import { boxDesc, type ColliderDesc } from './registry';
 import type { Sky } from './Sky';
 
 export interface LookoutSpec { x: number; z: number; rot: number }
@@ -43,7 +44,7 @@ export class Lookout {
   anchors: Record<string, LookoutAnchor> = {};
   platformY = 0;
   private cos = 1; private sin = 0;
-  private stair = { x0: 0, len: 0, w: 1.5 };
+  private stair = { x0: 0, len: 0, w: 1.5, n: 0 };
 
   constructor(private sky: Sky, private spec: LookoutSpec) { this.cos = Math.cos(spec.rot); this.sin = Math.sin(spec.rot); }
   private toWorld(lx: number, lz: number): [number, number] { return [this.spec.x + lx * this.cos + lz * this.sin, this.spec.z - lx * this.sin + lz * this.cos]; }
@@ -151,7 +152,7 @@ export class Lookout {
       lash(fp.clone().add(new THREE.Vector3(0, 0.9, 0)), new THREE.Vector3(0, 1, 0), 0.15);
       collider(s * (stairW / 2 + 0.35), z0 - run - 0.5, 0.18, 0.18, fp.y - 1, fp.y + 1.3);
     }
-    this.stair = { x0: z0, len: run, w: stairW };
+    this.stair = { x0: z0, len: run, w: stairW, n: steps };
     // ── the banner: hung from the platform's front beam beside the stair, a pole through its head, a white diamond ──
     {
       const bx = -1.35, bw = 1.25, bh = 3.0, top = platY - 0.3, zf = -PLAT / 2 - 0.22;
@@ -226,6 +227,35 @@ export class Lookout {
     const [fx, fz] = this.toWorld(0, z0 - run - 0.6);
     this.anchors['stairFoot'] = A(0, z0 - run - 0.6, heightAt(fx, fz), Math.PI);
     return this;
+  }
+
+  /**
+   * PHYSICS P4: this builder's static collision in world space — its walls / posts (the legacy boxes) and every floor
+   * `floorHeightAt` describes, as real geometry. src/physics/pieces.ts turns it into Rapier colliders.
+   * The platform is one slab whose top is the deck. The stair is the mesh's 0.28 m treads (the top one 0.095 m under
+   * the deck), as wide as `floorHeightAt`'s stair (the stringers included). The headland rises over the stair's foot,
+   * so the treads buried under the ground are left out: the stair starts at the first tread that stands above it.
+   */
+  colliderDescs(): ColliderDesc[] {
+    const out: ColliderDesc[] = this.colliders.map((c) => boxDesc(c));
+    const yaw = this.spec.rot, py = this.platformY, slab = 0.15, half = PLAT / 2 + 0.1;
+    const at = (lx: number, y: number, lz: number) => { const [x, z] = this.toWorld(lx, lz); return { x, y, z }; };
+    out.push({ kind: 'box', ...at(0, py - slab, 0), hx: half, hy: slab, hz: half, yaw });
+    const { x0, len, w, n } = this.stair, rise = H / n, run = len / n, width = w + 0.2, top = py - rise / 2 + 0.045;
+    const foot = x0 - len, footY = top - n * rise;
+    // the first tread (from the foot) whose top is above the ground somewhere under it
+    let k = 0;
+    for (; k < n - 1; k++) {
+      const y = footY + rise * (k + 1);
+      let low = Infinity;
+      for (const [u, v] of [[-1, 0], [1, 0], [-1, 1], [1, 1], [0, 0.5]] as const) {
+        const [x, z] = this.toWorld(u * width / 2, foot + run * (k + v));
+        low = Math.min(low, heightAt(x, z));
+      }
+      if (y > low) break;
+    }
+    out.push({ kind: 'treads', from: at(0, footY + rise * k, foot + run * k), to: at(0, top, x0), width, count: n - k });
+    return out;
   }
 
   /** platform under (x, z), or the stair ramp, else undefined */

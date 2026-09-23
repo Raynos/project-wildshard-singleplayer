@@ -4,6 +4,9 @@ import type { Interactable } from '../world/Cabin';
 import { isMesh } from './Crossbow';
 import { TIER_CONFIG } from '../core/tier';
 import { LightPool } from '../fx/LightPool';
+import { activePhysics } from '../physics/active';
+import { floorBelow } from '../physics/query';
+import { activeBodies, Drop } from '../physics/bodies';
 
 /**
  * ItemPickup (exported as WeaponPickup too) — an item lying in the world for the player to find, presented like
@@ -51,9 +54,16 @@ export interface ItemPickupOptions {
   radius?: number;
   /** item tilt (rad, muzzle / tip up) and scale */
   tilt?: number; scale?: number;
+  /** a drop (PHYSICS P7-L2: a legendary's loot): it pops out TOSS_UP m over `position` with this velocity (m/s), falls,
+   *  bounces and settles as a short-lived body on whatever is under it, then sits there like any other pickup */
+  toss?: { x: number; y: number; z: number };
 }
 
 const SPHERE_R = 0.65, HOVER = 0.78;
+/** settling: the ray down starts this far over the given point (under a cabin roof, over a deck built above the sand) and reaches this far under it */
+const SETTLE_FROM = 1.2, SETTLE_DROP = 2;
+/** a tossed drop starts this far over its `position` (out of the carcass, not under the ground) */
+const TOSS_UP = 1.0;
 const BOB = 0.06, BOB_PERIOD = 2.2, YAW_RATE = THREE.MathUtils.degToRad(25);
 const PULSE_PERIOD = 1.6, PULSE_DEPTH = 0.25, PULSE_PHASE = 0.9; // breathing, out of phase with the bob
 const RIM = 3.0, HAZE = 0.18, LIGHT = 8, LIGHT_DIST = 4, ITEM_EMISSIVE = 0.15;
@@ -149,6 +159,8 @@ export class ItemPickup {
   private near = false; private approach = 0;
   private burstT = -1;
   private disposed = false;
+  /** in flight (a tossed drop, PHYSICS P7-L2) until it lands; null once it lies still */
+  private drop: Drop | null = null;
   private glowing = new Map<THREE.MeshStandardMaterial, { colour: THREE.Color; intensity: number }>();
   private orb: THREE.Color; private sparkCol = new THREE.Color();
   private uTime: THREE.IUniform<number> = { value: 0 }; private uRim: THREE.IUniform<number> = { value: RIM }; private uHaze: THREE.IUniform<number> = { value: HAZE }; private uScale: THREE.IUniform<number> = { value: 400 };
@@ -158,7 +170,13 @@ export class ItemPickup {
     this.tier = opts.tier ?? 'common';
     const colour = this.orb = new THREE.Color(ORB_COLOUR[this.tier]);
     this.sparkCol.copy(colour).lerp(new THREE.Color(1, 1, 1), 0.7);
-    this.group.position.copy(opts.position);
+    let at: THREE.Vector3;
+    if (opts.toss) {
+      const p = opts.position, d = new Drop(activeBodies(), this, { x: p.x, y: p.y + TOSS_UP, z: p.z }, opts.toss, activePhysics());
+      at = new THREE.Vector3(d.floor.x, d.floor.y, d.floor.z);
+      if (!d.landed) this.drop = d;
+    } else at = settle(opts.position);
+    this.group.position.copy(at);
     // the item: tilted (muzzle / tip up), a little over life size, spun by the holder
     const item = opts.item;
     item.rotation.x = opts.tilt ?? TILT; item.rotation.z = 0.12;
@@ -208,7 +226,7 @@ export class ItemPickup {
     this.shock.rotation.x = -Math.PI / 2; this.shock.position.y = HOVER; this.shock.visible = false; this.shock.renderOrder = RENDER_ORDER + 4;
     // from the scene's LightPool (B7): never added / removed mid-play, so taking the item does not recompile every lit program
     this.light = LightPool.for(this.scene).acquire(colour, LIGHT, LIGHT_DIST, 2);
-    this.light.position.set(opts.position.x, opts.position.y + HOVER, opts.position.z);
+    this.light.position.set(at.x, at.y + HOVER, at.z);
     // the item glows faintly with the orb's colour while it sits inside (materials are shared with the viewmodel: restored on pickup)
     item.traverse((o) => {
       if (!isMesh(o)) return;
@@ -222,7 +240,7 @@ export class ItemPickup {
     // the prompt loop measures from the CAMERA (eye height): the interact point sits a little above the item so the
     // radius reads as ground distance, like the door's `FLOOR + 1.0` point
     const radius = opts.radius ?? 1.8;
-    this.interactable = { position: new THREE.Vector3(opts.position.x, opts.position.y + HOVER + 0.5, opts.position.z), radius, label: opts.prompt ?? 'Take item', onInteract: () => this.take() };
+    this.interactable = { position: new THREE.Vector3(at.x, at.y + HOVER + 0.5, at.z), radius, label: opts.prompt ?? 'Take item', onInteract: () => this.take() };
   }
 
   /** the prompt text after "[E]" */
@@ -247,6 +265,7 @@ export class ItemPickup {
   take(): void {
     if (this.taken) return;
     this.taken = true;
+    this.drop?.dispose(); this.drop = null;
     this.interactable.radius = 0;
     this.holder.visible = false;
     this.unglow();
@@ -265,6 +284,7 @@ export class ItemPickup {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true; this.taken = true; this.interactable.radius = 0;
+    this.drop?.dispose(); this.drop = null;
     this.unglow();
     if (this.near) { this.near = false; this.onNear?.(false); }
     this.scene.remove(this.group); // the light is not in it: it goes back to the pool, dark (a light-count change recompiles)
@@ -279,6 +299,7 @@ export class ItemPickup {
     if (renderer && camera) { renderer.getDrawingBufferSize(_size); this.uScale.value = _size.y / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)); }
     this.uTime.value = t;
     if (this.burstT >= 0) { this.stepBurst(dt); return; }
+    if (this.drop) this.fly(this.drop, dt);
 
     // approach: the eye's distance to the orb (the prompt radius is measured the same way)
     let dist = 99;
@@ -289,7 +310,8 @@ export class ItemPickup {
     // inside cabin 1 and was drawn from every corner of the chunk. The light stays (a changing light count recompiles).
     const orbOn = dist < TIER_CONFIG.pickupOrbDist;
     this.holder.visible = dist < TIER_CONFIG.pickupItemDist;
-    this.sphere.visible = orbOn; this.rings.visible = orbOn; this.points.visible = orbOn; this.sigil.visible = orbOn; this.pool.visible = orbOn;
+    const onFloor = orbOn && this.drop === null; // the floor sigil and light pool wait until a tossed drop has landed
+    this.sphere.visible = orbOn; this.rings.visible = orbOn; this.points.visible = orbOn; this.sigil.visible = onFloor; this.pool.visible = onFloor;
     const nearK = dist < NEAR_DIST ? 1 : 0;
     this.approach += (nearK - this.approach) * Math.min(1, dt * 3);
 
@@ -320,6 +342,16 @@ export class ItemPickup {
     this.ringMat.opacity = 0.75 + Math.sin(this.pulse * 1.5) * 0.15 + 0.1 * this.approach;
 
     if (orbOn) this.stepMotes(dt, t);
+  }
+
+  /** a tossed drop in flight: the orb, its light and its prompt ride the body; once it lands they stay there */
+  private fly(d: Drop, dt: number): void {
+    d.update(dt);
+    const f = d.floor;
+    this.group.position.set(f.x, f.y, f.z);
+    this.light.position.set(f.x, f.y + HOVER, f.z);
+    this.interactable.position.set(f.x, f.y + HOVER + 0.5, f.z);
+    if (d.landed) this.drop = null;
   }
 
   /** motes spiral up their helices; every TRAIL_DT the history shifts and the trail sprites follow; sparks flash */
@@ -398,6 +430,17 @@ export class ItemPickup {
     this.posAttr.needsUpdate = true; this.alphaAttr.needsUpdate = true; this.sizeAttr.needsUpdate = true;
     if (!alive && ps >= 1) this.dispose();
   }
+}
+
+/**
+ * PHYSICS P7: a drop settles on what is under it — the first world surface (a deck, a cabin floor, a rock, the ground)
+ * below the orb's centre, not the terrain height it was handed (a skin dropped by the pier lands on the planks). No
+ * physics world (node) or nothing within reach: where it was put.
+ */
+function settle(p: THREE.Vector3): THREE.Vector3 {
+  const physics = activePhysics();
+  const from = p.y + SETTLE_FROM, y = physics ? floorBelow(physics, p.x, p.z, from, SETTLE_FROM + SETTLE_DROP) : undefined;
+  return new THREE.Vector3(p.x, y !== undefined && y < from - 0.01 ? y : p.y, p.z); // a ray that starts inside something (a wall, a rock) says nothing
 }
 
 /** the AR-15 was the first item; main.ts constructs it under this name */

@@ -191,7 +191,7 @@ try {
 async function launchBrowser() {
   const udd = mkdtempSync(join(tmpdir(), 'wildshard-bench-'));
   const gpuArgs = GPU === 'swiftshader' ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] : ['--use-angle=metal', '--ignore-gpu-blocklist'];
-  const chromeProc = spawn(chromium.executablePath(), ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${udd}`, '--no-first-run', '--no-default-browser-check', '--disable-extensions', ...gpuArgs, 'about:blank'], { stdio: 'ignore' });
+  const chromeProc = spawn(chromium.executablePath(), ['--headless=new', '--remote-debugging-port=0', `--user-data-dir=${udd}`, '--no-first-run', '--no-default-browser-check', '--disable-extensions', '--mute-audio', ...gpuArgs, 'about:blank'], { stdio: 'ignore' });
   const portFile = join(udd, 'DevToolsActivePort');
   await waitFor(() => existsSync(portFile) && readFileSync(portFile, 'utf8').split('\n')[0] > 0, 15_000, 'chromium did not open its DevTools port');
   const port = readFileSync(portFile, 'utf8').split('\n')[0].trim();

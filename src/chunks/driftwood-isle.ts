@@ -37,7 +37,9 @@ export const JETTIES = [
 /** the sand paths between the POIs (also `trails[4..]`): [pier → hut], [hut → lookout], [fork → wreck], [hut → shrine] */
 export const PATHS: [number, number][][] = [
   [[0, -188], [-8, -172], [-30, -142], [-30, -104], [-24, -80], [-20, -68]],
-  [[-20, -68], [-8, -50], [14, -24], [17, 8], [24, 22], [31, 30], [50, 44], [66, 62], [90, 90]],
+  // hut → lookout: over the rope bridge end to end (BRIDGE.a → .b), then up the headland ramp's diagonal with its plank
+  // steps and fence (Trailside), not beside them over the crags (PHYSICS.md P9: the old line climbed 2–3 m a metre)
+  [[-20, -68], [-8, -50], [14, -24], [17, 8], [15, 12], [16, 14], [32, 30], [34, 32], [46, 46], [86, 86], [90, 90]],
   [[17, 8], [60, 0], [100, -2], [140, 4]],
   [[-20, -68], [-52, -30], [-72, 20], [-88, 70], [-96, 96]],
 ];
@@ -144,6 +146,21 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
      * plateau ramp → the hut; hut → east → the headland ramp → the lookout; the fork east on to Wreck Cove;
      * hut → north-west → the shrine. The low-poly terrain paints them sand (Terrain.ts, trailDistance).
      */
+    /**
+     * The paths that climb crags are graded (cut and filled to ≤ 32° along the centreline): hut → lookout on both sides
+     * of the bridge (never across the creek), the fork → wreck, hut → shrine. Only outside the Blender spawn cove
+     * (blenderArea.ts, z < −20.6 — its terrain is baked in Blender from these heights): each graded stretch starts
+     * a shelf's width (7 m) clear of it. The plateau rim inside it is climbed by stairs (Trailside `flights`).
+     */
+    graded: {
+      paths: [
+        [[14.9, -13.5], [17, 8], [15, 12], [16, 14]],
+        [[32, 30], [34, 32], [46, 46], [86, 86], [90, 90]],
+        [[17, 8], [60, 0], [100, -2], [140, 4]],
+        [[-58.6, -13.5], [-72, 20], [-88, 70], [-96, 96]],
+      ],
+      maxGrade: Math.tan(32 * Math.PI / 180),
+    },
     trails: [
       [[0, -CHUNK_HALF], [0, -CHUNK_HALF + ROAD_LENGTH]],
       [[0, CHUNK_HALF], [0, CHUNK_HALF - ROAD_LENGTH]],

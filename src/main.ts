@@ -3,7 +3,7 @@ import { bootstrap } from './core/bootstrap';
 import { installGpuRecovery, RELOAD_PARAM } from './core/GpuRecovery';
 import { setPoseProvider } from './ui/ReloadPrompt';
 import { CHUNK_HALF, ROAD_LENGTH } from './core/config';
-import { hasPond, heightAt, trailDistance, CABIN_SITES } from './world/Heightfield';
+import { hasPond, heightAt, normalAt, trailDistance, CABIN_SITES, TRAILS } from './world/Heightfield';
 import { Boundary } from './world/Boundary';
 import { Water } from './world/Water';
 import { Ocean } from './world/Ocean';
@@ -81,6 +81,15 @@ import type { Explore, ExploreMode } from './explore/Explore';
 import { registerDriftwoodModels, registerPineHollowModels } from './explore/catalog';
 import { TIER } from './core/tier';
 import { islandMode } from './world/blenderArea';
+import { boxDesc, type ColliderDesc, type ModelEntry, type PieceCategory } from './world/registry';
+import { cutTerrain } from './physics/terrain';
+import { RopeChain } from './physics/ropeChain';
+import { pathRampDescs } from './physics/paths';
+import type { Collider } from './player/Player';
+import type { Material } from './physics/surface';
+import { activePhysics } from './physics/active';
+import { lineOfSight } from './physics/query';
+import { pickInteractable, setSight } from './world/interact/Interactables';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
 const _animalXZ: { x: number; z: number }[] = [];
@@ -117,7 +126,16 @@ async function main() {
   const menuLoad = startMenuPreload(files, getActiveChunk()), audioLoad = startAudioPreload(files, getActiveChunk());
   startViewmodelTextures(getActiveChunk().weapon !== 'sword'); // the crossbow's + rifle's textures, drawn in a worker while the world builds
   const world = await bootstrap(step);
-  const { game, sky, player, forest, params, chunk } = world;
+  const { game, sky, player, forest, params, chunk, registry } = world;
+  // a static builder into the world registry (PHYSICS P2b): drawn, collides (its boxes as ColliderDescs), and until P4
+  // lends the player its floor function. `statics` keeps the boxes for the ocean's foam rings.
+  const statics: Collider[] = [];
+  // `model`: it is also in Explore's catalog (the one registry: drawn, collides, explorable — ENGINE-FIT E1 / X10)
+  const addBuilt = (id: string, name: string, category: PieceCategory, file: string, object: THREE.Object3D, boxes: readonly Collider[], surface: Material, floor?: (x: number, z: number) => number | undefined, descs?: ColliderDesc[], model?: ModelEntry): void => {
+    statics.push(...boxes);
+    // P4: a builder that emits its own ColliderDescs (floors as real geometry) — its floor function is placement only
+    registry.add({ id, name, category, file, object, colliders: descs ?? boxes.map((c) => boxDesc(c)), surface, ...(floor ? { floor } : {}), ...(descs ? { solidFloor: true } : {}), ...(model ? { model } : {}) });
+  };
   const nolock = params.has('nolock');
   // what the view-dependent layers (ground cover, grass, mist) fill around: the player, or Explore's free camera (E66)
   const viewer = (): THREE.Vector3 => (world.freeCamera ? game.camera.position : player.position);
@@ -136,42 +154,42 @@ async function main() {
     // the south entry road is a wooden pier over the water; the player spawns on its deck
     const pier = sea ? new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: sea.level + 1.2, landing: true }).build() : null;
     if (pier) {
-      game.scene.add(pier.group);
-      player.colliders.push(...pier.colliders);
-      player.platforms.push((x, z) => pier.floorHeightAt(x, z));
+      addBuilt('pier', 'Pier', 'buildings', 'src/world/Pier.ts', pier.group, pier.colliders, 'planks', (x, z) => pier.floorHeightAt(x, z), pier.colliderDescs(), {});
       const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
     }
     // the little sailboat you arrived in, moored to the pier's sea-end bollards; you can drop into it
     const boat = pier && sea ? new Boat(sky, { x: -4.2, z: -CHUNK_HALF + 6, heading: 0, waterY: sea.level, moorTo: pier.mooringsFor(-4.2, -CHUNK_HALF + 6) }).build() : null;
     if (boat) {
-      game.scene.add(boat.group); if (boat.ropes) game.scene.add(boat.ropes);
-      player.colliders.push(...boat.colliders);
-      player.platforms.push((x, z) => boat.floorHeightAt(x, z));
+      // the boat rides the swell: its colliders (in the boat's own frame) follow the group on a kinematic body (P4)
+      statics.push(...boat.colliders);
+      registry.add({ id: 'boat', name: 'Sailboat', category: 'buildings', file: 'src/world/Boat.ts', object: boat.group, follows: boat.group,
+        colliders: boat.colliderLocalDescs(), surface: 'planks', floor: (x, z) => boat.floorHeightAt(x, z), solidFloor: true, model: {} });
+      if (boat.ropes) game.scene.add(boat.ropes);
     }
     await slice();
     // faceted shore boulders along the beach
     const rockSpecs = isOcean ? Boulders.scatterShore(chunk.seed) : [];
     const rocks = isOcean ? new Boulders(sky).build(rockSpecs) : null;
-    if (rocks) { game.scene.add(rocks.mesh); player.colliders.push(...rocks.colliders); }
+    if (rocks) addBuilt('rocks', 'Shore boulders', 'nature', 'src/world/Boulders.ts', rocks.mesh, rocks.colliders, 'rock', undefined, rocks.colliderDescs());
     await slice();
     // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
     const hut = isOcean ? new Hut(sky, HUT).build() : null;
-    if (hut) { game.scene.add(hut.group); player.colliders.push(...hut.colliders); player.platforms.push((x, z) => hut.floorHeightAt(x, z)); }
+    if (hut) addBuilt('hut', 'Hut', 'buildings', 'src/world/Hut.ts', hut.group, hut.colliders, 'planks', (x, z) => hut.floorHeightAt(x, z), hut.colliderDescs(), {});
     await slice();
     // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
     const lookout = isOcean ? new Lookout(sky, LOOKOUT).build() : null;
-    if (lookout) { game.scene.add(lookout.group); player.colliders.push(...lookout.colliders); player.platforms.push((x, z) => lookout.floorHeightAt(x, z)); }
+    if (lookout) addBuilt('lookout', 'Lookout tower', 'buildings', 'src/world/Lookout.ts', lookout.group, lookout.colliders, 'planks', (x, z) => lookout.floorHeightAt(x, z), lookout.colliderDescs(), {});
     await slice();
     const wreck = isOcean ? new Wreck(sky, WRECK).build() : null;
-    if (wreck) { game.scene.add(wreck.group); player.colliders.push(...wreck.colliders); player.platforms.push((x, z) => wreck.floorHeightAt(x, z)); }
+    if (wreck) addBuilt('wreck', 'Shipwreck', 'buildings', 'src/world/Wreck.ts', wreck.group, wreck.colliders, 'planks', (x, z) => wreck.floorHeightAt(x, z), wreck.colliderDescs(), {});
     await slice();
     // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
     const shrine = isOcean ? new Shrine(sky, SHRINE).build() : null;
-    if (shrine) { game.scene.add(shrine.group); player.colliders.push(...shrine.colliders); player.platforms.push((x, z) => shrine.floorHeightAt(x, z)); }
+    if (shrine) addBuilt('shrine', 'Ring shrine', 'buildings', 'src/world/Shrine.ts', shrine.group, shrine.colliders, 'stone', (x, z) => shrine.floorHeightAt(x, z), shrine.colliderDescs(), {});
     await slice();
     const jetties: ReturnType<Pier['build']>[] = [];
     if (sea) for (const j of JETTIES) { jetties.push(new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: sea.level + 1.2 }).build()); await slice(); }
-    for (const j of jetties) { game.scene.add(j.group); player.colliders.push(...j.colliders); player.platforms.push((x, z) => j.floorHeightAt(x, z)); }
+    jetties.forEach((j, i) => { addBuilt(`jetty-${i}`, 'Jetty', 'buildings', 'src/world/Pier.ts', j.group, j.colliders, 'planks', (x, z) => j.floorHeightAt(x, z), j.colliderDescs(), i === 0 ? { id: 'jetty' } : undefined); });
     await slice();
     const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
     const bushes = isOcean ? new Bushes(sky).build(Bushes.scatterIsland(chunk.seed, undefined, AVOID)) : null;
@@ -192,11 +210,11 @@ async function main() {
     await slice();
     // sand paths between the POIs: plank steps up the crag, rope fences, signposts
     const trailside = isOcean ? new Trailside(sky).build(Trailside.forIsland()) : null;
-    if (trailside) { game.scene.add(trailside.mesh); player.colliders.push(...trailside.colliders); }
+    if (trailside) addBuilt('trailside', 'Trailside', 'props', 'src/world/Trailside.ts', trailside.mesh, trailside.colliders, 'wood', undefined, trailside.colliderDescs());
     await slice();
-    // the swaying rope bridge over the tidal creek on the hut → lookout path
+    // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
     const bridge = isOcean ? new RopeBridge(sky, BRIDGE).build() : null;
-    if (bridge) { game.scene.add(bridge.mesh); player.colliders.push(...bridge.colliders); player.platforms.push((x, z) => bridge.floorHeightAt(x, z)); }
+    if (bridge) addBuilt('bridge', 'Rope bridge', 'buildings', 'src/world/RopeBridge.ts', bridge.mesh, bridge.colliders, 'planks', (x, z) => bridge.floorHeightAt(x, z), bridge.colliderDescs(), {});
     await slice();
     // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
     const seabed = isOcean ? new Seabed(sky).build(Seabed.scatterLagoon(chunk.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }])) : null;
@@ -208,13 +226,16 @@ async function main() {
     await slice();
     // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
     const cove = isOcean ? new Cove(sky).build(Cove.forIsland()) : null;
-    if (cove) { game.scene.add(cove.group); player.colliders.push(...cove.colliders); player.platforms.push((x, z) => cove.floorHeightAt(x, z)); }
+    if (cove) {
+      addBuilt('cove', 'Wreck cove', 'nature', 'src/world/Cove.ts', cove.group, cove.colliders, 'rock', (x, z) => cove.floorHeightAt(x, z), cove.colliderDescs(), {});
+      cutTerrain(world.physics, cove.terrainCuts()); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
+    }
     await slice();
-    if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
+    if (palms) addBuilt('palms', 'Coconut palms', 'nature', 'src/world/Palms.ts', palms.mesh, palms.colliders, 'wood', undefined, palms.colliderDescs());
     // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
     const cover = sea ? new GroundCover(sky, { sea: sea.level, palms: palmSpecs }).build() : null;
     if (cover) { game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer())); }
-    ocean?.foamAround(player.colliders); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
+    ocean?.foamAround(statics); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
     await macrotask();
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
@@ -229,6 +250,13 @@ async function main() {
     return { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon, rocks, cover };
   });
   const { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon } = dressing;
+  // the rope bridge's deck hangs as a jointed chain (PHYSICS.md): it sags and bounces under you, the drawn planks follow
+  const bridgeDeck = bridge ? new RopeChain(world.physics, bridge.chainSpec()) : null;
+  if (bridgeDeck) game.onFixed('post', () => { bridgeDeck.capture(); });
+  // the paths as walkways where they cross ground steeper than the motor climbs (PHYSICS P4) — now that the decks are
+  // registered, none where a deck carries the path (a board there pokes up through the bridge's planks)
+  registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/physics/paths.ts', surface: 'ground',
+    colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) });
   // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52): ?island=blender|procedural, Settings ▸ Graphics ▸ Island
   const blenderIsland = isOcean && islandMode() === 'blender'
     ? await import('./world/BlenderIsland').then(({ BlenderIsland: B }) => B.install({
@@ -253,18 +281,32 @@ async function main() {
   const homestead = await step('cabins', async () => {
     if (isOcean) return { cabins: null, interactables: [] as Awaited<ReturnType<Cabins['build']>>['interactables'] };
     const cabins = new Cabins(sky);
-    const { group: cabinGroup, colliders, interactables } = await cabins.build();
+    const { group: cabinGroup, interactables } = await cabins.build();
     game.scene.add(cabinGroup);
-    player.colliders.push(...colliders);
-    player.platforms.push((x, z) => cabins.floorHeightAt(x, z));
+    // P3: the cabins as real colliders (walls, floors, porch + step, furniture); their doors swing as kinematic pieces that
+    // collide only when fully shut or open, and never switch on around a player standing in the doorway
+    registry.add({ id: 'cabins', name: 'Cabins', category: 'buildings', file: 'src/world/Cabin.ts', surface: 'wood', colliders: cabins.colliderDescs(), floor: (x, z) => cabins.floorHeightAt(x, z), solidFloor: true });
+    const _dp = new THREE.Vector3();
+    for (const d of cabins.doorPieces()) {
+      registry.add({ id: d.id, name: 'Cabin door', category: 'buildings', file: 'src/world/Cabin.ts', surface: 'wood', follows: d.pivot, colliders: d.colliders,
+        active: () => !d.swinging() && d.pivot.getWorldPosition(_dp).distanceToSquared(player.position) > 1.4 * 1.4 });
+    }
     return { cabins, interactables };
   });
   const { cabins, interactables } = homestead;
   const props = await step('props', async () => {
     if (isOcean) return null;
     const built = new Props(sky, forest);
-    game.scene.add(await built.build());
-    player.colliders.push(...built.colliders);
+    const object = await built.build();
+    // P3: rocks and stumps as hulls, logs as capsules — three pieces a task apart (the phone's 30 ms per-task collider budget)
+    const descs = built.colliderDescs();
+    const rock = descs.filter((d) => d.surface === 'rock'), wood = descs.filter((d) => d.surface !== 'rock');
+    statics.push(...built.colliders);
+    registry.add({ id: 'props', name: 'Props', category: 'props', file: 'src/world/Props.ts', object, surface: 'rock', colliders: rock.slice(0, Math.ceil(rock.length / 2)) });
+    await macrotask();
+    registry.add({ id: 'props-rocks-2', name: 'Props', category: 'props', file: 'src/world/Props.ts', surface: 'rock', colliders: rock.slice(Math.ceil(rock.length / 2)) });
+    await macrotask();
+    registry.add({ id: 'props-wood', name: 'Stumps and logs', category: 'props', file: 'src/world/Props.ts', surface: 'wood', colliders: wood });
     return built;
   });
 
@@ -276,7 +318,7 @@ async function main() {
   // the island's enemies (Enemies.ts): reef crabs at the tidepools, coconut monkeys in the groves, the drowned sailor in the wreck's hold
   const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [] }).build() : null;
   // the island's models, for Explore World's catalog and tap-to-select (src/explore/registry.ts: a shard registers what it built)
-  if (isOcean) registerDriftwoodModels({ sky, hut, lookout, wreck, shrine, pier, jetties, boat, bridge, cove, palms, bushes, palmSpecs });
+  if (isOcean) registerDriftwoodModels({ sky, palms, bushes, palmSpecs });
   else if (chunk.slug === 'pine-hollow') registerPineHollowModels({ sky, cabins, water, forest, props, at: { x: chunk.spawn.x + 8, z: chunk.spawn.z + 30 } });
   const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;
@@ -425,7 +467,7 @@ async function main() {
   })();
   if (params.get('weapon') === 'iron' && ironSword) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); ironDrop?.dispose(); }
   // ── Driftwood's adventure (plan Track A: interactables, the quest, the castaway, collectibles; src/game/quest/Adventure.ts) — null on any other shard ──
-  installAdventure({ game, sky, player, chunk, prompts: interactables, hud, audio, music, inventory, progress, fullMap, animals, ironDrop, setViewmodel: (on) => { weapons.visible = on; }, bridgeFloor: bridge ? (x, z) => bridge.floorHeightAt(x, z) : undefined, pois: { hut, lookout, wreck, shrine, cave: cove }, params });
+  installAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, inventory, progress, fullMap, animals, ironDrop, setViewmodel: (on) => { weapons.visible = on; }, bridgeFloor: bridge ? (x, z) => bridge.floorHeightAt(x, z) : undefined, pois: { hut, lookout, wreck, shrine, cave: cove }, params });
   // ── legendary skins (src/player/Skins.ts): the Ghost stag drops the GHOST STAG crossbow, Old Ironhide the IRONHIDE AR-15 —
   // a big purple floating pickup where the animal fell (WeaponPickup tier 'rare'); taking it swaps the skin (and hands you the
   // rifle if you had not found it). What you own / wear persists; `?skin=ghost-stag` previews, `?drop=ironhide` spawns one ahead.
@@ -437,7 +479,9 @@ async function main() {
     if (!item) return;
     applySkin(item, skin, sky);
     const label = skin.weapon === 'rifle' ? 'AR-15' : 'crossbow';
-    const drop = new WeaponPickup({ scene: game.scene, item, position: new THREE.Vector3(at.x, heightAt(at.x, at.z), at.z), tier: 'rare', prompt: `Take the ${skin.name} ${label}`, scale: skin.weapon === 'rifle' ? 1.35 : 1.6 }); // big — a legendary fills its orb
+    const toss = Math.random() * Math.PI * 2; // PHYSICS P7-L2: it pops out of the carcass, bounces and settles where it lands
+    const drop = new WeaponPickup({ scene: game.scene, item, position: new THREE.Vector3(at.x, Math.max(at.y, heightAt(at.x, at.z)), at.z), tier: 'rare', prompt: `Take the ${skin.name} ${label}`, scale: skin.weapon === 'rifle' ? 1.35 : 1.6, // big — a legendary fills its orb
+      toss: { x: Math.sin(toss) * 1.2, y: 3.5, z: Math.cos(toss) * 1.2 } });
     interactables.push(drop.interactable);
     skinDrops.push(drop);
     drop.onPickup = () => {
@@ -466,6 +510,7 @@ async function main() {
     killer = { kind: a.kind, label: a.label };
     if (chunk.weapon === 'sword') hurtArc.hit(a.position.x, a.position.z, player.position, player.yaw, dmg); // the direction arc: the island only (D8)
     if (chunk.weapon === 'sword') CameraFX.for(game).addTrauma(Math.min(0.85, 0.3 + dmg / 40)); // a trauma² shake (C3, the island only)
+    player.shove(a.position.x, a.position.z, 5 + Math.min(4, dmg * 0.15)); // knocked back a step, through the controller (PHYSICS P2)
     const dx = a.position.x - player.position.x, dz = a.position.z - player.position.z, d = Math.hypot(dx, dz);
     audio.hurt(dmg / 20, d > 0.3 ? ((dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw)) / d) * 0.7 : 0);
   };
@@ -484,7 +529,7 @@ async function main() {
       const enemy = kind === 'boar' || kind === 'crab' || kind === 'monkey' || kind === 'sailor' ? kind : null;
       if (killed && enemy !== null) islandSfx.vocal(enemy, point, 1.3);
     };
-    swordEvents.onClang = (point, strength) => { islandSfx.impact('wood', strength, point); };
+    swordEvents.onClang = (point, strength, clang) => { islandSfx.impact(clang, strength, point); }; // stone / wood by what the tip met (P5)
     animals.onWindup = (a) => { const e = a.kind === 'crab' ? 'crab' : a.kind === 'sailor' ? 'sailor' : a.kind === 'boar' || a.kind === 'bear' ? 'boar' : null; if (e !== null) islandSfx.windup(e, a.position); };
   }
   const ambience = sea ? new IslandAmbience(audio, { sea: sea.level, heightAt, palms: palmSpecs, wreck, cove: Cove.forIsland() }) : null;
@@ -566,7 +611,11 @@ async function main() {
   document.addEventListener('keydown', firstGesture, { once: true });
   document.addEventListener('mousedown', firstGesture, { once: true });
 
-  // ── interaction (doors) ──
+  // ── interaction (doors, chests, pickups, carcasses): the nearest one within its radius that the eye can SEE (PHYSICS P5 —
+  // a Rapier ray from the camera; a door or chest behind a wall neither prompts nor opens) ──
+  // a cabin door's prompt stands 0.5 m out from its leaf: seen from inside, the shut leaf is its own body, not a wall
+  if (cabins) for (const it of cabins.interactables) setSight(it, { slack: 0.75 });
+  const carcassAt = new THREE.Vector3();
   let prompt: string | undefined;
   let nearest: (typeof interactables)[number] | undefined;
   let carcass: (typeof animals.animals)[number] | undefined;
@@ -600,7 +649,7 @@ async function main() {
     boat?.update(dt);
     palms?.update(dt);
     gulls?.update(dt, player.position);
-    bridge?.update(dt);
+    if (bridge && bridgeDeck?.awake === true) bridge.setPoses(bridgeDeck, game.alpha);
     seabed?.update(dt);
     cove?.update(dt); shrine?.update(dt); enemies?.update(dt, t, player.position);
     if (dayNight) { shrine?.setDusk(dayNight.dusk); if (ambience) ambience.night = dayNight.night; }
@@ -622,10 +671,14 @@ async function main() {
     ambience?.update(dt, game.camera);
 
     // nearest interactable
-    nearest = undefined; let best = 1e9;
-    for (const it of interactables) { const d = it.position.distanceTo(game.camera.position); if (d < it.radius && d < best) { best = d; nearest = it; } }
+    const physics = activePhysics();
+    nearest = pickInteractable(interactables, game.camera.position, physics);
     carcass = undefined;
-    if (!nearest) for (const a of animals.animals) { if (!a.alive && !harvested.has(a) && a.position.distanceTo(player.position) < 2.6) { carcass = a; break; } }
+    if (!nearest) for (const a of animals.animals) {
+      if (a.alive || harvested.has(a) || a.position.distanceTo(player.position) >= 2.6) continue;
+      if (physics && !lineOfSight(physics, game.camera.position, carcassAt.copy(a.position).setY(a.position.y + 0.4), 0.6)) continue; // not through a wall (animals aren't physics yet: their body blocks nothing)
+      carcass = a; break;
+    }
     prompt = nearest ? `[E] ${nearest.label}` : carcass ? `[E] Harvest ${carcass.label || carcass.kind}` : undefined; // "Harvest Royal bull", not "Harvest elk"
 
     // slow health regen; death → respawn at the gate
@@ -676,6 +729,6 @@ async function main() {
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
-  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience };
+  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience };
 }
 main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));

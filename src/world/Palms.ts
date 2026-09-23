@@ -16,6 +16,7 @@ import { Rng } from '../core/rng';
 import { Noise2D } from '../core/noise';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
+import type { ColliderDesc } from './registry';
 import { TIER_CONFIG } from '../core/tier';
 import { windUniforms, updateWind } from './wind';
 
@@ -31,6 +32,8 @@ export class Palms {
   mesh!: THREE.Mesh;
   colliders: Collider[] = [];
   count = 0;
+  /** PHYSICS P4: each trunk as capsules along its bent axis (see colliderDescs) */
+  private trunks: ColliderDesc[] = [];
 
   constructor(private sky: Sky) {}
 
@@ -144,6 +147,17 @@ export class Palms {
       geo.setAttribute('sway', new THREE.Float32BufferAttribute(sway, 2));
       parts.push(geo);
       this.colliders.push({ x: p.x, z: p.z, hw: 0.3, hd: 0.3, rot: 0, yTop: base + p.h, yBottom: base - 1 });
+      // the trunk's collision: three capsules whose segments run along the bent axis (t 0 → ⅓ → ⅔ → 1, the first sunk 0.3 m into the
+      // ground), each as thick as the trunk's rings at its lower end (0.3 m tapering by 45 % to the crown)
+      const cuts = [0, 1 / 3, 2 / 3, 1];
+      for (let k = 0; k < 3; k++) {
+        const t0 = cuts[k] ?? 0, t1 = cuts[k + 1] ?? 1;
+        const p0 = axis(t0), p1 = axis(t1);
+        if (k === 0) p0.y -= 0.3;
+        const along = p1.clone().sub(p0), len = along.length(), radius = 0.3 * (1 - t0 * 0.45);
+        const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), along.divideScalar(len));
+        this.trunks.push({ kind: 'capsule', x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2, z: (p0.z + p1.z) / 2, halfHeight: len / 2, radius, rot: { x: q.x, y: q.y, z: q.z, w: q.w } });
+      }
       this.count++;
     }
     // an empty scatter (a stale terrain, a def with no land) must not throw in mergeGeometries: an empty mesh instead
@@ -163,6 +177,13 @@ export class Palms {
     this.mesh.customDepthMaterial = depth;
     return this;
   }
+
+  /**
+   * PHYSICS P4: this builder's static collision in world space — every trunk as three capsules following its lean
+   * and bend (in place of the legacy upright 0.6 m box, which `colliders` still carries for foam). src/physics/pieces.ts
+   * turns it into Rapier colliders. Palms have no floors.
+   */
+  colliderDescs(): ColliderDesc[] { return this.trunks.slice(); }
 
   /** the island's wind gust, 0 calm … 1 gusting (wind.ts) — what the fronds, bushes, grass, sails and banner sway with; the
    * sound agent's palm rustle reads it */

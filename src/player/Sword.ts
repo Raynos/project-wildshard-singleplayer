@@ -8,7 +8,8 @@ import type { Targets, TargetHit, ImpactSurface } from './Crossbow';
 import type { Weapon, WeaponState, AimInfo } from './Weapon';
 import { REST, CHARGE, SPRINT, COMBO, SLASH, FINISHER, HEAVY, type Move } from './SwordMoves';
 import { getAimTargets, meleeLock, targetRadius, type AimTarget } from './AimTargets';
-import { segmentBlocked, segmentEntry } from './MeleeSweep';
+import { bladeBlocked, bladeContact, type Clang } from './MeleeSweep';
+import { activePhysics } from '../physics/active';
 import { worldTime } from '../core/time';
 import { CameraFX } from './CameraFX';
 import { Impacts } from '../fx/Impacts';
@@ -54,8 +55,8 @@ import { Impacts } from '../fx/Impacts';
  * reaches the band under itself), swept from last frame's blade to this one in ≤ SWEEP_STEP angular sub-steps, each ray
  * out to REACH m against `targets.raycast` — only while a live animal is within reach (a swing at the air costs nothing).
  * Every animal the blade crosses in the active window is hit ONCE per swing (up to HIT_MAX), at the moment the blade
- * reaches it — not the whole arc on the first frame — and not through a wall: the eye → hit point segment is tested
- * against `player.colliders` (MeleeSweep.segmentBlocked). A hit: `applyDamage(damage, point, dir)`, then
+ * reaches it — not the whole arc on the first frame — and not through a wall: the eye → hit point segment is cast
+ * against the physics world (MeleeSweep.bladeBlocked → query.lineOfSight, the player's own capsule excluded). A hit: `applyDamage(damage, point, dir)`, then
  * `stagger(pushDir, strength)` when the target has one (Animal.ts: light 0.6 m / 0.4 s, heavy 1.5 m / 0.8 s, breaks a
  * running charge), `onHit(kind, false, killed)` + `onImpact('flesh', point)` fire (Combat's damage float and the HUD
  * hit marker work unchanged), the first hit stops the world for the move's hit-stop (Game.hitStop: 60 / 90 / 140 ms for
@@ -77,12 +78,14 @@ export interface SwordWorld { game: Game; sky: Sky; player: Player; forest: Fore
  * sound layers (IslandSfx, S3) once instead of per rig:
  *   onSwing(speed 0..1, heavy, dir)          every swing as it starts: dir −1 = the blade sweeps right → left, +1 left → right
  *   onStrike(kind, point, strength, killed)  every blade hit: the struck species, the world point, 0.5 combo … 1 heavy
- *   onClang(point, strength)                 the blade tip met a wall / trunk / rock (once per swing; hit-stop + chips too)
+ *   onClang(point, strength, clang)          the blade tip met a wall / trunk / rock (once per swing; hit-stop + debris too):
+ *                                            clang 'stone' (stone, rock, metal, shell: a ringing clang + sparks) or 'wood'
+ *                                            (wood, planks: a thud + splinters) — the struck collider's material
  */
 export const swordEvents: {
   onSwing?: ((speed: number, heavy: boolean, dir: -1 | 1) => void) | undefined;
   onStrike?: ((kind: string, point: THREE.Vector3, strength: number, killed: boolean) => void) | undefined;
-  onClang?: ((point: THREE.Vector3, strength: number) => void) | undefined;
+  onClang?: ((point: THREE.Vector3, strength: number, clang: Clang) => void) | undefined;
 } = {};
 export interface SwordOptions { allowUnlocked?: boolean; blade?: 'wood' | 'iron' }
 
@@ -661,7 +664,7 @@ export class Sword implements Weapon {
     this.bladeDirs(_g1, _t1);
     if (active && !this.clanged) this.clangTest(move);
     if (!active || this.targets === undefined || !this.sweepHave || !this.anyInReach()) { this.sweepGrip.copy(_g1); this.sweepTip.copy(_t1); this.sweepHave = true; return; }
-    const cam = this.game.camera;
+    const cam = this.game.camera, physics = activePhysics();
     const ang = Math.max(this.sweepGrip.angleTo(_g1), this.sweepTip.angleTo(_t1));
     const subs = Math.min(SWEEP_SUB_MAX, Math.max(1, Math.ceil(ang / SWEEP_STEP)));
     for (let s = 1; s <= subs && this.struckN < HIT_MAX; s++) {
@@ -678,8 +681,7 @@ export class Sword implements Weapon {
         _dir.applyQuaternion(cam.quaternion);
         const hit = this.targets.raycast(cam.position, _dir, REACH);
         if (hit === null || !hit.animal.alive || this.struck.includes(hit.animal)) continue;
-        const p = hit.point, e = cam.position;
-        if (segmentBlocked(e.x, e.y, e.z, p.x, p.y, p.z, this.player.colliders)) continue;
+        if (bladeBlocked(physics, cam.position, hit.point, this.player.motor.collider)) continue;
         this.struck[this.struckN++] = hit.animal;
         this.strike(move, hit);
         if (this.struckN >= HIT_MAX) break;
@@ -687,21 +689,27 @@ export class Sword implements Weapon {
     }
     this.sweepGrip.copy(_g1); this.sweepTip.copy(_t1);
   }
-  /** the blade tip meeting a wall / trunk / rock (a box the eye is not in) along the tip ray, once per swing: a clang, chips, a short stop */
+  /**
+   * the blade tip meeting a wall / trunk / rock along the tip ray (MeleeSweep.bladeContact → query.castRay), once per
+   * swing: a clang, debris by the struck material (stone → sparks, wood → splinters), a short stop
+   */
   private clangTest(move: Move): void {
-    const cam = this.game.camera, e = cam.position;
+    const cam = this.game.camera;
     _dir.copy(_t1).applyQuaternion(cam.quaternion);
-    const len = REACH * 0.9;
-    const f = segmentEntry(e.x, e.y, e.z, e.x + _dir.x * len, e.y + _dir.y * len, e.z + _dir.z * len, this.player.colliders);
-    if (f < 0) return;
+    const contact = bladeContact(activePhysics(), cam.position, _dir, REACH * 0.9, this.player.motor.collider);
+    if (contact === null) return;
     this.clanged = true;
-    const point = _hitPoint.copy(e).addScaledVector(_dir, len * f);
+    const { hit, clang } = contact;
+    const point = _hitPoint.set(hit.point.x, hit.point.y, hit.point.z);
     const k = move === HEAVY ? 1 : move === FINISHER ? 0.75 : 0.5;
-    _v3.copy(_dir).negate();
-    this.impacts.burst('wood', point, _v3, Math.round(6 + 6 * k));
-    if (this.iron) this.impacts.burst('sparks', point, _v3, Math.round(6 + 8 * k));
+    _v3.set(hit.normal.x, hit.normal.y, hit.normal.z).sub(_dir).normalize(); // off the face, back toward the blade
+    if (clang === 'stone') this.impacts.burst('sparks', point, _v3, Math.round((this.iron ? 10 : 5) + 8 * k));
+    else {
+      this.impacts.burst('wood', point, _v3, Math.round(6 + 6 * k));
+      if (this.iron) this.impacts.burst('sparks', point, _v3, Math.round(6 + 8 * k));
+    }
     if (!this.hitDone) { this.game.hitStop(0.045 * this.swingScale); this.jolt = 0.8; this.fx.kick(move.kick.pitch * 0.3, -move.kick.roll * 0.4); }
-    swordEvents.onClang?.(point, k);
+    swordEvents.onClang?.(point, k, clang);
   }
   /** a live animal's body is within REACH (+ its radius, + a metre of slack) of the eye */
   private anyInReach(): boolean {

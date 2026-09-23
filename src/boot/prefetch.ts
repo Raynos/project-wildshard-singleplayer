@@ -37,7 +37,7 @@ export function bootFetches(def: ChunkDef, files: ChunkFiles): string[] {
   const terrain = def.style === 'lowpoly' ? files.terrain.filter((f) => f.startsWith('/assets/baked/')) : files.terrain;
   const trees = def.trees.factory === 'none' ? [] : files.trees;
   const homestead = def.ocean === undefined ? [...files.cabins, ...files.props] : [];
-  return [...files.sky, ...files.baked, ...terrain, ...trees, ...homestead];
+  return [...files.sky, ...files.baked, ...terrain, ...trees, ...homestead]; // not files.physics: Rapier fetches its own WASM at boot start (streamed compile), outside the uncompressed pack
 }
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };
 

@@ -21,6 +21,7 @@ import { heightAt } from './Heightfield';
 import { waveHeight, seaDamp } from './waves';
 import { attachFogUniforms } from './Atmosphere';
 import { patchSway, swayDepthMaterial } from './wind';
+import type { ColliderDesc } from './registry';
 
 export interface BoatSpec {
   x: number; z: number;
@@ -216,6 +217,36 @@ export class Boat {
       wall(-BEAM / 2, 0, 0.08, LENGTH / 2); wall(BEAM / 2, 0, 0.08, LENGTH / 2); wall(0, -LENGTH / 2, BEAM / 2, 0.08); wall(0, LENGTH / 2, BEAM / 2, 0.08);
     }
     return this;
+  }
+
+  /**
+   * PHYSICS P4: the boat's collision in the boat group's LOCAL frame (origin = the hull's waterline centre at rest,
+   * (spec.x, waterY, spec.z); −z = the bow; no heading) — the four gunwale / bow / stern walls (the legacy boxes) and
+   * the floor boards as a slab whose top is `floorHeightAt`'s floor, widened to the walls' inner faces so the tub is
+   * closed. A kinematic body can re-pose these every step to ride the swell; `colliderDescs()` is them at rest.
+   */
+  colliderLocalDescs(): ColliderDesc[] {
+    const yTop = 0.8, yBottom = -1.2, wy = (yTop + yBottom) / 2, wh = (yTop - yBottom) / 2, t = 0.08;
+    const wall = (x: number, z: number, hx: number, hz: number): ColliderDesc => ({ kind: 'box', x, y: wy, z, hx, hy: wh, hz });
+    const floorTop = this.floorY - this.spec.waterY, fh = 0.1;
+    return [
+      wall(-BEAM / 2, 0, t, LENGTH / 2), wall(BEAM / 2, 0, t, LENGTH / 2), wall(0, -LENGTH / 2, BEAM / 2, t), wall(0, LENGTH / 2, BEAM / 2, t),
+      { kind: 'box', x: 0, y: floorTop - fh, z: 0, hx: BEAM / 2 - t, hy: fh, hz: LENGTH / 2 - t },
+    ];
+  }
+
+  /**
+   * PHYSICS P4: this builder's static collision in world space — its walls (the legacy boxes) and the floor
+   * `floorHeightAt` describes, as real geometry: `colliderLocalDescs()` placed at the boat's rest pose.
+   */
+  colliderDescs(): ColliderDesc[] {
+    const h = this.spec.heading ?? 0, cs = Math.cos(h), sn = Math.sin(h);
+    const out: ColliderDesc[] = [];
+    for (const d of this.colliderLocalDescs()) {
+      if (d.kind !== 'box') continue; // the local set is boxes only
+      out.push({ ...d, x: this.spec.x + d.x * cs + d.z * sn, y: this.spec.waterY + d.y, z: this.spec.z - d.x * sn + d.z * cs, yaw: h + (d.yaw ?? 0) });
+    }
+    return out;
   }
 
   /** static mesh with the mooring lines (world space) — add it to the scene beside `group` */

@@ -29,6 +29,7 @@ import { attachFogUniforms } from './Atmosphere';
 import { LowPolyKit, rock, tris, bakeLight, lowPolyMaterial, fern, broadClump, hibiscusBush, hibiscus, lilyPad, lotus, vineStrand, PLANT } from './lowpolyKit';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
+import { boxDesc, type ColliderDesc } from './registry';
 
 export interface ShrineSpec { x: number; z: number; rot: number }
 export interface ShrineAnchor { x: number; y: number; z: number; yaw: number }
@@ -55,6 +56,8 @@ export class Shrine {
   mesh!: THREE.Mesh;
   colliders: Collider[] = [];
   anchors: Record<string, ShrineAnchor> = {};
+  /** the three tier boxes in `colliders` (their tops sit 6 cm under the terrace for the old step-up); `colliderDescs` swaps them for exact ones */
+  private readonly tierBoxes = new Set<Collider>();
   private baseY = 0;
   private waterY = 0;
   private glyphMat!: THREE.MeshBasicMaterial;
@@ -315,7 +318,7 @@ export class Shrine {
     this.buildFireflies(new Rng(SEED ^ 0x5418), terrace);
 
     // ── colliders: the three tiers (each lets you stand on it), the stair's cheek walls ──
-    for (const t of TIERS) this.colliders.push(this.box(0, (t.z0 + t.z1) / 2, t.hw, (t.z1 - t.z0) / 2, base - 2, base + t.top - 0.06));
+    for (const t of TIERS) { const c = this.box(0, (t.z0 + t.z1) / 2, t.hw, (t.z1 - t.z0) / 2, base - 2, base + t.top - 0.06); this.tierBoxes.add(c); this.colliders.push(c); }
     for (const side of [-1, 1]) this.colliders.push(this.box(side * (STAIR.hw + 0.28), (STAIR.z0 + STAIR.z1) / 2 + 0.3, 0.26, (STAIR.z1 - STAIR.z0) / 2 + 0.3, base - 2, base + TIERS[2].top + 0.5));
 
     // ── anchors ──
@@ -450,6 +453,49 @@ export class Shrine {
     const flick = 0.7 + 0.3 * Math.sin(t * 7.3) * Math.sin(t * 3.1);
     this.ffMat.opacity = (0.3 + 0.7 * this.dusk) * flick;
     this.ffMat.size = 0.09 + 0.06 * this.dusk;
+  }
+
+  /**
+   * PHYSICS P4: this builder's static collision in world space — its walls / posts (the legacy boxes) and every floor
+   * `floorHeightAt` describes, as real geometry. src/physics/pieces.ts turns it into Rapier colliders.
+   *
+   * The pedestals, monolith, glyph pillars, standing stones and the stair's cheek walls are the legacy boxes; the three
+   * tiers are boxes topped exactly at their terraces (1 / 2 / 3 m); the stair is the ten treads the mesh draws (0.3 m
+   * rise); the causeway is a slab at the slabs' tops (water + 0.1) with, at its FRONT end (local lz ≈ 14.7, the
+   * approach), treads down to the ground — its edge stands ~0.6 m over the terrain, past the 0.35 m autostep, and the
+   * old 0.5 m step-up plus walking under the slab used to hide it. Its inner end drops ~0.55 m onto the stair foot.
+   */
+  colliderDescs(): ColliderDesc[] {
+    const b = this.baseY, yaw = this.spec.rot, out: ColliderDesc[] = [];
+    for (const c of this.colliders) if (!this.tierBoxes.has(c)) out.push(boxDesc(c, 'stone'));
+    const slab = (lx0: number, lx1: number, lz0: number, lz1: number, top: number, bottom: number): ColliderDesc => {
+      const [x, z] = this.W((lx0 + lx1) / 2, (lz0 + lz1) / 2);
+      return { kind: 'box', x, y: (top + bottom) / 2, z, hx: (lx1 - lx0) / 2, hy: (top - bottom) / 2, hz: (lz1 - lz0) / 2, yaw, surface: 'stone' };
+    };
+    // the terraces: nested boxes, each topped at its floor (the one under the stair is buried inside the treads)
+    for (const t of TIERS) out.push(slab(-t.hw, t.hw, t.z0, t.z1, b + t.top, b - 2));
+    // the stair: ten treads from the foot (lz STAIR.z1, the ground) to the top terrace's edge (lz STAIR.z0)
+    const at = (lx: number, y: number, lz: number) => { const [x, z] = this.W(lx, lz); return { x, y, z }; };
+    out.push({ kind: 'treads', from: at(0, b, STAIR.z1), to: at(0, b + TIERS[2].top, STAIR.z0), width: STAIR.hw * 2, count: 10, surface: 'stone' });
+    // the causeway: lz from the stair foot to the pool's far rim + 0.5, |lx| < POOL.causeway
+    const cw = this.waterY + 0.1, front = POOL.z + POOL.rz + 0.5, hw = POOL.causeway;
+    const groundUnder = (lz0: number, lz1: number, pick: (a: number, b: number) => number, from: number): number => {
+      let g = from;
+      for (let lz = lz0; lz <= lz1 + 1e-6; lz += 0.25) for (let lx = -hw; lx <= hw + 1e-6; lx += 0.3) g = pick(g, heightAt(...this.W(lx, lz)));
+      return g;
+    };
+    out.push(slab(-hw, hw, STAIR.z1, front, cw, Math.min(cw - 0.3, groundUnder(STAIR.z1, front, Math.min, Infinity) - 0.3)));
+    // its front edge: treads (0.35 m run each, ≤ 0.3 m rise) from the ground out front up to the slab's top. The
+    // highest of them is flush with the slab — an extension of it; with a lip ≤ 0.3 m there is none to add.
+    for (let n = 2; n <= 5; n++) {
+      const run = 0.35, foot = front + n * run;
+      const g = groundUnder(foot - 0.1, foot, Math.min, Infinity);
+      if (cw - groundUnder(front, front, Math.max, -Infinity) <= 0.3) break;
+      if ((cw - g) / n > 0.3 && n < 5) continue;
+      out.push({ kind: 'treads', from: at(0, g, foot), to: at(0, cw, front), width: hw * 2, count: n, surface: 'stone' });
+      break;
+    }
+    return out;
   }
 
   /** the walkable stone under (x, z): the stair (a ramp), the three terraces, the causeway across the pool */

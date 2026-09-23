@@ -1,4 +1,8 @@
 import * as THREE from 'three';
+import { activePhysics } from '../physics/active';
+import { activeNavmesh } from '../physics/navmesh';
+import { castRay, floorBelow } from '../physics/query';
+import { CreatureBodies } from '../physics/creatures';
 import { SEED, CHUNK_HALF } from '../core/config';
 import { Rng } from '../core/rng';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel } from '../world/Heightfield';
@@ -100,6 +104,8 @@ interface Brain {
   wary: number;         // seconds of sharpened senses left after a scare
   sensed: boolean;      // the player was sensed this think
   windup: number;       // melee shards: seconds of charge wind-up left (0 = running / none)
+  // ── the navmesh path being followed (PHYSICS P6b; empty without a navmesh) ──
+  path: THREE.Vector3[]; pathI: number; goalX: number; goalZ: number; repathAt: number;
 }
 
 /** One animal kind's hunting-loop numbers. Player speeds for reference: crouch 2.2, walk 4.3, sprint 7.2 m/s. */
@@ -200,12 +206,17 @@ function makeDropTexture(): THREE.CanvasTexture {
 }
 
 const MAX_P = 384, MAX_DECALS = 24;
+/** blood lands on the first world surface within this far under the burst (m) */
+const BLOOD_DROP = 4;
+const DOWN = { x: 0, y: -1, z: 0 } as const;
 
 class BloodFX {
   group = new THREE.Group();
   private pos = new Float32Array(MAX_P * 3);
   private vel = new Float32Array(MAX_P * 3);
   private life = new Float32Array(MAX_P);
+  /** where each droplet lands (PHYSICS P7: one ray down per burst) */
+  private floor = new Float32Array(MAX_P);
   private points: THREE.Points;
   private posAttr: THREE.BufferAttribute;
   private next = 0;
@@ -240,8 +251,11 @@ class BloodFX {
 
   burst(at: THREE.Vector3, dir: THREE.Vector3, strength = 1): void {
     const n = Math.round(22 * strength);
+    const physics = activePhysics();
+    const fl = (physics ? floorBelow(physics, at.x, at.z, at.y + 0.3, BLOOD_DROP) : undefined) ?? heightAt(at.x, at.z);
     for (let i = 0; i < n; i++) {
       const k = this.next; this.next = (this.next + 1) % MAX_P;
+      this.floor[k] = fl;
       this.pos[k * 3] = at.x; this.pos[k * 3 + 1] = at.y; this.pos[k * 3 + 2] = at.z;
       // spray mostly along the shot direction (exit) with a wide cone
       const s = 1.5 + Math.random() * 3.5;
@@ -255,10 +269,10 @@ class BloodFX {
     const d = this.decals[this.decalNext]; this.decalNext = (this.decalNext + 1) % MAX_DECALS;
     if (d === undefined) return;
     const gx = at.x + dir.x * 0.4, gz = at.z + dir.z * 0.4;
-    const gy = heightAt(gx, gz);
-    const nrm = normalAt(gx, gz);
-    d.position.set(gx, gy + 0.015, gz);
-    _d.set(nrm[0], nrm[1], nrm[2]);
+    // the patch lands on what is under it: a deck, a rock, the hold floor — not the terrain beneath them
+    const hit = physics ? castRay(physics, _c.set(gx, at.y + 0.3, gz), DOWN, BLOOD_DROP) : null;
+    if (hit) { d.position.set(gx, hit.point.y + 0.015, gz); _d.set(hit.normal.x, hit.normal.y, hit.normal.z); }
+    else { const nrm = normalAt(gx, gz); d.position.set(gx, heightAt(gx, gz) + 0.015, gz); _d.set(nrm[0], nrm[1], nrm[2]); }
     d.quaternion.setFromUnitVectors(_c.set(0, 0, 1), _d);
     d.rotateZ(Math.random() * Math.PI * 2);
     const r = 0.14 + Math.random() * 0.14 * strength;
@@ -279,12 +293,15 @@ class BloodFX {
       const j = k * 3;
       vel[j + 1] = (vel[j + 1] ?? 0) - 9.8 * dt;
       pos[j] = (pos[j] ?? 0) + (vel[j] ?? 0) * dt; pos[j + 1] = (pos[j + 1] ?? 0) + (vel[j + 1] ?? 0) * dt; pos[j + 2] = (pos[j + 2] ?? 0) + (vel[j + 2] ?? 0) * dt;
+      const fl = this.floor[k] ?? -1e9;
+      if ((pos[j + 1] ?? 0) < fl) { pos[j + 1] = fl + 0.01; vel[j] = vel[j + 1] = vel[j + 2] = 0; } // landed: it soaks in where it fell
     }
     this.active = alive;
     this.posAttr.needsUpdate = true;
   }
 }
 
+const _navFrom = new THREE.Vector3(), _navTo = new THREE.Vector3();
 export class AnimalManager {
   group = new THREE.Group();
   animals: Animal[] = [];
@@ -350,7 +367,17 @@ export class AnimalManager {
   // ── spawning ───────────────────────────────────────────────────────────────────────────
 
   /** dry ground: above the pond's water line */
-  private isDry(x: number, z: number): boolean { return heightAt(x, z) > waterLevel() + 0.25; }
+  /**
+   * Dry ground: above the pond's level, or — with a navmesh — walkable on it. (Pine Hollow has dry valleys lower than the
+   * pond's surface; the navmesh bake knows only the pond itself is water, and the herds follow the navmesh.)
+   */
+  private isDry(x: number, z: number): boolean {
+    if (heightAt(x, z) > waterLevel() + 0.25) return true;
+    const nav = activeNavmesh();
+    if (nav === null) return false;
+    const p = nav.closestWalkable(_navFrom.set(x, heightAt(x, z), z), 0, _navTo);
+    return p !== null && Math.hypot(p.x - x, p.z - z) < 1;
+  }
 
   /**
    * Ground an animal can stand on. `clearingR` > 3 asks for a clearing (few trunks in that radius);
@@ -463,6 +490,7 @@ export class AnimalManager {
     this.brains.set(a, {
       timer: this.rng.range(1, 4), tx: x, tz: z, fleeT: 0, fleeUntil: this.rng.range(tune.fleeUntil, tune.fleeUntilMax), chargeCd: 0,
       callT: this.rng.range(10, 60), awareness: 0, freeze: 0, spooked: false, wary: 0, sensed: false, windup: 0,
+      path: [], pathI: 0, goalX: 0, goalZ: 0, repathAt: 0,
     });
     if (this.melee) { a.attackTurnCap = ATTACK_TURN; a.onAttack = (who) => { this.onWindup?.(who); }; }
     return a;
@@ -484,6 +512,9 @@ export class AnimalManager {
 
   update(dt: number, t: number, playerPos: THREE.Vector3, playerSprinting = false): void {
     this.playerPos.copy(playerPos);
+    this.clock += dt;
+    // hitboxes posed from last frame's bones, bodies handed out / back by distance (PHYSICS P6)
+    this.bodiesFor()?.sync(this.animals, playerPos);
     // AI at 10 Hz, staggered across animals so the cost is flat
     this.thinkAcc += dt;
     const n = this.animals.length;
@@ -494,6 +525,7 @@ export class AnimalManager {
       const moved = Math.hypot(playerPos.x - this.playerPrev.x, playerPos.z - this.playerPrev.z);
       this.playerPrev.copy(playerPos);
       this.playerSpeed += (Math.min(moved / 0.1, 9) - this.playerSpeed) * 0.5;
+      this.repaths = 0;
       for (const a of this.animals) this.think(a, 0.1, playerPos, playerSprinting);
     }
     // fur shells: pick the SHELL_MAX nearest animals inside SHELL_DIST (tiny insertion sort, no allocs)
@@ -550,7 +582,7 @@ export class AnimalManager {
       if (herd !== null) this.updateHerd(herd);
       return;
     }
-    if (!a.alive) { a.lookWeight = 0; a.settleCorpse(); return; }
+    if (!a.alive) { a.lookWeight = 0; return; }   // the corpse is a ragdoll (PHYSICS P8) or the keyframed collapse: nothing to think
     if (a.stunned) { br.chargeCd = Math.max(0, br.chargeCd - dt); a.setMotion(a.yaw, 0, 1); a.lookTarget.copy(player); a.lookWeight = 1; this.confine(a); return; }   // staggered by a sword blow (Animal.stagger): the AI holds (the charge cooldown still ticks)
     const rng = this.rng;
     const sp = speciesDef(a.kind);
@@ -611,7 +643,7 @@ export class AnimalManager {
           const tdx = br.tx - a.position.x, tdz = br.tz - a.position.z;
           const td = Math.hypot(tdx, tdz);
           if (td < 1.2 || br.timer <= 0) { this.enter(a, br, rng.next() < 0.6 ? 'graze' : 'idle'); break; }
-          this.steer(a, Math.atan2(tdx, tdz), sp.walkSpeed ?? (boar ? BOAR_WALK : DEER_WALK), 1.8);
+          this.steerTo(a, br, br.tx, br.tz, sp.walkSpeed ?? (boar ? BOAR_WALK : DEER_WALK), 1.8, 4);
         } else {
           a.setMotion(a.desiredYaw, 0, 1.5);
           if (br.timer <= 0) {
@@ -652,7 +684,8 @@ export class AnimalManager {
         if (done) { this.enter(a, br, 'alert'); br.freeze = T.lookBack; br.spooked = false; br.timer = T.relaxAfter; break; }
         // gallop, easing to a trot for the last stretch
         const speed = (dPlayer > br.fleeUntil * 0.8 && br.fleeT > T.fleeMinTime ? T.trotSpeed : T.runSpeed * (0.92 + 0.08 * Math.sin(a.seed * 9))) * M.speed;
-        this.steer(a, Math.atan2(ax, az), speed, 3.5);
+        const al = Math.hypot(ax, az) + 1e-3;
+        this.steerTo(a, br, a.position.x + ax / al * 20, a.position.z + az / al * 20, speed, 3.5, 1);
         a.lookWeight = 0;
         break;
       }
@@ -662,7 +695,7 @@ export class AnimalManager {
         if (st === undefined) throw new Error(`AnimalManager: ${a.kind} is stalking without HuntTuning.stalk`);
         if (this.calm || dPlayer > st.giveUp) { br.awareness = 0; br.spooked = false; this.enter(a, br, 'wander'); break; }
         if (panic && br.chargeCd <= 0) { this.enter(a, br, 'charge'); break; }
-        this.steer(a, Math.atan2(dx, dz), st.speed * M.speed, 2.5);
+        this.steerTo(a, br, player.x, player.z, st.speed * M.speed, 2.5, 0.4);
         a.lookTarget.copy(player); a.lookWeight = 1;
         br.timer -= dt;
         if (br.timer <= 0) { br.timer = rng.range(st.huffMin, st.huffMax); if (dPlayer < 80) this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position); }
@@ -679,7 +712,8 @@ export class AnimalManager {
         }
         br.timer -= dt;
         // melee shards: the last CHARGE_COMMIT m are committed (it can barely turn) — a late sidestep makes it thunder past
-        this.steer(a, Math.atan2(dx, dz), (sp.chargeSpeed ?? BOAR_CHARGE) * M.speed, this.melee && dPlayer < CHARGE_COMMIT ? CHARGE_COMMIT_TURN : 4.0);
+        if (this.melee && dPlayer < CHARGE_COMMIT) this.steer(a, Math.atan2(dx, dz), (sp.chargeSpeed ?? BOAR_CHARGE) * M.speed, CHARGE_COMMIT_TURN); // the committed stretch: straight
+        else this.steerTo(a, br, player.x, player.z, (sp.chargeSpeed ?? BOAR_CHARGE) * M.speed, 4.0, 0.3);
         a.lookTarget.copy(player); a.lookWeight = 0.5;
         const after: Animal['state'] = T.stalk !== undefined ? 'stalk' : 'flee';   // a hunter keeps pressing; a boar wheels away
         if (!this.melee && dPlayer < CHARGE_HIT_DIST * Math.max(1, a.scale)) this.chargeHit(a, br);   // melee shards connect per frame on an arc (chargeContact)
@@ -740,6 +774,14 @@ export class AnimalManager {
       case 'wander': {
         const herd = a.herd >= 0 ? this.herds[a.herd] ?? null : null;
         let ok = false;
+        const nav = activeNavmesh();
+        if (nav !== null) {
+          // a reachable point 5–25 m away on the navmesh; a straggler > 15 m from its herd wanders back toward the centre
+          const far = herd !== null && Math.hypot(a.position.x - herd.cx, a.position.z - herd.cz) > 15;
+          const origin = herd !== null && far ? _navFrom.set(herd.cx, heightAt(herd.cx, herd.cz), herd.cz) : a.position;
+          const t = nav.randomPointNear(origin, far ? 10 : rng.range(5, 25), this.agentRadius(a), () => rng.next(), _navTo);
+          if (t !== null && inChunk(t.x, t.z, 20)) { br.tx = t.x; br.tz = t.z; ok = true; }
+        }
         for (let i = 0; i < 12 && !ok; i++) {
           const ang = rng.range(0, Math.PI * 2), r = rng.range(5, 25);
           let tx = a.position.x + Math.cos(ang) * r, tz = a.position.z + Math.sin(ang) * r;
@@ -826,7 +868,43 @@ export class AnimalManager {
     }
   }
 
-  /** desired heading with trunk repulsion, slope + edge avoidance */
+  /** the creature's navmesh layer radius — the same size as its physics body (src/physics/creatures.ts) */
+  private agentRadius(a: Animal): number {
+    return THREE.MathUtils.clamp(Math.min(a.dims.bodyRadius, a.dims.bodyHalfLen) * a.scale, 0.12, 0.9);
+  }
+
+  private repaths = 0;
+  /** seconds of world time (the path re-plan timers run on it) */
+  private clock = 0; // path searches this think tick (capped: a herd bolting at once doesn't search 20 paths in one tick)
+
+  /**
+   * Head for (tx, tz) along the navmesh (PHYSICS P6b): re-path when the goal moved > 2 m or every `every` s, follow the
+   * path's corners, and let the physics body resolve the last metre. Without a navmesh (dev scenes, an old build):
+   * the straight heading through `steer`'s trunk / slope / edge bending, as before.
+   */
+  private steerTo(a: Animal, br: Brain, tx: number, tz: number, speed: number, turnRate: number, every: number): void {
+    const nav = activeNavmesh();
+    if (nav === null) { this.steer(a, Math.atan2(tx - a.position.x, tz - a.position.z), speed, turnRate); return; }
+    const now = this.clock;
+    const stale = br.path.length === 0 || Math.hypot(tx - br.goalX, tz - br.goalZ) > 2 || now >= br.repathAt;
+    if (stale && this.repaths < 8) {
+      this.repaths++;
+      _navTo.set(tx, heightAt(tx, tz), tz);
+      const p = nav.findPath(a.position, _navTo, this.agentRadius(a), br.path);
+      if (p === null) br.path.length = 0;
+      br.pathI = 0; br.goalX = tx; br.goalZ = tz; br.repathAt = now + every;
+    }
+    while (br.pathI < br.path.length) {
+      const c = br.path[br.pathI];
+      if (c === undefined || Math.hypot(c.x - a.position.x, c.z - a.position.z) > 0.8) break;
+      br.pathI++;
+    }
+    const c = br.path[br.pathI];
+    const aimX = c === undefined ? tx : c.x, aimZ = c === undefined ? tz : c.z;
+    a.setMotion(Math.atan2(aimX - a.position.x, aimZ - a.position.z), speed, turnRate);
+  }
+
+  /** desired heading with trunk repulsion, slope + edge avoidance — the no-navmesh fallback of `steerTo` */
   private steer(a: Animal, yaw: number, speed: number, turnRate: number): void {
     let vx = Math.sin(yaw), vz = Math.cos(yaw);
     const px = a.position.x, pz = a.position.z;
@@ -886,32 +964,25 @@ export class AnimalManager {
    * (the returned object is reused between calls — copy what you need).
    */
   raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, aliveOnly = true): AnimalHit | null {
-    let best = maxDist, bestA: Animal | null = null, bestHead = false;
-    for (const a of this.animals) {
-      if ((aliveOnly && !a.alive) || a.hidden) continue;
-      // broad phase: bounding sphere around the animal
-      _c.copy(a.position); _c.y += a.dims.bodyY * a.scale;
-      _d.subVectors(_c, origin);
-      const tca = _d.dot(dir);
-      if (tca < -2 || tca > best + 2) continue;
-      const bR = (a.dims.bodyHalfLen + 1.2) * a.scale;
-      if (_d.lengthSq() - tca * tca > bR * bR) continue;
-      // head
-      a.headWorld(_p);
-      const th = raySphere(origin, dir, _p, a.dims.headRadius * a.scale);
-      if (th >= 0 && th < best) { best = th; bestA = a; bestHead = true; }
-      // body capsule
-      a.bodyCapsule(_a, _b);
-      const tb = rayCapsule(origin, dir, _a, _b, a.dims.bodyRadius * a.scale);
-      if (tb >= 0 && tb < best) { best = tb; bestA = a; bestHead = false; }
-    }
-    if (bestA === null) return null;
-    const h = this.hitResult ??= { animal: bestA, point: new THREE.Vector3(), distance: 0, headshot: false, damage: 0 };
-    h.animal = bestA; h.distance = best; h.headshot = bestHead;
-    h.point.copy(origin).addScaledVector(dir, best);
-    h.damage = this.damageFor(bestHead, h.point.distanceTo(this.playerPos));
+    // PHYSICS P6: the animals' head / body hitboxes in the physics world (posed every update); dead ones have none
+    void aliveOnly;
+    const hit = this.bodiesFor()?.cast(origin, dir, maxDist) ?? null;
+    if (hit === null) return null;
+    const h = this.hitResult ??= { animal: hit.creature, point: new THREE.Vector3(), distance: 0, headshot: false, damage: 0 };
+    h.animal = hit.creature; h.distance = hit.distance; h.headshot = hit.head;
+    h.point.copy(hit.point);
+    h.damage = this.damageFor(hit.head, h.point.distanceTo(this.playerPos));
     return h;
   }
+
+  private bodies: CreatureBodies<Animal> | null = null;
+  /** the physics side of the herds (src/physics/creatures.ts), made once the shard's world exists */
+  private bodiesFor(): CreatureBodies<Animal> | null {
+    if (this.bodies === null) { const p = activePhysics(); if (p !== null) this.bodies = new CreatureBodies<Animal>(p); }
+    return this.bodies;
+  }
+  /** how many animals have a physics body (the near LOD) — the bench reads it */
+  get physicsBodies(): number { return this.bodies?.bodies ?? 0; }
 
   /**
    * The living animal whose head sphere or body capsule passes within `tol` m of the ray (nearest along the ray),
@@ -1023,16 +1094,8 @@ export class AnimalManager {
 // Ray helpers
 // ─────────────────────────────────────────────────────────────────────────────────────────
 
-const _oc = new THREE.Vector3(), _ab = new THREE.Vector3(), _ao = new THREE.Vector3();
+const _ab = new THREE.Vector3(), _ao = new THREE.Vector3();
 
-function raySphere(o: THREE.Vector3, d: THREE.Vector3, c: THREE.Vector3, r: number): number {
-  _oc.subVectors(o, c);
-  const b = _oc.dot(d), cc = _oc.dot(_oc) - r * r;
-  const disc = b * b - cc;
-  if (disc < 0) return -1;
-  const t = -b - Math.sqrt(disc);
-  return t >= 0 ? t : (cc < 0 ? 0 : -1);
-}
 
 /** squared distance between a ray (o, d unit) and a segment a-b (closest points, clamped to the segment and t ≥ 0) */
 function segRayDist2(o: THREE.Vector3, d: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3): number {
@@ -1047,24 +1110,3 @@ function segRayDist2(o: THREE.Vector3, d: THREE.Vector3, a: THREE.Vector3, b: TH
   return px * px + py * py + pz * pz;
 }
 
-/** ray vs capsule (segment a-b, radius r): infinite-cylinder test clipped to the segment, plus the end spheres */
-function rayCapsule(o: THREE.Vector3, d: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3, r: number): number {
-  _ab.subVectors(b, a); _ao.subVectors(o, a);
-  const abab = _ab.dot(_ab), abd = _ab.dot(d), abao = _ab.dot(_ao), aod = _ao.dot(d), aoao = _ao.dot(_ao);
-  const A = abab - abd * abd, B = abab * aod - abao * abd, C = abab * (aoao - r * r) - abao * abao;
-  let best = -1;
-  if (A > 1e-6) {
-    const disc = B * B - A * C;
-    if (disc >= 0) {
-      const t = (-B - Math.sqrt(disc)) / A;
-      if (t >= 0) {
-        const y = abao + t * abd;
-        if (y >= 0 && y <= abab) best = t;
-      }
-    }
-  }
-  const ta = raySphere(o, d, a, r), tb = raySphere(o, d, b, r);
-  if (ta >= 0 && (best < 0 || ta < best)) best = ta;
-  if (tb >= 0 && (best < 0 || tb < best)) best = tb;
-  return best;
-}

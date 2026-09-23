@@ -8,6 +8,7 @@ import { heightAt, CABIN_SITES } from './Heightfield';
 import { attachFogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
 import type { Collider } from '../player/Player';
+import { boxDesc, type ColliderDesc } from './registry';
 import { TIER_CONFIG } from '../core/tier';
 import { macrotask } from '../boot/plan';
 
@@ -28,6 +29,8 @@ import { macrotask } from '../boot/plan';
  * - `floorHeightAt(x, z)` → world y of a cabin floor / porch deck under (x,z), or undefined
  *                   (Player has no walkable platforms yet — the floor is only 22 cm above the pad).
  * - `firePits`      `{ x, y, z }` of the camp fires (audio / warmth logic).
+ * - `colliderDescs()` PHYSICS P3: the static collision as real geometry (walls, floors, porch + its step, furniture);
+ *                   `doorPieces()` the door slabs, in each door pivot's frame, for kinematic pieces that swing with it.
  *
  * Cabin local frame: door + porch face local +X, the ridge runs along local Z. The whole cabin is
  * rotated by CABIN_SITES[i].rot around Y and sits on `heightAt(site)` (pads are flat; the stone
@@ -104,7 +107,11 @@ const SPECS: CabinSpec[] = [
   },
 ];
 
-interface Door { pivot: THREE.Object3D; open: boolean; t: number; collider: Collider; interactable: Interactable }
+interface Door {
+  id: string; pivot: THREE.Object3D; open: boolean; t: number; collider: Collider; interactable: Interactable;
+  /** PHYSICS P3: the leaf as a box in the pivot's local frame */
+  slab: ColliderDesc;
+}
 interface Fire { light: THREE.PointLight; base: number; seed: number }
 /** phone tier: a point light's slot — the 4 shared lights jump to the nearest cabin's anchors each frame */
 interface LightAnchor { anchor: THREE.Object3D; color: number; intensity: number; distance: number; decay: number; seed: number }
@@ -555,6 +562,17 @@ class CabinBuilder {
     this.owner.colliders.push(col);
     return col;
   }
+  /**
+   * PHYSICS P3: a static box for `Cabins.colliderDescs()` only (not a legacy `Collider`), in the cabin's local frame:
+   * centre (lx, lz), half-extents hw × hd turned by `localRot`, from yBottom to yTop above the cabin base.
+   */
+  private solid(lx: number, lz: number, hw: number, hd: number, yBottom: number, yTop: number, localRot = 0, surface?: 'stone' | 'wood') {
+    const c = Math.cos(this.rot), s = Math.sin(this.rot);
+    this.owner._solid({
+      kind: 'box', x: this.cx + lx * c + lz * s, y: this.cy + (yTop + yBottom) / 2, z: this.cz - lx * s + lz * c,
+      hx: hw, hy: (yTop - yBottom) / 2, hz: hd, yaw: this.rot + localRot, ...(surface === undefined ? {} : { surface }),
+    });
+  }
   private worldPos(lx: number, ly: number, lz: number) { return new THREE.Vector3(lx, ly, lz).applyMatrix4(this.root.matrixWorld); }
   /** a flickering point light under `parent` — a real light on desktop, an anchor for the shared set on the phone */
   private pointLight(parent: THREE.Object3D, color: number, intensity: number, distance: number, decay: number, x: number, y: number, z: number, seed: number) {
@@ -570,6 +588,10 @@ class CabinBuilder {
   private placeProp(kind: PropKind, x: number, y: number, z: number, ry: number, scale = 1) {
     const local = new THREE.Matrix4().makeRotationY(ry).setPosition(x, y, z).scale(new THREE.Vector3(scale, scale, scale));
     this.propInstances[kind].push(new THREE.Matrix4().multiplyMatrices(this.root.matrixWorld, local));
+    // PHYSICS P3: the glTF props' bounds (wooden_crate_02 0.53 × 0.45 × 1.17, wine_barrel_01 ⌀0.74 × 0.87,
+    // wooden_bucket_01 ⌀0.35 × 0.35); the hatchet sits in its chopping block's collider
+    const dims = { crate: { hw: 0.265, hd: 0.583, h: 0.455 }, barrel: { hw: 0.34, hd: 0.34, h: 0.872 }, bucket: { hw: 0.17, hd: 0.17, h: 0.35 }, hatchet: null }[kind];
+    if (dims) this.solid(x, z, dims.hw * scale, dims.hd * scale, y, y + dims.h * scale, ry, 'wood');
   }
 
   build(firePit: THREE.Object3D, lantern: THREE.Object3D) {
@@ -612,6 +634,7 @@ class CabinBuilder {
     const drop = 0.9;
     this.box('stone', W + 0.3, PLINTH + drop, L + 0.3, ox, (PLINTH - drop) / 2, oz, 2.0);
     this.box('stone', W + 0.44, 0.1, L + 0.44, ox, 0.05, oz, 2.0); // proud footing course at grade
+    this.solid(ox, oz, W / 2 + 0.15, L / 2 + 0.15, -drop, PLINTH, 0, 'stone');   // PHYSICS P3: the plinth's top
   }
 
   private floorPlanks(W: number, L: number, ox: number, oz: number) {
@@ -621,6 +644,7 @@ class CabinBuilder {
     this.add('deck', g, this.m);
     const w = this.worldPos(ox, FLOOR, oz);
     this.owner._floor({ x: w.x, z: w.z, rot: this.rot, hw: W / 2, hd: L / 2, y: w.y });
+    this.solid(ox, oz, W / 2, L / 2, PLINTH - 0.15, FLOOR, 0, 'wood');   // PHYSICS P3: the floor, its top = floorHeightAt
   }
 
   /** four log walls of a W (x) × L (z) rectangle centred at (ox, oz) */
@@ -793,7 +817,9 @@ class CabinBuilder {
 
     const col = this.collider(x, dz, 0.08, DW / 2, 0, FLOOR + H);
     const d: Door = {
-      pivot, open: false, t: 0, collider: col,
+      id: `cabin-${this.index + 1}-door`, pivot, open: false, t: 0, collider: col,
+      // the leaf (±0.03) with its battens (−0.06) and strap hinges (+0.05), pivot frame: hinge edge at z 0, floor at y 0
+      slab: { kind: 'box', x: 0, y: H / 2, z: DW / 2, hx: 0.06, hy: H / 2, hz: DW / 2, surface: 'wood' },
       interactable: { position: this.worldPos(x + 0.5, FLOOR + 1.0, dz), radius: 2.4, label: 'Open door', onInteract: () => { /* bound below, once `d` exists */ } },
     };
     d.interactable.onInteract = () => {
@@ -856,6 +882,7 @@ class CabinBuilder {
     const bz = zWall - side * 0.35;
     this.box('stone', 1.6, 1.5, 0.6, cx, PLINTH + 0.75, bz, 2.0);
     this.box('stone', 1.9, 0.08, 0.9, cx, FLOOR + 0.04, bz - side * 0.1, 2.0); // hearth slab
+    this.solid(cx, bz - side * 0.1, 0.95, 0.45, PLINTH, FLOOR + 0.08, 0, 'stone');   // PHYSICS P3
     this.box('stone', 1.7, 0.1, 0.7, cx, PLINTH + 1.55, bz, 2.0);              // mantel
     this.box('iron', 0.8, 0.7, 0.32, cx, FLOOR + 0.4, bz - side * 0.15, 1);    // firebox
     for (let i = 0; i < 3; i++) this.box('char', 0.45, 0.08, 0.08, cx + this.rng.range(-0.15, 0.15), FLOOR + 0.12 + i * 0.05, bz - side * (0.42 + i * 0.03), 1, this.rng.range(-0.4, 0.4));
@@ -882,11 +909,16 @@ class CabinBuilder {
     for (const z of [-len / 2 + 0.3, 0, len / 2 - 0.3]) this.box('stone', 0.35, PLINTH + 0.5, 0.35, x0 + D - 0.25, (PLINTH - 0.5) / 2 - 0.05, z, 2);
     const wf = this.worldPos(cx, FLOOR, 0);
     this.owner._floor({ x: wf.x, z: wf.z, rot: this.rot, hw: D / 2, hd: len / 2, y: wf.y });
+    // PHYSICS P3: the deck as a block down into the pad, from the wall line (closing the 5 cm to the floor's edge) out
+    this.solid((W / 2 + x0 + D) / 2, 0, (x0 + D - W / 2) / 2, len / 2, -0.4, FLOOR, 0, 'wood');
     // step in front of the door
     const dz = this.spec.doorZ, sw = 1.4;
     this.box('deck', 0.36, 0.05, sw, x0 + D + 0.18, FLOOR - 0.12, dz, 1.3);
     this.box('beam', 0.36, 0.07, sw, x0 + D + 0.18, FLOOR - 0.18, dz, 1.0);
     this.box('stone', 0.5, 0.1, sw + 0.2, x0 + D + 0.55, 0.05, dz, 2);
+    // PHYSICS P3: the step (a 0.36 m tread, 0.1 m below the deck) and its stone (0.1 m): rises 0.1 / 0.03 / 0.1
+    this.solid(x0 + D + 0.18, dz, 0.18, sw / 2, -0.4, FLOOR - 0.095, 0, 'wood');
+    this.solid(x0 + D + 0.55, dz, 0.25, sw / 2 + 0.1, -0.4, 0.1, 0, 'stone');
     // porch roof: breaks off the main roof just past the wall at a lower pitch
     const q = 0.26, tanQ = Math.tan(q), cosQ = Math.cos(q);
     const xb = W / 2 + 0.12, cosP = Math.cos(this.spec.pitch);
@@ -959,6 +991,7 @@ class CabinBuilder {
       this.box('beam', 1.4, 0.035, 0.28, sx, FLOOR + y, sz, 1);
       for (const dx of [-0.6, 0.6]) this.box('beam', 0.05, 0.16, 0.24, sx + dx, FLOOR + y - 0.1, sz, 1);
     }
+    this.solid(sx, sz, 0.7, 0.14, FLOOR + 1.12, FLOOR + 1.77, 0, 'wood');   // PHYSICS P3: both shelves + brackets
     this.placeProp('bucket', sx + 0.3, FLOOR + 1.335, sz, this.rng.range(0, 6), 0.75);
     this.placeProp('crate', -W / 2 + 0.9, FLOOR, chimSide * (L / 2 - 1.9), Math.PI / 2 + this.rng.range(-0.2, 0.2), 0.9);
     this.placeProp('barrel', W / 2 - 0.7, FLOOR, sz + chimSide * 0.6, this.rng.range(0, 6), 0.85);
@@ -972,6 +1005,7 @@ class CabinBuilder {
     b(0.42, 0.14, 0.03, 0, 0.8, -0.19);
     this.m.makeRotationY(yaw).setPosition(x, FLOOR, z);
     this.add('beam', mergeGeometries(g.map((gg) => gg.toNonIndexed())), this.m);
+    this.solid(x, z, 0.21, 0.21, FLOOR, FLOOR + 0.87, yaw, 'wood');   // PHYSICS P3: seat, legs and back
   }
   /** a drying animal hide folded over a rope line: irregular outline, two flaps either side of the rope */
   private hide(x: number, y: number, z: number, yaw: number) {
@@ -1305,6 +1339,8 @@ export class Cabins {
   private swings: Swing[] = [];
   private particleMats = new Set<THREE.ShaderMaterial>();
   private floors: Floor[] = [];
+  /** PHYSICS P3: static boxes that are only in colliderDescs() (floors, porch, step, plinth, furniture, props) */
+  private solids: ColliderDesc[] = [];
   private lods: CabinLod[] = [];
   /** phone tier: the one shared set of point lights (a constant NUM_POINT_LIGHTS keeps every shader from recompiling) */
   private sharedLights: THREE.PointLight[] = [];
@@ -1354,6 +1390,26 @@ export class Cabins {
 
   /** each cabin's own root, in CABIN_SITES order (Explore's catalog shows one at a time) */
   get roots(): readonly THREE.Object3D[] { return this.lods.map((l) => l.root); }
+
+  /**
+   * PHYSICS P3: every cabin's static collision in world space — the legacy boxes (walls, chimney, porch posts and rails,
+   * bed, table, woodpiles, fire pit, benches) minus the door boxes, plus the floors / porch decks / porch steps whose tops
+   * are `floorHeightAt`, the stone plinths, and the furniture drawn without a legacy box (chairs, shelves, hearth, the
+   * crates / barrels / buckets). src/physics/pieces.ts turns it into Rapier colliders.
+   */
+  colliderDescs(): ColliderDesc[] {
+    const doorBoxes = new Set(this.doors.map((d) => d.collider));
+    return [...this.colliders.filter((c) => !doorBoxes.has(c)).map((c) => boxDesc(c)), ...this.solids];
+  }
+
+  /**
+   * PHYSICS P3: one piece per door — the leaf as a box in its pivot's local frame (the pivot turns about +Y as the door
+   * swings inward), for a kinematic body that follows the pivot. `swinging()` is true from the moment the door is
+   * toggled until it is fully shut or fully open (`active: () => !swinging()` lets the player through mid-swing).
+   */
+  doorPieces(): { id: string; pivot: THREE.Object3D; colliders: ColliderDesc[]; swinging: () => boolean }[] {
+    return this.doors.map((d) => ({ id: d.id, pivot: d.pivot, colliders: [d.slab], swinging: () => d.t !== (d.open ? 1 : 0) }));
+  }
 
   /** world y of a floor / deck under (x,z) if inside a cabin or porch footprint */
   floorHeightAt(x: number, z: number): number | undefined {
@@ -1414,6 +1470,7 @@ export class Cabins {
   /** @internal */ _swing(sw: Swing): void { this.swings.push(sw); }
   /** @internal */ _particles(m: THREE.ShaderMaterial): void { this.particleMats.add(m); }
   /** @internal */ _floor(f: Floor): void { this.floors.push(f); }
+  /** @internal */ _solid(d: ColliderDesc): void { this.solids.push(d); }
 }
 
 // ───────────────────────────── glTF helpers ─────────────────────────────

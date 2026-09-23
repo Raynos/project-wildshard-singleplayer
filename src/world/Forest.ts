@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { ColliderDesc } from './registry';
 import { CHUNK_HALF, CHUNK_SIZE } from '../core/config';
 import { placeForest, TreeGrid, type TreeInstance } from './placement';
 import { type TreeFactory, windUniforms } from './TreeFactory';
@@ -163,6 +164,14 @@ export class Forest {
 
   /** trees whose trunk might intersect a circle at (x,z) — for collision */
   nearby(x: number, z: number, radius = 2): TreeInstance[] { return this.grid.nearby(x, z, radius); }
+
+  /** PHYSICS P3: the trunks as upright capsules (their radius, ground to crown) — src/physics/pieces.ts builds them. */
+  colliderDescs(): ColliderDesc[] {
+    return this.trees.map((t) => {
+      const h = Math.max(1, t.height);
+      return { kind: 'capsule', x: t.x, y: t.y + h / 2, z: t.z, halfHeight: Math.max(0.05, h / 2 - t.r), radius: t.r };
+    });
+  }
 
   private tmpM = new THREE.Matrix4();
   private tmpQ = new THREE.Quaternion();

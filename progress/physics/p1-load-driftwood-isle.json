@@ -1,0 +1,2236 @@
+{
+  "build": "815686b-mudy9f1u",
+  "url": "http://localhost:4175",
+  "at": "2026-09-23T10:18:33.733Z",
+  "host": "darwin arm64 node v24.18.1",
+  "cpu": 4,
+  "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+  "runsPerCondition": 1,
+  "viewport": [
+    390,
+    844
+  ],
+  "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+  "rows": {
+    "wifi/cold": {
+      "cond": "wifi",
+      "cache": "cold",
+      "runs": 1,
+      "status": "ok",
+      "swController": true,
+      "titleMs": 151,
+      "playMs": 5996,
+      "domContentLoadedMs": 137,
+      "requests": 17,
+      "swFetches": 20,
+      "fromSW": 7,
+      "netBytes": 3033128,
+      "cacheBytes": 536016,
+      "longTasks": 12,
+      "longTaskMs": 1086,
+      "longTaskMaxMs": 164,
+      "heapMB": 62.1,
+      "textures": 65,
+      "geometries": 60,
+      "programs": 79,
+      "firstFrameMs": null,
+      "bytes": {
+        "js": {
+          "net": 740871,
+          "cache": 536016,
+          "n": 3
+        },
+        "css": {
+          "net": 14779,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 229816,
+          "cache": 0,
+          "n": 1
+        },
+        "png": {
+          "net": 410379,
+          "cache": 0,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 958944,
+          "cache": 0,
+          "n": 1
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 69698,
+          "cache": 0,
+          "n": 5
+        },
+        "json": {
+          "net": 5198,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 5671,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 597772,
+          "cache": 0,
+          "n": 3
+        }
+      },
+      "steps": [
+        [
+          137,
+          "—",
+          null
+        ],
+        [
+          435,
+          "renderer",
+          null
+        ],
+        [
+          571,
+          "sky",
+          null
+        ],
+        [
+          770,
+          "terrain",
+          null
+        ],
+        [
+          3939,
+          "cards",
+          null
+        ],
+        [
+          3981,
+          "forest",
+          null
+        ],
+        [
+          3987,
+          "physics",
+          null
+        ],
+        [
+          4043,
+          "edge",
+          null
+        ],
+        [
+          4974,
+          "grass",
+          null
+        ],
+        [
+          4979,
+          "cabins",
+          null
+        ],
+        [
+          4979,
+          "props",
+          null
+        ],
+        [
+          5021,
+          "animals",
+          null
+        ],
+        [
+          5117,
+          "weapon",
+          null
+        ],
+        [
+          5334,
+          "shaders",
+          null
+        ],
+        [
+          5608,
+          "firstFrame",
+          null
+        ]
+      ],
+      "errors": []
+    },
+    "wifi/warm": {
+      "cond": "wifi",
+      "cache": "warm",
+      "runs": 1,
+      "status": "ok",
+      "swController": true,
+      "titleMs": 138,
+      "playMs": 2677,
+      "domContentLoadedMs": 66,
+      "requests": 18,
+      "swFetches": 6,
+      "fromSW": 17,
+      "netBytes": 1172,
+      "cacheBytes": 3559152,
+      "longTasks": 12,
+      "longTaskMs": 1150,
+      "longTaskMaxMs": 168,
+      "heapMB": 73.6,
+      "textures": 65,
+      "geometries": 60,
+      "programs": 79,
+      "firstFrameMs": null,
+      "bytes": {
+        "js": {
+          "net": 0,
+          "cache": 2284578,
+          "n": 4
+        },
+        "css": {
+          "net": 0,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 0,
+          "cache": 229519,
+          "n": 1
+        },
+        "png": {
+          "net": 0,
+          "cache": 8896,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 0,
+          "cache": 958633,
+          "n": 1
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 690,
+          "cache": 18364,
+          "n": 5
+        },
+        "json": {
+          "net": 330,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 152,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 0,
+          "cache": 59162,
+          "n": 3
+        }
+      },
+      "steps": [
+        [
+          65,
+          "—",
+          null
+        ],
+        [
+          225,
+          "renderer",
+          null
+        ],
+        [
+          314,
+          "sky",
+          null
+        ],
+        [
+          469,
+          "terrain",
+          null
+        ],
+        [
+          579,
+          "cards",
+          null
+        ],
+        [
+          608,
+          "forest",
+          null
+        ],
+        [
+          613,
+          "physics",
+          null
+        ],
+        [
+          669,
+          "edge",
+          null
+        ],
+        [
+          1630,
+          "grass",
+          null
+        ],
+        [
+          1631,
+          "cabins",
+          null
+        ],
+        [
+          1631,
+          "props",
+          null
+        ],
+        [
+          1669,
+          "animals",
+          null
+        ],
+        [
+          1756,
+          "weapon",
+          null
+        ],
+        [
+          1995,
+          "shaders",
+          null
+        ],
+        [
+          2307,
+          "firstFrame",
+          null
+        ]
+      ],
+      "errors": []
+    },
+    "4g/cold": {
+      "cond": "4g",
+      "cache": "cold",
+      "runs": 1,
+      "status": "ok",
+      "swController": true,
+      "titleMs": 474,
+      "playMs": 5747,
+      "domContentLoadedMs": 414,
+      "requests": 17,
+      "swFetches": 20,
+      "fromSW": 7,
+      "netBytes": 3033359,
+      "cacheBytes": 0,
+      "longTasks": 12,
+      "longTaskMs": 1113,
+      "longTaskMaxMs": 159,
+      "heapMB": 66.8,
+      "textures": 65,
+      "geometries": 60,
+      "programs": 79,
+      "firstFrameMs": null,
+      "bytes": {
+        "js": {
+          "net": 741102,
+          "cache": 0,
+          "n": 3
+        },
+        "css": {
+          "net": 14779,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 229816,
+          "cache": 0,
+          "n": 1
+        },
+        "png": {
+          "net": 410379,
+          "cache": 0,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 958944,
+          "cache": 0,
+          "n": 1
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 69698,
+          "cache": 0,
+          "n": 5
+        },
+        "json": {
+          "net": 5198,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 5671,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 597772,
+          "cache": 0,
+          "n": 3
+        }
+      },
+      "steps": [
+        [
+          414,
+          "—",
+          null
+        ],
+        [
+          1489,
+          "renderer",
+          null
+        ],
+        [
+          2101,
+          "sky",
+          null
+        ],
+        [
+          3117,
+          "terrain",
+          null
+        ],
+        [
+          3648,
+          "cards",
+          null
+        ],
+        [
+          3678,
+          "forest",
+          null
+        ],
+        [
+          3683,
+          "physics",
+          null
+        ],
+        [
+          3738,
+          "edge",
+          null
+        ],
+        [
+          4658,
+          "grass",
+          null
+        ],
+        [
+          4663,
+          "cabins",
+          null
+        ],
+        [
+          4663,
+          "props",
+          null
+        ],
+        [
+          4695,
+          "animals",
+          null
+        ],
+        [
+          4784,
+          "weapon",
+          null
+        ],
+        [
+          5034,
+          "shaders",
+          null
+        ],
+        [
+          5371,
+          "firstFrame",
+          null
+        ]
+      ],
+      "errors": []
+    },
+    "4g/warm": {
+      "cond": "4g",
+      "cache": "warm",
+      "runs": 1,
+      "status": "ok",
+      "swController": true,
+      "titleMs": 375,
+      "playMs": 2827,
+      "domContentLoadedMs": 69,
+      "requests": 18,
+      "swFetches": 6,
+      "fromSW": 17,
+      "netBytes": 1172,
+      "cacheBytes": 3559152,
+      "longTasks": 12,
+      "longTaskMs": 1227,
+      "longTaskMaxMs": 204,
+      "heapMB": 64.8,
+      "textures": 65,
+      "geometries": 60,
+      "programs": 79,
+      "firstFrameMs": null,
+      "bytes": {
+        "js": {
+          "net": 0,
+          "cache": 2284578,
+          "n": 4
+        },
+        "css": {
+          "net": 0,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 0,
+          "cache": 229519,
+          "n": 1
+        },
+        "png": {
+          "net": 0,
+          "cache": 8896,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 0,
+          "cache": 958633,
+          "n": 1
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 690,
+          "cache": 18364,
+          "n": 5
+        },
+        "json": {
+          "net": 330,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 152,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 0,
+          "cache": 59162,
+          "n": 3
+        }
+      },
+      "steps": [
+        [
+          69,
+          "—",
+          null
+        ],
+        [
+          248,
+          "renderer",
+          null
+        ],
+        [
+          338,
+          "sky",
+          null
+        ],
+        [
+          536,
+          "terrain",
+          null
+        ],
+        [
+          631,
+          "cards",
+          null
+        ],
+        [
+          664,
+          "forest",
+          null
+        ],
+        [
+          670,
+          "physics",
+          null
+        ],
+        [
+          727,
+          "edge",
+          null
+        ],
+        [
+          1710,
+          "grass",
+          null
+        ],
+        [
+          1714,
+          "cabins",
+          null
+        ],
+        [
+          1714,
+          "props",
+          null
+        ],
+        [
+          1751,
+          "animals",
+          null
+        ],
+        [
+          1843,
+          "weapon",
+          null
+        ],
+        [
+          2073,
+          "shaders",
+          null
+        ],
+        [
+          2413,
+          "firstFrame",
+          null
+        ]
+      ],
+      "errors": []
+    }
+  },
+  "raw": [
+    {
+      "cond": "wifi",
+      "cache": "cold",
+      "run": 1,
+      "status": "ok",
+      "label": "wifi/cold",
+      "errors": [],
+      "requests": 17,
+      "swFetches": 20,
+      "fromSW": 7,
+      "netBytes": 3033128,
+      "cacheBytes": 536016,
+      "bytes": {
+        "js": {
+          "net": 740871,
+          "cache": 536016,
+          "n": 3
+        },
+        "css": {
+          "net": 14779,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 229816,
+          "cache": 0,
+          "n": 1
+        },
+        "png": {
+          "net": 410379,
+          "cache": 0,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 958944,
+          "cache": 0,
+          "n": 1
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 69698,
+          "cache": 0,
+          "n": 5
+        },
+        "json": {
+          "net": 5198,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 5671,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 597772,
+          "cache": 0,
+          "n": 3
+        }
+      },
+      "reqs": [
+        [
+          "page",
+          "/?nolock=1&bench=1&tier=phone",
+          2812
+        ],
+        [
+          "page",
+          "/assets/style-C35JC6ie.css",
+          14779
+        ],
+        [
+          "page",
+          "/fonts/rajdhani-700-latin.woff2",
+          9648
+        ],
+        [
+          "page",
+          "/fonts/jetbrains-mono-latin.woff2",
+          31686
+        ],
+        [
+          "page",
+          "/assets/index-Dgw4FbsN.js",
+          2863
+        ],
+        [
+          "sw",
+          "/sw.js",
+          302
+        ],
+        [
+          "page",
+          "/fonts/rajdhani-400-latin.woff2",
+          9312
+        ],
+        [
+          "page",
+          "/version.json?t=1790158689308",
+          330
+        ],
+        [
+          "sw",
+          "/manifest.webmanifest",
+          708
+        ],
+        [
+          "sw",
+          "/index.html",
+          2859
+        ],
+        [
+          "sw",
+          "/asset-index.json",
+          4868
+        ],
+        [
+          "page",
+          "/favicon.png",
+          9187
+        ],
+        [
+          "sw",
+          "/assets/index-Dgw4FbsN.js",
+          179
+        ],
+        [
+          "sw",
+          "/assets/Feedback-D23E9ETp.js",
+          4074
+        ],
+        [
+          "sw",
+          "/assets/Explore-BGcO-ZSm.js",
+          10667
+        ],
+        [
+          "page",
+          "/assets/three.module-4gI5Z-_B.js",
+          185831
+        ],
+        [
+          "sw",
+          "/assets/three.module-4gI5Z-_B.js",
+          179
+        ],
+        [
+          "sw",
+          "/assets/main-Cv6I08z7.js",
+          536776
+        ],
+        [
+          "page",
+          "/assets/main-Cv6I08z7.js",
+          231
+        ],
+        [
+          "sw",
+          "/favicon.png",
+          178
+        ],
+        [
+          "sw",
+          "/apple-touch-icon.png",
+          52370
+        ],
+        [
+          "sw",
+          "/icon-192.png",
+          58147
+        ],
+        [
+          "sw",
+          "/icon-512.png",
+          290497
+        ],
+        [
+          "page",
+          "blob:/82b28117-9254-42d7-b447-02fea3b898c1",
+          -1
+        ],
+        [
+          "sw",
+          "/assets/packs/driftwood-isle.phone-0d70b99c.bin",
+          958944
+        ],
+        [
+          "page<sw",
+          "/assets/packs/driftwood-isle.phone-0d70b99c.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/physics/rapier.wasm",
+          537312
+        ],
+        [
+          "page<sw",
+          "/assets/physics/rapier.wasm",
+          0
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          9308
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          9744
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          0
+        ],
+        [
+          "sw",
+          "/assets/enter-CvshgChy.webp",
+          26189
+        ],
+        [
+          "sw",
+          "/assets/explore-CDi_EWBK.webp",
+          33563
+        ],
+        [
+          "page<sw",
+          "/assets/enter-CvshgChy.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/explore-CDi_EWBK.webp",
+          0
+        ],
+        [
+          "sw",
+          "/assets/driftwood-isle-portrait-DaXkti5c.jpg",
+          229816
+        ],
+        [
+          "page<sw",
+          "/assets/driftwood-isle-portrait-DaXkti5c.jpg",
+          0
+        ]
+      ],
+      "titleMs": 151,
+      "playMs": 5996,
+      "domContentLoadedMs": 137,
+      "loadEventMs": 155,
+      "longList": [
+        [
+          661,
+          101
+        ],
+        [
+          4049,
+          58
+        ],
+        [
+          4110,
+          84
+        ],
+        [
+          4198,
+          71
+        ],
+        [
+          4274,
+          126
+        ],
+        [
+          4403,
+          164
+        ],
+        [
+          4610,
+          55
+        ],
+        [
+          4668,
+          71
+        ],
+        [
+          4780,
+          156
+        ],
+        [
+          5167,
+          72
+        ],
+        [
+          5263,
+          72
+        ],
+        [
+          5621,
+          56
+        ]
+      ],
+      "longTasks": 12,
+      "longTaskMs": 1086,
+      "longTaskMaxMs": 164,
+      "steps": [
+        [
+          137,
+          "—",
+          null
+        ],
+        [
+          435,
+          "renderer",
+          null
+        ],
+        [
+          571,
+          "sky",
+          null
+        ],
+        [
+          770,
+          "terrain",
+          null
+        ],
+        [
+          3939,
+          "cards",
+          null
+        ],
+        [
+          3981,
+          "forest",
+          null
+        ],
+        [
+          3987,
+          "physics",
+          null
+        ],
+        [
+          4043,
+          "edge",
+          null
+        ],
+        [
+          4974,
+          "grass",
+          null
+        ],
+        [
+          4979,
+          "cabins",
+          null
+        ],
+        [
+          4979,
+          "props",
+          null
+        ],
+        [
+          5021,
+          "animals",
+          null
+        ],
+        [
+          5117,
+          "weapon",
+          null
+        ],
+        [
+          5334,
+          "shaders",
+          null
+        ],
+        [
+          5608,
+          "firstFrame",
+          null
+        ]
+      ],
+      "heapMB": 62.1,
+      "textures": 65,
+      "geometries": 60,
+      "programs": 79,
+      "firstFrameMs": null,
+      "swController": true,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "dpr": 1,
+      "viewport": [
+        390,
+        844
+      ]
+    },
+    {
+      "cond": "wifi",
+      "cache": "warm",
+      "run": 1,
+      "status": "ok",
+      "label": "wifi/warm",
+      "errors": [],
+      "requests": 18,
+      "swFetches": 6,
+      "fromSW": 17,
+      "netBytes": 1172,
+      "cacheBytes": 3559152,
+      "bytes": {
+        "js": {
+          "net": 0,
+          "cache": 2284578,
+          "n": 4
+        },
+        "css": {
+          "net": 0,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 0,
+          "cache": 229519,
+          "n": 1
+        },
+        "png": {
+          "net": 0,
+          "cache": 8896,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 0,
+          "cache": 958633,
+          "n": 1
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 690,
+          "cache": 18364,
+          "n": 5
+        },
+        "json": {
+          "net": 330,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 152,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 0,
+          "cache": 59162,
+          "n": 3
+        }
+      },
+      "reqs": [
+        [
+          "sw",
+          "/assets/style-C35JC6ie.css",
+          0
+        ],
+        [
+          "sw",
+          "/?nolock=1&bench=1&tier=phone",
+          152
+        ],
+        [
+          "page<sw",
+          "/assets/style-C35JC6ie.css",
+          0
+        ],
+        [
+          "page<sw",
+          "/?nolock=1&bench=1&tier=phone",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/index-Dgw4FbsN.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/index-Dgw4FbsN.js",
+          0
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-700-latin.woff2",
+          230
+        ],
+        [
+          "sw",
+          "/fonts/jetbrains-mono-latin.woff2",
+          230
+        ],
+        [
+          "page<sw",
+          "/fonts/jetbrains-mono-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-700-latin.woff2",
+          0
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-400-latin.woff2",
+          230
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-400-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/three.module-4gI5Z-_B.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/favicon.png",
+          0
+        ],
+        [
+          "page",
+          "/version.json?t=1790158697129",
+          330
+        ],
+        [
+          "page<sw",
+          "/assets/main-Cv6I08z7.js",
+          0
+        ],
+        [
+          "sw",
+          "/assets/physics/rapier.wasm",
+          0
+        ],
+        [
+          "page",
+          "blob:/b6f016d0-2478-4a91-b2dc-a44810fca20d",
+          -1
+        ],
+        [
+          "page<sw",
+          "/assets/packs/driftwood-isle.phone-0d70b99c.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/physics/rapier.wasm",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/driftwood-isle-portrait-DaXkti5c.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/enter-CvshgChy.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/explore-CDi_EWBK.webp",
+          0
+        ]
+      ],
+      "titleMs": 138,
+      "playMs": 2677,
+      "domContentLoadedMs": 66,
+      "loadEventMs": 112,
+      "longList": [
+        [
+          174,
+          99
+        ],
+        [
+          353,
+          106
+        ],
+        [
+          675,
+          56
+        ],
+        [
+          735,
+          89
+        ],
+        [
+          830,
+          66
+        ],
+        [
+          899,
+          130
+        ],
+        [
+          1034,
+          168
+        ],
+        [
+          1250,
+          64
+        ],
+        [
+          1448,
+          152
+        ],
+        [
+          1817,
+          75
+        ],
+        [
+          1922,
+          74
+        ],
+        [
+          2312,
+          71
+        ]
+      ],
+      "longTasks": 12,
+      "longTaskMs": 1150,
+      "longTaskMaxMs": 168,
+      "steps": [
+        [
+          65,
+          "—",
+          null
+        ],
+        [
+          225,
+          "renderer",
+          null
+        ],
+        [
+          314,
+          "sky",
+          null
+        ],
+        [
+          469,
+          "terrain",
+          null
+        ],
+        [
+          579,
+          "cards",
+          null
+        ],
+        [
+          608,
+          "forest",
+          null
+        ],
+        [
+          613,
+          "physics",
+          null
+        ],
+        [
+          669,
+          "edge",
+          null
+        ],
+        [
+          1630,
+          "grass",
+          null
+        ],
+        [
+          1631,
+          "cabins",
+          null
+        ],
+        [
+          1631,
+          "props",
+          null
+        ],
+        [
+          1669,
+          "animals",
+          null
+        ],
+        [
+          1756,
+          "weapon",
+          null
+        ],
+        [
+          1995,
+          "shaders",
+          null
+        ],
+        [
+          2307,
+          "firstFrame",
+          null
+        ]
+      ],
+      "heapMB": 73.6,
+      "textures": 65,
+      "geometries": 60,
+      "programs": 79,
+      "firstFrameMs": null,
+      "swController": true,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "dpr": 1,
+      "viewport": [
+        390,
+        844
+      ]
+    },
+    {
+      "cond": "4g",
+      "cache": "cold",
+      "run": 1,
+      "status": "ok",
+      "label": "4g/cold",
+      "errors": [],
+      "requests": 17,
+      "swFetches": 20,
+      "fromSW": 7,
+      "netBytes": 3033359,
+      "cacheBytes": 0,
+      "bytes": {
+        "js": {
+          "net": 741102,
+          "cache": 0,
+          "n": 3
+        },
+        "css": {
+          "net": 14779,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 229816,
+          "cache": 0,
+          "n": 1
+        },
+        "png": {
+          "net": 410379,
+          "cache": 0,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 958944,
+          "cache": 0,
+          "n": 1
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 69698,
+          "cache": 0,
+          "n": 5
+        },
+        "json": {
+          "net": 5198,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 5671,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 597772,
+          "cache": 0,
+          "n": 3
+        }
+      },
+      "reqs": [
+        [
+          "page",
+          "/?nolock=1&bench=1&tier=phone",
+          2812
+        ],
+        [
+          "page",
+          "/assets/index-Dgw4FbsN.js",
+          2863
+        ],
+        [
+          "page",
+          "/fonts/rajdhani-700-latin.woff2",
+          9648
+        ],
+        [
+          "page",
+          "/assets/style-C35JC6ie.css",
+          14779
+        ],
+        [
+          "sw",
+          "/sw.js",
+          302
+        ],
+        [
+          "page",
+          "/fonts/jetbrains-mono-latin.woff2",
+          31686
+        ],
+        [
+          "page",
+          "/version.json?t=1790158701959",
+          330
+        ],
+        [
+          "sw",
+          "/manifest.webmanifest",
+          708
+        ],
+        [
+          "sw",
+          "/index.html",
+          2859
+        ],
+        [
+          "page",
+          "/fonts/rajdhani-400-latin.woff2",
+          9312
+        ],
+        [
+          "page",
+          "/assets/three.module-4gI5Z-_B.js",
+          185831
+        ],
+        [
+          "sw",
+          "/asset-index.json",
+          4868
+        ],
+        [
+          "page",
+          "/favicon.png",
+          9187
+        ],
+        [
+          "sw",
+          "/assets/index-Dgw4FbsN.js",
+          179
+        ],
+        [
+          "sw",
+          "/assets/Feedback-D23E9ETp.js",
+          4074
+        ],
+        [
+          "sw",
+          "/assets/Explore-BGcO-ZSm.js",
+          10667
+        ],
+        [
+          "sw",
+          "/assets/three.module-4gI5Z-_B.js",
+          179
+        ],
+        [
+          "sw",
+          "/assets/main-Cv6I08z7.js",
+          179
+        ],
+        [
+          "page",
+          "/assets/main-Cv6I08z7.js",
+          536828
+        ],
+        [
+          "sw",
+          "/favicon.png",
+          178
+        ],
+        [
+          "sw",
+          "/apple-touch-icon.png",
+          52370
+        ],
+        [
+          "sw",
+          "/icon-192.png",
+          58147
+        ],
+        [
+          "sw",
+          "/icon-512.png",
+          290497
+        ],
+        [
+          "page",
+          "blob:/29e21cd0-8d60-475e-b9e9-d7143b8d0b3e",
+          -1
+        ],
+        [
+          "sw",
+          "/assets/physics/rapier.wasm",
+          537312
+        ],
+        [
+          "page<sw",
+          "/assets/physics/rapier.wasm",
+          0
+        ],
+        [
+          "sw",
+          "/assets/packs/driftwood-isle.phone-0d70b99c.bin",
+          958944
+        ],
+        [
+          "page<sw",
+          "/assets/packs/driftwood-isle.phone-0d70b99c.bin",
+          0
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          9308
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          9744
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          0
+        ],
+        [
+          "sw",
+          "/assets/enter-CvshgChy.webp",
+          26189
+        ],
+        [
+          "page<sw",
+          "/assets/enter-CvshgChy.webp",
+          0
+        ],
+        [
+          "sw",
+          "/assets/explore-CDi_EWBK.webp",
+          33563
+        ],
+        [
+          "page<sw",
+          "/assets/explore-CDi_EWBK.webp",
+          0
+        ],
+        [
+          "sw",
+          "/assets/driftwood-isle-portrait-DaXkti5c.jpg",
+          229816
+        ],
+        [
+          "page<sw",
+          "/assets/driftwood-isle-portrait-DaXkti5c.jpg",
+          0
+        ]
+      ],
+      "titleMs": 474,
+      "playMs": 5747,
+      "domContentLoadedMs": 414,
+      "loadEventMs": 609,
+      "longList": [
+        [
+          3000,
+          108
+        ],
+        [
+          3744,
+          57
+        ],
+        [
+          3805,
+          88
+        ],
+        [
+          3897,
+          62
+        ],
+        [
+          3964,
+          122
+        ],
+        [
+          4090,
+          159
+        ],
+        [
+          4295,
+          57
+        ],
+        [
+          4355,
+          73
+        ],
+        [
+          4472,
+          157
+        ],
+        [
+          4842,
+          94
+        ],
+        [
+          4964,
+          70
+        ],
+        [
+          5378,
+          66
+        ]
+      ],
+      "longTasks": 12,
+      "longTaskMs": 1113,
+      "longTaskMaxMs": 159,
+      "steps": [
+        [
+          414,
+          "—",
+          null
+        ],
+        [
+          1489,
+          "renderer",
+          null
+        ],
+        [
+          2101,
+          "sky",
+          null
+        ],
+        [
+          3117,
+          "terrain",
+          null
+        ],
+        [
+          3648,
+          "cards",
+          null
+        ],
+        [
+          3678,
+          "forest",
+          null
+        ],
+        [
+          3683,
+          "physics",
+          null
+        ],
+        [
+          3738,
+          "edge",
+          null
+        ],
+        [
+          4658,
+          "grass",
+          null
+        ],
+        [
+          4663,
+          "cabins",
+          null
+        ],
+        [
+          4663,
+          "props",
+          null
+        ],
+        [
+          4695,
+          "animals",
+          null
+        ],
+        [
+          4784,
+          "weapon",
+          null
+        ],
+        [
+          5034,
+          "shaders",
+          null
+        ],
+        [
+          5371,
+          "firstFrame",
+          null
+        ]
+      ],
+      "heapMB": 66.8,
+      "textures": 65,
+      "geometries": 60,
+      "programs": 79,
+      "firstFrameMs": null,
+      "swController": true,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "dpr": 1,
+      "viewport": [
+        390,
+        844
+      ]
+    },
+    {
+      "cond": "4g",
+      "cache": "warm",
+      "run": 1,
+      "status": "ok",
+      "label": "4g/warm",
+      "errors": [],
+      "requests": 18,
+      "swFetches": 6,
+      "fromSW": 17,
+      "netBytes": 1172,
+      "cacheBytes": 3559152,
+      "bytes": {
+        "js": {
+          "net": 0,
+          "cache": 2284578,
+          "n": 4
+        },
+        "css": {
+          "net": 0,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 0,
+          "cache": 229519,
+          "n": 1
+        },
+        "png": {
+          "net": 0,
+          "cache": 8896,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 0,
+          "cache": 958633,
+          "n": 1
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 690,
+          "cache": 18364,
+          "n": 5
+        },
+        "json": {
+          "net": 330,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 152,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 0,
+          "cache": 59162,
+          "n": 3
+        }
+      },
+      "reqs": [
+        [
+          "sw",
+          "/assets/style-C35JC6ie.css",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/style-C35JC6ie.css",
+          0
+        ],
+        [
+          "page<sw",
+          "/?nolock=1&bench=1&tier=phone",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/index-Dgw4FbsN.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/index-Dgw4FbsN.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/three.module-4gI5Z-_B.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/main-Cv6I08z7.js",
+          0
+        ],
+        [
+          "sw",
+          "/?nolock=1&bench=1&tier=phone",
+          152
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-700-latin.woff2",
+          230
+        ],
+        [
+          "sw",
+          "/fonts/jetbrains-mono-latin.woff2",
+          230
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-400-latin.woff2",
+          230
+        ],
+        [
+          "sw",
+          "/assets/physics/rapier.wasm",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-700-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/jetbrains-mono-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-400-latin.woff2",
+          0
+        ],
+        [
+          "page",
+          "blob:/828a6a18-3acd-4fcb-a41f-330d75a3e994",
+          -1
+        ],
+        [
+          "page",
+          "/version.json?t=1790158709236",
+          330
+        ],
+        [
+          "page<sw",
+          "/assets/packs/driftwood-isle.phone-0d70b99c.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/favicon.png",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/physics/rapier.wasm",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/driftwood-isle-portrait-DaXkti5c.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/enter-CvshgChy.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/explore-CDi_EWBK.webp",
+          0
+        ]
+      ],
+      "titleMs": 375,
+      "playMs": 2827,
+      "domContentLoadedMs": 69,
+      "loadEventMs": 300,
+      "longList": [
+        [
+          134,
+          162
+        ],
+        [
+          402,
+          113
+        ],
+        [
+          733,
+          60
+        ],
+        [
+          796,
+          89
+        ],
+        [
+          890,
+          63
+        ],
+        [
+          957,
+          119
+        ],
+        [
+          1081,
+          204
+        ],
+        [
+          1331,
+          57
+        ],
+        [
+          1520,
+          156
+        ],
+        [
+          1909,
+          81
+        ],
+        [
+          2016,
+          57
+        ],
+        [
+          2427,
+          66
+        ]
+      ],
+      "longTasks": 12,
+      "longTaskMs": 1227,
+      "longTaskMaxMs": 204,
+      "steps": [
+        [
+          69,
+          "—",
+          null
+        ],
+        [
+          248,
+          "renderer",
+          null
+        ],
+        [
+          338,
+          "sky",
+          null
+        ],
+        [
+          536,
+          "terrain",
+          null
+        ],
+        [
+          631,
+          "cards",
+          null
+        ],
+        [
+          664,
+          "forest",
+          null
+        ],
+        [
+          670,
+          "physics",
+          null
+        ],
+        [
+          727,
+          "edge",
+          null
+        ],
+        [
+          1710,
+          "grass",
+          null
+        ],
+        [
+          1714,
+          "cabins",
+          null
+        ],
+        [
+          1714,
+          "props",
+          null
+        ],
+        [
+          1751,
+          "animals",
+          null
+        ],
+        [
+          1843,
+          "weapon",
+          null
+        ],
+        [
+          2073,
+          "shaders",
+          null
+        ],
+        [
+          2413,
+          "firstFrame",
+          null
+        ]
+      ],
+      "heapMB": 64.8,
+      "textures": 65,
+      "geometries": 60,
+      "programs": 79,
+      "firstFrameMs": null,
+      "swController": true,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "dpr": 1,
+      "viewport": [
+        390,
+        844
+      ]
+    }
+  ]
+}

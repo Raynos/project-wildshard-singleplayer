@@ -1,7 +1,7 @@
 /**
  * The Model Explorer's catalog (project/archive/2026-09-23-explore-world.md X3, made generic in X10).
  *
- *   registerDriftwoodModels(handles)          // Driftwood's setup (main.ts, at boot): the hut, wreck, … into the registry
+ *   registerDriftwoodModels(handles)          // Driftwood's setup (main.ts, at boot): the batch models + tap targets
  *   registerPineHollowModels(handles)         // Pine Hollow's (E66): the cabins, the pond, a pine, a boulder / stump / log
  *   catalogEntries(sky, animals, style, at)   // Explore: every registered model + one creature per species present
  *   measure(object)                           // tris / draw calls
@@ -41,31 +41,19 @@ export interface CatalogEntry extends RegisteredModel {
 }
 
 // ── Driftwood's models (registered by the shard's setup — Explore reads the registry, never this function) ──
+// The built pieces (hut, lookout, wreck, shrine, pier, a jetty, the boat, the rope bridge, the cove) are models already:
+// main.ts registers each once in the world registry with `model` (src/world/registry.ts). What is left here is what the
+// world doesn't build one by one: a palm, a boulder, a bush out of their batches, and the taps on those batch meshes.
 
-type Grouped = { group: THREE.Object3D } | null | undefined;
 type Meshed = { mesh: THREE.Object3D } | null | undefined;
 
 export interface DriftwoodModels {
   sky: Sky;
-  hut?: Grouped; lookout?: Grouped; wreck?: Grouped; shrine?: Grouped; pier?: Grouped; boat?: Grouped; cove?: Grouped;
-  jetties?: readonly { group: THREE.Object3D }[];
-  bridge?: Meshed; palms?: Meshed; bushes?: Meshed;
+  palms?: Meshed; bushes?: Meshed;
   palmSpecs?: readonly PalmSpec[];
 }
 
 export function registerDriftwoodModels(h: DriftwoodModels): void {
-  const live = (id: string, name: string, category: Category, file: string, o: THREE.Object3D | null | undefined): void => {
-    if (o) registerModel({ id, name, category, file, live: true, object: () => o });
-  };
-  live('hut', 'Hut', 'buildings', 'src/world/Hut.ts', h.hut?.group);
-  live('lookout', 'Lookout tower', 'buildings', 'src/world/Lookout.ts', h.lookout?.group);
-  live('wreck', 'Shipwreck', 'buildings', 'src/world/Wreck.ts', h.wreck?.group);
-  live('shrine', 'Ring shrine', 'buildings', 'src/world/Shrine.ts', h.shrine?.group);
-  live('pier', 'Pier', 'buildings', 'src/world/Pier.ts', h.pier?.group);
-  live('jetty', 'Jetty', 'buildings', 'src/world/Pier.ts', h.jetties?.[0]?.group);
-  live('boat', 'Sailboat', 'buildings', 'src/world/Boat.ts', h.boat?.group);
-  live('bridge', 'Rope bridge', 'buildings', 'src/world/RopeBridge.ts', h.bridge?.mesh);
-  live('cove', 'Wreck cove', 'nature', 'src/world/Cove.ts', h.cove?.group);
 
   // one of a batch: built alone, once, the first time it is viewed; `buildAt` rebuilds it as another tier would
   const fresh = (id: string, name: string, category: Category, file: string, build: () => THREE.Object3D): void => {

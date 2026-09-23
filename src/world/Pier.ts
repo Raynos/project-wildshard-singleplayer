@@ -21,6 +21,7 @@ import { Rng } from '../core/rng';
 import { SEED } from '../core/config';
 import type { Sky } from './Sky';
 import { heightAt, waterLevel } from './Heightfield';
+import { boxDesc, type ColliderDesc } from './registry';
 
 export interface PierSpec {
   x: number; z: number;
@@ -205,6 +206,41 @@ export class Pier {
     for (const p of this.posts) { if (!onSide(p)) continue; const d = Math.hypot(p.x - x, p.z - sternZ); if (d < best) { best = d; post = p; } }
     if (!bollard || !post) throw new Error('Pier.mooringsFor(): build() first');
     return [bollard, post];
+  }
+
+  /**
+   * PHYSICS P4: this builder's static collision in world space — its walls / posts (the legacy boxes) and every floor
+   * `floorHeightAt` describes, as real geometry. src/physics/pieces.ts turns it into Rapier colliders.
+   *
+   * The flat deck is one slab (0.3 m: the planks and the bearers under them) over the region `floorHeightAt` covers;
+   * the landing's step-down (the south pier, E43) is a real ramp — the planks the mesh draws follow one straight line
+   * from the deck to the sand — so it is a thin box pitched to that line, plus the 0.2 m of flat sand-level deck past it.
+   */
+  colliderDescs(): ColliderDesc[] {
+    const { width, deckY } = this.spec, yaw = this.spec.rot ?? 0, halfW = width / 2 + 0.25;
+    const out: ColliderDesc[] = this.colliders.map((c) => boxDesc(c));
+    // a box along the pier: `a0`‥`a1` metres from the sea end, top at `top`, `hy` half thick
+    const slab = (a0: number, a1: number, top: number, hy: number): ColliderDesc => {
+      const [x, z] = this.toWorld((a0 + a1) / 2, 0);
+      return { kind: 'box', x, y: top - hy, z, hx: halfW, hy, hz: (a1 - a0) / 2, yaw };
+    };
+    const { length, rampFrom, landY } = this.run;
+    const ramped = length > rampFrom + 0.1;
+    out.push(slab(-0.2, ramped ? rampFrom : length + 0.2, deckY, 0.15));
+    if (ramped) {
+      // the ramp: its top face on the line (rampFrom, deckY) → (length, landY); pitched about the pier's across axis
+      const run = length - rampFrom, drop = deckY - landY, pitch = Math.atan2(drop, run), half = Math.hypot(run, drop) / 2, hy = 0.1;
+      const sy = Math.sin(yaw / 2), cy = Math.cos(yaw / 2), sx = Math.sin(pitch / 2), cx = Math.cos(pitch / 2);
+      // top-face centre, then down the box's own up axis ((0, cos, sin) in the pier's frame) by its half thickness
+      const [tx, tz] = this.toWorld((rampFrom + length) / 2, 0), topY = (deckY + landY) / 2;
+      const nAlong = Math.sin(pitch), nUp = Math.cos(pitch);
+      out.push({
+        kind: 'box', x: tx - hy * nAlong * this.sin, y: topY - hy * nUp, z: tz - hy * nAlong * this.cos, hx: halfW, hy, hz: half,
+        rot: { x: cy * sx, y: sy * cx, z: -sy * sx, w: cy * cx },   // yaw ∘ pitch (the pitch in the pier's own frame)
+      });
+      out.push(slab(length, length + 0.2, landY, 0.1));
+    }
+    return out;
   }
 
   /** world y of the deck under (x, z), or undefined off the pier */

@@ -62,7 +62,13 @@ class Choice<T extends string> {
   /** the URL set `value` for this load */
   readonly fromUrl: boolean;
   readonly listeners = new Set<(v: T) => void>();
-  constructor(readonly key: string, readonly values: readonly T[], fallback: T, url: (q: URLSearchParams) => string | null, readonly boot = false) {
+  // plain fields, not constructor parameter properties: node's type stripping (the boot-pack bake imports this module
+  // through the boot manifest) can't load parameter properties
+  readonly key: string;
+  readonly values: readonly T[];
+  readonly boot: boolean;
+  constructor(key: string, values: readonly T[], fallback: T, url: (q: URLSearchParams) => string | null, boot = false) {
+    this.key = key; this.values = values; this.boot = boot;
     this.stored = this.valid(saved[key]) ?? fallback;
     let u: T | undefined;
     try { u = this.valid(url(new URLSearchParams(location.search))); } catch { u = undefined; }

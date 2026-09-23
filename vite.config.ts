@@ -4,6 +4,7 @@ import { readdirSync, statSync, readFileSync, writeFileSync, existsSync, rmSync 
 import { join } from 'node:path';
 import type { ServerResponse } from 'node:http';
 import { pwaPlugin } from './vite/pwa-plugin';
+import { copyRapierWasm, rapierAlias, rapierPreviewPlugin } from './vite/rapier';
 
 // Build stamp: short git sha + build time. Baked into the bundle as __BUILD_ID__ and
 // emitted as /version.json so the running app can tell when the server has a newer build
@@ -46,6 +47,7 @@ function bakeChunks() {
   catch { console.warn('[bake] procedural textures are stale or missing — run `node scripts/bake-textures.mjs` with the dev server up; launch draws them meanwhile'); }
 }
 bakeChunks();
+copyRapierWasm(); // public/assets/physics/rapier.wasm, before the byte table below lists it
 
 // src/boot/bytes.generated.ts: the same table as a committed TS module, so the boot plan's declared
 // denominators need no fetch and `pnpm tsc` fails when a file a chunk declares disappears.
@@ -167,7 +169,8 @@ export default defineConfig(({ mode }) => {
       // one stylesheet: src/boot/entry.ts splits three.js from the game's graph, and code-split CSS would add a request
       : { target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const, cssCodeSplit: false },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
+    resolve: { alias: rapierAlias }, // Rapier's wasm-importing module → plain bindings (vite/rapier.ts)
     define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
-    plugins: native ? [versionPlugin(), nativePlugin()] : [versionPlugin(), pwaPlugin(BUILD_ID)],
+    plugins: native ? [versionPlugin(), nativePlugin()] : [versionPlugin(), pwaPlugin(BUILD_ID), rapierPreviewPlugin()],
   };
 });

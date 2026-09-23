@@ -77,6 +77,12 @@ export interface TerrainSpec {
   /** open-water shard: `waterLevel()` returns this (pass `ChunkDef.ocean.level`) and the landscape below it is sea floor */
   oceanLevel?: number;
   /**
+   * Paths graded to a walkable profile (PHYSICS.md: the player climbs ≤ 40°): along each polyline the ground is cut
+   * and filled so the centreline never climbs steeper than `maxGrade` (rise / run), blended out over a few metres
+   * each side. Where the ground is already that gentle it is left exactly as it is.
+   */
+  graded?: { paths: Vec2[][]; maxGrade: number };
+  /**
    * Ground-layer blend for `ChunkAssets.groundLayers` — [layer0, layer1, layer2, layer3], any
    * scale (normalised for you). `t` is the finished terrain so you can query slope, height,
    * trail distance and the masks.

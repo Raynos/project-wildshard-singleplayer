@@ -1,4 +1,8 @@
 import * as THREE from 'three';
+import type { CharacterMotor } from '../physics/CharacterMotor';
+import { activePhysics } from '../physics/active';
+import { ragdollsFor, type Ragdoll } from '../physics/ragdoll';
+import { TIER } from '../core/tier';
 import { heightAt } from '../world/Heightfield';
 import { variantMods, type AnimalDims, type AnimalKind, type AnimalModel, type AnimalRig, type Rarity, type VariantMods, type RigAnimCtx } from './AnimalFactory';
 
@@ -9,6 +13,12 @@ import { variantMods, type AnimalDims, type AnimalKind, type AnimalModel, type A
  * written into a flat Float32Array of joint angles, plus additive layers (alert look-at,
  * hit flinch, death collapse) and terrain adaptation (body tilt to the slope, per-foot
  * knee flex so hooves plant). The result is applied to the rig's bones every frame.
+ *
+ * DEATH (PHYSICS P8): the killing hit hands the body to a ragdoll (src/physics/ragdoll.ts) — built at the pose it died
+ * in, thrown by the hit's `dir` / damage, posed from the physics every frame, frozen to a static corpse once it rests.
+ * A quadruped's bones are all physics; a custom rig (crab: one tumbling body; monkey / sailor: one upright body that
+ * falls) keeps its species' keyframed death on the limbs. Past the tier's live-ragdoll cap (phone 2, desktop 6), or with
+ * no physics world (dev scenes), the death is the keyframed collapse below.
  *
  * Public surface used by other systems:
  *   animal.kind: 'deer' | 'boar' | …  animal.alive      animal.position (feet, world)
@@ -89,6 +99,8 @@ const FLASH_T = 0.14, FLASH_I = 0.9;
 interface QuadBones { body: THREE.Bone; neck1: THREE.Bone; neck2: THREE.Bone; head: THREE.Bone; earL: THREE.Bone; earR: THREE.Bone; tail: THREE.Bone; belly: THREE.Bone }
 type LegBones = readonly [THREE.Bone, THREE.Bone, THREE.Bone];
 
+const _want = { x: 0, y: 0, z: 0 };
+
 export class Animal {
   kind: AnimalKind;
   /** VariantDef id ('hind', 'black', 'ironhide'…), its rarity tier and display name */
@@ -168,7 +180,9 @@ export class Animal {
   /** draw LOD (see setDrawLod): the rig's own geometry + [fur, hard, eye] materials, kept while a lower level is on */
   private drawLod = 0;
   private lodBase: { geometry: THREE.BufferGeometry; materials: THREE.Material[] } | null = null;
-  private legAbd = new Float32Array(4);       // corpse: per-leg sideways angle so hooves settle on the ground
+  private legAbd = new Float32Array(4);       // keyframed corpse: per-leg sideways angle (ground-side legs tuck, top legs drape)
+  /** the death's ragdoll (PHYSICS P8): drives the mesh + bones while live, then holds the frozen corpse; null = keyframed */
+  private ragdoll: Ragdoll | null = null;
 
   constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1) {
     this.kind = model.kind;
@@ -295,12 +309,54 @@ export class Animal {
       this.deathT = 0; this.deathSide = lx >= 0 ? -1 : 1; // pushed over away from the shot (legs face the shooter)
       for (let l = 0; l < 4; l++) this.legAbd[l] = ((l % 2 === 0) === (this.deathSide < 0)) ? 0.35 : 0.25;
       this.desiredSpeed = 0;
+      this.startRagdoll(dealt, hitPoint, dir);
       this.onDamaged?.(this, dealt, hitPoint, dir, true);
       return true;
     }
     this.onDamaged?.(this, dealt, hitPoint, dir, false);
     return false;
   }
+
+  /**
+   * The death's ragdoll (see the header): the build from the rig, the animal's own motion plus the hit's throw. Null
+   * past the tier cap or with no physics world — then the keyframed collapse runs as before.
+   */
+  private startRagdoll(damage: number, hitPoint: THREE.Vector3, dir: THREE.Vector3): void {
+    const physics = activePhysics();
+    if (physics === null) return;
+    const d = this.model.dims;
+    const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
+    this.mesh.updateMatrixWorld(true);
+    this.ragdoll = ragdollsFor(physics).spawn({
+      build: !this.custom ? 'quadruped' : d.capsuleAxis === 'y' ? 'upright' : 'rigid',
+      root: this.mesh, bones: this.bones, dims: d, scale: this.scale, lite: TIER === 'phone',
+      // forward along the heading, strafe to the animal's left (world (cos yaw, -sin yaw))
+      velocity: { x: sin * this.speed + cos * this.strafe, y: 0, z: cos * this.speed - sin * this.strafe },
+      hitPoint, dir, damage,
+    });
+  }
+
+  /** A ragdolled death's frame: the physics poses the mesh (and a quadruped's bones), a custom rig's limbs keep their keyframes. */
+  private updateRagdoll(r: Ragdoll, dt: number, t: number, near: boolean): void {
+    this.speed = 0; this.strafe = 0;
+    if (this.custom && near) {
+      if (this.flinch > 0.001) this.flinch *= Math.exp(-dt * 5.5);
+      if (this.deathT >= 0) this.deathT = Math.min(1, this.deathT + dt / 0.8);
+      const c = this.rigCtx;
+      c.dt = dt; c.t = t; c.speed = 0; c.strafe = 0; c.phase = this.phase; c.state = this.state; c.alive = false;
+      c.deathT = this.deathT; c.flinch = this.flinch; c.brace = 0; c.attack = -1; c.lookWeight = 0; c.yaw = this.yaw;
+      this.model.species.animate?.(c);
+    }
+    r.pose(dt);
+    // the corpse's place (loot, harvest): under the torso, or the custom rig's root
+    r.rootPosition(this.position);
+    if (!this.custom) this.position.y -= this.model.dims.halfWidth * this.scale;
+    this.updateFade(dt);
+    if (this.hidden) r.dispose();
+  }
+
+  /** the physics body while near the player (src/physics/creatures.ts hands it out and takes it back) */
+  motor: CharacterMotor | null = null;
 
   /** true while a stagger holds it: the manager skips its think, it neither steers nor walks */
   get stunned(): boolean { return this.stunT > 0; }
@@ -332,7 +388,9 @@ export class Animal {
   /** Integrate motion and animate. `t` = global seconds; `near` = within animation LOD range. */
   update(dt: number, t: number, near: boolean): void {
     const d = this.model.dims;
+    const x0 = this.position.x, z0 = this.position.z;
     if (this.flash > 0) { this.flash = Math.max(0, this.flash - dt / FLASH_T); this.applyFlash(); }
+    if (this.ragdoll !== null) { this.updateRagdoll(this.ragdoll, dt, t, near); return; }
     if (this.alive && this.stunT > 0) {
       // staggered: no steering, no gait — shoved back along the blow with an ease-out, then held
       this.stunT -= dt; this.speed = 0;
@@ -363,6 +421,18 @@ export class Animal {
         this.position.z -= Math.sin(this.yaw) * this.strafe * dt;
       }
     } else { this.speed = 0; this.strafe = 0; }
+
+    // near the player the move goes through the physics body (PHYSICS P6): walls, rocks, trunks, the player and other
+    // animals stop it — the walk, the charge and a knock-back alike
+    if (this.motor !== null && this.alive) {
+      const dx = this.position.x - x0, dz = this.position.z - z0;
+      if (dx !== 0 || dz !== 0) {
+        this.position.x = x0; this.position.z = z0;
+        _want.x = dx; _want.y = 0; _want.z = dz;
+        this.motor.move(this.position, _want, true);
+        this.position.y = this.groundY + this.yOffset; // the motor ignores the terrain: the ground follow below owns y
+      }
+    }
 
     // ground follow (smoothed so bumps in the heightfield don't jitter the body)
     const gy = heightAt(this.position.x, this.position.z);
@@ -562,24 +632,6 @@ export class Animal {
     if (k >= 1) { this.hidden = true; this.mesh.visible = false; this.fadeT = -1; }
   }
 
-  /**
-   * Corpse: measure each hoof against the terrain and swing the ground-side legs down until the hooves
-   * rest on it (the top-side legs lie across the body). Called by the manager at 10 Hz for dead animals.
-   */
-  settleCorpse(): void {
-    if (this.alive || this.deathT < 0.6 || this.custom) return;
-    const side = this.deathSide;
-    for (let l = 0; l < 4; l++) {
-      const down = (l % 2 === 0) === (side < 0);
-      const leg = this.legDir[l];
-      if (leg === undefined) continue;
-      _v.set(0, -0.11, 0).applyMatrix4(leg[2].matrixWorld);          // hoof tip in world space (bone matrices carry the mesh scale)
-      const clr = _v.y - heightAt(_v.x, _v.z);
-      // swing the leg toward the ground while the hoof is in the air, back if it digs in; top legs only drape so far
-      this.legAbd[l] = THREE.MathUtils.clamp((this.legAbd[l] ?? 0) + THREE.MathUtils.clamp(clr * 1.5, -0.12, 0.12), -0.15, down ? 1.2 : 0.4);
-    }
-  }
-
   /** the charge telegraph, additive on the pose: eased in over the first 30 % of the attack, held, eased out in the last 15 % */
   private poseWindup(t: number): void {
     const ph = this.attackPhase;
@@ -755,8 +807,8 @@ export class Animal {
       u.rotation.x = -(p[P_LEG + l * 3] ?? 0);
       m.rotation.x = p[P_LEG + l * 3 + 1] ?? 0;
       lo.rotation.x = p[P_LEG + l * 3 + 2] ?? 0;
-      // corpse: legs swing toward the ground (settled per hoof by settleCorpse); ground is local +X when the
-      // body rolled onto its left side (side < 0), local -X otherwise
+      // keyframed corpse: legs swing sideways by legAbd; ground is local +X when the body rolled onto its left side
+      // (side < 0), local -X otherwise
       u.rotation.z = dead * (this.legAbd[l] ?? 0) * (this.deathSide < 0 ? 1 : -1);
     }
     // breathing: the belly bone swells (visible at a few metres), faster after running

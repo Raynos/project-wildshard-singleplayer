@@ -4,10 +4,12 @@ import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { heightAt } from '../world/Heightfield';
+import { activePhysics } from '../physics/active';
+import { floorBelow } from '../physics/query';
 import { getSetting } from '../ui/Settings';
 import {
   Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01,
-  TRACER_RED, TRACER_ORDER, isMesh, type TexSet, type Targets, type ImpactSurface, type CrossbowWorld, type CrossbowOptions,
+  TRACER_RED, TRACER_ORDER, isMesh, worldHit, impactSurfaceOf, type TexSet, type Targets, type ImpactSurface, type CrossbowWorld, type CrossbowOptions,
 } from './Crossbow';
 import type { KitWeapon, WeaponState, AimInfo } from './Weapons';
 
@@ -23,8 +25,9 @@ import type { KitWeapon, WeaponState, AimInfo } from './Weapons';
  *   weapons = new Weapons(crossbow, rifle);   // the manager calls setActive / update / drives `holster`
  *
  * Semi-auto: one round per click / tap / `F` (FIRE_INTERVAL min), 30-round magazine + 90 in reserve, RELOAD_TIME s
- * reload on `R` or automatically when the trigger is pulled on an empty mag. HITSCAN: `Targets.raycast` for animals,
- * trunks and terrain marched along `aimRay()` (the camera forward — the same aim line as the crossbow), damage
+ * reload on `R` or automatically when the trigger is pulled on an empty mag. HITSCAN along `aimRay()` (the camera
+ * forward — the same aim line as the crossbow): the physics world's first hit (Crossbow `worldHit`) and
+ * `Targets.raycast` for the animals short of it, the nearer wins; damage
  * `damageFor(headshot, dist) * DAMAGE_SCALE` per round. Muzzle flash (two additive quads for 2 frames + a point light
  * for FLASH_LIGHT_TIME), pooled brass, camera kick (KICK_PITCH per shot, recovered over ~0.2 s), a short red hitscan
  * tracer (TRACER_TIME) when the 'tracers' setting is on, impact puffs (Puffs from Crossbow.ts) and `onImpact` /
@@ -51,7 +54,6 @@ const ADS_BLEND_TIME = 0.16, ADS_MOTION = 0.3, ADS_NEAR_MARGIN = 0.03;
 /** sight line height over the bore (m): the front post tip and the rear aperture centre both sit here */
 const SIGHT_Y = 0.064;
 const REAR_Z = 0.10, FRONT_Z = -0.455, MUZZLE_Z = -0.645, PORT = new THREE.Vector3(0.03, 0.008, 0.0);
-const TRUNK_PAD = 0.15; // Forest pads every trunk's collision radius by this much (see Crossbow.ts)
 const SIGHT_CYAN = 0x8fe3ff;
 
 // ───────────────────────────── textures ─────────────────────────────
@@ -108,7 +110,7 @@ class HitLine {
   }
 }
 
-interface Brass { mesh: THREE.Mesh; vel: THREE.Vector3; spin: THREE.Vector3; life: number; down: boolean }
+interface Brass { mesh: THREE.Mesh; vel: THREE.Vector3; spin: THREE.Vector3; life: number; down: boolean; /** where it lands (PHYSICS P7: ray-landed at the eject) */ floor: number }
 
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3();
 const _q = new THREE.Quaternion();
@@ -135,7 +137,7 @@ export class Rifle implements KitWeapon {
   onDry?: () => void;
 
   readonly model = new THREE.Group();
-  private game: CrossbowWorld['game']; private sky: CrossbowWorld['sky']; private player: CrossbowWorld['player']; private forest: CrossbowWorld['forest'];
+  private game: CrossbowWorld['game']; private sky: CrossbowWorld['sky']; private player: CrossbowWorld['player'];
   private targets: Targets | undefined;
   private active = true;
 
@@ -166,7 +168,7 @@ export class Rifle implements KitWeapon {
   readonly adsPose = { px: 0, py: 0, pz: 0, scale: 1, rearDepth: 0, frontDepth: 0, muzzleDepth: 0 };
 
   constructor(world: CrossbowWorld, targets?: Targets, opts: CrossbowOptions = {}) {
-    this.game = world.game; this.sky = world.sky; this.player = world.player; this.forest = world.forest;
+    this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
@@ -245,39 +247,13 @@ export class Rifle implements KitWeapon {
     const spread = THREE.MathUtils.degToRad(SPREAD_ADS + (1 - a) * SPREAD_HIP + this.bloom * (1 - a * 0.7));
     _v1.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).cross(_d).normalize();
     _d.addScaledVector(_v1, Math.tan(spread * Math.random())).normalize();
+    // the world (terrain, trunks, rocks, structures — the physics world's first hit on the ray), then the animals short
+    // of it: the nearer wins, so a wall in front of a deer takes the round
     let dist = HITSCAN_RANGE, surface: ImpactSurface | null = null;
-    const hit = this.targets?.raycast(_o, _d, HITSCAN_RANGE) ?? null;
+    const wall = worldHit(_o, _v2.copy(_o).addScaledVector(_d, HITSCAN_RANGE), 0);
+    if (wall) { dist = wall.distance; surface = impactSurfaceOf(wall.material); }
+    const hit = this.targets?.raycast(_o, _d, dist) ?? null;
     if (hit) { dist = hit.distance; surface = 'flesh'; }
-    // trunks: the padded collision radius over the whole trunk, then refined onto the real bark like the crossbow
-    const step = 6;
-    for (let t0 = 0; t0 < dist; t0 += step) {
-      const len = Math.min(step, dist - t0);
-      _v2.copy(_o).addScaledVector(_d, t0 + len * 0.5);
-      let best = -1;
-      for (const tr of this.forest.nearby(_v2.x, _v2.z, len * 0.5)) {
-        _v3.copy(_o).addScaledVector(_d, t0);
-        const tf = this.segmentCylinder(_v3, _d, len, tr.x, tr.z, tr.r, tr.y, tr.y + tr.height);
-        if (tf < 0) continue;
-        const tb = this.segmentCylinder(_v3, _d, len + TRUNK_PAD * 4, tr.x, tr.z, Math.max(0.05, tr.r - TRUNK_PAD), tr.y, tr.y + tr.height);
-        const d = t0 + (tb >= 0 ? tb : tf);
-        if (best < 0 || d < best) best = d;
-      }
-      if (best >= 0 && best < dist) { dist = best; surface = 'wood'; break; }
-    }
-    // terrain: march, then bisect the crossing
-    if (_d.y < 0.2) {
-      let prev = 0;
-      for (let t0 = 1; t0 <= dist; t0 = Math.min(dist, t0 + 1)) {
-        _v2.copy(_o).addScaledVector(_d, t0);
-        if (_v2.y < heightAt(_v2.x, _v2.z)) {
-          let lo = prev, hi = t0;
-          for (let i = 0; i < 6; i++) { const mid = (lo + hi) / 2; _v2.copy(_o).addScaledVector(_d, mid); if (_v2.y < heightAt(_v2.x, _v2.z)) hi = mid; else lo = mid; }
-          dist = lo; surface = 'ground'; break;
-        }
-        prev = t0;
-        if (t0 >= dist) break;
-      }
-    }
     const point = _v2.copy(_o).addScaledVector(_d, dist);
     if (surface === 'flesh' && hit) {
       point.copy(hit.point);
@@ -294,27 +270,6 @@ export class Rifle implements KitWeapon {
       this.puffs.emit(point, _d, surface);
       this.onImpact?.(surface, point);
     }
-  }
-
-  /** distance along the segment where it enters a cylinder whose radius tapers to 20 % at yTop, or -1 (Crossbow.ts) */
-  private segmentCylinder(o: THREE.Vector3, d: THREE.Vector3, len: number, cx: number, cz: number, r: number, yBot: number, yTop: number): number {
-    const ox = o.x - cx, oz = o.z - cz;
-    const a = d.x * d.x + d.z * d.z;
-    if (a < 1e-8) return -1;
-    const bq = 2 * (ox * d.x + oz * d.z);
-    let rr = r;
-    for (let pass = 0; pass < 2; pass++) {
-      const c = ox * ox + oz * oz - rr * rr;
-      const disc = bq * bq - 4 * a * c;
-      if (disc < 0) return -1;
-      const t = (-bq - Math.sqrt(disc)) / (2 * a);
-      if (t < 0 || t > len) return -1;
-      const y = o.y + d.y * t;
-      if (y < yBot || y > yTop) return -1;
-      if (pass === 1) return t;
-      rr = r * (1 - 0.8 * clamp01((y - yBot) / (yTop - yBot)));
-    }
-    return -1;
   }
 
   // ── viewmodel ──
@@ -446,7 +401,7 @@ export class Rifle implements KitWeapon {
       const mesh = new THREE.Mesh(caseGeo, this.brassMat);
       mesh.visible = false; mesh.frustumCulled = false;
       this.game.scene.add(mesh);
-      this.brass.push({ mesh, vel: new THREE.Vector3(), spin: new THREE.Vector3(), life: 0, down: false });
+      this.brass.push({ mesh, vel: new THREE.Vector3(), spin: new THREE.Vector3(), life: 0, down: false, floor: 0 });
     }
     for (let i = 0; i < TRACER_COUNT; i++) this.tracers.push(new HitLine(this.game.scene));
   }
@@ -463,6 +418,7 @@ export class Rifle implements KitWeapon {
     b.spin.set((Math.random() - 0.5) * 30, (Math.random() - 0.5) * 30, (Math.random() - 0.5) * 30);
     b.mesh.quaternion.copy(cam.quaternion).multiply(_q.setFromAxisAngle(_v1.set(0, 1, 0), Math.PI / 2));
     b.life = BRASS_LIFE; b.down = false; b.mesh.visible = true;
+    b.floor = brassFloor(b.mesh.position, b.vel) + 0.005;
   }
 
   private stepBrass(dt: number) {
@@ -474,8 +430,7 @@ export class Rifle implements KitWeapon {
       b.vel.y -= 9.8 * dt;
       b.mesh.position.addScaledVector(b.vel, dt);
       b.mesh.rotation.x += b.spin.x * dt; b.mesh.rotation.y += b.spin.y * dt; b.mesh.rotation.z += b.spin.z * dt;
-      const g = heightAt(b.mesh.position.x, b.mesh.position.z) + 0.005;
-      if (b.mesh.position.y < g) { b.mesh.position.y = g; b.down = true; b.mesh.rotation.set(0, Math.random() * Math.PI, Math.PI / 2 + (Math.random() - 0.5) * 0.3); }
+      if (b.mesh.position.y < b.floor) { b.mesh.position.y = b.floor; b.down = true; b.mesh.rotation.set(0, Math.random() * Math.PI, Math.PI / 2 + (Math.random() - 0.5) * 0.3); }
     }
   }
 
@@ -591,7 +546,8 @@ export class Rifle implements KitWeapon {
     // aim readout (held weapon only)
     if (this.active && this.targets && (++this.aimFrame & 3) === 0) {
       this.aimRay(_o, _d);
-      const hit = this.targets.raycast(_o, _d, 120);
+      const wall = worldHit(_o, _v2.copy(_o).addScaledVector(_d, 120), 0); // an animal behind a wall shows no range (P5-L2)
+      const hit = this.targets.raycast(_o, _d, wall?.distance ?? 120);
       if (hit?.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; this.aimInfo = this.aimCache; }
       else this.aimInfo = null;
     }
@@ -601,4 +557,18 @@ export class Rifle implements KitWeapon {
     this.game.renderer.getDrawingBufferSize(this.tracerRes);
     for (const tr of this.tracers) tr.update(t, this.tracerRes, this.tracerLife);
   }
+}
+
+/**
+ * The floor a case ejected at `p` with velocity `v` lands on (PHYSICS P7 — brass stays visual, never a body): the world
+ * surface under the eject point says how far it falls, which says where it comes down; a second ray there gives that
+ * spot's floor (the pier deck, not the sand under it; the sand, past the deck's edge). No world (node): the terrain.
+ */
+function brassFloor(p: THREE.Vector3, v: THREE.Vector3): number {
+  const physics = activePhysics();
+  if (physics === null) return heightAt(p.x, p.z);
+  const f0 = floorBelow(physics, p.x, p.z, p.y, 8) ?? heightAt(p.x, p.z);
+  const t = (v.y + Math.sqrt(v.y * v.y + 2 * 9.8 * Math.max(0, p.y - f0))) / 9.8;
+  const x = p.x + v.x * t, z = p.z + v.z * t;
+  return floorBelow(physics, x, z, p.y, 8) ?? heightAt(x, z);
 }

@@ -35,7 +35,8 @@ async function runAll(plan: Plan<BootStep>, work: Work): Promise<Plan<never>> {
   const p3 = await p2.step('terrain', w('terrain'));
   const p4 = await p3.step('cards', w('cards'));
   const p5 = await p4.step('forest', w('forest'));
-  const p6 = await p5.step('edge', w('edge'));
+  const p5b = await p5.step('physics', w('physics'));
+  const p6 = await p5b.step('edge', w('edge'));
   const p7 = await p6.step('grass', w('grass'));
   const p8 = await p7.step('cabins', w('cabins'));
   const p9 = await p8.step('props', w('props'));
