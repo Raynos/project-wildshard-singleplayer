@@ -126,6 +126,11 @@ on his laptop.
   $REPO/art/<subject>/round-<n>-<label>/<id>.png. Create or modify no other file." > "$SP/<id>.log" 2>&1
   ```
 
+  **Don't wait for codex to copy its own file.** The image lands in
+  `~/.codex/generated_images/<session id>/` about 3 min in. codex's follow-up "copy it" turn can then hang 10+ min on
+  reconnects over the slow uplink (E41, 2026-09-23). The runner reads `session id:` from each run's log, polls that
+  folder, copies the PNG the moment it appears and kills that codex. Pass the reference as a JPEG (~300 KB, not a
+  1.4 MB PNG): every run uploads it. More parallel runs don't slow each other; the waiting is per run, not a queue.
   The model and effort come from `~/.codex/config.toml`. `image_gen` is codex's built-in tool (the
   system `imagegen` skill), so it needs no `OPENAI_API_KEY`. Write the prompts and the runner script
   into the scratchpad with the Write tool: the `dcg` hook blocks shell redirects to computed paths.
