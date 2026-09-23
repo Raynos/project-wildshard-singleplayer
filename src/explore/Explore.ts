@@ -27,6 +27,7 @@ import { reviewUnlocked, unlockReview, type ContextValue } from '../ui/review';
 import type { World } from '../core/bootstrap';
 import { ModelExplorer } from './ModelExplorer';
 import { driftwoodCatalog, type CatalogEntry, type CatalogHandles } from './catalog';
+import { Select, type SelectTarget } from './Select';
 import modelsArt from './img/models.webp';
 import worldArt from './img/world.webp';
 
@@ -41,7 +42,12 @@ export interface ExploreHost {
   /** hidden while exploring: the chunk-edge force field (it draws lines across the sea from the air) */
   hide?: THREE.Object3D[];
   /** the world's models for the Model Explorer's catalog (main.ts's dressing); absent → no MODELS tab */
-  models?: Omit<CatalogHandles, 'sky' | 'scene'>;
+  models?: Omit<CatalogHandles, 'sky' | 'scene'> & {
+    /** batches a tap can pick one member of */
+    palms?: { mesh: THREE.Object3D } | null; bushes?: { mesh: THREE.Object3D } | null;
+    /** the live animals (ambient AI) — a tap on one opens its species */
+    creatures?: readonly { mesh: THREE.Object3D; kind: string; position: THREE.Vector3; scale: number }[];
+  };
 }
 
 /** a mode that lives in its own module (Model Explorer, …): shown / hidden with its tab, ticked while shown */
@@ -126,7 +132,21 @@ export class Explore {
     hold('.ws-x-up', 1); hold('.ws-x-down', -1);
     document.addEventListener('keydown', this.onKey);
     game.onUpdate((dt) => { this.update(dt); });
-    if (host.models) this.addPane('model', new ModelExplorer(this, host.world, driftwoodCatalog({ ...host.models, sky: host.world.sky, scene: game.scene })));
+    const models = host.models;
+    if (models) {
+      const entries = driftwoodCatalog({ ...models, sky: host.world.sky, scene: game.scene });
+      this.addPane('model', new ModelExplorer(this, host.world, entries));
+      this.select = new Select(this, host.world, selectTargets(entries, models), entries);
+      this.onTap = (x, y) => { this.select?.pick(x, y); };
+    }
+  }
+
+  private select: Select | null = null;
+
+  /** ORBIT on a selection: one finger (phone) / Alt-drag (desktop) turns around it; off = free flight again */
+  setOrbit(on: boolean, centre?: THREE.Vector3): void {
+    if (this.fly) this.fly.orbiting = on;
+    if (on && centre) { this.cam.focus(centre, this.host.world.game.camera.position.distanceTo(centre)); this.toast(this.fly ? 'Orbiting · one finger turns around it' : 'Orbiting · Alt-drag turns around it'); }
   }
 
   /** VIEW IN WORLD: the World Explorer flies to the model, three-quarter view, a little above */
@@ -138,8 +158,9 @@ export class Explore {
     const from = look.clone().add(new THREE.Vector3(Math.sin(0.7) * r * 2.2, r * 0.9, Math.cos(0.7) * r * 2.2));
     this.setMode('world');
     this.flyTo(from, look);
-    this.toast(e.name);
+    this.landing = e;
   }
+  private landing: CatalogEntry | null = null;
 
   /** a smooth camera flight (god mode stays god mode: controls come back on arrival) */
   flyTo(to: THREE.Vector3, look: THREE.Vector3, seconds = 1.1): void {
@@ -242,7 +263,7 @@ export class Explore {
     const c = this.host.world.game.camera.position;
     const pane = this.panes.get(this.mode);
     const cam = [c.x, c.y, c.z, this.cam.yaw, this.cam.pitch].map((v) => Number(v.toFixed(2)));
-    return { explore: this.mode, cam, ...(pane ? pane.context() : {}) };
+    return { explore: this.mode, cam, ...(pane ? pane.context() : {}), ...(this.mode === 'world' && this.select ? this.select.context() : {}) };
   }
 
   private async note(): Promise<void> {
@@ -297,8 +318,9 @@ export class Explore {
         camera.position.y += Math.sin(Math.PI * k) * f.from.distanceTo(f.to) * 0.18; // a little arc over whatever is between
         const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(camera.position, f.look, camera.up));
         camera.quaternion.slerpQuaternions(f.fromQ, q, k);
-        if (f.t >= 1) { this.flight = null; this.cam.placeAt(f.to, f.look); }
+        if (f.t >= 1) { this.flight = null; this.cam.placeAt(f.to, f.look); if (this.landing) { this.select?.selectEntry(this.landing); this.landing = null; } }
       } else this.cam.update(dt);
+      this.select?.update();
     }
     this.panes.get(this.mode)?.update(dt);
     this.readoutT -= dt;
@@ -310,4 +332,26 @@ export class Explore {
       this.readout.textContent = `ALT ${alt.toFixed(alt < 10 ? 1 : 0)} m · x ${Math.round(p.x)} z ${Math.round(p.z)} · HDG ${String(hdg).padStart(3, '0')}°\n${stats.fps} fps · ${lastFrame.calls} calls · ${(lastFrame.triangles / 1e6).toFixed(2)} M tris`;
     }
   }
+}
+
+/** what a tap in the World Explorer can hit: every live catalog model, one palm / bush out of its batch, each animal */
+function selectTargets(entries: readonly CatalogEntry[], m: NonNullable<ExploreHost['models']>): SelectTarget[] {
+  const out: SelectTarget[] = entries.filter((e) => e.live).map((e) => ({ object: e.object(), entry: e.id }));
+  const around = (p: THREE.Vector3, r: number, h: number): THREE.Box3 => new THREE.Box3(new THREE.Vector3(p.x - r, p.y - 0.2, p.z - r), new THREE.Vector3(p.x + r, p.y + h, p.z + r));
+  const specs = m.palmSpecs ?? [];
+  if (m.palms) out.push({
+    object: m.palms.mesh, entry: 'palm',
+    boxAt: (pt) => {
+      let best = specs[0], bd = Infinity;
+      for (const s of specs) { const d = (s.x - pt.x) ** 2 + (s.z - pt.z) ** 2; if (d < bd) { bd = d; best = s; } }
+      return best ? around(new THREE.Vector3(best.x, pt.y - best.h * 0.9, best.z), 2.4, best.h + 1.6) : around(pt, 2, 8);
+    },
+  });
+  if (m.bushes) out.push({ object: m.bushes.mesh, entry: 'bush', boxAt: (pt) => around(new THREE.Vector3(pt.x, pt.y - 1, pt.z), 1.4, 1.8) });
+  const ids = new Set(entries.map((e) => e.id));
+  for (const a of m.creatures ?? []) {
+    if (!ids.has(a.kind)) continue;
+    out.push({ object: a.mesh, entry: a.kind, boxAt: () => around(a.position, 0.9 * a.scale, 1.6 * a.scale) });
+  }
+  return out;
 }

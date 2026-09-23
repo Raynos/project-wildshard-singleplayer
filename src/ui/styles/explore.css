@@ -97,6 +97,17 @@
 .ws-x-actions { display: flex; gap: 8px; }
 .ws-x-actions button { padding: 8px 14px; background: rgba(143, 227, 255, 0.12); border: 1px solid var(--ws-cyan-line); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
 
+/* ─── the selection card (src/explore/Select.ts; mockups p09 / g09 / g13): anchored under the picked model ─── */
+.ws-x-select { position: absolute; left: 0; top: 0; display: none; flex-direction: column; gap: 4px; max-width: min(340px, calc(100vw - 16px)); padding: 9px 11px 10px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); box-shadow: 0 0 18px rgba(143, 227, 255, 0.25), 0 12px 40px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.ws-x-select.show { display: flex; }
+.ws-x:not([data-mode="world"]) .ws-x-select { display: none; }
+.ws-x-select .ws-x-select-dim { font-size: 9px; letter-spacing: 0.16em; color: var(--ws-cyan); }
+.ws-x-select b { font-family: var(--ws-display); font-size: 18px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; }
+.ws-x-select small { font-size: 10px; color: var(--ws-text-dim); }
+.ws-x-select-actions { display: flex; gap: 6px; margin-top: 4px; }
+.ws-x-select-actions button { padding: 6px 9px; background: rgba(143, 227, 255, 0.12); border: 1px solid var(--ws-cyan-line); font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; }
+.ws-x-select-actions .ws-x-open { color: var(--ws-cyan); border-color: var(--ws-cyan); }
+
 /* phone portrait */
 @media (max-width: 700px) {
   .ws-x-top { left: 8px; right: 8px; gap: 8px; padding: 6px 6px 6px 10px; }
