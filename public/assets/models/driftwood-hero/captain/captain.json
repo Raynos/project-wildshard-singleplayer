@@ -1,0 +1,28 @@
+{
+ "name": "captain",
+ "source": "ref-captain.glb",
+ "tris": 8995,
+ "size_m": [
+  1.07,
+  0.98,
+  1.9
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#282e30",
+  "#2f3437",
+  "#31401b",
+  "#333a46",
+  "#383c38",
+  "#404140",
+  "#4b4f57",
+  "#525023",
+  "#554c3f",
+  "#712729",
+  "#7c715e",
+  "#947336",
+  "#b19871",
+  "#cab5a2"
+ ]
+}

@@ -12,6 +12,7 @@
 import * as THREE from 'three';
 import { BossBar, RewardCaption } from './QuestUI';
 import type { Adventure, AdventureWorld, AdvAnimal } from './Adventure';
+import { preloadCaptainMesh } from '../../entities/species/captainMesh';
 
 const GOLDEN = 0.745;          // DayNight phase of the golden-hour key (its KEYS table: GOLDEN at 0.74)
 const HOLD_S = 7;              // seconds the reward view holds before the quest completes
@@ -21,6 +22,7 @@ export interface Finale { captain: () => AdvAnimal | null; rewardAt: THREE.Vecto
 
 export function installFinale<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>): Finale {
   const { flags, place } = adv;
+  void preloadCaptainMesh(); // the generated captain (v0.2): loads in the background, long before the altar raises him
   const pool = place({ poi: 'shrine', anchor: 'shrine.pool', x: 0, z: 8 });
   const ringP = place({ poi: 'shrine', anchor: 'shrine.ring', x: 0, z: 0, dy: 3.8 });
   const bar = new BossBar();

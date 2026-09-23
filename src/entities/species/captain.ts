@@ -4,6 +4,7 @@ import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, typ
 import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
 import type { Animal } from '../Animal';
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
+import { captainMeshFor } from './captainMesh';
 
 /**
  * The Drowned Captain — Driftwood Isle's guardian boss (DRIFTWOOD-REMASTER A6, D5): Captain Brine of the Gull's Lament,
@@ -73,6 +74,8 @@ function captainPaint(v: VariantDef): Paint {
   };
 }
 
+const CAPTAIN_DIMS: AnimalSpecies['dims'] = { bodyY: 0.95, bodyHalfLen: 0.5, bodyRadius: 0.3, headRadius: 0.16, legLen: 0.85, feet: [[0.12, 0.05], [-0.12, 0.05], [0.12, -0.05], [-0.12, -0.05]], halfWidth: 0.28, capsuleAxis: 'y' };
+
 function buildCaptain(v: VariantDef, rng: Rng): AnimalSpecies {
   const bones: BoneDef[] = [
     { name: 'body', parent: null, pos: [0, 0.95, 0] },
@@ -101,6 +104,11 @@ function buildCaptain(v: VariantDef, rng: Rng): AnimalSpecies {
     S(0, 1.65, 0.06, 0.10, 0.10, head, head, 0, 1.05, 0.9), S(0, 1.60, 0.11, 0.075, 0.075, head), S(0, 1.54, 0.10, 0.06, 0.05, head),
   ], 16, 'skull', paint, true, true));
   for (const sx of [1, -1]) eyes.push(skinPlain(new THREE.SphereGeometry(0.027, 8, 6).translate(sx * 0.043, 1.635, 0.115), head, 'eye', paint));
+  // v0.2: the generated captain (codex concept → Hunyuan3D-2, src/entities/species/captainMesh.ts) once it has loaded —
+  // bound to these same bones, so animateCaptain() drives it unchanged; the glowing eye spheres ride on top. Until the
+  // file is in (or if it fails) the loft stand-in below is built instead.
+  const generated = captainMeshFor(bones);
+  if (generated) return { bones, furParts: [generated[0]], hardParts: [generated[1]], eyeParts: eyes, dims: CAPTAIN_DIMS };
   // the tricorn: a flat brim turned up in three corners + a low crown
   hard.push(loft([S(0, 1.72, -0.01, 0.2, 0.2, head), S(0, 1.75, -0.01, 0.23, 0.23, head), S(0, 1.79, -0.01, 0.13, 0.13, head), S(0, 1.86, -0.01, 0.11, 0.11, head), S(0, 1.88, -0.01, 0.02, 0.02, head)], 3, 'hat', paint, true, true));
   // a beard of kelp hanging off the jaw
@@ -139,7 +147,7 @@ function buildCaptain(v: VariantDef, rng: Rng): AnimalSpecies {
   }
   return {
     bones, furParts: fur, hardParts: hard, eyeParts: eyes,
-    dims: { bodyY: 0.95, bodyHalfLen: 0.5, bodyRadius: 0.3, headRadius: 0.16, legLen: 0.85, feet: [[0.12, 0.05], [-0.12, 0.05], [0.12, -0.05], [-0.12, -0.05]], halfWidth: 0.28, capsuleAxis: 'y' },
+    dims: CAPTAIN_DIMS,
   };
 }
 
