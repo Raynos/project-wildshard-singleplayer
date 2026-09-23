@@ -25,8 +25,8 @@ import { heightAt } from '../world/Heightfield';
 import { CHUNK_HALF } from '../core/config';
 import { reviewUnlocked, unlockReview, type ContextValue } from '../ui/review';
 import type { World } from '../core/bootstrap';
-import modelsArt from './art/models.webp';
-import worldArt from './art/world.webp';
+import modelsArt from './img/models.webp';
+import worldArt from './img/world.webp';
 
 export type ExploreMode = 'hub' | 'world' | 'model';
 
