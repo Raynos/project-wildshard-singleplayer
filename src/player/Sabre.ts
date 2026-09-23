@@ -3,7 +3,8 @@ import { Sword, type SwordWorld, type SwordRig, type SwordMoveSet } from './Swor
 import type { Targets } from './Crossbow';
 import { key, type Move } from './SwordMoves';
 import { getAimTargets } from './AimTargets';
-import { tube, blob, xf, merge, lin, forearm, meleeMaterial, type ColorAt } from './meleeGeo';
+import { tube, blob, xf, merge, lin, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
+import { forearm } from './nalatiArms';
 
 /**
  * Sabre — the Nalati kylysh (ASKS N6, plan row B3; design docs/design/nalati/combat.md § D; mockup
@@ -41,69 +42,80 @@ const CURVE = 0.12;              // m the tip sits back from the grip's line (to
 
 // ───────────────────────────── geometry (sword model space: +Y up the blade, +X the edge, +Z the flat toward the eye) ─────────────────────────────
 
-const STEEL = lin(0xd3d6d9), STEEL_EDGE = lin(0xffffff), STEEL_SPINE = lin(0x8b9199), STEEL_FULLER = lin(0x6a7078);
-const GOLD = lin(0xd9a441), GOLD_LIGHT = lin(0xf3d07a), GOLD_DARK = lin(0x8a5a1e);
-const GRIP = lin(0x3b2417), GRIP_LIGHT = lin(0x5e3b25);
-
-/** blade section at height y: a lens with the edge on +X and a rounded spine on -X; points carry a colour role */
-const SECTION: [number, number, 'edge' | 'bevel' | 'flat' | 'fuller' | 'spine'][] = [
-  [1, 0, 'edge'], [0.62, 0.45, 'bevel'], [0.15, 0.8, 'flat'], [-0.35, 0.95, 'fuller'], [-0.8, 0.9, 'spine'], [-1, 0.4, 'spine'],
-  [-1, -0.4, 'spine'], [-0.8, -0.9, 'spine'], [-0.35, -0.95, 'fuller'], [0.15, -0.8, 'flat'], [0.62, -0.45, 'bevel'],
-];
-
 /** rest: hand low right, the curved blade rising up-left toward the frame centre (the mockup's hold) */
 export const SABRE_REST = key(0, 0.3, -0.27, -0.52, -0.3, 0.72, -0.62, 0.2);
 const SABRE_CHARGE = key(0, 0.27, -0.08, -0.5, 0.2, 0.93, 0.3, 0.25);
 const SABRE_SPRINT = key(0, 0.35, -0.47, -0.58, -0.18, 0.5, -0.85, 0.7);
 
-function buildSabre(material: THREE.Material): SwordRig & { tipX: number } {
-  const parts: THREE.BufferGeometry[] = [];
-  const guardY = 0.062, y0 = guardY + 0.012, tipY = y0 + BLADE_L;
-  // ── blade: the centreline bows back quadratically; the width narrows to 70 % then flares (the yelman) before the point ──
+const STEEL = lin(0xf4ece2), STEEL_EDGE = lin(0xffffff), STEEL_SPINE = lin(0xb4b0aa), STEEL_FULLER = lin(0x8e8a86), STEEL_ROOT = lin(0xd0cac2); // warm whites: the steel reflects a blue sky
+const GOLD = lin(0xf2c25a), GOLD_LIGHT = lin(0xffe29a), GOLD_DARK = lin(0x9a6420);
+const GRIP = lin(0x3a2216), GRIP_LIGHT = lin(0x6a4128), WRAP = lin(0x2a170e);
+
+/** blade section: x across (+1 the edge … -1 the spine), z the half-thickness fraction; a fuller groove runs by the spine */
+const SECTION: [number, number, 'edge' | 'bevel' | 'flat' | 'fuller' | 'spine'][] = [
+  [1, 0, 'edge'], [0.7, 0.28, 'bevel'], [0.42, 0.62, 'bevel'], [0.1, 0.82, 'flat'], [-0.18, 0.84, 'flat'], [-0.3, 0.5, 'fuller'], [-0.46, 0.44, 'fuller'],
+  [-0.6, 0.84, 'flat'], [-0.84, 0.96, 'spine'], [-1, 0.55, 'spine'],
+  [-1, -0.55, 'spine'], [-0.84, -0.96, 'spine'], [-0.6, -0.84, 'flat'], [-0.46, -0.44, 'fuller'], [-0.3, -0.5, 'fuller'], [-0.18, -0.84, 'flat'],
+  [0.1, -0.82, 'flat'], [0.42, -0.62, 'bevel'], [0.7, -0.28, 'bevel'],
+];
+
+/**
+ * The kylysh (combat-D-mounted-sabre.png): a curved single-edged blade with a fuller by the spine and a flared point, a
+ * gold collar, a gold guard with down-swept quillons and ball finials, a leather grip bound in a raised spiral wrap with
+ * gold wire, a gold cap pommel. Metal (blade + gold) → `extras` on the PBR steel; leather + the hand → painterly.
+ */
+function buildSabre(material: THREE.Material, steel: THREE.Material): SwordRig & { tipX: number } {
+  const paint: THREE.BufferGeometry[] = [], metal: THREE.BufferGeometry[] = [];
+  const guardY = 0.064, y0 = guardY + 0.02, tipY = y0 + BLADE_L;
+  // ── blade ──
   const cx = (f: number) => -CURVE * f * f;
-  const half = (f: number) => (f < 0.72 ? 0.021 - 0.004 * f / 0.72 : f < 0.86 ? 0.017 + 0.004 * (f - 0.72) / 0.14 : 0.021 * Math.max(0, 1 - (f - 0.86) / 0.14) ** 0.8);
-  const thick = (f: number) => 0.0042 - 0.0026 * f;
-  const fs = [0, 0.06, 0.14, 0.24, 0.34, 0.44, 0.54, 0.64, 0.72, 0.8, 0.86, 0.91, 0.95, 0.98, 1];
+  const half = (f: number) => (f < 0.7 ? 0.021 - 0.004 * f / 0.7 : f < 0.85 ? 0.017 + 0.0045 * (f - 0.7) / 0.15 : 0.0215 * Math.max(0, 1 - (f - 0.85) / 0.15) ** 0.75);
+  const thick = (f: number) => 0.0046 - 0.0028 * f;
+  const fs: number[] = []; for (let k = 0; k <= 24; k++) fs.push(k < 20 ? (k / 20) * 0.88 : 0.88 + ((k - 20) / 4) * 0.12);
   const rings = fs.map((f) => {
     const w = Math.max(0.0006, half(f)), t = Math.max(0.0004, thick(f)), c = cx(f), y = y0 + BLADE_L * f;
-    // near the point the edge sweeps up toward the spine: shift the section toward -X so the tip sits on the back line
-    const shift = f > 0.86 ? -w * 0.5 * (f - 0.86) / 0.14 : 0;
-    return SECTION.map(([sx, sz]) => new THREE.Vector3(c + shift + sx * w, y, sz * t));
+    const shift = f > 0.85 ? -w * 0.55 * (f - 0.85) / 0.15 : 0; // the point sweeps up to the spine line
+    const fuller = f < 0.72 ? 1 : Math.max(0, 1 - (f - 0.72) / 0.08); // the groove runs out before the yelman
+    return SECTION.map(([sx, sz, role]) => new THREE.Vector3(c + shift + sx * w, y, (role === 'fuller' ? sz + (0.84 - sz) * (1 - fuller) : sz) * t));
   });
-  const roleCol: Record<string, THREE.Color> = { edge: STEEL_EDGE, bevel: STEEL_EDGE.clone().lerp(STEEL, 0.4), flat: STEEL, fuller: STEEL_FULLER, spine: STEEL_SPINE };
-  const bladeCol: ColorAt = (v, a, out) => {
-    const i = Math.round(a * SECTION.length) % SECTION.length;
-    const role = SECTION[i]?.[2] ?? 'flat';
+  const roleCol: Record<string, THREE.Color> = { edge: STEEL_EDGE, bevel: STEEL_EDGE.clone().lerp(STEEL, 0.35), flat: STEEL, fuller: STEEL_FULLER, spine: STEEL_SPINE };
+  metal.push(tube(rings, (v, a, out) => {
+    const role = SECTION[Math.round(a * SECTION.length) % SECTION.length]?.[2] ?? 'flat';
     out.copy(roleCol[role] ?? STEEL);
-    if (role === 'fuller' && v > 0.7) out.copy(STEEL); // the fuller runs out before the yelman
-    return out.lerp(STEEL_EDGE, 0.18 * v);          // the steel brightens toward the point (a painted sky reflection)
-  };
-  parts.push(tube(rings, bladeCol, { capStart: true }));
-  // ── guard: a gold bar with down-swept quillons ending in balls, a langet over the blade root ──
-  const quillon: THREE.Vector3[][] = [];
-  for (let k = 0; k <= 8; k++) {
-    const u = k / 8, x = -0.058 + 0.116 * u, droop = -0.012 * (2 * u - 1) ** 2, r = 0.0075 + 0.0045 * Math.cos((u - 0.5) * Math.PI);
-    const ring: THREE.Vector3[] = [];
-    for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2; ring.push(new THREE.Vector3(x, guardY + droop + Math.cos(a) * r, Math.sin(a) * r * 1.25)); }
-    quillon.push(ring);
+    if (role === 'fuller' && v > 0.7) out.copy(STEEL);
+    return v < 0.06 ? out.lerp(STEEL_ROOT, 0.6) : out;
+  }, { capStart: true }));
+  // ── gold collar at the blade root, the guard, the ferrule ──
+  const gold: ColorAt = (v, a, out) => out.copy(GOLD).lerp(Math.sin(a * Math.PI * 2) > 0 ? GOLD_LIGHT : GOLD_DARK, 0.35 * Math.abs(Math.sin(a * Math.PI * 2))).lerp(GOLD_DARK, Math.abs(v - 0.5) > 0.4 ? 0.35 : 0);
+  metal.push(tube([0, 0.3, 0.7, 1].map((f) => section(14, 0.0235 - 0.002 * f, 0.0082 - 0.001 * f, guardY + 0.006 + 0.016 * f)), gold, { capEnd: true }));
+  // the guard: an oval boss, quillons swept down and back toward the grip, ball finials, an engraved rim
+  metal.push(xf(blob(0.021, 0.011, 0.016, GOLD, 16, 0.45), 0, guardY, 0));
+  metal.push(tube([section(16, 0.02, 0.0145, guardY - 0.011), section(16, 0.023, 0.017, guardY - 0.006), section(16, 0.023, 0.017, guardY + 0.004), section(16, 0.02, 0.0145, guardY + 0.009)], gold));
+  for (const s of [-1, 1]) {
+    const path: THREE.Vector3[] = [];
+    for (let k = 0; k <= 10; k++) { const u = k / 10; path.push(new THREE.Vector3(s * (0.016 + 0.046 * u), guardY - 0.002 - 0.022 * u * u, 0.002 * Math.sin(u * Math.PI))); }
+    metal.push(sweep(path, (u) => 0.0068 - 0.0026 * u + 0.0014 * Math.sin(u * Math.PI * 3), 10, gold));
+    metal.push(xf(blob(0.0092, 0.0092, 0.0092, GOLD_LIGHT, 12, 0.5), s * 0.064, guardY - 0.026, 0));
+    metal.push(xf(blob(0.004, 0.004, 0.004, GOLD_DARK, 8, 0.2), s * 0.071, guardY - 0.03, 0));
   }
-  parts.push(tube(quillon, (_v, a, out) => out.copy(GOLD).lerp(a < 0.5 ? GOLD_LIGHT : GOLD_DARK, Math.abs(Math.sin(a * Math.PI * 2)) * 0.6)));
-  for (const s of [-1, 1]) parts.push(xf(blob(0.0105, 0.0105, 0.012, GOLD, 10, 0.4), s * 0.06, guardY - 0.012, 0));
-  parts.push(xf(blob(0.019, 0.022, 0.011, GOLD_LIGHT, 12, 0.35), -0.002, guardY + 0.006, 0));                     // the langet / collar
-  // ── grip: dark leather with gold wire wraps; a gold ferrule under the guard ──
-  const grip: THREE.Vector3[][] = [];
-  for (let k = 0; k <= 12; k++) { const y = -0.056 + (guardY - 0.004 + 0.056) * (k / 12); const r = 0.0145 + 0.0022 * Math.sin((k / 12) * Math.PI); const ring: THREE.Vector3[] = []; for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2; ring.push(new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r * 0.85)); } grip.push(ring); }
-  parts.push(tube(grip, (v, a, out) => (Math.abs(((v * 9 + a * 0.9) % 1) - 0.5) < 0.09 ? out.copy(GOLD) : out.copy(GRIP).lerp(GRIP_LIGHT, 0.5 + 0.5 * Math.sin(a * Math.PI * 2)))));
-  // ── pommel: a gold cap, canted toward the edge like a kylysh's ──
-  parts.push(xf(blob(0.019, 0.015, 0.016, GOLD, 12, 0.45), 0.006, -0.066, 0, 0, 0, -0.35));
-  parts.push(xf(blob(0.007, 0.007, 0.007, GOLD_LIGHT, 8, 0.2), 0.016, -0.076, 0));
+  metal.push(tube([section(14, 0.0172, 0.0156, guardY - 0.03), section(14, 0.0182, 0.0166, guardY - 0.022), section(14, 0.0176, 0.016, guardY - 0.012)], gold)); // ferrule
+  // ── grip: leather over a swelling core, a raised spiral wrap, gold wire in the grooves ──
+  const gy0 = -0.058, gy1 = guardY - 0.028;
+  const core: THREE.Vector3[][] = [];
+  for (let k = 0; k <= 12; k++) { const f = k / 12; core.push(section(14, 0.0142 + 0.0022 * Math.sin(f * Math.PI), 0.0124 + 0.002 * Math.sin(f * Math.PI), gy0 + (gy1 - gy0) * f)); }
+  paint.push(tube(core, (_v, a, out) => out.copy(GRIP).lerp(GRIP_LIGHT, 0.25 + 0.25 * Math.sin(a * Math.PI * 2))));
+  paint.push(sweep(helix(0.0158, gy0 + 0.004, gy1 - 0.004, 6, 120), () => 0.0028, 6, (_v, a, out) => out.copy(WRAP).lerp(GRIP_LIGHT, 0.5 + 0.5 * Math.sin(a * Math.PI * 2)), true, 0.7));
+  metal.push(sweep(helix(0.0156, gy0 + 0.004, gy1 - 0.004, 6, 120, Math.PI), () => 0.0009, 5, (_v, _a, out) => out.copy(GOLD_LIGHT), true));
+  // ── pommel: a gold band, then a cap canted toward the edge, a small tang button ──
+  metal.push(tube([section(14, 0.0152, 0.0138, gy0 - 0.001), section(14, 0.0168, 0.015, gy0 + 0.004), section(14, 0.0152, 0.0138, gy0 + 0.009)], gold));
+  metal.push(xf(blob(0.0185, 0.0145, 0.0165, GOLD, 16, 0.5), 0.004, gy0 - 0.011, 0, 0, 0, -0.3));
+  metal.push(xf(blob(0.006, 0.005, 0.006, GOLD_LIGHT, 10, 0.2), 0.011, gy0 - 0.024, 0));
   // ── the rider's right hand round the grip; the forearm (its own rig, the cheap elbow) leaves toward the lower right ──
   const restInv = SABRE_REST.q.clone().invert();
   const armDir = new THREE.Vector3(0.86, -0.42, 0.28).normalize().applyQuaternion(restInv);
-  parts.push(forearm(armDir, 0.62, 0.016, { part: 'fist', fistLen: 0.09 }));
+  paint.push(forearm(armDir, 0.62, 0.016, { part: 'fist', fistLen: 0.09 }));
   const arms = forearm(armDir, 0.62, 0.016, { part: 'arm', fistLen: 0.09 });
-  const sword = merge(parts);
-  return { sword, arms, tipY, baseY: y0, tipX: cx(1), material };
+  return { sword: merge(paint), arms, tipY, baseY: y0, tipX: cx(1), material, extras: [{ geometry: withUV(merge(metal)), material: steel }] };
 }
 
 // ───────────────────────────── the sabre's arcs ─────────────────────────────
@@ -200,7 +212,7 @@ export class Sabre extends Sword {
   private mountCd = 0;
 
   constructor(world: SwordWorld, targets?: Targets, opts: SabreOptions = {}) {
-    const rig = buildSabre(meleeMaterial(world.sky));
+    const rig = buildSabre(meleeMaterial(world.sky), steelMaterial(world.sky));
     super(world, targets, { allowUnlocked: opts.allowUnlocked ?? false, rig, moves: SABRE_MOVES, damage: DAMAGE });
     this.swingScale = SPEED;
     this.onMoveHit = (move) => {

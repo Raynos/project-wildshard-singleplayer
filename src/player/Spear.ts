@@ -7,7 +7,8 @@ import type { Targets, ImpactSurface, TargetAnimal } from './Crossbow';
 import type { Weapon, WeaponState, AimInfo } from './Weapon';
 import { heightAt } from '../world/Heightfield';
 import { getAimTargets, targetRadius, type AimTarget } from './AimTargets';
-import { tube, blob, xf, merge, lin, forearm, meleeMaterial, section, type ColorAt } from './meleeGeo';
+import { tube, blob, xf, merge, lin, meleeMaterial, steelMaterial, withUV, sweep, helix, section, type ColorAt } from './meleeGeo';
+import { gloveFist, riderArm, placeArm } from './nalatiArms';
 import { painterlyMaterial } from '../world/painterly';
 
 /**
@@ -62,6 +63,7 @@ const JAV_SPEED = 28, JAV_GRAVITY = 9.8, JAV_DAMAGE = 55, JAV_HEAD = 2;
 const JAV_POOL = 5, PICKUP_R = 1.6, JAV_SURVIVE = 0.9;
 const ARC_POINTS = 32, ARC_SHOW_AFTER = 0.12;
 const FOV_HIP = 72;
+const LEFT_HAND_Y = 0.3;         // the left fist sits this far up the shaft from the right
 
 function fovForAspect(base: number, aspect: number): number {
   if (aspect >= 1) return base;
@@ -72,60 +74,89 @@ const sstep = (a: number, b: number, x: number) => { const t = clamp01((x - a) /
 
 // ───────────────────────────── geometry (+Y = toward the head; origin = the right hand's grip) ─────────────────────────────
 
-const ASH = lin(0xcfa874), ASH_DARK = lin(0x9c7447), ASH_WORN = lin(0x7d5a36);
-const IRON = lin(0x737c86), IRON_EDGE = lin(0xdfe4e8), IRON_DARK = lin(0x3f454d);
-const CORD = lin(0x4a2c1a), TASSEL = lin(0xb3261e), TASSEL_DARK = lin(0x6f1510);
+const ASH = lin(0xd2ab7a), ASH_LIGHT = lin(0xebcb98), ASH_DARK = lin(0x9a7046), ASH_WORN = lin(0x84603c);
+const STEEL = lin(0xc2c4c6), STEEL_EDGE = lin(0xf4f2ee), STEEL_RIDGE = lin(0x8d9196), IRON = lin(0x5d636b), IRON_DARK = lin(0x3a3e44);
+const THONG = lin(0x6b4127), THONG_LIGHT = lin(0x92603a), TASSEL = lin(0xc0301f), TASSEL_LIGHT = lin(0xe0543a), TASSEL_DARK = lin(0x6f1510);
 
+/** the painted ash grain: long streaks along the shaft, a few dark knots, the hand-worn bands darker and smoother */
 const shaftCol = (worn: [number, number][], y0: number, y1: number): ColorAt => (v, a, out) => {
-  const y = y0 + (y1 - y0) * v;
-  out.copy(ASH).lerp(ASH_DARK, 0.35 + 0.35 * Math.sin(a * Math.PI * 6 + y * 3.1) * Math.sin(y * 17.0 + a * 4)); // painted grain
-  for (const [c, w] of worn) if (Math.abs(y - c) < w) out.lerp(ASH_WORN, 0.55);                                // hand-worn
+  const y = y0 + (y1 - y0) * v, ang = a * Math.PI * 2;
+  const streak = Math.sin(ang * 5 + Math.sin(y * 2.3 + ang) * 1.6) * 0.5 + Math.sin(ang * 11 + y * 0.7) * 0.3;
+  out.copy(ASH).lerp(streak > 0.25 ? ASH_LIGHT : ASH_DARK, Math.min(1, Math.abs(streak) * 0.55));
+  const knot = Math.sin(y * 9.1 + 0.5) * Math.sin(ang * 3 + 1.1); if (knot > 0.93) out.lerp(ASH_DARK, 0.75);
+  for (const [c, w] of worn) if (Math.abs(y - c) < w) out.lerp(ASH_WORN, 0.5);
   return out;
 };
 
-/** a leaf blade along +Y from `y0`, `len` long, half-width `w`; a midrib ridge, bright bevelled edges */
+/** a leaf head along +Y from `y0`: diamond section (a midrib ridge), bright bevelled edges, widest at 35 % */
 function leafHead(y0: number, len: number, w: number, t: number): THREE.BufferGeometry {
-  const SEC: [number, number, number][] = [[1, 0, 1], [0.45, 0.4, 0.3], [0, 1, 0], [-0.45, 0.4, 0.3], [-1, 0, 1], [-0.45, -0.4, 0.3], [0, -1, 0], [0.45, -0.4, 0.3]];
-  const fs = [0, 0.08, 0.2, 0.34, 0.48, 0.62, 0.76, 0.88, 0.96, 1];
-  const rings = fs.map((f) => { const ww = Math.max(0.0006, w * Math.sin(Math.PI * Math.min(1, f ** 0.72 * 1.02)) * (f < 0.1 ? 0.6 + 4 * f : 1)), tt = Math.max(0.0004, t * (1 - 0.8 * f)); return SEC.map(([sx, sz]) => new THREE.Vector3(sx * ww, y0 + len * f, sz * tt)); });
-  return tube(rings, (v, a, out) => { const i = Math.round(a * SEC.length) % SEC.length; const e = SEC[i]?.[2] ?? 0; return out.copy(IRON).lerp(IRON_EDGE, e * 0.85).lerp(IRON_DARK, v < 0.08 ? 0.5 : 0); }, { capStart: true });
+  const SEC: [number, number, number][] = [[1, 0, 1], [0.72, 0.18, 0.75], [0.4, 0.46, 0.2], [0, 1, 0], [-0.4, 0.46, 0.2], [-0.72, 0.18, 0.75], [-1, 0, 1], [-0.72, -0.18, 0.75], [-0.4, -0.46, 0.2], [0, -1, 0], [0.4, -0.46, 0.2], [0.72, -0.18, 0.75]];
+  const fs: number[] = []; for (let k = 0; k <= 18; k++) fs.push(k / 18);
+  const width = (f: number) => (f < 0.35 ? Math.sin((f / 0.35) * Math.PI / 2) ** 0.8 : Math.cos(((f - 0.35) / 0.65) * Math.PI / 2) ** 0.9) * (f < 0.06 ? 0.35 + f * 10 : 1);
+  const rings = fs.map((f) => { const ww = Math.max(0.0005, w * width(f)), tt = Math.max(0.0004, t * (1 - 0.75 * f)); return SEC.map(([sx, sz]) => new THREE.Vector3(sx * ww, y0 + len * f, sz * tt)); });
+  return tube(rings, (v, a, out) => { const e = SEC[Math.round(a * SEC.length) % SEC.length]?.[2] ?? 0; return out.copy(STEEL_RIDGE).lerp(STEEL, 0.5).lerp(STEEL_EDGE, e * 0.9).lerp(IRON, v < 0.05 ? 0.4 : 0); }, { capStart: true });
 }
-/** the horsehair tassel: a flared skirt of red below `y` */
-function tassel(y: number, len: number, r0: number, r1: number): THREE.BufferGeometry {
+/** the socket: a dark iron cone from the shaft up into the head, two raised rings, a rivet */
+function socket(y: number, len: number, r0: number, r1: number, parts: THREE.BufferGeometry[]): void {
   const rings: THREE.Vector3[][] = [];
-  for (let k = 0; k <= 4; k++) {
-    const f = k / 4, ring: THREE.Vector3[] = [];
-    for (let i = 0; i < 14; i++) { const a = (i / 14) * Math.PI * 2, jag = f > 0.7 ? (i % 2 ? 0.75 : 1.1) : 1; const r = (r0 + (r1 - r0) * f ** 0.7) * jag; ring.push(new THREE.Vector3(Math.cos(a) * r, y - len * f * jag, Math.sin(a) * r)); }
-    rings.push(ring);
+  for (let k = 0; k <= 8; k++) { const f = k / 8; rings.push(section(14, r0 + (r1 - r0) * f ** 1.3 + (f < 0.12 ? 0.0012 : 0), r0 + (r1 - r0) * f ** 1.3 + (f < 0.12 ? 0.0012 : 0), y + len * f)); }
+  parts.push(tube(rings, (v, a, out) => out.copy(IRON).lerp(IRON_DARK, 0.3 + 0.3 * Math.sin(a * Math.PI * 2)).lerp(STEEL_RIDGE, v * 0.3)));
+  for (const f of [0.1, 0.34]) { const yy = y + len * f, r = r0 + (r1 - r0) * f ** 1.3; parts.push(tube([section(14, r, r, yy - 0.004), section(14, r + 0.0022, r + 0.0022, yy), section(14, r, r, yy + 0.004)], (_v, _a, out) => out.copy(IRON).lerp(STEEL_RIDGE, 0.35))); }
+  parts.push(xf(blob(0.0032, 0.0032, 0.0022, STEEL_RIDGE, 8, 0.3), 0, y + len * 0.22, r0 + 0.0012));
+}
+/** a leather thong bound round the shaft: a raised helix with a tied tail */
+function binding(r: number, y0: number, y1: number, turns: number, parts: THREE.BufferGeometry[]): void {
+  parts.push(sweep(helix(r, y0, y1, turns, Math.round(turns * 18)), () => 0.0026, 6, (_v, a, out) => out.copy(THONG).lerp(THONG_LIGHT, 0.5 + 0.5 * Math.sin(a * Math.PI * 2)), true, 0.6));
+  parts.push(sweep([new THREE.Vector3(r, y0, 0), new THREE.Vector3(r + 0.008, y0 - 0.02, 0.004), new THREE.Vector3(r + 0.012, y0 - 0.045, 0.01)], (u) => 0.002 * (1 - 0.6 * u), 5, (_v, _a, out) => out.copy(THONG)));
+}
+/** horsehair: `n` tapered red strands from a ring of radius r at y, falling `len` (down = -Y when `dir` -1), flaring out */
+function horsehair(n: number, y: number, r: number, len: number, flare: number, parts: THREE.BufferGeometry[], dir = -1, seed = 7): void {
+  let h = seed * 9301;
+  const rnd = () => { h = (h * 16807) % 2147483647; return h / 2147483647; };
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + rnd() * 0.3, l = len * (0.7 + 0.45 * rnd()), fl = flare * (0.7 + 0.6 * rnd()), tw = (rnd() - 0.5) * 0.5;
+    const path: THREE.Vector3[] = [];
+    for (let k = 0; k <= 5; k++) { const u = k / 5, rr = r + fl * Math.sin(u * Math.PI * 0.6) + 0.004 * u; path.push(new THREE.Vector3(Math.cos(a + tw * u) * rr, y + dir * l * u, Math.sin(a + tw * u) * rr)); }
+    const shade = rnd();
+    parts.push(sweep(path, (u) => 0.0042 * (1 - 0.8 * u) + 0.0008, 4, (u, _a, out) => out.copy(shade > 0.7 ? TASSEL_LIGHT : shade < 0.2 ? TASSEL_DARK : TASSEL).lerp(TASSEL_DARK, u * 0.35), false));
   }
-  return tube(rings, (v, a, out) => out.copy(TASSEL).lerp(TASSEL_DARK, 0.25 + 0.3 * Math.sin(a * 40) + 0.3 * v));
+  parts.push(tube([section(12, r + 0.0005, r + 0.0005, y - 0.006), section(12, r + 0.0035, r + 0.0035, y), section(12, r + 0.0005, r + 0.0005, y + 0.008)], (_v, _a, out) => out.copy(THONG))); // the lashing that holds it
 }
 
-function buildSpear(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  const yButt = -0.9, ySocket = 1.0;
+interface Parts { paint: THREE.BufferGeometry; metal: THREE.BufferGeometry }
+/** the spear (combat-B-spear-brace.png): 1.9 m of ash, grain + worn grip bands, a thong binding under a dark iron socket,
+ *  a red horsehair tassel, a long leaf head with a midrib, an iron butt ferrule — origin at the right hand's grip */
+function buildSpear(): Parts {
+  const paint: THREE.BufferGeometry[] = [], metal: THREE.BufferGeometry[] = [];
+  const yButt = -1.3, ySocket = 0.62; // held choked up: the grip is 0.6 m behind the socket
   const shaft: THREE.Vector3[][] = [];
-  for (let k = 0; k <= 16; k++) { const f = k / 16, y = yButt + (ySocket - yButt) * f; shaft.push(section(10, 0.0165 - 0.003 * f, 0.0165 - 0.003 * f, y)); }
-  parts.push(tube(shaft, shaftCol([[0, 0.07], [0.45, 0.07]], yButt, ySocket), { capStart: true }));
-  parts.push(xf(blob(0.019, 0.02, 0.019, IRON_DARK, 10, 0.3), 0, yButt, 0));                                    // butt cap
-  const socket: THREE.Vector3[][] = [section(10, 0.0152, 0.0152, ySocket - 0.03), section(10, 0.0162, 0.0162, ySocket + 0.01), section(10, 0.012, 0.012, ySocket + 0.07), section(10, 0.0085, 0.0085, ySocket + 0.1)];
-  parts.push(tube(socket, (v, _a, out) => out.copy(IRON_DARK).lerp(IRON, v)));
-  for (const y of [ySocket - 0.05, ySocket - 0.075]) parts.push(tube([section(10, 0.0168, 0.0168, y - 0.006), section(10, 0.0182, 0.0182, y), section(10, 0.0168, 0.0168, y + 0.006)], (_v, _a, out) => out.copy(CORD))); // cord binding
-  parts.push(tassel(ySocket - 0.03, 0.12, 0.018, 0.045));
-  parts.push(leafHead(ySocket + 0.09, 0.34, 0.046, 0.008));
-  return merge(parts);
+  for (let k = 0; k <= 48; k++) { const f = k / 48, y = yButt + (ySocket - yButt) * f; const r = 0.0172 - 0.0032 * f; shaft.push(section(14, r, r * 0.97, y)); }
+  paint.push(tube(shaft, shaftCol([[0, 0.07], [LEFT_HAND_Y, 0.07]], yButt, ySocket), { capStart: true }));
+  binding(0.0148, ySocket - 0.12, ySocket - 0.03, 5, paint);
+  horsehair(44, ySocket - 0.005, 0.0142, 0.12, 0.022, paint);
+  socket(ySocket - 0.01, 0.11, 0.0146, 0.0078, metal);
+  metal.push(leafHead(ySocket + 0.09, 0.42, 0.037, 0.009));
+  metal.push(tube([section(14, 0.0176, 0.0176, yButt + 0.06), section(14, 0.0186, 0.0186, yButt + 0.02), section(14, 0.0165, 0.0165, yButt - 0.012), section(14, 0.006, 0.006, yButt - 0.022)], (v, _a, out) => out.copy(IRON).lerp(IRON_DARK, v), { capEnd: true })); // butt ferrule
+  return { paint: merge(paint), metal: withUV(merge(metal)) };
 }
-/** the javelin: a slimmer 1.4 m shaft, a narrow leaf head, a red tuft at the tail — origin at its balance point */
-function buildJavelin(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  const y0 = -0.62, y1 = 0.62;
+/** the javelin (combat-B2-javelin-throw.png): a slimmer 1.3 m shaft, a narrow leaf head on a socket, a red horsehair tuft
+ *  at the tail — origin at its balance point */
+function buildJavelin(): Parts {
+  const paint: THREE.BufferGeometry[] = [], metal: THREE.BufferGeometry[] = [];
+  const y0 = -0.62, y1 = 0.6;
   const shaft: THREE.Vector3[][] = [];
-  for (let k = 0; k <= 8; k++) { const f = k / 8, y = y0 + (y1 - y0) * f; shaft.push(section(8, 0.0115 - 0.002 * f, 0.0115 - 0.002 * f, y)); }
-  parts.push(tube(shaft, shaftCol([[0, 0.06]], y0, y1), { capStart: true }));
-  parts.push(tube([section(8, 0.0095, 0.0095, y1 - 0.01), section(8, 0.0105, 0.0105, y1 + 0.02), section(8, 0.006, 0.006, y1 + 0.05)], (v, _a, out) => out.copy(IRON_DARK).lerp(IRON, v)));
-  parts.push(leafHead(y1 + 0.04, 0.17, 0.02, 0.005));
-  parts.push(tassel(y0 + 0.13, 0.13, 0.012, 0.032));
-  return merge(parts);
+  for (let k = 0; k <= 24; k++) { const f = k / 24, y = y0 + (y1 - y0) * f; const r = 0.0118 - 0.0022 * f; shaft.push(section(10, r, r, y)); }
+  paint.push(tube(shaft, shaftCol([[0.1, 0.06]], y0, y1), { capStart: true }));
+  binding(0.0102, y1 - 0.07, y1 - 0.01, 3, paint);
+  horsehair(30, y0 + 0.1, 0.0112, 0.11, 0.02, paint, -1, 11);
+  socket(y1 - 0.005, 0.07, 0.0098, 0.006, metal);
+  metal.push(leafHead(y1 + 0.055, 0.19, 0.022, 0.006));
+  return { paint: merge(paint), metal: withUV(merge(metal)) };
+}
+/** one geometry for a thrown javelin in the world (painterly only: the head painted steel) */
+function worldJavelin(p: Parts): THREE.BufferGeometry {
+  const m = p.metal.clone(); m.deleteAttribute('uv');
+  return merge([p.paint.clone(), m]);
 }
 
 // ───────────────────────────── poses (camera space: +X right, +Y up, -Z forward; the right hand's grip point + the shaft's direction) ─────────────────────────────
@@ -138,16 +169,15 @@ function pose(px: number, py: number, pz: number, dx: number, dy: number, dz: nu
   q.multiply(_qr.setFromAxisAngle(Y, roll));
   return { pos: new THREE.Vector3(px, py, pz), q };
 }
-const REST = pose(0.22, -0.25, -0.42, -0.12, 0.13, -0.98, 0.4);       // two hands, low right, the head just under the frame centre
-const COCK = pose(0.25, -0.27, -0.26, -0.11, 0.13, -0.98, 0.4);      // thrust wind-up: drawn back
-const JAB = pose(0.13, -0.2, -0.9, -0.04, 0.06, -1, 0.4);          // thrust at full extension
+const REST = pose(0.2, -0.25, -0.36, -0.13, 0.05, -0.99, -1.2);       // two hands, low right, the head just under the frame centre
+const COCK = pose(0.23, -0.27, -0.22, -0.12, 0.05, -0.99, -1.2);      // thrust wind-up: drawn back
+const JAB = pose(0.13, -0.21, -0.95, -0.04, 0.03, -1, -1.2);          // thrust at full extension
 const BRACED = pose(0.2, -0.46, -0.36, -0.05, 0.3, -0.95, 0.3);      // butt planted, the point at a charging boar's chest
 const LEFT_LOW = pose(-0.3, -0.52, -0.38, 0.2, 0.42, -0.88, -0.5);   // throwing: the spear in the left hand, low left (combat-B2)
 const SPRINT = pose(0.26, -0.4, -0.3, -0.35, 0.42, -0.84, 0.6);
 const LANCE = pose(0.16, -0.3, -0.5, -0.02, 0.02, -1, 0.3);          // couched: level, dead ahead
-const JAV_COCK = pose(0.3, -0.05, -0.34, -0.08, 0.1, -0.99, 0.2);    // the javelin cocked by the right ear
+const JAV_COCK = pose(0.33, -0.02, -0.55, -0.08, 0.1, -0.99, 0.2);    // the javelin cocked by the right ear
 const JAV_OUT = pose(0.12, -0.12, -0.72, -0.02, 0.02, -1, 0.2);      // the throwing hand, arm out after the release
-const LEFT_HAND_Y = 0.46;                                           // the left fist sits this far up the shaft from the right
 
 // ───────────────────────────── the weapon ─────────────────────────────
 
@@ -155,7 +185,9 @@ interface Jav { state: 0 | 1 | 2; pos: THREE.Vector3; vel: THREE.Vector3; q: THR
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _e = new THREE.Euler(), _m = new THREE.Matrix4(), _s1 = new THREE.Vector3(1, 1, 1);
 const _vThrow = new THREE.Vector3(), _qThrow = new THREE.Quaternion(), _vCock = new THREE.Vector3(), _qCock = new THREE.Quaternion();
-const _qSway = new THREE.Quaternion(), _qHol = new THREE.Quaternion();
+const _qSway = new THREE.Quaternion(), _qHol = new THREE.Quaternion(), _vArm = new THREE.Vector3(), _vEl = new THREE.Vector3();
+/** where the sleeves run back to (camera space): the elbows, just off the bottom corners of the frame */
+const L_ELBOW = new THREE.Vector3(-0.3, -0.62, 0.05), R_ELBOW = new THREE.Vector3(0.36, -0.6, 0.08);
 
 export class Spear implements Weapon {
   readonly hasAmmo = true;
@@ -195,7 +227,9 @@ export class Spear implements Weapon {
   private game: Game; private sky: Sky; private player: Player; private forest: Forest;
   private targets: Targets | undefined;
   private spearRig = new THREE.Group(); private handRig = new THREE.Group();
-  private heldJav!: THREE.Mesh;
+  private heldJav!: THREE.Group;
+  private leftArm!: THREE.Mesh; private rightArm!: THREE.Mesh;
+  private leftWrist = new THREE.Vector3(); private rightWrist = new THREE.Vector3();
   private ring!: THREE.Mesh; private ringMat!: THREE.MeshBasicMaterial;
   private arc!: THREE.Points; private arcPos = new Float32Array(ARC_POINTS * 3); private arcAttr!: THREE.BufferAttribute; private arcMat!: THREE.PointsMaterial;
   private world!: THREE.InstancedMesh;
@@ -282,21 +316,33 @@ export class Spear implements Weapon {
   private build(): void {
     const mat = meleeMaterial(this.sky);
     const restInv = REST.q.clone().invert();
-    // the spear + the left hand (+ its forearm) as one rig; the right hand is its own rig (it leaves the shaft to throw)
-    const leftArmDir = new THREE.Vector3(-0.42, -0.62, 0.66).normalize().applyQuaternion(restInv);
-    const left = forearm(leftArmDir, 0.62, 0.0165);
-    left.translate(0, LEFT_HAND_Y, 0);
-    const spear = merge([buildSpear(), left]);
-    const rightArmDir = new THREE.Vector3(0.62, -0.5, 0.6).normalize().applyQuaternion(restInv);
-    const right = forearm(rightArmDir, 0.62, 0.0165);
-    for (const [g, rig] of [[spear, this.spearRig], [right, this.handRig]] as [THREE.BufferGeometry, THREE.Group][]) {
-      const mesh = new THREE.Mesh(g, mat);
+    // the fists ride the rigs (the left on the spear, the right on its own rig — it leaves the shaft to throw); the sleeves
+    // are separate meshes placed every frame from each wrist back to a fixed elbow off the bottom of the frame (nalatiArms)
+    const fist = (dirCam: THREE.Vector3, mirror: boolean) => {
+      const d = dirCam.clone().normalize().applyQuaternion(restInv);
+      const yaw = Math.atan2(d.x, d.z) - Math.atan2(mirror ? -0.12 : 0.12, 1);
+      return gloveFist({ R: 0.0165, mirror, yaw });
+    };
+    const lf = fist(new THREE.Vector3(-0.42, -0.62, 0.66), true), rf = fist(new THREE.Vector3(0.62, -0.5, 0.6), false);
+    const left = lf.geometry.clone().translate(0, LEFT_HAND_Y, 0);
+    this.leftWrist.copy(lf.wrist).setY(lf.wrist.y + LEFT_HAND_Y); this.rightWrist.copy(rf.wrist);
+    this.leftArm = new THREE.Mesh(riderArm(0.75, 2), mat); this.rightArm = new THREE.Mesh(riderArm(0.75, 1), mat);
+    for (const a of [this.leftArm, this.rightArm]) { a.frustumCulled = false; a.renderOrder = 1000; a.receiveShadow = true; this.model.add(a); }
+    const steel = steelMaterial(this.sky, 0.3);
+    const sp = buildSpear();
+    const spear = merge([sp.paint, left]);
+    const right = rf.geometry;
+    const add = (g: THREE.BufferGeometry, m: THREE.Material, to: THREE.Object3D) => {
+      const mesh = new THREE.Mesh(g, m);
       mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = true; mesh.renderOrder = 1000;
-      rig.add(mesh);
-    }
-    const javGeo = buildJavelin();
-    this.heldJav = new THREE.Mesh(javGeo, mat);
-    this.heldJav.frustumCulled = false; this.heldJav.renderOrder = 1000; this.heldJav.visible = false;
+      to.add(mesh);
+    };
+    add(spear, mat, this.spearRig); add(sp.metal, steel, this.spearRig); add(right, mat, this.handRig);
+    const jav = buildJavelin();
+    const javGeo = worldJavelin(jav);
+    this.heldJav = new THREE.Group();
+    add(jav.paint, mat, this.heldJav); add(jav.metal, steel, this.heldJav);
+    this.heldJav.visible = false;
     this.heldJav.position.set(0, 0.1, 0); // the right hand grips it just behind the balance point
     this.handRig.add(this.heldJav);
     this.model.add(this.spearRig, this.handRig);
@@ -644,6 +690,14 @@ export class Spear implements Weapon {
       if (this.inspect) { pos.set(0.05, -0.1, -1.1); q.setFromEuler(_e.set(0.3, Math.sin(t * 0.3) * 0.6, 1.3, 'YXZ')); }
       rig.position.copy(pos); rig.quaternion.copy(q); rig.scale.setScalar(scale);
     }
+    // the sleeves: from each wrist (on its rig) back to its elbow, fixed off the bottom corners of the frame
+    for (const [rig, wrist, elbow, arm] of [[this.spearRig, this.leftWrist, L_ELBOW, this.leftArm], [this.handRig, this.rightWrist, R_ELBOW, this.rightArm]] as [THREE.Group, THREE.Vector3, THREE.Vector3, THREE.Mesh][]) {
+      rig.updateMatrix();
+      _vArm.copy(wrist).applyMatrix4(rig.matrix);
+      _vEl.set(elbow.x * (1 - portrait * 0.3), elbow.y - h * 0.5, elbow.z);
+      placeArm(arm, _vArm, _vEl.sub(_vArm));
+      arm.scale.setScalar(scale);
+    }
 
     // the brace ring: round the point while set, a slow turn
     const ringOn = this.braced && inHand;
@@ -651,7 +705,7 @@ export class Spear implements Weapon {
     this.ring.visible = this.ringMat.opacity > 0.01;
     if (this.ring.visible) {
       this.spearRig.updateMatrix();
-      this.ring.position.set(0, 1.25, 0).applyMatrix4(this.spearRig.matrix);
+      this.ring.position.set(0, 0.88, 0).applyMatrix4(this.spearRig.matrix);
       this.ring.quaternion.copy(this.spearRig.quaternion).multiply(_q.setFromAxisAngle(_v3.set(1, 0, 0), Math.PI / 2)).multiply(_q2.setFromAxisAngle(_v3.set(0, 0, 1), t * 1.4));
       this.ring.scale.setScalar(scale * (1 + 0.06 * Math.sin(t * 5)));
     }
