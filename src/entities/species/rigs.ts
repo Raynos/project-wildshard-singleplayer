@@ -34,3 +34,15 @@ export const NO_FUR: FurStyle = {
   texSeed: 1, tex: { contrast: 0.5, grizzle: 0, normalStrength: 1, bristle: 0, strandLen: 8, root: 0.2 },
   roughness: 0.9, sheen: 0.02, sheenColor: [0.2, 0.2, 0.2], envMapIntensity: 0.6, rim: [0.5, 0.5, 0.5], shellLen: 0.0, shag: 0,
 };
+
+/**
+ * Squash & stretch on a hit (remaster M3, a hook for the feel-agent's hit reactions): a volume-preserving wobble of the
+ * root bone driven by the rig's `flinch` (1 at the blow, decaying to 0) — squashed flat at the blow, a stretch as it
+ * springs back, settling. Every custom rig calls it last in `animate`: `squashBody(b.body, c.flinch)`.
+ */
+export function squashBody(b: THREE.Bone, flinch: number, amt = 0.2): void {
+  const k = clamp(flinch, 0, 1);
+  const w = k * k * Math.cos((1 - k) * 10) * amt;
+  const sy = 1 - w, sxz = 1 / Math.sqrt(Math.max(0.5, sy));
+  b.scale.set(sxz, sy, sxz);
+}

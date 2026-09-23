@@ -3,7 +3,7 @@ import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
 import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
 import type { Animal } from '../Animal';
-import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
+import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from './rigs';
 
 /**
  * Coconut Monkey — the palm-grove troop (art/driftwood-enemy-2-monkey.png): tan faceted fur, a dark face with a pale
@@ -224,6 +224,7 @@ function animateMonkey(c: RigAnimCtx): void {
   R(b.tail1, -0.5 * curl - 0.4 * run + 0.9 * dead, 0, 0.25 * Math.sin(t * 1.7 + seed) * (1 - run) + lash * 0.4);
   R(b.tail2, -0.8 * curl + 0.3 * Math.sin(t * 2.1 + seed) * sit, 0, 0.2 * Math.sin(t * 1.7 + 1 + seed) + lash * 0.6);
   R(b.tail3, -0.9 * curl + 0.4 * Math.sin(t * 2.6 + seed), 0, lash);
+  squashBody(b.body, c.flinch);
 }
 
 // ── AI ───────────────────────────────────────────────────────────────────────────────────

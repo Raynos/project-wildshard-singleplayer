@@ -3,7 +3,7 @@ import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
 import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
 import type { Animal } from '../Animal';
-import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
+import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from './rigs';
 
 /**
  * Drowned Sailor — the wreck's guardian (art/driftwood-enemy-3-wreckghost.png): a bone-white faceted skeleton in the
@@ -213,6 +213,7 @@ function animateSailor(c: RigAnimCtx): void {
     R(knee, (0.35 + 0.4 * Math.max(0, lsw)) * moving + 0.15 * c.brace + 0.15 + 1.9 * kneel, 0, 0);
     R(foot, -0.15 * lsw * moving - 0.1, 0, 0);
   }
+  squashBody(b.body, c.flinch);
 }
 
 // ── AI ───────────────────────────────────────────────────────────────────────────────────
