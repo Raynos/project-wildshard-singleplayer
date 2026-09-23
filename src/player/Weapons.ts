@@ -59,6 +59,8 @@ export interface KitWeapon extends WeaponHooks {
   holster: number;
   readonly state: WeaponState;
   readonly aimInfo: AimInfo | null;
+  /** 0..1 charge of a held-charge attack (the sword heavy) — the touch HEAVY disc's ring; absent = none */
+  readonly charge?: number;
   tryFire: () => void;
   reload: () => void;
   update: (dt: number, t: number) => void;
@@ -71,7 +73,7 @@ export interface KitWeapon extends WeaponHooks {
 const SWAP_TIME = 0.25; // s per half (drop, then raise)
 
 /** a shard weapon (Weapon.ts) plus the optional hooks the manager uses when present (Crossbow and Sword both have them) */
-export type BaseLike = Weapon & Partial<Pick<KitWeapon, 'holster' | 'reload' | 'aimRay' | 'inputAllowed'>>;
+export type BaseLike = Weapon & Partial<Pick<KitWeapon, 'holster' | 'reload' | 'aimRay' | 'inputAllowed' | 'charge'>>;
 /** an extra shard weapon for the kit (the iron sword): its rig, its kit id and its HUD tag */
 export interface ExtraWeapon { weapon: BaseLike; id: WeaponId; name: string }
 
@@ -104,6 +106,7 @@ class BaseWeapon implements KitWeapon {
     return c;
   }
   get aimInfo(): AimInfo | null { return this.bow.aimInfo; }
+  get charge(): number { return this.bow.charge ?? 0; }
   tryFire(): void { this.bow.tryFire(); }
   reload(): void { this.bow.reload?.(); }
   update(dt: number, t: number): void { this.bow.update(dt, t); }

@@ -17,7 +17,7 @@ import type { FullMap } from './Map';
 import type { Progress } from '../game/Progress';
 import { PACK_SLOTS, type Inventory } from '../game/Inventory';
 import { icon, type IconId } from './icons';
-import { getSetting, setSetting, onSetting, getNumber, setNumber, type SettingKey } from './Settings';
+import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, type SettingKey, type NumberKey } from './Settings';
 import { gfxPrefs, saveGfxPrefs } from '../core/tier';
 
 export type MenuTab = 'map' | 'inventory' | 'achievements' | 'settings';
@@ -238,6 +238,20 @@ export class GameMenu {
       return b;
     };
     p.append(el('ws-gmenu-label', 'Gameplay'), sw('aimAssist', 'Aim assist'), sw('tracers', 'Tracer bolts'));
+
+    // controls: the 0.5–2× look multipliers (Settings 'look' / 'swingLook') — read live by TouchControls + Player's mouse look
+    const mult = (key: NumberKey, label: string) => {
+      const [lo, hi] = NUM_RANGE[key];
+      const row = el('ws-gmenu-row', `<span class="ws-gmenu-swlabel">${label}</span><b class="ws-gmenu-val"></b>`);
+      const val = row.querySelector<HTMLElement>('.ws-gmenu-val');
+      const s = document.createElement('input'); s.type = 'range'; s.className = 'ws-gmenu-slider';
+      s.min = String(lo * 100); s.max = String(hi * 100); s.step = '5'; s.value = String(Math.round(getNumber(key) * 100));
+      const paint = () => { if (val) val.textContent = `${(Number(s.value) / 100).toFixed(2)}×`; };
+      s.addEventListener('input', () => { setNumber(key, Number(s.value) / 100); paint(); });
+      s.addEventListener('pointerdown', (e) => e.stopPropagation());
+      paint(); row.append(s); return row;
+    };
+    p.append(el('ws-gmenu-label', 'Controls'), mult('look', 'Look speed'), mult('swingLook', 'Swing turn speed'));
 
     // graphics: the boot prefs in src/core/tier.ts (read at start-up → reload to apply)
     const seg = (label: string, options: { v: string; text: string }[], get: () => string, set: (v: string) => void) => {

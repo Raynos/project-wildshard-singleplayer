@@ -99,6 +99,16 @@
 .ws-game-aim { position: absolute; left: 50%; top: calc(50% + 26px); transform: translateX(-50%); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-text); text-shadow: 0 0 6px rgba(0, 0, 0, 0.9), 0 1px 2px rgba(0, 0, 0, 0.9); opacity: 0; transition: opacity 0.18s ease; white-space: nowrap; }
 .ws-game-aim.show { opacity: 1; }
 #hud.intro .ws-game-aim { opacity: 0; }
+/* sword lock-on (src/ui/LockOn.ts): four corner brackets round the animal a swing would lunge onto; brighter while lunging */
+.ws-game-lock { position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; transition: opacity 0.12s; will-change: transform; }
+.ws-game-lock.show { opacity: 0.85; }
+.ws-game-lock.lunging { opacity: 1; filter: drop-shadow(0 0 6px rgba(143, 227, 255, 0.9)); }
+.ws-game-lock i { position: absolute; width: 14px; height: 14px; border: 0 solid var(--ws-cyan); }
+.ws-game-lock i:nth-child(1) { left: 0; top: 0; border-width: 2px 0 0 2px; }
+.ws-game-lock i:nth-child(2) { right: 0; top: 0; border-width: 2px 2px 0 0; }
+.ws-game-lock i:nth-child(3) { left: 0; bottom: 0; border-width: 0 0 2px 2px; }
+.ws-game-lock i:nth-child(4) { right: 0; bottom: 0; border-width: 0 2px 2px 0; }
+#hud.intro .ws-game-lock { display: none; }
 
 /* ── interaction prompt ── */
 .ws-game-prompt { position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%); padding: 7px 14px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-text); opacity: 0; transition: opacity 0.15s; }

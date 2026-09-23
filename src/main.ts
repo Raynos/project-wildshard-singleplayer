@@ -39,6 +39,7 @@ import { WeaponPickup } from './player/WeaponPickup';
 import { SKINS, SkinLocker, applySkin, crossbowDisplayModel, skinFor, type SkinDef, type SkinId } from './player/Skins';
 import { TouchControls } from './player/TouchControls';
 import { HUD } from './ui/HUD';
+import { LockOn } from './ui/LockOn';
 import { Loading } from './ui/Loading';
 import { Perf } from './ui/Perf';
 import { Minimap } from './ui/Minimap';
@@ -250,6 +251,7 @@ async function main() {
   weapons.adsHeld = params.has('ads');
   await macrotask();
   const hud = new HUD({ pointerLock: !nolock });
+  const lockOn = new LockOn(game.camera); // sword lunge target brackets (meleeLock, Sword.ts)
   const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
   const minimap = new Minimap(); // circular minimap (Heightfield is installed by now)
   const fullMap = new FullMap(minimap); // the menu's MAP tab (Menu.ts mounts it); tap the minimap / M to open
@@ -456,6 +458,7 @@ async function main() {
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 && hud.entered);
     hud.setAimInfo(weapons.aimInfo);
+    lockOn.update();
     if (hud.entered) { hud.setAnimals(animalPositions(animals.animals)); minimap.update(player.position, player.yaw, animals.animals); fullMap.update(player.position, player.yaw); } // compass paw + minimap (hidden under the menu)
     hud.setState({
       bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, reserve: weapons.state.reserve, loaded: weapons.state.loaded, reloading: weapons.state.reloading, reloadProgress: weapons.state.reloadProgress,

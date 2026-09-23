@@ -25,3 +25,15 @@ let targets: readonly AimTarget[] = [];
 
 export function setAimTargets(list: readonly AimTarget[]): void { targets = list; }
 export function getAimTargets(): readonly AimTarget[] { return targets; }
+
+/**
+ * The sword's melee lock (Sword.ts writes it every frame it is held): `target` = the animal a swing would lunge onto right
+ * now (in range, in the cone — null when none), `lunging` = a lunge onto it is running. Read by the HUD's lock brackets
+ * (src/ui/LockOn.ts) and the touch layer's lunge camera turn (TouchControls.ts).
+ */
+export const meleeLock: { target: AimTarget | null; lunging: boolean } = { target: null, lunging: false };
+/** the animal's horizontal half-size (m) from its dims — where a lunge stops short of it */
+export function targetRadius(t: AimTarget): number {
+  const d = t.dims;
+  return Math.max(0.3, Math.max(d?.bodyRadius ?? 0.33, (d?.bodyHalfLen ?? 0.5) * 0.6)) * (t.scale ?? 1);
+}

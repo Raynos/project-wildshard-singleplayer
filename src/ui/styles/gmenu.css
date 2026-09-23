@@ -101,6 +101,7 @@
 .ws-gmenu .ws-gmenu-switch { cursor: pointer; transition: background 0.15s, border-color 0.15s; }
 .ws-gmenu .ws-gmenu-switch.on { border-color: rgba(143, 227, 255, 0.5); color: #fff; }
 .ws-gmenu .ws-gmenu-swlabel { flex: 1 1 auto; min-width: 0; text-align: left; }
+.ws-gmenu .ws-gmenu-val { flex: none; min-width: 42px; text-align: right; color: var(--ws-cyan); font-weight: 400; } /* the Controls sliders read "1.00×" (Menu.ts mult) */
 .ws-gmenu .ws-gmenu-pill { position: relative; flex: none; width: 34px; height: 18px; border-radius: 9px; background: rgba(6, 10, 18, 0.7); border: 1px solid rgba(143, 227, 255, 0.35); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5); transition: background 0.18s, border-color 0.18s, box-shadow 0.18s; }
 .ws-gmenu .ws-gmenu-pill::after { content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--ws-text-dim); transition: transform 0.18s, background 0.18s; }
 .ws-gmenu .ws-gmenu-switch.on .ws-gmenu-pill { background: rgba(143, 227, 255, 0.28); border-color: var(--ws-cyan); box-shadow: 0 0 12px rgba(143, 227, 255, 0.35), inset 0 0 6px rgba(143, 227, 255, 0.25); }
