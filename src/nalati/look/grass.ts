@@ -60,15 +60,37 @@ const MAX_TILES = 256;
 const HN = 512, H_ORG = -256;                            // tHeight / tMask: 1 m texels over [−256, 256]
 const LAT = 4, LN = Math.ceil((CHUNK_HALF * 2) / LAT) + 1; // tField / tGround: the GrassField lattice
 
+/** the day gain of the grass light */
+const GRASS_GAIN = 1.8;
 /** shared uniforms (the look's updater sets the sun + hemi each frame) */
 export const grassV2Uniforms = {
   uSunView: { value: new THREE.Vector3(0, 0.4, 1).normalize() },
   uHemiSky: { value: new THREE.Color(0.4, 0.46, 0.62) },
   uHemiGround: { value: new THREE.Color(0.3, 0.3, 0.16) },
   uHemiI: { value: 0.4 },
-  uGrassGain: { value: 1.8 },
+  uGrassGain: { value: GRASS_GAIN },
+  /** the grass's own saturation (1 by day; the hour / storm pull it down — `grassMood`) */
+  uGrassSat: { value: 1 },
+  /** …and its tint (white by day; moonlit blue at night, slate in the storm) */
+  uGrassTint: { value: new THREE.Color(1, 1, 1) },
   uTime: { value: 0 },
 };
+
+if (typeof window !== 'undefined') Object.assign(window, { __grassV2: grassV2Uniforms }); // live tuning, like __gradeV2
+
+/**
+ * The grass's mood for the hour and the storm (step 2 of the polish: dusk, night and storms stay painterly and dark).
+ * The blades are lit with a gain (the painted-meadow read by day) that over-lights them against the terrain once the key
+ * is the moon or the storm's flat fill, and their olive / lime reads neon under a slate sky. So the gain drops and the
+ * colour greys with the hour and the overcast; flashes still light them (the key carries the flash).
+ * `night` 0..1 (sun well down), `dusk` 0..1 (the low sun), `overcast` 0..1 (the storm).
+ */
+export function grassMood(night: number, dusk: number, overcast: number): void {
+  const g = GRASS_GAIN * (1 - 0.18 * dusk) * (1 - 0.5 * night) * (1 - 0.52 * overcast);
+  grassV2Uniforms.uGrassGain.value = g;
+  grassV2Uniforms.uGrassSat.value = (1 - 0.25 * dusk) * (1 - 0.5 * night) * (1 - 0.42 * overcast);
+  grassV2Uniforms.uGrassTint.value.setRGB(1 - 0.22 * night - 0.08 * overcast, 1 - 0.12 * night - 0.04 * overcast, 1 + 0.12 * night + 0.04 * overcast);
+}
 
 const COMMON = /* glsl */`
 uniform sampler2D tHeight; uniform sampler2D tMask; uniform sampler2D tField; uniform sampler2D tGround; uniform sampler2D tTiles;
@@ -86,7 +108,8 @@ float groundH(vec2 xz) { return texture(tHeight, hUV(xz)).r; }
 
 const LIGHT = /* glsl */`
 uniform vec3 uPSunDir; uniform vec3 uPSunRef; uniform vec3 uSunView;
-uniform vec3 uHemiSky; uniform vec3 uHemiGround; uniform float uHemiI; uniform float uGrassGain;
+uniform vec3 uHemiSky; uniform vec3 uHemiGround; uniform float uHemiI; uniform float uGrassGain; uniform float uGrassSat; uniform vec3 uGrassTint;
+vec3 gMood(vec3 c) { return mix(vec3(dot(c, vec3(.2126, .7152, .0722))), c, uGrassSat) * uGrassTint; }
 vec3 gLight(vec3 n, float wrap, float sh) {
   float ndl = clamp((dot(n, uPSunDir) + wrap) / (1. + wrap), 0., 1.) * sh;
   vec3 amb = mix(uHemiGround, uHemiSky, n.y * .5 + .5) * uHemiI * 1.75;
@@ -181,7 +204,7 @@ void main() {
   vec3 v = normalize(vFogWorldPos - cameraPosition);
   float back = pow(clamp(dot(v, uSunView), 0., 1.), 4.) * vT * vT;      // translucent against the sun
   vec3 lit = vCol * gLight(normalize(vN), .25, vSh) * .8 + uPSunRef * (0.78 / 2.8) * back * vec3(.55, .5, .08) * .9 * uGrassGain * vSh;
-  gl_FragColor = vec4(lit * vSelf, 1.);
+  gl_FragColor = vec4(gMood(lit * vSelf), 1.);
   #include <fog_fragment>
 }`;
 
@@ -269,7 +292,7 @@ void main() {
     col = mix(stemC, col, star);
   }
   if (a < .5) discard;
-  gl_FragColor = vec4(col * gLight(vec3(0., 1., 0.), .5, vSh) * .6, 1.);
+  gl_FragColor = vec4(gMood(col * gLight(vec3(0., 1., 0.), .5, vSh) * .6), 1.);
   #include <fog_fragment>
 }`;
 
@@ -361,7 +384,7 @@ void main() {
   float back = pow(clamp(dot(v, uSunView), 0., 1.), 4.) * vT;
   vec3 alb = tx.rgb * vTint;
   vec3 lit = alb * gLight(n, .35, vSh) * 1.05 + alb * uPSunRef * (0.78 / 2.8) * back * .9 * uGrassGain * vSh;
-  gl_FragColor = vec4(lit * vSelf, uA2C > .5 ? a : 1.);
+  gl_FragColor = vec4(gMood(lit * vSelf), uA2C > .5 ? a : 1.);
   #include <fog_fragment>
 }`;
 

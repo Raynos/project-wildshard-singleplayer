@@ -19,7 +19,7 @@ import { SkyDomeV2 } from './sky';
 import { fogLut } from './fog';
 import { updateTint } from './tint';
 import { LightCheat } from './light';
-import { grassV2Uniforms, terrainHeightTexture } from './grass';
+import { grassV2Uniforms, grassMood, terrainHeightTexture } from './grass';
 import { StaticBake } from './bake';
 import { applyCloudSeaV2 } from './cloudSea';
 import type { Forest } from '../../world/Forest';
@@ -68,6 +68,7 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
     // night: the painted sky fades out above the ridge line, the rig's stars show through (it is hidden by day: no overdraw)
     const night = smooth(2, -9, weather.clock.sunElevation);
     u.uNight.value = night;
+    grassMood(night, smooth(12, 0, weather.clock.sunElevation) * (1 - night), w.overcast); // the grass darkens + greys with the hour / storm
     rigDome.visible = night > 0.001;
     // the sun is painted; the rig's disc stays only as the moon
     if (look.moon <= 0) sky.sunDisc.visible = false;
