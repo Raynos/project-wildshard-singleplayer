@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// bake-navmesh.mjs — every shard's navmesh, baked offline (docs/plans/PHYSICS.md P6b).
+// bake-navmesh.mjs — every shard's navmesh, baked offline (project/archive/2026-09-23-physics.md P6b).
 //
 // Builds the shard's walkable world in Node exactly as the game builds it — the baked terrain grid (terrain.bin, with the
 // sea cave's terrain cut) and the static builders' ColliderDescs (the ones src/main.ts / src/core/bootstrap.ts register:

@@ -1,5 +1,5 @@
 /**
- * Collision groups (docs/plans/PHYSICS.md §Architecture): who can touch whom. Rapier packs a collider's groups in one
+ * Collision groups (project/archive/2026-09-23-physics.md §Architecture): who can touch whom. Rapier packs a collider's groups in one
  * u32 — membership in the high 16 bits, the filter (what it may touch) in the low 16 — and two colliders interact only
  * when each one's membership is in the other's filter, so every row below lists the full set it meets.
  */

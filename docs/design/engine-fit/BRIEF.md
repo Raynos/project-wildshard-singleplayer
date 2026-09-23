@@ -8,7 +8,7 @@ Capacitor native shells. Two shards are being worked hard right now:
 - **Nalati Grasslands** — `/Users/raynos/projects/games/wildshard-nalati-grasslands` (a worktree/branch, horse
   riding, steppe, nomad camp)
 - A **Rapier physics** branch is being built in `/Users/raynos/projects/games/wildshard-physics`
-  (plan: `docs/plans/PHYSICS.md` there — Rapier 3D, committed, both shards, navmesh, capped ragdolls).
+  (plan: `project/archive/2026-09-23-physics.md` there — Rapier 3D, committed, both shards, navmesh, capped ragdolls).
 
 Question: (a) should we move onto a real game engine layered on three.js (Rogue Engine, Needle Engine,
 enable3d, GDevelop, A-Frame, others), or (b) keep three.js + Rapier and borrow 1–5 *components* (ideas or

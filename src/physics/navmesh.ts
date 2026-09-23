@@ -1,5 +1,5 @@
 /**
- * The shard's navmesh (docs/plans/PHYSICS.md P6b): where a creature can walk, baked offline per shard by
+ * The shard's navmesh (project/archive/2026-09-23-physics.md P6b): where a creature can walk, baked offline per shard by
  * scripts/bake-navmesh.mjs (navcat's recast port over the baked terrain + every static builder's ColliderDescs, the water
  * left out) into public/assets/baked/<slug>/navmesh.bin — a declared boot file (src/boot/manifest.ts, `physics`), loaded
  * in the `physics` step. Queried with navcat (pure JS, detour's queries).

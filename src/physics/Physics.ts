@@ -1,5 +1,5 @@
 /**
- * The physics world (docs/plans/PHYSICS.md §Architecture): one Rapier `World` per shard, advanced once per fixed step.
+ * The physics world (project/archive/2026-09-23-physics.md §Architecture): one Rapier `World` per shard, advanced once per fixed step.
  *
  * `Game` owns the clock (the frame phases, ENGINE-FIT E2): its fixed loop runs `pre → step → post` at 60 Hz, fed the
  * loop's scaled dt, so hit-stop slows the world with everything else and a skipped frame (menu, rotate gate) steps

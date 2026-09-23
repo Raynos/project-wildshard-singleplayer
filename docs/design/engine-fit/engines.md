@@ -7,7 +7,7 @@ and a local esbuild bundle of each library (`--minify`, three external, gzip -9)
 Our baseline: three `^0.186.0` + `postprocessing ^6.39.5` + `n8ao ^2.0.1`
 (`wildshard-singleplayer/package.json`); ~42.4 k lines of TS in `src/`; physics branch pins
 `@dimforge/rapier3d-simd 0.20.0` (`wildshard-physics/package.json:33`) with a KCC player
-(`docs/plans/PHYSICS.md:122`) and **navcat** for navmesh (`PHYSICS.md:19,167`).
+(`project/archive/2026-09-23-physics.md:122`) and **navcat** for navmesh (`PHYSICS.md:19,167`).
 Reference sizes: three.module.min.js 393 KB min / **90 KB gz**; Rapier SIMD wasm 2.20 MB raw /
 **732 KB gz / 537 KB br** (the `-compat` build base64-inlines it: 1.06–1.08 MB gz of JS).
 

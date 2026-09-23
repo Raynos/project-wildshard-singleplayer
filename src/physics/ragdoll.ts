@@ -1,5 +1,5 @@
 /**
- * Ragdolls (docs/plans/PHYSICS.md P8): a dying animal's body is handed to the physics world, thrown by the killing hit,
+ * Ragdolls (project/archive/2026-09-23-physics.md P8): a dying animal's body is handed to the physics world, thrown by the killing hit,
  * and frozen to a static corpse once it has come to rest.
  *
  * Three builds, picked from the rig (src/entities/Animal.ts `startRagdoll`):

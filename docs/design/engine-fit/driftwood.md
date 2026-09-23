@@ -85,7 +85,7 @@ controller, input, precompile, tier) and **~33 k are content** (models-in-code, 
 
 ## 5. Collision, movement, raycasts (pre-Rapier) — thin, the weakest subsystem
 
-- 2.5D only (~800 lines per `docs/plans/PHYSICS.md:48-70`). Player: gravity/jump/double-jump, `groundAt` = `heightAt` + `platforms[]`
+- 2.5D only (~800 lines per `project/archive/2026-09-23-physics.md:48-70`). Player: gravity/jump/double-jump, `groundAt` = `heightAt` + `platforms[]`
   callbacks (step-up ≤ 0.5 m), slope walk/slide via `normalAt` probes, wade/swim/dive with spring buoyancy, hoverboard spring
   (`Player.ts:1-60` constants, 584 lines). Horizontal collision `Player.collide()` (`Player.ts:560-583`): circle vs tree cylinders from a
   16 m grid (`Forest.nearby`) + circle vs Y-rotated boxes (`Collider {x,z,hw,hd,rot,yTop,yBottom}`). No capsule, no ceilings, no
@@ -99,7 +99,7 @@ controller, input, precompile, tier) and **~33 k are content** (models-in-code, 
   `Rifle.ts:249`. Only `explore/Select.ts` uses `THREE.Raycaster`. Hand integrators for coconuts, brass, blood, motes.
 - Every new structure (hut, wreck, shrine, cove, bridge, jetty) hand-writes a `colliders` list + `floorHeightAt()` — duplicated effort per
   POI and a recurring bug source (B4 pick-up through the hull, B5 sword through walls, cove cave = solid box).
-- **This is exactly what Rapier (already chosen, `docs/plans/PHYSICS.md`, `draft`, not started) replaces.** An engine would only
+- **This is exactly what Rapier (already chosen, `project/archive/2026-09-23-physics.md`, `draft`, not started) replaces.** An engine would only
   give it via its own bundled physics (usually ammo/cannon/Rapier), i.e. no advantage over the plan.
 
 ## 6. Animation, models, materials, post, LOD

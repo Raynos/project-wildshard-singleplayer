@@ -1,5 +1,5 @@
 /**
- * Loads Rapier (docs/plans/PHYSICS.md §Architecture, Loading). The only module that instantiates the WASM; every
+ * Loads Rapier (project/archive/2026-09-23-physics.md §Architecture, Loading). The only module that instantiates the WASM; every
  * other physics module imports Rapier's API from here, after `loadRapier()` resolved.
  *
  * The binary is fetched from /assets/physics/rapier.wasm (vite/rapier.ts copies it there from the package) and

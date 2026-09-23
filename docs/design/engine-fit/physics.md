@@ -1,7 +1,7 @@
 # Engine-fit audit — the Rapier physics effort (E22) vs main
 
 Sources: `/Users/raynos/projects/games/wildshard-physics` (branch `physics`, merge-base `9c975f2`),
-`docs/plans/PHYSICS.md` (243 lines, read in full); main checkout at `b4abd3f`; Nalati worktree
+`project/archive/2026-09-23-physics.md` (243 lines, read in full); main checkout at `b4abd3f`; Nalati worktree
 `wildshard-nalati-grasslands` (branch `nalati-grasslands`, 69 commits ahead of main). Read-only; nothing touched.
 
 ## 1. What the plan is
@@ -46,7 +46,7 @@ No entity / component layer is planned. The word "component" / "entity" / "regis
 ## 2. What is built on the branch
 
 - `git log main..physics`: **2 commits, both docs only** — `d5aa6ae` (plan re-survey) and `504d988` (the go).
-  Diff stat vs main: `docs/plans/PHYSICS.md` +149/−69, `docs/tasks/asks/E22.md` 1 line.
+  Diff stat vs main: `project/archive/2026-09-23-physics.md` +149/−69, `docs/tasks/asks/E22.md` 1 line.
 - Uncommitted in the worktree: PHYSICS.md +16 (P0 route findings, "straight through" pick), and two **untracked**
   files: `scripts/physics-baseline.mjs` (241 lines — Playwright P0 ruler: poses + walk autopilot + webm + compare)
   and `scripts/physics-route.json` (445 lines, the walk route). `progress/physics/` does not exist yet.

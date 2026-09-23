@@ -1,5 +1,5 @@
 /**
- * Rapier's WASM, loaded by the game rather than by the bundler (docs/plans/PHYSICS.md §Architecture, Loading).
+ * Rapier's WASM, loaded by the game rather than by the bundler (project/archive/2026-09-23-physics.md §Architecture, Loading).
  *
  * `@dimforge/rapier3d-simd` is a wasm-bindgen `bundler` build: its `rapier_wasm3d.js` does
  * `import * as wasm from "./rapier_wasm3d_bg.wasm"` (the Wasm ESM-integration proposal), which Vite does not support.
