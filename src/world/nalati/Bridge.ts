@@ -11,7 +11,7 @@
  * than the deck (the sky road's foot is at −8.6) gets a ramped approach instead of a step.
  */
 import * as THREE from 'three';
-import { PaintKit, M, pole, v3, blob } from './paint';
+import { PaintKit, M, pole, v3, blob, logPainter } from './paint';
 import { BRIDGE } from './layout';
 import type { Collider } from '../../player/Player';
 import type { PoiCtx, PoiPiece } from './types';
@@ -22,6 +22,8 @@ const C = {
   log: new THREE.Color('#7b5b3e'),
   logGrey: new THREE.Color('#8d8171'),
   stone: new THREE.Color('#8e8b85'),
+  stoneDark: new THREE.Color('#6f6c67'),
+  endGrain: new THREE.Color('#c7a67a'),
 };
 
 export function buildBridge(ctx: PoiCtx): PoiPiece {
@@ -58,10 +60,15 @@ export function buildBridge(ctx: PoiCtx): PoiPiece {
     const layers = Math.ceil((y1 - y0) / 0.3);
     for (let l = 0; l < layers; l++) {
       const y = y0 + 0.15 + l * 0.3;
-      if (l % 2 === 0) {
-        for (const sz of [-1.05, 1.05]) kit.add(pole(v3(bx - 1.75, y, cz + sz), v3(bx + 1.75, y, cz + sz + rng.range(-0.04, 0.04)), 0.16, 0.15, 7), C.log, { jitter: 0.09 });
-      } else {
-        for (const sx of [-1.35, 1.35]) kit.add(pole(v3(bx + sx, y, cz - 1.45), v3(bx + sx + rng.range(-0.04, 0.04), y, cz + 1.45), 0.16, 0.15, 7), C.log, { jitter: 0.09 });
+      const logs: [THREE.Vector3, THREE.Vector3][] = l % 2 === 0
+        ? [-1.05, 1.05].map((sz) => [v3(bx - 1.75, y, cz + sz), v3(bx + 1.75, y, cz + sz + rng.range(-0.04, 0.04))])
+        : [-1.35, 1.35].map((sx) => [v3(bx + sx, y, cz - 1.45), v3(bx + sx + rng.range(-0.04, 0.04), y, cz + 1.45)]);
+      for (const [a, b] of logs) kit.add(pole(a, b, 0.16, 0.15, 8), logPainter(a, b, rng.next() < 0.3 ? C.logGrey : C.log, C.endGrain), { jitter: 0.09 });
+      // the stone fill bulging out between the log courses
+      if (y > gy - 0.2) for (const side of [0, 1, 2, 3]) for (let k = 0; k < 2; k++) {
+        const u = rng.range(-0.9, 0.9), s = rng.range(0.13, 0.19);
+        const px = side < 2 ? bx + u * 1.2 : bx + (side === 2 ? -1.28 : 1.28), pz = side < 2 ? cz + (side === 0 ? -0.98 : 0.98) : cz + u * 0.95;
+        kit.add(blob(s, rng, 0, 0.8, 0.25), rng.next() < 0.5 ? C.stone : C.stoneDark, { matrix: M(px, y + 0.15, pz, rng.range(0, 6)), brush: 0.1 });
       }
     }
     // stone fill showing at the top, and a raked ice-breaker on the upstream (east, −x) side

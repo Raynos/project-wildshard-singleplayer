@@ -25,8 +25,8 @@ const C = {
   lichen: new THREE.Color('#b9a45a'),
   larch: new THREE.Color('#7a5a3c'),
   larchOld: new THREE.Color('#6d6152'),
-  turf: new THREE.Color('#7f9b46'),
-  turfDark: new THREE.Color('#5f7a36'),
+  turf: new THREE.Color('#9ab552'),
+  turfDark: new THREE.Color('#7f9a42'),
   earth: new THREE.Color('#6a5438'),
   dark: new THREE.Color('#0d0a08'),
 };

@@ -12,21 +12,21 @@
  * Terrain request: a flat pad r 30 at (95, 205) (the valley floor, ≈ −8).
  */
 import * as THREE from 'three';
-import { PaintKit, M, pole, v3, lathe, blob } from './paint';
+import { PaintKit, M, pole, v3, blob } from './paint';
 import { addYurt } from './Yurt';
-import { PC, addBarrel, addChest, addWoodpile, addStove, addKazan, addCart, addSaddleRack, addEagle, addGroundRug, addRugRack } from './props';
+import { PC, addBarrel, addChest, addWoodpile, addStove, addKazan, addCart, addSaddleRack, addEagle, addGroundRug, addRugRack, addCarvedPost, addChurn } from './props';
 import { CAMP, CORRAL, HITCHING_RAIL } from './layout';
 import type { Collider } from '../../player/Player';
 import type { PoiCtx, PoiPiece } from './types';
 
 /** the yurts: angle round the yard (deg, 0 = +x/west, 90 = +z/north), distance, radius, flue, palette */
-const YURTS: { a: number; d: number; r: number; flue: boolean; pal: number; old?: boolean }[] = [
-  { a: 128, d: 13.5, r: 3.0, flue: true, pal: 0 },
-  { a: 88, d: 14.5, r: 3.5, flue: true, pal: 1 },      // the big one (the host's)
-  { a: 46, d: 13.0, r: 2.8, flue: false, pal: 2, old: true },
-  { a: 2, d: 13.5, r: 3.1, flue: true, pal: 0 },
-  { a: -44, d: 13.0, r: 2.7, flue: false, pal: 1 },
-  { a: -92, d: 13.5, r: 3.2, flue: false, pal: 2 },
+const YURTS: { a: number; d: number; r: number; flue: boolean; pal: number; old?: boolean; base: 'lattice' | 'reed' | 'felt' }[] = [
+  { a: 128, d: 13.5, r: 3.0, flue: true, pal: 0, base: 'lattice' },
+  { a: 88, d: 14.5, r: 3.5, flue: true, pal: 1, base: 'reed' },      // the big one (the host's)
+  { a: 46, d: 13.0, r: 2.8, flue: false, pal: 2, old: true, base: 'felt' },
+  { a: 2, d: 13.5, r: 3.1, flue: true, pal: 0, base: 'lattice' },
+  { a: -44, d: 13.0, r: 2.7, flue: false, pal: 1, base: 'reed' },
+  { a: -92, d: 13.5, r: 3.2, flue: false, pal: 2, base: 'lattice' },
 ];
 
 const RIBBONS = ['#c8321e', '#2f5fae', '#e8b632', '#3f8f4a', '#f4efe4', '#e0772c', '#7a3f8c'];
@@ -50,7 +50,7 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     let gy = Infinity;
     for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; gy = Math.min(gy, ground(x + Math.cos(t) * y.r, z + Math.sin(t) * y.r)); }
     gy = Math.min(gy, ground(x, z));
-    const top = addYurt(kit, { x, y: gy, z, rot, r: y.r, flue: y.flue, palette: y.pal, old: y.old ?? false }, colliders);
+    const top = addYurt(kit, { x, y: gy, z, rot, r: y.r, flue: y.flue, palette: y.pal, old: y.old ?? false, base: y.base }, colliders);
     if (top.flue) smoke.emitter(top.flue, { puffs: 26, rise: 8, size: [0.35, 2.4], life: 8 });
     // a red pennant on a short pole at the crown of every other yurt
     if (y.pal !== 2) {
@@ -120,16 +120,13 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
   // ── props round the yard ──
   addCart(kit, ground, cx - 11, cz - 11, 2.3, colliders);
   for (const [bx, bz] of [[cx + 6.8, cz - 1.2], [cx + 6.3, cz - 0.3], [cx - 1.5, cz + 10.5]] as const) addBarrel(kit, ground, bx, bz, colliders, rng.range(0.9, 1.05));
-  addChest(kit, ground, cx + 2.5, cz + 9.8, 0.2, colliders);
+  addChest(kit, ground, cx + 0.6, cz + 9.4, 0.2, colliders);
   addChest(kit, ground, cx - 9.5, cz - 4.5, 1.8, colliders);
 
   // ── hitching rail (road side, runs north–south) + trough + saddle rack ──
   {
     const { x, z, length: L, height: H } = HITCHING_RAIL;
-    for (const t of [-0.5, 0, 0.5]) {
-      const pz = z + t * L, py = ground(x, pz);
-      kit.add(pole(v3(x, py - 0.4, pz), v3(x, py + H + 0.14, pz), 0.12, 0.1, 8), PC.wood, { foot: 0.75 });
-    }
+    for (const t of [-0.5, 0, 0.5]) addCarvedPost(kit, ground, x, z + t * L, H, Math.PI / 2);
     const y0 = ground(x, z - L / 2), y1 = ground(x, z + L / 2);
     kit.add(pole(v3(x, y0 + H, z - L / 2 - 0.25), v3(x, y1 + H, z + L / 2 + 0.25), 0.075, 0.07, 8), PC.woodLight);
     for (const t of [-0.3, 0.28]) {
@@ -189,8 +186,8 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     kit.add(new THREE.BoxGeometry(0.5, 0.05, 1.7).translate(0, 0.51, 0), PC.hay, { matrix: M(fx, fy, fz, 0.9), flat: true });
   }
 
-  // a milk churn and a low stone ring for the kids' fire by the big yurt
-  kit.add(lathe([[0.001, 0], [0.2, 0], [0.22, 0.35], [0.16, 0.5], [0.1, 0.56], [0.11, 0.62], [0.001, 0.62]], 12), new THREE.Color('#b9b4a8'), { matrix: M(cx + 1.5, ground(cx + 1.5, cz + 11.3), cz + 11.3) });
+  // the kumis corner by the big yurt: the wooden churn and the leather saba on its tripod
+  addChurn(kit, ground, cx + 3.6, cz + 10.2, colliders);
 
   const mesh = kit.mesh(sky, { ground });
   mesh.name = 'nalati-camp';

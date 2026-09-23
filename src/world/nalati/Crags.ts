@@ -15,9 +15,9 @@ import type { Collider } from '../../player/Player';
 import type { Platform, PoiCtx, PoiPiece } from './types';
 
 const C = {
-  granite: new THREE.Color('#948f88'),
-  graniteCool: new THREE.Color('#858791'),
-  graniteDark: new THREE.Color('#66656a'),
+  granite: new THREE.Color('#9a8f80'),
+  graniteCool: new THREE.Color('#8c8883'),
+  graniteDark: new THREE.Color('#6e675f'),
   snow: new THREE.Color('#f1f4f8'),
   lichen: new THREE.Color('#b4a15e'),
   dark: new THREE.Color('#0e0b0a'),
@@ -46,17 +46,26 @@ export function buildCrags(ctx: PoiCtx): { piece: PoiPiece; ledges: Ledge[]; cav
     if (Math.abs(x) > 248 || Math.abs(z) > 248) continue;
     const gy = ground(x, z), sl = slopeAt(x, z);
     if (gy < 38 || sl < 0.42) continue;
-    const s = rng.range(2.5, 6.5) * (gy > 58 ? 0.8 : 1);
+    // not on a crest (a block on a ridge line floats against the sky): the ground must not be a local high
+    let around = 0; for (let k = 0; k < 6; k++) { const t = (k / 6) * Math.PI * 2; around += ground(x + Math.cos(t) * 4, z + Math.sin(t) * 4); }
+    if (gy > around / 6 + 0.4) continue;
+    const s = rng.range(2.5, 6.0) * (gy > 58 ? 0.8 : 1);
     if (!free(x, z, s * 0.9)) continue;
     placed.push({ x, z, r: s * 0.9 });
     const dh = downhill(x, z), yaw = Math.atan2(dh.x, dh.z) + rng.range(-0.4, 0.4);
     const h = s * rng.range(0.6, 1.1);
-    const g = rng.next() < 0.6 ? graniteBlock(s * 1.3, h, s * rng.range(0.7, 1.0), rng.int(1, 9999), 0.25) : blob(s * 0.7, rng, 2, 0.75, 0.3);
     const col = rng.next() < 0.5 ? C.granite : C.graniteCool;
-    // sit it on the LOWEST ground under its footprint (so the downhill edge never floats), the uphill side buried
+    // sit it on the LOWEST ground under its footprint, half sunk (the uphill side buried, the downhill foot in the slope)
     let low = gy;
     for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; low = Math.min(low, ground(x + Math.cos(t) * s * 0.6, z + Math.sin(t) * s * 0.6)); }
-    kit.add(g, col, { ...snowTop(CRAGS.snowLine - 3), matrix: M(x, low + h * 0.12, z, yaw, 1, 1, 1, rng.range(-0.2, 0.1), rng.range(-0.12, 0.12)) });
+    // a crag is a cluster: 2–3 jointed pillars / slabs leaning together, not one box
+    const nb = rng.int(2, 3);
+    for (let b = 0; b < nb; b++) {
+      const bw = s * rng.range(0.45, 0.75), bh = h * rng.range(0.7, 1.15), bd = s * rng.range(0.4, 0.65);
+      const ox = rng.range(-0.35, 0.35) * s, oz = rng.range(-0.25, 0.25) * s;
+      const g = rng.next() < 0.7 ? graniteBlock(bw, bh, bd, rng.int(1, 9999), 0.3, 2) : blob(bw * 0.6, rng, 2, 1.1, 0.3);
+      kit.add(g, col, { ...snowTop(CRAGS.snowLine - 3), matrix: M(x + ox, low + bh * 0.08, z + oz, yaw + rng.range(-0.5, 0.5), 1, 1, 1, rng.range(-0.18, 0.08), rng.range(-0.15, 0.15)) });
+    }
     colliders.push({ x, z, hw: s * 0.55, hd: s * 0.4, rot: -yaw, yBottom: gy - 3, yTop: gy + h * 0.55 });
   }
 

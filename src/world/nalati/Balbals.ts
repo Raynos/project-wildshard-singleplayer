@@ -14,17 +14,17 @@
  * Also exports `balbalGeometry(variant)` (feet at y 0, facing −z, 2.1 m) for B11's rig to reuse.
  */
 import * as THREE from 'three';
-import { PaintKit, M, pole, v3, poiMaterial } from './paint';
+import { PaintKit, M, pole, v3, poiMaterial, mergeVerticesByPos } from './paint';
 import { Noise2D } from '../../core/noise';
 import type { Collider } from '../../player/Player';
 import type { PoiCtx, PoiPiece } from './types';
 
 const C = {
-  stone: new THREE.Color('#8f8b83'),
-  stoneWarm: new THREE.Color('#9c9486'),
+  stone: new THREE.Color('#9a9386'),
+  stoneWarm: new THREE.Color('#a69a88'),
   carve: new THREE.Color('#5d5a54'),
-  lichenGold: new THREE.Color('#c7a24a'),
-  lichenGreen: new THREE.Color('#9aa57a'),
+  lichenGold: new THREE.Color('#b8a266'),
+  lichenGreen: new THREE.Color('#98a07e'),
 };
 
 const lichen = new Noise2D(0xba1b);
@@ -34,60 +34,88 @@ function stonePainter(base: THREE.Color): (p: THREE.Vector3, n: THREE.Vector3) =
   return (p, n) => {
     out.copy(base);
     const b = lichen.get(p.x * 4.1 + p.y * 1.7, p.z * 4.3 - p.y * 2.3) * 0.6 + lichen.get(p.x * 11 + p.y * 5, p.z * 11) * 0.4;
-    if (b > 0.28) out.lerp(p.y > 1.0 || n.y > 0.3 ? C.lichenGold : C.lichenGreen, Math.min(0.85, (b - 0.28) * 3.5));
+    if (b > 0.36) out.lerp(p.y > 1.0 || n.y > 0.3 ? C.lichenGold : C.lichenGreen, Math.min(0.5, (b - 0.36) * 2.5));
     if (n.y < -0.4) out.multiplyScalar(0.8);
     return out;
   };
 }
 
-/** a balbal in local space: feet at y 0, facing −z, ~2.1 m tall */
+/** a stone part: welded, its surface chipped and weathered by noise (amp in metres), smooth-shaded */
+function weathered(g: THREE.BufferGeometry, amp: number, seed: number): THREE.BufferGeometry {
+  const w = mergeVerticesByPos(g);
+  const n = new Noise2D(seed);
+  const pos = w.getAttribute('position');
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const len = Math.hypot(x, z) || 1;
+    const k = (n.get(x * 7 + y * 3, z * 7 - y * 2) * 0.6 + n.get(x * 17 + 3, y * 17 + z * 5) * 0.4) * amp;
+    pos.setXYZ(i, x + (x / len) * k, y + k * 0.3, z + (z / len) * k);
+  }
+  w.computeVertexNormals();
+  return w;
+}
+
+/**
+ * A balbal in local space: feet at y 0, facing −z, ~2.15 m tall. A squat, heavy stele — the Turkic kurgan warrior:
+ * a big head with a heavy brow, deep-set almond eyes, a long wedge nose and a thick moustache curling down past the
+ * mouth; the right hand raises a goblet to the chest, the left rests on the sabre at the belt; belt pendants; the stone
+ * chipped and weathered, lichen gold on the tops. Variant 1 wears a pointed cap and a short beard.
+ */
 export function balbalGeometry(variant: number, seed = 0xba1): THREE.BufferGeometry {
   const kit = new PaintKit(seed + variant * 17);
   const stone = variant === 0 ? C.stone : C.stoneWarm;
   const paint = stonePainter(stone);
   const carve = stonePainter(C.carve);
-  const add = (g: THREE.BufferGeometry, c: (p: THREE.Vector3, n: THREE.Vector3) => THREE.Color, m?: THREE.Matrix4) => kit.add(g, c, m ? { matrix: m, brush: 0.1 } : { brush: 0.1 });
-  // plinth (half buried) and the body: a flattened, slightly tapering pillar with rounded shoulders
-  add(new THREE.CylinderGeometry(0.42, 0.48, 0.5, 10).scale(1, 1, 0.75).translate(0, 0.0, 0), paint);
-  add(new THREE.CylinderGeometry(0.3, 0.34, 1.36, 16, 5).scale(1, 1, 0.7).translate(0, 0.84, 0), paint);
-  add(new THREE.SphereGeometry(0.315, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1.02, 0.42, 0.72).translate(0, 1.5, 0), paint);
-  add(new THREE.CylinderGeometry(0.16, 0.18, 0.16, 12).scale(1, 1, 0.9).translate(0, 1.6, 0), paint);
-  // head: a heavy oval, flattened face
-  add(new THREE.SphereGeometry(0.22, 16, 12).scale(0.95, 1.18, 0.88).translate(0, 1.84, 0.0), paint);
-  add(new THREE.BoxGeometry(0.34, 0.3, 0.06).translate(0, 1.82, -0.17), paint);                                       // the face plane
-  // brow ridge, nose, eyes, moustache, mouth
-  add(new THREE.CapsuleGeometry(0.028, 0.26, 3, 8).rotateZ(Math.PI / 2).translate(0, 1.905, -0.205), paint);
-  add(new THREE.CylinderGeometry(0.022, 0.045, 0.14, 6).translate(0, 1.83, -0.215), paint);
+  const add = (g: THREE.BufferGeometry, c: (p: THREE.Vector3, n: THREE.Vector3) => THREE.Color) => kit.add(g, c, { brush: 0.1 });
+  const s0 = seed + variant * 101;
+  // plinth (half buried) and the body: a broad flattened pillar, tapering a little, weathered
+  add(weathered(new THREE.CylinderGeometry(0.46, 0.52, 0.5, 12, 2).scale(1, 1, 0.78), 0.05, s0), paint);
+  add(weathered(new THREE.CylinderGeometry(0.35, 0.4, 1.34, 20, 8).scale(1, 1, 0.74).translate(0, 0.86, 0), 0.03, s0 + 1), paint);
+  add(weathered(new THREE.SphereGeometry(0.36, 20, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1.0, 0.36, 0.74).translate(0, 1.52, 0), 0.02, s0 + 2), paint);
+  add(new THREE.CylinderGeometry(0.19, 0.22, 0.16, 14).scale(1, 1, 0.9).translate(0, 1.62, 0.01), paint);
+  // head: big, a little forward, a flattened face
+  const hy = 1.88;
+  add(weathered(new THREE.SphereGeometry(0.27, 22, 16).scale(0.95, 1.12, 0.9).translate(0, hy, 0.0), 0.015, s0 + 3), paint);
+  add(weathered(new THREE.BoxGeometry(0.4, 0.36, 0.08, 4, 4, 1).translate(0, hy - 0.03, -0.2), 0.008, s0 + 4), paint);
+  // the heavy brow ridge (an arch), the deep eye sockets, the almond eyes inside them
+  add(pole(v3(-0.16, hy + 0.06, -0.225), v3(0, hy + 0.085, -0.25), 0.035, 0.038, 8), paint);
+  add(pole(v3(0, hy + 0.085, -0.25), v3(0.16, hy + 0.06, -0.225), 0.038, 0.035, 8), paint);
   for (const sx of [-1, 1]) {
-    add(new THREE.SphereGeometry(0.03, 8, 6).scale(1.4, 0.8, 0.5).translate(sx * 0.075, 1.86, -0.2), carve);
-    add(pole(v3(sx * 0.012, 1.755, -0.225), v3(sx * 0.095, 1.74, -0.21), 0.02, 0.018, 6), paint);
-    add(pole(v3(sx * 0.095, 1.74, -0.21), v3(sx * 0.13, 1.66, -0.19), 0.018, 0.012, 6), paint);
-    add(new THREE.SphereGeometry(0.045, 8, 6).scale(0.5, 1.1, 0.8).translate(sx * 0.21, 1.84, -0.01), paint);         // ears
+    add(new THREE.SphereGeometry(0.05, 10, 8).scale(1.3, 0.75, 0.5).translate(sx * 0.085, hy + 0.02, -0.232), carve);
+    add(new THREE.SphereGeometry(0.03, 10, 6).scale(1.5, 0.55, 0.5).translate(sx * 0.085, hy + 0.018, -0.245), paint);
+    // the moustache: thick, drooping past the mouth, the ends curling out
+    add(pole(v3(sx * 0.012, hy - 0.085, -0.268), v3(sx * 0.07, hy - 0.1, -0.258), 0.026, 0.024, 7), paint);
+    add(pole(v3(sx * 0.07, hy - 0.1, -0.258), v3(sx * 0.115, hy - 0.16, -0.24), 0.024, 0.018, 7), paint);
+    add(pole(v3(sx * 0.115, hy - 0.16, -0.24), v3(sx * 0.14, hy - 0.2, -0.225), 0.018, 0.01, 6), paint);
+    add(new THREE.SphereGeometry(0.05, 8, 6).scale(0.45, 1.1, 0.8).translate(sx * 0.255, hy + 0.0, -0.02), paint);    // ears
   }
-  add(new THREE.BoxGeometry(0.08, 0.012, 0.02).translate(0, 1.71, -0.2), carve);
-  // headwear
+  // nose: a long wedge from the brow
+  { const g = new THREE.CylinderGeometry(0.022, 0.05, 0.17, 4).rotateY(Math.PI / 4).scale(1, 1, 0.9); add(g.translate(0, hy - 0.02, -0.255), paint); }
+  add(new THREE.BoxGeometry(0.09, 0.014, 0.02).translate(0, hy - 0.13, -0.245), carve);                                         // mouth
   if (variant === 1) {
-    add(new THREE.ConeGeometry(0.235, 0.26, 14).scale(1, 1, 0.9).translate(0, 2.08, 0.01), paint);
-    add(new THREE.TorusGeometry(0.21, 0.025, 5, 16).rotateX(Math.PI / 2).scale(1, 1, 0.9).translate(0, 1.965, 0.0), paint);
+    add(weathered(new THREE.ConeGeometry(0.28, 0.32, 18, 2).scale(1, 1, 0.9).translate(0, hy + 0.36, 0.01), 0.012, s0 + 5), paint);
+    add(new THREE.TorusGeometry(0.26, 0.028, 5, 20).rotateX(Math.PI / 2).scale(1, 1, 0.9).translate(0, hy + 0.2, 0), paint);
+    add(new THREE.ConeGeometry(0.06, 0.14, 6).rotateX(Math.PI).translate(0, hy - 0.26, -0.2), paint);                           // short beard
   } else {
-    add(new THREE.TorusGeometry(0.2, 0.022, 5, 16).rotateX(Math.PI / 2 - 0.15).scale(1, 1, 0.9).translate(0, 1.98, 0.02), carve);
+    add(new THREE.TorusGeometry(0.25, 0.026, 5, 20).rotateX(Math.PI / 2 - 0.15).scale(1, 1, 0.9).translate(0, hy + 0.14, 0.02), carve);  // headband
   }
-  // right arm (+x): upper arm down the side, forearm across the chest, the hand holding a cup
-  add(new THREE.CapsuleGeometry(0.068, 0.3, 3, 8).rotateZ(0.08).translate(0.285, 1.3, -0.1), paint);
-  add(pole(v3(0.27, 1.12, -0.17), v3(0.04, 1.23, -0.235), 0.065, 0.055, 8), paint);
-  add(new THREE.SphereGeometry(0.06, 8, 6).scale(1, 0.9, 0.8).translate(0.02, 1.24, -0.25), paint);
-  add(new THREE.CylinderGeometry(0.06, 0.045, 0.13, 10).translate(-0.02, 1.33, -0.25), paint);
-  add(new THREE.TorusGeometry(0.058, 0.012, 4, 10).rotateX(Math.PI / 2).translate(-0.02, 1.395, -0.25), paint);
+  // right arm (+x) in relief: upper arm down the side, forearm across the chest, the hand holding the goblet
+  add(new THREE.CapsuleGeometry(0.075, 0.34, 3, 10).scale(1, 1, 0.65).rotateZ(0.07).translate(0.33, 1.3, -0.12), paint);
+  add(pole(v3(0.31, 1.1, -0.22), v3(0.05, 1.24, -0.29), 0.07, 0.06, 10), paint);
+  add(new THREE.SphereGeometry(0.068, 10, 8).scale(1.05, 0.9, 0.75).translate(0.03, 1.25, -0.31), paint);
+  add(new THREE.CylinderGeometry(0.075, 0.04, 0.14, 12).translate(-0.02, 1.36, -0.31), paint);
+  add(new THREE.CylinderGeometry(0.02, 0.02, 0.05, 6).translate(-0.02, 1.27, -0.31), paint);
+  add(new THREE.TorusGeometry(0.072, 0.012, 4, 12).rotateX(Math.PI / 2).translate(-0.02, 1.43, -0.31), carve);
   // left arm (−x): hand on the sabre hilt at the belt
-  add(new THREE.CapsuleGeometry(0.068, 0.3, 3, 8).rotateZ(-0.08).translate(-0.285, 1.3, -0.1), paint);
-  add(pole(v3(-0.27, 1.12, -0.16), v3(-0.16, 0.95, -0.24), 0.062, 0.052, 8), paint);
-  add(new THREE.SphereGeometry(0.058, 8, 6).translate(-0.15, 0.93, -0.25), paint);
-  // belt with pendants, the sabre hanging on the left
-  add(new THREE.CylinderGeometry(0.33, 0.335, 0.07, 18).scale(1, 1, 0.72).translate(0, 0.86, 0), carve);
-  for (const bx of [-0.18, 0.02, 0.2]) add(new THREE.BoxGeometry(0.04, 0.09, 0.02).translate(bx, 0.78, -0.235), paint);
-  add(new THREE.BoxGeometry(0.05, 0.58, 0.03).rotateZ(-0.12).translate(-0.2, 0.52, -0.235), paint);
-  add(new THREE.BoxGeometry(0.14, 0.03, 0.04).translate(-0.16, 0.86, -0.245), paint);
-  const geo = kit.finish();
+  add(new THREE.CapsuleGeometry(0.075, 0.34, 3, 10).scale(1, 1, 0.65).rotateZ(-0.07).translate(-0.33, 1.3, -0.12), paint);
+  add(pole(v3(-0.31, 1.1, -0.2), v3(-0.19, 0.95, -0.29), 0.066, 0.056, 10), paint);
+  add(new THREE.SphereGeometry(0.064, 10, 8).scale(1, 0.9, 0.75).translate(-0.18, 0.93, -0.3), paint);
+  // belt, pendants, the sabre
+  add(new THREE.CylinderGeometry(0.385, 0.39, 0.08, 22).scale(1, 1, 0.76).translate(0, 0.86, 0), carve);
+  for (const bx of [-0.22, -0.02, 0.18]) add(new THREE.BoxGeometry(0.05, 0.12, 0.025).translate(bx, 0.76, -0.29), paint);
+  add(new THREE.BoxGeometry(0.06, 0.66, 0.03).rotateZ(-0.12).translate(-0.24, 0.5, -0.29), paint);
+  add(new THREE.BoxGeometry(0.16, 0.035, 0.05).translate(-0.19, 0.86, -0.3), paint);
+  const geo = kit.finish({ ao: { cell: 0.035, dist: 0.25, strength: 0.75 } });
   // a soft foot shade (the instances stand on grass)
   const pos = geo.getAttribute('position'), col = geo.getAttribute('color');
   for (let i = 0; i < pos.count; i++) {
@@ -112,7 +140,7 @@ export class Balbals {
     mesh.setMatrixAt(s.slot, awake ? new THREE.Matrix4().makeScale(0, 0, 0) : M(s.x, s.y, s.z, s.yaw, s.scale, s.scale, s.scale, 0, s.tilt));
     mesh.instanceMatrix.needsUpdate = true;
     // an awake statue's collider no longer blocks (the warrior carries its own)
-    s.collider.yTop = awake ? -1e9 : s.y + 2.1 * s.scale;
+    s.collider.yTop = awake ? -1e9 : s.y + 2.2 * s.scale;
     s.collider.yBottom = awake ? -1e9 - 1 : s.y - 1;
   }
 }
@@ -145,7 +173,7 @@ export function buildBalbals(ctx: PoiCtx, spots: { x: number; z: number; yaw: nu
   for (const p of placed) {
     const scale = p.scale ?? 1;
     const y = ground(p.x, p.z) - 0.18 * scale;
-    const collider: Collider = { x: p.x, z: p.z, hw: 0.36 * scale, hd: 0.28 * scale, rot: -p.yaw, yBottom: y - 1, yTop: y + 2.1 * scale };
+    const collider: Collider = { x: p.x, z: p.z, hw: 0.42 * scale, hd: 0.33 * scale, rot: -p.yaw, yBottom: y - 1, yTop: y + 2.2 * scale };
     const m = M(p.x, y, p.z, p.yaw, scale, scale, scale, 0, p.tilt ?? 0);
     b.meshes[p.variant]?.setMatrixAt(p.slot, m);
     b.statues.push({ x: p.x, y, z: p.z, yaw: p.yaw, scale, tilt: p.tilt ?? 0, variant: p.variant, slot: p.slot, collider });

@@ -36,7 +36,7 @@ export interface PaintOpts {
   /** colour multiplier at the part's lowest point (default 1 = none) → 1 at its top */
   foot?: number;
   /** blend a colour onto faces whose WORLD normal points up (lichen, snow, turf); `minY` = only above this world height */
-  top?: { color: ColorLike; threshold?: number; amount?: number; minY?: number };
+  top?: { color: ColorLike; threshold?: number; amount?: number; minY?: number } | undefined;
   /** keep the part faceted (flat normals) — cut timber, planks */
   flat?: boolean;
 }
@@ -46,6 +46,16 @@ const SHADE_TINT = new THREE.Color(0.55, 0.55, 0.78);
 
 const tmpA = new THREE.Color();
 const toColor = (c: ColorLike, out = tmpA): THREE.Color => (c instanceof THREE.Color ? out.copy(c) : out.set(c));
+
+export interface FinishOpts {
+  /** terrain height — contact shade + the AO grid's floor */
+  ground?: (x: number, z: number) => number;
+  /** contact-shade height (m, default 0.9) and how dark it gets at the ground (default 0.55) */
+  aoH?: number;
+  aoMin?: number;
+  /** baked ambient occlusion (default on); `false` skips it */
+  ao?: AOOpts | false;
+}
 
 export class PaintKit {
   readonly rng: Rng;
@@ -107,7 +117,7 @@ export class PaintKit {
     const nr = ni.getAttribute('normal');
     for (let i = 0; i < n; i++) {
       const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-      const b = 1 + brush * (this.noise.get(x * 0.9 + y * 0.35, z * 0.9 - y * 0.25) * 0.7 + this.noise.get(x * 3.1, z * 3.1 + y * 2) * 0.3);
+      const b = 1 + brush * this.noise.get(x * 1.3 + y * 0.35, z * 1.3 - y * 0.8);
       let r = (out[i * 3] ?? 0) * b, gg = (out[i * 3 + 1] ?? 0) * b, bb = (out[i * 3 + 2] ?? 0) * b;
       if (topC && y > minY) {
         const w = smoothstep(thr - 0.12, thr + 0.12, nr.getY(i) + this.noise.get(x * 0.6, z * 0.6) * 0.18) * amt;
@@ -119,24 +129,30 @@ export class PaintKit {
   }
 
   /**
-   * Merge everything (the kit is empty afterwards). `ground` bakes a soft contact shade: vertices within `aoH` metres
-   * of the terrain are pulled toward a cool shadow tint — what keeps a yurt or a stone from floating on the grass.
-   * Faces pointing down lose a little light too.
+   * Merge everything (the kit is empty afterwards). Then the painted light that makes a model stop reading as plastic:
+   *   - `ao` (default on): a smooth baked ambient occlusion — every distinct vertex position fires hemisphere rays
+   *     through a voxel grid of the whole POI (and the terrain under it), so crevices, the underside of an eave, the
+   *     gaps between crib logs and the foot of every stone darken toward a cool shade tint;
+   *   - `ground`: a soft contact shade for vertices within `aoH` metres of the terrain;
+   *   - a sky gradient: faces that look up are a touch lighter, faces that look down a touch darker.
    */
-  finish(o: { ground?: (x: number, z: number) => number; aoH?: number; aoMin?: number } = {}): THREE.BufferGeometry {
+  finish(o: FinishOpts = {}): THREE.BufferGeometry {
     const geo = mergeGeometries(this.parts, false);
     for (const p of this.parts) p.dispose();
     this.parts = [];
+    if (o.ao !== false) bakeSmoothAO(geo, { ...o.ao, ...(o.ground ? { ground: o.ground } : {}) });
     const pos = geo.getAttribute('position'), nrm = geo.getAttribute('normal'), col = geo.getAttribute('color');
     const tint = SHADE_TINT, aoH = o.aoH ?? 0.9, aoMin = o.aoMin ?? 0.55;
     for (let i = 0; i < pos.count; i++) {
-      let k = 1 - Math.max(0, -nrm.getY(i)) * 0.18;
+      const ny = nrm.getY(i);
+      let k = ny > 0 ? 1 + ny * 0.07 : 1 + ny * 0.2;
       if (o.ground) {
         const h = pos.getY(i) - o.ground(pos.getX(i), pos.getZ(i));
         k *= aoMin + (1 - aoMin) * smoothstep(-0.1, aoH, h);
       }
-      const r = col.getX(i), g = col.getY(i), b = col.getZ(i);
-      col.setXYZ(i, r * k + r * tint.r * (1 - k), g * k + g * tint.g * (1 - k), b * k + b * tint.b * (1 - k));
+      const r = col.getX(i), g = col.getY(i), bl = col.getZ(i);
+      if (k >= 1) col.setXYZ(i, r * k, g * k, bl * k);
+      else col.setXYZ(i, r * k + r * tint.r * (1 - k), g * k + g * tint.g * (1 - k), bl * k + bl * tint.b * (1 - k));
     }
     col.needsUpdate = true;
     geo.computeBoundingSphere();
@@ -145,7 +161,7 @@ export class PaintKit {
   }
 
   /** finish() + a shadow-casting mesh on the shared POI material */
-  mesh(sky: Sky, o: { ground?: (x: number, z: number) => number; aoH?: number; aoMin?: number } = {}): THREE.Mesh {
+  mesh(sky: Sky, o: FinishOpts = {}): THREE.Mesh {
     const m = new THREE.Mesh(this.finish(o), poiMaterial(sky));
     m.castShadow = true; m.receiveShadow = true;
     return m;
@@ -226,4 +242,147 @@ export function lathe(profile: [number, number][], seg: number): THREE.BufferGeo
   const w = mergeVerticesByPos(g);
   w.computeVertexNormals();
   return w;
+}
+
+// ── smooth baked ambient occlusion ──────────────────────────────────────────────────────────────────
+
+export interface AOOpts {
+  /** voxel size (m); default: the bbox fitted into ~180 cells on its longest side, 0.12 … 0.8 */
+  cell?: number;
+  /** ray length (m, default 7 cells) */
+  dist?: number;
+  /** 0..1 how dark a fully enclosed vertex goes (default 0.6) */
+  strength?: number;
+  ground?: (x: number, z: number) => number;
+}
+
+// 9 fixed hemisphere directions (z-up tangent frame), cosine-ish spread — deterministic bakes
+const HEMI: [number, number, number][] = (() => {
+  const out: [number, number, number][] = [];
+  for (const [cz, n] of [[0.94, 1], [0.66, 3], [0.3, 5]] as const) {
+    const sz = Math.sqrt(1 - cz * cz);
+    for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + cz * 2.1; out.push([Math.cos(a) * sz, Math.sin(a) * sz, cz]); }
+  }
+  return out;
+})();
+
+/** darken a merged, non-indexed, vertex-coloured geometry by how enclosed each vertex position is (smooth: per position) */
+export function bakeSmoothAO(geo: THREE.BufferGeometry, o: AOOpts = {}): void {
+  if (!geo.hasAttribute('color') || !geo.hasAttribute('normal')) return;
+  const pos = geo.getAttribute('position'), nrm = geo.getAttribute('normal'), col = geo.getAttribute('color');
+  geo.computeBoundingBox();
+  const bb = geo.boundingBox;
+  if (bb === null) return;
+  const ext = new THREE.Vector3().subVectors(bb.max, bb.min);
+  let cell = o.cell ?? Math.min(0.8, Math.max(0.15, Math.max(ext.x, ext.y, ext.z) / 140));
+  const cellsFor = (c: number) => (Math.ceil(ext.x / c) + 5) * (Math.ceil(ext.y / c) + 5) * (Math.ceil(ext.z / c) + 5);
+  while (cellsFor(cell) > 6e6) cell *= 1.25;
+  const pad = 2;
+  const ox = bb.min.x - pad * cell, oy = bb.min.y - pad * cell, oz = bb.min.z - pad * cell;
+  const nx = Math.ceil(ext.x / cell) + pad * 2 + 1, ny = Math.ceil(ext.y / cell) + pad * 2 + 1, nz = Math.ceil(ext.z / cell) + pad * 2 + 1;
+  const grid = new Uint8Array(nx * ny * nz);
+  const fc = pos.count / 3;
+  for (let f = 0; f < fc; f++) {
+    const i = f * 3;
+    const ax = pos.getX(i), ay = pos.getY(i), az = pos.getZ(i);
+    const bx = pos.getX(i + 1) - ax, by = pos.getY(i + 1) - ay, bz = pos.getZ(i + 1) - az;
+    const cx = pos.getX(i + 2) - ax, cy = pos.getY(i + 2) - ay, cz = pos.getZ(i + 2) - az;
+    const e = Math.max(Math.hypot(bx, by, bz), Math.hypot(cx, cy, cz), Math.hypot(cx - bx, cy - by, cz - bz));
+    const n = Math.min(64, Math.max(1, Math.ceil(e / (cell * 0.9))));
+    for (let u = 0; u <= n; u++) for (let v = 0; u + v <= n; v++) {
+      const s = u / n, t = v / n;
+      const gx = Math.floor((ax + bx * s + cx * t - ox) / cell), gy = Math.floor((ay + by * s + cy * t - oy) / cell), gz = Math.floor((az + bz * s + cz * t - oz) / cell);
+      grid[(gz * ny + gy) * nx + gx] = 1;
+    }
+  }
+  let groundCell: Int32Array | null = null;
+  if (o.ground) {
+    groundCell = new Int32Array(nx * nz);
+    for (let iz = 0; iz < nz; iz++) for (let ix = 0; ix < nx; ix++) groundCell[iz * nx + ix] = Math.floor((o.ground(ox + (ix + 0.5) * cell, oz + (iz + 0.5) * cell) - oy) / cell);
+  }
+  const solid = (ix: number, iy: number, iz: number): boolean => {
+    if (ix < 0 || iz < 0 || ix >= nx || iz >= nz) return false;
+    if (groundCell !== null && iy <= (groundCell[iz * nx + ix] ?? -1e9)) return true;
+    if (iy < 0 || iy >= ny) return false;
+    return grid[(iz * ny + iy) * nx + ix] === 1;
+  };
+  // distinct positions → averaged normal → one AO value each
+  const key = (i: number) => (Math.round(pos.getX(i) * 200) * 73856093) ^ (Math.round(pos.getY(i) * 200) * 19349663) ^ (Math.round(pos.getZ(i) * 200) * 83492791);
+  const slot = new Map<number, number>();
+  const which = new Int32Array(pos.count);
+  const acc: number[] = [];
+  for (let i = 0; i < pos.count; i++) {
+    const k = key(i);
+    let j = slot.get(k);
+    if (j === undefined) { j = acc.length / 6; slot.set(k, j); acc.push(pos.getX(i), pos.getY(i), pos.getZ(i), 0, 0, 0); }
+    which[i] = j;
+    acc[j * 6 + 3] = (acc[j * 6 + 3] ?? 0) + nrm.getX(i); acc[j * 6 + 4] = (acc[j * 6 + 4] ?? 0) + nrm.getY(i); acc[j * 6 + 5] = (acc[j * 6 + 5] ?? 0) + nrm.getZ(i);
+  }
+  const nU = acc.length / 6, ao = new Float32Array(nU);
+  const dist = o.dist ?? cell * 6, steps = Math.max(3, Math.round(dist / cell));
+  const N = new THREE.Vector3(), T = new THREE.Vector3(), Bv = new THREE.Vector3();
+  for (let j = 0; j < nU; j++) {
+    N.set(acc[j * 6 + 3] ?? 0, acc[j * 6 + 4] ?? 1, acc[j * 6 + 5] ?? 0);
+    if (N.lengthSq() < 1e-6) continue;
+    N.normalize();
+    T.set(Math.abs(N.y) < 0.9 ? 0 : 1, Math.abs(N.y) < 0.9 ? 1 : 0, 0).cross(N).normalize(); Bv.crossVectors(N, T);
+    const px = (acc[j * 6] ?? 0) + N.x * cell * 1.1, py = (acc[j * 6 + 1] ?? 0) + N.y * cell * 1.1, pz = (acc[j * 6 + 2] ?? 0) + N.z * cell * 1.1;
+    let occ = 0, wsum = 0;
+    for (const [hx, hy, hz] of HEMI) {
+      const dx = T.x * hx + Bv.x * hy + N.x * hz, dy = T.y * hx + Bv.y * hy + N.y * hz, dz = T.z * hx + Bv.z * hy + N.z * hz;
+      wsum += hz;
+      for (let s = 0; s < steps; s++) {
+        const d = (s + 0.5) * cell;
+        if (solid(Math.floor((px + dx * d - ox) / cell), Math.floor((py + dy * d - oy) / cell), Math.floor((pz + dz * d - oz) / cell))) { occ += hz * (1 - (s / steps) * 0.6); break; }
+      }
+    }
+    ao[j] = occ / wsum;
+  }
+  const strength = o.strength ?? 0.6, tint = SHADE_TINT;
+  for (let i = 0; i < pos.count; i++) {
+    const a = Math.min(1, (ao[which[i] ?? 0] ?? 0) * strength);
+    const r = col.getX(i), g = col.getY(i), b = col.getZ(i);
+    col.setXYZ(i, r * (1 - a) + r * tint.r * 0.55 * a, g * (1 - a) + g * tint.g * 0.55 * a, b * (1 - a) + b * tint.b * 0.55 * a);
+  }
+  col.needsUpdate = true;
+}
+
+/**
+ * A surface of revolution with an arbitrary radius / height per (angle, t): `fn(theta, t) → [r, y]`, `segU` round,
+ * `segV` along t ∈ [0, 1]. Indexed and seam-welded, so its normals are smooth — the felt sagging between the roof
+ * ribs, the wall's panel folds. Angle 0 is +z (the same as a lathe).
+ */
+export function revolve(fn: (theta: number, t: number) => [number, number], segU: number, segV: number): THREE.BufferGeometry {
+  const v: number[] = [], idx: number[] = [];
+  for (let j = 0; j <= segV; j++) {
+    const t = j / segV;
+    for (let i = 0; i < segU; i++) {
+      const th = (i / segU) * Math.PI * 2;
+      const [r, y] = fn(th, t);
+      v.push(Math.sin(th) * r, y, Math.cos(th) * r);
+    }
+  }
+  for (let j = 0; j < segV; j++) for (let i = 0; i < segU; i++) {
+    const a = j * segU + i, b = j * segU + ((i + 1) % segU), c = (j + 1) * segU + i, d = (j + 1) * segU + ((i + 1) % segU);
+    idx.push(a, b, c, b, d, c);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
+/** a painter for a log: bark along its length, pale end grain with a darker heart on its cut ends */
+export function logPainter(a: THREE.Vector3, b: THREE.Vector3, bark: ColorLike, end: ColorLike = '#c9a878'): Painter {
+  const ax = new THREE.Vector3().subVectors(b, a).normalize();
+  const bk = toColor(bark, new THREE.Color()), en = toColor(end, new THREE.Color()), heart = en.clone().multiplyScalar(0.7);
+  const tmp = new THREE.Vector3();
+  return (p, n) => {
+    if (Math.abs(n.dot(ax)) < 0.85) return bk;
+    const da = tmp.subVectors(p, a).dot(ax), dbb = tmp.subVectors(p, b).dot(ax);
+    const c = Math.abs(da) < Math.abs(dbb) ? a : b;
+    const r = tmp.subVectors(p, c).addScaledVector(ax, -tmp.dot(ax)).length();
+    return r < 0.05 ? heart : en;
+  };
 }

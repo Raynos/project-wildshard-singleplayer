@@ -217,29 +217,111 @@ export function addSaddleRack(kit: PaintKit, ground: Ground, x: number, z: numbe
 
 // ── the eagle ────────────────────────────────────────────────────────────────────────────────────────
 
-/** a perched golden eagle (static), ~0.85 m tall, feet at `feet`, facing yaw (0 = −z) */
-export function addEagle(kit: PaintKit, feet: THREE.Vector3, yaw: number, scale = 1.35): void {
+/**
+ * A perched golden eagle (static; the eagle hunter's bird on its perch), ~0.95 m tall at scale 1, feet at `feet`,
+ * facing yaw (0 = −z). Sculpted from overlapping soft forms: a deep chest (streaked, lighter), the dark mantle, folded
+ * wings built from layered feather slabs (coverts → secondaries → long primaries crossing over the tail), a fanned
+ * tail, the golden nape in a ruff of pointed feathers, a heavy brow over an amber eye, the hooked beak with its yellow
+ * cere, feathered "trousers" and yellow scaled feet with black talons gripping the bar.
+ */
+export function addEagle(kit: PaintKit, feet: THREE.Vector3, yaw: number, scale = 1.25): void {
   const m = M(feet.x, feet.y, feet.z, yaw, scale);
-  const add = (g: THREE.BufferGeometry, c: THREE.Color) => kit.add(g, c, { matrix: m, brush: 0.08 });
-  // forward is −z
-  add(new THREE.SphereGeometry(0.17, 14, 10).scale(0.78, 1.5, 0.9).rotateX(0.32).translate(0, 0.38, 0.03), PC.eagle);
-  add(new THREE.SphereGeometry(0.1, 12, 8).scale(1, 1.1, 1.05).translate(0, 0.6, -0.04), PC.eagleGold);    // nape / neck
-  add(new THREE.SphereGeometry(0.085, 12, 8).scale(1, 0.95, 1.2).translate(0, 0.71, -0.07), PC.eagleGold);
-  add(new THREE.SphereGeometry(0.1, 10, 6, 0, Math.PI * 2, 0, Math.PI * 0.6).scale(1.02, 0.7, 1.1).translate(0, 0.745, -0.07), PC.eagleDark);  // crown
-  // beak: yellow cere, dark hooked tip
-  add(new THREE.ConeGeometry(0.04, 0.11, 8).rotateX(-Math.PI / 2 - 0.35).translate(0, 0.7, -0.175), PC.beak);
-  add(new THREE.ConeGeometry(0.024, 0.06, 6).rotateX(-Math.PI / 2 - 1.2).translate(0, 0.665, -0.225), PC.talon);
-  for (const sx of [-1, 1]) {
-    add(new THREE.SphereGeometry(0.018, 6, 5).translate(sx * 0.055, 0.735, -0.135), PC.talon);
-    // folded wings: long dark ellipsoids along the flanks, tips crossing past the tail
-    add(new THREE.SphereGeometry(0.17, 12, 8).scale(0.3, 1.75, 0.8).rotateX(0.5).rotateZ(sx * 0.06).translate(sx * 0.12, 0.3, 0.1), PC.eagleDark);
-    add(new THREE.ConeGeometry(0.06, 0.3, 6).rotateX(Math.PI - 0.4).translate(sx * 0.07, 0.06, 0.2), PC.eagleDark);
-    // feathered legs + yellow feet gripping the bar
-    add(new THREE.SphereGeometry(0.07, 8, 6).scale(1, 1.3, 1).translate(sx * 0.07, 0.13, -0.02), PC.eagle);
-    add(new THREE.CylinderGeometry(0.02, 0.022, 0.08, 5).translate(sx * 0.07, 0.04, -0.03), PC.beak);
-    for (const tz of [-0.06, 0.0]) add(new THREE.ConeGeometry(0.012, 0.06, 4).rotateX(-Math.PI / 2 - 0.9).translate(sx * 0.07, 0.0, tz - 0.02), PC.talon);
+  const add = (g: THREE.BufferGeometry, c: THREE.Color | ((p: THREE.Vector3, n: THREE.Vector3) => THREE.Color), brush = 0.06) => kit.add(g, c, { matrix: m, brush });
+  const E = { mantle: new THREE.Color('#4a2f19'), chest: new THREE.Color('#6b4524'), streak: new THREE.Color('#8a5e33'), dark: new THREE.Color('#2e1d10'),
+    gold: new THREE.Color('#d4a452'), goldDeep: new THREE.Color('#a8772f'), edge: new THREE.Color('#7a5836'), eye: new THREE.Color('#d98f1c') };
+  // chest + belly: an egg leaning forward (forward is −z), streaked
+  add(new THREE.SphereGeometry(0.16, 18, 14).scale(0.95, 1.45, 0.95).rotateX(0.3).translate(0, 0.4, -0.02), (p) => (Math.sin(p.x * 60) * Math.sin(p.y * 38) > 0.55 ? E.streak : E.chest));
+  // mantle / back
+  add(new THREE.SphereGeometry(0.155, 16, 12).scale(1.0, 1.3, 0.85).rotateX(0.42).translate(0, 0.44, 0.05), E.mantle);
+  // neck + head: a golden nape with a ruff of pointed feathers
+  add(new THREE.SphereGeometry(0.095, 14, 10).scale(1, 1.15, 1).translate(0, 0.63, -0.02), E.gold);
+  add(new THREE.SphereGeometry(0.085, 14, 10).scale(0.95, 0.92, 1.15).translate(0, 0.72, -0.05), (p) => (p.z < -0.1 ? E.mantle : E.gold));
+  for (let i = 0; i < 9; i++) {
+    const a = -1.2 + (i / 8) * 2.4;
+    add(new THREE.ConeGeometry(0.026, 0.11, 5).rotateX(Math.PI / 2 - 0.5).rotateY(a).translate(Math.sin(a) * 0.07, 0.64 + (i % 2) * 0.02, Math.cos(a) * 0.06), E.goldDeep);
   }
-  add(new THREE.BoxGeometry(0.15, 0.38, 0.035).rotateX(0.4).translate(0, 0.06, 0.2), PC.eagleDark);                // tail
+  // brow ridge, eyes
+  for (const sx of [-1, 1]) {
+    add(new THREE.CapsuleGeometry(0.018, 0.05, 3, 6).rotateX(Math.PI / 2).rotateY(sx * 0.35).translate(sx * 0.045, 0.745, -0.1), E.dark);
+    add(new THREE.SphereGeometry(0.014, 8, 6).translate(sx * 0.052, 0.73, -0.112), E.eye);
+    add(new THREE.SphereGeometry(0.007, 6, 4).translate(sx * 0.054, 0.73, -0.124), E.dark);
+  }
+  // the hooked beak: cere, a tapering upper mandible bending down, the dark hook
+  add(new THREE.CylinderGeometry(0.032, 0.036, 0.04, 8).rotateX(Math.PI / 2).translate(0, 0.715, -0.14), new THREE.Color('#e8c040'));
+  add(pole(v3(0, 0.715, -0.155), v3(0, 0.705, -0.2), 0.03, 0.022, 8), new THREE.Color('#5a544c'));
+  add(pole(v3(0, 0.705, -0.2), v3(0, 0.68, -0.222), 0.022, 0.012, 7), new THREE.Color('#2d2926'));
+  add(pole(v3(0, 0.68, -0.222), v3(0, 0.655, -0.214), 0.012, 0.003, 6), new THREE.Color('#1c1a18'));
+  add(pole(v3(0, 0.69, -0.15), v3(0, 0.682, -0.19), 0.02, 0.012, 6), new THREE.Color('#6b6258'));
+  // folded wings: layered feather slabs down each flank, the primaries crossing over the tail
+  for (const sx of [-1, 1]) {
+    // coverts: a broad smooth shoulder
+    add(new THREE.SphereGeometry(0.14, 12, 10).scale(0.42, 1.2, 0.95).rotateX(0.45).translate(sx * 0.13, 0.46, 0.05), (p) => (p.y > 0.5 ? E.goldDeep : E.mantle));
+    for (let k = 0; k < 6; k++) {
+      const len = 0.24 + k * 0.05, y0 = 0.47 - k * 0.018, z0 = 0.02 + k * 0.012;
+      const g = new THREE.BoxGeometry(0.018, len, 0.075 - k * 0.004).translate(0, -len / 2, 0);
+      g.rotateX(0.52 + k * 0.03).rotateZ(sx * (0.06 + k * 0.012)).translate(sx * (0.16 - k * 0.006), y0, z0);
+      add(g, (p) => (p.y < 0.2 ? E.dark : E.mantle), 0.04);
+    }
+  }
+  // tail: a narrow fan of feathers
+  for (let k = -2; k <= 2; k++) {
+    const g = new THREE.BoxGeometry(0.05, 0.34, 0.014).translate(0, -0.17, 0).rotateZ(k * 0.07).rotateX(0.42).translate(k * 0.018, 0.2, 0.17 + Math.abs(k) * 0.004);
+    add(g, (p) => (p.y < 0.02 ? E.dark : E.edge), 0.04);
+  }
+  // feathered legs, yellow feet, talons round the bar (the bar runs along x at y ≈ −0.03)
+  for (const sx of [-1, 1]) {
+    add(new THREE.SphereGeometry(0.06, 10, 8).scale(1, 1.35, 1.05).translate(sx * 0.06, 0.15, -0.03), E.streak);
+    add(new THREE.CylinderGeometry(0.018, 0.02, 0.07, 6).translate(sx * 0.06, 0.05, -0.04), new THREE.Color('#e3bb3e'));
+    for (const [tz, rz] of [[-0.05, -0.9], [-0.03, 0], [0.03, 0.9]] as const) {
+      add(new THREE.CapsuleGeometry(0.011, 0.04, 2, 5).rotateX(Math.PI / 2 + rz * 0.6).translate(sx * 0.06, 0.012, -0.04 + tz), new THREE.Color('#e3bb3e'));
+      add(new THREE.ConeGeometry(0.008, 0.035, 4).rotateX(Math.PI - rz).translate(sx * 0.06, -0.015, -0.04 + tz * 1.5), E.dark);
+    }
+  }
+}
+
+/**
+ * A carved hitching post: a turned larch post (rings and beads), a band of red and gold paint below a carved horse-head
+ * finial, set in the ground at (x, z). Returns the rail height.
+ */
+export function addCarvedPost(kit: PaintKit, ground: Ground, x: number, z: number, h: number, yaw: number): number {
+  const y = ground(x, z);
+  const m = M(x, y, z, yaw);
+  const prof: [number, number][] = [[0.13, -0.4], [0.13, 0.0], [0.12, 0.15], [0.11, h * 0.55], [0.13, h * 0.57], [0.1, h * 0.6], [0.105, h * 0.85], [0.135, h * 0.87], [0.1, h * 0.9], [0.09, h + 0.05], [0.12, h + 0.08], [0.06, h + 0.14]];
+  kit.add(lathe(prof, 12), (p) => {
+    if (p.y > h * 0.86 && p.y < h * 0.92) return PC.red;
+    if (p.y > h * 0.92 && p.y < h + 0.06) return PC.gold;
+    if (p.y > h * 0.55 && p.y < h * 0.6) return PC.redDark;
+    return PC.wood;
+  }, { matrix: m, foot: 0.75, brush: 0.08 });
+  // the horse-head finial: a stylised head and arched neck, carved and painted
+  const hm = m.clone().multiply(M(0, h + 0.14, 0));
+  kit.add(new THREE.CapsuleGeometry(0.055, 0.14, 3, 8).rotateX(-0.35).translate(0, 0.1, 0.02), PC.wood, { matrix: hm });
+  kit.add(new THREE.CapsuleGeometry(0.045, 0.12, 3, 8).rotateX(-1.25).translate(0, 0.2, -0.09), PC.woodLight, { matrix: hm });
+  for (const sx of [-1, 1]) {
+    kit.add(new THREE.ConeGeometry(0.018, 0.06, 5).translate(sx * 0.025, 0.28, -0.02), PC.woodDark, { matrix: hm });
+    kit.add(new THREE.SphereGeometry(0.012, 6, 4).translate(sx * 0.04, 0.23, -0.1), PC.woodDark, { matrix: hm });
+  }
+  kit.add(new THREE.BoxGeometry(0.02, 0.1, 0.08).translate(0, 0.16, 0.06), PC.redDark, { matrix: hm, flat: true });   // the carved mane
+  return y + h;
+}
+
+/**
+ * The kumis corner: a tall wooden churn (pispek) with its plunger, and a leather saba (the mare's-milk bag) hanging on a
+ * low tripod. (x, z) is the churn.
+ */
+export function addChurn(kit: PaintKit, ground: Ground, x: number, z: number, colliders: Collider[]): void {
+  const y = ground(x, z);
+  kit.add(lathe([[0.001, 0], [0.2, 0], [0.22, 0.1], [0.2, 0.6], [0.17, 0.95], [0.19, 1.0], [0.001, 1.0]], 14), (p) => (Math.abs(p.y - 0.2) < 0.03 || Math.abs(p.y - 0.75) < 0.03 ? PC.iron : PC.woodLight), { matrix: M(x, y, z), brush: 0.07 });
+  kit.add(pole(v3(x, y + 0.9, z), v3(x + 0.03, y + 1.55, z), 0.018, 0.018, 5), PC.wood);
+  kit.add(new THREE.CylinderGeometry(0.06, 0.06, 0.03, 10).translate(x + 0.03, y + 1.56, z), PC.wood);
+  colliders.push({ x, z, hw: 0.24, hd: 0.24, rot: 0, yBottom: y - 1, yTop: y + 1.05 });
+  // the saba on its tripod
+  const sx = x + 1.1, sz = z + 0.2, sy = ground(sx, sz), top = v3(sx, sy + 1.25, sz);
+  for (let i = 0; i < 3; i++) { const a = (i / 3) * Math.PI * 2 + 0.3; kit.add(pole(v3(sx + Math.cos(a) * 0.55, sy - 0.1, sz + Math.sin(a) * 0.55), top.clone().add(v3(-Math.cos(a) * 0.05, 0.12, -Math.sin(a) * 0.05)), 0.03, 0.025, 5), PC.woodGrey); }
+  kit.add(pole(top, v3(sx, sy + 0.95, sz), 0.012, 0.012, 3), PC.leather);
+  kit.add(new THREE.SphereGeometry(0.26, 14, 10).scale(1, 0.85, 0.8).translate(sx, sy + 0.66, sz), PC.leather, { brush: 0.12 });
+  kit.add(new THREE.CylinderGeometry(0.05, 0.07, 0.14, 8).translate(sx, sy + 0.93, sz), new THREE.Color('#4d2e18'));
+  colliders.push({ x: sx, z: sz, hw: 0.45, hd: 0.45, rot: 0, yBottom: sy - 1, yTop: sy + 1.2 });
 }
 
 // ── fences ───────────────────────────────────────────────────────────────────────────────────────────

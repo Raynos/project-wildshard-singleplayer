@@ -16,19 +16,19 @@ import type { Collider } from '../../player/Player';
 import type { Platform, PoiCtx, PoiPiece } from './types';
 
 const C = {
-  granite: new THREE.Color('#8c8377'),
-  graniteWarm: new THREE.Color('#a39480'),
-  graniteDark: new THREE.Color('#6d665e'),
-  lichen: new THREE.Color('#b8a55c'),
-  moss: new THREE.Color('#7f9447'),
+  granite: new THREE.Color('#9d8f7b'),
+  graniteWarm: new THREE.Color('#b9a88c'),
+  graniteDark: new THREE.Color('#766b5e'),
+  lichen: new THREE.Color('#b4a860'),
+  moss: new THREE.Color('#8c9c4c'),
   wood: new THREE.Color('#8e6a45'),
   woodGrey: new THREE.Color('#857866'),
 };
 
 /** a weathered granite block: a rounded box, its surface pushed about by noise; smooth-shaded */
-export function graniteBlock(w: number, h: number, d: number, seed: number, rough = 0.18): THREE.BufferGeometry {
+export function graniteBlock(w: number, h: number, d: number, seed: number, rough = 0.18, segs = 3): THREE.BufferGeometry {
   const r = Math.min(h * 0.28, Math.min(w, d) * 0.2, 0.9);
-  const g = mergeVerticesByPos(new RoundedBoxGeometry(w, h, d, 3, r));
+  const g = mergeVerticesByPos(new RoundedBoxGeometry(w, h, d, segs, r));
   const n = new Noise2D(seed);
   const pos = g.getAttribute('position');
   for (let i = 0; i < pos.count; i++) {
@@ -51,7 +51,7 @@ export function buildEagleRock(ctx: PoiCtx): PoiPiece {
   let base = Infinity;
   for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2; base = Math.min(base, ground(cx + Math.cos(a) * 9, cz + Math.sin(a) * 9)); }
   const H = Math.max(6, top - base);
-  const stone = { top: { color: C.lichen, threshold: 0.6, amount: 0.5 }, brush: 0.14 };
+  const stone = { top: { color: C.moss, threshold: 0.72, amount: 0.55 }, brush: 0.16 };
   /** the tor's radius at height y above its base: broad at the foot, a narrower summit block */
   const R0 = 13.5, R1 = 4.8;
   const radiusAt = (t: number) => R0 + (R1 - R0) * t ** 0.8;
@@ -98,7 +98,7 @@ export function buildEagleRock(ctx: PoiCtx): PoiPiece {
     slabs.push({ a, y: sy, rIn });
     const rc = rIn + W / 2, x = cx + Math.cos(a) * rc, z = cz + Math.sin(a) * rc;
     const len = Math.max(0.9, (rIn + W) * da + 0.25);
-    const g = graniteBlock(W + 0.5, 0.7, len, 0x400 + s, 0.08);
+    const g = graniteBlock(W + 0.5, 0.7, len, 0x400 + s, 0.08, 1);
     kit.add(g, (_p, nn) => (nn.y > 0.6 ? C.graniteWarm : C.graniteDark), { top: { color: C.lichen, threshold: 0.7, amount: 0.25 }, brush: 0.1, matrix: M(x, sy - 0.35, z, -a) });
   }
   platforms.push((x, z) => {
