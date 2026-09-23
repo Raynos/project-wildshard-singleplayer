@@ -91,8 +91,8 @@ export class ModelExplorer implements ExplorePane {
       </div>
       <div class="ws-x-sheet">
         <div class="ws-x-sheet-head"><button class="ws-x-back" type="button">‹ Catalog</button><b class="ws-x-name"></b><span class="ws-x-file"></span></div>
-        <div class="ws-x-stats"></div>
-        <div class="ws-x-budget"><i></i><span></span></div>
+        <div class="ws-x-stats"><span><i>Tris</i><b data-s="tris"></b></span><span><i>Draw calls</i><b data-s="calls"></b></span><span><i>Build</i><b data-s="build"></b></span></div>
+        <div class="ws-x-budget"><span></span><div class="ws-x-budget-bar"><i></i></div></div>
         <div class="ws-x-actions"><button class="ws-x-inworld" type="button">View in world</button></div>
       </div>`);
     this.el.append(this.grid, this.sheet);
@@ -112,12 +112,12 @@ export class ModelExplorer implements ExplorePane {
     this.floor = new THREE.Group();
     const grid = new THREE.Mesh(new THREE.PlaneGeometry(7, 7).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: fadingGrid(), transparent: true, opacity: 0.55, depthWrite: false, fog: false }));
     grid.position.y = -0.002;
-    const disc = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.04, 0.06, 72), new THREE.MeshStandardMaterial({ color: 0x0e2233, metalness: 0.55, roughness: 0.28 }));
-    disc.position.y = -0.03; disc.receiveShadow = true;
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(1, 1.03, 0.12, 72), new THREE.MeshStandardMaterial({ color: 0x10283b, metalness: 0.6, roughness: 0.24 }));
+    disc.position.y = -0.06; disc.receiveShadow = true;
     world.sky.setupMaterial(disc.material);
-    const rim = new THREE.Mesh(new THREE.TorusGeometry(1.03, 0.012, 8, 128).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial({ color: new THREE.Color(0x8fe3ff).multiplyScalar(2.6), fog: false, toneMapped: false }));
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(1.03, 0.007, 6, 128).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial({ color: new THREE.Color(0x8fe3ff).multiplyScalar(1.9), fog: false, toneMapped: false }));
     rim.position.y = 0.002;
-    const glow = new THREE.Mesh(new THREE.RingGeometry(1.0, 1.35, 96).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: rimGlow(), transparent: true, depthWrite: false, fog: false, toneMapped: false, blending: THREE.AdditiveBlending }));
+    const glow = new THREE.Mesh(new THREE.RingGeometry(1.02, 1.14, 96).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: rimGlow(), transparent: true, depthWrite: false, fog: false, toneMapped: false, blending: THREE.AdditiveBlending }));
     glow.position.y = -0.001;
     this.contact = new THREE.Mesh(new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: contactShadow(), transparent: true, depthWrite: false, fog: false, opacity: 0.75 }));
     this.contact.position.y = 0.004;
@@ -208,10 +208,11 @@ export class ModelExplorer implements ExplorePane {
     this.sheet.classList.toggle('noclock', this.clock() === null);
     const m = measure(o);
     const q = (s: string): HTMLElement | null => this.sheet.querySelector<HTMLElement>(s);
-    const name = q('.ws-x-name'), file = q('.ws-x-file'), stats = q('.ws-x-stats');
+    const name = q('.ws-x-name'), file = q('.ws-x-file');
     if (name) name.textContent = e.name;
     if (file) file.textContent = e.file;
-    if (stats) stats.textContent = `TRIS ${m.tris.toLocaleString()} · DRAW CALLS ${m.calls} · ${e.live ? 'built at boot' : `BUILD ${e.buildMs.toFixed(1)} ms`}`;
+    const set = (k: string, v: string): void => { const el = q(`.ws-x-stats b[data-s="${k}"]`); if (el) el.textContent = v; };
+    set('tris', m.tris.toLocaleString()); set('calls', String(m.calls)); set('build', e.live ? 'at boot' : `${e.buildMs.toFixed(1)} ms`);
     this.budget(m.tris, m.calls);
   }
 
@@ -271,8 +272,8 @@ export class ModelExplorer implements ExplorePane {
   private budget(tris: number, calls: number): void {
     const b = BUDGET.phone, share = tris / b.tris;
     const bar = this.sheet.querySelector<HTMLElement>('.ws-x-budget i'), text = this.sheet.querySelector('.ws-x-budget span');
-    if (bar) bar.style.width = `${Math.min(100, Math.max(0.6, share * 100))}%`;
-    if (text) text.textContent = `${(share * 100).toFixed(share < 0.01 ? 2 : 1)} % of the phone's ${b.tris / 1e6} M-tri frame · ${calls} of ${b.calls} calls · this device: ${CURRENT_TIER}`;
+    if (bar) bar.style.width = `${Math.min(100, Math.max(1.5, share * 100))}%`;
+    if (text) text.textContent = `Phone budget · ${(share * 100).toFixed(share < 0.01 ? 2 : 1)} % of ${b.tris / 1e6} M tris · ${calls} / ${b.calls} calls · on ${CURRENT_TIER}`;
   }
 
   private setView(v: View, mark = true): void {
@@ -611,12 +612,16 @@ export class ModelExplorer implements ExplorePane {
 let backdrop: THREE.CanvasTexture | null = null;
 function studioBackdrop(): THREE.CanvasTexture {
   if (backdrop) return backdrop;
-  const c = document.createElement('canvas'); c.width = 4; c.height = 256;
+  const c = document.createElement('canvas'); c.width = 256; c.height = 512;
   const g = c.getContext('2d');
   if (g) {
-    const v = g.createLinearGradient(0, 0, 0, 256);
+    const v = g.createLinearGradient(0, 0, 0, 512);
     v.addColorStop(0, '#04080f'); v.addColorStop(0.42, '#0d2236'); v.addColorStop(0.58, '#123049'); v.addColorStop(1, '#03060b');
-    g.fillStyle = v; g.fillRect(0, 0, 4, 256);
+    g.fillStyle = v; g.fillRect(0, 0, 256, 512);
+    // a soft spotlight behind where the model stands (the midway mockup's studio glow)
+    const r = g.createRadialGradient(128, 205, 0, 128, 205, 150);
+    r.addColorStop(0, 'rgba(110, 190, 240, 0.34)'); r.addColorStop(0.5, 'rgba(70, 140, 200, 0.12)'); r.addColorStop(1, 'rgba(40, 90, 150, 0)');
+    g.fillStyle = r; g.fillRect(0, 0, 256, 512);
   }
   backdrop = new THREE.CanvasTexture(c); backdrop.colorSpace = THREE.SRGBColorSpace;
   return backdrop;
@@ -647,7 +652,7 @@ function rimGlow(): THREE.CanvasTexture {
   const g = c.getContext('2d');
   if (g) {
     const v = g.createLinearGradient(0, 0, 256, 0);
-    v.addColorStop(0, 'rgba(143, 227, 255, 0.55)'); v.addColorStop(0.25, 'rgba(143, 227, 255, 0.18)'); v.addColorStop(1, 'rgba(143, 227, 255, 0)');
+    v.addColorStop(0, 'rgba(143, 227, 255, 0.32)'); v.addColorStop(0.35, 'rgba(143, 227, 255, 0.08)'); v.addColorStop(1, 'rgba(143, 227, 255, 0)');
     g.fillStyle = v; g.fillRect(0, 0, 256, 4);
   }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;

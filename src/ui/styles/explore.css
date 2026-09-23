@@ -116,12 +116,39 @@
 .ws-x-variants button { padding: 6px 9px; background: var(--ws-glass-deep); border: 1px solid rgba(255, 181, 71, 0.4); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ws-text-dim); }
 .ws-x-variants button.on { color: var(--ws-amber); border-color: var(--ws-amber); }
 .ws-x-filter .ws-x-lineup { margin-left: auto; color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.5); }
+.ws-x-filter { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.ws-x-filter button { flex: 0 0 auto; }
 .ws-x-turntable.lineup .ws-x-inworld, .ws-x-turntable.lineup .ws-x-views button[data-v="tiers"] { display: none; }
 .ws-x-lineuplabel { padding: 3px 6px; }
 .ws-x-lineuplabel b { font-size: 11px; letter-spacing: 0.1em; }
 .ws-x-lineuplabel small { font-size: 8px; }
 .ws-x-lineuplabel.low { margin-top: -26px; } /* every other label sits a row higher so neighbours never overlap */
 .ws-x-rulemark { position: fixed; left: 0; top: 0; font-size: 9px; letter-spacing: 0.1em; color: var(--ws-cyan-dim); pointer-events: none; text-shadow: 0 1px 2px #000; }
+
+/* ─── X12 polish (target art/build-world/round-6-midway/07 + 06) ─── */
+/* the view / light chips: two glass segmented controls instead of rows of boxes */
+.ws-x-views, .ws-x-lights { gap: 0; padding: 3px; background: rgba(6, 12, 20, 0.72); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.ws-x-views button, .ws-x-lights button { background: none; border: 0; border-right: 1px solid rgba(143, 227, 255, 0.14); padding: 6px 11px; }
+.ws-x-views button:last-child, .ws-x-lights button:last-child { border-right: 0; }
+.ws-x-views button.on, .ws-x-lights button.on { background: rgba(143, 227, 255, 0.16); box-shadow: inset 0 -2px 0 var(--ws-cyan), 0 0 14px rgba(143, 227, 255, 0.18); }
+/* the sheet: a glass card, corner ticks, stat blocks, a slim labelled budget bar */
+.ws-x-sheet { background: linear-gradient(180deg, rgba(16, 36, 54, 0.82), rgba(5, 11, 19, 0.9)); border: 1px solid rgba(143, 227, 255, 0.32); box-shadow: 0 -1px 0 rgba(143, 227, 255, 0.25) inset, 0 18px 50px rgba(0, 0, 0, 0.55); }
+.ws-x-sheet::before, .ws-x-sheet::after { content: ''; position: absolute; width: 14px; height: 14px; border-color: var(--ws-cyan); border-style: solid; }
+.ws-x-sheet::before { left: -1px; top: -1px; border-width: 1px 0 0 1px; }
+.ws-x-sheet::after { right: -1px; bottom: -1px; border-width: 0 1px 1px 0; }
+.ws-x-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 0; letter-spacing: 0; }
+.ws-x-stats span { display: flex; flex-direction: column; gap: 2px; padding: 6px 8px; background: rgba(143, 227, 255, 0.06); border: 1px solid rgba(143, 227, 255, 0.14); }
+.ws-x-stats i { font-style: normal; font-size: 8.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-x-stats b { font-family: var(--ws-display); font-size: 17px; font-weight: 700; letter-spacing: 0.06em; color: var(--ws-cyan); }
+.ws-x-budget { height: auto; flex-direction: column; align-items: stretch; gap: 4px; border: 0; background: none; }
+.ws-x-budget span { padding: 0; font-size: 8.5px; letter-spacing: 0.1em; color: var(--ws-text-dim); }
+.ws-x-budget-bar { position: relative; height: 4px; background: rgba(143, 227, 255, 0.1); }
+.ws-x-budget-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); }
+.ws-x-actions .ws-x-inworld { border-color: var(--ws-cyan); color: var(--ws-cyan); background: rgba(143, 227, 255, 0.1); }
+/* catalog tiles: glass with a glow, the thumbnail on a soft vignette */
+.ws-x-model { background: linear-gradient(180deg, rgba(18, 40, 60, 0.7), rgba(6, 12, 20, 0.88)); border-color: rgba(143, 227, 255, 0.22); transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
+.ws-x-model:hover, .ws-x-model:focus-visible { box-shadow: 0 0 18px rgba(143, 227, 255, 0.28); transform: translateY(-1px); }
+.ws-x-model .ws-x-model-thumb { box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.55); }
 
 /* ─── the selection card (src/explore/Select.ts; mockups p09 / g09 / g13): anchored under the picked model ─── */
 .ws-x-select { position: absolute; left: 0; top: 0; display: none; flex-direction: column; gap: 4px; max-width: min(340px, calc(100vw - 16px)); padding: 9px 11px 10px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); box-shadow: 0 0 18px rgba(143, 227, 255, 0.25), 0 12px 40px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
