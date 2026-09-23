@@ -5,6 +5,7 @@ import type { Sky } from '../world/Sky';
 import type { Player } from './Player';
 import type { Forest } from '../world/Forest';
 import { painterlyMaterial } from '../world/painterly';
+import { wind as worldWind } from '../world/Wind';
 import { getSetting, setSetting } from '../ui/Settings';
 import { fovForAspect, FOV_HIP, FOV_ADS, type ImpactSurface, type Targets, type TargetHit } from './Crossbow';
 import { Projectiles, type ProjectileKind, type WindField } from './Projectiles';
@@ -17,7 +18,7 @@ import type { Weapon } from './Weapon';
  *
  *   const bow = new Bow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
  *   game.onUpdate((dt, t) => bow.update(dt, t));          // AFTER player.update (the Weapons manager does this)
- *   bow.wind = wind;                                       // src/world/Wind.ts — arrows (and the arc) drift in it
+ *   bow.wind                                               // src/world/Wind.ts's `wind` by default — arrows (and the arc) drift in it
  *
  * REGISTERING IT (for whoever owns the Nalati kit in Weapons.ts / main.ts — the melee-agent, B3):
  *   - `Weapons.ts`: `'bow'` in `WeaponId`; the HUD strip comes from the Bow's own `ammoLabel` ('Arrows'), `segments` (4)
@@ -644,6 +645,7 @@ export class Bow implements Weapon {
     this.arrows = new Projectiles(world, targets, arrowKind(this.sky));
     this.arrows.onHit = (kind, headshot, killed) => this.onHit?.(kind, headshot, killed);
     this.arrows.onImpact = (s, pt) => this.onImpact?.(s, pt);
+    this.arrows.wind = worldWind; // the one wind (grass, clouds, arrows); `bow.wind = null` for a still-air test
     this.arrows.canRecover = () => this.state.bolts < QUIVER_MAX;
     this.arrows.onRecover = (ok) => { if (ok) this.state.bolts = Math.min(QUIVER_MAX, this.state.bolts + 1); this.onRecover?.(ok); };
     this.arc = new DropArc(this.game.scene);
