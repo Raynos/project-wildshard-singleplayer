@@ -255,6 +255,7 @@ export class GameMenu {
       return b;
     };
     p.append(el('ws-gmenu-label', 'Gameplay'), sw('aimAssist', 'Aim assist'), sw('tracers', 'Tracer bolts'));
+    if (getActiveChunk().slug === 'nalati-grasslands') p.append(sw('huntersEye', "Hunter's eye")); // the bow's drop arc (Bow.ts): on by default on touch
     if (CAN_VIBRATE) p.append(sw('haptics', 'Vibration')); // Android only — iOS Safari has no vibrate (src/ui/haptics.ts)
 
     // controls: the 0.5–2× look multipliers (Settings 'look' / 'swingLook') — read live by TouchControls + Player's mouse look

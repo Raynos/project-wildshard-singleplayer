@@ -56,7 +56,7 @@ export function buildNalatiKit(world: NalatiWorld, targets: Targets, allowUnlock
       game.onUpdate(() => strip.update());
     },
     refill() { spear.javelins = spear.maxJavelins; bow.addBolts(bow.magazine); },
-    setMount(m) { sabre.mount = m; spear.mount = m; },
+    setMount(m) { sabre.mount = m; spear.mount = m; bow.setMount(m); },
     melee: (id) => id === 'sabre' || id === 'spear',
   };
   return kit;

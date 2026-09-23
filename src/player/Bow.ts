@@ -693,6 +693,28 @@ export class Bow implements Weapon {
     return dir;
   }
 
+  /**
+   * The saddle's per-frame hand-off (nalatiKit.setMount → here; `null` on foot). From the horse's speed (m/s) and heading
+   * (`yaw`, Player.yaw convention) it sets the knobs above per combat.md §A: the draw 0.9 s mounted (0.75 on foot), the
+   * gait's spread cone (walk 0.8° · trot 3.0° · canter 1.5° · gallop 1.8°), the horse's velocity added to every arrow,
+   * no drop arc from the saddle, and the Parthian shot — the view > 110° off the heading: the draw 0.2 s slower and
+   * +0.5° spread. (The gallop's "float" halving of the spread needs the stride phase: the Mount can lower
+   * `extraSpreadDeg` itself after this call.)
+   */
+  setMount(m: { speed: number; yaw: number } | null): void {
+    if (m === null) { this.drawSpeedScale = 1; this.extraSpreadDeg = 0; this.carrierVelocity.set(0, 0, 0); this.arcAllowed = true; this.parthian = false; return; }
+    const v = m.speed;
+    const gait = v < 0.3 ? 0.3 : v < 3.2 ? 0.8 : v < 6.5 ? 3.0 : v < 10.5 ? 1.5 : 1.8;
+    let off = this.player.yaw - m.yaw; off = Math.abs(Math.atan2(Math.sin(off), Math.cos(off)));
+    this.parthian = off > THREE.MathUtils.degToRad(110);
+    this.drawSpeedScale = DRAW_TIME / (0.9 + (this.parthian ? 0.2 : 0));
+    this.extraSpreadDeg = gait + (this.parthian ? 0.5 : 0);
+    this.carrierVelocity.set(-Math.sin(m.yaw) * v, 0, -Math.cos(m.yaw) * v);
+    this.arcAllowed = false;
+  }
+  /** the view is > 110° off the horse's heading (the HUD's REAR SHOT chip; a hit on a pursuer staggers — B7's `damageMultiplier`) */
+  parthian = false;
+
   addBolts(n: number): void { this.state.bolts = Math.min(QUIVER_MAX, this.state.bolts + n); }
   reload(): void { /* the draw is the reload */ }
 
