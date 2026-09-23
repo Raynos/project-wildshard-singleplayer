@@ -296,7 +296,7 @@ function horsePostPose(c: RigAnimCtx): void {
   const speed = c.speed;
   const run = clamp((speed - 3) / 9, 0, 1);
   // Animal.ts rewrites the body bone's y every frame but never its z: keep the bind z and set z absolutely
-  const bz = m['_bz'] ?? (m['_bz'] = body.position.z);
+  const bz = (m['_bz'] ??= body.position.z);
   body.position.z = bz;
 
   // rearing: pivot on the hind feet (raise the body bone so the hips stay put), forelegs fold, neck up
