@@ -7,6 +7,7 @@ import { TIER_CONFIG } from '../core/tier';
 import { getActiveChunk } from '../chunks/registry';
 import { loadBakedCards, exportCardTextures } from './BakedCards';
 import { macrotask } from '../boot/plan';
+import { TREE_SPECS } from './placement';
 
 /**
  * Pine trees built from a runtime-baked "branch card".
@@ -35,6 +36,56 @@ export interface TreeFactoryOptions { bark?: string; twigAtlas?: string }
 
 export const windUniforms = { uTime: { value: 0 }, uWindStrength: { value: 1.0 } };
 
+const _v = new THREE.Vector3(), _nm = new THREE.Matrix3();
+
+/**
+ * `mergeGeometries(matrices.map((m) => template.clone().applyMatrix4(m)))` without a geometry per copy: each
+ * copy's positions / normals go through the same Vector3 math BufferGeometry.applyMatrix4 runs and land in
+ * one growing float32 array; uv is copied; the index is merged as mergeGeometries merges it — byte-identical
+ * output (the tree step built ~2 k card / twig geometries per variant only to concatenate them).
+ */
+class MatrixMerge {
+  private readonly pos: Float32Array; private readonly nor: Float32Array; private readonly uv: Float32Array; private readonly idx: ArrayLike<number>;
+  private outPos = new Float32Array(0); private outNor = new Float32Array(0); private outUv = new Float32Array(0);
+  private readonly index: number[] = [];
+  private n = 0; // vertices written
+  constructor(template: THREE.BufferGeometry) {
+    const a = (name: string): Float32Array => { const attr = template.getAttribute(name); if (!(attr.array instanceof Float32Array)) throw new Error(`MatrixMerge: ${name} is not float32`); return attr.array; };
+    this.pos = a('position'); this.nor = a('normal'); this.uv = a('uv');
+    if (!template.index) throw new Error('MatrixMerge: template is not indexed');
+    this.idx = template.index.array;
+  }
+  get count(): number { return this.n; }
+  add(m: THREE.Matrix4): void {
+    const count = this.pos.length / 3, base = this.n;
+    if ((base + count) * 3 > this.outPos.length) {
+      const cap = Math.max(1024, (base + count) * 2);
+      const grow = (src: Float32Array, k: number) => { const d = new Float32Array(cap * k); d.set(src); return d; };
+      this.outPos = grow(this.outPos, 3); this.outNor = grow(this.outNor, 3); this.outUv = grow(this.outUv, 2);
+    }
+    const nm = _nm.getNormalMatrix(m);
+    const P = this.pos, N = this.nor, op = this.outPos, on = this.outNor;
+    for (let i = 0; i < count; i++) {
+      const o = (base + i) * 3;
+      _v.set(P[i * 3] ?? 0, P[i * 3 + 1] ?? 0, P[i * 3 + 2] ?? 0).applyMatrix4(m);
+      op[o] = _v.x; op[o + 1] = _v.y; op[o + 2] = _v.z;
+      _v.set(N[i * 3] ?? 0, N[i * 3 + 1] ?? 0, N[i * 3 + 2] ?? 0).applyNormalMatrix(nm);
+      on[o] = _v.x; on[o + 1] = _v.y; on[o + 2] = _v.z;
+    }
+    this.outUv.set(this.uv, base * 2);
+    for (let j = 0; j < this.idx.length; j++) this.index.push((this.idx[j] ?? 0) + base);
+    this.n += count;
+  }
+  build(): THREE.BufferGeometry {
+    const g = new THREE.BufferGeometry();
+    g.setIndex(this.index);
+    g.setAttribute('position', new THREE.BufferAttribute(this.outPos.slice(0, this.n * 3), 3));
+    g.setAttribute('normal', new THREE.BufferAttribute(this.outNor.slice(0, this.n * 3), 3));
+    g.setAttribute('uv', new THREE.BufferAttribute(this.outUv.slice(0, this.n * 2), 2));
+    return g;
+  }
+}
+
 export class TreeFactory {
   barkMaterial!: THREE.MeshStandardMaterial;
   needleMaterial!: THREE.MeshStandardMaterial;
@@ -53,6 +104,20 @@ export class TreeFactory {
     this.multiDraw = renderer.extensions.has('WEBGL_multi_draw') && !new URLSearchParams(location.search).has('nobatch');
   }
 
+  /**
+   * A factory with no tree variants (ChunkTrees.factory `'none'`): untextured stand-in materials that are
+   * never drawn, nothing fetched, no geometry, no branch-card bake. Forest plants nothing with it.
+   */
+  buildEmpty(): this {
+    this.barkMaterial = new THREE.MeshStandardMaterial();
+    this.needleMaterial = new THREE.MeshStandardMaterial();
+    this.twigMaterial = new THREE.MeshStandardMaterial();
+    this.farMaterial = new THREE.MeshStandardMaterial();
+    this.needleDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
+    this.twigDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
+    return this;
+  }
+
   async build(): Promise<this> {
     const atlas = `/assets/tex/${this.opts.twigAtlas}`;
     const [twigDiff, twigNor, twigArm, bark] = await Promise.all([
@@ -66,6 +131,7 @@ export class TreeFactory {
     const params = new URLSearchParams(location.search);
     const baked = await loadBakedCards(getActiveChunk().slug);
     const card = baked ?? this.bakeBranchCard(twigDiff, twigNor, twigArm);
+    if (!baked) await macrotask(); // the runtime bake (a shard without baked cards) is a task of its own
     if (params.has('bakecards')) exportCardTextures(this.renderer, baked ? this.bakeBranchCard(twigDiff, twigNor, twigArm) : card);
 
     this.barkMaterial = new THREE.MeshStandardMaterial({
@@ -154,13 +220,7 @@ export class TreeFactory {
     this.needleDepth.customProgramCacheKey = () => 'tree-depth';
 
     const rng = new Rng(4242);
-    const specs = [
-      { height: 22, trunk: 0.42, seed: 1 },
-      { height: 17, trunk: 0.34, seed: 2 },
-      { height: 26, trunk: 0.5, seed: 3 },
-      { height: 13, trunk: 0.27, seed: 4 },
-    ];
-    for (const [i, s] of specs.entries()) {
+    for (const [i, s] of TREE_SPECS.entries()) { // src/world/placement.ts: the forest plants by the same heights / trunk radii
       if (i > 0) await macrotask(); // a variant per task (all four + the impostor bake: one ~150 ms task at 4x CPU)
       const hi = this.buildTree(s.height, s.trunk, new Rng(s.seed * 77 + 1), 1.0);
       const lo = this.buildTree(s.height, s.trunk, new Rng(s.seed * 77 + 1), 0.45);
@@ -397,7 +457,6 @@ export class TreeFactory {
     trunk.computeVertexNormals();
 
     // branch cards
-    const cards: THREE.BufferGeometry[] = [];
     const card = new THREE.PlaneGeometry(2, 1, 4, 1);  // matches the bake: x ∈ [-1,1], y ∈ [-0.5,0.5]
     card.translate(1, 0, 0);                           // pivot at the base of the branch
     {
@@ -407,7 +466,6 @@ export class TreeFactory {
       card.computeVertexNormals();
     }
     // near-field twigs: the raw atlas twig (same crop as the bake), pivot at its base
-    const twigs: THREE.BufferGeometry[] = [];
     const twig = new THREE.PlaneGeometry(1, 1);
     {
       const uv = twig.getAttribute('uv');
@@ -415,6 +473,8 @@ export class TreeFactory {
       for (let i = 0; i < uv.count; i++) uv.setXY(i, u0 + uv.getX(i) * (u1 - u0), v0 + uv.getY(i) * (v1 - v0));
       twig.translate(0, 0.5, 0);
     }
+    // every card / twig is a transformed copy of its template, merged into one geometry
+    const cards = new MatrixMerge(card), twigs = new MatrixMerge(twig);
     const twigAspect = 200 / 408;
     const crownStart = height * (height < 15 ? rng.range(0.12, 0.2) : rng.range(0.3, 0.42));
     const whorlStep = 0.5 + height * 0.011;
@@ -436,14 +496,12 @@ export class TreeFactory {
         const roll0 = rng.range(-0.5, 0.5);
         // three quads in a shallow fan give the branch volume from every angle
         for (const roll of [0.7, 0.0, -0.7]) {
-          const g = card.clone();
           e.set(0, yaw, droop, 'YXZ');
           q.setFromEuler(e);
           const qr = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), roll + roll0);
           q.multiply(qr);
           tmp.compose(new THREE.Vector3(ox + bendX * (y / height) ** 2, y, oz + bendZ * (y / height) ** 2), q, new THREE.Vector3(len, width, 1));
-          g.applyMatrix4(tmp);
-          cards.push(g);
+          cards.add(tmp);
         }
         // twigs hanging off the branch (near-field only): a few along the outer half, drooping
         if (detail > 0.6) {
@@ -452,33 +510,30 @@ export class TreeFactory {
           for (let k = 0; k < n; k++) {
             const along = len * rng.range(0.45, 1.0);
             const side = rng.next() < 0.5 ? 1 : -1;
-            const g = twig.clone();
             const tl = rng.range(0.55, 0.95) * Math.min(1.2, len * 0.3);
             e.set(rng.range(-0.5, 0.5), yaw + side * rng.range(0.5, 1.4), -Math.PI / 2 + rng.range(-0.6, 0.2), 'YXZ'); q.setFromEuler(e);
             tmp.compose(new THREE.Vector3(ox + bendX * (y / height) ** 2 + dirX * along + rng.range(-0.15, 0.15), y + dirY * along - 0.12 * (along / len) ** 2 * len, oz + bendZ * (y / height) ** 2 + dirZ * along + rng.range(-0.15, 0.15)), q, new THREE.Vector3(tl * twigAspect * (rng.next() < 0.5 ? 1 : -1), tl, 1));
-            g.applyMatrix4(tmp); twigs.push(g);
+            twigs.add(tmp);
           }
         }
         // a short inner card angled up fills the crown between whorls
         if (detail > 0.6 && rng.next() < 0.8) {
-          const g = card.clone();
           e.set(0, yaw + rng.range(-0.5, 0.5), 0.25 + rng.range(0, 0.3), 'YXZ'); q.setFromEuler(e);
           const l2 = len * 0.45;
           tmp.compose(new THREE.Vector3(ox + bendX * (y / height) ** 2, y + rng.range(0, 0.4), oz + bendZ * (y / height) ** 2), q, new THREE.Vector3(l2, l2 * 0.5, 1));
-          g.applyMatrix4(tmp); cards.push(g);
+          cards.add(tmp);
         }
       }
       y += whorlStep * rng.range(0.8, 1.2);
     }
     // leader: two crossed vertical cards at the top
     for (const yaw of [0, Math.PI / 2]) {
-      const g = card.clone();
       e.set(0, yaw, Math.PI / 2 - 0.05, 'YXZ'); q.setFromEuler(e);
       const len = height * 0.09;
       tmp.compose(new THREE.Vector3(bendX, height * 0.95, bendZ), q, new THREE.Vector3(len, len * 0.5, 1));
-      g.applyMatrix4(tmp); cards.push(g);
+      cards.add(tmp);
     }
-    const cardGeo = mergeGeometries(cards, false);
+    const cardGeo = cards.build();
     // store normalized height in uv2.x → wind weight
     const cp = cardGeo.getAttribute('position');
     const wind = new Float32Array(cp.count);
@@ -488,8 +543,8 @@ export class TreeFactory {
     for (let i = 0; i < tp.count; i++) tw[i] = (tp.getY(i) / height) * 0.35;
     trunk.setAttribute('windWeight', new THREE.BufferAttribute(tw, 1));
 
-    const twigGeo = twigs.length > 0 ? mergeGeometries(twigs, false) : new THREE.BufferGeometry();
-    if (twigs.length > 0) {
+    const twigGeo = twigs.count > 0 ? twigs.build() : new THREE.BufferGeometry();
+    if (twigs.count > 0) {
       const tp2 = twigGeo.getAttribute('position');
       const w2 = new Float32Array(tp2.count);
       for (let i = 0; i < tp2.count; i++) w2[i] = tp2.getY(i) / height;
@@ -499,8 +554,6 @@ export class TreeFactory {
 
     trunk.computeBoundingSphere();
     cardGeo.computeBoundingSphere();
-    for (const c of cards) c.dispose();
-    for (const t of twigs) t.dispose();
     card.dispose(); twig.dispose();
     return { trunk, cards: cardGeo, twigs: twigGeo };
   }

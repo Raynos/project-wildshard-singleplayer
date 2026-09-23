@@ -1,23 +1,18 @@
 import * as THREE from 'three';
-import { CHUNK_HALF, CHUNK_SIZE, TREE_COUNT, SEED } from '../core/config';
-import { Rng } from '../core/rng';
-import { Noise2D, smoothstep } from '../core/noise';
-import { heightAt, normalAt, trailDistance, cabinMask, inChunk, pondMask } from './Heightfield';
+import { CHUNK_HALF, CHUNK_SIZE } from '../core/config';
+import { placeForest, TreeGrid, type TreeInstance } from './placement';
 import { type TreeFactory, windUniforms } from './TreeFactory';
 import type { Sky } from './Sky';
 import { noReflect } from './Water';
-import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from '../core/tier';
 
-export interface TreeInstance { x: number; y: number; z: number; r: number; variant: number; scale: number; rot: number; height: number; tint: THREE.Color }
+export type { TreeInstance } from './placement';
 
 const LOD_DIST = TIER_CONFIG.treeHiDist;   // metres: beyond this, the low-card geometry
 const FAR_DIST = TIER_CONFIG.treeLoDist;   // metres: beyond this, the 2-quad baked impostor
 const TWIG_DIST = TIER_CONFIG.treeTwigDist; // metres: within this, individual twig quads are drawn on the branches
 const KEEP_NEAR = Math.max(45, TIER_CONFIG.shadowFar * 0.5); // metres: trees this close are never frustum-culled (their shadows reach into view)
 const CULL_FOV_PAD = 24;                    // degrees added to the camera FOV for the cull frustum
-/** A 16 m grid cell as one integer (exact for cells within 2^20 of the origin: any coordinate a query meets in play). */
-const cellKey = (cx: number, cz: number): number => (cx + 1048576) * 2097152 + (cz + 1048576);
 
 /**
  * Per-frame bucketing: every tree has one precomputed matrix; on move (> 1.5 m) or turn (> 3°) the
@@ -36,8 +31,8 @@ export class Forest {
   private twigs: THREE.InstancedMesh[] = [];
   private lastLodPos = new THREE.Vector3(1e9, 0, 0);
   private lastDir = new THREE.Vector3(0, 0, 0);
-  /** 16 m buckets keyed by `cellKey`: a number, not a template string: `nearby` runs ~10^5 times while the undergrowth is placed */
-  private grid = new Map<number, TreeInstance[]>();
+  /** the trees in 16 m cells (src/world/placement.ts) */
+  private grid = new TreeGrid();
   private mats!: Float32Array;   // 16 floats per tree
   private tints!: Float32Array;  // 3 floats per tree
   /** batched path (WEBGL_multi_draw): one BatchedMesh per material, one instance per tree, LOD = geometry id + visibility */
@@ -74,6 +69,7 @@ export class Forest {
       this.tmpM.toArray(this.mats, i * 16);
       this.tints[i * 3] = t.tint.r; this.tints[i * 3 + 1] = t.tint.g; this.tints[i * 3 + 2] = t.tint.b;
     });
+    if (this.trees.length === 0) return this; // nothing to draw: no instanced / batched meshes (a 0-instance BatchedMesh is not a thing)
     if (this.path === 'batched') { this.buildBatched(); return this; }
     this.factory.variants.forEach((v, vi) => {
       const count = this.trees.filter((t) => t.variant === vi).length;
@@ -139,45 +135,10 @@ export class Forest {
     };
   }
 
+  /** where the trees go: src/world/placement.ts (pure, shared with the build's placement bake) */
   private place() {
-    const F = getActiveChunk().forest;
-    const rng = new Rng(SEED + 99);
-    const density = new Noise2D(SEED + 5);
-    const cell = F.spacing; // metres between candidates → ~3400 candidates at 8.5, thinned by density
-    const half = CHUNK_HALF - 6;
-    const candidates: [number, number][] = [];
-    for (let x = -half; x < half; x += cell) for (let z = -half; z < half; z += cell) {
-      candidates.push([x + rng.range(-cell * 0.45, cell * 0.45), z + rng.range(-cell * 0.45, cell * 0.45)]);
-    }
-    // shuffle so thinning is unbiased
-    for (let i = candidates.length - 1; i > 0; i--) { const j = Math.floor(rng.next() * (i + 1)); const a = candidates[i], b = candidates[j]; if (a && b) { candidates[i] = b; candidates[j] = a; } }
-
-    for (const [x, z] of candidates) {
-      if (this.trees.length >= TREE_COUNT) break;
-      if (!inChunk(x, z, 4)) continue;
-      const d = density.fbm(x * F.densityFreq, z * F.densityFreq, 3); // clearings & dense groves
-      const keep = smoothstep(F.clearings[0], F.clearings[1], d) * 0.92 + 0.08;
-      if (rng.next() > keep) continue;
-      const roadEntry = (Math.abs(x) < 16 && Math.abs(z) > CHUNK_HALF - 95) || (Math.abs(z) < 16 && Math.abs(x) > CHUNK_HALF - 95);
-      if (roadEntry) continue;
-      if (trailDistance(x, z) < 9 + rng.range(0, 4)) continue;
-      if (cabinMask(x, z) > 0.02) continue;
-      if (pondMask(x, z) > 0.03) continue;
-      const [, ny] = normalAt(x, z);
-      if (ny < F.maxSlope) continue;                               // too steep
-      const y = heightAt(x, z);
-      const variant = rng.next() < F.largeVariantChance ? 3 : rng.int(0, 2);
-      const scale = rng.range(0.8, 1.2);
-      const v = this.factory.variants[variant];
-      if (!v) throw new Error(`[forest] no tree variant ${variant}`);
-      const tint = new THREE.Color().setHSL(F.tintHue + rng.range(F.tintHueJitter[0], F.tintHueJitter[1]), rng.range(F.tintSat[0], F.tintSat[1]), rng.range(F.tintLight[0], F.tintLight[1]));
-      const t: TreeInstance = { x, y: y - 0.25, z, r: v.trunkRadius * scale + 0.15, variant, scale, rot: rng.range(0, Math.PI * 2), height: v.height * scale, tint };
-      this.trees.push(t);
-      const k = this.key(x, z);
-      let bucket = this.grid.get(k);
-      if (!bucket) { bucket = []; this.grid.set(k, bucket); }
-      bucket.push(t);
-    }
+    const { trees, grid } = placeForest(this.factory.variants);
+    this.trees = trees; this.grid = grid;
   }
 
   private buildCanopyMap() {
@@ -200,18 +161,8 @@ export class Forest {
     return tex;
   }
 
-  private key(x: number, z: number) { return cellKey(Math.floor(x / 16), Math.floor(z / 16)); }
-
   /** trees whose trunk might intersect a circle at (x,z) — for collision */
-  nearby(x: number, z: number, radius = 2): TreeInstance[] {
-    const out: TreeInstance[] = [];
-    const cx = Math.floor(x / 16), cz = Math.floor(z / 16);
-    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
-      const list = this.grid.get(cellKey(cx + i, cz + j));
-      if (list) for (const t of list) if (Math.hypot(t.x - x, t.z - z) < radius + t.r + 3) out.push(t);
-    }
-    return out;
-  }
+  nearby(x: number, z: number, radius = 2): TreeInstance[] { return this.grid.nearby(x, z, radius); }
 
   private tmpM = new THREE.Matrix4();
   private tmpQ = new THREE.Quaternion();

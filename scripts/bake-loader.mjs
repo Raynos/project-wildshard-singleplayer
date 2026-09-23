@@ -10,7 +10,8 @@ const IMAGE = /\.(jpe?g|png|webp|svg|hdr)$/i;
 registerHooks({
   resolve(specifier, context, next) {
     if (IMAGE.test(specifier)) return { url: new URL(specifier, context.parentURL).href, shortCircuit: true, format: 'module' };
-    if (specifier.startsWith('.') && !/\.[a-z]+$/i.test(specifier) && context.parentURL?.startsWith('file:')) {
+    // `./bytes.generated` has a dot but no real extension: resolve anything that is not a file as it stands
+    if (specifier.startsWith('.') && context.parentURL?.startsWith('file:') && !existsSync(fileURLToPath(new URL(specifier, context.parentURL)))) {
       const base = new URL(specifier, context.parentURL);
       for (const ext of ['.ts', '/index.ts']) { const u = new URL(base.href + ext); if (existsSync(fileURLToPath(u))) return { url: u.href, shortCircuit: true }; }
     }

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// bench-load.mjs — the load-performance ruler (docs/BENCH.md, docs/plans/LOAD-PERF.md §P0).
+// bench-load.mjs — the load-performance ruler (docs/BENCH.md, project/archive/2026-09-22-load-perf.md §P0).
 //
 // Builds the production bundle, serves it with `vite preview` on its own port, and opens it in
 // headless Chromium under CDP network + CPU throttling, cold (fresh context) then warm (same
@@ -85,8 +85,19 @@ let preview = null;
 if (!URL_BASE) {
   if (!has('no-build')) { console.error('> pnpm build'); execSync('pnpm build', { cwd: ROOT, stdio: 'inherit' }); }
   else if (!existsSync(resolvePath(ROOT, 'dist/index.html'))) { console.error('dist/ missing; drop --no-build'); process.exit(2); }
+  // Something else already on the port must abort the bench, not be benched: --strictPort makes our preview exit, and
+  // the ready check below only passes once OUR preview has printed its own URL (a stranger's version.json is not it).
+  const port = PORT;
+  let exited = null, listening = false;
   preview = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
   preview.stderr.on('data', (d) => { process.stderr.write(`[preview] ${d}`); });
+  // oxlint-disable-next-line no-control-regex -- stripping vite's ANSI colours (it bolds the port number)
+  preview.stdout.on('data', (d) => { if (String(d).replaceAll(/\u001B\[[\d;]*m/g, '').includes(`:${port}/`)) listening = true; });
+  preview.on('exit', (code) => { exited = code ?? 'signal'; });
+  await waitFor(() => {
+    if (exited !== null) { console.error(`vite preview exited (${exited}) before serving — is port ${port} taken? Pass --port=<free port>.`); process.exit(2); }
+    return listening;
+  }, 20_000, 'vite preview did not come up');
   URL_BASE = `http://localhost:${PORT}`;
   await waitFor(async () => (await fetch(`${URL_BASE}/version.json`)).ok, 20_000, 'vite preview did not come up');
 }
@@ -135,7 +146,7 @@ const COLLECT = `(() => {
     domContentLoadedMs: nav ? Math.round(nav.domContentLoadedEventEnd) : null, loadEventMs: nav ? Math.round(nav.loadEventEnd) : null,
     // encodedBodySize by URL: the size of a response the HTTP cache served (transferSize 0), used when asset-index.json has no row
     sizes: Object.fromEntries(performance.getEntriesByType('resource').filter((r) => r.encodedBodySize > 0).map((r) => [r.name, r.encodedBodySize])),
-    longTasks: long.length, longTaskMs: long.reduce((s, e) => s + e[1], 0), longTaskMaxMs: maxLong,
+    longList: long, longTasks: long.length, longTaskMs: long.reduce((s, e) => s + e[1], 0), longTaskMaxMs: maxLong,
     steps: W.__bench_steps || [],
     heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null,
     textures: info ? info.memory.textures : null, geometries: info ? info.memory.geometries : null, programs: info ? info.programs.length : null,

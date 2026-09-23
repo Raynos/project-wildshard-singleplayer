@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# post-commit: auto-commit a dirty sweep-guard ledger.
+#
+# guard-git-add-all.sh appends a line to project/sweepguard-ledger.md on
+# every SKIP_SWEEPGUARD=1 use. Pathspec commits (this repo's mandatory shape)
+# build their temp index from HEAD + the NAMED paths only, so a pre-commit hook
+# cannot fold the ledger into the same commit — instead this hook sweeps a
+# dirty ledger into its own tiny follow-up commit the moment any commit lands.
+# Mechanical, can't be forgotten; recursion is cut by LEDGER_AUTOCOMMIT.
+
+set -uo pipefail
+
+[ "${LEDGER_AUTOCOMMIT:-0}" = "1" ] && exit 0
+
+repo="$(git rev-parse --show-toplevel 2>/dev/null || exit 0)"
+ledger="project/sweepguard-ledger.md"
+
+if ! git -C "$repo" diff --quiet HEAD -- "$ledger" 2>/dev/null; then
+  LEDGER_AUTOCOMMIT=1 \
+    git -C "$repo" commit -q -m "Sweep-guard ledger: bypass entries (auto, .githooks/post-commit)" -- "$ledger" \
+    && echo "  - sweep-guard ledger was dirty -> auto-committed" >&2 \
+    || echo "  !! sweep-guard ledger is dirty and the auto-commit FAILED - commit $ledger yourself" >&2
+fi
+
+exit 0

@@ -1,7 +1,8 @@
 /**
  * The files a chunk's boot downloads, per byte source — derived from its ChunkDef so the
  * declared totals cannot drift from what the world actually asks for. Cabins/props content is
- * still engine-fixed (docs/SHARDS.md), so those lists are fixed here too.
+ * still engine-fixed (docs/SHARDS.md), so those lists are fixed here too — and dropped for the
+ * shards that build none (see the end of chunkFiles).
  */
 import type { ChunkDef } from '../chunks/ChunkDef';
 import { tierUrl, type ChunkFiles } from './bytes';
@@ -31,7 +32,18 @@ export function chunkFiles(def: ChunkDef): ChunkFiles {
   const skyJson = `/assets/baked/${def.slug}/sky.json`;
   const pair = bakedSkyUrls(def.sky.hdri); // the gain-mapped JPEG + PNG in place of the .hdr (src/world/BakedSky.ts)
   const sky = [...(pair ? [pair.color, pair.gain] : [`/assets/hdri/${def.sky.hdri}_2k.hdr`]), ...(skyJson in PUBLIC_BYTES ? [skyJson] : [])];
-  // the phone tier's .phone.webp / .phone.jpg copies (fetchImage fetches through the same map)
+  // per shard: only what its boot really reads, so DOWNLOAD's declared total is honest (it was Driftwood's ~2 MB against
+  // Pine Hollow's ~20 MB of layers, cards, cabins and props): a low-poly shard reads only its baked terrain, a treeless
+  // one (trees.factory 'none') no tree textures, an open-water one (ocean) builds no cabins or props
+  const lowpoly = def.style === 'lowpoly', treeless = def.trees.factory === 'none', ocean = def.ocean !== undefined;
+  // the phone tier's .phone.webp / .phone.glb copies (fetchImage and three's loaders fetch through the same map)
   const t = (xs: string[]) => xs.map(tierUrl);
-  return { sky: t(sky), baked: t(bakedTextureUrls(def.slug)), terrain: t(terrain), trees: t(trees), cabins: t(cabins), props: t(props) };
+  return {
+    sky: t(sky),
+    baked: t(bakedTextureUrls(def.slug)),
+    terrain: t(lowpoly ? terrain.filter((f) => f.startsWith('/assets/baked/')) : terrain),
+    trees: t(treeless ? [] : trees),
+    cabins: t(ocean ? [] : cabins),
+    props: t(ocean ? [] : props),
+  };
 }

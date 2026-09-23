@@ -46,7 +46,7 @@ export type IntroStats = Record<string, string | { value: string; tone?: 'ok' | 
 /** One card in the title-screen deck: an authored chunk (playable) or a teaser (coming soon). */
 interface DeckCard {
   slug: string; displayName: string; label: string; thumbnail: string; tag: string; tagTone: 'ok' | 'soon' | '';
-  playable: boolean; active: boolean; heroPortrait?: string; heroLandscape?: string; blurb: string;
+  playable: boolean; active: boolean; heroPortrait?: string; heroLandscape?: string; blurb: string; experimental: boolean;
 }
 const HERO_FADE_MS = 350;
 
@@ -111,6 +111,9 @@ export class HUD {
   private ammoLabel!: HTMLElement; private ammoMax!: HTMLElement; private ammoReserve!: HTMLElement; private ammoWeapon!: HTMLElement; private pipBox!: HTMLElement;
   private hitTimer = 0; private spread = 7;
 
+  /** the review composer (src/ui/Feedback.ts) is up: losing the pointer lock does not open the pause menu */
+  holdPause = false;
+
   constructor(opts: HUDOptions = {}) {
     this.opts = { pointerLock: true, maxBolts: 30, ...opts };
     const hud = document.getElementById('hud');
@@ -121,7 +124,7 @@ export class HUD {
     // the touch layer may be built before or after the HUD (main.ts order): mount the bar strips as soon as it exists
     if (!this.mountBar()) { const mo = new MutationObserver(() => { if (this.mountBar()) mo.disconnect(); }); mo.observe(this.root, { childList: true }); }
     document.addEventListener('pointerlockchange', () => {
-      if (!this.opts.pointerLock || !this.entered) return;
+      if (!this.opts.pointerLock || !this.entered || this.holdPause) return;
       const locked = Boolean(document.pointerLockElement); // undefined where pointer lock is absent (iOS)
       this.setPaused(!locked);
     });
@@ -213,6 +216,10 @@ export class HUD {
     // the touch PAUSE button (TouchControls), Escape on devices without pointer lock, and a released pointer lock
     document.addEventListener('ws:pause', () => { if (this.entered) this.setPaused(!this.paused); });
     document.addEventListener('keydown', (e) => { if (e.code === 'Escape' && !this.opts.pointerLock && this.entered && !this.paused) this.setPaused(true); });
+    // native shells (src/native/lifecycle.ts): the app went to the background → pause, never unpause;
+    // Android Back → close the menu or pause; preventDefault() tells the shell it was used (else it minimizes the app)
+    document.addEventListener('ws:background', () => { if (this.entered && !this.paused) this.setPaused(true); });
+    document.addEventListener('ws:back', (e) => { if (!this.entered) return; e.preventDefault(); this.setPaused(!this.paused); });
   }
 
   private buildPips(n: number): void {
@@ -412,12 +419,12 @@ export class HUD {
       ...CHUNKS.map((c): DeckCard => ({
         slug: c.slug, displayName: c.displayName, thumbnail: c.thumbnail, blurb: c.blurb,
         label: `${c.biome} · ${c.gridCoords} · ${CHUNK_SIZE} m shard`,
-        tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def,
+        tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def, experimental: c.experimental === true,
         heroPortrait: c.heroPortrait, heroLandscape: c.heroLandscape,
       })),
       ...PLACEHOLDERS.map((t): DeckCard => ({
         slug: t.slug, displayName: t.displayName, thumbnail: t.thumbnail, blurb: t.blurb,
-        label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false,
+        label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false, experimental: false,
         heroPortrait: t.heroPortrait, heroLandscape: t.heroLandscape,
       })),
     ];
@@ -428,7 +435,7 @@ export class HUD {
       <div class="ws-menu-deck">
         <div class="ws-menu-cards"><div class="ws-menu-deck-track">${cards.map((c, i) => `
           <button class="ws-menu-card${c.active ? ' active' : ''}${c.playable ? '' : ' soon'}" type="button" data-i="${i}" title="${c.blurb.replaceAll('"', '&quot;')}">
-            <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-menu-card-tag ${c.tagTone}">${c.tag}</i></span>
+            <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-menu-card-tag ${c.tagTone}">${c.tag}</i>${c.experimental ? '<i class="ws-menu-card-exp">Experimental</i>' : ''}</span>
             <b>${c.displayName}</b><small>${c.label}</small>
           </button>`).join('')}
         </div></div>
@@ -467,7 +474,7 @@ export class HUD {
       enterBtn.classList.toggle('soon', !c.playable);
       enterBtn.disabled = !c.playable;
       enterTitle.textContent = c.playable ? 'Enter world' : 'Coming soon';
-      enterHint.textContent = !c.playable ? 'Not yet playable' : c.active ? 'Press any key' : `Reloads with ${c.displayName}`;
+      enterHint.textContent = !c.playable ? 'Not yet playable' : c.experimental ? 'Experimental shard — rough edges ahead' : c.active ? 'Press any key' : `Reloads with ${c.displayName}`;
     };
     const select = (raw: number, smooth = true): void => {
       const i = Math.max(0, Math.min(cards.length - 1, raw));
@@ -515,9 +522,15 @@ export class HUD {
       if (portrait() !== wasPortrait) { wasPortrait = portrait(); apply(); }
     };
     addEventListener('resize', onResize);
-    // preload the hero art so the crossfade is instant (current orientation first, the other set later)
-    const preload = (p: boolean): void => { for (const c of cards) { const u = (p ? c.heroPortrait : c.heroLandscape); if (u) new Image().src = u; } };
-    preload(portrait()); setTimeout(() => { preload(!portrait()); }, 4000);
+    // hero art is ~0.2–0.3 MB a file and every card has two (portrait + landscape): only the selected card's, in the
+    // orientation on screen, loads with the menu (apply() above). A neighbour's loads when a swipe or a card tap starts
+    // toward it, so the crossfade on release is usually instant; the other orientation only on a real flip (onResize →
+    // apply()). Preloading all six up front was 1.7 MB of every cold launch (LOAD-PERF, first-launch transfer).
+    const warmed = new Set<string>();
+    const warm = (i: number): void => { const c = cards[i]; const u = c ? heroUrl(c) : ''; if (u && !warmed.has(u)) { warmed.add(u); new Image().src = u; } };
+    const warmNeighbours = (): void => { warm(index - 1); warm(index + 1); };
+    list.addEventListener('pointerdown', warmNeighbours);
+    dots.forEach((d, i) => { d.addEventListener('pointerdown', () => { warm(i); }); });
 
     this.root.append(intro);
     this.intro = intro;

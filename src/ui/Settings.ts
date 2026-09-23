@@ -3,15 +3,19 @@
 //   getSetting('aimAssist')                          → boolean (default true)
 //   setSetting('tracers', false)                     → persists + notifies subscribers
 //   const off = onSetting('aimAssist', (v) => …)     → unsubscribe; fn is NOT called immediately
-//   getNumber('volume') / setNumber('volume', 0.8) / onNumber('volume', fn)   → the 0..1 sliders (master volume, 'music' = the score's bus)
+//   getNumber('volume') / setNumber('volume', 0.8) / onNumber('volume', fn)   → the sliders, clamped to NUM_RANGE: 0..1 volumes
+//   (master, 'music' = the score's bus) and the 0.5..2× look multipliers ('look' = touch drag + mouse, 'swingLook' = extra
+//   factor while a sword swing is running — TouchControls / Player.ts read them per event, nothing to subscribe)
 //
 // localStorage is wrapped in try/catch (iOS private mode throws on write) — the in-memory copy is the truth for the session.
-export type SettingKey = 'aimAssist' | 'tracers';
-export type NumberKey = 'volume' | 'music';
+export type SettingKey = 'aimAssist' | 'tracers' | 'haptics';
+export type NumberKey = 'volume' | 'music' | 'look' | 'swingLook';
 
 const STORE = 'ws.settings.v1';
-const DEFAULTS: Record<SettingKey, boolean> = { aimAssist: true, tracers: true };
-const NUM_DEFAULTS: Record<NumberKey, number> = { volume: 0.8, music: 0.7 };
+const DEFAULTS: Record<SettingKey, boolean> = { aimAssist: true, tracers: true, haptics: true };
+const NUM_DEFAULTS: Record<NumberKey, number> = { volume: 0.8, music: 0.7, look: 1, swingLook: 0.7 };
+export const NUM_RANGE: Record<NumberKey, readonly [number, number]> = { volume: [0, 1], music: [0, 1], look: [0.5, 2], swingLook: [0.5, 2] };
+const clampNum = (k: NumberKey, v: number) => Math.min(NUM_RANGE[k][1], Math.max(NUM_RANGE[k][0], v));
 
 function load(): { bools: Record<SettingKey, boolean>; nums: Record<NumberKey, number> } {
   const bools = { ...DEFAULTS }, nums = { ...NUM_DEFAULTS };
@@ -20,7 +24,7 @@ function load(): { bools: Record<SettingKey, boolean>; nums: Record<NumberKey, n
     if (raw) {
       const parsed = JSON.parse(raw) as Partial<Record<string, unknown>>;
       for (const k of Object.keys(DEFAULTS) as SettingKey[]) if (typeof parsed[k] === 'boolean') bools[k] = parsed[k];
-      for (const k of Object.keys(NUM_DEFAULTS) as NumberKey[]) if (typeof parsed[k] === 'number') nums[k] = parsed[k];
+      for (const k of Object.keys(NUM_DEFAULTS) as NumberKey[]) { const v = parsed[k]; if (typeof v === 'number' && Number.isFinite(v)) nums[k] = clampNum(k, v); }
     }
   } catch { /* private mode / disabled storage: defaults */ }
   return { bools, nums };
@@ -42,7 +46,7 @@ export function setSetting(k: SettingKey, v: boolean): void {
 
 export function getNumber(k: NumberKey): number { return nums[k]; }
 export function setNumber(k: NumberKey, raw: number): void {
-  const v = Math.min(1, Math.max(0, raw));
+  const v = clampNum(k, raw);
   if (nums[k] === v) return;
   nums[k] = v;
   persist();

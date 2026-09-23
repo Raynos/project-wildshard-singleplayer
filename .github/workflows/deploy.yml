@@ -71,6 +71,11 @@ jobs:
       - name: Build
         run: pnpm exec vite build
 
+      # The iOS / Android shells' web bundle (docs/plans/NATIVE-APPS.md): a push that breaks it is red here.
+      # It ships nowhere from this workflow — apps update through the stores or `gh workflow run ota-promote`.
+      - name: Native web build
+        run: pnpm run build:native
+
       # ---- deploy (main only) ------------------------------------------------------------------
       - name: No token, no deploy
         if: github.event_name != 'pull_request' && env.DEPLOY != 'true'

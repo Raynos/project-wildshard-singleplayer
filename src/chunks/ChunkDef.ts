@@ -96,8 +96,12 @@ export interface ChunkAssets {
 
 /** Which tree builder to use and what it should be textured with. */
 export interface ChunkTrees {
-  /** `'pine'` → `src/world/TreeFactory.ts` (baked branch cards). New species = new factory id. */
-  factory: 'pine';
+  /**
+   * `'pine'` → `src/world/TreeFactory.ts` (baked branch cards). New species = new factory id. `'none'`: the
+   * shard has no forest trees — no tree textures, geometry or branch-card bake at launch, an empty Forest
+   * (collision / culling hooks still work).
+   */
+  factory: 'pine' | 'none';
   /** PBR set for the trunks */
   bark: string;
   /** folder under `public/assets/tex/` holding `twig_rgba.png`, `twig_nor_gl.jpg`, `twig_arm.jpg` */
@@ -231,6 +235,8 @@ export interface ChunkDef {
   biome: string;
   /** two sentences for the title-screen picker */
   blurb: string;
+  /** unfinished shard: the title deck stamps a big EXPERIMENTAL banner across its card */
+  experimental?: boolean;
   /** URL of a 16:9 thumbnail for the picker (import a jpg from `src/chunks/thumbs/`) */
   thumbnail: string;
   /** full-bleed title-screen stills (jpg, ≤1600 px long side): the menu shows these instead of the live world */

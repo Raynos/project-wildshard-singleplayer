@@ -10,6 +10,9 @@ import type { Forest } from '../world/Forest';
 import { heightAt } from '../world/Heightfield';
 import { CHUNK_HALF } from '../core/config';
 import { getSetting, setSetting } from '../ui/Settings';
+import { makePixels, clamp01, sstep, CROSSBOW_SETS, RIFLE_SETS, type Pixels, type SetName, type Ctx2D } from './viewmodelTextures';
+// oxlint-disable-next-line import/default -- a Vite `?worker&inline` import: its default export is the worker constructor (typed by vite/client), which oxlint's resolver cannot see
+import TexturesWorker from './viewmodelTextures.worker?worker&inline';
 import type { Weapon } from './Weapon';
 
 /**
@@ -105,31 +108,9 @@ const ADS_NEAR_MARGIN = 0.03, ADS_PITCH = 0, ADS_BLEND_TIME = 0.18, ADS_MOTION =
  *  (≥ 7 % of the height, so it stays a ring on a portrait phone). Hidden at the hip, fades in with the ADS blend. */
 const PEEP_Z = 0.10, PEEP_R = 0.01, PEEP_TUBE = 0.12, PEEP_R_WORLD = 0.0105, PEEP_CYAN = 0x8fe3ff; // rear peep: 2.1 cm ring on a short post just ahead of the nut
 
-// ───────────────────────────── procedural noise / textures ─────────────────────────────
+// ───────────────────────────── procedural textures ─────────────────────────────
 
-export interface Noise { hash: (x: number, y: number) => number; n: (x: number, y: number) => number; fbm: (x: number, y: number, oct?: number) => number }
-export function makeNoise(seed: number): Noise {
-  const hash = (x: number, y: number) => {
-    let h = (Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(seed, 1442695041)) | 0;
-    h = Math.imul(h ^ (h >>> 13), 1274126177);
-    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
-  };
-  const n = (x: number, y: number) => {
-    const xi = Math.floor(x), yi = Math.floor(y);
-    const fx = x - xi, fy = y - yi;
-    const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
-    const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
-    return (a + (b - a) * sx) * (1 - sy) + (c + (d - c) * sx) * sy;
-  };
-  const fbm = (x: number, y: number, oct = 4) => {
-    let s = 0, a = 0.5, f = 1, sum = 0;
-    for (let i = 0; i < oct; i++) { s += n(x * f, y * f) * a; sum += a; a *= 0.5; f *= 2.03; }
-    return s / sum;
-  };
-  return { hash, n, fbm };
-}
-export const clamp01 = (v: number): number => (v < 0 ? 0 : Math.min(1, v));
-export const sstep = (a: number, b: number, x: number): number => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+export { makeNoise, clamp01, sstep, type Noise } from './viewmodelTextures';
 
 export function dataTexture(data: Uint8Array, w: number, h: number, srgb: boolean, repeat = 1): THREE.DataTexture {
   const t = new THREE.DataTexture(data, w, h, THREE.RGBAFormat);
@@ -144,162 +125,72 @@ export function dataTexture(data: Uint8Array, w: number, h: number, srgb: boolea
   return t;
 }
 
-export function normalFromHeight(h: Float32Array, w: number, hgt: number, strength: number): THREE.DataTexture {
-  const out = new Uint8Array(w * hgt * 4);
-  for (let y = 0; y < hgt; y++) for (let x = 0; x < w; x++) {
-    const l = h[y * w + ((x + w - 1) % w)] ?? 0, r = h[y * w + ((x + 1) % w)] ?? 0;
-    const d = h[((y + hgt - 1) % hgt) * w + x] ?? 0, u = h[((y + 1) % hgt) * w + x] ?? 0;
-    let nx = -(r - l) * strength, ny = -(u - d) * strength, nz = 1;
-    const len = Math.hypot(nx, ny, nz); nx /= len; ny /= len; nz /= len;
-    const i = (y * w + x) * 4;
-    out[i] = (nx * 0.5 + 0.5) * 255; out[i + 1] = (ny * 0.5 + 0.5) * 255; out[i + 2] = (nz * 0.5 + 0.5) * 255; out[i + 3] = 255;
-  }
-  return dataTexture(out, w, hgt, false);
-}
-
 export interface TexSet { map: THREE.Texture; normalMap: THREE.Texture; armMap: THREE.Texture }
 
-/** Dark walnut: fine ring bands, streaks along the grain, oil smudges. Grain runs along U. 1 UV unit ≈ 1 m × 0.25 m. */
-function makeWalnut(seed: number): TexSet {
-  const W = 1024, H = 256;
-  const { fbm, hash } = makeNoise(seed);
-  const col = new Uint8Array(W * H * 4), arm = new Uint8Array(W * H * 4), hgt = new Float32Array(W * H);
-  const dark = [22, 12, 6], light = [72, 46, 26];
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-    const u = x / W, v = y / H;
-    const warp = fbm(u * 3 + 7, v * 2, 4);
-    const ringCoord = v * 26 + u * 1.3 + warp * 3.2 + fbm(u * 40, v * 6, 2) * 0.7;
-    const ring = ringCoord - Math.floor(ringCoord);
-    const band = sstep(0.5, 0.8, ring) * (1 - sstep(0.9, 1.0, ring)); // late wood
-    const fine = fbm(u * 160, v * 24 + 3, 3);
-    const smudge = fbm(u * 4 + 40, v * 3 + 9, 3);
-    const fleck = hash(x, y);
-    const lum = (1 - band * 0.55) * (0.72 + fine * 0.5) * (0.82 + smudge * 0.32) * (0.96 + fleck * 0.08);
-    const i = (y * W + x) * 4;
-    for (let c = 0; c < 3; c++) { const dk = dark[c] ?? 0, lt = light[c] ?? 0; col[i + c] = clamp01((dk + (lt - dk) * lum) / 255) * 255; }
-    col[i + 3] = 255;
-    const rough = clamp01(0.74 + band * 0.12 + (fine - 0.5) * 0.14 - smudge * 0.08);
-    arm[i] = (1 - band * 0.1) * 255; arm[i + 1] = rough * 255; arm[i + 2] = 0; arm[i + 3] = 255;
-    hgt[y * W + x] = (1 - band) * 0.45 + fine * 0.3 + fleck * 0.02;
-  }
-  return { map: dataTexture(col, W, H, true), normalMap: normalFromHeight(hgt, W, H, 1.6), armMap: dataTexture(arm, W, H, false) };
-}
+/*
+ * The crossbow's and the rifle's texture sets (walnut, steel, leather, cord, bolt atlas; anodised aluminium, polymer,
+ * steel) are drawn by viewmodelTextures.ts — ~470 ms of main thread at 4× CPU when drawn here, the longest task of
+ * the load. `startViewmodelTextures()` (main.ts, at the head of the boot) hands them to a worker, which draws them
+ * while the world builds; the weapon step awaits `viewmodelTexturesReady()` and the constructors below find the
+ * pixels waiting. Same functions, same bytes. No worker (or a set it could not draw) → drawn here, as before.
+ */
+const pixelCache = new Map<SetName, Pixels>();
+let texturesReady: Promise<void> = Promise.resolve();
+const WORKER_TIMEOUT_MS = 20000;
 
-/** Forged steel: mottled grey, brushed scratches, pits with a rust tint. */
-export function makeSteel(seed: number): TexSet {
-  const S = 512;
-  const { fbm, hash } = makeNoise(seed);
-  const cvs = document.createElement('canvas'); cvs.width = cvs.height = S;
+/** Start drawing the viewmodels' texture sets in a worker (the crossbow's only when the shard hands one out). */
+export function startViewmodelTextures(withCrossbow: boolean): void {
+  const sets = withCrossbow ? [...CROSSBOW_SETS, ...RIFLE_SETS] : [...RIFLE_SETS];
+  let worker: Worker;
+  try { worker = new TexturesWorker(); } catch { return; } // no workers: drawn on the main thread
+  texturesReady = new Promise<void>((resolve) => {
+    let left = sets.length;
+    const timer = { id: 0 };
+    const finish = () => { worker.terminate(); clearTimeout(timer.id); resolve(); };
+    timer.id = window.setTimeout(finish, WORKER_TIMEOUT_MS); // never hold the boot on it
+    worker.onmessage = (e: MessageEvent<{ name: SetName; px?: Pixels; error?: string }>) => {
+      if (e.data.px) pixelCache.set(e.data.name, e.data.px);
+      else console.warn(`[viewmodel textures] ${e.data.name} drawn on the main thread: ${e.data.error ?? '?'}`);
+      if (--left === 0) finish();
+    };
+    worker.onerror = (e) => { e.preventDefault(); console.warn(`[viewmodel textures] worker failed: ${e.message}`); finish(); };
+    worker.postMessage({ sets }, []);
+  });
+}
+/** Resolves when the worker has delivered every set it was asked for (or gave up); awaited by the weapon step. */
+export function viewmodelTexturesReady(): Promise<void> { return texturesReady; }
+
+const mainCanvas2d = (w: number, h: number): Ctx2D => {
+  const cvs = document.createElement('canvas'); cvs.width = w; cvs.height = h;
   const ctx = cvs.getContext('2d');
-  if (ctx === null) throw new Error('makeSteel: no 2d canvas context');
-  const img = ctx.createImageData(S, S);
-  const roughBase = new Float32Array(S * S), hgt = new Float32Array(S * S);
-  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
-    const u = x / S, v = y / S;
-    const mottle = fbm(u * 6, v * 6, 4), grain = fbm(u * 120, v * 4, 2);
-    const g = 128 + (mottle - 0.5) * 50 + (grain - 0.5) * 18;
-    const i = (y * S + x) * 4;
-    img.data[i] = g * 0.98; img.data[i + 1] = g; img.data[i + 2] = g * 1.04; img.data[i + 3] = 255;
-    roughBase[y * S + x] = 0.3 + (mottle - 0.5) * 0.2 + (grain - 0.5) * 0.12;
-    hgt[y * S + x] = mottle * 0.3 + grain * 0.15;
-  }
-  ctx.putImageData(img, 0, 0);
-  // scratches (brushed, mostly horizontal) + pits
-  const rnd = (i: number) => hash(i, 77);
-  for (let k = 0; k < 220; k++) {
-    const x0 = rnd(k) * S, y0 = rnd(k + 1000) * S, len = 20 + rnd(k + 2000) * 120, ang = (rnd(k + 3000) - 0.5) * 0.5 + (rnd(k + 4000) > 0.85 ? 1.2 : 0);
-    ctx.strokeStyle = `rgba(${200 + rnd(k + 5000) * 55},${205 + rnd(k + 5000) * 50},${215 + rnd(k + 5000) * 40},${0.12 + rnd(k + 6000) * 0.25})`;
-    ctx.lineWidth = 0.6 + rnd(k + 7000) * 1.2;
-    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0 + Math.cos(ang) * len, y0 + Math.sin(ang) * len); ctx.stroke();
-  }
-  for (let k = 0; k < 90; k++) {
-    const x0 = rnd(k + 9000) * S, y0 = rnd(k + 9500) * S, r = 1 + rnd(k + 9800) * 3.5;
-    ctx.fillStyle = `rgba(${70 + rnd(k) * 40},${45 + rnd(k) * 25},28,${0.35 + rnd(k + 300) * 0.4})`;
-    ctx.beginPath(); ctx.arc(x0, y0, r, 0, Math.PI * 2); ctx.fill();
-  }
-  const final = ctx.getImageData(0, 0, S, S).data;
-  const col = new Uint8Array(S * S * 4), arm = new Uint8Array(S * S * 4);
-  for (let p = 0; p < S * S; p++) {
-    const i = p * 4;
-    const fr = final[i] ?? 0, fg = final[i + 1] ?? 0, fb = final[i + 2] ?? 0;
-    col[i] = fr; col[i + 1] = fg; col[i + 2] = fb; col[i + 3] = 255;
-    const bright = (fr + fg + fb) / (3 * 128); // scratches are bright, pits dark
-    const rusty = fr > fb + 12 ? 1 : 0;
-    const rough = clamp01((roughBase[p] ?? 0) + Math.max(0, bright - 1.05) * 0.5 + rusty * 0.45);
-    arm[i] = (1 - rusty * 0.35) * 255; arm[i + 1] = rough * 255; arm[i + 2] = (1 - rusty * 0.6) * 255; arm[i + 3] = 255;
-    hgt[p] = (hgt[p] ?? 0) + (bright - 1) * 0.6 - rusty * 0.8;
-  }
-  return { map: dataTexture(col, S, S, true), normalMap: normalFromHeight(hgt, S, S, 1.4), armMap: dataTexture(arm, S, S, false) };
+  if (ctx === null) throw new Error('viewmodel textures: no 2d canvas context');
+  return ctx;
+};
+function takePixels(name: SetName): Pixels {
+  const px = pixelCache.get(name);
+  if (px) { pixelCache.delete(name); return px; } // each set is wrapped once (its buffers become the DataTextures')
+  return makePixels(name, mainCanvas2d);
 }
-
-/** Oiled leather wrap: pebbled grain + strap seams. */
-function makeLeather(seed: number): TexSet {
-  const S = 256;
-  const { fbm } = makeNoise(seed);
-  const col = new Uint8Array(S * S * 4), arm = new Uint8Array(S * S * 4), hgt = new Float32Array(S * S);
-  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
-    const u = x / S, v = y / S;
-    const pebble = fbm(u * 40, v * 40, 3), big = fbm(u * 4, v * 4, 3);
-    const seam = Math.abs(((v * 6) % 1) - 0.5) < 0.04 ? 1 : 0;
-    const lum = 0.55 + (pebble - 0.5) * 0.5 + (big - 0.5) * 0.4 - seam * 0.35;
-    const i = (y * S + x) * 4;
-    col[i] = clamp01(lum * 0.4) * 255; col[i + 1] = clamp01(lum * 0.26) * 255; col[i + 2] = clamp01(lum * 0.16) * 255; col[i + 3] = 255;
-    arm[i] = (1 - seam * 0.3) * 255; arm[i + 1] = clamp01(0.62 + (pebble - 0.5) * 0.3 + seam * 0.2) * 255; arm[i + 2] = 0; arm[i + 3] = 255;
-    hgt[y * S + x] = pebble * 0.5 - seam * 0.8;
-  }
-  return { map: dataTexture(col, S, S, true), normalMap: normalFromHeight(hgt, S, S, 2.5), armMap: dataTexture(arm, S, S, false) };
+/** A viewmodel texture set as DataTextures (map sRGB; normal + ARM linear; repeat-wrapped, mipmapped, anisotropy 8). */
+export function viewmodelTexSet(name: Exclude<SetName, 'cord'>): TexSet {
+  const p = takePixels(name);
+  if (p.arm === null) throw new Error(`viewmodel textures: ${name} has no ARM plane`);
+  return { map: dataTexture(p.col, p.w, p.h, true), normalMap: dataTexture(p.nrm, p.w, p.h, false), armMap: dataTexture(p.arm, p.w, p.h, false) };
 }
 
 /** Twisted hemp cord: diagonal stripes for both colour and bump. */
 function makeCord(): { map: THREE.Texture; normalMap: THREE.Texture } {
-  const S = 64;
-  const { fbm } = makeNoise(5);
-  const col = new Uint8Array(S * S * 4), hgt = new Float32Array(S * S);
-  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
-    const u = x / S, v = y / S;
-    const twist = Math.sin((u * 2 + v * 6) * Math.PI * 2);
-    const f = fbm(u * 8, v * 8, 2);
-    const lum = 0.62 + twist * 0.2 + (f - 0.5) * 0.15;
-    const i = (y * S + x) * 4;
-    col[i] = clamp01(lum * 0.46) * 255; col[i + 1] = clamp01(lum * 0.36) * 255; col[i + 2] = clamp01(lum * 0.22) * 255; col[i + 3] = 255;
-    hgt[y * S + x] = twist * 0.5;
-  }
-  const map = dataTexture(col, S, S, true); map.repeat.set(1, 14);
-  const normalMap = normalFromHeight(hgt, S, S, 3); normalMap.repeat.set(1, 14);
+  const p = takePixels('cord');
+  const map = dataTexture(p.col, p.w, p.h, true); map.repeat.set(1, 14);
+  const normalMap = dataTexture(p.nrm, p.w, p.h, false); normalMap.repeat.set(1, 14);
   return { map, normalMap };
 }
 
 /** Bolt atlas: bottom half iron shaft, top-left steel head, top-right feather vane (alpha). */
-function makeBoltAtlas(seed: number): TexSet {
-  const S = 512;
-  const { fbm, hash } = makeNoise(seed);
-  const col = new Uint8Array(S * S * 4), arm = new Uint8Array(S * S * 4), hgt = new Float32Array(S * S);
-  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
-    const u = x / S, v = y / S, i = (y * S + x) * 4;
-    let r: number, g: number, b: number, a = 255, rough: number, metal = 0, h: number; const ao = 1;
-    if (v < 0.5) { // iron shaft: drawn/forged steel, fine longitudinal scratches, a little bluing
-      const grain = fbm(u * 80, v * 4, 3), scratch = fbm(u * 260, v * 3, 2), mottle = fbm(u * 6, v * 12, 2);
-      const lum = 0.42 + (grain - 0.5) * 0.22 + (scratch - 0.5) * 0.12 + (mottle - 0.5) * 0.1;
-      r = 255 * lum * 0.94; g = 255 * lum * 0.97; b = 255 * lum * 1.04; rough = 0.42 + (mottle - 0.5) * 0.25 + (scratch - 0.5) * 0.15; metal = 1; h = grain * 0.4;
-    } else if (u < 0.5) { // steel
-      const m = fbm(u * 20, v * 20, 4), scratch = fbm(u * 200, v * 6, 2);
-      const lum = 0.5 + (m - 0.5) * 0.35 + (scratch - 0.5) * 0.15;
-      r = 255 * lum * 0.97; g = 255 * lum; b = 255 * lum * 1.03; rough = 0.28 + (m - 0.5) * 0.25 + (scratch - 0.5) * 0.2; metal = 1; h = m * 0.5;
-    } else { // feather: vane shape centred, barbs
-      const lu = (u - 0.5) * 2, lv = (v - 0.5) * 2; // 0..1 each
-      const edge = 0.92 - lu ** 1.6 * 0.75; // trailing edge profile
-      const inside = lv < edge && lv > 0.04 && lu > 0.02 && lu < 0.98;
-      const barb = Math.sin((lv * 24 + lu * 8) * Math.PI * 2) * 0.5 + 0.5;
-      const stripe = lu > 0.35 && lu < 0.55 ? 0.35 : 1;
-      const lum = (0.78 + barb * 0.22 + (hash(x, y) - 0.5) * 0.08) * stripe;
-      r = 205 * lum; g = 196 * lum; b = 178 * lum; a = inside ? 255 : 0; rough = 0.75; h = barb * 0.3;
-    }
-    col[i] = clamp01(r / 255) * 255; col[i + 1] = clamp01(g / 255) * 255; col[i + 2] = clamp01(b / 255) * 255; col[i + 3] = a;
-    arm[i] = ao * 255; arm[i + 1] = clamp01(rough) * 255; arm[i + 2] = metal * 255; arm[i + 3] = 255;
-    hgt[y * S + x] = h;
-  }
-  const map = dataTexture(col, S, S, true); map.wrapS = map.wrapT = THREE.ClampToEdgeWrapping; map.premultiplyAlpha = false;
-  return { map, normalMap: normalFromHeight(hgt, S, S, 1.5), armMap: dataTexture(arm, S, S, false) };
+function makeBoltAtlas(): TexSet {
+  const t = viewmodelTexSet('bolt');
+  t.map.wrapS = t.map.wrapT = THREE.ClampToEdgeWrapping; t.map.premultiplyAlpha = false;
+  return t;
 }
 
 /**
@@ -765,7 +656,7 @@ export class Crossbow implements Weapon {
 
   // ── viewmodel ──
   private buildViewmodel(): void {
-    const walnut = makeWalnut(11), steel = makeSteel(23), leather = makeLeather(31), cord = makeCord();
+    const walnut = viewmodelTexSet('walnut'), steel = viewmodelTexSet('steel-xbow'), leather = viewmodelTexSet('leather'), cord = makeCord();
     walnut.map.repeat.set(1, 4); walnut.normalMap.repeat.set(1, 4); walnut.armMap.repeat.set(1, 4);
     // Every lit material below is the SAME program: MeshPhysical + vertex colours, the same map slots (map, normal,
     // ao, roughness, metalness — the ARM texture feeds the last three, a 1×1 ARM where a set has none) and the same
@@ -889,7 +780,7 @@ export class Crossbow implements Weapon {
     this.model.add(new THREE.Mesh(grip, leatherMat));
 
     // ── loaded bolt on the rail ──
-    const atlas = makeBoltAtlas(41);
+    const atlas = makeBoltAtlas();
     this.boltGeo = buildBoltGeometry();
     this.boltMat = new THREE.MeshStandardMaterial({ map: atlas.map, normalMap: atlas.normalMap, aoMap: atlas.armMap, roughnessMap: atlas.armMap, metalnessMap: atlas.armMap, roughness: 1, metalness: 1, alphaTest: 0.5, side: THREE.DoubleSide });
     // one DoubleSide pass: the viewmodel makes this material transparent (below), and three draws a transparent

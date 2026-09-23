@@ -1,7 +1,7 @@
 /**
  * The boot plan's vocabulary — the ONE place the loading screen's steps, labels, weights and
  * byte sources are declared. Ported from game-demos/trials-gauntlet-demo `src/boot/steps.ts`
- * (docs/plans/LOAD-PERF.md §1b). Everything the loader shows is derived from these tables by
+ * (project/archive/2026-09-22-load-perf.md §1b). Everything the loader shows is derived from these tables by
  * `createBootPlan` (`./plan.ts`); nothing downstream parses a label or sums a constant.
  * A step declared here and not run by `main.ts` is a compile error (`done` only exists on the
  * exhausted plan type).

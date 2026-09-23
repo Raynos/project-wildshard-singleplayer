@@ -5,3 +5,7 @@ sources
 art
 docs
 .git
+ios
+android
+dist-native
+.native-build

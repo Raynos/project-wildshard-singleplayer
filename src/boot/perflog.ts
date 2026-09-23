@@ -1,5 +1,5 @@
 /**
- * `?perfload=1` — load-path instrumentation (docs/plans/LOAD-PERF.md, Status table). Logs every
+ * `?perfload=1` — load-path instrumentation (project/archive/2026-09-22-load-perf.md, Status table). Logs every
  * program the renderer builds during the `shaders` / `firstFrame` steps with the material it came
  * from, per-batch wall ms, and what the first real frames still had to compile. Everything lands in
  * `window.__perfload` (rows) and `console.info` so a headless run can read it back.

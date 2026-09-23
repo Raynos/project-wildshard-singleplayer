@@ -8,7 +8,7 @@ import type { Sky } from './Sky';
 import { noReflect } from './Water';
 import type { Forest } from './Forest';
 import type { Collider } from '../player/Player';
-import { CulledInstances } from './Culling';
+import { CulledInstances, CulledBatch } from './Culling';
 import { TIER_CONFIG } from '../core/tier';
 
 /**
@@ -126,7 +126,16 @@ export class Props {
       if (above > 1.0) this.colliders.push({ x, z, hw: r * 0.6, hd: r * 0.6, rot: 0, yTop: heightAt(x, z) + above, yBottom: heightAt(x, z) - 1 });
       n++;
     }
-    for (const s of shapes) this.instanced(s.geometry, s.material, s.mats, s.local);
+    const mat0 = shapes[0]?.material;
+    if (this.forest.path === 'batched' && mat0 !== undefined && shapes.every((s) => s.material === mat0)) {
+      // one BatchedMesh for the six shapes (they share the photoscan's material): 1 draw + 1 shadow draw instead of 6 + 6
+      const placements: { shape: number; matrix: THREE.Matrix4 }[] = [];
+      shapes.forEach((s, k) => { for (const m of s.mats) placements.push({ shape: k, matrix: new THREE.Matrix4().multiplyMatrices(m, s.local) }); });
+      const batch = new CulledBatch(shapes.map((s) => s.geometry), mat0, placements, TIER_CONFIG.propsFar, 40, TIER_CONFIG.propsMinAngular);
+      batch.mesh.castShadow = true; batch.mesh.receiveShadow = true;
+      this.forest.onViewChange((f, v) => batch.cull(f, v));
+      this.group.add(batch.mesh);
+    } else for (const s of shapes) this.instanced(s.geometry, s.material, s.mats, s.local);
     this.counts.rocks = n;
   }
 

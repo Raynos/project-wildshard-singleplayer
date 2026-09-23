@@ -1,6 +1,6 @@
 import { defineConfig, type Plugin } from 'vite';
 import { execSync } from 'node:child_process';
-import { readdirSync, statSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readdirSync, statSync, readFileSync, writeFileSync, existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import type { ServerResponse } from 'node:http';
 import { pwaPlugin } from './vite/pwa-plugin';
@@ -23,7 +23,8 @@ function assetIndex(): string {
   const walk = (dir: string, pub: string) => {
     for (const name of readdirSync(dir)) {
       const p = join(dir, name); const st = statSync(p);
-      if (st.isDirectory()) walk(p, `${pub}/${name}`); else out[`${pub}/${name}`] = st.size;
+      if (st.isDirectory()) { if (`${pub}/${name}` !== '/assets/packs') walk(p, `${pub}/${name}`); } // packs: generated from these very files, below
+      else out[`${pub}/${name}`] = st.size;
     }
   };
   try { walk('public/assets', '/assets'); } catch { /* no assets dir */ }
@@ -57,6 +58,12 @@ function writeBytesModule() {
 }
 writeBytesModule();
 
+// Boot packs (scripts/bake-packs.mjs → public/assets/packs/<slug>.<tier>-<hash>.bin + src/boot/packs.generated.ts): each
+// shard's boot files for a tier as one streamed file (src/boot/pack.ts). After the byte table: the tier's file names
+// come from it. Never fatal — without a pack the boot fetches file by file.
+try { execSync('node --import ./scripts/bake-loader.mjs scripts/bake-packs.mjs', { stdio: 'inherit' }); }
+catch (e) { console.warn('[pack] boot packs failed — the boot fetches file by file', e); }
+
 const versionPlugin = (): Plugin => ({
   name: 'wildshard-version',
   generateBundle() {
@@ -72,13 +79,53 @@ const versionPlugin = (): Plugin => ({
   },
 });
 
-export default defineConfig({
-  server: { port: 5173, host: true },
-  // keepNames: the uncaught-exception modal shows raw stacks on phones (no source-map resolution there), so keep
-  // function / class names readable; hidden source maps for desktop devtools (not referenced from the bundle).
-  esbuild: { keepNames: true, minifyIdentifiers: false }, // readable stacks in the exception modal (identifier mangling saves ~15 % gzip; not worth blind bug reports)
-  build: { target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: 'hidden' },
-  assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
-  define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
-  plugins: [versionPlugin(), pwaPlugin(BUILD_ID)],
+// `vite build --mode native` (docs/plans/NATIVE-APPS.md): the web bundle the iOS / Android shells embed, in
+// dist-native/ (capacitor.config.ts `webDir`). Same game; the page swaps the web-only boot for src/native/boot.ts:
+// no service worker (WKWebView has none on capacitor://, and the bundle is already on disk), no update pill
+// (native updates are the signed OTA channel), no Google Fonts (bundled — the app must boot offline), no trailers.
+const WEB_ONLY_HTML = [
+  /\s*<link rel="manifest"[^>]*>/,
+  /\s*<script type="module" src="\/src\/boot\/sw\.ts"><\/script>/,
+  /\s*<script type="module" src="\/src\/ui\/Update\.ts"><\/script>/,
+];
+// Capacitor's `server.errorPath`: shown when the WebView cannot load the game at all (an outdated Android System
+// WebView is the usual cause). No script, no fonts, no network.
+const NATIVE_UNAVAILABLE = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Wildshard</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#11161b;color:#e8e2d4;font:16px/1.5 -apple-system,system-ui,sans-serif;text-align:center;padding:24px;box-sizing:border-box}h1{font-size:22px;margin:0 0 8px}p{max-width:34em;margin:0 auto;color:#b9b3a6}</style></head>
+<body><div><h1>Wildshard can't start on this device</h1><p>The game needs WebGL 2 and an up-to-date system WebView. On Android, update <b>Android System WebView</b> and <b>Chrome</b> from Google Play, then reopen Wildshard. On iPhone, update to iOS 17 or later.</p></div></body></html>
+`;
+const nativePlugin = (): Plugin => ({
+  name: 'wildshard-native',
+  transformIndexHtml: { order: 'pre', handler(html) { // pre: on the source page, before Vite bundles its scripts
+    let out = html;
+    for (const re of WEB_ONLY_HTML) {
+      if (!re.test(out)) throw new Error(`[native] index.html no longer matches ${String(re)} — update WEB_ONLY_HTML in vite.config.ts`);
+      out = out.replace(re, '');
+    }
+    // any Google Fonts link (the native entry bundles the faces itself; optional, the web page may self-host them)
+    out = out.replaceAll(/\s*<link[^>]*fonts\.(?:googleapis|gstatic)\.com[^>]*>/g, '');
+    const main = '<script type="module" src="/src/boot/entry.ts"></script>'; // the web entry (it imports src/main.ts)
+    if (!out.includes(main)) throw new Error('[native] index.html has no src/boot/entry.ts script to swap for src/native/boot.ts');
+    return out.replace(main, '<script type="module" src="/src/native/boot.ts"></script>');
+  } },
+  generateBundle() { this.emitFile({ type: 'asset', fileName: 'native-unavailable.html', source: NATIVE_UNAVAILABLE }); },
+  closeBundle() { for (const f of ['trailer-15.mp4', 'trailer-30.mp4']) rmSync(join('dist-native', f), { force: true }); },
+});
+
+export default defineConfig(({ mode }) => {
+  const native = mode === 'native';
+  return {
+    server: { port: 5173, host: true },
+    // keepNames: the uncaught-exception modal shows raw stacks on phones (no source-map resolution there), so keep
+    // function / class names readable; hidden source maps for desktop devtools (not referenced from the bundle).
+    esbuild: { keepNames: true, minifyIdentifiers: false }, // readable stacks in the exception modal (identifier mangling saves ~15 % gzip; not worth blind bug reports)
+    // native: no source maps at all — they would ship inside the app and in every OTA bundle
+    build: native
+      ? { target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: false, outDir: 'dist-native' }
+      // one stylesheet: src/boot/entry.ts splits three.js from the game's graph, and code-split CSS would add a request
+      : { target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const, cssCodeSplit: false },
+    assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
+    define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
+    plugins: native ? [versionPlugin(), nativePlugin()] : [versionPlugin(), pwaPlugin(BUILD_ID)],
+  };
 });

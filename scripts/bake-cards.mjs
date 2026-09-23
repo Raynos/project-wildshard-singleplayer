@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// bake-cards.mjs — bake the pine branch cards once, headless (docs/plans/LOAD-PERF.md §P2.2).
+// bake-cards.mjs — bake the pine branch cards once, headless (project/archive/2026-09-22-load-perf.md §P2.2).
 //
 // TreeFactory.bakeBranchCard needs a GPU (it renders the twig atlas into three render targets), so this
 // runs the game in headless Chromium against the dev server with `?bakecards=1`, reads the three planes back

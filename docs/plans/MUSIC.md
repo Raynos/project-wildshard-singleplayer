@@ -1,6 +1,6 @@
 # Project Wildshard — the music
 
-**State:** `in progress` 2026-09-22 — v1 (the synth score, D35) is live; the user heard it: "super basic, we need better music". v2 = music composed locally by open-weight models, three styles side by side with an in-game switch; decisions below are the user's (E5). Open: every row of the v2 table.
+**State:** `blocked` 2026-09-22 — rows 1–2 done (`ec5665e`): 4 local models ran (HeartMuLa, MiniMax Music 3, Stable Audio Open 1.0 + Small; ACE-Step dropped, too heavy), 102 takes, a 9-track shortlist in `art/music/round-1-bakeoff/` (listening page: https://claude.ai/artifact/SCH5wc5xFCJHLvfNtYDwE3). Waiting on the user (E5): one pick per style, and the licence terms (Stability registration + credit / MiniMax on-screen credit).
 
 ## What changed (2026-09-22, the user after listening — ASKS D41 → E5)
 
@@ -11,7 +11,7 @@ the first reason, and v2 solves the second with stems.
 
 | decision | the user's pick |
 |---|---|
-| model licences | permissive **or revenue-capped** is fine: ACE-Step 1.5 (MIT), MiniMax Music 3 (free < $20M revenue), Stable Audio Open (free < $1M), Magenta RT (Apache); a bake-off decides by ear |
+| model licences | permissive **or revenue-capped** is fine: HeartMuLa, MiniMax Music 3 (free < $20M revenue), Stable Audio Open (free < $1M), Magenta RT (Apache); a bake-off decides by ear |
 | the melody | **the model composes**; the v1 motif is not kept for its own sake |
 | the style | **generate three and let me switch in game**: ① sparse piano + ambient (BotW), ② warm orchestral (Ghibli / Ori), ③ folk-adventure (Sea of Thieves) |
 | the sound bar | better synth **and** real instruments, **and** open-weight models making it locally |
@@ -21,15 +21,20 @@ the first reason, and v2 solves the second with stems.
 
 ## The pipeline: generate locally, ship stems, mix adaptively
 
-Everything is generated on this Mac (M5 Max, 128 GB unified memory — the ACE-Step 4B XL DiT + 4B LM fit without
-offload); nothing leaves the machine, no per-track fees.
+Everything is generated on this Mac (M5 Max, 128 GB unified memory); nothing leaves the machine, no per-track fees.
+Weights live in `~/projects/weights/manual/` (fetched with its `bin/fetch-repo.sh`); the per-model notes (backend,
+speed, memory, launch) are in `~/projects/localai`. **One model in memory at a time** — two music models at once
+filled 30 GB of swap on 2026-09-22 — and check `sysctl vm.swapusage` before each run.
+
+**ACE-Step 1.5 is dropped** (the user, 2026-09-22: too heavy for this machine) — its repaint / layering / stem-extract
+steps below fall to whichever model wins, or to plain audio editing (bar-exact trims + crossfades, `ffmpeg`).
 
 1. **Bake-off** (`scripts/music/gen/`): each candidate model gets the same brief per style — key, BPM, mood
    ("a world arriving one chunk at a time: wonder first, adventure second, melancholy underneath"),
    instrumentation for the style, instrumental only. ~10 takes per model per style → a local listening page.
    Weighed on: does it sound like a real recording, does it loop, does it hold a melody you can hum, licence.
 2. **Pick per style** — the user listens to a shortlist (best 3 per style) and picks one theme per style.
-3. **Make it adaptive from the pick**: fixed BPM/key/time signature (ACE-Step conditions on all three), so every
+3. **Make it adaptive from the pick**: fixed BPM/key/time signature (prompted; checked by beat-tracking), so every
    piece sits on the same bar grid —
    - *calm* bed (the picked track, trimmed to a bar-exact loop; the seam fixed with **repaint**),
    - *tension* layer (**lego/layering**: percussion + low strings/bass added over the calm bed, same grid),
@@ -75,8 +80,8 @@ Everything above is reproducible: prompts, seeds, model + version, and the trim 
 
 | # | checkpoint | status |
 |---|---|---|
-| 1 | Local model set-up on the Mac: ACE-Step 1.5 (XL + LM), Stable Audio Open, MiniMax Music 3 if open weights run locally; smoke test: one 60 s take each, timed | open |
-| 2 | Bake-off: ~10 takes × model × 3 styles (Pine Hollow brief) → `progress/music/bakeoff/` + a local listening page (and an Artifact for the phone) | open |
+| 1 | Local model set-up on the Mac: HeartMuLa (MLX), Stable Audio Open (Small + 1.0), MiniMax Music 3 (MPS, diffusers 0.40 — no port needed); ~~ACE-Step 1.5~~ dropped (too heavy); speeds / memory in `~/projects/localai/docs/music-models.md` | done `ec5665e` |
+| 2 | Bake-off: ~10 takes × model × 3 styles (Pine Hollow brief) → `art/music/round-1-bakeoff/` + a listening page (and an Artifact for the phone) | done `ec5665e` — 102 takes, shortlist 3 per style; SAO 1.0 scores best but stops at 47 s, MiniMax writes full themes but ignores the key, HeartMuLa hums |
 | 3 | **User pick** — one track per style from the shortlist (the user's ears; blocks 4) | open |
 | 4 | Adaptive assets per style: calm loop (repaint seam), tension layer (lego), title cut, Driftwood bed, stings; encode + normalise + manifest | open |
 | 5 | Music.ts stem player + synth fallback + lazy load after enter; synth patches improved (reverb, pluck, pad) | open |

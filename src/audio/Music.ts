@@ -446,26 +446,35 @@ class Engine {
 
 /** the live game wrapper: timer, state, volume, stings, the offline render */
 export class Music {
-  readonly ctx: AudioContext;
-  readonly engine: Engine;
-  /** the music bus: `volume` × the Settings 'music' slider → audio.master */
-  readonly out: GainNode;
+  /** ctx + the music bus (`volume` × the Settings 'music' slider → audio.master) + the engine, built on first use
+   *  (play, after the first gesture) so boot never creates the AudioContext; state set before then waits in `pending` */
+  private rig: { ctx: AudioContext; out: GainNode; engine: Engine } | undefined;
+  private pending: MusicState = { shard: 'pine', mode: 'menu', intensity: 0, underwater: false };
   private timer = 0;
   private _volume: number;
   private playing: ArrangementName | undefined;
   private combatTimer = 0;
 
-  constructor(audio: Audio) {
-    this.ctx = audio.ctx;
-    this.out = this.ctx.createGain();
+  constructor(private readonly audio: Audio) {
     this._volume = getNumber('music');
-    this.out.gain.value = this._volume;
-    this.out.connect(audio.master);
-    this.engine = new Engine(this.ctx, this.out);
-    onNumber('music', (v) => { this._volume = v; this.out.gain.setTargetAtTime(v, this.ctx.currentTime, 0.05); });
+    onNumber('music', (v) => { this._volume = v; if (this.rig) this.rig.out.gain.setTargetAtTime(v, this.rig.ctx.currentTime, 0.05); });
   }
 
-  get state(): MusicState { return this.engine.state; }
+  private build(): NonNullable<Music['rig']> {
+    if (this.rig) return this.rig;
+    const ctx = this.audio.ctx, out = ctx.createGain();
+    out.gain.value = this._volume;
+    out.connect(this.audio.master);
+    const engine = new Engine(ctx, out);
+    this.rig = { ctx, out, engine };
+    this.setState(this.pending);
+    return this.rig;
+  }
+  get ctx(): AudioContext { return this.build().ctx; }
+  get engine(): Engine { return this.build().engine; }
+  get out(): GainNode { return this.build().out; }
+
+  get state(): MusicState { return this.rig ? this.rig.engine.state : this.pending; }
   get stats(): Engine['stats'] { return this.engine.stats; }
   get volume(): number { return this._volume; }
   set volume(v: number) { setNumber('music', v); }
@@ -503,7 +512,8 @@ export class Music {
 
   /** the game → the music: mode/shard/intensity take effect on the next bar (pending bars are rescheduled); underwater is immediate */
   setState(next: Partial<MusicState>): void {
-    const s = this.engine.state, prev = { ...s };
+    if (!this.rig) { Object.assign(this.pending, next); this.pending.intensity = Math.min(1, Math.max(0, this.pending.intensity)); return; }
+    const s = this.rig.engine.state, prev = { ...s };
     Object.assign(s, next);
     s.intensity = Math.min(1, Math.max(0, s.intensity));
     const now = this.ctx.currentTime;
@@ -523,7 +533,7 @@ export class Music {
     this.combatTimer = window.setTimeout(() => { if (this.state.mode === 'combat') this.setState({ mode: 'alert', intensity: 0.5 }); }, 8000);
   }
 
-  sting(name: StingName): void { this.engine.sting(name, this.ctx.currentTime + 0.02); }
+  sting(name: StingName): void { if (this.rig) this.rig.engine.sting(name, this.rig.ctx.currentTime + 0.02); }
 
   /** the same instruments and scheduler on an OfflineAudioContext (48 kHz stereo) → an AudioBuffer of `seconds` */
   static async renderOffline(name: ArrangementName, seconds: number, opts: { state?: Partial<MusicState> | undefined; solo?: string[] | undefined } = {}): Promise<AudioBuffer> {

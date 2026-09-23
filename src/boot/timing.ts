@@ -1,5 +1,5 @@
 /**
- * Expected step durations for the SETUP track (docs/plans/LOAD-PERF.md, job 2 "continuous bar").
+ * Expected step durations for the SETUP track (project/archive/2026-09-22-load-perf.md, job 2 "continuous bar").
  *
  * The bar's setup fraction is time-weighted: each step counts for its *expected* wall ms — the
  * previous run's measurement on this device and tier (an EMA in localStorage), falling back to

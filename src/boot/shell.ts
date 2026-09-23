@@ -1,5 +1,5 @@
 /**
- * The loading screen's markup, painted from the first HTML bytes (docs/plans/LOAD-PERF.md §1b, the
+ * The loading screen's markup, painted from the first HTML bytes (project/archive/2026-09-22-load-perf.md §1b, the
  * gauntlet's `inline.ts` idea): index.html carries this exact markup inside `<div class="ws-load"
  * data-shell>`, so the title panel is on screen as soon as the page's CSS is — before the 1.7 MB bundle
  * has downloaded, compiled and run. `Loading` (src/ui/Loading.ts) adopts that element and fills in the

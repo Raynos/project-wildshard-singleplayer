@@ -6,6 +6,7 @@ import type { Forest } from '../world/Forest';
 import { Hoverboard } from './Hoverboard';
 import { WaterLine } from './WaterLine';
 import { setUnderwater, updateUnderwater } from '../world/Atmosphere';
+import { getNumber } from '../ui/Settings';
 
 export interface Collider { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }
 
@@ -55,6 +56,15 @@ const SLOPE_SLIDE = 0.6;              // below this (≈ 53°) you slide down it
 const SLOPE_PROBE = 0.6;              // m ahead of the feet, along the move, where the slope is also sampled (so a wall stops you before you're on it)
 const SLIDE_SPEED = 3.2;              // m/s down the fall line while sliding …
 const SLIDE_ACCEL = 5;                // … reached at this rate (/s)
+// ── dash (on foot): the DODGE (Left Alt / the DODGE disc) and the sword's lunge (Sword.ts) — a short fixed-velocity burst ──
+const DODGE_DIST = 3;                 // m …
+const DODGE_TIME = 0.25;              // … over this long (12 m/s), toward the move input; no input = a backstep
+const DODGE_COOLDOWN = 0.6;           // s from one dodge's start to the next
+const DASH_PROBE = 0.5;               // m ahead of the feet: deep water there (no deck under it) ends a dash — it never carries you off a pier
+const DODGE_DIP = 0.07;               // m the eye drops at a dodge's start (the land-impulse spring brings it back)
+const DODGE_ROLL = 0.06;              // rad of camera lean into a fully sideways dodge
+const DODGE_FOV_KICK = 5;             // ° wider while a dodge runs …
+const LUNGE_FOV_KICK = 7;             // … and a lunge (Sword.ts reads `fovKick`)
 
 export class Player {
   position = new THREE.Vector3(0, 0, 0);
@@ -134,18 +144,36 @@ export class Player {
   /** runs first thing in update(), before input is read and the camera is posed — the touch aim assist nudges yaw/pitch here */
   preUpdate?: (dt: number) => void;
   private lastBobPhase = 0;
+  // ── dash: dodge + lunge (see `dodge()` / `dash()`) ──
+  /** the DODGE disc was tapped (TouchControls) — consumed next update, like `touchJump` */
+  touchDodge = false;
+  /** a sword swing is running (Sword.ts sets it every frame): the look speed takes the 'swingLook' factor */
+  swinging = false;
+  /** look-speed multiplier for mouse AND touch (Settings 'look', × 'swingLook' while swinging) — TouchControls reads it too */
+  get lookMult(): number { return getNumber('look') * (this.swinging ? getNumber('swingLook') : 1); }
+  /** a dodge started / a lunge dash started (audio, haptics — main.ts) */
+  onDodge?: () => void;
+  onLunge?: () => void;
+  /** degrees to widen the view by: kicked by a dodge / lunge, held while the dash runs, eased out after — Sword.ts adds it to its FOV */
+  fovKick = 0;
+  private dashT = 0; private dashVx = 0; private dashVz = 0; private dodgeCd = 0;
+  private dashRoll = 0; // camera lean into a sideways dodge (rad), eased out
+  /** true while a dodge / lunge burst is carrying the player */
+  get dashing(): boolean { return this.dashT > 0; }
 
   constructor(public camera: THREE.PerspectiveCamera, private forest: Forest, private canvas: HTMLCanvasElement) {
     document.addEventListener('keydown', (e) => {
       this.keys.add(e.code);
       if (e.code === 'Space') e.preventDefault();
       if (e.code === 'KeyH' && !e.repeat) this.setHover(!this.hover);
+      if (e.code === 'AltLeft') { e.preventDefault(); if (!e.repeat && this.locked) this.dodge(); } // Alt alone would focus the browser's menu bar
     });
     document.addEventListener('keyup', (e) => { this.keys.delete(e.code); });
     document.addEventListener('mousemove', (e) => {
       if (!this.locked) return;
-      this.yaw -= e.movementX * 0.0022;
-      this.pitch -= e.movementY * 0.0022;
+      const s = 0.0022 * this.lookMult;
+      this.yaw -= e.movementX * s;
+      this.pitch -= e.movementY * s;
       this.pitch = Math.max(-1.45, Math.min(1.45, this.pitch));
     });
     document.addEventListener('pointerlockchange', () => { this.locked = document.pointerLockElement === this.canvas; if (!this.locked) this.keys.clear(); });
@@ -153,7 +181,9 @@ export class Player {
     this.board = new Hoverboard(camera, HOVER_TOP);
   }
 
-  lock(): void { if ('requestPointerLock' in this.canvas) void this.canvas.requestPointerLock(); } // absent on iOS Safari — touch input never needs it
+  // absent on iOS Safari; present but rejecting ("UnknownError") in the Android WebView — touch input never needs it,
+  // and an unhandled rejection would raise the uncaught-exception modal on ENTER WORLD
+  lock(): void { if ('requestPointerLock' in this.canvas) this.canvas.requestPointerLock().catch(() => { /* no pointer lock here: touch play */ }); }
 
   /** step on / off the hoverboard. Off: the board fades and gravity lands you; on: the spring lifts you to ride height. */
   setHover(on: boolean): void {
@@ -186,6 +216,51 @@ export class Player {
 
   get forward(): THREE.Vector3 { return new THREE.Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw)); }
 
+  /** on foot, not swimming / on the board / sliding: a dash (dodge, lunge) may start */
+  private get canDash(): boolean { return !this.hover && !this.swimming && !this.sliding; }
+  /** a dash: move at (vx, vz) m/s for `time` s, whatever the input says (gravity, collisions and the pier-edge probe still apply) */
+  dash(vx: number, vz: number, time: number): boolean {
+    if (!this.canDash || time <= 0) return false;
+    this.dashVx = vx; this.dashVz = vz; this.dashT = time;
+    return true;
+  }
+  /** the sword's lunge: dash toward (x, z) and stop `stopAt` m short of it, over `time` s. False (nothing happens) when already that close. */
+  dashTo(x: number, z: number, stopAt: number, time: number): boolean {
+    const dx = x - this.position.x, dz = z - this.position.z, d = Math.hypot(dx, dz), go = d - stopAt;
+    if (go < 0.15) return false;
+    if (!this.dash(dx / d * go / time, dz / d * go / time, time)) return false;
+    this.fovKick = Math.max(this.fovKick, LUNGE_FOV_KICK);
+    this.onLunge?.();
+    return true;
+  }
+  /** DODGE (Left Alt / the DODGE disc): DODGE_DIST m in DODGE_TIME s toward the move input, a backstep with none; DODGE_COOLDOWN s between */
+  dodge(): boolean {
+    if (this.dodgeCd > 0 || !this.canDash) return false;
+    const k = this.keys;
+    const fwd = Math.max(-1, Math.min(1, (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0) + this.touchMove.y));
+    const str = Math.max(-1, Math.min(1, (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + this.touchMove.x));
+    const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
+    let mx = -sin * fwd + cos * str, mz = -cos * fwd - sin * str;
+    const len = Math.hypot(mx, mz);
+    if (len < 0.2) { mx = sin; mz = cos; } else { mx /= len; mz /= len; } // no input: straight back
+    const v = DODGE_DIST / DODGE_TIME;
+    if (!this.dash(mx * v, mz * v, DODGE_TIME)) return false;
+    this.dodgeCd = DODGE_COOLDOWN;
+    // feel: a dip (the knees load), a lean into a sideways dodge, a small FOV kick
+    this.landImpulse = Math.max(this.landImpulse, DODGE_DIP);
+    this.dashRoll = -(mx * cos - mz * sin) * DODGE_ROLL; // + = the dodge goes right → roll right
+    this.fovKick = Math.max(this.fovKick, DODGE_FOV_KICK);
+    this.onDodge?.();
+    return true;
+  }
+  /** deep water at (x, z) with no deck over it — where a dash must not carry you */
+  private deepAt(x: number, z: number): boolean {
+    const ws = this.waterSurfaceAt(x, z);
+    if (ws === null || ws - heightAt(x, z) <= WADE_MAX) return false;
+    for (const p of this.platforms) { const y = p(x, z); if (y !== undefined && y > ws - 0.5) return false; }
+    return true;
+  }
+
   update(dtRaw: number): void {
     const dt = Math.min(dtRaw, 0.05);
     this.preUpdate?.(dt);
@@ -211,6 +286,9 @@ export class Player {
     // while swimming Space / the DIVE disc and Shift / the SURFACE disc are HELD controls (the swim branch reads them)
     this.diveHeld = swim && (k.has('Space') || this.touchDive);
     this.surfaceHeld = swim && (k.has('ShiftLeft') || k.has('ShiftRight') || this.touchSurface);
+    this.dodgeCd = Math.max(0, this.dodgeCd - dt);
+    if (this.touchDodge) { this.touchDodge = false; this.dodge(); }
+    if (hover || swim) this.dashT = 0;
 
     // ground: terrain, or a platform if we are at/above it (step up ≤ 0.5 m)
     const groundAt = () => {
@@ -371,8 +449,17 @@ export class Player {
           else accel = Math.min(accel, 8); // feet scrabbling on the steep face: less grip
         }
       }
-      this.velocity.x += (wx - this.velocity.x) * Math.min(1, accel * dt);
-      this.velocity.z += (wz - this.velocity.z) * Math.min(1, accel * dt);
+      if (this.dashT > 0) {
+        // dash (dodge / lunge): the burst overrides the input; deep water just ahead (off a pier edge, no deck) ends it on the spot
+        this.dashT -= dt;
+        const dl = Math.hypot(this.dashVx, this.dashVz) || 1;
+        if (this.deepAt(this.position.x + this.dashVx / dl * DASH_PROBE, this.position.z + this.dashVz / dl * DASH_PROBE)) { this.dashT = 0; this.velocity.x = this.velocity.z = 0; }
+        else if (this.dashT > 0) { this.velocity.x = this.dashVx; this.velocity.z = this.dashVz; }
+        else { this.velocity.x = this.dashVx * 0.25; this.velocity.z = this.dashVz * 0.25; } // the last frame: brake, so a lunge stops where it aimed
+      } else {
+        this.velocity.x += (wx - this.velocity.x) * Math.min(1, accel * dt);
+        this.velocity.z += (wz - this.velocity.z) * Math.min(1, accel * dt);
+      }
 
       if (this.onGround) this.jumpsLeft = 1; // one more jump available once you've left the ground
       const jumpV = 7.2 * (1 - 0.35 * wadeT); // wading: the water saps the push-off
@@ -431,6 +518,10 @@ export class Player {
     const targetEye = this.crouching ? EYE - 0.65 : EYE;
     this.eyeOffset += (targetEye - this.eyeOffset) * Math.min(1, dt * 10);
     this.landImpulse *= Math.exp(-dt * 9);
+    // dodge / lunge feel: the lean eases out, the FOV kick holds while the dash runs and eases out after
+    this.dashRoll *= Math.exp(-dt * 7);
+    if (this.dashT <= 0) this.fovKick *= Math.exp(-dt * 8);
+    if (this.fovKick < 0.02) this.fovKick = 0;
     this.hoverBlend += ((hover ? 1 : 0) - this.hoverBlend) * Math.min(1, dt * 4);
     if (!hover && !swim) this.bobTime += dt * (this.sprinting ? 11.5 : 8.5) * Math.min(1, hSpeed / 2);
     const bobAmp = this.onGround && !hover && !swim ? Math.min(1, hSpeed / 3) * (this.sprinting ? 0.055 : 0.03) : 0;
@@ -448,7 +539,7 @@ export class Player {
     this.camera.rotation.set(0, 0, 0, 'YXZ');
     this.camera.rotation.y = this.yaw;
     this.camera.rotation.x = this.pitch + this.pitchLean;
-    this.camera.rotation.z = Math.sin(this.bobTime) * bobAmp * 0.25 - str * 0.012 * (1 - this.hoverBlend) + this.roll;
+    this.camera.rotation.z = Math.sin(this.bobTime) * bobAmp * 0.25 - str * 0.012 * (1 - this.hoverBlend) + this.roll + this.dashRoll;
 
     this.board.update(dt, this);
     // water line: tint the bottom of the view as the eye nears / dips under the surface; under it, the underwater look

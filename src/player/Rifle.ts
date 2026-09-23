@@ -6,7 +6,7 @@ import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { heightAt } from '../world/Heightfield';
 import { getSetting } from '../ui/Settings';
 import {
-  Puffs, viewmodelMaterial, whiteColors, fovForAspect, FOV_HIP, FOV_ADS, makeNoise, makeSteel, dataTexture, normalFromHeight, box, cyl, stripExtra, sstep, clamp01,
+  Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01,
   TRACER_RED, TRACER_ORDER, isMesh, type TexSet, type Targets, type ImpactSurface, type CrossbowWorld, type CrossbowOptions,
 } from './Crossbow';
 import type { KitWeapon, WeaponState, AimInfo } from './Weapons';
@@ -55,41 +55,6 @@ const TRUNK_PAD = 0.15; // Forest pads every trunk's collision radius by this mu
 const SIGHT_CYAN = 0x8fe3ff;
 
 // ───────────────────────────── textures ─────────────────────────────
-
-/** Type III hard-coat anodised aluminium: near-black, a fine machining grain along U, faint mottle, bright wear on the edges of the pattern. */
-function makeAnodised(seed: number): TexSet {
-  const S = 512;
-  const { fbm, hash } = makeNoise(seed);
-  const col = new Uint8Array(S * S * 4), arm = new Uint8Array(S * S * 4), hgt = new Float32Array(S * S);
-  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
-    const u = x / S, v = y / S, i = (y * S + x) * 4;
-    const grain = fbm(u * 260, v * 3, 2), mottle = fbm(u * 5, v * 5, 4), scuff = fbm(u * 14 + 3, v * 14, 3);
-    const wear = sstep(0.68, 0.9, scuff) * 0.35; // silver showing through where the coating is rubbed
-    const lum = 0.22 + (grain - 0.5) * 0.08 + (mottle - 0.5) * 0.07 + wear * 0.5 + (hash(x, y) - 0.5) * 0.02;
-    col[i] = clamp01(lum * 0.96) * 255; col[i + 1] = clamp01(lum * 0.98) * 255; col[i + 2] = clamp01(lum * 1.04) * 255; col[i + 3] = 255;
-    const rough = clamp01(0.5 + (mottle - 0.5) * 0.14 + (grain - 0.5) * 0.08 - wear * 0.3);
-    arm[i] = 255; arm[i + 1] = rough * 255; arm[i + 2] = (0.85 + wear * 0.15) * 255; arm[i + 3] = 255;
-    hgt[y * S + x] = grain * 0.25 + mottle * 0.1;
-  }
-  return { map: dataTexture(col, S, S, true), normalMap: normalFromHeight(hgt, S, S, 0.9), armMap: dataTexture(arm, S, S, false) };
-}
-
-/** Glass-filled nylon (grip, stock, magazine): charcoal, a coarse stipple, faint mould lines. */
-function makePolymer(seed: number): TexSet {
-  const S = 256;
-  const { fbm, hash } = makeNoise(seed);
-  const col = new Uint8Array(S * S * 4), arm = new Uint8Array(S * S * 4), hgt = new Float32Array(S * S);
-  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
-    const u = x / S, v = y / S, i = (y * S + x) * 4;
-    const stipple = fbm(u * 90, v * 90, 2), big = fbm(u * 6, v * 6, 3), h = hash(x, y);
-    const line = Math.abs(v - 0.5) < 0.004 ? 0.12 : 0; // mould parting line
-    const lum = 0.13 + (stipple - 0.5) * 0.06 + (big - 0.5) * 0.04 + (h - 0.5) * 0.02 + line;
-    col[i] = clamp01(lum) * 255; col[i + 1] = clamp01(lum * 1.02) * 255; col[i + 2] = clamp01(lum * 1.05) * 255; col[i + 3] = 255;
-    arm[i] = 255; arm[i + 1] = clamp01(0.78 + (stipple - 0.5) * 0.2 - line) * 255; arm[i + 2] = 0; arm[i + 3] = 255;
-    hgt[y * S + x] = stipple * 0.6 + h * 0.1 + line;
-  }
-  return { map: dataTexture(col, S, S, true), normalMap: normalFromHeight(hgt, S, S, 2.2), armMap: dataTexture(arm, S, S, false) };
-}
 
 /** muzzle flash sprite: a hot white core, orange petals, alpha in the luminance (additive) */
 function makeFlashTexture(): THREE.CanvasTexture {
@@ -354,7 +319,7 @@ export class Rifle implements KitWeapon {
 
   // ── viewmodel ──
   private buildViewmodel() {
-    const alu = makeAnodised(53), poly = makePolymer(59), steel = makeSteel(61);
+    const alu = viewmodelTexSet('anodised'), poly = viewmodelTexSet('polymer'), steel = viewmodelTexSet('steel-rifle'); // drawn in a worker during the boot (Crossbow.ts startViewmodelTextures)
     alu.map.repeat.set(3, 1); alu.normalMap.repeat.set(3, 1); alu.armMap.repeat.set(3, 1);
     steel.map.repeat.set(2, 2); steel.normalMap.repeat.set(2, 2); steel.armMap.repeat.set(2, 2);
     // no program of its own: every material is the viewmodels' shared lit one (Crossbow.viewmodelMaterial — MeshPhysical
@@ -448,7 +413,7 @@ export class Rifle implements KitWeapon {
     this.model.add(this.flash, this.flashLight);
 
     // depth clear + render after the world, exactly like the crossbow (see Crossbow.ts buildViewmodel)
-    const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true }));
+    const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false })); // fogless: draws nothing, shares the fogless MeshBasic program (as the crossbow's);
     clearer.renderOrder = 999; clearer.frustumCulled = false;
     clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
     this.model.add(clearer);

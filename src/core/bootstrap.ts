@@ -15,6 +15,7 @@ import type { ChunkDef } from '../chunks/ChunkDef';
 /** Tree builders by `ChunkTrees.factory` id. Add a species here when a shard needs one. */
 const TREE_FACTORIES = {
   pine: (renderer: THREE.WebGLRenderer, def: ChunkDef) => new TreeFactory(renderer, { bark: def.trees.bark, twigAtlas: def.trees.twigAtlas }).build(),
+  none: (renderer: THREE.WebGLRenderer) => new TreeFactory(renderer).buildEmpty(),
 } as const;
 
 export interface World {

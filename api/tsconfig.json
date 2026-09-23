@@ -1,0 +1,10 @@
+{
+  // api/ is Node (Vercel functions), not the browser game: its own program with Node types, same strictness.
+  // `pnpm typecheck` runs it after the root program; type-aware oxlint resolves api/ files to this tsconfig.
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ES2023"]
+  },
+  "include": ["."]
+}

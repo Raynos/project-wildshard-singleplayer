@@ -76,7 +76,7 @@ export interface PlanOptions {
   /**
    * Awaited after every step (default in a browser: one macrotask). A step's work and the next step's
    * start otherwise chain through microtasks inside ONE task — the 0.75–1.3 s long tasks of
-   * docs/plans/LOAD-PERF.md were forest + edge + grass and animals + weapon glued together.
+   * project/archive/2026-09-22-load-perf.md were forest + edge + grass and animals + weapon glued together.
    */
   yieldTask?: (() => Promise<void>) | null;
 }
@@ -87,6 +87,19 @@ export const macrotask = (): Promise<void> => new Promise((resolve) => {
   c.port1.onmessage = () => { c.port1.close(); resolve(); };
   c.port2.postMessage(0);
 });
+
+/**
+ * A yield point that ends the task only once it has run `budgetMs` (wall): sprinkle `await slice()` between
+ * builders of uneven size — the ones a shard skips cost nothing, the heavy runs still break under ~100 ms.
+ */
+export function slicer(budgetMs = 30): () => Promise<void> {
+  let t0 = performance.now();
+  return async () => {
+    if (performance.now() - t0 < budgetMs) return;
+    await macrotask();
+    t0 = performance.now();
+  };
+}
 
 interface StepState { state: 'todo' | 'on' | 'ok'; fraction: number; sub: number; detail: string; t0: number; ms: number }
 interface SourceState { total: number; files: number; read: number; filesDone: number; closed: boolean }

@@ -161,7 +161,7 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
     groundTints: [[0.95, 0.88, 0.7], [0.6, 0.85, 0.45], [0.7, 0.7, 0.72], [0.9, 0.84, 0.66]],
     slabRock: 'rock_ground',
   },
-  trees: { factory: 'pine', bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'trees' }, // no trees yet (palms are a later piece)
+  trees: { factory: 'none', bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'trees' }, // no forest trees (palms are their own builder, src/world/Palms.ts)
   forest: {
     spacing: 9,
     densityFreq: 0.01,

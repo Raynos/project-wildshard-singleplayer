@@ -32,13 +32,16 @@ import { Particles } from './world/Particles';
 import { Cabins } from './world/Cabin';
 import { Props } from './world/Props';
 import { AnimalManager } from './entities/AnimalManager';
-import { Crossbow, type Targets, type TargetHit } from './player/Crossbow';
+import { Crossbow, startViewmodelTextures, viewmodelTexturesReady, type Targets, type TargetHit } from './player/Crossbow';
 import { Rifle } from './player/Rifle';
 import { Weapons, type WeaponId } from './player/Weapons';
 import { WeaponPickup } from './player/WeaponPickup';
 import { SKINS, SkinLocker, applySkin, crossbowDisplayModel, skinFor, type SkinDef, type SkinId } from './player/Skins';
 import { TouchControls } from './player/TouchControls';
 import { HUD } from './ui/HUD';
+import { LockOn } from './ui/LockOn';
+import { SpeedLines } from './ui/SpeedLines';
+import { buzz, HAPTIC } from './ui/haptics';
 import { Loading } from './ui/Loading';
 import { Perf } from './ui/Perf';
 import { Minimap } from './ui/Minimap';
@@ -49,14 +52,19 @@ import { Inventory, harvestOf, ITEMS } from './game/Inventory';
 import { getNumber, onNumber } from './ui/Settings';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
-import { setAimTargets } from './player/AimTargets';
-import { createBootPlan, macrotask, type StepRunner } from './boot/plan';
+import { setAimTargets, meleeLock } from './player/AimTargets';
+import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
 import { declareTotals, installByteCounter } from './boot/bytes';
 import { chunkFiles } from './boot/manifest';
+import { bootFetches, prefetch } from './boot/prefetch';
+import { packFor, streamPack } from './boot/pack';
 import { getActiveChunk } from './chunks/registry';
 import { Audio } from './audio/Audio';
 import { Music } from './audio/Music';
 import { installErrorModal, showError } from './ui/ErrorModal';
+import { onReview, queuedCount, quickNote } from './ui/review';
+import type { Feedback } from './ui/Feedback';
+import { TIER } from './core/tier';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
 const _animalXZ: { x: number; z: number }[] = [];
@@ -81,6 +89,13 @@ async function main() {
   const step: StepRunner = (key, work) => plan.step(key, work).then((p) => p.value);
   // let the service worker take control first (≤ 2.5 s, never fatal) so the first visit's bytes are cached
   await window.__ws_sw?.ready;
+  // this shard's files in flight now, in step order; each step builds as its files land — as one pack when the build has
+  // one (src/boot/pack.ts), else file by file (src/boot/prefetch.ts); anything the pack lacks still goes file by file
+  const pack = packFor(getActiveChunk());
+  const packed = new Set(pack ? pack.files.map(([p]) => p) : []);
+  if (pack) streamPack(pack, plan, files);
+  prefetch(bootFetches(getActiveChunk(), files).filter((p) => !packed.has(p)));
+  startViewmodelTextures(getActiveChunk().weapon !== 'sword'); // the crossbow's + rifle's textures, drawn in a worker while the world builds
   const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk } = world;
   const nolock = params.has('nolock');
@@ -88,6 +103,7 @@ async function main() {
 
   // ── world dressing ──
   const dressing = await step('edge', async () => {
+    const slice = slicer(); // between the builders below: a task ends once it has run ~30 ms (Driftwood's pier … cove were one 0.3–0.5 s task)
     const boundary = new Boundary(sky).build();
     game.scene.add(boundary.group);
     await macrotask(); // boundary · water · horizon each in its own task
@@ -110,26 +126,35 @@ async function main() {
       player.colliders.push(...boat.colliders);
       player.platforms.push((x, z) => boat.floorHeightAt(x, z));
     }
+    await slice();
     // faceted shore boulders along the beach
     const rockSpecs = isOcean ? Boulders.scatterShore(chunk.seed) : [];
     const rocks = isOcean ? new Boulders(sky).build(rockSpecs) : null;
     if (rocks) { game.scene.add(rocks.mesh); player.colliders.push(...rocks.colliders); }
+    await slice();
     // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
     const hut = isOcean ? new Hut(sky, HUT).build() : null;
     if (hut) { game.scene.add(hut.group); player.colliders.push(...hut.colliders); player.platforms.push((x, z) => hut.floorHeightAt(x, z)); }
+    await slice();
     // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
     const lookout = isOcean ? new Lookout(sky, LOOKOUT).build() : null;
     if (lookout) { game.scene.add(lookout.group); player.colliders.push(...lookout.colliders); player.platforms.push((x, z) => lookout.floorHeightAt(x, z)); }
+    await slice();
     const wreck = isOcean ? new Wreck(sky, WRECK).build() : null;
     if (wreck) { game.scene.add(wreck.group); player.colliders.push(...wreck.colliders); player.platforms.push((x, z) => wreck.floorHeightAt(x, z)); }
+    await slice();
     // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
     const shrine = isOcean ? new Shrine(sky, SHRINE).build() : null;
     if (shrine) { game.scene.add(shrine.group); player.colliders.push(...shrine.colliders); player.platforms.push((x, z) => shrine.floorHeightAt(x, z)); }
-    const jetties = sea ? JETTIES.map((j) => new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: sea.level + 1.2 }).build()) : [];
+    await slice();
+    const jetties: ReturnType<Pier['build']>[] = [];
+    if (sea) for (const j of JETTIES) { jetties.push(new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: sea.level + 1.2 }).build()); await slice(); }
     for (const j of jetties) { game.scene.add(j.group); player.colliders.push(...j.colliders); player.platforms.push((x, z) => j.floorHeightAt(x, z)); }
+    await slice();
     const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
     const bushes = isOcean ? new Bushes(sky).build(Bushes.scatterIsland(chunk.seed, undefined, AVOID)) : null;
     if (bushes) game.scene.add(bushes.mesh);
+    await slice();
     // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
     const gulls = pier && boat && rocks && sea ? new Gulls(sky).build({
       perches: [
@@ -142,21 +167,27 @@ async function main() {
       centre: new THREE.Vector3(0, 0, -205), radius: 90,
     }) : null;
     if (gulls) game.scene.add(gulls.group);
+    await slice();
     // sand paths between the POIs: plank steps up the crag, rope fences, signposts
     const trailside = isOcean ? new Trailside(sky).build(Trailside.forIsland()) : null;
     if (trailside) { game.scene.add(trailside.mesh); player.colliders.push(...trailside.colliders); }
+    await slice();
     // the swaying rope bridge over the tidal creek on the hut → lookout path
     const bridge = isOcean ? new RopeBridge(sky, BRIDGE).build() : null;
     if (bridge) { game.scene.add(bridge.mesh); player.colliders.push(...bridge.colliders); player.platforms.push((x, z) => bridge.floorHeightAt(x, z)); }
+    await slice();
     // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
     const seabed = isOcean ? new Seabed(sky).build(Seabed.scatterLagoon(chunk.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }])) : null;
     if (seabed) { game.scene.add(seabed.mesh); if (seabed.fish) game.scene.add(seabed.fish); }
+    await slice();
     // coconut palms (one draw call, fronds sway in update)
     const palmSpecs = isOcean ? Palms.scatterIsland(chunk.seed, undefined, AVOID) : [];
     const palms = isOcean ? new Palms(sky).build(palmSpecs) : null;
+    await slice();
     // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
     const cove = isOcean ? new Cove(sky).build(Cove.forIsland()) : null;
     if (cove) { game.scene.add(cove.group); player.colliders.push(...cove.colliders); }
+    await slice();
     if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
     await macrotask();
     const horizon = new Horizon(sky).build();
@@ -204,7 +235,7 @@ async function main() {
   const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [] }).build() : null;
 
   // ── player kit: the shard's weapon + the AR-15 (Weapons.ts: 1 / 2 / Q, touch SWAP; the rifle is a cabin pickup), HUD, audio ──
-  await step('weapon', () => undefined); // synchronous below; the step marks it in the log
+  await step('weapon', () => viewmodelTexturesReady()); // the viewmodels' textures from the worker (usually long done); the build below is synchronous
   const targets: Targets = {
     raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null {
       const h = animals.raycast(origin, dir, maxDist);
@@ -215,7 +246,7 @@ async function main() {
   const crossbow: Weapon = chunk.weapon === 'sword'
     ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock })
     : new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
-  await macrotask(); // each viewmodel in its own task (they draw their textures on the CPU: one 0.6 s task at 4x together)
+  await macrotask(); // each viewmodel in its own task
   const rifle = new Rifle({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
   await macrotask();
   // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken
@@ -223,11 +254,15 @@ async function main() {
   const weapons = new Weapons(crossbow, rifle, ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : []); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
   new TouchControls(player, weapons, params.has('touch')); // on-screen FPS controls on coarse-pointer devices (?touch=1 forces)
   weapons.adsHeld = params.has('ads');
+  await macrotask();
   const hud = new HUD({ pointerLock: !nolock });
+  const lockOn = new LockOn(game.camera); // sword lunge target brackets (meleeLock, Sword.ts)
+  const speedLines = new SpeedLines(); // dodge / lunge edge streaks
   const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
   const minimap = new Minimap(); // circular minimap (Heightfield is installed by now)
   const fullMap = new FullMap(minimap); // the menu's MAP tab (Menu.ts mounts it); tap the minimap / M to open
   const keepAlive = new KeepAlive();
+  await macrotask();
   const audio = new Audio();
   // the Wildshard theme (docs/plans/MUSIC.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
   const music = new Music(audio);
@@ -248,6 +283,47 @@ async function main() {
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); });
   document.addEventListener('keydown', (e) => { if (e.code === 'KeyM' && hud.entered && !menu.isOpen) menu.open('map'); });
   menu.onOpen = () => { if (document.pointerLockElement) document.exitPointerLock(); }; // the map wants a cursor; the lock comes back on close (onResume)
+
+  // ── the review inbox (project/archive/2026-09-22-feedback-inbox.md): unlocked in Settings → REVIEW, then F8 (desktop), the ✎ disc under
+  // PAUSE (touch) and the menu's FEEDBACK tab. The composer (src/ui/Feedback.ts) loads on first use; while its overlay is up
+  // the world is frozen on the captured frame (frameGate) and the weapons / pointer lock are released.
+  let feedbackHeld = false;
+  let feedback: Promise<Feedback> | null = null;
+  const touchUi = () => document.getElementById('hud')?.classList.contains('touch') === true;
+  const loadFeedback = (): Promise<Feedback> => { feedback ??= import('./ui/Feedback').then(({ Feedback: F }) => new F({
+    capture: () => game.captureFrame(1280),
+    context: () => ({
+      shard: getActiveChunk().slug, pos: [player.position.x, player.position.y, player.position.z].map((v) => Number(v.toFixed(2))),
+      yaw: Number(player.yaw.toFixed(3)), pitch: Number(player.pitch.toFixed(3)), weapon: weapons.current.id, health: Math.round(health), kills,
+      swimming: player.swimming, hover: player.hover, tier: TIER, fps: game.stats.fps, calls: game.lastFrame.calls, tris: game.lastFrame.triangles,
+    }),
+    hold: (on) => {
+      feedbackHeld = on; hud.holdPause = on;
+      if (on) { weapons.setEnabled(false); if (document.pointerLockElement) document.exitPointerLock(); return; }
+      weapons.setEnabled(!player.swimming);
+      if (nolock || touchUi()) return;
+      player.lock(); // Enter / a click on SEND is the user gesture; if the lock is refused, fall back to the pause menu
+      setTimeout(() => { if (!document.pointerLockElement && hud.entered && !menu.isOpen && !feedbackHeld) hud.setPaused(true); }, 400);
+    },
+    toast: (t) => hud.toast(t),
+    touch: touchUi,
+  })); return feedback; };
+  document.addEventListener('keydown', (e) => {
+    if (e.code !== 'F8' || e.repeat || !quickNote() || !hud.entered || menu.isOpen || feedbackHeld) return;
+    e.preventDefault();
+    void loadFeedback().then((f) => f.openQuick());
+  });
+  menu.onFeedbackTab = (panel) => { void loadFeedback().then((f) => f.mountTab(panel)); };
+  const noteDisc = document.createElement('button'); noteDisc.type = 'button'; noteDisc.className = 'ws-fb-disc';
+  noteDisc.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19z M14 7l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Note<b class="ws-fb-badge"></b>';
+  noteDisc.addEventListener('click', () => { if (hud.entered && !feedbackHeld) void loadFeedback().then((f) => f.openSheet()); });
+  (document.getElementById('hud') ?? document.body).append(noteDisc);
+  const noteBadge = noteDisc.querySelector('b');
+  const syncNoteDisc = () => {
+    noteDisc.classList.toggle('show', quickNote() && touchUi() && hud.entered);
+    const q = queuedCount(); noteDisc.classList.toggle('queued', q > 0); if (noteBadge) noteBadge.textContent = String(q);
+  };
+  onReview(syncNoteDisc);
   progress.onEarned = (d) => { hud.toast(`Achievement · ${d.name} — title unlocked: ${d.title}`); audio.hitMarker(); };
   const masterGain = () => { if (!audio.muted) audio.master.gain.setTargetAtTime(0.6 * getNumber('volume'), audio.ctx.currentTime, 0.05); };
   onNumber('volume', masterGain);
@@ -269,6 +345,7 @@ async function main() {
     hud.showHitMarker(headshot, killed);
     audio.hitMarker();
     if (killed) { kills++; audio.kill(); }
+    buzz(killed ? HAPTIC.kill : HAPTIC.hit);
   };
   setAimTargets(animals.animals); // aim assist reads the live array
   // the AR-15 is found, not issued: a floating pickup on the floor of cabin 1 (the hollow), inside by the door wall
@@ -336,6 +413,8 @@ async function main() {
   player.onExitWater = () => audio.waterExit();
   player.onStroke = () => audio.swimStroke();
   player.onJump = () => audio.jump();
+  player.onDodge = () => { audio.dodge(); buzz(HAPTIC.dodge); };
+  player.onLunge = () => { audio.lunge(); buzz(HAPTIC.lunge); };
   player.onLand = (hard) => { audio.land(hard); if (hard) { health = Math.max(0, health - 8); hud.damageFlash(); } };
   hud.onSoundToggle = (on) => { audio.muted = !on; masterGain(); };
 
@@ -356,9 +435,9 @@ async function main() {
     if (!nolock) player.lock();
   };
   hud.onResume = enter;
-  hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); music.setState({ mode: 'menu' }); }; // the HUD mutes audio and clears `entered`; the gate does the rest
+  hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); music.setState({ mode: 'menu' }); noteDisc.classList.remove('show'); }; // the HUD mutes audio and clears `entered`; the gate does the rest
   // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
-  game.frameGate = () => hud.entered;
+  game.frameGate = () => hud.entered && !feedbackHeld; // … and the review composer freezes it on the captured frame
   if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.muted = true; hud.showIntro(enter); }
   else { hud.markEntered(); weapons.setEnabled(!nolock || params.has('skipintro')); }
   document.addEventListener('keydown', () => audio.resume(), { once: true });
@@ -386,6 +465,7 @@ async function main() {
     // music: once a second (not per frame) — an animal that has noticed you within 40 m lifts calm → alert; combat comes from the hit hooks and decays by itself
     if (t - musicPoll > 1) {
       musicPoll = t;
+      syncNoteDisc(); // the ✎ disc follows entered / the touch layer / the Quick note switch, once a second
       if (music.state.mode !== 'combat' && music.state.mode !== 'menu') {
         const noticed = animals.animals.some((a) => a.alive && (a.state === 'alert' || a.state === 'stalk') && a.position.distanceTo(player.position) < 40);
         music.setState({ mode: noticed ? 'alert' : 'calm', intensity: noticed ? 0.5 : 0 });
@@ -429,6 +509,8 @@ async function main() {
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 && hud.entered);
     hud.setAimInfo(weapons.aimInfo);
+    lockOn.update();
+    speedLines.update(dt, player.dashing, meleeLock.lunging);
     if (hud.entered) { hud.setAnimals(animalPositions(animals.animals)); minimap.update(player.position, player.yaw, animals.animals); fullMap.update(player.position, player.yaw); } // compass paw + minimap (hidden under the menu)
     hud.setState({
       bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, reserve: weapons.state.reserve, loaded: weapons.state.loaded, reloading: weapons.state.reloading, reloadProgress: weapons.state.reloadProgress,
@@ -438,6 +520,14 @@ async function main() {
     });
   });
 
+  // `?at=x,y,z,yaw,pitch` — a review note's repro URL (src/ui/Feedback.ts reproUrl) starts you on the spot it was filed from
+  const at = (params.get('at') ?? '').split(',').map(Number);
+  if (at.length >= 3 && at.every((v) => Number.isFinite(v))) {
+    const [x = 0, y = 0, z = 0, yaw = player.yaw, pitch = 0] = at;
+    player.position.set(x, y, z); player.yaw = yaw; player.pitch = pitch;
+  }
+
+  await macrotask();
   game.buildComposer();
   // Compile programs in batches with a visible count, then draw the first frames as a step —
   // instead of the first render() compiling ~100 programs in one stall (minutes on iOS).
@@ -447,6 +537,7 @@ async function main() {
   (plan as unknown as { done: () => void }).done(); // throws unless both tracks are exactly 1
   game.start();
   await loading.done();
+  document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
   (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio };
 }
 main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));

@@ -151,6 +151,9 @@ export class Animal {
   hidden = false;
   private fadeT = -1;
   private fadeMats: THREE.Material[] = [];
+  /** draw LOD (see setDrawLod): the rig's own geometry + [fur, hard, eye] materials, kept while a lower level is on */
+  private drawLod = 0;
+  private lodBase: { geometry: THREE.BufferGeometry; materials: THREE.Material[] } | null = null;
   private legAbd = new Float32Array(4);       // corpse: per-leg sideways angle so hooves settle on the ground
 
   constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1) {
@@ -479,9 +482,31 @@ export class Animal {
     for (let j = 0; j < Math.min(n, N); j++) { const sh = this.shells[Math.round(((j + 1) * N) / Math.min(n, N)) - 1]; if (sh !== undefined) sh.visible = true; }
   }
 
+  /**
+   * Draw LOD, set by the manager from the camera distance (tier.ts animalEyeDist / animalOneDrawDist):
+   * 0 = fur / hard / eye, three draws; 1 = the eyes drawn in the hard material (two draws — an eye is under a pixel
+   * there); 2 = the whole body in the fur material (one draw — hooves / antlers are a pixel or two). Rigs whose
+   * geometry is not the fur / hard / eye split (custom and low-poly models) stay at 0.
+   */
+  setDrawLod(level: number): void {
+    if (level === this.drawLod || this.fadeT >= 0) return;
+    const mesh = this.mesh;
+    if (this.lodBase === null) {
+      if (!Array.isArray(mesh.material) || mesh.material.length !== 3 || eyesInHard(mesh.geometry) === null) return;
+      this.lodBase = { geometry: mesh.geometry, materials: mesh.material };
+    }
+    const { geometry, materials } = this.lodBase;
+    const merged = level === 1 ? eyesInHard(geometry) : null;
+    const fur = materials[0];
+    if (level === 1 && merged !== null) { mesh.geometry = merged; mesh.material = materials; this.drawLod = 1; }
+    else if (level === 2 && fur !== undefined) { mesh.geometry = geometry; mesh.material = fur; this.drawLod = 2; }
+    else { mesh.geometry = geometry; mesh.material = materials; this.drawLod = 0; }
+  }
+
   /** Fade the (dead) animal out over 1.5 s, then hide it. Used when a carcass has been harvested. */
   fadeOut(): void {
     if (this.fadeT >= 0 || this.hidden) return;
+    this.setDrawLod(0);
     this.fadeT = 0;
     this.setShellLevel(0);
     // give this mesh its own transparent materials (hard + eye are shared per model)
@@ -701,3 +726,27 @@ export class Animal {
 }
 
 export { P_COUNT };
+
+/**
+ * The fur / hard / eye rig geometry with the eye range folded into the hard group (same buffers, one group fewer),
+ * cached per geometry; null when the groups are not that contiguous three-way split.
+ */
+const eyesMerged = new WeakMap<THREE.BufferGeometry, THREE.BufferGeometry | null>();
+function eyesInHard(g: THREE.BufferGeometry): THREE.BufferGeometry | null {
+  const hit = eyesMerged.get(g);
+  if (hit !== undefined) return hit;
+  const [fur, hard, eye] = g.groups;
+  let out: THREE.BufferGeometry | null = null;
+  const split = g.groups.length === 3 && fur?.materialIndex === 0 && hard?.materialIndex === 1 && eye?.materialIndex === 2;
+  if (split && eye.start === hard.start + hard.count) {
+    out = new THREE.BufferGeometry();
+    out.setIndex(g.index);
+    for (const [name, attr] of Object.entries(g.attributes)) out.setAttribute(name, attr);
+    out.morphAttributes = g.morphAttributes; out.morphTargetsRelative = g.morphTargetsRelative;
+    out.boundingSphere = g.boundingSphere; out.boundingBox = g.boundingBox;
+    out.addGroup(fur.start, fur.count, 0);
+    out.addGroup(hard.start, hard.count + eye.count, 1);
+  }
+  eyesMerged.set(g, out);
+  return out;
+}

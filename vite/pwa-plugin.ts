@@ -1,5 +1,5 @@
 /**
- * PWA plugin (docs/plans/LOAD-PERF.md §P3, docs/design/cache-policy.md). Ported from the `trials:pwa` plugin
+ * PWA plugin (project/archive/2026-09-22-load-perf.md §P3, docs/design/cache-policy.md). Ported from the `trials:pwa` plugin
  * in game-demos/trials-gauntlet-demo/vite.config.ts.
  *
  * Build: emits `sw.js` from `src/pwa/sw.js` with three stamps baked in.

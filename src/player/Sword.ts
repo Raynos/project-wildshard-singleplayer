@@ -7,6 +7,7 @@ import type { Forest } from '../world/Forest';
 import type { Targets, ImpactSurface } from './Crossbow';
 import type { Weapon, WeaponState, AimInfo } from './Weapon';
 import { REST, CHARGE, SPRINT, COMBO, SLASH, HEAVY, type Move } from './SwordMoves';
+import { getAimTargets, meleeLock, targetRadius, type AimTarget } from './AimTargets';
 
 /**
  * Sword — the Driftwood Isle melee weapon (`ChunkDef.weapon === 'sword'`): a low-poly wooden sword (pale carved blade
@@ -29,12 +30,19 @@ import { REST, CHARGE, SPRINT, COMBO, SLASH, HEAVY, type Move } from './SwordMov
  * finisher the next tap restarts at 1; so does a tap more than COMBO_GAP s after the last swing ended. Damage per
  * swing ×1 / ×1 / ×1.33 of the blade's base (wood 12 / 12 / 16).
  *
- * HEAVY (RMB click-toggle / the touch AIM disc — `adsHeld`; the disc should read "HEAVY"): a toggle-on / press starts the
+ * HEAVY (RMB click-toggle / the touch HEAVY disc — `adsHeld`, TouchControls.ts): a toggle-on / press starts the
  * charge — the blade rises over the right shoulder (CHARGE pose) and after HEAVY_CHARGE s the heavy is ready; the
  * release (toggle-off: RMB again) throws a wide, slower overhead chop for ×2 (wood 24) with a longer hit-stop, a thick
  * pale trail with a glint at the tip, and a heavy stagger. Releasing before the charge is full queues the release for
- * when it is. The player keeps walking / strafing while charging (strafing is the dodge — there is no block).
+ * when it is. The player keeps walking / strafing while charging (no block; the DODGE disc / Left Alt dashes out — Player.dodge).
  * `state.ads` is true while charging (the HUD's ADS state); `charging` / `charge` (0..1) are readable for a meter.
+ *
+ * LUNGE (CoD-style melee magnetism, every input — E11): a swing that starts with a live animal within LUNGE_RANGE m
+ * (heavy: LUNGE_RANGE_HEAVY) of the feet, edge to edge, and inside ±LUNGE_CONE of the view dashes the player to
+ * LUNGE_STOP m short of its body in ≤ LUNGE_MAX_T s (`player.dashTo` — the pier-edge probe there keeps it out of the sea).
+ * The lock is published every frame in `meleeLock` (AimTargets.ts): the HUD brackets it, and on touch the camera turns
+ * onto it during the lunge (TouchControls.ts, behind the aim-assist switch). `player.swinging` is set while a swing runs
+ * (the Swing turn speed setting).
  *
  * Hit test: during a swing's active window a fan of rays from the eye (the move's `fan`) is cast against
  * `targets.raycast` out to REACH m; the first animal hit takes `applyDamage(damage, point, dir)` once per swing, then
@@ -61,6 +69,12 @@ const COMBO_GAP = 0.6;               // s after a swing ends within which the ne
 const CHAIN_LAG = 0.02;              // s after the active window closes that the queued swing takes over
 export const HEAVY_CHARGE = 0.45;    // s of holding before the heavy is ready
 const CHARGE_BLEND = 0.16;           // s to raise the blade into the charge pose
+const LUNGE_RANGE = 4;               // m, feet to the animal's body edge: a light swing lunges this far …
+const LUNGE_RANGE_HEAVY = 5;         // … the heavy this far
+const LUNGE_CONE = 25 * Math.PI / 180; // rad either side of the view (horizontal)
+const LUNGE_STOP = 1.1;              // m short of the body edge where the lunge stops (inside REACH from the eye)
+const LUNGE_SPEED = 22;              // m/s …
+const LUNGE_MIN_T = 0.08, LUNGE_MAX_T = 0.15; // … clamped to this duration
 const TRAIL_SAMPLES = 20;
 const ARM_FOLLOW = 0.45;             // the forearms take this much of the sword's rotation away from rest (a cheap elbow)
 const FOV_HIP = 72;
@@ -311,7 +325,7 @@ export class Sword implements Weapon {
   readonly state: WeaponState = { loaded: true, reloading: false, reloadProgress: 0, ads: false };
   enabled = true;
   allowUnlocked = false;
-  /** the heavy's charge held externally (the touch AIM disc — label it HEAVY — or dev `?ads=1`); OR'ed with the right mouse button. On = charging, off = release. */
+  /** the heavy's charge held externally (the touch HEAVY disc, or dev `?ads=1`); OR'ed with the right mouse button. On = charging, off = release. */
   adsHeld = false;
   /** base damage per light hit: wooden 12, iron 28 (the finisher ×1.33, the heavy ×2) */
   damage: number;
@@ -355,9 +369,11 @@ export class Sword implements Weapon {
   private mouseHeld = false; private heldPrev = false;
   private charging = false; private chargeT = 0; private releaseQueued = false; private chargePending = false;
   private chargeBlend = 0; private sprintBlend = 0;
-  private fov = FOV_HIP;
+  private fov = FOV_HIP; private baseFov = 0;
   private lastYaw = 0; private lastPitch = 0; private lagYaw = 0; private lagYawVel = 0; private lagPitch = 0; private lagPitchVel = 0;
   private posePos = new THREE.Vector3(); private poseQ = new THREE.Quaternion(); private poseInit = false;
+  // lunge
+  private active = false; private lungeTarget: AimTarget | null = null;
 
   // trail
   private trail!: THREE.Mesh; private trailMat!: THREE.ShaderMaterial; private trailPos!: Float32Array; private trailAlpha!: Float32Array;
@@ -391,7 +407,7 @@ export class Sword implements Weapon {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
       if (e.button === 0) this.tryFire();
-      if (e.button === 2) this.mouseHeld = !this.mouseHeld; // toggle, not hold (trackpad), like the touch AIM latch
+      if (e.button === 2) this.mouseHeld = !this.mouseHeld; // toggle, not hold (trackpad), like the touch HEAVY latch
     });
     document.addEventListener('contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
     document.addEventListener('keydown', (e) => {
@@ -422,8 +438,32 @@ export class Sword implements Weapon {
     this.fromPos.copy(this.basePos); this.fromQ.copy(this.baseQ);
     this.trailN = 0; this.trail.visible = false;
     this.trailStyle = move.trail; this.trailColor.value.copy(move.trail.color);
+    // lunge onto the locked animal (a chained combo swing re-locks, so a fleeing target is chased swing by swing)
+    const lock = this.findLunge(move === HEAVY ? LUNGE_RANGE_HEAVY : LUNGE_RANGE);
+    this.lungeTarget = lock;
+    if (lock) {
+      const p = this.player.position, go = Math.hypot(lock.position.x - p.x, lock.position.z - p.z) - targetRadius(lock) - LUNGE_STOP;
+      this.player.dashTo(lock.position.x, lock.position.z, targetRadius(lock) + LUNGE_STOP, THREE.MathUtils.clamp(go / LUNGE_SPEED, LUNGE_MIN_T, LUNGE_MAX_T));
+    }
     this.onFire?.();
     if (move === HEAVY) this.onHeavy?.();
+  }
+  /** the animal a swing would lunge onto: alive, within `range` m (feet → body edge), inside ±LUNGE_CONE of the view, near the
+   *  feet's height — the smallest angle wins, distance breaking near-ties */
+  private findLunge(range: number): AimTarget | null {
+    const p = this.player.position, yaw = this.player.yaw;
+    const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+    let best: AimTarget | null = null, bestScore = Infinity;
+    for (const t of getAimTargets()) {
+      if (!t.alive || t.hidden || Math.abs(t.position.y - p.y) > 2) continue;
+      const dx = t.position.x - p.x, dz = t.position.z - p.z, d = Math.hypot(dx, dz);
+      if (d < 0.01 || d - targetRadius(t) > range) continue;
+      const angle = Math.acos(THREE.MathUtils.clamp((dx * fx + dz * fz) / d, -1, 1));
+      if (angle > LUNGE_CONE) continue;
+      const score = angle / LUNGE_CONE + 0.3 * d / range;
+      if (score < bestScore) { bestScore = score; best = t; }
+    }
+    return best;
   }
   private beginCharge(): void { this.charging = true; this.chargeT = 0; this.releaseQueued = false; this.chargePending = false; this.comboIdx = 0; }
   private releaseHeavy(): void { this.charging = false; this.releaseQueued = false; this.comboIdx = 0; this.startSwing(HEAVY); }
@@ -444,7 +484,7 @@ export class Sword implements Weapon {
   get swingName(): Move['name'] | null { return this.move?.name ?? null; }
   /** true while the running swing is the heavy */
   get heavySwing(): boolean { return this.move === HEAVY; }
-  /** true while the heavy is being charged (RMB / AIM disc toggled on) */
+  /** true while the heavy is being charged (RMB / HEAVY disc toggled on) */
   get chargingHeavy(): boolean { return this.charging; }
   /** 0..1 heavy charge (1 = ready to release) */
   get charge(): number { return this.charging ? clamp01(this.chargeT / HEAVY_CHARGE) : 0; }
@@ -466,7 +506,7 @@ export class Sword implements Weapon {
     }
     this.model.add(this.rig, this.armRig);
     // depth clear so the viewmodel never clips into world geometry (same trick as Crossbow.ts: 999 in the transparent queue)
-    const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true }));
+    const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false })); // fogless: draws nothing, shares the fogless MeshBasic program (as the crossbow's);
     clearer.renderOrder = 999; clearer.frustumCulled = false;
     clearer.onBeforeRender = (renderer) => { renderer.clearDepth(); };
     this.model.add(clearer);
@@ -580,11 +620,17 @@ export class Sword implements Weapon {
     const p = this.player, cam = this.game.camera;
     this.cooldown = Math.max(0, this.cooldown - dt);
 
-    // FOV (Hor+ on portrait; the sword never zooms)
-    const targetFov = fovForAspect(FOV_HIP, cam.aspect);
-    if (Math.abs(targetFov - this.fov) > 0.01) { this.fov = targetFov; cam.fov = this.fov; cam.updateProjectionMatrix(); this.sky.csm.updateFrustums(); }
+    // FOV (Hor+ on portrait; the sword never zooms) + the dodge / lunge kick while in hand (Player.fovKick — transient, so
+    // the shadow cascades are only refit for a base change, not every kicked frame)
+    const baseFov = fovForAspect(FOV_HIP, cam.aspect);
+    const targetFov = baseFov + (this.model.visible ? p.fovKick : 0);
+    if (Math.abs(targetFov - this.fov) > 0.01) {
+      const refit = Math.abs(baseFov - this.baseFov) > 0.01; this.baseFov = baseFov;
+      this.fov = targetFov; cam.fov = this.fov; cam.updateProjectionMatrix();
+      if (refit) this.sky.csm.updateFrustums();
+    }
 
-    // heavy: the hold (RMB / touch AIM latch) — edge on = start charging (after the running swing, if any), edge off = release
+    // heavy: the hold (RMB / touch HEAVY latch) — edge on = start charging (after the running swing, if any), edge off = release
     if (!this.enabled) this.mouseHeld = false; // pause / holster drop the RMB toggle
     const held = (this.mouseHeld || this.adsHeld) && this.enabled;
     if (held && !this.heldPrev) { if (this.move) this.chargePending = true; else this.beginCharge(); }
@@ -605,6 +651,18 @@ export class Sword implements Weapon {
     }
     const active = move !== null && this.swingT >= move.windup && this.swingT <= move.slashEnd;
     if (move && active && !this.hitDone) this.testHit(move);
+    // the melee lock (HUD brackets, touch lunge camera turn): the lunge's target while a swing runs, else what a swing would take
+    // now. Every kit weapon ticks, so only the one in hand (its viewmodel shown — the kit's setActive) writes it, and the one
+    // that just left the hand clears it once.
+    const inHand = this.model.visible;
+    if (inHand) {
+      if (!move) this.lungeTarget = null;
+      else if (this.lungeTarget && !this.lungeTarget.alive) this.lungeTarget = null;
+      meleeLock.target = this.lungeTarget ?? (this.enabled ? this.findLunge(this.charging ? LUNGE_RANGE_HEAVY : LUNGE_RANGE) : null);
+      meleeLock.lunging = this.lungeTarget !== null && this.player.dashing;
+      this.player.swinging = move !== null;
+    } else if (this.active) { meleeLock.target = null; meleeLock.lunging = false; this.player.swinging = false; this.lungeTarget = null; }
+    this.active = inHand;
     this.jolt *= Math.exp(-dt * 14);
 
     // charge pose blend (the blade rises over the shoulder), sprint

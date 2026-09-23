@@ -1,6 +1,6 @@
 # Load bench — `pnpm bench`
 
-The ruler for docs/plans/LOAD-PERF.md. One script, headless Chromium, no dev server involved.
+The ruler for project/archive/2026-09-22-load-perf.md. One script, headless Chromium, no dev server involved.
 
 ```
 pnpm bench                       # pnpm build → vite preview :4175 → wifi,4g × cold,warm at 4× CPU (~2.5 min)

@@ -32,6 +32,19 @@ export class Game {
   gl = { lostAt: 0, restoredAt: 0, events: 0 };
   /** Return false to skip a whole frame (updaters + render): a menu covering the canvas, a still title on a phone. */
   frameGate: () => boolean = () => true;
+  private captures: { maxW: number; resolve: (c: HTMLCanvasElement) => void }[] = [];
+  /** A copy of the next rendered frame, at most `maxW` px wide (the review inbox's screenshot, src/ui/Feedback.ts). The drawing
+   *  buffer is not preserved, so the copy is taken in the same task as composer.render(); it resolves on the next frame drawn. */
+  captureFrame(maxW: number): Promise<HTMLCanvasElement> { return new Promise((resolve) => { this.captures.push({ maxW, resolve }); }); }
+  private flushCaptures(): void {
+    const src = this.canvas;
+    for (const { maxW, resolve } of this.captures.splice(0)) {
+      const k = Math.min(1, maxW / Math.max(1, src.width));
+      const c = document.createElement('canvas'); c.width = Math.round(src.width * k); c.height = Math.round(src.height * k);
+      c.getContext('2d')?.drawImage(src, 0, 0, c.width, c.height);
+      resolve(c);
+    }
+  }
   private renderPass!: RenderPass;
   volumetrics!: VolumetricsEffect;
   /** the post chain — set by buildComposer(); resize() and the loop hold the nullable field directly */
@@ -185,6 +198,7 @@ export class Game {
       // planet + sun disc travel with the camera so they stay "infinitely" far
       sky.clouds.position.copy(this.camera.position); sky.planet.position.copy(this.camera.position).addScaledVector(sky.planetDir, 1700); sky.sunDisc.position.copy(this.camera.position).addScaledVector(sky.sunDir, 1500);
       composer.render(dt);
+      if (this.captures.length > 0) this.flushCaptures();
       this.lastFrame.calls = this.renderer.info.render.calls; this.lastFrame.triangles = this.renderer.info.render.triangles;
       this.frameMs[this.frameI] = dt * 1000; this.frameI = (this.frameI + 1) % this.frameMs.length;
       this.stats.frames++; this.stats.acc += dt;

@@ -1,7 +1,7 @@
 /**
  * Quality tier, picked once at boot. Phones get smaller textures, fewer shadow cascades, no AO and a
  * DPR cap — the difference between "loads in minutes then dies" and playable. `?tier=phone|desktop`
- * overrides for testing. Every knob below is measured in docs/plans/PLAY-PERF.md.
+ * overrides for testing. Every knob below is measured in project/archive/2026-09-22-play-perf.md.
  */
 export type Tier = 'phone' | 'desktop';
 
@@ -19,6 +19,9 @@ export const TIER_CONFIG = {
     // shadows: one cascade to 80 m, 1024² — the 2-cascade rig re-drew the whole world twice (9.8 M tris)
     cascades: 1, shadowMapSize: 1024, shadowFar: 80, shadowMargin: 60, softShadows: false,
     undergrowthShadows: false, animalShadowDist: 30, animalHideDist: 150, furShells: false,
+    // animal draws (Animal.setDrawLod): fur / hard / eye within animalEyeDist, eyes in the hard material to animalOneDrawDist,
+    // then the whole body in the fur material — 3 → 2 → 1 draws per animal
+    animalEyeDist: 45, animalOneDrawDist: 100,
     // trees: hi cards → lo cards → far card beyond loDist; lo trees never cast shadows (they are past shadowFar)
     treeHiDist: 55, treeLoDist: 130, treeTwigDist: 24, loTreeShadows: false,
     // grass carpet: ring radius / slots per 4 m cell / quads per clump
@@ -27,6 +30,8 @@ export const TIER_CONFIG = {
     // cabins: hardware / lantern / fire pit / flames only within this; 4 shared point lights follow the nearest cabin
     // instead of 12 in every shader (NUM_POINT_LIGHTS is per-fragment cost on everything, grass included)
     cabinDetailDist: 70, cabinDetailShadows: false, sharedCabinLights: true, beaconLights: false,
+    // item pickups (WeaponPickup): the floating item within this, the orb (sphere / rings / motes / sigil) within this
+    pickupItemDist: 22, pickupOrbDist: 120,
     // pond planar reflection: render-target width (height = half), and whether the carpet layers reflect
     reflectionWidth: 512, reflectDetail: false,
     // post: god rays samples / resolution scale, volumetric march steps, SMAA preset
@@ -41,10 +46,12 @@ export const TIER_CONFIG = {
     maxTexture: 4096, layerSize: 1024, dpr: 1.5, ao: true,
     cascades: 3, shadowMapSize: 2048, shadowFar: 220, shadowMargin: 120, softShadows: true,
     undergrowthShadows: true, animalShadowDist: 90, animalHideDist: 400, furShells: true,
+    animalEyeDist: Infinity, animalOneDrawDist: Infinity,
     treeHiDist: 110, treeLoDist: 210, treeTwigDist: 38, loTreeShadows: true,
     grassRadius: 55, grassSlots: 96, grassQuads: 5,
     undergrowthFar: 110, propsFar: 700, propsMinAngular: 0.0012,
     cabinDetailDist: 160, cabinDetailShadows: true, sharedCabinLights: false, beaconLights: true,
+    pickupItemDist: Infinity, pickupOrbDist: Infinity,
     reflectionWidth: 1024, reflectDetail: true,
     godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, volumetricScale: 1, smaa: 'high' as 'off' | 'low' | 'high', bloomLevels: 8,
     oceanCell: 2.75, palmCount: 150, palmFrondSegs: 6, bushCount: 260, bushDetail: 1, bushShadows: true, boulderShadows: true,

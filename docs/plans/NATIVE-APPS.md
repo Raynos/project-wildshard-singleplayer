@@ -1,6 +1,6 @@
 # Plan: Wildshard on the App Store and Google Play
 
-**State:** `draft` 2026-09-22 — written from the trials-gauntlet native work; waiting on the user's go and the picks under Decisions (E3). OTA over a Vercel update host is in v1 (user, 2026-09-22).
+**State:** `blocked` 2026-09-22 — shells, native saves/lifecycle and the signed OTA channel are built (E23); simulator + emulator E2E pass. Waits on the user for the stores (E24: Apple + Play accounts, `VERCEL_UPDATES_TOKEN`); open for an agent meanwhile (E29): store listing kit, privacy / support pages, upgrade + OTA + context-loss drills.
 
 ## Where this comes from
 
@@ -30,21 +30,21 @@ better or worse.
 | Bundle size | small | `dist/` **152 MB** (142 MB assets: tex 62, hdri 36, models 28; trailers 10) | Play's base-module download cap is **200 MB compressed**. We fit today, and JPEG/KTX2 do not compress further. P5 (30 → ~10 MB cold bytes) and dropping the trailers from the native build give headroom. If we pass 200 MB, the tex/hdri go into a Play **install-time asset pack**. iOS has no problem at this size. |
 | Service worker | `src/boot/sw.ts` pattern (ported *from* gauntlet) | same, plus `src/ui/Update.ts` polls `/version.json` | The native target compiles out SW registration and the update pill. WKWebView does not run service workers on `capacitor://`, and the pill would poll the bundled file. `__ws_sw.ready` already resolves at once with no SW. |
 | Asset paths | relative | absolute `/assets/...` (`src/core/assets.ts:49`, `bakedTextures.ts:29`) | Fine: Capacitor serves `webDir` at the origin root (`capacitor://localhost/`, `https://localhost/`). |
-| Saves | PBs, ghosts, settings | `localStorage` in `Progress`, `Inventory`, `Skins`, `Settings`, `Menu`, `tier` | The OS can evict WebView localStorage under storage pressure. Port gauntlet's `src/platform/native-storage.ts` (two checksummed slots, Retry save) for Progress / Inventory / Skins. Settings and tier can stay in localStorage. |
+| Saves | PBs, ghosts, settings | `localStorage` in `Progress`, `Inventory`, `Skins`, `Settings`, `Menu`, `tier` | The OS can evict WebView localStorage under storage pressure. Built simpler than gauntlet's checksummed slots: `src/native/saves.ts` mirrors every `ws.*` key into `@capacitor/preferences` and restores it at boot (the Android E2E deletes the WebView's storage and gets the save back). |
 | Load | one small scene | 142 shader programs, 30 MB cold | Bytes come off local disk, so there is no network cost. Shader compile (L1) is the whole boot. A first native launch should look like today's warm PWA launch. |
 | Input | touch bike controls | touch + aim assist (`src/ui/styles/touch.css`, `AimAssist.ts`) | Check safe areas / home indicator against the HUD. Android Back = pause menu. |
 | Target | 30-cap on phone | AGENTS.md: 60 FPS | The store build ships the phone tier by default. The PLAY-PERF plan is still the gate for "finished". |
 
 ## Decisions (the user)
 
-| # | Decision | Recommendation |
+| # | Decision | Taken (the user, 2026-09-22) |
 |---|---|---|
-| N1 | **App ID + store name** (the ID is permanent on both stores) | `com.raynos.wildshard` (or your reverse-DNS). Store name "Wildshard". Run a quick App Store / Play / USPTO name search first. It is cheap, and "shard" is a crowded word. |
-| N2 | **Accounts** | The same Apple Developer (individual, $99/yr) and Play Console (personal, $25) accounts the gauntlet enrols. One account publishes many apps. `security find-identity` shows **0 signing identities** on this Mac today, so the accounts are not enrolled yet. |
-| N3 | **OTA web-bundle updates in v1** | **Decided: yes** (user, 2026-09-22: "and the vercel update server stuff"). Port gauntlet's signed channel, see N-D. It has to be in the first binary, because the updater plugin is native and can only arrive through a store release. |
-| N3a | **Who promotes an OTA release** | A **manual promote** (local script, or `gh workflow run ota-promote`). Not every push. A push reaches the web in about a minute, but an OTA promote reaches every installed phone, so it is your click. The private signing key lives in `~/.config/wildshard/`. If you want CI to promote, it goes in an Actions secret instead. |
-| N4 | **Devices** | iPhone only (iPad runs it in compatibility mode), landscape. Minimum **iOS 17** and **Android 10 (API 29) + WebView ≥ 120**, both WebGL2. Gauntlet found API 24's stock WebView cannot run modern JS/WebGL2. |
-| N5 | **When to start the Play closed test** | **As soon as the first shell exists** (see below). |
+| N1 | **App IDs** (permanent on both stores) | iOS `com.jakeverbaten.wildshard-singleplayer`; Android `com.jakeverbaten.wildshard_singleplayer` (Android ids can't hold `-`). Display name "Wildshard". |
+| N2 | **Accounts** | **Neither yet.** Everything is built up to signing: Simulator apps, a debug APK, an unsigned release AAB. Enrol Apple Developer (individual, $99/yr) + Play Console (personal, $25) when ready; this Mac has 0 signing identities today. |
+| N3 | **OTA web-bundle updates in v1** | **Yes** ("and the vercel update server stuff"): the signed channel on the `wildshard-updates` Vercel project, in the first binary (the updater plugin is native), see N-D. |
+| N3a | **Who promotes an OTA release** | **CI on manual trigger**: `gh workflow run ota-promote`. The signing key is the Actions secret `OTA_SIGNING_KEY` (a copy in `~/.config/wildshard/`). |
+| N4 | **Devices** | iPhone only (`TARGETED_DEVICE_FAMILY = 1`; iPad runs it in compatibility mode), landscape. Minimum **iOS 17** and **Android 10 (API 29)**, OpenGL ES 3 required (WebGL2). |
+| N5 | **When to start the Play closed test** | As soon as the Play account exists: the first AAB is ready. |
 
 **The long pole is Google's closed test, per app.** New personal Play accounts must run a closed test with
 **≥ 12 testers opted in for 14 continuous days** before they can apply for production. As far as I can tell,
@@ -55,91 +55,116 @@ through **TestFlight internal** (no review).
 
 ## Phases
 
-### N-A Port the shells (1–2 days, autonomous)
+### N-A Shells — **built** (2026-09-22, E7)
 
-- [ ] `capacitor.config.ts` (appId N1, `webDir: 'dist-native'`, `server.errorPath` → bundled no-JS
-      `native-unavailable.html`). Commit `ios/` and `android/` and the pinned `@capacitor/{core,cli,ios,android,app,filesystem}` 8.5.2.
-- [ ] `vite build --mode native` (`pnpm build:native`): no SW (`src/boot/sw.ts`), no update pill
-      (`src/ui/Update.ts`), no DBG pill / dev modes (`src/dev/*`, `?`-params), no trailers, no sourcemaps.
-      `window.__*` automation hooks go in debug builds only.
-- [ ] Port gauntlet's `src/platform/{target,lifecycle,storage,native-storage}.ts` (`updates.ts` in N-D), adapted to
-      Wildshard's game loop: background → pause sim + audio + clear held touches; Android Back → pause / close
-      overlay / exit confirm; keep the screen awake while playing.
-- [ ] iOS: landscape, `TARGETED_DEVICE_FAMILY = 1`, status bar hidden, home-indicator auto-hide,
-      `PrivacyInfo.xcprivacy`, `ITSAppUsesNonExemptEncryption = NO`, **ambient** audio session (the silent switch mutes).
-      Android: landscape, immersive, target SDK = Play's current (36), AAB.
-- [ ] Icons / launch art from `public/icon-512.png` / the key art (1024² opaque for iOS; adaptive icon for Android).
-- [ ] CI: add `build:native` to `deploy.yml` so a push that breaks the native target is red. It does not ship anywhere.
+- [x] `capacitor.config.ts`: Capacitor 8.5.2 (`@capacitor/{core,cli,ios,android,app,preferences}`),
+      `webDir: 'dist-native'`, stable local origins (`capacitor://localhost`, `https://localhost`),
+      `server.errorPath` → `native-unavailable.html` (no script, no fonts, no network: "update your WebView").
+      `ios/` and `android/` are committed (build outputs, synced web copies and signing material are gitignored).
+- [x] `pnpm build:native` = `vite build --mode native` → `dist-native/` (vite.config.ts `nativePlugin`): the page's
+      service-worker / update-pill / Google-Fonts tags are dropped and `main.ts` is swapped for `src/native/boot.ts`;
+      no source maps, no trailers. Fonts (Rajdhani, JetBrains Mono) are bundled from `@fontsource`. CI builds it on
+      every push (`deploy.yml` "Native web build"): a push that breaks the native target is red; it ships nowhere.
+- [x] `src/native/boot.ts`: saves → OTA → lifecycle → the unchanged game. `src/native/saves.ts` mirrors every
+      `ws.*` localStorage key into `@capacitor/preferences` (UserDefaults / SharedPreferences) and restores it at boot;
+      `src/native/lifecycle.ts` turns app backgrounding into `ws:background` (HUD pauses, saves flush) and Android
+      Back into a cancelable `ws:back` (HUD closes the menu / pauses; unused Back minimizes). `main.ts` fires
+      `ws:ready` at the title (the OTA watchdog's healthy-boot signal).
+- [x] iOS: bundle id `com.jakeverbaten.wildshard-singleplayer`, 1.0.0 (1), iOS 17+, iPhone only, landscape only,
+      full screen, status bar + home indicator hidden (`SystemBars.hidden`), edge gestures deferred to the game
+      (`GameViewController` in AppDelegate.swift), ambient audio (the silent switch mutes), screen never sleeps,
+      `PrivacyInfo.xcprivacy` (UserDefaults CA92.1, file timestamps C617.1, no tracking), `ITSAppUsesNonExemptEncryption = NO`.
+- [x] Android: `com.jakeverbaten.wildshard_singleplayer`, 1.0.0 (1), minSdk 29, target 36, `sensorLandscape`,
+      immersive, keep-screen-on, draws under the cutout, OpenGL ES 3 required (Play hides it from phones without WebGL2).
+- [x] Icons + launch art from the Pine Hollow hero painting (`scripts/native-icons.py`; Play icon in
+      `art/native-app/round-1-icons/`).
+- [x] Found and fixed on the way (the web build had them too): on a landscape phone (~360–411 CSS px tall) the title's
+      ENTER WORLD button was below the screen (menu.css short-landscape rule); the Android WebView rejects pointer lock
+      and the unhandled rejection raised the error modal on ENTER WORLD (`Player.lock` catches it); the closed pause
+      menu stayed in the accessibility tree (now `inert` while closed).
 
-**Done when:** a Debug `.app` boots on the iOS 26.5 Simulator and an APK boots on the existing `trials_gauntlet_api36`
-AVD, **with networking off**, to the menu. Both reach Pine Hollow and Driftwood Isle, and the byte counter never
-touches the network.
+Sizes: Android debug APK 141 MB, release AAB 132 MB (Play's base cap is 200 MB); iOS Simulator app 160 MB.
 
-### N-B Qualify (2–4 days; simulator autonomous, phones are yours)
+### N-B Qualify — simulator/emulator **passing**; phones are yours
 
-- [ ] Port gauntlet's `scripts/native-{ios,android}-*.mjs` runners (simctl / headless emulator + adb). Cover cold
-      boot offline, both shards, touch navigation, background/foreground, force-kill → progress/inventory/skins
-      survive, binary upgrade 1.0.0 → 1.0.1 keeps saves, and WebGL context-loss recovery.
-- [ ] Install size (IPA / AAB download size) is recorded. Headroom under Play's 200 MB is confirmed (see bundle size).
-- [ ] **Your two phones (human reading):** TestFlight + Play internal build. Cold launch time vs the PWA,
-      shader-step time (L1), a 15-min session for thermals, the phone-tier fps. The simulator never counts as a phone reading.
+- [x] `scripts/native-android-e2e.mjs` (headless emulator `wildshard_api36`, adb input + CDP observation), 7/7:
+      airplane-mode cold boot to the title (WebGL2, zero requests but the post-boot OTA check), ENTER WORLD by a native
+      tap with no error modal, Back opens / closes the pause menu, Home → relaunch lands paused, and **a save survives
+      the WebView's localStorage being deleted on disk** (the Preferences mirror restores it).
+- [x] `scripts/native-ios-ui.sh` (XCUITest `ios/App/AppUITests`, headless task simulator `wildshard-iphone`): title →
+      ENTER WORLD → PAUSE → Resume → Home / foreground lands paused → Resume, by native taps; screenshots + a screen
+      recording land in `.native-build/ios-ui/`.
+- [ ] Binary upgrade 1.0.0 → 1.0.1 keeps saves; WebGL context-loss recovery (gauntlet has runners for both).
+- [ ] **Your two phones (human reading):** TestFlight + Play internal build once the accounts exist. Cold launch time
+      vs the PWA, shader-step time (L1), a 15-min session for thermals, the phone-tier fps. The simulator never
+      counts as a phone reading.
 
 ### N-C Stores (your clicks; I prep everything else)
 
-- [ ] **You:** enrol both accounts (N2). Create an App Store Connect API key (.p8) and a Play service-account JSON,
-      stored outside the repo (`~/.config/wildshard/`). Keep the Android upload keystore there too. It is never committed.
-- [ ] **Me:** `store/` listing kit: subtitle, description, keywords, Play short/full text, category Games ›
-      Adventure, **screenshots from played runs** (iPhone 6.9" landscape, Play phone), Play feature graphic 1024×500,
-      optional 15–30 s preview cut from `public/trailer-30.mp4`.
-- [ ] **Me:** privacy policy + support page on `wildshard-singleplayer.vercel.app/privacy` / `/support` (both stores
-      require URLs). Labels: "Data not collected" (iOS) / no data collected or shared (Play). Age ratings (Apple
-      questionnaire, IARC; the game has combat → likely 9+/12+). Content rights. Export compliance none. EU DSA non-trader.
-- [ ] **Me:** fastlane lanes `ios beta` (archive → TestFlight) and `android internal` (AAB → internal track). They run
-      locally on this Mac.
-- [ ] **You:** 12 closed testers for Play (the 14-day clock starts on the first build, N5). After 14 days, apply for
-      production. **Submit for review / Release is always your click** (outward-facing).
+- [ ] **You:** enrol both accounts (N2). Then: an App Store Connect API key (.p8) and a Play service-account JSON in
+      `~/.config/wildshard/`, and the Android upload keystore there too (never committed).
+- [ ] **Me, after enrolment:** signing (Apple team id in the Xcode project, Play App Signing + upload key in
+      `android/app/build.gradle` from `~/.config/wildshard/`), fastlane lanes `ios beta` (archive → TestFlight) and
+      `android internal` (AAB → internal track), run on this Mac.
+- [ ] **Me:** `store/` listing kit (subtitle, description, keywords, Play short/full text, Games › Adventure,
+      screenshots from played runs, Play feature graphic 1024×500, optional preview from `public/trailer-30.mp4`);
+      privacy policy + support pages on the web build (both stores require URLs). Labels: "Data not collected" /
+      no data collected or shared; age ratings (combat → likely 9+/12+); export compliance none; EU DSA non-trader.
+- [ ] **You:** 12 closed testers for Play (the 14-day clock starts on the first closed-track build, N5), then apply for
+      production. **Submit for review / Release is always your click.**
 
-### N-D OTA over a Vercel update host (ported, in the first binary; N3)
+### N-D OTA over a Vercel update host — **built; promotion waits on one token**
 
-How it works (gauntlet `docs/native/README.md` §"Signed updates hosted on Vercel", evidence `docs/evidence/native-mobile/updater.md`):
-the app always boots its **installed** bundle, with no network on the critical path. After a healthy boot it fetches a
-**signed manifest** from its platform channel. The manifest is RSA-PSS signed and checked against the public key
-pinned in the binary. It is bound to platform, native version range, runtime + save schema, a monotonic sequence and
-an expiry. The app then downloads the `<sha256>.zip`, verifies it, stages it, and **activates it on the next cold
-launch**, never mid-ride. If the new bundle does not call `notifyReady()` within 120 s, the plugin's watchdog rolls
-back to the last good bundle. Failed bundles are blocked in an activation ledger.
+The app always boots its **installed** bundle; nothing on the critical path touches the network. After `ws:ready` it
+fetches a **signed manifest** from its platform channel
+(`https://wildshard-updates.vercel.app/{ios,android}/v1/manifest.json`): RSA-PSS/SHA-256 over the payload, checked
+against the public key pinned in `src/native/ota-config.ts`, bound to platform, native version range, runtime
+`native-v1`, save schema 1, a monotonic sequence and an expiry. The manifest lists **every file** of the bundle by
+SHA-256 (`/f/<sha256>` on the host); `@capgo/capacitor-updater` (8.51.21, manual self-hosted mode, Capgo's cloud off,
+MPL-2.0) copies each file whose hash matches the installed bundle or its delta cache and downloads only the rest —
+a code-only update is a few MB, not 140. The staged bundle **activates on the next cold launch**, never mid-session;
+a bundle that doesn't reach `ws:ready` within 120 s is rolled back by the plugin's watchdog and blocked in an
+activation ledger (`src/native/updates.ts`, 52 unit tests in `test/native-updates.test.ts`).
 
-- [ ] `@capgo/capacitor-updater` 8.51.x in **manual, self-hosted mode**: `autoUpdate: 'off'`, and Capgo's cloud
-      update/stats/channel URLs empty. No Capgo account or subscription. MPL-2.0, so its notice ships in the credits.
-- [ ] Port `src/platform/updates.ts` (+ its tests), `scripts/mobile-release.mjs` (package + sign; never uploads),
-      `scripts/mobile-config.mjs`, and the build-time check that `VITE_MOBILE_MANIFEST_{IOS,ANDROID}` +
-      `VITE_MOBILE_PUBLIC_KEY` are present and valid for a release build.
-- [ ] **A second Vercel project, `wildshard-updates`, named before its first deploy** (global CLAUDE.md, the
-      `dist.vercel.app` lesson). It is static: `deploy/mobile-updates/vercel.json` gives
-      `manifest.json` `no-store`, `*.zip` `immutable`, and CORS `*` (GET only). Channels:
-      `https://wildshard-updates.vercel.app/{ios,android}/native-v1/manifest.json`. It is separate from the game site on
-      purpose: a web deploy **never** advances the phones, and a promote never touches the web. Every deploy keeps all
-      old ZIPs (an app mid-download must still find its ZIP).
-- [ ] Key: generate an RSA-3072 keypair once. The public key JWK goes into the binary. The private key is kept outside
-      the repo **and backed up**. If it is lost, every installed app needs a store update to trust a new key.
-- [ ] **Wildshard-specific: the ZIP size.** Gauntlet's ZIP is the whole `dist-native/`. Ours would be ~140 MB per
-      update, and most of that is textures/HDRIs that did not change. Before N-D ships, check whether Capgo's
-      per-file **manifest (delta) download** works in manual mode, so only changed files download. If it does not,
-      split the ZIP: code + shaders + baked data in the OTA bundle (a few MB), and the big immutable assets from the
-      built-in bundle. That needs asset URLs that resolve to the built-in copy. Worst case, a full ZIP on Wi-Fi only.
-- [ ] Qualify with gauntlet's installed-app suites (`scripts/native-{ios,android}-ota-suite.mjs`): A → B, no activation
-      mid-ride, B → A rollback at a higher sequence, watchdog rollback, wrong signature / hash, incompatible native
-      version, expired manifest, interrupted download, offline launch. Saves survive all of them.
-- [ ] **Store policy:** Play allows JS/WebView updates as long as the content stays within policy. Apple §2.5.2 does
-      not allow downloaded code that adds or changes features. So on iOS, OTA carries **fixes, tuning, art and
-      content**. A new shard, weapon or mode goes through review. The review notes say the mechanism exists.
+- [x] Vercel project **`wildshard-updates`** (`prj_ovNwXLanIg9I1hfcGaRiERffDTkD`), created by name before its first
+      deploy; a signed sequence-0 placeholder is live (manifests `no-store`, `/f/*` immutable, CORS `*`). A 152 MB /
+      169-file test upload hit no Vercel limit (one transient CLI "fetch failed", hence retries in the workflow).
+- [x] `scripts/ota-release.mjs` (hash + lay out + sign; never uploads), `deploy/ota/vercel.json`,
+      `.github/workflows/ota-promote.yml`: `gh workflow run ota-promote` → native build → sign (sequence = run number)
+      → deploy with retries → verify the live manifest → summary. It keeps the previous release's files so a phone
+      mid-download can finish; promoting one platform leaves the other's manifest byte-identical.
+- [x] Secrets: `OTA_SIGNING_KEY` (RSA-3072; the only other copy is `~/.config/wildshard/ota-signing.pem` — **back it up
+      offline**: losing it means a store update to trust a new key) and `VERCEL_UPDATES_PROJECT_ID`.
+- [ ] **You: `VERCEL_UPDATES_TOKEN`.** A Vercel token can only be made in the dashboard (the CLI's token cannot mint
+      one): log in with Google (raynos2@gmail.com — not "Continue with GitHub", that is a different account), create a
+      token scoped to `wildshard-updates` (or raynos-projects), then `gh secret set VERCEL_UPDATES_TOKEN -R
+      Raynos/project-wildshard-singleplayer`. Until then the workflow's first step fails and says so.
+- [ ] Installed-app OTA drills (A → B, rollback, bad signature, offline) on both simulators once a real promote exists.
+- **Store policy:** Play allows JS/WebView updates within policy. Apple §2.5.2 does not allow downloaded code that adds
+  or changes features: on iOS, OTA carries **fixes, tuning, art and content**; a new shard, weapon or mode goes
+  through review, and the review notes say the mechanism exists.
+- Disk: the plugin copies (does not link) unchanged files into each staged bundle — a staged update can cost ~140 MB
+  of storage beyond the app. Manifests expire after 30 days; a promote refreshes them.
 
 | Change | Delivery |
 |---|---|
 | Web deploy (every push) | website only; the phones do not move |
-| Bug fix, balance, art, text | OTA promote (both platforms) |
+| Bug fix, balance, art, text | `gh workflow run ota-promote` (both platforms) |
 | New shard / mode / major mechanic | store release on iOS (OTA OK on Android) |
 | Capacitor / plugin / icon / permission / SDK bump | store release, both |
+
+### Runbook
+
+```
+pnpm build:native                     # dist-native/ (the web bundle the apps embed)
+bash scripts/native-ios.sh            # → .native-build/ios/Build/Products/Debug-iphonesimulator/App.app  (release: … release)
+bash scripts/native-android.sh all    # → android/app/build/outputs/apk/debug/app-debug.apk + bundle/release/app-release.aab (unsigned)
+bash scripts/native-ios-ui.sh         # XCUITest on the shut-down `wildshard-iphone` simulator, headless
+node scripts/native-android-e2e.mjs   # headless emulator `wildshard_api36` (create: avdmanager create avd -n wildshard_api36 -k "system-images;android-36;google_apis;arm64-v8a" -d pixel_7)
+python3 scripts/native-icons.py       # re-cut icons + splash from the hero painting
+gh workflow run ota-promote           # ship the current main to installed phones (needs VERCEL_UPDATES_TOKEN)
+```
+Toolchain on this Mac: Xcode 26.6 (iOS 26.5 simulator), Android SDK 36 + JDK 21 (the scripts pick it).
 
 ## Sequencing
 
