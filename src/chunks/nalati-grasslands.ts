@@ -198,11 +198,11 @@ function landscape(x: number, z: number, n: Noise2D, n2: Noise2D): number {
     const mass = smoothstep(125, 12, d);
     if (mass > 0) h += mass ** 1.25 * (28 + n2.ridged(x * 0.028, z * 0.028, 4) * 20) + mass * n.fbm(x * 0.09, z * 0.09, 2) * 2.5;
   }
-  // the SW spur: lower, a little snow on its crest
+  // the SW spur: a lower snowy horn (≈ +65) with a rocky crest, framing the S road's saddle with the Crags
   {
     const d = Math.hypot(x - SW_SPUR.x, z - SW_SPUR.z) + n.get(x * 0.025 + 9, z * 0.025) * 12;
-    const mass = smoothstep(90, 8, d);
-    if (mass > 0) h += mass ** 1.3 * (14 + n2.ridged(x * 0.03 + 4, z * 0.03, 4) * 12);
+    const mass = smoothstep(95, 8, d);
+    if (mass > 0) h += mass ** 1.35 * (20 + n2.ridged(x * 0.03 + 4, z * 0.03, 4) * 17) + mass * n.fbm(x * 0.09 + 3, z * 0.09, 2) * 2;
   }
   // the sky road: a graded bench cut into the slope (cut & fill toward a steady climb from the bridge to the rim)
   if (z < 150 && z > -50 && x > -40 && x < 60) {
@@ -276,10 +276,10 @@ const TERRAIN: ChunkTerrain = (() => {
 // ── the painted ground (Terrain.ts painterly branch) ──────────────────────────────────────────────────────────────
 
 const C = {
-  valley: [0.19, 0.36, 0.07] as RGB,      // lush valley green
-  valleyLight: [0.34, 0.46, 0.1] as RGB,
-  slope: [0.13, 0.28, 0.06] as RGB,       // the shaded escarpment
-  plateau: [0.42, 0.47, 0.12] as RGB,     // Sky Grassland gold-green
+  valley: [0.23, 0.37, 0.07] as RGB,      // valley green, a touch warm (the mockups' grass is gold-green, never emerald)
+  valleyLight: [0.42, 0.47, 0.11] as RGB,  // sunlit gold-green patches
+  slope: [0.15, 0.29, 0.07] as RGB,       // the shaded escarpment
+  plateau: [0.44, 0.46, 0.12] as RGB,     // Sky Grassland gold-green
   plateauGold: [0.6, 0.52, 0.16] as RGB,
   gravel: [0.42, 0.41, 0.37] as RGB,
   gravelWet: [0.25, 0.26, 0.25] as RGB,
@@ -322,7 +322,7 @@ function groundColor(x: number, z: number, h: number, slope: number, t: ChunkTer
   const td = t.trailDistance(x, z);
   mixInto(out, C.olive, smoothstep(6.5, 3, td) * 0.45);
   // rock on the steep faces (the Crags, the gully walls, the waterfall head, Eagle Rock)
-  const rock = smoothstep(0.22, 0.45, slope + (h > 40 ? 0.08 : 0));
+  const rock = smoothstep(0.1, 0.26, slope + smoothstep(40, 52, h) * 0.08); // 1 − n.y: 0.1 ≈ 26°, 0.26 ≈ 42°
   if (rock > 0) { const rc: RGB = [C.rock[0], C.rock[1], C.rock[2]]; mixInto(rc, C.rockLight, smoothstep(-0.3, 0.5, mottle + patch * 0.5)); mixInto(out, rc, rock); }
   // snow above the line, holding on the flatter ledges
   const snow = smoothstep(SNOW_LINE - 2 + patch * 4, SNOW_LINE + 3 + patch * 4, h) * (1 - smoothstep(0.45, 0.7, slope) * 0.7);
@@ -333,7 +333,7 @@ function groundColor(x: number, z: number, h: number, slope: number, t: ChunkTer
 /** per-vertex masks for the per-pixel ground detail: [gravel, rock, snow] */
 function surfaceAt(x: number, z: number, h: number, slope: number): [number, number, number] {
   const gravel = riverMask(x, z) * smoothstep(-8.3, -9.1, h);
-  const rock = smoothstep(0.24, 0.46, slope + (h > 40 ? 0.08 : 0));
+  const rock = smoothstep(0.1, 0.26, slope + smoothstep(40, 52, h) * 0.08);
   const patch = cn.fbm(x * 0.012, z * 0.012, 3);
   const snow = smoothstep(SNOW_LINE - 2 + patch * 4, SNOW_LINE + 3 + patch * 4, h) * (1 - smoothstep(0.45, 0.7, slope) * 0.7);
   return [gravel, rock * (1 - snow * 0.5), snow];
