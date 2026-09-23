@@ -1,6 +1,6 @@
 # Explore World — the viewer mode (was "Build World")
 
-**State:** `in progress` 2026-09-23 — the user: "build the plan to completion until ready to archive". X1 (p12 title) + X2 (god-mode camera, phone fly controls) + the hub and ✎ landing now; X3 Model Explorer next, then X4 select / X5 mini map / X6 go-there / X7–X9. Owner: session wildshard-singleplayer-8d (E14).
+**State:** `in progress` 2026-09-23 — the user: "build the plan to completion until ready to archive". Live: X1 (p12 title), X2 (god mode, phone fly controls), the hub, ✎. X3 Model Explorer landing now; next X4 select + OPEN IN MODEL EXPLORER, X5 mini map, X6 go-there, X7–X9. Owner: session wildshard-singleplayer-8d (E14).
 
 ## Why (the user's words, 2026-09-22)
 
@@ -93,7 +93,7 @@ The user reviews **portrait only** from round 3 on ("the desktop mockups are way
 |---|---|---|---|
 | X1 | **Title**: ENTER WORLD + EXPLORE WORLD as p12 split panels, portrait first | both panels on the phone title; ENTER WORLD unchanged | **built** — src/ui/HUD.ts showIntro + menu.css; panel art cropped from p12 (src/ui/title/*.webp, 59 KB) |
 | X2 | **God-mode camera**: vendored FreeCam (desktop) + fly stick / drag-to-spin / ▲▼ altitude / pinch (phone) in the real game scene, no player / HUD / AI, `?explore=world` | fly the whole island — wave height to 150 m, under the pier, round the lookout — on the phone and the MacBook at 60 fps | **built** — src/explore/FreeCam.ts (three-freecam, vendored), TouchFly.ts, Explore.ts (hub, overlay, readout, ✎), explore.css; `?explore=world` deep link; 60 fps / 159 calls desktop |
-| X3 | **Model catalog + turntable**: `src/explore/catalog.ts` (every Driftwood model + creature), catalog grid, turntable, view modes, light presets, stats | every model opens on the phone; wireframe / facets / AO toggles | |
+| X3 | **Model catalog + turntable**: `src/explore/catalog.ts` (every Driftwood model + creature), catalog grid, turntable, view modes, light presets, stats | every model opens on the phone; wireframe / facets / AO toggles | **built** — src/explore/catalog.ts (17 models: 8 buildings live, cove, palm / boulder / bush built alone, 5 creatures on their own rigs), ModelExplorer.ts (catalog with composer-rendered thumbnails, turntable in the live scene, SOLID · WIREFRAME · FACETS · PAINT, DAWN · NOON · DUSK · NIGHT via the day/night clock, tris / calls / file, VIEW IN WORLD flight) |
 | X4 | **Select + cross-links**: tap → outline + card → OPEN IN MODEL EXPLORER; VIEW IN WORLD back | the round trip from the lookout and back | |
 | X5 | **Mini map + jump**: map sheet with POI pins → fly there; ⌂ spawn; a hero camera point per catalog entry for VIEW IN WORLD | tap WRECK COVE on the map → the camera flies there; VIEW IN WORLD on the hut lands on its hero view | |
 | X6 | **Screenshot + feedback** through the finished inbox (`Feedback.openSheet()` + an explore `FeedbackHost`); `?explore=` "go there" | a note filed on the hut turntable reopens the hut turntable | inbox is live (4ff1955) |

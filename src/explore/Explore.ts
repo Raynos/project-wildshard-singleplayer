@@ -25,6 +25,8 @@ import { heightAt } from '../world/Heightfield';
 import { CHUNK_HALF } from '../core/config';
 import { reviewUnlocked, unlockReview, type ContextValue } from '../ui/review';
 import type { World } from '../core/bootstrap';
+import { ModelExplorer } from './ModelExplorer';
+import { driftwoodCatalog, type CatalogEntry, type CatalogHandles } from './catalog';
 import modelsArt from './img/models.webp';
 import worldArt from './img/world.webp';
 
@@ -38,6 +40,8 @@ export interface ExploreHost {
   openFeedback: () => void;
   /** hidden while exploring: the chunk-edge force field (it draws lines across the sea from the air) */
   hide?: THREE.Object3D[];
+  /** the world's models for the Model Explorer's catalog (main.ts's dressing); absent → no MODELS tab */
+  models?: Omit<CatalogHandles, 'sky' | 'scene'>;
 }
 
 /** a mode that lives in its own module (Model Explorer, …): shown / hidden with its tab, ticked while shown */
@@ -122,7 +126,27 @@ export class Explore {
     hold('.ws-x-up', 1); hold('.ws-x-down', -1);
     document.addEventListener('keydown', this.onKey);
     game.onUpdate((dt) => { this.update(dt); });
+    if (host.models) this.addPane('model', new ModelExplorer(this, host.world, driftwoodCatalog({ ...host.models, sky: host.world.sky, scene: game.scene })));
   }
+
+  /** VIEW IN WORLD: the World Explorer flies to the model, three-quarter view, a little above */
+  viewInWorld(e: CatalogEntry): void {
+    const o = e.object();
+    const box = new THREE.Box3().setFromObject(o);
+    const r = Math.max(3, box.getBoundingSphere(new THREE.Sphere()).radius);
+    const look = box.getCenter(new THREE.Vector3());
+    const from = look.clone().add(new THREE.Vector3(Math.sin(0.7) * r * 2.2, r * 0.9, Math.cos(0.7) * r * 2.2));
+    this.setMode('world');
+    this.flyTo(from, look);
+    this.toast(e.name);
+  }
+
+  /** a smooth camera flight (god mode stays god mode: controls come back on arrival) */
+  flyTo(to: THREE.Vector3, look: THREE.Vector3, seconds = 1.1): void {
+    const cam = this.host.world.game.camera;
+    this.flight = { t: 0, dur: seconds, from: cam.position.clone(), fromQ: cam.quaternion.clone(), to: to.clone(), look: look.clone() };
+  }
+  private flight: { t: number; dur: number; from: THREE.Vector3; fromQ: THREE.Quaternion; to: THREE.Vector3; look: THREE.Vector3 } | null = null;
 
   /** a mode implemented elsewhere (the Model Explorer); its element joins the overlay */
   addPane(mode: ExploreMode, pane: ExplorePane): void {
@@ -182,6 +206,7 @@ export class Explore {
     this.root.dataset['mode'] = mode;
     this.tabs.querySelectorAll<HTMLElement>('button').forEach((b) => { b.classList.toggle('on', b.dataset['m'] === mode); });
     this.cam.enabled = mode === 'world' && !this.held;
+    if (this.fly) this.fly.enabled = mode === 'world';
     if (mode !== 'world') this.cam.move.set(0, 0, 0);
     if (mode === 'world' && prev === 'hub') this.cam.placeAt(HOME.pos, HOME.look);
     for (const [m, p] of this.panes) { if (m === mode) p.show(opts); else p.hide(); }
@@ -263,7 +288,18 @@ export class Explore {
       const a = this.hubT - 1.1;
       camera.position.set(Math.sin(a) * 250, 118, 12 + Math.cos(a) * -250);
       camera.lookAt(0, 4, 12);
-    } else if (this.mode === 'world') this.cam.update(dt);
+    } else if (this.mode === 'world') {
+      const f = this.flight;
+      if (f) {
+        f.t = Math.min(1, f.t + dt / f.dur);
+        const k = f.t * f.t * (3 - 2 * f.t);
+        camera.position.lerpVectors(f.from, f.to, k);
+        camera.position.y += Math.sin(Math.PI * k) * f.from.distanceTo(f.to) * 0.18; // a little arc over whatever is between
+        const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(camera.position, f.look, camera.up));
+        camera.quaternion.slerpQuaternions(f.fromQ, q, k);
+        if (f.t >= 1) { this.flight = null; this.cam.placeAt(f.to, f.look); }
+      } else this.cam.update(dt);
+    }
     this.panes.get(this.mode)?.update(dt);
     this.readoutT -= dt;
     if (this.readoutT <= 0 && this.mode === 'world') {

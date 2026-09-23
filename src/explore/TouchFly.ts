@@ -21,6 +21,8 @@ export class TouchFly {
   onTap?: (x: number, y: number) => void;
   /** one finger orbits `cam.pivot` instead of turning the head (a selected object) */
   orbiting = false;
+  /** off outside the World Explorer (the Model Explorer's turntable takes the fingers there) */
+  enabled = true;
   readonly stick: HTMLElement;
   private readonly knob: HTMLElement;
   private stickId: number | null = null;
@@ -69,7 +71,7 @@ export class TouchFly {
   };
 
   private readonly onDown = (e: PointerEvent): void => {
-    if (e.pointerType === 'mouse') return; // the desktop mouse belongs to FreeCam
+    if (e.pointerType === 'mouse' || !this.enabled) return; // the desktop mouse belongs to FreeCam
     e.preventDefault();
     this.fingers.set(e.pointerId, { id: e.pointerId, x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t0: performance.now(), moved: false });
     if (this.fingers.size === 2) this.pinch = this.spread();

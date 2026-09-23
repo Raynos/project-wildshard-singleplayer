@@ -505,7 +505,7 @@ async function main() {
     weapons.setEnabled(false); weapons.visible = false;
     perf.setActive(false); // the Explore readout carries fps / calls / tris
     const { Explore: X } = await import('./explore/Explore');
-    explore ??= new X({ world, onExit: exitExplore, openFeedback: () => { void noteSheet(); }, hide: [boundary.group] });
+    explore ??= new X({ world, onExit: exitExplore, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], models: { hut, lookout, wreck, shrine, pier, jetties, boat, bridge, cove, palmSpecs } });
     explore.open(mode, opts);
   };
   const exploreParam = params.get('explore');

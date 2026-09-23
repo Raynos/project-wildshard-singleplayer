@@ -68,6 +68,35 @@
 .ws-x-pane { position: absolute; inset: 0; display: none; pointer-events: none; }
 .ws-x-pane.show { display: block; }
 
+/* ─── Model Explorer (src/explore/ModelExplorer.ts; mockups p04 catalog, p03 turntable) ─── */
+.ws-x-models .ws-x-catalog, .ws-x-models .ws-x-turntable { display: none; }
+.ws-x-models[data-view="catalog"] .ws-x-catalog { display: flex; }
+.ws-x-models[data-view="model"] .ws-x-turntable { display: block; }
+.ws-x-catalog { position: absolute; left: 12px; right: 12px; top: calc(66px + env(safe-area-inset-top, 0px)); bottom: max(86px, calc(env(safe-area-inset-bottom, 0px) + 80px)); flex-direction: column; gap: 10px; padding: 10px; pointer-events: auto; background: rgba(6, 10, 18, 0.72); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.ws-x-filter { display: flex; flex-wrap: wrap; gap: 6px; }
+.ws-x-filter button, .ws-x-views button, .ws-x-lights button { padding: 6px 11px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-x-filter button.on, .ws-x-views button.on, .ws-x-lights button.on { color: var(--ws-cyan); border-color: var(--ws-cyan); background: rgba(143, 227, 255, 0.14); }
+.ws-x-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); align-content: start; gap: 8px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.ws-x-model { display: flex; flex-direction: column; gap: 3px; padding: 5px 5px 8px; text-align: left; background: var(--ws-glass-deep); border: 1px solid rgba(143, 227, 255, 0.2); }
+.ws-x-model:hover, .ws-x-model:focus-visible { border-color: var(--ws-cyan); outline: none; }
+.ws-x-model .ws-x-model-thumb { display: block; aspect-ratio: 4 / 3; background: radial-gradient(circle at 50% 60%, rgba(143, 227, 255, 0.12), rgba(6, 10, 18, 0.6)); overflow: hidden; }
+.ws-x-model .ws-x-model-thumb canvas { display: block; width: 100%; height: 100%; }
+.ws-x-model b { padding: 2px 4px 0; font-family: var(--ws-display); font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase; color: #fff; }
+.ws-x-model small { padding: 0 4px; font-size: 9px; letter-spacing: 0.12em; color: var(--ws-cyan-dim); }
+/* turntable: view + light chips up top, the sheet low */
+.ws-x-views, .ws-x-lights { position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; pointer-events: auto; }
+.ws-x-views { top: calc(68px + env(safe-area-inset-top, 0px)); }
+.ws-x-lights { top: calc(104px + env(safe-area-inset-top, 0px)); }
+.ws-x-turntable.noclock .ws-x-lights { display: none; }
+.ws-x-sheet { position: absolute; left: 12px; right: 84px; bottom: max(16px, env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; max-width: 620px; padding: 10px 14px 12px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.ws-x-sheet-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.ws-x-sheet-head .ws-x-back { padding: 4px 8px; background: none; border: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ws-cyan); }
+.ws-x-sheet-head b { font-family: var(--ws-display); font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; }
+.ws-x-sheet-head span { font-size: 11px; color: var(--ws-text-dim); }
+.ws-x-stats { font-size: 11px; letter-spacing: 0.14em; color: var(--ws-cyan); }
+.ws-x-actions { display: flex; gap: 8px; }
+.ws-x-actions button { padding: 8px 14px; background: rgba(143, 227, 255, 0.12); border: 1px solid var(--ws-cyan-line); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+
 /* phone portrait */
 @media (max-width: 700px) {
   .ws-x-top { left: 8px; right: 8px; gap: 8px; padding: 6px 6px 6px 10px; }
@@ -79,6 +108,15 @@
   .ws-x-card b { font-size: 17px; letter-spacing: 0.12em; }
   .ws-x-card small { font-size: 10px; }
   .ws-x-card .ws-x-card-go { width: 32px; height: 32px; font-size: 20px; margin-right: 2px; }
+  .ws-x-catalog { left: 8px; right: 8px; top: calc(58px + env(safe-area-inset-top, 0px)); }
+  .ws-x-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .ws-x-model b { font-size: 11px; letter-spacing: 0.08em; }
+  .ws-x-views { top: calc(60px + env(safe-area-inset-top, 0px)); }
+  .ws-x-lights { top: calc(94px + env(safe-area-inset-top, 0px)); }
+  .ws-x-views button, .ws-x-lights button { padding: 6px 8px; font-size: 9px; letter-spacing: 0.1em; }
+  .ws-x-sheet { left: 8px; right: 76px; }
+  .ws-x-sheet-head b { font-size: 18px; }
+  .ws-x-stats { font-size: 9px; letter-spacing: 0.08em; }
 }
 @media (max-width: 700px) {
   .ws-x-brand::before { content: 'WILDSHARD'; color: var(--ws-cyan); }
