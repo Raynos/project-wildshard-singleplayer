@@ -17,6 +17,7 @@ import { Bushes } from '../world/Bushes';
 import { AnimalFactory, type AnimalKind } from '../entities/AnimalFactory';
 import { Animal } from '../entities/Animal';
 import type { Sky } from '../world/Sky';
+import { speciesDef } from '../entities/species/registry';
 import { withTier } from './tiers';
 import type { Tier } from '../core/tier';
 
@@ -42,6 +43,9 @@ export interface CatalogEntry {
   buildAt?: (tier: Tier) => THREE.Object3D;
   /** creatures: the Animal on the turntable (clips, variants — X8) */
   animal?: Animal;
+  /** creatures: the species' variants (id + label) and a rebuild on one of them (also how DIE is undone) */
+  variants?: readonly { id: string; label: string }[];
+  rebuild?: (variant?: string) => void;
   tick?: (dt: number, t: number) => void;
 }
 
@@ -95,23 +99,28 @@ export function driftwoodCatalog(h: CatalogHandles): CatalogEntry[] {
   let factory: AnimalFactory | null = null;
   const creature = (kind: AnimalKind, name: string, variant?: string): void => {
     const e: CatalogEntry = { id: kind, name, category: 'creatures', file: `src/entities/species/${kind}.ts`, live: false, anchor: new THREE.Vector3(), buildMs: 0, object: () => new THREE.Group() };
-    let group: THREE.Group | null = null;
-    e.object = () => {
-      if (group) return group;
+    const group = new THREE.Group();
+    let built = false;
+    e.variants = speciesDef(kind).variants.map((v) => ({ id: v.id, label: v.label }));
+    // a fresh rig (the variant's paint + scale), standing where the last one stood: the turntable's treadmill keeps it there
+    e.rebuild = (v = variant) => {
       const t0 = performance.now();
       factory ??= new AnimalFactory(h.sky, { style: 'lowpoly' });
-      const model = factory.model(kind, variant);
+      const model = factory.model(kind, v);
       const a = new Animal(factory.instantiate(model, 0.5), model, 7, 1);
       a.prepareMaterial = (m) => { h.sky.setupMaterial(m); };
-      a.place(beach.x, beach.z, Math.PI * 0.8);
+      const old = e.animal;
+      a.place(old ? old.position.x : beach.x, old ? old.position.z : beach.z, old ? old.yaw : Math.PI * 0.8);
       a.sampleTerrain();
-      group = new THREE.Group(); group.add(a.mesh);
+      if (kind === 'sailor') { a.mem['init'] = 1; a.mem['rise'] = 1; } // it waits sunk under the wreck's deck until the hold wakes it (sailor.ts): on the turntable it stands
+      if (old) old.mesh.removeFromParent();
+      group.add(a.mesh);
       e.animal = a;
       e.anchor = a.position.clone();
       e.tick = (dt, t) => { a.update(dt, t, true); };
       e.buildMs = performance.now() - t0;
-      return group;
     };
+    e.object = () => { if (!built) { built = true; e.rebuild?.(); } return group; };
     out.push(e);
   };
   creature('boar', 'Boar');

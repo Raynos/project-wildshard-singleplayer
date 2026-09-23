@@ -18,12 +18,17 @@ import { CATEGORIES, measure, type CatalogEntry, type Category } from './catalog
 import type { Explore, ExplorePane } from './Explore';
 import { BUDGET, CURRENT_TIER, TIERS } from './tiers';
 import type { Tier } from '../core/tier';
+import type { Animal } from '../entities/Animal';
 
 type View = 'solid' | 'wire' | 'facets' | 'paint' | 'tiers';
 const VIEWS: readonly [View, string][] = [['solid', 'Solid'], ['wire', 'Wireframe'], ['facets', 'Facets'], ['paint', 'Paint'], ['tiers', 'Tiers']];
 /** day/night phases (src/world/DayNight.ts: the day is [0, 20/24) sunrise → sunset, then the night) */
 const LIGHTS: readonly [string, number][] = [['Dawn', 0.03], ['Noon', 0.42], ['Dusk', 0.8], ['Night', 0.92]];
 const THUMB_W = 240, THUMB_H = 180;
+/** what the creature viewer can play — a gait speed on the treadmill, or an event (stagger, death) */
+type Clip = 'idle' | 'walk' | 'trot' | 'charge' | 'hit' | 'die';
+const CLIPS: readonly [Clip, string][] = [['idle', 'Idle'], ['walk', 'Walk'], ['trot', 'Trot'], ['charge', 'Charge'], ['hit', 'Hit'], ['die', 'Die']];
+const GAIT: Record<Clip, number> = { idle: 0, walk: 1.3, trot: 3.2, charge: 7, hit: 0, die: 0 };
 
 /** a mesh with three's default generics (instanceof narrows to Mesh<any>) */
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
@@ -60,6 +65,14 @@ export class ModelExplorer implements ExplorePane {
   private catalogT = 0;
   private wireMat: THREE.MeshBasicMaterial | null = null;
   private readonly paintMats = new Map<THREE.Material, THREE.MeshBasicMaterial>();
+  /** creatures (X8): the clip playing on the treadmill, where it is pinned, the skeleton overlay, half speed */
+  private clip: Clip = 'idle';
+  private readonly pin = new Map<Animal, { x: number; z: number }>();
+  private skeleton = false;
+  private skelHelper: THREE.SkeletonHelper | null = null;
+  private slow = false;
+  /** LINEUP (X8): every creature side by side with height lines */
+  private lineup: { group: THREE.Group; labels: { a: Animal; el: HTMLElement }[]; ruler: THREE.LineSegments; marks: HTMLElement[]; base: number } | null = null;
   /** DETAIL TIERS: the model built at each tier, side by side on the disc, with a label each */
   private readonly tierBuilds = new Map<string, Map<Tier, THREE.Object3D>>();
   private tierShown: { tier: Tier; o: THREE.Object3D; label: HTMLElement }[] = [];
@@ -67,10 +80,14 @@ export class ModelExplorer implements ExplorePane {
   constructor(private readonly explore: Explore, private readonly world: World, private readonly entries: CatalogEntry[]) {
     this.el = html('div', 'ws-x-models');
     const chips = CATEGORIES.map((c) => `<button type="button" data-f="${c.id}">${c.label}</button>`).join('');
-    this.grid = html('div', 'ws-x-catalog', `<div class="ws-x-filter">${chips}</div><div class="ws-x-grid"></div>`);
+    this.grid = html('div', 'ws-x-catalog', `<div class="ws-x-filter">${chips}<button type="button" class="ws-x-lineup">Lineup</button></div><div class="ws-x-grid"></div>`);
     this.sheet = html('div', 'ws-x-turntable', `
       <div class="ws-x-views">${VIEWS.map(([v, l]) => `<button type="button" data-v="${v}">${l}</button>`).join('')}</div>
       <div class="ws-x-lights">${LIGHTS.map(([l], i) => `<button type="button" data-l="${i}">${l}</button>`).join('')}</div>
+      <div class="ws-x-creature">
+        <div class="ws-x-clips">${CLIPS.map(([c, l]) => `<button type="button" data-c="${c}">${l}</button>`).join('')}</div>
+        <div class="ws-x-creature-row"><span class="ws-x-variants"></span><button type="button" class="ws-x-skel">Skeleton</button><button type="button" class="ws-x-slow">0.5×</button></div>
+      </div>
       <div class="ws-x-sheet">
         <div class="ws-x-sheet-head"><button class="ws-x-back" type="button">‹ Catalog</button><b class="ws-x-name"></b><span class="ws-x-file"></span></div>
         <div class="ws-x-stats"></div>
@@ -82,6 +99,10 @@ export class ModelExplorer implements ExplorePane {
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-views button').forEach((b) => { b.addEventListener('click', () => { this.setView((b.dataset['v'] ?? 'solid') as View); }); });
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-lights button').forEach((b) => { b.addEventListener('click', () => { this.setLight(Number(b.dataset['l'] ?? -1)); }); });
     this.sheet.querySelector('.ws-x-back')?.addEventListener('click', () => { this.openCatalog(); });
+    this.grid.querySelector('.ws-x-lineup')?.addEventListener('click', () => { this.openLineup(); });
+    this.sheet.querySelectorAll<HTMLElement>('.ws-x-clips button').forEach((b) => { b.addEventListener('click', () => { this.playClip((b.dataset['c'] ?? 'idle') as Clip); }); });
+    this.sheet.querySelector('.ws-x-skel')?.addEventListener('click', () => { this.setSkeleton(!this.skeleton); });
+    this.sheet.querySelector('.ws-x-slow')?.addEventListener('click', (ev) => { this.slow = !this.slow; (ev.currentTarget as HTMLElement).classList.toggle('on', this.slow); });
     this.sheet.querySelector('.ws-x-inworld')?.addEventListener('click', () => { const e = this.current; if (e) this.explore.viewInWorld(e); });
 
     // the studio (X11, target art/build-world/round-6-midway/07): a dark floor whose grid fades into the dark, a raised
@@ -179,6 +200,10 @@ export class ModelExplorer implements ExplorePane {
     this.frameModel(o);
     this.setView(this.view);
     this.setLight(this.light);
+    const a = e.animal;
+    this.sheet.classList.toggle('creature', a !== undefined && this.lineup === null);
+    this.sheet.classList.toggle('lineup', this.lineup !== null);
+    if (a) { this.pin.set(a, { x: a.position.x, z: a.position.z }); this.clip = 'idle'; this.markClip(); this.renderVariants(e); if (this.skeleton) this.setSkeleton(true); }
     this.sheet.classList.toggle('noclock', this.clock() === null);
     const m = measure(o);
     const q = (s: string): HTMLElement | null => this.sheet.querySelector<HTMLElement>(s);
@@ -190,6 +215,8 @@ export class ModelExplorer implements ExplorePane {
   }
 
   private closeModel(): void {
+    this.closeLineup();
+    this.setSkeleton(false, false);
     if (!this.current) { this.unisolate(); return; }
     this.setView('solid', false);
     this.restoreLight();
@@ -270,6 +297,128 @@ export class ModelExplorer implements ExplorePane {
         c.add(lines); this.overlays.push(lines);
       }
     });
+  }
+
+  // ── creatures (X8): watch clips on a treadmill, variants, skeleton, the lineup ──
+  private markClip(): void { this.sheet.querySelectorAll<HTMLElement>('.ws-x-clips button').forEach((b) => { b.classList.toggle('on', b.dataset['c'] === this.clip); }); }
+
+  private playClip(c: Clip): void {
+    const e = this.current, a = e?.animal;
+    if (!e || !a) return;
+    if (!a.alive) { const p = this.pin.get(a); e.rebuild?.(); this.adopt(e, p); } // DIE is undone by a fresh rig
+    const live = e.animal;
+    if (!live) return;
+    const away = new THREE.Vector3().subVectors(live.position, this.world.game.camera.position).setY(0).normalize();
+    if (c === 'hit') live.stagger(away, 1);
+    else if (c === 'die') live.applyDamage(live.hp + 1, live.position.clone().setY(live.position.y + 0.6), away);
+    this.clip = c === 'hit' ? 'idle' : c;
+    this.markClip();
+  }
+
+  /** a rebuilt rig takes over the old one's pin, the studio and the skeleton */
+  private adopt(e: CatalogEntry, p: { x: number; z: number } | undefined): void {
+    const a = e.animal;
+    if (!a) return;
+    if (p) this.pin.set(a, p);
+    if (this.skeleton) this.setSkeleton(true);
+  }
+
+  private renderVariants(e: CatalogEntry): void {
+    const box = this.sheet.querySelector('.ws-x-variants');
+    if (!box) return;
+    box.replaceChildren();
+    for (const v of e.variants ?? []) {
+      const b = html('button', '', v.label);
+      (b as HTMLButtonElement).type = 'button';
+      b.addEventListener('click', () => {
+        const p = e.animal ? this.pin.get(e.animal) : undefined;
+        e.rebuild?.(v.id); this.adopt(e, p);
+        box.querySelectorAll('button').forEach((x) => { x.classList.toggle('on', x === b); });
+      });
+      box.append(b);
+    }
+    box.firstElementChild?.classList.add('on');
+  }
+
+  private setSkeleton(on: boolean, remember = true): void {
+    if (remember) { this.skeleton = on; this.sheet.querySelector('.ws-x-skel')?.classList.toggle('on', on); }
+    this.skelHelper?.removeFromParent(); this.skelHelper = null;
+    const a = this.current?.animal;
+    if (!on || !a) return;
+    const h = new THREE.SkeletonHelper(a.mesh);
+    const m = h.material as THREE.LineBasicMaterial;
+    m.depthTest = false; m.transparent = true; m.opacity = 0.95; m.color.set(0x8fe3ff); m.toneMapped = false; m.fog = false;
+    h.renderOrder = 999;
+    this.studio.add(h);
+    this.skelHelper = h;
+  }
+
+  /** LINEUP: every creature on one long disc, sorted by height, facing the camera, with 0.5 m height lines */
+  private openLineup(): void {
+    this.closeModel();
+    const creatures = this.entries.filter((e) => e.category === 'creatures');
+    const group = new THREE.Group();
+    const labels: { a: Animal; el: HTMLElement }[] = [];
+    const rows = creatures.map((e) => { e.object(); const a = e.animal; return { e, a, h: a ? new THREE.Box3().setFromObject(a.mesh).getSize(new THREE.Vector3()) : new THREE.Vector3() }; })
+      .filter((r): r is { e: CatalogEntry; a: Animal; h: THREE.Vector3 } => r.a !== undefined)
+      .sort((p, q) => p.h.y - q.h.y);
+    const first = rows[0]?.a;
+    if (!first) return;
+    const z0 = first.position.z;
+    let x = first.position.x, base = Infinity;
+    rows.forEach((r, i) => {
+      const w = Math.max(r.h.x, r.h.z);
+      if (i > 0) x += w * 0.5 + 0.7;
+      r.a.place(x, z0, 0.55);
+      r.a.sampleTerrain();
+      this.pin.set(r.a, { x, z: z0 });
+      x += w * 0.5;
+      group.add(r.e.object());
+      base = Math.min(base, r.a.position.y);
+      const m = measure(r.a.mesh);
+      const el = html('div', `ws-x-tierlabel ws-x-lineuplabel${i % 2 === 1 ? ' low' : ''}`, `<b>${r.e.name.replace('Coconut ', '').replace('Drowned ', '').replace('Reef ', '')}</b><small>${r.h.y.toFixed(1)} m · ${m.tris.toLocaleString()}</small>`);
+      this.sheet.append(el);
+      labels.push({ a: r.a, el });
+    });
+    // height lines every 0.5 m across the row
+    const x0 = first.position.x - 1.5, x1 = x + 1.5, pts: number[] = [];
+    for (let hgt = 0.5; hgt <= 2.51; hgt += 0.5) pts.push(x0, base + hgt, z0 - 0.8, x1, base + hgt, z0 - 0.8);
+    const ruler = new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)), new THREE.LineDashedMaterial({ color: 0x8fe3ff, transparent: true, opacity: 0.45, dashSize: 0.18, gapSize: 0.12, fog: false, toneMapped: false }));
+    ruler.computeLineDistances();
+    group.add(ruler);
+    const marks: HTMLElement[] = [];
+    for (let hgt = 0.5; hgt <= 2.51; hgt += 0.5) { const el = html('div', 'ws-x-rulemark', `${hgt.toFixed(1)} m`); this.sheet.append(el); marks.push(el); }
+    this.studio.add(group);
+    const lineup = { group, labels, ruler, marks, base };
+    const entry: CatalogEntry = {
+      id: 'lineup', name: 'Creature lineup', category: 'creatures', file: 'src/entities/species/', live: false, buildMs: 0,
+      anchor: new THREE.Vector3((first.position.x + x) / 2, base, z0), object: () => group,
+      tick: (dt, t) => { for (const r of rows) r.a.update(dt, t, true); },
+    };
+    this.openModel(entry); // (openModel closes whatever was open first — the lineup is only registered after it)
+    this.lineup = lineup;
+    this.sheet.classList.remove('creature'); this.sheet.classList.add('lineup');
+    // frame the row itself (skinned bounds are loose): its span across the width, the tallest up the height
+    const cam = this.world.game.camera;
+    const span = x - first.position.x + 1.2, tall = rows.reduce((m, r) => Math.max(m, r.h.y), 0);
+    const vHalf = Math.tan((cam.fov * Math.PI) / 360), hHalf = vHalf * cam.aspect;
+    this.target.set((first.position.x + x) / 2, base + tall * 0.35, z0);
+    this.dist = Math.max((span * 0.5) / (0.9 * hHalf), (tall * 0.5) / (0.45 * vHalf)) + 1;
+    this.minDist = this.dist * 0.3; this.maxDist = this.dist * 3;
+    this.floor.position.set(this.target.x, base, z0); this.floor.scale.setScalar(span * 0.62);
+    this.yaw = 0.18; this.pitch = 0.14;
+  }
+
+  private closeLineup(): void {
+    const l = this.lineup;
+    if (!l) return;
+    this.lineup = null;
+    for (const { el } of l.labels) el.remove();
+    for (const el of l.marks) el.remove();
+    l.ruler.removeFromParent();
+    l.group.removeFromParent();
+    const kids = l.group.children.slice(); // a copy: add() moves each child out of the array being walked
+    for (const c of kids) this.studio.add(c); // the creatures' own groups go back to the studio
   }
 
   /** DETAIL TIERS: batch members are rebuilt at each tier (withTier) and stood side by side; a live model has one build */
@@ -383,11 +532,28 @@ export class ModelExplorer implements ExplorePane {
     const e = this.current;
     if (e) {
       this.idle += dt;
-      if (this.idle > 2.5 && !this.drag && this.tierShown.length === 0) this.yaw += dt * 0.22; // the turntable turns while you look (not while comparing tiers)
+      if (this.idle > 2.5 && !this.drag && this.tierShown.length === 0 && this.lineup === null) this.yaw += dt * 0.22; // the turntable turns while you look (not while comparing tiers / the lineup)
       const cp = Math.cos(this.pitch);
       camera.position.set(this.target.x + Math.sin(this.yaw) * cp * this.dist, this.target.y + Math.sin(this.pitch) * this.dist, this.target.z + Math.cos(this.yaw) * cp * this.dist);
       camera.lookAt(this.target);
-      e.tick?.(dt, performance.now() / 1000);
+      const a = e.animal;
+      if (a?.alive === true) a.setMotion(a.yaw, GAIT[this.clip]);
+      e.tick?.((this.slow ? 0.5 : 1) * dt, performance.now() / 1000);
+      // the treadmill: whatever the gait, the animal stays on the disc
+      for (const [an, p] of this.pin) { an.position.x = p.x; an.position.z = p.z; an.mesh.position.x = p.x; an.mesh.position.z = p.z; }
+      const l = this.lineup;
+      if (l) {
+        for (const { a: an, el } of l.labels) {
+          const b = new THREE.Box3().setFromObject(an.mesh), q = b.getCenter(new THREE.Vector3()); q.y = b.max.y;
+          q.project(camera);
+          el.style.transform = `translate(${Math.round((q.x * 0.5 + 0.5) * innerWidth)}px, ${Math.round((-q.y * 0.5 + 0.5) * innerHeight) - 40}px) translateX(-50%)`;
+        }
+        l.marks.forEach((el, i) => {
+          const pos = l.ruler.geometry.getAttribute('position');
+          const q = new THREE.Vector3(pos.getX(i * 2 + 1), pos.getY(i * 2 + 1), pos.getZ(i * 2 + 1)).project(camera); // the right-hand end
+          el.style.transform = `translate(${Math.min(innerWidth - 44, Math.round((q.x * 0.5 + 0.5) * innerWidth) - 40)}px, ${Math.round((-q.y * 0.5 + 0.5) * innerHeight) - 13}px)`;
+        });
+      }
       for (const t of this.tierShown) {
         const b = new THREE.Box3().setFromObject(t.o), p = b.getCenter(new THREE.Vector3()); p.y = b.max.y;
         p.project(camera);

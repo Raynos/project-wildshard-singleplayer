@@ -1,7 +1,8 @@
 /**
  * FreeCam — Unity scene-view camera controls (the Explore World god camera on desktop).
  *
- * Vendored from three-freecam 0.1.1 (https://github.com/hxtnv/three-freecam, MIT, © 2026 Daniel / hxtnv)
+ * Vendored from three-freecam 0.2.0 (https://github.com/hxtnv/three-freecam, MIT, © 2026 Daniel / hxtnv; demo
+ * https://hxtnv.github.io/three-freecam/ — 0.2.0's runtime is 0.1.1's, only its docs changed)
  * as strict TypeScript: `package.json` / the lockfile carried other agents' WIP when this landed, and the
  * library is ~260 lines with no dependencies. Behaviour is the upstream's; the only additions are
  * `enabled` gating every listener (Explore turns it off while a sheet is open) and `look(dx, dy)` / `move`
