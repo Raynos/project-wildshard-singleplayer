@@ -44,6 +44,7 @@ import { wireNightEnemies } from './nightEnemies';
 import { Stealth } from './stealth';
 import { PaintedBackdrop } from '../world/PaintedBackdrop';
 import { wireSound, type NalatiSound } from './sound';
+import { LOOK_V2, wireLookV2 } from './look';
 import { wireRide, type Ride } from './ride';
 import { HITCHING_RAIL } from '../world/nalati/layout';
 import { heightAt } from '../world/Heightfield';
@@ -159,7 +160,10 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   // ── painted backdrop (painted-asset agent, look pass): the 360° matte painting of the real Nalati past the horizon rings —
   //    src/world/PaintedBackdrop.ts (loads on its own, the boot does not wait). It takes the far range over from the
   //    procedural PainterlyRange (hidden while the painting shows). `?backdrop=0` = off, for before / after shots. ──
-  if (new URLSearchParams(location.search).get('backdrop') !== '0') {
+  // Look v2 (?look=v2, src/nalati/look/): ONE seamless 360° panorama on a sky dome instead — the painting is the sky, the
+  // clouds, the planet, the sun and the far range; the fog takes its colour from it (docs/design/nalati/handoff/port-v2.md)
+  if (LOOK_V2) await wireLookV2({ game, sky, weather, updates, groups });
+  else if (new URLSearchParams(location.search).get('backdrop') !== '0') {
     void (async () => {
       const bd = await PaintedBackdrop.load(game.renderer);
       if (bd === null) return;
