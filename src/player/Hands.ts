@@ -49,7 +49,7 @@ export class Hands {
   private tmp = { p: new THREE.Vector3(), q: new THREE.Vector3(), e: new THREE.Vector3(), d: new THREE.Vector3(), fwd: new THREE.Vector3(0, 0, -1) };
 
   constructor(sky: Sky, private camera: THREE.PerspectiveCamera) {
-    this.style = getActiveChunk().style ?? 'pbr';
+    this.style = getActiveChunk().style === 'lowpoly' ? 'lowpoly' : 'pbr'; // painterly (Nalati): the smooth hands
     const low = this.style === 'lowpoly';
     const rng = new Rng(0x5a1d);
     const seg = low ? 7 : 18;

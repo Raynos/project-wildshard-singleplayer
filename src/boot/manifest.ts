@@ -31,11 +31,12 @@ export function chunkFiles(def: ChunkDef): ChunkFiles {
   const props = uniq([...lod('rock_moss_set_01'), ...lod('tree_stump_01'), ...lod('dead_tree_trunk')]);
   const skyJson = `/assets/baked/${def.slug}/sky.json`;
   const pair = bakedSkyUrls(def.sky.hdri); // the gain-mapped JPEG + PNG in place of the .hdr (src/world/BakedSky.ts)
-  const sky = [...(pair ? [pair.color, pair.gain] : [`/assets/hdri/${def.sky.hdri}_2k.hdr`]), ...(skyJson in PUBLIC_BYTES ? [skyJson] : [])];
+  const sky = def.sky.painted ? [] : [...(pair ? [pair.color, pair.gain] : [`/assets/hdri/${def.sky.hdri}_2k.hdr`]), ...(skyJson in PUBLIC_BYTES ? [skyJson] : [])]; // a painted sky (Nalati) downloads nothing
   // per shard: only what its boot really reads, so DOWNLOAD's declared total is honest (it was Driftwood's ~2 MB against
   // Pine Hollow's ~20 MB of layers, cards, cabins and props): a low-poly shard reads only its baked terrain, a treeless
   // one (trees.factory 'none') no tree textures, an open-water one (ocean) builds no cabins or props
-  const lowpoly = def.style === 'lowpoly', treeless = def.trees.factory === 'none', ocean = def.ocean !== undefined;
+  // a painterly one (Nalati) paints its ground and builds no cabins or props either
+  const lowpoly = def.style === 'lowpoly' || def.style === 'painterly', treeless = def.trees.factory === 'none', ocean = def.ocean !== undefined || def.style === 'painterly';
   // the phone tier's .phone.webp / .phone.glb copies (fetchImage and three's loaders fetch through the same map)
   const t = (xs: string[]) => xs.map(tierUrl);
   return {

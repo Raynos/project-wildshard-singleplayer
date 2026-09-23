@@ -152,6 +152,11 @@ export class VolumetricsEffect extends Effect {
 
   setSun(dir: Vector3, color: Color): void { this.marchUniforms.uSunDir.value.copy(dir); this.marchUniforms.uSunColor.value.copy(color); }
   setFogColor(c: Color): void { this.marchUniforms.uFogColor.value.copy(c); }
+  /** the scattering medium (`ChunkAtmosphere.volumetric`): densest below `height` m, `falloff` per metre above it, overall `strength` */
+  setMedium(m: { height: number; falloff: number; density: number; strength: number }): void {
+    const u = this.marchUniforms;
+    u.uHeight.value = m.height; u.uFalloff.value = m.falloff; u.uDensity.value = m.density; u.uStrength.value = m.strength;
+  }
 
   override setDepthTexture(depthTexture: Texture, depthPacking: DepthPackingStrategies = BasicDepthPacking): void {
     if (!this.marchMat) return;

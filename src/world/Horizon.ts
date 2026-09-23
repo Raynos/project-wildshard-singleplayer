@@ -4,6 +4,7 @@ import { Noise2D } from '../core/noise';
 import { attachFogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
 import { getActiveChunk } from '../chunks/registry';
+import type { ChunkHorizon } from '../chunks/ChunkDef';
 
 /**
  * What lies beyond the chunk: a sea of clouds far below the slab (the Wildshard grid hangs in
@@ -21,10 +22,110 @@ export class Horizon {
   constructor(private sky: Sky) {}
 
   build(): this {
-    const ocean = Boolean(getActiveChunk().ocean);
+    const def = getActiveChunk();
+    if (def.horizon) { // a shard's own painted horizon (Nalati)
+      this.buildBands(def.horizon);
+      if (def.horizon.cloudSea) this.buildCloudSea();
+      return this;
+    }
+    const ocean = Boolean(def.ocean);
     this.buildRidges(ocean);
     if (!ocean) this.buildCloudSea();
     return this;
+  }
+
+  /**
+   * `ChunkDef.horizon` (Nalati): each ring's height profile is shaped by compass bands — the snow range big and white
+   * across the south, the plateau rolling on as low green hills at slab height, the valley opening flat to the west,
+   * a gorge in the east — instead of one noise profile the same all the way round. A ring is a three-row strip
+   * (hidden foot · a shoulder at 55 % · the ridge line) with a painted colour ramp foot → `color` → `top`, snow above
+   * `snowLine` of the ring's tallest point, and the same aerial-perspective haze as the default ridges.
+   * One draw call per ring, one shared program.
+   */
+  private buildBands(H: ChunkHorizon) {
+    const noise = new Noise2D(4242);
+    const r2d = 180 / Math.PI;
+    H.rings.forEach((ring, ri) => {
+      const seg = ring.r > 3000 ? 720 : 540;
+      const profile: number[] = [];
+      for (let i = 0; i <= seg; i++) {
+        const a = (i / seg) * Math.PI * 2;
+        const cx = Math.cos(a), sz = Math.sin(a);
+        const az = ((Math.atan2(-cx, sz) * r2d) + 360) % 360; // compass bearing of this point (0 = +Z north, 90 = −X east)
+        // ridged multifractal round the circle (peaks) and a smooth roll (hills)
+        let rid = 0, amp = 1, f = 3 + ri * 2, norm = 0;
+        for (let o = 0; o < 6; o++) { const nv = 1 - Math.abs(noise.get(cx * f + ri * 9.1, sz * f + ri * 3.7)); rid += nv * nv * amp; norm += amp; amp *= 0.5; f *= 2.1; }
+        rid /= norm;
+        const roll = 0.62 + 0.26 * noise.get(cx * 3.1 + ri * 5, sz * 3.1) + 0.14 * noise.get(cx * 11 + ri, sz * 11) + 0.05 * noise.get(cx * 37, sz * 37 + ri);
+        let h = 0;
+        for (const b of ring.bands) {
+          let dAz = Math.abs(az - b.azimuth) % 360; if (dAz > 180) dAz = 360 - dAz;
+          if (dAz >= b.spread) continue;
+          const w = Math.cos((dAz / b.spread) * Math.PI * 0.5) ** 2;
+          h = Math.max(h, b.height * w * (roll * (1 - b.rough) + (0.35 + rid * 0.95) * b.rough));
+        }
+        profile.push(h);
+      }
+      const maxH = Math.max(1, ...profile);
+      const pos: number[] = [], col: number[] = [], nrm: number[] = [], idx: number[] = [];
+      const foot = new THREE.Color(...ring.color).multiplyScalar(0.85), body = new THREE.Color(...ring.color), top = new THREE.Color(...ring.top);
+      const snowC = new THREE.Color(0.86, 0.9, 0.97), c = new THREE.Color();
+      for (let i = 0; i <= seg; i++) {
+        const a = (i / seg) * Math.PI * 2;
+        const x = Math.cos(a) * ring.r, z = Math.sin(a) * ring.r;
+        const h = profile[i] ?? 0;
+        // a sloped face, not a wall: the shoulder and the foot step toward the camera, so the ring reads as hills
+        const peak = ring.base + h, shoulder = ring.base + h * 0.55;
+        const k1 = 1 - (h * 0.9) / ring.r, k2 = 1 - (h * 2.2 + 300) / ring.r;
+        pos.push(x * k2, ring.floor - 600, z * k2, x * k1, shoulder, z * k1, x, peak, z);
+        const hl = profile[(i + seg - 1) % seg] ?? 0, hr = profile[(i + 1) % seg] ?? 0;
+        const tilt = ((hl - hr) / Math.max(1, maxH)) * seg * 0.05;
+        const nx = -Math.cos(a) + Math.sin(a) * tilt, nz = -Math.sin(a) - Math.cos(a) * tilt;
+        nrm.push(nx, 0.5, nz, nx, 0.9, nz, nx * 0.6, 1.4, nz * 0.6); // mostly up: the painted hills take the sky light
+        const snow = THREE.MathUtils.smoothstep(h / maxH, ring.snowLine, ring.snowLine + 0.12);
+        const snowMid = THREE.MathUtils.smoothstep((h * 0.55) / maxH, ring.snowLine, ring.snowLine + 0.12);
+        c.copy(foot); col.push(c.r, c.g, c.b);
+        c.copy(body).lerp(snowC, snowMid * 0.85); col.push(c.r, c.g, c.b);
+        c.copy(top).lerp(snowC, snow); col.push(c.r, c.g, c.b);
+      }
+      for (let i = 0; i < seg; i++) {
+        const a = i * 3, b = a + 3;
+        idx.push(a, b, a + 1, a + 1, b, b + 1, a + 1, b + 1, a + 2, a + 2, b + 1, b + 2);
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+      geo.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+      geo.setIndex(idx);
+      // the haze is the painted sky's own horizon colour, so the far range dissolves into that sky
+      const P = getActiveChunk().sky.painted;
+      const mesh = new THREE.Mesh(geo, this.ridgeMaterial(ri, ring.haze, P ? new THREE.Color(...P.horizon) : new THREE.Color(0.5, 0.58, 0.74)));
+      mesh.frustumCulled = false;
+      this.group.add(mesh);
+    });
+  }
+
+  /** the ridge rings' material: Lambert + vertex colour, fogged, then dissolved into a cool haze (warmer toward the sun) */
+  private ridgeMaterial(ri: number, haze: number, hazeColor: THREE.Color): THREE.MeshLambertMaterial {
+    const mat = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+    mat.onBeforeCompile = (shader) => {
+      attachFogUniforms(shader);
+      shader.uniforms['uHaze'] = { value: haze }; // per ring as a uniform, so the rings share one program
+      shader.uniforms['uHazeCol'] = { value: hazeColor };
+      shader.fragmentShader = shader.fragmentShader
+        .replace('#include <common>', '#include <common>\nuniform float uHaze;\nuniform vec3 uHazeCol;')
+        .replace('#include <fog_fragment>', `
+          {
+            vec3 ray = normalize(vFogWorldPos - cameraPosition);
+            float sunAmt = max(dot(ray, fogSunDir), 0.0);
+            vec3 hazeCol = mix(uHazeCol, fogSunColor * 0.9, pow(sunAmt, 3.0) * 0.7);
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, hazeCol, uHaze);
+          }`);
+    };
+    mat.name = `ridge${ri}`;
+    mat.customProgramCacheKey = () => 'ridge-painted'; // not 'ridge': the default rings' shader differs (fixed haze colour)
+    this.sky.setupMaterial(mat);
+    return mat;
   }
 
   private buildRidges(ocean: boolean) {

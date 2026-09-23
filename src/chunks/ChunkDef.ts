@@ -169,6 +169,17 @@ export interface ChunkSky {
    * ring's lean on the sky (optional, default 20).
    */
   planet?: { azimuth: number; elevation: number; size: number; tilt: number; roll?: number };
+  /**
+   * Put the sun here instead of at the HDRI's brightest pixel (degrees: compass azimuth as `planet`, elevation above
+   * the horizon). Nalati: a late-afternoon sun from the WSW.
+   */
+  sun?: { azimuth: number; elevation: number };
+  /**
+   * A painted sky instead of the HDRI (`style: 'painterly'`): `Sky.ts` paints a small equirectangular gradient —
+   * `zenith` overhead → `horizon` at the skyline → `ground` below it, a warm `glow` around the sun — and uses it as
+   * the background and the environment. Nothing is downloaded for the sky (`hdri` is then unused).
+   */
+  painted?: { zenith: RGB; horizon: RGB; ground: RGB; glow: RGB };
 }
 
 /** Height + distance fog (`src/world/Atmosphere.ts`) and the volumetric sun shafts. */
@@ -180,6 +191,8 @@ export interface ChunkAtmosphere {
   fogDistDensity: number;
   /** colour of the god-ray / volumetric light */
   volumetricSunColor: RGB;
+  /** the volumetric light's medium (`src/core/Volumetrics.ts`); omitted = the forest haze (height −8, falloff 0.12, density 0.0045, strength 0.55) */
+  volumetric?: { height: number; falloff: number; density: number; strength: number };
 }
 
 /** Post-process colour grade (`src/core/Game.ts` composer + `src/core/Grade.ts`). */
@@ -214,8 +227,23 @@ export interface OceanDef {
   deepDepth: number;
 }
 
-/** How the shard is rendered: textured PBR (Pine Hollow) or faceted flat-shaded vertex colours, no textures (Driftwood Isle). */
-export type ChunkStyle = 'pbr' | 'lowpoly';
+/**
+ * How the shard is rendered: textured PBR (Pine Hollow), faceted flat-shaded vertex colours with no textures
+ * (Driftwood Isle), or soft cel-banded vertex/gradient colour with painted shadows and rim light, no textures
+ * (Nalati Grasslands — every mesh on the shared `src/world/painterly.ts` material).
+ */
+export type ChunkStyle = 'pbr' | 'lowpoly' | 'painterly';
+
+/**
+ * One azimuth band of a horizon ring (`ChunkHorizon`): a bump in the ring's height profile centred on a compass
+ * bearing (0 = north = +Z, 90 = east = −X), `spread` degrees either side (cosine falloff), `height` metres above
+ * the ring's base at its peak. `rough` 0 = smooth rolling hills … 1 = jagged ridged peaks.
+ */
+export interface HorizonBand { azimuth: number; spread: number; height: number; rough: number }
+/** A painted horizon ring: radius (m), base height (m, relative to y = 0), colours (linear), snow above `snowLine` of its height (0..1, > 1 = none), haze 0..1 */
+export interface HorizonRing { r: number; base: number; color: RGB; top: RGB; snowLine: number; haze: number; bands: HorizonBand[]; floor: number }
+/** A shard-specific horizon (`src/world/Horizon.ts`): rings near → far; replaces the default three ridge rings. */
+export interface ChunkHorizon { rings: HorizonRing[]; cloudSea: boolean }
 /** The first-person weapon the shard hands the player (`src/player/Crossbow.ts` / `src/player/Sword.ts`). */
 export type ChunkWeapon = 'crossbow' | 'sword';
 
@@ -262,6 +290,13 @@ export interface ChunkDef {
   style?: ChunkStyle;
   /** player weapon; omitted = 'crossbow' */
   weapon?: ChunkWeapon;
+  /** a painted horizon of its own (Nalati: the plateau rolling on, the snow range south); omitted = the default ridge rings */
+  horizon?: ChunkHorizon;
+  /**
+   * `style: 'painterly'`: the ground's painted colour (linear RGB, written into `out` and returned) at (x, z), given the
+   * surface height `h` and `slope` (0 flat → 1 vertical) — height, slope and noise → a palette ramp. `src/world/Terrain.ts` calls it once per terrain vertex; no textures are loaded.
+   */
+  groundColor?: (x: number, z: number, h: number, slope: number, t: ChunkTerrain, out: RGB) => RGB;
   /** open water over the whole shard; omitted = dry land with an optional pond */
   ocean?: OceanDef;
 }

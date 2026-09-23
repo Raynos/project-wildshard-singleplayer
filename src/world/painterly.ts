@@ -27,7 +27,9 @@
  *
  * API
  *   painterlyMaterial(sky, opts)  → THREE.MeshLambertMaterial (lit by the sun's CSM shadows + the hemisphere light,
- *                                    fogged by Atmosphere.ts, already passed through `sky.setupMaterial`). Options:
+ *                                    fogged by Atmosphere.ts, already passed through `sky.setupMaterial`). `sky = null`
+ *                                    only where the caller passes it through `sky.setupMaterial` itself (the terrain,
+ *                                    built before the sky is handed around; bootstrap does it). Options:
  *       color          base colour (default white; multiplies the vertex / instance colours)
  *       vertexColors   accepted for readability — vertex colours are always on (see above)
  *       rim            rim-light strength, 0 = none … 1 = strong (default 0.35)
@@ -36,6 +38,7 @@
  *       sway           wind sway in metres per (local metre above the origin)² — foliage / flags (default 0)
  *       emissive       self-light colour (default black) — a lantern, embers
  *       side / transparent / opacity / depthWrite / alphaTest   passed through to the material
+ *   syncPainterlySun(sky)         copy the sun's colour × intensity and direction into the shared uniforms
  *   updatePainterly(dt)           advance the shared sway clock (the shard's update hook calls it once a frame)
  *   setPainterlyLook(look)        the shard-wide look: shadow tint, rim colour, wind strength (all shared uniforms)
  *   painterlyUniforms             the shared uniform objects (read-only use: other shaders — grass — may sample the
@@ -97,8 +100,11 @@ export function setPainterlyLook(look: PainterlyLook): void {
   }
 }
 
-/** read the sun off the sky rig (CSM lights all share the sun's colour and intensity) */
-function syncSun(sky: Sky): void {
+/**
+ * Read the sun off the sky rig into the shared uniforms (CSM lights all share the sun's colour and intensity).
+ * `painterlyMaterial(sky, …)` does it; call it yourself after building materials with `sky = null`.
+ */
+export function syncPainterlySun(sky: Sky): void {
   const l = sky.csm.lights[0];
   if (l) painterlyUniforms.uPSunRef.value.copy(l.color).multiplyScalar(l.intensity);
   painterlyUniforms.uPSunDir.value.copy(sky.sunDir).normalize();
@@ -192,8 +198,8 @@ function ensureColor(geo: THREE.BufferGeometry): void {
 }
 
 /** The shared painterly lit material (see the file header). */
-export function painterlyMaterial(sky: Sky, opts: PainterlyOpts = {}): THREE.MeshLambertMaterial {
-  syncSun(sky);
+export function painterlyMaterial(sky: Sky | null, opts: PainterlyOpts = {}): THREE.MeshLambertMaterial {
+  if (sky) syncPainterlySun(sky);
   const mat = new THREE.MeshLambertMaterial({
     color: opts.color ?? 0xffffff,
     vertexColors: true,
@@ -224,7 +230,7 @@ export function painterlyMaterial(sky: Sky, opts: PainterlyOpts = {}): THREE.Mes
   };
   mat.customProgramCacheKey = () => 'painterly';
   mat.onBeforeRender = (_r, _s, _c, geometry) => { ensureColor(geometry); };
-  sky.setupMaterial(mat);
+  sky?.setupMaterial(mat);
   return mat;
 }
 

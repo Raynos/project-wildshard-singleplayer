@@ -65,6 +65,7 @@ import { installErrorModal, showError } from './ui/ErrorModal';
 import { onReview, queuedCount, quickNote } from './ui/review';
 import type { Feedback } from './ui/Feedback';
 import { TIER } from './core/tier';
+import { wireNalati, type Nalati } from './nalati';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
 const _animalXZ: { x: number; z: number }[] = [];
@@ -100,6 +101,8 @@ async function main() {
   const { game, sky, player, forest, params, chunk } = world;
   const nolock = params.has('nolock');
   const sea = chunk.ocean, isOcean = sea !== undefined; // open-water shard (Driftwood Isle): ocean + pier, no forest carpet / cabins / props
+  const painterly = chunk.style === 'painterly'; // Nalati: no undergrowth / cabins / props — its world is wired by src/nalati (the props step)
+  let nalati: Nalati | null = null;
 
   // ── world dressing ──
   const dressing = await step('edge', async () => {
@@ -200,16 +203,17 @@ async function main() {
     // no forest carpet over open water (grass scattered the whole sea floor for 19 s)
     const grass = isOcean ? null : new Grass(sky, forest).build();
     await macrotask();
-    const under = isOcean ? null : await new Undergrowth(sky, forest).buildAsync(macrotask); // a task per placement pass
+    const under = isOcean || painterly ? null : await new Undergrowth(sky, forest).buildAsync(macrotask); // a task per placement pass
     const particles = new Particles(sky, forest).build();
-    if (grass && under) game.scene.add(grass.group, under.group);
+    if (grass) game.scene.add(grass.group);
+    if (under) game.scene.add(under.group);
     game.scene.add(particles.group);
     return { grass, under, particles };
   });
   const { grass, under, particles } = carpet;
 
   const homestead = await step('cabins', async () => {
-    if (isOcean) return { cabins: null, interactables: [] as Awaited<ReturnType<Cabins['build']>>['interactables'] };
+    if (isOcean || painterly) return { cabins: null, interactables: [] as Awaited<ReturnType<Cabins['build']>>['interactables'] };
     const cabins = new Cabins(sky);
     const { group: cabinGroup, colliders, interactables } = await cabins.build();
     game.scene.add(cabinGroup);
@@ -219,6 +223,7 @@ async function main() {
   });
   const { cabins, interactables } = homestead;
   const props = await step('props', async () => {
+    if (painterly) { nalati = await wireNalati({ game, sky, player, forest, chunk }); return null; } // the Nalati world (src/nalati/index.ts)
     if (isOcean) return null;
     const built = new Props(sky, forest);
     game.scene.add(await built.build());
@@ -486,6 +491,7 @@ async function main() {
     under?.update(dt, player.position);
     particles.update(dt, player.position, game.camera);
     cabins?.update(dt, t);
+    nalati?.update(dt, t);
     // swimming holsters the weapon (hands only; Hands.ts follows)
     if (player.swimming !== swimHold) { swimHold = player.swimming; weapons.visible = !swimHold; weapons.setEnabled(!swimHold); }
     animals.update(dt, t, player.position, player.sprinting);

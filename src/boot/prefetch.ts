@@ -28,9 +28,10 @@ const CONCURRENCY = 6;
  * Driftwood's boot plus 14 MB of Pine Hollow's.
  */
 export function bootFetches(def: ChunkDef, files: ChunkFiles): string[] {
-  const terrain = def.style === 'lowpoly' ? files.terrain.filter((f) => f.startsWith('/assets/baked/')) : files.terrain;
+  const painted = def.style === 'lowpoly' || def.style === 'painterly'; // no ground textures: only the baked terrain
+  const terrain = painted ? files.terrain.filter((f) => f.startsWith('/assets/baked/')) : files.terrain;
   const trees = def.trees.factory === 'none' ? [] : files.trees;
-  const homestead = def.ocean === undefined ? [...files.cabins, ...files.props] : [];
+  const homestead = def.ocean === undefined && def.style !== 'painterly' ? [...files.cabins, ...files.props] : [];
   return [...files.sky, ...files.baked, ...terrain, ...trees, ...homestead];
 }
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };

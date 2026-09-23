@@ -92,6 +92,7 @@ export class Game {
     const vol = new VolumetricsEffect(this.camera, makeNoiseTexture(), TIER_CONFIG.volumetricSteps, TIER_CONFIG.volumetricScale);
     vol.setSun(this.sky.sunDir, new THREE.Color(...A.volumetricSunColor));
     if (this.scene.fog) vol.setFogColor((this.scene.fog as THREE.Fog).color);
+    if (A.volumetric) vol.setMedium(A.volumetric);
     this.volumetrics = vol;
     const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
       blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,

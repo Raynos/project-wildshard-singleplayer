@@ -53,10 +53,13 @@ export class Sky {
     // the HDR itself: the gain-mapped JPEG + PNG pair (~0.3 MB, BakedSky.ts) when the build has it, else the 4–5 MB .hdr
     const pair = bakedSkyUrls(hdriName);
     const hdrUrl = `/assets/hdri/${hdriName}_2k.hdr`;
-    const loadSky = pair ? loadSkyPair(pair).catch((e: unknown) => { console.warn(`[sky] gain-mapped pair not used (${String(e)}); loading the .hdr`); return loadHDR(hdrUrl); }) : loadHDR(hdrUrl);
-    const [hdr, , baked] = await Promise.all([loadSky, preloadBakedTextures(), loadBakedSky(hdriName)]);
-    if (baked) this.sunDir.fromArray(baked.sunDir).normalize();
-    else this.findSun(hdr);
+    // `ChunkSky.sun` places the sun by hand; `ChunkSky.painted` paints the whole sky around it (nothing downloaded)
+    if (S.sun) this.sunDir.copy(compassDir(S.sun.azimuth, S.sun.elevation));
+    const painted = S.painted && !qs.has('hdri') ? S.painted : null;
+    const loadSky = painted ? Promise.resolve(paintSky(painted, this.sunDir))
+      : pair ? loadSkyPair(pair).catch((e: unknown) => { console.warn(`[sky] gain-mapped pair not used (${String(e)}); loading the .hdr`); return loadHDR(hdrUrl); }) : loadHDR(hdrUrl);
+    const [hdr, , baked] = await Promise.all([loadSky, preloadBakedTextures(), painted ? Promise.resolve(null) : loadBakedSky(hdriName)]);
+    if (!S.sun) { if (baked) this.sunDir.fromArray(baked.sunDir).normalize(); else this.findSun(hdr); }
     hdr.mapping = THREE.EquirectangularReflectionMapping;
     // three tasks, not one 130 ms one at 4x CPU: the PMREM program compile, the 2048x1024 half-float upload, then the
     // cube-UV render + blur passes (same calls, same result — only the task boundaries move)
@@ -149,31 +152,38 @@ export class Sky {
     const geo = new THREE.SphereGeometry(1400, 48, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
     const tex = bakedTexture('clouds', makeCloudTexture); // 512² six-octave simplex on a torus: ~200 ms of phone CPU when not baked
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    // a painted sky (Nalati) gets big painted cumulus: larger cells, crisper edges, bright sunlit tops over soft blue-grey bellies
+    const big = getActiveChunk().sky.painted ? 1.0 : 0.0;
     this.cloudUniforms.uSunDir.value.copy(this.sunDir);
     this.cloudUniforms.uSunColor.value.set(...getActiveChunk().sky.cloudSunColor);
     const mat = new THREE.ShaderMaterial({
-      uniforms: { ...this.cloudUniforms, tClouds: { value: tex } },
+      uniforms: { ...this.cloudUniforms, tClouds: { value: tex }, uBig: { value: big } },
       transparent: true, depthWrite: false, side: THREE.BackSide,
       vertexShader: /* glsl */`
         varying vec3 vDir;
         void main() { vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
       fragmentShader: /* glsl */`
-        uniform sampler2D tClouds; uniform float uTime; uniform vec3 uSunDir; uniform vec3 uSunColor;
+        uniform sampler2D tClouds; uniform float uTime; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform float uBig;
         varying vec3 vDir;
         void main() {
           vec3 d = normalize(vDir);
           if (d.y < 0.02) discard;
           // project onto a flat cloud plane at height ~1 for a believable perspective
           vec2 p = d.xz / (d.y + 0.15);
-          vec2 uv = p * 0.5 + vec2(uTime * 0.004, uTime * 0.002);
+          vec2 uv = p * mix(0.5, 0.2, uBig) + vec2(uTime * 0.004, uTime * 0.002);
           float a = texture2D(tClouds, uv).r;
           float b = texture2D(tClouds, uv * 3.1 + vec2(-uTime * 0.006, uTime * 0.003)).r;
-          float cover = smoothstep(0.52, 0.8, a * 0.7 + b * 0.3);
+          float dens = a * 0.7 + b * 0.3;
+          float cover = mix(smoothstep(0.52, 0.8, dens), smoothstep(0.54, 0.62, dens), uBig);
           float horizon = smoothstep(0.02, 0.22, d.y);
           float sunAmt = max(dot(d, uSunDir), 0.0);
           vec3 lit = mix(vec3(0.62, 0.66, 0.74), vec3(1.0, 0.94, 0.86), smoothstep(0.3, 0.9, a));
+          // painted cumulus: the belly (thin, low density) blue-grey, the piled-up tops bright, the sun side warm
+          float top = smoothstep(0.56, 0.78, dens) * (0.6 + 0.4 * smoothstep(0.4, 0.8, b));
+          vec3 painted = mix(vec3(0.66, 0.74, 0.9), vec3(1.25, 1.22, 1.18), top);
+          lit = mix(lit, painted, uBig);
           lit = mix(lit, uSunColor * 1.3, pow(sunAmt, 6.0) * 0.6);
-          float alpha = cover * horizon * 0.85;
+          float alpha = cover * horizon * mix(0.85, 0.97, uBig);
           gl_FragColor = vec4(lit, alpha);
         }`,
     });
@@ -395,6 +405,53 @@ function patchCSMShaderChunk() {
 #endif
 IncidentLight directLight;`;
   THREE.ShaderChunk.lights_fragment_begin = chunk.replace('IncidentLight directLight;', block);
+}
+
+/** compass degrees (0 = north = +Z, 90 = east = −X) + elevation → a unit direction (the `ChunkSky.planet` convention) */
+function compassDir(azimuth: number, elevation: number): THREE.Vector3 {
+  const d2r = Math.PI / 180, az = azimuth * d2r, el = elevation * d2r;
+  return new THREE.Vector3(-Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).normalize();
+}
+
+/**
+ * `ChunkSky.painted`: a small equirectangular half-float sky in the HDR's layout (row 0 = the top, flipY, the same
+ * u/v → direction mapping `findSun` reads) — zenith → horizon gradient, a soft warm glow and a hot core round the
+ * sun, the ground colour below the skyline. It is the background and the PMREM environment, so it replaces the
+ * HDRI entirely (~2 ms to paint, nothing to download).
+ */
+function paintSky(P: NonNullable<ChunkSky['painted']>, sun: THREE.Vector3): THREE.DataTexture {
+  const W = 512, H = 256;
+  const data = new Uint16Array(W * H * 4);
+  const [zr, zg, zb] = P.zenith, [hr, hg, hb] = P.horizon, [gr, gg, gb] = P.ground, [wr, wg, wb] = P.glow;
+  const half = (v: number): number => THREE.DataUtils.toHalfFloat(v);
+  for (let y = 0; y < H; y++) {
+    const v = 1 - (y + 0.5) / H, phi = (v - 0.5) * Math.PI;
+    const cp = Math.cos(phi), e = Math.sin(phi);
+    for (let x = 0; x < W; x++) {
+      const theta = ((x + 0.5) / W - 0.5) * 2 * Math.PI;
+      const dx = Math.cos(theta) * cp, dz = Math.sin(theta) * cp;
+      const g = Math.max(0, dx * sun.x + e * sun.y + dz * sun.z);
+      let r: number, gg2: number, b: number;
+      if (e >= 0) {
+        const t = THREE.MathUtils.smoothstep(e ** 0.55, 0, 1);
+        r = hr + (zr - hr) * t; gg2 = hg + (zg - hg) * t; b = hb + (zb - hb) * t;
+        // the horizon is warmer on the sun's side, and a soft wide glow + a hot core surround the disc
+        const side = (Math.max(0, dx * sun.x + dz * sun.z) / Math.max(1e-3, Math.hypot(sun.x, sun.z))) ** 2 * (1 - t) * 0.35;
+        const glow = g ** 6 * 0.45 + g ** 48 * 1.6 + side;
+        r += wr * glow; gg2 += wg * glow; b += wb * glow;
+      } else {
+        const t = THREE.MathUtils.smoothstep(-e, 0, 0.12);
+        r = hr * 0.85 + (gr - hr * 0.85) * t; gg2 = hg * 0.85 + (gg - hg * 0.85) * t; b = hb * 0.85 + (gb - hb * 0.85) * t;
+      }
+      const i = (y * W + x) * 4;
+      data[i] = half(r); data[i + 1] = half(gg2); data[i + 2] = half(b); data[i + 3] = half(1);
+    }
+  }
+  const tex = new THREE.DataTexture(data, W, H, THREE.RGBAFormat, THREE.HalfFloatType);
+  tex.flipY = true; tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearFilter; tex.generateMipmaps = false;
+  tex.colorSpace = THREE.LinearSRGBColorSpace;
+  tex.needsUpdate = true;
+  return tex;
 }
 
 function ctx2d(c: HTMLCanvasElement): CanvasRenderingContext2D {

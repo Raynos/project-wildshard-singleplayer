@@ -6,6 +6,8 @@ import { attachFogUniforms } from './Atmosphere';
 import { getActiveChunk } from '../chunks/registry';
 import { loadBakedTerrain } from './BakedTerrain';
 import { macrotask } from '../boot/plan';
+import { painterlyMaterial } from './painterly';
+import type { RGB } from '../chunks/ChunkDef';
 
 // ── low-poly palette (sRGB in, linear out via THREE.Color) ──
 const LP = {
@@ -25,7 +27,7 @@ const hash2 = (x: number, z: number) => { const s = Math.sin(x * 12.9898 + z * 7
 export class Terrain {
   group = new THREE.Group();
   mesh!: THREE.Mesh;
-  material!: THREE.MeshStandardMaterial;
+  material!: THREE.MeshStandardMaterial | THREE.MeshLambertMaterial;
   /** Bake a 0..1 canopy-density map (from Forest) into a per-vertex attribute → ambient darkening under trees. */
   applyCanopy(tex: THREE.DataTexture): void {
     const { width: N, data } = tex.image as { width: number; data: Float32Array };
@@ -41,6 +43,7 @@ export class Terrain {
 
   async build(): Promise<this> {
     if (getActiveChunk().style === 'lowpoly') return this.buildLowPoly();
+    if (getActiveChunk().style === 'painterly') return this.buildPainterly();
     const [layers] = await Promise.all([loadPBRArray([...getActiveChunk().assets.groundLayers], 1024), loadBakedTerrain()]); // baked heights/splat → Heightfield lookups (BakedTerrain.ts)
     await macrotask(); // the layer copies above and the mesh below were one ~110 ms task at 4x CPU
     this.mesh = new THREE.Mesh(this.buildGeometry(), this.buildMaterial(layers));
@@ -80,6 +83,113 @@ export class Terrain {
     this.group.add(this.mesh);
     this.group.add(this.buildLowPolySlab());
     return this;
+  }
+
+  /**
+   * `style: 'painterly'` (Nalati): no textures. A smooth indexed grid (normals from the height grid), each vertex
+   * painted by the def's `groundColor(x, z, h, slope)` — the valley / plateau greens, gravel, rock, snow — on the
+   * shared painterly material with soft cel bands (terrain takes a gentler ramp than props, so the slopes still
+   * read as gradients). The slab walls are painted rock on the same material. Two draw calls, one program.
+   */
+  private async buildPainterly() {
+    await loadBakedTerrain();
+    const mat = painterlyMaterial(null, { bands: 0.5, rim: 0, shade: 0.85 }); // bootstrap passes it through sky.setupMaterial
+    this.material = mat;
+    const rows = this.buildPainterlyGeometry();
+    let r = rows.next();
+    while (r.done !== true) { await macrotask(); r = rows.next(); }
+    this.mesh = new THREE.Mesh(r.value, mat);
+    this.mesh.receiveShadow = true;
+    this.mesh.castShadow = false;
+    this.group.add(this.mesh);
+    const slab = new THREE.Mesh(this.buildPainterlySlab(), mat);
+    slab.receiveShadow = true;
+    this.group.add(slab);
+    return this;
+  }
+
+  private *buildPainterlyGeometry(): Generator<void, THREE.BufferGeometry, undefined> {
+    const def = getActiveChunk();
+    const paint = def.groundColor;
+    const res = TERRAIN_RES, n = res - 1, d = CHUNK_SIZE / n;
+    const hs = new Float32Array(res * res);
+    for (let iz = 0; iz < res; iz++) {
+      if (iz > 0 && iz % 64 === 0) yield;
+      for (let ix = 0; ix < res; ix++) hs[iz * res + ix] = heightAt(-CHUNK_HALF + ix * d, -CHUNK_HALF + iz * d);
+    }
+    yield;
+    const H = (ix: number, iz: number) => hs[Math.min(n, Math.max(0, iz)) * res + Math.min(n, Math.max(0, ix))] ?? 0;
+    const pos = new Float32Array(res * res * 3), nrm = new Float32Array(res * res * 3), col = new Float32Array(res * res * 3);
+    const out: RGB = [0, 0, 0];
+    for (let iz = 0; iz < res; iz++) {
+      if (iz > 0 && iz % 48 === 0) yield;
+      for (let ix = 0; ix < res; ix++) {
+        const i = iz * res + ix, x = -CHUNK_HALF + ix * d, z = -CHUNK_HALF + iz * d;
+        const y = H(ix, iz);
+        pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
+        const nx = H(ix - 1, iz) - H(ix + 1, iz), nz = H(ix, iz - 1) - H(ix, iz + 1), ny = 2 * d;
+        const l = Math.hypot(nx, ny, nz);
+        nrm[i * 3] = nx / l; nrm[i * 3 + 1] = ny / l; nrm[i * 3 + 2] = nz / l;
+        if (paint) paint(x, z, y, 1 - ny / l, def.terrain, out);
+        else lowPolyGroundColor(_tmpC, y, 1 - ny / l, x, z).toArray(out);
+        col[i * 3] = out[0]; col[i * 3 + 1] = out[1]; col[i * 3 + 2] = out[2];
+      }
+    }
+    const idx = new Uint32Array(n * n * 6);
+    let k = 0;
+    for (let iz = 0; iz < n; iz++) for (let ix = 0; ix < n; ix++) {
+      const a = iz * res + ix, b = a + 1, c = a + res, e = c + 1;
+      idx[k++] = a; idx[k++] = c; idx[k++] = b; idx[k++] = b; idx[k++] = c; idx[k++] = e;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    geo.setIndex(new THREE.BufferAttribute(idx, 1));
+    geo.computeBoundingSphere();
+    return geo;
+  }
+
+  /** the painterly slab: smooth rock walls from the surface edge down to the slab's floor, warm on top, dark below */
+  private buildPainterlySlab() {
+    const segs = 128;
+    const verts: number[] = [], norms: number[] = [], cols: number[] = [], idx: number[] = [];
+    const H = CHUNK_HALF, D = -CHUNK_DEPTH;
+    const sides: { a: [number, number]; b: [number, number]; n: [number, number] }[] = [
+      { a: [-H, -H], b: [H, -H], n: [0, -1] }, { a: [H, -H], b: [H, H], n: [1, 0] }, { a: [H, H], b: [-H, H], n: [0, 1] }, { a: [-H, H], b: [-H, -H], n: [-1, 0] },
+    ];
+    const top = new THREE.Color(0.36, 0.3, 0.24), mid = new THREE.Color(0.2, 0.18, 0.17), deep = new THREE.Color(0.07, 0.07, 0.09);
+    const c = new THREE.Color();
+    for (const s of sides) {
+      const base = verts.length / 3;
+      for (let i = 0; i <= segs; i++) {
+        const t = i / segs;
+        const x = s.a[0] + (s.b[0] - s.a[0]) * t, z = s.a[1] + (s.b[1] - s.a[1]) * t;
+        const y0 = heightAt(x, z) + 0.05;
+        const bulge = 4 + Math.abs(Math.sin(i * 1.7 + s.n[0] * 3 + s.n[1] * 5)) * 4;
+        const rows: [number, number, number, THREE.Color][] = [[x, y0, z, top], [x + s.n[0] * 2, y0 - 4, z + s.n[1] * 2, top], [x + s.n[0] * bulge, D * 0.5, z + s.n[1] * bulge, mid], [x + s.n[0] * 2, D, z + s.n[1] * 2, deep]];
+        for (const [vx, vy, vz, cc] of rows) {
+          verts.push(vx, vy, vz); norms.push(s.n[0], 0.15, s.n[1]);
+          const j = 0.9 + Math.abs(Math.sin(i * 12.9898 + vy * 0.37)) * 0.2;
+          c.copy(cc).multiplyScalar(j); cols.push(c.r, c.g, c.b);
+        }
+      }
+      for (let i = 0; i < segs; i++) for (let r = 0; r < 3; r++) {
+        const a = base + i * 4 + r, b = base + (i + 1) * 4 + r;
+        idx.push(a, b, a + 1, b, b + 1, a + 1);
+      }
+    }
+    const b0 = verts.length / 3;
+    verts.push(-H, D, -H, H, D, -H, H, D, H, -H, D, H);
+    for (let i = 0; i < 4; i++) { norms.push(0, -1, 0); cols.push(deep.r, deep.g, deep.b); }
+    idx.push(b0, b0 + 1, b0 + 2, b0, b0 + 2, b0 + 3);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+    geo.setAttribute('normal', new THREE.Float32BufferAttribute(norms, 3));
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+    geo.setIndex(idx);
+    geo.computeBoundingSphere();
+    return geo;
   }
 
   /** The low-poly grid; yields after every band of 64 rows (the caller ends the task there). */
