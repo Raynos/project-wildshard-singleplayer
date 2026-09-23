@@ -26,10 +26,11 @@ import { CHUNK_HALF } from '../core/config';
 import { reviewUnlocked, unlockReview, type ContextValue } from '../ui/review';
 import type { World } from '../core/bootstrap';
 import { ModelExplorer } from './ModelExplorer';
-import { driftwoodCatalog, type CatalogEntry, type CatalogHandles } from './catalog';
+import { catalogEntries, type CatalogEntry } from './catalog';
+import { registeredPicks } from './registry';
 import { Select, type SelectTarget } from './Select';
 import { MiniMap } from './MiniMap';
-import { Compare } from './Compare';
+import { Compare, hasCompareTargets } from './Compare';
 import modelsArt from './img/models.webp';
 import worldArt from './img/world.webp';
 
@@ -43,13 +44,9 @@ export interface ExploreHost {
   openFeedback: () => void;
   /** hidden while exploring: the chunk-edge force field (it draws lines across the sea from the air) */
   hide?: THREE.Object3D[];
-  /** the world's models for the Model Explorer's catalog (main.ts's dressing); absent → no MODELS tab */
-  models?: Omit<CatalogHandles, 'sky' | 'scene'> & {
-    /** batches a tap can pick one member of */
-    palms?: { mesh: THREE.Object3D } | null; bushes?: { mesh: THREE.Object3D } | null;
-    /** the live animals (ambient AI) — a tap on one opens its species */
-    creatures?: readonly { mesh: THREE.Object3D; kind: string; position: THREE.Vector3; scale: number }[];
-  };
+  /** the shard's live animals (ambient AI): the catalog gets one creature per species, a tap on one opens its species.
+   *  The models themselves come from the registry (src/explore/registry.ts) — whatever the shard's setup registered. */
+  creatures?: readonly { mesh: THREE.Object3D; kind: string; position: THREE.Vector3; scale: number }[];
 }
 
 /** a mode that lives in its own module (Model Explorer, …): shown / hidden with its tab, ticked while shown */
@@ -61,7 +58,12 @@ export interface ExplorePane {
   context: () => Record<string, ContextValue>;
 }
 
-const HOME = { pos: new THREE.Vector3(-18, 30, -236), look: new THREE.Vector3(0, 6, -70) }; // off the pier's sea end, the island ahead
+/** the World Explorer's first view: up and behind the shard's spawn, looking the way the spawn faces */
+function homeView(world: World): { pos: THREE.Vector3; look: THREE.Vector3 } {
+  const s = world.chunk.spawn, fx = -Math.sin(s.yaw), fz = -Math.cos(s.yaw);
+  const ground = Math.max(heightAt(s.x, s.z), world.chunk.ocean?.level ?? -Infinity);
+  return { pos: new THREE.Vector3(s.x - fx * 12 - fz * 12, ground + 26, s.z - fz * 12 + fx * 12), look: new THREE.Vector3(s.x + fx * 150, ground + 4, s.z + fz * 150) };
+}
 const SPEEDS = [['Slow', 4], ['Normal', 12], ['Fast', 40]] as const;
 const PARK = new THREE.Vector3(0, -600, -CHUNK_HALF * 12); // where the player waits: out of every animal's senses
 
@@ -135,12 +137,12 @@ export class Explore {
     document.addEventListener('keydown', this.onKey);
     game.onUpdate((dt) => { this.update(dt); });
     if ((host.world.chunk.pois ?? []).length > 0) this.map = new MiniMap(this, host.world);
-    if (host.world.chunk.slug === 'driftwood-isle') this.compare = new Compare(this, host.world); // its targets are Driftwood's mockups
-    const models = host.models;
-    if (models) {
-      const entries = driftwoodCatalog({ ...models, sky: host.world.sky, scene: game.scene });
+    if (hasCompareTargets(host.world.chunk.slug)) this.compare = new Compare(this, host.world);
+    const { chunk } = host.world;
+    const entries = catalogEntries(host.world.sky, host.creatures ?? [], chunk.style === 'lowpoly' ? 'lowpoly' : 'pbr', chunk.spawn);
+    if (entries.length > 0) {
       this.addPane('model', new ModelExplorer(this, host.world, entries));
-      this.select = new Select(this, host.world, selectTargets(entries, models), entries);
+      this.select = new Select(this, host.world, selectTargets(entries, host.creatures ?? []), entries);
       this.onTap = (x, y) => { this.select?.pick(x, y); };
     }
   }
@@ -235,7 +237,9 @@ export class Explore {
     this.cam.enabled = mode === 'world' && !this.held;
     if (this.fly) this.fly.enabled = mode === 'world';
     if (mode !== 'world') { this.cam.move.set(0, 0, 0); this.map?.close(); this.compare?.close(); }
-    if (mode === 'world' && prev === 'hub') this.cam.placeAt(HOME.pos, HOME.look);
+    // entering the world from the hub or the Model Explorer (whose camera was orbiting something else) starts at home;
+    // VIEW IN WORLD / the map fly from there, a `cam` link (open) overrides it
+    if (mode === 'world' && prev !== 'world') { const h = homeView(this.host.world); this.cam.placeAt(h.pos, h.look); }
     for (const [m, p] of this.panes) { if (m === mode) p.show(opts); else p.hide(); }
   }
 
@@ -314,8 +318,8 @@ export class Explore {
       // a slow cinematic orbit of the island behind the hub cards
       this.hubT += dt * 0.035;
       const a = this.hubT - 1.1;
-      camera.position.set(Math.sin(a) * 250, 118, 12 + Math.cos(a) * -250);
-      camera.lookAt(0, 4, 12);
+      camera.position.set(Math.sin(a) * CHUNK_HALF, CHUNK_HALF * 0.47, Math.cos(a) * -CHUNK_HALF); // the whole shard from above its edge
+      camera.lookAt(0, 4, 0);
     } else if (this.mode === 'world') {
       const f = this.flight;
       if (f) {
@@ -342,24 +346,14 @@ export class Explore {
   }
 }
 
-/** what a tap in the World Explorer can hit: every live catalog model, one palm / bush out of its batch, each animal */
-function selectTargets(entries: readonly CatalogEntry[], m: NonNullable<ExploreHost['models']>): SelectTarget[] {
+/** what a tap in the World Explorer can hit: every live registered model, the registered batch picks, each live animal */
+function selectTargets(entries: readonly CatalogEntry[], creatures: NonNullable<ExploreHost['creatures']>): SelectTarget[] {
   const out: SelectTarget[] = entries.filter((e) => e.live).map((e) => ({ object: e.object(), entry: e.id }));
-  const around = (p: THREE.Vector3, r: number, h: number): THREE.Box3 => new THREE.Box3(new THREE.Vector3(p.x - r, p.y - 0.2, p.z - r), new THREE.Vector3(p.x + r, p.y + h, p.z + r));
-  const specs = m.palmSpecs ?? [];
-  if (m.palms) out.push({
-    object: m.palms.mesh, entry: 'palm',
-    boxAt: (pt) => {
-      let best = specs[0], bd = Infinity;
-      for (const s of specs) { const d = (s.x - pt.x) ** 2 + (s.z - pt.z) ** 2; if (d < bd) { bd = d; best = s; } }
-      return best ? around(new THREE.Vector3(best.x, pt.y - best.h * 0.9, best.z), 2.4, best.h + 1.6) : around(pt, 2, 8);
-    },
-  });
-  if (m.bushes) out.push({ object: m.bushes.mesh, entry: 'bush', boxAt: (pt) => around(new THREE.Vector3(pt.x, pt.y - 1, pt.z), 1.4, 1.8) });
+  for (const p of registeredPicks()) out.push({ object: p.object, entry: p.entry, ...(p.boxAt ? { boxAt: p.boxAt } : {}) });
   const ids = new Set(entries.map((e) => e.id));
-  for (const a of m.creatures ?? []) {
+  for (const a of creatures) {
     if (!ids.has(a.kind)) continue;
-    out.push({ object: a.mesh, entry: a.kind, boxAt: () => around(a.position, 0.9 * a.scale, 1.6 * a.scale) });
+    out.push({ object: a.mesh, entry: a.kind, boxAt: () => new THREE.Box3(new THREE.Vector3(a.position.x - 0.9 * a.scale, a.position.y - 0.2, a.position.z - 0.9 * a.scale), new THREE.Vector3(a.position.x + 0.9 * a.scale, a.position.y + 1.6 * a.scale, a.position.z + 0.9 * a.scale)) });
   }
   return out;
 }

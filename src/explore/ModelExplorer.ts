@@ -13,6 +13,7 @@
  */
 import * as THREE from 'three';
 import type { World } from '../core/bootstrap';
+import { CHUNK_HALF } from '../core/config';
 import type { ContextValue } from '../ui/review';
 import { CATEGORIES, measure, type CatalogEntry, type Category } from './catalog';
 import type { Explore, ExplorePane } from './Explore';
@@ -392,7 +393,7 @@ export class ModelExplorer implements ExplorePane {
     const lineup = { group, labels, ruler, marks, base };
     const entry: CatalogEntry = {
       id: 'lineup', name: 'Creature lineup', category: 'creatures', file: 'src/entities/species/', live: false, buildMs: 0,
-      anchor: new THREE.Vector3((first.position.x + x) / 2, base, z0), object: () => group,
+      object: () => group,
       tick: (dt, t) => { for (const r of rows) r.a.update(dt, t, true); },
     };
     this.openModel(entry); // (openModel closes whatever was open first — the lineup is only registered after it)
@@ -565,8 +566,8 @@ export class ModelExplorer implements ExplorePane {
     }
     // the catalog floats over a slow orbit of the island, like the hub
     this.catalogT += dt * 0.03;
-    camera.position.set(Math.sin(this.catalogT + 2) * 230, 105, 12 + Math.cos(this.catalogT + 2) * -230);
-    camera.lookAt(0, 4, 12);
+    camera.position.set(Math.sin(this.catalogT + 2) * CHUNK_HALF * 0.92, CHUNK_HALF * 0.42, Math.cos(this.catalogT + 2) * -CHUNK_HALF * 0.92);
+    camera.lookAt(0, 4, 0);
     this.frame++;
     if (this.thumbQueue.length > 0 && this.frame % 2 === 0) this.thumbnail();
   }

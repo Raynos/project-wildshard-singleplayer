@@ -77,6 +77,7 @@ import { onReview, queuedCount, quickNote } from './ui/review';
 import { rotateGated } from './ui/RotateGate';
 import type { Feedback } from './ui/Feedback';
 import type { Explore, ExploreMode } from './explore/Explore';
+import { registerDriftwoodModels } from './explore/catalog';
 import { TIER } from './core/tier';
 import { islandMode } from './world/blenderArea';
 
@@ -271,6 +272,8 @@ async function main() {
   });
   // the island's enemies (Enemies.ts): reef crabs at the tidepools, coconut monkeys in the groves, the drowned sailor in the wreck's hold
   const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [] }).build() : null;
+  // the island's models, for Explore World's catalog and tap-to-select (src/explore/registry.ts: a shard registers what it built)
+  if (isOcean) registerDriftwoodModels({ sky, hut, lookout, wreck, shrine, pier, jetties, boat, bridge, cove, palms, bushes, palmSpecs });
   const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;
   if (dayNight) onSettingChange('time', (t) => { dayNight.setTime(t); }); // pause menu ▸ Settings ▸ Time of day (E55)
@@ -534,7 +537,7 @@ async function main() {
     weapons.setEnabled(false); weapons.visible = false;
     perf.setActive(false); // the Explore readout carries fps / calls / tris
     const { Explore: X } = await import('./explore/Explore');
-    explore ??= new X({ world, onExit: exitExplore, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], models: { hut, lookout, wreck, shrine, pier, jetties, boat, bridge, cove, palmSpecs, palms, bushes, creatures: animals.animals } });
+    explore ??= new X({ world, onExit: exitExplore, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], creatures: animals.animals });
     explore.open(mode, opts);
   };
   const exploreParam = params.get('explore');
@@ -545,7 +548,7 @@ async function main() {
   if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.worldMuted = true; hud.showIntro(enter); }
   else { hud.markEntered(); weapons.setEnabled(!nolock || params.has('skipintro')); }
   // ?explore=hub|world|model[&cam=x,y,z,yaw,pitch][&model=id] — straight into the viewer (Driftwood only, D4; a note's "go there")
-  if (exploreParam !== null && sea !== undefined) {
+  if (exploreParam !== null && chunk.explore === true) {
     const cam = (params.get('cam') ?? '').split(',').filter((v) => v !== '').map(Number);
     const model = params.get('model');
     hud.onExplore = () => { hud.onExplore = () => { void openExplore('hub'); }; void openExplore(exploreMode, { ...(cam.length >= 3 ? { cam } : {}), ...(model !== null ? { model } : {}) }); };

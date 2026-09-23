@@ -266,6 +266,9 @@ export interface ChunkDef {
   ocean?: OceanDef;
   /** named places — Explore World's mini map pins them and flies to them (src/explore/MiniMap.ts); omitted = none */
   pois?: ChunkPoi[];
+  /** the title's EXPLORE WORLD is offered on this shard (docs/plans/EXPLORE-WORLD.md; the models it shows are what the
+   *  shard's setup registers — src/explore/registry.ts); omitted = play only */
+  explore?: boolean;
 }
 
 /** a named place on the shard: world XZ in metres; `r` ≈ its size (how far back the fly-to camera stands) */

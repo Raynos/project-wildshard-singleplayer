@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { reproUrl } from '../src/ui/Feedback';
 import { CHUNKS, findChunk } from '../src/chunks/registry';
 import { CHUNK_HALF } from '../src/core/config';
+import { registerModel, registeredModels } from '../src/explore/registry';
 
 describe('Explore World', () => {
   it('a note filed in the World Explorer reopens the same camera', () => {
@@ -40,5 +41,17 @@ describe('Explore World', () => {
 
   it('only Driftwood carries points of interest for now (D4: Explore is Driftwood-only)', () => {
     for (const c of CHUNKS) if (c.slug !== 'driftwood-isle') expect(c.pois ?? [], c.slug).toEqual([]);
+  });
+
+  it('EXPLORE WORLD is switched on per shard — Driftwood today (D4; X10 made the viewer itself shard-agnostic)', () => {
+    for (const c of CHUNKS) expect(c.explore === true, c.slug).toBe(c.slug === 'driftwood-isle');
+  });
+
+  it('the model registry keeps one entry per id (a shard re-registering after a rebuild replaces it)', () => {
+    const a = { id: 'test-a', name: 'A', category: 'nature' as const, file: 'x.ts', live: true, object: () => { throw new Error('not built in a test'); } };
+    const before = registeredModels().length;
+    registerModel(a); registerModel({ ...a, name: 'A2' });
+    expect(registeredModels().length).toBe(before + 1);
+    expect(registeredModels().find((m) => m.id === 'test-a')?.name).toBe('A2');
   });
 });

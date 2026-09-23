@@ -21,13 +21,16 @@ import shrineArt from './img/mockups/shrine.jpg';
 
 interface Target { id: string; name: string; img: string; file: string; from: [number, number, number]; look: [number, number, number] }
 
-/** the mockup's viewpoint: x, height above the ground (or deck), z → looking at x, height, z */
-const TARGETS: readonly Target[] = [
+/** per shard: its target mockups and their viewpoints (x, height above the ground / sea, z → looking at x, height, z) */
+const TARGETS: Readonly<Record<string, readonly Target[]>> = { 'driftwood-isle': [
   { id: 'spawn', name: 'Spawn · the pier', img: spawnArt, file: 'art/driftwood-fp-spawn.png', from: [0, 2.9, -232], look: [0, 4, -120] },
   { id: 'lookout', name: 'Lookout', img: lookoutArt, file: 'art/driftwood-fp-poi-1-lookout.png', from: [64, 1.7, 62], look: [94, 12, 94] },
   { id: 'wreck', name: 'Wreck cove', img: wreckArt, file: 'art/driftwood-fp-poi-2-wreck-cove.png', from: [126, 1.8, -14], look: [153, 3, 2] },
   { id: 'shrine', name: 'Ring shrine', img: shrineArt, file: 'art/driftwood-fp-poi-3-shrine.png', from: [-80, 1.7, 86], look: [-98, 6, 108] },
-];
+] };
+
+/** does this shard have mockups to compare against? (Explore shows COMPARE only then) */
+export function hasCompareTargets(slug: string): boolean { return (TARGETS[slug] ?? []).length > 0; }
 
 type Mode = 'slide' | 'fade';
 
@@ -44,11 +47,13 @@ export class Compare {
   private split = 0.5;
   private swapped = false;
   private current: Target | null = null;
+  private readonly targets: readonly Target[];
 
   constructor(private readonly explore: Explore, private readonly world: World) {
+    this.targets = TARGETS[world.chunk.slug] ?? [];
     this.button = html('button', 'ws-x-comparebtn', '<svg viewBox="0 0 24 24"><path d="M12 3v18 M4 5h6v14H4z M14 5h6v14h-6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><span>Compare</span>');
     (this.button as HTMLButtonElement).type = 'button';
-    this.picker = html('div', 'ws-x-picker', `<div class="ws-x-picker-head"><b>Compare with the mockup</b><button type="button" class="ws-x-picker-close" aria-label="Close">✕</button></div><div class="ws-x-picker-grid">${TARGETS.map((t) => `<button type="button" class="ws-x-target" data-id="${t.id}"><span class="ws-x-target-img"></span><b>${t.name}</b></button>`).join('')}</div>`);
+    this.picker = html('div', 'ws-x-picker', `<div class="ws-x-picker-head"><b>Compare with the mockup</b><button type="button" class="ws-x-picker-close" aria-label="Close">✕</button></div><div class="ws-x-picker-grid">${this.targets.map((t) => `<button type="button" class="ws-x-target" data-id="${t.id}"><span class="ws-x-target-img"></span><b>${t.name}</b></button>`).join('')}</div>`);
     this.overlay = html('div', 'ws-x-compare', `
       <img alt="">
       <div class="ws-x-divider"><i></i></div>
@@ -59,7 +64,7 @@ export class Compare {
     this.fade = this.overlay.querySelector<HTMLInputElement>('input') ?? document.createElement('input');
     this.button.addEventListener('click', () => { this.togglePicker(); });
     this.picker.querySelector('.ws-x-picker-close')?.addEventListener('click', () => { this.picker.classList.remove('show'); });
-    this.picker.querySelectorAll<HTMLElement>('.ws-x-target').forEach((b) => { b.addEventListener('click', () => { const t = TARGETS.find((x) => x.id === b.dataset['id']); if (t) this.show(t); }); });
+    this.picker.querySelectorAll<HTMLElement>('.ws-x-target').forEach((b) => { b.addEventListener('click', () => { const t = this.targets.find((x) => x.id === b.dataset['id']); if (t) this.show(t); }); });
     this.overlay.querySelectorAll<HTMLElement>('.ws-x-compare-bar button[data-m]').forEach((b) => { b.addEventListener('click', () => { this.setMode(b.dataset['m'] === 'fade' ? 'fade' : 'slide'); }); });
     this.overlay.querySelector('.ws-x-swap')?.addEventListener('click', () => { this.swapped = !this.swapped; this.apply(); });
     this.overlay.querySelector('.ws-x-compare-close')?.addEventListener('click', () => { this.close(); });
@@ -78,7 +83,7 @@ export class Compare {
   private togglePicker(): void {
     if (!this.picker.classList.contains('show')) {
       // the thumbnails load now, not at boot
-      this.picker.querySelectorAll<HTMLElement>('.ws-x-target').forEach((b) => { const t = TARGETS.find((x) => x.id === b.dataset['id']); const slot = b.querySelector<HTMLElement>('.ws-x-target-img'); if (t && slot) slot.style.backgroundImage = `url('${t.img}')`; });
+      this.picker.querySelectorAll<HTMLElement>('.ws-x-target').forEach((b) => { const t = this.targets.find((x) => x.id === b.dataset['id']); const slot = b.querySelector<HTMLElement>('.ws-x-target-img'); if (t && slot) slot.style.backgroundImage = `url('${t.img}')`; });
     }
     this.picker.classList.toggle('show');
   }

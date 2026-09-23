@@ -51,6 +51,8 @@ export type IntroStats = Record<string, string | { value: string; tone?: 'ok' | 
 interface DeckCard {
   slug: string; displayName: string; label: string; thumbnail: string; tag: string; tagTone: 'ok' | 'soon' | '';
   playable: boolean; active: boolean; heroPortrait?: string; heroLandscape?: string; blurb: string; experimental: boolean;
+  /** ChunkDef.explore: the shard offers EXPLORE WORLD */
+  explore: boolean;
 }
 const HERO_FADE_MS = 350;
 const GLYPH_SWORD = '<svg viewBox="0 0 24 24"><path d="M19.5 3.5L9 14l1 1L20.5 4.5z M6.5 12.5l5 5 M8 14l-4.5 4.5 1 1L9 15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>';
@@ -429,12 +431,12 @@ export class HUD {
       ...CHUNKS.map((c): DeckCard => ({
         slug: c.slug, displayName: c.displayName, thumbnail: c.thumbnail, blurb: c.blurb,
         label: `${c.biome} · ${c.gridCoords} · ${CHUNK_SIZE} m shard`,
-        tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def, experimental: c.experimental === true,
+        tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def, experimental: c.experimental === true, explore: c.explore === true,
         heroPortrait: c.heroPortrait, heroLandscape: c.heroLandscape,
       })),
       ...PLACEHOLDERS.map((t): DeckCard => ({
         slug: t.slug, displayName: t.displayName, thumbnail: t.thumbnail, blurb: t.blurb,
-        label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false, experimental: false,
+        label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false, experimental: false, explore: false,
         heroPortrait: t.heroPortrait, heroLandscape: t.heroLandscape,
       })),
     ];
@@ -489,7 +491,7 @@ export class HUD {
       enterBtn.disabled = !c.playable;
       enterTitle.textContent = c.playable ? 'Enter world' : 'Coming soon';
       enterHint.textContent = !c.playable ? 'Not yet playable' : c.experimental ? 'Experimental · rough edges' : c.active ? 'Play' : `Reloads with ${c.displayName}`;
-      exploreBtn.classList.toggle('off', c.slug !== 'driftwood-isle'); // Explore World is Driftwood only (EXPLORE-WORLD.md D4)
+      exploreBtn.classList.toggle('off', !c.explore); // the shard's ChunkDef.explore (Driftwood today — EXPLORE-WORLD.md D4)
     };
     const select = (raw: number, smooth = true): void => {
       const i = Math.max(0, Math.min(cards.length - 1, raw));
@@ -529,7 +531,7 @@ export class HUD {
     exploreBtn.addEventListener('click', (ev) => {
       ev.stopPropagation();
       const c = cards[index];
-      if (c?.slug !== 'driftwood-isle') return;
+      if (c?.explore !== true) return;
       if (!c.active) { const u = new URL(chunkUrl(c.slug)); u.searchParams.set('explore', 'hub'); location.href = u.toString(); return; }
       this.leaveForExplore();
     });

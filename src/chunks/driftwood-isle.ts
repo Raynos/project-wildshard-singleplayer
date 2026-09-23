@@ -76,6 +76,7 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   style: 'lowpoly',
   weapon: 'sword',
   ocean: OCEAN,
+  explore: true,
   pois: [
     { id: 'jetty', name: 'Jetty', x: 0, z: -CHUNK_HALF + 24, r: 16 },
     { id: 'hut', name: 'Hut', x: HUT.x, z: HUT.z, r: 12 },
