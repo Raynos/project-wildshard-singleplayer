@@ -105,9 +105,9 @@ Everything above is reproducible: prompts, seeds, model + version, and the trim 
 | 4 | Music generation (MiniMax): per style × {Pine Hollow theme, Driftwood theme, title} ~6 takes each, auto-ranked; stings; a listening page for the user's veto | open |
 | 5 | Stems + loops: demucs split, calm / tension layers, bar-exact loops, −18 LUFS, AAC into `public/assets/music/<style>/` + `music.json` manifest (≤ 5 MB per style) | open |
 | 6 | SFX / ambience feasibility with MiniMax: ambient beds, pickup / shrine hum, a test take for each one-shot family; ship what convinces, report what doesn't | open |
-| 7 | Music.ts stem player (lazy after enter, synth fallback, bar-grid crossfades, intensity drives the tension layer, underwater LP) + Audio.ts sample beds / one-shots with synth fallback | open |
-| 8 | Pause-menu **Music style** switch + `?music=`; Settings `musicStyle`; **"Music: MiniMax-Music3" credit** in Settings + title | open |
-| 9 | Shrine hum by proximity (Driftwood) | open |
+| 7 | Music.ts stem player (lazy after enter, synth fallback, bar-grid crossfades, intensity drives the tension layer, underwater LP) + Audio.ts sample beds / one-shots with synth fallback | done `03ed269` (build `03ed269-mudjkiwh`) — code live and verified on a local fixture; plays the synth until the generation agent's `music.json` / `sfx.json` ship (files the build does not list are never fetched) |
+| 8 | Pause-menu **Music style** switch + `?music=`; Settings `musicStyle`; **"Music: MiniMax-Music3" credit** in Settings + title | done `03ed269` — a Piano · Orchestral · Folk · Synth picker under the Music slider, default piano |
+| 9 | Shrine hum by proximity (Driftwood) | done `03ed269` — `src/audio/ShrineHum.ts`: equal-power panner, ~22 m, music −3 dB inside 10 m; the synth drone until `hums.shrine` ships |
 | 10 | Re-cut the 15 s / 30 s trailers with the new score; deploy; the user listens on the phone | open |
 
 ## v1 (landed, D35 — still the synth fallback)
