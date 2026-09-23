@@ -19,13 +19,13 @@ const VERT = /* glsl */`
 attribute float depth;
 attribute float flow;       // 0..1 along the stream (the streaks scroll along it)
 attribute float across;     // -1..1 across the stream
-attribute float fall;       // 1 on the waterfall sheet
-varying float vDepth; varying float vFlow; varying float vAcross; varying float vFall;
+attribute float fall;       // 0 river · 1 brook · 2 waterfall sheet · 3 plunge pool
+varying float vDepth; varying float vFlow; varying float vAcross; varying float vKind;
 varying vec3 vW;
 #include <common>
 #include <fog_pars_vertex>
 void main() {
-  vDepth = depth; vFlow = flow; vAcross = across; vFall = fall;
+  vDepth = depth; vFlow = flow; vAcross = across; vKind = fall;
   vec3 transformed = position;
   vec4 w = modelMatrix * vec4(transformed, 1.0); vW = w.xyz;
   vec4 mvPosition = viewMatrix * w;
@@ -36,7 +36,7 @@ void main() {
 const FRAG = /* glsl */`
 uniform float uTime; uniform vec3 uShallow; uniform vec3 uDeep; uniform vec3 uSky; uniform vec3 uFoam; uniform vec3 uSunDir; uniform vec3 uSunCol;
 uniform float uBright; uniform float uRain;
-varying float vDepth; varying float vFlow; varying float vAcross; varying float vFall;
+varying float vDepth; varying float vFlow; varying float vAcross; varying float vKind;
 varying vec3 vW;
 #include <common>
 #include <fog_pars_fragment>
@@ -44,47 +44,65 @@ float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32);
 float vnoise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(h21(i), h21(i + vec2(1, 0)), f.x), mix(h21(i + vec2(0, 1)), h21(i + vec2(1, 1)), f.x), f.y); }
 void main() {
+  float isBrook = step(0.5, vKind) * step(vKind, 1.5);
+  float isFall = step(1.5, vKind) * step(vKind, 2.5);
+  float isPool = step(2.5, vKind);
+  vec3 V = cameraPosition - vW; float dist = length(V); V /= dist;
   float d = max(vDepth, 0.0);
-  vec3 col = mix(uShallow, uDeep, smoothstep(0.1, 1.4, d));
-  // painted sky sheen at grazing angles, a warm glint toward the sun
-  vec3 V = normalize(cameraPosition - vW);
-  // at grazing angles the water turns to the sky it reflects (the pale horizon), so a far channel reads as a soft sheen,
-  // not a neon line
+  // a glacial river: pale, milky, silvery — a little teal in the deep channels, never neon
+  vec3 col = mix(uShallow, uDeep, smoothstep(0.15, 1.5, d));
+  // the sky it reflects at grazing angles (the pale horizon) and a warm glint toward the sun
+  // (up close only: far off, a grazing sheen turns every braid into a bright line at eye level — there the water
+  // settles to its own deep colour and the aerial haze takes it)
+  float near = 1.0 - smoothstep(50.0, 180.0, dist);
   float fres = pow(1.0 - clamp(V.y, 0.0, 1.0), 3.0);
-  col = mix(col, uSky, fres * 0.75);
+  col = mix(col, uSky * 0.92, fres * 0.6 * near);
+  col = mix(col, mix(uDeep, uShallow, 0.35), (1.0 - near) * 0.7);
   vec3 R = reflect(-V, vec3(0.0, 1.0, 0.0));
-  col += uSunCol * pow(max(dot(R, uSunDir), 0.0), 60.0) * 0.8;
-  // flow streaks: long noise dashes scrolling downstream, denser over the shallows (riffles) and on the fall
-  float speed = mix(0.35, 2.4, vFall);
-  vec2 q = vec2(vFlow * mix(260.0, 40.0, vFall) - uTime * speed * mix(1.0, 6.0, vFall), vAcross * mix(9.0, 5.0, vFall));
-  float streak = smoothstep(0.62, 0.9, vnoise(q * vec2(0.18, 1.0)) * 0.7 + vnoise(q * vec2(0.5, 2.3) + 7.0) * 0.3);
-  // riffles: white water where the channel shoals onto the bars, broken by the streaks
-  float riffle = 1.0 - smoothstep(0.08, 0.55, d);
-  // white water: world-space dashes stretched along the flow (+x on the river), racing downstream
+  col += uSunCol * pow(max(dot(R, uSunDir), 0.0), 60.0) * 0.6 * near;
+  // white water: world-space dashes stretched along the flow (+x on the river), racing downstream; thick over the shoals
   vec2 wq = vec2(vW.x * 0.3 - uTime * 1.4, vW.z * 1.6);
   float white = smoothstep(0.46, 0.72, vnoise(wq) * 0.65 + vnoise(wq * vec2(2.3, 2.1) + 5.0) * 0.35);
-  float edgeFoam = riffle * (0.35 + 0.65 * white) + white * 0.35 * (1.0 - vFall);
-  float foam = clamp(streak * (0.35 + 0.65 * riffle) + edgeFoam * 0.85 + vFall * (0.35 + streak * 0.6), 0.0, 1.0);
-  col = mix(col, uFoam, foam * 0.8);
+  vec2 q = vec2(vFlow * 260.0 - uTime * 0.35, vAcross * 9.0);
+  float streak = smoothstep(0.62, 0.9, vnoise(q * vec2(0.18, 1.0)) * 0.7 + vnoise(q * vec2(0.5, 2.3) + 7.0) * 0.3);
+  float riffle = 1.0 - smoothstep(0.08, 0.55, d);
+  float foam = clamp(streak * (0.35 + 0.65 * riffle) + riffle * (0.35 + 0.65 * white) * 0.85 + white * 0.3, 0.0, 1.0);
+  foam *= 1.0 - 0.75 * smoothstep(60.0, 200.0, dist);  // far off the foam melts into the sheen, no white line at eye level
+  foam = max(foam, isPool * (0.55 + 0.45 * white));
+  col = mix(col, uFoam, foam * 0.75);
   // rain: a fine field of rings flickering on the surface
   float drop = step(0.93, h21(floor(vW.xz * 2.5) + floor(uTime * 6.0))) * uRain;
   col = mix(col, uFoam * 0.9, drop * 0.5);
-  col *= uBright;
-  // the fall: vertical white ropes over a green-turquoise sheet, racing down
+  // the fall: white ropes racing down over a pale green sheet, torn edges
   float rope = smoothstep(0.35, 0.85, vnoise(vec2(vAcross * 11.0, vFlow * 55.0 - uTime * 3.2)) * 0.75 + vnoise(vec2(vAcross * 29.0 + 3.0, vFlow * 120.0 - uTime * 4.1)) * 0.35);
-  col = mix(col, mix(uShallow * 1.5, uFoam, 0.5 + 0.5 * rope), step(0.9, vFall));
-  // the edge: fade out where the water thins over the bank
-  float alpha = mix(smoothstep(0.0, 0.12, vDepth) * 0.92, 0.72 + 0.25 * rope, step(0.9, vFall));
-  gl_FragColor = vec4(col, alpha);
+  col = mix(col, mix(uShallow * 0.95, uFoam * 0.92, 0.3 + 0.6 * rope), isFall);
+  col *= uBright;
+  // alpha: fade over the banks; the brook fades out with distance (a 3 m ribbon is a hairline from the valley); the
+  // sheet's edges are ragged and it thins between the ropes
+  float alpha = smoothstep(0.0, 0.12, vDepth) * 0.92;
+  alpha *= 1.0 - isBrook * smoothstep(70.0, 160.0, dist);
+  float torn = smoothstep(1.0, 0.55, abs(vAcross) + (vnoise(vec2(vAcross * 3.0, vFlow * 30.0 - uTime * 2.0)) - 0.5) * 0.6);
+  // the sheet: fades in below the lip, frays into spray at the foot, thin between the ropes
+  float fallT = vFlow / 0.4;
+  alpha = mix(alpha, (0.3 + 0.55 * rope) * torn * smoothstep(0.0, 0.08, fallT) * (1.0 - 0.6 * smoothstep(0.75, 1.0, fallT)), isFall);
+  alpha = mix(alpha, 0.85 * smoothstep(1.0, 0.7, abs(vAcross)), isPool);
+  // opaque, with a screen-door dither for the soft edges and the thin sheet: in this post chain a transparent mesh is
+  // not depth-tested against the scene (the river's braids drew over the fences and the road in front of them)
+  if (alpha < 0.04 + 0.9 * h21(floor(gl_FragCoord.xy) * 0.37 + 0.5)) discard;
+  gl_FragColor = vec4(col, 1.0);
   #include <fog_fragment>
 }`;
+
+const byGroup = new WeakMap<THREE.Object3D, NalatiWater>();
+/** the NalatiWater that built this group (the weather reaches the water through the group it is handed) */
+export function waterOf(group: THREE.Object3D): NalatiWater | null { return byGroup.get(group) ?? null; }
 
 export class NalatiWater {
   group = new THREE.Group();
   private uniforms = {
     uTime: { value: 0 },
-    uShallow: { value: new THREE.Color(0.34, 0.66, 0.64) },
-    uDeep: { value: new THREE.Color(0.1, 0.38, 0.5) },
+    uShallow: { value: new THREE.Color(0.56, 0.72, 0.72) },
+    uDeep: { value: new THREE.Color(0.2, 0.44, 0.52) },
     uSky: { value: new THREE.Color(0.62, 0.78, 0.98) },
     uFoam: { value: new THREE.Color(0.95, 0.98, 1.0) },
     uSunDir: { value: new THREE.Vector3(0, 1, 0) },
@@ -93,13 +111,16 @@ export class NalatiWater {
     uRain: { value: 0 },
   };
 
-  constructor(private sky: Sky) {}
+  constructor(private sky: Sky) { byGroup.set(this.group, this); }
+
+  /** the glint colour the water was painted with (the day's sun) */
+  get sunColor(): THREE.Color { return this.uniforms.uSunCol.value; }
 
   build(): this {
     this.uniforms.uSunDir.value.copy(this.sky.sunDir);
     const mat = new THREE.ShaderMaterial({
       uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog]),
-      vertexShader: VERT, fragmentShader: FRAG, fog: true, transparent: true, depthWrite: false,
+      vertexShader: VERT, fragmentShader: FRAG, fog: true, transparent: false, depthWrite: true,
       side: THREE.DoubleSide, // the fall's sheet is seen from both sides (one material, one program for all three)
     });
     Object.assign(mat.uniforms, this.uniforms);
@@ -138,8 +159,11 @@ export class NalatiWater {
         depth.push(RIVER.level - heightAt(x, z)); flow.push((x - x0) / (x1 - x0)); across.push(u); fall.push(0);
       }
     }
+    // only the wet channels get a surface: a cell whose four corners all stand on dry gravel is left out
+    const wet = (k: number): boolean => (depth[k] ?? 0) > 0.02;
     for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) {
       const a = i * (nz + 1) + j, b = a + nz + 1;
+      if (!wet(a) && !wet(a + 1) && !wet(b) && !wet(b + 1)) continue;
       idx.push(a, a + 1, b, b, a + 1, b + 1);
     }
     return mesh(mat, pos, idx, { depth, flow, across, fall });
@@ -157,7 +181,7 @@ export class NalatiWater {
     const last = BROOK[BROOK.length - 1];
     if (last) pts.push(new THREE.Vector2(last[0], last[1] - 2)); // to the lip of the fall
     const pos: number[] = [], depth: number[] = [], flow: number[] = [], across: number[] = [], fall: number[] = [], idx: number[] = [];
-    const half = 1.9;
+    const half = 1.3;
     for (let i = 0; i < pts.length; i++) {
       const p = pts[i], q = pts[Math.min(pts.length - 1, i + 1)], o = pts[Math.max(0, i - 1)];
       if (!p || !q || !o) continue;
@@ -168,8 +192,8 @@ export class NalatiWater {
       const yBed = heightAt(p.x, p.y);
       for (const u of [-1, 0, 1]) {
         const x = p.x + sx * half * u, z = p.y + sz * half * u;
-        const y = Math.min(yBed + 0.6, heightAt(x, z) + 0.3);
-        pos.push(x, y, z); depth.push(u === 0 ? 0.5 : 0.08); flow.push(i / pts.length * 0.35); across.push(u); fall.push(0);
+        const y = Math.min(yBed + 0.45, heightAt(x, z) + 0.18);
+        pos.push(x, y, z); depth.push(u === 0 ? 0.5 : 0.04); flow.push(i / pts.length * 0.35); across.push(u); fall.push(1);
       }
     }
     for (let i = 0; i < pts.length - 1; i++) for (let j = 0; j < 2; j++) {
@@ -193,7 +217,7 @@ export class NalatiWater {
       const z = lipZ + (footZ - lipZ) * Math.sqrt(t) + Math.sin(t * Math.PI) * 1.2; // the sheet leaps out, then drops
       for (let c = 0; c <= cols; c++) {
         const u = (c / cols) * 2 - 1;
-        pos.push(WATERFALL.x + u * half * (1 + t * 0.4), y, z); depth.push(1); flow.push(t * 0.4); across.push(u); fall.push(1);
+        pos.push(WATERFALL.x + u * half * (0.7 + t * 0.6), y, z); depth.push(1); flow.push(t * 0.4); across.push(u); fall.push(2);
       }
     }
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
@@ -202,10 +226,10 @@ export class NalatiWater {
     }
     // the plunge pool: a foamy disc at the foot
     const base = pos.length / 3, seg = 18, pr = 5.5;
-    pos.push(WATERFALL.x, footY + 0.35, footZ + 2); depth.push(1.2); flow.push(0); across.push(0); fall.push(0.6);
+    pos.push(WATERFALL.x, footY + 0.35, footZ + 2); depth.push(1.2); flow.push(0); across.push(0); fall.push(3);
     for (let k = 0; k <= seg; k++) {
       const a = (k / seg) * Math.PI * 2, x = WATERFALL.x + Math.cos(a) * pr, z = footZ + 2 + Math.sin(a) * pr;
-      pos.push(x, footY + 0.35, z); depth.push(0); flow.push(k / seg); across.push(1); fall.push(0.3);
+      pos.push(x, footY + 0.35, z); depth.push(1); flow.push(k / seg); across.push(1); fall.push(3);
     }
     for (let k = 0; k < seg; k++) idx.push(base, base + 2 + k, base + 1 + k);
     return mesh(mat, pos, idx, { depth, flow, across, fall });

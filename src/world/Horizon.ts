@@ -46,7 +46,7 @@ export class Horizon {
     const noise = new Noise2D(4242);
     const r2d = 180 / Math.PI;
     H.rings.forEach((ring, ri) => {
-      const seg = ring.r > 3000 ? 720 : 540;
+      const seg = ring.r > 1800 ? 960 : 540; // the snow ranges get ~15 m columns: jagged crests, not cones
       const profile: number[] = [];
       for (let i = 0; i <= seg; i++) {
         const a = (i / seg) * Math.PI * 2;
@@ -55,7 +55,7 @@ export class Horizon {
         // ridged multifractal round the circle (peaks) and a smooth roll (hills)
         // base frequency grows with the radius so a peak is ~1 km across at any ring (mountains, not spikes)
         let rid = 0, amp = 1, f = 1.3 + ring.r / 1300, norm = 0;
-        for (let o = 0; o < 5; o++) { const nv = 1 - Math.abs(noise.get(cx * f + ri * 9.1, sz * f + ri * 3.7)); rid += nv * nv * amp; norm += amp; amp *= 0.45; f *= 2.05; }
+        for (let o = 0; o < 6; o++) { const nv = 1 - Math.abs(noise.get(cx * f + ri * 9.1, sz * f + ri * 3.7)); rid += nv * nv * amp; norm += amp; amp *= 0.5; f *= 2.05; }
         rid /= norm;
         const roll = 0.62 + 0.26 * noise.get(cx * 3.1 + ri * 5, sz * 3.1) + 0.14 * noise.get(cx * 11 + ri, sz * 11) + 0.05 * noise.get(cx * 37, sz * 37 + ri);
         let h = 0;
@@ -75,13 +75,17 @@ export class Horizon {
       // camera as it drops, so the ring reads as hills / mountains and not a wall; snow by absolute height → crisp caps
       const ROWS = [0.3, 0.55, 0.75, 0.9, 1];
       const per = ROWS.length + 1;
-      const snowY = ring.base + maxH * ring.snowLine;
-      const smooth = (k: number): number => { let v = 0; for (let d = -3; d <= 3; d++) v += profile[(k + d + seg) % seg] ?? 0; return v / 7; };
+      const snowY0 = ring.base + maxH * ring.snowLine;
+      const segLen = (2 * Math.PI * ring.r) / seg;
+      const smooth = (k: number): number => { let v = 0; for (let d = -1; d <= 1; d++) v += profile[(k + d + seg) % seg] ?? 0; return v / 3; };
       for (let i = 0; i <= seg; i++) {
         const a = (i / seg) * Math.PI * 2;
         const cx = Math.cos(a), sz = Math.sin(a);
         const h = profile[i] ?? 0;
-        const tilt = Math.max(-1.2, Math.min(1.2, ((smooth(i - 2) - smooth(i + 2)) / Math.max(1, maxH)) * seg * 0.012));
+        // the face's lean along the ridge (its real slope): each peak gets a sunlit flank and a blue shaded one
+        const tilt = Math.max(-1.6, Math.min(1.6, ((smooth(i - 1) - smooth(i + 1)) / (2 * segLen)) * 0.9));
+        // the snow line rises and falls along the range: snowfields down the couloirs, bare rock on the ribs
+        const snowY = snowY0 + maxH * (noise.get(cx * 14 + ri * 3, sz * 14) * 0.1 + noise.get(cx * 47, sz * 47 + ri) * 0.05);
         const nx = -cx + sz * tilt, nz = -sz - cx * tilt;
         const kf = 1 - (h * 1.2 + 80) / ring.r;
         pos.push(cx * ring.r * kf, ring.floor - 600, sz * ring.r * kf); nrm.push(nx, 0.5, nz);
@@ -91,7 +95,7 @@ export class Horizon {
           pos.push(cx * ring.r * k, y, sz * ring.r * k);
           nrm.push(nx * (1.1 - t * 0.6), 0.7 + t * 1.3, nz * (1.1 - t * 0.6)); // tipping up toward the crest: the tops catch the sun
           c.copy(body).lerp(top, t * t);
-          c.lerp(snowC, THREE.MathUtils.smoothstep(y, snowY - 8, snowY + 22) * (0.75 + 0.25 * t));
+          c.lerp(snowC, THREE.MathUtils.smoothstep(y, snowY - 6, snowY + 18) * (0.8 + 0.2 * t));
           col.push(c.r, c.g, c.b);
         }
       }

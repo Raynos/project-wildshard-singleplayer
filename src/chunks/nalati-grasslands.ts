@@ -119,6 +119,12 @@ const rimNoise = new Noise2D(SEED); // buildTerrain's `n` (Noise2D(seed)): the s
 /** the escarpment rim's z at x (the plateau's north edge) */
 export function rimZAt(x: number): number { return RIM_Z + rimNoise.get(x * 0.008, 7.7) * 9; }
 
+/** 0 off → 1 on the plateau brook's bed (~3 m wide): grass and placement keep out of it (it is part of `pondMask`) */
+export function brookMask(x: number, z: number): number {
+  if (z > RIM_Z + 12 || z < -180 || x < -160 || x > 75) return 0;
+  return smoothstep(3.2, 1.6, polyNearest(x, z, BROOK, BROOK_CUM).d);
+}
+
 /** where the escarpment is on its way up: 0 at the river's south bank (the foot) → 1 at the rim; unclamped */
 function slopeParam(x: number, z: number, n: Noise2D): number {
   const foot = RIVER.z(x) - RIVER.half(x) - 5;
@@ -141,7 +147,10 @@ function landscape(x: number, z: number, n: Noise2D, n2: Noise2D): number {
   const s = slopeParam(x, z, n), sc = clamp(s, 0, 1);
 
   // north of the river: the valley floor, gently rolling
-  const valley = -8 + n.fbm(x * 0.009, z * 0.009, 3) * 1.1 + smoothstep(200, 250, z) * 0.8;
+  // (a river terrace: a 3 m cut bank at the gravel's edge, then the meadow rising gently to the N gate at y ≈ 0, so the
+  // camp looks DOWN on the braided river — seen edge-on from its own level a river is only a bright line)
+  const dzN = across - half;
+  const valley = -8.4 + 3.2 * smoothstep(0, 9, dzN) + 5.2 * smoothstep(8, 80, dzN) ** 0.8 + n.fbm(x * 0.009, z * 0.009, 3) * 0.9;
   // south: the escarpment — a bench a little under half way up, then the steeper upper face to the rim
   const esc = -8.8 + 15.5 * smoothstep(0.02, 0.4, sc) + 23.3 * smoothstep(0.55, 0.97, sc) ** 1.15;
   // the plateau beyond the rim: rolling, rising ~6 m toward the south mountains
@@ -170,6 +179,22 @@ function landscape(x: number, z: number, n: Noise2D, n2: Noise2D): number {
     if (dx >= 1) continue;
     const along = smoothstep(-0.02, 0.3, s) * (1 - smoothstep(0.9, 1.08, s));
     h -= g.depth * along * (1 - dx) ** 1.5;
+  }
+  // the escarpment's relief (the mockups' mountainsides are gullied and rocky, never a smooth green hill): a comb of
+  // lesser ravines between the spurs every ~34 m, wandering, V-cut and deepest on the upper face; and two broken rock
+  // bands where the slope steps — a sharp 3 m scarp, then a gentler shelf that gives the height back
+  if (s > 0.02 && s < 1.06) {
+    const band = smoothstep(0.06, 0.32, s) * (1 - smoothstep(0.9, 1.04, s));
+    const wob = n2.get(z * 0.018, x * 0.004) * 9 + n.get(x * 0.01, z * 0.03) * 5;
+    const phase = (x + wob) / 34, k = Math.round(phase);
+    const rib = Math.abs(phase - k) * 2;                      // 0 in a ravine's bed → 1 on the spur between two
+    const depth = 3 + 3.5 * (0.5 + 0.5 * n.get(k * 3.1, 1.7));
+    h -= band * depth * Math.max(0, 1 - rib / 0.62) ** 1.6 * (0.6 + 0.4 * smoothstep(0.3, 0.8, s));
+    for (const [s0, amp] of [[0.6, 3.2], [0.83, 2.6]] as const) {
+      const brk = smoothstep(-0.25, 0.15, n.get(x * 0.018 + s0 * 10, 4.4));          // the band breaks up along its length
+      const at = s0 + n2.get(x * 0.012, s0 * 20) * 0.05;
+      h += amp * brk * (smoothstep(at - 0.012, at + 0.012, s) - smoothstep(at - 0.1, at + 0.1, s));
+    }
   }
   // the waterfall: a notch in the rim with a sheer head wall, and a narrow ravine below it
   {
@@ -270,7 +295,8 @@ const TERRAIN: ChunkTerrain = (() => {
     },
   });
   // the river is the shard's water: Player swims / wades in it (pondMask > 0 → waterLevel), grass and placement keep out
-  return { ...base, pondMask: riverMask, waterLevel: () => RIVER.level };
+  // (and the brook: the grass keeps out of its bed; its surface is far above the river level, so nobody swims in it)
+  return { ...base, pondMask: (x, z) => Math.max(riverMask(x, z), brookMask(x, z)), waterLevel: () => RIVER.level };
 })();
 
 // ── the painted ground (Terrain.ts painterly branch) ──────────────────────────────────────────────────────────────
@@ -360,9 +386,9 @@ export const NALATI_GRASSLANDS: ChunkDef = {
       {
         r: 800, base: -60, floor: -60, color: [0.16, 0.3, 0.06], top: [0.36, 0.46, 0.11], snowLine: 2, haze: 0.06,
         bands: [
-          { azimuth: 180, spread: 80, height: 98, rough: 0.05 },    // south: the plateau rolls on, a touch above slab height
-          { azimuth: 135, spread: 35, height: 108, rough: 0.12 },   // SE / SW shoulders
-          { azimuth: 225, spread: 35, height: 96, rough: 0.08 },
+          { azimuth: 180, spread: 80, height: 36, rough: 0.05 },    // south: the plateau rolls on, low — the painted range shows over it
+          { azimuth: 135, spread: 35, height: 70, rough: 0.12 },    // SE / SW shoulders
+          { azimuth: 225, spread: 35, height: 64, rough: 0.08 },
           { azimuth: 0, spread: 50, height: 40, rough: 0.1 },       // north: the far valley side, low
           { azimuth: 90, spread: 18, height: 125, rough: 0.35 },    // east: the gorge walls either side of the Kunes
           { azimuth: 62, spread: 14, height: 95, rough: 0.3 },
@@ -371,25 +397,15 @@ export const NALATI_GRASSLANDS: ChunkDef = {
       },
       // mid: the brown-green Avral range (N), green foothills (S), the gorge's mountains (E)
       {
-        r: 1500, base: -150, floor: -150, color: [0.08, 0.14, 0.06], top: [0.26, 0.3, 0.12], snowLine: 0.9, haze: 0.12,
+        r: 1400, base: -150, floor: -150, color: [0.08, 0.14, 0.06], top: [0.24, 0.29, 0.12], snowLine: 0.92, haze: 0.12,
         bands: [
-          { azimuth: 0, spread: 60, height: 300, rough: 0.55 },
-          { azimuth: 180, spread: 70, height: 250, rough: 0.35 },
-          { azimuth: 90, spread: 30, height: 320, rough: 0.6 },
+          { azimuth: 0, spread: 60, height: 290, rough: 0.55 },
+          { azimuth: 180, spread: 70, height: 230, rough: 0.35 },
+          { azimuth: 90, spread: 30, height: 310, rough: 0.6 },
           { azimuth: 270, spread: 40, height: 40, rough: 0.1 },
         ],
       },
-      // far: the Nalati range, big and white across the whole south; lower blue ranges round the rest
-      {
-        r: 2450, base: -200, floor: -200, color: [0.07, 0.09, 0.14], top: [0.16, 0.18, 0.25], snowLine: 0.48, haze: 0.13,
-        bands: [
-          { azimuth: 180, spread: 95, height: 720, rough: 0.9 },
-          { azimuth: 125, spread: 40, height: 560, rough: 0.9 },
-          { azimuth: 235, spread: 40, height: 520, rough: 0.9 },
-          { azimuth: 20, spread: 70, height: 380, rough: 0.7 },
-          { azimuth: 300, spread: 30, height: 170, rough: 0.5 },
-        ],
-      },
+      // the Nalati snow range itself is the painted 360° backdrop (src/world/PaintedBackdrop.ts): no far rings here
     ],
   },
   groundColor,

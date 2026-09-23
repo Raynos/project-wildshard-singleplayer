@@ -29,6 +29,7 @@ import { DayClock, SkyRig, makeLook, copyLook, lightLevel, type SkyLook, type Da
 import { Weather, STORM_PHASES, type Exposed, type LightningPlayer } from '../world/Weather';
 import { WeatherFX } from '../world/WeatherFX';
 import { wind } from '../world/Wind';
+import { waterOf } from './water';
 import { wildEnv } from '../entities/wildEnv';
 import { TIER } from '../core/tier';
 import { WEATHER_EVENT, type WeatherHUD } from '../ui/HUD';
@@ -129,33 +130,20 @@ function stormLook(L: SkyLook, w: Weather): void {
 }
 
 /**
- * The river's shader is unlit (its colours are constants): dim them with the hour and the storm, so the water doesn't
- * glow at night. Reads the shared uniform objects off the water's ShaderMaterials (uShallow / uDeep / uFoam / uSky /
- * uSunCol) — the day values are whatever the water was built with.
+ * The river's shader is unlit (its colours are painted): its light follows the hour and the storm through the water's
+ * own setters (src/nalati/water.ts `setLight` / `setRain`), so the water doesn't glow at night and rain rings its surface.
  */
-function waterDimmer(root: THREE.Object3D | undefined): ((L: SkyLook, dayFog: number, dayKey: number) => void) | null {
-  if (!root) return null;
-  const sets: { u: Record<string, THREE.IUniform>; base: Record<string, THREE.Color> }[] = [];
-  const names = ['uShallow', 'uDeep', 'uFoam', 'uSky', 'uSunCol'] as const;
-  root.traverse((o) => {
-    if (!(o instanceof THREE.Mesh) || !(o.material instanceof THREE.ShaderMaterial)) return;
-    const u = o.material.uniforms;
-    if (sets.some((s) => s.u === u)) return;
-    const base: Record<string, THREE.Color> = {};
-    for (const n of names) { const v: unknown = u[n]?.value; if (v instanceof THREE.Color) base[n] = v.clone(); }
-    if (Object.keys(base).length === names.length) sets.push({ u, base });
-  });
-  if (sets.length === 0) return null;
+function waterDimmer(root: THREE.Object3D | undefined): ((L: SkyLook, dayFog: number, dayKey: number, rain: number) => void) | null {
+  const water = root ? waterOf(root) : null;
+  if (!water) return null;
   const lum = (c: THREE.Color): number => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
-  return (L, dayFog, dayKey) => {
+  const sky = new THREE.Color(), sun = new THREE.Color(), baseSun = water.sunColor.clone();
+  return (L, dayFog, dayKey, rain) => {
     const k = Math.min(1, Math.max(0.06, lum(L.fogColor) / Math.max(1e-3, dayFog)));
-    const sun = L.keyIntensity / Math.max(1e-3, dayKey);
-    for (const { u, base } of sets) {
-      for (const n of ['uShallow', 'uDeep', 'uFoam'] as const) { const v: unknown = u[n]?.value, b = base[n]; if (v instanceof THREE.Color && b) v.copy(b).multiplyScalar(k); }
-      const sky: unknown = u['uSky']?.value, sc: unknown = u['uSunCol']?.value, bs = base['uSunCol'];
-      if (sky instanceof THREE.Color) sky.copy(L.horizon).lerp(L.zenith, 0.35);
-      if (sc instanceof THREE.Color && bs) sc.copy(bs).multiply(L.keyColor).multiplyScalar(sun);
-    }
+    sky.copy(L.horizon).lerp(L.zenith, 0.35);
+    sun.copy(baseSun).multiply(L.keyColor).multiplyScalar(L.keyIntensity / Math.max(1e-3, dayKey));
+    water.setLight({ brightness: k, sky, sun });
+    water.setRain(rain);
   };
 }
 
@@ -278,7 +266,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
       stormLook(look, weather);
       rig.flash = weather.flash * 0.7;
       rig.apply(look, dt);
-      dimWater?.(look, dayFog, dayKey);
+      dimWater?.(look, dayFog, dayKey, indoors ? 0 : weather.rain);
       fx.update(dt, weather, look, game.camera, { x: wind.dirX * wind.speed, z: wind.dirZ * wind.speed });
       fx.rain.visible &&= !indoors;
       // the creatures
