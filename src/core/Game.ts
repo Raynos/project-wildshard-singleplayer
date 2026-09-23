@@ -14,6 +14,7 @@ import { TIER, TIER_CONFIG } from './tier';
 import { KuwaharaEffect } from './Kuwahara';
 import { LOOK_V2 } from '../nalati/look/flag';
 import { installLookV2Fog } from '../nalati/look/fog';
+import { buildLookV2Chain } from '../nalati/look/grade';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 
@@ -78,6 +79,7 @@ export class Game {
   }
 
   buildComposer(): void {
+    if (LOOK_V2) { this._composer = buildLookV2Chain(this.renderer, this.scene, this.camera); return; } // Nalati look v2: MSAA → the one grade (src/nalati/look/grade.ts)
     const { grade: G, atmosphere: A } = getActiveChunk();
     const composer = new EffectComposer(this.renderer, { frameBufferType: THREE.HalfFloatType, multisampling: 0 });
     this.renderPass = new RenderPass(this.scene, this.camera);
