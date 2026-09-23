@@ -44,7 +44,7 @@ function artFor(def: ChunkDef): { urls: string[]; bytes: Record<string, number> 
   const urls: string[] = [], bytes: Record<string, number> = {};
   for (const [key, url] of Object.entries(ART_URLS)) {
     if (url.startsWith('data:')) continue; // inlined into the bundle: nothing to fetch
-    if (key.startsWith('../explore/') && def.ocean === undefined) continue; // EXPLORE WORLD is Driftwood's (EXPLORE-WORLD.md D4)
+    if (key.startsWith('../explore/') && def.ocean === undefined) continue; // EXPLORE WORLD is Driftwood's (project/archive/2026-09-23-explore-world.md D4)
     const size = ART_BYTES[`src/${key.slice(3)}`];
     if (size === undefined) continue;
     const p = pathOf(url);

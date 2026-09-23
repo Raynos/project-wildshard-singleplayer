@@ -1,4 +1,4 @@
-/* ─── Explore World — the viewer (src/explore/Explore.ts; docs/plans/EXPLORE-WORLD.md) ─── prefix ws-x- ───
+/* ─── Explore World — the viewer (src/explore/Explore.ts; project/archive/2026-09-23-explore-world.md) ─── prefix ws-x- ───
    an overlay on document.body over the live canvas: top bar (wordmark + EXPLORE tag, MODELS | WORLD tabs, ✕), the
    p02 hub cards, the god-mode flight rail (▲ ▼ speed, the phone's FLY stick), one ✎ and a toast. Imported by the
    lazy Explore chunk, so the title never pays for it. The canvas under it takes the desktop mouse (FreeCam). */

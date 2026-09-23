@@ -1,6 +1,6 @@
 # Explore World — the viewer mode (was "Build World")
 
-**State:** `in progress` 2026-09-23 — X1–X11 built and live (23e73c7). The user chose one more polish pass before archiving: X12 (calmer disc, segmented chips, glass sheet with stat blocks, glass catalog tiles). Then archive. Owner: session wildshard-singleplayer-8d (E14).
+**State:** `archived` 2026-09-23 (finished 2026-09-23) — X1–X12 built and live (last: 9635845). Leftovers are open asks: E66 (switch Explore on for Pine Hollow / Nalati — registry + ChunkDef.explore, no Explore code), E67 (World Explorer screens to the round-6 midway bar), E68 (line up the four COMPARE viewpoints with their mockups). E14 done.
 
 ## Why (the user's words, 2026-09-22)
 

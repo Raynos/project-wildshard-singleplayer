@@ -1,5 +1,5 @@
 /**
- * The Model Explorer's catalog (EXPLORE-WORLD.md X3, made generic in X10).
+ * The Model Explorer's catalog (project/archive/2026-09-23-explore-world.md X3, made generic in X10).
  *
  *   registerDriftwoodModels(handles)          // Driftwood's setup (main.ts, at boot): the hut, wreck, … into the registry
  *   catalogEntries(sky, animals, style, at)   // Explore: every registered model + one creature per species present

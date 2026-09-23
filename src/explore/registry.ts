@@ -1,5 +1,5 @@
 /**
- * The model registry Explore World reads (EXPLORE-WORLD.md X10): a shard's setup registers the models it built, and
+ * The model registry Explore World reads (project/archive/2026-09-23-explore-world.md X10): a shard's setup registers the models it built, and
  * the Model Explorer's catalog + the World Explorer's tap-to-select are whatever is registered — Explore itself knows
  * no shard. Tiny and dependency-free on purpose: it is imported at boot by the shard's setup (Driftwood: main.ts →
  * src/explore/catalog.ts registerDriftwoodModels), the rest of Explore stays a lazy chunk.

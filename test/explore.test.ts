@@ -1,4 +1,4 @@
-// Explore World (docs/plans/EXPLORE-WORLD.md): the parts that are pure data — a note's "go there" URL reopens the viewer
+// Explore World (project/archive/2026-09-23-explore-world.md): the parts that are pure data — a note's "go there" URL reopens the viewer
 // on the same view (X6), and the shard's points of interest the mini map pins (X5).
 import { describe, expect, it } from 'vitest';
 import { reproUrl } from '../src/ui/Feedback';

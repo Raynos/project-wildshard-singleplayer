@@ -1,5 +1,5 @@
 /**
- * Detail tiers for Explore's DETAIL TIERS view (EXPLORE-WORLD.md X7): build a model as another tier would, and the
+ * Detail tiers for Explore's DETAIL TIERS view (project/archive/2026-09-23-explore-world.md X7): build a model as another tier would, and the
  * budgets a frame is held to.
  *
  *   withTier('phone', () => new Palms(sky).build([spec]).mesh)   // TIER_CONFIG reads the phone table while fn runs

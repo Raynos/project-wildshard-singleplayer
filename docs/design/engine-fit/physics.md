@@ -74,7 +74,7 @@ No entity / component layer is planned. The word "component" / "entity" / "regis
   `dev/ambient.ts` (14), `dev/loot.ts` (9), `dev/enemies.ts` (9), `dev/cabins.ts` (2). PHYSICS.md never mentions
   `src/dev/`. P4 deletes `player.colliders`/`platforms`, so each of those files has to be rewired too, or tsc goes red.
 - **The same builder list is kept a third and fourth time**: `explore/catalog.ts` (`CatalogHandles`, :46-54, a
-  hand-listed `hut? lookout? wreck? shrine? pier? boat? cove? jetties? bridge?`), and EXPLORE-WORLD.md X10 (:103)
+  hand-listed `hut? lookout? wreck? shrine? pier? boat? cove? jetties? bridge?`), and project/archive/2026-09-23-explore-world.md X10 (:103)
   plans `registerModel({id, name, file, object, anchor})` so "models self-register as their builders build them".
   PHYSICS.md adds a fifth, `src/physics/colliders/<structure>.ts`, one per builder. **Two agents plan two parallel
   per-builder registries over the same ~16–26 builders, and neither mentions the other.**

@@ -266,7 +266,7 @@ export interface ChunkDef {
   ocean?: OceanDef;
   /** named places — Explore World's mini map pins them and flies to them (src/explore/MiniMap.ts); omitted = none */
   pois?: ChunkPoi[];
-  /** the title's EXPLORE WORLD is offered on this shard (docs/plans/EXPLORE-WORLD.md; the models it shows are what the
+  /** the title's EXPLORE WORLD is offered on this shard (project/archive/2026-09-23-explore-world.md; the models it shows are what the
    *  shard's setup registers — src/explore/registry.ts); omitted = play only */
   explore?: boolean;
 }

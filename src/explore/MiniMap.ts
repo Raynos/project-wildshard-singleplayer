@@ -1,5 +1,5 @@
 /**
- * MiniMap — the World Explorer's little map (EXPLORE-WORLD.md X5; mockups round-4 g11 / g12): a MAP button opens a
+ * MiniMap — the World Explorer's little map (project/archive/2026-09-23-explore-world.md X5; mockups round-4 g11 / g12): a MAP button opens a
  * glass sheet with a top-down picture of the shard, a pin per `ChunkDef.pois` entry and the camera's arrow + view cone.
  * Tap a pin → the god-mode camera flies there (Explore.flyTo) and control comes straight back; tap anywhere else on
  * the map → fly over that spot; ⌂ SPAWN → back to the shard's spawn. Flying stays the way to get around — this is a

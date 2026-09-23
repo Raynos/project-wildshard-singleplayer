@@ -1,5 +1,5 @@
 /**
- * Compare — in-engine vs the target mockup (EXPLORE-WORLD.md X9; mockup round-3 p06): COMPARE (world mode) opens a
+ * Compare — in-engine vs the target mockup (project/archive/2026-09-23-explore-world.md X9; mockup round-3 p06): COMPARE (world mode) opens a
  * picker of the Driftwood first-person target mockups; picking one flies the god-mode camera to that mockup's viewpoint
  * and lays the mockup over the live frame. SLIDE drags a divider (live frame left, mockup right), FADE cross-fades
  * with a slider, SWAP flips which side is which; ✕ closes. The camera stays free the whole time, so you can line the

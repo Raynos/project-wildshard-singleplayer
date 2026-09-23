@@ -1,5 +1,5 @@
 /**
- * Model Explorer (EXPLORE-WORLD.md X3; mockups round-3 p04 catalog, p03 turntable, p17 close-up): the Explore pane that
+ * Model Explorer (project/archive/2026-09-23-explore-world.md X3; mockups round-3 p04 catalog, p03 turntable, p17 close-up): the Explore pane that
  * puts one model at a time on a turntable — isolated IN the live scene (same renderer, lights, day/night, post chain),
  * so what you inspect is exactly what the game draws.
  *

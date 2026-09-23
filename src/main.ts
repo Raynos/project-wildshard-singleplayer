@@ -524,7 +524,7 @@ async function main() {
   hud.onResume = enter;
   hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show'); }; // the world hushes, the title theme comes back; the HUD clears `entered`, the gate does the rest
 
-  // ── Explore World (docs/plans/EXPLORE-WORLD.md): the title's EXPLORE WORLD panel — the viewer over this same loaded shard (a
+  // ── Explore World (project/archive/2026-09-23-explore-world.md): the title's EXPLORE WORLD panel — the viewer over this same loaded shard (a
   // lazy chunk). God-mode camera, Model Explorer, one ✎ to the review inbox; ✕ comes back here to the title.
   const exitExplore = () => { perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); hud.showIntro(enter); };
   const noteSheet = async (): Promise<void> => { const f = await loadFeedback(); await f.openSheet(); };

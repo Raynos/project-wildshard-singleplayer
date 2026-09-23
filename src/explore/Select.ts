@@ -1,5 +1,5 @@
 /**
- * Select — tap / click a model in the World Explorer (EXPLORE-WORLD.md X4; mockups round-3 p09, round-4 g09 / g13):
+ * Select — tap / click a model in the World Explorer (project/archive/2026-09-23-explore-world.md X4; mockups round-3 p09, round-4 g09 / g13):
  * a cyan box with its dimensions, and a glass card anchored to it — name · source file · tris — with OPEN IN MODEL
  * EXPLORER (the turntable), ORBIT (one finger / Alt-drag turns around it) and ✕.
  *

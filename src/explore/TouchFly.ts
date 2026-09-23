@@ -1,5 +1,5 @@
 /**
- * TouchFly — the phone's god-mode flight controls for the World Explorer (EXPLORE-WORLD.md X2, mockups
+ * TouchFly — the phone's god-mode flight controls for the World Explorer (project/archive/2026-09-23-explore-world.md X2, mockups
  * art/build-world/round-4-god-mode-flight/). Drives the same FreeCam the desktop keys do:
  *
  *   FLY stick (bottom-left)       → cam.move.x / .z  (strafe / forward along the view)

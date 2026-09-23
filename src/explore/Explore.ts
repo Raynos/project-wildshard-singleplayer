@@ -1,5 +1,5 @@
 /**
- * Explore World — the viewer (docs/plans/EXPLORE-WORLD.md): the title's EXPLORE WORLD panel opens it over the already
+ * Explore World — the viewer (project/archive/2026-09-23-explore-world.md): the title's EXPLORE WORLD panel opens it over the already
  * loaded shard. A lazy chunk (main.ts `import('./explore/Explore')`), styled by src/ui/styles/explore.css (prefix ws-x-).
  *
  *   const x = new Explore(host);
