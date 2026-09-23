@@ -46,6 +46,7 @@ import { SKINS, SkinLocker, applySkin, crossbowDisplayModel, skinFor, type SkinD
 import { TouchControls } from './player/TouchControls';
 import { HUD } from './ui/HUD';
 import { LockOn } from './ui/LockOn';
+import { LockOnSystem } from './player/LockOnTarget';
 import { SpeedLines } from './ui/SpeedLines';
 import { buzz, HAPTIC } from './ui/haptics';
 import { Loading } from './ui/Loading';
@@ -60,7 +61,7 @@ import { getNumber, onNumber, onSettingChange, setting } from './ui/Settings';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
 import { HurtArc, deathLine } from './ui/HurtArc';
-import { setAimTargets, meleeLock } from './player/AimTargets';
+import { setAimTargets, meleeLock, lockOn as lockState } from './player/AimTargets';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
 import { declareTotals, installByteCounter } from './boot/bytes';
 import { bootFiles, extraFetches, startAudioPreload, startMenuPreload } from './boot/extras';
@@ -342,7 +343,8 @@ async function main() {
   // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken
   const ironSword = chunk.weapon === 'sword' ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, blade: 'iron' }) : null;
   const weapons = new Weapons(crossbow, rifle, ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : []); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
-  new TouchControls(player, weapons, setting('touch') === 'on'); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
+  const lockSys = new LockOnSystem(player, weapons, game.camera); // the Zelda lock-on (E50): LOCK / Z, orbit, flick-switch — src/player/LockOnTarget.ts
+  new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
   weapons.adsHeld = params.has('ads');
   await macrotask();
   const hud = new HUD({ pointerLock: !nolock });
@@ -547,6 +549,11 @@ async function main() {
   player.onStroke = () => audio.swimStroke();
   player.onJump = () => audio.jump();
   player.onDodge = () => { audio.dodge(); buzz(HAPTIC.dodge); };
+  lockSys.onLock = () => { audio.lockOn(); buzz(HAPTIC.lock); };
+  lockSys.onSwitch = () => { audio.lockSwitch(); buzz(HAPTIC.lockSwitch); };
+  lockSys.onUnlock = () => { audio.lockOff(); buzz(HAPTIC.lockBreak); };
+  lockSys.onNone = () => { audio.lockNone(); };
+  lockSys.onFlickMiss = (dir) => { lockOn.flashMiss(dir); };
   player.onLunge = () => { audio.lunge(); buzz(HAPTIC.lunge); };
   player.onLand = (hard) => { audio.land(hard); if (hard) { health = Math.max(0, health - 8); hud.damageFlash(); if (health <= 0) killer = null; } };
   hud.onSoundToggle = (on) => { audio.muted = !on; masterGain(); };
@@ -729,6 +736,6 @@ async function main() {
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
-  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience };
+  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState };
 }
 main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));

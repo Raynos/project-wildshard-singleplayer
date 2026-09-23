@@ -7,7 +7,7 @@ import type { Forest } from '../world/Forest';
 import type { Targets, TargetHit, ImpactSurface } from './Crossbow';
 import type { Weapon, WeaponState, AimInfo } from './Weapon';
 import { REST, CHARGE, SPRINT, COMBO, SLASH, FINISHER, HEAVY, type Move } from './SwordMoves';
-import { getAimTargets, meleeLock, targetRadius, type AimTarget } from './AimTargets';
+import { getAimTargets, lockOn, meleeLock, targetRadius, type AimTarget } from './AimTargets';
 import { bladeBlocked, bladeContact, type Clang } from './MeleeSweep';
 import { activePhysics } from '../physics/active';
 import { worldTime } from '../core/time';
@@ -506,6 +506,12 @@ export class Sword implements Weapon {
    *  feet's height — the smallest angle wins, distance breaking near-ties */
   private findLunge(range: number): AimTarget | null {
     const p = this.player.position, yaw = this.player.yaw;
+    // locked on (E50 §2.4): only ever the locked enemy — no cone check (the view is on it), and never a different one
+    if (lockOn.state === 'locked') {
+      const t = lockOn.target;
+      if (t === null || !t.alive || t.hidden) return null;
+      return Math.hypot(t.position.x - p.x, t.position.z - p.z) - targetRadius(t) <= range ? t : null;
+    }
     const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
     let best: AimTarget | null = null, bestScore = Infinity;
     for (const t of getAimTargets()) {

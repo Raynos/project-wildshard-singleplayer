@@ -6,6 +6,8 @@ import { WaterLine } from './WaterLine';
 import { setUnderwater, updateUnderwater } from '../world/Atmosphere';
 import { waveHeight } from '../world/waves';
 import { getNumber } from '../ui/Settings';
+import { lockOn, targetRadius } from './AimTargets';
+import { addLockOffset } from './LockOnTarget';
 import { CharacterMotor } from '../physics/CharacterMotor';
 import { floorBelow } from '../physics/query';
 import type { Physics } from '../physics/Physics';
@@ -211,6 +213,7 @@ export class Player {
     document.addEventListener('mousemove', (e) => {
       if (!this.locked) return;
       const s = 0.0022 * this.lookMult;
+      if (lockOn.state === 'locked') { addLockOffset(-e.movementX * s, -e.movementY * s); return; } // locked (E50): a glance, not a turn
       this.yaw -= e.movementX * s;
       this.pitch -= e.movementY * s;
       this.pitch = Math.max(-1.45, Math.min(1.45, this.pitch));
@@ -286,10 +289,31 @@ export class Player {
     const len = Math.hypot(mx, mz);
     if (len < 0.2) { mx = sin; mz = cos; } else { mx /= len; mz /= len; } // no input: straight back
     const v = DODGE_DIST / DODGE_TIME;
-    if (!this.dash(mx * v, mz * v, DODGE_TIME)) return false;
+    // locked on (E50 §2.4): the dodge is relative to the target — sideways = a side-hop of DODGE_DIST m of ARC round it (the
+    // radius kept), forward = a short close-in dash that stops at lunge distance, back / none = the backstep, straight away
+    const lt = lockOn.state === 'locked' ? lockOn.target : null;
+    let ok: boolean | null = null;
+    if (lt !== null && len >= 0.2) {
+      const dx = lt.position.x - this.position.x, dz = lt.position.z - this.position.z, r = Math.hypot(dx, dz);
+      if (r > 0.3) {
+        const ux = dx / r, uz = dz / r, radial = mx * ux + mz * uz, tang = -mx * uz + mz * ux; // input split: toward / round (right = (−uz, ux))
+        if (Math.abs(tang) >= Math.abs(radial)) {
+          const th = DODGE_DIST / Math.max(r, 1.5), ox = -ux * r, oz = -uz * r;
+          let best: [number, number] | null = null;
+          for (const a of [th, -th]) { // the rotation that moves along the pushed side
+            const c = Math.cos(a), sn = Math.sin(a);
+            const tx = lt.position.x + ox * c - oz * sn, tz = lt.position.z + ox * sn + oz * c;
+            if (((tx - this.position.x) * -uz + (tz - this.position.z) * ux) * tang > 0) best = [tx, tz];
+          }
+          if (best) { mx = best[0] - this.position.x; mz = best[1] - this.position.z; const l = Math.hypot(mx, mz) || 1; ok = this.dash(mx / DODGE_TIME, mz / DODGE_TIME, DODGE_TIME); mx /= l; mz /= l; }
+        } else if (radial > 0) ok = this.dashTo(lt.position.x, lt.position.z, targetRadius(lt) + 1.1, 0.2);
+      }
+    }
+    ok ??= this.dash(mx * v, mz * v, DODGE_TIME);
+    if (!ok) return false;
     this.dodgeCd = DODGE_COOLDOWN;
     // feel (E63): the camera / viewmodel / screen curves run off one clock — see the camera block in update()
-    const side = len < 0.2 ? 0 : Math.max(-1, Math.min(1, -(mx * cos - mz * sin))); // + = the dodge goes right
+    const side = len < 0.2 ? 0 : Math.max(-1, Math.min(1, mx * cos - mz * sin)); // + = the dodge goes right (view space)
     this.dodgeClock = 0;
     dodgeFx.style = style; dodgeFx.t = 0; dodgeFx.side = side; dodgeFx.back = len < 0.2; dodgeFx.id++;
     this.onDodge?.();
@@ -350,6 +374,20 @@ export class Player {
 
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
     let mx = (-sin * fwd + cos * str), mz = (-cos * fwd - sin * str);
+    // locked on (E50 §2.4): MOVE orbits the target — stick x = round it, y = in / out; a pure sideways push holds the radius
+    // you had (a straight strafe under a tracking view spirals out), and never closer than its body + 0.9 m
+    const lt = lockOn.state === 'locked' ? lockOn.target : null;
+    if (lt !== null && !hover && !swim) {
+      const dx = lt.position.x - this.position.x, dz = lt.position.z - this.position.z, r = Math.hypot(dx, dz);
+      if (r > 0.2) {
+        const ux = dx / r, uz = dz / r, minR = targetRadius(lt) + 0.9;
+        let f = fwd;
+        if (f > 0 && r <= minR) f = 0;
+        if (Math.abs(f) > 0.15) lockOn.r0 = r;
+        else if (Math.abs(str) > 0.1) f = Math.max(-0.6, Math.min(0.6, (r - lockOn.r0) * 0.8));
+        mx = ux * f - uz * str; mz = uz * f + ux * str;
+      }
+    }
     const len = Math.hypot(mx, mz);
     if (len > 1) { mx /= len; mz /= len; }
     const jump = this.jumpQueued && !swim; this.jumpQueued = false;
@@ -631,12 +669,12 @@ export class Player {
       if (dodgeFx.style === 'V') {
         const dip = ms < 40 ? 0.05 * (ms / 40) : ms < 150 ? 0.05 + 0.17 * (1 - (1 - (ms - 40) / 110) ** 2) : ms < 200 ? 0.22
           : (() => { const r = (ms - 200) / 1000, v = 0.22 * Math.exp(-7.15 * r) * Math.cos(10.86 * r); return v < 0 ? v * 0.6 : v; })();
-        dodgeDip = dip; dodgePitch = -(4 * Math.PI / 180) * (dip / 0.22); this.dashRoll = side * (3 * Math.PI / 180) * e;
+        dodgeDip = dip; dodgePitch = -(4 * Math.PI / 180) * (dip / 0.22); this.dashRoll = -side * (3 * Math.PI / 180) * e;
         const fov = ms < 60 ? 10 * (1 - (1 - ms / 60) ** 2) : ms < 200 ? 10 : ms < 450 ? 10 * (1 - sstep01((ms - 200) / 250)) : 0;
         this.fovKick = Math.max(this.fovKick, fov);
       } else {
         dodgeDip = DODGE_DIP * e; dodgeLead = 0.04 * side * e;
-        if (dodgeFx.back) dodgePitch = (1.5 * Math.PI / 180) * e; else this.dashRoll = side * DODGE_ROLL * e;
+        if (dodgeFx.back) dodgePitch = (1.5 * Math.PI / 180) * e; else this.dashRoll = -side * DODGE_ROLL * e; // −: roll toward the dodge side
         if (ms < 450) this.fovKick = Math.max(this.fovKick, DODGE_FOV_KICK * Math.max(0, e));
       }
       if (ms > DODGE_FX_END) this.dodgeClock = -1;

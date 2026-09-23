@@ -322,6 +322,11 @@ export class GameMenu {
     const paintCredit = () => { const c = sfxCredit(getSfxSet()); sfxNote.textContent = c; sfxNote.hidden = c === ''; };
     paintCredit(); onSfxSet(paintCredit); onSfxCredit(paintCredit);
     p.append(el('ws-gmenu-label', 'Audio'), vol, mus, style, sfx, el('ws-gmenu-note', MUSIC_CREDIT), sfxNote);
+    // lock-on (E50, src/player/LockOnTarget.ts): how hard the view follows a locked enemy (Gentle = Jake's pick; Off keeps the
+    // lock — the reticle, orbit strafing, the lunge, switching — but never turns the view: the motion-sickness escape)
+    const lockCams: { v: '1' | '0.5' | '0'; text: string }[] = [{ v: '1', text: 'Follow' }, { v: '0.5', text: 'Gentle' }, { v: '0', text: 'Off' }];
+    const lockCam = picker('Lock-on camera', lockCams, () => (getNumber('lockCam') >= 0.75 ? '1' : getNumber('lockCam') > 0.1 ? '0.5' : '0'), (v) => setNumber('lockCam', Number(v)), () => undefined);
+    p.append(el('ws-gmenu-label', 'Lock-on'), lockCam, sw('autoLock', 'Auto re-lock'), el('ws-gmenu-note', 'LOCK (Z / middle mouse) locks the enemy nearest the centre. Flick the LOOK pad (mouse flick / wheel) to switch; MOVE circles it.'));
 
     // look (E55, live — src/ui/Settings.ts OPTIONS): the low-poly shard's clock (DayNight.setTime) and painted horizon
     // (HorizonMatte.setShown); main.ts subscribes both. The boot-time graphics picks are on the title's Settings.

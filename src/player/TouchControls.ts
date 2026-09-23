@@ -56,6 +56,12 @@
  * layer owns an `AimAssist`, feeds it every look drag, runs it from `player.preUpdate` every frame and scales the drag by
  * `assist.lookScale()`.
  *
+ * Lock-on (E50, src/player/LockOnTarget.ts, project/archive/2026-09-23-lock-on.md): the LOCK disc (J — on the right-thumb arc above V DODGE,
+ * melee only) toggles it; its states follow `lockOn.state` (off dim / available pulsing / LOCKED filled). While locked
+ * every look drag (the LOOK side, the free-look area, a drag from ATTACK) is the ±10° glance that springs back, a FLICK on
+ * the LOOK side (≥ 28 px at ≥ 600 px/s within 200 ms) switches target, the LOOK pad reads SWITCH ‹ ›, MOVE reads ORBIT
+ * with an arc lit on the pushed side, and aim assist / the lunge turn stand down. A short tap on an enemy above the bar
+ * locks it.
  * Talks to the player through `player.touchMove / touchSprint / touchJump / touchDodge / touchDive / touchSurface`
  * (analog, summed with WASD) and to the held weapon through the Weapons manager's `tryFire() / adsHeld / enabled / swap()`
  * (Weapons.ts). The layer only receives events once the intro is gone (`#hud.intro` hides it), and never needs pointer
@@ -64,7 +70,8 @@
 import type { Player } from './Player';
 import type { WeaponId, Weapons } from './Weapons';
 import { AimAssist } from './AimAssist';
-import { meleeLock } from './AimTargets';
+import { lockOn, meleeLock } from './AimTargets';
+import { FlickTracker, addLockOffset, type LockOnSystem } from './LockOnTarget';
 import { getSetting } from '../ui/Settings';
 
 export const IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
@@ -103,8 +110,10 @@ export class TouchControls {
   private wasMelee = false; // the AIM disc hides while a melee weapon is held
   private chargeShown = -1; // the ATTACK disc's heavy ring (--charge) as last painted
   private cdShown = -1; // the DODGE disc's cooldown sweep (--cd) as last painted
+  private lockShown = ''; private orbitShown = 0; // the lock-on state / the lit ORBIT arc as last painted (E50)
+  private readonly flick = new FlickTracker(); private lookT0 = 0; private lookDown = { x: 0, y: 0 }; private lookInBar = false;
 
-  constructor(private player: Player, private weapons: Weapons, force = false) {
+  constructor(private player: Player, private weapons: Weapons, force = false, private lock?: LockOnSystem) {
     this.active = force || IS_TOUCH;
     if (!this.active) return;
     const hud = document.getElementById('hud') ?? document.body;
@@ -116,14 +125,15 @@ export class TouchControls {
       <div class="ws-touch-status"></div>
       <button class="ws-touch-disc aim" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="1.4"/><path d="M12 1.5v4.5M12 18v4.5M1.5 12H6M18 12h4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Aim</span></button>
       <button class="ws-touch-disc dodge v" type="button"><i class="ws-touch-cd"></i><svg viewBox="0 0 24 24"><path d="M5 5.5 11.5 12 5 18.5M12.5 5.5 19 12l-6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>V Dodge</span></button>
+      <button class="ws-touch-disc lock" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 1.8v4.4M12 17.8v4.4M1.8 12h4.4M17.8 12h4.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="12" cy="12" r="2.1"/></svg><span>Lock</span></button>
       <button class="ws-touch-disc dodge t" type="button"><i class="ws-touch-cd"></i><svg viewBox="0 0 24 24"><path d="M5 5.5 11.5 12 5 18.5M12.5 5.5 19 12l-6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>T Dodge</span></button>
       <button class="ws-touch-disc jump" type="button"><svg viewBox="0 0 24 24"><path d="M12 2.5 4 11h5v10.5h6V11h5z"/></svg><span>Jump</span></button>
       <button class="ws-touch-disc surface" type="button"><svg viewBox="0 0 24 24"><path d="M12 21.5V9M7.5 13.5 12 9l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 5.5c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4 1.7-1.4 3.4-1.4 1.6 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>Surface</span></button>
       <button class="ws-touch-disc dive" type="button"><svg viewBox="0 0 24 24"><path d="M12 2v11.5M7.5 9.5 12 14l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 18.5c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4 1.7-1.4 3.4-1.4 1.6 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 22c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/></svg><span>Dive</span></button>
       <button class="ws-touch-pause" type="button">Pause</button>
       <div class="ws-touch-bar">
-        <div class="ws-touch-zone move"><span class="ws-touch-label">Move</span><div class="ws-touch-stick"><i></i></div><b class="ws-touch-sprint">Sprint</b></div>
-        <div class="ws-touch-zone look"><div class="ws-touch-lookpad"><svg viewBox="0 0 24 24"><path d="M12 2.5 15.2 6.5H8.8zM12 21.5 8.8 17.5h6.4zM2.5 12 6.5 8.8v6.4zM21.5 12 17.5 15.2V8.8z"/></svg><span>Look</span></div></div>
+        <div class="ws-touch-zone move"><span class="ws-touch-label">Move</span><div class="ws-touch-stick"><i></i></div><u class="ws-touch-orbit"><i></i><i></i></u><b class="ws-touch-sprint">Sprint</b></div>
+        <div class="ws-touch-zone look"><div class="ws-touch-lookpad"><svg viewBox="0 0 24 24"><path d="M12 2.5 15.2 6.5H8.8zM12 21.5 8.8 17.5h6.4zM2.5 12 6.5 8.8v6.4zM21.5 12 17.5 15.2V8.8z"/></svg><svg class="sw" viewBox="0 0 24 24"><path d="M8.5 5.5 3 12l5.5 6.5M15.5 5.5 21 12l-5.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Look</span></div></div>
       </div>
       <button class="ws-touch-attack" type="button"><i class="ws-touch-charge"></i><svg class="melee" viewBox="0 0 24 24"><path d="M20.5 3.5 9.2 14.8M20.5 3.5l-.6 4.2M20.5 3.5l-4.2.6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.6 12.2l5.2 5.2M8.4 15.6 4 20" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg><svg class="ranged" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.2"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="melee">Attack</span><span class="ranged">Fire</span><small class="melee">Hold = heavy</small></button>
       <div class="ws-touch-pill"><button class="swap" type="button">Swap</button><button class="hover" type="button">Hover</button></div>`;
@@ -141,6 +151,7 @@ export class TouchControls {
     const stick = this.stick = el(root, '.ws-touch-stick');
     this.knob = el(stick, 'i');
     const moveZone = el(root, '.ws-touch-zone.move'), lookpad = el(root, '.ws-touch-lookpad');
+    const lockBtn = el(root, '.ws-touch-disc.lock'), lockLabel = el(lockBtn, 'span'), lookLabel = el(lookpad, 'span'), moveLabel = el(moveZone, '.ws-touch-label');
 
     // ── aim assist: runs at the top of every player update (before the camera is posed) so a nudge shows the same frame ──
     const assist = this.assist = new AimAssist(root);
@@ -150,7 +161,7 @@ export class TouchControls {
       prevPre?.(dt);
       const speed = dt > 0 ? this.lookFrameDist / dt : 0; this.lookFrameDist = 0;
       this.lookSpeed += (speed - this.lookSpeed) * Math.min(1, dt * 15);
-      if (weapons.enabled) assist.update(dt, player, weapons.adsHeld, this.lookSpeed);
+      if (weapons.enabled && lockOn.state !== 'locked') assist.update(dt, player, weapons.adsHeld, this.lookSpeed); // locked (E50): the lock aims, not the assist
       // AIM (ranged latch) and the ATTACK hold-heavy (melee) share `weapons.adsHeld`; crossing between the two drops it, so a
       // sword never comes up charging and a crossbow never comes up sighted from the other's latch
       const melee = MELEE.has(weapons.current.id);
@@ -167,8 +178,17 @@ export class TouchControls {
         }
         const c = weapons.current.charge ?? 0;
         if (c !== this.chargeShown) { this.chargeShown = c; attack.style.setProperty('--charge', c.toFixed(3)); attack.classList.toggle('ready', c >= 1); }
-        this.lungeTurn(dt);
+        if (lockOn.state !== 'locked') this.lungeTurn(dt); // locked: the lock's camera track already faces the target
       }
+      // lock-on (E50): LOCK's three states (off dim / available pulse / LOCKED filled), SWITCH on the LOOK pad, ORBIT on MOVE
+      const ls = lockOn.state;
+      if (ls !== this.lockShown) {
+        this.lockShown = ls;
+        root.classList.toggle('lock-available', ls === 'available'); root.classList.toggle('locked', ls === 'locked');
+        lockLabel.textContent = ls === 'locked' ? 'Locked' : 'Lock'; lookLabel.textContent = ls === 'locked' ? 'Switch' : 'Look'; moveLabel.textContent = ls === 'locked' ? 'Orbit' : 'Move';
+      }
+      const orbit = ls === 'locked' ? Math.sign(Math.round(player.touchMove.x * 3) / 3) : 0;
+      if (orbit !== this.orbitShown) { this.orbitShown = orbit; root.classList.toggle('orbit-l', orbit < 0); root.classList.toggle('orbit-r', orbit > 0); }
       // DODGE cooldown (E59): a dark clock sweep unwinds over the disc (--cd 1 → 0) and it flashes .ready when it is back
       const cd = Math.round(player.dodgeCooldown * 100) / 100;
       if (cd !== this.cdShown) {
@@ -199,6 +219,8 @@ export class TouchControls {
         // the bar lights the LOOK pad while it lasts.
         this.lookPointer = e.pointerId;
         this.lookLast = { x: e.clientX, y: e.clientY };
+        this.lookDown = { x: e.clientX, y: e.clientY }; this.lookT0 = performance.now(); this.lookInBar = inBar;
+        this.flick.begin(e.clientX, e.clientY, this.lookT0);
         lookpad.classList.toggle('active', inBar);
       } else return;
       root.setPointerCapture(e.pointerId);
@@ -208,7 +230,10 @@ export class TouchControls {
       if (e.pointerId === this.stickPointer) {
         this.applyStick(e.clientX - this.stickBase.x, e.clientY - this.stickBase.y);
       } else if (e.pointerId === this.lookPointer) {
-        this.look(e.clientX - this.lookLast.x, e.clientY - this.lookLast.y);
+        // locked (E50 §2.5): a flick switches target, anything slower is the glance
+        const f = lockOn.state === 'locked' ? this.flick.move(e.clientX, e.clientY, performance.now()) : null;
+        if (f !== null) this.lock?.flick(f);
+        else this.look(e.clientX - this.lookLast.x, e.clientY - this.lookLast.y);
         this.lookLast = { x: e.clientX, y: e.clientY };
       } else if (e.pointerId === this.attackPointer) {
         const dx = e.clientX - this.attackLast.x, dy = e.clientY - this.attackLast.y;
@@ -227,6 +252,8 @@ export class TouchControls {
       } else if (e.pointerId === this.lookPointer) {
         this.lookPointer = -1;
         lookpad.classList.remove('active');
+        // a short tap on an enemy above the bar locks it (E50 L11) — the look area never attacks, so a tap there is free
+        if (e.type === 'pointerup' && !this.lookInBar && performance.now() - this.lookT0 < 220 && Math.hypot(e.clientX - this.lookDown.x, e.clientY - this.lookDown.y) < 12) this.lock?.tapLock(e.clientX, e.clientY);
       } else if (e.pointerId === this.attackPointer) {
         this.attackPointer = -1;
         attack.classList.remove('down');
@@ -265,6 +292,13 @@ export class TouchControls {
     // AIM (ranged only) is a toggle, not a hold: each press flips the iron-sights latch and the disc stays lit (.on) while latched
     aim.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.weapons.adsHeld = !this.weapons.adsHeld; aim.classList.toggle('on', this.weapons.adsHeld); });
     aim.addEventListener('pointerup', (e) => e.stopPropagation());
+    // LOCK (E50, the J disc): a toggle — lock the enemy nearest the centre, tap again to release; with nothing lockable it
+    // flashes NO TARGET and the view re-levels (LockOnTarget.toggle)
+    btn('.ws-touch-disc.lock', () => { if (this.weapons.enabled) this.lock?.toggle(); });
+    if (this.lock) {
+      const prevNone = this.lock.onNoTarget;
+      this.lock.onNoTarget = () => { prevNone?.(); lockBtn.classList.remove('none'); void lockBtn.offsetWidth; lockBtn.classList.add('none'); lockLabel.textContent = 'No target'; setTimeout(() => { if (lockOn.state !== 'locked') lockLabel.textContent = 'Lock'; }, 700); };
+    }
     // DODGE, twice (E63 — Jake: "put two buttons in there, T Dodge, V Dodge … I'll let you know which one to delete"): the
     // same dash, T's or V's feel (Player.dodge(style), docs/plans/DODGE-FEEL.md). A tap during the shared cooldown only
     // shakes the disc (.deny) — no dodge is queued (E59)
@@ -357,6 +391,7 @@ export class TouchControls {
 
   /** a look drag from any surface (the LOOK section, the right 55 % above the bar, an ATTACK drag): one rate × Look speed × aim-assist friction */
   private look(dx: number, dy: number): void {
+    if (lockOn.state === 'locked') { const r = LOOK_RATE * this.player.lookMult; addLockOffset(-dx * r, -dy * r); return; } // locked (E50): a glance, not a turn
     this.lookFrameDist += Math.hypot(dx, dy);
     this.assist?.noteLook(dx, dy);
     const rate = LOOK_RATE * this.player.lookMult * (this.assist?.lookScale() ?? 1);

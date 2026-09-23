@@ -650,6 +650,30 @@ export class Audio {
     this.voices.play('death', { gain: 0.85, jitter: 0.03 });
   }
 
+  /** lock-on (E50, src/player/LockOnTarget.ts): a short bright two-note chime on LOCK (the Navi "ping" idea, no voice) */
+  lockOn(): void {
+    if (!this.g) return;
+    const t = this.ctx.currentTime;
+    this.tone({ t, type: 'sine', f0: 1320, gain: 0.12, decay: 0.08 });
+    this.tone({ t: t + 0.06, type: 'sine', f0: 1980, gain: 0.13, decay: 0.16 });
+    this.tone({ t: t + 0.06, type: 'triangle', f0: 3960, gain: 0.025, decay: 0.12 });
+  }
+  /** lock-on: a softer single ping when the lock switches to another enemy */
+  lockSwitch(): void {
+    if (!this.g) return;
+    this.tone({ t: this.ctx.currentTime, type: 'sine', f0: 1660, gain: 0.09, decay: 0.1 });
+  }
+  /** lock-on: a low falling tone when the lock is released or breaks */
+  lockOff(): void {
+    if (!this.g) return;
+    this.tone({ t: this.ctx.currentTime, type: 'sine', f0: 880, f1: 520, glide: 0.1, gain: 0.08, decay: 0.14 });
+  }
+  /** lock-on: a dull tick — LOCK with nothing lockable, or a flick with nothing on that side */
+  lockNone(): void {
+    if (!this.g) return;
+    this.burst({ t: this.ctx.currentTime, type: 'bandpass', freq: 900, q: 2, gain: 0.07, decay: 0.035 });
+  }
+
   kill(): void {
     if (!this.g || this.shot('kill')) return;
     const t = this.ctx.currentTime;

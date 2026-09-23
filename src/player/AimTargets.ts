@@ -19,6 +19,8 @@ export interface AimTarget {
   scale?: number;
   headWorld?: (out: THREE.Vector3) => THREE.Vector3;
   dims?: { bodyY?: number; bodyRadius?: number; bodyHalfLen?: number };
+  /** the AI state ('attack' while winding up a hit) — the lock-on's tie-break (src/player/LockOnTarget.ts) */
+  state?: string;
 }
 
 let targets: readonly AimTarget[] = [];
@@ -37,3 +39,17 @@ export function targetRadius(t: AimTarget): number {
   const d = t.dims;
   return Math.max(0.3, Math.max(d?.bodyRadius ?? 0.33, (d?.bodyHalfLen ?? 0.5) * 0.6)) * (t.scale ?? 1);
 }
+
+/**
+ * The Zelda-style lock-on (E50, project/archive/2026-09-23-lock-on.md — src/player/LockOnTarget.ts runs it): `state` 'off' (nothing to lock),
+ * 'available' (`candidate` could be locked — the LOCK disc pulses, a hollow ▽ hangs over it), 'locked' (`target`, the view
+ * tracks it, MOVE orbits it, DODGE side-hops round it, the sword lunges only onto it). `offYaw` / `offPitch` are the ±10° /
+ * ±6° glance a look drag makes while locked (it springs back); `r0` is the orbit radius MOVE holds; `left` / `right` the
+ * next targets a flick would switch to (the HUD's edge chevrons), with their distances.
+ */
+export const lockOn: {
+  state: 'off' | 'available' | 'locked';
+  target: AimTarget | null; candidate: AimTarget | null;
+  offYaw: number; offPitch: number; r0: number;
+  left: AimTarget | null; right: AimTarget | null; leftDist: number; rightDist: number;
+} = { state: 'off', target: null, candidate: null, offYaw: 0, offPitch: 0, r0: 0, left: null, right: null, leftDist: 0, rightDist: 0 };

@@ -5,6 +5,7 @@ import type { Animal } from '../entities/Animal';
 import type { Weapon } from '../player/Weapon';
 import { TIER } from '../core/tier';
 import { viewportHeight } from '../core/viewport';
+import { lockOn } from '../player/AimTargets';
 import './styles/combat.css';
 
 /**
@@ -175,7 +176,7 @@ export class Combat {
     for (let i = 0; i < list.length; i++) {
       const a = list[i];
       if (a === undefined || a.hidden) continue;
-      const show = now - a.lastHitT < BAR_HOLD || a === this.aimed;
+      const show = now - a.lastHitT < BAR_HOLD || a === this.aimed || (lockOn.state === 'locked' && a === lockOn.target); // the locked enemy keeps its tag (E50, N)
       if (!show) continue;
       const d2 = a.position.distanceToSquared(_o);
       if (d2 > BAR_DIST * BAR_DIST) continue;

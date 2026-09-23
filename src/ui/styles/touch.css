@@ -99,6 +99,31 @@
 /* E63: V DODGE sits one disc left of T DODGE on the same row while Jake compares the two feels; the labels are longer */
 .ws-touch-disc.dodge.v { left: calc(100% - var(--disc) * 1.5 - 58px); }
 .ws-touch-disc.dodge span { font-size: 7.5px; letter-spacing: 0.14em; white-space: nowrap; }
+/* LOCK (E50, the J disc — src/player/LockOnTarget.ts): on the right-thumb arc one row above V DODGE, melee only, hidden in the
+   water. Three states from `lockOn.state`: off (dim), available (.lock-available: a cyan rim that pulses), LOCKED (.locked:
+   filled cyan). "No target" flashes amber-free, a quick dim shake (.none) */
+.ws-touch-disc.lock { left: calc(100% - var(--disc) * 1.5 - 58px); bottom: calc(var(--bar) + 16px + var(--disc)); }
+.ws-touch:not(.melee) .ws-touch-disc.lock, .ws-touch.swimming .ws-touch-disc.lock { display: none; }
+.ws-touch-disc.lock svg { width: 36%; height: 36%; opacity: 0.55; transition: opacity 0.15s; }
+.ws-touch-disc.lock span { font-size: 7.5px; letter-spacing: 0.16em; white-space: nowrap; opacity: 0.6; }
+.ws-touch.lock-available .ws-touch-disc.lock { border-color: var(--ws-cyan); animation: ws-touch-lock-pulse 1.1s ease-in-out infinite; }
+.ws-touch.lock-available .ws-touch-disc.lock svg, .ws-touch.lock-available .ws-touch-disc.lock span { opacity: 1; }
+@keyframes ws-touch-lock-pulse { 50% { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 22px rgba(143, 227, 255, 0.55), inset 0 0 12px rgba(143, 227, 255, 0.25); } }
+.ws-touch.locked .ws-touch-disc.lock { border-color: var(--ws-cyan); color: #06121a; background: radial-gradient(circle at 50% 35%, #bff0ff, var(--ws-cyan) 70%); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 24px rgba(143, 227, 255, 0.6); }
+.ws-touch.locked .ws-touch-disc.lock svg, .ws-touch.locked .ws-touch-disc.lock span { opacity: 1; color: #06121a; }
+.ws-touch-disc.lock.none { animation: ws-touch-dodge-deny 0.3s ease-out; }
+/* locked: the LOOK pad is the SWITCH pad (‹ › chevrons, a solid rim) and MOVE shows ORBIT arcs round the stick, the pushed side lit */
+.ws-touch-lookpad svg.sw { display: none; }
+.ws-touch.locked .ws-touch-lookpad svg:not(.sw) { display: none; }
+.ws-touch.locked .ws-touch-lookpad svg.sw { display: block; fill: none; color: var(--ws-cyan); }
+.ws-touch.locked .ws-touch-lookpad { border-color: var(--ws-cyan); }
+.ws-touch.locked .ws-touch-lookpad::before { border-style: solid; border-color: rgba(143, 227, 255, 0.35); }
+.ws-touch-orbit { position: absolute; left: 50%; top: calc(50% - var(--safe) / 2); width: 116px; height: 116px; margin: -58px 0 0 -58px; pointer-events: none; display: none; }
+.ws-touch.locked .ws-touch-orbit { display: block; }
+.ws-touch-orbit i { position: absolute; inset: 0; border-radius: 50%; border: 2px solid transparent; opacity: 0.45; transition: opacity 0.12s, filter 0.12s; }
+.ws-touch-orbit i:first-child { border-left-color: var(--ws-cyan); transform: rotate(-12deg); }
+.ws-touch-orbit i:last-child { border-right-color: var(--ws-cyan); transform: rotate(-12deg); }
+.ws-touch.orbit-l .ws-touch-orbit i:first-child, .ws-touch.orbit-r .ws-touch-orbit i:last-child { opacity: 1; filter: drop-shadow(0 0 5px rgba(143, 227, 255, 0.8)); }
 .ws-touch.swimming .ws-touch-disc.dodge { display: none; }
 /* DODGE cooldown (E59, TouchControls polls player.dodgeCooldown into --cd 1 → 0): a dark clock sweep over the disc that
    unwinds clockwise from 12 o'clock, the icon and label dimmed while it runs; a cyan flash when the dodge is back (.ready)

@@ -1,6 +1,6 @@
 # Plan: tentative HUD / touch-control refinements
 
-**State:** `in progress` 2026-09-23 — the queue is built and live (`f6cc18c-mueneknw`): E58 strip + true 45 / 55, E61 resume screen, E47 FPS pill, E59 dodge cooldown sweep, E64 credits in Settings; E63 has T DODGE and V DODGE side by side and waits on Jake's pick of which to delete. Lock-on (E50, docs/plans/LOCK-ON.md) waits on Jake's go. The R-rows below that aren't built stay ideas.
+**State:** `in progress` 2026-09-23 — the E58–E64 queue is built and live; the lock-on (E50) is built and archived (project/archive/2026-09-23-lock-on.md; leftovers E74 / E75). Open: E63 waits on Jake's T / V pick; R3 sprint lock (E71) is next, approved 2026-09-23. The other R-rows stay ideas.
 
 ## Read this first
 

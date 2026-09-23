@@ -25,17 +25,17 @@
 //   saving one changes setting() at once and notifies (main.ts hands it to HorizonMatte.setShown / DayNight.setTime).
 //
 // localStorage is wrapped in try/catch (iOS private mode throws on write) — the in-memory copy is the truth for the session.
-export type SettingKey = 'aimAssist' | 'tracers' | 'haptics';
-export type NumberKey = 'volume' | 'music' | 'look' | 'swingLook';
+export type SettingKey = 'aimAssist' | 'tracers' | 'haptics' | 'autoLock';
+export type NumberKey = 'volume' | 'music' | 'look' | 'swingLook' | 'lockCam';
 export const MUSIC_STYLES = ['piano', 'orchestral', 'folk', 'synth'] as const;
 export type MusicStyle = (typeof MUSIC_STYLES)[number];
 export const SFX_SETS = ['best', 'synth'] as const;
 export type SfxSet = (typeof SFX_SETS)[number];
 
 const STORE = 'ws.settings.v1';
-const DEFAULTS: Record<SettingKey, boolean> = { aimAssist: true, tracers: true, haptics: true };
-const NUM_DEFAULTS: Record<NumberKey, number> = { volume: 0.8, music: 0.7, look: 1, swingLook: 0.7 };
-export const NUM_RANGE: Record<NumberKey, readonly [number, number]> = { volume: [0, 1], music: [0, 1], look: [0.5, 2], swingLook: [0.5, 2] };
+const DEFAULTS: Record<SettingKey, boolean> = { aimAssist: true, tracers: true, haptics: true, autoLock: true }; // autoLock: a kill re-locks the next enemy (E50)
+const NUM_DEFAULTS: Record<NumberKey, number> = { volume: 0.8, music: 0.7, look: 1, swingLook: 0.7, lockCam: 0.5 }; // lockCam: the lock-on camera, Follow 1 / Gentle 0.5 / Off 0 (E50: Jake picked Gentle)
+export const NUM_RANGE: Record<NumberKey, readonly [number, number]> = { volume: [0, 1], music: [0, 1], look: [0.5, 2], swingLook: [0.5, 2], lockCam: [0, 1] };
 const clampNum = (k: NumberKey, v: number) => Math.min(NUM_RANGE[k][1], Math.max(NUM_RANGE[k][0], v));
 
 function load(): { bools: Record<SettingKey, boolean>; nums: Record<NumberKey, number>; parsed: Partial<Record<string, unknown>> } {
