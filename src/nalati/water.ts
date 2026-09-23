@@ -14,6 +14,7 @@ import { attachFogUniforms } from '../world/Atmosphere';
 import type { Sky } from '../world/Sky';
 import { RIVER, BROOK, WATERFALL } from '../chunks/nalati-grasslands';
 import { CHUNK_HALF } from '../core/config';
+import { LOOK_V2 } from './look/flag';
 
 const VERT = /* glsl */`
 attribute float depth;
@@ -35,7 +36,7 @@ void main() {
 
 const FRAG = /* glsl */`
 uniform float uTime; uniform vec3 uShallow; uniform vec3 uDeep; uniform vec3 uSky; uniform vec3 uFoam; uniform vec3 uSunDir; uniform vec3 uSunCol;
-uniform float uBright; uniform float uRain;
+uniform float uBright; uniform float uRain; uniform float uFarPale;
 varying float vDepth; varying float vFlow; varying float vAcross; varying float vKind;
 varying vec3 vW;
 #include <common>
@@ -57,7 +58,7 @@ void main() {
   float near = 1.0 - smoothstep(50.0, 180.0, dist);
   float fres = pow(1.0 - clamp(V.y, 0.0, 1.0), 3.0);
   col = mix(col, uSky * 0.92, fres * 0.6 * near);
-  col = mix(col, mix(uDeep, uShallow, 0.35), (1.0 - near) * 0.7);
+  col = mix(col, mix(mix(uDeep, uShallow, 0.35), uSky * 0.62, uFarPale), (1.0 - near) * 0.7);
   vec3 R = reflect(-V, vec3(0.0, 1.0, 0.0));
   col += uSunCol * pow(max(dot(R, uSunDir), 0.0), 60.0) * 0.6 * near;
   // white water: world-space dashes stretched along the flow (+x on the river), racing downstream; thick over the shoals
@@ -109,9 +110,20 @@ export class NalatiWater {
     uSunCol: { value: new THREE.Color(1, 0.9, 0.7) },
     uBright: { value: 1 },
     uRain: { value: 0 },
+    /** far off, the water settles to its own colour (0) or to a pale sky-grey (1, look v2: no turquoise line at eye level) */
+    uFarPale: { value: 0 },
   };
 
-  constructor(private sky: Sky) { byGroup.set(this.group, this); }
+  constructor(private sky: Sky) {
+    byGroup.set(this.group, this);
+    if (LOOK_V2) {
+      // look v2 (src/nalati/look/): the glacial Kunes as the mockups paint it from above — milky turquoise over the bars,
+      // deep teal-blue in the channels — and pale sky-grey far off / at grazing angles (never a cyan strip at eye level)
+      this.uniforms.uShallow.value.setRGB(0.3, 0.6, 0.62);
+      this.uniforms.uDeep.value.setRGB(0.06, 0.28, 0.4);
+      this.uniforms.uFarPale.value = 1;
+    }
+  }
 
   /** the glint colour the water was painted with (the day's sun) */
   get sunColor(): THREE.Color { return this.uniforms.uSunCol.value; }

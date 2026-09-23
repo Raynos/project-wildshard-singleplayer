@@ -78,7 +78,10 @@ const FRAG_MAIN = /* glsl */`
   vec2 wp = vTWorld.xz;
   float dist = length( vTWorld - cameraPosition );
   vec3 ground = diffuseColor.rgb;
-  ${LOOK_V2 ? 'ground = v2Olive( ground ); // look v2: the olive / golden values (src/nalati/look/light.ts)' : ''}
+  ${LOOK_V2 ? `ground = v2Olive( ground ); // look v2: the olive / golden values (src/nalati/look/light.ts)
+  // look v2: the painter's big soft patches — sunlit gold-green meadows and cooler hollows, read from far and high
+  ground *= mix( vec3( 0.8, 0.86, 0.92 ), vec3( 1.14, 1.08, 0.86 ), smoothstep( 0.3, 0.72, tNoise( wp * 0.021 + 3.0 ) * 0.62 + tNoise( wp * 0.057 - 1.7 ) * 0.38 ) );
+  diffuseColor.rgb = ground;` : ''}
 
   // ── meadow: the painted grass detail over the macro colour (its hue stays the vertex colour's) ──
   vec3 meadow = tTiled( tMeadow, wp * uTexScale.x ) / uMeanMeadow;

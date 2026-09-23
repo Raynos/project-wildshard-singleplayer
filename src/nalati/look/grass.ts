@@ -144,14 +144,14 @@ void main() {
   // colour: the root sunk into the painted ground → the tip, olive / green / gold by patch and the field's tone
   vec3 gnd = texture(tGround, fUV(xz)).rgb;
   float tone = fld.g;
-  vec3 tipA = vec3(.42, .52, .09), tipB = vec3(.70, .58, .14), tipC = vec3(.16, .32, .08);
+  vec3 tipA = vec3(.5, .56, .1), tipB = vec3(.74, .6, .15), tipC = vec3(.22, .36, .08);
   float gold = clamp(smoothstep(.42, .78, gFbm(xz * .21 + 11.)) * .85 + tone * .45, 0., 1.);
   vec3 tip = mix(mix(tipC, tipA, smoothstep(.2, .6, patchN)), tipB, gold);
   tip = mix(tip, vec3(.72, .62, .32), step(.92, gHash12(cell + 4.4)) * .8);     // a dry straw blade here and there
   tip *= mix(.65, 1.2, r);
   vec3 rootC = mix(vec3(.02, .04, .012), gnd * .35, .35);
   vCol = mix(rootC, tip, smoothstep(0., .85, t));
-  vSelf = mix(.12, 1., pow(t, .9)) * mix(.55, 1., r);
+  vSelf = mix(.3, 1., pow(t, .9)) * mix(.6, 1., r);
   vT = t;
   vFogWorldPos = p;
   vSh = bakedShadow(p + vec3(0., .12, 0.));

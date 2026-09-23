@@ -60,7 +60,7 @@ export function installLookV2Fog(): void {
         vec3 viewDir = ray / max( rayLen, 1e-3 );
         float dens = fogV2.x + max( fogDistDensity - fogV2.w, 0.0 );
         // thinner with height: the ray's mean height above the valley floor (a view from above looks through clear air)
-        float aer = max( rayLen - fogV2.y, 0.0 ) * dens * exp( - max( 0.5 * ( vFogWorldPos.y + cameraPosition.y ) - fogV2.z, 0.0 ) * 0.015 );
+        float aer = max( rayLen - fogV2.y, 0.0 ) * dens * exp( - max( 0.5 * ( vFogWorldPos.y + cameraPosition.y ) - fogV2.z, 0.0 ) * 0.035 );
         // the valley's height haze, integrated along the ray (as v1)
         float dy = vFogWorldPos.y - cameraPosition.y;
         float camF = exp( - fogHeightFalloff * ( cameraPosition.y - fogHeight ) );

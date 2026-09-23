@@ -21,6 +21,7 @@ import { updateTint } from './tint';
 import { LightCheat } from './light';
 import { grassV2Uniforms, terrainHeightTexture } from './grass';
 import { StaticBake } from './bake';
+import { applyCloudSeaV2 } from './cloudSea';
 import type { Forest } from '../../world/Forest';
 import { getActiveChunk } from '../../chunks/registry';
 
@@ -47,6 +48,9 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   sky.clouds.visible = false;
   sky.planet.visible = false;
   game.scene.traverse((o) => { if (o instanceof THREE.Mesh && o.material instanceof THREE.Material && /^ridge[23]$/.test(o.material.name)) o.visible = false; });
+  // A3: the cloud sea rises to hug the slab's rocky wall — a painted cumulus deck, not a pale panel (cloudSea.ts)
+  const sea = game.scene.getObjectByName('cloud-sea');
+  if (sea) applyCloudSeaV2(sea, grassV2Uniforms.uSunView);
   const rigDome = weather.rig.dome;
   const u = dome.uniforms;
   const cheat = new LightCheat(sky, getActiveChunk().grade.saturation);

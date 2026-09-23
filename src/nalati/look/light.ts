@@ -26,13 +26,13 @@ const HEMI_GROUND = new THREE.Color(0.30, 0.30, 0.16);
 const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 /**
- * GLSL: `vec3 v2Olive(vec3 albedo)` — green-dominant albedo (the lime valley grass) pulled toward olive / gold and ~25 %
- * down in value; neutral / warm / blue paint (felt, dirt, gravel, rock, snow) is left alone.
+ * GLSL: `vec3 v2Olive(vec3 albedo)` — green-dominant albedo (the lime valley grass) pulled toward olive / gold and lifted
+ * (the meadow seen from afar and above is the mockups' sunlit gold-green, not a dull lawn); neutral / warm / blue paint (felt, dirt, gravel, rock, snow) is left alone.
  */
 export const V2_OLIVE_GLSL = /* glsl */`
 vec3 v2Olive(vec3 c) {
   float gr = smoothstep(0.02, 0.45, (c.g - max(c.r, c.b)) / max(c.g, 1e-3));
-  vec3 olive = vec3(c.r * 0.97, mix(c.g, c.r * 1.12, 0.72), c.b * 0.8) * 0.8;
+  vec3 olive = vec3(c.r * 1.12, mix(c.g, c.r * 1.2, 0.68), c.b * 0.7) * 1.3;
   return mix(c, olive, gr);
 }
 `;
@@ -58,9 +58,9 @@ export class LightCheat {
       syncPainterlySun(sky);
     }
     // the fill: lower and cooler, the bounce olive (scaled with the hour's own fill, so night keeps its darkness)
-    sky.hemi.color.copy(look.hemiSky).lerp(_c.copy(HEMI_SKY), 0.6);
-    sky.hemi.groundColor.copy(look.hemiGround).lerp(_c.copy(HEMI_GROUND), 0.6);
-    sky.hemi.intensity = look.hemiIntensity * 0.8;
+    sky.hemi.color.copy(look.hemiSky).lerp(_c.copy(HEMI_SKY), 0.4);
+    sky.hemi.groundColor.copy(look.hemiGround).lerp(_c.copy(HEMI_GROUND), 0.4);
+    sky.hemi.intensity = look.hemiIntensity * 0.95;
     gradeUniforms.uV2LookSat.value = Math.max(0, 1 + (look.saturation - this.daySat));
   }
 }

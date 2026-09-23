@@ -255,6 +255,7 @@ export class Horizon {
     this.cloudSea.position.y = -CHUNK_DEPTH - 140;
     this.cloudSea.frustumCulled = false;
     this.cloudSea.renderOrder = -5;
+    this.cloudSea.name = 'cloud-sea'; // Nalati look v2 restyles it (src/nalati/look/cloudSea.ts)
     this.group.add(this.cloudSea);
   }
 
