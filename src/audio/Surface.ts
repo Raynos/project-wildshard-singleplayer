@@ -1,5 +1,5 @@
 /**
- * Surface — what the player is standing on, for footsteps (B9, docs/plans/DRIFTWOOD-REMASTER.md).
+ * Surface — what the player is standing on, for footsteps (B9, project/archive/2026-09-23-driftwood-remaster.md).
  *
  *   const surfaces = new SurfaceMap({ sea: OCEAN.level, heightAt, trailDistance,
  *     decks: [pier, ...jetties, boat, hut, lookout, bridge, wreck],   // anything with floorHeightAt → 'planks'

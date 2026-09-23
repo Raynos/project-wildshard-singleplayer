@@ -1,6 +1,6 @@
 # Driftwood Isle — the remaster (10× quality and polish)
 
-**State:** `in progress` 2026-09-23 — v0.2 cut nearly there: Tracks 0 / L / W / C / A / S / X1 / X3 / X4 / E55 done, X5 WebGPU parked behind Settings (d44ba80), X2 Blender cove at milestone 2 (cc23a9d), E65 Look Lab live (312a4f3). Open for v0.2 (integrator, solo — no subagents): the user's picks (V1 Blender vs procedural; Look Lab lighting / sky / post — the user is trying them in-game), the Drowned Captain mesh, the in-engine title hero (0.5), a final 9-angle 3×3 sign-off, one iPhone reading per shard, then tag v0.2 and archive. Past the cut: DRIFTWOOD-REMASTER-V2.md.
+**State:** `archived` 2026-09-23 (finished 2026-09-23) — tagged **v0.2**: Tracks 0 / L / W / M / C / A / S / X1–X4 / E55 / E65 built and live; X5 WebGPU parked behind Settings (d44ba80); the island defaults to the Blender cove; the Drowned Captain is generated (Hunyuan3D-2, textured); the title hero is in-engine again. Mockup parity at the spawn cove ~70 % (colour measured: worst ΔE 5.8; eye-level density and bounce light are the gap). Leftovers → `docs/plans/DRIFTWOOD-REMASTER-V2.md` rows V-U1 (the user's Look Lab picks), V-U2 (iPhone readings + render scale), V-B1 (Blender island-wide, first), V-L1/L2, V-M1/M2/M3, V-G1/G2, V-P1, V-X1.
 
 Driftwood was built in one night (2026-09-18, `project/archive/2026-09-18-driftwood.md`): C0–C16,
 129 commits, all live. It is a complete *scene* and a thin *game*. This plan turns it into the shard

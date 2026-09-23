@@ -1,8 +1,8 @@
 # Driftwood Isle — remaster v2 (after v0.2)
 
-**State:** `in progress` 2026-09-23 — the continuation of `docs/plans/DRIFTWOOD-REMASTER.md` past the v0.2 cut (the user: "don't abandon or pause any work — good work is good work"). Rows here are the long bets and the island-wide passes; the agents already on them keep going. Open picks: V1 (procedural vs Blender island) once V-B1 lands.
+**State:** `in progress` 2026-09-23 — v1 is archived and tagged **v0.2** (project/archive/2026-09-23-driftwood-remaster.md). Next session starts here, solo (no subagents): **V-B1 Blender island-wide** first (the user's pick). Waiting on the user: V-U1 (Look Lab lighting / sky / post picks, tried in-game), V-U2 (iPhone readings + a render-scale pick).
 
-## The v0.2 cut (what v1 finishes before it is archived)
+## The v0.2 cut — done 2026-09-23 (tag v0.2)
 
 v0.2 = the **spawn cove at mockup quality** (the E43 9-angle loop signed off by the user), every v1 row landed or
 moved here, a fresh in-engine title hero, a `v0.2` git tag. The cut's open rows live in the v1 plan until they land:
@@ -13,6 +13,8 @@ sheets), X3 batch 3 + board, E55 settings, X5 stage-1 parity, 0.5 hero re-captur
 
 | # | Row | Owner | Status |
 |---|---|---|---|
+| V-U1 | **The user's Look Lab picks** (E65): lighting Toon / Standard, sky Stylized / Photo, post Clean / Cinematic — the user is trying them in-game (pause ▸ Settings ▸ Look lab); the pick becomes the default, the other stays a setting. Colour grade + painted horizon: keep on (picked) | the user | open |
+| V-U2 | **iPhone readings**: one frame-rate reading per shard (PLAY-PERF's 60 fps finish line) and a render-scale pick — the phone default is 1.5× (soft on a 3× screen); 2× and Native are now in main menu ▸ Settings (12b2323) | the user's phone | open |
 | V-B1 | **Blender island, island-wide**: every POI and the whole terrain through `scripts/blender/` (Geometry-Nodes scatter, sculpted rocks, the hero / CC0 assets, Cycles-baked GI + AO), LODs + phone-tier culling (≤ 150 calls, ≤ 2.0 M tris at every pose), colliders and anchors exported so the quest runs unchanged | blender-agent | queued after v0.2 |
 | V-B2 | **The pick (V1)**: procedural vs Blender island, side by side at the 9 cameras of every area; the loser stays behind the main-menu toggle or is retired | the user | open |
 | V-G1 | **WebGPU stage 2**: GPU-driven foliage (compute culling + LOD, wind in compute, 100 k+ blades desktop, a phone count that holds 60 fps); raw WebGPU where TSL is the bottleneck | webgpu-agent | queued after stage-1 parity |

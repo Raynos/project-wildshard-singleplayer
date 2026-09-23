@@ -1,5 +1,5 @@
 /**
- * Interactables kit — the DATA schema (A2, docs/plans/DRIFTWOOD-REMASTER.md). Every chest, key, door, lever, pressure
+ * Interactables kit — the DATA schema (A2, project/archive/2026-09-23-driftwood-remaster.md). Every chest, key, door, lever, pressure
  * plate, barrel, pickup, beacon, bench and altar on a shard is one plain-JSON row of an `InteractTable`; nothing is code
  * per placement. The rows talk to each other (and to quests) only through FLAGS — plain strings in a `Flags` store:
  *

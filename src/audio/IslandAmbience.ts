@@ -1,5 +1,5 @@
 /**
- * IslandAmbience — Driftwood Isle's zoned soundscape (S1) and reverb zones + underwater (S2), docs/plans/DRIFTWOOD-REMASTER.md.
+ * IslandAmbience — Driftwood Isle's zoned soundscape (S1) and reverb zones + underwater (S2), project/archive/2026-09-23-driftwood-remaster.md.
  *
  *   const amb = new IslandAmbience(audio, { sea: OCEAN.level, heightAt, palms: palmSpecs, wreck, cove });
  *   game.onUpdate((dt) => amb.update(dt, game.camera));   // listener + the surf emitter every frame, the zone mix at 10 Hz

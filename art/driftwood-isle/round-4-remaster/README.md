@@ -1,6 +1,6 @@
 # Driftwood Isle: round 4, remaster mockup loop (spawn cove)
 
-Round 1 of the mockup loop for `docs/plans/DRIFTWOOD-REMASTER.md`. We took one small area from 9 angles in the
+Round 1 of the mockup loop for `project/archive/2026-09-23-driftwood-remaster.md`. We took one small area from 9 angles in the
 real game (`capture-*`). Codex image_gen then remastered each capture into a target frame (`mockup-*`), using
 `art/driftwood-fp-spawn.png`, `art/driftwood-spawn-B-faceted.png` and `art/hero-driftwood-isle-landscape.png`
 as style anchors. The gap lists below say what the game has to gain to match those targets.
