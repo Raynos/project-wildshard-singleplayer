@@ -6,7 +6,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    include: ['test/**/*.test.ts'],
+    include: ['test/**/*.test.ts', 'api/**/*.test.ts'], // api/ tests run in node against api/tsconfig.json
     environment: 'node',
     setupFiles: ['test/setup.ts'],
     restoreMocks: true,

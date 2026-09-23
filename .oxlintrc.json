@@ -130,8 +130,8 @@
   },
   "overrides": [
     {
-      // Node-side tooling: build scripts, the Vite config and its plugin.
-      "files": ["scripts/**", "vite/**", "vite.config.ts", "vitest.config.ts"],
+      // Node-side tooling: build scripts, the Vite config and its plugin, and the Vercel functions in api/.
+      "files": ["scripts/**", "vite/**", "vite.config.ts", "vitest.config.ts", "api/**"],
       "env": { "node": true },
       "rules": {
         "import/no-nodejs-modules": "off", // these run under node
