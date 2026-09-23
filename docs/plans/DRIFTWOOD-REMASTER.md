@@ -1,6 +1,6 @@
 # Driftwood Isle — the remaster (10× quality and polish)
 
-**State:** `in progress` 2026-09-23 — heading for the **v0.2 cut**: Tracks 0 / C / A / S done, L done bar tuning, W bar W4 leftovers; open for v0.2: X1 learned LUT + terrain facet fix (look-agent), M3 silhouettes + captain mesh and M5 sway (model-agent), X2 milestone 2 (blender-agent), X3 batch 3 + board (asset-agent), E55 settings (settings-agent), X5 stage-1 parity (webgpu-agent), 0.5 hero re-capture (integrator), one iPhone reading per shard (the user). Everything past the cut continues in `docs/plans/DRIFTWOOD-REMASTER-V2.md`.
+**State:** `in progress` 2026-09-23 — v0.2 cut nearly there: Tracks 0 / L / W / C / A / S / X1 / X3 / X4 / E55 done, X5 WebGPU parked behind Settings (d44ba80), X2 Blender cove at milestone 2 (cc23a9d), E65 Look Lab live (312a4f3). Open for v0.2 (integrator, solo — no subagents): the user's picks (V1 Blender vs procedural; Look Lab lighting / sky / post — the user is trying them in-game), the Drowned Captain mesh, the in-engine title hero (0.5), a final 9-angle 3×3 sign-off, one iPhone reading per shard, then tag v0.2 and archive. Past the cut: DRIFTWOOD-REMASTER-V2.md.
 
 Driftwood was built in one night (2026-09-18, `project/archive/2026-09-18-driftwood.md`): C0–C16,
 129 commits, all live. It is a complete *scene* and a thin *game*. This plan turns it into the shard
@@ -183,6 +183,8 @@ chunked + culled.
 | D8 | Scope | **Driftwood only** — Pine Hollow stays photoreal PBR, byte-for-byte |
 | D9 | Textures | **the no-textures rule is lifted** (E52): lightmaps, palette atlases, image-to-3D textures, a painted horizon — within the phone budget |
 | D10 | Engine | **whatever it takes** (E52): GPU torch / Blender / image-to-3D installs, a Blender-built island behind an in-game toggle, WebGPU + TSL (+ raw WebGPU where it pays) — staged behind flags, WebGL stays default until it wins |
+| D11 | Taste is the user's (E65) | every stylistic change keeps its original look selectable: **Look Lab** (pause ▸ Settings: Post live, Lighting + Sky with a reload prompt that returns you where you stood; main menu ▸ Settings: Lighting, Sky). The user's picks so far: colour grade (LUT) **on**, painted horizon **on**; lighting / sky / post: trying in-game. Sheet: art/driftwood-isle/round-10-look-lab/look-lab-sheet.jpg |
+| D12 | Image-to-3D licence | Wildshard ships in the Americas, so **Hunyuan3D-2's EU / UK / South Korea exclusion doesn't bind us** — it's usable alongside TRELLIS.2 (board: art/driftwood-isle/round-8-assets/trellis-vs-hunyuan-board.jpg) |
 
 ## 4. How it gets built — owners and files
 
