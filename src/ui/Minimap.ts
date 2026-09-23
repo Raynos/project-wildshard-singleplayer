@@ -17,7 +17,8 @@
  *   3. animal dots — yellow = passive (deer), red = can turn on you (boar, bear: `aggressive`, else the
  *      species registry's flag); a red dot that is charging / stalking / alert (or, without a public state,
  *      wounded) pulses;
- *   4. the player arrow, a rim vignette. The cyan rim, 45° ticks, "N" and the heading readout are CSS.
+ *   4. the player arrow, a rim vignette. The cyan rim, 45° ticks and "N" are CSS. (The heading readout under the circle is
+ *      gone, E51: the arrow already says where you face.)
  *
  * Nothing is allocated per frame: every canvas, gradient and sprite is built at construction or on resize.
  */
@@ -48,7 +49,7 @@ const COVER_PPM = 0.5;            // fog coverage px per metre (1 px per 2 m)
 const REVEAL_RADIUS = 45;         // metres a visited position reveals
 const STAMP_EVERY = 4;            // metres moved between coverage stamps
 const FOG_BRIGHTNESS = 0.3;       // unexplored ground brightness
-const DESKTOP_SIZE = 180;         // css px (phone size comes from the stylesheet: 26vw)
+const DESKTOP_SIZE = 144;         // css px, the fallback before layout (the stylesheet sets it: 144 px desktop, 27.2vw phone — E51, 80 % of 180 / 34vw)
 
 // palette — the game's muted ground tones (see the mockup): olive grass, grey rock, khaki dirt, slate water
 const GRASS_LO: RGB = [104, 118, 58], GRASS_HI: RGB = [150, 158, 84];   // olive meadow, lighter with altitude
@@ -65,7 +66,6 @@ const ARROW = '#ffffff';
 
 type RGB = [number, number, number];
 const mix = (a: RGB, b: RGB, t: number, out: RGB) => { out[0] = a[0] + (b[0] - a[0]) * t; out[1] = a[1] + (b[1] - a[1]) * t; out[2] = a[2] + (b[2] - a[2]) * t; return out; };
-const CARDINAL4 = ['N', 'E', 'S', 'W'];
 
 function canvas(w: number, h: number): HTMLCanvasElement { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
 function ctx2d(c: HTMLCanvasElement): CanvasRenderingContext2D { const ctx = c.getContext('2d'); if (!ctx) throw new Error('Minimap: no 2d context'); return ctx; }
@@ -75,7 +75,6 @@ export class Minimap {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private nLabel: HTMLSpanElement;
-  private headingEl: HTMLSpanElement;
 
   private layer = canvas(CHUNK_SIZE * LAYER_PPM, CHUNK_SIZE * LAYER_PPM);
   private layerDirty = true;
@@ -93,7 +92,6 @@ export class Minimap {
 
   private size = 0;      // device px, square
   private dpr = 1;
-  private lastHeading = -1;
   private visible = true;
   private ro: ResizeObserver | null = null;
 
@@ -105,10 +103,7 @@ export class Minimap {
     this.nLabel = document.createElement('span');
     this.nLabel.className = 'ws-minimap-n';
     this.nLabel.textContent = 'N';
-    this.headingEl = document.createElement('span');
-    this.headingEl.className = 'ws-minimap-heading';
-    this.headingEl.textContent = '000° N';
-    this.root.append(this.canvas, this.nLabel, this.headingEl);
+    this.root.append(this.canvas, this.nLabel);
     (parent ?? document.body).append(this.root);
     this.ctx = ctx2d(this.canvas);
 
@@ -147,14 +142,8 @@ export class Minimap {
     if (this.size === 0) this.fit();
     if (this.size === 0) return;
 
-    // heading readout — the compass band's convention (HUD.ts): +Z is north, turning left decreases the heading
+    // heading, for the player arrow — the compass band's convention (HUD.ts): +Z is north, turning left decreases it
     let deg = 180 - (yaw * 180) / Math.PI; deg = ((deg % 360) + 360) % 360;
-    const degR = Math.round(deg) % 360;
-    if (degR !== this.lastHeading) {
-      this.lastHeading = degR;
-      const card = CARDINAL4[Math.round(deg / 90) % 4];
-      this.headingEl.textContent = `${String(degR).padStart(3, '0')}° ${card}`;
-    }
 
     // fog of war: stamp the visited position every STAMP_EVERY metres
     if (Number.isNaN(this.lastStampX) || Math.hypot(pos.x - this.lastStampX, pos.z - this.lastStampZ) >= STAMP_EVERY) {

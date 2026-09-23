@@ -2,9 +2,10 @@
  * The adventure's own HUD pieces (kept out of HUD.ts, which the HUD agent owns) — DOM in `#hud`, styled by
  * src/ui/styles/quest.css (prefix ws-quest-):
  *
- *   ObjectiveLine — the quest's current objective, right-aligned under the minimap: a kicker (the quest title), the line
- *                   ("Recover the glyph shards · 1 / 3"), a hint, and the nearest marker's name + distance + an arrow
- *                   relative to where you face. Pulses when the objective changes.
+ *   ObjectiveLine — the quest chip (E51, mockup G art/quest/round-1-compact/G.jpg): ONE slim glass line under the
+ *                   minimap, right-aligned to it — ◆ "GLYPH SHARDS 1/3" | "SEA CAVE 230 M" ▲ (the arrow turns with the
+ *                   nearest marker's bearing). Pulses cyan when the goal or its count changes. The chapter title, the full
+ *                   objective and its sub-steps are on the menu's MAP tab (FullMap.setQuest) and in the step toasts.
  *   DialogueBox   — the NPC dialogue panel: name, a typed-out line, "[E] NEXT"; E / the touch USE / a tap advances,
  *                   a line still typing completes first.
  *   RewardCaption — the big centred caption over the golden-hour reward view.
@@ -18,54 +19,63 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent?:
 
 export class ObjectiveLine {
   readonly root = el('div', 'ws-quest-obj');
-  private title = el('div', 'ws-quest-obj-title', this.root);
-  private line = el('div', 'ws-quest-obj-line', this.root);
-  private text = el('b', '', this.line);
-  private hint = el('div', 'ws-quest-obj-hint', this.root);
-  private nav = el('div', 'ws-quest-obj-nav', this.root);
-  private navText = document.createTextNode('');
-  private arrow = el('span', '', this.nav);
+  private goal = el('span', 'ws-quest-obj-goal', this.root);
+  private label = el('span', 'ws-quest-obj-label', this.goal);
+  private count = el('span', 'ws-quest-obj-count', this.goal);
+  private sep = el('span', 'ws-quest-obj-sep', this.root);
+  private nav = el('span', 'ws-quest-obj-nav', this.root);
+  private navName = el('span', 'ws-quest-obj-name', this.nav);
+  private navDist = el('span', 'ws-quest-obj-dist', this.nav);
+  private arrow = el('span', 'ws-quest-obj-arrow', this.nav);
   private last = '';
-  private placeT = 0;
+  private lastNav = '';
+  private placeT = -Infinity;
   private toasts: Element | null = null;
 
   constructor() {
-    this.line.prepend(el('i', ''));
-    this.nav.prepend(this.navText);
+    this.root.prepend(el('i', 'ws-quest-obj-dia'));
     this.arrow.textContent = '▲';
+    this.sep.style.display = this.nav.style.display = 'none';
     hudRoot().append(this.root);
   }
 
-  set(title: string, objective: string, hint: string): void {
-    this.title.textContent = title;
-    if (objective !== this.last) {
-      if (this.last !== '') { this.root.classList.remove('pulse'); void this.root.offsetWidth; this.root.classList.add('pulse'); }
-      this.last = objective;
-      this.text.textContent = objective;
-    }
-    this.hint.textContent = hint;
-    this.hint.style.display = hint ? '' : 'none';
-    this.root.classList.toggle('show', objective !== '');
+  /** the chip's goal: a short label ("Glyph shards") and its counter ("1/3", or '') — pulses cyan when either changes */
+  set(label: string, count: string): void {
+    const key = `${label}|${count}`;
+    if (key === this.last) return;
+    if (this.last !== '') { this.root.classList.remove('pulse'); void this.root.offsetWidth; this.root.classList.add('pulse'); }
+    this.last = key;
+    this.label.textContent = label;
+    this.count.textContent = count;
+    this.count.style.display = count ? '' : 'none';
+    this.root.classList.toggle('show', label !== '');
   }
 
-  /** the nearest marker: label, metres, and its bearing relative to the view (radians, 0 = straight ahead, + = right) */
-  setNav(label: string | null, metres: number, rel: number): void {
-    if (label === null) { this.nav.style.display = 'none'; return; }
-    this.nav.style.display = '';
-    this.navText.textContent = `${label} · ${Math.round(metres)} m`;
+  /** the nearest marker: short name, metres, and its bearing relative to the view (radians, 0 = straight ahead, + = right) */
+  setNav(name: string | null, metres: number, rel: number): void {
+    if (name === null) {
+      if (this.lastNav !== '') { this.lastNav = ''; this.sep.style.display = this.nav.style.display = 'none'; }
+      return;
+    }
+    if (this.lastNav === '') this.sep.style.display = this.nav.style.display = '';
+    if (name !== this.lastNav) { this.lastNav = name; this.navName.textContent = name; }
+    const d = `${Math.round(metres)} m`;
+    if (this.navDist.textContent !== d) this.navDist.textContent = d;
     this.arrow.style.transform = `rotate(${(rel * 180) / Math.PI}deg)`;
   }
 
-  /** keep it under the minimap (called ~once a second; the minimap's size differs per layout); step aside for toasts */
+  /** keep it under the minimap, right-aligned to its right edge (called every frame, re-measured ~once a second: the
+   *  minimap's size and top differ per layout and the home-screen mode); step aside for toasts */
   update(t: number): void {
     this.toasts ??= document.querySelector('.ws-game-toasts');
     this.root.classList.toggle('dim', this.toasts !== null && this.toasts.childElementCount > 0 && window.innerWidth <= 720);
     if (t - this.placeT < 1) return;
     this.placeT = t;
-    const mm = document.querySelector('.ws-minimap');
-    const heading = document.querySelector('.ws-minimap-heading');
-    const r = (heading ?? mm)?.getBoundingClientRect();
-    if (r && r.bottom > 0) this.root.style.top = `${Math.round(r.bottom + 10)}px`;
+    const r = document.querySelector('.ws-minimap')?.getBoundingClientRect();
+    if (!r || r.bottom <= 0) return;
+    const host = this.root.offsetParent?.getBoundingClientRect() ?? { top: 0, right: window.innerWidth };
+    this.root.style.top = `${Math.round(r.bottom - host.top + 12)}px`;   // clear of the rim's ticks (they poke 6–8 px out)
+    this.root.style.right = `${Math.round(host.right - r.right)}px`;
   }
 }
 

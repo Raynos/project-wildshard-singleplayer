@@ -1,6 +1,6 @@
 /**
  * The quest spine (A1, D5) on top of the adventure's flags + interactables: the quest state (quest.ts + driftwood.ts),
- * the objective line under the minimap with the nearest marker's distance and bearing, Wendell the castaway at his
+ * the quest chip under the minimap with the nearest marker's distance and bearing (the full quest is on the map tab), Wendell the castaway at his
  * campfire below the hut with his dialogue ("[E] Talk to Wendell" → the DialogueBox), and the kill hooks that feed
  * the quest (the drowned sailor drops the hold key where he falls; the Drowned Captain's death opens the finale).
  *
@@ -15,7 +15,7 @@ import { Castaway } from '../../entities/npc/Castaway';
 import type { Adventure, AdventureWorld, AdvAnimal } from './Adventure';
 import type { Interactable } from '../../world/Cabin';
 
-export interface LiveMarker { id: string; label: string; x: number; z: number }
+export interface LiveMarker { id: string; label: string; short: string; x: number; z: number }
 
 export interface Spine {
   quest: QuestState;
@@ -86,9 +86,12 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
     };
   };
 
-  const markers = (): LiveMarker[] => quest.markers().map((m: QuestMarker) => { const p = place(m.at); return { id: m.id, label: m.label, x: p.x, z: p.z }; });
+  const markers = (): LiveMarker[] => quest.markers().map((m: QuestMarker) => { const p = place(m.at); return { id: m.id, label: m.label, short: m.short ?? m.label, x: p.x, z: p.z }; });
+  // the full quest — chapter title, objective, sub-steps — on the menu's MAP tab (the HUD chip only carries the short form, E51)
+  const chapter = (): string => (quest.isStarted ? DRIFTWOOD_QUEST.title : 'Driftwood Isle');
+  w.fullMap?.setQuest?.(() => ({ title: chapter(), objective: quest.objective(), hint: quest.isComplete ? '' : quest.hint() }));
 
-  // ── per frame: the objective line, the nearest marker, the dialogue ──
+  // ── per frame: the quest chip, the nearest marker, the dialogue ──
   let navT = 0;
   w.game.onUpdate((dt, t) => {
     if (!chained) chainKill();
@@ -100,13 +103,14 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
     objective.update(t);
     if (t - navT > 0.1) {
       navT = t;
-      objective.set(quest.isStarted ? DRIFTWOOD_QUEST.title : 'Driftwood Isle', quest.objective(), quest.isComplete ? '' : quest.hint());
+      const chip = quest.chip();
+      objective.set(chip.label, chip.count);
       let best: LiveMarker | null = null, bd = Infinity;
       for (const m of markers()) { const d = Math.hypot(m.x - pp.x, m.z - pp.z); if (d < bd) { bd = d; best = m; } }
       if (best && bd > 6) {
         // bearing relative to the view: forward = (−sin yaw, −cos yaw), right = (cos yaw, −sin yaw) (Player / main.ts)
         const dx = best.x - pp.x, dz = best.z - pp.z, sy = Math.sin(w.player.yaw), cy = Math.cos(w.player.yaw);
-        objective.setNav(best.label, bd, Math.atan2(dx * cy - dz * sy, -dx * sy - dz * cy));
+        objective.setNav(best.short, bd, Math.atan2(dx * cy - dz * sy, -dx * sy - dz * cy));
       } else objective.setNav(null, 0, 0);
     }
   });

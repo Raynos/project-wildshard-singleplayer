@@ -56,6 +56,7 @@ export class GameMenu {
   private panels: Record<MenuTab, HTMLElement>;
   private hint: HTMLElement;
   private mapMeta: HTMLElement;
+  private mapQuest: HTMLElement;
   private zoomChips: HTMLButtonElement[] = [];
   private _tab: MenuTab = 'settings';
   private _open = false;
@@ -92,6 +93,7 @@ export class GameMenu {
 
     // ── MAP: the FullMap canvas lives inside this panel (Map.ts embedded mode) ──
     this.mapMeta = el('ws-gmenu-mapmeta', `${esc(def.displayName)} · ${CHUNK_SIZE} m`);
+    this.mapQuest = el('ws-gmenu-mapquest');
     const frame = el('ws-gmenu-mapframe');
     opts.fullMap.mount(frame);
     const foot = el('ws-gmenu-mapfoot');
@@ -102,7 +104,7 @@ export class GameMenu {
       zooms.append(b); this.zoomChips.push(b);
     }
     foot.append(zooms, el('ws-gmenu-legend', `<span><i class="poi">${icon('poi')}</i>POI</span><span><i class="you">${icon('you')}</i>You</span>`));
-    this.panels.map.append(this.mapMeta, frame, foot);
+    this.panels.map.append(this.mapMeta, this.mapQuest, frame, foot);
     opts.fullMap.onZoom = () => this.syncZoom();
 
     // ── SETTINGS ──
@@ -142,7 +144,7 @@ export class GameMenu {
     this.root.classList.add('show');
     this.root.inert = false;
     this.refresh();
-    if (tab === 'map') this.opts.fullMap.show();
+    if (tab === 'map') { this.opts.fullMap.show(); this.renderQuest(); }
     if (tab === 'feedback') this.onFeedbackTab?.(this.panels.feedback);
     this.onOpen?.(tab);
   }
@@ -162,7 +164,7 @@ export class GameMenu {
     for (const b of this.tabBar.children) (b as HTMLElement).classList.toggle('active', (b as HTMLElement).dataset['tab'] === tab);
     for (const [id, p] of Object.entries(this.panels)) p.classList.toggle('active', id === tab);
     this.hint.textContent = HINTS[tab];
-    if (this._open) { if (tab === 'map') { this.opts.fullMap.show(); this.syncZoom(); } else this.opts.fullMap.hide(); }
+    if (this._open) { if (tab === 'map') { this.opts.fullMap.show(); this.syncZoom(); this.renderQuest(); } else this.opts.fullMap.hide(); }
     if (tab === 'inventory') this.renderInventory();
     if (tab === 'achievements') this.renderAchievements();
     if (tab === 'feedback' && this._open) this.onFeedbackTab?.(this.panels.feedback);
@@ -170,6 +172,14 @@ export class GameMenu {
 
   /** re-render the data tabs */
   refresh(): void { this.renderInventory(); this.renderAchievements(); this.syncZoom(); }
+
+  /** the quest card over the map: chapter title, the full objective, its sub-steps (the HUD shows only the short chip, E51) */
+  private renderQuest(): void {
+    const q = this.opts.fullMap.quest;
+    this.mapQuest.hidden = q === null || q.objective === '';
+    if (!q) return;
+    this.mapQuest.innerHTML = `<div class="ws-gmenu-mapquest-title">${esc(q.title)}</div><div class="ws-gmenu-mapquest-obj"><i></i>${esc(q.objective)}</div>${q.hint ? `<div class="ws-gmenu-mapquest-hint">${esc(q.hint)}</div>` : ''}`;
+  }
 
   private syncZoom() {
     const z = this.opts.fullMap.zoom;

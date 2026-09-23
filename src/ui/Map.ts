@@ -12,6 +12,7 @@
  *   fullMap.setZoom(2) / fullMap.zoom / fullMap.onZoom / fullMap.fit()
  *   fullMap.setPois(() => MapPoi[])        // a shard's own points of interest (Driftwood: its places with discovery + the
  *                                          // quest's markers, src/game/quest/Places.ts); unset = the cabins / pond as before
+ *   fullMap.setQuest(() => MapQuest|null)  // the quest in full — title, objective, sub-steps — for the MAP tab's card (E51)
  */
 import { CHUNK_HALF, CHUNK_SIZE } from '../core/config';
 import { CABIN_SITES, POND, hasPond } from '../world/Heightfield';
@@ -19,6 +20,8 @@ import type { Minimap } from './Minimap';
 
 /** a point on the full map: a discovered place (named), an undiscovered one ("?"), or a live quest marker (pulsing diamond) */
 export interface MapPoi { x: number; z: number; label: string; kind: 'place' | 'unknown' | 'quest' }
+/** the quest in full for the MAP tab's quest card (the HUD only shows its short chip, E51): chapter title, objective, sub-steps */
+export interface MapQuest { title: string; objective: string; hint: string }
 
 const FOG_BRIGHTNESS = 0.3;
 const ZOOM_MIN = 1, ZOOM_MAX = 6;
@@ -37,6 +40,7 @@ export class FullMap {
   private pinchDist = 0; private pinchZoom = 1;
   onToggle?: (open: boolean) => void;
   private poiSource: (() => MapPoi[]) | null = null;
+  private questSource: (() => MapQuest | null) | null = null;
   /** the zoom changed (pinch / wheel / setZoom) — the menu's zoom chips follow */
   onZoom?: (zoom: number) => void;
 
@@ -77,6 +81,9 @@ export class FullMap {
   get isOpen(): boolean { return this.open; }
   /** replace the default points of interest (cabins, pond) with the shard's own list, read every frame the map is open */
   setPois(source: () => MapPoi[]): void { this.poiSource = source; }
+  /** the shard's quest, read by the menu each time the MAP tab shows (null = no quest card) */
+  setQuest(source: () => MapQuest | null): void { this.questSource = source; }
+  get quest(): MapQuest | null { return this.questSource?.() ?? null; }
   get zoom(): number { return this._zoom; }
   /** zoom about the frame centre (the menu's 1× / 2× / 4× chips) */
   setZoom(z: number): void { const r = this.canvas.getBoundingClientRect(); this.zoomTo(z, { x: r.left + r.width / 2, y: r.top + r.height / 2 }); }

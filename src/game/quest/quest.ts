@@ -6,7 +6,8 @@
  *
  *   const q = new QuestState(DRIFTWOOD_QUEST, flags);
  *   q.current            → the step you are on (null when the quest is complete)
- *   q.objective()        → "Recover the glyph shards · 1 / 3"
+ *   q.objective()        → "Recover the glyph shards · 1 / 3"   (the full line: the map tab, the step toast)
+ *   q.chip()             → { label: 'Glyph shards', count: '1/3' }  (the HUD's compact chip under the minimap, E51)
  *   q.markers()          → the live map / compass markers of the current step
  *   q.onStep = (step, prev) => …   // fires when the current step changes (a flag moved it on)
  *   lineFor(DIALOGUE.castaway, flags) → the first dialogue entry whose `when` holds
@@ -17,6 +18,8 @@ import type { Cond, Place } from '../../world/interact/types';
 export interface QuestMarker {
   id: string;
   label: string;
+  /** the HUD chip's short name for it ("SEA CAVE" for "SEA CAVE SHARD"); the map keeps `label` */
+  short?: string;
   at: Place;
   /** hidden once this holds (the shard at this spot was taken) */
   hideWhen?: Cond;
@@ -26,7 +29,9 @@ export interface QuestStep {
   id: string;
   /** the objective line; `{n}` / `{of}` are replaced by the step's counter */
   objective: string;
-  /** a short hint under the objective (the HUD line's second row) */
+  /** the HUD chip's label (≤ CHIP_MAX chars, no counter: the chip appends `n/of` itself); falls back to `objective` */
+  chip?: string;
+  /** the step's sub-steps / a hint under the objective (the map tab's quest card) */
   hint?: string;
   done: Cond;
   /** counts the flags that are set (`{n}`) out of all of them (`{of}`) */
@@ -39,7 +44,7 @@ export interface QuestDef {
   title: string;
   /** the quest is offered (appears at all) once this holds; before it the objective is `intro` */
   startWhen?: Cond;
-  intro?: { objective: string; hint?: string; markers?: QuestMarker[] };
+  intro?: { objective: string; chip?: string; hint?: string; markers?: QuestMarker[] };
   steps: QuestStep[];
   /** raised once every step is done */
   completeFlag: string;
@@ -104,6 +109,16 @@ export class QuestState {
     const c = this.counter(s);
     return c ? s.objective.replace('{n}', String(c.n)).replace('{of}', String(c.of)) : s.objective;
   }
+  /** the HUD chip's two parts: a short label and the counter ('' when the step has none) — the counter is kept apart so
+   *  the chip can truncate the label and never the count */
+  chip(): { label: string; count: string } {
+    if (!this.started) return { label: this.def.intro?.chip ?? this.def.intro?.objective ?? '', count: '' };
+    const s = this.cur;
+    if (!s) return { label: 'Quest complete', count: '' };
+    const c = this.counter(s);
+    const label = s.chip ?? s.objective.replace(/\s*·?\s*\{n\}\s*\/\s*\{of\}/, '');
+    return { label, count: c ? `${c.n}/${c.of}` : '' };
+  }
   hint(): string { return !this.started ? this.def.intro?.hint ?? '' : this.cur?.hint ?? ''; }
 
   markers(): QuestMarker[] {
@@ -111,6 +126,9 @@ export class QuestState {
     return list.filter((m) => m.hideWhen === undefined || !test(this.flags, m.hideWhen));
   }
 }
+
+/** the longest chip label / marker short name that fits the HUD chip on a 390 px phone without an ellipsis */
+export const CHIP_MAX = 18;
 
 /** checks a quest def is sound: unique step ids, every step reachable (a done condition that is not trivially true) */
 export function validateQuest(q: QuestDef, raised: Set<string>): string[] {
@@ -124,7 +142,10 @@ export function validateQuest(q: QuestDef, raised: Set<string>): string[] {
     if (reads(s.done).length === 0) errs.push(`${q.id}.${s.id}: a step with an empty done condition is always done`);
     for (const f of [...reads(s.done), ...(s.count ?? []), ...(s.markers ?? []).flatMap((m) => reads(m.hideWhen))]) if (!raised.has(f)) errs.push(`${q.id}.${s.id}: reads '${f}' that nothing raises`);
     if (!s.objective.trim()) errs.push(`${q.id}.${s.id}: empty objective`);
+    if (s.chip !== undefined && s.chip.length > CHIP_MAX) errs.push(`${q.id}.${s.id}: chip '${s.chip}' is longer than ${CHIP_MAX}`);
+    for (const m of s.markers ?? []) if (m.short !== undefined && m.short.length > CHIP_MAX) errs.push(`${q.id}.${s.id}: marker short '${m.short}' is longer than ${CHIP_MAX}`);
   }
+  if (q.intro?.chip !== undefined && q.intro.chip.length > CHIP_MAX) errs.push(`${q.id}: intro chip '${q.intro.chip}' is longer than ${CHIP_MAX}`);
   for (const f of reads(q.startWhen)) if (!raised.has(f)) errs.push(`${q.id}: startWhen reads '${f}' that nothing raises`);
   return errs;
 }

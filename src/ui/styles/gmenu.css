@@ -39,6 +39,13 @@
 /* MAP: label row, a square frame the FullMap canvas fills, zoom chips + legend */
 .ws-gmenu .ws-gmenu-panel.map { touch-action: none; padding-bottom: 8px; }
 .ws-gmenu .ws-gmenu-mapmeta { flex: none; margin-bottom: 8px; font-size: 9.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ws-text-dim); }
+/* the quest card (E51): the chapter title, the full objective and its sub-steps — the HUD carries only the short chip */
+.ws-gmenu .ws-gmenu-mapquest { flex: none; margin-bottom: 10px; padding: 8px 10px 8px 12px; border: 1px solid rgba(143, 227, 255, 0.22); border-left: 2px solid var(--ws-cyan); background: rgba(143, 227, 255, 0.05); }
+.ws-gmenu .ws-gmenu-mapquest[hidden] { display: none; }
+.ws-gmenu .ws-gmenu-mapquest-title { font-size: 8.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ws-cyan); }
+.ws-gmenu .ws-gmenu-mapquest-obj { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-family: var(--ws-display); font-weight: 600; font-size: 15px; letter-spacing: 0.03em; color: var(--ws-text); }
+.ws-gmenu .ws-gmenu-mapquest-obj i { flex: none; width: 7px; height: 7px; transform: rotate(45deg); background: var(--ws-cyan); box-shadow: 0 0 8px rgba(143, 227, 255, 0.8); }
+.ws-gmenu .ws-gmenu-mapquest-hint { margin-top: 3px; padding-left: 15px; font-size: 9.5px; letter-spacing: 0.06em; color: var(--ws-text-dim); }
 .ws-gmenu .ws-gmenu-mapframe { position: relative; flex: 0 1 auto; width: 100%; aspect-ratio: 1; min-height: 0; border: 1px solid rgba(143, 227, 255, 0.22); background: rgba(4, 7, 12, 0.9); overflow: hidden; }
 .ws-gmenu .ws-gmenu-mapfoot { flex: none; display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
 .ws-gmenu .ws-gmenu-zooms { display: flex; gap: 6px; }

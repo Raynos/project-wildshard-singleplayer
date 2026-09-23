@@ -29,7 +29,7 @@ import { installPlaces, type Places } from './Places';
 import { installFinale, type Finale } from './Finale';
 import { installEcology, type RespawnQueue } from './Ecology';
 import { Zipline } from '../../world/Zipline';
-import type { MapPoi } from '../../ui/Map';
+import type { MapPoi, MapQuest } from '../../ui/Map';
 
 /** a named point a model module exports (`anchors`, world coords) for the adventure to place things at */
 export interface Anchor { x: number; y?: number; z: number; yaw?: number }
@@ -61,8 +61,8 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   params?: URLSearchParams;
   /** shard achievements (Progress.recordEvent) — the adventure's event achievements (A4) */
   progress?: ProgressSink;
-  /** the full map (the menu's MAP tab): shows the island's places with discovery + the quest markers (A5) */
-  fullMap?: { setPois: (source: () => MapPoi[]) => void };
+  /** the full map (the menu's MAP tab): shows the island's places with discovery + the quest markers (A5), and the quest card (E51) */
+  fullMap?: { setPois: (source: () => MapPoi[]) => void; setQuest?: (source: () => MapQuest | null) => void };
   /** the iron sword in the wreck's hold (IronSword.ts) — guarded until the drowned sailor is beaten (B4 / D6) */
   /** the rope bridge's walkable floor (RopeBridge.floorHeightAt) — the camera sways while you cross (A7) */
   bridgeFloor?: ((x: number, z: number) => number | undefined) | undefined;

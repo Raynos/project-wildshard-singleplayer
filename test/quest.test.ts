@@ -69,6 +69,24 @@ describe('QuestState', () => {
     expect(steps).toEqual(['shards']);
   });
 
+  it('the HUD chip (E51): a short label and a separate counter; the markers carry short names', () => {
+    const { flags, q } = play();
+    expect(q.chip()).toEqual({ label: 'Who lit the fire?', count: '' });
+    flags.set('talked:castaway');
+    expect(q.chip()).toEqual({ label: 'Glyph shards', count: '0/3' });
+    flags.set('shard:cave');
+    expect(q.chip()).toEqual({ label: 'Glyph shards', count: '1/3' });
+    expect(q.markers().map((m) => m.short)).toEqual(['LOOKOUT', 'WRECK']);
+    for (const f of [...SHARD_FLAGS, 'used:altar', 'dead:captain', 'seen:reward']) flags.set(f);
+    expect(q.chip()).toEqual({ label: 'Quest complete', count: '' });
+  });
+
+  it('a step without a chip label falls back to its objective minus the counter', () => {
+    const flags = new Flags('chunk://test/chip', false);
+    const def: QuestDef = { id: 'q', title: 'Q', completeFlag: 'q:done', steps: [{ id: 's', objective: 'Find the bells · {n} / {of}', count: ['b1', 'b2'], done: { all: ['b1', 'b2'] } }] };
+    expect(new QuestState(def, flags).chip()).toEqual({ label: 'Find the bells', count: '0/2' });
+  });
+
   it('resumes where a save left it', () => {
     const flags = new Flags('chunk://test/resume', false);
     for (const f of ['talked:castaway', ...SHARD_FLAGS]) flags.set(f);
