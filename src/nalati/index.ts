@@ -285,6 +285,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   // ── dusk + night enemies (bow agent, B11): the balbal warriors wake at dusk, the ghost riders ride the ridges at night —
   //    src/nalati/nightEnemies.ts (balbalWarriors.ts, ghostRiders.ts); chained into attachAnimals / bindPlay / the Targets ray ──
   const night = wireNightEnemies({ game, sky, player: ctx.player, forest: ctx.forest, balbals: pois.balbals, clock: weather.clock });
+  elites.ghosts = night.riders;   // B12: Qara Batyr rides B11's captain rig at the head of a line
   updates.push((dt, t) => { night.update(dt, t); });
   {
     const attach = nalati.attachAnimals, bind = nalati.bindPlay, sheepT = nalati.sheepTarget;

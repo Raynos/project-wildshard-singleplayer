@@ -3,6 +3,7 @@ import { registerSpecies, speciesDef, type ThinkCtx } from './registry';
 import { NO_FUR } from './rigs';
 import { HORSE_SPEED, horseBones } from './horse';
 import type { Animal } from '../Animal';
+import { eliteDamageMul } from '../eliteBrain';
 
 /**
  * Ghost rider — the night half of row B11 (NALATI.md; elites-and-bosses.md E5 "the ghost-rider line"; mockups
@@ -119,10 +120,11 @@ registerSpecies({
   ],
   build: (v, rng) => horse.build(v, rng),
   think: thinkGhost,
-  // arrows land in full; a blade from the ground or the saddle ×1.5 (the design's "ride them down")
-  damageMul: (a, hitPoint) => {
+  // arrows land in full; a blade from the ground or the saddle ×1.5 (the design's "ride them down");
+  // × the named elite's window (B12: Qara Batyr's back is OPEN after a missed charge — ×3; 1 for an ordinary rider)
+  damageMul: (a, hitPoint, dir) => {
     const p = a.mem['px'], q = a.mem['pz'];
-    return p !== undefined && q !== undefined && Math.hypot(hitPoint.x - p, hitPoint.z - q) < 4 ? 1.5 : 1;
+    return (p !== undefined && q !== undefined && Math.hypot(hitPoint.x - p, hitPoint.z - q) < 4 ? 1.5 : 1) * eliteDamageMul(a, hitPoint, dir);
   },
   blood: false,
 });

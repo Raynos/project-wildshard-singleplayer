@@ -817,6 +817,8 @@ export class NalatiElites {
   scripts: EliteScript[] = [];
   /** the skins won (B15 wears them): persisted by the elite system; mirrored here for the menu */
   readonly skins = new Set<string>();
+  /** B11's ghost riders, handed in by src/nalati/index.ts (main.ts never sees them); `play.ghosts` wins when given */
+  ghosts: GhostsApi | null = null;
   constructor(private readonly ctx: ElitesCtx) {}
 
   bind(play: ElitesPlay): void {
@@ -838,7 +840,7 @@ export class NalatiElites {
     }, bar);
     this.elites = elites;
     const env: Env = {
-      game, sky, player, animals: play.animals, elites, bar, wildlife: play.wildlife, taming: play.taming, ghosts: play.ghosts, ledges: this.ctx.ledges,
+      game, sky, player, animals: play.animals, elites, bar, wildlife: play.wildlife, taming: play.taming, ghosts: play.ghosts ?? this.ghosts, ledges: this.ctx.ledges,
       hurt: (a, dmg) => { play.animals.onCharge?.(a, dmg); },
       knock: (dx, dz) => { const l = Math.hypot(dx, dz) || 1; wildEnv.onKnockdown?.(dx / l, dz / l, 1); },
       feed: play.feed, addItem: play.addItem, record: play.record,
