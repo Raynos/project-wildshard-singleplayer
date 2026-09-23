@@ -11,7 +11,7 @@
  */
 import type * as THREE from 'three';
 import { heightAt } from '../../world/Heightfield';
-import { HUT, LOOKOUT, WRECK, SHRINE, PIER } from '../../chunks/driftwood-isle';
+import { HUT, LOOKOUT, WRECK, SHRINE, PIER, OCEAN } from '../../chunks/driftwood-isle';
 import { Cove } from '../../world/Cove';
 import type { Sky } from '../../world/Sky';
 import type { Interactable } from '../../world/Cabin';
@@ -27,6 +27,7 @@ import { installSpine, type Spine } from './Spine';
 import { installFeats, type ProgressSink } from './Feats';
 import { installPlaces, type Places } from './Places';
 import { installFinale, type Finale } from './Finale';
+import { installEcology, type RespawnQueue } from './Ecology';
 import type { MapPoi } from '../../ui/Map';
 
 /** a named point a model module exports (`anchors`, world coords) for the adventure to place things at */
@@ -39,7 +40,7 @@ function anchorsOf(m: object | null | undefined): Record<string, Anchor> | undef
 }
 
 /** what the adventure reads of an animal (Animal.ts satisfies it) */
-export interface AdvAnimal { kind: string; position: THREE.Vector3; mem: Record<string, number>; hp: number; maxHp: number; alive: boolean; herd: number }
+export interface AdvAnimal { kind: string; variant?: string; position: THREE.Vector3; mem: Record<string, number>; hp: number; maxHp: number; alive: boolean; herd: number }
 
 export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   game: { scene: THREE.Scene; camera: THREE.Camera; onUpdate: (fn: (dt: number, t: number) => void) => void };
@@ -55,7 +56,7 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   inventory: { add: (id: ItemId, n?: number) => void };
   pois: Partial<Record<Exclude<PoiId, 'world'>, object | null>>;
   /** the animal manager: its onKill is chained (the sailor drops the hold key, the captain ends the fight) */
-  animals: { onKill?: ((a: A) => void) | undefined; spawn?: (kind: string, x: number, z: number, yaw: number, variant?: string) => A };
+  animals: { onKill?: ((a: A) => void) | undefined; spawn?: (kind: string, x: number, z: number, yaw: number, variant?: string) => A; herds?: { cx: number; cz: number; members: A[] }[] };
   params?: URLSearchParams;
   /** shard achievements (Progress.recordEvent) — the adventure's event achievements (A4) */
   progress?: ProgressSink;
@@ -76,6 +77,8 @@ export interface Adventure {
   places: Places | null;
   /** the Drowned Captain + the golden-hour reward (A6) */
   finale: Finale | null;
+  /** enemies coming back after a kill (A6) */
+  ecology: RespawnQueue | null;
   place: (p: Place) => { x: number; y: number; z: number; yaw: number };
   floorAt: (x: number, z: number) => number;
   /** register a computed anchor (`<poi>.<name>`) that placements and quest markers can name */
@@ -160,7 +163,7 @@ export function installAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): Adv
     }
   }
 
-  const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null, finale: null, setAnchor: (name, a) => { ownAnchors[name] = a; } };
+  const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, setAnchor: (name, a) => { ownAnchors[name] = a; } };
   adventure.spine = installSpine(adventure, w);
   if (w.progress) installFeats(adventure, w, w.progress);
   if (w.ironDrop) {
@@ -171,6 +174,7 @@ export function installAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): Adv
   adventure.places = places;
   w.fullMap?.setPois(places.mapPois);
   adventure.finale = installFinale(adventure, w);
+  adventure.ecology = installEcology(w, (x, z) => heightAt(x, z) > OCEAN.level + 0.15);
   let placeT = 0;
   w.game.onUpdate((_dt, t) => { if (t - placeT > 0.25) { placeT = t; places.update(w.player.position.x, w.player.position.z); } });
   Object.assign(window, { __adventure: adventure });
