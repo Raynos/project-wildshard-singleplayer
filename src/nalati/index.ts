@@ -38,6 +38,7 @@ import { trample, grassHeightAt } from '../world/GrassTrample';
 import type { ImpactSurface, TargetAnimal, TargetHit } from '../player/Crossbow';
 import type { NalatiKit } from '../player/nalatiKit';
 import { nalatiWetAt } from './wet';
+import { wireNightEnemies } from './nightEnemies';
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ChunkDef }
 
@@ -248,5 +249,16 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
     },
     update(dt, t) { for (const u of updates) u(dt, t); },
   };
+  // ── dusk + night enemies (bow agent, B11): the balbal warriors wake at dusk, the ghost riders ride the ridges at night —
+  //    src/nalati/nightEnemies.ts (balbalWarriors.ts, ghostRiders.ts); chained into attachAnimals / bindPlay / the Targets ray ──
+  const night = wireNightEnemies({ game, sky, player: ctx.player, forest: ctx.forest, balbals: pois.balbals, clock: weather.clock });
+  updates.push((dt, t) => { night.update(dt, t); });
+  {
+    const attach = nalati.attachAnimals, bind = nalati.bindPlay, sheepT = nalati.sheepTarget;
+    nalati.attachAnimals = (animals) => { const w = attach(animals); night.attach(animals); return w; };   // night.attach never throws (it logs)
+    nalati.bindPlay = (p) => { bind(p); night.bindKit(p.kit); };
+    nalati.sheepTarget = (o, d, m, h) => night.target(o, d, m, sheepT(o, d, m, h));
+  }
+
   return nalati;
 }

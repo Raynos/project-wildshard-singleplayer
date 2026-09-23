@@ -355,7 +355,7 @@ function thinkBalbal(a: Animal, c: ThinkCtx): void {
   const hx = m.homeX ?? a.position.x, hz = m.homeZ ?? a.position.z;
   const fromHome = Math.hypot(c.player.x - hx, c.player.z - hz);
   const toHome = Math.hypot(hx - a.position.x, hz - a.position.z), homeDir = Math.atan2(hx - a.position.x, hz - a.position.z);
-  const playerHigh = c.player.y > a.position.y + 3.5 || c.player.y < a.position.y - 4;
+  const playerHigh = Math.abs(c.player.y - a.position.y) > 8;   // up a cliff or down in a ravine: out of reach
   a.lookTarget.copy(c.player); a.lookWeight = m.st === ST_RISE || m.st === ST_EMERGE || m.st === ST_SINK ? 0.3 : 1;
   m.open = m.st === ST_ATTACK && a.attackPhase > S_END ? 1 : 0;
   if (field && m.dawn === 1 && m.st !== ST_SINK && m.st !== ST_RETURN && m.st !== ST_ATTACK) { m.st = ST_RETURN; m.t = 0; }
