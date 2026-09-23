@@ -15,6 +15,7 @@ export const DRIFTWOOD_PLACES: PlaceDef[] = [
   { id: 'hut', label: 'WENDELL\'S HUT', at: { poi: 'hut', x: 0, z: -2 }, r: 26 },
   { id: 'vista', label: 'VISTA POINT', at: { poi: 'world', x: -46, z: -100 }, r: 14 },
   { id: 'bridge', label: 'ROPE BRIDGE', at: { poi: 'world', x: 24, z: 22 }, r: 18 },
+  { id: 'zipline', label: 'ZIPLINE', at: { poi: 'lookout', anchor: 'lookout.zipline', x: 20, z: -30 }, r: 12 },
   { id: 'lookout', label: 'THE LOOKOUT', at: { poi: 'lookout', x: 0, z: 0 }, r: 24 },
   { id: 'wreck', label: 'WRECK COVE', at: { poi: 'wreck', x: 0, z: 0 }, r: 30 },
   { id: 'cave', label: 'SEA CAVE', at: { poi: 'cave', x: 0, z: -4 }, r: 16 },

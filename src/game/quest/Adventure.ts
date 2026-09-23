@@ -9,7 +9,7 @@
  *
  * Dev: `?resetquest` forgets this shard's adventure flags on load; `window.__adventure` = { flags, kit, … }.
  */
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import { heightAt } from '../../world/Heightfield';
 import { HUT, LOOKOUT, WRECK, SHRINE, PIER, OCEAN } from '../../chunks/driftwood-isle';
 import { Cove } from '../../world/Cove';
@@ -28,6 +28,7 @@ import { installFeats, type ProgressSink } from './Feats';
 import { installPlaces, type Places } from './Places';
 import { installFinale, type Finale } from './Finale';
 import { installEcology, type RespawnQueue } from './Ecology';
+import { Zipline } from '../../world/Zipline';
 import type { MapPoi } from '../../ui/Map';
 
 /** a named point a model module exports (`anchors`, world coords) for the adventure to place things at */
@@ -63,6 +64,8 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   /** the full map (the menu's MAP tab): shows the island's places with discovery + the quest markers (A5) */
   fullMap?: { setPois: (source: () => MapPoi[]) => void };
   /** the iron sword in the wreck's hold (IronSword.ts) — guarded until the drowned sailor is beaten (B4 / D6) */
+  /** the rope bridge's walkable floor (RopeBridge.floorHeightAt) — the camera sways while you cross (A7) */
+  bridgeFloor?: ((x: number, z: number) => number | undefined) | undefined;
   /** show / hide the weapon viewmodel (the golden-hour reward view lowers it) */
   setViewmodel?: (on: boolean) => void;
   ironDrop?: { guard: (() => string | null) | null; onGuarded?: ((reason: string) => void) | undefined } | null;
@@ -79,6 +82,8 @@ export interface Adventure {
   finale: Finale | null;
   /** enemies coming back after a kill (A6) */
   ecology: RespawnQueue | null;
+  /** the lookout → cove zipline (A7) */
+  zipline: Zipline | null;
   place: (p: Place) => { x: number; y: number; z: number; yaw: number };
   floorAt: (x: number, z: number) => number;
   /** register a computed anchor (`<poi>.<name>`) that placements and quest markers can name */
@@ -163,18 +168,51 @@ export function installAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): Adv
     }
   }
 
-  const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, setAnchor: (name, a) => { ownAnchors[name] = a; } };
+  const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, zipline: null, setAnchor: (name, a) => { ownAnchors[name] = a; } };
   adventure.spine = installSpine(adventure, w);
   if (w.progress) installFeats(adventure, w, w.progress);
   if (w.ironDrop) {
     w.ironDrop.guard = () => (flags.has('dead:sailor') ? null : 'The drowned sailor guards the rack');
     w.ironDrop.onGuarded = (why) => { w.hud.toast(`${why} — beat him first`); sfx.interact('locked'); };
   }
+  // ── A7: the zipline — a launch deck on the headland's cliff lip, on the line from the lookout platform to the sea cave,
+  // down to the cove beach west of the cave mouth (the headland's 34 m shelf rules out a cable straight off the platform) ──
+  {
+    const from = place({ poi: 'lookout', anchor: 'lookout.zipTop', x: 0, z: 0 }), cave = place({ poi: 'cave', anchor: 'cave.caveFloor', x: 0, z: 0 });
+    const lx = from.x + (cave.x - from.x) * 0.47, lz = from.z + (cave.z - from.z) * 0.47;
+    const zip = new Zipline(w.sky, { top: new THREE.Vector3(lx, heightAt(lx, lz), lz), bottom: new THREE.Vector3(132, heightAt(132, 12), 12) }).build();
+    w.game.scene.add(zip.group);
+    w.player.platforms.push((x, z) => zip.floorHeightAt(x, z));
+    w.prompts.push(zip.prompt);
+    zip.onRide = (on) => {
+      w.setViewmodel?.(!on);
+      if (!on) { flags.set('used:zipline'); sfx.interact('plate', zip.b); }
+      else sfx.interact('lever', zip.a);
+    };
+    w.game.onUpdate((dt) => { zip.update(dt, w.player); });
+    adventure.zipline = zip;
+    adventure.setAnchor('lookout.zipline', { x: lx, z: lz });
+  }
+
   const places = installPlaces(adventure, (t) => { w.hud.toast(t); });
   adventure.places = places;
   w.fullMap?.setPois(places.mapPois);
   adventure.finale = installFinale(adventure, w);
   adventure.ecology = installEcology(w, (x, z) => heightAt(x, z) > OCEAN.level + 0.15);
+
+  // ── A7: the rope bridge sways under you — a slow roll + a little dip on the camera while your feet are on its planks ──
+  if (w.bridgeFloor) {
+    const bf = w.bridgeFloor; let sway = 0, bt = 0;
+    w.game.onUpdate((dt) => {
+      const p = w.player.position, f = bf(p.x, p.z);
+      const on = f !== undefined && Math.abs(p.y - f) < 0.35;
+      sway += ((on ? 1 : 0) - sway) * Math.min(1, dt * 3);
+      if (sway < 0.001) return;
+      bt += dt * (0.8 + Math.hypot(w.player.velocity.x, w.player.velocity.z) * 0.25);
+      w.game.camera.rotation.z += Math.sin(bt * 1.7) * 0.018 * sway;
+      w.game.camera.position.y += Math.sin(bt * 3.4) * 0.025 * sway;
+    });
+  }
   let placeT = 0;
   w.game.onUpdate((_dt, t) => { if (t - placeT > 0.25) { placeT = t; places.update(w.player.position.x, w.player.position.z); } });
   Object.assign(window, { __adventure: adventure });

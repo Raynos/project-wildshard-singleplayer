@@ -20,6 +20,7 @@ export function installFeats<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
     progress.recordEvent('glass', flags.count(SEA_GLASS_FLAG));
     if (flags.has('open:reef-treasure')) progress.recordEvent('treasure', 1);
     if (flags.has('used:vista-bench')) progress.recordEvent('vista', 1);
+    if (flags.has('used:zipline')) progress.recordEvent('zipline', 1);
     if (flags.has(QUEST_DONE)) progress.recordEvent('quest', 1);
   };
   sync();
