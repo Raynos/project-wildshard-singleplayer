@@ -13,13 +13,16 @@
  *   npc.headWorld(v)      // where the "[E] Talk" prompt sits
  *
  * Draw calls: body + campfire (one merged mesh, the only shadow caster), head, waving arm (each its own pivot), flames
- * (unlit), smoke (Points); past 85 m only the smoke.
+ * (unlit), smoke (Points); past 85 m only the smoke. The smoke is a thin, broken wisp: each puff grows as it climbs,
+ * fades in over the fire and out toward the top (per-puff size + alpha on the points shader), wanders on its own
+ * turbulence and leans downwind — so from the pier it reads as smoke, not a straight bright streak.
  * No lights; the flames are unlit colour that blooms.
  */
 import * as THREE from 'three';
 import { LowPolyKit, log, rock, plank, lowPolyMaterial } from '../../world/lowpolyKit';
 import type { Sky } from '../../world/Sky';
 import type { Collider } from '../../player/Player';
+import { attachFogUniforms } from '../../world/Atmosphere';
 
 const C = {
   skin: '#c98d62', skinDark: '#a8704a', beard: '#cfcac0', beardDark: '#a9a39a', hat: '#d8b867', hatDark: '#b8964a', band: '#7a3b2a',
@@ -33,7 +36,9 @@ const at = (x: number, y: number, z: number, ry = 0, rx = 0, rz = 0, s: [number,
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 
 const NECK = 1.52, SHOULDER = V(-0.21, 1.4, 0);   // right shoulder (the model faces +Z; its right is −X)
-const SMOKE = 26;
+const SMOKE = 42;
+const SMOKE_RISE = 21, SMOKE_LIFE = 13;   // metres the column climbs, seconds a puff lives
+const WIND_X = 0.8, WIND_Z = 0.55;         // the lean (NPC-local; the trade wind off the sea)
 const NEAR_R = 85;
 
 export interface Pos { x: number; y: number; z: number; yaw?: number }
@@ -50,7 +55,13 @@ export class Castaway {
   private smokeMat!: THREE.PointsMaterial;
   private sPos = new Float32Array(SMOKE * 3);
   private sAge = new Float32Array(SMOKE);
+  private sRate = new Float32Array(SMOKE);   // per-puff life speed (0.85–1.15): uneven spacing = a broken column
+  private sSeed = new Float32Array(SMOKE);
+  private sSize = new Float32Array(SMOKE);
+  private sAlpha = new Float32Array(SMOKE);
   private sAttr!: THREE.BufferAttribute;
+  private sSizeAttr!: THREE.BufferAttribute;
+  private sAlphaAttr!: THREE.BufferAttribute;
   private headYaw = 0; private headPitch = 0; private readonly bodyYaw: number;
   private waveT = -1;
   private glanceT = 0; private glanceYaw = 0;
@@ -144,10 +155,26 @@ export class Castaway {
     const g = new THREE.BufferGeometry();
     this.sAttr = new THREE.BufferAttribute(this.sPos, 3); this.sAttr.setUsage(THREE.DynamicDrawUsage);
     g.setAttribute('position', this.sAttr);
-    g.boundingSphere = new THREE.Sphere(V(f.x, f.y + 12, f.z), 20);
-    for (let i = 0; i < SMOKE; i++) { this.sAge[i] = i / SMOKE; this.placeSmoke(i); }
-    const smokeMat = this.smokeMat = new THREE.PointsMaterial({ color: new THREE.Color(0.78, 0.76, 0.74), size: 5.5, sizeAttenuation: true, transparent: true, opacity: 0.42, depthWrite: false, map: puffTexture(), fog: true });
+    this.sSizeAttr = new THREE.BufferAttribute(this.sSize, 1); this.sSizeAttr.setUsage(THREE.DynamicDrawUsage);
+    this.sAlphaAttr = new THREE.BufferAttribute(this.sAlpha, 1); this.sAlphaAttr.setUsage(THREE.DynamicDrawUsage);
+    g.setAttribute('aSize', this.sSizeAttr); g.setAttribute('aAlpha', this.sAlphaAttr);
+    g.boundingSphere = new THREE.Sphere(V(f.x + 2, f.y + 9, f.z + 1.5), 14);
+    let hs = 0x5e0c;
+    const rnd = () => { hs = (Math.imul(hs, 1103515245) + 12345) & 0x7fffffff; return hs / 0x7fffffff; };
+    for (let i = 0; i < SMOKE; i++) { this.sAge[i] = rnd(); this.sRate[i] = 0.85 + rnd() * 0.3; this.sSeed[i] = rnd() * 10; this.placeSmoke(i); }
+    const smokeMat = this.smokeMat = new THREE.PointsMaterial({ color: new THREE.Color(0.8, 0.79, 0.77), size: 1, sizeAttenuation: true, transparent: true, opacity: 0.42, depthWrite: false, map: puffTexture(), fog: true });
     smokeMat.name = 'castaway-smoke';
+    // per-puff size + alpha: the stock points shader with two attributes spliced in
+    smokeMat.onBeforeCompile = (sh) => {
+      attachFogUniforms(sh);
+      sh.vertexShader = sh.vertexShader
+        .replace('uniform float size;', 'uniform float size;\nattribute float aSize;\nattribute float aAlpha;\nvarying float vAlpha;')
+        .replace('gl_PointSize = size;', 'gl_PointSize = size * aSize;\n\tvAlpha = aAlpha;');
+      sh.fragmentShader = sh.fragmentShader
+        .replace('uniform float opacity;', 'uniform float opacity;\nvarying float vAlpha;')
+        .replace('vec4 diffuseColor = vec4( diffuse, opacity );', 'vec4 diffuseColor = vec4( diffuse, opacity * vAlpha );');
+    };
+    smokeMat.customProgramCacheKey = () => 'castaway-smoke-v2';
     this.smoke = new THREE.Points(g, smokeMat);
     this.smoke.renderOrder = 4;
 
@@ -162,11 +189,17 @@ export class Castaway {
   wave(): void { if (this.waveT < 0) this.waveT = 0; }
 
   private placeSmoke(i: number): void {
-    const age = this.sAge[i] ?? 0, f = this.fireLocal, j = i * 3;
-    const rise = age * 22, drift = age * age * 6;
-    this.sPos[j] = f.x + Math.sin(i * 7.1) * 0.25 * (0.3 + age) + drift;
-    this.sPos[j + 1] = f.y + 2.4 + rise;   // the column starts over your head: close up you stand under it, not in it
-    this.sPos[j + 2] = f.z + Math.cos(i * 3.3) * 0.25 * (0.3 + age) + drift * 0.4;
+    const age = this.sAge[i] ?? 0, sd = this.sSeed[i] ?? 0, f = this.fireLocal, j = i * 3;
+    // rise slows as it cools; the lean grows with height; each puff wanders on its own slow turbulence
+    const rise = SMOKE_RISE * (1 - (1 - age) * (1 - age)) * 0.9 + age * SMOKE_RISE * 0.1, lean = age * age * 5;
+    const tx = Math.sin(age * 8 + sd * 5) * (0.2 + age * 1.1), tz = Math.cos(age * 6.3 + sd * 3) * (0.2 + age * 0.9);
+    this.sPos[j] = f.x + WIND_X * lean + tx;
+    this.sPos[j + 1] = f.y + 1.2 + rise;
+    this.sPos[j + 2] = f.z + WIND_Z * lean + tz;
+    // thin at the fire, spreading as it climbs; in over the first metre, out long before the top; some puffs thinner (broken)
+    this.sSize[i] = 0.9 + age * 4.4;
+    const thin = 0.45 + 0.55 * (0.5 + 0.5 * Math.sin(sd * 7.7));
+    this.sAlpha[i] = Math.min(1, age / 0.08) * Math.min(1, (1 - age) / 0.45) ** 1.3 * thin;   // full body over the hut, thinning out over the top ~40 %
   }
 
   update(dt: number, t: number, player: THREE.Vector3): void {
@@ -207,10 +240,10 @@ export class Castaway {
     this.flames.scale.set(1 + Math.sin(t * 17) * 0.05, fl, 1 + Math.cos(t * 19) * 0.05);
     this.flames.rotation.y = t * 0.6;
     // the column is the far breadcrumb; up close it thins out so it never fogs the view
-    this.smokeMat.opacity = 0.1 + 0.32 * THREE.MathUtils.smoothstep(d, 8, 30);
+    this.smokeMat.opacity = 0.12 + 0.46 * THREE.MathUtils.smoothstep(d, 8, 30);
     if (d > 260) return;
-    for (let i = 0; i < SMOKE; i++) { let a = (this.sAge[i] ?? 0) + dt / 9; if (a > 1) a -= 1; this.sAge[i] = a; this.placeSmoke(i); }  // one puff every ~0.5 s up a ~22 m column
-    this.sAttr.needsUpdate = true;
+    for (let i = 0; i < SMOKE; i++) { let a = (this.sAge[i] ?? 0) + (dt / SMOKE_LIFE) * (this.sRate[i] ?? 1); if (a > 1) { a -= 1; this.sSeed[i] = (this.sSeed[i] ?? 0) + 1.37; } this.sAge[i] = a; this.placeSmoke(i); }
+    this.sAttr.needsUpdate = true; this.sSizeAttr.needsUpdate = true; this.sAlphaAttr.needsUpdate = true;
   }
 }
 

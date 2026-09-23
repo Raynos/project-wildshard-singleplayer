@@ -29,6 +29,7 @@ import { installPlaces, type Places } from './Places';
 import { installFinale, type Finale } from './Finale';
 import { installEcology, type RespawnQueue } from './Ecology';
 import { Zipline } from '../../world/Zipline';
+import { ironSwordGuard, SWORD_GUARDED } from './guards';
 import type { MapPoi, MapQuest } from '../../ui/Map';
 
 /** a named point a model module exports (`anchors`, world coords) for the adventure to place things at */
@@ -57,7 +58,7 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   inventory: { add: (id: ItemId, n?: number) => void };
   pois: Partial<Record<Exclude<PoiId, 'world'>, object | null>>;
   /** the animal manager: its onKill is chained (the sailor drops the hold key, the captain ends the fight) */
-  animals: { onKill?: ((a: A) => void) | undefined; spawn?: (kind: string, x: number, z: number, yaw: number, variant?: string) => A; herds?: { cx: number; cz: number; members: A[] }[] };
+  animals: { animals?: A[]; onKill?: ((a: A) => void) | undefined; spawn?: (kind: string, x: number, z: number, yaw: number, variant?: string) => A; herds?: { cx: number; cz: number; members: A[] }[] };
   params?: URLSearchParams;
   /** shard achievements (Progress.recordEvent) — the adventure's event achievements (A4) */
   progress?: ProgressSink;
@@ -172,7 +173,8 @@ export function installAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): Adv
   adventure.spine = installSpine(adventure, w);
   if (w.progress) installFeats(adventure, w, w.progress);
   if (w.ironDrop) {
-    w.ironDrop.guard = () => (flags.has('dead:sailor') ? null : 'The drowned sailor guards the rack');
+    const all = w.animals.animals;   // guarded while any drowned sailor is up — after a reload or a night respawn too (guards.ts)
+    w.ironDrop.guard = () => (all ? ironSwordGuard(all) : flags.has('dead:sailor') ? null : SWORD_GUARDED);
     w.ironDrop.onGuarded = (why) => { w.hud.toast(`${why} — beat him first`); sfx.interact('locked'); };
   }
   // ── A7: the zipline — a launch deck on the headland's cliff lip, on the line from the lookout platform to the sea cave,
