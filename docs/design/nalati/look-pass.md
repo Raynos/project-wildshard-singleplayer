@@ -134,6 +134,25 @@ replaces the painterly sky / clouds / PainterlyRange, the current grass look and
 (Wind, trample, grassHeightAt, stealth, weather) stay. Models: the sourced CC0 set (`public/assets/nalati/sourced/`)
 and the local image-to-3D models (`public/assets/nalati/models/`).
 
+**The user's hard rules for the port (2026-09-23, after playing the prototype: "so many cardboard cutouts … it only
+looks good for screenshots … the grass is not bad … the fucking skybox transition").** Acknowledged by the port lead.
+These override the prototype:
+
+1. No cutouts, billboards or sprites for anything in the playable 500 m. Horses, trees (near and far on the slab),
+   yurts, props and rocks are real 3D meshes that hold up when you walk round them and look from above. Impostors are
+   allowed only as a distance LOD of a real mesh beyond about 120 m that doesn't read flat when circled. The
+   prototype's painted spruce and horse sprites are not ported.
+2. Painted imagery only at true infinity: sky, clouds, the gas giant and the far range as ONE seamless 360° panorama
+   on a sky dome, with no plates, seams or visible transition (up, down, or turning). Never paint the mid-ground.
+3. Keep and port the GPU grass rings + shader flowers, the olive / golden values + in-shader grade, the lighting model,
+   the panorama-sampled fog, and the baked shadows / contact darkening.
+4. Validation is by moving: every step passes the 9 camp angles AND a walk-around (a 12-frame orbit strip of the camp,
+   the path, looking up and down, Eagle Rock), with every frame checked for cutouts, seams and popping.
+5. Models come from the sourced CC0 set and the local image-to-3D models as they land.
+
+State and next steps: `docs/design/nalati/handoff/port-v2.md`. The one continuous panorama (chained outpainting,
+seam-checked) is in `art/nalati-grasslands/round-6-panorama/`.
+
 ### The camp 9-angle set (`scripts/nalati-camp9.mjs`)
 
 The nine fixed cameras round the nomad camp (`art/nalati-grasslands/round-4-camp-9angle/poses.json`: 4 first-person at
