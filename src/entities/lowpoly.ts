@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { loft, S, srgb, mix, sstep, type Paint } from './species/loft';
 import type { VariantDef } from './species/registry';
+import { attachFogUniforms } from '../world/Atmosphere';
 
 /**
  * Low-poly (faceted, flat-shaded, untextured) rendering of the procedural animals — the Driftwood
@@ -220,4 +221,43 @@ export function lowPolyMaterials(): LowPolyMaterials {
   const hard = new THREE.MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: 0.7, metalness: 0, color: new THREE.Color(1, 1, 1), envMapIntensity: 0.5 });   // matte: glossy hoof tops mirrored the sky as gold bands
   const eye = new THREE.MeshPhysicalMaterial({ roughness: 0.25, metalness: 0, vertexColors: true, color: new THREE.Color(1, 1, 1), clearcoat: 0.6, clearcoatRoughness: 0.2, envMapIntensity: 0.5 });
   return { fur, hard, eye };
+}
+
+/**
+ * One draw per creature (remaster M3): fold the fur / hard / eye material groups into a single group 0, so a rig is ONE
+ * draw (+ its shadow) instead of three — the island's ~35 animals were ~105 main-pass draws. The hard parts and the eyes
+ * keep their painted vertex colours; eyes that glow (the drowned sailor's) keep the glow through an `aGlow` vertex
+ * attribute read by `patchEyeGlow`. Returns true when the model has glowing eye faces.
+ */
+export function oneMaterial(geo: THREE.BufferGeometry, glowGroup: number | null): boolean {
+  const n = geo.getAttribute('position').count;
+  let any = false;
+  if (glowGroup !== null) {
+    const glow = new Float32Array(n);
+    for (const gr of geo.groups) if (gr.materialIndex === glowGroup) for (let v = gr.start; v < Math.min(n, gr.start + gr.count); v++) { glow[v] = 1; any = true; }
+    if (any) geo.setAttribute('aGlow', new THREE.BufferAttribute(glow, 1));
+  }
+  geo.clearGroups();
+  geo.addGroup(0, n, 0);
+  return any;
+}
+
+/**
+ * The body material's eye glow: `totalEmissiveRadiance += colour × aGlow`, a uniform of its own, so the melee hit flash
+ * (Animal.hitFlash drives `emissive`) and the glow add up. Call BEFORE `sky.setupMaterial` (which wraps this hook), and
+ * again on every clone (Material.clone drops onBeforeCompile).
+ */
+export function patchEyeGlow(m: THREE.MeshStandardMaterial, color: THREE.Color, intensity: number): void {
+  const uEyeGlow = { value: color.clone().multiplyScalar(intensity) };
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms['uEyeGlow'] = uEyeGlow;
+    attachFogUniforms(sh);
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute float aGlow;\nvarying float vEyeGlow;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvEyeGlow = aGlow;');
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform vec3 uEyeGlow;\nvarying float vEyeGlow;')
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += uEyeGlow * vEyeGlow;');
+  };
+  m.customProgramCacheKey = () => 'lowpoly-eyeglow';
 }
