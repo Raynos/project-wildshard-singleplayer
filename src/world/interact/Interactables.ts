@@ -327,7 +327,8 @@ export class Interactables {
       case 'beacon': return this.has(`lit:${d.id}`) ? 0 : PROMPT_R + 0.4;
       case 'altar': return this.has(`used:${d.id}`) ? 0 : PROMPT_R + 0.3;
       case 'bench': return PROMPT_R + 0.5;
-      case 'key': case 'pickup': case 'lever': return PROMPT_R;
+      case 'lever': return d.latch === true && this.has(`lever:${d.id}`) ? 0 : PROMPT_R;
+      case 'key': case 'pickup': return PROMPT_R;
       case 'plate': case 'barrel': return 0;
       default: return PROMPT_R;
     }
@@ -384,6 +385,7 @@ export class Interactables {
         break;
       }
       case 'lever': {
+        if (d.latch === true && F.has(`lever:${d.id}`)) break;
         const on = F.toggle(`lever:${d.id}`);
         for (const s of d.sets ?? []) F.set(s, on);
         this.emit({ type: 'lever', def: d, text: d.toast ?? '', at });
@@ -456,12 +458,14 @@ export class Interactables {
     const pl = this.host.player.position, v = this.host.player.velocity;
     const dx = lv.position.x - pl.x, dz = lv.position.z - pl.z, dist = Math.hypot(dx, dz);
     if (Math.abs(pl.y - lv.position.y) > 1) return;
-    if (dist > BARREL_R + PLAYER_R + 0.25 || dist < 1e-3) return;
+    if (dist > BARREL_R * Math.SQRT2 + PLAYER_R + 0.15 || dist < 1e-3) return;   // the collider is a box: a diagonal approach stops at its corner
     const sp = Math.hypot(v.x, v.z); if (sp < 0.4) return;
     const nx = dx / dist, nz = dz / dist, into = (v.x * nx + v.z * nz) / sp;
-    if (into < 0.55) return;
-    const step = Math.min(1.6, sp * into) * dt * 0.85;
-    const x = lv.position.x + nx * step, z = lv.position.z + nz * step, y = this.host.floorAt(x, z);
+    if (into < 0.5) return;
+    // it rolls where you WALK (your velocity), not along you → barrel: the box collider slides you sideways off a
+    // diagonal push, and the line would swing the barrel off with you; your heading keeps it ahead of you
+    const step = Math.min(1.8, sp) * into * dt * 0.9, vx = v.x / sp, vz = v.z / sp;
+    const x = lv.position.x + vx * step, z = lv.position.z + vz * step, y = this.host.floorAt(x, z);
     if (y - lv.position.y > 0.3) return;   // a step up: stuck
     lv.position.set(x, y, z);
     if (lv.position.distanceTo(lv.home) > d.leash) { lv.position.copy(lv.home); this.emit({ type: 'barrel-reset', def: d, text: d.toast ?? 'The barrel rolls back to where it was', at: lv.position }); }

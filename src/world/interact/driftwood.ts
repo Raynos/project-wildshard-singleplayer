@@ -9,9 +9,10 @@
  * The three glyph-shard puzzles (A3):
  *   LOOKOUT — the castaway's chest in the hut holds his flint & steel; climb the lookout and light the beacon →
  *             the shard rises out of the flames onto the platform.
- *   WRECK   — the drowned sailor guards the hold; he drops the hold key; the key opens the grate; below, pump the
- *             bilge THEN work the winch (winch alone jams: it needs the pump on and must be pulled after it) → the
- *             captain's strongbox comes up → the shard. The iron sword is in the hold too (IronSword.ts, D6).
+ *   WRECK   — the drowned sailor rises and guards the hold (the breach on the beach side, or down from the broken deck);
+ *             beat him and he drops the hold key; the key opens the padlock on the bilge pump; pump the bilge THEN
+ *             work the winch (the winch jams while the hold is flooded) → the captain's strongbox comes up → the shard.
+ *             The iron sword hangs on the hold's weapon rack, guarded by the same sailor (IronSword.ts, D6).
  *   CAVE      — the sluice gate seals the sea cave; two tide plates on the sand in front must be held at once — one
  *             by you, one by the barrel that washed up by the wreck — and the gate latches open → the shard.
  */
@@ -51,12 +52,10 @@ export const DRIFTWOOD_INTERACT: InteractTable = {
     // ── WRECK: the hold (grate + key from the sailor), the pump / winch levers, the strongbox; a barrel on the beach ──
     { kind: 'key', id: 'hold-key', key: 'hold', label: 'the hold key', at: { poi: 'wreck', x: 0.5, z: 2.2, dy: 0.1 },
       showWhen: { all: ['dead:sailor'] }, toast: 'The drowned sailor\'s hold key' },
-    { kind: 'door', id: 'hold-grate', look: 'grate', w: 1.4, h: 1.9, lock: 'hold', at: { poi: 'wreck', anchor: 'wreck.holdDoor', x: 0.2, z: 0.6, yaw: Math.PI },
-      lockedLabel: 'The hold grate is locked — the drowned sailor has the key', toast: 'The grate grinds open' },
-    { kind: 'lever', id: 'hold-pump', label: 'Work the bilge pump', at: { poi: 'wreck', anchor: 'wreck.leverA', x: -1.3, z: 3.0, yaw: Math.PI / 2 },
-      requires: { all: ['open:hold-grate'] }, lockedLabel: 'Behind the grate', toast: 'The pump coughs; the bilge water drains' },
-    { kind: 'lever', id: 'hold-winch', label: 'Work the cargo winch', at: { poi: 'wreck', anchor: 'wreck.leverB', x: 1.2, z: 3.4, yaw: -Math.PI / 2 },
-      requires: { all: ['open:hold-grate', 'lever:hold-pump'] }, lockedLabel: 'The winch is jammed — the hold is still flooded',
+    { kind: 'lever', id: 'hold-pump', label: 'Work the bilge pump', latch: true, at: { poi: 'wreck', anchor: 'wreck.leverA', x: -1.3, z: 3.0, yaw: Math.PI / 2 },
+      requires: { all: ['key:hold'] }, lockedLabel: 'The bilge pump is padlocked — the drowned sailor has the key', toast: 'The pump coughs; the bilge water drains' },
+    { kind: 'lever', id: 'hold-winch', label: 'Work the cargo winch', latch: true, at: { poi: 'wreck', anchor: 'wreck.leverB', x: 1.2, z: 3.4, yaw: -Math.PI / 2 },
+      requires: { all: ['lever:hold-pump'] }, lockedLabel: 'The winch is jammed — the hold is still flooded',
       sets: ['winch:up'], toast: 'The winch hauls a strongbox out of the bilge' },
     { kind: 'chest', id: 'strongbox', look: 'strongbox', at: { poi: 'wreck', anchor: 'wreck.strongbox', x: 0.1, z: 4.9, yaw: Math.PI },
       showWhen: { all: ['winch:up'] }, loot: [{ flag: 'shard:wreck', label: 'the glyph shard — the Wreck' }, { item: 'doubloon', n: 3 }],

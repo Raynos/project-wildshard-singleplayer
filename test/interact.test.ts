@@ -78,6 +78,37 @@ describe('Driftwood interactables table', () => {
   });
 });
 
+describe('the three shard puzzles, as data (A3)', () => {
+  const row = (id: string) => { const r = DRIFTWOOD_INTERACT.rows.find((x) => x.id === id); if (!r) throw new Error(id); return r; };
+  const f = (...set: string[]) => ({ has: (s: string) => set.includes(s) });
+  it('lookout: the beacon needs the castaway\'s flint, the shard shows once it burns', () => {
+    expect(holds(f(), row('beacon').requires)).toBe(false);
+    expect(holds(f('has:flint'), row('beacon').requires)).toBe(true);
+    expect(holds(f(), row('shard-lookout').showWhen)).toBe(false);
+    expect(holds(f('lit:beacon'), row('shard-lookout').showWhen)).toBe(true);
+  });
+  it('wreck: the key only after the sailor; pump needs the key; the winch jams until the pump ran; the strongbox rises', () => {
+    expect(holds(f(), row('hold-key').showWhen)).toBe(false);
+    expect(holds(f('dead:sailor'), row('hold-key').showWhen)).toBe(true);
+    expect(holds(f(), row('hold-pump').requires)).toBe(false);
+    expect(holds(f('key:hold'), row('hold-pump').requires)).toBe(true);
+    expect(holds(f('key:hold'), row('hold-winch').requires)).toBe(false);
+    expect(holds(f('lever:hold-pump'), row('hold-winch').requires)).toBe(true);
+    expect(holds(f(), row('strongbox').showWhen)).toBe(false);
+    expect(holds(f('winch:up'), row('strongbox').showWhen)).toBe(true);
+    for (const id of ['hold-pump', 'hold-winch']) { const r = row(id); expect(r.kind === 'lever' && r.latch, id).toBe(true); }
+  });
+  it('cave: the gate wants both plates at once and latches; the shard is behind it', () => {
+    const g = row('sluice');
+    if (g.kind !== 'door') throw new Error('sluice');
+    expect(holds(f('plate:tide-plate-a'), g.opensWhen)).toBe(false);
+    expect(holds(f('plate:tide-plate-a', 'plate:tide-plate-b'), g.opensWhen)).toBe(true);
+    expect(g.latch).toBe(true);
+    expect(holds(f(), row('shard-cave').requires)).toBe(false);
+    expect(holds(f('open:sluice'), row('shard-cave').requires)).toBe(true);
+  });
+});
+
 describe('validateTable catches a broken table', () => {
   const base: InteractTable = { external: [], rows: [] };
   it('duplicate ids, a lock with no key, an unraised flag, a bad item, a point outside the chunk', () => {

@@ -221,10 +221,14 @@ export function brazier(seed: number): THREE.BufferGeometry {
 /** flames (glow batch): three tongues, origin at the bowl */
 export function flame(seed: number): THREE.BufferGeometry {
   const k = new LowPolyKit(seed);
-  k.add(new THREE.ConeGeometry(0.34, 1.0, 6), C.ember, { matrix: at(0, 0.5, 0), wobble: 0.04, jitter: 0.1 });
-  k.add(new THREE.ConeGeometry(0.2, 0.8, 5), C.flame, { matrix: at(0.12, 0.45, 0.05, 0.5), wobble: 0.03 });
-  k.add(new THREE.ConeGeometry(0.18, 0.7, 5), C.flame, { matrix: at(-0.12, 0.4, -0.06, 1.1), wobble: 0.03 });
-  k.add(new THREE.ConeGeometry(0.12, 0.9, 5), '#fff1b8', { matrix: at(0, 0.5, 0), wobble: 0.02 });
+  // a ring of leaning ember-red tongues, a taller orange body, a pale core: reads as fire, not a cone, from any side
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2, h = 0.55 + (i % 3) * 0.18, r = 0.3;
+    k.add(new THREE.ConeGeometry(0.13, h, 4), i % 2 ? C.ember : '#ff6a1e', { matrix: at(Math.cos(a) * r, h / 2 - 0.02, Math.sin(a) * r, a, 0, 0).multiply(new THREE.Matrix4().makeRotationX(Math.sin(a) * 0.35)).multiply(new THREE.Matrix4().makeRotationZ(-Math.cos(a) * 0.35)), wobble: 0.02, jitter: 0.12 });
+  }
+  k.add(new THREE.ConeGeometry(0.28, 1.25, 6), C.flame, { matrix: at(0, 0.62, 0), wobble: 0.05, jitter: 0.1 });
+  k.add(new THREE.ConeGeometry(0.16, 0.95, 5), '#ffb13a', { matrix: at(0.1, 0.52, -0.05, 0.7), wobble: 0.03 });
+  k.add(new THREE.ConeGeometry(0.1, 0.8, 5), '#fff1b8', { matrix: at(0, 0.42, 0), wobble: 0.02 });
   return done(k, false);
 }
 export function bench(seed: number): THREE.BufferGeometry {

@@ -77,7 +77,7 @@ export interface DoorDef extends Base {
   opensWhen?: Cond;
   latch?: boolean;
 }
-export interface LeverDef extends Base { kind: 'lever'; label?: string }
+export interface LeverDef extends Base { kind: 'lever'; label?: string; /** once pulled it stays pulled (a puzzle step that is done) */ latch?: boolean }
 export interface PlateDef extends Base { kind: 'plate'; /** square side, metres */ size: number; by: 'player' | 'barrel' | 'any' }
 export interface BarrelDef extends Base { kind: 'barrel'; /** the barrel is returned here if it strays further than this (m) from its start */ leash: number }
 export interface PickupDef extends Base {

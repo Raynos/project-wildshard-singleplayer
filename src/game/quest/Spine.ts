@@ -71,14 +71,19 @@ export function installSpine<A extends { kind: string; position: THREE.Vector3 }
   quest.onComplete = () => { w.hud.toast(`Quest complete · ${DRIFTWOOD_QUEST.title}`); };
 
   // ── kills: the sailor drops the hold key; the captain ends the fight ──
-  const prevKill = w.animals.onKill;
-  w.animals.onKill = (a) => {
-    prevKill?.(a);
-    if (a.kind === 'sailor') {
-      kit.moveTo('hold-key', a.position.x, a.position.z);
-      flags.set('dead:sailor');
-      w.hud.toast('The drowned sailor collapses — something glints in the water');
-    } else if (a.kind === 'captain') flags.set('dead:captain');
+  // chained on the first frame, not now: main.ts assigns its own onKill (kill feed, achievements, skins) after this
+  let chained = false;
+  const chainKill = (): void => {
+    chained = true;
+    const prevKill = w.animals.onKill;
+    w.animals.onKill = (a) => {
+      prevKill?.(a);
+      if (a.kind === 'sailor') {
+        kit.moveTo('hold-key', a.position.x, a.position.z);
+        flags.set('dead:sailor');
+        w.hud.toast('The drowned sailor collapses — his hold key clatters to the planks');
+      } else if (a.kind === 'captain') flags.set('dead:captain');
+    };
   };
 
   const markers = (): LiveMarker[] => quest.markers().map((m: QuestMarker) => { const p = place(m.at); return { id: m.id, label: m.label, x: p.x, z: p.z }; });
@@ -86,6 +91,7 @@ export function installSpine<A extends { kind: string; position: THREE.Vector3 }
   // ── per frame: the objective line, the nearest marker, the dialogue ──
   let navT = 0;
   w.game.onUpdate((dt, t) => {
+    if (!chained) chainKill();
     const pp = w.player.position;
     dialogue.update(dt);
     if (dialogue.isOpen && pp.distanceTo(talkAt) > TALK_R + 2.5) { dialogue.close(false); castaway.talking = false; }
