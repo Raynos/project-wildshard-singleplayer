@@ -48,6 +48,7 @@
   clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%);
 }
 .ws-elite-banner.show { opacity: 1; transform: translate(-50%, 0); }
+.ws-elite-banner.below { top: 104px; }   /* under a pinned bar */
 .ws-elite-banner .ws-elite-skull { width: 30px; height: 30px; }
 .ws-elite-banner-text { display: flex; flex-direction: column; align-items: flex-start; }
 .ws-elite-banner-kicker { font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.42em; color: #8fe3ff; text-shadow: 0 0 6px rgba(143, 227, 255, 0.5); }
@@ -69,10 +70,13 @@
 
 @media (max-width: 700px) {
   .ws-elite-bar { width: 210px; margin-left: -105px; }
-  .ws-elite-bar.pinned { left: 104px; right: calc(34vw + 24px); top: calc(var(--ws-top) + 2px); width: auto; transform: none !important; }
+  /* the phone's top row is full (PAUSE, the fps line, the 34vw minimap): pinned under the minimap, full width, like the boss bar */
+  .ws-elite-bar.pinned { left: 12px; right: 12px; top: calc(var(--ws-top) + 34vw + 58px); width: auto; transform: none !important; }
   .ws-elite-bar.pinned .ws-elite-name { font-size: 14px; letter-spacing: 0.16em; }
   .ws-elite-bar.pinned .ws-elite-epithet { font-size: 9px; letter-spacing: 0.2em; }
   .ws-elite-bar.pinned .ws-elite-skull { width: 22px; height: 22px; }
-  .ws-elite-banner { top: calc(var(--ws-top) + 34vw + 44px); padding: 6px 14px 6px 10px; max-width: 94vw; }
-  .ws-elite-banner-name { font-size: 11px; }
+  .ws-elite-banner { top: calc(var(--ws-top) + 34vw + 44px); padding: 6px 14px 6px 10px; width: min(88vw, 340px); box-sizing: border-box; }
+  .ws-elite-banner.below { top: calc(var(--ws-top) + 34vw + 128px); }
+  .ws-elite-banner-kicker { white-space: nowrap; }
+  .ws-elite-banner-name { font-size: 11px; letter-spacing: 0.1em; white-space: normal; line-height: 1.25; } /* the long ones wrap (ARGYMAQ THE UNBROKEN · STALLION OF THE HIGH CRAGS) */
 }

@@ -63,7 +63,7 @@ export class EliteBar {
     this.bar.classList.remove('broken');
     this.bar.classList.add('show');
   }
-  hide(): void { this.bar.classList.remove('show', 'pinned', 'offscreen', 'beat', 'broken'); }
+  hide(): void { this.bar.classList.remove('show', 'pinned', 'offscreen', 'beat', 'broken'); this.mode = 'head'; }
 
   set(frac: number, mode: 'head' | 'pinned', head: THREE.Vector3 | null, camera: THREE.PerspectiveCamera, beat: boolean, broken = false): void {
     const f = Math.max(0, Math.min(1, frac));
@@ -98,6 +98,8 @@ export class EliteBar {
   }
   banner(name: string, epithet: string): void {
     this.banName.textContent = `${name.toUpperCase()} · ${epithet.toUpperCase()}`;
+    // another elite's bar already pinned (two lairs close together): the banner drops below it instead of over it
+    this.ban.classList.toggle('below', this.mode === 'pinned' && this.bar.classList.contains('show'));
     this.ban.classList.add('show'); this.banT = 4.5;
   }
 

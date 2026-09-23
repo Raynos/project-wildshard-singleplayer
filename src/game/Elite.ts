@@ -319,7 +319,9 @@ export class GroundTell {
     this.base = new Float32Array(this.pos.array);
     this.mat = fxMaterial(FX.ring, color, 0);
     this.mat.uniforms.uP.value.x = kind === 'ring' ? 0.8 : 0.6;
-    this.mat.depthTest = false;
+    // a ring reads over everything (a pounce landing zone); a lane runs through the grass towards you — depth-tested, so the
+    // blades between you and it stand in front of it instead of a flat wash over the whole lower screen
+    this.mat.depthTest = kind !== 'ring';
     this.mesh = new THREE.Mesh(g, this.mat);
     this.mesh.frustumCulled = false; this.mesh.visible = false; this.mesh.renderOrder = 30;
     scene.add(this.mesh);

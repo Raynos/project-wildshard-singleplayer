@@ -10,7 +10,7 @@ import { heightAt } from '../../world/Heightfield';
  * Golden eagle (Nalati named elite E3 — Qyran the Storm-Wing, Berkut of the High Wind; row B12; mockup
  * art/nalati-grasslands/round-2/4-named-elites/elite-3-qyran-storm-wing.png). A berkut: dark chocolate body and coverts,
  * near-black primaries spread like fingers, the golden nape (glowing faintly — it is a storm bird), a pale-banded tail
- * fan, a heavy yellow-based hooked beak, feathered trousers and yellow talons. 2.3 m across at scale 1 (Qyran ×2.2).
+ * fan, a heavy yellow-based hooked beak, feathered trousers and yellow talons. 2.3 m across at scale 1 (Qyran ×3: ~6.7 m, so he reads 30 m up in a storm).
  *
  * A CUSTOM rig: body · neck · head · tail · per side wing1 (shoulder) / wing2 (wrist) · leg. It flies: the elite's brain
  * moves it and writes `animal.mem` (numbers):
@@ -150,7 +150,7 @@ registerSpecies({
   chargeDamage: 30,
   sounds: { call: 'monkey_shriek', hurt: 'monkey_shriek', callEvery: [8, 18] },
   variants: [
-    { id: 'qyran', label: 'Qyran the Storm-Wing', weight: 1, rarity: 'legendary', scale: [2.2, 2.2], hp: 600 },
+    { id: 'qyran', label: 'Qyran the Storm-Wing', weight: 1, rarity: 'legendary', scale: [3, 3], hp: 600 },
   ],
   build: buildEagle,
   animate: animateEagle,

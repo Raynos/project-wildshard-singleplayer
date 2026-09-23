@@ -36,17 +36,18 @@ import { EAGLE_ROCK, CRAG_CAVE } from '../world/nalati/layout';
  *     35 + a knock-down if you are still in the ring, else it skids, OPEN 1.5 s (headshots ×3). Swipes 2 × 14. Airborne
  *     ×2. Phase 2: hit-and-run from a ledge — up there it takes a quarter.
  *   KOKBORI, Mother of the Pack (the giant she-wolf, dusk + night, the tall-grass basin W of the horse plains) — with a
- *     pack of five (B4's Pack AI). She holds 30–40 m back and moves when you look at her. PACK HOWL: pale rings ripple
+ *     pack of five (B4's Pack AI), at ×2.6. She holds 24–32 m back and moves when you look at her. PACK HOWL: pale rings ripple
  *     out (1.2 s) → the pack converges and encircles; hit her mid-howl and it breaks: she staggers, the pack scatters.
  *     Phase 2: the pack falls back round her and she comes for you herself (lunges, 22). From HIDDEN (crouched in tall
  *     grass) arrows do ×2.
- *   QYRAN the Storm-Wing (the giant golden eagle, ONLY in a storm, Eagle Rock) — circles 30–45 m up, drifting downwind.
+ *   QYRAN the Storm-Wing (the giant golden eagle, ONLY in a storm, Eagle Rock) — circles 24 m over you (36 in phase 2; over the rock when idle), drifting downwind, at ×3.
  *     STOOP: a gold line streaks from it to you and a gold chevron glows at the screen edge (1.2 s) → a 40 m/s dive: 30 +
  *     knock-down, or it hits the ground and is GROUNDED 2 s (every hit ×2.5). Phase 2: higher, in the cloud, faster stoops.
  *   QARA BATYR the Unburied (the ghost-rider captain, NIGHT, the rim's burial cairn) — a spectral rider on a spectral
  *     horse (the creature row's horse rig in a ghost material + a rider). Circles you at the gallop. DEATH CHARGE: a
  *     lane of cyan ghost-fire burns toward you (1.3 s) → 38 + knock-down; swerve and his back is OPEN 2 s (a blade ×3).
- *     Phase 2: the charges come in pairs. (B11's ordinary ghost riders were not built when this was: he rides alone.)
+ *     Phase 2: the charges come in pairs. He rides B11's captain rig (src/nalati/ghostRiders.ts, handed in by index.ts) with a
+ *     line of three of its riders; without B11 wired, a fallback rig of our own.
  *   ARGYMAQ the Unbroken (the feral black stallion, the Crags' high pasture, always, ONCE) — the stallion of his own herd
  *     (B4's HorseHerd: the herd AI rears and charges; this script paints the TRAMPLE lane when he rears and leads the
  *     herd away in phase 2). Beaten under 25 % he is BROKEN, not killed — the taming row's flow takes over (MOUNT →
@@ -58,7 +59,7 @@ import { EAGLE_ROCK, CRAG_CAVE } from '../world/nalati/layout';
  *   const elites = wireElites({ game, sky, player, ledges, cave, clock, storm });     // boot (src/nalati/index.ts)
  *   elites.bind(play)                                                                   // main.ts, once animals / HUD exist
  *   elites.update(dt, t)                                                                // every frame
- *   Dev: `?elite=aqbars|kokbori|qyran|qara-batyr|argymaq` spawns it (whatever its rule) and puts you 22 m from it;
+ *   Dev: `?elite=aqbars|kokbori|qyran|qara-batyr|argymaq` spawns it (whatever its rule) and puts you 30–45 m from it (`&from=<m>` to stand farther, `&here=x,z` to move its lair);
  *   `window.__elites`.
  */
 
@@ -340,12 +341,12 @@ class Kokbori extends Base {
       case 'den': a.setMotion(tp.yaw, 0, 1.5); break;
       case 'home': this.goHome(a, 6); if (Math.hypot(a.position.x - this.def.lair.x, a.position.z - this.def.lair.z) < 4) this.st = 'den'; break;
       case 'hold': {
-        // 30–40 m out, sliding round you — and off your line of sight when you look at her
+        // 24–32 m out (close enough to read her over the grass), sliding round you — and off your line of sight when you look at her
         const lookX = wildEnv.playerFwdX, lookZ = wildEnv.playerFwdZ;
         const ux = (a.position.x - c.player.x) / Math.max(1, tp.d), uz = (a.position.z - c.player.z) / Math.max(1, tp.d);
         const watched = lookX * ux + lookZ * uz > 0.9;
         const side = watched ? 1 : 0;
-        const r = THREE.MathUtils.clamp(tp.d, 30, 40);
+        const r = THREE.MathUtils.clamp(tp.d, 24, 32);
         const ang = Math.atan2(ux, uz) + side * 0.6;
         const gx = c.player.x + Math.sin(ang) * r, gz = c.player.z + Math.cos(ang) * r;
         const gd = Math.hypot(gx - a.position.x, gz - a.position.z);
@@ -409,6 +410,8 @@ class Qyran extends Base {
   private stT = 0; private stoopT = 8; private ang = 0;
   private centre = new THREE.Vector3(); private tgt = new THREE.Vector3();
   private line: THREE.Mesh; private lineMat: FxMaterial;
+  /** engaged: he circles over YOU, 24 m (phase 2: 36 m) above your head — not over the rock's top, a speck from its foot */
+  private overYou = false;
   constructor(def: EliteDef, env: Env) {
     super(def, env);
     const g = new THREE.CylinderGeometry(0.05, 0.05, 1, 6, 1, true); g.translate(0, 0.5, 0);
@@ -417,7 +420,12 @@ class Qyran extends Base {
     this.line = new THREE.Mesh(g, this.lineMat); this.line.visible = false; this.line.frustumCulled = false; this.line.renderOrder = 31;
     env.game.scene.add(this.line);
   }
-  private cruise(): number { return EAGLE_ROCK.top + (this.p2 ? 52 : 34); }
+  private cruise(): number {
+    if (!this.overYou) return EAGLE_ROCK.top + (this.p2 ? 52 : 34);
+    // over you — but never inside the rock's flank the orbit swings across: 18 m clear of the ground under him
+    const a = this.animal, over = a ? heightAt(a.position.x, a.position.z) + 18 : -Infinity;
+    return Math.max(this.env.player.position.y + (this.p2 ? 36 : 24), over);
+  }
   override spawn(): void {
     this.centre.set(EAGLE_ROCK.x, 0, EAGLE_ROCK.z);
     const a = this.spawnAt(EAGLE, 'qyran', EAGLE_ROCK.x + 26, EAGLE_ROCK.z, 0);
@@ -439,10 +447,11 @@ class Qyran extends Base {
     const p = this.env.player.position, m = a.mem;
     // the orbit centre: over you while engaged, back over the rock otherwise; always drifting downwind
     const home = leashing || !engaged;
+    this.overYou = !home;
     const cx = home ? EAGLE_ROCK.x : p.x, cz = home ? EAGLE_ROCK.z : p.z;
     this.centre.x += (cx + wildEnv.wind.x * 12 - this.centre.x) * Math.min(1, dt * 0.4);
     this.centre.z += (cz + wildEnv.wind.z * 12 - this.centre.z) * Math.min(1, dt * 0.4);
-    const R = 26;
+    const R = 22;
     switch (this.st) {
       case 'soar': case 'climb': {
         this.ang += dt * 12 / R;
@@ -451,7 +460,8 @@ class Qyran extends Base {
         a.position.x += (tx - a.position.x) * Math.min(1, dt * k); a.position.z += (tz - a.position.z) * Math.min(1, dt * k);
         a.yaw = a.desiredYaw = Math.atan2(-Math.sin(this.ang), Math.cos(this.ang));
         const cruise = this.cruise();
-        m['altY'] = this.st === 'climb' ? Math.min(cruise, (m['altY'] ?? cruise) + 9 * dt) : cruise + 2 * Math.sin(t * 0.5);
+        const alt = m['altY'] ?? cruise;
+        m['altY'] = this.st === 'climb' ? Math.min(cruise, alt + 9 * dt) : alt + (cruise + 2 * Math.sin(t * 0.5) - alt) * Math.min(1, dt * 0.6);
         m['flap'] = this.st === 'climb' ? 0.9 : 0.18 + 0.12 * Math.max(0, Math.sin(t * 0.6)); m['fold'] = 0; m['ground'] = 0; m['bank'] = 0.35;
         if (this.st === 'climb' && (m['altY'] ?? 0) >= cruise - 0.5) this.st = 'soar';
         if (engaged && this.st === 'soar') { this.stoopT -= dt; if (this.stoopT <= 0) { this.st = 'tell'; this.stT = 0; this.sig(); this.env.sound('monkey_shriek', a.position); } }
@@ -584,6 +594,13 @@ class QaraBatyr extends Base {
     const dx = tx - a.position.x, dz = tz - a.position.z;
     a.setMotion(Math.atan2(dx, dz), Math.hypot(dx, dz) < 0.8 ? 0 : m['v'] ?? 9, m['turn'] ?? 2.4);
   }
+  /** the ghost-fire lane from him towards you — drawn to 3 m short of you (the charge still runs 12 m past) */
+  private drawLane(p: THREE.Vector3, alpha: number): void {
+    const dx = p.x - this.c0.x, dz = p.z - this.c0.z, d = Math.hypot(dx, dz);
+    if (d < 4) { this.lane.hide(); return; }
+    const k = (d - 3) / d;
+    this.lane.lane(this.c0.x, this.c0.z, this.c0.x + dx * k, this.c0.z + dz * k, 2.6, alpha);
+  }
   private steer(a: Animal, x: number, z: number, v: number, turn: number): void { a.mem['tx'] = x; a.mem['tz'] = z; a.mem['v'] = v; a.mem['turn'] = turn; }
   override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
     const a = this.animal;
@@ -618,13 +635,13 @@ class QaraBatyr extends Base {
         this.c0.copy(a.position);
         const dx = p.x - a.position.x, dz = p.z - a.position.z, d = Math.hypot(dx, dz) || 1;
         this.c1.set(p.x + dx / d * 12, 0, p.z + dz / d * 12);
-        this.lane.lane(this.c0.x, this.c0.z, this.c1.x, this.c1.z, 2.6, 0.3 + 0.35 * Math.min(1, this.stT / 0.4));
+        this.drawLane(p, 0.22 + 0.2 * Math.min(1, this.stT / 0.4));
         if (this.stT > 1.3) { this.st = 'charge'; this.stT = 0; this.struck = false; this.env.sound('horse_squeal', a.position); }
         break;
       }
       case 'charge': {
         this.steer(a, this.c1.x, this.c1.z, 18, 0.6);
-        this.lane.lane(this.c0.x, this.c0.z, this.c1.x, this.c1.z, 2.6, 0.5);
+        this.drawLane(p, 0.36);
         if (!this.struck && Math.hypot(p.x - a.position.x, p.z - a.position.z) < 1.9 && p.y - heightAt(p.x, p.z) < 1.6) {
           this.struck = true; this.env.hurt(a, 38); this.env.knock(this.c1.x - this.c0.x, this.c1.z - this.c0.z);
         }
@@ -726,7 +743,8 @@ class Argymaq extends Base {
     if (this.laneT > 0) {
       this.laneT -= dt;
       const dx = this.laneTo.x - this.laneFrom.x, dz = this.laneTo.z - this.laneFrom.z, d = Math.hypot(dx, dz) || 1;
-      this.lane.lane(this.laneFrom.x, this.laneFrom.z, this.laneTo.x + dx / d * 6, this.laneTo.z + dz / d * 6, 3, Math.min(1, this.laneT * 2));
+      const k = Math.max(0, d - 3) / d;   // to 3 m short of where you stood (no wash over your own feet)
+      this.lane.lane(this.laneFrom.x, this.laneFrom.z, this.laneFrom.x + dx * k, this.laneFrom.z + dz * k, 3, 0.55 * Math.min(1, this.laneT * 2));
     } else this.lane.hide();
     // phase 2: HE RUNS — the herd at the gallop round the pasture, him at its head
     if (this.p2 && engaged && st !== 'beaten') { this.runT -= dt; if (this.runT <= 0) { this.runT = 8; h.leadAway(this.env.player.position.x, this.env.player.position.z); } }
@@ -856,7 +874,7 @@ export class NalatiElites {
     for (const s of this.scripts) { elites.add(s); if (elites.owned(s.def.id)) this.skins.add(s.def.drop.skin); }
     // build the new rigs' models now (a first spawn mid-hunt must not stall a frame)
     for (const [k, v] of [[LEOPARD, 'aqbars'], [EAGLE, 'qyran'], [KOKBORI, 'kokbori']] as const) { try { play.animals.factory.model(k, v); } catch (e) { console.warn(`[elites] ${k} did not build`, e); } }
-    // dev: `?elite=<id>` — spawn it whatever its rule and put the player 22 m from it, facing it
+    // dev: `?elite=<id>` — spawn it whatever its rule and put the player DEV_FROM's distance from it (`&from=<m>`), facing it
     const dev = play.params.get('elite');
     if (dev !== null) {
       // `&here=x,z` moves its lair there for this session (open ground for screenshots; the leash follows the lair)
@@ -866,7 +884,8 @@ export class NalatiElites {
       const a = elites.devSpawn(dev);
       const from = DEV_FROM[dev];
       if (a && from) {
-        const px = a.position.x + from.dx * from.d, pz = a.position.z + from.dz * from.d;
+        const d = Number(play.params.get('from')) || from.d;   // `&from=<m>`: stand farther (the aware state: banner + head bar)
+        const px = a.position.x + from.dx * d, pz = a.position.z + from.dz * d;
         player.position.set(px, heightAt(px, pz), pz);
         player.yaw = Math.atan2(-(a.position.x - px), -(a.position.z - pz)); player.pitch = from.pitch;
       }
