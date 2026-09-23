@@ -23,17 +23,17 @@ driftwood --name driftwood --split --names driftwood-log,driftwood-fork,driftwoo
 piling    --name piling --tris 700 --fit height --size 2.6 --atlas 256 --quant 8 --remesh 0.008 --simplifier blender
 sailboat  --name sailboat --tris 2600 --fit length --size 6.5 --atlas 512 --quant 12 --remesh 0.007 --simplifier blender
 hut       --name hut --tris 3000 --fit height --size 5.6 --atlas 512 --quant 14 --simplifier blender
-wreck     --name wreck --tris 3000 --fit length --size 14 --atlas 512 --quant 12 --simplifier blender
+wreck     --name wreck --tris 3000 --fit length --size 14 --atlas 512 --quant 12 --simplifier blender --solidify 0.004 --remesh 0.005
+wreck     --name wreck-lod1 --tris 1400 --fit length --size 14 --quant 10 --simplifier blender --solidify 0.004 --remesh 0.007
 shrine    --name shrine --tris 2200 --fit height --size 5.5 --atlas 512 --quant 12 --simplifier blender
 conch     --name shell-conch --tris 240 --fit length --size 0.22 --quant 6
 scallop   --name shell-scallop --tris 200 --fit length --size 0.16 --quant 6
 cowrie    --name shell-cowrie --tris 140 --fit length --size 0.09 --quant 5
-starfish-a --name starfish-a --tris 220 --fit length --size 0.26 --quant 5
+starfish-a --name starfish-a --tris 220 --fit length --size 0.26 --quant 5 --up x90 --simplifier blender --remesh 0.025
 starfish-b --name starfish-b --tris 220 --fit length --size 0.22 --quant 5
 coconut-half --name coconut-half --tris 180 --fit length --size 0.2 --quant 5
 coconut   --name coconut --tris 160 --fit length --size 0.24 --quant 5
 coconut-cluster --name coconut-cluster --tris 360 --fit length --size 0.6 --quant 6
-frond-a   --name frond-a --tris 420 --fit length --size 4.2 --quant 6
 frond-b   --name frond-b --tris 420 --fit length --size 3.6 --quant 6
 EOF
 )

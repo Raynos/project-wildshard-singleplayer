@@ -1,0 +1,19 @@
+{
+ "name": "shell-cowrie",
+ "source": "cowrie.glb",
+ "tris": 139,
+ "size_m": [
+  0.09,
+  0.05,
+  0.05
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#4f1809",
+  "#b67762",
+  "#f3ae95",
+  "#feb9a0",
+  "#fec0aa"
+ ]
+}

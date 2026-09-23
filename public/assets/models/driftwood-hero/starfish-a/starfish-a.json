@@ -1,0 +1,19 @@
+{
+ "name": "starfish-a",
+ "source": "starfish-a.glb",
+ "tris": 220,
+ "size_m": [
+  0.25,
+  0.25,
+  0.07
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#d81500",
+  "#d90600",
+  "#df2300",
+  "#e43800",
+  "#ee5a04"
+ ]
+}

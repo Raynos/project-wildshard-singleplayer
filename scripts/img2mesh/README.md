@@ -33,7 +33,8 @@ build_driftwood.sh (gltf-transform meshopt) ──▶ public/assets/models/drift
 | `driftwood_post.py` | the clean-up: weld → drop crumbs → `--split` sets into assets → decimate (`--simplifier fqmr` quadric / `blender` collapse, `--remesh` voxel first for solid props) → per-facet colour from the generated texture (4 BVH samples, HSV grade, k-means `--quant`) → AO → scale / pivot → glb; `--atlas N` also bakes an N² WebP base-colour atlas (`<asset>.tex.glb`) |
 | `build_driftwood.sh` | the prop list (every size, budget and option) + meshopt into `public/` |
 | `split_sheet.py` | cut a sheet of separate objects on white into one RGBA crop per object |
-| `render_still.py` | a 3/4 Eevee still, the same sun + sky for every model (the comparison board) |
+| `render_still.py` | a 3/4 Eevee still, the same sun + sky for every model; `a.glb,b.glb,…` lays a set out in a row |
+| `board.py` | the comparison board `art/driftwood-isle/round-8-assets/board.jpg`: concept crop, reference, new asset, current in-game model |
 | `hunyuan_cpu_rasterizer.sh` | builds Hunyuan3D-2's `custom_rasterizer` without CUDA (its CPU path, results copied back to MPS) |
 | `cc0_export.py`, `build_cc0.sh` | CC0 kit models → Driftwood palette (per-face CIELAB snap, `--family rock|bleach|wood`) → `public/assets/models/driftwood-cc0/` |
 | `CC0.md` | the CC0 library: every pack, its licence, URL and local path |
@@ -151,7 +152,13 @@ Side by side: `art/driftwood-isle/round-8-assets/hunyuan-vs-trellis.jpg`.
     keep small holes and open plank shells, and Blender's collapse decimation stalls on them at 3–5× the budget.
     That is why `driftwood_post.py` offers `--simplifier fqmr` (palms), `--remesh` (piling, sailboat) and a plain
     collapse (rocks, driftwood, hut, shrine).
-  - The wreck stays at 7.7 k tris: every decimator tears its thin planks (see §5).
+  - The wreck is made of open, single-sided plank shells, and every decimator tore them apart (7.7 k tris at best).
+    `--solidify 0.004 --remesh 0.005` thickens the shells first and then voxel-remeshes them. The result is a 3.0 k
+    LOD0 plus a 1.4 k `wreck-lod1`, with chunkier planks than the reference.
+  - Flat items (starfish) come back as a flat, open sheet. `--up x90` stands them up the right way, then `--remesh 0.025`
+    closes them. Before `--up` could rotate anything, the glTF import had to be switched out of QUATERNION mode.
+  - Palm frond `frond-a` (a straight pinnate leaf) fell apart into loose leaflets and was dropped. The curled
+    `frond-b` survived.
   - A sheet of several objects comes back as one tight pile (the clutter sheet did). So small objects each get
     their own crop via `split_sheet.py`.
 - **Hunyuan3D-2 runs on Apple Silicon, with caveats:**
@@ -165,7 +172,8 @@ Side by side: `art/driftwood-isle/round-8-assets/hunyuan-vs-trellis.jpg`.
 
 ## 5. Next
 
-- Give the wreck an LOD and a manual retopo pass in Blender. At 7.7 k it is over the 3 k hero budget.
+- Wreck (V-M2): a hand retopo in Blender so the planks read as planks. The remeshed 3 k LOD0 is blobby next to the
+  reference.
 - Emissive rune on the shrine: the atlas has the glowing diamond, and the vertex-colour build loses it.
 - Kitbash coconuts into the palms' crowns: the coconut-cluster asset exists, but TRELLIS dropped the nuts from palm-a.
 - Try TRELLIS.2 at `1024_cascade` with 20+ steps for the hut, and check a Hunyuan 2.1 PBR build against it.

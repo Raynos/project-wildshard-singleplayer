@@ -1,0 +1,20 @@
+{
+ "name": "shell-scallop",
+ "source": "scallop.glb",
+ "tris": 199,
+ "size_m": [
+  0.16,
+  0.16,
+  0.03
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#b86e18",
+  "#cd381b",
+  "#de4e2d",
+  "#e45c3f",
+  "#ed6b55",
+  "#f07967"
+ ]
+}

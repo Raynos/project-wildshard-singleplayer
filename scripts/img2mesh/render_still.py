@@ -1,6 +1,8 @@
 """Render one model (glb / gltf / obj) as a 3/4 turntable still, the same light for every prop.
 
-  blender -b -P scripts/img2mesh/render_still.py -- <model> <out.png> [--size 512] [--yaw 35] [--flat]
+  blender -b -P scripts/img2mesh/render_still.py -- <model>[,<model>…] <out.png> [--size 512] [--yaw 35] [--flat]
+
+Several comma-separated models are laid out left to right in a row (a set: boulders, driftwood, shells).
 
 Eevee, sun from the front-left + a soft sky fill, orthographic-ish framing (long lens) on a light-grey backdrop.
 --flat forces flat shading on every mesh (to preview the faceted look of a raw generation).
@@ -18,11 +20,23 @@ yaw = float(argv[argv.index("--yaw") + 1]) if "--yaw" in argv else 35.0
 flat = "--flat" in argv
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
-if src.endswith(".obj"):
-    bpy.ops.wm.obj_import(filepath=src)
-else:
-    bpy.ops.import_scene.gltf(filepath=src)
+x = 0.0
+for one in src.split(","):
+    before = set(bpy.context.scene.objects)
+    if one.endswith(".obj"):
+        bpy.ops.wm.obj_import(filepath=one)
+    else:
+        bpy.ops.import_scene.gltf(filepath=one)
+    new = [o for o in bpy.context.scene.objects if o not in before]
+    roots = [o for o in new if o.parent is None]
+    bpy.context.view_layer.update()
+    xs = [(o.matrix_world @ Vector(c)).x for o in new if o.type == "MESH" for c in o.bound_box]
+    lo_x, hi_x = min(xs), max(xs)
+    for r in roots:
+        r.location.x += x - lo_x
+    x += (hi_x - lo_x) * 1.15
 
+bpy.context.view_layer.update()
 meshes = [o for o in bpy.context.scene.objects if o.type == "MESH"]
 if flat:
     for o in meshes:

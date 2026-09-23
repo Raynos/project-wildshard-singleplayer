@@ -52,6 +52,7 @@ ap.add_argument("--remesh", type=float, default=0.0, help="voxel-remesh first (v
 ap.add_argument("--simplifier", choices=["fqmr", "blender"], default="fqmr",
                 help="fqmr = fast-simplification (quadric, ignores the generator's open borders); blender = collapse")
 ap.add_argument("--planar", type=float, default=0.0, help="degrees: planar-dissolve what the collapse left over budget")
+ap.add_argument("--solidify", type=float, default=0.0, help="thicken open shells by this x size before --remesh")
 ap.add_argument("--atlas", type=int, default=0, help="also bake the generated texture to an N² WebP atlas (<name>.tex.glb)")
 a = ap.parse_args(argv)
 
@@ -69,6 +70,7 @@ bpy.ops.object.parent_clear(type="CLEAR_KEEP_TRANSFORM")
 bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 if a.up:
     ax, deg = a.up[0].upper(), float(a.up[1:])
+    hi.rotation_mode = "XYZ"  # the glTF importer leaves objects in QUATERNION mode: euler edits would be ignored
     hi.rotation_euler["XYZ".index(ax)] = math.radians(deg)
     bpy.ops.object.transform_apply(rotation=True)
 
@@ -279,6 +281,11 @@ for ai, ob in enumerate(assets):
     bpy.context.view_layer.objects.active = ob
     tris_now = sum(len(p.vertices) - 2 for p in ob.data.polygons)
     ob.data.validate()
+    if a.solidify > 0:  # open thin shells (the wreck's planks): give them thickness so a voxel remesh keeps them
+        so = ob.modifiers.new("solid", "SOLIDIFY")
+        so.thickness = a.solidify * max(ob.dimensions)
+        so.offset = 0.0
+        bpy.ops.object.modifier_apply(modifier=so.name)
     if a.remesh > 0:  # solid props: a voxel remesh drops the generator's inner shells and slivers before decimating
         rm = ob.modifiers.new("remesh", "REMESH")
         rm.mode = "VOXEL"
@@ -377,6 +384,7 @@ for ai, ob in enumerate(assets):
         v.co = Vector(np.array(v.co[:]) - pivot)
     ob.location = (0, 0, 0)
     if a.yaw:
+        ob.rotation_mode = "XYZ"
         ob.rotation_euler[2] = math.radians(a.yaw)
         bpy.ops.object.transform_apply(rotation=True)
     report.append((ob, palette))
