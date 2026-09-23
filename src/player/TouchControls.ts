@@ -75,6 +75,7 @@ export class TouchControls {
   private wasSubmerged = false; // the SURFACE disc follows player.submerged
   private wasMelee = false; // the AIM disc hides while a melee weapon is held
   private wasSpear = false; // THROW + BRACE replace AIM + JUMP while the spear is held
+  private wasBow = false; // the AIM disc reads DRAW (and rings the draw) while Nalati's bow is held
   private chargeShown = -1; // the HEAVY disc's ring (--charge) as last painted
   private lookInPad = true; // the look touch started in the LOOK pad (only those may tap-fire)
 
@@ -88,7 +89,7 @@ export class TouchControls {
     root.innerHTML = `
       <div class="ws-touch-stick"><i></i></div>
       <button class="ws-touch-use" type="button">Use</button>
-      <button class="ws-touch-disc aim" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="1.4"/><path d="M12 1.5v4.5M12 18v4.5M1.5 12H6M18 12h4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Aim</span></button>
+      <button class="ws-touch-disc aim" type="button"><i class="ws-touch-charge"></i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="1.4"/><path d="M12 1.5v4.5M12 18v4.5M1.5 12H6M18 12h4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Aim</span></button>
       <button class="ws-touch-disc heavy" type="button"><i class="ws-touch-charge"></i><svg viewBox="0 0 24 24"><path d="M12 1.5v14M9 12.5h6M12 15.5v2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M5 17.5l3 2.5M19 17.5l-3 2.5M12 21v1.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/></svg><span>Heavy</span></button>
       <button class="ws-touch-disc dodge" type="button"><svg viewBox="0 0 24 24"><path d="M5 5.5 11.5 12 5 18.5M12.5 5.5 19 12l-6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Dodge</span></button>
       <button class="ws-touch-disc swap" type="button"><svg viewBox="0 0 24 24"><path d="M4 8h13M13.5 4.5 17 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 16H7M10.5 12.5 7 16l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Swap</span></button>
@@ -110,7 +111,7 @@ export class TouchControls {
 
     // ── aim assist: runs at the top of every player update (before the camera is posed) so a nudge shows the same frame ──
     const assist = this.assist = new AimAssist(root);
-    const aim = el(root, '.aim'), heavy = el(root, '.heavy');
+    const aim = el(root, '.aim'), heavy = el(root, '.heavy'), aimLabel = el(aim, 'span');
     const prevPre = player.preUpdate;
     player.preUpdate = (dt) => {
       prevPre?.(dt);
@@ -126,6 +127,9 @@ export class TouchControls {
         if (weapons.altHeld) weapons.altHeld = false;
         aim.classList.remove('on'); heavy.classList.remove('on');
       }
+      const bow = weapons.current.id === 'bow';
+      if (bow !== this.wasBow) { this.wasBow = bow; root.classList.toggle('bow', bow); aimLabel.textContent = bow ? 'Draw' : 'Aim'; }
+      if (bow) { const c = weapons.current.charge ?? 0; if (c !== this.chargeShown) { this.chargeShown = c; aim.style.setProperty('--charge', c.toFixed(3)); } }
       if (melee) {
         const c = weapons.current.charge ?? 0;
         if (c !== this.chargeShown) { this.chargeShown = c; heavy.style.setProperty('--charge', c.toFixed(3)); heavy.classList.toggle('ready', c >= 1); }

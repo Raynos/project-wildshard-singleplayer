@@ -70,6 +70,9 @@
 .ws-touch.spear .ws-touch-disc.aim, .ws-touch.spear .ws-touch-disc.jump { display: none; }
 .ws-touch.spear .ws-touch-disc.throw, .ws-touch.spear:not(.swimming) .ws-touch-disc.brace { display: flex; }
 .ws-touch-disc.throw svg, .ws-touch-disc.brace svg { width: 42%; height: 42%; }
+/* Nalati's bow held (.bow): the AIM disc reads DRAW and its ring fills with the draw (weapons.current.charge, Bow.ts) */
+.ws-touch.bow .ws-touch-disc.aim { --charge: 0; }
+.ws-touch.bow .ws-touch-disc.aim.on .ws-touch-charge { opacity: 1; }
 /* the weapon strip (src/ui/WeaponStrip.ts; combat-E-weapon-swap.png, 3 slots per the plan): square glass slots, the held one
    outlined in cyan, ammo in the corner; tap = hold it, tap the held one = back to the last. It replaces the SWAP pill (.strip).
    Touch: right of the left disc, level with it. Desktop (.desk, controls-desktop-keys.png): a hotbar bottom-centre, key numbers. */

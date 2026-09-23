@@ -103,7 +103,7 @@ function tassel(y: number, len: number, r0: number, r1: number): THREE.BufferGeo
 
 function buildSpear(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
-  const yButt = -0.72, ySocket = 1.16;
+  const yButt = -0.9, ySocket = 1.0;
   const shaft: THREE.Vector3[][] = [];
   for (let k = 0; k <= 16; k++) { const f = k / 16, y = yButt + (ySocket - yButt) * f; shaft.push(section(10, 0.0165 - 0.003 * f, 0.0165 - 0.003 * f, y)); }
   parts.push(tube(shaft, shaftCol([[0, 0.07], [0.45, 0.07]], yButt, ySocket), { capStart: true }));
@@ -112,7 +112,7 @@ function buildSpear(): THREE.BufferGeometry {
   parts.push(tube(socket, (v, _a, out) => out.copy(IRON_DARK).lerp(IRON, v)));
   for (const y of [ySocket - 0.05, ySocket - 0.075]) parts.push(tube([section(10, 0.0168, 0.0168, y - 0.006), section(10, 0.0182, 0.0182, y), section(10, 0.0168, 0.0168, y + 0.006)], (_v, _a, out) => out.copy(CORD))); // cord binding
   parts.push(tassel(ySocket - 0.03, 0.12, 0.018, 0.045));
-  parts.push(leafHead(ySocket + 0.09, 0.26, 0.034, 0.0065));
+  parts.push(leafHead(ySocket + 0.09, 0.34, 0.046, 0.008));
   return merge(parts);
 }
 /** the javelin: a slimmer 1.4 m shaft, a narrow leaf head, a red tuft at the tail — origin at its balance point */
@@ -138,15 +138,15 @@ function pose(px: number, py: number, pz: number, dx: number, dy: number, dz: nu
   q.multiply(_qr.setFromAxisAngle(Y, roll));
   return { pos: new THREE.Vector3(px, py, pz), q };
 }
-const REST = pose(0.2, -0.3, -0.26, -0.11, 0.15, -0.98, 0.4);        // two hands, low right, the head just under the frame centre
-const COCK = pose(0.24, -0.32, -0.08, -0.1, 0.14, -0.98, 0.4);       // thrust wind-up: drawn back
-const JAB = pose(0.13, -0.22, -0.78, -0.04, 0.07, -1, 0.4);         // thrust at full extension
-const BRACED = pose(0.2, -0.56, -0.2, -0.05, 0.3, -0.95, 0.3);       // butt planted, the point at a charging boar's chest
+const REST = pose(0.22, -0.25, -0.42, -0.12, 0.13, -0.98, 0.4);       // two hands, low right, the head just under the frame centre
+const COCK = pose(0.25, -0.27, -0.26, -0.11, 0.13, -0.98, 0.4);      // thrust wind-up: drawn back
+const JAB = pose(0.13, -0.2, -0.9, -0.04, 0.06, -1, 0.4);          // thrust at full extension
+const BRACED = pose(0.2, -0.46, -0.36, -0.05, 0.3, -0.95, 0.3);      // butt planted, the point at a charging boar's chest
 const LEFT_LOW = pose(-0.3, -0.52, -0.38, 0.2, 0.42, -0.88, -0.5);   // throwing: the spear in the left hand, low left (combat-B2)
 const SPRINT = pose(0.26, -0.4, -0.3, -0.35, 0.42, -0.84, 0.6);
 const LANCE = pose(0.16, -0.3, -0.5, -0.02, 0.02, -1, 0.3);          // couched: level, dead ahead
-const JAV_COCK = pose(0.27, 0.02, 0.06, -0.06, 0.13, -0.99, 0.2);    // the javelin cocked by the right ear
-const JAV_OUT = pose(0.12, -0.08, -0.62, -0.02, 0.02, -1, 0.2);      // the throwing hand, arm out after the release
+const JAV_COCK = pose(0.3, -0.05, -0.34, -0.08, 0.1, -0.99, 0.2);    // the javelin cocked by the right ear
+const JAV_OUT = pose(0.12, -0.12, -0.72, -0.02, 0.02, -1, 0.2);      // the throwing hand, arm out after the release
 const LEFT_HAND_Y = 0.46;                                           // the left fist sits this far up the shaft from the right
 
 // ───────────────────────────── the weapon ─────────────────────────────
@@ -284,7 +284,7 @@ export class Spear implements Weapon {
     const restInv = REST.q.clone().invert();
     // the spear + the left hand (+ its forearm) as one rig; the right hand is its own rig (it leaves the shaft to throw)
     const leftArmDir = new THREE.Vector3(-0.42, -0.62, 0.66).normalize().applyQuaternion(restInv);
-    const left = forearm(leftArmDir, 0.62, 0.0165, { mirror: true });
+    const left = forearm(leftArmDir, 0.62, 0.0165);
     left.translate(0, LEFT_HAND_Y, 0);
     const spear = merge([buildSpear(), left]);
     const rightArmDir = new THREE.Vector3(0.62, -0.5, 0.6).normalize().applyQuaternion(restInv);
@@ -315,7 +315,7 @@ export class Spear implements Weapon {
     ag.setAttribute('position', (this.arcAttr = new THREE.BufferAttribute(this.arcPos, 3)));
     this.arcAttr.setUsage(THREE.DynamicDrawUsage);
     ag.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-    this.arcMat = new THREE.PointsMaterial({ color: 0x8fe3ff, size: 5, sizeAttenuation: false, transparent: true, opacity: 0, depthWrite: false, fog: false, toneMapped: false });
+    this.arcMat = new THREE.PointsMaterial({ color: 0x8fe3ff, size: 6, sizeAttenuation: false, transparent: true, opacity: 0, depthWrite: false, fog: false, toneMapped: false });
     this.arc = new THREE.Points(ag, this.arcMat);
     this.arc.frustumCulled = false; this.arc.renderOrder = 1003; this.arc.visible = false;
     this.game.scene.add(this.arc);
@@ -651,7 +651,7 @@ export class Spear implements Weapon {
     this.ring.visible = this.ringMat.opacity > 0.01;
     if (this.ring.visible) {
       this.spearRig.updateMatrix();
-      this.ring.position.set(0, 1.36, 0).applyMatrix4(this.spearRig.matrix);
+      this.ring.position.set(0, 1.25, 0).applyMatrix4(this.spearRig.matrix);
       this.ring.quaternion.copy(this.spearRig.quaternion).multiply(_q.setFromAxisAngle(_v3.set(1, 0, 0), Math.PI / 2)).multiply(_q2.setFromAxisAngle(_v3.set(0, 0, 1), t * 1.4));
       this.ring.scale.setScalar(scale * (1 + 0.06 * Math.sin(t * 5)));
     }

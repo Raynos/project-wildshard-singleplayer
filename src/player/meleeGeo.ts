@@ -105,12 +105,12 @@ export function meleeMaterial(sky: Sky, rim = 0.55): THREE.Material {
   return m;
 }
 
-/** the rider's palette (combat mockups: red wool sleeve with cream / dark embroidery, white fleece cuff, brown leather bracer) */
+/** the rider's palette — the same rider as the bow's (Bow.ts PAL): cream wool sleeves with a red ram's-horn band, a white fleece cuff, a leather bracer */
 export const RIDER = {
-  skin: lin(0xd39a78), skinDark: lin(0xb07a5a), knuckle: lin(0xc28a68),
-  leather: lin(0x5b3a24), leatherLight: lin(0x7a5236), leatherDark: lin(0x3a2416),
+  skin: lin(0xe2ae8e), skinDark: lin(0xc89478), knuckle: lin(0xd6a282),
+  leather: lin(0x86573a), leatherLight: lin(0xa8764e), leatherDark: lin(0x5a3822),
   fleece: lin(0xf1e9da), fleeceShade: lin(0xcfc3ae),
-  wool: lin(0xa3281c), woolDark: lin(0x6e1812), cream: lin(0xeadcc0), stitch: lin(0x2a1a14),
+  wool: lin(0xdccbaa), woolDark: lin(0xc4b08c), red: lin(0xa82a1c), redDark: lin(0x6a140e), stitch: lin(0x2a1a14),
 };
 
 /**
@@ -124,19 +124,19 @@ export function forearm(dir: THREE.Vector3, len = 0.6, gripR = 0.017, opts: { mi
   const all = parts;
   const fistParts: THREE.BufferGeometry[] = [], armParts: THREE.BufferGeometry[] = [];
   // ── the fist: a rounded block wrapped round the grip, four finger rolls on the knuckle side, the thumb over the top ──
-  fistParts.push(xf(blob(0.046, fl / 2, 0.043, RIDER.skin, 12, 0.25), -0.012, 0, 0.004));
+  fistParts.push(xf(blob(0.037, fl / 2, 0.035, RIDER.skin, 12, 0.25), -0.008, 0, 0.004));
   for (let k = 0; k < 4; k++) {
     const y = fl * 0.36 - k * fl * 0.24;
-    fistParts.push(xf(blob(0.017, 0.012, 0.016, k % 2 ? RIDER.skin : RIDER.knuckle, 8, 0.3), gripR + 0.008, y, 0.02));
+    fistParts.push(xf(blob(0.014, 0.0115, 0.014, k % 2 ? RIDER.skin : RIDER.knuckle, 8, 0.3), gripR + 0.006, y, 0.018));
   }
   fistParts.push(xf(blob(0.024, 0.012, 0.014, RIDER.skinDark, 8, 0.2), 0.004, fl * 0.5, 0.03, 0, 0, -0.5)); // thumb tip over the knuckles
   // ── wrist → bracer → fleece cuff → sleeve, lofted along `dir` ──
   const d = dir.clone().normalize();
   const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d);
   const origin = new THREE.Vector3(-0.012, 0, 0).addScaledVector(d, 0.025);
-  const seg = (profile: [number, number][], colorAt: ColorAt) => {
+  const seg = (profile: [number, number][], colorAt: ColorAt, capEnd = false) => {
     const rings = profile.map(([y, r]) => section(12, r, r * 0.86, y));
-    const g = tube(rings, colorAt);
+    const g = tube(rings, colorAt, { capEnd });
     g.applyQuaternion(q); g.translate(origin.x, origin.y, origin.z);
     armParts.push(g);
   };
@@ -148,14 +148,15 @@ export function forearm(dir: THREE.Vector3, len = 0.6, gripR = 0.017, opts: { mi
   });
   seg([[0.2, 0.05], [0.225, 0.064], [0.26, 0.068], [0.29, 0.062]], (v, a, o) => o.copy(RIDER.fleece).lerp(RIDER.fleeceShade, 0.3 + 0.3 * Math.sin(a * 37 + v * 9))); // fleece cuff
   const sleeve: [number, number][] = []; for (let k = 0; k <= 10; k++) { const y = 0.28 + (len - 0.28) * (k / 10); sleeve.push([y, 0.058 + 0.018 * (k / 10)]); }
-  seg(sleeve, (v, a, o) => {                                                                                                      // red wool with two embroidered bands
+  seg(sleeve, (v, a, o) => {                                                                                                      // cream wool, a red ram's-horn band
     o.copy(RIDER.wool);
     const band = (c: number, w: number) => Math.abs(v - c) < w;
-    if (band(0.18, 0.06)) o.copy(RIDER.cream).lerp(RIDER.wool, (Math.sin(a * Math.PI * 16) > 0.2 ? 1 : 0) * 0.85);
-    else if (band(0.18, 0.08)) o.copy(RIDER.stitch);
-    else if (band(0.52, 0.035)) o.copy(RIDER.cream).lerp(RIDER.woolDark, Math.sin(a * Math.PI * 24) > 0 ? 0.7 : 0);
-    return o.lerp(RIDER.woolDark, 0.25 * (0.5 + 0.5 * Math.cos(a * Math.PI * 2)));
-  });
+    if (band(0.2, 0.07)) o.copy(Math.sin(a * Math.PI * 16 + Math.sin(v * 60) * 1.2) > -0.1 ? RIDER.red : RIDER.wool);
+    else if (band(0.2, 0.09)) o.copy(RIDER.redDark);
+    else if (band(0.55, 0.03)) o.copy(RIDER.red);
+    if (Math.sin(a * Math.PI * 6 + v * 20) > 0.6) o.multiplyScalar(0.93);                                                        // wool folds
+    return o.lerp(RIDER.woolDark, 0.2 * (0.5 + 0.5 * Math.cos(a * Math.PI * 2)));
+  }, true);
   if (part !== 'arm') all.push(...fistParts);
   if (part !== 'fist') all.push(...armParts);
   const g = merge(all);

@@ -23,6 +23,7 @@ import { Gulls } from './world/Gulls';
 import { Trailside } from './world/Trailside';
 import { Hands } from './player/Hands';
 import { Sword } from './player/Sword';
+import { buildNalatiKit } from './player/nalatiKit';
 import { IronSwordPickup, ironSwordSite } from './player/IronSword';
 import type { Weapon } from './player/Weapon';
 import { Horizon } from './world/Horizon';
@@ -247,8 +248,10 @@ async function main() {
       return h ? { animal: h.animal as unknown as TargetHit['animal'], point: h.point, distance: h.distance, headshot: h.headshot } : null; // Animal.kind is any species id; the weapons only read deer / boar
     },
   };
-  // the shard hands the player its weapon (ChunkDef.weapon): the wooden sword on Driftwood Isle, the crossbow elsewhere
-  const crossbow: Weapon = chunk.weapon === 'sword'
+  // the shard hands the player its weapon (ChunkDef.weapon): the wooden sword on Driftwood Isle, the crossbow elsewhere;
+  // Nalati its own three (src/player/nalatiKit.ts: bow · sabre · spear + javelins, the weapon strip)
+  const nalatiKit = chunk.slug === 'nalati-grasslands' ? buildNalatiKit({ game, sky, player, forest }, targets, nolock) : null;
+  const crossbow: Weapon = nalatiKit ? nalatiKit.base : chunk.weapon === 'sword'
     ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock })
     : new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
   await macrotask(); // each viewmodel in its own task
@@ -256,8 +259,9 @@ async function main() {
   await macrotask();
   // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken
   const ironSword = chunk.weapon === 'sword' ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, blade: 'iron' }) : null;
-  const weapons = new Weapons(crossbow, rifle, ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : []); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
+  const weapons = new Weapons(crossbow, rifle, nalatiKit ? nalatiKit.extras : ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : [], nalatiKit?.options); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
   new TouchControls(player, weapons, params.has('touch')); // on-screen FPS controls on coarse-pointer devices (?touch=1 forces)
+  nalatiKit?.install(weapons, game); // Nalati: all three slots owned, the bow in hand, the weapon strip
   weapons.adsHeld = params.has('ads');
   await macrotask();
   const hud = new HUD({ pointerLock: !nolock });
@@ -335,7 +339,8 @@ async function main() {
 
   const hands = new Hands(sky, game.camera); // white-gloved swimming hands (shown only while player.swimming)
   if (chunk.weapon === 'sword') (crossbow as Sword).onHeavy = () => audio.swordHeavy(); // the charged overhead (Weapons does not forward it)
-  weapons.onFire = () => (weapons.current.id === 'rifle' ? audio.rifleFire() : chunk.weapon === 'sword' ? audio.swordSwing() : audio.crossbowFire());
+  const meleeHeld = () => chunk.weapon === 'sword' || nalatiKit?.melee(weapons.current.id) === true; // the swords / the sabre / the spear
+  weapons.onFire = () => (weapons.current.id === 'rifle' ? audio.rifleFire() : meleeHeld() ? audio.swordSwing() : audio.crossbowFire());
   weapons.onDry = () => audio.dryFire();
   weapons.onReloadStart = () => (weapons.current.id === 'rifle' ? audio.rifleReload() : audio.reload());
   weapons.onSwap = () => audio.weaponSwap();
@@ -343,7 +348,7 @@ async function main() {
     const dx = point.x - player.position.x, dz = point.z - player.position.z, d = Math.hypot(dx, dz);
     const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
     const pan = d > 1 ? ((dx * rx + dz * rz) / d) * 0.7 : 0, gain = 1 / (1 + d / 12);
-    if (weapons.current.id !== 'rifle' && chunk.weapon === 'sword') audio.swordHit(surface, pan, gain); else audio.boltImpact(surface, pan, gain);
+    if (weapons.current.id !== 'rifle' && meleeHeld()) audio.swordHit(surface, pan, gain); else audio.boltImpact(surface, pan, gain);
   };
   weapons.onHit = (_kind, headshot, killed) => {
     music.combat(0.7);
@@ -510,7 +515,7 @@ async function main() {
 
     // slow health regen; death → respawn at the gate
     if (health < 100 && performance.now() - lastHurt > 6000) health = Math.min(100, health + dt * 4);
-    if (health <= 0) { health = 100; hud.toast('Gored — respawning at the south gate'); hud.damageFlash(); respawn(); crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); }
+    if (health <= 0) { health = 100; hud.toast('Gored — respawning at the south gate'); hud.damageFlash(); respawn(); crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); nalatiKit?.refill(); }
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 && hud.entered);

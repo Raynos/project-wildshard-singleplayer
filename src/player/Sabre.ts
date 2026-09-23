@@ -36,12 +36,12 @@ const PASS_SENSE = 6;            // m — which side the pass slash goes: the ne
 const CHAIN_WINDOW = 3;          // s — mounted hits this close together chain
 const CHAIN_STEP = 0.1, CHAIN_MAX = 1.4;
 
-const BLADE_L = 0.66;            // m, guard to tip (the sabre is longer than the wooden sword's 0.52)
-const CURVE = 0.07;              // m the tip sits back from the grip's line (toward -X, the spine side)
+const BLADE_L = 0.62;            // m, guard to tip (the sabre is longer than the wooden sword's 0.52)
+const CURVE = 0.12;              // m the tip sits back from the grip's line (toward -X, the spine side)
 
 // ───────────────────────────── geometry (sword model space: +Y up the blade, +X the edge, +Z the flat toward the eye) ─────────────────────────────
 
-const STEEL = lin(0xc3ccd6), STEEL_EDGE = lin(0xf4f8fb), STEEL_SPINE = lin(0x7f8b99), STEEL_FULLER = lin(0x5d6878);
+const STEEL = lin(0xd3d6d9), STEEL_EDGE = lin(0xffffff), STEEL_SPINE = lin(0x8b9199), STEEL_FULLER = lin(0x6a7078);
 const GOLD = lin(0xd9a441), GOLD_LIGHT = lin(0xf3d07a), GOLD_DARK = lin(0x8a5a1e);
 const GRIP = lin(0x3b2417), GRIP_LIGHT = lin(0x5e3b25);
 
@@ -52,7 +52,7 @@ const SECTION: [number, number, 'edge' | 'bevel' | 'flat' | 'fuller' | 'spine'][
 ];
 
 /** rest: hand low right, the curved blade rising up-left toward the frame centre (the mockup's hold) */
-export const SABRE_REST = key(0, 0.28, -0.36, -0.54, -0.36, 0.78, -0.5, 0.45);
+export const SABRE_REST = key(0, 0.3, -0.27, -0.52, -0.3, 0.72, -0.62, 0.2);
 const SABRE_CHARGE = key(0, 0.27, -0.08, -0.5, 0.2, 0.93, 0.3, 0.25);
 const SABRE_SPRINT = key(0, 0.35, -0.47, -0.58, -0.18, 0.5, -0.85, 0.7);
 
@@ -61,7 +61,7 @@ function buildSabre(material: THREE.Material): SwordRig & { tipX: number } {
   const guardY = 0.062, y0 = guardY + 0.012, tipY = y0 + BLADE_L;
   // ── blade: the centreline bows back quadratically; the width narrows to 70 % then flares (the yelman) before the point ──
   const cx = (f: number) => -CURVE * f * f;
-  const half = (f: number) => (f < 0.72 ? 0.017 - 0.004 * f / 0.72 : f < 0.86 ? 0.013 + 0.003 * (f - 0.72) / 0.14 : 0.016 * Math.max(0, 1 - (f - 0.86) / 0.14) ** 0.8);
+  const half = (f: number) => (f < 0.72 ? 0.021 - 0.004 * f / 0.72 : f < 0.86 ? 0.017 + 0.004 * (f - 0.72) / 0.14 : 0.021 * Math.max(0, 1 - (f - 0.86) / 0.14) ** 0.8);
   const thick = (f: number) => 0.0042 - 0.0026 * f;
   const fs = [0, 0.06, 0.14, 0.24, 0.34, 0.44, 0.54, 0.64, 0.72, 0.8, 0.86, 0.91, 0.95, 0.98, 1];
   const rings = fs.map((f) => {
@@ -99,7 +99,7 @@ function buildSabre(material: THREE.Material): SwordRig & { tipX: number } {
   parts.push(xf(blob(0.007, 0.007, 0.007, GOLD_LIGHT, 8, 0.2), 0.016, -0.076, 0));
   // ── the rider's right hand round the grip; the forearm (its own rig, the cheap elbow) leaves toward the lower right ──
   const restInv = SABRE_REST.q.clone().invert();
-  const armDir = new THREE.Vector3(0.74, -0.6, 0.3).normalize().applyQuaternion(restInv);
+  const armDir = new THREE.Vector3(0.86, -0.42, 0.28).normalize().applyQuaternion(restInv);
   parts.push(forearm(armDir, 0.62, 0.016, { part: 'fist', fistLen: 0.09 }));
   const arms = forearm(armDir, 0.62, 0.016, { part: 'arm', fistLen: 0.09 });
   const sword = merge(parts);
@@ -122,7 +122,7 @@ const S_SLASH: Move = {
   ],
   windup: 0.07, slashEnd: 0.24, total: 0.35,
   damage: 1, stagger: 0, sweep: 1, hitStop: 0.045, fan: WIDE,
-  trail: { from: 0.45, color: ice(0.78, 0.92, 1), alpha: 0.7, inner: 0, life: 0.14 },
+  trail: { from: 0.58, color: ice(0.78, 0.92, 1), alpha: 0.65, inner: 0, life: 0.14 },
 };
 const S_BACKHAND: Move = {
   name: 'backhand',
@@ -133,7 +133,7 @@ const S_BACKHAND: Move = {
   ],
   windup: 0.06, slashEnd: 0.22, total: 0.34,
   damage: 1, stagger: 0, sweep: -1, hitStop: 0.045, fan: WIDE,
-  trail: { from: 0.45, color: ice(0.72, 0.88, 1), alpha: 0.7, inner: 0.04, life: 0.14 },
+  trail: { from: 0.58, color: ice(0.72, 0.88, 1), alpha: 0.65, inner: 0, life: 0.14 },
 };
 const S_FINISHER: Move = {
   name: 'finisher',
@@ -144,7 +144,7 @@ const S_FINISHER: Move = {
   ],
   windup: 0.1, slashEnd: 0.28, total: 0.44,
   damage: 16 / 12, stagger: 0.25, sweep: 0.5, hitStop: 0.06, fan: DIAG,
-  trail: { from: 0.38, color: ice(0.86, 0.95, 1), alpha: 0.8, inner: 0.1, life: 0.16 },
+  trail: { from: 0.5, color: ice(0.86, 0.95, 1), alpha: 0.75, inner: 0.05, life: 0.16 },
 };
 const S_HEAVY: Move = {
   name: 'heavy',
@@ -161,9 +161,9 @@ const S_HEAVY: Move = {
 export const PASS_RIGHT: Move = {
   name: 'pass-right',
   keys: [
-    key(0.09, 0.4, -0.02, -0.5, 0.35, 0.85, -0.4, 1.2),
-    key(0.18, 0.5, -0.3, -0.42, 0.95, 0.1, -0.3, 1.4),
-    key(0.3, 0.44, -0.5, -0.22, 0.7, -0.45, 0.55, 1.5),
+    key(0.09, 0.36, -0.08, -0.5, 0.35, 0.8, -0.5, 1.2),      // raised forward-right
+    key(0.18, 0.4, -0.3, -0.5, 0.55, -0.05, -0.83, 1.4),     // cutting down across the lower right
+    key(0.3, 0.38, -0.42, -0.36, 0.75, -0.45, -0.2, 1.5),    // follow-through low right, trailing back along the flank
   ],
   windup: 0.09, slashEnd: 0.3, total: 0.5,
   damage: 1, stagger: 1, sweep: -1, hitStop: 0.05, reach: MOUNT_REACH,
@@ -174,9 +174,9 @@ export const PASS_RIGHT: Move = {
 export const PASS_LEFT: Move = {
   name: 'pass-left',
   keys: [
-    key(0.09, 0.22, -0.06, -0.5, -0.2, 0.9, -0.38, -0.4),
-    key(0.18, -0.12, -0.3, -0.46, -0.95, 0.12, -0.3, -0.7),
-    key(0.3, -0.26, -0.48, -0.26, -0.72, -0.42, 0.55, -0.9),
+    key(0.09, 0.25, -0.12, -0.5, -0.1, 0.85, -0.5, -0.4),    // raised, cocked across the body
+    key(0.18, 0.05, -0.3, -0.52, -0.6, -0.05, -0.8, -0.7),   // the backhand down across the lower left
+    key(0.3, -0.15, -0.42, -0.4, -0.8, -0.45, -0.2, -0.9),   // follow-through low left
   ],
   windup: 0.09, slashEnd: 0.3, total: 0.5,
   damage: 1, stagger: 1, sweep: 1, hitStop: 0.05, reach: MOUNT_REACH,

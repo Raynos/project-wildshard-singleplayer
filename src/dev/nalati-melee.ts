@@ -3,6 +3,7 @@
 // http://127.0.0.1:5188/dev/nalati-melee.html?chunk=nalati-grasslands&nolock=1&skipintro=1&x=&z=&yaw=&pitch=
 //   &weapon=sabre|spear      start holding it                 &touch=1&tier=phone   the phone layout (390×844)
 //   &showcase=1              a boar 2.4 m ahead, pinned idle  &charge=1             a boar 22 m ahead that charges you (brace test)
+//                                                            &chargeAt=s           when (game clock; or `window.__charge = true`)
 //   &brace=1                 hold the spear's brace           &windup=1             hold a javelin wound up (the arc)
 //   &slow=5                  sabre swings in slow motion      &inspect=1            showcase pose
 // window.__world = { ...bootstrap(), animals, weapons, kit, hud } — `__world.weapons.tryFire()`, `__world.kit.spear.adsHeld = true`,
@@ -76,7 +77,8 @@ if (params.has('windup')) setTimeout(() => { weapons.adsHeld = true; }, 600);
 
 game.onUpdate((dt, t) => {
   for (const a of pinned) if (a.alive) { a.state = 'idle'; a.setMotion(a.desiredYaw, 0); a.lookTarget.copy(player.position); a.lookWeight = 0.6; }
-  if (charger?.alive === true && t > world.num('chargeAt', 2)) charger.setMotion(Math.atan2(player.position.x - charger.position.x, player.position.z - charger.position.z), 7.5, 6);
+  const go = (window as { __charge?: boolean }).__charge === true || t > world.num('chargeAt', 2);
+  if (charger?.alive === true && go) charger.setMotion(Math.atan2(player.position.x - charger.position.x, player.position.z - charger.position.z), 7.5, 6);
   animals.update(dt, t, player.position, player.sprinting);
   weapons.update(dt, t);
   audio.listenerYaw = player.yaw;
