@@ -11,6 +11,7 @@ import { getAimTargets, meleeLock, targetRadius, type AimTarget } from './AimTar
 import { segmentBlocked } from './MeleeSweep';
 import { worldTime } from '../core/time';
 import { CameraFX } from './CameraFX';
+import { Impacts } from '../fx/Impacts';
 
 /**
  * Sword — the Driftwood Isle melee weapon (`ChunkDef.weapon === 'sword'`): a low-poly wooden sword (pale carved blade
@@ -86,6 +87,7 @@ const LUNGE_STOP = 1.1;              // m short of the body edge where the lunge
 const LUNGE_SPEED = 22;              // m/s …
 const LUNGE_MIN_T = 0.08, LUNGE_MAX_T = 0.15; // … clamped to this duration
 const TRAIL_SAMPLES = 20;
+const TRAIL_SUB = 3;                 // Catmull-Rom subdivisions per gap between two trail samples
 const HIT_MAX = 8;                   // animals one swing can strike
 const SWEEP_K = 5;                   // rays along the blade, grip → tip …
 const SWEEP_EXT = [0.12, 0.24, 0.36, 0.48] as const; // … each continued this far (rad) BELOW the blade, pitched down in camera space
@@ -300,6 +302,7 @@ class Stars {
 
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3(), _push = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _e = new THREE.Euler();
+const _ta0 = new THREE.Vector3(), _ta1 = new THREE.Vector3(), _tb0 = new THREE.Vector3(), _tb1 = new THREE.Vector3();
 const _b = new THREE.Vector3(), _g0 = new THREE.Vector3(), _g1 = new THREE.Vector3(), _t0 = new THREE.Vector3(), _t1 = new THREE.Vector3(), _hitPoint = new THREE.Vector3();
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 
@@ -381,6 +384,8 @@ export class Sword implements Weapon {
   private cooldown = 0;
   private hitDone = false; private kicked = false;
   private fx: CameraFX;
+  private impacts: Impacts;
+  private iron: boolean;
   private jolt = 0;
   // heavy
   private mouseHeld = false; private heldPrev = false;
@@ -401,6 +406,7 @@ export class Sword implements Weapon {
   private trailT = new Float32Array(TRAIL_SAMPLES).fill(-1); private trailHead = 0; private trailN = 0;
   private trailStyle = SLASH.trail;
   private trailColor: THREE.IUniform<THREE.Color> = { value: new THREE.Color(1, 1, 1) };
+  private trailInner: THREE.IUniform<number> = { value: 0 };
   private stars = new Stars();
   private glint = new Glint();
   private time = 0;
@@ -411,6 +417,8 @@ export class Sword implements Weapon {
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.damage = opts.blade === 'iron' ? DAMAGE_IRON : DAMAGE_WOOD;
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
+    this.impacts = Impacts.for(this.game); // contact debris (C4), in the scene from boot so its program is precompiled
+    this.iron = opts.blade === 'iron';
     this.fx = CameraFX.for(this.game); // camera kick / FOV punch (C3); after bootstrap, so it layers on Player.update's camera
     this.buildViewmodel(opts.blade ?? 'wood');
     this.buildTrail();
@@ -534,20 +542,31 @@ export class Sword implements Weapon {
     this.model.add(clearer);
   }
 
-  /** the arc trail: a ribbon of the last TRAIL_SAMPLES blade positions (the outer part of the blade, per move), additive, alpha by age */
+  /**
+   * the arc trail (C4): a ribbon of the last TRAIL_SAMPLES blade positions (the outer part of the blade, per move), each
+   * gap between two samples subdivided TRAIL_SUB times along a Catmull-Rom curve so a fast slash reads as a smooth arc,
+   * not a polyline; additive, one draw call. Alpha by age per vertex; across the ribbon (`aEdge` 0 inner → 1 tip) the
+   * fragment feathers the inner edge to the move's `inner` alpha and lays a bright core line along the tip.
+   */
   private buildTrail(): void {
     const g = new THREE.BufferGeometry();
-    const quads = TRAIL_SAMPLES - 1;
+    const quads = (TRAIL_SAMPLES - 1) * TRAIL_SUB;
     this.trailPos = new Float32Array(quads * 6 * 3); this.trailAlpha = new Float32Array(quads * 6);
+    const edge = new Float32Array(quads * 6);
+    for (let q = 0; q < quads; q++) { edge[q * 6] = 0; edge[q * 6 + 1] = 1; edge[q * 6 + 2] = 1; edge[q * 6 + 3] = 0; edge[q * 6 + 4] = 1; edge[q * 6 + 5] = 0; }
     g.setAttribute('position', (this.trailPosAttr = new THREE.BufferAttribute(this.trailPos, 3)));
     g.setAttribute('aAlpha', (this.trailAlphaAttr = new THREE.BufferAttribute(this.trailAlpha, 1)));
+    g.setAttribute('aEdge', new THREE.BufferAttribute(edge, 1));
     this.trailPosAttr.setUsage(THREE.DynamicDrawUsage); this.trailAlphaAttr.setUsage(THREE.DynamicDrawUsage);
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
     g.setDrawRange(0, 0);
     this.trailMat = new THREE.ShaderMaterial({
-      uniforms: { uColor: this.trailColor },
-      vertexShader: `attribute float aAlpha; varying float vA; void main(){ vA = aAlpha; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-      fragmentShader: `uniform vec3 uColor; varying float vA; void main(){ gl_FragColor = vec4(uColor, vA); }`,
+      uniforms: { uColor: this.trailColor, uInner: this.trailInner },
+      vertexShader: `attribute float aAlpha; attribute float aEdge; varying float vA; varying float vE; void main(){ vA = aAlpha; vE = aEdge; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: `uniform vec3 uColor; uniform float uInner; varying float vA; varying float vE; void main(){
+        float body = mix(uInner, 1.0, smoothstep(0.0, 0.85, vE));
+        float core = smoothstep(0.78, 0.96, vE) * (1.0 - smoothstep(0.985, 1.0, vE));
+        gl_FragColor = vec4(uColor * (1.0 + core * 0.8), vA * (body * (1.0 - core * 0.3) + core * 0.9)); }`,
       transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false,
     });
     this.trail = new THREE.Mesh(g, this.trailMat);
@@ -569,24 +588,42 @@ export class Sword implements Weapon {
     this.trailB[i * 3] = _v2.x; this.trailB[i * 3 + 1] = _v2.y; this.trailB[i * 3 + 2] = _v2.z;
     this.trailT[i] = this.time;
   }
+  /** ring slot of the k-th oldest live sample, clamped into [0, n) (the curve's end tangents repeat the end points) */
+  private trailIdx(k: number, n: number): number { const c = k < 0 ? 0 : k >= n ? n - 1 : k; return (this.trailHead - n + c + TRAIL_SAMPLES) % TRAIL_SAMPLES; }
+  /** Catmull-Rom through ring samples k-1 … k+2 of `src` at u ∈ [0, 1] → out */
+  private trailCurve(src: Float32Array, k: number, n: number, u: number, out: THREE.Vector3): THREE.Vector3 {
+    const i0 = this.trailIdx(k - 1, n) * 3, i1 = this.trailIdx(k, n) * 3, i2 = this.trailIdx(k + 1, n) * 3, i3 = this.trailIdx(k + 2, n) * 3;
+    const u2 = u * u, u3 = u2 * u;
+    const b0 = -0.5 * u3 + u2 - 0.5 * u, b1 = 1.5 * u3 - 2.5 * u2 + 1, b2 = -1.5 * u3 + 2 * u2 + 0.5 * u, b3 = 0.5 * u3 - 0.5 * u2;
+    return out.set(
+      (src[i0] ?? 0) * b0 + (src[i1] ?? 0) * b1 + (src[i2] ?? 0) * b2 + (src[i3] ?? 0) * b3,
+      (src[i0 + 1] ?? 0) * b0 + (src[i1 + 1] ?? 0) * b1 + (src[i2 + 1] ?? 0) * b2 + (src[i3 + 1] ?? 0) * b3,
+      (src[i0 + 2] ?? 0) * b0 + (src[i1 + 2] ?? 0) * b1 + (src[i2 + 2] ?? 0) * b2 + (src[i3 + 2] ?? 0) * b3,
+    );
+  }
   private trailRebuild(): void {
-    // walk the ring oldest → newest, quad per consecutive pair; alpha fades with age and toward the inner edge
+    // walk the ring oldest → newest; each gap is TRAIL_SUB quads on the curve; alpha fades with age (the edge fade is in the shader)
     let live = 0, q = 0;
     const P = this.trailPos, A = this.trailAlpha, n = this.trailN, st = this.trailStyle;
-    const life = st.life * this.swingScale;
+    const life = st.life * this.swingScale, outer = st.alpha;
+    this.trailInner.value = st.inner;
     for (let k = 0; k < n - 1; k++) {
-      const i0 = (this.trailHead - n + k + TRAIL_SAMPLES) % TRAIL_SAMPLES, i1 = (i0 + 1) % TRAIL_SAMPLES;
-      const a0 = clamp01(1 - (this.time - (this.trailT[i0] ?? 0)) / life), a1 = clamp01(1 - (this.time - (this.trailT[i1] ?? 0)) / life);
-      if (a0 <= 0 && a1 <= 0) continue;
+      const t0 = this.trailT[this.trailIdx(k, n)] ?? 0, t1 = this.trailT[this.trailIdx(k + 1, n)] ?? 0;
+      const g0 = clamp01(1 - (this.time - t0) / life), g1 = clamp01(1 - (this.time - t1) / life);
+      if (g0 <= 0 && g1 <= 0) continue;
       live++;
-      const o = q * 18, oa = q * 6; q++;
-      const put = (slot: number, src: Float32Array, idx: number, alpha: number) => {
-        P[o + slot * 3] = src[idx * 3] ?? 0; P[o + slot * 3 + 1] = src[idx * 3 + 1] ?? 0; P[o + slot * 3 + 2] = src[idx * 3 + 2] ?? 0; A[oa + slot] = alpha;
-      };
-      const inner = st.inner, outer = st.alpha;
-      // tri 1: A0 B0 B1 · tri 2: A0 B1 A1  (A = inner edge, B = tip)
-      put(0, this.trailA, i0, a0 * a0 * inner); put(1, this.trailB, i0, a0 * outer); put(2, this.trailB, i1, a1 * outer);
-      put(3, this.trailA, i0, a0 * a0 * inner); put(4, this.trailB, i1, a1 * outer); put(5, this.trailA, i1, a1 * a1 * inner);
+      for (let sub = 0; sub < TRAIL_SUB; sub++) {
+        const u0 = sub / TRAIL_SUB, u1 = (sub + 1) / TRAIL_SUB;
+        const aa = (g0 + (g1 - g0) * u0) * outer, ab = (g0 + (g1 - g0) * u1) * outer;
+        this.trailCurve(this.trailA, k, n, u0, _ta0); this.trailCurve(this.trailB, k, n, u0, _tb0);
+        this.trailCurve(this.trailA, k, n, u1, _ta1); this.trailCurve(this.trailB, k, n, u1, _tb1);
+        const o = q * 18, oa = q * 6; q++;
+        // tri 1: A0 B0 B1 · tri 2: A0 B1 A1  (A = inner edge, B = tip) — aEdge is baked in that order
+        P[o] = _ta0.x; P[o + 1] = _ta0.y; P[o + 2] = _ta0.z; P[o + 3] = _tb0.x; P[o + 4] = _tb0.y; P[o + 5] = _tb0.z;
+        P[o + 6] = _tb1.x; P[o + 7] = _tb1.y; P[o + 8] = _tb1.z; P[o + 9] = _ta0.x; P[o + 10] = _ta0.y; P[o + 11] = _ta0.z;
+        P[o + 12] = _tb1.x; P[o + 13] = _tb1.y; P[o + 14] = _tb1.z; P[o + 15] = _ta1.x; P[o + 16] = _ta1.y; P[o + 17] = _ta1.z;
+        A[oa] = aa * aa / Math.max(outer, 1e-3); A[oa + 1] = aa; A[oa + 2] = ab; A[oa + 3] = aa * aa / Math.max(outer, 1e-3); A[oa + 4] = ab; A[oa + 5] = ab * ab / Math.max(outer, 1e-3);
+      }
     }
     this.trail.geometry.setDrawRange(0, q * 6);
     this.trail.visible = live > 0;
@@ -657,6 +694,13 @@ export class Sword implements Weapon {
     // move's 60 / 90 / 140 ms; the stars, trail fade and camera kick run on worldTime.realDt through it
     if (!this.hitDone) { this.hitDone = true; this.game.hitStop(move.hitStop * this.swingScale); this.jolt = move === HEAVY ? 1.6 : 1; this.fx.kick(move.kick.pitch * 0.5, move.kick.roll * 0.5); }
     this.stars.burst(point, _fwd, move === HEAVY ? 14 : 9);
+    // contact debris by what was struck (C4): shell shards off a crab, splinters off the sailor, a sand puff at anything
+    // else's feet; the iron blade throws sparks off shell and timber
+    const heavyK = move === HEAVY ? 1.6 : 1;
+    if (animal.kind === 'crab') this.impacts.burst('shell', point, _push, Math.round(9 * heavyK));
+    else if (animal.kind === 'sailor') this.impacts.burst('wood', point, _push, Math.round(8 * heavyK));
+    else { _v3.set(point.x, animal.position.y + 0.05, point.z); this.impacts.burst('sand', _v3, _push, Math.round(10 * heavyK)); }
+    if (this.iron && (animal.kind === 'crab' || animal.kind === 'sailor')) this.impacts.burst('sparks', point, _push, Math.round(10 * heavyK));
     this.onHit?.(animal.kind, false, killed);
     this.onImpact?.('flesh', point);
   }
