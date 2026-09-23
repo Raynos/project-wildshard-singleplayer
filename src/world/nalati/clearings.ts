@@ -14,8 +14,8 @@ export const POI_CLEARINGS: Clearing[] = [
   { x: 0, z: 160, r: 24 },      // the bridge and its ramps
   { x: 95, z: -200, r: 16 },    // the summer yurts
   { x: 170, z: -20, r: 20 },    // Eagle Rock
-  { x: 20, z: -170, r: 16 },    // the balbal circle
-  { x: -30, z: -60, r: 10 },    // the Wind Cairn
+  { x: 34, z: -150, r: 16 },    // the balbal circle (BALBAL_KNOLL)
+  { x: -58, z: -222, r: 10 },   // the Wind Cairn (CAIRN, the south rim)
   { x: -124, z: -96, r: 9 },    // the great kurgan's entrance
   { x: -158, z: -162, r: 9 },   // the leopard's cave porch
 ];
