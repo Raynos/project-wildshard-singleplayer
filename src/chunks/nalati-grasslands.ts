@@ -61,7 +61,8 @@ const SKY_ROAD_Y: [number, number] = [-8.6, 30.8];
 /** the plateau brook: from the Crags' north foot, NW across the Sky Grassland to the waterfall notch */
 export const BROOK: Vec2[] = [[-150, -168], [-118, -150], [-80, -146], [-40, -128], [-6, -104], [22, -80], [42, -58], [54, -40], [60, -28]];
 export const EAGLE_ROCK = { x: 170, z: -20, top: 50 };
-export const BALBAL_KNOLL = { x: 20, z: -170, r: 12, y: 40 };
+/** the balbal knoll: the highest open point of the plateau (flat top at `y`, radius `r`), clear of the S road's valley */
+export const BALBAL_KNOLL = { x: 34, z: -150, r: 12, y: 40 };
 /** kurgan mounds (the POI agent adds kerbs + stones); `great` = the Golden King's dungeon mound */
 export const KURGANS: { x: number; z: number; r: number; h: number; great?: boolean }[] = [
   { x: -140, z: -105, r: 19, h: 6.5, great: true },
@@ -73,8 +74,8 @@ export const CRAGS = { x: -190, z: -195, peak: 75 };
 export const SW_SPUR = { x: 215, z: -222 };
 export const SNOW_LINE = 55;
 export const SUMMER_YURTS = { x: 95, z: -200 };
-/** the Storm Titan's cairn (a stone pile on the open plateau) */
-export const CAIRN = { x: -30, z: -60 };
+/** the Storm Titan's cairn (a stone pile on the plateau's south rim, under the snow range) */
+export const CAIRN = { x: -58, z: -222 };
 
 /** on the N road, 18 m in from the gate, facing south: the whole climb ahead (yaw 0 faces −z = south) */
 const SPAWN = { x: 0, z: 232, yaw: 0 };
@@ -184,10 +185,6 @@ function landscape(x: number, z: number, n: Noise2D, n2: Noise2D): number {
     const b = polyNearest(x, z, BROOK, BROOK_CUM);
     if (b.d < 8) h -= smoothstep(6.5, 1.2, b.d) * (1.1 + b.f * 0.6);
   }
-  // Eagle Rock: a steep knoll on the rim (the tor's granite blocks are a POI mesh on top)
-  { const d = Math.hypot(x - EAGLE_ROCK.x, z - EAGLE_ROCK.z) + n2.get(x * 0.08, z * 0.08) * 4; h += smoothstep(30, 9, d) * 11; }
-  // the balbal knoll: the highest open point of the plateau, a flat top for the stone ring
-  { const d = Math.hypot(x - BALBAL_KNOLL.x, z - BALBAL_KNOLL.z); h += smoothstep(38, BALBAL_KNOLL.r, d) * 5.2; }
   // kurgan mounds: smooth domes
   for (const k of KURGANS) {
     const d = Math.hypot(x - k.x, z - k.z);
@@ -220,6 +217,25 @@ function landscape(x: number, z: number, n: Noise2D, n2: Noise2D): number {
   h = gateValley(h, x + CHUNK_HALF, z);   // E (x = −250)
   h = gateValley(h, CHUNK_HALF - x, z);   // W (x = +250)
   h = gateValley(h, z + CHUNK_HALF, x);   // S (z = −250)
+  // Eagle Rock (after the gates: the W road's valley passes right under it): a broad granite shoulder on the rim
+  // rising to a +40 crown for the tor (the POI's blocks stand on it to +50), a soft max so it only raises the ground
+  {
+    const d = Math.hypot(x - EAGLE_ROCK.x, z - EAGLE_ROCK.z) + n2.get(x * 0.08, z * 0.08) * 4;
+    if (d < 60) {
+      const tor = 40 - Math.max(0, d - 7) ** 1.12 * 0.5;
+      h += (tor - h) * smoothstep(-2, 2, tor - h) * smoothstep(60, 38, d);
+    }
+  }
+  // the balbal knoll, after the gates so no valley cuts it: a flat top at +40 for the stone ring, shoulders falling
+  // ~1 : 4 into the plateau (a soft max, so it only ever raises the ground)
+  {
+    const d = Math.hypot(x - BALBAL_KNOLL.x, z - BALBAL_KNOLL.z) + n2.get(x * 0.05, z * 0.05) * 3;
+    if (d < 70) {
+      const knoll = BALBAL_KNOLL.y - Math.max(0, d - BALBAL_KNOLL.r) ** 1.15 * 0.26;
+      const k = smoothstep(-2, 2, knoll - h);
+      h += (knoll - h) * k * smoothstep(70, 45, d);
+    }
+  }
   return h;
 }
 
@@ -227,7 +243,7 @@ function landscape(x: number, z: number, n: Noise2D, n2: Noise2D): number {
 
 /** the S road across the plateau to the top of the sky road; the W road past Eagle Rock; the E road to the kurgans; the camp spur */
 const S_ROAD: Vec2[] = [[0, -CHUNK_HALF], [0, -CHUNK_HALF + ROAD_LENGTH], [-6, -150], [-2, -110], [12, -70], [18, -38]];
-const W_ROAD: Vec2[] = [[CHUNK_HALF, 0], [CHUNK_HALF - ROAD_LENGTH, 0], [165, -45], [110, -52], [60, -46], [18, -38]];
+const W_ROAD: Vec2[] = [[CHUNK_HALF, 0], [CHUNK_HALF - ROAD_LENGTH, 0], [198, -36], [168, -60], [112, -58], [60, -48], [18, -38]]; // round the south of Eagle Rock
 const E_ROAD: Vec2[] = [[-CHUNK_HALF, 0], [-CHUNK_HALF + ROAD_LENGTH, 0], [-176, -34], [-150, -60], [-118, -82]];
 const N_ROAD: Vec2[] = [[0, CHUNK_HALF], [0, CHUNK_HALF - ROAD_LENGTH], [0, 140]];
 const CAMP_SPUR: Vec2[] = [[0, 196], [40, 202], [CAMP.x - 14, CAMP.z]];
