@@ -10,7 +10,7 @@ import { shipped } from './Stems';
 
 export const MUSIC_CREDIT = 'Music: MiniMax-Music3';
 const STABILITY = 'Powered by Stability AI';
-const NAMES: Record<Exclude<SfxSet, 'synth'>, string> = { sa3: 'Sound effects: Stable Audio 3', tangoflux: 'Sound effects: TangoFlux' };
+const NAMES: Record<Exclude<SfxSet, 'synth'>, string> = { 'sa3-medium': 'Sound effects: Stable Audio 3 Medium', sa3: 'Sound effects: Stable Audio 3 Small' };
 const loaded = new Map<SfxSet, string>();
 const listeners = new Set<() => void>();
 

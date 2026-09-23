@@ -31,7 +31,7 @@ import { Voices } from './Voices';
  *   audio.voices                         // the procedural one-shot bank (src/audio/Voices.ts + gen.ts): Driftwood's footsteps + combat layers (IslandSfx)
  *
  * Samples (docs/plans/MUSIC.md v3 row 7): `audio.loadSamples()` (main.ts calls it after ENTER WORLD — never at boot) reads
- * the selected set's public/assets/sfx/<set>/sfx.json (Settings 'sfxSet': 'sa3' Stable Audio 3 · 'tangoflux' · 'synth')
+ * the selected set's public/assets/sfx/<set>/sfx.json (Settings 'sfxSet': 'sa3-medium' Stable Audio 3 Medium · 'sa3' Small-SFX · 'synth')
  * when the build ships one and decodes what it lists: ambient `beds` (forest / island /
  * underwater, looped loopStart → loopEnd, replacing that synth bed), `hums` (pickup / shrine) and `oneshots` (a family →
  * variant files; each call picks one at random with ±40 cents / −1.5 dB of jitter). Every sound sfx.json does not cover
