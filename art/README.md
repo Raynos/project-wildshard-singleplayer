@@ -127,3 +127,10 @@ are chips on the centre seam. VITALS moves under PAUSE. **B** drops the bar: a f
 CoD Mobile arc of ATTACK / DODGE / JUMP. SWAP / HOVER sit at the bottom centre. **C** is B's layout with the crossbow:
 FIRE and AIM on the right, a small left FIRE copy above the stick, and a BOLTS readout beside VITALS. None was re-rolled.
 Plan rows: docs/plans/HUD-REFINEMENTS.md R12–R18.
+
+### Separate LOOK / ATTACK zones (`art/hud/round-10-look-zone/`, 2026-09-23, E37 → E42)
+
+After the A/B/C board, Jake: "look and attack [must] be different touch zones — doubling them up was causing a lot of
+problems". The whole right half still looks, and a LOOK rest pad sits in the bar's bottom-right. **D** puts ATTACK above
+the pad, **E** puts ATTACK inboard in the bar beside the pad, and **F** makes LOOK a joystick ring. `board.jpg` = BEFORE + D/E/F.
+**Jake picked E** (E42). D and F were copied out of `~/.codex/generated_images/<session>/` after codex hung on reconnects.
