@@ -341,13 +341,13 @@ export function bakeLight(geo: THREE.BufferGeometry, lights: BakedLight[]): void
       const dx = l.x - cx, dy = l.y - cy, dz = l.z - cz, d = Math.hypot(dx, dy, dz);
       if (d >= l.range) continue;
       const ndl = d < 1e-4 ? 1 : Math.max(0, (dx * nx + dy * ny + dz * nz) / d);
-      const f = (1 - d / l.range) ** 2 * (0.35 + 0.65 * ndl) * l.intensity;
+      const f = (1 - d / l.range) ** 1.4 * (0.35 + 0.65 * ndl) * l.intensity;
       r += c.r * f; g += c.g * f; b += c.b * f;
     }
     if (r + g + b <= 0) continue;
     for (let j = 0; j < 3; j++) {
       const v = i + j;
-      col.setXYZ(v, col.getX(v) * (1 + r * 1.6) + r * 0.05, col.getY(v) * (1 + g * 1.6) + g * 0.05, col.getZ(v) * (1 + b * 1.6) + b * 0.05);
+      col.setXYZ(v, col.getX(v) * (1 + r * 2.2) + r * 0.16, col.getY(v) * (1 + g * 2.2) + g * 0.16, col.getZ(v) * (1 + b * 2.2) + b * 0.16);
     }
   }
   col.needsUpdate = true;

@@ -194,7 +194,7 @@ async function main() {
     await slice();
     // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
     const cove = isOcean ? new Cove(sky).build(Cove.forIsland()) : null;
-    if (cove) { game.scene.add(cove.group); player.colliders.push(...cove.colliders); }
+    if (cove) { game.scene.add(cove.group); player.colliders.push(...cove.colliders); player.platforms.push((x, z) => cove.floorHeightAt(x, z)); }
     await slice();
     if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
     await macrotask();
