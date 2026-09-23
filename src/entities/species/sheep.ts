@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { loft, S, mix, sstep, srgb, setShag, paintNoise, type Paint } from './loft';
+import { loft, S, mix, sstep, srgb, setShag, setShapeFn, paintNoise, type Paint, type Station } from './loft';
 
 /**
  * Fat-tailed steppe sheep — the MODEL of the camp flock (Nalati, row B4). Sheep are not AnimalManager animals: a flock
@@ -26,15 +26,23 @@ export const SHEEP_PIVOTS: [number, number, number][] = [
 const WOOL = srgb(0.93, 0.88, 0.78), WOOL_SHADE = srgb(0.78, 0.72, 0.62), FACE = srgb(0.30, 0.20, 0.14), NOSE = srgb(0.12, 0.09, 0.08);
 const LEG = srgb(0.26, 0.19, 0.15), HOOF = srgb(0.08, 0.07, 0.06), EAR_IN = srgb(0.62, 0.42, 0.38), EYE = srgb(0.03, 0.025, 0.02);
 
+/** the fleece: two interfering lattices of lumps, 0 (trough) .. 1 (the top of a curl) */
+function woolLump(x: number, y: number, z: number): number {
+  const a = Math.sin(x * 38 + 1.3) * Math.sin(y * 41 + 0.7) * Math.sin(z * 36 + 2.1);
+  const b = Math.sin((x + z) * 27 + 0.4) * Math.sin((y - x) * 29 + 1.9) * Math.sin((z - y) * 31);
+  const v = 0.5 + 0.5 * (0.6 * a + 0.4 * b);
+  return v * v;
+}
+
 const sheepPaint: Paint = (out, x, y, z, _nx, ny, _nz, part, t) => {
   switch (part) {
-    case 'body': {
+    case 'body': case 'neck': {
       mix(out, WOOL, WOOL_SHADE, sstep(0.0, -0.8, ny) * 0.8 + sstep(0.5, 0.3, y) * 0.3);
-      const curl = 1 + 0.09 * paintNoise.fbm(x * 14 + z * 3, z * 14 - y * 9, 2);   // painted curls
-      out.multiplyScalar(curl);
+      // the fleece's own shading: dark between the curls, sunlit tops, a warmer dirtier underside
+      out.multiplyScalar(0.72 + 0.34 * woolLump(x, y, z) + 0.06 * paintNoise.fbm(x * 6 + z * 2, z * 6 - y * 4, 2));
+      out.multiplyScalar(1 + 0.08 * sstep(0.3, 0.9, ny));
       break;
     }
-    case 'neck': mix(out, WOOL, WOOL_SHADE, 0.2); break;
     case 'head': mix(out, FACE, NOSE, sstep(0.8, 0.97, t)); break;
     case 'ear': mix(out, FACE, EAR_IN, sstep(0.2, 0.8, -ny) * 0.6); break;
     case 'leg': mix(out, LEG, HOOF, sstep(0.07, 0.03, y)); break;
@@ -47,8 +55,9 @@ const sheepPaint: Paint = (out, x, y, z, _nx, ny, _nz, part, t) => {
 export function buildSheepGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
   const BODY = 0, HEAD = 1, TAIL = 6;
-  setShag(0.055);  // lumpy wool
-  parts.push(loft([
+  setShag(0.03);   // a lumpy overall silhouette …
+  setShapeFn((x, y, z, part) => (part === 'body' || part === 'neck' ? 0.034 * woolLump(x, y, z) - 0.012 : 0));   // … and curls
+  parts.push(loft(densify([
     S(0, 0.60, -0.50, 0.03, 0.03, BODY),
     S(0, 0.61, -0.47, 0.17, 0.17, BODY, TAIL, 0.4),
     S(0, 0.61, -0.38, 0.27, 0.25, BODY),
@@ -58,14 +67,14 @@ export function buildSheepGeometry(): THREE.BufferGeometry {
     S(0, 0.64, 0.34, 0.23, 0.24, BODY, HEAD, 0.2),
     S(0, 0.66, 0.43, 0.13, 0.15, BODY, HEAD, 0.6),
     S(0, 0.67, 0.46, 0.03, 0.03, HEAD),
-  ], 18, 'body', sheepPaint));
+  ], 3), 30, 'body', sheepPaint));
   // the fat rump: a heavier, lower back end (the fat tail sits inside the fleece)
-  parts.push(loft([
+  parts.push(loft(densify([
     S(0, 0.55, -0.30, 0.10, 0.10, BODY, TAIL, 0.5),
     S(0, 0.50, -0.38, 0.19, 0.14, TAIL),
     S(0, 0.46, -0.42, 0.17, 0.11, TAIL),
     S(0, 0.44, -0.44, 0.06, 0.05, TAIL),
-  ], 12, 'body', sheepPaint));
+  ], 2), 20, 'body', sheepPaint));
   setShag(0);
   // neck + head: short woolly neck, a dark narrow face, a roman nose
   parts.push(loft([
@@ -73,7 +82,8 @@ export function buildSheepGeometry(): THREE.BufferGeometry {
     S(0, 0.70, 0.46, 0.09, 0.10, HEAD),
     S(0, 0.72, 0.52, 0.07, 0.08, HEAD),
     S(0, 0.73, 0.54, 0.02, 0.02, HEAD),
-  ], 12, 'neck', sheepPaint, false, true));
+  ], 16, 'neck', sheepPaint, false, true));
+  setShapeFn(null);
   parts.push(loft([
     S(0, 0.73, 0.50, 0.05, 0.06, HEAD),
     S(0, 0.735, 0.54, 0.068, 0.075, HEAD),
@@ -123,6 +133,22 @@ export function buildSheepGeometry(): THREE.BufferGeometry {
   merged.computeBoundingSphere();
   if (merged.boundingSphere !== null) merged.boundingSphere.radius += 0.4;
   return merged;
+}
+
+/** `k` stations for every gap (linear in position, radii and skin weight) — finer rings for the wool curls */
+function densify(st: Station[], k: number): Station[] {
+  const out: Station[] = [];
+  for (let i = 0; i < st.length - 1; i++) {
+    const a = st[i], b = st[i + 1];
+    if (a === undefined || b === undefined) continue;
+    for (let j = 0; j < k; j++) {
+      const u = j / k, l = (p: number, q: number): number => p + (q - p) * u;
+      out.push({ x: l(a.x, b.x), y: l(a.y, b.y), z: l(a.z, b.z), rx: l(a.rx, b.rx), ry: l(a.ry, b.ry), top: l(a.top, b.top), bot: l(a.bot, b.bot), b0: u < 0.5 ? a.b0 : b.b0, b1: u < 0.5 ? a.b1 : b.b1, w1: l(a.w1, b.w1) });
+    }
+  }
+  const last = st[st.length - 1];
+  if (last !== undefined) out.push(last);
+  return out;
 }
 
 /** colour + rigid rig for a plain geometry (the eyes) */

@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from './registry';
-import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Station, type RGB, type Paint } from './loft';
+import { loft, tube, skinPlain, S, boneIndex, mix, sstep, srgb, paletteColors, type Station, type RGB, type Paint } from './loft';
 import { NO_FUR, smooth01, bump, clamp } from './rigs';
 import { thinkHorse, horseDamageMul } from '../Herd';
 import type { Animal } from '../Animal';
+import { lock, hash01, wrapPatch, type V3, type Skin, type Section } from '../creatureKit';
 
 /**
  * Wild steppe horse (Nalati, row B4) — a stocky Kazakh horse, 1.42 m at the withers: bay / chestnut / black / dun / grey
@@ -57,16 +58,25 @@ function horsePaint(v: VariantDef): Paint {
   const dappled = Boolean(v.traits?.['dapple']);
   return (out, x, y, z, _nx, ny, nz, part, t) => {
     switch (part) {
-      case 'body':
+      case 'body': {
         out.copy(P.coat);
+        // painted anatomy: a sheen on the croup and the shoulder, shadowed creases behind the shoulder, at the flank
+        // and where the legs join; the belly darker (the painterly light does the rest)
+        const shoulder = sstep(0.16, 0.0, Math.hypot(z - 0.42, (y - 1.22) * 1.3)), croup = sstep(0.24, 0.0, Math.hypot(z + 0.62, (y - 1.32) * 1.2));
+        out.multiplyScalar(1 + 0.22 * Math.max(shoulder, croup) * sstep(-0.2, 0.5, ny));
+        const crease = sstep(0.06, 0.0, Math.abs(z - 0.2 + (y - 1.0) * 0.5)) * sstep(1.25, 0.95, y) + sstep(0.08, 0.0, Math.abs(z + 0.3 - (y - 0.95) * 0.9)) * sstep(1.15, 0.9, y) * 0.8;
+        out.multiplyScalar(1 - 0.22 * crease);
         mix(out, out, P.belly, sstep(-0.3, -0.85, ny) * 0.8);
+        out.multiplyScalar(1 - 0.25 * sstep(-0.4, -0.95, ny) - 0.18 * sstep(0.95, 0.8, y));
         mix(out, out, P.dorsal, sstep(0.9, 0.98, ny) * sstep(0.05, 0.02, Math.abs(x)));
         if (dappled) mix(out, out, P.points, sstep(0.55, 0.85, Math.sin(x * 23 + z * 7) * Math.sin(z * 19 - y * 11)) * 0.25 * sstep(0.2, -0.3, ny));
         break;
-      case 'neck': out.copy(P.coat); mix(out, out, P.belly, sstep(-0.4, -0.9, ny) * 0.4); break;
+      }
+      case 'neck': out.copy(P.coat); mix(out, out, P.belly, sstep(-0.4, -0.9, ny) * 0.4); out.multiplyScalar(1 + 0.12 * sstep(0.2, 0.9, ny) - 0.15 * sstep(-0.3, -0.9, ny)); break;
       case 'head':
         out.copy(P.coat);
         mix(out, out, P.muzzle, sstep(0.72, 0.9, t));
+        out.multiplyScalar(1 - 0.35 * sstep(0.05, 0.02, Math.hypot(Math.abs(x) - 0.085, y - 1.69, z - 1.235)) - 0.3 * sstep(0.025, 0.01, Math.hypot(Math.abs(x) - 0.035, y - 1.37, z - 1.525)));   // eye socket, nostrils
         if (blaze) mix(out, out, P.sock, sstep(0.035, 0.02, Math.abs(x)) * sstep(0.18, 0.3, t) * sstep(0.4, 0.8, ny + nz * 0.6) * 0.95);
         break;
       case 'ear': out.copy(P.coat); mix(out, out, P.points, sstep(0.5, 1, t) * 0.8); mix(out, out, P.earIn, sstep(0.2, 0.8, nz) * 0.7); break;
@@ -130,7 +140,7 @@ function buildHorse(v: VariantDef, _rng: Rng): AnimalSpecies {
   const body = B('body'), n1 = B('neck1'), n2 = B('neck2'), hd = B('head'), bl = B('belly');
   const R = (r: number): number => r * bk;
   // torso: round croup, a long barrel, withers over the shoulder, a deep chest
-  fur.push(loft([
+  const torso = [
     S(0, 1.20, -0.87, 0.02, 0.02, body),
     S(0, 1.21, -0.855, R(0.13), R(0.15), body),
     S(0, 1.20, -0.80, R(0.21), R(0.22), body),
@@ -143,7 +153,8 @@ function buildHorse(v: VariantDef, _rng: Rng): AnimalSpecies {
     S(0, 1.17, 0.70, R(0.19), R(0.225), body, n1, 0.6, 1.02, 0.9),
     S(0, 1.18, 0.79, R(0.10), R(0.13), n1),
     S(0, 1.18, 0.815, 0.02, 0.03, n1),
-  ], 24, 'body', paint));
+  ];
+  fur.push(loft(torso, 24, 'body', paint));
   // neck: deep at the base, arched crest
   const neck = [
     S(0, 1.20, 0.46, R(0.19), R(0.27), body, n1, 0.2),
@@ -175,7 +186,7 @@ function buildHorse(v: VariantDef, _rng: Rng): AnimalSpecies {
   for (let i = 1; i < neck.length - 2; i++) {
     const prev = neck[i - 1], s = neck[i], next = neck[i + 1];
     if (prev === undefined || s === undefined || next === undefined) continue;
-    const h = (foal ? 0.035 : 0.085) * maneK * (i === 1 ? 0.7 : 1);
+    const h = (foal ? 0.03 : 0.05) * Math.min(1.3, maneK) * (i === 1 ? 0.7 : 1);
     const [cy, cz] = crestPoint(prev, s, next, h * 0.35);
     const sk = skin[i - 1] ?? [mb2, mb2, 0];
     maneSt.push(S(0, cy, cz, 0.028 * Math.min(1.3, maneK), h, sk[0], sk[1], sk[2]));
@@ -188,12 +199,42 @@ function buildHorse(v: VariantDef, _rng: Rng): AnimalSpecies {
     }
     fur.push(loft(maneSt, 8, 'mane', paint));
   }
-  fur.push(loft([
-    S(0, 1.80, 1.11, 0.03, 0.02, hd),
-    S(0, 1.78, 1.16, 0.04, 0.02, hd),
-    S(0, 1.72, 1.20, 0.028 * maneK, 0.014, hd),
-    S(0, 1.68, 1.215, 0.008, 0.006, hd),
-  ], 6, 'mane', paint, true, true, 'z'));
+  // the mane's LOCKS: flat ribbons from the crest draping over the off side of the neck (the stallion's reach past the
+  // jaw), roots on the neck, tips on the mane bones so they swing and stream (postPose); a few stand up on the near side
+  const maneSide = -1;   // falls to the right
+  const nLocks = foal ? 12 : 24;
+  for (let i = 0; i < nLocks; i++) {
+    const u = 1 + (i / (nLocks - 1)) * 3.6;                  // along neck stations 1 … 4.6
+    const i0 = Math.min(neck.length - 2, Math.floor(u)), f = u - i0;
+    const a0 = neck[i0 - 1], a1 = neck[i0], a2 = neck[i0 + 1], a3 = neck[Math.min(neck.length - 1, i0 + 2)];
+    if (a0 === undefined || a1 === undefined || a2 === undefined || a3 === undefined) continue;
+    const c0 = crestPoint(a0, a1, a2, 0), c1 = crestPoint(a1, a2, a3, 0);
+    const lerp = (p: number, q: number): number => p + (q - p) * f;
+    const cy = lerp(a1.y, a2.y), cz = lerp(a1.z, a2.z), uy = lerp(c0[2], c1[2]), uz = lerp(c0[3], c1[3]);
+    const rx = lerp(a1.rx, a2.rx), ry = lerp(a1.ry * a1.top, a2.ry * a2.top);
+    const L = (foal ? 0.07 : 0.2) * maneK * (0.8 + 0.4 * hash01(i, 5)) * (u < 1.6 ? 0.7 : 1);
+    const root = u < 2.8 ? n1 : n2, mb = u < 2.8 ? mb1 : mb2;
+    const side = maneSide;
+    const pts: V3[] = [];
+    const steps = 5;
+    for (let k = 0; k <= steps; k++) {
+      // round the neck from the crest (θ 0) down the side, then hang straight
+      const th = Math.min(1.25, (k / steps) * 1.25 * Math.min(1, L / 0.12));
+      const off = 0.012 + 0.012 * k / steps;
+      const yy = cy + uy * (ry * Math.cos(th) + off) - (k / steps) * Math.max(0, L - 0.12) * 0.9;
+      const zz = cz + uz * (ry * Math.cos(th) + off) - 0.02 * (k / steps);
+      const xx = side * (rx * Math.sin(th) + off * Math.sin(th));
+      const p: V3 = [xx, yy, zz];
+      pts.push(p);
+    }
+    const skins: Skin[] = pts.map((_, k) => (k === 0 ? [root, root, 0] : k < 2 ? [root, mb, 0.5] : [mb, mb, 0]));
+    fur.push(lock(pts, 0.05 + 0.015 * hash01(i, 2), 0.01, skins, 'mane', paint, 'z', 5));
+  }
+  // forelock: three locks over the brow
+  for (let i = 0; i < 3; i++) {
+    const x = (i - 1) * 0.022;
+    fur.push(lock([[x, 1.80, 1.10], [x * 1.4, 1.79, 1.15], [x * 1.8, 1.75, 1.19], [x * 2, 1.70, 1.215 + 0.01 * maneK]], 0.022, 0.007, [[hd, hd, 0]], 'mane', paint, 'x', 5));
+  }
   // ears
   for (const sx of [1, -1]) {
     const eb = B(sx > 0 ? 'earL' : 'earR');
@@ -221,6 +262,23 @@ function buildHorse(v: VariantDef, _rng: Rng): AnimalSpecies {
     S(0, 1.36 - 0.80 * tk, -1.0, 0.065, 0.045, t3),
     S(0, 1.36 - 0.88 * tk, -0.995, 0.02, 0.02, t3),
   ], 12, 'tail', paint, false, true));
+  // the tail's hair: strands from the dock, splaying and falling, each a little different — tips on tail3 so they stream
+  const nStr = foal ? 5 : 8;
+  for (let i = 0; i < nStr; i++) {
+    const a = (i / nStr) * Math.PI * 2 + 0.3;
+    const sx = Math.cos(a), sy = Math.sin(a);
+    const len = (0.78 + 0.14 * hash01(i, 7)) * tk;
+    const pts: V3[] = [
+      [sx * 0.02, 1.34 + sy * 0.02, -0.86],
+      [sx * 0.045, 1.24 + sy * 0.03, -0.94],
+      [sx * 0.07, 1.36 - len * 0.35, -0.985],
+      [sx * 0.085, 1.36 - len * 0.62, -1.0 - 0.02 * sy],
+      [sx * 0.08, 1.36 - len * 0.86, -1.0 - 0.03 * sy],
+      [sx * 0.06, 1.36 - len, -0.99],
+    ];
+    const skins: Skin[] = [[body, tl, 0.5], [tl, tl, 0], [tl, t2, 0.5], [t2, t2, 0], [t2, t3, 0.6], [t3, t3, 0]];
+    fur.push(lock(pts, 0.032, 0.02, skins, 'tail', paint, 'x', 5));
+  }
   // legs
   const feetF: [number, number][] = [], feetB: [number, number][] = [];
   const lk = foal ? 0.85 : 1;
@@ -263,10 +321,88 @@ function buildHorse(v: VariantDef, _rng: Rng): AnimalSpecies {
     hard.push(hoof(sx * 0.18, -0.69, hk));
     feetB.push([sx * 0.18, -0.67]);
   }
+  if (v.traits?.['tack'] === true || v.traits?.['tack'] === 1) addTack(hard, torso, B);
   return {
     bones, furParts: fur, hardParts: hard, eyeParts: eyes,
     dims: { bodyY: 1.10, bodyHalfLen: 0.78, bodyRadius: 0.30, headRadius: 0.2, legLen: 1.08, feet: [...feetF, ...feetB], halfWidth: 0.27 },
   };
+}
+
+// ── tack for the camp horses: felt blanket, saddle, stirrups, bridle + reins (taming-3 / style-B mockups) ──
+
+const FELT = srgb(0.62, 0.11, 0.08), FELT_DARK = srgb(0.36, 0.06, 0.05), ORNAMENT = srgb(0.93, 0.86, 0.66), FLEECE = srgb(0.92, 0.88, 0.80);
+const LEATHER = srgb(0.38, 0.21, 0.11), LEATHER_DARK = srgb(0.22, 0.12, 0.07), BRASS = srgb(0.78, 0.60, 0.28), IRON = srgb(0.42, 0.42, 0.44), STRAP = srgb(0.40, 0.14, 0.09);
+
+const tackPaint: Paint = (out, _x, _y, _z, _nx, ny, _nz, part, t, a) => {
+  switch (part) {
+    case 'blanket': {
+      // red felt, a cream ornament band (a running hook motif) near the hem, a fleece fringe at the hem
+      const hem = Math.min(a, 1 - a);                                 // 0 at the hem … 0.5 over the spine
+      out.copy(FELT);
+      const band = sstep(0.06, 0.09, hem) * sstep(0.16, 0.13, hem);
+      const motif = 0.5 + 0.5 * Math.sin(t * 38) * Math.sin(hem * 70);
+      mix(out, out, ORNAMENT, band * sstep(0.35, 0.65, motif));
+      mix(out, out, FELT_DARK, sstep(0.13, 0.17, hem) * sstep(0.22, 0.18, hem) * 0.8);
+      mix(out, out, FLEECE, sstep(0.035, 0.02, hem));
+      break;
+    }
+    case 'saddle': mix(out, LEATHER, LEATHER_DARK, sstep(0.3, -0.5, ny) * 0.7 + sstep(0.1, 0.0, Math.min(t, 1 - t)) * 0.4); break;
+    case 'strap': out.copy(STRAP); break;
+    case 'brass': out.copy(BRASS); break;
+    case 'iron': out.copy(IRON); break;
+    default: out.copy(LEATHER);
+  }
+};
+
+function addTack(hard: THREE.BufferGeometry[], torso: Station[], B: (n: string) => number): void {
+  const body = B('body'), hd = B('head'), n1 = B('neck1'), n2 = B('neck2');
+  const section = (z: number): Section => {
+    let a = torso[0], b = torso[torso.length - 1];
+    for (let i = 0; i < torso.length - 1; i++) { const p = torso[i], q = torso[i + 1]; if (p !== undefined && q !== undefined && p.z <= z && q.z >= z) { a = p; b = q; break; } }
+    if (a === undefined || b === undefined) return { y: 1.1, rx: 0.28, ry: 0.3 };
+    const u = b.z > a.z ? (z - a.z) / (b.z - a.z) : 0;
+    return { y: a.y + (b.y - a.y) * u, rx: a.rx + (b.rx - a.rx) * u, ry: a.ry * a.top + (b.ry * b.top - a.ry * a.top) * u };
+  };
+  const onBody = (): Skin => [body, body, 0];
+  // the felt blanket: over the back from the withers to the loin, down to mid-barrel each side
+  hard.push(wrapPatch(section, 0.0, 0.62, -1.35, 1.35, (u, v) => 0.012 + 0.006 * Math.sin(u * Math.PI) + 0.004 * Math.sin(v * 40), 14, 24, onBody, 'blanket', tackPaint));
+  // the saddle seat + skirts, pommel and cantle
+  hard.push(wrapPatch(section, 0.14, 0.5, -0.95, 0.95, (u) => 0.03 + 0.035 * Math.sin(u * Math.PI) ** 0.5 + 0.05 * sstep(0.85, 1, u) + 0.03 * sstep(0.15, 0, u), 10, 16, onBody, 'saddle', tackPaint));
+  const top = (z: number): number => { const s = section(z); return s.y + s.ry; };
+  hard.push(tube([[0, top(0.5) + 0.03, 0.5], [0, top(0.53) + 0.1, 0.53], [0, top(0.55) + 0.13, 0.555]], 0.035, 0.022, body, 'saddle', tackPaint, 8));   // pommel horn
+  hard.push(tube([[-0.12, top(0.16) + 0.06, 0.15], [0, top(0.13) + 0.1, 0.12], [0.12, top(0.16) + 0.06, 0.15]], 0.025, 0.025, body, 'saddle', tackPaint, 8));   // cantle
+  // girth, stirrup leathers and the stirrups
+  for (const sx of [1, -1]) {
+    const s = section(0.38);
+    hard.push(tube([[sx * s.rx * 0.93, s.y + 0.08, 0.36], [sx * (s.rx + 0.03), s.y - 0.15, 0.36], [sx * (s.rx + 0.05), s.y - 0.32, 0.36]], 0.012, 0.012, body, 'strap', tackPaint, 5));
+    const sy = s.y - 0.34, sxx = sx * (s.rx + 0.06);
+    hard.push(tube([[sxx, sy, 0.31], [sxx, sy - 0.1, 0.30], [sxx, sy - 0.13, 0.36], [sxx, sy - 0.1, 0.42], [sxx, sy, 0.41]], 0.009, 0.009, body, 'iron', tackPaint, 5));
+  }
+  hard.push(tube([[0.24, 1.0, 0.5], [0, 0.78, 0.5], [-0.24, 1.0, 0.5]], 0.02, 0.02, body, 'strap', tackPaint, 5));   // girth under the belly
+  // the bridle: noseband, browband, cheekpieces, throatlatch; brass rosettes; reins looping back to the withers
+  const ring = (cx: number, cy: number, cz: number, rx: number, ry: number, tiltX: number, bone: number, part: string, r: number): void => {
+    const pts: V3[] = [];
+    for (let i = 0; i <= 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      const lx = Math.cos(a) * rx, ly = Math.sin(a) * ry;
+      pts.push([cx + lx, cy + ly * Math.cos(tiltX), cz + ly * Math.sin(tiltX)]);
+    }
+    hard.push(tube(pts, r, r, bone, part, tackPaint, 5));
+  };
+  ring(0, 1.45, 1.43, 0.075, 0.08, 0.75, hd, 'strap', 0.011);    // noseband round the face
+  ring(0, 1.76, 1.08, 0.105, 0.11, -0.2, hd, 'strap', 0.011);    // headpiece / throatlatch behind the ears
+  hard.push(tube([[-0.1, 1.80, 1.14], [0, 1.83, 1.16], [0.1, 1.80, 1.14]], 0.01, 0.01, hd, 'strap', tackPaint, 5));   // browband
+  for (const sx of [1, -1]) {
+    hard.push(tube([[sx * 0.1, 1.76, 1.12], [sx * 0.095, 1.62, 1.28], [sx * 0.075, 1.46, 1.43]], 0.011, 0.011, hd, 'strap', tackPaint, 5));   // cheekpiece
+    const ros = new THREE.SphereGeometry(0.018, 8, 6); ros.scale(0.5, 1, 1); ros.translate(sx * 0.1, 1.79, 1.13);
+    hard.push(skinPlain(ros, hd, 'brass', tackPaint));
+    const bit = new THREE.TorusGeometry(0.022, 0.005, 5, 10); bit.rotateY(Math.PI / 2); bit.translate(sx * 0.07, 1.39, 1.47);
+    hard.push(skinPlain(bit, hd, 'iron', tackPaint));
+    // reins: from the bit down in a loop and back up to the pommel (skinned head → neck → body so they follow)
+    const rs: V3[] = [[sx * 0.075, 1.39, 1.47], [sx * 0.11, 1.25, 1.3], [sx * 0.16, 1.18, 1.0], [sx * 0.2, 1.3, 0.72], [sx * 0.08, 1.52, 0.56]];
+    const bones = [hd, n2, n1, body, body];
+    rs.forEach((p, i) => { const q = rs[i + 1]; if (q !== undefined) hard.push(tube([p, [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2 - 0.03, (p[2] + q[2]) / 2], q], 0.008, 0.008, bones[i] ?? body, 'strap', tackPaint, 4)); });
+  }
 }
 
 // ── the horse's own motion (SpeciesDef.postPose) ───────────────────────────────────────────────────────────────────
@@ -346,10 +482,10 @@ function horsePostPose(c: RigAnimCtx): void {
   if (eL !== undefined) eL.rotation.x += 1.2 * pin - 0.3 * headUp;
   if (eR !== undefined) eR.rotation.x += 1.2 * pin - 0.3 * headUp;
   // mane: falls to one side, swings with the stride, streams back at speed
-  const side = (c.seed * 10) % 2 < 1 ? 1 : -1;
-  const swing = Math.sin(c.phase * Math.PI * 2 - 1.2) * (0.12 + 0.25 * run) + 0.04 * Math.sin(c.t * 1.7 + c.seed * 3);
-  m1.rotation.set(-0.5 * run - 0.1 * rear, 0, side * (0.22 - 0.12 * run) + swing * 0.7);
-  m2.rotation.set(-0.6 * run - 0.1 * rear, 0, side * (0.25 - 0.14 * run) + swing);
+  // (the locks fall to the right in the model; the bones lift them back and out at speed and swing them with the stride)
+  const swing = Math.sin(c.phase * Math.PI * 2 - 1.2) * (0.1 + 0.22 * run) + 0.05 * Math.sin(c.t * 1.7 + c.seed * 3) + 0.03 * Math.sin(c.t * 4.1 + c.seed);
+  m1.rotation.set(-0.35 * run - 0.1 * rear, 0, 0.25 * run + swing * 0.7);
+  m2.rotation.set(-0.45 * run - 0.1 * rear, 0, 0.3 * run + swing);
   // tail: the dock lifts when running (Animal.ts' gallopTail), the hair lags and streams
   const lag = Math.sin(c.phase * Math.PI * 2 - 2.0);
   t2.rotation.set(-0.2 * run + 0.06 * lag * run + 0.3 * buck, 0, 0.1 * Math.sin(c.t * 1.1 + c.seed * 4) * (1 - run) + 0.08 * lag * run);
@@ -414,6 +550,10 @@ registerSpecies({
     { id: 'black', label: 'Black mare', weight: 8, rarity: 'uncommon', scale: [0.96, 1.03], tint: BLACK },
     { id: 'foal-bay', label: 'Foal', weight: 0, rarity: 'common', scale: [0.6, 0.64], hp: 70, tint: FOAL_BAY, traits: { foal: 1, mane: 0.6 } },
     { id: 'foal-chestnut', label: 'Foal', weight: 0, rarity: 'common', scale: [0.6, 0.64], hp: 70, tint: FOAL_CHESTNUT, traits: { foal: 1, mane: 0.6 } },
+    {
+      id: 'camp-bay', label: 'Camp horse', weight: 0, rarity: 'common', scale: [1.0, 1.0], traits: { tack: 1 },
+    },
+    { id: 'camp-black', label: 'Camp horse', weight: 0, rarity: 'common', scale: [1.02, 1.02], tint: BLACK, traits: { tack: 1, blaze: 1, mane: 1.3 } },
     {
       id: 'stallion', label: 'Black stallion', weight: 0, rarity: 'rare', scale: [1.08, 1.08], hp: 150, tint: BLACK,
       traits: { mane: 1.7, stallion: 1 }, mods: { chargeDamage: 25 },

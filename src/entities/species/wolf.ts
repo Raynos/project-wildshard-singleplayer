@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx } from './registry';
-import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, paintNoise, type Paint, type RGB } from './loft';
+import { loft, skinPlain, S, boneIndex, mix, sstep, srgb, paletteColors, paintNoise, type Paint, type RGB } from './loft';
 import { NO_FUR, smooth01, bump, clamp } from './rigs';
+import { tuft, hash01, type V3, type Skin } from '../creatureKit';
 import { thinkWolf } from '../Pack';
 
 /**
@@ -66,6 +67,13 @@ function canidPaint(v: VariantDef): Paint {
         mix(out, out, P.cream, sstep(0.35, 0.6, t) * sstep(0.2, -0.5, ny) * 0.9 + sstep(0.55, 0.8, t) * sstep(0.35, 0.8, Math.abs(nx)) * 0.7);
         if (dog) mix(out, out, P.cream, sstep(0.025, 0.012, Math.abs(x)) * sstep(0.4, 0.55, t) * 0.95);   // white blaze
         mix(out, out, P.nose, sstep(0.93, 0.985, t));
+        {
+          // the mask: dark rims round the eyes and a tear line down to the muzzle, a pale brow spot above each eye
+          const ex = Math.abs(x) - 0.063, ey = y - 0.889, ez = z - 0.728;
+          const de = Math.hypot(ex, ey * 1.3, ez);
+          mix(out, out, P.dark, sstep(0.034, 0.018, de) * 0.85 + sstep(0.02, 0.008, Math.abs(ex + 0.004 - (ez) * 0.3)) * sstep(0.0, -0.02, ey) * sstep(0.08, 0.02, ez) * 0.5);
+          mix(out, out, P.cream, sstep(0.028, 0.012, Math.hypot(ex + 0.004, ey - 0.026, ez + 0.01)) * 0.8);
+        }
         if (scar && x > 0 && t > 0.35 && t < 0.8) {
           const d = Math.abs((y - 0.87) + (z - 0.72) * 0.9);                                    // a slash from the brow over the left eye to the muzzle
           mix(out, out, P.scar, sstep(0.012, 0.004, d) * sstep(0.2, 0.6, nx));
@@ -74,7 +82,7 @@ function canidPaint(v: VariantDef): Paint {
       }
       case 'jaw': mix(out, P.cream, P.mouth, sstep(0.2, 0.7, ny)); mix(out, out, P.nose, sstep(0.85, 1, t) * 0.6); break;
       case 'ear': out.copy(P.back); mix(out, out, P.earIn, sstep(0.1, 0.7, nz) * 0.9); mix(out, out, P.dark, sstep(0.7, 1, t) * 0.7); break;
-      case 'leg': mix(out, P.leg, P.cream, sstep(0.1, 0.8, -nx * Math.sign(x)) * 0.6); if (!dog) mix(out, out, P.back, sstep(0.45, 0.65, y) * 0.4); break;
+      case 'leg': mix(out, P.leg, P.cream, sstep(0.1, 0.8, -nx * Math.sign(x)) * 0.6); if (!dog) mix(out, out, P.back, sstep(0.45, 0.65, y) * 0.4); out.multiplyScalar(1 - 0.22 * sstep(0.42, 0.62, y)); break;   // AO where the leg meets the body
       case 'paw': mix(out, dog ? P.cream : P.leg, P.dark, 0.35); break;
       case 'tail': out.copy(P.side); mix(out, out, P.back, sstep(0.2, 0.8, ny) * 0.8); mix(out, out, dog ? P.cream : P.dark, sstep(0.72, 0.88, t)); break;
       case 'eye': out.copy(P.eye); break;
@@ -234,10 +242,66 @@ export function buildCanid(v: VariantDef, _rng: Rng): AnimalSpecies {
     ], 10, 'paw', paint));
     feetB.push([sx * 0.11, -0.46]);
   }
+  // ── fur tufts: the silhouette a smooth loft can't give (the ruff, cheek fluff, hackles, the brush, the trousers) ──
+  addCanidTufts(fur, paint, { B, TW, HW, ruff, dog, tl, t2 });
   return {
     bones, furParts: fur, hardParts: hard, eyeParts: eyes,
     dims: { bodyY: 0.66, bodyHalfLen: 0.46, bodyRadius: 0.19, headRadius: 0.12, legLen: 0.6, feet: [...feetF, ...feetB], halfWidth: 0.16 },
   };
+}
+
+/**
+ * The canid's fur tufts (look pass): two layered rings of ruff round the neck, cheek fluff, hackles down the spine,
+ * "trousers" on the hind thighs, a belly fringe, elbow feathers and a bushy brush. Each tuft is painted like the coat
+ * at its root (seen from its outward direction) with a paler, grizzled tip.
+ */
+function addCanidTufts(fur: THREE.BufferGeometry[], paint: Paint, o: { B: (n: string) => number; TW: number; HW: number; ruff: number; dog: boolean; tl: number; t2: number }): void {
+  const { B, TW, HW, ruff, dog } = o;
+  const body = B('body'), n1 = B('neck1'), n2 = B('neck2'), hd = B('head');
+  const tipLight = srgb(0.93, 0.9, 0.84);
+  let k = 0;
+  const add = (root: V3, dir: V3, len: number, width: number, skin: Skin, region: string, regionT: number, droop = 0.3, tipSkin?: Skin): void => {
+    const L = Math.hypot(dir[0], dir[1], dir[2]) || 1;
+    const nx = dir[0] / L, ny = dir[1] / L, nz = dir[2] / L;
+    const kk = k++;
+    const tp: Paint = (out, x, y, z, _nx, _ny, _nz, _part, t, a) => {
+      paint(out, root[0], root[1], root[2], nx, ny, nz, region, regionT, a);
+      mix(out, out, tipLight, sstep(0.6, 1, t) * (dog ? 0.05 : 0.08) * (0.6 + 0.4 * hash01(kk, 3)));
+      out.multiplyScalar(0.93 + 0.07 * t);   // a touch darker at the root: the coat's depth
+      void x; void y; void z;
+    };
+    fur.push(tuft(root, dir, len * (0.85 + 0.3 * hash01(kk)), width, skin, 'tuft', tp, { droop, flat: 0.5, ...(tipSkin !== undefined ? { tipSkin } : {}) }));
+  };
+  // the ruff: two rings round the neck, layered back over the shoulders (the collie's lighter)
+  const rk = ruff * (dog ? 0.8 : 1);
+  for (const [z, y0, rr, skin, len] of [[0.47, 0.80, 0.135, [n1, n2, 0.3], 0.11], [0.37, 0.76, 0.16, [body, n1, 0.5], 0.13]] as const) {
+    const n = 17;
+    for (let i = 0; i < n; i++) {
+      const a = -Math.PI * 0.92 + (i / (n - 1)) * Math.PI * 1.84 + (hash01(i, z) - 0.5) * 0.15;   // round from one side over the top to the other
+      const sx = Math.sin(a), cy = Math.cos(a);
+      const root: V3 = [sx * rr * TW * rk * 0.8, y0 + cy * rr * 1.1 * rk * 0.8, z];
+      add(root, [sx * 0.55, cy * 0.12 - 0.18, -1], len * rk * 0.85, 0.06 * rk, [skin[0], skin[1], skin[2]], cy < -0.3 ? 'neck' : 'neck', 0.3, 0.35);
+    }
+  }
+  // throat bib
+  for (let i = 0; i < 4; i++) add([(i - 1.5) * 0.03, 0.66, 0.43 - i * 0.015], [(i - 1.5) * 0.2, -1, -0.35], 0.09 * rk, 0.04, [n1, n1, 0], 'neck', 0.3, 0.2);
+  // cheek fluff
+  for (const sx of [1, -1]) for (let i = 0; i < 3; i++) add([sx * 0.08 * HW, 0.85 - i * 0.022, 0.64 - i * 0.012], [sx * 0.7, -0.35 - i * 0.2, -0.7], 0.06, 0.036, [hd, hd, 0], 'head', 0.45, 0.2);
+  // trousers on the hind thighs + elbow feathers + belly fringe
+  for (const sx of [1, -1]) {
+    for (let i = 0; i < 3; i++) add([sx * 0.11, 0.6 - i * 0.07, -0.5 + i * 0.02], [sx * 0.25, -0.55, -0.85], 0.08, 0.05, [body, B(sx > 0 ? 'BL_hip' : 'BR_hip'), 0.7], 'body', 0.5, 0.3);
+    add([sx * 0.1, 0.44, 0.31], [sx * 0.2, -0.4, -1], 0.05, 0.022, [B(sx > 0 ? 'FL_shoulder' : 'FR_shoulder'), B(sx > 0 ? 'FL_shoulder' : 'FR_shoulder'), 0], 'leg', 0.5, 0.3);
+  }
+  for (let i = 0; i < 5; i++) add([(i % 2 ? 0.05 : -0.05), 0.49, 0.15 - i * 0.08], [0, -0.6, -1], 0.045, 0.04, [body, B('belly'), 0.5], 'body', 0.5, 0.1);
+  // the brush: tufts all round the tail, longest in the middle
+  const tailPts: [number, number, number, number][] = [[0.66, -0.56, 0.35, 0], [0.61, -0.62, 0.5, 0.3], [0.54, -0.665, 0.6, 0.6], [0.46, -0.695, 0.55, 0.85], [0.38, -0.715, 0.4, 1]];
+  tailPts.forEach(([y, z, sz, w], j) => {
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2 + j * 0.7;
+      const skin: Skin = [o.tl, o.t2, w];
+      add([Math.cos(a) * 0.03, y + Math.sin(a) * 0.03, z], [Math.cos(a) * 0.8, Math.sin(a) * 0.5 - 0.6, -0.5], 0.06 + 0.05 * sz, 0.05, skin, 'tail', 0.3 + 0.15 * j, 0.3);
+    }
+  });
 }
 
 const _e = new THREE.Euler();

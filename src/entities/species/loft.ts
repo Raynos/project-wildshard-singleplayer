@@ -85,6 +85,14 @@ let shagAmp = 0;
 export function setShag(amp: number): void { shagAmp = amp; }
 
 /**
+ * An optional surface-shape function for the lofts that follow: (x, y, z, part) → metres to push the vertex out along
+ * its normal (the sheep's wool lumps, a wolf's fur clumps). The Paint callback sees the displaced position, so it can
+ * shade the troughs. Set per species in build(), reset to null after (Pine Hollow / Driftwood never set it).
+ */
+let shapeFn: ((x: number, y: number, z: number, part: string) => number) | null = null;
+export function setShapeFn(fn: ((x: number, y: number, z: number, part: string) => number) | null): void { shapeFn = fn; }
+
+/**
  * Low-poly mode (Driftwood Isle, `ChunkDef.style === 'lowpoly'`; set by AnimalFactory around `build()`):
  * every loft gets `lowPolySides()` sides instead of what it asks for and no shag noise; the factory then
  * de-indexes the merged model for flat facets (see `src/entities/lowpoly.ts`). Species files may branch on
@@ -138,6 +146,10 @@ export function loft(st: Station[], sides: number, part: string, paint: Paint, c
       if (shagAmp > 0 && !lowPoly && (part === 'body' || part === 'neck' || part === 'head' || part === 'crest')) {
         const amp = shagAmp * Math.min(1, (rx + ry) / 0.25) * (part === 'crest' ? 2.5 : 1);
         const d = paintNoise.fbm(px * 9 + py * 3, pz * 9 - py * 4, 3) * amp;
+        px += _n.x * d; py += _n.y * d; pz += _n.z * d;
+      }
+      if (shapeFn !== null && !lowPoly) {
+        const d = shapeFn(px, py, pz, part);
         px += _n.x * d; py += _n.y * d; pz += _n.z * d;
       }
       pos.push(px, py, pz); nor.push(_n.x, _n.y, _n.z);
