@@ -52,6 +52,7 @@ import { Inventory, harvestOf, ITEMS } from './game/Inventory';
 import { getNumber, onNumber } from './ui/Settings';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
+import { HurtArc, hurtThud, deathLine } from './ui/HurtArc';
 import { setAimTargets, meleeLock } from './player/AimTargets';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
 import { declareTotals, installByteCounter } from './boot/bytes';
@@ -406,7 +407,17 @@ async function main() {
   if (dropParam && dropParam in SKINS) { const f = 4.5; spawnSkinDrop(SKINS[dropParam as SkinId], new THREE.Vector3(player.position.x - Math.sin(player.yaw) * f, 0, player.position.z - Math.cos(player.yaw) * f)); }
   new Combat(game, animals, weapons, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
   animals.onSound = (name, pos) => audio.animal(name, pos, player.position, player.yaw);
-  animals.onCharge = (_a, dmg) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); music.combat(0.9); };
+  // taking a hit (B3): the arc points at the attacker (src/ui/HurtArc.ts), a hurt sound (PLACEHOLDER hurtThud until the
+  // sound-agent's Audio.hurt lands — it used to be the landing thud), and the killer is remembered for the death toast (B2)
+  const hurtArc = new HurtArc();
+  let killer: { kind: string; label: string } | null = null;
+  animals.onCharge = (a, dmg) => {
+    health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); music.combat(0.9);
+    killer = { kind: a.kind, label: a.label };
+    hurtArc.hit(a.position.x, a.position.z, player.position, player.yaw, dmg);
+    const dx = a.position.x - player.position.x, dz = a.position.z - player.position.z, d = Math.hypot(dx, dz);
+    if (!audio.muted && !audio.worldMuted) hurtThud(audio.ctx, audio.master, dmg / 20, d > 0.3 ? ((dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw)) / d) * 0.7 : 0);
+  };
   player.onStep = (sprinting) => (player.wading ? audio.wadeStep(player.depth, sprinting)
     : audio.footstep(sprinting, pier?.floorHeightAt(player.position.x, player.position.z) !== undefined ? 'planks'
       : sea !== undefined && heightAt(player.position.x, player.position.z) - sea.level < 2.6 ? 'sand' : 'litter'));
@@ -419,7 +430,7 @@ async function main() {
   player.onJump = () => audio.jump();
   player.onDodge = () => { audio.dodge(); buzz(HAPTIC.dodge); };
   player.onLunge = () => { audio.lunge(); buzz(HAPTIC.lunge); };
-  player.onLand = (hard) => { audio.land(hard); if (hard) { health = Math.max(0, health - 8); hud.damageFlash(); } };
+  player.onLand = (hard) => { audio.land(hard); if (hard) { health = Math.max(0, health - 8); hud.damageFlash(); if (health <= 0) killer = null; } };
   hud.onSoundToggle = (on) => { audio.muted = !on; masterGain(); };
 
   // ── menu ↔ world: the world is fully loaded, then sits frozen and silent under the menu (hero art
@@ -515,7 +526,9 @@ async function main() {
 
     // slow health regen; death → respawn at the gate
     if (health < 100 && performance.now() - lastHurt > 6000) health = Math.min(100, health + dt * 4);
-    if (health <= 0) { health = 100; hud.toast('Gored — respawning at the south gate'); hud.damageFlash(); respawn(); crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); }
+    // death → the toast names the killer and this shard's respawn point (deathLine); only a weapon with ammo is topped up
+    if (health <= 0) { health = 100; hud.toast(deathLine(killer, isOcean)); killer = null; hud.damageFlash(); respawn(); if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); }
+    hurtArc.update(dt, player.position, player.yaw);
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 && hud.entered);
