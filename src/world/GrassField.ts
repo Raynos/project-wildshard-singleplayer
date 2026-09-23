@@ -61,24 +61,30 @@ const riverHalf = (x: number): number => (19 + 5 * Math.sin(x * 0.009 + 2.1) + 3
 
 let noise = new Noise2D(SEED + 911);
 let noise2 = new Noise2D(SEED + 912);
-let lattice = new Float32Array(LN * LN * 3).fill(Number.NaN); // [height, tone, flowerPatch] per corner
+const STRIDE = 7; // per corner: height, tone, flower drift, drift species, ground r, g, b
+let lattice = new Float32Array(LN * LN * STRIDE).fill(Number.NaN);
 let nalati = getActiveChunk().slug === 'nalati-grasslands';
 onActiveChunkChange((def) => {
   nalati = def.slug === 'nalati-grasslands';
   noise = new Noise2D(SEED + 911); noise2 = new Noise2D(SEED + 912);
-  lattice = new Float32Array(LN * LN * 3).fill(Number.NaN);
+  lattice = new Float32Array(LN * LN * STRIDE).fill(Number.NaN);
 });
+const rgb: [number, number, number] = [0, 0, 0];
 
 function zoneWeight(z: Zone, x: number, zz: number, falloff: number): number {
   const d = Math.hypot(x - z.x, zz - z.z);
   return 1 - smoothstep(z.r, z.r * (1 + falloff), d);
 }
 
-/** the raw field at one point: [height m, tone 0..1, flower patch 0..1] */
+/** the raw field at one point: [height m, tone 0..1, flower drift 0..1, drift species 0..1, ground colour (linear rgb)] */
 function evalField(x: number, z: number, out: Float32Array, o: number): void {
-  if (!inChunk(x, z, 0.5)) { out[o] = 0; out[o + 1] = 0; out[o + 2] = 0; return; }
   const y = heightAt(x, z);
   const ny = normalAt(x, z, 1.5)[1];
+  // the painted ground under the grass (the def's own palette): roots and the far carpet fade into it
+  const paint = getActiveChunk().groundColor;
+  if (paint) paint(x, z, y, 1 - ny, getActiveChunk().terrain, rgb); else { rgb[0] = 0.12; rgb[1] = 0.2; rgb[2] = 0.05; }
+  out[o + 4] = rgb[0]; out[o + 5] = rgb[1]; out[o + 6] = rgb[2];
+  if (!inChunk(x, z, 0.5)) { out[o] = 0; out[o + 1] = 0; out[o + 2] = 0; out[o + 3] = 0; return; }
   const n1 = noise.fbm(x * 0.021, z * 0.021, 3);     // meadow undulation
   const tone0 = nalati ? smoothstep(2, 26, y) : 0.35;
   let tone = Math.min(1, Math.max(0, tone0 + 0.22 * noise2.fbm(x * 0.013, z * 0.013, 2)));
@@ -114,13 +120,14 @@ function evalField(x: number, z: number, out: Float32Array, o: number): void {
   h *= 1 - 0.85 * cabinMask(x, z);
   if (pondMask(x, z) > 0.02 || y < waterLevel() + 0.15) h = 0;
   out[o] = h; out[o + 1] = tone;
-  // flower patches: soft blobs ~15–30 m across
-  out[o + 2] = smoothstep(0.1, 0.45, noise2.fbm(x * 0.03 + 40, z * 0.03 - 12, 2));
+  // flower drifts: blobs 8–25 m across, sharp-edged (a drift, not a sprinkle), each mostly one species
+  out[o + 2] = smoothstep(0.22, 0.42, noise2.fbm(x * 0.045 + 40, z * 0.045 - 12, 2));
+  out[o + 3] = 0.5 + 0.5 * noise.get(x * 0.021 - 71, z * 0.021 + 33);
 }
 
 function corner(ix: number, iz: number): number {
   const cx = Math.min(LN - 1, Math.max(0, ix)), cz = Math.min(LN - 1, Math.max(0, iz));
-  const o = (cz * LN + cx) * 3;
+  const o = (cz * LN + cx) * STRIDE;
   if (Number.isNaN(lattice[o] ?? Number.NaN)) evalField(cx * LATTICE - CHUNK_HALF, cz * LATTICE - CHUNK_HALF, lattice, o);
   return o;
 }
@@ -135,39 +142,54 @@ function sample(x: number, z: number, ch: number): number {
   return lerp(lerp(a, b, u), lerp(c, d, u), v);
 }
 
-/** trails: a bare bed (1.6 m half-width), a grazed verge, the field back by ~7 m — applied per point, a 4 m
+/** trails: a bare bed (1.6 m half-width, Nalati's roads 3.9 m), a grazed verge, the field back ~5 m further — per point, a 4 m
  *  lattice cannot hold a 3 m path */
 export function trailGrass(h: number, td: number): number {
-  if (td >= 7) return h;
-  return td < 1.6 ? 0 : lerp(Math.min(h, 0.14), h, smoothstep(2.2, 7, td)) * smoothstep(1.6, 2.2, td);
+  // Nalati's roads are painted dirt ~3.6–4.4 m either side of the centreline (the def's groundColor)
+  const bed = nalati ? 3.9 : 1.6;
+  if (td >= bed + 5.4) return h;
+  return td < bed ? 0 : lerp(Math.min(h, 0.14), h, smoothstep(bed + 0.6, bed + 5.4, td)) * smoothstep(bed, bed + 0.6, td);
 }
 
 /**
  * Grass height before trampling, metres (0 = no grass). `td` = trailDistance(x, z) when the caller has it
- * (the seeder skips it for cells far from any trail: pass Infinity).
+ * (the seeder skips it for cells far from any trail: pass Infinity). `exact` also tests the chunk's splat at the
+ * point (the seeder does on edge cells; the senses need not).
  */
-export function grassBaseHeightAt(x: number, z: number, td = trailDistance(x, z)): number {
+export function grassBaseHeightAt(x: number, z: number, td = trailDistance(x, z), exact = false): number {
   if (!inChunk(x, z, 0.5)) return 0;
   if (heightAt(x, z) < waterLevel() + 0.15) return 0;
-  return trailGrass(sample(x, z, 0), td);
+  const h = trailGrass(sample(x, z, 0), td);
+  // `exact`: also read the painted ground at the point (a road bed / gravel bar edge the 4 m lattice blurs)
+  return exact && nalati && h > 0 ? h * smoothstep(0.35, 0.6, splatAt(x, z)[0]) : h;
 }
 
 /** 0 = fresh valley green … 1 = plateau gold */
 export function grassToneAt(x: number, z: number): number { return sample(x, z, 1); }
 
-/** 0..1 flower-patch strength */
+/** 0..1 flower-drift strength */
 export function flowerPatchAt(x: number, z: number): number { return sample(x, z, 2); }
+
+/** the painted ground colour (linear RGB) under the grass at (x, z) — the def's `groundColor`, lattice-sampled */
+export function groundColorAt(x: number, z: number, out: [number, number, number]): [number, number, number] {
+  out[0] = sample(x, z, 4); out[1] = sample(x, z, 5); out[2] = sample(x, z, 6);
+  return out;
+}
 
 /**
  * Which flower (if any) a tuft of height `h` at (x, z) carries, from uniform randoms `r`, `r2` in [0, 1):
- * 0 none · 1 purple sage · 2 white edelweiss / daisy · 3 yellow buttercup. Valley: buttercups + daisies;
- * plateau: sage + edelweiss. Denser inside patches, a sprinkle everywhere, none in grazed turf.
+ * 0 none · 1 purple sage · 2 white edelweiss / daisy · 3 yellow buttercup. Flowers grow in **drifts**: inside
+ * one most tufts flower and ~80 % of them are the drift's own species (valley: buttercups / daisies, plateau:
+ * sage / edelweiss); outside a rare stray. None in grazed turf.
  */
 export function flowerKindAt(x: number, z: number, h: number, r: number, r2: number): number {
-  if (h < 0.2) return 0;
-  const p = 0.05 + 0.4 * flowerPatchAt(x, z);
+  if (h < 0.18) return 0;
+  const p = 0.012 + 0.7 * flowerPatchAt(x, z);
   if (r >= p) return 0;
-  const tone = grassToneAt(x, z);
-  if (tone > 0.5) return r2 < 0.55 ? 1 : r2 < 0.85 ? 2 : 3;
-  return r2 < 0.5 ? 3 : r2 < 0.85 ? 2 : 1;
+  const plateau = grassToneAt(x, z) > 0.5;
+  const sp = sample(x, z, 3);
+  // the drift's species: plateau → sage (most) / edelweiss / buttercup; valley → buttercup / daisy / sage
+  const own = plateau ? (sp < 0.55 ? 1 : sp < 0.8 ? 2 : 3) : (sp < 0.5 ? 3 : sp < 0.8 ? 2 : 1);
+  if (r2 < 0.8) return own;
+  return 1 + (Math.floor(((r2 - 0.8) / 0.2) * 3) % 3);
 }

@@ -6,6 +6,8 @@ import { grassBaseHeightAt } from './GrassField';
  *
  *   import { trample, grassHeightAt } from './GrassTrample';
  *   trample.push(x, z, radius, strength?, vx?, vz?)   // every frame, for every mover (player, horse, wolves…)
+ *   const stop = trample.track(animal.position, 0.6, 1, () => animal.alive)   // or once: pushed every frame for you,
+ *                                                     // velocity from its last position; `stop()` to forget it
  *   grassHeightAt(x, z)                               // effective height (m) incl. trampling — stealth + AI
  *   trample.amountAt(x, z)                            // 0..1 how flattened (a fresh track is ~1)
  *
@@ -52,6 +54,7 @@ export class GrassTrample {
   private liveN = 0;
   private cx = 0;
   private cz = 0;
+  private tracked: { p: { x: number; z: number }; r: number; s: number; on: (() => boolean) | undefined; px: number; pz: number }[] = [];
 
   constructor() {
     this.texture = new THREE.DataTexture(this.data, SIZE, SIZE, THREE.RGFormat, THREE.UnsignedByteType);
@@ -83,6 +86,16 @@ export class GrassTrample {
     this.stamp(x, z, radius * 0.8, Math.min(1, strength), vx, vz);
   }
 
+  /**
+   * Push `pos` every frame from now on (an animal, the horse): its velocity comes from where it was last frame.
+   * `active` (optional) gates it (a dead wolf, a stabled horse). Returns a function that stops tracking.
+   */
+  track(pos: { x: number; z: number }, radius: number, strength = 1, active?: () => boolean): () => void {
+    const e = { p: pos, r: radius, s: strength, on: active, px: pos.x, pz: pos.z };
+    this.tracked.push(e);
+    return () => { const i = this.tracked.indexOf(e); if (i !== -1) this.tracked.splice(i, 1); };
+  }
+
   /** 0..1 how flattened the grass is at (x, z) (0 outside the 128 m window) */
   amountAt(x: number, z: number): number {
     if (Math.abs(x - this.cx) > SPAN / 2 - 1 || Math.abs(z - this.cz) > SPAN / 2 - 1) return 0;
@@ -93,6 +106,14 @@ export class GrassTrample {
   update(dt: number, playerPos: { x: number; z: number }): void {
     this.cx = playerPos.x; this.cz = playerPos.z;
     this.scroll(playerPos.x, playerPos.z);
+    const idt = dt > 0 ? 1 / dt : 0;
+    for (const e of this.tracked) {
+      const vx = (e.p.x - e.px) * idt, vz = (e.p.z - e.pz) * idt;
+      e.px = e.p.x; e.pz = e.p.z;
+      if (e.on && !e.on()) continue;
+      if (vx * vx + vz * vz > 900) continue; // a teleport / respawn, not a stride
+      this.push(e.p.x, e.p.z, e.r, e.s, vx, vz);
+    }
     // live movers → uniforms
     const u = this.uniforms;
     for (let i = 0; i < MAX_MOVERS; i++) {

@@ -18,26 +18,26 @@ const grass = new Grass(world.sky, world.forest).build();
 game.scene.add(grass.group);
 if (params.has('wind')) wind.set(num('wind', 5), num('winddir', wind.dir), num('gust', wind.gustiness));
 
-// fake movers: wolves loping on circles around the spawn, so the wakes / trample trails can be judged
+// fake movers: wolves loping on circles 14 m ahead of the player, so the wakes / trample trails can be judged
 const wolves = Math.round(num('wolves', 0));
-const cx = player.position.x, cz = player.position.z;
 const wolfMeshes: THREE.Mesh[] = [];
 for (let i = 0; i < wolves; i++) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.7, 1.1), new THREE.MeshStandardMaterial({ color: 0x6b6358 }));
   world.sky.setupMaterial(m.material);
   game.scene.add(m); wolfMeshes.push(m);
+  trample.track(m.position, 0.7);
 }
-const prev = wolfMeshes.map(() => new THREE.Vector2());
+const prev = wolfMeshes.map(() => new THREE.Vector2(Number.NaN, 0));
 game.onUpdate((dt, t) => {
   wolfMeshes.forEach((m, i) => {
-    const r = 9 + i * 4, w = (i % 2 ? -1 : 1) * 5.5 / r, a = t * w + i * 1.7;
-    const x = cx + Math.cos(a) * r, z = cz - 14 + Math.sin(a) * r;
+    const r = 4 + i * 3, w = (i % 2 ? -1 : 1) * 5.5 / r, a = t * w + i * 1.7;
+    const cx = player.position.x - Math.sin(player.yaw) * 14, cz = player.position.z - Math.cos(player.yaw) * 14;
+    const x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r;
     const p = prev[i];
-    const vx = p ? (x - p.x) / Math.max(dt, 1e-3) : 0, vz = p ? (z - p.y) / Math.max(dt, 1e-3) : 0;
+    const vx = p && !Number.isNaN(p.x) ? (x - p.x) / Math.max(dt, 1e-3) : 0, vz = p && !Number.isNaN(p.x) ? (z - p.y) / Math.max(dt, 1e-3) : 0;
     p?.set(x, z);
     m.position.set(x, heightAt(x, z) + 0.45, z);
     m.rotation.y = Math.atan2(vx, vz);
-    trample.push(x, z, 0.7, 1, vx, vz);
   });
   grass.update(dt, player.position);
 });
