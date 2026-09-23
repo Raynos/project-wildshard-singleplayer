@@ -60,10 +60,11 @@ export interface ModelLook {
  * The adoption flags. By default the balbals, the rocks and the camp props are the generated models; the yurts stay
  * procedural (the camp orbit, 2026-09-23: the GLB yurt's felt reads stained and its ornament soft up close, the
  * procedural yurt is cleaner). `?models=0` → every POI procedural, `?models=1` → every model on (yurts included),
- * `?yurts=1` / `?yurts=0` → the yurts alone.
+ * `?yurts=1` / `?yurts=0` → the yurts alone, `?creatures=glb` / `?creatures=proc` → the skinned creature GLBs
+ * (src/entities/glbCreatures.ts) alone.
  */
-export type ModelPart = 'yurt' | 'props' | 'rocks' | 'balbal';
-const PART_DEFAULT: Readonly<Record<ModelPart, boolean>> = { yurt: false, props: true, rocks: true, balbal: true };
+export type ModelPart = 'yurt' | 'props' | 'rocks' | 'balbal' | 'creatures';
+const PART_DEFAULT: Readonly<Record<ModelPart, boolean>> = { yurt: false, props: true, rocks: true, balbal: true, creatures: false };
 
 export function modelsOn(part: ModelPart): boolean {
   if (typeof location === 'undefined') return PART_DEFAULT[part];
@@ -71,6 +72,7 @@ export function modelsOn(part: ModelPart): boolean {
   const all = q.get('models');
   if (all === '0') return false;
   if (part === 'yurt') { const y = q.get('yurts'); if (y === '0' || y === '1') return y === '1'; }
+  if (part === 'creatures') { const c = q.get('creatures'); if (c === 'glb' || c === 'proc') return c === 'glb'; }
   if (all === '1') return true;
   return PART_DEFAULT[part];
 }
@@ -91,8 +93,14 @@ function floatAttr(a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute):
 
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
 
-interface RawModel { geometry: THREE.BufferGeometry; map: THREE.Texture | null; box: THREE.Box3 }
+export interface RawModel { geometry: THREE.BufferGeometry; map: THREE.Texture | null; box: THREE.Box3 }
 const raw = new Map<NalatiModelName, Promise<RawModel>>();
+const ready = new Map<NalatiModelName, RawModel>();
+
+/** a model's float geometry + atlas (no material), loading it if needed — for code that builds its own mesh (creatures) */
+export function loadModelRaw(name: NalatiModelName): Promise<RawModel> { return loadRaw(name); }
+/** the same, synchronously: the loaded model, or null while it is still loading (or failed) */
+export function modelRawIfLoaded(name: NalatiModelName): RawModel | null { return ready.get(name) ?? null; }
 
 function loadRaw(name: NalatiModelName): Promise<RawModel> {
   let p = raw.get(name);
@@ -122,7 +130,9 @@ function loadRaw(name: NalatiModelName): Promise<RawModel> {
       const map = first instanceof THREE.MeshStandardMaterial && first.map ? first.map : null;
       if (map) { map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4; }
       const box = geometry.boundingBox?.clone() ?? new THREE.Box3();
-      return { geometry, map, box };
+      const out = { geometry, map, box };
+      ready.set(name, out);
+      return out;
     });
     raw.set(name, p);
   }

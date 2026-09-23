@@ -7,6 +7,8 @@ import { bakedTexture } from '../boot/bakedTextures';
 import { speciesDef, variantDef, type SpeciesDef, type VariantDef, type AnimalDims, type BoneDef, type FurStyle } from './species/registry';
 import { setLowPoly } from './species/loft';
 import { facetGeometry, lowPolyMaterials } from './lowpoly';
+import { preloadCreatureGlbs, creatureHull, skinCreatureGlb } from './glbCreatures';
+import { loadModelRaw } from '../world/nalati/glbPaint';
 import { painterlyAnimalMaterial } from './painterlyAnimals';
 
 // every species file registers itself on import: drop `src/entities/species/<kind>.ts` in and it exists
@@ -105,6 +107,8 @@ export interface AnimalModel {
   shells: THREE.MeshPhysicalMaterial[];
   /** the fur's backlit rim colour (FurStyle.rim), needed to re-patch a cloned fur material; absent in 'lowpoly' */
   rim?: THREE.Color;
+  /** 'painterly' with a generated hull (glbCreatures.ts): the hull's atlas, set as every instance's `map` */
+  map?: THREE.Texture | null;
 }
 
 /** one fur-shell layer's uniforms (see patchFur) */
@@ -245,10 +249,33 @@ export class AnimalFactory {
   private models = new Map<string, AnimalModel>();
   private tex = new Map<string, { map: THREE.Texture; normalMap: THREE.Texture }>();
   private strandTex?: THREE.Texture;
+  /** painterly rigs still on the procedural stand-in while their hull loads, per model key */
+  private pendingRigs = new Map<string, { mesh: THREE.SkinnedMesh; fur: AnimalMaterial }[]>();
+
+  /** the hull for `key` has loaded: swap the cached model and every rig already made from it onto the skinned hull */
+  private upgradeHull(key: string): void {
+    const m = this.models.get(key), rigs = this.pendingRigs.get(key);
+    this.pendingRigs.delete(key);
+    if (!m) return;
+    const hull = skinCreatureGlb(m.kind, m.variant, m.geometry);
+    if (!hull) return;
+    const old = m.geometry;
+    m.geometry = hull.geometry; m.map = hull.map;
+    for (const r of rigs ?? []) {
+      r.mesh.geometry = hull.geometry;
+      r.fur.map = hull.map; r.fur.needsUpdate = true;
+      const bs = hull.geometry.boundingSphere;
+      if (bs !== null) r.mesh.boundingSphere = bs.clone();
+    }
+    old.dispose();
+  }
 
   readonly style: AnimalStyle;
 
-  constructor(private readonly sky: Sky, opts: { style?: AnimalStyle | undefined } = {}) { this.style = opts.style ?? 'pbr'; }
+  constructor(private readonly sky: Sky, opts: { style?: AnimalStyle | undefined } = {}) {
+    this.style = opts.style ?? 'pbr';
+    if (this.style === 'painterly') preloadCreatureGlbs();
+  }
 
   /** The cached model for (kind, variant id). An unknown variant id falls back to the species' first variant. */
   model(kind: AnimalKind, variant?: string): AnimalModel {
@@ -277,8 +304,17 @@ export class AnimalFactory {
       const count = geometry.index !== null ? geometry.index.count : (geometry.getAttribute('position') as THREE.BufferAttribute).count;
       geometry.clearGroups(); geometry.addGroup(0, count, 0);
       const mat = painterlyAnimalMaterial(this.sky, species.eyeGlow, species.eyeGlowIntensity);
-      m = { kind, variant: v.id, style: 'painterly', species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur: mat, hard: mat, eye: mat, shells: [] };
+      // a generated hull skinned to this skeleton (?creatures=glb, glbCreatures.ts). While it is still loading the
+      // procedural mesh stands in, and every rig made from it is upgraded in place when the hull arrives (upgradeHull)
+      const hullName = creatureHull(kind, v.id);
+      const hull = hullName !== null ? skinCreatureGlb(kind, v.id, geometry) : null;
+      if (hull) { geometry.dispose(); geometry = hull.geometry; }
+      m = { kind, variant: v.id, style: 'painterly', species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur: mat, hard: mat, eye: mat, shells: [], map: hull?.map ?? null };
       this.models.set(key, m);
+      if (hullName !== null && !hull) {
+        this.pendingRigs.set(key, []);
+        loadModelRaw(hullName).then(() => { this.upgradeHull(key); return null; }).catch(() => { this.pendingRigs.delete(key); });
+      }
       return m;
     }
     if (lowPoly) {
@@ -416,6 +452,7 @@ export class AnimalFactory {
     }
     // painterly: a fresh material (a clone would drop the painterly shader patch)
     const fur = model.style === 'painterly' ? painterlyAnimalMaterial(this.sky, model.species.eyeGlow, model.species.eyeGlowIntensity) : model.fur.clone();
+    if (model.map) fur.map = model.map;
     if (model.style === 'pbr' && model.rim !== undefined) {
       this.patchFur(fur as THREE.MeshPhysicalMaterial, model.rim);   // clone() does not carry onBeforeCompile
     }
@@ -423,6 +460,7 @@ export class AnimalFactory {
     fur.color.setRGB(0.9 + v, 0.9 + v * 0.9, 0.9 + v * 0.7);
     this.sky.setupMaterial(fur);
     const mesh = new THREE.SkinnedMesh(model.geometry, [fur, model.hard, model.eye]);
+    this.pendingRigs.get(`${model.kind}:${model.variant}`)?.push({ mesh, fur });
     const root = bones['body'];
     if (root === undefined) throw new Error(`species '${model.kind}': no 'body' bone`);
     mesh.add(root);
