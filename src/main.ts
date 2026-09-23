@@ -25,6 +25,7 @@ import { Hands } from './player/Hands';
 import { Sword } from './player/Sword';
 import { CameraFX } from './player/CameraFX';
 import { IronSwordPickup, ironSwordSite } from './player/IronSword';
+import { installAdventure } from './game/quest/Adventure';
 import type { Weapon } from './player/Weapon';
 import { Horizon } from './world/Horizon';
 import { Grass } from './world/Grass';
@@ -379,6 +380,8 @@ async function main() {
     return drop;
   })();
   if (params.get('weapon') === 'iron' && ironSword) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); ironDrop?.dispose(); }
+  // ── Driftwood's adventure (plan Track A: interactables, the quest, the castaway, collectibles; src/game/quest/Adventure.ts) — null on any other shard ──
+  installAdventure({ game, sky, player, chunk, prompts: interactables, hud, audio, music, inventory, animals, pois: { hut, lookout, wreck, shrine, cave: cove }, params });
   // ── legendary skins (src/player/Skins.ts): the Ghost stag drops the GHOST STAG crossbow, Old Ironhide the IRONHIDE AR-15 —
   // a big purple floating pickup where the animal fell (WeaponPickup tier 'rare'); taking it swaps the skin (and hands you the
   // rifle if you had not found it). What you own / wear persists; `?skin=ghost-stag` previews, `?drop=ironhide` spawns one ahead.
