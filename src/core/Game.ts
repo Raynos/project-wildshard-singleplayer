@@ -12,6 +12,8 @@ import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER, TIER_CONFIG } from './tier';
 import { KuwaharaEffect } from './Kuwahara';
+import { LOOK_V2 } from '../nalati/look/flag';
+import { installLookV2Fog } from '../nalati/look/fog';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 
@@ -57,6 +59,7 @@ export class Game {
 
   constructor(public canvas: HTMLCanvasElement) {
     installAtmosphere(getActiveChunk().style === 'painterly'); // the painterly shard's air: aerial perspective + cloud shadows
+    if (LOOK_V2) installLookV2Fog(); // Nalati look v2: the fog coloured from the panorama (src/nalati/look/fog.ts)
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false, depth: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, TIER_CONFIG.dpr));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
