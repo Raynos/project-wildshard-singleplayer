@@ -97,6 +97,13 @@
 .ws-x-actions { display: flex; gap: 8px; }
 .ws-x-actions button { padding: 8px 14px; background: rgba(143, 227, 255, 0.12); border: 1px solid var(--ws-cyan-line); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
 
+.ws-x-budget { position: relative; display: flex; align-items: center; height: 18px; border: 1px solid var(--ws-cyan-faint); background: rgba(0, 0, 0, 0.25); }
+.ws-x-budget i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, rgba(143, 227, 255, 0.55), rgba(143, 227, 255, 0.25)); }
+.ws-x-budget span { position: relative; padding: 0 8px; font-size: 9px; letter-spacing: 0.08em; color: var(--ws-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-x-tierlabel { position: fixed; left: 0; top: 0; display: flex; flex-direction: column; align-items: center; padding: 4px 9px; pointer-events: none; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); }
+.ws-x-tierlabel b { font-family: var(--ws-display); font-size: 14px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-cyan); }
+.ws-x-tierlabel small { font-size: 9px; letter-spacing: 0.1em; color: var(--ws-text-dim); }
+
 /* ─── the selection card (src/explore/Select.ts; mockups p09 / g09 / g13): anchored under the picked model ─── */
 .ws-x-select { position: absolute; left: 0; top: 0; display: none; flex-direction: column; gap: 4px; max-width: min(340px, calc(100vw - 16px)); padding: 9px 11px 10px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); box-shadow: 0 0 18px rgba(143, 227, 255, 0.25), 0 12px 40px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .ws-x-select.show { display: flex; }

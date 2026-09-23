@@ -17,6 +17,8 @@ import { Bushes } from '../world/Bushes';
 import { AnimalFactory, type AnimalKind } from '../entities/AnimalFactory';
 import { Animal } from '../entities/Animal';
 import type { Sky } from '../world/Sky';
+import { withTier } from './tiers';
+import type { Tier } from '../core/tier';
 
 export type Category = 'buildings' | 'nature' | 'creatures';
 export const CATEGORIES: readonly { id: Category | 'all'; label: string }[] = [
@@ -36,6 +38,8 @@ export interface CatalogEntry {
   anchor: THREE.Vector3;
   /** ms the fresh instance took to build (live ones were built at boot) */
   buildMs: number;
+  /** a batch member's builder at a given detail tier (DETAIL TIERS view, X7); absent → one build for every tier */
+  buildAt?: (tier: Tier) => THREE.Object3D;
   /** creatures: the Animal on the turntable (clips, variants — X8) */
   animal?: Animal;
   tick?: (dt: number, t: number) => void;
@@ -76,7 +80,7 @@ export function driftwoodCatalog(h: CatalogHandles): CatalogEntry[] {
   const fresh = (id: string, name: string, category: Category, file: string, anchor: THREE.Vector3, build: () => THREE.Object3D, extra: Partial<CatalogEntry> = {}): void => {
     let o: THREE.Object3D | null = null;
     const e: CatalogEntry = {
-      id, name, category, file, live: false, anchor, buildMs: 0, ...extra,
+      id, name, category, file, live: false, anchor, buildMs: 0, buildAt: (tier) => withTier(tier, build), ...extra,
       object: () => { if (!o) { const t0 = performance.now(); o = build(); e.buildMs = performance.now() - t0; } return o; },
     };
     out.push(e);

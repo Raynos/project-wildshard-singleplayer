@@ -16,9 +16,11 @@ import type { World } from '../core/bootstrap';
 import type { ContextValue } from '../ui/review';
 import { CATEGORIES, measure, type CatalogEntry, type Category } from './catalog';
 import type { Explore, ExplorePane } from './Explore';
+import { BUDGET, CURRENT_TIER, TIERS } from './tiers';
+import type { Tier } from '../core/tier';
 
-type View = 'solid' | 'wire' | 'facets' | 'paint';
-const VIEWS: readonly [View, string][] = [['solid', 'Solid'], ['wire', 'Wireframe'], ['facets', 'Facets'], ['paint', 'Paint']];
+type View = 'solid' | 'wire' | 'facets' | 'paint' | 'tiers';
+const VIEWS: readonly [View, string][] = [['solid', 'Solid'], ['wire', 'Wireframe'], ['facets', 'Facets'], ['paint', 'Paint'], ['tiers', 'Tiers']];
 /** day/night phases (src/world/DayNight.ts: the day is [0, 20/24) sunrise → sunset, then the night) */
 const LIGHTS: readonly [string, number][] = [['Dawn', 0.03], ['Noon', 0.42], ['Dusk', 0.8], ['Night', 0.92]];
 const THUMB_W = 240, THUMB_H = 180;
@@ -54,6 +56,9 @@ export class ModelExplorer implements ExplorePane {
   private catalogT = 0;
   private wireMat: THREE.MeshBasicMaterial | null = null;
   private readonly paintMats = new Map<THREE.Material, THREE.MeshBasicMaterial>();
+  /** DETAIL TIERS: the model built at each tier, side by side on the disc, with a label each */
+  private readonly tierBuilds = new Map<string, Map<Tier, THREE.Object3D>>();
+  private tierShown: { tier: Tier; o: THREE.Object3D; label: HTMLElement }[] = [];
 
   constructor(private readonly explore: Explore, private readonly world: World, private readonly entries: CatalogEntry[]) {
     this.el = html('div', 'ws-x-models');
@@ -65,6 +70,7 @@ export class ModelExplorer implements ExplorePane {
       <div class="ws-x-sheet">
         <div class="ws-x-sheet-head"><button class="ws-x-back" type="button">‹ Catalog</button><b class="ws-x-name"></b><span class="ws-x-file"></span></div>
         <div class="ws-x-stats"></div>
+        <div class="ws-x-budget"><i></i><span></span></div>
         <div class="ws-x-actions"><button class="ws-x-inworld" type="button">View in world</button></div>
       </div>`);
     this.el.append(this.grid, this.sheet);
@@ -166,6 +172,7 @@ export class ModelExplorer implements ExplorePane {
     if (name) name.textContent = e.name;
     if (file) file.textContent = e.file;
     if (stats) stats.textContent = `TRIS ${m.tris.toLocaleString()} · DRAW CALLS ${m.calls} · ${e.live ? 'built at boot' : `BUILD ${e.buildMs.toFixed(1)} ms`}`;
+    this.budget(m.tris, m.calls);
   }
 
   private closeModel(): void {
@@ -213,7 +220,16 @@ export class ModelExplorer implements ExplorePane {
     this.yaw = Math.atan2(sun.x, sun.z) + 0.55; this.pitch = 0.3; this.idle = 0;
   }
 
+  /** this model's share of the phone frame budget (≤ 2.0 M tris, ≤ 150 calls — project/archive/2026-09-22-play-perf.md) */
+  private budget(tris: number, calls: number): void {
+    const b = BUDGET.phone, share = tris / b.tris;
+    const bar = this.sheet.querySelector<HTMLElement>('.ws-x-budget i'), text = this.sheet.querySelector('.ws-x-budget span');
+    if (bar) bar.style.width = `${Math.min(100, Math.max(0.6, share * 100))}%`;
+    if (text) text.textContent = `${(share * 100).toFixed(share < 0.01 ? 2 : 1)} % of the phone's ${b.tris / 1e6} M-tri frame · ${calls} of ${b.calls} calls · this device: ${CURRENT_TIER}`;
+  }
+
   private setView(v: View, mark = true): void {
+    this.clearTiers();
     // undo the previous swap
     for (const [mesh, mat] of this.swapped) mesh.material = mat;
     this.swapped.clear();
@@ -223,6 +239,7 @@ export class ModelExplorer implements ExplorePane {
     if (mark) this.sheet.querySelectorAll<HTMLElement>('.ws-x-views button').forEach((b) => { b.classList.toggle('on', b.dataset['v'] === v); });
     const e = this.current;
     if (!e || v === 'solid') return;
+    if (v === 'tiers') { this.showTiers(e); return; }
     e.object().traverse((c) => {
       if (!isMesh(c)) return;
       const mat = c.material;
@@ -234,6 +251,37 @@ export class ModelExplorer implements ExplorePane {
         c.add(lines); this.overlays.push(lines);
       }
     });
+  }
+
+  /** DETAIL TIERS: batch members are rebuilt at each tier (withTier) and stood side by side; a live model has one build */
+  private showTiers(e: CatalogEntry): void {
+    const o = e.object();
+    const build = e.buildAt;
+    if (!build) { this.explore.toast(`${e.name}: one build for every tier`); return; }
+    let byTier = this.tierBuilds.get(e.id);
+    if (!byTier) { byTier = new Map(); this.tierBuilds.set(e.id, byTier); }
+    const box = new THREE.Box3().setFromObject(o), size = box.getSize(new THREE.Vector3());
+    const gap = Math.max(size.x, size.z) * 0.55 + 0.4; // centre to centre / 2: the two stand shoulder to shoulder on the disc
+    o.visible = false;
+    TIERS.forEach((tier, i) => {
+      let t = byTier.get(tier);
+      if (!t) { t = build(tier); byTier.set(tier, t); }
+      t.position.set((i - (TIERS.length - 1) / 2) * gap * 2, 0, 0); // batch members are built in world space: offset from where the one on show stands
+      this.studio.add(t);
+      const m = measure(t);
+      const label = html('div', 'ws-x-tierlabel', `<b>${tier}</b><small>${m.tris.toLocaleString()} tris</small>`);
+      this.sheet.append(label);
+      this.tierShown.push({ tier, o: t, label });
+    });
+    this.dist *= 1.6;
+    this.floor.scale.multiplyScalar(1.7);
+  }
+
+  private clearTiers(): void {
+    if (this.tierShown.length === 0) return;
+    for (const t of this.tierShown) { t.o.removeFromParent(); t.label.remove(); }
+    this.tierShown = [];
+    if (this.current) { this.current.object().visible = true; this.dist /= 1.6; this.floor.scale.divideScalar(1.7); }
   }
 
   private wire(): THREE.MeshBasicMaterial { return (this.wireMat ??= new THREE.MeshBasicMaterial({ color: 0xbfefff, wireframe: true, fog: false, toneMapped: false })); }
@@ -320,6 +368,11 @@ export class ModelExplorer implements ExplorePane {
       camera.position.set(this.target.x + Math.sin(this.yaw) * cp * this.dist, this.target.y + Math.sin(this.pitch) * this.dist, this.target.z + Math.cos(this.yaw) * cp * this.dist);
       camera.lookAt(this.target);
       e.tick?.(dt, performance.now() / 1000);
+      for (const t of this.tierShown) {
+        const b = new THREE.Box3().setFromObject(t.o), p = b.getCenter(new THREE.Vector3()); p.y = b.max.y;
+        p.project(camera);
+        t.label.style.transform = `translate(${Math.round((p.x * 0.5 + 0.5) * innerWidth)}px, ${Math.round((-p.y * 0.5 + 0.5) * innerHeight) - 34}px) translateX(-50%)`;
+      }
       const dn = this.clock();
       if (dn && this.light >= 0) dn.phase = LIGHTS[this.light]?.[1] ?? dn.phase; // pinned while you look
       return;

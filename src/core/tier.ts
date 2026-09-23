@@ -13,7 +13,8 @@ const forced = params.get('tier');
 
 export const TIER: Tier = forced === 'phone' || forced === 'desktop' ? forced : mobileUA ? 'phone' : 'desktop';
 
-export const TIER_CONFIG = {
+/** both tiers' tables — Explore's DETAIL TIERS view builds a model at the other tier with `withTier` (src/explore/tiers.ts) */
+export const TIER_TABLE = {
   phone: {
     maxTexture: 1024, layerSize: 512, dpr: 1.5, ao: false, // DPR 1.5 + SMAA on: confirmed by the user as the phone default (the crossbow at 1.0 was unacceptable); Settings ▸ Render scale overrides
     // shadows: one cascade to 80 m, 1024² — the 2-cascade rig re-drew the whole world twice (9.8 M tris)
@@ -56,7 +57,9 @@ export const TIER_CONFIG = {
     godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, volumetricScale: 1, smaa: 'high' as 'off' | 'low' | 'high', bloomLevels: 8,
     oceanCell: 2.75, palmCount: 150, palmFrondSegs: 6, bushCount: 260, bushDetail: 1, bushShadows: true, boulderShadows: true,
   },
-}[TIER];
+};
+
+export const TIER_CONFIG = TIER_TABLE[TIER];
 
 /**
  * The player's graphics prefs — the menu's Settings ▸ Graphics rows (src/ui/Menu.ts), read once at boot, so a
