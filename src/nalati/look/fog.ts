@@ -6,7 +6,7 @@
  * painting's band just above its horizon, blurred), taken back through the grade's inverse and re-tinted by the hour /
  * weather exactly as the dome is (tint.ts). So the 3D world dissolves INTO the painting, with no step at any angle.
  *
- * Density: clear to 30 m, then `1 − exp(−(d − 30) · 0.0032)` (thinner with height above the valley floor), plus
+ * Density: clear to 30 m, then `1 − exp(−(d − 30) · 0.0032)` (thinner with the ray's mean height above the valley floor), plus
  * whatever the weather adds on top of the day's aerial density (a storm's rain closes it in), plus v1's valley height
  * haze. The cloud shadows (`pCloudShadow`, P_CLOUDS) stay in the pars chunk. Installed once, in the Game constructor
  * right after `installAtmosphere` (before anything compiles); the uniforms ride along `paintedAir`, which
@@ -59,7 +59,8 @@ export function installLookV2Fog(): void {
         float rayLen = length( ray );
         vec3 viewDir = ray / max( rayLen, 1e-3 );
         float dens = fogV2.x + max( fogDistDensity - fogV2.w, 0.0 );
-        float aer = max( rayLen - fogV2.y, 0.0 ) * dens * exp( - max( vFogWorldPos.y - fogV2.z, 0.0 ) * 0.01 );
+        // thinner with height: the ray's mean height above the valley floor (a view from above looks through clear air)
+        float aer = max( rayLen - fogV2.y, 0.0 ) * dens * exp( - max( 0.5 * ( vFogWorldPos.y + cameraPosition.y ) - fogV2.z, 0.0 ) * 0.015 );
         // the valley's height haze, integrated along the ray (as v1)
         float dy = vFogWorldPos.y - cameraPosition.y;
         float camF = exp( - fogHeightFalloff * ( cameraPosition.y - fogHeight ) );

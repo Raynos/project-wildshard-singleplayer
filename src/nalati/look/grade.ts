@@ -19,6 +19,9 @@ import { TIER, TIER_CONFIG } from '../../core/tier';
 export const gradeUniforms = {
   uV2Exposure: { value: 1.0 },
   uV2Sat: { value: 1.05 },
+  /** the hour's saturation on top (the rig's keys: night greys out), applied last — outside what the inverse undoes, so it
+   *  greys the painted sky with the world instead of being cancelled on it */
+  uV2LookSat: { value: 1.0 },
 };
 if (typeof window !== 'undefined') Object.assign(window, { __gradeV2: gradeUniforms });
 
@@ -30,6 +33,7 @@ const LUM = [0.2126, 0.7152, 0.0722] as const;
 export const V2_GRADE_GLSL = /* glsl */`
 uniform float uV2Exposure;
 uniform float uV2Sat;
+uniform float uV2LookSat;
 const vec3 V2_LUM = vec3(0.2126, 0.7152, 0.0722);
 const vec3 V2_SHADOW = vec3(${SHADOW.join(', ')});
 const vec3 V2_LIGHT = vec3(${LIGHT.join(', ')});
@@ -40,7 +44,8 @@ vec3 v2Grade(vec3 x) {
   c = mix(vec3(l), c, uV2Sat);
   c *= mix(V2_SHADOW, V2_LIGHT, smoothstep(0.05, 0.6, l));
   c = clamp(c, 0.0, 1.0);
-  return c * c * (3.0 - 2.0 * c) * 0.35 + c * 0.65;
+  c = c * c * (3.0 - 2.0 * c) * 0.35 + c * 0.65;
+  return mix(vec3(dot(c, V2_LUM)), c, uV2LookSat);
 }
 vec3 v2Ungrade(vec3 y) {
   y = clamp(y, 0.0, 1.0);
@@ -98,6 +103,7 @@ export class GradeV2Effect extends Effect {
       uniforms: new Map<string, THREE.Uniform>([
         ['uV2Exposure', gradeUniforms.uV2Exposure as THREE.Uniform],
         ['uV2Sat', gradeUniforms.uV2Sat as THREE.Uniform],
+        ['uV2LookSat', gradeUniforms.uV2LookSat as THREE.Uniform],
       ]),
     });
   }

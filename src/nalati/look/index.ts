@@ -9,7 +9,7 @@
  * wireLookV2: the panorama sky dome (sky.ts) in place of the v1 sky's painted clouds / planet / sun disc / backdrop
  * (the rig's star dome and the moon stay for the night), the far geometric ranges stood down (the painting is the far
  * range; Horizon rings 0 + 1 and the cloud sea stay in front), and one updater after the weather rig that re-tints the
- * painting and the fog for the hour and the storm.
+ * painting and the fog for the hour and the storm, then applies the lighting cheat (light.ts).
  */
 import * as THREE from 'three';
 import type { Game } from '../../core/Game';
@@ -18,6 +18,8 @@ import type { NalatiWeather } from '../weather';
 import { SkyDomeV2 } from './sky';
 import { fogLut } from './fog';
 import { updateTint } from './tint';
+import { LightCheat } from './light';
+import { getActiveChunk } from '../../chunks/registry';
 
 export { LOOK_V2 } from './flag';
 
@@ -42,9 +44,11 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   game.scene.traverse((o) => { if (o instanceof THREE.Mesh && o.material instanceof THREE.Material && /^ridge[23]$/.test(o.material.name)) o.visible = false; });
   const rigDome = weather.rig.dome;
   const u = dome.uniforms;
+  const cheat = new LightCheat(sky, getActiveChunk().grade.saturation);
   ctx.updates.push(() => {
     const look = weather.look, w = weather.weather;
     updateTint(look, w);
+    cheat.apply(look); // step 4: the key swung round + lifted, the fill lower and cooler (light.ts)
     u.uSunNow.value.copy(look.sunDir);
     // night: the painted sky fades out above the ridge line, the rig's stars show through (it is hidden by day: no overdraw)
     const night = smooth(2, -9, weather.clock.sunElevation);

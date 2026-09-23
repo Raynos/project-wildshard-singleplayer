@@ -22,6 +22,8 @@
  */
 import * as THREE from 'three';
 import { TEX_METRES, TEX_MEAN, type NalatiTexName } from '../world/nalatiTextures';
+import { LOOK_V2 } from './look/flag';
+import { V2_OLIVE_GLSL } from './look/light';
 
 export type TerrainTextures = Record<'meadow' | 'path' | 'gravel' | 'rock' | 'snow', THREE.Texture>;
 
@@ -62,6 +64,7 @@ vec3 tTiled( sampler2D t, vec2 p ) {
   vec3 b = texture2D( t, q ).rgb;
   return mix( a, b, smoothstep( 0.3, 0.7, tNoise( p * 0.21 ) ) );
 }
+${LOOK_V2 ? V2_OLIVE_GLSL : ''}
 vec3 tTriplanar( sampler2D t, vec3 p, vec3 n, float s ) {
   vec3 w = pow( abs( n ), vec3( 4.0 ) ); w /= ( w.x + w.y + w.z );
   return texture2D( t, p.zy * s ).rgb * w.x + texture2D( t, p.xz * s ).rgb * w.y + texture2D( t, p.xy * s ).rgb * w.z;
@@ -74,6 +77,7 @@ const FRAG_MAIN = /* glsl */`
   vec2 wp = vTWorld.xz;
   float dist = length( vTWorld - cameraPosition );
   vec3 ground = diffuseColor.rgb;
+  ${LOOK_V2 ? 'ground = v2Olive( ground ); // look v2: the olive / golden values (src/nalati/look/light.ts)' : ''}
 
   // ── meadow: the painted grass detail over the macro colour (its hue stays the vertex colour's) ──
   vec3 meadow = tTiled( tMeadow, wp * uTexScale.x ) / uMeanMeadow;
@@ -139,5 +143,5 @@ export function applyTerrainSurface(mat: THREE.Material, tex: TerrainTextures): 
       .replace('#include <common>', `#include <common>\n${FRAG_PARS}`)
       .replace('#include <color_fragment>', FRAG_MAIN);
   };
-  mat.customProgramCacheKey = () => 'painterly-terrain';
+  mat.customProgramCacheKey = () => (LOOK_V2 ? 'painterly-terrain-v2' : 'painterly-terrain');
 }
