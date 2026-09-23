@@ -369,7 +369,7 @@ export class Sword implements Weapon {
   private mouseHeld = false; private heldPrev = false;
   private charging = false; private chargeT = 0; private releaseQueued = false; private chargePending = false;
   private chargeBlend = 0; private sprintBlend = 0;
-  private fov = FOV_HIP;
+  private fov = FOV_HIP; private baseFov = 0;
   private lastYaw = 0; private lastPitch = 0; private lagYaw = 0; private lagYawVel = 0; private lagPitch = 0; private lagPitchVel = 0;
   private posePos = new THREE.Vector3(); private poseQ = new THREE.Quaternion(); private poseInit = false;
   // lunge
@@ -620,9 +620,15 @@ export class Sword implements Weapon {
     const p = this.player, cam = this.game.camera;
     this.cooldown = Math.max(0, this.cooldown - dt);
 
-    // FOV (Hor+ on portrait; the sword never zooms)
-    const targetFov = fovForAspect(FOV_HIP, cam.aspect);
-    if (Math.abs(targetFov - this.fov) > 0.01) { this.fov = targetFov; cam.fov = this.fov; cam.updateProjectionMatrix(); this.sky.csm.updateFrustums(); }
+    // FOV (Hor+ on portrait; the sword never zooms) + the dodge / lunge kick while in hand (Player.fovKick — transient, so
+    // the shadow cascades are only refit for a base change, not every kicked frame)
+    const baseFov = fovForAspect(FOV_HIP, cam.aspect);
+    const targetFov = baseFov + (this.model.visible ? p.fovKick : 0);
+    if (Math.abs(targetFov - this.fov) > 0.01) {
+      const refit = Math.abs(baseFov - this.baseFov) > 0.01; this.baseFov = baseFov;
+      this.fov = targetFov; cam.fov = this.fov; cam.updateProjectionMatrix();
+      if (refit) this.sky.csm.updateFrustums();
+    }
 
     // heavy: the hold (RMB / touch HEAVY latch) — edge on = start charging (after the running swing, if any), edge off = release
     if (!this.enabled) this.mouseHeld = false; // pause / holster drop the RMB toggle

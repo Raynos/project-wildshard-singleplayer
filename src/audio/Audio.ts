@@ -12,6 +12,7 @@ import { getActiveChunk } from '../chunks/registry';
  *   audio.rifleFire()  audio.rifleReload()  audio.weaponSwap()          // AR-15 (src/player/Rifle.ts) + swap (Weapons.ts)
  *   audio.pickupHum(on)                                           // the pickup orb's hum while inside its prompt radius
  *   audio.swordSwing()  audio.swordHeavy()  audio.swordHit('flesh'|'wood', pan?, gain?)   // sword (src/player/Sword.ts): a light swing, the heavy's release (layered over swordSwing), a hit
+ *   audio.dodge()  audio.lunge()                                         // Player.onDodge / onLunge (the dash moves, E27)
  *   audio.footstep(sprinting)  audio.jump()  audio.land(hard)  audio.hitMarker()  audio.kill()
  *   audio.splash(impact)  audio.wadeStep(depth, sprinting)  audio.swimStroke()  audio.waterExit()   // water (Player.onEnterWater / onStep while wading / onStroke / onExitWater)
  *   audio.dive()  audio.surface()  audio.setUnderwater(on)   // diving (Player.onSubmerge / onSurface): plunge + gasp, and the whole mix muffled (master lowpass) with a low hum + bubbles while under
@@ -204,6 +205,23 @@ export class Audio {
     this.burst({ t, type: 'bandpass', freq: 500, freqEnd: 2200, q: 0.6, gain: 0.32, attack: 0.05, decay: 0.09, rate: 1.1 });
     this.burst({ t: t + 0.09, type: 'bandpass', freq: 2200, freqEnd: 700, q: 0.7, gain: 0.4, attack: 0.02, decay: 0.13 });
     this.burst({ t: t + 0.02, type: 'lowpass', freq: 300, gain: 0.12, attack: 0.06, decay: 0.16 });
+  }
+
+  /** a dodge (Player.onDodge): a body whoosh — lower and airier than a blade, a cloth flap, the scuff of the push-off */
+  dodge(): void {
+    if (!this.g) return;
+    const t = this.ctx.currentTime;
+    this.burst({ t, type: 'bandpass', freq: 260, freqEnd: 1100, q: 0.5, gain: 0.34, attack: 0.03, decay: 0.16, rate: 1.2 });
+    this.burst({ t: t + 0.04, type: 'highpass', freq: 3200, gain: 0.08, attack: 0.01, decay: 0.07 });
+    this.burst({ t, type: 'lowpass', freq: 520, gain: 0.26, decay: 0.05 });
+  }
+
+  /** a lunge (Player.onLunge, under the swing's whoosh): a short low rush of closing distance */
+  lunge(): void {
+    if (!this.g) return;
+    const t = this.ctx.currentTime;
+    this.burst({ t, type: 'bandpass', freq: 180, freqEnd: 620, q: 0.6, gain: 0.3, attack: 0.02, decay: 0.12, rate: 1.4 });
+    this.tone({ t, type: 'sine', f0: 90, f1: 60, glide: 0.1, gain: 0.18, attack: 0.01, decay: 0.12 });
   }
 
   /** the heavy's release (Sword.onHeavy, on top of swordSwing): a longer, deeper whoosh — a low rush that climbs, a chest-thump of effort, a breathy tail */

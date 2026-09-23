@@ -21,6 +21,7 @@ import { PACK_SLOTS, type Inventory } from '../game/Inventory';
 import { icon, type IconId } from './icons';
 import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, type SettingKey, type NumberKey } from './Settings';
 import { gfxPrefs, saveGfxPrefs } from '../core/tier';
+import { CAN_VIBRATE } from './haptics';
 import { lockReview, onReview, quickNote, reviewUnlocked, setQuickNote, unlockReview } from './review';
 
 export type MenuTab = 'map' | 'inventory' | 'achievements' | 'settings' | 'feedback';
@@ -254,6 +255,7 @@ export class GameMenu {
       return b;
     };
     p.append(el('ws-gmenu-label', 'Gameplay'), sw('aimAssist', 'Aim assist'), sw('tracers', 'Tracer bolts'));
+    if (CAN_VIBRATE) p.append(sw('haptics', 'Vibration')); // Android only — iOS Safari has no vibrate (src/ui/haptics.ts)
 
     // controls: the 0.5–2× look multipliers (Settings 'look' / 'swingLook') — read live by TouchControls + Player's mouse look
     const mult = (key: NumberKey, label: string) => {

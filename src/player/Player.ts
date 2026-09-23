@@ -61,6 +61,10 @@ const DODGE_DIST = 3;                 // m …
 const DODGE_TIME = 0.25;              // … over this long (12 m/s), toward the move input; no input = a backstep
 const DODGE_COOLDOWN = 0.6;           // s from one dodge's start to the next
 const DASH_PROBE = 0.5;               // m ahead of the feet: deep water there (no deck under it) ends a dash — it never carries you off a pier
+const DODGE_DIP = 0.07;               // m the eye drops at a dodge's start (the land-impulse spring brings it back)
+const DODGE_ROLL = 0.06;              // rad of camera lean into a fully sideways dodge
+const DODGE_FOV_KICK = 5;             // ° wider while a dodge runs …
+const LUNGE_FOV_KICK = 7;             // … and a lunge (Sword.ts reads `fovKick`)
 
 export class Player {
   position = new THREE.Vector3(0, 0, 0);
@@ -147,9 +151,13 @@ export class Player {
   swinging = false;
   /** look-speed multiplier for mouse AND touch (Settings 'look', × 'swingLook' while swinging) — TouchControls reads it too */
   get lookMult(): number { return getNumber('look') * (this.swinging ? getNumber('swingLook') : 1); }
-  /** a dodge started (audio / viewmodel hooks) */
+  /** a dodge started / a lunge dash started (audio, haptics — main.ts) */
   onDodge?: () => void;
+  onLunge?: () => void;
+  /** degrees to widen the view by: kicked by a dodge / lunge, held while the dash runs, eased out after — Sword.ts adds it to its FOV */
+  fovKick = 0;
   private dashT = 0; private dashVx = 0; private dashVz = 0; private dodgeCd = 0;
+  private dashRoll = 0; // camera lean into a sideways dodge (rad), eased out
   /** true while a dodge / lunge burst is carrying the player */
   get dashing(): boolean { return this.dashT > 0; }
 
@@ -220,7 +228,10 @@ export class Player {
   dashTo(x: number, z: number, stopAt: number, time: number): boolean {
     const dx = x - this.position.x, dz = z - this.position.z, d = Math.hypot(dx, dz), go = d - stopAt;
     if (go < 0.15) return false;
-    return this.dash(dx / d * go / time, dz / d * go / time, time);
+    if (!this.dash(dx / d * go / time, dz / d * go / time, time)) return false;
+    this.fovKick = Math.max(this.fovKick, LUNGE_FOV_KICK);
+    this.onLunge?.();
+    return true;
   }
   /** DODGE (Left Alt / the DODGE disc): DODGE_DIST m in DODGE_TIME s toward the move input, a backstep with none; DODGE_COOLDOWN s between */
   dodge(): boolean {
@@ -235,6 +246,10 @@ export class Player {
     const v = DODGE_DIST / DODGE_TIME;
     if (!this.dash(mx * v, mz * v, DODGE_TIME)) return false;
     this.dodgeCd = DODGE_COOLDOWN;
+    // feel: a dip (the knees load), a lean into a sideways dodge, a small FOV kick
+    this.landImpulse = Math.max(this.landImpulse, DODGE_DIP);
+    this.dashRoll = -(mx * cos - mz * sin) * DODGE_ROLL; // + = the dodge goes right → roll right
+    this.fovKick = Math.max(this.fovKick, DODGE_FOV_KICK);
     this.onDodge?.();
     return true;
   }
@@ -503,6 +518,10 @@ export class Player {
     const targetEye = this.crouching ? EYE - 0.65 : EYE;
     this.eyeOffset += (targetEye - this.eyeOffset) * Math.min(1, dt * 10);
     this.landImpulse *= Math.exp(-dt * 9);
+    // dodge / lunge feel: the lean eases out, the FOV kick holds while the dash runs and eases out after
+    this.dashRoll *= Math.exp(-dt * 7);
+    if (this.dashT <= 0) this.fovKick *= Math.exp(-dt * 8);
+    if (this.fovKick < 0.02) this.fovKick = 0;
     this.hoverBlend += ((hover ? 1 : 0) - this.hoverBlend) * Math.min(1, dt * 4);
     if (!hover && !swim) this.bobTime += dt * (this.sprinting ? 11.5 : 8.5) * Math.min(1, hSpeed / 2);
     const bobAmp = this.onGround && !hover && !swim ? Math.min(1, hSpeed / 3) * (this.sprinting ? 0.055 : 0.03) : 0;
@@ -520,7 +539,7 @@ export class Player {
     this.camera.rotation.set(0, 0, 0, 'YXZ');
     this.camera.rotation.y = this.yaw;
     this.camera.rotation.x = this.pitch + this.pitchLean;
-    this.camera.rotation.z = Math.sin(this.bobTime) * bobAmp * 0.25 - str * 0.012 * (1 - this.hoverBlend) + this.roll;
+    this.camera.rotation.z = Math.sin(this.bobTime) * bobAmp * 0.25 - str * 0.012 * (1 - this.hoverBlend) + this.roll + this.dashRoll;
 
     this.board.update(dt, this);
     // water line: tint the bottom of the view as the eye nears / dips under the surface; under it, the underwater look

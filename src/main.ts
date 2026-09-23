@@ -40,6 +40,8 @@ import { SKINS, SkinLocker, applySkin, crossbowDisplayModel, skinFor, type SkinD
 import { TouchControls } from './player/TouchControls';
 import { HUD } from './ui/HUD';
 import { LockOn } from './ui/LockOn';
+import { SpeedLines } from './ui/SpeedLines';
+import { buzz, HAPTIC } from './ui/haptics';
 import { Loading } from './ui/Loading';
 import { Perf } from './ui/Perf';
 import { Minimap } from './ui/Minimap';
@@ -50,7 +52,7 @@ import { Inventory, harvestOf, ITEMS } from './game/Inventory';
 import { getNumber, onNumber } from './ui/Settings';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
-import { setAimTargets } from './player/AimTargets';
+import { setAimTargets, meleeLock } from './player/AimTargets';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
 import { declareTotals, installByteCounter } from './boot/bytes';
 import { chunkFiles } from './boot/manifest';
@@ -255,6 +257,7 @@ async function main() {
   await macrotask();
   const hud = new HUD({ pointerLock: !nolock });
   const lockOn = new LockOn(game.camera); // sword lunge target brackets (meleeLock, Sword.ts)
+  const speedLines = new SpeedLines(); // dodge / lunge edge streaks
   const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
   const minimap = new Minimap(); // circular minimap (Heightfield is installed by now)
   const fullMap = new FullMap(minimap); // the menu's MAP tab (Menu.ts mounts it); tap the minimap / M to open
@@ -342,6 +345,7 @@ async function main() {
     hud.showHitMarker(headshot, killed);
     audio.hitMarker();
     if (killed) { kills++; audio.kill(); }
+    buzz(killed ? HAPTIC.kill : HAPTIC.hit);
   };
   setAimTargets(animals.animals); // aim assist reads the live array
   // the AR-15 is found, not issued: a floating pickup on the floor of cabin 1 (the hollow), inside by the door wall
@@ -409,6 +413,8 @@ async function main() {
   player.onExitWater = () => audio.waterExit();
   player.onStroke = () => audio.swimStroke();
   player.onJump = () => audio.jump();
+  player.onDodge = () => { audio.dodge(); buzz(HAPTIC.dodge); };
+  player.onLunge = () => { audio.lunge(); buzz(HAPTIC.lunge); };
   player.onLand = (hard) => { audio.land(hard); if (hard) { health = Math.max(0, health - 8); hud.damageFlash(); } };
   hud.onSoundToggle = (on) => { audio.muted = !on; masterGain(); };
 
@@ -504,6 +510,7 @@ async function main() {
     hud.setBoundaryWarning(edge < 14 && hud.entered);
     hud.setAimInfo(weapons.aimInfo);
     lockOn.update();
+    speedLines.update(dt, player.dashing, meleeLock.lunging);
     if (hud.entered) { hud.setAnimals(animalPositions(animals.animals)); minimap.update(player.position, player.yaw, animals.animals); fullMap.update(player.position, player.yaw); } // compass paw + minimap (hidden under the menu)
     hud.setState({
       bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, reserve: weapons.state.reserve, loaded: weapons.state.loaded, reloading: weapons.state.reloading, reloadProgress: weapons.state.reloadProgress,
