@@ -46,6 +46,12 @@ const NALATI: AchievementDef[] = [
   { id: 'qyran', name: 'Clipped', goal: 'Kill Qyran the Storm-Wing', count: 1, kind: 'eagle', variant: 'qyran', title: 'Birdwatcher (Aggressive)', icon: 'laurel' },
   { id: 'qara-batyr', name: 'Ride the Night', goal: 'Unhorse Qara Batyr', count: 1, kind: 'ghost-rider', variant: 'captain', title: 'Night Shift', icon: 'ghost' },
   { id: 'argymaq', name: 'Unbroken, Until Now', goal: 'Tame Argymaq', count: 1, kind: 'argymaq', title: 'Horse Whisperer (Shouting)', icon: 'laurel' },
+  // the steppe's counts (B15) — joke titles, the Pine Hollow style
+  { id: 'wolf5', name: 'Wolfbane', goal: 'Kill 5 wolves', count: 5, kind: 'wolf', title: 'Pack Leader (Self-Appointed)', icon: 'laurel' },
+  { id: 'wolf25', name: 'The Big Bad', goal: 'Kill 25 wolves', count: 25, kind: 'wolf', title: 'Not Afraid Of The Big Bad Anything', icon: 'laurel' },
+  { id: 'alpha', name: 'Alpha Male Seminar', goal: 'Kill a pack alpha', count: 1, kind: 'wolf', variant: 'alpha', title: 'Sigma Grindset Survivor', icon: 'laurel' },
+  { id: 'balbal5', name: 'Rock Bottom', goal: 'Topple 5 balbal warriors', count: 5, kind: 'balbal', title: 'Licensed Stonemason', icon: 'laurel' },
+  { id: 'ghost10', name: 'Night Watch', goal: 'Unhorse 10 ghost riders', count: 10, kind: 'ghost-rider', title: 'Ghost Rider (No Relation)', icon: 'ghost' },
 ];
 
 const TABLES: Record<string, AchievementDef[]> = {
