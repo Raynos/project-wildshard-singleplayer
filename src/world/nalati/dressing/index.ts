@@ -6,7 +6,7 @@
  * camps, and ambient life (pollen + seed fluff in the sun, butterflies over the drifts, kites circling high).
  *
  *   import { NalatiDressing } from '../world/nalati/dressing';
- *   const dressing = new NalatiDressing(sky, forest).build();   // deterministic from the shard seed
+ *   const dressing = await new NalatiDressing(sky, forest).build(macrotask);   // deterministic from the seed; yields between passes
  *   dressing.addTo(game.scene, player);                          // meshes + colliders
  *   game.onUpdate((dt) => dressing.update(dt, game.camera, player.position, renderer));
  *   dressing.stats()                                             // { calls, tris, perLayer } for the perf report
@@ -56,11 +56,13 @@ export class NalatiDressing {
 
   constructor(private sky: Sky, private forest: Forest | null) { this.group.name = 'nalati-dressing'; }
 
-  build(): this {
+  async build(yieldTask: () => Promise<void> = () => Promise.resolve()): Promise<this> {
     let t0 = performance.now();
     const lap = (k: string) => { const t = performance.now(); this.timings[k] = Math.round(t - t0); t0 = t; };
-    const plan = this.plan = planDressing(this.forest);
+    const plan = this.plan = await planDressing(this.forest, yieldTask);
     lap('plan');
+    await yieldTask();
+    t0 = performance.now();
 
     const rock = painterlyMaterial(this.sky, { rim: 0.3, bands: 0.8 });
     const shrub = painterlyMaterial(this.sky, { rim: 0.5, bands: 0.7, sway: 0.05 });
@@ -76,12 +78,14 @@ export class NalatiDressing {
     add('slab', slabGeo(0x51ab, PHONE ? 2 : 3), rock, plan.slab, FAR.rock, { castShadow: true, keepNear: 40 });
     add('stone', stoneGeo(0x5707), rock, plan.stone, FAR.small);
     add('juniper', juniperGeo(0x1a9), shrub, plan.juniper, FAR.shrub, { castShadow: !PHONE });
-    add('rose', roseGeo(0x805e), shrub, plan.rose, FAR.shrub, { castShadow: !PHONE });
+    add('rose', roseGeo(0x805e, PHONE), shrub, plan.rose, FAR.shrub, { castShadow: !PHONE });
     add('willow', willowGeo(0x3170), shrub, plan.willow, FAR.shrub, { castShadow: !PHONE });
-    add('lupin', lupinGeo(0x1ab1), flower, plan.lupin, FAR.flower);
+    add('lupin', lupinGeo(0x1ab1, PHONE), flower, plan.lupin, FAR.flower);
     add('daisy', daisyGeo(0xda15), flower, plan.daisy, FAR.flower);
     add('reed', reedGeo(0x4eed), reed, plan.reed, FAR.shrub);
     lap('layers');
+    await yieldTask();
+    t0 = performance.now();
 
     const st = buildStatics(this.sky, plan, this.flutter);
     this.props = st.meshes;

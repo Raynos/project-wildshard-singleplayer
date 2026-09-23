@@ -198,9 +198,9 @@ export class DressLife {
     this.birds.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.birds.frustumCulled = false;
     this.birds.name = 'nalati-dress-raptors';
-    const spots = [{ x: 60, z: 120, alt: 55, r: 55 }, { x: -60, z: -110, alt: 48, r: 42 }, { x: 110, z: -60, alt: 62, r: 36 }];
+    const spots = [{ x: 60, z: 140, alt: 30, r: 48 }, { x: -60, z: -110, alt: 34, r: 40 }, { x: 110, z: -60, alt: 40, r: 34 }];
     spots.forEach((s, i) => {
-      this.flock.push({ cx: s.x, cz: s.z, alt: s.alt, r: s.r, w: (i % 2 === 0 ? 1 : -1) * 9 / s.r, a: rng.range(0, 6), flap: 0, nextFlap: rng.range(3, 9), phase: 0, s: i === 2 ? 1.25 : 0.9 });
+      this.flock.push({ cx: s.x, cz: s.z, alt: s.alt, r: s.r, w: (i % 2 === 0 ? 1 : -1) * 9 / s.r, a: rng.range(0, 6), flap: 0, nextFlap: rng.range(3, 9), phase: 0, s: i === 2 ? 1.7 : 1.3 });
       const c = new THREE.Color(1, 1, 1).multiplyScalar(rng.range(0.9, 1.1));
       this.birds.setColorAt(i * 2, c); this.birds.setColorAt(i * 2 + 1, c);
     });
@@ -288,7 +288,7 @@ export class DressLife {
       b.a += b.w * dt;
       const x = b.cx + Math.cos(b.a) * b.r, z = b.cz + Math.sin(b.a) * b.r;
       const vx = -Math.sin(b.a) * b.w, vz = Math.cos(b.a) * b.w;
-      const y = Math.max(heightAt(x, z) + 25, b.alt) + Math.sin(b.a * 0.7) * 3;
+      const y = heightAt(b.cx, b.cz) + b.alt + Math.sin(b.a * 0.7) * 3;
       // a flap burst every few seconds, else a glide with the wings bent up a little
       b.nextFlap -= dt;
       if (b.nextFlap <= 0) { b.flap = 1.6; b.nextFlap = 5 + Math.abs(Math.sin(b.a * 13.1)) * 7; }

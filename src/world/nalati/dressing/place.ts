@@ -21,7 +21,7 @@ import { Rng } from '../../../core/rng';
 import { Noise2D, smoothstep, clamp, lerp } from '../../../core/noise';
 import { heightAt, normalAt, trailDistance, inChunk, TRAILS } from '../../Heightfield';
 import { grassBaseHeightAt, grassToneAt, flowerPatchAt } from '../../GrassField';
-import { RIVER, riverMask, BROOK, CRAGS, SW_SPUR, SNOW_LINE, KURGANS, CAMP, SUMMER_YURTS } from '../../../chunks/nalati-grasslands';
+import { RIVER, riverMask, BROOK, CRAGS, SW_SPUR, SNOW_LINE, KURGANS, CAMP, SUMMER_YURTS, SKY_ROAD } from '../../../chunks/nalati-grasslands';
 import { inPoiClearing } from '../clearings';
 import type { Forest } from '../../Forest';
 import type { Collider } from '../../../player/Player';
@@ -38,6 +38,8 @@ export interface DressPlan {
   lupin: Inst[]; daisy: Inst[]; reed: Inst[];
   logs: LogSpec[]; stumps: Spot[];
   ovoos: Spot[]; poles: Spot[];
+  /** split-rail guard fences on the downhill verge of the sky road's legs, and the timber gateway where it tops out */
+  fences: [number, number][][]; gates: { x: number; z: number; yaw: number }[];
   /** flower-drift hearts (butterflies hang round them) */
   drifts: { x: number; y: number; z: number; r: number }[];
   colliders: Collider[];
@@ -112,20 +114,23 @@ const grey = (rng: Rng, lo: number, hi: number): [number, number, number] => { c
 
 // ── the plan ────────────────────────────────────────────────────────────────────────────────────────
 
-export function planDressing(forest: Forest | null): DressPlan {
-  const plan: DressPlan = { boulder: [], slab: [], stone: [], juniper: [], rose: [], willow: [], lupin: [], daisy: [], reed: [], logs: [], stumps: [], ovoos: [], poles: [], drifts: [], colliders: [] };
+/** the whole plan, one pass after another; `yieldTask` (e.g. boot's `macrotask`) runs between passes so a slow phone
+ *  never sees one long task */
+export async function planDressing(forest: Forest | null, yieldTask: () => Promise<void> = () => Promise.resolve()): Promise<DressPlan> {
+  const plan: DressPlan = { boulder: [], slab: [], stone: [], juniper: [], rose: [], willow: [], lupin: [], daisy: [], reed: [], logs: [], stumps: [], ovoos: [], poles: [], fences: [], gates: [], drifts: [], colliders: [] };
   const occ = new Occupancy();
   // (forest.nearby() is a generous broad phase — it pads by the trunk radius + 3 m — so test the real distance)
   const nearTree = (x: number, z: number, r: number): boolean => (forest ? forest.nearby(x, z, r).some((t) => Math.hypot(t.x - x, t.z - z) < r + t.r) : false);
 
-  rocks(plan, occ, nearTree);
+  rocks(plan, occ, nearTree); await yieldTask();
   roadStones(plan);
-  gravelBars(plan);
-  shrubs(plan, occ, nearTree);
-  flowers(plan, occ, nearTree);
+  gravelBars(plan); await yieldTask();
+  shrubs(plan, occ, nearTree); await yieldTask();
+  flowers(plan, occ, nearTree); await yieldTask();
   reeds(plan);
   woods(plan, occ, forest);
   landmarks(plan, occ);
+  roadFences(plan);
   return plan;
 }
 
@@ -483,6 +488,32 @@ function landmarks(plan: DressPlan, occ: Occupancy): void {
     plan.colliders.push({ x: sp.x, z: sp.z, hw: 1.3 * sp.s, hd: 1.3 * sp.s, rot: 0, yBottom: h - 1, yTop: h + 1.1 * sp.s });
   }
   for (const [x, z] of POLES) { const sp = settle(x, z, 0.6); if (sp) plan.poles.push(sp); }
+}
+
+// ── the sky road's guard fences + the gateway on the rim ─────────────────────────────────────────────
+
+function roadFences(plan: DressPlan): void {
+  // every leg between two hairpins: a fence 4.6 m off the centreline on the downhill (north) side, stopping short of
+  // the turns (a posts-and-rails run that reads as a road built into a hillside)
+  for (let i = 1; i + 2 < SKY_ROAD.length; i += 2) {
+    const a = SKY_ROAD[i], b = SKY_ROAD[i + 1];
+    if (!a || !b) continue;
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (len < 20) continue;
+    const ux = (b[0] - a[0]) / len, uz = (b[1] - a[1]) / len;
+    let nx = -uz, nz = ux;
+    if (nz < 0) { nx = -nx; nz = -nz; }
+    const run: [number, number][] = [];
+    for (let d = 6; d <= len - 6; d += Math.max(4, (len - 12) / 6)) {
+      const x = a[0] + ux * d + nx * 4.6, z = a[1] + uz * d + nz * 4.6;
+      if (trailDistance(x, z) < 3.8 || inPoiClearing(x, z)) { if (run.length > 1) plan.fences.push(run.splice(0)); else run.length = 0; continue; }
+      run.push([x, z]);
+    }
+    if (run.length > 1) plan.fences.push(run);
+  }
+  // the gateway where the sky road comes over the rim onto the Sky Grassland
+  const a = SKY_ROAD[SKY_ROAD.length - 2], b = SKY_ROAD[SKY_ROAD.length - 1];
+  if (a && b) plan.gates.push({ x: a[0] + (b[0] - a[0]) * 0.55, z: a[1] + (b[1] - a[1]) * 0.55, yaw: Math.atan2(b[0] - a[0], b[1] - a[1]) });
 }
 
 // ── camp clutter spots (loose things round the yurt rings; the POI agent builds the structures) ─────

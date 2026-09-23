@@ -26,7 +26,7 @@ import { blob, mergeVerticesByPos } from '../paint';
 const c = (hex: string): THREE.Color => new THREE.Color(hex);
 
 export const DC = {
-  granite: c('#a29d93'), graniteWarm: c('#b3a893'), graniteCool: c('#8e9396'), rockDark: c('#5f5e62'),
+  granite: c('#8f8a81'), graniteWarm: c('#a0957f'), graniteCool: c('#7c8185'), rockDark: c('#545357'),
   moss: c('#667a34'), mossLight: c('#94a24c'), lichen: c('#d6cf96'), lichenOrange: c('#c99a58'),
   juniper: c('#2b4630'), juniperBlue: c('#3b5a55'), juniperTop: c('#5f7a42'),
   leaf: c('#46692a'), leafLight: c('#86a24a'), leafDark: c('#2d4a1c'), rose: c('#f3c3d2'), roseDeep: c('#e28aa8'),
@@ -148,67 +148,88 @@ export function stoneGeo(seed: number): THREE.BufferGeometry {
 
 // ── shrubs ──────────────────────────────────────────────────────────────────────────────────────────
 
-interface DabSpec {
-  /** dabs (small displaced icospheres) scattered through an ellipsoid of radii rx / ry / rz, centred at cy */
+interface LeafSpec {
+  /** leaves scattered over the shell of an ellipsoid of radii rx / ry / rz centred at cy (+ a dark core blob inside) */
   n: number; rx: number; ry: number; rz: number; cy: number;
-  /** dab radius range, and its vertical squash */
-  r: [number, number]; sy: number;
-  /** colour of a dab from its height 0..1 in the bush, its outward-facing-ness 0..1 and a random 0..1 */
+  /** leaf length / width ranges (m, at bush scale 1) */
+  len: [number, number]; w: [number, number];
+  /** colour of a leaf from its height 0..1 in the bush, how far it sits out on the shell 0..1 and a random 0..1 */
   paint: (h: number, out: number, rnd: number, c: THREE.Color) => void;
+  core: THREE.Color;
 }
 
 /**
- * A bush as a cloud of painted dabs — each a 20-triangle blob with its own shade, so the crown breaks up into brush
- * strokes the way the mockups' bushes do (a few big smooth lobes read as clay). Normals are re-aimed out from the
- * bush centre (blended with the dab's own) so the whole crown shades as one soft volume under the cel bands.
+ * A bush as a painted core + a shell of leaf diamonds (two-sided quads, 4 triangles each) — the crown's outline breaks
+ * up into leaves and every leaf carries its own shade, which reads as brush strokes the way the mockups' bushes do
+ * (a few big smooth lobes read as clay; faceted dabs as low-poly rocks). Leaf normals are the ellipsoid's outward
+ * normal, so the crown shades as one soft volume under the cel bands and back faces light like front faces.
  */
-function dabs(rng: Rng, o: DabSpec): THREE.BufferGeometry[] {
+function leafBush(rng: Rng, o: LeafSpec): THREE.BufferGeometry[] {
   const parts: THREE.BufferGeometry[] = [];
-  const col = new THREE.Color(), v = new THREE.Vector3(), w = new THREE.Vector3();
+  const core = blob(1, rng, 1, 1, 0.25);
+  core.scale(o.rx * 0.78, o.ry * 0.78, o.rz * 0.78);
+  core.translate(0, o.cy, 0);
+  core.computeVertexNormals();
+  parts.push(part(core, o.core));
+  const pos: number[] = [], nrm: number[] = [], col: number[] = [], idx: number[] = [];
+  const lc = new THREE.Color(), n = new THREE.Vector3(), t1 = new THREE.Vector3(), t2 = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
   for (let i = 0; i < o.n; i++) {
-    // denser toward the shell than the core (the core is never seen)
-    const u = Math.cbrt(0.35 + 0.65 * rng.next()), th = rng.range(0, Math.PI * 2), ph = Math.acos(rng.range(-0.35, 1));
-    const x = Math.sin(ph) * Math.cos(th) * u * o.rx, y = o.cy + Math.cos(ph) * u * o.ry, z = Math.sin(ph) * Math.sin(th) * u * o.rz;
-    const r = rng.range(o.r[0], o.r[1]);
-    const g = blob(r, rng, 0, o.sy, 0.3);
-    g.rotateY(rng.range(0, Math.PI * 2));
-    g.translate(x, Math.max(y, r * 0.4), z);
-    const pos = g.getAttribute('position'), nrm = g.getAttribute('normal');
-    for (let k = 0; k < pos.count; k++) {
-      v.set(pos.getX(k) / o.rx, (pos.getY(k) - o.cy) / o.ry, pos.getZ(k) / o.rz).normalize();
-      w.set(nrm.getX(k), nrm.getY(k), nrm.getZ(k)).lerp(v, 0.7).normalize();
-      nrm.setXYZ(k, w.x, w.y, w.z);
+    const th = rng.range(0, Math.PI * 2), ph = Math.acos(rng.range(-0.45, 1)), u = rng.range(0.82, 1.05);
+    const nx = Math.sin(ph) * Math.cos(th), ny = Math.cos(ph), nz = Math.sin(ph) * Math.sin(th);
+    const x = nx * o.rx * u, y = o.cy + ny * o.ry * u, z = nz * o.rz * u;
+    if (y < 0.02) continue;
+    n.set(nx / o.rx, ny / o.ry, nz / o.rz).normalize();
+    // the leaf lies roughly tangent to the shell, tipped a little outward and twisted at random
+    t1.crossVectors(n, Math.abs(n.y) > 0.9 ? t2.set(1, 0, 0) : up).normalize().applyAxisAngle(n, rng.range(0, Math.PI * 2));
+    t2.crossVectors(n, t1).normalize();
+    const L = rng.range(o.len[0], o.len[1]), W = rng.range(o.w[0], o.w[1]), tip = rng.range(0.2, 0.5);
+    const b = pos.length / 3;
+    // diamond: base, left, tip, right
+    const px = [x, x + t2.x * W * 0.5 + t1.x * L * 0.4, x + t1.x * L + n.x * L * tip, x - t2.x * W * 0.5 + t1.x * L * 0.4];
+    const py = [y, y + t2.y * W * 0.5 + t1.y * L * 0.4, y + t1.y * L + n.y * L * tip, y - t2.y * W * 0.5 + t1.y * L * 0.4];
+    const pz = [z, z + t2.z * W * 0.5 + t1.z * L * 0.4, z + t1.z * L + n.z * L * tip, z - t2.z * W * 0.5 + t1.z * L * 0.4];
+    o.paint(clamp(y / (o.cy + o.ry), 0, 1), u, rng.next(), lc);
+    for (let k = 0; k < 4; k++) {
+      pos.push(px[k] ?? 0, Math.max(0.01, py[k] ?? 0), pz[k] ?? 0);
+      nrm.push(n.x, n.y, n.z);
+      const k2 = k === 0 ? 0.72 : k === 2 ? 1.12 : 1;   // darker at the stalk, lighter at the tip
+      col.push(lc.r * k2, lc.g * k2, lc.b * k2);
     }
-    const hN = clamp(y / (o.cy + o.ry), 0, 1), outN = clamp(u, 0, 1);
-    o.paint(hN, outN, rng.next(), col);
-    parts.push(part(g, col.clone()));
+    idx.push(b, b + 1, b + 2, b, b + 2, b + 3, b, b + 2, b + 1, b, b + 3, b + 2);
   }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.setIndex(idx);
+  parts.push(g);
   return parts;
 }
 
 export function juniperGeo(seed: number): THREE.BufferGeometry {
   const rng = new Rng(seed);
-  const parts = dabs(rng, {
-    n: 22, rx: 0.95, ry: 0.32, rz: 0.8, cy: 0.12, r: [0.17, 0.28], sy: 0.6,
-    paint: (h, _o, rnd, out) => { out.copy(DC.juniper).lerp(DC.juniperBlue, rnd * 0.7).lerp(DC.juniperTop, smoothstep(0.35, 1, h) * (0.4 + rnd * 0.6)); },
+  const parts = leafBush(rng, {
+    n: 90, rx: 0.95, ry: 0.36, rz: 0.8, cy: 0.1, len: [0.14, 0.22], w: [0.05, 0.08], core: DC.juniper,
+    paint: (h, _o, rnd, out) => { out.copy(DC.juniper).lerp(DC.juniperBlue, rnd * 0.8).lerp(DC.juniperTop, smoothstep(0.35, 1, h) * (0.3 + rnd * 0.7)); },
   });
   return finish(parts, 0.2, 0.5);
 }
 
-export function roseGeo(seed: number): THREE.BufferGeometry {
+/** `lite` (phone): 55 leaves instead of 80 */
+export function roseGeo(seed: number, lite = false): THREE.BufferGeometry {
   const rng = new Rng(seed);
-  const parts = dabs(rng, {
-    n: 20, rx: 0.5, ry: 0.42, rz: 0.5, cy: 0.42, r: [0.13, 0.2], sy: 0.85,
-    paint: (h, _o, rnd, out) => { out.copy(DC.leafDark).lerp(DC.leaf, smoothstep(0.1, 0.7, h)).lerp(DC.leafLight, smoothstep(0.55, 1, h) * rnd); },
+  const parts = leafBush(rng, {
+    n: lite ? 55 : 80, rx: 0.52, ry: 0.44, rz: 0.52, cy: 0.42, len: [0.11, 0.17], w: [0.07, 0.11], core: DC.leafDark,
+    paint: (h, _o, rnd, out) => { out.copy(DC.leafDark).lerp(DC.leaf, smoothstep(0.1, 0.7, h) * (0.6 + rnd * 0.4)).lerp(DC.leafLight, smoothstep(0.55, 1, h) * rnd * 0.8); },
   });
-  // the wild-rose blossoms: small pale-pink and white dabs sitting on the upper shell
-  for (let i = 0; i < 9; i++) {
-    const th = rng.range(0, Math.PI * 2), ph = rng.range(0.15, 1.25);
-    const x = Math.sin(ph) * Math.cos(th) * 0.52, y = 0.42 + Math.cos(ph) * 0.44, z = Math.sin(ph) * Math.sin(th) * 0.52;
+  // the wild-rose blossoms: small pale-pink and white five-petal discs sitting on the upper shell
+  for (let i = 0; i < 12; i++) {
+    const th = rng.range(0, Math.PI * 2), ph = rng.range(0.1, 1.3);
+    const x = Math.sin(ph) * Math.cos(th) * 0.56, y = 0.42 + Math.cos(ph) * 0.48, z = Math.sin(ph) * Math.sin(th) * 0.56;
     const g = new THREE.CircleGeometry(rng.range(0.035, 0.05), 5).lookAt(new THREE.Vector3(x, y - 0.42, z));
-    g.translate(x * 1.04, y * 1.02, z * 1.04);
+    g.translate(x, y, z);
     const pc = rng.next() < 0.3 ? DC.daisy : rng.next() < 0.5 ? DC.roseDeep : DC.rose;
-    parts.push(twoSided(part(g, (q, _n, out) => { out.copy(pc).lerp(DC.daisyCentre, smoothstep(0.02, 0.0, Math.hypot(q.x - x * 1.04, q.y - y * 1.02, q.z - z * 1.04)) * 0.8); }, undefined, { normals: 'up' })));
+    parts.push(twoSided(part(g, (q, _n, out) => { out.copy(pc).lerp(DC.daisyCentre, smoothstep(0.02, 0.0, Math.hypot(q.x - x, q.y - y, q.z - z)) * 0.8); }, undefined, { normals: 'up' })));
   }
   return finish(parts, 0.2, 0.5);
 }
@@ -222,9 +243,9 @@ export function willowGeo(seed: number): THREE.BufferGeometry {
     const g = new THREE.CylinderGeometry(0.012, 0.022, 0.55, 4, 1, true).translate(0, 0.27, 0);
     parts.push(part(g, DC.cattail, M(Math.cos(a) * 0.08, 0, Math.sin(a) * 0.08, a, 1, 1, 1, rng.range(-0.3, 0.3), rng.range(-0.3, 0.3))));
   }
-  parts.push(...dabs(rng, {
-    n: 20, rx: 0.42, ry: 0.55, rz: 0.42, cy: 0.72, r: [0.11, 0.17], sy: 1.5,
-    paint: (h, _o, rnd, out) => { out.copy(DC.willowDark).lerp(DC.willow, smoothstep(0.1, 0.7, h)).lerp(DC.willowLight, smoothstep(0.5, 1, h) * rnd * 0.7); },
+  parts.push(...leafBush(rng, {
+    n: 90, rx: 0.42, ry: 0.58, rz: 0.42, cy: 0.74, len: [0.14, 0.22], w: [0.035, 0.055], core: DC.willowDark,
+    paint: (h, _o, rnd, out) => { out.copy(DC.willowDark).lerp(DC.willow, smoothstep(0.1, 0.7, h) * (0.6 + rnd * 0.4)).lerp(DC.willowLight, smoothstep(0.5, 1, h) * rnd * 0.8); },
   }));
   return finish(parts, 0.2, 0.5);
 }
@@ -247,7 +268,7 @@ function leaf(rng: Rng, len: number, w: number, a: number, lean: number, col: TH
 }
 
 /** a flower spike of stacked whorls: a 5-sided lathe whose radius swells and pinches up its length, painted in bands */
-function spike(r: number, len: number, deep: THREE.Color, mid: THREE.Color, tip: THREE.Color, rng: Rng): THREE.BufferGeometry {
+function spike(r: number, len: number, deep: THREE.Color, mid: THREE.Color, tip: THREE.Color, rng: Rng, sides = 5): THREE.BufferGeometry {
   const prof: [number, number][] = [[0.004, 0]];
   const segs = 4, ph = rng.range(0, 3);
   for (let k = 0; k <= segs; k++) {
@@ -256,7 +277,7 @@ function spike(r: number, len: number, deep: THREE.Color, mid: THREE.Color, tip:
     prof.push([Math.max(0.004, r * (1 - t) ** 0.75 * swell * (k === 0 ? 0.8 : 1)), t * len]);
   }
   prof.push([0.002, len + r * 0.4]);
-  const g = new THREE.LatheGeometry(prof.map(([a, b]) => new THREE.Vector2(a, b)), 5);
+  const g = new THREE.LatheGeometry(prof.map(([a, b]) => new THREE.Vector2(a, b)), sides);
   g.rotateY(rng.range(0, Math.PI));
   const w = mergeVerticesByPos(g);
   w.computeVertexNormals();
@@ -267,10 +288,11 @@ function spike(r: number, len: number, deep: THREE.Color, mid: THREE.Color, tip:
   });
 }
 
-export function lupinGeo(seed: number): THREE.BufferGeometry {
+/** `lite` (phone): 5 four-sided spikes instead of 7 five-sided (~260 tris instead of ~500) */
+export function lupinGeo(seed: number, lite = false): THREE.BufferGeometry {
   const rng = new Rng(seed);
   const parts: THREE.BufferGeometry[] = [];
-  const n = 7;
+  const n = lite ? 5 : 7;
   for (let i = 0; i < n; i++) {
     const a = (i / n) * Math.PI * 2 + rng.range(-0.5, 0.5), d = i === 0 ? 0 : rng.range(0.06, 0.2);
     const h = rng.range(0.42, 0.75), len = rng.range(0.2, 0.34), r = rng.range(0.04, 0.055);
@@ -279,7 +301,7 @@ export function lupinGeo(seed: number): THREE.BufferGeometry {
     parts.push(part(new THREE.CylinderGeometry(0.006, 0.01, base + 0.02, 3, 1, true).translate(0, (base + 0.02) / 2, 0), DC.stem, tilt));
     const pal = rng.next();
     const deep = pal < 0.2 ? DC.lupinPink : DC.sage, tip = pal < 0.2 ? DC.lupinPinkLight : DC.sageLight;
-    const sp = spike(r, len, deep, pal < 0.2 ? DC.lupinPink : DC.sageMid, tip, rng);
+    const sp = spike(r * (lite ? 1.1 : 1), len, deep, pal < 0.2 ? DC.lupinPink : DC.sageMid, tip, rng, lite ? 4 : 5);
     sp.translate(0, base, 0);
     sp.applyMatrix4(tilt);
     parts.push(sp);

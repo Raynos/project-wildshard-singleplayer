@@ -15,6 +15,7 @@ import { PaintKit, pole, v3, blob, lathe, logPainter, poiMaterial, M } from '../
 import type { Flutter } from '../Flutter';
 import type { Sky } from '../../Sky';
 import type { Collider } from '../../../player/Player';
+import { addFence } from '../props';
 import { campClutterSpots, type DressPlan } from './place';
 
 const C = {
@@ -92,7 +93,7 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
         kit.add(blob(s, rng, 1, rng.range(0.6, 0.85), 0.25), cc, { ...stone, matrix: M(x, Math.max(yy, ground(x, z)) + s * 0.2, z, rng.range(0, 6)) });
       }
     }
-    kit.add(blob(R * 0.8, rng, 2, (H / R) * 0.9, 0.2), C.stoneDark, { matrix: M(o.x, gy - 0.1, o.z) });
+    kit.add(blob(R * 0.8, rng, 2, (H / R) * 0.9, 0.2), C.stone, { matrix: M(o.x, gy - 0.1, o.z) });
     // the pole bundle
     const top = v3(o.x, gy + H + 1.9 * o.s, o.z);
     for (let i = 0; i < 4; i++) {
@@ -103,15 +104,18 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
       // ribbons tied along each pole and streaming from its head
       for (let k = 0; k < 3; k++) {
         const p = b0.clone().lerp(t0, 0.45 + k * 0.22);
-        flutter.streamer(p, rng.range(0.6, 1.3), 0.07, RIBBONS[rng.int(0, RIBBONS.length - 1)] ?? '#f3efe4', { droop: 0.35 });
+        flutter.streamer(p, rng.range(0.9, 1.8), 0.14, RIBBONS[rng.int(0, RIBBONS.length - 1)] ?? '#f3efe4', { droop: 0.35 });
       }
     }
-    // a rope of ribbons from the bundle down to a stake
-    const stakeA = rng.range(0, Math.PI * 2), sx = o.x + Math.cos(stakeA) * (R + 1.6), sz = o.z + Math.sin(stakeA) * (R + 1.6), sy = ground(sx, sz);
-    kit.add(pole(v3(sx, sy - 0.2, sz), v3(sx, sy + 0.5, sz), 0.035, 0.03, 5), C.pole);
-    const from = top.clone().add(v3(0, -0.4, 0)), to = v3(sx, sy + 0.45, sz);
-    kit.add(pole(from, to, 0.008, 0.008, 3), C.rope);
-    for (let k = 1; k < 7; k++) flutter.strip(from.clone().lerp(to, k / 7).add(v3(0, -Math.sin((k / 7) * Math.PI) * 0.35, 0)), rng.range(0.3, 0.5), 0.06, RIBBONS[k % RIBBONS.length] ?? '#6fb0e6');
+    // ropes of ribbons from the bundle down to stakes round the heap
+    const a0 = rng.range(0, Math.PI * 2);
+    for (let q = 0; q < 3; q++) {
+      const sa = a0 + (q / 3) * Math.PI * 2 + rng.range(-0.3, 0.3), sx = o.x + Math.cos(sa) * (R + 1.8), sz = o.z + Math.sin(sa) * (R + 1.8), sy = ground(sx, sz);
+      kit.add(pole(v3(sx, sy - 0.2, sz), v3(sx, sy + 0.55, sz), 0.035, 0.03, 5), C.pole);
+      const from = top.clone().add(v3(Math.cos(sa) * 0.2, -0.3, Math.sin(sa) * 0.2)), to = v3(sx, sy + 0.5, sz);
+      kit.add(pole(from, to, 0.008, 0.008, 3), C.rope);
+      for (let k = 1; k < 10; k++) flutter.strip(from.clone().lerp(to, k / 10), rng.range(0.35, 0.6), 0.11, RIBBONS[(k + q * 3) % RIBBONS.length] ?? '#6fb0e6');
+    }
     put(o.x, o.z, kit.finish({ ground, aoH: 0.4, ao: { strength: 0.5 } }));
   }
 
@@ -128,6 +132,33 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
     for (let k = 0; k < 5; k++) flutter.streamer(top.clone().add(v3(0, -0.08 - k * 0.1, 0)), rng.range(1.0, 1.9), 0.08, RIBBONS[(k + rng.int(0, 7)) % RIBBONS.length] ?? '#f3efe4', { droop: 0.3 });
     put(p.x, p.z, kit.finish({ ground, aoH: 0.3, ao: false }));
     colliders.push({ x: p.x, z: p.z, hw: 0.45, hd: 0.45, rot: 0, yBottom: gy - 1, yTop: gy + H });
+  }
+
+  // ── the sky road's guard fences (the POI fence builder) + the gateway on the rim ──
+  for (const run of plan.fences) {
+    const kit = new PaintKit(rng.int(1, 1e6));
+    addFence(kit, ground, run, colliders, { h: 1.05, spacing: 2.6 });
+    const mid = run[Math.floor(run.length / 2)] ?? [0, 0];
+    put(mid[0], mid[1], kit.finish({ ground, aoH: 0.3, ao: false }));
+  }
+  for (const g of plan.gates) {
+    const kit = new PaintKit(rng.int(1, 1e6));
+    // two stout posts either side of the road, a lintel with a carved cap, ribbons tied along it
+    const cx = Math.cos(g.yaw), sx = -Math.sin(g.yaw);   // across the road
+    const half = 4.2, H = 3.6;
+    const pa = v3(g.x + cx * half, 0, g.z + sx * half), pb = v3(g.x - cx * half, 0, g.z - sx * half);
+    pa.y = ground(pa.x, pa.z); pb.y = ground(pb.x, pb.z);
+    const top = Math.max(pa.y, pb.y) + H;
+    for (const p of [pa, pb]) {
+      kit.add(pole(v3(p.x, p.y - 0.4, p.z), v3(p.x, top + 0.25, p.z), 0.16, 0.13, 8), C.pole, { brush: 0.12, foot: 0.7 });
+      colliders.push({ x: p.x, z: p.z, hw: 0.25, hd: 0.25, rot: 0, yBottom: p.y - 1, yTop: top });
+      for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2, r = rng.range(0.16, 0.24); const x = p.x + Math.cos(a) * 0.4, z = p.z + Math.sin(a) * 0.4; kit.add(blob(r, rng, 1, 0.7, 0.25), C.stone, { matrix: M(x, ground(x, z) + r * 0.2, z, rng.range(0, 6)), top: { color: C.lichen, threshold: 0.6, amount: 0.4 } }); }
+    }
+    const la = v3(pa.x + cx * 0.5, top, pa.z + sx * 0.5), lb = v3(pb.x - cx * 0.5, top, pb.z - sx * 0.5);
+    kit.add(pole(la, lb, 0.13, 0.13, 8), logPainter(la, lb, C.pole, C.wood), { brush: 0.12 });
+    kit.add(pole(v3(la.x, top - 0.45, la.z).lerp(v3(lb.x, top - 0.45, lb.z), 0.08), v3(la.x, top - 0.45, la.z).lerp(v3(lb.x, top - 0.45, lb.z), 0.92), 0.06, 0.06, 6), C.pole);
+    for (let k = 1; k < 14; k++) flutter.strip(la.clone().lerp(lb, k / 14).add(v3(0, -0.1, 0)), rng.range(0.5, 0.9), 0.11, RIBBONS[k % RIBBONS.length] ?? '#6fb0e6');
+    put(g.x, g.z, kit.finish({ ground, aoH: 0.4, ao: false }));
   }
 
   // ── camp clutter ──

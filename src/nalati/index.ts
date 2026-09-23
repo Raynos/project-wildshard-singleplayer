@@ -122,7 +122,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
 
   // ── dressing (dressing agent, look-pass lever 6): rocks, road stones, gravel-bar pebbles, shrubs, flower drifts, reeds,
   //    logs + stumps, ovoo cairns + ribbon poles, camp clutter, pollen, butterflies, kites — src/world/nalati/dressing/ ──
-  const dressing = new NalatiDressing(sky, ctx.forest).build();
+  const dressing = await new NalatiDressing(sky, ctx.forest).build(macrotask);
   dressing.addTo(game.scene, ctx.player);
   groups['dressing'] = dressing.group;
   updates.push((dt) => dressing.update(dt, game.camera, ctx.player.position, game.renderer));
