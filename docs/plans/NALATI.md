@@ -48,6 +48,23 @@ Where this plan and a design section disagree, **this plan's Decisions win**.
 | **Map** | map-01 layout, true north, spawn on the north road, main camp in the valley + summer yurts on the plateau |
 | **Scale** | keep the 500 m slab: a stepped climb + a far horizon + forced perspective |
 
+### World layout v2 (2026-09-23, ask N9)
+
+The user, playing the preview: "it doesn't feel like reality … we need more oomph, more points of interest, more
+excitement … bigger and grander, denser … redesign the whole level." After the round-7 redesign mockups: "we are
+trying to CRAM way too many biomes in." The chunk becomes **three clearly distinct zones**:
+
+| zone | what it is | keeps |
+|---|---|---|
+| **Nalati Grasslands** | the green river valley, the lowland | Kunes river, bridge, nomad camp, sheep pasture, the N road / spawn |
+| **The Sky Grassland** | the golden high plateau up the sky road | sky road, horse plains (herds in the hundreds), kokpar field, kurgan field + great kurgan (Golden King), summer camp, ruined watchtower, Eagle Rock |
+| **Snow Lotus Valley + its mountains** | NEW — a cold high alpine valley in the crags: scree, snow, glacier, snow lotus flowers | the Crags (Aqbars' lair, Argymaq's high pasture) |
+
+**Cut:** spruce forest, mill, waterfall, tarn, balbal circle ("I'll sacrifice balbal and spruce forests for getting
+the snow lotus valley in there"). Balbal warriors keep their statues on the kurgan mounds. Herds in the hundreds, the
+kokpar field and the watchtower are in. Layout mockups: `art/nalati-grasslands/round-7-world-redesign/` (A–F, the
+user: D, E and A are the closest), round 8 for the three-zone layout + Snow Lotus Valley.
+
 ### Look (2026-09-22 / 23)
 
 | topic | decision |
