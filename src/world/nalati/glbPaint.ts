@@ -178,7 +178,7 @@ export function addModelInstances(parent: THREE.Object3D, sky: Sky, name: Nalati
 export const MODEL_SIZE: Readonly<Record<NalatiModelName, readonly [number, number, number]>> = {
   yurt: [4.52, 3.2, 4.46], 'horse-saddled': [0.71, 1.9, 2.31], 'horse-wild': [0.78, 1.75, 2.16], spruce: [5.96, 15.69, 5.58],
   wolf: [0.48, 0.85, 0.94], sheep: [0.5, 0.95, 1.19], 'snow-leopard': [0.48, 0.8, 1.33], eagle: [0.43, 0.85, 0.57],
-  'golden-king': [1.19, 2.1, 0.69], balbal: [0.68, 1.6, 0.59], 'boulder-1': [2.59, 1.4, 2.84], 'boulder-2': [2.08, 2.0, 2.2],
-  'boulder-3': [2.39, 0.8, 3.0], 'kumis-churn': [0.6, 1.1, 0.66], cauldron: [1.57, 1.7, 1.32], saddle: [0.54, 0.6, 0.46],
+  'golden-king': [1.19, 2.1, 0.69], balbal: [0.68, 1.6, 0.59], 'boulder-1': [1.65, 1.4, 1.66], 'boulder-2': [2.15, 2.0, 2.14],
+  'boulder-3': [3.11, 0.8, 2.58], 'kumis-churn': [0.6, 1.1, 0.66], cauldron: [1.57, 1.7, 1.32], saddle: [0.54, 0.6, 0.46],
   firewood: [0.58, 0.6, 0.68], chest: [0.87, 0.6, 0.69],
 };
