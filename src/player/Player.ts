@@ -6,6 +6,7 @@ import type { Forest } from '../world/Forest';
 import { Hoverboard } from './Hoverboard';
 import { WaterLine } from './WaterLine';
 import { setUnderwater, updateUnderwater } from '../world/Atmosphere';
+import { waveHeight } from '../world/waves';
 import { getNumber } from '../ui/Settings';
 
 export interface Collider { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }
@@ -391,7 +392,8 @@ export class Player {
           this.landImpulse = 0.06;
         } else {
           const climbing = this.climbTo !== null;
-          const bob = Math.sin(this.waveTime * 1.4) * 0.05 + Math.sin(this.waveTime * 2.3 + 1.0) * 0.02;
+          // the open sea: ride the Ocean's own Gerstner swell (DRIFTWOOD-REMASTER W3); the pond keeps its gentle sine bob
+          const bob = getActiveChunk().ocean ? waveHeight(this.position.x, this.position.z) : Math.sin(this.waveTime * 1.4) * 0.05 + Math.sin(this.waveTime * 2.3 + 1.0) * 0.02;
           const floatY = ws - FLOAT_DEPTH + bob;
           if (climbing) this.diving = false;
           if (!climbing && (this.diving || this.diveHeld)) {
