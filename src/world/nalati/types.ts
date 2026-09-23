@@ -29,4 +29,6 @@ export interface PoiPiece {
   platforms: Platform[];
   /** triangles in `object` (for the perf report) */
   tris: number;
+  /** per-frame animation (NalatiPOIs.update calls it with the viewer's position when it has one) */
+  update?: (dt: number, viewer: THREE.Vector3 | null) => void;
 }

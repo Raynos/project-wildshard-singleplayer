@@ -26,13 +26,14 @@ import { buildBalbals, type Balbals } from './Balbals';
 import { buildEagleRock } from './EagleRock';
 import { buildCairn } from './Cairn';
 import { buildCrags, type Ledge } from './Crags';
+import { buildWatchtower, buildKokpar, buildFarHerds, buildSnowLotus } from './Bowl';
 import type { Collider } from '../../player/Player';
 import type { Sky } from '../Sky';
 import type { Ground, Platform, PoiCtx, PoiPiece } from './types';
 
 export * from './layout';
 
-export interface PoiHost { colliders: Collider[]; platforms: Platform[] }
+export interface PoiHost { colliders: Collider[]; platforms: Platform[]; position?: THREE.Vector3 }
 
 export class NalatiPOIs {
   group = new THREE.Group();
@@ -50,6 +51,8 @@ export class NalatiPOIs {
   /** the snow leopard's ledges + cave porch (B12) */
   cragLedges: Ledge[] = [];
   cragCave: { x: number; y: number; z: number; facing: number } | null = null;
+  /** the player's position (from addTo): the herds hide the horses near it */
+  private viewer: THREE.Vector3 | null = null;
   /** where a rider ties a strip at the Wind Cairn (B14) */
   cairnTieSpot: THREE.Vector3 | null = null;
 
@@ -77,6 +80,11 @@ export class NalatiPOIs {
     run('eagleRock', buildEagleRock);
     run('cairn', (c) => { const k = buildCairn(c); this.cairnTieSpot = k.tieSpot; return k.piece; });
     run('crags', (c) => { const k = buildCrags(c); this.cragLedges = k.ledges; this.cragCave = k.cave; return k.piece; });
+    // layout v2 (N9): the watchtower, the kokpar field + its riders, the herds in the hundreds, snow lotus
+    run('watchtower', buildWatchtower);
+    run('kokpar', buildKokpar);
+    run('farHerds', buildFarHerds);
+    run('snowLotus', buildSnowLotus);
     if (this.flutter.count > 0) this.group.add(this.flutter.build(this.sky));
     if (this.smoke.count > 0) this.group.add(this.smoke.build(this.sky));
     return this;
@@ -86,11 +94,13 @@ export class NalatiPOIs {
     scene.add(this.group);
     player.colliders.push(...this.colliders);
     player.platforms.push(...this.platforms);
+    this.viewer = player.position ?? null;
   }
 
   update(dt: number): void {
     this.flutter.update(dt);
     this.smoke.update(dt);
+    for (const p of this.pieces) p.update?.(dt, this.viewer);
   }
 
   /** triangles per piece (+ cloth / smoke) for the perf report */

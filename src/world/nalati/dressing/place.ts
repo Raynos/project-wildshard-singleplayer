@@ -213,6 +213,7 @@ function rocks(plan: DressPlan, occ: Occupancy, nearTree: (x: number, z: number,
     if (glacierMask(x, z) > 0.2) continue;
     const p = Math.min(1, 0.1 + smoothstep(0.06, 0.3, s) * 0.55 + bank + massif);
     if (coin > cl * 0.3 * p) continue;
+    if (s > 0.6) continue; // a boulder glued to a cliff face reads as floating
     const big = 0.4 + rng.next() ** 2.2 * (s > 0.2 || massif > 0.3 ? 2.1 : 1.5);
     if (blocked(x, z, h, { road: 4.5 + big, poi: 3 + big, brook: 3 + big })) continue;
     if (onKurgan(x, z, 2)) continue;

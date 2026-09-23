@@ -28,7 +28,8 @@ const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const req = createRequire(realpathSync(join(ROOT, 'node_modules/@gltf-transform/cli/package.json')));
 const { NodeIO } = req('@gltf-transform/core');
 const { ALL_EXTENSIONS, EXTMeshoptCompression } = req('@gltf-transform/extensions');
-const { MeshoptDecoder } = req('meshoptimizer');
+const { MeshoptDecoder, MeshoptSimplifier } = req('meshoptimizer');
+const { Document } = req('@gltf-transform/core');
 const sharp = req('sharp');
 
 const argv = process.argv.slice(2);
@@ -44,7 +45,7 @@ const GT = join(ROOT, 'node_modules/.bin/gltf-transform');
 // sat = extra chroma multiplier; gain = L multiplier (brighter paint); hiSat = chroma multiplier on the light paint
 // (L > 55 → 75: the yurt's white felt reads orange under the warm painterly sun unless it is near-neutral);
 // phoneRatio = the phone GLB's vertex ratio (meshoptimizer simplify): the scattered rocks are hundreds of instances.
-/** @type {Record<string, {src: 'trellis'|'hy', k?: number, lift?: number, sat?: number, gain?: number, hiSat?: number, phoneRatio?: number}>} */
+/** @type {Record<string, {src: 'trellis'|'hy', k?: number, lift?: number, sat?: number, gain?: number, hiSat?: number, phoneRatio?: number, farRatio?: number}>} */
 const MODELS = {
   yurt: { src: 'hy', k: 1, lift: 6, gain: 1.1, hiSat: 0.4 },
   'horse-saddled': { src: 'hy', k: 0.75 },
@@ -64,7 +65,14 @@ const MODELS = {
   saddle: { src: 'trellis', k: 0.8 },
   firewood: { src: 'trellis', k: 0.85 },
   chest: { src: 'trellis', k: 0.8 },
+  // layout v2 (N9)
+  watchtower: { src: 'hy', k: 0.9, sat: 0.8, lift: 6 },
+  'snow-lotus': { src: 'trellis', k: 0.85 },
+  'kokpar-rider': { src: 'hy', k: 0.8, farRatio: 0.12 },
 };
+// the far-herd LOD (<name>.far.glb: ~10 % of the vertices, a 256² atlas) for the instanced herds in the hundreds
+MODELS['horse-wild'].farRatio = 0.1;
+MODELS['horse-saddled'].farRatio = 0.1;
 
 // ---- colour ----
 const lin = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
@@ -209,6 +217,54 @@ function uvMask(doc, w, h) {
   return mask;
 }
 
+/**
+ * The far LOD for the instanced herds: no texture — each vertex takes the atlas colour under its UV, vertices are welded
+ * by position (the atlas seams would otherwise lock the simplifier), then meshoptimizer simplifies to `ratio` of the
+ * triangles. COLOR_0 carries the coat (the painterly material reads vertex colours).
+ */
+async function writeFarLod(doc, png, ratio, out, mid) {
+  const prim = doc.getRoot().listMeshes()[0].listPrimitives()[0];
+  const pos = prim.getAttribute('POSITION'), uv = prim.getAttribute('TEXCOORD_0'), ind = prim.getIndices();
+  const node = doc.getRoot().listNodes().find((nd) => nd.getMesh());
+  const mat = node ? node.getWorldMatrix() : [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+  const img = await readRgba(png);
+  const key = new Map(), P = [], Csum = [], N = [], remap = new Int32Array(pos.getCount());
+  const p = [0, 0, 0], t = [0, 0];
+  for (let i = 0; i < pos.getCount(); i++) {
+    pos.getElement(i, p);
+    const x = mat[0] * p[0] + mat[4] * p[1] + mat[8] * p[2] + mat[12], y = mat[1] * p[0] + mat[5] * p[1] + mat[9] * p[2] + mat[13], z = mat[2] * p[0] + mat[6] * p[1] + mat[10] * p[2] + mat[14];
+    const k = `${Math.round(x * 500)},${Math.round(y * 500)},${Math.round(z * 500)}`;
+    let v = key.get(k);
+    if (v === undefined) { v = P.length / 3; key.set(k, v); P.push(x, y, z); Csum.push(0, 0, 0); N.push(0); }
+    remap[i] = v;
+    uv.getElement(i, t);
+    const px = Math.min(img.w - 1, Math.max(0, Math.floor(t[0] * img.w))), py = Math.min(img.h - 1, Math.max(0, Math.floor(t[1] * img.h)));
+    const o = (py * img.w + px) * 4;
+    Csum[v * 3] += LUT_LIN[img.data[o]]; Csum[v * 3 + 1] += LUT_LIN[img.data[o + 1]]; Csum[v * 3 + 2] += LUT_LIN[img.data[o + 2]]; N[v]++;
+  }
+  const idx = new Uint32Array(ind.getCount());
+  for (let i = 0; i < idx.length; i++) idx[i] = remap[ind.getScalar(i)];
+  await MeshoptSimplifier.ready;
+  const positions = new Float32Array(P);
+  const target = Math.floor((idx.length * ratio) / 3) * 3;
+  const [simp] = MeshoptSimplifier.simplify(idx, positions, 3, target, 0.05, []);
+  // compact the kept vertices
+  const used = new Int32Array(positions.length / 3).fill(-1), outP = [], outC = [], outI = [];
+  for (const v of simp) {
+    if (used[v] < 0) { used[v] = outP.length / 3; outP.push(positions[v * 3], positions[v * 3 + 1], positions[v * 3 + 2]); const nn = Math.max(1, N[v]); outC.push(Csum[v * 3] / nn, Csum[v * 3 + 1] / nn, Csum[v * 3 + 2] / nn); }
+    outI.push(used[v]);
+  }
+  const fd = new Document();
+  const buf = fd.createBuffer();
+  const acc = (arr, type) => fd.createAccessor().setArray(arr).setType(type).setBuffer(buf);
+  const fp = fd.createPrimitive().setAttribute('POSITION', acc(new Float32Array(outP), 'VEC3')).setAttribute('COLOR_0', acc(new Float32Array(outC), 'VEC3')).setIndices(acc(new Uint32Array(outI), 'SCALAR'))
+    .setMaterial(fd.createMaterial().setMetallicFactor(0).setRoughnessFactor(0.85));
+  fd.createScene().addChild(fd.createNode().setMesh(fd.createMesh().addPrimitive(fp)));
+  await new NodeIO().write(mid, fd);
+  execFileSync(GT, ['optimize', mid, out, '--compress', 'meshopt', '--simplify', 'false', '--instance', 'false'], { stdio: 'pipe' });
+  console.log(`  far LOD ${out.split('/').pop()}: ${idx.length / 3} → ${outI.length / 3} tris`);
+}
+
 await MeshoptDecoder.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
 for (const [name, knobs] of Object.entries(MODELS)) {
@@ -231,8 +287,10 @@ for (const [name, knobs] of Object.entries(MODELS)) {
   for (const ext of doc.getRoot().listExtensionsUsed()) if (ext instanceof EXTMeshoptCompression) ext.dispose();
   const mid = join(TMP, `${name}.glb`);
   await io.write(mid, doc);
-  for (const [out, size, ratio] of [[`${name}.glb`, 1024, 1], [`${name}.phone.glb`, 512, knobs.phoneRatio ?? 1]]) {
-    const simplify = ratio < 1 ? ['--simplify', 'true', '--simplify-ratio', String(ratio), '--simplify-error', '0.02'] : ['--simplify', 'false'];
+  const outs = [[`${name}.glb`, 1024, 1], [`${name}.phone.glb`, 512, knobs.phoneRatio ?? 1]];
+  if (knobs.farRatio) await writeFarLod(doc, png, knobs.farRatio, join(OUT, `${name}.far.glb`), join(TMP, `${name}.far.glb`));
+  for (const [out, size, ratio] of outs) {
+    const simplify = ratio < 1 ? ['--simplify', 'true', '--simplify-ratio', String(ratio), '--simplify-error', ratio < 0.2 ? '0.2' : '0.02', ...(ratio < 0.2 ? ['--simplify-lock-border', 'false'] : [])] : ['--simplify', 'false'];
     execFileSync(GT, ['optimize', mid, join(OUT, out), '--compress', 'meshopt', '--texture-compress', 'webp',
       '--texture-size', String(size), ...simplify, '--instance', 'false'], { stdio: 'pipe' });
   }

@@ -58,7 +58,7 @@ export const KURGANS: { x: number; z: number; r: number; h: number; great?: bool
 export const GREAT_KURGAN_DOOR = -Math.PI / 2;
 export const SUMMER_YURTS = { x: -91, z: -26 };
 /** the ruined watchtower on its rock on the east rim, above the snow ring */
-export const WATCHTOWER = { x: -212, z: -26, y: 42 }; // (−214, −9) in the spec sat on the E road's levelled mouth
+export const WATCHTOWER = { x: -208, z: -38, y: 44 }; // (−214, −9) in the spec sat on the E road's levelled mouth
 /** the Storm Titan's Wind Cairn on the bowl's south rim; the Titan stands beyond it over the snow valley */
 export const CAIRN = { x: -30, z: -45, y: 34 };
 
@@ -82,10 +82,11 @@ export const GLACIER = { x0: -150, z0: -55, y0: 80, x1: -48, z1: -92, y1: 36, ha
 export const MELT_STREAM: XZ[] = [[-46, -94], [-34, -101], [-24, -113], [-18, -132], [-22, -156], [-16, -180], [-22, -205], [-27, -228], [-29, -250]];
 /** Aqbars' cave on the west massif's flank, the mouth facing NE toward the valley head (a `rot`: 0 faces −z) */
 export const LEOPARD_CAVE = { x: 175, z: -98, y: 55, rot: Math.PI * 0.75 };
-/** snow lotus clusters in the rocks (the biggest round (+143, −136)) */
+/** snow lotus clusters in the rocks: the biggest on the west massif's foot (the spec's (+143, −136) sits at +82 on the
+ *  massif, out of reach — brought down to +60), the rest on Snow Lotus Valley's walls */
 export const SNOW_LOTUS: { x: number; z: number; r: number; n: number }[] = [
-  { x: 143, z: -136, r: 16, n: 22 }, { x: 118, z: -112, r: 8, n: 7 }, { x: 36, z: -160, r: 9, n: 8 },
-  { x: -52, z: -150, r: 8, n: 6 }, { x: 58, z: -205, r: 8, n: 6 }, { x: -60, z: -198, r: 7, n: 5 },
+  { x: 96, z: -112, r: 14, n: 22 }, { x: 60, z: -150, r: 10, n: 10 }, { x: 12, z: -104, r: 7, n: 6 },
+  { x: -52, z: -142, r: 8, n: 7 }, { x: 18, z: -142, r: 7, n: 6 }, { x: -50, z: -182, r: 7, n: 5 },
 ];
 
 // ── the elites' lairs (B12) ───────────────────────────────────────────────────────────────────────────────────────

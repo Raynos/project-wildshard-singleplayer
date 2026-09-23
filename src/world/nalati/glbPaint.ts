@@ -24,7 +24,11 @@ import type { Sky } from '../Sky';
 
 export type NalatiModelName =
   | 'yurt' | 'horse-saddled' | 'horse-wild' | 'wolf' | 'sheep' | 'snow-leopard' | 'eagle' | 'golden-king' | 'spruce'
-  | 'balbal' | 'boulder-1' | 'boulder-2' | 'boulder-3' | 'kumis-churn' | 'cauldron' | 'saddle' | 'firewood' | 'chest';
+  | 'balbal' | 'boulder-1' | 'boulder-2' | 'boulder-3' | 'kumis-churn' | 'cauldron' | 'saddle' | 'firewood' | 'chest'
+  | 'watchtower' | 'snow-lotus' | 'kokpar-rider';
+/** the models that also ship a far LOD (`<name>.far.glb`: ~10 % of the triangles, vertex colours, no texture) */
+export type FarModelName = 'horse-wild' | 'horse-saddled' | 'kokpar-rider';
+export type ModelLod = 'near' | 'far';
 
 export interface NalatiModel {
   name: NalatiModelName;
@@ -94,18 +98,19 @@ function floatAttr(a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute):
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
 
 export interface RawModel { geometry: THREE.BufferGeometry; map: THREE.Texture | null; box: THREE.Box3 }
-const raw = new Map<NalatiModelName, Promise<RawModel>>();
-const ready = new Map<NalatiModelName, RawModel>();
+const raw = new Map<string, Promise<RawModel>>();
+const ready = new Map<string, RawModel>();
 
 /** a model's float geometry + atlas (no material), loading it if needed — for code that builds its own mesh (creatures) */
-export function loadModelRaw(name: NalatiModelName): Promise<RawModel> { return loadRaw(name); }
+export function loadModelRaw(name: NalatiModelName): Promise<RawModel> { return loadRaw(name, 'near'); }
 /** the same, synchronously: the loaded model, or null while it is still loading (or failed) */
-export function modelRawIfLoaded(name: NalatiModelName): RawModel | null { return ready.get(name) ?? null; }
+export function modelRawIfLoaded(name: NalatiModelName): RawModel | null { return ready.get(`${name}|near`) ?? null; }
 
-function loadRaw(name: NalatiModelName): Promise<RawModel> {
-  let p = raw.get(name);
+function loadRaw(name: NalatiModelName, lod: ModelLod): Promise<RawModel> {
+  const rkey = `${name}|${lod}`;
+  let p = raw.get(rkey);
   if (!p) {
-    const url = `${DIR}${name}${TIER === 'phone' ? '.phone' : ''}.glb`;
+    const url = lod === 'far' ? `${DIR}${name}.far.glb` : `${DIR}${name}${TIER === 'phone' ? '.phone' : ''}.glb`;
     p = gltfLoader().loadAsync(url).then((gltf) => {
       gltf.scene.updateMatrixWorld(true);
       const meshes: THREE.Mesh[] = [];
@@ -121,8 +126,9 @@ function loadRaw(name: NalatiModelName): Promise<RawModel> {
       if (index) geometry.setIndex(Array.from(index.array));
       geometry.applyMatrix4(found.matrixWorld);
       if (!geometry.hasAttribute('normal')) geometry.computeVertexNormals();
-      // painterly materials always read vertex colours: a white one (the atlas carries the colour)
-      geometry.setAttribute('color', new THREE.BufferAttribute(new Uint8Array(geometry.getAttribute('position').count * 3).fill(255), 3, true));
+      // painterly materials always read vertex colours: the far LOD's own (its coat), else a white one (the atlas carries it)
+      if (src.hasAttribute('color')) geometry.setAttribute('color', floatAttr(src.getAttribute('color')));
+      else geometry.setAttribute('color', new THREE.BufferAttribute(new Uint8Array(geometry.getAttribute('position').count * 3).fill(255), 3, true));
       geometry.computeBoundingBox();
       geometry.computeBoundingSphere();
       const srcMat = found.material;
@@ -131,23 +137,23 @@ function loadRaw(name: NalatiModelName): Promise<RawModel> {
       if (map) { map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4; }
       const box = geometry.boundingBox?.clone() ?? new THREE.Box3();
       const out = { geometry, map, box };
-      ready.set(name, out);
+      ready.set(rkey, out);
       return out;
     });
-    raw.set(name, p);
+    raw.set(rkey, p);
   }
   return p;
 }
 
 const models = new WeakMap<Sky, Map<string, Promise<NalatiModel>>>();
 /** one model on the painterly look (cached per sky × name × look) */
-export function loadNalatiModel(sky: Sky, name: NalatiModelName, look: ModelLook = {}): Promise<NalatiModel> {
+export function loadNalatiModel(sky: Sky, name: NalatiModelName, look: ModelLook = {}, lod: ModelLod = 'near'): Promise<NalatiModel> {
   let bySky = models.get(sky);
   if (!bySky) { bySky = new Map(); models.set(sky, bySky); }
-  const key = `${name}|${look.rim ?? ''}|${look.bands ?? ''}|${look.sway ?? ''}|${new THREE.Color(look.color ?? 0xffffff).getHexString()}`;
+  const key = `${name}|${lod}|${look.rim ?? ''}|${look.bands ?? ''}|${look.sway ?? ''}|${new THREE.Color(look.color ?? 0xffffff).getHexString()}`;
   let p = bySky.get(key);
   if (!p) {
-    p = loadRaw(name).then((r) => ({
+    p = loadRaw(name, lod).then((r) => ({
       name,
       geometry: r.geometry,
       box: r.box,
@@ -198,14 +204,17 @@ export const MODEL_SIZE: Readonly<Record<NalatiModelName, readonly [number, numb
   'golden-king': [1.19, 2.1, 0.69], balbal: [0.68, 1.6, 0.59], 'boulder-1': [1.65, 1.4, 1.66], 'boulder-2': [2.15, 2.0, 2.14],
   'boulder-3': [3.11, 0.8, 2.58], 'kumis-churn': [0.6, 1.1, 0.66], cauldron: [1.57, 1.7, 1.32], saddle: [0.54, 0.6, 0.46],
   firewood: [0.58, 0.6, 0.68], chest: [0.87, 0.6, 0.69],
+  watchtower: [8.68, 12.01, 7.19], 'snow-lotus': [0.55, 0.5, 0.56], 'kokpar-rider': [1.19, 2.5, 3.25],
 };
 
 /** triangles per model (desktop GLB; the phone GLB is the same mesh) — for the POIs' tri counts */
 export const MODEL_TRIS: Readonly<Record<NalatiModelName, number>> = {
   yurt: 6000, 'horse-saddled': 8000, 'horse-wild': 8000, spruce: 2999, wolf: 7523, sheep: 4802, 'snow-leopard': 7997,
   eagle: 5903, 'golden-king': 6543, balbal: 1473, 'boulder-1': 800, 'boulder-2': 800, 'boulder-3': 800, 'kumis-churn': 1334,
-  cauldron: 1406, saddle: 1456, firewood: 1492, chest: 1417,
+  cauldron: 1406, saddle: 1456, firewood: 1492, chest: 1417, watchtower: 4000, 'snow-lotus': 2233, 'kokpar-rider': 9000,
 };
+/** triangles of the far LODs */
+export const FAR_TRIS: Readonly<Record<FarModelName, number>> = { 'horse-wild': 790, 'horse-saddled': 798, 'kokpar-rider': 1066 };
 
 /**
  * Collects model placements while a POI is built (synchronously, like its PaintKit), then adds ONE InstancedMesh per
