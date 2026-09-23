@@ -1,6 +1,6 @@
 # Project Wildshard — the music
 
-**State:** `blocked` 2026-09-22 — rows 1–2 done (`ec5665e`): 4 local models ran (HeartMuLa, MiniMax Music 3, Stable Audio Open 1.0 + Small; ACE-Step dropped, too heavy), 102 takes, a 9-track shortlist in `art/music/round-1-bakeoff/` (listening page: https://claude.ai/artifact/SCH5wc5xFCJHLvfNtYDwE3). Waiting on the user (E5): one pick per style, and the licence terms (Stability registration + credit / MiniMax on-screen credit).
+**State:** `in progress` 2026-09-22 — rows 1–3 done: the user picked **MiniMax Music 3 as the one model** ("everything else nah") and asked to **remaster all the music and audio in Wildshard with it** (E5); the losing models are deleted (weights `258eb5b`). Open: rows 4–10 (generation agent + integration agent).
 
 ## What changed (2026-09-22, the user after listening — ASKS D41 → E5)
 
@@ -76,18 +76,39 @@ Everything above is reproducible: prompts, seeds, model + version, and the trim 
 - CPU: stem playback is `AudioBufferSourceNode`s — no worklets; the synth is off while stems play.
 - Provenance recorded per shipped file (model, version, licence, prompt, seed) in the manifest.
 
+## v3 — MiniMax Music 3 does everything (2026-09-22, the user after the bake-off)
+
+*"Minimax m3 is the winner everything else nah. Remaster all the music and audio in wildshard using minimax m3 audio."*
+
+- **One model:** MiniMax Music 3 (diffusers 0.40 on MPS, ~28 GB peak, ~4 min per 75 s take — one job at a time).
+  HeartMuLa, Stable Audio Open and ACE-Step are deleted. Licence: free under $20M revenue, **"MiniMax-Music3" shown in
+  the game's UI** — a credits line in the pause menu (Settings) and on the title screen.
+- **Music, three styles kept** (piano / orchestral / folk) with the in-game switch — the user picked the model, not a style.
+  Per style: a Pine Hollow theme, a Driftwood theme, a title theme, stings (pickup / death / chunk).
+- **Adaptive without ACE-Step:** MiniMax ignores key / tempo, so layers can't be generated separately and line up. Instead,
+  **demucs splits each chosen take into stems** (drums / bass / other): *calm* = other + soft bass, *tension* adds the
+  bass + drums back on the same timeline (aligned — it is one recording). Loops: bar-exact trims found by
+  beat-tracking, crossfaded seams.
+- **"All the audio":** MiniMax is a *music* model, so every sound effect gets a feasibility pass before anything is
+  replaced: ambient beds (Pine Hollow wind + birds, Driftwood surf + gulls, underwater) and the tonal sounds (pickup
+  hum, shrine hum, stings) are likely; percussive one-shots (crossbow, sword, rifle, footsteps, splashes, animal
+  calls) are doubtful. Whatever MiniMax renders convincingly ships as a sample with the synth version as fallback;
+  whatever it can't keeps the synth and is listed in the report for the user.
+
 ## How it gets built
 
 | # | checkpoint | status |
 |---|---|---|
 | 1 | Local model set-up on the Mac: HeartMuLa (MLX), Stable Audio Open (Small + 1.0), MiniMax Music 3 (MPS, diffusers 0.40 — no port needed); ~~ACE-Step 1.5~~ dropped (too heavy); speeds / memory in `~/projects/localai/docs/music-models.md` | done `ec5665e` |
 | 2 | Bake-off: ~10 takes × model × 3 styles (Pine Hollow brief) → `art/music/round-1-bakeoff/` + a listening page (and an Artifact for the phone) | done `ec5665e` — 102 takes, shortlist 3 per style; SAO 1.0 scores best but stops at 47 s, MiniMax writes full themes but ignores the key, HeartMuLa hums |
-| 3 | **User pick** — one track per style from the shortlist (the user's ears; blocks 4) | open |
-| 4 | Adaptive assets per style: calm loop (repaint seam), tension layer (lego), title cut, Driftwood bed, stings; encode + normalise + manifest | open |
-| 5 | Music.ts stem player + synth fallback + lazy load after enter; synth patches improved (reverb, pluck, pad) | open |
-| 6 | Pause-menu **Music style** switch + `?music=`; Settings `musicStyle` | open |
-| 7 | Shrine hum by proximity (Driftwood) | open |
-| 8 | Re-cut the 15 s / 30 s trailers with the user's favourite style; deploy; the user listens on the phone | open |
+| 3 | **User pick** — MiniMax Music 3, all three styles; everything else deleted | done (user, 2026-09-22) |
+| 4 | Music generation (MiniMax): per style × {Pine Hollow theme, Driftwood theme, title} ~6 takes each, auto-ranked; stings; a listening page for the user's veto | open |
+| 5 | Stems + loops: demucs split, calm / tension layers, bar-exact loops, −18 LUFS, AAC into `public/assets/music/<style>/` + `music.json` manifest (≤ 5 MB per style) | open |
+| 6 | SFX / ambience feasibility with MiniMax: ambient beds, pickup / shrine hum, a test take for each one-shot family; ship what convinces, report what doesn't | open |
+| 7 | Music.ts stem player (lazy after enter, synth fallback, bar-grid crossfades, intensity drives the tension layer, underwater LP) + Audio.ts sample beds / one-shots with synth fallback | open |
+| 8 | Pause-menu **Music style** switch + `?music=`; Settings `musicStyle`; **"Music: MiniMax-Music3" credit** in Settings + title | open |
+| 9 | Shrine hum by proximity (Driftwood) | open |
+| 10 | Re-cut the 15 s / 30 s trailers with the new score; deploy; the user listens on the phone | open |
 
 ## v1 (landed, D35 — still the synth fallback)
 
