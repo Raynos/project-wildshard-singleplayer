@@ -52,8 +52,8 @@ export const HEADLAND = { x: 98, z: 96, r: 48, h: 22, shoulderR: 80, shoulderH: 
 /** Wreck Cove: a bay bitten out of the east shore; the wreck lies half sunk on the reef at its mouth, bow run up the sand, heeled toward the beach (Wreck.ts) */
 export const COVE = { ang: -0.02, depth: 46, width: 0.5 };
 export const WRECK = { x: 153, z: 2, heading: 2.7, roll: -0.2, pitch: 0.05, floorY: 1.45 };
-/** the ring shrine on a knoll in the north-west jungle (rot: which way its pillars face — south-east, toward the hut) */
-export const SHRINE = { x: -98, z: 108, rot: 2.4 };
+/** the ring shrine on a knoll in the north-west jungle (rot: its stair faces south-east toward the hut path; its back points at the planet, so the ring frames it from the stair head) */
+export const SHRINE = { x: -98, z: 108, rot: 2.51 };
 /** the tidal creek across the hut → lookout path (a ravine cut below sea level, so the lagoon runs into it) and the rope bridge over it */
 export const GULLY = { x: 24, z: 22, width: 11, depth: 7, length: 64 };
 export const BRIDGE = { a: [16, 14] as [number, number], b: [32, 30] as [number, number], sag: 0.9 };
