@@ -10,10 +10,11 @@ import { macrotask } from '../boot/plan';
 // ── low-poly palette (sRGB in, linear out via THREE.Color) ──
 const LP = {
   seabed: new THREE.Color('#4fb3a6'),   // the lagoon floor as seen through the water (Beer–Lambert's green-cyan baked in: the sea over it is clear)
-  wetSand: new THREE.Color('#c4ad78'),
+  wetSand: new THREE.Color('#b0915e'),
   sand: new THREE.Color('#dcc48a'),
   grass: new THREE.Color('#6cae47'),
   grassDark: new THREE.Color('#4d8c33'),
+  grassHigh: new THREE.Color('#9acb52'),
   rock: new THREE.Color('#666a70'),
   rockLight: new THREE.Color('#84888e'),
   path: new THREE.Color('#d6bd84'),
@@ -76,7 +77,7 @@ export class Terrain {
     while (r.done !== true) { await macrotask(); r = rows.next(); } // a band of rows per task: the 256² grid was one ~120 ms task at 4x CPU
     this.mesh = new THREE.Mesh(r.value, mat);
     this.mesh.receiveShadow = true;
-    this.mesh.castShadow = false;
+    this.mesh.castShadow = true; // L6: the cliffs and the plateau shade the beach (+1 draw, ~130 k tris into the shadow map; phone: one 80 m cascade)
     this.group.add(this.mesh);
     this.group.add(this.buildLowPolySlab());
     return this;
@@ -95,7 +96,10 @@ export class Terrain {
         const y = heightAt(x, z);
         pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
         const [, ny] = normalAt(x, z, d * 0.5);
-        lowPolyGroundColor(c, y - wl, 1 - ny, x, z);
+        // a cliff's top edge (L6): steep here but nothing much higher within 2.5 m → the grass lips over it
+        let lip = 0;
+        if (ny < 0.8) { const hi = Math.max(heightAt(x + 2.5, z), heightAt(x - 2.5, z), heightAt(x, z + 2.5), heightAt(x, z - 2.5)); lip = 1 - ss(hi - y, 0.4, 1.4); }
+        lowPolyGroundColor(c, y - wl, 1 - ny, x, z, lip);
         // the sand paths: trails above the beach are painted sand over the grass (a 3 m bed with a soft edge)
         if (y - wl > 1.5) { const td = trailDistance(x, z); if (td < 4.5) { _pathC.copy(LP.path).multiplyScalar(0.94 + hash2(x, z) * 0.12); c.lerp(_pathC, 1 - ss(td, 2.2, 4.5)); } }
         col[i * 3] = Math.round(c.r * 255); col[i * 3 + 1] = Math.round(c.g * 255); col[i * 3 + 2] = Math.round(c.b * 255);
@@ -330,15 +334,26 @@ export class Terrain {
 }
 
 /** One facet's colour from its height above the sea (m), slope (0 flat → 1 vertical) and position (jitter). */
-export function lowPolyGroundColor(out: THREE.Color, h: number, slope: number, x: number, z: number): THREE.Color {
+/**
+ * One facet's colour from its height above the sea (m), slope (0 flat → 1 vertical) and position (jitter). `lip` (0..1)
+ * marks a steep facet at the top edge of a cliff: it keeps the grass (the mockups' grass-topped cliff lips, L6).
+ */
+export function lowPolyGroundColor(out: THREE.Color, h: number, slope: number, x: number, z: number, lip = 0): THREE.Color {
   if (h < 0) out.lerpColors(LP.seabed, LP.wetSand, ss(h, -1.6, 0));
-  else out.lerpColors(LP.wetSand, LP.sand, ss(h, 0, 0.9));
-  // grass takes over above the beach, darker in the folds
+  else out.lerpColors(LP.wetSand, LP.sand, ss(h, 0.35, 0.75));                 // a distinct dark wet band along the swash line
+  // grass takes over above the beach, darker in the folds, sun-bleached lighter as the ground climbs
   const g = ss(h, 2.2, 4.5);
-  if (g > 0) { _tmpC.lerpColors(LP.grass, LP.grassDark, hash2(Math.floor(x * 0.11), Math.floor(z * 0.11)) * 0.6); out.lerp(_tmpC, g); }
-  // rock on the steep facets (a hair lighter on the flatter ledges)
-  const r = ss(slope, 0.24, 0.4);
-  if (r > 0) { _tmpC.lerpColors(LP.rock, LP.rockLight, 1 - ss(slope, 0.45, 0.8)); out.lerp(_tmpC, r); }
+  if (g > 0) {
+    _tmpC.lerpColors(LP.grass, LP.grassDark, hash2(Math.floor(x * 0.11), Math.floor(z * 0.11)) * 0.6);
+    _tmpC.lerp(LP.grassHigh, ss(h, 6, 24) * 0.7);
+    out.lerp(_tmpC, g);
+  }
+  // rock on the steep facets (a hair lighter on the flatter ledges, faint strata bands) — except a grass lip on the rim
+  const r = ss(slope, 0.24, 0.4) * (1 - lip * ss(h, 2.5, 4.5));
+  if (r > 0) {
+    _tmpC.lerpColors(LP.rock, LP.rockLight, 1 - ss(slope, 0.45, 0.8)).multiplyScalar(0.92 + 0.1 * Math.sin(h * 1.4 + hash2(Math.floor(x * 0.05), 0) * 2));
+    out.lerp(_tmpC, r);
+  }
   // per-facet jitter so the flat shading reads as facets, not a gradient
   return out.multiplyScalar(0.93 + hash2(x, z) * 0.14);
 }
