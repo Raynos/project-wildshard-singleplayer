@@ -42,6 +42,7 @@ const FILES = [
   { file: join(STYLES, 'update.css'), prefix: 'ws-update-', strict: true },
   { file: join(STYLES, 'minimap.css'), prefix: 'ws-minimap-', strict: true },
   { file: join(STYLES, 'combat.css'), prefix: 'ws-combat-', strict: true }, // hunting feedback (src/ui/Combat.ts), imported by the module
+  { file: join(STYLES, 'feedback.css'), prefix: 'ws-fb-', strict: true }, // the review inbox: ✎ disc + the lazy composer (src/ui/review.ts, Feedback.ts)
   // loading screen: owned by src/ui/Loading.ts — warn only while its owner finishes the ws-load-* rename
   { file: join(ROOT, 'src/ui/loading.css'), prefix: 'ws-load-', strict: false },
   // frame meter (src/ui/Perf.ts) — warn only; not part of the HUD split

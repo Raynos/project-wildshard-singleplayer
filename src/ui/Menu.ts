@@ -1,5 +1,6 @@
 /**
- * The in-game MENU — one overlay, four tabs: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (art/menu-tab-*.png).
+ * The in-game MENU — one overlay, four tabs: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (art/menu-tab-*.png), plus FEEDBACK once
+ * a reviewer has unlocked the review inbox in Settings → REVIEW (src/ui/review.ts; the tab's composer is the lazy Feedback.ts).
  * Replaces the old pause box and the stand-alone full-map screen: tapping the minimap (or M) opens it on
  * the Map tab, the pause button / Esc opens it on Settings (Resume, Exit to main menu and the switches live
  * there). Styled by src/ui/styles/gmenu.css (prefix ws-gmenu-). The world keeps running underneath, as the
@@ -10,6 +11,7 @@
  *   menu.open('map') / menu.close() / menu.isOpen / menu.tab
  *   menu.onExit = () => hud.exitToMenu();     // the Settings tab's EXIT TO MAIN MENU
  *   menu.refresh()                            // re-render the data tabs (kills, harvests, unlocks)
+ *   menu.onFeedbackTab = (panel) => …          // the FEEDBACK tab was selected: mount the composer into `panel`
  */
 import { getActiveChunk } from '../chunks/registry';
 import { CHUNK_SIZE } from '../core/config';
@@ -19,12 +21,14 @@ import { PACK_SLOTS, type Inventory } from '../game/Inventory';
 import { icon, type IconId } from './icons';
 import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, type SettingKey, type NumberKey } from './Settings';
 import { gfxPrefs, saveGfxPrefs } from '../core/tier';
+import { lockReview, onReview, quickNote, reviewUnlocked, setQuickNote, unlockReview } from './review';
 
-export type MenuTab = 'map' | 'inventory' | 'achievements' | 'settings';
+export type MenuTab = 'map' | 'inventory' | 'achievements' | 'settings' | 'feedback';
 const TABS: { id: MenuTab; label: string }[] = [
   { id: 'map', label: 'Map' }, { id: 'inventory', label: 'Inventory' }, { id: 'achievements', label: 'Achievements' }, { id: 'settings', label: 'Settings' },
+  { id: 'feedback', label: 'Feedback' }, // only while the review inbox is unlocked (syncReview)
 ];
-const HINTS: Record<MenuTab, string> = { map: 'Drag to pan · pinch to zoom', inventory: 'Tap a weapon to hold it', achievements: 'Tap an earned title to wear it', settings: 'Tap outside or Esc to resume' };
+const HINTS: Record<MenuTab, string> = { map: 'Drag to pan · pinch to zoom', inventory: 'Tap a weapon to hold it', achievements: 'Tap an earned title to wear it', settings: 'Tap outside or Esc to resume', feedback: 'Enter sends · the frame under the menu goes with it' };
 
 /** the weapons as the Inventory tab shows them — read live from Weapons (src/player/Weapons.ts) */
 export interface KitEntry { id: string; name: string; ammoLabel: string; ammo: number; magazine: number; reserve: number; equipped: boolean; icon: IconId }
@@ -55,6 +59,7 @@ export class GameMenu {
   onOpen?: (tab: MenuTab) => void;
   onClose?: () => void;
   onExit?: () => void;
+  onFeedbackTab?: (panel: HTMLElement) => void;
 
   constructor(private opts: GameMenuOptions) {
     const def = getActiveChunk();
@@ -74,7 +79,7 @@ export class GameMenu {
     }
     this.sheet.append(this.tabBar);
     const body = el('ws-gmenu-body');
-    this.panels = { map: el('ws-gmenu-panel map'), inventory: el('ws-gmenu-panel scroll'), achievements: el('ws-gmenu-panel scroll'), settings: el('ws-gmenu-panel scroll') };
+    this.panels = { map: el('ws-gmenu-panel map'), inventory: el('ws-gmenu-panel scroll'), achievements: el('ws-gmenu-panel scroll'), settings: el('ws-gmenu-panel scroll'), feedback: el('ws-gmenu-panel scroll') };
     for (const p of Object.values(this.panels)) { if (p.classList.contains('scroll')) p.dataset['scroll'] = ''; body.append(p); } // index.html swallows touchmove outside [data-scroll]
     this.sheet.append(body);
     this.hint = el('ws-gmenu-hint');
@@ -113,6 +118,15 @@ export class GameMenu {
     opts.progress.onChange = () => { if (this._open) this.renderAchievements(); };
     opts.inventory.onChange = () => { if (this._open) this.renderInventory(); };
     this.select('settings');
+    this.syncReview(); onReview(() => this.syncReview());
+  }
+
+  /** the FEEDBACK tab exists only while the review inbox is unlocked */
+  private syncReview(): void {
+    const on = reviewUnlocked();
+    for (const b of this.tabBar.children) if ((b as HTMLElement).dataset['tab'] === 'feedback') (b as HTMLElement).hidden = !on;
+    this.tabBar.classList.toggle('review', on);
+    if (!on && this._tab === 'feedback') this.select('settings');
   }
 
   get isOpen(): boolean { return this._open; }
@@ -126,6 +140,7 @@ export class GameMenu {
     this.root.inert = false;
     this.refresh();
     if (tab === 'map') this.opts.fullMap.show();
+    if (tab === 'feedback') this.onFeedbackTab?.(this.panels.feedback);
     this.onOpen?.(tab);
   }
   /** `silent` = no onClose (exit to the main menu: the HUD handles the world itself) */
@@ -147,6 +162,7 @@ export class GameMenu {
     if (this._open) { if (tab === 'map') { this.opts.fullMap.show(); this.syncZoom(); } else this.opts.fullMap.hide(); }
     if (tab === 'inventory') this.renderInventory();
     if (tab === 'achievements') this.renderAchievements();
+    if (tab === 'feedback' && this._open) this.onFeedbackTab?.(this.panels.feedback);
   }
 
   /** re-render the data tabs */
@@ -289,7 +305,45 @@ export class GameMenu {
     mslider.addEventListener('pointerdown', (e) => e.stopPropagation());
     mus.append(mslider);
     p.append(el('ws-gmenu-label', 'Audio'), vol, mus);
+    p.append(this.buildReview());
     return apply;
+  }
+  /** Settings → REVIEW: a password unlocks the review inbox (src/ui/review.ts); unlocked, the Quick note switch + LOCK */
+  private buildReview(): HTMLElement {
+    const box = el('ws-gmenu-review');
+    const render = () => {
+      box.replaceChildren(el('ws-gmenu-label', 'Review'));
+      if (!reviewUnlocked()) {
+        const row = el('ws-gmenu-row');
+        const input = document.createElement('input'); input.type = 'password'; input.className = 'ws-gmenu-input'; input.placeholder = 'Review password';
+        input.autocomplete = 'off'; input.enterKeyHint = 'go';
+        const go = el('ws-gmenu-unlock', 'Unlock', 'button') as HTMLButtonElement; go.type = 'button';
+        const note = el('ws-gmenu-note', 'Playtesters: the password turns on in-game notes (F8 / ✎) with a screenshot.');
+        const tryUnlock = async () => {
+          go.disabled = true; note.textContent = 'Checking…';
+          const r = await unlockReview(input.value);
+          go.disabled = false;
+          note.textContent = r === 'bad' ? 'Wrong password.' : r === 'offline' ? 'Could not reach the inbox — try again online.' : '';
+        };
+        // the menu listens for M / Esc and the player for WASD on document: typing a password must not reach them
+        input.addEventListener('keydown', (e) => { if (e.code !== 'Escape') e.stopPropagation(); if (e.code === 'Enter') void tryUnlock(); });
+        input.addEventListener('keyup', (e) => { e.stopPropagation(); });
+        go.addEventListener('click', () => { void tryUnlock(); });
+        row.append(input, go);
+        box.append(row, note);
+        return;
+      }
+      const sw = el('ws-gmenu-switch', '<span class="ws-gmenu-swlabel">Quick note (F8 / ✎)</span><i class="ws-gmenu-pill"></i>', 'button') as HTMLButtonElement; sw.type = 'button'; sw.setAttribute('role', 'switch');
+      sw.classList.toggle('on', quickNote()); sw.setAttribute('aria-checked', String(quickNote()));
+      sw.addEventListener('click', () => setQuickNote(!quickNote()));
+      const lock = el('ws-gmenu-unlock', 'Lock', 'button') as HTMLButtonElement; lock.type = 'button';
+      lock.addEventListener('click', () => lockReview());
+      const row = el('ws-gmenu-row', '<span class="ws-gmenu-swlabel">Review inbox unlocked</span>');
+      row.append(lock);
+      box.append(sw, row, el('ws-gmenu-note', 'Notes go to the developers with a screenshot and where you stand. FEEDBACK tab above.'));
+    };
+    render(); onReview(render);
+    return box;
   }
   /** the render scale / AA rows changed a boot pref (src/core/tier.ts `gfxPrefs`) — only a reload applies it */
   private applyBtn: HTMLButtonElement;

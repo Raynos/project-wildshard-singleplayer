@@ -111,6 +111,9 @@ export class HUD {
   private ammoLabel!: HTMLElement; private ammoMax!: HTMLElement; private ammoReserve!: HTMLElement; private ammoWeapon!: HTMLElement; private pipBox!: HTMLElement;
   private hitTimer = 0; private spread = 7;
 
+  /** the review composer (src/ui/Feedback.ts) is up: losing the pointer lock does not open the pause menu */
+  holdPause = false;
+
   constructor(opts: HUDOptions = {}) {
     this.opts = { pointerLock: true, maxBolts: 30, ...opts };
     const hud = document.getElementById('hud');
@@ -121,7 +124,7 @@ export class HUD {
     // the touch layer may be built before or after the HUD (main.ts order): mount the bar strips as soon as it exists
     if (!this.mountBar()) { const mo = new MutationObserver(() => { if (this.mountBar()) mo.disconnect(); }); mo.observe(this.root, { childList: true }); }
     document.addEventListener('pointerlockchange', () => {
-      if (!this.opts.pointerLock || !this.entered) return;
+      if (!this.opts.pointerLock || !this.entered || this.holdPause) return;
       const locked = Boolean(document.pointerLockElement); // undefined where pointer lock is absent (iOS)
       this.setPaused(!locked);
     });

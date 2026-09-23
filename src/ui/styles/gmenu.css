@@ -15,9 +15,12 @@
 .ws-gmenu .ws-gmenu-close:active { background: rgba(143, 227, 255, 0.22); }
 
 /* tabs */
-.ws-gmenu .ws-gmenu-tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid rgba(143, 227, 255, 0.18); border-bottom: 1px solid rgba(143, 227, 255, 0.18); }
+.ws-gmenu .ws-gmenu-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border-top: 1px solid rgba(143, 227, 255, 0.18); border-bottom: 1px solid rgba(143, 227, 255, 0.18); }
 .ws-gmenu .ws-gmenu-tab { position: relative; padding: 14px 4px 12px; appearance: none; -webkit-appearance: none; background: none; border: 0; border-right: 1px solid rgba(143, 227, 255, 0.12); color: var(--ws-text-dim); font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: color 0.15s; }
 .ws-gmenu .ws-gmenu-tab:last-child { border-right: 0; }
+.ws-gmenu .ws-gmenu-tab[hidden] { display: none; }
+/* five tabs (FEEDBACK, once the review inbox is unlocked) on a phone: tighter lettering so ACHIEVEMENTS still fits */
+@media (max-width: 560px) { .ws-gmenu .ws-gmenu-tabs.review .ws-gmenu-tab { padding-left: 1px; padding-right: 1px; font-size: 8.5px; letter-spacing: 0.06em; } }
 .ws-gmenu .ws-gmenu-tab.active { color: #fff; text-shadow: 0 0 10px rgba(143, 227, 255, 0.5); }
 .ws-gmenu .ws-gmenu-tab.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--ws-cyan); box-shadow: 0 0 10px rgba(143, 227, 255, 0.8); }
 
@@ -119,3 +122,11 @@
 /* landscape / desktop: the sheet is a centred column, the map frame keeps a usable height */
 @media (min-aspect-ratio: 1/1) { .ws-gmenu { padding-top: calc(var(--ws-top) + 8px); } .ws-gmenu .ws-gmenu-sheet { max-width: 640px; } }
 .ws-gmenu .ws-gmenu-mapcanvas { position: absolute; inset: 0; }
+
+/* Settings → REVIEW (Menu.ts buildReview; src/ui/review.ts): password + UNLOCK, then the Quick note switch + LOCK */
+.ws-gmenu .ws-gmenu-review { flex: none; display: flex; flex-direction: column; }
+.ws-gmenu .ws-gmenu-input { flex: 1 1 140px; min-width: 0; padding: 7px 9px; background: rgba(6, 10, 18, 0.6); border: 1px solid var(--ws-cyan-line); border-radius: 0; color: var(--ws-text); font: 12px var(--ws-mono); outline: none; }
+.ws-gmenu .ws-gmenu-input:focus { border-color: var(--ws-cyan); }
+.ws-gmenu .ws-gmenu-unlock { flex: none; padding: 7px 14px; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.16); border: 1px solid var(--ws-cyan); color: #fff; font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; }
+.ws-gmenu .ws-gmenu-unlock:disabled { opacity: 0.5; }
+.ws-gmenu .ws-gmenu-note { flex: none; margin: 0 2px 8px; font-size: 10px; line-height: 1.5; color: var(--ws-text-dim); }

@@ -60,6 +60,9 @@ import { getActiveChunk } from './chunks/registry';
 import { Audio } from './audio/Audio';
 import { Music } from './audio/Music';
 import { installErrorModal, showError } from './ui/ErrorModal';
+import { onReview, queuedCount, quickNote } from './ui/review';
+import type { Feedback } from './ui/Feedback';
+import { TIER } from './core/tier';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
 const _animalXZ: { x: number; z: number }[] = [];
@@ -277,6 +280,47 @@ async function main() {
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); });
   document.addEventListener('keydown', (e) => { if (e.code === 'KeyM' && hud.entered && !menu.isOpen) menu.open('map'); });
   menu.onOpen = () => { if (document.pointerLockElement) document.exitPointerLock(); }; // the map wants a cursor; the lock comes back on close (onResume)
+
+  // ── the review inbox (docs/plans/FEEDBACK-INBOX.md): unlocked in Settings → REVIEW, then F8 (desktop), the ✎ disc under
+  // PAUSE (touch) and the menu's FEEDBACK tab. The composer (src/ui/Feedback.ts) loads on first use; while its overlay is up
+  // the world is frozen on the captured frame (frameGate) and the weapons / pointer lock are released.
+  let feedbackHeld = false;
+  let feedback: Promise<Feedback> | null = null;
+  const touchUi = () => document.getElementById('hud')?.classList.contains('touch') === true;
+  const loadFeedback = (): Promise<Feedback> => { feedback ??= import('./ui/Feedback').then(({ Feedback: F }) => new F({
+    capture: () => game.captureFrame(1280),
+    context: () => ({
+      shard: getActiveChunk().slug, pos: [player.position.x, player.position.y, player.position.z].map((v) => Number(v.toFixed(2))),
+      yaw: Number(player.yaw.toFixed(3)), pitch: Number(player.pitch.toFixed(3)), weapon: weapons.current.id, health: Math.round(health), kills,
+      swimming: player.swimming, hover: player.hover, tier: TIER, fps: game.stats.fps, calls: game.lastFrame.calls, tris: game.lastFrame.triangles,
+    }),
+    hold: (on) => {
+      feedbackHeld = on; hud.holdPause = on;
+      if (on) { weapons.setEnabled(false); if (document.pointerLockElement) document.exitPointerLock(); return; }
+      weapons.setEnabled(!player.swimming);
+      if (nolock || touchUi()) return;
+      player.lock(); // Enter / a click on SEND is the user gesture; if the lock is refused, fall back to the pause menu
+      setTimeout(() => { if (!document.pointerLockElement && hud.entered && !menu.isOpen && !feedbackHeld) hud.setPaused(true); }, 400);
+    },
+    toast: (t) => hud.toast(t),
+    touch: touchUi,
+  })); return feedback; };
+  document.addEventListener('keydown', (e) => {
+    if (e.code !== 'F8' || e.repeat || !quickNote() || !hud.entered || menu.isOpen || feedbackHeld) return;
+    e.preventDefault();
+    void loadFeedback().then((f) => f.openQuick());
+  });
+  menu.onFeedbackTab = (panel) => { void loadFeedback().then((f) => f.mountTab(panel)); };
+  const noteDisc = document.createElement('button'); noteDisc.type = 'button'; noteDisc.className = 'ws-fb-disc';
+  noteDisc.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19z M14 7l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Note<b class="ws-fb-badge"></b>';
+  noteDisc.addEventListener('click', () => { if (hud.entered && !feedbackHeld) void loadFeedback().then((f) => f.openSheet()); });
+  (document.getElementById('hud') ?? document.body).append(noteDisc);
+  const noteBadge = noteDisc.querySelector('b');
+  const syncNoteDisc = () => {
+    noteDisc.classList.toggle('show', quickNote() && touchUi() && hud.entered);
+    const q = queuedCount(); noteDisc.classList.toggle('queued', q > 0); if (noteBadge) noteBadge.textContent = String(q);
+  };
+  onReview(syncNoteDisc);
   progress.onEarned = (d) => { hud.toast(`Achievement · ${d.name} — title unlocked: ${d.title}`); audio.hitMarker(); };
   const masterGain = () => { if (!audio.muted) audio.master.gain.setTargetAtTime(0.6 * getNumber('volume'), audio.ctx.currentTime, 0.05); };
   onNumber('volume', masterGain);
@@ -385,9 +429,9 @@ async function main() {
     if (!nolock) player.lock();
   };
   hud.onResume = enter;
-  hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); music.setState({ mode: 'menu' }); }; // the HUD mutes audio and clears `entered`; the gate does the rest
+  hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); music.setState({ mode: 'menu' }); noteDisc.classList.remove('show'); }; // the HUD mutes audio and clears `entered`; the gate does the rest
   // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
-  game.frameGate = () => hud.entered;
+  game.frameGate = () => hud.entered && !feedbackHeld; // … and the review composer freezes it on the captured frame
   if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.muted = true; hud.showIntro(enter); }
   else { hud.markEntered(); weapons.setEnabled(!nolock || params.has('skipintro')); }
   document.addEventListener('keydown', () => audio.resume(), { once: true });
@@ -415,6 +459,7 @@ async function main() {
     // music: once a second (not per frame) — an animal that has noticed you within 40 m lifts calm → alert; combat comes from the hit hooks and decays by itself
     if (t - musicPoll > 1) {
       musicPoll = t;
+      syncNoteDisc(); // the ✎ disc follows entered / the touch layer / the Quick note switch, once a second
       if (music.state.mode !== 'combat' && music.state.mode !== 'menu') {
         const noticed = animals.animals.some((a) => a.alive && (a.state === 'alert' || a.state === 'stalk') && a.position.distanceTo(player.position) < 40);
         music.setState({ mode: noticed ? 'alert' : 'calm', intensity: noticed ? 0.5 : 0 });
@@ -467,6 +512,13 @@ async function main() {
       prompt, speed: player.speedFactor, ads: weapons.state.ads,
     });
   });
+
+  // `?at=x,y,z,yaw,pitch` — a review note's repro URL (src/ui/Feedback.ts reproUrl) starts you on the spot it was filed from
+  const at = (params.get('at') ?? '').split(',').map(Number);
+  if (at.length >= 3 && at.every((v) => Number.isFinite(v))) {
+    const [x = 0, y = 0, z = 0, yaw = player.yaw, pitch = 0] = at;
+    player.position.set(x, y, z); player.yaw = yaw; player.pitch = pitch;
+  }
 
   await macrotask();
   game.buildComposer();
