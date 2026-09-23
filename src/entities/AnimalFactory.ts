@@ -266,12 +266,13 @@ export class AnimalFactory {
 
     if (lowPoly) {
       // faceted: flat per-face normals, flat-shaded untextured materials, no fur shells
-      geometry = facetGeometry(geometry);
+      geometry = facetGeometry(geometry, sp.facetJitter);
       const lp = lowPolyMaterials();
       // one material, one draw per rig (M3): the hard parts + eyes fold into the body group; glowing eyes ride aGlow
       const glow = oneMaterial(geometry, species.eyeGlow !== undefined ? 2 : null);
       if (species.eyeGlow !== undefined) { lp.eye.emissive = col3(species.eyeGlow); lp.eye.emissiveIntensity = species.eyeGlowIntensity ?? 1; }   // the sailor's cyan eyes
       if (glow) patchEyeGlow(lp.fur, lp.eye.emissive, lp.eye.emissiveIntensity);
+      if (sp.map) lp.fur.map = sp.map; // a generated model's own paint (the Drowned Captain), before the program compiles
       this.sky.setupMaterial(lp.fur); this.sky.setupMaterial(lp.hard); this.sky.setupMaterial(lp.eye);
       m = { kind, variant: v.id, style: 'lowpoly', species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur: lp.fur, hard: lp.hard, eye: lp.eye, shells: [] };
       this.models.set(key, m);

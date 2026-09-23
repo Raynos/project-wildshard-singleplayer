@@ -70,7 +70,7 @@ export const TIER_CONFIG = TIER_TABLE[TIER];
  * change needs a restart. 'auto' = the tier default above. The old DBG pill kept a tier / dpr / aa / meter
  * override under 'ws.debug'; the pill is gone and that key is dropped once so a stale override stops applying.
  */
-export interface GfxPrefs { dpr: 'auto' | '1' | '1.25' | '1.5'; aa: 'auto' | 'on' | 'off' }
+export interface GfxPrefs { dpr: 'auto' | '1' | '1.25' | '1.5' | '2' | 'native'; aa: 'auto' | 'on' | 'off' }
 const GFX_KEY = 'ws.gfx.v1';
 function readGfxPrefs(): GfxPrefs {
   const prefs: GfxPrefs = { dpr: 'auto', aa: 'auto' };
@@ -78,7 +78,7 @@ function readGfxPrefs(): GfxPrefs {
     localStorage.removeItem('ws.debug');
     const raw = JSON.parse(localStorage.getItem(GFX_KEY) ?? '{}') as Partial<Record<string, unknown>>;
     const dpr = raw['dpr'], aa = raw['aa'];
-    if (dpr === '1' || dpr === '1.25' || dpr === '1.5') prefs.dpr = dpr;
+    if (dpr === '1' || dpr === '1.25' || dpr === '1.5' || dpr === '2' || dpr === 'native') prefs.dpr = dpr;
     if (aa === 'on' || aa === 'off') prefs.aa = aa;
   } catch { /* private mode / disabled storage: tier defaults */ }
   return prefs;
@@ -86,6 +86,7 @@ function readGfxPrefs(): GfxPrefs {
 export const gfxPrefs: GfxPrefs = readGfxPrefs();
 export function saveGfxPrefs(): void { try { localStorage.setItem(GFX_KEY, JSON.stringify(gfxPrefs)); } catch { /* private mode */ } }
 
-if (gfxPrefs.dpr !== 'auto') TIER_CONFIG.dpr = Number(gfxPrefs.dpr);
+// 'native' = the screen's own density (the renderer caps at min(devicePixelRatio, dpr)): sharpest, and the costliest fill
+if (gfxPrefs.dpr !== 'auto') TIER_CONFIG.dpr = gfxPrefs.dpr === 'native' ? 4 : Number(gfxPrefs.dpr);
 if (gfxPrefs.aa === 'on' && TIER_CONFIG.smaa === 'off') TIER_CONFIG.smaa = 'low';
 if (gfxPrefs.aa === 'off') TIER_CONFIG.smaa = 'off';

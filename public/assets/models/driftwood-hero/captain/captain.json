@@ -1,28 +1,9 @@
 {
  "name": "captain",
- "source": "ref-captain.glb",
- "tris": 8995,
- "size_m": [
-  1.07,
-  0.98,
-  1.9
- ],
- "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
- "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
- "palette": [
-  "#282e30",
-  "#2f3437",
-  "#31401b",
-  "#333a46",
-  "#383c38",
-  "#404140",
-  "#4b4f57",
-  "#525023",
-  "#554c3f",
-  "#712729",
-  "#7c715e",
-  "#947336",
-  "#b19871",
-  "#cab5a2"
- ]
+ "source": "ref-captain.glb (Hunyuan3D-2 full shape + paint)",
+ "tris": 12722,
+ "texture": "1024\u00b2 WebP base colour (the generation's own paint), UV-mapped",
+ "pipeline": "gltf-transform simplify --ratio 0.3 --error 0.002 \u2192 resize 1024 \u2192 webp q82 \u2192 meshopt",
+ "size_m": "normalized at load: 1.9 m tall, feet at y = 0, centred (src/entities/species/captainMesh.ts)",
+ "facing": "+z"
 }

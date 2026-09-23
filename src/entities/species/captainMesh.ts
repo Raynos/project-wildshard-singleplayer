@@ -4,25 +4,29 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import type { BoneDef } from './registry';
 
 /**
- * The Drowned Captain's generated mesh (v0.2, DRIFTWOOD-REMASTER M3): a codex concept → Hunyuan3D-2 → Blender clean-up
- * (scripts/img2mesh/driftwood_post.py: decimated, faceted, albedo + AO baked into COLOR_0, metres, feet at y = 0, facing
- * +z) → public/assets/models/driftwood-hero/captain/captain.glb.
+ * The Drowned Captain's generated mesh (v0.2, DRIFTWOOD-REMASTER M3): a codex concept (art/driftwood-isle/round-8-assets/
+ * ref-captain.jpg) → Hunyuan3D-2 full shape + paint → gltf-transform simplify (12.7 k tris, the generation's own UVs and
+ * paint kept) → 1024² WebP → meshopt: public/assets/models/driftwood-hero/captain/captain.glb (~210 KB), facing +z.
  *
- *   void preloadCaptainMesh();                        // Finale.ts installs it: loads in the background, long before the altar
- *   const g = captainMeshFor(bones);                  // buildCaptain: the mesh bound to the captain's own bones, or null
+ *   void preloadCaptainMesh();          // Finale.ts installs it: loads in the background, long before the altar
+ *   const m = captainMeshFor(bones);    // buildCaptain: { parts, map } bound to the captain's own bones, or null
  *
- * Binding: every vertex rides the bone whose segment (bone → each child; a leaf is a point) is nearest to it in the bind
- * pose — rigid, like the loft kit's parts, so animateCaptain() drives it unchanged. Null until the load finishes (or if it
- * fails): buildCaptain then builds the loft stand-in, so the fight never waits on the file.
+ * At load the mesh is normalized to the rig: 1.9 m tall (the tricorn's top — the rig's head bone sits at 1.56), feet at
+ * y = 0, centred on x / z. Binding: every vertex rides the bone whose segment (bone → each child; a leaf is a point) is
+ * nearest in the bind pose — rigid, like the loft kit's parts, so animateCaptain() drives it unchanged. The texture goes
+ * on the rig's material (AnimalSpecies.map); the vertex colours are white so it shows true. Null until the load finishes
+ * (or if it fails): buildCaptain then builds the loft stand-in, so the fight never waits on the file.
  */
 const URL_GLB = '/assets/models/driftwood-hero/captain/captain.glb';
+const HEIGHT = 1.9;
 let source: THREE.BufferGeometry | null = null;
+let texture: THREE.Texture | null = null;
 let loading: Promise<void> | null = null;
 
 /**
- * gltf-transform's meshopt pass quantizes position / normal / uv to normalized int16 (KHR_mesh_quantization): copy every
- * attribute out as plain float32 (getX… de-normalize), so the node matrix applies cleanly and mergeGeometries sees the
- * same attribute types as the rest of the species parts.
+ * gltf-transform's meshopt pass quantizes position / normal / uv to normalized ints (KHR_mesh_quantization): copy every
+ * attribute out as plain float32 (getComponent de-normalizes), so the node matrix applies cleanly and mergeGeometries sees
+ * the same attribute types as the rest of the species parts.
  */
 function asFloat(src: THREE.BufferGeometry): THREE.BufferGeometry {
   const g = new THREE.BufferGeometry();
@@ -40,12 +44,23 @@ const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
 async function load(): Promise<void> {
   try {
     const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(URL_GLB);
-    let found: THREE.BufferGeometry | null = null;
+    const hit: { geo: THREE.BufferGeometry | null; map: THREE.Texture | null } = { geo: null, map: null };
     gltf.scene.updateMatrixWorld(true);
     gltf.scene.traverse((o) => {
-      if (found === null && isMesh(o)) found = asFloat(o.geometry).applyMatrix4(o.matrixWorld);
+      if (hit.geo !== null || !isMesh(o)) return;
+      hit.geo = asFloat(o.geometry).applyMatrix4(o.matrixWorld);
+      const mat = Array.isArray(o.material) ? o.material[0] : o.material;
+      if (mat instanceof THREE.MeshStandardMaterial) hit.map = mat.map;
     });
-    source = found;
+    const g = hit.geo;
+    if (g === null) return;
+    g.computeBoundingBox();
+    const bb = g.boundingBox;
+    if (bb === null) return;
+    const k = HEIGHT / Math.max(1e-6, bb.max.y - bb.min.y);
+    g.translate(-(bb.min.x + bb.max.x) / 2, -bb.min.y, -(bb.min.z + bb.max.z) / 2).scale(k, k, k);
+    source = g;
+    texture = hit.map;
   } catch (e: unknown) { console.warn('[captain] generated mesh not loaded, using the stand-in:', e); }
 }
 
@@ -57,23 +72,14 @@ export function preloadCaptainMesh(): Promise<void> {
 /**
  * The mesh bound to `bones` (the attributes every species part carries) as TWO geometries — its triangles split in half —
  * because AnimalFactory merges furParts and hardParts separately and neither list may be empty (the captain has no fur,
- * so both halves draw alike). Null before / without the load.
+ * so both halves draw alike), plus its texture. Null before / without the load.
  */
-export function captainMeshFor(bones: BoneDef[]): [THREE.BufferGeometry, THREE.BufferGeometry] | null {
+export function captainMeshFor(bones: BoneDef[]): { parts: [THREE.BufferGeometry, THREE.BufferGeometry]; map: THREE.Texture | null } | null {
   if (source === null) return null;
   const g = source.clone();
   const pos = g.getAttribute('position');
   const n = pos.count;
-  // colour: COLOR_0 may be RGBA (A = AO) and normalized ints — the species kit wants float RGB, AO folded in
-  const col = new Float32Array(n * 3).fill(0.6);
-  if (g.hasAttribute('color')) {
-    const src = g.getAttribute('color');
-    for (let i = 0; i < n; i++) {
-      const k = 0.55 + 0.45 * (src.itemSize === 4 ? src.getW(i) : 1); // A = baked AO
-      col[i * 3] = src.getX(i) * k; col[i * 3 + 1] = src.getY(i) * k; col[i * 3 + 2] = src.getZ(i) * k;
-    }
-  }
-  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3)); // white: the texture carries the albedo
   // bind pose segments: each bone to each of its children, a leaf bone as a point
   const at = new Map(bones.map((b) => [b.name, new THREE.Vector3(...b.pos)]));
   const segs: { a: THREE.Vector3; b: THREE.Vector3; bone: number }[] = [];
@@ -103,14 +109,14 @@ export function captainMeshFor(bones: BoneDef[]): [THREE.BufferGeometry, THREE.B
   g.setAttribute('furLen', new THREE.BufferAttribute(new Float32Array(n), 1));
   if (!g.hasAttribute('uv')) g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(n * 2), 2));
   if (!g.hasAttribute('normal')) g.computeVertexNormals();
-  for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'uv', 'color', 'skinIndex', 'skinWeight', 'furLen'].includes(k)) g.deleteAttribute(k);
+  for (const key of Object.keys(g.attributes)) if (!['position', 'normal', 'uv', 'color', 'skinIndex', 'skinWeight', 'furLen'].includes(key)) g.deleteAttribute(key);
   if (g.index === null) g.setIndex(Array.from({ length: n }, (_, i) => i)); // the species parts are indexed; mergeGeometries wants them all alike
   const idx = g.index;
   if (idx === null) return null;
-  const tris = Math.floor(idx.count / 3), cut = Math.floor(tris / 2) * 3;
+  const cut = Math.floor(idx.count / 6) * 3;
   const ids = Array.from(idx.array);
   const a = g.clone(), b = g.clone();
   a.setIndex(ids.slice(0, cut)); b.setIndex(ids.slice(cut));
   g.dispose();
-  return [a, b];
+  return { parts: [a, b], map: texture };
 }

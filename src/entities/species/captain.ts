@@ -108,7 +108,7 @@ function buildCaptain(v: VariantDef, rng: Rng): AnimalSpecies {
   // bound to these same bones, so animateCaptain() drives it unchanged; the glowing eye spheres ride on top. Until the
   // file is in (or if it fails) the loft stand-in below is built instead.
   const generated = captainMeshFor(bones);
-  if (generated) return { bones, furParts: [generated[0]], hardParts: [generated[1]], eyeParts: eyes, dims: CAPTAIN_DIMS };
+  if (generated) return { bones, furParts: [generated.parts[0]], hardParts: [generated.parts[1]], eyeParts: eyes, dims: CAPTAIN_DIMS, ...(generated.map ? { map: generated.map } : {}), facetJitter: 0 };
   // the tricorn: a flat brim turned up in three corners + a low crown
   hard.push(loft([S(0, 1.72, -0.01, 0.2, 0.2, head), S(0, 1.75, -0.01, 0.23, 0.23, head), S(0, 1.79, -0.01, 0.13, 0.13, head), S(0, 1.86, -0.01, 0.11, 0.11, head), S(0, 1.88, -0.01, 0.02, 0.02, head)], 3, 'hat', paint, true, true));
   // a beard of kelp hanging off the jaw
