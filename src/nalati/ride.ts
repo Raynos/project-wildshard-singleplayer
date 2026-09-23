@@ -15,7 +15,7 @@ import { HITCH_HORSE_SPOTS, HITCHING_RAIL } from '../world/nalati/layout';
  *   const ride = wireRide({ player, forest, animals, wildlife, camera });
  *   interactables.push(ride.interactable)   // main.ts: ONE prompt that is always the nearest horse action —
  *                                           //   "Mount Camp horse" / "Mount Tulpar" / "Dismount" / "Mount the stallion"
- *   ride.bind({ kit, hurt, toast, isDrawing })   // once the weapon kit + HUD exist (nalati.bindPlay)
+ *   ride.bind({ kit, toast })                // once the weapon kit + HUD exist (nalati.bindPlay); hurt → animals.onCharge
  *   ride.update(dt)                          // every frame
  *   ride.noteShot(x, z)                      // an arrow / javelin landed (TRUST)
  *   ride.mounted                             // for Wildlife's `extra.mounted` (the pack's two tokens, the herd's stampede)
@@ -24,7 +24,8 @@ import { HITCH_HORSE_SPOTS, HITCHING_RAIL } from '../world/nalati/layout';
  * taming); TULPAR joins them once tamed (or on load, if tamed in an earlier session).
  */
 export interface RideCtx { player: Player; forest: Forest; animals: AnimalManager; wildlife: Wildlife; camera: THREE.PerspectiveCamera }
-export interface RidePlay { kit: MountKit | null; hurt: (damage: number) => void; toast: (text: string) => void; isDrawing: () => boolean }
+/** `hurt` defaults to the animals' onCharge (main.ts's damage path); `isDrawing` to the kit bow's DRAW latch / draw */
+export interface RidePlay { kit: (MountKit & { bow: { drawing: boolean; adsHeld: boolean } }) | null; toast: (text: string) => void; hurt?: (damage: number) => void; isDrawing?: () => boolean }
 
 export interface Ride {
   mount: Mount;
@@ -39,18 +40,23 @@ export interface Ride {
 
 export function wireRide(ctx: RideCtx): Ride {
   let play: RidePlay | null = null;
+  const hurt = (d: number): void => {
+    if (play?.hurt !== undefined) { play.hurt(d); return; }
+    const a = ctx.animals.animals[0];
+    if (a !== undefined) ctx.animals.onCharge?.(a, d);   // main.ts's damage path (health, flash, sound)
+  };
   const rest = HITCH_HORSE_SPOTS[0] ?? { x: HITCHING_RAIL.x - 1.9, z: HITCHING_RAIL.z, face: { x: 1, z: 0 } };
   const mount = new Mount({
     player: ctx.player, forest: ctx.forest,
-    isDrawing: () => play?.isDrawing() ?? false,
-    hurt: (d) => { play?.hurt(d); },
+    isDrawing: () => { const b = play?.kit?.bow; return play?.isDrawing?.() ?? (b !== undefined && (b.adsHeld || b.drawing)); },
+    hurt: (d) => { hurt(d); },
     restAt: { x: rest.x, z: rest.z },
   });
   for (const h of ctx.wildlife.campHorses) mount.addMountable(h, 'Camp horse');
   const hud = new RideHUD(mount, ctx.camera);
   const taming = new Taming({
     player: ctx.player, mount, animals: ctx.animals, hud, herds: () => ctx.wildlife.herds, rest,
-    hurt: (d) => { play?.hurt(d); }, toast: (t) => { play?.toast(t); },
+    hurt: (d) => { hurt(d); }, toast: (t) => { play?.toast(t); },
   });
   mount.onBolt = (_a, name) => { play?.toast(`${name} bolts for the camp — it needs a rest`); };
   mount.onThrown = () => { play?.toast('Thrown!'); };
@@ -62,8 +68,10 @@ export function wireRide(ctx: RideCtx): Ride {
   const choose = (): void => {
     const cam = ctx.camera.position;
     let best: Interactable | null = null, bd = Infinity;
-    for (const it of [...mount.interactables, taming.interactable]) {
-      if (it.radius <= 0) continue;
+    const n = mount.interactables.length;
+    for (let i = 0; i <= n; i++) {
+      const it = i < n ? mount.interactables[i] : taming.interactable;
+      if (it === undefined || it.radius <= 0) continue;
       const d = it.position.distanceTo(cam);
       if (d < it.radius && d < bd) { bd = d; best = it; }
     }
