@@ -181,12 +181,15 @@ export class Animal {
       ];
     }
     this.gaitW[G_IDLE] = 1;
+    this.gaitTrot = model.species.gait?.trot ?? 2.4; this.gaitGallop = model.species.gait?.gallop ?? 4.6;
     this.rigCtx = {
       bones: this.bones, dims: model.dims, dt: 0, t: 0, seed, scale, speed: 0, strafe: 0, phase: 0, state: 'idle', alive: true,
       deathT: -1, flinch: 0, brace: 0, attack: -1, lookTarget: this.lookTarget, lookWeight: 0, position: this.position, yaw: 0, mem: this.mem, animal: this,
     };
   }
   private rigCtx: RigAnimCtx;
+  /** walk → trot and trot → gallop blend starts, m/s at scale 1 (SpeciesDef.gait; deer defaults 2.4 / 4.6) */
+  private readonly gaitTrot: number; private readonly gaitGallop: number;
 
   get dims(): AnimalDims { return this.model.dims; }
 
@@ -346,9 +349,9 @@ export class Animal {
       gw.set(this.gaitW);
     } else if (!this.alive) { gw[G_IDLE] = 1; }
     else if (s < 0.15) { if (this.state === 'graze') gw[G_GRAZE] = 1; else gw[G_IDLE] = 1; }
-    else if (s < 2.4) { const k = THREE.MathUtils.clamp((s - 0.15) / 0.6, 0, 1); gw[G_WALK] = k; gw[this.state === 'graze' ? G_GRAZE : G_IDLE] = 1 - k; }
-    else if (s < 4.6) { const k = THREE.MathUtils.clamp((s - 2.4) / 1.2, 0, 1); gw[G_TROT] = k; gw[G_WALK] = 1 - k; }
-    else { const k = THREE.MathUtils.clamp((s - 4.6) / 1.4, 0, 1); gw[G_GALLOP] = k; gw[G_TROT] = 1 - k; }
+    else if (s < this.gaitTrot) { const k = THREE.MathUtils.clamp((s - 0.15) / 0.6, 0, 1); gw[G_WALK] = k; gw[this.state === 'graze' ? G_GRAZE : G_IDLE] = 1 - k; }
+    else if (s < this.gaitGallop) { const k = THREE.MathUtils.clamp((s - this.gaitTrot) / (this.gaitTrot * 0.5), 0, 1); gw[G_TROT] = k; gw[G_WALK] = 1 - k; }
+    else { const k = THREE.MathUtils.clamp((s - this.gaitGallop) / (this.gaitGallop * 0.3), 0, 1); gw[G_GALLOP] = k; gw[G_TROT] = 1 - k; }
     const bl = Math.min(1, dt * 6);
     const W = this.gaitW;
     let wsum = 0;
@@ -466,6 +469,14 @@ export class Animal {
 
     this.applyTerrain(dt);
     this.applyPose(dt);
+    const post = this.model.species.postPose;
+    if (post !== undefined) {
+      // species-only motion on top of the standard pose (a horse's mane and rearing, a wolf's jaw) — SpeciesDef.postPose
+      const c = this.rigCtx;
+      c.dt = dt; c.t = t; c.speed = this.speed; c.strafe = this.strafe; c.phase = this.phase; c.state = this.state; c.alive = this.alive;
+      c.deathT = this.deathT; c.flinch = this.flinch; c.brace = smooth01(this.brace); c.attack = this.attackPhase; c.lookWeight = this.lookAmt; c.yaw = this.yaw;
+      post(c);
+    }
     this.applyRoot();
     this.updateFade(dt);
   }

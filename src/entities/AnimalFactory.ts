@@ -7,6 +7,7 @@ import { bakedTexture } from '../boot/bakedTextures';
 import { speciesDef, variantDef, type SpeciesDef, type VariantDef, type AnimalDims, type BoneDef, type FurStyle } from './species/registry';
 import { setLowPoly } from './species/loft';
 import { facetGeometry, lowPolyMaterials } from './lowpoly';
+import { painterlyAnimalMaterial } from './painterlyAnimals';
 
 // every species file registers itself on import: drop `src/entities/species/<kind>.ts` in and it exists
 import.meta.glob(['./species/*.ts', '!./species/registry.ts', '!./species/loft.ts'], { eager: true });
@@ -82,7 +83,8 @@ export type KnownAnimalKind = 'deer' | 'boar';
 /** @deprecated variant ids are per species now — see SpeciesDef.variants */
 export type AnimalVariant = string;
 
-export type AnimalStyle = 'pbr' | 'lowpoly';
+/** 'pbr' Pine Hollow (fur texture + shells) · 'lowpoly' Driftwood (faceted) · 'painterly' Nalati (smooth, vertex colour, ONE draw) */
+export type AnimalStyle = 'pbr' | 'lowpoly' | 'painterly';
 
 export interface AnimalModel {
   kind: AnimalKind;
@@ -93,10 +95,12 @@ export interface AnimalModel {
   geometry: THREE.BufferGeometry;
   bones: BoneDef[];
   dims: AnimalDims;
-  /** MeshPhysicalMaterial (fur) in 'pbr', a flat-shaded MeshStandardMaterial in 'lowpoly' */
-  fur: THREE.MeshStandardMaterial;
-  hard: THREE.MeshStandardMaterial;
-  eye: THREE.MeshPhysicalMaterial;
+  /** MeshPhysicalMaterial (fur) in 'pbr', a flat-shaded MeshStandardMaterial in 'lowpoly', the shared painterly
+   *  MeshLambertMaterial (src/world/painterly.ts) in 'painterly' */
+  fur: AnimalMaterial;
+  /** hooves / antlers; in 'painterly' the same material as `fur` (one group, one draw) */
+  hard: AnimalMaterial;
+  eye: AnimalMaterial;
   /** SHELL_LAYERS fur-shell materials, innermost first (shared by every animal of this kind:variant); empty in 'lowpoly' */
   shells: THREE.MeshPhysicalMaterial[];
   /** the fur's backlit rim colour (FurStyle.rim), needed to re-patch a cloned fur material; absent in 'lowpoly' */
@@ -109,8 +113,11 @@ interface ShellLayer { layer: number; len: number; threshold: number; dark: numb
 export interface AnimalRig {
   mesh: THREE.SkinnedMesh;
   bones: Record<string, THREE.Bone>;
-  materials: THREE.MeshStandardMaterial[];
+  materials: AnimalMaterial[];
 }
+
+/** what an animal is drawn with: the PBR / low-poly standard materials, or the painterly Lambert */
+export type AnimalMaterial = THREE.MeshStandardMaterial | THREE.MeshLambertMaterial;
 
 // ─────────────────────────────────────────────────────────────────────────────────────────
 // Procedural fur textures
@@ -264,6 +271,16 @@ export class AnimalFactory {
     if (geometry.boundingSphere !== null) geometry.boundingSphere.radius += 0.6; // animated legs / neck / corpse roll never leave this
     geometry.computeBoundingBox();
 
+    if (this.style === 'painterly') {
+      // Nalati: the smooth loft, vertex colours only, no fur texture / shells — and fur, hooves and eyes in ONE group so a
+      // wolf / horse is a single draw call; the soft cel light is the material's (src/entities/painterlyAnimals.ts)
+      const count = geometry.index !== null ? geometry.index.count : (geometry.getAttribute('position') as THREE.BufferAttribute).count;
+      geometry.clearGroups(); geometry.addGroup(0, count, 0);
+      const mat = painterlyAnimalMaterial(this.sky, species.eyeGlow, species.eyeGlowIntensity);
+      m = { kind, variant: v.id, style: 'painterly', species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur: mat, hard: mat, eye: mat, shells: [] };
+      this.models.set(key, m);
+      return m;
+    }
     if (lowPoly) {
       // faceted: flat per-face normals, flat-shaded untextured materials, no fur shells
       geometry = facetGeometry(geometry);
@@ -397,7 +414,8 @@ export class AnimalFactory {
         pb.add(b);
       }
     }
-    const fur = model.fur.clone();
+    // painterly: a fresh material (a clone would drop the painterly shader patch)
+    const fur = model.style === 'painterly' ? painterlyAnimalMaterial(this.sky, model.species.eyeGlow, model.species.eyeGlowIntensity) : model.fur.clone();
     if (model.style === 'pbr' && model.rim !== undefined) {
       this.patchFur(fur as THREE.MeshPhysicalMaterial, model.rim);   // clone() does not carry onBeforeCompile
     }
