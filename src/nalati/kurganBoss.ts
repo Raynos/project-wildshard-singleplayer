@@ -643,7 +643,8 @@ export class KurganBoss {
     this.play = play;
     const { game, sky, player } = this.ctx;
     const god = play.params.has('bossGod');               // dev: the King's blows and the hazards do no damage (screenshots)
-    play.animals.factory.model(KURGAN_BALBAL, 'warrior');   // build the adds' model now, not mid-fight
+    // build the adds' model now, not mid-fight (a prewarm: a broken add rig must not take the whole boot down)
+    try { play.animals.factory.model(KURGAN_BALBAL, 'warrior'); } catch (e) { console.warn('[kurgan] the balbal adds did not build', e); }
     if (god) {
       const hit = play.animals.onCharge;
       play.animals.onCharge = (a, dmg) => { if (a.kind !== GOLDEN_KING && a.kind !== KURGAN_BALBAL) hit?.(a, dmg); };

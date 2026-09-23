@@ -11,7 +11,7 @@ import type { IconId } from '../ui/icons';
 
 export type ItemId = 'venison' | 'deer-hide' | 'boar-meat' | 'boar-hide' | 'boar-tusk' | 'antlers' | 'elk-meat' | 'elk-hide' | 'bear-pelt' | 'bear-claw'
   | 'crab-meat' | 'crab-claw' | 'crab-shell' | 'coconut' | 'monkey-fur' | 'silver-fur' | 'doubloon' | 'sea-glass' | 'old-rope'
-  | 'gold-plaque';
+  | 'gold-plaque' | 'leopard-pelt' | 'grey-mother-pelt' | 'eagle-feather' | 'captain-standard' | 'mane-braid';
 
 export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'venison': { label: 'Venison', icon: 'meat' },
@@ -36,6 +36,12 @@ export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'old-rope': { label: 'Old rope', icon: 'rope' },
   // Nalati Grasslands — boss trophies (src/nalati/kurganBoss.ts)
   'gold-plaque': { label: "Golden King's plaque", icon: 'coin' },
+  // Nalati — named-elite trophies (src/nalati/elites.ts)
+  'leopard-pelt': { label: 'Snow-leopard pelt', icon: 'hide' },
+  'grey-mother-pelt': { label: "The grey mother's pelt", icon: 'hide' },
+  'eagle-feather': { label: 'Golden eagle feather', icon: 'rope' },
+  'captain-standard': { label: "The captain's standard", icon: 'ghost' },
+  'mane-braid': { label: 'Black mane braid', icon: 'rope' },
 };
 
 /** what a carcass of (kind, variant) yields when harvested */

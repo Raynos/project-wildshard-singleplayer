@@ -40,6 +40,12 @@ const PINE_HOLLOW: AchievementDef[] = [
 /** Nalati Grasslands (docs/design/nalati/elites-and-bosses.md): the bosses first (B13, B14); the elites + the rest are B15's */
 const NALATI: AchievementDef[] = [
   { id: 'golden-king', name: 'Kurgan Robber', goal: 'Defeat the Golden King', count: 1, kind: 'golden-king', variant: 'king', title: 'Grave Robber (Licensed)', icon: 'laurel' },
+  // the named elites (B12, src/nalati/elites.ts) — joke titles, the user's decision
+  { id: 'aqbars', name: 'Irbis', goal: 'Kill Aqbars the Pale', count: 1, kind: 'leopard', variant: 'aqbars', title: 'Crazy Cat Person', icon: 'laurel' },
+  { id: 'kokbori', name: 'Leader of the Pack', goal: 'Kill Kokbori', count: 1, kind: 'kokbori', title: 'Good Boy Denier', icon: 'laurel' },
+  { id: 'qyran', name: 'Clipped', goal: 'Kill Qyran the Storm-Wing', count: 1, kind: 'eagle', variant: 'qyran', title: 'Birdwatcher (Aggressive)', icon: 'laurel' },
+  { id: 'qara-batyr', name: 'Ride the Night', goal: 'Unhorse Qara Batyr', count: 1, kind: 'ghost-rider', variant: 'captain', title: 'Night Shift', icon: 'ghost' },
+  { id: 'argymaq', name: 'Unbroken, Until Now', goal: 'Tame Argymaq', count: 1, kind: 'argymaq', title: 'Horse Whisperer (Shouting)', icon: 'laurel' },
 ];
 
 const TABLES: Record<string, AchievementDef[]> = {
