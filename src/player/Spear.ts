@@ -3,7 +3,7 @@ import type { Game } from '../core/Game';
 import type { Sky } from '../world/Sky';
 import type { Player } from './Player';
 import type { Forest } from '../world/Forest';
-import type { Targets, ImpactSurface, TargetAnimal } from './Crossbow';
+import type { Targets, ImpactSurface, TargetAnimal, TargetHit } from './Crossbow';
 import type { Weapon, WeaponState, AimInfo } from './Weapon';
 import { heightAt } from '../world/Heightfield';
 import { getAimTargets, targetRadius, type AimTarget } from './AimTargets';
@@ -207,6 +207,8 @@ export class Spear implements Weapon {
   /** javelins carried now / at most (3; the camp upgrade makes it 5) */
   javelins = 3;
   maxJavelins = 3;
+  /** × the javelin's damage on a hit (the sneak shot from HIDDEN ×2 — src/nalati/stealth.ts); undefined = 1 */
+  damageMultiplier: ((hit: TargetHit) => number) | undefined;
   /** show the dotted throw arc while winding up (touch default on — the bow's Hunter's-eye rule) */
   showArc = true;
   aimInfo: AimInfo | null = null;
@@ -426,7 +428,7 @@ export class Spear implements Weapon {
           if (this.targets) {
             const hit = this.targets.raycast(_v3, _dir, len);
             if (hit?.animal.alive === true) {
-              const dmg = Math.round(JAV_DAMAGE * (hit.headshot ? JAV_HEAD : 1));
+              const dmg = Math.round(JAV_DAMAGE * (hit.headshot ? JAV_HEAD : 1) * (this.damageMultiplier?.(hit) ?? 1));
               const killed = hit.animal.applyDamage(dmg, hit.point, _dir);
               if (!killed) hit.animal.stagger?.(_v2.set(_dir.x, 0, _dir.z).normalize(), 1);
               this.onHit?.(hit.animal.kind, hit.headshot, killed);

@@ -41,6 +41,7 @@ import { trample, grassHeightAt } from '../world/GrassTrample';
 import type { ImpactSurface, TargetAnimal, TargetHit } from '../player/Crossbow';
 import type { NalatiKit } from '../player/nalatiKit';
 import { nalatiWetAt } from './wet';
+import { Stealth } from './stealth';
 import { PaintedBackdrop } from '../world/PaintedBackdrop';
 import { wireNightEnemies } from './nightEnemies';
 
@@ -90,6 +91,9 @@ export interface Nalati {
   sound?: NalatiSound;
   /** anything a later system wants to find: named groups added to the scene by this wiring */
   groups: Record<string, Object3D>;
+  /** crouch + grass stealth (melee agent, B9; src/nalati/stealth.ts): `stealth.state` (hidden / visible / noticed /
+   *  detected), `stealth.cover`, `stealth.latched` — taming reads it (TRUST builds only crouched) */
+  stealth: Stealth;
 }
 
 export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
@@ -253,8 +257,9 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   };
   const sheepResult: TargetHit = { animal: sheep, point: sheepPoint, distance: 0, headshot: false };
 
+  const stealth = new Stealth({ player, wildlife: () => wildlife, isMounted: () => extra.mounted }); // B9, wired below
   const nalati: Nalati = {
-    water, pois, weather, groups, boss, elites, wildlife,
+    water, pois, weather, groups, boss, elites, wildlife, stealth,
     attachAnimals(animals) {
       animals.wetAt = nalatiWetAt;
       const w = new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed }).build();
@@ -298,6 +303,13 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   const sound = wireSound(nalati, { player: ctx.player, weather });
   nalati.sound = sound;
   updates.push((dt) => { sound.update(dt); });
+
+  // ── crouch + grass stealth (melee agent, B9): the long-grass CROUCH toggle (touch disc above JUMP, C / Ctrl on desktop),
+  //    the eye pip + GRASS meter + threat chevron, the sneak shot (× 2 from HIDDEN on arrows and javelins) — src/nalati/stealth.ts ──
+  updates.push((dt, t) => { stealth.update(dt, t); });
+  const bindPlay = nalati.bindPlay, onShot = nalati.onShot;
+  nalati.bindPlay = (p) => { bindPlay(p); if (p.kit !== null) stealth.bindKit(p.kit); };
+  nalati.onShot = () => { stealth.noteShot(); onShot(); }; // before onShot marks the shot (a loose reveals you)
 
   return nalati;
 }

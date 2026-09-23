@@ -92,3 +92,15 @@
 .ws-touch-slot-ammo { position: absolute; right: 4px; bottom: 3px; font-family: var(--ws-display); font-weight: 700; font-size: 11px; line-height: 1; color: #fff; font-variant-numeric: tabular-nums; }
 .ws-touch-strip.desk .ws-touch-slot-ammo { right: 6px; top: 5px; bottom: auto; font-size: 12px; }
 .ws-touch-slot-ammo.empty { color: var(--ws-red); }
+/* ─── Nalati crouch (B9, src/nalati/stealth.ts injects the disc and sets .nalati / .crouch-avail on the layer) ───
+   decision D (art/nalati-grasslands/round-3/3-crouch-disc/): a CROUCH disc the size of JUMP, directly above it (8 px gap),
+   shown only in long grass: fades in over 250 ms, out over 400 ms; a toggle (.on = crouched); the first time per session a
+   soft ring pulses twice (.pulse). Nalati moves DODGE into the row beside JUMP, which clears the column for CROUCH and
+   the sabre hand's corner above it (the phone sabre hand sat behind DODGE). */
+.ws-touch-disc.crouch { left: calc(100% - var(--disc) / 2 - 10px); bottom: calc(var(--bar) + 44px + var(--disc) + 8px); opacity: 0; pointer-events: none; transform: translateY(6px); transition: opacity 0.4s, transform 0.4s, background 0.15s, box-shadow 0.15s; }
+.ws-touch-disc.crouch svg { width: 40%; height: 40%; fill: none; }
+.ws-touch.crouch-avail .ws-touch-disc.crouch { opacity: 1; pointer-events: auto; transform: none; transition: opacity 0.25s, transform 0.25s, background 0.15s, box-shadow 0.15s; }
+.ws-touch.swimming .ws-touch-disc.crouch { display: none; }
+.ws-touch-disc.crouch.pulse { animation: ws-touch-crouch-pulse 1.1s ease-out 2; }
+.ws-touch.nalati .ws-touch-disc.dodge { left: calc(100% - var(--disc) * 1.5 - 26px); bottom: calc(var(--bar) + 44px + var(--disc) * 0.1); }
+@keyframes ws-touch-crouch-pulse { 0% { box-shadow: 0 0 0 0 rgba(143, 227, 255, 0.7), 0 8px 24px rgba(0, 0, 0, 0.4); } 100% { box-shadow: 0 0 0 22px rgba(143, 227, 255, 0), 0 8px 24px rgba(0, 0, 0, 0.4); } }

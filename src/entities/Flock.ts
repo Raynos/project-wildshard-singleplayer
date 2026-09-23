@@ -201,7 +201,9 @@ export class Flock {
       if (!w.alive) continue;
       if (Math.hypot(w.position.x - this.cx, w.position.z - this.cz) < 30) { this.scare(w.position.x, w.position.z, 5); break; }
     }
-    if ((playerSpeed > 5.2 && dP < 16) || (playerSpeed > 0.5 && dP < 6)) this.scare(player.x, player.z, 3);
+    // B9 stealth (src/nalati/stealth.ts): a crouched player creeping through long grass (≥ 0.7 m) gets to 3 m before a sheep bolts
+    const creeping = wildEnv.playerCrouched && playerSpeed <= 2.6 && wildEnv.grassHeightAt(player.x, player.z) >= 0.7;
+    if ((playerSpeed > 5.2 && dP < 16) || (playerSpeed > 0.5 && dP < (creeping ? 3 : 6))) this.scare(player.x, player.z, 3);
     this.panic = Math.max(0, this.panic - dt);
     const panicking = this.panic > 0;
     // drift direction for the whole flock (slow)
