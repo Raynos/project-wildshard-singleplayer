@@ -1,6 +1,6 @@
 # Play performance — 60 FPS on the phone tier
 
-**State:** `in progress` 2026-09-22 — finish line: the phone tier (`?tier=phone`, 390×844) holds ≤ 150 calls / ≤ 2.0 M tris at every pose in §0 (Pine Hollow gate, cabin, pond) **and** at four Driftwood poses (pier spawn, beach, wreck cove, ring shrine), desktop unchanged, **and** one iPhone meter reading ≥ 55 fps (p50 ≤ 18 ms) in each shard. Cabin pose was 155 calls at lever 7; Driftwood never measured against the budget. Owner: E4 (play-perf agent).
+**State:** `blocked` 2026-09-22 — on the user's iPhone readings only. Finish line: the phone tier (`?tier=phone`, 390×844) holds ≤ 150 calls / ≤ 2.0 M tris at every pose — **done at `f73e96b`**, all seven: Pine Hollow gate 104 / 1.30 M · cabin 133 / 1.54 M · pond 120 / 1.23 M; Driftwood pier 87 · beach 88 · wreck 117 · shrine 72 (≤ 0.38 M); desktop unchanged (pixel diffs at all seven poses) — **and** one iPhone meter reading ≥ 55 fps (p50 ≤ 18 ms; the phone line now reads `p50 ms · calls · tris`) in each shard, with `__world.forest.path` = `batched` on Pine Hollow. Open, not in the finish line: desktop draws 880–990 calls at the Pine Hollow poses against §0's old ≤ 300 desktop target (≈ 150 animals × 3 meshes × 3 shadow layers) — queued as an ASKS row.
 
 Ruler: `game.lastFrame` (calls / triangles for the whole composer frame) read headless via agent-browser,
 `?tier=phone&skipintro=1&nolock=1&sw=0` at 390×844, median of 30 frames a few seconds after `.ws-loading` is gone,
