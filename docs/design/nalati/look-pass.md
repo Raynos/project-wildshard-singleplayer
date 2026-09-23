@@ -64,3 +64,28 @@ art direction with scaled density / cheaper post, never a different look.
 
 Every agent: before/after shots at the relevant parity poses in `progress/nalati-look-*.jpg`, and the phone-tier
 frame time in the report.
+
+## Harness
+
+`scripts/nalati-parity.mjs` renders the six reference poses above against the running dev server
+(http://127.0.0.1:5188) and writes one side-by-side JPEG per pose and tier — **engine | mockup**, same height, ≤ 500 KB —
+to `progress/nalati-look/<tag>-<pose>-<tier>.jpg`, with the frame time (p50 / p95, frame rate uncapped so the ms is the
+real cost, not the vsync wait), draw calls and triangles burnt into the caption and written to `<tag>-perf.json`.
+
+```bash
+node scripts/nalati-parity.mjs --tag=03-my-change                  # all six poses, desktop (1600×900) + phone (390×844 @1.5)
+node scripts/nalati-parity.mjs --tag=wip --poses=camp,kurgan --tiers=phone
+node scripts/nalati-parity.mjs --engine-only                        # engine frames without the mockup half
+node scripts/nalati-parity.mjs --help
+```
+
+- One headless Chromium on the host GPU (`--use-angle=metal`), loaded **once per tier**; each pose re-spawns the player
+  (`__world.player.spawn`) and sets the day clock (`__weather.clock`), then settles 5 s (`--settle=`). The clock is
+  frozen and the weather forced clear (`?clock=0&weather=clear`), so a set is reproducible.
+- An HMR full reload (someone saved a file) is detected and the pose retried; a reload that never comes back is reloaded.
+- The poses (x / z / yaw / pitch / time, a `phone` override for the narrow portrait frame) are `POSES` at the top of the
+  script — change them there, not per run, so everyone's before / after shots stay comparable.
+- The frame ms on a Mac is not an iPhone reading; the draw calls / triangles are the budget that carries over
+  (phone ≤ 150 calls / ≤ 2.0 M tris). Other agents' browsers share the GPU: compare p50s within one run.
+- The browser is closed at the end (the machine allows at most 3 game browsers). Commit a before and an after set per
+  look change (`<nn>-<slug>` tags); `00-before` is the state at the start of the look pass (2026-09-22).
