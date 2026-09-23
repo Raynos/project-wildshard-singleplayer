@@ -121,9 +121,9 @@ export class NalatiDressing {
       this.layers.push(l);
       this.group.add(l.mesh);
     };
-    // the rocks: the generated boulders (glbPaint.ts; every third boulder the tall faceted one) when `modelsOn()`,
+    // the rocks: the generated boulders (glbPaint.ts; every third boulder the tall faceted one) when `modelsOn('rocks')`,
     // else the procedural blobs — the same plan, sizes and tints either way
-    const rockModels = modelsOn()
+    const rockModels = modelsOn('rocks')
       ? await Promise.all((['boulder-1', 'boulder-2', 'boulder-3'] as const).map((n) => loadNalatiModel(this.sky, n, { rim: 0.3, bands: 0.8 }))).catch((e: unknown) => { console.warn('[nalati] rock models failed', e); return null; })
       : null;
     if (rockModels) {

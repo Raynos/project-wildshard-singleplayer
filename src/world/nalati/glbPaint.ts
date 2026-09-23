@@ -13,7 +13,7 @@
  * every other painterly mesh, plus `sky.setupMaterial` for the CSM shadows. The phone tier loads `<name>.phone.glb`
  * (the 512² atlas). `rot` in a placement is the yaw about +y (0 = the model's front faces +Z).
  *
- * `?models=0` / `?models=1` force the adoption flag (`modelsOn()`) that the POI builders read.
+ * `modelsOn(part)` is the adoption flag the POI builders read (`?models=0|1`, `?yurts=0|1`; see below).
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -56,16 +56,23 @@ export interface ModelLook {
   color?: THREE.ColorRepresentation;
 }
 
-/** flipped to true once the camp 9-angle set with the models is at least as good as without */
-const MODELS_DEFAULT = false;
+/**
+ * The adoption flags. By default the balbals, the rocks and the camp props are the generated models; the yurts stay
+ * procedural (the camp orbit, 2026-09-23: the GLB yurt's felt reads stained and its ornament soft up close, the
+ * procedural yurt is cleaner). `?models=0` → every POI procedural, `?models=1` → every model on (yurts included),
+ * `?yurts=1` / `?yurts=0` → the yurts alone.
+ */
+export type ModelPart = 'yurt' | 'props' | 'rocks' | 'balbal';
+const PART_DEFAULT: Readonly<Record<ModelPart, boolean>> = { yurt: false, props: true, rocks: true, balbal: true };
 
-/** the adoption flag: `?models=1` on, `?models=0` off, else MODELS_DEFAULT */
-export function modelsOn(): boolean {
-  if (typeof location === 'undefined') return true;
-  const q = new URLSearchParams(location.search).get('models');
-  if (q === '0') return false;
-  if (q === '1') return true;
-  return MODELS_DEFAULT;
+export function modelsOn(part: ModelPart): boolean {
+  if (typeof location === 'undefined') return PART_DEFAULT[part];
+  const q = new URLSearchParams(location.search);
+  const all = q.get('models');
+  if (all === '0') return false;
+  if (part === 'yurt') { const y = q.get('yurts'); if (y === '0' || y === '1') return y === '1'; }
+  if (all === '1') return true;
+  return PART_DEFAULT[part];
 }
 
 const DIR = '/assets/nalati/models/';

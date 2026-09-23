@@ -184,7 +184,7 @@ export function buildBalbals(ctx: PoiCtx, spots: { x: number; z: number; yaw: nu
     colliders.push(collider);
   }
   for (const m of b.meshes) { m.instanceMatrix.needsUpdate = true; m.computeBoundingSphere(); }
-  if (modelsOn()) {
+  if (modelsOn('balbal')) {
     loadNalatiModel(sky, 'balbal', { rim: 0.35, bands: 0.8 }).then((model) => {
       const k = 2.15 / MODEL_SIZE.balbal[1];
       const geo = model.geometry.clone().rotateY(Math.PI).scale(k, k, k);

@@ -84,6 +84,6 @@ export function addGroundSaddleModel(sink: ModelSink, ground: Ground, x: number,
 }
 
 /** the golden eagle standing on `feet` (a perch), facing `yaw` like addEagle */
-export function addEagleModel(sink: ModelSink, feet: THREE.Vector3, yaw: number, height = 0.72): void {
+export function addEagleModel(sink: ModelSink, feet: THREE.Vector3, yaw: number, height = 0.85): void {
   sink.add('eagle', { x: feet.x, y: feet.y - 0.02, z: feet.z, rot: yaw + FLIP, scale: height / MODEL_SIZE.eagle[1] });
 }
