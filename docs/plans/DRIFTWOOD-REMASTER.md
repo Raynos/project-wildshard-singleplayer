@@ -94,9 +94,9 @@ Reference: BotW / Wind Waker (two-band ramp, rim), Firewatch (colour-ramp fog), 
 
 | # | Row | Cost | Status |
 |---|---|---|---|
-| W1 | **Ocean v2**: depth from the baked terrain height (no depth prepass), Beer–Lambert shallow→deep, **semi-transparent shallows** (the seabed, coral and fish show from the pier), fresnel sky tint, sun glint, 3–4 Gerstner waves | M | open |
-| W2 | **Foam**: animated shoreline foam lines from depth, crest foam, foam rings around every pile / boulder / hull / swimmer | M | open |
-| W3 | **One wave function** shared by the shader and TS: the boat, gulls on the water, the swimmer's eye and floating debris ride the swell | S | open |
+| W1 | **Ocean v2**: depth from the baked terrain height (no depth prepass), Beer–Lambert shallow→deep, **semi-transparent shallows** (the seabed, coral and fish show from the pier), fresnel sky tint, sun glint, 3–4 Gerstner waves | M | **done** `f94c5da` (live in 0cc05de-mudrg8ly — its own deploy went red on E14's `src/explore/art/` vs `.vercelignore`, fixed by E8 in `0cc05de`) — 512² baked sea-floor texture (depth + obstacle proximity, no depth pre-pass), view-path Beer–Lambert opacity, toon-lit water, fresnel dome reflection, facet sun glint, one draw; phone calls pier 83 / beach 83 / wreck 96 / shrine 69; progress/176, 177 |
+| W2 | **Foam**: animated shoreline foam lines from depth, crest foam, foam rings around every pile / boulder / hull / swimmer | M | **done** `f94c5da` — breathing shore break line, lines marching over the shallows, crest caps, rings around every collider that pierces the surface (`ocean.foamAround(player.colliders)`) |
+| W3 | **One wave function** shared by the shader and TS: the boat, gulls on the water, the swimmer's eye and floating debris ride the swell | S | **done** `f94c5da` — `src/world/waves.ts`: four Gerstner waves shared by the shader and TS (`waveHeight`, `waveDisplace`, `seaDamp`, `waveClock`); boat / swimmer / debris riding them still to wire |
 | W4 | **Caustics** on the sand + seabed, an underwater fog ramp, god-ray cones, surface splash / bubble particles on water entry, a Snell's-window look from below | M | open |
 | W5 | **Waterfall v2** (the cove): a vertical faceted sheet with a scrolling foam texture, a mist cloud and a splash ring (today a ribbon lying on the slope) | S | open |
 
