@@ -17,6 +17,8 @@ import type { Collider } from '../player/Player';
 import { Rng } from '../core/rng';
 import { SEED } from '../core/config';
 import type { Sky } from './Sky';
+import { heightAt } from './Heightfield';
+import { waveHeight, seaDamp } from './waves';
 
 export interface BoatSpec {
   x: number; z: number;
@@ -168,7 +170,23 @@ export class Boat {
         ni.setAttribute('color', new THREE.BufferAttribute(c, 3));
         ropeParts.push(ni);
       });
-      const ropes = new THREE.Mesh(mergeGeometries(ropeParts, false), mat);
+      const ropeGeo = mergeGeometries(ropeParts, false);
+      // each rope vertex remembers its rest position, which rope it is and how far along it lies (1 at the cleat, 0 at
+      // the post), so update() can lift the cleat end with the boat on the swell and leave the post end tied
+      const rp = ropeGeo.getAttribute('position');
+      this.ropeRest = new Float32Array(rp.array);
+      this.ropeW = new Float32Array(rp.count);
+      this.ropeWhich = new Uint8Array(rp.count);
+      const perRope = rp.count / ropeParts.length;
+      for (let k = 0; k < rp.count; k++) {
+        const which = Math.min(ropeParts.length - 1, Math.floor(k / perRope)), a = ends[which], post = this.spec.moorTo[which];
+        if (a === undefined || post === undefined) continue;
+        const bx = post.x, bz = post.z, dx = bx - a.x, dz = bz - a.z, len2 = dx * dx + dz * dz || 1;
+        const t = Math.min(1, Math.max(0, ((rp.getX(k) - a.x) * dx + (rp.getZ(k) - a.z) * dz) / len2));
+        this.ropeW[k] = 1 - t; this.ropeWhich[k] = which;
+      }
+      this.cleatZ = [-LENGTH / 2 + 0.3, LENGTH / 2 - 0.3];
+      const ropes = new THREE.Mesh(ropeGeo, mat);
       ropes.castShadow = true;
       this.ropes = ropes;
     }
@@ -194,11 +212,36 @@ export class Boat {
     return this.floorY;
   }
 
+  private ropeRest: Float32Array | null = null;
+  private ropeW = new Float32Array(0);
+  private ropeWhich = new Uint8Array(0);
+  private cleatZ = [0, 0];
+  private cleatDy = [0, 0];
+
+  /**
+   * Ride the shared swell (W3, src/world/waves.ts — the same Gerstner sum the ocean shader draws): heave from the wave
+   * height under the hull, pitch from 2 m fore / aft, roll from 2 m to either side; the mooring lines' cleat ends follow.
+   */
   update(dt: number): void {
     this.t += dt;
-    const g = this.group;
-    g.position.y = this.spec.waterY + Math.sin(this.t * 0.9) * 0.05 + Math.sin(this.t * 1.7 + 1) * 0.02;
-    g.rotation.z = Math.sin(this.t * 0.8) * 0.025;
-    g.rotation.x = Math.sin(this.t * 0.55 + 0.7) * 0.012;
+    const g = this.group, x = this.spec.x, z = this.spec.z, w = this.spec.waterY;
+    const damp = seaDamp(w - heightAt(x, z));
+    const h = this.spec.heading ?? 0, fx = -Math.sin(h), fz = -Math.cos(h), sx = Math.cos(h), sz = -Math.sin(h);   // bow (local −z), starboard (+x)
+    const hFore = waveHeight(x + fx * 2, z + fz * 2, undefined, damp), hAft = waveHeight(x - fx * 2, z - fz * 2, undefined, damp);
+    const hStar = waveHeight(x + sx * 2, z + sz * 2, undefined, damp), hPort = waveHeight(x - sx * 2, z - sz * 2, undefined, damp);
+    g.rotation.order = 'YXZ';
+    g.position.y = w + waveHeight(x, z, undefined, damp);
+    g.rotation.x = Math.atan2(hFore - hAft, 4);            // bow up when the crest is under it
+    g.rotation.z = Math.atan2(hStar - hPort, 4);           // port side up when the crest is to port
+    // the mooring lines: lift each rope's cleat end with the hull (heave + pitch at that cleat), the post end stays put
+    const rest = this.ropeRest;
+    if (this.ropes && rest) {
+      const heave = g.position.y - w, s = Math.sin(g.rotation.x);
+      for (let i = 0; i < 2; i++) this.cleatDy[i] = heave - (this.cleatZ[i] ?? 0) * s;
+      const pos = this.ropes.geometry.getAttribute('position') as THREE.BufferAttribute;
+      const arr = pos.array as Float32Array;
+      for (let k = 0; k < this.ropeW.length; k++) arr[k * 3 + 1] = (rest[k * 3 + 1] ?? 0) + (this.cleatDy[this.ropeWhich[k] ?? 0] ?? 0) * (this.ropeW[k] ?? 0);
+      pos.needsUpdate = true;
+    }
   }
 }
