@@ -1,4 +1,4 @@
-// src/audio/Stems.ts — the MiniMax-Music3 stem player behind src/audio/Music.ts (docs/plans/MUSIC.md v3, row 7).
+// src/audio/Stems.ts — the MiniMax-Music3 stem player behind src/audio/Music.ts (project/archive/2026-09-23-music.md v3, row 7).
 //
 //   public/assets/music/<style>/music.json   { style, model, credit, slots: { pine | island: { calm, tension, bpm, beatsPerBar,
 //                                            loopStart, loopEnd, duration }, title: { full, … } }, stings: { pickup, death, chunk } }

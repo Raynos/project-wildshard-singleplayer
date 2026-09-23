@@ -30,8 +30,8 @@ import { Voices } from './Voices';
  *   audio.hurt(strength, pan)  audio.death()   // the player takes a hit (strength = dmg / 20, pan toward the attacker) / dies — both shards (B3)
  *   audio.voices                         // the procedural one-shot bank (src/audio/Voices.ts + gen.ts): Driftwood's footsteps + combat layers (IslandSfx)
  *
- * Samples (docs/plans/MUSIC.md v3 row 7): `audio.useSamples(bank)` — the loading bar decoded (src/audio/preload.ts,
- * project/archive/2026-09-23-preload-offline.md; nothing is fetched after it) the selected set's public/assets/sfx/<set>/sfx.json (Settings 'sfxSet': 'moss' MOSS-SoundEffect v2.0 · 'sa3-medium' Stable Audio 3 Medium · 'ezaudio' EzAudio-XL · 'synth')
+ * Samples (project/archive/2026-09-23-music.md v3 row 7): `audio.useSamples(bank)` — the loading bar decoded (src/audio/preload.ts,
+ * project/archive/2026-09-23-preload-offline.md; nothing is fetched after it) the selected set's public/assets/sfx/<set>/sfx.json (Settings 'sfxSet': 'best' — the better take per sound of MOSS-SoundEffect v2 and Stable Audio 3 Medium — · 'synth')
  * when the build ships one and decodes what it lists: ambient `beds` (forest / island /
  * underwater, looped loopStart → loopEnd, replacing that synth bed), `hums` (pickup / shrine) and `oneshots` (a family →
  * variant files; each call picks one at random with ±40 cents / −1.5 dB of jitter). Every sound sfx.json does not cover

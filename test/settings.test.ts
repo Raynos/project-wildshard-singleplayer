@@ -94,17 +94,21 @@ describe('Settings', () => {
     expect((await fresh()).getMusicStyle()).toBe('piano');
   });
 
-  it('sfxSet: moss by default, persisted beside musicStyle, ?sfx= overrides without persisting', async () => {
+  it('sfxSet: best by default, a retired saved set reads as best, persisted beside musicStyle, ?sfx=synth overrides without persisting', async () => {
+    localStorage.setItem(STORE, JSON.stringify({ sfxSet: 'moss' })); // a set from SFX round 2, retired by the merged one
+    expect((await fresh()).getSfxSet()).toBe('best');
+    localStorage.clear();
     const s = await fresh();
-    expect(s.getSfxSet()).toBe('moss');
-    s.setSfxSet('ezaudio');
-    expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'ezaudio', musicStyle: 'piano' });
+    expect(s.getSfxSet()).toBe('best');
+    s.setSfxSet('synth');
+    expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'synth', musicStyle: 'piano' });
+    s.setSfxSet('best');
     vi.stubGlobal('location', new URL('http://localhost:5173/?sfx=synth'));
     try {
       const t = await fresh();
       expect(t.getSfxSet()).toBe('synth');
       t.setNumber('volume', 0.5);
-      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'ezaudio' });
+      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'best' });
     } finally { vi.stubGlobal('location', new URL('http://localhost:5173/')); }
   });
 

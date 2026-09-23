@@ -149,7 +149,7 @@ fills the ring.*
 | S2 | **Reverb zones**: generated impulse responses (hold 0.6 s, cave 1.5 s, shrine 2.5 s), 300 ms send crossfades; underwater low-pass ramp + bubbles + surface-crossing splash | S | **done** `45bd65b` — generated IRs 0.60 / 1.57 / 2.59 s (hold / cave / shrine); underwater 500 Hz in 150 ms + bubble bed; hold reverb switches on when `Wreck.holdBounds` lands (model-agent) |
 | S3 | **Combat layers**: whoosh pitched by swing speed + impact transient + material body + enemy vocal, ±5 % pitch; hurt / death vocals | S | **done** `66f815d` (live 66f815d-mudn09bd) — `islandSfx.whoosh / impact / vocal / windup / plunge / animal`; the calls from Sword / enemies are the feel-agent's (C4 / C5) |
 | S4 | **Interactable sounds** for the A2 kit: chest creak + lid, locked rattle, lever, stone plate (press / release), plank door, iron grate, chimes (sea glass / keys / loot), glyph shard, beacon ignite — `islandSfx.interact(sound, at?, opts)` | S | **done** `db72c3c` (live db72c3c-mudnfe1c) |
-| S4 | **Music**: the Driftwood theme + adaptive layers (calm / combat / discovery stinger / shrine) come from MUSIC v2 (E5, `docs/plans/MUSIC.md`) — this plan only provides the hooks | — | owner: E5 |
+| S4 | **Music**: the Driftwood theme + adaptive layers (calm / combat / discovery stinger / shrine) come from MUSIC v2 (E5, `project/archive/2026-09-23-music.md`) — this plan only provides the hooks | — | owner: E5 |
 
 ### Track X — the big bets (E52, 2026-09-23: "whatever it takes")
 

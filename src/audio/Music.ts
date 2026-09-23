@@ -1,4 +1,4 @@
-// src/audio/Music.ts — the Wildshard score, played by a small WebAudio instrument set (docs/plans/MUSIC.md).
+// src/audio/Music.ts — the Wildshard score, played by a small WebAudio instrument set (project/archive/2026-09-23-music.md).
 //
 //   const music = new Music(audio);                 // its own `music` gain → audio.master; shares the AudioContext
 //   music.play('theme');                            // on ENTER (after audio.resume()); loops D → B for as long as it plays
@@ -20,7 +20,7 @@
 // music bus runs through a 600 Hz low-pass and a slow chorus. `renderOffline` runs the identical scheduler on an
 // OfflineAudioContext — the trailer render and the live playback are one code path.
 //
-// v3 (docs/plans/MUSIC.md rows 7–8): a STEM PLAYER beside the synth (src/audio/Stems.ts). Settings 'musicStyle' picks
+// v3 (project/archive/2026-09-23-music.md rows 7–8): a STEM PLAYER beside the synth (src/audio/Stems.ts). Settings 'musicStyle' picks
 // piano / orchestral / folk (MiniMax-Music3 stems in public/assets/music/<style>/) or synth. Every style's files are downloaded
 // at the loading bar and the selected style's title + this shard's slot + stings are decoded there (project/archive/2026-09-23-preload-offline.md;
 // `useBank`), so play() starts the stems at once; the synth plays for a style / slot the build lacks or that failed to decode.
@@ -313,7 +313,7 @@ class Engine {
     }
     this.targets[key] = target;
   }
-  /** the game state → layer levels (docs/plans/MUSIC.md "In the game"); `menu` follows the arrangement's own mix instead */
+  /** the game state → layer levels (project/archive/2026-09-23-music.md "In the game"); `menu` follows the arrangement's own mix instead */
   private stateLevels(seg: Segment): Partial<Record<GainKey, number>> {
     const s = this.state, i = Math.min(1, Math.max(0, s.intensity));
     const mine: LayerId = s.shard === 'island' ? 'marimba' : 'pluck', other: LayerId = mine === 'pluck' ? 'marimba' : 'pluck';
@@ -460,7 +460,7 @@ class Engine {
   }
 }
 
-/** the tension stem's gain per mode (docs/plans/MUSIC.md v3: calm 0, alert ~0.5, combat 1; the title cut has none) */
+/** the tension stem's gain per mode (project/archive/2026-09-23-music.md v3: calm 0, alert ~0.5, combat 1; the title cut has none) */
 const TENSION: Record<MusicMode, number> = { menu: 0, calm: 0, alert: 0.5, combat: 1 };
 const holdAt = (p: AudioParam, t: number) => {
   const cp: { cancelAndHoldAtTime?: (t: number) => void } = p; // Firefox has no cancelAndHoldAtTime
@@ -579,7 +579,7 @@ export class Music {
     }, Math.max(0, t + fade - this.ctx.currentTime) * 1000 + 150);
   }
 
-  // ─────────────── the stems (docs/plans/MUSIC.md v3 row 7) ───────────────
+  // ─────────────── the stems (project/archive/2026-09-23-music.md v3 row 7) ───────────────
   /** the slot the state asks for: the title cut on the menu, else the shard's theme */
   private wantSlot(): SlotName {
     const s = this.state;

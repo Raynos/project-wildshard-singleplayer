@@ -1,4 +1,4 @@
-// src/audio/score/wildshard-theme.ts — the Wildshard theme as data (docs/plans/MUSIC.md).
+// src/audio/score/wildshard-theme.ts — the Wildshard theme as data (project/archive/2026-09-23-music.md).
 //
 // One piece of material, three arrangements of it:
 //   THEME      the in-game / title score: A intro · B theme · C build · D lift · ring-out — 32 bars at 104 that loop
@@ -32,7 +32,7 @@ export interface Segment {
   chords: ChordEv[];
   notes: Partial<Record<Exclude<LayerId, 'drone' | 'pad'>, NoteEv[]>>;
   mix?: MixEv[];
-  /** the sections the calm in-game state lets the motif through (docs/plans/MUSIC.md: "motif every ~40 s") */
+  /** the sections the calm in-game state lets the motif through (project/archive/2026-09-23-music.md: "motif every ~40 s") */
   calmMotif?: boolean;
 }
 export interface Arrangement {

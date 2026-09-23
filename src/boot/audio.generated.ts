@@ -116,138 +116,16 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
  }
 };
 export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
- "ezaudio": {
-  "model": "EzAudio-XL",
-  "credit": "SFX: EzAudio by OpenSound (MIT)",
-  "licence": "MIT (OpenSound/EzAudio: code and weights); the flan-t5-xl text encoder is Apache-2.0. Commercial use OK; keep the copyright notice with any redistribution of the weights.",
+ "best": {
+  "model": "MOSS-SoundEffect v2 + Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+  "licence": "Per file (see provenance.source): MOSS-SoundEffect v2.0 is Apache-2.0; Stable Audio 3 Medium is the Stability AI Community License (free below USD 1M revenue, register with Stability AI for commercial use, show 'Powered by Stability AI').",
   "beds": {
    "forest": {
-    "file": "bed-forest-3-c091ac95.m4a",
-    "loopStart": 2.5,
-    "loopEnd": 4.5,
-    "duration": 5.504,
-    "gain": 0.5
-   },
-   "island": {
-    "file": "bed-island-2-cdaeef41.m4a",
-    "loopStart": 3,
-    "loopEnd": 5,
-    "duration": 6.016,
-    "gain": 0.5
-   },
-   "underwater": {
-    "file": "bed-underwater-1-7c1947e8.m4a",
-    "loopStart": 2.25,
-    "loopEnd": 4.25,
-    "duration": 5.2693,
-    "gain": 0.5
-   }
-  },
-  "hums": {
-   "pickup": {
-    "file": "hum-pickup-2-5ab837df.m4a",
-    "loopStart": 2,
-    "loopEnd": 4,
-    "duration": 5.0133,
-    "gain": 0.35
-   },
-   "shrine": {
-    "file": "hum-shrine-3-46a26286.m4a",
-    "loopStart": 2,
-    "loopEnd": 4,
-    "duration": 5.0133,
-    "gain": 0.6
-   }
-  },
-  "oneshots": {
-   "bear_growl": {
-    "files": [
-     "bear_growl-2-e7adaefc.m4a",
-     "bear_growl-3-685a0646.m4a"
-    ],
-    "gain": 1
-   },
-   "bear_hurt": {
-    "files": [
-     "bear_hurt-3-b81412dd.m4a"
-    ],
-    "gain": 1
-   },
-   "bear_roar": {
-    "files": [
-     "bear_roar-3-772ca47c.m4a",
-     "bear_roar-1-adf53f8f.m4a"
-    ],
-    "gain": 1
-   },
-   "boltImpact-ground": {
-    "files": [
-     "boltImpact-ground-1-e9747950.m4a"
-    ],
-    "gain": 1
-   },
-   "boltImpact-wood": {
-    "files": [
-     "boltImpact-wood-3-c50c0f6b.m4a"
-    ],
-    "gain": 1
-   },
-   "dive": {
-    "files": [
-     "dive-3-cbbf6e4c.m4a",
-     "dive-2-18427374.m4a"
-    ],
-    "gain": 1
-   },
-   "lunge": {
-    "files": [
-     "lunge-3-4df75431.m4a"
-    ],
-    "gain": 1
-   },
-   "reload": {
-    "files": [
-     "reload-2-7f45e067.m4a"
-    ],
-    "gain": 1
-   },
-   "rifleReload": {
-    "files": [
-     "rifleReload-1-3825a71f.m4a",
-     "rifleReload-3-702c68a6.m4a"
-    ],
-    "gain": 1
-   },
-   "swordHeavy": {
-    "files": [
-     "swordHeavy-1-8591dba9.m4a"
-    ],
-    "gain": 1
-   },
-   "swordSwing": {
-    "files": [
-     "swordSwing-3-92ebeaa9.m4a"
-    ],
-    "gain": 1
-   },
-   "weaponSwap": {
-    "files": [
-     "weaponSwap-1-0db57a9a.m4a"
-    ],
-    "gain": 1
-   }
-  }
- },
- "moss": {
-  "model": "MOSS-SoundEffect v2.0",
-  "credit": "SFX: MOSS-SoundEffect v2.0 by OpenMOSS (Apache-2.0)",
-  "licence": "Apache-2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0): commercial use OK; keep the licence and NOTICE text with any redistribution of the weights; outputs are unrestricted.",
-  "beds": {
-   "forest": {
-    "file": "bed-forest-2-8335bc50.m4a",
-    "loopStart": 7,
-    "loopEnd": 18,
-    "duration": 19.008,
+    "file": "bed-forest-2-0cd11be5.m4a",
+    "loopStart": 12.75,
+    "loopEnd": 26.75,
+    "duration": 27.7547,
     "gain": 0.5
    },
    "island": {
@@ -258,10 +136,10 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     "gain": 0.5
    },
    "underwater": {
-    "file": "bed-underwater-3-1ad177c4.m4a",
-    "loopStart": 8.5,
-    "loopEnd": 11.5,
-    "duration": 12.5013,
+    "file": "bed-underwater-3-cbe2810d.m4a",
+    "loopStart": 9,
+    "loopEnd": 21,
+    "duration": 22.016,
     "gain": 0.5
    }
   },
@@ -282,103 +160,9 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
    }
   },
   "oneshots": {
-   "bear_growl": {
-    "files": [
-     "bear_growl-3-97b2d496.m4a",
-     "bear_growl-2-7996ef48.m4a"
-    ],
-    "gain": 1
-   },
-   "bear_hurt": {
-    "files": [
-     "bear_hurt-1-43b45d1e.m4a",
-     "bear_hurt-3-3aea6172.m4a"
-    ],
-    "gain": 1
-   },
-   "bear_roar": {
-    "files": [
-     "bear_roar-3-d338c9c3.m4a",
-     "bear_roar-2-f8c4171e.m4a"
-    ],
-    "gain": 1
-   },
-   "boar_squeal": {
-    "files": [
-     "boar_squeal-3-1568ba34.m4a"
-    ],
-    "gain": 1
-   },
-   "boltImpact-flesh": {
-    "files": [
-     "boltImpact-flesh-3-da30d4fb.m4a"
-    ],
-    "gain": 1
-   },
-   "boltImpact-ground": {
-    "files": [
-     "boltImpact-ground-3-d54b53f8.m4a"
-    ],
-    "gain": 1
-   },
-   "boltImpact-wood": {
-    "files": [
-     "boltImpact-wood-1-2cae58f6.m4a",
-     "boltImpact-wood-2-d803992d.m4a"
-    ],
-    "gain": 1
-   },
-   "coconut_hit": {
-    "files": [
-     "coconut_hit-3-9c8e8fd7.m4a",
-     "coconut_hit-2-83ed831d.m4a"
-    ],
-    "gain": 1
-   },
-   "coconut_land": {
-    "files": [
-     "coconut_land-1-42389b0a.m4a"
-    ],
-    "gain": 1
-   },
-   "crab_click": {
-    "files": [
-     "crab_click-3-d34c163a.m4a",
-     "crab_click-1-2dc903e2.m4a"
-    ],
-    "gain": 1
-   },
-   "crab_snap": {
-    "files": [
-     "crab_snap-1-7aa5ce9b.m4a",
-     "crab_snap-2-046b8c25.m4a"
-    ],
-    "gain": 1
-   },
    "crossbowFire": {
     "files": [
-     "crossbowFire-3-d25eab9d.m4a"
-    ],
-    "gain": 1
-   },
-   "deer_call": {
-    "files": [
-     "deer_call-3-1d601bb4.m4a",
-     "deer_call-1-7cd35867.m4a"
-    ],
-    "gain": 1
-   },
-   "dive": {
-    "files": [
-     "dive-1-4b978224.m4a",
-     "dive-3-e74abc72.m4a"
-    ],
-    "gain": 1
-   },
-   "dodge": {
-    "files": [
-     "dodge-2-13887dd8.m4a",
-     "dodge-3-453516f6.m4a"
+     "crossbowFire-1-40af4c48.m4a"
     ],
     "gain": 1
    },
@@ -389,123 +173,29 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     ],
     "gain": 1
    },
-   "elk_bugle": {
+   "boltImpact-wood": {
     "files": [
-     "elk_bugle-1-e4d6c5ce.m4a"
+     "boltImpact-wood-1-2cae58f6.m4a",
+     "boltImpact-wood-2-d803992d.m4a"
     ],
     "gain": 1
    },
-   "footstep-litter": {
+   "boltImpact-ground": {
     "files": [
-     "footstep-litter-3-3c9b78f1.m4a",
-     "footstep-litter-1-059c1365.m4a"
+     "boltImpact-ground-2-c6623243.m4a",
+     "boltImpact-ground-1-e51592f5.m4a"
     ],
     "gain": 1
    },
-   "footstep-planks": {
+   "boltImpact-flesh": {
     "files": [
-     "footstep-planks-1-cec98032.m4a",
-     "footstep-planks-3-77f11491.m4a"
+     "boltImpact-flesh-3-da30d4fb.m4a"
     ],
     "gain": 1
    },
-   "footstep-sand": {
+   "swordSwing": {
     "files": [
-     "footstep-sand-2-194edd1a.m4a",
-     "footstep-sand-1-c33daf66.m4a"
-    ],
-    "gain": 1
-   },
-   "gull": {
-    "files": [
-     "gull-1-5fa9130b.m4a"
-    ],
-    "gain": 1
-   },
-   "hoofsteps": {
-    "files": [
-     "hoofsteps-3-f1c11f8f.m4a",
-     "hoofsteps-1-9580d36a.m4a"
-    ],
-    "gain": 1
-   },
-   "kill": {
-    "files": [
-     "kill-3-4bdeec33.m4a"
-    ],
-    "gain": 1
-   },
-   "land-hard": {
-    "files": [
-     "land-hard-3-5aed2a6b.m4a",
-     "land-hard-1-2ce640be.m4a"
-    ],
-    "gain": 1
-   },
-   "monkey_chatter": {
-    "files": [
-     "monkey_chatter-3-1c7d7e2d.m4a"
-    ],
-    "gain": 1
-   },
-   "monkey_shriek": {
-    "files": [
-     "monkey_shriek-3-502ed726.m4a",
-     "monkey_shriek-1-42958a28.m4a"
-    ],
-    "gain": 1
-   },
-   "reload": {
-    "files": [
-     "reload-2-c48de6a0.m4a",
-     "reload-1-a220fb6e.m4a"
-    ],
-    "gain": 1
-   },
-   "rifleFire": {
-    "files": [
-     "rifleFire-1-f430f10e.m4a",
-     "rifleFire-3-9f2bf94c.m4a"
-    ],
-    "gain": 1
-   },
-   "rifleReload": {
-    "files": [
-     "rifleReload-1-916afb26.m4a",
-     "rifleReload-3-ca2aef19.m4a"
-    ],
-    "gain": 1
-   },
-   "sailor_groan": {
-    "files": [
-     "sailor_groan-2-43e2a981.m4a"
-    ],
-    "gain": 1
-   },
-   "sailor_slash": {
-    "files": [
-     "sailor_slash-3-5a10eada.m4a",
-     "sailor_slash-1-611ba654.m4a"
-    ],
-    "gain": 1
-   },
-   "splash": {
-    "files": [
-     "splash-3-9509efbe.m4a",
-     "splash-2-03ab63ae.m4a"
-    ],
-    "gain": 1
-   },
-   "surface": {
-    "files": [
-     "surface-3-85550528.m4a",
-     "surface-2-e5ac4e8a.m4a"
-    ],
-    "gain": 1
-   },
-   "swimStroke": {
-    "files": [
-     "swimStroke-2-9e35721b.m4a"
+     "swordSwing-1-6303fc5d.m4a"
     ],
     "gain": 1
    },
@@ -518,8 +208,8 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
    },
    "swordHit-flesh": {
     "files": [
-     "swordHit-flesh-3-e8988bdb.m4a",
-     "swordHit-flesh-2-b1079c0c.m4a"
+     "swordHit-flesh-1-07225bb8.m4a",
+     "swordHit-flesh-2-efbf5fd7.m4a"
     ],
     "gain": 1
    },
@@ -530,240 +220,10 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     ],
     "gain": 1
    },
-   "swordSwing": {
-    "files": [
-     "swordSwing-1-6303fc5d.m4a"
-    ],
-    "gain": 1
-   },
-   "wadeStep": {
-    "files": [
-     "wadeStep-1-83e1423c.m4a",
-     "wadeStep-2-402e850a.m4a"
-    ],
-    "gain": 1
-   },
-   "waterExit": {
-    "files": [
-     "waterExit-1-d85f0e47.m4a"
-    ],
-    "gain": 1
-   },
-   "weaponSwap": {
-    "files": [
-     "weaponSwap-3-fbe81018.m4a"
-    ],
-    "gain": 1
-   }
-  }
- },
- "sa3-medium": {
-  "model": "Stable Audio 3 Medium",
-  "credit": "SFX: Stable Audio 3 Medium — Powered by Stability AI",
-  "beds": {
-   "forest": {
-    "file": "bed-forest-2-0cd11be5.m4a",
-    "loopStart": 12.75,
-    "loopEnd": 26.75,
-    "duration": 27.7547,
-    "gain": 0.5
-   },
-   "island": {
-    "file": "bed-island-2-b56f8b01.m4a",
-    "loopStart": 9,
-    "loopEnd": 29,
-    "duration": 30.016,
-    "gain": 0.5
-   },
-   "underwater": {
-    "file": "bed-underwater-3-cbe2810d.m4a",
-    "loopStart": 9,
-    "loopEnd": 21,
-    "duration": 22.016,
-    "gain": 0.5
-   }
-  },
-  "hums": {
-   "shrine": {
-    "file": "hum-shrine-2-8b274f39.m4a",
-    "loopStart": 4.25,
-    "loopEnd": 6.25,
-    "duration": 7.2533,
-    "gain": 0.6
-   }
-  },
-  "oneshots": {
-   "bear_growl": {
-    "files": [
-     "bear_growl-3-d51162f5.m4a",
-     "bear_growl-2-2384d717.m4a"
-    ],
-    "gain": 1
-   },
-   "bear_hurt": {
-    "files": [
-     "bear_hurt-2-e3decd9a.m4a",
-     "bear_hurt-3-2e189d21.m4a"
-    ],
-    "gain": 1
-   },
-   "bear_roar": {
-    "files": [
-     "bear_roar-3-6e416479.m4a",
-     "bear_roar-1-cdda7f3d.m4a"
-    ],
-    "gain": 1
-   },
-   "boar_grunt": {
-    "files": [
-     "boar_grunt-3-4e4a9bec.m4a"
-    ],
-    "gain": 1
-   },
-   "boar_squeal": {
-    "files": [
-     "boar_squeal-1-6415e380.m4a"
-    ],
-    "gain": 1
-   },
-   "boltImpact-flesh": {
-    "files": [
-     "boltImpact-flesh-1-91000a74.m4a",
-     "boltImpact-flesh-3-99224c6c.m4a"
-    ],
-    "gain": 1
-   },
-   "boltImpact-ground": {
-    "files": [
-     "boltImpact-ground-2-c6623243.m4a",
-     "boltImpact-ground-1-e51592f5.m4a"
-    ],
-    "gain": 1
-   },
-   "boltImpact-wood": {
-    "files": [
-     "boltImpact-wood-1-518c4568.m4a",
-     "boltImpact-wood-2-8fdffc5d.m4a"
-    ],
-    "gain": 1
-   },
-   "coconut_hit": {
-    "files": [
-     "coconut_hit-1-25548225.m4a",
-     "coconut_hit-3-f33c352d.m4a"
-    ],
-    "gain": 1
-   },
-   "coconut_land": {
-    "files": [
-     "coconut_land-2-a3e51bbb.m4a"
-    ],
-    "gain": 1
-   },
-   "crab_click": {
-    "files": [
-     "crab_click-2-aefbc41d.m4a",
-     "crab_click-3-f47e95a3.m4a"
-    ],
-    "gain": 1
-   },
-   "crab_snap": {
-    "files": [
-     "crab_snap-2-bff601ad.m4a",
-     "crab_snap-3-69ea11c0.m4a"
-    ],
-    "gain": 1
-   },
-   "crossbowFire": {
-    "files": [
-     "crossbowFire-1-40af4c48.m4a"
-    ],
-    "gain": 1
-   },
-   "deer_call": {
-    "files": [
-     "deer_call-1-e7e6c631.m4a"
-    ],
-    "gain": 1
-   },
-   "dive": {
-    "files": [
-     "dive-3-00913360.m4a",
-     "dive-1-34a595a8.m4a"
-    ],
-    "gain": 1
-   },
    "dodge": {
     "files": [
-     "dodge-3-500357b6.m4a",
-     "dodge-2-dc30a942.m4a"
-    ],
-    "gain": 1
-   },
-   "dryFire": {
-    "files": [
-     "dryFire-2-0755e765.m4a",
-     "dryFire-1-8aafdf79.m4a"
-    ],
-    "gain": 1
-   },
-   "elk_bugle": {
-    "files": [
-     "elk_bugle-2-7048925b.m4a",
-     "elk_bugle-1-375e7428.m4a"
-    ],
-    "gain": 1
-   },
-   "footstep-litter": {
-    "files": [
-     "footstep-litter-2-19b0df36.m4a",
-     "footstep-litter-1-b1476674.m4a"
-    ],
-    "gain": 1
-   },
-   "footstep-planks": {
-    "files": [
-     "footstep-planks-2-0df42a23.m4a"
-    ],
-    "gain": 1
-   },
-   "footstep-sand": {
-    "files": [
-     "footstep-sand-2-4b40473a.m4a",
-     "footstep-sand-1-09a40a2f.m4a"
-    ],
-    "gain": 1
-   },
-   "hitMarker": {
-    "files": [
-     "hitMarker-1-46ef1236.m4a"
-    ],
-    "gain": 1
-   },
-   "hoofsteps": {
-    "files": [
-     "hoofsteps-2-0b709888.m4a"
-    ],
-    "gain": 1
-   },
-   "kill": {
-    "files": [
-     "kill-3-5f7ea225.m4a",
-     "kill-2-5e4acc1b.m4a"
-    ],
-    "gain": 1
-   },
-   "land": {
-    "files": [
-     "land-2-773487f2.m4a",
-     "land-3-eebff605.m4a"
-    ],
-    "gain": 1
-   },
-   "land-hard": {
-    "files": [
-     "land-hard-2-6d3dd78c.m4a",
-     "land-hard-1-2e7ed6b5.m4a"
+     "dodge-2-13887dd8.m4a",
+     "dodge-3-453516f6.m4a"
     ],
     "gain": 1
    },
@@ -773,23 +233,10 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     ],
     "gain": 1
    },
-   "monkey_chatter": {
-    "files": [
-     "monkey_chatter-1-db5ae27b.m4a"
-    ],
-    "gain": 1
-   },
-   "monkey_shriek": {
-    "files": [
-     "monkey_shriek-2-54acd647.m4a",
-     "monkey_shriek-1-1a358b4e.m4a"
-    ],
-    "gain": 1
-   },
    "reload": {
     "files": [
-     "reload-1-4d6ccf59.m4a",
-     "reload-2-a1799660.m4a"
+     "reload-2-c48de6a0.m4a",
+     "reload-1-a220fb6e.m4a"
     ],
     "gain": 1
    },
@@ -807,63 +254,210 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     ],
     "gain": 1
    },
-   "sailor_groan": {
+   "weaponSwap": {
     "files": [
-     "sailor_groan-3-5398492d.m4a"
+     "weaponSwap-3-fbe81018.m4a"
     ],
     "gain": 1
    },
-   "sailor_slash": {
+   "footstep-litter": {
     "files": [
-     "sailor_slash-2-ec93b9b6.m4a",
-     "sailor_slash-3-4d01e059.m4a"
+     "footstep-litter-2-19b0df36.m4a",
+     "footstep-litter-1-b1476674.m4a"
     ],
     "gain": 1
    },
-   "surface": {
+   "footstep-planks": {
     "files": [
-     "surface-3-b3341d88.m4a",
-     "surface-2-320893c5.m4a"
+     "footstep-planks-1-cec98032.m4a",
+     "footstep-planks-3-77f11491.m4a"
     ],
     "gain": 1
    },
-   "swordHeavy": {
+   "footstep-sand": {
     "files": [
-     "swordHeavy-2-f7aaea0a.m4a",
-     "swordHeavy-1-ef85d2f8.m4a"
+     "footstep-sand-2-4b40473a.m4a",
+     "footstep-sand-1-09a40a2f.m4a"
     ],
     "gain": 1
    },
-   "swordHit-flesh": {
+   "land": {
     "files": [
-     "swordHit-flesh-1-07225bb8.m4a",
-     "swordHit-flesh-2-efbf5fd7.m4a"
+     "land-2-773487f2.m4a",
+     "land-3-eebff605.m4a"
     ],
     "gain": 1
    },
-   "swordSwing": {
+   "land-hard": {
     "files": [
-     "swordSwing-2-5c2aae32.m4a"
+     "land-hard-3-5aed2a6b.m4a",
+     "land-hard-1-2ce640be.m4a"
+    ],
+    "gain": 1
+   },
+   "splash": {
+    "files": [
+     "splash-3-9509efbe.m4a",
+     "splash-2-03ab63ae.m4a"
     ],
     "gain": 1
    },
    "wadeStep": {
     "files": [
-     "wadeStep-2-8b85a652.m4a",
-     "wadeStep-1-5699ba77.m4a"
+     "wadeStep-1-83e1423c.m4a",
+     "wadeStep-2-402e850a.m4a"
+    ],
+    "gain": 1
+   },
+   "swimStroke": {
+    "files": [
+     "swimStroke-2-9e35721b.m4a"
     ],
     "gain": 1
    },
    "waterExit": {
     "files": [
-     "waterExit-2-27aeb501.m4a"
+     "waterExit-1-d85f0e47.m4a"
     ],
     "gain": 1
    },
-   "weaponSwap": {
+   "dive": {
     "files": [
-     "weaponSwap-2-4aca394e.m4a",
-     "weaponSwap-1-d9ab6f26.m4a"
+     "dive-1-4b978224.m4a",
+     "dive-3-e74abc72.m4a"
+    ],
+    "gain": 1
+   },
+   "surface": {
+    "files": [
+     "surface-3-85550528.m4a",
+     "surface-2-e5ac4e8a.m4a"
+    ],
+    "gain": 1
+   },
+   "hitMarker": {
+    "files": [
+     "hitMarker-1-46ef1236.m4a"
+    ],
+    "gain": 1
+   },
+   "kill": {
+    "files": [
+     "kill-3-5f7ea225.m4a",
+     "kill-2-5e4acc1b.m4a"
+    ],
+    "gain": 1
+   },
+   "gull": {
+    "files": [
+     "gull-1-5fa9130b.m4a"
+    ],
+    "gain": 1
+   },
+   "deer_call": {
+    "files": [
+     "deer_call-3-1d601bb4.m4a",
+     "deer_call-1-7cd35867.m4a"
+    ],
+    "gain": 1
+   },
+   "boar_grunt": {
+    "files": [
+     "boar_grunt-3-4e4a9bec.m4a"
+    ],
+    "gain": 1
+   },
+   "hoofsteps": {
+    "files": [
+     "hoofsteps-3-f1c11f8f.m4a",
+     "hoofsteps-1-9580d36a.m4a"
+    ],
+    "gain": 1
+   },
+   "boar_squeal": {
+    "files": [
+     "boar_squeal-1-6415e380.m4a"
+    ],
+    "gain": 1
+   },
+   "elk_bugle": {
+    "files": [
+     "elk_bugle-2-7048925b.m4a",
+     "elk_bugle-1-375e7428.m4a"
+    ],
+    "gain": 1
+   },
+   "bear_growl": {
+    "files": [
+     "bear_growl-3-97b2d496.m4a",
+     "bear_growl-2-7996ef48.m4a"
+    ],
+    "gain": 1
+   },
+   "bear_roar": {
+    "files": [
+     "bear_roar-3-6e416479.m4a",
+     "bear_roar-1-cdda7f3d.m4a"
+    ],
+    "gain": 1
+   },
+   "bear_hurt": {
+    "files": [
+     "bear_hurt-1-43b45d1e.m4a",
+     "bear_hurt-3-3aea6172.m4a"
+    ],
+    "gain": 1
+   },
+   "crab_click": {
+    "files": [
+     "crab_click-2-aefbc41d.m4a",
+     "crab_click-3-f47e95a3.m4a"
+    ],
+    "gain": 1
+   },
+   "crab_snap": {
+    "files": [
+     "crab_snap-2-bff601ad.m4a",
+     "crab_snap-3-69ea11c0.m4a"
+    ],
+    "gain": 1
+   },
+   "monkey_chatter": {
+    "files": [
+     "monkey_chatter-3-1c7d7e2d.m4a"
+    ],
+    "gain": 1
+   },
+   "monkey_shriek": {
+    "files": [
+     "monkey_shriek-2-54acd647.m4a",
+     "monkey_shriek-1-1a358b4e.m4a"
+    ],
+    "gain": 1
+   },
+   "sailor_groan": {
+    "files": [
+     "sailor_groan-2-43e2a981.m4a"
+    ],
+    "gain": 1
+   },
+   "sailor_slash": {
+    "files": [
+     "sailor_slash-3-5a10eada.m4a",
+     "sailor_slash-1-611ba654.m4a"
+    ],
+    "gain": 1
+   },
+   "coconut_hit": {
+    "files": [
+     "coconut_hit-3-9c8e8fd7.m4a",
+     "coconut_hit-2-83ed831d.m4a"
+    ],
+    "gain": 1
+   },
+   "coconut_land": {
+    "files": [
+     "coconut_land-1-42389b0a.m4a"
     ],
     "gain": 1
    }

@@ -1,4 +1,4 @@
-"""ACE-Step 1.5 bake-off generator (docs/plans/MUSIC.md checkpoint 2).
+"""ACE-Step 1.5 bake-off generator (project/archive/2026-09-23-music.md checkpoint 2).
 
 Runs inside the ACE-Step checkout's venv, outside this repo:
 
