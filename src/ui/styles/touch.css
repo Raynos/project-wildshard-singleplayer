@@ -43,7 +43,11 @@
 .ws-touch-stick.held { border-color: var(--ws-cyan); box-shadow: 0 0 16px rgba(143, 227, 255, 0.28), inset 0 0 16px rgba(143, 227, 255, 0.14); }
 .ws-touch-stick.sprint::before { opacity: 1; }
 .ws-touch-sprint { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); padding: 3px 8px 3px 10px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); box-shadow: 0 0 12px rgba(143, 227, 255, 0.45); font-family: var(--ws-mono); font-weight: 700; font-size: 8px; line-height: 1; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ws-cyan); text-shadow: 0 0 6px rgba(143, 227, 255, 0.8); opacity: 0; transition: opacity 0.12s; pointer-events: none; }
-.ws-touch-stick.sprint + .ws-touch-sprint { opacity: 1; }
+.ws-touch-stick.sprint ~ .ws-touch-sprint { opacity: 1; } /* ~ not +: the ORBIT arcs (E50) sit between the two */
+/* R3 sprint lock (E71): the tag reads SPRINT LOCK, brighter, and a small padlock sits on the ring's top */
+.ws-touch-stick.sprint-lock ~ .ws-touch-sprint { white-space: nowrap; opacity: 1; background: var(--ws-cyan); color: #06121a; box-shadow: 0 0 16px rgba(143, 227, 255, 0.7); }
+.ws-touch-stick.sprint-lock { border-color: var(--ws-cyan); }
+.ws-touch-stick.sprint-lock::after { background: linear-gradient(var(--ws-cyan), var(--ws-cyan)) 50% 2px / 9px 7px no-repeat, radial-gradient(circle at 50% 7px, transparent 2.5px, var(--ws-cyan) 2.6px, var(--ws-cyan) 4px, transparent 4.1px) 50% 0 / 12px 10px no-repeat; opacity: 1; }
 .ws-touch-stick i { position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: radial-gradient(circle at 50% 38%, rgba(143, 227, 255, 0.95), rgba(143, 227, 255, 0.55) 55%, rgba(143, 227, 255, 0.3)); border: 1px solid var(--ws-cyan); box-shadow: 0 0 16px rgba(143, 227, 255, 0.55), 0 0 4px rgba(143, 227, 255, 0.9), inset 0 1px 2px rgba(255, 255, 255, 0.35); }
 .ws-touch-stick.held i { box-shadow: 0 0 22px rgba(143, 227, 255, 0.75), 0 0 5px rgba(143, 227, 255, 1), inset 0 1px 2px rgba(255, 255, 255, 0.45); }
 
