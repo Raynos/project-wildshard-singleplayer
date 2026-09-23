@@ -30,7 +30,7 @@ const CONCURRENCY = 6;
 export function bootFetches(def: ChunkDef, files: ChunkFiles): string[] {
   const painted = def.style === 'lowpoly' || def.style === 'painterly'; // no ground textures: only the baked terrain
   const terrain = painted ? files.terrain.filter((f) => f.startsWith('/assets/baked/')) : files.terrain;
-  const trees = def.trees.factory === 'none' ? [] : files.trees;
+  const trees = def.trees.factory !== 'pine' ? [] : files.trees; // only the pine reads textures ('spruce' is painted, 'none' is none)
   const homestead = def.ocean === undefined && def.style !== 'painterly' ? [...files.cabins, ...files.props] : [];
   return [...files.sky, ...files.baked, ...terrain, ...trees, ...homestead];
 }

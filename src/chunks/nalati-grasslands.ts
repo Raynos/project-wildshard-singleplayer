@@ -19,6 +19,7 @@
 import { Noise2D, smoothstep, clamp, lerp } from '../core/noise';
 import { CHUNK_HALF, ROAD_LENGTH } from '../core/config';
 import { buildTerrain } from './terrain';
+import { spruceMask, NALATI_GULLIES } from '../world/spruceMask';
 import type { ChunkDef, ChunkTerrain, RGB, Vec2 } from './ChunkDef';
 import thumbnail from './thumbs/nalati-grasslands.jpg';
 import heroPortrait from './thumbs/nalati-grasslands-portrait.jpg';
@@ -43,7 +44,7 @@ export const CAMP = { x: 95, z: 205, y: -8 };
 export const PASTURE = { x: -120, z: 205, y: -8 };
 /** the escarpment rim: the plateau's north edge (z, wobbles ±9 m with x) */
 export const RIM_Z = -28;
-/** the three spruce gullies (x, half-width, depth) — keep in step with `NALATI_GULLIES` in src/world/spruceMask.ts */
+/** the three spruce gullies (x, half-width, depth, wobble) — the spruce planting (`NALATI_GULLIES` in src/world/spruceMask.ts) uses the same x / wobble field */
 export const GULLIES: { x: number; half: number; depth: number; wobble: number }[] = [
   { x: -170, half: 30, depth: 11, wobble: 9 },
   { x: -60, half: 26, depth: 9, wobble: 8 },
@@ -117,6 +118,13 @@ function slopeParam(x: number, z: number, n: Noise2D): number {
   const foot = RIVER.z(x) - RIVER.half(x) - 5;
   const rim = RIM_Z + n.get(x * 0.008, 7.7) * 9;
   return (foot - z) / (foot - rim);
+}
+
+/** `along` = metres in from the edge, `across` = metres off the road's centreline */
+function gateValley(h: number, along: number, across: number): number {
+  if (along > 135 || Math.abs(across) > 70 || h <= 0) return h;
+  const w = smoothstep(66, 12, Math.abs(across)) * smoothstep(135, 70, along);
+  return lerp(h, h * smoothstep(8, 128, along) ** 1.15, w);
 }
 
 // ── the landscape ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -200,6 +208,12 @@ function landscape(x: number, z: number, n: Noise2D, n2: Noise2D): number {
   }
   // small ground detail everywhere
   h += n2.fbm(x * 0.05, z * 0.05, 2) * 0.35;
+  // the E, W and S gates: the road must meet the boundary at y = 0 (engine rule) while the land there is +25…+30, so
+  // each comes in up a real valley — sloped sides, the floor climbing from 0 at the edge to the land ~125 m in —
+  // instead of a sheer slot cut by the road levelling
+  h = gateValley(h, x + CHUNK_HALF, z);   // E (x = −250)
+  h = gateValley(h, CHUNK_HALF - x, z);   // W (x = +250)
+  h = gateValley(h, z + CHUNK_HALF, x);   // S (z = −250)
   return h;
 }
 
@@ -247,7 +261,7 @@ const C = {
   plateauGold: [0.6, 0.52, 0.16] as RGB,
   gravel: [0.42, 0.41, 0.37] as RGB,
   gravelWet: [0.25, 0.26, 0.25] as RGB,
-  dirt: [0.46, 0.33, 0.17] as RGB,
+  dirt: [0.5, 0.33, 0.13] as RGB,
   rock: [0.33, 0.31, 0.29] as RGB,
   rockLight: [0.5, 0.47, 0.42] as RGB,
   snow: [0.9, 0.93, 0.98] as RGB,
@@ -266,8 +280,8 @@ function groundColor(x: number, z: number, h: number, slope: number, t: ChunkTer
   const plat = smoothstep(22, 31, h);
   if (plat > 0) {
     const pc: RGB = [C.plateau[0], C.plateau[1], C.plateau[2]];
-    mixInto(pc, C.plateauGold, smoothstep(0.0, 0.7, patch) * 0.55);
-    mixInto(pc, C.valleyLight, smoothstep(0.1, -0.5, patch) * 0.5);
+    mixInto(pc, C.plateauGold, smoothstep(0.0, 0.6, patch) * 0.75);
+    mixInto(pc, C.valley, smoothstep(0.0, -0.5, patch) * 0.6);
     mixInto(out, pc, plat);
   }
   // mottle so the colour never reads as one flat sheet
@@ -298,22 +312,23 @@ export const NALATI_GRASSLANDS: ChunkDef = {
   displayName: 'Nalati Grasslands',
   gridCoords: '(+4, −2)',
   seed: SEED,
-  treeCount: 0,
+  treeCount: 1600,
   biome: 'Alpine steppe',
   experimental: true,
   blurb: 'SUPER EXPERIMENTAL — the Tian Shan steppe, painted: cross the braided Kunes, climb the spruce escarpment and the Sky Grassland opens up, rolling on to the snow mountains. Built live, rough edges everywhere.',
   thumbnail, heroPortrait, heroLandscape,
   style: 'painterly',
   weapon: 'sword', // the Driftwood sword until the bow / sabre land (B2 / B3)
+  // (the camera's far plane is 2.6 km: every ring stays inside 2.5 km)
   horizon: {
     cloudSea: true,
     rings: [
       // near: the plateau rolling on past the veil at slab height (S / SE / SW), dropping away to the valley (N) and a gorge (E)
       {
-        r: 900, base: -60, floor: -60, color: [0.2, 0.3, 0.08], top: [0.4, 0.46, 0.13], snowLine: 2, haze: 0.14,
+        r: 800, base: -60, floor: -60, color: [0.16, 0.3, 0.06], top: [0.36, 0.46, 0.11], snowLine: 2, haze: 0.06,
         bands: [
-          { azimuth: 180, spread: 80, height: 100, rough: 0.05 },   // south: the plateau rolls on, a touch above slab height
-          { azimuth: 135, spread: 35, height: 112, rough: 0.12 },   // SE / SW shoulders
+          { azimuth: 180, spread: 80, height: 98, rough: 0.05 },    // south: the plateau rolls on, a touch above slab height
+          { azimuth: 135, spread: 35, height: 108, rough: 0.12 },   // SE / SW shoulders
           { azimuth: 225, spread: 35, height: 96, rough: 0.08 },
           { azimuth: 0, spread: 50, height: 40, rough: 0.1 },       // north: the far valley side, low
           { azimuth: 90, spread: 18, height: 125, rough: 0.35 },    // east: the gorge walls either side of the Kunes
@@ -323,23 +338,23 @@ export const NALATI_GRASSLANDS: ChunkDef = {
       },
       // mid: the brown-green Avral range (N), green foothills (S), the gorge's mountains (E)
       {
-        r: 2200, base: -150, floor: -150, color: [0.12, 0.17, 0.08], top: [0.3, 0.3, 0.14], snowLine: 0.9, haze: 0.34,
+        r: 1500, base: -150, floor: -150, color: [0.08, 0.14, 0.06], top: [0.26, 0.3, 0.12], snowLine: 0.9, haze: 0.12,
         bands: [
-          { azimuth: 0, spread: 60, height: 360, rough: 0.55 },
-          { azimuth: 180, spread: 70, height: 300, rough: 0.35 },
-          { azimuth: 90, spread: 30, height: 380, rough: 0.6 },
-          { azimuth: 270, spread: 40, height: 60, rough: 0.1 },
+          { azimuth: 0, spread: 60, height: 300, rough: 0.55 },
+          { azimuth: 180, spread: 70, height: 250, rough: 0.35 },
+          { azimuth: 90, spread: 30, height: 320, rough: 0.6 },
+          { azimuth: 270, spread: 40, height: 40, rough: 0.1 },
         ],
       },
-      // far: the Nalati range, big and white across the whole south; low blue ranges round the rest
+      // far: the Nalati range, big and white across the whole south; lower blue ranges round the rest
       {
-        r: 4200, base: -230, floor: -230, color: [0.16, 0.2, 0.3], top: [0.3, 0.34, 0.44], snowLine: 0.42, haze: 0.42,
+        r: 2450, base: -200, floor: -200, color: [0.08, 0.11, 0.17], top: [0.2, 0.23, 0.31], snowLine: 0.5, haze: 0.2,
         bands: [
-          { azimuth: 180, spread: 95, height: 1050, rough: 0.9 },
-          { azimuth: 125, spread: 40, height: 820, rough: 0.9 },
-          { azimuth: 235, spread: 40, height: 760, rough: 0.9 },
-          { azimuth: 20, spread: 70, height: 520, rough: 0.7 },
-          { azimuth: 300, spread: 30, height: 260, rough: 0.5 },
+          { azimuth: 180, spread: 95, height: 720, rough: 0.9 },
+          { azimuth: 125, spread: 40, height: 560, rough: 0.9 },
+          { azimuth: 235, spread: 40, height: 520, rough: 0.9 },
+          { azimuth: 20, spread: 70, height: 380, rough: 0.7 },
+          { azimuth: 300, spread: 30, height: 170, rough: 0.5 },
         ],
       },
     ],
@@ -354,14 +369,17 @@ export const NALATI_GRASSLANDS: ChunkDef = {
     groundTints: [[0.7, 0.85, 0.5], [0.9, 0.84, 0.66], [0.7, 0.7, 0.72], [0.95, 0.95, 0.95]],
     slabRock: 'rock_ground',
   },
-  trees: { factory: 'none', bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'spruces' }, // the spruce-agent's factory lands as 'spruce' (B6)
+  // Tian Shan spruce in the three gullies + a few on the north faces (src/world/Spruce.ts, src/world/spruceMask.ts); the
+  // tint multiplies the painted colours, so it stays near-white
+  trees: { factory: 'spruce', bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'spruces' },
   forest: {
-    spacing: 4.6,
+    spacing: 4.2,
     densityFreq: 0.01,
-    clearings: [-2, -1.5], // never a "grove" by the density noise: the spruce mask decides (B6)
+    clearings: [-2, -1.5], // never a "grove" by the density noise: the spruce mask decides
     maxSlope: 0.6,
-    tintHue: 0.3, tintHueJitter: [-0.02, 0.02], tintSat: [0.45, 0.6], tintLight: [0.28, 0.38],
+    tintHue: 0.3, tintHueJitter: [-0.06, 0.06], tintSat: [0.05, 0.25], tintLight: [0.8, 0.95],
     largeVariantChance: 0.15,
+    mask: spruceMask({ gullies: NALATI_GULLIES, normalAt: TERRAIN.normalAt, seed: SEED }),
   },
   fauna: [], // wolves, horses and sheep: the creatures agent (B4)
   sky: {
@@ -376,7 +394,7 @@ export const NALATI_GRASSLANDS: ChunkDef = {
     cloudSunColor: [1.0, 0.93, 0.82],
     hemiSky: 0x9cc4ff, hemiGround: 0x5a6a2e, hemiIntensity: 0.5,
     // the ringed giant high in the SSW over the snow range — ahead and to the right from the spawn, lit from the WSW sun
-    planet: { azimuth: 200, elevation: 34, size: 28, tilt: 18, roll: -22 },
+    planet: { azimuth: 205, elevation: 23, size: 26, tilt: 16, roll: -20 },
   },
   atmosphere: {
     fogHeight: -30.0,

@@ -35,7 +35,8 @@
  *       rim            rim-light strength, 0 = none … 1 = strong (default 0.35)
  *       bands          cel strength, 0 = plain Lambert … 1 = full 3-band cel (default 0.8; terrain uses less)
  *       shade          how much of the painted shadow tint this surface takes, 0…1 (default 1)
- *       sway           wind sway in metres per (local metre above the origin)² — foliage / flags (default 0)
+ *       sway           wind sway in metres per (local metre above the origin)² — foliage / flags (default 0); leans
+ *                      downwind in world space whatever the instance's rotation (Mesh / InstancedMesh / BatchedMesh)
  *       emissive       self-light colour (default black) — a lantern, embers
  *       side / transparent / opacity / depthWrite / alphaTest   passed through to the material
  *   syncPainterlySun(sky)         copy the sun's colour × intensity and direction into the shared uniforms
@@ -119,15 +120,21 @@ uniform vec3 uPWind;
 const VERT_SWAY = /* glsl */`
 #include <begin_vertex>
 if ( uPSway > 0.0 ) {
-  vec3 pOrigin = vec3( 0.0 );
+  mat4 pM = modelMatrix;
   #ifdef USE_INSTANCING
-    pOrigin = instanceMatrix[ 3 ].xyz;
+    pM = pM * instanceMatrix;
   #endif
-  vec3 pW = ( modelMatrix * vec4( pOrigin, 1.0 ) ).xyz;
+  #ifdef USE_BATCHING
+    pM = pM * batchingMatrix;
+  #endif
+  vec3 pW = pM[ 3 ].xyz;                                   // the object's / instance's origin: its own sway phase
   float pPh = uPTime * 1.6 + pW.x * 0.13 + pW.z * 0.11;
   float pH = max( position.y, 0.0 );
   float pAmt = uPSway * uPWind.z * pH * pH * ( 0.65 + 0.35 * sin( pPh ) ) + uPSway * uPWind.z * pH * pH * 0.25 * sin( pPh * 2.3 + 1.7 );
-  transformed.xz += uPWind.xy * pAmt;
+  // the world wind direction in this object's model space (rotation + uniform scale undone), so every instance leans downwind
+  vec3 pDir = transpose( mat3( pM ) ) * vec3( uPWind.x, 0.0, uPWind.y );
+  pDir /= max( dot( pDir, pDir ), 1e-6 );
+  transformed += pDir * pAmt;
 }
 `;
 
@@ -154,6 +161,12 @@ float pCel( float x ) {
 
 void RE_Direct_Lambert( const in IncidentLight directLight, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in LambertMaterial material, inout ReflectedLight reflectedLight ) {
   float dotNL = saturate( dot( geometryNormal, directLight.direction ) );
+  // only the sun is painted: any other light (the gate lamps, a campfire) is plain Lambert and paints no shade
+  vec3 pSunV = normalize( ( viewMatrix * vec4( uPSunDir, 0.0 ) ).xyz );
+  if ( dot( directLight.direction, pSunV ) < 0.999 ) {
+    reflectedLight.directDiffuse += dotNL * directLight.color * BRDF_Lambert( material.diffuseColor );
+    return;
+  }
   // shadow-map visibility: the light's colour arrives already multiplied by it (CSM); the sun's unshadowed colour is known
   float ref = max( dot( uPSunRef, vec3( 1.0 ) ), 1e-4 );
   float vis = clamp( dot( directLight.color, vec3( 1.0 ) ) / ref, 0.0, 1.0 );

@@ -20,7 +20,9 @@ import type { Sky } from '../world/Sky';
 import type { Player } from '../player/Player';
 import type { Forest } from '../world/Forest';
 import type { ChunkDef } from '../chunks/ChunkDef';
-import { syncPainterlySun, updatePainterly, setPainterlyLook } from '../world/painterly';
+import { syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms } from '../world/painterly';
+import { wind } from '../world/Wind';
+import { windUniforms } from '../world/TreeFactory';
 import { NalatiWater } from './water';
 import { macrotask } from '../boot/plan';
 
@@ -43,7 +45,11 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   // ── look (world agent, B0): the painterly material's shared uniforms — sun, painted shadow tint, rim light ──
   syncPainterlySun(sky);
   setPainterlyLook({ shadeTint: new Color(0.1, 0.16, 0.36), rimColor: new Color(1.5, 1.28, 0.95), wind: { x: 1, z: 0.35, strength: 1 } });
-  updates.push((dt) => updatePainterly(dt));
+  updates.push((dt) => {
+    updatePainterly(dt);
+    // painterly sway (spruce, flags) follows the one Wind (the painterly grass calls wind.update each frame)
+    painterlyUniforms.uPWind.value.set(wind.dirX, wind.dirZ, windUniforms.uWindStrength.value);
+  });
 
   // ── water (world agent, B0): the braided Kunes, the plateau brook, the waterfall ──
   const water = new NalatiWater(sky).build();

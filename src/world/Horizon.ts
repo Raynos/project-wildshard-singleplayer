@@ -53,8 +53,9 @@ export class Horizon {
         const cx = Math.cos(a), sz = Math.sin(a);
         const az = ((Math.atan2(-cx, sz) * r2d) + 360) % 360; // compass bearing of this point (0 = +Z north, 90 = −X east)
         // ridged multifractal round the circle (peaks) and a smooth roll (hills)
-        let rid = 0, amp = 1, f = 3 + ri * 2, norm = 0;
-        for (let o = 0; o < 6; o++) { const nv = 1 - Math.abs(noise.get(cx * f + ri * 9.1, sz * f + ri * 3.7)); rid += nv * nv * amp; norm += amp; amp *= 0.5; f *= 2.1; }
+        // base frequency grows with the radius so a peak is ~1 km across at any ring (mountains, not spikes)
+        let rid = 0, amp = 1, f = 1.3 + ring.r / 1300, norm = 0;
+        for (let o = 0; o < 5; o++) { const nv = 1 - Math.abs(noise.get(cx * f + ri * 9.1, sz * f + ri * 3.7)); rid += nv * nv * amp; norm += amp; amp *= 0.45; f *= 2.05; }
         rid /= norm;
         const roll = 0.62 + 0.26 * noise.get(cx * 3.1 + ri * 5, sz * 3.1) + 0.14 * noise.get(cx * 11 + ri, sz * 11) + 0.05 * noise.get(cx * 37, sz * 37 + ri);
         let h = 0;
@@ -62,35 +63,40 @@ export class Horizon {
           let dAz = Math.abs(az - b.azimuth) % 360; if (dAz > 180) dAz = 360 - dAz;
           if (dAz >= b.spread) continue;
           const w = Math.cos((dAz / b.spread) * Math.PI * 0.5) ** 2;
-          h = Math.max(h, b.height * w * (roll * (1 - b.rough) + (0.35 + rid * 0.95) * b.rough));
+          h = Math.max(h, b.height * w * (roll * (1 - b.rough) + (0.5 + rid * 0.7) * b.rough));
         }
         profile.push(h);
       }
       const maxH = Math.max(1, ...profile);
       const pos: number[] = [], col: number[] = [], nrm: number[] = [], idx: number[] = [];
       const foot = new THREE.Color(...ring.color).multiplyScalar(0.85), body = new THREE.Color(...ring.color), top = new THREE.Color(...ring.top);
-      const snowC = new THREE.Color(0.86, 0.9, 0.97), c = new THREE.Color();
+      const snowC = new THREE.Color(0.9, 0.93, 1.0), c = new THREE.Color();
+      // rows up each column (fraction of the column's height): a hidden foot, then a sloped face stepping toward the
+      // camera as it drops, so the ring reads as hills / mountains and not a wall; snow by absolute height → crisp caps
+      const ROWS = [0.3, 0.55, 0.75, 0.9, 1];
+      const per = ROWS.length + 1;
+      const snowY = ring.base + maxH * ring.snowLine;
+      const smooth = (k: number): number => { let v = 0; for (let d = -3; d <= 3; d++) v += profile[(k + d + seg) % seg] ?? 0; return v / 7; };
       for (let i = 0; i <= seg; i++) {
         const a = (i / seg) * Math.PI * 2;
-        const x = Math.cos(a) * ring.r, z = Math.sin(a) * ring.r;
+        const cx = Math.cos(a), sz = Math.sin(a);
         const h = profile[i] ?? 0;
-        // a sloped face, not a wall: the shoulder and the foot step toward the camera, so the ring reads as hills
-        const peak = ring.base + h, shoulder = ring.base + h * 0.55;
-        const k1 = 1 - (h * 0.9) / ring.r, k2 = 1 - (h * 2.2 + 300) / ring.r;
-        pos.push(x * k2, ring.floor - 600, z * k2, x * k1, shoulder, z * k1, x, peak, z);
-        const hl = profile[(i + seg - 1) % seg] ?? 0, hr = profile[(i + 1) % seg] ?? 0;
-        const tilt = ((hl - hr) / Math.max(1, maxH)) * seg * 0.05;
-        const nx = -Math.cos(a) + Math.sin(a) * tilt, nz = -Math.sin(a) - Math.cos(a) * tilt;
-        nrm.push(nx, 0.5, nz, nx, 0.9, nz, nx * 0.6, 1.4, nz * 0.6); // mostly up: the painted hills take the sky light
-        const snow = THREE.MathUtils.smoothstep(h / maxH, ring.snowLine, ring.snowLine + 0.12);
-        const snowMid = THREE.MathUtils.smoothstep((h * 0.55) / maxH, ring.snowLine, ring.snowLine + 0.12);
+        const tilt = Math.max(-1.2, Math.min(1.2, ((smooth(i - 2) - smooth(i + 2)) / Math.max(1, maxH)) * seg * 0.012));
+        const nx = -cx + sz * tilt, nz = -sz - cx * tilt;
+        const kf = 1 - (h * 1.2 + 80) / ring.r;
+        pos.push(cx * ring.r * kf, ring.floor - 600, sz * ring.r * kf); nrm.push(nx, 0.5, nz);
         c.copy(foot); col.push(c.r, c.g, c.b);
-        c.copy(body).lerp(snowC, snowMid * 0.85); col.push(c.r, c.g, c.b);
-        c.copy(top).lerp(snowC, snow); col.push(c.r, c.g, c.b);
+        for (const t of ROWS) {
+          const y = ring.base + h * t, k = 1 - ((1 - t) * h * 1.1) / ring.r;
+          pos.push(cx * ring.r * k, y, sz * ring.r * k);
+          nrm.push(nx * (1.1 - t * 0.5), 0.5 + t * 0.8, nz * (1.1 - t * 0.5)); // tipping up toward the crest: the tops take the sky light
+          c.copy(body).lerp(top, t * t);
+          c.lerp(snowC, THREE.MathUtils.smoothstep(y, snowY - 8, snowY + 22) * (0.75 + 0.25 * t));
+          col.push(c.r, c.g, c.b);
+        }
       }
       for (let i = 0; i < seg; i++) {
-        const a = i * 3, b = a + 3;
-        idx.push(a, b, a + 1, a + 1, b, b + 1, a + 1, b + 1, a + 2, a + 2, b + 1, b + 2);
+        for (let r = 0; r < per - 1; r++) { const a = i * per + r, b = a + per; idx.push(a, b, a + 1, a + 1, b, b + 1); }
       }
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
