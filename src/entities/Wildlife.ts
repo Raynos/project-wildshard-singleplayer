@@ -104,7 +104,7 @@ export class Wildlife {
     for (let i = 0; i < 40; i++) {
       const a = this.rng.range(0, Math.PI * 2), d = Math.sqrt(this.rng.next()) * r;
       const px = x + Math.cos(a) * d, pz = z + Math.sin(a) * d;
-      if (!inChunk(px, pz, 15) || normalAt(px, pz)[1] < 0.78 || heightAt(px, pz) < waterLevel() + 0.3) continue;
+      if (!inChunk(px, pz, 15) || normalAt(px, pz)[1] < 0.78 || heightAt(px, pz) < waterLevel() + 0.3 || wildEnv.wetAt?.(px, pz) === true) continue;
       let clash = false;
       for (const o of this.animals.animals) if (Math.abs(o.position.x - px) < 2 && Math.abs(o.position.z - pz) < 2) { clash = true; break; }
       if (!clash) return [px, pz];

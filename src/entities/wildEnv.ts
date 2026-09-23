@@ -12,6 +12,7 @@ import type * as THREE from 'three';
  *   wildEnv.light         = 1 day · 0.7 dusk · 0.4 night · 0.6 storm  B10 clock
  *   wildEnv.onKnockdown   = (dirX, dirZ, strength) => …               the player was bowled over (stallion charge, stampede)
  *   wildEnv.onEvent       = (name, x, z) => …                          'howl' 'stampede' 'pack-break' 'pack-driven-off' 'stallion-display' …
+ *   wildEnv.wetAt         = (x, z) => boolean                          the shard's water (the flock and spawns keep out; default none)
  *
  * `playerVisibility()` is the stealth sight model of `docs/design/nalati/stealth-and-storms.md` (cover from the grass
  * at the player and along the line to the observer, motion, light): the sight range an animal gets is `range × V`.
@@ -37,6 +38,8 @@ export interface WildEnv {
   storm: boolean;
   onKnockdown?: ((dirX: number, dirZ: number, strength: number) => void) | undefined;
   onEvent?: ((name: string, x: number, z: number) => void) | undefined;
+  /** the shard's water for walkers (Nalati: the river corridor + the brook, src/nalati/wet.ts): the flock keeps out of it */
+  wetAt?: ((x: number, z: number) => boolean) | undefined;
 }
 
 export const wildEnv: WildEnv = {

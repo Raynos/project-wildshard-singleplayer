@@ -161,8 +161,13 @@ export class Flock {
       const sp = (this.spd[i] ?? 0) + THREE.MathUtils.clamp((this.dspd[i] ?? 0) - (this.spd[i] ?? 0), -6 * dt, 4 * dt);
       this.spd[i] = sp;
       if (sp > 0.01) {
-        this.px[i] = (this.px[i] ?? 0) + Math.sin(this.yaw[i] ?? 0) * sp * dt;
-        this.pz[i] = (this.pz[i] ?? 0) + Math.cos(this.yaw[i] ?? 0) * sp * dt;
+        const nx = (this.px[i] ?? 0) + Math.sin(this.yaw[i] ?? 0) * sp * dt, nz = (this.pz[i] ?? 0) + Math.cos(this.yaw[i] ?? 0) * sp * dt;
+        // the shard's water (the river corridor, the brook): stop at the edge and turn for home
+        if (wildEnv.wetAt?.(nx + Math.sin(this.yaw[i] ?? 0) * 0.8, nz + Math.cos(this.yaw[i] ?? 0) * 0.8) === true) {
+          this.dyaw[i] = Math.atan2(this.homeX - nx, this.homeZ - nz); this.spd[i] = 0; continue;
+        }
+        this.px[i] = nx;
+        this.pz[i] = nz;
         this.phase[i] = ((this.phase[i] ?? 0) + (dt * sp) / (0.42 + 0.12 * sp)) % 1;
         if (near) this.py[i] = heightAt(this.px[i] ?? 0, this.pz[i] ?? 0);
       }
@@ -187,7 +192,7 @@ export class Flock {
       for (let tries = 0; tries < 12; tries++) {
         const a = rng.range(0, Math.PI * 2), r = rng.range(8, this.range);
         const tx = this.homeX + Math.cos(a) * r, tz = this.homeZ + Math.sin(a) * r;
-        if (inChunk(tx, tz, 25) && normalAt(tx, tz)[1] > 0.85) { this.tx = tx; this.tz = tz; break; }
+        if (inChunk(tx, tz, 25) && normalAt(tx, tz)[1] > 0.85 && wildEnv.wetAt?.(tx, tz) !== true) { this.tx = tx; this.tz = tz; break; }
       }
     }
     // threats: wolves within 30 m, a sprinting / close player

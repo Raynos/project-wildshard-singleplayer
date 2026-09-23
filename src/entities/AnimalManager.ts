@@ -326,8 +326,12 @@ export class AnimalManager {
 
   // ── spawning ───────────────────────────────────────────────────────────────────────────
 
-  /** dry ground: above the pond's water line */
-  private isDry(x: number, z: number): boolean { return heightAt(x, z) > waterLevel() + 0.25; }
+  /** a shard's own water the flat `waterLevel()` cannot see (Nalati: the river's gravel corridor, the plateau brook —
+   *  src/nalati/wet.ts); null = the water line alone */
+  wetAt: ((x: number, z: number) => boolean) | null = null;
+
+  /** dry ground: above the pond's water line (and not in the shard's own water, `wetAt`) */
+  private isDry(x: number, z: number): boolean { return heightAt(x, z) > waterLevel() + 0.25 && this.wetAt?.(x, z) !== true; }
 
   /**
    * Ground an animal can stand on. `clearingR` > 3 asks for a clearing (few trunks in that radius);

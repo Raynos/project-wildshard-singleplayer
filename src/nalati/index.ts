@@ -14,7 +14,7 @@
  *
  * Each section below is one system; its owner fills it in. Keep main.ts untouched — add here.
  */
-import { Color, type Object3D } from 'three';
+import { Color, Vector3, type Object3D } from 'three';
 import type { Game } from '../core/Game';
 import type { Sky } from '../world/Sky';
 import type { Player } from '../player/Player';
@@ -29,8 +29,26 @@ import { NalatiPOIs } from '../world/nalati';
 import { NalatiDressing } from '../world/nalati/dressing';
 import { wireKurgan, type KurganBoss } from './kurganBoss';
 import { macrotask } from '../boot/plan';
+import type { AnimalManager } from '../entities/AnimalManager';
+import { Wildlife, type SheepHit } from '../entities/Wildlife';
+import { wildEnv } from '../entities/wildEnv';
+import { isLunging } from '../entities/Pack';
+import { trample, grassHeightAt } from '../world/GrassTrample';
+import type { ImpactSurface, TargetAnimal, TargetHit } from '../player/Crossbow';
+import type { NalatiKit } from '../player/nalatiKit';
+import { nalatiWetAt } from './wet';
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ChunkDef }
+
+/** what main.ts hands the wiring once the kit and the HUD exist (`nalati.bindPlay`) */
+export interface NalatiPlay {
+  kit: NalatiKit | null;
+  /** 0..1 — the wolves' alpha joins in when you're hurt */
+  health01: () => number;
+  toast: (text: string) => void;
+  /** the red damage flash (a knock-down) */
+  flash: () => void;
+}
 
 export interface Nalati {
   /** every frame (main.ts game.onUpdate) */
@@ -43,6 +61,18 @@ export interface Nalati {
    *  once the animals, the kit and the HUD exist; `boss.onPlayerDeath()` in main's death check (true = the boss fight
    *  handled it: the player is back at the phase checkpoint); `boss.inside` while the player is in the dungeon */
   boss: KurganBoss;
+  /** the creatures (creatures agent, B4; src/entities/Wildlife.ts): wolf packs, the horse herd + stallion, the sheep flock +
+   *  its dog, marmots, the camp's saddled horses. main.ts calls `attachAnimals(animals)` right after its animals step. */
+  attachAnimals: (animals: AnimalManager) => Wildlife;
+  wildlife: Wildlife | null;
+  /** main.ts once the kit + HUD exist: the braced spear stops a lunging wolf, knock-downs, howl / stampede toasts */
+  bindPlay: (play: NalatiPlay) => void;
+  /** weapons.onFire: a shot reveals you for a second (the stealth model) */
+  onShot: () => void;
+  /** weapons.onImpact: an arrow / javelin landing near a herd or the flock spooks it */
+  onImpact: (surface: ImpactSurface, point: Vector3) => void;
+  /** main's Targets.raycast: the nearer of `hit` (the animals) and a sheep on the ray — the flock is not an AnimalManager crowd */
+  sheepTarget: (origin: Vector3, dir: Vector3, maxDist: number, hit: TargetHit | null) => TargetHit | null;
   /** anything a later system wants to find: named groups added to the scene by this wiring */
   groups: Record<string, Object3D>;
 }
@@ -94,7 +124,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   updates.push((dt) => dressing.update(dt, game.camera, ctx.player.position, game.renderer));
   await macrotask();
 
-  // ── creatures (creatures agent, B4): wolves / horses / sheep come from `fauna` via AnimalManager; herd / pack brains here ──
+  // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager — `attachAnimals` below (main.ts calls it after its animals step) ──
 
   // ── weapons (bow agent B2, sabre agent B3): main.ts hands out `ChunkDef.weapon`; the Nalati kit hooks in here ──
 
@@ -104,8 +134,108 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   updates.push((dt, t) => boss.update(dt, t));
   await macrotask();
 
-  return {
-    water, pois, groups, boss,
+  // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager, fed the grass, the wind, the water, the player ──
+  const player = ctx.player;
+  let wildlife: Wildlife | null = null;
+  let play: NalatiPlay | null = null;
+  let now = 0;
+  // the grass hides you and is trampled by every mover (GrassTrample, B1); the river corridor + the brook are water to a walker
+  wildEnv.grassHeightAt = grassHeightAt;
+  wildEnv.trample = (x, z, r, s, vx, vz) => { trample.push(x, z, r, s, vx, vz); };
+  wildEnv.wetAt = nalatiWetAt;
+  // Wildlife reads position / forward / crouching; Player.forward allocates, so a reused view of it
+  const wildPlayer = { position: player.position, forward: new Vector3(0, 0, -1), crouching: false };
+  const extra = { mounted: false, health01: 1 };
+  // the braced spear kills a lunging wolf outright (combat.md): checked a little outside the spear's own contact reach, so
+  // it lands before a glancing brace hit could stagger the wolf out of its lunge
+  const BRACE_KILL_REACH = 3.1, BRACE_KILL_COS = Math.cos(32 * Math.PI / 180);
+  const _hitDir = new Vector3(), _hitPt = new Vector3();
+  const braceKills = (): void => {
+    const kit = play?.kit;
+    if (!kit?.spear.bracing || wildlife === null) return;
+    const fx = -Math.sin(player.yaw), fz = -Math.cos(player.yaw);
+    for (const w of wildlife.livingWolves) {
+      if (!w.alive || !isLunging(w)) continue;
+      const dx = w.position.x - player.position.x, dz = w.position.z - player.position.z, d = Math.hypot(dx, dz);
+      if (d < 1e-3 || d - 0.6 * w.scale > BRACE_KILL_REACH || (dx * fx + dz * fz) / d < BRACE_KILL_COS) continue;
+      _hitDir.set(dx / d, 0, dz / d);
+      _hitPt.set(w.position.x, w.position.y + 0.55 * w.scale, w.position.z);
+      const killed = w.applyDamage(w.hp + 1, _hitPt, _hitDir);
+      kit.spear.onHit?.(w.kind, false, killed);
+      kit.spear.onImpact?.('flesh', _hitPt);
+    }
+  };
+  // toasts for the herd / pack moments, each at most once in a while
+  const lastToast = new Map<string, number>();
+  const toastOnce = (key: string, text: string, every: number): void => {
+    if (now - (lastToast.get(key) ?? -1e9) < every) return;
+    lastToast.set(key, now); play?.toast(text);
+  };
+  wildEnv.onEvent = (name) => {
+    if (name === 'howl') toastOnce(name, 'A wolf howls — the pack has your scent', 60);
+    else if (name === 'stampede') toastOnce(name, 'Stampede!', 20);
+    else if (name === 'pack-driven-off') toastOnce(name, 'The stallion drives the wolves off', 30);
+    else if (name === 'stallion-beaten') toastOnce(name, 'The stallion gives ground', 30);
+  };
+  // bowled over (the stallion's charge, a stampede): shoved along the blow, a red flash
+  wildEnv.onKnockdown = (dirX, dirZ, strength) => {
+    const l = Math.hypot(dirX, dirZ) || 1, v = 7 * Math.max(0.4, Math.min(1.5, strength));
+    player.dash((dirX / l) * v, (dirZ / l) * v, 0.28);
+    play?.flash();
+    toastOnce('knockdown', 'Knocked down!', 4);
+  };
+  updates.push((dt, t) => {
+    now = t;
+    if (wildlife === null) return;
+    wildPlayer.forward.set(-Math.sin(player.yaw), 0, -Math.cos(player.yaw));
+    wildPlayer.crouching = player.crouching;
+    extra.health01 = play?.health01() ?? 1;
+    wildEnv.wind.x = wind.dirX; wildEnv.wind.z = wind.dirZ; wildEnv.wind.strength = Math.min(1, wind.speed / 10);
+    wildlife.update(dt, t, wildPlayer, extra);
+    braceKills();
+  });
+
+  // the flock as a weapon target: one reused TargetAnimal for "the sheep on this ray"
+  let sheepHit: SheepHit | null = null;
+  const sheepPoint = new Vector3();
+  const sheep: TargetAnimal = {
+    kind: 'sheep', position: new Vector3(), alive: true,
+    damageFor: () => 100,
+    applyDamage: () => {
+      if (sheepHit !== null && wildlife !== null) wildlife.killSheep(sheepHit);
+      sheepHit = null; sheep.alive = false;
+      return true;
+    },
+  };
+  const sheepResult: TargetHit = { animal: sheep, point: sheepPoint, distance: 0, headshot: false };
+
+  const nalati: Nalati = {
+    water, pois, groups, boss, wildlife,
+    attachAnimals(animals) {
+      animals.wetAt = nalatiWetAt;
+      const w = new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed }).build();
+      wildlife = w; nalati.wildlife = w;
+      return w;
+    },
+    bindPlay(p) { play = p; },
+    onShot() { wildEnv.lastShotT = now; },
+    onImpact(_surface, point) {
+      // a landing arrow / javelin (not a sabre / spear blow at arm's length)
+      if (wildlife === null || Math.hypot(point.x - player.position.x, point.z - player.position.z) < 4.5) return;
+      wildlife.disturb(point.x, point.z);
+    },
+    sheepTarget(origin, dir, maxDist, hit) {
+      if (wildlife === null) return hit;
+      const sh = wildlife.raycastSheep(origin, dir, hit !== null ? Math.min(maxDist, hit.distance) : maxDist);
+      if (sh === null) return hit;
+      sheepHit = { flock: sh.flock, index: sh.index, distance: sh.distance };
+      sh.flock.positions(sh.index, sheep.position);
+      sheep.alive = true;
+      sheepPoint.copy(sheep.position);
+      sheepResult.distance = sh.distance;
+      return sheepResult;
+    },
     update(dt, t) { for (const u of updates) u(dt, t); },
   };
+  return nalati;
 }
