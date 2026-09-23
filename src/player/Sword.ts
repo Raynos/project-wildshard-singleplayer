@@ -363,6 +363,8 @@ export class Sword implements Weapon {
   damage: number;
   /** dev: showcase pose (model centred, slowly turning) */
   inspect = 0;
+  /** portrait framing (0.6): shrink, extra drop / slide (m, camera space), the blade tipped forward (rad) and turned (rad) — dev-tunable */
+  framing = { shrink: 0.33, dx: -0.03, dy: -0.055, tilt: 0.36, yaw: -0.02 };
   /** dev: swing duration multiplier (1 = normal; 8 = slow motion for screenshots) */
   swingScale = 1;
   /** 0..1 weapon-swap blend (a Weapons manager drives it): 1 = dropped out of the frame; 0 = held */
@@ -842,10 +844,15 @@ export class Sword implements Weapon {
     _e.set((Math.sin(p.bobTime * 2) * 0.012 * sf + this.lagPitch + this.jolt * 0.08) * m, this.lagYaw * m, (Math.sin(t * 0.5) * 0.008 + Math.cos(p.bobTime) * 0.02 * sf) * m, 'YXZ');
     q.premultiply(_q2.setFromEuler(_e));
 
-    // portrait phone: the wider FOV + narrow frame put the hands mid-screen — hold the sword lower, further out, smaller
+    // portrait phone: the wider FOV + narrow frame put the hands mid-screen — hold the sword lower, further out, smaller,
+    // and (0.6, the mockup art/driftwood-fp-sword-wooden.png) short and low-right: the whole pose drops and slides right and
+    // the blade tips forward about the hands, so at rest its tip sits below-right of the crosshair instead of on it
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
-    const scale = 1 - portrait * 0.2;
+    const fr = this.framing;
+    const scale = 1 - portrait * fr.shrink;
     pos.x *= 1 - portrait * 0.32; pos.y *= 1 + portrait * 0.1; pos.z *= 1 + portrait * 0.45;
+    pos.x += portrait * fr.dx; pos.y += portrait * fr.dy;
+    if (portrait > 0) q.premultiply(_q2.setFromEuler(_e.set(-portrait * fr.tilt, portrait * fr.yaw, 0, 'YXZ')));
     if (this.holster > 0) { const h = sstep(0, 1, this.holster); pos.y -= h * 0.45; pos.z += h * 0.1; q.premultiply(_q2.setFromEuler(_e.set(-h * 0.6, 0, h * 0.3, 'YXZ'))); } // weapon swap: drop out of the frame
     if (this.inspect) { pos.set(0.0, -0.05, -0.75); q.setFromEuler(_e.set(0.2, Math.sin(t * 0.3) * 0.8, 0.9, 'YXZ')); }
     this.rig.scale.setScalar(scale); this.armRig.scale.setScalar(scale);
