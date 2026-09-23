@@ -60,7 +60,7 @@ const SLIDE_ACCEL = 5;                // … reached at this rate (/s)
 // ── dash (on foot): the DODGE (Left Alt / the DODGE disc) and the sword's lunge (Sword.ts) — a short fixed-velocity burst ──
 const DODGE_DIST = 3;                 // m …
 const DODGE_TIME = 0.25;              // … over this long (12 m/s), toward the move input; no input = a backstep
-const DODGE_COOLDOWN = 0.6;           // s from one dodge's start to the next
+const DODGE_COOLDOWN = 0.8;           // s from one dodge's start to the next (E59: 0.6 → 0.8, shown as a sweep on the DODGE disc)
 const DASH_PROBE = 0.5;               // m ahead of the feet: deep water there (no deck under it) ends a dash — it never carries you off a pier
 const DODGE_DIP = 0.07;               // m the eye drops at a dodge's start (the land-impulse spring brings it back)
 const DODGE_ROLL = 0.06;              // rad of camera lean into a fully sideways dodge
@@ -161,6 +161,8 @@ export class Player {
   private dashRoll = 0; // camera lean into a sideways dodge (rad), eased out
   /** true while a dodge / lunge burst is carrying the player */
   get dashing(): boolean { return this.dashT > 0; }
+  /** the dodge cooldown still to run, 1 → 0 (0 = ready) — the touch DODGE disc's clock sweep (E59) */
+  get dodgeCooldown(): number { return this.dodgeCd / DODGE_COOLDOWN; }
 
   constructor(public camera: THREE.PerspectiveCamera, private forest: Forest, private canvas: HTMLCanvasElement) {
     document.addEventListener('keydown', (e) => {

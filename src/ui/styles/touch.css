@@ -97,6 +97,19 @@
 .ws-touch-disc.dodge { left: calc(100% - var(--disc) / 2 - 50px); bottom: calc(var(--bar) + 8px); }
 .ws-touch-disc.dodge svg { width: 34%; height: 34%; fill: none; }
 .ws-touch.swimming .ws-touch-disc.dodge { display: none; }
+/* DODGE cooldown (E59, TouchControls polls player.dodgeCooldown into --cd 1 → 0): a dark clock sweep over the disc that
+   unwinds clockwise from 12 o'clock, the icon and label dimmed while it runs; a cyan flash when the dodge is back (.ready)
+   and a small shake for a tap before then (.deny) */
+.ws-touch-disc.dodge { --cd: 0; }
+.ws-touch-cd { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; background: conic-gradient(from 0deg, transparent calc((1 - var(--cd)) * 360deg), rgba(2, 4, 8, 0.72) 0); }
+/* …and the recharge as a cyan ring filling round the rim (the ATTACK heavy ring's look), only while it runs */
+.ws-touch-cd::before { content: ''; position: absolute; inset: -5px; border-radius: 50%; opacity: 0; background: conic-gradient(var(--ws-cyan) calc((1 - var(--cd)) * 360deg), rgba(143, 227, 255, 0.12) 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); transition: opacity 0.12s; }
+.ws-touch-disc.dodge.cooling .ws-touch-cd::before { opacity: 1; }
+.ws-touch-disc.dodge.cooling svg, .ws-touch-disc.dodge.cooling span { opacity: 0.45; }
+.ws-touch-disc.dodge.ready { animation: ws-touch-dodge-ready 0.35s ease-out; }
+@keyframes ws-touch-dodge-ready { 0% { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 26px rgba(143, 227, 255, 0.85), inset 0 0 18px rgba(143, 227, 255, 0.45); border-color: var(--ws-cyan); } }
+.ws-touch-disc.dodge.deny { animation: ws-touch-dodge-deny 0.24s ease-out; }
+@keyframes ws-touch-dodge-deny { 20% { transform: translateX(-3px); } 45% { transform: translateX(3px); } 70% { transform: translateX(-2px); } 100% { transform: none; } }
 .ws-touch-disc.jump, .ws-touch-disc.dive { left: calc(100% - var(--disc) / 2 - 8px); bottom: calc(var(--bar) + 58px); }
 /* AIM (ranged kit only — hidden while a sword is held): the iron-sights latch up-right of the FIRE disc, clear of the pill,
    left of DODGE — the same thumb */

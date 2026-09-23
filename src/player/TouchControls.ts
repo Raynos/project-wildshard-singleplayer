@@ -34,7 +34,8 @@
  *    friction — the old 1.6× LOOK-pad boost is gone (E37 audit F6), so a swipe turns the same wherever it starts.
  *  - Right-thumb arc, just above the bar at the right edge: DODGE (lower-left) and JUMP (upper-right), one size, in a short
  *    even diagonal. DODGE sets `player.touchDodge` → Player.dodge (toward the stick, a backstep with it centred) and
- *    hides while swimming. While the player swims (`player.onSwimChange`) JUMP gives its spot to DIVE, a HELD button
+ *    hides while swimming. Its cooldown (`player.dodgeCooldown`, E59) shows as a dark clock sweep unwinding over the disc
+ *    (--cd), a cyan flash when it is back (.ready), and a tap before then only shakes the disc (.deny). While the player swims (`player.onSwimChange`) JUMP gives its spot to DIVE, a HELD button
  *    (`player.touchDive` → `player.diveHeld`); once the eye is under (`player.submerged`, polled) SURFACE appears in
  *    DODGE's spot (`player.touchSurface`, hold to come up) and hides again on surfacing.
  *  - AIM (ranged kit only): the iron-sights toggle latch (`weapons.adsHeld`, tap on / tap off, lit `.on`) sits up-right of
@@ -100,6 +101,7 @@ export class TouchControls {
   private wasSubmerged = false; // the SURFACE disc follows player.submerged
   private wasMelee = false; // the AIM disc hides while a melee weapon is held
   private chargeShown = -1; // the ATTACK disc's heavy ring (--charge) as last painted
+  private cdShown = -1; // the DODGE disc's cooldown sweep (--cd) as last painted
 
   constructor(private player: Player, private weapons: Weapons, force = false) {
     this.active = force || IS_TOUCH;
@@ -112,7 +114,7 @@ export class TouchControls {
       <button class="ws-touch-use" type="button">Use</button>
       <div class="ws-touch-status"></div>
       <button class="ws-touch-disc aim" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="1.4"/><path d="M12 1.5v4.5M12 18v4.5M1.5 12H6M18 12h4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Aim</span></button>
-      <button class="ws-touch-disc dodge" type="button"><svg viewBox="0 0 24 24"><path d="M5 5.5 11.5 12 5 18.5M12.5 5.5 19 12l-6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Dodge</span></button>
+      <button class="ws-touch-disc dodge" type="button"><i class="ws-touch-cd"></i><svg viewBox="0 0 24 24"><path d="M5 5.5 11.5 12 5 18.5M12.5 5.5 19 12l-6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Dodge</span></button>
       <button class="ws-touch-disc jump" type="button"><svg viewBox="0 0 24 24"><path d="M12 2.5 4 11h5v10.5h6V11h5z"/></svg><span>Jump</span></button>
       <button class="ws-touch-disc surface" type="button"><svg viewBox="0 0 24 24"><path d="M12 21.5V9M7.5 13.5 12 9l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 5.5c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4 1.7-1.4 3.4-1.4 1.6 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>Surface</span></button>
       <button class="ws-touch-disc dive" type="button"><svg viewBox="0 0 24 24"><path d="M12 2v11.5M7.5 9.5 12 14l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 18.5c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4 1.7-1.4 3.4-1.4 1.6 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 22c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/></svg><span>Dive</span></button>
@@ -140,7 +142,7 @@ export class TouchControls {
 
     // ── aim assist: runs at the top of every player update (before the camera is posed) so a nudge shows the same frame ──
     const assist = this.assist = new AimAssist(root);
-    const aim = el(root, '.aim'), attack = el(root, '.ws-touch-attack');
+    const aim = el(root, '.aim'), attack = el(root, '.ws-touch-attack'), dodge = el(root, '.dodge');
     const prevPre = player.preUpdate;
     player.preUpdate = (dt) => {
       prevPre?.(dt);
@@ -164,6 +166,12 @@ export class TouchControls {
         const c = weapons.current.charge ?? 0;
         if (c !== this.chargeShown) { this.chargeShown = c; attack.style.setProperty('--charge', c.toFixed(3)); attack.classList.toggle('ready', c >= 1); }
         this.lungeTurn(dt);
+      }
+      // DODGE cooldown (E59): a dark clock sweep unwinds over the disc (--cd 1 → 0) and it flashes .ready when it is back
+      const cd = Math.round(player.dodgeCooldown * 100) / 100;
+      if (cd !== this.cdShown) {
+        if (cd === 0 && this.cdShown > 0) { dodge.classList.remove('ready'); void dodge.offsetWidth; dodge.classList.add('ready'); }
+        this.cdShown = cd; dodge.style.setProperty('--cd', String(cd)); dodge.classList.toggle('cooling', cd > 0);
       }
       if (player.submerged !== this.wasSubmerged) { this.wasSubmerged = player.submerged; root.classList.toggle('submerged', player.submerged); if (!player.submerged) player.touchSurface = false; }
     };
@@ -252,7 +260,12 @@ export class TouchControls {
     // AIM (ranged only) is a toggle, not a hold: each press flips the iron-sights latch and the disc stays lit (.on) while latched
     aim.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.weapons.adsHeld = !this.weapons.adsHeld; aim.classList.toggle('on', this.weapons.adsHeld); });
     aim.addEventListener('pointerup', (e) => e.stopPropagation());
-    btn('.dodge', () => { if (this.weapons.enabled) this.player.touchDodge = true; });
+    // DODGE: a tap during the cooldown only shakes the disc (.deny) — no dodge is queued (E59)
+    btn('.dodge', () => {
+      if (!this.weapons.enabled) return;
+      if (this.player.dodgeCooldown > 0) { dodge.classList.remove('deny'); void dodge.offsetWidth; dodge.classList.add('deny'); return; }
+      this.player.touchDodge = true;
+    });
     // SWAP: crossbow ⇄ rifle (Weapons.swap, the Q key); the pill flashes .down while pressed, nothing latches. Hidden until a
     // second weapon is unlocked (the AR-15 pickup — Weapons.onUnlock)
     btn('.swap', () => { if (this.weapons.enabled) this.weapons.swap(); });
