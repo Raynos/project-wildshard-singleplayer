@@ -76,7 +76,7 @@ export interface PlanOptions {
   /**
    * Awaited after every step (default in a browser: one macrotask). A step's work and the next step's
    * start otherwise chain through microtasks inside ONE task — the 0.75–1.3 s long tasks of
-   * docs/plans/LOAD-PERF.md were forest + edge + grass and animals + weapon glued together.
+   * project/archive/2026-09-22-load-perf.md were forest + edge + grass and animals + weapon glued together.
    */
   yieldTask?: (() => Promise<void>) | null;
 }

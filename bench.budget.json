@@ -1,5 +1,5 @@
 {
-  "$doc": "Load budgets from docs/plans/LOAD-PERF.md §1, checked by `pnpm bench:ci` (scripts/bench-load.mjs --ci). cond = <network>/<cold|warm>; metric = a row field of progress/bench/*.json; max (with unit MB|s|count) or equals. Missing rows print n/a and do not fail.",
+  "$doc": "Load budgets from project/archive/2026-09-22-load-perf.md §1, checked by `pnpm bench:ci` (scripts/bench-load.mjs --ci). cond = <network>/<cold|warm>; metric = a row field of progress/bench/*.json; max (with unit MB|s|count) or equals. Missing rows print n/a and do not fail.",
   "rows": [
     { "name": "title screen visible", "cond": "4g/cold", "metric": "titleMs", "max": 1000, "unit": "s" },
     { "name": "first-launch transfer", "cond": "wifi/cold", "metric": "netBytes", "max": 12582912, "unit": "MB" },

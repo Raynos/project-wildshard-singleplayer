@@ -1,6 +1,6 @@
 /**
  * Where the forest and the forest floor go — the pure part of Forest / Undergrowth, shared by the game
- * and by the build (scripts/bake-chunk.mjs, docs/plans/LOAD-PERF.md). Nothing here touches the GPU or
+ * and by the build (scripts/bake-chunk.mjs, project/archive/2026-09-22-load-perf.md). Nothing here touches the GPU or
  * the DOM: seeded Rng / Noise2D and the Heightfield functions of the active chunk.
  *
  * The undergrowth pass is the expensive one: ~10^5 candidates, each run through the trail / cabin /

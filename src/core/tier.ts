@@ -1,7 +1,7 @@
 /**
  * Quality tier, picked once at boot. Phones get smaller textures, fewer shadow cascades, no AO and a
  * DPR cap — the difference between "loads in minutes then dies" and playable. `?tier=phone|desktop`
- * overrides for testing. Every knob below is measured in docs/plans/PLAY-PERF.md.
+ * overrides for testing. Every knob below is measured in project/archive/2026-09-22-play-perf.md.
  */
 export type Tier = 'phone' | 'desktop';
 

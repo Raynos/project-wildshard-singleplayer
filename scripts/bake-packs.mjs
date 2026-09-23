@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// bake-packs.mjs — one boot pack per shard × tier (docs/plans/LOAD-PERF.md, "requests, first launch ≤ 20").
+// bake-packs.mjs — one boot pack per shard × tier (project/archive/2026-09-22-load-perf.md, "requests, first launch ≤ 20").
 //
 // A shard's boot reads 4–80 files (texture sets, glTF triplets, LODs, baked terrain / sky / cards). Each is a
 // request: cheap over HTTP/2 on Wi-Fi, but ~80 of them are the whole "requests" budget four times over, and each

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// bench-load.mjs — the load-performance ruler (docs/BENCH.md, docs/plans/LOAD-PERF.md §P0).
+// bench-load.mjs — the load-performance ruler (docs/BENCH.md, project/archive/2026-09-22-load-perf.md §P0).
 //
 // Builds the production bundle, serves it with `vite preview` on its own port, and opens it in
 // headless Chromium under CDP network + CPU throttling, cold (fresh context) then warm (same

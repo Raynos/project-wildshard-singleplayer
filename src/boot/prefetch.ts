@@ -1,5 +1,5 @@
 /**
- * Every file the boot will read, requested up front (docs/plans/LOAD-PERF.md: "fetch everything up front in
+ * Every file the boot will read, requested up front (project/archive/2026-09-22-load-perf.md: "fetch everything up front in
  * parallel, then build as each arrives"). The steps still ask for their files in their own order — through
  * fetchImage, three's FileLoader / ImageBitmapLoader, the baked-terrain reader — and the first GET of a
  * prefetched path is handed the prefetched response (in flight, downloaded, or started on the spot when it

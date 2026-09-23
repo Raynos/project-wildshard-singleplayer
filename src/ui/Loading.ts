@@ -51,7 +51,7 @@ export class Loading {
    * The plan publishes a view on every event (every byte chunk of every fetch, every sub-step); the
    * cheap attributes land at once (`data-step` is what the bench and the tests read), the text and
    * bars at most once per frame (`tickClock`) — the DOM writes and the layout they force were ~8 %
-   * of a phone-tier load at 4× CPU (docs/plans/LOAD-PERF.md Status). Integers floor, so 100 means done.
+   * of a phone-tier load at 4× CPU (project/archive/2026-09-22-load-perf.md Status). Integers floor, so 100 means done.
    */
   paint(v: ProgressView): void {
     this.view = v;

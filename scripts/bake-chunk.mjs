@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// bake-chunk.mjs — pre-bake every registered shard's terrain at build time (docs/plans/LOAD-PERF.md §P2.1).
+// bake-chunk.mjs — pre-bake every registered shard's terrain at build time (project/archive/2026-09-22-load-perf.md §P2.1).
 //
 // Runs the chunk's pure terrain functions (src/chunks/<slug>.ts → buildTerrain: seeded Noise2D / Rng)
 // in Node and writes public/assets/baked/<slug>/terrain.bin — the height and splat weights at every

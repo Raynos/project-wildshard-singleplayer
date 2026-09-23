@@ -1,5 +1,5 @@
 /**
- * Shader precompile for the `shaders` boot step (docs/plans/LOAD-PERF.md §P2.3, Status table).
+ * Shader precompile for the `shaders` boot step (project/archive/2026-09-22-load-perf.md §P2.3, Status table).
  *
  * The first `render()` of the world used to build every program the scene needs in one
  * synchronous stall: the lit materials, then the shadow-depth variants of every caster, then the

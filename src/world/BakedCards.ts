@@ -1,5 +1,5 @@
 /**
- * Baked branch cards (docs/plans/LOAD-PERF.md §P2.2). TreeFactory.bakeBranchCard renders the twig
+ * Baked branch cards (project/archive/2026-09-22-load-perf.md §P2.2). TreeFactory.bakeBranchCard renders the twig
  * atlas into three 2048×1024 render targets (albedo · normal · ARM) at every launch — two shader
  * programs (~300 ms of Metal compile on the iPhone, cold) plus the draws. `scripts/bake-cards.mjs`
  * runs that bake once, headless, and commits the three images under

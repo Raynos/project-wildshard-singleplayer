@@ -1,5 +1,5 @@
 /**
- * Baked procedural textures (docs/plans/LOAD-PERF.md §P2). Fur, clouds, planet bands, blade atlases…
+ * Baked procedural textures (project/archive/2026-09-22-load-perf.md §P2). Fur, clouds, planet bands, blade atlases…
  * are drawn on a canvas or into a DataTexture at every launch — a few hundred ms of the phone's CPU
  * for images that never change. `bakedTexture(name, make)` returns the committed image under
  * public/assets/baked/<slug>/tex/<name>.{png,jpg} when the build has it (preloaded by

@@ -1,4 +1,4 @@
-/* Wildshard service worker (docs/plans/LOAD-PERF.md §1b / §P3, docs/design/cache-policy.md).
+/* Wildshard service worker (project/archive/2026-09-22-load-perf.md §1b / §P3, docs/design/cache-policy.md).
  * Ported from game-demos/trials-gauntlet-demo/src/pwa/sw.js — it shipped on WebKit/Metal; port, don't redesign.
  *
  * Emitted by `vite/pwa-plugin.ts` with three stamps replaced per build:

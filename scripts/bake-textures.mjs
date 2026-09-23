@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// bake-textures.mjs — bake the procedural textures once (docs/plans/LOAD-PERF.md §P2): fur, clouds, planet…
+// bake-textures.mjs — bake the procedural textures once (project/archive/2026-09-22-load-perf.md §P2): fur, clouds, planet…
 //
 // Every texture that goes through `bakedTexture(name, make)` (src/boot/bakedTextures.ts) is drawn at runtime
 // when the build has no file for it. This runs the game headless with `?bakeexport=1&nobake=1` (so every

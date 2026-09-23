@@ -1,5 +1,5 @@
 /**
- * Baked terrain (docs/plans/LOAD-PERF.md §P2.1): `scripts/bake-chunk.mjs` evaluates the chunk's
+ * Baked terrain (project/archive/2026-09-22-load-perf.md §P2.1): `scripts/bake-chunk.mjs` evaluates the chunk's
  * pure terrain functions at build time onto the terrain mesh's vertex grid and writes
  * public/assets/baked/<slug>/terrain.bin (format in the script). At launch this module fetches it
  * (counted by the boot plan under the `terrain` byte source) and swaps Heightfield's `heightAt` /

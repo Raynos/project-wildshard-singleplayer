@@ -51,7 +51,7 @@ export class Perf {
     const [fps = '', rest = ''] = text.split('|');
     (this.root.firstElementChild as HTMLElement).textContent = fps;
     (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = rest;
-    // phones: one short line — p50 ms plus the draw calls / triangles the phone-tier budget is measured in (docs/plans/PLAY-PERF.md)
+    // phones: one short line — p50 ms plus the draw calls / triangles the phone-tier budget is measured in (project/archive/2026-09-22-play-perf.md)
     (this.root.querySelector('.ws-perf-short') as HTMLElement).textContent = `${Math.round(p50)} ms · ${r.calls} calls · ${k(r.triangles)} tris${gl}`;
     this.root.classList.toggle('slow', p50 > 20);   // under 50 fps
     this.root.classList.toggle('bad', p50 > 33.4);  // under 30 fps

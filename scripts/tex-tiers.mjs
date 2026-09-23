@@ -1,4 +1,4 @@
-// Phone-tier image files (docs/plans/LOAD-PERF.md §P1, ask P5 "cold bytes"). Idempotent; needs ImageMagick + cwebp.
+// Phone-tier image files (project/archive/2026-09-22-load-perf.md §P1, ask P5 "cold bytes"). Idempotent; needs ImageMagick + cwebp.
 // Commit the outputs: Vercel's builder has neither tool, so nothing here runs at build time.
 //
 // 1. Poly Haven sets: for every public/assets/tex/<id>/{diffuse,nor_gl,arm}.jpg wider than 1024 px or heavier than

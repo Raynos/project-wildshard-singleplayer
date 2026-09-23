@@ -1,5 +1,5 @@
 /**
- * The boot pack (scripts/bake-packs.mjs; docs/plans/LOAD-PERF.md "requests, first launch ≤ 20"): this shard's boot
+ * The boot pack (scripts/bake-packs.mjs; project/archive/2026-09-22-load-perf.md "requests, first launch ≤ 20"): this shard's boot
  * files for this tier, concatenated in step order into one content-addressed file. `streamPack` fetches it once and
  * cuts it into its files as the bytes land; the first file is ready after its own bytes, not after the pack's.
  *

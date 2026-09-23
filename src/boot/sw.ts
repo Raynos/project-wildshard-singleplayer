@@ -1,5 +1,5 @@
 /**
- * Service-worker boot (docs/plans/LOAD-PERF.md §1b / §P3). Ported from trials-gauntlet-demo's `swBoot`,
+ * Service-worker boot (project/archive/2026-09-22-load-perf.md §1b / §P3). Ported from trials-gauntlet-demo's `swBoot`,
  * with the update story changed for this game — see CONTRACT below.
  *
  * Loaded as its own `<script type="module">` in index.html, ahead of main.ts, so the worker is registered

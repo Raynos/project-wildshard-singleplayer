@@ -1,4 +1,4 @@
-# Cache policy (`vercel.json`) — `docs/plans/LOAD-PERF.md` §1b, §P3.2
+# Cache policy (`vercel.json`) — `project/archive/2026-09-22-load-perf.md` §1b, §P3.2
 
 Ported from `game-demos/trials-gauntlet-demo/docs/design/cache-policy.md`. Vercel's `vercel.json`
 schema rejects unknown keys (no `$comment`), so the rationale lives here. **Keep this file and
