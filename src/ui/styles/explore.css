@@ -154,6 +154,39 @@
 .ws-x-pin:hover span, .ws-x-pin:focus-visible span { border-color: var(--ws-cyan); color: var(--ws-cyan); }
 .ws-x-map-me { position: absolute; width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-bottom: 16px solid var(--ws-amber); filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.8)); pointer-events: none; }
 
+/* ─── compare with the mockup (src/explore/Compare.ts; mockup p06): picker, then the mockup over the live frame ─── */
+.ws-x-comparebtn { position: absolute; right: 14px; top: calc(108px + env(safe-area-inset-top, 0px)); display: none; align-items: center; gap: 6px; padding: 7px 10px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid rgba(255, 181, 71, 0.5); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-amber); }
+.ws-x-comparebtn svg { width: 18px; height: 18px; }
+.ws-x[data-mode="world"] .ws-x-comparebtn { display: flex; }
+.ws-x-picker { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: none; flex-direction: column; gap: 10px; width: min(460px, calc(100vw - 24px)); padding: 12px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-amber); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.ws-x-picker.show { display: flex; }
+.ws-x-picker-head { display: flex; align-items: center; justify-content: space-between; }
+.ws-x-picker-head b { font-family: var(--ws-display); font-size: 17px; letter-spacing: 0.14em; text-transform: uppercase; }
+.ws-x-picker-head button { width: 30px; height: 30px; background: none; border: 1px solid var(--ws-cyan-line); }
+.ws-x-picker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ws-x-target { display: flex; flex-direction: column; gap: 5px; padding: 5px 5px 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--ws-cyan-line); text-align: left; }
+.ws-x-target:hover, .ws-x-target:focus-visible { border-color: var(--ws-amber); outline: none; }
+.ws-x-target .ws-x-target-img { display: block; aspect-ratio: 720 / 925; background-size: cover; background-position: center; }
+.ws-x-target b { font-family: var(--ws-display); font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; }
+.ws-x-compare { position: absolute; inset: 0; display: none; pointer-events: none; }
+.ws-x-compare.show { display: block; }
+.ws-x-compare img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ws-x-divider { position: absolute; top: 0; bottom: 0; width: 44px; transform: translateX(-50%); pointer-events: auto; touch-action: none; cursor: ew-resize; }
+.ws-x-divider::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; transform: translateX(-50%); background: var(--ws-cyan); box-shadow: 0 0 12px var(--ws-cyan); }
+.ws-x-divider i { position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; transform: translate(-50%, -50%); border-radius: 50%; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); }
+.ws-x-compare[data-mode="fade"] .ws-x-divider, .ws-x-compare[data-mode="fade"] .ws-x-side { display: none; }
+.ws-x-compare-bar input { display: none; width: 90px; }
+.ws-x-compare[data-mode="fade"] .ws-x-compare-bar input { display: block; }
+.ws-x-side { position: absolute; top: calc(112px + env(safe-area-inset-top, 0px)); padding: 4px 8px; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); }
+.ws-x-side-l { left: 12px; }
+.ws-x-side-r { right: 12px; color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.5); }
+.ws-x-compare.swapped .ws-x-side-l { color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.5); }
+.ws-x-compare.swapped .ws-x-side-r { color: var(--ws-text); border-color: var(--ws-cyan-line); }
+.ws-x-compare-bar { position: absolute; left: 50%; bottom: max(90px, calc(env(safe-area-inset-bottom, 0px) + 84px)); transform: translateX(-50%); display: flex; align-items: center; gap: 6px; padding: 7px 8px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-amber); white-space: nowrap; }
+.ws-x-compare-bar b { margin-right: 4px; font-family: var(--ws-display); font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ws-amber); }
+.ws-x-compare-bar button { padding: 6px 9px; background: rgba(143, 227, 255, 0.1); border: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; }
+.ws-x-compare-bar button.on { color: var(--ws-cyan); border-color: var(--ws-cyan); }
+
 /* phone portrait */
 @media (max-width: 700px) {
   .ws-x-top { left: 8px; right: 8px; gap: 8px; padding: 6px 6px 6px 10px; }
@@ -177,6 +210,8 @@
   .ws-x-clips button, .ws-x-creature-row button, .ws-x-variants button { padding: 6px 7px; font-size: 9px; letter-spacing: 0.08em; }
   .ws-x-map { left: 8px; right: 8px; top: auto; bottom: max(90px, calc(env(safe-area-inset-bottom, 0px) + 84px)); width: auto; }
   .ws-x-mapbtn { top: calc(62px + env(safe-area-inset-top, 0px)); right: 8px; }
+  .ws-x-comparebtn { top: calc(100px + env(safe-area-inset-top, 0px)); right: 8px; }
+  .ws-x-compare-bar b { display: none; }
   .ws-x-stats { font-size: 9px; letter-spacing: 0.08em; }
 }
 @media (max-width: 700px) {

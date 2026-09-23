@@ -29,6 +29,7 @@ import { ModelExplorer } from './ModelExplorer';
 import { driftwoodCatalog, type CatalogEntry, type CatalogHandles } from './catalog';
 import { Select, type SelectTarget } from './Select';
 import { MiniMap } from './MiniMap';
+import { Compare } from './Compare';
 import modelsArt from './img/models.webp';
 import worldArt from './img/world.webp';
 
@@ -134,6 +135,7 @@ export class Explore {
     document.addEventListener('keydown', this.onKey);
     game.onUpdate((dt) => { this.update(dt); });
     if ((host.world.chunk.pois ?? []).length > 0) this.map = new MiniMap(this, host.world);
+    if (host.world.chunk.slug === 'driftwood-isle') this.compare = new Compare(this, host.world); // its targets are Driftwood's mockups
     const models = host.models;
     if (models) {
       const entries = driftwoodCatalog({ ...models, sky: host.world.sky, scene: game.scene });
@@ -145,6 +147,7 @@ export class Explore {
 
   private select: Select | null = null;
   private map: MiniMap | null = null;
+  private compare: Compare | null = null;
 
   /** ORBIT on a selection: one finger (phone) / Alt-drag (desktop) turns around it; off = free flight again */
   setOrbit(on: boolean, centre?: THREE.Vector3): void {
@@ -231,7 +234,7 @@ export class Explore {
     this.tabs.querySelectorAll<HTMLElement>('button').forEach((b) => { b.classList.toggle('on', b.dataset['m'] === mode); });
     this.cam.enabled = mode === 'world' && !this.held;
     if (this.fly) this.fly.enabled = mode === 'world';
-    if (mode !== 'world') { this.cam.move.set(0, 0, 0); this.map?.close(); }
+    if (mode !== 'world') { this.cam.move.set(0, 0, 0); this.map?.close(); this.compare?.close(); }
     if (mode === 'world' && prev === 'hub') this.cam.placeAt(HOME.pos, HOME.look);
     for (const [m, p] of this.panes) { if (m === mode) p.show(opts); else p.hide(); }
   }
@@ -266,7 +269,7 @@ export class Explore {
     const c = this.host.world.game.camera.position;
     const pane = this.panes.get(this.mode);
     const cam = [c.x, c.y, c.z, this.cam.yaw, this.cam.pitch].map((v) => Number(v.toFixed(2)));
-    return { explore: this.mode, cam, ...(pane ? pane.context() : {}), ...(this.mode === 'world' && this.select ? this.select.context() : {}) };
+    return { explore: this.mode, cam, ...(pane ? pane.context() : {}), ...(this.mode === 'world' && this.select ? this.select.context() : {}), ...(this.mode === 'world' && this.compare ? this.compare.context() : {}) };
   }
 
   private async note(): Promise<void> {
@@ -298,7 +301,7 @@ export class Explore {
     const t = e.target;
     if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement) return;
     if (e.code === 'F8') { e.preventDefault(); void this.note(); }
-    else if (e.code === 'Escape' && !this.held) { if (this.map?.isOpen === true) this.map.close(); else if (this.mode === 'hub') this.close(); else this.setMode('hub'); }
+    else if (e.code === 'Escape' && !this.held) { if (this.compare?.isOpen === true) this.compare.close(); else if (this.map?.isOpen === true) this.map.close(); else if (this.mode === 'hub') this.close(); else this.setMode('hub'); }
     else if (e.code === 'KeyM' && this.mode === 'world') this.map?.toggle();
     else if (e.code === 'Digit1') this.setMode('model');
     else if (e.code === 'Digit2') this.setMode('world');
