@@ -204,9 +204,9 @@ async function main() {
     const grass = isOcean ? null : new Grass(sky, forest).build();
     await macrotask();
     const under = isOcean ? null : await new Undergrowth(sky, forest).buildAsync(macrotask); // a task per placement pass
-    const particles = new Particles(sky, forest).build();
+    const particles = isOcean ? null : new Particles(sky, forest).build(); // pine-forest mist + needle fall: nothing to fall from on the island (E7 B8)
     if (grass && under) game.scene.add(grass.group, under.group);
-    game.scene.add(particles.group);
+    if (particles) game.scene.add(particles.group);
     return { grass, under, particles };
   });
   const { grass, under, particles } = carpet;
@@ -505,7 +505,7 @@ async function main() {
     horizon.update(dt, game.camera);
     grass?.update(dt, player.position);
     under?.update(dt, player.position);
-    particles.update(dt, player.position, game.camera);
+    particles?.update(dt, player.position, game.camera);
     cabins?.update(dt, t);
     // swimming holsters the weapon (hands only; Hands.ts follows)
     if (player.swimming !== swimHold) { swimHold = player.swimming; weapons.visible = !swimHold; weapons.setEnabled(!swimHold); }
