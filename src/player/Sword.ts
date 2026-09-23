@@ -73,6 +73,8 @@ export interface SwordOptions {
   allowUnlocked?: boolean; blade?: 'wood' | 'iron';
   /** a custom viewmodel + moves + numbers (the sabre); omitted = the wooden / iron sword exactly as before */
   rig?: SwordRig; moves?: SwordMoveSet; damage?: number; reach?: number;
+  /** portrait phone: how far the hands are pulled in from the right (× portrait; default 0.32) — the sabre pulls further, clear of the Nalati discs */
+  portraitPullX?: number;
 }
 
 const DAMAGE_WOOD = 12, DAMAGE_IRON = 28;
@@ -335,6 +337,7 @@ class Glint {
 export class Sword implements Weapon {
   readonly hasAmmo = false;
   readonly reach: number;
+  private portraitPullX: number;
   readonly state: WeaponState = { loaded: true, reloading: false, reloadProgress: 0, ads: false };
   enabled = true;
   allowUnlocked = false;
@@ -408,6 +411,7 @@ export class Sword implements Weapon {
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.damage = opts.damage ?? (opts.blade === 'iron' ? DAMAGE_IRON : DAMAGE_WOOD);
     this.reach = opts.reach ?? REACH;
+    this.portraitPullX = opts.portraitPullX ?? 0.32;
     if (opts.moves) { this.mv = opts.moves; this.basePos.copy(opts.moves.rest.pos); this.baseQ.copy(opts.moves.rest.q); }
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
     this.buildViewmodel(opts.blade ?? 'wood', opts.rig);
@@ -746,7 +750,7 @@ export class Sword implements Weapon {
     // portrait phone: the wider FOV + narrow frame put the hands mid-screen — hold the sword lower, further out, smaller
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
     const scale = 1 - portrait * 0.2;
-    pos.x *= 1 - portrait * 0.32; pos.y *= 1 + portrait * 0.1; pos.z *= 1 + portrait * 0.45;
+    pos.x *= 1 - portrait * this.portraitPullX; pos.y *= 1 + portrait * 0.1; pos.z *= 1 + portrait * 0.45;
     if (this.holster > 0) { const h = sstep(0, 1, this.holster); pos.y -= h * 0.45; pos.z += h * 0.1; q.premultiply(_q2.setFromEuler(_e.set(-h * 0.6, 0, h * 0.3, 'YXZ'))); } // weapon swap: drop out of the frame
     if (this.inspect) { pos.set(0.0, -0.05, -0.75); q.setFromEuler(_e.set(0.2, Math.sin(t * 0.3) * 0.8, 0.9, 'YXZ')); }
     this.rig.scale.setScalar(scale); this.armRig.scale.setScalar(scale);
