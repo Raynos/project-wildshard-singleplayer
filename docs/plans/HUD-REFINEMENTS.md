@@ -1,6 +1,6 @@
 # Plan: tentative HUD / touch-control refinements
 
-**State:** `in progress` 2026-09-23 — layout E is live with the true 45 / 55 split and the home-screen app's black strip fixed (E58, `0c5f16f`: the page now sits below the status bar). Open, built by the main session in this order: E61 app-switch resume screen · E47 compact FPS pill · E59 DODGE cooldown sweep · E63 T / V dodge buttons · E64 credits page. E48 dropped (E58). Lock-on (E50, docs/plans/LOCK-ON.md) waits on Jake's go.
+**State:** `in progress` 2026-09-23 — the queue is built and live (`f6cc18c-mueneknw`): E58 strip + true 45 / 55, E61 resume screen, E47 FPS pill, E59 dodge cooldown sweep, E64 credits in Settings; E63 has T DODGE and V DODGE side by side and waits on Jake's pick of which to delete. Lock-on (E50, docs/plans/LOCK-ON.md) waits on Jake's go. The R-rows below that aren't built stay ideas.
 
 ## Read this first
 
@@ -127,11 +127,11 @@ actual attack button literally on the divider line" / "the actual looking right 
 | Ask | What | State |
 |---|---|---|
 | E58 | Black strip in the home-screen app + true 45 / 55 (ATTACK's left edge on the divider) | done `0c5f16f` |
-| E61 | Tiny "RESUMING" screen on an app switch (blurred last frame), no first-boot loader on a recovery reload | next — WIP in tree (Resume.ts, GpuRecovery.ts); its main.ts hunk was lost in the 16:05 truncation, re-apply |
-| E47 | Compact FPS pill beside PAUSE ("59 fps 17 ms"); tap → full stats over the minimap; VITALS up a row | WIP in tree (Perf.ts, perf.css, game.css, touch.css) |
-| E59 | DODGE cooldown (~0.8 s) with a clock sweep on the disc | open |
-| E63 | Dodge feel T (lean + smear) and V (roll-dip) as two buttons, "T DODGE" / "V DODGE", Jake deletes one after playing | open (docs/plans/DODGE-FEEL.md) |
-| E64 | Music / SFX attribution off the title → a Credits page | open |
+| E61 | Tiny "RESUMING" screen on an app switch (blurred last frame), no first-boot loader on a recovery reload | done `e74c002` |
+| E47 | Compact FPS pill beside PAUSE ("59 fps 17 ms"); tap → full stats over the minimap; VITALS up a row | done `6073b55` |
+| E59 | DODGE cooldown (0.8 s) with a clock sweep + rim ring on the disc | done `87c7d62` |
+| E63 | Dodge feel T (lean + smear) and V (roll-dip) as two buttons, "T DODGE" / "V DODGE", Jake deletes one after playing | built `f6cc18c` — needs Jake's pick (V dust, sounds, Reduce motion not built) |
+| E64 | Music / SFX attribution off the title → Settings ▸ Credits | done `12fb2f9` |
 | E48 | Raise PAUSE / minimap into the status band in standalone | dropped — E58 put the page below the status bar |
 
 ## Status
