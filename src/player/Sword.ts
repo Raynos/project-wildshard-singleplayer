@@ -4,10 +4,11 @@ import type { Game } from '../core/Game';
 import type { Sky } from '../world/Sky';
 import type { Player } from '../player/Player';
 import type { Forest } from '../world/Forest';
-import type { Targets, ImpactSurface } from './Crossbow';
+import type { Targets, TargetHit, ImpactSurface } from './Crossbow';
 import type { Weapon, WeaponState, AimInfo } from './Weapon';
 import { REST, CHARGE, SPRINT, COMBO, SLASH, HEAVY, type Move } from './SwordMoves';
 import { getAimTargets, meleeLock, targetRadius, type AimTarget } from './AimTargets';
+import { segmentBlocked } from './MeleeSweep';
 
 /**
  * Sword — the Driftwood Isle melee weapon (`ChunkDef.weapon === 'sword'`): a low-poly wooden sword (pale carved blade
@@ -44,11 +45,17 @@ import { getAimTargets, meleeLock, targetRadius, type AimTarget } from './AimTar
  * onto it during the lunge (TouchControls.ts, behind the aim-assist switch). `player.swinging` is set while a swing runs
  * (the Swing turn speed setting).
  *
- * Hit test: during a swing's active window a fan of rays from the eye (the move's `fan`) is cast against
- * `targets.raycast` out to REACH m; the first animal hit takes `applyDamage(damage, point, dir)` once per swing, then
+ * Hit test — the BLADE, swept (C1 / B5): every frame of a swing the blade's grip → tip (the swing pose at scale 1, so
+ * the portrait framing never changes what you can hit) is turned into rays from the eye through SWEEP_K points along it,
+ * each continued SWEEP_EXT further down (the viewmodel is held high in the frame, a crab sits at your feet: the blade
+ * reaches the band under itself), swept from last frame's blade to this one in ≤ SWEEP_STEP angular sub-steps, each ray
+ * out to REACH m against `targets.raycast` — only while a live animal is within reach (a swing at the air costs nothing).
+ * Every animal the blade crosses in the active window is hit ONCE per swing (up to HIT_MAX), at the moment the blade
+ * reaches it — not the whole arc on the first frame — and not through a wall: the eye → hit point segment is tested
+ * against `player.colliders` (MeleeSweep.segmentBlocked). A hit: `applyDamage(damage, point, dir)`, then
  * `stagger(pushDir, strength)` when the target has one (Animal.ts: light 0.6 m / 0.4 s, heavy 1.5 m / 0.8 s, breaks a
  * running charge), `onHit(kind, false, killed)` + `onImpact('flesh', point)` fire (Combat's damage float and the HUD
- * hit marker work unchanged), the swing hit-stops for a beat and a star burst pops at the point.
+ * hit marker work unchanged), the swing hit-stops for a beat (the first hit only) and a star burst pops at the point.
  *
  * Events: onFire() every swing (light AND heavy: play the whoosh; Combat's MISS judgement taps it) · onHeavy() on the
  * heavy's release, after onFire (a deeper whoosh layer: Audio.swordHeavy) · onHit(kind, headshot=false, killed) ·
@@ -76,6 +83,11 @@ const LUNGE_STOP = 1.1;              // m short of the body edge where the lunge
 const LUNGE_SPEED = 22;              // m/s …
 const LUNGE_MIN_T = 0.08, LUNGE_MAX_T = 0.15; // … clamped to this duration
 const TRAIL_SAMPLES = 20;
+const HIT_MAX = 8;                   // animals one swing can strike
+const SWEEP_K = 5;                   // rays along the blade, grip → tip …
+const SWEEP_EXT = [0.12, 0.24, 0.36, 0.48] as const; // … each continued this far (rad) BELOW the blade, pitched down in camera space
+const SWEEP_STEP = 0.09;             // rad: the largest blade move between two sweep sub-samples (~5°)
+const SWEEP_SUB_MAX = 6;
 const ARM_FOLLOW = 0.45;             // the forearms take this much of the sword's rotation away from rest (a cheap elbow)
 const FOV_HIP = 72;
 /** three's fov is vertical: a fixed 72° on a portrait phone collapses the horizontal view, so widen it (Hor+, same as Crossbow.ts) */
@@ -285,6 +297,7 @@ class Stars {
 
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3(), _push = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _e = new THREE.Euler();
+const _b = new THREE.Vector3(), _g0 = new THREE.Vector3(), _g1 = new THREE.Vector3(), _t0 = new THREE.Vector3(), _t1 = new THREE.Vector3(), _hitPoint = new THREE.Vector3();
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 
 /** the heavy's tip glint: one additive star quad (camera space — the model group is camera-parented, so it always faces the eye) that rides the blade tip through the chop, spinning, then winks out */
@@ -374,6 +387,9 @@ export class Sword implements Weapon {
   private posePos = new THREE.Vector3(); private poseQ = new THREE.Quaternion(); private poseInit = false;
   // lunge
   private active = false; private lungeTarget: AimTarget | null = null;
+  // blade sweep (C1): what this swing has struck, and last frame's blade (camera-space unit dirs from the eye, grip + tip)
+  private struck: (TargetHit['animal'] | null)[] = Array.from({ length: HIT_MAX }, () => null); private struckN = 0;
+  private sweepGrip = new THREE.Vector3(); private sweepTip = new THREE.Vector3(); private sweepHave = false;
 
   // trail
   private trail!: THREE.Mesh; private trailMat!: THREE.ShaderMaterial; private trailPos!: Float32Array; private trailAlpha!: Float32Array;
@@ -435,6 +451,7 @@ export class Sword implements Weapon {
   }
   private startSwing(move: Move): void {
     this.move = move; this.swingT = 0; this.hitDone = false; this.hitStop = 0; this.queued = false;
+    this.struckN = 0; this.struck.fill(null); this.sweepHave = false;
     this.fromPos.copy(this.basePos); this.fromQ.copy(this.baseQ);
     this.trailN = 0; this.trail.visible = false;
     this.trailStyle = move.trail; this.trailColor.value.copy(move.trail.color);
@@ -571,35 +588,70 @@ export class Sword implements Weapon {
     if (live) { this.trailPosAttr.needsUpdate = true; this.trailAlphaAttr.needsUpdate = true; }
   }
 
-  // ── melee hit test: the move's fan of rays from the eye across its sweep, out to REACH ──
-  private testHit(move: Move): void {
-    if (this.targets === undefined) return;
+  // ── melee hit test: the blade swept from last frame's pose to this one (see the header) ──
+  /** this frame's blade from the swing pose (basePos / baseQ, scale 1): unit dirs from the eye through the grip and tip, camera space */
+  private bladeDirs(grip: THREE.Vector3, tip: THREE.Vector3): void {
+    grip.copy(this.basePos).normalize();
+    tip.set(0, this.tipY, 0).applyQuaternion(this.baseQ).add(this.basePos).normalize();
+  }
+  private sweepHit(move: Move, active: boolean): void {
+    this.bladeDirs(_g1, _t1);
+    if (!active || this.targets === undefined || !this.sweepHave || !this.anyInReach()) { this.sweepGrip.copy(_g1); this.sweepTip.copy(_t1); this.sweepHave = true; return; }
+    const cam = this.game.camera;
+    const ang = Math.max(this.sweepGrip.angleTo(_g1), this.sweepTip.angleTo(_t1));
+    const subs = Math.min(SWEEP_SUB_MAX, Math.max(1, Math.ceil(ang / SWEEP_STEP)));
+    for (let s = 1; s <= subs && this.struckN < HIT_MAX; s++) {
+      const f = s / subs;
+      _g0.copy(this.sweepGrip).lerp(_g1, f).normalize(); _t0.copy(this.sweepTip).lerp(_t1, f).normalize();
+      for (let k = 0; k < SWEEP_K * (1 + SWEEP_EXT.length); k++) {
+        const j = k % SWEEP_K, ext = (k - j) / SWEEP_K;
+        _b.copy(_g0).lerp(_t0, j / (SWEEP_K - 1)).normalize();
+        if (ext === 0) _dir.copy(_b);
+        else { // under the blade: the blade point's dir pitched further down about the camera's right axis
+          const a = SWEEP_EXT[ext - 1] ?? 0, c = Math.cos(a), sn = Math.sin(a);
+          _dir.set(_b.x, _b.y * c + _b.z * sn, -_b.y * sn + _b.z * c);
+        }
+        _dir.applyQuaternion(cam.quaternion);
+        const hit = this.targets.raycast(cam.position, _dir, REACH);
+        if (hit === null || !hit.animal.alive || this.struck.includes(hit.animal)) continue;
+        const p = hit.point, e = cam.position;
+        if (segmentBlocked(e.x, e.y, e.z, p.x, p.y, p.z, this.player.colliders)) continue;
+        this.struck[this.struckN++] = hit.animal;
+        this.strike(move, hit);
+        if (this.struckN >= HIT_MAX) break;
+      }
+    }
+    this.sweepGrip.copy(_g1); this.sweepTip.copy(_t1);
+  }
+  /** a live animal's body is within REACH (+ its radius, + a metre of slack) of the eye */
+  private anyInReach(): boolean {
+    const e = this.game.camera.position;
+    for (const t of getAimTargets()) {
+      if (!t.alive || t.hidden) continue;
+      const r = REACH + targetRadius(t) + 1;
+      if (t.position.distanceToSquared(e) < r * r) return true;
+    }
+    return false;
+  }
+  private strike(move: Move, hit: TargetHit): void {
     const cam = this.game.camera;
     cam.getWorldDirection(_fwd);
-    _v3.copy(cam.position);
-    _e.set(0, 0, 0, 'YXZ');
-    for (const pitch of move.fan.pitches) for (const yaw of move.fan.yaws) {
-      _e.y = yaw; _e.x = pitch;
-      _q.setFromEuler(_e); _q.premultiply(cam.quaternion);
-      _dir.set(0, 0, -1).applyQuaternion(_q);
-      const hit = this.targets.raycast(_v3, _dir, REACH);
-      if (!hit || !hit.animal.alive) continue;
-      // strike direction = the sweep (across the forward, the move's way), not the ray: the flinch reads as a side-on blow;
-      // an overhead chop (sweep ≈ 0) drives forward and down
-      _v2.copy(_fwd).applyAxisAngle(Y_AXIS, Math.PI / 2);                                       // the player's left
-      _v1.copy(_fwd).multiplyScalar(0.7).addScaledVector(_v2, 0.7 * move.sweep).normalize();
-      if (Math.abs(move.sweep) < 0.6) _v1.y -= 0.35 * (1 - Math.abs(move.sweep)); _v1.normalize();
-      const dmg = Math.round(this.damage * move.damage);
-      const killed = hit.animal.applyDamage(dmg, hit.point, _v1);
-      // knockback: away from the player, biased the way the sweep travels (Animal.stagger flattens it)
-      _push.set(_fwd.x, 0, _fwd.z).normalize().multiplyScalar(0.8).addScaledVector(_v2, 0.5 * move.sweep);
-      if (!killed) (hit.animal as unknown as { stagger?: (dir: THREE.Vector3, strength: number) => void }).stagger?.(_push, move.stagger);
-      this.hitDone = true; this.hitStop = move.hitStop; this.jolt = move === HEAVY ? 1.6 : 1;
-      this.stars.burst(hit.point, _fwd, move === HEAVY ? 14 : 9);
-      this.onHit?.(hit.animal.kind, false, killed);
-      this.onImpact?.('flesh', hit.point);
-      return;
-    }
+    // strike direction = the sweep (across the forward, the move's way), not the ray: the flinch reads as a side-on blow;
+    // an overhead chop (sweep ≈ 0) drives forward and down
+    _v2.copy(_fwd).applyAxisAngle(Y_AXIS, Math.PI / 2);                                       // the player's left
+    _v1.copy(_fwd).multiplyScalar(0.7).addScaledVector(_v2, 0.7 * move.sweep).normalize();
+    if (Math.abs(move.sweep) < 0.6) _v1.y -= 0.35 * (1 - Math.abs(move.sweep)); _v1.normalize();
+    const dmg = Math.round(this.damage * move.damage);
+    const point = _hitPoint.copy(hit.point); // the raycast result object is reused by the next ray
+    const animal = hit.animal;
+    const killed = animal.applyDamage(dmg, point, _v1);
+    // knockback: away from the player, biased the way the sweep travels (Animal.stagger flattens it)
+    _push.set(_fwd.x, 0, _fwd.z).normalize().multiplyScalar(0.8).addScaledVector(_v2, 0.5 * move.sweep);
+    if (!killed) (animal as unknown as { stagger?: (dir: THREE.Vector3, strength: number) => void }).stagger?.(_push, move.stagger);
+    if (!this.hitDone) { this.hitDone = true; this.hitStop = move.hitStop; this.jolt = move === HEAVY ? 1.6 : 1; }
+    this.stars.burst(point, _fwd, move === HEAVY ? 14 : 9);
+    this.onHit?.(animal.kind, false, killed);
+    this.onImpact?.('flesh', point);
   }
 
   /** evaluate a move at `t` s into it → position + quaternion (camera space, scale 1): from-pose → cocked → mid → follow-through → REST */
@@ -650,7 +702,6 @@ export class Sword implements Weapon {
       else if (this.swingT >= move.total) { this.move = move = null; this.lastSwingEnd = t; this.cooldown = COOLDOWN; }
     }
     const active = move !== null && this.swingT >= move.windup && this.swingT <= move.slashEnd;
-    if (move && active && !this.hitDone) this.testHit(move);
     // the melee lock (HUD brackets, touch lunge camera turn): the lunge's target while a swing runs, else what a swing would take
     // now. Every kit weapon ticks, so only the one in hand (its viewmodel shown — the kit's setActive) writes it, and the one
     // that just left the hand clears it once.
@@ -695,6 +746,7 @@ export class Sword implements Weapon {
     }
     if (sp > 0) { pos.lerp(SPRINT.pos, sp); q.slerp(SPRINT.q, sp); }
     this.basePos.copy(pos); this.baseQ.copy(q);
+    if (move) this.sweepHit(move, active); // the blade sweep hit test, on this frame's swing pose (before sway / portrait framing)
 
     // idle sway / walk bob (counter-phase to the camera bob) / look lag / hit jolt — full at the hip, 30 % in the charge
     const m = 1 - c * 0.7, sf = p.speedFactor;

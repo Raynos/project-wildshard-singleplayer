@@ -42,6 +42,7 @@ const FLOAT_LIFT = 34;                     // px: floats start this far above th
 const PENDING_MAX = 4;                     // shots in the air we track for MISS
 const BOLT_SPEED_EST = 50;                 // m/s: bolt speed after drag, for the "it has flown past the target" deadline
 const PENDING_GRACE = 0.25;                // s: past that deadline with no hit → MISS over the target
+const MELEE_DEADLINE = 0.75;               // s: a swing's blade reaches its targets through the whole active window (+ hit-stop), not at once
 
 interface BarSlot { el: HTMLElement; fill: HTMLElement; kind: HTMLElement; animal: Animal | null; lastHp: number; shown: boolean; }
 interface FloatSlot { el: HTMLElement; num: HTMLElement; label: HTMLElement; x: number; y: number; t: number; active: boolean; }
@@ -115,7 +116,7 @@ export class Combat {
     if (!slot) { for (const p of this.pending) if (!slot || p.t < slot.t) slot = p; } // recycle the oldest
     if (!slot) return;
     slot.animal = this.aimed; slot.t = this.t; slot.active = true;
-    slot.deadline = this.t + this.aimed.position.distanceTo(_o) / BOLT_SPEED_EST + PENDING_GRACE;
+    slot.deadline = this.t + (this.weapon.reach !== undefined ? MELEE_DEADLINE : this.aimed.position.distanceTo(_o) / BOLT_SPEED_EST + PENDING_GRACE);
   }
 
   private damage(a: Animal, amount: number, point: THREE.Vector3, headshot: boolean, died: boolean): void {

@@ -536,7 +536,7 @@ async function main() {
     // slow health regen; death → respawn at the gate
     if (health < 100 && performance.now() - lastHurt > 6000) health = Math.min(100, health + dt * 4);
     // death → the toast names the killer and this shard's respawn point (deathLine); only a weapon with ammo is topped up
-    if (health <= 0) { health = 100; hud.toast(deathLine(killer, isOcean)); killer = null; hud.damageFlash(); respawn(); if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); }
+    if (health <= 0) { health = 100; audio.death(); hud.toast(deathLine(killer, isOcean)); killer = null; hud.damageFlash(); respawn(); if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); }
     hurtArc.update(dt, player.position, player.yaw);
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));

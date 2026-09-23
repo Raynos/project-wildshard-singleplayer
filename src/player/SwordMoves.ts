@@ -13,7 +13,7 @@ import * as THREE from 'three';
  *   H · heavy      charged overhead (CHARGE key held with the blade raised), released into a wide slow overhead chop
  *
  * Times are seconds from the swing's start: `windup` (the active window opens), `slashEnd` (it closes; a queued combo
- * swing chains here), `total` (back at rest). `fan` is the melee hit fan (yaw × pitch offsets from the camera forward).
+ * swing chains here), `total` (back at rest). The hit test is the blade itself, swept through the active window (Sword.ts).
  */
 
 export interface Key { t: number; pos: THREE.Vector3; q: THREE.Quaternion }
@@ -34,7 +34,6 @@ export interface Move {
   /** the blow's sideways component in the strike direction: +1 = the sweep travels right → left across the forward, -1 the other way, 0 straight down */
   sweep: number;
   hitStop: number;
-  fan: { yaws: number[]; pitches: number[] };
   trail: Trail;
 }
 
@@ -54,9 +53,6 @@ export const REST = key(0, 0.27, -0.33, -0.52, -0.34, 0.76, -0.55, 0.35);
 export const CHARGE = key(0, 0.27, -0.09, -0.50, 0.24, 0.92, 0.30, 0.1);
 export const SPRINT = key(0, 0.34, -0.46, -0.58, -0.2, 0.55, -0.81, 0.6);
 
-const WIDE = { yaws: [0, -0.18, 0.18, -0.36, 0.36, -0.55, 0.55], pitches: [-0.3, 0.0, -0.6, -0.9] };   // a horizontal sweep; a boar at your feet is ~40° below the eye
-const OVERHEAD = { yaws: [0, -0.12, 0.12, -0.26, 0.26], pitches: [0.05, -0.25, -0.5, -0.75, -0.95] };  // a chop: narrow, deep
-
 const white = (r: number, g: number, b: number) => new THREE.Color(r, g, b);
 
 export const SLASH: Move = {
@@ -67,7 +63,7 @@ export const SLASH: Move = {
     key(0.235, -0.02, -0.35, -0.46, -0.88, 0.22, -0.42, 0.15),  // follow-through: blade out to the left, still rising a little
   ],
   windup: 0.07, slashEnd: 0.235, total: 0.35,
-  damage: 1, stagger: 0, sweep: 1, hitStop: 0.045, fan: WIDE,
+  damage: 1, stagger: 0, sweep: 1, hitStop: 0.045,
   trail: { from: 0.62, color: white(1, 1, 1), alpha: 0.6, inner: 0, life: 0.13 },
 };
 
@@ -79,7 +75,7 @@ export const BACKHAND: Move = {
     key(0.22, 0.40, -0.26, -0.50, 0.86, 0.36, -0.36, -0.1),      // follow-through: blade out to the right, tip past the frame edge
   ],
   windup: 0.06, slashEnd: 0.22, total: 0.34,
-  damage: 1, stagger: 0, sweep: -1, hitStop: 0.045, fan: WIDE,
+  damage: 1, stagger: 0, sweep: -1, hitStop: 0.045,
   trail: { from: 0.58, color: white(0.9, 0.97, 1), alpha: 0.6, inner: 0.05, life: 0.13 },
 };
 
@@ -91,7 +87,7 @@ export const FINISHER: Move = {
     key(0.28, -0.14, -0.44, -0.44, -0.72, -0.28, -0.63, 0.05),  // low left, tip below the frame centre
   ],
   windup: 0.10, slashEnd: 0.28, total: 0.44,
-  damage: 16 / 12, stagger: 0.25, sweep: 0.5, hitStop: 0.06, fan: OVERHEAD,
+  damage: 16 / 12, stagger: 0.25, sweep: 0.5, hitStop: 0.06,
   trail: { from: 0.5, color: white(1, 0.97, 0.88), alpha: 0.7, inner: 0.1, life: 0.15 },
 };
 
@@ -103,7 +99,7 @@ export const HEAVY: Move = {
     key(0.30, -0.12, -0.50, -0.44, -0.56, -0.46, -0.69, 0.0),   // buried low left, tip below the frame
   ],
   windup: 0.06, slashEnd: 0.30, total: 0.62,
-  damage: 2, stagger: 1, sweep: 0.35, hitStop: 0.08, fan: OVERHEAD,
+  damage: 2, stagger: 1, sweep: 0.35, hitStop: 0.08,
   trail: { from: 0.34, color: white(1, 0.98, 0.94), alpha: 1.0, inner: 0.35, life: 0.22 },
 };
 
