@@ -166,3 +166,16 @@ silhouettes (`segment-night-*`). They were stitched into a seamless 4096 × 512 
 it ships as `public/assets/horizon/driftwood-isle-{day,night}.webp`. `sheet-before-after.jpg` shows the 9 spawn-cove
 cameras before and after. The first day round (stacks ~3° high, too small at phone width) was dropped. Nothing else was
 re-rolled.
+
+### Hero-prop references + comparison board (`art/driftwood-isle/round-8-assets/`, 2026-09-23, asset-agent)
+
+`ref-<prop>.jpg` holds 12 codex image_gen references, the inputs for local image-to-3D (TRELLIS.2 on MPS,
+`scripts/img2mesh/README.md`). Each shows one prop in 3/4 view on white, in the faceted Driftwood style. The props:
+- palm-a, palm-b, palm-c, piling, sailboat, hut, wreck and shrine, one each;
+- boulders and driftwood, each a sheet of separate pieces;
+- clutter and coco, each a sheet that `split_sheet.py` cuts into single crops.
+
+`board.jpg` has one row per prop and four columns: the concept-art crop, the reference, the new asset
+(`public/assets/models/driftwood-hero/`, an Eevee still under the same light), and the current procedural model
+(a Model Explorer capture of the live build). `hunyuan-vs-trellis.jpg` shows the palm and the hut from each model.
+Nothing was re-rolled.
