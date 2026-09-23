@@ -60,7 +60,7 @@ export interface MountOpts {
 interface Mountable { a: Animal; name: string; it: Interactable; restT: number; bolting: boolean; comeT: number }
 
 const EYE = 2.3;                      // rider eye over the ground at horse scale 1 (withers 1.45 + a seated rider)
-const LOOK_LIMIT = THREE.MathUtils.degToRad(170);
+const LOOK_LIMIT = THREE.MathUtils.degToRad(170), BREAK_LOOK = THREE.MathUtils.degToRad(35);
 const MOUNT_T = 0.55;                 // s: the swing up / down
 const STEED_MAX = 100, STEED_GALLOP = 12, STEED_WALK = 15, STEED_CANTER = 5, STEED_RESUME = 25;
 const BOLT_AT = 0.2, REST_TIME = 180, WHISTLE_RANGE = 150;
@@ -298,7 +298,8 @@ export class Mount {
     p.onGround = true; p.sprinting = this.speed > 10; p.crouching = false; p.speedFactor = 0;
     // free look ±170° off the heading
     const rel = angDiff(look, this.heading);
-    if (Math.abs(rel) > LOOK_LIMIT) p.yaw = this.heading - Math.PI + Math.sign(rel) * LOOK_LIMIT;
+    const limit = this.breaking ? BREAK_LOOK : LOOK_LIMIT;   // hanging on: eyes down the neck
+    if (Math.abs(rel) > limit) p.yaw = this.heading - Math.PI + Math.sign(rel) * limit;
     // gait bob: walk nod, trot bounce (two a stride), canter rock, gallop drive
     const stride = this.speed < 3 ? 1.7 : this.speed < 6.5 ? 2.6 : this.speed < 11 ? 3.4 : 4.6;
     this.bobPh += dt * Math.abs(this.speed) / stride * Math.PI * 2;

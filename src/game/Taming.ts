@@ -61,6 +61,8 @@ export class Taming {
   /** what RideHUD draws */
   readonly view: TamingView = { trust: null, alert: 0, ear: null, round: null, balance: 0, danger: false, offer: false };
   onBonded?: ((horse: Animal) => void) | undefined;
+  /** the bucking rounds start / end — holster the weapon (both hands in the mane), bring it back */
+  onBreaking?: ((on: boolean) => void) | undefined;
 
   private herd: HorseHerd | null = null;
   private stallion: Animal | null = null;
@@ -165,6 +167,8 @@ export class Taming {
     if (!this.opts.mount.mount(st, true)) return;
     this.phase = 'breaking';
     herd.alertOwned = true;
+    this.opts.player.yaw = st.yaw - Math.PI; this.opts.player.pitch = -0.1;   // down his neck
+    this.onBreaking?.(true);
     this.round = 1; this.roundT = 0; this.b = 0; this.bv = 0; this.redT = 0;
     this.planRound();
     this.opts.toast?.('HOLD ON — lean against him (A / D, LEAN L / LEAN R)');
@@ -231,6 +235,7 @@ export class Taming {
     this.phase = 'wild';
     this.view.round = null; this.view.danger = false;
     m.breakRoll = 0; m.breakShake = 0;
+    this.onBreaking?.(false);
     if (st === null || herd === null) { if (m.mounted) m.dismount(true); return; }
     st.mem['buck'] = 0; st.mem['rear'] = 0;
     if (!won) {

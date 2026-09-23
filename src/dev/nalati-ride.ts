@@ -4,7 +4,7 @@
 //   &mount=1        start in the saddle of a camp horse at the hitching rail   &camp=1  on foot beside the rail
 //   &gallop=1       hold GALLOP from the start (&speed=canter: hold W instead)
 //   &herd=1         start 45 m from the wild herd's stallion (the approach) · &break=1 straight into the bucking rounds
-//   &touch=1&tier=phone   the phone layout (390×844)
+//   &touch=1&tier=phone   the phone layout (390×844)     &nohmr=1  ignore other files' HMR full reloads (long shots)
 // window.__world = { ...bootstrap(), animals, wildlife, weapons, kit, hud, ride }
 import * as THREE from 'three';
 import { bootstrap } from '../core/bootstrap';
@@ -21,6 +21,8 @@ import { wireNalati } from '../nalati';
 import { wireRide } from '../nalati/ride';
 import { HITCHING_RAIL } from '../world/nalati/layout';
 
+// &nohmr=1: other agents' saves full-reload every open page — a harness mid-shot ignores them (a listener that throws aborts Vite's reload)
+if (new URLSearchParams(location.search).has('nohmr')) import.meta.hot?.on('vite:beforeFullReload', () => { throw new Error('nohmr: reload skipped'); });
 if (!new URLSearchParams(location.search).has('chunk')) location.search += `${location.search ? '&' : '?'}chunk=nalati-grasslands`;
 const world = await bootstrap();
 const { game, sky, player, forest, params, chunk } = world;
@@ -46,6 +48,7 @@ let health = 100;
 animals.onCharge = (_a, dmg) => { health = Math.max(0, health - dmg); hud.damageFlash(); };
 const ride = wireRide({ player, forest, animals, wildlife, camera: game.camera });
 ride.bind({ kit, hurt: (d) => { health = Math.max(0, health - d); hud.damageFlash(); }, toast: (t) => { hud.toast(t); }, isDrawing: () => weapons.adsHeld || kit.bow.drawing });
+ride.taming.onBreaking = (on) => { weapons.visible = !on; weapons.setEnabled(!on); };
 nalati.bindPlay({ kit, health01: () => health / 100, toast: (t) => { hud.toast(t); }, flash: () => { hud.damageFlash(); } });
 if (params.has('skipintro')) { hud.markEntered(); weapons.setEnabled(nolock); } else hud.showIntro(() => { weapons.setEnabled(true); if (!nolock) player.lock(); });
 
