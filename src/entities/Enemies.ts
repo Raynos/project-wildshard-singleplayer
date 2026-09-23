@@ -282,7 +282,7 @@ export class Enemies {
       a.headWorld(_w);
       s.light.position.copy(_w).y += 0.1;
       if (!a.alive && !s.dead) { s.dead = true; s.fade = 1; this.splash(a.position, 1.4); }
-      if (s.dead) { s.fade = Math.max(0, s.fade - dt * 1.6); s.light.intensity = 4.5 * s.fade; if (s.fade <= 0) s.light.visible = false; continue; }
+      if (s.dead) { s.fade = Math.max(0, s.fade - dt * 1.6); s.light.intensity = 4.5 * s.fade; continue; } // stays in the scene at 0: hiding it changes the light count → every lit program recompiles (B7)
       const up = THREE.MathUtils.clamp(a.mem['rise'] ?? 0, 0, 1);
       const flick = 0.85 + 0.15 * Math.sin(t * 11 + Math.sin(t * 3.7) * 2);
       s.light.intensity = 4.5 * up * flick * (a.position.distanceToSquared(playerPos) < 60 * 60 ? 1 : 0);

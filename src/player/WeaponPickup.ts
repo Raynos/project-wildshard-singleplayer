@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import type { Interactable } from '../world/Cabin';
 import { isMesh } from './Crossbow';
 import { TIER_CONFIG } from '../core/tier';
+import { LightPool } from '../fx/LightPool';
 
 /**
  * ItemPickup (exported as WeaponPickup too) — an item lying in the world for the player to find, presented like
@@ -16,7 +17,8 @@ import { TIER_CONFIG } from '../core/tier';
  * Approach: within NEAR_DIST the pulse runs ×NEAR_PULSE and the rings tilt toward the player; within the prompt radius
  * the rim goes ×1.5 and `onNear(true)` fires (main.ts → `audio.pickupHum(true)`), `onNear(false)` on leaving.
  * Pickup (E / USE → `take()`): the sphere collapses inward over COLLAPSE_TIME, then a shockwave ring (r 0.2 → 2.5 m over
- * SHOCK_TIME), BURST_MOTES motes flung outward under gravity and a ×3 light flash; then everything is removed.
+ * SHOCK_TIME), BURST_MOTES motes flung outward under gravity and a ×3 light flash; then everything is removed (the
+ * PointLight is a `LightPool` light: released dark, never removed — B7).
  *
  *   const drop = new WeaponPickup({ scene, item: rifle.displayModel(), position: floorPoint, tier: 'common', prompt: 'Take AR-15' });
  *   interactables.push(drop.interactable);   // the door / harvest prompt path shows "[E] Take AR-15" within `radius`
@@ -204,8 +206,9 @@ export class ItemPickup {
     this.shockMat = new THREE.MeshBasicMaterial({ color: colour.clone().multiplyScalar(1.5), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false, fog: false });
     this.shock = new THREE.Mesh(new THREE.RingGeometry(0.82, 1, 64), this.shockMat);
     this.shock.rotation.x = -Math.PI / 2; this.shock.position.y = HOVER; this.shock.visible = false; this.shock.renderOrder = RENDER_ORDER + 4;
-    this.light = new THREE.PointLight(colour, LIGHT, LIGHT_DIST, 2);
-    this.light.position.y = HOVER;
+    // from the scene's LightPool (B7): never added / removed mid-play, so taking the item does not recompile every lit program
+    this.light = LightPool.for(this.scene).acquire(colour, LIGHT, LIGHT_DIST, 2);
+    this.light.position.set(opts.position.x, opts.position.y + HOVER, opts.position.z);
     // the item glows faintly with the orb's colour while it sits inside (materials are shared with the viewmodel: restored on pickup)
     item.traverse((o) => {
       if (!isMesh(o)) return;
@@ -214,7 +217,7 @@ export class ItemPickup {
       this.glowing.set(m, { colour: m.emissive.clone(), intensity: m.emissiveIntensity });
       m.emissive.set(TIER_COLOUR[this.tier]); m.emissiveIntensity = ITEM_EMISSIVE;
     });
-    this.group.add(this.holder, this.sphere, this.rings, this.points, this.sigil, this.pool, this.shock, this.light);
+    this.group.add(this.holder, this.sphere, this.rings, this.points, this.sigil, this.pool, this.shock);
     this.scene.add(this.group);
     // the prompt loop measures from the CAMERA (eye height): the interact point sits a little above the item so the
     // radius reads as ground distance, like the door's `FLOOR + 1.0` point
@@ -264,7 +267,8 @@ export class ItemPickup {
     this.disposed = true; this.taken = true; this.interactable.radius = 0;
     this.unglow();
     if (this.near) { this.near = false; this.onNear?.(false); }
-    this.scene.remove(this.group);
+    this.scene.remove(this.group); // the light is not in it: it goes back to the pool, dark (a light-count change recompiles)
+    LightPool.for(this.scene).release(this.light);
     this.sphere.geometry.dispose(); this.sphereMat.dispose(); this.points.geometry.dispose(); this.moteMat.dispose();
     this.ringGeo.dispose(); this.ringMat.dispose();
     this.sigil.geometry.dispose(); this.sigilMat.dispose(); this.pool.geometry.dispose(); this.poolMat.dispose(); this.shock.geometry.dispose(); this.shockMat.dispose();

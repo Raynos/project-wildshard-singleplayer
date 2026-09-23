@@ -3,6 +3,7 @@ import { ItemPickup, type PickupTier } from './WeaponPickup';
 import type { Interactable } from '../world/Cabin';
 import type { Sky } from '../world/Sky';
 import { WRECK } from '../chunks/driftwood-isle';
+import { LightPool } from '../fx/LightPool';
 
 /**
  * IronSword — the iron sword as LOOT on Driftwood Isle ("the whole point of Project Wildshard is that you can find
@@ -227,7 +228,7 @@ export class IronSwordPickup {
     this.pickup = new ItemPickup({ scene: opts.scene, item: buildIronSwordDisplay(opts.sky), position: this.floor, tier: opts.tier ?? 'common', prompt: opts.prompt ?? 'Take iron sword', radius: opts.radius ?? 2.6, scale: DISPLAY_SCALE, tilt: TILT });
     this.interactable = this.pickup.interactable;
     // the warm glow: an amber point light over the deck (the orb's own is a short cyan one) and a big soft halo
-    this.light = new THREE.PointLight(WARM, 18, 11, 1.6);
+    this.light = LightPool.for(opts.scene).acquire(WARM, 18, 11, 1.6); // pooled (B7): released dark on pickup, never removed
     this.light.position.set(this.floor.x, this.floor.y + 1.3, this.floor.z);
     haloTex ??= makeHalo();
     this.haloMat = new THREE.SpriteMaterial({ map: haloTex, color: WARM, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false });
@@ -235,7 +236,7 @@ export class IronSwordPickup {
     this.halo.position.set(this.floor.x, this.floor.y + 0.75, this.floor.z);
     this.halo.scale.setScalar(3.2);
     this.halo.renderOrder = 19;
-    opts.scene.add(this.light, this.halo);
+    opts.scene.add(this.halo);
   }
 
   get onPickup(): (() => void) | undefined { return this.pickup.onPickup; }
@@ -254,7 +255,8 @@ export class IronSwordPickup {
   private removeGlow(): void {
     if (this.gone) return;
     this.gone = true;
-    this.scene.remove(this.light, this.halo);
+    this.scene.remove(this.halo);
+    LightPool.for(this.scene).release(this.light); // dark, still in the scene: a light-count change would recompile every lit program
     this.haloMat.dispose();
   }
 
