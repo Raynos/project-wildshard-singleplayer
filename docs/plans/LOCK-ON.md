@@ -1,6 +1,6 @@
 # Plan: Zelda-style melee lock-on (E50)
 
-**State:** `draft` 2026-09-23 — research + design + mockups done (E50); nothing is built. Waits on **Jake's picks**: the LOCK button (board 1, J / K / L / M), the locked HUD (board 2, N / O / P / Q), the storyboards (R flick-switch, S orbit), and the open questions at the bottom. Jake approved none of it yet.
+**State:** `draft` 2026-09-23 — Jake picked every question (below: J button, N locked HUD, toggle, amber later, next-within-8 m, Gentle, bow = camera lock + hand-only aim). Waits only on his go to build the melee rows (§3).
 
 Jake (E50, voice note): a Breath of the Wild / Ocarina of Time style lock-on for the Driftwood melee. A HUD button turns it on;
 it locks the nearest enemy near the centre of the view; while locked the LOOK panel stops turning the camera, the MOVE stick
@@ -18,6 +18,25 @@ injected from the working tree, since E46 had not shipped yet):
 
 **Recommended:** **J** + **N** (the storyboards R / S use N's language). The rest of this plan assumes J + N, but every lever
 below works with any pick.
+
+
+## Jake's picks (2026-09-23)
+
+| Q | Pick |
+|---|---|
+| 1 LOCK button | **J** — disc on the right-thumb arc, left of DODGE |
+| 2 Locked HUD | **N** — Zelda ▼ + corner brackets + name / health tag, edge chevron with distance, SWITCH pad, ORBIT stick |
+| 3 Input | **Toggle** (tap to lock, tap to release) |
+| 4 Amber wind-up warning | **Later** — once enemies can hurt the player |
+| 5 Locked target dies | **Auto-lock the next enemy within 8 m** |
+| 6 Camera assist default | **Gentle** (Follow / Gentle / Off in Settings) |
+| 7 Bow (later, not in this build) | **Camera lock, aim stays manual** — see below |
+
+**Ranged lock (Jake, 2026-09-23, for later):** with a bow / ranged weapon, locking turns the camera and the BODY to face
+the target and holds them there — hips, shoulders and view stay locked on. The aim is free only within the hands: the
+bow swivels about ±30° left / right and ±30° up / down around the target line (the LOOK drag moves the bow, not the
+body), so a headshot still takes manual aim. Jake: "you're not turning your hips or your body or your shoulders, you're
+just turning your hands" — expected to be tricky (viewmodel + ray origin decoupled from the camera), but wanted.
 
 ## 1. What the research says
 
