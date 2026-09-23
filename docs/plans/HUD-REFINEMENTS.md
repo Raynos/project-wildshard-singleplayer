@@ -1,6 +1,6 @@
 # Plan: tentative HUD / touch-control refinements
 
-**State:** `in progress` 2026-09-23 — the E58–E64 queue is built and live; the lock-on (E50) is built and archived (project/archive/2026-09-23-lock-on.md; leftovers E74 / E75). Open: E63 waits on Jake's T / V pick; R3 sprint lock (E71) is next, approved 2026-09-23. The other R-rows stay ideas.
+**State:** `in progress` 2026-09-23 — built and live: the E58–E64 queue, the lock-on (E50, archived: project/archive/2026-09-23-lock-on.md; leftovers E74 / E75) and R3 sprint lock (E71, `9bb82c7`). Open: E63 waits on Jake's T / V pick. The other R-rows stay ideas.
 
 ## Read this first
 
