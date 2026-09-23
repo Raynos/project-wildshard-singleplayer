@@ -314,8 +314,10 @@ const FRAG_RELIGHT = /* glsl */`
   float sunlit = smoothstep( 0.02, 0.12, lit );
   float back = pow( max( dot( normalize( - vViewPosition ), sunV ), 0.0 ), 4.0 ) * vGT * sunlit;
   // the shade tint is kept light on grass: its own shadowed blades are the olive of the gradient, not blue
-  vec3 irr = sunC * ( band + back * 0.85 * uLook.y + vSheen * 0.9 * sunlit ) + uPShade * ( 1.0 - band ) * 0.45;
-  reflectedLight.directDiffuse = alb * RECIPROCAL_PI * irr * uLook.z + uSheenAdd * vSheen * sunlit * 0.1;
+  // wet (painterly.ts uPWet, the weather): the blades darken a little and the sheen + backlit glow grow glossy
+  float wetG = uPWet;
+  vec3 irr = sunC * ( band + back * 0.85 * uLook.y * ( 1.0 + wetG ) + vSheen * 0.9 * sunlit * ( 1.0 + 1.6 * wetG ) ) + uPShade * ( 1.0 - band ) * 0.45;
+  reflectedLight.directDiffuse = alb * ( 1.0 - 0.3 * wetG ) * RECIPROCAL_PI * irr * uLook.z + uSheenAdd * vSheen * sunlit * ( 0.1 + 0.25 * wetG );
   reflectedLight.indirectDiffuse *= ( 0.85 + 0.25 * vGT ) * uLook.w;
   reflectedLight.directSpecular = vec3( 0.0 );
   reflectedLight.indirectSpecular = vec3( 0.0 );
@@ -328,7 +330,7 @@ function buildMaterial(sky: Sky, near: boolean): THREE.MeshStandardMaterial {
   mat.onBeforeCompile = (shader) => {
     attachFogUniforms(shader);
     Object.assign(shader.uniforms, grassUniforms, wind.uniforms, trample.uniforms,
-      { uPSunRef: painterlyUniforms.uPSunRef, uPSunDir: painterlyUniforms.uPSunDir, uPShade: painterlyUniforms.uPShade, uSheenAdd: grassUniforms.uSheen });
+      { uPSunRef: painterlyUniforms.uPSunRef, uPSunDir: painterlyUniforms.uPSunDir, uPShade: painterlyUniforms.uPShade, uPWet: painterlyUniforms.uPWet, uSheenAdd: grassUniforms.uSheen });
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${VERT_PARS}`)
       .replace('#include <beginnormal_vertex>', VERT_BLADE(near))
@@ -336,7 +338,7 @@ function buildMaterial(sky: Sky, near: boolean): THREE.MeshStandardMaterial {
     shader.fragmentShader = shader.fragmentShader
       .replace('#include <common>', `#include <common>
         varying vec3 vGCol; varying float vGT; varying float vSheen;
-        uniform vec4 uLook; uniform vec3 uPSunRef; uniform vec3 uPSunDir; uniform vec3 uPShade; uniform vec3 uSheenAdd;`)
+        uniform vec4 uLook; uniform vec3 uPSunRef; uniform vec3 uPSunDir; uniform vec3 uPShade; uniform float uPWet; uniform vec3 uSheenAdd;`)
       .replace('#include <color_fragment>', 'diffuseColor.rgb = vGCol;')
       .replace('#include <normal_fragment_begin>', THREE.ShaderChunk.normal_fragment_begin.replace('normal *= faceDirection;', ''))
       .replace('#include <aomap_fragment>', FRAG_RELIGHT);

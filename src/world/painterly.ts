@@ -43,6 +43,7 @@
  *   updatePainterly(dt)           advance the shared sway clock (the shard's update hook calls it once a frame)
  *   setPainterlyLook(look)        the shard-wide look: shadow tint, rim colour, wind strength (all shared uniforms)
  *   painterlyUniforms.uPWarm / uPFloor   the warm terminator band, and the painted floor that keeps dark paint off black
+ *   painterlyUniforms.uPWet       wetness 0..1 (the weather drives it): darker, glossier paint on what faces the sky; grass too
  *   painterlyUniforms             the shared uniform objects (read-only use: other shaders — grass — may sample the
  *                                 same shadow tint / rim colour / clock so they match)
  *
@@ -96,7 +97,15 @@ export const painterlyUniforms = {
    * never go near-black). Scales with `uPShade`, so night (a dim shade tint) keeps its darks. 0 = off.
    */
   uPFloor: { value: 3.0 },
+  /**
+   * wetness 0 (dry) … 1 (soaked) — the weather drives it (rain → up, the after-storm sun dries it). Up-facing paint
+   * darkens and takes a glossy sun glint + a sky sheen; the painterly grass (GrassPainterly.ts) reads the same uniform.
+   */
+  uPWet: { value: 0 },
 };
+
+// live tuning / the parity harness: `window.__painterly.uPWet.value = 1`
+if (typeof window !== 'undefined') Object.assign(window, { __painterly: painterlyUniforms });
 
 /** Advance the shared clock that drives `sway`. */
 export function updatePainterly(dt: number): void { painterlyUniforms.uPTime.value += dt; }
@@ -155,6 +164,7 @@ uniform vec3 uPShade;
 uniform vec3 uPRimColor;
 uniform float uPWarm;
 uniform float uPFloor;
+uniform float uPWet;
 uniform float uPRim;
 uniform float uPBands;
 uniform float uPShadeAmt;
@@ -163,6 +173,13 @@ struct LambertMaterial {
   vec3 diffuseColor;
   float specularStrength;
 };
+
+// how wet this surface is: the weather's wetness, mostly on what faces the sky
+float pWetAt( vec3 nView ) {
+  if ( uPWet <= 0.0 ) return 0.0;
+  vec3 upV = normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz );
+  return uPWet * ( 0.3 + 0.7 * smoothstep( 0.1, 0.75, dot( nView, upV ) ) );
+}
 
 // the painted light ramp: a dark band, a mid band and the lit band with soft edges, blended with plain Lambert by uPBands
 float pCel( float x ) {
@@ -187,12 +204,23 @@ void RE_Direct_Lambert( const in IncidentLight directLight, const in vec3 geomet
   vec3 irradiance = lightCol * l + uPShade * ( 1.0 - l ) * uPShadeAmt;
   // the warm edge: where the light turns into the shade the paint runs warmer and richer (the terminator band)
   float pTerm = smoothstep( 0.02, 0.2, l ) * ( 1.0 - smoothstep( 0.45, 0.85, l ) );
-  irradiance *= mix( vec3( 1.0 ), vec3( 1.16, 0.98, 0.8 ), pTerm * uPWarm );
-  reflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );
+  // (only a warm key paints a warm edge: the moon's blue light does not)
+  float pWarmKey = clamp( ( uPSunRef.r - uPSunRef.b ) / max( uPSunRef.r, 1e-3 ) * 4.0, 0.0, 1.0 );
+  irradiance *= mix( vec3( 1.0 ), vec3( 1.16, 0.98, 0.8 ), pTerm * uPWarm * pWarmKey );
+  float pWet = pWetAt( geometryNormal );
+  reflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor * ( 1.0 - 0.38 * pWet ) );
+  // wet: a soft glossy glint of the key light (not tinted by the paint)
+  if ( pWet > 0.0 ) {
+    vec3 pH = normalize( directLight.direction + geometryViewDir );
+    reflectedLight.directDiffuse += lightCol * vis * pow( saturate( dot( geometryNormal, pH ) ), 120.0 ) * pWet * 0.6;
+  }
 }
 
 void RE_IndirectDiffuse_Lambert( const in vec3 irradiance, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in LambertMaterial material, inout ReflectedLight reflectedLight ) {
-  reflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );
+  float pWet = pWetAt( geometryNormal );
+  reflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor * ( 1.0 - 0.38 * pWet ) );
+  // wet: the sky's sheen at grazing angles
+  reflectedLight.indirectDiffuse += irradiance * pow( 1.0 - saturate( dot( geometryNormal, geometryViewDir ) ), 5.0 ) * pWet * 0.07;
   // the painted floor (see uPFloor): only the channels darker than 0.22 gain, so bright paint is untouched
   reflectedLight.indirectDiffuse += uPShade * uPFloor * BRDF_Lambert( max( vec3( 0.22 ) - material.diffuseColor, vec3( 0.0 ) ) );
 }

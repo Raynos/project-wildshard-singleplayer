@@ -10,7 +10,8 @@ import { Sky } from '../world/Sky';
 import { GradeEffect, PaintGradeEffect } from './Grade';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '../chunks/registry';
-import { TIER_CONFIG } from './tier';
+import { TIER, TIER_CONFIG } from './tier';
+import { KuwaharaEffect } from './Kuwahara';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 
@@ -124,6 +125,8 @@ export class Game {
 
   /** the painterly look's own handle (Nalati): hue / vibrance / value shaping after the split-tone grade */
   paintGrade: PaintGradeEffect | null = null;
+  /** the painterly filter (desktop): `game.painterlyFilter.set({ strength })` */
+  painterlyFilter: KuwaharaEffect | null = null;
 
   /**
    * The painterly shard's colour chain (look pass lever 8): no film grain, no chromatic fringe — a painting, not a
@@ -144,6 +147,14 @@ export class Game {
     this.post = { grade: split, saturation, contrast, bloom };
     this.paintGrade = paint;
     composer.addPass(new EffectPass(this.camera, vol, godRays, bloom, vignette, tone, saturation, contrast, split, paint));
+    // the painterly filter (anisotropic Kuwahara, src/core/Kuwahara.ts) — an experiment, OFF: at parity it smears the
+    // felt ornaments and grass tufts into watercolour while the mockups are crisp, detailed digital paint (look-pass.md,
+    // 2026-09-23, ~2 ms at 1600×900). `?kuwahara=1` turns it on (desktop tier) to look again.
+    const kq = new URLSearchParams(location.search).get('kuwahara');
+    if (kq === '1' && TIER === 'desktop') {
+      this.painterlyFilter = new KuwaharaEffect();
+      composer.addPass(new EffectPass(this.camera, this.painterlyFilter));
+    }
     if (TIER_CONFIG.smaa !== 'off') {
       const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
       composer.addPass(new EffectPass(this.camera, smaa));

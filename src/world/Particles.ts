@@ -73,9 +73,13 @@ export class Particles {
 
   constructor(private sky: Sky, private forest: Forest) {}
 
+  /** the key light's intensity at build: the motes / mist / needles follow the live key (a day/night clock) relative to it */
+  private baseKeyI = 1;
+
   build(): this {
     this.uSunDir.value.copy(this.sky.sunDir);
     this.uSunColor.value.copy(this.sky.sunColor);
+    this.baseKeyI = Math.max(1e-3, this.sky.csm.lights[0]?.intensity ?? 1);
     noReflect(this.group);
     this.motes = this.buildMotes();
     this.mist = this.buildMist();
@@ -86,6 +90,10 @@ export class Particles {
 
   update(dt: number, playerPos: THREE.Vector3, _camera: THREE.Camera): void {
     this.uTime.value += dt;
+    // follow the key light (the day/night clock moves / recolours / dims it — sun → moon): the dust glints warm by day,
+    // cold and faint by moonlight. A fixed-sun shard never changes it, so its motes stay exactly as they were.
+    this.uSunDir.value.copy(this.sky.sunDir);
+    this.uSunColor.value.copy(this.sky.sunColor).multiplyScalar((this.sky.csm.lights[0]?.intensity ?? this.baseKeyI) / this.baseKeyI);
     this.uMote.value = this.params.moteIntensity;
     this.uMist.value = this.params.mistOpacity;
     if (playerPos.distanceToSquared(this.lastNeedlePos) > 8 * 8) {
