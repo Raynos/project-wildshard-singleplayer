@@ -8,6 +8,7 @@ import { Pack } from './Pack';
 import { HorseHerd } from './Herd';
 import { Flock, dogWolves } from './Flock';
 import { wildEnv } from './wildEnv';
+import { Marmots } from './Marmots';
 
 /**
  * Wildlife — Nalati's creatures placed into the shard (row B4; the Driftwood `Enemies.ts` pattern): wolf packs, wild
@@ -35,6 +36,8 @@ export interface WildlifeLayout {
   packs: { x: number; z: number; variants: string[] }[];
   herds: { x: number; z: number; mares: number; foals: number; stallion: boolean }[];
   flocks: { x: number; z: number; count: number; dog: boolean; range?: number }[];
+  /** marmot burrows: `sites` seeded inside the box (ambient; one instanced draw for all) */
+  marmots?: { sites: number; box: { x0: number; x1: number; z0: number; z1: number } };
 }
 
 /** map-01 (docs/design/nalati/geography-and-map.md §3): the den in the east gully, the herd on the horse plains, the flock on the NE pasture */
@@ -42,6 +45,7 @@ export const NALATI_WILDLIFE: WildlifeLayout = {
   packs: [{ x: -150, z: 25, variants: ['alpha', 'grey', 'tawny', 'grey', 'scout'] }],
   herds: [{ x: 140, z: -120, mares: 11, foals: 3, stallion: true }],
   flocks: [{ x: -120, z: 205, count: 40, dog: true, range: 40 }],
+  marmots: { sites: 7, box: { x0: -200, x1: 220, z0: -200, z1: -40 } },   // the Sky Grassland
 };
 
 const MARE_VARIANTS = ['bay', 'chestnut', 'bay', 'dun', 'chestnut', 'grey', 'bay', 'black', 'dun', 'bay', 'chestnut', 'grey'];
@@ -56,6 +60,7 @@ export class Wildlife {
   packs: Pack[] = [];
   herds: HorseHerd[] = [];
   flocks: Flock[] = [];
+  marmots: Marmots | null = null;
   onSound?: ((name: string, position: THREE.Vector3) => void) | undefined;
   private rng: Rng;
   private prev = new THREE.Vector3(); private speed = 0; private init = false;
@@ -70,6 +75,17 @@ export class Wildlife {
     for (const p of layout.packs) this.spawnPack(p.x, p.z, p.variants);
     for (const h of layout.herds) this.spawnHerd(h.x, h.z, h.mares, h.foals, h.stallion);
     for (const f of layout.flocks) this.spawnFlock(f.x, f.z, f.count, f.dog, f.range);
+    if (layout.marmots !== undefined) {
+      const m = new Marmots(this.opts.sky, this.opts.seed).build(Marmots.scatter(this.opts.seed, layout.marmots.sites, layout.marmots.box));
+      this.opts.scene.add(m.mesh);
+      // a whistle warns anything within 30 m (awareness +0.3)
+      m.onWhistle = (x, z) => {
+        this._v.set(x, heightAt(x, z), z); this.onSound?.('marmot_whistle', this._v);
+        for (const h of this.herds) for (const a of h.members) if (Math.hypot(a.position.x - x, a.position.z - z) < 30) a.mem['aw'] = Math.min(1, (a.mem['aw'] ?? 0) + 0.3);
+        for (const p of this.packs) for (const w of p.members) if (w.alive && Math.hypot(w.position.x - x, w.position.z - z) < 30) { p.awareness = Math.min(1, p.awareness + 0.3); break; }
+      };
+      this.marmots = m;
+    }
     return this;
   }
 
@@ -174,6 +190,7 @@ export class Wildlife {
       wildEnv.trample(a.position.x, a.position.z, r, Math.min(1, a.speed / 6), Math.sin(a.yaw) * a.speed, Math.cos(a.yaw) * a.speed);
     }
     for (const f of this.flocks) f.update(dt, t, p, this.speed, dogWolves);
+    this.marmots?.update(dt, p, this.speed, player.crouching);
     // a wolf pack running through the flock scatters it (Flock reads the wolves); a stampede scatters packs in its path
     for (const h of this.herds) if (h.stampeding) for (const pk of this.packs) pk.scare(h.cx, h.cz, 20);
   }

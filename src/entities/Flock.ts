@@ -243,6 +243,7 @@ export class Flock {
           if ((this.shuffle[i] ?? 0) < -rng.range(1.2, 3)) this.shuffle[i] = rng.range(3, 12);
         }
       }
+      if ((this.spd[i] ?? 0) > 0.01) this.py[i] = heightAt(sx, sz);   // (per frame too while the player is near)
       if (speed > 0 && Math.hypot(vx, vz) > 1e-4) { this.dyaw[i] = Math.atan2(vx, vz); this.dspd[i] = speed; }
       else this.dspd[i] = 0;
       // keep in the chunk

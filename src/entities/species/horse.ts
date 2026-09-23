@@ -330,6 +330,11 @@ function horsePostPose(c: RigAnimCtx): void {
     for (const s of ['L', 'R'] as const) { const hp = b[`B${s}_hip`], hk = b[`B${s}_hock`]; if (hp !== undefined) hp.rotation.x += 1.2 * kick; if (hk !== undefined) hk.rotation.x -= 0.5 * kick; }
   }
   if (stamp > 0.001) { const sh = b['FR_shoulder'], ca = b['FR_carpus']; if (sh !== undefined) sh.rotation.x -= 0.5 * stamp; if (ca !== undefined) ca.rotation.x += stamp; }
+  // grazing: the generic graze (pose.grazeNeck 0) only nods the head; a horse drops the whole neck from the withers and
+  // tucks the head back toward vertical so the muzzle reaches the grass (solved offline for this rig: neck1 1.7, neck2 0.1,
+  // head −1.2 in total)
+  const graze = ez('graze', alive && c.state === 'graze' && c.speed < 0.3 ? 1 : 0, 2.2);
+  if (graze > 0.001) { n1.rotation.x += 1.35 * graze; n2.rotation.x -= 0.1 * graze; head.rotation.x -= 1.55 * graze; }
   // head high + ears forward (watching); ears pinned (warning); a toss
   n1.rotation.x -= 0.28 * headUp + 0.35 * toss;
   n2.rotation.x -= 0.1 * headUp;
@@ -396,7 +401,7 @@ registerSpecies({
   chargeSpeed: 12,
   chargeDamage: 25,
   sounds: { call: 'horse_neigh', hurt: 'horse_squeal', callEvery: [40, 120] },
-  pose: { grazeNeck: 1.25, gallopTail: 0.55 },
+  pose: { grazeNeck: 0, gallopTail: 0.55 },
   gait: { trot: 3.0, gallop: 6.4 },
   variants: [
     { id: 'bay', label: 'Bay mare', weight: 34, rarity: 'common', scale: [0.96, 1.03] },

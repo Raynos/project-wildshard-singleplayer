@@ -467,7 +467,7 @@ export class HorseHerd {
         break;
       }
       case 'beaten':
-        a.state = 'idle'; a.setMotion(a.yaw, 0, 1);
+        a.state = 'graze'; a.setMotion(a.yaw, 0, 1);   // head down, spent
         m['headUp'] = 0; m['toss'] = 0;
         break;
       case 'ridden': break;
