@@ -24,6 +24,7 @@ import { ITEMS, type ItemId } from '../Inventory';
 import type { Audio } from '../../audio/Audio';
 import { IslandSfx } from '../../audio/IslandSfx';
 import { installSpine, type Spine } from './Spine';
+import { installFeats, type ProgressSink } from './Feats';
 
 /** a named point a model module exports (`anchors`, world coords) for the adventure to place things at */
 export interface Anchor { x: number; y?: number; z: number; yaw?: number }
@@ -37,7 +38,7 @@ function anchorsOf(m: object | null | undefined): Record<string, Anchor> | undef
 export interface AdventureWorld<A extends { kind: string; position: THREE.Vector3 } = { kind: string; position: THREE.Vector3 }> {
   game: { scene: THREE.Scene; camera: THREE.Camera; onUpdate: (fn: (dt: number, t: number) => void) => void };
   sky: Sky;
-  player: { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; colliders: Collider[]; platforms: ((x: number, z: number) => number | undefined)[] };
+  player: { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; pitch: number; colliders: Collider[]; platforms: ((x: number, z: number) => number | undefined)[] };
   chunk: { slug: string; id: string };
   /** main.ts's interactable list ("[E] …" prompts, the touch USE button) */
   prompts: Interactable[];
@@ -50,6 +51,8 @@ export interface AdventureWorld<A extends { kind: string; position: THREE.Vector
   /** the animal manager: its onKill is chained (the sailor drops the hold key, the captain ends the fight) */
   animals: { onKill?: ((a: A) => void) | undefined };
   params?: URLSearchParams;
+  /** shard achievements (Progress.recordEvent) — the adventure's event achievements (A4) */
+  progress?: ProgressSink;
 }
 
 export interface Adventure {
@@ -106,7 +109,8 @@ export function installAdventure<A extends { kind: string; position: THREE.Vecto
       case 'loot':
         if (isItem(e.item)) { w.inventory.add(e.item, e.n ?? 1); w.hud.toast(`${ITEMS[e.item].label} ×${e.n ?? 1}`); }
         else if (e.text) w.hud.toast(e.text);
-        sfx.interact('chime', e.at, { delay: 0.55, gain: 0.8 }); // after the lid has thudded back
+        if (e.flag?.startsWith('shard:') === true) { sfx.interact('glyph', e.at, { delay: 0.55 }); w.music.sting('pickup'); }   // the wreck's shard, out of the strongbox
+        else sfx.interact('chime', e.at, { delay: 0.55, gain: 0.8 }); // after the lid has thudded back
         break;
       case 'take': {
         if (isItem(e.item)) w.inventory.add(e.item, e.n ?? 1);
@@ -136,6 +140,7 @@ export function installAdventure<A extends { kind: string; position: THREE.Vecto
 
   const adventure: Adventure = { flags, kit, place, floorAt, spine: null };
   adventure.spine = installSpine(adventure, w);
+  if (w.progress) installFeats(adventure, w, w.progress);
   Object.assign(window, { __adventure: adventure });
   return adventure;
 }

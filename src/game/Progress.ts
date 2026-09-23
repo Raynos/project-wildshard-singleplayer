@@ -53,6 +53,27 @@ export class Progress {
     if (changed) { this.save(); this.onChange?.(); }
   }
 
+  /**
+   * An adventure event (achievements with `event`): bumps each matching achievement by one, or — with `total` —
+   * raises it to that total (idempotent: a collectible count read back from the quest flags after a reload).
+   */
+  recordEvent(event: string, total?: number): void {
+    let changed = false;
+    for (const d of this.defs) {
+      if (d.event === undefined || d.event !== event) continue;
+      const was = this.shard.counts[d.id] ?? 0;
+      const n = Math.min(d.count, total !== undefined ? Math.max(was, total) : was + 1);
+      if (n === was) continue;
+      this.shard.counts[d.id] = n; changed = true;
+      if (n >= d.count && !this.shard.earned.includes(d.id)) {
+        this.shard.earned.push(d.id);
+        if (this.shard.title === null || this.shard.title === '') this.shard.title = d.id;
+        this.onEarned?.(d);
+      }
+    }
+    if (changed) { this.save(); this.onChange?.(); }
+  }
+
   count(id: string): number { return this.shard.counts[id] ?? 0; }
   earned(id: string): boolean { return this.shard.earned.includes(id); }
   get earnedCount(): number { return this.shard.earned.length; }

@@ -79,7 +79,7 @@ export const DRIFTWOOD_INTERACT: InteractTable = {
     // ── A4: the dive treasure off the wreck reef, the vista bench on the plateau rim, the sea glass ──
     { kind: 'chest', id: 'reef-treasure', look: 'treasure', at: { poi: 'world', x: 182, z: -30 }, loot: [{ item: 'doubloon', n: 8 }, { flag: 'found:reef-treasure', label: 'a pearl necklace' }],
       toast: 'Sunken treasure!' },
-    { kind: 'bench', id: 'vista-bench', label: 'Sit and take in the view', at: { poi: 'world', x: -46, z: -96, yaw: Math.PI }, toast: '' },
+    { kind: 'bench', id: 'vista-bench', label: 'Sit and take in the view', at: { poi: 'world', x: -46, z: -100, yaw: 2.8 }, toast: '' },   // on the plateau's south rim, over the lagoon, the pier and the boat
     ...glass,
   ],
 };

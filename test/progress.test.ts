@@ -29,9 +29,14 @@ describe('achievement tables', () => {
     }
   });
 
-  it('every achievement names a registered species and, if any, one of its variants', () => {
+  it('every achievement counts kills OR an event, never both', () => {
+    for (const c of CHUNKS) for (const d of achievementsFor(c.id)) expect((d.kind === undefined) !== (d.event === undefined), d.id).toBe(true);
+  });
+
+  it('every kill achievement names a registered species and, if any, one of its variants', () => {
     for (const c of CHUNKS) {
       for (const d of achievementsFor(c.id)) {
+        if (d.kind === undefined) continue;
         expect(hasSpecies(d.kind), `${d.id}: kind ${d.kind}`).toBe(true);
         if (d.variant !== undefined) expect(speciesDef(d.kind).variants.map((v) => v.id), d.id).toContain(d.variant);
       }
@@ -119,6 +124,25 @@ describe('Progress', () => {
     expect(b.count('deer5')).toBe(1);
     expect(b.title?.id).toBe('bear2');
     expect(new Progress('chunk://local/driftwood-isle').earnedCount).toBe(0);
+    expect(new Progress('chunk://local/driftwood-isle').defs.length).toBeGreaterThan(0);
+  });
+
+  it('events: bump by one, or raise to a total (idempotent), earn at the goal', () => {
+    const p = new Progress('chunk://local/driftwood-isle');
+    const earned = vi.fn<(def: AchievementDef) => void>();
+    p.onEarned = earned;
+    p.recordEvent('glass', 4);
+    p.recordEvent('glass', 3);                 // a lower total never lowers it
+    expect(p.count('glass')).toBe(4);
+    p.recordEvent('shard'); p.recordEvent('shard');
+    expect(p.count('shards')).toBe(2);
+    p.recordEvent('shard');
+    expect(p.earned('shards')).toBe(true);
+    expect(earned).toHaveBeenCalledTimes(1);
+    p.recordEvent('nothing-listens');
+    expect(p.count('glass')).toBe(4);
+    p.recordKill('glass');                     // a kill of a kind that is an event id counts nothing
+    expect(p.count('glass')).toBe(4);
   });
 
   it('survives corrupt storage and a throwing setItem', () => {

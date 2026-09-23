@@ -27,6 +27,7 @@ export class ObjectiveLine {
   private arrow = el('span', '', this.nav);
   private last = '';
   private placeT = 0;
+  private toasts: Element | null = null;
 
   constructor() {
     this.line.prepend(el('i', ''));
@@ -55,8 +56,10 @@ export class ObjectiveLine {
     this.arrow.style.transform = `rotate(${(rel * 180) / Math.PI}deg)`;
   }
 
-  /** keep it under the minimap (called ~once a second; the minimap's size differs per layout) */
+  /** keep it under the minimap (called ~once a second; the minimap's size differs per layout); step aside for toasts */
   update(t: number): void {
+    this.toasts ??= document.querySelector('.ws-game-toasts');
+    this.root.classList.toggle('dim', this.toasts !== null && this.toasts.childElementCount > 0 && window.innerWidth <= 720);
     if (t - this.placeT < 1) return;
     this.placeT = t;
     const mm = document.querySelector('.ws-minimap');
@@ -78,12 +81,18 @@ export class DialogueBox {
   private shown = 0;
   private open_ = false;
   private onDone: (() => void) | null = null;
+  private openT = 0;
   /** chars per second of the type-out */
   cps = 60;
 
+  /** E (desktop) and a tap anywhere on the box (touch) advance it; the game's "[E]" prompt is hidden while it is open */
   constructor() {
     hudRoot().append(this.root);
     this.root.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.advance(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.code !== 'KeyE' || !this.open_ || e.repeat || performance.now() - this.openT < 150) return; // not the press that opened it
+      this.advance();
+    });
   }
 
   get isOpen(): boolean { return this.open_; }
@@ -91,7 +100,7 @@ export class DialogueBox {
   open(name: string, lines: string[], onDone: () => void): void {
     if (lines.length === 0) { onDone(); return; }
     this.name.textContent = name;
-    this.lines = lines; this.i = 0; this.shown = 0; this.onDone = onDone; this.open_ = true;
+    this.lines = lines; this.i = 0; this.shown = 0; this.onDone = onDone; this.open_ = true; this.openT = performance.now();
     this.root.classList.add('show');
     this.render();
   }
@@ -127,7 +136,7 @@ export class DialogueBox {
     this.text.textContent = cur.slice(0, Math.floor(this.shown));
     this.page.textContent = `${this.i + 1} / ${this.lines.length}`;
     const touch = document.getElementById('hud')?.classList.contains('touch') === true;
-    this.next.textContent = `${touch ? 'TAP' : '[E]'} ${this.i + 1 < this.lines.length ? 'NEXT' : 'CLOSE'}`;
+    this.next.textContent = `${touch ? '' : '[E] '}${this.i + 1 < this.lines.length ? 'NEXT ▸' : 'CLOSE'}`;
   }
 }
 

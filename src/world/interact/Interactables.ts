@@ -32,6 +32,8 @@ export interface InteractEvent {
   /** an inventory item handed out (loot / pickup) */
   item?: string;
   n?: number;
+  /** a flag handed out as loot (a chest's `{ flag }` — the wreck's glyph shard) */
+  flag?: string;
   /** world position of the row */
   at: THREE.Vector3;
 }
@@ -89,6 +91,8 @@ const T = (x: number, y: number, z: number, out: THREE.Matrix4, rx = 0, ry = 0, 
 
 export class Interactables {
   onEvent?: (e: InteractEvent) => void;
+  /** a bench was sat on: its world position and facing (the host turns the player to the view) */
+  onSit?: (at: THREE.Vector3, yaw: number) => void;
   readonly lives: Live[] = [];
   private byId = new Map<string, Live>();
   private batches!: Record<BatchId, THREE.BatchedMesh>;
@@ -322,7 +326,8 @@ export class Interactables {
       case 'door': return lv.anim > 0.02 && d.look !== 'plank' ? 0 : d.opensWhen !== undefined && d.lock === undefined && d.requires === undefined ? 0 : PROMPT_R;
       case 'beacon': return this.has(`lit:${d.id}`) ? 0 : PROMPT_R + 0.4;
       case 'altar': return this.has(`used:${d.id}`) ? 0 : PROMPT_R + 0.3;
-      case 'bench': case 'key': case 'pickup': case 'lever': return PROMPT_R;
+      case 'bench': return PROMPT_R + 0.5;
+      case 'key': case 'pickup': case 'lever': return PROMPT_R;
       case 'plate': case 'barrel': return 0;
       default: return PROMPT_R;
     }
@@ -367,7 +372,7 @@ export class Interactables {
         for (const l of d.loot) {
           if ('item' in l) this.emit({ type: 'loot', def: d, item: l.item, n: l.n ?? 1, at });
           else if ('key' in l) { F.set(`key:${l.key}`); this.emit({ type: 'loot', def: d, text: `Found ${l.label}`, at }); }
-          else { F.set(l.flag); this.emit({ type: 'loot', def: d, text: `Found ${l.label}`, at }); }
+          else { F.set(l.flag); this.emit({ type: 'loot', def: d, text: `Found ${l.label}`, flag: l.flag, at }); }
         }
         break;
       }
@@ -385,7 +390,7 @@ export class Interactables {
         break;
       }
       case 'beacon': raise(); this.emit({ type: 'light', def: d, text: d.toast ?? 'The beacon is lit', at }); break;
-      case 'bench': raise(); this.emit({ type: 'sit', def: d, text: d.toast ?? '', at }); break;
+      case 'bench': raise(); this.emit({ type: 'sit', def: d, text: d.toast ?? '', at }); this.onSit?.(lv.position, lv.yaw); break;
       case 'altar': raise(); this.emit({ type: 'use', def: d, text: d.toast ?? '', at }); break;
       case 'plate': case 'barrel': break;
       default: break;

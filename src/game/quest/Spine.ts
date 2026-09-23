@@ -56,8 +56,8 @@ export function installSpine<A extends { kind: string; position: THREE.Vector3 }
   };
   const prompt: Interactable = {
     position: talkAt,
-    radius: TALK_R,
-    get label() { return dialogue.isOpen ? 'Next' : 'Talk to Wendell'; },
+    get radius() { return dialogue.isOpen ? 0 : TALK_R; },   // hidden while talking: the box has its own NEXT (E / a tap)
+    label: 'Talk to Wendell',
     onInteract: talk,
   };
   w.prompts.push(prompt);

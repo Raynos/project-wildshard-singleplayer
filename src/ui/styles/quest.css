@@ -4,6 +4,7 @@
 /* ── objective line: right-aligned under the minimap (its top is set from the minimap's rect in JS) ── */
 .ws-quest-obj { position: absolute; right: 12px; top: 180px; max-width: min(62vw, 340px); display: flex; flex-direction: column; align-items: flex-end; gap: 3px; opacity: 0; transform: translateX(8px); transition: opacity 0.35s, transform 0.35s; pointer-events: none; }
 .ws-quest-obj.show { opacity: 1; transform: none; }
+.ws-quest-obj.show.dim { opacity: 0.12; } /* a HUD toast is up (on the phone the toasts run under the minimap too) */
 .ws-quest-obj-title { font-family: var(--ws-mono); font-size: 8.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ws-cyan-dim); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9); }
 .ws-quest-obj-line { display: flex; align-items: center; gap: 7px; padding: 5px 9px 5px 8px; background: var(--ws-glass); border: 1px solid var(--ws-cyan-line); border-right: 2px solid var(--ws-cyan); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.3); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .ws-quest-obj-line b { font-family: var(--ws-display); font-weight: 600; font-size: 15px; line-height: 1.1; letter-spacing: 0.03em; color: var(--ws-text); text-align: right; }
@@ -16,13 +17,14 @@
 #hud.intro .ws-quest-obj { display: none; }
 
 /* ── dialogue: a glass panel above the touch bar / the bottom of the screen ── */
-.ws-quest-talk { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); width: min(92vw, 560px); transform: translate(-50%, 12px); opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none; padding: 12px 16px 12px 16px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 14px 40px rgba(0, 0, 0, 0.45); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.ws-quest-talk { position: absolute; z-index: 7; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 150px); width: min(92vw, 560px); transform: translate(-50%, 12px); opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none; padding: 12px 16px 12px 16px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 14px 40px rgba(0, 0, 0, 0.45); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 .ws-quest-talk.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; cursor: pointer; }
 .ws-quest-talk::before { content: ''; position: absolute; left: -1px; top: -1px; width: 18px; height: 18px; border-left: 1px solid var(--ws-cyan); border-top: 1px solid var(--ws-cyan); }
 .ws-quest-talk-name { font-family: var(--ws-mono); font-size: 9.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ws-cyan); margin-bottom: 6px; }
 .ws-quest-talk-text { font-family: var(--ws-display); font-weight: 500; font-size: 18px; line-height: 1.3; color: var(--ws-text); min-height: 2.6em; }
 .ws-quest-talk-foot { display: flex; justify-content: space-between; margin-top: 8px; font-family: var(--ws-mono); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-text-dim); }
 .ws-quest-talk-foot b { color: var(--ws-cyan); font-weight: 400; }
+#hud.touch .ws-quest-talk-foot b { padding: 4px 10px; margin: -4px -6px -4px 0; border: 1px solid var(--ws-cyan-line); background: rgba(143, 227, 255, 0.08); }
 #hud.intro .ws-quest-talk { display: none; }
 
 /* ── the reward caption (the golden-hour view) ── */
@@ -33,7 +35,7 @@
 .ws-quest-reward-sub { font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-text); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); }
 
 @media (max-width: 720px) {
-  .ws-quest-obj { right: 10px; max-width: 64vw; }
+  .ws-quest-obj { right: 10px; max-width: 58vw; }
   .ws-quest-obj-line b { font-size: 13.5px; }
   .ws-quest-talk { bottom: calc(env(safe-area-inset-bottom, 0px) + 168px); padding: 10px 13px; }
   .ws-quest-talk-text { font-size: 16px; }
