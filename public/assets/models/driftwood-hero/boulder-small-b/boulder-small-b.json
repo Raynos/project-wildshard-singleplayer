@@ -1,0 +1,20 @@
+{
+ "name": "boulder-small-b",
+ "source": "boulders.glb",
+ "tris": 220,
+ "size_m": [
+  0.72,
+  0.71,
+  0.41
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#687381",
+  "#697583",
+  "#6b7885",
+  "#6d7a88",
+  "#707d8b",
+  "#73808e"
+ ]
+}

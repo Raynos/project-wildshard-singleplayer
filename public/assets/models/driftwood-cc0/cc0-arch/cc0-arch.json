@@ -1,0 +1,17 @@
+{
+ "name": "cc0-arch",
+ "source": "~/models/cc0/poly-pizza/ruin/Quaternius-Arch-Round_B9QABewqLv.glb",
+ "licence": "CC0 1.0 (see scripts/img2mesh/CC0.md)",
+ "tris": 2948,
+ "size_m": [
+  3.5,
+  0.56,
+  4.0
+ ],
+ "palette": [
+  "black",
+  "iron",
+  "rock"
+ ],
+ "vertex_colour": "COLOR_0 rgb = Driftwood palette albedo, a = 1"
+}

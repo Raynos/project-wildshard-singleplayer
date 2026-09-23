@@ -1,0 +1,20 @@
+{
+ "name": "driftwood-log",
+ "source": "driftwood.glb",
+ "tris": 419,
+ "size_m": [
+  3.59,
+  0.9,
+  0.75
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#8b7969",
+  "#978c83",
+  "#a39991",
+  "#ae947c",
+  "#b2a598",
+  "#c0b3a4"
+ ]
+}

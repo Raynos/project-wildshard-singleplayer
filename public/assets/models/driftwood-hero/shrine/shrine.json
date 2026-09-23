@@ -1,0 +1,27 @@
+{
+ "name": "shrine",
+ "source": "shrine.glb",
+ "tris": 2173,
+ "size_m": [
+  2.87,
+  2.56,
+  5.29
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#235205",
+  "#29491c",
+  "#307301",
+  "#386112",
+  "#3b502a",
+  "#3f3e33",
+  "#527f13",
+  "#57534b",
+  "#575e32",
+  "#757f38",
+  "#796d5f",
+  "#968865"
+ ],
+ "atlas": "shrine.tex.glb: 512\u00b2 WebP base colour on smart-project UVs, no COLOR_0"
+}

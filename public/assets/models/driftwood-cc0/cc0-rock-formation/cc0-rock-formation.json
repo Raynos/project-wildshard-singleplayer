@@ -1,0 +1,16 @@
+{
+ "name": "cc0-rock-formation",
+ "source": "~/models/cc0/poly-pizza/rock/Kenney-Rock-Formation_pRY9BCFbmQ.glb",
+ "licence": "CC0 1.0 (see scripts/img2mesh/CC0.md)",
+ "tris": 172,
+ "size_m": [
+  2.6,
+  2.61,
+  3.0
+ ],
+ "palette": [
+  "rockDark",
+  "rockLight"
+ ],
+ "vertex_colour": "COLOR_0 rgb = Driftwood palette albedo, a = 1"
+}

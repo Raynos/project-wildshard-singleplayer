@@ -1,0 +1,27 @@
+{
+ "name": "palm-b",
+ "source": "palm-b.glb",
+ "tris": 1968,
+ "size_m": [
+  6.04,
+  5.72,
+  7.49
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#1c5a1d",
+  "#1f641c",
+  "#257118",
+  "#2a8211",
+  "#35970c",
+  "#425f13",
+  "#46af06",
+  "#583616",
+  "#6ad502",
+  "#714a0c",
+  "#7b512b",
+  "#a5713d"
+ ],
+ "atlas": "palm-b.tex.glb: 256\u00b2 WebP base colour on smart-project UVs, no COLOR_0"
+}

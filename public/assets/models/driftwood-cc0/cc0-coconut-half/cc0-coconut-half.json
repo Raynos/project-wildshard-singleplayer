@@ -1,0 +1,16 @@
+{
+ "name": "cc0-coconut-half",
+ "source": "~/models/cc0/poly-pizza/beach/Kenney-Coconut-Half_ufT2tXnLFc.glb",
+ "licence": "CC0 1.0 (see scripts/img2mesh/CC0.md)",
+ "tris": 98,
+ "size_m": [
+  0.22,
+  0.22,
+  0.11
+ ],
+ "palette": [
+  "plankLight",
+  "white"
+ ],
+ "vertex_colour": "COLOR_0 rgb = Driftwood palette albedo, a = 1"
+}

@@ -1,0 +1,16 @@
+{
+ "name": "cc0-hut",
+ "source": "~/models/cc0/poly-pizza/hut/Quaternius-Hut_4MJWbyd6vw.glb",
+ "licence": "CC0 1.0 (see scripts/img2mesh/CC0.md)",
+ "tris": 632,
+ "size_m": [
+  5.12,
+  6.9,
+  4.5
+ ],
+ "palette": [
+  "postTop",
+  "rock"
+ ],
+ "vertex_colour": "COLOR_0 rgb = Driftwood palette albedo, a = 1"
+}

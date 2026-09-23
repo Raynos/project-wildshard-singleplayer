@@ -1,0 +1,15 @@
+{
+ "name": "cc0-log",
+ "source": "~/models/cc0/poly-pizza/driftwood/Quaternius-Wood-Log_L4E32Wee6C.glb",
+ "licence": "CC0 1.0 (see scripts/img2mesh/CC0.md)",
+ "tris": 202,
+ "size_m": [
+  2.2,
+  0.65,
+  0.64
+ ],
+ "palette": [
+  "bleach"
+ ],
+ "vertex_colour": "COLOR_0 rgb = Driftwood palette albedo, a = 1"
+}

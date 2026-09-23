@@ -1,0 +1,27 @@
+{
+ "name": "sailboat",
+ "source": "sailboat.glb",
+ "tris": 2505,
+ "size_m": [
+  6.49,
+  2.38,
+  6.21
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#190e09",
+  "#1d1009",
+  "#25150c",
+  "#2d1a0e",
+  "#361f11",
+  "#3f2514",
+  "#4e2c13",
+  "#583419",
+  "#684022",
+  "#764e2e",
+  "#998267",
+  "#dcd2bc"
+ ],
+ "atlas": "sailboat.tex.glb: 512\u00b2 WebP base colour on smart-project UVs, no COLOR_0"
+}

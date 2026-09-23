@@ -1,0 +1,20 @@
+{
+ "name": "boulder-wedge",
+ "source": "boulders.glb",
+ "tris": 520,
+ "size_m": [
+  0.95,
+  1.02,
+  1.7
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#66727f",
+  "#677481",
+  "#697683",
+  "#6b7885",
+  "#6e7b89",
+  "#74818f"
+ ]
+}

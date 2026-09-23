@@ -1,0 +1,15 @@
+{
+ "name": "cc0-rock-a",
+ "source": "~/models/cc0/quaternius/pirate-kit/glTF/Environment_Rock_2.gltf",
+ "licence": "CC0 1.0 (see scripts/img2mesh/CC0.md)",
+ "tris": 3072,
+ "size_m": [
+  1.04,
+  1.01,
+  1.4
+ ],
+ "palette": [
+  "rock"
+ ],
+ "vertex_colour": "COLOR_0 rgb = Driftwood palette albedo, a = 1"
+}

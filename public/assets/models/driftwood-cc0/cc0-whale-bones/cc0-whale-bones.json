@@ -1,0 +1,15 @@
+{
+ "name": "cc0-whale-bones",
+ "source": "~/models/cc0/quaternius/pirate-kit/glTF/Environment_LargeBones.gltf",
+ "licence": "CC0 1.0 (see scripts/img2mesh/CC0.md)",
+ "tris": 1680,
+ "size_m": [
+  5.89,
+  6.0,
+  3.11
+ ],
+ "palette": [
+  "bleach"
+ ],
+ "vertex_colour": "COLOR_0 rgb = Driftwood palette albedo, a = 1"
+}

@@ -1,0 +1,17 @@
+{
+ "name": "cc0-rowboat",
+ "source": "~/models/cc0/kenney/pirate-kit/Models/GLB format/boat-row-small.glb",
+ "licence": "CC0 1.0 (see scripts/img2mesh/CC0.md)",
+ "tris": 168,
+ "size_m": [
+  3.6,
+  3.11,
+  1.11
+ ],
+ "palette": [
+  "plank",
+  "plankLight",
+  "trunk"
+ ],
+ "vertex_colour": "COLOR_0 rgb = Driftwood palette albedo, a = 1"
+}
