@@ -9,7 +9,7 @@
 #hud.intro .ws-boss { display: none; }
 
 /* ── the bar ── */
-.ws-boss-bar { position: absolute; left: 50%; top: 22px; width: min(58vw, 780px); transform: translateX(-50%) translateY(-8px); opacity: 0; transition: opacity 0.5s, transform 0.5s; }
+.ws-boss-bar { position: absolute; left: 50%; top: 8px; width: min(58vw, 780px); transform: translateX(-50%) translateY(-8px); opacity: 0; transition: opacity 0.5s, transform 0.5s; }
 .ws-boss-bar.show { opacity: 1; transform: translateX(-50%); }
 .ws-boss-bar-name { text-align: center; font-family: var(--serif); font-weight: 600; font-size: 19px; letter-spacing: 0.42em; text-indent: 0.42em; color: var(--gold); text-shadow: 0 1px 0 #3a2406, 0 0 10px rgba(0, 0, 0, 0.9), 0 0 18px rgba(233, 180, 76, 0.35); margin-bottom: 5px; }
 .ws-boss-bar-frame { position: relative; display: flex; align-items: center; height: 26px; }

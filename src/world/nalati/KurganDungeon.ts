@@ -82,7 +82,7 @@ const C = {
   earth: new THREE.Color('#4a3524'), black: new THREE.Color('#0c0806'),
   felt: new THREE.Color('#8a2619'), feltDark: new THREE.Color('#4f150e'), cream: new THREE.Color('#e2cfa0'), ochre: new THREE.Color('#b0843e'),
   gold: new THREE.Color('#f2c14e'), goldDark: new THREE.Color('#9a6a1c'), bronze: new THREE.Color('#8a5a2a'),
-  stone: new THREE.Color('#8f8b83'), fur: new THREE.Color('#cfc3ad'), sand: new THREE.Color('#d8b57a'),
+  stone: new THREE.Color('#8f8b83'), fur: new THREE.Color('#cfc3ad'), sand: new THREE.Color('#a88c62'),
   day: new THREE.Color('#9fb4c8'),
 };
 
@@ -361,7 +361,7 @@ export class KurganDungeon {
       kit.add(new THREE.BoxGeometry(CH * 2, 0.16, 0.48), rng.next() < 0.3 ? C.larchOld : C.board, { matrix: M(0, -0.08 + rng.range(-0.012, 0.012), z), flat: true, brush: 0.12 });
     }
     // ── walls: stacked horizontal logs; openings for the door (north) and the four niches (east / west) ──
-    const rows = Math.ceil(WALL_H / 0.42);
+    const rows = Math.ceil(PLANK_Y / 0.42);                // up to the deck: no gap under the ceiling
     for (let r = 0; r < rows; r++) {
       const y = 0.22 + r * 0.42, rr = 0.23 + rng.range(-0.015, 0.015);
       const col = r % 3 === 0 ? C.larchDark : r % 3 === 1 ? C.larch : C.larchOld;
@@ -422,6 +422,10 @@ export class KurganDungeon {
       if (!inHole) segs.push([z0, CH]);
       for (const [a, b] of segs) if (b - a > 0.2) kit.add(new THREE.BoxGeometry(0.47, 0.12, b - a), rng.next() < 0.4 ? C.larchOld : C.larchDark, { matrix: M(x, PLANK_Y + rng.range(-0.02, 0.02), (a + b) / 2), flat: true, brush: 0.15 });
     }
+    // the mound's packed earth over the deck (the plank seams must not show the sky): four slabs framing the hole
+    const HX0 = -1.3, HX1 = 1.9, HZ0 = COFFIN.z - 1.3, HZ1 = COFFIN.z + 1.5, EY = PLANK_Y + 0.2;
+    const slab = (x0: number, x1: number, z0: number, z1: number) => kit.add(new THREE.BoxGeometry(x1 - x0, 0.3, z1 - z0), C.earth.clone().multiplyScalar(0.4), { matrix: M((x0 + x1) / 2, EY, (z0 + z1) / 2), flat: true, brush: 0 });
+    slab(-CH - 0.5, CH + 0.5, HZ1, CH + 0.5); slab(-CH - 0.5, CH + 0.5, -CH - 0.5, HZ0); slab(-CH - 0.5, HX0, HZ0, HZ1); slab(HX1, CH + 0.5, HZ0, HZ1);
     // earth and turf showing round the hole's rim (the mound's fill), and dangling roots
     for (let i = 0; i < 22; i++) {
       const a = (i / 22) * Math.PI * 2, x = 0.3 + Math.cos(a) * 1.5, z = COFFIN.z + 0.1 + Math.sin(a) * 1.3;

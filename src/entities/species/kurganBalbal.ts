@@ -29,7 +29,7 @@ import { heightAt } from '../../world/Heightfield';
 export const KURGAN_BALBAL = 'kurgan-balbal';
 
 const PALETTE = {
-  stone: [0.56, 0.545, 0.515], stoneDark: [0.36, 0.35, 0.33], carve: [0.3, 0.29, 0.27], lichen: [0.72, 0.6, 0.3],
+  stone: [0.4, 0.39, 0.37], stoneDark: [0.22, 0.21, 0.2], carve: [0.17, 0.16, 0.15], lichen: [0.55, 0.47, 0.26],
   amber: [1.0, 0.55, 0.12],
 } satisfies Record<string, RGB>;
 
@@ -55,7 +55,7 @@ function balbalPaint(v: VariantDef): Paint {
     if (ny > 0.35 && paintNoise.get(x * 9, z * 9 + y * 4) > 0.25) mix(out, out, P.lichen, 0.55);
     // the amber cracks: thin ridges of a noise field, burning
     const crack = Math.abs(paintNoise.get(x * 7.5 + y * 3.1, z * 7.5 - y * 2.7) + 0.4 * paintNoise.get(y * 11, x * 11 + z * 5));
-    if (crack < 0.045 && part !== 'blade') mix(out, out, amberHdr, sstep(0.045, 0.015, crack));
+    if (crack < 0.075 && part !== 'blade') mix(out, out, amberHdr, sstep(0.075, 0.02, crack));
   };
 }
 

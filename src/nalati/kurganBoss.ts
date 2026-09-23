@@ -644,11 +644,15 @@ export class KurganBoss {
     const { game, sky, player } = this.ctx;
     const god = play.params.has('bossGod');               // dev: the King's blows and the hazards do no damage (screenshots)
     play.animals.factory.model(KURGAN_BALBAL, 'warrior');   // build the adds' model now, not mid-fight
+    if (god) {
+      const hit = play.animals.onCharge;
+      play.animals.onCharge = (a, dmg) => { if (a.kind !== GOLDEN_KING && a.kind !== KURGAN_BALBAL) hit?.(a, dmg); };
+    }
     this.golden = new GoldenBow({ scene: game.scene, sky, camera: game.camera, raycast: (o, d, max) => play.animals.raycast(o, d, max) });
     this.ui = new BossBar();
     this.fight = new GoldenKingFight(this.dungeon, {
       player, animals: play.animals,
-      hurt: (dmg) => { const k = this.fight?.king; if (k && !god) play.animals.onCharge?.(k, dmg); },
+      hurt: (dmg) => { const k = this.fight?.king; if (k) play.animals.onCharge?.(k, dmg); },
       feed: play.feed,
     });
     const def: BossDef = {

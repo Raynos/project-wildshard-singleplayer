@@ -102,13 +102,15 @@ export class GoldenBow {
     for (let i = 0; i < col.count; i++) {
       _c.setRGB(col.getX(i), col.getY(i), col.getZ(i));
       const y = Math.abs(pos.getY(i));
-      const dStr = Math.abs(_c.r - str.r) + Math.abs(_c.g - str.g) + Math.abs(_c.b - str.b);
+      // the string: B2 paints it PAL.string × 0.9–1.0 — the same hue at a slightly lower value
+      const rr = _c.r / str.r, rg = _c.g / str.g, rb = _c.b / str.b;
+      const isString = Math.abs(rr - rg) < 0.04 && Math.abs(rg - rb) < 0.04 && rr > 0.84 && rr < 1.06;
       const lum = _c.r * 0.3 + _c.g * 0.55 + _c.b * 0.15;
-      if (dStr < 0.08 && y > 0.02) { col.setXYZ(i, STRING_LIGHT.r, STRING_LIGHT.g, STRING_LIGHT.b); continue; }
+      if (isString && y > 0.02) { col.setXYZ(i, STRING_LIGHT.r, STRING_LIGHT.g, STRING_LIGHT.b); continue; }
       if (y < 0.075) continue;                                   // the grip + the fist round it keep their leather
-      // limbs: a gold ramp by the old luminance (the painted ornament becomes the brightest gold, the horn the deepest)
-      const k = Math.min(1, lum * 2.2);
-      _c.copy(GOLD_LO).lerp(GOLD, Math.min(1, k * 1.6)).lerp(GOLD_HI, Math.max(0, k - 0.55) * 1.6);
+      // limbs: bright gold (a touch over 1: it glows in the bloom), the painted ornament the brightest, the horn deeper
+      const k = Math.min(1, lum * 2.4);
+      _c.copy(GOLD).lerp(GOLD_HI, Math.max(0, k - 0.35) * 1.3).lerp(GOLD_LO, Math.max(0, 0.12 - lum) * 3).multiplyScalar(1.35);
       col.setXYZ(i, _c.r, _c.g, _c.b);
     }
     col.needsUpdate = true;
@@ -123,7 +125,7 @@ export class GoldenBow {
     cam.getWorldDirection(_d);
     _o.setFromMatrixPosition(cam.matrixWorld).addScaledVector(_d, 0.55);
     _v.copy(_d).multiplyScalar(SPEED_BASE + SPEED_DRAW * p).add(bow.carrierVelocity);
-    const n = bow.arrows.predict(_o, _v, this.pts, STREAK_PTS, 0.6);
+    const n = bow.arrows.predict(_o, _v, this.pts, STREAK_PTS, 0.6, 2.5);   // from 2.5 m out: a streak, not a bar across the view
     this.writeStreak(n);
     // the pierce: walk the path; the first animal is the arrow's own hit, the second takes the sun arrow through it
     let first: PierceTarget | null = null, travelled = 0;
@@ -162,7 +164,7 @@ export class GoldenBow {
       // the ribbon's side: across the path and the view (so it faces the camera)
       _a.set((pts[k * 3] ?? x) - (pts[h * 3] ?? x), (pts[k * 3 + 1] ?? y) - (pts[h * 3 + 1] ?? y), (pts[k * 3 + 2] ?? z) - (pts[h * 3 + 2] ?? z));
       _b.set(x - _o.x, y - _o.y, z - _o.z);
-      _a.cross(_b).normalize().multiplyScalar(0.035 + 0.05 * (j / Math.max(1, n - 1)));
+      _a.cross(_b).normalize().multiplyScalar(0.018 + 0.03 * (j / Math.max(1, n - 1)));
       P[i * 6] = x - _a.x; P[i * 6 + 1] = y - _a.y; P[i * 6 + 2] = z - _a.z;
       P[i * 6 + 3] = x + _a.x; P[i * 6 + 4] = y + _a.y; P[i * 6 + 5] = z + _a.z;
     }
@@ -213,7 +215,7 @@ export function goldenBowModel(sky: Sky): THREE.Object3D {
   const tips: THREE.Vector3[] = [];
   for (const s of [1, -1]) {
     const curve = half(s);
-    const tube = new THREE.TubeGeometry(curve, 40, 0.022, 8, false);
+    const tube = new THREE.TubeGeometry(curve, 40, 0.032, 8, false);
     // taper the tube toward the tip
     const pos = tube.getAttribute('position');
     for (let i = 0; i < pos.count; i++) {
