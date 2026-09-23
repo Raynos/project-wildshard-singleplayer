@@ -1,0 +1,1125 @@
+{
+  "model": "Stable Audio 3 Medium",
+  "credit": "SFX: Stable Audio 3 Medium — Powered by Stability AI",
+  "beds": {
+    "forest": {
+      "file": "bed-forest-2-0cd11be5.m4a",
+      "loopStart": 12.75,
+      "loopEnd": 26.75,
+      "duration": 27.7547,
+      "gain": 0.5
+    },
+    "island": {
+      "file": "bed-island-2-b56f8b01.m4a",
+      "loopStart": 9.0,
+      "loopEnd": 29.0,
+      "duration": 30.016,
+      "gain": 0.5
+    },
+    "underwater": {
+      "file": "bed-underwater-3-cbe2810d.m4a",
+      "loopStart": 9.0,
+      "loopEnd": 21.0,
+      "duration": 22.016,
+      "gain": 0.5
+    }
+  },
+  "hums": {
+    "shrine": {
+      "file": "hum-shrine-2-8b274f39.m4a",
+      "loopStart": 4.25,
+      "loopEnd": 6.25,
+      "duration": 7.2533,
+      "gain": 0.6
+    }
+  },
+  "oneshots": {
+    "bear_growl": {
+      "files": [
+        "bear_growl-3-d51162f5.m4a",
+        "bear_growl-2-2384d717.m4a"
+      ],
+      "gain": 1.0
+    },
+    "bear_hurt": {
+      "files": [
+        "bear_hurt-2-e3decd9a.m4a",
+        "bear_hurt-3-2e189d21.m4a"
+      ],
+      "gain": 1.0
+    },
+    "bear_roar": {
+      "files": [
+        "bear_roar-3-6e416479.m4a",
+        "bear_roar-1-cdda7f3d.m4a"
+      ],
+      "gain": 1.0
+    },
+    "boar_grunt": {
+      "files": [
+        "boar_grunt-3-4e4a9bec.m4a"
+      ],
+      "gain": 1.0
+    },
+    "boar_squeal": {
+      "files": [
+        "boar_squeal-1-6415e380.m4a"
+      ],
+      "gain": 1.0
+    },
+    "boltImpact-flesh": {
+      "files": [
+        "boltImpact-flesh-1-91000a74.m4a",
+        "boltImpact-flesh-3-99224c6c.m4a"
+      ],
+      "gain": 1.0
+    },
+    "boltImpact-ground": {
+      "files": [
+        "boltImpact-ground-2-c6623243.m4a",
+        "boltImpact-ground-1-e51592f5.m4a"
+      ],
+      "gain": 1.0
+    },
+    "boltImpact-wood": {
+      "files": [
+        "boltImpact-wood-1-518c4568.m4a",
+        "boltImpact-wood-2-8fdffc5d.m4a"
+      ],
+      "gain": 1.0
+    },
+    "coconut_hit": {
+      "files": [
+        "coconut_hit-1-25548225.m4a",
+        "coconut_hit-3-f33c352d.m4a"
+      ],
+      "gain": 1.0
+    },
+    "coconut_land": {
+      "files": [
+        "coconut_land-2-a3e51bbb.m4a"
+      ],
+      "gain": 1.0
+    },
+    "crab_click": {
+      "files": [
+        "crab_click-2-aefbc41d.m4a",
+        "crab_click-3-f47e95a3.m4a"
+      ],
+      "gain": 1.0
+    },
+    "crab_snap": {
+      "files": [
+        "crab_snap-2-bff601ad.m4a",
+        "crab_snap-3-69ea11c0.m4a"
+      ],
+      "gain": 1.0
+    },
+    "crossbowFire": {
+      "files": [
+        "crossbowFire-1-40af4c48.m4a"
+      ],
+      "gain": 1.0
+    },
+    "deer_call": {
+      "files": [
+        "deer_call-1-e7e6c631.m4a"
+      ],
+      "gain": 1.0
+    },
+    "dive": {
+      "files": [
+        "dive-3-00913360.m4a",
+        "dive-1-34a595a8.m4a"
+      ],
+      "gain": 1.0
+    },
+    "dodge": {
+      "files": [
+        "dodge-3-500357b6.m4a",
+        "dodge-2-dc30a942.m4a"
+      ],
+      "gain": 1.0
+    },
+    "dryFire": {
+      "files": [
+        "dryFire-2-0755e765.m4a",
+        "dryFire-1-8aafdf79.m4a"
+      ],
+      "gain": 1.0
+    },
+    "elk_bugle": {
+      "files": [
+        "elk_bugle-2-7048925b.m4a",
+        "elk_bugle-1-375e7428.m4a"
+      ],
+      "gain": 1.0
+    },
+    "footstep-litter": {
+      "files": [
+        "footstep-litter-2-19b0df36.m4a",
+        "footstep-litter-1-b1476674.m4a"
+      ],
+      "gain": 1.0
+    },
+    "footstep-planks": {
+      "files": [
+        "footstep-planks-2-0df42a23.m4a"
+      ],
+      "gain": 1.0
+    },
+    "footstep-sand": {
+      "files": [
+        "footstep-sand-2-4b40473a.m4a",
+        "footstep-sand-1-09a40a2f.m4a"
+      ],
+      "gain": 1.0
+    },
+    "hitMarker": {
+      "files": [
+        "hitMarker-1-46ef1236.m4a"
+      ],
+      "gain": 1.0
+    },
+    "hoofsteps": {
+      "files": [
+        "hoofsteps-2-0b709888.m4a"
+      ],
+      "gain": 1.0
+    },
+    "kill": {
+      "files": [
+        "kill-3-5f7ea225.m4a",
+        "kill-2-5e4acc1b.m4a"
+      ],
+      "gain": 1.0
+    },
+    "land": {
+      "files": [
+        "land-2-773487f2.m4a",
+        "land-3-eebff605.m4a"
+      ],
+      "gain": 1.0
+    },
+    "land-hard": {
+      "files": [
+        "land-hard-2-6d3dd78c.m4a",
+        "land-hard-1-2e7ed6b5.m4a"
+      ],
+      "gain": 1.0
+    },
+    "lunge": {
+      "files": [
+        "lunge-3-be45ba7a.m4a"
+      ],
+      "gain": 1.0
+    },
+    "monkey_chatter": {
+      "files": [
+        "monkey_chatter-1-db5ae27b.m4a"
+      ],
+      "gain": 1.0
+    },
+    "monkey_shriek": {
+      "files": [
+        "monkey_shriek-2-54acd647.m4a",
+        "monkey_shriek-1-1a358b4e.m4a"
+      ],
+      "gain": 1.0
+    },
+    "reload": {
+      "files": [
+        "reload-1-4d6ccf59.m4a",
+        "reload-2-a1799660.m4a"
+      ],
+      "gain": 1.0
+    },
+    "rifleFire": {
+      "files": [
+        "rifleFire-3-8ed56841.m4a",
+        "rifleFire-2-a850ad83.m4a"
+      ],
+      "gain": 1.0
+    },
+    "rifleReload": {
+      "files": [
+        "rifleReload-2-1ad54372.m4a",
+        "rifleReload-3-20027167.m4a"
+      ],
+      "gain": 1.0
+    },
+    "sailor_groan": {
+      "files": [
+        "sailor_groan-3-5398492d.m4a"
+      ],
+      "gain": 1.0
+    },
+    "sailor_slash": {
+      "files": [
+        "sailor_slash-2-ec93b9b6.m4a",
+        "sailor_slash-3-4d01e059.m4a"
+      ],
+      "gain": 1.0
+    },
+    "surface": {
+      "files": [
+        "surface-3-b3341d88.m4a",
+        "surface-2-320893c5.m4a"
+      ],
+      "gain": 1.0
+    },
+    "swordHeavy": {
+      "files": [
+        "swordHeavy-2-f7aaea0a.m4a",
+        "swordHeavy-1-ef85d2f8.m4a"
+      ],
+      "gain": 1.0
+    },
+    "swordHit-flesh": {
+      "files": [
+        "swordHit-flesh-1-07225bb8.m4a",
+        "swordHit-flesh-2-efbf5fd7.m4a"
+      ],
+      "gain": 1.0
+    },
+    "swordSwing": {
+      "files": [
+        "swordSwing-2-5c2aae32.m4a"
+      ],
+      "gain": 1.0
+    },
+    "wadeStep": {
+      "files": [
+        "wadeStep-2-8b85a652.m4a",
+        "wadeStep-1-5699ba77.m4a"
+      ],
+      "gain": 1.0
+    },
+    "waterExit": {
+      "files": [
+        "waterExit-2-27aeb501.m4a"
+      ],
+      "gain": 1.0
+    },
+    "weaponSwap": {
+      "files": [
+        "weaponSwap-2-4aca394e.m4a",
+        "weaponSwap-1-d9ab6f26.m4a"
+      ],
+      "gain": 1.0
+    }
+  },
+  "provenance": [
+    {
+      "file": "bear_growl-3-d51162f5.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A large brown bear growling low and menacing, close.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.527,
+      "clap_rank": 1
+    },
+    {
+      "file": "bear_growl-2-2384d717.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A large brown bear growling low and menacing, close.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.477,
+      "clap_rank": 1
+    },
+    {
+      "file": "bear_hurt-2-e3decd9a.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A large bear yelping and groaning in pain.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.248,
+      "clap_rank": 2
+    },
+    {
+      "file": "bear_hurt-3-2e189d21.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A large bear yelping and groaning in pain.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.081,
+      "clap_rank": 2
+    },
+    {
+      "file": "bear_roar-3-6e416479.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A large brown bear roaring loudly and aggressively.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.959,
+      "clap_rank": 1
+    },
+    {
+      "file": "bear_roar-1-cdda7f3d.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A large brown bear roaring loudly and aggressively.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.93,
+      "clap_rank": 1
+    },
+    {
+      "file": "bed-forest-2-0cd11be5.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Ambience of a quiet pine forest at dawn: soft wind through tall pine trees, gentle rustling needles, a few small songbirds chirping in the distance. Continuous field recording, no music.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.993,
+      "clap_rank": 1
+    },
+    {
+      "file": "bed-island-2-b56f8b01.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Ambience of a sunny tropical beach: gentle ocean waves washing on sand, a light sea breeze, distant seagulls calling now and then. Continuous field recording, no music.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.931,
+      "clap_rank": 1
+    },
+    {
+      "file": "bed-underwater-3-cbe2810d.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Underwater ambience: the deep muffled pressure hum and slow water movement heard with your head under the sea, low rumble, no bubbles, no music.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.951,
+      "clap_rank": 1
+    },
+    {
+      "file": "boar_grunt-3-4e4a9bec.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A wild boar grunting and snorting, close.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.025,
+      "clap_rank": 4
+    },
+    {
+      "file": "boar_squeal-1-6415e380.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A wild boar squealing loudly, alarmed.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.003,
+      "clap_rank": 4
+    },
+    {
+      "file": "boltImpact-flesh-1-91000a74.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "An arrow hitting an animal's body with a meaty thud, a single impact, no voice.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.003,
+      "clap_rank": 2
+    },
+    {
+      "file": "boltImpact-flesh-3-99224c6c.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "An arrow hitting an animal's body with a meaty thud, a single impact, no voice.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.002,
+      "clap_rank": 3
+    },
+    {
+      "file": "boltImpact-ground-2-c6623243.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "An arrow thumping into soft dirt ground, a single dull impact with a little debris.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.876,
+      "clap_rank": 1
+    },
+    {
+      "file": "boltImpact-ground-1-e51592f5.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "An arrow thumping into soft dirt ground, a single dull impact with a little debris.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.873,
+      "clap_rank": 1
+    },
+    {
+      "file": "boltImpact-wood-1-518c4568.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "An arrow thudding hard into a wooden plank and vibrating, a single impact.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.605,
+      "clap_rank": 1
+    },
+    {
+      "file": "boltImpact-wood-2-8fdffc5d.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "An arrow thudding hard into a wooden plank and vibrating, a single impact.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.274,
+      "clap_rank": 2
+    },
+    {
+      "file": "coconut_hit-1-25548225.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A coconut hitting a hard surface, a single hollow wooden knock.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.149,
+      "clap_rank": 3
+    },
+    {
+      "file": "coconut_hit-3-f33c352d.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A coconut hitting a hard surface, a single hollow wooden knock.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.033,
+      "clap_rank": 3
+    },
+    {
+      "file": "coconut_land-2-a3e51bbb.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A coconut dropping onto sand with a soft dull thud and a small roll.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.041,
+      "clap_rank": 4
+    },
+    {
+      "file": "crab_click-2-aefbc41d.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A crab clicking its claws on rocks, small hard clicks.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.365,
+      "clap_rank": 2
+    },
+    {
+      "file": "crab_click-3-f47e95a3.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A crab clicking its claws on rocks, small hard clicks.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.096,
+      "clap_rank": 2
+    },
+    {
+      "file": "crab_snap-2-bff601ad.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single sharp crab claw snap, a hard shell click.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.688,
+      "clap_rank": 1
+    },
+    {
+      "file": "crab_snap-3-69ea11c0.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single sharp crab claw snap, a hard shell click.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.617,
+      "clap_rank": 1
+    },
+    {
+      "file": "crossbowFire-1-40af4c48.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single crossbow shot: the trigger clicks, the string snaps with a twang and the bolt whooshes away. Close, dry.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.011,
+      "clap_rank": 3
+    },
+    {
+      "file": "deer_call-1-e7e6c631.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A deer calling in a forest, a short bleating bark.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.008,
+      "clap_rank": 3
+    },
+    {
+      "file": "dive-3-00913360.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Diving under the water surface: a deep plunge followed by a rush of muffled bubbles.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.831,
+      "clap_rank": 1
+    },
+    {
+      "file": "dive-1-34a595a8.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Diving under the water surface: a deep plunge followed by a rush of muffled bubbles.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.806,
+      "clap_rank": 1
+    },
+    {
+      "file": "dodge-3-500357b6.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A quick dodge: a fast body whoosh with cloth rustle and a light foot scuff on dirt.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.895,
+      "clap_rank": 1
+    },
+    {
+      "file": "dodge-2-dc30a942.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A quick dodge: a fast body whoosh with cloth rustle and a light foot scuff on dirt.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.769,
+      "clap_rank": 1
+    },
+    {
+      "file": "dryFire-2-0755e765.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single dry mechanical click of an empty crossbow trigger, metal latch, close and quiet.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.166,
+      "clap_rank": 2
+    },
+    {
+      "file": "dryFire-1-8aafdf79.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single dry mechanical click of an empty crossbow trigger, metal latch, close and quiet.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.055,
+      "clap_rank": 2
+    },
+    {
+      "file": "elk_bugle-2-7048925b.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A bull elk bugling in a forest, a long high whistling call ending in grunts.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.719,
+      "clap_rank": 1
+    },
+    {
+      "file": "elk_bugle-1-375e7428.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A bull elk bugling in a forest, a long high whistling call ending in grunts.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.575,
+      "clap_rank": 1
+    },
+    {
+      "file": "footstep-litter-2-19b0df36.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single footstep on a forest floor of dry pine needles and twigs, close.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.945,
+      "clap_rank": 1
+    },
+    {
+      "file": "footstep-litter-1-b1476674.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single footstep on a forest floor of dry pine needles and twigs, close.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.411,
+      "clap_rank": 2
+    },
+    {
+      "file": "footstep-planks-2-0df42a23.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single boot footstep on old wooden planks of a dock, close.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.012,
+      "clap_rank": 3
+    },
+    {
+      "file": "footstep-sand-2-4b40473a.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single footstep on soft dry beach sand, close.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.68,
+      "clap_rank": 1
+    },
+    {
+      "file": "footstep-sand-1-09a40a2f.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single footstep on soft dry beach sand, close.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.074,
+      "clap_rank": 3
+    },
+    {
+      "file": "hitMarker-1-46ef1236.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single short crisp tick, a small wooden click, very short.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.004,
+      "clap_rank": 5
+    },
+    {
+      "file": "hoofsteps-2-0b709888.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A deer's hooves trotting a few steps on a dirt forest floor.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.078,
+      "clap_rank": 5
+    },
+    {
+      "file": "hum-shrine-2-8b274f39.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A deep ancient stone shrine humming with old magic: a low sustained drone on D with a fifth above, slowly breathing, resonant and mysterious, constant, no rhythm, no melody.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.468,
+      "clap_rank": 1
+    },
+    {
+      "file": "kill-3-5f7ea225.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single deep, satisfying muffled thump with a short low boom tail, like a heavy drum hit in the distance.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.601,
+      "clap_rank": 1
+    },
+    {
+      "file": "kill-2-5e4acc1b.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single deep, satisfying muffled thump with a short low boom tail, like a heavy drum hit in the distance.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.121,
+      "clap_rank": 2
+    },
+    {
+      "file": "land-2-773487f2.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Feet landing on dirt ground after a small jump, a soft thud, no voice.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.696,
+      "clap_rank": 1
+    },
+    {
+      "file": "land-3-eebff605.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Feet landing on dirt ground after a small jump, a soft thud, no voice.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.282,
+      "clap_rank": 2
+    },
+    {
+      "file": "land-hard-2-6d3dd78c.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A heavy, hard landing on the ground after a long fall, a deep body thud with gear rattle, no voice.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.953,
+      "clap_rank": 1
+    },
+    {
+      "file": "land-hard-1-2e7ed6b5.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A heavy, hard landing on the ground after a long fall, a deep body thud with gear rattle, no voice.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.895,
+      "clap_rank": 1
+    },
+    {
+      "file": "lunge-3-be45ba7a.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A quick forward lunge: a short sharp whoosh with a foot stamp on dirt.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.058,
+      "clap_rank": 5
+    },
+    {
+      "file": "monkey_chatter-1-db5ae27b.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A small monkey chattering excitedly in the jungle.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.04,
+      "clap_rank": 5
+    },
+    {
+      "file": "monkey_shriek-2-54acd647.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A monkey shrieking loudly, alarmed.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.073,
+      "clap_rank": 3
+    },
+    {
+      "file": "monkey_shriek-1-1a358b4e.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A monkey shrieking loudly, alarmed.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.065,
+      "clap_rank": 3
+    },
+    {
+      "file": "reload-1-4d6ccf59.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Reloading a crossbow: the string pulled back with a ratchet creak, a bolt slid into place, a click.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.455,
+      "clap_rank": 2
+    },
+    {
+      "file": "reload-2-a1799660.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Reloading a crossbow: the string pulled back with a ratchet creak, a bolt slid into place, a click.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.234,
+      "clap_rank": 2
+    },
+    {
+      "file": "rifleFire-3-8ed56841.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single old bolt-action rifle gunshot outdoors, a sharp crack with a short echo.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.775,
+      "clap_rank": 1
+    },
+    {
+      "file": "rifleFire-2-a850ad83.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single old bolt-action rifle gunshot outdoors, a sharp crack with a short echo.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.24,
+      "clap_rank": 2
+    },
+    {
+      "file": "rifleReload-2-1ad54372.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Working the bolt of an old rifle: bolt lifted and pulled back, a brass shell ejected and clinking, bolt pushed forward and locked.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.899,
+      "clap_rank": 1
+    },
+    {
+      "file": "rifleReload-3-20027167.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Working the bolt of an old rifle: bolt lifted and pulled back, a brass shell ejected and clinking, bolt pushed forward and locked.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.809,
+      "clap_rank": 1
+    },
+    {
+      "file": "sailor_groan-3-5398492d.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A ghostly undead sailor groaning low and hollow, eerie, no words.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.038,
+      "clap_rank": 3
+    },
+    {
+      "file": "sailor_slash-2-ec93b9b6.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A rusty cutlass slashing through the air with a metallic whoosh.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.62,
+      "clap_rank": 1
+    },
+    {
+      "file": "sailor_slash-3-4d01e059.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A rusty cutlass slashing through the air with a metallic whoosh.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.337,
+      "clap_rank": 1
+    },
+    {
+      "file": "surface-3-b3341d88.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Breaking through the water surface from below: a splash and water streaming off, no voice.",
+      "seed": 3,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.898,
+      "clap_rank": 1
+    },
+    {
+      "file": "surface-2-320893c5.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Breaking through the water surface from below: a splash and water streaming off, no voice.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.565,
+      "clap_rank": 1
+    },
+    {
+      "file": "swordHeavy-2-f7aaea0a.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single heavy two-handed sword swing, a slow powerful whoosh through the air, close.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.164,
+      "clap_rank": 2
+    },
+    {
+      "file": "swordHeavy-1-ef85d2f8.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single heavy two-handed sword swing, a slow powerful whoosh through the air, close.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.077,
+      "clap_rank": 2
+    },
+    {
+      "file": "swordHit-flesh-1-07225bb8.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A sword blade slashing into an animal, a single wet meaty cut impact, no voice.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.644,
+      "clap_rank": 1
+    },
+    {
+      "file": "swordHit-flesh-2-efbf5fd7.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A sword blade slashing into an animal, a single wet meaty cut impact, no voice.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.06,
+      "clap_rank": 3
+    },
+    {
+      "file": "swordSwing-2-5c2aae32.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single fast sword swing whooshing through the air, close.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.007,
+      "clap_rank": 4
+    },
+    {
+      "file": "wadeStep-2-8b85a652.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single step wading through shallow water, a soft slosh.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.856,
+      "clap_rank": 1
+    },
+    {
+      "file": "wadeStep-1-5699ba77.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A single step wading through shallow water, a soft slosh.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.84,
+      "clap_rank": 1
+    },
+    {
+      "file": "waterExit-2-27aeb501.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Climbing out of water: water pouring and dripping off a body, a short slosh.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.009,
+      "clap_rank": 5
+    },
+    {
+      "file": "weaponSwap-2-4aca394e.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Drawing a weapon from a leather strap: a short leather creak and a small metal rattle.",
+      "seed": 2,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.44,
+      "clap_rank": 1
+    },
+    {
+      "file": "weaponSwap-1-d9ab6f26.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "Drawing a weapon from a leather strap: a short leather creak and a small metal rattle.",
+      "seed": 1,
+      "steps": 8,
+      "licence": "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)",
+      "clap_p": 0.28,
+      "clap_rank": 2
+    }
+  ],
+  "synth_keeps": [
+    "gull",
+    "hum-pickup",
+    "jump",
+    "splash",
+    "swimStroke",
+    "swordHit-wood"
+  ]
+}

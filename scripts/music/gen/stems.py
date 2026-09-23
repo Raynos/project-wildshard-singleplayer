@@ -4,8 +4,8 @@
 
 Reads the picks from scripts/music/gen/v3-<style>.json (rank_v3.py); --pick overrides one (after the user's veto).
 Writes public/assets/music/<style>/ :
-  pine-calm.m4a  pine-tension.m4a  island-calm.m4a  island-tension.m4a  title.m4a
-  sting-pickup.m4a  sting-death.m4a  sting-chunk.m4a  music.json
+  pine-calm-<h>.m4a  pine-tension-<h>.m4a  island-calm-<h>.m4a  island-tension-<h>.m4a  title-<h>.m4a
+  sting-pickup-<h>.m4a  sting-death-<h>.m4a  sting-chunk-<h>.m4a  music.json   (<h> = content hash, see 6.)
 and scripts/music/gen/v3-<style>-build.json (every decision: grid, loop search, gains, sizes).
 
 Per loop slot (pine / island):
@@ -22,8 +22,11 @@ Per loop slot (pine / island):
   5. Seam: the last bar before loopEnd is crossfaded (equal-gain) into the bar before loopStart, so the audio at
      loopEnd continues exactly as it did at loopStart; after loopEnd the file carries 1 bar of the loop's start,
      faded out, for a player that runs off the end. Same operation on both stems, so they stay sample-aligned.
-  6. One gain for both stems: calm integrated loudness -> -18 LUFS (lowered further if calm + tension would pass
-     -2.5 dBFS, PEAK_DB: AAC overshoots).
+  6. One gain for both stems: calm integrated loudness -> -18 LUFS; then ONE lookahead limiter curve (driven by the
+     mix and by calm alone, ceiling PEAK_DB) multiplies both stems, so peaks are caught without lowering the whole
+     loop and calm + tension is still the mix.
+  File names are content-addressed (<slot>-calm-<sha1[:8]>.m4a ...): the service worker serves audio cache-first, so
+  a changed file must never keep its old name.
   7. AAC-LC 48 kHz: calm stereo 96 kb/s, tension MONO 64 kb/s (the phone holds both decoded: ~25 MB per stereo
      66 s stem). Loop points are then re-measured on the DECODED files (ffmpeg honours the mp4 edit list the way
      decodeAudioData does): the decoder lag is added to them, calm and tension must decode to the same length
@@ -58,7 +61,7 @@ MAX_LOOP_S = 64.0     # loop body cap: 2 slots x 2 stems x ~66 s + title + sting
 TITLE_MAX_S = 72.0
 CALM_LUFS = -18.0
 STING_LUFS = -16.0
-PEAK_DB = -2.5       # true-peak ceiling before AAC: the encoder overshoots by up to ~2 dB on these files
+PEAK_DB = -2.0       # sample-peak ceiling of the limiter before AAC (the encoder overshoots ~1 dB)
 
 
 def lufs(x: np.ndarray, sr: int) -> tuple[float, float]:
@@ -269,9 +272,36 @@ def cut_stings(sources: dict[str, tuple[np.ndarray, dict]], sr: int) -> dict[str
     return out
 
 
+def limiter(sig: np.ndarray, sr: int, ceil_db: float, look_s: float = 0.005, hold_s: float = 0.12, smooth_s: float = 0.02) -> np.ndarray:
+    """a gain curve r(t) <= 1 such that |sig * r| <= ceil everywhere: lookahead peak limiting as min-filter + moving
+    average (the min window is wider than the average window, so r never exceeds the per-sample need)"""
+    from scipy.ndimage import minimum_filter1d, uniform_filter1d
+
+    ceil = 10 ** (ceil_db / 20)
+    need = np.minimum(1.0, ceil / (np.abs(sig).max(0) + 1e-12))
+    a = max(1, int(smooth_s * sr)) | 1
+    held = minimum_filter1d(need, size=int(2 * look_s * sr + hold_s * sr + a) | 1)
+    return np.minimum(uniform_filter1d(held, size=a), need)
+
+
+def shipped_name(dest: Path, tmp: Path, stem: str) -> str:
+    """content-addressed file name <stem>-<sha1[:8]>.m4a: the service worker serves audio cache-first, so a file whose
+    content changes must never keep its old name (a re-roll or a re-master lands under a new name automatically)"""
+    import hashlib
+
+    h = hashlib.sha1(tmp.read_bytes()).hexdigest()[:8]
+    name = f"{stem}-{h}.m4a"
+    tmp.replace(dest / name)
+    return name
+
+
 def build_style(raw: Path, style: str, overrides: dict[str, str]) -> None:
     v3 = json.loads((HERE / f"v3-{style}.json").read_text())
     dest = OUT / style
+    dest.mkdir(parents=True, exist_ok=True)
+    for old in dest.glob("*.m4a"):  # this folder holds only this script's output
+        old.unlink()
+    tmpd = Path(tempfile.mkdtemp())
     manifest: dict = {"style": style, "model": "MiniMax-Music3", "credit": "Music: MiniMax-Music3", "slots": {}, "stings": {}, "provenance": []}
     report: dict = {"style": style, "slots": {}}
     total = 0
@@ -301,19 +331,20 @@ def build_style(raw: Path, style: str, overrides: dict[str, str]) -> None:
         sources_take[slot] = take
         if slot == "title":
             full, dur = seam(x, sr, loop, bar)
-            L, tp = lufs(full, sr)
-            gain = min(CALM_LUFS - L, PEAK_DB - tp)
-            full *= 10 ** (gain / 20)
-            n = encode(full, sr, dest / "title.m4a")
+            L, _ = lufs(full, sr)
+            k = 10 ** ((CALM_LUFS - L) / 20)
+            full = full * k * limiter(full * k, sr, PEAK_DB)[None]
+            encode(full, sr, tmpd / "t.m4a")
+            lag, dlen = decode_offset(tmpd / "t.m4a", full, sr)
+            name = shipped_name(dest, tmpd / "t.m4a", "title")
+            n = (dest / name).stat().st_size
             total += n
-            lag, dlen = decode_offset(dest / "title.m4a", full, sr)
-            manifest["slots"]["title"] = {"full": "title.m4a", "bpm": loop["bpm"], "beatsPerBar": 4,
+            manifest["slots"]["title"] = {"full": name, "bpm": loop["bpm"], "beatsPerBar": 4,
                                           "loopStart": round(loop["loopStart"] + lag, 4), "loopEnd": round(loop["loopEnd"] + lag, 4),
                                           "duration": round(dlen, 4)}
             assert loop["loopEnd"] + lag <= dlen
-            rec.update(decode_lag_s=lag, decoded_s=dlen)
-            prov("title.m4a", take, {"take": pid, "gain_db": round(gain, 2)})
-            rec.update(gain_db=round(gain, 2), bytes=n)
+            rec.update(decode_lag_s=lag, decoded_s=dlen, file=name, gain_db=round(float(20 * np.log10(k)), 2), bytes=n)
+            prov(name, take, {"take": pid, "gain_db": rec["gain_db"], "limiter_ceiling_db": PEAK_DB})
         else:
             assert st is not None
             resid = x - sum(st.values())
@@ -323,47 +354,50 @@ def build_style(raw: Path, style: str, overrides: dict[str, str]) -> None:
             calm_f, dur = seam(calm, sr, loop, bar)
             ten_f, _ = seam(tension, sr, loop, bar)
             L, _ = lufs(calm_f, sr)
-            gain = CALM_LUFS - L
-            peak = float(np.abs(calm_f + ten_f).max()) * 10 ** (gain / 20)
-            if peak > 10 ** (PEAK_DB / 20):
-                gain -= 20 * np.log10(peak / 10 ** (PEAK_DB / 20))
-            k = 10 ** (gain / 20)
-            nc = encode(calm_f * k, sr, dest / f"{slot}-calm.m4a")
-            nt = encode(ten_f * k, sr, dest / f"{slot}-tension.m4a", mono=True)
-            total += nc + nt
+            k = 10 ** ((CALM_LUFS - L) / 20)
+            # one limiter curve for both stems (driven by the mix and by calm alone), so calm + tension stays the mix
+            r = np.minimum(limiter((calm_f + ten_f) * k, sr, PEAK_DB), limiter(calm_f * k, sr, PEAK_DB))[None]
+            calm_o, ten_o = calm_f * k * r, ten_f * k * r
+            encode(calm_o, sr, tmpd / "c.m4a")
+            encode(ten_o, sr, tmpd / "t.m4a", mono=True)
             # loop points in DECODED time: measure the decoder's lag on both files; they must agree, and match in length
-            lag_c, len_c = decode_offset(dest / f"{slot}-calm.m4a", calm_f, sr)
-            lag_t, len_t = decode_offset(dest / f"{slot}-tension.m4a", ten_f, sr)
+            lag_c, len_c = decode_offset(tmpd / "c.m4a", calm_o, sr)
+            lag_t, len_t = decode_offset(tmpd / "t.m4a", ten_o, sr)
             assert abs(len_c - len_t) < 0.05, f"calm {len_c:.3f}s vs tension {len_t:.3f}s"
             assert abs(lag_c - lag_t) < 0.002, f"decode lag calm {lag_c} vs tension {lag_t}"
-            manifest["slots"][slot] = {"calm": f"{slot}-calm.m4a", "tension": f"{slot}-tension.m4a", "bpm": loop["bpm"], "beatsPerBar": 4,
+            cn, tn = shipped_name(dest, tmpd / "c.m4a", f"{slot}-calm"), shipped_name(dest, tmpd / "t.m4a", f"{slot}-tension")
+            nc, nt = (dest / cn).stat().st_size, (dest / tn).stat().st_size
+            total += nc + nt
+            manifest["slots"][slot] = {"calm": cn, "tension": tn, "bpm": loop["bpm"], "beatsPerBar": 4,
                                        "loopStart": round(loop["loopStart"] + lag_c, 4), "loopEnd": round(loop["loopEnd"] + lag_c, 4),
                                        "duration": round(min(len_c, len_t), 4)}
             assert loop["loopEnd"] + lag_c <= min(len_c, len_t)
-            rec.update(decode_lag_s={"calm": lag_c, "tension": lag_t}, decoded_s={"calm": len_c, "tension": len_t})
-            for f, part in ((f"{slot}-calm.m4a", "calm: mix - drums - bass/2"), (f"{slot}-tension.m4a", "tension: drums + bass/2 (htdemucs), mono")):
-                prov(f, take, {"take": pid, "stem": part, "gain_db": round(float(gain), 2)})
-            share = {s: round(float((a ** 2).sum() / ((x ** 2).sum() + 1e-12)), 4) for s, a in st.items()}
-            rec.update(stem_share=share, voice_in_calm=voice <= 0.03, gain_db=round(float(gain), 2),
-                       tension_lufs=round(lufs(ten_f * k, sr)[0], 1), bytes={"calm": nc, "tension": nt})
+            gdb = round(float(20 * np.log10(k)), 2)
+            for f, part in ((cn, "calm: mix - drums - bass/2"), (tn, "tension: drums + bass/2 (htdemucs), mono")):
+                prov(f, take, {"take": pid, "stem": part, "gain_db": gdb, "limiter_ceiling_db": PEAK_DB})
+            share = {s_: round(float((a_ ** 2).sum() / ((x ** 2).sum() + 1e-12)), 4) for s_, a_ in st.items()}
+            rec.update(stem_share=share, voice_in_calm=voice <= 0.03, gain_db=gdb, limited_min_gain=round(float(r.min()), 3),
+                       decode_lag_s={"calm": lag_c, "tension": lag_t}, decoded_s={"calm": len_c, "tension": len_t},
+                       files={"calm": cn, "tension": tn}, bytes={"calm": nc, "tension": nt})
         report["slots"][slot] = rec
         print(f"{style}/{slot}: {pid} bpm {loop['bpm']:.1f} loop {loop['loopStart']:.2f}-{loop['loopEnd']:.2f} ({loop['bars']} bars, seam {loop['similarity']})", flush=True)
 
     # stings are CUT from this style's own takes: MiniMax's 6 s "sting" renders came back as 6 s of mid-song band
     # music (no silence after, and CLAP heard the wrong style in most) - see cut_stings()
-    cuts = cut_stings(sources, sr_src)
-    for sting, (y, src_slot, t0, why) in cuts.items():
-        key = f"sting-{sting}"
+    for sting, (y, src_slot, t0, why) in cut_stings(sources, sr_src).items():
         take = sources_take[src_slot]
-        L, tp = lufs(y, sr_src)
-        gain = min(STING_LUFS - L, PEAK_DB - 1.5 - tp)  # transients overshoot more in AAC
-        n = encode(y * 10 ** (gain / 20), sr_src, dest / f"{key}.m4a")
+        L, _ = lufs(y, sr_src)
+        k = 10 ** ((STING_LUFS - L) / 20)
+        y = y * k * limiter(y * k, sr_src, PEAK_DB - 1.0)[None]
+        encode(y, sr_src, tmpd / "s.m4a")
+        name = shipped_name(dest, tmpd / "s.m4a", f"sting-{sting}")
+        n = (dest / name).stat().st_size
         total += n
-        manifest["stings"][sting] = f"{key}.m4a"
-        prov(f"{key}.m4a", take, {"take": take["id"], "cut_from": f"{src_slot} at {t0:.2f}s ({why})",
-                                  "seconds": round(y.shape[1] / sr_src, 2), "gain_db": round(gain, 2)})
-        report["slots"][key] = {"from": src_slot, "take": take["id"], "at_s": round(t0, 2), "why": why,
-                                "seconds": round(y.shape[1] / sr_src, 2), "bytes": n}
+        manifest["stings"][sting] = name
+        prov(name, take, {"take": take["id"], "cut_from": f"{src_slot} at {t0:.2f}s ({why})",
+                          "seconds": round(y.shape[1] / sr_src, 2), "gain_db": round(float(20 * np.log10(k)), 2)})
+        report["slots"][f"sting-{sting}"] = {"from": src_slot, "take": take["id"], "at_s": round(t0, 2), "why": why, "file": name,
+                                             "seconds": round(y.shape[1] / sr_src, 2), "bytes": n}
 
     (dest / "music.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n")
     report["total_bytes"] = total

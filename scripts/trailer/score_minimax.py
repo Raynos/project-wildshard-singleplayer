@@ -4,7 +4,7 @@
 
 The picture is unchanged (cut.sh + the EDLs made it; its frames are not kept), so this swaps the audio track of
 public/trailer-{15,30}.mp4 in place: video stream copied bit for bit, new AAC 160 kb/s audio.
-The score is a window of public/assets/music/piano/title.m4a placed so that its strongest bar-aligned energy rise
+The score is a window of the piano title file named in public/assets/music/piano/music.json placed so that its strongest bar-aligned energy rise
 (the groove coming in) lands on the cut's first sword swing - 12.8 s in the 30 s cut, 5.3 s in the 15 s cut (the
 EDL cue points in MUSIC.md). The dive shot gets the in-game underwater treatment (a 500 Hz low-pass while the camera
 is under), 0.4 s fade-in, 1 s fade-out on the end card.
@@ -22,7 +22,6 @@ import numpy as np
 import soundfile as sf
 
 REPO = Path(__file__).resolve().parents[2]
-TITLE = REPO / "public/assets/music/piano/title.m4a"
 MANIFEST = REPO / "public/assets/music/piano/music.json"
 CUTS = {  # name: (length s, first swing s, underwater window s) - from scripts/trailer/edl-*.txt
     "trailer-30": (28.1, 12.8, (15.0, 16.4)),
@@ -38,8 +37,8 @@ def decode(path: Path, sr: int = 48000) -> np.ndarray:
 
 def main() -> None:
     sr = 48000
-    x = decode(TITLE)
     spec = json.loads(MANIFEST.read_text())["slots"]["title"]
+    x = decode(MANIFEST.parent / spec["full"])
     bar = 4 * 60.0 / spec["bpm"]
     y = librosa.to_mono(x)
     hop = 480
@@ -76,7 +75,7 @@ def main() -> None:
                             "-movflags", "+faststart", str(tmp)], check=True)
             tmp.replace(src)
         report[name] = {"title_offset_s": round(best, 3), "energy_rise_at_swing": round(float(best_s), 2)}
-        print(f"{name}: title.m4a from {best:.2f}s, swing at {swing}s lands on a {best_s:.2f}x energy rise")
+        print(f"{name}: {spec['full']} from {best:.2f}s, swing at {swing}s lands on a {best_s:.2f}x energy rise")
     (REPO / "scripts/trailer/score-minimax.json").write_text(json.dumps(report, indent=2) + "\n")
 
 
