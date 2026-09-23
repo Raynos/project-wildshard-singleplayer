@@ -96,7 +96,7 @@ try {
         const m = await loadNalatiModel(w.sky, s.name);
         glb = new THREE.Group(); const mesh = new THREE.Mesh(m.geometry, m.material); mesh.castShadow = mesh.receiveShadow = true; glb.add(mesh);
       } else {
-        const gltf = await new Promise((res, rej) => mc.loader.load(`/assets/nalati/models/${s.name}.glb`, res, undefined, rej));
+        const gltf = await mc.loader.loadAsync(`/assets/nalati/models/${s.name}.glb`);
         glb = gltf.scene;
         glb.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; w.sky.setupMaterial?.(o.material); } });
       }
@@ -117,7 +117,7 @@ try {
     };
     window.__mcShow = (which) => { const mc = window.__mc; mc.proc.visible = which === 'proc'; mc.glb.visible = which === 'glb'; };
   }, { ...SPOT, paint: PAINT });
-  await new Promise((r) => { setTimeout(r, 8000); });
+  await new Promise((resolve) => { setTimeout(resolve, 8000); });
 
   const results = [];
   for (const s of SUBJECTS) {
@@ -126,14 +126,14 @@ try {
       const shots = {};
       for (const which of ['proc', 'glb']) {
         await page.evaluate((wch) => window.__mcShow(wch), which);
-        await new Promise((r) => { setTimeout(r, 1800); });
+        await new Promise((resolve) => { setTimeout(resolve, 1800); });
         shots[which] = await page.screenshot({ type: 'jpeg', quality: 88 });
       }
       results.push({ s, info, shots });
       console.log(`${s.name}: proc h ${info.hp.toFixed(2)} m, glb h ${info.hg.toFixed(2)} m`);
     } catch (e) { console.log(`${s.name}: FAILED ${e.message.slice(0, 160)}`); }
   }
-  if (errors.length) console.log('page errors:', errors.slice(0, 5).join(' | '));
+  if (errors.length > 0) console.log('page errors:', errors.slice(0, 5).join(' | '));
 
   // compose: yesterday | today | mockup (the turntable's reference cell) per subject, plus one sheet
   const comp = await (await browser.newContext()).newPage();
@@ -141,7 +141,7 @@ try {
   for (const r of results) {
     const tt = readFileSync(resolvePath(ROOT, `art/nalati-grasslands/round-5-models/${r.s.name}-turntable.jpg`)).toString('base64');
     const b64 = await comp.evaluate(async (a) => {
-      const load = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+      const load = (src) => new Promise((resolve, reject) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = src; });
       const [p, g, t] = await Promise.all([load(a.p), load(a.g), load(a.t)]);
       const S = 600, G = 8, TOP = 34, BOT = 30;
       const c = document.createElement('canvas'); c.width = S * 3 + G * 4; c.height = S + TOP + BOT;
@@ -161,13 +161,13 @@ try {
     cells.push(b64);
   }
   const sheet = await comp.evaluate(async (list) => {
-    const load = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+    const load = (src) => new Promise((resolve, reject) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = src; });
     const imgs = await Promise.all(list.map((b) => load(`data:image/jpeg;base64,${b}`)));
     const w = 1200, h = Math.round(w * imgs[0].height / imgs[0].width), G = 6;
     const c = document.createElement('canvas'); c.width = w * 2 + G * 3; c.height = Math.ceil(imgs.length / 2) * (h + G) + G;
     const x = c.getContext('2d'); x.fillStyle = '#111'; x.fillRect(0, 0, c.width, c.height);
     imgs.forEach((im, i) => x.drawImage(im, G + (i % 2) * (w + G), G + Math.floor(i / 2) * (h + G), w, h));
-    for (let q = 0.8; q >= 0.4; q -= 0.05) { const u = c.toDataURL('image/jpeg', q); if (u.length * 0.75 < 1.4e6) return u.split(',')[1]; }
+    for (let qq = 0.8; qq >= 0.4; qq -= 0.05) { const u = c.toDataURL('image/jpeg', qq); if (u.length * 0.75 < 1.4e6) return u.split(',')[1]; }
     return c.toDataURL('image/jpeg', 0.35).split(',')[1];
   }, cells);
   writeFileSync(resolvePath(OUT, 'models-sheet.jpg'), Buffer.from(sheet, 'base64'));
