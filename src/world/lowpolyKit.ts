@@ -214,7 +214,7 @@ export type Part = [THREE.BufferGeometry, ColorLike];
 export const PLANT = {
   leaf: '#4f8f34', leafB: '#63a63c', leafDark: '#3c7430', leafLight: '#7fbf4a', stem: '#5b7a34',
   hibiscus: '#e2372c', hibiscusB: '#f0543a', stamen: '#ffd24a', lily: '#4f9a3c', lilyB: '#66ad45', lotus: '#f4f0ea', lotusPink: '#f2b6c6',
-  grass: '#6da83e', grassB: '#86bd4c', grassTip: '#a8cf62',
+  grass: '#7cbc45', grassB: '#95cc55', grassTip: '#b9dc6e',
 };
 
 /**

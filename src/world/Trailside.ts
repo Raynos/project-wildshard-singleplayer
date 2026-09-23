@@ -29,6 +29,15 @@ const C = {
   plank: new THREE.Color('#a07c53'), plankDark: new THREE.Color('#7d5f3f'), board: new THREE.Color('#b8925f'), boardEdge: new THREE.Color('#6a4e33'),
 };
 
+/** a polyline moved `d` m to its left (negative: right), for fences either side of a path's centreline */
+function offset(path: [number, number][], d: number): [number, number][] {
+  return path.map(([x, z], i) => {
+    const a = path[Math.max(0, i - 1)] ?? [x, z], b = path[Math.min(path.length - 1, i + 1)] ?? [x, z];
+    const dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1;
+    return [x - (dz / l) * d, z + (dx / l) * d];
+  });
+}
+
 export class Trailside {
   mesh!: THREE.Mesh;
   colliders: Collider[] = [];
@@ -46,6 +55,14 @@ export class Trailside {
         { path: [[-20, -98], [-6, -100], [6, -94], [14, -82], [18, -68], [16, -52]] },
         // the headland ramp's outer edge
         { path: [[40, 40], [50, 50], [60, 58], [70, 68], [80, 78]] },
+        // (M4) rope fences along the other paths' open stretches: both sides of the shrine approach, the wreck path's
+        // seaward side, the pier landing's dune path, the hut → lookout path over the flats
+        { path: offset([[-72, 20], [-80, 45], [-88, 70], [-94, 88]], 3.4) },
+        { path: offset([[-72, 20], [-80, 45], [-88, 70], [-94, 88]], -3.4) },
+        { path: offset([[62, 0], [80, -1.5], [100, -2], [124, 1.5]], -3.4), spacing: 3.2 },
+        { path: offset([[-2, -184], [-8, -172], [-22, -152]], 3.2) },
+        { path: offset([[-2, -184], [-8, -172], [-22, -152]], -3.2) },
+        { path: offset([[-8, -50], [14, -24], [17, 8]], 3.4), spacing: 3.2 },
       ],
       steps: [
         { from: [-30, -140], to: [-30, -106] },

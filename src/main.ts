@@ -10,6 +10,7 @@ import { Boat } from './world/Boat';
 import { Boulders } from './world/Boulders';
 import { Hut } from './world/Hut';
 import { Palms } from './world/Palms';
+import { GroundCover } from './world/GroundCover';
 import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE } from './chunks/driftwood-isle';
 import { RopeBridge } from './world/RopeBridge';
 import { Seabed } from './world/Seabed';
@@ -198,6 +199,9 @@ async function main() {
     if (cove) { game.scene.add(cove.group); player.colliders.push(...cove.colliders); player.platforms.push((x, z) => cove.floorHeightAt(x, z)); }
     await slice();
     if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
+    // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
+    const cover = sea ? new GroundCover(sky, { sea: sea.level }).build() : null;
+    if (cover) { game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, player.position)); }
     ocean?.foamAround(player.colliders); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
     await macrotask();
     const horizon = new Horizon(sky).build();
