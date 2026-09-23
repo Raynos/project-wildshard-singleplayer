@@ -3,9 +3,10 @@
    .ws-wordmark / .ws-bar and the keyframes. Everything else is sculpted per screen in a sibling file with
    its own class prefix (game.css → ws-game-, menu.css → ws-menu-, …); scripts/check-css.mjs enforces it. */
 :root {
-  /* top edge of the HUD on phones. In Safari the status bar is outside the page (safe-area-inset-top = 0) → 6px from
-     the top; as a home-screen PWA the page runs under the clock / Dynamic Island (inset ≈ 59px) → sit just below them.
-     `html.standalone` (index.html) is also set for anything that needs to know the mode explicitly. */
+  /* top edge of the HUD on phones: 6px from the top of the page. The page never runs under the status bar — not in the
+     Safari tab, and not as a home-screen PWA either since E58 dropped viewport-fit=cover (see index.html) — so the inset is
+     0 on phones; it stays in the formula for any device that still reports one. `html.standalone` (index.html) is set for
+     anything that needs to know the mode explicitly. */
   --ws-top: calc(env(safe-area-inset-top, 0px) + 6px);
   --ws-cyan: #8fe3ff;
   --ws-cyan-dim: rgba(143, 227, 255, 0.55);
@@ -21,7 +22,12 @@
   --ws-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
 }
 
-html, body { margin: 0; padding: 0; overflow: hidden; height: 100%; background: #050810; touch-action: manipulation; overscroll-behavior: none; -webkit-text-size-adjust: 100%; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+/* overflow: clip, NOT hidden (E58): in an iOS home-screen web app drawn under the status bar, `overflow: hidden` on html /
+   body was one of the triggers that made WebKit shrink the viewport a status bar short (~62 px) a second after load — the
+   black strip under the control bar and the title (bisected in the iOS 26.5 simulator: hidden → 812 of 874 px, clip →
+   872). The boot loader's relayout triggered it too, so the real cure is index.html's viewport without viewport-fit=cover;
+   clip stays because it still keeps the page from ever scrolling without making it a scroll container. */
+html, body { margin: 0; padding: 0; overflow: clip; height: 100%; background: #050810; touch-action: manipulation; overscroll-behavior: none; -webkit-text-size-adjust: 100%; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 /* #game and #hud are sized by --ws-vh (src/core/viewport.ts: the real height — an iOS home-screen app reports 100vh / innerHeight
    a status bar short and left a black strip over the home indicator, E46); fixed, so body's overflow clip can't cut them */
 #game { position: fixed; left: 0; top: 0; display: block; width: 100vw; height: var(--ws-vh, 100vh); touch-action: none; }

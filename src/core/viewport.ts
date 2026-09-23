@@ -1,25 +1,19 @@
 /**
- * viewport — the page's real drawable height.
+ * viewport — the page's drawable height.
  *
  *   installViewport();            // once (Game's constructor); keeps `--ws-vh` on <html> current on every resize
  *   const h = viewportHeight();   // use instead of window.innerHeight for the canvas and anything projected onto it
  *
- * iOS home-screen web app (index.html sets `html.standalone`; the status bar is black-translucent, so the page runs
- * under it): WebKit reports `innerHeight` / `100vh` / a fixed `inset: 0` SHORT by the status bar's height (≈ 62 px on a
- * Dynamic Island phone) while the page still starts at the very top — the canvas and the touch bar stopped that far
- * above the physical bottom and left a black strip over the home indicator (E46, Jake's iPhone). In that mode, portrait,
- * the screen's height is the truth; a gap wider than a status bar (or none, once WebKit is fixed) falls back to
- * innerHeight. The Safari tab and every other browser are untouched.
+ * History (E46 → E58): an iOS home-screen web app laid out UNDER the status bar (`viewport-fit=cover` + black-translucent)
+ * had WebKit shrink the viewport a status bar short (~62 px) about a second after load, and keep it short; the black strip
+ * sat under the control bar and the title. E46 papered over it here by sizing to `screen.height`, but WebKit clips fixed
+ * content to the shrunk viewport, so the strip stayed (and the bar was cut). Bisected in the iOS 26.5 simulator's
+ * home-screen app (E58): `overflow: hidden` on html / body and the boot loader's relayout both trigger the shrink, and only
+ * dropping `viewport-fit=cover` (the page starts below the status bar and runs to the bottom edge) cures it for good. So
+ * this is plain innerHeight again; the module stays as the one place to change should WebKit need another workaround.
  */
-const MAX_GAP = 80; // px — the tallest status bar (Dynamic Island ≈ 62); anything wider is not this bug
-
 export function viewportHeight(): number {
-  const h = window.innerHeight;
-  if (!document.documentElement.classList.contains('standalone')) return h;
-  const portrait = window.innerWidth < h;
-  const sh = Math.max(screen.width, screen.height); // iOS reports the portrait screen whatever the orientation
-  const gap = sh - h;
-  return portrait && gap > 0 && gap <= MAX_GAP ? sh : h;
+  return window.innerHeight;
 }
 
 let installed = false;
@@ -27,7 +21,14 @@ let installed = false;
 export function installViewport(): void {
   if (installed) return;
   installed = true;
-  const sync = (): void => { document.documentElement.style.setProperty('--ws-vh', `${viewportHeight()}px`); };
+  const root = document.documentElement;
+  const sync = (): void => {
+    root.style.setProperty('--ws-vh', `${viewportHeight()}px`);
+    // below the status bar WebKit reports safe-area-inset-bottom 0, yet the home indicator still sits over the page's bottom
+    // edge on Face ID phones (portrait screen ≥ 812 px tall): --ws-home stands in for it (touch.css lifts the bar's content)
+    const standalone = root.classList.contains('standalone'), tall = Math.max(screen.width, screen.height) >= 812;
+    root.style.setProperty('--ws-home', standalone && tall ? '34px' : '0px');
+  };
   sync();
   window.addEventListener('resize', sync);
 }

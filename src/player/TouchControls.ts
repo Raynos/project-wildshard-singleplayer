@@ -3,20 +3,21 @@
  *
  *   const touch = new TouchControls(player, weapons);    // no-op on mouse/trackpad devices (`touch.active === false`)
  *
- * Layout E (E42, Jake's pick from art/hud/round-10-look-zone/board.jpg), re-split 45 / 55 in E46 (Jake: "attack shouldn't
- * be wider than look" / "place the actual attack button literally on the divider line"), portrait, styled in
+ * Layout E (E42, Jake's pick from art/hud/round-10-look-zone/board.jpg), split 45 / 55 (E46, corrected in E58 — Jake: "45%
+ * movement, 55% is the right hand section … consists of both the attack and the look pad … the attack button can touch the
+ * dividing line on the 55 side", not three equally spaced buttons), portrait, styled in
  * src/ui/styles/touch.css (prefix `ws-touch-`). A see-through glass control bar (67 % solid) runs across the bottom ~15 % of
  * the screen, split by a divider at 45 % (`--split`) into two thumb zones:
  *
  *  - MOVE (the bar's left 45 %): an anchored stick that is always drawn: a thin cyan ring with a glowing cyan knob resting
- *    at its centre, centred in what the ATTACK disc leaves free. A touch anywhere in the MOVE zone grabs it; the knob
+ *    at its centre, centred in the zone. A touch anywhere in the MOVE zone grabs it; the knob
  *    follows the thumb inside the ring. Pushing past SPRINT_AT while heading forward sprints: the ring's top arc lights and
  *    a SPRINT tag lights just above the bar over the stick. Not floating (declined in E11). The left 45 % above the bar is not a control surface.
  *  - LOOK (the bar's right 55 %, and the right 55 % of the screen above it — CoD Mobile free-look): dragging turns the
  *    camera and NEVER attacks. The LOOK pad (a dashed rounded square as wide as ATTACK, centred in the section's free part)
  *    is its visual, lit while a drag that started in the bar is looking.
- *  - ATTACK disc, centred ON the divider, on the bar's centre line; a touch on the disc is ATTACK even where it overlaps
- *    either zone. Touch-down fires at once (`weapons.tryFire()`, the disc flashes); the disc then captures the touch, so a
+ *  - ATTACK disc, in the LOOK section with its left edge on the divider, on the bar's centre line; a touch on the disc is
+ *    ATTACK, never a look. Touch-down fires at once (`weapons.tryFire()`, the disc flashes); the disc then captures the touch, so a
  *    drag from it turns the camera while the finger is held. With a MELEE weapon (the Driftwood swords, `MELEE`, polled
  *    from `weapons.current.id`, the layer carries `.melee`), holding it still (under HOLD_PX of travel) for HOLD_MS starts
  *    the heavy charge (`weapons.adsHeld = true`, the `.ws-touch-charge` ring fills with `weapons.current.charge`) and lifting
@@ -39,8 +40,8 @@
  *  - AIM (ranged kit only): the iron-sights toggle latch (`weapons.adsHeld`, tap on / tap off, lit `.on`) sits up-right of
  *    the FIRE disc, clear of the pill, left of DODGE, on the same thumb. Crossing between melee and ranged drops the latch, so a sword never
  *    comes up charging and a crossbow never comes up sighted.
- *  - SWAP | HOVER: one split pill over the divider, seated on the bar's top edge above the ATTACK disc (its charge ring
- *    clear). SWAP calls `weapons.swap()` (the Q
+ *  - SWAP | HOVER: one split pill over the divider, seated on the bar's top edge, just up-left of the ATTACK disc (its
+ *    charge ring clear). SWAP calls `weapons.swap()` (the Q
  *    key) and only shows once a second weapon is unlocked (`weapons.onUnlock`); without it the pill is just HOVER, a
  *    toggle (`player.setHover`, mirrors the H key; lit `.on` while riding).
  *  - PAUSE top-left; under it the `?perf` frame meter, then a status column (`.ws-touch-status`) that the HUD (HUD.ts) fills
