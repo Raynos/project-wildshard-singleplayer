@@ -111,7 +111,13 @@ export class Game {
     const grain = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: true });
     grain.blendMode.opacity.value = 0.12;
     // one EffectPass for the whole chain: one program and one full-screen pass fewer per frame
-    composer.addPass(new EffectPass(this.camera, vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain));
+    if (getActiveChunk().style === 'lowpoly') {
+      // the stylized look (DRIFTWOOD-REMASTER L5): no volumetric haze, grain or fringe washing the toon bands to low
+      // contrast — the colour-ramp fog does the aerial perspective; the god rays stay faint, the vignette light
+      godRays.blendMode.opacity.value = 0.35;
+      vignette.darkness = 0.35;
+      composer.addPass(new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split));
+    } else composer.addPass(new EffectPass(this.camera, vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain));
     if (TIER_CONFIG.smaa !== 'off') {
       const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
       composer.addPass(new EffectPass(this.camera, smaa));

@@ -191,25 +191,25 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   sky: {
     hdri: 'kloofendal_48d_partly_cloudy_puresky',
     sunColor: [1.0, 0.97, 0.9],
-    sunIntensity: 2.2,
+    sunIntensity: 2.7,
     envIntensity: 0.7,
     bgIntensity: 1.0,
     fogSunColor: [1.0, 0.98, 0.92],
     cloudSunColor: [1.0, 0.98, 0.94],
     // toon ambient (stylize.ts): the whole shade band — a lavender-blue sky fill, a warm sand bounce from below
-    hemiSky: 0x9db4f0, hemiGround: 0xe0c498, hemiIntensity: 0.95,
+    hemiSky: 0x6f86f0, hemiGround: 0xd8a878, hemiIntensity: 0.75,
     // the ringed gas giant high in the north-east (up and right of the pier's view), lit from the NW sun
     planet: { azimuth: 36, elevation: 38, size: 17, tilt: 24, roll: -16 },
   },
   atmosphere: {
     fogHeight: -20.0,
     fogHeightFalloff: 0.08,
-    fogHeightDensity: 0.0012,
-    fogDistDensity: 0.00032,
+    fogHeightDensity: 0.0004,
+    fogDistDensity: 0.00014,
     volumetricSunColor: [1.0, 0.97, 0.9],
   },
   grade: {
-    saturation: 0.32, brightness: 0.02, contrast: 0.12,
+    saturation: 0.3, brightness: 0.0, contrast: 0.2,
     bloomIntensity: 0.22, bloomThreshold: 0.95,
     shadowTint: [0.94, 0.98, 1.06], highTint: [1.04, 1.01, 0.96],
     lift: [0.0, 0.0, 0.005], gain: [1.02, 1.02, 1.0], gamma: 1.0,

@@ -31,13 +31,13 @@ import * as THREE from 'three';
 
 export const toonUniforms = {
   /** added to the shade band (linear, ×albedo): the blue-violet of Rime's shadows */
-  uToonLift: { value: new THREE.Color(0.05, 0.045, 0.11) },
+  uToonLift: { value: new THREE.Color(0.07, 0.035, 0.2) },
   /** rim colour × strength (linear) */
-  uToonRim: { value: new THREE.Color(0.55, 0.5, 0.42) },
+  uToonRim: { value: new THREE.Color(1.3, 0.95, 0.6) },
   /** terminator band colour × strength (×albedo²-ish saturated) */
   uToonTerm: { value: new THREE.Color(0.4, 0.16, 0.06) },
   /** 0..1 how much the shade band keeps of the sun's facet grade (0 = flat toon shade) */
-  uToonShadeGrade: { value: 0.18 },
+  uToonShadeGrade: { value: 0.0 },
   /** cloud shadows (L4): strength 0..1, scroll time (s), wind (m/s xz), feature size (m) */
   uCloudShadow: { value: 0 },
   uCloudTime: { value: 0 },
@@ -79,8 +79,8 @@ void RE_Direct_Toon( const in IncidentLight directLight, const in vec3 geometryP
 		shadow *= toonCloud( geometryPosition );
 		float NdL = dot( geometryNormal, directLight.direction );
 		float x = max( NdL, 0.0 ) * shadow;
-		float band = smoothstep( 0.035, 0.11, x );
-		float grade = 0.68 + 0.32 * saturate( NdL );                // the lit band keeps a soft facet grade
+		float band = smoothstep( 0.14, 0.2, x );                     // a hard step: a facet is lit or it is shade
+		float grade = 0.8 + 0.2 * saturate( NdL );                  // the lit band keeps a faint facet grade
 		vec3 alb = material.diffuseContribution;
 		vec3 irr = sunCol * ( band * grade + ( 1.0 - band ) * uToonShadeGrade * saturate( NdL ) * 0.5 );
 		// the terminator: a thin warm, saturated band where the ramp turns (kept faint: on a flat-shaded model a whole
@@ -90,8 +90,8 @@ void RE_Direct_Toon( const in IncidentLight directLight, const in vec3 geometryP
 		reflectedLight.directDiffuse += RECIPROCAL_PI * ( alb * irr + satAlb * uToonTerm * term * sunCol );
 		// rim on the lit side of vertical-ish faces (never the ground)
 		vec3 nW = inverseTransformDirection( geometryNormal, viewMatrix );
-		float fres = pow( 1.0 - saturate( dot( geometryNormal, geometryViewDir ) ), 3.0 );
-		float rim = fres * smoothstep( -0.15, 0.35, NdL ) * shadow * smoothstep( 0.8, 0.35, abs( nW.y ) );
+		float fres = smoothstep( 0.55, 0.8, 1.0 - saturate( dot( geometryNormal, geometryViewDir ) ) );   // a banded rim, not a soft glow
+		float rim = fres * smoothstep( -0.3, 0.2, NdL ) * shadow * smoothstep( 0.85, 0.4, abs( nW.y ) );
 		reflectedLight.directDiffuse += uToonRim * rim * sunCol * RECIPROCAL_PI * ( 0.35 + alb );
 		if ( material.roughness < 0.72 ) {
 			IncidentLight lit = directLight;
