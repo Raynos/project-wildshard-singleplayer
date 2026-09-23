@@ -89,3 +89,22 @@ node scripts/nalati-parity.mjs --help
   (phone ≤ 150 calls / ≤ 2.0 M tris). Other agents' browsers share the GPU: compare p50s within one run.
 - The browser is closed at the end (the machine allows at most 3 game browsers). Commit a before and an after set per
   look change (`<nn>-<slug>` tags); `00-before` is the state at the start of the look pass (2026-09-22).
+
+## Strategy change (2026-09-23): painted textures, a matte backdrop, paint-over targets
+
+The user, after the `06-dressing` parity set: "the graphics are still nowhere near the mockups right? How are we
+going to close the gap?" Tuning procedural vertex colour will not get there. The mockups are paintings: every
+surface carries painted high-frequency detail, and their backdrop is a matte-painted snow range. So:
+
+- **Painted textures** (codex image gen in the style-B look, tileable, WebP/KTX2 with a half-res phone tier,
+  ≈ 4 MB desktop / ≈ 2 MB phone): meadow ground, dirt path, gravel, granite (triplanar), snow, spruce bark,
+  felt + ornament cloth → `src/world/nalatiTextures.ts`, adopted by terrain, outcrops, yurts and spruce.
+- **A 360° painted matte backdrop** of the real Nalati range and the Sky Grassland rolling away →
+  `src/world/PaintedBackdrop.ts` (far plane, one draw call, takes the aerial haze and the day/night/storm tint);
+  `Horizon.ts` keeps only the near and mid ridges in front of it.
+- **Painted grass and flower alpha cards** for the near field (fine blades, much denser for the same cost),
+  fading into the painted terrain.
+- **Paint-over targets:** codex repaints our own engine frame at each pose in the mockup style, keeping its
+  geometry. That gives a reachable target per pose next to the mockup.
+- Owner of the assets: the painted-asset agent; adoption by the terrain, grass, POI and spruce owners; the
+  look-director stays the arbiter.
