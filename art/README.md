@@ -157,3 +157,12 @@ bottom banner. **Board 3 (`board-3-storyboards.jpg`, N's language, captured at 3
 the lock jumps to the next crab; **S1→S2** hold MOVE left, circle the crab. Re-rolled: J and K (the first J put LOCK
 inside the bar and shoved DODGE along; the first K garbled the quest title into "WRETCHED ISLE"), L (dropped the quest title), O (LOCK
 inside the bar), R1 / R2 / S1 / S2 (LOCK and DODGE drifted into the bar; the storyboards now carry no LOCK disc).
+
+### Painted 360° horizon (`art/driftwood-isle/round-9-horizon/`, 2026-09-23, E52 X4)
+
+Six in-game captures looking out to sea (headings 0, 60 … 300°, horizon on the middle row) were each edited by codex
+into far sea stacks, far islands and a horizon cloud bank (`segment-day-*`), then re-lit as a moonlit night with the same
+silhouettes (`segment-night-*`). They were stitched into a seamless 4096 × 512 cylindrical strip and keyed off the sky;
+it ships as `public/assets/horizon/driftwood-isle-{day,night}.webp`. `sheet-before-after.jpg` shows the 9 spawn-cove
+cameras before and after. The first day round (stacks ~3° high, too small at phone width) was dropped. Nothing else was
+re-rolled.

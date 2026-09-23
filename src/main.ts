@@ -30,6 +30,7 @@ import { IronSwordPickup, ironSwordSite } from './player/IronSword';
 import { installAdventure } from './game/quest/Adventure';
 import type { Weapon } from './player/Weapon';
 import { Horizon } from './world/Horizon';
+import { HorizonMatte } from './world/HorizonMatte';
 import { Grass } from './world/Grass';
 import { Undergrowth } from './world/Undergrowth';
 import { Particles } from './world/Particles';
@@ -212,6 +213,13 @@ async function main() {
     await macrotask();
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
+    // the painted 360° horizon (X4): far sea stacks, islands and cloud banks on the sea, day + night; the paintings load after boot
+    const matte = sea ? new HorizonMatte(sky, sea.level).build() : null;
+    if (matte?.mesh) {
+      game.scene.add(matte.mesh);
+      game.onUpdate((dt) => { matte.update(dt, game.camera, sky.dayNight?.night ?? 0); });
+      document.addEventListener('ws:ready', () => { setTimeout(() => { void matte.load(horizon.group); }, 250); }, { once: true });
+    }
     return { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon, rocks, cover };
   });
   const { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon } = dressing;
