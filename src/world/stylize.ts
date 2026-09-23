@@ -39,10 +39,10 @@ export const toonUniforms = {
   /** 0..1 how much the shade band keeps of the sun's facet grade (0 = flat toon shade) */
   uToonShadeGrade: { value: 0.0 },
   /** cloud shadows (L4): strength 0..1, scroll time (s), wind (m/s xz), feature size (m) */
-  uCloudShadow: { value: 0 },
+  uCloudShadow: { value: 0.6 },
   uCloudTime: { value: 0 },
   uCloudWind: { value: new THREE.Vector2(3.2, 1.4) },
-  uCloudScale: { value: 70 },
+  uCloudScale: { value: 34 },
 };
 
 const TOON_GLSL = /* glsl */`
@@ -68,7 +68,7 @@ float toonCloud( vec3 viewPos ) {
 	vec3 w = cameraPosition + ( vec4( viewPos, 0.0 ) * viewMatrix ).xyz;
 	vec2 p = ( w.xz + uCloudWind * uCloudTime ) / uCloudScale;
 	float n = toonNoise( p ) * 0.65 + toonNoise( p * 2.3 + 7.1 ) * 0.35;
-	return 1.0 - uCloudShadow * smoothstep( 0.52, 0.62, n );
+	return 1.0 - uCloudShadow * smoothstep( 0.5, 0.6, n );
 }
 
 void RE_Direct_Toon( const in IncidentLight directLight, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in PhysicalMaterial material, inout ReflectedLight reflectedLight ) {
@@ -76,13 +76,13 @@ void RE_Direct_Toon( const in IncidentLight directLight, const in vec3 geometryP
 	if ( dot( directLight.direction, directionalLights[ 0 ].direction ) > 0.9999 ) {
 		vec3 sunCol = directionalLights[ 0 ].color;
 		float shadow = clamp( dot( directLight.color, vec3( 1.0 ) ) / max( dot( sunCol, vec3( 1.0 ) ), 1e-5 ), 0.0, 1.0 );
-		shadow *= toonCloud( geometryPosition );
 		float NdL = dot( geometryNormal, directLight.direction );
 		float x = max( NdL, 0.0 ) * shadow;
 		float band = smoothstep( 0.14, 0.2, x );                     // a hard step: a facet is lit or it is shade
 		float grade = 0.8 + 0.2 * saturate( NdL );                  // the lit band keeps a faint facet grade
 		vec3 alb = material.diffuseContribution;
-		vec3 irr = sunCol * ( band * grade + ( 1.0 - band ) * uToonShadeGrade * saturate( NdL ) * 0.5 );
+		float cloud = toonCloud( geometryPosition );                  // L4: drifting cloud shade dims the lit band, never flips it
+		vec3 irr = sunCol * ( band * grade * cloud + ( 1.0 - band ) * uToonShadeGrade * saturate( NdL ) * 0.5 );
 		// the terminator: a thin warm, saturated band where the ramp turns (kept faint: on a flat-shaded model a whole
 		// facet sits in it, and PCF acne makes a shadow-ratio edge unreliable)
 		float term = band * ( 1.0 - band ) * 4.0;
@@ -91,7 +91,7 @@ void RE_Direct_Toon( const in IncidentLight directLight, const in vec3 geometryP
 		// rim on the lit side of vertical-ish faces (never the ground)
 		vec3 nW = inverseTransformDirection( geometryNormal, viewMatrix );
 		float fres = smoothstep( 0.55, 0.8, 1.0 - saturate( dot( geometryNormal, geometryViewDir ) ) );   // a banded rim, not a soft glow
-		float rim = fres * smoothstep( -0.3, 0.2, NdL ) * shadow * smoothstep( 0.85, 0.4, abs( nW.y ) );
+		float rim = fres * smoothstep( -0.3, 0.2, NdL ) * shadow * cloud * smoothstep( 0.85, 0.4, abs( nW.y ) );
 		reflectedLight.directDiffuse += uToonRim * rim * sunCol * RECIPROCAL_PI * ( 0.35 + alb );
 		if ( material.roughness < 0.72 ) {
 			IncidentLight lit = directLight;
