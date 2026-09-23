@@ -80,21 +80,24 @@ const SNAP_P = 0.6, SNAP_DELAY = 0.35;
 const SPEED_BASE = 30, SPEED_DRAW = 28;
 const DAMAGE_SCALE = 1.2;        // × the bolt model's 32–40 → 38–48 at full draw
 const LETDOWN_RATE = 3.2;        // /s of draw time when the draw is let down
-const ARC_MAX = 72, ARC_SPACING = 1.5, ARC_SKIP = 2.5, ARC_CYAN = 0x8fe3ff;
+const ARC_MAX = 56, ARC_SPACING = 0.8, ARC_SKIP = 0.5, ARC_BLEND = 11, ARC_CYAN = 0x8fe3ff;
 const Q_ARC_PARAM = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('arc');
 if (Q_ARC_PARAM !== null) setSetting('huntersEye', Q_ARC_PARAM !== '0');
 
 export interface BowWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 export interface BowOptions { allowUnlocked?: boolean }
 
+const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
+const sstep = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+
 // ───────────────────────────── palette (sRGB hex → linear via THREE.Color) ─────────────────────────────
 
 const C = (hex: number) => new THREE.Color(hex);
 const PAL = {
-  lacquer: C(0x5a2a14), lacquerDark: C(0x3a1a0c), ornament: C(0xe0c080), birch: C(0x9a7650), horn: C(0x2a1a10),
+  lacquer: C(0x7a3a1c), lacquerDark: C(0x4a2412), ornament: C(0xe0c080), birch: C(0x9a7650), horn: C(0x2a1a10),
   bone: C(0xe6dcc2), boneDark: C(0x5a4a38), sinew: C(0xd8c8a0), leather: C(0x3c2414), leatherHi: C(0x5a3a22),
-  string: C(0xc8bca0), glove: C(0x4a2e1a), gloveDark: C(0x2e1c10), skin: C(0xc89478),
-  wool: C(0xe8dcc4), woolShade: C(0xcfc0a2), red: C(0xa82a1c), redDark: C(0x6a140e), fur: C(0xf2ece0), furShade: C(0xc8bca4),
+  string: C(0xc8bca0), glove: C(0x7a5232), gloveDark: C(0x563620), skin: C(0xc89478),
+  wool: C(0xdccbaa), woolShade: C(0xc4b08c), red: C(0xa82a1c), redDark: C(0x6a140e), fur: C(0xf2ece0), furShade: C(0xc8bca4),
   jade: C(0x9ec8a8), shaft: C(0xc8a070), shaftDark: C(0x8a6440), head: C(0x3a3c40), feather: C(0xece6da), featherBar: C(0x4a3a30),
   crest: C(0xa82a1c),
 };
@@ -394,6 +397,7 @@ function leftFist(): THREE.BufferGeometry[] {
   g.push(blob(V(-0.026, -0.006, 0.05), V(0.03, 0.04, 0.046), PAL.glove, 27));                  // back of the hand toward the wrist
   g.push(capsule(V(-0.022, 0.03, 0.03), V(0.014, 0.03, -0.006), 0.0115, PAL.glove, 28));       // thumb over the index finger
   g.push(capsule(V(0.014, 0.03, -0.006), V(0.022, 0.028, -0.02), 0.0095, PAL.gloveDark, 29));  // thumb tip
+  for (const p of g) p.scale(1.3, 1.25, 1.3);
   return g;
 }
 
@@ -414,13 +418,13 @@ function rightHand(): THREE.BufferGeometry {
 function sleeve(len: number, seed: number): THREE.BufferGeometry {
   const RAD = 40;
   const ys: number[] = [];
-  for (let y = 0; y <= len + 1e-6; y += y < 0.24 ? 0.006 : 0.03) ys.push(Math.min(y, len));
+  for (let y = 0; y <= len + 1e-6; y += y < 0.62 ? 0.0065 : 0.04) ys.push(Math.min(y, len));
   const pos: number[] = [], nrm: number[] = [], col: number[] = [], idx: number[] = [];
   let s = seed;
   const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
   for (const y of ys) {
     const cuff = y < 0.042;
-    const r = cuff ? 0.047 + 0.006 * Math.sin((y / 0.042) * Math.PI) : 0.038 + Math.min(1, (y - 0.042) / 0.3) * 0.018;
+    const r = cuff ? 0.047 + 0.006 * Math.sin((y / 0.042) * Math.PI) : 0.036 + Math.min(1, (y - 0.042) / 0.45) * 0.02;
     for (let k = 0; k <= RAD; k++) {
       const ph = (k / RAD) * Math.PI * 2;
       let rr = r;
@@ -429,15 +433,16 @@ function sleeve(len: number, seed: number): THREE.BufferGeometry {
       if (cuff) { rr += (rnd() - 0.5) * 0.006; c = rnd() < 0.3 ? PAL.furShade : PAL.fur; tint = 0.9 + rnd() * 0.12; }
       else {
         c = PAL.wool;
-        const b0 = 0.06, b1 = 0.19; // the ornament band
-        if (y > b0 && y < b1) {
-          const b = (y - b0) / (b1 - b0), a = (k / RAD) * 5 % 1;
+        const rep = (y - 0.042) % 0.3 + 0.042; // the ornament band repeats up the sleeve
+        const b0 = 0.06, b1 = 0.19;
+        if (rep > b0 && rep < b1) {
+          const b = (rep - b0) / (b1 - b0), a = (k / RAD) * 5 % 1;
           const scroll = 0.5 + 0.26 * Math.sin(a * Math.PI * 2);
           const hook1 = Math.hypot((a - 0.25) * 1.2, b - 0.8), hook2 = Math.hypot((a - 0.75) * 1.2, b - 0.2);
           const red = Math.abs(b - scroll) < 0.12 || (hook1 > 0.06 && hook1 < 0.15) || (hook2 > 0.06 && hook2 < 0.15) || b < 0.1 || b > 0.9;
           c = red ? PAL.red : PAL.wool;
           if (b < 0.1 || b > 0.9) c = PAL.redDark;
-        } else if (y > 0.215 && y < 0.235) c = PAL.red;
+        } else if (rep > 0.215 && rep < 0.235) c = PAL.red;
         tint = 0.94 + rnd() * 0.08;
         if (Math.sin(ph * 3 + y * 40) > 0.6) tint *= 0.93; // wool folds
       }
@@ -477,14 +482,14 @@ class DropArc {
     g.setDrawRange(0, 0);
     const mat = new THREE.ShaderMaterial({
       uniforms: { uAlpha: this.uAlpha, uPx: this.uPx, uColor: { value: new THREE.Color(ARC_CYAN) } },
-      vertexShader: `uniform float uPx; void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = uPx * clamp(10.0 / max(0.1, -mv.z), 0.42, 1.0); gl_Position = projectionMatrix * mv; }`,
+      vertexShader: `uniform float uPx; void main(){ vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = uPx * clamp(8.0 / max(0.1, -mv.z), 0.6, 1.0); gl_Position = projectionMatrix * mv; }`,
       fragmentShader: `uniform float uAlpha; uniform vec3 uColor; void main(){ vec2 d = gl_PointCoord - 0.5; float r = length(d) * 2.0; if (r > 1.0) discard; gl_FragColor = vec4(uColor, uAlpha * (1.0 - smoothstep(0.55, 1.0, r))); }`,
       transparent: true, depthTest: false, depthWrite: false, toneMapped: false,
     });
     this.points = new THREE.Points(g, mat);
     this.points.frustumCulled = false; this.points.renderOrder = 998; this.points.visible = false; // under the viewmodel (999 clears depth, 1000 draws it)
     this.ringMat = new THREE.MeshBasicMaterial({ color: ARC_CYAN, transparent: true, opacity: 0, depthTest: false, depthWrite: false, toneMapped: false, fog: false, side: THREE.DoubleSide });
-    const rg = new THREE.RingGeometry(0.78, 1, 36); rg.rotateX(-Math.PI / 2);
+    const rg = new THREE.RingGeometry(0.62, 1, 36); rg.rotateX(-Math.PI / 2);
     this.ring = new THREE.Mesh(rg, this.ringMat);
     this.ring.frustumCulled = false; this.ring.renderOrder = 998; this.ring.visible = false;
     scene.add(this.points, this.ring);
@@ -492,19 +497,30 @@ class DropArc {
 
   hide(): void { this.points.visible = false; this.ring.visible = false; }
 
-  show(arrows: Projectiles, origin: THREE.Vector3, vel: THREE.Vector3, alpha: number, camPos: THREE.Vector3, dpr: number): void {
+  /** `from` = where the dots start (the nocked arrow's tip): the arc leaves the bow like the mockup's and blends onto the
+   *  true flight over ARC_BLEND m — seen from the eye the true path is almost end-on, a stroke under the crosshair. The
+   *  landing ring is the true landing point. */
+  show(arrows: Projectiles, origin: THREE.Vector3, vel: THREE.Vector3, from: THREE.Vector3, alpha: number, camPos: THREE.Vector3, dpr: number): void {
     const n = arrows.predict(origin, vel, this.buf, ARC_MAX, ARC_SPACING, ARC_SKIP);
+    const ox = from.x - origin.x, oy = from.y - origin.y, oz = from.z - origin.z, b = this.buf;
+    for (let i = 0; i < n; i++) {
+      const j = i * 3;
+      const px = b[j] ?? 0, py = b[j + 1] ?? 0, pz = b[j + 2] ?? 0;
+      const d = Math.hypot(px - origin.x, py - origin.y, pz - origin.z);
+      const k = 1 - sstep(0, ARC_BLEND, d);
+      b[j] = px + ox * k; b[j + 1] = py + oy * k; b[j + 2] = pz + oz * k;
+    }
     this.attr.clearUpdateRanges(); this.attr.addUpdateRange(0, n * 3); this.attr.needsUpdate = true;
     this.points.geometry.setDrawRange(0, n);
-    this.uAlpha.value = alpha * 0.8; this.uPx.value = 6.5 * dpr;
+    this.uAlpha.value = alpha * 0.85; this.uPx.value = 8.5 * dpr;
     this.points.visible = n > 0;
     this.ring.visible = arrows.landed;
     if (arrows.landed) {
       const d = arrows.landing.distanceTo(camPos);
       this.ring.position.copy(arrows.landing).addScaledVector(arrows.landingNormal, 0.05);
       this.ring.quaternion.setFromUnitVectors(_up, arrows.landingNormal);
-      this.ring.scale.setScalar(0.28 + d * 0.014);
-      this.ringMat.opacity = alpha * 0.75;
+      this.ring.scale.setScalar(0.2 + d * 0.013);
+      this.ringMat.opacity = alpha * 0.85;
     }
   }
 }
@@ -514,8 +530,6 @@ class DropArc {
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _fwd = new THREE.Vector3(), _dir = new THREE.Vector3();
 const _q1 = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _q3 = new THREE.Quaternion();
 const NEG_Z = new THREE.Vector3(0, 0, -1), POS_Z = new THREE.Vector3(0, 0, 1), Y_AXIS = new THREE.Vector3(0, 1, 0);
-const clamp01 = (x: number) => Math.min(1, Math.max(0, x));
-const sstep = (a: number, b: number, x: number) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
 
 /** a camera-space pose of the bow's grip: position + aim point (−Z of the bow points at it) + cant (roll, rad) */
 interface GripPose { pos: THREE.Vector3; aim: THREE.Vector3; cant: number; pitch: number }
@@ -524,13 +538,13 @@ interface GripPose { pos: THREE.Vector3; aim: THREE.Vector3; cant: number; pitch
  * couple of metres out so it reads as pointing at it (combat-C). Portrait phones get their own (narrower frame). */
 const VM_SCALE = 0.72;
 const POSE = {
-  rest: { pos: V(0.25, -0.44, -0.78), aim: V(-0.1, 0.2, -4), cant: -0.62, pitch: -0.12 },
-  drawn: { pos: V(0.13, -0.15, -0.95), aim: V(0, 0, -3.2), cant: -0.34, pitch: 0 },
-  restPort: { pos: V(0.16, -0.5, -0.85), aim: V(-0.05, 0.1, -4), cant: -0.5, pitch: -0.1 },
-  drawnPort: { pos: V(0.07, -0.19, -0.98), aim: V(0, 0, -2.6), cant: -0.3, pitch: 0 },
+  rest: { pos: V(0.34, -0.42, -0.86), aim: V(-0.1, 0.25, -4), cant: -0.62, pitch: -0.14 },
+  drawn: { pos: V(0.24, -0.156, -1.046), aim: V(0, 0, -5.5), cant: -0.36, pitch: 0 },
+  restPort: { pos: V(0.17, -0.5, -0.9), aim: V(-0.05, 0.12, -4), cant: -0.5, pitch: -0.12 },
+  drawnPort: { pos: V(0.07, -0.1, -1.08), aim: V(0, 0, -5.5), cant: -0.3, pitch: 0 },
 } satisfies Record<string, GripPose>;
-const L_ELBOW = V(-0.1, -0.62, -0.28), R_ELBOW = V(0.42, -0.5, 0.02);
-const L_ELBOW_PORT = V(-0.02, -0.7, -0.3), R_ELBOW_PORT = V(0.3, -0.62, 0.02);
+const L_ELBOW = V(-0.42, -0.52, -0.3), R_ELBOW = V(0.62, -0.4, 0.05);
+const L_ELBOW_PORT = V(-0.2, -0.75, -0.32), R_ELBOW_PORT = V(0.4, -0.6, 0.05);
 
 export class Bow implements Weapon {
   readonly hasAmmo = true;
@@ -610,8 +624,8 @@ export class Bow implements Weapon {
     this.bowPivot.add(bow);
     this.nocked = new THREE.Mesh(buildArrowGeometry(), this.mat);
     this.rHand = new THREE.Mesh(rightHand(), this.mat);
-    this.lSleeve = new THREE.Mesh(sleeve(0.62, 41), this.mat);
-    this.rSleeve = new THREE.Mesh(sleeve(0.55, 43), this.mat);
+    this.lSleeve = new THREE.Mesh(sleeve(1.0, 41), this.mat);
+    this.rSleeve = new THREE.Mesh(sleeve(0.8, 43), this.mat);
     this.model.add(this.bowPivot, this.nocked, this.rHand, this.lSleeve, this.rSleeve);
     const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false }));
     clearer.renderOrder = 999; clearer.frustumCulled = false;
@@ -778,7 +792,8 @@ export class Bow implements Weapon {
     if (arcOn) {
       this.aimRay(_v1, _fwd);
       this.launchFrom(_fwd, this.p, _v2, _v3);
-      this.arc.show(this.arrows, _v2, _v3, sstep(MIN_LOOSE, 0.85, this.p), _v1, this.game.renderer.getPixelRatio());
+      this.nocked.getWorldPosition(_dir);
+      this.arc.show(this.arrows, _v2, _v3, _dir, sstep(MIN_LOOSE, 0.85, this.p), _v1, this.game.renderer.getPixelRatio());
     } else this.arc.hide();
 
     // ── aim readout ──
@@ -846,7 +861,7 @@ export class Bow implements Weapon {
     const handVis = r > 0.25 && this.state.bolts > 0;
     this.rHand.visible = r > 0.25; this.rSleeve.visible = r > 0.25;
     this.rHand.position.copy(nock); this.rHand.quaternion.copy(this.gripQuat);
-    if (renock > 0) this.rHand.position.addScaledVector(_v3.set(0.25, -0.5, 0.3), renock * 0.6);
+    if (renock > 0) this.rHand.position.addScaledVector(_v3.set(0.35, -0.55, 0.25), renock); // down to the quiver at the hip and back
     this.nocked.visible = handVis && this.renockT < RENOCK_TIME * 0.35;
     // the arrow lies from the nock on the string to the rest on the fist, right of the grip (a thumb draw)
     const nz = this.bowMesh.nock.z;

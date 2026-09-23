@@ -17,7 +17,7 @@ import { Puffs, type ImpactSurface, type TargetAnimal, type TargetHit, type Targ
  *   arrows.wind = wind;                                  // optional: src/world/Wind.ts's `wind` (m/s in XZ, see WindField)
  *   arrows.launch(origin, velocity, { damageScale: 1.2 });
  *   arrows.update(dt, t);                                // every frame (the Bow calls it from its own update)
- *   arrows.predict(origin, velocity, pts, 64, 1.4)       // the drop-arc preview: the SAME integrator, terrain only
+ *   arrows.predict(origin, velocity, pts, 64, 1.4)       // the drop-arc preview: the SAME integrator (terrain, trunks, colliders)
  *   arrows.onHit / onImpact / onRecover                  // hooks
  *   arrows.canRecover = () => quiver < max;              // walk-over pickup of stuck ones (only while it says yes)
  *
@@ -82,6 +82,7 @@ const TRUNK_PAD = 0.15; // Forest pads every trunk's collision radius by this mu
 const RECOVER_R = 1.25; // m, horizontal reach from the feet
 const RECOVER_UP = 2.1; // m, highest point of a stuck arrow's midpoint the player can pull out
 const NEG_Z = new THREE.Vector3(0, 0, -1), POS_Z = new THREE.Vector3(0, 0, 1), Y_AXIS = new THREE.Vector3(0, 1, 0);
+const _cp = new THREE.Vector3(), _chord = new THREE.Vector3();
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _dir = new THREE.Vector3(), _wind = new THREE.Vector3(), _side = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3(1, 1, 1);
 const ZERO_M = new THREE.Matrix4().makeScale(0, 0, 0);
@@ -164,9 +165,9 @@ export class Projectiles {
 
   /**
    * The drop-arc preview: integrate from `origin` / `velocity` with the flight model (wind included) and write a dot
-   * every `spacing` metres of arc into `out` (xyz triples, up to `max` dots). Stops at the terrain. Returns the dot
-   * count; `landing` / `landingNormal` get the terrain point (or the last point when it flew past 4 s) and `landed`
-   * says which.
+   * every `spacing` metres of arc into `out` (xyz triples, up to `max` dots). Stops at the terrain, a trunk or a collider
+   * (not animals — the preview shows where the arrow goes, not who is in the way). Returns the dot count; `landing` /
+   * `landingNormal` get the hit point and the surface's facing (or the last point when it flew past 4 s), `landed` says which.
    */
   readonly landing = new THREE.Vector3(); readonly landingNormal = new THREE.Vector3(0, 1, 0); landed = false;
   predict(origin: THREE.Vector3, velocity: THREE.Vector3, out: Float32Array, max: number, spacing: number, skip = 0): number {
@@ -174,8 +175,31 @@ export class Projectiles {
     const h = 1 / 90;
     let n = 0, arc = 0, nextDot = skip, px = pos.x, py = pos.y, pz = pos.z;
     this.landed = false;
+    _cp.copy(origin);
     for (let i = 0; i < 360 && n < max; i++) {
       this.step(pos, vel, h);
+      if (i % 6 === 5) {
+        _chord.subVectors(pos, _cp);
+        const len = _chord.length();
+        if (len > 1e-4) {
+          _chord.multiplyScalar(1 / len);
+          const t = this.solidAlong(_cp, _chord, len);
+          if (t >= 0) {
+            this.landing.copy(_cp).addScaledVector(_chord, t);
+            this.landingNormal.copy(_chord).negate();
+            this.landed = true;
+            const reach = this.landing.distanceToSquared(origin);
+            while (n > 0) { // drop the dots written past the hit (up to a chord's worth)
+              const j = (n - 1) * 3;
+              const dx = (out[j] ?? 0) - origin.x, dy = (out[j + 1] ?? 0) - origin.y, dz = (out[j + 2] ?? 0) - origin.z;
+              if (dx * dx + dy * dy + dz * dz <= reach) break;
+              n--;
+            }
+            return n;
+          }
+        }
+        _cp.copy(pos);
+      }
       const ground = heightAt(pos.x, pos.z);
       const seg = Math.hypot(pos.x - px, pos.y - py, pos.z - pz);
       if (pos.y < ground) {
@@ -195,7 +219,7 @@ export class Projectiles {
       while (arc >= nextDot && n < max) {
         const back = arc - nextDot, t = seg > 1e-6 ? 1 - back / seg : 1;
         out[n * 3] = px + (pos.x - px) * t; out[n * 3 + 1] = py + (pos.y - py) * t; out[n * 3 + 2] = pz + (pos.z - pz) * t;
-        n++; nextDot += spacing;
+        n++; nextDot += spacing * (1 + nextDot / 7); // wider apart with distance, so far dots stay dots on screen
       }
       px = pos.x; py = pos.y; pz = pos.z;
       if (Math.abs(pos.x) > CHUNK_HALF + 80 || Math.abs(pos.z) > CHUNK_HALF + 80) break;
@@ -274,25 +298,12 @@ export class Projectiles {
         return true;
       }
     }
-    // tree trunks (padded radius, then stuck into the real bark a little further on — Crossbow.ts does the same)
-    for (const tr of this.forest.nearby(f.pos.x, f.pos.z, 1)) {
-      const tf = segmentCylinder(prev, _dir, segLen, tr.x, tr.z, tr.r, tr.y, tr.y + tr.height);
-      if (tf >= 0) {
-        const tb = segmentCylinder(prev, _dir, segLen + TRUNK_PAD * 4, tr.x, tr.z, Math.max(0.05, tr.r - TRUNK_PAD), tr.y, tr.y + tr.height);
-        _v2.copy(prev).addScaledVector(_dir, tb >= 0 ? tb : tf);
-        this.stop(f, _v2, _dir, 'wood', null, true);
-        return true;
-      }
-    }
-    // oriented boxes: yurts, fences, the practice butts
-    for (const c of this.player.colliders) {
-      if (Math.abs(c.x - f.pos.x) > c.hw + c.hd + segLen + 1 || Math.abs(c.z - f.pos.z) > c.hw + c.hd + segLen + 1) continue;
-      const t = segmentBox(prev, _dir, segLen, c.x, c.z, c.hw, c.hd, c.rot, c.yBottom, c.yTop);
-      if (t >= 0) {
-        _v2.copy(prev).addScaledVector(_dir, t);
-        this.stop(f, _v2, _dir, 'wood', null, true);
-        return true;
-      }
+    // tree trunks, yurts, fences, the practice butts
+    const ts = this.solidAlong(prev, _dir, segLen);
+    if (ts >= 0) {
+      _v2.copy(prev).addScaledVector(_dir, ts);
+      this.stop(f, _v2, _dir, 'wood', null, true);
+      return true;
     }
     // terrain
     if (f.pos.y < heightAt(f.pos.x, f.pos.z)) {
@@ -307,6 +318,26 @@ export class Projectiles {
       return true;
     }
     return false;
+  }
+
+  /** where along prev + dir·[0, len] the segment first meets a tree trunk or an oriented-box collider, or −1. Trunks: the
+   *  padded collision radius, then the real bark a little further on (Crossbow.ts does the same). */
+  private solidAlong(prev: THREE.Vector3, dir: THREE.Vector3, len: number): number {
+    let best = -1;
+    const mx = prev.x + dir.x * len * 0.5, mz = prev.z + dir.z * len * 0.5;
+    for (const tr of this.forest.nearby(mx, mz, len * 0.5 + 1)) {
+      const tf = segmentCylinder(prev, dir, len, tr.x, tr.z, tr.r, tr.y, tr.y + tr.height);
+      if (tf < 0) continue;
+      const tb = segmentCylinder(prev, dir, len + TRUNK_PAD * 4, tr.x, tr.z, Math.max(0.05, tr.r - TRUNK_PAD), tr.y, tr.y + tr.height);
+      const t = tb >= 0 ? tb : tf;
+      if (best < 0 || t < best) best = t;
+    }
+    for (const c of this.player.colliders) {
+      if (Math.abs(c.x - mx) > c.hw + c.hd + len * 0.5 + 1 || Math.abs(c.z - mz) > c.hw + c.hd + len * 0.5 + 1) continue;
+      const t = segmentBox(prev, dir, len, c.x, c.z, c.hw, c.hd, c.rot, c.yBottom, c.yTop);
+      if (t >= 0 && (best < 0 || t < best)) best = t;
+    }
+    return best;
   }
 
   private stop(f: Flying, point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface, animal: TargetAnimal | null, stick: boolean): void {
