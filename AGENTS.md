@@ -69,6 +69,12 @@
   authored instead.
 - **Keep pushes small.** `.githooks/pre-commit` refuses a `progress/` image over 500 KB: save
   screenshots as JPEG / WebP. `.gitattributes` marks binaries `-delta`.
+- **The pre-push gate builds what Vercel builds.** `.githooks/pre-push` runs `scripts/vercel-tree-gate.sh` on the tip
+  you push (~6 s, stamped per commit). The script checks out only the files `.vercelignore` lets through and runs
+  check-css · typecheck · oxlint · vitest · vite build on them. It refuses the push when `.vercelignore` would drop
+  anything under `src/`, `public/`, `api/` or `scripts/`. Before it (E41), unanchored patterns (`art`) dropped
+  `src/explore/art/`, and deploys went red on Vercel with CI green. Anchor every `.vercelignore` line with `/`. A red
+  gate is yours to fix before the push, not after. Escape (rare): `SKIP_VERCEL_GATE=1`.
 - **Hooks on:** every checkout runs `git config core.hooksPath .githooks` once (the session brief
   warns when it's off). The Claude hooks are in `.claude/settings.json`; an edit there takes effect
   on a session restart.

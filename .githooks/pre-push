@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# pre-push: a push to main is a deploy, so build the pushed tip exactly as Vercel will (scripts/vercel-tree-gate.sh)
+# and refuse the push when that would go red upstream (E41). Only refs/heads/main is gated; deletes pass.
+# Escape (rare): SKIP_VERCEL_GATE=1 scripts/push-main.sh
+set -uo pipefail
+zero=0000000000000000000000000000000000000000
+while read -r _local_ref local_sha remote_ref _remote_sha; do
+  [ "$remote_ref" = "refs/heads/main" ] || continue
+  [ "$local_sha" = "$zero" ] && continue
+  if [ "${SKIP_VERCEL_GATE:-}" = 1 ]; then echo "pre-push: SKIP_VERCEL_GATE=1 — vercel gate skipped for $(git rev-parse --short "$local_sha")" >&2; continue; fi
+  "$(git rev-parse --show-toplevel)/scripts/vercel-tree-gate.sh" "$local_sha" || exit 1
+done
+exit 0
