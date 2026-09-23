@@ -27,6 +27,7 @@ import { NalatiWater } from './water';
 import { buildOutcrops } from './outcrops';
 import { NalatiPOIs } from '../world/nalati';
 import { NalatiDressing } from '../world/nalati/dressing';
+import { reseedPainterlyGrass } from '../world/GrassPainterly';
 import { wireKurgan, type KurganBoss } from './kurganBoss';
 import { wireWeather, type NalatiWeather } from './weather';
 import { wireSound, type NalatiSound } from './sound';
@@ -128,6 +129,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   // ── dressing (dressing agent, look-pass lever 6): rocks, road stones, gravel-bar pebbles, shrubs, flower drifts, reeds,
   //    logs + stumps, ovoo cairns + ribbon poles, camp clutter, pollen, butterflies, kites — src/world/nalati/dressing/ ──
   const dressing = await new NalatiDressing(sky, ctx.forest).build(macrotask);
+  reseedPainterlyGrass(); // grass seeded before the dressing regrows around its boulders / shrubs (dressingCover)
   dressing.addTo(game.scene, ctx.player);
   groups['dressing'] = dressing.group;
   updates.push((dt) => dressing.update(dt, game.camera, ctx.player.position, game.renderer));
