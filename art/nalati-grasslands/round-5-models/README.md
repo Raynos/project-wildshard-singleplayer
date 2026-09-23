@@ -58,3 +58,16 @@ Heights are chosen, not measured: rescale per placement if the scene needs it (w
   this game is a public web build. The user decides whether that matters.
 - No rigs, no animations, no painterly repaint pass on the atlases (the `--paint` option in
   `blender_post.py` exists but is off: it muddied the TRELLIS textures).
+
+## Update 2026-09-23 (A1): colour-matched, Hunyuan swaps, in the world
+
+- **Every GLB is colour-matched** to its reference by `scripts/nalati-models-color.mjs` (re-runnable from the untouched
+  generator outputs in `~/ml/img2mesh/final{,-hy}/`): L and chroma histogram-matched to the reference cutout, then per
+  hue sector (a crimson cape stays crimson while bronze turns gold), darks lifted; per-model knobs in its `MODELS` table.
+- **Hunyuan3D-2 versions shipped** for the yurt, both horses, the spruce (+ impostor) and the three boulders (closed hulls,
+  no see-through gaps) — the user cleared the licence ("a South America and North America game"). The phone GLBs of the
+  boulders are simplified to 40 % (320 tris), the balbal's to 60 %; the table above is otherwise still the TRELLIS set.
+- **In the world** through `src/world/nalati/glbPaint.ts` (the painterly material with the atlas as its map, one
+  InstancedMesh per model): balbals, dressing rocks and the camp props by default, the GLB yurts behind `?yurts=1`,
+  the skinned creatures behind `?creatures=glb` (`src/entities/glbCreatures.ts`). In-engine comparisons:
+  `progress/nalati-look/models/`.
