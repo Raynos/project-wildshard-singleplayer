@@ -8,7 +8,10 @@
  * vertex shader finds its tile as `gl_InstanceID / bladesPerTile`. Three rings, finer near (phone 4 / 8 / 16 m tiles,
  * 0.08 / 0.20 / 0.45 m spacing, 3 / 2 / 1 segments); each ring skips the inner ring's square per blade (the tile
  * straddling it too) and the last ring fades out radially. Flowers are a fourth draw: camera-facing SDF heads
- * (buttercup, daisy, lupine spike, edelweiss) — no texture bytes.
+ * (buttercup, daisy, lupine spike, edelweiss) — no texture bytes. The near field (0 – ~3 m, where a blade is a big dark
+ * spike on the phone's 94° lens) is a fifth draw: the painted card atlas (GRASS_CARDS) as clumps of 3 crossed quads on a
+ * 2 m-tile ring, same field / wind / trample; under it ring 0 keeps only 40 % of its blades (slimmer) and the SDF heads
+ * stand down (the cards carry the flowers). Short turf (< ~0.3 m) stays blades.
  *
  * Where it grows and how tall, baked once from the same functions the CPU senses read (so stealth, the wolves and
  * `grassHeightAt` see exactly the grass that is drawn):
@@ -22,7 +25,7 @@
  *
  * Lit like the prototype: wrap diffuse from the key (the cheat key, painterly uPSunDir / uPSunRef), a sky / ground
  * hemisphere, translucency looking into the sun, self-occlusion toward the roots; fogged by the v2 fog; graded by the
- * v2 chain. Budget (phone): 4 draws, ~0.3 M submitted triangles.
+ * v2 chain. Budget (phone): 5 draws, ~0.3 M submitted triangles (the cards ~16 k).
  */
 import * as THREE from 'three';
 import { TIER } from '../../core/tier';
@@ -38,6 +41,7 @@ import type { Sky } from '../../world/Sky';
 import type { Forest } from '../../world/Forest';
 import { macrotask } from '../../boot/plan';
 import { LOOK_BAKE_GLSL, bakeUniforms } from './bake';
+import { GRASS_CARDS, loadGrassCardAtlas } from '../../world/nalatiTextures';
 
 const PHONE = TIER === 'phone';
 
@@ -46,6 +50,10 @@ const RINGS: RingCfg[] = PHONE
   ? [{ T: 4, G: 8, s: 0.08, w: 0.045, seg: 3 }, { T: 8, G: 12, s: 0.2, w: 0.1, seg: 2 }, { T: 16, G: 14, s: 0.45, w: 0.2, seg: 1 }]
   : [{ T: 4, G: 8, s: 0.06, w: 0.034, seg: 3 }, { T: 8, G: 14, s: 0.15, w: 0.08, seg: 3 }, { T: 16, G: 18, s: 0.34, w: 0.16, seg: 2 }];
 const FLOWERS = PHONE ? { T: 8, G: 10, s: 0.3 } : { T: 8, G: 14, s: 0.22 };
+/** the near field (0 – ~3 m): painted card clumps (GRASS_CARDS), 3 crossed quads each; the blades thin out under them */
+const CARDS = PHONE ? { T: 2, G: 4, s: 0.2 } : { T: 2, G: 4, s: 0.17 };
+/** where the cards hand over to the blades (m from the camera): cards full inside NEAR[0], gone past NEAR[1] */
+const NEAR = [2.3, 3.4] as const;
 const MAX_TILES = 256;
 
 // the baked maps' extents
@@ -94,6 +102,7 @@ ${TRAMPLE_GLSL}
 attribute float aT; attribute float aSide;
 uniform float uSpacing; uniform float uPerSide; uniform float uWidth; uniform float uFade0; uniform float uFade1;
 uniform vec4 uHole;       // inner ring square: centre x, z, half size, on
+uniform vec3 uNear;       // the card ring's hand-over: r0, r1, the share of blades kept under the cards (1 = no cards)
 uniform float uTime;
 varying float vT; varying vec3 vFogWorldPos; varying float vFogDepth; varying vec3 vN; varying vec3 vCol; varying float vSelf; varying float vSh;
 void main() {
@@ -116,6 +125,9 @@ void main() {
   if (uHole.w > .5 && max(dh.x, dh.y) < uHole.z) h = 0.;
   float dist = length(xz - cameraPosition.xz);
   h *= 1. - smoothstep(uFade0, uFade1, dist);
+  // under the painted near cards most blades stand down (the few left are slim), so no big dark spikes at the feet
+  float nearK = max(smoothstep(uNear.x, uNear.y, dist), 1. - smoothstep(.24, .4, H0)); // short turf keeps its blades (no cards there)
+  h *= step(gHash12(cell + 2.21), mix(uNear.z, 1., nearK));
   if (h < .04) { gl_Position = vec4(0., 0., -2., 1.); return; }
   // facing: random, half turned toward the camera so no blade goes edge-on
   float ang = gHash12(cell + 3.3) * 6.2831;
@@ -137,7 +149,7 @@ void main() {
   float along = th < 1e-3 ? 0. : (1. - cos(a)) / th * h;
   float up = th < 1e-3 ? t * h : sin(a) / th * h;
   vec3 root = vec3(xz.x, groundH(xz) - .03, xz.y);
-  float wdt = uWidth * mix(.7, 1.3, gHash12(cell + 1.7)) * (1. - t * .85);
+  float wdt = uWidth * mix(.7, 1.3, gHash12(cell + 1.7)) * (1. - t * .85) * mix(.55, 1., nearK);
   vec3 p = root + vec3(bd.x * along, up, bd.y * along) + vec3(side.x, 0., side.y) * aSide * wdt * .5;
   vec3 fn = normalize(vec3(f.x, 0., f.y) + vec3(side.x, 0., side.y) * aSide * .6);
   vN = normalize(mix(fn, vec3(0., 1., 0.), .35));
@@ -176,7 +188,7 @@ void main() {
 const FLOWER_VS = /* glsl */`
 ${COMMON}
 ${LOOK_BAKE_GLSL}
-uniform float uSpacing; uniform float uPerSide; uniform float uFade0; uniform float uFade1; uniform float uTime;
+uniform float uSpacing; uniform float uPerSide; uniform float uFade0; uniform float uFade1; uniform float uTime; uniform vec3 uNear;
 varying vec2 vUv; varying float vType; varying vec3 vFogWorldPos; varying float vFogDepth; varying float vSeed; varying float vSh;
 void main() {
   float per = uPerSide * uPerSide;
@@ -198,7 +210,7 @@ void main() {
   // 1 sage → the lupine spike · 2 white → daisy (edelweiss on the plateau) · 3 buttercup
   float type = kind < 1.5 ? 2. : kind < 2.5 ? (plateau ? 3. : 1.) : 0.;
   float dist = length(xz - cameraPosition.xz);
-  float s = keep * (1. - smoothstep(uFade0, uFade1, dist));
+  float s = keep * (1. - smoothstep(uFade0, uFade1, dist)) * smoothstep(uNear.x, uNear.y, dist); // the near cards carry the flowers at the feet
   if (s < .05) { gl_Position = vec4(0., 0., -2., 1.); return; }
   // the heads ride just above the grass (a drift reads from afar), smaller in short turf
   float h = (type == 2. ? mix(.3, .5, r) : mix(.18, .34, r)) * clamp(H0 * 1.1, .5, 1.1);
@@ -261,6 +273,114 @@ void main() {
   #include <fog_fragment>
 }`;
 
+const CARD_VS = /* glsl */`
+${COMMON}
+${LOOK_BAKE_GLSL}
+${WIND_GLSL}
+${TRAMPLE_GLSL}
+attribute float aQ;       // which of the 3 crossed quads (0, 1, 2 → 0°, 60°, 120° round the clump's own turn)
+uniform float uSpacing; uniform float uPerSide; uniform vec3 uNear; uniform vec4 uCells[16]; uniform float uTime;
+varying vec2 vUv; varying vec3 vFogWorldPos; varying float vFogDepth; varying vec3 vN; varying vec3 vTint; varying float vT; varying float vSh; varying float vSelf;
+void main() {
+  float per = uPerSide * uPerSide;
+  float tile = floor(float(gl_InstanceID) / per);
+  float id = float(gl_InstanceID) - tile * per;
+  vec2 origin = texelFetch(tTiles, ivec2(int(tile), 0), 0).xy;
+  vec2 cell = origin + vec2(mod(id, uPerSide), floor(id / uPerSide)) * uSpacing;
+  vec2 xz = cell + gHash22(cell * 1.377) * uSpacing;
+  vec4 fld = texture(tField, fUV(xz));
+  vec4 msk = texture(tMask, hUV(xz));
+  float H0 = fld.r * 1.5;
+  H0 = mix(min(H0, 0.22), H0, msk.g) * msk.r;
+  float r = gHash12(cell + 7.77), r2 = gHash12(cell + 3.91), r3 = gHash12(cell + 1.19);
+  float patchN = gFbm(xz * .09);
+  float dist = length(xz - cameraPosition.xz);
+  // a clump the field's height (a painted clump is a tuft: its tallest stems reach the field height)
+  float h = clamp(H0 * mix(.62, 1.05, r) * mix(.8, 1.12, patchN), 0., 1.25);
+  h *= smoothstep(.24, .4, H0);                              // short turf is the blades' (they are no spikes there)
+  h *= 1. - smoothstep(uNear.x, uNear.y, dist);
+  if (h < .06) { gl_Position = vec4(0., 0., -2., 1.); return; }
+  // which card: a flower where the field blooms (its drift species, as the SDF heads choose), else one of the 8 grass clumps
+  bool plateau = fld.g > 0.5;
+  float sp = fld.a;
+  float flower = step(r2, (0.02 + 0.2 * fld.b) * step(0.2, H0));
+  float own = plateau ? (sp < .3 ? 0. : sp < .75 ? 1. : 2.) : (sp < .5 ? 2. : sp < .85 ? 1. : 0.);  // 0 sage/lupine · 1 white · 2 buttercup
+  float c = flower > .5
+    ? (own < .5 ? floor(r3 * 3.) : own < 1.5 ? 3. + floor(r3 * 2.) : 5. + floor(r3 * 3.)) + 8.
+    : floor(r3 * 7.999);
+  c = c == 2. && r > .3 ? 7. : c;                     // the feather plume: a rare accent, not a carpet
+  c = plateau && flower < .5 && r3 > .7 ? 5. : c;  // the plateau's gold: more dry clumps
+  vec4 uvr = uCells[int(c)];
+  // the clump's own turn; the three quads cross at 60°
+  float ang = gHash12(cell + 5.55) * 3.1416 + aQ * 1.0472;
+  vec2 f = vec2(cos(ang), sin(ang));
+  float t = position.y;
+  // wind + trample, as the blades (the top bends, the root stays)
+  vec2 B = (gHash22(cell + 9.1) - .5) * .35;
+  float g = windGust(xz);
+  float push = (0.04 + uWindSpeed * 0.03) * (0.35 + 1.25 * g * uWindGustiness + (1.0 - uWindGustiness) * 0.3);
+  float flut = sin(uWindTime * (2.5 + 2.0 * r) + xz.x * 2.1 + xz.y * 1.7 + r * 6.28) * (0.02 + uWindSpeed * 0.005);
+  B += uWindDir * push + vec2(-uWindDir.y, uWindDir.x) * flut;
+  B += trampleBend(xz) * 1.2;
+  float th = min(length(B), 1.3);
+  vec2 bd = B / max(length(B), 1e-4);
+  float a = th * t;
+  float along = th < 1e-3 ? 0. : (1. - cos(a)) / th * h;
+  float up = th < 1e-3 ? t * h : sin(a) / th * h;
+  h *= flower > .5 ? .8 : 1.;
+  float w = h * 0.62 * mix(.85, 1.2, r2);
+  vec3 root = vec3(xz.x, groundH(xz) - .04, xz.y);
+  vec3 p = root + vec3(f.x, 0., f.y) * position.x * w + vec3(bd.x * along, up, bd.y * along);
+  vec2 nrm = vec2(-f.y, f.x);
+  vN = normalize(vec3(nrm.x, 0.9, nrm.y));
+  vUv = vec2(mix(uvr.x, uvr.z, position.x + .5), mix(uvr.y, uvr.w, t));
+  // the tint: the card's painted colour, pulled toward the field's gold / green patch and the ground under it
+  float gold = clamp(smoothstep(.42, .78, gFbm(xz * .21 + 11.)) * .85 + fld.g * .45, 0., 1.);
+  vTint = mix(vec3(.86, .98, .78), vec3(1.12, .98, .7), gold) * mix(.78, 1.08, r) * mix(.85, 1.05, patchN);
+  vT = t;
+  vSelf = mix(.42, 1., smoothstep(0., .8, t)) * mix(bakedContact(root), 1., t * .5);
+  vFogWorldPos = p;
+  vSh = bakedShadow(p + vec3(0., .12, 0.));
+  vec4 mv = viewMatrix * vec4(p, 1.);
+  vFogDepth = -mv.z;
+  gl_Position = projectionMatrix * mv;
+}`;
+
+const CARD_FS = /* glsl */`
+${LIGHT}
+#include <fog_pars_fragment>
+uniform sampler2D tCards; uniform float uA2C;
+varying vec2 vUv; varying vec3 vN; varying vec3 vTint; varying float vT; varying float vSh; varying float vSelf;
+void main() {
+  vec4 tx = texture(tCards, vUv);
+  float a = tx.a;
+  if (uA2C > .5) { a = clamp((a - .5) / max(fwidth(a), 1e-4) + .5, 0., 1.); if (a < .02) discard; }
+  else if (a < .5) discard;
+  vec3 n = normalize(gl_FrontFacing ? vN : vec3(-vN.x, vN.y, -vN.z));
+  vec3 v = normalize(vFogWorldPos - cameraPosition);
+  float back = pow(clamp(dot(v, uSunView), 0., 1.), 4.) * vT;
+  vec3 alb = tx.rgb * vTint;
+  vec3 lit = alb * gLight(n, .35, vSh) * 1.05 + alb * uPSunRef * (0.78 / 2.8) * back * .9 * uGrassGain * vSh;
+  gl_FragColor = vec4(lit * vSelf, uA2C > .5 ? a : 1.);
+  #include <fog_fragment>
+}`;
+
+/** 3 crossed quads, 2 rows each (the top row bends): position.x −0.5 … 0.5 across, position.y 0 … 1 up; aQ = the quad */
+function cardGeometry(): THREE.InstancedBufferGeometry {
+  const g = new THREE.InstancedBufferGeometry();
+  const pos: number[] = [], q: number[] = [], idx: number[] = [];
+  for (let k = 0; k < 3; k++) {
+    const b = k * 6;
+    for (const y of [0, 0.5, 1]) { pos.push(-0.5, y, 0, 0.5, y, 0); q.push(k, k); }
+    idx.push(b, b + 1, b + 3, b, b + 3, b + 2, b + 2, b + 3, b + 5, b + 2, b + 5, b + 4);
+  }
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('aQ', new THREE.Float32BufferAttribute(q, 1));
+  g.setIndex(idx);
+  g.instanceCount = 0;
+  return g;
+}
+
 function bladeGeometry(seg: number): THREE.InstancedBufferGeometry {
   const g = new THREE.InstancedBufferGeometry();
   const t: number[] = [], s: number[] = [], idx: number[] = [];
@@ -322,6 +442,7 @@ export class GrassV2 {
   private readonly maskData = new Uint8Array(HN * HN * 4);
   private rings: Ring[] = [];
   private flowers: Ring | null = null;
+  private cards: Ring | null = null;
   private lastPX = Number.NaN;
   private lastPZ = Number.NaN;
   private baking = 0;
@@ -373,6 +494,7 @@ export class GrassV2 {
           ...shared, ...wind.uniforms, ...trample.uniforms, tTiles: { value: tiles.tex },
           uSpacing: { value: cfg.s }, uPerSide: { value: per }, uWidth: { value: cfg.w },
           uFade0: { value: last ? half * 0.6 : 1e4 }, uFade1: { value: last ? half * 0.95 : 1e4 }, uHole: { value: hole },
+          uNear: { value: ri === 0 ? new THREE.Vector3(NEAR[0], NEAR[1], 0.4) : new THREE.Vector3(-1, 0, 1) },
         },
         vertexShader: BLADE_VS, fragmentShader: BLADE_FS, side: THREE.DoubleSide, fog: true,
       });
@@ -389,6 +511,7 @@ export class GrassV2 {
         uniforms: {
           ...shared, tTiles: { value: tiles.tex },
           uSpacing: { value: cfg.s }, uPerSide: { value: per }, uFade0: { value: half * 0.6 }, uFade1: { value: half * 0.96 },
+          uNear: { value: new THREE.Vector3(NEAR[0] - 0.4, NEAR[1] - 0.2, 0) },
         },
         vertexShader: FLOWER_VS, fragmentShader: FLOWER_FS, side: THREE.DoubleSide, fog: true,
       });
@@ -399,8 +522,39 @@ export class GrassV2 {
       this.group.add(mesh);
       this.flowers = { T: cfg.T, G: cfg.G, per: per * per, mesh, geo, tiles, hole: new THREE.Vector4(), half };
     }
+    this.buildCards(shared);
     void this.bakeMask();
     return this;
+  }
+
+  /**
+   * The near field: the painted grass / flower card atlas as clumps of 3 crossed quads (not camera-facing — they hold
+   * up walked round), on the same field, mask, wind and trample as the blades; alpha-to-coverage under MSAA (desktop),
+   * alpha test on the phone. Built at once with a clear 1×1 stand-in (so it compiles with the rest), the atlas swapped
+   * in when it lands.
+   */
+  private buildCards(shared: Record<string, THREE.IUniform>): void {
+    const cfg = CARDS, per = Math.round(cfg.T / cfg.s), geo = cardGeometry(), tiles = tileTexture(), half = (cfg.G * cfg.T) / 2;
+    const clear = new THREE.DataTexture(new Uint8Array(4), 1, 1, THREE.RGBAFormat); clear.needsUpdate = true;
+    const a2c = !PHONE;
+    const cells = GRASS_CARDS.map((c) => new THREE.Vector4(c.u0 + 0.004, c.v0 + 0.004, c.u1 - 0.004, c.v1 - 0.01));
+    const mat = new THREE.ShaderMaterial({
+      uniforms: {
+        ...shared, ...wind.uniforms, ...trample.uniforms, tTiles: { value: tiles.tex }, tCards: { value: clear },
+        uSpacing: { value: cfg.s }, uPerSide: { value: per }, uNear: { value: new THREE.Vector3(NEAR[0], NEAR[1], 0) },
+        uCells: { value: cells }, uA2C: { value: a2c ? 1 : 0 },
+      },
+      vertexShader: CARD_VS, fragmentShader: CARD_FS, side: THREE.DoubleSide, fog: true, alphaToCoverage: a2c,
+    });
+    mat.name = 'grass-v2-cards';
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.frustumCulled = false; mesh.name = mat.name;
+    mesh.onBeforeRender = (renderer, _s, camera) => { this.place(renderer, camera); };
+    this.group.add(mesh);
+    this.cards = { T: cfg.T, G: cfg.G, per: per * per, mesh, geo, tiles, hole: new THREE.Vector4(), half };
+    void (async (): Promise<void> => {
+      try { const t = await loadGrassCardAtlas(); const u = mat.uniforms['tCards']; if (u) u.value = t; } catch (e: unknown) { console.warn('[grass v2] no card atlas', e); }
+    })();
   }
 
   /** the dressing landed (`reseedPainterlyGrass`): bake the fine mask again with its cover */
@@ -483,6 +637,7 @@ export class GrassV2 {
       prev = this.fill(R, cx, cz, prev);
     });
     if (this.flowers) this.fill(this.flowers, cx, cz, null);
+    if (this.cards) { if (above > 6) this.cards.geo.instanceCount = 0; else this.fill(this.cards, cx, cz, null); }
   }
 
   private fill(R: Ring, camX: number, camZ: number, prev: { cx: number; cz: number; half: number } | null): { cx: number; cz: number; half: number } {
