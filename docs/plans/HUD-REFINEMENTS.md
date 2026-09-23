@@ -1,15 +1,16 @@
 # Plan: tentative HUD / touch-control refinements
 
-**State:** `draft` 2026-09-22 — **ideas only: Jake has approved none of them.** He is playing the sword touch HUD (E11, live `6eafcb4`) and the see-through bar (E34, `6660585`) first; nothing below gets built until he picks a row by name. Parked here so the ideas aren't lost (E35). E37 added the thumb-flow audit (F1–F10), R12–R18 and a layout board (A / B / C, `art/hud/round-9-layout-board/board.jpg`). Waits on Jake's letter.
+**State:** `in progress` 2026-09-23 — **Jake picked touch layout E** (E42, `art/hud/round-10-look-zone/E.jpg`): the HUD build agent built R12 (ATTACK disc, R1 + R2 semantics), R14, R15, R17 (one look rate), R18, the 67 %-solid bar and the MOVE-stick remaster (see "E42: layout E" below). R3–R11, R13 (left FIRE copy), R16 stay ideas, unapproved; nothing more is built until Jake names one.
 
 ## Read this first
 
-**None of these rows is approved.** They are the HUD agent's recommendations from the Call of Duty Mobile study (E11)
+**Jake picked layout E on 2026-09-23 (E42)**, which approved R12, R14, R15, R17 and R18 (built, below). **Every other row
+is still unapproved.** The rows are the HUD agent's recommendations from the Call of Duty Mobile study (E11)
 and the touch audit that followed (E35), written down so they survive while Jake plays the build. A row becomes work
 only when Jake names it; until then, an agent must not build, "quickly try" or partially land any of them.
 
-Already built, so not listed: the HEAVY + DODGE discs, the lunge with lock-on brackets, right-half look, the Look speed
-and Swing turn speed sliders (E11), the 75 %-solid bar (E34). The dodge + lunge feel (whoosh, FOV kick, speed streaks,
+Already built, so not listed: the DODGE disc (the HEAVY disc was retired by E42 — the ATTACK hold charges the heavy now), the lunge with lock-on brackets, right-half look, the Look speed
+and Swing turn speed sliders (E11), the see-through bar (E34 75 % solid, E42 67 %). The dodge + lunge feel (whoosh, FOV kick, speed streaks,
 haptics) is the one row Jake picked from the audit, so it was built (E35, `84951d0`), not parked here.
 
 ## Where the ideas come from
@@ -85,9 +86,30 @@ is "what must the other thumb keep doing while this one presses?"
 | R17 | **One look rate** | Drop `PAD_BOOST`, or apply it everywhere, so a swipe turns the same amount wherever it starts. | `TouchControls.ts` | XS | Pairs with the Look speed slider. |
 | R18 | **Close the 44 px gap** | Discs sit on the bar's top edge. VITALS moves out of the thumb lane (top-left under PAUSE, or inside the bar). | `touch.css`, `game.css` | S | Vitals must stay readable during a fight. |
 
+## E42: layout E (Jake's pick, 2026-09-23)
+
+Jake picked **E** from the look-zone board (`art/hud/round-10-look-zone/board.jpg`: BEFORE / D / E / F): "My gut feeling is
+E is what we should try", the black bar "from 25 % to 33 %" see-through, and the MOVE stick "should be remastered to have
+better UX, it's just an empty circle" — keeping "the little bit of color". Built in `src/player/TouchControls.ts` (header
+comment = the layout), `src/ui/styles/touch.css`, `game.css` (VITALS / BOLTS), `HUD.ts` (mounts them into `.ws-touch-status`).
+
+| Row | What E built |
+|---|---|
+| R12 (+ R1, R2) | **ATTACK disc** inboard in the bar's right half, top poking above the bar: fires on touch-down, a drag from it looks, a still hold (< 12 px, 0.25 s) charges the heavy with the ring filling, lift chops; a fast tap-tap-tap stays the light combo. Ranged kit: the same disc reads FIRE (fire on down, drag = look, no hold). The HEAVY disc is gone. **LOOK pad** (outboard corner, dashed rounded square) only looks — tap-to-fire removed. |
+| R13 (half) | AIM (ranged kit) moved to the right thumb: right above FIRE, left of DODGE. The optional left FIRE copy is not built. |
+| R14 | DODGE / JUMP a short diagonal just above the bar at the right edge (DODGE lower-left, JUMP upper-right); DIVE takes JUMP's spot and SURFACE DODGE's while swimming. |
+| R15 | SWAP \| HOVER as one split pill on the centre divider, seated on the bar's top edge (SWAP only once a second weapon is unlocked). |
+| R17 | One look rate everywhere: 0.0095 rad/px (the old free-look rate) × Look speed; the pad's 1.6× boost is dropped. Pointer capture lets a drag that starts in the bar run up the screen, so the pad needs no extra reach. |
+| R18 | The 44 px gap is closed; VITALS (and BOLTS on ranged kit) moved top-left under PAUSE / the frame meter; the ✎ disc, boss bar, feed and toasts stack under them. |
+| Bar | 67 % solid (`rgba(6, 10, 18, 0.67)`), was 75 %. |
+| Stick | Always drawn: a thin cyan ring (radius = full deflection) with a glowing cyan knob at rest; the knob follows the thumb; past the sprint threshold forward the ring's top arc lights with a SPRINT tick. Still anchored (grab anywhere in the MOVE zone), not floating. |
+
 ## Status
 
 | # | State |
 |---|---|
-| R1–R11 | idea — not approved |
-| R12–R18 | idea — not approved (E37 audit) |
+| R1, R2 | built as R12's semantics (E42) |
+| R3–R11 | idea — not approved |
+| R12, R14, R15, R17, R18 | built — layout E (E42) |
+| R13 | AIM on the right built (E42); the left FIRE copy is an idea — not approved |
+| R16 | idea — not approved (E37 audit) |

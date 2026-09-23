@@ -1,64 +1,104 @@
 /* ─── touch controls (src/player/TouchControls.ts adds #hud.touch; layer is hidden until the intro is gone) ─── prefix ws-touch- ─── */
-.ws-touch { --bar: calc(max(15vh, 104px) + env(safe-area-inset-bottom, 0px) * 0.5); --disc: min(15vw, 84px); position: absolute; inset: 0; display: none; pointer-events: auto; touch-action: none; z-index: 5; }
+/* layout E (E42, art/hud/round-10-look-zone/E.jpg): MOVE stick left in the bar; ATTACK disc (inboard) + LOOK pad (outboard)
+   right in the bar; DODGE / JUMP on the right edge just above the bar; SWAP | HOVER pill on the centre divider; VITALS / BOLTS
+   top-left under PAUSE (.ws-touch-status). The tokens below place everything, so a retune is one line:
+     --bar    the control bar's height          --disc   JUMP / DIVE / AIM / SURFACE disc     --dodge  the DODGE disc
+     --pad-w  the LOOK pad's width              --atk    the ATTACK disc's diameter          --atk-x  its centre (between the divider and the pad)
+     --atk-poke  how far its top pokes above the bar's top edge */
+.ws-touch { --bar: calc(max(15vh, 104px) + env(safe-area-inset-bottom, 0px) * 0.5); --disc: min(15vw, 84px); --dodge: calc(var(--disc) * 0.9); --pad-w: min(17vw, 80px); --atk: min(24vw, 112px); --atk-x: calc(75% - var(--pad-w) / 2 - 4px); --atk-poke: 4px; position: absolute; inset: 0; display: none; pointer-events: auto; touch-action: none; z-index: 5; }
 #hud.touch:not(.intro) .ws-touch { display: block; }
-.ws-touch-stick { position: absolute; z-index: 2; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 1px solid rgba(143, 227, 255, 0.35); background: rgba(6, 10, 18, 0.35); opacity: 0; transition: opacity 0.12s; pointer-events: none; }
-.ws-touch-stick.show { opacity: 1; }
-.ws-touch-stick i { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: rgba(143, 227, 255, 0.35); border: 1px solid var(--ws-cyan); box-shadow: 0 0 14px rgba(143, 227, 255, 0.4); }
 .ws-touch-pause { position: absolute; left: 12px; top: var(--ws-top); transform: none; padding: 5px 12px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); color: var(--ws-text-dim); font-family: var(--ws-mono); font-size: 8.5px; letter-spacing: 0.22em; text-transform: uppercase; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .ws-touch-pause::before { content: '❚❚'; margin-right: 8px; font-size: 7px; color: var(--ws-cyan); }
-.ws-touch-bar { --bar: max(15vh, 104px); position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--bar) + env(safe-area-inset-bottom, 0px) * 0.5); display: flex; background: rgba(6, 10, 18, 0.75); border-top: 1px solid var(--ws-cyan-line); box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(143, 227, 255, 0.12); }
+/* top-left status column under PAUSE and the ?perf frame meter (perf.css puts it at --ws-top + 30 px): HUD.ts mounts VITALS and,
+   on ranged kit, BOLTS here — out of the thumb lane (E37 R18) */
+.ws-touch-status { position: absolute; left: 12px; top: calc(var(--ws-top) + 50px); display: flex; flex-direction: column; align-items: flex-start; gap: 4px; pointer-events: none; }
+
+/* ── the bar: 67 % solid (E42 — Jake: "from 25 % to 33 %" see-through; E34 had it 75 % solid) with NO backdrop blur (E26): the
+   world under it reads through, dimmed — a blur smeared it to flat grey (and cost a full-screen-width blur pass on phones) ── */
+.ws-touch-bar { --bar: max(15vh, 104px); position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--bar) + env(safe-area-inset-bottom, 0px) * 0.5); display: flex; background: rgba(6, 10, 18, 0.67); border-top: 1px solid var(--ws-cyan-line); box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(143, 227, 255, 0.12); }
 .ws-touch-zone { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; }
 .ws-touch-zone.move { border-right: 1px solid rgba(143, 227, 255, 0.15); }
-.ws-touch-zone u { display: block; width: 72px; height: 72px; border-radius: 50%; border: 1px dashed rgba(143, 227, 255, 0.3); }
-.ws-touch-zone.look u { border-radius: 10px; width: 45%; height: 60%; }
-.ws-touch-zone.look .ws-touch-label { top: 34px; } /* under the BOLTS strip that lives in this corner */
 .ws-touch-zone .ws-touch-label { position: absolute; left: 12px; top: 8px; font-size: 8px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ws-cyan-dim); }
-/* the bar is 75 % solid with NO backdrop blur (E26): the world under it reads through, dimmed — a blur smeared it to flat grey (and cost a full-screen-width blur pass on phones) */
-/* round glass discs above the bar (K1): AIM centred over the MOVE pad, JUMP over the LOOK pad, a smaller HOVER between */
-.ws-touch-disc { position: absolute; bottom: calc(var(--bar) + 44px); width: var(--disc); height: var(--disc); margin-left: calc(var(--disc) / -2); appearance: none; -webkit-appearance: none; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 50%; background: radial-gradient(circle at 50% 35%, rgba(24, 34, 48, 0.72), rgba(6, 10, 18, 0.82) 70%); border: 1px solid rgba(143, 227, 255, 0.55); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 0 0 3px rgba(6, 10, 18, 0.6), inset 0 0 0 4px rgba(143, 227, 255, 0.18), inset 0 1px 0 rgba(143, 227, 255, 0.2); backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); color: #fff; font-family: var(--ws-mono); font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; transition: background 0.15s, border-color 0.15s, box-shadow 0.15s; }
-/* layout A ("edge docks", art/buttons-A-edges.png): AIM hugs the left edge, JUMP the right, HOVER is a small pill on the right edge halfway up — the centre stays clear of the crossbow */
-.ws-touch-disc.aim { left: calc(var(--disc) / 2 + 10px); }
-.ws-touch-disc.jump { left: calc(100% - var(--disc) / 2 - 10px); }
-/* sword kit (E11, art/hud/round-7-sword-touch/): a sword held (.melee, TouchControls polls weapons.current) → HEAVY takes AIM's
-   spot on the same latch; its ring (.ws-touch-charge) fills with --charge 0..1 and glows at full. DODGE sits above-left of JUMP */
-.ws-touch.melee .ws-touch-disc.aim { display: none; }
-.ws-touch-disc.heavy { --charge: 0; left: calc(var(--disc) / 2 + 10px); display: none; }
-.ws-touch.melee .ws-touch-disc.heavy { display: flex; }
-.ws-touch-charge { position: absolute; inset: -5px; border-radius: 50%; pointer-events: none; opacity: 0; background: conic-gradient(var(--ws-cyan) calc(var(--charge) * 360deg), transparent 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); transition: opacity 0.12s; }
-.ws-touch-disc.heavy.on .ws-touch-charge { opacity: 1; }
-.ws-touch-disc.heavy.ready { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 30px rgba(143, 227, 255, 0.7); }
-.ws-touch-disc.dodge { --dodge: calc(var(--disc) * 0.8); width: var(--dodge); height: var(--dodge); margin-left: calc(var(--dodge) / -2); left: calc(100% - var(--disc) - 24px); bottom: calc(var(--bar) + 50px + var(--disc)); font-size: 8.5px; }
+
+/* ── MOVE: an anchored stick that is always drawn — a thin cyan ring (radius = STICK_RADIUS, full deflection) with a glowing
+   cyan knob resting at its centre; the knob follows the thumb (.held brightens the ring), and past SPRINT_AT forward the
+   ring's top arc lights, with a SPRINT tick off its top-right shoulder where the knob can't cover it (.sprint). Cardinal ticks on the rim say "push this way" ── */
+.ws-touch-stick { position: relative; width: 96px; height: 96px; border-radius: 50%; border: 1.5px solid rgba(143, 227, 255, 0.55); background: radial-gradient(circle, rgba(143, 227, 255, 0.07), rgba(6, 10, 18, 0.3) 72%); box-shadow: 0 0 10px rgba(143, 227, 255, 0.1), inset 0 0 14px rgba(143, 227, 255, 0.08); pointer-events: none; transition: border-color 0.12s, box-shadow 0.12s; }
+.ws-touch-stick::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; opacity: 0.65; background: linear-gradient(var(--ws-cyan), var(--ws-cyan)) 50% 0 / 1px 6px no-repeat, linear-gradient(var(--ws-cyan), var(--ws-cyan)) 50% 100% / 1px 6px no-repeat, linear-gradient(var(--ws-cyan), var(--ws-cyan)) 0 50% / 6px 1px no-repeat, linear-gradient(var(--ws-cyan), var(--ws-cyan)) 100% 50% / 6px 1px no-repeat; }
+.ws-touch-stick::before { content: ''; position: absolute; inset: -4px; border-radius: 50%; background: conic-gradient(from -45deg, var(--ws-cyan) 0 90deg, transparent 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); opacity: 0; filter: drop-shadow(0 0 6px rgba(143, 227, 255, 0.9)); transition: opacity 0.12s; }
+.ws-touch-stick.held { border-color: var(--ws-cyan); box-shadow: 0 0 16px rgba(143, 227, 255, 0.28), inset 0 0 16px rgba(143, 227, 255, 0.14); }
+.ws-touch-stick.sprint::before { opacity: 1; }
+.ws-touch-stick b { position: absolute; left: calc(100% + 5px); top: 2px; font-family: var(--ws-mono); font-weight: 700; font-size: 7px; line-height: 1; letter-spacing: 0.26em; text-transform: uppercase; color: var(--ws-cyan); text-shadow: 0 0 6px rgba(143, 227, 255, 0.8); opacity: 0; transition: opacity 0.12s; }
+.ws-touch-stick.sprint b { opacity: 1; }
+.ws-touch-stick i { position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: radial-gradient(circle at 50% 38%, rgba(143, 227, 255, 0.95), rgba(143, 227, 255, 0.55) 55%, rgba(143, 227, 255, 0.3)); border: 1px solid var(--ws-cyan); box-shadow: 0 0 16px rgba(143, 227, 255, 0.55), 0 0 4px rgba(143, 227, 255, 0.9), inset 0 1px 2px rgba(255, 255, 255, 0.35); }
+.ws-touch-stick.held i { box-shadow: 0 0 22px rgba(143, 227, 255, 0.75), 0 0 5px rgba(143, 227, 255, 1), inset 0 1px 2px rgba(255, 255, 255, 0.45); }
+
+/* ── LOOK pad: the bar's bottom-right corner, a glass rounded square with a dashed cyan inner border — drag = look, never
+   attacks (the whole right half looks; the pad is where the thumb is told to) ── */
+.ws-touch-lookpad { position: absolute; right: 10px; top: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px) * 0.5); width: var(--pad-w); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; border: 1px solid rgba(143, 227, 255, 0.5); border-radius: 12px; background: rgba(6, 10, 18, 0.4); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(143, 227, 255, 0.15); pointer-events: none; }
+.ws-touch-lookpad::before { content: ''; position: absolute; inset: 5px; border: 1px dashed rgba(143, 227, 255, 0.5); border-radius: 8px; }
+.ws-touch-lookpad svg { display: block; width: 24px; height: 24px; fill: var(--ws-text); filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6)); }
+.ws-touch-lookpad span { font-family: var(--ws-mono); font-size: 9px; line-height: 1; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ws-text); }
+
+/* ── ATTACK (FIRE on ranged kit): the big round glass disc inboard of the LOOK pad, its top poking above the bar. Fires on
+   touch-down; a drag from it looks; a still hold (melee) charges the heavy — the .ws-touch-charge ring fills with --charge
+   0..1 while .on, and glows at full (.ready) ── */
+.ws-touch-attack { --charge: 0; position: absolute; left: calc(var(--atk-x) - var(--atk) / 2); bottom: calc(var(--bar) - var(--atk) + var(--atk-poke)); width: var(--atk); height: var(--atk); appearance: none; -webkit-appearance: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 50%; background: radial-gradient(circle at 50% 35%, rgba(24, 34, 48, 0.8), rgba(6, 10, 18, 0.9) 70%); border: 1.5px solid var(--ws-cyan); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 16px rgba(143, 227, 255, 0.2), inset 0 0 0 4px rgba(6, 10, 18, 0.6), inset 0 0 0 5px rgba(143, 227, 255, 0.22); color: #fff; font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; transition: background 0.1s, box-shadow 0.15s; }
+.ws-touch-attack::before, .ws-touch-attack::after { content: ''; position: absolute; top: 50%; width: 8px; height: 1.5px; margin-top: -0.75px; background: var(--ws-cyan); }
+.ws-touch-attack::before { left: -4px; } .ws-touch-attack::after { right: -4px; }
+.ws-touch-attack svg { display: block; width: 30%; height: 30%; fill: currentColor; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6)); }
+.ws-touch-attack span { display: block; line-height: 1; color: var(--ws-text); }
+.ws-touch-attack small { display: block; margin-top: -1px; font-size: 6.5px; line-height: 1; letter-spacing: 0.18em; color: var(--ws-cyan-dim); }
+.ws-touch-attack .ranged { display: none; }
+.ws-touch:not(.melee) .ws-touch-attack .melee { display: none; }
+.ws-touch:not(.melee) .ws-touch-attack .ranged { display: block; }
+.ws-touch-attack.down { background: radial-gradient(circle at 50% 35%, rgba(143, 227, 255, 0.35), rgba(143, 227, 255, 0.16) 70%); }
+.ws-touch-attack.on { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 24px rgba(143, 227, 255, 0.45), inset 0 0 0 4px rgba(6, 10, 18, 0.6), inset 0 0 18px rgba(143, 227, 255, 0.25); }
+.ws-touch-attack.on span, .ws-touch-attack.on small { color: var(--ws-cyan); }
+.ws-touch-attack.ready { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 34px rgba(143, 227, 255, 0.75), inset 0 0 22px rgba(143, 227, 255, 0.35); }
+.ws-touch-charge { position: absolute; inset: -6px; border-radius: 50%; pointer-events: none; opacity: 0; background: conic-gradient(var(--ws-cyan) calc(var(--charge) * 360deg), transparent 0); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px)); transition: opacity 0.12s; }
+.ws-touch-attack.on .ws-touch-charge { opacity: 1; }
+
+/* ── SWAP | HOVER: one split pill on the centre divider, seated on the bar's top edge (equal halves, so the split sits on
+   the divider). SWAP only once a second weapon is unlocked (.show); without it the pill is just HOVER, lit (.on) while riding ── */
+.ws-touch-pill { position: absolute; left: 50%; bottom: calc(var(--bar) - 1px); transform: translateX(-50%); display: flex; height: 24px; border: 1px solid var(--ws-cyan-dim); border-radius: 12px; background: var(--ws-glass-deep); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(143, 227, 255, 0.15); overflow: hidden; }
+.ws-touch-pill button { appearance: none; -webkit-appearance: none; margin: 0; padding: 0 0 0 0.2em; width: 48px; height: 100%; border: 0; background: transparent; color: var(--ws-text); font-family: var(--ws-mono); font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; transition: background 0.12s, color 0.12s; }
+.ws-touch-pill .swap { display: none; border-right: 1px solid var(--ws-cyan-line); }
+.ws-touch-pill .swap.show { display: block; }
+.ws-touch-pill .down { background: rgba(143, 227, 255, 0.28); }
+.ws-touch-pill .hover.on { color: var(--ws-cyan); background: rgba(143, 227, 255, 0.16); box-shadow: inset 0 0 10px rgba(143, 227, 255, 0.35); text-shadow: 0 0 6px rgba(143, 227, 255, 0.7); }
+
+/* ── round glass discs on the right-thumb arc, just above the bar (E37 R14 / F9: no gap to hop over) ── */
+.ws-touch-disc { position: absolute; width: var(--disc); height: var(--disc); margin-left: calc(var(--disc) / -2); appearance: none; -webkit-appearance: none; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 50%; background: radial-gradient(circle at 50% 35%, rgba(24, 34, 48, 0.72), rgba(6, 10, 18, 0.82) 70%); border: 1px solid rgba(143, 227, 255, 0.55); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 0 0 3px rgba(6, 10, 18, 0.6), inset 0 0 0 4px rgba(143, 227, 255, 0.18), inset 0 1px 0 rgba(143, 227, 255, 0.2); backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); color: #fff; font-family: var(--ws-mono); font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; transition: background 0.15s, border-color 0.15s, box-shadow 0.15s; }
+/* DODGE lower-left, JUMP upper-right: a short diagonal over the LOOK pad, DODGE's bottom 6 px above the bar */
+.ws-touch-disc.dodge { width: var(--dodge); height: var(--dodge); margin-left: calc(var(--dodge) / -2); left: calc(100% - var(--disc) / 2 - 42px); bottom: calc(var(--bar) + 6px); font-size: 8px; }
 .ws-touch-disc.dodge svg { width: 34%; height: 34%; fill: none; }
 .ws-touch.swimming .ws-touch-disc.dodge { display: none; }
+.ws-touch-disc.jump, .ws-touch-disc.dive { left: calc(100% - var(--disc) / 2 - 8px); bottom: calc(var(--bar) + 56px + (var(--dodge) - var(--disc)) / 2); }
+/* AIM (ranged kit only — hidden while a sword is held): the iron-sights latch right above the FIRE disc, left of DODGE */
+.ws-touch-disc.aim { left: var(--atk-x); bottom: calc(var(--bar) + 38px); }
+.ws-touch.melee .ws-touch-disc.aim { display: none; }
 /* swimming (TouchControls adds .swimming to the layer): JUMP gives its spot to DIVE, a held button; once the eye is under
-   (.submerged) a SURFACE disc surfaces beside it, one disc-width in from the edge — hold to rise, gone again at the top */
-.ws-touch-disc.dive { left: calc(100% - var(--disc) / 2 - 10px); display: none; }
-.ws-touch-disc.surface { left: calc(100% - var(--disc) * 1.5 - 26px); display: none; opacity: 0; transform: translateY(8px); transition: opacity 0.2s, transform 0.2s, background 0.15s; }
+   (.submerged) a SURFACE disc surfaces in DODGE's spot beside it (DODGE hides in the water) — hold to rise, gone again at the top */
+.ws-touch-disc.dive { display: none; }
+.ws-touch-disc.surface { left: calc(100% - var(--disc) / 2 - 42px); bottom: calc(var(--bar) + 6px + (var(--dodge) - var(--disc)) / 2); display: none; opacity: 0; transform: translateY(8px); transition: opacity 0.2s, transform 0.2s, background 0.15s; }
 .ws-touch.swimming .ws-touch-disc.jump { display: none; }
 .ws-touch.swimming .ws-touch-disc.dive { display: flex; }
 .ws-touch.swimming .ws-touch-disc.surface { display: flex; }
 .ws-touch.swimming.submerged .ws-touch-disc.surface { opacity: 1; transform: none; }
 .ws-touch.swimming:not(.submerged) .ws-touch-disc.surface { pointer-events: none; }
 .ws-touch-disc.dive svg, .ws-touch-disc.surface svg { width: 44%; height: 44%; fill: none; }
-.ws-touch-disc.surface span { font-size: 8px; letter-spacing: 0.18em; }
-.ws-touch-disc.hover { left: auto; right: 0; bottom: auto; top: 46%; margin-left: 0; width: 52px; height: 52px; border-radius: 12px 0 0 12px; border-right: none; font-size: 7px; gap: 2px; }
-.ws-touch-disc.hover::before, .ws-touch-disc.hover::after { display: none; }
-/* SWAP (crossbow ⇄ AR-15, src/player/Weapons.ts): HOVER's mirror on the LEFT edge, same pill, opening to the right */
-.ws-touch-disc.swap { left: 0; right: auto; bottom: auto; top: 46%; margin-left: 0; width: 52px; height: 52px; border-radius: 0 12px 12px 0; border-left: none; font-size: 7px; gap: 2px; display: none; }
-.ws-touch-disc.swap.show { display: flex; } /* only once a second weapon is unlocked (the AR-15 pickup) */
-.ws-touch-disc.swap::before, .ws-touch-disc.swap::after { display: none; }
-.ws-touch-disc.swap svg { width: 46%; height: 46%; fill: none; }
+.ws-touch-disc.surface span { font-size: 7.5px; letter-spacing: 0.16em; }
 .ws-touch-disc svg { display: block; width: 38%; height: 38%; fill: currentColor; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6)); }
-.ws-touch-disc.hover svg { width: 44%; height: 44%; }
 .ws-touch-disc span { display: block; line-height: 1; color: var(--ws-text); }
 /* the tiny 3 o'clock / 9 o'clock ticks on the rim */
 .ws-touch-disc::before, .ws-touch-disc::after { content: ''; position: absolute; top: 50%; width: 7px; height: 1px; margin-top: -0.5px; background: var(--ws-cyan); opacity: 0.7; }
 .ws-touch-disc::before { left: -3px; } .ws-touch-disc::after { right: -3px; }
 .ws-touch-disc.down { background: radial-gradient(circle at 50% 35%, rgba(143, 227, 255, 0.35), rgba(143, 227, 255, 0.18) 70%); }
-/* latched toggles (AIM, HOVER): cyan rim + glow, like the lit disc in the mockup */
+/* the latched AIM toggle: cyan rim + glow */
 .ws-touch-disc.on { border-color: var(--ws-cyan); color: var(--ws-cyan); background: radial-gradient(circle at 50% 35%, rgba(143, 227, 255, 0.22), rgba(6, 10, 18, 0.85) 70%); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 22px rgba(143, 227, 255, 0.35), inset 0 0 0 3px rgba(6, 10, 18, 0.6), inset 0 0 0 4.5px var(--ws-cyan), inset 0 0 18px rgba(143, 227, 255, 0.2); }
 .ws-touch-disc.on span { color: var(--ws-cyan); }
-/* USE: a big interact button above the discs, shown by TouchControls while the game HUD has a prompt up */
-.ws-touch-use { position: absolute; left: 12px; right: 12px; bottom: calc(var(--bar) + 44px + var(--disc) + 12px); height: 60px; display: none; align-items: center; justify-content: center; appearance: none; -webkit-appearance: none; margin: 0; padding: 0; border-radius: 8px; background: rgba(143, 227, 255, 0.16); border: 1px solid var(--ws-cyan); border-left: 4px solid var(--ws-cyan); box-shadow: 0 0 22px rgba(143, 227, 255, 0.25); color: #fff; font-family: var(--ws-display); font-weight: 700; font-size: 19px; letter-spacing: 0.24em; text-transform: uppercase; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+/* USE: a big interact band above the right-thumb arc (clear of JUMP's top), shown by TouchControls while the game HUD has a prompt up */
+.ws-touch-use { position: absolute; left: 12px; right: 12px; bottom: calc(var(--bar) + 68px + (var(--dodge) + var(--disc)) / 2); height: 60px; display: none; align-items: center; justify-content: center; appearance: none; -webkit-appearance: none; margin: 0; padding: 0; border-radius: 8px; background: rgba(143, 227, 255, 0.16); border: 1px solid var(--ws-cyan); border-left: 4px solid var(--ws-cyan); box-shadow: 0 0 22px rgba(143, 227, 255, 0.25); color: #fff; font-family: var(--ws-display); font-weight: 700; font-size: 19px; letter-spacing: 0.24em; text-transform: uppercase; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .ws-touch-use.show { display: flex; }
 .ws-touch-use.down { background: rgba(143, 227, 255, 0.34); }

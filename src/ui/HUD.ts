@@ -101,7 +101,7 @@ export class HUD {
   private compassStrip!: HTMLElement; private band!: HTMLElement;
   private markHouse!: HTMLElement; private markPaw!: HTMLElement; private range!: HTMLElement;
   private animals: { x: number; z: number }[] = [];
-  /** P2 touch layout: vitals + bolts strips rendered INTO the control bar's corners (`.ws-touch-bar`, TouchControls) */
+  /** touch layout E (E42): the vitals + bolts strips rendered into TouchControls' top-left status column (`.ws-touch-status`, under PAUSE) */
   private bar?: { hval: HTMLElement; hbar: HTMLElement; bolts: HTMLElement; bcount: HTMLElement; segs: HTMLElement[]; segBox: HTMLElement; label: HTMLElement; weapon: HTMLElement; max: HTMLElement; reserve: HTMLElement };
   private lastMark = { house: Number.NaN, paw: Number.NaN, range: '' };
   private ppd = 1.2; // compass px per degree — measured from the band (`--ppd`), see build()
@@ -300,11 +300,11 @@ export class HUD {
     if (this.hitTimer > 0 && (this.hitTimer -= 1) === 0) this.cross.classList.remove('hit', 'head');
   }
 
-  /** touch (P2): heart · 100 · bar · VITALS in the bar's top-left corner, BOLTS · segments · 27 / 30 · bolt top-right.
-   *  Rendered into TouchControls' `.ws-touch-bar` once it exists; the numbers are HUD state, so the HUD owns them. */
+  /** touch (E42): heart · 100 · bar · VITALS top-left under PAUSE / the frame meter, and under it (ranged kit) BOLTS · segments · 27 / 30 · bolt.
+   *  Rendered into TouchControls' `.ws-touch-status` once it exists; the numbers are HUD state, so the HUD owns them. */
   private mountBar(): boolean {
     if (this.bar) return true;
-    const bar = this.root.querySelector<HTMLElement>('.ws-touch-bar');
+    const bar = this.root.querySelector<HTMLElement>('.ws-touch-status');
     if (!bar) return false;
     const vitals = el('div', 'ws-game-vitals', `<i class="ws-game-glyph">${SVG_HEART}</i><b class="ws-game-num">100</b><span class="ws-game-vbar"><i></i></span><span class="ws-game-tiny">Vitals</span>`);
     const L = this.last, segN = L.segments ?? 4, reserve = L.reserve ?? 0;

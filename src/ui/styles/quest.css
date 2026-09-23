@@ -31,6 +31,12 @@
 /* ── the boss bar (the Drowned Captain): top centre, under the safe area ── */
 .ws-quest-boss { position: absolute; left: 50%; top: calc(var(--ws-top) + 58px); width: min(62vw, 420px); transform: translate(-50%, -6px); opacity: 0; transition: opacity 0.4s, transform 0.4s; pointer-events: none; }
 .ws-quest-boss.show { opacity: 1; transform: translate(-50%, 0); }
+/* touch phone (layout E, E42): the top-left column holds PAUSE, the frame meter, VITALS / BOLTS and the ✎ disc and the minimap owns the
+   top-right, so the bar drops into the left column under them, capped at the minimap's left edge */
+@media (max-width: 700px) {
+  #hud.touch .ws-quest-boss { left: 12px; top: calc(var(--ws-top) + 150px); width: calc(100vw - 34vw - 14px - 36px); transform: translateY(-6px); }
+  #hud.touch .ws-quest-boss.show { transform: none; }
+}
 .ws-quest-boss-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
 .ws-quest-boss-name { font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.16em; text-transform: uppercase; color: #eafcff; text-shadow: 0 0 10px rgba(143, 227, 255, 0.5), 0 1px 3px rgba(0, 0, 0, 0.9); }
 .ws-quest-boss-pips { display: flex; gap: 5px; }
