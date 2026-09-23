@@ -10,6 +10,7 @@ import { REST, CHARGE, SPRINT, COMBO, SLASH, HEAVY, type Move } from './SwordMov
 import { getAimTargets, meleeLock, targetRadius, type AimTarget } from './AimTargets';
 import { segmentBlocked } from './MeleeSweep';
 import { worldTime } from '../core/time';
+import { CameraFX } from './CameraFX';
 
 /**
  * Sword — the Driftwood Isle melee weapon (`ChunkDef.weapon === 'sword'`): a low-poly wooden sword (pale carved blade
@@ -378,7 +379,8 @@ export class Sword implements Weapon {
   private comboIdx = 0;          // index into COMBO of the NEXT light swing
   private lastSwingEnd = -1e9;
   private cooldown = 0;
-  private hitDone = false;
+  private hitDone = false; private kicked = false;
+  private fx: CameraFX;
   private jolt = 0;
   // heavy
   private mouseHeld = false; private heldPrev = false;
@@ -409,6 +411,7 @@ export class Sword implements Weapon {
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.damage = opts.blade === 'iron' ? DAMAGE_IRON : DAMAGE_WOOD;
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
+    this.fx = CameraFX.for(this.game); // camera kick / FOV punch (C3); after bootstrap, so it layers on Player.update's camera
     this.buildViewmodel(opts.blade ?? 'wood');
     this.buildTrail();
     const cam = this.game.camera;
@@ -452,7 +455,7 @@ export class Sword implements Weapon {
     if (next !== undefined) this.startSwing(next);
   }
   private startSwing(move: Move): void {
-    this.move = move; this.swingT = 0; this.hitDone = false; this.queued = false;
+    this.move = move; this.swingT = 0; this.hitDone = false; this.kicked = false; this.queued = false;
     this.struckN = 0; this.struck.fill(null); this.sweepHave = false;
     this.fromPos.copy(this.basePos); this.fromQ.copy(this.baseQ);
     this.trailN = 0; this.trail.visible = false;
@@ -652,7 +655,7 @@ export class Sword implements Weapon {
     if (!killed) (animal as unknown as { stagger?: (dir: THREE.Vector3, strength: number) => void }).stagger?.(_push, move.stagger);
     // hit-stop (C2): the first contact of a swing stops the WORLD (Game.hitStop — the swing, the target, the player) for the
     // move's 60 / 90 / 140 ms; the stars, trail fade and camera kick run on worldTime.realDt through it
-    if (!this.hitDone) { this.hitDone = true; this.game.hitStop(move.hitStop * this.swingScale); this.jolt = move === HEAVY ? 1.6 : 1; }
+    if (!this.hitDone) { this.hitDone = true; this.game.hitStop(move.hitStop * this.swingScale); this.jolt = move === HEAVY ? 1.6 : 1; this.fx.kick(move.kick.pitch * 0.5, move.kick.roll * 0.5); }
     this.stars.burst(point, _fwd, move === HEAVY ? 14 : 9);
     this.onHit?.(animal.kind, false, killed);
     this.onImpact?.('flesh', point);
@@ -679,7 +682,7 @@ export class Sword implements Weapon {
     // FOV (Hor+ on portrait; the sword never zooms) + the dodge / lunge kick while in hand (Player.fovKick — transient, so
     // the shadow cascades are only refit for a base change, not every kicked frame)
     const baseFov = fovForAspect(FOV_HIP, cam.aspect);
-    const targetFov = baseFov + (this.model.visible ? p.fovKick : 0);
+    const targetFov = baseFov + (this.model.visible ? p.fovKick + this.fx.fovOffset : 0);
     if (Math.abs(targetFov - this.fov) > 0.01) {
       const refit = Math.abs(baseFov - this.baseFov) > 0.01; this.baseFov = baseFov;
       this.fov = targetFov; cam.fov = this.fov; cam.updateProjectionMatrix();
@@ -706,6 +709,8 @@ export class Sword implements Weapon {
       else if (this.swingT >= move.total) { this.move = move = null; this.lastSwingEnd = t; this.cooldown = COOLDOWN; }
     }
     const active = move !== null && this.swingT >= move.windup && this.swingT <= move.slashEnd;
+    // the camera leans along the swing as the blade comes through (C3), the heavy punches the FOV in
+    if (move && active && !this.kicked && this.model.visible) { this.kicked = true; this.fx.kick(move.kick.pitch, move.kick.roll); if (move.kick.fov !== undefined) this.fx.fovPunch(move.kick.fov); }
     // the melee lock (HUD brackets, touch lunge camera turn): the lunge's target while a swing runs, else what a swing would take
     // now. Every kit weapon ticks, so only the one in hand (its viewmodel shown — the kit's setActive) writes it, and the one
     // that just left the hand clears it once.

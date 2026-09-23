@@ -23,6 +23,7 @@ import { Gulls } from './world/Gulls';
 import { Trailside } from './world/Trailside';
 import { Hands } from './player/Hands';
 import { Sword } from './player/Sword';
+import { CameraFX } from './player/CameraFX';
 import { IronSwordPickup, ironSwordSite } from './player/IronSword';
 import type { Weapon } from './player/Weapon';
 import { Horizon } from './world/Horizon';
@@ -417,6 +418,7 @@ async function main() {
     health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); music.combat(0.9);
     killer = { kind: a.kind, label: a.label };
     hurtArc.hit(a.position.x, a.position.z, player.position, player.yaw, dmg);
+    if (chunk.weapon === 'sword') CameraFX.for(game).addTrauma(Math.min(0.85, 0.3 + dmg / 40)); // a trauma² shake (C3, the island only)
     const dx = a.position.x - player.position.x, dz = a.position.z - player.position.z, d = Math.hypot(dx, dz);
     audio.hurt(dmg / 20, d > 0.3 ? ((dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw)) / d) * 0.7 : 0);
   };

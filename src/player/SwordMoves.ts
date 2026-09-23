@@ -33,6 +33,9 @@ export interface Move {
   stagger: number;
   /** the blow's sideways component in the strike direction: +1 = the sweep travels right → left across the forward, -1 the other way, 0 straight down */
   sweep: number;
+  /** camera kick as the blade comes through (CameraFX, C3): peak pitch / roll in degrees (+ roll = the view tips left),
+   *  an optional FOV punch; half of it again on the first contact */
+  kick: { pitch: number; roll: number; fov?: number };
   /** s of world hit-stop on the swing's first contact (Game.hitStop, C2): combo 60 ms, finisher 90, heavy 140 */
   hitStop: number;
   trail: Trail;
@@ -64,7 +67,7 @@ export const SLASH: Move = {
     key(0.235, -0.02, -0.35, -0.46, -0.88, 0.22, -0.42, 0.15),  // follow-through: blade out to the left, still rising a little
   ],
   windup: 0.07, slashEnd: 0.235, total: 0.35,
-  damage: 1, stagger: 0, sweep: 1, hitStop: 0.06,
+  damage: 1, stagger: 0, sweep: 1, hitStop: 0.06, kick: { pitch: -0.6, roll: 1.6 },
   trail: { from: 0.62, color: white(1, 1, 1), alpha: 0.6, inner: 0, life: 0.13 },
 };
 
@@ -76,7 +79,7 @@ export const BACKHAND: Move = {
     key(0.22, 0.40, -0.26, -0.50, 0.86, 0.36, -0.36, -0.1),      // follow-through: blade out to the right, tip past the frame edge
   ],
   windup: 0.06, slashEnd: 0.22, total: 0.34,
-  damage: 1, stagger: 0, sweep: -1, hitStop: 0.06,
+  damage: 1, stagger: 0, sweep: -1, hitStop: 0.06, kick: { pitch: -0.6, roll: -1.6 },
   trail: { from: 0.58, color: white(0.9, 0.97, 1), alpha: 0.6, inner: 0.05, life: 0.13 },
 };
 
@@ -88,7 +91,7 @@ export const FINISHER: Move = {
     key(0.28, -0.14, -0.44, -0.44, -0.72, -0.28, -0.63, 0.05),  // low left, tip below the frame centre
   ],
   windup: 0.10, slashEnd: 0.28, total: 0.44,
-  damage: 16 / 12, stagger: 0.25, sweep: 0.5, hitStop: 0.09,
+  damage: 16 / 12, stagger: 0.25, sweep: 0.5, hitStop: 0.09, kick: { pitch: -1.8, roll: 1.1 },
   trail: { from: 0.5, color: white(1, 0.97, 0.88), alpha: 0.7, inner: 0.1, life: 0.15 },
 };
 
@@ -100,7 +103,7 @@ export const HEAVY: Move = {
     key(0.30, -0.12, -0.50, -0.44, -0.56, -0.46, -0.69, 0.0),   // buried low left, tip below the frame
   ],
   windup: 0.06, slashEnd: 0.30, total: 0.62,
-  damage: 2, stagger: 1, sweep: 0.35, hitStop: 0.14,
+  damage: 2, stagger: 1, sweep: 0.35, hitStop: 0.14, kick: { pitch: -2.6, roll: 0.8, fov: -2 },
   trail: { from: 0.34, color: white(1, 0.98, 0.94), alpha: 1.0, inner: 0.35, life: 0.22 },
 };
 
