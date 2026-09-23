@@ -356,7 +356,7 @@ export class GoldenKingFight implements BossScript {
       // the headdress (phase III): headshots wear it down; off, he drops to one knee
       if (this.lastHeadHit) {
         const lost = this.lastHp - k.hp;
-        if (lost > 0 && this.phase >= 2 && (k.mem['crown'] ?? 1) > 0) {
+        if (lost > 0 && k.alive && this.mode !== 'dead' && this.phase >= 2 && (k.mem['crown'] ?? 1) > 0) {
           this.headHp -= lost;
           if (this.headHp <= 0) { k.mem['crown'] = 0; this.mode = 'kneel'; this.modeT = 0; k.cancelAttack(); k.mem['act'] = 0; k.mem['kneel'] = 1; this.host.feed('The headdress falls — the King kneels'); }
         }
@@ -381,8 +381,8 @@ export class GoldenKingFight implements BossScript {
       } else if (tell && !tell.active) { const ring = d.rings[1]; if (ring) ring.mesh.visible = false; }
       // mode timers
       this.modeT += dt;
-      if (this.mode === 'stun' && this.modeT > 4) { this.mode = 'fight'; this.modeT = 0; k.mem['kneel'] = 0; k.mem['raise'] = 0; this.comboCd = 0.8; }
-      if (this.mode === 'kneel' && this.modeT > 3) { this.mode = 'fight'; this.modeT = 0; k.mem['kneel'] = 0; this.comboCd = 0.6; }
+      if (this.mode === 'dead') { /* the crumble below */ } else if (this.mode === 'stun' && this.modeT > 4) { this.mode = 'fight'; this.modeT = 0; k.mem['kneel'] = 0; k.mem['raise'] = 0; this.comboCd = 0.8; }
+      else if (this.mode === 'kneel' && this.modeT > 3) { this.mode = 'fight'; this.modeT = 0; k.mem['kneel'] = 0; this.comboCd = 0.6; }
       if (this.mode === 'shield') d.dome.mesh.position.set(k.position.x - DUNGEON.x, (k.mem['floorS'] ?? DUNGEON.y) - DUNGEON.y, k.position.z - DUNGEON.z);
       d.dome.mesh.scale.setScalar(1.75);
       d.dome.mat.uniforms.uAlpha.value = 0.9;
@@ -513,7 +513,7 @@ export class GoldenKingFight implements BossScript {
     b.mesh.position.copy(_v);
     b.mesh.scale.set(1, len, 1);
     b.mesh.quaternion.setFromUnitVectors(_h.set(0, 1, 0), top.sub(_v).normalize());
-    b.mat.uniforms.uAlpha.value = 0.95 * this.beamK;
+    b.mat.uniforms.uAlpha.value = 0.7 * this.beamK;
     // the path line ahead of it: a gold arc on the floor
     b.line.visible = true;
     b.line.rotation.y = this.beamDir > 0 ? this.beamA - Math.PI / 2 : this.beamA - Math.PI / 2 - Math.PI * 0.6;
@@ -776,6 +776,10 @@ export class KurganBoss {
     if (!this.dungeon.inVolume(p)) { this.exit(false); return; }         // respawned elsewhere (a death outside the fight)
     const lz = p.z - DUNGEON.z;
     if (lz > DROMOS_END - 0.7 && this.boss?.engaged !== true) { this.exit(true); return; }
+    // never below the dungeon floor: a drift that rises > 0.5 m under you in one step (a shove into a mound) is a platform
+    // the Player refuses, and the terrain is 100 m down — lift the feet back onto the floor the same frame
+    const fl = this.dungeon.floorHeightAt(p.x, p.z);
+    if (fl !== undefined && p.y < fl - 0.02 && p.y > fl - 4) { p.y = fl; if (this.ctx.player.velocity.y < 0) this.ctx.player.velocity.y = 0; }
     // sand drifts slow you (the plinth, the beams and the pedestal step are the high ground)
     const lx = p.x - DUNGEON.x;
     const sand = this.dungeon.inChamber(p) ? this.dungeon.sandAt(lx, lz) : 0;

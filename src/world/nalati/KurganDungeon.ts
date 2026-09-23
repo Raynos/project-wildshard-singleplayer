@@ -508,6 +508,9 @@ export class KurganDungeon {
     // the niches with their dormant balbals (static — only the chamber's four wake)
     for (const nz of [13.6, 18.4]) for (const sx of [-1, 1]) {
       kit.add(new THREE.BoxGeometry(0.2, 2.8, 1.8), C.earth.clone().multiplyScalar(0.55), { matrix: M(sx * (DW + 0.9), 1.3, nz), flat: true });
+      kit.add(new THREE.BoxGeometry(1.1, 0.12, 1.9), C.earth.clone().multiplyScalar(0.7), { matrix: M(sx * (DW + 0.45), -0.02, nz), flat: true });
+      for (const dz of [-0.95, 0.95]) kit.add(new THREE.BoxGeometry(1.1, 2.8, 0.14), C.earth.clone().multiplyScalar(0.5), { matrix: M(sx * (DW + 0.45), 1.3, nz + dz), flat: true });
+      kit.add(new THREE.BoxGeometry(1.1, 0.14, 1.9), C.earth.clone().multiplyScalar(0.45), { matrix: M(sx * (DW + 0.45), 2.72, nz), flat: true });
       for (const dz of [-0.9, 0.9]) kit.add(pole(v3(sx * DW, -0.1, nz + dz), v3(sx * DW, 2.7, nz + dz), 0.2, 0.18, 8), C.larchDark);
       kit.add(log(sx * DW, 2.65, nz - 1.1, sx * DW, nz + 1.1, 0.2), C.larchOld);
       const g = balbalGeometry(nz > 16 ? 1 : 0, 0xba1 + Math.round(nz * 10) + sx);
@@ -707,7 +710,7 @@ export class KurganDungeon {
     }
     // the sun beam (phase III) and the thin gold line of its path
     {
-      const g = new THREE.CylinderGeometry(0.75, 0.95, 1, 18, 1, true); g.translate(0, 0.5, 0);
+      const g = new THREE.CylinderGeometry(0.45, 0.7, 1, 18, 1, true); g.translate(0, 0.5, 0);
       const mat = reg(fxMaterial(FX.beam, new THREE.Color(1.5, 1.0, 0.4), 0));
       const mesh = add(new THREE.Mesh(g, mat), 12); mesh.visible = false;
       const lg = annulus(5.85, 6.15, 64, Math.PI * 0.6);

@@ -40,7 +40,7 @@ export interface GoldenBowDeps {
 }
 export interface PierceTarget { kind: string; alive: boolean; applyDamage: (amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3) => boolean }
 
-const GOLD = new THREE.Color(1.0, 0.72, 0.22), GOLD_HI = new THREE.Color(1.0, 0.92, 0.6), GOLD_LO = new THREE.Color(0.55, 0.33, 0.07);
+const GOLD = new THREE.Color(0.78, 0.42, 0.07), GOLD_HI = new THREE.Color(1.0, 0.72, 0.26), GOLD_LO = new THREE.Color(0.36, 0.17, 0.03);
 const STRING_LIGHT = new THREE.Color(3.2, 2.6, 1.3);
 const STREAK_PTS = 48, SPEED_BASE = 30, SPEED_DRAW = 28, SUN_DRAW = 0.95;
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _v = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Color();
@@ -110,7 +110,7 @@ export class GoldenBow {
       if (y < 0.075) continue;                                   // the grip + the fist round it keep their leather
       // limbs: bright gold (a touch over 1: it glows in the bloom), the painted ornament the brightest, the horn deeper
       const k = Math.min(1, lum * 2.4);
-      _c.copy(GOLD).lerp(GOLD_HI, Math.max(0, k - 0.35) * 1.3).lerp(GOLD_LO, Math.max(0, 0.12 - lum) * 3).multiplyScalar(1.35);
+      _c.copy(GOLD).lerp(GOLD_HI, Math.max(0, k - 0.35) * 1.3).lerp(GOLD_LO, Math.max(0, 0.12 - lum) * 3);
       col.setXYZ(i, _c.r, _c.g, _c.b);
     }
     col.needsUpdate = true;

@@ -91,6 +91,7 @@
   .ws-boss-bar-track { height: 11px; }
   .ws-boss-bar-caption { font-size: 10px; }
   .ws-boss-card-band { height: 10vh; }
+  .ws-boss-card-inner { top: 45%; }                                     /* above the touch discs */
   .ws-boss-card-skip { bottom: calc(5vh - 7px); right: 14px; }
   .ws-boss-reward { top: calc(var(--ws-top) + 34vw + 40px); padding: 12px 18px; }
 }
