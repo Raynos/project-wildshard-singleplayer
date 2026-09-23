@@ -15,6 +15,7 @@ import { Rng } from '../core/rng';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
 import { TIER_CONFIG } from '../core/tier';
+import { WRECK } from '../chunks/driftwood-isle';
 
 export interface BoulderSpec { x: number; z: number; r: number; rot?: number; squash?: number }
 
@@ -54,7 +55,8 @@ export class Boulders {
         out.push({ x: x + Math.cos(a) * d, z: z + Math.sin(a) * d, r: rng.range(0.5, 1.2), rot: rng.range(0, Math.PI * 2), squash: rng.range(0.55, 0.8) });
       }
     }
-    return out;
+    // the wreck brings its own reef rocks and needs its beach side (the breach, the ramp) clear
+    return out.filter((b) => Math.hypot(b.x - WRECK.x, b.z - WRECK.z) > 16 + b.r);
   }
 
   build(specs: BoulderSpec[]): this {

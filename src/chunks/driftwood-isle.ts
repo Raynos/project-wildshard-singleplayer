@@ -49,9 +49,9 @@ export const PLATEAU = { x: -24, z: -62, r: 46, h: 13 };
 export const HUT = { x: PLATEAU.x + 2, z: PLATEAU.z - 2, rot: 0 };
 /** the north-east massif: a tall craggy headland (a broad shoulder + a high top) with the lookout on its summit */
 export const HEADLAND = { x: 98, z: 96, r: 48, h: 22, shoulderR: 80, shoulderH: 9 };
-/** Wreck Cove: a bay bitten out of the east shore; the wreck lies heeled on its sand, bow to the land */
+/** Wreck Cove: a bay bitten out of the east shore; the wreck lies half sunk on the reef at its mouth, bow run up the sand, heeled toward the beach (Wreck.ts) */
 export const COVE = { ang: -0.02, depth: 46, width: 0.5 };
-export const WRECK = { x: 149, z: 4, heading: 2.1, roll: 0.32 };
+export const WRECK = { x: 153, z: 2, heading: 2.7, roll: -0.2, pitch: 0.05, floorY: 1.45 };
 /** the ring shrine on a knoll in the north-west jungle (rot: which way its pillars face — south-east, toward the hut) */
 export const SHRINE = { x: -98, z: 108, rot: 2.4 };
 /** the tidal creek across the hut → lookout path (a ravine cut below sea level, so the lagoon runs into it) and the rope bridge over it */

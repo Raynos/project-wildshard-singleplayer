@@ -61,6 +61,32 @@ export class LowPolyKit {
     this.parts.push(ni);
   }
 
+  /**
+   * add a geometry painted by facing: faces whose (post-matrix) normal points up past `minY` take `top` (moss on a rock,
+   * grass on a ledge, sand on a step), the rest `side`; per-face jitter as `add`. The input is consumed.
+   */
+  addTopped(g: THREE.BufferGeometry, side: ColorLike, top: ColorLike, opts: AddOpts & { minY?: number } = {}): void {
+    const jitter = opts.jitter ?? 0.06, minY = opts.minY ?? 0.55;
+    if (g.hasAttribute('uv')) g.deleteAttribute('uv');
+    if (g.hasAttribute('normal')) g.deleteAttribute('normal');
+    if (g.hasAttribute('color')) g.deleteAttribute('color');
+    if (opts.wobble !== undefined && opts.wobble > 0) wobble(g, opts.wobble, this.rng);
+    const ni = g.index ? g.toNonIndexed() : g;
+    if (ni !== g) g.dispose();
+    if (opts.matrix) ni.applyMatrix4(opts.matrix);
+    const s = asColor(side).clone(), t = asColor(top).clone();
+    const pos = ni.getAttribute('position'), n = pos.count, out = new Float32Array(n * 3);
+    const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+    for (let i = 0; i < n; i += 3) {
+      a.fromBufferAttribute(pos, i); b.fromBufferAttribute(pos, i + 1); c.fromBufferAttribute(pos, i + 2);
+      b.sub(a); c.sub(a); b.cross(c).normalize();
+      const col = b.y > minY ? t : s, k = 1 - jitter + this.rng.next() * jitter * 2;
+      for (let j = 0; j < 3; j++) { const o = (i + j) * 3; out[o] = col.r * k; out[o + 1] = col.g * k; out[o + 2] = col.b * k; }
+    }
+    ni.setAttribute('color', new THREE.BufferAttribute(out, 3));
+    this.parts.push(ni);
+  }
+
   /** add a geometry that already carries a `color` attribute (non-indexed or indexed) */
   addPainted(g: THREE.BufferGeometry, matrix?: THREE.Matrix4): void {
     if (g.hasAttribute('uv')) g.deleteAttribute('uv');
@@ -287,6 +313,51 @@ export function bakeAO(geo: THREE.BufferGeometry, o: AOOptions = {}): void {
     }
   }
   col.needsUpdate = true;
+}
+
+// ── baked point light ─────────────────────────────────────────────────────────────────────────────
+
+export interface BakedLight { x: number; y: number; z: number; color: ColorLike; /** metres to zero */ range: number; /** 0..~2 */ intensity: number }
+
+/**
+ * Bake warm lantern / ember light into the vertex colours (after `finish`, so the AO is under it): every face that
+ * FACES a light within its range is lifted toward colour × light (smooth falloff × N·L). No shadowing — a face behind a
+ * wall that faces the light still catches it — so keep ranges inside the room they light. Runtime cost: none, which is
+ * the point (no point light in every shader, no program recompile when a lantern goes out).
+ */
+export function bakeLight(geo: THREE.BufferGeometry, lights: BakedLight[]): void {
+  if (!geo.hasAttribute('color') || geo.index !== null || lights.length === 0) return;
+  const pos = geo.getAttribute('position'), col = geo.getAttribute('color');
+  if (!geo.hasAttribute('normal')) geo.computeVertexNormals();
+  const nrm = geo.getAttribute('normal');
+  const lc = lights.map((l) => asColor(l.color).clone());
+  for (let i = 0; i < pos.count; i += 3) {
+    const cx = (pos.getX(i) + pos.getX(i + 1) + pos.getX(i + 2)) / 3, cy = (pos.getY(i) + pos.getY(i + 1) + pos.getY(i + 2)) / 3, cz = (pos.getZ(i) + pos.getZ(i + 1) + pos.getZ(i + 2)) / 3;
+    const nx = nrm.getX(i), ny = nrm.getY(i), nz = nrm.getZ(i);
+    let r = 0, g = 0, b = 0;
+    for (let k = 0; k < lights.length; k++) {
+      const l = lights[k], c = lc[k];
+      if (l === undefined || c === undefined) continue;
+      const dx = l.x - cx, dy = l.y - cy, dz = l.z - cz, d = Math.hypot(dx, dy, dz);
+      if (d >= l.range) continue;
+      const ndl = d < 1e-4 ? 1 : Math.max(0, (dx * nx + dy * ny + dz * nz) / d);
+      const f = (1 - d / l.range) ** 2 * (0.35 + 0.65 * ndl) * l.intensity;
+      r += c.r * f; g += c.g * f; b += c.b * f;
+    }
+    if (r + g + b <= 0) continue;
+    for (let j = 0; j < 3; j++) {
+      const v = i + j;
+      col.setXYZ(v, col.getX(v) * (1 + r * 1.6) + r * 0.05, col.getY(v) * (1 + g * 1.6) + g * 0.05, col.getZ(v) * (1 + b * 1.6) + b * 0.05);
+    }
+  }
+  col.needsUpdate = true;
+}
+
+/** a flat list of triangles ([x,y,z]×3 per face) as a geometry for `kit.add` */
+export function tris(v: number[]): THREE.BufferGeometry {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+  return g;
 }
 
 // ── material ──────────────────────────────────────────────────────────────────────────────────────
