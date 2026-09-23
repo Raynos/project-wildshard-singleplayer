@@ -1,6 +1,6 @@
 # Driftwood Isle — the remaster (10× quality and polish)
 
-**State:** `in progress` 2026-09-22 — the user: "we will need a full remaster"; audit done (E7), every pick made (D1–D8). Building: Track M = E8 model agent (`8ce9efd` lowpolyKit); Tracks L + W = look-agent, 0 + C = feel-agent, A = adventure-agent, S = sound-agent (this session integrates, deploys, screenshots). Perf is gated by PLAY-PERF's four Driftwood poses.
+**State:** `in progress` 2026-09-22 — the user: "we will need a full remaster"; audit done (E7), every pick made (D1–D8). Building: Track M = model-agent (took over from E8, building on its `8ce9efd` lowpolyKit); Tracks L + W = look-agent, 0 + C = feel-agent, A = adventure-agent, S = sound-agent (this session integrates, deploys, screenshots). Perf is gated by PLAY-PERF's four Driftwood poses.
 
 Driftwood was built in one night (2026-09-18, `project/archive/2026-09-18-driftwood.md`): C0–C16,
 129 commits, all live. It is a complete *scene* and a thin *game*. This plan turns it into the shard
@@ -68,10 +68,10 @@ go in `art/driftwood-isle/round-4-remaster/`. Order inside a track is the build 
 
 | # | Row | Status |
 |---|---|---|
-| 0.1 | B1 reach: `Weapons` exposes `get reach()` of the current weapon | open |
-| 0.2 | B2 / B3: a per-weapon death message, no bolts on the sword shard, a real hurt sound + a directional hurt arc on the HUD | open |
-| 0.3 | B7: a fixed pool of point lights, driven by intensity only (never add / remove / toggle `visible`) | open |
-| 0.4 | B8 + B9: skip forest particles / rifle on an ocean shard; footstep surface from a per-module `surfaceAt(x, z)` (planks on every deck) | open |
+| 0.1 | B1 reach: `Weapons` exposes `get reach()` of the current weapon | **done** `7482d5a` (live 7482d5a-mudllr10) — progress/158-feel-01-reach-7m-swing-no-miss.jpg |
+| 0.2 | B2 / B3: a per-weapon death message, no bolts on the sword shard, a real hurt sound + a directional hurt arc on the HUD | **done** `fb22c50` (live 11b8a27-mudlrbtn) — progress/159, 160; placeholder `hurtThud` → `audio.hurt()` with the sound-agent |
+| 0.3 | B7: a fixed pool of point lights, driven by intensity only (never add / remove / toggle `visible`) | **done** `c282abe` (live c282abe-mudm0t0s) — take sword + kill sailor: programs 75→97→137 before, 78→76→76 after; progress/161. Leftover (Pine Hollow, not this plan): the rifle's muzzle light rides the camera-parented model, so the first rifle swap recompiles |
+| 0.4 | B8 + B9: skip forest particles / rifle on an ocean shard; footstep surface from a per-module `surfaceAt(x, z)` (planks on every deck) | B8 particles **done** `11b8a27` (the rifle stays: shared kit); B9 → sound-agent |
 | 0.6 | Viewmodel: sword length / FOV framing to the mockup (short, low-right), one label per enemy, the minimap at the pier spawn | open (sword geometry → E8) |
 | 0.5 | B6: re-capture the hero + deck card in engine **after** Track L lands (until then restore `743f435`'s captures) | open |
 
@@ -100,7 +100,7 @@ Reference: BotW / Wind Waker (two-band ramp, rim), Firewatch (colour-ramp fog), 
 | W4 | **Caustics** on the sand + seabed, an underwater fog ramp, god-ray cones, surface splash / bubble particles on water entry, a Snell's-window look from below | M | open |
 | W5 | **Waterfall v2** (the cove): a vertical faceted sheet with a scrolling foam texture, a mist cloud and a splash ring (today a ribbon lying on the slope) | S | open |
 
-### Track M — models (E8, the model agent — in flight)
+### Track M — models (model-agent, from E8's kit — in flight)
 
 Owner: session `wildshard-singleplayer-8d` (E8), files `src/world/{Boat,Pier,Hut,Lookout,RopeBridge,Wreck,Shrine,Palms,Boulders,Cove,Props,Trailside,Gulls}.ts`,
 `src/entities/species/*`, `src/entities/lowpoly.ts`, `src/world/lowpolyKit.ts`. The visual audit's per-model gaps go to them as they land (E7).
@@ -179,7 +179,7 @@ byte-for-byte** (D8): every change is behind `chunk.style === 'lowpoly'` / `chun
 
 | Agent | Rows | Owns (may edit) | Coordinates with |
 |---|---|---|---|
-| **model agent** (E8, session `wildshard-singleplayer-8d`) | M1–M5, sword + iron-sword geometry and the double linear-conversion fix | `src/world/{Boat,Pier,Hut,Lookout,RopeBridge,Wreck,Shrine,Palms,Boulders,Bushes,Cove,Props,Trailside,Gulls,lowpolyKit}.ts`, `src/entities/species/*`, `src/entities/lowpoly.ts`, sword meshes | everyone: the wreck hold and cave interior are its geometry; the others place things in them |
+| **model-agent** (this session's subagent; took Track M over from E8 on 2026-09-22 when the user moved E8 onto EXPLORE-WORLD) | M1–M5, sword + iron-sword geometry and the double linear-conversion fix | `src/world/{Boat,Pier,Hut,Lookout,RopeBridge,Wreck,Shrine,Palms,Boulders,Bushes,Cove,Props,Trailside,Gulls,lowpolyKit}.ts`, `src/entities/species/*`, `src/entities/lowpoly.ts`, sword meshes | everyone: the wreck hold and cave interior are its geometry; the others place things in them |
 | **look-agent** | L1–L7, W1–W5 | new `src/world/stylize.ts` (the ramp patch; `lowPolyMaterial` in lowpolyKit calls it — one line, E8 adds it), new `src/world/DayNight.ts` (the clock, D3), `Sky.ts` / `Atmosphere.ts` / `BakedSky.ts` (low-poly path only), `Ocean.ts`, `Seabed.ts`, `Horizon.ts`, `Terrain.ts` (low-poly path), new `src/world/Waterfall.ts` (E8 places it in the cove), `Game.ts` `buildComposer()` for the low-poly grade, `src/chunks/driftwood-isle.ts` sky / atmosphere / grade fields | E8 (stylize hook, sway depth), feel-agent (`Game.ts`: look owns the composer, feel owns the time scale), PLAY-PERF |
 | **feel-agent** | 0.1–0.3, 0.6 (framing), C1–C5 | `Sword.ts` (hit test, trail, framing — not the mesh), `SwordMoves.ts`, `Weapons.ts`, `ui/Combat.ts`, `Game.ts` time-scale hook, new `src/player/CameraFX.ts`, new `src/fx/Impacts.ts`, `entities/{Animal,AnimalManager,Enemies}.ts` (reactions, telegraphs, attack arcs), `WeaponPickup.ts` + light pool, `main.ts` combat / death / hurt lines | E8 (anything in `species/*`: ask first), HUD agent w6 (hurt arc in `HUD.ts`, sword touch E11), sound-agent (hurt / impact sounds) |
 | **adventure-agent** | A1–A7, B4 + D6 (the guarded iron sword) | new `src/game/quest/*`, new `src/world/interact/*` (chests, keys, doors, levers, plates, barrel), new `src/entities/npc/*` (the castaway, built with lowpolyKit), `ui/Map.ts` (island POIs), `game/achievements.ts` (Driftwood table), new `src/world/Zipline.ts`, `IronSword.ts` pickup logic, the Drowned Captain's AI (new species file; its mesh from E8) | E8 (hold / cave / shrine geometry), feel-agent (`Enemies.ts` respawn), HUD agent (objective line) |
