@@ -151,6 +151,16 @@ fills the ring.*
 | S4 | **Interactable sounds** for the A2 kit: chest creak + lid, locked rattle, lever, stone plate (press / release), plank door, iron grate, chimes (sea glass / keys / loot), glyph shard, beacon ignite — `islandSfx.interact(sound, at?, opts)` | S | **done** `db72c3c` (live db72c3c-mudnfe1c) |
 | S4 | **Music**: the Driftwood theme + adaptive layers (calm / combat / discovery stinger / shrine) come from MUSIC v2 (E5, `docs/plans/MUSIC.md`) — this plan only provides the hooks | — | owner: E5 |
 
+### Track X — the big bets (E52, 2026-09-23: "whatever it takes")
+
+| # | Row | Owner | Status |
+|---|---|---|---|
+| X1 | **Learned colour LUT**: a 3D LUT fitted from the 9 capture ↔ mockup pairs, the last grade step on the low-poly shard; ΔE region table every loop round | look-agent | in flight |
+| X2 | **Blender-built island** (spawn cove first): script-driven Blender (Geometry Nodes scatter, sculpted rocks, CC0 / generated assets), **Cycles-baked GI + AO**, glTF export; in-game toggle `?island=blender|procedural` + a menu switch; 3×3 sheets blender vs procedural | blender-agent | in flight |
+| X3 | **Assets**: PyTorch (MPS) + Hunyuan3D-2 / TRELLIS image-to-3D, hero props from the concept art decimated to faceted low-poly; a CC0 library (Quaternius / KayKit / Kenney / Poly Pizza) recoloured; comparison board | asset-agent | in flight |
+| X4 | **Painted 360° horizon** band (day + night), stitched codex segments matched to in-game headings, `src/world/HorizonMatte.ts` | horizon-agent | in flight |
+| X5 | **WebGPU + TSL**: `?gpu=webgpu` path (TSL toon, sky, fog, ocean, post), then compute-shader foliage (100 k+ blades), raw WebGPU where TSL is the bottleneck; WebGL stays default until it wins on the iPhone | webgpu-agent | in flight |
+
 ### Perf gate (every track)
 
 PLAY-PERF's finish line already covers Driftwood (pier, beach, wreck cove, ring shrine: ≤ 150 calls,
@@ -171,6 +181,8 @@ chunked + culled.
 | D6 | Iron sword | **stays in the wreck — in the new enterable hold, guarded**: beat the drowned sailor to take it |
 | D7 | Staffing | **four track agents now** (look + water, feel + fixes, adventure, sound) + E8 on models |
 | D8 | Scope | **Driftwood only** — Pine Hollow stays photoreal PBR, byte-for-byte |
+| D9 | Textures | **the no-textures rule is lifted** (E52): lightmaps, palette atlases, image-to-3D textures, a painted horizon — within the phone budget |
+| D10 | Engine | **whatever it takes** (E52): GPU torch / Blender / image-to-3D installs, a Blender-built island behind an in-game toggle, WebGPU + TSL (+ raw WebGPU where it pays) — staged behind flags, WebGL stays default until it wins |
 
 ## 4. How it gets built — owners and files
 
