@@ -14,6 +14,9 @@
  *   sfx.vocal(enemy, at, intensity?)    // 'boar' grunt · 'crab' clack · 'monkey' screech · 'sailor' moan (aggro / hurt barks)
  *   sfx.windup(enemy, at)               // the telegraph, as the wind-up pose starts: 'boar' hoof scrape · 'crab' claw raise · 'sailor' lantern flare
  *   sfx.plunge(up)                      // crossing the water surface (Player.onSubmerge → false, onSurface → true), over audio.dive()/surface()
+ *   sfx.interact(sound, at?, o?)        // the adventure kit (S4): 'chest' open · 'locked' rattle · 'lever' clunk · 'plate' grind
+ *                                       //   (o.release: lighter, quicker) · 'door' creak · 'grate' iron grind · 'chime' pickup
+ *                                       //   (sea glass, keys) · 'glyph' shard (brighter) · 'ignite' the beacon; o.delay / o.gain
  *   sfx.animal(name, at)                // AnimalManager.onSound on the island: the enemies' calls from the bank (boar grunt, crab
  *                                       //   clack, monkey shriek, sailor moan); false = not covered, play audio.animal()
  *
@@ -21,9 +24,9 @@
  */
 import type { Audio } from './Audio';
 import type { Surface } from './Surface';
-import type { Enemy, Material, WindupEnemy } from './gen';
+import type { Enemy, InteractSound, Material, WindupEnemy } from './gen';
 
-export type { Enemy, Material, WindupEnemy } from './gen';
+export type { Enemy, InteractSound, Material, WindupEnemy } from './gen';
 export type { Surface } from './Surface';
 interface At { x: number; y: number; z: number }
 
@@ -32,6 +35,7 @@ const STEP_LEVEL: Record<Surface, number> = { sand: 0.34, wetSand: 0.36, grass: 
 const VOCAL_LEVEL: Record<Enemy, number> = { boar: 0.75, crab: 0.6, monkey: 0.5, sailor: 0.85 };
 const WINDUP_LEVEL: Record<WindupEnemy, number> = { boar: 0.7, crab: 0.65, sailor: 0.7 };
 const SPRINT = 7.2;
+const INTERACT_LEVEL: Record<InteractSound, number> = { chest: 0.7, locked: 0.6, lever: 0.7, plate: 0.65, door: 0.7, grate: 0.6, chime: 0.45, glyph: 0.6, ignite: 0.8 };
 
 /** the families the island plays first — prewarmed right after the first gesture, footsteps before combat */
 export const ISLAND_FAMILIES = [
@@ -39,6 +43,7 @@ export const ISLAND_FAMILIES = [
   'whoosh', 'impact-flesh', 'hurt', 'impact-shell', 'impact-wood', 'impact-stone', 'whoosh-heavy',
   'vocal-boar', 'vocal-crab', 'vocal-monkey', 'vocal-sailor', 'windup-boar', 'windup-crab', 'windup-sailor',
   'plunge-down', 'plunge-up', 'death',
+  'ui-chime', 'ui-chest', 'ui-locked', 'ui-lever', 'ui-plate', 'ui-door', 'ui-grate', 'ui-glyph', 'ui-ignite',
 ] as const;
 
 export class IslandSfx {
@@ -79,6 +84,12 @@ export class IslandSfx {
 
   windup(enemy: WindupEnemy, at?: At): void {
     this.audio.voices.play(`windup-${enemy}`, { gain: WINDUP_LEVEL[enemy], at });
+  }
+
+  /** an interactable's sound (the adventure kit, src/world/interact/*), placed at the object */
+  interact(sound: InteractSound, at?: At, o: { gain?: number; delay?: number; release?: boolean } = {}): void {
+    const base = INTERACT_LEVEL[sound] * (o.gain ?? 1) * (o.release === true ? 0.6 : 1);
+    this.audio.voices.play(`ui-${sound}`, { gain: base, rate: o.release === true ? 1.18 : 1, at, delay: o.delay ?? 0, jitter: sound === 'chime' || sound === 'glyph' ? 0.02 : 0.05 });
   }
 
   /** the island's creature calls (AnimalManager.onSound names) from the bank; returns false for a name it does not cover */

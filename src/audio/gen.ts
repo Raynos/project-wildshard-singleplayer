@@ -17,6 +17,7 @@
  *   bubbleBed(sr, seed)                 a seamless 6 s loop of underwater bubbles + pressure rumble
  *   impulse(room, sr, seed)             [L, R] impulse responses: 'hold' 0.6 s · 'cave' 1.5 s · 'shrine' 2.5 s
  *   noiseLoop(sr, seed, pink)           a seamless 4 s white / pink noise loop (the ambience beds' raw material)
+ *   interact(kind, sr, seed)            the adventure kit: chest / locked / lever / plate / door / grate / chime / glyph / ignite
  */
 import { Biquad, Formants, Glottis, Modes, Pink, Rand, ad, fade, len, mix, normalize, saturate, type FilterType } from './dsp';
 
@@ -457,6 +458,132 @@ export function impulseChannel(room: Room, sr: number, seed: number, ch: number)
 }
 /** both channels */
 export function impulse(room: Room, sr: number, seed: number): [Float32Array, Float32Array] { return [impulseChannel(room, sr, seed, 0), impulseChannel(room, sr, seed, 1)]; }
+
+// ─────────────── interactables (the adventure kit, src/world/interact/*) ───────────────
+/** a stick-slip creak: a friction pulse train whose pitch wanders f0a → f0b with jumps, through wooden (or iron) body resonances */
+function creak(out: Float32Array, at: number, sr: number, r: Rand, o: { dur: number; f0a: number; f0b: number; gain: number; body: [number, number][]; attack?: number }): void {
+  const n = Math.min(out.length - at, len(o.dur, sr));
+  const fs = o.body.map(([f, q]) => new Biquad('bandpass', f, q, sr));
+  let ph = 0, jump = 1, slip = 0;
+  for (let i = 0; i < n; i++) {
+    const t = i / sr, u = t / o.dur;
+    if (r.next() < 18 / sr) jump = 1 + r.bi() * 0.18;                         // the grain catches: the pitch jumps
+    const f0 = (o.f0a + (o.f0b - o.f0a) * u) * jump * (1 + 0.04 * Math.sin(t * 2 * Math.PI * 7));
+    ph += f0 / sr;
+    if (ph >= 1) { ph -= 1; slip = 1 + r.bi() * 0.3; }                        // each slip: a sharp release, amplitude jittered
+    slip *= 0.9;
+    let y = 0; for (const f of fs) y += f.run(slip + r.bi() * 0.04);
+    const env = Math.min(1, t / (o.attack ?? 0.05)) * Math.min(1, (o.dur - t) / 0.08) * (0.7 + 0.3 * Math.sin(u * Math.PI));
+    const j = at + i; if (j >= 0) out[j] = (out[j] ?? 0) + y * env * o.gain;
+  }
+}
+/** a struck bell / glass partial set (inharmonic: 1, 2.76, 5.40, 8.93) */
+function chimeNote(out: Float32Array, at: number, sr: number, r: Rand, f: number, decay: number, gain: number): void {
+  strike(out, at, sr, r, [[f, decay, 1], [f * 2.76, decay * 0.6, 0.45], [f * 5.4, decay * 0.35, 0.22], [f * 8.93, decay * 0.2, 0.1]], gain, 0.004, false);
+  click(out, at, sr, r, 6000, gain * 0.08, 0.001);
+}
+
+export type InteractSound = 'chest' | 'locked' | 'lever' | 'plate' | 'door' | 'grate' | 'chime' | 'glyph' | 'ignite';
+export const INTERACT_SOUNDS: readonly InteractSound[] = ['chest', 'locked', 'lever', 'plate', 'door', 'grate', 'chime', 'glyph', 'ignite'];
+const WOOD_BODY: [number, number][] = [[420, 6], [880, 7], [1650, 8]];
+const IRON_BODY: [number, number][] = [[1250, 14], [2380, 16], [3900, 18]];
+const LID: [number, number, number][] = [[150, 0.14, 1], [340, 0.1, 0.7], [610, 0.07, 0.5], [1050, 0.045, 0.3]];
+
+/** the adventure kit's sounds: a chest opening (hinge creak, then the lid thudding back), a locked rattle, a lever clunk, a
+ *  stone pressure plate grinding down, a plank door creak, an iron grate grinding, a pickup chime (sea glass, keys), a
+ *  glyph shard's brighter shimmer, the beacon catching */
+export function interact(k: InteractSound, sr: number, seed: number): Float32Array {
+  const r = new Rand(seed * 92821 + k.length * 7);
+  switch (k) {
+    case 'chest': { // the hinges creak up, the lid swings over and thuds against its stays
+      const out = new Float32Array(len(1.05, sr)), up = r.range(0.42, 0.55);
+      click(out, 0, sr, r, 2500, 0.3, 0.002);                                  // the hasp lifting
+      strike(out, 0, sr, r, [[2300, 0.03, 1], [3500, 0.02, 0.6]], 0.12);
+      creak(out, len(0.04, sr), sr, r, { dur: up, f0a: r.range(70, 90), f0b: r.range(120, 150), gain: 0.6, body: WOOD_BODY });
+      const th = len(0.04 + up + 0.02, sr);
+      strike(out, th, sr, r, LID, 0.55);
+      thump(out, th, sr, 110, 55, 0.07, 0.5);
+      noise(out, th, sr, r, { type: 'lowpass', f: 900, attack: 0.002, decay: 0.03, gain: 0.35 });
+      return finish(out, sr, 0.9, 0.08);
+    }
+    case 'locked': { // the lid tugged against its hasp: three or four rattling knocks and the iron clinking
+      const out = new Float32Array(len(0.55, sr)), n = 3 + Math.floor(r.next() * 2);
+      let t = 0;
+      for (let q = 0; q < n; q++) {
+        const at = len(t, sr), g = 1 - q * 0.18;
+        strike(out, at, sr, r, LID.map(([f, d, a]) => [f * 1.25, d * 0.5, a] as [number, number, number]), 0.35 * g);
+        strike(out, at + len(0.006, sr), sr, r, [[r.range(2600, 3000), 0.05, 1], [4100, 0.035, 0.6], [5900, 0.02, 0.4]], 0.18 * g, 0.03);
+        t += r.range(0.075, 0.11);
+      }
+      return finish(out, sr, 0.9, 0.05);
+    }
+    case 'lever': { // a ratchet, then the heavy clunk of the mechanism engaging, a chain rattle under it
+      const out = new Float32Array(len(0.75, sr));
+      for (let q = 0; q < 3; q++) strike(out, len(q * 0.07, sr), sr, r, [[r.range(1800, 2200), 0.02, 1], [3100, 0.015, 0.5]], 0.18 + q * 0.04);
+      creak(out, 0, sr, r, { dur: 0.22, f0a: 140, f0b: 190, gain: 0.18, body: WOOD_BODY, attack: 0.02 });
+      const cl = len(0.24, sr);
+      strike(out, cl, sr, r, [[r.range(85, 100), 0.18, 1], [230, 0.12, 0.7], [410, 0.08, 0.5], [760, 0.05, 0.3]], 0.7);
+      click(out, cl, sr, r, 1800, 0.35, 0.003);
+      thump(out, cl, sr, 90, 45, 0.1, 0.5);
+      grains(out, cl + len(0.02, sr), sr, r, { rate: 220, dur: 0.3, f: 3400, q: 3, gain: 0.25, grain: 0.004 });
+      return finish(out, sr, 0.9, 0.08);
+    }
+    case 'plate': { // a stone slab grinding down into its socket, grit spilling, the thunk at the bottom
+      const out = new Float32Array(len(0.8, sr)), d = r.range(0.42, 0.52);
+      noise(out, 0, sr, r, { type: 'bandpass', f: 380, f1: 240, q: 1.2, attack: 0.06, decay: d * 0.45, gain: 0.8, pink: true });
+      grains(out, 0, sr, r, { rate: 900, dur: d, f: 1400, q: 1.1, gain: 0.45, grain: 0.0025, shape: 1 });
+      grains(out, len(0.05, sr), sr, r, { rate: 400, dur: d, f: 3800, q: 1.4, gain: 0.2 });
+      const b = len(d, sr);
+      thump(out, b, sr, 80, 42, 0.12, 0.75);
+      strike(out, b, sr, r, [[r.range(300, 340), 0.05, 1], [720, 0.035, 0.6], [1350, 0.025, 0.4]], 0.3);
+      return finish(out, sr, 0.9, 0.08);
+    }
+    case 'door': { // a plank door on dry hinges: a long wandering creak and the door bumping to a stop
+      const out = new Float32Array(len(1.25, sr)), d = r.range(0.8, 0.95);
+      creak(out, 0, sr, r, { dur: d, f0a: r.range(55, 70), f0b: r.range(95, 130), gain: 0.7, body: [[380, 6], [760, 7], [1420, 8], [2300, 9]], attack: 0.1 });
+      const st = len(d + 0.02, sr);
+      strike(out, st, sr, r, LID.map(([f, dd, a]) => [f * 0.8, dd * 1.2, a] as [number, number, number]), 0.45);
+      thump(out, st, sr, 95, 50, 0.08, 0.4);
+      return finish(out, sr, 0.9, 0.1);
+    }
+    case 'grate': { // an iron grate / sluice: a rusty screech grinding along, the latch clanking free, a ringing clank at the end
+      const out = new Float32Array(len(1.2, sr)), d = r.range(0.7, 0.85);
+      strike(out, 0, sr, r, [[r.range(1400, 1600), 0.12, 1], [2650, 0.09, 0.7], [4100, 0.06, 0.5], [620, 0.15, 0.5]], 0.35, 0.02);
+      creak(out, len(0.06, sr), sr, r, { dur: d, f0a: r.range(160, 200), f0b: r.range(230, 280), gain: 0.4, body: IRON_BODY, attack: 0.08 });
+      noise(out, len(0.06, sr), sr, r, { type: 'bandpass', f: 700, q: 1, attack: 0.1, decay: d * 0.4, gain: 0.25, pink: true });
+      const st = len(0.06 + d, sr);
+      strike(out, st, sr, r, [[r.range(480, 540), 0.35, 1], [1290, 0.25, 0.7], [2210, 0.18, 0.55], [3470, 0.12, 0.4]], 0.45, 0.02);
+      thump(out, st, sr, 100, 50, 0.07, 0.45);
+      return finish(out, sr, 0.9, 0.1);
+    }
+    case 'chime': { // a sea-glass / key pickup: two glassy notes a fifth apart
+      const out = new Float32Array(len(1.0, sr)), f = r.range(1250, 1400);
+      chimeNote(out, 0, sr, r, f, 0.55, 0.6);
+      chimeNote(out, len(0.085, sr), sr, r, f * 1.5, 0.7, 0.55);
+      return finish(out, sr, 0.85, 0.2);
+    }
+    case 'glyph': { // a glyph shard: a bright rising arpeggio over a low swell, with a shimmer of high partials
+      const out = new Float32Array(len(1.7, sr)), f = r.range(880, 940);
+      for (const [q, m] of [[0, 1], [1, 1.25], [2, 1.5], [3, 2]] as const) chimeNote(out, len(q * 0.075, sr), sr, r, f * m, 1.1, 0.5);
+      for (let q = 0; q < 10; q++) chimeNote(out, len(0.3 + r.next() * 0.8, sr), sr, r, f * 4 * (1 + r.next()), 0.25, 0.08);
+      let ph = 0;
+      for (let i = 0; i < out.length; i++) { const t = i / sr; ph += (2 * Math.PI * f / 4) / sr; out[i] = (out[i] ?? 0) + Math.sin(ph) * 0.18 * Math.min(1, t / 0.25) * Math.exp(-Math.max(0, t - 0.3) / 0.45); }
+      return finish(out, sr, 0.85, 0.3);
+    }
+    case 'ignite': { // the beacon catching: a whoomph of flame climbing, then a roar settling into crackle
+      const out = new Float32Array(len(1.8, sr));
+      click(out, 0, sr, r, 3000, 0.25, 0.003);                                 // the strike of flint on steel
+      grains(out, 0, sr, r, { rate: 900, dur: 0.06, f: 5200, q: 2, gain: 0.3, grain: 0.0008 });
+      noise(out, len(0.08, sr), sr, r, { type: 'lowpass', f: 180, f1: 2200, q: 1, attack: 0.25, decay: 0.35, gain: 1.0, pink: true });
+      noise(out, len(0.2, sr), sr, r, { type: 'bandpass', f: 500, q: 0.6, attack: 0.2, decay: 0.6, gain: 0.45, pink: true });
+      grains(out, len(0.15, sr), sr, r, { rate: 60, dur: 1.5, f: 2800, q: 0.8, gain: 0.45, grain: 0.0015, shape: 1 });
+      thump(out, len(0.1, sr), sr, 70, 40, 0.35, 0.35, 0.15);
+      return finish(saturate(out, 1.2), sr, 0.9, 0.2);
+    }
+    default: break; // every InteractSound has a case above
+  }
+  throw new Error(`interact: ${String(k)}`);
+}
 
 /** a seamless noise loop for the ambience beds (white, or pink with its 1/f tilt), the end crossfaded into the start */
 export function noiseLoop(sr: number, seed: number, pink: boolean, sec = 4): Float32Array {

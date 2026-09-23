@@ -11,7 +11,7 @@
  * runs per frame; setListener only stores four numbers.
  */
 import type { Vector3 } from 'three';
-import { footstep, whoosh, impact, vocal, windup, hurt, death, plunge, bubbleBed, noiseLoop, impulseChannel, STEP_KINDS, MATERIALS, ENEMIES, type Room } from './gen';
+import { footstep, whoosh, impact, vocal, windup, hurt, death, plunge, bubbleBed, noiseLoop, impulseChannel, interact, STEP_KINDS, MATERIALS, ENEMIES, INTERACT_SOUNDS, type Room } from './gen';
 
 interface Host { readonly ctx: AudioContext; readonly sfx: GainNode; readonly ready: boolean }
 type Gen = (sr: number, seed: number) => Float32Array;
@@ -39,6 +39,7 @@ export const FAMILIES: Record<string, Family> = {
   'bubble-bed': fam(1, (sr, s) => bubbleBed(sr, s), true),
   'noise-white': fam(1, (sr, s) => noiseLoop(sr, s, false)),
   'noise-pink': fam(1, (sr, s) => noiseLoop(sr, s, true)),
+  ...Object.fromEntries(INTERACT_SOUNDS.map((k) => [`ui-${k}`, fam(k === 'glyph' ? 1 : 2, (sr, s) => interact(k, sr, s))])),
   'ir-hold': room('hold'), 'ir-cave': room('cave'), 'ir-shrine': room('shrine'),
 };
 export type FamilyName = keyof typeof FAMILIES;

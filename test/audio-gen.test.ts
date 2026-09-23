@@ -77,6 +77,37 @@ describe('gen: combat', () => {
   });
 });
 
+describe('gen: interactables (S4)', () => {
+  const k = Object.fromEntries(G.INTERACT_SOUNDS.map((n) => [n, G.interact(n, sr, 1)])) as Record<G.InteractSound, Float32Array>;
+  test.each([...G.INTERACT_SOUNDS])('%s: finite, normalised, faded, under 2 s', (n) => {
+    const b = k[n];
+    expect(finite(b)).toBe(true);
+    expect(peak(b)).toBeGreaterThan(0.8);
+    expect(peak(b)).toBeLessThanOrEqual(0.95);
+    expect(b.length / sr).toBeLessThan(2);
+    expect(Math.abs(b[b.length - 1] ?? 1)).toBeLessThan(1e-3);
+  });
+  const late = (b: Float32Array, t: number) => b.subarray(Math.round(t * sr));
+  test('a chest is a creak then a lid thud; a door creaks for longer', () => {
+    // the thud lands after the creak: the late half carries the lid's low body
+    expect(db(bandEnergy(late(k.chest, 0.45), sr, 100, 400))).toBeGreaterThan(db(bandEnergy(k.chest.subarray(0, Math.round(0.4 * sr)), sr, 100, 400)));
+    expect(k.door.length).toBeGreaterThan(k.chest.length);
+  });
+  test('the pickup chime is bright and rings; a glyph shard is brighter and longer; the grate is iron (brighter than the plank door)', () => {
+    expect(centroid(k.chime, sr)).toBeGreaterThan(1200);
+    expect(db(bandEnergy(late(k.chime, 0.3), sr, 1000, 8000))).toBeGreaterThan(-60);
+    expect(db(bandEnergy(k.glyph, sr, 4000, 12000))).toBeGreaterThan(db(bandEnergy(k.chime, sr, 4000, 12000)));
+    expect(k.glyph.length).toBeGreaterThan(k.chime.length);
+    expect(centroid(k.grate, sr)).toBeGreaterThan(centroid(k.door, sr));
+  });
+  test('the stone plate and the lever are low and heavy; the beacon swells', () => {
+    expect(centroid(k.plate, sr)).toBeLessThan(centroid(k.chime, sr) / 3);
+    expect(centroid(k.lever, sr)).toBeLessThan(centroid(k.chime, sr) / 2);
+    const rms = (b: Float32Array) => { let e = 0; for (const v of b) e += v * v; return e / b.length; };
+    expect(rms(k.ignite.subarray(Math.round(0.3 * sr), Math.round(0.7 * sr)))).toBeGreaterThan(rms(k.ignite.subarray(0, Math.round(0.08 * sr))));
+  });
+});
+
 describe('gen: rooms and loops', () => {
   test.each([['hold', 0.6], ['cave', 1.5], ['shrine', 2.5]] as const)('%s IR decays in %s s (mid band, ±15 %%), unit energy, decorrelated L/R', (room, target) => {
     const [L, R] = G.impulse(room, sr, 1);

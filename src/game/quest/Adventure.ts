@@ -21,6 +21,8 @@ import { Interactables, type InteractEvent } from '../../world/interact/Interact
 import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../../world/interact/driftwood';
 import type { PoiId, Place } from '../../world/interact/types';
 import { ITEMS, type ItemId } from '../Inventory';
+import type { Audio } from '../../audio/Audio';
+import { IslandSfx } from '../../audio/IslandSfx';
 
 /** a named point a model module exports (`anchors`, world coords) for the adventure to place things at */
 export interface Anchor { x: number; y?: number; z: number; yaw?: number }
@@ -39,7 +41,8 @@ export interface AdventureWorld<A extends { kind: string; position: THREE.Vector
   /** main.ts's interactable list ("[E] …" prompts, the touch USE button) */
   prompts: Interactable[];
   hud: { toast: (text: string) => void };
-  audio: { hitMarker: () => void; weaponSwap: () => void; land: (hard: boolean) => void };
+  /** the game's Audio: the kit's sounds are IslandSfx.interact (S4) — chests, locks, levers, plates, doors, pickups, the beacon */
+  audio: Audio;
   music: { sting: (name: 'pickup' | 'death' | 'chunk') => void };
   inventory: { add: (id: ItemId, n?: number) => void };
   pois: Partial<Record<Exclude<PoiId, 'world'>, object | null>>;
@@ -93,26 +96,34 @@ export function installAdventure<A extends { kind: string; position: THREE.Vecto
   w.game.onUpdate((dt, t) => kit.update(dt, t));
 
   const isItem = (id: string | undefined): id is ItemId => id !== undefined && id in ITEMS;
+  const sfx = new IslandSfx(w.audio);
   function onInteract(e: InteractEvent): void {
     switch (e.type) {
-      case 'locked': w.hud.toast(e.text ?? 'Locked'); w.audio.weaponSwap(); break;
+      case 'locked': w.hud.toast(e.text ?? 'Locked'); sfx.interact('locked', e.at); break;
       case 'loot':
         if (isItem(e.item)) { w.inventory.add(e.item, e.n ?? 1); w.hud.toast(`${ITEMS[e.item].label} ×${e.n ?? 1}`); }
         else if (e.text) w.hud.toast(e.text);
-        w.audio.hitMarker();
+        sfx.interact('chime', e.at, { delay: 0.55, gain: 0.8 }); // after the lid has thudded back
         break;
       case 'take': {
         if (isItem(e.item)) w.inventory.add(e.item, e.n ?? 1);
         if (e.def.kind === 'pickup' && e.def.look === 'seaglass') {
           const n = flags.count(SEA_GLASS_FLAG);
           w.hud.toast(`Sea glass · ${n} / ${SEA_GLASS_COUNT}`);
-          w.audio.hitMarker();
-        } else { if (e.text) w.hud.toast(e.text); w.music.sting('pickup'); }
+          sfx.interact('chime', e.at);
+        } else { if (e.text) w.hud.toast(e.text); sfx.interact(e.def.kind === 'pickup' && e.def.look === 'shard' ? 'glyph' : 'chime', e.at); w.music.sting('pickup'); }
         break;
       }
-      case 'press': case 'release': w.audio.land(false); break;
-      case 'lever': case 'door': w.audio.weaponSwap(); if (e.text) w.hud.toast(e.text); break;
-      case 'open': case 'light': case 'use': case 'sit': case 'barrel-reset':
+      case 'press': case 'release': sfx.interact('plate', e.at, { release: e.type === 'release' }); break;
+      case 'lever': case 'door':
+        sfx.interact(e.type === 'lever' ? 'lever' : e.def.kind === 'door' && e.def.look !== 'plank' ? 'grate' : 'door', e.at);
+        if (e.text) w.hud.toast(e.text);
+        break;
+      case 'open': case 'light':
+        if (e.text) w.hud.toast(e.text);
+        sfx.interact(e.type === 'light' ? 'ignite' : 'chest', e.at);
+        break;
+      case 'use': case 'sit': case 'barrel-reset':
         if (e.text) w.hud.toast(e.text);
         w.audio.hitMarker();
         break;
