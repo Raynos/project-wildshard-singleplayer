@@ -27,11 +27,27 @@ import { planDressing, type DressPlan } from './place';
 import { boulderGeo, slabGeo, stoneGeo, juniperGeo, roseGeo, willowGeo, lupinGeo, daisyGeo, reedGeo } from './models';
 import { buildStatics, buildCampClutter } from './statics';
 import { DressLife } from './life';
+import { loadNalatiModel, modelsOn, type NalatiModel } from '../glbPaint';
 import type { Sky } from '../../Sky';
 import type { Forest } from '../../Forest';
 import type { Collider } from '../../../player/Player';
 
 const PHONE = TIER === 'phone';
+
+/**
+ * A generated rock GLB fitted into a procedural rock's frame (centred on the origin, half-extents `half`: the placers
+ * bury the bottom), so it drops into the same scatter plan with the same sizes. The model's own painterly material
+ * (its atlas as the map) stays; the instances' rock tints multiply it.
+ */
+function fitRock(m: NalatiModel, half: readonly [number, number, number]): THREE.BufferGeometry {
+  const g = m.geometry.clone();
+  const b = m.box, c = new THREE.Vector3(), sz = new THREE.Vector3();
+  b.getCenter(c); b.getSize(sz);
+  g.translate(-c.x, -c.y, -c.z);
+  g.scale((half[0] * 2) / sz.x, (half[1] * 2) / sz.y, (half[2] * 2) / sz.z);
+  g.computeVertexNormals();
+  return g;
+}
 /** per-layer draw-distance scale on this tier */
 const FAR = PHONE ? { rock: 0.6, small: 0.55, shrub: 0.6, flower: 0.55 } : { rock: 1, small: 1, shrub: 1, flower: 1 };
 
@@ -105,8 +121,22 @@ export class NalatiDressing {
       this.layers.push(l);
       this.group.add(l.mesh);
     };
-    add('boulder', boulderGeo(0xb01d, PHONE ? 2 : 3), rock, plan.boulder, FAR.rock, { castShadow: true, keepNear: 40 });
-    add('slab', slabGeo(0x51ab, PHONE ? 2 : 3), rock, plan.slab, FAR.rock, { castShadow: true, keepNear: 40 });
+    // the rocks: the generated boulders (glbPaint.ts; every third boulder the tall faceted one) when `modelsOn()`,
+    // else the procedural blobs — the same plan, sizes and tints either way
+    const rockModels = modelsOn()
+      ? await Promise.all((['boulder-1', 'boulder-2', 'boulder-3'] as const).map((n) => loadNalatiModel(this.sky, n, { rim: 0.3, bands: 0.8 }))).catch((e: unknown) => { console.warn('[nalati] rock models failed', e); return null; })
+      : null;
+    if (rockModels) {
+      const [b1, b2, b3] = rockModels;
+      if (b1 && b2 && b3) {
+        add('boulder', fitRock(b1, [1, 0.74, 1]), b1.material, plan.boulder.filter((_, i) => i % 3 !== 2), FAR.rock, { castShadow: true, keepNear: 40 });
+        add('boulder-tall', fitRock(b2, [0.9, 0.95, 0.9]), b2.material, plan.boulder.filter((_, i) => i % 3 === 2), FAR.rock, { castShadow: true, keepNear: 40 });
+        add('slab', fitRock(b3, [1.45, 0.5, 0.95]), b3.material, plan.slab, FAR.rock, { castShadow: true, keepNear: 40 });
+      }
+    } else {
+      add('boulder', boulderGeo(0xb01d, PHONE ? 2 : 3), rock, plan.boulder, FAR.rock, { castShadow: true, keepNear: 40 });
+      add('slab', slabGeo(0x51ab, PHONE ? 2 : 3), rock, plan.slab, FAR.rock, { castShadow: true, keepNear: 40 });
+    }
     add('stone', stoneGeo(0x5707), rock, plan.stone, FAR.small);
     add('juniper', juniperGeo(0x1a9), shrub, plan.juniper, FAR.shrub, { castShadow: !PHONE });
     add('rose', roseGeo(0x805e, PHONE), shrub, plan.rose, FAR.shrub, { castShadow: !PHONE });

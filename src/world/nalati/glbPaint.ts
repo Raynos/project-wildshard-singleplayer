@@ -182,3 +182,30 @@ export const MODEL_SIZE: Readonly<Record<NalatiModelName, readonly [number, numb
   'boulder-3': [3.11, 0.8, 2.58], 'kumis-churn': [0.6, 1.1, 0.66], cauldron: [1.57, 1.7, 1.32], saddle: [0.54, 0.6, 0.46],
   firewood: [0.58, 0.6, 0.68], chest: [0.87, 0.6, 0.69],
 };
+
+/** triangles per model (desktop GLB; the phone GLB is the same mesh) — for the POIs' tri counts */
+export const MODEL_TRIS: Readonly<Record<NalatiModelName, number>> = {
+  yurt: 6000, 'horse-saddled': 8000, 'horse-wild': 8000, spruce: 2999, wolf: 7523, sheep: 4802, 'snow-leopard': 7997,
+  eagle: 5903, 'golden-king': 6543, balbal: 1473, 'boulder-1': 800, 'boulder-2': 800, 'boulder-3': 800, 'kumis-churn': 1334,
+  cauldron: 1406, saddle: 1456, firewood: 1492, chest: 1417,
+};
+
+/**
+ * Collects model placements while a POI is built (synchronously, like its PaintKit), then adds ONE InstancedMesh per
+ * model to the POI's group when the GLBs have loaded:
+ *   const sink = new ModelSink();  sink.add('chest', { x, y, z, rot });  …  sink.flush(group, sky);
+ */
+export class ModelSink {
+  private readonly lists = new Map<NalatiModelName, ModelPlacement[]>();
+  add(name: NalatiModelName, p: ModelPlacement): void {
+    let l = this.lists.get(name);
+    if (!l) { l = []; this.lists.set(name, l); }
+    l.push(p);
+  }
+  get size(): number { let n = 0; for (const l of this.lists.values()) n += l.length; return n; }
+  /** the triangles these placements will draw */
+  tris(): number { let n = 0; for (const [k, l] of this.lists) n += MODEL_TRIS[k] * l.length; return n; }
+  flush(parent: THREE.Object3D, sky: Sky, look: Partial<Record<NalatiModelName, ModelLook>> = {}): Promise<unknown> {
+    return Promise.all([...this.lists].map(([name, l]) => addModelInstances(parent, sky, name, l, look[name] ?? {})));
+  }
+}

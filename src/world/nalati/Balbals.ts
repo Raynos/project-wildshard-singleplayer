@@ -12,12 +12,16 @@
  *   balbals.setAwake(i, false)  // back to stone
  *
  * Also exports `balbalGeometry(variant)` (feet at y 0, facing −z, 2.1 m) for B11's rig to reuse.
+ *
+ * With `modelsOn()` (glbPaint.ts) both instanced meshes swap to the generated balbal GLB (turned to face −z, scaled to
+ * the carved stele's 2.15 m) once it has loaded — same instances, slots, colliders and `setAwake`.
  */
 import * as THREE from 'three';
 import { PaintKit, M, pole, v3, poiMaterial, mergeVerticesByPos } from './paint';
 import { Noise2D } from '../../core/noise';
 import type { Collider } from '../../player/Player';
 import type { PoiCtx, PoiPiece } from './types';
+import { loadNalatiModel, modelsOn, MODEL_SIZE } from './glbPaint';
 
 const C = {
   stone: new THREE.Color('#9a9386'),
@@ -180,6 +184,18 @@ export function buildBalbals(ctx: PoiCtx, spots: { x: number; z: number; yaw: nu
     colliders.push(collider);
   }
   for (const m of b.meshes) { m.instanceMatrix.needsUpdate = true; m.computeBoundingSphere(); }
+  if (modelsOn()) {
+    loadNalatiModel(sky, 'balbal', { rim: 0.35, bands: 0.8 }).then((model) => {
+      const k = 2.15 / MODEL_SIZE.balbal[1];
+      const geo = model.geometry.clone().rotateY(Math.PI).scale(k, k, k);
+      for (const m of b.meshes) {
+        if (m.count === 0) continue;
+        m.geometry = geo; m.material = model.material;
+        m.computeBoundingSphere();
+      }
+      return model;
+    }).catch((e: unknown) => { console.warn('[nalati] balbal model failed', e); });
+  }
   return { piece: { name: 'balbals', object: group, colliders, platforms: [], tris }, balbals: b };
 }
 

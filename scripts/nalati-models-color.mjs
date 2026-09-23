@@ -41,10 +41,12 @@ mkdirSync(TMP, { recursive: true });
 const GT = join(ROOT, 'node_modules/.bin/gltf-transform');
 
 // name → source generator + per-model knobs. k = blend 0..1 of the match; lift = L units added at L = 0 (toe);
-// sat = extra chroma multiplier.
-/** @type {Record<string, {src: 'trellis'|'hy', k?: number, lift?: number, sat?: number}>} */
+// sat = extra chroma multiplier; gain = L multiplier (brighter paint); hiSat = chroma multiplier on the light paint
+// (L > 55 → 75: the yurt's white felt reads orange under the warm painterly sun unless it is near-neutral);
+// phoneRatio = the phone GLB's vertex ratio (meshoptimizer simplify): the scattered rocks are hundreds of instances.
+/** @type {Record<string, {src: 'trellis'|'hy', k?: number, lift?: number, sat?: number, gain?: number, hiSat?: number, phoneRatio?: number}>} */
 const MODELS = {
-  yurt: { src: 'hy', k: 1, lift: 6 },
+  yurt: { src: 'hy', k: 1, lift: 6, gain: 1.1, hiSat: 0.4 },
   'horse-saddled': { src: 'hy', k: 0.75 },
   'horse-wild': { src: 'hy', k: 0.75 },
   spruce: { src: 'hy', k: 0.8 },
@@ -54,9 +56,9 @@ const MODELS = {
   eagle: { src: 'trellis', k: 0.8 },
   'golden-king': { src: 'trellis', k: 1, sat: 1.25 },
   balbal: { src: 'trellis', k: 1, lift: 6, sat: 0.6 },
-  'boulder-1': { src: 'hy', k: 0.9 },
-  'boulder-2': { src: 'hy', k: 0.9 },
-  'boulder-3': { src: 'hy', k: 0.9 },
+  'boulder-1': { src: 'hy', k: 0.9, sat: 0.65, phoneRatio: 0.5 },
+  'boulder-2': { src: 'hy', k: 0.9, sat: 0.65, phoneRatio: 0.5 },
+  'boulder-3': { src: 'hy', k: 0.9, sat: 0.65, phoneRatio: 0.5 },
   'kumis-churn': { src: 'trellis', k: 0.8 },
   cauldron: { src: 'trellis', k: 0.8 },
   saddle: { src: 'trellis', k: 0.8 },
@@ -133,7 +135,7 @@ function hueStats(lab, idx, mapL, mapC) {
  *  mean chroma pulled to the reference's same sector, and its hue nudged toward it (±20°) — so a crimson cape stays
  *  crimson and dark while bronze turns bright gold (a global shift would pull every hue toward the average). */
 function makeMap(srcLab, srcIdx, refLab, refIdx, knobs) {
-  const k = knobs.k ?? 0.85, lift = knobs.lift ?? 4, sat = knobs.sat ?? 1;
+  const k = knobs.k ?? 0.85, lift = knobs.lift ?? 4, sat = knobs.sat ?? 1, gain = knobs.gain ?? 1, hiSat = knobs.hiSat ?? 1;
   const S = stats(srcLab, srcIdx), R = stats(refLab, refIdx);
   const Cof = (lab) => (i) => Math.hypot(lab[i * 3 + 1], lab[i * 3 + 2]);
   const mapL = cdfLut((i) => srcLab[i * 3], srcIdx, (i) => refLab[i * 3], refIdx, 100);
@@ -155,9 +157,11 @@ function makeMap(srcLab, srcIdx, refLab, refIdx, knobs) {
       const w = clamp((C - 6) / 14, 0, 1); // chromatic weight
       let L2 = mapL(L) + lerp('dl') * w;
       L2 += lift * Math.max(0, 1 - L2 / 55) ** 2; // toe lift: nothing black
+      L2 = Math.min(98, L2 * gain);
+      const hi = clamp((L2 - 55) / 20, 0, 1); // the light paint (felt, birch): hiSat scales its chroma
       // chroma hist-match as a ratio; near-grey texels are never pushed up (their hue is noise)
       const up = mapC(C) / Math.max(C, 1e-3), rc = up > 1 ? 1 + (up - 1) * clamp((C - 3) / 7, 0, 1) : up;
-      const C2 = C * rc * (1 + (lerp('cr') - 1) * w) * sat, h2 = h + lerp('dh') * w * 0.8;
+      const C2 = C * rc * (1 + (lerp('cr') - 1) * w) * sat * (1 + (hiSat - 1) * hi), h2 = h + lerp('dh') * w * 0.8;
       const a2 = C2 * Math.cos(h2), b2 = C2 * Math.sin(h2);
       return [L + (L2 - L) * k, a + (a2 - a) * k, b + (b2 - b) * k];
     },
@@ -227,9 +231,10 @@ for (const [name, knobs] of Object.entries(MODELS)) {
   for (const ext of doc.getRoot().listExtensionsUsed()) if (ext instanceof EXTMeshoptCompression) ext.dispose();
   const mid = join(TMP, `${name}.glb`);
   await io.write(mid, doc);
-  for (const [out, size] of [[`${name}.glb`, 1024], [`${name}.phone.glb`, 512]]) {
+  for (const [out, size, ratio] of [[`${name}.glb`, 1024, 1], [`${name}.phone.glb`, 512, knobs.phoneRatio ?? 1]]) {
+    const simplify = ratio < 1 ? ['--simplify', 'true', '--simplify-ratio', String(ratio), '--simplify-error', '0.02'] : ['--simplify', 'false'];
     execFileSync(GT, ['optimize', mid, join(OUT, out), '--compress', 'meshopt', '--texture-compress', 'webp',
-      '--texture-size', String(size), '--simplify', 'false', '--instance', 'false'], { stdio: 'pipe' });
+      '--texture-size', String(size), ...simplify, '--instance', 'false'], { stdio: 'pipe' });
   }
   // the spruce impostor card: the same per-pixel map (its texture was rendered from the same mesh)
   const imp = join(srcDir, `${name}.impostor.glb`);

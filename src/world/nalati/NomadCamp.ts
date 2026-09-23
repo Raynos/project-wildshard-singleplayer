@@ -8,7 +8,9 @@
  *
  *   const camp = buildNomadCamp(ctx);      // PoiPiece: object, colliders, platforms, tris
  *
- * One merged mesh; the ribbons / pennants go into `ctx.flutter`, the plumes into `ctx.smoke`.
+ * One merged mesh; the ribbons / pennants go into `ctx.flutter`, the plumes into `ctx.smoke`. With `modelsOn()` (glbPaint.ts)
+ * the yurts, the kazan, chests, woodpile, churns, ground saddles and the eagle are the generated GLB models instead
+ * (modelProps.ts: same footprints, colliders, flues), one InstancedMesh per model, added when they have loaded.
  * Terrain request: a flat pad r 30 at (95, 205) (the valley floor, ≈ −8).
  */
 import * as THREE from 'three';
@@ -17,6 +19,8 @@ import { addYurt } from './Yurt';
 import { PC, addBarrel, addChest, addWoodpile, addStove, addKazan, addCart, addSaddleRack, addEagle, addGroundRug, addRugRack, addCarvedPost, addChurn, addRugLine, addChoppingBlock, addGroundSaddle, addMilkCans } from './props';
 import { buildYardDecal, wearDisc, wearPath } from './Yard';
 import { CAMP, CORRAL, HITCHING_RAIL } from './layout';
+import { ModelSink, modelsOn } from './glbPaint';
+import { addYurtModel, addKazanModel, addChestModel, addWoodpileModel, addChurnModel, addGroundSaddleModel, addEagleModel } from './modelProps';
 import type { Collider } from '../../player/Player';
 import type { PoiCtx, PoiPiece } from './types';
 
@@ -38,6 +42,8 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
   const rng = kit.rng;
   const colliders: Collider[] = [];
   const cx = CAMP.x, cz = CAMP.z;
+  const models = modelsOn();
+  const sink = new ModelSink();
 
   // ── yurts ──
   const doors: { x: number; z: number; rot: number; r: number }[] = [];
@@ -51,7 +57,8 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     let gy = Infinity;
     for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; gy = Math.min(gy, ground(x + Math.cos(t) * y.r, z + Math.sin(t) * y.r)); }
     gy = Math.min(gy, ground(x, z));
-    const top = addYurt(kit, { x, y: gy, z, rot, r: y.r, flue: y.flue, palette: y.pal, old: y.old ?? false, base: y.base }, colliders);
+    const spec = { x, y: gy, z, rot, r: y.r, flue: y.flue, palette: y.pal, old: y.old ?? false, base: y.base };
+    const top = models ? addYurtModel(kit, sink, spec, colliders) : addYurt(kit, spec, colliders);
     if (top.flue) smoke.emitter(top.flue, { puffs: 40, rise: 7, size: [0.6, 4.2], life: 9 });
     // a red pennant on a short pole at the crown of every other yurt
     if (y.pal !== 2) {
@@ -90,7 +97,8 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     kit.add(new THREE.CylinderGeometry(0.075, 0.075, 0.22, 8).translate(x, y + H - 0.25, z), PC.leather);          // lashing
     kit.add(pole(v3(x - 0.5, y + H + 0.08, z), v3(x + 0.5, y + H + 0.08, z), 0.045, 0.045, 7), PC.wood);             // T-bar
     kit.add(new THREE.CylinderGeometry(0.05, 0.05, 0.36, 8).rotateZ(Math.PI / 2).translate(x + 0.05, y + H + 0.08, z), PC.red); // leather wrap
-    addEagle(kit, v3(x + 0.05, y + H + 0.12, z), Math.PI / 2 + 0.35);                                                // looking east, toward the road
+    if (models) addEagleModel(sink, v3(x + 0.05, y + H + 0.12, z), Math.PI / 2 + 0.35);                           // looking east, toward the road
+    else addEagle(kit, v3(x + 0.05, y + H + 0.12, z), Math.PI / 2 + 0.35);
     // jesses: a cord from the leg to the bar end
     kit.add(pole(v3(x + 0.1, y + H + 0.14, z), v3(x + 0.48, y + H + 0.02, z), 0.01, 0.01, 3), PC.leather);
     kit.add(pole(v3(x + 0.48, y + H + 0.08, z), v3(x + 0.52, y + H - 0.6, z + 0.02), 0.01, 0.01, 3), PC.leather);
@@ -99,8 +107,9 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
 
   // ── cooking: the stove and the kazan in the yard, smoking ──
   smoke.emitter(addStove(kit, ground, cx + 4.5, cz - 5.5, 0.4, colliders), { puffs: 36, rise: 6.5, size: [0.55, 3.8], life: 8 });
-  smoke.emitter(addKazan(kit, ground, cx - 3.2, cz - 6.2, colliders), { puffs: 28, rise: 4.5, size: [0.5, 3.0], life: 6 });
-  addWoodpile(kit, ground, cx + 8.5, cz - 3, 0.9, colliders);
+  smoke.emitter(models ? addKazanModel(sink, ground, cx - 3.2, cz - 6.2, colliders) : addKazan(kit, ground, cx - 3.2, cz - 6.2, colliders), { puffs: 28, rise: 4.5, size: [0.5, 3.0], life: 6 });
+  if (models) addWoodpileModel(sink, ground, cx + 8.5, cz - 3, 0.9, colliders);
+  else addWoodpile(kit, ground, cx + 8.5, cz - 3, 0.9, colliders);
   // low wooden bench by the kazan
   {
     const x = cx - 3.2, z = cz - 9.0, y = ground(x, z), m = M(x, y, z, 0.1);
@@ -121,8 +130,10 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
   // ── props round the yard ──
   addCart(kit, ground, cx - 11, cz - 11, 2.3, colliders);
   for (const [bx, bz] of [[cx + 6.8, cz - 1.2], [cx + 6.3, cz - 0.3], [cx - 1.5, cz + 10.5]] as const) addBarrel(kit, ground, bx, bz, colliders, rng.range(0.9, 1.05));
-  addChest(kit, ground, cx + 0.6, cz + 9.4, 0.2, colliders);
-  addChest(kit, ground, cx - 9.5, cz - 4.5, 1.8, colliders);
+  for (const [hx, hz, hyaw] of [[cx + 0.6, cz + 9.4, 0.2], [cx - 9.5, cz - 4.5, 1.8]] as const) {
+    if (models) addChestModel(sink, ground, hx, hz, hyaw, colliders);
+    else addChest(kit, ground, hx, hz, hyaw, colliders);
+  }
 
   // ── hitching rail (road side, runs north–south) + trough + saddle rack ──
   {
@@ -188,13 +199,16 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
   }
 
   // the kumis corner by the big yurt: the wooden churn and the leather saba on its tripod
-  addChurn(kit, ground, cx + 3.6, cz + 10.2, colliders);
+  if (models) addChurnModel(sink, ground, cx + 3.6, cz + 10.2, colliders);
+  else addChurn(kit, ground, cx + 3.6, cz + 10.2, colliders);
 
   // ── yard set pieces: rugs on a line, the chopping block, saddles set down by the rail, the milk cans ──
   addRugLine(kit, ground, cx - 7, cz + 6, cx - 2.6, cz + 8.6, [1, 3, 0], colliders);
   addChoppingBlock(kit, ground, cx + 9.5, cz - 5.5, colliders);
-  addGroundSaddle(kit, ground, HITCHING_RAIL.x + 2.8, HITCHING_RAIL.z - 2.2, 1.9);
-  addGroundSaddle(kit, ground, HITCHING_RAIL.x + 3.2, HITCHING_RAIL.z + 1.2, 0.6);
+  for (const [sx, sz, syaw] of [[HITCHING_RAIL.x + 2.8, HITCHING_RAIL.z - 2.2, 1.9], [HITCHING_RAIL.x + 3.2, HITCHING_RAIL.z + 1.2, 0.6]] as const) {
+    if (models) addGroundSaddleModel(sink, ground, sx, sz, syaw);
+    else addGroundSaddle(kit, ground, sx, sz, syaw);
+  }
   addMilkCans(kit, ground, cx + 5.2, cz + 8.4, colliders);
 
   const group = new THREE.Group();
@@ -215,5 +229,6 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
   group.add(mesh);
   let tris = mesh.geometry.getAttribute('position').count / 3;
   if (felt) { felt.name = 'nalati-camp-felt'; group.add(felt); tris += felt.geometry.getAttribute('position').count / 3; }
+  if (sink.size > 0) { tris += sink.tris(); void sink.flush(group, sky); }
   return { name: 'camp', object: group, colliders, platforms: [], tris };
 }
