@@ -427,6 +427,13 @@ async function main() {
     toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, pickupHum: (on) => { audio.pickupHum(on); }, trophy: () => { inventory.add('gold-plaque'); },
     music: (e) => { if (e === 'death' || e === 'pickup') music.sting(e); else if (e === 'victory') music.sting('chunk'); else music.combat(1); },
   });
+  // Nalati's named elites (src/nalati/elites.ts, B12): lairs, bars, banners, drops — taming (B8) hands in when it is wired
+  nalatiNow()?.elites.bind({
+    animals, wildlife, taming: null, ghosts: null, interactables, params,
+    toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, addItem: (id) => { inventory.add(id); }, record: (k, v) => { progress.recordKill(k, v); },
+    pickupHum: (on) => { audio.pickupHum(on); }, sound: (n, at) => { audio.animal(n, at, player.position, player.yaw); },
+    sting: (e) => { if (e === 'kill') music.sting('chunk'); else music.combat(e === 'phase2' ? 1 : 0.8); },
+  });
   player.onStep = (sprinting) => (player.wading ? audio.wadeStep(player.depth, sprinting)
     : audio.footstep(sprinting, pier?.floorHeightAt(player.position.x, player.position.z) !== undefined ? 'planks'
       : sea !== undefined && heightAt(player.position.x, player.position.z) - sea.level < 2.6 ? 'sand' : 'litter'));

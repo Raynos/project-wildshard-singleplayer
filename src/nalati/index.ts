@@ -29,6 +29,7 @@ import { NalatiPOIs } from '../world/nalati';
 import { NalatiDressing } from '../world/nalati/dressing';
 import { reseedPainterlyGrass } from '../world/GrassPainterly';
 import { wireKurgan, type KurganBoss } from './kurganBoss';
+import { wireElites, type NalatiElites } from './elites';
 import { wireWeather, type NalatiWeather } from './weather';
 import { wireSound, type NalatiSound } from './sound';
 import { macrotask } from '../boot/plan';
@@ -69,6 +70,9 @@ export interface Nalati {
    *  once the animals, the kit and the HUD exist; `boss.onPlayerDeath()` in main's death check (true = the boss fight
    *  handled it: the player is back at the phase checkpoint); `boss.inside` while the player is in the dungeon */
   boss: KurganBoss;
+  /** the named elites (elites agent, B12; src/nalati/elites.ts): Aqbars, Kokbori, Qyran, Qara Batyr, Argymaq — `elites.bind(play)`
+   *  from main.ts once the animals, the wildlife and the HUD exist */
+  elites: NalatiElites;
   /** the creatures (creatures agent, B4; src/entities/Wildlife.ts): wolf packs, the horse herd + stallion, the sheep flock +
    *  its dog, marmots, the camp's saddled horses. main.ts calls `attachAnimals(animals)` right after its animals step. */
   attachAnimals: (animals: AnimalManager) => Wildlife;
@@ -140,6 +144,10 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   const weather = wireWeather({ game, sky, player: ctx.player, forest: ctx.forest, colliders: pois.colliders, water: water.group });
   groups['weather'] = weather.fx.group;
   updates.push((dt) => weather.update(dt));
+
+  // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/nalati/elites.ts ──
+  const elites = wireElites({ game, sky, player: ctx.player, ledges: pois.cragLedges, phase: () => weather.clock.phase, storm: () => weather.weather.stormActive });
+  updates.push((dt, t) => { elites.update(dt, t); });
 
   // ── painted backdrop (painted-asset agent, look pass): the 360° matte painting of the real Nalati past the horizon rings —
   //    src/world/PaintedBackdrop.ts (loads on its own, the boot does not wait). It takes the far range over from the
@@ -246,7 +254,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   const sheepResult: TargetHit = { animal: sheep, point: sheepPoint, distance: 0, headshot: false };
 
   const nalati: Nalati = {
-    water, pois, weather, groups, boss, wildlife,
+    water, pois, weather, groups, boss, elites, wildlife,
     attachAnimals(animals) {
       animals.wetAt = nalatiWetAt;
       const w = new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed }).build();
