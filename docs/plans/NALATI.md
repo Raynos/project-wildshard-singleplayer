@@ -128,13 +128,18 @@ the phone tier.
 | L6 | POI models (yurts, camp, bridge, kurgans, balbals, cairn, rocks) | poi-agent |
 | L7 | first-person arms, sleeves, gloves, bow, sabre, spear | bow-agent + melee-agent |
 
-## Deploy
+## Deploy — none from this worktree
 
-The branch has no deploy of its own (CI deploys `main`). A checkpoint ships by merging `origin/main` into the
-branch, passing the four gates on a clean export (`tsc --noEmit`, `oxlint`, `check-css`, `vite build`, plus
-`pnpm test`), and pushing the branch head to `main` through the push lock. As with Driftwood: ship the first
-walkable steppe half-broken (behind the SUPER EXPERIMENTAL card), then keep shipping. Pine Hollow and Driftwood
-must stay byte-for-byte unchanged in behaviour.
+The user (2026-09-23): "You can't push … you're a worktree, we have to rebase you on main and merge you manually …
+just focus on local development and not pushing." So: **no pushes from the Nalati worktree, ever.** Development
+and review are local (dev server http://127.0.0.1:5188/?chunk=nalati-grasslands). An attempted checkpoint push
+(279 MB, mostly mockup PNGs) held the shared push lock for 80+ minutes and was killed; nothing reached origin.
+
+When the user asks for the merge: merge local `main` into the branch, pass every gate on a clean export, convert the
+mockup PNGs under `art/nalati-grasslands/` to JPEG, land it in the main checkout as a **squashed** local commit
+(`git merge --squash`, so the PNG history never enters main) or `--ff-only` as the main sessions prefer, report the
+pack size, and let the main sessions' `scripts/push-main.sh` carry it. A prepared merge of main (11 conflicts
+resolved, gates green at the time) sits in the scratchpad deploy worktree at `4c191a3` for reference.
 
 ## Mockups
 
