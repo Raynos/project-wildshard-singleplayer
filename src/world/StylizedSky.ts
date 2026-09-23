@@ -26,7 +26,7 @@ export interface SkyPalette {
 
 export const MIDDAY_SKY: SkyPalette = {
   zenith: new THREE.Color(0.055, 0.2, 0.78),
-  horizon: new THREE.Color(0.5, 0.74, 1.0),
+  horizon: new THREE.Color(0.36, 0.7, 1.0),
   below: new THREE.Color(0.22, 0.46, 0.72),
   sunGlow: new THREE.Color(1.0, 0.88, 0.62),
   cloudLit: new THREE.Color(1.25, 1.22, 1.16),

@@ -9,9 +9,9 @@ import { macrotask } from '../boot/plan';
 
 // ── low-poly palette (sRGB in, linear out via THREE.Color) ──
 const LP = {
-  seabed: new THREE.Color('#3fa6b8'),   // the lagoon floor as seen through the water (Beer–Lambert's green-cyan baked in: the sea over it is clear)
+  seabed: new THREE.Color('#15a0b4'),   // the lagoon floor as seen through the water (Beer–Lambert's green-cyan baked in: the sea over it is clear)
   wetSand: new THREE.Color('#caa66c'),   // the swash tint: a shade darker than the dry sand, not mud
-  sand: new THREE.Color('#ebc885'),   // warm golden
+  sand: new THREE.Color('#ffd98c'),   // warm golden (E43 round 6: matched to the mockups by palette-delta.py)
   grass: new THREE.Color('#6cae47'),
   grassDark: new THREE.Color('#4d8c33'),
   grassHigh: new THREE.Color('#9acb52'),
@@ -66,9 +66,12 @@ export class Terrain {
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.92, metalness: 0 });
     mat.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
-      // `flat` interpolation: the whole triangle gets its last vertex's colour (three #defines varying → out / in)
-      shader.vertexShader = shader.vertexShader.replace('varying vec4 vColor;', 'flat varying vec4 vColor;');
-      shader.fragmentShader = shader.fragmentShader.replace('varying vec4 vColor;', 'flat varying vec4 vColor;');
+      // `flat` interpolation: the whole triangle gets its last vertex's colour. The declaration lives inside the
+      // color_pars includes, which are still unexpanded here — so expand them first (replacing the bare string never
+      // matched, and the ground was smooth-shaded until E43 round 6)
+      const flat = (chunk: string) => chunk.replace('varying vec4 vColor;', 'flat varying vec4 vColor;');
+      shader.vertexShader = shader.vertexShader.replace('#include <color_pars_vertex>', flat(THREE.ShaderChunk.color_pars_vertex));
+      shader.fragmentShader = shader.fragmentShader.replace('#include <color_pars_fragment>', flat(THREE.ShaderChunk.color_pars_fragment));
     };
     mat.customProgramCacheKey = () => 'terrain-lowpoly';
     this.material = mat;
@@ -102,7 +105,8 @@ export class Terrain {
         lowPolyGroundColor(c, y - wl, 1 - ny, x, z, lip);
         // the sand paths: trails above the beach are painted sand over the grass (a 3 m bed with a soft edge)
         if (y - wl > 1.5) { const td = trailDistance(x, z); if (td < 4.5) { _pathC.copy(LP.path).multiplyScalar(0.94 + hash2(x, z) * 0.12); c.lerp(_pathC, 1 - ss(td, 2.2, 4.5)); } }
-        col[i * 3] = Math.round(c.r * 255); col[i * 3 + 1] = Math.round(c.g * 255); col[i * 3 + 2] = Math.round(c.b * 255);
+        // clamped: a Uint8Array wraps 256+ to ~0, so a bright sand facet jittered over 1.0 turned mint (r 1.07 → 17)
+        col[i * 3] = Math.min(255, Math.round(c.r * 255)); col[i * 3 + 1] = Math.min(255, Math.round(c.g * 255)); col[i * 3 + 2] = Math.min(255, Math.round(c.b * 255));
       }
     }
     const idx = new Uint32Array(n * n * 6);

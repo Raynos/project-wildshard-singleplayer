@@ -14,6 +14,8 @@ import { macrotask } from '../boot/plan';
 import { installStylize, toonUniforms } from './stylize';
 import { StylizedSky } from './StylizedSky';
 import { DayNight } from './DayNight';
+import { loadStylizedLUT } from './lut';
+import type { LookupTexture } from 'postprocessing';
 
 /** the low-poly shard's sun before the day / night clock moves it: mid-morning from the east-south-east, 38° up */
 const STYLIZED_SUN = new THREE.Vector3(-0.74, 0.616, -0.27).normalize();
@@ -133,6 +135,8 @@ export class Sky {
    * day / night clock's start time. Returns the fog colour (the dome's horizon).
    */
   stylized: StylizedSky | null = null;
+  /** the low-poly shard's learned colour LUT (lut.ts, X1) — Game.buildComposer ends the grade with it; null elsewhere */
+  lut: LookupTexture | null = null;
   /** the low-poly shard's day / night clock (DayNight.ts) — null on a PBR shard */
   dayNight: DayNight | null = null;
   hemi!: THREE.HemisphereLight;
@@ -140,7 +144,8 @@ export class Sky {
   private envRT: THREE.WebGLRenderTarget | null = null;
   private async setupStylized(): Promise<THREE.Color> {
     const { sky: S } = getActiveChunk();
-    await preloadBakedTextures();
+    const [, lut] = await Promise.all([preloadBakedTextures(), loadStylizedLUT()]);
+    this.lut = lut;
     this.sunDir.copy(STYLIZED_SUN);
     const st = new StylizedSky(this.sunDir).build();
     this.stylized = st;

@@ -331,7 +331,11 @@ export class GameMenu {
       const paintMatte = () => { const on = setting('matte') === 'on'; matte.classList.toggle('on', on); matte.setAttribute('aria-checked', String(on)); };
       paintMatte(); onSettingChange('matte', paintMatte);
       matte.addEventListener('click', () => { saveSetting('matte', setting('matte') === 'on' ? 'off' : 'on'); });
-      p.append(el('ws-gmenu-label', 'Look'), time, matte);
+      const lut = el('ws-gmenu-switch', '<span class="ws-gmenu-swlabel">Colour grade</span><i class="ws-gmenu-pill"></i>', 'button') as HTMLButtonElement; lut.type = 'button'; lut.setAttribute('role', 'switch');
+      const paintLut = () => { const on = setting('lut') === 'on'; lut.classList.toggle('on', on); lut.setAttribute('aria-checked', String(on)); };
+      paintLut(); onSettingChange('lut', paintLut); // the learned LUT (X1): Game.buildComposer subscribes the effect itself
+      lut.addEventListener('click', () => { saveSetting('lut', setting('lut') === 'on' ? 'off' : 'on'); });
+      p.append(el('ws-gmenu-label', 'Look'), time, matte, lut);
     }
     p.append(el('ws-gmenu-note', 'Renderer, island, quality and render scale: Exit to main menu ▸ Settings.'));
     p.append(this.buildReview());

@@ -38,8 +38,8 @@ const hex = (h: number) => new THREE.Color(h);
 const MIDDAY: Preset = {
   sky: MIDDAY_SKY,
   sunColor: c(1.0, 0.97, 0.9), sunI: 2.7,
-  hemiSky: hex(0x7b90f4), hemiGround: hex(0xd8a878), hemiI: 0.9,
-  lift: c(0.07, 0.035, 0.2), rim: c(1.3, 0.95, 0.6), fogNear: c(0.5, 0.6, 0.98), fogSun: c(1.0, 0.98, 0.92),
+  hemiSky: hex(0x7b90f4), hemiGround: hex(0xe8b890), hemiI: 1.15,
+  lift: c(0.08, 0.05, 0.13), rim: c(1.3, 0.95, 0.6), fogNear: c(0.5, 0.6, 0.98), fogSun: c(1.0, 0.98, 0.92),
   disc: c(1.0, 0.95, 0.85), cloudShadow: 0.32, dusk: 0,
 };
 const GOLDEN: Preset = {

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {
   EffectComposer, RenderPass, EffectPass, BloomEffect, SMAAEffect, VignetteEffect, ToneMappingEffect,
-  ToneMappingMode, BlendFunction, GodRaysEffect, KernelSize, SMAAPreset, EdgeDetectionMode, ChromaticAberrationEffect, HueSaturationEffect, BrightnessContrastEffect, NoiseEffect,
+  ToneMappingMode, BlendFunction, GodRaysEffect, LUT3DEffect, KernelSize, SMAAPreset, EdgeDetectionMode, ChromaticAberrationEffect, HueSaturationEffect, BrightnessContrastEffect, NoiseEffect,
 } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
 import { installAtmosphere } from '../world/Atmosphere';
@@ -14,6 +14,7 @@ import { TIER_CONFIG } from './tier';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 import { worldTime } from './time';
+import { setting, onSettingChange } from '../ui/Settings';
 import { installViewport, viewportHeight } from './viewport';
 import { GPU_MODE } from '../gpu/flag';
 import type { GpuPath } from '../gpu/GpuPath';
@@ -131,7 +132,13 @@ export class Game {
       godRays.blendMode.opacity.value = 0.12; // faint: looking into a midday sun must not wash the sand and lagoon to white
       bloom.luminanceMaterial.smoothing = 0.08; // bloom only what is really over 1.0 (the def's threshold): the sun, glints, glyphs, fireflies
       vignette.darkness = 0.35;
-      composer.addPass(new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split));
+      // the learned LUT (X1, src/world/lut.ts) is the last grade step: the palette fitted to the mockups
+      const lut = this.sky.lut ? new LUT3DEffect(this.sky.lut, { inputColorSpace: THREE.SRGBColorSpace, tetrahedralInterpolation: true }) : null;
+      if (lut) { // pause menu ▸ Settings ▸ Look ▸ Colour grade: live, the blend opacity (no recompile)
+        const apply = (v: 'on' | 'off') => { lut.blendMode.opacity.value = v === 'on' ? 1 : 0; };
+        apply(setting('lut')); onSettingChange('lut', apply);
+      }
+      composer.addPass(lut ? new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split, lut) : new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split));
     } else composer.addPass(new EffectPass(this.camera, vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain));
     if (TIER_CONFIG.smaa !== 'off') {
       const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });

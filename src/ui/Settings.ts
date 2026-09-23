@@ -98,6 +98,7 @@ export const OPTION_VALUES = {
   touch: ['auto', 'on'],                               // on-screen controls (main.ts → TouchControls): auto = coarse pointer
   matte: ['on', 'off'],                                // the painted horizon (src/world/HorizonMatte.ts) — live
   time: ['live', 'midday', 'golden', 'sunset', 'night'], // the day / night clock (src/world/DayNight.ts) — live
+  lut: ['on', 'off'],                                  // the learned colour LUT (src/world/lut.ts, Game.buildComposer) — live
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -112,12 +113,13 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly 
   touch: { def: 'auto', params: ['touch'], url: (q) => (q.has('touch') ? 'on' : null) },               // ?touch (any value) forces them, as before
   matte: { def: 'on', params: ['matte'], url: (q) => onOff(q.get('matte')) },                           // ?matte=0: the before / after captures
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
+  lut: { def: 'on', params: ['nolut'], url: (q) => (q.has('nolut') ? 'off' : null) },                   // ?nolut: the LUT fit's own captures (scripts/fit-lut.py)
 };
 // Settings ▸ Graphics ▸ Island (X2) saved under its own key before E55: carried over once
 if (saved['island'] === undefined) { try { const legacy = localStorage.getItem('ws.island.v1'); if (legacy !== null) saved['island'] = legacy; } catch { /* private mode */ } }
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => new Choice<OptionValue<K>>(k, OPTION_VALUES[k], OPTION_SPECS[k].def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
-  gpu: option('gpu'), island: option('island'), tier: option('tier'), touch: option('touch'), matte: option('matte'), time: option('time'),
+  gpu: option('gpu'), island: option('island'), tier: option('tier'), touch: option('touch'), matte: option('matte'), time: option('time'), lut: option('lut'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 
