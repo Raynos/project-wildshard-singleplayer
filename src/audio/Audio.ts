@@ -23,6 +23,7 @@ import { Voices } from './Voices';
  *   audio.footstep(sprinting, 'litter'|'planks'|'sand')                          // surface: pine litter (default), the pier deck, the beach
  *   audio.setAmbient(true|false)  audio.setAmbient('forest'|'island')   audio.muted = true|false   audio.master.gain (0.6)
  *   audio.worldMuted = true|false        // sfx + ambient only (the title screen: the music plays, the frozen world is quiet)
+ *   audio.hurt(strength, pan)  audio.death()   // the player takes a hit (strength = dmg / 20, pan toward the attacker) / dies — both shards (B3)
  *   audio.voices                         // the procedural one-shot bank (src/audio/Voices.ts + gen.ts): Driftwood's footsteps + combat layers (IslandSfx)
  *
  * Samples (docs/plans/MUSIC.md v3 row 7): `audio.loadSamples()` (main.ts calls it after ENTER WORLD — never at boot) reads
@@ -199,6 +200,7 @@ export class Audio {
     if (c.state !== 'running') void c.resume();
     if (!built && this.underwater) { this.underwater = false; this.setUnderwater(true); } // dove before the first gesture
     if (!this.started) { this.started = true; this.startAmbient(); }
+    if (!built) window.setTimeout(() => this.voices.prewarm(['hurt', 'death']), 1500); // rendered in the background, before the first hit
   }
 
   /** `true`/`false` mutes the bed; `'forest'`/`'island'` swaps it (pine wind + birds ↔ surf + breeze + gulls) */
@@ -637,6 +639,20 @@ export class Audio {
     const t = this.ctx.currentTime;
     this.tone({ t, type: 'sine', f0: 1900, gain: 0.16, decay: 0.045 });
     this.tone({ t: t + 0.012, type: 'sine', f0: 2600, gain: 0.1, decay: 0.05 });
+  }
+
+  /** the player takes a hit (both shards, B3): a short grunt ("uh" / "ah" / "oof") over a body blow, from the bank (gen.ts
+   *  hurt). `strength` ≈ dmg / 20 (0.1 … 1.5): louder and a little lower / heavier as it grows; `pan` −1 … 1 toward the attacker. */
+  hurt(strength = 0.5, pan = 0): void {
+    if (!this.g) return;
+    const s = Math.max(0.1, Math.min(1, strength));
+    this.voices.play('hurt', { gain: 0.45 + 0.4 * s, rate: 1.05 - 0.12 * s, pan: Math.max(-1, Math.min(1, pan)) * 0.6 });
+  }
+
+  /** the player dies (both shards): the hit, a groan falling out of breath, the body hitting the ground (~1.6 s) */
+  death(): void {
+    if (!this.g) return;
+    this.voices.play('death', { gain: 0.85, jitter: 0.03 });
   }
 
   kill(): void {

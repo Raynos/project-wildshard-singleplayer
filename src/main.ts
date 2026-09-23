@@ -52,7 +52,7 @@ import { Inventory, harvestOf, ITEMS } from './game/Inventory';
 import { getNumber, onNumber } from './ui/Settings';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
-import { HurtArc, hurtThud, deathLine } from './ui/HurtArc';
+import { HurtArc, deathLine } from './ui/HurtArc';
 import { setAimTargets, meleeLock } from './player/AimTargets';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
 import { declareTotals, installByteCounter } from './boot/bytes';
@@ -409,8 +409,8 @@ async function main() {
   if (dropParam && dropParam in SKINS) { const f = 4.5; spawnSkinDrop(SKINS[dropParam as SkinId], new THREE.Vector3(player.position.x - Math.sin(player.yaw) * f, 0, player.position.z - Math.cos(player.yaw) * f)); }
   new Combat(game, animals, weapons, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
   animals.onSound = (name, pos) => audio.animal(name, pos, player.position, player.yaw);
-  // taking a hit (B3): the arc points at the attacker (src/ui/HurtArc.ts), a hurt sound (PLACEHOLDER hurtThud until the
-  // sound-agent's Audio.hurt lands — it used to be the landing thud), and the killer is remembered for the death toast (B2)
+  // taking a hit (B3): the arc points at the attacker (src/ui/HurtArc.ts), a hurt grunt panned toward it (Audio.hurt — it
+  // used to be the landing thud), and the killer is remembered for the death toast (B2)
   const hurtArc = new HurtArc();
   let killer: { kind: string; label: string } | null = null;
   animals.onCharge = (a, dmg) => {
@@ -418,7 +418,7 @@ async function main() {
     killer = { kind: a.kind, label: a.label };
     hurtArc.hit(a.position.x, a.position.z, player.position, player.yaw, dmg);
     const dx = a.position.x - player.position.x, dz = a.position.z - player.position.z, d = Math.hypot(dx, dz);
-    if (!audio.muted && !audio.worldMuted) hurtThud(audio.ctx, audio.master, dmg / 20, d > 0.3 ? ((dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw)) / d) * 0.7 : 0);
+    audio.hurt(dmg / 20, d > 0.3 ? ((dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw)) / d) * 0.7 : 0);
   };
   // footsteps (B9): the island asks its surface map — planks on every deck, stone on the shrine dais, sand / wet sand / grass /
   // rock off them as the terrain paints it, an ankle splash in the shallows — pitched and levelled by speed; Pine Hollow as before
