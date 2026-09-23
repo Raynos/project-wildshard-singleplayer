@@ -19,14 +19,14 @@ const midiHz = (n: number) => 440 * 2 ** ((n - 69) / 12);
 
 
 export class ShrineHum {
-  private nodes: { panner: PannerNode; out: GainNode; srcs: AudioScheduledSourceNode[]; sample: boolean } | undefined;
+  private nodes: { panner: PannerNode; out: GainNode; srcs: AudioScheduledSourceNode[]; buf: AudioBuffer | undefined } | undefined;
   /** diagnostics: the distance at the last update and whether the hum is built */
   dist = Infinity;
 
   constructor(private readonly audio: Audio, private readonly music: Music, private readonly pos: { x: number; y: number; z: number }) {}
 
   get active(): boolean { return this.nodes !== undefined; }
-  get source(): 'sample' | 'synth' | undefined { return this.nodes ? (this.nodes.sample ? 'sample' : 'synth') : undefined; }
+  get source(): 'sample' | 'synth' | undefined { return this.nodes ? (this.nodes.buf ? 'sample' : 'synth') : undefined; }
 
   update(camera: Camera): void {
     if (!this.audio.ready) return; // never the one to create the AudioContext
@@ -39,7 +39,7 @@ export class ShrineHum {
     this.music.duck(d <= DUCK_IN ? DUCK : d >= DUCK_EDGE ? 1 : 1 + (DUCK - 1) * ((DUCK_EDGE - d) / (DUCK_EDGE - DUCK_IN)));
     if (d > DROP_R) { if (this.nodes) this.teardown(); return; }
     if (!this.nodes) { if (d > BUILD_R) return; this.build(); }
-    else if (!this.nodes.sample && this.audio.loop('shrine')) { this.teardown(); this.build(); } // the sample arrived: swap it in
+    else if (this.audio.loop('shrine')?.buffer !== this.nodes.buf) { this.teardown(); this.build(); } // a sample arrived, or the sfx set changed: swap
     // the listener: camera position, forward (−Z column) and up (Y column)
     const l = this.audio.ctx.listener;
     const fx = -m[8], fy = -m[9], fz = -m[10], ux = m[4], uy = m[5], uz = m[6];
@@ -77,7 +77,7 @@ export class ShrineHum {
       lfo.connect(lg).connect(fifth.gain); lfo.start(t); srcs.push(lfo);
     }
     out.gain.linearRampToValueAtTime(level, t + 1.5);
-    this.nodes = { panner, out, srcs, sample: sample !== undefined };
+    this.nodes = { panner, out, srcs, buf: sample?.buffer };
   }
 
   private teardown(): void {

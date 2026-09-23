@@ -1,6 +1,8 @@
 import type { Vector3 } from 'three';
 import { getActiveChunk } from '../chunks/registry';
 import { shipped } from './Stems';
+import { getSfxSet, onSfxSet, type SfxSet } from '../ui/Settings';
+import { setSfxCredit } from './credits';
 import { Voices } from './Voices';
 
 /**
@@ -27,11 +29,14 @@ import { Voices } from './Voices';
  *   audio.voices                         // the procedural one-shot bank (src/audio/Voices.ts + gen.ts): Driftwood's footsteps + combat layers (IslandSfx)
  *
  * Samples (docs/plans/MUSIC.md v3 row 7): `audio.loadSamples()` (main.ts calls it after ENTER WORLD — never at boot) reads
- * public/assets/sfx/sfx.json when the build ships one and decodes what it lists: ambient `beds` (forest / island /
+ * the selected set's public/assets/sfx/<set>/sfx.json (Settings 'sfxSet': 'sa3' Stable Audio 3 · 'tangoflux' · 'synth')
+ * when the build ships one and decodes what it lists: ambient `beds` (forest / island /
  * underwater, looped loopStart → loopEnd, replacing that synth bed), `hums` (pickup / shrine) and `oneshots` (a family →
  * variant files; each call picks one at random with ±40 cents / −1.5 dB of jitter). Every sound sfx.json does not cover
  * keeps its synth version, and the synth is the fallback for everything (no file, a failed fetch or decode, offline).
  * One-shot families are the method names, with the variant after a dash where the method takes one — see `OneShot`.
+ * Switching the set (the pause menu) releases the old set's buffers (every sound back on its synth version) and loads the
+ * new one lazily; a set's `credit` goes to src/audio/credits.ts for the menu.
  *
  * Ambient starts on resume() and runs on its own scheduler. The bed follows the chunk: `new Audio()` reads
  * `getActiveChunk().ocean` — an ocean shard gets surf swells, a warm breeze and gulls ('island'); otherwise the
@@ -50,7 +55,7 @@ export type OneShot = 'crossbowFire' | 'dryFire' | `boltImpact-${ImpactKind}` | 
 export type LoopName = AmbientBed | 'underwater' | 'pickup' | 'shrine';
 /** a decoded loop (a bed or a hum): the buffer, its loop points in the file, and a gain from sfx.json (default per kind) */
 export interface SampleLoop { buffer: AudioBuffer; loopStart: number; loopEnd: number; gain: number }
-const SFX_JSON = '/assets/sfx/sfx.json', SFX_DIR = '/assets/sfx/';
+const sfxDir = (set: SfxSet) => `/assets/sfx/${set}/`;
 /** a sample's level before sfx.json's own `gain` (beds sit under the synth bed's ~0.1 winds; hums near the synth hum's 0.11) */
 const LOOP_GAIN: Record<LoopName, number> = { forest: 0.5, island: 0.5, underwater: 0.5, pickup: 0.35, shrine: 0.6 };
 
@@ -75,11 +80,17 @@ export class Audio {
   private bed: AmbientBed;
   private bedNodes: AudioNode[] = [];
   private surfTimer = 0;
-  private hum: { out: GainNode; level: number; stop: () => void } | undefined;
+  private hum: { out: GainNode; level: number; sample: boolean; stop: () => void } | undefined;
+  private humOn = false;
   private underwater = false; private underGain?: GainNode; private bubbleTimer = 0;
   /** the synth hum's sources under water (swapped for the underwater bed when one decodes) */
   private underFeed: AudioScheduledSourceNode[] = []; private underSample = false;
   // ── samples (sfx.json) ──
+  private sfxSet: SfxSet = getSfxSet();
+  /** loadSamples() was called (the player is in): a set switch loads the new set straight away */
+  private samplesArmed = false;
+  /** bumps on every set switch — a decode of the old set that lands afterwards is dropped */
+  private setGen = 0;
   private sfxLoad: Promise<void> | undefined;
   private loops = new Map<LoopName, SampleLoop>();
   private shots = new Map<string, { bufs: AudioBuffer[]; gain: number }>();
@@ -87,6 +98,7 @@ export class Audio {
 
   constructor() {
     this.bed = getActiveChunk().ocean ? 'island' : 'forest';
+    onSfxSet((v) => { this.switchSet(v); });
   }
 
   /** the graph, built on first use: master → muffle → compressor → out, with the sfx and ambient buses and a 2 s noise buffer */
@@ -119,16 +131,36 @@ export class Audio {
   /** a decoded bed / hum from sfx.json, or undefined (the caller plays its synth version) */
   loop(name: LoopName): SampleLoop | undefined { return this.loops.get(name); }
   /** diagnostics: which sounds sfx.json replaced */
-  get samples(): { loops: LoopName[]; oneshots: string[]; sampleBed: boolean } { return { loops: [...this.loops.keys()], oneshots: [...this.shots.keys()], sampleBed: this.sampleBed }; }
+  get samples(): { set: SfxSet; loops: LoopName[]; oneshots: string[]; sampleBed: boolean; underSample: boolean } {
+    return { set: this.sfxSet, loops: [...this.loops.keys()], oneshots: [...this.shots.keys()], sampleBed: this.sampleBed, underSample: this.underSample };
+  }
 
-  /** fetch + decode sfx.json's files, once, after the player is in the world (needs the graph: call after resume()). The bed that
-   *  is playing comes first and swaps in the moment it decodes; nothing is fetched when the build ships no sfx.json. */
+  /** fetch + decode the selected set's sfx.json files, once, after the player is in the world (needs the graph: call after
+   *  resume()). The bed that is playing comes first and swaps in the moment it decodes; nothing is fetched when the build
+   *  ships no sfx.json for the set (or the set is 'synth'). */
   loadSamples(): void {
-    if (this.sfxLoad || !this.g) return;
-    if (!shipped(SFX_JSON)) { this.sfxLoad = Promise.resolve(); return; }
-    const ctx = this.g.ctx;
+    if (!this.g) return;
+    this.samplesArmed = true;
+    this.sfxLoad ??= this.loadSet(this.sfxSet, this.setGen);
+  }
+  /** the pause menu picked another set: every sampled sound back on its synth version, the old buffers dropped, the new set loaded */
+  private switchSet(v: SfxSet): void {
+    if (v === this.sfxSet) return;
+    this.sfxSet = v; this.setGen++;
+    this.loops.clear(); this.shots.clear();
+    if (this.g) {
+      if (this.sampleBed && this.started) { this.stopBed(); this.startBed(); }
+      if (this.underSample) this.feedUnder();
+      if (this.hum?.sample === true) { const h = this.hum; this.hum = undefined; h.stop(); if (this.humOn) this.pickupHum(true); }
+    }
+    this.sfxLoad = this.samplesArmed ? this.loadSet(v, this.setGen) : undefined;
+  }
+  private async loadSet(set: SfxSet, gen: number): Promise<void> {
+    const g = this.g, dir = sfxDir(set), json = `${dir}sfx.json`;
+    if (!g || set === 'synth' || !shipped(json)) return;
+    const ctx = g.ctx, live = () => gen === this.setGen;
     const decode = async (file: string): Promise<AudioBuffer> => {
-      const url = `${SFX_DIR}${file}`;
+      const url = `${dir}${file}`;
       if (file.includes('..') || !shipped(url)) throw new Error(`${url} is not in this build`);
       const r = await fetch(url); if (!r.ok) throw new Error(`${url} ${r.status}`);
       return ctx.decodeAudioData(await r.arrayBuffer());
@@ -139,14 +171,17 @@ export class Audio {
       if (!isObj(v) || typeof v['file'] !== 'string') return;
       try {
         const buffer = await decode(v['file']), loopEnd = Math.min(buffer.duration, num(v['loopEnd'], buffer.duration)), loopStart = Math.max(0, Math.min(loopEnd - 0.05, num(v['loopStart'], 0)));
+        if (!live()) return;
         this.loops.set(name, { buffer, loopStart, loopEnd, gain: LOOP_GAIN[name] * num(v['gain'], 1) });
         this.onLoop(name);
-      } catch (e) { console.info(`[sfx] ${name}: ${e instanceof Error ? e.message : String(e)} — synth kept`); }
+      } catch (e) { console.info(`[sfx] ${set}/${name}: ${e instanceof Error ? e.message : String(e)} — synth kept`); }
     };
-    this.sfxLoad = (async () => {
-      const r = await fetch(SFX_JSON); if (!r.ok) throw new Error(`sfx.json ${r.status}`);
+    try {
+      const r = await fetch(json); if (!r.ok) throw new Error(`${json} ${r.status}`);
       const j: unknown = await r.json();
-      if (!isObj(j)) throw new Error('sfx.json malformed');
+      if (!isObj(j)) throw new Error(`${json} malformed`);
+      if (!live()) return;
+      if (typeof j['credit'] === 'string') setSfxCredit(set, j['credit']);
       const beds = isObj(j['beds']) ? j['beds'] : {}, hums = isObj(j['hums']) ? j['hums'] : {}, shots = isObj(j['oneshots']) ? j['oneshots'] : {};
       // the bed that is playing first, then the rest in parallel (never the other shard's bed: a shard change reloads the page)
       await loopOf(this.bed, beds[this.bed]);
@@ -156,10 +191,10 @@ export class Audio {
           const files = Array.isArray(v) ? v : isObj(v) && Array.isArray(v['files']) ? v['files'] : [];
           const gain = isObj(v) ? num(v['gain'], 1) : 1;
           const bufs = (await Promise.all(files.filter((f): f is string => typeof f === 'string').map((f) => decode(f).catch(() => undefined)))).filter((b): b is AudioBuffer => b !== undefined);
-          if (bufs.length > 0) this.shots.set(family, { bufs, gain });
+          if (bufs.length > 0 && live()) this.shots.set(family, { bufs, gain });
         }),
       ]);
-    })().catch((e: unknown) => { console.info(`[sfx] ${e instanceof Error ? e.message : String(e)} — synth sounds kept`); });
+    } catch (e: unknown) { console.info(`[sfx] ${set}: ${e instanceof Error ? e.message : String(e)} — synth sounds kept`); }
   }
   /** a loop just decoded: swap it in where its synth version is sounding */
   private onLoop(name: LoopName): void {
@@ -430,6 +465,7 @@ export class Audio {
   /** the item-pickup orb's hum while the player stands inside its prompt radius (WeaponPickup.onNear): a low-passed
    *  220 Hz sine with a 5.5 Hz tremolo and a faint fifth, looped, faded in over 0.35 s and out over 0.5 s */
   pickupHum(on: boolean): void {
+    this.humOn = on;
     if (!this.g) return;
     const c = this.ctx, t = c.currentTime;
     if (on) {
@@ -437,7 +473,7 @@ export class Audio {
       if (!this.hum && sample) {
         const out = c.createGain(); out.gain.value = 0;
         const s = this.loopSource(sample); s.connect(out).connect(this.sfx);
-        this.hum = { out, level: sample.gain, stop: () => { s.stop(); out.disconnect(); } };
+        this.hum = { out, level: sample.gain, sample: true, stop: () => { s.stop(); out.disconnect(); } };
       }
       if (!this.hum) {
         const out = c.createGain(); out.gain.value = 0;
@@ -450,7 +486,7 @@ export class Audio {
         const g2 = c.createGain(); g2.gain.value = 0.18;
         o1.connect(lp); o2.connect(g2).connect(lp); lp.connect(trem).connect(out).connect(this.sfx);
         o1.start(t); o2.start(t);
-        this.hum = { out, level: 0.11, stop: () => { o1.stop(); o2.stop(); lfo.stop(); out.disconnect(); } };
+        this.hum = { out, level: 0.11, sample: false, stop: () => { o1.stop(); o2.stop(); lfo.stop(); out.disconnect(); } };
       }
       this.hum.out.gain.cancelScheduledValues(t); this.hum.out.gain.setTargetAtTime(this.hum.level, t, 0.12);
     } else if (this.hum) {
@@ -594,17 +630,8 @@ export class Audio {
     this.muffle.frequency.exponentialRampToValueAtTime(on ? 520 : 20000, t + 0.3);
     if (!this.underGain) {
       // the hum: brown-ish noise through a 90 Hz lowpass, swelling on a slow LFO; lives on the ambient bus (mutes with it)
-      const g = this.underGain = c.createGain(); g.gain.value = 0; g.connect(this.ambient);
-      if (this.loops.has('underwater')) this.feedUnder();
-      else {
-        const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; src.start(0, Math.random());
-        const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 90; lp.Q.value = 0.9;
-        const lp2 = c.createBiquadFilter(); lp2.type = 'lowpass'; lp2.frequency.value = 220;
-        const lfo = c.createOscillator(); lfo.frequency.value = 0.13; const lg = c.createGain(); lg.gain.value = 0.35;
-        const sw = c.createGain(); sw.gain.value = 1; lfo.connect(lg).connect(sw.gain); lfo.start();
-        src.connect(lp).connect(lp2).connect(sw).connect(g);
-        this.underFeed = [src, lfo];
-      }
+      this.underGain = c.createGain(); this.underGain.gain.value = 0; this.underGain.connect(this.ambient);
+      this.feedUnder();
     }
     this.underGain.gain.cancelScheduledValues(t);
     this.underGain.gain.setValueAtTime(this.underGain.gain.value, t);
@@ -613,15 +640,26 @@ export class Audio {
     if (on) this.scheduleBubble();
   }
 
-  /** the underwater bed (sfx.json) into the underwater gain in place of the synth hum; the envelope (setUnderwater) is unchanged */
+  /** what feeds the underwater gain: the set's underwater bed when one decoded, else the synth hum (re-run when either changes;
+   *  the envelope in setUnderwater is untouched) */
   private feedUnder(): void {
-    const l = this.loops.get('underwater'), g = this.underGain;
-    if (!l || !g || this.underSample) return;
+    const g = this.underGain;
+    if (!g) return;
+    const c = this.ctx, l = this.loops.get('underwater');
     for (const n of this.underFeed) { try { n.stop(); } catch { /* not started */ } }
-    this.underFeed = [];
-    const lvl = this.ctx.createGain(); lvl.gain.value = l.gain / 1.4; // the synth hum's envelope peaks at 1.4
-    this.loopSource(l).connect(lvl).connect(g);
-    this.underSample = true;
+    if (l) {
+      const lvl = c.createGain(); lvl.gain.value = l.gain / 1.4; // the synth hum's envelope peaks at 1.4
+      const s = this.loopSource(l); s.connect(lvl).connect(g);
+      this.underFeed = [s]; this.underSample = true;
+      return;
+    }
+    const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; src.start(0, Math.random());
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 90; lp.Q.value = 0.9;
+    const lp2 = c.createBiquadFilter(); lp2.type = 'lowpass'; lp2.frequency.value = 220;
+    const lfo = c.createOscillator(); lfo.frequency.value = 0.13; const lg = c.createGain(); lg.gain.value = 0.35;
+    const sw = c.createGain(); sw.gain.value = 1; lfo.connect(lg).connect(sw.gain); lfo.start();
+    src.connect(lp).connect(lp2).connect(sw).connect(g);
+    this.underFeed = [src, lfo]; this.underSample = false;
   }
 
   private scheduleBubble() {

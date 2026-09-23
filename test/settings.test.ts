@@ -94,6 +94,20 @@ describe('Settings', () => {
     expect((await fresh()).getMusicStyle()).toBe('piano');
   });
 
+  it('sfxSet: sa3 by default, persisted beside musicStyle, ?sfx= overrides without persisting', async () => {
+    const s = await fresh();
+    expect(s.getSfxSet()).toBe('sa3');
+    s.setSfxSet('tangoflux');
+    expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'tangoflux', musicStyle: 'piano' });
+    vi.stubGlobal('location', new URL('http://localhost:5173/?sfx=synth'));
+    try {
+      const t = await fresh();
+      expect(t.getSfxSet()).toBe('synth');
+      t.setNumber('volume', 0.5);
+      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'tangoflux' });
+    } finally { vi.stubGlobal('location', new URL('http://localhost:5173/')); }
+  });
+
   it('?music=<style> overrides the saved style without persisting it', async () => {
     localStorage.setItem(STORE, JSON.stringify({ musicStyle: 'orchestral' }));
     vi.stubGlobal('location', new URL('http://localhost:5173/?music=synth'));

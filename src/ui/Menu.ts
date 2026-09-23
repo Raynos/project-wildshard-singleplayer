@@ -19,7 +19,8 @@ import type { FullMap } from './Map';
 import type { Progress } from '../game/Progress';
 import { PACK_SLOTS, type Inventory } from '../game/Inventory';
 import { icon, type IconId } from './icons';
-import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, type SettingKey, type NumberKey, type MusicStyle } from './Settings';
+import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, type SettingKey, type NumberKey, type MusicStyle, type SfxSet } from './Settings';
+import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
 import { gfxPrefs, saveGfxPrefs } from '../core/tier';
 import { CAN_VIBRATE } from './haptics';
 import { lockReview, onReview, quickNote, reviewUnlocked, setQuickNote, unlockReview } from './review';
@@ -306,19 +307,28 @@ export class GameMenu {
     mslider.addEventListener('input', () => setNumber('music', Number(mslider.value) / 100));
     mslider.addEventListener('pointerdown', (e) => e.stopPropagation());
     mus.append(mslider);
-    // music style (Settings 'musicStyle', docs/plans/MUSIC.md v3): the MiniMax-Music3 scores or the v1 synth — Music.ts crossfades on a bar
+    // music style (Settings 'musicStyle', docs/plans/MUSIC.md v3): the MiniMax-Music3 scores or the v1 synth — Music.ts crossfades on a bar;
+    // sound effects (Settings 'sfxSet'): the Stable Audio 3 / TangoFlux sample sets or all-synth — Audio.ts swaps them lazily
+    const picker = <T extends string>(label: string, options: { v: T; text: string }[], get: () => T, set: (v: T) => void, on: (fn: () => void) => void) => {
+      const row = el('ws-gmenu-row', `<span class="ws-gmenu-swlabel">${label}</span>`);
+      const box = el('ws-gmenu-seg');
+      const paint = () => { for (const c of box.children) (c as HTMLElement).classList.toggle('active', (c as HTMLElement).dataset['v'] === get()); };
+      for (const o of options) {
+        const b = el('ws-gmenu-segbtn', o.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = o.v;
+        b.addEventListener('click', () => { set(o.v); paint(); });
+        box.append(b);
+      }
+      paint(); on(paint); row.append(box); return row;
+    };
     const styles: { v: MusicStyle; text: string }[] = [{ v: 'piano', text: 'Piano' }, { v: 'orchestral', text: 'Orchestral' }, { v: 'folk', text: 'Folk' }, { v: 'synth', text: 'Synth' }];
-    const style = el('ws-gmenu-row', '<span class="ws-gmenu-swlabel">Music style</span>');
-    const sbox = el('ws-gmenu-seg');
-    const paintStyle = () => { for (const c of sbox.children) (c as HTMLElement).classList.toggle('active', (c as HTMLElement).dataset['v'] === getMusicStyle()); };
-    for (const o of styles) {
-      const b = el('ws-gmenu-segbtn', o.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = o.v;
-      b.addEventListener('click', () => { setMusicStyle(o.v); paintStyle(); });
-      sbox.append(b);
-    }
-    paintStyle(); onMusicStyle(paintStyle); style.append(sbox);
-    // the MiniMax Music 3 licence asks for the model's name in the UI
-    p.append(el('ws-gmenu-label', 'Audio'), vol, mus, style, el('ws-gmenu-note', 'Music: MiniMax-Music3'));
+    const sets: { v: SfxSet; text: string }[] = [{ v: 'sa3', text: 'Stable Audio 3' }, { v: 'tangoflux', text: 'TangoFlux' }, { v: 'synth', text: 'Synth' }];
+    const style = picker('Music style', styles, getMusicStyle, setMusicStyle, (fn) => { onMusicStyle(fn); });
+    const sfx = picker('Sound effects', sets, getSfxSet, setSfxSet, (fn) => { onSfxSet(fn); });
+    // the licences ask for the models' names in the UI: MiniMax-Music3, and the sfx set's credit ("Powered by Stability AI")
+    const sfxNote = el('ws-gmenu-note');
+    const paintCredit = () => { const c = sfxCredit(getSfxSet()); sfxNote.textContent = c; sfxNote.hidden = c === ''; };
+    paintCredit(); onSfxSet(paintCredit); onSfxCredit(paintCredit);
+    p.append(el('ws-gmenu-label', 'Audio'), vol, mus, style, sfx, el('ws-gmenu-note', MUSIC_CREDIT), sfxNote);
     p.append(this.buildReview());
     return apply;
   }
