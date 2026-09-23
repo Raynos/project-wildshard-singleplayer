@@ -85,7 +85,7 @@
 .ws-gmenu .ws-gmenu-ach:not(.earned) .ws-gmenu-aicon { color: rgba(230, 242, 248, 0.75); }
 .ws-gmenu .ws-gmenu-abody { flex: 1; min-width: 0; }
 .ws-gmenu .ws-gmenu-aname { font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
-.ws-gmenu .ws-gmenu-agoal { margin-top: 2px; font-size: 8.5px; letter-spacing: 0.12em; white-space: nowrap; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-gmenu .ws-gmenu-agoal { margin-top: 2px; font-size: 8.5px; line-height: 1.45; letter-spacing: 0.12em; white-space: normal; overflow-wrap: anywhere; text-transform: uppercase; color: var(--ws-text-dim); } /* wraps inside its column: a long goal + counter never runs under the title (Driftwood, 390 px) */
 .ws-gmenu .ws-gmenu-abody .ws-bar { margin-top: 6px; height: 4px; }
 .ws-gmenu .ws-gmenu-areward { flex: none; display: flex; align-items: center; gap: 8px; width: 34%; max-width: 170px; }
 .ws-gmenu .ws-gmenu-amark { flex: none; width: 22px; height: 22px; color: var(--ws-text-dim); }

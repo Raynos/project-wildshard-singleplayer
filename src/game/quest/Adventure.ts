@@ -25,6 +25,8 @@ import type { Audio } from '../../audio/Audio';
 import { IslandSfx } from '../../audio/IslandSfx';
 import { installSpine, type Spine } from './Spine';
 import { installFeats, type ProgressSink } from './Feats';
+import { installPlaces, type Places } from './Places';
+import type { MapPoi } from '../../ui/Map';
 
 /** a named point a model module exports (`anchors`, world coords) for the adventure to place things at */
 export interface Anchor { x: number; y?: number; z: number; yaw?: number }
@@ -53,6 +55,8 @@ export interface AdventureWorld<A extends { kind: string; position: THREE.Vector
   params?: URLSearchParams;
   /** shard achievements (Progress.recordEvent) — the adventure's event achievements (A4) */
   progress?: ProgressSink;
+  /** the full map (the menu's MAP tab): shows the island's places with discovery + the quest markers (A5) */
+  fullMap?: { setPois: (source: () => MapPoi[]) => void };
 }
 
 export interface Adventure {
@@ -60,6 +64,8 @@ export interface Adventure {
   kit: Interactables;
   /** the quest spine (A1): quest state, objective line, the castaway — set once installed */
   spine: Spine | null;
+  /** the island's named places + discovery (A5) */
+  places: Places | null;
   place: (p: Place) => { x: number; y: number; z: number; yaw: number };
   floorAt: (x: number, z: number) => number;
 }
@@ -138,9 +144,14 @@ export function installAdventure<A extends { kind: string; position: THREE.Vecto
     }
   }
 
-  const adventure: Adventure = { flags, kit, place, floorAt, spine: null };
+  const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null };
   adventure.spine = installSpine(adventure, w);
   if (w.progress) installFeats(adventure, w, w.progress);
+  const places = installPlaces(adventure, (t) => { w.hud.toast(t); });
+  adventure.places = places;
+  w.fullMap?.setPois(places.mapPois);
+  let placeT = 0;
+  w.game.onUpdate((_dt, t) => { if (t - placeT > 0.25) { placeT = t; places.update(w.player.position.x, w.player.position.z); } });
   Object.assign(window, { __adventure: adventure });
   return adventure;
 }
