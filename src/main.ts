@@ -426,11 +426,14 @@ async function main() {
   // loading screen. `?skipintro=1` (bench / screenshots) and `?tour=1` go straight to the world.
   const tour = world.tour;
   const menuFirst = !params.has('skipintro') && !params.has('tour');
+  let firstIn = true;
   const enter = () => {
     audio.resume();
+    audio.worldMuted = false;
     audio.loadSamples(); // sfx.json's beds / hums / one-shots, now that the player is in (a no-op after the first time)
-    if (!music.isPlaying) { music.play('theme'); music.sting('chunk'); } // the resolve chord on the first frame in; the stems follow
-    music.setState({ mode: 'calm', intensity: 0 });
+    if (!music.isPlaying) music.play('theme'); // normally already playing: the title screen's first gesture started it
+    if (firstIn) { firstIn = false; music.sting('chunk'); } // the resolve chord on the first frame in
+    music.setState({ mode: 'calm', intensity: 0 }); // title → the shard's theme, crossfaded on a bar
     void keepAlive.start(); // screen wake lock — needs this user gesture
     weapons.setEnabled(true);
     weapons.visible = true;
@@ -439,13 +442,15 @@ async function main() {
     if (!nolock) player.lock();
   };
   hud.onResume = enter;
-  hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); music.setState({ mode: 'menu' }); noteDisc.classList.remove('show'); }; // the HUD mutes audio and clears `entered`; the gate does the rest
+  hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show'); }; // the world hushes, the title theme comes back; the HUD clears `entered`, the gate does the rest
   // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
   game.frameGate = () => hud.entered && !feedbackHeld; // … and the review composer freezes it on the captured frame
-  if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.muted = true; hud.showIntro(enter); }
+  if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.worldMuted = true; hud.showIntro(enter); }
   else { hud.markEntered(); weapons.setEnabled(!nolock || params.has('skipintro')); }
-  document.addEventListener('keydown', () => audio.resume(), { once: true });
-  document.addEventListener('mousedown', () => audio.resume(), { once: true });
+  // the first gesture builds the AudioContext; on the title screen it also starts the title theme (synth, then the title stems)
+  const firstGesture = () => { audio.resume(); if (!hud.entered && !music.isPlaying) music.play('theme'); };
+  document.addEventListener('keydown', firstGesture, { once: true });
+  document.addEventListener('mousedown', firstGesture, { once: true });
 
   // ── interaction (doors) ──
   let prompt: string | undefined;

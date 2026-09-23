@@ -24,7 +24,8 @@
 // piano / orchestral / folk (MiniMax-Music3 stems in public/assets/music/<style>/) or synth. The stems load only after
 // play() (the player is in the world) — never at boot; the synth plays until they decode, stays on a fetch / decode
 // failure, and hands over on a bar (synth fades out over the stem deck's first bar, then stops scheduling). Slots: menu →
-// 'title', Pine Hollow → 'pine', Driftwood → 'island'. calm / alert / combat drive the tension stem's gain (0 / 0.5 / 1)
+// 'title' (main.ts starts the music on the title screen's first gesture), Pine Hollow → 'pine', Driftwood → 'island';
+// ENTER WORLD / exit-to-menu crossfade between them over a bar. calm / alert / combat drive the tension stem's gain (0 / 0.5 / 1)
 // on the deck's bar grid. Underwater is the same low-pass (the stems run through the engine's bus). A slot or style change
 // crossfades over at least a bar; one style is resident at a time (a style switch hands the old one over to the synth,
 // releases its buffers, then loads the new one — so the synth bridges the gap). `music.duck(k)` scales the whole bus
@@ -571,11 +572,10 @@ export class Music {
   }
 
   // ─────────────── the stems (docs/plans/MUSIC.md v3 row 7) ───────────────
-  /** the slot the state asks for: the title cut on the menu (only while it can be heard — the title screen is muted), else the shard's theme */
+  /** the slot the state asks for: the title cut on the menu, else the shard's theme */
   private wantSlot(): SlotName {
-    const s = this.state, shard: SlotName = s.shard === 'island' ? 'island' : 'pine';
-    if (s.mode !== 'menu') return shard;
-    return this.audio.muted ? (this.deck?.slot ?? shard) : 'title';
+    const s = this.state;
+    return s.mode === 'menu' ? 'title' : s.shard === 'island' ? 'island' : 'pine';
   }
   private tension(): number { return TENSION[this.state.mode]; }
 

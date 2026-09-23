@@ -21,6 +21,7 @@ import { shipped } from './Stems';
  *   audio.gullCall(pan?, gain?)  audio.gullCallAt(position, listenerPos, yaw?)   // gulls (src/world/Gulls.ts onCall)
  *   audio.footstep(sprinting, 'litter'|'planks'|'sand')                          // surface: pine litter (default), the pier deck, the beach
  *   audio.setAmbient(true|false)  audio.setAmbient('forest'|'island')   audio.muted = true|false   audio.master.gain (0.6)
+ *   audio.worldMuted = true|false        // sfx + ambient only (the title screen: the music plays, the frozen world is quiet)
  *
  * Samples (docs/plans/MUSIC.md v3 row 7): `audio.loadSamples()` (main.ts calls it after ENTER WORLD — never at boot) reads
  * public/assets/sfx/sfx.json when the build ships one and decodes what it lists: ambient `beds` (forest / island /
@@ -52,7 +53,7 @@ const LOOP_GAIN: Record<LoopName, number> = { forest: 0.5, island: 0.5, underwat
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 
-interface Graph { ctx: AudioContext; master: GainNode; sfx: GainNode; ambient: GainNode; muffle: BiquadFilterNode; noise: AudioBuffer }
+interface Graph { ctx: AudioContext; master: GainNode; world: GainNode; sfx: GainNode; ambient: GainNode; muffle: BiquadFilterNode; noise: AudioBuffer }
 
 export class Audio {
   listenerYaw = 0;
@@ -65,6 +66,7 @@ export class Audio {
   private birdTimer = 0; private gustTimer = 0;
   private windGain: GainNode | undefined; private windGain2: GainNode | undefined;
   private _muted = false;
+  private _worldMuted = false;
   private bed: AmbientBed;
   private bedNodes: AudioNode[] = [];
   private surfTimer = 0;
@@ -94,11 +96,13 @@ export class Audio {
     comp.threshold.value = -12; comp.knee.value = 18; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.16;
     const muffle = ctx.createBiquadFilter(); muffle.type = 'lowpass'; muffle.frequency.value = 20000; muffle.Q.value = 0.5;
     master.connect(muffle).connect(comp).connect(ctx.destination);
-    const sfx = ctx.createGain(); sfx.gain.value = 1; sfx.connect(master);
-    const ambient = ctx.createGain(); ambient.gain.value = this.ambientOn ? 0.55 : 0; ambient.connect(master);
+    // sfx + ambient share a `world` gain, so the title screen can hush the (frozen) world while the music plays on the master
+    const world = ctx.createGain(); world.gain.value = this._worldMuted ? 0 : 1; world.connect(master);
+    const sfx = ctx.createGain(); sfx.gain.value = 1; sfx.connect(world);
+    const ambient = ctx.createGain(); ambient.gain.value = this.ambientOn ? 0.55 : 0; ambient.connect(world);
     const len = ctx.sampleRate * 2, noise = ctx.createBuffer(1, len, ctx.sampleRate), d = noise.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-    this.g = { ctx, master, sfx, ambient, muffle, noise };
+    this.g = { ctx, master, world, sfx, ambient, muffle, noise };
     return this.g;
   }
   get ctx(): AudioContext { return this.graph().ctx; }
@@ -179,6 +183,9 @@ export class Audio {
   private get muffle(): BiquadFilterNode { return this.graph().muffle; }
   private get noise(): AudioBuffer { return this.graph().noise; }
 
+  /** the world's sounds (sfx + ambient) silenced while the music (on the master) plays — the title / main menu (main.ts) */
+  get worldMuted(): boolean { return this._worldMuted; }
+  set worldMuted(v: boolean) { this._worldMuted = v; if (this.g) this.g.world.gain.setTargetAtTime(v ? 0 : 1, this.g.ctx.currentTime, 0.08); }
   get muted(): boolean { return this._muted; }
   set muted(v: boolean) { this._muted = v; if (this.g) this.g.master.gain.setTargetAtTime(v ? 0 : 0.6, this.g.ctx.currentTime, 0.05); }
 

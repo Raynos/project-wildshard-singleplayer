@@ -83,7 +83,7 @@ export class HUD {
   root: HTMLElement;
   onResume?: () => void;
   onExitToMenu?: () => void;
-  private soundOff = false; // the menu's sound toggle; applied via onSoundToggle on enter, muted on exit-to-menu
+  private soundOff = false; // the menu's sound toggle; applied via onSoundToggle when toggled (the title music) and on enter
   onSoundToggle?: (on: boolean) => void;
   private opts: HUDOptions;
   entered = false;
@@ -513,7 +513,7 @@ export class HUD {
     enterBtn.addEventListener('click', (ev) => { ev.stopPropagation(); activate(); });
     const soundBtn = q(intro, '.ws-menu-sound');
     if (this.soundOff) { soundBtn.classList.add('off'); soundBtn.textContent = 'Sound off'; }
-    soundBtn.addEventListener('click', (e) => { e.stopPropagation(); this.soundOff = soundBtn.classList.toggle('off'); soundBtn.textContent = this.soundOff ? 'Sound off' : 'Sound on'; });
+    soundBtn.addEventListener('click', (e) => { e.stopPropagation(); this.soundOff = soundBtn.classList.toggle('off'); soundBtn.textContent = this.soundOff ? 'Sound off' : 'Sound on'; this.onSoundToggle?.(!this.soundOff); });
     // orientation flips swap the hero file and re-centre the selected card (card width is viewport-relative)
     let wasPortrait = portrait();
     const onResize = (): void => {
@@ -546,7 +546,7 @@ export class HUD {
     setTimeout(() => { intro.remove(); }, Math.max(700, HERO_FADE_MS * 2));
     this.root.classList.remove('intro');
     this.entered = true;
-    this.onSoundToggle?.(!this.soundOff); // the world is silent under the menu; the player's choice applies on entry
+    this.onSoundToggle?.(!this.soundOff); // the player's choice (main.ts hushes the world under the menu; the title music plays)
     this.onEnter?.();
   }
 
@@ -560,8 +560,7 @@ export class HUD {
     this._menu?.close(true);
     this.entered = false;
     if (document.pointerLockElement) document.exitPointerLock();
-    this.onSoundToggle?.(false);
-    this.onExitToMenu?.();
+    this.onExitToMenu?.(); // main.ts hushes the world's sounds; the title theme plays
     if (this.onEnter) this.showIntro(this.onEnter);
   }
 }
