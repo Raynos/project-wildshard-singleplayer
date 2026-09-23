@@ -8,6 +8,7 @@
  * The Blender grid is twice as fine (STEP = half a procedural cell).
  */
 import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '../core/config';
+import { saveSetting, setting, type OptionValue } from '../ui/Settings';
 
 /** one procedural terrain cell, metres */
 export const CELL = CHUNK_SIZE / (TERRAIN_RES - 1);
@@ -25,23 +26,11 @@ export function inArea(x: number, z: number, margin = 0): boolean {
   return x > area.x0 + margin && x < area.x1 - margin && z > area.z0 + margin && z < area.z1 - margin;
 }
 
-// ── which island: `?island=blender|procedural` for the page's life, else the menu's pick (Settings ▸ Graphics ▸ Island) ──
-export type IslandMode = 'procedural' | 'blender';
-const ISLAND_KEY = 'ws.island.v1';
-const asMode = (v: unknown): IslandMode | null => (v === 'blender' || v === 'procedural' ? v : null);
+// ── which island: `?island=blender|procedural` for the page's life, else main menu ▸ Settings ▸ Island (E55, `setting('island')`) ──
+export type IslandMode = OptionValue<'island'>;
 
 /** the island the page builds (read once at boot; a change needs a reload) */
-export function islandMode(): IslandMode {
-  const read = (f: () => unknown): IslandMode | null => { try { return asMode(f()); } catch { return null; } };
-  return read(() => new URLSearchParams(location.search).get('island')) ?? read(() => localStorage.getItem(ISLAND_KEY)) ?? 'procedural';
-}
+export function islandMode(): IslandMode { return setting('island'); }
 
-/** the menu's pick: persisted, and the page's `?island=` is rewritten so the reload builds it */
-export function setIslandMode(m: IslandMode): void {
-  try { localStorage.setItem(ISLAND_KEY, m); } catch { /* private mode: the URL still carries it */ }
-  try {
-    const u = new URL(location.href);
-    u.searchParams.set('island', m);
-    history.replaceState(history.state, '', u);
-  } catch { /* no history API: the saved pick applies */ }
-}
+/** the menu's pick: saved; main menu ▸ Settings' APPLY & RELOAD builds it */
+export function setIslandMode(m: IslandMode): void { saveSetting('island', m); }

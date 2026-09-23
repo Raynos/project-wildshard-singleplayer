@@ -1,17 +1,21 @@
 /**
  * Quality tier, picked once at boot. Phones get smaller textures, fewer shadow cascades, no AO and a
  * DPR cap — the difference between "loads in minutes then dies" and playable. `?tier=phone|desktop`
- * overrides for testing. Every knob below is measured in project/archive/2026-09-22-play-perf.md.
+ * overrides for testing, else main menu ▸ Settings ▸ Quality (E55, `setting('tier')`). Every knob below is measured in
+ * project/archive/2026-09-22-play-perf.md.
  */
+import { setting } from '../ui/Settings';
+
 export type Tier = 'phone' | 'desktop';
 
-const params = new URLSearchParams(location.search);
 const ua = navigator.userAgent;
 const isIPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
 const mobileUA = /iPhone|iPad|iPod|Android/i.test(ua) || isIPadOS;
-const forced = params.get('tier');
+const forced = setting('tier');
 
-export const TIER: Tier = forced === 'phone' || forced === 'desktop' ? forced : mobileUA ? 'phone' : 'desktop';
+/** the tier 'auto' picks on this device (Settings shows it) */
+export const AUTO_TIER: Tier = mobileUA ? 'phone' : 'desktop';
+export const TIER: Tier = forced === 'auto' ? AUTO_TIER : forced;
 
 /** both tiers' tables — Explore's DETAIL TIERS view builds a model at the other tier with `withTier` (src/explore/tiers.ts) */
 export const TIER_TABLE = {

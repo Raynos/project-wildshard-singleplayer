@@ -4,6 +4,7 @@ import { PLACEHOLDERS } from '../chunks/placeholders';
 import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
 import { getSfxSet } from './Settings';
+import { openBootSettings } from './BootSettings';
 import { MUSIC_CREDIT, sfxCredit } from '../audio/credits';
 
 /**
@@ -453,7 +454,7 @@ export class HUD {
           <button class="ws-menu-mode ws-menu-play" type="button"><span class="ws-menu-mode-glyph">${GLYPH_SWORD}</span><b>Enter world</b><small></small></button>
           <button class="ws-menu-mode ws-menu-explore" type="button"><span class="ws-menu-mode-glyph">${GLYPH_EYE}</span><b>Explore world</b><small>Fly · inspect</small></button>
         </div>
-        <div class="ws-menu-row"><div class="ws-menu-sound">Sound on</div><div class="ws-menu-credit">${[MUSIC_CREDIT, sfxCredit(getSfxSet())].filter((t) => t !== '').join(' · ')}</div></div>
+        <div class="ws-menu-row"><button class="ws-menu-settings" type="button">Settings</button><div class="ws-menu-sound">Sound on</div><div class="ws-menu-credit">${[MUSIC_CREDIT, sfxCredit(getSfxSet())].filter((t) => t !== '').join(' · ')}</div></div>
       </div>`;
     const hero = q(intro, '.ws-menu-hero');
     const list = q(intro, '.ws-menu-cards');
@@ -532,6 +533,7 @@ export class HUD {
       if (!c.active) { const u = new URL(chunkUrl(c.slug)); u.searchParams.set('explore', 'hub'); location.href = u.toString(); return; }
       this.leaveForExplore();
     });
+    q(intro, '.ws-menu-settings').addEventListener('click', (e) => { e.stopPropagation(); openBootSettings(); }); // E55: the reload-to-apply picks
     const soundBtn = q(intro, '.ws-menu-sound');
     if (this.soundOff) { soundBtn.classList.add('off'); soundBtn.textContent = 'Sound off'; }
     soundBtn.addEventListener('click', (e) => { e.stopPropagation(); this.soundOff = soundBtn.classList.toggle('off'); soundBtn.textContent = this.soundOff ? 'Sound off' : 'Sound on'; this.onSoundToggle?.(!this.soundOff); });

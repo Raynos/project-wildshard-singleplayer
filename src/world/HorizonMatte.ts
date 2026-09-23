@@ -19,10 +19,12 @@
  *   the night texture by the clock's `night`, then hazed toward the dome's live horizon colour near the sea and lit by
  *   the sun glow — so it rides every DayNight preset without a third texture. The alpha fades into the sky at the top.
  * - **textures**: two 4096 × 512 WebPs with alpha (`public/assets/horizon/`), fetched after boot; the band fades in over
- *   ~1.5 s once both are decoded. `?matte=0` leaves it out (before / after captures).
+ *   ~1.5 s once both are decoded. Pause menu ▸ Settings ▸ Painted horizon hides / shows it live (`setShown`, E55);
+ *   `?matte=0` starts it hidden (before / after captures).
  */
 import * as THREE from 'three';
 import type { Sky } from './Sky';
+import { setting } from '../ui/Settings';
 import { MIDDAY_SKY } from './StylizedSky';
 
 /** the band's radius (m): inside the camera's far plane (2600) even at the top edge (R / cos 24° ≈ 2520) */
@@ -38,6 +40,8 @@ export class HorizonMatte {
   private fade = 0;
   private loaded = false;
   private ready = false;
+  private shown = setting('matte') === 'on';
+  private replaces: THREE.Object3D | undefined;
   private readonly u = {
     tDay: { value: placeholder() },
     tNight: { value: placeholder() },
@@ -57,7 +61,7 @@ export class HorizonMatte {
 
   build(): this {
     const st = this.sky.stylized;
-    if (!st || new URLSearchParams(location.search).get('matte') === '0') return this;
+    if (!st) return this;
     // share the dome's live palette uniforms (DayNight writes them): read-only here
     this.u.uHorizon = st.u.uHorizon; this.u.uCloudLit = st.u.uCloudLit; this.u.uSunGlow = st.u.uSunGlow; this.u.uSunDir = st.u.uSunDir;
     const mat = new THREE.ShaderMaterial({
@@ -95,8 +99,16 @@ export class HorizonMatte {
     mesh.frustumCulled = false;
     mesh.renderOrder = -16; // visible from the start at alpha 0: its program compiles with the rest at boot, never mid-play
     mesh.name = 'horizon-matte';
+    mesh.visible = this.shown;
     this.mesh = mesh;
     return this;
+  }
+
+  /** Settings ▸ Painted horizon (E55, live): hide / show the band; the geometry it stands in for comes back while hidden */
+  setShown(on: boolean): void {
+    this.shown = on;
+    if (this.mesh) this.mesh.visible = on;
+    if (this.ready && this.replaces) this.replaces.visible = !on;
   }
 
   /**
@@ -111,7 +123,8 @@ export class HorizonMatte {
       const [day, night] = await Promise.all([loadTexture(URL_DAY), loadTexture(URL_NIGHT)]);
       this.u.tDay.value = day; this.u.tNight.value = night;
       this.ready = true;
-      if (replaces) replaces.visible = false;
+      this.replaces = replaces;
+      if (replaces) replaces.visible = !this.shown;
     } catch (e) {
       console.warn('[horizon-matte] paintings not loaded; the band stays off', e);
     }

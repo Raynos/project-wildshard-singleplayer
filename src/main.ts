@@ -54,7 +54,7 @@ import { FullMap } from './ui/Map';
 import { GameMenu } from './ui/Menu';
 import { Progress } from './game/Progress';
 import { Inventory, harvestOf, ITEMS } from './game/Inventory';
-import { getNumber, onNumber } from './ui/Settings';
+import { getNumber, onNumber, onSettingChange, setting } from './ui/Settings';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
 import { HurtArc, deathLine } from './ui/HurtArc';
@@ -218,6 +218,7 @@ async function main() {
     if (matte?.mesh) {
       game.scene.add(matte.mesh);
       game.onUpdate((dt) => { matte.update(dt, game.camera, sky.dayNight?.night ?? 0); });
+      onSettingChange('matte', (v) => { matte.setShown(v === 'on'); }); // pause menu ▸ Settings ▸ Painted horizon (E55)
       document.addEventListener('ws:ready', () => { setTimeout(() => { void matte.load(horizon.group); }, 250); }, { once: true });
     }
     return { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon, rocks, cover };
@@ -271,6 +272,7 @@ async function main() {
   const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [] }).build() : null;
   const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;
+  if (dayNight) onSettingChange('time', (t) => { dayNight.setTime(t); }); // pause menu ▸ Settings ▸ Time of day (E55)
 
   // ── player kit: the shard's weapon + the AR-15 (Weapons.ts: 1 / 2 / Q, touch SWAP; the rifle is a cabin pickup), HUD, audio ──
   await step('weapon', () => viewmodelTexturesReady()); // the viewmodels' textures from the worker (usually long done); the build below is synchronous
@@ -290,7 +292,7 @@ async function main() {
   // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken
   const ironSword = chunk.weapon === 'sword' ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, blade: 'iron' }) : null;
   const weapons = new Weapons(crossbow, rifle, ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : []); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
-  new TouchControls(player, weapons, params.has('touch')); // on-screen FPS controls on coarse-pointer devices (?touch=1 forces)
+  new TouchControls(player, weapons, setting('touch') === 'on'); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
   weapons.adsHeld = params.has('ads');
   await macrotask();
   const hud = new HUD({ pointerLock: !nolock });

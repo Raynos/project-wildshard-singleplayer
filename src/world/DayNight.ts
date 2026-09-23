@@ -7,6 +7,8 @@
  *   sky.dayNight.dusk       // 0 = broad day … 1 = golden hour / night → Shrine.setDusk (glyphs, fireflies)
  *   ?tod=0.5                // start phase (default 0.2 of the day: mid-morning, the sun 36° up in the ESE)
  *   ?clock=120              // cycle length in seconds (default 1440 = 24 min) — for testing the whole loop quickly
+ *   dayNight.setTime('golden')  // pause menu ▸ Settings ▸ Time of day (E55, `setting('time')`): park the sun at a fixed
+ *                               // phase (midday / golden / sunset / night) or 'live' to run the clock; ?tod / ?clock win
  *
  * Every frame it moves the sun (an east → south → west arc, 62° at noon) and, at night, the moon (a high arc, ≥ 25°),
  * and blends a keyframed set of presets — dawn, morning, midday, golden hour, sunset, dusk, night — into every knob the
@@ -17,8 +19,11 @@
  */
 import * as THREE from 'three';
 import { MIDDAY_SKY, type SkyPalette } from './StylizedSky';
+import { setting, type OptionValue } from '../ui/Settings';
 
 const DAY = 20 / 24;
+/** Settings ▸ Time of day's fixed picks → the phase they park the clock at (noon, the GOLDEN / SUNSET keys, mid-night) */
+const FIXED_PHASE: Record<Exclude<OptionValue<'time'>, 'live'>, number> = { midday: DAY / 2, golden: 0.74, sunset: DAY - 0.02, night: 0.92 };
 const c = (r: number, g: number, b: number) => new THREE.Color(r, g, b);
 
 interface Preset {
@@ -126,6 +131,8 @@ export class DayNight {
   private moon = new THREE.Vector3();
   private envTimer = 0;
   private sunIScale = 1;
+  /** a fixed Time of day: the phase does not advance */
+  private frozen = false;
 
   constructor(private T: DayNightTargets, sunIntensityScale = 1) {
     const qs = new URLSearchParams(location.search);
@@ -133,6 +140,8 @@ export class DayNight {
     const clock = Number.parseFloat(qs.get('clock') ?? '');
     this.phase = Number.isFinite(tod) ? ((tod % 1) + 1) % 1 : 0.2 * DAY;
     this.cycle = Number.isFinite(clock) && clock > 1 ? clock : 24 * 60;
+    const time = setting('time'); // 'live' whenever ?tod / ?clock are in the URL
+    if (time !== 'live') { this.frozen = true; this.phase = FIXED_PHASE[time]; }
     this.sunIScale = sunIntensityScale;
     this.apply();
   }
@@ -147,8 +156,17 @@ export class DayNight {
     return dirFrom(100 + 160 * s, 28 + Math.sin(Math.PI * s) * 30, out);
   }
 
+  /** Settings ▸ Time of day (live): park the sun at a fixed pick, or run the clock on from where it stands */
+  setTime(t: OptionValue<'time'>): void {
+    this.frozen = t !== 'live';
+    if (t === 'live') return;
+    this.phase = FIXED_PHASE[t];
+    this.apply();
+    this.envTimer = 0; this.T.refreshEnvironment();
+  }
+
   update(dt: number): void {
-    this.phase = (this.phase + dt / this.cycle) % 1;
+    if (!this.frozen) this.phase = (this.phase + dt / this.cycle) % 1;
     this.apply();
     this.envTimer += dt;
     if (this.envTimer > 15) { this.envTimer = 0; this.T.refreshEnvironment(); }

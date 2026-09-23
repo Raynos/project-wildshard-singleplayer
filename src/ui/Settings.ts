@@ -14,6 +14,16 @@
 //   (every sound synthesised); default 'best'. A saved set that no longer exists (moss, sa3-medium, ezaudio) reads as 'best';
 //   `?sfx=synth` overrides like ?music=.
 //
+//
+// The OPTIONS (E55) — every player-facing toggle that used to be a query param, one lookup for all of them:
+//   setting('island')                  → the value THIS page runs with: the URL's param when present (the agents' screenshot
+//                                        harnesses depend on it), else the saved pick, else the default
+//   savedSetting('island') / saveSetting('island', 'blender') / onSettingChange('matte', fn)
+//   BOOT_OPTIONS (renderer, island, quality tier, touch) are read once while the page loads: saving one changes only the
+//   saved pick — main menu ▸ Settings (src/ui/BootSettings.ts) shows them with APPLY & RELOAD (settingsReloadUrl drops
+//   the overriding params so the reload builds the saved pick). The rest are LIVE (pause menu ▸ Settings, src/ui/Menu.ts):
+//   saving one changes setting() at once and notifies (main.ts hands it to HorizonMatte.setShown / DayNight.setTime).
+//
 // localStorage is wrapped in try/catch (iOS private mode throws on write) — the in-memory copy is the truth for the session.
 export type SettingKey = 'aimAssist' | 'tracers' | 'haptics';
 export type NumberKey = 'volume' | 'music' | 'look' | 'swingLook';
@@ -44,20 +54,32 @@ function load(): { bools: Record<SettingKey, boolean>; nums: Record<NumberKey, n
 
 const { bools: state, nums, parsed: saved } = load();
 
-/** a pick among fixed strings (the music style, the sfx set): saved under `key`, overridable by `?<param>=` for the page's
- *  life — the URL value wins until the player picks in the menu, and is never persisted on its own */
+/** a pick among fixed strings (the music style, the sfx set, the OPTIONS): saved under `key`, overridable by the URL for the
+ *  page's life — the URL value wins until the player picks in the menu, and is never persisted on its own. A `boot` pick
+ *  only changes what is saved: `value` stays what the page was built with until the reload. */
 class Choice<T extends string> {
   value: T; stored: T;
+  /** the URL set `value` for this load */
+  readonly fromUrl: boolean;
   readonly listeners = new Set<(v: T) => void>();
-  constructor(readonly key: string, readonly values: readonly T[], fallback: T, param: string) {
+  constructor(readonly key: string, readonly values: readonly T[], fallback: T, url: (q: URLSearchParams) => string | null, readonly boot = false) {
     this.stored = this.valid(saved[key]) ?? fallback;
-    let url: T | undefined;
-    try { url = this.valid(new URLSearchParams(location.search).get(param)); } catch { url = undefined; }
-    this.value = url ?? this.stored;
+    let u: T | undefined;
+    try { u = this.valid(url(new URLSearchParams(location.search))); } catch { u = undefined; }
+    this.fromUrl = u !== undefined;
+    this.value = u ?? this.stored;
   }
   valid(v: unknown): T | undefined { return this.values.find((x) => x === v); }
   set(v: T): void {
-    if (this.valid(v) === undefined || (this.value === v && this.stored === v)) return;
+    if (this.valid(v) === undefined) return;
+    if (this.boot) {
+      if (this.stored === v) return;
+      this.stored = v;
+      persist();
+      this.listeners.forEach((fn) => fn(v));
+      return;
+    }
+    if (this.value === v && this.stored === v) return;
     const changed = this.value !== v;
     this.value = v; this.stored = v;
     persist();
@@ -65,11 +87,68 @@ class Choice<T extends string> {
   }
   on(fn: (v: T) => void): () => void { this.listeners.add(fn); return () => { this.listeners.delete(fn); }; }
 }
-const musicStyle = new Choice<MusicStyle>('musicStyle', MUSIC_STYLES, 'piano', 'music');
-const sfxSet = new Choice<SfxSet>('sfxSet', SFX_SETS, 'best', 'sfx');
+const musicStyle = new Choice<MusicStyle>('musicStyle', MUSIC_STYLES, 'piano', (q) => q.get('music'));
+const sfxSet = new Choice<SfxSet>('sfxSet', SFX_SETS, 'best', (q) => q.get('sfx'));
+
+// ── the OPTIONS (E55): the player-facing toggles that were query params — see the header ──
+export const OPTION_VALUES = {
+  gpu: ['webgl', 'webgpu', 'webgpu-gl'],               // renderer (src/gpu/flag.ts) — experimental
+  island: ['procedural', 'blender'],                   // Driftwood's spawn cove (src/world/blenderArea.ts) — experimental
+  tier: ['auto', 'phone', 'desktop'],                  // quality tier (src/core/tier.ts); auto = phone on a mobile UA
+  touch: ['auto', 'on'],                               // on-screen controls (main.ts → TouchControls): auto = coarse pointer
+  matte: ['on', 'off'],                                // the painted horizon (src/world/HorizonMatte.ts) — live
+  time: ['live', 'midday', 'golden', 'sunset', 'night'], // the day / night clock (src/world/DayNight.ts) — live
+} as const;
+export type OptionKey = keyof typeof OPTION_VALUES;
+export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
+/** read once while the page loads: main menu ▸ Settings, APPLY & RELOAD. Every other option applies live (pause menu). */
+export const BOOT_OPTIONS: readonly OptionKey[] = ['gpu', 'island', 'tier', 'touch'];
+const onOff = (v: string | null): 'on' | 'off' | null => (v === null ? null : v === '0' || v === 'off' || v === 'false' ? 'off' : 'on');
+/** per option: the default, the URL params that override it (dropped by settingsReloadUrl) and how they read */
+const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly string[]; url: (q: URLSearchParams) => string | null } } = {
+  gpu: { def: 'webgl', params: ['gpu'], url: (q) => { const v = q.get('gpu'); return v === null ? null : v === 'webgpu' || v === 'webgpu-gl' ? v : 'webgl'; } },
+  island: { def: 'procedural', params: ['island'], url: (q) => q.get('island') },
+  tier: { def: 'auto', params: ['tier'], url: (q) => q.get('tier') },
+  touch: { def: 'auto', params: ['touch'], url: (q) => (q.has('touch') ? 'on' : null) },               // ?touch (any value) forces them, as before
+  matte: { def: 'on', params: ['matte'], url: (q) => onOff(q.get('matte')) },                           // ?matte=0: the before / after captures
+  time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
+};
+// Settings ▸ Graphics ▸ Island (X2) saved under its own key before E55: carried over once
+if (saved['island'] === undefined) { try { const legacy = localStorage.getItem('ws.island.v1'); if (legacy !== null) saved['island'] = legacy; } catch { /* private mode */ } }
+const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => new Choice<OptionValue<K>>(k, OPTION_VALUES[k], OPTION_SPECS[k].def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
+const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
+  gpu: option('gpu'), island: option('island'), tier: option('tier'), touch: option('touch'), matte: option('matte'), time: option('time'),
+};
+const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
+
+/** the value this page runs with: the URL's param if present, else the saved pick, else the default */
+export function setting<K extends OptionKey>(k: K): OptionValue<K> { return options[k].value; }
+/** the player's saved pick (what the next load builds when the URL does not override it) */
+export function savedSetting<K extends OptionKey>(k: K): OptionValue<K> { return options[k].stored; }
+/** save a pick: a live option applies at once (subscribers fire), a boot option only on the next load */
+export function saveSetting<K extends OptionKey>(k: K, v: OptionValue<K>): void { options[k].set(v); }
+/** fires on a live option's change, and with the new saved pick for a boot option; not called immediately */
+export function onSettingChange<K extends OptionKey>(k: K, fn: (v: OptionValue<K>) => void): () => void { return options[k].on(fn); }
+/** the URL overrides this option for this load (the menus say so) */
+export function settingFromUrl(k: OptionKey): boolean { return options[k].fromUrl; }
+/** the URL params that override option `k` */
+export function settingParams(k: OptionKey): readonly string[] { return OPTION_SPECS[k].params; }
+/** boot options whose saved pick differs from what this page was built with */
+export function pendingReload(): OptionKey[] { return BOOT_OPTIONS.filter((k) => options[k].stored !== options[k].value); }
+/** `href` without any param that overrides an option (and the music / sfx picks) nor the `extra` ones: APPLY & RELOAD
+ *  loads this, so the saved picks win (the chunk and every other dev param stay) */
+export function settingsReloadUrl(href: string, extra: readonly string[] = []): string {
+  const u = new URL(href);
+  for (const p of [...OPTION_KEYS.flatMap((k) => OPTION_SPECS[k].params), 'music', 'sfx', ...extra]) u.searchParams.delete(p);
+  return u.toString();
+}
 const listeners = new Map<SettingKey, Set<(v: boolean) => void>>();
 const numListeners = new Map<NumberKey, Set<(v: number) => void>>();
-function persist() { try { localStorage.setItem(STORE, JSON.stringify({ ...state, ...nums, musicStyle: musicStyle.stored, sfxSet: sfxSet.stored })); } catch { /* not persisted this session */ } }
+function persist() {
+  const picks: Partial<Record<string, string>> = {};
+  for (const k of OPTION_KEYS) picks[k] = options[k].stored;
+  try { localStorage.setItem(STORE, JSON.stringify({ ...state, ...nums, musicStyle: musicStyle.stored, sfxSet: sfxSet.stored, ...picks })); } catch { /* not persisted this session */ }
+}
 
 export function getSetting(k: SettingKey): boolean { return state[k]; }
 

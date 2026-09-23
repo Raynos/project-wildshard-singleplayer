@@ -19,11 +19,9 @@ import type { FullMap } from './Map';
 import type { Progress } from '../game/Progress';
 import { PACK_SLOTS, type Inventory } from '../game/Inventory';
 import { icon, type IconId } from './icons';
-import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, type SettingKey, type NumberKey, type MusicStyle, type SfxSet } from './Settings';
+import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, setting, saveSetting, onSettingChange, type SettingKey, type NumberKey, type MusicStyle, type SfxSet, type OptionValue } from './Settings';
 import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
 import { onAudioBusy } from '../audio/preload';
-import { gfxPrefs, saveGfxPrefs } from '../core/tier';
-import { islandMode, setIslandMode } from '../world/blenderArea';
 import { CAN_VIBRATE } from './haptics';
 import { lockReview, onReview, quickNote, reviewUnlocked, setQuickNote, unlockReview } from './review';
 
@@ -109,7 +107,7 @@ export class GameMenu {
     opts.fullMap.onZoom = () => this.syncZoom();
 
     // ── SETTINGS ──
-    this.applyBtn = this.buildSettings();
+    this.buildSettings();
 
     // close: the CLOSE button, the backdrop (desktop habit), Esc
     const closeBtn = this.sheet.querySelector('.ws-gmenu-close'); if (!closeBtn) throw new Error('GameMenu: no .ws-gmenu-close');
@@ -251,8 +249,9 @@ export class GameMenu {
   }
 
   // ── SETTINGS ──
-  /** builds the Settings tab; returns the RESTART TO APPLY button (see `markReload`) */
-  private buildSettings(): HTMLButtonElement {
+  /** builds the Settings tab: only what applies live (E55) — renderer, island, quality, render scale, AA and touch controls
+   *  are read at boot and live in main menu ▸ Settings (src/ui/BootSettings.ts, APPLY & RELOAD) */
+  private buildSettings(): void {
     const p = this.panels.settings;
     const resume = el('ws-gmenu-btn resume', 'Resume', 'button') as HTMLButtonElement; resume.type = 'button';
     resume.addEventListener('click', () => this.close());
@@ -283,29 +282,6 @@ export class GameMenu {
       paint(); row.append(s); return row;
     };
     p.append(el('ws-gmenu-label', 'Controls'), mult('look', 'Look speed'), mult('swingLook', 'Swing turn speed'));
-
-    // graphics: the boot prefs in src/core/tier.ts (read at start-up → reload to apply)
-    const seg = (label: string, options: { v: string; text: string }[], get: () => string, set: (v: string) => void) => {
-      const row = el('ws-gmenu-row', `<span class="ws-gmenu-swlabel">${label}</span>`);
-      const box = el('ws-gmenu-seg');
-      const paint = () => { for (const c of box.children) (c as HTMLElement).classList.toggle('active', (c as HTMLElement).dataset['v'] === get()); };
-      for (const o of options) {
-        const b = el('ws-gmenu-segbtn', o.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = o.v;
-        b.addEventListener('click', () => { set(o.v); paint(); this.markReload(); });
-        box.append(b);
-      }
-      paint(); row.append(box); return row;
-    };
-    const dprOpts = [{ v: '1', text: '1.0×' }, { v: '1.25', text: '1.25×' }, { v: '1.5', text: '1.5×' }, { v: 'auto', text: 'Auto' }];
-    const aaOpts = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }, { v: 'auto', text: 'Auto' }];
-    p.append(el('ws-gmenu-label', 'Graphics'),
-      seg('Render scale', dprOpts, () => gfxPrefs.dpr, (v) => { if (v === 'auto' || v === '1' || v === '1.25' || v === '1.5') { gfxPrefs.dpr = v; saveGfxPrefs(); } }),
-      seg('Anti-aliasing', aaOpts, () => gfxPrefs.aa, (v) => { if (v === 'auto' || v === 'on' || v === 'off') { gfxPrefs.aa = v; saveGfxPrefs(); } }));
-    // Driftwood's spawn cove: the TypeScript island or the Blender-built one (DRIFTWOOD-REMASTER X2, src/world/BlenderIsland.ts)
-    if (getActiveChunk().slug === 'driftwood-isle') p.append(seg('Island', [{ v: 'procedural', text: 'Procedural' }, { v: 'blender', text: 'Blender' }], islandMode, (v) => { if (v === 'procedural' || v === 'blender') setIslandMode(v); }));
-    const apply = el('ws-gmenu-apply', 'Restart to apply', 'button') as HTMLButtonElement; apply.type = 'button'; apply.hidden = true;
-    apply.addEventListener('click', () => location.reload());
-    p.append(apply);
 
     // audio: master volume (Settings 'volume', 0..1) — main.ts drives the AudioContext gain from it
     const vol = el('ws-gmenu-row', '<span class="ws-gmenu-swlabel">Master volume</span>');
@@ -345,8 +321,20 @@ export class GameMenu {
     const paintCredit = () => { const c = sfxCredit(getSfxSet()); sfxNote.textContent = c; sfxNote.hidden = c === ''; };
     paintCredit(); onSfxSet(paintCredit); onSfxCredit(paintCredit);
     p.append(el('ws-gmenu-label', 'Audio'), vol, mus, style, sfx, el('ws-gmenu-note', MUSIC_CREDIT), sfxNote);
+
+    // look (E55, live — src/ui/Settings.ts OPTIONS): the low-poly shard's clock (DayNight.setTime) and painted horizon
+    // (HorizonMatte.setShown); main.ts subscribes both. The boot-time graphics picks are on the title's Settings.
+    if (getActiveChunk().style === 'lowpoly') {
+      const times: { v: OptionValue<'time'>; text: string }[] = [{ v: 'live', text: 'Live' }, { v: 'midday', text: 'Midday' }, { v: 'golden', text: 'Golden' }, { v: 'sunset', text: 'Sunset' }, { v: 'night', text: 'Night' }];
+      const time = picker('Time of day', times, () => setting('time'), (v) => { saveSetting('time', v); }, (fn) => { onSettingChange('time', fn); });
+      const matte = el('ws-gmenu-switch', '<span class="ws-gmenu-swlabel">Painted horizon</span><i class="ws-gmenu-pill"></i>', 'button') as HTMLButtonElement; matte.type = 'button'; matte.setAttribute('role', 'switch');
+      const paintMatte = () => { const on = setting('matte') === 'on'; matte.classList.toggle('on', on); matte.setAttribute('aria-checked', String(on)); };
+      paintMatte(); onSettingChange('matte', paintMatte);
+      matte.addEventListener('click', () => { saveSetting('matte', setting('matte') === 'on' ? 'off' : 'on'); });
+      p.append(el('ws-gmenu-label', 'Look'), time, matte);
+    }
+    p.append(el('ws-gmenu-note', 'Renderer, island, quality and render scale: Exit to main menu ▸ Settings.'));
     p.append(this.buildReview());
-    return apply;
   }
   /** Settings → REVIEW: a password unlocks the review inbox (src/ui/review.ts); unlocked, the Quick note switch + LOCK */
   private buildReview(): HTMLElement {
@@ -385,7 +373,4 @@ export class GameMenu {
     render(); onReview(render);
     return box;
   }
-  /** the render scale / AA rows changed a boot pref (src/core/tier.ts `gfxPrefs`) — only a reload applies it */
-  private applyBtn: HTMLButtonElement;
-  private markReload(): void { this.applyBtn.hidden = false; }
 }
