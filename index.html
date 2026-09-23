@@ -48,6 +48,7 @@
     <link rel="stylesheet" href="/src/ui/styles/update.css" />
     <link rel="stylesheet" href="/src/ui/styles/feedback.css" />
     <link rel="stylesheet" href="/src/ui/styles/minimap.css" />
+    <link rel="stylesheet" href="/src/ui/styles/rotate.css" />
   </head>
   <body>
     <script>
@@ -82,7 +83,20 @@
 </div>
 </div>
 <div class="ws-load-foot"><span>local build · unuploaded</span><span data-el="foot">an in-progress private project</span></div></div>
+    <!-- rotate gate (E38): portrait only on phones — a touch device held landscape sees only this (rotate.css, src/ui/RotateGate.ts) -->
+    <div class="ws-rotate" role="alertdialog" aria-modal="true" aria-label="Rotate to portrait"><div class="ws-rotate-panel">
+<div class="ws-rotate-glyph"><svg viewBox="0 0 92 92" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" aria-hidden="true">
+<path d="M12.5 40 A34 34 0 0 1 40 12.5" opacity="0.55" /><path d="M35 7.5 L40 12.5 L35 17.5" opacity="0.55" />
+<g class="ws-rotate-phone"><rect x="33" y="22" width="26" height="48" rx="4" /><path d="M42 26.5 H50" /><path d="M41 65.5 H51" opacity="0.6" /></g>
+</svg></div>
+<div class="ws-rotate-text">
+<div class="ws-rotate-kicker">Portrait only</div>
+<div class="ws-rotate-title">Rotate to <b>portrait</b></div>
+<div class="ws-rotate-sub">Wildshard is played upright · turn your phone to continue</div>
+</div>
+</div></div>
     <script type="module" src="/src/boot/sw.ts"></script>
+    <script type="module" src="/src/ui/RotateGate.ts"></script>
     <script type="module" src="/src/boot/entry.ts"></script>
     <script type="module" src="/src/ui/Update.ts"></script>
   </body>

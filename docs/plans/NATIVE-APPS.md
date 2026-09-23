@@ -43,7 +43,7 @@ better or worse.
 | N2 | **Accounts** | **Neither yet.** Everything is built up to signing: Simulator apps, a debug APK, an unsigned release AAB. Enrol Apple Developer (individual, $99/yr) + Play Console (personal, $25) when ready; this Mac has 0 signing identities today. |
 | N3 | **OTA web-bundle updates in v1** | **Yes** ("and the vercel update server stuff"): the signed channel on the `wildshard-updates` Vercel project, in the first binary (the updater plugin is native), see N-D. |
 | N3a | **Who promotes an OTA release** | **CI on manual trigger**: `gh workflow run ota-promote`. The signing key is the Actions secret `OTA_SIGNING_KEY` (a copy in `~/.config/wildshard/`). |
-| N4 | **Devices** | iPhone only (`TARGETED_DEVICE_FAMILY = 1`; iPad runs it in compatibility mode), landscape. Minimum **iOS 17** and **Android 10 (API 29)**, OpenGL ES 3 required (WebGL2). |
+| N4 | **Devices** | iPhone only (`TARGETED_DEVICE_FAMILY = 1`; iPad runs it in compatibility mode), ~~landscape~~ **portrait** (E38, 2026-09-22: the game is portrait-first; the web build shows a rotate-to-portrait page on a landscape phone). Minimum **iOS 17** and **Android 10 (API 29)**, OpenGL ES 3 required (WebGL2). |
 | N5 | **When to start the Play closed test** | As soon as the Play account exists: the first AAB is ready. |
 
 **The long pole is Google's closed test, per app.** New personal Play accounts must run a closed test with
@@ -70,11 +70,11 @@ through **TestFlight internal** (no review).
       `src/native/lifecycle.ts` turns app backgrounding into `ws:background` (HUD pauses, saves flush) and Android
       Back into a cancelable `ws:back` (HUD closes the menu / pauses; unused Back minimizes). `main.ts` fires
       `ws:ready` at the title (the OTA watchdog's healthy-boot signal).
-- [x] iOS: bundle id `com.jakeverbaten.wildshard-singleplayer`, 1.0.0 (1), iOS 17+, iPhone only, landscape only,
+- [x] iOS: bundle id `com.jakeverbaten.wildshard-singleplayer`, 1.0.0 (1), iOS 17+, iPhone only, portrait only (was landscape; E38 moved `UISupportedInterfaceOrientations` to Portrait),
       full screen, status bar + home indicator hidden (`SystemBars.hidden`), edge gestures deferred to the game
       (`GameViewController` in AppDelegate.swift), ambient audio (the silent switch mutes), screen never sleeps,
       `PrivacyInfo.xcprivacy` (UserDefaults CA92.1, file timestamps C617.1, no tracking), `ITSAppUsesNonExemptEncryption = NO`.
-- [x] Android: `com.jakeverbaten.wildshard_singleplayer`, 1.0.0 (1), minSdk 29, target 36, `sensorLandscape`,
+- [x] Android: `com.jakeverbaten.wildshard_singleplayer`, 1.0.0 (1), minSdk 29, target 36, `portrait` (was `sensorLandscape`; E38),
       immersive, keep-screen-on, draws under the cutout, OpenGL ES 3 required (Play hides it from phones without WebGL2).
 - [x] Icons + launch art from the Pine Hollow hero painting (`scripts/native-icons.py`; Play icon in
       `art/native-app/round-1-icons/`).

@@ -64,6 +64,7 @@ import { Music } from './audio/Music';
 import { ShrineHum } from './audio/ShrineHum';
 import { installErrorModal, showError } from './ui/ErrorModal';
 import { onReview, queuedCount, quickNote } from './ui/review';
+import { rotateGated } from './ui/RotateGate';
 import type { Feedback } from './ui/Feedback';
 import { TIER } from './core/tier';
 
@@ -444,7 +445,7 @@ async function main() {
   hud.onResume = enter;
   hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show'); }; // the world hushes, the title theme comes back; the HUD clears `entered`, the gate does the rest
   // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
-  game.frameGate = () => hud.entered && !feedbackHeld; // … and the review composer freezes it on the captured frame
+  game.frameGate = () => hud.entered && !feedbackHeld && !rotateGated(); // … and the review composer freezes it on the captured frame; the rotate page (E38) stops it too
   if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.worldMuted = true; hud.showIntro(enter); }
   else { hud.markEntered(); weapons.setEnabled(!nolock || params.has('skipintro')); }
   // the first gesture builds the AudioContext; on the title screen it also starts the title theme (synth, then the title stems)
