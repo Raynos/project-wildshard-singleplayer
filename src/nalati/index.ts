@@ -24,6 +24,7 @@ import { syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms 
 import { wind } from '../world/Wind';
 import { windUniforms } from '../world/TreeFactory';
 import { NalatiWater } from './water';
+import { NalatiPOIs } from '../world/nalati';
 import { macrotask } from '../boot/plan';
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ChunkDef }
@@ -33,6 +34,8 @@ export interface Nalati {
   update: (dt: number, t: number) => void;
   /** the river, brook and waterfall (world agent) */
   water: NalatiWater;
+  /** every POI (poi agent, B5): camp, bridge, roads, summer camp, kurgans, balbals, Eagle Rock, cairn, Crags */
+  pois: NalatiPOIs;
   /** anything a later system wants to find: named groups added to the scene by this wiring */
   groups: Record<string, Object3D>;
 }
@@ -63,13 +66,18 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   // ── spruce (spruce agent, B6): the Forest is built by bootstrap from `trees.factory`; anything extra goes here ──
 
   // ── POIs (poi agent, B5): yurts + camp, bridge, fences, kurgans, balbals, Eagle Rock, the cairn, the Crags rocks ──
+  const pois = new NalatiPOIs(sky).build();
+  pois.addTo(game.scene, ctx.player);
+  groups['pois'] = pois.group;
+  updates.push((dt) => pois.update(dt));
+  await macrotask();
 
   // ── creatures (creatures agent, B4): wolves / horses / sheep come from `fauna` via AnimalManager; herd / pack brains here ──
 
   // ── weapons (bow agent B2, sabre agent B3): main.ts hands out `ChunkDef.weapon`; the Nalati kit hooks in here ──
 
   return {
-    water, groups,
+    water, pois, groups,
     update(dt, t) { for (const u of updates) u(dt, t); },
   };
 }
