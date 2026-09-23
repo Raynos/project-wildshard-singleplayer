@@ -1,8 +1,8 @@
 import type { Vector3 } from 'three';
 import { getActiveChunk } from '../chunks/registry';
-import { shipped } from './Stems';
 import { getSfxSet, onSfxSet, type SfxSet } from '../ui/Settings';
 import { setSfxCredit } from './credits';
+import { cachedBytes, decodeSfxSet, trackBusy, type SfxBank } from './preload';
 import { Voices } from './Voices';
 
 /**
@@ -30,15 +30,15 @@ import { Voices } from './Voices';
  *   audio.hurt(strength, pan)  audio.death()   // the player takes a hit (strength = dmg / 20, pan toward the attacker) / dies — both shards (B3)
  *   audio.voices                         // the procedural one-shot bank (src/audio/Voices.ts + gen.ts): Driftwood's footsteps + combat layers (IslandSfx)
  *
- * Samples (docs/plans/MUSIC.md v3 row 7): `audio.loadSamples()` (main.ts calls it after ENTER WORLD — never at boot) reads
- * the selected set's public/assets/sfx/<set>/sfx.json (Settings 'sfxSet': 'sa3-medium' Stable Audio 3 Medium · 'sa3' Small-SFX · 'synth')
+ * Samples (docs/plans/MUSIC.md v3 row 7): `audio.useSamples(bank)` — the loading bar decoded (src/audio/preload.ts,
+ * docs/plans/PRELOAD-OFFLINE.md; nothing is fetched after it) the selected set's public/assets/sfx/<set>/sfx.json (Settings 'sfxSet': 'sa3-medium' Stable Audio 3 Medium · 'sa3' Small-SFX · 'synth')
  * when the build ships one and decodes what it lists: ambient `beds` (forest / island /
  * underwater, looped loopStart → loopEnd, replacing that synth bed), `hums` (pickup / shrine) and `oneshots` (a family →
  * variant files; each call picks one at random with ±40 cents / −1.5 dB of jitter). Every sound sfx.json does not cover
  * keeps its synth version, and the synth is the fallback for everything (no file, a failed fetch or decode, offline).
  * One-shot families are the method names, with the variant after a dash where the method takes one — see `OneShot`.
- * Switching the set (the pause menu) releases the old set's buffers (every sound back on its synth version) and loads the
- * new one lazily; a set's `credit` goes to src/audio/credits.ts for the menu.
+ * Switching the set (the pause menu) decodes the new one from the offline cache (every set was downloaded at the bar) while
+ * the old one plays on, then swaps it in and drops the old buffers; a set's `credit` goes to src/audio/credits.ts for the menu.
  *
  * Ambient starts on resume() and runs on its own scheduler. The bed follows the chunk: `new Audio()` reads
  * `getActiveChunk().ocean` — an ocean shard gets surf swells, a warm breeze and gulls ('island'); otherwise the
@@ -57,9 +57,6 @@ export type OneShot = 'crossbowFire' | 'dryFire' | `boltImpact-${ImpactKind}` | 
 export type LoopName = AmbientBed | 'underwater' | 'pickup' | 'shrine';
 /** a decoded loop (a bed or a hum): the buffer, its loop points in the file, and a gain from sfx.json (default per kind) */
 export interface SampleLoop { buffer: AudioBuffer; loopStart: number; loopEnd: number; gain: number }
-const sfxDir = (set: SfxSet) => `/assets/sfx/${set}/`;
-/** a sample's level before sfx.json's own `gain` (beds sit under the synth bed's ~0.1 winds; hums near the synth hum's 0.11) */
-const LOOP_GAIN: Record<LoopName, number> = { forest: 0.5, island: 0.5, underwater: 0.5, pickup: 0.35, shrine: 0.6 };
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 
@@ -89,11 +86,6 @@ export class Audio {
   private underFeed: AudioScheduledSourceNode[] = []; private underSample = false;
   // ── samples (sfx.json) ──
   private sfxSet: SfxSet = getSfxSet();
-  /** loadSamples() was called (the player is in): a set switch loads the new set straight away */
-  private samplesArmed = false;
-  /** bumps on every set switch — a decode of the old set that lands afterwards is dropped */
-  private setGen = 0;
-  private sfxLoad: Promise<void> | undefined;
   private loops = new Map<LoopName, SampleLoop>();
   private shots = new Map<string, { bufs: AudioBuffer[]; gain: number }>();
   private sampleBed = false;
@@ -148,71 +140,23 @@ export class Audio {
     return { set: this.sfxSet, loops: [...this.loops.keys()], oneshots: [...this.shots.keys()], sampleBed: this.sampleBed, underSample: this.underSample };
   }
 
-  /** fetch + decode the selected set's sfx.json files, once, after the player is in the world (needs the graph: call after
-   *  resume()). The bed that is playing comes first and swaps in the moment it decodes; nothing is fetched when the build
-   *  ships no sfx.json for the set (or the set is 'synth'). */
-  loadSamples(): void {
+  /** a decoded set — the loading bar's (src/boot/extras.ts) or a menu switch's — replaces the synth versions (and the previous
+   *  set) where they sound; before the first gesture it only fills the maps, and resume() starts the bed from them */
+  useSamples(bank: SfxBank): void {
+    if (bank.set !== this.sfxSet) return; // another set was picked while this one decoded
+    const hadBed = this.sampleBed, hadUnder = this.underSample, hadHum = this.hum?.sample === true;
+    this.loops = new Map(bank.loops); this.shots = new Map(bank.shots);
+    if (bank.credit !== undefined) setSfxCredit(this.sfxSet, bank.credit);
     if (!this.g) return;
-    this.samplesArmed = true;
-    this.sfxLoad ??= this.loadSet(this.sfxSet, this.setGen);
+    if (this.started && (hadBed || this.loops.has(this.bed))) { this.stopBed(); this.startBed(); }
+    if (this.underGain && (hadUnder || this.loops.has('underwater'))) this.feedUnder();
+    if (this.hum && (hadHum || this.loops.has('pickup'))) { const h = this.hum; this.hum = undefined; h.stop(); if (this.humOn) this.pickupHum(true); }
   }
-  /** the pause menu picked another set: every sampled sound back on its synth version, the old buffers dropped, the new set loaded */
+  /** the pause menu picked another set: decoded from the offline cache (the bar downloaded every set), swapped in when ready */
   private switchSet(v: SfxSet): void {
     if (v === this.sfxSet) return;
-    this.sfxSet = v; this.setGen++;
-    this.loops.clear(); this.shots.clear();
-    if (this.g) {
-      if (this.sampleBed && this.started) { this.stopBed(); this.startBed(); }
-      if (this.underSample) this.feedUnder();
-      if (this.hum?.sample === true) { const h = this.hum; this.hum = undefined; h.stop(); if (this.humOn) this.pickupHum(true); }
-    }
-    this.sfxLoad = this.samplesArmed ? this.loadSet(v, this.setGen) : undefined;
-  }
-  private async loadSet(set: SfxSet, gen: number): Promise<void> {
-    const g = this.g, dir = sfxDir(set), json = `${dir}sfx.json`;
-    if (!g || set === 'synth' || !shipped(json)) return;
-    const ctx = g.ctx, live = () => gen === this.setGen;
-    const decode = async (file: string): Promise<AudioBuffer> => {
-      const url = `${dir}${file}`;
-      if (file.includes('..') || !shipped(url)) throw new Error(`${url} is not in this build`);
-      const r = await fetch(url); if (!r.ok) throw new Error(`${url} ${r.status}`);
-      return ctx.decodeAudioData(await r.arrayBuffer());
-    };
-    const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-    const num = (v: unknown, d: number) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
-    const loopOf = async (name: LoopName, v: unknown): Promise<void> => {
-      if (!isObj(v) || typeof v['file'] !== 'string') return;
-      try {
-        const buffer = await decode(v['file']), loopEnd = Math.min(buffer.duration, num(v['loopEnd'], buffer.duration)), loopStart = Math.max(0, Math.min(loopEnd - 0.05, num(v['loopStart'], 0)));
-        if (!live()) return;
-        this.loops.set(name, { buffer, loopStart, loopEnd, gain: LOOP_GAIN[name] * num(v['gain'], 1) });
-        this.onLoop(name);
-      } catch (e) { console.info(`[sfx] ${set}/${name}: ${e instanceof Error ? e.message : String(e)} — synth kept`); }
-    };
-    try {
-      const r = await fetch(json); if (!r.ok) throw new Error(`${json} ${r.status}`);
-      const j: unknown = await r.json();
-      if (!isObj(j)) throw new Error(`${json} malformed`);
-      if (!live()) return;
-      if (typeof j['credit'] === 'string') setSfxCredit(set, j['credit']);
-      const beds = isObj(j['beds']) ? j['beds'] : {}, hums = isObj(j['hums']) ? j['hums'] : {}, shots = isObj(j['oneshots']) ? j['oneshots'] : {};
-      // the bed that is playing first, then the rest in parallel (never the other shard's bed: a shard change reloads the page)
-      await loopOf(this.bed, beds[this.bed]);
-      await Promise.all([
-        loopOf('underwater', beds['underwater']), loopOf('pickup', hums['pickup']), loopOf('shrine', hums['shrine']),
-        ...Object.entries(shots).map(async ([family, v]) => {
-          const files = Array.isArray(v) ? v : isObj(v) && Array.isArray(v['files']) ? v['files'] : [];
-          const gain = isObj(v) ? num(v['gain'], 1) : 1;
-          const bufs = (await Promise.all(files.filter((f): f is string => typeof f === 'string').map((f) => decode(f).catch(() => undefined)))).filter((b): b is AudioBuffer => b !== undefined);
-          if (bufs.length > 0 && live()) this.shots.set(family, { bufs, gain });
-        }),
-      ]);
-    } catch (e: unknown) { console.info(`[sfx] ${set}: ${e instanceof Error ? e.message : String(e)} — synth sounds kept`); }
-  }
-  /** a loop just decoded: swap it in where its synth version is sounding */
-  private onLoop(name: LoopName): void {
-    if (name === this.bed && this.started && !this.sampleBed) { this.stopBed(); this.startBed(); }
-    else if (name === 'underwater' && this.underGain && !this.underSample) this.feedUnder();
+    this.sfxSet = v;
+    void (async () => { this.useSamples(await trackBusy('sfx', decodeSfxSet(v, this.bed, cachedBytes))); })();
   }
   /** a random variant of `family` with a little pitch / gain jitter, routed like the synth call; false = not sampled, play the synth */
   private shot(family: OneShot, o: { pan?: number; gain?: number; out?: AudioNode } = {}): boolean {

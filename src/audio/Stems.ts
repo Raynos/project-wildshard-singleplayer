@@ -8,10 +8,13 @@
 // time and looping loopStart → loopEnd. The loop is a whole number of bars, so the bar grid is continuous in context time:
 // bar k starts at t0 + loopStart + k · bar. Every gain move (tension, crossfades) lands on that grid.
 //
-// Nothing here fetches on its own: Music.ts asks for a slot after the player is in the world. `fetch` + `decodeAudioData`
-// (off the main thread); a file the build does not ship, a failed fetch or a decode error rejects and Music keeps the synth.
+// Nothing here fetches: the manifests are compiled into the bundle (src/boot/audio.generated.ts) and the files are read by the
+// caller — the boot's counted fetch at the loading bar, or Cache Storage for a style switch (docs/plans/PRELOAD-OFFLINE.md).
+// `decodeStyle` decodes one style's slots + stings; a slot whose file is missing or will not decode is left out, and Music
+// keeps the synth for it.
 import type { MusicStyle } from '../ui/Settings';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
+import { MUSIC_MANIFESTS } from '../boot/audio.generated';
 
 /** the build's file table (vite.config.ts writes it from public/assets): a file the build does not have is never fetched —
  *  no 404 in the console, no request at all while the generated music has not landed */
@@ -51,78 +54,67 @@ export function parseManifest(raw: unknown): MusicManifest | undefined {
 /** a decoded slot: its spec and the stems (tension absent for the title cut) */
 export interface SlotAudio { style: MusicStyle; slot: SlotName; spec: SlotSpec; calm: AudioBuffer; tension: AudioBuffer | undefined }
 
-/** fetch + decode the files of one style, with in-flight de-duplication; `release()` forgets every buffer */
-export class StemLoader {
-  private manifest: Promise<MusicManifest> | undefined;
-  private slots = new Map<SlotName, Promise<SlotAudio>>();
-  private stingBufs = new Map<StemSting, AudioBuffer>();
-  private stingLoad: Promise<void> | undefined;
-  /** diagnostics: fetch → decoded wall time per file, and the bytes on the wire */
-  readonly log: { file: string; bytes: number; ms: number }[] = [];
+/** one style, decoded: the slots this shard can play and the stings, plus what each file cost */
+export interface StyleBank {
+  style: MusicStyle;
+  slots: Map<SlotName, SlotAudio>;
+  stings: Map<StemSting, AudioBuffer>;
+  /** diagnostics: read → decoded wall time per file, and its bytes */
+  log: { file: string; bytes: number; ms: number }[];
+}
 
-  constructor(private readonly ctx: BaseAudioContext, readonly style: MusicStyle, private readonly base = `/assets/music/${style}/`) {}
+/** this build's manifest for `style` (compiled in from public/assets/music/<style>/music.json), or undefined */
+export function musicManifest(style: MusicStyle): MusicManifest | undefined { return parseManifest(MUSIC_MANIFESTS[style]); }
 
-  getManifest(): Promise<MusicManifest> {
-    const url = `${this.base}music.json`;
-    if (!shipped(url)) return Promise.reject(new Error(`${url} is not in this build`));
-    this.manifest ??= fetch(url).then(async (r) => {
-      if (!r.ok) throw new Error(`music.json ${r.status}`);
-      const m = parseManifest(await r.json());
-      if (!m) throw new Error('music.json malformed');
-      return m;
-    });
-    return this.manifest;
-  }
+/** the files `decodeStyle(style, slots)` reads (URLs), so the loading bar can tell them from the files it only downloads */
+export function styleFiles(style: MusicStyle, slots: readonly SlotName[]): string[] {
+  const m = musicManifest(style);
+  if (!m) return [];
+  const files: string[] = [];
+  for (const k of slots) { const sp = m.slots[k]; if (sp) files.push(sp.calm, ...(sp.tension === undefined ? [] : [sp.tension])); }
+  for (const k of STINGS) { const f = m.stings[k]; if (f !== undefined) files.push(f); }
+  return [...new Set(files.map((f) => `/assets/music/${style}/${f}`))].filter(shipped);
+}
 
-  private async decode(file: string): Promise<AudioBuffer> {
-    const t = performance.now(), url = `${this.base}${file}`;
-    if (!shipped(url)) throw new Error(`${url} is not in this build`);
-    const r = await fetch(url);
-    if (!r.ok) throw new Error(`${file} ${r.status}`);
-    const bytes = await r.arrayBuffer(), size = bytes.byteLength; // decodeAudioData detaches the buffer
-    const buf = await this.ctx.decodeAudioData(bytes);
-    this.log.push({ file, bytes: size, ms: Math.round(performance.now() - t) });
-    return buf;
-  }
-
-  /** one slot's stems, decoded; rejects when the manifest or a file is missing (or the tension stem does not line up) */
-  slot(slot: SlotName): Promise<SlotAudio> {
-    let p = this.slots.get(slot);
-    if (!p) {
-      p = this.getManifest().then(async (m) => {
-        const spec = m.slots[slot];
-        if (!spec) throw new Error(`music.json has no '${slot}' slot`);
-        const [calm, tension] = await Promise.all([this.decode(spec.calm), spec.tension === undefined ? Promise.resolve(undefined) : this.decode(spec.tension)]);
+/**
+ * Decode `slots` + every sting of `style`. `read` hands over a file's bytes (by URL), `decode` turns them into an AudioBuffer
+ * (an OfflineAudioContext's — no live context needed). Rejects only when the build has no manifest for the style.
+ */
+export async function decodeStyle(style: MusicStyle, slots: readonly SlotName[], read: (url: string) => Promise<ArrayBuffer>, decode: (bytes: ArrayBuffer) => Promise<AudioBuffer>, onFile?: () => void): Promise<StyleBank> {
+  const m = musicManifest(style);
+  if (!m) throw new Error(`no music.json for '${style}' in this build`);
+  const base = `/assets/music/${style}/`;
+  const bank: StyleBank = { style, slots: new Map(), stings: new Map(), log: [] };
+  const one = async (file: string): Promise<AudioBuffer> => {
+    const t = performance.now(), url = `${base}${file}`;
+    try {
+      if (!shipped(url)) throw new Error(`${url} is not in this build`);
+      const bytes = await read(url), size = bytes.byteLength; // decodeAudioData detaches the buffer
+      const buf = await decode(bytes);
+      bank.log.push({ file, bytes: size, ms: Math.round(performance.now() - t) });
+      return buf;
+    } finally { onFile?.(); }
+  };
+  await Promise.all([
+    ...slots.map(async (slot) => {
+      const spec = m.slots[slot];
+      if (!spec) return;
+      try {
+        const [calm, tension] = await Promise.all([one(spec.calm), spec.tension === undefined ? Promise.resolve(undefined) : one(spec.tension)]);
         // the loop must fit the file (a bad loopEnd would loop into silence)
         if (spec.loopEnd > calm.duration + 0.05) throw new Error(`${slot}: loopEnd ${spec.loopEnd} past the file (${calm.duration.toFixed(2)} s)`);
         // stems of one recording: a tension stem of another length would drift off the calm one — drop it rather than play it wrong
         const t = tension !== undefined && Math.abs(tension.duration - calm.duration) < 0.05 ? tension : undefined;
-        return { style: this.style, slot, spec, calm, tension: t };
-      });
-      p.catch(() => { this.slots.delete(slot); }); // a failure may be retried later (online again)
-      this.slots.set(slot, p);
-    }
-    return p;
-  }
-
-  /** the stings, best effort (a missing one falls back to the synth sting) */
-  loadStings(): Promise<void> {
-    this.stingLoad ??= (async () => {
-      const m = await this.getManifest();
-      await Promise.all(STINGS.map(async (k) => {
-        const f = m.stings[k];
-        if (f === undefined) return;
-        try { this.stingBufs.set(k, await this.decode(f)); } catch { /* that sting stays synth */ }
-      }));
-    })().catch(() => undefined);
-    return this.stingLoad;
-  }
-  sting(name: StemSting): AudioBuffer | undefined { return this.stingBufs.get(name); }
-
-  /** drop one slot's buffers (the title after the menu closes, the other shard after a shard change) */
-  forget(slot: SlotName): void { this.slots.delete(slot); }
-  /** drop every buffer of this style — the next style becomes the only one resident */
-  release(): void { this.slots.clear(); this.stingBufs.clear(); this.manifest = undefined; this.stingLoad = undefined; }
+        bank.slots.set(slot, { style, slot, spec, calm, tension: t });
+      } catch (err: unknown) { console.info(`[music] ${style}/${slot}: ${err instanceof Error ? err.message : String(err)} — the synth plays it`); }
+    }),
+    ...STINGS.map(async (k) => {
+      const f = m.stings[k];
+      if (f === undefined) return;
+      try { bank.stings.set(k, await one(f)); } catch { /* that sting stays synth */ }
+    }),
+  ]);
+  return bank;
 }
 
 /** one slot playing: calm + tension sources through their gains into `out` (the deck's fade) */

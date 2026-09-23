@@ -18,7 +18,9 @@ import { TIER_CONFIG } from '../core/tier';
 
 export type ChunkFiles = Readonly<Record<ByteKey, readonly string[]>>;
 type Bytes = Record<string, number>;
-const TABLE = PUBLIC_BYTES as unknown as Bytes;
+const TABLE: Bytes = { ...PUBLIC_BYTES };
+/** Sizes of files outside public/assets that a boot declares (the bundle's hashed title / explore art, src/boot/extras.ts). */
+export function addBytes(extra: Readonly<Record<string, number>>): void { Object.assign(TABLE, extra); }
 
 export function declareTotals(files: ChunkFiles): Record<ByteKey, { bytes: number; files: number }> {
   const out = {} as Record<ByteKey, { bytes: number; files: number }>;

@@ -59,8 +59,8 @@ import { HurtArc, deathLine } from './ui/HurtArc';
 import { setAimTargets, meleeLock } from './player/AimTargets';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
 import { declareTotals, installByteCounter } from './boot/bytes';
-import { chunkFiles } from './boot/manifest';
-import { bootFetches, prefetch } from './boot/prefetch';
+import { bootFiles, extraFetches, startAudioPreload, startMenuPreload } from './boot/extras';
+import { bootFetches, prefetch, prefetchAfter } from './boot/prefetch';
 import { packFor, streamPack } from './boot/pack';
 import { getActiveChunk } from './chunks/registry';
 import { Audio } from './audio/Audio';
@@ -90,7 +90,7 @@ async function main() {
   const loading = new Loading();
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/boot/plan.ts).
   // Declared bytes come from the chunk's file list; every /assets fetch is counted on its way in.
-  const files = chunkFiles(getActiveChunk());
+  const files = bootFiles(getActiveChunk()); // + the title / explore art and every audio file (docs/plans/PRELOAD-OFFLINE.md)
   const plan = createBootPlan((view) => loading.paint(view), { totals: declareTotals(files) });
   installByteCounter(plan, files);
   // a boot that throws shows WHY: the loading panel's foot line + the uncaught-exception modal (src/ui/ErrorModal.ts)
@@ -103,8 +103,12 @@ async function main() {
   // one (src/boot/pack.ts), else file by file (src/boot/prefetch.ts); anything the pack lacks still goes file by file
   const pack = packFor(getActiveChunk());
   const packed = new Set(pack ? pack.files.map(([p]) => p) : []);
-  if (pack) streamPack(pack, plan, files);
+  const packStreamed = pack ? streamPack(pack, plan, files) : Promise.resolve();
   prefetch(bootFetches(getActiveChunk(), files).filter((p) => !packed.has(p)));
+  // then the title art and ALL audio (docs/plans/PRELOAD-OFFLINE.md), after the pack so they do not split the pipe with the
+  // world's files; the selected style + set are decoded as their bytes land — nothing is fetched after the bar
+  prefetchAfter(extraFetches(files), packStreamed);
+  const menuLoad = startMenuPreload(files, getActiveChunk()), audioLoad = startAudioPreload(files, getActiveChunk());
   startViewmodelTextures(getActiveChunk().weapon !== 'sword'); // the crossbow's + rifle's textures, drawn in a worker while the world builds
   const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk } = world;
@@ -279,6 +283,7 @@ async function main() {
   const fullMap = new FullMap(minimap); // the menu's MAP tab (Menu.ts mounts it); tap the minimap / M to open
   const keepAlive = new KeepAlive();
   await macrotask();
+  await step('menu', (p) => menuLoad.wait(p)); // the cards' art in memory before the title builds its deck (showIntro below)
   const audio = new Audio();
   // the Wildshard theme (docs/plans/MUSIC.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
   const music = new Music(audio);
@@ -482,7 +487,6 @@ async function main() {
   const enter = () => {
     audio.resume();
     audio.worldMuted = false;
-    audio.loadSamples(); // sfx.json's beds / hums / one-shots, now that the player is in (a no-op after the first time)
     if (!music.isPlaying) music.play('theme'); // normally already playing: the title screen's first gesture started it
     if (firstIn) { firstIn = false; music.sting('chunk'); } // the resolve chord on the first frame in
     music.setState({ mode: 'calm', intensity: 0 }); // title → the shard's theme, crossfaded on a bar
@@ -627,6 +631,10 @@ async function main() {
   const programs = () => `${game.renderer.info.programs?.length ?? 0} programs`;
   await step('shaders', (p) => game.precompile((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
   await step('firstFrame', (p) => game.firstFrame((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
+  // last: the audio downloads while the shaders compile; the selected style + set are decoded as their bytes land
+  const banks = await step('audio', (p) => audioLoad.wait(p));
+  if (banks.music) music.useBank(banks.music); // the title theme's first gesture plays the stems at once
+  audio.useSamples(banks.sfx);
   (plan as unknown as { done: () => void }).done(); // throws unless both tracks are exactly 1
   game.start();
   await loading.done();

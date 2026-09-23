@@ -35,9 +35,11 @@ interface Slot { type: string; size: number; blob: Promise<Blob>; resolve: (b: B
 
 /**
  * Start streaming `pack` and answer every GET of a packed path from it. Installed after the byte counter and the
- * service worker (so the pack itself is cached like any other asset). Returns the number of packed files.
+ * service worker (so the pack itself is cached like any other asset). Resolves when the pack has streamed to its end (or
+ * failed and handed its files to per-file requests): src/boot/extras.ts queues the art and audio after it, so they do not
+ * split the pipe with the files the world's steps are waiting for.
  */
-export function streamPack(pack: PackDef, plan: Plan<BootStep>, files: ChunkFiles): number {
+export function streamPack(pack: PackDef, plan: Plan<BootStep>, files: ChunkFiles): Promise<void> {
   const sourceOf = new Map<string, ByteKey>();
   for (const key of Object.keys(files) as ByteKey[]) for (const f of files[key]) sourceOf.set(f, key);
   const slots = new Map<string, Slot>();
@@ -49,7 +51,7 @@ export function streamPack(pack: PackDef, plan: Plan<BootStep>, files: ChunkFile
   }
   const fetchNow = window.fetch.bind(window);
 
-  void (async () => {
+  const streamed = (async () => {
     const res = await fetchNow(pack.url);
     if (!res.ok || !res.body) throw new Error(`${res.status} ${pack.url}`);
     const reader = res.body.getReader();
@@ -102,5 +104,5 @@ export function streamPack(pack: PackDef, plan: Plan<BootStep>, files: ChunkFile
     const u = tierUrl(url);
     return slots.get(pathOf(u))?.url ?? u;
   });
-  return slots.size;
+  return streamed;
 }

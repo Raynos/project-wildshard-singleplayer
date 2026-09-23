@@ -5,7 +5,7 @@ export interface PackDef { readonly url: string; readonly bytes: number; readonl
 export const PACKS: Readonly<Record<string, Readonly<Record<string, PackDef>>>> = {
   "driftwood-isle": {
     "phone": {
-      url: "/assets/packs/driftwood-isle.phone-982bbf86.bin",
+      url: "/assets/packs/driftwood-isle.phone-0d70b99c.bin",
       bytes: 958633,
       files: [
         ["/assets/hdri/kloofendal_48d_partly_cloudy_puresky_2k.sky.jpg",0,350530,"image/jpeg"],

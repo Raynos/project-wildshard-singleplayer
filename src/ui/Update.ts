@@ -36,7 +36,7 @@ const lightUp = (label: string): void => {
 window.addEventListener('ws-sw-waiting', () => { lightUp('build'); });
 
 async function check(): Promise<void> {
-  if (newer) return;
+  if (newer || !navigator.onLine) return; // offline (the PWA plays from its cache): no request that can only fail
   try {
     const r = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
     if (!r.ok) return;

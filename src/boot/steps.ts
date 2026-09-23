@@ -18,8 +18,13 @@ const STEP_ROWS = [
   ['props', 'Props', 1],
   ['animals', 'Herds', 1],
   ['weapon', 'Crossbow · HUD', 1],
+  // docs/plans/PRELOAD-OFFLINE.md: the title / explore art and the lazy UI code (before the title builds its deck)
+  ['menu', 'Title art · explore', 1],
   ['shaders', 'Shaders', 3],
   ['firstFrame', 'First frame', 3],
+  // last, so the shaders compile while it downloads: every audio file (all styles, all sets), the selected music style +
+  // sound-effect set decoded as their bytes land — nothing is fetched after the bar (docs/plans/PRELOAD-OFFLINE.md)
+  ['audio', 'Audio · music + sound effects', 3],
 ] as const satisfies readonly (readonly [string, string, number])[];
 export type BootStep = (typeof STEP_ROWS)[number][0];
 export const STEP_INFO = Object.fromEntries(STEP_ROWS.map(([key, label, weight]) => [key, { label, weight }])) as Record<BootStep, { readonly label: string; readonly weight: number }>;
@@ -32,8 +37,9 @@ export const BOOT_STEPS = STEP_ROWS.map((row) => row[0]) as readonly BootStep[];
  * the number because it is in this table, and complete because its step is — `done()` reads 1
  * by arithmetic, never by reclassification.
  */
-export const BYTE_SOURCES = ['sky', 'baked', 'terrain', 'trees', 'cabins', 'props'] as const;
+export const BYTE_SOURCES = ['sky', 'baked', 'terrain', 'trees', 'cabins', 'props', 'art', 'music', 'sfx'] as const;
 export type ByteKey = (typeof BYTE_SOURCES)[number];
-const CLOSED_BY: Record<ByteKey, BootStep> = { sky: 'sky', baked: 'sky', terrain: 'terrain', trees: 'cards', cabins: 'cabins', props: 'props' };
+const CLOSED_BY: Record<ByteKey, BootStep> = { sky: 'sky', baked: 'sky', terrain: 'terrain', trees: 'cards', cabins: 'cabins', props: 'props', art: 'menu', music: 'audio', sfx: 'audio' };
 export const closedBy = (key: ByteKey): BootStep => CLOSED_BY[key];
-export const byteLabel = (key: ByteKey): string => key === 'trees' ? 'pine bark · twigs' : key === 'baked' ? 'baked textures' : STEP_INFO[closedBy(key)].label.toLowerCase();
+const LABELS: Partial<Record<ByteKey, string>> = { trees: 'pine bark · twigs', baked: 'baked textures', art: 'title art', music: 'music · every style', sfx: 'sound effects · every set' };
+export const byteLabel = (key: ByteKey): string => LABELS[key] ?? STEP_INFO[closedBy(key)].label.toLowerCase();

@@ -32,13 +32,13 @@
       ]
     },
     {
-      "source": "/assets/music/(.*)",
+      "source": "/assets/music/(.*).json",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]
     },
     {
-      "source": "/assets/sfx/(.*)",
+      "source": "/assets/sfx/(.*).json",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]

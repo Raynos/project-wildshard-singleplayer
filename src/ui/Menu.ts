@@ -21,6 +21,7 @@ import { PACK_SLOTS, type Inventory } from '../game/Inventory';
 import { icon, type IconId } from './icons';
 import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, type SettingKey, type NumberKey, type MusicStyle, type SfxSet } from './Settings';
 import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
+import { onAudioBusy } from '../audio/preload';
 import { gfxPrefs, saveGfxPrefs } from '../core/tier';
 import { CAN_VIBRATE } from './haptics';
 import { lockReview, onReview, quickNote, reviewUnlocked, setQuickNote, unlockReview } from './review';
@@ -324,6 +325,8 @@ export class GameMenu {
     const sets: { v: SfxSet; text: string }[] = [{ v: 'sa3-medium', text: 'SA3 Medium' }, { v: 'sa3', text: 'SA3 Small' }, { v: 'synth', text: 'Synth' }];
     const style = picker('Music style', styles, getMusicStyle, setMusicStyle, (fn) => { onMusicStyle(fn); });
     const sfx = picker('Sound effects', sets, getSfxSet, setSfxSet, (fn) => { onSfxSet(fn); });
+    // a pick decodes from the offline cache (docs/plans/PRELOAD-OFFLINE.md): a spinner by the label only past 300 ms
+    onAudioBusy((kind, on) => { (kind === 'music' ? style : sfx).classList.toggle('busy', on); });
     // the licences ask for the models' names in the UI: MiniMax-Music3, and the sfx set's credit ("Powered by Stability AI")
     const sfxNote = el('ws-gmenu-note');
     const paintCredit = () => { const c = sfxCredit(getSfxSet()); sfxNote.textContent = c; sfxNote.hidden = c === ''; };
