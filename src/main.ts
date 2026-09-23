@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { bootstrap } from './core/bootstrap';
+import { installGpuRecovery, RELOAD_PARAM } from './core/GpuRecovery';
 import { CHUNK_HALF, ROAD_LENGTH } from './core/config';
 import { hasPond, heightAt, trailDistance, CABIN_SITES } from './world/Heightfield';
 import { Boundary } from './world/Boundary';
@@ -623,6 +624,8 @@ async function main() {
     const [x = 0, y = 0, z = 0, yaw = player.yaw, pitch = 0] = at;
     player.position.set(x, y, z); player.yaw = yaw; player.pitch = pitch;
   }
+  // back from a GPU-recovery reload (E54): the pose is applied; take it off the address so a later reload spawns as usual
+  if (params.has(RELOAD_PARAM)) { const u = new URL(location.href); u.searchParams.delete(RELOAD_PARAM); u.searchParams.delete('at'); history.replaceState(history.state, '', u); }
 
   await macrotask();
   game.buildComposer();
@@ -637,6 +640,8 @@ async function main() {
   audio.useSamples(banks.sfx);
   (plan as unknown as { done: () => void }).done(); // throws unless both tracks are exactly 1
   game.start();
+  // an app switch that takes the GPU (iOS): hold the loop, restore in place or reload where the player stood (E54)
+  installGpuRecovery({ game, rebuild: () => { sky.rebuildEnvironment(); }, pose: () => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null) });
   await loading.done();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
   (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience };

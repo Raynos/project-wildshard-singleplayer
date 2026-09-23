@@ -36,6 +36,10 @@ export class Game {
   gl = { lostAt: 0, restoredAt: 0, events: 0 };
   /** Return false to skip a whole frame (updaters + render): a menu covering the canvas, a still title on a phone. */
   frameGate: () => boolean = () => true;
+  /** GPU recovery (src/core/GpuRecovery.ts): true while the WebGL context is lost or being rebuilt — no tick, no draw, not even a forced frame */
+  hold = false;
+  /** Restart the frame loop if it has not run for a second (a browser that dropped its animation frame across an app switch). Set by start(). */
+  kickLoop: () => void = () => undefined;
   private captures: { maxW: number; resolve: (c: HTMLCanvasElement) => void }[] = [];
   /** A copy of the next rendered frame, at most `maxW` px wide (the review inbox's screenshot, src/ui/Feedback.ts). The drawing
    *  buffer is not preserved, so the copy is taken in the same task as composer.render(); it resolves on the next frame drawn. */
@@ -205,8 +209,14 @@ export class Game {
     this.canvas.addEventListener('webglcontextrestored', () => { this.gl.restoredAt = performance.now(); console.warn('[gl] context restored after', Math.round(this.gl.restoredAt - this.gl.lostAt), 'ms'); });
     // (A timer-driven loop was tried for iOS Low Power Mode: timers are throttled to ~30 ms there too. rAF it is.)
     const schedule = (fn: () => void) => { requestAnimationFrame(fn); };
-    const loop = () => {
+    // One chain only: every animation-frame callback of a frame gets the same timestamp, so a second chain (kickLoop
+    // restarting a loop that was merely paused) finds its frame taken and ends there.
+    let lastNow = -1, lastRun = performance.now();
+    const loop = (now?: number) => {
+      if (now !== undefined) { if (now === lastNow) return; lastNow = now; }
       schedule(loop);
+      lastRun = performance.now();
+      if (this.hold) { this.clock.getDelta(); return; } // the context is lost / being rebuilt (GpuRecovery.ts): a draw now would re-link every program in one stall
       if (!forceFrame && !this.frameGate()) { this.clock.getDelta(); return; } // keep the clock moving so the next frame's dt is sane
       forceFrame = false;
       this.renderer.info.reset();
@@ -228,6 +238,7 @@ export class Game {
       this.stats.frames++; this.stats.acc += realDt;
       if (this.stats.acc >= 0.5) { this.stats.fps = Math.round(this.stats.frames / this.stats.acc); this.stats.frames = 0; this.stats.acc = 0; }
     };
+    this.kickLoop = () => { if (performance.now() - lastRun > 1000) requestAnimationFrame(loop); };
     loop();
   }
 }

@@ -152,6 +152,19 @@ export class Sky {
     return st.u.uHorizon.value.clone();
   }
 
+  /**
+   * After an in-place WebGL restore (src/core/GpuRecovery.ts, E54): the PMREM environment was a render target, so it came
+   * back empty. Render it again — the stylized dome through refreshEnvironment, the HDR shard from its background texture.
+   */
+  rebuildEnvironment(): void {
+    if (this.stylized) { this.pmrem = null; this.envRT = null; this.refreshEnvironment(); return; } // a fresh generator: the old one's targets belong to the lost context
+    const hdr = this.scene.background;
+    if (!(hdr instanceof THREE.Texture)) return;
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    this.scene.environment = pmrem.fromEquirectangular(hdr).texture;
+    pmrem.dispose();
+  }
+
   /** re-render the dome into the PMREM environment (DayNight calls it when the sky has moved on; ~1 ms of GPU) */
   refreshEnvironment(): void {
     if (!this.stylized) return;
