@@ -31,11 +31,14 @@ describe('species registry', () => {
     }
   });
 
-  it('the first variant (the fallback) is a common-or-uncommon one, and legendaries are the rarest roll', () => {
+  it('the first variant (the fallback) is the species\' most common rarity, and legendaries are the rarest roll', () => {
     for (const s of ALL()) {
       if (s.variants.every((v) => v.rarity === 'legendary')) continue; // a unique boss (the Golden King): nothing but the legend
       const first = s.variants[0];
-      expect(first?.rarity === 'common' || first?.rarity === 'uncommon', s.kind).toBe(true);
+      // huntable species fall back to a common / uncommon animal; an enemy class spawned by name (Nalati's ghost riders: all
+      // rare + their legendary captain) falls back to its most common tier — never to something rarer than it has
+      const lowest = Math.min(...s.variants.map((v) => RARITY_ORDER.indexOf(v.rarity)));
+      expect(first !== undefined && RARITY_ORDER.indexOf(first.rarity) === lowest && first.rarity !== 'legendary', s.kind).toBe(true);
       const legend = s.variants.filter((v) => v.rarity === 'legendary');
       const minOther = Math.min(...s.variants.filter((v) => v.rarity !== 'legendary' && v.weight > 0).map((v) => v.weight));
       for (const l of legend) expect(l.weight, `${s.kind}/${l.id}`).toBeLessThanOrEqual(minOther);
