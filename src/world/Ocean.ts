@@ -152,6 +152,7 @@ export class Ocean {
             float t = pow(clamp(still / uDeepDepth, 0.0, 1.0), 1.2);   // the lagoon stays turquoise; blue only where it is really deep
             vec3 water = mix(uShallow, uDeep, t);
             water *= clamp(1.0 + fn.x * 3.4 + fn.z * 2.0, 0.68, 1.38);  // facet grade: every triangle reads
+            water = mix(water, water * vec3(0.12, 0.3, 0.75), ${isStylized() ? 'uToonNight' : '0.0'});   // a moonlit sea is deep teal-blue, not lagoon cyan
             // ── foam (W2) ──
             float n = vnoise(vOceanW.xz * 0.35 + uTime * 0.12);
             float edge = still + sin(uTime * 1.3 + vOceanW.x * 0.9 + vOceanW.z * 0.4) * 0.1 - vCrest * 0.35;

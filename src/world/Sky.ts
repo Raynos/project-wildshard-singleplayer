@@ -13,6 +13,7 @@ import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
 import { macrotask } from '../boot/plan';
 import { installStylize, toonUniforms } from './stylize';
 import { StylizedSky } from './StylizedSky';
+import { DayNight } from './DayNight';
 
 /** the low-poly shard's sun before the day / night clock moves it: mid-morning from the east-south-east, 38° up */
 const STYLIZED_SUN = new THREE.Vector3(-0.74, 0.616, -0.27).normalize();
@@ -71,14 +72,26 @@ export class Sky {
     this.csm.fade = true;
     if (!TIER_CONFIG.softShadows) this.renderer.shadowMap.type = THREE.PCFShadowMap; // 16-tap PCFSoft → 9-tap PCF on the phone
     patchCSMShaderChunk();
-    for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = 0.05; l.shadow.radius = 2; }
+    // the stylized shard's low sun (golden hour, dawn) grazes the flat decks: more normal bias or the planks speckle with acne
+    for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = this.stylized ? 0.14 : 0.05; l.shadow.radius = this.stylized ? 0.6 : 2; }
 
-    this.scene.add(new THREE.HemisphereLight(S.hemiSky, S.hemiGround, S.hemiIntensity));
+    this.hemi = new THREE.HemisphereLight(S.hemiSky, S.hemiGround, S.hemiIntensity);
+    this.scene.add(this.hemi);
 
     this.buildSunDisc();
     this.buildPlanet();
-    if (this.stylized) this.clouds = this.stylized.dome; // Game.ts keeps `clouds` on the camera: the dome and its cumulus ring
-    else this.buildClouds();
+    if (this.stylized) {
+      const st = this.stylized, fog = this.scene.fog;
+      this.clouds = st.dome; // Game.ts keeps `clouds` on the camera: the dome and its cumulus ring
+      // the day / night clock (L7, D3) turns every knob above from here on
+      if (fog instanceof THREE.Fog) this.dayNight = new DayNight({
+        sunDir: this.sunDir, lights: this.csm.lights, lightDirection: this.csm.lightDirection, hemi: this.hemi, fog,
+        fogSunDir: fogUniforms.fogSunDir.value, fogSunColor: fogUniforms.fogSunColor.value, toon: toonUniforms,
+        setSkyPalette: (pal, dir) => { st.setPalette(pal); st.u.uSunDir.value.copy(dir); },
+        disc: this.sunDisc, planetSun: this.giantUniforms.uSunDir.value, planetHaze: this.giantUniforms.uHaze.value,
+        refreshEnvironment: () => { this.refreshEnvironment(); },
+      }, qn('sunI', S.sunIntensity) / 2.7);
+    } else this.buildClouds();
     return this;
   }
 
@@ -120,6 +133,9 @@ export class Sky {
    * day / night clock's start time. Returns the fog colour (the dome's horizon).
    */
   stylized: StylizedSky | null = null;
+  /** the low-poly shard's day / night clock (DayNight.ts) — null on a PBR shard */
+  dayNight: DayNight | null = null;
+  hemi!: THREE.HemisphereLight;
   private pmrem: THREE.PMREMGenerator | null = null;
   private envRT: THREE.WebGLRenderTarget | null = null;
   private async setupStylized(): Promise<THREE.Color> {
@@ -187,7 +203,7 @@ export class Sky {
   clouds!: THREE.Mesh;
   private cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() } };
 
-  update(dt = 0): void { this.csm.update(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt; if (this.stylized) { this.stylized.update(dt); toonUniforms.uCloudTime.value += dt; } }
+  update(dt = 0): void { this.csm.update(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt; if (this.stylized) { this.dayNight?.update(dt); this.stylized.update(dt); toonUniforms.uCloudTime.value += dt; } }
 
   /** Thin procedural cirrus/cumulus layer on a sky dome — the HDRI has none, and a forest needs a sky with some drama. */
   private buildClouds() {

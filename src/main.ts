@@ -243,6 +243,8 @@ async function main() {
   });
   // the island's enemies (Enemies.ts): reef crabs at the tidepools, coconut monkeys in the groves, the drowned sailor in the wreck's hold
   const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [] }).build() : null;
+  const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
+  if (dayNight) animals.enemyWorld.night = () => dayNight.night;
 
   // ── player kit: the shard's weapon + the AR-15 (Weapons.ts: 1 / 2 / Q, touch SWAP; the rifle is a cabin pickup), HUD, audio ──
   await step('weapon', () => viewmodelTexturesReady()); // the viewmodels' textures from the worker (usually long done); the build below is synchronous
@@ -562,6 +564,7 @@ async function main() {
     bridge?.update(dt);
     seabed?.update(dt);
     cove?.update(dt); shrine?.update(dt); enemies?.update(dt, t, player.position);
+    if (dayNight) { shrine?.setDusk(dayNight.dusk); if (ambience) ambience.night = dayNight.night; }
     hands.update(dt, player);
     horizon.update(dt, game.camera);
     grass?.update(dt, player.position);

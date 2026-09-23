@@ -40,6 +40,8 @@ export const toonUniforms = {
   uToonShadeGrade: { value: 0.0 },
   /** cloud shadows (L4): strength 0..1, scroll time (s), wind (m/s xz), feature size (m) */
   uCloudShadow: { value: 0.6 },
+  /** 0 = day … 1 = night (DayNight): the sea darkens its lagoon tint by it */
+  uToonNight: { value: 0 },
   uCloudTime: { value: 0 },
   uCloudWind: { value: new THREE.Vector2(3.2, 1.4) },
   uCloudScale: { value: 34 },
@@ -58,6 +60,7 @@ uniform vec3 uToonRim;
 uniform vec3 uToonTerm;
 uniform float uToonShadeGrade;
 uniform float uCloudShadow;
+uniform float uToonNight;
 uniform float uCloudTime;
 uniform vec2 uCloudWind;
 uniform float uCloudScale;
@@ -83,8 +86,9 @@ void RE_Direct_Toon( const in IncidentLight directLight, const in vec3 geometryP
 		vec3 sunCol = directionalLights[ 0 ].color;
 		float shadow = clamp( dot( directLight.color, vec3( 1.0 ) ) / max( dot( sunCol, vec3( 1.0 ) ), 1e-5 ), 0.0, 1.0 );
 		float NdL = dot( geometryNormal, directLight.direction );
-		float x = max( NdL, 0.0 ) * shadow;
-		float band = smoothstep( 0.14, 0.2, x );                     // a hard step: a facet is lit or it is shade
+		// a hard step on the facet's turn to the light (a facet is lit or it is shade); a softer one on the cast shadow, whose
+		// PCF penumbra is dithered noise that a hard threshold would turn into speckle
+		float band = smoothstep( 0.14, 0.2, NdL ) * smoothstep( 0.25, 0.75, shadow );
 		float grade = 0.8 + 0.2 * saturate( NdL );                  // the lit band keeps a faint facet grade
 		vec3 alb = material.diffuseContribution;
 		float cloud = toonCloud( geometryPosition );                  // L4: drifting cloud shade dims the lit band, never flips it
