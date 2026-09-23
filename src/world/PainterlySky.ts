@@ -112,9 +112,10 @@ function makeCumulusAtlas(seed: number): THREE.DataTexture {
   const W = 4096, H = 340, pxDeg = W / 360; // ≈ 11.4 px per degree, both axes (H covers EL_MAX)
   const rng = new Rng(seed);
   const clusters: Cluster[] = [];
-  for (let i = 0; i < 26; i++) {
-    const south = i < 13;
-    const az = south ? 100 + rng.next() * 180 : rng.next() * 360;
+  // every quarter of the sky gets its heaps (the camp looks north, the plateau south); the south a few more
+  for (let i = 0; i < 30; i++) {
+    const south = i < 10;
+    const az = south ? 100 + rng.next() * 180 : (i * 137.5 + rng.next() * 40) % 360;
     clusters.push({ x: az * pxDeg, base: (3 + rng.next() * (south ? 6 : 9)) * pxDeg, w: ((south ? 7 : 4) + rng.next() * (south ? 12 : 8)) * pxDeg, h: ((south ? 5 : 3) + rng.next() * (south ? 11 : 5)) * pxDeg });
   }
   return rasterCumulus(W, H, clusters, rng, false, 3 / pxDeg, 0.13);
@@ -127,6 +128,33 @@ function makePuffSheet(seed: number): THREE.DataTexture {
   const clusters: Cluster[] = [];
   for (let i = 0; i < 22; i++) clusters.push({ x: rng.next() * N, base: rng.next() * N, w: 30 + rng.next() * 70, h: 10 + rng.next() * 30 });
   return rasterCumulus(N, N, clusters, rng, true, 0.35, 0.16);
+}
+
+/**
+ * For any painted sky layer (a matte backdrop, a far range, a mountain card): put it in the same air and the same hour
+ * as everything else. Declare the uniforms from `skyLayerUniforms(sky)` (Sky.skyLayer), paste SKY_LAYER_GLSL into the
+ * fragment shader, and finish with `gl_FragColor.rgb = skyLayer(col, dir, haze)`:
+ *   col   the layer's painted colour (linear, as painted for the def's day)
+ *   dir   the world view direction (normalize(worldPos - cameraPosition)), for the sun-side warmth
+ *   haze  0..1, how far back this layer sits (0.2 front spurs … 0.6 the farthest ridges): it dissolves into the live
+ *         horizon haze (the fog colour the day/night rig and the storms drive), warmer toward the sun
+ * uLight dims / tints the whole layer with the hour and the storm (the rig's cloud light: night, a slate storm deck).
+ */
+export const SKY_LAYER_GLSL = /* glsl */`
+  uniform vec3 uSkyHaze; uniform vec3 uSkyLight; uniform vec3 uSkySunDir; uniform vec3 uSkySunColor;
+  vec3 skyLayer( vec3 col, vec3 dir, float haze ) {
+    float sunSide = pow( max( dot( dir, uSkySunDir ), 0.0 ), 3.0 );
+    vec3 h = mix( uSkyHaze, uSkyHaze * mix( vec3( 1.0 ), uSkySunColor, 0.35 ), sunSide );
+    return mix( col, h, clamp( haze, 0.0, 1.0 ) ) * uSkyLight;
+  }
+`;
+export interface SkyLayerUniforms {
+  uSkyHaze: THREE.IUniform<THREE.Color>; uSkyLight: THREE.IUniform<THREE.Color>;
+  uSkySunDir: THREE.IUniform<THREE.Vector3>; uSkySunColor: THREE.IUniform<THREE.Color>;
+}
+/** the live uniform objects for SKY_LAYER_GLSL, wired to the cloud rig (share them, don't copy: the rig writes them) */
+export function skyLayerUniforms(u: CloudUniforms, haze: THREE.Color): SkyLayerUniforms {
+  return { uSkyHaze: { value: haze }, uSkyLight: u.uLight, uSkySunDir: u.uSunDir, uSkySunColor: u.uSunColor };
 }
 
 /** the soft three-band cloud ramp + colours shared by both layers (GLSL) */
@@ -159,7 +187,7 @@ const CLOUD_LIGHT = /* glsl */`
 export function buildPainterlyClouds(u: CloudUniforms, haze: THREE.Color, noise: THREE.Texture, seed = 0x5c1d): THREE.Group {
   const group = new THREE.Group();
   group.name = 'painterly-clouds';
-  const hazeU = { value: haze.clone() };
+  const hazeU = { value: haze }; // the live fog colour (the day/night rig recolours it)
 
   // ── the cumulus bank ──
   const atlas = makeCumulusAtlas(seed);

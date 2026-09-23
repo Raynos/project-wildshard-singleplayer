@@ -3,7 +3,8 @@ import { TIER_CONFIG } from '../core/tier';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { loadHDR } from '../core/assets';
 import { fogUniforms, paintedAir, patchCloudShadows, isPaintedAir } from './Atmosphere';
-import { buildPainterlyClouds } from './PainterlySky';
+import { buildPainterlyClouds, skyLayerUniforms, type SkyLayerUniforms } from './PainterlySky';
+import { buildPainterlyRange } from './PainterlyRange';
 import { wind } from './Wind';
 import { Noise2D } from '../core/noise';
 import { Rng } from '../core/rng';
@@ -151,6 +152,10 @@ export class Sky {
   /** the cloud layer(s) — Game.ts keeps them centred on the camera */
   clouds!: THREE.Object3D;
   private cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() }, uLight: { value: new THREE.Color(1, 1, 1) }, uDrift: { value: new THREE.Vector2() } };
+  /** a painted sky's layer uniforms for SKY_LAYER_GLSL (PainterlySky.ts): a backdrop / far-range shader shares the air + the hour */
+  skyLayer: SkyLayerUniforms | null = null;
+  /** the painted snow range (PainterlyRange.ts), painterly skies only */
+  paintedRange: THREE.Mesh | null = null;
   /** the painterly air's uniforms (aerial perspective, cloud shadows — Atmosphere.ts `paintedAir`), for live tuning (`__world.sky.air`) */
   readonly air = paintedAir;
   /** a painted sky (Nalati): the painterly clouds + the cloud shadows drift with the one Wind */
@@ -208,7 +213,15 @@ export class Sky {
       paintedAir.fogCloudTex.value = tex;
       this.cloudUniforms.uSunDir.value.copy(this.sunDir);
       this.cloudUniforms.uSunColor.value.set(...getActiveChunk().sky.cloudSunColor);
-      this.clouds = buildPainterlyClouds(this.cloudUniforms, (this.scene.fog as THREE.Fog).color, tex);
+      const haze = (this.scene.fog as THREE.Fog).color; // live: the day/night rig recolours it
+      this.clouds = buildPainterlyClouds(this.cloudUniforms, haze, tex);
+      this.skyLayer = skyLayerUniforms(this.cloudUniforms, haze);
+      // the procedural painted snow range (PainterlyRange.ts): opt-in `?paintedrange=1` — the shard's range is the horizon
+      // ring (Horizon.ts) + the painted matte backdrop (the painted-asset agent); this stays as a fallback / comparison
+      if (new URLSearchParams(location.search).get('paintedrange') === '1') {
+        this.paintedRange = buildPainterlyRange(this.renderer, this.cloudUniforms, haze);
+        this.clouds.add(this.paintedRange);
+      }
       this.scene.add(this.clouds);
       return;
     }

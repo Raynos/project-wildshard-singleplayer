@@ -27,7 +27,7 @@ export const fogUniforms = {
  */
 export const paintedAir = {
   /** x = metres of clear air before the haze starts, y = the haze cap (0..1), z = desaturation share, w = sun-side warmth */
-  fogAerial: { value: new THREE.Vector4(35, 0.62, 0.45, 0.65) },
+  fogAerial: { value: new THREE.Vector4(30, 0.72, 0.5, 0.65) },
   /** the cloud-cover field (a tileable fbm, R) */
   fogCloudTex: { value: null as THREE.Texture | null },
   /** x = 1 / tile size (1/m), y = coverage threshold (higher = fewer clouds), z = shadow strength 0..1, w = edge softness */
