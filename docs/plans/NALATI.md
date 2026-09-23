@@ -1,6 +1,6 @@
 # Nalati Grasslands — the master plan
 
-**State:** `in progress` 2026-09-23 — ~55 % overall (gameplay ~80 %, look ~30 %, ship 0 %). Built solo from here (no subagents). Order: **Phase A the look → Phase B the features → Phase C ship**; then the user merges the branch himself and polishes / balances (Phase D). Playable preview: https://nalati-grasslands.vercel.app/?chunk=nalati-grasslands (a separate Vercel project, built from a clean export of the branch — never a git push). Asks N4–N8.
+**State:** `in progress` 2026-09-23 — ~55 % overall (gameplay ~80 %, look ~30 %, ship 0 %). Built by the parent + up to 3 build agents (models, look, features). Order: **Phase A the look → Phase B the features → Phase C ship**; then the user merges the branch himself and polishes / balances (Phase D). Playable preview: https://nalati-grasslands.vercel.app/?chunk=nalati-grasslands (a separate Vercel project, built from a clean export of the branch — never a git push). Asks N4–N8.
 
 The third shard (ASKS P6). A high alpine steppe in the Tian Shan, laid out like the real Nalati: you arrive in the
 Kunes river valley (yurts, sheep, the bridge), climb spruce gullies up the escarpment, and the **Sky Grassland**
@@ -79,7 +79,7 @@ user: D, E and A are the closest), round 8 for the three-zone layout + Snow Lotu
 
 | topic | decision |
 |---|---|
-| **Build** | **zero subagents** — the main agent builds the whole feature (token cost) |
+| **Build** | **up to 3 build subagents** with disjoint files (the user, after a solo stretch: "use up to 3 subagents … I can't tell if you're making progress"); the parent integrates, measures, deploys previews and shows progress with images |
 | **Order** | **the look first**, then the features, then ship |
 | **Git** | the worktree **never pushes**; **the user merges the branch himself** later (squash, mockup PNGs → JPEG) |
 | **Previews** | playable previews go to their **own Vercel project** (`nalati-grasslands`), built from a clean `git archive HEAD` export — never the main project, never a push |
