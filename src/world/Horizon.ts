@@ -124,7 +124,8 @@ export class Horizon {
           {
             vec3 ray = normalize(vFogWorldPos - cameraPosition);
             float sunAmt = max(dot(ray, fogSunDir), 0.0);
-            vec3 hazeCol = mix(uHazeCol, fogSunColor * 0.9, pow(sunAmt, 3.0) * 0.7);
+            // the live fog colour (the day/night clock and the storms drive it), so the ranges dim and redden with the sky
+            vec3 hazeCol = mix(mix(uHazeCol, fogColor, 0.85), fogSunColor * 0.9, pow(sunAmt, 3.0) * 0.7);
             gl_FragColor.rgb = mix(gl_FragColor.rgb, hazeCol, uHaze);
           }`);
     };

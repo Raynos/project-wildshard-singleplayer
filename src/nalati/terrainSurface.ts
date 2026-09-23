@@ -57,6 +57,7 @@ const FRAG_MAIN = /* glsl */`
 #include <color_fragment>
 {
   vec2 wp = vTWorld.xz;
+  float near = 1.0 - smoothstep( 22.0, 60.0, length( vTWorld - cameraPosition ) ); // fine detail fades out before it can shimmer
   float grain = tNoise( wp * 1.1 ) * 0.55 + tNoise( wp * 3.7 + 17.0 ) * 0.45;
   diffuseColor.rgb *= 0.88 + 0.24 * grain;
   vec3 ground = diffuseColor.rgb;
@@ -70,19 +71,21 @@ const FRAG_MAIN = /* glsl */`
     diffuseColor.rgb = mix( ground, rock, vSurf.w );
   }
 
-  // ── gravel bars: rounded pebbles ──
+  // ── gravel bars: rounded pebbles (10–25 cm) packed in sand, bigger cobbles in patches, darker and greener where wet ──
   if ( vSurf.y > 0.02 ) {
-    vec2 pb = tPebbles( wp * 3.2 );
-    vec2 pb2 = tPebbles( wp * 7.5 + 3.1 );
+    float cob = smoothstep( 0.45, 0.75, tNoise( wp * 0.35 + 7.0 ) );             // cobble patches vs fine gravel
+    vec2 pb = tPebbles( wp * mix( 9.0, 5.0, cob ) );
+    vec2 pb2 = tPebbles( wp * 19.0 + 3.1 );
     float h1 = pb.y, h2 = fract( pb.y * 7.13 );
-    vec3 stone = mix( vec3( 0.46, 0.45, 0.42 ), vec3( 0.58, 0.5, 0.38 ), h1 );
-    stone = mix( stone, vec3( 0.32, 0.33, 0.34 ), step( 0.8, h2 ) * 0.7 );
-    stone *= 0.8 + 0.3 * h2;
-    float gap = smoothstep( 0.02, 0.16, pb.x );
-    float small = smoothstep( 0.03, 0.14, pb2.x );
-    vec3 bar = mix( vec3( 0.2, 0.19, 0.17 ), stone, gap ) * mix( 0.8, 1.0, small );
-    // the wet margin by the water: darker, a touch of green algae
-    bar = mix( bar, bar * vec3( 0.62, 0.68, 0.64 ), smoothstep( -9.2, -9.9, vTWorld.y ) );
+    vec3 stone = mix( vec3( 0.52, 0.5, 0.47 ), vec3( 0.62, 0.55, 0.44 ), h1 );
+    stone = mix( stone, vec3( 0.38, 0.39, 0.41 ), step( 0.78, h2 ) * 0.7 );
+    stone *= 0.82 + 0.28 * smoothstep( 0.0, 0.35, pb.x ); // domed: lighter in the middle of each stone
+    vec3 sand = vec3( 0.56, 0.51, 0.42 ) * ( 0.9 + 0.2 * tNoise( wp * 5.0 ) );
+    float gap = smoothstep( 0.03, 0.11, pb.x );
+    vec3 bar = mix( sand * 0.8, stone, gap );
+    bar = mix( bar * 0.9, bar, smoothstep( 0.02, 0.09, pb2.x ) );                // fine grit between
+    bar = mix( vec3( 0.5, 0.47, 0.42 ), bar, 0.35 + 0.65 * near );
+    bar = mix( bar, bar * vec3( 0.66, 0.7, 0.66 ), smoothstep( -9.2, -9.9, vTWorld.y ) );
     diffuseColor.rgb = mix( diffuseColor.rgb, bar, vSurf.y );
   }
 
@@ -97,10 +100,10 @@ const FRAG_MAIN = /* glsl */`
     dirt = mix( dirt, dirt * vec3( 0.72, 0.68, 0.64 ), rut * 0.85 );
     dirt = mix( dirt, dirt * 1.12, smoothstep( 0.9, 1.4, across ) * ( 1.0 - smoothstep( 1.6, 2.2, across ) ) ); // the raised shoulder between rut and edge
     // stones: scattered on the shoulders and thick along the edge
-    vec2 st = tPebbles( wp * 1.9 + 11.0 );
+    vec2 st = tPebbles( wp * 3.0 + 11.0 );
     float stoneMask = smoothstep( 0.2, 0.34, st.x ) * step( 0.72 - 0.35 * smoothstep( 1.5, 2.8, across ), st.y );
     vec3 stoneCol = mix( vec3( 0.6, 0.58, 0.53 ), vec3( 0.7, 0.66, 0.58 ), fract( st.y * 9.1 ) );
-    dirt = mix( dirt, stoneCol, stoneMask * 0.9 );
+    dirt = mix( dirt, stoneCol, stoneMask * 0.9 * near );
     // the grassy crown between the ruts
     float crown = ( 1.0 - smoothstep( 0.25, 0.55, across ) ) * smoothstep( 0.35, 0.7, tNoise( wp * 1.3 + 2.0 ) );
     dirt = mix( dirt, ground * 1.05, crown * 0.85 );

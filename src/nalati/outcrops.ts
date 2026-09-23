@@ -97,6 +97,34 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
     if (h > 1.1) colliders.push({ x, z, hw: w * 0.42, hd: d * 0.42, rot: yaw, yTop: y + h * 0.5, yBottom: y - h });
     count++;
   }
+  // the waterfall's ravine: rock walls either side from the head wall down to the valley, a jumble at the fall's foot
+  for (let z = WATERFALL.z - 2; z <= 80; z += 3.2) {
+    const t = (z - WATERFALL.z) / 110; // 0 at the head wall → 1 at the ravine mouth
+    for (const side of [-1, 1]) {
+      if (rng.next() > 0.85 - t * 0.4) continue;
+      const x = WATERFALL.x + side * rng.range(4.5, 10 + t * 6);
+      if (trailDistance(x, z) < 5) continue;
+      const [nx, ny, nz] = normalAt(x, z, 1.5);
+      const size = rng.range(1.1, 2.6) * (1.2 - t * 0.5);
+      const w = size * rng.range(1.2, 2.2), h = size * rng.range(1.0, 1.8), d = size * rng.range(1.0, 1.6);
+      const yaw = Math.atan2(nx, nz) + Math.PI / 2 + rng.range(-0.4, 0.4);
+      const y = heightAt(x, z) - h * 0.28;
+      kit.add(graniteBlock(w, h, d, rng.int(1, 1e6), 0.26), rng.next() < 0.5 ? C.granite : C.cool, {
+        matrix: M(x, y, z, yaw, 1, 1, 1, (1 - ny) * 0.8, 0), top: { color: C.moss, threshold: 0.6, amount: 0.45 }, brush: 0.14, foot: 0.7,
+      });
+      if (h > 1.1) colliders.push({ x, z, hw: w * 0.42, hd: d * 0.42, rot: yaw, yTop: y + h * 0.5, yBottom: y - h });
+      count++;
+    }
+  }
+  // the river's channels: boulders standing in the current (the white water breaks round them)
+  for (let x = -240; x <= 240; x += 7) {
+    if (rng.next() > 0.55 || Math.abs(x) < 16) continue;
+    const u = rng.range(-0.9, 0.9), bx = x + rng.range(-3, 3), bz = RIVER.z(bx) + u * RIVER.half(bx);
+    if (heightAt(bx, bz) > RIVER.level - 0.3) continue; // only where there is water over the bed
+    const r = rng.range(0.5, 1.2);
+    kit.add(blob(r, rng, 1, 0.65, 0.16), C.cool, { matrix: M(bx, heightAt(bx, bz) + r * 0.2, bz, rng.range(0, 6.28)), brush: 0.1, foot: 0.6 });
+    count++;
+  }
   // the river banks: rounded boulders along both edges of the gravel corridor and a few out on the bars
   for (let x = -244; x <= 244; x += 5) {
     for (const side of [-1, 1]) {

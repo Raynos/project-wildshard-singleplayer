@@ -6,6 +6,7 @@
  * ribbon on the brook and the fall. Fogged like everything else. Three draw calls, one program.
  *
  *   const water = new NalatiWater(sky).build();  scene.add(water.group);  water.update(dt);
+ *   water.setLight({ brightness, sky, sun });  water.setRain(0..1);   // day/night + weather (src/nalati/weather.ts)
  */
 import * as THREE from 'three';
 import { heightAt } from '../world/Heightfield';
@@ -34,6 +35,7 @@ void main() {
 
 const FRAG = /* glsl */`
 uniform float uTime; uniform vec3 uShallow; uniform vec3 uDeep; uniform vec3 uSky; uniform vec3 uFoam; uniform vec3 uSunDir; uniform vec3 uSunCol;
+uniform float uBright; uniform float uRain;
 varying float vDepth; varying float vFlow; varying float vAcross; varying float vFall;
 varying vec3 vW;
 #include <common>
@@ -46,8 +48,10 @@ void main() {
   vec3 col = mix(uShallow, uDeep, smoothstep(0.1, 1.4, d));
   // painted sky sheen at grazing angles, a warm glint toward the sun
   vec3 V = normalize(cameraPosition - vW);
-  float fres = pow(1.0 - clamp(V.y, 0.0, 1.0), 4.0);
-  col = mix(col, uSky, fres * 0.35);
+  // at grazing angles the water turns to the sky it reflects (the pale horizon), so a far channel reads as a soft sheen,
+  // not a neon line
+  float fres = pow(1.0 - clamp(V.y, 0.0, 1.0), 3.0);
+  col = mix(col, uSky, fres * 0.75);
   vec3 R = reflect(-V, vec3(0.0, 1.0, 0.0));
   col += uSunCol * pow(max(dot(R, uSunDir), 0.0), 60.0) * 0.8;
   // flow streaks: long noise dashes scrolling downstream, denser over the shallows (riffles) and on the fall
@@ -55,10 +59,17 @@ void main() {
   vec2 q = vec2(vFlow * mix(260.0, 40.0, vFall) - uTime * speed * mix(1.0, 6.0, vFall), vAcross * mix(9.0, 5.0, vFall));
   float streak = smoothstep(0.62, 0.9, vnoise(q * vec2(0.18, 1.0)) * 0.7 + vnoise(q * vec2(0.5, 2.3) + 7.0) * 0.3);
   // riffles: white water where the channel shoals onto the bars, broken by the streaks
-  float riffle = 1.0 - smoothstep(0.08, 0.45, d);
-  float edgeFoam = riffle * smoothstep(0.35, 0.75, vnoise(vec2(vFlow * 420.0 - uTime * 0.9, vAcross * 22.0)) + 0.25);
+  float riffle = 1.0 - smoothstep(0.08, 0.55, d);
+  // white water: world-space dashes stretched along the flow (+x on the river), racing downstream
+  vec2 wq = vec2(vW.x * 0.3 - uTime * 1.4, vW.z * 1.6);
+  float white = smoothstep(0.46, 0.72, vnoise(wq) * 0.65 + vnoise(wq * vec2(2.3, 2.1) + 5.0) * 0.35);
+  float edgeFoam = riffle * (0.35 + 0.65 * white) + white * 0.35 * (1.0 - vFall);
   float foam = clamp(streak * (0.35 + 0.65 * riffle) + edgeFoam * 0.85 + vFall * (0.35 + streak * 0.6), 0.0, 1.0);
   col = mix(col, uFoam, foam * 0.8);
+  // rain: a fine field of rings flickering on the surface
+  float drop = step(0.93, h21(floor(vW.xz * 2.5) + floor(uTime * 6.0))) * uRain;
+  col = mix(col, uFoam * 0.9, drop * 0.5);
+  col *= uBright;
   // the fall: vertical white ropes over a green-turquoise sheet, racing down
   float rope = smoothstep(0.35, 0.85, vnoise(vec2(vAcross * 11.0, vFlow * 55.0 - uTime * 3.2)) * 0.75 + vnoise(vec2(vAcross * 29.0 + 3.0, vFlow * 120.0 - uTime * 4.1)) * 0.35);
   col = mix(col, mix(uShallow * 1.5, uFoam, 0.5 + 0.5 * rope), step(0.9, vFall));
@@ -72,12 +83,14 @@ export class NalatiWater {
   group = new THREE.Group();
   private uniforms = {
     uTime: { value: 0 },
-    uShallow: { value: new THREE.Color(0.06, 0.6, 0.66) },
-    uDeep: { value: new THREE.Color(0.0, 0.24, 0.46) },
-    uSky: { value: new THREE.Color(0.5, 0.75, 1.0) },
+    uShallow: { value: new THREE.Color(0.34, 0.66, 0.64) },
+    uDeep: { value: new THREE.Color(0.1, 0.38, 0.5) },
+    uSky: { value: new THREE.Color(0.62, 0.78, 0.98) },
     uFoam: { value: new THREE.Color(0.95, 0.98, 1.0) },
     uSunDir: { value: new THREE.Vector3(0, 1, 0) },
     uSunCol: { value: new THREE.Color(1, 0.9, 0.7) },
+    uBright: { value: 1 },
+    uRain: { value: 0 },
   };
 
   constructor(private sky: Sky) {}
@@ -98,6 +111,20 @@ export class NalatiWater {
   }
 
   update(dt: number): void { this.uniforms.uTime.value += dt; }
+
+  /**
+   * The light on the water, for the day/night clock and the weather (the shader is unlit: its colours are painted):
+   * `brightness` scales everything (1 = the day it was painted for, ~0.1 at night), `sky` is the colour it reflects at
+   * grazing angles (the live horizon), `sun` the glint colour × intensity. Omitted fields are left as they are.
+   */
+  setLight(o: { brightness?: number; sky?: THREE.Color; sun?: THREE.Color }): void {
+    if (o.brightness !== undefined) this.uniforms.uBright.value = o.brightness;
+    if (o.sky) this.uniforms.uSky.value.copy(o.sky);
+    if (o.sun) this.uniforms.uSunCol.value.copy(o.sun);
+  }
+
+  /** rain on the water, 0 (dry) … 1 (a downpour): flickering drop rings over the whole surface */
+  setRain(wetness: number): void { this.uniforms.uRain.value = Math.min(1, Math.max(0, wetness)); }
 
   /** the Kunes: a strip following the corridor's centreline, full width, with per-vertex depth over the bed */
   private river(mat: THREE.Material): THREE.Mesh {
