@@ -226,9 +226,9 @@ function clutter(kit: PaintKit, rng: Rng, kind: number, x: number, y: number, z:
     }
     case 4: { // grain / wool sacks slumped together
       for (let i = 0; i < 3; i++) {
-        const p = at(i * 0.5 - 0.5, rng.range(-0.15, 0.15));
-        kit.add(blob(0.34, rng, 2, 1.25, 0.12), C.sack, { matrix: M(p.x, p.y + 0.3, p.z, rng.range(0, 6), 1, 1, 0.85, rng.range(-0.2, 0.2), rng.range(-0.25, 0.25)), brush: 0.12 });
-        kit.add(new THREE.CylinderGeometry(0.06, 0.08, 0.12, 6), C.rope, { matrix: M(p.x, p.y + 0.72, p.z) });
+        const p = at(i * 0.36 - 0.36, rng.range(-0.12, 0.12));
+        kit.add(blob(0.22, rng, 2, 1.3, 0.12), C.sack, { matrix: M(p.x, p.y + 0.2, p.z, rng.range(0, 6), 1, 1, 0.85, rng.range(-0.2, 0.2), rng.range(-0.25, 0.25)), brush: 0.12 });
+        kit.add(new THREE.CylinderGeometry(0.04, 0.05, 0.08, 6), C.rope, { matrix: M(p.x, p.y + 0.48, p.z) });
       }
       break;
     }
