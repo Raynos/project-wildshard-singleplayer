@@ -25,6 +25,8 @@ import { Voices } from './Voices';
  *   audio.footstep(sprinting, 'litter'|'planks'|'sand')                          // surface: pine litter (default), the pier deck, the beach
  *   audio.setAmbient(true|false)  audio.setAmbient('forest'|'island')   audio.muted = true|false   audio.master.gain (0.6)
  *   audio.worldMuted = true|false        // sfx + ambient only (the title screen: the music plays, the frozen world is quiet)
+ *   audio.useZonedAmbience()             // Driftwood: src/audio/IslandAmbience.ts owns the island's beds — the synth island bed is not started
+ *   audio.world                          // the bus sfx + ambient share (IslandAmbience sends its reverb returns here)
  *   audio.hurt(strength, pan)  audio.death()   // the player takes a hit (strength = dmg / 20, pan toward the attacker) / dies — both shards (B3)
  *   audio.voices                         // the procedural one-shot bank (src/audio/Voices.ts + gen.ts): Driftwood's footsteps + combat layers (IslandSfx)
  *
@@ -126,6 +128,17 @@ export class Audio {
   get master(): GainNode { return this.graph().master; }
   get sfx(): GainNode { return this.graph().sfx; }
   get ambient(): GainNode { return this.graph().ambient; }
+  /** sfx + ambient's shared bus (hushed on the title screen) — reverb returns go here */
+  get world(): GainNode { return this.graph().world; }
+  /** the master low-pass under water: cutoff (Hz) and ramp (s); Driftwood sets 500 / 0.15 (S2), Pine Hollow keeps 520 / 0.3 */
+  underwaterCutoff = 520; underwaterRamp = 0.3;
+  private zoned = false;
+  /** a zoned ambience (IslandAmbience) replaces the synth island bed: it is stopped / never started (a sampled bed still plays) */
+  useZonedAmbience(): void {
+    if (this.zoned) return;
+    this.zoned = true;
+    if (this.started && !this.sampleBed && this.bed === 'island') { this.stopBed(); this.startBed(); }
+  }
   /** the graph exists (a gesture has happened) — per-frame callers check this so they never create the context */
   get ready(): boolean { return this.g !== undefined; }
   /** a decoded bed / hum from sfx.json, or undefined (the caller plays its synth version) */
@@ -627,7 +640,7 @@ export class Audio {
     const c = this.ctx, t = c.currentTime;
     this.muffle.frequency.cancelScheduledValues(t);
     this.muffle.frequency.setValueAtTime(this.muffle.frequency.value, t);
-    this.muffle.frequency.exponentialRampToValueAtTime(on ? 520 : 20000, t + 0.3);
+    this.muffle.frequency.exponentialRampToValueAtTime(on ? this.underwaterCutoff : 20000, t + this.underwaterRamp);
     if (!this.underGain) {
       // the hum: brown-ish noise through a 90 Hz lowpass, swelling on a slow LFO; lives on the ambient bus (mutes with it)
       this.underGain = c.createGain(); this.underGain.gain.value = 0; this.underGain.connect(this.ambient);
@@ -900,7 +913,7 @@ export class Audio {
     const l = this.loops.get(this.bed);
     this.sampleBed = l !== undefined;
     if (l) this.startSampleBed(l);
-    else if (this.bed === 'island') this.startIsland(); else this.startForest();
+    else if (this.bed === 'island') { if (!this.zoned) this.startIsland(); } else this.startForest();
   }
   /** sfx.json's bed for this shard: one looping source faded in over 2 s (replaces the synth winds, birds, gusts and surf) */
   private startSampleBed(l: SampleLoop) {

@@ -11,7 +11,7 @@
  * runs per frame; setListener only stores four numbers.
  */
 import type { Vector3 } from 'three';
-import { footstep, whoosh, impact, vocal, windup, hurt, death, plunge, bubbleBed, impulseChannel, STEP_KINDS, MATERIALS, ENEMIES, type Room } from './gen';
+import { footstep, whoosh, impact, vocal, windup, hurt, death, plunge, bubbleBed, noiseLoop, impulseChannel, STEP_KINDS, MATERIALS, ENEMIES, type Room } from './gen';
 
 interface Host { readonly ctx: AudioContext; readonly sfx: GainNode; readonly ready: boolean }
 type Gen = (sr: number, seed: number) => Float32Array;
@@ -37,6 +37,8 @@ export const FAMILIES: Record<string, Family> = {
   'plunge-down': fam(2, (sr, s) => plunge(sr, s, false)),
   'plunge-up': fam(2, (sr, s) => plunge(sr, s, true)),
   'bubble-bed': fam(1, (sr, s) => bubbleBed(sr, s), true),
+  'noise-white': fam(1, (sr, s) => noiseLoop(sr, s, false)),
+  'noise-pink': fam(1, (sr, s) => noiseLoop(sr, s, true)),
   'ir-hold': room('hold'), 'ir-cave': room('cave'), 'ir-shrine': room('shrine'),
 };
 export type FamilyName = keyof typeof FAMILIES;
@@ -101,6 +103,9 @@ export class Voices {
     }
     return list[v];
   }
+
+  /** every channel of every variant of `name` is rendered (a caller can build on it without a synchronous render) */
+  has(name: FamilyName): boolean { const f = FAMILIES[name]; if (!f) return false; for (let v = 0; v < f.n; v++) for (let c = 0; c < f.ch; c++) if (!this.done.has(`${name}/${v}/${c}`)) return false; return true; }
 
   /** a family's first variant (the IRs, the bubble bed), rendered now if it is not yet */
   buffer(name: FamilyName): AudioBuffer | undefined { return this.host.ready ? this.variant(name, 0) : undefined; }

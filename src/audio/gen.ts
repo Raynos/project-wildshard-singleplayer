@@ -16,6 +16,7 @@
  *   plunge(sr, seed, up)                crossing the water surface (down: a plunge + bubble cloud; up: sheeting water)
  *   bubbleBed(sr, seed)                 a seamless 6 s loop of underwater bubbles + pressure rumble
  *   impulse(room, sr, seed)             [L, R] impulse responses: 'hold' 0.6 s · 'cave' 1.5 s · 'shrine' 2.5 s
+ *   noiseLoop(sr, seed, pink)           a seamless 4 s white / pink noise loop (the ambience beds' raw material)
  */
 import { Biquad, Formants, Glottis, Modes, Pink, Rand, ad, fade, len, mix, normalize, saturate, type FilterType } from './dsp';
 
@@ -456,6 +457,14 @@ export function impulseChannel(room: Room, sr: number, seed: number, ch: number)
 }
 /** both channels */
 export function impulse(room: Room, sr: number, seed: number): [Float32Array, Float32Array] { return [impulseChannel(room, sr, seed, 0), impulseChannel(room, sr, seed, 1)]; }
+
+/** a seamless noise loop for the ambience beds (white, or pink with its 1/f tilt), the end crossfaded into the start */
+export function noiseLoop(sr: number, seed: number, pink: boolean, sec = 4): Float32Array {
+  const r = new Rand(seed * 4099 + (pink ? 7 : 3)), pk = new Pink(r), n = len(sec, sr), x = len(0.25, sr), out = new Float32Array(n + x);
+  for (let i = 0; i < out.length; i++) out[i] = pink ? pk.next() * 2.5 : r.bi() * 0.6;
+  for (let i = 0; i < x; i++) { const u = i / x; out[i] = (out[i] ?? 0) * Math.sqrt(u) + (out[n + i] ?? 0) * Math.sqrt(1 - u); }
+  return out.subarray(0, n).slice();
+}
 
 /** test / dev helper: silence padding so a sound's tail can be measured */
 export function pad(buf: Float32Array, sr: number, sec: number): Float32Array { const o = new Float32Array(buf.length + len(sec, sr)); mix(o, buf, 0); return o; }

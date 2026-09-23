@@ -87,6 +87,15 @@ describe('gen: rooms and loops', () => {
     expect(e).toBeCloseTo(1, 3);
     expect(Math.abs(x)).toBeLessThan(0.2);
   });
+  test.each([true, false])('the noise loop (pink %s) is seamless and level', (pink) => {
+    const b = G.noiseLoop(sr, 1, pink);
+    expect(b.length).toBe(4 * sr);
+    let e = 0; for (const v of b) e += v * v;
+    const rms = Math.sqrt(e / b.length);
+    expect(Math.abs((b[0] ?? 0) - (b[b.length - 1] ?? 0))).toBeLessThan(rms * 4);
+    expect(rms).toBeGreaterThan(0.1);
+    expect(rms).toBeLessThan(1.2); // float buffers: the pink loop runs hot (the bed gains are set against it)
+  });
   test('the bubble bed loops without a click', () => {
     const b = G.bubbleBed(sr, 1);
     expect(b.length).toBe(6 * sr);
