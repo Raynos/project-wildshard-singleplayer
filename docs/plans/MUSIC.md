@@ -94,6 +94,10 @@ Everything above is reproducible: prompts, seeds, model + version, and the trim 
   hum, shrine hum, stings) are likely; percussive one-shots (crossbow, sword, rifle, footsteps, splashes, animal
   calls) are doubtful. Whatever MiniMax renders convincingly ships as a sample with the synth version as fallback;
   whatever it can't keeps the synth and is listed in the report for the user.
+- **The user's picks (2026-09-22, round 2):** the title / menu screen **plays the title theme** (unmuted, starts on the
+  first gesture); the generated music **ships on the auto-picks** and the user vetoes / asks for re-rolls in game;
+  **piano is the default style** and the trailers are re-cut with piano; where MiniMax can't make a sound effect
+  convincing, **a local SFX-model bake-off** replaces the synth (commercial-OK licences only, losers deleted after).
 
 ## How it gets built
 
