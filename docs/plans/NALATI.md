@@ -1,6 +1,6 @@
 # Nalati Grasslands — the mega plan
 
-**State:** `in progress` 2026-09-22 — every decision below is the user's (N5); the user: "build the entire plan autonomously" (N6). Wave 1 (B0–B6: world + painterly look, grass + wind, bow, sabre + spear, wolves + horses + sheep, POIs, spruce) is being built by six subagents on branch `nalati-grasslands`; wave 2 (B7–B16) starts as wave 1 lands. Nothing is deployed yet.
+**State:** `in progress` 2026-09-22 — wave 1 largely landed on branch `nalati-grasslands` (world, painterly material, grass + wind, bow, sabre + spear, wolves / horses / sheep, spruce; POIs in flight); B10 weather + B13 Golden King started. **Top priority now: the look pass (N7)** — the user: the mockups are "a hundred times better" than the engine; a look-director + dressing agent + every build agent on its own models, to mockup parity (`docs/design/nalati/look-pass.md`). Nothing deployed yet.
 
 The third shard (ASKS P6). A high alpine steppe in the Tian Shan, laid out like the real Nalati: you arrive in the
 Kunes river valley (yurts, sheep, the bridge), climb spruce gullies up the escarpment, and the **Sky Grassland**
@@ -109,6 +109,24 @@ Every row: built on the branch, wired into the game, 60 fps on the phone tier, a
 | B14 | **the Storm Titan** (storm-only, mounted, Naizagai + saddle) | B7, B10, B13 |
 | B15 | **Inventory items, achievements + joke titles, skins, map/minimap for Nalati** | B12, B13 |
 | B16 | **Audio + folk music** (wind layers, hooves, wolves, storm; MUSIC v2 folk style), **menu / loading / hero art**, the card drops SUPER EXPERIMENTAL | all |
+
+### The look pass (N7 — top priority, runs across every row)
+
+The user saw the first in-engine shots: "the art style from the mock-ups is just like a hundred times better …
+a massive passover … the art direction, the rendering, the quality of the models … a lot of density … almost PS5
+level." Spec, levers, reference poses and owners: `docs/design/nalati/look-pass.md`. Done = the parity harness
+(`scripts/nalati-parity.mjs`) shows engine and mockup side by side and they read as the same game, at 60 fps on
+the phone tier.
+
+| # | lever | owner |
+|---|---|---|
+| L1 | painterly shader, aerial perspective, sky + cumulus + cloud shadows, grade + bloom + AO, painterly filter; the parity harness | look-director |
+| L2 | terrain surface, roads, gravel, rock formations, snow, river, landscape drama | world-agent |
+| L3 | grass + flower drifts | grass-agent |
+| L4 | world density: rocks, shrubs, flowers, logs, fences, ribbons, camp clutter, pebbles, reeds, pollen, birds | dressing-agent |
+| L5 | creature models | creature-agent |
+| L6 | POI models (yurts, camp, bridge, kurgans, balbals, cairn, rocks) | poi-agent |
+| L7 | first-person arms, sleeves, gloves, bow, sabre, spear | bow-agent + melee-agent |
 
 ## Deploy
 
