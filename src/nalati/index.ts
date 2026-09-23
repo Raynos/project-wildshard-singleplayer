@@ -25,6 +25,7 @@ import { wind } from '../world/Wind';
 import { windUniforms } from '../world/TreeFactory';
 import { NalatiWater } from './water';
 import { NalatiPOIs } from '../world/nalati';
+import { NalatiDressing } from '../world/nalati/dressing';
 import { wireKurgan, type KurganBoss } from './kurganBoss';
 import { macrotask } from '../boot/plan';
 
@@ -75,6 +76,14 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   pois.addTo(game.scene, ctx.player);
   groups['pois'] = pois.group;
   updates.push((dt) => pois.update(dt));
+  await macrotask();
+
+  // ── dressing (dressing agent, look-pass lever 6): rocks, road stones, gravel-bar pebbles, shrubs, flower drifts, reeds,
+  //    logs + stumps, ovoo cairns + ribbon poles, camp clutter, pollen, butterflies, kites — src/world/nalati/dressing/ ──
+  const dressing = new NalatiDressing(sky, ctx.forest).build();
+  dressing.addTo(game.scene, ctx.player);
+  groups['dressing'] = dressing.group;
+  updates.push((dt) => dressing.update(dt, game.camera, ctx.player.position, game.renderer));
   await macrotask();
 
   // ── creatures (creatures agent, B4): wolves / horses / sheep come from `fauna` via AnimalManager; herd / pack brains here ──
