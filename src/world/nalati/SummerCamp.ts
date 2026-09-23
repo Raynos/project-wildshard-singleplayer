@@ -10,6 +10,7 @@ import { PaintKit, M, pole, v3 } from './paint';
 import { addYurt } from './Yurt';
 import { PC, addKazan, addCart, addGroundRug, addChest, addBarrel } from './props';
 import { SUMMER_CAMP } from './layout';
+import { buildYardDecal, wearDisc, wearPath } from './Yard';
 import type { Collider } from '../../player/Player';
 import type { PoiCtx, PoiPiece } from './types';
 
@@ -26,9 +27,9 @@ export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
     let gy = ground(x, z);
     for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; gy = Math.min(gy, ground(x + Math.cos(t) * y.r, z + Math.sin(t) * y.r)); }
     const top = addYurt(kit, { x, y: gy, z, rot, r: y.r, flue: y.flue, palette: y.pal, old: y.old ?? false }, colliders);
-    if (top.flue) smoke.emitter(top.flue, { puffs: 24, rise: 8, size: [0.35, 2.3], life: 8 });
+    if (top.flue) smoke.emitter(top.flue, { puffs: 40, rise: 7, size: [0.6, 4.2], life: 9 });
   }
-  smoke.emitter(addKazan(kit, ground, cx + 1, cz - 1, colliders), { puffs: 16, rise: 4.5, size: [0.35, 1.6], life: 5 });
+  smoke.emitter(addKazan(kit, ground, cx + 1, cz - 1, colliders), { puffs: 28, rise: 4.5, size: [0.5, 3.0], life: 6 });
   addCart(kit, ground, cx - 7, cz + 7.5, 0.6, colliders);
   addChest(kit, ground, cx + 3.5, cz + 3.5, 2.2, colliders);
   addBarrel(kit, ground, cx - 3.2, cz - 4.6, colliders);
@@ -65,7 +66,17 @@ export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
     for (const [i, c] of ['#c8321e', '#f4efe4', '#2f5fae'].entries()) flutter.streamer(v3(x, y + 3.5 - i * 0.12, z), rng.range(1.6, 2.3), 0.1, c);
     colliders.push({ x, z, hw: 0.1, hd: 0.1, rot: 0, yBottom: y - 1, yTop: y + 3.6 });
   }
+  const group = new THREE.Group();
+  group.name = 'nalati-summer-camp';
+  {
+    const wear = [wearDisc(cx, cz, 6.5), wearDisc(cx - 12, cz + 1, 3.5), wearPath(cx - 12, cz + 1, cx, cz, 1.6)];
+    for (const y of Y) { const a = (y.a * Math.PI) / 180; wear.push(wearPath(cx + Math.cos(a) * (y.d - y.r - 0.3), cz + Math.sin(a) * (y.d - y.r - 0.3), cx, cz, 1.4)); }
+    group.add(buildYardDecal(sky, ground, { x: cx - 3, z: cz, half: 16 }, (x, z) => { let m = 0; for (const w of wear) { const v = w(x, z); if (v > m) m = v; } return m; }));
+  }
+  const felt = kit.texturedMesh(sky, 'felt', { ground });
   const mesh = kit.mesh(sky, { ground });
-  mesh.name = 'nalati-summer-camp';
-  return { name: 'summerCamp', object: mesh, colliders, platforms: [], tris: mesh.geometry.getAttribute('position').count / 3 };
+  group.add(mesh);
+  let tris = mesh.geometry.getAttribute('position').count / 3;
+  if (felt) { group.add(felt); tris += felt.geometry.getAttribute('position').count / 3; }
+  return { name: 'summerCamp', object: group, colliders, platforms: [], tris };
 }

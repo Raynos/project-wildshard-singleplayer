@@ -17,7 +17,7 @@
  * Built in local space (door at −z) then placed with one matrix. ~9 k triangles for r = 3. Colliders: an octagon.
  */
 import * as THREE from 'three';
-import { type PaintKit, M, lathe, pole, v3, revolve } from './paint';
+import { type PaintKit, M, lathe, pole, v3, revolve, revolveUV } from './paint';
 import type { Collider } from '../../player/Player';
 
 export interface YurtSpec {
@@ -70,36 +70,6 @@ export const YURT_C = {
   iron: new THREE.Color('#3b3a3a'),
 };
 
-const PALETTES: { bg: THREE.Color; motif: THREE.Color; edge: THREE.Color }[] = [
-  { bg: YURT_C.red, motif: YURT_C.cream, edge: YURT_C.redDark },
-  { bg: YURT_C.orange, motif: YURT_C.redDark, edge: YURT_C.redDark },
-  { bg: YURT_C.redDark, motif: YURT_C.gold, edge: YURT_C.red },
-];
-
-/** the band's repeat, 12 columns × 7 rows, row 0 at the top: E = edge, G = gold line, # = motif, . = ground */
-const MOTIF = [
-  'EEEEEEEEEEEE',
-  'GGGGGGGGGGGG',
-  '.##..##..##.',
-  '#..##..##..#',
-  '.#.#.##.#.#.',
-  'GGGGGGGGGGGG',
-  'EEEEEEEEEEEE',
-];
-const COLS = 12, ROWS = MOTIF.length;
-const COL_W = 0.1;
-
-function bandPainter(radius: number, y0: number, h: number, pal: number): (p: THREE.Vector3) => THREE.Color {
-  const P = PALETTES[pal % PALETTES.length] ?? { bg: YURT_C.red, motif: YURT_C.cream, edge: YURT_C.redDark };
-  return (p) => {
-    const ang = Math.atan2(p.x, p.z) + Math.PI;
-    const col = Math.floor((ang * radius) / COL_W) % COLS;
-    const row = Math.min(ROWS - 1, Math.max(0, Math.floor((1 - (p.y - y0) / h) * ROWS)));
-    const ch = MOTIF[row]?.charAt(col) ?? '.';
-    return ch === 'E' ? P.edge : ch === 'G' ? YURT_C.gold : ch === '#' ? P.motif : P.bg;
-  };
-}
-
 export function addYurt(kit: PaintKit, s: YurtSpec, colliders: Collider[]): YurtTop {
   const R = s.r, wallH = 1.55 + (R - 3) * 0.12, rise = R * 0.52, eaveR = R + 0.22;
   const mat = M(s.x, s.y, s.z, s.rot);
@@ -107,7 +77,7 @@ export function addYurt(kit: PaintKit, s: YurtSpec, colliders: Collider[]): Yurt
   const felt = s.old === true ? YURT_C.feltOld : YURT_C.felt;
   const pal = s.palette ?? 0;
   const base = s.base ?? 'lattice';
-  const add = (g: THREE.BufferGeometry, c: THREE.Color | ((p: THREE.Vector3, n: THREE.Vector3) => THREE.Color), o: { flat?: boolean; brush?: number; jitter?: number; foot?: number } = {}) => {
+  const add = (g: THREE.BufferGeometry, c: THREE.Color | ((p: THREE.Vector3, n: THREE.Vector3) => THREE.Color), o: { flat?: boolean; brush?: number; jitter?: number; foot?: number; uv?: boolean } = {}) => {
     kit.add(g, c, { ...o, matrix: mat });
   };
   const doorHalf = 0.62 / R;                                                  // the door's half-angle round the wall
@@ -150,20 +120,21 @@ export function addYurt(kit: PaintKit, s: YurtSpec, colliders: Collider[]): Yurt
     return [R + 0.03 + fold + belly + overlap, y];
   };
   const seams = 8;
-  add(revolve(wallFn, 96, 7), (p) => {
+  // the wall carries the painted felt tile (src/world/nalatiTextures.ts 'felt'): white felt with its two ornament bands —
+  // one under the eave, one round the middle — v 0..1 over the wall so there is exactly one set; the vertex colour
+  // only shades it (grubbier toward the ground, the panel seams, a warmer or cooler felt per yurt)
+  const tint = [new THREE.Color(1, 1, 1), new THREE.Color(1.02, 0.97, 0.92), new THREE.Color(0.97, 0.97, 1)][pal % 3] ?? new THREE.Color(1, 1, 1);
+  const dirt = new THREE.Color(0.78, 0.72, 0.62);
+  const wallW = Math.PI * 2 * (R + 0.04), reps = Math.max(4, Math.round(wallW / 1.9));
+  add(revolveUV(wallFn, 96, 7, reps), (p) => {
     const a = Math.atan2(p.x, p.z) + Math.PI, t = (p.y - baseH) / (wallH - baseH);
-    const c = felt.clone().lerp(YURT_C.feltDirty, Math.max(0, 0.55 - t) * 0.9);
+    const c = tint.clone().multiply(new THREE.Color(1, 1, 1).lerp(dirt, Math.max(0, 0.35 - t) * 1.2));
+    if (s.old === true) c.multiplyScalar(0.92);
     const seam = Math.abs((((a / (Math.PI * 2)) * seams) % 1) - 0.5);
-    if (seam > 0.485) c.multiplyScalar(0.9);
-    if (Math.abs(t - 0.5) < 0.03) c.multiplyScalar(0.92);
+    if (seam > 0.485) c.multiplyScalar(0.88);
     return c;
-  }, { brush: 0.05 });
-  // the ornament band under the eave
-  const bandH = 0.5, bandY0 = wallH - bandH - 0.03;
-  const segB = Math.round((Math.PI * 2 * (R + 0.08)) / COL_W / COLS) * COLS;
-  const rows: [number, number][] = [];
-  for (let i = 0; i <= ROWS; i++) rows.push([R + 0.085 + 0.008 * (i / ROWS), bandY0 + (bandH * i) / ROWS]);
-  add(lathe(rows, segB), bandPainter(R + 0.085, bandY0, bandH, pal), { brush: 0.03, jitter: 0.02 });
+  }, { brush: 0.04, uv: true });
+  const bandY0 = wallH - (wallH - baseH) * 0.14;
   // rope bands round the wall
   for (const ry of [baseH + 0.32, bandY0 - 0.06]) add(new THREE.TorusGeometry(R + 0.08, 0.024, 3, 48).rotateX(Math.PI / 2).translate(0, ry, 0), YURT_C.rope);
   // woven tassel ropes hanging from the band down the wall
@@ -189,13 +160,13 @@ export function addYurt(kit: PaintKit, s: YurtSpec, colliders: Collider[]): Yurt
   }, { brush: 0.06 });
   // the eave's thickness: the felt edge turning under
   add(lathe([[eaveR - 0.1, wallH - 0.2], [eaveR + 0.015, wallH - 0.14], [eaveR + 0.01, wallH - 0.08]], 72), felt, {});
-  // roof band: a narrower ornament ring low on the dome (it rides the ribs, 2 cm proud)
+  // roof band: the felt tile's middle ornament band, low on the dome (it rides the ribs, 2 cm proud)
   {
-    const t0 = 0.06, t1 = 0.2, rr: [number, number][] = [];
-    for (let i = 0; i <= 3; i++) { const t = t0 + ((t1 - t0) * i) / 3; rr.push([roofR(t) + 0.02, roofY(t) + 0.035]); }
-    const y0 = roofY(t0) + 0.035, h = roofY(t1) - roofY(t0);
-    const seg = Math.round((Math.PI * 2 * roofR((t0 + t1) / 2)) / COL_W / COLS) * COLS;
-    add(lathe(rr, seg), bandPainter(roofR((t0 + t1) / 2), y0, h, pal + 1), { brush: 0.03, jitter: 0.02 });
+    const t0 = 0.05, t1 = 0.21, rMid = roofR((t0 + t1) / 2);
+    const g = revolveUV((_th, t) => { const tt = t0 + (t1 - t0) * t; return [roofR(tt) + 0.02, roofY(tt) + 0.035]; }, 72, 3, Math.max(4, Math.round((Math.PI * 2 * rMid) / 1.9)));
+    const uv = g.getAttribute('uv');
+    for (let i = 0; i < uv.count; i++) uv.setY(i, 0.375 + uv.getY(i) * 0.25);   // the tile's middle band, image rows 0.37–0.62
+    add(g, tint, { brush: 0.03, jitter: 0.02, uv: true });
   }
   // rope straps down every 4th rib, from the crown to the eave
   for (let k = 0; k < ribs; k += 4) {

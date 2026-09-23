@@ -20,6 +20,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { Rng } from '../../core/rng';
 import { Noise2D, smoothstep } from '../../core/noise';
 import { painterlyMaterial } from '../painterly';
+import { loadNalatiTexture, type NalatiTexName } from '../nalatiTextures';
 import type { Sky } from '../Sky';
 
 export type ColorLike = THREE.Color | string | number;
@@ -39,6 +40,8 @@ export interface PaintOpts {
   top?: { color: ColorLike; threshold?: number; amount?: number; minY?: number } | undefined;
   /** keep the part faceted (flat normals) — cut timber, planks */
   flat?: boolean;
+  /** keep the part's `uv` and put it on the kit's TEXTURED layer (finishTextured / texturedMesh: a painted map) */
+  uv?: boolean;
 }
 
 /** contact-shade target: a dusky violet-blue (the painterly shade side), as a colour multiplier */
@@ -60,16 +63,20 @@ export interface FinishOpts {
 export class PaintKit {
   readonly rng: Rng;
   private parts: THREE.BufferGeometry[] = [];
+  /** parts that keep their uv, for a mesh with a painted texture (nalatiTextures.ts) */
+  private uvParts: THREE.BufferGeometry[] = [];
   private noise: Noise2D;
 
   constructor(seed: number) { this.rng = new Rng(seed); this.noise = new Noise2D(seed ^ 0x51f3); }
 
   get triangleCount(): number { let n = 0; for (const p of this.parts) n += p.getAttribute('position').count / 3; return n; }
   get empty(): boolean { return this.parts.length === 0; }
+  get texturedTriangles(): number { let n = 0; for (const p of this.uvParts) n += p.getAttribute('position').count / 3; return n; }
 
   /** add a geometry (consumed) painted `col` — a colour, or a per-face painter in the part's local space */
   add(g: THREE.BufferGeometry, col: ColorLike | Painter, o: PaintOpts = {}): void {
-    if (g.hasAttribute('uv')) g.deleteAttribute('uv');
+    const keepUv = o.uv === true && g.hasAttribute('uv');
+    if (g.hasAttribute('uv') && !keepUv) g.deleteAttribute('uv');
     if (g.hasAttribute('uv1')) g.deleteAttribute('uv1');
     if (g.hasAttribute('color')) g.deleteAttribute('color');
     let ni: THREE.BufferGeometry;
@@ -125,7 +132,7 @@ export class PaintKit {
       }
       out[i * 3] = r; out[i * 3 + 1] = gg; out[i * 3 + 2] = bb;
     }
-    this.parts.push(ni);
+    (keepUv ? this.uvParts : this.parts).push(ni);
   }
 
   /**
@@ -137,9 +144,31 @@ export class PaintKit {
    *   - a sky gradient: faces that look up are a touch lighter, faces that look down a touch darker.
    */
   finish(o: FinishOpts = {}): THREE.BufferGeometry {
-    const geo = mergeGeometries(this.parts, false);
-    for (const p of this.parts) p.dispose();
+    const geo = PaintKit.shade(this.parts, o);
     this.parts = [];
+    return geo;
+  }
+
+  /** the textured layer (parts added with `uv: true`), shaded the same way; null when it is empty */
+  finishTextured(o: FinishOpts = {}): THREE.BufferGeometry | null {
+    if (this.uvParts.length === 0) return null;
+    const geo = PaintKit.shade(this.uvParts, o);
+    this.uvParts = [];
+    return geo;
+  }
+
+  /** finishTextured() on a painterly material carrying the painted `name` texture (lazy-loaded) */
+  texturedMesh(sky: Sky, name: NalatiTexName, o: FinishOpts = {}): THREE.Mesh | null {
+    const geo = this.finishTextured(o);
+    if (!geo) return null;
+    const m = new THREE.Mesh(geo, texturedMaterial(sky, name));
+    m.castShadow = true; m.receiveShadow = true;
+    return m;
+  }
+
+  private static shade(parts: THREE.BufferGeometry[], o: FinishOpts): THREE.BufferGeometry {
+    const geo = mergeGeometries(parts, false);
+    for (const p of parts) p.dispose();
     if (o.ao !== false) bakeSmoothAO(geo, { ...o.ao, ...(o.ground ? { ground: o.ground } : {}) });
     const pos = geo.getAttribute('position'), nrm = geo.getAttribute('normal'), col = geo.getAttribute('color');
     const tint = SHADE_TINT, aoH = o.aoH ?? 0.9, aoMin = o.aoMin ?? 0.55;
@@ -174,6 +203,27 @@ const mats = new WeakMap<Sky, THREE.MeshLambertMaterial>();
 export function poiMaterial(sky: Sky): THREE.MeshLambertMaterial {
   let m = mats.get(sky);
   if (!m) { m = painterlyMaterial(sky, { vertexColors: true, rim: 0.35, bands: 0.8 }); mats.set(sky, m); }
+  return m;
+}
+
+const texMats = new WeakMap<Sky, Map<NalatiTexName, THREE.MeshLambertMaterial>>();
+/**
+ * The painterly material with a painted map (one per texture name, shared). It starts on a 1×1 white placeholder (the
+ * same USE_MAP program, so no recompile) and swaps in the painted tile when it has loaded.
+ */
+export function texturedMaterial(sky: Sky, name: NalatiTexName): THREE.MeshLambertMaterial {
+  let byName = texMats.get(sky);
+  if (!byName) { byName = new Map(); texMats.set(sky, byName); }
+  let m = byName.get(name);
+  if (!m) {
+    const mat = painterlyMaterial(sky, { vertexColors: true, rim: 0.3, bands: 0.8 });
+    const white = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+    white.colorSpace = THREE.SRGBColorSpace; white.wrapS = white.wrapT = THREE.RepeatWrapping; white.needsUpdate = true;
+    mat.map = white;
+    loadNalatiTexture(name).then((t) => { mat.map = t; return t; }).catch(() => null);                // on failure the placeholder stays: vertex colour only
+    byName.set(name, mat);
+    m = mat;
+  }
   return m;
 }
 
@@ -385,4 +435,38 @@ export function logPainter(a: THREE.Vector3, b: THREE.Vector3, bark: ColorLike, 
     const r = tmp.subVectors(p, c).addScaledVector(ax, -tmp.dot(ax)).length();
     return r < 0.05 ? heart : en;
   };
+}
+
+/**
+ * `revolve` with texture coordinates: u = angle / 2π × `uReps` (the seam column is doubled so u runs 0 → uReps without
+ * wrapping), v = t. The seam's two columns share one averaged normal, so the shading has no seam.
+ */
+export function revolveUV(fn: (theta: number, t: number) => [number, number], segU: number, segV: number, uReps: number): THREE.BufferGeometry {
+  const v: number[] = [], uv: number[] = [], idx: number[] = [];
+  const cols = segU + 1;
+  for (let j = 0; j <= segV; j++) {
+    const t = j / segV;
+    for (let i = 0; i <= segU; i++) {
+      const th = ((i % segU) / segU) * Math.PI * 2;
+      const [r, y] = fn(th, t);
+      v.push(Math.sin(th) * r, y, Math.cos(th) * r);
+      uv.push((i / segU) * uReps, t);
+    }
+  }
+  for (let j = 0; j < segV; j++) for (let i = 0; i < segU; i++) {
+    const a = j * cols + i, b = a + 1, c = a + cols, d = c + 1;
+    idx.push(a, b, c, b, d, c);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  const n = g.getAttribute('normal');
+  for (let j = 0; j <= segV; j++) {
+    const a = j * cols, b = a + segU;
+    const x = n.getX(a) + n.getX(b), y = n.getY(a) + n.getY(b), z = n.getZ(a) + n.getZ(b), l = Math.hypot(x, y, z) || 1;
+    n.setXYZ(a, x / l, y / l, z / l); n.setXYZ(b, x / l, y / l, z / l);
+  }
+  return g;
 }

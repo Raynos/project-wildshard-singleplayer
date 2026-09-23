@@ -5,7 +5,7 @@
  * Every function returns what the caller needs (a smoke mouth, a collider) and pushes nothing global.
  */
 import * as THREE from 'three';
-import { type PaintKit, M, pole, v3, lathe, blob } from './paint';
+import { type PaintKit, M, pole, v3, lathe, blob, logPainter } from './paint';
 import type { Collider } from '../../player/Player';
 
 export const PC = {
@@ -358,4 +358,70 @@ export function addFence(kit: PaintKit, ground: Ground, pts: [number, number][],
     const gy = ground(cx, cz);
     colliders.push({ x: cx, z: cz, hw: 0.12, hd: len / 2, rot: -yaw, yBottom: gy - 1.5, yTop: gy + h });
   }
+}
+
+// ── yard set pieces (the camp 9-angle round, gap #8) ─────────────────────────────────────────────────────────
+
+/** a rope line between two forked posts with felt rugs thrown over it (from a to b) */
+export function addRugLine(kit: PaintKit, ground: Ground, ax: number, az: number, bx: number, bz: number, pals: number[], colliders: Collider[]): void {
+  const H = 1.75, ya = ground(ax, az), yb = ground(bx, bz);
+  for (const [x, z, y] of [[ax, az, ya], [bx, bz, yb]] as const) {
+    kit.add(pole(v3(x, y - 0.35, z), v3(x, y + H + 0.1, z), 0.06, 0.05, 6), PC.woodGrey, { foot: 0.75 });
+    kit.add(pole(v3(x, y + H - 0.05, z), v3(x + 0.14, y + H + 0.25, z), 0.025, 0.02, 4), PC.woodGrey);
+    kit.add(pole(v3(x, y + H - 0.05, z), v3(x - 0.14, y + H + 0.25, z), 0.025, 0.02, 4), PC.woodGrey);
+    colliders.push({ x, z, hw: 0.12, hd: 0.12, rot: 0, yBottom: y - 1, yTop: y + H });
+  }
+  const len = Math.hypot(bx - ax, bz - az), yaw = Math.atan2(bx - ax, bz - az) - Math.PI / 2;
+  const sagAt = (t: number) => Math.sin(Math.PI * t) * 0.18;
+  const n = 8;
+  for (let i = 0; i < n; i++) {
+    const t0 = i / n, t1 = (i + 1) / n;
+    kit.add(pole(v3(ax + (bx - ax) * t0, ya + (yb - ya) * t0 + H - sagAt(t0), az + (bz - az) * t0), v3(ax + (bx - ax) * t1, ya + (yb - ya) * t1 + H - sagAt(t1), az + (bz - az) * t1), 0.012, 0.012, 3), PC.leather);
+  }
+  pals.forEach((pal, i) => {
+    const t = (i + 0.5) / pals.length, rw = Math.min(1.3, (len / pals.length) * 0.85);
+    const x = ax + (bx - ax) * t, z = az + (bz - az) * t, y = ya + (yb - ya) * t + H - sagAt(t);
+    for (const side of [-1, 1]) {
+      const drop = side < 0 ? 1.25 : 0.9;
+      kit.add(rugGeometry(rw, drop), rugPainter(rw, drop, pal + (side < 0 ? 0 : 2)), { matrix: M(x - Math.sin(yaw + Math.PI / 2) * side * 0.04, y - drop / 2 - 0.02, z - Math.cos(yaw + Math.PI / 2) * side * 0.04, yaw, 1, 1, 1, side * 0.08), brush: 0.04, jitter: 0.02 });
+    }
+  });
+  colliders.push({ x: (ax + bx) / 2, z: (az + bz) / 2, hw: len / 2, hd: 0.25, rot: -yaw, yBottom: Math.min(ya, yb) + 0.4, yTop: Math.max(ya, yb) + H });
+}
+
+/** a chopping block with an axe in it and a scatter of split wood */
+export function addChoppingBlock(kit: PaintKit, ground: Ground, x: number, z: number, colliders: Collider[]): void {
+  const y = ground(x, z), rng = kit.rng;
+  const a = v3(x, y - 0.1, z), b = v3(x, y + 0.5, z);
+  kit.add(pole(a, b, 0.3, 0.28, 12), logPainter(a, b, PC.woodDark, '#c9a878'), { foot: 0.75 });
+  kit.add(new THREE.BoxGeometry(0.05, 0.62, 0.05).rotateZ(0.55).translate(x + 0.2, y + 0.72, z), PC.woodLight);
+  kit.add(new THREE.BoxGeometry(0.16, 0.12, 0.03).rotateZ(0.55).translate(x + 0.02, y + 0.52, z), PC.iron, { flat: true });
+  for (let i = 0; i < 7; i++) {
+    const ang = rng.range(0, Math.PI * 2), d = rng.range(0.5, 1.2), px = x + Math.cos(ang) * d, pz = z + Math.sin(ang) * d, py = ground(px, pz) + 0.06;
+    const r = rng.range(0, Math.PI);
+    kit.add(new THREE.CylinderGeometry(0.07, 0.07, 0.42, 5, 1, false, 0, Math.PI).rotateZ(Math.PI / 2).rotateY(r).translate(px, py, pz), rng.next() < 0.5 ? PC.woodLight : PC.wood, { flat: true, jitter: 0.1 });
+  }
+  colliders.push({ x, z, hw: 0.3, hd: 0.3, rot: 0, yBottom: y - 1, yTop: y + 0.5 });
+}
+
+/** a riding saddle set down on the grass (on its side, the red saddle cloth under it) */
+export function addGroundSaddle(kit: PaintKit, ground: Ground, x: number, z: number, yaw: number): void {
+  const y = ground(x, z), m = M(x, y, z, yaw);
+  kit.add(new THREE.BoxGeometry(0.85, 0.03, 0.75).translate(0, 0.02, 0), (p) => (Math.abs(p.x) > 0.36 || Math.abs(p.z) > 0.31 ? PC.gold : PC.red), { matrix: m, flat: true });
+  kit.add(new THREE.SphereGeometry(0.3, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1.25, 0.55, 0.85).translate(0, 0.03, 0), PC.leather, { matrix: m });
+  kit.add(new THREE.BoxGeometry(0.07, 0.24, 0.34).translate(0.33, 0.14, 0), PC.woodDark, { matrix: m });
+  kit.add(new THREE.BoxGeometry(0.07, 0.18, 0.3).translate(-0.33, 0.11, 0), PC.woodDark, { matrix: m });
+  for (const sz of [-1, 1]) kit.add(new THREE.TorusGeometry(0.07, 0.012, 4, 10).translate(0.05, 0.04, sz * 0.46).rotateX(Math.PI / 2), PC.iron, { matrix: m });
+}
+
+/** a cluster of milk churns and a wooden bucket */
+export function addMilkCans(kit: PaintKit, ground: Ground, x: number, z: number, colliders: Collider[]): void {
+  const rng = kit.rng;
+  for (const [dx, dz, s] of [[0, 0, 1], [0.48, 0.15, 0.85], [0.2, -0.45, 0.95]] as const) {
+    const px = x + dx, pz = z + dz, py = ground(px, pz);
+    kit.add(lathe([[0.001, 0], [0.19, 0], [0.2, 0.32], [0.16, 0.44], [0.09, 0.5], [0.1, 0.58], [0.001, 0.58]], 12), (p) => (p.y > 0.3 && p.y < 0.34 ? PC.iron : new THREE.Color('#aeb0ae')), { matrix: M(px, py, pz, rng.range(0, 6), s), brush: 0.06 });
+  }
+  const bx = x - 0.5, bz = z + 0.35, by = ground(bx, bz);
+  kit.add(lathe([[0.001, 0], [0.17, 0], [0.2, 0.3], [0.19, 0.3], [0.15, 0.03], [0.001, 0.03]], 12), (p) => (Math.abs(p.y - 0.08) < 0.02 || Math.abs(p.y - 0.24) < 0.02 ? PC.iron : PC.wood), { matrix: M(bx, by, bz), brush: 0.06 });
+  colliders.push({ x: x + 0.2, z, hw: 0.55, hd: 0.5, rot: 0, yBottom: ground(x, z) - 1, yTop: ground(x, z) + 0.6 });
 }

@@ -14,7 +14,8 @@
 import * as THREE from 'three';
 import { PaintKit, M, pole, v3, blob } from './paint';
 import { addYurt } from './Yurt';
-import { PC, addBarrel, addChest, addWoodpile, addStove, addKazan, addCart, addSaddleRack, addEagle, addGroundRug, addRugRack, addCarvedPost, addChurn } from './props';
+import { PC, addBarrel, addChest, addWoodpile, addStove, addKazan, addCart, addSaddleRack, addEagle, addGroundRug, addRugRack, addCarvedPost, addChurn, addRugLine, addChoppingBlock, addGroundSaddle, addMilkCans } from './props';
+import { buildYardDecal, wearDisc, wearPath } from './Yard';
 import { CAMP, CORRAL, HITCHING_RAIL } from './layout';
 import type { Collider } from '../../player/Player';
 import type { PoiCtx, PoiPiece } from './types';
@@ -51,7 +52,7 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; gy = Math.min(gy, ground(x + Math.cos(t) * y.r, z + Math.sin(t) * y.r)); }
     gy = Math.min(gy, ground(x, z));
     const top = addYurt(kit, { x, y: gy, z, rot, r: y.r, flue: y.flue, palette: y.pal, old: y.old ?? false, base: y.base }, colliders);
-    if (top.flue) smoke.emitter(top.flue, { puffs: 26, rise: 8, size: [0.35, 2.4], life: 8 });
+    if (top.flue) smoke.emitter(top.flue, { puffs: 40, rise: 7, size: [0.6, 4.2], life: 9 });
     // a red pennant on a short pole at the crown of every other yurt
     if (y.pal !== 2) {
       const pc = top.crown.clone();
@@ -97,8 +98,8 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
   }
 
   // ── cooking: the stove and the kazan in the yard, smoking ──
-  smoke.emitter(addStove(kit, ground, cx + 4.5, cz - 5.5, 0.4, colliders), { puffs: 22, rise: 7, size: [0.3, 2.0], life: 7 });
-  smoke.emitter(addKazan(kit, ground, cx - 3.2, cz - 6.2, colliders), { puffs: 16, rise: 4.5, size: [0.35, 1.7], life: 5 });
+  smoke.emitter(addStove(kit, ground, cx + 4.5, cz - 5.5, 0.4, colliders), { puffs: 36, rise: 6.5, size: [0.55, 3.8], life: 8 });
+  smoke.emitter(addKazan(kit, ground, cx - 3.2, cz - 6.2, colliders), { puffs: 28, rise: 4.5, size: [0.5, 3.0], life: 6 });
   addWoodpile(kit, ground, cx + 8.5, cz - 3, 0.9, colliders);
   // low wooden bench by the kazan
   {
@@ -189,8 +190,30 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
   // the kumis corner by the big yurt: the wooden churn and the leather saba on its tripod
   addChurn(kit, ground, cx + 3.6, cz + 10.2, colliders);
 
+  // ── yard set pieces: rugs on a line, the chopping block, saddles set down by the rail, the milk cans ──
+  addRugLine(kit, ground, cx - 7, cz + 6, cx - 2.6, cz + 8.6, [1, 3, 0], colliders);
+  addChoppingBlock(kit, ground, cx + 9.5, cz - 5.5, colliders);
+  addGroundSaddle(kit, ground, HITCHING_RAIL.x + 2.8, HITCHING_RAIL.z - 2.2, 1.9);
+  addGroundSaddle(kit, ground, HITCHING_RAIL.x + 3.2, HITCHING_RAIL.z + 1.2, 0.6);
+  addMilkCans(kit, ground, cx + 5.2, cz + 8.4, colliders);
+
+  const group = new THREE.Group();
+  group.name = 'nalati-camp';
+  // trodden earth: the ring inside the yurts, a path to every door, the track in from the road, bare patches at the
+  // rail, the stove and the kazan, and the corral's floor + the path to its gate
+  {
+    const wear: ((x: number, z: number) => number)[] = [wearDisc(cx, cz, 10.5), wearPath(HITCHING_RAIL.x + 3, cz, cx, cz, 2.4), wearDisc(HITCHING_RAIL.x + 1.2, HITCHING_RAIL.z, 4.2),
+      wearDisc(cx + 4.5, cz - 5.5, 2.4), wearDisc(cx - 3.2, cz - 6.2, 3), wearPath(cx + 8, cz + 2, CORRAL.x - CORRAL.r, CORRAL.z, 1.8), wearDisc(CORRAL.x, CORRAL.z, CORRAL.r - 1.5)];
+    for (const d of doors) {
+      const fx = -Math.sin(d.rot), fz = -Math.cos(d.rot);
+      wear.push(wearPath(d.x + fx * (d.r + 0.4), d.z + fz * (d.r + 0.4), cx + (d.x - cx) * 0.4, cz + (d.z - cz) * 0.4, 1.5));
+    }
+    group.add(buildYardDecal(sky, ground, { x: cx + 6, z: cz + 3, half: 28 }, (x, z) => { let m = 0; for (const w of wear) { const v = w(x, z); if (v > m) m = v; } return m; }));
+  }
+  const felt = kit.texturedMesh(sky, 'felt', { ground });
   const mesh = kit.mesh(sky, { ground });
-  mesh.name = 'nalati-camp';
-  const tris = mesh.geometry.getAttribute('position').count / 3;
-  return { name: 'camp', object: mesh, colliders, platforms: [], tris };
+  group.add(mesh);
+  let tris = mesh.geometry.getAttribute('position').count / 3;
+  if (felt) { felt.name = 'nalati-camp-felt'; group.add(felt); tris += felt.geometry.getAttribute('position').count / 3; }
+  return { name: 'camp', object: group, colliders, platforms: [], tris };
 }

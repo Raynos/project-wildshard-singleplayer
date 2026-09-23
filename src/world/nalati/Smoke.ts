@@ -67,16 +67,19 @@ export class Smoke {
         varying vec2 vUv; varying float vAge; varying float vLit; varying vec4 vSeed;
         #include <fog_pars_vertex>
         void main() {
-          float life = cfg.w * (0.85 + 0.3 * seed.z);
+          float life = cfg.w;
           float age = fract(uTime / life + seed.w);
           vAge = age; vSeed = seed; vUv = position.xy + 0.5;
-          vec3 wind = vec3(uWind.x, 0.0, uWind.y) * (0.6 + 0.6 * uWind.z);
+          // a plume, not a string of puffs: every puff follows the same bent path (rise slowing, the wind taking it
+          // more and more), with only a slow shared meander and a little per-puff spread that grows with age
+          vec3 wind = vec3(uWind.x, 0.0, uWind.y) * (0.7 + 0.5 * uWind.z);
           vec3 transformed = emitter;
-          transformed.y += cfg.x * (1.0 - pow(1.0 - age, 1.6)) * (0.8 + 0.4 * seed.x);
-          transformed += wind * age * age * cfg.x * 0.4;
-          transformed.x += sin(age * 7.0 + seed.x * 11.0) * 0.25 * age;
-          transformed.z += cos(age * 6.0 + seed.y * 13.0) * 0.25 * age;
-          float size = mix(cfg.y, cfg.z, pow(age, 0.75)) * (0.8 + 0.4 * seed.y);
+          transformed.y += cfg.x * (1.0 - pow(1.0 - age, 1.8));
+          transformed += wind * pow(age, 1.6) * cfg.x * 0.42;
+          float meander = sin(uTime * 0.35 + emitter.x * 0.7) * 0.6 + sin(uTime * 0.21 + emitter.z) * 0.4;
+          transformed.x += meander * 0.5 * age * age + (seed.x - 0.5) * 1.1 * age;
+          transformed.z += meander * 0.3 * age * age + (seed.y - 0.5) * 1.1 * age;
+          float size = mix(cfg.y, cfg.z, pow(age, 0.6)) * (0.85 + 0.3 * seed.y);
           vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.0);
           float rot = seed.x * 6.28 + age * (seed.y - 0.5) * 2.5;
           vec2 q = position.xy * size;
@@ -93,12 +96,11 @@ export class Smoke {
         void main() {
           vec2 d = vUv - 0.5;
           // three overlapping soft lobes → a painted cloud-puff silhouette
-          float a1 = smoothstep(0.5, 0.15, length(d));
-          float a2 = smoothstep(0.34, 0.08, length(d - vec2(0.14 * (vSeed.x - 0.5) * 2.0, 0.1)));
-          float a3 = smoothstep(0.3, 0.06, length(d + vec2(0.12, 0.05 * vSeed.y)));
-          float m = clamp(a1 * 0.75 + a2 * 0.5 + a3 * 0.4, 0.0, 1.0);
-          float fade = smoothstep(0.0, 0.1, vAge) * (1.0 - smoothstep(0.35, 1.0, vAge));
-          float a = m * fade * 0.55;
+          // one soft gaussian lobe (no hard silhouette: overlapping puffs melt into a continuous plume)
+          float r2 = dot(d, d) * 4.0;
+          float m = exp(-r2 * 3.2) * (0.85 + 0.15 * sin(vSeed.z * 20.0 + d.x * 6.0));
+          float fade = smoothstep(0.0, 0.12, vAge) * (1.0 - smoothstep(0.25, 1.0, vAge));
+          float a = m * fade * 0.24;
           if (a < 0.004) discard;
           // painted light: a warm lit side, a cool sky-tinted shade side, two soft bands
           float lit = smoothstep(-0.2, 0.35, vLit * 0.5 + (m - 0.5) * 0.6);
