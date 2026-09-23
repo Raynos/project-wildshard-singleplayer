@@ -112,21 +112,25 @@ export class Game {
     vol.setSun(this.sky.sunDir, new THREE.Color(...A.volumetricSunColor));
     if (this.scene.fog) vol.setFogColor((this.scene.fog as THREE.Fog).color);
     this.volumetrics = vol;
-    const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
-      blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
-      exposure: 0.4, samples: TIER_CONFIG.godRaysSamples, clampMax: 1.0, resolutionScale: TIER_CONFIG.godRaysScale,
-    });
-    const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.6, levels: TIER_CONFIG.bloomLevels });
-    const vignette = new VignetteEffect({ offset: 0.32, darkness: 0.55 });
-    const chroma = new ChromaticAberrationEffect({ offset: new THREE.Vector2(0.0006, 0.0006), radialModulation: true, modulationOffset: 0.35 });
-    const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
-    const grade = new HueSaturationEffect({ saturation: G.saturation });
-    const contrast = new BrightnessContrastEffect({ brightness: G.brightness, contrast: G.contrast });
-    const split = new GradeEffect(G);
-    const grain = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: true });
-    grain.blendMode.opacity.value = 0.12;
-    // one EffectPass for the whole chain: one program and one full-screen pass fewer per frame
-    if (getActiveChunk().style === 'lowpoly') {
+    // the colour chain, built by a factory: an Effect belongs to one EffectPass, so each chain gets its own instances
+    const chain = (clean: boolean): EffectPass => {
+      const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
+        blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
+        exposure: 0.4, samples: TIER_CONFIG.godRaysSamples, clampMax: 1.0, resolutionScale: TIER_CONFIG.godRaysScale,
+      });
+      const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.6, levels: TIER_CONFIG.bloomLevels });
+      const vignette = new VignetteEffect({ offset: 0.32, darkness: 0.55 });
+      const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
+      const grade = new HueSaturationEffect({ saturation: G.saturation });
+      const contrast = new BrightnessContrastEffect({ brightness: G.brightness, contrast: G.contrast });
+      const split = new GradeEffect(G);
+      if (!clean) {
+        const chroma = new ChromaticAberrationEffect({ offset: new THREE.Vector2(0.0006, 0.0006), radialModulation: true, modulationOffset: 0.35 });
+        const grain = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: true });
+        grain.blendMode.opacity.value = 0.12;
+        // one EffectPass for the whole chain: one program and one full-screen pass fewer per frame
+        return new EffectPass(this.camera, vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain);
+      }
       // the stylized look (DRIFTWOOD-REMASTER L5): no volumetric haze, grain or fringe washing the toon bands to low
       // contrast — the colour-ramp fog does the aerial perspective; the god rays stay faint, the vignette light
       godRays.blendMode.opacity.value = 0.12; // faint: looking into a midday sun must not wash the sand and lagoon to white
@@ -138,8 +142,16 @@ export class Game {
         const apply = (v: 'on' | 'off') => { lut.blendMode.opacity.value = v === 'on' ? 1 : 0; };
         apply(setting('lut')); onSettingChange('lut', apply);
       }
-      composer.addPass(lut ? new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split, lut) : new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split));
-    } else composer.addPass(new EffectPass(this.camera, vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain));
+      return lut ? new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split, lut) : new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split);
+    };
+    if (getActiveChunk().style === 'lowpoly') {
+      // Look Lab (E65): both chains are built and the pause menu's Look ▸ Post pick enables one, live — the clean L5 chain
+      // or the original haze + grain + fringe ("cinematic"); the first switch compiles the other pass once, in the menu
+      const clean = chain(true), cinematic = chain(false);
+      composer.addPass(clean); composer.addPass(cinematic);
+      const apply = (v: 'clean' | 'cinematic') => { clean.enabled = v === 'clean'; cinematic.enabled = v === 'cinematic'; };
+      apply(setting('post')); onSettingChange('post', apply);
+    } else composer.addPass(chain(false));
     if (TIER_CONFIG.smaa !== 'off') {
       const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
       composer.addPass(new EffectPass(this.camera, smaa));

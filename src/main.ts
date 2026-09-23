@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { bootstrap } from './core/bootstrap';
 import { installGpuRecovery, RELOAD_PARAM } from './core/GpuRecovery';
+import { setPoseProvider } from './ui/ReloadPrompt';
 import { CHUNK_HALF, ROAD_LENGTH } from './core/config';
 import { hasPond, heightAt, trailDistance, CABIN_SITES } from './world/Heightfield';
 import { Boundary } from './world/Boundary';
@@ -661,6 +662,7 @@ async function main() {
   game.start();
   // an app switch that takes the GPU (iOS): hold the loop, restore in place or reload where the player stood (E54)
   installGpuRecovery({ game, rebuild: () => { sky.rebuildEnvironment(); }, pose: () => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null) });
+  setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
   (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience };

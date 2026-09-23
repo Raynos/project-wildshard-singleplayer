@@ -13,19 +13,22 @@
 import { AUTO_TIER, TIER, gfxPrefs, saveGfxPrefs } from '../core/tier';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { getActiveChunk } from '../chunks/registry';
+import { askReload } from './ReloadPrompt';
 import { BOOT_OPTIONS, pendingReload, saveSetting, savedSetting, setting, settingFromUrl, settingParams, settingsReloadUrl, type OptionKey, type OptionValue } from './Settings';
 
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
 
-type BootKey = 'tier' | 'gpu' | 'island' | 'touch';
+type BootKey = 'tier' | 'gpu' | 'island' | 'touch' | 'lighting' | 'sky';
 interface Row<K extends BootKey> { label: string; experimental?: boolean; options: { v: OptionValue<K>; text: string }[] }
 const LABELS: { [K in BootKey]: Row<K> } = {
   tier: { label: 'Quality', options: [{ v: 'auto', text: `Auto · ${AUTO_TIER}` }, { v: 'phone', text: 'Phone' }, { v: 'desktop', text: 'Desktop' }] },
   gpu: { label: 'Renderer', experimental: true, options: [{ v: 'webgl', text: 'WebGL' }, { v: 'webgpu', text: 'WebGPU' }, { v: 'webgpu-gl', text: 'WebGPU · GL' }] },
   island: { label: 'Island', experimental: true, options: [{ v: 'procedural', text: 'Procedural' }, { v: 'blender', text: 'Blender' }] },
   touch: { label: 'Touch controls', options: [{ v: 'auto', text: 'Auto' }, { v: 'on', text: 'Always' }] },
+  lighting: { label: 'Lighting', options: [{ v: 'toon', text: 'Toon' }, { v: 'standard', text: 'Standard' }] },
+  sky: { label: 'Sky', options: [{ v: 'stylized', text: 'Stylized' }, { v: 'hdri', text: 'Photo' }] },
 };
-const optionLabel = (k: OptionKey): string => (k === 'tier' || k === 'gpu' || k === 'island' || k === 'touch' ? LABELS[k].label : k);
+const optionLabel = (k: OptionKey): string => (k === 'tier' || k === 'gpu' || k === 'island' || k === 'touch' || k === 'lighting' || k === 'sky' ? LABELS[k].label : k);
 const NAMES: Record<string, string> = { webgl: 'WebGL', webgpu: 'WebGPU', 'webgpu-gl': 'WebGPU · GL', procedural: 'procedural', blender: 'Blender' };
 /** the render scale / AA picks this page was built with (tier.ts applied them at import) */
 const BOOT_GFX = { ...gfxPrefs };
@@ -91,7 +94,7 @@ function build(): HTMLElement {
     return row;
   };
   const row = <K extends BootKey>(k: K, spec: Row<K>): HTMLElement =>
-    seg(spec.label, spec.experimental === true, spec.options, () => savedSetting(k), (v) => { const o = spec.options.find((x) => x.v === v); if (o) saveSetting(k, o.v); });
+    seg(spec.label, spec.experimental === true, spec.options, () => savedSetting(k), (v) => { const o = spec.options.find((x) => x.v === v); if (o) { saveSetting(k, o.v); if (o.v !== setting(k)) askReload(document.body, spec.label, 'title'); } });
 
   const dprOpts = [{ v: '1', text: '1.0×' }, { v: '1.25', text: '1.25×' }, { v: '1.5', text: '1.5×' }, { v: 'auto', text: 'Auto' }];
   const aaOpts = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }, { v: 'auto', text: 'Auto' }];
@@ -101,6 +104,8 @@ function build(): HTMLElement {
     seg('Anti-aliasing', false, aaOpts, () => gfxPrefs.aa, (v) => { if (v === 'auto' || v === 'on' || v === 'off') { gfxPrefs.aa = v; saveGfxPrefs(); } }),
     el('ws-gmenu-label', 'Experimental'), row('gpu', LABELS.gpu), row('island', LABELS.island),
     el('ws-gmenu-note', 'Island: Driftwood Isle’s spawn cove, hand-built in Blender or generated in code.'),
+    el('ws-gmenu-label', 'Look lab'), row('lighting', LABELS.lighting), row('sky', LABELS.sky),
+    el('ws-gmenu-note', 'Taste picks, old look and new, Driftwood Isle. Post, colour grade, painted horizon and time of day switch live in the pause menu ▸ Settings.'),
     el('ws-gmenu-label', 'Controls'), row('touch', LABELS.touch));
   // the agents' screenshot URLs carry params that win over the saved picks for that load: say so
   const overridden = BOOT_OPTIONS.filter((k) => settingFromUrl(k));

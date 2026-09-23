@@ -1,0 +1,9 @@
+/* The reload prompt (src/ui/ReloadPrompt.ts, E65): a sheet pinned to the bottom of the screen over any menu. */
+.ws-reload { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 90; width: min(420px, calc(100vw - 24px)); display: flex; flex-direction: column; gap: 12px; padding: 14px 14px 12px; background: rgba(8, 16, 26, 0.94); border: 1px solid var(--ws-cyan); box-shadow: 0 0 24px rgba(143, 227, 255, 0.25), 0 12px 32px rgba(0, 0, 0, 0.5); font-family: var(--ws-mono); color: var(--ws-text); }
+.ws-reload .ws-reload-text { margin: 0; font-size: 12px; line-height: 1.5; letter-spacing: 0.04em; }
+.ws-reload .ws-reload-row { display: flex; gap: 10px; justify-content: flex-end; }
+.ws-reload .ws-reload-go, .ws-reload .ws-reload-later { padding: 12px 18px; appearance: none; -webkit-appearance: none; font-family: var(--ws-display); font-weight: 700; font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; }
+.ws-reload .ws-reload-go { background: rgba(143, 227, 255, 0.18); border: 1px solid var(--ws-cyan); color: #fff; }
+.ws-reload .ws-reload-later { background: none; border: 1px solid rgba(143, 227, 255, 0.25); color: var(--ws-text-dim); }
+.ws-reload .ws-reload-go:disabled { opacity: 0.6; cursor: default; }
+.ws-reload button:focus-visible { outline: 2px solid var(--ws-cyan); outline-offset: 2px; }

@@ -19,7 +19,8 @@ import type { FullMap } from './Map';
 import type { Progress } from '../game/Progress';
 import { PACK_SLOTS, type Inventory } from '../game/Inventory';
 import { icon, type IconId } from './icons';
-import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, setting, saveSetting, onSettingChange, type SettingKey, type NumberKey, type MusicStyle, type SfxSet, type OptionValue } from './Settings';
+import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, setting, savedSetting, saveSetting, onSettingChange, type SettingKey, type NumberKey, type MusicStyle, type SfxSet, type OptionValue } from './Settings';
+import { askReload } from './ReloadPrompt';
 import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
 import { onAudioBusy } from '../audio/preload';
 import { CAN_VIBRATE } from './haptics';
@@ -336,6 +337,14 @@ export class GameMenu {
       paintLut(); onSettingChange('lut', paintLut); // the learned LUT (X1): Game.buildComposer subscribes the effect itself
       lut.addEventListener('click', () => { saveSetting('lut', setting('lut') === 'on' ? 'off' : 'on'); });
       p.append(el('ws-gmenu-label', 'Look'), time, matte, lut);
+      // Look Lab (E65): the remaster's taste axes, each keeping the pre-remaster look — the user picks. Post is live;
+      // lighting and sky rebuild every shader / the whole sky, so they ask to reload and come straight back here
+      const post = picker('Post', [{ v: 'clean' as const, text: 'Clean' }, { v: 'cinematic' as const, text: 'Cinematic' }], () => setting('post'), (v) => { saveSetting('post', v); }, (fn) => { onSettingChange('post', fn); });
+      const onReload = <K extends 'lighting' | 'sky'>(k: K, label: string) => (v: OptionValue<K>) => { saveSetting(k, v); if (v !== setting(k)) askReload(document.body, label, 'game'); };
+      const lighting = picker('Lighting', [{ v: 'toon' as const, text: 'Toon' }, { v: 'standard' as const, text: 'Standard' }], () => savedSetting('lighting'), onReload('lighting', 'Lighting'), (fn) => { onSettingChange('lighting', fn); });
+      const sky = picker('Sky', [{ v: 'stylized' as const, text: 'Stylized' }, { v: 'hdri' as const, text: 'Photo' }], () => savedSetting('sky'), onReload('sky', 'Sky'), (fn) => { onSettingChange('sky', fn); });
+      p.append(el('ws-gmenu-label', 'Look lab'), post, lighting, sky,
+        el('ws-gmenu-note', 'Taste picks: every option is a real look, old and new. Post switches at once; lighting and sky reload and bring you back here.'));
     }
     p.append(el('ws-gmenu-note', 'Renderer, island, quality and render scale: Exit to main menu ▸ Settings.'));
     p.append(this.buildReview());

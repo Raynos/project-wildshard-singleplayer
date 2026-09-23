@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { TIER_CONFIG } from '../core/tier';
+import { setting } from '../ui/Settings';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { loadHDR } from '../core/assets';
 import { fogUniforms } from './Atmosphere';
@@ -54,10 +55,12 @@ export class Sky {
 
   async build(): Promise<this> {
     const { sky: S, atmosphere: A, style } = getActiveChunk();
-    if (style === 'lowpoly') installStylize(); // the toon lighting model (D1) — patched into three's chunk before anything compiles
+    // Look Lab (E65): main menu ▸ Settings ▸ Look Lab keeps the pre-remaster looks selectable (reload to apply)
+    const toon = style === 'lowpoly' && setting('lighting') === 'toon', stylizedSky = style === 'lowpoly' && setting('sky') === 'stylized';
+    if (toon) installStylize(); // the toon lighting model (D1) — patched into three's chunk before anything compiles
     const qs = new URLSearchParams(location.search);
     const qn = (k: string, d: number) => { const v = qs.get(k); return v === null ? d : Number.parseFloat(v); };
-    const horizon = style === 'lowpoly' ? await this.setupStylized() : await this.setupHDRI(qs, qn);
+    const horizon = stylizedSky ? await this.setupStylized() : await this.setupHDRI(qs, qn);
     this.scene.fog = new THREE.Fog(horizon, 1, 1e6); // distances unused: Atmosphere.ts overrides the maths
     fogUniforms.fogSunDir.value.copy(this.sunDir);
     fogUniforms.fogSunColor.value.set(...S.fogSunColor);

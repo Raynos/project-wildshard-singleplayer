@@ -99,11 +99,15 @@ export const OPTION_VALUES = {
   matte: ['on', 'off'],                                // the painted horizon (src/world/HorizonMatte.ts) — live
   time: ['live', 'midday', 'golden', 'sunset', 'night'], // the day / night clock (src/world/DayNight.ts) — live
   lut: ['on', 'off'],                                  // the learned colour LUT (src/world/lut.ts, Game.buildComposer) — live
+  // Look Lab (E65): the remaster's TASTE axes, each keeping the pre-remaster look selectable — the user picks, not us
+  lighting: ['toon', 'standard'],                      // Driftwood: the toon ramp (src/world/stylize.ts, L1) or three's standard lighting
+  sky: ['stylized', 'hdri'],                           // Driftwood: the gradient dome + faceted cumulus (L2) or the photoreal HDRI it replaced
+  post: ['clean', 'cinematic'],                        // Driftwood: the clean low-poly post (L5) or the original haze + grain + fringe chain — live
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
 /** read once while the page loads: main menu ▸ Settings, APPLY & RELOAD. Every other option applies live (pause menu). */
-export const BOOT_OPTIONS: readonly OptionKey[] = ['gpu', 'island', 'tier', 'touch'];
+export const BOOT_OPTIONS: readonly OptionKey[] = ['gpu', 'island', 'tier', 'touch', 'lighting', 'sky'];
 const onOff = (v: string | null): 'on' | 'off' | null => (v === null ? null : v === '0' || v === 'off' || v === 'false' ? 'off' : 'on');
 /** per option: the default, the URL params that override it (dropped by settingsReloadUrl) and how they read */
 const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly string[]; url: (q: URLSearchParams) => string | null } } = {
@@ -114,12 +118,16 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly 
   matte: { def: 'on', params: ['matte'], url: (q) => onOff(q.get('matte')) },                           // ?matte=0: the before / after captures
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
   lut: { def: 'on', params: ['nolut'], url: (q) => (q.has('nolut') ? 'off' : null) },                   // ?nolut: the LUT fit's own captures (scripts/fit-lut.py)
+  lighting: { def: 'toon', params: ['lighting'], url: (q) => q.get('lighting') },
+  sky: { def: 'stylized', params: ['sky'], url: (q) => q.get('sky') },
+  post: { def: 'clean', params: ['post'], url: (q) => q.get('post') },
 };
 // Settings ▸ Graphics ▸ Island (X2) saved under its own key before E55: carried over once
 if (saved['island'] === undefined) { try { const legacy = localStorage.getItem('ws.island.v1'); if (legacy !== null) saved['island'] = legacy; } catch { /* private mode */ } }
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => new Choice<OptionValue<K>>(k, OPTION_VALUES[k], OPTION_SPECS[k].def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   gpu: option('gpu'), island: option('island'), tier: option('tier'), touch: option('touch'), matte: option('matte'), time: option('time'), lut: option('lut'),
+  lighting: option('lighting'), sky: option('sky'), post: option('post'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 
