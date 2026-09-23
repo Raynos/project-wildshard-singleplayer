@@ -20,9 +20,9 @@
 .ws-touch-pause { position: absolute; left: 12px; top: var(--ws-top); transform: none; padding: 5px 12px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); color: var(--ws-text-dim); font-family: var(--ws-mono); font-size: 8.5px; letter-spacing: 0.22em; text-transform: uppercase; -webkit-tap-highlight-color: transparent; }
 .ws-touch-pause::after { content: ''; position: absolute; inset: -10px -6px; } /* ≥ 44 px hit target */
 .ws-touch-pause::before { content: '❚❚'; margin-right: 8px; font-size: 7px; color: var(--ws-cyan); }
-/* top-left status column under PAUSE and the ?perf frame meter (perf.css puts it at --ws-top + 30 px): HUD.ts mounts VITALS and,
+/* top-left status column directly under PAUSE (the frame meter is a pill on PAUSE's row since E47, perf.css): HUD.ts mounts VITALS and,
    on ranged kit, BOLTS here — out of the thumb lane (E37 R18) */
-.ws-touch-status { position: absolute; left: 12px; top: calc(var(--ws-top) + 50px); display: flex; flex-direction: column; align-items: flex-start; gap: 4px; pointer-events: none; }
+.ws-touch-status { position: absolute; left: 12px; top: calc(var(--ws-top) + 30px); display: flex; flex-direction: column; align-items: flex-start; gap: 4px; pointer-events: none; }
 
 /* ── the bar: 67 % solid (E42 — Jake: "from 25 % to 33 %" see-through; E34 had it 75 % solid) with NO backdrop blur (E26): the
    world under it reads through, dimmed — a blur smeared it to flat grey (and cost a full-screen-width blur pass on phones) ── */
