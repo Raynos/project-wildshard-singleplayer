@@ -1,6 +1,6 @@
 # Driftwood Isle — the remaster (10× quality and polish)
 
-**State:** `in progress` 2026-09-22 — the user: "we will need a full remaster"; audit done (E7), every pick made (D1–D8). Building: Track M = model-agent (took over from E8, building on its `8ce9efd` lowpolyKit); Tracks L + W = look-agent, 0 + C = feel-agent, A = adventure-agent, S = sound-agent (this session integrates, deploys, screenshots). Perf is gated by PLAY-PERF's four Driftwood poses.
+**State:** `in progress` 2026-09-23 — heading for the **v0.2 cut**: Tracks 0 / C / A / S done, L done bar tuning, W bar W4 leftovers; open for v0.2: X1 learned LUT + terrain facet fix (look-agent), M3 silhouettes + captain mesh and M5 sway (model-agent), X2 milestone 2 (blender-agent), X3 batch 3 + board (asset-agent), E55 settings (settings-agent), X5 stage-1 parity (webgpu-agent), 0.5 hero re-capture (integrator), one iPhone reading per shard (the user). Everything past the cut continues in `docs/plans/DRIFTWOOD-REMASTER-V2.md`.
 
 Driftwood was built in one night (2026-09-18, `project/archive/2026-09-18-driftwood.md`): C0–C16,
 129 commits, all live. It is a complete *scene* and a thin *game*. This plan turns it into the shard
