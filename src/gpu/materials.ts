@@ -2,6 +2,7 @@
  * TSL ports of Driftwood's patched materials (the GLSL lives in each owner's module; the port reads that module's
  * live uniforms through `harvest`, so the owner keeps driving them):
  *
+ *   terrain-lowpoly   Terrain.ts   facet colours: a `flat` vertex-colour varying when its patch declares one
  *   ground-cover      GroundCover  grow-in by distance, bend away from the player, wind sway (instanced)
  *   palms-sway        Palms.ts     frond sway          rope-bridge-sway  RopeBridge.ts   deck sway
  *   seabed-sway       Seabed.ts    kelp / coral current
@@ -15,7 +16,7 @@
 import * as THREE from 'three';
 import {
   abs, attribute, cameraPosition, cos, dot, float, fract, instancedDynamicBufferAttribute, length, max, mix, modelWorldMatrix,
-  normalize, output, positionGeometry, positionLocal, positionWorld, pow, select, sin, smoothstep, uniform, vec2, vec3, vec4, vertexColor,
+  normalize, output, positionGeometry, positionLocal, positionWorld, pow, select, sin, smoothstep, uniform, varying, vec2, vec3, vec4, vertexColor,
   materialColor, materialEmissive,
 } from 'three/tsl';
 import { InstancedInterleavedBuffer, type Node, type NodeBuilder } from 'three/webgpu';
@@ -57,7 +58,20 @@ function instanceFrameOf(builder: NodeBuilder): { origin: Node<'vec3'>; axis0: N
   return { axis0: col(0).xyz, origin: col(12).xyz.add(sync) };
 }
 
+/** does the material's GLSL patch declare the vertex colour `flat` (Terrain.ts)? */
+export function usesFlatColour(src: THREE.Material): boolean { return harvest(src).vertexShader.includes('flat varying vec4 vColor'); }
+
 export function installPorts(): void {
+  // ── terrain: one colour per facet when the patch makes the colour varying `flat` (compat.ts rotates each triangle's
+  //    indices on the WebGPU backend, so its first-vertex rule picks the vertex WebGL's last-vertex rule does) ──
+  registerPort('terrain-lowpoly', (src, base) => {
+    if (!usesFlatColour(src)) return base();
+    const m = toonCopy(src, ToonStandardNodeMaterial);
+    m.vertexColors = false;
+    m.colorNode = materialColor.mul(varying(vertexColor(), 'vFlatColor').setInterpolation(THREE.InterpolationSamplingType.FLAT, THREE.InterpolationSamplingMode.FIRST).rgb);
+    return m;
+  });
+
   // ── the sway family: world-still roots, travelling tips ──
   registerPort('palms-sway', (src) => {
     const h = harvest(src), t = fU(h, 'uTime');

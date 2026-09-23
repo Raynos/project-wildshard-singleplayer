@@ -31,7 +31,7 @@ export interface Harvest { uniforms: Record<string, THREE.IUniform | undefined>;
  * them) and leaves its GLSL in the sources (constants baked into it can be read back). Nothing is compiled.
  */
 export function harvest(src: THREE.Material): Harvest {
-  const includes = ['#include <common>', '#include <begin_vertex>', '#include <worldpos_vertex>', '#include <color_fragment>', '#include <emissivemap_fragment>', '#include <fog_fragment>', '#include <opaque_fragment>', '#include <lights_fragment_begin>', 'varying vec4 vColor;'].join('\n');
+  const includes = ['#include <common>', '#include <color_pars_vertex>', '#include <color_pars_fragment>', '#include <begin_vertex>', '#include <worldpos_vertex>', '#include <color_fragment>', '#include <emissivemap_fragment>', '#include <fog_fragment>', '#include <opaque_fragment>', '#include <lights_fragment_begin>', 'varying vec4 vColor;'].join('\n');
   const stub = { uniforms: {} as Record<string, THREE.IUniform>, vertexShader: includes, fragmentShader: includes, defines: {}, shaderName: src.type };
   if (legacy) src.onBeforeCompile(stub as THREE.WebGLProgramParametersWithUniforms, legacy);
   return stub;

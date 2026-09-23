@@ -35,6 +35,7 @@ import { portByKey, setLegacyRenderer, type Port } from './ports';
 import { installPorts } from './materials';
 import { registerOcean } from './ocean';
 import { fixScene } from './compat';
+import { isTwinnedPointsMaterial, shaderPortFor, syncTwins, twinPoints } from './effects';
 
 /** ?gpudbg=noshadow,notoon — A/B switches for chasing a WebGL ↔ WebGPU difference */
 const DBG = new Set((new URLSearchParams(location.search).get('gpudbg') ?? '').split(','));
@@ -55,16 +56,23 @@ class GpuLibrary extends StandardNodeLibrary {
     const key = programKey(material);
     const port = this.byIdentity.get(material) ?? portByKey(key);
     if (port) { const m = port(material, base); this.built.set(material, m); return m; }
+    const shader = shaderPortFor(material);
+    if (shader) { const m = shader(); this.built.set(material, m); return m; }
+    if (isTwinnedPointsMaterial(material)) return this.masked(); // drawn by its sprite twin (effects.ts)
     return base();
   }
 
   /** three's own conversion (the toon classes for Standard / Physical), or a draw-nothing material when there is none */
   private baseFor(material: THREE.Material): NodeMaterial {
     if (this.getMaterialNodeClass(material.type) !== null) return super.fromMaterial(material);
-    const tag = `${material.type}:${programKey(material)}`;
+    const tag = `${material.type}:${programKey(material)}${material instanceof THREE.ShaderMaterial ? ` «${material.fragmentShader.replaceAll(/\s+/g, ' ').slice(0, 90)}»` : ''}`;
     const n = this.skipped.get(tag) ?? 0;
     if (n === 0) console.warn(`[gpu] no TSL port for ${tag} — not drawn`);
     this.skipped.set(tag, n + 1);
+    return this.masked();
+  }
+
+  private masked(): NodeMaterial {
     const skip = new MeshBasicNodeMaterial();
     skip.maskNode = bool(false);
     return skip;
@@ -154,7 +162,8 @@ export class GpuPath {
     if (body) this.portShader(materialOf(body), giantBodyMaterial);
     if (ring) this.portShader(materialOf(ring), giantRingMaterial);
 
-    this.post = buildPost(this.renderer, scene, camera);
+    const lut: unknown = Reflect.get(sky, 'lut'); // (Sky.lut: the look-agent's learned LUT, X1 — absent on older trees)
+    this.post = buildPost(this.renderer, scene, camera, { sunDisc: sky.sunDisc, lut: lut instanceof THREE.Data3DTexture ? lut : null });
   }
 
   private portShader(mat: unknown, fn: (m: THREE.ShaderMaterial) => NodeMaterial): void {
@@ -176,7 +185,7 @@ export class GpuPath {
   async precompile(onProgress?: (done: number, total: number, detail: string) => void): Promise<number> {
     const { scene, camera } = this;
     if (!scene || !camera) return 0;
-    fixScene(scene);
+    fixScene(scene, this.info.backend === 'webgpu'); twinPoints(scene);
     onProgress?.(0, 1, 'webgpu pipelines');
     const t0 = performance.now();
     await this.renderer.compileAsync(scene, camera);
@@ -198,7 +207,8 @@ export class GpuPath {
   private frame = 0;
   render(): void {
     if (!this.post || !this.scene) return;
-    if (this.frame++ % 120 === 0) fixScene(this.scene);
+    if (this.frame++ % 120 === 0) { fixScene(this.scene, this.info.backend === 'webgpu'); twinPoints(this.scene); }
+    syncTwins();
     this.renderer.info.reset();
     this.post.pipeline.render();
     const r = this.renderer.info.render;

@@ -16,6 +16,7 @@ import { fogUniforms } from '../world/Atmosphere';
 /** three's TSL helpers that come back untyped (agxToneMapping, BRDF_GGX, BRDF_Lambert …) as the vec3 they are */
 export function asVec3(n: Node): Node<'vec3'> { return n as Node<'vec3'>; }
 export function asVec4(n: Node): Node<'vec4'> { return n as Node<'vec4'>; }
+export function asFloat(n: Node): Node<'float'> { return n as Node<'float'>; }
 
 export type FloatU = UniformNode<'float', number>;
 export type ColorU = UniformNode<'color', THREE.Color>;

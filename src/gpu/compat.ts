@@ -5,16 +5,31 @@
  *
  * - An InstancedMesh on an InstancedBufferGeometry (Gulls): WebGL draws `mesh.count` instances, WebGPU draws
  *   `geometry.instanceCount` — Infinity by default, which throws in `draw()`. The geometry's count follows the mesh.
- * (Terrain.ts' `flat varying vec4 vColor` replace matches nothing: at onBeforeCompile time that line still sits inside the
- * unexpanded `#include <color_pars_vertex>`. So the WebGL terrain is smooth-shaded between vertex colours, and the
- * WebGPU path draws it the same way: no port.)
+ * - `flat` varyings (the low-poly terrain's facet colour, materials.ts terrain-lowpoly): WebGL takes the triangle's LAST
+ *   vertex, WebGPU its FIRST. On the WebGPU backend each triangle's indices are rotated (a b c → c a b: the same triangle,
+ *   the same winding) so the same vertex provides the colour.
  */
 import * as THREE from 'three';
+import { usesFlatColour } from './materials';
 
 const fixed = new WeakSet<THREE.BufferGeometry>();
+const rotated = new WeakSet<THREE.BufferAttribute>();
 
-export function fixScene(root: THREE.Object3D): void {
+function rotateTriangles(index: THREE.BufferAttribute): void {
+  if (rotated.has(index)) return;
+  rotated.add(index);
+  const a = index.array;
+  for (let i = 0; i + 2 < a.length; i += 3) { const c = a[i + 2] ?? 0; a[i + 2] = a[i + 1] ?? 0; a[i + 1] = a[i] ?? 0; a[i] = c; }
+  index.needsUpdate = true;
+}
+
+export function fixScene(root: THREE.Object3D, webgpuBackend: boolean): void {
   root.traverse((o) => {
+    if (webgpuBackend && o instanceof THREE.Mesh) {
+      const m: unknown = o.material, g: unknown = o.geometry;
+      if (m instanceof THREE.MeshStandardMaterial && g instanceof THREE.BufferGeometry && g.index && Object.hasOwn(m, 'customProgramCacheKey')
+        && m.customProgramCacheKey().startsWith('terrain-lowpoly') && usesFlatColour(m)) rotateTriangles(g.index);
+    }
     if (!(o instanceof THREE.InstancedMesh)) return;
     const g: unknown = o.geometry;
     if (!(g instanceof THREE.InstancedBufferGeometry) || fixed.has(g) || Number.isFinite(g.instanceCount)) return;
