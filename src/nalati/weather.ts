@@ -45,6 +45,12 @@ export interface WeatherHooks {
   hurt?: (damage: number, why: string) => void;
   /** a strike landed: scare the creatures near it (Wildlife.scare) */
   scare?: (x: number, z: number) => void;
+  /**
+   * The player is somewhere the weather cannot reach (the great kurgan's dungeon, `boss.inside`): no lightning at
+   * them, no GET LOW, no rain / storm audio around them — and, since that is where the Golden King is fought, no
+   * storm may start meanwhile (`weather.hold`).
+   */
+  indoors?: () => boolean;
 }
 
 export interface NalatiWeather {
@@ -169,6 +175,8 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
   const def = getActiveChunk();
   const qs = new URLSearchParams(location.search);
   const hooks: WeatherHooks = {};
+  /** refreshed each frame from `hooks.indoors` */
+  let indoors = false;
 
   // ── the clock: starts on the def's own sun, so the first frame is the look the shard was painted with ──
   const clock = def.sky.sun ? DayClock.forSun(def.sky.sun) : new DayClock();
@@ -196,7 +204,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
         const p = player.position;
         lp.x = p.x; lp.y = p.y; lp.z = p.z;
         lp.crouched = player.crouching; lp.mounted = wildEnv.playerMounted;
-        lp.sheltered = yurts.some((y) => (y.x - p.x) ** 2 + (y.z - p.z) ** 2 < (y.r + 1.5) ** 2);
+        lp.sheltered = indoors || yurts.some((y) => (y.x - p.x) ** 2 + (y.z - p.z) ** 2 < (y.r + 1.5) ** 2);
         return lp;
       },
     },
@@ -250,6 +258,8 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
     clock, weather, rig, fx, look,
     bind(h) { Object.assign(hooks, h); },
     update(dt) {
+      indoors = hooks.indoors?.() === true;
+      weather.hold = indoors; // the boss fight is fought indoors: no storm starts meanwhile (one already on runs out)
       clock.update(dt);
       weather.update(dt);
       // wind
@@ -270,6 +280,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
       rig.apply(look, dt);
       dimWater?.(look, dayFog, dayKey);
       fx.update(dt, weather, look, game.camera, { x: wind.dirX * wind.speed, z: wind.dirZ * wind.speed });
+      fx.rain.visible &&= !indoors;
       // the creatures
       wildEnv.light = Math.min(lightLevel(clock), weather.stormActive ? 0.6 : 1);
       wildEnv.storm = weather.stormActive;
@@ -280,7 +291,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
       else if (weather.state === 'gust') chip = { title: 'Storm', sub: ws, tone: 'storm' };
       else if (weather.state === 'storm') chip = { title: `Storm ${mmss(weather.phaseLeft)}`, sub: ws, tone: 'storm' };
       else if (weather.state === 'clearing') chip = { title: 'Clearing', sub: ws, tone: 'clearing' };
-      const detail: WeatherHUD = { chip, getLow: weather.getLow };
+      const detail: WeatherHUD = { chip, getLow: weather.getLow && !indoors };
       const key = `${chip?.title ?? ''}|${chip?.sub ?? ''}|${String(detail.getLow)}`;
       if (key !== hudKey) { hudKey = key; document.dispatchEvent(new CustomEvent(WEATHER_EVENT, { detail })); }
       // audio beds at 4 Hz
@@ -288,7 +299,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
       if (audioT <= 0 && hooks.audio) {
         audioT = 0.25;
         const windLevel = smooth(6, 22, wind.speed);
-        hooks.audio.setStorm(weather.rain, weather.state === 'clear' ? 0 : windLevel);
+        hooks.audio.setStorm(indoors ? 0 : weather.rain, indoors || weather.state === 'clear' ? 0 : windLevel);
       }
     },
   };

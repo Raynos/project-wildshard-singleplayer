@@ -141,6 +141,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   const boss = wireKurgan({ game, sky, player: ctx.player, entrance: pois.kurganEntrance });
   groups['kurgan'] = boss.dungeon.group;
   updates.push((dt, t) => boss.update(dt, t));
+  weather.bind({ indoors: () => boss.inside }); // weather agent (B10): no lightning / rain in the dungeon, and no storm starts during the fight
   await macrotask();
 
   // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager, fed the grass, the wind, the water, the player ──
