@@ -23,6 +23,7 @@ import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, get
 import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
 import { onAudioBusy } from '../audio/preload';
 import { gfxPrefs, saveGfxPrefs } from '../core/tier';
+import { islandMode, setIslandMode } from '../world/blenderArea';
 import { CAN_VIBRATE } from './haptics';
 import { lockReview, onReview, quickNote, reviewUnlocked, setQuickNote, unlockReview } from './review';
 
@@ -300,6 +301,8 @@ export class GameMenu {
     p.append(el('ws-gmenu-label', 'Graphics'),
       seg('Render scale', dprOpts, () => gfxPrefs.dpr, (v) => { if (v === 'auto' || v === '1' || v === '1.25' || v === '1.5') { gfxPrefs.dpr = v; saveGfxPrefs(); } }),
       seg('Anti-aliasing', aaOpts, () => gfxPrefs.aa, (v) => { if (v === 'auto' || v === 'on' || v === 'off') { gfxPrefs.aa = v; saveGfxPrefs(); } }));
+    // Driftwood's spawn cove: the TypeScript island or the Blender-built one (DRIFTWOOD-REMASTER X2, src/world/BlenderIsland.ts)
+    if (getActiveChunk().slug === 'driftwood-isle') p.append(seg('Island', [{ v: 'procedural', text: 'Procedural' }, { v: 'blender', text: 'Blender' }], islandMode, (v) => { if (v === 'procedural' || v === 'blender') setIslandMode(v); }));
     const apply = el('ws-gmenu-apply', 'Restart to apply', 'button') as HTMLButtonElement; apply.type = 'button'; apply.hidden = true;
     apply.addEventListener('click', () => location.reload());
     p.append(apply);

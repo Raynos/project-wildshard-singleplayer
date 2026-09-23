@@ -18,6 +18,7 @@
     "timelapse": "bash scripts/timelapse.sh",
     "bench": "node scripts/bench-load.mjs",
     "bench:ci": "node scripts/bench-load.mjs --ci",
+    "blender:island": "bash scripts/blender/run.sh",
     "inbox:pull": "node scripts/inbox-pull.mjs",
     "native:sync": "pnpm build:native && cap sync && node scripts/native-paths.mjs",
     "native:ios": "bash scripts/native-ios.sh",

@@ -76,6 +76,7 @@ import { rotateGated } from './ui/RotateGate';
 import type { Feedback } from './ui/Feedback';
 import type { Explore, ExploreMode } from './explore/Explore';
 import { TIER } from './core/tier';
+import { islandMode } from './world/blenderArea';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
 const _animalXZ: { x: number; z: number }[] = [];
@@ -211,9 +212,17 @@ async function main() {
     await macrotask();
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
-    return { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon };
+    return { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon, rocks, cover };
   });
   const { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon } = dressing;
+  // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52): ?island=blender|procedural, Settings ▸ Graphics ▸ Island
+  const blenderIsland = isOcean && islandMode() === 'blender'
+    ? await import('./world/BlenderIsland').then(({ BlenderIsland: B }) => B.install({
+      scene: game.scene, sky, colliders: player.colliders, terrain: world.terrain.mesh, palms: palms?.mesh ?? null, palmSpecs,
+      replace: [bushes?.mesh ?? null, dressing.rocks?.mesh ?? null], cover: dressing.cover?.group ?? null,
+    })).catch((e: unknown) => { console.warn('[island] the Blender island did not load; procedural', e); return null; })
+    : null;
+  if (blenderIsland) game.onUpdate(() => { blenderIsland.update(sky); });
 
   const carpet = await step('grass', async () => {
     // no forest carpet over open water (grass scattered the whole sea floor for 19 s)
