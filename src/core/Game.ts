@@ -115,6 +115,7 @@ export class Game {
       // the stylized look (DRIFTWOOD-REMASTER L5): no volumetric haze, grain or fringe washing the toon bands to low
       // contrast — the colour-ramp fog does the aerial perspective; the god rays stay faint, the vignette light
       godRays.blendMode.opacity.value = 0.35;
+      bloom.luminanceMaterial.smoothing = 0.08; // bloom only what is really over 1.0 (the def's threshold): the sun, glints, glyphs, fireflies
       vignette.darkness = 0.35;
       composer.addPass(new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split));
     } else composer.addPass(new EffectPass(this.camera, vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain));

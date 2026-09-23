@@ -210,7 +210,7 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   },
   grade: {
     saturation: 0.3, brightness: 0.0, contrast: 0.2,
-    bloomIntensity: 0.22, bloomThreshold: 0.95,
+    bloomIntensity: 0.4, bloomThreshold: 1.0,
     shadowTint: [0.94, 0.98, 1.06], highTint: [1.04, 1.01, 0.96],
     lift: [0.0, 0.0, 0.005], gain: [1.02, 1.02, 1.0], gamma: 1.0,
   },
