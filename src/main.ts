@@ -72,6 +72,7 @@ import { installErrorModal, showError } from './ui/ErrorModal';
 import { onReview, queuedCount, quickNote } from './ui/review';
 import { rotateGated } from './ui/RotateGate';
 import type { Feedback } from './ui/Feedback';
+import type { Explore, ExploreMode } from './explore/Explore';
 import { TIER } from './core/tier';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
@@ -300,14 +301,17 @@ async function main() {
   let feedbackHeld = false;
   let feedback: Promise<Feedback> | null = null;
   const touchUi = () => document.getElementById('hud')?.classList.contains('touch') === true;
+  let explore: Explore | null = null; // Explore World (below) — while it is up, notes describe the viewer, not the player
+  const exploring = (): boolean => explore?.active === true;
   const loadFeedback = (): Promise<Feedback> => { feedback ??= import('./ui/Feedback').then(({ Feedback: F }) => new F({
     capture: () => game.captureFrame(1280),
-    context: () => ({
+    context: () => (explore?.active === true ? { shard: getActiveChunk().slug, ...explore.context(), tier: TIER, fps: game.stats.fps, calls: game.lastFrame.calls, tris: game.lastFrame.triangles } : {
       shard: getActiveChunk().slug, pos: [player.position.x, player.position.y, player.position.z].map((v) => Number(v.toFixed(2))),
       yaw: Number(player.yaw.toFixed(3)), pitch: Number(player.pitch.toFixed(3)), weapon: weapons.current.id, health: Math.round(health), kills,
       swimming: player.swimming, hover: player.hover, tier: TIER, fps: game.stats.fps, calls: game.lastFrame.calls, tris: game.lastFrame.triangles,
     }),
     hold: (on) => {
+      if (explore?.active === true) { feedbackHeld = on; explore.hold(on); return; }
       feedbackHeld = on; hud.holdPause = on;
       if (on) { weapons.setEnabled(false); if (document.pointerLockElement) document.exitPointerLock(); return; }
       weapons.setEnabled(!player.swimming);
@@ -315,7 +319,7 @@ async function main() {
       player.lock(); // Enter / a click on SEND is the user gesture; if the lock is refused, fall back to the pause menu
       setTimeout(() => { if (!document.pointerLockElement && hud.entered && !menu.isOpen && !feedbackHeld) hud.setPaused(true); }, 400);
     },
-    toast: (t) => hud.toast(t),
+    toast: (t) => { if (explore?.active === true) explore.toast(t); else hud.toast(t); },
     touch: touchUi,
   })); return feedback; };
   document.addEventListener('keydown', (e) => {
@@ -484,10 +488,37 @@ async function main() {
   };
   hud.onResume = enter;
   hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show'); }; // the world hushes, the title theme comes back; the HUD clears `entered`, the gate does the rest
+
+  // ── Explore World (docs/plans/EXPLORE-WORLD.md): the title's EXPLORE WORLD panel — the viewer over this same loaded shard (a
+  // lazy chunk). God-mode camera, Model Explorer, one ✎ to the review inbox; ✕ comes back here to the title.
+  const exitExplore = () => { perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); hud.showIntro(enter); };
+  const noteSheet = async (): Promise<void> => { const f = await loadFeedback(); await f.openSheet(); };
+  const openExplore = async (mode: ExploreMode, opts: { cam?: number[]; model?: string } = {}): Promise<void> => {
+    audio.resume();
+    audio.worldMuted = false;
+    if (!music.isPlaying) music.play('theme');
+    music.setState({ mode: 'calm', intensity: 0 });
+    void keepAlive.start();
+    weapons.setEnabled(false); weapons.visible = false;
+    perf.setActive(false); // the Explore readout carries fps / calls / tris
+    const { Explore: X } = await import('./explore/Explore');
+    explore ??= new X({ world, onExit: exitExplore, openFeedback: () => { void noteSheet(); }, hide: [boundary.group] });
+    explore.open(mode, opts);
+  };
+  const exploreParam = params.get('explore');
+  const exploreMode: ExploreMode = exploreParam === 'world' || exploreParam === 'model' ? exploreParam : 'hub';
+  hud.onExplore = () => { void openExplore('hub'); };
   // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
-  game.frameGate = () => hud.entered && !feedbackHeld && !rotateGated(); // … and the review composer freezes it on the captured frame; the rotate page (E38) stops it too
+  game.frameGate = () => (hud.entered || exploring()) && !feedbackHeld && !rotateGated(); // … and the review composer freezes it on the captured frame; the rotate page (E38) stops it too
   if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.worldMuted = true; hud.showIntro(enter); }
   else { hud.markEntered(); weapons.setEnabled(!nolock || params.has('skipintro')); }
+  // ?explore=hub|world|model[&cam=x,y,z,yaw,pitch][&model=id] — straight into the viewer (Driftwood only, D4; a note's "go there")
+  if (exploreParam !== null && sea !== undefined) {
+    const cam = (params.get('cam') ?? '').split(',').filter((v) => v !== '').map(Number);
+    const model = params.get('model');
+    hud.onExplore = () => { hud.onExplore = () => { void openExplore('hub'); }; void openExplore(exploreMode, { ...(cam.length >= 3 ? { cam } : {}), ...(model !== null ? { model } : {}) }); };
+    hud.startExplore();
+  }
   // the first gesture builds the AudioContext; on the title screen it also starts the title theme (synth, then the title stems)
   const firstGesture = () => { audio.resume(); if (!hud.entered && !music.isPlaying) music.play('theme'); };
   document.addEventListener('keydown', firstGesture, { once: true });

@@ -3,12 +3,17 @@ import { CHUNKS, getActiveChunk, chunkUrl } from '../chunks/registry';
 import { PLACEHOLDERS } from '../chunks/placeholders';
 import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
+import enterArt from './title/enter.webp';
+import exploreArt from './title/explore.webp';
+import { getSfxSet } from './Settings';
+import { MUSIC_CREDIT, sfxCredit } from '../audio/credits';
 
 /**
  * HUD — DOM overlay in `#hud`, styled by `src/ui/styles/game.css` / `menu.css` (the in-game menu is src/ui/Menu.ts + gmenu.css) on top of `base.css` (Wildshard glass identity; one class prefix per screen, see scripts/check-css.mjs).
  *
  *   const hud = new HUD({ pointerLock?: boolean });   // pointerLock:false in ?nolock dev mode (no pause overlay)
- *   hud.showIntro(() => player.lock())                 // title screen: shard deck; ENTER WORLD / any key → onEnter
+ *   hud.showIntro(() => player.lock())                 // title screen: shard pill + ENTER WORLD / EXPLORE WORLD panels; any key → onEnter
+ *   hud.onExplore = () => …  hud.startExplore()        // EXPLORE WORLD (src/explore/Explore.ts); startExplore = a `?explore=` deep link
  *   hud.setState({ bolts?, loaded, reloading, reloadProgress?, health, fps, pos: {x, z}, yaw, kills, prompt?, speed?, ads?,
  *                  maxBolts?, reserve?, ammoLabel?, weaponName?, segments? })
  *     — the ammo strip is generic: `bolts` is the held weapon's ammo (BOLTS 27 / 30 for the crossbow, ROUNDS 27 / 30 + 60
@@ -49,6 +54,8 @@ interface DeckCard {
   playable: boolean; active: boolean; heroPortrait?: string; heroLandscape?: string; blurb: string; experimental: boolean;
 }
 const HERO_FADE_MS = 350;
+const GLYPH_SWORD = '<svg viewBox="0 0 24 24"><path d="M19.5 3.5L9 14l1 1L20.5 4.5z M6.5 12.5l5 5 M8 14l-4.5 4.5 1 1L9 15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+const GLYPH_EYE = '<svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 
 const CARDINALS: [number, string, boolean][] = [[0, 'N', true], [45, 'NE', false], [90, 'E', true], [135, 'SE', false], [180, 'S', true], [225, 'SW', false], [270, 'W', true], [315, 'NW', false]];
 const BAND_DEGREES = 292; // the band spans this much heading (W · N · E all visible, like the K1 mockup); px/deg follows its width
@@ -88,6 +95,8 @@ export class HUD {
   private opts: HUDOptions;
   entered = false;
   private onEnter?: () => void;
+  /** EXPLORE WORLD on the title (main.ts opens src/explore/Explore.ts) */
+  onExplore?: () => void;
 
   private compassStrip!: HTMLElement; private band!: HTMLElement;
   private markHouse!: HTMLElement; private markPaw!: HTMLElement; private range!: HTMLElement;
@@ -406,10 +415,11 @@ export class HUD {
   get paused(): boolean { return this._menu?.isOpen ?? false; }
 
   /**
-   * Title screen: the shard deck IS the menu. A horizontal snap carousel of shard cards over the
-   * live world; the centred card is the selection. Real chunks are playable (the active one enters,
-   * another reloads with `?chunk=`); teasers from `PLACEHOLDERS` crossfade their hero art in behind
-   * the deck and turn ENTER WORLD into COMING SOON. `stats` is accepted for API compatibility.
+   * Title screen (EXPLORE-WORLD.md D1, mockup art/build-world/round-3-viewer-portrait/p12-title-split.jpg): the selected
+   * shard's hero art behind, a shard pill up top (‹ DRIFTWOOD ISLE ▾ · LOADED ›: tap / arrows / a swipe cycle the shards),
+   * and two tall glass panels — ENTER WORLD (play) and EXPLORE WORLD (the god-mode viewer, `onExplore`; Driftwood only,
+   * D4). The active shard enters / explores in place; another reloads with `?chunk=` (+ `&explore=hub` for EXPLORE);
+   * teasers from `PLACEHOLDERS` show their hero art and turn the play panel into COMING SOON.
    */
   showIntro(onEnter: () => void, _stats?: IntroStats): void {
     this.onEnter = onEnter;
@@ -431,113 +441,97 @@ export class HUD {
     const intro = el('div', 'ws-menu');
     intro.innerHTML = `
       <div class="ws-menu-hero"></div>
-      <div class="ws-menu-head"><div class="ws-wordmark">Project <b>Wildshard</b></div></div>
-      <div class="ws-menu-deck">
-        <div class="ws-menu-cards"><div class="ws-menu-deck-track">${cards.map((c, i) => `
-          <button class="ws-menu-card${c.active ? ' active' : ''}${c.playable ? '' : ' soon'}" type="button" data-i="${i}" title="${c.blurb.replaceAll('"', '&quot;')}">
-            <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-menu-card-tag ${c.tagTone}">${c.tag}</i>${c.experimental ? '<i class="ws-menu-card-exp">Experimental</i>' : ''}</span>
-            <b>${c.displayName}</b><small>${c.label}</small>
-          </button>`).join('')}
-        </div></div>
-        <div class="ws-menu-dots">${cards.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
-        <button class="ws-menu-enter" type="button"><b>Enter world</b><small>Press any key</small></button>
-        <div class="ws-menu-row"><div class="ws-menu-sound">Sound on</div><div class="ws-menu-credit">Music: MiniMax-Music3</div></div>
+      <div class="ws-menu-head">
+        <div class="ws-wordmark">Project <b>Wildshard</b></div>
+        <div class="ws-menu-shard"><button class="ws-menu-shard-step" type="button" data-d="-1" aria-label="Previous shard">‹</button><button class="ws-menu-shard-pick" type="button"><b></b><span>▾</span><i></i></button><button class="ws-menu-shard-step" type="button" data-d="1" aria-label="Next shard">›</button></div>
+      </div>
+      <div class="ws-menu-modes">
+        <button class="ws-menu-mode ws-menu-play" type="button"><span class="ws-menu-mode-art"></span><span class="ws-menu-mode-glyph">${GLYPH_SWORD}</span><b>Enter world</b><small></small></button>
+        <button class="ws-menu-mode ws-menu-explore" type="button"><span class="ws-menu-mode-art" style="background-image:url('${exploreArt}')"></span><span class="ws-menu-mode-glyph">${GLYPH_EYE}</span><b>Explore world</b><small>Fly over the island · inspect every model · give feedback</small></button>
+        <div class="ws-menu-row"><div class="ws-menu-sound">Sound on</div><div class="ws-menu-credit">${[MUSIC_CREDIT, sfxCredit(getSfxSet())].filter((t) => t !== '').join(' · ')}</div></div>
       </div>`;
     const hero = q(intro, '.ws-menu-hero');
-    const list = q(intro, '.ws-menu-cards');
-    const cardEls = Array.from(list.querySelectorAll<HTMLElement>('.ws-menu-card'));
-    const dots = Array.from(intro.querySelectorAll<HTMLElement>('.ws-menu-dots i'));
-    const enterBtn = intro.querySelector<HTMLButtonElement>('.ws-menu-enter');
-    if (!enterBtn) throw new Error('HUD: no .ws-menu-enter');
-    const enterTitle = q(enterBtn, 'b'), enterHint = q(enterBtn, 'small');
-
+    const pickName = q(intro, '.ws-menu-shard-pick b'), pickTag = q(intro, '.ws-menu-shard-pick i');
+    const play = intro.querySelector<HTMLButtonElement>('.ws-menu-play'), explore = q(intro, '.ws-menu-explore');
+    if (!play) throw new Error('HUD: no .ws-menu-play');
+    const playArt = q(play, '.ws-menu-mode-art'), playTitle = q(play, 'b'), playHint = q(play, 'small');
     const portrait = (): boolean => innerWidth < innerHeight;
     const heroUrl = (c: DeckCard): string => (portrait() ? c.heroPortrait : c.heroLandscape) ?? '';
+    const wrap = (i: number): number => ((i % cards.length) + cards.length) % cards.length;
     let index = Math.max(0, cards.findIndex((c) => c.active));
-    // paginated track: one card per swipe, always centred — no native scroll, so it can't rest between cards
-    const track = q(list, '.ws-menu-deck-track');
-    const offsetOf = (i: number): number => { const ce = cardEls[i]; return ce ? list.clientWidth / 2 - (ce.offsetLeft + ce.offsetWidth / 2) : 0; };
-    const place = (i: number, extra = 0, animate = true): void => {
-      track.style.transition = animate ? 'transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none';
-      track.style.transform = `translateX(${offsetOf(i) + extra}px)`;
-    };
+    const isDriftwood = (c: DeckCard): boolean => c.slug === 'driftwood-isle';
+    // hero art is ~0.2–0.3 MB a file: only the selected shard's (in the orientation on screen) loads with the menu,
+    // the next one warms when you step (LOAD-PERF, first-launch transfer)
+    const warmed = new Set<string>();
+    const warm = (i: number): void => { const c = cards[wrap(i)]; const u = c ? heroUrl(c) : ''; if (u && !warmed.has(u)) { warmed.add(u); new Image().src = u; } };
 
     const apply = (): void => {
       const c = cards[index];
       if (!c) return;
-      cardEls.forEach((e, i) => { e.classList.toggle('selected', i === index); });
-      dots.forEach((d, i) => { d.classList.toggle('on', i === index); });
-      // every card has hero art — the menu never shows the live world (it is paused underneath)
       const url = heroUrl(c);
       if (url) { hero.style.backgroundImage = `url('${url}')`; hero.classList.add('show'); }
       else hero.classList.remove('show');
-      enterBtn.classList.toggle('soon', !c.playable);
-      enterBtn.disabled = !c.playable;
-      enterTitle.textContent = c.playable ? 'Enter world' : 'Coming soon';
-      enterHint.textContent = !c.playable ? 'Not yet playable' : c.experimental ? 'Experimental shard — rough edges ahead' : c.active ? 'Press any key' : `Reloads with ${c.displayName}`;
+      pickName.textContent = c.displayName;
+      pickTag.textContent = c.experimental ? 'Experimental' : c.tag;
+      pickTag.className = c.experimental ? 'exp' : c.tagTone;
+      playArt.style.backgroundImage = `url('${isDriftwood(c) ? enterArt : c.thumbnail}')`;
+      play.classList.toggle('soon', !c.playable);
+      play.disabled = !c.playable;
+      playTitle.textContent = c.playable ? 'Enter world' : 'Coming soon';
+      playHint.textContent = !c.playable ? 'Not yet playable' : !c.active ? `Reloads with ${c.displayName}` : c.experimental ? 'Experimental shard — rough edges ahead' : 'Play · first person · sword';
+      explore.classList.toggle('off', !isDriftwood(c)); // Driftwood only (EXPLORE-WORLD.md D4)
     };
-    const select = (raw: number, smooth = true): void => {
-      const i = Math.max(0, Math.min(cards.length - 1, raw));
-      place(i, 0, smooth);
-      if (i !== index) { index = i; apply(); }
+    const select = (raw: number): void => {
+      const i = wrap(raw);
+      if (i !== index) { index = i; apply(); warm(index + 1); }
     };
     const activate = (): void => {
       const c = cards[index];
       if (!c || !c.playable) return;
       if (c.active) this.enter(); else location.href = chunkUrl(c.slug);
     };
-    // swipe → the track follows the finger (rubber-banded at the ends), release = one page in the swipe direction
-    let drag: { id: number; x0: number; t0: number; dx: number } | null = null;
-    list.addEventListener('pointerdown', (e) => {
-      if (drag) return;
-      drag = { id: e.pointerId, x0: e.clientX, t0: performance.now(), dx: 0 };
-      list.setPointerCapture(e.pointerId);
-    });
-    list.addEventListener('pointermove', (e) => {
-      if (!drag || e.pointerId !== drag.id) return;
-      drag.dx = e.clientX - drag.x0;
-      const atEnd = (drag.dx > 0 && index === 0) || (drag.dx < 0 && index === cards.length - 1);
-      place(index, atEnd ? drag.dx * 0.3 : drag.dx, false);
-    });
-    let swipedAt = 0; // a swipe's trailing click must not re-select the card under the finger
-    const endDrag = (e: PointerEvent): void => {
-      if (!drag || e.pointerId !== drag.id) return;
-      const { dx, t0 } = drag; drag = null;
-      const v = dx / Math.max(1, performance.now() - t0); // px/ms
-      if (Math.abs(dx) > 36 || (Math.abs(v) > 0.35 && Math.abs(dx) > 14)) { swipedAt = performance.now(); select(index + (dx < 0 ? 1 : -1)); }
-      else place(index);
+    const exploreNow = (): void => {
+      const c = cards[index];
+      if (!c || !isDriftwood(c)) return;
+      if (!c.active) { const u = new URL(chunkUrl(c.slug)); u.searchParams.set('explore', 'hub'); location.href = u.toString(); return; }
+      this.leaveForExplore();
     };
-    list.addEventListener('pointerup', endDrag); list.addEventListener('pointercancel', endDrag);
-    cardEls.forEach((e, i) => { e.addEventListener('click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }); });
-    dots.forEach((d, i) => { d.addEventListener('click', (ev) => { ev.stopPropagation(); select(i); }); });
-    enterBtn.addEventListener('click', (ev) => { ev.stopPropagation(); activate(); });
+    intro.querySelectorAll<HTMLElement>('.ws-menu-shard-step').forEach((b) => { b.addEventListener('click', (ev) => { ev.stopPropagation(); select(index + Number(b.dataset['d'] ?? 1)); }); });
+    q(intro, '.ws-menu-shard-pick').addEventListener('click', (ev) => { ev.stopPropagation(); select(index + 1); });
+    play.addEventListener('click', (ev) => { ev.stopPropagation(); activate(); });
+    explore.addEventListener('click', (ev) => { ev.stopPropagation(); exploreNow(); });
+    // a horizontal swipe on the hero (not on a panel) steps the shard, as the old deck did
+    let swipe: { id: number; x0: number } | null = null;
+    intro.addEventListener('pointerdown', (e) => { if (e.target === intro || e.target === hero) swipe = { id: e.pointerId, x0: e.clientX }; });
+    intro.addEventListener('pointerup', (e) => { if (swipe?.id === e.pointerId && Math.abs(e.clientX - swipe.x0) > 48) select(index + (e.clientX < swipe.x0 ? 1 : -1)); swipe = null; });
     const soundBtn = q(intro, '.ws-menu-sound');
     if (this.soundOff) { soundBtn.classList.add('off'); soundBtn.textContent = 'Sound off'; }
     soundBtn.addEventListener('click', (e) => { e.stopPropagation(); this.soundOff = soundBtn.classList.toggle('off'); soundBtn.textContent = this.soundOff ? 'Sound off' : 'Sound on'; this.onSoundToggle?.(!this.soundOff); });
-    // orientation flips swap the hero file and re-centre the selected card (card width is viewport-relative)
     let wasPortrait = portrait();
     const onResize = (): void => {
       if (!this.intro) { removeEventListener('resize', onResize); return; }
-      place(index, 0, false);
       if (portrait() !== wasPortrait) { wasPortrait = portrait(); apply(); }
     };
     addEventListener('resize', onResize);
-    // hero art is ~0.2–0.3 MB a file and every card has two (portrait + landscape): only the selected card's, in the
-    // orientation on screen, loads with the menu (apply() above). A neighbour's loads when a swipe or a card tap starts
-    // toward it, so the crossfade on release is usually instant; the other orientation only on a real flip (onResize →
-    // apply()). Preloading all six up front was 1.7 MB of every cold launch (LOAD-PERF, first-launch transfer).
-    const warmed = new Set<string>();
-    const warm = (i: number): void => { const c = cards[i]; const u = c ? heroUrl(c) : ''; if (u && !warmed.has(u)) { warmed.add(u); new Image().src = u; } };
-    const warmNeighbours = (): void => { warm(index - 1); warm(index + 1); };
-    list.addEventListener('pointerdown', warmNeighbours);
-    dots.forEach((d, i) => { d.addEventListener('pointerdown', () => { warm(i); }); });
 
     this.root.append(intro);
     this.intro = intro;
     this.deck = { cards, get index() { return index; }, select, activate };
     apply();
-    requestAnimationFrame(() => { place(index, 0, false); }); // after layout: offsets need the intro in the DOM
   }
+
+  /** EXPLORE WORLD: the title goes away but the play HUD stays hidden (`#hud.intro` is kept) — Explore draws its own overlay */
+  private leaveForExplore(): void {
+    if (!this.intro) return;
+    const intro = this.intro; this.intro = undefined; this.deck = undefined;
+    intro.classList.add('hide');
+    setTimeout(() => { intro.remove(); }, Math.max(700, HERO_FADE_MS * 2));
+    this.onSoundToggle?.(!this.soundOff);
+    this.onExplore?.();
+  }
+
+  /** skip the title straight into Explore (`?explore=` deep links) */
+  startExplore(): void { this.root.classList.add('intro'); if (this.intro) this.leaveForExplore(); else this.onExplore?.(); }
 
   private enter(): void {
     if (!this.intro) return;

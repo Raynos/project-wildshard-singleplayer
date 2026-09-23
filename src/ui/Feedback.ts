@@ -42,10 +42,17 @@ const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&
 /** compass heading as the HUD shows it: +Z is north, `180 − yaw°` (src/ui/HUD.ts) */
 export function headingDeg(yaw: number): number { const d = 180 - (yaw * 180) / Math.PI; return Math.round(((d % 360) + 360) % 360) % 360; }
 
-/** the URL that reloads the game on this spot: `?chunk=&at=x,y,z,yaw,pitch&weapon=&skipintro` (main.ts reads `at`) */
+/** the URL that reloads the game on this spot: `?chunk=&at=x,y,z,yaw,pitch&weapon=&skipintro` (main.ts reads `at`), or in Explore `?chunk=&explore=&cam=&model=` */
 export function reproUrl(origin: string, c: Record<string, ContextValue>): string {
   const q = new URLSearchParams();
   if (typeof c['shard'] === 'string') q.set('chunk', c['shard']);
+  // a note filed in Explore World reopens the same view: `?explore=world|model&cam=x,y,z,yaw,pitch&model=id` (main.ts)
+  if (typeof c['explore'] === 'string') {
+    q.set('explore', c['explore']);
+    if (Array.isArray(c['cam'])) q.set('cam', c['cam'].map((v) => Number(v.toFixed(2))).join(','));
+    if (typeof c['model'] === 'string') q.set('model', c['model']);
+    return `${origin}/?${q.toString()}`;
+  }
   const pos = c['pos'], yaw = c['yaw'], pitch = c['pitch'];
   if (Array.isArray(pos) && typeof yaw === 'number' && typeof pitch === 'number') q.set('at', [...pos, yaw, pitch].map((v) => Number(v.toFixed(2))).join(','));
   if (typeof c['weapon'] === 'string') q.set('weapon', c['weapon']);

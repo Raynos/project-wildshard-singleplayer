@@ -27,6 +27,8 @@ export interface World {
   tour: Tour;
   /** the shard being played (src/chunks/registry.ts) */
   chunk: ChunkDef;
+  /** Explore World owns the camera (src/explore/Explore.ts): the player is not updated and does not drive it */
+  freeCamera: boolean;
   params: URLSearchParams;
   num: (key: string, fallback: number) => number;
 }
@@ -65,7 +67,6 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   const player = new Player(game.camera, forest, canvas);
   player.spawn(num('x', def.spawn.x), num('z', def.spawn.z), num('yaw', def.spawn.yaw));
   player.pitch = num('pitch', 0);
-  canvas.addEventListener('click', () => { if (!params.has('nolock')) player.lock(); });
 
   if (params.get('debug') === 'card') {
     // show the baked branch card in front of the camera
@@ -77,11 +78,13 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
 
   const tour = new Tour(game.camera);
   tour.active = params.has('tour');
+  const world: World = { game, sky, terrain, forest, player, tour, chunk: getActiveChunk(), params, num, freeCamera: false };
+  canvas.addEventListener('click', () => { if (!params.has('nolock') && !world.freeCamera) player.lock(); }); // Explore's free camera keeps the cursor
   game.onUpdate((dt) => {
     if (tour.active) { tour.setTime(tour.time); player.position.copy(game.camera.position); player.position.y -= 1.7; }
-    else player.update(dt);
+    else if (!world.freeCamera) player.update(dt);
     forest.update(dt, player.position);
   });
   (window as unknown as { __hf: unknown }).__hf = Heightfield;
-  return { game, sky, terrain, forest, player, tour, chunk: getActiveChunk(), params, num };
+  return world;
 }

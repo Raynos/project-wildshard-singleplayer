@@ -1,0 +1,85 @@
+/* ─── Explore World — the viewer (src/explore/Explore.ts; docs/plans/EXPLORE-WORLD.md) ─── prefix ws-x- ───
+   an overlay on document.body over the live canvas: top bar (wordmark + EXPLORE tag, MODELS | WORLD tabs, ✕), the
+   p02 hub cards, the god-mode flight rail (▲ ▼ speed, the phone's FLY stick), one ✎ and a toast. Imported by the
+   lazy Explore chunk, so the title never pays for it. The canvas under it takes the desktop mouse (FreeCam). */
+.ws-x { position: fixed; inset: 0; z-index: 40; display: none; pointer-events: none; font-family: var(--ws-mono); color: var(--ws-text); user-select: none; -webkit-user-select: none; }
+.ws-x.show { display: block; }
+.ws-x button { font-family: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+/* top bar */
+.ws-x-top { position: absolute; left: 12px; right: 12px; top: calc(10px + env(safe-area-inset-top, 0px)); display: flex; align-items: center; gap: 12px; padding: 8px 10px 8px 14px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.ws-x-brand { display: flex; align-items: center; gap: 10px; margin-right: auto; font-family: var(--ws-display); font-weight: 700; font-size: 18px; letter-spacing: 0.16em; text-transform: uppercase; white-space: nowrap; }
+.ws-x-brand b { color: var(--ws-cyan); font-weight: 700; }
+.ws-x-brand i { font-style: normal; font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.24em; padding: 3px 8px; color: var(--ws-amber); border: 1px solid rgba(255, 181, 71, 0.6); }
+.ws-x-tabs { display: flex; border: 1px solid var(--ws-cyan-line); }
+.ws-x-tabs button { padding: 7px 14px; background: none; border: 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-x-tabs button.on { color: var(--ws-cyan); background: rgba(143, 227, 255, 0.12); box-shadow: inset 0 -2px 0 var(--ws-cyan); }
+.ws-x-close { width: 34px; height: 34px; background: none; border: 1px solid var(--ws-cyan-line); font-size: 16px; }
+.ws-x[data-mode="hub"] .ws-x-tabs { visibility: hidden; }
+
+/* readout under the bar (world mode) */
+.ws-x-readout { position: absolute; white-space: pre; line-height: 1.6; left: 14px; top: calc(66px + env(safe-area-inset-top, 0px)); font-size: 10px; letter-spacing: 0.14em; color: var(--ws-cyan-dim); text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); }
+.ws-x:not([data-mode="world"]) .ws-x-readout { display: none; }
+
+/* hub: two cards over the orbiting island */
+.ws-x-hub { position: absolute; left: 50%; bottom: max(28px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: none; flex-direction: column; gap: 14px; width: min(560px, calc(100% - 28px)); pointer-events: auto; }
+.ws-x[data-mode="hub"] .ws-x-hub { display: flex; }
+.ws-x-card { position: relative; display: flex; align-items: center; gap: 16px; padding: 8px; text-align: left; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5); transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
+.ws-x-card:hover, .ws-x-card:focus-visible { border-color: var(--ws-cyan); box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5), 0 0 28px rgba(143, 227, 255, 0.3); outline: none; transform: translateY(-2px); }
+.ws-x-card .ws-x-card-art { flex: 0 0 44%; aspect-ratio: 386 / 200; background-size: cover; background-position: center; border: 1px solid rgba(143, 227, 255, 0.25); }
+.ws-x-card .ws-x-card-text { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.ws-x-card b { font-family: var(--ws-display); font-weight: 700; font-size: 22px; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
+.ws-x-card b::after { content: ''; display: block; width: 30px; height: 2px; margin-top: 6px; background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); }
+.ws-x-card small { font-size: 11px; letter-spacing: 0.06em; line-height: 1.5; color: var(--ws-text-dim); }
+.ws-x-card .ws-x-card-go { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin-right: 6px; border: 1px solid var(--ws-cyan); border-radius: 50%; color: var(--ws-cyan); font-size: 24px; }
+
+/* world mode: flight rail on the right edge, the phone's stick bottom-left, a keys hint on desktop */
+.ws-x-fly { display: none; }
+.ws-x[data-mode="world"] .ws-x-fly { display: block; }
+.ws-x-rail { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); display: none; flex-direction: column; align-items: flex-end; gap: 10px; pointer-events: auto; }
+.ws-x.touch .ws-x-rail { display: flex; }
+.ws-x-btn { width: 52px; height: 52px; border-radius: 50%; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); font-size: 16px; color: var(--ws-cyan); touch-action: none; }
+.ws-x-btn.on { background: rgba(143, 227, 255, 0.28); border-color: var(--ws-cyan); }
+.ws-x-chip { padding: 7px 10px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; }
+.ws-x-hint { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); padding: 6px 12px; font-size: 10px; letter-spacing: 0.12em; white-space: nowrap; color: var(--ws-text-dim); background: var(--ws-glass); border: 1px solid var(--ws-cyan-faint); }
+.ws-x.touch .ws-x-hint { display: none; }
+.ws-x-stick { position: absolute; left: max(22px, env(safe-area-inset-left, 0px)); bottom: max(28px, env(safe-area-inset-bottom, 0px)); width: 124px; height: 124px; border-radius: 50%; background: rgba(6, 10, 18, 0.35); border: 1px solid var(--ws-cyan-line); pointer-events: auto; touch-action: none; }
+.ws-x-stick i { position: absolute; left: 50%; top: 50%; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; background: rgba(143, 227, 255, 0.22); border: 1px solid var(--ws-cyan); box-shadow: 0 0 14px rgba(143, 227, 255, 0.35); }
+.ws-x-stick b { position: absolute; left: 0; right: 0; bottom: -18px; text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-x-stick.on i { background: rgba(143, 227, 255, 0.4); }
+
+/* ✎ — one button, every mode */
+.ws-x-note { position: absolute; right: 14px; bottom: max(22px, env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; pointer-events: auto; background: rgba(143, 227, 255, 0.16); border: 1px solid var(--ws-cyan); box-shadow: 0 0 18px rgba(143, 227, 255, 0.3); color: #fff; }
+.ws-x-note svg { width: 24px; height: 24px; }
+.ws-x[data-mode="hub"] .ws-x-note { display: none; }
+
+/* the one-time review password ask (D3: sending feedback is the gate) */
+.ws-x-unlock { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; gap: 10px; width: min(320px, calc(100% - 40px)); padding: 16px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); }
+.ws-x-unlock b { font-family: var(--ws-display); font-size: 16px; letter-spacing: 0.1em; text-transform: uppercase; }
+.ws-x-unlock input { padding: 10px; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--ws-cyan-line); color: #fff; font: inherit; font-size: 14px; }
+.ws-x-unlock div { display: flex; gap: 8px; }
+.ws-x-unlock div button { flex: 1; padding: 9px; background: rgba(143, 227, 255, 0.14); border: 1px solid var(--ws-cyan-line); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+.ws-x-unlock small { min-height: 1em; font-size: 10px; color: var(--ws-amber); }
+
+.ws-x-toast { position: absolute; left: 50%; top: calc(88px + env(safe-area-inset-top, 0px)); transform: translate(-50%, -8px); padding: 8px 14px; font-size: 11px; letter-spacing: 0.08em; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); opacity: 0; transition: opacity 0.25s, transform 0.25s; }
+.ws-x-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* panes from other modules (Model Explorer …) share the overlay */
+.ws-x-pane { position: absolute; inset: 0; display: none; pointer-events: none; }
+.ws-x-pane.show { display: block; }
+
+/* phone portrait */
+@media (max-width: 700px) {
+  .ws-x-top { left: 8px; right: 8px; gap: 8px; padding: 6px 6px 6px 10px; }
+  .ws-x-brand { gap: 6px; font-size: 13px; letter-spacing: 0.1em; }
+  .ws-x-brand span { display: none; }
+  .ws-x-tabs button { padding: 7px 10px; font-size: 10px; letter-spacing: 0.14em; }
+  .ws-x-readout { top: calc(58px + env(safe-area-inset-top, 0px)); left: 10px; font-size: 9px; }
+  .ws-x-card { gap: 10px; }
+  .ws-x-card b { font-size: 17px; letter-spacing: 0.12em; }
+  .ws-x-card small { font-size: 10px; }
+  .ws-x-card .ws-x-card-go { width: 32px; height: 32px; font-size: 20px; margin-right: 2px; }
+}
+@media (max-width: 700px) {
+  .ws-x-brand::before { content: 'WILDSHARD'; color: var(--ws-cyan); }
+}

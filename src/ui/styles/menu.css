@@ -1,92 +1,80 @@
-/* ─── title screen: the shard deck IS the menu (src/ui/HUD.ts showIntro) ─── prefix ws-menu- ───
-   wordmark top-left, a snap carousel of shard cards low on the screen over the live world, one
-   wide ENTER WORLD, a tiny sound row. Teasers crossfade their hero art in behind everything.
+/* ─── title screen (src/ui/HUD.ts showIntro; docs/plans/EXPLORE-WORLD.md D1 = mockup p12 split panels) ─── prefix ws-menu- ───
+   the selected shard's hero art behind, the wordmark + a shard pill (‹ DRIFTWOOD ISLE ▾ · LOADED ›) up top, and two tall
+   glass panels: ENTER WORLD (play) and EXPLORE WORLD (the viewer) — stacked on a phone, side by side on a wide screen.
    HUD.ts also toggles the state class `intro` on #hud while this screen is up. */
 .ws-menu { position: absolute; inset: 0; pointer-events: auto; display: flex; flex-direction: column; justify-content: space-between; transition: opacity 0.6s ease; overflow: hidden; }
 .ws-menu.hide { opacity: 0; pointer-events: none; }
 .ws-menu .ws-menu-hero { position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 0.35s ease; pointer-events: none; }
 .ws-menu .ws-menu-hero.show { opacity: 1; }
 .ws-menu::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(180deg, rgba(6, 10, 18, 0.45) 0%, rgba(6, 10, 18, 0.05) 28%, rgba(6, 10, 18, 0.05) 50%, rgba(6, 10, 18, 0.7) 100%); }
-.ws-menu .ws-menu-head, .ws-menu .ws-menu-deck { position: relative; z-index: 2; }
-.ws-menu .ws-menu-head { padding: 34px 44px 0; }
+.ws-menu .ws-menu-head, .ws-menu .ws-menu-modes { position: relative; z-index: 2; }
+.ws-menu .ws-menu-head { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 30px 24px 0; text-align: center; }
 .ws-menu .ws-wordmark { text-shadow: 0 4px 30px rgba(0, 0, 0, 0.6); }
 .ws-menu .ws-wordmark b { font-weight: 700; }
-.ws-menu .ws-wordmark::after { content: ''; display: block; width: 34px; height: 2px; margin-top: 10px; background: var(--ws-cyan); box-shadow: 0 0 10px var(--ws-cyan); }
-/* deck: carousel + dots + enter + sound, centred in the lower half */
-.ws-menu .ws-menu-deck { --card-w: 420px; --card-gap: 18px; display: flex; flex-direction: column; align-items: center; padding-bottom: max(26px, env(safe-area-inset-bottom, 0px)); }
-.ws-menu-cards { position: relative; width: 100%; padding: 12px 0; overflow: hidden; touch-action: none; cursor: grab; }
-.ws-menu-deck-track { display: flex; gap: var(--card-gap); will-change: transform; }
-.ws-menu-cards::-webkit-scrollbar { display: none; }
-.ws-menu-card { position: relative; flex: 0 0 var(--card-w); width: var(--card-w); padding: 0; margin: 0; text-align: center; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 12px 40px rgba(0, 0, 0, 0.45); color: var(--ws-text); cursor: pointer; font-family: var(--ws-mono); opacity: 0.55; transform: scale(0.94); transition: opacity 0.25s, transform 0.25s, border-color 0.25s, box-shadow 0.25s; -webkit-tap-highlight-color: transparent; }
-.ws-menu-card::before { content: ''; position: absolute; left: -1px; top: -1px; width: 18px; height: 18px; border-left: 1px solid var(--ws-cyan); border-top: 1px solid var(--ws-cyan); opacity: 0.8; z-index: 1; }
-.ws-menu-card.selected { opacity: 1; transform: none; border-color: var(--ws-cyan); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 28px rgba(143, 227, 255, 0.28); cursor: default; }
-.ws-menu-card:focus-visible { outline: none; border-color: var(--ws-cyan); }
-.ws-menu-card .ws-menu-card-img { display: block; position: relative; margin: 6px; aspect-ratio: 16 / 9; background-size: cover; background-position: center; border: 1px solid rgba(143, 227, 255, 0.18); }
-.ws-menu-card .ws-menu-card-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(6, 10, 18, 0) 60%, rgba(6, 10, 18, 0.5) 100%); }
-.ws-menu-card.soon .ws-menu-card-img { filter: saturate(0.75); }
-.ws-menu-card .ws-menu-card-tag { position: absolute; right: 8px; top: 8px; z-index: 1; font-style: normal; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; padding: 3px 8px; color: var(--ws-cyan); border: 1px solid var(--ws-cyan-line); background: var(--ws-glass-deep); }
-.ws-menu-card .ws-menu-card-tag.ok { color: #7cf2a7; border-color: rgba(124, 242, 167, 0.6); box-shadow: 0 0 10px rgba(124, 242, 167, 0.3); }
-.ws-menu-card .ws-menu-card-tag.soon { color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.5); }
-/* an experimental shard (ChunkDef.experimental): a hazard-taped amber band straight across the card image, sized off the card */
-.ws-menu-card .ws-menu-card-exp { position: absolute; left: 0; right: 0; top: 50%; z-index: 2; transform: translateY(-50%); padding: calc(var(--card-w) * 0.022 + 6px) 0; font-style: normal; font-family: var(--ws-display); font-weight: 700; font-size: calc(var(--card-w) * 0.085); line-height: 1; letter-spacing: 0.2em; text-indent: 0.2em; text-transform: uppercase; color: #140d02; background: var(--ws-amber); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 6px 24px rgba(0, 0, 0, 0.55), 0 0 32px rgba(255, 181, 71, 0.45); }
-.ws-menu-card .ws-menu-card-exp::before, .ws-menu-card .ws-menu-card-exp::after { content: ''; position: absolute; left: 0; right: 0; height: calc(var(--card-w) * 0.012 + 3px); background: repeating-linear-gradient(-45deg, #140d02 0 8px, var(--ws-amber) 8px 16px); }
-.ws-menu-card .ws-menu-card-exp::before { top: 0; }
-.ws-menu-card .ws-menu-card-exp::after { bottom: 0; }
-.ws-menu-card b { display: block; padding: 8px 12px 0; font-family: var(--ws-display); font-weight: 700; font-size: 24px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; line-height: 1.1; }
-.ws-menu-card small { display: block; padding: 4px 12px 12px; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ws-text-dim); line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ws-menu-dots { display: flex; gap: 8px; margin-top: 6px; }
-.ws-menu-dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(196, 220, 232, 0.35); cursor: pointer; transition: background 0.2s, box-shadow 0.2s; }
-.ws-menu-dots i.on { background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); }
-.ws-menu-enter { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; margin-top: 18px; width: var(--card-w); padding: 12px 18px; background: rgba(143, 227, 255, 0.1); border: 1px solid var(--ws-cyan); color: #fff; cursor: pointer; pointer-events: auto; font-family: var(--ws-display); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(143, 227, 255, 0.22), inset 0 0 18px rgba(143, 227, 255, 0.08); transition: background 0.2s, box-shadow 0.2s, border-color 0.2s, color 0.2s; -webkit-tap-highlight-color: transparent; }
-.ws-menu-enter b { font-weight: 700; font-size: 24px; letter-spacing: 0.3em; text-transform: uppercase; line-height: 1; }
-.ws-menu-enter small { font-family: var(--ws-mono); font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-cyan-dim); }
-.ws-menu-enter:hover, .ws-menu-enter:focus-visible { background: rgba(143, 227, 255, 0.22); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 32px rgba(143, 227, 255, 0.4); outline: none; }
-.ws-menu-enter:active { background: rgba(143, 227, 255, 0.3); }
-.ws-menu-enter.soon, .ws-menu-enter.soon:hover { background: rgba(6, 10, 18, 0.55); border-color: rgba(143, 227, 255, 0.25); color: var(--ws-text-dim); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); cursor: default; }
-.ws-menu-enter.soon small { color: rgba(196, 220, 232, 0.4); }
-.ws-menu .ws-menu-row { display: flex; justify-content: center; gap: 22px; margin-top: 16px; }
+.ws-menu .ws-wordmark::after { content: ''; display: block; width: 34px; height: 2px; margin: 10px auto 0; background: var(--ws-cyan); box-shadow: 0 0 10px var(--ws-cyan); }
+/* the shard pill: ‹ NAME ▾ · TAG › — tap the name or the arrows (or ← → / a swipe on the art) to step the shards */
+.ws-menu-shard { display: flex; align-items: stretch; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); box-shadow: 0 0 18px rgba(143, 227, 255, 0.25), 0 8px 30px rgba(0, 0, 0, 0.45); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.ws-menu-shard button { background: none; border: 0; color: var(--ws-text); font-family: var(--ws-mono); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.ws-menu-shard .ws-menu-shard-step { padding: 0 12px; font-size: 18px; color: var(--ws-cyan-dim); }
+.ws-menu-shard .ws-menu-shard-step:hover { color: var(--ws-cyan); }
+.ws-menu-shard .ws-menu-shard-pick { display: flex; align-items: center; gap: 10px; padding: 9px 6px; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; }
+.ws-menu-shard .ws-menu-shard-pick b { font-weight: 600; color: #fff; }
+.ws-menu-shard .ws-menu-shard-pick span { font-size: 10px; color: var(--ws-cyan-dim); }
+.ws-menu-shard .ws-menu-shard-pick i { font-style: normal; color: var(--ws-cyan); }
+.ws-menu-shard .ws-menu-shard-pick i::before { content: '·'; margin-right: 10px; color: var(--ws-text-dim); }
+.ws-menu-shard .ws-menu-shard-pick i.ok { color: #7cf2a7; }
+.ws-menu-shard .ws-menu-shard-pick i.soon, .ws-menu-shard .ws-menu-shard-pick i.exp { color: var(--ws-amber); }
+/* the two mode panels, low on the screen */
+.ws-menu .ws-menu-modes { display: flex; flex-flow: row wrap; justify-content: center; gap: 18px; padding: 0 24px max(22px, env(safe-area-inset-bottom, 0px)); }
+.ws-menu-mode { position: relative; display: flex; flex-direction: column; align-items: center; width: min(440px, 40vw); padding: 7px 7px 14px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); color: #fff; font-family: var(--ws-display); cursor: pointer; text-align: center; backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 14px 44px rgba(0, 0, 0, 0.5); transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s, opacity 0.25s; -webkit-tap-highlight-color: transparent; }
+.ws-menu-mode::before, .ws-menu-mode::after { content: ''; position: absolute; width: 16px; height: 16px; border-color: var(--ws-cyan); border-style: solid; opacity: 0.9; }
+.ws-menu-mode::before { left: -1px; top: -1px; border-width: 1px 0 0 1px; }
+.ws-menu-mode::after { right: -1px; bottom: -1px; border-width: 0 1px 1px 0; }
+.ws-menu-mode:hover, .ws-menu-mode:focus-visible { border-color: var(--ws-cyan); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 14px 44px rgba(0, 0, 0, 0.5), 0 0 30px rgba(143, 227, 255, 0.35); outline: none; transform: translateY(-2px); }
+.ws-menu-mode:active { transform: none; }
+.ws-menu-mode .ws-menu-mode-art { display: block; width: 100%; aspect-ratio: 622 / 226; background-size: cover; background-position: center; border: 1px solid rgba(143, 227, 255, 0.2); }
+.ws-menu-mode .ws-menu-mode-glyph { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; margin-top: -19px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); transform: rotate(45deg); color: var(--ws-cyan); }
+.ws-menu-mode .ws-menu-mode-glyph svg { width: 20px; height: 20px; transform: rotate(-45deg); }
+.ws-menu-mode b { margin-top: 8px; font-weight: 700; font-size: 26px; letter-spacing: 0.26em; text-indent: 0.26em; text-transform: uppercase; line-height: 1.1; }
+.ws-menu-mode small { margin-top: 5px; font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.12em; color: var(--ws-text-dim); }
+.ws-menu-mode.ws-menu-explore { border-color: rgba(255, 181, 71, 0.45); }
+.ws-menu-mode.ws-menu-explore::before, .ws-menu-mode.ws-menu-explore::after { border-color: var(--ws-amber); }
+.ws-menu-mode.ws-menu-explore .ws-menu-mode-glyph { color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.5); }
+.ws-menu-mode.ws-menu-explore:hover, .ws-menu-mode.ws-menu-explore:focus-visible { border-color: var(--ws-amber); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 14px 44px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 181, 71, 0.35); }
+.ws-menu-mode.ws-menu-explore.off { display: none; } /* Driftwood only (EXPLORE-WORLD.md D4) */
+.ws-menu-mode.soon, .ws-menu-mode.soon:hover { cursor: default; transform: none; border-color: rgba(143, 227, 255, 0.2); box-shadow: 0 14px 44px rgba(0, 0, 0, 0.4); }
+.ws-menu-mode.soon .ws-menu-mode-art { filter: saturate(0.5) brightness(0.8); }
+.ws-menu-mode.soon b { color: var(--ws-text-dim); }
+.ws-menu .ws-menu-row { flex: 1 0 100%; display: flex; justify-content: center; gap: 22px; margin-top: -4px; }
 .ws-menu .ws-menu-sound { padding: 4px 6px; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-text-dim); pointer-events: auto; cursor: pointer; }
 .ws-menu .ws-menu-sound::after { content: ''; display: inline-block; width: 6px; height: 6px; background: var(--ws-cyan); margin-left: 10px; box-shadow: 0 0 8px var(--ws-cyan); vertical-align: 1px; }
 .ws-menu .ws-menu-sound.off::after { background: transparent; border: 1px solid var(--ws-cyan-dim); box-shadow: none; }
-.ws-menu .ws-menu-credit { padding: 4px 6px; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-text-dim); opacity: 0.7; } /* the MiniMax-Music3 licence credit (docs/plans/MUSIC.md v3) */
+.ws-menu .ws-menu-credit { padding: 4px 6px; font-size: 9px; line-height: 1.6; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-text-dim); opacity: 0.7; } /* the MiniMax-Music3 licence credit (docs/plans/MUSIC.md v3) */
 
-/* ─── title screen on a phone-width viewport: the deck fills the lower third, world above ─── */
-@media (max-width: 700px) {
-  .ws-menu::before { background: linear-gradient(180deg, rgba(6, 10, 18, 0.55) 0%, rgba(6, 10, 18, 0.05) 30%, rgba(6, 10, 18, 0.05) 52%, rgba(6, 10, 18, 0.78) 100%); }
-  .ws-menu .ws-menu-head { padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 0; }
+/* ─── portrait / phone: the panels stack, full width ─── */
+@media (orientation: portrait), (max-width: 700px) {
+  .ws-menu::before { background: linear-gradient(180deg, rgba(6, 10, 18, 0.55) 0%, rgba(6, 10, 18, 0.05) 22%, rgba(6, 10, 18, 0.05) 42%, rgba(6, 10, 18, 0.72) 100%); }
+  .ws-menu .ws-menu-head { gap: 12px; padding: calc(16px + env(safe-area-inset-top, 0px)) 16px 0; }
   .ws-menu .ws-wordmark { font-size: 13px; letter-spacing: 0.3em; line-height: 1.05; color: rgba(230, 242, 248, 0.85); font-weight: 600; }
-  .ws-menu .ws-wordmark b { display: block; font-size: 26px; letter-spacing: 0.12em; margin-top: 3px; }
+  .ws-menu .ws-wordmark b { display: block; font-size: 28px; letter-spacing: 0.12em; margin-top: 3px; }
   .ws-menu .ws-wordmark::after { width: 26px; margin-top: 6px; }
-  .ws-menu .ws-menu-deck { --card-w: 78vw; --card-gap: 12px; padding-bottom: max(10px, env(safe-area-inset-bottom, 0px)); }
-  .ws-menu-cards { padding-top: 10px; padding-bottom: 10px; }
-  .ws-menu-card .ws-menu-card-img { margin: 5px; }
-  .ws-menu-card .ws-menu-card-tag { font-size: 8px; padding: 2px 6px; right: 6px; top: 6px; }
-  .ws-menu-card b { font-size: 16px; padding-top: 6px; }
-  .ws-menu-card small { font-size: 9px; letter-spacing: 0.05em; padding: 3px 10px 9px; }
-  .ws-menu-dots { margin-top: 2px; gap: 7px; }
-  .ws-menu-dots i { width: 6px; height: 6px; }
-  .ws-menu-enter { margin-top: 12px; padding: 13px 16px; }
-  .ws-menu-enter b { font-size: 20px; letter-spacing: 0.26em; }
-  .ws-menu-enter small { display: none; }
-  .ws-menu .ws-menu-row { margin-top: 8px; }
+  .ws-menu-shard .ws-menu-shard-pick { font-size: 11px; letter-spacing: 0.18em; padding: 8px 4px; }
+  .ws-menu .ws-menu-modes { flex-direction: column; flex-wrap: nowrap; align-items: center; gap: 12px; padding: 0 16px max(12px, env(safe-area-inset-bottom, 0px)); }
+  .ws-menu-mode { width: min(100%, 460px); padding: 6px 6px 11px; }
+  .ws-menu-mode b { font-size: 22px; }
+  .ws-menu-mode small { font-size: 9px; letter-spacing: 0.06em; }
+  .ws-menu .ws-menu-row { flex: 0 0 auto; margin-top: 0; }
   .ws-menu .ws-menu-sound { font-size: 9px; }
 }
 
-/* ─── title screen on a landscape phone (iPhone ~402, Android ~360–411 CSS px tall): the desktop deck is ~530 px tall,
-   so ENTER WORLD fell below the screen. Size the card from the height instead: everything that isn't the card image
-   (wordmark, card labels, dots, ENTER, sound row) is ~235 px, the 16:9 image gets the rest. ─── */
+/* ─── landscape phone (~360–430 CSS px tall): smaller art so both panels and the pill fit ─── */
 @media (orientation: landscape) and (max-height: 500px) {
-  .ws-menu .ws-menu-head { padding: calc(10px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-left, 0px)) 0; }
-  .ws-menu .ws-wordmark { font-size: 12px; letter-spacing: 0.3em; }
-  .ws-menu .ws-wordmark b { font-size: 24px; }
-  .ws-menu .ws-wordmark::after { margin-top: 5px; }
-  .ws-menu .ws-menu-deck { --card-w: calc((100vh - 235px) * 16 / 9 + 12px); --card-gap: 14px; padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)); }
-  .ws-menu-cards { padding-top: 6px; padding-bottom: 6px; }
-  .ws-menu-card b { font-size: 17px; padding-top: 5px; }
-  .ws-menu-card small { font-size: 9px; padding: 2px 10px 7px; }
-  .ws-menu-dots { margin-top: 2px; }
-  .ws-menu-enter { margin-top: 8px; padding: 10px 16px; }
-  .ws-menu-enter b { font-size: 19px; }
-  .ws-menu-enter small { display: none; }
-  .ws-menu .ws-menu-row { margin-top: 6px; }
+  .ws-menu .ws-menu-head { flex-direction: row; justify-content: space-between; padding: calc(10px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-left, 0px)) 0; }
+  .ws-menu .ws-wordmark { font-size: 12px; letter-spacing: 0.3em; text-align: left; }
+  .ws-menu .ws-wordmark b { font-size: 22px; }
+  .ws-menu .ws-wordmark::after { margin: 5px 0 0; }
+  .ws-menu-mode { width: min(360px, 42vw); }
+  .ws-menu-mode .ws-menu-mode-art { aspect-ratio: 622 / 180; }
+  .ws-menu-mode b { font-size: 18px; margin-top: 4px; }
+  .ws-menu .ws-menu-modes { padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)); gap: 12px; }
 }

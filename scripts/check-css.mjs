@@ -43,6 +43,7 @@ const FILES = [
   { file: join(STYLES, 'minimap.css'), prefix: 'ws-minimap-', strict: true },
   { file: join(STYLES, 'combat.css'), prefix: 'ws-combat-', strict: true }, // hunting feedback (src/ui/Combat.ts), imported by the module
   { file: join(STYLES, 'feedback.css'), prefix: 'ws-fb-', strict: true }, // the review inbox: ✎ disc + the lazy composer (src/ui/review.ts, Feedback.ts)
+  { file: join(STYLES, 'explore.css'), prefix: 'ws-x-', strict: true }, // Explore World, the viewer (src/explore/Explore.ts), imported by the lazy chunk
   { file: join(STYLES, 'rotate.css'), prefix: 'ws-rotate-', strict: true }, // the portrait-only gate on landscape phones (index.html, src/ui/RotateGate.ts)
   { file: join(STYLES, 'quest.css'), prefix: 'ws-quest-', strict: true }, // the adventure layer: objective line, NPC dialogue, reward caption (src/game/quest/*)
   // loading screen: owned by src/ui/Loading.ts — warn only while its owner finishes the ws-load-* rename
