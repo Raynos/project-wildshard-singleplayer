@@ -20,6 +20,8 @@ import { wildEnv } from '../entities/wildEnv';
 import { setEliteDamage } from '../entities/eliteBrain';
 import { CAIRN } from '../chunks/nalati-grasslands';
 import { LightningStrip, Naizagai, naizagaiModel } from '../player/Naizagai';
+import { patchTitanCloud, GrassFireFx } from './stormTitanLook';
+import { TIER } from '../core/tier';
 
 /**
  * JEL ATA, the Storm Titan — the second Nalati boss (plan row B14; design docs/design/nalati/elites-and-bosses.md "The Storm
@@ -159,6 +161,26 @@ class TitanBody {
     // the cloak: off the shoulders, streaming back and down
     for (let i = 0; i < 44; i++) { const u = r(), v = r() - 0.5; add(this.chest, v * 26 * (0.7 + 0.5 * u), 22 - u * 32, -5 - u * 7 - Math.abs(v) * 3, 3.5 + r() * 2.5); }
 
+    // the cumulus's small heads: a smaller puff budding out of the outer side of most big ones (a cauliflower silhouette,
+    // not a string of balls); per puff, how exposed it is (its distance out from its bone's cluster) shades it
+    const centre = new Map<THREE.Object3D, { c: THREE.Vector3; n: number; max: number }>();
+    for (const pf of this.list) { const e = centre.get(pf.bone) ?? { c: new THREE.Vector3(), n: 0, max: 0 }; e.c.add(pf.p); e.n++; centre.set(pf.bone, e); }
+    for (const e of centre.values()) e.c.multiplyScalar(1 / Math.max(1, e.n));
+    for (const pf of this.list) { const e = centre.get(pf.bone); if (e) e.max = Math.max(e.max, pf.p.distanceTo(e.c)); }
+    const buds = TIER === 'phone' ? 1 : 2;
+    const primaries = this.list.length;
+    for (let i = 0; i < primaries; i++) {
+      const pf = this.list[i], e = pf ? centre.get(pf.bone) : undefined;
+      if (!pf || !e) continue;
+      for (let b = 0; b < buds; b++) {
+        const out = pf.p.clone().sub(e.c); if (out.lengthSq() < 1e-4) out.set(0, 1, 0);
+        out.normalize().add(dir().multiplyScalar(0.7)).normalize();
+        const k = 0.72 + 0.2 * r();
+        add(pf.bone, pf.p.x + out.x * pf.r * k, pf.p.y + out.y * pf.r * k, pf.p.z + out.z * pf.r * k, pf.r * (0.34 + 0.2 * r()));
+      }
+    }
+    const exposure = this.list.map((pf) => { const e = centre.get(pf.bone); return e && e.max > 0 ? Math.min(1, pf.p.distanceTo(e.c) / e.max) : 0.7; });
+
     const geo = new THREE.IcosahedronGeometry(1, 2);
     const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false });
     mat.name = 'nalati-titan-cloud';
@@ -167,52 +189,18 @@ class TitanBody {
     mat.onBeforeCompile = (sh, renderer) => {
       base(sh, renderer);   // the prototype hook (Atmosphere's uniforms) — never replace it (see ghostRiders.ts)
       Object.assign(sh.uniforms, uni);
-      sh.vertexShader = sh.vertexShader
-        .replace('#include <common>', '#include <common>\nuniform float uT;\nvarying vec3 vGW;\nvarying vec3 vGN;')
-        .replace('#include <begin_vertex>', `#include <begin_vertex>
-          #ifdef USE_INSTANCING
-            float gph = dot(instanceMatrix[3].xyz, vec3(0.13, 0.071, 0.113));
-          #else
-            float gph = 0.0;
-          #endif
-          // billows: two octaves of slow churn on the unit puff
-          transformed += normal * (0.17 * sin(uT * 1.1 + gph + position.y * 2.7 + position.x * 1.9) + 0.09 * sin(uT * 1.7 - gph * 1.3 + position.z * 5.3 + position.y * 4.1));`)
-        .replace('#include <project_vertex>', `#include <project_vertex>
-          #ifdef USE_INSTANCING
-            vGW = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;
-            vGN = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * normal);
-          #else
-            vGW = (modelMatrix * vec4(transformed, 1.0)).xyz;
-            vGN = normalize(mat3(modelMatrix) * normal);
-          #endif`);
-      sh.fragmentShader = sh.fragmentShader
-        .replace('#include <common>', '#include <common>\nuniform float uT; uniform vec3 uHeart; uniform float uGlow; uniform float uFlash; uniform float uAlpha; uniform vec3 uFogC; uniform float uFog;\nvarying vec3 vGW;\nvarying vec3 vGN;')
-        .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
-          // a dithered fade (his pale kneel, his dissolve into rain): opaque and depth-correct, no sorting
-          if (uAlpha < 0.995 && fract(sin(dot(floor(gl_FragCoord.xy), vec2(12.9898, 78.233))) * 43758.5453) > uAlpha) discard;`)
-        .replace('#include <dithering_fragment>', `#include <dithering_fragment>
-          vec3 gN = normalize(vGN);
-          vec3 gV = normalize(cameraPosition - vGW);
-          float up = 0.5 + 0.5 * dot(gN, normalize(vec3(-0.35, 0.85, 0.4)));
-          float rim = pow(1.0 - max(dot(gN, gV), 0.0), 2.6);
-          float hd = length(vGW - uHeart);
-          float inner = exp(-hd / 11.0) * uGlow;
-          float flick = uFlash * (0.55 + 0.45 * sin(vGW.y * 0.6 + vGW.x * 0.3 + uT * 31.0));
-          // storm cloud: slate-violet in the shade, lit tops, a bright silver rim (the lightning behind him)
-          vec3 cloud = gl_FragColor.rgb * mix(vec3(0.14, 0.14, 0.21), vec3(0.78, 0.8, 0.88), up * up);
-          cloud += vec3(0.7, 0.78, 1.05) * rim * 0.5;
-          cloud += vec3(0.42, 0.55, 1.6) * (inner * 1.3 + flick * 0.45);
-          gl_FragColor.rgb = mix(cloud, uFogC, uFog);`);
+      patchTitanCloud(sh);   // dark cumulus, lightning veins, the heart's spiral (stormTitanLook.ts)
     };
     mat.customProgramCacheKey = () => 'nalati-titan-cloud';
     this.puffs = new THREE.InstancedMesh(geo, mat, this.list.length);
     this.puffs.frustumCulled = false; this.puffs.castShadow = false; this.puffs.receiveShadow = false;
     this.puffs.name = 'titan-cloud';
-    // colour: pale storm-white up top, blue-slate below and in the cloak
+    // colour: the albedo the cloud program lights — the exposed outer puffs full, his core, the skirt and the cloak darker
     const c = new THREE.Color();
     this.list.forEach((pf, i) => {
-      const low = pf.bone === this.root ? 0.5 : pf.p.z < -4.5 ? 0.58 : 0.8 + 0.15 * Math.sin(i * 1.7);
-      c.setRGB(0.66 * low + 0.08, 0.7 * low + 0.08, 0.8 * low + 0.12);
+      const low = pf.bone === this.root ? 0.72 : pf.p.z < -4.5 ? 0.78 : 0.92 + 0.08 * Math.sin(i * 1.7);
+      const k = low * (0.45 + 0.6 * (exposure[i] ?? 0.7));
+      c.setRGB(0.95 * k, 0.97 * k, 1.05 * k);
       this.puffs.setColorAt(i, c);
     });
     scene.add(this.puffs);
@@ -222,8 +210,8 @@ class TitanBody {
     this.heart = new THREE.Mesh(new THREE.IcosahedronGeometry(2.2, 2), this.heartMat);
     this.heart.position.set(0, 17, 5.2);
     this.chest.add(this.heart);
-    this.glowMat = fxMaterial(FX.beam, new THREE.Color(0.9, 1.2, 3.0), 0.9);
-    this.heartGlow = new THREE.Mesh(new THREE.SphereGeometry(5.5, 24, 16), this.glowMat);
+    this.glowMat = fxMaterial(FX.beam, new THREE.Color(0.55, 0.7, 2.4), 0.8);
+    this.heartGlow = new THREE.Mesh(new THREE.SphereGeometry(4.4, 24, 16), this.glowMat);
     this.heart.add(this.heartGlow);
     this.ringMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(2.6, 1.9, 0.6), transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, fog: false });
     this.heartRing = new THREE.Mesh(new THREE.TorusGeometry(7.5, 0.5, 6, 56), this.ringMat);
@@ -320,18 +308,6 @@ function mergeTwo(a: THREE.BufferGeometry, b: THREE.BufferGeometry): THREE.Buffe
 
 // ─────────────────────────────── the arena: wall, whirlwinds, fire ───────────────────────────────
 
-function flameTexture(): THREE.Texture {
-  const c = document.createElement('canvas'); c.width = 64; c.height = 128;
-  const g = c.getContext('2d');
-  if (g) {
-    const grd = g.createRadialGradient(32, 104, 4, 32, 90, 60);
-    grd.addColorStop(0, 'rgba(255,240,200,1)'); grd.addColorStop(0.25, 'rgba(255,170,60,0.95)'); grd.addColorStop(0.6, 'rgba(220,70,10,0.5)'); grd.addColorStop(1, 'rgba(120,20,0,0)');
-    g.fillStyle = grd;
-    g.beginPath(); g.moveTo(32, 2); g.bezierCurveTo(58, 50, 62, 118, 32, 126); g.bezierCurveTo(2, 118, 6, 50, 32, 2); g.fill();
-  }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
 function scorchTexture(): THREE.Texture {
   const c = document.createElement('canvas'); c.width = c.height = 64;
   const g = c.getContext('2d');
@@ -383,7 +359,7 @@ export class StormTitanFight implements BossScript {
   private readonly burn = new Uint8Array(GRID * GRID);      // 0 grass · 1 burning · 2 burnt
   private readonly burnT = new Float32Array(GRID * GRID);
   private spreadT = 0; private fireOn = false; private fireDmgT = 0;
-  private readonly flames: THREE.InstancedMesh; private readonly scorch: THREE.InstancedMesh;
+  private readonly fire: GrassFireFx; private readonly scorch: THREE.InstancedMesh;
   private scorchN = 0;
   private readonly chains: Chain[];
   private chainCd = 4; private chainLeft = 0; private chainStep = 0;
@@ -425,19 +401,8 @@ export class StormTitanFight implements BossScript {
     this.debris = new THREE.InstancedMesh(new THREE.TetrahedronGeometry(0.28), new THREE.MeshLambertMaterial({ color: 0x6a5a44 }), 3 * 40);
     this.debris.frustumCulled = false; this.debris.count = 0; this.debris.name = 'titan-debris';
     scene.add(this.debris);
-    // fire: crossed flame cards (instanced) and scorch decals
-    const fg = new THREE.PlaneGeometry(1.7, 2.3); fg.translate(0, 1.05, 0);
-    const fg2 = fg.clone(); fg2.rotateY(Math.PI / 3); const fg3 = fg.clone(); fg3.rotateY(-Math.PI / 3);
-    const flameGeo = mergeTwo(mergeTwo(fg, fg2), fg3);
-    const uv = new Float32Array(flameGeo.getAttribute('position').count * 2);
-    const uv1 = fg.getAttribute('uv');
-    for (let k = 0; k < 3; k++) for (let i = 0; i < uv1.count; i++) { uv[(k * uv1.count + i) * 2] = uv1.getX(i); uv[(k * uv1.count + i) * 2 + 1] = uv1.getY(i); }
-    flameGeo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-    const flameMat = new THREE.MeshBasicMaterial({ map: flameTexture(), color: new THREE.Color(1.5, 0.95, 0.42), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false, fog: false });
-    flameMat.name = 'titan-flame';
-    this.flames = new THREE.InstancedMesh(flameGeo, flameMat, MAX_FLAMES);
-    this.flames.frustumCulled = false; this.flames.count = 0; this.flames.renderOrder = 14; this.flames.name = 'titan-flames';
-    scene.add(this.flames);
+    // fire: 3D flame tongues + rising smoke (stormTitanLook.ts) and scorch decals
+    this.fire = new GrassFireFx(scene, MAX_FLAMES, this.body.uni.uFogC, this.body.uni.uFlash);
     const sg = new THREE.PlaneGeometry(CELL * 1.25, CELL * 1.25); sg.rotateX(-Math.PI / 2);
     const scMat = new THREE.MeshBasicMaterial({ color: 0x0d0a08, alphaMap: scorchTexture(), transparent: true, opacity: 0.88, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, fog: false });
     scMat.name = 'titan-scorch';
@@ -598,7 +563,7 @@ export class StormTitanFight implements BossScript {
     // the rain puts the fire out: every burning cell goes to black
     for (let i = 0; i < this.burn.length; i++) if (this.burn[i] === 1) { this.burn[i] = 2; this.addScorch(i); }
     this.fireOn = false;
-    this.flames.count = 0;
+    this.fire.out();
     for (const w of this.whirls) w.on = false;
   }
 
@@ -801,10 +766,11 @@ export class StormTitanFight implements BossScript {
   }
   private clearFire(): void {
     this.burn.fill(0); this.burnT.fill(0);
-    this.scorchN = 0; this.scorch.count = 0; this.flames.count = 0; this.fireOn = false;
+    this.scorchN = 0; this.scorch.count = 0; this.fire.clear(); this.fireOn = false;
   }
 
   private updateFire(dt: number, t: number, live: boolean): void {
+    this.fire.update(dt, t, wind.dirX, wind.dirZ, wind.speed);
     if (!this.fireOn) return;
     // spread downwind, 4 times a second
     this.spreadT -= dt;
@@ -828,20 +794,26 @@ export class StormTitanFight implements BossScript {
       }
       for (const n of next) if (this.inside(n)) { this.burn[n] = 1; this.burnT[n] = BURN_T * (0.8 + Math.random() * 0.4); }
     }
-    // burn down; draw the flames
-    let f = 0;
+    // burn down; draw the flames: each cell rises, roars and sinks to embers; the downwind front stands tallest; smoke rolls off
+    const fx = this.fire;
+    fx.begin();
+    const wx = wind.dirX, wz = wind.dirZ;
+    const smokeRate = TIER === 'phone' ? 0.8 : 1.5;
     for (let c = 0; c < this.burn.length; c++) {
       if (this.burn[c] !== 1) continue;
       const bt = (this.burnT[c] ?? 0) - dt;
       this.burnT[c] = bt;
       if (bt <= 0) { this.burn[c] = 2; this.addScorch(c); continue; }
-      if (f >= MAX_FLAMES) continue;
-      const x = this.cellX(c), z = this.cellZ(c);
-      const k = Math.min(1, bt / 1.5) * (0.85 + 0.25 * Math.sin(t * 11 + c * 1.7));
-      _m.compose(_v.set(x + Math.sin(c * 3.1) * 0.8, heightAt(x, z) - 0.1, z + Math.cos(c * 2.3) * 0.8), _q.setFromAxisAngle(_w.set(0, 1, 0), c * 0.7 + t * 0.4), _s.set(k, (0.9 + 0.35 * Math.sin(t * 7 + c)) * k, k));
-      this.flames.setMatrixAt(f++, _m);
+      const x = this.cellX(c), z = this.cellZ(c), y = heightAt(x, z) - 0.15;
+      const age = BURN_T - bt;
+      const heat = Math.min(1, age / 0.9) * Math.min(1, bt / 2.2);
+      // the front: the next cell downwind is still grass
+      const nc = this.cellOf(x + wx * CELL, z + wz * CELL);
+      const front = nc >= 0 && this.burn[nc] === 0 ? 1 : 0;
+      fx.flame(x + Math.sin(c * 3.1) * 0.8, y, z + Math.cos(c * 2.3) * 0.8, c, heat, front, 1.5);
+      if (Math.random() < dt * smokeRate * (0.4 + heat)) fx.puff(x, y, z, heat);
     }
-    this.flames.count = f; this.flames.instanceMatrix.needsUpdate = true;
+    fx.end();
     if (!live) return;
     // the player in fire: 8 / s; the horse panics near it
     const p = this.host.player.position;
