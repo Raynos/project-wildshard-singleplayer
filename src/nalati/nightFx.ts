@@ -49,7 +49,7 @@ export class NightParticles {
     const mat = new THREE.ShaderMaterial({
       uniforms: { uScale: this.uScale, uLight: this.uLight },
       vertexShader: `attribute float aSize; attribute float aAlpha; attribute vec3 aColor; varying float vA; varying vec3 vC; uniform float uScale;
-        void main(){ vA = aAlpha; vC = aColor; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = aSize * uScale / max(0.05, -mv.z); gl_Position = projectionMatrix * mv; }`,
+        void main(){ vA = aAlpha * (aSize > 0.45 ? 0.3 : 1.0); vC = aColor;   /* a big soft particle (dust, mist) is thin */ vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = min(aSize * uScale / max(0.05, -mv.z), aSize > 0.45 ? 220.0 : 26.0);   /* a clod by the lens is a speck, not a disc */ gl_Position = projectionMatrix * mv; }`,
       // debris: a lumpy clump (a squashed disc with a darker lower half, the light from above); mist: a soft round puff
       fragmentShader: mist
         ? `varying float vA; varying vec3 vC; void main(){ vec2 d = gl_PointCoord - 0.5; float r = dot(d, d) * 4.0; if (r > 1.0 || vA <= 0.002) discard; float a = (1.0 - r); a *= a; gl_FragColor = vec4(vC * a * vA, 1.0); }`
