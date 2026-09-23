@@ -12,6 +12,10 @@ import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
 import { macrotask } from '../boot/plan';
 import { installStylize } from './stylize';
+import { StylizedSky } from './StylizedSky';
+
+/** the low-poly shard's sun before the day / night clock moves it: mid-morning from the east-south-east, 38° up */
+const STYLIZED_SUN = new THREE.Vector3(-0.74, 0.616, -0.27).normalize();
 
 /** how far the planet group sits from the camera (Game.ts re-places it every frame along `planetDir`) */
 export const PLANET_DIST = 1700;
@@ -50,6 +54,37 @@ export class Sky {
     if (style === 'lowpoly') installStylize(); // the toon lighting model (D1) — patched into three's chunk before anything compiles
     const qs = new URLSearchParams(location.search);
     const qn = (k: string, d: number) => { const v = qs.get(k); return v === null ? d : Number.parseFloat(v); };
+    const horizon = style === 'lowpoly' ? await this.setupStylized() : await this.setupHDRI(qs, qn);
+    this.scene.fog = new THREE.Fog(horizon, 1, 1e6); // distances unused: Atmosphere.ts overrides the maths
+    fogUniforms.fogSunDir.value.copy(this.sunDir);
+    fogUniforms.fogSunColor.value.set(...S.fogSunColor);
+    fogUniforms.fogHeight.value = A.fogHeight;
+    fogUniforms.fogHeightFalloff.value = A.fogHeightFalloff;
+    fogUniforms.fogHeightDensity.value = A.fogHeightDensity;
+    fogUniforms.fogDistDensity.value = A.fogDistDensity;
+
+    this.csm = new CSM({
+      camera: this.camera, parent: this.scene, cascades: TIER_CONFIG.cascades, mode: 'practical',
+      maxFar: TIER_CONFIG.shadowFar, shadowMapSize: TIER_CONFIG.shadowMapSize, lightDirection: this.sunDir.clone().negate(),
+      lightIntensity: qn('sunI', S.sunIntensity), shadowBias: -0.00012, lightMargin: TIER_CONFIG.shadowMargin, lightNear: 1, lightFar: 600,
+    });
+    this.csm.fade = true;
+    if (!TIER_CONFIG.softShadows) this.renderer.shadowMap.type = THREE.PCFShadowMap; // 16-tap PCFSoft → 9-tap PCF on the phone
+    patchCSMShaderChunk();
+    for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = 0.05; l.shadow.radius = 2; }
+
+    this.scene.add(new THREE.HemisphereLight(S.hemiSky, S.hemiGround, S.hemiIntensity));
+
+    this.buildSunDisc();
+    this.buildPlanet();
+    if (this.stylized) this.clouds = this.stylized.dome; // Game.ts keeps `clouds` on the camera: the dome and its cumulus ring
+    else this.buildClouds();
+    return this;
+  }
+
+  /** Pine Hollow's rig (and any `style: 'pbr'` shard): the HDRI is the background and the IBL; returns the fog colour. */
+  private async setupHDRI(qs: URLSearchParams, qn: (k: string, d: number) => number): Promise<THREE.Color> {
+    const { sky: S } = getActiveChunk();
     const hdriName = qs.get('hdri') ?? S.hdri;
     // baked procedural textures (clouds, fur…) and the baked sun / horizon (scripts/bake-sky.mjs) ride along with the HDR
     // the HDR itself: the gain-mapped JPEG + PNG pair (~0.3 MB, BakedSky.ts) when the build has it, else the 4–5 MB .hdr
@@ -76,31 +111,38 @@ export class Sky {
     this.scene.backgroundBlurriness = 0.0;
 
     // Fog colour = average of the sky just above the horizon in the view direction
-    const horizon = baked ? new THREE.Color(...baked.horizon) : this.sampleHorizon(hdr);
-    this.scene.fog = new THREE.Fog(horizon, 1, 1e6); // distances unused: Atmosphere.ts overrides the maths
-    fogUniforms.fogSunDir.value.copy(this.sunDir);
-    fogUniforms.fogSunColor.value.set(...S.fogSunColor);
-    fogUniforms.fogHeight.value = A.fogHeight;
-    fogUniforms.fogHeightFalloff.value = A.fogHeightFalloff;
-    fogUniforms.fogHeightDensity.value = A.fogHeightDensity;
-    fogUniforms.fogDistDensity.value = A.fogDistDensity;
+    return baked ? new THREE.Color(...baked.horizon) : this.sampleHorizon(hdr);
+  }
 
-    this.csm = new CSM({
-      camera: this.camera, parent: this.scene, cascades: TIER_CONFIG.cascades, mode: 'practical',
-      maxFar: TIER_CONFIG.shadowFar, shadowMapSize: TIER_CONFIG.shadowMapSize, lightDirection: this.sunDir.clone().negate(),
-      lightIntensity: qn('sunI', S.sunIntensity), shadowBias: -0.00012, lightMargin: TIER_CONFIG.shadowMargin, lightNear: 1, lightFar: 600,
-    });
-    this.csm.fade = true;
-    if (!TIER_CONFIG.softShadows) this.renderer.shadowMap.type = THREE.PCFShadowMap; // 16-tap PCFSoft → 9-tap PCF on the phone
-    patchCSMShaderChunk();
-    for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = 0.05; l.shadow.radius = 2; }
+  /**
+   * The low-poly shard (D2): no HDRI at all — the stylized gradient dome + faceted cumulus (StylizedSky.ts) is the
+   * background, a PMREM of the dome is the (specular-only, stylize.ts) environment, and the sun comes from the
+   * day / night clock's start time. Returns the fog colour (the dome's horizon).
+   */
+  stylized: StylizedSky | null = null;
+  private pmrem: THREE.PMREMGenerator | null = null;
+  private envRT: THREE.WebGLRenderTarget | null = null;
+  private async setupStylized(): Promise<THREE.Color> {
+    const { sky: S } = getActiveChunk();
+    await preloadBakedTextures();
+    this.sunDir.copy(STYLIZED_SUN);
+    const st = new StylizedSky(this.sunDir).build();
+    this.stylized = st;
+    this.scene.add(st.dome);
+    this.scene.background = null;
+    this.refreshEnvironment();
+    this.scene.environmentIntensity = S.envIntensity;
+    return st.u.uHorizon.value.clone();
+  }
 
-    this.scene.add(new THREE.HemisphereLight(S.hemiSky, S.hemiGround, S.hemiIntensity));
-
-    this.buildSunDisc();
-    this.buildPlanet();
-    this.buildClouds();
-    return this;
+  /** re-render the dome into the PMREM environment (DayNight calls it when the sky has moved on; ~1 ms of GPU) */
+  refreshEnvironment(): void {
+    if (!this.stylized) return;
+    this.pmrem ??= new THREE.PMREMGenerator(this.renderer);
+    const rt = this.pmrem.fromScene(this.stylized.envScene, 0, 1, 3000, { size: 64 });
+    this.envRT?.dispose();
+    this.envRT = rt;
+    this.scene.environment = rt.texture;
   }
 
   /**
@@ -144,7 +186,7 @@ export class Sky {
   clouds!: THREE.Mesh;
   private cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() } };
 
-  update(dt = 0): void { this.csm.update(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt; }
+  update(dt = 0): void { this.csm.update(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt; this.stylized?.update(dt); }
 
   /** Thin procedural cirrus/cumulus layer on a sky dome — the HDRI has none, and a forest needs a sky with some drama. */
   private buildClouds() {
@@ -286,6 +328,7 @@ export class Sky {
     this.giantUniforms.uSunDir.value.copy(this.sunDir);
     this.giantUniforms.uHaze.value.copy(haze);
     this.giantUniforms.uRadius.value = R;
+    this.giantUniforms.uCrisp.value = this.stylized ? 1 : 0;
 
     const body = new THREE.Mesh(new THREE.SphereGeometry(R, 48, 32), new THREE.ShaderMaterial({
       uniforms: { ...this.giantUniforms, tBands: { value: bands } },
@@ -298,7 +341,7 @@ export class Sky {
           gl_Position = projectionMatrix * viewMatrix * w;
         }`,
       fragmentShader: /* glsl */`
-        uniform sampler2D tBands; uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uTime;
+        uniform sampler2D tBands; uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uTime; uniform float uCrisp;
         varying vec3 vN; varying vec3 vW;
         void main() {
           vec3 N = normalize(vN);
@@ -314,9 +357,9 @@ export class Sky {
           float limb = 0.45 + 0.55 * mu;                       // limb darkening
           vec3 lit = col * (0.24 + 0.95 * day) * limb + col * vec3(0.05, 0.08, 0.14) * (1.0 - day); // a little sky bounce on the night side
           // sky haze: the disc is pale and airy, more so at the limb (it sits in the atmosphere, not in front of it)
-          float h = 0.1 + 0.45 * pow(1.0 - mu, 2.4);
+          float h = (0.1 + 0.45 * pow(1.0 - mu, 2.4)) * (1.0 - 0.7 * uCrisp);   // uCrisp (the stylized sky): a crisp, opaque disc
           vec3 c = mix(lit, uHaze, h);
-          gl_FragColor = vec4(c, 0.92 - 0.25 * pow(1.0 - mu, 3.0));
+          gl_FragColor = vec4(c, mix(0.92 - 0.25 * pow(1.0 - mu, 3.0), 1.0, uCrisp));
         }`,
     }));
     body.renderOrder = -12;
@@ -333,7 +376,7 @@ export class Sky {
           gl_Position = projectionMatrix * viewMatrix * w;
         }`,
       fragmentShader: /* glsl */`
-        uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uRadius;
+        uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uRadius; uniform float uCrisp;
         varying vec3 vW; varying vec2 vL; varying vec3 vC;
         // does the ray o + d t (t > 0, t < tmax) pass through the body?
         bool hitsBody(vec3 o, vec3 d, float tmax) {
@@ -360,8 +403,8 @@ export class Sky {
           float sameSide = sign(dot(uAxis, V)) == sign(dot(uAxis, uSunDir)) ? 1.0 : 0.6;
           float lit = (0.5 + 0.5 * abs(dot(uAxis, uSunDir))) * sameSide * shadow;
           vec3 col = vec3(0.98, 0.95, 0.88) * (0.45 + 0.9 * lit) * bright;
-          col = mix(col, uHaze, 0.2);
-          gl_FragColor = vec4(col, a * 0.8);
+          col = mix(col, uHaze, 0.2 * (1.0 - 0.6 * uCrisp));
+          gl_FragColor = vec4(col, a * mix(0.8, 0.95, uCrisp));
         }`,
     }));
     ring.rotation.set((90 - P.tilt) * d2r, 0, (P.roll ?? 20) * d2r, 'ZXY');
@@ -375,7 +418,7 @@ export class Sky {
     this.planet.traverse((o) => { o.frustumCulled = false; });
     this.scene.add(this.planet);
   }
-  private giantUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uHaze: { value: new THREE.Color() }, uAxis: { value: new THREE.Vector3(0, 1, 0) }, uRadius: { value: 1 } };
+  private giantUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uHaze: { value: new THREE.Color() }, uAxis: { value: new THREE.Vector3(0, 1, 0) }, uRadius: { value: 1 }, uCrisp: { value: 0 } };
 }
 
 /**
