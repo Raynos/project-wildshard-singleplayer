@@ -67,7 +67,7 @@ const GHOST_TIME: THREE.IUniform<number> = { value: 0 };
 function ghostMaterial(captain = false): GhostMat {
   const fade: THREE.IUniform<number> = { value: 0 };
   const mat = new THREE.MeshLambertMaterial({ color: 0x000000, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
-  const core = captain ? 'vec3(0.03, 0.2, 0.18)' : 'vec3(0.02, 0.16, 0.2)', rim = captain ? 'vec3(0.6, 2.4, 1.9)' : 'vec3(0.45, 1.9, 2.3)';
+  const core = captain ? 'vec3(0.1, 0.5, 0.42)' : 'vec3(0.08, 0.42, 0.52)', rim = captain ? 'vec3(0.6, 2.4, 1.9)' : 'vec3(0.45, 1.9, 2.3)';
   mat.onBeforeCompile = (sh) => {
     sh.uniforms['uGFade'] = fade; sh.uniforms['uGTime'] = GHOST_TIME;
     sh.fragmentShader = sh.fragmentShader
@@ -77,7 +77,7 @@ function ghostMaterial(captain = false): GhostMat {
         vec3 gV = normalize( vViewPosition );
         float gF = pow( 1.0 - abs( dot( gN, gV ) ), 2.0 );
         float gS = 0.75 + 0.25 * sin( gl_FragCoord.y * 0.045 + uGTime * 3.1 ) * sin( gl_FragCoord.x * 0.031 - uGTime * 2.3 );
-        vec3 gC = mix( ${core}, ${rim}, gF ) * ( 0.32 + 1.05 * gF ) * gS;
+        vec3 gC = mix( ${core}, ${rim}, gF ) * ( 0.8 + 1.3 * gF ) * gS;
         gl_FragColor = vec4( gC * uGFade, 1.0 );`);
   };
   mat.customProgramCacheKey = () => (captain ? 'nalati-ghost-captain' : 'nalati-ghost');
@@ -156,6 +156,8 @@ export class GhostRiders {
   readonly mist: NightParticles;
   /** B12: true = no automatic lines (the elite system drives the night) */
   hold = false;
+  /** dev: the riders stand still where they are (screenshots) */
+  freeze = false;
   killsTonight = 0;
   onRiderKilled?: ((a: Animal, killsTonight: number) => void) | undefined;
   /** the player takes damage (set by the wiring: main's health, flash) */
@@ -297,6 +299,7 @@ export class GhostRiders {
       if (this.respawnT < 0 && (this.ctx.clock.phase === 'night' || new URLSearchParams(location.search).get('ghosts') === 'line')) this.spawnLine();
     }
     for (const line of this.lines) this.steerLine(line, dt);
+    if (this.freeze) for (const r of this.riders) { r.a.mem['tx'] = r.a.position.x; r.a.mem['tz'] = r.a.position.z; r.fireT = 99; }
     for (let i = this.riders.length - 1; i >= 0; i--) {
       const r = this.riders[i];
       if (r === undefined) continue;
@@ -321,11 +324,12 @@ export class GhostRiders {
       }
       if (r.dead || a.hidden) continue;
       // the smoke trail: mist off the legs and the cloak, left behind as it gallops
-      if (Math.random() < dt * 34) {
+      // (small wisps, left BEHIND the horse: the body itself must stay readable through them)
+      if (Math.random() < dt * 22) {
         ghostSeat(a, _v);
         const back = _w.set(-Math.sin(a.yaw), 0, -Math.cos(a.yaw));
-        this.mist.emit(_v.x + back.x * 0.6 + (Math.random() - 0.5) * 0.6, _v.y - 0.3 - Math.random() * 1.1, _v.z + back.z * 0.6 + (Math.random() - 0.5) * 0.6,
-          back.x * 1.5, 0.3, back.z * 1.5, 1.1 + Math.random() * 0.6, 0.3 + Math.random() * 0.3, MIST[0] * 0.8, MIST[1] * 0.8, MIST[2] * 0.8, FLAG_GROW | FLAG_RISE);
+        this.mist.emit(_v.x + back.x * 1.1 + (Math.random() - 0.5) * 0.7, _v.y + 0.3 - Math.random() * 1.6, _v.z + back.z * 1.1 + (Math.random() - 0.5) * 0.7,
+          back.x * 2.2, 0.25, back.z * 2.2, 0.9 + Math.random() * 0.5, 0.12 + Math.random() * 0.14, MIST[0] * 0.6, MIST[1] * 0.6, MIST[2] * 0.6, FLAG_GROW | FLAG_RISE);
       }
       // shooting: inside SHOOT m, engaged (or a loose rider), on a timer
       r.fireT -= dt;

@@ -31,7 +31,6 @@ import { reseedPainterlyGrass } from '../world/GrassPainterly';
 import { wireKurgan, type KurganBoss } from './kurganBoss';
 import { wireElites, type NalatiElites } from './elites';
 import { wireWeather, type NalatiWeather } from './weather';
-import { wireSound, type NalatiSound } from './sound';
 import { macrotask } from '../boot/plan';
 import type { AnimalManager } from '../entities/AnimalManager';
 import { Wildlife, type SheepHit } from '../entities/Wildlife';
@@ -41,9 +40,10 @@ import { trample, grassHeightAt } from '../world/GrassTrample';
 import type { ImpactSurface, TargetAnimal, TargetHit } from '../player/Crossbow';
 import type { NalatiKit } from '../player/nalatiKit';
 import { nalatiWetAt } from './wet';
+import { wireNightEnemies } from './nightEnemies';
 import { Stealth } from './stealth';
 import { PaintedBackdrop } from '../world/PaintedBackdrop';
-import { wireNightEnemies } from './nightEnemies';
+import { wireSound, type NalatiSound } from './sound';
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ChunkDef }
 
@@ -86,14 +86,14 @@ export interface Nalati {
   onImpact: (surface: ImpactSurface, point: Vector3) => void;
   /** main's Targets.raycast: the nearer of `hit` (the animals) and a sheep on the ray — the flock is not an AnimalManager crowd */
   sheepTarget: (origin: Vector3, dir: Vector3, maxDist: number, hit: TargetHit | null) => TargetHit | null;
-  /** the steppe's sound (B16 audio; src/nalati/sound.ts): creatures, hooves, the grassland bed, the kit's voices — set just
-   *  before wireNalati returns; main.ts: `sound.bind(audio, music)`, `sound.fire(id)` / `sound.impact(…)` in the weapon hooks */
-  sound?: NalatiSound;
   /** anything a later system wants to find: named groups added to the scene by this wiring */
   groups: Record<string, Object3D>;
   /** crouch + grass stealth (melee agent, B9; src/nalati/stealth.ts): `stealth.state` (hidden / visible / noticed /
    *  detected), `stealth.cover`, `stealth.latched` — taming reads it (TRUST builds only crouched) */
   stealth: Stealth;
+  /** the steppe's sound (B16 audio; src/nalati/sound.ts): creatures, hooves, the grassland bed, the kit's voices — set just
+   *  before wireNalati returns; main.ts: `sound.bind(audio, music)`, `sound.fire(id)` / `sound.impact(…)` in the weapon hooks */
+  sound?: NalatiSound;
 }
 
 export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
@@ -149,10 +149,6 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   groups['weather'] = weather.fx.group;
   updates.push((dt) => weather.update(dt));
 
-  // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/nalati/elites.ts ──
-  const elites = wireElites({ game, sky, player: ctx.player, ledges: pois.cragLedges, phase: () => weather.clock.phase, storm: () => weather.weather.stormActive });
-  updates.push((dt, t) => { elites.update(dt, t); });
-
   // ── painted backdrop (painted-asset agent, look pass): the 360° matte painting of the real Nalati past the horizon rings —
   //    src/world/PaintedBackdrop.ts (loads on its own, the boot does not wait). It takes the far range over from the
   //    procedural PainterlyRange (hidden while the painting shows). `?backdrop=0` = off, for before / after shots. ──
@@ -170,6 +166,10 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
       updates.push(() => { bd.update(weather.look, weather.weather.overcast, weather.weather.rain, weather.weather.flash); });
     })();
   }
+
+  // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/nalati/elites.ts ──
+  const elites = wireElites({ game, sky, player: ctx.player, ledges: pois.cragLedges, phase: () => weather.clock.phase, storm: () => weather.weather.stormActive });
+  updates.push((dt, t) => { elites.update(dt, t); });
 
   // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager — `attachAnimals` below (main.ts calls it after its animals step) ──
 
@@ -287,6 +287,13 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
     },
     update(dt, t) { for (const u of updates) u(dt, t); },
   };
+  // ── crouch + grass stealth (melee agent, B9): the long-grass CROUCH toggle (touch disc above JUMP, C / Ctrl on desktop),
+  //    the eye pip + GRASS meter + threat chevron, the sneak shot (× 2 from HIDDEN on arrows and javelins) — src/nalati/stealth.ts ──
+  updates.push((dt, t) => { stealth.update(dt, t); });
+  const bindPlay = nalati.bindPlay, onShot = nalati.onShot;
+  nalati.bindPlay = (p) => { bindPlay(p); if (p.kit !== null) stealth.bindKit(p.kit); };
+  nalati.onShot = () => { stealth.noteShot(); onShot(); }; // before onShot marks the shot (a loose reveals you)
+
   // ── dusk + night enemies (bow agent, B11): the balbal warriors wake at dusk, the ghost riders ride the ridges at night —
   //    src/nalati/nightEnemies.ts (balbalWarriors.ts, ghostRiders.ts); chained into attachAnimals / bindPlay / the Targets ray ──
   const night = wireNightEnemies({ game, sky, player: ctx.player, forest: ctx.forest, balbals: pois.balbals, clock: weather.clock });
@@ -303,13 +310,6 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   const sound = wireSound(nalati, { player: ctx.player, weather });
   nalati.sound = sound;
   updates.push((dt) => { sound.update(dt); });
-
-  // ── crouch + grass stealth (melee agent, B9): the long-grass CROUCH toggle (touch disc above JUMP, C / Ctrl on desktop),
-  //    the eye pip + GRASS meter + threat chevron, the sneak shot (× 2 from HIDDEN on arrows and javelins) — src/nalati/stealth.ts ──
-  updates.push((dt, t) => { stealth.update(dt, t); });
-  const bindPlay = nalati.bindPlay, onShot = nalati.onShot;
-  nalati.bindPlay = (p) => { bindPlay(p); if (p.kit !== null) stealth.bindKit(p.kit); };
-  nalati.onShot = () => { stealth.noteShot(); onShot(); }; // before onShot marks the shot (a loose reveals you)
 
   return nalati;
 }

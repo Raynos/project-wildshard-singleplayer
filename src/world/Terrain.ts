@@ -8,6 +8,8 @@ import { loadBakedTerrain } from './BakedTerrain';
 import { macrotask } from '../boot/plan';
 import { painterlyMaterial } from './painterly';
 import { applyTerrainSurface } from '../nalati/terrainSurface';
+import { loadNalatiTextures } from './nalatiTextures';
+import { Noise2D } from '../core/noise';
 import type { RGB } from '../chunks/ChunkDef';
 
 // ── low-poly palette (sRGB in, linear out via THREE.Color) ──
@@ -93,9 +95,9 @@ export class Terrain {
    * read as gradients). The slab walls are painted rock on the same material. Two draw calls, one program.
    */
   private async buildPainterly() {
-    await loadBakedTerrain();
+    const [, tex] = await Promise.all([loadBakedTerrain(), loadNalatiTextures(['meadow', 'path', 'gravel', 'rock', 'snow'])]);
     const mat = painterlyMaterial(null, { bands: 0.5, rim: 0, shade: 0.85 }); // bootstrap passes it through sky.setupMaterial
-    applyTerrainSurface(mat); // per-pixel ground detail: roads, pebbles, rock strata, snow (src/nalati/terrainSurface.ts)
+    applyTerrainSurface(mat, tex); // the painted ground: meadow, dirt track, gravel, granite, snow (src/nalati/terrainSurface.ts)
     this.material = mat;
     const rows = this.buildPainterlyGeometry();
     let r = rows.next();
@@ -104,7 +106,7 @@ export class Terrain {
     this.mesh.receiveShadow = true;
     this.mesh.castShadow = false;
     this.group.add(this.mesh);
-    const slab = new THREE.Mesh(this.buildPainterlySlab(), painterlyMaterial(null, { bands: 0.5, rim: 0, shade: 0.85 }));
+    const slab = new THREE.Mesh(this.buildPainterlySlab(), mat); // the same material: painted granite walls, a grassy lip
     slab.receiveShadow = true;
     this.group.add(slab);
     return this;
@@ -122,7 +124,8 @@ export class Terrain {
     yield;
     const H = (ix: number, iz: number) => hs[Math.min(n, Math.max(0, iz)) * res + Math.min(n, Math.max(0, ix))] ?? 0;
     const pos = new Float32Array(res * res * 3), nrm = new Float32Array(res * res * 3), col = new Float32Array(res * res * 3);
-    const surf = new Float32Array(res * res * 4);
+    const surf = new Float32Array(res * res * 4), rdir = new Float32Array(res * res * 2);
+    const road: [number, number, number] = [0, 0, 0];
     const out: RGB = [0, 0, 0];
     const segs = trailSegments();
     for (let iz = 0; iz < res; iz++) {
@@ -140,7 +143,8 @@ export class Terrain {
         col[i * 3] = out[0]; col[i * 3 + 1] = out[1]; col[i * 3 + 2] = out[2];
         // the surface-detail masks (src/nalati/terrainSurface.ts): road across · gravel · snow · rock
         const [gravel = 0, rock = 0, snow = 0] = def.surfaceAt?.(x, z, y, slope) ?? [];
-        surf[i * 4] = signedTrailDistance(segs, x, z, 9); surf[i * 4 + 1] = gravel; surf[i * 4 + 2] = snow; surf[i * 4 + 3] = rock;
+        signedTrailDistance(segs, x, z, 9, road); rdir[i * 2] = road[1]; rdir[i * 2 + 1] = road[2];
+        surf[i * 4] = road[0]; surf[i * 4 + 1] = gravel; surf[i * 4 + 2] = snow; surf[i * 4 + 3] = rock;
       }
     }
     const idx = new Uint32Array(n * n * 6);
@@ -154,20 +158,32 @@ export class Terrain {
     geo.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
     geo.setAttribute('surf', new THREE.BufferAttribute(surf, 4));
+    geo.setAttribute('rdir', new THREE.BufferAttribute(rdir, 2));
     geo.setIndex(new THREE.BufferAttribute(idx, 1));
     geo.computeBoundingSphere();
     return geo;
   }
 
-  /** the painterly slab: smooth rock walls from the surface edge down to the slab's floor, warm on top, dark below */
+  /**
+   * The painterly slab: the floating shard's rim as the mockups paint it — a grassy lip that overhangs a little, then
+   * weathered granite (the terrain material's painted rock, triplanar) bulging and breaking in noisy ledges down to the
+   * slab's floor, darker with depth. The rows step outward / inward by a seeded noise, so from above the edge reads as
+   * a ragged rocky cliff, not a ruled line. Same material as the ground (one program), masks in `surf` (rock = 1 below
+   * the lip). Indexed, smooth normals.
+   */
   private buildPainterlySlab() {
-    const segs = 128;
-    const verts: number[] = [], norms: number[] = [], cols: number[] = [], idx: number[] = [];
+    const def = getActiveChunk();
+    const segs = 256;
     const H = CHUNK_HALF, D = -CHUNK_DEPTH;
+    const n = new Noise2D(def.seed + 404);
+    // rows down the wall: [metres below the lip (negative = depth fraction of the slab), outward bulge scale, rock 0/1]
+    const ROWS: [number, number, number][] = [[0, 0, 0], [0.6, 1.2, 0], [1.6, 1.6, 1], [4, 0.6, 1], [8, 2.2, 1], [14, 1.0, 1], [22, 2.8, 1], [34, 1.4, 1], [-0.55, 3.5, 1], [-1, 0.5, 1]];
+    const verts: number[] = [], cols: number[] = [], surf: number[] = [], rdir: number[] = [], idx: number[] = [];
     const sides: { a: [number, number]; b: [number, number]; n: [number, number] }[] = [
       { a: [-H, -H], b: [H, -H], n: [0, -1] }, { a: [H, -H], b: [H, H], n: [1, 0] }, { a: [H, H], b: [-H, H], n: [0, 1] }, { a: [-H, H], b: [-H, -H], n: [-1, 0] },
     ];
-    const top = new THREE.Color(0.36, 0.3, 0.24), mid = new THREE.Color(0.2, 0.18, 0.17), deep = new THREE.Color(0.07, 0.07, 0.09);
+    const grass: RGB = [0, 0, 0];
+    const rockTop = new THREE.Color(0.46, 0.41, 0.35), rockMid = new THREE.Color(0.3, 0.27, 0.25), deep = new THREE.Color(0.1, 0.1, 0.12);
     const c = new THREE.Color();
     for (const s of sides) {
       const base = verts.length / 3;
@@ -175,28 +191,40 @@ export class Terrain {
         const t = i / segs;
         const x = s.a[0] + (s.b[0] - s.a[0]) * t, z = s.a[1] + (s.b[1] - s.a[1]) * t;
         const y0 = heightAt(x, z) + 0.05;
-        const bulge = 4 + Math.abs(Math.sin(i * 1.7 + s.n[0] * 3 + s.n[1] * 5)) * 4;
-        const rows: [number, number, number, THREE.Color][] = [[x, y0, z, top], [x + s.n[0] * 2, y0 - 4, z + s.n[1] * 2, top], [x + s.n[0] * bulge, D * 0.5, z + s.n[1] * bulge, mid], [x + s.n[0] * 2, D, z + s.n[1] * 2, deep]];
-        for (const [vx, vy, vz, cc] of rows) {
-          verts.push(vx, vy, vz); norms.push(s.n[0], 0.15, s.n[1]);
-          const j = 0.9 + Math.abs(Math.sin(i * 12.9898 + vy * 0.37)) * 0.2;
-          c.copy(cc).multiplyScalar(j); cols.push(c.r, c.g, c.b);
+        const u = (s.n[0] !== 0 ? z : x) * 0.02 + s.n[0] * 3.1 + s.n[1] * 7.3;
+        const [, ny] = normalAt(x, z, 1.5);
+        def.groundColor?.(x, z, y0, 1 - ny, def.terrain, grass);
+        for (const [r, [dy, bulge, rock]] of ROWS.entries()) {
+          const y = dy >= 0 ? y0 - dy : D * -dy;
+          // the ledges: each row juts or recedes by its own noise (the lip overhangs a little, the wall breaks in steps)
+          const k = r === 0 ? 0 : (0.35 + 0.65 * (n.get(u * (1 + r * 0.7), r * 3.3) * 0.5 + 0.5)) * bulge + (r === 1 ? 0.6 : 0);
+          const out = r === ROWS.length - 1 ? 2 : k * (r > 7 ? 1.4 : 1);
+          verts.push(x + s.n[0] * out, y, z + s.n[1] * out);
+          const depth = Math.min(1, Math.max(0, (y0 - y) / CHUNK_DEPTH));
+          if (rock === 0) c.setRGB(grass[0], grass[1], grass[2]);
+          else c.copy(rockTop).lerp(rockMid, Math.min(1, depth * 3)).lerp(deep, Math.max(0, depth * 1.3 - 0.3)).multiplyScalar(0.9 + 0.2 * (n.get(u * 4 + r, 9.1) * 0.5 + 0.5));
+          cols.push(c.r, c.g, c.b);
+          surf.push(9, 0, 0, rock);
+          rdir.push(1, 0);
         }
       }
-      for (let i = 0; i < segs; i++) for (let r = 0; r < 3; r++) {
-        const a = base + i * 4 + r, b = base + (i + 1) * 4 + r;
+      const per = ROWS.length;
+      for (let i = 0; i < segs; i++) for (let r = 0; r < per - 1; r++) {
+        const a = base + i * per + r, b = base + (i + 1) * per + r;
         idx.push(a, b, a + 1, b, b + 1, a + 1);
       }
     }
     const b0 = verts.length / 3;
     verts.push(-H, D, -H, H, D, -H, H, D, H, -H, D, H);
-    for (let i = 0; i < 4; i++) { norms.push(0, -1, 0); cols.push(deep.r, deep.g, deep.b); }
+    for (let i = 0; i < 4; i++) { cols.push(deep.r, deep.g, deep.b); surf.push(9, 0, 0, 1); rdir.push(1, 0); }
     idx.push(b0, b0 + 1, b0 + 2, b0, b0 + 2, b0 + 3);
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-    geo.setAttribute('normal', new THREE.Float32BufferAttribute(norms, 3));
     geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+    geo.setAttribute('surf', new THREE.Float32BufferAttribute(surf, 4));
+    geo.setAttribute('rdir', new THREE.Float32BufferAttribute(rdir, 2));
     geo.setIndex(idx);
+    geo.computeVertexNormals();
     geo.computeBoundingSphere();
     return geo;
   }
@@ -454,17 +482,20 @@ function trailSegments(): Seg[] {
   for (const poly of TRAILS) for (let i = 0; i < poly.length - 1; i++) { const a = poly[i], b = poly[i + 1]; if (a && b) out.push([a[0], a[1], b[0], b[1]]); }
   return out;
 }
-/** metres to the nearest trail centreline, signed by which side of it (x, z) lies; `cap` when farther than that */
-function signedTrailDistance(segs: Seg[], x: number, z: number, cap: number): number {
-  let best = cap, sign = 1;
+/**
+ * out = [metres to the nearest trail centreline signed by which side of it (x, z) lies (`cap` when farther), the
+ * nearest segment's unit direction x, z] — the road's painted texture is laid along that direction
+ */
+function signedTrailDistance(segs: Seg[], x: number, z: number, cap: number, out: [number, number, number]): void {
+  let best = cap, sign = 1, dx = 1, dz = 0;
   for (const [ax, az, bx, bz] of segs) {
     const vx = bx - ax, vz = bz - az, wx = x - ax, wz = z - az;
     const l2 = vx * vx + vz * vz;
     const t = l2 > 0 ? Math.min(1, Math.max(0, (wx * vx + wz * vz) / l2)) : 0;
     const d = Math.hypot(x - (ax + vx * t), z - (az + vz * t));
-    if (d < best) { best = d; sign = vx * wz - vz * wx >= 0 ? 1 : -1; }
+    if (d < best) { best = d; sign = vx * wz - vz * wx >= 0 ? 1 : -1; const l = Math.sqrt(l2) || 1; dx = vx / l; dz = vz / l; }
   }
-  return best * sign;
+  out[0] = best * sign; out[1] = dx; out[2] = dz;
 }
 
 /** One facet's colour from its height above the sea (m), slope (0 flat → 1 vertical) and position (jitter). */

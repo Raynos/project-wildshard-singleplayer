@@ -100,6 +100,12 @@ export function installErrorModal(): void {
   w.__wsErrorModal = true;
   window.addEventListener('error', (e) => {
     const err: unknown = e.error;
+    // An opaque cross-origin error ("Script error.", no file, no error object) is never ours: every game script is
+    // same-origin. On iOS it comes from a Safari extension / content blocker injected into the page — log it, keep playing.
+    if ((err === undefined || err === null) && e.filename === '' && /^script error\.?$/i.test(e.message.trim())) {
+      console.warn('[error-modal] ignored an opaque cross-origin "Script error." (a browser extension, not the game)');
+      return;
+    }
     const d = err !== undefined && err !== null ? describe(err) : { message: e.message, stack: '' };
     showError(d.message, d.stack || `${e.filename.split('/').pop() ?? ''}:${e.lineno}:${e.colno}`);
   });

@@ -83,7 +83,7 @@ export class Horizon {
         const cx = Math.cos(a), sz = Math.sin(a);
         const h = profile[i] ?? 0;
         // the face's lean along the ridge (its real slope): each peak gets a sunlit flank and a blue shaded one
-        const tilt = Math.max(-1.6, Math.min(1.6, ((smooth(i - 1) - smooth(i + 1)) / (2 * segLen)) * 0.9));
+        const tilt = Math.max(-1.6, Math.min(1.6, ((smooth(i - 1) - smooth(i + 1)) / (2 * segLen)) * (ring.snowLine > 1 ? 0.35 : 0.9)));
         // the snow line rises and falls along the range: snowfields down the couloirs, bare rock on the ribs
         const snowY = snowY0 + maxH * (noise.get(cx * 14 + ri * 3, sz * 14) * 0.1 + noise.get(cx * 47, sz * 47 + ri) * 0.05);
         const nx = -cx + sz * tilt, nz = -sz - cx * tilt;
@@ -131,6 +131,11 @@ export class Horizon {
             // the live fog colour (the day/night clock and the storms drive it), so the ranges dim and redden with the sky
             vec3 hazeCol = mix(mix(uHazeCol, fogColor, 0.85), fogSunColor * 0.9, pow(sunAmt, 3.0) * 0.7);
             gl_FragColor.rgb = mix(gl_FragColor.rgb, hazeCol, uHaze);
+            // the hills rise out of the cloud sea: their feet wrap in cloud, so from any height (a lookout, the rim, a
+            // hoverboard) the ring reads as land over clouds, not a green curtain hanging down to nothing
+            float wrap = smoothstep(-45.0, -190.0, vFogWorldPos.y);
+            vec3 cloudCol = mix(vec3(0.82, 0.83, 0.88), fogSunColor, 0.2 + 0.3 * sunAmt) * mix(1.0, 0.8, smoothstep(-190.0, -260.0, vFogWorldPos.y));
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, cloudCol, wrap * 0.92);
           }`);
     };
     mat.name = `ridge${ri}`;
