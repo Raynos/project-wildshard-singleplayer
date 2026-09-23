@@ -25,6 +25,7 @@ import { wind } from '../world/Wind';
 import { windUniforms } from '../world/TreeFactory';
 import { NalatiWater } from './water';
 import { NalatiPOIs } from '../world/nalati';
+import { wireKurgan, type KurganBoss } from './kurganBoss';
 import { macrotask } from '../boot/plan';
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ChunkDef }
@@ -36,6 +37,10 @@ export interface Nalati {
   water: NalatiWater;
   /** every POI (poi agent, B5): camp, bridge, roads, summer camp, kurgans, balbals, Eagle Rock, cairn, Crags */
   pois: NalatiPOIs;
+  /** the great kurgan's dungeon + the Golden King (boss agent, B13; src/nalati/kurganBoss.ts): `boss.bind(play)` from main.ts
+   *  once the animals, the kit and the HUD exist; `boss.onPlayerDeath()` in main's death check (true = the boss fight
+   *  handled it: the player is back at the phase checkpoint); `boss.inside` while the player is in the dungeon */
+  boss: KurganBoss;
   /** anything a later system wants to find: named groups added to the scene by this wiring */
   groups: Record<string, Object3D>;
 }
@@ -76,8 +81,14 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
 
   // ── weapons (bow agent B2, sabre agent B3): main.ts hands out `ChunkDef.weapon`; the Nalati kit hooks in here ──
 
+  // ── the great kurgan + the Golden King (boss agent, B13): the dungeon interior, the doors, the boss fight — src/nalati/kurganBoss.ts ──
+  const boss = wireKurgan({ game, sky, player: ctx.player, entrance: pois.kurganEntrance });
+  groups['kurgan'] = boss.dungeon.group;
+  updates.push((dt, t) => boss.update(dt, t));
+  await macrotask();
+
   return {
-    water, pois, groups,
+    water, pois, groups, boss,
     update(dt, t) { for (const u of updates) u(dt, t); },
   };
 }
