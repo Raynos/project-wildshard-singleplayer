@@ -126,7 +126,7 @@ async function main() {
     const ocean = isOcean ? new Ocean(sky).build() : null;
     if (ocean) game.scene.add(ocean.group);
     // the south entry road is a wooden pier over the water; the player spawns on its deck
-    const pier = sea ? new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: sea.level + 1.2 }).build() : null;
+    const pier = sea ? new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: sea.level + 1.2, landing: true }).build() : null;
     if (pier) {
       game.scene.add(pier.group);
       player.colliders.push(...pier.colliders);
@@ -204,7 +204,7 @@ async function main() {
     await slice();
     if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
     // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
-    const cover = sea ? new GroundCover(sky, { sea: sea.level }).build() : null;
+    const cover = sea ? new GroundCover(sky, { sea: sea.level, palms: palmSpecs }).build() : null;
     if (cover) { game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, player.position)); }
     ocean?.foamAround(player.colliders); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
     await macrotask();

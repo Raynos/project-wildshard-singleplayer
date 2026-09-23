@@ -60,8 +60,9 @@ export class Trailside {
         { path: offset([[-72, 20], [-80, 45], [-88, 70], [-94, 88]], 3.4) },
         { path: offset([[-72, 20], [-80, 45], [-88, 70], [-94, 88]], -3.4) },
         { path: offset([[62, 0], [80, -1.5], [100, -2], [124, 1.5]], -3.4), spacing: 3.2 },
-        { path: offset([[-2, -184], [-8, -172], [-22, -152]], 3.2) },
-        { path: offset([[-2, -184], [-8, -172], [-22, -152]], -3.2) },
+        // the pier's landing (Pier landing: the deck steps down onto the sand at z ≈ −152): rope fences lead off it
+        { path: [[2.9, -151], [2.9, -146], [-1.5, -141], [-10, -138]] },
+        { path: [[-2.9, -151], [-6.5, -147.5], [-15, -146], [-22, -142]] },
         { path: offset([[-8, -50], [14, -24], [17, 8]], 3.4), spacing: 3.2 },
       ],
       steps: [
@@ -69,7 +70,7 @@ export class Trailside {
         { from: [46, 46], to: [86, 86] },
       ],
       signs: [
-        { x: 5, z: -184, arrows: [{ toward: 2.9 }, { toward: 0.6 }] },     // pier landing: ← hut, ↗ lookout
+        { x: 5, z: -150, arrows: [{ toward: 2.9 }, { toward: 0.6 }] },     // pier landing (on the sand): ← hut, ↗ lookout
         { x: -14, z: -62, arrows: [{ toward: 0.9 }, { toward: 2.5 }] },    // hut fork: → lookout / wreck, ↖ shrine
       ],
     };
@@ -105,17 +106,24 @@ export class Trailside {
         const len = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.round(len / spacing));
         for (let k = i === 0 ? 0 : 1; k <= n; k++) { const t = k / n; const x = ax + (bx - ax) * t, z = az + (bz - az) * t; posts.push(new THREE.Vector3(x, heightAt(x, z), z)); }
       }
+      // thick weathered pilings, a rope lashing under the cap, the rope sagging in a catenary between them (E43)
       for (const p of posts) {
-        add(new THREE.CylinderGeometry(0.09, 0.11, 1.4, 6).translate(p.x, p.y + 0.5, p.z), C.post, 0.06);
-        add(new THREE.CylinderGeometry(0.1, 0.1, 0.06, 6).translate(p.x, p.y + 1.2, p.z), C.postTop, 0.04);
-        this.colliders.push({ x: p.x, z: p.z, hw: 0.12, hd: 0.12, rot: 0, yTop: p.y + 1.2, yBottom: p.y - 1 });
+        const tilt = rng.range(-0.06, 0.06);
+        add(new THREE.CylinderGeometry(0.13, 0.16, 1.55, 6).rotateZ(tilt).translate(p.x, p.y + 0.45, p.z), C.post, 0.08);
+        add(new THREE.CylinderGeometry(0.14, 0.14, 0.07, 6).translate(p.x, p.y + 1.22, p.z), C.postTop, 0.04);
+        for (let r = 0; r < 3; r++) add(new THREE.CylinderGeometry(0.175, 0.175, 0.07, 6).translate(p.x, p.y + 1.0 - r * 0.08, p.z), r === 1 ? C.postTop : C.rope, 0.04);
+        this.colliders.push({ x: p.x, z: p.z, hw: 0.16, hd: 0.16, rot: 0, yTop: p.y + 1.2, yBottom: p.y - 1 });
       }
       for (let i = 0; i < posts.length - 1; i++) {
         const pa = posts[i], pb = posts[i + 1];
         if (!pa || !pb) continue;
-        const a = pa.clone().setY(pa.y + 1.05), b = pb.clone().setY(pb.y + 1.05);
-        const m1 = a.clone().lerp(b, 0.33), m2 = a.clone().lerp(b, 0.67); m1.y -= 0.16; m2.y -= 0.16;
-        beam(a, m1, 0.03, C.rope); beam(m1, m2, 0.03, C.rope); beam(m2, b, 0.03, C.rope);
+        const a = pa.clone().setY(pa.y + 1.0), b = pb.clone().setY(pb.y + 1.0);
+        const seg = 6, sag = 0.1 + a.distanceTo(b) * 0.06;
+        let prev = a;
+        for (let k = 1; k <= seg; k++) {
+          const t = k / seg, q = a.clone().lerp(b, t); q.y -= sag * 4 * t * (1 - t);
+          beam(prev, q, 0.035, C.rope); prev = q;
+        }
       }
     }
     // ── plank steps: treads every 0.7 m along a climb, each let into the slope ──

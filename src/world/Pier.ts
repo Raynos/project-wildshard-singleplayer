@@ -20,6 +20,7 @@ import type { Collider } from '../player/Player';
 import { Rng } from '../core/rng';
 import { SEED } from '../core/config';
 import type { Sky } from './Sky';
+import { heightAt, waterLevel } from './Heightfield';
 
 export interface PierSpec {
   x: number; z: number;
@@ -33,6 +34,8 @@ export interface PierSpec {
   rot?: number;
   /** how far below the deck the pilings reach (the sea floor is ~6 m down) */
   pileDepth?: number;
+  /** run on past `length` over the shallows to the first dry sand, and step down onto it (the south pier, E43) */
+  landing?: boolean;
 }
 
 const C = {
@@ -43,6 +46,7 @@ const C = {
   postTop: new THREE.Color('#8a6d48'),
   rope: new THREE.Color('#d8c48a'),
   ropeDark: new THREE.Color('#b59e6a'),
+  flag: new THREE.Color('#2f5bd0'),
 };
 
 export class Pier {
@@ -67,8 +71,22 @@ export class Pier {
     return [this.spec.x + across * this.cos + along * this.sin, this.spec.z - across * this.sin + along * this.cos];
   }
 
+  /** where the deck ends (≥ spec.length: the landing run), where it starts ramping down, and the sand it lands on */
+  private run = { length: 0, rampFrom: 0, landY: 0 };
+
   build(): this {
-    const { length, width, deckY } = this.spec;
+    const { width, deckY } = this.spec;
+    let length = this.spec.length;
+    this.run = { length, rampFrom: length, landY: deckY };
+    if (this.spec.landing) {
+      // march on over the shallows to the first dry sand, then 5 m more: the last 6 m step down onto the beach
+      const wl = waterLevel();
+      let a = length;
+      while (a < length + 80) { const [x, z] = this.toWorld(a, 0); if (heightAt(x, z) > wl + 0.1) break; a += 0.5; }
+      const end = a + 4, [ex, ez] = this.toWorld(end, 0);
+      this.run = { length: end, rampFrom: end - 5.5, landY: heightAt(ex, ez) + 0.12 };
+      length = end;
+    }
     const pileDepth = this.spec.pileDepth ?? 8;
     const rng = new Rng(SEED ^ 0x9e37);
     const parts: THREE.BufferGeometry[] = [];
@@ -101,14 +119,22 @@ export class Pier {
       const dy = rng.range(-0.015, 0.015), tilt = rng.range(-0.012, 0.012);
       g.rotateZ(tilt);
       const shade = rng.next();
-      add(place(g, a + plankW / 2, rng.range(-0.03, 0.03), deckY - thick / 2 + dy), shade < 0.2 ? C.plankDark : shade > 0.8 ? C.plankLight : C.plank, 0.06);
+      add(place(g, a + plankW / 2, rng.range(-0.03, 0.03), this.deckAt(a + plankW / 2) - thick / 2 + dy), shade < 0.2 ? C.plankDark : shade > 0.8 ? C.plankLight : C.plank, 0.06);
     }
     // ── two bearers (stringers) under the planks, full length ──
-    for (const s of [-1, 1]) add(place(new THREE.BoxGeometry(0.22, 0.28, length + 0.4), length / 2, s * (width / 2 - 0.35), bearerY), C.plankDark, 0.05);
+    const flat = this.run.rampFrom;
+    for (const s of [-1, 1]) add(place(new THREE.BoxGeometry(0.22, 0.28, flat + 0.4), flat / 2, s * (width / 2 - 0.35), bearerY), C.plankDark, 0.05);
+    if (length > flat + 0.1) {
+      const drop = deckY - this.run.landY, len = Math.hypot(length - flat, drop), ang = Math.atan2(drop, length - flat);
+      for (const s of [-1, 1]) {
+        const g = new THREE.BoxGeometry(0.22, 0.28, len); g.rotateX(ang);
+        add(place(g, (flat + length) / 2, s * (width / 2 - 0.35), bearerY - drop / 2), C.plankDark, 0.05);
+      }
+    }
 
     // ── pilings every 3 m each side, cross braces, rope wraps at the top ──
     const postR = 0.17, postTop = deckY + 0.95;
-    for (let a = 1.2; a < length; a += 3.0) {
+    for (let a = 1.2; a < this.run.rampFrom; a += 3.0) {
       for (const s of [-1, 1]) {
         const across = s * (width / 2 + 0.1);
         const h = postTop - (deckY - pileDepth);
@@ -140,6 +166,22 @@ export class Pier {
       this.bollards.push({ x: wx, z: wz });
       this.colliders.push({ x: wx, z: wz, hw: 0.32, hd: 0.32, rot: -(this.spec.rot ?? 0), yTop: top, yBottom: deckY - 1 });
     }
+    // ── the landing: two thick rope-wrapped posts where the deck meets the sand ──
+    if (this.spec.landing) {
+      for (const s of [-1, 1]) {
+        const across = s * (width / 2 + 0.3), [wx, wz] = this.toWorld(length - 0.4, across), gy = heightAt(wx, wz), top = gy + 1.5;
+        add(place(new THREE.CylinderGeometry(0.26, 0.3, top - gy + 1.2, 8), length - 0.4, across, (top + gy - 1.2) / 2), C.post, 0.06);
+        add(place(new THREE.CylinderGeometry(0.29, 0.29, 0.12, 8), length - 0.4, across, top + 0.03), C.postTop, 0.05);
+        for (let r = 0; r < 6; r++) add(place(new THREE.CylinderGeometry(0.36, 0.36, 0.1, 8), length - 0.4, across, top - 0.25 - r * 0.11), r % 2 ? C.ropeDark : C.rope, 0.04);
+        this.colliders.push({ x: wx, z: wz, hw: 0.34, hd: 0.34, rot: -(this.spec.rot ?? 0), yTop: top, yBottom: gy - 1 });
+      }
+      // a pennant on the sea-end bollard, so the pier end reads from the beach
+      const [px] = [-(width / 2 + 0.25)], top = deckY + 1.35;
+      add(place(new THREE.CylinderGeometry(0.04, 0.05, 2.6, 6), 0.35, px, top + 1.3), C.post, 0.04);
+      const flag = new THREE.BufferGeometry();
+      flag.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, -0.55, 0, 0, -0.28, -1.1, 0, 0, 0, 0, -0.28, -1.1, 0, -0.55, 0], 3));
+      add(place(flag, 0.35, px, top + 2.5), C.flag, 0.03);
+    }
     // ── the sea end: a low kick board so the deck reads as an end, not a cut ──
     add(place(new THREE.BoxGeometry(width + 0.3, 0.22, 0.14), 0.02, 0, deckY + 0.05), C.plankDark, 0.05);
 
@@ -169,7 +211,14 @@ export class Pier {
   floorHeightAt(x: number, z: number): number | undefined {
     const dx = x - this.spec.x, dz = z - this.spec.z;
     const along = dx * this.sin + dz * this.cos, across = dx * this.cos - dz * this.sin;
-    if (along < -0.2 || along > this.spec.length + 0.2 || Math.abs(across) > this.spec.width / 2 + 0.25) return undefined;
-    return this.deckY;
+    if (along < -0.2 || along > this.run.length + 0.2 || Math.abs(across) > this.spec.width / 2 + 0.25) return undefined;
+    return this.deckAt(along);
+  }
+
+  /** the deck's top at `along` metres from the sea end: flat, then the landing's step-down onto the sand */
+  private deckAt(along: number): number {
+    if (along <= this.run.rampFrom) return this.deckY;
+    const t = Math.min(1, (along - this.run.rampFrom) / Math.max(0.1, this.run.length - this.run.rampFrom));
+    return this.deckY + (this.run.landY - this.deckY) * t;
   }
 }

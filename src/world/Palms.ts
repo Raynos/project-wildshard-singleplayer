@@ -23,7 +23,7 @@ export interface PalmSpec { x: number; z: number; h: number; lean: number; leanD
 const C = {
   trunk: new THREE.Color('#8a6a48'), ring: new THREE.Color('#6d5238'),
   frond: new THREE.Color('#4f9a3a'), frondLight: new THREE.Color('#72b94c'), frondDark: new THREE.Color('#3b7d2c'),
-  nut: new THREE.Color('#6b5a2e'),
+  nut: new THREE.Color('#6b5a2e'), nutGreen: new THREE.Color('#7f9a3a'),
 };
 
 export class Palms {
@@ -35,7 +35,7 @@ export class Palms {
   constructor(private sky: Sky) {}
 
   /** Island rule: behind the beach and on the plateau top, denser in groves, never on steep rock, clear of the hut and piers. */
-  static scatterIsland(seed: number, count = TIER_CONFIG.palmCount, avoid: { x: number; z: number; r: number }[] = []): PalmSpec[] {
+  static scatterIsland(seed: number, count = Math.round(TIER_CONFIG.palmCount * 1.7), avoid: { x: number; z: number; r: number }[] = []): PalmSpec[] {
     const rng = new Rng(seed ^ 0x9a1e), grove = new Noise2D(seed + 21);
     const wl = waterLevel();
     const out: PalmSpec[] = [];
@@ -48,12 +48,12 @@ export class Palms {
       const [, ny] = normalAt(x, z, 1.5);
       if (ny < 0.9) continue;                                                      // not on the crag walls
       const g = grove.fbm(x * 0.012, z * 0.012, 3);
-      const beachEdge = h < 3.2 ? 0.55 : 0;                                        // the beach top is always lined with palms
+      const beachEdge = h < 3.4 ? 0.95 : 0;                                        // the back beach is lined with palms (E43: twice as many)
       if (rng.next() > Math.max(beachEdge, (g + 0.35) * 0.9)) continue;           // groves inland
       if (Math.abs(x) < ROAD_WIDTH / 2 + 6 && Math.abs(z) > 140) continue;
       if (Math.abs(z) < ROAD_WIDTH / 2 + 6 && Math.abs(x) > 140) continue;
       if (avoid.some((a) => Math.hypot(a.x - x, a.z - z) < a.r)) continue;
-      if (out.some((p) => Math.hypot(p.x - x, p.z - z) < 4.5)) continue;
+      if (out.some((p) => Math.hypot(p.x - x, p.z - z) < 3.8)) continue;
       out.push({ x, z, h: rng.range(5, 9.5), lean: rng.range(0.05, 0.35), leanDir: rng.range(0, Math.PI * 2), rot: rng.range(0, Math.PI * 2), fronds: rng.int(9, 13) });
     }
     return out;
@@ -74,11 +74,15 @@ export class Palms {
         sway.push(wa, phase, wb, phase, wd, phase);
       };
       // ── trunk: a curve leaning by `lean` in `leanDir`, 7 segments, 6 sides, thinner at the top ──
-      const segs = 7, sides = 6;
-      const axis = (t: number) => tmp.set(p.x + Math.cos(p.leanDir) * p.lean * p.h * t * t, base + p.h * t, p.z + Math.sin(p.leanDir) * p.lean * p.h * t * t).clone();
+      const segs = 11, sides = 6;
+      // a curved trunk: the lean grows with height and a slight S-bend (the base kicks back before it arches out)
+      const axis = (t: number) => {
+        const off = p.lean * p.h * (t * t - 0.12 * Math.sin(t * Math.PI));
+        return tmp.set(p.x + Math.cos(p.leanDir) * off, base + p.h * t, p.z + Math.sin(p.leanDir) * off).clone();
+      };
       const rings: THREE.Vector3[][] = [];
       for (let s = 0; s <= segs; s++) {
-        const t = s / segs, r = 0.3 * (1 - t * 0.45) * (s % 2 ? 1.0 : 1.12), centre = axis(t);
+        const t = s / segs, r = 0.3 * (1 - t * 0.45) * (s % 2 ? 0.94 : 1.16) * (s === 0 ? 1.25 : 1), centre = axis(t);
         const ring: THREE.Vector3[] = [];
         for (let k = 0; k < sides; k++) { const a = (k / sides) * Math.PI * 2 + p.rot; ring.push(new THREE.Vector3(centre.x + Math.cos(a) * r, centre.y, centre.z + Math.sin(a) * r)); }
         rings.push(ring);
@@ -97,11 +101,13 @@ export class Palms {
       }
       const top = axis(1);
       // ── crown: fronds radiating out and drooping, zig-zag leaflet edges ──
-      const n = p.fronds;
-      for (let f = 0; f < n; f++) {
-        const ang = (f / n) * Math.PI * 2 + p.rot + rng.range(-0.15, 0.15);
-        const tilt = rng.range(-0.1, 0.35);            // some fronds droop lower
-        const L = rng.range(3.2, 4.3), fs = TIER_CONFIG.palmFrondSegs; // 6 desktop / 4 phone segments per frond
+      // two layers (E43: twice the fronds): the long drooping skirt, then a shorter crown of younger fronds on top
+      const n = p.fronds, n2 = Math.round(n * 0.9);
+      for (let f = 0; f < n + n2; f++) {
+        const upper = f >= n, fi = upper ? f - n + 0.5 : f, nn = upper ? n2 : n;
+        const ang = (fi / nn) * Math.PI * 2 + p.rot + rng.range(-0.15, 0.15);
+        const tilt = upper ? rng.range(-0.45, -0.2) : rng.range(-0.1, 0.35);   // the young fronds stand up, some old ones droop low
+        const L = upper ? rng.range(2.2, 3.0) : rng.range(3.2, 4.3), fs = TIER_CONFIG.palmFrondSegs; // 6 desktop / 4 phone segments per frond
         const dir = new THREE.Vector3(Math.cos(ang), 0, Math.sin(ang));
         const side = new THREE.Vector3(-Math.sin(ang), 0, Math.cos(ang));
         const shade = rng.next();
@@ -121,11 +127,16 @@ export class Palms {
         }
       }
       // ── coconuts ──
-      for (let k = 0; k < 3; k++) {
-        const a = rng.range(0, Math.PI * 2), g = new THREE.IcosahedronGeometry(0.16, 0);
-        g.translate(top.x + Math.cos(a) * 0.32, top.y - 0.25, top.z + Math.sin(a) * 0.32);
-        const pp = g.getAttribute('position');
-        for (let i = 0; i < pp.count; i++) { pos.push(pp.getX(i), pp.getY(i), pp.getZ(i)); col.push(C.nut.r, C.nut.g, C.nut.b); sway.push(0.3, phase); }
+      // a coconut cluster under the crown (5–7, brown and green)
+      const nuts = rng.int(5, 7);
+      for (let k = 0; k < nuts; k++) {
+        const a = (k / nuts) * Math.PI * 2 + rng.range(-0.3, 0.3), rr = rng.range(0.17, 0.22), g = new THREE.IcosahedronGeometry(rr, 0);
+        g.translate(top.x + Math.cos(a) * 0.36, top.y - 0.22 - (k % 2) * 0.2, top.z + Math.sin(a) * 0.36);
+        const pp = g.getAttribute('position'), nc = k % 3 === 0 ? C.nutGreen : C.nut;
+        for (let i = 0; i < pp.count; i += 3) {
+          const j = 0.85 + rng.next() * 0.3;
+          for (let v = 0; v < 3; v++) { pos.push(pp.getX(i + v), pp.getY(i + v), pp.getZ(i + v)); col.push(nc.r * j, nc.g * j, nc.b * j); sway.push(0.3, phase); }
+        }
       }
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));

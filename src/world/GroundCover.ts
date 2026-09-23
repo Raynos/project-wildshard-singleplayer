@@ -21,12 +21,16 @@ import { heightAt, normalAt, trailDistance } from './Heightfield';
 import { attachFogUniforms } from './Atmosphere';
 import { SEED } from '../core/config';
 import { Rng } from '../core/rng';
-import { LowPolyKit, fern, hibiscus, grassTuft, rock, PLANT, type Part } from './lowpolyKit';
-import { HUT, LOOKOUT, SHRINE, WRECK } from '../chunks/driftwood-isle';
+import { LowPolyKit, fern, hibiscus, grassTuft, rock, log, broadClump, tris, lowPolyMaterial, PLANT, type Part } from './lowpolyKit';
+import { HUT, LOOKOUT, SHRINE, WRECK, ISLAND } from '../chunks/driftwood-isle';
 import { Cove } from './Cove';
 import type { Sky } from './Sky';
 
-export interface GroundCoverOpts { sea: number }
+export interface GroundCoverOpts {
+  sea: number;
+  /** the palms (Palms.scatterIsland): ferns, hibiscus and bushes crowd round their feet */
+  palms?: { x: number; z: number }[];
+}
 
 const CELL = 16, DRAW_R = 27, FADE_R0 = 19, FADE_R1 = 25.5, REFILL_M = 4;
 /** the shared wind the blades sway in (0 calm … 1 gusting); M5's palms.gust drives it */
@@ -37,7 +41,7 @@ interface Kind {
   mesh: THREE.InstancedMesh;
   cap: number;
   /** instances per m² at (h over the sea, slope, trail distance, shrine distance) */
-  density: (h: number, slope: number, td: number, shrineD: number) => number;
+  density: (h: number, slope: number, td: number, shrineD: number, palm: number) => number;
   scale: [number, number];
   /** per-instance tint (multiplies the vertex colours) */
   tint?: (h: number, rng: Rng, out: THREE.Color) => void;
@@ -64,7 +68,25 @@ export class GroundCover {
     this.avoid = [
       { x: HUT.x, z: HUT.z, r: 9 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 8 }, { x: SHRINE.x, z: SHRINE.z, r: 9.5 },
       { x: WRECK.x, z: WRECK.z, r: 13 }, { x: cave.x, z: cave.z + cave.depth / 2, r: 8 },
+      { x: 0, z: -151, r: 3.2 },                                   // the pier's landing
     ];
+    for (const p of opts.palms ?? []) {
+      const k = `${Math.floor(p.x / 8)},${Math.floor(p.z / 8)}`;
+      const list = this.palmGrid.get(k);
+      if (list) list.push(p); else this.palmGrid.set(k, [p]);
+    }
+  }
+
+  private palmGrid = new Map<string, { x: number; z: number }[]>();
+  /** 1 at a palm's foot, fading out by 3.5 m */
+  private nearPalm(x: number, z: number): number {
+    let best = 0;
+    const gx = Math.floor(x / 8), gz = Math.floor(z / 8);
+    for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) for (const p of this.palmGrid.get(`${gx + dx},${gz + dz}`) ?? []) {
+      const d = Math.hypot(p.x - x, p.z - z);
+      if (d < 3.5) best = Math.max(best, 1 - ss(1.0, 3.5, d));
+    }
+    return best;
   }
 
   build(): this {
@@ -119,14 +141,69 @@ export class GroundCover {
       this.kinds.push({ name, mesh, cap, density, scale, ...(tint ? { tint } : {}) });
     };
     kind('tuft', tuftGeo, 5200, [0.9, 1.5],
-      (h, sl, td) => (grass(h, sl) * 1.6 + beach(h) * 0.08) * off(td),
+      (h, sl, td) => (grass(h, sl) * 1.6 + beach(h) * 0.18 + this.dune(h) * 0.7) * off(td),
       (h, r, out) => { const b = beach(h); out.setRGB(1 + b * 0.35 + r.range(-0.08, 0.08), 1 + b * 0.12 + r.range(-0.06, 0.06), 1 - b * 0.35); });
-    kind('fern', fernGeo, 700, [0.7, 1.4], (h, sl, td, sd) => grass(h, sl) * off(td) * (0.03 + jungle(sd) * 0.35));
-    kind('hibiscus', hibGeo, 400, [0.8, 1.3], (h, sl, td, sd) => grass(h, sl) * off(td) * (0.025 + jungle(sd) * 0.08));
-    kind('daisy', daisyGeo, 500, [0.8, 1.4], (h, sl, td) => grass(h, sl) * off(td) * 0.07);
+    kind('fern', fernGeo, 900, [0.7, 1.4], (h, sl, td, sd, palm) => (grass(h, sl) * (0.03 + jungle(sd) * 0.35) + this.edge(h, sl) * 0.2 + palm * 0.35) * off(td));
+    kind('hibiscus', hibGeo, 600, [0.8, 1.3], (h, sl, td, sd, palm) => (grass(h, sl) * (0.025 + jungle(sd) * 0.08) + this.edge(h, sl) * 0.12 + palm * 0.2) * off(td));
+    kind('daisy', daisyGeo, 700, [0.8, 1.4], (h, sl, td) => (grass(h, sl) * 0.07 + this.edge(h, sl) * 0.15) * off(td));
     kind('pebble', pebbleGeo, 400, [0.7, 1.5], (h, sl, td) => (grass(h, sl) * 0.03 + beach(h) * 0.05) * (0.4 + 0.6 * off(td)));
+    // (E43) the beach: a shell / starfish / pebble scatter every 1-2 m on the sand, beach grass on the dune crest, and a
+    // dense fringe of ferns, hibiscus, flowers and bushes along the sand -> grass edge and round every palm's foot
+    const shellGeo = geo((k) => {
+      const shell = (x: number, z: number, r: number, col: string) => {
+        const v: number[] = [];
+        for (let i = 0; i < 5; i++) { const a0 = -0.9 + i * 0.36, a1 = a0 + 0.36; v.push(x, 0.02, z - r * 0.5, x + Math.sin(a0) * r, 0.02 + r * 0.25 * Math.cos(a0 * 1.2), z + Math.cos(a0) * r * 0.6, x + Math.sin(a1) * r, 0.02 + r * 0.25 * Math.cos(a1 * 1.2), z + Math.cos(a1) * r * 0.6); }
+        k.add(tris(v), col, { jitter: 0.08 });
+      };
+      const star = (x: number, z: number, r: number, col: string) => {
+        const v: number[] = [];
+        for (let a = 0; a < 5; a++) { const t = (a / 5) * Math.PI * 2, l = t + 0.63, rr = t - 0.63; v.push(x, 0.05, z, x + Math.cos(rr) * r * 0.35, 0.01, z + Math.sin(rr) * r * 0.35, x + Math.cos(t) * r, 0.01, z + Math.sin(t) * r, x, 0.05, z, x + Math.cos(t) * r, 0.01, z + Math.sin(t) * r, x + Math.cos(l) * r * 0.35, 0.01, z + Math.sin(l) * r * 0.35); }
+        k.add(tris(v), col, { jitter: 0.06 });
+      };
+      shell(0, 0, 0.09, '#f3e6d4'); shell(0.35, 0.25, 0.07, '#f0c9b8'); star(-0.3, 0.2, 0.12, '#e8622a');
+      k.addTopped(rock(0.07, 0, rng, 0.6, 0.25), '#8d8a84', '#9a968e', { matrix: new THREE.Matrix4().makeTranslation(0.2, 0.01, -0.3), jitter: 0.08 });
+      k.addTopped(rock(0.05, 0, rng, 0.6, 0.25), '#a7a39b', '#b0aca4', { matrix: new THREE.Matrix4().makeTranslation(-0.1, 0.01, -0.35), jitter: 0.08 });
+    }, 0x6c06);
+    kind('shells', shellGeo, 1600, [1.3, 2.3], (h) => beach(h) * 0.8,
+      (_h, r, out) => { const v = r.next(); out.setRGB(v < 0.3 ? 1.0 : 1.05, v < 0.3 ? 0.85 : 1.0, 0.95); });
+    const bushGeo = geo(broadClump(rng, 1.0), 0x6c07);
+    kind('bush', bushGeo, 500, [0.7, 1.4], (h, sl, td, sd, palm) => (this.edge(h, sl) * 0.12 + palm * 0.25 + grass(h, sl) * 0.012) * off(td) + jungle(sd) * grass(h, sl) * 0.06);
+    this.buildDriftwood();
     this.group.name = 'ground-cover';
     return this;
+  }
+
+  /** the sand -> grass edge (the plant fringe) and the dune crest (beach grass) */
+  private edge = (h: number, sl: number): number => ss(1.9, 2.7, h) * (1 - ss(4.8, 7, h)) * (1 - ss(0.2, 0.3, sl));
+  private dune = (h: number): number => ss(1.2, 1.8, h) * (1 - ss(2.6, 3.4, h));
+
+  /** bleached driftwood logs along the dune line all round the island, one every ~9 m (one static mesh) */
+  private buildDriftwood(): void {
+    const kit = new LowPolyKit(SEED ^ 0x6c08), rng = kit.rng, sea = this.opts.sea;
+    const cols = ['#d6cbb4', '#c7b99f', '#e3dac7'];
+    for (let a = 0; a < Math.PI * 2; a += 9 / 200) {
+      const dx = Math.cos(a), dz = Math.sin(a);
+      // march outward from inland to the first sand below the dune crest (~1.6 m over the sea)
+      let r = 120, found = false;
+      for (; r < 250; r += 1) { const x = ISLAND.x + dx * r, z = ISLAND.z + dz * r; if (heightAt(x, z) - sea < 1.6) { found = true; break; } }
+      if (!found || rng.next() < 0.2) continue;
+      const x = ISLAND.x + dx * (r - rng.range(0, 3)), z = ISLAND.z + dz * (r - rng.range(0, 3));
+      if (Math.abs(x) > 245 || Math.abs(z) > 245) continue;
+      if (this.avoid.some((p) => (x - p.x) ** 2 + (z - p.z) ** 2 < (p.r + 3) ** 2) || trailDistance(x, z) < 3.5) continue;
+      const n = rng.next() < 0.35 ? 2 : 1;
+      for (let k = 0; k < n; k++) {
+        const len = rng.range(2.2, 4.2), rad = rng.range(0.12, 0.24), yaw = a + Math.PI / 2 + rng.range(-0.6, 0.6) + k * 1.1;
+        const hx = Math.cos(yaw) * len / 2, hz = Math.sin(yaw) * len / 2;
+        const A = new THREE.Vector3(x - hx, heightAt(x - hx, z - hz) + rad * 0.7 + k * 0.2, z - hz), B = new THREE.Vector3(x + hx, heightAt(x + hx, z + hz) + rad * 0.7 + k * 0.2, z + hz);
+        kit.add(log(A, B, rad, rad * 0.7, 6, rng.range(0, 1)), cols[(k + Math.floor(a * 10)) % 3] ?? '#d6cbb4', { wobble: 0.02, jitter: 0.07 });
+        if (rng.next() < 0.5) { const m = A.clone().lerp(B, rng.range(0.3, 0.7)); kit.add(log(m, m.clone().add(new THREE.Vector3(rng.range(-0.3, 0.3), rng.range(0.25, 0.5), rng.range(-0.3, 0.3))), rad * 0.4, rad * 0.25, 5), '#c2b49a'); }
+      }
+    }
+    const geo = kit.finish({ ao: { ground: heightAt, cell: 0.35, strength: 0.5 } });
+    const mesh = new THREE.Mesh(geo, lowPolyMaterial(this.sky));
+    mesh.name = 'ground-cover-driftwood';
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    this.group.add(mesh);
   }
 
   /** a cell's candidates per kind: [x, y, z, yaw, scale, r, g, b] × n — generated once, then cached */
@@ -146,9 +223,9 @@ export class GroundCover {
       if (h < 0.4) continue;
       const [, ny] = normalAt(x, z, 0.6), slope = 1 - ny;
       if (slope > 0.3) continue;
-      const td = trailDistance(x, z), sd = Math.hypot(x - SHRINE.x, z - SHRINE.z);
+      const td = trailDistance(x, z), sd = Math.hypot(x - SHRINE.x, z - SHRINE.z), palm = this.nearPalm(x, z);
       this.kinds.forEach((k, ki) => {
-        const d = k.density(h, slope, td, sd);
+        const d = k.density(h, slope, td, sd, palm);
         if (rng.next() * 2 > d) return;
         const jx = x + rng.range(-0.3, 0.3), jz = z + rng.range(-0.3, 0.3), sc = rng.range(k.scale[0], k.scale[1]);
         if (k.tint) k.tint(h, rng, this.tint); else this.tint.setRGB(1, 1, 1);
