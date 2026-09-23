@@ -55,7 +55,8 @@ import type { Weapon } from './Weapon';
  * included) and a landing ring on the ground. Setting `huntersEye`; `arcAllowed = false` hides it whatever the setting
  * (mounted: the ring reticle only).
  *
- * FROM THE SADDLE (B7, `Mount`): the rider sets —
+ * FROM THE SADDLE (B7, `Mount`): `bow.setMount({ speed, yaw } | null)` every frame (nalatiKit.setMount does) — it keeps its
+ * own share and composes with the public knobs below (which other systems — the Golden Bow — also set):
  *   `drawSpeedScale`   0.75 / 0.9 ≈ 0.83 mounted (0.9 s draw), less again for the Parthian shot
  *   `extraSpreadDeg`   the gait's cone (walk 0.8 … trot 3.0), halved on the gallop's float
  *   `carrierVelocity`  the horse's world velocity — added to every arrow (and to the arc preview)
@@ -223,33 +224,49 @@ function gripRidge(u: number, ph: number, sign: number): number { return u < GRI
 function grain(x: number, y: number): number { const h = (a: number, b: number) => { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); }; const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi; const a = h(xi, yi), b = h(xi + 1, yi), c = h(xi, yi + 1), d = h(xi + 1, yi + 1); const uu = xf * xf * (3 - 2 * xf), vv = yf * yf * (3 - 2 * yf); return a + (b - a) * uu + (c - a) * vv + (a - b - c + d) * uu * vv; }
 function mix3(out: number[], a: THREE.Color, b: THREE.Color, t: number, k = 1): void { out.push((a.r + (b.r - a.r) * t) * k, (a.g + (b.g - a.g) * t) * k, (a.b + (b.b - a.b) * t) * k); }
 /** the painted colour at arc length u, ring angle φ (sin φ > 0 = belly, toward the archer) */
+/** the colours the limbs + string are painted from (`Bow.setStyle` swaps the set and repaints) */
+interface LimbPalette { leather: THREE.Color; leatherHi: THREE.Color; sinew: THREE.Color; bone: THREE.Color; boneDark: THREE.Color; birchBark: THREE.Color; lenticel: THREE.Color; lacquer: THREE.Color; gold: THREE.Color; horn: THREE.Color; hornHoney: THREE.Color; ornament: THREE.Color; string: THREE.Color; serving: THREE.Color }
+export type BowStyle = 'recurve' | 'golden';
+const LIMB_STYLES: Record<BowStyle, LimbPalette> = {
+  recurve: { leather: PAL.leather, leatherHi: PAL.leatherHi, sinew: PAL.sinew, bone: PAL.bone, boneDark: PAL.boneDark, birchBark: PAL.birchBark, lenticel: PAL.lenticel, lacquer: PAL.lacquer, gold: PAL.gold, horn: PAL.horn, hornHoney: PAL.hornHoney, ornament: PAL.ornament, string: PAL.string, serving: PAL.serving },
+  // the Golden Bow (the Golden King's reward, src/player/GoldenBow.ts): gold-sheathed limbs, the scroll burnished bright
+  // (a touch over 1: it catches the bloom), ivory ears, a string of light
+  golden: {
+    leather: PAL.leather, leatherHi: PAL.leatherHi, sinew: C(0xf0c060), bone: C(0xf4e6c0), boneDark: C(0x8a6a30),
+    birchBark: C(0xc8902a), lenticel: C(0x6a4410), lacquer: C(0xb87818), gold: new THREE.Color(1.6, 1.2, 0.5),
+    horn: C(0x8a5210), hornHoney: C(0xe0a030), ornament: new THREE.Color(1.5, 1.15, 0.45),
+    string: new THREE.Color(3.2, 2.6, 1.3), serving: C(0xd8a040),
+  },
+};
+let LIMB: LimbPalette = LIMB_STYLES.recurve;
+
 function limbColor(out: number[], u: number, phi: number, sign: number): void {
   const belly = Math.sin(phi);
   const w = u - GRIP_H;
   if (u <= GRIP_H) { // leather grip, spiral-wrapped: the ridge catches light, the groove is dark
     const wrap = Math.max(0, Math.sin(u * 280 * sign + phi * 2)) ** 3;
-    mix3(out, PAL.leather, PAL.leatherHi, 0.15 + wrap * 0.75, 0.85 + 0.15 * wrap); return;
+    mix3(out, LIMB.leather, LIMB.leatherHi, 0.15 + wrap * 0.75, 0.85 + 0.15 * wrap); return;
   }
   if (binding(w)) { // sinew cord: tight turns, pale where they bulge
     const b = Math.max(0, Math.sin(u * 1500 * sign + phi)) ** 2;
-    mix3(out, PAL.sinew, PAL.bone, b * 0.5, 0.78 + 0.22 * b); return;
+    mix3(out, LIMB.sinew, LIMB.bone, b * 0.5, 0.78 + 0.22 * b); return;
   }
   if (w > LIMB_W) { // bone ear: warm cream with grain, the nock groove dark at the tip, the bridge a shade darker
     const t = (w - LIMB_W) / SIYAH, g = grain(u * 90, phi * 2);
     const tip = u > BOW_LEN - 0.018 ? 0.85 : 0;
-    mix3(out, PAL.bone, PAL.boneDark, Math.max(tip, 0.12 * g + 0.25 * Math.exp(-(((t - 0.1) / 0.07) ** 2)) * Math.max(0, belly)));
+    mix3(out, LIMB.bone, LIMB.boneDark, Math.max(tip, 0.12 * g + 0.25 * Math.exp(-(((t - 0.1) / 0.07) ** 2)) * Math.max(0, belly)));
     return;
   }
   const t = w / LIMB_W;
   if (belly < -0.38) { // the back: birch bark, pale, with dark lenticel dashes across the limb
     const len = grain(u * 170, phi * 1.5 + sign * 7);
     const dash = len > 0.78 ? 1 : 0;
-    mix3(out, PAL.birchBark, PAL.lenticel, dash * 0.85 + 0.12 * grain(u * 30, phi), 0.92 + 0.08 * grain(u * 60, 3));
+    mix3(out, LIMB.birchBark, LIMB.lenticel, dash * 0.85 + 0.12 * grain(u * 30, phi), 0.92 + 0.08 * grain(u * 60, 3));
     return;
   }
   if (belly < 0.38) { // the sides: sinew under red-brown lacquer, a thin gold rule along the belly edge
     const rule = Math.abs(belly - 0.3) < 0.09 ? 1 : 0;
-    mix3(out, PAL.lacquer, PAL.gold, rule * 0.85, 0.9 + 0.1 * grain(u * 40, phi * 3)); return;
+    mix3(out, LIMB.lacquer, LIMB.gold, rule * 0.85, 0.9 + 0.1 * grain(u * 40, phi * 3)); return;
   }
   // the belly: horn — honey and near-black streaks running along the limb — with the painted ram's-horn scroll near
   // the grip and a fine centre line out to the ear
@@ -264,9 +281,9 @@ function limbColor(out: number[], u: number, phi: number, sign: number): void {
     orn = Math.max(orn, bay < 0.16 ? 0.9 : 0);          // a dot in each bay of the scroll
     if (sAl < 0.04 || sAl > 0.92) orn = Math.max(orn, 0.95); // border bars
   } else if (t >= 0.42 && t < 0.97) orn = Math.max(0, 1 - Math.abs(Math.cos(phi)) * 5) * 0.75;
-  const hornR = PAL.horn.r + (PAL.hornHoney.r - PAL.horn.r) * streak, hornG = PAL.horn.g + (PAL.hornHoney.g - PAL.horn.g) * streak, hornB = PAL.horn.b + (PAL.hornHoney.b - PAL.horn.b) * streak;
+  const hornR = LIMB.horn.r + (LIMB.hornHoney.r - LIMB.horn.r) * streak, hornG = LIMB.horn.g + (LIMB.hornHoney.g - LIMB.horn.g) * streak, hornB = LIMB.horn.b + (LIMB.hornHoney.b - LIMB.horn.b) * streak;
   const o = Math.min(1, orn);
-  out.push(hornR + (PAL.ornament.r - hornR) * o, hornG + (PAL.ornament.g - hornG) * o, hornB + (PAL.ornament.b - hornB) * o);
+  out.push(hornR + (LIMB.ornament.r - hornR) * o, hornG + (LIMB.ornament.g - hornG) * o, hornB + (LIMB.ornament.b - hornB) * o);
 }
 
 /** The bow + the left fist: one geometry. The first `dynVerts` vertices (limbs + string) are rewritten by `shape(p)`. */
@@ -307,7 +324,7 @@ class BowMesh {
       const u = this.ringU[r] ?? 0, sign = this.ringSign[r] ?? 1;
       for (let k = 0; k <= RADIAL; k++) limbColor(col, u, (k / RADIAL) * Math.PI * 2, sign);
     }
-    mix3(col, PAL.boneDark, PAL.boneDark, 0); mix3(col, PAL.boneDark, PAL.boneDark, 0); // caps
+    mix3(col, LIMB.boneDark, LIMB.boneDark, 0); mix3(col, LIMB.boneDark, LIMB.boneDark, 0); // caps
     for (let r = 0; r < rings - 1; r++) for (let k = 0; k < RADIAL; k++) {
       const a = r * (RADIAL + 1) + k, b = a + RADIAL + 1;
       idx.push(a, b, a + 1, a + 1, b, b + 1);
@@ -317,7 +334,7 @@ class BowMesh {
     // string: two legs × STRING_RINGS rings — linen from the tips, a dark serving over the last SERVING m to the nock
     for (let leg = 0; leg < 2; leg++) for (let ring = 0; ring < STRING_RINGS; ring++) for (let k = 0; k < STRING_RADIAL; k++) {
       const serv = ring >= 2;
-      mix3(col, serv ? PAL.serving : PAL.string, serv ? PAL.serving : PAL.string, 0, 0.9 + 0.1 * (k % 2));
+      mix3(col, serv ? LIMB.serving : LIMB.string, serv ? LIMB.serving : LIMB.string, 0, 0.9 + 0.1 * (k % 2));
     }
     for (let leg = 0; leg < 2; leg++) for (let ring = 0; ring < STRING_RINGS - 1; ring++) {
       const o = this.limbVerts + (leg * STRING_RINGS + ring) * STRING_RADIAL;
@@ -345,6 +362,25 @@ class BowMesh {
     this.geometry.setIndex(idx);
     this.geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 2);
     this.shape(0, 0);
+  }
+
+  /** repaint the limbs + string from a style's palette (the fist, after them, keeps its colours) */
+  repaint(style: BowStyle): void {
+    LIMB = LIMB_STYLES[style];
+    const col: number[] = [];
+    for (let r = 0; r < this.ringU.length; r++) {
+      const u = this.ringU[r] ?? 0, sign = this.ringSign[r] ?? 1;
+      for (let k = 0; k <= RADIAL; k++) limbColor(col, u, (k / RADIAL) * Math.PI * 2, sign);
+    }
+    mix3(col, LIMB.boneDark, LIMB.boneDark, 0); mix3(col, LIMB.boneDark, LIMB.boneDark, 0);
+    for (let leg = 0; leg < 2; leg++) for (let ring = 0; ring < STRING_RINGS; ring++) for (let k = 0; k < STRING_RADIAL; k++) {
+      const serv = ring >= 2;
+      mix3(col, serv ? LIMB.serving : LIMB.string, serv ? LIMB.serving : LIMB.string, 0, 0.9 + 0.1 * (k % 2));
+    }
+    const attr = this.geometry.getAttribute('color') as THREE.BufferAttribute;
+    (attr.array as Float32Array).set(col, 0);
+    attr.clearUpdateRanges(); attr.addUpdateRange(0, col.length); attr.needsUpdate = true;
+    LIMB = LIMB_STYLES.recurve;
   }
 
   /** bend the limbs for draw `p` (0..1) and pull the string to `nockDraw` (0 = braced, 1 = full, < 0 overshoot) */
@@ -661,7 +697,7 @@ export class Bow implements Weapon {
     this.snapT = -1; this.looseQueued = false;
     if (p < MIN_LOOSE || this.state.bolts <= 0 || this.renockT > 0) { if (p > 0.02) this.onLetDown?.(); this.drawT = Math.min(this.drawT, 0.3); return; }
     this.aimRay(_v1, _fwd);
-    const spreadDeg = (0.3 + (1 - p) * 1.1) * (this.state.ads ? 0.5 : 1) + 0.6 * this.player.speedFactor + this.extraSpreadDeg;
+    const spreadDeg = (0.3 + (1 - p) * 1.1) * (this.state.ads ? 0.5 : 1) + 0.6 * this.player.speedFactor + this.extraSpreadDeg + this.mountSpread;
     const spread = THREE.MathUtils.degToRad(spreadDeg);
     _dir.copy(_fwd);
     _v2.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).cross(_fwd).normalize();
@@ -702,16 +738,23 @@ export class Bow implements Weapon {
    * `extraSpreadDeg` itself after this call.)
    */
   setMount(m: { speed: number; yaw: number } | null): void {
-    if (m === null) { this.drawSpeedScale = 1; this.extraSpreadDeg = 0; this.carrierVelocity.set(0, 0, 0); this.arcAllowed = true; this.parthian = false; return; }
+    if (m === null) { this.mountDraw = 1; this.mountSpread = 0; this.carrierVelocity.set(0, 0, 0); this.mountArc = true; this.parthian = false; return; }
     const v = m.speed;
     const gait = v < 0.3 ? 0.3 : v < 3.2 ? 0.8 : v < 6.5 ? 3.0 : v < 10.5 ? 1.5 : 1.8;
     let off = this.player.yaw - m.yaw; off = Math.abs(Math.atan2(Math.sin(off), Math.cos(off)));
     this.parthian = off > THREE.MathUtils.degToRad(110);
-    this.drawSpeedScale = DRAW_TIME / (0.9 + (this.parthian ? 0.2 : 0));
-    this.extraSpreadDeg = gait + (this.parthian ? 0.5 : 0);
+    this.mountDraw = DRAW_TIME / (0.9 + (this.parthian ? 0.2 : 0));
+    this.mountSpread = gait + (this.parthian ? 0.5 : 0);
     this.carrierVelocity.set(-Math.sin(m.yaw) * v, 0, -Math.cos(m.yaw) * v);
-    this.arcAllowed = false;
+    this.mountArc = false;
   }
+  /** the saddle's share (setMount) — kept apart from `drawSpeedScale` / `extraSpreadDeg` / `arcAllowed`, which other
+   *  systems (the Golden Bow) set: the two multiply / add / AND */
+  private mountDraw = 1; private mountSpread = 0; private mountArc = true;
+
+  /** the bow's look: 'recurve' (horn and birch) or 'golden' (the Golden King's reward) — repaints the limbs + string */
+  setStyle(style: BowStyle): void { this.style = style; this.bowMesh.repaint(style); }
+  style: BowStyle = 'recurve';
   /** the view is > 110° off the horse's heading (the HUD's REAR SHOT chip; a hit on a pursuer staggers — B7's `damageMultiplier`) */
   parthian = false;
 
@@ -735,7 +778,7 @@ export class Bow implements Weapon {
     if (!want && this.wasWanting && this.p > 0.05) this.onLetDown?.();
     this.wasWanting = want;
     if (want) {
-      this.drawT = Math.min(1, this.drawT + (dt * this.drawSpeedScale) / DRAW_TIME);
+      this.drawT = Math.min(1, this.drawT + (dt * this.drawSpeedScale * this.mountDraw) / DRAW_TIME);
       if (this.snapT >= 0) {
         this.snapT += dt;
         this.drawT = Math.min(this.drawT, 1 - Math.sqrt(1 - SNAP_P));
@@ -782,7 +825,7 @@ export class Bow implements Weapon {
     this.poseViewmodel(dt, t);
 
     // ── the drop arc ──
-    const arcOn = this.arcAllowed && getSetting('huntersEye') && this.p > MIN_LOOSE && this.model.visible && this.holster < 0.01;
+    const arcOn = this.arcAllowed && this.mountArc && getSetting('huntersEye') && this.p > MIN_LOOSE && this.model.visible && this.holster < 0.01;
     if (arcOn) {
       this.aimRay(_v1, _fwd);
       this.launchFrom(_fwd, this.p, _v2, _v3);

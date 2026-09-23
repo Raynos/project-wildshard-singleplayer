@@ -26,9 +26,8 @@ import { fxMaterial, FX, type FxMaterial } from '../world/nalati/KurganDungeon';
  *   game.onUpdate((dt) => golden.update(dt));
  *   goldenBowModel(sky)               // the display model for the reward orb
  *
- * Asks for the bow row (B2) / the rider (B7), in the report: a first-class `Bow.variant` would beat recolouring by
- * position; and the rider should MULTIPLY `drawSpeedScale` / `damageMultiplier` rather than assign them, or the golden
- * bonus is lost while mounted.
+ * (B2 added `Bow.setStyle('golden')` for the recolour, and `Bow.setMount` keeps the saddle's share apart, so the golden
+ * ×1.2 draw survives riding.)
  */
 
 export interface GoldenBowDeps {
@@ -91,30 +90,8 @@ export class GoldenBow {
     };
   }
 
-  /** gold limbs, a string of light (the bow mesh is the first mesh in the model: the bow + the left fist, B2's BowMesh) */
-  private recolour(bow: Bow): void {
-    const found: THREE.Mesh[] = [];
-    bow.model.traverse((o) => { if (isMesh(o) && o.geometry.hasAttribute('color') && o.geometry.getAttribute('position').count > 400) found.push(o); });
-    const m = found[0];
-    if (m === undefined) return;
-    const geo = m.geometry, pos = geo.getAttribute('position'), col = geo.getAttribute('color');
-    const str = new THREE.Color(0xc8bca0);
-    for (let i = 0; i < col.count; i++) {
-      _c.setRGB(col.getX(i), col.getY(i), col.getZ(i));
-      const y = Math.abs(pos.getY(i));
-      // the string: B2 paints it PAL.string × 0.9–1.0 — the same hue at a slightly lower value
-      const rr = _c.r / str.r, rg = _c.g / str.g, rb = _c.b / str.b;
-      const isString = Math.abs(rr - rg) < 0.04 && Math.abs(rg - rb) < 0.04 && rr > 0.84 && rr < 1.06;
-      const lum = _c.r * 0.3 + _c.g * 0.55 + _c.b * 0.15;
-      if (isString && y > 0.02) { col.setXYZ(i, STRING_LIGHT.r, STRING_LIGHT.g, STRING_LIGHT.b); continue; }
-      if (y < 0.075) continue;                                   // the grip + the fist round it keep their leather
-      // limbs: bright gold (a touch over 1: it glows in the bloom), the painted ornament the brightest, the horn deeper
-      const k = Math.min(1, lum * 2.4);
-      _c.copy(GOLD).lerp(GOLD_HI, Math.max(0, k - 0.35) * 1.3).lerp(GOLD_LO, Math.max(0, 0.12 - lum) * 3);
-      col.setXYZ(i, _c.r, _c.g, _c.b);
-    }
-    col.needsUpdate = true;
-  }
+  /** gold limbs, a string of light: B2's first-class bow style (Bow.setStyle repaints the limbs + string, the fist keeps its leather) */
+  private recolour(bow: Bow): void { bow.setStyle('golden'); }
 
   private loosed(p: number): void {
     const bow = this.bow;
