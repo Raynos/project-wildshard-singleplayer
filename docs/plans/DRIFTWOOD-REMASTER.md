@@ -69,9 +69,9 @@ go in `art/driftwood-isle/round-4-remaster/`. Order inside a track is the build 
 | # | Row | Status |
 |---|---|---|
 | 0.1 | B1 reach: `Weapons` exposes `get reach()` of the current weapon | **done** `7482d5a` (live 7482d5a-mudllr10) — progress/158-feel-01-reach-7m-swing-no-miss.jpg |
-| 0.2 | B2 / B3: a per-weapon death message, no bolts on the sword shard, a real hurt sound + a directional hurt arc on the HUD | **done** `fb22c50` (live 11b8a27-mudlrbtn) — progress/159, 160; placeholder `hurtThud` → `audio.hurt()` with the sound-agent |
+| 0.2 | B2 / B3: a per-weapon death message, no bolts on the sword shard, a real hurt sound + a directional hurt arc on the HUD | **done** `fb22c50` (live 11b8a27-mudlrbtn) — progress/159, 160; `audio.hurt()` / `audio.death()` from the sound-agent `e2d0318`, wired `9cb21fa` |
 | 0.3 | B7: a fixed pool of point lights, driven by intensity only (never add / remove / toggle `visible`) | **done** `c282abe` (live c282abe-mudm0t0s) — take sword + kill sailor: programs 75→97→137 before, 78→76→76 after; progress/161. Leftover (Pine Hollow, not this plan): the rifle's muzzle light rides the camera-parented model, so the first rifle swap recompiles |
-| 0.4 | B8 + B9: skip forest particles / rifle on an ocean shard; footstep surface from a per-module `surfaceAt(x, z)` (planks on every deck) | B8 particles **done** `11b8a27` (the rifle stays: shared kit); B9 → sound-agent |
+| 0.4 | B8 + B9: skip forest particles / rifle on an ocean shard; footstep surface from a per-module `surfaceAt(x, z)` (planks on every deck) | B8 particles **done** `11b8a27` (the rifle stays: shared kit); B9 footsteps **done** `6f8201a` (sound-agent: planks on every deck, island grass / rock no longer pine needles) |
 | 0.6 | Viewmodel: sword length / FOV framing to the mockup (short, low-right), one label per enemy, the minimap at the pier spawn | open (sword geometry → E8) |
 | 0.5 | B6: re-capture the hero + deck card in engine **after** Track L lands (until then restore `743f435`'s captures) | open |
 
@@ -82,7 +82,7 @@ Reference: BotW / Wind Waker (two-band ramp, rim), Firewatch (colour-ramp fog), 
 
 | # | Row | Cost | Status |
 |---|---|---|---|
-| L1 | **Stylized lighting model** on `lowPolyMaterial` + terrain + animals: two-band `smoothstep` ramp on N·L×shadow, **coloured shadows** (blue-violet, never black), a thin Genshin terminator band, rim light on the lit side, hemisphere fill with a warm sand bounce. Lambert-based (cheaper than GGX on the phone) | S | open (D1 picked) |
+| L1 | **Stylized lighting model** on `lowPolyMaterial` + terrain + animals: two-band `smoothstep` ramp on N·L×shadow, **coloured shadows** (blue-violet, never black), a thin Genshin terminator band, rim light on the lit side, hemisphere fill with a warm sand bounce. Lambert-based (cheaper than GGX on the phone) | S | **live, tuning** `fb586da` — one global lighting-chunk patch on the low-poly shard only (every Driftwood material, no per-module call); Pine Hollow program-source SHA unchanged; phone +2 calls at the four poses. Integrator review: the before / after (progress/163-look-l1-*) is too subtle — harder step, saturated shadow tint, visible rim, less ambient; re-shoot |
 | L2 | **Stylized sky**: replace the photoreal HDRI with a gradient sky dome + faceted cumulus meshes with a silver-lining fresnel, slow drift; keeps the planet + gulls. Prerequisite for day/night | M | open (D2 picked) |
 | L3 | **Colour-ramp fog** (distance × height, sun-side ramp) replacing the exponential fog: the horizon hazes into the sky gradient, hilltops stay crisp | S | open |
 | L4 | **Cloud shadows**: scrolling noise multiplied into the direct light (1 fetch) | S | open |
@@ -117,9 +117,9 @@ Owner: session `wildshard-singleplayer-8d` (E8), files `src/world/{Boat,Pier,Hut
 
 | # | Row | Cost | Status |
 |---|---|---|---|
-| C1 | **Blade-swept hit test** (B5): sample the blade segment each frame of the active window, hit every target it crosses once, occlusion ray to the world | M | open |
-| C2 | **Hit-stop** via a world time-scale hook in `Game.ts` (60 / 90 / 140 ms for combo / finisher / heavy), audio + particles keep running | S | open |
-| C3 | **Camera kick** along the swing (spring-damped 1–3° roll / pitch), a −2° FOV punch on heavies, small trauma² shake when hit | S | open |
+| C1 | **Blade-swept hit test** (B5): sample the blade segment each frame of the active window, hit every target it crosses once, occlusion ray to the world | M | **done** `9cb21fa` (live 9cb21fa-mudmcq27) — one slash hits a boar at 85 ms then a crab at 215 ms, a collider wall blocks; progress/162. Phone tier at that pose: 96 calls / 0.39 M tris |
+| C2 | **Hit-stop** via a world time-scale hook in `Game.ts` (60 / 90 / 140 ms for combo / finisher / heavy), audio + particles keep running | S | **done** `e2624c4` (live e2624c4-mudmjbap) — `Game.hitStop` + `src/core/time.ts` worldTime, particles on real dt; progress/163-feel-c2-* |
+| C3 | **Camera kick** along the swing (spring-damped 1–3° roll / pitch), a −2° FOV punch on heavies, small trauma² shake when hit | S | **done** `f3186df` (live f3186df-mudmrzle) — slash roll 1.57°, heavy pitch 2.54° + FOV 93.8→91.9, an 18-dmg hit shakes ~1°; progress/164 |
 | C4 | **Sword trail** (ring buffer of blade base / tip, additive strip, 1 call) + impact particles per material (sand, wood chips, shell shards, sparks) from one pooled instanced system | S | open |
 | C5 | **Enemy reactions + telegraphs**: white hit flash, directional flinch, knockback along the swing, stagger on heavy; 400–700 ms wind-ups with a readable pose + sound cue (boar hoof scrape, crab claw raise, sailor lantern flare); a hit interrupts a wind-up; enemy attacks resolve on a hit arc, not a 10 Hz distance check | M | open (D4: floats stay) |
 | C6 | **Player defence**: coordinate with the HUD agent's sword touch work (E11: dodge / lunge / heavy mockups in `art/hud/round-7-sword-touch/`) — the original "no block, no dodge" rule is being revisited there | — | owner: HUD agent |
