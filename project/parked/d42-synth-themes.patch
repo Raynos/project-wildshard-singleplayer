@@ -1,0 +1,1179 @@
+diff --git a/scripts/music/export-midi.mjs b/scripts/music/export-midi.mjs
+index 48134ed..4caf6f7 100644
+--- a/scripts/music/export-midi.mjs
++++ b/scripts/music/export-midi.mjs
+@@ -8,12 +8,13 @@ import { resolve } from 'node:path';
+ import { execSync } from 'node:child_process';
+ 
+ const here = import.meta.dirname;
++const DEV = process.env.MUSIC_DEV ?? 'http://localhost:5173'; // the Vite dev server (MUSIC_DEV=http://localhost:5188 for another port)
+ const root = resolve(here, '../..');
+ const name = process.argv[2] ?? 'theme';
+ const out = resolve(process.argv[3] ?? `${here}/wildshard-${name}.mid`);
+ 
+ // load the TypeScript score through Vite's transform (the dev server is up for the render anyway) — no build step, no deps
+-const src = execSync(`curl -s http://localhost:5173/src/audio/score/wildshard-theme.ts`, { cwd: root }).toString();
++const src = execSync(`curl -s ${DEV}/src/audio/score/wildshard-theme.ts`, { cwd: root }).toString();
+ const mod = await import(`data:text/javascript;base64,${Buffer.from(src.replaceAll(/^import\.meta\.hot.*$/gm, '')).toString('base64')}`);
+ const arr = mod.ARRANGEMENTS[name];
+ if (!arr) throw new Error(`no arrangement ${name}`);
+diff --git a/scripts/music/render.mjs b/scripts/music/render.mjs
+index 18be9e3..8cac9f9 100644
+--- a/scripts/music/render.mjs
++++ b/scripts/music/render.mjs
+@@ -8,6 +8,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
+ import { dirname, resolve } from 'node:path';
+ 
+ const here = import.meta.dirname;
++const DEV = process.env.MUSIC_DEV ?? 'http://localhost:5173'; // the Vite dev server (MUSIC_DEV=http://localhost:5188 for another port)
+ const trailer = resolve(here, '../trailer');
+ const jobs = process.argv.length >= 5
+   ? [[process.argv[2], Number(process.argv[3]), resolve(process.argv[4]), process.argv[5] ? process.argv[5].split(',').filter(Boolean) : undefined, process.argv[6] ? JSON.parse(process.argv[6]) : undefined]]
+@@ -16,7 +17,7 @@ const jobs = process.argv.length >= 5
+ const browser = await chromium.launch({ headless: true, args: ['--autoplay-policy=no-user-gesture-required'] });
+ const page = await browser.newPage();
+ page.on('pageerror', (e) => console.error('[page]', e.message));
+-await page.goto('http://localhost:5173/dev/music.html?render=1', { waitUntil: 'load' });
++await page.goto(`${DEV}/dev/music.html?render=1`, { waitUntil: 'load' });
+ await page.waitForFunction(() => Boolean(window.__music), null, { timeout: 30000 });
+ for (const [name, seconds, out, solo, state] of jobs) {
+   const t = Date.now();
+diff --git a/src/audio/Music.ts b/src/audio/Music.ts
+index a1265bf..273d0cc 100644
+--- a/src/audio/Music.ts
++++ b/src/audio/Music.ts
+@@ -1,18 +1,26 @@
+ // src/audio/Music.ts — the Wildshard score, played by a small WebAudio instrument set (docs/plans/MUSIC.md).
+ //
+ //   const music = new Music(audio);                 // its own `music` gain → audio.master; shares the AudioContext
+-//   music.play('theme');                            // on ENTER (after audio.resume()); loops D → B for as long as it plays
+-//   music.setState({ shard: 'pine' | 'island', mode: 'menu' | 'calm' | 'alert' | 'combat', intensity: 0..1, underwater: false });
++//   music.play();                                   // on ENTER (after audio.resume()): the active chunk's score (score/index.ts
++//                                                   //   CHUNK_SCORE: pine-hollow → 'theme', driftwood-isle → 'island'); loops for as long as it plays
++//   music.play('citadel');                          // or any arrangement by name (dev/music.html)
++//   music.setState({ shard: 'pine' | 'island' | 'citadel', mode: 'menu' | 'calm' | 'alert' | 'combat', intensity: 0..1, underwater: false });
+ //   music.sting('pickup' | 'death' | 'chunk');      // the bell motif · the minor turn then 6 s of silence · the resolve chord
+ //   music.stop();                                   // fades the bus over a bar and silences every voice
+ //   music.volume = 0.7;                             // persisted as Settings 'music' (the pause menu's MUSIC slider drives it)
+ //   await music.renderOffline('trailer30', 28.2);   // the same graph on an OfflineAudioContext (48 kHz stereo) → AudioBuffer
+ //
+-// Instruments (7 patches, all here): drone (two detuned saws an octave apart through a slow low-pass) · pad (4-voice
+-// chord, triangle + sine, slow attack) · pluck (Karplus-Strong: a noise burst through a feedback delay line — computed
++// Instruments (8 patches, all here): drone (two detuned saws through a slow low-pass — an octave, or an open fifth) · pad
++// (4-voice chord, triangle + sine, slow attack) · pluck (Karplus-Strong: a noise burst through a feedback delay line — computed
+ // into a buffer, because a DelayNode feedback loop bottoms out at one render quantum = 375 Hz at 48 kHz, under the motif)
+-// · marimba (sine + 4th-harmonic sine, exponential decay) · bass (sine + a little saw, sidechained to the kick) · pulse
+-// (filtered-noise shaker, a tap, a low sine kick) · bell (2-operator FM).
++// · marimba (sine + 4th-harmonic sine, exponential decay; or the 'pan' tone — 1 · 2 · 3 partials in one oscillator, a
++// longer ring — Driftwood's steel pan) · bass (sine + a little saw, sidechained to the kick) · pulse (filtered-noise shaker,
++// a tap, a low sine kick, a noise swell) · bell (2-operator FM) · flute (one oscillator of a breathy wave, a noise chiff,
++// delayed vibrato written as a detune curve — the counter-melody, the island's lead).
++//
++// Every arrangement carries its ThemeRules (score/wildshard-theme.ts): the tempo and layer table per game state, which
++// layers are the gated melody, combat's darkening (chord map + pitch-class map), the drone's pitches, the marimba tone,
++// the shrine hum's interval and a loudness trim — so each shard's theme answers the same states its own way.
+ //
+ // Sequencer: bars are scheduled 2 bars ahead on the AudioContext clock from a 120 ms timer (no per-frame work, no
+ // AudioWorklet / ScriptProcessor). Layer levels crossfade over one bar starting on a bar; tempo and the Lydian → Dorian
+@@ -21,21 +29,22 @@
+ // OfflineAudioContext — the trailer render and the live playback are one code path.
+ import type { Audio } from './Audio';
+ import { getNumber, setNumber, onNumber } from '../ui/Settings';
++import { getActiveChunk } from '../chunks/registry';
+ import {
+-  ARRANGEMENTS, CHORDS, CHORD_ROOT, DORIAN_OF, STING_CHUNK, STING_DEATH, STING_PICKUP, dorianPitch,
+-  type Arrangement, type ArrangementName, type ChordName, type LayerId, type MixKey, type NoteEv, type Segment,
++  CHORDS, CHORD_ROOT, PINE_RULES, STING_CHUNK, STING_DEATH, chordAt, mapPc,
++  type Arrangement, type ChordName, type GainKey, type GameMode, type MixKey, type NoteEv, type Segment, type ThemeRules,
+ } from './score/wildshard-theme';
++import { ARRANGEMENTS, scoreForChunk, type ArrangementName } from './score/index';
+ 
+-export type Shard = 'pine' | 'island';
++export type { ArrangementName } from './score/index';
++export type Shard = 'pine' | 'island' | 'citadel';
+ export type MusicMode = 'menu' | 'calm' | 'alert' | 'combat';
+ export type StingName = 'pickup' | 'death' | 'chunk';
+ export interface MusicState { shard: Shard; mode: MusicMode; intensity: number; underwater: boolean }
+ 
+ const LOOKAHEAD_BARS = 2;
+ const TICK_MS = 120;
+-const TEMPO: Record<MusicMode, number> = { menu: 104, calm: 96, alert: 100, combat: 112 };
+-type GainKey = Exclude<MixKey, 'lpf' | 'chorus'>;
+-const GAIN_KEYS: GainKey[] = ['drone', 'pad', 'pluck', 'marimba', 'bass', 'pulse', 'pulse.soft', 'pulse.kick', 'pulse.four', 'bell'];
++const GAIN_KEYS: GainKey[] = ['drone', 'pad', 'pluck', 'marimba', 'bass', 'pulse', 'pulse.soft', 'pulse.kick', 'pulse.four', 'bell', 'flute'];
+ const midiHz = (n: number) => 440 * 2 ** ((n - 69) / 12);
+ 
+ interface Voice { srcs: AudioScheduledSourceNode[]; out: GainNode }
+@@ -57,6 +66,8 @@ class Engine {
+   readonly stingBus: GainNode;
+   readonly lpf: BiquadFilterNode;
+   readonly chorusWet: GainNode;
++  /** the theme's loudness trim (ThemeRules.trim), between the bus and the low-pass */
++  readonly trim: GainNode;
+   readonly gains = {} as Record<GainKey, GainNode>;
+   private bassDuck: GainNode;
+   private noise: AudioBuffer;
+@@ -67,6 +78,10 @@ class Engine {
+   private lastChord: ChordName | undefined;
+   private targets: Partial<Record<MixKey, number>> = {};
+   private pans = {} as Partial<Record<GainKey, StereoPannerNode>>;
++  private waves = new Map<string, PeriodicWave>();
++  private vibCurves = new Map<number, Float32Array<ArrayBuffer>>();
++  /** the chords as scheduled (after the combat darkening) — the shrine hum tunes against `chordAt(now)` */
++  private chordLog: { t: number; chord: ChordName }[] = [];
+   // sequencer
+   arrangement: Arrangement | undefined;
+   private segIdx = 0; private beat0 = 0; private nextT = 0;
+@@ -90,8 +105,9 @@ class Engine {
+     this.ctx = ctx;
+     const c = ctx;
+     this.bus = c.createGain(); this.bus.gain.value = 1;
++    this.trim = c.createGain(); this.trim.gain.value = 1;
+     this.lpf = c.createBiquadFilter(); this.lpf.type = 'lowpass'; this.lpf.frequency.value = 20000; this.lpf.Q.value = 0.4;
+-    this.bus.connect(this.lpf);
++    this.bus.connect(this.trim).connect(this.lpf);
+     const dry = c.createGain(); dry.gain.value = 1; this.lpf.connect(dry).connect(dest);
+     // the underwater chorus: a 14 ms delay wobbled ±5 ms at 0.35 Hz, mixed in by `chorusWet`
+     const delay = c.createDelay(0.1); delay.delayTime.value = 0.014;
+@@ -103,7 +119,7 @@ class Engine {
+     this.stingBus = c.createGain(); this.stingBus.gain.value = 1; this.stingBus.connect(this.bus);
+     // layers
+     for (const k of GAIN_KEYS) { const g = c.createGain(); g.gain.value = 0; this.gains[k] = g; this.targets[k] = 0; }
+-    for (const k of ['drone', 'pad', 'pluck', 'marimba', 'bass', 'pulse', 'bell'] as GainKey[]) this.gains[k].connect(this.seq);
++    for (const k of ['drone', 'pad', 'pluck', 'marimba', 'bass', 'pulse', 'bell', 'flute'] as GainKey[]) this.gains[k].connect(this.seq);
+     for (const k of ['pulse.soft', 'pulse.kick', 'pulse.four'] as GainKey[]) this.gains[k].connect(this.gains.pulse);
+     this.gains.pulse.gain.value = 1; this.targets.pulse = 1;
+     this.padFilter = c.createBiquadFilter(); this.padFilter.type = 'lowpass'; this.padFilter.frequency.value = 2400; this.padFilter.Q.value = 0.5;
+@@ -111,7 +127,7 @@ class Engine {
+     this.bassDuck = c.createGain(); this.bassDuck.gain.value = 1;
+     const bassLp = c.createBiquadFilter(); bassLp.type = 'lowpass'; bassLp.frequency.value = 420; bassLp.Q.value = 0.8;
+     this.bassDuck.connect(bassLp).connect(this.gains.bass);
+-    for (const [k, p] of [['pluck', -0.22], ['marimba', 0.25], ['bell', 0.08]] as [GainKey, number][]) {
++    for (const [k, p] of [['pluck', -0.22], ['marimba', 0.25], ['bell', 0.08], ['flute', -0.1]] as [GainKey, number][]) {
+       if (!('createStereoPanner' in c)) continue; // older Safari
+       const pan = c.createStereoPanner(); pan.pan.value = p; pan.connect(this.gains[k]); this.pans[k] = pan;
+     }
+@@ -143,14 +159,15 @@ class Engine {
+   }
+ 
+   // ─────────────── the seven patches ───────────────
+-  /** drone: D2 and D3 saws, the upper one 6 cents flat, through a low-pass that breathes between ~170 and ~400 Hz */
++  /** drone: two saws (the theme's `drone` pitches — D2 + D3, or the open fifth D2 + A2), the upper one 6 cents flat,
++   *  through a low-pass that breathes between ~170 and ~400 Hz */
+   startDrone(t: number) {
+     this.stopDrone();
+-    const c = this.ctx, far = 1e9;
++    const c = this.ctx, far = 1e9, [lo, hi] = this.rules.drone;
+     const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 260; lp.Q.value = 0.9;
+     const lfo = c.createOscillator(); lfo.frequency.value = 0.045; const lg = c.createGain(); lg.gain.value = 110;
+     lfo.connect(lg).connect(lp.frequency); lfo.start(t); lfo.stop(far);
+-    const a = this.osc('sawtooth', midiHz(38), t, far, 3), b = this.osc('sawtooth', midiHz(50), t, far, -6);
++    const a = this.osc('sawtooth', midiHz(lo), t, far, 3), b = this.osc('sawtooth', midiHz(hi), t, far, -6);
+     const ga = c.createGain(); ga.gain.value = 0.09; const gb = c.createGain(); gb.gain.value = 0.062;
+     a.connect(ga).connect(lp); b.connect(gb).connect(lp); lp.connect(this.gains.drone);
+     this.droneNodes = [a, b, lfo];
+@@ -223,8 +240,10 @@ class Engine {
+     return buf;
+   }
+ 
+-  /** marimba: a sine and its 4th harmonic (the bar's overtone), 3 ms attack, exponential decay; a tiny mallet click */
+-  marimba(n: number, t: number, _d: number, v: number, out: AudioNode = this.into('marimba')) {
++  /** marimba: a sine and its 4th harmonic (the bar's overtone), 3 ms attack, exponential decay; a tiny mallet click.
++   *  The 'pan' tone (ThemeRules.marimba): one oscillator of partials 1 · 2 · 3, a longer ring (capped at ~2 strikes when rolled) */
++  marimba(n: number, t: number, d: number, v: number, out: AudioNode = this.into('marimba')) {
++    if (this.rules.marimba === 'pan') return this.pan(n, t, d, v, out);
+     const c = this.ctx, f = midiHz(n), decay = Math.min(1.1, Math.max(0.3, 1.3 - (n - 60) / 40));
+     const g = c.createGain(); this.env(g.gain, t, 0.26 * v, 0.003, decay); g.connect(out);
+     const o1 = this.osc('sine', f, t, t + decay + 0.05);
+@@ -234,6 +253,48 @@ class Engine {
+     const cg = c.createGain(); this.env(cg.gain, t, 0.09 * v, 0.001, 0.012); click.connect(hp).connect(cg).connect(out);
+     return { srcs: [o1, o2, click], out: g } as Voice;
+   }
++  private pan(n: number, t: number, d: number, v: number, out: AudioNode): Voice {
++    const c = this.ctx, f = midiHz(n), decay = Math.min(Math.min(1.7, Math.max(0.45, 1.9 - (n - 60) / 28)), Math.max(0.35, d * 2.4));
++    const g = c.createGain(); this.env(g.gain, t, 0.24 * v, 0.004, decay); g.connect(out);
++    const o = this.osc('sine', f, t, t + decay + 0.05); o.setPeriodicWave(this.wave('pan', [0, 1, 0.55, 0.22, 0.06]));
++    o.connect(g);
++    const click = this.noiseSrc(t, t + 0.025); const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 3600;
++    const cg = c.createGain(); this.env(cg.gain, t, 0.05 * v, 0.001, 0.01); click.connect(hp).connect(cg).connect(out);
++    return { srcs: [o, click], out: g };
++  }
++  /** a PeriodicWave of sine partials (amplitudes by harmonic, index 0 = DC), cached per context */
++  private wave(key: string, partials: number[]): PeriodicWave {
++    const hit = this.waves.get(key); if (hit) return hit;
++    const imag = new Float32Array(partials), real = new Float32Array(partials.length);
++    const w = this.ctx.createPeriodicWave(real, imag); this.waves.set(key, w); return w;
++  }
++
++  /** flute: one oscillator (a fundamental with a weak 2nd and 3rd — breathy, hollow), a 70 ms swell, a noise chiff at the
++   *  onset and a thin breath under the note; vibrato fades in after a quarter second (a detune curve — no LFO oscillator) */
++  flute(n: number, t: number, d: number, v: number, out: AudioNode = this.into('flute')): Voice {
++    const c = this.ctx, f = midiHz(n), hold = Math.max(0.08, d - 0.05), rel = 0.16, end = t + 0.07 + hold + rel;
++    const g = c.createGain();
++    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.2 * v, t + 0.07);
++    g.gain.setValueAtTime(0.2 * v, t + 0.07 + hold); g.gain.exponentialRampToValueAtTime(0.0001, end);
++    g.connect(out);
++    const o = this.osc('sine', f, t, end + 0.02); o.setPeriodicWave(this.wave('flute', [0, 1, 0.2, 0.07, 0.02]));
++    if (hold > 0.3) o.detune.setValueCurveAtTime(this.vibCurve(hold + rel - 0.22), t + 0.22, hold + rel - 0.22);
++    o.connect(g);
++    const nz = this.noiseSrc(t, end); const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = Math.min(7000, f * 3); bp.Q.value = 1.4;
++    const ng = c.createGain();
++    ng.gain.setValueAtTime(0.0001, t); ng.gain.linearRampToValueAtTime(0.09 * v, t + 0.012); ng.gain.exponentialRampToValueAtTime(0.018 * v, t + 0.09);
++    ng.gain.setValueAtTime(0.018 * v, t + 0.07 + hold); ng.gain.exponentialRampToValueAtTime(0.0001, end);
++    nz.connect(bp).connect(ng).connect(out);
++    return { srcs: [o, nz], out: g };
++  }
++  /** a vibrato of `secs`: 5.2 Hz, its depth fading in from 0 to ±14 cents over 0.4 s — 60 points a second, cached by length */
++  private vibCurve(secs: number): Float32Array<ArrayBuffer> {
++    const key = Math.round(secs * 20);
++    const hit = this.vibCurves.get(key); if (hit) return hit;
++    const len = Math.max(2, Math.round((key / 20) * 60)), a = new Float32Array(len);
++    for (let i = 0; i < len; i++) { const s = (i / (len - 1)) * (key / 20); a[i] = 14 * Math.min(1, s / 0.4) * Math.sin(2 * Math.PI * 5.2 * s); }
++    this.vibCurves.set(key, a); return a;
++  }
+ 
+   /** bass: sine + a little saw through the 420 Hz low-pass, 10 ms attack, held for the note, sidechained to the kick */
+   bass(n: number, t: number, d: number, v: number, out: AudioNode = this.bassDuck) {
+@@ -245,9 +306,18 @@ class Engine {
+     return { srcs: [o1, o2], out: g } as Voice;
+   }
+ 
+-  /** pulse: 36 kick (1 & 3) · 35 the four-on-the-floor kicks · 38 tap · 42 shaker — each to its own sub-bus */
+-  drum(n: number, t: number, v: number, outOverride?: AudioNode): Voice {
++  /** pulse: 36 kick (1 & 3) · 35 the four-on-the-floor kicks · 38 tap · 42 shaker · 49 swell (`dur` s) — each to its own sub-bus */
++  drum(n: number, t: number, v: number, outOverride?: AudioNode, dur = 1): Voice {
+     const c = this.ctx;
++    if (n === 49) {
++      // the swell: noise through a band-pass sweeping 500 Hz → 5 kHz, rising to the downbeat, cut there
++      const out = outOverride ?? this.gains['pulse.soft'];
++      const s = this.noiseSrc(t, t + dur + 0.04); const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.3;
++      bp.frequency.setValueAtTime(500, t); bp.frequency.exponentialRampToValueAtTime(5000, t + dur);
++      const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.5 * v, t + dur); g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.03);
++      s.connect(bp).connect(g).connect(out);
++      return { srcs: [s], out: g };
++    }
+     if (n === 36 || n === 35) {
+       const out = outOverride ?? this.gains[n === 36 ? 'pulse.kick' : 'pulse.four'];
+       const o = this.osc('sine', 135, t, t + 0.4); o.frequency.setValueAtTime(135, t); o.frequency.exponentialRampToValueAtTime(44, t + 0.09);
+@@ -297,31 +367,41 @@ class Engine {
+     }
+     this.targets[key] = target;
+   }
+-  /** the game state → layer levels (docs/plans/MUSIC.md "In the game"); `menu` follows the arrangement's own mix instead */
+-  private stateLevels(seg: Segment): Partial<Record<GainKey, number>> {
+-    const s = this.state, i = Math.min(1, Math.max(0, s.intensity));
+-    const mine: LayerId = s.shard === 'island' ? 'marimba' : 'pluck', other: LayerId = mine === 'pluck' ? 'marimba' : 'pluck';
+-    const motif = mine === 'pluck' ? 0.9 : 0.85;
+-    void seg;
+-    if (s.mode === 'combat') return { drone: 1, pad: 0.85, [mine]: 1, [other]: 0.35, bass: 1, 'pulse.soft': 1, 'pulse.kick': 1, 'pulse.four': 0.7 + 0.3 * i, bell: 1 };
+-    if (s.mode === 'alert') return { drone: 1, pad: 0.8, [mine]: motif, [other]: 0, bass: 0.7 + 0.3 * i, 'pulse.soft': 0.5 + 0.5 * i, 'pulse.kick': 0, 'pulse.four': 0, bell: 1 };
+-    return { drone: 1, pad: 0.75, [mine]: motif, [other]: 0, bass: 0, 'pulse.soft': 0, 'pulse.kick': 0, 'pulse.four': 0, bell: 1 };
+-  }
+-  /** calm / alert let the motif through only in the sections flagged `calmMotif` (B and D: every ~30 s at 96) — gated at the note, so nothing bleeds across a bar */
++  /** the playing theme's rules (Pine Hollow's before anything plays) */
++  get rules(): ThemeRules { return this.arrangement?.rules ?? PINE_RULES; }
++  private get gameMode(): GameMode { return this.state.mode === 'menu' ? 'calm' : this.state.mode; }
++  /** the game state → layer levels (the theme's ThemeRules.levels); `menu` follows the arrangement's own mix instead */
++  private stateLevels(): Partial<Record<GainKey, number>> {
++    const i = Math.min(1, Math.max(0, this.state.intensity)), table = this.rules.levels[this.gameMode], out: Partial<Record<GainKey, number>> = {};
++    for (const k of GAIN_KEYS) {
++      if (k === 'pulse') continue; // the parent bus of the three pulse sub-buses, always 1
++      const l = table[k];
++      out[k] = l === undefined ? 0 : typeof l === 'number' ? l : l[0] + (l[1] - l[0]) * i;
++    }
++    return out;
++  }
++  /** calm / alert let the gated (melody) layers through only in the sections flagged `calmMotif` — gated at the note, so nothing bleeds across a bar */
+   private motifGate(seg: Segment) { return this.driven || this.state.mode === 'combat' || seg.calmMotif === true; }
+   private get driven() { return this.arrangement?.driven === true || this.state.mode === 'menu'; }
+-  private get dorian() { return !this.driven && this.state.mode === 'combat'; }
+-  private bpmFor(seg: Segment) { return seg.at !== undefined || this.arrangement?.driven ? seg.bpm : TEMPO[this.state.mode]; }
++  private get dark() { return !this.driven && this.state.mode === 'combat'; }
++  private bpmFor(seg: Segment) { return seg.at !== undefined || this.driven ? seg.bpm : this.rules.tempo[this.gameMode]; }
++  /** the chord the pad is sounding at `t` (after the combat darkening), or undefined when nothing is playing */
++  chordAt(t: number): ChordName | undefined {
++    let hit: ChordName | undefined;
++    for (const c of this.chordLog) { if (c.t <= t) hit = c.chord; else break; }
++    return hit;
++  }
+ 
+   // ─────────────── sequencer ───────────────
+   /** fill the Karplus-Strong cache for every pluck pitch the arrangement uses (and their Dorian forms) — ~1 ms each, off the bar schedule */
+   warm(arr: Arrangement) {
+-    for (const seg of arr.segments) for (const n of seg.notes.pluck ?? []) { this.ksBuffer(midiHz(n.n)); this.ksBuffer(midiHz(dorianPitch(n.n))); }
++    for (const seg of arr.segments) for (const n of seg.notes.pluck ?? []) { this.ksBuffer(midiHz(n.n)); this.ksBuffer(midiHz(mapPc(n.n, arr.rules.dark.pcs))); }
+   }
+-  /** start `arr` at time `t` (the drone comes up with it) */
+-  begin(arr: Arrangement, t: number) {
+-    this.arrangement = arr; this.segIdx = 0; this.beat0 = 0; this.nextT = t; this.bars = []; this.lastChord = undefined;
+-    this.pad = undefined;
++  /** start `arr` at time `t` (the drone comes up with it), from segment index `from` (the offline render of one section) */
++  begin(arr: Arrangement, t: number, from = 0) {
++    this.arrangement = arr; this.segIdx = from; this.beat0 = 0; this.nextT = t; this.bars = []; this.lastChord = undefined;
++    this.pad = undefined; this.chordLog = [];
++    this.trim.gain.setValueAtTime(10 ** (arr.rules.trim / 20), t);
+     for (const k of GAIN_KEYS) if (k !== 'pulse') { this.gains[k].gain.cancelScheduledValues(t); this.gains[k].gain.setValueAtTime(0, t); this.targets[k] = 0; }
+     this.startDrone(t);
+   }
+@@ -331,6 +411,7 @@ class Engine {
+     const now = this.ctx.currentTime;
+     let head = this.bars[0];
+     while (head !== undefined && head.t0 + head.beats * head.spb < now - 0.5) { this.bars.shift(); head = this.bars[0]; }
++    while (this.chordLog.length > 1 && (this.chordLog[1]?.t ?? Infinity) < now - 1) this.chordLog.shift();
+     let guard = 0;
+     while (this.nextT < until && guard++ < 512) if (!this.scheduleNext()) break;
+   }
+@@ -356,20 +437,21 @@ class Engine {
+   }
+   private scheduleBar(seg: Segment, segIdx: number, beat0: number, beats: number, t0: number, spb: number) {
+     const bar: Bar = { segIdx, beat0, beats, t0, spb, voices: [], before: { pad: this.pad, targets: { ...this.targets }, lastChord: this.lastChord } };
+-    const end = beat0 + beats, at = (b: number) => t0 + (b - beat0) * spb, dorian = this.dorian;
++    const end = beat0 + beats, at = (b: number) => t0 + (b - beat0) * spb, dark = this.dark, rules = this.rules;
+     // mixer: the arrangement's mix events (driven) or the state table (game), crossfading over the bar
+     if (this.driven) {
+       for (const m of seg.mix ?? []) if (m.t >= beat0 && m.t < end) this.setLevel(m.key, m.level, at(m.t), m.ramp ?? 0.02);
+     } else {
+-      const lv = this.stateLevels(seg);
++      const lv = this.stateLevels();
+       for (const k of Object.keys(lv) as GainKey[]) { const level = lv[k]; if (level !== undefined && this.targets[k] !== level) this.setLevel(k, level, t0, beats * spb); }
+     }
+     // chords → pad (and the drone just holds D)
+     for (const c of seg.chords) if (c.t >= beat0 && c.t < end) {
+-      const name = dorian ? DORIAN_OF[c.chord] : c.chord, tc = at(c.t);
++      const name = dark ? rules.dark.chords[c.chord] ?? c.chord : c.chord, tc = at(c.t);
+       const attack = Math.min(1.4, Math.max(0.05, spb * 2.2));
+       if (this.pad) this.pad.release(tc, Math.max(0.8, spb * 3.2));
+       this.pad = this.padVoice(name, tc, attack); this.lastChord = name; bar.voices.push(this.pad);
++      this.chordLog.push({ t: tc, chord: name });
+     }
+     // notes
+     const notes = seg.notes;
+@@ -377,22 +459,27 @@ class Engine {
+       if (!list) return;
+       for (const n of list) if (n.t >= beat0 && n.t < end) { const v = fn(n, at(n.t)); if (v) bar.voices.push(v); this.stats.notes++; }
+     };
+-    const pitch = (n: number) => (dorian ? dorianPitch(n) : n), gate = this.motifGate(seg);
+-    each(gate ? notes.pluck : undefined, (n, tn) => this.pluck(pitch(n.n), tn, n.d * spb, n.v ?? 0.8));
+-    each(gate ? notes.marimba : undefined, (n, tn) => this.marimba(pitch(n.n), tn, n.d * spb, n.v ?? 0.8));
+-    each(notes.bass, (n, tn) => this.bass(dorian ? this.dorianRoot(n.n, seg, n.t) : n.n, tn, n.d * spb, n.v ?? 0.8));
+-    each(notes.bell, (n, tn) => this.bell(pitch(n.n), tn, n.d * spb, n.v ?? 0.8));
++    const pitch = (n: number) => (dark ? mapPc(n, rules.dark.pcs) : n), open = this.motifGate(seg);
++    const gate = (layer: 'pluck' | 'marimba' | 'bass' | 'bell' | 'flute') => open || !rules.gated.includes(layer) ? notes[layer] : undefined;
++    each(gate('pluck'), (n, tn) => this.pluck(pitch(n.n), tn, n.d * spb, n.v ?? 0.8));
++    each(gate('marimba'), (n, tn) => this.marimba(pitch(n.n), tn, n.d * spb, n.v ?? 0.8));
++    each(gate('flute'), (n, tn) => this.flute(pitch(n.n), tn, n.d * spb, n.v ?? 0.8));
++    each(gate('bass'), (n, tn) => this.bass(dark ? this.darkBass(n.n, seg, n.t) : n.n, tn, n.d * spb, n.v ?? 0.8));
++    each(gate('bell'), (n, tn) => this.bell(pitch(n.n), tn, n.d * spb, n.v ?? 0.8));
+     each(notes.pulse, (n, tn) => {
+-      const v = this.drum(n.n, tn, n.v ?? 0.8);
++      const v = this.drum(n.n, tn, n.v ?? 0.8, undefined, n.d * spb);
+       if ((n.n === 36 && (this.targets['pulse.kick'] ?? 0) > 0.05) || (n.n === 35 && (this.targets['pulse.four'] ?? 0) > 0.05)) this.sidechain(tn);
+       return v;
+     });
+     this.bars.push(bar); this.stats.bars++;
+   }
+-  /** the bass follows the Dorian chord's root under a Lydian bar */
+-  private dorianRoot(n: number, seg: Segment, t: number): number {
+-    const c = [...seg.chords].reverse().find((x) => x.t <= t); if (!c) return n;
+-    return n - CHORD_ROOT[c.chord] + CHORD_ROOT[DORIAN_OF[c.chord]];
++  /** combat's bass: a note on its chord's root follows the darkened chord's root (E7 → Gm: E → G); any other note (a walk,
++   *  the citadel's ground) goes through the pitch-class map, so the line stays in the dark mode */
++  private darkBass(n: number, seg: Segment, t: number): number {
++    const rules = this.rules;
++    if (seg.chords.length === 0) return mapPc(n, rules.dark.pcs);
++    const c = chordAt(seg.chords, t), r = CHORD_ROOT[c], to = rules.dark.chords[c] ?? c;
++    return (((n - r) % 12) + 12) % 12 === 0 ? n - r + CHORD_ROOT[to] : mapPc(n, rules.dark.pcs);
+   }
+   private sidechain(t: number) {
+     const g = this.bassDuck.gain;
+@@ -406,6 +493,7 @@ class Engine {
+     if (first === undefined) return;
+     for (const b of this.bars.splice(i)) for (const v of b.voices) { try { v.out.disconnect(); } catch { /* gone */ } for (const s of v.srcs) { try { s.stop(now); } catch { /* not started */ } this.restop(s, now); } }
+     this.pad = first.before.pad; this.lastChord = first.before.lastChord; this.targets = { ...first.before.targets };
++    this.chordLog = this.chordLog.filter((c) => c.t < first.t0);
+     for (const k of GAIN_KEYS) { const p = this.gains[k].gain; this.hold(p, first.t0); p.setValueAtTime(this.targets[k] ?? 0, first.t0); }
+     this.bassDuck.gain.cancelScheduledValues(first.t0); this.bassDuck.gain.setValueAtTime(1, first.t0);
+     if (this.pad) this.pad.unrelease(); // a cancelled chord had released it; the rescheduled chord will again
+@@ -413,29 +501,29 @@ class Engine {
+   }
+   /** the start of the next bar after `now` (for bar-aligned stops / stings), or now if nothing is scheduled */
+   nextBarAfter(now: number): number { const b = this.bars.find((x) => x.t0 > now); return b ? b.t0 : now; }
+-  currentSpb(): number { const b = this.bars[this.bars.length - 1]; return b ? b.spb : 60 / TEMPO[this.state.mode]; }
++  currentSpb(): number { const b = this.bars[this.bars.length - 1]; return b ? b.spb : 60 / (this.state.mode === 'menu' ? 104 : this.rules.tempo[this.gameMode]); }
+   /** silence everything; the bars already scheduled stop at `t` */
+   end(t: number) {
+     if (this.pad) this.pad.release(t, 0.4);
+     for (const b of this.bars) for (const v of b.voices) { try { v.out.gain.setValueAtTime(v.out.gain.value, t); v.out.gain.linearRampToValueAtTime(0, t + 0.05); } catch { /* */ } for (const s of v.srcs) { try { s.stop(t + 0.1); } catch { /* */ } this.restop(s, t + 0.1); } }
+-    this.bars = []; this.arrangement = undefined; this.pad = undefined;
++    this.bars = []; this.arrangement = undefined; this.pad = undefined; this.chordLog = [];
+     for (const n of this.droneNodes) { try { n.stop(t + 0.1); } catch { /* */ } this.restop(n, t + 0.1); } this.droneNodes = [];
+   }
+ 
+   // ─────────────── stings (their own bus, so the death duck never swallows them) ───────────────
+   sting(name: StingName, t: number) {
+-    const spb = this.currentSpb();
+-    if (name === 'pickup') { for (const n of STING_PICKUP) this.bell(n.n, t + n.t * spb, n.d * spb, n.v ?? 0.6, this.stingBus); return; }
++    const spb = this.currentSpb(), st = this.rules.stings;
++    if (name === 'pickup') { for (const n of st.pickup) this.bell(n.n, t + n.t * spb, n.d * spb, n.v ?? 0.6, this.stingBus); return; }
+     if (name === 'chunk') {
+-      const p = this.padVoice(STING_CHUNK.chord, t, 0.03, this.stingBus); p.release(t + 0.4, 2.6);
++      const p = this.padVoice(st.chunk, t, 0.03, this.stingBus); p.release(t + 0.4, 2.6);
+       for (const n of STING_CHUNK.bell) this.bell(n.n, t + n.t * spb, n.d * spb, n.v ?? 0.6, this.stingBus);
+       this.bass(38, t, 1.4, 0.9, this.stingBus); this.drum(36, t, 0.9, this.stingBus);
+       return;
+     }
+     // death: the minor turn — Dm9 → Gm over a bar — then the sequencer ducks to silence for 6 s and comes back over a bar
+     const bar = spb * 4;
+-    const a = this.padVoice(STING_DEATH.chords[0], t, 0.05, this.stingBus); a.release(t + bar * 0.5, 1.2);
+-    const b = this.padVoice(STING_DEATH.chords[1], t + bar * 0.5, 0.08, this.stingBus); b.release(t + bar, 2.4);
++    const a = this.padVoice(st.death[0], t, 0.05, this.stingBus); a.release(t + bar * 0.5, 1.2);
++    const b = this.padVoice(st.death[1], t + bar * 0.5, 0.08, this.stingBus); b.release(t + bar, 2.4);
+     for (const n of STING_DEATH.bass) this.bass(n.n, t + n.t * spb, n.d * spb, n.v ?? 0.9, this.stingBus);
+     this.bell(62, t + bar * 0.5, 3, 0.4, this.stingBus);
+     const g = this.seq.gain;
+diff --git a/src/audio/score/wildshard-theme.ts b/src/audio/score/wildshard-theme.ts
+index bdc940e..492ebd6 100644
+--- a/src/audio/score/wildshard-theme.ts
++++ b/src/audio/score/wildshard-theme.ts
+@@ -1,23 +1,33 @@
+-// src/audio/score/wildshard-theme.ts — the Wildshard theme as data (docs/plans/MUSIC.md).
++// src/audio/score/wildshard-theme.ts — the Wildshard theme as data (docs/plans/MUSIC.md), plus the material every
++// shard's theme is built from (types, the motif, the chord table, the pattern helpers, the humaniser).
+ //
+-// One piece of material, three arrangements of it:
+-//   THEME      the in-game / title score: A intro · B theme · C build · D lift · ring-out — 32 bars at 104 that loop
+-//              bar 32 → bar 9 (segment D → segment B). Tempo/mode/mix are the engine's (src/audio/Music.ts setState).
++// One piece of material, three arrangements of it here:
++//   THEME      Pine Hollow's in-game / title score: A intro · B theme · C build · D lift · E breakdown · ring-out —
++//              40 bars at 104 that loop bar 40 → bar 9 (E → B). Tempo/mode/mix follow PINE_RULES in play.
+ //   TRAILER30  the same motif, chords and patterns re-timed so every section boundary lands on a cut of
+ //              scripts/trailer/edl-30.txt (segments carry an absolute `at` in seconds and their own bpm).
+ //   TRAILER15  intro → motif → hit, on the cuts of edl-15.txt.
++// The other shards' themes live beside this file (driftwood-theme.ts, citadel-theme.ts); ./index.ts maps chunks to them.
+ //
+ // Pitches are MIDI numbers (D4 = 62). Times are BEATS from the segment start; a segment is a run of bars at one tempo.
+-// Layers: drone · pad · pluck · marimba · bass · pulse · bell. drone and pad are derived from the chord track
+-// (the engine voices them); the other five carry explicit notes. Pulse notes use the GM drum map so the MIDI
+-// export is a drum track: 36 kick (1 & 3) · 35 four-on-the-floor kick (2 & 4) · 38 tap (2 & 4) · 42 shaker.
+-// Mix events automate the layer mixer (0..1) and two bus effects: 'lpf' (music-bus low-pass, Hz) and 'chorus' (wet 0..1).
++// Layers: drone · pad · pluck · marimba · bass · pulse · bell · flute. drone and pad are derived from the chord track
++// (the engine voices them); the other six carry explicit notes. Pulse notes use the GM drum map so the MIDI
++// export is a drum track: 36 kick (1 & 3) · 35 four-on-the-floor kick (2 & 4) · 38 tap (2 & 4) · 42 shaker · 49 swell
++// (a filtered-noise riser into a section, `d` beats long). Mix events automate the layer mixer (0..1) and two bus effects:
++// 'lpf' (music-bus low-pass, Hz) and 'chorus' (wet 0..1).
+ 
+-export type LayerId = 'drone' | 'pad' | 'pluck' | 'marimba' | 'bass' | 'pulse' | 'bell';
++export type LayerId = 'drone' | 'pad' | 'pluck' | 'marimba' | 'bass' | 'pulse' | 'bell' | 'flute';
+ /** the mixer's keys: every layer, the pulse's three sub-buses, and the two bus effects */
+ export type MixKey = LayerId | 'pulse.soft' | 'pulse.kick' | 'pulse.four' | 'lpf' | 'chorus';
+-export type Mode = 'lydian' | 'dorian';
+-export type ChordName = 'Dmaj7#11' | 'E7' | 'Bm9' | 'A' | 'Dm9' | 'Gm' | 'Am' | 'Bb';
++/** the mixer's gain keys (MixKey minus the two bus effects) */
++export type GainKey = Exclude<MixKey, 'lpf' | 'chorus'>;
++/** the in-game states a theme answers to (menu follows the arrangement's own mix events) */
++export type GameMode = 'calm' | 'alert' | 'combat';
++export type ChordName =
++  | 'Dmaj7#11' | 'E7' | 'Bm9' | 'A' | 'F#m7' | 'G#m7b5'                  // D Lydian — Pine Hollow (and the citadel's revelation)
++  | 'Dm9' | 'Gm' | 'Am' | 'Bb'                                           // the Dorian turn — combat, the death sting
++  | 'D' | 'C' | 'G' | 'Bm7' | 'Em7' | 'A7sus4' | 'D6/9' | 'Bm7b5'         // D Mixolydian — Driftwood Isle (and its Dorian)
++  | 'Em7b5' | 'Bbmaj7' | 'Gm6' | 'A7' | 'Dm7' | 'Ebmaj7';                // D Aeolian — the citadel (and its Phrygian)
+ 
+ export interface NoteEv { t: number; d: number; n: number; v?: number | undefined }
+ export interface ChordEv { t: number; chord: ChordName }
+@@ -32,18 +42,42 @@ export interface Segment {
+   chords: ChordEv[];
+   notes: Partial<Record<Exclude<LayerId, 'drone' | 'pad'>, NoteEv[]>>;
+   mix?: MixEv[];
+-  /** the sections the calm in-game state lets the motif through (docs/plans/MUSIC.md: "motif every ~40 s") */
++  /** the sections the calm / alert states let the gated (melody) layers through — "the motif every ~40 s" */
+   calmMotif?: boolean;
+ }
++/** a layer level in the state table: a number, or [at intensity 0, at intensity 1] */
++export type Level = number | [number, number];
++/** how a theme plays in the game: everything the engine used to hard-code for the one theme */
++export interface ThemeRules {
++  /** bpm per game state (menu plays the segments' own bpm) */
++  tempo: Record<GameMode, number>;
++  /** layer levels per game state; keys left out are silent (the pulse parent bus is always 1) */
++  levels: Record<GameMode, Partial<Record<GainKey, Level>>>;
++  /** the melody layers that calm / alert only let through in `calmMotif` sections */
++  gated: LayerId[];
++  /** combat's darkening: chord → chord (missing = unchanged) and pitch class → pitch class (relative to D; missing = unchanged).
++   *  A bass note on its chord's root follows the new chord's root; every other note follows the pitch-class map. */
++  dark: { chords: Partial<Record<ChordName, ChordName>>; pcs: Partial<Record<number, number>> };
++  /** the drone's two saws (MIDI) */
++  drone: [number, number];
++  /** marimba tone: 'bar' (sine + the 4th-harmonic overtone, dry) or 'pan' (1 · 2 · 3 partials, a longer ring — steel-pan colour) */
++  marimba: 'bar' | 'pan';
++  /** the shrine hum's two pitches — the motif's first interval in this theme's key (src/audio/ShrineHum.ts) */
++  hum: [number, number];
++  /** a loudness trim (dB) so every shard's theme sits at the same level in the mix */
++  trim: number;
++  stings: { pickup: NoteEv[]; chunk: ChordName; death: [ChordName, ChordName] };
++}
+ export interface Arrangement {
+   name: string;
+   segments: Segment[];
+-  /** after the last non-tail segment, continue from this segment index (the theme loops D → B) */
++  /** after the last non-tail segment, continue from this segment index (the theme loops E → B) */
+   loopTo?: number;
+   /** segments after this index only play on stop / in the offline render (the ring-out) */
+   tailFrom?: number;
+   /** the mixer follows the arrangement's own mix events (trailer + title voicing) rather than the game state */
+   driven: boolean;
++  rules: ThemeRules;
+ }
+ 
+ // ─────────────────────────────────────────── pitch material ───────────────────────────────────────────
+@@ -52,6 +86,10 @@ const D4 = 62, E4 = 64, Gs4 = 68, A4 = 69, B4 = 71;
+ export const LYDIAN = [0, 2, 4, 6, 7, 9, 11];
+ /** D Dorian: D E F G A B C — combat and the wreck */
+ export const DORIAN = [0, 2, 3, 5, 7, 9, 10];
++/** D Mixolydian: D E F# G A B C — Driftwood Isle (the lean G → A is a whole step: sunnier, folk) */
++export const MIXOLYDIAN = [0, 2, 4, 5, 7, 9, 10];
++/** D Aeolian: D E F G A Bb C — the citadel */
++export const AEOLIAN = [0, 2, 3, 5, 7, 8, 10];
+ export const ROOT = 62; // D4
+ 
+ /** the motif: `D A G# A | E D · · | D A B A | G# E D ·` — 16 beats, two of question, two of answer */
+@@ -62,27 +100,57 @@ export const MOTIF: NoteEv[] = [
+   { t: 12, d: 1, n: Gs4 }, { t: 13, d: 1, n: E4 }, { t: 14, d: 2, n: D4 },
+ ];
+ 
+-/** the pad voicings (4 voices, D3 register) */
++/**
++ * The pad voicings: the chord's root (the sine, D2–E3) under three voice-led upper voices (A3–A4). The composer pass
++ * re-voiced them so the upper three move by step through every progression (Dmaj7#11 → E7 → Bm9 → A moves 2 · 1 · 0
++ * semitones per voice instead of the old leaps of up to 6) — the pad now sings one line per voice instead of blocks.
++ */
+ export const CHORDS: Record<ChordName, number[]> = {
+-  'Dmaj7#11': [50, 57, 61, 68], // D  A  C# G#   — root · 5 · maj7 · #11
+-  'E7':       [52, 56, 59, 62], // E  G# B  D    — the Lydian II (the 7th is the mode's D, so the motif's D never clashes)
+-  'Bm9':      [47, 50, 57, 61], // B  D  A  C#
+-  'A':        [45, 52, 57, 61], // A  E  A  C#
+-  'Dm9':      [50, 53, 60, 64], // D  F  C  E
+-  'Gm':       [43, 50, 55, 58], // G  D  G  Bb
+-  'Am':       [45, 52, 57, 60], // A  E  A  C
+-  'Bb':       [46, 53, 58, 62], // Bb F  Bb D
++  'Dmaj7#11': [50, 57, 61, 68], // D | A  C# G#  — root · 5 · maj7 · #11
++  'E7':       [52, 59, 62, 68], // E | B  D  G#  — the Lydian II (the 7th is the mode's D, so the motif's D never clashes)
++  'Bm9':      [47, 57, 62, 66], // B | A  D  F#
++  'A':        [45, 57, 61, 64], // A | A  C# E
++  'F#m7':     [42, 57, 61, 64], // F#| A  C# E
++  'G#m7b5':   [44, 59, 62, 66], // G#| B  D  F#  — the Lydian #iv, the breakdown's eeriest bar
++  'Dm9':      [50, 57, 60, 65], // D | A  C  F   — the Dorian turn, voice-led: Dm9 → Gm → Am → Bb move by step too
++  'Gm':       [43, 58, 62, 67], // G | Bb D  G
++  'Am':       [45, 57, 60, 64], // A | A  C  E
++  'Bb':       [46, 58, 62, 65], // Bb| Bb D  F
++  'D':        [50, 57, 62, 66], // D | A  D  F#  — Driftwood: D – C – G – D, each voice a step from the last
++  'C':        [48, 55, 60, 64], // C | G  C  E
++  'G':        [43, 55, 59, 62], // G | G  B  D
++  'Bm7':      [47, 57, 62, 66], // B | A  D  F#
++  'Em7':      [40, 55, 59, 62], // E | G  B  D
++  'A7sus4':   [45, 55, 62, 64], // A | G  D  E
++  'D6/9':     [50, 57, 59, 64], // D | A  B  E   — the island's home chord (the chunk sting there)
++  'Bm7b5':    [47, 57, 62, 65], // B | A  D  F   — Driftwood's Dorian (combat)
++  'Em7b5':    [40, 58, 62, 67], // E | Bb D  G   — the citadel's ground, bar 3
++  'Bbmaj7':   [46, 57, 62, 65], // Bb| A  D  F
++  'Gm6':      [43, 58, 62, 64], // G | Bb D  E
++  'A7':       [45, 55, 61, 64], // A | G  C# E   — the citadel's one dominant (the ground's turnaround)
++  'Dm7':      [50, 57, 60, 65], // D | A  C  F   — the citadel's Phrygian tonic (Dm9 without the E)
++  'Ebmaj7':   [51, 58, 62, 67], // Eb| Bb D  G   — the Phrygian bII (the citadel in combat)
+ };
+-/** the Dorian turn: the four Lydian bars darkened, same bar positions */
+-export const DORIAN_OF: Record<ChordName, ChordName> = {
+-  'Dmaj7#11': 'Dm9', 'E7': 'Gm', 'Bm9': 'Am', 'A': 'Bb', 'Dm9': 'Dm9', 'Gm': 'Gm', 'Am': 'Am', 'Bb': 'Bb',
++/** the Dorian turn: the Lydian bars darkened, same bar positions (Pine Hollow's combat) */
++export const DORIAN_OF: Partial<Record<ChordName, ChordName>> = { 'Dmaj7#11': 'Dm9', 'E7': 'Gm', 'Bm9': 'Am', 'A': 'Bb', 'F#m7': 'Am', 'G#m7b5': 'Bb' };
++/** each chord's bass root (MIDI, G1–G#2) — the bass line and the Dorian root substitution read it */
++export const CHORD_ROOT: Record<ChordName, number> = {
++  'Dmaj7#11': 38, 'E7': 40, 'Bm9': 35, 'A': 33, 'F#m7': 42, 'G#m7b5': 44, 'Dm9': 38, 'Gm': 31, 'Am': 33, 'Bb': 34,
++  'D': 38, 'C': 36, 'G': 31, 'Bm7': 35, 'Em7': 40, 'A7sus4': 33, 'D6/9': 38, 'Bm7b5': 35,
++  'Em7b5': 40, 'Bbmaj7': 34, 'Gm6': 31, 'A7': 33, 'Dm7': 38, 'Ebmaj7': 39,
+ };
+-export const CHORD_ROOT: Record<ChordName, number> = { 'Dmaj7#11': 38, 'E7': 40, 'Bm9': 35, 'Am': 33, 'A': 33, 'Dm9': 38, 'Gm': 31, 'Bb': 34 };
+ 
+-/** pitch class G# → G is the only note the Dorian version changes (MUSIC.md: the melody stays, the harmony darkens) */
+-export function dorianPitch(n: number): number { return (n - ROOT) % 12 === 6 || (n - ROOT) % 12 === -6 ? n - 1 : n; }
++/** a pitch through a pitch-class map (relative to D): `modal(62 + 6, { 6: 5 })` = G */
++export function mapPc(n: number, pcs: Partial<Record<number, number>>): number {
++  const pc = (((n - ROOT) % 12) + 12) % 12, to = pcs[pc];
++  return to === undefined ? n : n + (to - pc);
++}
++/** pitch class G# → G: the one note the Dorian version of the motif changes (MUSIC.md: the melody stays, the harmony darkens) */
++export function dorianPitch(n: number): number { return mapPc(n, { 6: 5 }); }
++/** Lydian → Dorian for every line (the counter-melody and the thirds carry F# and C#, which clash with Dm9 unless they fall too) */
++export const LYDIAN_TO_DORIAN: Partial<Record<number, number>> = { 4: 3, 6: 5, 11: 10 };
+ 
+-/** the diatonic third above `n` in D Lydian (the build harmonises the motif in thirds) */
++/** the diatonic third above `n` in a D mode (the build harmonises the motif in thirds) */
+ export function thirdAbove(n: number, scale = LYDIAN): number {
+   const rel = n - ROOT, oct = Math.floor(rel / 12), pc = ((rel % 12) + 12) % 12;
+   let deg = scale.indexOf(pc); if (deg < 0) deg = scale.findIndex((s) => s > pc) - 1;
+@@ -90,89 +158,176 @@ export function thirdAbove(n: number, scale = LYDIAN): number {
+   return ROOT + o * 12 + (scale[((up % 7) + 7) % 7] ?? 0);
+ }
+ 
+-// ─────────────────────────────────────────── pattern helpers ───────────────────────────────────────────
+-const shift = (notes: NoteEv[], t0: number, rate = 1, semis = 0, v?: number): NoteEv[] =>
++// ─────────────────────────────────────────── pattern helpers (shared by every theme) ───────────────────────────────────────────
++export const shift = (notes: NoteEv[], t0: number, rate = 1, semis = 0, v?: number): NoteEv[] =>
+   notes.map((x) => ({ t: t0 + x.t / rate, d: x.d / rate, n: x.n + semis, v: v ?? x.v }));
+ /** the motif starting at beat t0; rate 2 = eighth notes (the trailer); semis 12 = up the octave (the lift) */
+-export const motif = (t0: number, rate = 1, semis = 0, v?: number): NoteEv[] => shift(MOTIF, t0, rate, semis, v);
+-/** the motif and its third, interleaved (the build) */
+-export const motifThirds = (t0: number, rate = 1, semis = 0, v = 0.8): NoteEv[] =>
+-  motif(t0, rate, semis).flatMap((x) => [x, { ...x, n: thirdAbove(x.n), v: v * 0.7 }]);
+-/** bass roots: one note per chord change, held to the next (or every `every` beats) */
+-const bassLine = (chords: ChordEv[], beats: number, every = 2, octave = 0, v = 0.9): NoteEv[] => {
++export const motif = (t0: number, rate = 1, semis = 0, v?: number, src: NoteEv[] = MOTIF): NoteEv[] => shift(src, t0, rate, semis, v);
++/** the motif and its diatonic third, interleaved (the build) */
++export const motifThirds = (t0: number, rate = 1, semis = 0, v = 0.8, src: NoteEv[] = MOTIF, scale = LYDIAN): NoteEv[] =>
++  motif(t0, rate, semis, undefined, src).flatMap((x) => [{ ...x, v: x.v ?? v }, { ...x, n: thirdAbove(x.n, scale), v: v * 0.7 }]);
++/** the chord sounding at beat t */
++export const chordAt = (chords: ChordEv[], t: number): ChordName => {
++  const c = [...chords].reverse().find((x) => x.t <= t) ?? chords[0];
++  if (c === undefined) throw new Error('chordAt: no chords');
++  return c.chord;
++};
++/** bass roots: one note every `every` beats on the sounding chord's root */
++export const bassLine = (chords: ChordEv[], beats: number, every = 2, octave = 0, v = 0.9): NoteEv[] => {
+   const out: NoteEv[] = [];
+-  for (let t = 0; t < beats; t += every) {
+-    const c = [...chords].reverse().find((x) => x.t <= t) ?? chords[0];
+-    if (c === undefined) throw new Error('bassLine: no chords');
+-    out.push({ t, d: Math.min(every, beats - t) * 0.9, n: CHORD_ROOT[c.chord] + octave, v });
+-  }
++  for (let t = 0; t < beats; t += every) out.push({ t, d: Math.min(every, beats - t) * 0.9, n: CHORD_ROOT[chordAt(chords, t)] + octave, v });
+   return out;
+ };
+-/** bass in eighths (combat / the build) */
+-const bassEighths = (chords: ChordEv[], beats: number) => bassLine(chords, beats, 0.5, 0, 0.8).map((x, i) => ({ t: x.t, n: x.n, d: 0.4, v: i % 2 ? 0.6 : 0.85 }));
++/** bass in eighths (combat / the build): the root, the offbeat lighter */
++export const bassEighths = (chords: ChordEv[], beats: number): NoteEv[] => bassLine(chords, beats, 0.5, 0, 0.8).map((x, i) => ({ t: x.t, n: x.n, d: 0.4, v: i % 2 ? 0.6 : 0.85 }));
+ /** the pulse: shaker eighths (42) · tap on 2 & 4 (38) · kick on 1 & 3 (36) · the four-on-the-floor kicks on 2 & 4 (35) */
+-const pulse = (beats: number, opts: { shaker?: boolean; tap?: boolean; kick?: boolean; four?: boolean; every?: number } = {}): NoteEv[] => {
++export const pulse = (beats: number, opts: { shaker?: boolean; tap?: boolean; kick?: boolean; four?: boolean; every?: number } = {}): NoteEv[] => {
+   const out: NoteEv[] = [], bar = opts.every ?? 4;
+   for (let t = 0; t < beats; t += 0.5) {
+     const inBar = t % bar, onBeat = Number.isInteger(t);
+-    if (opts.shaker !== false) out.push({ t, d: 0.2, n: 42, v: onBeat ? 0.55 : 0.35 });
++    // the shaker's eighths lean: the beat, the 'and' of 2 and 4 a little heavier than the other offbeats (a groove, not a grid)
++    if (opts.shaker !== false) out.push({ t, d: 0.2, n: 42, v: onBeat ? 0.55 : inBar % 2 === 1.5 ? 0.42 : 0.32 });
+     if (onBeat && inBar % 2 === 1 && opts.tap !== false) out.push({ t, d: 0.2, n: 38, v: 0.7 });
+     if (onBeat && inBar % 2 === 0 && opts.kick !== false) out.push({ t, d: 0.3, n: 36, v: 1 });
+     if (onBeat && inBar % 2 === 1 && opts.four !== false) out.push({ t, d: 0.3, n: 35, v: 0.9 });
+   }
+   return out;
+ };
++/** the drop out of a bar for a fill: every pulse note in [t0, t1) removed */
++export const without = (notes: NoteEv[], t0: number, t1: number): NoteEv[] => notes.filter((x) => x.t < t0 || x.t >= t1);
++/** a section-boundary fill: tap sixteenths from t0 for `beats`, crescendo, plus a noise swell (49) into the downbeat */
++export const fill = (t0: number, beats = 2, swell = true): NoteEv[] => {
++  const out: NoteEv[] = [];
++  for (let t = t0, i = 0, k = beats * 4; i < k; t += 0.25, i++) out.push({ t, d: 0.15, n: 38, v: 0.3 + 0.55 * (i / (k - 1)) });
++  if (swell) out.push({ t: t0 - beats, d: beats * 2, n: 49, v: 0.8 });
++  return out;
++};
+ /** the notes at one velocity */
+-const vel = (notes: NoteEv[], v: number): NoteEv[] => notes.map((x) => ({ t: x.t, d: x.d, n: x.n, v }));
+-const bars = (...names: ChordName[]): ChordEv[] => names.map((chord, i) => ({ t: i * 4, chord }));
+-const mix = (pairs: [MixKey, number, number?][], t = 0): MixEv[] => pairs.map(([key, level, ramp]) => ({ t, key, level, ramp }));
++export const vel = (notes: NoteEv[], v: number): NoteEv[] => notes.map((x) => ({ t: x.t, d: x.d, n: x.n, v }));
++export const bars = (...names: ChordName[]): ChordEv[] => names.map((chord, i) => ({ t: i * 4, chord }));
++export const mix = (pairs: [MixKey, number, number?][], t = 0): MixEv[] => pairs.map(([key, level, ramp]) => ({ t, key, level, ramp }));
++/** a note list from compact [t, d, n] (or [t, d, n, v]) tuples */
++export const line = (...xs: [number, number, number, number?][]): NoteEv[] => xs.map(([t, d, n, v]) => ({ t, d, n, v }));
+ 
+-// ─────────────────────────────────────────── THEME (the game / the title) ───────────────────────────────────────────
++/**
++ * The humaniser (the composer pass): a deterministic, seeded performance on top of the written notes.
++ *  - a phrase arc: velocity swells toward ~60 % of every `span` beats and relaxes into the cadence (question → answer)
++ *  - a downbeat accent, and a lighter touch on the offbeats
++ *  - ± `dv` velocity and ± `dt` beats of timing jitter per note (a player, not a grid) — never before the segment start
++ * Same seed → same performance, so renders are reproducible and the MIDI export carries the exact dynamics.
++ */
++export function humanise(notes: NoteEv[], seed: number, o: { dv?: number; dt?: number; span?: number; arc?: number; accent?: number } = {}): NoteEv[] {
++  const dv = o.dv ?? 0.07, dt = o.dt ?? 0.012, span = o.span ?? 16, arc = o.arc ?? 0.25, accent = o.accent ?? 0.08;
++  let s = (seed * 2654435761) >>> 0;
++  const rnd = () => { s = (s + 0x6d2b79f5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return (((t ^ (t >>> 14)) >>> 0) / 4294967296) * 2 - 1; };
++  return notes.map((x) => {
++    const p = (((x.t % span) + span) % span) / span;
++    const shape = Math.sin(Math.PI * Math.min(1, p / 0.6) * 0.5) * (p <= 0.6 ? 1 : 1 - (p - 0.6) * 0.9);
++    const beatPos = ((x.t % 4) + 4) % 4;
++    const acc = beatPos < 0.01 ? accent : Number.isInteger(beatPos) ? 0 : -accent * 0.6;
++    const v = (x.v ?? 0.8) * (1 - arc + arc * (0.55 + 0.45 * shape)) + acc + rnd() * dv;
++    return { t: Math.max(0, x.t + rnd() * dt), d: x.d, n: x.n, v: Math.min(1, Math.max(0.08, v)) };
++  });
++}
++
++// ─────────────────────────────────────────── THEME — Pine Hollow (the game / the title) ───────────────────────────────────────────
+ const BPM = 104;
+ const PHRASE: ChordName[] = ['Dmaj7#11', 'E7', 'Bm9', 'A', 'Dmaj7#11', 'E7', 'Bm9', 'Dmaj7#11'];
+ const P8 = bars(...PHRASE);
++/** the flute's counter-melody (composer pass). Over the motif's low half it sits ABOVE and falls while the motif rises;
++ *  over the high half (the marimba an octave up) it sits BELOW. It moves in half notes against the motif's quarters and
++ *  fills the motif's rests (beats 7–8, 15–16) — call and response, never unison. */
++const COUNTER_HI = line([0, 2, 78], [2, 2, 76], [4, 2, 74], [6, 1, 76], [7, 1, 80], [8, 3, 78], [11, 1, 76], [12, 2, 73], [14, 2, 76]);
++const COUNTER_LO = line([0, 2, 69], [2, 2, 66], [4, 2, 68], [6, 1, 71], [7, 1, 74], [8, 2, 66], [10, 2, 69], [12, 1, 68], [13, 3, 69]);
++/** the lift's second counter: the same line, but the cadence climbs (A B C# D) instead of settling — it hands over to the breakdown */
++const COUNTER_LO_OPEN = line([0, 2, 69], [2, 2, 66], [4, 2, 68], [6, 1, 71], [7, 1, 74], [8, 2, 66], [10, 2, 69], [12, 1, 69], [13, 1, 71], [14, 1, 73], [15, 1, 74]);
++/** the lift's second motif: the answer phrase opens upward (`D A B C# | D E F#`) instead of falling home — loop variety */
++const MOTIF_OPEN: NoteEv[] = [...MOTIF.slice(0, 6), ...line([8, 1, 62], [9, 1, 69], [10, 1, 71], [11, 1, 73], [12, 1, 74], [13, 1, 76], [14, 2, 78])];
++
+ const A: Segment = {
+   id: 'A', bpm: BPM, beats: 32,
+   chords: [{ t: 0, chord: 'Dmaj7#11' }, { t: 8, chord: 'E7' }, { t: 16, chord: 'Bm9' }, { t: 24, chord: 'A' }],
+-  notes: { bell: [{ t: 16, d: 2, n: 74, v: 0.5 }, { t: 18, d: 3, n: 81, v: 0.4 }] },
+-  mix: [...mix([['drone', 0.9, 4], ['pad', 0.8, 5], ['pluck', 1], ['marimba', 1], ['bell', 1], ['bass', 0], ['pulse.soft', 0], ['pulse.kick', 0], ['pulse.four', 0]])],
++  notes: { bell: [{ t: 16, d: 2, n: 74, v: 0.5 }, { t: 18, d: 3, n: 81, v: 0.4 }], pluck: humanise(line([30.5, 0.5, 69, 0.5], [31, 0.5, 71, 0.6], [31.5, 0.5, 73, 0.7]), 1) },
++  mix: [...mix([['drone', 0.9, 4], ['pad', 0.8, 5], ['pluck', 1], ['marimba', 1], ['bell', 1], ['flute', 0.8], ['bass', 0], ['pulse.soft', 0], ['pulse.kick', 0], ['pulse.four', 0]])],
+ };
+ const B: Segment = {
+   id: 'B', bpm: BPM, beats: 32, calmMotif: true, chords: P8,
+   notes: {
+-    pluck: motif(0, 1, 0, 0.9),
+-    marimba: motif(16, 1, 12, 0.85),
+-    bass: bassLine(P8, 32, 2),
+-    pulse: pulse(32),
++    pluck: humanise([...motif(0, 1, 0, 0.9), ...line([31, 0.5, 69, 0.55], [31.5, 0.5, 73, 0.65])], 11),
++    marimba: humanise(motif(16, 1, 12, 0.85), 12),
++    bass: humanise(bassLine(P8, 32, 2), 13, { dv: 0.04, dt: 0.006, arc: 0.15 }),
++    pulse: humanise([...without(pulse(32), 30, 32), ...fill(30, 2, false)], 14, { dv: 0.05, dt: 0.008, arc: 0.1, accent: 0 }),
+   },
+-  mix: mix([['bass', 0.55, 2.3], ['pulse.soft', 0.45, 2.3]]),
++  // every section sets its whole mix, so the loop's second pass sounds like its first (the old B inherited D's kick)
++  mix: mix([['bass', 0.55, 2.3], ['pulse.soft', 0.45, 2.3], ['pulse.kick', 0, 2.3], ['drone', 0.9, 2.3], ['pad', 0.8, 2.3], ['flute', 0.8]]),
+ };
+ const C: Segment = {
+   id: 'C', bpm: BPM, beats: 32, chords: P8,
+   notes: {
+-    pluck: motifThirds(0, 1, 0),
+-    marimba: motifThirds(16, 1, 12),
+-    bass: bassLine(P8, 32, 1),
+-    pulse: pulse(32),
++    pluck: humanise(motifThirds(0, 1, 0), 21),
++    marimba: humanise(motifThirds(16, 1, 12), 22),
++    flute: humanise([...shift(COUNTER_HI, 0, 1, 0, 0.7), ...shift(COUNTER_LO, 16, 1, 0, 0.7)], 23, { dv: 0.05, dt: 0.02, arc: 0.35 }),
++    // the bass walks up the Dmaj7#11 arpeggio into the lift (D F# A C# → D)
++    bass: humanise([...bassLine(P8, 28, 1), ...line([28, 0.9, 38, 0.85], [29, 0.9, 42, 0.8], [30, 0.9, 45, 0.85], [31, 0.9, 49, 0.95])], 24, { dv: 0.04, dt: 0.006, arc: 0.15 }),
++    pulse: humanise([...without(pulse(32), 30, 32), ...fill(30, 2), { t: 30, d: 0.3, n: 36, v: 0.9 }], 25, { dv: 0.05, dt: 0.008, arc: 0.1, accent: 0 }),
+   },
+-  mix: mix([['bass', 0.8, 2.3], ['pulse.soft', 0.7, 2.3], ['pulse.kick', 0.55, 2.3], ['pad', 0.9, 4.6]]),
++  mix: mix([['bass', 0.8, 2.3], ['pulse.soft', 0.7, 2.3], ['pulse.kick', 0.55, 2.3], ['pad', 0.9, 4.6], ['drone', 0.85, 2.3]]),
+ };
+ const D: Segment = {
+   id: 'D', bpm: BPM, beats: 32, calmMotif: true, chords: P8,
+   notes: {
+-    pluck: [...motif(0, 1, 12, 0.95), ...motif(16, 1, 12, 0.95)],
+-    marimba: [...motifThirds(0, 1, 12, 0.9), ...motifThirds(16, 1, 12, 0.9)],
+-    bass: bassEighths(P8, 32),
+-    pulse: pulse(32),
++    pluck: humanise([...motif(0, 1, 12, 0.95), ...motif(16, 1, 12, 0.95, MOTIF_OPEN)], 31, { arc: 0.3 }),
++    marimba: humanise([...motifThirds(0, 1, 12, 0.9), ...motifThirds(16, 1, 12, 0.9, MOTIF_OPEN)], 32, { arc: 0.3 }),
++    flute: humanise([...shift(COUNTER_LO, 0, 1, 0, 0.75), ...shift(COUNTER_LO_OPEN, 16, 1, 0, 0.75)], 33, { dv: 0.05, dt: 0.02, arc: 0.35 }),
++    bass: humanise(bassEighths(P8, 32), 34, { dv: 0.05, dt: 0.006, arc: 0.2 }),
++    // the lift ends by thinning out: the last bar's kick and taps drop to the shaker so the breakdown lands soft
++    pulse: humanise([...without(pulse(32), 28, 32), ...pulse(4, { kick: false, four: false, tap: false }).map((x) => ({ ...x, t: x.t + 28, v: (x.v ?? 0.5) * (1 - x.t / 5) }))], 35, { dv: 0.05, dt: 0.008, arc: 0.1, accent: 0 }),
++    bell: [{ t: 0, d: 3, n: 74, v: 0.45 }],
+   },
+   mix: mix([['bass', 1, 2.3], ['pulse.soft', 1, 2.3], ['pulse.kick', 0.9, 2.3], ['pad', 1, 2.3], ['drone', 1, 2.3]]),
+ };
++/** E — the breakdown (composer pass): new harmony (Bm9 – F#m7 – E7 – … – G#m7b5 – A), no pulse, the flute sings a stepwise
++ *  falling tune (the opposite of the motif's leaps), the pluck only remembers the first interval. Relief before the loop. */
++const E8: ChordEv[] = bars('Bm9', 'F#m7', 'E7', 'E7', 'Bm9', 'F#m7', 'G#m7b5', 'A');
++const E: Segment = {
++  id: 'E', bpm: BPM, beats: 32, calmMotif: true, chords: E8,
++  notes: {
++    flute: humanise(line([0, 4, 78, 0.7], [4, 3, 76, 0.65], [7, 1, 73, 0.6], [8, 4, 74, 0.7], [12, 2, 71, 0.6], [14, 2, 68, 0.55],
++      [16, 2, 69, 0.65], [18, 1, 71, 0.6], [19, 1, 73, 0.65], [20, 4, 73, 0.7], [24, 2, 74, 0.7], [26, 2, 78, 0.75], [28, 3, 76, 0.7], [31, 1, 73, 0.6]), 41, { dv: 0.05, dt: 0.02, span: 32, arc: 0.3 }),
++    pluck: humanise(line([0, 1, 62, 0.7], [1, 3, 69, 0.6], [16, 1, 62, 0.65], [17, 3, 69, 0.55], [30.5, 0.5, 69, 0.5], [31, 0.5, 71, 0.6], [31.5, 0.5, 73, 0.7]), 42),
++    marimba: humanise(line([8, 2, 80, 0.45], [28, 2, 85, 0.4]), 43),
++    bass: humanise(bassLine(E8, 32, 4, 0, 0.75), 44, { dv: 0.04, dt: 0.006, arc: 0.2 }),
++    // the shaker on the beat only, fading in over the last two bars, a tap fill into B
++    pulse: humanise([...pulse(24, { tap: false, kick: false, four: false }).filter((x) => Number.isInteger(x.t)).map((x) => ({ ...x, v: 0.3 })), ...fill(30, 2)], 45, { dv: 0.05, dt: 0.008, arc: 0, accent: 0 }),
++  },
++  mix: mix([['pulse.soft', 0.35, 4.6], ['pulse.kick', 0, 2.3], ['bass', 0.6, 4.6], ['pad', 0.85, 4.6], ['drone', 0.8, 4.6], ['flute', 0.85]]),
++};
+ const RING: Segment = {
+   id: 'ring', bpm: BPM, beats: 8, chords: [{ t: 0, chord: 'Dmaj7#11' }],
+   notes: { bell: [{ t: 0, d: 4, n: 74, v: 0.8 }, { t: 0, d: 4, n: 81, v: 0.5 }], bass: [{ t: 0, d: 3, n: 38, v: 0.9 }], pulse: [{ t: 0, d: 0.3, n: 36, v: 1 }] },
+-  mix: [...mix([['pulse.soft', 0, 0.2], ['pulse.kick', 0, 0.2], ['pulse.four', 0, 0.2]], 0.2), ...mix([['bass', 0, 2], ['pad', 0, 3.5], ['drone', 0, 3.5], ['pluck', 0, 1], ['marimba', 0, 1]], 1)],
++  mix: [...mix([['pulse.soft', 0, 0.2], ['pulse.kick', 0, 0.2], ['pulse.four', 0, 0.2]], 0.2), ...mix([['bass', 0, 2], ['pad', 0, 3.5], ['drone', 0, 3.5], ['pluck', 0, 1], ['marimba', 0, 1], ['flute', 0, 1]], 1)],
+ };
+-export const THEME: Arrangement = { name: 'theme', segments: [A, B, C, D, RING], loopTo: 1, tailFrom: 4, driven: false };
++
++/** the pickup sting: the first four motif notes on the bell, eighths */
++export const STING_PICKUP: NoteEv[] = MOTIF.slice(0, 4).map((x) => ({ t: x.t / 2, d: 0.9, n: x.n + 12, v: 0.6 }));
++/** the death sting: the minor turn — Dm9 then Gm — with a low D */
++export const STING_DEATH: { chords: [ChordName, ChordName]; bass: NoteEv[] } = { chords: ['Dm9', 'Gm'], bass: [{ t: 0, d: 2, n: 38, v: 0.9 }] };
++/** the chunk sting: the resolve chord — the trailer's end-card hit (the bell pair; the chord is the theme's) */
++export const STING_CHUNK: { chord: ChordName; bell: NoteEv[] } = { chord: 'Dmaj7#11', bell: [{ t: 0, d: 4, n: 74, v: 0.7 }, { t: 0, d: 4, n: 81, v: 0.4 }] };
++
++export const PINE_RULES: ThemeRules = {
++  tempo: { calm: 96, alert: 100, combat: 112 },
++  levels: {
++    calm: { drone: 0.85, pad: 0.75, pluck: 0.9, flute: 0.55, bell: 1 },
++    alert: { drone: 0.8, pad: 0.8, pluck: 0.9, flute: 0.6, bass: [0.7, 1], 'pulse.soft': [0.5, 1], bell: 1 },
++    combat: { drone: 0.75, pad: 0.85, pluck: 1, marimba: 0.35, flute: 0.45, bass: 1, 'pulse.soft': 1, 'pulse.kick': 1, 'pulse.four': [0.7, 1], bell: 1 },
++  },
++  gated: ['pluck', 'marimba', 'flute'],
++  dark: { chords: DORIAN_OF, pcs: LYDIAN_TO_DORIAN },
++  drone: [38, 50], marimba: 'bar', hum: [50, 57], trim: 0,
++  stings: { pickup: STING_PICKUP, chunk: 'Dmaj7#11', death: ['Dm9', 'Gm'] },
++};
++export const THEME: Arrangement = { name: 'theme', segments: [A, B, C, D, E, RING], loopTo: 1, tailFrom: 5, driven: false, rules: PINE_RULES };
+ 
+ // ─────────────────────────────────────────── TRAILER 30 (scripts/trailer/edl-30.txt) ───────────────────────────────────────────
+ // Cuts (cumulative): title 0 · citadel 1.5 · pine-trail 3.5 · pine-ridge 5.0 · pier 6.2 · planet 8.0 · boars 9.6 · combo 10.8 · combo 12.8
+@@ -189,9 +344,9 @@ const T30: Segment[] = [
+     notes: { bell: [{ t: 0, d: 2, n: 74, v: 0.55 }, { t: 1.733, d: 3, n: 81, v: 0.45 }] },
+     mix: mix([['pad', 0.9, 1.8]]) },
+   { id: 't30-motif', at: 3.5, bpm: bpmFor(8, 4.5), beats: 8, chords: HALF,
+-    notes: { pluck: motif(0, 2, 0, 0.9) }, mix: mix([['pad', 0.75, 2]]) },
++    notes: { pluck: humanise(motif(0, 2, 0, 0.9), 101, { span: 8, dt: 0.008 }) }, mix: mix([['pad', 0.75, 2]]) },
+   { id: 't30-pier', at: 8.0, bpm: bpmFor(8, 4.8), beats: 8, chords: HALF,
+-    notes: { marimba: motif(0, 2, 12, 0.85), bass: bassLine(HALF, 8, 1), pulse: pulse(8, { every: 2, kick: false, four: false }) },
++    notes: { marimba: humanise(motif(0, 2, 12, 0.85), 102, { span: 8, dt: 0.008 }), bass: bassLine(HALF, 8, 1), pulse: pulse(8, { every: 2, kick: false, four: false }) },
+     mix: mix([['bass', 0.8, 0.6], ['pulse.soft', 0.6, 0.6], ['pad', 0.8, 1]]) },
+   { id: 't30-combat', at: 12.8, bpm: 100, beats: 6, chords: [{ t: 0, chord: 'Dmaj7#11' }, { t: 2, chord: 'Dm9' }, { t: 4, chord: 'Gm' }],
+     notes: { bass: bassEighths([{ t: 0, chord: 'Dmaj7#11' }, { t: 2, chord: 'Dm9' }, { t: 4, chord: 'Gm' }], 6), pulse: pulse(6, { every: 2, tap: false }),
+@@ -215,7 +370,7 @@ const T30: Segment[] = [
+     mix: [...mix([['pulse.soft', 0, 0.3], ['pulse.four', 0, 0.3], ['pulse.kick', 0, 0.3], ['pluck', 0, 0.5]], 0.3),
+       ...mix([['bass', 0, 1.6], ['drone', 0, 2.6], ['pad', 0, 2.6], ['marimba', 0, 2], ['bell', 0, 2.8]], 0.5)] },
+ ];
+-export const TRAILER30: Arrangement = { name: 'trailer30', segments: T30, driven: true };
++export const TRAILER30: Arrangement = { name: 'trailer30', segments: T30, driven: true, rules: PINE_RULES };
+ 
+ // ─────────────────────────────────────────── TRAILER 15 (scripts/trailer/edl-15.txt) ───────────────────────────────────────────
+ // Cuts: title 0 · citadel 1.0 · pine-trail 2.2 · pier 3.1 · planet 4.3 · combo 5.3 · dive 6.7 · bridge 7.6 · wreck 8.6 · shrine 10.1 · hero 11.1 · end card 12.1 – 14.9.
+@@ -224,7 +379,7 @@ const T15: Segment[] = [
+     mix: [...mix([['drone', 0, 0], ['pad', 0, 0], ['pluck', 1], ['marimba', 1], ['bell', 1], ['bass', 0], ['pulse.soft', 0], ['pulse.kick', 0], ['pulse.four', 0], ['lpf', 20000], ['chorus', 0]]),
+       ...mix([['drone', 0.9, 0.9], ['pad', 0.6, 1.0]], 0.01)] },
+   { id: 't15-vision', at: 1.0, bpm: 104, beats: beatsIn(1.2, 104), chords: [], notes: { bell: [{ t: 0, d: 2, n: 74, v: 0.55 }, { t: 1.2, d: 3, n: 81, v: 0.45 }] }, mix: mix([['pad', 0.9, 1.1]]) },
+-  { id: 't15-motif', at: 2.2, bpm: bpmFor(8, 4.5), beats: 8, chords: HALF, notes: { pluck: motif(0, 2, 0, 0.9) }, mix: mix([['pad', 0.75, 2]]) },
++  { id: 't15-motif', at: 2.2, bpm: bpmFor(8, 4.5), beats: 8, chords: HALF, notes: { pluck: humanise(motif(0, 2, 0, 0.9), 151, { span: 8, dt: 0.008 }) }, mix: mix([['pad', 0.75, 2]]) },
+   { id: 't15-drive', at: 6.7, bpm: 100, beats: 9, chords: [...HALF, { t: 8, chord: 'A' }],
+     notes: { pluck: motifThirds(0, 2, 0, 0.9), marimba: [...motifThirds(0, 2, 12, 0.75), { t: 8, d: 0.5, n: 81, v: 0.8 }, { t: 8.5, d: 0.5, n: 83, v: 0.85 }], bass: bassEighths([...HALF, { t: 8, chord: 'A' }], 9), pulse: pulse(9, { every: 2, tap: false }) },
+     mix: mix([['bass', 1, 0.3], ['pulse.soft', 0.8, 0.3], ['pulse.kick', 1, 0.05], ['pulse.four', 1, 0.05], ['pad', 0.9, 2]]) },
+@@ -233,14 +388,4 @@ const T15: Segment[] = [
+     mix: [...mix([['pulse.soft', 0, 0.3], ['pulse.four', 0, 0.3], ['pulse.kick', 0, 0.3], ['pluck', 0, 0.5]], 0.3),
+       ...mix([['bass', 0, 1.2], ['drone', 0, 1.9], ['pad', 0, 1.9], ['marimba', 0, 1.5], ['bell', 0, 2.0]], 0.5)] },
+ ];
+-export const TRAILER15: Arrangement = { name: 'trailer15', segments: T15, driven: true };
+-
+-export const ARRANGEMENTS = { theme: THEME, trailer30: TRAILER30, trailer15: TRAILER15 } as const;
+-export type ArrangementName = keyof typeof ARRANGEMENTS;
+-
+-/** the pickup sting: the first four motif notes on the bell, eighths */
+-export const STING_PICKUP: NoteEv[] = MOTIF.slice(0, 4).map((x) => ({ t: x.t / 2, d: 0.9, n: x.n + 12, v: 0.6 }));
+-/** the death sting: the minor turn — Dm9 then Gm — with a low D */
+-export const STING_DEATH: { chords: [ChordName, ChordName]; bass: NoteEv[] } = { chords: ['Dm9', 'Gm'], bass: [{ t: 0, d: 2, n: 38, v: 0.9 }] };
+-/** the chunk sting: the resolve chord — the trailer's end-card hit */
+-export const STING_CHUNK: { chord: ChordName; bell: NoteEv[] } = { chord: 'Dmaj7#11', bell: [{ t: 0, d: 4, n: 74, v: 0.7 }, { t: 0, d: 4, n: 81, v: 0.4 }] };
++export const TRAILER15: Arrangement = { name: 'trailer15', segments: T15, driven: true, rules: PINE_RULES };
+diff --git a/src/audio/score/citadel-theme.ts b/src/audio/score/citadel-theme.ts
+new file mode 100644
+index 0000000..44a4e60
+--- /dev/null
++++ b/src/audio/score/citadel-theme.ts
+@@ -0,0 +1,100 @@
++// src/audio/score/citadel-theme.ts — the centre chunk's theme, "The Citadel" (docs/plans/MUSIC.md → "Per-shard themes").
++// The citadel isn't built yet: this score is ready for the day it is (add its slug to CHUNK_SCORE in ./index.ts) and is
++// playable now on dev/music.html ("play citadel").
++//
++// Where every shard's road ends. The motif becomes a GROUND: augmented to half notes in the bass (a passacaglia — 8 bars
++// of `D A G A | E D — | D A Bb A | G E D`) in D Aeolian, under Dm9 – Gm – Em7b5 – Bb/D | Dm9 – Bbmaj7 – Gm6 – Dm9 A7.
++//   · 76 bpm on the title, 72 calm — processional, the slowest of the three.
++//   · the drone is an open fifth (D + A), the bell tolls the first interval, the flute plays low and long like a horn call.
++//   · C sets the motif at its own speed ON the ground at half speed (augmentation — the tune against itself): the marimba
++//     states it over bars 1–4, the pluck over 5–8.
++//   · D is the revelation: the key turns to D Lydian and the Pine Hollow progression, and the motif returns in its
++//     original form, an octave up — the first shard's music heard from the centre. Then the ground again.
++// Combat: Aeolian → Phrygian (E falls to Eb; the Lydian revelation falls with it: F# G# B C# → F G Bb C).
++import {
++  bars, bassLine, fill, humanise, line, mix, motif, motifThirds, pulse, shift, without,
++  mapPc, MOTIF, STING_PICKUP,
++  type Arrangement, type ChordEv, type NoteEv, type Segment, type ThemeRules,
++} from './wildshard-theme';
++
++const BPM = 76;
++/** the motif in D Aeolian (G# → G, B → Bb): the citadel's darker mirror of the theme */
++export const CITADEL_MOTIF: NoteEv[] = MOTIF.map((x) => ({ ...x, n: mapPc(x.n, { 6: 5, 9: 8 }) }));
++/** the ground: CITADEL_MOTIF augmented ×2, two octaves down (D2), its last D shortened for the A pickup of the turnaround */
++const GROUND: NoteEv[] = [...shift(CITADEL_MOTIF, 0, 0.5, -24, 0.85).map((x) => (x.t === 28 ? { ...x, d: 2 } : x)), { t: 30, d: 2, n: 33, v: 0.8 }];
++const G8: ChordEv[] = [...bars('Dm9', 'Gm', 'Em7b5', 'Bb', 'Dm9', 'Bbmaj7', 'Gm6', 'Dm9'), { t: 30, chord: 'A7' }];
++/** the call: the flute low and long — the first interval, then a line that climbs over the ground and falls to the leading tone */
++const CALL = line([0, 6, 69, 0.6], [6, 2, 74, 0.65], [8, 4, 70, 0.6], [12, 4, 69, 0.55], [16, 4, 72, 0.65], [20, 4, 77, 0.75], [24, 4, 76, 0.7], [28, 2, 74, 0.65], [30, 2, 73, 0.6]);
++/** C's call: under the marimba's motif for bars 1–4 (F G A G F — a slow neighbour figure), over the pluck's for bars 5–8 */
++const CALL2 = line([0, 4, 65, 0.6], [4, 2, 67, 0.6], [6, 2, 69, 0.65], [8, 4, 67, 0.6], [12, 4, 65, 0.55], [16, 6, 81, 0.75], [22, 2, 77, 0.6], [24, 4, 76, 0.65], [28, 2, 74, 0.6], [30, 2, 73, 0.6]);
++/** a processional: a kick on 1 and 3's 'and' half-time, a tap on 3, the shaker in quarters; the combat four on 2 and 4 */
++const processional = (beats: number): NoteEv[] => pulse(beats, { shaker: true, tap: false, kick: false, four: false }).filter((x) => Number.isInteger(x.t)).map((x) => ({ ...x, v: 0.3 }))
++  .concat(Array.from({ length: Math.ceil(beats / 4) }, (_, i) => [{ t: i * 4, d: 0.3, n: 36, v: 1 }, { t: i * 4 + 2, d: 0.2, n: 38, v: 0.6 }, { t: i * 4 + 1, d: 0.3, n: 35, v: 0.85 }, { t: i * 4 + 3, d: 0.3, n: 35, v: 0.85 }]).flat());
++const LYD8 = bars('Dmaj7#11', 'E7', 'Bm9', 'A', 'Dmaj7#11', 'E7', 'Bm9', 'Dmaj7#11');
++
++const A: Segment = {
++  id: 'cA', bpm: BPM, beats: 16, chords: [{ t: 0, chord: 'Dm9' }, { t: 8, chord: 'Gm6' }, { t: 12, chord: 'A7' }],
++  notes: {
++    // the bell tolls the first interval, twice, the second time answered by the low D
++    bell: humanise(line([0, 4, 74, 0.5], [2, 6, 81, 0.4], [8, 4, 74, 0.45], [10, 4, 81, 0.35], [10.02, 4, 62, 0.3]), 301, { dt: 0.005 }),
++    pulse: [{ t: 12, d: 4, n: 49, v: 0.6 }],
++  },
++  mix: mix([['drone', 1, 6], ['pad', 0.7, 8], ['bell', 1], ['flute', 0.8], ['marimba', 0.8], ['pluck', 0.9], ['bass', 0.8], ['pulse.soft', 0.35], ['pulse.kick', 0], ['pulse.four', 0]]),
++};
++const B: Segment = {
++  id: 'cB', bpm: BPM, beats: 32, chords: G8,
++  notes: {
++    bass: humanise(GROUND, 311, { dv: 0.04, dt: 0.004, span: 32, arc: 0.2 }),
++    flute: humanise(CALL, 312, { dv: 0.05, dt: 0.02, span: 32, arc: 0.3 }),
++    bell: humanise(line([0, 4, 74, 0.35], [16, 4, 74, 0.3], [8, 3, 69, 0.25], [24, 3, 69, 0.25]), 313, { dt: 0.005 }),
++    pulse: humanise([...without(processional(32), 30, 32), ...fill(30, 2, false)], 314, { dv: 0.04, dt: 0.004, arc: 0, accent: 0 }),
++  },
++  mix: mix([['pulse.soft', 0.45, 3], ['pulse.kick', 0.35, 3], ['pad', 0.75, 3], ['drone', 0.9, 3], ['bass', 0.85, 3]]),
++};
++const C: Segment = {
++  id: 'cC', bpm: BPM, beats: 32, calmMotif: true, chords: G8,
++  notes: {
++    bass: humanise(GROUND, 321, { dv: 0.04, dt: 0.004, span: 32, arc: 0.2 }),
++    marimba: humanise(motif(0, 1, 12, 0.8, CITADEL_MOTIF), 322, { arc: 0.3 }),
++    pluck: humanise(motif(16, 1, 0, 0.85, CITADEL_MOTIF), 323, { arc: 0.3 }),
++    flute: humanise(shift(CALL2, 0, 1, 0, 0.6), 324, { dv: 0.05, dt: 0.02, span: 32, arc: 0.3 }),
++    pulse: humanise([...without(processional(32), 28, 32), ...fill(28, 4)], 325, { dv: 0.04, dt: 0.004, arc: 0, accent: 0 }),
++  },
++  mix: mix([['pulse.soft', 0.55, 3], ['pulse.kick', 0.45, 3], ['pad', 0.8, 3], ['drone', 0.95, 3]]),
++};
++/** D — the revelation: D Lydian, the Pine Hollow phrase, the motif in its first form an octave up, the bell on the downbeat */
++const D: Segment = {
++  id: 'cD', bpm: BPM, beats: 32, calmMotif: true, chords: LYD8,
++  notes: {
++    pluck: humanise([...motif(0, 1, 12, 0.9), ...motif(16, 1, 12, 0.9)], 331, { arc: 0.3 }),
++    marimba: humanise(motifThirds(16, 1, 12, 0.75), 332, { arc: 0.3 }),
++    flute: humanise(line([0, 4, 69, 0.6], [4, 4, 71, 0.6], [8, 8, 73, 0.65], [16, 4, 69, 0.65], [20, 4, 68, 0.65], [24, 4, 66, 0.6], [28, 4, 69, 0.65]), 333, { dv: 0.05, dt: 0.02, span: 32, arc: 0.3 }),
++    bass: humanise(bassLine(LYD8, 32, 2), 334, { dv: 0.04, dt: 0.004, arc: 0.2 }),
++    bell: [{ t: 0, d: 4, n: 74, v: 0.55 }, { t: 0, d: 4, n: 81, v: 0.35 }],
++    pulse: humanise([...without(processional(32), 30, 32), ...fill(30, 2)], 335, { dv: 0.04, dt: 0.004, arc: 0, accent: 0 }),
++  },
++  mix: mix([['pulse.soft', 0.6, 3], ['pulse.kick', 0.5, 3], ['pad', 0.9, 3], ['drone', 1, 3]]),
++};
++const RING: Segment = {
++  id: 'cring', bpm: BPM, beats: 8, chords: [{ t: 0, chord: 'Dm9' }],
++  notes: { bell: [{ t: 0, d: 4, n: 74, v: 0.8 }, { t: 0, d: 4, n: 81, v: 0.5 }, { t: 0.02, d: 4, n: 62, v: 0.35 }], bass: [{ t: 0, d: 3, n: 38, v: 0.9 }], pulse: [{ t: 0, d: 0.3, n: 36, v: 1 }] },
++  mix: [...mix([['pulse.soft', 0, 0.2], ['pulse.kick', 0, 0.2], ['pulse.four', 0, 0.2]], 0.2), ...mix([['bass', 0, 2], ['pad', 0, 3.5], ['drone', 0, 3.5], ['pluck', 0, 1], ['marimba', 0, 1], ['flute', 0, 1]], 1)],
++};
++
++export const CITADEL_RULES: ThemeRules = {
++  tempo: { calm: 72, alert: 80, combat: 100 },
++  levels: {
++    // the ground is the piece: the bass plays in every state (not gated), the melody layers only in C and D when calm
++    calm: { drone: 0.95, pad: 0.75, bass: 0.8, flute: 0.6, marimba: 0.75, pluck: 0.85, bell: 1 },
++    alert: { drone: 0.9, pad: 0.8, bass: 0.9, flute: 0.6, marimba: 0.75, pluck: 0.85, 'pulse.soft': [0.4, 0.8], 'pulse.kick': [0.3, 0.6], bell: 1 },
++    combat: { drone: 0.85, pad: 0.85, bass: 1, flute: 0.45, marimba: 0.9, pluck: 1, 'pulse.soft': 1, 'pulse.kick': 1, 'pulse.four': [0.6, 1], bell: 1 },
++  },
++  gated: ['flute', 'marimba', 'pluck'],
++  dark: {
++    chords: { 'Dm9': 'Dm7', 'Em7b5': 'Ebmaj7', 'Gm6': 'Gm', 'A7': 'Bb', 'Dmaj7#11': 'Dm7', 'E7': 'Ebmaj7', 'Bm9': 'Bbmaj7', 'A': 'Bb' },
++    pcs: { 2: 1, 4: 3, 6: 5, 9: 8, 11: 10 },
++  },
++  drone: [38, 45], marimba: 'bar', hum: [50, 57], trim: 0,
++  stings: { pickup: STING_PICKUP.map((x) => ({ ...x, n: mapPc(x.n, { 6: 5 }) })), chunk: 'Dm9', death: ['Dm9', 'Gm'] },
++};
++export const CITADEL: Arrangement = { name: 'citadel', segments: [A, B, C, D, RING], loopTo: 1, tailFrom: 4, driven: false, rules: CITADEL_RULES };
+diff --git a/src/audio/score/driftwood-theme.ts b/src/audio/score/driftwood-theme.ts
+new file mode 100644
+index 0000000..1d5daa1
+--- /dev/null
++++ b/src/audio/score/driftwood-theme.ts
+@@ -0,0 +1,163 @@
++// src/audio/score/driftwood-theme.ts — Driftwood Isle's theme, "Driftwood Tide" (docs/plans/MUSIC.md → "Per-shard themes").
++//
++// The Wildshard motif gone to sea. Same contour, same pitches bar for bar, so it is recognisably the theme — but:
++//   · D Mixolydian instead of Lydian: the lean G# → A becomes G → A (a whole step — sunnier, a folk / shanty colour),
++//     and the harmony is the island's I – bVII – IV – I (D – C – G – D | Bm7 – Em7 – G – A7sus4).
++//   · re-timed 3 + 3 + 2: the motif's first two notes are dotted (the tresillo lilt of calypso and a boat on a swell).
++//   · 92 bpm on the title, 88 calm (slower than Pine Hollow's 96 — the island breathes slower).
++//   · the palette turns over: the flute carries the motif, the marimba plays in its 'pan' tone (1 · 2 · 3 partials, a
++//     longer ring) as a steel pan with rolls on the long notes, the pluck is a ukulele skank on 2 and 4, the bass walks the
++//     tresillo, the drone is an open fifth (D + A — the horizon), low, because the surf bed carries the floor.
++// Form: A intro (4 bars) · B the motif on the flute, the pan answers (8) · C the pan in thirds, the flute's counter (8)
++// · D "the swell": Bm7 – G – D – A7sus4, the first interval called and answered (8) · B2 the pluck takes the motif (8)
++// · ring-out. Loops B2 → B (32 bars ≈ 87 s at 88).
++import {
++  bars, CHORD_ROOT, chordAt, fill, humanise, line, mix, MIXOLYDIAN, motif, motifThirds, shift, without,
++  type Arrangement, type ChordEv, type ChordName, type NoteEv, type Segment, type ThemeRules,
++} from './wildshard-theme';
++
++const BPM = 92;
++/** the motif in D Mixolydian, 3 + 3 + 2: `D. A. G A | E D — | D. A. B A | G E D` */
++export const ISLAND_MOTIF: NoteEv[] = line(
++  [0, 1.5, 62], [1.5, 1.5, 69], [3, 0.5, 67], [3.5, 0.5, 69],
++  [4, 1, 64], [5, 3, 62],
++  [8, 1.5, 62], [9.5, 1.5, 69], [11, 0.5, 71], [11.5, 0.5, 69],
++  [12, 1, 67], [13, 1, 64], [14, 2, 62],
++);
++const PHRASE: ChordName[] = ['D', 'C', 'G', 'D', 'Bm7', 'Em7', 'G', 'A7sus4'];
++const P8 = bars(...PHRASE);
++
++/** a steel-pan roll: a long note becomes repeated strikes every `every` beats, the first accented, the rest even and lighter */
++const roll = (notes: NoteEv[], min = 1.5, every = 1 / 3): NoteEv[] => notes.flatMap((x) => {
++  if (x.d < min) return [x];
++  const out: NoteEv[] = [];
++  for (let t = 0, i = 0; t < x.d - 0.05; t += every, i++) out.push({ t: x.t + t, d: every, n: x.n, v: (x.v ?? 0.8) * (i === 0 ? 1 : 0.62) });
++  return out;
++});
++/** the bass tresillo: root on 1, root on the 'and' of 2, the fifth on 4 */
++const tresilloBass = (chords: ChordEv[], beats: number, v = 0.85): NoteEv[] => {
++  const out: NoteEv[] = [];
++  for (let b = 0; b < beats; b += 4) {
++    const r = CHORD_ROOT[chordAt(chords, b)];
++    out.push({ t: b, d: 1.3, n: r, v }, { t: b + 1.5, d: 1.3, n: r, v: v * 0.8 }, { t: b + 3, d: 0.8, n: r + 7, v: v * 0.75 });
++  }
++  return out;
++};
++/** the ukulele skank: the chord's upper voices (an octave up) strummed on 2 and 4, a ghost on the 'and' of 3 */
++const skank = (chords: ChordEv[], beats: number, v = 0.5): NoteEv[] => {
++  const out: NoteEv[] = [];
++  const up: Partial<Record<ChordName, number[]>> = { D: [66, 69, 74], C: [64, 67, 72], G: [62, 67, 71], Bm7: [66, 69, 74], Em7: [64, 67, 71], A7sus4: [64, 67, 74], 'D6/9': [64, 69, 71] };
++  for (let b = 0; b < beats; b += 4) {
++    const tones = up[chordAt(chords, b)] ?? [66, 69, 74];
++    for (const [t, vv] of [[1, v], [3, v], [2.5, v * 0.45]] as [number, number][]) tones.forEach((n, i) => out.push({ t: b + t + i * 0.03, d: 0.35, n, v: vv * (1 - i * 0.12) }));
++  }
++  return out;
++};
++/** the island groove: swung shaker eighths (the offbeat late by a sixth of a beat), a rim tap on 2 & 4, a kick on 1 and the
++ *  'and' of 2 (the tresillo again), and the combat four-on-the-floor on 2, 3 and 4 */
++const groove = (beats: number): NoteEv[] => {
++  const out: NoteEv[] = [];
++  for (let b = 0; b < beats; b += 4) {
++    for (let i = 0; i < 8; i++) out.push({ t: b + i * 0.5 + (i % 2 ? 0.08 : 0), d: 0.2, n: 42, v: i % 2 ? 0.3 : i % 4 === 0 ? 0.5 : 0.42 });
++    out.push({ t: b + 1, d: 0.2, n: 38, v: 0.6 }, { t: b + 3, d: 0.2, n: 38, v: 0.65 });
++    out.push({ t: b, d: 0.3, n: 36, v: 1 }, { t: b + 1.5, d: 0.3, n: 36, v: 0.7 });
++    out.push({ t: b + 1, d: 0.3, n: 35, v: 0.85 }, { t: b + 2, d: 0.3, n: 35, v: 0.8 }, { t: b + 3, d: 0.3, n: 35, v: 0.85 });
++  }
++  return out;
++};
++/** the flute's counter under / over the pan: long notes, contrary motion, filling the motif's held D (beats 5–8) */
++const COUNTER = line([0, 2, 66], [2, 2, 67], [4, 1, 67], [5, 1, 69], [6, 1, 71], [7, 1, 72], [8, 3, 71], [11, 1, 69], [12, 2, 67], [14, 2, 66],
++  [16, 2, 66], [18, 2, 69], [20, 2, 67], [22, 2, 71], [24, 2, 71], [26, 2, 74], [28, 2, 72], [30, 2, 69]);
++
++const A: Segment = {
++  id: 'iA', bpm: BPM, beats: 16, chords: bars('D6/9', 'C', 'G', 'D6/9'),
++  notes: {
++    // the first interval, rolled on the pan, answered an octave down: D → A (the shrine's hum, the sea's call)
++    marimba: humanise(roll(line([0, 3, 74, 0.6], [4, 4, 81, 0.55], [9, 2, 69, 0.45], [12, 4, 74, 0.5])), 201, { span: 16, dt: 0.01 }),
++    bell: [{ t: 12, d: 3, n: 86, v: 0.25 }],
++    pulse: [{ t: 12, d: 4, n: 49, v: 0.5 }],
++  },
++  mix: mix([['drone', 0.6, 5], ['pad', 0.6, 6], ['marimba', 0.9], ['flute', 0.85], ['pluck', 0.7], ['bell', 1], ['bass', 0], ['pulse.soft', 0.4], ['pulse.kick', 0], ['pulse.four', 0]]),
++};
++const B: Segment = {
++  id: 'iB', bpm: BPM, beats: 32, calmMotif: true, chords: P8,
++  notes: {
++    flute: humanise(motif(0, 1, 12, 0.8, ISLAND_MOTIF), 211, { arc: 0.3, dt: 0.02 }),
++    marimba: humanise(roll(motif(16, 1, 12, 0.8, ISLAND_MOTIF)), 212, { dt: 0.01 }),
++    pluck: humanise(skank(P8, 32), 213, { dv: 0.05, dt: 0.008, arc: 0.1, accent: 0 }),
++    bass: humanise(tresilloBass(P8, 32), 214, { dv: 0.05, dt: 0.006, arc: 0.15 }),
++    pulse: humanise([...without(groove(32), 30, 32), ...fill(30, 2, false)], 215, { dv: 0.05, dt: 0.006, arc: 0.1, accent: 0 }),
++  },
++  mix: mix([['bass', 0.7, 2.6], ['pulse.soft', 0.55, 2.6], ['pulse.kick', 0.45, 2.6], ['pluck', 0.55, 2.6], ['drone', 0.5, 2.6], ['pad', 0.55, 2.6]]),
++};
++const C: Segment = {
++  id: 'iC', bpm: BPM, beats: 32, chords: P8,
++  notes: {
++    // the pan plays the motif in diatonic thirds (the double stops of a steel band), the flute answers underneath
++    marimba: humanise(roll(motifThirds(0, 1, 12, 0.8, ISLAND_MOTIF, MIXOLYDIAN), 1.5), 221, { dt: 0.01 }),
++    flute: humanise([...shift(COUNTER.slice(0, 10), 0, 1, 0, 0.7), ...motif(16, 1, 12, 0.8, ISLAND_MOTIF)], 222, { arc: 0.35, dt: 0.02 }),
++    pluck: humanise(skank(P8, 32, 0.55), 223, { dv: 0.05, dt: 0.008, arc: 0.1, accent: 0 }),
++    bass: humanise([...tresilloBass(P8, 28), ...line([28, 0.9, 33, 0.85], [29, 0.9, 36, 0.8], [30, 0.9, 37, 0.85], [31, 0.9, 38, 0.9])], 224, { dv: 0.05, dt: 0.006, arc: 0.15 }),
++    pulse: humanise([...without(groove(32), 30, 32), ...fill(30, 2)], 225, { dv: 0.05, dt: 0.006, arc: 0.1, accent: 0 }),
++  },
++  mix: mix([['bass', 0.85, 2.6], ['pulse.soft', 0.7, 2.6], ['pulse.kick', 0.6, 2.6], ['pad', 0.65, 2.6], ['drone', 0.55, 2.6]]),
++};
++/** D — the swell: the relative minor's ground, the first interval (D → A) called by the flute and answered falling (A → D)
++ *  by the pan, a bar apart; half-time pulse, the bass in half notes. The motif's head without its tail — anticipation. */
++const D8 = bars('Bm7', 'G', 'D', 'A7sus4', 'Bm7', 'G', 'Em7', 'A7sus4');
++const D: Segment = {
++  id: 'iD', bpm: BPM, beats: 32, calmMotif: true, chords: D8,
++  notes: {
++    flute: humanise(line([0, 1.5, 74, 0.75], [1.5, 2.5, 81, 0.8], [8, 1.5, 74, 0.75], [9.5, 2.5, 81, 0.8], [12, 4, 79, 0.7],
++      [16, 1.5, 74, 0.8], [17.5, 2.5, 83, 0.85], [24, 1.5, 79, 0.75], [25.5, 1.5, 76, 0.7], [27, 1, 74, 0.65], [28, 4, 76, 0.7]), 231, { span: 32, arc: 0.35, dt: 0.02 }),
++    marimba: humanise(roll(line([4, 1.5, 81, 0.7], [5.5, 2.5, 74, 0.65], [20, 1.5, 83, 0.7], [21.5, 2.5, 78, 0.65], [30, 0.5, 76, 0.5], [30.5, 0.5, 78, 0.55], [31, 1, 81, 0.6]), 2), 232, { dt: 0.01 }),
++    bass: humanise(tresilloBass(D8, 32, 0.7).filter((x) => x.t % 4 !== 1.5), 233, { dv: 0.05, dt: 0.006, arc: 0.2 }),
++    pluck: humanise(skank(D8, 32, 0.4).filter((x) => x.t % 4 < 2.9 || x.t % 4 > 3.2), 234, { dv: 0.05, dt: 0.008, arc: 0.1, accent: 0 }),
++    // half time: the kick on 1, the tap on 3, the shaker in quarters; a fill back into the tide
++    pulse: humanise([...halfTime(30), ...fill(30, 2)], 235, { dv: 0.05, dt: 0.006, arc: 0.1, accent: 0 }),
++    bell: [{ t: 0, d: 3, n: 86, v: 0.3 }, { t: 16, d: 3, n: 88, v: 0.25 }],
++  },
++  mix: mix([['bass', 0.75, 2.6], ['pulse.soft', 0.5, 2.6], ['pulse.kick', 0.5, 2.6], ['pad', 0.7, 2.6], ['drone', 0.6, 2.6]]),
++};
++function halfTime(beats: number): NoteEv[] {
++  const out: NoteEv[] = [];
++  for (let b = 0; b < beats; b++) {
++    out.push({ t: b, d: 0.2, n: 42, v: b % 2 ? 0.28 : 0.4 });
++    if (b % 4 === 0) out.push({ t: b, d: 0.3, n: 36, v: 0.95 });
++    if (b % 4 === 2) out.push({ t: b, d: 0.2, n: 38, v: 0.65 });
++    if (b % 2 === 1) out.push({ t: b, d: 0.3, n: 35, v: 0.8 });
++  }
++  return out;
++}
++/** B2 — the pluck (Pine Hollow's instrument) visits: it takes the motif low, the flute floats the counter above, the pan skanks */
++const B2: Segment = {
++  id: 'iB2', bpm: BPM, beats: 32, chords: P8,
++  notes: {
++    pluck: humanise([...motif(0, 1, 0, 0.9, ISLAND_MOTIF), ...motif(16, 1, 0, 0.85, ISLAND_MOTIF)], 241, { arc: 0.3, dt: 0.01 }),
++    flute: humanise(shift(COUNTER, 0, 1, 12, 0.6), 242, { arc: 0.35, dt: 0.02, span: 32 }),
++    marimba: humanise(skank(P8, 32, 0.4).map((x) => ({ ...x, n: x.n + 12 })).filter((_, i) => i % 3 === 0), 243, { dv: 0.05, dt: 0.008, arc: 0.1, accent: 0 }),
++    bass: humanise(tresilloBass(P8, 32), 244, { dv: 0.05, dt: 0.006, arc: 0.15 }),
++    pulse: humanise([...without(groove(32), 30, 32), ...fill(30, 2)], 245, { dv: 0.05, dt: 0.006, arc: 0.1, accent: 0 }),
++  },
++  mix: mix([['bass', 0.8, 2.6], ['pulse.soft', 0.6, 2.6], ['pulse.kick', 0.5, 2.6], ['pad', 0.6, 2.6], ['drone', 0.5, 2.6]]),
++};
++const RING: Segment = {
++  id: 'iring', bpm: BPM, beats: 8, chords: [{ t: 0, chord: 'D6/9' }],
++  notes: { bell: [{ t: 0, d: 4, n: 74, v: 0.7 }, { t: 0, d: 4, n: 81, v: 0.45 }], marimba: roll(line([0, 3, 86, 0.5])), bass: [{ t: 0, d: 3, n: 38, v: 0.9 }], pulse: [{ t: 0, d: 0.3, n: 36, v: 1 }] },
++  mix: [...mix([['pulse.soft', 0, 0.2], ['pulse.kick', 0, 0.2], ['pulse.four', 0, 0.2]], 0.2), ...mix([['bass', 0, 2], ['pad', 0, 3.5], ['drone', 0, 3.5], ['pluck', 0, 1], ['flute', 0, 1], ['marimba', 0, 3]], 1)],
++};
++
++export const ISLAND_RULES: ThemeRules = {
++  tempo: { calm: 88, alert: 94, combat: 108 },
++  levels: {
++    calm: { drone: 0.5, pad: 0.6, marimba: 0.85, flute: 0.75, pluck: 0.4, bell: 1 },
++    alert: { drone: 0.55, pad: 0.65, marimba: 0.85, flute: 0.7, pluck: 0.6, bass: [0.6, 0.9], 'pulse.soft': [0.45, 0.8], bell: 1 },
++    combat: { drone: 0.6, pad: 0.75, marimba: 1, flute: 0.5, pluck: 0.8, bass: 1, 'pulse.soft': 1, 'pulse.kick': 1, 'pulse.four': [0.6, 1], bell: 1 },
++  },
++  gated: ['marimba', 'flute', 'pluck'],
++  // Mixolydian → Dorian: only F# falls (the tonic turns minor); G, C, Em7 are already Dorian
++  dark: { chords: { 'D': 'Dm9', 'D6/9': 'Dm9', 'Bm7': 'Bm7b5' }, pcs: { 4: 3 } },
++  drone: [38, 45], marimba: 'pan', hum: [50, 57], trim: 0,
++  stings: { pickup: ISLAND_MOTIF.slice(0, 4).map((x) => ({ t: x.t / 2, d: 0.9, n: x.n + 12, v: 0.6 })), chunk: 'D6/9', death: ['Dm9', 'Gm'] },
++};
++export const ISLAND: Arrangement = { name: 'island', segments: [A, B, C, D, B2, RING], loopTo: 1, tailFrom: 5, driven: false, rules: ISLAND_RULES };
+diff --git a/src/audio/score/index.ts b/src/audio/score/index.ts
+new file mode 100644
+index 0000000..0d2cdda
+--- /dev/null
++++ b/src/audio/score/index.ts
+@@ -0,0 +1,24 @@
++// src/audio/score/index.ts — every arrangement the engine can play, and which shard plays which (docs/plans/MUSIC.md).
++//
++//   ARRANGEMENTS.theme      Pine Hollow — the Wildshard theme (D Lydian, 104 / 96 bpm)          wildshard-theme.ts
++//   ARRANGEMENTS.island     Driftwood Isle — "Driftwood Tide" (D Mixolydian, 3+3+2, 92 / 88)    driftwood-theme.ts
++//   ARRANGEMENTS.citadel    the centre chunk — "The Citadel" (D Aeolian ground → Lydian, 76 / 72) citadel-theme.ts
++//   ARRANGEMENTS.trailer30 / trailer15   the trailer cuts of the Pine Hollow theme
++//
++//   scoreForChunk('driftwood-isle')  → 'island'   (a chunk not in CHUNK_SCORE gets the main theme)
++import { THEME, TRAILER15, TRAILER30, type Arrangement } from './wildshard-theme';
++import { ISLAND } from './driftwood-theme';
++import { CITADEL } from './citadel-theme';
++
++export const ARRANGEMENTS = { theme: THEME, island: ISLAND, citadel: CITADEL, trailer30: TRAILER30, trailer15: TRAILER15 } satisfies Record<string, Arrangement>;
++export type ArrangementName = keyof typeof ARRANGEMENTS;
++/** the in-game themes (the ones with a game-state table; the trailers are fixed cuts) */
++export const THEMES: ArrangementName[] = ['theme', 'island', 'citadel'];
++
++/** chunk slug (src/chunks/registry.ts) → its score. The citadel's slug goes here the day that chunk exists. */
++export const CHUNK_SCORE: Partial<Record<string, ArrangementName>> = {
++  'pine-hollow': 'theme',
++  'driftwood-isle': 'island',
++  'citadel': 'citadel',
++};
++export function scoreForChunk(slug: string): ArrangementName { return CHUNK_SCORE[slug] ?? 'theme'; }
