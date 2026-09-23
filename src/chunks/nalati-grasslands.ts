@@ -46,9 +46,9 @@ export const PASTURE = { x: -120, z: 205, y: -8 };
 export const RIM_Z = -28;
 /** the three spruce gullies (x, half-width, depth, wobble) — the spruce planting (`NALATI_GULLIES` in src/world/spruceMask.ts) uses the same x / wobble field */
 export const GULLIES: { x: number; half: number; depth: number; wobble: number }[] = [
-  { x: -170, half: 30, depth: 11, wobble: 9 },
-  { x: -60, half: 26, depth: 9, wobble: 8 },
-  { x: 135, half: 30, depth: 10, wobble: 10 },
+  { x: -170, half: 32, depth: 14, wobble: 9 },
+  { x: -60, half: 28, depth: 12, wobble: 8 },
+  { x: 135, half: 32, depth: 13, wobble: 10 },
 ];
 /** the waterfall notch in the rim (the brook falls ~20 m into its own ravine) */
 export const WATERFALL = { x: 60, z: -28, top: 30, bottom: 10 };
@@ -113,6 +113,10 @@ export function riverMask(x: number, z: number): number {
   return smoothstep(half + 3, half - 1, Math.abs(z - RIVER.z(x)));
 }
 
+const rimNoise = new Noise2D(SEED); // buildTerrain's `n` (Noise2D(seed)): the same field slopeParam wobbles the rim with
+/** the escarpment rim's z at x (the plateau's north edge) */
+export function rimZAt(x: number): number { return RIM_Z + rimNoise.get(x * 0.008, 7.7) * 9; }
+
 /** where the escarpment is on its way up: 0 at the river's south bank (the foot) → 1 at the rim; unclamped */
 function slopeParam(x: number, z: number, n: Noise2D): number {
   const foot = RIVER.z(x) - RIVER.half(x) - 5;
@@ -137,10 +141,11 @@ function landscape(x: number, z: number, n: Noise2D, n2: Noise2D): number {
   // north of the river: the valley floor, gently rolling
   const valley = -8 + n.fbm(x * 0.009, z * 0.009, 3) * 1.1 + smoothstep(200, 250, z) * 0.8;
   // south: the escarpment — a bench a little under half way up, then the steeper upper face to the rim
-  const esc = -8.8 + 16.5 * smoothstep(0, 0.42, sc) + 22.3 * smoothstep(0.5, 1, sc);
+  const esc = -8.8 + 15.5 * smoothstep(0.02, 0.4, sc) + 23.3 * smoothstep(0.55, 0.97, sc) ** 1.15;
   // the plateau beyond the rim: rolling, rising ~6 m toward the south mountains
   const rise = clamp((RIM_Z - z) / 190, 0, 1) * 6;
-  const rolling = n.fbm(x * 0.0055 + 3.1, z * 0.0055, 3) * 2.4 + n2.fbm(x * 0.02, z * 0.02, 2) * 0.5;
+  // the Sky Grassland rolls: long swells (~150 m) with smaller folds on them, like the mockups' plateau
+  const rolling = n.fbm(x * 0.0065 + 3.1, z * 0.0065, 3) * 3.8 + n2.fbm(x * 0.019, z * 0.019, 2) * 1.1;
   let h = across > 0 ? valley : esc + smoothstep(0.75, 1.05, s) * (rolling + rise);
   // the braided corridor: grey gravel bars just proud of the water, channels cut below it
   {
@@ -148,11 +153,11 @@ function landscape(x: number, z: number, n: Noise2D, n2: Noise2D): number {
     if (fp > 0) {
       let ch = 0;
       const u = across / Math.max(half, 1);
-      ch = Math.max(ch, smoothstep(0.28, 0.1, Math.abs(u - 0.62 * Math.sin(x * 0.021 + 0.4))));
-      ch = Math.max(ch, smoothstep(0.22, 0.07, Math.abs(u - 0.7 * Math.sin(x * 0.034 + 2.3))) * 0.9);
-      ch = Math.max(ch, smoothstep(0.2, 0.06, Math.abs(u + 0.55 - 0.25 * Math.sin(x * 0.017 + 4.4))));  // the deep channel under the south bank
-      ch = Math.max(ch, smoothstep(0.18, 0.05, Math.abs(u - 0.2 * Math.sin(x * 0.05 + 1.1))) * 0.7 * smoothstep(-0.3, 0.4, n.get(x * 0.012, 5.5)));
-      const bed = -9.72 + n.get(x * 0.06, z * 0.06) * 0.14 + n2.get(x * 0.02, z * 0.03) * 0.12 - ch * 1.7;
+      ch = Math.max(ch, smoothstep(0.19, 0.06, Math.abs(u - 0.62 * Math.sin(x * 0.021 + 0.4))));                  // the main channel, meandering bar to bar
+      ch = Math.max(ch, smoothstep(0.13, 0.04, Math.abs(u - 0.7 * Math.sin(x * 0.034 + 2.3))) * 0.85);            // a braid
+      ch = Math.max(ch, smoothstep(0.15, 0.05, Math.abs(u + 0.58 - 0.22 * Math.sin(x * 0.017 + 4.4))));          // the deep channel under the south bank
+      ch = Math.max(ch, smoothstep(0.09, 0.03, Math.abs(u - 0.2 * Math.sin(x * 0.05 + 1.1))) * 0.6 * smoothstep(-0.3, 0.4, n.get(x * 0.012, 5.5)));
+      const bed = -9.25 + n.get(x * 0.06, z * 0.06) * 0.18 + n2.get(x * 0.02, z * 0.03) * 0.16 - ch * 1.95;
       h = lerp(h, bed, fp);
     }
   }
@@ -265,6 +270,7 @@ const C = {
   rock: [0.33, 0.31, 0.29] as RGB,
   rockLight: [0.5, 0.47, 0.42] as RGB,
   snow: [0.9, 0.93, 0.98] as RGB,
+  olive: [0.3, 0.31, 0.08] as RGB,
 };
 const cn = new Noise2D(SEED + 91), cn2 = new Noise2D(SEED + 92);
 const mixInto = (o: RGB, c: RGB, t: number): void => { o[0] += (c[0] - o[0]) * t; o[1] += (c[1] - o[1]) * t; o[2] += (c[2] - o[2]) * t; };
@@ -294,9 +300,10 @@ function groundColor(x: number, z: number, h: number, slope: number, t: ChunkTer
     mixInto(out, C.gravel, g);
     mixInto(out, C.gravelWet, g * smoothstep(-9.9, -10.4, h));
   }
-  // the brook bed and the trails: packed dirt
+  // the roads are drawn per pixel (src/nalati/terrainSurface.ts: ruts, stones, verges); here only a worn, browner
+  // margin a little wider than the road, so it sits in the grass
   const td = t.trailDistance(x, z);
-  mixInto(out, C.dirt, smoothstep(3.6 + cn.get(x * 0.2, z * 0.2) * 0.8, 1.2, td) * 0.85);
+  mixInto(out, C.olive, smoothstep(6.5, 3, td) * 0.45);
   // rock on the steep faces (the Crags, the gully walls, the waterfall head, Eagle Rock)
   const rock = smoothstep(0.22, 0.45, slope + (h > 40 ? 0.08 : 0));
   if (rock > 0) { const rc: RGB = [C.rock[0], C.rock[1], C.rock[2]]; mixInto(rc, C.rockLight, smoothstep(-0.3, 0.5, mottle + patch * 0.5)); mixInto(out, rc, rock); }
@@ -304,6 +311,15 @@ function groundColor(x: number, z: number, h: number, slope: number, t: ChunkTer
   const snow = smoothstep(SNOW_LINE - 2 + patch * 4, SNOW_LINE + 3 + patch * 4, h) * (1 - smoothstep(0.45, 0.7, slope) * 0.7);
   mixInto(out, C.snow, snow);
   return out;
+}
+
+/** per-vertex masks for the per-pixel ground detail: [gravel, rock, snow] */
+function surfaceAt(x: number, z: number, h: number, slope: number): [number, number, number] {
+  const gravel = riverMask(x, z) * smoothstep(-8.3, -9.1, h);
+  const rock = smoothstep(0.24, 0.46, slope + (h > 40 ? 0.08 : 0));
+  const patch = cn.fbm(x * 0.012, z * 0.012, 3);
+  const snow = smoothstep(SNOW_LINE - 2 + patch * 4, SNOW_LINE + 3 + patch * 4, h) * (1 - smoothstep(0.45, 0.7, slope) * 0.7);
+  return [gravel, rock * (1 - snow * 0.5), snow];
 }
 
 export const NALATI_GRASSLANDS: ChunkDef = {
@@ -360,6 +376,7 @@ export const NALATI_GRASSLANDS: ChunkDef = {
     ],
   },
   groundColor,
+  surfaceAt,
 
   terrain: TERRAIN,
 
@@ -384,7 +401,7 @@ export const NALATI_GRASSLANDS: ChunkDef = {
   fauna: [], // wolves, horses and sheep: the creatures agent (B4)
   sky: {
     hdri: 'kloofendal_48d_partly_cloudy_puresky', // unused: the sky is painted (below)
-    painted: { zenith: [0.1, 0.28, 0.85], horizon: [0.62, 0.78, 0.98], ground: [0.3, 0.36, 0.3], glow: [1.0, 0.82, 0.55] },
+    painted: { zenith: [0.1, 0.28, 0.85], horizon: [0.62, 0.78, 0.98], ground: [0.3, 0.36, 0.3], glow: [0.5, 0.4, 0.25] },
     sun: { azimuth: 250, elevation: 26 },
     sunColor: [1.0, 0.9, 0.74],
     sunIntensity: 2.4,
@@ -392,22 +409,23 @@ export const NALATI_GRASSLANDS: ChunkDef = {
     bgIntensity: 1.0,
     fogSunColor: [1.0, 0.88, 0.7],
     cloudSunColor: [1.0, 0.93, 0.82],
-    hemiSky: 0x9cc4ff, hemiGround: 0x5a6a2e, hemiIntensity: 0.5,
+    hemiSky: 0x9cc4ff, hemiGround: 0x7a7436, hemiIntensity: 0.7, // a strong warm bounce off the grass lifts every shade side (look pass lever 2)
     // the ringed giant high in the SSW over the snow range — ahead and to the right from the spawn, lit from the WSW sun
-    planet: { azimuth: 205, elevation: 23, size: 26, tilt: 16, roll: -20 },
+    planet: { azimuth: 205, elevation: 23, size: 26, tilt: 2, roll: -20 },
   },
   atmosphere: {
     fogHeight: -30.0,
     fogHeightFalloff: 0.05,
     fogHeightDensity: 0.0006,
-    fogDistDensity: 0.0003,
+    fogDistDensity: 0.0011, // the painterly aerial perspective (Atmosphere.ts paintedAir): ~10 % at 150 m, 25 % at 500 m, 55 % on the far range
     volumetricSunColor: [1.0, 0.9, 0.72],
     // thin, high: a clear mountain afternoon (the default forest haze sits exactly on the valley floor and milks it out)
     volumetric: { height: -30, falloff: 0.06, density: 0.0009, strength: 0.35 },
   },
   grade: {
-    saturation: 0.42, brightness: 0.0, contrast: 0.14,
-    bloomIntensity: 0.25, bloomThreshold: 0.92,
+    // (the painterly chain tone-maps with Khronos Neutral, which keeps the saturation AgX bleached — Game.buildPainterlyChain)
+    saturation: 0.1, brightness: 0.0, contrast: 0.1,
+    bloomIntensity: 0.35, bloomThreshold: 0.86,
     shadowTint: [0.9, 0.96, 1.1], highTint: [1.05, 1.01, 0.94],
     lift: [0.0, 0.004, 0.018], gain: [1.02, 1.02, 1.0], gamma: 1.0,
   },

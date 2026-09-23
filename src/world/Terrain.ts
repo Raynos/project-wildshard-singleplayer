@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '../core/config';
-import { heightAt, normalAt, splatAt, trailDistance } from './Heightfield';
+import { heightAt, normalAt, splatAt, trailDistance, TRAILS } from './Heightfield';
 import { loadPBR, loadPBRArray, pbrMaterial } from '../core/assets';
 import { attachFogUniforms } from './Atmosphere';
 import { getActiveChunk } from '../chunks/registry';
 import { loadBakedTerrain } from './BakedTerrain';
 import { macrotask } from '../boot/plan';
 import { painterlyMaterial } from './painterly';
+import { applyTerrainSurface } from '../nalati/terrainSurface';
 import type { RGB } from '../chunks/ChunkDef';
 
 // ── low-poly palette (sRGB in, linear out via THREE.Color) ──
@@ -94,6 +95,7 @@ export class Terrain {
   private async buildPainterly() {
     await loadBakedTerrain();
     const mat = painterlyMaterial(null, { bands: 0.5, rim: 0, shade: 0.85 }); // bootstrap passes it through sky.setupMaterial
+    applyTerrainSurface(mat); // per-pixel ground detail: roads, pebbles, rock strata, snow (src/nalati/terrainSurface.ts)
     this.material = mat;
     const rows = this.buildPainterlyGeometry();
     let r = rows.next();
@@ -102,7 +104,7 @@ export class Terrain {
     this.mesh.receiveShadow = true;
     this.mesh.castShadow = false;
     this.group.add(this.mesh);
-    const slab = new THREE.Mesh(this.buildPainterlySlab(), mat);
+    const slab = new THREE.Mesh(this.buildPainterlySlab(), painterlyMaterial(null, { bands: 0.5, rim: 0, shade: 0.85 }));
     slab.receiveShadow = true;
     this.group.add(slab);
     return this;
@@ -120,7 +122,9 @@ export class Terrain {
     yield;
     const H = (ix: number, iz: number) => hs[Math.min(n, Math.max(0, iz)) * res + Math.min(n, Math.max(0, ix))] ?? 0;
     const pos = new Float32Array(res * res * 3), nrm = new Float32Array(res * res * 3), col = new Float32Array(res * res * 3);
+    const surf = new Float32Array(res * res * 4);
     const out: RGB = [0, 0, 0];
+    const segs = trailSegments();
     for (let iz = 0; iz < res; iz++) {
       if (iz > 0 && iz % 48 === 0) yield;
       for (let ix = 0; ix < res; ix++) {
@@ -130,9 +134,13 @@ export class Terrain {
         const nx = H(ix - 1, iz) - H(ix + 1, iz), nz = H(ix, iz - 1) - H(ix, iz + 1), ny = 2 * d;
         const l = Math.hypot(nx, ny, nz);
         nrm[i * 3] = nx / l; nrm[i * 3 + 1] = ny / l; nrm[i * 3 + 2] = nz / l;
-        if (paint) paint(x, z, y, 1 - ny / l, def.terrain, out);
-        else lowPolyGroundColor(_tmpC, y, 1 - ny / l, x, z).toArray(out);
+        const slope = 1 - ny / l;
+        if (paint) paint(x, z, y, slope, def.terrain, out);
+        else lowPolyGroundColor(_tmpC, y, slope, x, z).toArray(out);
         col[i * 3] = out[0]; col[i * 3 + 1] = out[1]; col[i * 3 + 2] = out[2];
+        // the surface-detail masks (src/nalati/terrainSurface.ts): road across · gravel · snow · rock
+        const [gravel = 0, rock = 0, snow = 0] = def.surfaceAt?.(x, z, y, slope) ?? [];
+        surf[i * 4] = signedTrailDistance(segs, x, z, 9); surf[i * 4 + 1] = gravel; surf[i * 4 + 2] = snow; surf[i * 4 + 3] = rock;
       }
     }
     const idx = new Uint32Array(n * n * 6);
@@ -145,6 +153,7 @@ export class Terrain {
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     geo.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
     geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    geo.setAttribute('surf', new THREE.BufferAttribute(surf, 4));
     geo.setIndex(new THREE.BufferAttribute(idx, 1));
     geo.computeBoundingSphere();
     return geo;
@@ -437,6 +446,25 @@ export class Terrain {
     mesh.receiveShadow = true;
     return mesh;
   }
+}
+
+type Seg = [number, number, number, number];
+function trailSegments(): Seg[] {
+  const out: Seg[] = [];
+  for (const poly of TRAILS) for (let i = 0; i < poly.length - 1; i++) { const a = poly[i], b = poly[i + 1]; if (a && b) out.push([a[0], a[1], b[0], b[1]]); }
+  return out;
+}
+/** metres to the nearest trail centreline, signed by which side of it (x, z) lies; `cap` when farther than that */
+function signedTrailDistance(segs: Seg[], x: number, z: number, cap: number): number {
+  let best = cap, sign = 1;
+  for (const [ax, az, bx, bz] of segs) {
+    const vx = bx - ax, vz = bz - az, wx = x - ax, wz = z - az;
+    const l2 = vx * vx + vz * vz;
+    const t = l2 > 0 ? Math.min(1, Math.max(0, (wx * vx + wz * vz) / l2)) : 0;
+    const d = Math.hypot(x - (ax + vx * t), z - (az + vz * t));
+    if (d < best) { best = d; sign = vx * wz - vz * wx >= 0 ? 1 : -1; }
+  }
+  return best * sign;
 }
 
 /** One facet's colour from its height above the sea (m), slope (0 flat → 1 vertical) and position (jitter). */

@@ -47,19 +47,21 @@ void main() {
   // painted sky sheen at grazing angles, a warm glint toward the sun
   vec3 V = normalize(cameraPosition - vW);
   float fres = pow(1.0 - clamp(V.y, 0.0, 1.0), 4.0);
-  col = mix(col, uSky, fres * 0.55);
+  col = mix(col, uSky, fres * 0.35);
   vec3 R = reflect(-V, vec3(0.0, 1.0, 0.0));
   col += uSunCol * pow(max(dot(R, uSunDir), 0.0), 60.0) * 0.8;
   // flow streaks: long noise dashes scrolling downstream, denser over the shallows (riffles) and on the fall
   float speed = mix(0.35, 2.4, vFall);
   vec2 q = vec2(vFlow * mix(260.0, 40.0, vFall) - uTime * speed * mix(1.0, 6.0, vFall), vAcross * mix(9.0, 5.0, vFall));
   float streak = smoothstep(0.62, 0.9, vnoise(q * vec2(0.18, 1.0)) * 0.7 + vnoise(q * vec2(0.5, 2.3) + 7.0) * 0.3);
-  float riffle = 1.0 - smoothstep(0.05, 0.5, d);
-  float foam = clamp(streak * (0.25 + 0.75 * riffle) + riffle * 0.25 + vFall * (0.35 + streak * 0.6), 0.0, 1.0);
+  // riffles: white water where the channel shoals onto the bars, broken by the streaks
+  float riffle = 1.0 - smoothstep(0.08, 0.45, d);
+  float edgeFoam = riffle * smoothstep(0.35, 0.75, vnoise(vec2(vFlow * 420.0 - uTime * 0.9, vAcross * 22.0)) + 0.25);
+  float foam = clamp(streak * (0.35 + 0.65 * riffle) + edgeFoam * 0.85 + vFall * (0.35 + streak * 0.6), 0.0, 1.0);
   col = mix(col, uFoam, foam * 0.8);
   // the fall: vertical white ropes over a green-turquoise sheet, racing down
   float rope = smoothstep(0.35, 0.85, vnoise(vec2(vAcross * 11.0, vFlow * 55.0 - uTime * 3.2)) * 0.75 + vnoise(vec2(vAcross * 29.0 + 3.0, vFlow * 120.0 - uTime * 4.1)) * 0.35);
-  col = mix(col, mix(uShallow * 1.4, uFoam, 0.25 + 0.75 * rope), step(0.9, vFall));
+  col = mix(col, mix(uShallow * 1.5, uFoam, 0.5 + 0.5 * rope), step(0.9, vFall));
   // the edge: fade out where the water thins over the bank
   float alpha = mix(smoothstep(0.0, 0.12, vDepth) * 0.92, 0.72 + 0.25 * rope, step(0.9, vFall));
   gl_FragColor = vec4(col, alpha);
@@ -70,9 +72,9 @@ export class NalatiWater {
   group = new THREE.Group();
   private uniforms = {
     uTime: { value: 0 },
-    uShallow: { value: new THREE.Color(0.12, 0.48, 0.5) },
-    uDeep: { value: new THREE.Color(0.02, 0.14, 0.32) },
-    uSky: { value: new THREE.Color(0.55, 0.72, 0.95) },
+    uShallow: { value: new THREE.Color(0.06, 0.6, 0.66) },
+    uDeep: { value: new THREE.Color(0.0, 0.24, 0.46) },
+    uSky: { value: new THREE.Color(0.5, 0.75, 1.0) },
     uFoam: { value: new THREE.Color(0.95, 0.98, 1.0) },
     uSunDir: { value: new THREE.Vector3(0, 1, 0) },
     uSunCol: { value: new THREE.Color(1, 0.9, 0.7) },
@@ -99,7 +101,7 @@ export class NalatiWater {
 
   /** the Kunes: a strip following the corridor's centreline, full width, with per-vertex depth over the bed */
   private river(mat: THREE.Material): THREE.Mesh {
-    const nx = 200, nz = 14, x0 = -CHUNK_HALF - 2, x1 = CHUNK_HALF + 2;
+    const nx = 256, nz = 32, x0 = -CHUNK_HALF - 2, x1 = CHUNK_HALF + 2;
     const pos: number[] = [], depth: number[] = [], flow: number[] = [], across: number[] = [], fall: number[] = [], idx: number[] = [];
     for (let i = 0; i <= nx; i++) {
       const x = x0 + ((x1 - x0) * i) / nx, zc = RIVER.z(x), half = RIVER.half(x) + 4;

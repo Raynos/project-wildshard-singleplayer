@@ -299,6 +299,11 @@ export interface ChunkDef {
    * surface height `h` and `slope` (0 flat → 1 vertical) — height, slope and noise → a palette ramp. `src/world/Terrain.ts` calls it once per terrain vertex; no textures are loaded.
    */
   groundColor?: (x: number, z: number, h: number, slope: number, t: ChunkTerrain, out: RGB) => RGB;
+  /**
+   * `style: 'painterly'`: the per-vertex masks for the per-pixel ground detail (src/nalati/terrainSurface.ts) —
+   * [gravel, rock, snow], each 0..1, given the surface height `h` and `slope`. Roads come from the trails.
+   */
+  surfaceAt?: (x: number, z: number, h: number, slope: number) => [number, number, number];
   /** open water over the whole shard; omitted = dry land with an optional pond */
   ocean?: OceanDef;
 }

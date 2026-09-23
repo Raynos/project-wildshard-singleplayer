@@ -24,6 +24,7 @@ import { syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms 
 import { wind } from '../world/Wind';
 import { windUniforms } from '../world/TreeFactory';
 import { NalatiWater } from './water';
+import { buildOutcrops } from './outcrops';
 import { NalatiPOIs } from '../world/nalati';
 import { NalatiDressing } from '../world/nalati/dressing';
 import { wireKurgan, type KurganBoss } from './kurganBoss';
@@ -65,6 +66,13 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   game.scene.add(water.group);
   groups['water'] = water.group;
   updates.push((dt) => water.update(dt));
+  await macrotask();
+
+  // ── rock outcrops (world agent, look pass): granite breaking out of the escarpment's steep ground ──
+  const outcrops = buildOutcrops(sky);
+  game.scene.add(outcrops.mesh);
+  ctx.player.colliders.push(...outcrops.colliders);
+  groups['outcrops'] = outcrops.mesh;
   await macrotask();
 
   // ── grass + wind (grass agent, B1): the painterly carpet is Grass.ts (main.ts builds it); the Wind object goes here ──
