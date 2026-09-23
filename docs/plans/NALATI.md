@@ -1,157 +1,178 @@
-# Nalati Grasslands — the mega plan
+# Nalati Grasslands — the master plan
 
-**State:** `in progress` 2026-09-23 — gameplay rows built on the local branch (B0–B13, B16 audio; B9 stealth in flight). **The look:** a clean-room prototype (`dev/nalati-cleanroom/`) beat every in-engine pass; its architecture (painted panorama + fog from it, in-shader grade, GPU grass rings, baked shadows) is being ported as the Nalati render path (`?look=v2`, port lead); models from CC0 sources (`public/assets/nalati/sourced/`, `58c6608`) + local image-to-3D (TRELLIS 2 / Hunyuan3D, in flight). Local only — nothing pushed (N6, N7, N8).
+**State:** `in progress` 2026-09-23 — ~55 % overall (gameplay ~80 %, look ~30 %, ship 0 %). Built solo from here (no subagents). Order: **Phase A the look → Phase B the features → Phase C ship**; then the user merges the branch himself and polishes / balances (Phase D). Playable preview: https://nalati-grasslands.vercel.app/?chunk=nalati-grasslands (a separate Vercel project, built from a clean export of the branch — never a git push). Asks N4–N8.
 
 The third shard (ASKS P6). A high alpine steppe in the Tian Shan, laid out like the real Nalati: you arrive in the
 Kunes river valley (yurts, sheep, the bridge), climb spruce gullies up the escarpment, and the **Sky Grassland**
-opens up — a wind-combed plateau that rolls on past the slab edge to the snow mountains. Horse herds, wolves in
-the grass, kurgan burial mounds crowned with balbal stones, storms that cross the whole sky. Where Pine Hollow is
-*trees* and Driftwood is *water*, Nalati is *wind and distance*: the grass is the terrain, the cover and the
-weather gauge at once.
+opens up — a wind-combed plateau that rolls on past the slab edge to the snow mountains. Horse herds, wolves in the
+grass, kurgan burial mounds crowned with balbal stones, storms that cross the whole sky. Where Pine Hollow is *trees*
+and Driftwood is *water*, Nalati is *wind and distance*.
 
-Branch `nalati-grasslands`, worktree `../wildshard-nalati-grasslands`. The shard is a menu teaser on main today
-(`src/chunks/placeholders.ts`). Asks: `docs/tasks/asks/N4.md` (branch), `N5.md` (this plan), `N6.md` (the build).
+**Pitch:** tame a wild steppe horse, hunt wolves from the saddle across a sea of grass, hide from them in it, ride
+out the storms, and break the named beasts of the plateau — and the two kings: the Golden King in his kurgan and the
+Storm Titan in the sky.
 
-## The pitch
+Branch `nalati-grasslands`, worktree `../wildshard-nalati-grasslands`, dev server http://127.0.0.1:5188.
 
-**Tame a wild steppe horse, hunt wolves from the saddle across a sea of grass, hide from them in it, ride out the
-storms, and break the named beasts of the plateau — and the two kings: the Golden King in his kurgan and the
-Storm Titan in the sky.**
+## Where things live
 
-## Design sections (the detail lives here)
-
-| section | file |
+| what | where |
 |---|---|
-| real geography, the 500 m problem, the POI layout with coordinates | `docs/design/nalati/geography-and-map.md` |
-| bow, sabre, spear + javelins, horse archery, weapon switching, numbers | `docs/design/nalati/combat.md` |
-| wolves (pack AI), wild horses (herd AI), taming, riding | `docs/design/nalati/wolves-horses-taming.md` |
-| grass stealth (detection model), steppe storms (lifecycle) | `docs/design/nalati/stealth-and-storms.md` |
-| named elites system + the five, bosses system + Golden King + Storm Titan | `docs/design/nalati/elites-and-bosses.md` |
-| crouch / jump / mounted controls, touch + desktop | `docs/design/nalati/controls.md` |
+| design sections (one per system) | `docs/design/nalati/`: `geography-and-map.md`, `combat.md`, `wolves-horses-taming.md`, `stealth-and-storms.md`, `elites-and-bosses.md`, `controls.md`, `look-pass.md` |
+| handoff notes from the build agents (open items, exact glue) | `docs/design/nalati/handoff/`: `port-v2.md`, `storm-titan.md`, `creatures-riding.md`, `b15-items-map.md`, `dressing.md` |
+| mockups (targets) | `art/nalati-grasslands/round-1` … `round-6` (see Mockups) |
+| the clean-room prototype (reference only — it cheats) | `dev/nalati-cleanroom/`, https://nalati-cleanroom.vercel.app |
+| measurement | `scripts/nalati-camp9.mjs` (9 camp angles vs targets + budget), `scripts/nalati-models-compare.mjs` (yesterday / today / mockup per model), `scripts/nalati-parity.mjs` (6 poses) |
+| generated + sourced models | `public/assets/nalati/models/` (TRELLIS.2, README in `art/nalati-grasslands/round-5-models/`), `public/assets/nalati/sourced/` (CC0 / CC-BY, `CREDITS.md`), local generation kit `~/projects/localai/bin/img2mesh/` |
+| painted assets | `public/assets/nalati/` (textures, grass cards, backdrop) via `src/world/nalatiTextures.ts`; the 360° sky panorama `art/nalati-grasslands/round-6-panorama/` |
 
-Where this plan and a design section disagree, **this table of decisions wins**.
+Where this plan and a design section disagree, **this plan's Decisions win**.
 
-## Decisions (all the user's, 2026-09-22)
+## Decisions (the user's)
+
+### Game (2026-09-22)
 
 | topic | decision |
 |---|---|
-| **Art style** | **B — stylized painterly** (`art/nalati-grasslands/round-1/1-art-style/style-B-painterly.png`; every round-2/3 mockup is in it) |
-| **Combat** | **horse archery · recurve bow on foot · mounted sabre · spear**. **Javelins are thrown from the spear slot** (3 weapon slots: bow, sabre, spear). Eagle hunter: parked, not in this build |
-| **Arrow drop arc** | a faint dotted arc while drawing, **on by default on touch**; arrows at half gravity so the arc reads |
+| **Art style** | **B — stylized painterly** (`art/nalati-grasslands/round-1/1-art-style/style-B-painterly.png` is the master frame) |
+| **Combat** | horse archery · recurve bow on foot · mounted sabre · spear; **javelins thrown from the spear slot** (3 slots: bow, sabre, spear). Eagle hunter parked |
+| **Arrow drop arc** | faint dotted arc while drawing, **on by default on touch**; arrows at half gravity |
 | **Enemies** | steppe wolves (packs), wild horses + stallion taming, balbal stone warriors (dusk), ghost riders (night) |
-| **Named elites** | a new engine system (minibosses). Five: **Aqbars the Pale** (snow leopard, the Crags), **Kokbori** (she-wolf pack mother, dusk), **Qyran the Storm-Wing** (golden eagle, storms only), **Qara Batyr the Unburied** (ghost-rider captain, night), **Argymaq the Unbroken** (feral black stallion, the Crags' high pasture — beaten to BROKEN, then tamed; the best mount). Tas Ata dropped (the balbal circle keeps ordinary balbals); Qonyr the bear is the alternate |
-| **Elite drops / titles** | **cosmetic only** (a guaranteed skin + trophy item); **joke titles** kept ("Crazy Cat Person", "Night Shift", …) |
-| **Elite health bar** | **over the head until the fight starts, then pinned top-centre** |
-| **Bosses** | a new engine system. **Two in Nalati:** **the Golden King** (the great kurgan dungeon, on foot, drops the **Golden Bow**) and **Jel Ata the Storm Titan** (the Sky Grassland, on horseback, **only during a natural storm**, drops the **Naizagai** storm sabre + the Sky-Marked Saddle skin) |
-| **Boss retry** | **phase checkpoints**: die → back at the start of the phase you reached |
-| **Horse** | one horse, **can't die** (at 0 it bolts, returns to the hitching rail after a rest); named TULPAR (Argymaq replaces it once won) |
-| **Riding** | JUMP → GALLOP (hold), AIM → DRAW, HOVER → DISMOUNT; **auto lean-low at full gallop** and the horse jumps ditches by itself; look 170° while the horse runs straight (Parthian shot) |
-| **Crouch** | **option D: a CROUCH disc stacked above JUMP that appears only in long grass**; crouch is a **toggle**; leaving the grass **stands you up**. Desktop: the existing C / Ctrl crouch, gated like touch |
-| **Storms** | every **20–30 min** of play; **lightning can hit you** (60, a GET LOW warning first); the Storm Titan and Qyran only in storms |
-| **Time of day** | a **day/night clock** (shared with D38): balbals wake at dusk, ghost riders + Qara Batyr at night, Kokbori at dusk |
-| **Map** | **map-01's layout**, **true north**, **spawn on the north road** in the valley, the **main camp in the valley** + 2–3 summer yurts on the plateau; every POI on map-01 is in |
-| **Scale (500 m)** | keep the 500 m slab: a **stepped climb** (valley −10 → escarpment → plateau +30…36 → crags +75) + a **Nalati horizon ring** (the plateau rolling on, the snow range south) + forced perspective |
-| **Budgets (2026-09-23)** | Nalati may download **~25 MB** (painted textures, backdrop, models; phone-tier textures); the phone target for Nalati is **30 fps** so the phone gets the full look (desktop stays 60) |
-| **Asset pipeline (2026-09-23)** | **local image-to-3D** (TRELLIS 2 + Hunyuan3D, in `~/projects/localai`, memory shared with the music session via `.model.lock`) + **Blender** bake/decimate + **CC0 / CC-BY** stylized packs (credits in `public/assets/nalati/sourced/CREDITS.md`) |
-| **Scope to "done" (2026-09-23)** | the user does **polish and balance himself, after the branch is merged**; before the merge we finish the look (v2), the remaining systems, and **shipping: menu card, loading screen, hero art** from in-engine shots |
-| **Solo build order (2026-09-23)** | zero subagents from here (token cost). Order: **the look first** (port the prototype's no-cheat parts: GPU grass rings, olive/golden values, in-shader grade, fog from the sky, baked shadows; one seamless sky panorama at infinity only; real 3D for everything walkable — validated by walking around), **then features** (Storm Titan, items / map, menu / loading / hero). **No merging** — the user merges the branch himself later. **Local image-to-3D continues** (TRELLIS 2 / Hunyuan3D, 18 TRELLIS models in `d062b26`) |
-| **3D model licence (2026-09-23)** | **use Hunyuan3D-2 where it's better** (yurt, horses, spruce) even though its licence forbids use / display in the EU, UK and South Korea — the user's call; everything else from TRELLIS.2 (MIT). Record the Hunyuan-derived files in `art/nalati-grasslands/round-5-models/README.md` |
+| **Named elites** | a new engine system. **Aqbars** (snow leopard, the Crags), **Kokbori** (she-wolf pack mother, dusk), **Qyran** (golden eagle, storms only), **Qara Batyr** (ghost-rider captain, night), **Argymaq** (feral black stallion — beaten to BROKEN, then tamed; the best mount). Drops **cosmetic only**; **joke titles**; bar **over the head until the fight, then pinned top-centre** |
+| **Bosses** | a new engine system; **two**: **the Golden King** (kurgan dungeon, on foot, drops the **Golden Bow**) and **Jel Ata the Storm Titan** (Sky Grassland, **on horseback, only during a natural storm**, drops the **Naizagai** storm sabre + Sky-Marked Saddle skin). **Phase checkpoints** on death |
+| **Horse** | one horse, **can't die** (bolts to the rail, returns after a rest); TULPAR, replaced by Argymaq once won |
+| **Riding** | JUMP → GALLOP (hold), AIM → DRAW, HOVER → DISMOUNT; auto lean-low at full gallop; auto-jump ditches; look 170° (Parthian shot) |
+| **Crouch** | a CROUCH disc above JUMP **only in long grass**; a toggle; leaving the grass stands you up |
+| **Storms** | every 20–30 min; lightning can hit you (60, GET LOW first); Storm Titan + Qyran storm-only |
+| **Time** | a day/night clock (balbals at dusk, ghost riders + Qara Batyr at night, Kokbori at dusk) |
+| **Map** | map-01 layout, true north, spawn on the north road, main camp in the valley + summer yurts on the plateau |
+| **Scale** | keep the 500 m slab: a stepped climb + a far horizon + forced perspective |
 
-## The look — painterly
+### Look (2026-09-22 / 23)
 
-The engine has `style: 'pbr'` (Pine Hollow) and `'lowpoly'` (Driftwood). Nalati adds **`'painterly'`**: a
-cel/toon ramp in the lit shader (2–3 soft bands, a painted sky-tinted shadow colour instead of black), rim light,
-gradient-painted terrain (height / slope / noise → a palette ramp, no photo textures), soft smooth geometry
-(not faceted), painted billboard clouds, and the grass carpet as the hero. One shared painterly material
-factory so every creature, yurt and prop gets the same ramp. Budget: phone tier ≤ 150 calls / ≤ 2.0 M tris,
-60 fps (PLAY-PERF).
+| topic | decision |
+|---|---|
+| **The bar** | "the mock-ups are a hundred times better … a massive pass over the art direction, the rendering, the quality of the models … a lot of density … AAA, almost PS5". Done = mockup parity, judged in the harnesses |
+| **No screenshot cheats** | after playing the clean-room prototype ("so many cardboard cutouts … only looks good for screenshots … the skybox transition"): **no billboards / sprites / cutouts for anything in the playable 500 m** (impostors only as a far LOD of a real mesh); **painted imagery only at true infinity, as ONE seamless panorama**; **validate by moving** (the 9 angles + a walk-around / orbit), never one matching screenshot |
+| **Keep from the prototype** | the GPU grass rings + shader flowers ("the grass is not bad"), the olive / golden values + in-shader grade, the lighting cheat, fog coloured from the sky, baked contact shadows |
+| **Models** | real 3D models from **local image-to-3D (TRELLIS.2 + Hunyuan3D-2)** + **Blender** (bake, decimate, colour) + **CC0 / CC-BY** packs. **Hunyuan where it's better** — its EU / UK / South Korea restriction is irrelevant: "this is a South America and North America game" |
+| **Budgets** | Nalati may download **~25 MB** (desktop; phone-tier textures); **phone target 30 fps** so the phone gets the full look; desktop 60 fps |
 
-## Engine features Nalati adds
+### Process (2026-09-23)
 
-1. **Mounts** — ride a tamed horse (walk / trot / canter / gallop, STEED stamina, weapons from the saddle).
-2. **Living grass + stealth** — one `Wind` object (grass, clouds, flags, smoke, arrow drift), grass that parts
-   and stays trampled, `grassHeightAt(x, z)`, the HIDDEN / NOTICED / DETECTED eye pip.
-3. **Weather** — steppe storms (six phases, lightning, stampedes) on a day/night clock.
-4. **Named elites** and 5. **Bosses** — systems every later shard reuses.
+| topic | decision |
+|---|---|
+| **Build** | **zero subagents** — the main agent builds the whole feature (token cost) |
+| **Order** | **the look first**, then the features, then ship |
+| **Git** | the worktree **never pushes**; **the user merges the branch himself** later (squash, mockup PNGs → JPEG) |
+| **Previews** | playable previews go to their **own Vercel project** (`nalati-grasslands`), built from a clean `git archive HEAD` export — never the main project, never a push |
+| **Polish / balance** | the user does them himself, after the merge |
+| **Mockups** | codex (gpt-6-sol) image gen; the **9-angle method** (one area, 4 FP + 5 god-mode captures, 9 parallel remasters, 3×3 sheets for Claude iOS); decision boards as one image; art in `art/<subject>/round-<n>-<label>/` |
 
-## The world (map-01, true north; coordinates in `geography-and-map.md` §3)
+## Status by row
 
-Valley (north): **N road** (spawn at (0, +232) facing south) · **Kunes river** (braided, east → west) ·
-**bridge** · **nomad camp** (6 yurts, corral, hitching rail — the hub) · **sheep pasture**. Middle: **spruce
-forest** in three gullies · the **sky road** switchbacks · **waterfall**. Plateau (south): **Eagle Rock** ·
-**Sky Grassland** · **horse plains** · **kurgan field** + the **great kurgan** (dungeon) · **balbal circle** ·
-**summer yurts** · the Titan's **cairn**. SE corner: **the Crags** (Aqbars, Argymaq). Four entry roads at the
-edge midpoints (engine rule). Beyond the slab: the Nalati horizon ring.
-
-## Build — waves and owners
-
-Every row: built on the branch, wired into the game, 60 fps on the phone tier, a screenshot in `progress/`
-(JPEG ≤ 500 KB), then shipped (see Deploy). ✅ = shipped.
-
-### Wave 1 — foundation (parallel)
-
-| # | row | owner | files it owns |
-|---|---|---|---|
-| B0 | **The steppe**: `ChunkDef` (`style: 'painterly'`), registry entry (third, SUPER EXPERIMENTAL), the stepped-climb landscape + river bed + water, painterly terrain + the shared painterly material, sky/planet/fog/grade (late sun WSW), spawn N, the Nalati horizon ring, the `src/nalati/` wiring hook in `main.ts` | world-agent | `src/chunks/nalati-grasslands.ts`, `src/nalati/index.ts`, `src/world/painterly.ts`, painterly branches in `Terrain.ts` / `Horizon.ts`, `ChunkDef.ts`, `registry.ts`, `placeholders.ts`, `main.ts` hook |
-| B1 | **Grass + wind**: painterly dense grass carpet, `Wind` object, trample / parting interaction, `grassHeightAt`, tall-grass bands | grass-agent | `src/world/Grass.ts` (painterly mode), `src/world/Wind.ts`, `src/world/GrassTrample.ts` |
-| B2 | **Bow**: recurve bow viewmodel, hold-draw-release, arrows (drop, wind drift, recoverable), drop arc on touch, `Projectiles` | bow-agent | `src/player/Bow.ts`, `src/player/Projectiles.ts` |
-| B3 | **Sabre + spear**: curved sabre (Driftwood combo), spear (thrust, brace) + 3 javelins thrown from the spear slot, the 3-slot weapon strip | melee-agent | `src/player/Sabre.ts`, `src/player/Spear.ts`, the weapon strip in `Weapons.ts` / HUD |
-| B4 | **Creatures**: wolf (pack AI), wild horse (herd AI, stallion), sheep flock (+ ambient marmots) | creature-agent | `src/entities/species/{wolf,horse,sheep}.ts`, `src/entities/{Pack,Herd}.ts` |
-| B5 | **POIs**: yurts + camp, bridge, fences, kurgan mounds, balbal statues (static), Eagle Rock, the cairn, summer yurts, the Crags rocks | poi-agent | `src/world/nalati/*.ts` |
-| B6 | **Spruce**: a Tian Shan spruce tree factory (tall narrow cones, painterly) for the gullies | spruce-agent | `src/world/Spruce.ts`, `TREE_FACTORIES` entry |
-
-### Wave 2 — the game (as wave 1 lands)
-
-| # | row | depends on |
+| # | row | status |
 |---|---|---|
-| B7 | **Riding** — `Mount`, `Player.mount`, gaits, GALLOP, STEED, mounted DRAW / SLASH, dismount | B4 horse, B2, B3 |
-| B8 | **Taming** — TRUST approach, bucking balance, TULPAR at the rail, whistle | B7 |
-| B9 | **Crouch + stealth** — the context CROUCH disc, detection model, eye pip, wolves reading grass | B1, B4 |
-| B10 | **Day/night clock + storms** — `Weather`, six storm phases, lightning, stampedes, dusk / night triggers | B0, B1 |
-| B11 | **Balbal warriors + ghost riders** | B10, B5 |
-| B12 | **Named elites system** + Aqbars, Kokbori, Qyran, Qara Batyr, Argymaq | B4, B9, B10, B11 |
-| B13 | **Boss system** + **the Golden King** (kurgan dungeon, 3 phases, phase checkpoints, Golden Bow) | B5, B11 |
-| B14 | **the Storm Titan** (storm-only, mounted, Naizagai + saddle) | B7, B10, B13 |
-| B15 | **Inventory items, achievements + joke titles, skins, map/minimap for Nalati** | B12, B13 |
-| B16 | **Audio + folk music** (wind layers, hooves, wolves, storm; MUSIC v2 folk style), **menu / loading / hero art**, the card drops SUPER EXPERIMENTAL | all |
+| B0 | World: stepped-climb terrain, river, sky, horizon, spawn, wiring | ✅ built |
+| B1 | Grass + Wind + trample + `grassHeightAt` | ✅ |
+| B2 | Bow (+ Golden Bow variant) | ✅ |
+| B3 | Sabre, spear, javelins, 3-slot strip | ✅ |
+| B4 | Wolves (pack AI), horses (herd + stallion), sheep + dog, marmots | ✅ |
+| B5 | POIs: camp, bridge, roads, summer camp, kurgans, balbals, Eagle Rock, cairn, Crags | ✅ |
+| B6 | Spruce | ✅ |
+| B7 | Riding | 🟡 built (`Mount.ts`, `RideHUD`), **only on `dev/nalati-ride.html` — not wired into the shard** |
+| B8 | Taming | 🟡 built (`Taming.ts`), same; the bonding end (round 5 → TULPAR saved) unverified |
+| B9 | Crouch + stealth | ✅ |
+| B10 | Day/night + storms | ✅ |
+| B11 | Balbal warriors + ghost riders | 🟡 the ghost riders' horse + rider bodies don't render (only the mist) |
+| B12 | Named elites | ✅ (taming hand-off for Argymaq open) |
+| B13 | Boss system + Golden King + Golden Bow | ✅ (played in god mode only) |
+| B14 | Storm Titan + Naizagai | ❌ not started (plan: `handoff/storm-titan.md`) |
+| B15 | Items ✅, joke titles ✅ (partly), wearable elite skins ❌, Nalati map / minimap ❌ | 🟡 |
+| B16 | Audio ✅ · menu card / loading / hero art ❌ | 🟡 |
+| L | The look (mockup parity) | 🟡 ~30 % — painted textures, backdrop, dressing, 18 models generated; **v2 render path not started; models not in the world** |
 
-### The look pass (N7 — top priority, runs across every row)
+## Phase A — the look (now)
 
-The user saw the first in-engine shots: "the art style from the mock-ups is just like a hundred times better …
-a massive passover … the art direction, the rendering, the quality of the models … a lot of density … almost PS5
-level." Spec, levers, reference poses and owners: `docs/design/nalati/look-pass.md`. Done = the parity harness
-(`scripts/nalati-parity.mjs`) shows engine and mockup side by side and they read as the same game, at 60 fps on
-the phone tier.
+Every step: measured with `nalati-camp9.mjs` (9 angles + budget) and a walk-around / orbit strip, and — for models —
+`nalati-models-compare.mjs`. Nothing ships if it only works from one camera.
 
-| # | lever | owner |
-|---|---|---|
-| L1 | painterly shader, aerial perspective, sky + cumulus + cloud shadows, grade + bloom + AO, painterly filter; the parity harness | look-director |
-| L2 | terrain surface, roads, gravel, rock formations, snow, river, landscape drama | world-agent |
-| L3 | grass + flower drifts | grass-agent |
-| L4 | world density: rocks, shrubs, flowers, logs, fences, ribbons, camp clutter, pebbles, reeds, pollen, birds | dressing-agent |
-| L5 | creature models | creature-agent |
-| L6 | POI models (yurts, camp, bridge, kurgans, balbals, cairn, rocks) | poi-agent |
-| L7 | first-person arms, sleeves, gloves, bow, sabre, spear | bow-agent + melee-agent |
+**A1 Models into the world**
+1. Colour-match every GLB to its reference (Blender: levels / saturation / hue toward the reference's palette —
+   today they read too dark: wolf black, leopard a panther, king bronze, balbal brown).
+2. Swap in the Hunyuan yurt, horses and spruce (`~/ml/img2mesh/final-hy/`, post-process + optimize); regenerate the
+   weak ones (yurt felt, Golden King gold, boulder-2 gaps, eagle post).
+3. A painterly path for GLB materials (the same cel bands / shade tint / rim as `painterly.ts`, with a texture map).
+4. Adopt the static models: camp + summer yurts, balbal statues, boulders, camp props (churn, cauldron, saddle,
+   firewood, chest), the eagle on its perch, the spruce (instanced + the impostor as a far LOD only).
+5. Rig and animate the creatures (img2-character skill: the quadruped rig the procedural species use) and replace the
+   procedural horse / wolf / sheep / snow leopard / eagle / Golden King meshes, keeping the AI.
 
-## Deploy — none from this worktree
+**A2 The v2 render path** (`handoff/port-v2.md`, behind `?look=v2`, default when it wins)
+1. Sky dome with the round-6 panorama (seamless, at infinity), day / dusk / night / storm re-tint.
+2. Fog coloured from the panorama. 3. The grade + a post-less phone chain. 4. The lighting cheat + values.
+5. Grass v2 (the GPU rings + shader flowers) on the existing Wind / trample / stealth hooks. 6. Baked contact shadows.
+7. Default once it beats v1 at all 9 angles and passes the walk-around.
 
-The user (2026-09-23): "You can't push … you're a worktree, we have to rebase you on main and merge you manually …
-just focus on local development and not pushing." So: **no pushes from the Nalati worktree, ever.** Development
-and review are local (dev server http://127.0.0.1:5188/?chunk=nalati-grasslands). An attempted checkpoint push
-(279 MB, mostly mockup PNGs) held the shared push lock for 80+ minutes and was killed; nothing reached origin.
+**A3 Ground + world** — adopt the painted textures (terrain, roads, gravel, granite on outcrops and boulders, snow);
+the river as pale braided water (no cyan strip); the slab edge from above (a rocky grassy lip over a cloud sea); a
+massive snow range; the leftover world-agent WIP (Terrain / terrainSurface / Horizon) finished or dropped.
 
-When the user asks for the merge: merge local `main` into the branch, pass every gate on a clean export, convert the
-mockup PNGs under `art/nalati-grasslands/` to JPEG, land it in the main checkout as a **squashed** local commit
-(`git merge --squash`, so the PNG history never enters main) or `--ff-only` as the main sessions prefer, report the
-pack size, and let the main sessions' `scripts/push-main.sh` carry it. A prepared merge of main (11 conflicts
-resolved, gates green at the time) sits in the scratchpad deploy worktree at `4c191a3` for reference.
+**A4 Density to the camp mockups** — flowers to the track edge, small rocks through the meadow, painted camp props,
+bigger butterflies / kites.
+
+**A5** — a second 9-angle area (the plateau / horse plains or the kurgan field) once the camp passes.
+
+## Phase B — the features
+
+1. **Riding + taming into the shard** (`handoff/creatures-riding.md`): `wireRide` in `index.ts`, the mount prompt in
+   main's interactables, `extra.mounted` for stealth, Taming → `elites.bind` (Argymaq), the one-horse rule, the bow's
+   saddle factors multiplied (the Golden Bow's +20 % survives), the bonding end verified.
+2. **Ghost riders' bodies** (B11) render.
+3. **The Storm Titan + Naizagai** (`handoff/storm-titan.md`), incl. the combined `weather.hold`.
+4. **B15:** tame + Titan achievements, wearable elite skins, the Nalati map / minimap (painted ground, river, POI
+   names), the stealth extras (hidden wolves off the minimap / aim assist), `test/progress.test.ts` green.
+5. **Small fixes:** hide the combat nameplate for elites; grass through rocks (`dressingCover`).
+
+## Phase C — ship
+
+1. Menu card + hero art (portrait + landscape) from in-engine shots; the loading steps / nouns for Nalati; the card
+   loses "not yet playable" (stays SUPER EXPERIMENTAL until the user says otherwise).
+2. Perf: phone tier ≥ 30 fps at every pose (≤ ~150 calls), desktop 60; load time; the 25 MB budget.
+3. All gates green on a clean export (`tsc`, `oxlint`, `check-css`, `vite build`, `pnpm test`); Pine Hollow and
+   Driftwood unchanged.
+4. A preview deploy at each milestone (the `nalati-grasslands` Vercel project).
+
+## Phase D — the user
+
+Merge the branch into main (his call, his hands), then polish and balance by playing.
+
+## The world (map-01; coordinates in `geography-and-map.md` §3)
+
+Valley (north): N road (spawn (0, +232) facing south) · Kunes river (braided, east → west) · bridge · nomad camp
+(6 yurts, corral, hitching rail) · sheep pasture. Middle: spruce in three gullies · the sky-road switchbacks ·
+waterfall. Plateau (south): Eagle Rock · Sky Grassland · horse plains · kurgan field + the great kurgan (dungeon) ·
+balbal circle · summer yurts · the Titan's cairn. SE corner: the Crags (Aqbars, Argymaq). Four entry roads at the
+edge midpoints. Beyond the slab: the Nalati horizon + the painted panorama.
+
+## History (what the build taught us)
+
+- **Wave 1 + 2 (2026-09-22 / 23):** ~13 parallel agents built B0–B13, B16 audio and B9 in about a day, then hit the
+  account's session and weekly limits repeatedly; the user switched to a solo build.
+- **The look:** the first in-engine shots were "a hundred times" worse than the mockups. Procedural vertex-colour
+  tuning (the painterly material, grass round 2, dressing) closed some of it; painted textures + a matte backdrop
+  were next; a clean-room prototype then matched the camp shot — by cheating (cutouts, painted plates, seams). Its
+  honest parts (grass, values, grade, fog, shadows) are the v2 path; its cheats are banned.
+- **Models:** TRELLIS.2 and Hunyuan3D-2 both run locally on the M5 Max (image → textured GLB in 15–110 s, ~33 GB);
+  18 TRELLIS models are in; in-engine they beat the procedural creatures on silhouette but read too dark.
+- **Git:** a 279 MB checkpoint push from the worktree blocked everyone's deploys for 80 min — worktrees never push.
 
 ## Mockups
 
-- `art/nalati-grasslands/round-1/` — 4 art styles, 5 combat, 6 enemies, 2 features, 4 concept pieces (the user
-  picked style B, combat A / B / C / D).
-- `art/nalati-grasslands/round-2/` — painterly: `1-combat` (7), `2-creatures` (8), `3-features` (5),
-  `4-named-elites` (5), `5-bosses` (6), `6-maps` (20 + the OpenTopoMap reference; the user picked map-01),
-  `7-controls` (9).
-- `art/nalati-grasslands/round-3/` — `1-elite-swap` (Argymaq ✔ / Qonyr), `2-storm-titan` (5),
-  `3-crouch-disc` (3, option D as picked).
+- `round-1/` — 4 art styles, 5 combat, 6 enemies, 2 features, 4 concept (picked: style B; combat A/B/C/D).
+- `round-2/` — painterly: combat (7), creatures (8), features (5), named elites (5), bosses (6), maps (20 — picked
+  map-01), controls (9).
+- `round-3/` — elite swap (Argymaq ✔), Storm Titan (5), crouch disc (3, option D).
+- `round-4-camp-9angle/` — the camp's 9 captures + 9 remaster targets + sheets + `poses.json`.
+- `round-5-models/` (TRELLIS turntables), `round-5-sourced/` (CC0 / CC-BY sheets), `round-5-paintover/` (12
+  paint-overs), `round-6-panorama/` (the seamless 360° sky).
