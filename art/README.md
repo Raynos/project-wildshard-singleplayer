@@ -134,3 +134,11 @@ After the A/B/C board, Jake: "look and attack [must] be different touch zones â€
 problems". The whole right half still looks, and a LOOK rest pad sits in the bar's bottom-right. **D** puts ATTACK above
 the pad, **E** puts ATTACK inboard in the bar beside the pad, and **F** makes LOOK a joystick ring. `board.jpg` = BEFORE + D/E/F.
 **Jake picked E** (E42). D and F were copied out of `~/.codex/generated_images/<session>/` after codex hung on reconnects.
+
+### Compact quest tracker (`art/quest/round-1-compact/`, 2026-09-23, E49)
+
+codex edits of Jake's iPhone screenshot (`before-iphone.jpg`). Every variant shrinks the minimap to 80 %, drops the heading readout
+and replaces the 4-row quest block. **G:** one chip, "GLYPH SHARDS 0/3 | SEA CAVE 230 M â–¸". **H:** the quest on the minimap
+ring (objective diamond + "230 M" at its bearing, a "SHARDS 0/3" tab under the ring, a dim "SEA CAVE" line). **I:** a CoD-style
+waypoint in the world ("SEA CAVE 230 M") plus a "SHARDS 0/3" pill. `board.jpg` = BEFORE + G/H/I. None re-rolled; G garbled
+the untouched ATTACK sub-label.
