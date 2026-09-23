@@ -104,8 +104,8 @@ const nativePlugin = (): Plugin => ({
     }
     // any Google Fonts link (the native entry bundles the faces itself; optional, the web page may self-host them)
     out = out.replaceAll(/\s*<link[^>]*fonts\.(?:googleapis|gstatic)\.com[^>]*>/g, '');
-    const main = '<script type="module" src="/src/main.ts"></script>';
-    if (!out.includes(main)) throw new Error('[native] index.html has no main.ts script to swap for src/native/boot.ts');
+    const main = '<script type="module" src="/src/boot/entry.ts"></script>'; // the web entry (it imports src/main.ts)
+    if (!out.includes(main)) throw new Error('[native] index.html has no src/boot/entry.ts script to swap for src/native/boot.ts');
     return out.replace(main, '<script type="module" src="/src/native/boot.ts"></script>');
   } },
   generateBundle() { this.emitFile({ type: 'asset', fileName: 'native-unavailable.html', source: NATIVE_UNAVAILABLE }); },
@@ -122,7 +122,8 @@ export default defineConfig(({ mode }) => {
     // native: no source maps at all — they would ship inside the app and in every OTA bundle
     build: native
       ? { target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: false, outDir: 'dist-native' }
-      : { target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const },
+      // one stylesheet: src/boot/entry.ts splits three.js from the game's graph, and code-split CSS would add a request
+      : { target: 'es2022', chunkSizeWarningLimit: 4000, sourcemap: 'hidden' as const, cssCodeSplit: false },
     assetsInclude: ['**/*.hdr', '**/*.gltf', '**/*.bin'],
     define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
     plugins: native ? [versionPlugin(), nativePlugin()] : [versionPlugin(), pwaPlugin(BUILD_ID)],
