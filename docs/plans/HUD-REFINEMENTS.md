@@ -1,16 +1,16 @@
 # Plan: tentative HUD / touch-control refinements
 
-**State:** `draft` 2026-09-22 — **ideas only: Jake has approved none of them.** He is playing the sword touch HUD (E11, live `6eafcb4`) and the see-through bar (E26, `6660585`) first; nothing below gets built until he picks a row by name. Parked here so the ideas aren't lost (E27).
+**State:** `draft` 2026-09-22 — **ideas only: Jake has approved none of them.** He is playing the sword touch HUD (E11, live `6eafcb4`) and the see-through bar (E34, `6660585`) first; nothing below gets built until he picks a row by name. Parked here so the ideas aren't lost (E35).
 
 ## Read this first
 
 **None of these rows is approved.** They are the HUD agent's recommendations from the Call of Duty Mobile study (E11)
-and the touch audit that followed (E27), written down so they survive while Jake plays the build. A row becomes work
+and the touch audit that followed (E35), written down so they survive while Jake plays the build. A row becomes work
 only when Jake names it; until then, an agent must not build, "quickly try" or partially land any of them.
 
 Already built, so not listed: the HEAVY + DODGE discs, the lunge with lock-on brackets, right-half look, the Look speed
-and Swing turn speed sliders (E11), the 75 %-solid bar (E26). The dodge + lunge feel (whoosh, FOV kick, speed streaks,
-haptics) is the one row Jake picked from the audit, so it is being built (E27), not parked here.
+and Swing turn speed sliders (E11), the 75 %-solid bar (E34). The dodge + lunge feel (whoosh, FOV kick, speed streaks,
+haptics) is the one row Jake picked from the audit, so it was built (E35, `84951d0`), not parked here.
 
 ## Where the ideas come from
 
@@ -36,9 +36,10 @@ The CoD Mobile study (E11, research relayed in chat 2026-09-22) compared its tou
 | R8 | **Crouch / slide on touch** | Crouch is keyboard-only today (C / Ctrl). A CROUCH disc, or a swipe down on the stick; pressed while sprinting it slides. | `TouchControls.ts`, `Player.ts` | M | Player.ts has no slide move yet (its `sliding` means sliding down slopes). One more button in the portrait layout. |
 | R9 | **Gyro aim** | Optional, off by default. Tilt the phone to fine-aim, like CODM's "on while aiming" and "always on" modes. | `TouchControls.ts`, `Settings.ts` | M | iOS needs a motion-permission prompt from a tap, and gyro drifts. |
 | R10 | **In-range pulse** | The HEAVY disc (or the LOOK pad) pulses when an animal is inside lunge range, like CODM's context knife button. | `TouchControls.ts`, `touch.css` (reads `meleeLock`) | S | Could be visual noise, and the lock-on brackets may already be enough. |
+| R11 | **Dodge i-frames** | Once enemies can hurt the player, the dodge's first ~0.2 s ignores incoming hits (CODM has none, but souls-like melee does). Today only fall damage exists (main.ts `player.onLand`), so there is nothing for a dodge to avoid yet. | `Player.ts` (`invulnerable` while `dashT > 0.05`), the future enemy-damage path | S | Depends on enemy damage landing first. |
 
 ## Status
 
 | # | State |
 |---|---|
-| R1–R10 | idea — not approved |
+| R1–R11 | idea — not approved |
