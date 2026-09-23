@@ -14,6 +14,8 @@ import { Rng } from '../core/rng';
 import { Noise2D } from '../core/noise';
 import type { Sky } from './Sky';
 import { TIER_CONFIG } from '../core/tier';
+import { attachFogUniforms } from './Atmosphere';
+import { patchSway, swayByHeight, swayDepthMaterial } from './wind';
 
 export interface BushSpec { x: number; z: number; r: number; flowers: boolean }
 
@@ -76,6 +78,7 @@ export class Bushes {
           for (let j = 0; j < 3; j++) { col[(i + j) * 3] = c.r; col[(i + j) * 3 + 1] = c.g; col[(i + j) * 3 + 2] = c.b; }
         }
         ni.setAttribute('color', new THREE.BufferAttribute(col, 3));
+        swayByHeight(ni, 0.28, y, y + b.r * 1.2, (b.x + b.z) * 0.37);   // the crown sways a little in the wind (M5)
         parts.push(ni);
       }
       if (b.flowers) for (let f = 0; f < rng.int(3, 7); f++) {
@@ -87,6 +90,7 @@ export class Bushes {
         c.copy(rng.next() < 0.5 ? FLOWER : FLOWER2);
         for (let i = 0; i < n; i++) { col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b; }
         g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+        swayByHeight(g, 0.28, y, y + b.r * 1.2, (b.x + b.z) * 0.37);
         parts.push(g);
       }
       this.count++;
@@ -96,9 +100,12 @@ export class Bushes {
     const geo = parts.length > 0 ? mergeGeometries(parts, false) : new THREE.BufferGeometry();
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0 });
+    mat.onBeforeCompile = (sh) => { attachFogUniforms(sh); patchSway(sh); };
+    mat.customProgramCacheKey = () => 'bushes-sway';
     this.sky.setupMaterial(mat);
     this.mesh = new THREE.Mesh(geo, mat);
     this.mesh.castShadow = TIER_CONFIG.bushShadows; this.mesh.receiveShadow = true;
+    this.mesh.customDepthMaterial = swayDepthMaterial();
     return this;
   }
 }

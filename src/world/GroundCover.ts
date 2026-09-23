@@ -24,6 +24,7 @@ import { Rng } from '../core/rng';
 import { LowPolyKit, fern, hibiscus, grassTuft, rock, log, broadClump, tris, lowPolyMaterial, PLANT, type Part } from './lowpolyKit';
 import { HUT, LOOKOUT, SHRINE, WRECK, ISLAND } from '../chunks/driftwood-isle';
 import { Cove } from './Cove';
+import { windUniforms } from './wind';
 import type { Sky } from './Sky';
 
 export interface GroundCoverOpts {
@@ -34,7 +35,7 @@ export interface GroundCoverOpts {
 
 const CELL = 16, DRAW_R = 27, FADE_R0 = 19, FADE_R1 = 25.5, REFILL_M = 4;
 /** the shared wind the blades sway in (0 calm … 1 gusting); M5's palms.gust drives it */
-export const coverWind = { value: 0.55 };
+export const coverWind = windUniforms.uGust;
 
 interface Kind {
   name: string;
@@ -283,7 +284,7 @@ export class GroundCover {
     const u = this.uniforms;
     mat.onBeforeCompile = (sh) => {
       attachFogUniforms(sh);
-      sh.uniforms['uPlayer'] = u.uPlayer; sh.uniforms['uTime'] = u.uTime; sh.uniforms['uWind'] = u.uWind; sh.uniforms['uR'] = u.uR;
+      sh.uniforms['uPlayer'] = u.uPlayer; sh.uniforms['uTime'] = windUniforms.uWindTime; sh.uniforms['uWind'] = u.uWind; sh.uniforms['uR'] = u.uR;
       sh.vertexShader = sh.vertexShader
         .replace('#include <common>', '#include <common>\nuniform vec3 uPlayer; uniform float uTime; uniform float uWind; uniform vec2 uR;')
         .replace('#include <begin_vertex>', `#include <begin_vertex>

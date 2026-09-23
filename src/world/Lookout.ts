@@ -20,6 +20,7 @@ import { heightAt } from './Heightfield';
 import { SEED } from '../core/config';
 import { LowPolyKit, log, plank, rope, sagLine, tris, lowPolyMaterial } from './lowpolyKit';
 import { Cove } from './Cove';
+import { swayDepthMaterial } from './wind';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
 
@@ -166,17 +167,18 @@ export class Lookout {
         const u0 = c / cols, u1 = (c + 1) / cols, f0 = r / rows, f1 = (r + 1) / rows;
         v.push(...P(u0, f0), ...P(u1, f0), ...P(u1, f1), ...P(u0, f0), ...P(u1, f1), ...P(u0, f1));
       }
-      kit.add(tris(v), C.banner, { jitter: 0.04 });
+      const bSpan: [number, number] = [top, top - bh];
+      kit.add(tris(v), C.banner, { jitter: 0.04, sway: { w: 0.8, phase: 1.3, span: bSpan } });
       // the sigil: a diamond outline + a small solid diamond, a hair proud of the cloth, and a white wave band at the foot
       const cy = top - bh * 0.42, n = this.V(0, 0, -1).sub(this.V(0, 0, 0)).normalize().multiplyScalar(0.03);
       const dia = (s: number, col: string, dz: number) => {
         const p = (x: number, y: number) => { const w = this.V(bx + x, y, zf); return [w.x + n.x * dz, y, w.z + n.z * dz]; };
-        kit.add(tris([...p(0, cy + s * 1.4), ...p(-s, cy), ...p(s, cy), ...p(-s, cy), ...p(0, cy - s * 1.4), ...p(s, cy)]), col, { jitter: 0.02 });
+        kit.add(tris([...p(0, cy + s * 1.4), ...p(-s, cy), ...p(s, cy), ...p(-s, cy), ...p(0, cy - s * 1.4), ...p(s, cy)]), col, { jitter: 0.02, sway: { w: 0.8, phase: 1.3, span: [top, top - bh] } });
       };
       dia(0.36, C.sigil, 1.2); dia(0.25, C.bannerDark, 1.6); dia(0.12, C.sigil, 2.0);
       for (const y of [top - bh * 0.82, top - bh * 0.9]) {
         const p = (x: number, yy: number) => { const w = this.V(bx + x, yy, zf); return [w.x + n.x * 1.2, yy, w.z + n.z * 1.2]; };
-        kit.add(tris([...p(-bw / 2 + 0.05, y), ...p(bw / 2 - 0.05, y), ...p(bw / 2 - 0.05, y - 0.08), ...p(-bw / 2 + 0.05, y), ...p(bw / 2 - 0.05, y - 0.08), ...p(-bw / 2 + 0.05, y - 0.08)]), C.sigil, { jitter: 0.02 });
+        kit.add(tris([...p(-bw / 2 + 0.05, y), ...p(bw / 2 - 0.05, y), ...p(bw / 2 - 0.05, y - 0.08), ...p(-bw / 2 + 0.05, y), ...p(bw / 2 - 0.05, y - 0.08), ...p(-bw / 2 + 0.05, y - 0.08)]), C.sigil, { jitter: 0.02, sway: { w: 0.8, phase: 1.3, span: [top, top - bh] } });
       }
     }
     // ── the zipline post on the corner facing the sea cave, a pulley and the cable's first metres ──
@@ -215,6 +217,7 @@ export class Lookout {
     const geo = kit.finish({ ao: { ground: heightAt, cell: 0.2, strength: 0.6 } });
     this.mesh = new THREE.Mesh(geo, lowPolyMaterial(this.sky));
     this.mesh.castShadow = true; this.mesh.receiveShadow = true;
+    this.mesh.customDepthMaterial = swayDepthMaterial();   // the banner's shadow moves with it (M5)
     this.group.add(this.mesh);
 
     const A = (lx: number, lz: number, y: number, yaw: number): LookoutAnchor => { const [x, z] = this.toWorld(lx, lz); return { x, y, z, yaw: this.spec.rot + yaw }; };

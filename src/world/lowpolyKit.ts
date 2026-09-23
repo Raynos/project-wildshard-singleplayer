@@ -20,6 +20,8 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../core/rng';
 import type { Sky } from './Sky';
+import { patchSway, swayByHeight } from './wind';
+import { attachFogUniforms } from './Atmosphere';
 
 export type ColorLike = THREE.Color | string;
 
@@ -33,6 +35,10 @@ export interface AddOpts {
   matrix?: THREE.Matrix4;
   /** random per-vertex displacement in metres (hand-cut look; default 0) — applied before the matrix */
   wobble?: number;
+  /** sways in the shared wind (M5, wind.ts): weight `w` (~1 = cloth), rising with height from the part's base — or, with
+   * `hang`, from its top down (a sail, a banner, weed hanging off a rail). Meshes with swaying parts want
+   * `mesh.customDepthMaterial = swayDepthMaterial()` so their shadows move too. */
+  sway?: { w: number; phase?: number; hang?: boolean; /** absolute (post-matrix) y where the weight is 0 → where it reaches w (a sail built from many quads) */ span?: [number, number] };
 }
 
 export class LowPolyKit {
@@ -58,7 +64,17 @@ export class LowPolyKit {
       for (let j = 0; j < 3; j++) { const o = (i + j) * 3; out[o] = r * k; out[o + 1] = gg * k; out[o + 2] = b * k; }
     }
     ni.setAttribute('color', new THREE.BufferAttribute(out, 3));
+    if (opts.sway) this.sway(ni, opts.sway);
     this.parts.push(ni);
+  }
+
+  private sway(g: THREE.BufferGeometry, sw: NonNullable<AddOpts['sway']>): void {
+    g.computeBoundingBox();
+    const bb = g.boundingBox;
+    if (!bb) return;
+    const phase = sw.phase ?? this.rng.range(0, Math.PI * 2);
+    if (sw.span) swayByHeight(g, sw.w, sw.span[0], sw.span[1], phase);
+    else if (sw.hang) swayByHeight(g, sw.w, bb.max.y, bb.min.y, phase); else swayByHeight(g, sw.w, bb.min.y, bb.max.y, phase);
   }
 
   /**
@@ -105,6 +121,8 @@ export class LowPolyKit {
 
   /** merge everything, flat normals, optional AO bake; the kit is empty afterwards */
   finish(opts: { ao?: AOOptions | false } = {}): THREE.BufferGeometry {
+    // the parts must share their attributes to merge: if any part sways, the still ones get a zero aSway
+    if (this.parts.some((p) => p.hasAttribute('aSway'))) for (const p of this.parts) if (!p.hasAttribute('aSway')) p.setAttribute('aSway', new THREE.BufferAttribute(new Float32Array(p.getAttribute('position').count * 2), 2));
     const geo = mergeGeometries(this.parts, false);
     for (const p of this.parts) p.dispose();
     this.parts = [];
@@ -505,6 +523,9 @@ export function lowPolyMaterial(sky: Sky, variant = 'default', init?: (m: THREE.
   let m = bySky.get(variant);
   if (!m) {
     m = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.88, metalness: 0, side: THREE.DoubleSide });
+    // every kit model can sway (M5): geometry without aSway reads weight 0 and stays put
+    m.onBeforeCompile = (sh) => { attachFogUniforms(sh); patchSway(sh); };
+    m.customProgramCacheKey = () => `lowpoly-${variant}`;
     init?.(m);
     sky.setupMaterial(m);
     bySky.set(variant, m);

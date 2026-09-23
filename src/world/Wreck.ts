@@ -32,6 +32,7 @@ import * as THREE from 'three';
 import { heightAt } from './Heightfield';
 import { SEED } from '../core/config';
 import { LowPolyKit, log, beam, plank, rock, rope, sagLine, tris, bakeLight, lowPolyMaterial, type BakedLight } from './lowpolyKit';
+import { swayDepthMaterial } from './wind';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
 
@@ -406,6 +407,8 @@ export class Wreck {
         return along.addScaledVector(downH, f * drop).add(new THREE.Vector3(0, 0, 0.45 * Math.sin(f * Math.PI) * (0.6 + 0.4 * Math.sin(c * 0.9)) + f * 0.5));
       };
       const rag = (c: number): number => 0.5 + 0.5 * Math.abs(Math.sin(c * 2.3 + 0.7));
+      // the sail hangs from the yard: no sway at the yard, full flutter at the foot (world heights)
+      const yardW = yc.clone().applyMatrix4(mh).y, sailSpan: [number, number] = [yardW, yardW - drop];
       for (let c = 0; c < cols; c++) for (let r = 0; r < rowsS; r++) {
         const f0 = r / rowsS, f1 = (r + 1) / rowsS;
         const lim0 = rag(c), lim1 = rag(c + 1);
@@ -414,7 +417,7 @@ export class Wreck {
         if (c === 5 && r === 2) continue;                                          // a hole
         const a = pt(c, f0), b = pt(c + 1, f0), cc = pt(c + 1, Math.min(f1, lim1)), d = pt(c, Math.min(f1, lim0));
         const col = rng.next() < 0.15 ? C.sailStain : r % 2 ? C.sail : C.sailB;
-        kit.add(tris([a.x, a.y, a.z, b.x, b.y, b.z, cc.x, cc.y, cc.z, a.x, a.y, a.z, cc.x, cc.y, cc.z, d.x, d.y, d.z]), col, { matrix: mh, jitter: 0.04 });
+        kit.add(tris([a.x, a.y, a.z, b.x, b.y, b.z, cc.x, cc.y, cc.z, a.x, a.y, a.z, cc.x, cc.y, cc.z, d.x, d.y, d.z]), col, { matrix: mh, jitter: 0.04, sway: { w: 1.1, phase: 0.7, span: sailSpan } });
       }
     }
     // shrouds with ratlines to each rail, a forestay to the stem, a parted backstay hanging
@@ -452,7 +455,7 @@ export class Wreck {
         const wa = w * (1 - s / segs), wb = w * (1 - (s + 1) / segs);
         v.push(a.x, a.y, a.z - wa, a.x, a.y, a.z + wa, b.x, b.y, b.z + wb, a.x, a.y, a.z - wa, b.x, b.y, b.z + wb, b.x, b.y, b.z - wb);
       }
-      kit.add(tris(v), rng.next() < 0.5 ? C.moss : C.mossLight, { matrix: mh, jitter: 0.1 });
+      kit.add(tris(v), rng.next() < 0.5 ? C.moss : C.mossLight, { matrix: mh, jitter: 0.1, sway: { w: 0.35, hang: true } });
     }
 
     // ── hold dressing: barrels, crates, a net, rope coils, the weapon rack, lanterns ──
@@ -642,6 +645,7 @@ export class Wreck {
     bakeLight(geo, lamps);
     this.mesh = new THREE.Mesh(geo, lowPolyMaterial(this.sky));
     this.mesh.castShadow = true; this.mesh.receiveShadow = true;
+    this.mesh.customDepthMaterial = swayDepthMaterial();   // the torn sail's shadow flutters with it (M5)
     this.group.add(this.mesh);
     const gGeo = glow.finish({ ao: false });
     const cols = gGeo.getAttribute('color');

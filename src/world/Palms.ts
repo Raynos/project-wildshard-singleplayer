@@ -17,6 +17,7 @@ import { Noise2D } from '../core/noise';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
 import { TIER_CONFIG } from '../core/tier';
+import { windUniforms, updateWind } from './wind';
 
 export interface PalmSpec { x: number; z: number; h: number; lean: number; leanDir: number; rot: number; fronds: number }
 
@@ -30,7 +31,6 @@ export class Palms {
   mesh!: THREE.Mesh;
   colliders: Collider[] = [];
   count = 0;
-  private uniforms = { uTime: { value: 0 } };
 
   constructor(private sky: Sky) {}
 
@@ -151,27 +151,40 @@ export class Palms {
     const geo = parts.length > 0 ? mergeGeometries(parts, false) : new THREE.BufferGeometry();
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.85, metalness: 0, side: THREE.DoubleSide });
-    mat.onBeforeCompile = (shader) => {
-      attachFogUniforms(shader);
-      Object.assign(shader.uniforms, this.uniforms);
-      shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', '#include <common>\nattribute vec2 sway; uniform float uTime;')
-        .replace('#include <begin_vertex>', `
-          vec3 transformed = vec3( position );
-          {
-            float w = sway.x, ph = sway.y;
-            float g = sin(uTime * 1.3 + ph) * 0.6 + sin(uTime * 2.9 + ph * 1.7) * 0.25;
-            transformed.x += g * w * 0.22;
-            transformed.z += cos(uTime * 1.1 + ph) * w * 0.14;
-            transformed.y -= abs(g) * w * 0.05;
-          }`);
-    };
+    mat.onBeforeCompile = (shader) => { attachFogUniforms(shader); patchPalmSway(shader); };
     mat.customProgramCacheKey = () => 'palms-sway';
     this.sky.setupMaterial(mat);
     this.mesh = new THREE.Mesh(geo, mat);
     this.mesh.castShadow = true; this.mesh.receiveShadow = true;
+    // the shadow pass sways the fronds too, so the palm shadows on the sand move (M5)
+    const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side: THREE.DoubleSide });
+    depth.onBeforeCompile = (shader) => patchPalmSway(shader);
+    depth.customProgramCacheKey = () => 'palms-sway-depth';
+    this.mesh.customDepthMaterial = depth;
     return this;
   }
 
-  update(dt: number): void { this.uniforms.uTime.value += dt; }
+  /** the island's wind gust, 0 calm … 1 gusting (wind.ts) — what the fronds, bushes, grass, sails and banner sway with; the
+   * sound agent's palm rustle reads it */
+  get gust(): number { return windUniforms.uGust.value; }
+
+  /** advances the shared wind (wind.ts) — once a frame, for everything that sways */
+  update(dt: number): void { updateWind(dt); }
+}
+
+/** the fronds' sway (per-vertex weight + phase in `sway`), stronger in a gust — for the lit and the shadow-pass material */
+function patchPalmSway(shader: { uniforms: Record<string, THREE.IUniform>; vertexShader: string }): void {
+  shader.uniforms['uTime'] = windUniforms.uWindTime;
+  shader.uniforms['uGust'] = windUniforms.uGust;
+  shader.vertexShader = shader.vertexShader
+    .replace('#include <common>', '#include <common>\nattribute vec2 sway; uniform float uTime; uniform float uGust;')
+    .replace('#include <begin_vertex>', `
+      vec3 transformed = vec3( position );
+      {
+        float w = sway.x * (0.55 + 0.8 * uGust), ph = sway.y;
+        float g = sin(uTime * 1.3 + ph) * 0.6 + sin(uTime * 2.9 + ph * 1.7) * 0.25 + 0.35 * uGust;
+        transformed.x += g * w * 0.22;
+        transformed.z += cos(uTime * 1.1 + ph) * w * 0.14;
+        transformed.y -= abs(g) * w * 0.05;
+      }`);
 }

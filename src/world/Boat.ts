@@ -19,6 +19,8 @@ import { SEED } from '../core/config';
 import type { Sky } from './Sky';
 import { heightAt } from './Heightfield';
 import { waveHeight, seaDamp } from './waves';
+import { attachFogUniforms } from './Atmosphere';
+import { patchSway, swayDepthMaterial } from './wind';
 
 export interface BoatSpec {
   x: number; z: number;
@@ -123,6 +125,7 @@ export class Boat {
     add(new THREE.CylinderGeometry(0.06, 0.085, mastH, 7).translate(0, 0.32 + mastH / 2, mz), C.mast, 0.05);
     add(new THREE.CylinderGeometry(0.045, 0.045, 3.3, 6).rotateX(Math.PI / 2).translate(0, 1.45, mz + 1.65), C.mast, 0.05);
     add(new THREE.CylinderGeometry(0.04, 0.04, 2.2, 6).rotateX(Math.PI / 2).translate(0, 0.32 + mastH - 0.05, mz + 1.1), C.mast, 0.05); // gaff-ish yard
+    const sail0 = parts.length;
     {
       const cols = 6, rows = 8, top = 0.32 + mastH - 0.1, bot = 1.55, foot = 3.1, head = 2.0;
       const pt = (u: number, v: number): number[] => {
@@ -137,16 +140,31 @@ export class Boat {
         quad(pt(u0, v0), pt(u1, v0), pt(u1, v1), pt(u0, v1), patch ? C.patch : C.sail, 0.04);
       }
     }
+    // the sail flutters in the shared wind (M5): still at the mast, most at the leech halfway up
+    for (let i = sail0; i < parts.length; i++) {
+      const g = parts[i];
+      if (g === undefined) continue;
+      const p = g.getAttribute('position'), a = new Float32Array(p.count * 2), top = 0.32 + mastH - 0.1, bot = 1.55;
+      for (let k = 0; k < p.count; k++) {
+        const u = Math.min(1, Math.max(0, (p.getZ(k) - mz) / 3.1)), v = Math.min(1, Math.max(0, (p.getY(k) - bot) / (top - bot)));
+        a[k * 2] = u * (0.25 + 0.75 * Math.sin(v * Math.PI)) * 0.8; a[k * 2 + 1] = 2.1;
+      }
+      g.setAttribute('aSway', new THREE.BufferAttribute(a, 2));
+    }
     // rudder + tiller
     add(new THREE.BoxGeometry(0.06, 1.0, 0.5).translate(0, 0.1, LENGTH / 2 + 0.2), C.trim, 0.05);
     add(new THREE.BoxGeometry(0.05, 0.05, 1.3).translate(0, 0.78, LENGTH / 2 - 0.5), C.mast, 0.05);
 
+    for (const g of parts) if (!g.hasAttribute('aSway')) g.setAttribute('aSway', new THREE.BufferAttribute(new Float32Array(g.getAttribute('position').count * 2), 2));
     const geo = mergeGeometries(parts, false);
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.85, metalness: 0, side: THREE.DoubleSide });
+    mat.onBeforeCompile = (sh) => { attachFogUniforms(sh); patchSway(sh); };
+    mat.customProgramCacheKey = () => 'boat-sway';
     this.sky.setupMaterial(mat);
     this.mesh = new THREE.Mesh(geo, mat);
     this.mesh.castShadow = true; this.mesh.receiveShadow = true;
+    this.mesh.customDepthMaterial = swayDepthMaterial();
     this.group.add(this.mesh);
     this.group.position.set(this.spec.x, this.spec.waterY, this.spec.z);
     this.group.rotation.y = this.spec.heading ?? 0;
