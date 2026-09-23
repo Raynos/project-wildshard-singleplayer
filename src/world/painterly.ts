@@ -87,6 +87,8 @@ export const painterlyUniforms = {
   uPTime: { value: 0 },
   /** xy = wind direction (x, z), z = strength */
   uPWind: { value: new THREE.Vector3(0.8, 0.6, 1) },
+  /** the painted ramp's temperature: the band just past the terminator warms and saturates (a painter's warm edge), 0 = off */
+  uPWarm: { value: 0.8 },
 };
 
 /** Advance the shared clock that drives `sway`. */
@@ -144,6 +146,7 @@ uniform vec3 uPSunRef;
 uniform vec3 uPSunDir;
 uniform vec3 uPShade;
 uniform vec3 uPRimColor;
+uniform float uPWarm;
 uniform float uPRim;
 uniform float uPBands;
 uniform float uPShadeAmt;
@@ -174,6 +177,9 @@ void RE_Direct_Lambert( const in IncidentLight directLight, const in vec3 geomet
   float l = pCel( dotNL * vis );
   // lit side gets the light; the shade side is painted with the sky tint instead of going to black
   vec3 irradiance = lightCol * l + uPShade * ( 1.0 - l ) * uPShadeAmt;
+  // the warm edge: where the light turns into the shade the paint runs warmer and richer (the terminator band)
+  float pTerm = smoothstep( 0.02, 0.2, l ) * ( 1.0 - smoothstep( 0.45, 0.85, l ) );
+  irradiance *= mix( vec3( 1.0 ), vec3( 1.16, 0.98, 0.8 ), pTerm * uPWarm );
   reflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );
 }
 

@@ -7,7 +7,7 @@ import { N8AOPostPass } from 'n8ao';
 import { installAtmosphere } from '../world/Atmosphere';
 import { setAnisotropy } from './assets';
 import { Sky } from '../world/Sky';
-import { GradeEffect } from './Grade';
+import { GradeEffect, PaintGradeEffect } from './Grade';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from './tier';
@@ -55,7 +55,7 @@ export class Game {
   get sky(): Sky { if (this._sky === null) throw new Error('Game.sky read before buildSky()'); return this._sky; }
 
   constructor(public canvas: HTMLCanvasElement) {
-    installAtmosphere();
+    installAtmosphere(getActiveChunk().style === 'painterly'); // the painterly shard's air: aerial perspective + cloud shadows
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', stencil: false, depth: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, TIER_CONFIG.dpr));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -87,7 +87,8 @@ export class Game {
       ao.configuration.halfRes = true;
       ao.configuration.screenSpaceRadius = false;
       ao.configuration.gammaCorrection = false;
-      ao.configuration.color = new THREE.Color(0.05, 0.06, 0.05);
+      // a painterly shard's contact shadows are a cool painted blue, not a black-green smudge
+      ao.configuration.color = getActiveChunk().style === 'painterly' ? new THREE.Color(0.1, 0.13, 0.26) : new THREE.Color(0.05, 0.06, 0.05);
       composer.addPass(ao);
     }
 
@@ -100,6 +101,7 @@ export class Game {
       blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
       exposure: 0.4, samples: TIER_CONFIG.godRaysSamples, clampMax: 1.0, resolutionScale: TIER_CONFIG.godRaysScale,
     });
+    if (getActiveChunk().style === 'painterly') { this.buildPainterlyChain(composer, vol, godRays); return; }
     const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: 0.3, mipmapBlur: true, radius: 0.6, levels: TIER_CONFIG.bloomLevels });
     const vignette = new VignetteEffect({ offset: 0.32, darkness: 0.55 });
     const chroma = new ChromaticAberrationEffect({ offset: new THREE.Vector2(0.0006, 0.0006), radialModulation: true, modulationOffset: 0.35 });
@@ -112,6 +114,35 @@ export class Game {
     grain.blendMode.opacity.value = 0.12;
     // one EffectPass for the whole chain: one program and one full-screen pass fewer per frame
     composer.addPass(new EffectPass(this.camera, vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain));
+    if (TIER_CONFIG.smaa !== 'off') {
+      const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
+      composer.addPass(new EffectPass(this.camera, smaa));
+    }
+    this._composer = composer;
+  }
+
+  /** the painterly look's own handle (Nalati): hue / vibrance / value shaping after the split-tone grade */
+  paintGrade: PaintGradeEffect | null = null;
+
+  /**
+   * The painterly shard's colour chain (look pass lever 8): no film grain, no chromatic fringe — a painting, not a
+   * photograph. Khronos Neutral tone mapping (keeps the hues and saturation AgX bleaches out of the sky and the felt),
+   * a wider softer bloom so the sky and the sunlit tops glow, a gentle vignette, then the def's saturation / contrast,
+   * the split-tone grade and the painterly hue shaping (PaintGradeEffect). Same runtime handles (`post`) as the default
+   * chain, so the day/night rig drives it unchanged.
+   */
+  private buildPainterlyChain(composer: EffectComposer, vol: VolumetricsEffect, godRays: GodRaysEffect): void {
+    const { grade: G } = getActiveChunk();
+    const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: 0.35, mipmapBlur: true, radius: 0.75, levels: TIER_CONFIG.bloomLevels });
+    const vignette = new VignetteEffect({ offset: 0.38, darkness: 0.42 });
+    const tone = new ToneMappingEffect({ mode: ToneMappingMode.NEUTRAL });
+    const saturation = new HueSaturationEffect({ saturation: G.saturation });
+    const contrast = new BrightnessContrastEffect({ brightness: G.brightness, contrast: G.contrast });
+    const split = new GradeEffect(G);
+    const paint = new PaintGradeEffect();
+    this.post = { grade: split, saturation, contrast, bloom };
+    this.paintGrade = paint;
+    composer.addPass(new EffectPass(this.camera, vol, godRays, bloom, vignette, tone, saturation, contrast, split, paint));
     if (TIER_CONFIG.smaa !== 'off') {
       const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
       composer.addPass(new EffectPass(this.camera, smaa));

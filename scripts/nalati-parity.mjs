@@ -10,6 +10,8 @@
 //   node scripts/nalati-parity.mjs --tag=01-aerial                  # name the set (before/after shots per commit)
 //   node scripts/nalati-parity.mjs --poses=camp,plateau --tiers=phone
 //   node scripts/nalati-parity.mjs --engine-only                    # engine frames only (no mockup half)
+//   node scripts/nalati-parity.mjs --pose=40,-50,0,-0.9 --tiers=desktop  # one ad-hoc pose x,z,yaw,pitch[,time]
+//   node scripts/nalati-parity.mjs --pose=... --eval='window.__world.game.paintGrade.set({ vibrance: 0.4 })'   # try a value live
 //   node scripts/nalati-parity.mjs --url=http://127.0.0.1:5188 --query=foo=1 --settle=6
 //
 // One browser, closed at the end (the machine allows at most 3 game browsers — check `pgrep -fl chrome`).
@@ -44,9 +46,9 @@ export const POSES = [
   // the valley floor north of the Kunes, looking south up the waterfall ravine: river, gravel, spruce gullies, the rim
   { id: 'gully', mockup: 'round-1/5-concept-art/concept-3-river-gorge.png', what: 'trees, river, slope, rock',
     x: 64, z: 203, yaw: 0.05, pitch: 0.04 },
-  // across the hitching rail from the tied horse, looking east over the camp edge to the sheep pasture (golden hour)
+  // the road side of the hitching rail, the tied horse (B8) in front, looking W over the camp into the low sun (golden hour)
   { id: 'rail', mockup: 'round-2/2-creatures/taming-3-bonded.png', what: 'camp detail, props, close models',
-    x: 80.5, z: 207, yaw: 1.35, pitch: -0.08, time: 'golden' },
+    x: 73.5, z: 206, yaw: -1.3, pitch: -0.06, time: 'golden' },
   // the kurgan field at golden hour, the great kurgan ahead, the range behind
   { id: 'kurgan', mockup: 'round-2/4-named-elites/elite-2-kokbori-sky-wolf.png', what: 'stones, dusk light',
     x: -128, z: -62, yaw: 0.22, pitch: -0.02, time: 'golden' },
@@ -67,12 +69,16 @@ if (has('help')) {
 const URL_BASE = flag('url', 'http://127.0.0.1:5188');
 const TAG = flag('tag', 'latest');
 const EXTRA = flag('query', '');
+const EVAL = flag('eval', ''); // JS run in the page after each pose is set (e.g. a uniform override to test a look change live)
 const SETTLE = Number(flag('settle', '5')) * 1000;
 const TIMEOUT = Number(flag('timeout', '240')) * 1000;
 const ENGINE_ONLY = has('engine-only');
 const wantPoses = flag('poses', POSES.map((p) => p.id).join(',')).split(',');
 const wantTiers = flag('tiers', 'desktop,phone').split(',');
-const poses = POSES.filter((p) => wantPoses.includes(p.id));
+const adhoc = flag('pose', '');
+// --pose=x,z,yaw,pitch[,time] — one ad-hoc pose (engine only), e.g. to look straight down at the cloud shadows
+const poses = adhoc ? [(() => { const [x, z, yaw, pitch, time] = adhoc.split(','); return { id: 'adhoc', mockup: null, x: Number(x), z: Number(z), yaw: Number(yaw), pitch: Number(pitch ?? 0), time: time === undefined ? undefined : (Number.isFinite(Number(time)) ? Number(time) : time) }; })()]
+  : POSES.filter((p) => wantPoses.includes(p.id));
 mkdirSync(OUT, { recursive: true });
 
 // ── browser: headless Chromium on Metal, frame rate uncapped (frame ms = the real cost, not the vsync wait) ──
@@ -95,55 +101,61 @@ try {
     if (!T) { console.error(`unknown tier ${tierName}`); continue; }
     const ctx = await browser.newContext({ viewport: T.viewport, deviceScaleFactor: T.dpr, hasTouch: Boolean(T.touch), isMobile: false });
     const page = await ctx.newPage();
+    /** @type {string[]} */
     const errors = [];
-    page.on('pageerror', (e) => errors.push(String(e.message).slice(0, 200)));
-    const first = poses[0];
-    if (!first) break;
+    page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
+    const first = poses.at(0);
+    if (first === undefined) break;
     const q = `chunk=nalati-grasslands&nolock=1&skipintro=1&weather=clear&clock=0&perf=0&${T.query}&x=${first.x}&z=${first.z}&yaw=${first.yaw}${EXTRA ? `&${EXTRA}` : ''}`;
     const t0 = Date.now();
     console.error(`[${tierName}] loading ${URL_BASE}/?${q}`);
     await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
     await ready(page);
-    console.error(`[${tierName}] ready in ${((Date.now() - t0) / 1000).toFixed(0)} s${errors.length ? ` — page errors: ${errors.join(' | ')}` : ''}`);
+    console.error(`[${tierName}] ready in ${((Date.now() - t0) / 1000).toFixed(0)} s${errors.length > 0 ? ` — page errors: ${errors.join(' | ')}` : ''}`);
     const queue = [...poses], tries = new Map();
     for (const p of queue) {
       const yaw = (tierName === 'phone' && p.phone?.yaw !== undefined) ? p.phone.yaw : p.yaw;
       const pitch = (tierName === 'phone' && p.phone?.pitch !== undefined) ? p.phone.pitch : p.pitch;
       await ready(page);
-      await page.evaluate(({ x, z, yaw, pitch, time }) => {
+      await page.evaluate((a) => {
         const w = window.__world, wx = window.__weather;
         window.__parityHour ??= wx.clock.hour; // the def's own sun (the clock starts there)
-        w.player.spawn(x, z, yaw); w.player.pitch = pitch;
-        wx.clock.set(time ?? window.__parityHour);
+        w.player.spawn(a.x, a.z, a.yaw); w.player.pitch = a.pitch;
+        wx.clock.set(a.time ?? window.__parityHour);
         wx.clock.paused = true;
       }, { x: p.x, z: p.z, yaw, pitch, time: p.time ?? null });
+      if (EVAL) await page.evaluate(EVAL);
       await sleep(SETTLE); // streaming (grass ring, LODs), the look lerps, shadows settle
-      const perf = await page.evaluate((pose) => new Promise((resolve, reject) => {
+      const perf = await page.evaluate(() => new Promise((resolve, reject) => {
         if (!window.__world) { reject(new Error('reloaded')); return; }
         const g = window.__world.game;
         setTimeout(() => {
           const ms = Array.from(g.frameMs).filter((v) => v > 0).sort((a, b) => a - b);
-          const q = (f) => ms[Math.min(ms.length - 1, Math.floor(ms.length * f))] ?? 0;
-          resolve({ p50: q(0.5), p95: q(0.95), fps: g.stats.fps, calls: g.lastFrame.calls, tris: g.lastFrame.triangles });
+          const pct = (f) => ms[Math.min(ms.length - 1, Math.floor(ms.length * f))] ?? 0;
+          resolve({ p50: pct(0.5), p95: pct(0.95), fps: g.stats.fps, calls: g.lastFrame.calls, tris: g.lastFrame.triangles });
         }, 2500);
-      }), p.id).catch((e) => { console.error(`  ${p.id}: ${String(e).slice(0, 80)} — the page reloaded (HMR); re-run this pose`); return null; });
+      })).catch((/** @type {unknown} */ e) => { console.error(`  ${p.id}: ${String(e).slice(0, 80)} — the page reloaded (HMR); re-run this pose`); return null; });
       if (!perf) { const n = (tries.get(p.id) ?? 0) + 1; tries.set(p.id, n); if (n < 3) queue.push(p); continue; }
       const shot = await page.screenshot({ type: 'png' });
       const name = `${TAG}-${p.id}-${tierName}.jpg`;
-      const jpg = await composite(page, shot, ENGINE_ONLY ? null : resolvePath(ART, p.mockup), `${p.id} · ${tierName} · ${perf.p50.toFixed(1)} ms p50 / ${perf.p95.toFixed(1)} p95 · ${perf.calls} calls · ${(perf.tris / 1e6).toFixed(2)} M tris`);
+      const jpg = await composite(page, shot, ENGINE_ONLY || !p.mockup ? null : resolvePath(ART, p.mockup), `${p.id} · ${tierName} · ${perf.p50.toFixed(1)} ms p50 / ${perf.p95.toFixed(1)} p95 · ${perf.calls} calls · ${(perf.tris / 1e6).toFixed(2)} M tris`);
       writeFileSync(resolvePath(OUT, name), jpg);
       const row = { tag: TAG, pose: p.id, tier: tierName, x: p.x, z: p.z, yaw, pitch, time: p.time ?? null, ...perf, file: `progress/nalati-look/${name}`, kb: Math.round(jpg.length / 1024) };
       results.push(row);
       console.log(`${p.id.padEnd(8)} ${tierName.padEnd(7)} p50 ${perf.p50.toFixed(1).padStart(5)} ms · p95 ${perf.p95.toFixed(1).padStart(5)} ms · ${String(perf.calls).padStart(4)} calls · ${(perf.tris / 1e6).toFixed(2)} M tris → ${row.file} (${row.kb} KB)`);
     }
-    if (errors.length) console.error(`[${tierName}] page errors: ${errors.join(' | ')}`);
+    if (errors.length > 0) console.error(`[${tierName}] page errors: ${errors.join(' | ')}`);
     await ctx.close();
   }
 } finally {
   await browser.close().catch(() => undefined);
   cleanup();
 }
-writeFileSync(resolvePath(OUT, `${TAG}-perf.json`), `${JSON.stringify(results, null, 2)}\n`);
+// merge into the tag's perf file (a partial re-run replaces only its own pose × tier rows)
+const perfFile = resolvePath(OUT, `${TAG}-perf.json`);
+const prev = existsSync(perfFile) ? JSON.parse(readFileSync(perfFile, 'utf8')) : [];
+const merged = [...prev.filter((r) => !results.some((n) => n.pose === r.pose && n.tier === r.tier)), ...results];
+writeFileSync(perfFile, `${JSON.stringify(merged, null, 2)}\n`);
 
 /** engine PNG (+ mockup, scaled to the same height) → one JPEG ≤ 500 KB, composed in a blank page's canvas */
 async function composite(page, enginePng, mockupPath, caption) {
@@ -151,9 +163,10 @@ async function composite(page, enginePng, mockupPath, caption) {
   const mock = mockupPath ? `data:image/png;base64,${readFileSync(mockupPath).toString('base64')}` : null;
   const p2 = await page.context().newPage();
   try {
-    const b64 = await p2.evaluate(async ({ eng, mock, caption }) => {
-      const load = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
-      const a = await load(eng); const b = mock ? await load(mock) : null;
+    const b64 = await p2.evaluate(async (args) => {
+      const load = (src) => new Promise((resolve, reject) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = src; });
+      const a = await load(args.eng); const b = args.mock ? await load(args.mock) : null;
+      const label = args.caption;
       const H = Math.min(1100, a.height);
       const aw = Math.round(a.width * (H / a.height)), bw = b ? Math.round(b.width * (H / b.height)) : 0;
       const gap = b ? 8 : 0;
@@ -163,9 +176,9 @@ async function composite(page, enginePng, mockupPath, caption) {
       g.imageSmoothingQuality = 'high';
       g.drawImage(a, 0, 0, aw, H);
       if (b) g.drawImage(b, aw + gap, 0, bw, H);
-      g.font = '600 14px ui-monospace, monospace'; const tw = g.measureText(caption).width;
+      g.font = '600 14px ui-monospace, monospace'; const tw = g.measureText(label).width;
       g.fillStyle = 'rgba(0,0,0,0.6)'; g.fillRect(0, H - 24, tw + 16, 24);
-      g.fillStyle = '#9fe6ff'; g.fillText(caption, 8, H - 7);
+      g.fillStyle = '#9fe6ff'; g.fillText(label, 8, H - 7);
       if (b) { g.fillStyle = 'rgba(0,0,0,0.6)'; g.fillRect(aw + gap, H - 24, 76, 24); g.fillStyle = '#ffd98a'; g.fillText('MOCKUP', aw + gap + 8, H - 7); }
       for (let q = 0.86; q >= 0.4; q -= 0.06) {
         const url = c.toDataURL('image/jpeg', q);
@@ -188,4 +201,4 @@ async function ready(page) {
   }
 }
 
-function sleep(ms) { return new Promise((r) => { setTimeout(r, ms); }); }
+function sleep(ms) { return new Promise((resolve) => { setTimeout(resolve, ms); }); }

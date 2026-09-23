@@ -2,7 +2,9 @@ import * as THREE from 'three';
 import { TIER_CONFIG } from '../core/tier';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { loadHDR } from '../core/assets';
-import { fogUniforms } from './Atmosphere';
+import { fogUniforms, paintedAir, patchCloudShadows, isPaintedAir } from './Atmosphere';
+import { buildPainterlyClouds } from './PainterlySky';
+import { wind } from './Wind';
 import { Noise2D } from '../core/noise';
 import { Rng } from '../core/rng';
 import { getActiveChunk } from '../chunks/registry';
@@ -96,6 +98,7 @@ export class Sky {
     this.csm.fade = true;
     if (!TIER_CONFIG.softShadows) this.renderer.shadowMap.type = THREE.PCFShadowMap; // 16-tap PCFSoft → 9-tap PCF on the phone
     patchCSMShaderChunk();
+    patchCloudShadows(); // painterly shards: the drifting cloud shadows in the sun loop (a no-op elsewhere)
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = 0.05; l.shadow.radius = 2; }
 
     this.hemi = new THREE.HemisphereLight(S.hemiSky, S.hemiGround, S.hemiIntensity);
@@ -145,10 +148,24 @@ export class Sky {
     mat.needsUpdate = true;
   }
 
-  clouds!: THREE.Mesh;
-  private cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() }, uLight: { value: new THREE.Color(1, 1, 1) } };
+  /** the cloud layer(s) — Game.ts keeps them centred on the camera */
+  clouds!: THREE.Object3D;
+  private cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() }, uLight: { value: new THREE.Color(1, 1, 1) }, uDrift: { value: new THREE.Vector2() } };
+  /** the painterly air's uniforms (aerial perspective, cloud shadows — Atmosphere.ts `paintedAir`), for live tuning (`__world.sky.air`) */
+  readonly air = paintedAir;
+  /** a painted sky (Nalati): the painterly clouds + the cloud shadows drift with the one Wind */
+  private painterly = false;
 
-  update(dt = 0): void { this.csm.update(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt; }
+  update(dt = 0): void {
+    this.csm.update(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
+    if (this.painterly) {
+      // the sky's clouds and their shadows on the ground drift downwind (the shadows at ~1.6× the wind, as clouds aloft do)
+      const s = (wind.speed * 1.6 + 2) * dt;
+      this.cloudUniforms.uDrift.value.x += wind.dirX * s * 0.00004; this.cloudUniforms.uDrift.value.y += wind.dirZ * s * 0.00004;
+      const k = paintedAir.fogCloud.value.x;
+      paintedAir.fogCloudOff.value.x -= wind.dirX * s * k; paintedAir.fogCloudOff.value.y -= wind.dirZ * s * k;
+    }
+  }
 
   // ── runtime setters (the day/night clock + weather, src/world/DayNight.ts; nothing calls them on a fixed-time shard) ──
 
@@ -184,6 +201,17 @@ export class Sky {
     const geo = new THREE.SphereGeometry(1400, 48, 24, 0, Math.PI * 2, 0, Math.PI * 0.52);
     const tex = bakedTexture('clouds', makeCloudTexture); // 512² six-octave simplex on a torus: ~200 ms of phone CPU when not baked
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    if (getActiveChunk().sky.painted && isPaintedAir()) {
+      // Nalati: cel-shaded cumulus round the horizon + high puffs (PainterlySky.ts), and the same fbm drives the cloud shadows
+      this.painterly = true;
+      tex.needsUpdate = true;
+      paintedAir.fogCloudTex.value = tex;
+      this.cloudUniforms.uSunDir.value.copy(this.sunDir);
+      this.cloudUniforms.uSunColor.value.set(...getActiveChunk().sky.cloudSunColor);
+      this.clouds = buildPainterlyClouds(this.cloudUniforms, (this.scene.fog as THREE.Fog).color);
+      this.scene.add(this.clouds);
+      return;
+    }
     // a painted sky (Nalati) gets big painted cumulus: larger cells, crisper edges, bright sunlit tops over soft blue-grey bellies
     const big = getActiveChunk().sky.painted ? 1.0 : 0.0;
     this.cloudUniforms.uSunDir.value.copy(this.sunDir);
@@ -269,7 +297,8 @@ export class Sky {
     grad.addColorStop(0, 'rgba(255,240,210,0.9)'); grad.addColorStop(0.12, 'rgba(255,210,150,0.55)'); grad.addColorStop(0.4, 'rgba(255,170,90,0.12)'); grad.addColorStop(1, 'rgba(255,140,60,0)');
     g.fillStyle = grad; g.fillRect(0, 0, 256, 256);
     const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, fog: false, toneMapped: false }));
-    halo.scale.set(420, 420, 1);
+    halo.scale.setScalar(getActiveChunk().sky.painted ? 250 : 420); // a painted sun: a tighter glow (the mockups keep the sky blue right up to it)
+    halo.scale.z = 1;
     this.sunDisc.add(halo);
     this.scene.add(this.sunDisc);
   }
@@ -326,19 +355,21 @@ export class Sky {
     this.giantUniforms.uSunDir.value.copy(this.sunDir);
     this.giantUniforms.uHaze.value.copy(haze);
     this.giantUniforms.uRadius.value = R;
+    if (getActiveChunk().sky.painted) { this.giantUniforms.uHazeAmt.value = 0.22; this.giantUniforms.uGain.value = 1.5; this.giantUniforms.uFar.value = 1; }
 
     const body = new THREE.Mesh(new THREE.SphereGeometry(R, 48, 32), new THREE.ShaderMaterial({
       uniforms: { ...this.giantUniforms, tBands: { value: bands } },
       transparent: true, depthWrite: false,
       vertexShader: /* glsl */`
-        varying vec3 vN; varying vec3 vW;
+        varying vec3 vN; varying vec3 vW; uniform float uFar;
         void main() {
           vN = normalize(mat3(modelMatrix) * normal);
           vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz;
           gl_Position = projectionMatrix * viewMatrix * w;
+          if (uFar > 0.5) gl_Position.z = gl_Position.w * 0.9999; // behind every range and cloud (the painterly sky)
         }`,
       fragmentShader: /* glsl */`
-        uniform sampler2D tBands; uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uTime; uniform vec3 uLight; uniform float uOpacity;
+        uniform sampler2D tBands; uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uTime; uniform vec3 uLight; uniform float uOpacity; uniform float uHazeAmt; uniform float uGain;
         varying vec3 vN; varying vec3 vW;
         void main() {
           vec3 N = normalize(vN);
@@ -354,8 +385,8 @@ export class Sky {
           float limb = 0.45 + 0.55 * mu;                       // limb darkening
           vec3 lit = col * (0.24 + 0.95 * day) * limb + col * vec3(0.05, 0.08, 0.14) * (1.0 - day); // a little sky bounce on the night side
           // sky haze: the disc is pale and airy, more so at the limb (it sits in the atmosphere, not in front of it)
-          float h = 0.1 + 0.45 * pow(1.0 - mu, 2.4);
-          vec3 c = mix(lit, uHaze, h);
+          float h = (0.1 + 0.45 * pow(1.0 - mu, 2.4)) * uHazeAmt;
+          vec3 c = mix(lit * uGain, uHaze, h);
           gl_FragColor = vec4(c * uLight, (0.92 - 0.25 * pow(1.0 - mu, 3.0)) * uOpacity);
         }`,
     }));
@@ -365,15 +396,16 @@ export class Sky {
       uniforms: { ...this.giantUniforms },
       transparent: true, depthWrite: false, side: THREE.DoubleSide,
       vertexShader: /* glsl */`
-        varying vec3 vW; varying vec2 vL; varying vec3 vC;
+        varying vec3 vW; varying vec2 vL; varying vec3 vC; uniform float uFar;
         void main() {
           vL = position.xy;
           vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz;
           vC = modelMatrix[3].xyz;                      // the planet's centre (the ring sits at the group origin)
           gl_Position = projectionMatrix * viewMatrix * w;
+          if (uFar > 0.5) gl_Position.z = gl_Position.w * 0.9999;
         }`,
       fragmentShader: /* glsl */`
-        uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uRadius; uniform vec3 uLight; uniform float uOpacity;
+        uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uRadius; uniform vec3 uLight; uniform float uOpacity; uniform float uHazeAmt; uniform float uGain;
         varying vec3 vW; varying vec2 vL; varying vec3 vC;
         // does the ray o + d t (t > 0, t < tmax) pass through the body?
         bool hitsBody(vec3 o, vec3 d, float tmax) {
@@ -399,8 +431,8 @@ export class Sky {
           vec3 V = toEye / dEye;
           float sameSide = sign(dot(uAxis, V)) == sign(dot(uAxis, uSunDir)) ? 1.0 : 0.6;
           float lit = (0.5 + 0.5 * abs(dot(uAxis, uSunDir))) * sameSide * shadow;
-          vec3 col = vec3(0.98, 0.95, 0.88) * (0.45 + 0.9 * lit) * bright;
-          col = mix(col, uHaze, 0.2);
+          vec3 col = vec3(0.98, 0.95, 0.88) * (0.45 + 0.9 * lit) * bright * uGain;
+          col = mix(col, uHaze, 0.2 * uHazeAmt);
           gl_FragColor = vec4(col * uLight, a * 0.8 * uOpacity);
         }`,
     }));
@@ -415,7 +447,8 @@ export class Sky {
     this.planet.traverse((o) => { o.frustumCulled = false; });
     this.scene.add(this.planet);
   }
-  private giantUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uHaze: { value: new THREE.Color() }, uAxis: { value: new THREE.Vector3(0, 1, 0) }, uRadius: { value: 1 }, uLight: { value: new THREE.Color(1, 1, 1) }, uOpacity: { value: 1 } };
+  /** uHazeAmt / uGain / uFar: Driftwood's giant is 1 / 1 / 0; the painterly sky draws it brighter, clearer and at the far plane (behind the ranges) */
+  private giantUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uHaze: { value: new THREE.Color() }, uAxis: { value: new THREE.Vector3(0, 1, 0) }, uRadius: { value: 1 }, uLight: { value: new THREE.Color(1, 1, 1) }, uOpacity: { value: 1 }, uHazeAmt: { value: 1 }, uGain: { value: 1 }, uFar: { value: 0 } };
 }
 
 /**
