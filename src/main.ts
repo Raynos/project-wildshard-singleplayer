@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { bootstrap } from './core/bootstrap';
 import { CHUNK_HALF, ROAD_LENGTH } from './core/config';
-import { hasPond, heightAt, CABIN_SITES } from './world/Heightfield';
+import { hasPond, heightAt, trailDistance, CABIN_SITES } from './world/Heightfield';
 import { Boundary } from './world/Boundary';
 import { Water } from './world/Water';
 import { Ocean } from './world/Ocean';
@@ -63,6 +63,8 @@ import { getActiveChunk } from './chunks/registry';
 import { Audio } from './audio/Audio';
 import { Music } from './audio/Music';
 import { ShrineHum } from './audio/ShrineHum';
+import { IslandSfx } from './audio/IslandSfx';
+import { SurfaceMap } from './audio/Surface';
 import { installErrorModal, showError } from './ui/ErrorModal';
 import { onReview, queuedCount, quickNote } from './ui/review';
 import { rotateGated } from './ui/RotateGate';
@@ -418,9 +420,16 @@ async function main() {
     const dx = a.position.x - player.position.x, dz = a.position.z - player.position.z, d = Math.hypot(dx, dz);
     if (!audio.muted && !audio.worldMuted) hurtThud(audio.ctx, audio.master, dmg / 20, d > 0.3 ? ((dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw)) / d) * 0.7 : 0);
   };
-  player.onStep = (sprinting) => (player.wading ? audio.wadeStep(player.depth, sprinting)
-    : audio.footstep(sprinting, pier?.floorHeightAt(player.position.x, player.position.z) !== undefined ? 'planks'
-      : sea !== undefined && heightAt(player.position.x, player.position.z) - sea.level < 2.6 ? 'sand' : 'litter'));
+  // footsteps (B9): the island asks its surface map — planks on every deck, stone on the shrine dais, sand / wet sand / grass /
+  // rock off them as the terrain paints it, an ankle splash in the shallows — pitched and levelled by speed; Pine Hollow as before
+  const islandSfx = sea ? new IslandSfx(audio) : null;
+  const surfaces = sea ? new SurfaceMap({ sea: sea.level, heightAt, trailDistance, decks: [pier, ...jetties, boat, hut, lookout, bridge, wreck], stone: [shrine] }) : null;
+  player.onStep = (sprinting) => {
+    const p = player.position;
+    if (islandSfx && surfaces && !(player.wading && player.depth > 0.3)) islandSfx.footstep(player.wading ? 'water' : surfaces.surfaceAt(p.x, p.z, p.y), Math.hypot(player.velocity.x, player.velocity.z));
+    else if (player.wading) audio.wadeStep(player.depth, sprinting);
+    else audio.footstep(sprinting, pier?.floorHeightAt(p.x, p.z) !== undefined ? 'planks' : sea !== undefined && heightAt(p.x, p.z) - sea.level < 2.6 ? 'sand' : 'litter');
+  };
   if (gulls) gulls.onCall = (pos) => audio.gullCallAt(pos, player.position, player.yaw);
   player.onEnterWater = (impact) => audio.splash(impact);
   player.onSubmerge = () => { audio.dive(); audio.setUnderwater(true); music.setState({ underwater: true }); };
@@ -562,6 +571,6 @@ async function main() {
   game.start();
   await loading.done();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
-  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum };
+  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces };
 }
 main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));

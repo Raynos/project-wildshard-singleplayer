@@ -1,6 +1,7 @@
 import type { Vector3 } from 'three';
 import { getActiveChunk } from '../chunks/registry';
 import { shipped } from './Stems';
+import { Voices } from './Voices';
 
 /**
  * Audio — every sound is synthesised with WebAudio (no files).
@@ -22,6 +23,7 @@ import { shipped } from './Stems';
  *   audio.footstep(sprinting, 'litter'|'planks'|'sand')                          // surface: pine litter (default), the pier deck, the beach
  *   audio.setAmbient(true|false)  audio.setAmbient('forest'|'island')   audio.muted = true|false   audio.master.gain (0.6)
  *   audio.worldMuted = true|false        // sfx + ambient only (the title screen: the music plays, the frozen world is quiet)
+ *   audio.voices                         // the procedural one-shot bank (src/audio/Voices.ts + gen.ts): Driftwood's footsteps + combat layers (IslandSfx)
  *
  * Samples (docs/plans/MUSIC.md v3 row 7): `audio.loadSamples()` (main.ts calls it after ENTER WORLD — never at boot) reads
  * public/assets/sfx/sfx.json when the build ships one and decodes what it lists: ambient `beds` (forest / island /
@@ -57,6 +59,8 @@ interface Graph { ctx: AudioContext; master: GainNode; world: GainNode; sfx: Gai
 
 export class Audio {
   listenerYaw = 0;
+  /** the procedural one-shot bank (gen.ts rendered to AudioBuffers after the first gesture) — src/audio/IslandSfx.ts plays it */
+  readonly voices = new Voices(this);
   /** the WebAudio graph, built on the first gesture (resume) — creating the first AudioContext is a ~150 ms main-thread
    *  task on the phone tier, so boot never pays it; sounds asked for before then are dropped (the context could not play them) */
   private g: Graph | undefined;
