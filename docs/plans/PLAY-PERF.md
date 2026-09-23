@@ -3,9 +3,21 @@
 **State:** `in progress` 2026-09-22 — finish line: the phone tier (`?tier=phone`, 390×844) holds ≤ 150 calls / ≤ 2.0 M tris at every pose in §0 (Pine Hollow gate, cabin, pond) **and** at four Driftwood poses (pier spawn, beach, wreck cove, ring shrine), desktop unchanged, **and** one iPhone meter reading ≥ 55 fps (p50 ≤ 18 ms) in each shard. Cabin pose was 155 calls at lever 7; Driftwood never measured against the budget. Owner: E4 (play-perf agent).
 
 Ruler: `game.lastFrame` (calls / triangles for the whole composer frame) read headless via agent-browser,
-`?tier=phone&skipintro=1&nolock=1` at 390×844. Headless frame ms is vsync-pinned (16.7) so **counts are the
-ruler**; the user's iPhone meter is the truth for ms. Poses: gate `x=0&z=-200&yaw=3.1416`, cabin
-`x=-14&z=-62&yaw=3.1416`, pond `x=-56&z=95&yaw=3.1416`.
+`?tier=phone&skipintro=1&nolock=1&sw=0` at 390×844, median of 30 frames a few seconds after `.ws-loading` is gone,
+from a `vite preview` of a clean export (unregister the service worker first or it serves the previous build).
+Headless frame ms is vsync-pinned (16.7) so **counts are the ruler**; the user's iPhone meter is the truth for ms
+(the phone meter line now reads `p50 ms · calls · tris`). The animals wander, so a pose reads ±3 calls run to run.
+
+Poses — Pine Hollow (`chunk=pine-hollow`, no longer the default shard): gate `x=0&z=-200&yaw=3.1416`, cabin
+`x=-14&z=-62&yaw=3.1416`, pond `x=-56&z=95&yaw=3.1416`. Driftwood Isle (`chunk=driftwood-isle`): pier = the default
+spawn (no x/z, looking up the pier at the island), beach `x=-10&z=-150&yaw=4.3` (on the sand, along the crescent
+beach: palms, bushes, boulders, the lagoon), wreck `x=105&z=0&yaw=-1.5708` (the cove, the heeled wreck and its
+dressing), shrine `x=-86&z=92&yaw=2.47` (the ring shrine on its knoll, jungle and standing stones). `yaw` faces
+`(-sin yaw, -cos yaw)` in x/z.
+
+Per-draw breakdown technique (scratch, not in the repo): wrap `renderer.renderBufferDirect` for two frames and
+bucket each draw by pass (a `MeshDepthMaterial` = shadow, the scene = main, else post) and by the `__world` key that
+owns the object's top-level ancestor. Exact per group, no hide-and-diff noise.
 
 ## §0 Measured decomposition — before (commit 58ccfe0, phone tier, 390×844)
 
@@ -43,11 +55,31 @@ Budget (phone): ≤ 150 calls, ≤ 2.0 M tris, iPhone ≥ 55 fps. Desktop: 60 fp
 | 5 | post: SMAA off, volumetrics half-res pre-pass, god rays 0.25, bloom 4 levels (17d105b) | | 205 / 2.0 M | |
 | 6 | cabin far LOD + per-cabin props + no detail shadows; boundary → 5 meshes (80fc5bd) | 141 / 1.35 M | 184 / 1.7 M | 169 / 1.3 M |
 | 7 | BatchedMesh trees (WEBGL_multi_draw): 24 draws → 4 + 3 shadow (cde3a05) | **115 / 1.34 M** | **155 / 1.6 M** | **126 / 1.2 M** |
+| — | re-measured at 5231859 (DPR 1.5 + SMAA low back on by the user's call, ~150 animals, the AR-15 pickup) | 144 / 1.36 M | 183 / 1.63 M | 136 / 1.23 M |
+| 8 | item pickups get a phone draw distance: the AR-15 inside cabin 1 was 10 item + 6 orb draws (+5 shadow) from anywhere in the chunk; item ≤ 22 m, orb ≤ 120 m (c13ade4) | 135 (16 fewer pickup draws, 3 more animals in view that run) | 173 | 134 |
+| 9 | cabin props merge their same-material glTF parts: 9 → 4 draws per cabin (9523e79) | measured with 10 | measured with 10 | measured with 10 |
+| 10 | the six boulder shapes in one BatchedMesh (`CulledBatch`): 6 + 6 shadow → 1 + 1 (f523144) | 125 / 1.31 M | 158 / 1.57 M | 126 / 1.23 M |
+| 11 | animal draw LOD: fur / hard / eye = 3 draws → eyes in the hard material past 45 m → one fur draw past 100 m (904ab08) | 110 | 147 | 120 |
+| 12 | cabin static shadow casters as two position-only depth proxies on a shadow-camera-only layer: 7 → 2 shadow draws per cabin; boundary beam material single pass (46868b5) | **104 / 1.30 M** | **133 / 1.54 M** | **120 / 1.23 M** |
 
-Per group at the gate now: trees 6 / 0.33 M · grass 1 / 0.40 M · cabins 23 / 0.02 M · props 16 / 0.38 M · terrain
+Driftwood Isle, phone (never measured before this pass; 5231859 → 401bf46): pier 94 / 0.38 M → **87 / 0.38 M**,
+beach 99 / 0.38 M → **88 / 0.37 M**, wreck 123 / 0.38 M → **117 / 0.38 M**, shrine 74 / 0.36 M → **72 / 0.36 M**.
+All seven poses are inside ≤ 150 calls / ≤ 2.0 M tris; the tightest is the cabin at 133.
+
+Per group at the cabin pose now (main + shadow): cabins 29 + 4 (the near cabin's hardware / lantern / fire pit /
+glass / particles are ~20 of those) · post 21 · crossbow 12 · pickup orb 7 · animals 9 + 6 · boundary 8 + 1 ·
+forest 4 + 3 · props 3 + 3 · planet 3 · terrain 2 · grass 2 · undergrowth 6 · sky / water / particles 6.
+
+Desktop 1600×900, 5231859 → 401bf46 (calls / tris): gate 933 / 11.2 M → 878 / 10.4 M, cabin 1107 / 10.9 M → 989 /
+10.5 M, pond 807 / 8.5 M → 741 / 8.4 M, pier 357 → 355, beach 366 → 364, wreck 407 → 405, shrine 186 → 184
+(Driftwood tris unchanged at 0.9–1.1 M). Levers 9, 10, 12 are exact on every tier (same triangles, same
+materials); 8 and 11 are Infinity on desktop. Before / after screenshot diffs at all seven poses show only wind
+and cloud motion (progress/151, 152).
+
+At lever 7, per group at the gate: trees 6 / 0.33 M · grass 1 / 0.40 M · cabins 23 / 0.02 M · props 16 / 0.38 M · terrain
 2 / 0.13 M · post 19 · boundary 10 · crossbow 13 · animals 4 · undergrowth 6. Programs at play: phone 153 → 100.
 
-Desktop 1600×900 (must look unchanged — verified at all three poses after every lever): gate 836 / 22.3 M →
+At lever 7, desktop 1600×900 (must look unchanged — verified at all three poses after every lever): gate 836 / 22.3 M →
 470 / 10.6 M, cabin 903 / 22.8 M → ~540, pond 668 / 29.5 M → ~500. Desktop got the tree culling + impostor
 beyond 210 m + BatchedMesh, culled props / undergrowth, the leaner reflection, the cabin LODs at 160 / 320 m and
 the merged boundary; everything else is tier-gated in `src/core/tier.ts`.
@@ -60,13 +92,21 @@ with no SMAA, mid trees are lo cards from 55 m (crowns thinner), impostor cross-
 and ~40 % thinner, ferns fade at 60 m, one 1024² PCF shadow cascade to 80 m (nothing shadows past 80 m), cabin
 hardware / lantern / fire pit / crates pop in at 70 m and cast no shadows, log ends / door / woodpile go past
 140 m, only the nearest cabin's lights are lit, no beacon lights, no fur shells, animals vanish past 150 m, god
-rays quarter-res, volumetrics half-res with 8 steps, bloom 4 levels.
+rays quarter-res, volumetrics half-res with 8 steps, bloom 4 levels. Added in levers 8–12: the floating AR-15 in
+its pickup orb appears at 22 m (the orb itself at 120 m; its light is always on), an animal's eyes take the
+hoof / antler material past 45 m (under a pixel there) and past 100 m the whole animal is drawn in its fur material
+(hooves / antlers / tusks a pixel or two, fur-coloured).
 
 ## §2 Left
 
-- Waiting on the phone's meter line for levers 4–7 (target p50 ≤ 14 ms). Check `__world.forest.path` there: iOS
-  Safari must expose WEBGL_multi_draw for the batched tree path.
-- If still short: near-cabin 34 draws (merge the 12 per-material parts further needs a texture atlas), crossbow
-  13 calls and the HUD are outside this brief; grass to 2 quads; volumetrics off on phone (−1 pass); the
-  per-frame JS (grass flush, animal skinning ×24, particles) is unmeasured — profile on the phone with Safari's
-  timeline before guessing.
+- The iPhone reading, one per shard (the user's; the meter line shows `p50 ms · calls · tris`). Check
+  `__world.forest.path === 'batched'` there: without WEBGL_multi_draw the trees and boulders fall back to the
+  instanced path (about +25 draws with shadows).
+- Headroom if the phone is still short, cheapest first: the post chain is 21 draws (bloom 4 down + 3 up + 4 Kawase,
+  SMAA 3, god rays, grade; `Game.buildComposer`, not this plan's file); the crossbow viewmodel 12 (another agent's);
+  the near cabin's ~20 detail draws (iron / chink / char / cloth could share one vertex-coloured material, the window
+  glass is drawn twice as a transparent DoubleSide); the pickup orb's DoubleSide sigil (additive: `forceSinglePass`).
+  Per-frame JS (grass flush, skinning ~70 live animals, particles) is still unmeasured — profile on the phone first.
+- Desktop is 880–990 calls at the Pine Hollow poses (it was ~470–540 at lever 7): ~150 animals × 3 draws with
+  3 shadow cascades out to 90 m, and new content since. Out of this plan's finish line (desktop must look unchanged);
+  the animal draw LOD and the pickup distance are one tier.ts knob each if the user wants them on desktop.
