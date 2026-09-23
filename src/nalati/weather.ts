@@ -33,7 +33,11 @@ import { wildEnv } from '../entities/wildEnv';
 import { TIER } from '../core/tier';
 import { WEATHER_EVENT, type WeatherHUD } from '../ui/HUD';
 
-export interface WeatherCtx { game: Game; sky: Sky; player: Player; forest: Forest; colliders?: Collider[] }
+export interface WeatherCtx {
+  game: Game; sky: Sky; player: Player; forest: Forest; colliders?: Collider[];
+  /** the river / brook / waterfall (src/nalati/water.ts): its unlit colours are dimmed with the light (night, storm) */
+  water?: THREE.Object3D;
+}
 
 export interface WeatherHooks {
   audio?: Audio;
@@ -62,12 +66,17 @@ const mmss = (s: number): string => { const t = Math.max(0, Math.ceil(s)); retur
 // the storm's slate palette (× the hour's own light level)
 const SLATE_ZENITH = new THREE.Color(0.12, 0.13, 0.19);
 const SLATE_HORIZON = new THREE.Color(0.3, 0.31, 0.38);
-const SLATE_FOG = new THREE.Color(0.3, 0.32, 0.38);
+const SLATE_FOG = new THREE.Color(0.17, 0.18, 0.23);
 const SLATE_HEMI = new THREE.Color(0.42, 0.46, 0.58);
 const SLATE_SHADE = new THREE.Color(0.13, 0.14, 0.22);
 const SLATE_CLOUD = new THREE.Color(0.36, 0.38, 0.46);
 const STORM_KEY = new THREE.Color(0.78, 0.82, 0.95);
 const FLASH = new THREE.Color(0.85, 0.82, 1.0);
+/**
+ * The storm's wind heading (Wind.dir convention: the way it blows, yaw-style): out of the NW toward the SE. Steppe
+ * storms ride in from the north-west; it also keeps the shelf cloud off the late sun (WSW), as in storm-1.
+ */
+const STORM_HEADING = Math.PI / 4;
 const _c = new THREE.Color();
 
 /** the storm over the hour's look: gloom, slate, fog, flat light — and the lightning flash on top */
@@ -99,8 +108,8 @@ function stormLook(L: SkyLook, w: Weather): void {
     L.godRays *= 1 - s;
   }
   // rain thickens the air: fog to ~60 m in the downpour
-  L.fogDist += 0.0025 * s + 0.014 * rain;
-  L.fogHeightDensity += 0.004 * rain;
+  L.fogDist += 0.002 * s + 0.009 * rain;
+  L.fogHeightDensity += 0.003 * rain;
   // the wet after: a cleaner, more saturated world (the rainbow shot)
   const after = w.wet * (1 - s);
   if (after > 0) { L.saturation += 0.12 * after; L.highTint.lerp(_c.setRGB(1.08, 1.02, 0.92), 0.4 * after); }
@@ -111,6 +120,37 @@ function stormLook(L: SkyLook, w: Weather): void {
     L.fogColor.lerp(_c.copy(FLASH).multiplyScalar(0.55), fl * 0.6);
     L.cloudLight.lerp(FLASH, fl * 0.7);
   }
+}
+
+/**
+ * The river's shader is unlit (its colours are constants): dim them with the hour and the storm, so the water doesn't
+ * glow at night. Reads the shared uniform objects off the water's ShaderMaterials (uShallow / uDeep / uFoam / uSky /
+ * uSunCol) — the day values are whatever the water was built with.
+ */
+function waterDimmer(root: THREE.Object3D | undefined): ((L: SkyLook, dayFog: number, dayKey: number) => void) | null {
+  if (!root) return null;
+  const sets: { u: Record<string, THREE.IUniform>; base: Record<string, THREE.Color> }[] = [];
+  const names = ['uShallow', 'uDeep', 'uFoam', 'uSky', 'uSunCol'] as const;
+  root.traverse((o) => {
+    if (!(o instanceof THREE.Mesh) || !(o.material instanceof THREE.ShaderMaterial)) return;
+    const u = o.material.uniforms;
+    if (sets.some((s) => s.u === u)) return;
+    const base: Record<string, THREE.Color> = {};
+    for (const n of names) { const v: unknown = u[n]?.value; if (v instanceof THREE.Color) base[n] = v.clone(); }
+    if (Object.keys(base).length === names.length) sets.push({ u, base });
+  });
+  if (sets.length === 0) return null;
+  const lum = (c: THREE.Color): number => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+  return (L, dayFog, dayKey) => {
+    const k = Math.min(1, Math.max(0.06, lum(L.fogColor) / Math.max(1e-3, dayFog)));
+    const sun = L.keyIntensity / Math.max(1e-3, dayKey);
+    for (const { u, base } of sets) {
+      for (const n of ['uShallow', 'uDeep', 'uFoam'] as const) { const v: unknown = u[n]?.value, b = base[n]; if (v instanceof THREE.Color && b) v.copy(b).multiplyScalar(k); }
+      const sky: unknown = u['uSky']?.value, sc: unknown = u['uSunCol']?.value, bs = base['uSunCol'];
+      if (sky instanceof THREE.Color) sky.copy(L.horizon).lerp(L.zenith, 0.35);
+      if (sc instanceof THREE.Color && bs) sc.copy(bs).multiply(L.keyColor).multiplyScalar(sun);
+    }
+  };
 }
 
 /** the yurts, from the POI colliders (Yurt.ts: two crossed squares of half-width 0.93 R per yurt) */
@@ -139,6 +179,8 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
 
   const rig = new SkyRig(game, sky);
   const base = makeLook(), look = makeLook();
+  const dimWater = waterDimmer(ctx.water);
+  const dayFog = 0.2126 * rig.dayFog.r + 0.7152 * rig.dayFog.g + 0.0722 * rig.dayFog.b, dayKey = Math.max(0.1, rig.daySunIntensity);
 
   // ── the lightning's view of the world ──
   const yurts = yurtsOf(ctx.colliders ?? []);
@@ -159,7 +201,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
       },
     },
   });
-  weather.stormFrom = Math.atan2(-wind.dirZ, -wind.dirX);
+  weather.stormFrom = Math.atan2(Math.cos(STORM_HEADING), Math.sin(STORM_HEADING)); // it comes FROM the opposite of its heading
   const wq = qs.get('weather');
   if (wq) {
     const [ph = '', at = '0'] = wq.split(':');
@@ -212,19 +254,21 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
       weather.update(dt);
       // wind
       if (weather.windSpeed !== null) {
-        wind.setTarget(weather.windSpeed, calm.dir, weather.windGustiness, weather.state === 'gust' ? 6 : 10);
+        // the gust front swings the wind round to the storm's own heading (it blows out of the NW)
+        const dir = weather.state === 'building' ? calm.dir : weather.state === 'after' ? calm.dir : STORM_HEADING;
+        wind.setTarget(weather.windSpeed, dir, weather.windGustiness, weather.state === 'gust' ? 6 : 10);
         windAsked = weather.windSpeed;
       } else if (windAsked !== null) {
         wind.setTarget(calm.speed, calm.dir, calm.gust, 30);
         windAsked = null;
       }
-      weather.stormFrom = Math.atan2(-wind.dirZ, -wind.dirX);
       // the look
       rig.look(clock, base);
       copyLook(look, base);
       stormLook(look, weather);
       rig.flash = weather.flash * 0.7;
       rig.apply(look, dt);
+      dimWater?.(look, dayFog, dayKey);
       fx.update(dt, weather, look, game.camera, { x: wind.dirX * wind.speed, z: wind.dirZ * wind.speed });
       // the creatures
       wildEnv.light = Math.min(lightLevel(clock), weather.stormActive ? 0.6 : 1);

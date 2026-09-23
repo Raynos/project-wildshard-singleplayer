@@ -419,6 +419,8 @@ async function main() {
   animals.onCharge = (_a, dmg) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); music.combat(0.9); };
   // Nalati's boss fights (src/nalati/kurganBoss.ts, B13): the Golden King needs the animals, the kit and the HUD
   nalatiNow()?.bindPlay({ kit: nalatiKit, health01: () => health / 100, toast: (text) => hud.toast(text), flash: () => hud.damageFlash() }); // Nalati's creatures: brace kills, knock-downs, howl / stampede toasts
+  // Nalati's weather (src/nalati/weather.ts, B10): the storm's audio beds + thunder, and a lightning strike's 60 damage
+  nalatiNow()?.weather.bind({ audio, hurt: (dmg, why) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); hud.toast(why); audio.land(true); } });
   nalatiNow()?.boss.bind({
     animals, setWeaponsEnabled: (on) => { weapons.setEnabled(on); }, bow: nalatiKit?.bow ?? null, refill: () => { nalatiKit?.refill(); }, interactables, params,
     toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, pickupHum: (on) => { audio.pickupHum(on); }, trophy: () => { inventory.add('gold-plaque'); },

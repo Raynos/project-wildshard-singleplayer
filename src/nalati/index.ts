@@ -28,6 +28,7 @@ import { buildOutcrops } from './outcrops';
 import { NalatiPOIs } from '../world/nalati';
 import { NalatiDressing } from '../world/nalati/dressing';
 import { wireKurgan, type KurganBoss } from './kurganBoss';
+import { wireWeather, type NalatiWeather } from './weather';
 import { macrotask } from '../boot/plan';
 import type { AnimalManager } from '../entities/AnimalManager';
 import { Wildlife, type SheepHit } from '../entities/Wildlife';
@@ -57,6 +58,9 @@ export interface Nalati {
   water: NalatiWater;
   /** every POI (poi agent, B5): camp, bridge, roads, summer camp, kurgans, balbals, Eagle Rock, cairn, Crags */
   pois: NalatiPOIs;
+  /** the day/night clock + storms (weather agent, B10): `weather.clock.onDusk(fn)`, `weather.weather.stormActive`,
+   *  `weather.bind({ audio, hurt, scare })` from main.ts once the audio and the player's health exist */
+  weather: NalatiWeather;
   /** the great kurgan's dungeon + the Golden King (boss agent, B13; src/nalati/kurganBoss.ts): `boss.bind(play)` from main.ts
    *  once the animals, the kit and the HUD exist; `boss.onPlayerDeath()` in main's death check (true = the boss fight
    *  handled it: the player is back at the phase checkpoint); `boss.inside` while the player is in the dungeon */
@@ -118,11 +122,16 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
 
   // ── dressing (dressing agent, look-pass lever 6): rocks, road stones, gravel-bar pebbles, shrubs, flower drifts, reeds,
   //    logs + stumps, ovoo cairns + ribbon poles, camp clutter, pollen, butterflies, kites — src/world/nalati/dressing/ ──
-  const dressing = new NalatiDressing(sky, ctx.forest).build();
+  const dressing = await new NalatiDressing(sky, ctx.forest).build(macrotask);
   dressing.addTo(game.scene, ctx.player);
   groups['dressing'] = dressing.group;
   updates.push((dt) => dressing.update(dt, game.camera, ctx.player.position, game.renderer));
   await macrotask();
+
+  // ── weather + day/night (weather agent, B10): the clock, storms, the sky rig — src/nalati/weather.ts ──
+  const weather = wireWeather({ game, sky, player: ctx.player, forest: ctx.forest, colliders: pois.colliders, water: water.group });
+  groups['weather'] = weather.fx.group;
+  updates.push((dt) => weather.update(dt));
 
   // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager — `attachAnimals` below (main.ts calls it after its animals step) ──
 
@@ -210,11 +219,12 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   const sheepResult: TargetHit = { animal: sheep, point: sheepPoint, distance: 0, headshot: false };
 
   const nalati: Nalati = {
-    water, pois, groups, boss, wildlife,
+    water, pois, weather, groups, boss, wildlife,
     attachAnimals(animals) {
       animals.wetAt = nalatiWetAt;
       const w = new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed }).build();
       wildlife = w; nalati.wildlife = w;
+      weather.bind({ scare: (x, z) => { w.scare(x, z, 60); } }); // a lightning strike breaks a pack / stampedes a herd within 60 m
       return w;
     },
     bindPlay(p) { play = p; },

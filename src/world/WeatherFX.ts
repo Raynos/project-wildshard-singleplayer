@@ -26,8 +26,9 @@ import type { SkyLook } from './DayNight';
 
 export interface WeatherFXOpts { phone: boolean; seed: number }
 
-const DECK_R = 2350;
-const CURTAIN_R = 1150;
+/** inside the near horizon ring (800 m): the storm veils the mountains; the slab itself is nearer than this */
+const DECK_R = 770;
+const CURTAIN_R = 745;
 const BOLT_SEGS = 220;
 const PUDDLES = 110;
 
@@ -40,7 +41,7 @@ float stormCover( vec2 P, out float edge ) {
   float n = texture2D( tNoise, P * 0.055 + vec2( uTime * 0.0035, uTime * 0.002 ) ).r;
   float n2 = texture2D( tNoise, P * 0.19 - vec2( uTime * 0.004, 0.0 ) ).r;
   float lead = mix( 9.0, -9.0, clamp( uFront, 0.0, 1.0 ) );
-  float back = mix( 9.5, -9.5, clamp( ( uFront - 1.0 ) * 2.0, 0.0, 1.0 ) );
+  float back = mix( 16.0, -9.5, clamp( ( uFront - 1.0 ) * 2.0, 0.0, 1.0 ) );
   edge = s - lead + ( n - 0.5 ) * 4.0 + ( n2 - 0.5 ) * 1.2;
   float c = smoothstep( -0.4, 1.2, edge );
   c *= 1.0 - smoothstep( -1.2, 0.4, s - back + ( n - 0.5 ) * 4.0 );
@@ -117,17 +118,17 @@ export class WeatherFX {
   };
   private readonly deckU = {
     uOvercast: { value: 0 }, uLight: { value: new THREE.Color(1, 1, 1) }, uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uSunCol: { value: new THREE.Color(1, 1, 1) },
-    uFlash: { value: 0 }, uFlashDir: { value: new THREE.Vector3(1, 0.2, 0) }, uFade: { value: 0 },
+    uFlash: { value: 0 }, uFlashDir: { value: new THREE.Vector3(1, 0.2, 0) }, uFade: { value: 0 }, uRainbow: { value: 0 },
   };
   private readonly curtainU = {
     uRain: { value: 0 }, uLight: { value: new THREE.Color(1, 1, 1) }, uWind: { value: new THREE.Vector2(0, 0) },
-    uRainbow: { value: 0 }, uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uStorm: { value: 0 },
+    uStorm: { value: 0 },
   };
   private readonly rainU = {
     uOffset: { value: new THREE.Vector3() }, uR: { value: 16 }, uVel: { value: new THREE.Vector3(0, -9, 0) }, uLen: { value: 0.9 },
-    uCol: { value: new THREE.Color(0.6, 0.65, 0.75) }, uAlpha: { value: 0.3 }, uWidth: { value: 0.012 },
+    uCol: { value: new THREE.Color(0.6, 0.65, 0.75) }, uAlpha: { value: 0.3 }, uWidth: { value: 0.013 },
   };
-  private readonly boltU = { uAlpha: { value: 0 }, uWidth: { value: 1 } };
+  private readonly boltU = { uAlpha: { value: 0 }, uWidth: { value: 3.2 } };
   private readonly puddleU = {
     uWet: { value: 0 }, uRain: { value: 0 }, uSky: { value: new THREE.Color(0.5, 0.6, 0.8) }, uHorizon: { value: new THREE.Color(0.7, 0.8, 0.9) },
     uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uSunCol: { value: new THREE.Color(1, 1, 1) }, uTime: { value: 0 },
@@ -149,7 +150,7 @@ export class WeatherFX {
     this.rng = new Rng(opts.seed ^ 0xb017);
     this.noise = noiseTexture(opts.seed ^ 0x51);
     this.shared.tNoise.value = this.noise;
-    this.rainCount = opts.phone ? 4200 : 8000;
+    this.rainCount = opts.phone ? 3500 : 6000;
     this.boltA = new Float32Array(BOLT_SEGS * 4 * 3);
     this.boltB = new Float32Array(BOLT_SEGS * 4 * 3);
     this.boltW = new Float32Array(BOLT_SEGS * 4);
@@ -183,31 +184,57 @@ export class WeatherFX {
       fragmentShader: /* glsl */`
         ${STORM_GLSL}
         uniform float uOvercast; uniform vec3 uLight; uniform vec3 uSunDir; uniform vec3 uSunCol;
-        uniform float uFlash; uniform vec3 uFlashDir; uniform float uFade;
+        uniform float uFlash; uniform vec3 uFlashDir; uniform float uFade; uniform float uRainbow;
         varying vec3 vDir;
+        vec3 spectrum(float t) { // 0 violet … 1 red
+          return clamp(vec3(abs(t * 6.0 - 3.0) - 1.0, 2.0 - abs(t * 6.0 - 2.0), 2.0 - abs(t * 6.0 - 4.0)), 0.0, 1.0).bgr;
+        }
         void main() {
           vec3 d = normalize(vDir);
           if (d.y < -0.08) discard;
+          vec3 outc = vec3(0.0);
+          // the rainbow: 40.5°–42.5° round the anti-solar point, a faint secondary at 50–53° (colours reversed)
+          if (uRainbow > 0.0) {
+            vec3 anti = -uSunDir;
+            float ang = degrees(acos(clamp(dot(d, anti), -1.0, 1.0)));
+            float p = smoothstep(40.2, 41.0, ang) * smoothstep(42.9, 42.1, ang);
+            float s = smoothstep(50.0, 50.8, ang) * smoothstep(53.4, 52.6, ang);
+            vec3 bow = spectrum(clamp((ang - 40.4) / 2.3, 0.0, 1.0)) * p + spectrum(clamp((53.2 - ang) / 3.0, 0.0, 1.0)) * s * 0.16;
+            // brighter inside the bow (the classic lighter sky within), fading into the ground and at the top
+            float inside = smoothstep(41.0, 30.0, ang) * 0.05;
+            float fadeY = smoothstep(-0.02, 0.06, d.y);
+            outc += (bow * 0.55 + vec3(inside)) * uRainbow * fadeY;
+          }
+          if (uFade <= 0.0) { gl_FragColor = vec4(outc, 0.0); return; }
+          // the storm is a towering wall, not a flat deck: its coverage reads a plane 3.5× flatter (it stands taller
+          // over the horizon), the billow shading keeps the true plane
           vec2 P = d.xz / (max(d.y, 0.0) + 0.12);
+          vec2 Pt = d.xz / (max(d.y, 0.0) / 3.5 + 0.12);
           float edge;
-          float c = stormCover(P, edge);
+          float c = stormCover(Pt, edge);
           // billows: two octaves of the noise shade the underside; the lead edge is the lighter shelf lip
           float b1 = texture2D(tNoise, P * 0.11 + vec2(uTime * 0.006, 0.0)).r;
           float b2 = texture2D(tNoise, P * 0.43 + vec2(0.0, uTime * 0.01)).r;
           float bill = b1 * 0.65 + b2 * 0.35;
           vec3 belly = mix(vec3(0.07, 0.08, 0.12), vec3(0.2, 0.21, 0.28), smoothstep(0.3, 0.75, bill));
-          float lip = smoothstep(2.6, 0.2, edge) * smoothstep(-0.2, 0.5, edge);
-          vec3 col = mix(belly, vec3(0.34, 0.36, 0.44) * (0.8 + 0.4 * b2), lip * 0.8);
-          // the towers catch the sun on the side facing it (storm-1: bright tops over a dark body)
-          float sunSide = max(dot(normalize(d.xz + 1e-4), normalize(uSunDir.xz + 1e-4)), 0.0) * smoothstep(-0.05, 0.3, uSunDir.y);
-          col += uSunCol * 0.18 * lip * sunSide * smoothstep(0.55, 0.8, bill);
+          // the top of the wall (just past the lead edge) is the billowing sunlit crown; below it the body darkens to
+          // the rain-dark base (storm-1: bright piled tops over a slate-violet body)
+          float lip = smoothstep(3.0, 0.1, edge) * smoothstep(-0.3, 0.4, edge);
+          float crown = lip * smoothstep(0.35, 0.7, bill + 0.25 * b2);
+          vec3 col = mix(belly, vec3(0.42, 0.44, 0.52) * (0.85 + 0.3 * b2), lip * 0.55);
+          col = mix(col, vec3(0.78, 0.78, 0.82), crown * 0.6);
+          float sunSide = 0.35 + 0.65 * max(dot(normalize(d.xz + 1e-4), normalize(uSunDir.xz + 1e-4)), 0.0);
+          col += uSunCol * 0.22 * crown * sunSide * smoothstep(-0.05, 0.3, uSunDir.y);
+          // the base under the wall is darkest (rain falling out of it)
+          col *= mix(1.0, 0.65, smoothstep(0.12, 0.0, d.y) * c);
           col *= uLight;
           // in-cloud lightning: a soft blob round the flash's bearing + the whole deck lifts a little
           float fl = pow(max(dot(d, uFlashDir), 0.0), 10.0);
           col += vec3(0.75, 0.72, 1.0) * uFlash * (0.25 + 2.2 * fl) * c;
           // the overcast greys the rest of the sky too (a thin veil beyond the body)
-          float a = max(c * 0.97, uOvercast * 0.55) * smoothstep(-0.08, 0.02, d.y) * uFade;
-          gl_FragColor = vec4(col * a, a);
+          // the veil beyond the body thickens toward it (clear sky stays clear on the far side until it is overhead)
+          float a = max(c * 0.97, uOvercast * 0.6 * smoothstep(-9.0, 0.0, edge)) * smoothstep(-0.08, 0.02, d.y) * uFade;
+          gl_FragColor = vec4(col * a + outc * (1.0 - a), a);
         }`,
     });
     const m = new THREE.Mesh(new THREE.SphereGeometry(DECK_R, 48, 20, 0, Math.PI * 2, 0, Math.PI * 0.56), mat);
@@ -227,17 +254,14 @@ export class WeatherFX {
         void main() { vDir = position; vH = uv.y; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
       fragmentShader: /* glsl */`
         ${STORM_GLSL}
-        uniform float uRain; uniform vec3 uLight; uniform vec2 uWind; uniform float uRainbow; uniform vec3 uSunDir; uniform float uStorm;
+        uniform float uRain; uniform vec3 uLight; uniform vec2 uWind; uniform float uStorm;
         varying vec3 vDir; varying float vH;
-        vec3 spectrum(float t) { // 0 violet … 1 red
-          return clamp(vec3(abs(t * 6.0 - 3.0) - 1.0, 2.0 - abs(t * 6.0 - 2.0), 2.0 - abs(t * 6.0 - 4.0)), 0.0, 1.0).bgr;
-        }
         void main() {
           vec3 d = normalize(vDir);
           vec2 h = normalize(d.xz + 1e-5);
           // the storm body over the hills this way, ~2 cloud heights out
           float edge;
-          float c = stormCover(h * 2.6, edge);
+          float c = stormCover(h * 7.0, edge);
           float az = atan(h.y, h.x);
           // streaks: slanted by the wind, falling
           float slant = dot(vec2(-h.y, h.x), uWind) * 0.05;
@@ -246,27 +270,16 @@ export class WeatherFX {
           float s2 = texture2D(tNoise, q * vec2(2.3, 0.05) + 0.37).r;
           float streak = smoothstep(0.35, 0.8, s1 * 0.6 + s2 * 0.4);
           // the curtain hangs from the cloud (top) to the ground (bottom), densest low
-          float veil = c * (0.35 + 0.65 * streak) * smoothstep(1.0, 0.55, vH) * smoothstep(0.0, 0.12, vH);
-          float a = veil * 0.55 * (1.0 - 0.75 * uStorm);
-          vec3 col = vec3(0.26, 0.28, 0.35) * uLight;
+          float veil = c * (0.3 + 0.7 * streak) * smoothstep(1.0, 0.6, vH) * smoothstep(0.0, 0.25, vH);
+          float a = veil * 0.62 * (1.0 - 0.6 * uStorm);
+          vec3 col = vec3(0.16, 0.17, 0.22) * uLight;
           vec3 outc = col * a;
-          // the rainbow: 40.5°–42.5° round the anti-solar point, a faint secondary at 50–53° (colours reversed)
-          if (uRainbow > 0.0) {
-            vec3 anti = -uSunDir;
-            float ang = degrees(acos(clamp(dot(d, anti), -1.0, 1.0)));
-            float p = smoothstep(40.2, 41.0, ang) * smoothstep(42.9, 42.1, ang);
-            float s = smoothstep(50.0, 50.8, ang) * smoothstep(53.4, 52.6, ang);
-            vec3 bow = spectrum(clamp((ang - 40.4) / 2.3, 0.0, 1.0)) * p + spectrum(clamp((53.2 - ang) / 3.0, 0.0, 1.0)) * s * 0.35;
-            // brighter inside the bow (the classic lighter sky within), fading into the ground and at the top
-            float inside = smoothstep(41.0, 30.0, ang) * 0.05;
-            float fadeY = smoothstep(-0.02, 0.06, d.y) * (0.6 + 0.4 * smoothstep(0.85, 0.2, vH));
-            outc += (bow * 0.55 + vec3(inside)) * uRainbow * fadeY;
-          }
           gl_FragColor = vec4(outc, a);
         }`,
     });
-    const geo = new THREE.CylinderGeometry(CURTAIN_R, CURTAIN_R, 1150, 64, 1, true);
-    geo.translate(0, 1150 / 2 - 260, 0);
+    // from under the horizon (so the far hills stand in it) up to ~12° — the storm's cloud base
+    const geo = new THREE.CylinderGeometry(CURTAIN_R, CURTAIN_R, 330, 64, 1, true);
+    geo.translate(0, 330 / 2 - 170, 0);
     const m = new THREE.Mesh(geo, mat);
     m.frustumCulled = false; m.renderOrder = -8; m.visible = false; m.name = 'storm-curtains';
     return m;
@@ -295,7 +308,7 @@ export class WeatherFX {
     const uniforms: Record<string, THREE.IUniform> = { ...THREE.UniformsUtils.merge([THREE.UniformsLib.fog]), ...this.rainU };
     attachFogUniforms({ uniforms });
     const mat = new THREE.ShaderMaterial({
-      uniforms, transparent: true, depthWrite: false, fog: true,
+      uniforms, transparent: true, depthWrite: false, fog: true, side: THREE.DoubleSide, // screen-built quads: either winding
       vertexShader: /* glsl */`
         attribute vec4 seed; attribute vec2 corner;
         uniform vec3 uOffset; uniform float uR; uniform vec3 uVel; uniform float uLen; uniform float uWidth;
@@ -348,7 +361,7 @@ export class WeatherFX {
     geo.setIndex(new THREE.BufferAttribute(idx, 1));
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
     const mat = new THREE.ShaderMaterial({
-      uniforms: this.boltU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false,
+      uniforms: this.boltU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false, side: THREE.DoubleSide, // screen-built quads: either winding
       vertexShader: /* glsl */`
         attribute vec3 bEnd; attribute float bW; attribute vec2 corner;
         uniform float uWidth;
@@ -369,10 +382,12 @@ export class WeatherFX {
         uniform float uAlpha;
         varying float vEdge; varying float vW;
         void main() {
-          float core = 1.0 - abs(vEdge);
-          float a = smoothstep(0.0, 0.6, core) * uAlpha;
-          vec3 col = mix(vec3(0.55, 0.4, 1.0), vec3(1.0, 0.98, 1.0), smoothstep(0.55, 0.95, core)) * (1.2 + 5.0 * vW);
-          gl_FragColor = vec4(col * a, a);
+          // a white-hot channel in the middle third, a violet glow round it (storm-2)
+          float d = abs(vEdge);
+          float core = 1.0 - smoothstep(0.1, 0.3, d);
+          float glow = exp(-d * 3.5) * (1.0 - d);
+          vec3 col = vec3(1.0, 0.97, 1.0) * core * (2.5 + 5.0 * vW) + vec3(0.55, 0.38, 1.0) * glow * (0.9 + 1.2 * vW);
+          gl_FragColor = vec4(col * uAlpha, 1.0);
         }`,
     });
     const m = new THREE.Mesh(geo, mat);
@@ -570,17 +585,18 @@ export class WeatherFX {
   }
 
   // ─────────────────────────────── per frame ───────────────────────────────
+  /** `wind`: the live wind (m/s, world xz) — rain slant, smoke; `stormFrom`: the world bearing (atan2(z, x)) the storm comes from */
   update(dt: number, w: Weather, L: SkyLook, camera: THREE.Camera, wind: { x: number; z: number }): void {
     const sh = this.shared;
     sh.uTime.value += dt;
-    // the storm comes from upwind
-    const wl = Math.hypot(wind.x, wind.z) || 1;
-    sh.uFrom.value.set(-wind.x / wl, -wind.z / wl);
+    sh.uFrom.value.set(Math.cos(w.stormFrom), Math.sin(w.stormFrom));
     sh.uFront.value = w.front;
     const cam = camera.position;
 
     // the deck: from the first sight of the shelf to the end of the clearing
-    const deckOn = w.front > 0.01 && w.front < 1.499;
+    const stormOn = w.front > 0.01 && w.front < 1.499;
+    const bow = w.rainbow * Math.min(1, Math.max(0, L.sunDir.y * 6)) * (L.moon > 0 ? 0 : 1);
+    const deckOn = stormOn || bow > 0.001;
     this.deck.visible = deckOn;
     if (deckOn) {
       this.deck.position.copy(cam);
@@ -589,17 +605,16 @@ export class WeatherFX {
       d.uLight.value.copy(L.cloudLight).multiplyScalar(1.35);
       d.uSunDir.value.copy(L.sunDir); d.uSunCol.value.copy(L.keyColor);
       d.uFlash.value = w.flash; d.uFlashDir.value.copy(this.flashDir);
-      d.uFade.value = Math.min(1, w.front * 12) * Math.min(1, (1.5 - w.front) * 12);
+      d.uFade.value = stormOn ? Math.min(1, w.front * 12) * Math.min(1, (1.5 - w.front) * 12) : 0;
+      d.uRainbow.value = bow;
     }
     // the curtains + rainbow
-    const curtainsOn = deckOn || w.rainbow > 0.001;
+    const curtainsOn = stormOn;
     this.curtains.visible = curtainsOn;
     if (curtainsOn) {
       this.curtains.position.set(cam.x, 0, cam.z);
       const c = this.curtainU;
       c.uRain.value = w.rain; c.uLight.value.copy(L.cloudLight); c.uWind.value.set(wind.x, wind.z);
-      c.uRainbow.value = w.rainbow * Math.min(1, Math.max(0, L.sunDir.y * 6)) * (L.moon > 0 ? 0 : 1);
-      c.uSunDir.value.copy(L.sunDir);
       c.uStorm.value = Math.max(0, w.overcast - 0.3) / 0.7;
     }
     // rain around the camera: the count follows the intensity
@@ -608,16 +623,16 @@ export class WeatherFX {
     if (rainOn) {
       const r = this.rainU;
       const fall = 9.5;
-      r.uVel.value.set(wind.x * 0.75, -fall, wind.z * 0.75);
+      r.uVel.value.set(wind.x * 0.35, -fall, wind.z * 0.35);
       r.uOffset.value.addScaledVector(r.uVel.value, dt);
       const R = this.opts.phone ? 11 : 16;
       // keep the offset small (float precision) — any whole multiple of the box wraps to itself
       const box = 2 * R;
       r.uOffset.value.set(((r.uOffset.value.x % box) + box) % box, ((r.uOffset.value.y % box) + box) % box, ((r.uOffset.value.z % box) + box) % box);
       r.uR.value = R;
-      r.uLen.value = 0.75 + 0.35 * w.rain;
-      r.uCol.value.copy(L.fogColor).lerp(L.hemiSky, 0.5).multiplyScalar(1.6).addScalar(0.04 + 0.6 * w.flash);
-      r.uAlpha.value = 0.22 + 0.18 * w.rain;
+      r.uLen.value = 0.7 + 0.4 * w.rain;
+      r.uCol.value.copy(L.fogColor).lerp(L.hemiSky, 0.5).multiplyScalar(1.9).addScalar(0.05 + 0.8 * w.flash);
+      r.uAlpha.value = 0.16 + 0.16 * w.rain;
       this.rain.geometry.setDrawRange(0, Math.ceil(this.rainCount * Math.min(1, w.rain * 1.1)) * 6);
     }
     // the bolt: two re-strikes, then gone

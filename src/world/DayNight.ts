@@ -120,7 +120,7 @@ export class DayClock {
 
   /** jump to an hour or to the middle-ish of a phase ('dusk' = just after sunset, 'night' = 22:30, 'noon' = 12:00) */
   set(to: number | DayPhase | 'noon' | 'midnight'): void {
-    const named: Record<string, number> = { dawn: 5.6, day: 10, noon: 12, golden: 17.1, dusk: 18.6, night: 22.5, midnight: 0 };
+    const named: Record<string, number> = { dawn: 5.6, day: 10, noon: 12, golden: 17.1, dusk: 18.15, night: 22.5, midnight: 0 };
     this.hour = wrap24(typeof to === 'number' ? to : named[to] ?? this.hour);
     this.checkPhase();
   }
@@ -227,7 +227,7 @@ const rgbOf = (c: THREE.Color): RGB => [c.r, c.g, c.b];
  */
 function nightKeys(day: Key): Key[] {
   const golden: Key = {
-    ...day, el: 10,
+    ...day, el: 6,
     sun: [1.0, 0.72, 0.44], sunI: day.sunI * 0.85,
     zenith: [0.12, 0.26, 0.72], horizon: [0.95, 0.74, 0.55], glow: [1.0, 0.62, 0.3],
     hemiSky: [0.55, 0.62, 0.85], hemiGround: [0.32, 0.3, 0.16], hemiI: day.hemiI * 0.9, env: day.env * 0.85,
@@ -238,7 +238,7 @@ function nightKeys(day: Key): Key[] {
     vol: [1.0, 0.72, 0.45], volS: day.volS * 1.2,
   };
   const sunset: Key = {
-    ...golden, el: 1.5,
+    ...golden, el: 1,
     sun: [1.0, 0.46, 0.22], sunI: day.sunI * 0.45,
     zenith: [0.1, 0.16, 0.45], horizon: [1.0, 0.5, 0.28], ground: [0.2, 0.18, 0.2], glow: [1.0, 0.42, 0.16],
     hemiSky: [0.42, 0.42, 0.66], hemiGround: [0.22, 0.17, 0.12], hemiI: day.hemiI * 0.75, env: day.env * 0.6,
@@ -266,7 +266,7 @@ function nightKeys(day: Key): Key[] {
     hemiSky: [0.22, 0.28, 0.5], hemiGround: [0.06, 0.07, 0.08], hemiI: day.hemiI * 0.7, env: day.env * 0.18,
     fog: [0.12, 0.13, 0.22], fogSun: [0.3, 0.22, 0.3],
     shade: [0.05, 0.07, 0.2], rim: [0.5, 0.55, 0.9],
-    cloudSun: [0.4, 0.35, 0.5], cloud: [0.3, 0.3, 0.42], planet: [0.72, 0.72, 0.85],
+    cloudSun: [0.4, 0.35, 0.5], cloud: [0.2, 0.2, 0.3], planet: [0.72, 0.72, 0.85],
     shadowTint: [0.84, 0.94, 1.24], highTint: [0.94, 0.98, 1.14], sat: day.sat - 0.12,
     vol: [0.4, 0.45, 0.7], volS: day.volS * 0.15, rays: 0,
   };
@@ -277,7 +277,7 @@ function nightKeys(day: Key): Key[] {
     hemiSky: [0.2, 0.28, 0.55], hemiGround: [0.05, 0.06, 0.08], hemiI: day.hemiI * 0.65, env: day.env * 0.12,
     fog: [0.05, 0.07, 0.14], fogSun: [0.14, 0.18, 0.32],
     shade: [0.04, 0.06, 0.18], rim: [0.45, 0.6, 1.05],
-    cloudSun: [0.3, 0.34, 0.5], cloud: [0.2, 0.23, 0.34], planet: [0.62, 0.66, 0.8],
+    cloudSun: [0.3, 0.34, 0.5], cloud: [0.1, 0.12, 0.2], planet: [0.62, 0.66, 0.8],
     shadowTint: [0.82, 0.95, 1.28], highTint: [0.9, 0.98, 1.16], lift: [0.0, 0.006, 0.02], sat: day.sat - 0.18,
     vol: [0.35, 0.45, 0.8], volS: day.volS * 0.25, rays: 0,
   };
@@ -313,6 +313,9 @@ export class SkyRig {
   private readonly moonDisc = new THREE.Color(0.85, 0.9, 1.0);
   /** 0..1, extra lightning flash in the dome (Weather drives it) */
   flash = 0;
+  /** the def's own (day) fog colour and sun intensity — what "full daylight" means for things that dim with the light */
+  readonly dayFog = new THREE.Color();
+  readonly daySunIntensity: number;
 
   constructor(private game: Game, private sky: Sky) {
     const def = getActiveChunk();
@@ -322,7 +325,7 @@ export class SkyRig {
     const fog = game.scene.fog as THREE.Fog | null;
     const vs = A.volumetric?.strength ?? 0.55;
     this.day = {
-      el: 22,
+      el: 14,
       sun: l ? rgbOf(l.color) : S.sunColor, sunI: l ? l.intensity : S.sunIntensity,
       zenith: P.zenith, horizon: P.horizon, ground: P.ground, glow: P.glow, stars: 0,
       hemiSky: rgbOf(sky.hemi.color), hemiGround: rgbOf(sky.hemi.groundColor), hemiI: sky.hemi.intensity, env: game.scene.environmentIntensity,
@@ -333,6 +336,8 @@ export class SkyRig {
       vol: A.volumetricSunColor, volS: vs, rays: 1,
     };
     this.keys = [this.day, ...nightKeys(this.day)];
+    this.dayFog.setRGB(...this.day.fog);
+    this.daySunIntensity = this.day.sunI;
     this.fogDist = fogUniforms.fogDistDensity.value;
     this.fogHeight = fogUniforms.fogHeightDensity.value;
     this.bright = G.brightness;
