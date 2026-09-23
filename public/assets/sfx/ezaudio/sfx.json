@@ -1,0 +1,370 @@
+{
+  "model": "EzAudio-XL",
+  "credit": "SFX: EzAudio by OpenSound (MIT)",
+  "licence": "MIT (OpenSound/EzAudio: code and weights); the flan-t5-xl text encoder is Apache-2.0. Commercial use OK; keep the copyright notice with any redistribution of the weights.",
+  "beds": {
+    "forest": {
+      "file": "bed-forest-3-c091ac95.m4a",
+      "loopStart": 2.5,
+      "loopEnd": 4.5,
+      "duration": 5.504,
+      "gain": 0.5
+    },
+    "island": {
+      "file": "bed-island-2-cdaeef41.m4a",
+      "loopStart": 3.0,
+      "loopEnd": 5.0,
+      "duration": 6.016,
+      "gain": 0.5
+    },
+    "underwater": {
+      "file": "bed-underwater-1-7c1947e8.m4a",
+      "loopStart": 2.25,
+      "loopEnd": 4.25,
+      "duration": 5.2693,
+      "gain": 0.5
+    }
+  },
+  "hums": {
+    "pickup": {
+      "file": "hum-pickup-2-5ab837df.m4a",
+      "loopStart": 2.0,
+      "loopEnd": 4.0,
+      "duration": 5.0133,
+      "gain": 0.35
+    },
+    "shrine": {
+      "file": "hum-shrine-3-46a26286.m4a",
+      "loopStart": 2.0,
+      "loopEnd": 4.0,
+      "duration": 5.0133,
+      "gain": 0.6
+    }
+  },
+  "oneshots": {
+    "bear_growl": {
+      "files": [
+        "bear_growl-2-e7adaefc.m4a",
+        "bear_growl-3-685a0646.m4a"
+      ],
+      "gain": 1.0
+    },
+    "bear_hurt": {
+      "files": [
+        "bear_hurt-3-b81412dd.m4a"
+      ],
+      "gain": 1.0
+    },
+    "bear_roar": {
+      "files": [
+        "bear_roar-3-772ca47c.m4a",
+        "bear_roar-1-adf53f8f.m4a"
+      ],
+      "gain": 1.0
+    },
+    "boltImpact-ground": {
+      "files": [
+        "boltImpact-ground-1-e9747950.m4a"
+      ],
+      "gain": 1.0
+    },
+    "boltImpact-wood": {
+      "files": [
+        "boltImpact-wood-3-c50c0f6b.m4a"
+      ],
+      "gain": 1.0
+    },
+    "dive": {
+      "files": [
+        "dive-3-cbbf6e4c.m4a",
+        "dive-2-18427374.m4a"
+      ],
+      "gain": 1.0
+    },
+    "lunge": {
+      "files": [
+        "lunge-3-4df75431.m4a"
+      ],
+      "gain": 1.0
+    },
+    "reload": {
+      "files": [
+        "reload-2-7f45e067.m4a"
+      ],
+      "gain": 1.0
+    },
+    "rifleReload": {
+      "files": [
+        "rifleReload-1-3825a71f.m4a",
+        "rifleReload-3-702c68a6.m4a"
+      ],
+      "gain": 1.0
+    },
+    "swordHeavy": {
+      "files": [
+        "swordHeavy-1-8591dba9.m4a"
+      ],
+      "gain": 1.0
+    },
+    "swordSwing": {
+      "files": [
+        "swordSwing-3-92ebeaa9.m4a"
+      ],
+      "gain": 1.0
+    },
+    "weaponSwap": {
+      "files": [
+        "weaponSwap-1-0db57a9a.m4a"
+      ],
+      "gain": 1.0
+    }
+  },
+  "provenance": [
+    {
+      "file": "bear_growl-2-e7adaefc.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "A large brown bear growling low and menacing, close.",
+      "seed": 2,
+      "steps": 100,
+      "clap_p": 0.56,
+      "clap_rank": 1
+    },
+    {
+      "file": "bear_growl-3-685a0646.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "A large brown bear growling low and menacing, close.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.56,
+      "clap_rank": 1
+    },
+    {
+      "file": "bear_hurt-3-b81412dd.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "A large bear yelping and groaning in pain.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.067,
+      "clap_rank": 5
+    },
+    {
+      "file": "bear_roar-3-772ca47c.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "A large brown bear roaring loudly and aggressively.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.17,
+      "clap_rank": 2
+    },
+    {
+      "file": "bear_roar-1-adf53f8f.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "A large brown bear roaring loudly and aggressively.",
+      "seed": 1,
+      "steps": 100,
+      "clap_p": 0.151,
+      "clap_rank": 2
+    },
+    {
+      "file": "bed-forest-3-c091ac95.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "Ambience of a quiet pine forest at dawn: soft wind through tall pine trees, gentle rustling needles, a few small songbirds chirping in the distance. Continuous field recording, no music.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.889,
+      "clap_rank": 1
+    },
+    {
+      "file": "bed-island-2-cdaeef41.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "Ambience of a sunny tropical beach: gentle ocean waves washing on sand, a light sea breeze, distant seagulls calling now and then. Continuous field recording, no music.",
+      "seed": 2,
+      "steps": 100,
+      "clap_p": 0.74,
+      "clap_rank": 1
+    },
+    {
+      "file": "bed-underwater-1-7c1947e8.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "Underwater ambience: the deep muffled pressure hum and slow water movement heard with your head under the sea, low rumble, no bubbles, no music.",
+      "seed": 1,
+      "steps": 100,
+      "clap_p": 0.827,
+      "clap_rank": 1
+    },
+    {
+      "file": "boltImpact-ground-1-e9747950.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "An arrow thumping into soft dirt ground, a single dull impact with a little debris.",
+      "seed": 1,
+      "steps": 100,
+      "clap_p": 0.003,
+      "clap_rank": 5
+    },
+    {
+      "file": "boltImpact-wood-3-c50c0f6b.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "An arrow thudding hard into a wooden plank and vibrating, a single impact.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.158,
+      "clap_rank": 3
+    },
+    {
+      "file": "dive-3-cbbf6e4c.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "Diving under the water surface: a deep plunge followed by a rush of muffled bubbles.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.676,
+      "clap_rank": 1
+    },
+    {
+      "file": "dive-2-18427374.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "Diving under the water surface: a deep plunge followed by a rush of muffled bubbles.",
+      "seed": 2,
+      "steps": 100,
+      "clap_p": 0.374,
+      "clap_rank": 1
+    },
+    {
+      "file": "hum-pickup-2-5ab837df.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "A soft, steady, shimmering magical hum of a glowing crystal, a gentle sustained tone with a faint sparkle, constant, no rhythm, no music.",
+      "seed": 2,
+      "steps": 100,
+      "clap_p": 0.074,
+      "clap_rank": 3
+    },
+    {
+      "file": "hum-shrine-3-46a26286.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "A deep ancient stone shrine humming with old magic: a low sustained drone on D with a fifth above, slowly breathing, resonant and mysterious, constant, no rhythm, no melody.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.888,
+      "clap_rank": 1
+    },
+    {
+      "file": "lunge-3-4df75431.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "A quick forward lunge: a short sharp whoosh with a foot stamp on dirt.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.105,
+      "clap_rank": 4
+    },
+    {
+      "file": "reload-2-7f45e067.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "Reloading a crossbow: the string pulled back with a ratchet creak, a bolt slid into place, a click.",
+      "seed": 2,
+      "steps": 100,
+      "clap_p": 0.057,
+      "clap_rank": 5
+    },
+    {
+      "file": "rifleReload-1-3825a71f.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "Working the bolt of an old rifle: bolt lifted and pulled back, a brass shell ejected and clinking, bolt pushed forward and locked.",
+      "seed": 1,
+      "steps": 100,
+      "clap_p": 0.463,
+      "clap_rank": 1
+    },
+    {
+      "file": "rifleReload-3-702c68a6.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "Working the bolt of an old rifle: bolt lifted and pulled back, a brass shell ejected and clinking, bolt pushed forward and locked.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.291,
+      "clap_rank": 2
+    },
+    {
+      "file": "swordHeavy-1-8591dba9.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "A single heavy two-handed sword swing, a slow powerful whoosh through the air, close.",
+      "seed": 1,
+      "steps": 100,
+      "clap_p": 0.25,
+      "clap_rank": 1
+    },
+    {
+      "file": "swordSwing-3-92ebeaa9.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "A single fast sword swing whooshing through the air, close.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.072,
+      "clap_rank": 5
+    },
+    {
+      "file": "weaponSwap-1-0db57a9a.m4a",
+      "model": "OpenSound/EzAudio (s3_xl) + google/flan-t5-xl",
+      "code": "EzAudio 86f1826, torch 2.14.0",
+      "prompt": "Drawing a weapon from a leather strap: a short leather creak and a small metal rattle.",
+      "seed": 1,
+      "steps": 100,
+      "clap_p": 0.275,
+      "clap_rank": 1
+    }
+  ],
+  "synth_keeps": [
+    "boar_grunt",
+    "boar_squeal",
+    "boltImpact-flesh",
+    "coconut_hit",
+    "coconut_land",
+    "crab_click",
+    "crab_snap",
+    "crossbowFire",
+    "deer_call",
+    "dodge",
+    "dryFire",
+    "elk_bugle",
+    "footstep-litter",
+    "footstep-planks",
+    "footstep-sand",
+    "gull",
+    "hitMarker",
+    "hoofsteps",
+    "jump",
+    "kill",
+    "land",
+    "land-hard",
+    "monkey_chatter",
+    "monkey_shriek",
+    "rifleFire",
+    "sailor_groan",
+    "sailor_slash",
+    "splash",
+    "surface",
+    "swimStroke",
+    "swordHit-flesh",
+    "swordHit-wood",
+    "wadeStep",
+    "waterExit"
+  ]
+}

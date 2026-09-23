@@ -94,17 +94,17 @@ describe('Settings', () => {
     expect((await fresh()).getMusicStyle()).toBe('piano');
   });
 
-  it('sfxSet: sa3-medium by default, persisted beside musicStyle, ?sfx= overrides without persisting', async () => {
+  it('sfxSet: moss by default, persisted beside musicStyle, ?sfx= overrides without persisting', async () => {
     const s = await fresh();
-    expect(s.getSfxSet()).toBe('sa3-medium');
-    s.setSfxSet('sa3');
-    expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'sa3', musicStyle: 'piano' });
+    expect(s.getSfxSet()).toBe('moss');
+    s.setSfxSet('ezaudio');
+    expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'ezaudio', musicStyle: 'piano' });
     vi.stubGlobal('location', new URL('http://localhost:5173/?sfx=synth'));
     try {
       const t = await fresh();
       expect(t.getSfxSet()).toBe('synth');
       t.setNumber('volume', 0.5);
-      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'sa3' });
+      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'ezaudio' });
     } finally { vi.stubGlobal('location', new URL('http://localhost:5173/')); }
   });
 

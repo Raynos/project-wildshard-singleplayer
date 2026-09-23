@@ -1,23 +1,26 @@
-"""MUSIC.md v3 row 6 (E33): rank the Stable Audio 3 sound-effect takes with CLAP, ship the best per family and model,
-and build the side-by-side snippets page.
+"""MUSIC.md v3 row 6 (E33), SFX round 2: rank every model's sound-effect takes with CLAP, ship each model's set, and
+build the side-by-side comparison page.
 
     ~/ml/music/analysis/.venv/bin/python scripts/music/gen/sfx_build.py <sfx-raw-dir>
 
-Reads <raw>/<model>/<family>/<seed>.wav + .json (gen_sfx.py). For every take:
+Reads <raw>/<model>/<family>/<seed>.wav + .json (gen_sfx.py / gen_sfx_moss.py / gen_sfx_ezaudio.py / MiniMax via
+sfx_minimax.py). For every take:
   CLAP (laion/clap-htsat-fused, the model's own logit scale): softmax of its own family description against every
   other family's description plus three foils ("music with melody and instruments", "a person speaking", "silence").
   `p` = the share its own description gets, `rank` = where it places among all of them (1 = best match).
   Beds / hums also need a loop: the best seam on a 1 s grid (analyze.loop_seam), made seamless like the music
   (stems.seam: the last second crossfaded into the second before loopStart), loop points measured on the decoded file.
-The best take per (model, family) ships if it ranks <= SHIP_MAX_RANK (5); one-shots get their best 2 takes as variants
-when both rank <= 3. A family whose best take ranks lower is listed in sfx.json's `synth_keeps` and not shipped.
-Writes public/assets/sfx/<model>/ (<model> = sa3 for small-sfx, sa3-medium for medium): the files + sfx.json
-  { model, credit, beds: {forest: {file, loopStart, loopEnd, duration, gain}}, hums: {...},
-    oneshots: {<Audio method / AnimalSound id>: {files: [...], gain}}, provenance: [...] }
+Per (model, family) the best take ships if it ranks <= SHIP_MAX_RANK (5); one-shots add their 2nd take as a variant when
+it also ranks <= 3. A family whose best take ranks lower is listed in sfx.json's `synth_keeps` (the synth plays it).
+Writes public/assets/sfx/<set>/ for every model in SETS: content-addressed files (<family>-<seed>-<sha1[:8]>.m4a: the
+service worker serves audio cache-first) + sfx.json
+  { model, credit, licence, beds: {forest: {file, loopStart, loopEnd, duration, gain}}, hums: {...},
+    oneshots: {<Audio method / AnimalSound id>: {files: [...], gain}}, synth_keeps: [...], provenance: [...] }
 Beds / hums: stereo AAC 96 kb/s; one-shots: mono AAC 64 kb/s, trimmed to the sounding part. Levels: beds -24 LUFS,
 hums -26 LUFS, one-shots -18 LUFS (the game applies its own gains on top: beds 0.5, pickup hum 0.35, shrine 0.6).
-Also writes scripts/music/gen/sfx-<model>.json (every take, every score) and art/sfx/round-1-two-models/ (MP3 snippets
-of each family's pick from both models, side by side).
+Also writes scripts/music/gen/sfx-<set>.json (every take, every score), sfx-summary.json (per model: families shipped,
+mean rank, speed, memory) and art/sfx/round-2-top3/ (MP3 of each family's best take per model, side by side; MiniMax
+Music 3 as a fourth column for the ten families it was tried on).
 """
 
 from __future__ import annotations
@@ -39,13 +42,25 @@ from stems import decode_offset, encode, lufs, seam, shipped_name  # noqa: E402
 
 REPO = HERE.parents[2]
 OUT = REPO / "public/assets/sfx"
-ART = REPO / "art/sfx/round-1-two-models"
-MODELS = {"small-sfx": "sa3", "medium": "sa3-medium"}
-MODEL_TITLE = {"small-sfx": "Stable Audio 3 Small-SFX", "medium": "Stable Audio 3 Medium"}
-LICENCE = "Stability AI Community License (free < USD 1M revenue; register for commercial use; 'Powered by Stability AI') + Gemma terms (T5Gemma encoder)"
+ART = REPO / "art/sfx/round-2-top3"
+STABILITY = ("Stability AI Community License: free below USD 1M annual revenue; register with Stability AI for commercial use; "
+             "show 'Powered by Stability AI'; keep the licence + NOTICE with any redistribution. Its T5Gemma text encoder adds the Gemma terms.")
+# raw-dir name -> the shipped set (None = compared on the page only)
+SETS = {
+    "medium": {"set": "sa3-medium", "title": "Stable Audio 3 Medium", "licence": STABILITY,
+               "credit": "SFX: Stable Audio 3 Medium — Powered by Stability AI", "short": "Stability AI Community (< $1M, register, credit)"},
+    "moss": {"set": "moss", "title": "MOSS-SoundEffect v2.0", "short": "Apache-2.0",
+             "licence": "Apache-2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0): commercial use OK; keep the licence and NOTICE text with any redistribution of the weights; outputs are unrestricted.",
+             "credit": "SFX: MOSS-SoundEffect v2.0 by OpenMOSS (Apache-2.0)"},
+    "ezaudio": {"set": "ezaudio", "title": "EzAudio-XL", "short": "MIT (+ flan-t5-xl, Apache-2.0)",
+                "licence": "MIT (OpenSound/EzAudio: code and weights); the flan-t5-xl text encoder is Apache-2.0. Commercial use OK; keep the copyright notice with any redistribution of the weights.",
+                "credit": "SFX: EzAudio by OpenSound (MIT)"},
+    "minimax": {"set": None, "title": "MiniMax Music 3", "short": "MiniMax-Music3 Community (< $20M, UI credit)",
+                "licence": "MiniMax-Music3 Community License", "credit": "Music: MiniMax-Music3"},
+}
 FOILS = ["music with melody and instruments", "a person speaking", "silence"]
 LEVEL = {"bed": -24.0, "hum": -26.0, "oneshot": -18.0}
-SHIP_MAX_RANK = 5  # a family ships from a model only if its own description ranks in CLAP's top 5 (of every family + the foils)
+SHIP_MAX_RANK = 5
 GAIN = {"bed-forest": 0.5, "bed-island": 0.5, "bed-underwater": 0.5, "hum-pickup": 0.35, "hum-shrine": 0.6}
 
 
@@ -74,7 +89,8 @@ def main() -> None:
         te = torch.nn.functional.normalize(_tensor(clap.get_text_features(**proc(text=texts, return_tensors="pt", padding=True))), dim=-1)
 
     picks: dict[str, dict[str, list[dict]]] = {}
-    for model, short in MODELS.items():
+    summary: dict[str, dict] = {}
+    for model, meta in SETS.items():
         takes = []
         for wav in sorted((raw / model).glob("*/*.wav")):
             side = json.loads(wav.with_suffix(".json").read_text())
@@ -89,42 +105,50 @@ def main() -> None:
                 ae = torch.nn.functional.normalize(_tensor(clap.get_audio_features(**a)), dim=-1).mean(0, keepdim=True)
                 sims = (torch.nn.functional.normalize(ae, dim=-1) @ te.T)[0]
             i = names.index(fam)
-            p = float(torch.softmax(sims * scale, 0)[i])
-            rank = int((sims > sims[i]).sum()) + 1
-            r = {"family": fam, "seed": side["seed"], "wav": str(wav), "side": side, "p": round(p, 3), "rank": rank,
+            r = {"family": fam, "seed": side["seed"], "wav": str(wav), "side": side,
+                 "p": round(float(torch.softmax(sims * scale, 0)[i]), 3), "rank": int((sims > sims[i]).sum()) + 1,
                  "best_match": texts[int(sims.argmax())], "peak": round(float(np.abs(x).max()), 3)}
             if fams[fam]["kind"] in ("bed", "hum"):
-                y22 = librosa.resample(y, orig_sr=sr, target_sr=22050)
-                r["seam"] = loop_seam(y22, 22050, 240.0, len(y) / sr)  # 240 BPM: a "bar" is 1 s
+                r["seam"] = loop_seam(librosa.resample(y, orig_sr=sr, target_sr=22050), 22050, 240.0, len(y) / sr)  # 1 s grid
             takes.append(r)
+        if not takes:
+            continue
         by_fam: dict[str, list[dict]] = {}
         for r in takes:
             by_fam.setdefault(r["family"], []).append(r)
-        for fam, rs in by_fam.items():
-            def key(r: dict) -> tuple:
-                seam_ok = r.get("seam", {}).get("score", 1.0)
-                return (r["rank"] <= 3, r["p"] * (0.7 + 0.3 * max(seam_ok, 0.0)))
-            rs.sort(key=key, reverse=True)
+        for rs in by_fam.values():
+            rs.sort(key=lambda r: (r["rank"] <= 3, r["p"] * (0.7 + 0.3 * max(r.get("seam", {}).get("score", 1.0), 0.0))), reverse=True)
         picks[model] = by_fam
-        (HERE / f"sfx-{short}.json").write_text(json.dumps(
-            {"model": MODEL_TITLE[model], "families": {f: [{k: v for k, v in r.items() if k not in ("wav",)} for r in rs] for f, rs in by_fam.items()}},
+        best = {f: rs[0] for f, rs in by_fam.items()}
+        ranks = [b["rank"] for b in best.values()]
+        gens = [r["side"].get("gen_time_s", 0) for r in takes]
+        summary[model] = {"title": meta["title"], "licence": meta["short"], "families_rendered": len(best),
+                          "rank1": sum(x == 1 for x in ranks), "top5": sum(x <= SHIP_MAX_RANK for x in ranks),
+                          "mean_rank": round(float(np.mean(ranks)), 2), "median_rank": float(np.median(ranks)),
+                          "mean_gen_s": round(float(np.mean(gens)), 2),
+                          "mps_driver_gb_max": max((r["side"].get("mps_driver_gb") or 0) for r in takes)}
+        tag = meta["set"] or model
+        (HERE / f"sfx-{tag}.json").write_text(json.dumps(
+            {"model": meta["title"], "families": {f: [{k: v for k, v in r.items() if k != "wav"} for r in rs] for f, rs in by_fam.items()}},
             indent=2) + "\n")
+        if meta["set"] is None:
+            continue
 
-        # ---- ship
-        dest = OUT / short
+        # ---- ship this model's set
+        dest = OUT / meta["set"]
+        dest.mkdir(parents=True, exist_ok=True)
         for old in dest.glob("*.m4a"):  # this folder holds only this script's output
             old.unlink()
-        man: dict = {"model": MODEL_TITLE[model], "credit": f"SFX: {MODEL_TITLE[model]} — Powered by Stability AI",
+        man: dict = {"model": meta["title"], "credit": meta["credit"], "licence": meta["licence"],
                      "beds": {}, "hums": {}, "oneshots": {}, "provenance": []}
-        total = 0
-        skipped = []
+        total, skipped = 0, []
         for fam, rs in sorted(by_fam.items()):
             kind = fams[fam]["kind"]
-            if rs[0]["rank"] > SHIP_MAX_RANK:  # this model's best take sounds more like some other family: the synth keeps it
+            if rs[0]["rank"] > SHIP_MAX_RANK:  # its best take sounds more like some other family: the synth keeps it
                 skipped.append(fam)
                 continue
             chosen = rs[:1] if kind != "oneshot" else [r for r in rs[:2] if r is rs[0] or r["rank"] <= 3]
-            for n_var, r in enumerate(chosen, 1):
+            for r in chosen:
                 x, sr = sf.read(r["wav"], always_2d=True)
                 x = x.T.astype(np.float64)
                 if kind in ("bed", "hum"):
@@ -133,67 +157,92 @@ def main() -> None:
                 else:
                     y = trim(x, sr, 3.0)
                 L, tp = lufs(y, sr)
-                gain = min(LEVEL[kind] - L, -1.0 - tp)
-                y = y * 10 ** (gain / 20)
-                dest.mkdir(parents=True, exist_ok=True)
+                y = y * 10 ** (min(LEVEL[kind] - L, -1.0 - tp) / 20)
                 tmp = dest / ".tmp.m4a"
                 total += encode(y, sr, tmp, mono=(kind == "oneshot"))
                 lag, dlen = decode_offset(tmp, y, sr) if kind in ("bed", "hum") else (0.0, 0.0)
-                fname = shipped_name(dest, tmp, f"{fam}-{r['seed']}")  # content-addressed: the SW caches audio cache-first
+                fname = shipped_name(dest, tmp, f"{fam}-{r['seed']}")
                 if kind in ("bed", "hum"):
                     entry = {"file": fname, "loopStart": round(r["seam"]["start_s"] + lag, 4), "loopEnd": round(r["seam"]["end_s"] + lag, 4),
                              "duration": round(dlen, 4), "gain": GAIN[fam]}
-                    assert entry["loopEnd"] <= dlen
+                    assert entry["loopEnd"] <= dlen and entry["loopEnd"] - entry["loopStart"] > 0.5
                     man["beds" if kind == "bed" else "hums"][fam.split("-", 1)[1]] = entry
                 else:
                     man["oneshots"].setdefault(fam, {"files": [], "gain": 1.0})["files"].append(fname)
                 man["provenance"].append({"file": fname, "model": r["side"]["repo"], "code": r["side"]["code_commit"], "prompt": r["side"]["prompt"],
-                                          "seed": r["seed"], "steps": r["side"]["steps"], "licence": LICENCE, "clap_p": r["p"], "clap_rank": r["rank"]})
+                                          "seed": r["seed"], "steps": r["side"]["steps"], "clap_p": r["p"], "clap_rank": r["rank"]})
         man["synth_keeps"] = sorted(skipped)
         (dest / "sfx.json").write_text(json.dumps(man, indent=2, ensure_ascii=False) + "\n")
-        print(f"{short}: {total / 1e6:.2f} MB, {len(man['oneshots'])} one-shot families, beds {list(man['beds'])}, hums {list(man['hums'])}, synth keeps {len(skipped)}: {skipped}")
+        summary[model].update(shipped=len(by_fam) - len(skipped), synth_keeps=sorted(skipped), bytes=total)
+        print(f"{meta['set']}: {total / 1e6:.2f} MB, ships {len(by_fam) - len(skipped)} of {len(by_fam)}, synth keeps {skipped}", flush=True)
 
-    # ---- snippets page: each family's pick from both models
+    peaks = HERE / "sfx-peaks.json"  # measured peak RSS per model process (/usr/bin/time -l), written from the run logs
+    if peaks.exists():
+        for m, gb in json.loads(peaks.read_text()).items():
+            if m in summary:
+                summary[m]["peak_gb"] = gb
+    (HERE / "sfx-summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+    page(raw, picks, summary, names, fams)
+
+
+def page(raw: Path, picks: dict, summary: dict, names: list[str], fams: dict) -> None:
+    from build_page import PAGE_CSS
+
     for old in ART.glob("*/*.mp3"):
         old.unlink()
+    cols = [m for m in SETS if m in picks]
     rows = []
     for fam in names:
         cells = []
-        for model, short in MODELS.items():
-            rs = picks.get(model, {}).get(fam)
+        best_rank = min((picks[m][fam][0]["rank"] for m in cols if fam in picks[m]), default=None)
+        for m in cols:
+            rs = picks[m].get(fam)
             if not rs:
-                cells.append("<td class='empty'>not rendered</td>")
+                cells.append("<td class='empty'>not tried</td>")
                 continue
             r = rs[0]
-            mp3 = ART / short / f"{fam}-{r['seed']}.mp3"
+            mp3 = ART / (SETS[m]["set"] or m) / f"{fam}-{r['seed']}.mp3"
             mp3.parent.mkdir(parents=True, exist_ok=True)
-            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", r["wav"], "-t", "20", "-af", "loudnorm=I=-18:TP=-1.5",
-                            "-c:a", "libmp3lame", "-b:a", "128k", str(mp3)], check=True)
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", r["wav"], "-t", "20", "-ac", "1", "-af", "loudnorm=I=-18:TP=-1.5",
+                            "-c:a", "libmp3lame", "-b:a", "96k", str(mp3)], check=True)
             tone = "good" if r["rank"] == 1 else ("warn" if r["rank"] <= SHIP_MAX_RANK else "bad")
-            ship = "in the game" if r["rank"] <= SHIP_MAX_RANK else "not shipped: the synth plays"
-            cells.append(f"<td><audio controls preload='none' src='{short}/{mp3.name}'></audio>"
+            if SETS[m]["set"] is None:
+                ship = "compared only"
+            else:
+                ship = "in the game" if r["rank"] <= SHIP_MAX_RANK else "synth plays"
+            star = " <span class='chip good'><b>best</b></span>" if r["rank"] == best_rank else ""
+            cells.append(f"<td><audio controls preload='none' src='{html.escape(mp3.parent.name)}/{html.escape(mp3.name)}'></audio>"
                          f"<div class='chips'><span class='chip {tone}'><b>CLAP</b> rank {r['rank']} &middot; {r['p'] * 100:.0f}%</span>"
-                         f"<span class='chip'>{ship}</span></div></td>")
+                         f"<span class='chip'>{ship}</span>{star}</div></td>")
         rows.append(f"<tr><th scope='row'>{html.escape(fam)}<br><span class='meta'>{html.escape(fams[fam]['desc'])}</span></th>{''.join(cells)}</tr>")
-    from build_page import PAGE_CSS
-
-    (ART / "index.html").write_text(f"""<title>Wildshard Sound Effects</title>
-<meta name="description" content="Every Wildshard sound effect, rendered by Stable Audio 3 Small-SFX and Stable Audio 3 Medium, side by side.">
+    srows = []
+    for m in cols:
+        s = summary[m]
+        shipped = f"{s['shipped']} of {s['families_rendered']}" if "shipped" in s else f"compared on {s['families_rendered']}"
+        srows.append(f"<tr><td><b>{html.escape(s['title'])}</b></td><td>{shipped}</td><td>{s['rank1']}</td><td>{s['mean_rank']}</td>"
+                     f"<td>{s['mean_gen_s']} s</td><td>{s.get('peak_gb', s['mps_driver_gb_max'])} GB</td><td>{html.escape(s['licence'])}</td></tr>")
+    (ART / "index.html").write_text(f"""<title>Wildshard Sound Effects Round 2</title>
+<meta name="description" content="Every Wildshard sound effect from the top three commercial-licence local SFX models, side by side, CLAP-ranked.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 {PAGE_CSS}
 .grid td, .grid th {{ white-space: normal; vertical-align: top; }}
 .grid th[scope=row] {{ text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--ink); min-width: 150px; }}
-.grid audio {{ width: 220px; max-width: 100%; }}
+.grid audio {{ width: 200px; max-width: 100%; }}
 </style>
 <div class="wrap">
   <header>
-    <h1>Wildshard sound effects, round 1</h1>
-    <p class="lede">Every sound the game makes that is not music, rendered locally by two Stable Audio 3 models. Each cell is that model's best take for the family out of three, ranked by CLAP against the description; "rank 1" means the audio matched its own description better than any of the other {len(names) - 1} families and the three foils. A take ships only when it ranks in the top {SHIP_MAX_RANK}; otherwise that set leaves the family on the synth. Both sets are in the game (Settings switches between them); say which model should win each family, or which to leave on the synth.</p>
-    <div class="brief"><p>Licence: Stability AI Community. Free under USD 1M revenue; register with Stability for commercial use; "Powered by Stability AI" in the credits.</p><small>TangoFlux was the other candidate but its licence is non-commercial (research only), so it was not used</small></div>
+    <h1>Wildshard sound effects, round 2</h1>
+    <p class="lede">Every sound the game makes that is not music, from the three best local sound-effect models whose licences allow commercial use. Each cell is that model's best of three takes, ranked by CLAP: "rank 1" means the audio matched its own description better than any of the other {len(names) - 1} families and three foils. A set carries a family only when its take ranks in the top {SHIP_MAX_RANK}; otherwise the game's synth plays it. All three sets are in the game (Settings, Sound effects). MiniMax Music 3 was tried on ten families as a fourth column.</p>
   </header>
+  <section class="notes"><h2>The models</h2>
+    <div class="tablewrap"><table class="models">
+      <thead><tr><th>model</th><th>families in the game</th><th>rank 1</th><th>mean rank</th><th>time per take</th><th>peak memory</th><th>licence</th></tr></thead>
+      <tbody>{''.join(srows)}</tbody>
+    </table></div>
+  </section>
   <section class="style"><div class="tablewrap"><table class="grid">
-    <thead><tr><th>family</th>{''.join(f'<th>{html.escape(MODEL_TITLE[m])}</th>' for m in MODELS)}</tr></thead>
+    <thead><tr><th>family</th>{''.join(f'<th>{html.escape(SETS[m]["title"])}</th>' for m in cols)}</tr></thead>
     <tbody>{''.join(rows)}</tbody>
   </table></div></section>
 </div>

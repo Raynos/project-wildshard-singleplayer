@@ -70,7 +70,21 @@ def main() -> None:
     t0 = time.time()
     pipe = ModularPipeline.from_pretrained(str(view))
     pipe.load_components(dtype=torch.bfloat16)
-    pipe.to(dev)
+    if os.environ.get("MINIMAX_OFFLOAD"):
+        # memory cap (the user: "don't hammer the machine's memory"): the 8B global LM (~16 GB bf16) streams from
+        # disk one leaf module at a time (diffusers group offloading); everything else sits on the device
+        from diffusers.hooks import apply_group_offloading
+
+        off = Path(os.environ.get("MINIMAX_OFFLOAD_DIR", Path.home() / "ml/music/minimax-music3/offload"))
+        off.mkdir(parents=True, exist_ok=True)
+        for name in pipe.components:
+            comp = getattr(pipe, name, None)
+            if isinstance(comp, torch.nn.Module) and name != "language_model":
+                comp.to(dev)
+        apply_group_offloading(pipe.language_model, onload_device=torch.device(dev), offload_device=torch.device("cpu"),
+                               offload_type="leaf_level", offload_to_disk_path=str(off))  # leaf: the AR loop calls embed_tokens / lm_head directly
+    else:
+        pipe.to(dev)
     load_s = round(time.time() - t0, 1)
     print(f"[gen_minimax] loaded on {dev} in {load_s}s", flush=True)
     briefs = json.loads((HERE / "briefs.json").read_text())

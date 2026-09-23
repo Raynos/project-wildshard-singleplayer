@@ -9,15 +9,16 @@
 //   getMusicStyle() / setMusicStyle('orchestral') / onMusicStyle(fn)   → the score's source (docs/plans/MUSIC.md v3):
 //   'piano' | 'orchestral' | 'folk' (MiniMax-Music3 stems) | 'synth' (the v1 WebAudio score); default 'piano'.
 //   `?music=<style>` in the URL overrides it for the page's life without persisting it.
-//   getSfxSet() / setSfxSet('sa3') / onSfxSet(fn)   → the sound-effect samples: 'sa3-medium' (Stable Audio 3 Medium) | 'sa3' (Stable Audio 3 Small-SFX)
-//   (public/assets/sfx/<set>/sfx.json) | 'synth' (every sound synthesised); default 'sa3-medium'; `?sfx=<set>` overrides like ?music=.
+//   getSfxSet() / setSfxSet('ezaudio') / onSfxSet(fn) → the sound-effect samples: 'moss' (MOSS-SoundEffect v2.0) | 'sa3-medium'
+//   (Stable Audio 3 Medium) | 'ezaudio' (EzAudio-XL) (public/assets/sfx/<set>/sfx.json) | 'synth' (every sound synthesised);
+//   default 'moss' (best CLAP coverage of the three, SFX round 2); `?sfx=<set>` overrides like ?music=.
 //
 // localStorage is wrapped in try/catch (iOS private mode throws on write) — the in-memory copy is the truth for the session.
 export type SettingKey = 'aimAssist' | 'tracers' | 'haptics';
 export type NumberKey = 'volume' | 'music' | 'look' | 'swingLook';
 export const MUSIC_STYLES = ['piano', 'orchestral', 'folk', 'synth'] as const;
 export type MusicStyle = (typeof MUSIC_STYLES)[number];
-export const SFX_SETS = ['sa3-medium', 'sa3', 'synth'] as const;
+export const SFX_SETS = ['moss', 'sa3-medium', 'ezaudio', 'synth'] as const;
 export type SfxSet = (typeof SFX_SETS)[number];
 
 const STORE = 'ws.settings.v1';
@@ -64,7 +65,7 @@ class Choice<T extends string> {
   on(fn: (v: T) => void): () => void { this.listeners.add(fn); return () => { this.listeners.delete(fn); }; }
 }
 const musicStyle = new Choice<MusicStyle>('musicStyle', MUSIC_STYLES, 'piano', 'music');
-const sfxSet = new Choice<SfxSet>('sfxSet', SFX_SETS, 'sa3-medium', 'sfx');
+const sfxSet = new Choice<SfxSet>('sfxSet', SFX_SETS, 'moss', 'sfx');
 const listeners = new Map<SettingKey, Set<(v: boolean) => void>>();
 const numListeners = new Map<NumberKey, Set<(v: number) => void>>();
 function persist() { try { localStorage.setItem(STORE, JSON.stringify({ ...state, ...nums, musicStyle: musicStyle.stored, sfxSet: sfxSet.stored })); } catch { /* not persisted this session */ } }

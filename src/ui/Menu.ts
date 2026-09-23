@@ -319,7 +319,7 @@ export class GameMenu {
     mslider.addEventListener('pointerdown', (e) => e.stopPropagation());
     mus.append(mslider);
     // music style (Settings 'musicStyle', docs/plans/MUSIC.md v3): the MiniMax-Music3 scores or the v1 synth — Music.ts crossfades on a bar;
-    // sound effects (Settings 'sfxSet'): the Stable Audio 3 Medium / Small sample sets or all-synth — Audio.ts swaps them lazily
+    // sound effects (Settings 'sfxSet'): the MOSS / Stable Audio 3 Medium / EzAudio sample sets or all-synth — Audio.ts swaps them
     const picker = <T extends string>(label: string, options: { v: T; text: string }[], get: () => T, set: (v: T) => void, on: (fn: () => void) => void) => {
       const row = el('ws-gmenu-row', `<span class="ws-gmenu-swlabel">${label}</span>`);
       const box = el('ws-gmenu-seg');
@@ -332,7 +332,7 @@ export class GameMenu {
       paint(); on(paint); row.append(box); return row;
     };
     const styles: { v: MusicStyle; text: string }[] = [{ v: 'piano', text: 'Piano' }, { v: 'orchestral', text: 'Orchestral' }, { v: 'folk', text: 'Folk' }, { v: 'synth', text: 'Synth' }];
-    const sets: { v: SfxSet; text: string }[] = [{ v: 'sa3-medium', text: 'SA3 Medium' }, { v: 'sa3', text: 'SA3 Small' }, { v: 'synth', text: 'Synth' }];
+    const sets: { v: SfxSet; text: string }[] = [{ v: 'moss', text: 'MOSS' }, { v: 'sa3-medium', text: 'SA3 Medium' }, { v: 'ezaudio', text: 'EzAudio' }, { v: 'synth', text: 'Synth' }];
     const style = picker('Music style', styles, getMusicStyle, setMusicStyle, (fn) => { onMusicStyle(fn); });
     const sfx = picker('Sound effects', sets, getSfxSet, setSfxSet, (fn) => { onSfxSet(fn); });
     // a pick decodes from the offline cache (project/archive/2026-09-23-preload-offline.md): a spinner by the label only past 300 ms

@@ -323,7 +323,7 @@
           "model_load_s": 9.5,
           "mps_driver_gb": 11.45
         },
-        "p": 0.907,
+        "p": 0.929,
         "rank": 1,
         "best_match": "wind blowing through pine trees with birds singing in a forest",
         "peak": 0.09,
@@ -395,7 +395,7 @@
           "model_load_s": 9.5,
           "mps_driver_gb": 11.45
         },
-        "p": 0.71,
+        "p": 0.869,
         "rank": 1,
         "best_match": "ocean waves breaking on a beach with seagulls and wind",
         "peak": 0.414,
@@ -430,7 +430,7 @@
           "model_load_s": 9.5,
           "mps_driver_gb": 11.45
         },
-        "p": 0.356,
+        "p": 0.279,
         "rank": 2,
         "best_match": "a footstep wading through shallow water",
         "peak": 0.292,
@@ -467,7 +467,7 @@
           "model_load_s": 9.5,
           "mps_driver_gb": 11.45
         },
-        "p": 0.951,
+        "p": 0.946,
         "rank": 1,
         "best_match": "muffled underwater ambience with a low rumble",
         "peak": 0.462,
@@ -537,9 +537,9 @@
           "model_load_s": 9.5,
           "mps_driver_gb": 11.45
         },
-        "p": 0.636,
-        "rank": 1,
-        "best_match": "muffled underwater ambience with a low rumble",
+        "p": 0.405,
+        "rank": 2,
+        "best_match": "diving underwater with a plunge and bubbles",
         "peak": 0.841,
         "seam": {
           "min_bars": 2,
@@ -2280,6 +2280,41 @@
     "hum-shrine": [
       {
         "family": "hum-shrine",
+        "seed": 1,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "hum-shrine",
+          "kind": "hum",
+          "seed": 1,
+          "prompt": "A deep ancient stone shrine humming with old magic: a low sustained drone on D with a fifth above, slowly breathing, resonant and mysterious, constant, no rhythm, no melody.",
+          "desc": "a deep low ancient drone hum",
+          "duration_s": 16,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 2.15,
+          "model_load_s": 9.5,
+          "mps_driver_gb": 11.43
+        },
+        "p": 0.779,
+        "rank": 1,
+        "best_match": "a deep low ancient drone hum",
+        "peak": 0.635,
+        "seam": {
+          "min_bars": 2,
+          "score": 0.378,
+          "similarity": 0.4,
+          "level_match": 0.821,
+          "start_s": 6.25,
+          "end_s": 9.25,
+          "bars": 3,
+          "loop_s": 3.0
+        }
+      },
+      {
+        "family": "hum-shrine",
         "seed": 2,
         "side": {
           "model": "Stable Audio 3 medium",
@@ -2333,9 +2368,9 @@
           "model_load_s": 9.5,
           "mps_driver_gb": 11.43
         },
-        "p": 0.495,
-        "rank": 1,
-        "best_match": "a deep low ancient drone hum",
+        "p": 0.321,
+        "rank": 2,
+        "best_match": "a bear growling",
         "peak": 0.618,
         "seam": {
           "min_bars": 2,
@@ -2346,41 +2381,6 @@
           "end_s": 6.75,
           "bars": 2,
           "loop_s": 2.0
-        }
-      },
-      {
-        "family": "hum-shrine",
-        "seed": 1,
-        "side": {
-          "model": "Stable Audio 3 medium",
-          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-          "backend": "PyTorch mps fp32",
-          "family": "hum-shrine",
-          "kind": "hum",
-          "seed": 1,
-          "prompt": "A deep ancient stone shrine humming with old magic: a low sustained drone on D with a fifth above, slowly breathing, resonant and mysterious, constant, no rhythm, no melody.",
-          "desc": "a deep low ancient drone hum",
-          "duration_s": 16,
-          "steps": 8,
-          "cfg": 1.0,
-          "gen_time_s": 2.15,
-          "model_load_s": 9.5,
-          "mps_driver_gb": 11.43
-        },
-        "p": 0.349,
-        "rank": 2,
-        "best_match": "muffled underwater ambience with a low rumble",
-        "peak": 0.635,
-        "seam": {
-          "min_bars": 2,
-          "score": 0.378,
-          "similarity": 0.4,
-          "level_match": 0.821,
-          "start_s": 6.25,
-          "end_s": 9.25,
-          "bars": 3,
-          "loop_s": 3.0
         }
       }
     ],
