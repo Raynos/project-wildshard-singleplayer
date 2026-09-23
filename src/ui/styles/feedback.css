@@ -1,4 +1,4 @@
-/* The review inbox (src/ui/review.ts + the lazy src/ui/Feedback.ts; docs/plans/FEEDBACK-INBOX.md; mockups art/feedback/round-1-inbox/).
+/* The review inbox (src/ui/review.ts + the lazy src/ui/Feedback.ts; project/archive/2026-09-22-feedback-inbox.md; mockups art/feedback/round-1-inbox/).
    prefix ws-fb-. The ✎ NOTE disc is always loaded (it lives in #hud under PAUSE); the composer loads on first use. */
 
 /* ── the ✎ NOTE disc (touch, unlocked + Quick note on) ── */

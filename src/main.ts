@@ -281,7 +281,7 @@ async function main() {
   document.addEventListener('keydown', (e) => { if (e.code === 'KeyM' && hud.entered && !menu.isOpen) menu.open('map'); });
   menu.onOpen = () => { if (document.pointerLockElement) document.exitPointerLock(); }; // the map wants a cursor; the lock comes back on close (onResume)
 
-  // ── the review inbox (docs/plans/FEEDBACK-INBOX.md): unlocked in Settings → REVIEW, then F8 (desktop), the ✎ disc under
+  // ── the review inbox (project/archive/2026-09-22-feedback-inbox.md): unlocked in Settings → REVIEW, then F8 (desktop), the ✎ disc under
   // PAUSE (touch) and the menu's FEEDBACK tab. The composer (src/ui/Feedback.ts) loads on first use; while its overlay is up
   // the world is frozen on the captured frame (frameGate) and the weapons / pointer lock are released.
   let feedbackHeld = false;

@@ -1,5 +1,5 @@
 /**
- * The review inbox's composer (docs/plans/FEEDBACK-INBOX.md, mockups art/feedback/round-1-inbox/) — loaded lazily on the first
+ * The review inbox's composer (project/archive/2026-09-22-feedback-inbox.md, mockups art/feedback/round-1-inbox/) — loaded lazily on the first
  * F8 / ✎ / FEEDBACK tab, so the boot bundle never carries it. Styled by src/ui/styles/feedback.css (prefix ws-fb-).
  *
  *   const fb = new Feedback(host);

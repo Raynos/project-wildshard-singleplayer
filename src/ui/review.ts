@@ -1,4 +1,4 @@
-// src/ui/review.ts — the review inbox's always-loaded half (docs/plans/FEEDBACK-INBOX.md): the Settings REVIEW unlock, the
+// src/ui/review.ts — the review inbox's always-loaded half (project/archive/2026-09-22-feedback-inbox.md): the Settings REVIEW unlock, the
 // Quick note switch, and sending a note (with an offline queue). The composer itself (quick bar, sheet, pen) is the lazy
 // src/ui/Feedback.ts; the server is api/inbox.ts; notes come down with `pnpm inbox:pull`.
 //

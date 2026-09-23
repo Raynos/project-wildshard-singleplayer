@@ -1,6 +1,6 @@
 # Plan: the in-game feedback inbox
 
-**State:** `in progress` 2026-09-22 — the user's picks are in (E26) and the go is given: F1–F6 being built by the feedback-inbox session. F7 (native) waits for NATIVE-APPS.
+**State:** `archived` 2026-09-22 (finished 2026-09-22) — F1–F6 built and live in build 1e46950-mudeqkbx and verified end to end on production (Settings unlock → F8 note → Blob → `pnpm inbox:pull`). The one leftover, F7 (proving a note from the native build), is open ask docs/tasks/asks/E30.md.
 
 ## Where this comes from
 
@@ -32,17 +32,17 @@ Wildshard has none of it: no `api/`, no `@vercel/blob`, no `?review=1`.
 
 ## Build order
 
-| # | Checkpoint | Proof |
-|---|---|---|
-| F1 | **Store**: create a Vercel Blob store on `wildshard-singleplayer`, set `REVIEW_PASSWORD` (Production + Preview), `vercel env pull .env.local` | `vercel env ls` shows both |
-| F2 | **API**: port `api/inbox.ts` + its tests (password, rate limit, id shape, JPEG sniff, body caps); add `@vercel/blob`; add `api/` to the tsc / oxlint gates | `curl -X POST …/api/inbox` → `{id}`; a wrong password → 401 |
-| F3 | **Client**: `src/ui/Feedback.ts` + `src/ui/styles/feedback.css`, lazy chunk. Settings REVIEW row (password → UNLOCK, Quick note toggle); MENU FEEDBACK tab; F8 quick bar → Tab → side sheet; ✎ disc + phone bottom sheet; category chips; frozen-frame thumbnail + freehand pen; context chips; SEND; offline queue + "queued" chip (D1–D6). | desktop + 390×844 screenshots next to the mockups; `vite build` shows the separate chunk |
-| F4 | **Context + go-there**: `captureContext()` from the player / world / HUD; the `?at=` boot param | a note filed at the wreck cove reopens at the same pose |
-| F5 | **Pull**: `scripts/inbox-pull.mjs` (`pnpm inbox:pull`), `.review/` gitignored | pull lists the F3 test note with its jpg |
-| F6 | **Drain skill**: `.claude/skills/drain-inbox/SKILL.md` rewritten for Wildshard's owners (world / entities / player / ui / audio / perf) and ASKS rules | one real phone note goes end to end: filed → pulled → ASKS row → fixed → handled |
-| F7 | **Native**: absolute URL + CORS, once NATIVE-APPS is building | a note filed from the iOS simulator build lands |
+| # | Checkpoint | Proof | Status |
+|---|---|---|---|
+| F1 | **Store**: create a Vercel Blob store on `wildshard-singleplayer`, set `REVIEW_PASSWORD` (Production + Preview), `vercel env pull .env.local` | `vercel env ls` shows both | ✅ store `wildshard-review-inbox` (private) + `REVIEW_PASSWORD` on Production / Preview / Development, 2026-09-22 |
+| F2 | **API**: port `api/inbox.ts` + its tests (password, rate limit, id shape, JPEG sniff, body caps); add `@vercel/blob`; add `api/` to the tsc / oxlint gates | `curl -X POST …/api/inbox` → `{id}`; a wrong password → 401 | ✅ `2778db8`: live 401 / check 200 / list 200; 10 API tests |
+| F3 | **Client**: `src/ui/Feedback.ts` + `src/ui/styles/feedback.css`, lazy chunk. Settings REVIEW row (password → UNLOCK, Quick note toggle); MENU FEEDBACK tab; F8 quick bar → Tab → side sheet; ✎ disc + phone bottom sheet; category chips; frozen-frame thumbnail + freehand pen; context chips; SEND; offline queue + "queued" chip (D1–D6). | desktop + 390×844 screenshots next to the mockups; `vite build` shows the separate chunk | ✅ `1e46950`: headless 1600×900 (bar, sheet, pen, queue, settings, tab) + 390×844 touch (disc, bottom sheet); `Feedback` is a 9 KB lazy chunk |
+| F4 | **Context + go-there**: `captureContext()` from the player / world / HUD; the `?at=` boot param | a note filed at the wreck cove reopens at the same pose | ✅ `1e46950`: context + `repro` URL on every note; `?at=` in main.ts |
+| F5 | **Pull**: `scripts/inbox-pull.mjs` (`pnpm inbox:pull`), `.review/` gitignored | pull lists the F3 test note with its jpg | ✅ `2778db8`: pulled the live test note + its jpg |
+| F6 | **Drain skill**: `.claude/skills/drain-inbox/SKILL.md` rewritten for Wildshard's owners (world / entities / player / ui / audio / perf) and ASKS rules | one real phone note goes end to end: filed → pulled → ASKS row → fixed → handled | ✅ `.claude/skills/drain-inbox/SKILL.md` (commit below) |
+| F7 | **Native**: absolute URL + CORS, once NATIVE-APPS is building | a note filed from the iOS simulator build lands | ➜ open ask **E30**: the code is in `1e46950` (absolute URL in native mode, CORS for the Capacitor origins); only the native build can prove it |
 
-F1–F5 is one agent-day. F6 waits for the first real notes. F7 waits for NATIVE-APPS.
+Built 2026-09-22 in one session (E26). F7 moved to ask E30.
 
 ## Decisions (the user's picks, 2026-09-22, E26)
 

@@ -1,5 +1,5 @@
 /**
- * `/api/inbox` — the in-game review inbox (Vercel Node function, web-standard handlers; plan: docs/plans/FEEDBACK-INBOX.md).
+ * `/api/inbox` — the in-game review inbox (Vercel Node function, web-standard handlers; plan: project/archive/2026-09-22-feedback-inbox.md).
  *
  *   POST { password, note, category, context, screenshot? }  → { id }   writes inbox/<id>.json (+ .jpg) to Vercel Blob
  *   GET  (x-review-password header)                         → { entries: [{ id, json, jpg, uploadedAt, size }] }
