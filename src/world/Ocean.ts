@@ -139,30 +139,43 @@ export class Ocean {
           float waterA; vec3 waterAdd;`)
         .replace('#include <color_fragment>', /* glsl */`
           {
-            // the sea floor under this pixel: height (R) and obstacle proximity (G); deep water off the chunk
+            // the sea floor under this pixel: height (R) and obstacle proximity (G). Off the chunk the edge's floor carries on and
+            // sinks smoothly over 260 m — no straight-edged dark wedge along the chunk border
             vec2 suv = (vOceanW.xz + uChunkHalf) / (2.0 * uChunkHalf);
-            float inC = step(max(abs(suv.x - 0.5), abs(suv.y - 0.5)), 0.5);
-            vec2 sea = texture2D(tSea, clamp(suv, 0.0, 1.0)).rg;
-            float floorY = mix(uLevel - 40.0, sea.r, inC);
+            float outD = length(max(abs(vOceanW.xz) - uChunkHalf, 0.0));
+            float inC = step(outD, 0.0);
+            vec2 cuv = clamp(suv, 0.001, 0.999);
+            vec2 sea = texture2D(tSea, cuv).rg;
+            float floorY = mix(sea.r, uLevel - 30.0, smoothstep(0.0, 260.0, outD));
             float still = uLevel - floorY;                          // depth below the still level
             float col = max(vOceanW.y - floorY, 0.0);               // the water column under the wave
+            // metres to the water line: the depth over the local floor slope (two more fetches one texel over)
+            float tx = 2.0 * uChunkHalf / 512.0;
+            float hx = texture2D(tSea, cuv + vec2(1.0 / 512.0, 0.0)).r, hz = texture2D(tSea, cuv + vec2(0.0, 1.0 / 512.0)).r;
+            float slope = length(vec2(hx - sea.r, hz - sea.r)) / tx;
+            float shoreD = still / max(slope, 0.012);
             vec3 V = normalize(cameraPosition - vOceanW);
             vec3 fn = normalize(cross(dFdx(vOceanW), dFdy(vOceanW))); fn *= sign(fn.y);
             // Beer–Lambert: opacity from the path through the water (steeper view = clearer)
             float path = col / max(abs(V.y), 0.22);
-            float opac = 1.0 - exp(-path * 0.5);
-            float t = pow(clamp(still / uDeepDepth, 0.0, 1.0), 1.2);   // the lagoon stays turquoise; blue only where it is really deep
+            float opac = 1.0 - exp(-path * 0.85);
+            float t = smoothstep(0.0, 1.0, pow(clamp(still / uDeepDepth, 0.0, 1.0), 0.9));   // turquoise lagoon → cobalt, one smooth ramp
             vec3 water = mix(uShallow, uDeep, t);
-            water *= clamp(1.0 + fn.x * 3.4 + fn.z * 2.0, 0.68, 1.38);  // facet grade: every triangle reads
+            water *= clamp(1.0 + fn.x * 4.2 + fn.z * 2.6, 0.58, 1.48);  // facet grade: every triangle reads
             water = mix(water, water * vec3(0.12, 0.3, 0.75), ${isStylized() ? 'uToonNight' : '0.0'});   // a moonlit sea is deep teal-blue, not lagoon cyan
-            // ── foam (W2) ──
-            float n = vnoise(vOceanW.xz * 0.35 + uTime * 0.12);
-            float edge = still + sin(uTime * 1.3 + vOceanW.x * 0.9 + vOceanW.z * 0.4) * 0.1 - vCrest * 0.35;
-            float shore = 1.0 - smoothstep(0.1 + n * 0.1, 0.16 + n * 0.1, edge);   // a crisp breaking line
-            float lines = smoothstep(0.78, 0.86, fract(still * 1.25 - uTime * 0.28 + n * 0.35)) * (1.0 - smoothstep(0.12, 0.6, still)) * 0.85;   // only over the last half-metre: the lagoon is shallow everywhere
-            float ring = smoothstep(0.35, 0.6, sea.g + (n - 0.5) * 0.3) * (0.75 + 0.25 * sin(uTime * 2.4 + sea.g * 9.0));
-            float cap = smoothstep(0.24, 0.3, vCrest) * step(0.72, vnoise(vOceanW.xz * 0.22 + 3.1)) * 0.9;
-            float foam = clamp(max(max(shore, lines), max(ring * inC, cap)), 0.0, 1.0);
+            // ── foam (W2): 2–3 thin broken lace lines along the shore, rings round what stands in the water, caps out deep ──
+            float n = vnoise(vOceanW.xz * 0.55 + uTime * 0.15);
+            float d0 = shoreD + sin(uTime * 1.1 + dot(vOceanW.xz, vec2(0.07, 0.05))) * 0.3 - vCrest * 0.8;   // the line breathes with the swell
+            float l1 = smoothstep(-0.05, 0.05, d0) * (1.0 - smoothstep(0.22, 0.36, d0)) * step(0.34, vnoise(vOceanW.xz * 1.7 + vec2(uTime * 0.3, 0.0)));   // a thin broken lace, not a ribbon
+            float ph = fract(uTime * 0.16 + n * 0.15);
+            float p2 = mix(3.0, 0.9, ph);
+            float l2 = (1.0 - smoothstep(0.1, 0.28, abs(d0 - p2))) * step(0.42, vnoise(vOceanW.xz * 0.9 + 7.0)) * (1.0 - ph * 0.6);
+            float p3 = mix(5.0, 2.2, fract(ph + 0.5));
+            float l3 = (1.0 - smoothstep(0.08, 0.22, abs(d0 - p3))) * step(0.55, vnoise(vOceanW.xz * 0.7 + 13.0)) * 0.8;
+            float lace = max(l1, max(l2, l3)) * inC * (1.0 - smoothstep(6.0, 9.0, shoreD)) * step(0.0, still);   // never where a crest pokes over the sand
+            float ring = smoothstep(0.45, 0.65, sea.g + (n - 0.5) * 0.3) * step(0.25, n) * (0.75 + 0.25 * sin(uTime * 2.4 + sea.g * 9.0)) * inC;
+            float cap = smoothstep(0.2, 0.26, vCrest) * step(0.62, vnoise(vOceanW.xz * 0.2 + 3.1)) * smoothstep(2.5, 8.0, still) * 0.85;
+            float foam = clamp(max(max(lace, ring), cap), 0.0, 1.0);
             diffuseColor.rgb = mix(water, vec3(1.0), foam);
             waterA = max(opac, foam);
             // ── reflection + glint, added after lighting ──
@@ -171,9 +184,11 @@ export class Ocean {
             vec3 skyR = mix(fogColor, uFogZenith, pow(smoothstep(0.0, 0.75, e), 0.62) * 0.6 + 0.4); // biased to the saturated zenith: no white wash
             float fres = 0.02 + 0.98 * pow(1.0 - max(dot(fn, V), 0.0), 5.0);
             float sd = max(dot(R, fogSunDir), 0.0);
-            float glint = smoothstep(0.9965, 0.9985, sd) * 5.0 + pow(sd, 90.0) * 0.5;
-            waterAdd = (skyR * fres * 0.28 + fogSunColor * glint) * (1.0 - foam) + fogSunColor * foam * 0.5; // foam reads white, not lavender
-            waterA = max(waterA, fres * 0.5);
+            // glints break up facet by facet into sparkles (a flat patch facing the sun would be one blinding blob)
+            float sparkle = step(0.92, hash21(floor(vOceanW.xz * 1.3) + floor(uTime * 3.0)));
+            float glint = smoothstep(0.994, 0.998, sd) * 1.0 * sparkle + pow(sd, 60.0) * 0.08;
+            waterAdd = (skyR * fres * 0.14 + fogSunColor * glint) * (1.0 - foam) + fogSunColor * foam * 0.5; // foam reads white, not lavender
+            waterA = max(waterA, fres * 0.3);
             if (!gl_FrontFacing) {
               // from below (W4): Snell's window — inside ~49° of straight up the sky shows through, bright; outside it the
               // surface is a mirror of the deep water (total internal reflection)
@@ -208,7 +223,7 @@ export class Ocean {
    * Stamps a 1.8 m proximity falloff into the sea texture's G channel (once, at build; call again if the set changes).
    */
   foamAround(boxes: readonly ColliderBox[]): void {
-    const cell = CHUNK_SIZE / SEA_RES, reach = 1.8, prox = new Float32Array(SEA_RES * SEA_RES);
+    const cell = CHUNK_SIZE / SEA_RES, reach = 1.1, prox = new Float32Array(SEA_RES * SEA_RES);
     for (const b of boxes) {
       if (!(b.yBottom < this.level + 0.3 && b.yTop > this.level - 0.3)) continue;
       const r = Math.hypot(b.hw, b.hd) + reach;

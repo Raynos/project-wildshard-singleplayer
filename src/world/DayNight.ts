@@ -35,14 +35,14 @@ const MIDDAY: Preset = {
   sunColor: c(1.0, 0.97, 0.9), sunI: 2.7,
   hemiSky: hex(0x7b90f4), hemiGround: hex(0xd8a878), hemiI: 0.9,
   lift: c(0.07, 0.035, 0.2), rim: c(1.3, 0.95, 0.6), fogNear: c(0.5, 0.6, 0.98), fogSun: c(1.0, 0.98, 0.92),
-  disc: c(1.0, 0.95, 0.85), cloudShadow: 0.6, dusk: 0,
+  disc: c(1.0, 0.95, 0.85), cloudShadow: 0.32, dusk: 0,
 };
 const GOLDEN: Preset = {
   sky: { zenith: c(0.06, 0.16, 0.6), horizon: c(1.0, 0.7, 0.45), below: c(0.35, 0.4, 0.55), sunGlow: c(1.0, 0.55, 0.22), cloudLit: c(1.45, 1.0, 0.7), cloudShade: c(0.52, 0.44, 0.78), night: 0 },
   sunColor: c(1.0, 0.72, 0.45), sunI: 2.5,
   hemiSky: hex(0x7a7ce0), hemiGround: hex(0xe0a070), hemiI: 0.85,
   lift: c(0.1, 0.03, 0.2), rim: c(1.6, 0.9, 0.45), fogNear: c(0.75, 0.6, 0.8), fogSun: c(1.0, 0.7, 0.42),
-  disc: c(1.0, 0.75, 0.5), cloudShadow: 0.45, dusk: 0.7,
+  disc: c(1.0, 0.75, 0.5), cloudShadow: 0.28, dusk: 0.7,
 };
 const SUNSET: Preset = {
   sky: { zenith: c(0.05, 0.08, 0.32), horizon: c(1.0, 0.45, 0.3), below: c(0.25, 0.22, 0.4), sunGlow: c(1.0, 0.4, 0.15), cloudLit: c(1.3, 0.62, 0.45), cloudShade: c(0.4, 0.3, 0.6), night: 0.1 },
