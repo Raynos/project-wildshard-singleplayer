@@ -116,6 +116,8 @@ export class Mount {
 
   /** hand over the weapon kit once it exists (the wiring builds the mount before main.ts builds the kit) */
   setKit(kit: MountKit | null): void { this.opts.kit = kit; }
+  /** a spot the horse refuses to ride into (the Storm Titan's fire line) — checked a stride ahead */
+  refuse: ((x: number, z: number) => boolean) | null = null;
 
   /** register a horse you may ride (a camp horse, Tulpar): marks it owned (no herd AI, can't die) and adds a MOUNT prompt */
   addMountable(a: Animal, name: string): void {
@@ -236,7 +238,7 @@ export class Mount {
     if (this.winded && this.steed >= STEED_RESUME) this.winded = false;
     const galloping = gallopKey && !this.winded && !this.breaking;
     if (galloping) target = HORSE_SPEED.gallop;
-    if (this.breaking) target = 0;
+    if (this.breaking || p.moveScale === 0) target = 0;                       // the bucking rounds; a boss intro locks the reins
     // ── heading ──
     const look = p.yaw + Math.PI;                                                // the look direction, animal yaw convention
     const moving = Math.abs(fwd) > 0.08 || Math.abs(str) > 0.08;
@@ -256,6 +258,8 @@ export class Mount {
     const ax = a.position.x + Math.sin(this.heading) * ahead, az = a.position.z + Math.cos(this.heading) * ahead;
     if (target > HORSE_SPEED.walk && normalAt(ax, az)[1] < 0.72 && heightAt(ax, az) > a.position.y + 0.8) target = HORSE_SPEED.walk;
     if (!inChunk(ax, az, 6)) target = Math.min(target, 0);
+    // a line the horse will not cross (the Storm Titan's grass fire): it stops dead and shies
+    if (target > 0 && this.refuse?.(ax, az) === true) target = 0;
     // fording: in the river / the brook the horse wades at a walk-trot, swimming (held at FORD_DEPTH) where it is deeper
     const wet = wildEnv.wetAt?.(a.position.x, a.position.z) === true || heightAt(a.position.x, a.position.z) < waterLevel() - 0.2;
     if (wet) target = Math.sign(target) * Math.min(Math.abs(target), HORSE_SPEED.walk * 1.6);

@@ -438,6 +438,13 @@ async function main() {
     pickupHum: (on) => { audio.pickupHum(on); }, sound: (n, at) => { audio.animal(n, at, player.position, player.yaw); },
     sting: (e) => { if (e === 'kill') music.sting('chunk'); else music.combat(e === 'phase2' ? 1 : 0.8); },
   });
+  // Nalati's Storm Titan (src/nalati/stormTitan.ts, B14): the cairn prompt, the fight, Naizagai (the sabre upgrade) once won
+  nalatiNow()?.titan.bind({
+    animals, wildlife, ride, sabre: nalatiKit?.sabre ?? null, setWeaponsEnabled: (on) => { weapons.setEnabled(on); }, refill: () => { nalatiKit?.refill(); }, interactables, params,
+    hurt: (dmg, why) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); if (why) hud.toast(why); audio.land(true); },
+    toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, record: (k, v) => { progress.recordKill(k, v); }, pickupHum: (on) => { audio.pickupHum(on); },
+    music: (e) => { if (e === 'death' || e === 'pickup') music.sting(e); else if (e === 'victory') music.sting('chunk'); else music.combat(1); },
+  });
   if (ride) ride.taming.onBreaking = (on) => { weapons.visible = !on; weapons.setEnabled(!on); }; // both hands in the mane while he bucks
   player.onStep = (sprinting) => (player.wading ? audio.wadeStep(player.depth, sprinting)
     : audio.footstep(sprinting, pier?.floorHeightAt(player.position.x, player.position.z) !== undefined ? 'planks'
@@ -542,7 +549,7 @@ async function main() {
     // slow health regen; death → respawn at the gate
     if (health < 100 && performance.now() - lastHurt > 6000) health = Math.min(100, health + dt * 4);
     // a death in a boss fight is handled there (back at the phase checkpoint, arrows refilled); anywhere else → the gate
-    if (health <= 0) { health = 100; hud.damageFlash(); if (ride?.mounted === true) ride.mount.dismount(); if (nalati?.boss.onPlayerDeath() !== true) { hud.toast('Gored — respawning at the south gate'); respawn(); crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); } nalatiKit?.refill(); }
+    if (health <= 0) { health = 100; hud.damageFlash(); if (ride?.mounted === true) ride.mount.dismount(); if (nalati?.boss.onPlayerDeath() !== true && nalati?.titan.onPlayerDeath() !== true) { hud.toast('Gored — respawning at the south gate'); respawn(); crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); } nalatiKit?.refill(); }
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 && hud.entered);

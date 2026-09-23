@@ -48,6 +48,8 @@ export type GhostVariant = 'rider' | 'captain';
 interface Rider {
   a: Animal; mats: GhostMat[]; line: Line | null; slot: number;
   fade: number; fadeTarget: number; dying: number; fireT: number; dead: boolean;
+  /** a storm rider (the Titan's, B14): no arrows — its script drives its charges */
+  quiet: boolean;
 }
 interface Line { riders: Rider[]; s: number; mode: 'patrol' | 'engage'; theta: number; dir: number; engagedT: number }
 interface GhostMat { mat: THREE.MeshLambertMaterial; fade: THREE.IUniform<number> }
@@ -64,10 +66,13 @@ const GHOST_TIME: THREE.IUniform<number> = { value: 0 };
 
 // ───────────────────────────── the ghost material ─────────────────────────────
 
-function ghostMaterial(captain = false): GhostMat {
+function ghostMaterial(look: GhostVariant | 'storm' = 'rider'): GhostMat {
+  const captain = look === 'captain', storm = look === 'storm';
   const fade: THREE.IUniform<number> = { value: 0 };
   const mat = new THREE.MeshLambertMaterial({ color: 0x000000, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
-  const core = captain ? 'vec3(0.1, 0.5, 0.42)' : 'vec3(0.08, 0.42, 0.52)', rim = captain ? 'vec3(0.6, 2.4, 1.9)' : 'vec3(0.45, 1.9, 2.3)';
+  // the Storm Titan's storm riders (B14): pale storm-cloud grey, a white-blue lightning rim
+  const core = storm ? 'vec3(0.34, 0.38, 0.48)' : captain ? 'vec3(0.1, 0.5, 0.42)' : 'vec3(0.08, 0.42, 0.52)';
+  const rim = storm ? 'vec3(1.5, 1.8, 2.6)' : captain ? 'vec3(0.6, 2.4, 1.9)' : 'vec3(0.45, 1.9, 2.3)';
   // chain the prototype hook (Atmosphere.ts attaches the painted air's fog + cloud-shadow uniforms there). Replacing it left
   // `fogCloudTex` (sampler2D) unbound on texture unit 0 next to the shadow map's sampler2DShadow: "two textures of different
   // types use the same sampler location" — WebGL drops the draw, so the bodies never rendered (only the mist did; B11)
@@ -85,7 +90,7 @@ function ghostMaterial(captain = false): GhostMat {
         vec3 gC = mix( ${core}, ${rim}, gF ) * ( 0.8 + 1.3 * gF ) * gS;
         gl_FragColor = vec4( gC * uGFade, 1.0 );`);
   };
-  mat.customProgramCacheKey = () => (captain ? 'nalati-ghost-captain' : 'nalati-ghost');
+  mat.customProgramCacheKey = () => (storm ? 'nalati-ghost-storm' : captain ? 'nalati-ghost-captain' : 'nalati-ghost');
   mat.name = 'nalati-ghost';
   return { mat, fade };
 }
@@ -203,23 +208,25 @@ export class GhostRiders {
   // ── spawning ──
 
   /** one rider (any variant) at (x, z), facing `yaw`; it materialises out of mist. Not in a line: drive `a.mem.tx / tz / v` */
-  spawnRider(o: { x: number; z: number; yaw: number; variant?: GhostVariant }): Animal | null {
+  spawnRider(o: { x: number; z: number; yaw: number; variant?: GhostVariant; storm?: boolean }): Animal | null {
     const animals = this.animals;
     if (animals === null) return null;
-    const variant = o.variant ?? 'rider', captain = variant === 'captain';
+    const variant = o.variant ?? 'rider';
     const a = animals.spawn(GHOST_RIDER, o.x, o.z, o.yaw, variant);
     a.herd = -1;
     // the ghost look: one material on the whole horse (not the painterly three), a hooded rider on the body bone
-    const horseMat = ghostMaterial(captain), riderMat = ghostMaterial(captain);
+    const look = o.storm === true ? 'storm' : variant;
+    const horseMat = ghostMaterial(look), riderMat = ghostMaterial(look);
+    if (o.storm === true) { a.scale *= 1.6; a.mesh.scale.setScalar(a.scale); }   // the Titan's 8 m cloud horsemen
     a.mesh.material = horseMat.mat;
     // no shadow from a ghost: the manager sets castShadow every frame, so pin it off
     Object.defineProperty(a.mesh, 'castShadow', { get: () => false, set: () => undefined, configurable: true });
-    const rider = new THREE.Mesh(riderGeometry(captain), riderMat.mat);
+    const rider = new THREE.Mesh(riderGeometry(variant === 'captain'), riderMat.mat);
     rider.name = 'ghost-rider-figure';
     rider.frustumCulled = false;
     const body = a.mesh.skeleton.getBoneByName('body');
     if (body !== undefined) { body.add(rider); rider.position.set(0, 0, 0); }
-    const r: Rider = { a, mats: [horseMat, riderMat], line: null, slot: 0, fade: 0, fadeTarget: 1, dying: 0, fireT: 2 + Math.random() * 2.5, dead: false };
+    const r: Rider = { a, mats: [horseMat, riderMat], line: null, slot: 0, fade: 0, fadeTarget: 1, dying: 0, fireT: 2 + Math.random() * 2.5, dead: false, quiet: o.storm === true };
     this.riders.push(r);
     _v.set(o.x, heightAt(o.x, o.z) + 1, o.z);
     this.mist.burst(_v, 24, 1.6, 0.8, 1.6, 0.9, MIST, 0.25, FLAG_GROW | FLAG_RISE, 1.2);
@@ -339,7 +346,7 @@ export class GhostRiders {
       // shooting: inside SHOOT m, engaged (or a loose rider), on a timer
       r.fireT -= dt;
       const d = Math.hypot(p.x - a.position.x, p.z - a.position.z);
-      if (r.fireT <= 0 && d < SHOOT && d > 6 && (r.line === null || r.line.mode === 'engage')) { this.shoot(r); r.fireT = 3 + Math.random() * 1.8; }
+      if (!r.quiet && r.fireT <= 0 && d < SHOOT && d > 6 && (r.line === null || r.line.mode === 'engage')) { this.shoot(r); r.fireT = 3 + Math.random() * 1.8; }
     }
     // lines with nobody left: drop them; start the next one's clock
     for (let i = this.lines.length - 1; i >= 0; i--) {

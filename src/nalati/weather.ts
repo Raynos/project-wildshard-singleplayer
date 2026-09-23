@@ -52,6 +52,12 @@ export interface WeatherHooks {
    * storm may start meanwhile (`weather.hold`).
    */
   indoors?: () => boolean;
+  /**
+   * The Storm Titan's fight is on (B14, src/nalati/stormTitan.ts): the storm that called him may not run out until he
+   * falls (the storm phase is held open), no new storm cycle starts, and the natural lightning leaves the player alone —
+   * his strikes take its place. Combined with `indoors` into `weather.hold`, never overwritten by it.
+   */
+  stormHold?: () => boolean;
 }
 
 export interface NalatiWeather {
@@ -180,6 +186,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
 
   // ── the lightning's view of the world ──
   const yurts = yurtsOf(ctx.colliders ?? []);
+  let held = false;   // the Storm Titan's hold (hooks.stormHold), read by the lightning's player() below
   const lp: LightningPlayer = { x: 0, y: 0, z: 0, crouched: false, mounted: false, sheltered: false };
   const weather = new Weather({
     seed: def.seed,
@@ -192,7 +199,7 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
         const p = player.position;
         lp.x = p.x; lp.y = p.y; lp.z = p.z;
         lp.crouched = player.crouching; lp.mounted = wildEnv.playerMounted;
-        lp.sheltered = indoors || yurts.some((y) => (y.x - p.x) ** 2 + (y.z - p.z) ** 2 < (y.r + 1.5) ** 2);
+        lp.sheltered = indoors || held || yurts.some((y) => (y.x - p.x) ** 2 + (y.z - p.z) ** 2 < (y.r + 1.5) ** 2);
         return lp;
       },
     },
@@ -247,9 +254,12 @@ export function wireWeather(ctx: WeatherCtx): NalatiWeather {
     bind(h) { Object.assign(hooks, h); },
     update(dt) {
       indoors = hooks.indoors?.() === true;
-      weather.hold = indoors; // the boss fight is fought indoors: no storm starts meanwhile (one already on runs out)
+      held = hooks.stormHold?.() === true;
+      // the Golden King is fought indoors (no storm starts meanwhile); the Storm Titan in the storm that called him
+      weather.hold = indoors || held;
       clock.update(dt);
       weather.update(dt);
+      if (held && weather.state === 'storm' && weather.phaseLeft < 30) weather.phaseT = weather.phaseLen - 30;   // it rages on
       // wind
       if (weather.windSpeed !== null) {
         // the gust front swings the wind round to the storm's own heading (it blows out of the NW)

@@ -46,6 +46,7 @@ import { PaintedBackdrop } from '../world/PaintedBackdrop';
 import { wireSound, type NalatiSound } from './sound';
 import { LOOK_V2, wireLookV2 } from './look';
 import { wireRide, type Ride } from './ride';
+import { wireStormTitan, type StormTitan } from './stormTitan';
 import { HITCHING_RAIL } from '../world/nalati/layout';
 import { heightAt } from '../world/Heightfield';
 
@@ -102,6 +103,9 @@ export interface Nalati {
    *  `ride.interactable` (the one nearest horse prompt: Mount / Dismount / Break the stallion) into its interactables and
    *  hands `ride.taming` to `elites.bind` (Argymaq, BROKEN → the bucking rounds) */
   ride: Ride | null;
+  /** Jel Ata the Storm Titan (B14; src/nalati/stormTitan.ts): main.ts `titan.bind({...})` once the kit / ride / HUD exist,
+   *  `titan.onPlayerDeath()` in its death check; `titan.engaged` holds the storm and stands the elites down */
+  titan: StormTitan;
 }
 
 export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
@@ -157,6 +161,12 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   groups['weather'] = weather.fx.group;
   updates.push((dt) => weather.update(dt));
 
+  // ── Jel Ata the Storm Titan (B14; src/nalati/stormTitan.ts): the Wind Cairn's threshold (mounted, in a natural storm), the
+  //    Titan beyond the south rim, the arena's wall / whirlwinds / riders / fire; the heart joins the Targets chain below ──
+  const titan = wireStormTitan({ game, player: ctx.player, weather, tieSpot: pois.cairnTieSpot });
+  weather.bind({ stormHold: () => titan.engaged });   // the storm that called him rages on until he falls
+  updates.push((dt, t) => { titan.update(dt, t); });
+
   // ── painted backdrop (painted-asset agent, look pass): the 360° matte painting of the real Nalati past the horizon rings —
   //    src/world/PaintedBackdrop.ts (loads on its own, the boot does not wait). It takes the far range over from the
   //    procedural PainterlyRange (hidden while the painting shows). `?backdrop=0` = off, for before / after shots. ──
@@ -181,6 +191,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   // ── named elites (elites agent, B12): the five lairs, their spawn rules on the clock / the storm — src/nalati/elites.ts ──
   const elites = wireElites({ game, sky, player: ctx.player, ledges: pois.cragLedges, phase: () => weather.clock.phase, storm: () => weather.weather.stormActive });
   updates.push((dt, t) => {
+    if (titan.engaged) { elites.bar?.hide(); return; }   // one boss bar at a time: the elites stand down while the Titan fights
     elites.update(dt, t);
     for (const s of elites.scripts) if (s.animal !== null) s.animal.mem['noHeadBar'] = 1;   // the elite's own bar, not the combat one
   });
@@ -275,7 +286,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
 
   const stealth = new Stealth({ player, wildlife: () => wildlife, isMounted: () => extra.mounted }); // B9, wired below
   const nalati: Nalati = {
-    water, pois, weather, groups, boss, elites, wildlife, stealth, ride,
+    water, pois, weather, groups, boss, elites, wildlife, stealth, ride, titan,
     attachAnimals(animals) {
       animals.wetAt = nalatiWetAt;
       const w = new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed }).build();
@@ -314,12 +325,13 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   //    src/nalati/nightEnemies.ts (balbalWarriors.ts, ghostRiders.ts); chained into attachAnimals / bindPlay / the Targets ray ──
   const night = wireNightEnemies({ game, sky, player: ctx.player, forest: ctx.forest, balbals: pois.balbals, clock: weather.clock });
   elites.ghosts = night.riders;   // B12: Qara Batyr rides B11's captain rig at the head of a line
+  titan.riders = night.riders;    // B14: the Titan's storm riders ride the same rig
   updates.push((dt, t) => { night.update(dt, t); });
   {
     const attach = nalati.attachAnimals, bind = nalati.bindPlay, sheepT = nalati.sheepTarget;
     nalati.attachAnimals = (animals) => { const w = attach(animals); night.attach(animals); return w; };   // night.attach never throws (it logs)
     nalati.bindPlay = (p) => { bind(p); night.bindKit(p.kit); };
-    nalati.sheepTarget = (o, d, m, h) => night.target(o, d, m, sheepT(o, d, m, h));
+    nalati.sheepTarget = (o, d, m, h) => titan.target(o, d, m, night.target(o, d, m, sheepT(o, d, m, h)));   // + the Titan's heart (B14)
   }
 
   /** dev (`?ride=`): mount = on a camp horse at the rail · gallop = on it at the spawn, down the road · camp = at the rail on foot · herd = 30 m from the nearest wild
