@@ -2,7 +2,7 @@
 //
 //   const music = new Music(audio);                 // its own `music` gain → audio.master; shares the AudioContext
 //   music.play('theme');                            // on ENTER (after audio.resume()); loops D → B for as long as it plays
-//   music.setState({ shard: 'pine' | 'island', mode: 'menu' | 'calm' | 'alert' | 'combat', intensity: 0..1, underwater: false });
+//   music.setState({ shard: 'pine' | 'island' | 'steppe', mode: 'menu' | 'calm' | 'alert' | 'combat', intensity: 0..1, underwater: false });
 //   music.sting('pickup' | 'death' | 'chunk');      // the bell motif · the minor turn then 6 s of silence · the resolve chord
 //   music.stop();                                   // fades the bus over a bar and silences every voice
 //   music.volume = 0.7;                             // persisted as Settings 'music' (the pause menu's MUSIC slider drives it)
@@ -26,7 +26,8 @@ import {
   type Arrangement, type ArrangementName, type ChordName, type LayerId, type MixKey, type NoteEv, type Segment,
 } from './score/wildshard-theme';
 
-export type Shard = 'pine' | 'island';
+/** the shard's mood: 'steppe' = Nalati (the plucked lead, like the pines, until MUSIC v2's folk style lands — MUSIC.md) */
+export type Shard = 'pine' | 'island' | 'steppe';
 export type MusicMode = 'menu' | 'calm' | 'alert' | 'combat';
 export type StingName = 'pickup' | 'death' | 'chunk';
 export interface MusicState { shard: Shard; mode: MusicMode; intensity: number; underwater: boolean }

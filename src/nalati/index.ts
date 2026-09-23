@@ -14,7 +14,7 @@
  *
  * Each section below is one system; its owner fills it in. Keep main.ts untouched — add here.
  */
-import { Color, Material, Mesh, Vector3, type Object3D } from 'three';
+import { Color, Vector3, type Object3D } from 'three';
 import type { Game } from '../core/Game';
 import type { Sky } from '../world/Sky';
 import type { Player } from '../player/Player';
@@ -29,6 +29,7 @@ import { NalatiPOIs } from '../world/nalati';
 import { NalatiDressing } from '../world/nalati/dressing';
 import { wireKurgan, type KurganBoss } from './kurganBoss';
 import { wireWeather, type NalatiWeather } from './weather';
+import { wireSound, type NalatiSound } from './sound';
 import { macrotask } from '../boot/plan';
 import type { AnimalManager } from '../entities/AnimalManager';
 import { Wildlife, type SheepHit } from '../entities/Wildlife';
@@ -38,7 +39,6 @@ import { trample, grassHeightAt } from '../world/GrassTrample';
 import type { ImpactSurface, TargetAnimal, TargetHit } from '../player/Crossbow';
 import type { NalatiKit } from '../player/nalatiKit';
 import { nalatiWetAt } from './wet';
-import { PaintedBackdrop } from '../world/PaintedBackdrop';
 import { wireNightEnemies } from './nightEnemies';
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ChunkDef }
@@ -79,6 +79,9 @@ export interface Nalati {
   onImpact: (surface: ImpactSurface, point: Vector3) => void;
   /** main's Targets.raycast: the nearer of `hit` (the animals) and a sheep on the ray — the flock is not an AnimalManager crowd */
   sheepTarget: (origin: Vector3, dir: Vector3, maxDist: number, hit: TargetHit | null) => TargetHit | null;
+  /** the steppe's sound (B16 audio; src/nalati/sound.ts): creatures, hooves, the grassland bed, the kit's voices — set just
+   *  before wireNalati returns; main.ts: `sound.bind(audio, music)`, `sound.fire(id)` / `sound.impact(…)` in the weapon hooks */
+  sound?: NalatiSound;
   /** anything a later system wants to find: named groups added to the scene by this wiring */
   groups: Record<string, Object3D>;
 }
@@ -134,24 +137,6 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   const weather = wireWeather({ game, sky, player: ctx.player, forest: ctx.forest, colliders: pois.colliders, water: water.group });
   groups['weather'] = weather.fx.group;
   updates.push((dt) => weather.update(dt));
-
-  // ── painted backdrop (painted-asset agent, look pass): the 360° matte painting of the real Nalati past the horizon rings —
-  //    src/world/PaintedBackdrop.ts (loads on its own, the boot does not wait). It takes the far range over from the
-  //    procedural PainterlyRange (hidden while the painting shows). `?backdrop=0` = off, for before / after shots. ──
-  if (new URLSearchParams(location.search).get('backdrop') !== '0') {
-    void (async () => {
-      const bd = await PaintedBackdrop.load(game.renderer);
-      if (bd === null) return;
-      sky.clouds.add(bd.mesh);
-      const range = sky.clouds.getObjectByName('painted-range');
-      if (range) range.visible = false;
-      // the painting is the far snow range: the geometric Nalati range rings (Horizon.ts rings 2 + 3, r 1950 / 2480) stand
-      // down; rings 0 + 1 (800 / 1400 m: the plateau rolling on, the Avral foothills) stay in front as the near / mid parallax
-      game.scene.traverse((o) => { if (o instanceof Mesh && o.material instanceof Material && /^ridge[23]$/.test(o.material.name)) o.visible = false; });
-      groups['backdrop'] = bd.mesh;
-      updates.push(() => { bd.update(weather.look, weather.weather.overcast, weather.weather.rain, weather.weather.flash); });
-    })();
-  }
 
   // ── creatures (creatures agent, B4): Wildlife over main's AnimalManager — `attachAnimals` below (main.ts calls it after its animals step) ──
 
@@ -278,6 +263,11 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
     nalati.bindPlay = (p) => { bind(p); night.bindKit(p.kit); };
     nalati.sheepTarget = (o, d, m, h) => night.target(o, d, m, sheepT(o, d, m, h));
   }
+
+  // ── sound (B16 audio): wraps attachAnimals / bindPlay / wildEnv.onEvent for the creatures and the kit — src/nalati/sound.ts ──
+  const sound = wireSound(nalati, { player: ctx.player, weather });
+  nalati.sound = sound;
+  updates.push((dt) => { sound.update(dt); });
 
   return nalati;
 }

@@ -343,7 +343,7 @@ async function main() {
   const hands = new Hands(sky, game.camera); // white-gloved swimming hands (shown only while player.swimming)
   if (chunk.weapon === 'sword') (crossbow as Sword).onHeavy = () => audio.swordHeavy(); // the charged overhead (Weapons does not forward it)
   const meleeHeld = () => chunk.weapon === 'sword' || nalatiKit?.melee(weapons.current.id) === true; // the swords / the sabre / the spear
-  weapons.onFire = () => { if (weapons.current.id === 'rifle') audio.rifleFire(); else if (meleeHeld()) audio.swordSwing(); else audio.crossbowFire(); nalatiNow()?.onShot(); };
+  weapons.onFire = () => { if (nalatiNow()?.sound?.fire(weapons.current.id) === true) { /* Nalati's kit voices (src/nalati/sound.ts) */ } else if (weapons.current.id === 'rifle') audio.rifleFire(); else if (meleeHeld()) audio.swordSwing(); else audio.crossbowFire(); nalatiNow()?.onShot(); };
   weapons.onDry = () => audio.dryFire();
   weapons.onReloadStart = () => (weapons.current.id === 'rifle' ? audio.rifleReload() : audio.reload());
   weapons.onSwap = () => audio.weaponSwap();
@@ -351,7 +351,7 @@ async function main() {
     const dx = point.x - player.position.x, dz = point.z - player.position.z, d = Math.hypot(dx, dz);
     const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
     const pan = d > 1 ? ((dx * rx + dz * rz) / d) * 0.7 : 0, gain = 1 / (1 + d / 12);
-    if (weapons.current.id !== 'rifle' && meleeHeld()) audio.swordHit(surface, pan, gain); else audio.boltImpact(surface, pan, gain);
+    if (nalatiNow()?.sound?.impact(weapons.current.id, surface, pan, gain) === true) { /* Nalati: arrow / javelin / sabre (src/nalati/sound.ts) */ } else if (weapons.current.id !== 'rifle' && meleeHeld()) audio.swordHit(surface, pan, gain); else audio.boltImpact(surface, pan, gain);
     nalatiNow()?.onImpact(surface, point); // Nalati: an arrow landing by a herd / the flock spooks it
   };
   weapons.onHit = (_kind, headshot, killed) => {
@@ -420,6 +420,7 @@ async function main() {
   // Nalati's boss fights (src/nalati/kurganBoss.ts, B13): the Golden King needs the animals, the kit and the HUD
   nalatiNow()?.bindPlay({ kit: nalatiKit, health01: () => health / 100, toast: (text) => hud.toast(text), flash: () => hud.damageFlash() }); // Nalati's creatures: brace kills, knock-downs, howl / stampede toasts
   // Nalati's weather (src/nalati/weather.ts, B10): the storm's audio beds + thunder, and a lightning strike's 60 damage
+  nalatiNow()?.sound?.bind(audio, music); // Nalati's sound (B16 audio): hoof ground, the steppe bed, the music's steppe mood
   nalatiNow()?.weather.bind({ audio, hurt: (dmg, why) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); hud.toast(why); audio.land(true); } });
   nalatiNow()?.boss.bind({
     animals, setWeaponsEnabled: (on) => { weapons.setEnabled(on); }, bow: nalatiKit?.bow ?? null, refill: () => { nalatiKit?.refill(); }, interactables, params,
