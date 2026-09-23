@@ -47,6 +47,8 @@ export class Game {
   }
   private renderPass!: RenderPass;
   volumetrics!: VolumetricsEffect;
+  /** runtime handles on the colour chain (set by buildComposer) — the day/night clock + weather retune them (src/world/DayNight.ts) */
+  post: { grade: GradeEffect; saturation: HueSaturationEffect; contrast: BrightnessContrastEffect; bloom: BloomEffect } | null = null;
   /** the post chain — set by buildComposer(); resize() and the loop hold the nullable field directly */
   get composer(): EffectComposer { if (this._composer === null) throw new Error('Game.composer read before buildComposer()'); return this._composer; }
   /** the sky — set by buildSky() */
@@ -105,6 +107,7 @@ export class Game {
     const grade = new HueSaturationEffect({ saturation: G.saturation });
     const contrast = new BrightnessContrastEffect({ brightness: G.brightness, contrast: G.contrast });
     const split = new GradeEffect(G);
+    this.post = { grade: split, saturation: grade, contrast, bloom };
     const grain = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: true });
     grain.blendMode.opacity.value = 0.12;
     // one EffectPass for the whole chain: one program and one full-screen pass fewer per frame

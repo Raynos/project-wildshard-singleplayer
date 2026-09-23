@@ -11,8 +11,15 @@ const DEFAULTS: GradeOptions = { shadowTint: [0.9, 0.95, 1.08], highTint: [1.06,
  * the "golden hour film" look of the art/ mockups.
  */
 export class GradeEffect extends Effect {
+  /** the uniforms, held directly (the Effect's own Map is typed loosely) */
+  private readonly u: { shadowTint: Uniform<Vector3>; highTint: Uniform<Vector3>; lift: Uniform<Vector3>; gain: Uniform<Vector3>; gamma: Uniform<number> };
+
   constructor(opts: Partial<GradeOptions> = {}) {
     const o = { ...DEFAULTS, ...opts };
+    const u = {
+      shadowTint: new Uniform(new Vector3(...o.shadowTint)), highTint: new Uniform(new Vector3(...o.highTint)),
+      lift: new Uniform(new Vector3(...o.lift)), gain: new Uniform(new Vector3(...o.gain)), gamma: new Uniform(o.gamma),
+    };
     super('GradeEffect', /* glsl */`
       uniform vec3 uShadowTint; uniform vec3 uHighTint; uniform vec3 uLift; uniform vec3 uGain; uniform float uGamma;
       void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
@@ -28,12 +35,23 @@ export class GradeEffect extends Effect {
       }`, {
       blendFunction: BlendFunction.SRC,
       uniforms: new Map<string, Uniform>([
-        ['uShadowTint', new Uniform(new Vector3(...o.shadowTint))],
-        ['uHighTint', new Uniform(new Vector3(...o.highTint))],
-        ['uLift', new Uniform(new Vector3(...o.lift))],
-        ['uGain', new Uniform(new Vector3(...o.gain))],
-        ['uGamma', new Uniform(o.gamma)],
+        ['uShadowTint', u.shadowTint],
+        ['uHighTint', u.highTint],
+        ['uLift', u.lift],
+        ['uGain', u.gain],
+        ['uGamma', u.gamma],
       ]),
     });
+    this.u = u;
+  }
+
+  /** Retune at runtime (the day/night clock, a storm's slate grade): any subset of the options; unchanged fields keep their value. */
+  set(opts: Partial<GradeOptions>): void {
+    const { u } = this;
+    if (opts.shadowTint) u.shadowTint.value.fromArray(opts.shadowTint);
+    if (opts.highTint) u.highTint.value.fromArray(opts.highTint);
+    if (opts.lift) u.lift.value.fromArray(opts.lift);
+    if (opts.gain) u.gain.value.fromArray(opts.gain);
+    if (opts.gamma !== undefined) u.gamma.value = opts.gamma;
   }
 }

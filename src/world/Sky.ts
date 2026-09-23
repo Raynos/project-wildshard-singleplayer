@@ -37,6 +37,8 @@ export class Sky {
   sunDisc!: THREE.Mesh;
   planet = new THREE.Group();
   planetDir = new THREE.Vector3(-0.75, 0.33, 0.55).normalize();
+  /** the fill light (ChunkSky.hemiSky / hemiGround / hemiIntensity) — a runtime handle for the day/night clock (DayNight.ts) */
+  hemi!: THREE.HemisphereLight;
   private materials = new Set<THREE.Material>();
 
   constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private renderer: THREE.WebGLRenderer) {}
@@ -96,7 +98,8 @@ export class Sky {
     patchCSMShaderChunk();
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = 0.05; l.shadow.radius = 2; }
 
-    this.scene.add(new THREE.HemisphereLight(S.hemiSky, S.hemiGround, S.hemiIntensity));
+    this.hemi = new THREE.HemisphereLight(S.hemiSky, S.hemiGround, S.hemiIntensity);
+    this.scene.add(this.hemi);
 
     this.buildSunDisc();
     this.buildPlanet();
@@ -143,9 +146,38 @@ export class Sky {
   }
 
   clouds!: THREE.Mesh;
-  private cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() } };
+  private cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() }, uLight: { value: new THREE.Color(1, 1, 1) } };
 
   update(dt = 0): void { this.csm.update(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt; }
+
+  // ── runtime setters (the day/night clock + weather, src/world/DayNight.ts; nothing calls them on a fixed-time shard) ──
+
+  /**
+   * Move the key light (the sun, or the moon at night) and recolour it: the CSM direction + colour × intensity, the
+   * fog's in-scatter direction, the cloud / planet lighting direction. `sunDir` is updated in place (Game.ts places
+   * the sun disc along it every frame; the painterly material reads it through `syncPainterlySun`).
+   */
+  setKeyLight(dir: THREE.Vector3, color: THREE.Color, intensity: number): void {
+    this.sunDir.copy(dir).normalize();
+    this.sunColor.copy(color);
+    this.csm.lightDirection.copy(this.sunDir).negate();
+    for (const l of this.csm.lights) { l.color.copy(color); l.intensity = intensity; }
+    fogUniforms.fogSunDir.value.copy(this.sunDir);
+    this.cloudUniforms.uSunDir.value.copy(this.sunDir);
+    this.giantUniforms.uSunDir.value.copy(this.sunDir);
+  }
+
+  /** the cloud layer's colour toward the sun, and a multiplier over the whole layer (night, a storm's gloom); default white */
+  setCloudLight(sunColor: THREE.Color, light: THREE.Color): void {
+    this.cloudUniforms.uSunColor.value.copy(sunColor);
+    this.cloudUniforms.uLight.value.copy(light);
+  }
+
+  /** a multiplier over the ringed giant's colour and its opacity (a storm deck hides it); default white, 1 */
+  setPlanetLight(light: THREE.Color, opacity = 1): void {
+    this.giantUniforms.uLight.value.copy(light);
+    this.giantUniforms.uOpacity.value = opacity;
+  }
 
   /** Thin procedural cirrus/cumulus layer on a sky dome — the HDRI has none, and a forest needs a sky with some drama. */
   private buildClouds() {
@@ -163,18 +195,18 @@ export class Sky {
         varying vec3 vDir;
         void main() { vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
       fragmentShader: /* glsl */`
-        uniform sampler2D tClouds; uniform float uTime; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform float uBig;
+        uniform sampler2D tClouds; uniform float uTime; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform float uBig; uniform vec3 uLight;
         varying vec3 vDir;
         void main() {
           vec3 d = normalize(vDir);
           if (d.y < 0.02) discard;
           // project onto a flat cloud plane at height ~1 for a believable perspective
           vec2 p = d.xz / (d.y + 0.15);
-          vec2 uv = p * mix(0.5, 0.2, uBig) + vec2(uTime * 0.004, uTime * 0.002);
+          vec2 uv = p * mix(0.5, 0.26, uBig) + vec2(uTime * 0.004, uTime * 0.002);
           float a = texture2D(tClouds, uv).r;
-          float b = texture2D(tClouds, uv * 3.1 + vec2(-uTime * 0.006, uTime * 0.003)).r;
-          float dens = a * 0.7 + b * 0.3;
-          float cover = mix(smoothstep(0.52, 0.8, dens), smoothstep(0.54, 0.62, dens), uBig);
+          float b = texture2D(tClouds, uv * mix(3.1, 2.2, uBig) + vec2(-uTime * 0.006, uTime * 0.003)).r;
+          float dens = a * mix(0.7, 0.82, uBig) + b * mix(0.3, 0.18, uBig);
+          float cover = mix(smoothstep(0.52, 0.8, dens), smoothstep(0.55, 0.6, dens), uBig);
           float horizon = smoothstep(0.02, 0.22, d.y);
           float sunAmt = max(dot(d, uSunDir), 0.0);
           vec3 lit = mix(vec3(0.62, 0.66, 0.74), vec3(1.0, 0.94, 0.86), smoothstep(0.3, 0.9, a));
@@ -184,7 +216,7 @@ export class Sky {
           lit = mix(lit, painted, uBig);
           lit = mix(lit, uSunColor * 1.3, pow(sunAmt, 6.0) * 0.6);
           float alpha = cover * horizon * mix(0.85, 0.97, uBig);
-          gl_FragColor = vec4(lit, alpha);
+          gl_FragColor = vec4(lit * uLight, alpha);
         }`,
     });
     this.clouds = new THREE.Mesh(geo, mat);
@@ -306,7 +338,7 @@ export class Sky {
           gl_Position = projectionMatrix * viewMatrix * w;
         }`,
       fragmentShader: /* glsl */`
-        uniform sampler2D tBands; uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uTime;
+        uniform sampler2D tBands; uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uTime; uniform vec3 uLight; uniform float uOpacity;
         varying vec3 vN; varying vec3 vW;
         void main() {
           vec3 N = normalize(vN);
@@ -324,7 +356,7 @@ export class Sky {
           // sky haze: the disc is pale and airy, more so at the limb (it sits in the atmosphere, not in front of it)
           float h = 0.1 + 0.45 * pow(1.0 - mu, 2.4);
           vec3 c = mix(lit, uHaze, h);
-          gl_FragColor = vec4(c, 0.92 - 0.25 * pow(1.0 - mu, 3.0));
+          gl_FragColor = vec4(c * uLight, (0.92 - 0.25 * pow(1.0 - mu, 3.0)) * uOpacity);
         }`,
     }));
     body.renderOrder = -12;
@@ -341,7 +373,7 @@ export class Sky {
           gl_Position = projectionMatrix * viewMatrix * w;
         }`,
       fragmentShader: /* glsl */`
-        uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uRadius;
+        uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uRadius; uniform vec3 uLight; uniform float uOpacity;
         varying vec3 vW; varying vec2 vL; varying vec3 vC;
         // does the ray o + d t (t > 0, t < tmax) pass through the body?
         bool hitsBody(vec3 o, vec3 d, float tmax) {
@@ -369,7 +401,7 @@ export class Sky {
           float lit = (0.5 + 0.5 * abs(dot(uAxis, uSunDir))) * sameSide * shadow;
           vec3 col = vec3(0.98, 0.95, 0.88) * (0.45 + 0.9 * lit) * bright;
           col = mix(col, uHaze, 0.2);
-          gl_FragColor = vec4(col, a * 0.8);
+          gl_FragColor = vec4(col * uLight, a * 0.8 * uOpacity);
         }`,
     }));
     ring.rotation.set((90 - P.tilt) * d2r, 0, (P.roll ?? 20) * d2r, 'ZXY');
@@ -383,7 +415,7 @@ export class Sky {
     this.planet.traverse((o) => { o.frustumCulled = false; });
     this.scene.add(this.planet);
   }
-  private giantUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uHaze: { value: new THREE.Color() }, uAxis: { value: new THREE.Vector3(0, 1, 0) }, uRadius: { value: 1 } };
+  private giantUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uHaze: { value: new THREE.Color() }, uAxis: { value: new THREE.Vector3(0, 1, 0) }, uRadius: { value: 1 }, uLight: { value: new THREE.Color(1, 1, 1) }, uOpacity: { value: 1 } };
 }
 
 /**

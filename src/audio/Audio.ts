@@ -20,6 +20,9 @@ import { getActiveChunk } from '../chunks/registry';
  *   audio.gullCall(pan?, gain?)  audio.gullCallAt(position, listenerPos, yaw?)   // gulls (src/world/Gulls.ts onCall)
  *   audio.footstep(sprinting, 'litter'|'planks'|'sand')                          // surface: pine litter (default), the pier deck, the beach
  *   audio.setAmbient(true|false)  audio.setAmbient('forest'|'island')   audio.muted = true|false   audio.master.gain (0.6)
+ *   audio.setStorm(rain, wind)  audio.thunder(distance, pan?)  audio.lightningCrackle(pan?, gain?)   // Nalati weather (src/nalati/weather.ts):
+ *     the rain bed (0..1), the storm-wind roar (0..1, the gust front's grass roar), a thunderclap delayed by distance / 343 m/s
+ *     (a crack + a long rumble near, a low roll far off), the 1.2 s crackle before a strike — nothing else calls them
  *
  * Ambient starts on resume() and runs on its own scheduler. The bed follows the chunk: `new Audio()` reads
  * `getActiveChunk().ocean` — an ocean shard gets surf swells, a warm breeze and gulls ('island'); otherwise the
@@ -695,6 +698,68 @@ export class Audio {
     const rx = Math.cos(yaw), rz = -Math.sin(yaw);
     const pan = dist > 0.5 ? Math.max(-1, Math.min(1, (dx * rx + dz * rz) / dist)) * 0.8 : 0;
     this.gullCall(pan, att);
+  }
+
+  // ─────────────── weather (Nalati storms) ───────────────
+  private storm: { rain: GainNode; hiss: GainNode; roar: GainNode; roarLp: BiquadFilterNode } | undefined;
+
+  /** the storm beds: `rain` 0..1 (a close patter + a wide hiss), `wind` 0..1 (a low roar, brighter as it rises). Built on first use. */
+  setStorm(rain: number, wind: number): void {
+    if (!this.g) return; // before the first gesture: nothing can play
+    if (!this.storm) {
+      if (rain <= 0.001 && wind <= 0.001) return;
+      const c = this.ctx;
+      const loop = (type: BiquadFilterType, freq: number, q: number): { src: AudioBufferSourceNode; out: GainNode } => {
+        const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; src.playbackRate.value = rnd(0.9, 1.1); src.start(0, Math.random() * 1.5);
+        const f = c.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+        const g = c.createGain(); g.gain.value = 0;
+        src.connect(f).connect(g).connect(this.ambient);
+        return { src, out: g };
+      };
+      const rainL = loop('highpass', 2600, 0.4);
+      const hissL = loop('bandpass', 7000, 0.35);
+      const roarL = loop('lowpass', 260, 0.7);
+      const roarLp = c.createBiquadFilter(); roarLp.type = 'lowpass'; roarLp.frequency.value = 500;
+      roarL.out.disconnect(); roarL.out.connect(roarLp).connect(this.ambient);
+      // the roar breathes: a slow LFO on its gain
+      const lfo = c.createOscillator(); lfo.frequency.value = 0.13; const lg = c.createGain(); lg.gain.value = 0.25;
+      lfo.connect(lg).connect(roarL.out.gain); lfo.start();
+      this.storm = { rain: rainL.out, hiss: hissL.out, roar: roarL.out, roarLp };
+    }
+    const t = this.ctx.currentTime, S = this.storm;
+    S.rain.gain.setTargetAtTime(0.32 * rain, t, 0.8);
+    S.hiss.gain.setTargetAtTime(0.1 * rain, t, 0.8);
+    S.roar.gain.setTargetAtTime(0.55 * wind, t, 1.2);
+    S.roarLp.frequency.setTargetAtTime(380 + 900 * wind, t, 1.2);
+  }
+
+  /** a thunderclap `distance` m away (delayed by the speed of sound): near = a crack + a rolling rumble; far = a low roll */
+  thunder(distance: number, pan = 0): void {
+    if (!this.g) return;
+    const c = this.ctx, delay = Math.min(12, distance / 343), t = c.currentTime + delay;
+    const near = Math.max(0, 1 - distance / 900), level = 0.25 + 0.75 * near;
+    if (distance < 400) {
+      // the crack: a bright broadband tear, then a snapping tail
+      this.burst({ t, type: 'highpass', freq: 900, q: 0.3, gain: 0.9 * near, attack: 0.004, decay: 0.35, pan });
+      this.burst({ t: t + 0.03, type: 'bandpass', freq: 2400, freqEnd: 500, q: 0.5, gain: 0.5 * near, attack: 0.01, decay: 0.8, pan });
+    }
+    // the rumble: several low noise rolls, overlapping, each a little later and lower
+    const rolls = 3 + Math.floor(rnd(0, 3));
+    for (let i = 0; i < rolls; i++) {
+      const at = t + i * rnd(0.25, 0.7) + (distance > 400 ? rnd(0, 0.4) : 0.05);
+      this.burst({ t: at, type: 'lowpass', freq: 160 + 220 * near * rnd(0.6, 1), q: 0.8, gain: level * rnd(0.35, 0.6), attack: rnd(0.05, 0.25), hold: rnd(0.1, 0.5), decay: rnd(1.4, 3.2), pan: pan * 0.6, rate: rnd(0.5, 0.8) });
+    }
+  }
+
+  /** the static crackle before a strike (1.2 s of dry snaps, rising) */
+  lightningCrackle(pan = 0, gain = 1): void {
+    if (!this.g) return;
+    const t0 = this.ctx.currentTime;
+    for (let i = 0; i < 26; i++) {
+      const k = i / 26, t = t0 + k * 1.15 + rnd(0, 0.03);
+      this.burst({ t, type: 'bandpass', freq: rnd(2500, 7000), q: 2, gain: gain * (0.05 + 0.2 * k * k) * rnd(0.5, 1), attack: 0.001, decay: rnd(0.01, 0.04), pan });
+    }
+    this.burst({ t: t0, type: 'bandpass', freq: 5200, q: 1.2, gain: 0.05 * gain, attack: 1.0, decay: 0.15, pan });
   }
 
   // ─────────────── ambient loop ───────────────
