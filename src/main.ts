@@ -198,6 +198,7 @@ async function main() {
     if (cove) { game.scene.add(cove.group); player.colliders.push(...cove.colliders); player.platforms.push((x, z) => cove.floorHeightAt(x, z)); }
     await slice();
     if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
+    ocean?.foamAround(player.colliders); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
     await macrotask();
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);

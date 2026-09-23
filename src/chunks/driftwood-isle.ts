@@ -21,8 +21,8 @@ const SEED = 0x5ea1;
 export const OCEAN: OceanDef = {
   level: 0.8,
   // albedo (linear); the sun + sky here add up to ~3× so the palette stays under 0.5 or it tone-maps to white
-  shallowColor: [0.07, 0.5, 0.46],
-  deepColor: [0.006, 0.07, 0.24],
+  shallowColor: [0.1, 0.78, 0.7],
+  deepColor: [0.008, 0.15, 0.52],
   deepDepth: 6,
 };
 
