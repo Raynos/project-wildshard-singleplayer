@@ -46,7 +46,7 @@ const FILES = [
   { file: join(STYLES, 'explore.css'), prefix: 'ws-x-', strict: true }, // Explore World, the viewer (src/explore/Explore.ts), imported by the lazy chunk
   { file: join(STYLES, 'rotate.css'), prefix: 'ws-rotate-', strict: true }, // the portrait-only gate on landscape phones (index.html, src/ui/RotateGate.ts)
   { file: join(STYLES, 'quest.css'), prefix: 'ws-quest-', strict: true }, // the adventure layer: objective line, NPC dialogue, reward caption (src/game/quest/*)
-  { file: join(STYLES, 'gpu.css'), prefix: 'ws-gpu-', strict: true }, // the "Restoring graphics" page after a lost WebGL context (src/core/GpuRecovery.ts, E54)
+  { file: join(STYLES, 'resume.css'), prefix: 'ws-resume-', strict: true }, // the app-switch resume screen (src/ui/Resume.ts, index.html; E54 / E61)
   // loading screen: owned by src/ui/Loading.ts — warn only while its owner finishes the ws-load-* rename
   { file: join(ROOT, 'src/ui/loading.css'), prefix: 'ws-load-', strict: false },
   // frame meter (src/ui/Perf.ts) — warn only; not part of the HUD split

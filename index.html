@@ -51,6 +51,7 @@
     <link rel="stylesheet" href="/src/ui/styles/feedback.css" />
     <link rel="stylesheet" href="/src/ui/styles/minimap.css" />
     <link rel="stylesheet" href="/src/ui/styles/rotate.css" />
+    <link rel="stylesheet" href="/src/ui/styles/resume.css" />
   </head>
   <body>
     <script>
@@ -85,6 +86,21 @@
 </div>
 </div>
 <div class="ws-load-foot"><span>local build · unuploaded</span><span data-el="foot">an in-progress private project</span></div></div>
+    <!-- app-switch resume screen (E61, src/ui/Resume.ts; test/resume.test.ts keeps the two identical): a GPU-recovery reload
+         (?glreload, src/core/GpuRecovery.ts) shows this tiny screen from the first paint, over the last frame's still, and
+         never the first-boot loader above -->
+    <div class="ws-resume" aria-hidden="true"><div class="ws-resume-shot"></div><div class="ws-resume-card"><div class="ws-resume-mark"><i></i></div><div class="ws-resume-line">Resuming</div><div class="ws-resume-bar"><i></i></div><button type="button" class="ws-resume-btn">Reload</button></div></div>
+    <script>
+      try {
+        if (new URLSearchParams(location.search).has('glreload')) {
+          const r = document.querySelector('.ws-resume'), shot = sessionStorage.getItem('wsResumeShot');
+          if (shot) r.firstElementChild.style.backgroundImage = 'url("' + shot + '")';
+          r.querySelector('.ws-resume-bar').classList.add('busy');
+          r.classList.add('show');
+          document.querySelector('.ws-load').style.display = 'none';
+        }
+      } catch { /* the first-boot loader shows instead */ }
+    </script>
     <!-- rotate gate (E38): portrait only on phones — a touch device held landscape sees only this (rotate.css, src/ui/RotateGate.ts) -->
     <div class="ws-rotate" role="alertdialog" aria-modal="true" aria-label="Rotate to portrait"><div class="ws-rotate-panel">
 <div class="ws-rotate-glyph"><svg viewBox="0 0 92 92" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" aria-hidden="true">

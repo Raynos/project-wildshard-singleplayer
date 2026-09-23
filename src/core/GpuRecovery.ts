@@ -1,6 +1,6 @@
 /**
- * GPU recovery (E54): what the game does when the phone takes its graphics away — the iOS home-screen app switched
- * out and back, Safari backgrounded, a driver reset.
+ * GPU recovery (E54) and the app-switch resume (E61): what the game does when the phone takes its graphics away — the
+ * iOS home-screen app switched out and back, Safari backgrounded, a driver reset.
  *
  * What iOS does (reproduced in WebKit by killing its GPU process, scripts/e54-gpu-recovery.mjs): the page's WebGL
  * context is lost AND every 2D canvas is wiped to transparent — the particle / sprite / smoke / water canvases the
@@ -10,29 +10,31 @@
  * blank textures. That was Jake's "blue and orange, completely broken", then "a still frame of the spawn, can't play".
  *
  * So:
- *   hide (visibilitychange / pagehide)   → `ws:background` (the HUD pauses into the menu, as the native shells and the
- *                                          rotate page already did) and the canvas is hidden, so the lost drawing
- *                                          buffer is never shown on the way back; it is shown again on the first
- *                                          healthy frame
- *   webglcontextlost                     → preventDefault (restorable), the loop holds (no tick, no draw), the
- *                                          "Restoring graphics" page covers everything
- *   webglcontextrestored                 → the canvases survived (a sentinel canvas still holds its colour): restore in
- *                                          place — re-link every program in batches with the page's progress bar
- *                                          (game.precompile, the boot's own step), re-render what only lived on the
- *                                          GPU (`rebuild`: the sky's PMREM environment), draw the first frames, resume
- *                                          under the pause menu;
- *                                          the canvases were wiped (the GPU process died, the iOS case), or the scene
- *                                          holds a runtime bake (gpuOnly.ts), or the restore fails / overruns →
- *   reload                               → save first (every save is already write-through to localStorage), then
- *                                          `location.replace` with `?at=` where the player stood; a clean reload beats
- *                                          a broken frame. Two reloads inside two minutes stop the loop: the page
- *                                          offers a RELOAD button instead.
+ *   hide (visibilitychange / pagehide)   → a small still of the frame (Game.snapshot, kept in sessionStorage for a
+ *                                          reload), the resume screen goes up WHILE HIDDEN (src/ui/Resume.ts) so the
+ *                                          first frame after the switch back is that screen — never black, never the
+ *                                          lost buffer — and `ws:background` pauses into the menu
+ *   show                                 → the context is live: restart the loop if it died, drop the screen once a
+ *                                          frame has been drawn (a couple of animation frames)
+ *   webglcontextlost                     → preventDefault (restorable), the loop holds (no tick, no draw); the canvases
+ *                                          are already wiped (the GPU process died, the iOS case) → reload at once,
+ *                                          without waiting for the restore
+ *   webglcontextrestored                 → canvases intact: restore in place — re-link every program in batches with
+ *                                          the hairline as progress (game.precompile), re-render what only lived on
+ *                                          the GPU (`rebuild`: the sky's PMREM environment), draw, resume under the menu;
+ *                                          canvases wiped, a runtime bake in the scene (gpuOnly.ts), a failed or
+ *                                          overlong restore →
+ *   reload                               → `location.replace` with `?at=` where the player stood and `?glreload`: the
+ *                                          page comes back on the SAME resume screen (index.html's inline script — the
+ *                                          first-boot loader never shows), skips the title and lands in the world under
+ *                                          the pause menu (main.ts). Saves are write-through to localStorage already.
+ *                                          Two reloads inside two minutes stop the loop: a RELOAD button instead.
  *
  * Only for the WebGL canvas the player sees (`?gpu=webgpu` draws through WebGPU and is not covered here).
  */
-import '../ui/styles/gpu.css';
 import type { Game } from './Game';
 import { gpuOnlyContent } from './gpuOnly';
+import { resumeScreen, SHOT_KEY } from '../ui/Resume';
 
 export interface RecoveryHost {
   game: Game;
@@ -40,6 +42,8 @@ export interface RecoveryHost {
   rebuild: () => void;
   /** where the player stands, carried through a reload as ?at=x,y,z,yaw,pitch (null: spawn as usual) */
   pose: () => { x: number; y: number; z: number; yaw: number; pitch: number } | null;
+  /** this page IS a recovery reload: the resume screen is up from index.html — drop it once the world draws */
+  resumed: boolean;
 }
 
 /** visible seconds a lost context may stay lost before the page reloads */
@@ -50,80 +54,31 @@ const RESTORE_MAX_S = 40;
 const RELOADS_MAX = 2;
 const RELOAD_WINDOW_MS = 120_000;
 const RELOAD_KEY = 'wsGpuReloads'; // sessionStorage, deliberately not `ws.`: the native save mirror copies every ws.* key
+/** the resume still: px wide (the screen scales it up and blurs it — a few KB of JPEG) */
+const SHOT_W = 120;
 
-/** URL param the reload adds; main.ts strips it (and ?at=) from the address once read */
+/** URL param the reload adds (index.html's inline script and main.ts read it; main.ts strips it and ?at= once read) */
 export const RELOAD_PARAM = 'glreload';
 
 type Phase = 'ok' | 'lost' | 'restoring' | 'reloading' | 'stuck';
-
-/** The full-screen page over everything while the graphics come back (index.html's rotate page is the only thing above it). */
-class RecoveryPage {
-  private root: HTMLDivElement | null = null;
-  private title: HTMLElement | null = null;
-  private sub: HTMLElement | null = null;
-  private bar: HTMLElement | null = null;
-  private btn: HTMLButtonElement | null = null;
-  private onButton: (() => void) | null = null;
-
-  private build(): HTMLDivElement {
-    const root = document.createElement('div');
-    root.className = 'ws-gpu';
-    root.setAttribute('role', 'alertdialog');
-    root.setAttribute('aria-modal', 'true');
-    root.innerHTML = `<div class="ws-gpu-panel">
-<div class="ws-gpu-kicker">Graphics</div>
-<div class="ws-gpu-title"></div>
-<div class="ws-gpu-bar"><i></i></div>
-<div class="ws-gpu-sub"></div>
-<button type="button" class="ws-gpu-btn">Reload</button>
-</div>`;
-    this.title = root.querySelector('.ws-gpu-title');
-    this.sub = root.querySelector('.ws-gpu-sub');
-    this.bar = root.querySelector('.ws-gpu-bar');
-    this.btn = root.querySelector('.ws-gpu-btn');
-    this.btn?.addEventListener('click', () => { this.onButton?.(); });
-    // nothing behind it takes a touch or a key while it is up
-    for (const type of ['pointerdown', 'touchstart', 'keydown', 'wheel']) root.addEventListener(type, (e) => { if (e.target !== this.btn) e.stopPropagation(); });
-    document.body.append(root);
-    this.root = root;
-    return root;
-  }
-
-  show(title: string, sub: string, progress: number | null, button?: () => void): void {
-    const root = this.root ?? this.build();
-    if (this.title) this.title.textContent = title;
-    if (this.sub) this.sub.textContent = sub;
-    this.bar?.classList.toggle('busy', progress === null);
-    if (progress !== null) this.progress(progress, sub);
-    this.onButton = button ?? null;
-    this.btn?.classList.toggle('on', button !== undefined);
-    root.classList.add('show');
-  }
-
-  progress(f: number, sub: string): void {
-    this.bar?.classList.remove('busy');
-    const fill = this.bar?.firstElementChild;
-    if (fill instanceof HTMLElement) fill.style.transform = `scaleX(${Math.max(0, Math.min(1, f)).toFixed(3)})`;
-    if (this.sub) this.sub.textContent = sub;
-  }
-
-  hide(): void { this.root?.classList.remove('show'); }
-}
 
 export function installGpuRecovery(host: RecoveryHost): void {
   const { game } = host;
   const canvas = game.renderer.domElement;
   if (canvas !== game.canvas) return; // the WebGPU path draws the visible canvas
   const gl = game.renderer.getContext();
+  const screen = resumeScreen();
 
   let phase: Phase = 'ok';
-  let epoch = 0; // a newer loss abandons an in-flight restore
+  let hidden = document.visibilityState === 'hidden';
+  let epoch = 0; // a newer loss abandons an in-flight restore / reveal
   let visibleMs = 0; // visible time spent in the current lost / restoring phase
   let timer = 0;
-  const page = new RecoveryPage();
+  let shot: string | null = null;
+  try { shot = sessionStorage.getItem(SHOT_KEY); } catch { /* no still: the dark glass alone */ }
 
   // A canvas the size the browsers accelerate, painted once: a GPU-process restart wipes it with the game's own.
-  // Read back only when a context comes back — frequent readbacks would move it to the CPU and hide the wipe.
+  // Read back only on a loss / restore — frequent readbacks would move it to the CPU and hide the wipe.
   const sentinel = document.createElement('canvas');
   sentinel.width = sentinel.height = 64;
   const sctx = sentinel.getContext('2d');
@@ -133,10 +88,10 @@ export function installGpuRecovery(host: RecoveryHost): void {
     try { const d = sctx.getImageData(32, 32, 1, 1).data; return !(d[0] === 255 && d[1] === 0 && d[2] === 255 && d[3] === 255); } catch { return true; }
   };
 
-  const showCanvas = (on: boolean): void => { canvas.style.visibility = on ? '' : 'hidden'; };
-  /** show the canvas again once a frame has been drawn on a live context */
+  /** drop the resume screen once the loop has drawn a frame on a live context (two animation frames) */
   const revealWhenDrawn = (): void => {
-    requestAnimationFrame(() => { requestAnimationFrame(() => { if (phase === 'ok' && !gl.isContextLost()) showCanvas(true); }); });
+    const mine = epoch;
+    requestAnimationFrame(() => { requestAnimationFrame(() => { if (mine === epoch && phase === 'ok' && !gl.isContextLost()) screen.hide(); }); });
   };
 
   const stopTimer = (): void => { if (timer !== 0) { clearInterval(timer); timer = 0; } };
@@ -145,7 +100,6 @@ export function installGpuRecovery(host: RecoveryHost): void {
     epoch++;
     stopTimer();
     game.hold = true;
-    showCanvas(false);
     document.dispatchEvent(new Event('ws:background'));
     console.warn(`[gl] reloading: ${why}`);
     const now = Date.now();
@@ -159,13 +113,13 @@ export function installGpuRecovery(host: RecoveryHost): void {
     const go = (): void => { location.replace(url.toString()); };
     if (recent.length >= RELOADS_MAX) {
       phase = 'stuck';
-      page.show('Graphics lost', 'Your progress is saved · reload to continue', null, go);
+      screen.stuck('Graphics lost · your progress is saved', go);
       return;
     }
     phase = 'reloading';
     try { sessionStorage.setItem(RELOAD_KEY, JSON.stringify([...recent, now])); } catch { /* the guard just will not count this one */ }
-    page.show('Restoring graphics', 'Reloading · your progress is saved', null);
-    setTimeout(go, 150); // let the page paint first
+    screen.show(shot);
+    go();
   };
 
   /** count visible time in the current phase; past `max` seconds, reload */
@@ -183,10 +137,11 @@ export function installGpuRecovery(host: RecoveryHost): void {
     if (phase === 'reloading' || phase === 'stuck') return;
     phase = 'lost';
     game.hold = true;
-    showCanvas(false);
+    screen.show(shot);
     document.dispatchEvent(new Event('ws:background'));
-    page.show('Restoring graphics', 'Waiting for the GPU', null);
     console.warn(`[gl] ${why}: holding the frame loop`);
+    // the GPU process died (every canvas wiped): nothing to restore in place — do not wait for the restore event
+    if (canvasesWiped()) { reload('the GPU process restarted: every canvas was wiped'); return; }
     watch(LOST_MAX_S, 'the context stayed lost');
   };
 
@@ -198,13 +153,14 @@ export function installGpuRecovery(host: RecoveryHost): void {
     const mine = ++epoch;
     phase = 'restoring';
     watch(RESTORE_MAX_S, 'the restore took too long');
-    page.show('Restoring graphics', 'Rebuilding shaders', 0);
+    screen.show(shot);
+    screen.progress(0);
     const t0 = performance.now();
     try {
-      await game.precompile((done, total) => { if (mine === epoch) page.progress(total > 0 ? done / total : 0, `Rebuilding shaders · ${done} / ${total}`); });
+      await game.precompile((done, total) => { if (mine === epoch) screen.progress(total > 0 ? 0.9 * done / total : 0); });
       if (mine !== epoch) return;
       host.rebuild();
-      page.progress(1, 'First frame');
+      screen.progress(0.95);
       await game.firstFrame();
       if (mine !== epoch) return;
       if (gl.isContextLost()) throw new Error('lost again during the restore');
@@ -215,7 +171,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
     stopTimer();
     phase = 'ok';
     game.hold = false;
-    page.hide();
+    screen.progress(1);
     revealWhenDrawn();
     console.warn(`[gl] restored in place in ${Math.round(performance.now() - t0)} ms`);
     // the scene must actually draw again: no frame on a live, open gate within a few visible seconds → reload
@@ -234,17 +190,34 @@ export function installGpuRecovery(host: RecoveryHost): void {
   canvas.addEventListener('webglcontextrestored', () => { void restore(); });
 
   const hide = (): void => {
+    if (hidden) return; // visibilitychange and pagehide both land here
+    hidden = true;
+    epoch++;
+    if (phase === 'ok') {
+      // the still for the way back: one frame drawn now and copied in the same task (the buffer is not preserved)
+      const still = game.snapshot(SHOT_W);
+      if (still) {
+        try { shot = still.toDataURL('image/jpeg', 0.7); sessionStorage.setItem(SHOT_KEY, shot); } catch { /* keep the last one */ }
+      }
+    }
+    screen.show(shot); // up while hidden: the switch back paints this first
     document.dispatchEvent(new Event('ws:background')); // the HUD pauses into the menu (a no-op on the title / already paused)
-    if (phase === 'ok') showCanvas(false);
   };
   const show = (): void => {
-    if (phase !== 'ok') return;
+    if (!hidden) return;
+    hidden = false;
+    if (phase !== 'ok') return; // lost / restoring / reloading: the screen stays until that path ends
     if (gl.isContextLost()) { lose('context lost while hidden (no event)'); return; }
     game.kickLoop(); // the frame loop, if the browser dropped its animation frame across the switch
     revealWhenDrawn();
-    window.setTimeout(() => { if (phase === 'ok' && !gl.isContextLost()) showCanvas(true); }, 1500); // never leave it hidden
+    const mine = epoch;
+    window.setTimeout(() => { if (mine === epoch && phase === 'ok' && !gl.isContextLost()) screen.hide(); }, 1500); // never leave it up
   };
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') hide(); else show(); });
   window.addEventListener('pagehide', hide);
   window.addEventListener('pageshow', (e) => { if (e.persisted) show(); });
+
+  // a recovery reload: index.html put the screen up before any of this ran; the world is built and drawing now
+  // (still in the background: show() drops it on the way back)
+  if (host.resumed) { screen.progress(1); if (!hidden) revealWhenDrawn(); }
 }

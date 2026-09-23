@@ -49,6 +49,7 @@ import { LockOn } from './ui/LockOn';
 import { SpeedLines } from './ui/SpeedLines';
 import { buzz, HAPTIC } from './ui/haptics';
 import { Loading } from './ui/Loading';
+import { resumeProgress } from './ui/Resume';
 import { Perf } from './ui/Perf';
 import { Minimap } from './ui/Minimap';
 import { FullMap } from './ui/Map';
@@ -96,7 +97,7 @@ async function main() {
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/boot/plan.ts).
   // Declared bytes come from the chunk's file list; every /assets fetch is counted on its way in.
   const files = bootFiles(getActiveChunk()); // + the title / explore art and every audio file (project/archive/2026-09-23-preload-offline.md)
-  const plan = createBootPlan((view) => loading.paint(view), { totals: declareTotals(files) });
+  const plan = createBootPlan((view) => { loading.paint(view); resumeProgress(view.setup); }, { totals: declareTotals(files) });
   installByteCounter(plan, files);
   // a boot that throws shows WHY: the loading panel's foot line + the uncaught-exception modal (src/ui/ErrorModal.ts)
   window.addEventListener('unhandledrejection', (e) => plan.fail(`BOOT FAILED · ${String((e.reason as { message?: string } | null | undefined)?.message ?? e.reason)}`.slice(0, 300)));
@@ -506,7 +507,9 @@ async function main() {
   // covers the canvas) until ENTER WORLD; "Exit to main menu" freezes it again — no reload, no
   // loading screen. `?skipintro=1` (bench / screenshots) and `?tour=1` go straight to the world.
   const tour = world.tour;
-  const menuFirst = !params.has('skipintro') && !params.has('tour');
+  // a GPU-recovery reload (E61) skips the title: straight back into the world at the saved spot, under the pause menu
+  const resuming = params.has(RELOAD_PARAM);
+  const menuFirst = !params.has('skipintro') && !params.has('tour') && !resuming;
   let firstIn = true;
   const enter = () => {
     audio.resume();
@@ -664,7 +667,8 @@ async function main() {
   (plan as unknown as { done: () => void }).done(); // throws unless both tracks are exactly 1
   game.start();
   // an app switch that takes the GPU (iOS): hold the loop, restore in place or reload where the player stood (E54)
-  installGpuRecovery({ game, rebuild: () => { sky.rebuildEnvironment(); }, pose: () => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null) });
+  if (resuming) hud.setPaused(true); // RESUME is the gesture that brings the audio back (enter)
+  installGpuRecovery({ game, rebuild: () => { sky.rebuildEnvironment(); }, pose: () => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null), resumed: resuming });
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this

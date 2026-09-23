@@ -15,9 +15,9 @@ import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog,
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 import { worldTime } from './time';
 import { setting, onSettingChange } from '../ui/Settings';
-import { installViewport, viewportHeight } from './viewport';
 import { GPU_MODE } from '../gpu/flag';
 import type { GpuPath } from '../gpu/GpuPath';
+import { installViewport, viewportHeight } from './viewport';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
@@ -59,6 +59,19 @@ export class Game {
       c.getContext('2d')?.drawImage(src, 0, 0, c.width, c.height);
       resolve(c);
     }
+  }
+  /**
+   * A small still of the world as it stands, now: one frame rendered and copied in the same task (the drawing buffer
+   * is not preserved). The app-switch resume screen's backdrop, taken as the page hides (E61, GpuRecovery.ts). Null
+   * before the composer exists or on a dead context.
+   */
+  snapshot(maxW: number): HTMLCanvasElement | null {
+    if (this._composer === null || this.hold || this.renderer.getContext().isContextLost()) return null;
+    this._composer.render(0);
+    const src = this.canvas, k = Math.min(1, maxW / Math.max(1, src.width));
+    const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(src.width * k)); c.height = Math.max(1, Math.round(src.height * k));
+    c.getContext('2d')?.drawImage(src, 0, 0, c.width, c.height);
+    return c;
   }
   private renderPass!: RenderPass;
   volumetrics!: VolumetricsEffect;
