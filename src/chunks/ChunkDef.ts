@@ -99,9 +99,9 @@ export interface ChunkTrees {
   /**
    * `'pine'` → `src/world/TreeFactory.ts` (baked branch cards). New species = new factory id. `'none'`: the
    * shard has no forest trees — no tree textures, geometry or branch-card bake at launch, an empty Forest
-   * (collision / culling hooks still work).
+   * (collision / culling hooks still work). `'spruce'` → `src/world/Spruce.ts` (painterly Tian Shan spruce, no textures).
    */
-  factory: 'pine' | 'none';
+  factory: 'pine' | 'spruce' | 'none';
   /** PBR set for the trunks */
   bark: string;
   /** folder under `public/assets/tex/` holding `twig_rgba.png`, `twig_nor_gl.jpg`, `twig_arm.jpg` */
@@ -127,6 +127,8 @@ export interface ChunkForest {
   tintLight: [number, number];
   /** chance a tree uses the large variant (index 3) instead of variants 0–2 */
   largeVariantChance: number;
+  /** optional keep probability 0..1 at (x, z), applied after the clearing noise (Nalati: spruce only in the gullies, `src/world/spruceMask.ts`); omitted = everywhere */
+  mask?: (x: number, z: number) => number;
 }
 
 /** a registered species kind (`src/entities/species/<kind>.ts`): 'deer' | 'boar' built in; bear / elk… as they register */

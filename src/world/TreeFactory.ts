@@ -86,14 +86,17 @@ class MatrixMerge {
   }
 }
 
+/** a tree material: PBR for the pines, the shared painterly (Lambert) material for a painterly species (src/world/Spruce.ts) */
+export type TreeMaterial = THREE.MeshStandardMaterial | THREE.MeshLambertMaterial;
+
 export class TreeFactory {
-  barkMaterial!: THREE.MeshStandardMaterial;
-  needleMaterial!: THREE.MeshStandardMaterial;
+  barkMaterial!: TreeMaterial;
+  needleMaterial!: TreeMaterial;
   needleDepth!: THREE.MeshDepthMaterial;
-  twigMaterial!: THREE.MeshStandardMaterial;
+  twigMaterial!: TreeMaterial;
   twigDepth!: THREE.MeshDepthMaterial;
   /** far-tree impostor: albedo + normal atlas, one column per variant (baked from the hi tree at load) */
-  farMaterial!: THREE.MeshStandardMaterial;
+  farMaterial!: TreeMaterial;
   variants: TreeVariant[] = [];
 
   private opts: Required<TreeFactoryOptions>;
