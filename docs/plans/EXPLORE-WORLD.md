@@ -91,7 +91,7 @@ The user reviews **portrait only** from round 3 on ("the desktop mockups are way
 
 | # | row | done when | status |
 |---|---|---|---|
-| X1 | **Title**: ENTER WORLD + EXPLORE WORLD as p12 split panels, portrait first | both panels on the phone title; ENTER WORLD unchanged | **built** — src/ui/HUD.ts showIntro + menu.css; panel art cropped from p12 (src/ui/title/*.webp, 59 KB) |
+| X1 | **Title**: ENTER WORLD + EXPLORE WORLD on the title, portrait first | both on the phone title; ENTER WORLD unchanged; the shard swipe is obvious | **built** — first as p12 split panels (4229421), then back to the swipe deck + two compact buttons (D1 revised) |
 | X2 | **God-mode camera**: vendored FreeCam (desktop) + fly stick / drag-to-spin / ▲▼ altitude / pinch (phone) in the real game scene, no player / HUD / AI, `?explore=world` | fly the whole island — wave height to 150 m, under the pier, round the lookout — on the phone and the MacBook at 60 fps | **built** — src/explore/FreeCam.ts (three-freecam, vendored), TouchFly.ts, Explore.ts (hub, overlay, readout, ✎), explore.css; `?explore=world` deep link; 60 fps / 159 calls desktop |
 | X3 | **Model catalog + turntable**: `src/explore/catalog.ts` (every Driftwood model + creature), catalog grid, turntable, view modes, light presets, stats | every model opens on the phone; wireframe / facets / AO toggles | **built** — src/explore/catalog.ts (17 models: 8 buildings live, cove, palm / boulder / bush built alone, 5 creatures on their own rigs), ModelExplorer.ts (catalog with composer-rendered thumbnails, turntable in the live scene, SOLID · WIREFRAME · FACETS · PAINT, DAWN · NOON · DUSK · NIGHT via the day/night clock, tris / calls / file, VIEW IN WORLD flight) |
 | X4 | **Select + cross-links**: tap / click → cyan box + dimensions + a card (name · file · tris) → OPEN IN MODEL EXPLORER · ORBIT · ✕; VIEW IN WORLD lands with the model selected | the round trip from the lookout and back | **built** — src/explore/Select.ts: live models, one palm / bush out of its batch, every live animal; ORBIT = one finger (phone) / Alt-drag (desktop) round it |
@@ -108,7 +108,7 @@ X2 + X3 are also the model agents' harness — they come first after X1.
 
 | # | question | options |
 |---|---|---|
-| D1 | Title layout | **picked 2026-09-22: p12 split panels** — ENTER WORLD / EXPLORE WORLD as two tall glass panels, shard pill above (`round-3-viewer-portrait/p12-title-split.jpg`) |
+| D1 | Title layout | picked 2026-09-22: p12 split panels → **revised 2026-09-23** by the user on the phone: "way too big … it does not make it obvious you can swipe to select another shard" → back to the swipe card deck (neighbours peek in, dots) with ENTER WORLD and EXPLORE WORLD as two compact buttons side by side under it |
 | D2 | Hub or straight in? | **picked 2026-09-22: the p02 Explore hub** — two cards, MODEL EXPLORER and WORLD EXPLORER (`round-3-viewer-portrait/p02-hub.jpg`) |
 | D3 | Public or locked? | **picked 2026-09-22: public on the live site, no password to explore.** Only *sending* feedback is gated — by the feedback inbox's own review password (Settings → REVIEW unlock) |
 | D4 | Which shards? | **picked 2026-09-22: Driftwood only** — "everything we're building here, Driftwood only"; Pine Hollow stays experimental and gets no Explore mode. **2026-09-23:** make the Driftwood implementation generic (X10) but don't switch it on for Pine Hollow yet |
