@@ -25,8 +25,9 @@ import './styles/combat.css';
  * weapon/animals updaters so it reads this frame's positions) and taps `weapon.onFire` / `weapon.onImpact` and
  * `animals.onDamage` without clobbering callbacks assigned before OR after (the taps are property accessors).
  * The crosshair hit-marker stays with hud.showHitMarker (weapon.onHit) — nothing here duplicates it.
- * `weapon` is any `Weapon` (src/player/Weapon.ts): crossbow or sword. A melee weapon's `reach` caps the MISS
- * judgement — a swing at a boar 30 m off is not a miss, it is out of range.
+ * `weapon` is any `Weapon` (src/player/Weapon.ts): crossbow or sword — or the `Weapons` kit manager, whose `reach` is
+ * the HELD weapon's. A melee weapon's `reach` (read at every fire, so a swap is honoured) caps the MISS judgement — a
+ * swing at a boar 30 m off is not a miss, it is out of range.
  */
 
 const BAR_DIST = 60;                       // m: bars only this close
@@ -67,10 +68,11 @@ export class Combat {
   private candDist: number[] = [];
   private t = 0;
 
-  private reach: number;
+  /** read at every fire, not once: the kit swaps between the sword (reach 2.2 m) and ranged weapons (no reach) mid-play */
+  private weapon: { readonly reach?: number | undefined };
 
-  constructor(game: Game, private animals: AnimalManager, weapon: Pick<Weapon, 'reach' | 'onFire' | 'onImpact'>, private camera: THREE.Camera) {
-    this.reach = weapon.reach ?? Infinity;
+  constructor(game: Game, private animals: AnimalManager, weapon: Pick<Weapon, 'onFire' | 'onImpact'> & { readonly reach?: number | undefined }, private camera: THREE.Camera) {
+    this.weapon = weapon;
     this.layer = document.createElement('div');
     this.layer.className = 'ws-combat-layer';
     const hud = document.getElementById('hud');
@@ -107,7 +109,8 @@ export class Combat {
     // judged at the moment of firing: was an animal on (or nearly on) the aim ray?
     if (!this.aimed) return;
     _o.setFromMatrixPosition(this.camera.matrixWorld);
-    if (this.aimed.position.distanceTo(_o) > this.reach + 1) return; // melee: out of reach is not a miss
+    const reach = this.weapon.reach ?? Infinity; // the HELD weapon's (Weapons.reach): undefined = ranged
+    if (this.aimed.position.distanceTo(_o) > reach + 1) return; // melee: out of reach is not a miss
     let slot = this.pending.find((p) => !p.active);
     if (!slot) { for (const p of this.pending) if (!slot || p.t < slot.t) slot = p; } // recycle the oldest
     if (!slot) return;
