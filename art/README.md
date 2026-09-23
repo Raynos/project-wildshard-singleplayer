@@ -179,3 +179,14 @@ re-rolled.
 (`public/assets/models/driftwood-hero/`, an Eevee still under the same light), and the current procedural model
 (a Model Explorer capture of the live build). `hunyuan-vs-trellis.jpg` shows the palm and the hut from each model.
 Nothing was re-rolled.
+
+### Dodge feel storyboards (`art/combat/round-2-dodge/`, 2026-09-23, E60)
+
+codex edits of one live 390×844 capture on the Driftwood pier (`ref-live.jpg`, `?touch&tier=phone&skipintro&nolock&weapon=sword`, the stick held right);
+`before-live.jpg` is today's dodge mid-dash (a ×0.1 slow-mo capture). Each variant is 4 frames of a dodge to the right: anticipation 0–40 ms,
+burst 60 ms, peak 150 ms, recovery 350 ms. The DODGE disc's cooldown sweep (E59) is shown, not designed. Plan: `docs/plans/DODGE-FEEL.md` (draft).
+- `board-T-lean-smear.jpg` **T1–T4**: the camera rolls into the dodge, a horizontal smear on the outer thirds, the sword flung left and whipping back (recommended).
+- `board-U-afterimage.jpg` **U1–U4**: a cyan rim flash, 3 cyan ghosts of the sword left behind, shard flakes, a fringe, a corner glow.
+- `board-V-roll-dip.jpg` **V1–V4**: a crouch-height dive and rise, a +10° FOV punch, dust + splinters, a vignette, the sword tucked flat.
+- `board-0-overview.jpg`: BEFORE + the peak frame of T / U / V.
+Re-rolled: V2 once (steel blade), V4 three times (squashed HUD).
