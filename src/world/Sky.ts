@@ -11,6 +11,7 @@ import { bakedTexture, preloadBakedTextures } from '../boot/bakedTextures';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
 import { macrotask } from '../boot/plan';
+import { installStylize } from './stylize';
 
 /** how far the planet group sits from the camera (Game.ts re-places it every frame along `planetDir`) */
 export const PLANET_DIST = 1700;
@@ -45,7 +46,8 @@ export class Sky {
   get viewCamera(): THREE.PerspectiveCamera { return this.camera; }
 
   async build(): Promise<this> {
-    const { sky: S, atmosphere: A } = getActiveChunk();
+    const { sky: S, atmosphere: A, style } = getActiveChunk();
+    if (style === 'lowpoly') installStylize(); // the toon lighting model (D1) — patched into three's chunk before anything compiles
     const qs = new URLSearchParams(location.search);
     const qn = (k: string, d: number) => { const v = qs.get(k); return v === null ? d : Number.parseFloat(v); };
     const hdriName = qs.get('hdri') ?? S.hdri;

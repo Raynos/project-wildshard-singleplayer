@@ -2,6 +2,7 @@
 // Implemented by overriding three's fog shader chunks so *every* fogged material
 // (terrain, instanced trees, glTF props, animals) gets it for free.
 import * as THREE from 'three';
+import { isStylized, toonUniforms } from './stylize';
 
 export const fogUniforms = {
   fogSunDir: { value: new THREE.Vector3(0, 1, 0) },
@@ -77,6 +78,8 @@ export function installAtmosphere(): void {
 
 export function attachFogUniforms(shader: { uniforms: Record<string, THREE.IUniform> }): void {
   for (const k of Object.keys(fogUniforms) as (keyof typeof fogUniforms)[]) shader.uniforms[k] = fogUniforms[k];
+  // the low-poly shard's toon lighting (stylize.ts) rides the same hook: every fogged material already calls this
+  if (isStylized()) for (const k of Object.keys(toonUniforms) as (keyof typeof toonUniforms)[]) shader.uniforms[k] = toonUniforms[k];
 }
 
 // ─── underwater (the eye below the sea surface — Player.submerged) ───
