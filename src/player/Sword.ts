@@ -62,7 +62,11 @@ import { getAimTargets, meleeLock, targetRadius, type AimTarget } from './AimTar
 export interface SwordWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 /** a replacement viewmodel (the Nalati sabre, Sabre.ts): sword model space as buildSword's; `tipX` = the tip's sideways
  *  offset for a curved blade (the trail ribbon and the glint follow the curve); the material is already set up for the sky */
-export interface SwordRig { sword: THREE.BufferGeometry; arms: THREE.BufferGeometry; tipY: number; baseY: number; tipX?: number; material: THREE.Material }
+export interface SwordRig {
+  sword: THREE.BufferGeometry; arms: THREE.BufferGeometry; tipY: number; baseY: number; tipX?: number; material: THREE.Material;
+  /** more meshes riding the sword rig with their own material (the sabre's steel + gold: meleeGeo.steelMaterial) */
+  extras?: { geometry: THREE.BufferGeometry; material: THREE.Material }[];
+}
 /** the poses + moves a rig swings (default: SwordMoves.ts's REST / CHARGE / SPRINT / COMBO / HEAVY) */
 export interface SwordMoveSet { rest: Key; charge: Key; sprint: Key; combo: Move[]; heavy: Move }
 export interface SwordOptions {
@@ -530,6 +534,12 @@ export class Sword implements Weapon {
       const mesh = new THREE.Mesh(g, mat);
       mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = true; mesh.renderOrder = 1000;
       rig.add(mesh);
+    }
+    for (const x of custom?.extras ?? []) {
+      x.material.transparent = true; x.material.depthWrite = true;
+      const mesh = new THREE.Mesh(x.geometry, x.material);
+      mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = true; mesh.renderOrder = 1000;
+      this.rig.add(mesh);
     }
     this.model.add(this.rig, this.armRig);
     // depth clear so the viewmodel never clips into world geometry (same trick as Crossbow.ts: 999 in the transparent queue)

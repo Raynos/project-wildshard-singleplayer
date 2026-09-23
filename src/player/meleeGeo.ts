@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Sky } from '../world/Sky';
 import { painterlyMaterial } from '../world/painterly';
+import { viewmodelMaterial } from './Crossbow';
 
 /**
  * meleeGeo — the smooth, vertex-painted geometry kit the Nalati melee viewmodels are built from (Sabre.ts, Spear.ts):
@@ -103,6 +104,54 @@ export function meleeMaterial(sky: Sky, rim = 0.55): THREE.Material {
   const m = painterlyMaterial(sky, { vertexColors: true, rim, bands: 0.7, transparent: true, depthWrite: true });
   m.name = 'nalati-viewmodel';
   return m;
+}
+
+/**
+ * The viewmodels' METAL (blade, spear head, socket, gold fittings): the shared viewmodel PBR program (Crossbow.ts
+ * `viewmodelMaterial` — already compiled for the rifle in every shard, so no new program) at metalness 1: the painted
+ * sky's environment is what the steel reflects (the mockups' bright blade sheen). Vertex colours tint it (steel / gold /
+ * dark iron); geometry drawn with it needs a `uv` attribute (`withUV`). Transparent queue for the depth-clear trick.
+ */
+export function steelMaterial(sky: Sky, roughness = 0.38): THREE.Material {
+  const m = viewmodelMaterial(sky, 'nalati-steel', { metalness: 0.55, roughness, envMapIntensity: 0.7 });
+  m.transparent = true; m.depthWrite = true;
+  return m;
+}
+/** add a zero `uv` (the PBR viewmodel program samples its 1×1 filler maps through it) */
+export function withUV(g: THREE.BufferGeometry): THREE.BufferGeometry {
+  if (!g.hasAttribute('uv')) g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(g.getAttribute('position').count * 2), 2));
+  return g;
+}
+
+const _t = new THREE.Vector3(), _n = new THREE.Vector3(), _b = new THREE.Vector3(), _up = new THREE.Vector3();
+/**
+ * Sweep a circle (`sides` points, radius `radius(u)`, u 0..1 along the path) along `path` with parallel-transport frames —
+ * wraps, bindings, quillons, horsehair strands. Smooth normals; `colorAt(u, a)`; ends capped when `caps`.
+ */
+export function sweep(path: THREE.Vector3[], radius: (u: number) => number, sides: number, colorAt: ColorAt, caps = true, squash = 1): THREE.BufferGeometry {
+  const rings: THREE.Vector3[][] = [];
+  const n = path.length;
+  const first = path[0], second = path[1];
+  if (first === undefined || second === undefined) throw new Error('sweep: a path needs two points');
+  _t.subVectors(second, first).normalize();
+  _up.set(0, 1, 0); if (Math.abs(_t.dot(_up)) > 0.9) _up.set(1, 0, 0);
+  _n.crossVectors(_t, _up).normalize(); _b.crossVectors(_t, _n).normalize();
+  for (let i = 0; i < n; i++) {
+    const p = path[i] ?? first, prev = path[Math.max(0, i - 1)] ?? p, next = path[Math.min(n - 1, i + 1)] ?? p;
+    const t = new THREE.Vector3().subVectors(next, prev).normalize();
+    const q = new THREE.Quaternion().setFromUnitVectors(_t, t); // parallel transport: carry the frame onto the new tangent
+    _n.applyQuaternion(q); _b.applyQuaternion(q); _t.copy(t);
+    const r = radius(n > 1 ? i / (n - 1) : 0), ring: THREE.Vector3[] = [];
+    for (let k = 0; k < sides; k++) { const a = (k / sides) * Math.PI * 2; ring.push(p.clone().addScaledVector(_n, Math.cos(a) * r).addScaledVector(_b, Math.sin(a) * r * squash)); }
+    rings.push(ring);
+  }
+  return tube(rings, colorAt, { capStart: caps, capEnd: caps });
+}
+/** a helix path round the Y axis (a leather wrap / binding): radius r, from y0 to y1, `turns` turns, `steps` points */
+export function helix(r: number, y0: number, y1: number, turns: number, steps: number, phase = 0): THREE.Vector3[] {
+  const out: THREE.Vector3[] = [];
+  for (let i = 0; i <= steps; i++) { const f = i / steps, a = phase + f * turns * Math.PI * 2; out.push(new THREE.Vector3(Math.cos(a) * r, y0 + (y1 - y0) * f, Math.sin(a) * r)); }
+  return out;
 }
 
 /** the rider's palette — the same rider as the bow's (Bow.ts PAL): cream wool sleeves with a red ram's-horn band, a white fleece cuff, a leather bracer */
