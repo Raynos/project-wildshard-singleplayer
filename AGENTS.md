@@ -10,6 +10,47 @@
   start — relay them first. `docs/tasks/ASKS.md` is the legacy table (history up to 2026-09-22): don't
   add rows there; a legacy row that is still open moves to its own file under the same id.
 
+## Local models: music · SFX · 3D · mockups (read before you generate any asset)
+
+The game's music, sound effects and 3D models are generated **on this Mac** (M5 Max, 128 GB unified memory), not in
+the cloud. Mockups are the exception: they still come from codex. Two repos next to this one hold all of it:
+
+- **[`~/projects/weights`](../../weights/)** is the machine's one weight store.
+  - [`MODELS.md`](../../weights/MODELS.md) lists what is downloaded, with sizes and licences.
+  - Add a model only with `bin/fetch-repo.sh <org/repo>`: it resumes and checks sha256. Never use `hf download`, and
+    never copy weights into a tool's folder.
+  - Never `git add` a weight ([its AGENTS.md](../../weights/AGENTS.md)).
+- **[`~/projects/localai`](../../localai/)** says how to run each model, how fast it is and what breaks.
+  - [`docs/music-models.md`](../../localai/docs/music-models.md): music and SFX.
+  - [`docs/3d-models.md`](../../localai/docs/3d-models.md): image → 3D.
+  - [`docs/engines.md`](../../localai/docs/engines.md): the local LLM servers. The Qwen3.8-27B LLM is for coding
+    agents, not for assets.
+  - [`project/LANDMINES.md`](../../localai/project/LANDMINES.md): traps that already cost hours. Read it before a
+    new setup.
+
+| Job | Engine | Weights (`~/projects/weights/manual/…`) | Runs from | Licence / credit |
+|---|---|---|---|---|
+| Music | **MiniMax Music 3** (diffusers, MPS bf16) | `MiniMaxAI/MiniMax-Music3` | `~/ml/music/minimax-music3/.venv` + `scripts/music/gen/gen_minimax.py` | credit "Music: MiniMax-Music3" in game |
+| SFX, take 1 | **MOSS-SoundEffect v2** (MPS bf16) | `OpenMOSS-Team/MOSS-SoundEffect-v2.0` | `~/ml/music/sfx/MOSS-TTS/moss_soundeffect_v2` + `scripts/music/gen/gen_sfx_moss.py` | Apache-2.0 |
+| SFX, take 2 | **Stable Audio 3 Medium** (MPS fp32) | `cocktailpeanut/stable-audio-3-medium` | `~/ml/music/sfx/stable-audio-3` (`uv run`) + `scripts/music/gen/gen_sfx.py --model medium` | "Powered by Stability AI" |
+| SFX, the pick | the better take per sound (CLAP rank) | — | `scripts/music/gen/sfx_merge.py` → `public/assets/sfx/best/` | both credits |
+| 3D props / creatures | **TRELLIS.2-4B** (MPS), then a Blender post | `microsoft/TRELLIS.2-4B` + TRELLIS-image-large, DINOv3, BiRefNet | `~/ml/img2mesh/trellis-mac/.venv` + `scripts/img2mesh/` ([README](scripts/img2mesh/README.md)) | MIT. Hunyuan3D-2 is in the store and faster, but **not for this game** (its licence bars the EU, UK and South Korea) |
+| Mockups | **codex `image_gen`** (OpenAI, cloud): see [Mockups](#mockups) | — | `codex exec` / `scripts/horizon-matte/run_codex.py` | — |
+| Mockups, local trial | **Qwen-Image-2.1** (7B, diffusers, MPS bf16): E100, on trial against codex | `Qwen/Qwen-Image-2.1` | `~/ml/imagegen/` (`gen_qwen21.py`, `combo.py`) | **Qwen Research Licence: evaluation only, nothing it makes ships** |
+
+- **One model at a time, machine-wide.** Other agents (herdr panes making music, SFX and 3D for the other shards)
+  load models on this same box.
+  - Every load runs under `lockf -k ~/projects/localai/.model.lock` and waits until anonymous memory is below 70 GB.
+    Use `~/projects/localai/bin/img2mesh/run-locked.sh <log> <cmd…>`, or `~/ml/imagegen/run-locked.sh`.
+  - `pgrep -fl "lockf -k"` shows the queue.
+  - Keep a batch under 30 minutes so the others get their turn.
+- **`~/projects/localai/bin/evict.sh` unloads every LLM server on the box**, other agents' included. A music, SFX, 3D
+  or image batch frees its memory when its python exits, so it needs no evict.
+- **Check the licence before a new model**: read the card *and* its LICENSE file.
+  - Non-commercial, research-only or territory-restricted means it is not for the game. TangoFlux and
+    HunyuanVideo-Foley were refused for this.
+  - Then fetch it with `fetch-repo.sh`, add a `MODELS.md` row, and write down its speed and memory in a localai doc.
+
 ## Plans (`docs/plans/`) and their state
 
 - A plan is a `docs/plans/<NAME>.md` with a checkpoint / lever table. Line 3, right under the title,
@@ -101,6 +142,9 @@
 with openai image generation, the mockup images are screenshots of the wildshard
 singleplayer demo running in Chrome, as if a playtester was hitting print screen
 on his laptop.
+- A local alternative, **Qwen-Image-2.1** on this Mac, is on trial against codex (E100; see
+  [Local models](#local-models-music--sfx--3d--mockups-read-before-you-generate-any-asset)). Codex stays the mockup
+  path until the user picks otherwise.
 - **Where they go:** every mockup / concept image / art asset lives in
   `art/<subject>/round-<n>-<label>/` (e.g. `art/hud/round-7-sword-touch/`,
   `art/feedback/round-1-inbox/`; next free round per subject). Never loose in `art/`, never a new
@@ -160,8 +204,8 @@ on his laptop.
 - **Sound effects: every sound is generated twice**, once with **MOSS-SoundEffect v2** and once with
   **Stable Audio 3 Medium**, and **the better take of the two ships**, picked per sound. The game has one merged
   set, not a set per model. Both credits show ("Powered by Stability AI" is a Stability licence condition).
-- Local model runs: one model at a time, under `lockf -k ~/projects/localai/.model.lock`, and evict after.
-  How-tos and traps: `~/projects/localai/docs/music-models.md`; pipeline scripts: `scripts/music/gen/`.
+- How to run them, the shared lock and the weight store: [Local models](#local-models-music--sfx--3d--mockups-read-before-you-generate-any-asset)
+  (top of this file).
 
 ## Physics (Rapier, PHYSICS.md — since the physics merge)
 
