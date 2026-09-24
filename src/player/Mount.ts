@@ -266,7 +266,7 @@ export class Mount {
     // the horse stays where its body is (on a bridge deck: on the deck), drawn on the ground from here on
     a.position.copy(this.feet);
     a.yaw = this.heading;
-    a.driven = false;
+    a.driven = false; a.levelGround = false;
     a.yOffset = Math.max(0, this.feet.y - heightAt(this.feet.x, this.feet.z));
     if (this.motor !== null) { this.motor.dispose(); this.motor = null; }
     // the left side of the horse (animal convention: left = (cos yaw, −sin yaw)), clear of its body
@@ -438,6 +438,10 @@ export class Mount {
     const wl = waterLevel();
     this.swimming = f.y < wl - FORD_DEPTH && (wildEnv.wetAt?.(f.x, f.z) === true || heightAt(f.x, f.z) < wl);
     if (this.swimming) { f.y = wl - FORD_DEPTH; grounded = true; }
+    // on a structure (a bridge deck, floor function or collider): the terrain under it is not what the hooves stand on, so
+    // the body must not tilt to it — the Kunes bridge spans a gully and the horse pitched ~20° to the bank below, which
+    // swung the seat (and the eye) forward over the neck: no head or ears in the frame on the bridge (NALATI-MERGE H4)
+    a.levelGround = this.onDeck || f.y - heightAt(f.x, f.z) > 0.3;
     if (grounded && this.vy <= 0) {
       if (this.airT >= 0) this.bobY -= 0.12;                                     // the landing
       this.vy = 0; this.airT = -1;

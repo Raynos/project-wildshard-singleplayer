@@ -136,6 +136,9 @@ export class Animal {
    *  `position` / `yaw` / `speed` every frame) — update neither steers, walks, nor follows the ground, and the
    *  creature physics gives it no body of its own */
   driven = false;
+  /** it stands on a structure, not the terrain (Mount: the ridden horse on a bridge deck) — `sampleTerrain` levels the
+   *  body instead of tilting it to the slope heightAt reads under the deck. Nothing else sets it */
+  levelGround = false;
   /** per-animal scratch for a species' think / animate (numbers only) */
   mem: Record<string, number> = {};
   private attackT = -1; private attackDur = 1;
@@ -757,6 +760,7 @@ export class Animal {
 
   /** Sample the slope under the body (called by the manager at 10 Hz — heightAt is not free). */
   sampleTerrain(): void {
+    if (this.levelGround) { this.tiltPitchT = 0; this.tiltRollT = 0; this.footDeltaT.fill(0); return; }
     const d = this.model.dims;
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
     const L = d.bodyHalfLen * 0.9 * this.scale, W = d.halfWidth * this.scale;
