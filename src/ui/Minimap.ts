@@ -43,7 +43,7 @@ export interface MinimapAnimal {
 }
 
 const VIEW_RADIUS = 110;          // metres from the player to the rim
-const LAYER_PPM = 2;              // terrain layer px per metre (1000 × 1000 for the 500 m chunk)
+export const LAYER_PPM = 2;       // terrain layer px per metre (1000 × 1000 for the 500 m chunk)
 const HEIGHT_STEP = 2;            // metres between height samples for the ground shading
 const COVER_PPM = 0.5;            // fog coverage px per metre (1 px per 2 m)
 const REVEAL_RADIUS = 45;         // metres a visited position reveals
@@ -239,17 +239,68 @@ export class Minimap {
   private paintLayer(): void {
     const t0 = performance.now();
     this.layerDirty = false;
-    const L = this.layer.width, ppm = LAYER_PPM, ctx = ctx2d(this.layer);
-    const toU = (x: number): number => (CHUNK_HALF - x) * ppm;   // east (−X) → right
-    const toV = (z: number): number => (CHUNK_HALF - z) * ppm;   // north (+Z) → up
+    this.crowns = null;
+    this.layerGen++;
+    this.paintRegion(ctx2d(this.layer), 0, 0, CHUNK_SIZE, this.layer.width, HEIGHT_STEP);
+    this.paintMs = performance.now() - t0;
+  }
 
-    // ground: sample heights on a HEIGHT_STEP grid, hillshade from the sampled slopes, upscale smoothly
-    const N = Math.floor(CHUNK_SIZE / HEIGHT_STEP) + 1;
-    const h = new Float32Array(N * N);
-    for (let j = 0; j < N; j++) { const z = CHUNK_HALF - j * HEIGHT_STEP; for (let i = 0; i < N; i++) h[j * N + i] = heightAt(CHUNK_HALF - i * HEIGHT_STEP, z); }
-    let hMin = Infinity, hMax = -Infinity;
-    for (let i = 0; i < h.length; i++) { const v = h[i] ?? 0; if (v < hMin) hMin = v; if (v > hMax) hMax = v; }
-    const img = new ImageData(N, N), px = img.data, col: RGB = [0, 0, 0];
+  /** bumps every time the terrain is repainted (a new chunk): the full map's zoom tiles are stale then */
+  layerGen = 0;
+  /**
+   * Paint a square of the map at any resolution — the full map's sharp tiles when zoomed in (src/ui/Map.ts).
+   * The square is in map metres from the chunk's NE corner (u = HALF − x, east → right; v = HALF − z, north → up),
+   * `sizeM` metres a side into a `px` × `px` canvas, the ground sampled every ~2 px (at least 1/8 m).
+   */
+  paintTile(target: HTMLCanvasElement, u0: number, v0: number, sizeM: number, px: number): void {
+    if (this.layerDirty) this.paintLayer();
+    if (target.width !== px || target.height !== px) { target.width = px; target.height = px; }
+    const ctx = ctx2d(target);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, px, px);
+    this.paintRegion(ctx, u0, v0, sizeM, px, Math.max(0.125, (2 * sizeM) / px));
+  }
+
+  /** the pine crowns as (u, v, r) metre triples — the same Rng walk every time, so a tile draws the crowns the layer does */
+  private crowns: number[] | null = null;
+  private crownList(): number[] {
+    if (this.crowns) return this.crowns;
+    const F = getActiveChunk().forest, density = new Noise2D(SEED + 5);
+    const rng = new Rng(SEED + 4242);
+    const cell = 5, half = CHUNK_HALF - 6;
+    const cabinR = 12;
+    const crowns: number[] = [];
+    for (let x = -half; x < half; x += cell) for (let z = -half; z < half; z += cell) {
+      const cx = x + rng.range(-cell * 0.5, cell * 0.5), cz = z + rng.range(-cell * 0.5, cell * 0.5);
+      const d = density.fbm(cx * F.densityFreq, cz * F.densityFreq, 3);
+      const keep = smoothstep(F.clearings[0], F.clearings[1], d) * 0.92 + 0.08;
+      if (rng.next() > keep * 0.9) continue;
+      const roadEntry = (Math.abs(cx) < 16 && Math.abs(cz) > CHUNK_HALF - 95) || (Math.abs(cz) < 16 && Math.abs(cx) > CHUNK_HALF - 95);
+      if (roadEntry) continue;
+      if (trailDistance(cx, cz) < 8 + rng.range(0, 4)) continue;
+      if (hasPond() && Math.hypot(cx - POND.x, cz - POND.z) < POND.r + 4) continue;
+      let onPad = false;
+      for (const c of CABIN_SITES) if (Math.hypot(cx - c.x, cz - c.z) < cabinR) { onPad = true; break; }
+      if (onPad) continue;
+      crowns.push(CHUNK_HALF - cx, CHUNK_HALF - cz, 3.4 + rng.range(0, 2.6));
+    }
+    this.crowns = crowns;
+    return crowns;
+  }
+
+  /** the terrain over map square (u0, v0, sizeM metres) into `ctx` at px × px; ground sampled every `step` metres */
+  private paintRegion(ctx: CanvasRenderingContext2D, u0: number, v0: number, sizeM: number, px: number, step: number): void {
+    const ppm = px / sizeM, k = ppm / LAYER_PPM; // k: the layer's pixel-sized details (shadow offsets) scale with it
+    const toU = (x: number): number => (CHUNK_HALF - x - u0) * ppm;   // east (−X) → right
+    const toV = (z: number): number => (CHUNK_HALF - z - v0) * ppm;   // north (+Z) → up
+
+    // ground: sample heights on a `step` grid (one sample of margin each side, so tiles shade seamlessly), hillshade from
+    // the sampled slopes, upscale smoothly
+    const N = Math.ceil(sizeM / step) + 1, M = N + 2;
+    const h = step >= HEIGHT_STEP ? new Float32Array(M * M) : this.smoothHeights(u0, v0, step, M);
+    if (step >= HEIGHT_STEP) for (let j = 0; j < M; j++) { const z = CHUNK_HALF - v0 - (j - 1) * step; for (let i = 0; i < M; i++) h[j * M + i] = heightAt(CHUNK_HALF - u0 - (i - 1) * step, z); }
+    const [hMin, hMax] = this.heightRange();
+    const img = new ImageData(N, N), data = img.data, col: RGB = [0, 0, 0];
     const lx = -0.55, ly = 0.65, lz = -0.52; // light from the upper-left of the map (north-west), fairly low
     const chunk = getActiveChunk();
     const F = chunk.forest;
@@ -257,16 +308,15 @@ export class Minimap {
     const SEA_DEEP: RGB = [22, 74, 128], SEA_SHALLOW: RGB = [78, 196, 214], SAND: RGB = [226, 206, 150];
     const density = new Noise2D(SEED + 5);   // Forest.ts thins its tree candidates with this field: groves are dark floor, clearings meadow
     for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
-      const wx = CHUNK_HALF - i * HEIGHT_STEP, wz = CHUNK_HALF - j * HEIGHT_STEP;
-      const grove = smoothstep(F.clearings[0], F.clearings[1], density.fbm(wx * F.densityFreq, wz * F.densityFreq, 3));
-      const i0 = Math.max(0, i - 1), i1 = Math.min(N - 1, i + 1), j0 = Math.max(0, j - 1), j1 = Math.min(N - 1, j + 1);
-      const dhx = ((h[j * N + i1] ?? 0) - (h[j * N + i0] ?? 0)) / ((i1 - i0) * HEIGHT_STEP);
-      const dhy = ((h[j1 * N + i] ?? 0) - (h[j0 * N + i] ?? 0)) / ((j1 - j0) * HEIGHT_STEP);
+      const wx = CHUNK_HALF - u0 - i * step, wz = CHUNK_HALF - v0 - j * step;
+      const c = (j + 1) * M + i + 1;
+      const dhx = ((h[c + 1] ?? 0) - (h[c - 1] ?? 0)) / (2 * step);
+      const dhy = ((h[c + M] ?? 0) - (h[c - M] ?? 0)) / (2 * step);
       const inv = 1 / Math.hypot(dhx, dhy, 1);
       const nx = -dhx * inv, ny = inv, nz = -dhy * inv;
       const shade = 0.6 + 0.4 * Math.max(0, nx * lx + ny * ly + nz * lz) / Math.hypot(lx, ly, lz);
       const slope = 1 - ny;
-      const hij = h[j * N + i] ?? 0;
+      const hij = h[c] ?? 0;
       const alt = (hij - hMin) / Math.max(1, hMax - hMin);
       let sh = shade;
       if (ocean) {
@@ -274,16 +324,18 @@ export class Minimap {
         if (depth > 0) { mix(SEA_SHALLOW, SEA_DEEP, smoothstep(0, ocean.deepDepth, depth), col); sh = 1; }
         else { mix(SAND, GRASS_HI, smoothstep(1.5, 8, -depth), col); mix(col, ROCK, smoothstep(0.14, 0.4, slope), col); }
       } else {
+        const grove = smoothstep(F.clearings[0], F.clearings[1], density.fbm(wx * F.densityFreq, wz * F.densityFreq, 3));
         mix(GRASS_LO, GRASS_HI, alt, col);
         mix(col, FLOOR, grove * 0.8, col);
         mix(col, ROCK, smoothstep(0.14, 0.4, slope), col);
       }
       const o = (j * N + i) * 4;
-      px[o] = col[0] * sh; px[o + 1] = col[1] * sh; px[o + 2] = col[2] * sh; px[o + 3] = 255;
+      data[o] = col[0] * sh; data[o + 1] = col[1] * sh; data[o + 2] = col[2] * sh; data[o + 3] = 255;
     }
     const small = canvas(N, N); ctx2d(small).putImageData(img, 0, 0);
     ctx.imageSmoothingEnabled = true;
-    ctx.drawImage(small, 0, 0, N, N, 0, 0, L, L);
+    const cellPx = step * ppm; // sample i sits at u0 + i·step: centre each texel on its sample
+    ctx.drawImage(small, 0, 0, N, N, -cellPx / 2, -cellPx / 2, N * cellPx, N * cellPx);
 
     // pond
     if (hasPond()) {
@@ -309,29 +361,20 @@ export class Minimap {
     };
     stroke(8, TRAIL_EDGE); stroke(5, TRAIL);
 
-    // pine crowns: candidates on a grid, thinned by the same density field Forest.ts uses, kept off the trails/pond/pads
-    const rng = new Rng(SEED + 4242);
+    // pine crowns (shadows go under every crown, so two passes), only those that touch the square
+    const crowns = this.crownList();
     const sprite = this.buildCrownSprite(Math.ceil(6 * ppm));
-    const cell = 5, half = CHUNK_HALF - 6;
-    const cabinR = 12;
-    const crowns: number[] = []; // u, v, r triples — shadows go under every crown, so two passes
-    for (let x = -half; x < half; x += cell) for (let z = -half; z < half; z += cell) {
-      const cx = x + rng.range(-cell * 0.5, cell * 0.5), cz = z + rng.range(-cell * 0.5, cell * 0.5);
-      const d = density.fbm(cx * F.densityFreq, cz * F.densityFreq, 3);
-      const keep = smoothstep(F.clearings[0], F.clearings[1], d) * 0.92 + 0.08;
-      if (rng.next() > keep * 0.9) continue;
-      const roadEntry = (Math.abs(cx) < 16 && Math.abs(cz) > CHUNK_HALF - 95) || (Math.abs(cz) < 16 && Math.abs(cx) > CHUNK_HALF - 95);
-      if (roadEntry) continue;
-      if (trailDistance(cx, cz) < 8 + rng.range(0, 4)) continue;
-      if (hasPond() && Math.hypot(cx - POND.x, cz - POND.z) < POND.r + 4) continue;
-      let onPad = false;
-      for (const c of CABIN_SITES) if (Math.hypot(cx - c.x, cz - c.z) < cabinR) { onPad = true; break; }
-      if (onPad) continue;
-      crowns.push(toU(cx), toV(cz), (3.4 + rng.range(0, 2.6)) * ppm);
-    }
+    const touches = (u: number, v: number, r: number): boolean => u + r > 0 && v + r > 0 && u - r < px && v - r < px;
     ctx.fillStyle = CROWN_SHADOW;
-    for (let i = 0; i < crowns.length; i += 3) { ctx.beginPath(); ctx.arc((crowns[i] ?? 0) + 1.5 * ppm, (crowns[i + 1] ?? 0) + 1.5 * ppm, (crowns[i + 2] ?? 0) * 1.1, 0, Math.PI * 2); ctx.fill(); }
-    for (let i = 0; i < crowns.length; i += 3) { const u = crowns[i] ?? 0, v = crowns[i + 1] ?? 0, r = crowns[i + 2] ?? 0; ctx.drawImage(sprite, u - r, v - r, r * 2, r * 2); }
+    for (let i = 0; i < crowns.length; i += 3) {
+      const u = ((crowns[i] ?? 0) - u0) * ppm, v = ((crowns[i + 1] ?? 0) - v0) * ppm, r = (crowns[i + 2] ?? 0) * ppm;
+      if (!touches(u, v, r * 1.6)) continue;
+      ctx.beginPath(); ctx.arc(u + 1.5 * ppm, v + 1.5 * ppm, r * 1.1, 0, Math.PI * 2); ctx.fill();
+    }
+    for (let i = 0; i < crowns.length; i += 3) {
+      const u = ((crowns[i] ?? 0) - u0) * ppm, v = ((crowns[i + 1] ?? 0) - v0) * ppm, r = (crowns[i + 2] ?? 0) * ppm;
+      if (touches(u, v, r)) ctx.drawImage(sprite, u - r, v - r, r * 2, r * 2);
+    }
 
     // cabin roofs: a rotated rectangle with a ridge line and a soft shadow
     for (const c of CABIN_SITES) {
@@ -339,17 +382,70 @@ export class Minimap {
       ctx.save();
       ctx.translate(toU(c.x), toV(c.z));
       ctx.rotate(-c.rot); // Ry(rot) turns +x toward −z; on screen (u, v) = (−x, −z) that is anticlockwise, canvas rotate() is clockwise
-      ctx.fillStyle = ROOF_SHADOW; ctx.fillRect(-w / 2 + 2, -dpt / 2 + 3, w, dpt);
+      ctx.fillStyle = ROOF_SHADOW; ctx.fillRect(-w / 2 + 2 * k, -dpt / 2 + 3 * k, w, dpt);
       ctx.fillStyle = ROOF; ctx.fillRect(-w / 2, -dpt / 2, w, dpt);
-      ctx.fillStyle = ROOF_RIDGE; ctx.fillRect(-w / 2, -1, w, 2);
+      ctx.fillStyle = ROOF_RIDGE; ctx.fillRect(-w / 2, -k, w, 2 * k);
       ctx.restore();
     }
-
-    this.paintMs = performance.now() - t0;
   }
 
+  /**
+   * Heights for a zoom tile finer than the ground's own ~2 m grid: sampled every HEIGHT_STEP, then Catmull-Rom
+   * interpolated to the fine `step` grid (M × M, one sample of margin), so slopes stay smooth — sampling heightAt
+   * directly shades its bilinear 2 m cells as stair-steps along every cliff and shore.
+   */
+  private smoothHeights(u0: number, v0: number, step: number, M: number): Float32Array {
+    const HS = HEIGHT_STEP;
+    const cu0 = Math.floor((u0 - 2 * step) / HS) * HS - HS, cv0 = Math.floor((v0 - 2 * step) / HS) * HS - HS;
+    const C = Math.ceil((M * step + 4 * step) / HS) + 6;
+    const g = new Float32Array(C * C);
+    for (let b = 0; b < C; b++) { const z = CHUNK_HALF - (cv0 + b * HS); for (let a = 0; a < C; a++) g[b * C + a] = heightAt(CHUNK_HALF - (cu0 + a * HS), z); }
+    // per axis: the first of the four coarse nodes and their Catmull-Rom weights, for each fine sample
+    const axis = (origin: number, start: number): { idx: Int32Array; w: Float32Array } => {
+      const idx = new Int32Array(M), w = new Float32Array(M * 4);
+      for (let k = 0; k < M; k++) {
+        const t = (start + (k - 1) * step - origin) / HS, ia = Math.floor(t), f = t - ia, f2 = f * f, f3 = f2 * f;
+        idx[k] = Math.min(C - 4, Math.max(0, ia - 1));
+        w[k * 4] = (-f + 2 * f2 - f3) / 2; w[k * 4 + 1] = (2 - 5 * f2 + 3 * f3) / 2; w[k * 4 + 2] = (f + 4 * f2 - 3 * f3) / 2; w[k * 4 + 3] = (f3 - f2) / 2;
+      }
+      return { idx, w };
+    };
+    const U = axis(cu0, u0), V = axis(cv0, v0);
+    const h = new Float32Array(M * M);
+    for (let j = 0; j < M; j++) {
+      const vb = V.idx[j] ?? 0;
+      for (let i = 0; i < M; i++) {
+        const ua = U.idx[i] ?? 0;
+        let sum = 0;
+        for (let b = 0; b < 4; b++) {
+          const row = (vb + b) * C + ua;
+          const r = (g[row] ?? 0) * (U.w[i * 4] ?? 0) + (g[row + 1] ?? 0) * (U.w[i * 4 + 1] ?? 0) + (g[row + 2] ?? 0) * (U.w[i * 4 + 2] ?? 0) + (g[row + 3] ?? 0) * (U.w[i * 4 + 3] ?? 0);
+          sum += r * (V.w[j * 4 + b] ?? 0);
+        }
+        h[j * M + i] = sum;
+      }
+    }
+    return h;
+  }
+
+  /** the chunk's lowest and highest ground on the HEIGHT_STEP grid — the altitude tint is relative to it, the same in every tile */
+  private hRange: [number, number] | null = null;
+  private heightRange(): [number, number] {
+    if (this.hRange && this.hRangeGen === this.layerGen) return this.hRange;
+    let lo = Infinity, hi = -Infinity;
+    for (let z = -CHUNK_HALF; z <= CHUNK_HALF; z += HEIGHT_STEP) for (let x = -CHUNK_HALF; x <= CHUNK_HALF; x += HEIGHT_STEP) {
+      const v = heightAt(x, z); if (v < lo) lo = v; if (v > hi) hi = v;
+    }
+    this.hRange = [lo, hi]; this.hRangeGen = this.layerGen;
+    return this.hRange;
+  }
+  private hRangeGen = -1;
+
+  private crownSprites = new Map<number, HTMLCanvasElement>();
   private buildCrownSprite(r: number): HTMLCanvasElement {
+    const hit = this.crownSprites.get(r); if (hit) return hit;
     const c = canvas(r * 2, r * 2), x = ctx2d(c);
+    this.crownSprites.set(r, c);
     const g = x.createRadialGradient(r * 0.7, r * 0.7, 0, r, r, r);
     g.addColorStop(0, CROWN_LIGHT); g.addColorStop(0.4, CROWN_MID); g.addColorStop(1, CROWN_DARK);
     x.fillStyle = g; x.beginPath(); x.arc(r, r, r, 0, Math.PI * 2); x.fill();
