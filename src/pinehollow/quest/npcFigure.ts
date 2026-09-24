@@ -21,6 +21,8 @@ export interface NpcFigure {
   readonly collider: Collider;
   talking: boolean;
   update: (dt: number, t: number, player: THREE.Vector3) => void;
+  /** draw distance: drawn inside 140 m, casting a shadow inside 45 m (`d` = metres from the camera) */
+  lod: (d: number) => void;
 }
 
 interface Look { coat: string; coatDark: string; shirt: string; legs: string; boots: string; skin: string; hair: string; hat: 'campaign' | 'cap' | 'fur' | 'none'; hatCol: string; beard: 'long' | 'short' | 'none'; apron?: string; lantern: boolean; badge: boolean }
@@ -151,8 +153,14 @@ export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: num
   const talkPoint = new THREE.Vector3(feet.x, feet.y + 1.6, feet.z);
   const home = yaw;
   let cur = yaw;
+  let lodState = -1;
   const fig: NpcFigure = {
     group, talkPoint, collider, talking: false,
+    lod: (d) => {
+      const st = d > 140 ? 0 : d > 45 ? 1 : 2;
+      if (st === lodState) return;
+      lodState = st; group.visible = st > 0; mesh.castShadow = st === 2;
+    },
     update: (dt, t, player) => {
       const dx = player.x - feet.x, dz = player.z - feet.z, near = dx * dx + dz * dz < 9 * 9;
       const want = near ? Math.atan2(dx, dz) : home;

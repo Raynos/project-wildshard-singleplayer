@@ -3,7 +3,7 @@
  * across and 11 m long, rotted out down its heart so you can walk through it — a carved token waits in the middle, and
  * the far end opens onto a ring of ferns you cannot see from the path. Built on the cabins' own PBR set (`cabinMats`:
  * bark outside, the log's split-wood inside, end grain on the rims, the chinking's grey for the rotted bed) — no new
- * programs; 4 draws inside 60 m, the shell alone past it.
+ * programs; 4 draws inside 60 m, the shell alone (no shadow) past it.
  *
  * Collision: a flat bed you walk on (its top ≤ 0.3 m over the ground at both mouths, inside the 0.35 m step) and a
  * shell of seven boxes round the bore (the bottom eighth is the bed); the mouths are open.
@@ -79,6 +79,7 @@ export function buildHollowLog(mats: Mats): HollowLog {
     update: (cam) => {
       const near = cam.distanceToSquared(mid) < 60 * 60;
       inner.visible = rims.visible = bed.visible = near;
+      outer.castShadow = near;   // past 60 m its shadow is a few pixels (and a draw per cascade)
     },
   };
 }

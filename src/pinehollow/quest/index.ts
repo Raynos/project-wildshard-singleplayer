@@ -503,6 +503,9 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
     }
     if (t - slowT > 0.5) {
       slowT = t;
+      const cam = game.camera.position;
+      for (const p of people) p.fig.lod(cam.distanceTo(p.fig.talkPoint));
+      if (zip) zip.trolley.visible = zip.isRiding || cam.distanceToSquared(zip.trolley.position) < 160 * 160;
       for (const p of PINE_HOLLOW_POIS) if (!flags.has(`seen:${p.id}`) && Math.hypot(p.x - pp.x, p.z - pp.z) < p.r) flags.set(`seen:${p.id}`);
       if (hollow && !flags.has('secret:log') && hollow.mid.distanceToSquared(_v.set(pp.x, hollow.floorY, pp.z)) < 2.2 * 2.2 && Math.abs(pp.y - hollow.floorY) < 0.8) {
         flags.set('secret:log'); hud.toast('Inside the fallen giant. It smells of rain and old resin');
