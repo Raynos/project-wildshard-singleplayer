@@ -58,6 +58,12 @@ const BEAM_R = 6.2, BEAM_HIT_R = 1.15, BEAM_DMG = 15, BEAM_TO_KING = 50, HEADDRE
 const SHIELD_SPOT = { x: COFFIN.x, z: COFFIN.z + COFFIN.len / 2 + 0.7 };
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _h = new THREE.Vector3(), _focus = new THREE.Vector3();
 
+/** NALATI-MERGE F9: the chamber floor is level, and it is not the terrain. Animal.sampleTerrain tilts a body to the slope
+ *  heightAt reads under it, and under the dungeon (140 m up, over the kurgan field's mound) that slope is steep: the King
+ *  stood pitched ~44° and rolled ~26° through the whole fight (procedural and model alike). levelGround keeps him (and
+ *  the balbal adds) upright; `sampleTerrain` re-zeroes the tilt spawn() already sampled. */
+function standOnFloor(a: Animal): void { a.levelGround = true; a.sampleTerrain(); }
+
 export interface FightHost {
   player: Player;
   animals: AnimalManager;
@@ -111,6 +117,7 @@ export class GoldenKingFight implements BossScript {
       d.world(COFFIN.x, 0, COFFIN.z, _v);
       k = this.host.animals.spawn(GOLDEN_KING, _v.x, _v.z, 0, 'king');
       k.herd = -1;
+      standOnFloor(k);
       this.king = k;
     }
     const at = KING_DEF_PHASES[phase]?.at ?? 1;
@@ -322,6 +329,7 @@ export class GoldenKingFight implements BossScript {
       this.dungeon.world(n.x + sx * 0.55, 0, n.z, _v);
       const a = this.host.animals.spawn(KURGAN_BALBAL, _v.x, _v.z, n.yaw, 'warrior');
       a.herd = -1;
+      standOnFloor(a);
       const m = a.mem;
       m['floorY'] = DUNGEON.y; m['emergeT'] = 1.9;
       m['minX'] = DUNGEON.x - CH + 0.9; m['maxX'] = DUNGEON.x + CH - 0.9; m['minZ'] = DUNGEON.z - CH + 0.9; m['maxZ'] = DUNGEON.z + CH - 0.9;
