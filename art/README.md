@@ -201,3 +201,27 @@ edge, above MOVE. **D** `D-under-objective.jpg`: a small tab under the GLYPH SHA
 `E-disc-left-edge.jpg`: a round disc on the left edge, above MOVE, for the left thumb. `board.jpg` = BEFORE + A–E.
 Re-rolled: B twice (the first take shrank and moved the whole HUD; the second lifted JUMP ~120 px) and D once (it came
 back 2:3 and squashed the frame).
+
+### Pine Hollow remaster boards B1–B4 (`art/pine-hollow/round-1..4-*/`, 2026-09-24, PH-0.6)
+
+Jake's four pre-build decision boards for `docs/plans/PINE-HOLLOW-REMASTER.md` §2. All are photoreal codex image_gen edits of real
+captures from the worktree dev server (:5176): a top-down god-camera shot (`round-1-map/capture-today-top-down.jpg`, north up
+per the HUD compass) and an iPhone 16 Pro portrait frame with the real touch HUD (`round-4-journal-ui/capture-iphone16pro-hollow-cabin.jpg`).
+- `round-1-map/board.jpg` **B1 Map D layout**: **A** `A-ridge-north.jpg` ridge along the north, old-growth west, hamlet SE;
+  **B** `B-ridge-east.jpg` ridge along the east, old-growth north, hamlet SW; **C** `C-ridge-northwest.jpg` ridge + den NW round
+  the Ridge cabin, old-growth east, hamlet S; **D** `D-southeast-old-growth.jpg` ridge north, old-growth deep SE, hamlet SW.
+  Re-rolled: A, B and D once (the first takes put the hunting lodge outside the hamlet; B also labelled the wrong crags THE RIDGE).
+- `round-2-antler-king/board.jpg` **B2 the Antler King** (night boss-fight frames, from the Nalati concept
+  `boss-6-alt-antler-king.png`): **A** `A-bark-warden.jpg` bark-plated, bone skull, 3 lanterns, amber ribcage; **B**
+  `B-moss-king.jpg` dripping moss, 6 lanterns, cyan ribcage; **C** `C-rootbound.jpg` gaunt root skeleton, 1 great lantern,
+  foxfire-green ribcage; **D** `D-lantern-bearer.jpg` boulder-heavy, ~12 lanterns, ember-red ribcage. None re-rolled.
+- `round-3-thralls-ranger/board-thralls.jpg` **B3 thralls**: **A** `thrall-A-overgrown.jpg` moss + ferns, cyan glass eyes;
+  **B** `thrall-B-root-stitched.jpg` roots sewn through the hide, amber chest glow; **C** `thrall-C-hollow-husks.jpg`
+  birch-bark shells, milky eyes. Re-rolled: C once (the first take had canine-looking eye-glints in the fog; no wolves, PH-U9).
+- `round-3-thralls-ranger/board-ranger.jpg` **B3 the ranger** (in the Hollow cabin, dialogue panel): **A**
+  `ranger-A-old-warden.jpg` an old man, campaign hat; **B** `ranger-B-last-of-the-wardens.jpg` a woman in her forties,
+  oilskin, lever-action; **C** `ranger-C-hermit-ranger.jpg` an androgynous hermit in a moss-green cloak. None re-rolled.
+- `round-4-journal-ui/board.jpg` **B4 hunter's journal + trophy wall** (phone portrait; top row the journal, bottom row the
+  wall of the same letter): **A** `A-journal-open-book.jpg` + `A-wall-lodge-shields.jpg`; **B** `B-journal-half-sheet.jpg` +
+  `B-wall-plaque-cards.jpg`; **C** `C-journal-elite-3d-plate.jpg` + `C-wall-chalk-outlines.jpg`. Re-rolled: B wall once
+  (the first take had moose / ram skulls, a scoped rifle and a dog).
