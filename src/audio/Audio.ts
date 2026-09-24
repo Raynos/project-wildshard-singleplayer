@@ -49,7 +49,8 @@ export type ImpactKind = 'wood' | 'ground' | 'flesh';
 export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal' | 'elk_bugle' | 'bear_growl' | 'bear_roar' | 'bear_hurt'
   | 'crab_click' | 'crab_snap' | 'monkey_chatter' | 'monkey_shriek' | 'sailor_groan' | 'sailor_slash' | 'coconut_hit' | 'coconut_land';   // Driftwood Isle's enemies (src/entities/Enemies.ts)
 export type AmbientBed = 'forest' | 'island';
-export type StepSurface = 'litter' | 'planks' | 'sand';
+/** 'litter' = pine needles (Pine Hollow's default); Pine Hollow adds mud (the pond's edge), rock and wet (rain) — PH-A3 */
+export type StepSurface = 'litter' | 'planks' | 'sand' | 'mud' | 'rock' | 'wet';
 /** sfx.json `oneshots` keys: the method each replaces (`footstep-sand`, `boltImpact-wood`, `land-hard`, the AnimalSound ids, `gull`) */
 export type OneShot = 'crossbowFire' | 'dryFire' | `boltImpact-${ImpactKind}` | 'swordSwing' | 'swordHeavy' | `swordHit-${'flesh' | 'wood'}`
   | 'dodge' | 'lunge' | 'reload' | 'rifleFire' | 'rifleReload' | 'weaponSwap' | `footstep-${StepSurface}` | 'jump' | 'land' | 'land-hard'
@@ -60,7 +61,7 @@ export interface SampleLoop { buffer: AudioBuffer; loopStart: number; loopEnd: n
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 
-interface Graph { ctx: AudioContext; master: GainNode; world: GainNode; sfx: GainNode; ambient: GainNode; muffle: BiquadFilterNode; noise: AudioBuffer }
+interface Graph { ctx: AudioContext; master: GainNode; world: GainNode; sfx: GainNode; ambient: GainNode; shade: GainNode; shadeLp: BiquadFilterNode; muffle: BiquadFilterNode; noise: AudioBuffer }
 
 export class Audio {
   listenerYaw = 0;
@@ -110,10 +111,14 @@ export class Audio {
     // sfx + ambient share a `world` gain, so the title screen can hush the (frozen) world while the music plays on the master
     const world = ctx.createGain(); world.gain.value = this._worldMuted ? 0 : 1; world.connect(master);
     const sfx = ctx.createGain(); sfx.gain.value = 1; sfx.connect(world);
-    const ambient = ctx.createGain(); ambient.gain.value = this.ambientOn ? 0.55 : 0; ambient.connect(world);
+    const ambient = ctx.createGain(); ambient.gain.value = this.ambientOn ? 0.55 : 0;
+    // the shade: the shard's bed heard through a wall (a cabin) or under night — a gain + low-pass the zoned ambience moves (ForestAmbience)
+    const shade = ctx.createGain(); shade.gain.value = 1;
+    const shadeLp = ctx.createBiquadFilter(); shadeLp.type = 'lowpass'; shadeLp.frequency.value = 20000; shadeLp.Q.value = 0.5;
+    ambient.connect(shadeLp).connect(shade).connect(world);
     const len = ctx.sampleRate * 2, noise = ctx.createBuffer(1, len, ctx.sampleRate), d = noise.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-    this.g = { ctx, master, world, sfx, ambient, muffle, noise };
+    this.g = { ctx, master, world, sfx, ambient, shade, shadeLp, muffle, noise };
     return this.g;
   }
   get ctx(): AudioContext { return this.graph().ctx; }
@@ -122,6 +127,14 @@ export class Audio {
   get ambient(): GainNode { return this.graph().ambient; }
   /** sfx + ambient's shared bus (hushed on the title screen) — reverb returns go here */
   get world(): GainNode { return this.graph().world; }
+  /** the ambient bus as heard from inside / at night: its level (1 = untouched) and a low-pass cutoff, eased over ~300 ms.
+   *  Pine Hollow's zoned ambience (ForestAmbience) muffles the shard bed inside a cabin and lowers the day bed at night. */
+  shadeAmbient(level: number, cutoff = 20000): void {
+    const g = this.g; if (!g) return;
+    const t = g.ctx.currentTime;
+    g.shade.gain.setTargetAtTime(Math.max(0, Math.min(1, level)), t, 0.1);
+    g.shadeLp.frequency.setTargetAtTime(Math.max(200, Math.min(20000, cutoff)), t, 0.1);
+  }
   /** the master low-pass under water: cutoff (Hz) and ramp (s); Driftwood sets 500 / 0.15 (S2), Pine Hollow keeps 520 / 0.3 */
   underwaterCutoff = 520; underwaterRamp = 0.3;
   private zoned = false;
@@ -473,6 +486,19 @@ export class Audio {
       this.burst({ t, type: 'bandpass', freq: rnd(1400, 2200), freqEnd: 700, q: 0.5, gain: sprinting ? 0.3 : 0.2, attack: 0.02, decay: sprinting ? 0.1 : 0.14, pan });
       this.burst({ t: t + 0.01, type: 'lowpass', freq: 380, gain: sprinting ? 0.32 : 0.2, attack: 0.012, decay: 0.09, pan });
       this.tone({ t, type: 'sine', f0: rnd(60, 80), f1: 42, glide: 0.06, gain: sprinting ? 0.18 : 0.1, decay: 0.07, pan });
+      return;
+    }
+    if (surface === 'mud' || surface === 'wet') {
+      // a squelch: a dull low thud, a wet mid smack that slides down, a little suck after it (mud) — no crunch
+      this.burst({ t, type: 'lowpass', freq: 420, gain: sprinting ? 0.42 : 0.28, attack: 0.008, decay: 0.08, pan });
+      this.burst({ t: t + 0.01, type: 'bandpass', freq: rnd(900, 1300), freqEnd: 500, q: 1.4, gain: sprinting ? 0.22 : 0.15, decay: 0.07, pan });
+      if (surface === 'mud') this.burst({ t: t + 0.12, type: 'bandpass', freq: rnd(600, 800), q: 2, gain: 0.08, attack: 0.02, decay: 0.08, pan });
+      return;
+    }
+    if (surface === 'rock') {
+      // boot on granite: a hard gritty click on a short low knock
+      this.burst({ t, type: 'bandpass', freq: rnd(2600, 3400), q: 1.2, gain: sprinting ? 0.3 : 0.2, decay: 0.03, pan });
+      this.tone({ t, type: 'sine', f0: rnd(90, 120), f1: 60, glide: 0.04, gain: sprinting ? 0.28 : 0.18, decay: 0.06, pan });
       return;
     }
     const f = rnd(380, 720);

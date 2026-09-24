@@ -12,6 +12,11 @@
 // caller — the boot's counted fetch at the loading bar, or Cache Storage for a style switch (project/archive/2026-09-23-preload-offline.md).
 // `decodeStyle` decodes one style's slots + stings; a slot whose file is missing or will not decode is left out, and Music
 // keeps the synth for it.
+//
+// Pine Hollow's own set (PINE-HOLLOW-REMASTER PH-A1): public/assets/music/pine-hollow-<style>/music.json (stems.py --set
+// pine-hollow) — slots `night` (calm + tension, like pine) and `boss` (the Antler King: `calm` = the base, `layers` = [bass,
+// drums], `phases` = each boss phase's layer gains), sting `dawn`. `decodeStyle(style, slots, …, 'pine-hollow')` reads it.
+// A deck of the boss plays its layers at the current phase's gains (Deck.setPhase), moved on the bar like the tension stem.
 import type { MusicStyle } from '../ui/Settings';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { MUSIC_MANIFESTS } from '../boot/audio.generated';
@@ -20,17 +25,24 @@ import { MUSIC_MANIFESTS } from '../boot/audio.generated';
  *  no 404 in the console, no request at all while the generated music has not landed */
 export const shipped = (path: string): boolean => path in PUBLIC_BYTES;
 
-export type SlotName = 'pine' | 'island' | 'title';
-export type StemSting = 'pickup' | 'death' | 'chunk';
+export type SlotName = 'pine' | 'island' | 'title' | 'night' | 'boss';
+export type StemSting = 'pickup' | 'death' | 'chunk' | 'dawn';
+/** a music set: the style's own folder, or Pine Hollow's (`pine-hollow-<style>/`) */
+export type MusicSet = 'base' | 'pine-hollow';
+export type BossPhase = 1 | 2 | 3;
 export interface SlotSpec {
-  /** the calm stem (pine / island) or the full mix (title) — file names relative to the manifest */
+  /** the calm stem (pine / island / night), the full mix (title) or the base (boss) — file names relative to the manifest */
   calm: string; tension: string | undefined;
+  /** the boss's extra layers (bass, drums), each gained per phase by `phases` */
+  layers: string[];
+  phases: Partial<Record<BossPhase, number[]>>;
   bpm: number; beatsPerBar: number; loopStart: number; loopEnd: number; duration: number;
 }
 export interface MusicManifest { style: string; credit: string; slots: Partial<Record<SlotName, SlotSpec>>; stings: Partial<Record<StemSting, string>> }
 
-const SLOTS: SlotName[] = ['pine', 'island', 'title'];
-const STINGS: StemSting[] = ['pickup', 'death', 'chunk'];
+const SLOTS: SlotName[] = ['pine', 'island', 'title', 'night', 'boss'];
+const STINGS: StemSting[] = ['pickup', 'death', 'chunk', 'dawn'];
+const PHASES: BossPhase[] = [1, 2, 3];
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const num = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
 const str = (v: unknown): string | undefined => (typeof v === 'string' && v.length > 0 && !v.includes('..') ? v : undefined);
@@ -39,7 +51,10 @@ function parseSlot(v: unknown): SlotSpec | undefined {
   if (!isObj(v)) return undefined;
   const calm = str(v['calm']) ?? str(v['full']), bpm = num(v['bpm']), loopStart = num(v['loopStart']) ?? 0, loopEnd = num(v['loopEnd']);
   if (calm === undefined || bpm === undefined || bpm < 30 || bpm > 260 || loopEnd === undefined || loopEnd <= loopStart + 0.5) return undefined;
-  return { calm, tension: str(v['tension']), bpm, beatsPerBar: num(v['beatsPerBar']) ?? 4, loopStart, loopEnd, duration: num(v['duration']) ?? loopEnd };
+  const lv = v['layers'], layers = Array.isArray(lv) ? lv.map(str).filter((f): f is string => f !== undefined) : [];
+  const phases: Partial<Record<BossPhase, number[]>> = {}, pv = v['phases'];
+  if (isObj(pv)) for (const k of PHASES) { const g = pv[String(k)]; if (Array.isArray(g) && g.length === layers.length) phases[k] = g.map((x) => Math.min(1.5, Math.max(0, num(x) ?? 0))); }
+  return { calm, tension: str(v['tension']), layers, phases, bpm, beatsPerBar: num(v['beatsPerBar']) ?? 4, loopStart, loopEnd, duration: num(v['duration']) ?? loopEnd };
 }
 /** the manifest, validated field by field — anything malformed is dropped (a slot without its files is a slot the synth keeps) */
 export function parseManifest(raw: unknown): MusicManifest | undefined {
@@ -51,20 +66,32 @@ export function parseManifest(raw: unknown): MusicManifest | undefined {
   return { style: str(raw['style']) ?? '', credit: str(raw['credit']) ?? 'Music: MiniMax-Music3', slots, stings };
 }
 
-/** a decoded slot: its spec and the stems (tension absent for the title cut) */
-export interface SlotAudio { style: MusicStyle; slot: SlotName; spec: SlotSpec; calm: AudioBuffer; tension: AudioBuffer | undefined }
+/** a decoded slot: its spec and the stems (tension absent for the title cut; layers only on the boss) */
+export interface SlotAudio { style: MusicStyle; slot: SlotName; spec: SlotSpec; calm: AudioBuffer; tension: AudioBuffer | undefined; layers: AudioBuffer[] }
 
 /** one style, decoded: the slots this shard can play and the stings, plus what each file cost */
 export interface StyleBank {
   style: MusicStyle;
+  set: MusicSet;
   slots: Map<SlotName, SlotAudio>;
   stings: Map<StemSting, AudioBuffer>;
   /** diagnostics: read → decoded wall time per file, and its bytes */
   log: { file: string; bytes: number; ms: number }[];
 }
 
-/** this build's manifest for `style` (compiled in from public/assets/music/<style>/music.json), or undefined */
-export function musicManifest(style: MusicStyle): MusicManifest | undefined { return parseManifest(MUSIC_MANIFESTS[style]); }
+/** the folder a set of `style` lives in: public/assets/music/<style>/ or public/assets/music/pine-hollow-<style>/ */
+export const musicSetDir = (style: MusicStyle, set: MusicSet = 'base'): string => (set === 'base' ? style : `pine-hollow-${style}`);
+/** this build's manifest for `style` (compiled in from public/assets/music/<dir>/music.json), or undefined */
+export function musicManifest(style: MusicStyle, set: MusicSet = 'base'): MusicManifest | undefined { return parseManifest(MUSIC_MANIFESTS[musicSetDir(style, set)]); }
+/** every file of a set (URLs) — Pine Hollow fetches its own set into the offline cache while the player is in (Music.prefetchPine) */
+export function setFiles(style: MusicStyle, set: MusicSet): string[] {
+  const m = musicManifest(style, set);
+  if (!m) return [];
+  const files: string[] = [];
+  for (const sp of Object.values(m.slots)) files.push(sp.calm, ...(sp.tension === undefined ? [] : [sp.tension]), ...sp.layers);
+  for (const f of Object.values(m.stings)) files.push(f);
+  return [...new Set(files.map((f) => `/assets/music/${musicSetDir(style, set)}/${f}`))].filter(shipped);
+}
 
 /** the files `decodeStyle(style, slots)` reads (URLs), so the loading bar can tell them from the files it only downloads */
 export function styleFiles(style: MusicStyle, slots: readonly SlotName[]): string[] {
@@ -80,11 +107,11 @@ export function styleFiles(style: MusicStyle, slots: readonly SlotName[]): strin
  * Decode `slots` + every sting of `style`. `read` hands over a file's bytes (by URL), `decode` turns them into an AudioBuffer
  * (an OfflineAudioContext's — no live context needed). Rejects only when the build has no manifest for the style.
  */
-export async function decodeStyle(style: MusicStyle, slots: readonly SlotName[], read: (url: string) => Promise<ArrayBuffer>, decode: (bytes: ArrayBuffer) => Promise<AudioBuffer>, onFile?: () => void): Promise<StyleBank> {
-  const m = musicManifest(style);
-  if (!m) throw new Error(`no music.json for '${style}' in this build`);
-  const base = `/assets/music/${style}/`;
-  const bank: StyleBank = { style, slots: new Map(), stings: new Map(), log: [] };
+export async function decodeStyle(style: MusicStyle, slots: readonly SlotName[], read: (url: string) => Promise<ArrayBuffer>, decode: (bytes: ArrayBuffer) => Promise<AudioBuffer>, onFile?: () => void, set: MusicSet = 'base', stings: readonly StemSting[] = STINGS): Promise<StyleBank> {
+  const m = musicManifest(style, set);
+  if (!m) throw new Error(`no music.json for '${musicSetDir(style, set)}' in this build`);
+  const base = `/assets/music/${musicSetDir(style, set)}/`;
+  const bank: StyleBank = { style, set, slots: new Map(), stings: new Map(), log: [] };
   const one = async (file: string): Promise<AudioBuffer> => {
     const t = performance.now(), url = `${base}${file}`;
     try {
@@ -100,15 +127,16 @@ export async function decodeStyle(style: MusicStyle, slots: readonly SlotName[],
       const spec = m.slots[slot];
       if (!spec) return;
       try {
-        const [calm, tension] = await Promise.all([one(spec.calm), spec.tension === undefined ? Promise.resolve(undefined) : one(spec.tension)]);
+        const [calm, tension, ...layers] = await Promise.all([one(spec.calm), spec.tension === undefined ? Promise.resolve(undefined) : one(spec.tension), ...spec.layers.map(one)]);
         // the loop must fit the file (a bad loopEnd would loop into silence)
         if (spec.loopEnd > calm.duration + 0.05) throw new Error(`${slot}: loopEnd ${spec.loopEnd} past the file (${calm.duration.toFixed(2)} s)`);
-        // stems of one recording: a tension stem of another length would drift off the calm one — drop it rather than play it wrong
-        const t = tension !== undefined && Math.abs(tension.duration - calm.duration) < 0.05 ? tension : undefined;
-        bank.slots.set(slot, { style, slot, spec, calm, tension: t });
+        // stems of one recording: a stem of another length would drift off the calm one — drop it rather than play it wrong
+        const aligned = (b: AudioBuffer | undefined): b is AudioBuffer => b !== undefined && Math.abs(b.duration - calm.duration) < 0.05;
+        if (!layers.every(aligned)) throw new Error(`${slot}: a layer's length differs from the base`);
+        bank.slots.set(slot, { style, slot, spec, calm, tension: aligned(tension) ? tension : undefined, layers });
       } catch (err: unknown) { console.info(`[music] ${style}/${slot}: ${err instanceof Error ? err.message : String(err)} — the synth plays it`); }
     }),
-    ...STINGS.map(async (k) => {
+    ...stings.map(async (k) => {
       const f = m.stings[k];
       if (f === undefined) return;
       try { bank.stings.set(k, await one(f)); } catch { /* that sting stays synth */ }
@@ -117,16 +145,19 @@ export async function decodeStyle(style: MusicStyle, slots: readonly SlotName[],
   return bank;
 }
 
-/** one slot playing: calm + tension sources through their gains into `out` (the deck's fade) */
+/** one slot playing: calm + tension sources (+ the boss's layers) through their gains into `out` (the deck's fade) */
 export class Deck {
   readonly out: GainNode;
   readonly tensionGain: GainNode | undefined;
+  /** the boss's layer gains (bass, drums), set per phase */
+  readonly layerGains: GainNode[] = [];
   readonly bar: number;
   private srcs: AudioBufferSourceNode[] = [];
   private tension = 0;
+  private _phase: BossPhase = 1;
   stopAt = Infinity;
 
-  constructor(ctx: BaseAudioContext, readonly audio: SlotAudio, dest: AudioNode, readonly t0: number, fadeIn: number, tension = 0) {
+  constructor(ctx: BaseAudioContext, readonly audio: SlotAudio, dest: AudioNode, readonly t0: number, fadeIn: number, tension = 0, phase: BossPhase = 1) {
     const { spec } = audio;
     this.bar = (60 / spec.bpm) * spec.beatsPerBar;
     this.out = ctx.createGain();
@@ -143,6 +174,27 @@ export class Deck {
       this.tensionGain = ctx.createGain(); this.tensionGain.gain.value = tension; this.tensionGain.connect(this.out);
       mk(audio.tension, this.tensionGain);
     }
+    this._phase = phase;
+    const pg = spec.phases[phase] ?? [];
+    audio.layers.forEach((buf, i) => {
+      const g = ctx.createGain(); g.gain.value = pg[i] ?? 0; g.connect(this.out); this.layerGains.push(g);
+      mk(buf, g);
+    });
+  }
+  get phase(): BossPhase { return this._phase; }
+
+  /** the boss's phase: its layers move to that phase's gains on the next bar (in over a beat, out over two bars) */
+  setPhase(phase: BossPhase, now: number): void {
+    const want = this.audio.spec.phases[phase];
+    if (phase === this._phase || !want || this.layerGains.length === 0) return;
+    const tb = this.nextBar(now + 0.02), beat = this.bar / this.audio.spec.beatsPerBar, up = phase > this._phase;
+    const before = this.audio.spec.phases[this._phase] ?? [];
+    this.layerGains.forEach((g, i) => {
+      const cp: { cancelAndHoldAtTime?: (t: number) => void } = g.gain;
+      if (cp.cancelAndHoldAtTime) cp.cancelAndHoldAtTime(tb); else { g.gain.cancelScheduledValues(tb); g.gain.setValueAtTime(before[i] ?? 0, tb); }
+      g.gain.linearRampToValueAtTime(want[i] ?? 0, tb + (up ? beat : this.bar * 2));
+    });
+    this._phase = phase;
   }
   get slot(): SlotName { return this.audio.slot; }
   get style(): MusicStyle { return this.audio.style; }

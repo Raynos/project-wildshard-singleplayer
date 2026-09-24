@@ -109,7 +109,7 @@ describe('gen: interactables (S4)', () => {
 });
 
 describe('gen: rooms and loops', () => {
-  test.each([['hold', 0.6], ['cave', 1.5], ['shrine', 2.5]] as const)('%s IR decays in %s s (mid band, ±15 %%), unit energy, decorrelated L/R', (room, target) => {
+  test.each([['hold', 0.6], ['cave', 1.5], ['shrine', 2.5], ['cabin', 0.5], ['den', 1.8], ['oldgrowth', 1.4], ['bowl', 0.9]] as const)('%s IR decays in %s s (mid band, ±15 %%), unit energy, decorrelated L/R', (room, target) => {
     const [L, R] = G.impulse(room, sr, 1);
     const mid = L.slice(); new Biquad('bandpass', 1000, 0.7, sr).apply(mid);
     expect(rt60(mid, sr)).toBeGreaterThan(target * 0.85);

@@ -31,9 +31,17 @@
 // Cache Storage, never the network — while the old one plays on, then crossfades on a bar and drops the old buffers; the menu
 // shows a spinner only past 300 ms, src/audio/preload.ts). `music.duck(k)` scales the whole bus
 // (the Driftwood shrine's −3 dB, src/audio/ShrineHum.ts).
+//
+// Pine Hollow's own slots (PINE-HOLLOW-REMASTER PH-A1, PH-U12): theme 1 ('pine') stays; `music.setPineScene('night' | 'boss' |
+// 'day')` switches to calm-night or the Antler King's boss track, `music.setBossPhase(1 | 2 | 3)` moves the boss's layers (I the
+// Warden · II Lanterns Fall · III the Last Light) on its bar grid, `music.sting('dawn')` is the quest's reward sting. They live in
+// public/assets/music/pine-hollow-<style>/ (not fetched by the loading bar, so the other shards' load is untouched): a slot is
+// decoded when it is first wanted (the theme plays on meanwhile) and the other Pine Hollow slot's buffers are dropped
+// (~30 MB of PCM each). `prefetchPine()` pulls the selected style's files into the offline cache while the player is in.
+// Quick links: `?music=pine-night`, `?music=pine-boss` (`-2` / `-3` for a phase), `?music=pine-dawn` (the sting after 2 s).
 import type { Audio } from './Audio';
 import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle } from '../ui/Settings';
-import { Deck, decodeStyle, type SlotAudio, type SlotName, type StyleBank } from './Stems';
+import { Deck, decodeStyle, setFiles, type BossPhase, type SlotAudio, type SlotName, type StyleBank } from './Stems';
 import { cachedBytes, decodeBytes, trackBusy } from './preload';
 import {
   ARRANGEMENTS, CHORDS, CHORD_ROOT, DORIAN_OF, STING_CHUNK, STING_DEATH, STING_PICKUP, dorianPitch,
@@ -42,7 +50,10 @@ import {
 
 export type Shard = 'pine' | 'island';
 export type MusicMode = 'menu' | 'calm' | 'alert' | 'combat';
-export type StingName = 'pickup' | 'death' | 'chunk';
+export type StingName = 'pickup' | 'death' | 'chunk' | 'dawn';
+/** Pine Hollow's music scene (PINE-HOLLOW-REMASTER PH-A1): 'day' = theme 1 ('pine'), 'night' = calm-night, 'boss' = the Antler King */
+export type PineScene = 'day' | 'night' | 'boss';
+export type { BossPhase } from './Stems';
 export interface MusicState { shard: Shard; mode: MusicMode; intensity: number; underwater: boolean }
 
 const LOOKAHEAD_BARS = 2;
@@ -439,8 +450,8 @@ class Engine {
   }
 
   // ─────────────── stings (their own bus, so the death duck never swallows them) ───────────────
-  sting(name: StingName, t: number) {
-    const spb = this.currentSpb();
+  sting(sting: StingName, t: number) {
+    const spb = this.currentSpb(), name = sting === 'dawn' ? 'chunk' : sting; // the synth has no dawn sting: the discovery chord
     if (name === 'pickup') { for (const n of STING_PICKUP) this.bell(n.n, t + n.t * spb, n.d * spb, n.v ?? 0.6, this.stingBus); return; }
     if (name === 'chunk') {
       const p = this.padVoice(STING_CHUNK.chord, t, 0.03, this.stingBus); p.release(t + 0.4, 2.6);
@@ -490,11 +501,29 @@ export class Music {
   /** styles that failed to decode this session — the synth plays them; picking a style again retries */
   private failed = new Set<MusicStyle>();
   private _duck = 1;
+  // ── Pine Hollow's slots (PH-A1) ──
+  private _scene: PineScene = 'day';
+  private _phase: BossPhase = 1;
+  /** the Pine Hollow slot decoded for the resident style (one at a time) and the dawn sting */
+  private ph: { style: MusicStyle; slot: SlotAudio | undefined; dawn: AudioBuffer | undefined } | undefined;
+  private phDecoding: string | undefined;
+  /** style/slot pairs that failed to decode this session: the theme plays for them */
+  private phFailed = new Set<string>();
+  private prefetched = new Set<MusicStyle>();
+  /** `?music=pine-dawn`: play the dawn sting once the Pine Hollow stems play */
+  private urlDawn = false;
 
   constructor(private readonly audio: Audio) {
+    const q = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('music');
+    const m = q === null ? null : /^pine-(night|boss|dawn)(?:-([123]))?$/.exec(q);
+    if (m) {
+      if (m[1] === 'night' || m[1] === 'boss') this._scene = m[1];
+      if (m[1] === 'dawn') this.urlDawn = true;
+      if (m[2] === '2' || m[2] === '3') this._phase = m[2] === '2' ? 2 : 3;
+    }
     this._volume = getNumber('music');
     onNumber('music', (v) => { this._volume = v; if (this.rig) this.rig.out.gain.setTargetAtTime(v, this.rig.ctx.currentTime, 0.05); });
-    onMusicStyle((v) => { this._style = v; this.failed.clear(); if (!this.rig || !this.playing) this.prepare(v); this.sync(); });
+    onMusicStyle((v) => { this._style = v; this.failed.clear(); this.phFailed.clear(); if (!this.rig || !this.playing) this.prepare(v); this.sync(); });
   }
 
   private build(): NonNullable<Music['rig']> {
@@ -519,12 +548,41 @@ export class Music {
   get isPlaying(): boolean { return this.playing !== undefined; }
   get style(): MusicStyle { return this._style; }
   /** diagnostics (dev / headless checks): what is sounding, the tension stem's live gain, what was fetched and how long it took */
-  get stems(): { style: MusicStyle; source: 'synth' | 'stems'; slot: SlotName | undefined; tension: number | undefined; synthOn: boolean; synthMix: number | undefined; duck: number | undefined; loads: { file: string; bytes: number; ms: number }[]; failed: string[] } {
+  get stems(): { style: MusicStyle; source: 'synth' | 'stems'; slot: SlotName | undefined; tension: number | undefined; synthOn: boolean; synthMix: number | undefined; duck: number | undefined; loads: { file: string; bytes: number; ms: number }[]; failed: string[]; scene: PineScene; phase: BossPhase; layers: number[] } {
     return {
       style: this._style, source: this.deck ? 'stems' : 'synth', slot: this.deck?.slot, tension: this.deck?.tensionGain?.gain.value,
       synthOn: this.synthOn, synthMix: this.rig?.engine.synthMix.gain.value, duck: this.rig?.duckGain.gain.value,
-      loads: this.bank ? [...this.bank.log] : [], failed: [...this.failed],
+      loads: this.bank ? [...this.bank.log] : [], failed: [...this.failed, ...this.phFailed],
+      scene: this._scene, phase: this._phase, layers: this.deck ? this.deck.layerGains.map((g) => g.gain.value) : [],
     };
+  }
+  get pineScene(): PineScene { return this._scene; }
+  get bossPhase(): BossPhase { return this._phase; }
+
+  /** Pine Hollow's scene — the day clock ('night' at dusk, 'day' at dawn) and the boss fight ('boss', back to 'day' / 'night' after).
+   *  Crossfades on the bar once that slot is decoded (the theme plays on meanwhile). No effect on the other shards. */
+  setPineScene(scene: PineScene): void {
+    if (scene === this._scene) return;
+    this._scene = scene;
+    if (scene === 'boss') this._phase = 1;
+    this.sync();
+  }
+  /** the Antler King's phase: I the Warden · II Lanterns Fall · III the Last Light — the boss track's layers move on its next bar */
+  setBossPhase(phase: BossPhase): void {
+    if (phase === this._phase) return;
+    this._phase = phase;
+    if (this.rig && this.deck?.slot === 'boss') this.deck.setPhase(phase, this.rig.ctx.currentTime);
+  }
+  /** pull the selected style's Pine Hollow files into the offline cache (the service worker keeps what it fetches), once per style,
+   *  when the browser is idle — so night / boss decode from the cache later. Pine Hollow calls it after the player is in. */
+  prefetchPine(): void {
+    const style = this._style;
+    if (style === 'synth' || this.prefetched.has(style)) return;
+    this.prefetched.add(style);
+    const files = setFiles(style, 'pine-hollow');
+    const idle = (window as unknown as { requestIdleCallback?: (fn: () => void) => void }).requestIdleCallback;
+    const go = (): void => { void (async () => { for (const f of files) { try { await cachedBytes(f); } catch { /* offline: decoded later or the theme plays */ } } })(); };
+    if (idle) idle(go); else window.setTimeout(go, 2000);
   }
 
   /** the stems the loading bar decoded (src/boot/extras.ts) — the selected style's title + this shard's slot + stings */
@@ -546,7 +604,7 @@ export class Music {
     if (idle) idle(() => this.engine.warm(arr)); else window.setTimeout(() => this.engine.warm(arr), 300);
     if (name === 'theme') this.sync();
   }
-  private stemsReady(): boolean { const b = this.bank; return this._style !== 'synth' && b !== undefined && b.style === this._style && b.slots.has(this.wantSlot()); }
+  private stemsReady(): boolean { const b = this.bank; return this._style !== 'synth' && b !== undefined && b.style === this._style && b.slots.has(this.baseSlot()); }
   private pump() {
     const spb = this.engine.currentSpb();
     this.engine.pump(this.ctx.currentTime + LOOKAHEAD_BARS * 4 * spb);
@@ -583,6 +641,12 @@ export class Music {
   /** the slot the state asks for: the title cut on the menu, else the shard's theme */
   private wantSlot(): SlotName {
     const s = this.state;
+    if (s.mode !== 'menu' && s.shard === 'pine' && this._scene !== 'day') return this._scene; // 'night' | 'boss' (PH-A1)
+    return this.baseSlot();
+  }
+  /** the slot of the base set: the title on the menu, else the shard's theme (Pine Hollow's night / boss fall back to 'pine') */
+  private baseSlot(): SlotName {
+    const s = this.state;
     return s.mode === 'menu' ? 'title' : s.shard === 'island' ? 'island' : 'pine';
   }
   private tension(): number { return TENSION[this.state.mode]; }
@@ -595,11 +659,49 @@ export class Music {
     this.deck?.setTension(this.tension(), now); // a deck of another slot / style plays on (at the right level) until the new one is in
     const bank = this.bank;
     if (bank?.style !== style) { this.prepare(style); if (!this.deck && !this.synthOn) this.startSynth(now + 0.05, 1); return; }
-    const slot = this.wantSlot();
+    let slot = this.wantSlot();
+    if (slot === 'night' || slot === 'boss') {
+      const ph = this.ph?.style === style ? this.ph.slot : undefined;
+      if (ph?.slot === slot) {
+        if (this.deck?.slot === slot && this.deck.style === style) { this.deck.setPhase(this._phase, now); return; }
+        this.startDeck(ph);
+        return;
+      }
+      this.preparePine(style, slot); // decoded in the background: the theme plays until it is in (or for good, if it fails)
+      slot = this.baseSlot();
+    }
     if (this.deck?.slot === slot && this.deck.style === style) return;
     const a = bank.slots.get(slot);
     if (a === undefined) { this.toSynth(now); return; } // this style has no such slot in the build (or it failed to decode)
     this.startDeck(a);
+  }
+  /** decode one Pine Hollow slot (+ the dawn sting) of `style` from the offline cache, or the network if it never got there */
+  private preparePine(style: MusicStyle, slot: 'night' | 'boss'): void {
+    const key = `${style}/${slot}`;
+    if (this.phDecoding === key || this.phFailed.has(key)) return;
+    this.phDecoding = key;
+    void (async () => {
+      let bank: StyleBank | undefined;
+      try { bank = await decodeStyle(style, [slot], cachedBytes, decodeBytes, undefined, 'pine-hollow', ['dawn']); }
+      catch (err: unknown) { console.info(`[music] pine-hollow ${key}: ${err instanceof Error ? err.message : String(err)} — the theme plays`); }
+      finally { if (this.phDecoding === key) this.phDecoding = undefined; }
+      const a = bank?.slots.get(slot);
+      if (!a) { this.phFailed.add(key); return; }
+      if (this._style !== style) return;
+      // one Pine Hollow slot resident: the other's buffers go (a fading deck keeps its own until it ends)
+      this.ph = { style, slot: a, dawn: bank?.stings.get('dawn') ?? (this.ph?.style === style ? this.ph.dawn : undefined) };
+      this.sync();
+    })();
+  }
+  /** the dawn sting of `style`, decoded on its own when no Pine Hollow slot has been (≈ 8 s, tiny) */
+  private async dawnSting(style: MusicStyle): Promise<AudioBuffer | undefined> {
+    if (this.ph?.style === style && this.ph.dawn) return this.ph.dawn;
+    try {
+      const bank = await decodeStyle(style, [], cachedBytes, decodeBytes, undefined, 'pine-hollow', ['dawn']);
+      const buf = bank.stings.get('dawn');
+      if (buf && this._style === style) this.ph = { style, slot: this.ph?.style === style ? this.ph.slot : undefined, dawn: buf };
+      return buf;
+    } catch { return undefined; }
   }
   /** decode `style` from the offline cache (a menu switch; the bar already downloaded every style) — the old style plays on */
   private prepare(style: MusicStyle): void {
@@ -636,8 +738,9 @@ export class Music {
     } else {
       t = now + 0.05; fade = 1; // from silence (play() with the stems already decoded)
     }
-    this.deck = new Deck(this.rig.ctx, a, this.rig.stemBus, t, fade, this.tension());
+    this.deck = new Deck(this.rig.ctx, a, this.rig.stemBus, t, fade, this.tension(), this._phase);
     this.stopSynth(t, fade);
+    if (this.urlDawn && a.slot !== 'title' && a.style === this._style && this.state.shard === 'pine') { this.urlDawn = false; window.setTimeout(() => this.sting('dawn'), 2000); }
   }
 
   /** the deck (if any) out over a bar on its grid, the synth back in under it */
@@ -690,6 +793,7 @@ export class Music {
   sting(name: StingName): void {
     if (!this.rig) return;
     const { ctx, engine, stemBus } = this.rig, t = ctx.currentTime + 0.02, deck = this.deck;
+    if (name === 'dawn') { this.dawn(); return; }
     const buf = deck && this.bank?.style === deck.style ? this.bank.stings.get(name) : undefined;
     if (buf) { const src = ctx.createBufferSource(); src.buffer = buf; src.connect(engine.stingBus); src.start(t); }
     else engine.sting(name, t);
@@ -697,6 +801,23 @@ export class Music {
       const g = stemBus.gain, bar = deck.bar;
       holdAt(g, t); g.linearRampToValueAtTime(0, t + bar); g.setValueAtTime(0, t + bar + 6); g.linearRampToValueAtTime(1, t + bar * 2 + 6);
     }
+  }
+
+  /** the quest's reward sting (PH-A1): the dawn take's resolve over the score, which dips under it (a beat down, back over 2 bars
+   *  after); the synth's discovery chord when the style is synth or the file is not in the build / will not decode */
+  private dawn(): void {
+    const style = this._style;
+    if (!this.rig) return;
+    if (style === 'synth' || !this.deck) { this.rig.engine.sting('dawn', this.rig.ctx.currentTime + 0.02); return; }
+    void (async () => {
+      const buf = await this.dawnSting(style);
+      if (!this.rig) return;
+      const { ctx, engine, stemBus } = this.rig, t = ctx.currentTime + 0.02;
+      if (!buf) { engine.sting('dawn', t); return; }
+      const src = ctx.createBufferSource(); src.buffer = buf; src.connect(engine.stingBus); src.start(t);
+      const d = this.deck, beat = d ? d.bar / 4 : 0.5, g = stemBus.gain;
+      holdAt(g, t); g.linearRampToValueAtTime(0.25, t + beat); g.setValueAtTime(0.25, t + buf.duration - 1); g.linearRampToValueAtTime(1, t + buf.duration - 1 + (d ? d.bar * 2 : 4));
+    })();
   }
 
   /** scale the whole music bus (1 = untouched): the shrine ducks it −3 dB up close. Cheap to call per frame — only a real change schedules. */

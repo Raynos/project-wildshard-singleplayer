@@ -10,6 +10,18 @@ built by sfx_build.py) and their CLAP rankings (scripts/music/gen/sfx-moss.json,
 The winner's files (already content-addressed, loop points already measured on the decoded file) are copied as they are
 into public/assets/sfx/best/, with its sfx.json entry; the provenance keeps the per-file `source` model.
 Writes public/assets/sfx/best/sfx.json and scripts/music/gen/sfx-best.json (the per-family decision table).
+
+    python3 scripts/music/gen/sfx_merge.py --jobs sfx-ph-jobs.json --stage <dir>
+
+PINE-HOLLOW-REMASTER PH-A2..A4: the same rule for another families file whose per-model sets sfx_build.py --stage wrote to
+<dir>/moss/ and <dir>/sa3-medium/ (rankings in sfx-ph-<set>.json). Each family goes where its `into` says:
+  best         merged INTO public/assets/sfx/best/ additively: that family's old files and provenance are replaced by the
+               winner's; if neither new take ranks in the top 5 the family's round-2 files stay. Everything else in best/
+               is untouched.
+  pine-hollow  public/assets/sfx/pine-hollow/ (rebuilt): Pine Hollow's zoned beds (with their `zone` / `live`), barks and the
+               sounds ready for events that do not exist yet. Not in Settings' SFX_SETS, so the loading bar does not
+               download it for every shard; Pine Hollow reads it itself.
+The decision rows land in scripts/music/gen/sfx-best.json next to round 2's (a `round: "pine-hollow"` and `into` on each).
 """
 
 from __future__ import annotations
@@ -27,9 +39,19 @@ SOURCES = {"moss": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, 
 
 
 def main() -> None:
-    fams = json.loads((HERE / "sfx-jobs.json").read_text())["families"]
-    sets = {s: json.loads((SFX / s / "sfx.json").read_text()) for s in SOURCES}
-    ranking = {s: json.loads((HERE / f"sfx-{s}.json").read_text())["families"] for s in SOURCES}
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--jobs", default=None, help="another families file (sfx-ph-jobs.json); needs --stage")
+    ap.add_argument("--stage", default=None, help="where sfx_build.py --stage wrote the per-model sets")
+    args = ap.parse_args()
+    ph = args.jobs is not None
+    if ph and args.stage is None:
+        raise SystemExit("--jobs needs --stage")
+    src_root = Path(args.stage) if ph else SFX
+    fams = json.loads((HERE / (args.jobs or "sfx-jobs.json")).read_text())["families"]
+    sets = {s: json.loads((src_root / s / "sfx.json").read_text()) for s in SOURCES}
+    ranking = {s: json.loads((HERE / f"{'sfx-ph-' if ph else 'sfx-'}{s}.json").read_text())["families"] for s in SOURCES}
 
     def entry(s: str, fam: str) -> tuple[dict | None, list[str]]:
         m = sets[s]
@@ -49,6 +71,10 @@ def main() -> None:
             return int(p["clap_rank"]), float(p["clap_p"])
         best = ranking[s][fam][0]  # not shipped by that set: its best take's rank
         return int(best["rank"]), float(best["p"])
+
+    if ph:
+        merge_ph(fams, sets, ranking, src_root, entry, score)
+        return
 
     dest = SFX / "best"
     dest.mkdir(parents=True, exist_ok=True)
@@ -86,6 +112,66 @@ def main() -> None:
     (HERE / "sfx-best.json").write_text(json.dumps({"rule": "lower CLAP rank wins, ties to the higher p; ships only in the top 5",
                                                     "wins": wins, "families": table}, indent=2) + "\n")
     print(f"best: {total / 1e6:.2f} MB, wins {wins}, synth keeps {keeps}")
+
+
+def merge_ph(fams: dict, sets: dict, ranking: dict, src_root: Path, entry, score) -> None:  # noqa: ANN001 - the closures above
+    best_dir, ph_dir = SFX / "best", SFX / "pine-hollow"
+    ph_dir.mkdir(parents=True, exist_ok=True)
+    for old in ph_dir.glob("*.m4a"):  # this folder holds only this function's output
+        old.unlink()
+    best = json.loads((best_dir / "sfx.json").read_text())
+    table_doc = json.loads((HERE / "sfx-best.json").read_text())
+    table = table_doc["families"]
+    man: dict = {"model": best["model"], "credit": best["credit"], "licence": best["licence"], "set": "pine-hollow",
+                 "beds": {}, "hums": {}, "oneshots": {}, "provenance": []}
+    keeps, total = [], {"best": 0, "pine-hollow": 0}
+
+    def section(m: dict, fam: str) -> tuple[dict, str]:
+        kind = fams[fam]["kind"]
+        return (m["oneshots"], fam) if kind == "oneshot" else (m["beds" if kind == "bed" else "hums"], fam.split("-", 1)[1])
+
+    missing = []
+    for fam, j in fams.items():
+        if any(fam not in ranking[s] for s in SOURCES):  # not rendered by both models yet: left as it is
+            missing.append(fam)
+            continue
+        (rm, pm), (rs, ps) = score("moss", fam), score("sa3-medium", fam)
+        win = "moss" if (rm, -pm) <= (rs, -ps) else "sa3-medium"
+        rank = rm if win == "moss" else rs
+        into = j.get("into", "pine-hollow")
+        row = {"winner": win, "moss": {"rank": rm, "p": pm}, "sa3-medium": {"rank": rs, "p": ps}, "round": "pine-hollow", "into": into}
+        e, files = entry(win, fam)
+        if rank > SHIP_MAX_RANK or e is None:
+            keeps.append(fam)
+            row["winner"] = "synth" if fam not in table or into != "best" else "kept-round-2"
+            if into == "best" and fam in table:
+                row["kept"] = table[fam]  # the round-2 decision, whose files stay
+            table[fam] = row
+            continue
+        target, m = (best_dir, best) if into == "best" else (ph_dir, man)
+        sec, key = section(m, fam)
+        if into == "best" and key in sec:  # replace the round-2 files of this family
+            olds = sec[key]["files"] if "files" in sec[key] else [sec[key]["file"]]
+            for f in olds:
+                (best_dir / f).unlink(missing_ok=True)
+            best["provenance"] = [p for p in best["provenance"] if p["file"] not in olds]
+        for f in files:
+            shutil.copy2(src_root / win / f, target / f)
+            total[into] += (target / f).stat().st_size
+            p = next(x for x in sets[win]["provenance"] if x["file"] == f)
+            m["provenance"].append({**p, "source": SOURCES[win], "set_of_origin": win, "round": "pine-hollow"})
+        e = dict(e)
+        if fams[fam]["kind"] == "bed":
+            e["zone"], e["live"] = j.get("zone"), bool(j.get("live"))
+        sec[key] = e
+        table[fam] = row
+    man["synth_keeps"] = [f for f in keeps if fams[f].get("into") != "best"]
+    best["synth_keeps"] = sorted(set(best.get("synth_keeps", [])) - {f for f in fams if table[f]["winner"] not in ("synth", "kept-round-2")})
+    (best_dir / "sfx.json").write_text(json.dumps(best, indent=2, ensure_ascii=False) + "\n")
+    (ph_dir / "sfx.json").write_text(json.dumps(man, indent=2, ensure_ascii=False) + "\n")
+    table_doc["wins"] = {k: sum(1 for t in table.values() if t["winner"] == k) for k in ("moss", "sa3-medium", "synth", "kept-round-2")}
+    (HERE / "sfx-best.json").write_text(json.dumps(table_doc, indent=2) + "\n")
+    print(f"pine-hollow: best += {total['best'] / 1e6:.2f} MB, pine-hollow {total['pine-hollow'] / 1e6:.2f} MB, wins {table_doc['wins']}, not shipped {keeps}, not rendered yet {missing}")
 
 
 if __name__ == "__main__":

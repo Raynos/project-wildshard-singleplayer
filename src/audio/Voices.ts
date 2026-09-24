@@ -41,6 +41,7 @@ export const FAMILIES: Record<string, Family> = {
   'noise-pink': fam(1, (sr, s) => noiseLoop(sr, s, true)),
   ...Object.fromEntries(INTERACT_SOUNDS.map((k) => [`ui-${k}`, fam(k === 'glyph' ? 1 : 2, (sr, s) => interact(k, sr, s))])),
   'ir-hold': room('hold'), 'ir-cave': room('cave'), 'ir-shrine': room('shrine'),
+  'ir-cabin': room('cabin'), 'ir-den': room('den'), 'ir-oldgrowth': room('oldgrowth'), 'ir-bowl': room('bowl'), // Pine Hollow (PH-A5)
 };
 export type FamilyName = keyof typeof FAMILIES;
 

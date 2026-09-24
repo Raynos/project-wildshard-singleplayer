@@ -74,6 +74,7 @@ import { ShrineHum } from './audio/ShrineHum';
 import { IslandSfx } from './audio/IslandSfx';
 import { SurfaceMap } from './audio/Surface';
 import { IslandAmbience } from './audio/IslandAmbience';
+import { ForestAmbience } from './audio/ForestAmbience';
 import { installErrorModal, showError } from './ui/ErrorModal';
 import { onReview, queuedCount, quickNote } from './ui/review';
 import { rotateGated } from './ui/RotateGate';
@@ -536,12 +537,12 @@ async function main() {
     swordEvents.onClang = (point, strength, clang) => { islandSfx.impact(clang, strength, point); }; // stone / wood by what the tip met (P5)
     animals.onWindup = (a) => { const e = a.kind === 'crab' ? 'crab' : a.kind === 'sailor' ? 'sailor' : a.kind === 'boar' || a.kind === 'bear' ? 'boar' : null; if (e !== null) islandSfx.windup(e, a.position); };
   }
-  const ambience = sea ? new IslandAmbience(audio, { sea: sea.level, heightAt, palms: palmSpecs, wreck, cove: Cove.forIsland() }) : null;
+  const ambience = sea ? new IslandAmbience(audio, { sea: sea.level, heightAt, palms: palmSpecs, wreck, cove: Cove.forIsland() }) : chunk.slug === 'pine-hollow' ? new ForestAmbience(audio, { heightAt, cabins, music }) : null; // PH-A2
   player.onStep = (sprinting) => {
     const p = player.position;
     if (islandSfx && surfaces && !(player.wading && player.depth > 0.3)) islandSfx.footstep(player.wading ? 'water' : surfaces.surfaceAt(p.x, p.z, p.y), Math.hypot(player.velocity.x, player.velocity.z));
     else if (player.wading) audio.wadeStep(player.depth, sprinting);
-    else audio.footstep(sprinting, pier?.floorHeightAt(p.x, p.z) !== undefined ? 'planks' : sea !== undefined && heightAt(p.x, p.z) - sea.level < 2.6 ? 'sand' : 'litter');
+    else audio.footstep(sprinting, pier?.floorHeightAt(p.x, p.z) !== undefined ? 'planks' : sea !== undefined && heightAt(p.x, p.z) - sea.level < 2.6 ? 'sand' : ambience instanceof ForestAmbience ? ambience.stepSurface(p.x, p.z, p.y) : 'litter');
   };
   if (gulls) gulls.onCall = (pos) => audio.gullCallAt(pos, player.position, player.yaw);
   player.onEnterWater = (impact) => audio.splash(impact);

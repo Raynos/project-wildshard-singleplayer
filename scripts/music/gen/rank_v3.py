@@ -1,6 +1,11 @@
 """MUSIC.md v3 row 4: rank the MiniMax takes per slot, pick the top take + 2 alternates, build the round-2 listening page.
 
-    python3 scripts/music/gen/rank_v3.py <raw3-dir>
+    python3 scripts/music/gen/rank_v3.py <raw3-dir> [--set pine-hollow]
+
+--set pine-hollow (PINE-HOLLOW-REMASTER PH-A1): the slots of ph-jobs.json instead - night + boss (loops, groove scored: the
+boss's phases are its stems) and dawn (scored like the title: the reward sting is cut from it). Writes
+scripts/music/gen/v3-ph-<style>.json only; the page and its previews are scripts/music/gen/ph_page.py's (theme 1 next to
+the new slots, the built phases and sting, the NPC barks, every sound's two takes).
 
 Reads <raw3>/<style>-<slot>/minimax3-<seed>.wav + .json (gen_minimax.py --jobs) + .metrics.json (analyze.py).
 Writes:
@@ -82,8 +87,23 @@ def load(raw: Path, style: str, slot: str) -> list[dict]:
     return takes
 
 
+def configure(argv: list[str]) -> tuple[Path, str | None]:
+    """the positional raw dir + the optional --set; --set pine-hollow swaps the slot tables and the output paths"""
+    global ART, LOOP_SLOTS, SLOTS
+    args = [a for a in argv if not a.startswith("--set")]
+    tag = next((a.split("=", 1)[1] for a in argv if a.startswith("--set=")), None)
+    if "--set" in argv:
+        tag = argv[argv.index("--set") + 1]
+        args = [a for a in args if a != tag]
+    if tag == "pine-hollow":
+        ART, LOOP_SLOTS, SLOTS = REPO / "art/music/round-3-pine-hollow", ("night", "boss"), ("night", "boss", "dawn")
+    elif tag is not None:
+        raise SystemExit(f"unknown --set {tag}")
+    return Path(args[0]), tag
+
+
 def main() -> None:
-    raw = Path(sys.argv[1])
+    raw, tag = configure(sys.argv[1:])
     for old in ART.glob("*/*.mp3"):  # this folder holds only this script's output
         old.unlink()
     result: dict = {}
@@ -98,6 +118,8 @@ def main() -> None:
             ok = [t for t in takes if t["dq"] is None]
             for i, t in enumerate(ok[:3]):
                 t["rank"] = i + 1
+                if tag is not None:  # the Pine Hollow page encodes its own (lighter) previews: ph_page.py
+                    continue
                 t["mp3"] = f"{style}/{slot}-{t['side']['seed']}.mp3"
                 t["mp3_bytes"] = mp3(Path(t["wav"]), t["metrics"], ART / t["mp3"])
             result[style][slot] = takes
@@ -118,8 +140,9 @@ def main() -> None:
                 for slot, takes in result[style].items()
             },
         }
-        (HERE / f"v3-{style}.json").write_text(json.dumps(rec, indent=2, ensure_ascii=False) + "\n")
-    (ART / "index.html").write_text(page(result))
+        (HERE / (f"v3-ph-{style}.json" if tag else f"v3-{style}.json")).write_text(json.dumps(rec, indent=2, ensure_ascii=False) + "\n")
+    if tag is None:
+        (ART / "index.html").write_text(page(result))
     total = sum(p.stat().st_size for p in ART.glob("*/*.mp3"))
     print(f"mp3 total {total / 1e6:.1f} MB -> {ART}")
 

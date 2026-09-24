@@ -15,7 +15,8 @@
  *   hurt(sr, seed) · death(sr, seed)    the player (formant vocal over a body hit)
  *   plunge(sr, seed, up)                crossing the water surface (down: a plunge + bubble cloud; up: sheeting water)
  *   bubbleBed(sr, seed)                 a seamless 6 s loop of underwater bubbles + pressure rumble
- *   impulse(room, sr, seed)             [L, R] impulse responses: 'hold' 0.6 s · 'cave' 1.5 s · 'shrine' 2.5 s
+ *   impulse(room, sr, seed)             [L, R] impulse responses: 'hold' 0.6 s · 'cave' 1.5 s · 'shrine' 2.5 s; Pine Hollow (PH-A5):
+ *                                       'cabin' 0.5 s · 'den' 1.8 s · 'oldgrowth' 1.4 s · 'bowl' 0.9 s
  *   noiseLoop(sr, seed, pink)           a seamless 4 s white / pink noise loop (the ambience beds' raw material)
  *   interact(kind, sr, seed)            the adventure kit: chest / locked / lever / plate / door / grate / chime / glyph / ignite
  */
@@ -25,7 +26,7 @@ export type StepKind = 'sand' | 'wetSand' | 'grass' | 'rock' | 'planks' | 'stone
 export type Material = 'flesh' | 'shell' | 'wood' | 'stone';
 export type Enemy = 'boar' | 'crab' | 'monkey' | 'sailor';
 export type WindupEnemy = 'boar' | 'crab' | 'sailor';
-export type Room = 'hold' | 'cave' | 'shrine';
+export type Room = 'hold' | 'cave' | 'shrine' | 'cabin' | 'den' | 'oldgrowth' | 'bowl';
 export const STEP_KINDS: readonly StepKind[] = ['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water'];
 export const MATERIALS: readonly Material[] = ['flesh', 'shell', 'wood', 'stone'];
 export const ENEMIES: readonly Enemy[] = ['boar', 'crab', 'monkey', 'sailor'];
@@ -36,6 +37,15 @@ export const ROOMS: Record<Room, { rt60: number; pre: number; damp: number; earl
   cave: { rt60: 1.5, pre: 0.012, damp: 0.62, early: 7, spread: 0.045 },
   // the ring shrine's stone court under the jungle canopy: long, smooth, bright stone
   shrine: { rt60: 2.5, pre: 0.02, damp: 0.78, early: 12, spread: 0.07 },
+  // Pine Hollow (PINE-HOLLOW-REMASTER PH-A5), the same generator — derived, 0 bytes:
+  // a log cabin's room: short, woody (logs + chinking soak the highs), a low box mode ~180 Hz, a dense early slap
+  cabin: { rt60: 0.5, pre: 0.003, damp: 0.5, early: 12, spread: 0.015, box: [180, 4] },
+  // the bear den: a shallow granite cave, longer and darker than the sea cave, a few strong wall reflections
+  den: { rt60: 1.8, pre: 0.015, damp: 0.55, early: 8, spread: 0.05 },
+  // the old-growth: no walls, only giant trunks — many soft, late, diffuse reflections and a dark tail (needles eat the highs)
+  oldgrowth: { rt60: 1.4, pre: 0.025, damp: 0.42, early: 16, spread: 0.12 },
+  // the open bowl: sparse slaps off the valley sides a quarter-second out, a short dark tail
+  bowl: { rt60: 0.9, pre: 0.06, damp: 0.5, early: 5, spread: 0.25 },
 };
 
 // ─────────────── layers (each adds into `out` at sample `at`) ───────────────

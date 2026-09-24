@@ -2,6 +2,13 @@
 build the side-by-side comparison page.
 
     ~/ml/music/analysis/.venv/bin/python scripts/music/gen/sfx_build.py <sfx-raw-dir>
+    ~/ml/music/analysis/.venv/bin/python scripts/music/gen/sfx_build.py <sfx-raw-dir> --jobs sfx-ph-jobs.json --stage <dir>
+
+--jobs / --stage (PINE-HOLLOW-REMASTER PH-A2..A4): rank another families file; each model's set is written to <dir>/<set>/
+(a staging area outside public/, for sfx_merge.py --jobs to pick the winners from) and the rankings to
+scripts/music/gen/sfx-ph-<set>.json; no comparison page (scripts/music/gen/ph_page.py makes Pine Hollow's). A family's
+optional `group` (an NPC's barks, the footstep surfaces) keeps its siblings out of its CLAP competitors, so near-identical
+descriptions do not rank each other down. With --stage, beds encode stereo at BED_KBPS (Pine Hollow has 14 of them).
 
 Reads <raw>/<model>/<family>/<seed>.wav + .json (gen_sfx.py / gen_sfx_moss.py / gen_sfx_ezaudio.py / MiniMax via
 sfx_minimax.py). For every take:
@@ -61,6 +68,7 @@ SETS = {
 FOILS = ["music with melody and instruments", "a person speaking", "silence"]
 LEVEL = {"bed": -24.0, "hum": -26.0, "oneshot": -18.0}
 SHIP_MAX_RANK = 5
+BED_KBPS = 64
 GAIN = {"bed-forest": 0.5, "bed-island": 0.5, "bed-underwater": 0.5, "hum-pickup": 0.35, "hum-shrine": 0.6}
 
 
@@ -78,8 +86,16 @@ def main() -> None:
     import torch
     from transformers import ClapModel, ClapProcessor
 
-    raw = Path(sys.argv[1])
-    fams = json.loads((HERE / "sfx-jobs.json").read_text())["families"]
+    import argparse
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("raw")
+    ap.add_argument("--jobs", default="sfx-jobs.json")
+    ap.add_argument("--stage", default=None, help="write each model's set under this dir instead of public/assets/sfx/")
+    args = ap.parse_args()
+    raw = Path(args.raw)
+    fams = json.loads((HERE / args.jobs).read_text())["families"]
+    out_root, prefix = (Path(args.stage), "sfx-ph-") if args.stage else (OUT, "sfx-")
     clap = ClapModel.from_pretrained(str(CLAP_DIR)).eval()
     proc = ClapProcessor.from_pretrained(str(CLAP_DIR))
     scale = float(clap.logit_scale_a.detach().exp())
@@ -105,8 +121,12 @@ def main() -> None:
                 ae = torch.nn.functional.normalize(_tensor(clap.get_audio_features(**a)), dim=-1).mean(0, keepdim=True)
                 sims = (torch.nn.functional.normalize(ae, dim=-1) @ te.T)[0]
             i = names.index(fam)
+            grp = fams[fam].get("group")
+            keep = torch.tensor([j == i or grp is None or j >= len(names) or fams[names[j]].get("group") != grp for j in range(len(texts))])
+            ks = sims[keep]
+            ki = int(keep[:i].sum())  # this family's index among the kept competitors
             r = {"family": fam, "seed": side["seed"], "wav": str(wav), "side": side,
-                 "p": round(float(torch.softmax(sims * scale, 0)[i]), 3), "rank": int((sims > sims[i]).sum()) + 1,
+                 "p": round(float(torch.softmax(ks * scale, 0)[ki]), 3), "rank": int((ks > ks[ki]).sum()) + 1,
                  "best_match": texts[int(sims.argmax())], "peak": round(float(np.abs(x).max()), 3)}
             if fams[fam]["kind"] in ("bed", "hum"):
                 r["seam"] = loop_seam(librosa.resample(y, orig_sr=sr, target_sr=22050), 22050, 240.0, len(y) / sr)  # 1 s grid
@@ -128,14 +148,14 @@ def main() -> None:
                           "mean_gen_s": round(float(np.mean(gens)), 2),
                           "mps_driver_gb_max": max((r["side"].get("mps_driver_gb") or 0) for r in takes)}
         tag = meta["set"] or model
-        (HERE / f"sfx-{tag}.json").write_text(json.dumps(
+        (HERE / f"{prefix}{tag}.json").write_text(json.dumps(
             {"model": meta["title"], "families": {f: [{k: v for k, v in r.items() if k != "wav"} for r in rs] for f, rs in by_fam.items()}},
             indent=2) + "\n")
         if meta["set"] is None:
             continue
 
         # ---- ship this model's set
-        dest = OUT / meta["set"]
+        dest = out_root / meta["set"]
         dest.mkdir(parents=True, exist_ok=True)
         for old in dest.glob("*.m4a"):  # this folder holds only this script's output
             old.unlink()
@@ -159,12 +179,12 @@ def main() -> None:
                 L, tp = lufs(y, sr)
                 y = y * 10 ** (min(LEVEL[kind] - L, -1.0 - tp) / 20)
                 tmp = dest / ".tmp.m4a"
-                total += encode(y, sr, tmp, mono=(kind == "oneshot"))
+                total += encode(y, sr, tmp, mono=(kind == "oneshot"), kbps=BED_KBPS if (args.stage and kind == "bed") else None)
                 lag, dlen = decode_offset(tmp, y, sr) if kind in ("bed", "hum") else (0.0, 0.0)
                 fname = shipped_name(dest, tmp, f"{fam}-{r['seed']}")
                 if kind in ("bed", "hum"):
                     entry = {"file": fname, "loopStart": round(r["seam"]["start_s"] + lag, 4), "loopEnd": round(r["seam"]["end_s"] + lag, 4),
-                             "duration": round(dlen, 4), "gain": GAIN[fam]}
+                             "duration": round(dlen, 4), "gain": GAIN.get(fam, 0.5)}
                     assert entry["loopEnd"] <= dlen and entry["loopEnd"] - entry["loopStart"] > 0.5
                     man["beds" if kind == "bed" else "hums"][fam.split("-", 1)[1]] = entry
                 else:
@@ -181,6 +201,9 @@ def main() -> None:
         for m, gb in json.loads(peaks.read_text()).items():
             if m in summary:
                 summary[m]["peak_gb"] = gb
+    if args.stage:
+        (HERE / "sfx-ph-summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+        return
     (HERE / "sfx-summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     page(raw, picks, summary, names, fams)
 
