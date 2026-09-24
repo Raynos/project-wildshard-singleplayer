@@ -16,6 +16,7 @@
  */
 import * as THREE from 'three';
 import { TIER } from '../../core/tier';
+import { onGpuRestored } from '../../core/gpuOnly';
 
 const LAYER = 7;
 const SIZE = TIER === 'phone' ? 1024 : 2048;
@@ -139,6 +140,7 @@ export class StaticBake {
     bakeUniforms.tBakeShadow.value = depthTexture;
     bakeUniforms.tBakeContact.value = this.contactRT.texture;
     if (typeof window !== 'undefined') Object.assign(window, { __bake: this });
+    onGpuRestored(() => { this.invalidate(); }); // the maps live only on the GPU: an in-place WebGL restore bakes them again (E54)
   }
 
   private readonly roots: THREE.Object3D[] = [];

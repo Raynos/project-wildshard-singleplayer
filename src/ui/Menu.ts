@@ -291,7 +291,8 @@ export class GameMenu {
       b.addEventListener('click', () => setSetting(key, !getSetting(key)));
       return b;
     };
-    p.append(el('ws-gmenu-label', 'Gameplay'), sw('aimAssist', 'Aim assist'), sw('tracers', 'Tracer bolts'));
+    p.append(el('ws-gmenu-label', 'Gameplay'), sw('aimAssist', 'Aim assist'));
+    if (getActiveChunk().style !== 'painterly') p.append(sw('tracers', 'Tracer bolts')); // the crossbow's / rifle's: Nalati's bow draws none (NALATI-MERGE F7)
     if (getActiveChunk().slug === 'nalati-grasslands') p.append(sw('huntersEye', "Hunter's eye")); // the bow's drop arc (Bow.ts): on by default on touch
     if (CAN_VIBRATE) p.append(sw('haptics', 'Vibration')); // Android only — iOS Safari has no vibrate (src/ui/haptics.ts)
 

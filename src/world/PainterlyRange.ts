@@ -15,6 +15,7 @@
  */
 import * as THREE from 'three';
 import type { CloudUniforms } from './PainterlySky';
+import { onGpuRestored } from '../core/gpuOnly';
 
 export const RANGE_R = 2485;
 /** the atlas covers elevation EL_LO … EL_HI degrees */
@@ -98,16 +99,20 @@ export function buildPainterlyRange(renderer: THREE.WebGLRenderer, u: CloudUnifo
   // ── paint the atlas once ──
   const W = 4096, H = 448;
   const rt = new THREE.WebGLRenderTarget(W, H, { depthBuffer: false, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter, magFilter: THREE.LinearFilter, wrapS: THREE.RepeatWrapping, wrapT: THREE.ClampToEdgeWrapping });
-  const bake = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
-    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
-    fragmentShader: BAKE_FRAG, depthTest: false, depthWrite: false,
-  }));
-  const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-  const prev = renderer.getRenderTarget();
-  renderer.setRenderTarget(rt);
-  renderer.render(bake, cam);
-  renderer.setRenderTarget(prev);
-  bake.geometry.dispose(); bake.material.dispose();
+  const paint = (): void => {
+    const bake = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
+      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+      fragmentShader: BAKE_FRAG, depthTest: false, depthWrite: false,
+    }));
+    const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    const prev = renderer.getRenderTarget();
+    renderer.setRenderTarget(rt);
+    renderer.render(bake, cam);
+    renderer.setRenderTarget(prev);
+    bake.geometry.dispose(); bake.material.dispose();
+  };
+  paint();
+  onGpuRestored(paint); // the atlas lives only on the GPU: an in-place WebGL restore paints it again (E54)
 
   // ── the band that shows it ──
   const d2r = Math.PI / 180;
