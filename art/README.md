@@ -225,3 +225,11 @@ per the HUD compass) and an iPhone 16 Pro portrait frame with the real touch HUD
   wall of the same letter): **A** `A-journal-open-book.jpg` + `A-wall-lodge-shields.jpg`; **B** `B-journal-half-sheet.jpg` +
   `B-wall-plaque-cards.jpg`; **C** `C-journal-elite-3d-plate.jpg` + `C-wall-chalk-outlines.jpg`. Re-rolled: B wall once
   (the first take had moose / ram skulls, a scoped rifle and a dog).
+
+### Pine Hollow day / night (`art/pine-hollow/round-5-day-night/`, 2026-09-24, PH-L2 / L3)
+
+`board.jpg` **"Pine Hollow day / night — keep this?"**: in-engine iPhone 16 Pro captures (390×844 @3, phone tier, a clean
+export of `7b1430b`), top row the Hollow cabin anchor's FP front (`round-0-baseline/cameras.json`: −20, −50, yaw −2.783),
+bottom row the ranger's porch and fire pit (0, −42, yaw 2.1). **A** the new clock (`src/world/PineDayNight.ts`) at dawn
+(`?tod=dawn`), day, golden hour and night (moonlit, the lanterns and fire lit); **B** the old fixed HDRI sunset
+(`?tod=sunset-fixed`). No codex edits.
