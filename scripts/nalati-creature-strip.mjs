@@ -121,6 +121,31 @@ try {
       const b = g.boundingBox;
       return { h: b.max.y - b.min.y, len: b.max.z - b.min.z };
     }
+    // the sheep flock (not an Animal): one sheep of a real Flock, its gait written straight into the flock's state
+    window.__csMakeFlock = async () => {
+      if (st.cur) { st.cur.mesh.parent?.remove(st.cur.mesh); st.cur = null; }
+      const { Flock } = await import('/src/entities/Flock.ts');
+      const f = new Flock(w.sky, { x: spot.x, z: spot.z, count: 1, seed: 3 }).build();
+      w.game.scene.add(f.mesh);
+      st.flock = f;
+      await new Promise((resolve) => { setTimeout(resolve, 2500); });   // the rig loads (?creatures=glb)
+      f.mesh.geometry.computeBoundingBox();
+      const b = f.mesh.geometry.boundingBox;
+      return { hull: Boolean(f.mesh.material.map), h: b.max.y - b.min.y, len: b.max.z - b.min.z, report: null };
+    };
+    w.game.onUpdate(() => {
+      const f = st.flock, ff = st.frame;
+      if (f && ff) {
+        const run = { idle: 0, graze: 0, walk: 0.9, trot: 2.4, gallop: 4.6 }[ff.gait] ?? 0;
+        f.px[0] = spot.x; f.pz[0] = spot.z; f.py[0] = gy; f.yaw[0] = Math.PI / 2; f.scale[0] = 1;
+        f.phase[0] = ff.phase; f.spd[0] = run; f.graze[0] = ff.gait === 'graze' || ff.attack !== undefined ? 1 : 0;
+        f.dead[0] = ff.death !== undefined ? 1 : 0; f.deadT[0] = ff.death ?? 0;
+        f.uTime.value = ff.t ?? 1;
+        f.writeInstances();
+        const p = st.pose;
+        if (p) { cam.position.set(p.x, p.y, p.z); cam.lookAt(p.tx, p.ty, p.tz); if (Math.abs(cam.fov - 36) > 0.01) { cam.fov = 36; cam.updateProjectionMatrix(); } for (const c of cam.children) c.visible = false; }
+      }
+    });
     w.game.onUpdate(() => {
       const a = st.cur, fr = st.frame;
       if (!a || !fr) return;
@@ -162,7 +187,7 @@ try {
     if (CREATURES === 'glb') await page.evaluate(async (n) => { const { loadCreatureRig } = await import('/src/entities/glbCreatures.ts'); for (const x of n) await loadCreatureRig(x).catch(() => null); }, hullNames);
     const bake = BAKE ? { hull: flag('hull', hullNames[kind === 'horse' && variant.startsWith('camp') ? 1 : 0]), opts: JSON.parse(flag('bakeopts', '{}')), weights: flag('weights', '0') === '1' } : null;
     if (bake) await page.evaluate((n) => window.__csLoad(n), [bake.hull]);
-    const info = await page.evaluate(([k, v, b]) => window.__csMake(k, v, b), [kind, variant, bake]);
+    const info = kind === 'sheep' ? await page.evaluate(() => window.__csMakeFlock()) : await page.evaluate(([k, v, b]) => window.__csMake(k, v, b), [kind, variant, bake]);
     console.log(`${subj}: hull ${info.hull} h ${info.h.toFixed(2)} len ${info.len.toFixed(2)}${info.report ? ` bake ${JSON.stringify(info.report)}` : ''}`);
     const rows = [];
     for (const row of ROWS) {

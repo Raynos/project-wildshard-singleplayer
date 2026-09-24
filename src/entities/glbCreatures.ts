@@ -24,7 +24,7 @@ import { modelsOn } from '../world/nalati/glbPaint';
 import type { BoneDef } from './species/registry';
 
 /** the rigged hulls (scripts/nalati-rig-bake.mjs RIG_BAKES) */
-export type CreatureRigName = 'horse-wild' | 'horse-saddled' | 'wolf' | 'snow-leopard';
+export type CreatureRigName = 'horse-wild' | 'horse-saddled' | 'wolf' | 'snow-leopard' | 'sheep';
 
 const HULL: Readonly<Record<string, CreatureRigName>> = {
   'horse:dun': 'horse-wild',
@@ -46,7 +46,7 @@ export interface SkinnedHull {
   /** the skeleton the hull is bound to: the variant's bones, a leg the bake retargeted onto the hull's leg moved */
   bones: BoneDef[];
 }
-interface RigAsset { geometry: THREE.BufferGeometry; map: THREE.Texture | null; joints: { name: string; pos: THREE.Vector3 }[] }
+export interface RigAsset { geometry: THREE.BufferGeometry; map: THREE.Texture | null; joints: { name: string; pos: THREE.Vector3 }[] }
 
 const DIR = '/assets/nalati/models/';
 let loader: GLTFLoader | null = null;

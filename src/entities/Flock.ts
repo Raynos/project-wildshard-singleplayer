@@ -5,7 +5,10 @@ import { Rng } from '../core/rng';
 import { attachFogUniforms } from '../world/Atmosphere';
 import type { Animal } from './Animal';
 import type { ThinkCtx } from './species/registry';
-import { buildSheepGeometry, SHEEP_PIVOTS } from './species/sheep';
+import { buildSheepGeometry, SHEEP_PIVOTS, SHEEP_PART_NAMES } from './species/sheep';
+import { loadCreatureRig, type RigAsset } from './glbCreatures';
+import { modelsOn } from '../world/nalati/glbPaint';
+import { TIER } from '../core/tier';
 import { painterlyAnimalMaterial } from './painterlyAnimals';
 import { wildEnv, angDiff } from './wildEnv';
 
@@ -85,7 +88,8 @@ export class Flock {
     const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
     patchSheep(depth, this.uTime, true);
     mesh.customDepthMaterial = depth;
-    mesh.castShadow = true; mesh.receiveShadow = true;
+    // the phone's shadow map skips the flock (40 sheep ≈ 0.1 M tris a frame into it); desktop casts
+    mesh.castShadow = TIER !== 'phone'; mesh.receiveShadow = true;
     mesh.name = 'sheep-flock';
     this.anim = new THREE.InstancedBufferAttribute(new Float32Array(this.n * 4), 4);
     this.anim.setUsage(THREE.DynamicDrawUsage);
@@ -116,7 +120,37 @@ export class Flock {
     mesh.boundingSphere = new THREE.Sphere(new THREE.Vector3(this.homeX, this.py[0] ?? 0, this.homeZ), 30);
     this.mesh = mesh;
     this.writeInstances();
+    // ?creatures=glb: the generated sheep, baked onto the flock's parts (scripts/nalati-rig-bake.mjs), swapped in when
+    // it loads — the procedural flock stands in until then
+    if (modelsOn('creatures')) loadCreatureRig('sheep').then((rig) => { this.useRig(rig, mat); return null; }).catch((e: unknown) => { console.warn('[nalati] sheep rig failed', e); });
     return this;
+  }
+
+  /** the flock's geometry from a baked rig: its skin folded into aRig (the two strongest parts), the atlas as the map */
+  private useRig(rig: RigAsset, mat: THREE.MeshLambertMaterial): void {
+    if (rig.joints.length !== SHEEP_PART_NAMES.length || rig.joints.some((j, i) => j.name !== SHEEP_PART_NAMES[i])) { console.warn('[nalati] sheep rig: not the flock parts'); return; }
+    const src = rig.geometry, si = src.getAttribute('skinIndex'), sw = src.getAttribute('skinWeight'), n = si.count;
+    const aRig = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      let a = 0, wa = -1, b = 0, wb = -1;
+      for (let c = 0; c < 4; c++) {
+        const w = sw.getComponent(i, c), k = si.getComponent(i, c);
+        if (w > wa) { b = a; wb = wa; a = k; wa = w; } else if (w > wb) { b = k; wb = w; }
+      }
+      const t = wa + Math.max(0, wb);
+      aRig[i * 3] = a; aRig[i * 3 + 1] = wb > 0 ? b : a; aRig[i * 3 + 2] = t > 0 && wb > 0 ? wb / t : 0;
+    }
+    const g = new THREE.BufferGeometry();
+    for (const k of ['position', 'normal', 'uv', 'color'] as const) g.setAttribute(k, src.getAttribute(k));
+    g.setAttribute('aRig', new THREE.BufferAttribute(aRig, 3));
+    g.setAttribute('iAnim', this.anim);
+    const index = src.getIndex();
+    if (index) g.setIndex(index);
+    g.computeBoundingSphere();
+    const old = this.mesh.geometry;
+    this.mesh.geometry = g;
+    old.dispose();
+    mat.map = rig.map; mat.needsUpdate = true;
   }
 
   positions(i: number, out: THREE.Vector3): THREE.Vector3 { return out.set(this.px[i] ?? 0, (this.py[i] ?? 0) + 0.6, this.pz[i] ?? 0); }

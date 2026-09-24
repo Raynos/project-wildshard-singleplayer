@@ -37,6 +37,9 @@ export const RIG_BAKES = [
     hull: 'snow-leopard', src: 'art/nalati-grasslands/round-9-rig-hulls/snow-leopard-rig', kind: 'leopard', variant: 'aqbars',
     opts: { fitZMin: -0.3, fit: 'uniform', retarget: true, headYaw: 0, tail: { x: 0.3, z: -0.5, y: 10 }, tailBones: ['tail', 'tail2'] },
   },
+  // the camp flock: no species skeleton — the flock shader's parts (species/sheep.ts SHEEP_BONES, one bone per leg);
+  // Flock.ts folds the skin back into its aRig
+  { hull: 'sheep', kind: 'sheep', flock: true, opts: { legs: [['FL'], ['FR'], ['BL'], ['BR']] } },
 ];
 
 // gltf-transform (core + functions are in this repo; the extensions + meshoptimizer ride along with the cli)
