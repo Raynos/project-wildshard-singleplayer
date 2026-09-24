@@ -10,7 +10,8 @@
  * its species' skeleton, its stance (legs mid-stride, a turned head) measured and un-posed to the rest pose, weighted
  * along its own surface — `public/assets/nalati/models/<hull>[.phone].rigged.glb`, a glTF skin whose joints are the
  * species' bones by name and order (JOINTS_0 indexes the AnimalFactory skeleton directly). A rig is only used when its
- * joint names and rest positions match the variant's bones (1 mm); otherwise the procedural mesh stays.
+ * joint names match the variant's bones (in order); its joint positions are the skeleton it is bound to (the bake may
+ * slide a leg onto the hull's leg), so the model takes the rig's bones. Otherwise the procedural mesh stays.
  * The hull's coat comes from the atlas; vertex colours are white (the per-animal tint still multiplies via `color`).
  * Which variants swap: only those whose coat the hull shows (the dun wild horse, the camp bay, the grey / tawny /
  * young wolves) — a hull can't be recoloured into a chestnut or a black horse.
@@ -23,7 +24,7 @@ import { modelsOn } from '../world/nalati/glbPaint';
 import type { BoneDef } from './species/registry';
 
 /** the rigged hulls (scripts/nalati-rig-bake.mjs RIG_BAKES) */
-export type CreatureRigName = 'horse-wild' | 'horse-saddled' | 'wolf';
+export type CreatureRigName = 'horse-wild' | 'horse-saddled' | 'wolf' | 'snow-leopard';
 
 const HULL: Readonly<Record<string, CreatureRigName>> = {
   'horse:dun': 'horse-wild',
@@ -31,6 +32,7 @@ const HULL: Readonly<Record<string, CreatureRigName>> = {
   'wolf:grey': 'wolf',
   'wolf:tawny': 'wolf',
   'wolf:scout': 'wolf',
+  'leopard:aqbars': 'snow-leopard',
 };
 
 /** the rig for (kind, variant) when the creature models are on, else null */
@@ -39,8 +41,12 @@ export function creatureHull(kind: string, variant: string): CreatureRigName | n
   return HULL[`${kind}:${variant}`] ?? null;
 }
 
-export interface SkinnedHull { geometry: THREE.BufferGeometry; map: THREE.Texture | null }
-interface RigAsset extends SkinnedHull { joints: { name: string; pos: THREE.Vector3 }[] }
+export interface SkinnedHull {
+  geometry: THREE.BufferGeometry; map: THREE.Texture | null;
+  /** the skeleton the hull is bound to: the variant's bones, a leg the bake retargeted onto the hull's leg moved */
+  bones: BoneDef[];
+}
+interface RigAsset { geometry: THREE.BufferGeometry; map: THREE.Texture | null; joints: { name: string; pos: THREE.Vector3 }[] }
 
 const DIR = '/assets/nalati/models/';
 let loader: GLTFLoader | null = null;
@@ -102,13 +108,9 @@ export function preloadCreatureGlbs(): void {
   for (const n of new Set(Object.values(HULL))) loadCreatureRig(n).catch((e: unknown) => { console.warn(`[nalati] creature rig ${n} failed`, e); });
 }
 
-/** true when the rig's skin joints are exactly `bones` (names in order, rest positions within 1 mm) */
+/** true when the rig's skin joints are `bones` by name, in order (their rest positions may be retargeted) */
 function jointsMatch(rig: RigAsset, bones: readonly BoneDef[]): boolean {
-  if (rig.joints.length !== bones.length) return false;
-  return bones.every((b, i) => {
-    const j = rig.joints[i];
-    return j !== undefined && j.name === b.name && j.pos.distanceTo(new THREE.Vector3(...b.pos)) < 1e-3;
-  });
+  return rig.joints.length === bones.length && bones.every((b, i) => rig.joints[i]?.name === b.name);
 }
 
 /**
@@ -121,5 +123,6 @@ export function skinCreatureGlb(kind: string, variant: string, bones: readonly B
   const rig = ready.get(name);
   if (!rig) return null;
   if (!jointsMatch(rig, bones)) { console.warn(`[nalati] creature rig ${name}: baked against other bones than ${kind}:${variant} — re-run scripts/nalati-rig-bake.mjs`); return null; }
-  return { geometry: rig.geometry, map: rig.map };
+  const out: BoneDef[] = bones.map((b, i) => { const p = rig.joints[i]?.pos; return { name: b.name, parent: b.parent, pos: p ? [p.x, p.y, p.z] : b.pos }; });
+  return { geometry: rig.geometry, map: rig.map, bones: out };
 }

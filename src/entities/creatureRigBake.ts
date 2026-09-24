@@ -37,18 +37,31 @@ export interface RigBakeOptions {
   smooth?: number;
   /** leg-column band for the length fit, fraction of the height (default 0.18) */
   legBand?: number;
+  /** 'legs' (default): the hull's length stretched so its leg columns land on the species' legs; 'uniform': one
+   *  scale (the height), the legs' midpoints aligned — with `retarget`, the legs then move to the hull's instead */
+  fit?: 'legs' | 'uniform';
+  /** slide each leg chain (x / z) onto the hull's leg; the rig then carries its own joints (default false) */
+  retarget?: boolean;
+  /** the length fit ignores the hull's ground vertices behind this z (the hull's own space: a tail trailing on the
+   *  ground behind the hind legs) */
+  fitZMin?: number;
   /** the leg segmentation cut, as a fraction of the procedural belly's lowest point (default 0.92) */
   legCut?: number;
   /** above the cut a leg's seed must lie within geoK × (height over the cut) + 5 % H of its leg piece (default 1.4) */
   geoK?: number;
   /** a hanging tail: every vertex with |x| < x and z < z (and y < y, default the belly) is tail, never leg */
   tail?: { x: number; z: number; y?: number };
+  /** the tail's chain, root first: the tail box's vertices are weighted along it by surface distance from the body */
+  tailBones?: readonly string[];
   /** a midline piece is a leg only if it reaches below groundK × the cut (default 0.3) */
   groundK?: number;
   /** 'rigid' (default): the whole leg turned as one onto the hull's leg; 'chain': each joint onto its curve segment */
   legUnpose?: 'chain' | 'rigid';
   /** 'curve' (default): a leg's weights by its position along its own curve; 'proc': from the posed procedural leg */
   legWeights?: 'curve' | 'proc';
+  /** the four leg chains FL FR BL BR, top joint first (default the quadruped rig's shoulder / carpus / fetlock, hip /
+   *  stifle / hock); the sheep flock's legs are one bone each */
+  legs?: readonly (readonly string[])[];
   /** measure the stance and un-pose it (default true) */
   unpose?: boolean;
   /** the hull's head turn (radians, + = to the animal's left); default measured from the muzzle tip */
@@ -58,7 +71,7 @@ export interface RigBakeOptions {
 }
 
 export interface RigBakeReport {
-  verts: number; welded: number; seeded: number; flooded: number; unreached: number; yCut: number; tailVerts: number;
+  verts: number; welded: number; flipped: number; seeded: number; flooded: number; unreached: number; yCut: number; tailVerts: number;
   fit: { sx: number; sy: number; sz: number; oz: number };
   /** per leg: the stance angle turned back (degrees) and the leg's vertex count */
   legs: Record<string, { deg: number; verts: number }>;
@@ -68,18 +81,35 @@ export interface RigBakeReport {
 
 const at = (a: ArrayLike<number>, i: number): number => a[i] ?? 0;
 
-/** leg-column centres (z) of the vertices in the bottom `frac` of the height: [front, back] */
-function legColumns(pos: ArrayLike<number>, n: number, h: number, frac: number): [number, number] | null {
+/**
+ * leg-column centres (z) of the vertices in the bottom `frac` of the height: [front, back]. A leg is a vertical column,
+ * so its band vertices pile up at one z: the two densest peaks of the z histogram (a quarter of the span apart) are the
+ * front and back legs — a tail lying along the ground spreads over z and never makes a peak.
+ */
+function legColumns(pos: ArrayLike<number>, n: number, h: number, frac: number, zMin = -Infinity): [number, number] | null {
   const zs: number[] = [];
-  for (let i = 0; i < n; i++) if (at(pos, i * 3 + 1) < h * frac) zs.push(at(pos, i * 3 + 2));
+  for (let i = 0; i < n; i++) if (at(pos, i * 3 + 1) < h * frac && at(pos, i * 3 + 2) >= zMin) zs.push(at(pos, i * 3 + 2));
   if (zs.length < 8) return null;
   let lo = Infinity, hi = -Infinity;
   for (const z of zs) { lo = Math.min(lo, z); hi = Math.max(hi, z); }
-  const mid = (lo + hi) / 2;
-  let f = 0, nf = 0, b = 0, nb = 0;
-  for (const z of zs) { if (z > mid) { f += z; nf++; } else { b += z; nb++; } }
-  if (nf === 0 || nb === 0) return null;
-  return [f / nf, b / nb];
+  const span = hi - lo;
+  if (span <= 1e-6) return null;
+  const NB = 48, hist = new Float64Array(NB);
+  for (const z of zs) { const k = Math.min(NB - 1, Math.floor(((z - lo) / span) * NB)); hist[k] = at(hist, k) + 1; }
+  const sm = hist.map((_, k) => at(hist, k - 1) * 0.5 + at(hist, k) + at(hist, k + 1) * 0.5);
+  let p1 = 0;
+  for (let k = 1; k < NB; k++) if (at(sm, k) > at(sm, p1)) p1 = k;
+  let p2 = -1;
+  for (let k = 0; k < NB; k++) if (Math.abs(k - p1) >= NB / 4 && (p2 < 0 || at(sm, k) > at(sm, p2))) p2 = k;
+  if (p2 < 0) return null;
+  const centre = (p: number): number => {
+    let s2 = 0, c = 0;
+    const zc = lo + ((p + 0.5) / NB) * span;
+    for (const z of zs) if (Math.abs(z - zc) < span * 0.08) { s2 += z; c++; }
+    return c > 0 ? s2 / c : zc;
+  };
+  const a = centre(p1), b = centre(p2);
+  return a > b ? [a, b] : [b, a];
 }
 
 /** a binary min-heap of (key, id) */
@@ -124,7 +154,7 @@ const LEGS: readonly (readonly string[])[] = [
 const LEG_NAMES = ['FL', 'FR', 'BL', 'BR'] as const;
 
 /** multi-source Dijkstra over the welded surface graph from `src` (dist 0) */
-function surfaceDistance(nw: number, nOff: Int32Array, nIdx: Int32Array, WP: ArrayLike<number>, isSrc: (w: number) => boolean): { d: Float64Array; from: Int32Array } {
+function surfaceDistance(nw: number, nOff: Int32Array, nIdx: Int32Array, WP: ArrayLike<number>, isSrc: (w: number) => boolean, blocked?: (w: number, u: number) => boolean): { d: Float64Array; from: Int32Array } {
   const d = new Float64Array(nw).fill(Infinity), from = new Int32Array(nw).fill(-1);
   const hp = new Heap();
   for (let w = 0; w < nw; w++) if (isSrc(w)) { d[w] = 0; from[w] = w; hp.push(0, w); }
@@ -135,6 +165,7 @@ function surfaceDistance(nw: number, nOff: Int32Array, nIdx: Int32Array, WP: Arr
     if (dd > at(d, w)) continue;
     for (let o = at(nOff, w); o < at(nOff, w + 1); o++) {
       const u = at(nIdx, o);
+      if (blocked?.(w, u) === true) continue;
       const nd = dd + Math.hypot(at(WP, w * 3) - at(WP, u * 3), at(WP, w * 3 + 1) - at(WP, u * 3 + 1), at(WP, w * 3 + 2) - at(WP, u * 3 + 2));
       if (nd < at(d, u)) { d[u] = nd; from[u] = at(from, w); hp.push(nd, u); }
     }
@@ -147,7 +178,7 @@ function surfaceDistance(nw: number, nOff: Int32Array, nIdx: Int32Array, WP: Arr
  * normal, skinIndex, skinWeight in the bind pose). Returns a new geometry: the hull fitted into animal space, in the
  * skeleton's rest pose, with skinIndex / skinWeight (indices into `bones`).
  */
-export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGeometry, bones: readonly BoneDef[], opts: RigBakeOptions = {}): { geometry: THREE.BufferGeometry; report: RigBakeReport } {
+export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGeometry, bones: readonly BoneDef[], opts: RigBakeOptions = {}): { geometry: THREE.BufferGeometry; bones: BoneDef[]; report: RigBakeReport } {
   const seedR = opts.seedR ?? 0.05, seedDot = opts.seedDot ?? 0.1, passes = opts.smooth ?? 6, band = opts.legBand ?? 0.18, geoK = opts.geoK ?? 1.0;
   const nB = bones.length;
   const boneIdx = new Map(bones.map((b, i) => [b.name, i] as const));
@@ -169,11 +200,12 @@ export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGe
   const sy = hG > 0 ? hP / hG : 1;
   const G0a = new Float32Array(ng * 3);
   for (let i = 0; i < ng; i++) { G0a[i * 3] = G0.getX(i); G0a[i * 3 + 1] = G0.getY(i); G0a[i * 3 + 2] = G0.getZ(i); }
-  const legsP = legColumns(P, np, hP, band), legsG = legColumns(G0a, ng, hG, band);
+  const legsP = legColumns(P, np, hP, band), legsG = legColumns(G0a, ng, hG, band, opts.fitZMin);
   let sz = sy, oz = 0;
   if (legsP && legsG) {
     const spanG = legsG[0] - legsG[1], spanP = legsP[0] - legsP[1];
-    if (spanG > 1e-3 && spanP > 1e-3) { sz = spanP / spanG; oz = legsP[0] - legsG[0] * sz; }
+    if (opts.fit === 'uniform') oz = (legsP[0] + legsP[1]) / 2 - ((legsG[0] + legsG[1]) / 2) * sz;   // legs' midpoints meet
+    else if (spanG > 1e-3 && spanP > 1e-3) { sz = spanP / spanG; oz = legsP[0] - legsG[0] * sz; }
   }
   const sx = (sy + sz) / 2;
   g.scale(sx, sy, sz);
@@ -202,6 +234,64 @@ export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGe
   }
   const idx = g.getIndex();
   const tri: number[] = idx ? Array.from(idx.array) : Array.from({ length: ng }, (_, i) => i);
+  // one winding for the whole surface: an image-to-3D crust mixes flipped flakes in (culled, they read as holes and
+  // shade dark). Across every manifold edge a neighbour must run the shared edge the other way; each connected
+  // piece is then turned outward by its signed volume
+  let flipped = 0;
+  {
+    const nt = Math.floor(tri.length / 3);
+    const edgeTris = new Map<string, number[]>();
+    const wv = (t: number, k: number): number => at(weldOf, at(tri, t * 3 + k));
+    for (let t = 0; t < nt; t++) for (let k = 0; k < 3; k++) {
+      const a = wv(t, k), b = wv(t, (k + 1) % 3);
+      if (a === b) continue;
+      const key = a < b ? `${a},${b}` : `${b},${a}`;
+      let l = edgeTris.get(key); if (!l) { l = []; edgeTris.set(key, l); } l.push(t);
+    }
+    const flip = new Uint8Array(nt), seen = new Uint8Array(nt);
+    /** does triangle t (with its flip) run a → b? */
+    const runs = (t: number, a: number, b: number): boolean => {
+      for (let k = 0; k < 3; k++) if (wv(t, k) === a && wv(t, (k + 1) % 3) === b) return flip[t] === 0;
+      return flip[t] === 1;
+    };
+    for (let t0 = 0; t0 < nt; t0++) {
+      if (seen[t0] === 1) continue;
+      const comp: number[] = [t0]; seen[t0] = 1;
+      for (let h = 0; h < comp.length; h++) {
+        const t = at(comp, h);
+        for (let k = 0; k < 3; k++) {
+          const a = wv(t, k), b = wv(t, (k + 1) % 3);
+          if (a === b) continue;
+          const l = edgeTris.get(a < b ? `${a},${b}` : `${b},${a}`);
+          if (l?.length !== 2) continue;                          // open or non-manifold: no constraint
+          const u = l[0] === t ? at(l, 1) : at(l, 0);
+          if (seen[u] === 1) continue;
+          const ab = runs(t, a, b) ? [a, b] : [b, a];             // t (as flipped) runs ab[0] → ab[1]
+          if (runs(u, ab[0] ?? a, ab[1] ?? b)) flip[u] = 1;       // u must run it the other way
+          seen[u] = 1; comp.push(u);
+        }
+      }
+      let vol = 0;
+      for (const t of comp) {
+        let a = wv(t, 0), b = wv(t, 1);
+        const c = wv(t, 2);
+        if (flip[t] === 1) { const s2 = a; a = b; b = s2; }
+        const ax = at(WPl, a * 3), ay = at(WPl, a * 3 + 1), az = at(WPl, a * 3 + 2), bx = at(WPl, b * 3), by = at(WPl, b * 3 + 1), bz = at(WPl, b * 3 + 2), cx = at(WPl, c * 3), cy = at(WPl, c * 3 + 1), cz = at(WPl, c * 3 + 2);
+        vol += ax * (by * cz - bz * cy) - ay * (bx * cz - bz * cx) + az * (bx * cy - by * cx);
+      }
+      if (vol < 0) for (const t of comp) flip[t] = flip[t] === 1 ? 0 : 1;
+    }
+    for (let t = 0; t < nt; t++) if (flip[t] === 1) { const s2 = at(tri, t * 3 + 1); tri[t * 3 + 1] = at(tri, t * 3 + 2); tri[t * 3 + 2] = s2; flipped++; }
+    if (flipped > 0 && idx) { g.setIndex(tri); g.computeVertexNormals(); }
+    // the welded normals again, from the one winding
+    WN.fill(0);
+    const gn2 = g.getAttribute('normal');
+    for (let i = 0; i < ng; i++) { const w = at(weldOf, i); WN[w * 3] = at(WN, w * 3) + gn2.getX(i); WN[w * 3 + 1] = at(WN, w * 3 + 1) + gn2.getY(i); WN[w * 3 + 2] = at(WN, w * 3 + 2) + gn2.getZ(i); }
+    for (let w = 0; w < nw; w++) {
+      const l = Math.hypot(at(WN, w * 3), at(WN, w * 3 + 1), at(WN, w * 3 + 2)) || 1;
+      WN[w * 3] = at(WN, w * 3) / l; WN[w * 3 + 1] = at(WN, w * 3 + 1) / l; WN[w * 3 + 2] = at(WN, w * 3 + 2) / l;
+    }
+  }
   const nbrSets: Set<number>[] = Array.from({ length: nw }, () => new Set<number>());
   for (let t = 0; t + 2 < tri.length; t += 3) {
     const a = at(weldOf, at(tri, t)), b = at(weldOf, at(tri, t + 1)), c = at(weldOf, at(tri, t + 2));
@@ -215,7 +305,7 @@ export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGe
   for (let w = 0; w < nw; w++) { let o = at(nOff, w); for (const u of nbrSets[w] ?? []) nIdx[o++] = u; }
 
   // ── 2: legs ──
-  const legIds = LEGS.map((chain) => chain.map((n) => boneIdx.get(n)).filter((i): i is number => i !== undefined));
+  const legIds = (opts.legs ?? LEGS).map((chain) => chain.map((n) => boneIdx.get(n)).filter((i): i is number => i !== undefined));
   /** 0..3 = the leg chain holding ≥ 50 % of procedural vertex i, −1 none */
   const procChain = new Int8Array(np).fill(-1);
   const torso = new Set([boneIdx.get('body'), boneIdx.get('belly')].filter((i): i is number => i !== undefined));
@@ -263,13 +353,14 @@ export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGe
     for (const w of list) { yMin = Math.min(yMin, at(WP, w * 3 + 1)); cxm += at(WP, w * 3); }
     cxm /= list.length;
     grounded.set(id, yMin <= yCut * (opts.groundK ?? 0.3));
-    if (yMin > yCut * (opts.groundK ?? 0.3) && Math.abs(cxm) < halfSpread * 0.35) { pieces.push(`${list.length} midline`); continue; }
+    if (yMin > yCut * (opts.groundK ?? 0.3) && Math.abs(cxm) < halfSpread * 0.35) { if (list.length >= 20) pieces.push(`${list.length} midline`); continue; }
     const cnt = [0, 0, 0, 0];
     for (const w of list) { const qd = quad(w); cnt[qd] = at(cnt, qd) + 1; }
     const dom = cnt.indexOf(Math.max(...cnt));
     const whole = at(cnt, dom) >= list.length * 0.75;
     for (const w of list) part[w] = whole ? dom : quad(w);
-    pieces.push(`${list.length}${whole ? `→${LEG_NAMES[dom] ?? '?'}` : ' split'}`);
+    let czm = 0; for (const w of list) czm += at(WP, w * 3 + 2);
+    if (list.length >= 20) pieces.push(`${list.length}@${cxm.toFixed(2)},${(czm / list.length).toFixed(2)}${whole ? `→${LEG_NAMES[dom] ?? '?'}` : ' split'}`);
   }
 
   // how far each hull vertex is from each leg piece ALONG THE SURFACE
@@ -328,6 +419,8 @@ export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGe
   const boneQ: (THREE.Quaternion | null)[] = Array.from({ length: nB }, () => null);
   const boneRest: THREE.Vector3[] = bones.map((b) => new THREE.Vector3(...b.pos));
   const bonePosed: THREE.Vector3[] = bones.map((b) => new THREE.Vector3(...b.pos));
+  /** the skeleton the hull is bound to: the species' bones, a retargeted leg slid (x / z) onto the hull's leg */
+  const boneBind: THREE.Vector3[] = bones.map((b) => new THREE.Vector3(...b.pos));
   const legs: RigBakeReport['legs'] = {};
   /** per leg, the curve parameter of its vertices: surface distance from the top of the piece (∞ = unreached), the
    *  arc fractions of the joints below the cut and the bones they start — the leg's weights come from these */
@@ -338,10 +431,9 @@ export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGe
     const name = LEG_NAMES[L] ?? `${L}`;
     let vc = 0; for (let w = 0; w < nw; w++) if (part[w] === L) vc++;
     legs[name] = { deg: 0, verts: vc };
-    if (!unpose || ids.length !== 3 || vc < 12) continue;
-    const [b0, b1, b2] = ids as [number, number, number];
-    const J0 = boneRest[b0], J1 = boneRest[b1], J2 = boneRest[b2];
-    if (!J0 || !J1 || !J2) continue;
+    if (!unpose || ids.length === 0 || vc < 12) continue;
+    const Js = ids.map((b) => boneRest[b] ?? new THREE.Vector3());
+    const J0 = Js[0] ?? new THREE.Vector3();
     // the hull curve
     // the leg's main piece (specks and stray bits of the same quadrant would bend the curve)
     const compCount = new Map<number, number>();
@@ -390,58 +482,66 @@ export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGe
       const a = curve[i] ?? new THREE.Vector3(), b = curve[i + 1] ?? a;
       return a.clone().lerp(b, f - i);
     };
-    // the procedural chain J0 → J1 → J2 → the ground under J2, cut where the hull's pieces start (yCut): the joints
+    // the procedural chain J0 → … → Jn → the ground under Jn, cut where the hull's pieces start (yCut): the joints
     // below the cut sit at the same arc fractions on the hull's curve. A bone whose segment is wholly above the cut
-    // keeps the rest pose; the one the cut crosses and the next are turned onto the curve; the last (the pastern /
-    // paw) follows the one above it — its own direction reads the hoof / paw shape, not the stance
-    const pts = [J0, J1, J2, new THREE.Vector3(J2.x, 0, J2.z)];
+    // keeps the rest pose; 'rigid' turns the leg below the cut as one onto the curve; 'chain' turns each segment onto
+    // its stretch of the curve, the last (the pastern / paw) following the one above it
+    const N = Js.length, Jn = Js[N - 1] ?? J0;
+    const pts = [...Js, new THREE.Vector3(Jn.x, 0, Jn.z)];
     let kc = -1;
-    for (let k = 0; k < 3; k++) if ((pts[k]?.y ?? 0) >= yCut && (pts[k + 1]?.y ?? 0) < yCut) { kc = k; break; }
-    if (kc < 0 || kc > 1) continue;
-    const pa = pts[kc] ?? J0, pb = pts[kc + 1] ?? J1;
+    for (let k = 0; k < N; k++) if ((pts[k]?.y ?? 0) >= yCut && (pts[k + 1]?.y ?? 0) < yCut) { kc = k; break; }
+    if (kc < 0 || (N > 1 && kc > N - 2)) continue;
+    const pa = pts[kc] ?? J0, pb = pts[kc + 1] ?? J0;
     const C0 = pa.clone().lerp(pb, (pa.y - yCut) / Math.max(1e-6, pa.y - pb.y));
+    // retarget: the whole chain slid (x / z) so it stands in the hull's leg — for a hull whose legs sit elsewhere than
+    // the species' (a shorter back); the rig carries the moved joints
+    const c0 = curveAt(0);
+    const shift = opts.retarget === true ? new THREE.Vector3(c0.x - C0.x, 0, c0.z - C0.z) : new THREE.Vector3();
     const lens = [C0.distanceTo(pb)];
-    for (let k = kc + 1; k < 3; k++) lens.push((pts[k] ?? J0).distanceTo(pts[k + 1] ?? J0));
+    for (let k = kc + 1; k < N; k++) lens.push((pts[k] ?? J0).distanceTo(pts[k + 1] ?? J0));
     const lt = lens.reduce((s3, x) => s3 + x, 0);
     if (lt <= 0) continue;
     const uAt: number[] = [0];                                   // arc fraction at C0, then at each joint below it
     for (const l of lens) uAt.push((uAt[uAt.length - 1] ?? 0) + l / lt);
-    const Qs: THREE.Quaternion[] = [new THREE.Quaternion(), new THREE.Quaternion(), new THREE.Quaternion()];
+    const Qs: THREE.Quaternion[] = Js.map(() => new THREE.Quaternion());
     let acc = new THREE.Quaternion();
-    for (let k = kc; k < 3; k++) {
+    for (let k = kc; k < N; k++) {
       const j = k - kc;
       const d = (pts[k + 1] ?? J0).clone().sub(pts[k] ?? J0);
       if (opts.legUnpose !== 'chain') {
         // the whole leg turned as one, from the cut to the hoof
         if (k === kc) {
-          const e = curveAt(1).sub(curveAt(0)), dd = new THREE.Vector3(J2.x, 0, J2.z).sub(C0);
+          const e = curveAt(1).sub(curveAt(0)), dd = new THREE.Vector3(Jn.x, 0, Jn.z).sub(C0);
           if (e.lengthSq() > 1e-8 && dd.lengthSq() > 1e-8) acc = new THREE.Quaternion().setFromUnitVectors(dd.normalize(), e.normalize());
         }
-      } else if (k < 2) {
+      } else if (k < N - 1 || N === 1) {
         const e = curveAt(uAt[j + 1] ?? 1).sub(curveAt(uAt[j] ?? 0));
         if (e.lengthSq() > 1e-8 && d.lengthSq() > 1e-8) acc = new THREE.Quaternion().setFromUnitVectors(d.clone().applyQuaternion(acc).normalize(), e.normalize()).multiply(acc);
       }
       Qs[k] = acc.clone();
     }
-    const [Q0, Q1, Q2] = Qs as [THREE.Quaternion, THREE.Quaternion, THREE.Quaternion];
-    const d0 = J1.clone().sub(J0), d1 = J2.clone().sub(J1);
-    boneQ[b0] = Q0; boneQ[b1] = Q1; boneQ[b2] = Q2;
-    const P1 = J0.clone().add(d0.applyQuaternion(Q0)), P2 = P1.clone().add(d1.applyQuaternion(Q1));
-    bonePosed[b1]?.copy(P1); bonePosed[b2]?.copy(P2);
+    let Pk = J0.clone().add(shift);
+    ids.forEach((b, k) => {
+      boneQ[b] = Qs[k] ?? null;
+      boneBind[b]?.copy(Js[k] ?? J0).add(shift);
+      if (k === 0) bonePosed[b]?.copy(Pk);
+      if (k > 0) { Pk = Pk.clone().add((Js[k] ?? J0).clone().sub(Js[k - 1] ?? J0).applyQuaternion(Qs[k - 1] ?? new THREE.Quaternion())); bonePosed[b]?.copy(Pk); }
+    });
     legCurve[L] = { gd, tMax, uAt, bonesBelow: ids.slice(kc) };
     const ang = (qq: THREE.Quaternion): number => (2 * Math.acos(Math.min(1, Math.abs(qq.w))) * 180) / Math.PI;
-    legs[name] = { deg: Math.round(Math.max(ang(Q0), ang(Q1), ang(Q2)) * 10) / 10, verts: vc };
+    legs[name] = { deg: Math.round(Math.max(...Qs.map(ang)) * 10) / 10, verts: vc };
   }
   const _q = new THREE.Quaternion(), _o = new THREE.Vector3(), _acc = new THREE.Vector3(), _nacc = new THREE.Vector3();
-  /** bone b's stance transform (rest → the hull's stance): posed_b + Q_b (v − rest_b); identity for the unposed bones */
+  /** bone b's stance transform (the species' rest → the hull's stance): posed_b + Q_b (v − rest_b); the inverse goes
+   *  to the bind skeleton (bind_b + Q_b⁻¹ (v − posed_b)); identity for the bones the hull doesn't move */
   const stance = (b: number, x: number, y: number, z: number, out: THREE.Vector3, inverse: boolean, dir = false): THREE.Vector3 => {
     out.set(x, y, z);
-    const qb = boneQ[b], r = boneRest[b], p = bonePosed[b];
-    if (!qb || !r || !p) return out;
+    const qb = boneQ[b], r = boneRest[b], p = bonePosed[b], rb = boneBind[b];
+    if (!qb || !r || !p || !rb) return out;
     if (inverse) {
       if (!dir) out.sub(p);
       out.applyQuaternion(_q.copy(qb).invert());
-      if (!dir) out.add(r);
+      if (!dir) out.add(rb);
     } else {
       if (!dir) out.sub(r);
       out.applyQuaternion(qb);
@@ -483,8 +583,28 @@ export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGe
   const K = 5;
   const bi = new Int32Array(K), bd = new Float64Array(K);
   let nSeeded = 0;
+  // the tail box: weighted along the tail by surface distance from where it leaves the body (tailBones, root first)
+  const tailIds = (opts.tailBones ?? []).map((n) => boneIdx.get(n)).filter((i): i is number => i !== undefined);
+  let tailGd: Float64Array | null = null, tailMax = 0;
+  if (tailIds.length > 0) {
+    const edge = (w: number): boolean => { if (part[w] !== 4) return false; for (let o = at(nOff, w); o < at(nOff, w + 1); o++) if (part[at(nIdx, o)] !== 4) return true; return false; };
+    tailGd = surfaceDistance(nw, nOff, nIdx, WP, edge, (w, u) => part[w] !== 4 || part[u] !== 4).d;
+    for (let w = 0; w < nw; w++) if (part[w] === 4 && Number.isFinite(at(tailGd, w))) tailMax = Math.max(tailMax, at(tailGd, w));
+  }
   for (let w = 0; w < nw; w++) {
     const x = at(WP, w * 3), y = at(WP, w * 3 + 1), z = at(WP, w * 3 + 2);
+    if (tailGd && tailMax > 0 && part[w] === 4 && Number.isFinite(at(tailGd, w))) {
+      const u = at(tailGd, w) / tailMax, n = tailIds.length, f = Math.min(n - 1, u * n);
+      const j = Math.floor(f), k = f - j;
+      const b0 = at(tailIds, j), b1 = at(tailIds, Math.min(n - 1, j + 1));
+      // the first stretch still leans on the body (it grows out of the rump)
+      const wb = (1 - Math.min(1, u * 4)) * 0.5;
+      W[w * nB + b0] = at(W, w * nB + b0) + (1 - k) * (1 - wb);
+      W[w * nB + b1] = at(W, w * nB + b1) + k * (1 - wb);
+      W[w * nB + (boneIdx.get('body') ?? 0)] = at(W, w * nB + (boneIdx.get('body') ?? 0)) + wb;
+      seeded[w] = 1; nSeeded++;
+      continue;
+    }
     const nx = at(WN, w * 3), ny = at(WN, w * 3 + 1), nz = at(WN, w * 3 + 2);
     const pt = at(part, w);
     // a leg: weighted by where it is along its own curve (the segment's bone, blended across each joint) — the leg's
@@ -565,7 +685,10 @@ export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGe
   }
 
   // ── 5: flood — the rest take their nearest seed's weights, measured along the surface ──
-  const fl = surfaceDistance(nw, nOff, nIdx, WP, (w) => seeded[w] === 1);
+  // a tail and a leg touching (a tail hanging onto a hock, curled round a paw) are cut apart: no flood, no smoothing
+  // across a tail–leg edge
+  const barrier = (w: number, u: number): boolean => { const a = at(part, w), b = at(part, u); return (a === 4 && b < 4) || (b === 4 && a < 4); };
+  const fl = surfaceDistance(nw, nOff, nIdx, WP, (w) => seeded[w] === 1, barrier);
   let flooded = 0, unreached = 0;
   const bodyB = boneIdx.get('body') ?? 0;
   for (let w = 0; w < nw; w++) {
@@ -583,8 +706,10 @@ export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGe
       const o0 = at(nOff, w), o1 = at(nOff, w + 1);
       if (o1 === o0) continue;
       tmp.fill(0);
-      for (let o = o0; o < o1; o++) { const u = at(nIdx, o); for (let b = 0; b < nB; b++) tmp[b] = at(tmp, b) + at(W, u * nB + b); }
-      const k = seeded[w] === 1 ? 0.35 : 0.8, inv = 1 / (o1 - o0);
+      let cnt = 0;
+      for (let o = o0; o < o1; o++) { const u = at(nIdx, o); if (barrier(w, u)) continue; cnt++; for (let b = 0; b < nB; b++) tmp[b] = at(tmp, b) + at(W, u * nB + b); }
+      if (cnt === 0) continue;
+      const k = seeded[w] === 1 ? 0.35 : 0.8, inv = 1 / cnt;
       for (let b = 0; b < nB; b++) W[w * nB + b] = at(W, w * nB + b) * (1 - k) + at(tmp, b) * inv * k;
     }
   }
@@ -636,6 +761,7 @@ export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGe
   g.computeBoundingSphere();
   return {
     geometry: g,
-    report: { verts: ng, welded: nw, seeded: nSeeded, flooded, unreached, yCut, tailVerts, fit: { sx, sy, sz, oz }, legs, pieces, headDeg: Math.round(headYaw * 1800 / Math.PI) / 10, bodySeeded },
+    bones: bones.map((b, i) => ({ name: b.name, parent: b.parent, pos: [boneBind[i]?.x ?? b.pos[0], boneBind[i]?.y ?? b.pos[1], boneBind[i]?.z ?? b.pos[2]] })),
+    report: { verts: ng, welded: nw, flipped, seeded: nSeeded, flooded, unreached, yCut, tailVerts, fit: { sx, sy, sz, oz }, legs, pieces, headDeg: Math.round(headYaw * 1800 / Math.PI) / 10, bodySeeded },
   };
 }

@@ -10,7 +10,7 @@
 //   node scripts/nalati-rig-bake.mjs --only=wolf      # one hull
 //   --url=http://127.0.0.1:5192  (a vite on a clean export; the page runs with ?creatures=proc)
 // One headless Chromium on Metal (--mute-audio), closed at the end.
-import { realpathSync, statSync } from 'node:fs';
+import { realpathSync, statSync, readFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
@@ -31,6 +31,12 @@ export const RIG_BAKES = [
   { hull: 'horse-wild', kind: 'horse', variant: 'dun', opts: { tail: { x: 0.1, z: -0.8 }, legWeights: 'proc' } },
   { hull: 'horse-saddled', kind: 'horse', variant: 'camp-bay', opts: { tail: { x: 0.1, z: -0.8 }, legWeights: 'proc' } },
   { hull: 'wolf', kind: 'wolf', variant: 'grey', opts: {} },
+  // Aqbars: the first hull curled its tail round a hind paw and turned its head; this one was re-generated for the rig
+  // (art/nalati-grasslands/round-9-rig-hulls/): legs planted apart, the tail trailing on the ground, the head straight
+  {
+    hull: 'snow-leopard', src: 'art/nalati-grasslands/round-9-rig-hulls/snow-leopard-rig', kind: 'leopard', variant: 'aqbars',
+    opts: { fitZMin: -0.3, fit: 'uniform', retarget: true, headYaw: 0, tail: { x: 0.3, z: -0.5, y: 10 }, tailBones: ['tail', 'tail2'] },
+  },
 ];
 
 // gltf-transform (core + functions are in this repo; the extensions + meshoptimizer ride along with the cli)
@@ -45,8 +51,12 @@ const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies(
 const b64 = (s, T) => { const b = Buffer.from(s, 'base64'); return new T(b.buffer, b.byteOffset, b.byteLength / T.BYTES_PER_ELEMENT); };
 
 /** write <hull><suffix>.rigged.glb from the bake + the source GLB's texture */
+/** the hull's source GLB: `src` (a repo path without the suffix — the rig-friendly regenerated hulls live with their
+ *  references in art/, they are never loaded by the game) or public/assets/nalati/models/<hull> */
+function sourceOf(job, suffix) { return job.src ? resolvePath(ROOT, `${job.src}${suffix}.glb`) : resolvePath(MODELS, `${job.hull}${suffix}.glb`); }
+
 async function writeRigged(job, suffix, bake) {
-  const srcPath = resolvePath(MODELS, `${job.hull}${suffix}.glb`);
+  const srcPath = sourceOf(job, suffix);
   const src = await io.read(srcPath);
   const srcTex = src.getRoot().listTextures()[0] ?? null;
   const doc = new Document();
@@ -104,12 +114,30 @@ try {
     await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => Boolean(window.__world?.animals), undefined, { timeout: 300000, polling: 1000 });
     for (const job of RIG_BAKES.filter((j) => only.length === 0 || only.includes(j.hull))) {
+      const suffix = tier === 'phone' ? '.phone' : '';
+      const srcFile = sourceOf(job, suffix);
       const bake = await page.evaluate(async (j) => {
         const { bakeCreatureRig } = await import('/src/entities/creatureRigBake.ts');
-        const { loadModelRaw } = await import('/src/world/nalati/glbPaint.ts');
-        const model = window.__world.animals.factory.model(j.kind, j.variant);
-        const raw = await loadModelRaw(j.hull);
-        const r = bakeCreatureRig(model.geometry, raw.geometry, model.bones, j.opts);
+        const { THREE, GLTFLoader, MeshoptDecoder: MD } = await import('/src/dev/threeKit.ts');
+        // the hull, from the bytes handed in (the same float geometry glbPaint's loader makes)
+        const bin = Uint8Array.from(atob(j.srcB64), (c) => c.codePointAt(0) ?? 0).buffer;
+        const loader = new GLTFLoader(); loader.setMeshoptDecoder(MD);
+        const gltf = await loader.parseAsync(bin, '');
+        gltf.scene.updateMatrixWorld(true);
+        const meshes = []; gltf.scene.traverse((o) => { if (o.isMesh) meshes.push(o); });
+        const src = meshes[0].geometry, hull = new THREE.BufferGeometry();
+        for (const k of ['position', 'normal', 'uv']) {
+          const a = src.getAttribute(k), out = new Float32Array(a.count * a.itemSize);
+          for (let i = 0; i < a.count; i++) for (let c = 0; c < a.itemSize; c++) out[i * a.itemSize + c] = a.getComponent(i, c);
+          hull.setAttribute(k, new THREE.BufferAttribute(out, a.itemSize));
+        }
+        if (src.getIndex()) hull.setIndex(Array.from(src.getIndex().array));
+        hull.applyMatrix4(meshes[0].matrixWorld);
+        // the skeleton + its procedural mesh: a species' (the AnimalFactory model), or the sheep flock's parts
+        let procGeo, bones;
+        if (j.flock) { const sh = await import('/src/entities/species/sheep.ts'); procGeo = sh.sheepSkinnedGeometry(); bones = sh.SHEEP_BONES; }
+        else { const model = window.__world.animals.factory.model(j.kind, j.variant); procGeo = model.geometry; bones = model.bones; }
+        const r = bakeCreatureRig(procGeo, hull, bones, j.opts);
         const g = r.geometry;
         const enc = (ta) => { const u = new Uint8Array(ta.buffer, ta.byteOffset, ta.byteLength); let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCodePoint(...u.subarray(i, i + 0x8000)); return btoa(s); };
         const f32 = (name) => Float32Array.from(g.getAttribute(name).array);
@@ -118,10 +146,10 @@ try {
           position: enc(f32('position')), normal: enc(f32('normal')), uv: enc(f32('uv')),
           skinIndex: enc(Uint16Array.from(g.getAttribute('skinIndex').array)), skinWeight: enc(f32('skinWeight')),
           index: enc(Uint32Array.from(idx ? idx.array : Array.from({ length: g.getAttribute('position').count }, (_, i) => i))),
-          bones: model.bones, report: r.report,
+          bones: r.bones, report: r.report,
         };
-      }, job);
-      const w = await writeRigged(job, tier === 'phone' ? '.phone' : '', bake);
+      }, { ...job, srcB64: readFileSync(srcFile).toString('base64') });
+      const w = await writeRigged(job, suffix, bake);
       console.log(`${job.hull} ${tier}: ${w.verts} verts, ${(w.bytes / 1024).toFixed(0)} KB → ${w.out.slice(ROOT.length + 1)}  legs ${JSON.stringify(bake.report.legs)} head ${bake.report.headDeg}°`);
     }
     await ctx.close();

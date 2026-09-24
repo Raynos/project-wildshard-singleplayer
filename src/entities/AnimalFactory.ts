@@ -259,12 +259,21 @@ export class AnimalFactory {
     const hull = skinCreatureGlb(m.kind, m.variant, m.bones);
     if (!hull) return;
     const old = m.geometry;
-    m.geometry = hull.geometry; m.map = hull.map;
+    m.geometry = hull.geometry; m.map = hull.map; m.bones = hull.bones;
     for (const r of rigs ?? []) {
       r.mesh.geometry = hull.geometry;
       r.fur.map = hull.map; r.fur.needsUpdate = true;
       const bs = hull.geometry.boundingSphere;
       if (bs !== null) r.mesh.boundingSphere = bs.clone();
+      // the rig's skeleton (a leg may be retargeted): every bone back to its new rest, then bound again — the next
+      // frame's pose starts from there
+      for (const b of r.mesh.skeleton.bones) {
+        const d = hull.bones.find((x) => x.name === b.name), p = d?.parent ? hull.bones.find((x) => x.name === d.parent) : null;
+        if (!d) continue;
+        b.position.set(d.pos[0] - (p ? p.pos[0] : 0), d.pos[1] - (p ? p.pos[1] : 0), d.pos[2] - (p ? p.pos[2] : 0));
+        b.quaternion.identity(); b.scale.set(1, 1, 1);
+      }
+      r.mesh.bind(r.mesh.skeleton);
     }
     old.dispose();
   }
@@ -308,7 +317,7 @@ export class AnimalFactory {
       const hullName = creatureHull(kind, v.id);
       const hull = hullName !== null ? skinCreatureGlb(kind, v.id, sp.bones) : null;
       if (hull) { geometry.dispose(); geometry = hull.geometry; }
-      m = { kind, variant: v.id, style: 'painterly', species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur: mat, hard: mat, eye: mat, shells: [], map: hull?.map ?? null };
+      m = { kind, variant: v.id, style: 'painterly', species, variantDef: v, geometry, bones: hull?.bones ?? sp.bones, dims: sp.dims, fur: mat, hard: mat, eye: mat, shells: [], map: hull?.map ?? null };
       this.models.set(key, m);
       if (hullName !== null && !hull) {
         this.pendingRigs.set(key, []);

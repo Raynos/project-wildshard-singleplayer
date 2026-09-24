@@ -83,7 +83,7 @@ try {
         const raw = await loadModelRaw(bake.hull);
         const r = bakeCreatureRig(model.geometry, raw.geometry, model.bones, bake.opts ?? {});
         const g = r.geometry; g.clearGroups(); g.addGroup(0, g.index ? g.index.count : g.getAttribute('position').count, 0);
-        model = { ...model, geometry: g, map: raw.map };
+        model = { ...model, geometry: g, map: raw.map, bones: r.bones };
         report = r.report;
       }
       if (bake?.weights) {
