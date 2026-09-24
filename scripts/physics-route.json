@@ -1,5 +1,5 @@
 {
- "$doc": "PHYSICS.md P0 walk route, replayed by scripts/physics-baseline.mjs --mode=walk. Each leg teleports to start (feet at start.y), then the autopilot faces each waypoint in turn holding W (Space at jump waypoints) and advances within 0.8 m. expect.y = the floor height at the end from today's floor functions (2026-09-23, 9c975f2). Waypoints derived from the world builders and replayed through Player.ts at a fixed 1/60 frame.",
+ "$doc": "PHYSICS.md P0 walk route, replayed by scripts/physics-baseline.mjs --mode=walk. Each leg teleports to start (feet at start.y), then the autopilot faces each waypoint in turn holding W (Space at jump waypoints) and advances within 0.8 m. expect.y = the floor height at the end from today's floor functions (2026-09-23, 9c975f2). Waypoints derived from the world builders and replayed through Player.ts at a fixed 1/60 frame. Pine Hollow legs re-derived for layout v2 (2026-09-24, pineHollowLayout.ts).",
  "driftwood-isle": [
   {
    "name": "pier",
@@ -398,9 +398,9 @@
     }
    ],
    "expect": {
-    "y": 3.182
+    "y": 3.815
    },
-   "notes": "north road to cabin 1, in through the porch rail gap onto the deck"
+   "notes": "S road to the ranger's cabin (v1 cabin 1), in through the porch rail gap onto the deck (layout v2: the pad is 0.63 m higher, the deck at +3.815)"
   },
   {
    "name": "pond",
@@ -408,7 +408,7 @@
     "x": -10.31,
     "z": -34.39,
     "yaw": -1.306,
-    "y": 3.182
+    "y": 3.815
    },
    "waypoints": [
     {
@@ -424,22 +424,34 @@
      "z": -10
     },
     {
-     "x": -45,
-     "z": 20
+     "x": 2,
+     "z": 10
     },
     {
-     "x": -52,
-     "z": 60
+     "x": 4,
+     "z": 40
     },
     {
-     "x": -56,
-     "z": 93
+     "x": 4,
+     "z": 70
+    },
+    {
+     "x": -30,
+     "z": 86
+    },
+    {
+     "x": -62,
+     "z": 100
+    },
+    {
+     "x": -64,
+     "z": 110
     }
    ],
    "expect": {
-    "y": -5.152
+    "y": -2.01
    },
-   "notes": "off the porch, down to the pond shore"
+   "notes": "off the porch, up the N road and along the pond spur to the Still pond's west shore (layout v2: the pond moved to (-100, 110))"
   }
  ]
 }

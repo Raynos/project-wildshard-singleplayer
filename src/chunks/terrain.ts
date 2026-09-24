@@ -100,6 +100,7 @@ export function buildTerrain(seed: number, spec: TerrainSpec): ChunkTerrain {
   const pondFill = spec.pondFill ?? 1.0;
   const oceanLevel = spec.oceanLevel ?? null;
   const landscape = (x: number, z: number) => spec.landscape(x, z, noise);
+  const finish = spec.finish ?? null;
   const graded = (spec.graded?.paths ?? []).map((poly) => gradeProfile(poly, spec.graded?.maxGrade ?? 1, landscape));
   /** a graded path's pull on (x, z): the shelf height there, and how far toward it (1 within GRADE_IN of a stretch
    *  that needed grading, 0 past GRADE_OUT or where the ground was gentle anyway) */
@@ -172,6 +173,7 @@ export function buildTerrain(seed: number, spec: TerrainSpec): ChunkTerrain {
       const m = smoothstep(20, 9, d);
       if (m > 0) h = lerp(h, landscape(c.x, c.z), m);
     }
+    if (finish) h = finish(x, z, h);
     // entry roads: must be level with no-man's land (y = 0) at the chunk boundary
     const rm = entryRoadMask(x, z);
     if (rm > 0) {

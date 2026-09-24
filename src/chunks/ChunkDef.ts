@@ -83,6 +83,12 @@ export interface TerrainSpec {
    */
   graded?: { paths: Vec2[][]; maxGrade: number };
   /**
+   * A last touch on the finished height, after the graded paths, the pond dish, the trail beds and the cabin pads but
+   * before the entry roads are levelled (so the fundamentals still hold): for what the shared shaping would flatten —
+   * an islet standing out of the pond's dish (Pine Hollow). Omitted = nothing.
+   */
+  finish?: (x: number, z: number, h: number) => number;
+  /**
    * Ground-layer blend for `ChunkAssets.groundLayers` — [layer0, layer1, layer2, layer3], any
    * scale (normalised for you). `t` is the finished terrain so you can query slope, height,
    * trail distance and the masks.
@@ -133,6 +139,14 @@ export interface ChunkForest {
   tintLight: [number, number];
   /** chance a tree uses the large variant (index 3) instead of variants 0–2 */
   largeVariantChance: number;
+  /**
+   * Per-place keep multiplier on the density noise (src/world/placement.ts): > 1 thickens a grove (Pine Hollow's
+   * old-growth), < 1 thins it, 0 keeps the ground bare — no tree and no undergrowth (building pads, a boss arena).
+   * Omitted = 1 everywhere.
+   */
+  density?: (x: number, z: number) => number;
+  /** per-place multiplier on a tree's size (the old-growth's giants); omitted = 1 */
+  scale?: (x: number, z: number) => number;
 }
 
 /** a registered species kind (`src/entities/species/<kind>.ts`): 'deer' | 'boar' built in; bear / elk… as they register */

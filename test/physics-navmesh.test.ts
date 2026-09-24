@@ -7,6 +7,7 @@ import { createFindNearestPolyResult, DEFAULT_QUERY_FILTER, findNearestPoly, fin
 import type * as THREE from 'three';
 import { parseNavmesh, type Navmesh } from '../src/physics/navmesh';
 import { Rng } from '../src/core/rng';
+import { POND } from '../src/chunks/pineHollowLayout';
 import driftwoodNav from '../public/assets/baked/driftwood-isle/navmesh.bin?inline';
 import pineNav from '../public/assets/baked/pine-hollow/navmesh.bin?inline';
 
@@ -102,7 +103,8 @@ describe('navmesh (P6b)', () => {
   it('leaves the water out: the open sea and the pond are not walkable', async () => {
     const di = (await load(driftwoodNav)).nav, ph = (await load(pineNav)).nav;
     expect(di.closestWalkable({ x: 200, y: 0, z: -200 }, 0.3)).toBeNull(); // open sea, south-east
-    for (let y = -12; y < 4; y += 2) expect(ph.closestWalkable({ x: -56, y, z: 120 }, 0.5)).toBeNull(); // the pond's middle
+    // the pond's middle (layout v2 — clear of the islet, which is dry)
+    for (let y = -12; y < 4; y += 2) expect(ph.closestWalkable({ x: POND.x - 8, y, z: POND.z - 6 }, 0.5)).toBeNull();
     expect(ph.closestWalkable(onMesh(ph, 0, -200, 0.5), 0.5)).not.toBeNull(); // the south road is
   });
 

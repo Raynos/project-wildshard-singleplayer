@@ -74,7 +74,7 @@ export function placeForest(variants: readonly { trunkRadius: number; height: nu
     if (trees.length >= TREE_COUNT) break;
     if (!inChunk(x, z, 4)) continue;
     const d = density.fbm(x * F.densityFreq, z * F.densityFreq, 3); // clearings & dense groves
-    const keep = smoothstep(F.clearings[0], F.clearings[1], d) * 0.92 + 0.08;
+    const keep = (smoothstep(F.clearings[0], F.clearings[1], d) * 0.92 + 0.08) * (F.density ? F.density(x, z) : 1);
     if (rng.next() > keep) continue;
     const roadEntry = (Math.abs(x) < 16 && Math.abs(z) > CHUNK_HALF - 95) || (Math.abs(z) < 16 && Math.abs(x) > CHUNK_HALF - 95);
     if (roadEntry) continue;
@@ -85,7 +85,7 @@ export function placeForest(variants: readonly { trunkRadius: number; height: nu
     if (ny < F.maxSlope) continue;                               // too steep
     const y = heightAt(x, z);
     const variant = rng.next() < F.largeVariantChance ? 3 : rng.int(0, 2);
-    const scale = rng.range(0.8, 1.2);
+    const scale = rng.range(0.8, 1.2) * (F.scale ? F.scale(x, z) : 1);
     const v = variants[variant];
     if (!v) throw new Error(`[forest] no tree variant ${variant}`);
     const tint = new THREE.Color().setHSL(F.tintHue + rng.range(F.tintHueJitter[0], F.tintHueJitter[1]), rng.range(F.tintSat[0], F.tintSat[1]), rng.range(F.tintLight[0], F.tintLight[1]));
@@ -156,9 +156,11 @@ export function* placeUndergrowth(trees: TreeInstance[], grid: { nearby: (x: num
   const ferns: Placement[] = [], shrubs: Placement[] = [], litter: Placement[] = [], stones: Placement[] = [], moss: Placement[] = [], reeds: Placement[] = [];
   const half = CHUNK_HALF - 8;
   const wl = waterLevel();
+  const bare = getActiveChunk().forest.density;
   /** the tests: pure, no rng — so a candidate's outcome is the one bit the log keeps */
   const accepts = (kind: Kind, x: number, z: number): boolean => {
     if (!inChunk(x, z, 8)) return false;
+    if (bare && kind !== 'reed' && bare(x, z) <= 0) return false; // a bare pad (ChunkForest.density = 0)
     const td = trailDistance(x, z);
     const pm = pondMask(x, z);
     const y = heightAt(x, z);

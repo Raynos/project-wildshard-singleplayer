@@ -69,6 +69,20 @@ function placementSection(def, gridBuf) {
   return { bytes: new Uint8Array(out), decisions: log.count, counts, trees: trees.length };
 }
 
+/** the chunk file's own sibling modules (`from './pineHollowLayout'`: where a shard keeps its coordinates) — they shape its
+ *  field as much as the chunk file does, so they are hashed with it (the shared engine files are already in `shared`) */
+function localImports(file) {
+  const src = readFileSync(resolve(ROOT, 'src/chunks', file), 'utf8');
+  const out = [];
+  for (const m of src.matchAll(/from '\.\/([\w-]+)'/g)) {
+    const name = m[1];
+    if (/^(terrain|ChunkDef)$/.test(name)) continue;
+    const p = resolve(ROOT, 'src/chunks', `${name}.ts`);
+    if (existsSync(p)) out.push(readFileSync(p));
+  }
+  return out;
+}
+
 let stale = 0, written = 0;
 for (const file of chunkFiles) {
   const mod = await import(pathToFileURL(resolve(ROOT, 'src/chunks', file)).href);
@@ -78,6 +92,7 @@ for (const file of chunkFiles) {
     const hash = createHash('sha1');
     hash.update(`v${VERSION}:${res}:${CHUNK_SIZE}:`); hash.update(readFileSync(resolve(ROOT, 'src/chunks', file)));
     for (const s of shared) hash.update(s);
+    for (const s of localImports(file)) hash.update(s);
     const digest = hash.digest('hex').slice(0, 16);
     const dir = resolve(OUT, def.slug);
     const meta = resolve(dir, 'terrain.json');
