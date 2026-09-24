@@ -42,8 +42,14 @@ const ROWS_ALL = [
   { label: 'death', frames: [0.25, 0.55, 1].map((death) => ({ gait: 'idle', phase: 0, death })) },
 ];
 
+// a flyer (custom rig, animated from animal.mem): the wingbeat through time, a glide, the stoop, a bank
+const FLY_ROWS = [
+  { label: 'views', frames: ROWS_ALL[0].frames.map((f) => ({ ...f, mem: { flap: 0 } })) },
+  { label: 'flap', frames: [0, 0.1, 0.2, 0.3, 0.4].map((t) => ({ gait: 'idle', phase: 0, t: 10 + t, mem: { flap: 1 } })) },
+  { label: 'fly', frames: [{ gait: 'idle', phase: 0, t: 10, mem: { flap: 0 } }, { gait: 'idle', phase: 0, t: 10, mem: { fold: 1 } }, { gait: 'idle', phase: 0, t: 10, mem: { bank: 0.6, flap: 0.3 } }, { gait: 'idle', phase: 0, t: 10.2, mem: { ground: 1 } }] },
+];
 const ROWSEL = flag('rows', '');
-const ROWS = ROWSEL ? ROWS_ALL.filter((r) => ROWSEL.split(',').includes(r.label)) : ROWS_ALL;
+const ROWS = flag('fly', '0') === '1' ? FLY_ROWS : ROWSEL ? ROWS_ALL.filter((r) => ROWSEL.split(',').includes(r.label)) : ROWS_ALL;
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const ctx = await browser.newContext({ viewport: { width: CW, height: CH }, deviceScaleFactor: 1 });
@@ -109,7 +115,7 @@ try {
       a.prepareMaterial = (m) => w.sky.setupMaterial(m);
       a.place(spot.x, spot.z, Math.PI / 2); // facing +X: the camera stands on its left side
       a.sampleTerrain?.();
-      rig.mesh.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+      rig.mesh.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (spot.double) for (const m of [o.material].flat()) { m.side = THREE.DoubleSide; m.needsUpdate = true; } } });
       w.game.scene.add(rig.mesh);
       st.cur = a;
       const box = new THREE_BOX(rig.mesh);
@@ -154,6 +160,7 @@ try {
       if (fr.death !== undefined) { a.alive = false; a.state = 'dead'; a.deathT = fr.death; a.deathSide = 1; }
       else { a.alive = true; a.state = 'idle'; a.deathT = -1; }
       a.gaitW.fill(0);
+      if (fr.mem) { for (const k of ['flap', 'fold', 'bank', 'ground', 'altY']) a.mem[k] = fr.mem[k] ?? 0; a.mem.altY = st.gy + 0.4; a.yOffset = 0.4; }
       a.update(1e-4, fr.t ?? 1, true);
       if (fr.death !== undefined) a.deathT = fr.death;
       const p = st.pose; if (!p) return;
@@ -179,11 +186,11 @@ try {
         st.pose = { x: spot.x, y: ty + h * 0.12, z: spot.z - d, tx: spot.x, ty, tz: spot.z }; // the animal's left side (it faces +X)
       }
     };
-  }, SPOT);
+  }, { ...SPOT, double: flag('double', '0') === '1' });
 
   for (const subj of only) {
     const [kind, variant] = subj.split(':');
-    const hullNames = { horse: ['horse-wild', 'horse-saddled'], wolf: ['wolf'], leopard: ['snow-leopard'], eagle: ['eagle'], 'golden-king': ['golden-king'], sheep: ['sheep'] }[kind] ?? [];
+    const hullNames = { horse: ['horse-wild', 'horse-saddled'], wolf: ['wolf'], leopard: ['snow-leopard'], eagle: ['eagle-flight'], 'golden-king': ['golden-king'], sheep: ['sheep'] }[kind] ?? [];
     if (CREATURES === 'glb') await page.evaluate(async (n) => { const { loadCreatureRig } = await import('/src/entities/glbCreatures.ts'); for (const x of n) await loadCreatureRig(x).catch(() => null); }, hullNames);
     const bake = BAKE ? { hull: flag('hull', hullNames[kind === 'horse' && variant.startsWith('camp') ? 1 : 0]), opts: JSON.parse(flag('bakeopts', '{}')), weights: flag('weights', '0') === '1' } : null;
     if (bake) await page.evaluate((n) => window.__csLoad(n), [bake.hull]);

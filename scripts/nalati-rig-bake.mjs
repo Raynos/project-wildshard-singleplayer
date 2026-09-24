@@ -37,6 +37,12 @@ export const RIG_BAKES = [
     hull: 'snow-leopard', src: 'art/nalati-grasslands/round-9-rig-hulls/snow-leopard-rig', kind: 'leopard', variant: 'aqbars',
     opts: { fitZMin: -0.3, fit: 'uniform', retarget: true, headYaw: 0, tail: { x: 0.3, z: -0.5, y: 10 }, tailBones: ['tail', 'tail2'] },
   },
+  // Qyran: the perched hull can't fly — a new one with the wings spread (art/nalati-grasslands/round-9-rig-hulls/);
+  // fitted by its wingspan, each wing turned flat about its shoulder, no legs
+  {
+    hull: 'eagle', src: 'art/nalati-grasslands/round-9-rig-hulls/eagle-flight', kind: 'eagle', variant: 'qyran',
+    opts: { fit: 'box', legs: [], seedR: 0.12, wings: [['wingL1', 'wingL2'], ['wingR1', 'wingR2']] },
+  },
   // the camp flock: no species skeleton — the flock shader's parts (species/sheep.ts SHEEP_BONES, one bone per leg);
   // Flock.ts folds the skin back into its aRig
   { hull: 'sheep', kind: 'sheep', flock: true, opts: { legs: [['FL'], ['FR'], ['BL'], ['BR']] } },

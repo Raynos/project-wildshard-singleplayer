@@ -24,7 +24,7 @@ import { modelsOn } from '../world/nalati/glbPaint';
 import type { BoneDef } from './species/registry';
 
 /** the rigged hulls (scripts/nalati-rig-bake.mjs RIG_BAKES) */
-export type CreatureRigName = 'horse-wild' | 'horse-saddled' | 'wolf' | 'snow-leopard' | 'sheep';
+export type CreatureRigName = 'horse-wild' | 'horse-saddled' | 'wolf' | 'snow-leopard' | 'sheep' | 'eagle';
 
 const HULL: Readonly<Record<string, CreatureRigName>> = {
   'horse:dun': 'horse-wild',
@@ -33,6 +33,7 @@ const HULL: Readonly<Record<string, CreatureRigName>> = {
   'wolf:tawny': 'wolf',
   'wolf:scout': 'wolf',
   'leopard:aqbars': 'snow-leopard',
+  'eagle:qyran': 'eagle',
 };
 
 /** the rig for (kind, variant) when the creature models are on, else null */
@@ -45,10 +46,14 @@ export interface SkinnedHull {
   geometry: THREE.BufferGeometry; map: THREE.Texture | null;
   /** the skeleton the hull is bound to: the variant's bones, a leg the bake retargeted onto the hull's leg moved */
   bones: BoneDef[];
+  /** thin open surfaces (the eagle's wings): drawn double-sided */
+  doubleSided: boolean;
 }
 export interface RigAsset { geometry: THREE.BufferGeometry; map: THREE.Texture | null; joints: { name: string; pos: THREE.Vector3 }[] }
 
 const DIR = '/assets/nalati/models/';
+/** the rigs whose surfaces are thin sheets (a wing is one layer of feathers): no back-face culling */
+const DOUBLE_SIDED: ReadonlySet<CreatureRigName> = new Set(['eagle']);
 let loader: GLTFLoader | null = null;
 const loading = new Map<CreatureRigName, Promise<RigAsset>>();
 const ready = new Map<CreatureRigName, RigAsset>();
@@ -124,5 +129,5 @@ export function skinCreatureGlb(kind: string, variant: string, bones: readonly B
   if (!rig) return null;
   if (!jointsMatch(rig, bones)) { console.warn(`[nalati] creature rig ${name}: baked against other bones than ${kind}:${variant} — re-run scripts/nalati-rig-bake.mjs`); return null; }
   const out: BoneDef[] = bones.map((b, i) => { const p = rig.joints[i]?.pos; return { name: b.name, parent: b.parent, pos: p ? [p.x, p.y, p.z] : b.pos }; });
-  return { geometry: rig.geometry, map: rig.map, bones: out };
+  return { geometry: rig.geometry, map: rig.map, bones: out, doubleSided: DOUBLE_SIDED.has(name) };
 }

@@ -108,6 +108,8 @@ export interface AnimalModel {
   rim?: THREE.Color;
   /** 'painterly' with a generated hull (glbCreatures.ts): the hull's atlas, set as every instance's `map` */
   map?: THREE.Texture | null;
+  /** the hull is thin sheets (the eagle's wings): every instance's material is double-sided */
+  doubleSided?: boolean;
 }
 
 /** one fur-shell layer's uniforms (see patchFur) */
@@ -259,10 +261,10 @@ export class AnimalFactory {
     const hull = skinCreatureGlb(m.kind, m.variant, m.bones);
     if (!hull) return;
     const old = m.geometry;
-    m.geometry = hull.geometry; m.map = hull.map; m.bones = hull.bones;
+    m.geometry = hull.geometry; m.map = hull.map; m.bones = hull.bones; m.doubleSided = hull.doubleSided;
     for (const r of rigs ?? []) {
       r.mesh.geometry = hull.geometry;
-      r.fur.map = hull.map; r.fur.needsUpdate = true;
+      r.fur.map = hull.map; if (hull.doubleSided) r.fur.side = THREE.DoubleSide; r.fur.needsUpdate = true;
       const bs = hull.geometry.boundingSphere;
       if (bs !== null) r.mesh.boundingSphere = bs.clone();
       // the rig's skeleton (a leg may be retargeted): every bone back to its new rest, then bound again — the next
@@ -317,7 +319,7 @@ export class AnimalFactory {
       const hullName = creatureHull(kind, v.id);
       const hull = hullName !== null ? skinCreatureGlb(kind, v.id, sp.bones) : null;
       if (hull) { geometry.dispose(); geometry = hull.geometry; }
-      m = { kind, variant: v.id, style: 'painterly', species, variantDef: v, geometry, bones: hull?.bones ?? sp.bones, dims: sp.dims, fur: mat, hard: mat, eye: mat, shells: [], map: hull?.map ?? null };
+      m = { kind, variant: v.id, style: 'painterly', species, variantDef: v, geometry, bones: hull?.bones ?? sp.bones, dims: sp.dims, fur: mat, hard: mat, eye: mat, shells: [], map: hull?.map ?? null, doubleSided: hull?.doubleSided ?? false };
       this.models.set(key, m);
       if (hullName !== null && !hull) {
         this.pendingRigs.set(key, []);
@@ -461,6 +463,7 @@ export class AnimalFactory {
     // painterly: a fresh material (a clone would drop the painterly shader patch)
     const fur = model.style === 'painterly' ? painterlyAnimalMaterial(this.sky, model.species.eyeGlow, model.species.eyeGlowIntensity) : model.fur.clone();
     if (model.map) fur.map = model.map;
+    if (model.doubleSided === true) fur.side = THREE.DoubleSide;
     if (model.style === 'pbr' && model.rim !== undefined) {
       this.patchFur(fur as THREE.MeshPhysicalMaterial, model.rim);   // clone() does not carry onBeforeCompile
     }

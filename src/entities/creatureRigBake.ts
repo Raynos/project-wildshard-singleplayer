@@ -39,7 +39,7 @@ export interface RigBakeOptions {
   legBand?: number;
   /** 'legs' (default): the hull's length stretched so its leg columns land on the species' legs; 'uniform': one
    *  scale (the height), the legs' midpoints aligned — with `retarget`, the legs then move to the hull's instead */
-  fit?: 'legs' | 'uniform';
+  fit?: 'legs' | 'uniform' | 'box';
   /** slide each leg chain (x / z) onto the hull's leg; the rig then carries its own joints (default false) */
   retarget?: boolean;
   /** the length fit ignores the hull's ground vertices behind this z (the hull's own space: a tail trailing on the
@@ -62,6 +62,8 @@ export interface RigBakeOptions {
   /** the four leg chains FL FR BL BR, top joint first (default the quadruped rig's shoulder / carpus / fetlock, hip /
    *  stifle / hock); the sheep flock's legs are one bone each */
   legs?: readonly (readonly string[])[];
+  /** wing chains (a bird), shoulder first: each turned rigidly about its shoulder onto the hull's wing span */
+  wings?: readonly (readonly string[])[];
   /** measure the stance and un-pose it (default true) */
   unpose?: boolean;
   /** the hull's head turn (radians, + = to the animal's left); default measured from the muzzle tip */
@@ -197,7 +199,7 @@ export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGe
   let hP = 0, hG = 0;
   for (let i = 0; i < np; i++) hP = Math.max(hP, at(P, i * 3 + 1));
   for (let i = 0; i < ng; i++) hG = Math.max(hG, G0.getY(i));
-  const sy = hG > 0 ? hP / hG : 1;
+  let sy = hG > 0 ? hP / hG : 1;
   const G0a = new Float32Array(ng * 3);
   for (let i = 0; i < ng; i++) { G0a[i * 3] = G0.getX(i); G0a[i * 3 + 1] = G0.getY(i); G0a[i * 3 + 2] = G0.getZ(i); }
   const legsP = legColumns(P, np, hP, band), legsG = legColumns(G0a, ng, hG, band, opts.fitZMin);
@@ -207,11 +209,21 @@ export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGe
     if (opts.fit === 'uniform') oz = (legsP[0] + legsP[1]) / 2 - ((legsG[0] + legsG[1]) / 2) * sz;   // legs' midpoints meet
     else if (spanG > 1e-3 && spanP > 1e-3) { sz = spanP / spanG; oz = legsP[0] - legsG[0] * sz; }
   }
-  const sx = (sy + sz) / 2;
+  let sx = (sy + sz) / 2, ox = 0, oy = 0;
+  if (opts.fit === 'box') {
+    // a bird / anything not standing on y = 0: one scale by the wingspan (x), the bounding boxes' centres meet
+    const bp = new THREE.Box3(), bg = new THREE.Box3(), v = new THREE.Vector3();
+    for (let i = 0; i < np; i++) bp.expandByPoint(v.set(at(P, i * 3), at(P, i * 3 + 1), at(P, i * 3 + 2)));
+    for (let i = 0; i < ng; i++) bg.expandByPoint(v.set(at(G0a, i * 3), at(G0a, i * 3 + 1), at(G0a, i * 3 + 2)));
+    const k = (bp.max.x - bp.min.x) / Math.max(1e-6, bg.max.x - bg.min.x);
+    sx = sy = sz = k;
+    const cp = bp.getCenter(new THREE.Vector3()), cg = bg.getCenter(new THREE.Vector3());
+    ox = cp.x - cg.x * k; oy = cp.y - cg.y * k; oz = cp.z - cg.z * k;
+  }
   g.scale(sx, sy, sz);
-  g.translate(0, 0, oz);
+  g.translate(ox, oy, oz);
   g.computeVertexNormals();
-  const H = hP;
+  const H = opts.fit === 'box' ? Math.max(1e-3, (() => { let lo = Infinity, hi = -Infinity; for (let i = 0; i < np; i++) { lo = Math.min(lo, at(P, i * 3)); hi = Math.max(hi, at(P, i * 3)); } return (hi - lo) * 0.4; })()) : hP;
 
   // ── weld (uv seams split the hull's vertices; the surface graph needs them joined) ──
   const gp = g.getAttribute('position'), gn = g.getAttribute('normal');
@@ -336,8 +348,9 @@ export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGe
   let sxm = 0, nxm = 0;   // the procedural legs' mean |x| below the cut
   for (let i = 0; i < np; i++) if (at(procChain, i) >= 0 && at(P, i * 3 + 1) < yCut) { sxm += Math.abs(at(P, i * 3)); nxm++; }
   const halfSpread = nxm > 0 ? sxm / nxm : H * 0.1;
+  const noLegs = legIds.every((l) => l.length === 0);   // a bird: nothing below the belly is a leg piece
   for (let w0 = 0; w0 < nw; w0++) {
-    if (at(WP, w0 * 3 + 1) >= yCut || at(comp, w0) >= 0 || part[w0] === 4) continue;
+    if (noLegs || at(WP, w0 * 3 + 1) >= yCut || at(comp, w0) >= 0 || part[w0] === 4) continue;
     const id = nPieces++;
     const list = [w0]; comp[w0] = id;
     for (let h = 0; h < list.length; h++) {
@@ -530,6 +543,27 @@ export function bakeCreatureRig(proc: THREE.BufferGeometry, hull: THREE.BufferGe
     legCurve[L] = { gd, tMax, uAt, bonesBelow: ids.slice(kc) };
     const ang = (qq: THREE.Quaternion): number => (2 * Math.acos(Math.min(1, Math.abs(qq.w))) * 180) / Math.PI;
     legs[name] = { deg: Math.round(Math.max(...Qs.map(ang)) * 10) / 10, verts: vc };
+  }
+  // the wings (a bird): each wing's span — shoulder to the centroid of its outer half — measured on both meshes; the
+  // chain turned rigidly about the shoulder onto the hull's (a hull caught with its wings raised is flattened back)
+  for (const chain of opts.wings ?? []) {
+    const ids = chain.map((n) => boneIdx.get(n)).filter((i): i is number => i !== undefined);
+    const sh = boneRest[ids[0] ?? -1];
+    if (!unpose || ids.length === 0 || !sh) continue;
+    const side = Math.sign(sh.x) || 1;
+    const outer = (pos: ArrayLike<number>, n: number, ok: (i: number) => boolean): THREE.Vector3 | null => {
+      let reach = 0;
+      for (let i = 0; i < n; i++) if (ok(i)) reach = Math.max(reach, (at(pos, i * 3) - sh.x) * side);
+      const c = new THREE.Vector3(); let k = 0;
+      for (let i = 0; i < n; i++) if (ok(i) && (at(pos, i * 3) - sh.x) * side > reach * 0.5) { c.x += at(pos, i * 3); c.y += at(pos, i * 3 + 1); c.z += at(pos, i * 3 + 2); k++; }
+      return k > 3 ? c.divideScalar(k).sub(sh).normalize() : null;
+    };
+    const dP = outer(P, np, (i) => { let wt = 0; for (let c = 0; c < 4; c++) if (ids.includes(pi.getComponent(i, c))) wt += pw.getComponent(i, c); return wt >= 0.5; });
+    const dG = outer(WP, nw, (w) => (at(WP, w * 3) - sh.x) * side > 0);
+    if (!dP || !dG) continue;
+    const qW = new THREE.Quaternion().setFromUnitVectors(dP, dG);
+    for (const b of ids) { boneQ[b] = qW.clone(); bonePosed[b]?.copy((boneRest[b] ?? sh).clone().sub(sh).applyQuaternion(qW).add(sh)); }
+    legs[chain[0] ?? 'wing'] = { deg: Math.round((2 * Math.acos(Math.min(1, Math.abs(qW.w))) * 1800) / Math.PI) / 10, verts: 0 };
   }
   const _q = new THREE.Quaternion(), _o = new THREE.Vector3(), _acc = new THREE.Vector3(), _nacc = new THREE.Vector3();
   /** bone b's stance transform (the species' rest → the hull's stance): posed_b + Q_b (v − rest_b); the inverse goes
