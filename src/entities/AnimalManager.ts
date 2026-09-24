@@ -366,6 +366,10 @@ export class AnimalManager {
 
   // ── spawning ───────────────────────────────────────────────────────────────────────────
 
+  /** a shard's own water the flat `waterLevel()` cannot see (Nalati: the river's gravel corridor, the plateau brook —
+   *  src/nalati/wet.ts); null = the water line alone */
+  wetAt: ((x: number, z: number) => boolean) | null = null;
+
   /**
    * Dry ground: not under water. The water is the sea on an open-water shard, else only the pond — below its surface
    * (+ 0.25 m) inside the square src/world/Water.ts draws (2r + 30 m across). Pine Hollow has ~3.1 ha of dry valleys lower
@@ -375,6 +379,7 @@ export class AnimalManager {
    * spawns or settles standing in it; the navmesh still fords it (0.45 m), so herds cross it on the way somewhere.
    */
   private isDry(x: number, z: number): boolean {
+    if (this.wetAt?.(x, z) === true) return false; // the shard's own water (Nalati: src/nalati/wet.ts)
     const y = heightAt(x, z), s = streamAt(x, z);
     if (s !== null && y < s - 0.05) return false;
     if (y > waterLevel() + 0.25) return true;
@@ -1024,8 +1029,8 @@ export class AnimalManager {
 
   /** every applyDamage lands here: blood, sounds, AI reaction, kill event */
   private damaged = (a: Animal, amount: number, hitPoint: THREE.Vector3, dir: THREE.Vector3, died: boolean): void => {
-    this.blood.burst(hitPoint, dir, amount >= 80 ? 1.5 : 1);
     const sp = speciesDef(a.kind);
+    if (sp.blood !== false) this.blood.burst(hitPoint, dir, amount >= 80 ? 1.5 : 1);
     this.onSound?.((sp.sounds?.hurt ?? (a.aggressive ? 'boar_squeal' : 'deer_call')) as AnimalSound, a.position);
     // headshot = the hit point sits inside the head sphere (a hair of slack for the ray step)
     a.headWorld(_p);

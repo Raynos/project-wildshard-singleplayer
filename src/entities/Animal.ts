@@ -132,13 +132,20 @@ export class Animal {
   strafe = 0; desiredStrafe = 0;
   /** metres the feet sit above the sampled ground (a monkey in a palm crown; negative = the sailor still under the deck) */
   yOffset = 0;
+  /** another body carries it (the ridden horse: Mount steps it on its own CharacterMotor in the fixed step and poses
+   *  `position` / `yaw` / `speed` every frame) — update neither steers, walks, nor follows the ground, and the
+   *  creature physics gives it no body of its own */
+  driven = false;
+  /** it stands on a structure, not the terrain (Mount: the ridden horse on a bridge deck) — `sampleTerrain` levels the
+   *  body instead of tilting it to the slope heightAt reads under the deck. Nothing else sets it */
+  levelGround = false;
   /** per-animal scratch for a species' think / animate (numbers only) */
   mem: Record<string, number> = {};
   private attackT = -1; private attackDur = 1;
   /** rad/s the heading may turn while an attack runs (see the header) */
   attackTurnCap = Infinity;
   /** the per-animal body material (AnimalFactory clones the fur per instance for its tint) the hit flash drives, or null */
-  private flashMat: THREE.MeshStandardMaterial | null = null;
+  private flashMat: THREE.MeshStandardMaterial | THREE.MeshLambertMaterial | null = null; // Lambert: the painterly shard's creatures
   private flashBase = new THREE.Color(); private flashBaseI = 1; private flash = 0;
 
   private bones: Record<string, THREE.Bone>;
@@ -209,6 +216,7 @@ export class Animal {
       ];
     }
     this.gaitW[G_IDLE] = 1;
+    this.gaitTrot = model.species.gait?.trot ?? 2.4; this.gaitGallop = model.species.gait?.gallop ?? 4.6;
     const fur = rig.materials[0];
     if (fur !== undefined && fur !== model.hard) { this.flashMat = fur; this.flashBase.copy(fur.emissive); this.flashBaseI = fur.emissiveIntensity; }
     this.rigCtx = {
@@ -217,6 +225,8 @@ export class Animal {
     };
   }
   private rigCtx: RigAnimCtx;
+  /** walk → trot and trot → gallop blend starts, m/s at scale 1 (SpeciesDef.gait; deer defaults 2.4 / 4.6) */
+  private readonly gaitTrot: number; private readonly gaitGallop: number;
 
   get dims(): AnimalDims { return this.model.dims; }
 
@@ -391,7 +401,8 @@ export class Animal {
     const x0 = this.position.x, z0 = this.position.z;
     if (this.flash > 0) { this.flash = Math.max(0, this.flash - dt / FLASH_T); this.applyFlash(); }
     if (this.ragdoll !== null) { this.updateRagdoll(this.ragdoll, dt, t, near); return; }
-    if (this.alive && this.stunT > 0) {
+    if (this.driven) { this.groundY = this.position.y; }
+    else if (this.alive && this.stunT > 0) {
       // staggered: no steering, no gait — shoved back along the blow with an ease-out, then held
       this.stunT -= dt; this.speed = 0;
       if (this.pushT > 0) {
@@ -424,7 +435,7 @@ export class Animal {
 
     // near the player the move goes through the physics body (PHYSICS P6): walls, rocks, trunks, the player and other
     // animals stop it — the walk, the charge and a knock-back alike
-    if (this.motor !== null && this.alive) {
+    if (this.motor !== null && this.alive && !this.driven) {
       const dx = this.position.x - x0, dz = this.position.z - z0;
       if (dx !== 0 || dz !== 0) {
         this.position.x = x0; this.position.z = z0;
@@ -435,9 +446,11 @@ export class Animal {
     }
 
     // ground follow (smoothed so bumps in the heightfield don't jitter the body)
-    const gy = heightAt(this.position.x, this.position.z);
-    this.groundY += (gy - this.groundY) * Math.min(1, dt * 12);
-    this.position.y = this.groundY + this.yOffset;
+    if (!this.driven) {
+      const gy = heightAt(this.position.x, this.position.z);
+      this.groundY += (gy - this.groundY) * Math.min(1, dt * 12);
+      this.position.y = this.groundY + this.yOffset;
+    }
 
     // gait weights from speed
     const gw = this.gaitTarget;
@@ -450,9 +463,9 @@ export class Animal {
       gw.set(this.gaitW);
     } else if (!this.alive) { gw[G_IDLE] = 1; }
     else if (s < 0.15) { if (this.state === 'graze') gw[G_GRAZE] = 1; else gw[G_IDLE] = 1; }
-    else if (s < 2.4) { const k = THREE.MathUtils.clamp((s - 0.15) / 0.6, 0, 1); gw[G_WALK] = k; gw[this.state === 'graze' ? G_GRAZE : G_IDLE] = 1 - k; }
-    else if (s < 4.6) { const k = THREE.MathUtils.clamp((s - 2.4) / 1.2, 0, 1); gw[G_TROT] = k; gw[G_WALK] = 1 - k; }
-    else { const k = THREE.MathUtils.clamp((s - 4.6) / 1.4, 0, 1); gw[G_GALLOP] = k; gw[G_TROT] = 1 - k; }
+    else if (s < this.gaitTrot) { const k = THREE.MathUtils.clamp((s - 0.15) / 0.6, 0, 1); gw[G_WALK] = k; gw[this.state === 'graze' ? G_GRAZE : G_IDLE] = 1 - k; }
+    else if (s < this.gaitGallop) { const k = THREE.MathUtils.clamp((s - this.gaitTrot) / (this.gaitTrot * 0.5), 0, 1); gw[G_TROT] = k; gw[G_WALK] = 1 - k; }
+    else { const k = THREE.MathUtils.clamp((s - this.gaitGallop) / (this.gaitGallop * 0.3), 0, 1); gw[G_GALLOP] = k; gw[G_TROT] = 1 - k; }
     const bl = Math.min(1, dt * 6);
     const W = this.gaitW;
     let wsum = 0;
@@ -573,6 +586,14 @@ export class Animal {
 
     this.applyTerrain(dt);
     this.applyPose(dt);
+    const post = this.model.species.postPose;
+    if (post !== undefined) {
+      // species-only motion on top of the standard pose (a horse's mane and rearing, a wolf's jaw) — SpeciesDef.postPose
+      const c = this.rigCtx;
+      c.dt = dt; c.t = t; c.speed = this.speed; c.strafe = this.strafe; c.phase = this.phase; c.state = this.state; c.alive = this.alive;
+      c.deathT = this.deathT; c.flinch = this.flinch; c.brace = smooth01(this.brace); c.attack = this.attackPhase; c.lookWeight = this.lookAmt; c.yaw = this.yaw;
+      post(c);
+    }
     this.applyRoot();
     this.updateFade(dt);
   }
@@ -739,6 +760,7 @@ export class Animal {
 
   /** Sample the slope under the body (called by the manager at 10 Hz — heightAt is not free). */
   sampleTerrain(): void {
+    if (this.levelGround) { this.tiltPitchT = 0; this.tiltRollT = 0; this.footDeltaT.fill(0); return; }
     const d = this.model.dims;
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
     const L = d.bodyHalfLen * 0.9 * this.scale, W = d.halfWidth * this.scale;

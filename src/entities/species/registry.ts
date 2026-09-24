@@ -221,6 +221,13 @@ export interface SpeciesDef {
   /** animation flavour: grazeNeck 1 = the whole neck goes down (deer), 0.3 = only the nose (boar);
    *  gallopTail 1 = tail flagged straight up when running (deer), 0.5 = half (boar) */
   pose?: { grazeNeck: number; gallopTail: number };
+  /** quadruped gait thresholds, m/s at scale 1: the walk → trot blend starts at `trot`, the trot → gallop blend at
+   *  `gallop` (default 2.4 / 4.6 — deer-sized; a horse trots to 6.5 m/s before it canters, a wolf trots from 1.8) */
+  gait?: { trot: number; gallop: number };
+  /** quadruped rigs: called every animated frame AFTER Animal.ts posed the standard bones — layer species-only motion
+   *  on top (a horse's mane / tail chain, rearing, a wolf's jaw and howl). Bone rotations Animal.ts sets are rewritten
+   *  every frame, so add to them; extra bones are the species' own to set. Same RigAnimCtx the custom rigs get. */
+  postPose?: (ctx: RigAnimCtx) => void;
   // ── custom rigs + enemy AI (Driftwood Isle's crab / monkey / sailor; see RigAnimCtx / ThinkCtx above) ──
   /** 'quadruped' (default: the deer skeleton, Animal.ts poses it) or 'custom' (only `body` (root) + `head` bones are
    *  required; `animate` poses the rest every frame) */
@@ -235,6 +242,8 @@ export interface SpeciesDef {
   corpseFade?: number;
   /** self-lit eyes (linear rgb) × intensity — the Drowned Sailor's cyan stare; the eye material is per species */
   eyeGlow?: [number, number, number]; eyeGlowIntensity?: number;
+  /** false = hits draw no blood (stone, ghosts: the balbals and the ghost riders draw their own chips / mist) */
+  blood?: boolean;
 }
 
 const SPECIES = new Map<string, SpeciesDef>();

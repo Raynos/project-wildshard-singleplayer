@@ -10,7 +10,7 @@ import { activeBodies, Drop } from '../physics/bodies';
 
 /**
  * ItemPickup (exported as WeaponPickup too) — an item lying in the world for the player to find, presented like
- * art/pickup-A-bubble.png and then some: the item floats HOVER m over the floor point (bobbing ±BOB on a BOB_PERIOD sine,
+ * art/pickups/round-1/pickup-A-bubble.png and then some: the item floats HOVER m over the floor point (bobbing ±BOB on a BOB_PERIOD sine,
  * yawing YAW_RATE), inside a translucent sphere (SPHERE_R × 2 = 1.3 m Ø) with a bright Fresnel rim and an inner haze that
  * BREATHE (±25 % on a PULSE_PERIOD cycle, out of phase with the bob); two thin rings orbit the sphere on tilted axes,
  * counter-rotating; a sigil (crisp ring + faint outer ring with 24 ticks) turns slowly on the floor under a soft light
@@ -35,11 +35,12 @@ import { activeBodies, Drop } from '../physics/bodies';
  * material, the sigil is one merged geometry, and the update loop allocates nothing.
  */
 
-export type PickupTier = 'common' | 'rare';
-export const TIER_COLOUR: Record<PickupTier, number> = { common: 0x8fe3ff, rare: 0xc38fff };
+export type PickupTier = 'common' | 'rare' | 'legendary';
+/** legendary = the GOLD orb of a boss reward (src/game/Boss.ts) */
+export const TIER_COLOUR: Record<PickupTier, number> = { common: 0x8fe3ff, rare: 0xc38fff, legendary: 0xffcf5a };
 /** the orb's own colour: the tier colour pushed toward saturation — the post chain's AgX tone map washes a bright
  *  #8fe3ff to white, a deeper cyan / violet at the same energy stays cyan / violet */
-const ORB_COLOUR: Record<PickupTier, number> = { common: 0x35d4ff, rare: 0xa862ff };
+const ORB_COLOUR: Record<PickupTier, number> = { common: 0x35d4ff, rare: 0xa862ff, legendary: 0xffa018 };
 
 export interface ItemPickupOptions {
   scene: THREE.Scene;
