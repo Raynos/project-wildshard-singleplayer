@@ -107,7 +107,7 @@ float n21(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f)
   return mix(mix(h21(i), h21(i + vec2(1, 0)), f.x), mix(h21(i + vec2(0, 1)), h21(i + vec2(1, 1)), f.x), f.y); }
 void main() {
   float a = 0.0; vec3 col = uColor;
-  float fres = abs(dot(normalize(vN), normalize(vV)));
+  float fres = min(abs(dot(normalize(vN), normalize(vV))), 1.0); // ≤ 1: pow(1 − fres) below must never see a negative (NaN → bloom's black square, E91)
   if (uMode < 0.5) {                      // shaft: a soft cone of daylight; motes drift in it
     float edge = pow(fres, 1.6);
     float fall = smoothstep(0.0, 0.25, vUv.y) * (0.55 + 0.45 * vUv.y);

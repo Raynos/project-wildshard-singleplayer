@@ -87,7 +87,7 @@ function ghostMaterial(look: GhostVariant | 'storm' = 'rider'): GhostMat {
       .replace('#include <dithering_fragment>', `#include <dithering_fragment>
         vec3 gN = normalize( normal );
         vec3 gV = normalize( vViewPosition );
-        float gF = pow( 1.0 - abs( dot( gN, gV ) ), 2.0 );
+        float gF = pow( clamp( 1.0 - abs( dot( gN, gV ) ), 0.0, 1.0 ), 2.0 ); // clamped: |N·V| rounds past 1 on iOS mediump → pow(negative) = NaN → bloom's black square (E91)
         float gS = 0.75 + 0.25 * sin( gl_FragCoord.y * 0.045 + uGTime * 3.1 ) * sin( gl_FragCoord.x * 0.031 - uGTime * 2.3 );
         vec3 gC = mix( ${core}, ${rim}, gF ) * ( 0.8 + 1.3 * gF ) * gS;
         gl_FragColor = vec4( gC * uGFade, 1.0 );`);

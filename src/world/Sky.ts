@@ -21,6 +21,9 @@ import { DayNight } from './DayNight';
 import { loadStylizedLUT } from './lut';
 import type { LookupTexture } from 'postprocessing';
 
+/** the key light's shadow direction steps (E89, src/world/DayNight.ts SHADOW_STEP): ≤ ~1 shadow texel about every 1.5 s */
+const KEY_SHADOW_STEP = 0.25 * Math.PI / 180;
+
 /** the low-poly shard's sun before the day / night clock moves it: mid-morning from the east-south-east, 38° up */
 const STYLIZED_SUN = new THREE.Vector3(-0.74, 0.616, -0.27).normalize();
 
@@ -242,7 +245,12 @@ export class Sky {
   /** a painted sky (Nalati): the painterly clouds + the cloud shadows drift with the one Wind */
   private painterly = false;
 
+  /** where the key light's shadow wants to point (setKeyLight); null on a shard nothing moves the sun on */
+  private keyShadowWant: THREE.Vector3 | null = null;
+
   update(dt = 0): void {
+    const want = this.keyShadowWant;
+    if (want !== null && want.angleTo(this.csm.lightDirection) > KEY_SHADOW_STEP) this.csm.lightDirection.copy(want); // a big jump (a Time of day pick, the sun ↔ moon swap) moves at once
     this.csm.update(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
     if (this.stylized) { this.dayNight?.update(dt); this.stylized.update(dt); toonUniforms.uCloudTime.value += dt; }
     if (this.painterly) {
@@ -260,11 +268,13 @@ export class Sky {
    * Move the key light (the sun, or the moon at night) and recolour it: the CSM direction + colour × intensity, the
    * fog's in-scatter direction, the cloud / planet lighting direction. `sunDir` is updated in place (Game.ts places
    * the sun disc along it every frame; the painterly material reads it through `syncPainterlySun`).
+   * The shadow direction moves in KEY_SHADOW_STEP steps, not every frame (E89, as DayNight does it: a sun sliding a
+   * fraction of a texel per frame made every shadow edge crawl); the disc, the fog and the clouds stay continuous.
    */
   setKeyLight(dir: THREE.Vector3, color: THREE.Color, intensity: number): void {
     this.sunDir.copy(dir).normalize();
     this.sunColor.copy(color);
-    this.csm.lightDirection.copy(this.sunDir).negate();
+    this.keyShadowWant = (this.keyShadowWant ?? new THREE.Vector3()).copy(this.sunDir).negate(); // stepped in update(): the frame's last writer wins (the rig, then LightCheat)
     for (const l of this.csm.lights) { l.color.copy(color); l.intensity = intensity; }
     fogUniforms.fogSunDir.value.copy(this.sunDir);
     this.cloudUniforms.uSunDir.value.copy(this.sunDir);
