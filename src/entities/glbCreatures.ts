@@ -35,9 +35,14 @@ const HULL: Readonly<Record<string, CreatureRigName>> = {
   'horse:camp-bay': 'horse-saddled', 'horse:camp-black': 'horse-saddled', 'horse:tulpar': 'horse-saddled',
   'wolf:grey': 'wolf', 'wolf:tawny': 'wolf', 'wolf:dark': 'wolf', 'wolf:scout': 'wolf', 'wolf:alpha': 'wolf',
   'kokbori:kokbori': 'wolf',
-  // not the sheepdog: on the wolf's hull a collie reads as a wolf circling the flock (it stays procedural)
   'leopard:aqbars': 'snow-leopard',
   'eagle:qyran': 'eagle',
+  // NALATI-MERGE D1 (N12's leftovers, each made both ways and the better kept: art/nalati-grasslands/round-10-models-merge/):
+  // the collie its own hull (on the wolf's it read as a wolf circling the flock), the night riders' spectral war horse
+  // (ghostRiders.ts puts its ghost material over it), the Golden King on his humanoid rig (humanoidRigBake.ts)
+  'sheepdog:collie': 'collie',
+  'ghost-rider:rider': 'ghost-horse', 'ghost-rider:captain': 'ghost-horse',
+  'golden-king:king': 'golden-king',
 };
 
 /** the rig for (kind, variant) when the creature models are on, else null */
@@ -90,8 +95,14 @@ export function loadCreatureRig(name: CreatureRigName): Promise<RigAsset> {
       const index = src.getIndex();
       if (index) geometry.setIndex(Array.from(index.array));
       const n = geometry.getAttribute('position').count;
-      // painterly materials always read vertex colours: a white one (the atlas carries the colour)
-      geometry.setAttribute('color', new THREE.BufferAttribute(new Uint8Array(n * 3).fill(255), 3, true));
+      // painterly materials always read vertex colours: a white one (the atlas carries the colour), or a Blender-pipeline
+      // hull's own (rgb = albedo, a = the baked AO: 0.4 + 0.6 × AO, as glbPaint.ts)
+      const rgb = new Float32Array(n * 3).fill(1);
+      if (src.hasAttribute('color')) {
+        const c = src.getAttribute('color'), ao = c.itemSize === 4;
+        for (let i = 0; i < n; i++) { const k = ao ? 0.4 + 0.6 * c.getW(i) : 1; rgb[i * 3] = c.getX(i) * k; rgb[i * 3 + 1] = c.getY(i) * k; rgb[i * 3 + 2] = c.getZ(i) * k; }
+      }
+      geometry.setAttribute('color', new THREE.BufferAttribute(rgb, 3));
       geometry.clearGroups(); geometry.addGroup(0, index ? index.count : n, 0);
       geometry.computeBoundingBox();
       geometry.computeBoundingSphere();

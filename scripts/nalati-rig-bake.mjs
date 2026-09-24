@@ -46,6 +46,21 @@ export const RIG_BAKES = [
   // the camp flock: no species skeleton — the flock shader's parts (species/sheep.ts SHEEP_BONES, one bone per leg);
   // Flock.ts folds the skin back into its aRig
   { hull: 'sheep', kind: 'sheep', flock: true, phoneTris: 2000, opts: { legs: [['FL'], ['FR'], ['BL'], ['BR']] } },
+  // NALATI-MERGE D1 (N12's leftovers): the hulls made both ways, the better one baked (art/nalati-grasslands/round-10-models-merge/)
+  { hull: 'collie', phoneTris: 3500, src: 'art/nalati-grasslands/round-10-models-merge/collie', kind: 'sheepdog', variant: 'collie', opts: {} },
+  {
+    hull: 'ghost-horse', phoneTris: 6000, src: 'art/nalati-grasslands/round-10-models-merge/ghost-horse', kind: 'ghost-rider', variant: 'captain',
+    opts: { tail: { x: 0.1, z: -0.8 }, legWeights: 'proc' },
+  },
+  // the Golden King: a humanoid — src/entities/humanoidRigBake.ts (segment labels + the arms swung to the rig's rest)
+  {
+    hull: 'golden-king', phoneTris: 5000, kind: 'golden-king', variant: 'king',
+    humanoid: {
+      arms: [['armL_sh', 'armL_el', 'armL_hand'], ['armR_sh', 'armR_el', 'armR_hand']],
+      legs: [['legL_hip', 'legL_knee', 'legL_foot'], ['legR_hip', 'legR_knee', 'legR_foot']],
+      torso: ['body', 'spine', 'chest'], head: 'head', crown: 'crown', crownY: 1.8, cape: 'cape', capeZ: -0.19, capeX: 0.5, capeTopY: 1.5, fit: 2.26,
+    },
+  },
 ];
 
 // gltf-transform (core + functions are in this repo; the extensions + meshoptimizer ride along with the cli)
@@ -87,15 +102,18 @@ async function writeRigged(job, suffix, bake) {
   if (srcTex?.getMimeType() === 'image/webp') doc.createExtension(ALL_EXTENSIONS.find((E) => E.EXTENSION_NAME === 'EXT_texture_webp')).setRequired(true);
   const buf = doc.createBuffer();
   const acc = (type, arr) => doc.createAccessor().setType(type).setArray(arr).setBuffer(buf);
-  const pos = b64(bake.position, Float32Array), nrm = b64(bake.normal, Float32Array), uv = b64(bake.uv, Float32Array);
+  const pos = b64(bake.position, Float32Array), nrm = b64(bake.normal, Float32Array);
   const ji = b64(bake.skinIndex, Uint16Array), wt = b64(bake.skinWeight, Float32Array);
   const n = pos.length / 3;
   const joints = new Uint8Array(n * 4);
   for (let i = 0; i < n * 4; i++) joints[i] = ji[i];
   const index = n > 65535 ? b64(bake.index, Uint32Array) : Uint16Array.from(b64(bake.index, Uint32Array));
   const prim = doc.createPrimitive()
-    .setAttribute('POSITION', acc('VEC3', pos)).setAttribute('NORMAL', acc('VEC3', nrm)).setAttribute('TEXCOORD_0', acc('VEC2', uv))
+    .setAttribute('POSITION', acc('VEC3', pos)).setAttribute('NORMAL', acc('VEC3', nrm))
     .setAttribute('JOINTS_0', acc('VEC4', joints)).setAttribute('WEIGHTS_0', acc('VEC4', wt)).setIndices(acc('SCALAR', index));
+  if (bake.uv) prim.setAttribute('TEXCOORD_0', acc('VEC2', b64(bake.uv, Float32Array)));
+  // a Blender-pipeline hull (no atlas): its vertex colours (rgb = albedo, a = the baked AO) ride along
+  if (bake.color) prim.setAttribute('COLOR_0', acc(bake.colorSize === 4 ? 'VEC4' : 'VEC3', b64(bake.color, Float32Array)));
   const mat = doc.createMaterial(`${job.hull}-coat`).setMetallicFactor(0).setRoughnessFactor(0.85).setDoubleSided(true);
   if (srcTex) {
     const tex = doc.createTexture(srcTex.getName()).setImage(srcTex.getImage()).setMimeType(srcTex.getMimeType());
@@ -149,7 +167,8 @@ try {
         gltf.scene.updateMatrixWorld(true);
         const meshes = []; gltf.scene.traverse((o) => { if (o.isMesh) meshes.push(o); });
         const src = meshes[0].geometry, hull = new THREE.BufferGeometry();
-        for (const k of ['position', 'normal', 'uv']) {
+        for (const k of ['position', 'normal', 'uv', 'color']) {
+          if (!src.hasAttribute(k)) continue;
           const a = src.getAttribute(k), out = new Float32Array(a.count * a.itemSize);
           for (let i = 0; i < a.count; i++) for (let c = 0; c < a.itemSize; c++) out[i * a.itemSize + c] = a.getComponent(i, c);
           hull.setAttribute(k, new THREE.BufferAttribute(out, a.itemSize));
@@ -160,20 +179,21 @@ try {
         let procGeo, bones;
         if (j.flock) { const sh = await import('/src/entities/species/sheep.ts'); procGeo = sh.sheepSkinnedGeometry(); bones = sh.SHEEP_BONES; }
         else { const model = window.__world.animals.factory.model(j.kind, j.variant); procGeo = model.geometry; bones = model.bones; }
-        const r = bakeCreatureRig(procGeo, hull, bones, j.opts);
+        const r = j.humanoid ? (await import('/src/entities/humanoidRigBake.ts')).bakeHumanoidRig(procGeo, hull, bones, j.humanoid) : bakeCreatureRig(procGeo, hull, bones, j.opts);
         const g = r.geometry;
         const enc = (ta) => { const u = new Uint8Array(ta.buffer, ta.byteOffset, ta.byteLength); let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCodePoint(...u.subarray(i, i + 0x8000)); return btoa(s); };
         const f32 = (name) => Float32Array.from(g.getAttribute(name).array);
         const idx = g.getIndex();
         return {
-          position: enc(f32('position')), normal: enc(f32('normal')), uv: enc(f32('uv')),
+          position: enc(f32('position')), normal: enc(f32('normal')), uv: g.hasAttribute('uv') ? enc(f32('uv')) : null,
+          color: g.hasAttribute('color') ? enc(f32('color')) : null, colorSize: g.hasAttribute('color') ? g.getAttribute('color').itemSize : 0,
           skinIndex: enc(Uint16Array.from(g.getAttribute('skinIndex').array)), skinWeight: enc(f32('skinWeight')),
           index: enc(Uint32Array.from(idx ? idx.array : Array.from({ length: g.getAttribute('position').count }, (_, i) => i))),
           bones: r.bones, report: r.report,
         };
       }, { ...job, srcB64: (await sourceBytes(job, srcFile, tier)).toString('base64') });
       const w = await writeRigged(job, suffix, bake);
-      console.log(`${job.hull} ${tier}: ${w.verts} verts, ${(w.bytes / 1024).toFixed(0)} KB → ${w.out.slice(ROOT.length + 1)}  legs ${JSON.stringify(bake.report.legs)} head ${bake.report.headDeg}°`);
+      console.log(`${job.hull} ${tier}: ${w.verts} verts, ${(w.bytes / 1024).toFixed(0)} KB → ${w.out.slice(ROOT.length + 1)}  ${job.humanoid ? `labels ${JSON.stringify(bake.report.labels)} arms ${JSON.stringify(bake.report.arms)}` : `legs ${JSON.stringify(bake.report.legs)} head ${bake.report.headDeg}°`}`);
     }
     await ctx.close();
   }

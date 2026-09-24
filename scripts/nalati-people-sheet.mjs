@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // nalati-people-sheet.mjs — NALATI-MERGE D2: the camp's people, procedural | Blender pipeline | image-to-3D pipeline, at
 // the same first-person pose, live on ONE page (the Look Lab's `campPeople` pick swaps them in the next frame; the
-// clock is paused, the weather clear). Per figure: the player 4.5 m in front of it, facing it (each figure turns to you,
+// clock is paused, the weather clear). Per figure: the player 2.4–3.6 m in front of it, facing it (each figure turns to you,
 // the head follows, the cook stirs). The draw calls and triangles per state are measured on the phone tier.
 //
 //   node scripts/nalati-people-sheet.mjs --url=http://127.0.0.1:5189 [--tiers=desktop,phone] [--only=elder,cook]
@@ -20,8 +20,8 @@ const ONLY = flag('only', '').split(',').filter(Boolean);
 const OUT = resolvePath(ROOT, 'progress/nalati-merge/d');
 mkdirSync(resolvePath(OUT, 'people-frames'), { recursive: true });
 const PEOPLE = [
-  { id: 'elder', label: 'Baqyt Ata', dist: 4.2 }, { id: 'herderGate', label: 'Dauren', dist: 4.2 }, { id: 'herderRail', label: 'Erlan', dist: 4.2 },
-  { id: 'child', label: 'Ayan', dist: 6 }, { id: 'cook', label: 'Gulnar Apa', dist: 4.6 },
+  { id: 'elder', label: 'Baqyt Ata', dist: 2.6 }, { id: 'herderGate', label: 'Dauren', dist: 2.4 }, { id: 'herderRail', label: 'Erlan', dist: 2.6 },
+  { id: 'child', label: 'Ayan', dist: 3.2 }, { id: 'cook', label: 'Gulnar Apa', dist: 3.6 },
 ].filter((p) => ONLY.length === 0 || ONLY.includes(p.id));
 const STATES = [{ v: 'proc', label: 'PROCEDURAL' }, { v: 'blender', label: 'BLENDER' }, { v: 'gen', label: 'IMAGE-TO-3D' }];
 const TIER_CTX = { phone: { viewport: { width: 390, height: 844 }, dpr: 3, touch: true }, desktop: { viewport: { width: 1280, height: 800 }, dpr: 1, touch: false } };
@@ -53,7 +53,7 @@ try {
         const px = x + Math.sin(spot.yaw) * a.dist, pz = z + Math.cos(spot.yaw) * a.dist;
         const yaw = Math.atan2(px - x, pz - z);
         window.__world.player.spawn(px, pz, yaw);
-        window.__world.player.pitch = -0.08;
+        window.__world.player.pitch = -0.02;
         return { px, pz, yaw };
       }, p);
       await sleep(5000);

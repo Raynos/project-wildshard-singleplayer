@@ -42,7 +42,8 @@ const SUBJECTS = [
   { name: 'child', proc: { person: 'child' }, label: 'Ayan (the child)', dist: 3.4 },
   { name: 'cook', proc: { person: 'cook' }, label: 'Gulnar Apa (the cook)', dist: 4.4 },
 ].filter((s) => only.length === 0 || only.includes(s.name));
-const PIPES = [
+// --pipes=<id>:<caption>,… compares other candidate files (<name>.<id>.glb), e.g. the two generators' atlases
+const PIPES = flag('pipes', '') ? flag('pipes', '').split(',').map((x) => { const [id, ...c] = x.split(':'); return { id, caption: c.length > 0 ? c.join(':') : id }; }) : [
   { id: 'blender', caption: 'BLENDER · main\'s pipeline, in game' },
   { id: 'gen', caption: 'IMAGE-TO-3D · atlas, in game' },
 ];

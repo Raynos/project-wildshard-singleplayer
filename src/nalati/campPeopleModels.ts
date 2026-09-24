@@ -18,7 +18,8 @@
  *   2. pivots  the neck at the narrowest cross-section near the procedural neck, the shoulder at the torso's edge below it;
  *   3. seed    head = above the neck; arm = the figure's right (−x) past the shoulder and near the shoulder → hand line
  *              (the hand: the lowest far-right point), anything it holds (the ladle, the whip) with it;
- *   4. smooth  Laplacian passes over the welded surface blur the head and arm borders into a soft neck and shoulder.
+ *   4. smooth  Laplacian passes over the welded surface blur the head and arm borders into a soft neck and shoulder;
+ *   5. unpose  the A-pose arm swung down to the procedural arm's rest (blended by its weight), so the same swings read.
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -142,6 +143,23 @@ function fitFigure(key: PersonKey, geometry: THREE.BufferGeometry, map: THREE.Te
   }
   const headV = new Float32Array(n), armV = new Float32Array(n);
   for (let i = 0; i < n; i++) { headV[i] = head[of[i] ?? 0] ?? 0; armV[i] = arm[of[i] ?? 0] ?? 0; }
+  // ── unpose: the A-pose arm swung down onto the procedural arm's rest (down and a little forward), blended by its
+  //    weight — so the runtime's swings (the gesture, the stir) start from where the procedural figure's arm hangs
+  const q = new THREE.Quaternion().setFromUnitVectors(hand.clone().sub(shoulder).normalize(), new THREE.Vector3(0, -1, 0.28).normalize());
+  const nrm = g.getAttribute('normal'), p1 = new THREE.Vector3(), n1 = new THREE.Vector3();
+  for (let i = 0; i < n; i++) {
+    const a = armV[i] ?? 0;
+    if (a <= 0) continue;
+    _v.set(pos.getX(i), pos.getY(i), pos.getZ(i));
+    p1.copy(_v).sub(shoulder).applyQuaternion(q).add(shoulder);
+    _v.lerp(p1, a);
+    pos.setXYZ(i, _v.x, _v.y, _v.z);
+    n1.set(nrm.getX(i), nrm.getY(i), nrm.getZ(i));
+    p1.copy(n1).applyQuaternion(q);
+    n1.lerp(p1, a).normalize();
+    nrm.setXYZ(i, n1.x, n1.y, n1.z);
+  }
+  pos.needsUpdate = true; nrm.needsUpdate = true;
   return { key, geometry: g, map, neck, shoulder, head: headV, arm: armV };
 }
 

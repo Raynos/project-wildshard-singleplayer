@@ -18,6 +18,10 @@
 //   node scripts/nalati-models-color.mjs --only=wolf,yurt   # some
 // Sources are the untouched generator outputs (never the repo copies, so re-runs don't compound):
 //   ~/ml/img2mesh/final/<name>.glb (TRELLIS.2) or ~/ml/img2mesh/final-hy/<name>.glb (Hunyuan3D-2), per SRC below.
+// NALATI-MERGE D1 / D2 (the models made both ways): --src=<path with {name}> --ref=<path with {name}> --out=<dir> take the
+// sources, the cutout references and the output folder from elsewhere (the candidates are compared before any ships):
+//   node scripts/nalati-models-color.mjs --only=collie --src=~/ml/img2mesh/out/nalati-merge/final/hy/{name}.hy.glb \
+//     --ref=~/ml/img2mesh/out/nalati-merge/cut/{name}.png --out=/tmp/cands
 import { createRequire } from 'node:module';
 import { realpathSync, mkdirSync, existsSync, statSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -36,7 +40,10 @@ const argv = process.argv.slice(2);
 const flag = (n, d) => { const a = argv.find((x) => x.startsWith(`--${n}=`)); return a ? a.slice(n.length + 3) : d; };
 const only = flag('only', '').split(',').filter(Boolean);
 const M = join(homedir(), 'ml/img2mesh');
-const OUT = join(ROOT, 'public/assets/nalati/models');
+const tilde = (p) => p.replace(/^~/, homedir());
+const OUT = tilde(flag('out', join(ROOT, 'public/assets/nalati/models')));
+const SRC_T = flag('src', ''), REF_T = flag('ref', '');
+mkdirSync(OUT, { recursive: true });
 const TMP = flag('tmp', '/tmp/nalati-color');
 mkdirSync(TMP, { recursive: true });
 const GT = join(ROOT, 'node_modules/.bin/gltf-transform');
@@ -69,6 +76,14 @@ const MODELS = {
   watchtower: { src: 'hy', k: 0.9, sat: 0.8, lift: 6 },
   'snow-lotus': { src: 'trellis', k: 0.85, phoneRatio: 0.35 },
   'kokpar-rider': { src: 'hy', k: 0.8, farRatio: 0.12 },
+  // NALATI-MERGE D1 / D2 (with --src / --ref / --out)
+  collie: { src: 'hy', k: 0.85, lift: 8 },
+  'ghost-horse': { src: 'hy', k: 0.8 },
+  elder: { src: 'hy', k: 0.85, lift: 8 },
+  'herder-dauren': { src: 'hy', k: 0.85, lift: 6 },
+  'herder-erlan': { src: 'hy', k: 0.85, lift: 6 },
+  child: { src: 'hy', k: 0.85, lift: 6 },
+  cook: { src: 'hy', k: 0.85, lift: 6 },
 };
 // the far-herd LOD (<name>.far.glb: ~10 % of the vertices, a 256² atlas) for the instanced herds in the hundreds
 MODELS['horse-wild'].farRatio = 0.1;
@@ -270,14 +285,14 @@ const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies(
 for (const [name, knobs] of Object.entries(MODELS)) {
   if (only.length > 0 && !only.includes(name)) continue;
   const srcDir = join(M, knobs.src === 'hy' ? 'final-hy' : 'final');
-  const doc = await io.read(join(srcDir, `${name}.glb`));
+  const doc = await io.read(SRC_T ? tilde(SRC_T.replaceAll('{name}', name)) : join(srcDir, `${name}.glb`));
   const tex = doc.getRoot().listTextures()[0];
   const img = tex.getImage(); if (!img) throw new Error(`${name}: no texture`);
   const atlas = await readRgba(Buffer.from(img));
   const mask = uvMask(doc, atlas.w, atlas.h);
   const srcIdx = []; for (let i = 0; i < mask.length; i++) if (mask[i]) srcIdx.push(i);
   const srcLab = toLab(atlas.data, atlas.w * atlas.h);
-  const ref = await readRgba(join(M, 'refs/cut', `${name}.png`));
+  const ref = await readRgba(REF_T ? tilde(REF_T.replaceAll('{name}', name)) : join(M, 'refs/cut', `${name}.png`));
   const refLab = toLab(ref.data, ref.w * ref.h);
   const refIdx = []; for (let i = 0; i < ref.w * ref.h; i++) if (ref.data[i * 4 + 3] > 200) refIdx.push(i);
   const mapper = makeMap(srcLab, srcIdx, refLab, refIdx, knobs);

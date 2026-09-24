@@ -5,8 +5,8 @@
  */
 import { TIER } from '../core/tier';
 
-export type CreatureRigName = 'horse-wild' | 'horse-saddled' | 'wolf' | 'snow-leopard' | 'sheep' | 'eagle';
-export const CREATURE_RIGS: readonly CreatureRigName[] = ['horse-wild', 'horse-saddled', 'wolf', 'snow-leopard', 'sheep', 'eagle'];
+export type CreatureRigName = 'horse-wild' | 'horse-saddled' | 'wolf' | 'snow-leopard' | 'sheep' | 'eagle' | 'collie' | 'ghost-horse' | 'golden-king';
+export const CREATURE_RIGS: readonly CreatureRigName[] = ['horse-wild', 'horse-saddled', 'wolf', 'snow-leopard', 'sheep', 'eagle', 'collie', 'ghost-horse', 'golden-king'];
 
 /** the file `loadCreatureRig(name)` fetches on this tier: `<hull>[.phone].rigged.glb` */
 export function creatureRigUrl(name: CreatureRigName): string {

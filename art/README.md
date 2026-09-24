@@ -30,6 +30,7 @@ when the images were generated.
 | `pickups/` | `round-1` (09-18) | `pickup-{A-bubble,B-ring,C-diegetic}` — AR-15 cabin pickup |
 | `nalati-grasslands/` | `round-1/{1-art-style,2-combat,3-enemies,4-new-features,5-concept-art}` (09-22) | Nalati round 1 — see `project/archive/2026-09-23-nalati.md` |
 | `nalati-grasslands/` | `round-9-rig-hulls` (09-23) | creature hulls re-generated for rigging (A1 step 5): `snow-leopard-rig`, `eagle-flight` (GLB sources of the `*.rigged.glb` bakes, `scripts/nalati-rig-bake.mjs`), `wolf-rig` (ref + turntable only, not used); `*-ref.jpg` the codex references, `*-turntable.jpg` the TRELLIS.2 results |
+| `nalati-grasslands/` | `round-10-models-merge` (09-24) | NALATI-MERGE D1 / D2, every model made both ways (Blender pipeline + image-to-3D): `ref-*.jpg` the codex references (A-pose figures, side-on creatures; `refs-sheet.jpg` all eight), `collie` / `ghost-horse` (`.phone`) the Hunyuan3D-2 hulls behind their `*.rigged.glb` bakes; the in-engine sheets are `progress/nalati-merge/d/` |
 
 The rest of this file is the prompt log for `pine-hollow/round-1-target-look` and the first two HUD rounds.
 
