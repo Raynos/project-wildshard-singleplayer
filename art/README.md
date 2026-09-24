@@ -250,3 +250,20 @@ Live captures, not mockups (phone tier, iPhone 16 Pro, HUD hidden, `tod=day|nigh
 — A the new pond (the clock's sky + the skyline probe, one draw), B the planar before (`?pond=planar`), at the pond's W
 shore day / night and the N shore's shallows. `water-day-night.jpg`: the new water at the pond shore, the waterfall's
 base, the beaver dam and the creek at the E road, day and night.
+
+### Pine Hollow painted horizon (`art/pine-hollow/round-10-horizon/`, 2026-09-24, PH-L5)
+
+The photoreal far country beyond the slab, day + night, in place of the 17 Sep ridge rings and the white cloud sea.
+`capture-h<t>.jpg`: the clock's empty sky from the fire lookout's deck (eye 59.2 m, heading t: dir = (cos t, 0, sin t),
+level, vfov 72°, `tod=day`). `segment-day-h<t>.jpg`: codex edits into far boreal country (forested ridges in aerial
+perspective, the snow-capped range N / NW, lakes, valley mist), painted as a CHAIN: h120 (the hero range) first, then
+h060 / h180 continuing it, then h000 / h240, then h300 closing the ring (each given its neighbours' overlap strip,
+`scripts/horizon-matte/overlap.py`, and the strip pasted back after). Re-rolled: the first independent round of all six
+(their overlaps disagreed: a mountain range cut by a vertical seam), h060 / h120 once for bolder peaks (~3° → ~10°), h060
+three times as a chain (twice it redrew the strip it was told to keep). `segment-night-h<t>.jpg`: codex's moonlit edit of each
+day segment; phase correlation against the day edges: h000 / h060 0–2 px, h120–h300 a uniform 32 px (codex shifted the
+frame), corrected, then 0–1 px (h240's hazy skyline 7 px at a weak peak). `strip-day.jpg` / `strip-night.jpg`: the
+6144 × 704 cylinder (−30° … +14°) at half size; `strip-day-keyed-over-checker.jpg`: the skyline key (key.py `mode:
+skyline`). `board.jpg`: "Pine Hollow horizon — which?", A painted vs B `?horizon=rings`, phone tiles at the lookout deck
+N / S / W and the Hollow's floor N, golden hour + night. `walk-around.jpg`: 12 frames turning 360° round the deck (top
+6 in game, bottom 6 the painting alone): no seam.

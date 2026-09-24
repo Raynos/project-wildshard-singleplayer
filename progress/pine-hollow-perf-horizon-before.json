@@ -1,0 +1,108 @@
+{
+  "tag": "horizon-before",
+  "url": "http://localhost:4191",
+  "query": "tod=day&clock=1000000",
+  "when": "2026-09-24T17:39:26.236Z",
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "gate",
+      "calls": 126,
+      "tris": 1366108,
+      "msP50": 14.300000190734863,
+      "msP95": 20.699999809265137,
+      "programs": 83,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "cabin",
+      "calls": 160,
+      "tris": 1546730,
+      "msP50": 15.900000095367432,
+      "msP95": 21.199999809265137,
+      "programs": 84,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "pond",
+      "calls": 109,
+      "tris": 1126036,
+      "msP50": 15.5,
+      "msP95": 19.90000009536743,
+      "programs": 84,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "lookout",
+      "calls": 139,
+      "tris": 1363764,
+      "msP50": 15.700000286102295,
+      "msP95": 19.699999809265137,
+      "programs": 84,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "lookout-n",
+      "calls": 79,
+      "tris": 647268,
+      "msP50": 15.199999809265137,
+      "msP95": 19.299999713897705,
+      "programs": 84,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "gate",
+      "calls": 391,
+      "tris": 10021920,
+      "msP50": 16.90000009536743,
+      "msP95": 18.40000009536743,
+      "programs": 92,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "cabin",
+      "calls": 503,
+      "tris": 9207396,
+      "msP50": 17.700000286102295,
+      "msP95": 19.100000381469727,
+      "programs": 92,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "pond",
+      "calls": 308,
+      "tris": 5853851,
+      "msP50": 16.699999809265137,
+      "msP95": 18.700000286102295,
+      "programs": 100,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "lookout",
+      "calls": 393,
+      "tris": 7709099,
+      "msP50": 16.59999990463257,
+      "msP95": 18.59999990463257,
+      "programs": 100,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "lookout-n",
+      "calls": 167,
+      "tris": 3246432,
+      "msP50": 16.5,
+      "msP95": 18.699999809265137,
+      "programs": 100,
+      "forest": "batched"
+    }
+  ]
+}
