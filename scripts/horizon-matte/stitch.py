@@ -111,7 +111,8 @@ def main():
     res = np.zeros((H, W, 3), np.float32); wsum = np.zeros((H, W, 1), np.float32)
     # feather per row: wide in the open sky high up (hides the segments' sky-tone steps), narrow where the content is
     el = EL_MAX - (EL_MAX - EL_MIN) * (np.arange(H) + 0.5) / H
-    rad = np.round(FEATHER + (FEATHER_SKY - FEATHER) * np.clip((el - 7) / 6, 0, 1)).astype(int)
+    SKY_FROM = CFG['stitch'].get('featherSkyFrom', 7)  # deg where the wide sky feather starts (over the tallest content; Driftwood 7)
+    rad = np.round(FEATHER + (FEATHER_SKY - FEATHER) * np.clip((el - SKY_FROM) / 6, 0, 1)).astype(int)
     PADN = 160
     for k in range(len(HEADS)):
         ind = (own == k).astype(np.float32)

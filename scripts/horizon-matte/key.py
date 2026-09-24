@@ -35,6 +35,23 @@ if night:
     skyish = (b > r + 0.03) & (b >= g) & (mx < 0.55)
 else:
     skyish = (b > r + 0.12) & (b >= g) & (sat > 0.22)
+SKYLINE = CFG['key'].get('mode') == 'skyline'
+if SKYLINE:
+    # photoreal land under a plain sky (Pine Hollow): the sky is whatever is smooth and connected to the strip's top — a flood
+    # from the top row through low-texture pixels, stopped by the skyline's edge and by the horizon (below it all is land).
+    # Colour classifiers fail here: the pale haze band on the horizon is neither blue nor saturated, and hazy far ridges are.
+    from scipy.ndimage import label, binary_opening
+    elg0 = el[:, None] * np.ones((1, W))
+    Pb = gaussian_filter(P, sigma=(1.0, 1.0, 0), mode=['nearest', 'wrap', 'nearest'])
+    tex = (np.abs(np.diff(Pb, axis=0, prepend=Pb[:1])) + np.abs(np.diff(Pb, axis=1, prepend=Pb[:, -1:]))).sum(-1)
+    tex = gaussian_filter(tex, 0.8, mode=['nearest', 'wrap'])
+    top_sky = tex[elg0 > EL_MAX - 3]
+    THR = CFG['key'].get('texture', max(0.012, float(np.percentile(top_sky, 99.5)) * 2.5))
+    smooth = (tex < THR) & (elg0 > CFG['key'].get('horizon', -0.3))
+    lab, _ = label(smooth)
+    ids = np.unique(lab[0][lab[0] > 0])
+    skyish = binary_opening(np.isin(lab, ids), structure=np.ones((3, 3)))
+    print(f'skyline key: texture threshold {THR:.4f}, sky {skyish.mean() * 100:.1f} % of the strip')
 
 # sky model: windowed mean of sky-classified pixels along each row (wrapping), then filled / smoothed vertically
 WIN = 301
@@ -75,11 +92,40 @@ A = np.where(elg < 0, np.where(elg > -FEET, 1.0, below), A)
 # very top: nothing
 A *= np.clip((EL_MAX - 0.3 - elg) / 2.0, 0, 1)
 
+if SKYLINE:
+    # land = everything not flooded as sky, softened ~1 px; inside the sky, a difference key keeps what the flood leaked
+    # into (a pale far ridge with no edge) as partial alpha over the live sky
+    # the flood stops a few px short of the true skyline (the texture measure is blurred), so the land's top rim and the sky
+    # just over it take the difference key; sky farther than ~0.8° from land is clear (the feathered sky-tone steps of the
+    # stitch are no land)
+    from scipy.ndimage import distance_transform_edt
+    land = ~skyish
+    rim = land & (distance_transform_edt(land) <= 4)
+    near = skyish & (distance_transform_edt(skyish) <= 13)
+    # the sky there is the colour right above the column's skyline (the pale haze band on the horizon), not the row mean
+    yb = np.clip(H - 1 - np.argmax(skyish[::-1], axis=0), 3, H - 1)   # each column's lowest sky row
+    Sc = np.stack([P[np.clip(yb - k, 0, H - 1), np.arange(W)] for k in range(4)]).mean(0)
+    Sc = gaussian_filter(Sc, sigma=(4, 0), mode=['wrap', 'nearest'])
+    S = np.where((rim | near)[..., None], Sc[None], S)
+    dS = np.sqrt(((P - S) ** 2).sum(-1))
+    tS = np.clip((dS - lo) / (hi - lo), 0, 1)
+    aD = tS * tS * (3 - 2 * tS)
+    # a distance key calls a half-sky edge pixel solid: where the pixel above is not solid land yet, project the pixel on
+    # the line sky -> the land 2 px below it instead (the edge's true coverage)
+    P2 = np.concatenate([P[2:], P[-2:]], 0)
+    L2 = P2 - S
+    aP = np.clip(((P - S) * L2).sum(-1) / np.maximum((L2 ** 2).sum(-1), 1e-4), 0, 1)
+    aboveLand = np.concatenate([aD[:1], aD[:-1]], 0) > 0.95
+    aD = np.where(aboveLand, aD, np.minimum(aD, aP))
+    A = np.where(rim | near, aD, land.astype(np.float32))
+    A = gaussian_filter(A, 0.5, mode=['nearest', 'wrap'])
+    A = np.where(elg < CFG['key'].get('horizon', -0.3), 1.0, A)
+    A *= np.clip((EL_MAX - 0.3 - elg) / 2.0, 0, 1)
 if ARGS.alpha_from:
     other = np.asarray(Image.open(ARGS.alpha_from), dtype=np.float32) / 255
     A = other[..., 3]
 
-a = np.maximum(A, 1e-3)[..., None]
+a = np.maximum(A, 0.5 if SKYLINE else 1e-3)[..., None]   # photoreal edges: un-mix gently (a pale rim amplified to white otherwise)
 F = np.clip(S + (P - S) / a, 0, 1)
 F = np.where(A[..., None] > 0.02, F, S)   # fully transparent texels keep the sky colour (no dark halos in the mips)
 F = np.where(elg[..., None] < 0, P, F)

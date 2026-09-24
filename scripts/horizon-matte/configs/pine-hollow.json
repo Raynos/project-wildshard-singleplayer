@@ -1,0 +1,148 @@
+{
+ "shard": "pine-hollow",
+ "about": "The painted horizon of Pine Hollow (PINE-HOLLOW-REMASTER PH-L5, art/pine-hollow/round-10-horizon): photoreal far boreal country, day + night. capture: the in-game references (the fire lookout's deck, eye 59.2 m, heading t: dir = (cos t, 0, sin t), level pitch, only the clock's sky dome drawn, tod = day). strip: the cylindrical strip stitch.py writes and HorizonMatte.ts draws at infinity (rows linear in elevation elMin..elMax, the horizon = eye level). stitch: feather px where the content is / in the open sky, the seam window (deg). key: the land is opaque below the horizon (the key keeps it all: feet = the whole lower half, fadeTo past the bottom). jobs: the codex prompt sets for mkjobs.py (day = the edit of each capture, night = the edit of each day segment, same silhouettes).",
+ "capture": {
+  "eye": [
+   36,
+   59.2,
+   214
+  ],
+  "headings": [
+   0,
+   60,
+   120,
+   180,
+   240,
+   300
+  ],
+  "vfov": 72.0,
+  "width": 1536,
+  "height": 1024,
+  "tod": 0.4167
+ },
+ "strip": {
+  "width": 6144,
+  "height": 704,
+  "elMin": -30.0,
+  "elMax": 14.0
+ },
+ "stitch": {
+  "feather": 10,
+  "featherSky": 150,
+  "featherSkyFrom": 11.5,
+  "seamWindow": 11
+ },
+ "encode": {
+  "tonemap": "agx",
+  "scale": 4.0,
+  "quality": 86
+ },
+ "key": {
+  "mode": "skyline",
+  "horizon": -0.3,
+  "feet": 12.0,
+  "fadeTo": 13.0
+ },
+ "jobs": {
+  "day": {
+   "inputs": [
+    "ref-{d}.jpg"
+   ],
+   "out": "gen-day-{d}.png",
+   "common": "You are painting one segment of a 360-degree PAINTED HORIZON MATTE (the film matte-painting trick) for Pine Hollow, a PHOTOREAL first-person game set in the northern boreal forest (taiga): dark spruce and Scots pine forest with patches of birch, granite crags and a mountain range to the north. It must look like a real photograph taken from a fire-lookout tower (like the view from a North American or Scandinavian fire lookout), not a painting, not concept art.\n\nThe attached image is a real in-game frame of the EMPTY SKY seen from the deck of the fire-lookout tower, which stands on a ridge about 60 m above the surrounding forest canopy. The camera pitch is exactly level, 95 degree horizontal field of view, 72 degree vertical field of view. The eye-level horizon is EXACTLY on the horizontal middle of the image (y = 50 %). EDIT that frame: keep the exact framing, keep the sky gradient of the top half as it is, and paint the FAR boreal country seen from the lookout:\n- ABOVE the middle line: the far skyline 10-60 km away: rolling forested ridges and low mountains, their dark conifer forest turned blue-grey and soft by aerial perspective; the far skyline sits 2-6 % of the image height above the middle line (the land's top edge must be CRISP against the sky, clearly readable as distant hills); nothing is taller than 14 % of the image height above the middle line;\n- BELOW the middle line (the lower half): the country seen from above: layer after layer of forested ridges and hills receding into the distance, each farther layer paler and bluer (strong aerial perspective), thin pale valley haze lying between the ridges; the nearest layer, at the bottom 15 % of the image, is dark green conifer-forested hills 2-4 km away where individual spruce crowns are just readable, with its lowest part dissolving into soft pale valley haze at the very bottom edge;\n- photoreal natural colours of a clear midday in the northern summer: deep green-black spruce, some lighter green birch and grey granite outcrops on the nearer hills, blue haze in the distance; a few flat white fair-weather cloud shadows are fine;\n- nothing near the camera: no tower, no railing, no foreground trees, no people, no animals, no birds, no roads, no clearings with buildings, no power lines, no man-made anything, no text, no UI, no watermark, no frame, no vignette;\n- the upper 40 % of the image stays the plain clean sky gradient from the reference (no clouds, no sun, no birds): it will be cut away;\n- the LEFT 25 % and the RIGHT 25 % of the image hold only the continuous low forested ridgelines (skyline under 4 % of the image height above the middle line, no peaks, no lakes) so that the neighbouring segments of the panorama join; the special features go in the middle 50 %.\n",
+   "segments": {
+    "0": [
+     "facing WEST; the high midday sun is to the upper LEFT (south), so slopes facing left are lit, right-facing slopes in soft shade",
+     "a long level forested plateau on the skyline and, below the horizon among the receding forested ridges, a long narrow far lake catching a soft silver glint of the sky"
+    ],
+    "60": [
+     "facing NORTH-NORTH-WEST; the sun is high BEHIND-LEFT of the camera, so the far country is front-lit and clear",
+     "the western end of the mountain range, 15-25 km away and BOLD: two or three big rocky blue-grey mountains with snowfields and snow gullies, the tallest summit reaching 10-11 % of the image height above the middle line (measure it: about 105 px above the middle row of a 1024 px image), the others 6-8 %, rising steeply behind the forested ridges, their feet in blue haze"
+    ],
+    "120": [
+     "facing NORTH-NORTH-EAST; the sun is high BEHIND-RIGHT of the camera, front-lit, crisp",
+     "the main mountain range, 15-25 km away and BOLD, the hero of the panorama: a massif of big snow-capped granite peaks, the highest summit reaching 13 % of the image height above the middle line (measure it: about 135 px above the middle row of a 1024 px image), the other summits 7-11 %, broad snowfields, glaciers and dark rock faces, lightly softened blue by the distance, forested ridges in front of their feet"
+    ],
+    "180": [
+     "facing EAST; the high midday sun is to the upper RIGHT (south), slopes facing right are lit",
+     "broad forested uplands with one gentle rounded hill on the skyline (about 6 % of the image height above the middle line) and, below the horizon, a winding river valley filled with soft white morning-like mist between dark forested ridges"
+    ],
+    "240": [
+     "facing SOUTH-SOUTH-EAST, toward the high sun (just above the top of the frame, upper right): the ridges are BACKLIT, darker blue-grey silhouettes layered one behind the other in bright warm haze, the haze brightest toward the upper right",
+     "gentle layered forested ridges receding into bright hazy distance, the classic blue layered-ridges view, lots of haze between the layers"
+    ],
+    "300": [
+     "facing SOUTH-SOUTH-WEST, near the high sun (upper left, just above the frame): partly backlit, warm bright haze on the left",
+     "layered forested ridges and, below the horizon in the middle distance, a small round lake among the forest reflecting the bright hazy sky"
+    ]
+   }
+  },
+  "night": {
+   "inputs": [
+    "day-{d}.jpg",
+    "ref-night-{d}.jpg"
+   ],
+   "out": "gen-night-{d}.png",
+   "common": "The FIRST attached image is one segment of a photoreal 360-degree horizon panorama (the view from a fire-lookout tower over northern boreal forest at midday). The SECOND attached image is the game's own night sky at the same heading. EDIT the FIRST image into the SAME view at NIGHT under a bright full moon high in the south: keep EVERY silhouette, skyline, ridge line, peak, lake and valley EXACTLY where it is, pixel-aligned, same framing and same horizon height (the landscape must overlay the day image perfectly). Photoreal moonlit night like a real long-exposure night photograph: the sky becomes the deep blue night gradient of the second image with only a few faint stars (no moon disc, no planet, no ringed planet even if the second image shows one, no aurora, no clouds); snow on the peaks glows pale silver-blue in the moonlight; the forested ridges become very dark blue-black, the farther layers slightly lighter blue-grey (moonlit haze), the valley mist faint silver-blue; lakes show a dim silvery reflection; no lights, no fires, no buildings, no people, no text, no watermark, no frame. The land must stay readable against the sky: the sky just above the far skyline is a little lighter than the ridges.\n",
+   "segments": {
+    "0": [
+     "facing WEST, the moon to the upper left (south)",
+     "keep the level plateau and the long lake (now a dim silver line)"
+    ],
+    "60": [
+     "facing NORTH-NORTH-WEST, the moon behind the camera: the mountains are moonlit",
+     "keep the mountains, their snow now pale silver-blue"
+    ],
+    "120": [
+     "facing NORTH-NORTH-EAST, the moon behind the camera: the snow-capped range is moonlit and clearly readable",
+     "keep every peak exactly, snowfields glowing silver-blue, rock faces dark"
+    ],
+    "180": [
+     "facing EAST, the moon to the upper right (south)",
+     "keep the rounded hill and the river valley's mist (faint silver)"
+    ],
+    "240": [
+     "facing SOUTH-SOUTH-EAST, toward the moon (above the frame, upper right): the ridges are dark silhouettes against a slightly brighter moonlit haze",
+     "keep the layered ridges"
+    ],
+    "300": [
+     "facing SOUTH-SOUTH-WEST, near the moon (upper left): dark layered silhouettes, faint moonlit haze",
+     "keep the ridges and the small lake (a dim silver reflection)"
+    ]
+   }
+  },
+  "chain": {
+   "inputs": [
+    "chain-{d}.jpg"
+   ],
+   "out": "gen-day-{d}.png",
+   "common": "You are painting one segment of a 360-degree PAINTED HORIZON MATTE (the film matte-painting trick) for Pine Hollow, a PHOTOREAL first-person game set in the northern boreal forest (taiga): dark spruce and Scots pine forest with patches of birch, granite crags and a mountain range to the north. It must look like a real photograph taken from a fire-lookout tower (like the view from a North American or Scandinavian fire lookout), not a painting, not concept art.\n\nThe attached image is a real in-game frame of the EMPTY SKY seen from the deck of the fire-lookout tower, which stands on a ridge about 60 m above the surrounding forest canopy. The camera pitch is exactly level, 95 degree horizontal field of view, 72 degree vertical field of view. The eye-level horizon is EXACTLY on the horizontal middle of the image (y = 50 %). EDIT that frame: keep the exact framing, keep the sky gradient of the top half as it is, and paint the FAR boreal country seen from the lookout:\n- ABOVE the middle line: the far skyline 10-60 km away: rolling forested ridges and low mountains, their dark conifer forest turned blue-grey and soft by aerial perspective; the far skyline sits 2-6 % of the image height above the middle line (the land's top edge must be CRISP against the sky, clearly readable as distant hills); nothing is taller than 14 % of the image height above the middle line;\n- BELOW the middle line (the lower half): the country seen from above: layer after layer of forested ridges and hills receding into the distance, each farther layer paler and bluer (strong aerial perspective), thin pale valley haze lying between the ridges; the nearest layer, at the bottom 15 % of the image, is dark green conifer-forested hills 2-4 km away where individual spruce crowns are just readable, with its lowest part dissolving into soft pale valley haze at the very bottom edge;\n- photoreal natural colours of a clear midday in the northern summer: deep green-black spruce, some lighter green birch and grey granite outcrops on the nearer hills, blue haze in the distance; a few flat white fair-weather cloud shadows are fine;\n- nothing near the camera: no tower, no railing, no foreground trees, no people, no animals, no birds, no roads, no clearings with buildings, no power lines, no man-made anything, no text, no UI, no watermark, no frame, no vignette;\n- the upper 40 % of the image stays the plain clean sky gradient from the reference (no clouds, no sun, no birds): it will be cut away;\n- the LEFT 25 % and the RIGHT 25 % of the image hold only the continuous low forested ridgelines (skyline under 4 % of the image height above the middle line, no peaks, no lakes) so that the neighbouring segments of the panorama join; the special features go in the middle 50 %.\n\nCHAINED SEGMENT: this frame continues a panorama that is already partly painted. The attached reference already shows the finished painting in its outer side strip(s) (the right 35 % and/or the left 35 % of the frame: the part that is photographic land, not just sky). KEEP those given strips EXACTLY as they are, pixel for pixel (same skyline, ridges, mountains, haze, colours, same horizon height) and paint the rest of the frame so that it CONTINUES them seamlessly: every ridgeline, mountain flank, valley haze layer and the far skyline run on across the join without any step, the lighting, haze and colour grade match exactly. Where a mountain range runs out of the given strip, continue it and let it end naturally inside the new part. The given strips win over any other instruction above (including the rule about the left / right 25 %).\n",
+   "segments": {
+    "0": [
+     "facing WEST; the high midday sun is to the upper LEFT (south), so slopes facing left are lit, right-facing slopes in soft shade",
+     "a long level forested plateau on the skyline and, below the horizon among the receding forested ridges, a long narrow far lake catching a soft silver glint of the sky"
+    ],
+    "60": [
+     "facing NORTH-NORTH-WEST; the sun is high BEHIND-LEFT of the camera, so the far country is front-lit and clear",
+     "the western end of the mountain range, 15-25 km away and BOLD: two or three big rocky blue-grey mountains with snowfields and snow gullies, the tallest summit reaching 10-11 % of the image height above the middle line (measure it: about 105 px above the middle row of a 1024 px image), the others 6-8 %, rising steeply behind the forested ridges, their feet in blue haze"
+    ],
+    "120": [
+     "facing NORTH-NORTH-EAST; the sun is high BEHIND-RIGHT of the camera, front-lit, crisp",
+     "the main mountain range, 15-25 km away and BOLD, the hero of the panorama: a massif of big snow-capped granite peaks, the highest summit reaching 13 % of the image height above the middle line (measure it: about 135 px above the middle row of a 1024 px image), the other summits 7-11 %, broad snowfields, glaciers and dark rock faces, lightly softened blue by the distance, forested ridges in front of their feet"
+    ],
+    "180": [
+     "facing EAST; the high midday sun is to the upper RIGHT (south), slopes facing right are lit",
+     "broad forested uplands with one gentle rounded hill on the skyline (about 6 % of the image height above the middle line) and, below the horizon, a winding river valley filled with soft white morning-like mist between dark forested ridges"
+    ],
+    "240": [
+     "facing SOUTH-SOUTH-EAST, toward the high sun (just above the top of the frame, upper right): the ridges are BACKLIT, darker blue-grey silhouettes layered one behind the other in bright warm haze, the haze brightest toward the upper right",
+     "gentle layered forested ridges receding into bright hazy distance, the classic blue layered-ridges view, lots of haze between the layers"
+    ],
+    "300": [
+     "facing SOUTH-SOUTH-WEST, near the high sun (upper left, just above the frame): partly backlit, warm bright haze on the left",
+     "layered forested ridges and, below the horizon in the middle distance, a small round lake among the forest reflecting the bright hazy sky"
+    ]
+   }
+  }
+ }
+}

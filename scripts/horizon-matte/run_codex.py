@@ -45,7 +45,7 @@ while pending and time.time() - t0 < TIMEOUT:
                         shutil.copy(src, j['out'])
                         print(f'done {jid} {time.time()-t0:.0f}s -> {j["out"]}', flush=True)
                         try: os.killpg(p.pid, signal.SIGTERM)
-                        except ProcessLookupError: pass
+                        except (ProcessLookupError, PermissionError): pass
                         del pending[jid]
                         continue
         if p.poll() is not None and jid in pending:
@@ -54,4 +54,4 @@ while pending and time.time() - t0 < TIMEOUT:
 for jid, (p, log, j) in pending.items():
     print('TIMEOUT', jid, flush=True)
     try: os.killpg(p.pid, signal.SIGTERM)
-    except ProcessLookupError: pass
+    except (ProcessLookupError, PermissionError): pass
