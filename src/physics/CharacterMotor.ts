@@ -7,17 +7,25 @@
  * the controller how much of the wanted translation is free (walls stop it, steps ≤ `step` are climbed, slopes past
  * `maxClimbDeg` are not, the feet snap down onto the ground within `snap`), and writes the result back into the feet.
  * Teleports need no call: the capsule is placed from the feet on every move.
+ *
+ * A **lying** capsule (`length`: the Nalati horse, NALATI-MERGE R2) runs along the character's heading instead of
+ * standing up: `radius` is its girth, its bottom touches the ground under the middle. `setYaw` turns it (and refuses a
+ * turn that would swing it into a wall), `setClimb` changes the slope limit on the fly (the horse's gait sets it),
+ * `passThrough` lets a kind of body through for a while (a stampede through the player on foot), `touching` lists what
+ * lies within a margin of the capsule (the herd jostling a rider).
  */
-import type { Collider, KinematicCharacterController, Ray, RigidBody } from '@dimforge/rapier3d-simd';
+import type { Capsule, Collider, KinematicCharacterController, Ray, RigidBody } from '@dimforge/rapier3d-simd';
 import type { Physics } from './Physics';
-import { groups, queryGroups, type GroupName } from './groups';
+import { GROUP, groups, queryGroups, type GroupName } from './groups';
 import { tagCollider, tagOf } from './surface';
 import { FIXED_STEP } from '../core/fixedStep';
 
 export interface MotorOptions {
   radius: number;
-  /** feet to crown, metres */
+  /** feet to crown, metres (an upright capsule; a lying one is 2 × radius tall) */
   height: number;
+  /** nose to tail, metres: the capsule lies along the heading (`setYaw`) — the horse */
+  length?: number;
   /** highest step climbed without a jump (m) */
   step: number;
   /** steepest slope walked up (degrees); steeper ground is a wall */
@@ -58,7 +66,8 @@ export class CharacterMotor {
   readonly collider: Collider;
   private readonly kcc: KinematicCharacterController;
   private readonly lift: number;
-  private readonly filter: number;
+  private filter: number;
+  private ghost = '';
   private enabled = true;
   /** a move that ignores the terrain heightfield (the hoverboard, swimming: they ride their own springs over it) */
   private readonly notGround = (c: Collider): boolean => tagOf(c)?.material !== 'ground';
@@ -66,12 +75,21 @@ export class CharacterMotor {
   private readonly anchor = { x: 0, y: 0, z: 0 };
   private anchorBody: RigidBody | null = null;
   private readonly ray: Ray;
+  /** a lying capsule: its half axis (between the caps) and heading; the quaternion that lays it along the heading */
+  private readonly halfAxis: number;
+  private yaw = 0;
+  private readonly rot = { x: 0, y: 0, z: 0, w: 1 };
+  private readonly probe = { x: 0, y: 0, z: 0 };
+  private touchShape: Capsule | null = null; private touchMargin = -1;
 
   constructor(private readonly physics: Physics, readonly opts: MotorOptions) {
     const { R, world } = physics;
-    const half = Math.max(0.01, opts.height / 2 - opts.radius);
-    this.lift = opts.height / 2;
+    const lying = opts.length !== undefined;
+    const half = lying ? Math.max(0.01, (opts.length ?? 0) / 2 - opts.radius) : Math.max(0.01, opts.height / 2 - opts.radius);
+    this.halfAxis = half;
+    this.lift = lying ? opts.radius : opts.height / 2;
     this.collider = world.createCollider(R.ColliderDesc.capsule(half, opts.radius).setCollisionGroups(groups(opts.group)));
+    if (lying) { this.layAlong(0); this.collider.setRotation(this.rot); }
     tagCollider(this.collider, 'flesh', opts.owner ?? null);
     this.kcc = world.createCharacterController(0.02);
     this.kcc.setUp({ x: 0, y: 1, z: 0 });
@@ -84,6 +102,72 @@ export class CharacterMotor {
     this.kcc.setCharacterMass(80); // P7: a collider with no rigid body counts as massless, and a massless character pushes nothing
     this.filter = queryGroups(opts.blockedBy, opts.group);
     this.ray = new R.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
+  }
+
+  /** the quaternion for a lying capsule along `yaw` (animal convention: forward = (sin yaw, 0, cos yaw)): Rapier's
+   *  capsule runs along Y — tip it onto +Z (90° about X), then turn it about Y */
+  private layAlong(yaw: number): void {
+    const s = Math.SQRT1_2, sy = Math.sin(yaw / 2), cy = Math.cos(yaw / 2), r = this.rot;
+    r.x = cy * s; r.y = sy * s; r.z = -sy * s; r.w = cy * s;
+  }
+
+  /**
+   * Turn a lying capsule to `yaw` at `feet`. A turn that would swing its nose or rump into something is tried again a
+   * hair off (lifted, backed, to either side — `feet` moves by that hair); when every try is blocked the turn is
+   * refused and false returned (the rider's heading stays where it was). Upright capsules turn freely.
+   */
+  setYaw(feet: Vec3, yaw: number): boolean {
+    if (this.opts.length === undefined || !this.enabled) { this.yaw = yaw; return true; }
+    const { R, world } = this.physics;
+    const old = this.yaw;
+    this.layAlong(yaw);
+    const shape = this.collider.shape;
+    const fx = Math.sin(yaw), fz = Math.cos(yaw);
+    const E = 0.05;
+    // a hair: none · up · back · either side · back + up
+    const tries = [[0, 0, 0], [0, E, 0], [-E, 0, 0], [0, 0, E], [0, 0, -E], [-E, E, 0]] as const;
+    for (const [back, up, side] of tries) {
+      const p = this.probe;
+      p.x = feet.x + fx * back + fz * side; p.y = feet.y + this.lift + up + 0.005; p.z = feet.z + fz * back - fx * side;
+      const hit = world.intersectionWithShape(p, this.rot, shape, R.QueryFilterFlags.EXCLUDE_SENSORS, this.filter, this.collider);
+      if (hit === null) {
+        feet.x = p.x; feet.y = p.y - this.lift - 0.005; feet.z = p.z;
+        this.yaw = yaw;
+        this.collider.setRotation(this.rot);
+        this.collider.setTranslation(p);
+        return true;
+      }
+    }
+    this.layAlong(old);
+    return false;
+  }
+
+  /** the steepest slope climbed from now on (degrees); it slides on ground 5° steeper */
+  setClimb(deg: number): void {
+    this.kcc.setMaxSlopeClimbAngle(deg * Math.PI / 180);
+    this.kcc.setMinSlopeSlideAngle((deg + 5) * Math.PI / 180);
+  }
+
+  /**
+   * Let these kinds through until told otherwise (both ways: this body's moves ignore them and their moves ignore it) —
+   * a stampeding horse runs through the player on foot (R3). `[]` = blocked by everything in `blockedBy` again.
+   */
+  passThrough(kinds: readonly GroupName[]): void {
+    const key = kinds.join(',');
+    if (key === this.ghost) return;
+    this.ghost = key;
+    const drop = [...new Set(kinds)].reduce((m, k) => m + GROUP[k], 0);   // distinct single bits: the sum is the union
+    this.filter = queryGroups(this.opts.blockedBy.filter((k) => !kinds.includes(k)), this.opts.group);
+    this.collider.setCollisionGroups((groups(this.opts.group) & ~drop) >>> 0);
+  }
+
+  /** Each collider of the kinds in `sees` within `margin` metres of the capsule where it stands now (the herd around a
+   *  rider); `each` returns false to stop. */
+  touching(margin: number, sees: readonly GroupName[], each: (c: Collider) => boolean): void {
+    if (!this.enabled) return;
+    const { R, world } = this.physics;
+    if (this.touchShape === null || this.touchMargin !== margin) { this.touchShape = new R.Capsule(this.halfAxis, this.opts.radius + margin); this.touchMargin = margin; }
+    world.intersectionsWithShape(this.collider.translation(), this.collider.rotation(), this.touchShape, each, R.QueryFilterFlags.EXCLUDE_SENSORS, queryGroups(sees, this.opts.group), this.collider);
   }
 
   /** Parked (Explore's free camera, a menu that owns the player): the capsule leaves the world's way. */

@@ -166,9 +166,10 @@ export class Player {
   onStep?: (sprinting: boolean) => void;
   /** runs first thing in update(), before input is read and the camera is posed — the touch aim assist nudges yaw/pitch here */
   preUpdate?: (dt: number) => void;
-  /** riding (Nalati B7, src/player/Mount.ts): while set, update() hands the whole frame to it — it reads the input, drives
-   *  the horse, places the player on it and poses the camera — and walking / swimming / the board are skipped */
-  ride: { drive: (dt: number) => void } | null = null;
+  /** riding (Nalati B7, src/player/Mount.ts): while set, the frame is handed to it — `drive` reads the input (input
+   *  phase), `step` moves the horse on its own motor (each fixed step), `pose` places the rider and the camera from the
+   *  interpolated saddle (update, `alpha`) — and walking / swimming / the board are skipped */
+  ride: { drive: (dt: number) => void; step: (dt: number) => void; pose: (dt: number, alpha: number) => void } | null = null;
   private lastBobPhase = 0;
   // ── dash: dodge + lunge (see `dodge()` / `dash()`) ──
   /** the DODGE disc was tapped (TouchControls) — consumed next update, like `touchJump` */
@@ -364,8 +365,8 @@ export class Player {
   /** One fixed step (Game's `post` slot, dt = FIXED_STEP): the move, against the stepped physics world. */
   step(dt: number): void {
     this.prevFeet.copy(this.position);
-    // in the saddle (Mount.drive, in the input phase) the horse carries you and poses the camera: no walk, no motor
-    if (this.ride !== null) return;
+    // in the saddle the horse carries you (Mount.step, on the horse's own motor): no walk, no motor of yours
+    if (this.ride !== null) { this.ride.step(dt); return; }
     if (this.carried) { this.velocity.set(0, 0, 0); this.onGround = false; return; }
     const k = this.keys;
     const fwd = this.inFwd, str = this.inStr;
@@ -651,7 +652,7 @@ export class Player {
    */
   update(dtRaw: number, alpha = 1): void {
     const dt = Math.min(dtRaw, 0.05);
-    if (this.ride !== null) { this.renderFeet.copy(this.position); return; }   // the saddle's eye (Mount.drive) owns the camera
+    if (this.ride !== null) { this.ride.pose(dt, alpha); this.renderFeet.copy(this.position); return; }   // the saddle's eye (Mount.pose) owns the camera
     const hover = this.hover;
     const swim = this.swimming && !hover;
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);

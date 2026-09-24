@@ -26,6 +26,8 @@ export interface Creature {
   bodyCapsule: (a: THREE.Vector3, b: THREE.Vector3) => void;
   /** set by CreatureBodies while the animal is near: its moves go through this */
   motor: CharacterMotor | null;
+  /** another body carries it (the ridden horse, on Mount's motor): no creature body of its own */
+  readonly driven: boolean;
 }
 
 /** The owner tag on a hitbox: which animal, which part. */
@@ -80,8 +82,8 @@ export class CreatureBodies<C extends Creature = Creature> {
       }
       // the creature physics LOD
       const dist = Math.hypot(c.position.x - player.x, c.position.z - player.z);
-      if (c.motor === null && live && dist < NEAR) c.motor = this.motorFor(c);
-      else if (c.motor !== null && (!live || dist > FAR)) { c.motor.dispose(); c.motor = null; }
+      if (c.motor === null && live && dist < NEAR && !c.driven) c.motor = this.motorFor(c);
+      else if (c.motor !== null && (!live || dist > FAR || c.driven)) { c.motor.dispose(); c.motor = null; }
       if (c.motor !== null) bodies++;
     }
     this.bodies = bodies;

@@ -132,6 +132,10 @@ export class Animal {
   strafe = 0; desiredStrafe = 0;
   /** metres the feet sit above the sampled ground (a monkey in a palm crown; negative = the sailor still under the deck) */
   yOffset = 0;
+  /** another body carries it (the ridden horse: Mount steps it on its own CharacterMotor in the fixed step and poses
+   *  `position` / `yaw` / `speed` every frame) — update neither steers, walks, nor follows the ground, and the
+   *  creature physics gives it no body of its own */
+  driven = false;
   /** per-animal scratch for a species' think / animate (numbers only) */
   mem: Record<string, number> = {};
   private attackT = -1; private attackDur = 1;
@@ -394,7 +398,8 @@ export class Animal {
     const x0 = this.position.x, z0 = this.position.z;
     if (this.flash > 0) { this.flash = Math.max(0, this.flash - dt / FLASH_T); this.applyFlash(); }
     if (this.ragdoll !== null) { this.updateRagdoll(this.ragdoll, dt, t, near); return; }
-    if (this.alive && this.stunT > 0) {
+    if (this.driven) { this.groundY = this.position.y; }
+    else if (this.alive && this.stunT > 0) {
       // staggered: no steering, no gait — shoved back along the blow with an ease-out, then held
       this.stunT -= dt; this.speed = 0;
       if (this.pushT > 0) {
@@ -427,7 +432,7 @@ export class Animal {
 
     // near the player the move goes through the physics body (PHYSICS P6): walls, rocks, trunks, the player and other
     // animals stop it — the walk, the charge and a knock-back alike
-    if (this.motor !== null && this.alive) {
+    if (this.motor !== null && this.alive && !this.driven) {
       const dx = this.position.x - x0, dz = this.position.z - z0;
       if (dx !== 0 || dz !== 0) {
         this.position.x = x0; this.position.z = z0;
@@ -438,9 +443,11 @@ export class Animal {
     }
 
     // ground follow (smoothed so bumps in the heightfield don't jitter the body)
-    const gy = heightAt(this.position.x, this.position.z);
-    this.groundY += (gy - this.groundY) * Math.min(1, dt * 12);
-    this.position.y = this.groundY + this.yOffset;
+    if (!this.driven) {
+      const gy = heightAt(this.position.x, this.position.z);
+      this.groundY += (gy - this.groundY) * Math.min(1, dt * 12);
+      this.position.y = this.groundY + this.yOffset;
+    }
 
     // gait weights from speed
     const gw = this.gaitTarget;
