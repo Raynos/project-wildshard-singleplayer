@@ -4,7 +4,7 @@
  *   buildWatchtower(ctx)   the ruined stone watchtower on its rock on the east rim (a generated GLB, glbPaint.ts)
  *   buildKokpar(ctx)       the kokpar field: a ring of marker posts round the trodden oval, the two goal mounds, the
  *                          spectators' horses at the rail, and six riders mid-game galloping laps round it (the generated
- *                          horse-and-rider model, one InstancedMesh moved every frame: lean into the turn, a canter bob)
+ *                          horse-and-rider model, one InstancedMesh moved every frame: a gallop bent into the mesh in the vertex shader, the body rising and rocking with it)
  *   buildFarHerds(ctx)     the herds in the hundreds on the Sky Grassland: ~260 horses in four herds (the far LOD —
  *                          ~800 tris, vertex-coloured coats tinted per horse — one draw per herd, frustum-culled), grazing
  *                          and drifting; the ones within ~45 m of the viewer are hidden (the AI herd with the stallion is
@@ -16,6 +16,8 @@
  */
 import * as THREE from 'three';
 import { PaintKit, M, pole, v3, blob, poiMaterial } from './paint';
+import { painterlyMaterial, painterlyUniforms } from '../painterly';
+import type { Sky } from '../Sky';
 import { PC } from './props';
 import { ModelSink, loadNalatiModel, instanceModel, MODEL_SIZE, MODEL_TRIS, FAR_TRIS, placementMatrix, type ModelPlacement } from './glbPaint';
 import { WATCHTOWER, KOKPAR, HORSE_PLAINS, SNOW_LOTUS, KURGANS, SUMMER_YURTS, SNOW_LINE, GLACIER } from '../../chunks/nalatiLayout';
@@ -55,6 +57,46 @@ export function buildWatchtower(ctx: PoiCtx): PoiPiece {
   group.add(mesh);
   void sink.flush(group, sky, { watchtower: { rim: 0.3, bands: 0.8 } });
   return { name: 'watchtower', object: group, colliders, platforms: [], tris: sink.tris() + mesh.geometry.getAttribute('position').count / 3 };
+}
+
+// ── the riders' gallop ──
+
+/** strides per second × 2π, and the phase offset between riders (GALLOP_GLSL reads the same from gl_InstanceID) */
+const GALLOP_HZ = 2.2 * Math.PI * 2, GALLOP_SPREAD = 1.7;
+/**
+ * The generated horse-and-rider is one rigid mesh; this bends it into a gallop in the vertex shader (the model faces +z,
+ * feet at y 0, 2.5 m tall): the legs below the belly swing fore / aft from the hip, fore and hind pairs half a stride
+ * apart and the left leading, each hoof lifting on its swing; the head and neck pump with the stride; the rider sits
+ * into it and leans forward. The body's own rise / rock / lean is the instance matrix (buildKokpar's update).
+ */
+const GALLOP_GLSL = /* glsl */`
+#ifdef USE_INSTANCING
+{
+  float gPh = uPTime * ${GALLOP_HZ.toFixed(4)} + float( gl_InstanceID ) * ${GALLOP_SPREAD.toFixed(2)};
+  float legK = 1.0 - smoothstep( 0.35, 0.9, position.y );
+  float lp = gPh + step( 0.0, position.z ) * 3.1416 + sign( position.x ) * 0.45;
+  float fromHip = max( 0.0, 0.95 - position.y );
+  transformed.z += sin( lp ) * 0.5 * legK * fromHip;
+  transformed.y += max( 0.0, cos( lp ) ) * 0.22 * legK * fromHip;
+  float neck = smoothstep( 0.8, 1.35, position.z ) * smoothstep( 0.9, 1.3, position.y );
+  transformed.y += sin( gPh * 2.0 + 0.8 ) * 0.06 * neck;
+  float rid = smoothstep( 1.5, 1.8, position.y );
+  transformed.z += ( 0.08 + sin( gPh * 2.0 - 0.6 ) * 0.05 ) * rid * ( position.y - 1.5 );
+  transformed.y -= ( 0.5 + 0.5 * sin( gPh * 2.0 + 0.9 ) ) * 0.05 * rid;
+}
+#endif
+`;
+
+/** a painterly material for the riders with the gallop bent in (one extra program, for the six riders) */
+function gallopMaterial(sky: Sky, like: THREE.MeshLambertMaterial): THREE.MeshLambertMaterial {
+  const mat = painterlyMaterial(sky, { map: like.map, rim: 0.8, bands: 0.85 });
+  const base = mat.onBeforeCompile.bind(mat), key = mat.customProgramCacheKey.bind(mat);
+  mat.onBeforeCompile = (shader, renderer) => {
+    base(shader, renderer);
+    shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\n${GALLOP_GLSL}`);
+  };
+  mat.customProgramCacheKey = () => `${key()}|gallop`;
+  return mat;
 }
 
 // ── the kokpar field ─────────────────────────────────────────────────────────────────────────────────────────────────
@@ -105,7 +147,7 @@ export function buildKokpar(ctx: PoiCtx): PoiPiece {
   let inst: THREE.InstancedMesh | null = null;
   const mat = new THREE.Matrix4(), place: ModelPlacement = { x: 0, y: 0, z: 0 };
   loadNalatiModel(sky, 'kokpar-rider', { rim: 0.8, bands: 0.85 }, PHONE ? 'far' : 'near').then((m) => {
-    inst = new THREE.InstancedMesh(m.geometry, m.material, riders.length);
+    inst = new THREE.InstancedMesh(m.geometry, gallopMaterial(sky, m.material), riders.length);
     inst.castShadow = !PHONE; inst.receiveShadow = true;
     inst.name = 'nalati-kokpar-riders';
     inst.frustumCulled = true;
@@ -123,8 +165,11 @@ export function buildKokpar(ctx: PoiCtx): PoiPiece {
       if (!r) continue;
       r.t += r.w * dt;
       const p = onOval(r.t, r.k), gy = ground(p.x, p.z);
-      place.x = p.x; place.z = p.z; place.y = gy + Math.abs(Math.sin(clock * 5.2 + r.bob)) * 0.12 - 0.04;
-      place.rot = p.yaw; place.roll = -0.12; place.pitch = Math.sin(clock * 5.2 + r.bob) * 0.03;
+      // the body rides the same stride as the legs (GALLOP_GLSL's phase): it rises off the hind push, rocks nose-down
+      // over the lead fore, and leans into the turn
+      const ph = painterlyUniforms.uPTime.value * GALLOP_HZ + i * GALLOP_SPREAD;
+      place.x = p.x; place.z = p.z; place.y = gy + (0.5 + 0.5 * Math.sin(ph * 2 - 0.4)) * 0.16 - 0.06;
+      place.rot = p.yaw + Math.sin(ph) * 0.025; place.roll = -0.14 + Math.sin(ph) * 0.03; place.pitch = Math.sin(ph + 1.1) * 0.07;
       m.setMatrixAt(i, placementMatrix(place, mat));
     }
     m.instanceMatrix.needsUpdate = true;
