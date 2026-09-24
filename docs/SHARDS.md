@@ -2,7 +2,9 @@
 
 The demo runs one Wildshard *chunk* (we call an authored chunk a **shard**) at a time. Every
 shard is a 500 m × 500 m floating slab with its own biome, built by the same engine from a
-`ChunkDef` (`src/chunks/ChunkDef.ts`). Pine Hollow is the first (`src/chunks/pine-hollow.ts`).
+`ChunkDef` (`src/chunks/ChunkDef.ts`). Two are registered: Driftwood Isle (`src/chunks/driftwood-isle.ts`, the
+default shard and first on the title deck — `DEFAULT_CHUNK` in `src/chunks/registry.ts`) and Pine Hollow
+(`src/chunks/pine-hollow.ts`, the original, photoreal one).
 Shards are picked on the title screen (or with `?chunk=<slug>`), and the page reloads to switch —
 chunks are not adjacent or streamed.
 
@@ -53,11 +55,11 @@ the template so the dirt texture and prop placement follow the road.
 | `assets.groundLayers` | the four PBR sets blended by `splat` (DataArrayTexture) | ids under `public/assets/tex/` |
 | `assets.groundTints` | per-layer albedo multiplier in the terrain shader | linear RGB |
 | `assets.slabRock` | PBR set for the slab walls | |
-| `trees.factory` | which tree builder `bootstrap()` uses (`TREE_FACTORIES`) | only `'pine'` today |
+| `trees.factory` | which tree builder `bootstrap()` uses (`TREE_FACTORIES`) | `'pine'` (Pine Hollow's Scots pines) or `'none'` (no `Forest` trees: Driftwood's palms are their own builder, `src/world/Palms.ts`) |
 | `trees.bark`, `trees.twigAtlas` | trunk PBR set, twig atlas folder for the baked branch cards | |
 | `trees.noun` | "2,600 pines" on the title screen | |
 | `forest.*` | candidate spacing, clearing noise, slope limit, foliage HSL tint, big-variant share | see `Forest.place()` |
-| `fauna[]` | `AnimalManager` herd plans: kind, count, optional anchor ring, canopy vs clearing, trail band | `kind` is `'deer' \| 'boar'` |
+| `fauna[]` | `AnimalManager` herd plans: kind, count, optional anchor ring, canopy vs clearing, trail band, `variants` | `kind` is any registered species (`src/entities/species/`: deer, boar, elk, bear, crab, monkey, sailor, captain); `FaunaKind` is `'deer' \| 'boar'` widened to any string, checked against the registry by `test/chunks.test.ts` |
 | `sky.hdri` | HDRI for IBL + background; the sun direction is its brightest pixel | stems in `public/assets/hdri/` |
 | `sky.sunColor/sunIntensity/envIntensity/bgIntensity` | CSM sun, environment and background strength | `?sunI= ?envI= ?bgI= ?hdri=` still override for tuning |
 | `sky.fogSunColor`, `sky.cloudSunColor`, `sky.hemi*` | fog in-scatter tint, cloud layer tint, hemisphere fill | |
@@ -72,8 +74,10 @@ the template so the dirt texture and prop placement follow the road.
 
 ## Tuning tips
 
-- **Look first at the landscape.** `?x=0&z=-235&yaw=3.1416&pitch=0&nolock=1&skipintro=1` is the
-  south gate looking in; the pond pose is `?x=-56&z=95&yaw=0`. Take headless screenshots and read them.
+- **Look first at the landscape.** `?chunk=pine-hollow&x=0&z=-235&yaw=3.1416&pitch=0&nolock=1&skipintro=1` is
+  the south gate looking in; the pond pose is `?chunk=pine-hollow&x=-56&z=95&yaw=3.1416` (yaw 0 faces −z, away
+  from the pond). The 9-angle cameras of five Pine Hollow anchors are in
+  `art/pine-hollow/round-0-baseline/cameras.json` (`scripts/pine-hollow-views.mjs`). Take headless screenshots and read them.
 - Keep the landscape within about −10..+40 m. Roads are forced to y = 0 at the edges, so a landscape
   that sits at +30 m near an edge gets a steep 60 m ramp.
 - Cabin pads flatten a ~20 m radius; put sites on gentle ground, > 40 m apart, off the trails.
@@ -90,12 +94,16 @@ Some things are still Pine-Hollow-specific in the engine and need code, not data
 - **A new tree species** — `TreeFactory` bakes *pine* branch cards from a twig atlas and shades the
   trunk as Scots-pine bark. A birch or palm needs a new factory registered in `TREE_FACTORIES`
   (`src/core/bootstrap.ts`) and a new `trees.factory` id in `ChunkTrees`.
-- **A new animal** — `AnimalFactory` models deer and boar; `FaunaKind` grows with it.
+- **A new animal** — one file in `src/entities/species/<kind>.ts` ending in `registerSpecies({...})` (the
+  contract is `src/entities/species/registry.ts`); a def names it by `kind` in `fauna[]`.
 - **Grass, undergrowth, props, particles** (`Grass.ts`, `Undergrowth.ts`, `Props.ts`, `Particles.ts`)
   use the shard's seed, terrain and pond but their *content* (ferns, reeds, mushrooms, mossy rocks,
   needle fall, pond mist) is hard-coded forest dressing. A desert shard would want a
   `dressing` field and per-biome placers; add it when the second biome is chosen.
-- **The cabins** are the same three log cabins on every shard (a def chooses only where).
+- **The cabins** are the same log cabins on every non-ocean shard (a def chooses only where, `cabinSites`);
+  an ocean shard builds none.
+- **The loading screen's nouns** — `src/boot/steps.ts` has one neutral step table; a shard with its own nouns
+  (Pine Hollow: HDRI, pine branch cards, log cabins, crossbow) adds a `SHARD_STEPS` entry.
 - **The attract-mode camera path** (`src/core/Tour.ts`) follows Pine Hollow's trails.
 
 ## Driftwood Isle — the low-poly pieces
