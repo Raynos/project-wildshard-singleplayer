@@ -109,11 +109,9 @@ const SWEEP_K = 5;                   // rays along the blade, grip → tip …
 const SWEEP_EXT = [0.12, 0.24, 0.36, 0.48] as const; // … each continued this far (rad) BELOW the blade, pitched down in camera space
 const SWEEP_STEP = 0.09;             // rad: the largest blade move between two sweep sub-samples (~5°)
 const SWEEP_SUB_MAX = 6;
-// E63 dodge feel on the blade (docs/plans/DODGE-FEEL.md): T flings it against the dodge on a lateral spring (k 160, c 14:
-// −9 cm at ~95 ms, a small overshoot ~390 ms); V tucks it flat to the body (TUCK) for the roll-dip
+// E63 dodge feel on the blade (docs/plans/DODGE-FEEL.md): the dodge flings it against the dodge on a lateral spring (k 160, c 14:
+// −9 cm at ~95 ms, a small overshoot ~390 ms)
 const DODGE_LAG_KICK = 2.2, DODGE_LAG_K = 160, DODGE_LAG_C = 14;
-const TUCK_POS = new THREE.Vector3(0.20, -0.37, -0.42);
-const TUCK_Q = REST.q.clone().premultiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.3, 0, 0.9, 'YXZ')));
 const ARM_FOLLOW = 0.45;             // the forearms take this much of the sword's rotation away from rest (a cheap elbow)
 const FOV_HIP = 72;
 /** three's fov is vertical: a fixed 72° on a portrait phone collapses the horizontal view, so widen it (Hor+, same as Crossbow.ts) */
@@ -862,19 +860,14 @@ export class Sword implements Weapon {
     pos.x += (swX + bobX + this.lagYaw * 0.25) * m; pos.y += (swY + bobY + this.lagPitch * 0.2) * m; pos.z += this.jolt * 0.05;
     _e.set((Math.sin(p.bobTime * 2) * 0.012 * sf + this.lagPitch + this.jolt * 0.08) * m, this.lagYaw * m, (Math.sin(t * 0.5) * 0.008 + Math.cos(p.bobTime) * 0.02 * sf) * m, 'YXZ');
     q.premultiply(_q2.setFromEuler(_e));
-    // the dodge (E63): T — the blade is flung against the dodge and whips back; V — tucked flat to the body; a T backstep
-    // pulls it straight back
-    if (dodgeFx.id !== this.dodgeSeen) { this.dodgeSeen = dodgeFx.id; if (dodgeFx.style === 'T' && !dodgeFx.back) this.dodgeLagV = -DODGE_LAG_KICK * dodgeFx.side; }
+    // the dodge (E63): the blade is flung against the dodge and whips back; a backstep pulls it straight back
+    if (dodgeFx.id !== this.dodgeSeen) { this.dodgeSeen = dodgeFx.id; if (!dodgeFx.back) this.dodgeLagV = -DODGE_LAG_KICK * dodgeFx.side; }
     { const h = Math.min(dt, 1 / 30); this.dodgeLagV += (-DODGE_LAG_K * this.dodgeLagX - DODGE_LAG_C * this.dodgeLagV) * h; this.dodgeLagX += this.dodgeLagV * h; }
     if (Math.abs(this.dodgeLagX) > 1e-4) {
       pos.x += this.dodgeLagX; pos.y -= 0.35 * Math.abs(this.dodgeLagX);
       q.premultiply(_q2.setFromEuler(_e.set(0, 1.2 * this.dodgeLagX, 3.5 * this.dodgeLagX, 'YXZ')));
     }
-    if (dodgeFx.t >= 0 && dodgeFx.style === 'T' && dodgeFx.back) pos.z += 0.06 * dodgeEnv(dodgeFx.t);
-    if (dodgeFx.t >= 0 && dodgeFx.style === 'V') {
-      const ms = dodgeFx.t, w = ms < 60 ? sstep(0, 60, ms) : ms < 200 ? 1 : ms < 400 ? 1 - sstep(200, 400, ms) : 0;
-      if (w > 0) { pos.lerp(TUCK_POS, w); q.slerp(TUCK_Q, w); }
-    }
+    if (dodgeFx.t >= 0 && dodgeFx.back) pos.z += 0.06 * dodgeEnv(dodgeFx.t);
 
     // portrait phone: the wider FOV + narrow frame put the hands mid-screen — hold the sword lower, further out, smaller,
     // and (0.6, the mockup art/driftwood-fp-sword-wooden.png) short and low-right: the whole pose drops and slides right and

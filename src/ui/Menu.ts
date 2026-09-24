@@ -251,14 +251,19 @@ export class GameMenu {
 
   // ── SETTINGS ──
   /** builds the Settings tab: only what applies live (E55) — renderer, island, quality, render scale, AA and touch controls
-   *  are read at boot and live in main menu ▸ Settings (src/ui/BootSettings.ts, APPLY & RELOAD) */
+   *  are read at boot and live in main menu ▸ Settings (src/ui/BootSettings.ts, APPLY & RELOAD). Two cards (E81, the user's
+   *  split): SETTINGS holds what ships with the finished game; DEBUG holds the variant pickers and taste toggles that
+   *  exist only while the look and sound are being decided — each leaves that card once it is locked in (E78 the
+   *  painted horizon, E83 the photo sky, E85 the colour grade) */
   private buildSettings(): void {
-    const p = this.panels.settings;
+    const panel = this.panels.settings;
     const resume = el('ws-gmenu-btn resume', 'Resume', 'button') as HTMLButtonElement; resume.type = 'button';
     resume.addEventListener('click', () => this.close());
     const exit = el('ws-gmenu-btn exit', 'Exit to main menu', 'button') as HTMLButtonElement; exit.type = 'button';
     exit.addEventListener('click', () => { this.close(true); this.onExit?.(); });
-    p.append(resume, exit, el('ws-gmenu-rule'));
+    const p = el('ws-gmenu-card', '<div class="ws-gmenu-cardtitle">Settings</div>');
+    const dbg = el('ws-gmenu-card debug', '<div class="ws-gmenu-cardtitle">Debug<small>for playtests — goes away when the game ships</small></div>');
+    panel.append(resume, exit, p, dbg);
 
     const sw = (key: SettingKey, label: string) => {
       const b = el('ws-gmenu-switch', `<span class="ws-gmenu-swlabel">${label}</span><i class="ws-gmenu-pill"></i>`, 'button') as HTMLButtonElement; b.type = 'button'; b.setAttribute('role', 'switch');
@@ -321,38 +326,30 @@ export class GameMenu {
     const sfxNote = el('ws-gmenu-note');
     const paintCredit = () => { const c = sfxCredit(getSfxSet()); sfxNote.textContent = c; sfxNote.hidden = c === ''; };
     paintCredit(); onSfxSet(paintCredit); onSfxCredit(paintCredit);
-    p.append(el('ws-gmenu-label', 'Audio'), vol, mus, style, sfx, el('ws-gmenu-note', MUSIC_CREDIT), sfxNote);
+    p.append(el('ws-gmenu-label', 'Audio'), vol, mus, el('ws-gmenu-note', MUSIC_CREDIT), sfxNote);
+    dbg.append(el('ws-gmenu-label', 'Audio variants'), style, sfx);
     // lock-on (E50, src/player/LockOnTarget.ts): how hard the view follows a locked enemy (Gentle = Jake's pick; Off keeps the
     // lock — the reticle, orbit strafing, the lunge, switching — but never turns the view: the motion-sickness escape)
     const lockCams: { v: '1' | '0.5' | '0'; text: string }[] = [{ v: '1', text: 'Follow' }, { v: '0.5', text: 'Gentle' }, { v: '0', text: 'Off' }];
     const lockCam = picker('Lock-on camera', lockCams, () => (getNumber('lockCam') >= 0.75 ? '1' : getNumber('lockCam') > 0.1 ? '0.5' : '0'), (v) => setNumber('lockCam', Number(v)), () => undefined);
     p.append(el('ws-gmenu-label', 'Lock-on'), lockCam, sw('autoLock', 'Auto re-lock'), el('ws-gmenu-note', 'LOCK (Z / middle mouse) locks the enemy nearest the centre. Flick the LOOK pad (mouse flick / wheel) to switch; MOVE circles it.'));
 
-    // look (E55, live — src/ui/Settings.ts OPTIONS): the low-poly shard's clock (DayNight.setTime) and painted horizon
-    // (HorizonMatte.setShown); main.ts subscribes both. The boot-time graphics picks are on the title's Settings.
+    // look (E55, live — src/ui/Settings.ts OPTIONS): the low-poly shard's clock (DayNight.setTime; main.ts subscribes). The
+    // painted horizon (E78) and the colour grade (E85) are locked on. The boot-time graphics picks are on the title's Settings.
     if (getActiveChunk().style === 'lowpoly') {
       const times: { v: OptionValue<'time'>; text: string }[] = [{ v: 'live', text: 'Live' }, { v: 'midday', text: 'Midday' }, { v: 'golden', text: 'Golden' }, { v: 'sunset', text: 'Sunset' }, { v: 'night', text: 'Night' }];
       const time = picker('Time of day', times, () => setting('time'), (v) => { saveSetting('time', v); }, (fn) => { onSettingChange('time', fn); });
-      const matte = el('ws-gmenu-switch', '<span class="ws-gmenu-swlabel">Painted horizon</span><i class="ws-gmenu-pill"></i>', 'button') as HTMLButtonElement; matte.type = 'button'; matte.setAttribute('role', 'switch');
-      const paintMatte = () => { const on = setting('matte') === 'on'; matte.classList.toggle('on', on); matte.setAttribute('aria-checked', String(on)); };
-      paintMatte(); onSettingChange('matte', paintMatte);
-      matte.addEventListener('click', () => { saveSetting('matte', setting('matte') === 'on' ? 'off' : 'on'); });
-      const lut = el('ws-gmenu-switch', '<span class="ws-gmenu-swlabel">Colour grade</span><i class="ws-gmenu-pill"></i>', 'button') as HTMLButtonElement; lut.type = 'button'; lut.setAttribute('role', 'switch');
-      const paintLut = () => { const on = setting('lut') === 'on'; lut.classList.toggle('on', on); lut.setAttribute('aria-checked', String(on)); };
-      paintLut(); onSettingChange('lut', paintLut); // the learned LUT (X1): Game.buildComposer subscribes the effect itself
-      lut.addEventListener('click', () => { saveSetting('lut', setting('lut') === 'on' ? 'off' : 'on'); });
-      p.append(el('ws-gmenu-label', 'Look'), time, matte, lut);
+      dbg.append(el('ws-gmenu-label', 'Look'), time);
       // Look Lab (E65): the remaster's taste axes, each keeping the pre-remaster look — the user picks. Post is live;
-      // lighting and sky rebuild every shader / the whole sky, so they ask to reload and come straight back here
+      // lighting rebuilds every shader, so it asks to reload and come straight back here
       const post = picker('Post', [{ v: 'clean' as const, text: 'Clean' }, { v: 'cinematic' as const, text: 'Cinematic' }], () => setting('post'), (v) => { saveSetting('post', v); }, (fn) => { onSettingChange('post', fn); });
-      const onReload = <K extends 'lighting' | 'sky'>(k: K, label: string) => (v: OptionValue<K>) => { saveSetting(k, v); if (v !== setting(k)) askReload(document.body, label, 'game'); };
+      const onReload = <K extends 'lighting'>(k: K, label: string) => (v: OptionValue<K>) => { saveSetting(k, v); if (v !== setting(k)) askReload(document.body, label, 'game'); };
       const lighting = picker('Lighting', [{ v: 'toon' as const, text: 'Toon' }, { v: 'standard' as const, text: 'Standard' }], () => savedSetting('lighting'), onReload('lighting', 'Lighting'), (fn) => { onSettingChange('lighting', fn); });
-      const sky = picker('Sky', [{ v: 'stylized' as const, text: 'Stylized' }, { v: 'hdri' as const, text: 'Photo' }], () => savedSetting('sky'), onReload('sky', 'Sky'), (fn) => { onSettingChange('sky', fn); });
-      p.append(el('ws-gmenu-label', 'Look lab'), post, lighting, sky,
-        el('ws-gmenu-note', 'Taste picks: every option is a real look, old and new. Post switches at once; lighting and sky reload and bring you back here.'));
+      dbg.append(el('ws-gmenu-label', 'Look lab'), post, lighting,
+        el('ws-gmenu-note', 'Taste picks: every option is a real look, old and new. Post switches at once; lighting reloads and brings you back here.'));
     }
-    p.append(el('ws-gmenu-note', 'Renderer, island, quality and render scale: Exit to main menu ▸ Settings.'));
-    p.append(this.buildReview());
+    dbg.append(el('ws-gmenu-note', 'Renderer, island, quality and render scale: Exit to main menu ▸ Settings.'));
+    dbg.append(this.buildReview());
   }
   /** Settings → REVIEW: a password unlocks the review inbox (src/ui/review.ts); unlocked, the Quick note switch + LOCK */
   private buildReview(): HTMLElement {

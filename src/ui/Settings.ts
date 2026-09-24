@@ -102,18 +102,18 @@ export const OPTION_VALUES = {
   island: ['procedural', 'blender'],                   // Driftwood's spawn cove (src/world/blenderArea.ts) — experimental
   tier: ['auto', 'phone', 'desktop'],                  // quality tier (src/core/tier.ts); auto = phone on a mobile UA
   touch: ['auto', 'on'],                               // on-screen controls (main.ts → TouchControls): auto = coarse pointer
-  matte: ['on', 'off'],                                // the painted horizon (src/world/HorizonMatte.ts) — live
+  matte: ['on', 'off'],                                // the painted horizon (src/world/HorizonMatte.ts) — locked on (E78): only ?matte=0 reads it
   time: ['live', 'midday', 'golden', 'sunset', 'night'], // the day / night clock (src/world/DayNight.ts) — live
-  lut: ['on', 'off'],                                  // the learned colour LUT (src/world/lut.ts, Game.buildComposer) — live
+  lut: ['on', 'off'],                                  // the learned colour LUT (src/world/lut.ts, Game.buildComposer) — locked on (E85): only ?nolut reads it
   // Look Lab (E65): the remaster's TASTE axes, each keeping the pre-remaster look selectable — the user picks, not us
   lighting: ['toon', 'standard'],                      // Driftwood: the toon ramp (src/world/stylize.ts, L1) or three's standard lighting
-  sky: ['stylized', 'hdri'],                           // Driftwood: the gradient dome + faceted cumulus (L2) or the photoreal HDRI it replaced
+  sky: ['stylized', 'hdri'],                           // Driftwood: the gradient dome + faceted cumulus (L2) — locked in (E83, the user's pick); only ?sky=hdri reads it
   post: ['clean', 'cinematic'],                        // Driftwood: the clean low-poly post (L5) or the original haze + grain + fringe chain — live
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
 /** read once while the page loads: main menu ▸ Settings, APPLY & RELOAD. Every other option applies live (pause menu). */
-export const BOOT_OPTIONS: readonly OptionKey[] = ['gpu', 'island', 'tier', 'touch', 'lighting', 'sky'];
+export const BOOT_OPTIONS: readonly OptionKey[] = ['gpu', 'island', 'tier', 'touch', 'lighting'];
 const onOff = (v: string | null): 'on' | 'off' | null => (v === null ? null : v === '0' || v === 'off' || v === 'false' ? 'off' : 'on');
 /** per option: the default, the URL params that override it (dropped by settingsReloadUrl) and how they read */
 const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly string[]; url: (q: URLSearchParams) => string | null } } = {

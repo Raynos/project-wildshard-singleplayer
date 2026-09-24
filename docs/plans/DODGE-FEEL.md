@@ -1,6 +1,6 @@
 # Plan: a better dodge (E60)
 
-**State:** `draft` 2026-09-23 — three storyboarded variants (T lean + smear · U afterimage · V grounded roll-dip) in `art/combat/round-2-dodge/`; recommended **T** (+ U's rim flash as the i-frame tell later). Nothing is built until Jake picks a letter. The agent was stopped at wrap-up (usage), so the main session reviews this draft before asking Jake.
+**State:** `in progress` 2026-09-23 — **T** is built and is the only dodge (E63 built T + V side by side; the user picked T, V deleted in E82). Open T rows, no owner yet: D1's Reduce motion setting, D3 the plant beat (foot-plant sound + haptic), D7 the desktop shader smear; U / V rows (D5, D6) are dropped with V.
 
 Jake (E60): "Make a sequence of mockups for how to have a better, cool animation for dodge. The placeholder animation for
 dodge is a lot better than what it was previously, but I think we can still do a couple of steps better."

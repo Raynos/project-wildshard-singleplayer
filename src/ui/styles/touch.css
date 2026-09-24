@@ -96,10 +96,8 @@
    DODGE's bottom 8 px above the bar */
 .ws-touch-disc.dodge { left: calc(100% - var(--disc) / 2 - 50px); bottom: calc(var(--bar) + 8px); }
 .ws-touch-disc.dodge svg { width: 34%; height: 34%; fill: none; }
-/* E63: V DODGE sits one disc left of T DODGE on the same row while Jake compares the two feels; the labels are longer */
-.ws-touch-disc.dodge.v { left: calc(100% - var(--disc) * 1.5 - 58px); }
 .ws-touch-disc.dodge span { font-size: 7.5px; letter-spacing: 0.14em; white-space: nowrap; }
-/* LOCK (E50, the J disc — src/player/LockOnTarget.ts): on the right-thumb arc one row above V DODGE, melee only, hidden in the
+/* LOCK (E50, the J disc — src/player/LockOnTarget.ts): on the right-thumb arc, one disc left of and one row above DODGE, melee only, hidden in the
    water. Three states from `lockOn.state`: off (dim), available (.lock-available: a cyan rim that pulses), LOCKED (.locked:
    filled cyan). "No target" flashes amber-free, a quick dim shake (.none) */
 .ws-touch-disc.lock { left: calc(100% - var(--disc) * 1.5 - 58px); bottom: calc(var(--bar) + 16px + var(--disc)); }

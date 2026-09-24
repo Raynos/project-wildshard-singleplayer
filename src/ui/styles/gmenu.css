@@ -131,6 +131,12 @@
 @media (min-aspect-ratio: 1/1) { .ws-gmenu { padding-top: calc(var(--ws-top) + 8px); } .ws-gmenu .ws-gmenu-sheet { max-width: 640px; } }
 .ws-gmenu .ws-gmenu-mapcanvas { position: absolute; inset: 0; }
 
+/* Settings: two cards (Menu.ts buildSettings) — SETTINGS ships with the game; DEBUG (dashed, amber) is the playtest-only pickers */
+.ws-gmenu .ws-gmenu-card { flex: none; display: flex; flex-direction: column; margin-bottom: 12px; padding: 12px 12px 6px; border: 1px solid rgba(143, 227, 255, 0.22); background: rgba(143, 227, 255, 0.03); }
+.ws-gmenu .ws-gmenu-card.debug { border: 1px dashed rgba(255, 196, 120, 0.45); background: rgba(255, 196, 120, 0.03); }
+.ws-gmenu .ws-gmenu-cardtitle { flex: none; margin-bottom: 10px; font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.26em; text-transform: uppercase; color: #fff; }
+.ws-gmenu .ws-gmenu-card.debug .ws-gmenu-cardtitle { color: rgb(255, 206, 140); }
+.ws-gmenu .ws-gmenu-cardtitle small { display: block; margin-top: 4px; font-family: var(--ws-mono); font-weight: 400; font-size: 9px; letter-spacing: 0.16em; color: var(--ws-text-dim); }
 /* Settings → REVIEW (Menu.ts buildReview; src/ui/review.ts): password + UNLOCK, then the Quick note switch + LOCK */
 .ws-gmenu .ws-gmenu-review { flex: none; display: flex; flex-direction: column; }
 .ws-gmenu .ws-gmenu-input { flex: 1 1 140px; min-width: 0; padding: 7px 9px; background: rgba(6, 10, 18, 0.6); border: 1px solid var(--ws-cyan-line); border-radius: 0; color: var(--ws-text); font: 12px var(--ws-mono); outline: none; }

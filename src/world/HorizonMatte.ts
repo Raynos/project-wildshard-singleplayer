@@ -19,12 +19,12 @@
  *   the night texture by the clock's `night`, then hazed toward the dome's live horizon colour near the sea and lit by
  *   the sun glow — so it rides every DayNight preset without a third texture. The alpha fades into the sky at the top.
  * - **textures**: two 4096 × 512 WebPs with alpha (`public/assets/horizon/`), fetched after boot; the band fades in over
- *   ~1.5 s once both are decoded. Pause menu ▸ Settings ▸ Painted horizon hides / shows it live (`setShown`, E55);
- *   `?matte=0` starts it hidden (before / after captures).
+ *   ~1.5 s once both are decoded. Always on — the user locked it in (E78), so there is no menu toggle; only
+ *   `?matte=0` hides it (before / after captures), and a saved pick from the old pause-menu switch is ignored.
  */
 import * as THREE from 'three';
 import type { Sky } from './Sky';
-import { setting } from '../ui/Settings';
+import { setting, settingFromUrl } from '../ui/Settings';
 import { MIDDAY_SKY } from './StylizedSky';
 
 /** the band's radius (m): inside the camera's far plane (2600) even at the top edge (R / cos 24° ≈ 2520) */
@@ -40,8 +40,7 @@ export class HorizonMatte {
   private fade = 0;
   private loaded = false;
   private ready = false;
-  private shown = setting('matte') === 'on';
-  private replaces: THREE.Object3D | undefined;
+  private readonly shown = !settingFromUrl('matte') || setting('matte') === 'on'; // locked on (E78): only ?matte=0 hides it
   private readonly u = {
     tDay: { value: placeholder() },
     tNight: { value: placeholder() },
@@ -104,13 +103,6 @@ export class HorizonMatte {
     return this;
   }
 
-  /** Settings ▸ Painted horizon (E55, live): hide / show the band; the geometry it stands in for comes back while hidden */
-  setShown(on: boolean): void {
-    this.shown = on;
-    if (this.mesh) this.mesh.visible = on;
-    if (this.ready && this.replaces) this.replaces.visible = !on;
-  }
-
   /**
    * fetch + decode both paintings off the critical path (call once boot is done); resolves when the band is shown.
    * `replaces`: geometry the painting stands in for (Horizon.ts' faceted islet rings), hidden as the band fades in —
@@ -123,7 +115,6 @@ export class HorizonMatte {
       const [day, night] = await Promise.all([loadTexture(URL_DAY), loadTexture(URL_NIGHT)]);
       this.u.tDay.value = day; this.u.tNight.value = night;
       this.ready = true;
-      this.replaces = replaces;
       if (replaces) replaces.visible = !this.shown;
     } catch (e) {
       console.warn('[horizon-matte] paintings not loaded; the band stays off', e);

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { TIER_CONFIG } from '../core/tier';
-import { setting } from '../ui/Settings';
+import { setting, settingFromUrl } from '../ui/Settings';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { loadHDR } from '../core/assets';
 import { fogUniforms } from './Atmosphere';
@@ -56,7 +56,7 @@ export class Sky {
   async build(): Promise<this> {
     const { sky: S, atmosphere: A, style } = getActiveChunk();
     // Look Lab (E65): main menu ▸ Settings ▸ Look Lab keeps the pre-remaster looks selectable (reload to apply)
-    const toon = style === 'lowpoly' && setting('lighting') === 'toon', stylizedSky = style === 'lowpoly' && setting('sky') === 'stylized';
+    const toon = style === 'lowpoly' && setting('lighting') === 'toon', stylizedSky = style === 'lowpoly' && !(settingFromUrl('sky') && setting('sky') === 'hdri'); // stylized locked in (E83, the user's Look Lab pick): only ?sky=hdri brings back the photo HDRI
     if (toon) installStylize(); // the toon lighting model (D1) — patched into three's chunk before anything compiles
     const qs = new URLSearchParams(location.search);
     const qn = (k: string, d: number) => { const v = qs.get(k); return v === null ? d : Number.parseFloat(v); };

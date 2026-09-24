@@ -162,12 +162,9 @@ export class Game {
       godRays.blendMode.opacity.value = 0.12; // faint: looking into a midday sun must not wash the sand and lagoon to white
       bloom.luminanceMaterial.smoothing = 0.08; // bloom only what is really over 1.0 (the def's threshold): the sun, glints, glyphs, fireflies
       vignette.darkness = 0.35;
-      // the learned LUT (X1, src/world/lut.ts) is the last grade step: the palette fitted to the mockups
+      // the learned LUT (X1, src/world/lut.ts) is the last grade step: the palette fitted to the mockups. Always on — the
+      // user locked it in (E85); only `?nolut` (the fit's own captures) builds without it
       const lut = this.sky.lut ? new LUT3DEffect(this.sky.lut, { inputColorSpace: THREE.SRGBColorSpace, tetrahedralInterpolation: true }) : null;
-      if (lut) { // pause menu ▸ Settings ▸ Look ▸ Colour grade: live, the blend opacity (no recompile)
-        const apply = (v: 'on' | 'off') => { lut.blendMode.opacity.value = v === 'on' ? 1 : 0; };
-        apply(setting('lut')); onSettingChange('lut', apply);
-      }
       return lut ? new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split, lut) : new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split);
     };
     if (getActiveChunk().style === 'lowpoly') {

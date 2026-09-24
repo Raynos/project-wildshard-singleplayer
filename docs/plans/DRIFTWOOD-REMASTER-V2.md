@@ -1,6 +1,6 @@
 # Driftwood Isle — remaster v2 (after v0.2)
 
-**State:** `in progress` 2026-09-23 — v1 is archived and tagged **v0.2** (project/archive/2026-09-23-driftwood-remaster.md). Next session starts here, solo (no subagents): **V-B1 Blender island-wide** first (the user's pick). Waiting on the user: V-U1 (Look Lab lighting / sky / post picks, tried in-game), V-U2 (iPhone readings + a render-scale pick).
+**State:** `in progress` 2026-09-23 — v1 is archived and tagged **v0.2** (project/archive/2026-09-23-driftwood-remaster.md). Next session starts here, solo (no subagents): **V-B1 Blender island-wide** first (the user's pick). Waiting on the user: V-U1 (Look Lab lighting / post picks — sky Stylized, colour grade and painted horizon are locked in: E83 / E85 / E78), V-U2 (iPhone readings + a render-scale pick).
 
 ## The v0.2 cut — done 2026-09-23 (tag v0.2)
 
@@ -13,7 +13,7 @@ sheets), X3 batch 3 + board, E55 settings, X5 stage-1 parity, 0.5 hero re-captur
 
 | # | Row | Owner | Status |
 |---|---|---|---|
-| V-U1 | **The user's Look Lab picks** (E65): lighting Toon / Standard, sky Stylized / Photo, post Clean / Cinematic — the user is trying them in-game (pause ▸ Settings ▸ Look lab); the pick becomes the default, the other stays a setting. Colour grade + painted horizon: keep on (picked) | the user | open |
+| V-U1 | **The user's Look Lab picks** (E65): lighting Toon / Standard, post Clean / Cinematic — the user is trying them in-game (pause ▸ Settings ▸ Debug ▸ Look lab; captures in E84); a pick is locked in and leaves the Debug card. Picked + locked: sky Stylized (E83), colour grade (E85), painted horizon (E78) | the user | open |
 | V-U2 | **iPhone readings**: one frame-rate reading per shard (PLAY-PERF's 60 fps finish line) and a render-scale pick — the phone default is 1.5× (soft on a 3× screen); 2× and Native are now in main menu ▸ Settings (12b2323) | the user's phone | open |
 | V-B1 | **Blender island, island-wide**: every POI and the whole terrain through `scripts/blender/` (Geometry-Nodes scatter, sculpted rocks, the hero / CC0 assets, Cycles-baked GI + AO), LODs + phone-tier culling (≤ 150 calls, ≤ 2.0 M tris at every pose), colliders and anchors exported so the quest runs unchanged | blender-agent | queued after v0.2 |
 | V-B3 | **The Blender cove's baked lighting is too low-res**: the crag rocks stay soft even at Native render scale (E70) — raise the lightmap texel density on the rock / cliff tiles (or bake their AO into vertex colours) | integrator | open |

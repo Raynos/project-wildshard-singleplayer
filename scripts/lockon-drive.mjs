@@ -98,7 +98,7 @@ const r1 = (await S()).r;
 await touch(null, stick[0], stick[1], 1, 'pointerdown');
 await touch(null, stick[0] - 60, stick[1], 1, 'pointermove');
 await wait(60);
-await tap('.ws-touch-disc.dodge.t');
+await tap('.ws-touch-disc.dodge');
 await wait(450);
 await touch(null, stick[0] - 60, stick[1], 1, 'pointerup');
 s = await S();
