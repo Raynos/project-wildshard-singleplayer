@@ -10,10 +10,11 @@
 .ws-resume.show { display: block; }
 .ws-resume.out { opacity: 0; transition: opacity 0.16s ease-out; pointer-events: none; }
 
-/* the last frame: a ~120 px wide JPEG, scaled up (already soft), blurred and dimmed; bleeds past the edges so the blur has no rim */
+/* the last frame: a ~120 px wide JPEG, scaled up (already soft), blurred and a little dimmed; bleeds past the edges so the
+   blur has no rim. Not darker (E98): at 50 % over the near-black base the screen read as a black blink, not the game paused */
 .ws-resume-shot {
   position: absolute; inset: -30px; background: center / cover no-repeat;
-  filter: blur(12px) brightness(0.5) saturate(0.85);
+  filter: blur(10px) brightness(0.8) saturate(0.9);
 }
 
 .ws-resume-card {

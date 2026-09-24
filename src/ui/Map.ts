@@ -4,6 +4,8 @@
  * The whole 500 m chunk, north-up, drawn from the Minimap's own terrain layer (hillshade, pond,
  * trails, crowns, cabin roofs) with the same fog of war; points of interest (the cabins, the pond)
  * named; your arrow. No animal markers — the map is for finding your way, not for finding prey.
+ * Zoomed in, the ground is repainted sharp: TILE_PX tiles at the screen's own px/m (Minimap.paintTile), a few per
+ * frame over the stretched layer, cached (E97: the 2 px/m layer alone went to mush at 4–6×).
  * Drag to pan, pinch or wheel to zoom (1× = the chunk fitted to the frame, up to 6×). The world
  * keeps running underneath; the canvas swallows touch so the pads don't move you.
  *
@@ -16,7 +18,7 @@
  */
 import { CHUNK_HALF, CHUNK_SIZE } from '../core/config';
 import { CABIN_SITES, POND, hasPond } from '../world/Heightfield';
-import type { Minimap } from './Minimap';
+import { LAYER_PPM, type Minimap } from './Minimap';
 
 /** a point on the full map: a discovered place (named), an undiscovered one ("?"), or a live quest marker (pulsing diamond) */
 export interface MapPoi { x: number; z: number; label: string; kind: 'place' | 'unknown' | 'quest' }
@@ -25,6 +27,9 @@ export interface MapQuest { title: string; objective: string; hint: string }
 
 const FOG_BRIGHTNESS = 0.3;
 const ZOOM_MIN = 1, ZOOM_MAX = 6;
+const TILE_PX = 256;          // a zoom tile's side, device px
+const TILE_CACHE = 64;        // tiles kept (256 KB each)
+const TILE_BUDGET_MS = 6;     // painting new tiles, per frame
 const ctx2d = (c: HTMLCanvasElement): CanvasRenderingContext2D => { const ctx = c.getContext('2d'); if (!ctx) throw new Error('FullMap: no 2d context'); return ctx; };
 
 export class FullMap {
@@ -101,7 +106,7 @@ export class FullMap {
   private dpr = 1;
   /** size the canvas to its frame (call after the frame resizes) */
   fit(): void {
-    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.dpr = Math.min(window.devicePixelRatio || 1, 3);
     const w = this.root.clientWidth || window.innerWidth, h = this.root.clientHeight || window.innerHeight;
     this.canvas.width = Math.round(w * this.dpr);
     this.canvas.height = Math.round(h * this.dpr);
@@ -148,6 +153,7 @@ export class FullMap {
     ctx.clearRect(0, 0, W, H);
     ctx.imageSmoothingEnabled = true;
     ctx.drawImage(terrain, ox, oy, side, side);
+    this.drawTiles(ox, oy, ppm);
 
     // fog of war, same rule as the minimap: unexplored ground at FOG_BRIGHTNESS (fog canvas at screen res, clipped to the view)
     if (this.fog.width !== W || this.fog.height !== H) { this.fog.width = W; this.fog.height = H; }
@@ -197,6 +203,42 @@ export class FullMap {
     // N marker at the top edge of the chunk
     ctx.fillStyle = '#8fe3ff'; ctx.font = `700 ${Math.max(12 * this.dpr, fs * 1.3)}px Rajdhani, sans-serif`; ctx.textBaseline = 'bottom';
     ctx.fillText('N', ox + side / 2, oy - 4 * this.dpr);
+  }
+
+  // ── zoom tiles: the ground at the screen's own resolution, level ℓ = LAYER_PPM · 2^ℓ px/m ──
+  private tiles = new Map<string, HTMLCanvasElement>();
+  private tilesGen = -1;
+  private drawTiles(ox: number, oy: number, ppm: number): void {
+    if (this.tilesGen !== this.minimap.layerGen) { this.tiles.clear(); this.tilesGen = this.minimap.layerGen; }
+    if (ppm <= LAYER_PPM * 1.25) return;
+    const level = Math.min(4, Math.ceil(Math.log2(ppm / LAYER_PPM)));
+    const W = this.canvas.width, H = this.canvas.height, t0 = performance.now(), side = CHUNK_SIZE * ppm;
+    this.ctx.save();
+    this.ctx.beginPath(); this.ctx.rect(ox, oy, side, side); this.ctx.clip(); // the chunk's last tiles run past its edge
+    // the level below first (cached tiles only), so crossing a level mid-pinch never drops back to the stretched layer
+    for (const l of level > 1 ? [level - 1, level] : [level]) {
+      const tm = TILE_PX / (LAYER_PPM * 2 ** l), n = Math.ceil(CHUNK_SIZE / tm); // tile side in metres, tiles per chunk side
+      const clampI = (v: number) => Math.max(0, Math.min(n - 1, v));
+      const i0 = clampI(Math.floor(-ox / ppm / tm)), i1 = clampI(Math.floor((W - ox) / ppm / tm));
+      const j0 = clampI(Math.floor(-oy / ppm / tm)), j1 = clampI(Math.floor((H - oy) / ppm / tm));
+      for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+        const key = `${l}:${i}:${j}`;
+        let tile = this.tiles.get(key);
+        if (tile) { this.tiles.delete(key); this.tiles.set(key, tile); } // most recently used last
+        else if (l === level && performance.now() - t0 < TILE_BUDGET_MS) {
+          tile = document.createElement('canvas');
+          this.minimap.paintTile(tile, i * tm, j * tm, tm, TILE_PX);
+          this.tiles.set(key, tile);
+          if (this.tiles.size > TILE_CACHE) { const oldest = this.tiles.keys().next().value; if (oldest !== undefined) this.tiles.delete(oldest); }
+        }
+        if (!tile) continue;
+        // snap to whole device px so neighbouring tiles meet without a hairline seam
+        const x0 = Math.round(ox + i * tm * ppm), x1 = Math.round(ox + (i + 1) * tm * ppm);
+        const y0 = Math.round(oy + j * tm * ppm), y1 = Math.round(oy + (j + 1) * tm * ppm);
+        this.ctx.drawImage(tile, x0, y0, x1 - x0, y1 - y0);
+      }
+    }
+    this.ctx.restore();
   }
 
   /** a shard's own POIs: places (named dots), undiscovered places (dim "?"), quest markers (pulsing cyan diamonds, on top) */
