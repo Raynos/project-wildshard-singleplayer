@@ -90,7 +90,7 @@ Blender, image-to-3D, LUT fit, horizon painting, wind, rig bake), never their sh
 **Boards Jake asked to see before the layout and the models are built.** Each is one portrait decision board, A / B / C / D,
 in `art/pine-hollow/round-<n>-<label>/board.jpg`:
 - **B1**, the Map D layout → **Jake picked A** (2026-09-24): the Ridge along the north (fire lookout, waterfall, zipline south to the Hollow), the Den in the NW corner, the old-growth + the King's clearing in the west, the still pond north-centre-east fed by the waterfall, the creek running SE to **the mill hamlet in the SE** (hunting lodge), the Hollow + ranger's cabin at the centre, the south-gate spawn unchanged (`art/pine-hollow/round-1-map/A-ridge-north.jpg`);
-- **B2**, the Antler King (3–4 photoreal looks from the Nalati concept `art/nalati-grasslands/round-2/5-bosses/boss-6-alt-antler-king.png`);
+- **B2**, the Antler King → **A, the Bark Warden** (bark-plated body, bone skull face, 3 antler lanterns, amber ribcage). Jake liked all four and asked for "the simplest one with the highest chance of AAA success in game". A is chosen for buildability: the solid bark plates are the kind of hard surface TRELLIS / Hunyuan reconstruct well and that skins cleanly. B's hanging moss needs alpha cards plus secondary motion. C's thin roots break image-to-3D and skinning. D's 12 lanterns cost 12 emissive / light sources. A's 3 lanterns fit the fixed light pool (PH-L3), and the amber glow matches the lantern-warm night;
 - **B3**, the thralls + the ranger (3 each);
 - **B4**, the journal + trophy wall UI (phone portrait).
 
