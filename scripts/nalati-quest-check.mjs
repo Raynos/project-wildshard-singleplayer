@@ -63,13 +63,13 @@ async function chapters() {
   await boot(`${FROM}&resetquest=1&questflags=talked:elder,tamed:horse,won:kokpar,told:tulpar,quest:tulpar`);
   await q(`(() => { localStorage.removeItem('ws.boss.v1'); localStorage.removeItem('ws.elites.v1'); })()`);
   const c0 = await chipText();
-  check('chapters: after TULPAR the chip points at the elder (The Golden King │ BAQYT ATA)', /Golden King/i.test(c0) && /BAQYT/i.test(c0), c0);
+  check('chapters: after TULPAR the chip points at the elder (GOLDEN KING │ BAQYT ATA)', /Golden King/i.test(c0) && /BAQYT/i.test(c0), c0);
   await standAtElder();
   await talkThrough('elder', 'q4-dialogue');
   await q(`(() => { const p = window.__world.player; p.position.x += 6; p.position.z -= 9; })()`);
   await sleep(1500);
   const c1 = await chipText();
-  check('chapters: THE GOLDEN KING 1/4 │ KURGAN FIELD', /1\/4/.test(c1) && /KURGAN FIELD/i.test(c1), c1);
+  check('chapters: GOLDEN KING 1/4 │ KURGANS', /1\/4/.test(c1) && /KURGANS/i.test(c1), c1);
   await shot('q4-chip-clues');
   await q(`window.__nalatiQuest.carving()`);
   await sleep(2200);
@@ -80,7 +80,7 @@ async function chapters() {
   await drain();
   await sleep(1200);
   const c2 = await chipText();
-  check('chapters: three clues → 2/4 │ GREAT KURGAN', /2\/4/.test(c2) && /GREAT KURGAN/i.test(c2), c2);
+  check('chapters: three clues → 2/4 │ THE KURGAN', /2\/4/.test(c2) && /THE KURGAN/i.test(c2), c2);
   // the King beaten in the saved boss store (as in an earlier session) → reload: the quest catches up
   await saveStores(['golden-king'], []);
   await boot(FROM);
@@ -96,7 +96,7 @@ async function chapters() {
   await q(`(() => { const p = window.__world.player; p.position.x += 6; p.position.z -= 9; })()`);
   await sleep(1500);
   const c4 = await chipText();
-  check('chapters: FATHER OF THE WIND 1/4 │ an elite', /Father of the Wind/i.test(c4) && /1\/4/.test(c4), c4);
+  check('chapters: FATHER WIND 1/4 │ an elite', /Father Wind/i.test(c4) && /1\/4/.test(c4), c4);
   await shot('q5-chip-feathers');
   // two elites felled in the saved elite store → reload: two feathers
   await saveStores([], ['kokbori', 'qyran']);
@@ -115,13 +115,13 @@ async function chapters() {
   await boot(FROM);
   await sleep(2500);
   const c5 = await chipText();
-  check('chapters: the third feather → 2/4 │ WIND CAIRN', /2\/4/.test(c5) && /WIND CAIRN/i.test(c5), c5);
+  check('chapters: the third feather → 2/4 │ THE CAIRN', /2\/4/.test(c5) && /THE CAIRN/i.test(c5), c5);
   // the strip tied at the cairn (the titan's own `tied`, which the cairn's prompt sets in a storm)
   await q(`window.__world.nalati.titan.fight.tied = true`);
   await sleep(1200);
   await q(`window.__world.nalati.titan.fight.tied = false`);
   const c6 = await chipText();
-  check('chapters: the strip tied → 3/4 │ JEL ATA', /3\/4/.test(c6) && /JEL ATA/i.test(c6), c6);
+  check('chapters: the strip tied → 3/4 │ THE CAIRN', /3\/4/.test(c6) && /THE CAIRN/i.test(c6), c6);
   await saveStores(['storm-titan'], []);
   await boot(FROM);
   const c7 = await chipText();

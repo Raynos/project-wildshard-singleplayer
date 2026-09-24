@@ -126,7 +126,7 @@ export function installNalatiAdventure<A extends { kind: string }>(w: NalatiAdve
       const q = line.active;
       if (!q) return { label: '', count: '' };   // the line is finished (so far): no chip
       const n = q.def.steps.length;
-      return { label: q.def.title, count: q.isStarted ? `${Math.min(n, q.index + 1)}/${n}` : '' };
+      return { label: q.def.intro?.chip ?? q.def.title, count: q.isStarted ? `${Math.min(n, q.index + 1)}/${n}` : '' };   // the chapter's short name
     },
     markers,
   });

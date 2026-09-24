@@ -63,6 +63,8 @@ export const FEATHER_ELITES: { id: string; label: string; short: string; at: { x
   { id: 'argymaq', label: 'ARGYMAQ\'S PASTURE', short: 'ARGYMAQ', at: ARGYMAQ_PASTURE },
 ];
 
+/** Each chapter's `intro.chip` is its SHORT name: the HUD chip's label for the whole chapter (◆ GOLDEN KING 2/4 │ THE KURGAN
+ *  230 M — it has to fit a 390 px phone beside the nav half); the map card and the toasts use the full `title`. */
 export const TULPAR_QUEST: QuestDef = {
   id: 'tulpar',
   title: 'Tulpar',
@@ -109,7 +111,7 @@ export const KING_QUEST: QuestDef = {
   id: 'golden-king',
   title: 'The Golden King',
   startWhen: { all: [TULPAR_DONE, 'talked:elder:2'] },
-  intro: { objective: 'Ask Baqyt Ata about the kurgans', chip: 'The Golden King', hint: 'He has been looking west all week', markers: [ELDER_MARK] },
+  intro: { objective: 'Ask Baqyt Ata about the kurgans', chip: 'Golden King', hint: 'He has been looking west all week', markers: [ELDER_MARK] },
   steps: [
     {
       id: 'clues',
@@ -117,21 +119,21 @@ export const KING_QUEST: QuestDef = {
       hint: 'The stones of the kurgan field wake when the sun goes down · each one carries a piece of the story',
       count: [...CLUE_FLAGS],
       done: { any: ['clue:3', 'dead:golden-king'] },
-      markers: [{ id: 'field', label: 'KURGAN FIELD', short: 'KURGAN FIELD', at: world({ x: -106, z: 83 }) }],
+      markers: [{ id: 'field', label: 'KURGAN FIELD', short: 'KURGANS', at: world({ x: -106, z: 83 }) }],
     },
     {
       id: 'door',
       objective: 'Find the way into the great kurgan',
       hint: 'Its door faces west, toward the sky road',
       done: { any: ['entered:kurgan', 'dead:golden-king'] },
-      markers: [{ id: 'door', label: 'GREAT KURGAN', short: 'GREAT KURGAN', at: world(GREAT_KURGAN_DOOR_XZ) }],
+      markers: [{ id: 'door', label: 'GREAT KURGAN', short: 'THE KURGAN', at: world(GREAT_KURGAN_DOOR_XZ) }],
     },
     {
       id: 'king',
       objective: 'Defeat the Golden King',
       hint: 'Jump his sunburst · knock his plaques loose, then his chest takes arrows',
       done: { all: ['dead:golden-king'] },
-      markers: [{ id: 'king', label: 'THE GOLDEN KING', short: 'GOLDEN KING', at: world(GREAT_KURGAN_DOOR_XZ) }],
+      markers: [{ id: 'king', label: 'THE GOLDEN KING', short: 'THE KURGAN', at: world(GREAT_KURGAN_DOOR_XZ) }],
     },
     {
       id: 'home',
@@ -148,7 +150,7 @@ export const WIND_QUEST: QuestDef = {
   id: 'father-wind',
   title: 'Father of the Wind',
   startWhen: { all: [KING_DONE, 'talked:elder:3'] },
-  intro: { objective: 'Baqyt Ata is watching the sky', chip: 'Father of the Wind', hint: 'The camp by the Kunes', markers: [ELDER_MARK] },
+  intro: { objective: 'Baqyt Ata is watching the sky', chip: 'Father Wind', hint: 'The camp by the Kunes', markers: [ELDER_MARK] },
   steps: [
     {
       id: 'feathers',
@@ -163,14 +165,14 @@ export const WIND_QUEST: QuestDef = {
       objective: 'Tie the feathers to the Wind Cairn in a storm',
       hint: 'Ride to the cairn on the south rim when the sky turns · tie the strip',
       done: { any: ['lit:cairn', 'dead:jel-ata'] },
-      markers: [{ id: 'cairn', label: 'WIND CAIRN', short: 'WIND CAIRN', at: world(CAIRN) }],
+      markers: [{ id: 'cairn', label: 'WIND CAIRN', short: 'THE CAIRN', at: world(CAIRN) }],
     },
     {
       id: 'titan',
       objective: 'Defeat Jel Ata, Father of the Wind',
       hint: 'Stay in the saddle · his heart shows when the lightning does',
       done: { all: ['dead:jel-ata'] },
-      markers: [{ id: 'titan', label: 'JEL ATA', short: 'JEL ATA', at: world(CAIRN) }],
+      markers: [{ id: 'titan', label: 'JEL ATA', short: 'THE CAIRN', at: world(CAIRN) }],
     },
     {
       id: 'home',
