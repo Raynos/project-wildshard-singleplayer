@@ -102,7 +102,7 @@ const TROPHY: Record<string, ItemId> = {
 };
 
 /** the elites' voices (src/audio/Audio.ts animal sounds) */
-export type EliteSound = 'wolf_howl' | 'bear_growl' | 'bear_roar' | 'horse_squeal' | 'monkey_shriek';
+export type EliteSound = 'wolf_howl' | 'leopard_growl' | 'horse_squeal' | 'eagle_cry';
 
 // ─────────────────────────────── the environment the scripts share ───────────────────────────────
 
@@ -246,7 +246,7 @@ class Aqbars extends Base {
     this.to.set(pl.x, 0, pl.z); this.to.y = heightAt(pl.x, pl.z);
     a.mem['low'] = 1; a.mem['snarl'] = 1;
     this.sig();
-    this.env.sound('bear_growl', a.position);
+    this.env.sound('leopard_growl', a.position);
   }
   /** phase 2: up a ledge you cannot reach */
   private retreat(a: Animal): void {
@@ -461,7 +461,7 @@ class Qyran extends Base {
         m['altY'] = this.st === 'climb' ? Math.min(cruise, alt + 9 * dt) : alt + (cruise + 2 * Math.sin(t * 0.5) - alt) * Math.min(1, dt * 0.6);
         m['flap'] = this.st === 'climb' ? 0.9 : 0.18 + 0.12 * Math.max(0, Math.sin(t * 0.6)); m['fold'] = 0; m['ground'] = 0; m['bank'] = 0.35;
         if (this.st === 'climb' && (m['altY'] ?? 0) >= cruise - 0.5) this.st = 'soar';
-        if (engaged && this.st === 'soar') { this.stoopT -= dt; if (this.stoopT <= 0) { this.st = 'tell'; this.stT = 0; this.sig(); this.env.sound('monkey_shriek', a.position); } }
+        if (engaged && this.st === 'soar') { this.stoopT -= dt; if (this.stoopT <= 0) { this.st = 'tell'; this.stT = 0; this.sig(); this.env.sound('eagle_cry', a.position); } }
         break;
       }
       case 'tell': {

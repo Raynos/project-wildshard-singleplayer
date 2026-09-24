@@ -148,7 +148,7 @@ registerSpecies({
   aggressive: true,
   walkSpeed: 0.5,
   chargeDamage: 30,
-  sounds: { call: 'monkey_shriek', hurt: 'monkey_shriek', callEvery: [8, 18] },
+  sounds: { call: 'eagle_cry', hurt: 'eagle_cry', callEvery: [8, 18] }, // its own cry, not Driftwood's monkey (NALATI-MERGE F6)
   variants: [
     { id: 'qyran', label: 'Qyran the Storm-Wing', weight: 1, rarity: 'legendary', scale: [3, 3], hp: 600 },
   ],

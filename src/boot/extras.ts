@@ -28,6 +28,7 @@ import type { StepProgress } from './plan';
 import { audioFiles, musicDir, sfxDir } from './audioFiles';
 import { whenPrefetched } from './prefetch';
 import { decodeBytes, decodeSfxSet, sfxFiles, type SfxBank } from '../audio/preload';
+import type { AmbientBed } from '../audio/Audio';
 import { decodeStyle, styleFiles, type SlotName, type StyleBank } from '../audio/Stems';
 import { getMusicStyle, getSfxSet } from '../ui/Settings';
 import { CHUNKS } from '../chunks/registry';
@@ -126,10 +127,11 @@ export function startMenuPreload(files: ChunkFiles, def: ChunkDef): Preload<void
 export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank }
 
 export function startAudioPreload(files: ChunkFiles, def: ChunkDef): Preload<AudioBanks> {
-  const ocean = def.ocean !== undefined;
+  const ocean = def.ocean !== undefined, steppe = def.style === 'painterly';
   const style = getMusicStyle(), set = getSfxSet();
-  const slots: SlotName[] = ['title', ocean ? 'island' : 'pine']; // the other shard's slot is never played here (a shard change reloads)
-  const bed = ocean ? 'island' : 'forest';
+  // the other shard's slot is never played here (a shard change reloads); the steppe has no stems yet (Music.ts shardSlot)
+  const slots: SlotName[] = ocean ? ['title', 'island'] : steppe ? ['title'] : ['title', 'pine'];
+  const bed: AmbientBed = ocean ? 'island' : steppe ? 'steppe' : 'forest'; // the same bed Audio's constructor picks
   const decoded = new Set([...styleFiles(style, slots), ...sfxFiles(set, bed)]);
   const rest = [...files.music, ...files.sfx].filter((u) => !decoded.has(u));
   const c = counter(decoded.size + rest.length);

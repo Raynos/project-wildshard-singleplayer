@@ -377,7 +377,7 @@ async function main() {
   if (params.has('mute')) { audio.muted = true; audio.master.disconnect(); } // headless tests / captures: never make a sound
   // the Wildshard theme (project/archive/2026-09-23-music.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
   const music = new Music(audio);
-  music.setState({ shard: chunk.ocean ? 'island' : 'pine', mode: 'menu', intensity: 0, underwater: false });
+  music.setState({ shard: chunk.ocean ? 'island' : chunk.style === 'painterly' ? 'steppe' : 'pine', mode: 'menu', intensity: 0, underwater: false });
   // the ring shrine hums by proximity and ducks the score up close (project/archive/2026-09-23-music.md v3 row 9)
   const shrineHum = shrine ? new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z }) : null;
   const respawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } music.sting('death'); };
@@ -574,12 +574,12 @@ async function main() {
     const p = player.position;
     if (islandSfx && surfaces && !(player.wading && player.depth > 0.3)) islandSfx.footstep(player.wading ? 'water' : surfaces.surfaceAt(p.x, p.z, p.y), Math.hypot(player.velocity.x, player.velocity.z));
     else if (player.wading) audio.wadeStep(player.depth, sprinting);
-    else audio.footstep(sprinting, pier?.floorHeightAt(p.x, p.z) !== undefined ? 'planks' : sea !== undefined && heightAt(p.x, p.z) - sea.level < 2.6 ? 'sand' : 'litter');
+    else { const hoof = audio.hoofSurfaceAt?.(p.x, p.z); audio.footstep(sprinting, hoof !== undefined ? (hoof === 'wood' ? 'planks' : hoof) : pier?.floorHeightAt(p.x, p.z) !== undefined ? 'planks' : sea !== undefined && heightAt(p.x, p.z) - sea.level < 2.6 ? 'sand' : 'litter'); } // Nalati: its hoof ground (src/nalati/sound.ts)
   };
   // Nalati's boss fights (src/nalati/kurganBoss.ts, B13): the Golden King needs the animals, the kit and the HUD
   nalatiNow()?.bindPlay({
     kit: nalatiKit, health01: () => health / 100, toast: (text) => hud.toast(text), flash: () => hud.damageFlash(),
-    hurt: (dmg) => { killer = { cause: 'Thrown by your horse' }; health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); }, // a throw / a bolt (Mount, Taming)
+    hurt: (dmg) => { killer = { cause: 'Thrown from the saddle' }; health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); }, // a throw / a bolt (Mount, Taming)
   }); // Nalati's creatures: brace kills, knock-downs, howl / stampede toasts
   // Nalati's weather (src/nalati/weather.ts, B10): the storm's audio beds + thunder, and a lightning strike's 60 damage
   nalatiNow()?.sound?.bind(audio, music); // Nalati's sound (B16 audio): hoof ground, the steppe bed, the music's steppe mood

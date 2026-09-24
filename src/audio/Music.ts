@@ -40,8 +40,10 @@ import {
   type Arrangement, type ArrangementName, type ChordName, type LayerId, type MixKey, type NoteEv, type Segment,
 } from './score/wildshard-theme';
 
-/** the shard's mood: 'steppe' = Nalati (the plucked lead, like the pines, until MUSIC v2's folk style lands — MUSIC.md) */
+/** the shard's mood: 'steppe' = Nalati (the synth theme's plucked lead — no stems until the Nalati score lands, NALATI-MERGE A3) */
 export type Shard = 'pine' | 'island' | 'steppe';
+/** the stems slot a shard plays in game; null = none yet (the synth theme) */
+export function shardSlot(shard: Shard): SlotName | null { return shard === 'island' ? 'island' : shard === 'pine' ? 'pine' : null; }
 export type MusicMode = 'menu' | 'calm' | 'alert' | 'combat';
 export type StingName = 'pickup' | 'death' | 'chunk';
 export interface MusicState { shard: Shard; mode: MusicMode; intensity: number; underwater: boolean }
@@ -547,7 +549,7 @@ export class Music {
     if (idle) idle(() => this.engine.warm(arr)); else window.setTimeout(() => this.engine.warm(arr), 300);
     if (name === 'theme') this.sync();
   }
-  private stemsReady(): boolean { const b = this.bank; return this._style !== 'synth' && b !== undefined && b.style === this._style && b.slots.has(this.wantSlot()); }
+  private stemsReady(): boolean { const b = this.bank, slot = this.wantSlot(); return this._style !== 'synth' && b !== undefined && b.style === this._style && slot !== null && b.slots.has(slot); }
   private pump() {
     const spb = this.engine.currentSpb();
     this.engine.pump(this.ctx.currentTime + LOOKAHEAD_BARS * 4 * spb);
@@ -581,10 +583,11 @@ export class Music {
   }
 
   // ─────────────── the stems (project/archive/2026-09-23-music.md v3 row 7) ───────────────
-  /** the slot the state asks for: the title cut on the menu, else the shard's theme */
-  private wantSlot(): SlotName {
+  /** the slot the state asks for: the title cut on the menu, else the shard's theme; null = no stems for this shard yet —
+   *  the steppe (Nalati) plays the synth theme's plucked lead until its own score lands, never Pine Hollow's stems (NALATI-MERGE F6) */
+  private wantSlot(): SlotName | null {
     const s = this.state;
-    return s.mode === 'menu' ? 'title' : s.shard === 'island' ? 'island' : 'pine';
+    return s.mode === 'menu' ? 'title' : shardSlot(s.shard);
   }
   private tension(): number { return TENSION[this.state.mode]; }
 
@@ -592,11 +595,12 @@ export class Music {
   private sync(): void {
     if (!this.rig || !this.playing) return;
     const now = this.rig.ctx.currentTime, style = this._style;
-    if (style === 'synth' || this.failed.has(style)) { this.toSynth(now); return; }
+    if (style === 'synth' || this.failed.has(style) || this.wantSlot() === null) { this.toSynth(now); return; }
     this.deck?.setTension(this.tension(), now); // a deck of another slot / style plays on (at the right level) until the new one is in
     const bank = this.bank;
     if (bank?.style !== style) { this.prepare(style); if (!this.deck && !this.synthOn) this.startSynth(now + 0.05, 1); return; }
     const slot = this.wantSlot();
+    if (slot === null) { this.toSynth(now); return; }
     if (this.deck?.slot === slot && this.deck.style === style) return;
     const a = bank.slots.get(slot);
     if (a === undefined) { this.toSynth(now); return; } // this style has no such slot in the build (or it failed to decode)
@@ -609,7 +613,8 @@ export class Music {
     void this.decodeFor(style);
   }
   private async decodeFor(style: MusicStyle): Promise<void> {
-    const slots: SlotName[] = ['title', this.state.shard === 'island' ? 'island' : 'pine'];
+    const own = shardSlot(this.state.shard);
+    const slots: SlotName[] = own === null ? ['title'] : ['title', own];
     let bank: StyleBank;
     try { bank = await trackBusy('music', decodeStyle(style, slots, cachedBytes, decodeBytes)); }
     catch (err: unknown) {

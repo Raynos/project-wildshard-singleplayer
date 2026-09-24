@@ -226,7 +226,7 @@ registerSpecies({
   walkSpeed: 1.4,
   chargeSpeed: 11,
   chargeDamage: 14,
-  sounds: { call: 'bear_growl', hurt: 'bear_hurt', callEvery: [40, 90] },
+  sounds: { call: 'leopard_growl', hurt: 'leopard_growl', callEvery: [40, 90] }, // its own voice, not Pine Hollow's bear (NALATI-MERGE F6)
   pose: { grazeNeck: 0.3, gallopTail: 0.2 },
   gait: { trot: 2.2, gallop: 6 },
   variants: [

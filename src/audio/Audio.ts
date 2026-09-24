@@ -22,7 +22,7 @@ import { Voices } from './Voices';
  *   audio.dive()  audio.surface()  audio.setUnderwater(on)   // diving (Player.onSubmerge / onSurface): plunge + gasp, and the whole mix muffled (master lowpass) with a low hum + bubbles while under
  *   audio.animal('deer_call'|'boar_grunt'|'hoofsteps'|'boar_squeal'|'bear_growl'|'bear_roar'|'bear_hurt', position, listenerPos, yaw?)
  *   audio.gullCall(pan?, gain?)  audio.gullCallAt(position, listenerPos, yaw?)   // gulls (src/world/Gulls.ts onCall)
- *   audio.footstep(sprinting, 'litter'|'planks'|'sand')                          // surface: pine litter (default), the pier deck, the beach
+ *   audio.footstep(sprinting, 'litter'|'planks'|'sand'|'grass'|'gravel')         // surface: pine litter (default), the pier deck, the beach, the steppe, a road
  *   audio.setAmbient(true|false)  audio.setAmbient('forest'|'island')   audio.muted = true|false   audio.master.gain (0.6)
  *   Nalati (src/nalati/sound.ts drives these; nothing else calls them):
  *   audio.animal('wolf_howl'|'wolf_snarl'|'wolf_bite'|'wolf_yip'|'wolf_yelp'|'horse_neigh'|'horse_snort'|'horse_squeal'|'dog_bark'|'dog_yelp'
@@ -61,7 +61,8 @@ export type ImpactKind = 'wood' | 'ground' | 'flesh';
 export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal' | 'elk_bugle' | 'bear_growl' | 'bear_roar' | 'bear_hurt'
   | 'crab_click' | 'crab_snap' | 'monkey_chatter' | 'monkey_shriek' | 'sailor_groan' | 'sailor_slash' | 'coconut_hit' | 'coconut_land'   // Driftwood Isle's enemies (src/entities/Enemies.ts)
   | 'wolf_howl' | 'wolf_snarl' | 'wolf_bite' | 'wolf_yip' | 'wolf_yelp' | 'horse_neigh' | 'horse_snort' | 'horse_squeal'
-  | 'dog_bark' | 'dog_yelp' | 'sheep_bleat' | 'marmot_whistle';   // Nalati's creatures (src/entities/Wildlife.ts, Pack / Herd / Flock)
+  | 'dog_bark' | 'dog_yelp' | 'sheep_bleat' | 'marmot_whistle'   // Nalati's creatures (src/entities/Wildlife.ts, Pack / Herd / Flock)
+  | 'eagle_cry' | 'leopard_growl';   // Nalati's elites (src/nalati/elites.ts: Qyran, Aqbars) — synth only, no other shard's sample
 export type AmbientBed = 'forest' | 'island' | 'steppe';
 /** the ground under a hoof (Nalati: the steppe, the gravel bars and roads, the bridge deck) */
 export type HoofSurface = 'grass' | 'gravel' | 'wood';
@@ -75,8 +76,9 @@ const GAP: Partial<Record<AnimalSound, number>> = {
 /** how far a call carries (m) and the distance scale of its fall-off — the default is the forest animals' 140 / 9 */
 const REACH: Partial<Record<AnimalSound, [number, number]>> = {
   wolf_howl: [700, 60], horse_neigh: [260, 22], dog_bark: [220, 20], marmot_whistle: [180, 16], sheep_bleat: [160, 12], horse_squeal: [200, 18],
+  eagle_cry: [420, 34],
 };
-export type StepSurface = 'litter' | 'planks' | 'sand';
+export type StepSurface = 'litter' | 'planks' | 'sand' | 'grass' | 'gravel';   // grass / gravel: Nalati's steppe and roads
 /** sfx.json `oneshots` keys: the method each replaces (`footstep-sand`, `boltImpact-wood`, `land-hard`, the AnimalSound ids, `gull`) */
 export type OneShot = 'crossbowFire' | 'dryFire' | `boltImpact-${ImpactKind}` | 'swordSwing' | 'swordHeavy' | `swordHit-${'flesh' | 'wood'}`
   | 'dodge' | 'lunge' | 'reload' | 'rifleFire' | 'rifleReload' | 'weaponSwap' | `footstep-${StepSurface}` | 'jump' | 'land' | 'land-hard'
@@ -496,6 +498,21 @@ export class Audio {
       if (Math.random() < 0.25) this.tone({ t: t + 0.03, type: 'sawtooth', f0: rnd(400, 700), f1: rnd(300, 500), glide: 0.12, gain: 0.03, attack: 0.03, decay: 0.12, pan, lowpass: 1400, vibrato: { rate: 18, depth: 20 } });
       return;
     }
+    if (surface === 'grass') {
+      // the steppe (Nalati): a soft swish of blades round the boot over a dull earth thud — no needle crunch
+      this.burst({ t, type: 'bandpass', freq: rnd(2600, 3800), freqEnd: 1600, q: 0.6, gain: sprinting ? 0.16 : 0.1, attack: 0.025, decay: sprinting ? 0.11 : 0.15, pan });
+      this.burst({ t, type: 'lowpass', freq: rnd(300, 420), gain: sprinting ? 0.38 : 0.24, attack: 0.008, decay: 0.07, pan });
+      this.tone({ t, type: 'sine', f0: rnd(62, 80), f1: 42, glide: 0.05, gain: sprinting ? 0.24 : 0.15, decay: 0.07, pan });
+      return;
+    }
+    if (surface === 'gravel') {
+      // a road / a gravel bar: a gritty crunch of small stones, a few rattling grains after it
+      this.burst({ t, type: 'bandpass', freq: rnd(1500, 2400), q: 1.1, gain: sprinting ? 0.3 : 0.2, attack: 0.004, decay: sprinting ? 0.07 : 0.09, pan });
+      for (let i = 0; i < 3; i++) this.burst({ t: t + 0.01 + rnd(0, 0.05), type: 'bandpass', freq: rnd(2500, 4500), q: 4, gain: rnd(0.03, 0.07), decay: 0.025, pan });
+      this.burst({ t, type: 'lowpass', freq: 460, gain: sprinting ? 0.34 : 0.22, decay: 0.06, pan });
+      this.tone({ t, type: 'sine', f0: rnd(68, 88), f1: 44, glide: 0.05, gain: sprinting ? 0.24 : 0.15, decay: 0.06, pan });
+      return;
+    }
     if (surface === 'sand') {
       // a soft grainy scuff, no knock: broadband hiss that swells and settles, a dull thud under it
       this.burst({ t, type: 'bandpass', freq: rnd(1400, 2200), freqEnd: 700, q: 0.5, gain: sprinting ? 0.3 : 0.2, attack: 0.02, decay: sprinting ? 0.1 : 0.14, pan });
@@ -733,9 +750,27 @@ export class Audio {
     const bus = this.ctx.createGain(); bus.gain.value = att;
     const lp = this.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 9000 / (1 + dist / 25);
     bus.connect(lp); this.route(lp, pan);
-    if (this.shot(kind, { out: bus })) return;
+    // Nalati's hooves are its own (hoofSurfaceAt): Pine Hollow's sampled 'hoofsteps' must not take them over (NALATI-MERGE F6)
+    if (!(kind === 'hoofsteps' && this.hoofSurfaceAt !== undefined) && this.shot(kind, { out: bus })) return;
     const t = this.ctx.currentTime;
     switch (kind) {
+      case 'eagle_cry': { // Qyran: a golden eagle's thin high "kee-yeer" — a whistle that climbs, frays and falls, twice
+        const n = 1 + Math.floor(rnd(0, 1.7));
+        for (let i = 0; i < n; i++) {
+          const ti = t + i * rnd(0.42, 0.55), top = rnd(2300, 2700);
+          this.tone({ t: ti, type: 'sine', f0: top * 0.8, f1: top, glide: 0.06, gain: 0.5, attack: 0.02, hold: 0.08, decay: 0.05, vibrato: { rate: 34, depth: 60 }, out: bus });
+          this.tone({ t: ti + 0.14, type: 'sawtooth', f0: top, f1: top * 0.62, glide: 0.3, gain: 0.22, attack: 0.01, decay: 0.32, vibrato: { rate: 40, depth: 90 }, lowpass: 5200, out: bus });
+          this.burst({ t: ti, type: 'bandpass', freq: top * 1.4, q: 2.2, gain: 0.08, attack: 0.02, hold: 0.1, decay: 0.3, out: bus });
+        }
+        break;
+      }
+      case 'leopard_growl': { // Aqbars: a snow leopard's rasping hiss-growl — a dry sawing rumble, higher and thinner than a bear's, a spit of breath on top
+        const dur = rnd(0.55, 0.8);
+        this.tone({ t, type: 'sawtooth', f0: rnd(88, 104), f1: 70, glide: dur, gain: 0.6, attack: 0.04, hold: dur * 0.5, decay: dur * 0.45, vibrato: { rate: 24, depth: 12 }, lowpass: 700, out: bus });
+        this.burst({ t, type: 'bandpass', freq: 3200, freqEnd: 1800, q: 0.7, gain: 0.3, attack: 0.02, hold: dur * 0.3, decay: dur * 0.5, out: bus });
+        this.burst({ t, type: 'lowpass', freq: 600, gain: 0.35, attack: 0.03, hold: dur * 0.4, decay: dur * 0.5, rate: 0.8, out: bus });
+        break;
+      }
       case 'deer_call': { // bleat: FM-ish sawtooth with a rising-falling contour
         const dur = rnd(0.35, 0.55);
         this.tone({ t, type: 'sawtooth', f0: 560, f1: 780, glide: dur * 0.4, gain: 0.5, attack: 0.05, hold: dur * 0.4, decay: dur * 0.5, vibrato: { rate: 26, depth: 45 }, lowpass: 2200, out: bus });
