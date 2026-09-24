@@ -1,0 +1,38 @@
+{
+  "tag": "phquest-after2",
+  "url": "http://localhost:4188",
+  "query": "",
+  "when": "2026-09-24T19:40:38.582Z",
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "gate",
+      "calls": 120,
+      "tris": 1429101,
+      "msP50": 17.40000009536743,
+      "msP95": 19.800000190734863,
+      "programs": 96,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "cabin",
+      "calls": 170,
+      "tris": 1604092,
+      "msP50": 17.600000381469727,
+      "msP95": 20.899999618530273,
+      "programs": 97,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "hamlet",
+      "calls": 135,
+      "tris": 1555322,
+      "msP50": 18.799999713897705,
+      "msP95": 19.800000190734863,
+      "programs": 97,
+      "forest": "batched"
+    }
+  ]
+}
