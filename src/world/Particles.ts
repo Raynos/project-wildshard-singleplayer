@@ -17,7 +17,8 @@ import type { Forest } from './Forest';
  *
  *  - motes:   THREE.Points (1500) wrapped in a 24 m box around the camera (mod-wrapped in the vertex
  *             shader → world-static positions, zero CPU), soft round additive sprites, slow drift,
- *             sparkle + edge fade. Fog dims them.
+ *             sparkle + edge fade. Fog dims them. At night (PH-L3) one mote in eight near the pond is a
+ *             firefly: bigger, warm green, blinking on its own slow beat — the same Points, no draw added.
  *  - mist:    72 large soft billboards (procedural noise-blob texture) parked in the lowest terrain
  *             around the central hollow and over the pond, drifting and slowly turning, depthWrite
  *             off, fading near the camera and when looked at from above so they never read as flat
@@ -64,6 +65,9 @@ export class Particles {
   private uTime = { value: 0 };
   private uSunDir = { value: new THREE.Vector3(0, 1, 0) };
   private uSunColor = { value: new THREE.Color(1, 0.9, 0.7) };
+  /** the clock's night (0 day … 1 night) and the pond (x, z, radius): where the fireflies are */
+  private uNight = { value: 0 };
+  private uPond = { value: new THREE.Vector3(POND.x, POND.z, POND.r) };
   private uMote = { value: 1.0 };
   private uMist = { value: 1.0 };
   private needleOrigin!: THREE.InstancedBufferAttribute;
@@ -74,8 +78,9 @@ export class Particles {
   constructor(private sky: Sky, private forest: Forest) {}
 
   build(): this {
-    this.uSunDir.value.copy(this.sky.sunDir);
-    this.uSunColor.value.copy(this.sky.sunColor);
+    // the sky's own vectors: Pine Hollow's day / night clock moves them in place (the fixed sky never does)
+    this.uSunDir.value = this.sky.sunDir;
+    this.uSunColor.value = this.sky.sunColor;
     noReflect(this.group);
     this.motes = this.buildMotes();
     this.mist = this.buildMist();
@@ -87,6 +92,7 @@ export class Particles {
   update(dt: number, playerPos: THREE.Vector3, _camera: THREE.Camera): void {
     this.uTime.value += dt;
     this.uMote.value = this.params.moteIntensity;
+    this.uNight.value = this.sky.night;
     this.uMist.value = this.params.mistOpacity;
     if (playerPos.distanceToSquared(this.lastNeedlePos) > 8 * 8) {
       this.lastNeedlePos.copy(playerPos);
@@ -116,12 +122,13 @@ export class Particles {
     const u = this.baseUniforms();
     u['uRange'] = { value: MOTE_RANGE }; u['uIntensity'] = this.uMote; u['uPixelScale'] = { value: 900 * 0.5 };
     u['uSprite'] = { value: makeMoteSprite() };
+    u['uNight'] = this.uNight; u['uPond'] = this.uPond;
     const mat = new THREE.ShaderMaterial({
       uniforms: u, transparent: true, depthWrite: false, depthTest: true, blending: THREE.AdditiveBlending, fog: true,
       vertexShader: /* glsl */`
         attribute vec4 seed;
-        uniform float uTime; uniform float uRange; uniform float uPixelScale;
-        varying float vAlpha; varying vec3 vWorld;
+        uniform float uTime; uniform float uRange; uniform float uPixelScale; uniform float uNight; uniform vec3 uPond;
+        varying float vAlpha; varying vec3 vWorld; varying float vFly;
         void main() {
           float R = uRange;
           // world-space anchored: slow drift + a little bob, then wrapped into the box around the camera
@@ -137,21 +144,39 @@ export class Particles {
           float twinkle = 0.35 + 0.65 * pow( sin( uTime * ( 1.2 + seed.w ) + seed.x * 40.0 ) * 0.5 + 0.5, 3.0 );
           float edge = 1.0 - smoothstep( R * 0.6, R * 0.95, max( max( abs( w.x - c.x ), abs( w.y - c.y ) ), abs( w.z - c.z ) ) );
           float near = smoothstep( 0.25, 1.2, dist );
-          vAlpha = twinkle * edge * near;
-          gl_PointSize = clamp( ( 1.0 + seed.z * 1.6 ) * uPixelScale / dist, 1.0, 8.0 );
+          // a firefly (PH-L3): at night one mote in three leaves the dust box for a wider, low one — 25 m around the eye, from
+          // the ground to head height (the eye is ~1.7 m up) — and glows there if it is within 18 m of the pond's shore
+          float cand = step( seed.x, 0.33 ) * step( 0.001, uNight ) * step( 0.5, uPond.z );
+          float fly = 0.0;
+          if ( cand > 0.5 ) {
+            float RF = 25.0;
+            vec3 q = vec3( position.x, 0.0, position.z ) * 2.0 * RF + vec3( sin( uTime * 0.21 * seed.w + seed.y * 6.283 ), 0.0, cos( uTime * 0.17 * seed.w + seed.z * 6.283 ) ) * 1.5;
+            vec3 f3 = vec3( mod( q.x - cameraPosition.x + RF, 2.0 * RF ) - RF + cameraPosition.x, cameraPosition.y - 1.6 + seed.y * 2.4 + sin( uTime * 0.6 + seed.x * 40.0 ) * 0.25, mod( q.z - cameraPosition.z + RF, 2.0 * RF ) - RF + cameraPosition.z );
+            float pondD = length( f3.xz - uPond.xy );
+            fly = uNight * ( 1.0 - smoothstep( uPond.z + 6.0, uPond.z + 18.0, pondD ) );
+            w = f3; vWorld = w;
+            mv = viewMatrix * vec4( w, 1.0 );
+            dist = length( mv.xyz );
+            edge = 1.0 - smoothstep( RF * 0.7, RF * 0.98, max( abs( w.x - cameraPosition.x ), abs( w.z - cameraPosition.z ) ) );
+          }
+          float blink = smoothstep( 0.3, 0.85, sin( uTime * ( 0.7 + seed.y * 0.9 ) + seed.z * 31.0 ) );
+          vFly = fly;
+          vAlpha = mix( twinkle * edge * near * ( 1.0 - cand ), blink * edge * smoothstep( 0.3, 0.8, dist ), fly );
+          gl_PointSize = mix( clamp( ( 1.0 + seed.z * 1.6 ) * uPixelScale / dist, 1.0, 8.0 ), clamp( ( 2.0 + seed.z * 2.0 ) * uPixelScale / dist, 4.0, 26.0 ), fly );
           gl_Position = projectionMatrix * mv;
         }`,
       fragmentShader: /* glsl */`
         ${fogGLSL}
         uniform sampler2D uSprite; uniform float uIntensity; uniform vec3 uSunColor;
-        varying float vAlpha; varying vec3 vWorld;
+        varying float vAlpha; varying vec3 vWorld; varying float vFly;
         void main() {
           float a = texture2D( uSprite, gl_PointCoord ).a * vAlpha * uIntensity;
           float f = atmosFogFactor( vWorld );
           // dust reads best backlit: brighter when looking towards the sun
           float back = pow( max( dot( normalize( vWorld - cameraPosition ), fogSunDir ), 0.0 ), 3.0 );
           vec3 col = uSunColor * vec3( 1.0, 0.92, 0.72 ) * ( 0.22 + back * 0.6 );
-          gl_FragColor = vec4( col * a * ( 1.0 - f ), a );
+          col = mix( col, vec3( 1.6, 2.2, 0.55 ), vFly );   // a firefly's own cold-green glow, bright enough to bloom
+          gl_FragColor = vec4( col * a * ( 1.0 - f * ( 1.0 - 0.6 * vFly ) ), a );
         }`,
     });
     const pts = new THREE.Points(geo, mat);

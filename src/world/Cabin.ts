@@ -11,6 +11,7 @@ import type { Collider } from '../player/Player';
 import { boxDesc, type ColliderDesc } from './registry';
 import { TIER_CONFIG } from '../core/tier';
 import { macrotask } from '../boot/plan';
+import { LightPool } from '../fx/LightPool';
 
 /**
  * The three log cabins of the chunk.
@@ -112,9 +113,11 @@ interface Door {
   /** PHYSICS P3: the leaf as a box in the pivot's local frame */
   slab: ColliderDesc;
 }
-interface Fire { light: THREE.PointLight; base: number; seed: number }
-/** phone tier: a point light's slot — the 4 shared lights jump to the nearest cabin's anchors each frame */
-interface LightAnchor { anchor: THREE.Object3D; color: number; intensity: number; distance: number; decay: number; seed: number }
+/** `kind`: a fire burns all day and only reads stronger at night; a lamp (lantern, room light) is lit by the clock (PH-L3) */
+type LightKind = 'fire' | 'lamp';
+interface Fire { light: THREE.PointLight; base: number; seed: number; kind: LightKind }
+/** phone tier: a point light's slot — the shared lights jump to the nearest cabin's anchors (`rank`: which ones get a light) */
+interface LightAnchor { anchor: THREE.Object3D; color: number; intensity: number; distance: number; decay: number; seed: number; kind: LightKind; rank: number }
 interface CabinLod { root: THREE.Object3D; detail: THREE.Object3D[]; far: THREE.Object3D[]; anchors: LightAnchor[]; detailOn: boolean; farOn: boolean }
 interface Swing { pivot: THREE.Object3D; seed: number }
 interface Floor { x: number; z: number; rot: number; hw: number; hd: number; y: number }
@@ -237,6 +240,11 @@ function makeNoiseTexture() {
 
 let noiseTex: THREE.Texture | undefined;
 
+/** the night's hold on the cabins' particles: uShade dims the smoke's shadow side, uLamps lights the chimney glow (Cabins.update) */
+const cabinNight = { uShade: { value: 1 }, uLamps: { value: 1 } };
+/** the phone's pooled cabin lights (PH-L3) */
+const SHARED_CABIN_LIGHTS = 2;
+
 /** Billboard particle material driven entirely by uTime (no per-frame CPU work). */
 function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember', sky: Sky) {
   noiseTex ??= makeNoiseTexture();
@@ -248,7 +256,7 @@ function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember', sky: Sky) {
   const uniforms: Record<string, THREE.IUniform> = {
     uTime: { value: 0 }, uLife: { value: cfg.life }, uRise: { value: cfg.rise }, uSpread: { value: cfg.spread },
     uSize: { value: new THREE.Vector2(cfg.size[0], cfg.size[1]) }, uWind: { value: new THREE.Vector3(...cfg.wind) }, tNoise: { value: noiseTex },
-    uSunDir: { value: sky.sunDir.clone() }, uSunColor: { value: sky.sunColor.clone() },
+    uSunDir: { value: sky.sunDir }, uSunColor: { value: sky.sunColor }, uShade: cabinNight.uShade, uLamps: cabinNight.uLamps, // the sky's own: the clock moves them
     ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), uKind: { value: { smoke: 0, flame: 1, ember: 2 }[kind] },
   };
   return new THREE.ShaderMaterial({
@@ -304,7 +312,7 @@ function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember', sky: Sky) {
         #include <fog_vertex>
       }`,
     fragmentShader: /* glsl */`
-      uniform sampler2D tNoise; uniform float uTime; uniform vec3 uSunColor; uniform int uKind;
+      uniform sampler2D tNoise; uniform float uTime; uniform vec3 uSunColor; uniform int uKind; uniform float uShade; uniform float uLamps;
       varying vec2 vUv; varying float vAge; varying vec4 vSeed; varying vec2 vSunView;
       #include <fog_pars_fragment>
       void main() {
@@ -316,7 +324,9 @@ function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember', sky: Sky) {
           float a = m * 0.55 * smoothstep(0.0, 0.08, vAge) * (1.0 - smoothstep(0.3, 1.0, vAge));
           // lit on the sun side of each puff, cool blue-grey in its own shadow
           float lit = smoothstep(-0.55, 0.6, dot(d * 2.0, vSunView) + (n - 0.5) * 0.6);
-          vec3 col = mix(vec3(0.36, 0.38, 0.44), vec3(0.95, 0.9, 0.85) * uSunColor * 1.25, lit) * (0.85 + 0.3 * n2);
+          vec3 col = mix(vec3(0.36, 0.38, 0.44), vec3(0.95, 0.9, 0.85) * uSunColor * 1.25, lit) * (0.85 + 0.3 * n2) * uShade;
+          // the chimney's glow (PH-L3): the young plume catches the hearth's light from below at night
+          col += vec3(1.0, 0.42, 0.12) * 0.16 * uLamps * (1.0 - smoothstep(0.0, 0.1, vAge)) * (1.0 - uShade);
           gl_FragColor = vec4(col, a);
           #include <fog_fragment>
         }
@@ -574,16 +584,18 @@ class CabinBuilder {
     });
   }
   private worldPos(lx: number, ly: number, lz: number) { return new THREE.Vector3(lx, ly, lz).applyMatrix4(this.root.matrixWorld); }
-  /** a flickering point light under `parent` — a real light on desktop, an anchor for the shared set on the phone */
-  private pointLight(parent: THREE.Object3D, color: number, intensity: number, distance: number, decay: number, x: number, y: number, z: number, seed: number) {
+  /** a flickering point light under `parent` — a real light on desktop, an anchor for the shared set on the phone (`rank`:
+   *  the phone lights the lowest ranks of the nearest cabin: the fire pit, then the porch lantern, the room, the hearth) */
+  private pointLight(parent: THREE.Object3D, color: number, intensity: number, distance: number, decay: number, x: number, y: number, z: number, seed: number, kind: LightKind, rank: number) {
     if (TIER_CONFIG.sharedCabinLights) {
       const anchor = new THREE.Object3D(); anchor.position.set(x, y, z); parent.add(anchor);
-      this.anchors.push({ anchor, color, intensity, distance, decay, seed });
+      this.anchors.push({ anchor, color, intensity, distance, decay, seed, kind, rank });
+      this.anchors.sort((a, b) => a.rank - b.rank);
       return;
     }
     const light = new THREE.PointLight(color, intensity, distance, decay);
     light.position.set(x, y, z); parent.add(light);
-    this.owner._fire({ light, base: intensity, seed });
+    this.owner._fire({ light, base: intensity, seed, kind });
   }
   private placeProp(kind: PropKind, x: number, y: number, z: number, ry: number, scale = 1) {
     const local = new THREE.Matrix4().makeRotationY(ry).setPosition(x, y, z).scale(new THREE.Vector3(scale, scale, scale));
@@ -889,9 +901,9 @@ class CabinBuilder {
     const glow = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.6), this.mats.glow);
     glow.position.set(cx, FLOOR + 0.35, bz - side * 0.5); glow.rotation.y = side > 0 ? Math.PI : 0;
     this.root.add(glow); this.detail.push(glow);
-    this.pointLight(this.root, 0xffa050, 14, 10, 2, cx, FLOOR + 0.6, bz - side * 0.7, this.index * 3.1);
+    this.pointLight(this.root, 0xffa050, 14, 10, 2, cx, FLOOR + 0.6, bz - side * 0.7, this.index * 3.1, 'fire', 3);
     // room light so the windows glow at dusk
-    this.pointLight(this.root, 0xffb070, 16, 11, 2, 0.2, FLOOR + 1.9, 0, this.index * 1.7 + 0.5);
+    this.pointLight(this.root, 0xffb070, 16, 11, 2, 0.2, FLOOR + 1.9, 0, this.index * 1.7 + 0.5, 'lamp', 2);
     this.collider(cx, bz, 0.8, 0.3, 0, PLINTH + 1.6);
   }
 
@@ -1183,7 +1195,7 @@ class CabinBuilder {
     this.add('char', new THREE.CircleGeometry(0.15, 12).rotateX(-Math.PI / 2).translate(fx, potY + 0.06, fz));           // stew surface
     this.root.add(flames, embers); this.detail.push(flames, embers);
     this.owner._particles(this.mats.flame); this.owner._particles(this.mats.ember);
-    this.pointLight(this.root, 0xff9a3c, 28, 22, 2, fx, 0.9, fz, 7.7);
+    this.pointLight(this.root, 0xff9a3c, 28, 22, 2, fx, 0.9, fz, 7.7, 'fire', 0);
     this.collider(fx, fz, 0.7, 0.7, 0, 0.6);
     const wp = this.worldPos(fx, 0.2, fz);
     this.owner.firePits.push({ x: wp.x, y: wp.y, z: wp.z });
@@ -1212,8 +1224,10 @@ class CabinBuilder {
       mesh.geometry.deleteAttribute('tangent');
       const mat = mesh.material as THREE.MeshPhysicalMaterial;
       if (mat.transparent || /glass/i.test(mat.name)) {
-        mesh.material = new THREE.MeshStandardMaterial({ color: 0xffd9a0, emissive: new THREE.Color(1.0, 0.72, 0.4), emissiveIntensity: 3.0, roughness: 0.2, metalness: 0, transparent: true, opacity: 0.85 });
-        this.sky.setupMaterial(mesh.material); // lit like everything else: one shared program instead of its own non-CSM one
+        const glassMat = new THREE.MeshStandardMaterial({ color: 0xffd9a0, emissive: new THREE.Color(1.0, 0.72, 0.4), emissiveIntensity: 3.0, roughness: 0.2, metalness: 0, transparent: true, opacity: 0.85 });
+        mesh.material = glassMat;
+        this.sky.setupMaterial(glassMat); // lit like everything else: one shared program instead of its own non-CSM one
+        this.owner._lamp(glassMat, 3.0);
         mesh.castShadow = false;
       } else {
         mesh.material = new THREE.MeshStandardMaterial({ map: mat.map, normalMap: mat.normalMap, roughnessMap: mat.roughnessMap, metalnessMap: mat.metalnessMap, aoMap: mat.aoMap, metalness: 0.9, roughness: 1, color: 0xd8b070 });
@@ -1227,7 +1241,7 @@ class CabinBuilder {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.005, 6, 12), this.mats.iron);
     ring.position.y = -0.03;
     pivot.add(lan, ring);
-    this.pointLight(pivot, 0xffb060, 9, 11, 2, 0, -0.3, 0, 2.2 + this.index);
+    this.pointLight(pivot, 0xffb060, 9, 11, 2, 0, -0.3, 0, 2.2 + this.index, 'lamp', 1);
     this.root.add(pivot);
     this.detail.push(lan, ring); // never the pivot: its light must stay visible (a changing light count recompiles every shader)
     this.owner._swing({ pivot, seed: this.index * 2.3 });
@@ -1342,8 +1356,11 @@ export class Cabins {
   /** PHYSICS P3: static boxes that are only in colliderDescs() (floors, porch, step, plinth, furniture, props) */
   private solids: ColliderDesc[] = [];
   private lods: CabinLod[] = [];
-  /** phone tier: the one shared set of point lights (a constant NUM_POINT_LIGHTS keeps every shader from recompiling) */
+  /** phone tier: the one shared set of point lights, taken from the scene's LightPool at boot (a constant NUM_POINT_LIGHTS
+   *  keeps every shader from recompiling); they follow the nearest cabin's top-ranked anchors */
   private sharedLights: THREE.PointLight[] = [];
+  /** emissive materials lit by the clock (window glass, lantern glass) and their full-night intensity (PH-L3) */
+  private lampMats: { mat: THREE.MeshStandardMaterial; full: number }[] = [];
   private nearestCabin = -1;
   private tmpV = new THREE.Vector3();
 
@@ -1356,6 +1373,10 @@ export class Cabins {
     ])]);
     // each model's parts share one material: merged into one part, a cabin's crates / barrels / buckets are one draw each (9 → 4)
     const props = { crate: mergeParts(prepModel(crate.scene, this.sky)), barrel: mergeParts(prepModel(barrel.scene, this.sky)), bucket: mergeParts(prepModel(bucket.scene, this.sky)), hatchet: mergeParts(prepModel(hatchet.scene, this.sky)) };
+    this._lamp(mats.glass, mats.glass.emissiveIntensity);
+    // the phone's shared cabin lights (PH-L3): TWO pooled lights, not one per anchor — every point light is per-fragment
+    // cost on every lit surface, grass included; the nearest cabin's fire pit and porch lantern (else its room / hearth)
+    if (TIER_CONFIG.sharedCabinLights) for (let k = 0; k < SHARED_CABIN_LIGHTS; k++) this.sharedLights.push(LightPool.for(this.sky.sceneRoot).acquire(0xffa050, 0, 10, 2));
     for (const [i, site] of CABIN_SITES.entries()) {
       if (i > 0) await macrotask(); // one cabin per task: the whole homestead in one go was a 180 ms long task at 4x CPU
       const spec = SPECS[i];
@@ -1445,7 +1466,7 @@ export class Cabins {
           const a = l.anchors[i];
           if (!a) { light.intensity = 0; return; }
           light.color.set(a.color); light.distance = a.distance; light.decay = a.decay;
-          this.fires.push({ light, base: a.intensity, seed: a.seed });
+          this.fires.push({ light, base: a.intensity, seed: a.seed, kind: a.kind });
         });
       }
       this.sharedLights.forEach((light, i) => { const a = l.anchors[i]; if (a) a.anchor.getWorldPosition(light.position); });
@@ -1457,16 +1478,22 @@ export class Cabins {
       const e = d.t < 0.5 ? 2 * d.t * d.t : 1 - (-2 * d.t + 2) ** 2 / 2; // ease in-out
       d.pivot.rotation.y = -e * 1.85;
     }
+    // the night lights on the clock (PH-L3): by intensity only — the light count never changes. `sky.lamps` is 0 by day …
+    // 1 by night (the fixed sunset keeps 1: every light as before). A fire burns all day; lanterns and rooms are lit at dusk
+    const lamps = this.sky.lamps, fireK = 0.7 + 0.3 * lamps, lampK = 0.1 + 0.9 * lamps;
     for (const f of this.fires) {
       const n = Math.sin(t * 11 + f.seed) * 0.5 + Math.sin(t * 23.7 + f.seed * 2.3) * 0.3 + Math.sin(t * 3.1 + f.seed) * 0.2;
-      f.light.intensity = f.base * (1 + 0.28 * n);
+      f.light.intensity = f.base * (1 + 0.28 * n) * (f.kind === 'fire' ? fireK : lampK);
     }
+    for (const m of this.lampMats) m.mat.emissiveIntensity = m.full * (0.2 + 0.8 * lamps);
+    cabinNight.uLamps.value = lamps; cabinNight.uShade.value = 1 - 0.8 * this.sky.night;
     for (const sw of this.swings) { sw.pivot.rotation.z = Math.sin(t * 1.35 + sw.seed) * 0.05 + Math.sin(t * 2.9 + sw.seed * 1.7) * 0.015; sw.pivot.rotation.x = Math.cos(t * 1.1 + sw.seed) * 0.03; }
     for (const m of this.particleMats) { const u = m.uniforms['uTime']; if (u !== undefined) u.value = t; }
   }
 
   /** @internal */ _door(d: Door): void { this.doors.push(d); this.colliders.push(d.collider); this.interactables.push(d.interactable); }
   /** @internal */ _fire(f: Fire): void { this.fires.push(f); }
+  /** @internal */ _lamp(mat: THREE.MeshStandardMaterial, full: number): void { this.lampMats.push({ mat, full }); }
   /** @internal */ _swing(sw: Swing): void { this.swings.push(sw); }
   /** @internal */ _particles(m: THREE.ShaderMaterial): void { this.particleMats.add(m); }
   /** @internal */ _floor(f: Floor): void { this.floors.push(f); }
