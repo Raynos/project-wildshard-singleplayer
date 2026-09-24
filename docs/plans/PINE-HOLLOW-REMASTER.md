@@ -157,6 +157,30 @@ CPU):
 
 Jake's iPhone reading is still to come (his part of PH-0.5).
 
+### B-table (PH-0.4), the Track 0 bug audit, 2026-09-24
+
+Each row is one commit on `pine-hollow-remaster`. The perf numbers use the phone ruler above, from a clean export.
+
+| # | Bug | Commit | Before → after |
+|---|---|---|---|
+| B1 | **E94 forest / shadow pop.** On the phone, crowns swapped hi → lo at 55 m, inside the 80 m cascade. Twigs popped at 24 m, the impostor popped at 130 m, and trees 45–80 m behind you dropped their 200 m sunset shadows in and out of frame. | `cbbd51c` | Hi cards now reach 80 m, the cascade's edge. Lo → impostor dissolves over 118–130 m with complementary dither, and the twigs dissolve over 18–24 m. A shadow-aware cull keeps any tree whose shadow can reach the view. Phone tris at yaw π: 1.32 / 1.65 / 1.39 → 1.42 / 1.68 / 1.56 M. Looking down the shadows (yaw 0.95): 0.92 / 1.35 / 1.57 → 1.11 / 1.61 / 1.93 M. Calls and desktop are unchanged. On the board `progress/pine-hollow-e94-01-lod-pop.jpg`, mean \|A−B\| at 55 m drops 2.63 → 0.83 and at 130 m 3.54 → 2.16. Measured first: hi to 110 m (E90's distance) cost another 0.06–0.24 M, 2.13 M at the pond. |
+| B2 | **The rifle muzzle light added a point light mid-play.** Taking the AR-15 or firing it recompiled every lit program. | `3b24464` | The light is now a pooled LightPool light, driven by intensity only (Driftwood `c282abe`), with none on Driftwood. Programs over take → fire → back were 76 → 104 → 113 → 113; now 76 → 76 → 76 → 76. |
+| B3 | **`config.ts` defaulted to Pine Hollow** (`chunk://local/pine-hollow`, seed 1337) while `DEFAULT_CHUNK` is Driftwood. | `5026e39` | The defaults are now Driftwood's: `chunk://local/driftwood-isle`, 0 trees, seed `0x5ea1`. |
+| B4 | **Pine Hollow's loading nouns showed on Driftwood** (V-X1): HDRI → PMREM, pine branch cards, cabins, crossbow, pine bark. | `cfe423f` | Nalati's `SHARD_STEPS` / `useShardSteps` / per-shard timing key are ported verbatim, so the N-merge is a no-op there. The shared table is now neutral, and Pine Hollow has its own nouns. Driftwood shows 5 Pine Hollow nouns before, 0 after (`test/boot-plan.test.ts`). |
+| B5 | **`isDry` called Pine Hollow's valleys below the pond's level wet.** It fell back to a navmesh query per call; with no navmesh it called them wet. | `c8d42e5` | `isDry` now uses the navmesh bake's own wet test: under water only inside the pond's square, or anywhere on an ocean shard. 31 356 m² of dry valleys are dry again. At load, 22 of 168 animals stood in them; they no longer need a navmesh query per call. |
+| B6 | **NaN sweep** (the E67 / E91 class) over the splat, water, grass, undergrowth and tree shaders. | `0f2bc9d` | `scripts/pine-hollow-nan-scan.mjs` found 0 non-finite pixels at all 45 cameras × 2 tiers. The pond's unguarded `vMirror.w` divide is now guarded. Every `pow(1 − N·V)` base was already clamped. |
+| B7 | **Stale `docs/SHARDS.md`**: "only `'pine'`", "deer / boar", Pine Hollow as the only shard, and a pond pose facing away from the pond. | `e339dae` | The doc now covers two shards, `'pine' \| 'none'`, the 8 registered species and the right pose. |
+| — | **`Music.ts` defaults to `'pine'`.** | not built | `src/audio/**` is the sound lane's. Handed to that lane. |
+
+Found on the way, not built:
+- Grass (`Grass.ts:331`), undergrowth and tree placement (`placement.ts`) still drop everything below the pond's
+  level chunk-wide. The ~3.1 ha of valleys are bare of grass for the same reason B5 fixed. Fixing it changes the
+  forest layout and colliders, so it needs a navmesh re-bake: it belongs with PH-B1 / layout v2.
+- The instanced forest fallback (no `WEBGL_multi_draw`) keeps `loTreeShadows: false` on the phone. Lo trees now begin
+  at 80 m, past the cascade, so they have nothing to cast. The iPhone should confirm `__world.forest.path === 'batched'`.
+- The hi → lo swap at 80 m is still a hard swap. It is a silhouette change at the shadow edge, not a shadow change.
+  Cross-dissolving it needs a second needles instance per tree in the band, which is a PH-L7 option.
+
 ## 4. The world (Map D, layout A — `art/pine-hollow/round-1-map/`)
 
 **Compass first:** today's names disagree with the compass (the "East cabin" at x = +62 sits west of the crossroads on the in-game compass; the den at (−150, −150) is SE on it). Layout A follows the **in-game compass** (N up on the minimap): the build renames / moves POIs to match it, and whoever writes `pineHollowLayout.ts` records the axis convention in its header.
