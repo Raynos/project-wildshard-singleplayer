@@ -305,7 +305,7 @@ function landscape(x: number, z: number, n: Noise2D, n2: Noise2D): number {
         const ice = lerp(GLACIER.y0, GLACIER.y1, clamp(t, 0, 1) ** 0.85) + 3.2 * Math.max(0, 1 - (dp / GLACIER.half) ** 2) + n2.get(x * 0.06, z * 0.06) * 0.5;
         // where the tongue stands over lower ground its side is a rock wall, not a smooth ramp: buttresses and gullies
         // (a ridged edge), stepped by strata
-        const side = smoothstep(0.02, 0.25, g) * smoothstep(0.98, 0.7, g) * smoothstep(4, 14, ice - h);
+        const side = smoothstep(0.02, 0.25, g) * smoothstep(0.98, 0.7, g) * smoothstep(4, 14, ice - h) * smoothstep(0.85, 0.7, t); // (the snout keeps its ice cliff)
         let hg = lerp(h, ice, g);
         if (side > 0) {
           const lv = (hg + n.get(x * 0.05, z * 0.05) * 3) / 6, fl = Math.floor(lv);
@@ -403,11 +403,13 @@ export function ringGround(x: number, z: number, h: number, slope: number): [num
   const patch = cn.fbm(x * 0.012, z * 0.012, 3);
   const rock = smoothstep(0.17, 0.28, slope + smoothstep(46, 70, h) * 0.05);
   const hi = smoothstep(58, 98, h); // high up the snow holds on steeper ground
-  const holds = 1 - smoothstep(0.19 + hi * 0.2, 0.29 + hi * 0.24, slope);
+  const holds = 1 - smoothstep(0.19 + hi * 0.3, 0.29 + hi * 0.36, slope);
   const line = SNOW_LINE + patch * 7;
   const high = smoothstep(line - 3, line + 5, h) * holds;
   const drift = smoothstep(0.3, 0.52, cn2.fbm(x * 0.028 + 7.7, z * 0.028, 2) + (h - SNOW_LINE) * 0.006) * holds * smoothstep(6, 14, h);
-  const snow = Math.max(high, drift * 0.95, glacierMask(x, z));
+  // the summits' caps: over ~+85 the snow lies on all but the sheerest faces
+  const cap = smoothstep(80, 94, h + patch * 6) * (1 - smoothstep(0.55, 0.75, slope));
+  const snow = Math.max(high, cap, drift * 0.95, glacierMask(x, z));
   const fan = smoothstep(-0.2, 0.2, cn.fbm(x * 0.024 + 3.3, z * 0.024 - 1.9, 2));
   // (Snow Lotus Valley's floor is stony all over, thin turf only in patches)
   const turf = smoothstep(0.05, 0.3, cn2.fbm(x * 0.035 - 2.2, z * 0.035 + 6.1, 2));

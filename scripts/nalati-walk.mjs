@@ -9,6 +9,7 @@
 //   down      2 frames at pitch −1.2 — the grass at your feet
 //   eagle     4 frames on Eagle Rock (170, −20) looking N, E, S, W — the slab edge, the range, the valley
 //   plateau   2 frames on the Sky Grassland (0, −120) looking S and W
+//   valley   10 frames up Snow Lotus Valley's S road to the valley head, its E / W walls, back south, the glacier
 // Writes progress/nalati-look/walk/<tag>-strip.jpg (a labelled grid, ≤ 500 KB) and <tag>-walk.json (calls / tris each).
 //
 //   node scripts/nalati-walk.mjs --tag=v2-step1 --look=v2 --url=http://127.0.0.1:5191
@@ -49,6 +50,15 @@ for (const [n, y] of COMPASS) frames.push(['up', `up ${n}`, 68, 204.3, y, 1.2]);
 frames.push(['down', 'down S', 68, 204.3, 0, -1.2], ['down', 'down W', 68, 204.3, -Math.PI / 2, -1.2]);
 for (const [n, y] of COMPASS) frames.push(['eagle', `eagle ${n}`, 170, -20, y, -0.15]);
 frames.push(['plateau', 'plateau S', 0, -120, 0, 0.0], ['plateau', 'plateau W', 0, -120, -Math.PI / 2, 0.0]);
+// Snow Lotus Valley (the crags pass): up the S road from the gate to the valley head, then its walls, the glacier
+const SR = [[0, -236], [-4, -150], [-2, -110], [4, -76], [2, -52]];
+for (let i = 0; i < 6; i++) {
+  const t = (i / 5) * (SR.length - 1), k = Math.min(SR.length - 2, Math.floor(t)), f = t - k;
+  const a = SR[k], b = SR[k + 1];
+  frames.push(['valley', `valley ${i}`, a[0] + (b[0] - a[0]) * f + 3, a[1] + (b[1] - a[1]) * f, face(a[0], a[1], b[0], b[1]), 0.08]);
+}
+frames.push(['valley', 'valley E wall', -16, -170, Math.PI / 2, 0.15], ['valley', 'valley W wall', -16, -170, -Math.PI / 2, 0.15],
+  ['valley', 'valley back S', -8, -120, 0, 0.05], ['valley', 'glacier', -28, -100, face(-28, -100, -80, -78), 0.12]);
 const list = frames.filter((f) => only.length === 0 || only.includes(f[0]));
 
 const query = ['chunk=nalati-grasslands', 'mute=1', 'nolock=1', 'skipintro=1', 'weather=clear', 'clock=0', 'perf=0', 'tier=phone', 'x=68', 'z=204.3', 'yaw=-0.95', LOOK ? `look=${LOOK}` : '', EXTRA].filter(Boolean).join('&');
@@ -84,7 +94,7 @@ try {
   const html = `<body style="margin:0;background:#111;font:11px ui-monospace,monospace;color:#9fe">
     <div style="display:grid;grid-template-columns:repeat(7,196px)">${rows.map((r) => `<figure style="margin:0;position:relative">
     <img src="${r.img}" style="width:196px;display:block"><figcaption style="position:absolute;left:3px;top:3px;background:#000a;padding:1px 4px">${r.label} · ${r.calls}c</figcaption></figure>`).join('')}</div>
-    <div style="padding:4px">${TAG}${LOOK ? ` · look=${LOOK}` : ''} · walk-around (orbit / path / up / down / Eagle Rock / plateau)</div></body>`;
+    <div style="padding:4px">${TAG}${LOOK ? ` · look=${LOOK}` : ''} · walk-around (orbit / path / up / down / Eagle Rock / plateau / valley)</div></body>`;
   await sheet.setContent(html);
   await sheet.waitForTimeout(300);
   const buf = await sheet.screenshot({ type: 'jpeg', quality: 72, fullPage: true });

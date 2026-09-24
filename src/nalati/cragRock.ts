@@ -136,7 +136,8 @@ const cragFragMain = (phone: boolean): string => /* glsl */`
   vec3 g = diffuseColor.rgb * r * vec3( 0.34, 0.35, 0.39 ) / 0.36;
   // snow on every face that looks up, above the (ragged) snow line; blue in the shade
   float brk = cNoise( p.xz * 0.35 + p.y * 0.2 ) - 0.5;
-  float sn = smoothstep( 0.55, 0.75, N.y + brk * 0.3 ) * smoothstep( ${(SNOW_LINE - 8).toFixed(1)}, ${(SNOW_LINE + 4).toFixed(1)}, p.y + brk * 10.0 );
+  float hiK = smoothstep( 70.0, 100.0, p.y );
+  float sn = smoothstep( 0.55 - hiK * 0.2, 0.75 - hiK * 0.2, N.y + brk * 0.3 ) * smoothstep( ${(SNOW_LINE - 8).toFixed(1)}, ${(SNOW_LINE + 4).toFixed(1)}, p.y + brk * 10.0 );
   vec3 snow = texture2D( tCragSnow, p.xz * uCragScale.y ).rgb * vec3( 0.97, 1.0, 1.05 );
   snow *= mix( vec3( 0.66, 0.77, 1.02 ), vec3( 1.03, 1.0, 0.96 ), smoothstep( -0.05, 0.45, dot( N, normalize( uPSunDir ) ) ) );
   diffuseColor.rgb = mix( g, snow, sn );
