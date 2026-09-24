@@ -90,7 +90,7 @@ Blender, image-to-3D, LUT fit, horizon painting, wind, rig bake), never their sh
 **Boards Jake asked to see before the layout and the models are built.** Each is one portrait decision board, A / B / C / D,
 in `art/pine-hollow/round-<n>-<label>/board.jpg`:
 - **B1**, the Map D layout (3–4 top-down variants of the five zones + the hamlet);
-- **B2**, the Antler King (3–4 photoreal looks from the Nalati concept `art/nalati-grasslands/round-2/5-bosses/boss-6-alt-antler-king.png`);
+- **B2**, the Antler King (3–4 photoreal looks from the Nalati concept `art/nalati-grasslands/round-2/5-bosses/boss-6-alt-antler-king.jpg`);
 - **B3**, the thralls + the ranger (3 each);
 - **B4**, the journal + trophy wall UI (phone portrait).
 

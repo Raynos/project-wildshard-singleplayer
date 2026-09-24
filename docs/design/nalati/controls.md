@@ -19,9 +19,9 @@ screenshots):
 
 | file | shows |
 |---|---|
-| `crouch-1-disc-appears.png` | you walk into long grass: the CROUCH disc **fades in** above JUMP with a soft pulse ring and a one-time `TALL GRASS` hint chip; not pressed yet (codex left the LOOK label off the touch bar) |
-| `crouch-2-crouched-hidden.png` | toggled on: the disc **lit** (solid cyan), the **HIDDEN** pip, the view lowered to ~1 m inside the grass, a wolf pack passing unaware (codex drew the pip with an open eye; the build uses a closed one) |
-| `crouch-3-out-of-grass.png` | on a dirt track by the yurts: **no CROUCH disc**, the normal HUD (AIM + JUMP) |
+| `crouch-1-disc-appears.jpg` | you walk into long grass: the CROUCH disc **fades in** above JUMP with a soft pulse ring and a one-time `TALL GRASS` hint chip; not pressed yet (codex left the LOOK label off the touch bar) |
+| `crouch-2-crouched-hidden.jpg` | toggled on: the disc **lit** (solid cyan), the **HIDDEN** pip, the view lowered to ~1 m inside the grass, a wolf pack passing unaware (codex drew the pip with an open eye; the build uses a closed one) |
+| `crouch-3-out-of-grass.jpg` | on a dirt track by the yurts: **no CROUCH disc**, the normal HUD (AIM + JUMP) |
 
 The rules:
 
@@ -62,15 +62,15 @@ arrows and boxes in them are **design markup**, not HUD; everything cyan is the 
 
 | file | shows |
 |---|---|
-| `controls-A-flick-down-move.png` | A: flicking the MOVE stick down toggles crouch, and a slow drag down is still walking backwards |
-| `controls-B-context-jump-disc.png` | B: the JUMP disc lit as CROUCH, with the slide-down track under it |
-| `controls-C-auto-crouch-by-speed.png` | C: the stick's creep / walk / sprint rings, with no crouch button |
-| `controls-D-stacked-crouch-disc.png` | D: a CROUCH disc above JUMP plus the right-thumb reach arc (codex drew it up and to the left of JUMP, not directly above; the reach point still holds) |
-| `controls-E-tap-move-to-crouch.png` | E: double-tap ripples on MOVE, a CROUCHED chip, and "tap LOOK = shoot" beside it for symmetry |
-| `controls-F-mounted-remap.png` | F: leaning low at a full gallop, with GALLOP, DRAW, DISMOUNT and the STEED bar |
-| `controls-mounted-layout.png` | the full mounted set: DRAW latched, the bow's arrow-drop arc, GALLOP, DISMOUNT, the `1/4` weapon pill, gait on the stick |
-| `controls-recommended-C-plus-E.png` | **the recommendation**: a slow stick crouches you automatically, tap MOVE crouches anywhere, JUMP is unchanged |
-| `controls-desktop-keys.png` | desktop 1536×1024: the CONTROLS key panel, the 1–4 weapon hotbar and an `E MOUNT` prompt on the horse |
+| `controls-A-flick-down-move.jpg` | A: flicking the MOVE stick down toggles crouch, and a slow drag down is still walking backwards |
+| `controls-B-context-jump-disc.jpg` | B: the JUMP disc lit as CROUCH, with the slide-down track under it |
+| `controls-C-auto-crouch-by-speed.jpg` | C: the stick's creep / walk / sprint rings, with no crouch button |
+| `controls-D-stacked-crouch-disc.jpg` | D: a CROUCH disc above JUMP plus the right-thumb reach arc (codex drew it up and to the left of JUMP, not directly above; the reach point still holds) |
+| `controls-E-tap-move-to-crouch.jpg` | E: double-tap ripples on MOVE, a CROUCHED chip, and "tap LOOK = shoot" beside it for symmetry |
+| `controls-F-mounted-remap.jpg` | F: leaning low at a full gallop, with GALLOP, DRAW, DISMOUNT and the STEED bar |
+| `controls-mounted-layout.jpg` | the full mounted set: DRAW latched, the bow's arrow-drop arc, GALLOP, DISMOUNT, the `1/4` weapon pill, gait on the stick |
+| `controls-recommended-C-plus-E.jpg` | **the recommendation**: a slow stick crouches you automatically, tap MOVE crouches anywhere, JUMP is unchanged |
+| `controls-desktop-keys.jpg` | desktop 1536×1024: the CONTROLS key panel, the 1–4 weapon hotbar and an `E MOUNT` prompt on the horse |
 
 ## What exists today (the ground truth)
 
@@ -99,7 +99,7 @@ to leave LOOK and stretch.
 ## The six options
 
 ### A — Flick down on MOVE = crouch toggle
-`controls-A-flick-down-move.png`
+`controls-A-flick-down-move.jpg`
 
 A fast downward flick of the stick that ends with the thumb lifting (≥ 40 px in < 150 ms, then release) toggles
 crouch; a slow drag down is still walking backwards.
@@ -112,7 +112,7 @@ crouch; a slow drag down is still walking backwards.
 - **Verdict:** no. It fights the one defensive move melee has.
 
 ### B — The JUMP disc becomes context: tap = jump, slide down = crouch
-`controls-B-context-jump-disc.png`
+`controls-B-context-jump-disc.jpg`
 
 Press the disc and either release (jump) or slide ≥ 24 px down off it (crouch latch; the disc lights and reads
 CROUCH). While crouched, tap or slide up = stand + jump.
@@ -126,7 +126,7 @@ CROUCH). While crouched, tap or slide up = stand + jump.
 - **Verdict:** the best *explicit* scheme; runner-up.
 
 ### C — Auto-crouch by speed ("stealth by speed")
-`controls-C-auto-crouch-by-speed.png`
+`controls-C-auto-crouch-by-speed.jpg`
 
 In tall grass the stick gets a third gear: **creep** (deflection < 45 %) = crouched, **walk** (45–85 %) = standing,
 **sprint** (> 85 %) as today. Creep maps 0–45 % onto 0–2.2 m/s, the existing crouch speed, so nothing about the
@@ -141,7 +141,7 @@ has no creep gear.
 - **Verdict:** yes — as the **default**, not the only way.
 
 ### D — A separate CROUCH disc stacked above JUMP
-`controls-D-stacked-crouch-disc.png`
+`controls-D-stacked-crouch-disc.jpg`
 
 - **Reach:** the weakest: ≈ 37 mm from the LOOK rest, the upper edge of a comfortable right-thumb arc on a 6.1"
   phone, worse on a Max. HOVER has to move up to ~33 %.
@@ -154,7 +154,7 @@ has no creep gear.
   objections, and as a toggle. See *Decision* at the top.
 
 ### E — Tap (or double-tap) MOVE = crouch toggle
-`controls-E-tap-move-to-crouch.png`
+`controls-E-tap-move-to-crouch.jpg`
 
 A tap on the MOVE pad that doesn't move (< 12 px, < 250 ms) — the touch stick's **"L3 click"**, the button Breath of
 the Wild and Skyrim put sneak on — toggles crouch. It is the exact mirror of **tap LOOK = shoot**, which already
@@ -171,7 +171,7 @@ tap misfires in playtests.
 - **Verdict:** yes — as the **explicit override** on top of C.
 
 ### F — On horseback: JUMP → GALLOP, crouch → lean low
-`controls-F-mounted-remap.png`
+`controls-F-mounted-remap.jpg`
 
 Not a crouch scheme on its own but what the chosen one becomes in the saddle: the JUMP disc turns into **GALLOP**
 (hold), AIM turns into **DRAW**, HOVER turns into **DISMOUNT**, and "crouch" becomes **lean low on the neck**
@@ -180,7 +180,7 @@ Not a crouch scheme on its own but what the chosen one becomes in the saddle: th
 The horse **auto-jumps** ditches and logs at canter or faster, so the mount needs no jump either.
 
 ## Round-2 recommendation — C + E, JUMP untouched, F in the saddle (not chosen; the user picked D)
-`controls-recommended-C-plus-E.png`
+`controls-recommended-C-plus-E.jpg`
 
 *Kept as rationale. Only point 4 (the mounted layout, F) carries over into the decision.*
 
@@ -196,7 +196,7 @@ the HUD, and changes nothing on Driftwood (no tall grass → C never fires; E is
 HEAVY-on-AIM / swing-on-LOOK-tap layout is untouched). B is the fallback if E's glyph proves undiscoverable.
 
 ## The mounted layout
-`controls-mounted-layout.png`
+`controls-mounted-layout.jpg`
 
 | slot | on foot | mounted |
 |---|---|---|
@@ -240,7 +240,7 @@ Weapon choice on touch: the left-edge pill shows the held weapon's icon + `n/4`;
 | **Hovering** | AIM as today | JUMP = board jump (the board clears crouch) | carve | as today | HOVER (lit) | same |
 
 ## Desktop key map
-`controls-desktop-keys.png`
+`controls-desktop-keys.jpg`
 
 | key | on foot | mounted |
 |---|---|---|

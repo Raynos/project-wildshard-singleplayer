@@ -8,7 +8,7 @@ import '../ui/styles/stealth.css';
 /**
  * Nalati crouch + grass stealth (plan row B9; docs/design/nalati/stealth-and-storms.md "Grass stealth",
  * docs/design/nalati/controls.md decision D; mockups art/nalati-grasslands/round-3/3-crouch-disc/*.png,
- * round-2/3-features/stealth-1-crouched-hidden.png, stealth-2-detected.png).
+ * round-2/3-features/stealth-1-crouched-hidden.jpg, stealth-2-detected.jpg).
  *
  *   const stealth = new Stealth({ player, wildlife: () => wildlife, isMounted: () => mounted });   // once (src/nalati/index.ts)
  *   stealth.bindKit(kit);        // the sneak shot: × 2 on the bow's arrows and the spear's javelins loosed from HIDDEN

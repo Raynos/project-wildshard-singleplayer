@@ -12,7 +12,7 @@ import { riding } from './riding';
 
 /**
  * NAIZAGAI — the Storm Sabre of Jel Ata (Nalati row B14's reward; docs/design/nalati/elites-and-bosses.md "5 — Victory";
- * mockup art/nalati-grasslands/round-3/2-storm-titan/titan-5-victory-reward.png). Not a fork of the sabre: B3's `Sabre`
+ * mockup art/nalati-grasslands/round-3/2-storm-titan/titan-5-victory-reward.jpg). Not a fork of the sabre: B3's `Sabre`
  * upgraded in place, the way `GoldenBow` upgrades the bow (`apply()` once the orb is taken, and at every boot after):
  *
  *   · the blade goes pale storm-blue steel with a cold glow (the steel extras material, recoloured);

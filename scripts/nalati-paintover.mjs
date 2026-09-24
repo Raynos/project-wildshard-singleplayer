@@ -27,7 +27,7 @@ import { POSES } from './nalati-poses.mjs';
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const ART = resolvePath(ROOT, 'art/nalati-grasslands');
 const PAINTOVER = resolvePath(ART, 'round-5-paintover');
-const STYLE = resolvePath(ART, 'round-1/1-art-style/style-B-painterly.png');
+const STYLE = resolvePath(ART, 'round-1/1-art-style/style-B-painterly.jpg');
 
 const argv = process.argv.slice(2);
 const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : d; };

@@ -2,7 +2,7 @@
 
 2026-09-23. The user approved free **CC0 and CC-BY** 3D assets and a Nalati download budget of about 25 MB on
 desktop (ask N8). This round searched the free libraries for assets that fit the painterly target
-(`round-1/1-art-style/style-B-painterly.png`, `round-4-camp-9angle/sheet-mockup-3x3.jpg`), rendered the
+(`round-1/1-art-style/style-B-painterly.jpg`, `round-4-camp-9angle/sheet-mockup-3x3.jpg`), rendered the
 candidates in headless Blender (soft warm key, cool fill, rim, 3/4 view), and optimised the chosen ones into
 `public/assets/nalati/sourced/`. **Nothing is wired into the game.** The model owners decide what to adopt.
 Credits and CC-BY attribution text: `public/assets/nalati/sourced/CREDITS.md`.

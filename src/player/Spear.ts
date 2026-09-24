@@ -15,7 +15,7 @@ import { painterlyMaterial } from '../world/painterly';
 
 /**
  * Spear — the Nalati spear + javelins (ASKS N6, plan row B3; design docs/design/nalati/combat.md § B; mockups
- * art/nalati-grasslands/round-2/1-combat/combat-B-spear-brace.png, combat-B2-javelin-throw.png). The plan's decision:
+ * art/nalati-grasslands/round-2/1-combat/combat-B-spear-brace.jpg, combat-B2-javelin-throw.png). The plan's decision:
  * **javelins are thrown from the spear slot** (3 slots: bow, sabre, spear).
  *
  *   const spear = new Spear({ game, sky, player, forest }, targets, { allowUnlocked });

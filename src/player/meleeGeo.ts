@@ -6,7 +6,7 @@ import { viewmodelMaterial } from './Crossbow';
 
 /**
  * meleeGeo — the smooth, vertex-painted geometry kit the Nalati melee viewmodels are built from (Sabre.ts, Spear.ts):
- * painterly style B (art/nalati-grasslands/round-1/1-art-style/style-B-painterly.png) — soft smooth shapes, colour
+ * painterly style B (art/nalati-grasslands/round-1/1-art-style/style-B-painterly.jpg) — soft smooth shapes, colour
  * painted per vertex (gradients, bands), no textures; lit by the shared painterly material (src/world/painterly.ts).
  *
  *   tube(rings, colorAt, { capStart, capEnd })   indexed, smooth-normal tube through rings of equal vertex count

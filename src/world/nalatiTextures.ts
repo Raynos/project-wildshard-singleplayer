@@ -2,7 +2,7 @@
  * The Nalati painted texture set (look pass, "painted assets" — docs/design/nalati/look-pass.md; painted-asset agent).
  *
  * The mockups are paintings: every surface carries painted high-frequency detail. These are hand-painted (codex image
- * gen, gpt-6-sol, in the style of art/nalati-grasslands/round-1/1-art-style/style-B-painterly.png) and made seamless
+ * gen, gpt-6-sol, in the style of art/nalati-grasslands/round-1/1-art-style/style-B-painterly.jpg) and made seamless
  * here, under public/assets/nalati/:
  *
  *   tex/<name>.webp          1024², seamless (tiled 2×2 in progress/nalati-look/assets-textures.jpg), sRGB albedo

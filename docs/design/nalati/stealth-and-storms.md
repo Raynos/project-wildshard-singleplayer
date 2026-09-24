@@ -8,14 +8,14 @@ and the weather gauge at once.
 
 | shot | file | what it pins down |
 |---|---|---|
-| Hidden | `art/nalati-grasslands/round-2/3-features/stealth-1-crouched-hidden.png` | crouched in chest-high grass, the closed-eye HIDDEN pip, the GRASS cover meter, a wolf passing unaware |
-| Detected | `art/nalati-grasslands/round-2/3-features/stealth-2-detected.png` | the pip turned to an amber-red "!" DETECTED, red vignette + threat chevron, the wolf staring |
-| Front approaching | `art/nalati-grasslands/round-2/3-features/storm-1-front-approaching.png` | shelf cloud, rain curtains on the far hills, gusting grass, STORM IN 0:45 / WIND chip |
-| In the storm | `art/nalati-grasslands/round-2/3-features/storm-2-in-the-storm.png` | rain, low visibility, lightning on the highest tree, horses bolting, flattened grass, GET LOW warning, dimmed minimap |
-| After | `art/nalati-grasslands/round-2/3-features/storm-3-after.png` | rainbow, wet shine, puddles, the struck spruce smoking, the herd returning |
+| Hidden | `art/nalati-grasslands/round-2/3-features/stealth-1-crouched-hidden.jpg` | crouched in chest-high grass, the closed-eye HIDDEN pip, the GRASS cover meter, a wolf passing unaware |
+| Detected | `art/nalati-grasslands/round-2/3-features/stealth-2-detected.jpg` | the pip turned to an amber-red "!" DETECTED, red vignette + threat chevron, the wolf staring |
+| Front approaching | `art/nalati-grasslands/round-2/3-features/storm-1-front-approaching.jpg` | shelf cloud, rain curtains on the far hills, gusting grass, STORM IN 0:45 / WIND chip |
+| In the storm | `art/nalati-grasslands/round-2/3-features/storm-2-in-the-storm.jpg` | rain, low visibility, lightning on the highest tree, horses bolting, flattened grass, GET LOW warning, dimmed minimap |
+| After | `art/nalati-grasslands/round-2/3-features/storm-3-after.jpg` | rainbow, wet shine, puddles, the struck spruce smoking, the herd returning |
 
-Round-1 versions (content reference): `art/nalati-grasslands/round-1/4-new-features/feature-grass-stealth.png`,
-`feature-steppe-storm.png`.
+Round-1 versions (content reference): `art/nalati-grasslands/round-1/4-new-features/feature-grass-stealth.jpg`,
+`feature-steppe-storm.jpg`.
 
 ## Grass stealth
 

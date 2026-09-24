@@ -135,26 +135,26 @@ top-down one carries the 11 POIs + the four edge-midpoint roads.
 
 | # | file | what it shows | layout | notes |
 |---|---|---|---|---|
-| 01 | `map-01-glass-hud-full-map.png` | in-game full map, glass HUD frame | **recommended** (A) | the cleanest read of the layout; brook + waterfall, S road through the saddle between two snow spurs |
-| 02 | `map-02-parchment-explorer.png` | painted parchment explorer map, Kazakh ornament border, scale bar | A | river-flow arrow E→W; strongest "adventure map" look |
-| 03 | `map-03-iso-diorama-slab.png` | isometric floating-slab diorama over the cloud sea, horizon beyond | A | shows the green plateau ring rolling on outside the slab; codex put the snow range to the *north* — the real one is south |
-| 04 | `map-04-fog-of-war.png` | top-down with fog of war: valley + switchbacks + Eagle Rock revealed | A | the first-10-minutes map: the whole Sky Grassland is still cloud |
-| 05 | `map-05-slab-in-real-valley.png` | **context map**: the real Nalati (town, G218, Kunes, Sky Grassland, Nalati range, Duku G217 switchbacks, → Bayanbulak) with the 500 m square as a tiny cyan box + zoom inset | real | follows the OpenTopoMap crop well; the square sits on the escarpment foot as in the ref |
-| 06 | `map-06-three-zoom-levels.png` | zoom strip TIAN SHAN → NALATI · 5 KM → THE SHARD · 500 M | A | the middle panel is not true to 5 km; the right panel is a good portrait full-map |
-| 07 | `map-07-layout-diagonal-climb.png` | alt layout: river across the NE corner, escarpment on the diagonal, plateau fills the SW half | diagonal | the biggest single open grass area of any layout; the crags moved SW |
-| 08 | `map-08-layout-mirrored-sun.png` | alt layout mirrored (valley south, snow north) so the sun is behind the player at spawn | mirrored | reads fine but no longer matches Google Maps; a bit more faceted than style B |
-| 09 | `map-09-layout-plateau-heavy.png` | alt layout "all sky": 75 % plateau, the river a thin strip far below the rim | plateau-heavy | the most "vast among vast" top-down; loses the valley camp (camp moved to the plateau, south) |
-| 10 | `map-10-layout-river-valley-heavy.png` | alt layout "river valley grassland" (Hegu): the Kunes meanders through the middle | valley-heavy | Sky Grassland is only a strip along the south cliff; least faithful to the "sky grassland" memory |
-| 11 | `map-11-horizon-ring-from-above.png` | **the vast-horizon solution from above**: slab over a cloud sea, the Sky Grassland rolling on for km as the ring, the Kunes valley opening west, the Nalati range | A | the reference image for the Horizon.ts work (option A); callouts HORIZON RING / CLOUD SEA / PAINTED 3–6 KM |
-| 12 | `map-12-cross-section-diagram.png` | N–S cross-section: N road 0 → river −12 → spruce escarpment → plateau +35/+45 → crags +80 → S road 0; ring distances 1.5 / 2.6 / 4.2 km | A (vertical) | option D in one picture; has two bits of stray codex footer text (bottom corners) |
-| 13 | `map-13-oblique-from-north-gate.png` | high oblique from behind the N gate looking south over the whole slab to the snow wall and the gas giant | A | the "arrival" composition; the river runs diagonal, E/W correctly mirrored for a south-facing view |
-| 14 | `map-14-minimap-and-full-map-sheet.png` | UI sheet: round minimap (at the bridge/camp) + full map with 1×/2×/4×, POI/YOU legend | A | ready to hand to the HUD work |
-| 15 | `map-15-scenic-signboard.png` | an in-world painted trail-map signboard at the camp, "YOU ARE HERE" | A | diegetic map / tutorial prop; nods to the real park's signboards |
-| 16 | `map-16-dusk-threat-map.png` | the full map at dusk with threats: balbals + kurgans "WAKES AT DUSK", wolf zones, ghost-rider line on the rim, IRBIS on the crags | A | a night-mode map idea |
-| 17 | `map-17-gameplay-zones-map.png` | design overlay: tall-grass stealth bands, GALLOP LAP 1.2 km · 90 s, "500 M · 40 S AT GALLOP", wolf den, leopard ledges, ford, herd arrows | A | the scale numbers on the map; plateau drawn smaller than in the table |
-| 18 | `map-18-felt-syrmak-map.png` | the zone map as a Kazakh appliqué felt rug (syrmak) | A | a menu / loading-screen or in-yurt wall-map idea |
-| 19 | `map-19-layout-waterfall-brook.png` | alt layout "two waters": a meandering plateau brook, the camp on the plateau inside a meander, a big waterfall into the spruce | brook | the summer-pasture (jailau) camp version — closest to the real "Nomad Home" stop |
-| 20 | `map-20-phone-map-tab.png` | portrait phone MENU › MAP tab ("NALATI GRASSLANDS · SHARD 3"), exact copy of the Pine Hollow map tab chrome | A | how the full map ships |
+| 01 | `map-01-glass-hud-full-map.jpg` | in-game full map, glass HUD frame | **recommended** (A) | the cleanest read of the layout; brook + waterfall, S road through the saddle between two snow spurs |
+| 02 | `map-02-parchment-explorer.jpg` | painted parchment explorer map, Kazakh ornament border, scale bar | A | river-flow arrow E→W; strongest "adventure map" look |
+| 03 | `map-03-iso-diorama-slab.jpg` | isometric floating-slab diorama over the cloud sea, horizon beyond | A | shows the green plateau ring rolling on outside the slab; codex put the snow range to the *north* — the real one is south |
+| 04 | `map-04-fog-of-war.jpg` | top-down with fog of war: valley + switchbacks + Eagle Rock revealed | A | the first-10-minutes map: the whole Sky Grassland is still cloud |
+| 05 | `map-05-slab-in-real-valley.jpg` | **context map**: the real Nalati (town, G218, Kunes, Sky Grassland, Nalati range, Duku G217 switchbacks, → Bayanbulak) with the 500 m square as a tiny cyan box + zoom inset | real | follows the OpenTopoMap crop well; the square sits on the escarpment foot as in the ref |
+| 06 | `map-06-three-zoom-levels.jpg` | zoom strip TIAN SHAN → NALATI · 5 KM → THE SHARD · 500 M | A | the middle panel is not true to 5 km; the right panel is a good portrait full-map |
+| 07 | `map-07-layout-diagonal-climb.jpg` | alt layout: river across the NE corner, escarpment on the diagonal, plateau fills the SW half | diagonal | the biggest single open grass area of any layout; the crags moved SW |
+| 08 | `map-08-layout-mirrored-sun.jpg` | alt layout mirrored (valley south, snow north) so the sun is behind the player at spawn | mirrored | reads fine but no longer matches Google Maps; a bit more faceted than style B |
+| 09 | `map-09-layout-plateau-heavy.jpg` | alt layout "all sky": 75 % plateau, the river a thin strip far below the rim | plateau-heavy | the most "vast among vast" top-down; loses the valley camp (camp moved to the plateau, south) |
+| 10 | `map-10-layout-river-valley-heavy.jpg` | alt layout "river valley grassland" (Hegu): the Kunes meanders through the middle | valley-heavy | Sky Grassland is only a strip along the south cliff; least faithful to the "sky grassland" memory |
+| 11 | `map-11-horizon-ring-from-above.jpg` | **the vast-horizon solution from above**: slab over a cloud sea, the Sky Grassland rolling on for km as the ring, the Kunes valley opening west, the Nalati range | A | the reference image for the Horizon.ts work (option A); callouts HORIZON RING / CLOUD SEA / PAINTED 3–6 KM |
+| 12 | `map-12-cross-section-diagram.jpg` | N–S cross-section: N road 0 → river −12 → spruce escarpment → plateau +35/+45 → crags +80 → S road 0; ring distances 1.5 / 2.6 / 4.2 km | A (vertical) | option D in one picture; has two bits of stray codex footer text (bottom corners) |
+| 13 | `map-13-oblique-from-north-gate.jpg` | high oblique from behind the N gate looking south over the whole slab to the snow wall and the gas giant | A | the "arrival" composition; the river runs diagonal, E/W correctly mirrored for a south-facing view |
+| 14 | `map-14-minimap-and-full-map-sheet.jpg` | UI sheet: round minimap (at the bridge/camp) + full map with 1×/2×/4×, POI/YOU legend | A | ready to hand to the HUD work |
+| 15 | `map-15-scenic-signboard.jpg` | an in-world painted trail-map signboard at the camp, "YOU ARE HERE" | A | diegetic map / tutorial prop; nods to the real park's signboards |
+| 16 | `map-16-dusk-threat-map.jpg` | the full map at dusk with threats: balbals + kurgans "WAKES AT DUSK", wolf zones, ghost-rider line on the rim, IRBIS on the crags | A | a night-mode map idea |
+| 17 | `map-17-gameplay-zones-map.jpg` | design overlay: tall-grass stealth bands, GALLOP LAP 1.2 km · 90 s, "500 M · 40 S AT GALLOP", wolf den, leopard ledges, ford, herd arrows | A | the scale numbers on the map; plateau drawn smaller than in the table |
+| 18 | `map-18-felt-syrmak-map.jpg` | the zone map as a Kazakh appliqué felt rug (syrmak) | A | a menu / loading-screen or in-yurt wall-map idea |
+| 19 | `map-19-layout-waterfall-brook.jpg` | alt layout "two waters": a meandering plateau brook, the camp on the plateau inside a meander, a big waterfall into the spruce | brook | the summer-pasture (jailau) camp version — closest to the real "Nomad Home" stop |
+| 20 | `map-20-phone-map-tab.jpg` | portrait phone MENU › MAP tab ("NALATI GRASSLANDS · SHARD 3"), exact copy of the Pine Hollow map tab chrome | A | how the full map ships |
 
 Reference: `ref-opentopomap-nalati-slab-site.jpg` (real terrain, © OSM contributors / OpenTopoMap, CC-BY-SA).
 

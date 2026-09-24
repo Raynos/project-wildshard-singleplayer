@@ -8,17 +8,17 @@ Kurgan King and the ghost riders are in `elites-and-bosses.md`.
 
 | shot | file | what it pins down |
 |---|---|---|
-| Pack hunt | `art/nalati-grasslands/round-2/2-creatures/wolf-1-pack-hunt.png` | three grass wakes converging, the lead wolf breaking cover, red flank chevrons at the screen edges |
-| Alpha howl | `art/nalati-grasslands/round-2/2-creatures/wolf-2-alpha-howl.png` | dusk, the alpha on a kurgan with a balbal, pack at the base, the PACK ALPHA name banner |
-| Wild herd | `art/nalati-grasslands/round-2/2-creatures/horses-1-wild-herd.png` | grazing herd, foals, the black stallion on the rise watching you |
-| Stampede | `art/nalati-grasslands/round-2/2-creatures/horses-2-stampede.png` | the herd in full flight, dust, STAMPEDE chip |
-| Taming 1 · approach | `art/nalati-grasslands/round-2/2-creatures/taming-1-approach.png` | crouched, OFFER disc, TRUST arc, the stallion's ALERT ear |
-| Taming 2 · bucking | `art/nalati-grasslands/round-2/2-creatures/taming-2-bucking.png` | on its back, tilted horizon, LEAN L / LEAN R, the HOLD ON arc, TAMING 3/5 |
-| Taming 3 · bonded | `art/nalati-grasslands/round-2/2-creatures/taming-3-bonded.png` | the hitching rail, the TULPAR name tag, the MOUNT prompt |
-| Sheep flock | `art/nalati-grasslands/round-2/2-creatures/sheep-1-flock.png` | ambient: flock, sheepdog, mounted shepherd, yurts |
+| Pack hunt | `art/nalati-grasslands/round-2/2-creatures/wolf-1-pack-hunt.jpg` | three grass wakes converging, the lead wolf breaking cover, red flank chevrons at the screen edges |
+| Alpha howl | `art/nalati-grasslands/round-2/2-creatures/wolf-2-alpha-howl.jpg` | dusk, the alpha on a kurgan with a balbal, pack at the base, the PACK ALPHA name banner |
+| Wild herd | `art/nalati-grasslands/round-2/2-creatures/horses-1-wild-herd.jpg` | grazing herd, foals, the black stallion on the rise watching you |
+| Stampede | `art/nalati-grasslands/round-2/2-creatures/horses-2-stampede.jpg` | the herd in full flight, dust, STAMPEDE chip |
+| Taming 1 · approach | `art/nalati-grasslands/round-2/2-creatures/taming-1-approach.jpg` | crouched, OFFER disc, TRUST arc, the stallion's ALERT ear |
+| Taming 2 · bucking | `art/nalati-grasslands/round-2/2-creatures/taming-2-bucking.jpg` | on its back, tilted horizon, LEAN L / LEAN R, the HOLD ON arc, TAMING 3/5 |
+| Taming 3 · bonded | `art/nalati-grasslands/round-2/2-creatures/taming-3-bonded.jpg` | the hitching rail, the TULPAR name tag, the MOUNT prompt |
+| Sheep flock | `art/nalati-grasslands/round-2/2-creatures/sheep-1-flock.jpg` | ambient: flock, sheepdog, mounted shepherd, yurts |
 
-Round-1 versions (content reference): `art/nalati-grasslands/round-1/3-enemies/enemy-1-wolf-pack.png`,
-`enemy-3-herd-stallion.png`.
+Round-1 versions (content reference): `art/nalati-grasslands/round-1/3-enemies/enemy-1-wolf-pack.jpg`,
+`enemy-3-herd-stallion.jpg`.
 
 ## Steppe wolves
 

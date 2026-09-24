@@ -113,8 +113,8 @@ Still left out: **the Saka revenant** (it is folded into the Golden King and the
 
 #### E1 — Aqbars the Pale, *Irbis of the Crags* (the snow leopard)
 
-![Aqbars](../../../art/nalati-grasslands/round-2/4-named-elites/elite-1-aqbars-snow-leopard.png)
-`art/nalati-grasslands/round-2/4-named-elites/elite-1-aqbars-snow-leopard.png`
+![Aqbars](../../../art/nalati-grasslands/round-2/4-named-elites/elite-1-aqbars-snow-leopard.jpg)
+`art/nalati-grasslands/round-2/4-named-elites/elite-1-aqbars-snow-leopard.jpg`
 
 | | |
 |---|---|
@@ -130,8 +130,8 @@ Still left out: **the Saka revenant** (it is folded into the Golden King and the
 
 #### E2 — Kokbori, *Mother of the Pack* (the sky-grey she-wolf)
 
-![Kokbori](../../../art/nalati-grasslands/round-2/4-named-elites/elite-2-kokbori-sky-wolf.png)
-`art/nalati-grasslands/round-2/4-named-elites/elite-2-kokbori-sky-wolf.png`
+![Kokbori](../../../art/nalati-grasslands/round-2/4-named-elites/elite-2-kokbori-sky-wolf.jpg)
+`art/nalati-grasslands/round-2/4-named-elites/elite-2-kokbori-sky-wolf.jpg`
 
 *Kok bori*, the sky-grey wolf, is the ancestral she-wolf of Turkic myth.
 
@@ -151,8 +151,8 @@ The mockup also shows the **NAMED ELITE NEARBY banner** and the HIDDEN pip.
 
 #### E3 — Qyran the Storm-Wing, *Berkut of the High Wind* (the golden eagle)
 
-![Qyran](../../../art/nalati-grasslands/round-2/4-named-elites/elite-3-qyran-storm-wing.png)
-`art/nalati-grasslands/round-2/4-named-elites/elite-3-qyran-storm-wing.png`
+![Qyran](../../../art/nalati-grasslands/round-2/4-named-elites/elite-3-qyran-storm-wing.jpg)
+`art/nalati-grasslands/round-2/4-named-elites/elite-3-qyran-storm-wing.jpg`
 
 *Qyran* is the Kazakh word for a hunting eagle. The eagle-hunter companion is skipped for now, and this is the wild eagle that
 hunts **you**.
@@ -174,14 +174,14 @@ hunts **you**.
 The user dropped the balbal giant. The **Balbal Circle keeps its ordinary balbal warriors**: they wake at dusk, are
 2.5 m tall with 220 hp, and have amber cracks that the sabre and the spear break. That keeps the *Stonebreaker* achievement
 (5 balbals). The `balbal` rig is still needed, for those warriors and for the Golden King's phase-2 adds. The round-2 mockup
-stays on disk as history: `art/nalati-grasslands/round-2/4-named-elites/elite-4-tas-ata-stone-father.png`.
+stays on disk as history: `art/nalati-grasslands/round-2/4-named-elites/elite-4-tas-ata-stone-father.jpg`.
 
 The fifth slot goes to **one of the two candidates below**. Each has one mockup, and the user picks.
 
 #### E4a — Argymaq the Unbroken, *Stallion of the High Crags* (the feral black stallion) — candidate
 
-![Argymaq](../../../art/nalati-grasslands/round-3/1-elite-swap/elite-stallion-argymaq-the-unbroken.png)
-`art/nalati-grasslands/round-3/1-elite-swap/elite-stallion-argymaq-the-unbroken.png`
+![Argymaq](../../../art/nalati-grasslands/round-3/1-elite-swap/elite-stallion-argymaq-the-unbroken.jpg)
+`art/nalati-grasslands/round-3/1-elite-swap/elite-stallion-argymaq-the-unbroken.jpg`
 
 *Argymaq* (арғымақ) is the Kazakh word for a noble, pure-blooded steed, the horse of the epics. He is a living horse,
 **not a ghost**: that is Qara Batyr's side of the roster. He leads a wild herd that nobody has ever ridden.
@@ -210,8 +210,8 @@ roster horse-heavy too: Qara Batyr and the Storm Titan are both mounted fights a
 
 #### E4b — Qonyr the White-Claw, *Keeper of the Spruce* (the Tian Shan brown bear) — candidate
 
-![Qonyr](../../../art/nalati-grasslands/round-3/1-elite-swap/elite-bear-qonyr-the-white-claw.png)
-`art/nalati-grasslands/round-3/1-elite-swap/elite-bear-qonyr-the-white-claw.png`
+![Qonyr](../../../art/nalati-grasslands/round-3/1-elite-swap/elite-bear-qonyr-the-white-claw.jpg)
+`art/nalati-grasslands/round-3/1-elite-swap/elite-bear-qonyr-the-white-claw.jpg`
 
 *Qonyr* (қоңыр) means brown, and "qonyr ayu" is how Kazakhs name the brown bear. The Tian Shan brown bear (*Ursus arctos
 isabellinus*) is pale sandy-silver and is called the **white-clawed bear**, because its long claws really are pale.
@@ -239,8 +239,8 @@ or if the forest band needs a reason to be visited.
 
 #### E5 — Qara Batyr the Unburied, *Captain of the Night Riders* (the ghost-rider captain)
 
-![Qara Batyr](../../../art/nalati-grasslands/round-2/4-named-elites/elite-5-qara-batyr-night-rider.png)
-`art/nalati-grasslands/round-2/4-named-elites/elite-5-qara-batyr-night-rider.png`
+![Qara Batyr](../../../art/nalati-grasslands/round-2/4-named-elites/elite-5-qara-batyr-night-rider.jpg)
+`art/nalati-grasslands/round-2/4-named-elites/elite-5-qara-batyr-night-rider.jpg`
 
 *Batyr* means a hero-warrior, and *qara* means black. He leads the ghost riders.
 
@@ -307,16 +307,16 @@ light shaft brightens.
 
 **1 — Intro (3.5 s).**
 
-![name card](../../../art/nalati-grasslands/round-2/5-bosses/boss-1-name-card.png)
-`boss-1-name-card.png`
+![name card](../../../art/nalati-grasslands/round-2/5-bosses/boss-1-name-card.jpg)
+`boss-1-name-card.jpg`
 
 The coffin lid grinds aside and the King **sits up, then stands** in the light shaft, shedding gold dust, and his eyes
 ignite. **THE GOLDEN KING, Lord of the Great Kurgan.**
 
 **2 — Phase I, "The King's Court" (100 → 60 %).**
 
-![phase 1](../../../art/nalati-grasslands/round-2/5-bosses/boss-2-phase-1.png)
-`boss-2-phase-1.png`
+![phase 1](../../../art/nalati-grasslands/round-2/5-bosses/boss-2-phase-1.jpg)
+`boss-2-phase-1.jpg`
 
 He duels you on the open floor.
 - **Akinakes combo**: three sword strikes (14 / 14 / 22). Before each one the blade **glints**, and the third strike's wide
@@ -328,8 +328,8 @@ He duels you on the open floor.
 
 **3 — Phase II, "The Kurgan Wakes" (60 → 30 %).**
 
-![phase 2](../../../art/nalati-grasslands/round-2/5-bosses/boss-3-phase-2.png)
-`boss-3-phase-2.png`
+![phase 2](../../../art/nalati-grasslands/round-2/5-bosses/boss-3-phase-2.jpg)
+`boss-3-phase-2.jpg`
 
 He staggers back to his coffin and kneels behind a **dome of gold light**: he is shielded, and the bar shimmers.
 - **Balbal adds**: two balbals step out of the wall niches (2.5 m, 220 hp each, amber cracks, the sabre breaks them). Then
@@ -347,8 +347,8 @@ He staggers back to his coffin and kneels behind a **dome of gold light**: he is
 
 **5 — Victory.**
 
-![victory](../../../art/nalati-grasslands/round-2/5-bosses/boss-4-victory-reward.png)
-`boss-4-victory-reward.png`
+![victory](../../../art/nalati-grasslands/round-2/5-bosses/boss-4-victory-reward.jpg)
+`boss-4-victory-reward.jpg`
 
 He crumbles into a heap of gold plaques and his headdress topples. The sand drains through the floor and the doorway
 clears. The light shaft falls on a felt-draped pedestal: **THE GOLDEN BOW**, a Scythian recurve with golden ibex-head limb
@@ -365,7 +365,7 @@ arrows. The King is back at 100 % and in his coffin, the short intro plays, and 
 
 ### The Storm Titan fight, step by step (the second Nalati boss)
 
-Round-2 concept: `art/nalati-grasslands/round-2/5-bosses/boss-5-alt-storm-titan.png`. The full round-3 set is in
+Round-2 concept: `art/nalati-grasslands/round-2/5-bosses/boss-5-alt-storm-titan.jpg`. The full round-3 set is in
 `art/nalati-grasslands/round-3/2-storm-titan/`.
 
 *Jel* means wind and *ata* means father: **JEL ATA, the Storm Titan, Father of the Wind**. He is the steppe storm given a
@@ -387,8 +387,8 @@ is the seal. Riding into the wall throws you back with 10 damage. The checkpoint
 
 **1 — Intro (3.5 s).**
 
-![titan name card](../../../art/nalati-grasslands/round-3/2-storm-titan/titan-1-name-card.png)
-`round-3/2-storm-titan/titan-1-name-card.png`
+![titan name card](../../../art/nalati-grasslands/round-3/2-storm-titan/titan-1-name-card.jpg)
+`round-3/2-storm-titan/titan-1-name-card.jpg`
 
 The cloud sea beyond the rim boils up into a column, and he **rises from the waist up**. His eyes ignite and the first bolt
 hits the meadow. **JEL ATA, The Storm Titan · Father of the Wind.** The name card uses the Golden King's layout with a
@@ -396,8 +396,8 @@ lightning-and-spear emblem. You stay in the saddle through the intro, and the ho
 
 **2 — Phase I, "The Sky Spear" (100 → 60 %).**
 
-![titan phase 1](../../../art/nalati-grasslands/round-3/2-storm-titan/titan-2-phase-1.png)
-`round-3/2-storm-titan/titan-2-phase-1.png`
+![titan phase 1](../../../art/nalati-grasslands/round-3/2-storm-titan/titan-2-phase-1.jpg)
+`round-3/2-storm-titan/titan-2-phase-1.jpg`
 
 The verb is **horse archery at a gallop**.
 - **His cloud body is immune.** Arrows pass through it in a puff, with a grey `IMMUNE` float. Only the **lightning heart**
@@ -415,8 +415,8 @@ The verb is **horse archery at a gallop**.
 
 **3 — Phase II, "The Three Winds" (60 → 30 %).**
 
-![titan phase 2](../../../art/nalati-grasslands/round-3/2-storm-titan/titan-3-phase-2.png)
-`round-3/2-storm-titan/titan-3-phase-2.png`
+![titan phase 2](../../../art/nalati-grasslands/round-3/2-storm-titan/titan-3-phase-2.jpg)
+`round-3/2-storm-titan/titan-3-phase-2.jpg`
 
 He thins into a pale translucent giant and **kneels at the rim**. His heart closes behind a **gold-white dome of wind**, so he
 is shielded and the bar shimmers. **Three storm riders** tear off him: 8 m cloud horsemen on cloud horses, each with a
@@ -432,8 +432,8 @@ lightning spear, 250 hp each, with normal cyan bars. The verb is the **mounted s
 
 **4 — Phase III, "The Grass Fire" (30 → 0 %).**
 
-![titan phase 3](../../../art/nalati-grasslands/round-3/2-storm-titan/titan-4-phase-3.png)
-`round-3/2-storm-titan/titan-4-phase-3.png`
+![titan phase 3](../../../art/nalati-grasslands/round-3/2-storm-titan/titan-4-phase-3.jpg)
+`round-3/2-storm-titan/titan-4-phase-3.jpg`
 
 He stands whole again, enormous and furious, and the lightning **sets the plateau on fire**.
 - **Grass fire** (the hazard): fire fronts spread **downwind**, and a cyan wind arrow on the minimap rim shows the direction.
@@ -448,8 +448,8 @@ He stands whole again, enormous and furious, and the lightning **sets the platea
 
 **5 — Victory.**
 
-![titan victory](../../../art/nalati-grasslands/round-3/2-storm-titan/titan-5-victory-reward.png)
-`round-3/2-storm-titan/titan-5-victory-reward.png`
+![titan victory](../../../art/nalati-grasslands/round-3/2-storm-titan/titan-5-victory-reward.jpg)
+`round-3/2-storm-titan/titan-5-victory-reward.jpg`
 
 He comes apart into a **curtain of soft rain** that drifts off over the cloud sea and puts the fires out. The sky tears open
 into evening gold, with a rainbow and the gas giant huge and clear. The storm wall drops. At the Wind Cairn, in a ring of
@@ -491,7 +491,7 @@ Phase III is the worst case, so it needs a **phone perf test early**, before the
 
 | | concept | where | the fight | mockup |
 |---|---|---|---|---|
-| **Pine Hollow** | **The Antler King, Warden of Pine Hollow** | An old-growth clearing in the fog | A 7 m moss-and-bark elk guardian with a hollow glowing ribcage (the weak point). Root-ring stomps, lanterns in the antlers that become hazards when they fall, and summoned wolves. It would give Pine Hollow a boss and would make the Ghost stag and Old Ironhide its named elites. | `round-2/5-bosses/boss-6-alt-antler-king.png` |
+| **Pine Hollow** | **The Antler King, Warden of Pine Hollow** | An old-growth clearing in the fog | A 7 m moss-and-bark elk guardian with a hollow glowing ribcage (the weak point). Root-ring stomps, lanterns in the antlers that become hazards when they fall, and summoned wolves. It would give Pine Hollow a boss and would make the Ghost stag and Old Ironhide its named elites. | `round-2/5-bosses/boss-6-alt-antler-king.jpg` |
 
 The **Antler King** is the design to use when Pine Hollow gets its boss.
 

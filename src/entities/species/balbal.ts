@@ -8,7 +8,7 @@ import { heightAt } from '../../world/Heightfield';
 
 /**
  * Balbal — THE stone warrior (NALATI.md B11; elites-and-bosses.md E4: "they wake at dusk, 2.5 m, 220 hp, amber cracks
- * that the sabre and the spear break"; mockups art/nalati-grasslands/round-1/3-enemies/enemy-2-balbal-warriors.png,
+ * that the sabre and the spear break"; mockups art/nalati-grasslands/round-1/3-enemies/enemy-2-balbal-warriors.jpg,
  * round-2/1-combat/combat-D-mounted-sabre.png). One species for every walking balbal in the shard:
  *
  *   · the dusk warriors of the Balbal Circle and the kurgan crowns (src/nalati/balbalWarriors.ts wakes them: the statue

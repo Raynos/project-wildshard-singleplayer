@@ -8,13 +8,13 @@ is locked, so every mockup below is a re-render of a round-1 pick in that look w
 
 | shot | file | what it pins down |
 |---|---|---|
-| Horse archery | `art/nalati-grasslands/round-2/1-combat/combat-A-horse-archery.png` | DRAW (left) / GALLOP (right) discs, amber STEED bar under VITALS, the ears-and-mane frame at gallop |
-| Parthian shot | `art/nalati-grasslands/round-2/1-combat/combat-A2-horse-archery-turn.png` | looking back over the rump while the horse runs straight; REAR SHOT chip |
-| Bow on foot | `art/nalati-grasslands/round-2/1-combat/combat-C-bow-foot.png` | full draw, dotted arrow-drop arc + landing ring, WIND chip, ARROWS count |
-| Mounted sabre | `art/nalati-grasslands/round-2/1-combat/combat-D-mounted-sabre.png` | SLASH / GALLOP, the wide slash trail, the HIT chain counter |
-| Spear brace | `art/nalati-grasslands/round-2/1-combat/combat-B-spear-brace.png` | spear planted at a charging boar, BRACE disc, THROW disc, JAVELINS 3 pips |
-| Javelin throw | `art/nalati-grasslands/round-2/1-combat/combat-B2-javelin-throw.png` | release pose, dotted throw arc, a spent pip |
-| Weapon swap | `art/nalati-grasslands/round-2/1-combat/combat-E-weapon-swap.png` | the 4-slot strip above VITALS + the hold-to-open radial wheel with slow-mo |
+| Horse archery | `art/nalati-grasslands/round-2/1-combat/combat-A-horse-archery.jpg` | DRAW (left) / GALLOP (right) discs, amber STEED bar under VITALS, the ears-and-mane frame at gallop |
+| Parthian shot | `art/nalati-grasslands/round-2/1-combat/combat-A2-horse-archery-turn.jpg` | looking back over the rump while the horse runs straight; REAR SHOT chip |
+| Bow on foot | `art/nalati-grasslands/round-2/1-combat/combat-C-bow-foot.jpg` | full draw, dotted arrow-drop arc + landing ring, WIND chip, ARROWS count |
+| Mounted sabre | `art/nalati-grasslands/round-2/1-combat/combat-D-mounted-sabre.jpg` | SLASH / GALLOP, the wide slash trail, the HIT chain counter |
+| Spear brace | `art/nalati-grasslands/round-2/1-combat/combat-B-spear-brace.jpg` | spear planted at a charging boar, BRACE disc, THROW disc, JAVELINS 3 pips |
+| Javelin throw | `art/nalati-grasslands/round-2/1-combat/combat-B2-javelin-throw.jpg` | release pose, dotted throw arc, a spent pip |
+| Weapon swap | `art/nalati-grasslands/round-2/1-combat/combat-E-weapon-swap.jpg` | the 4-slot strip above VITALS + the hold-to-open radial wheel with slow-mo |
 
 Round-1 versions (content reference, other art styles): `art/nalati-grasslands/round-1/2-combat/`.
 
@@ -115,7 +115,7 @@ The fantasy is the Kazakh / Scythian horse archer: gallop past, loose, keep runn
 ## E · Switching between four weapons on a phone
 
 The engine today swaps two weapons with a SWAP pill and Q (`Weapons.ts`). Four needs something better. The
-proposal (`combat-E-weapon-swap.png`) has two layers, both always available:
+proposal (`combat-E-weapon-swap.jpg`) has two layers, both always available:
 
 1. **The weapon strip** — four small square slots in a row directly above VITALS (bow / sabre / spear /
    javelin, ammo in the corner). **Tap a slot = select it** (the existing 0.25 + 0.25 s holster / raise

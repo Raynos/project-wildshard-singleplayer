@@ -1,6 +1,6 @@
 /**
  * The painted 360° matte backdrop (Nalati look pass — painted-asset agent): the real Nalati round the horizon as one
- * hand-painted panorama (codex image gen in the style of art/nalati-grasslands/round-1/1-art-style/style-B-painterly.png,
+ * hand-painted panorama (codex image gen in the style of art/nalati-grasslands/round-1/1-art-style/style-B-painterly.jpg,
  * eight 45° panels stitched and seam-blended into one strip), so the far distance carries the same painted
  * high-frequency detail as the mockups instead of flat procedural colour:
  *

@@ -16,7 +16,7 @@ import { BOWL } from '../chunks/nalatiLayout';
 
 /**
  * Ghost riders — the night half of row B11 (project/archive/2026-09-23-nalati.md; elites-and-bosses.md E5; mockups
- * art/nalati-grasslands/round-1/3-enemies/enemy-6-ghost-riders.png, round-2/4-named-elites/elite-5-qara-batyr-night-rider.png).
+ * art/nalati-grasslands/round-1/3-enemies/enemy-6-ghost-riders.jpg, round-2/4-named-elites/elite-5-qara-batyr-night-rider.jpg).
  *
  * At night a line of three spectral horse archers — cyan smoke and glass — rides the ridge lines of the Sky Grassland
  * (a loop along the escarpment rim and round the plateau). Come within ~70 m and the line wheels onto you: it circles at

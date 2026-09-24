@@ -152,8 +152,8 @@ window.__weather.clock.paused = true;
 ## Mockup notes
 
 - All 9 mockups were generated in one parallel codex batch (`gpt-6-sol`, refs = the capture +
-  `round-1/1-art-style/style-B-painterly.png`, `round-1/5-concept-art/concept-1-yurt-camp.png`,
-  `round-2/2-creatures/taming-3-bonded.png`).
+  `round-1/1-art-style/style-B-painterly.jpg`, `round-1/5-concept-art/concept-1-yurt-camp.jpg`,
+  `round-2/2-creatures/taming-3-bonded.jpg`).
 - **Re-rolled once (parallel batch of 5): 2, 3, 4, 8, 9.** Round one had added the gas giant (and in 9 a low sun) in
   views that face away from both: FP-left SSE, FP-right NW, FP-back NE, diag-right NW, diag-back ENE. In the game the
   planet and the sun sit in the WSW–SW, so the nine targets contradicted each other. Round one's FP-left also invented

@@ -67,7 +67,7 @@ import type { Weapon } from './Weapon';
  * The aim is the CAMERA's forward (`aimRay`), never the body's: the rider's head turns ±170° off the horse's heading and
  * the arrow goes where the head looks. The viewmodel hangs off the camera, so it follows the head too.
  *
- * The viewmodel (mockups art/nalati-grasslands/round-2/1-combat/combat-C-bow-foot.png, combat-A-horse-archery.png; the look
+ * The viewmodel (mockups art/nalati-grasslands/round-2/1-combat/combat-C-bow-foot.jpg, combat-A-horse-archery.png; the look
  * round-1/1-art-style/style-B-painterly.png): a horn-and-sinew recurve with bone siyahs and sinew bindings, a painted
  * ornament on the belly, the left fist in a leather glove round the grip, both forearms in cream wool sleeves with a red
  * ram's-horn band and a fur cuff, the right hand hooking the string with a thumb ring. All of it is ONE painterly

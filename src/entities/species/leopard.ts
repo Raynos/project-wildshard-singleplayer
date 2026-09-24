@@ -7,7 +7,7 @@ import { eliteThink, eliteDamageMul } from '../eliteBrain';
 
 /**
  * Snow leopard (Nalati named elite E1 — Aqbars the Pale, Irbis of the Crags; row B12; mockup
- * art/nalati-grasslands/round-2/4-named-elites/elite-1-aqbars-snow-leopard.png). Pale smoky fur with dark open rosettes, a
+ * art/nalati-grasslands/round-2/4-named-elites/elite-1-aqbars-snow-leopard.jpg). Pale smoky fur with dark open rosettes, a
  * cream belly, a huge thick tail, ice-blue eyes, a muzzle scar. 0.6 m at the shoulder at scale 1 (Aqbars is ×1.5).
  *
  * The QUADRUPED rig (Animal.ts poses the gait: the canid's bone names), feline proportions: long low body, short

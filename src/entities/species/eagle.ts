@@ -8,7 +8,7 @@ import { heightAt } from '../../world/Heightfield';
 
 /**
  * Golden eagle (Nalati named elite E3 — Qyran the Storm-Wing, Berkut of the High Wind; row B12; mockup
- * art/nalati-grasslands/round-2/4-named-elites/elite-3-qyran-storm-wing.png). A berkut: dark chocolate body and coverts,
+ * art/nalati-grasslands/round-2/4-named-elites/elite-3-qyran-storm-wing.jpg). A berkut: dark chocolate body and coverts,
  * near-black primaries spread like fingers, the golden nape (glowing faintly — it is a storm bird), a pale-banded tail
  * fan, a heavy yellow-based hooked beak, feathered trousers and yellow talons. 2.3 m across at scale 1 (Qyran ×3: ~6.7 m, so he reads 30 m up in a storm).
  *

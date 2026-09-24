@@ -15,7 +15,7 @@ import { dressingCover } from './nalati/dressing';
 import { reseedGrassV2 } from '../nalati/look/grass';
 
 /**
- * The painterly grass carpet (Nalati, style B — `art/nalati-grasslands/round-1/1-art-style/style-B-painterly.png`,
+ * The painterly grass carpet (Nalati, style B — `art/nalati-grasslands/round-1/1-art-style/style-B-painterly.jpg`,
  * `docs/design/nalati/look-pass.md` lever 4).
  *
  *   const carpet = new GrassPainterly(sky, forest).build();   // Grass.ts does this when the shard is painterly

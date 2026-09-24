@@ -7,7 +7,7 @@ import { fxMaterial, FX, type FxMaterial } from '../world/nalati/KurganDungeon';
 
 /**
  * The Golden Bow — the Golden King's legendary reward (elites-and-bosses.md §2 "5 — Victory"; mockup
- * art/nalati-grasslands/round-2/5-bosses/boss-4-victory-reward.png): "a Scythian recurve with golden ibex-head limb tips and
+ * art/nalati-grasslands/round-2/5-bosses/boss-4-victory-reward.jpg): "a Scythian recurve with golden ibex-head limb tips and
  * a string of light … it draws 20 % faster than the recurve. A full draw fires a SUN ARROW that pierces through one target
  * and leaves a gold streak. A sun arrow into a balbal's amber crack shatters it."
  *

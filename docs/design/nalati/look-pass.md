@@ -6,7 +6,7 @@ but the art direction, the rendering, the quality of the models, how we make the
 procedural models … a lot of density in the world … walk around and really feel that everything is AAA,
 polished, almost PS5 level."
 
-**The target is the mockups, literally.** `art/nalati-grasslands/round-1/1-art-style/style-B-painterly.png` is the
+**The target is the mockups, literally.** `art/nalati-grasslands/round-1/1-art-style/style-B-painterly.jpg` is the
 master frame; every round-2/3 mockup is a second opinion. "Done" = a side-by-side of engine vs mockup at the same
 pose where a stranger could believe they are the same game.
 
@@ -43,12 +43,12 @@ art direction with scaled density / cheaper post, never a different look.
 
 | pose | mockup | what it tests |
 |---|---|---|
-| camp approach | `round-1/1-art-style/style-B-painterly.png` | the master frame: road, yurts, horses, spruce, river, peaks, planet |
-| plateau grass | `round-2/1-combat/combat-C-bow-foot.png`, `round-2/3-features/stealth-1-crouched-hidden.png` | grass carpet, flowers, wind |
-| horse plains | `round-2/2-creatures/horses-1-wild-herd.png` | open plateau, creatures, distance |
-| spruce gully | `round-1/5-concept-art/concept-3-river-gorge.png` | trees, river, slope, rock |
-| hitching rail | `round-2/2-creatures/taming-3-bonded.png` | camp detail, props, close models |
-| kurgan field (dusk) | `round-2/4-named-elites/elite-2-kokbori-sky-wolf.png`, `round-1/3-enemies/enemy-2-balbal-warriors.png` | stones, dusk light |
+| camp approach | `round-1/1-art-style/style-B-painterly.jpg` | the master frame: road, yurts, horses, spruce, river, peaks, planet |
+| plateau grass | `round-2/1-combat/combat-C-bow-foot.jpg`, `round-2/3-features/stealth-1-crouched-hidden.jpg` | grass carpet, flowers, wind |
+| horse plains | `round-2/2-creatures/horses-1-wild-herd.jpg` | open plateau, creatures, distance |
+| spruce gully | `round-1/5-concept-art/concept-3-river-gorge.jpg` | trees, river, slope, rock |
+| hitching rail | `round-2/2-creatures/taming-3-bonded.jpg` | camp detail, props, close models |
+| kurgan field (dusk) | `round-2/4-named-elites/elite-2-kokbori-sky-wolf.jpg`, `round-1/3-enemies/enemy-2-balbal-warriors.jpg` | stones, dusk light |
 
 ## Owners
 

@@ -8,7 +8,7 @@ import { forearm } from './nalatiArms';
 
 /**
  * Sabre — the Nalati kylysh (ASKS N6, plan row B3; design docs/design/nalati/combat.md § D; mockup
- * art/nalati-grasslands/round-2/1-combat/combat-D-mounted-sabre.png): Driftwood's sword (Sword.ts / SwordMoves.ts) with a
+ * art/nalati-grasslands/round-2/1-combat/combat-D-mounted-sabre.jpg): Driftwood's sword (Sword.ts / SwordMoves.ts) with a
  * curved painterly steel blade, a gold guard and pommel, a single rider's hand in the red embroidered sleeve, and its own
  * curved arcs.
  *

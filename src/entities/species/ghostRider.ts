@@ -7,7 +7,7 @@ import { eliteDamageMul } from '../eliteBrain';
 
 /**
  * Ghost rider — the night half of row B11 (NALATI.md; elites-and-bosses.md E5 "the ghost-rider line"; mockups
- * art/nalati-grasslands/round-1/3-enemies/enemy-6-ghost-riders.png, round-2/4-named-elites/elite-5-qara-batyr-night-rider.png):
+ * art/nalati-grasslands/round-1/3-enemies/enemy-6-ghost-riders.jpg, round-2/4-named-elites/elite-5-qara-batyr-night-rider.png):
  * a spectral horse archer, cyan smoke and glass, galloping the ridge lines at night.
  *
  * The horse IS the creature row's horse (src/entities/species/horse.ts — its build, gaits, mane / tail postPose, tack),
