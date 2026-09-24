@@ -14,6 +14,7 @@ import { bakedTextureUrls } from './bakedTextures';
 import { PUBLIC_BYTES } from './bytes.generated';
 import { RAPIER_WASM_URL } from '../physics/wasmUrl';
 import { navmeshUrl } from '../physics/navmeshUrl';
+import { pineHeroUrls } from '../world/pineHero';
 
 const pbr = pbrUrls; // tier-aware: the phone's _1k files are what it downloads, so they are what it declares
 const gltf = (id: string) => [`/assets/models/${id}/${id}.gltf`, `/assets/models/${id}/${id}.bin`, ...['diff', 'nor_gl', 'arm'].map((k) => `/assets/models/${id}/textures/${id}_${k}_1k.jpg`)];
@@ -48,7 +49,8 @@ export function chunkFiles(def: ChunkDef): ChunkFiles {
     trees: t(treeless ? [] : trees),
     physics: [RAPIER_WASM_URL, ...(nav ? [nav] : [])], // Rapier's WASM, every shard (src/physics/rapier.ts); the shard's baked navmesh (src/physics/navmesh.ts)
     cabins: t(ocean ? [] : cabins),
-    props: t(ocean ? [] : props),
+    // + Pine Hollow's hero props (PH-B3) — those the byte table has (a dev server started before they were built lists none)
+    props: t(ocean ? [] : def.slug === 'pine-hollow' ? [...props, ...pineHeroUrls().filter((f) => f in PUBLIC_BYTES)] : props),
     // filled by src/boot/extras.ts `bootFiles` (project/archive/2026-09-23-preload-offline.md): the title / explore art (bundled, hashed URLs)
     // and every audio file of every style and set (the lists follow the menu's Settings, a module Node's type stripping cannot
     // load — this file also runs in scripts/bake-packs.mjs, and neither goes in a shard's boot pack)

@@ -1,0 +1,13 @@
+{
+ "name": "contract-board-lod1",
+ "source": "contract-board.glb",
+ "tris": 584,
+ "size_m": [
+  2.29,
+  0.84,
+  2.28
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "material": "PBR: 256\u00b2 WebP base colour (ungraded), roughness 0.9, smooth shading (hard past 40.0\u00b0), no COLOR_0",
+ "palette": []
+}

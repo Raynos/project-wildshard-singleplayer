@@ -37,6 +37,7 @@ import { Grass } from './world/Grass';
 import { Undergrowth } from './world/Undergrowth';
 import { Particles } from './world/Particles';
 import { Cabins } from './world/Cabin';
+import { installPineLandmarks, pineHamletBuildings } from './world/PineLandmarks';
 import { Props } from './world/Props';
 import { AnimalManager } from './entities/AnimalManager';
 import { Crossbow, startViewmodelTextures, viewmodelTexturesReady, type Targets, type TargetHit } from './player/Crossbow';
@@ -291,7 +292,7 @@ async function main() {
 
   const homestead = await step('cabins', async () => {
     if (isOcean) return { cabins: null, interactables: [] as Awaited<ReturnType<Cabins['build']>>['interactables'] };
-    const cabins = new Cabins(sky);
+    const cabins = new Cabins(sky, chunk.slug === 'pine-hollow' ? pineHamletBuildings() : []); // PH-B3: + the mill hamlet, one merged cluster
     const { group: cabinGroup, interactables } = await cabins.build();
     game.scene.add(cabinGroup);
     // P3: the cabins as real colliders (walls, floors, porch + step, furniture); their doors swing as kinematic pieces that
@@ -302,6 +303,8 @@ async function main() {
       registry.add({ id: d.id, name: 'Cabin door', category: 'buildings', file: 'src/world/Cabin.ts', surface: 'wood', follows: d.pivot, colliders: d.colliders,
         active: () => !d.swinging() && d.pivot.getWorldPosition(_dp).distanceToSquared(player.position) > 1.4 * 1.4 });
     }
+    // PH-B3: the fire lookout + zipline, the footbridge, the standing stones, waystones, dam, canoe, board and cave mouth
+    if (chunk.slug === 'pine-hollow') await installPineLandmarks({ sky, registry, cabins, onUpdate: (fn) => { game.onUpdate(fn); } });
     return { cabins, interactables };
   });
   const { cabins, interactables } = homestead;

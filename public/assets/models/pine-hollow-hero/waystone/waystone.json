@@ -1,0 +1,13 @@
+{
+ "name": "waystone",
+ "source": "waystone.glb",
+ "tris": 2542,
+ "size_m": [
+  0.29,
+  0.71,
+  1.9
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "material": "PBR: 1024\u00b2 WebP base colour (ungraded), roughness 0.85, smooth shading (hard past 40.0\u00b0), no COLOR_0",
+ "palette": []
+}

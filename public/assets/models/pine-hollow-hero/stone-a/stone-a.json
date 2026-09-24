@@ -1,0 +1,13 @@
+{
+ "name": "stone-a",
+ "source": "stone-a.glb",
+ "tris": 1993,
+ "size_m": [
+  1.13,
+  0.88,
+  3.0
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "material": "PBR: 1024\u00b2 WebP base colour (ungraded) + 1024\u00b2 tangent-space normal map, roughness 0.95, smooth shading (hard past 40.0\u00b0), no COLOR_0",
+ "palette": []
+}

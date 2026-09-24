@@ -1794,7 +1794,9 @@ export class Cabins {
         detail.push(im);
       }
     }
-    if (!TIER_CONFIG.cabinDetailShadows) for (const o of detail) o.traverse((c) => { c.castShadow = false; });
+    // the cluster's small merged hardware (iron, cloth, char, the chinking behind the logs, glass, the crates and barrels)
+    // casts no shadow on any tier: a cluster spans a pad, so its casters land in every cascade for a few pixels of shadow
+    for (const o of detail) o.traverse((c) => { c.castShadow = false; });
     this.group.add(root);
     this.cluster = root;
     this.lods.push({ root, detail, far, anchors: [], detailOn: true, farOn: false, pad });

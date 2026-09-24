@@ -1,0 +1,13 @@
+{
+ "name": "cave-arch-lod1",
+ "source": "cave-arch.glb",
+ "tris": 837,
+ "size_m": [
+  8.04,
+  6.2,
+  5.54
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "material": "PBR: 256\u00b2 WebP base colour (ungraded) + 256\u00b2 tangent-space normal map, roughness 0.95, smooth shading (hard past 40.0\u00b0), no COLOR_0",
+ "palette": []
+}
