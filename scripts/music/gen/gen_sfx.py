@@ -36,6 +36,7 @@ def main() -> None:
     ap.add_argument("--steps", type=int, default=8)
     ap.add_argument("--cfg", type=float, default=1.0)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--jobs", default="sfx-jobs.json", help="families file in this folder (sfx-ph-jobs.json: Pine Hollow)")
     args = ap.parse_args()
 
     import soundfile as sf
@@ -69,7 +70,7 @@ def main() -> None:
     rev = subprocess.run(["git", "-C", str(SA3), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
     print(f"[gen_sfx] {args.model} loaded on {dev} in {load_s}s", flush=True)
 
-    fams = json.loads((HERE / "sfx-jobs.json").read_text())["families"]
+    fams = json.loads((HERE / args.jobs).read_text())["families"]
     want = [f for f in args.families.split(",") if f] or list(fams)
     for fam in want:
         j = fams[fam]

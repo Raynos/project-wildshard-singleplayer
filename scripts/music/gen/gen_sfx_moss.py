@@ -46,6 +46,7 @@ def main() -> None:
     ap.add_argument("--steps", type=int, default=100)
     ap.add_argument("--cfg", type=float, default=4.0)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--jobs", default="sfx-jobs.json", help="families file in this folder (sfx-ph-jobs.json: Pine Hollow)")
     args = ap.parse_args()
 
     import soundfile as sf
@@ -82,7 +83,7 @@ def main() -> None:
     rev = subprocess.run(["git", "-C", str(MOSS), "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
     print(f"[gen_sfx_moss] loaded on {dev} in {load_s}s", flush=True)
 
-    fams = json.loads((HERE / "sfx-jobs.json").read_text())["families"]
+    fams = json.loads((HERE / args.jobs).read_text())["families"]
     for fam in [f for f in args.families.split(",") if f] or list(fams):
         j = fams[fam]
         secs = min(float(j["duration"]), 30.0)
