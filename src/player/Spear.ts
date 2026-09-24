@@ -3,7 +3,9 @@ import type { Game } from '../core/Game';
 import type { Sky } from '../world/Sky';
 import type { Player } from './Player';
 import type { Forest } from '../world/Forest';
-import type { Targets, ImpactSurface, TargetAnimal, TargetHit } from './Crossbow';
+import { impactSurfaceOf, worldHit, type Targets, type ImpactSurface, type TargetAnimal, type TargetHit } from './Crossbow';
+import { floorBelow, sticksIn } from '../physics/query';
+import { activePhysics } from '../physics/active';
 import type { Weapon, WeaponState, AimInfo } from './Weapon';
 import { heightAt } from '../world/Heightfield';
 import { getAimTargets, targetRadius, type AimTarget } from './AimTargets';
@@ -61,6 +63,8 @@ const LANCE_REACH = 2.5, LANCE_CONE = 15 * Math.PI / 180, LANCE_MIN_SPEED = 8;
 const WINDUP = 0.4, THROW_T = 0.14, THROW_RECOVER = 0.45;
 const JAV_SPEED = 28, JAV_GRAVITY = 9.8, JAV_DAMAGE = 55, JAV_HEAD = 2;
 const JAV_POOL = 5, PICKUP_R = 1.6, JAV_SURVIVE = 0.9;
+/** the ball a javelin's head sweeps through the world (NALATI-MERGE P2) */
+const JAV_RADIUS = 0.03;
 const ARC_POINTS = 32, ARC_SHOW_AFTER = 0.12;
 const FOV_HIP = 72;
 const LEFT_HAND_Y = 0.3;         // the left fist sits this far up the shaft from the right
@@ -183,6 +187,12 @@ const JAV_OUT = pose(0.12, -0.12, -0.72, -0.02, 0.02, -1, 0.2);      // the thro
 
 interface Jav { state: 0 | 1 | 2; pos: THREE.Vector3; vel: THREE.Vector3; q: THREE.Quaternion; age: number }  // 0 none · 1 flying · 2 stuck
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3();
+const _head = new THREE.Vector3(), _nrm = new THREE.Vector3(), _arcPrev = new THREE.Vector3();
+/** the top of the world under (x, z) from y down (terrain, a deck, a rock); the terrain when there is no physics */
+function floorUnder(x: number, y: number, z: number): number {
+  const ph = activePhysics();
+  return (ph ? floorBelow(ph, x, z, y, 60) : undefined) ?? heightAt(x, z);
+}
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _e = new THREE.Euler(), _m = new THREE.Matrix4(), _s1 = new THREE.Vector3(1, 1, 1);
 const _vThrow = new THREE.Vector3(), _qThrow = new THREE.Quaternion(), _vCock = new THREE.Vector3(), _qCock = new THREE.Quaternion();
 const _qSway = new THREE.Quaternion(), _qHol = new THREE.Quaternion(), _vArm = new THREE.Vector3(), _vEl = new THREE.Vector3();
@@ -226,7 +236,7 @@ export class Spear implements Weapon {
   onDry?: () => void;
 
   readonly model = new THREE.Group();
-  private game: Game; private sky: Sky; private player: Player; private forest: Forest;
+  private game: Game; private sky: Sky; private player: Player;
   private targets: Targets | undefined;
   private spearRig = new THREE.Group(); private handRig = new THREE.Group();
   private heldJav!: THREE.Group;
@@ -254,7 +264,7 @@ export class Spear implements Weapon {
   private prevPos = new Map<object, THREE.Vector3>();
 
   constructor(w: SpearWorld, targets?: Targets, opts: SpearOptions = {}) {
-    this.game = w.game; this.sky = w.sky; this.player = w.player; this.forest = w.forest;
+    this.game = w.game; this.sky = w.sky; this.player = w.player;
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
@@ -399,11 +409,21 @@ export class Spear implements Weapon {
     j.pos.copy(at).addScaledVector(_v3, -0.58);
     this.onImpact?.(surface, at);
   }
+  /** off stone: it lies where it struck, along its flight flattened onto the surface */
+  private lie(j: Jav, at: THREE.Vector3, n: THREE.Vector3, surface: ImpactSurface): void {
+    const along = _v2.copy(_dir).addScaledVector(n, -_dir.dot(n));
+    if (along.lengthSq() < 1e-6) along.set(1, 0, 0);
+    along.normalize();
+    j.state = 2; j.age = 0; j.vel.set(0, 0, 0);
+    j.q.setFromUnitVectors(Y, along);
+    j.pos.copy(at).addScaledVector(n, 0.04).addScaledVector(along, -0.58);
+    this.onImpact?.(surface, at);
+  }
   private drop(j: Jav, at: THREE.Vector3): void {
     // a javelin that hit an animal falls beside it, head down-ish into the turf
     const a = Math.random() * Math.PI * 2;
     _v1.set(at.x + Math.cos(a) * 0.6, 0, at.z + Math.sin(a) * 0.6);
-    _v1.y = heightAt(_v1.x, _v1.z);
+    _v1.y = floorUnder(_v1.x, at.y + 1, _v1.z);   // the turf, a deck, a rock under it
     _dir.set(Math.cos(a + 1.3) * 0.7, -0.55, Math.sin(a + 1.3) * 0.7).normalize();
     j.state = 2; j.age = 0; j.vel.set(0, 0, 0);
     j.q.setFromUnitVectors(Y, _dir);
@@ -423,10 +443,13 @@ export class Spear implements Weapon {
           const seg = _v2.subVectors(j.pos, _v1), len = seg.length();
           if (len < 1e-6) continue;
           _dir.copy(seg).multiplyScalar(1 / len);
-          // the head leads the balance point by ~0.8 m: test the head's path
+          // the head leads the balance point by ~0.8 m: test the head's path — through the physics world (NALATI-MERGE P2:
+          // a small ball swept like the crossbow's bolt: terrain, trunks, rocks, yurts, fences, decks), animals short of it
           _v3.copy(_v1).addScaledVector(_dir, 0.8);
+          _head.copy(_v3).addScaledVector(_dir, len);
+          const wall = worldHit(_v3, _head, JAV_RADIUS);
           if (this.targets) {
-            const hit = this.targets.raycast(_v3, _dir, len);
+            const hit = this.targets.raycast(_v3, _dir, wall ? wall.distance : len);
             if (hit?.animal.alive === true) {
               const dmg = Math.round(JAV_DAMAGE * (hit.headshot ? JAV_HEAD : 1) * (this.damageMultiplier?.(hit) ?? 1));
               const killed = hit.animal.applyDamage(dmg, hit.point, _dir);
@@ -437,17 +460,18 @@ export class Spear implements Weapon {
               break;
             }
           }
-          _v3.addScaledVector(_dir, len); // the head's new position
-          let stuck = false;
-          for (const tr of this.forest.nearby(_v3.x, _v3.z, 1)) {
-            if (Math.hypot(_v3.x - tr.x, _v3.z - tr.z) < tr.r + 0.05 && _v3.y > tr.y && _v3.y < tr.y + tr.height) { this.stick(j, _v3, _dir, 'wood'); stuck = true; break; }
-          }
-          if (stuck) break;
-          const g = heightAt(_v3.x, _v3.z);
-          if (_v3.y < g) {
-            const ws = this.player.waterSurfaceAt(_v3.x, _v3.z);
-            if (ws !== null && ws > g) { j.state = 0; this.onImpact?.('ground', _v3); break; } // into the river: gone
-            this.stick(j, _v3.set(_v3.x, g + 0.02, _v3.z), _dir, 'ground'); break;
+          if (wall) {
+            _v3.set(wall.point.x, wall.point.y, wall.point.z);
+            if (wall.material === 'ground') {
+              const ws = this.player.waterSurfaceAt(_v3.x, _v3.z);
+              if (ws !== null && ws > _v3.y) { j.state = 0; this.onImpact?.('ground', _v3); break; } // into the river: gone
+            }
+            if (sticksIn(wall.material)) { this.stick(j, _v3.addScaledVector(_dir, JAV_RADIUS), _dir, impactSurfaceOf(wall.material)); break; }
+            // stone, rock, metal: it clatters off and lies on the surface
+            _nrm.set(wall.normal.x, wall.normal.y, wall.normal.z);
+            if (_nrm.dot(_dir) > 0) _nrm.negate();
+            this.lie(j, _v3, _nrm, impactSurfaceOf(wall.material));
+            break;
           }
           if (j.age > 8 || j.pos.y < -200) { j.state = 0; break; }
           j.q.setFromUnitVectors(Y, _dir);
@@ -468,7 +492,7 @@ export class Spear implements Weapon {
     if (n !== this.world.count || n > 0) { this.world.count = n; this.world.instanceMatrix.needsUpdate = true; }
   }
 
-  /** the dotted arc a javelin thrown now would fly (world space), stopping at the ground */
+  /** the dotted arc a javelin thrown now would fly (world space), stopping at the first surface (the world query) */
   private drawArc(alpha: number): void {
     this.arc.visible = alpha > 0.01;
     this.arcMat.opacity = alpha * 0.85;
@@ -484,7 +508,11 @@ export class Spear implements Weapon {
       const t = 0.06 + i * 0.05; // 1.6 s of flight ≈ 40 m
       let x = _v1.x + _dir.x * t, y = _v1.y + _dir.y * t - 0.5 * JAV_GRAVITY * t * t, z = _v1.z + _dir.z * t;
       if (i >= hitAt) { x = P[(hitAt - 1) * 3] ?? x; y = P[(hitAt - 1) * 3 + 1] ?? y; z = P[(hitAt - 1) * 3 + 2] ?? z; }
-      else if (y < heightAt(x, z)) { hitAt = i; y = heightAt(x, z) + 0.05; }
+      else if (i > 0) {
+        _head.set(x, y, z);
+        const wall = worldHit(_arcPrev.set(P[(i - 1) * 3] ?? x, P[(i - 1) * 3 + 1] ?? y, P[(i - 1) * 3 + 2] ?? z), _head, 0);
+        if (wall) { hitAt = i; x = wall.point.x; y = wall.point.y + 0.05; z = wall.point.z; }
+      }
       P[i * 3] = x; P[i * 3 + 1] = y; P[i * 3 + 2] = z;
     }
     this.arcAttr.needsUpdate = true;

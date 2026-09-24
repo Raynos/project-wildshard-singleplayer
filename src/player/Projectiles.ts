@@ -3,9 +3,11 @@ import type { Game } from '../core/Game';
 import type { Sky } from '../world/Sky';
 import type { Player } from './Player';
 import type { Forest } from '../world/Forest';
-import { heightAt, normalAt } from '../world/Heightfield';
+import { heightAt } from '../world/Heightfield';
 import { CHUNK_HALF } from '../core/config';
-import { Puffs, type ImpactSurface, type TargetAnimal, type TargetHit, type Targets } from './Crossbow';
+import { Puffs, impactSurfaceOf, worldHit, type ImpactSurface, type TargetAnimal, type TargetHit, type Targets } from './Crossbow';
+import { floorBelow, sticksIn } from '../physics/query';
+import { activePhysics } from '../physics/active';
 
 /**
  * Projectiles — Nalati's shared flight model for thrown / loosed things (the bow's arrows today, the spear slot's
@@ -17,15 +19,17 @@ import { Puffs, type ImpactSurface, type TargetAnimal, type TargetHit, type Targ
  *   arrows.wind = wind;                                  // optional: src/world/Wind.ts's `wind` (m/s in XZ, see WindField)
  *   arrows.launch(origin, velocity, { damageScale: 1.2 });
  *   arrows.update(dt, t);                                // every frame (the Bow calls it from its own update)
- *   arrows.predict(origin, velocity, pts, 64, 1.4)       // the drop-arc preview: the SAME integrator (terrain, trunks, colliders)
+ *   arrows.predict(origin, velocity, pts, 64, 1.4)       // the drop-arc preview: the SAME integrator + the same world query
  *   arrows.onHit / onImpact / onRecover                  // hooks
  *   arrows.canRecover = () => quiver < max;              // walk-over pickup of stuck ones (only while it says yes)
  *
  * Flight (per kind): gravity, quadratic-ish drag (`v *= 1 − drag·h·|v|·0.1`, the crossbow's form), and a wind
  * coupling that pushes the projectile SIDEWAYS toward the wind: a = coupling × (wind − v)⊥v̂ (combat.md: 0.25 /s for
- * arrows → 0.75 m drift at 60 m in a 6 m/s breeze). Four substeps a frame; each substep's segment is tested against
- * animals (`targets.raycast`), tree trunks (`forest.nearby`), the player's oriented-box colliders (yurts, fences,
- * targets — `player.colliders`) and the terrain.
+ * arrows → 0.75 m drift at 60 m in a 6 m/s breeze). Four substeps a frame; each substep sweeps a small ball through the
+ * physics world (NALATI-MERGE P2: `worldHit` — src/physics/query.ts's sweepBall, the crossbow's call: terrain, trunks,
+ * rocks, yurts, fences, decks, every registered piece) and asks the animals (`targets.raycast`) short of that wall. By
+ * the wall's material it sticks (wood, planks, felt, earth, ground, grass) or glances off (stone, rock, metal): a short
+ * skip with most of its speed gone, then it lies where it lands.
  *
  * Stuck projectiles (terrain, trunks, colliders, animals) are ONE InstancedMesh with the flying ones — a single draw
  * call for every arrow in the shard (no shadow pass: they are 9 mm thick). An arrow in a LIVE animal rides with it
@@ -68,6 +72,8 @@ export interface ProjectileKind {
   /** an ENEMY projectile: it hits the player's body (a vertical capsule from the feet, this radius / height) and calls
    *  `onPlayerHit` — the ghost riders' arrows (src/nalati/ghostRiders.ts) */
   hurtsPlayer?: { radius: number; height: number };
+  /** the ball swept through the world each substep (m; default 0.02 — a broadhead) */
+  radius?: number;
 }
 
 export interface ProjectileWorld { game: Game; sky: Sky; player: Player; forest: Forest }
@@ -78,7 +84,7 @@ export interface ShotOpts {
   onHitScale?: ((hit: TargetHit) => number) | undefined;
 }
 
-interface Flying { slot: number; pos: THREE.Vector3; vel: THREE.Vector3; origin: THREE.Vector3; active: boolean; age: number; roll: number; scale: number; hitScale: ((hit: TargetHit) => number) | undefined }
+interface Flying { slot: number; pos: THREE.Vector3; vel: THREE.Vector3; origin: THREE.Vector3; active: boolean; age: number; roll: number; scale: number; hitScale: ((hit: TargetHit) => number) | undefined; /** it has glanced off stone: the next surface it meets, it lies on */ glanced: boolean }
 interface Stuck {
   slot: number; pos: THREE.Vector3; dir: THREE.Vector3; roll: number;
   /** riding a live animal: offset + direction in its yaw frame */
@@ -87,12 +93,15 @@ interface Stuck {
   recoverable: boolean;
 }
 
-const TRUNK_PAD = 0.15; // Forest pads every trunk's collision radius by this much (Forest.ts)
+/** the ball an arrow sweeps through the world (the broadhead) */
+const ARROW_RADIUS = 0.02;
+/** a glance (Crossbow.ts's numbers): lift off the surface, the speed kept along it, the bounce off it, the most it keeps */
+const GLANCE_LIFT = 0.03, GLANCE_KEEP = 0.35, GLANCE_BOUNCE = 0.25, GLANCE_MAX = 9;
 const RECOVER_R = 1.25; // m, horizontal reach from the feet
 const RECOVER_UP = 2.1; // m, highest point of a stuck arrow's midpoint the player can pull out
-const NEG_Z = new THREE.Vector3(0, 0, -1), POS_Z = new THREE.Vector3(0, 0, 1), Y_AXIS = new THREE.Vector3(0, 1, 0);
+const NEG_Z = new THREE.Vector3(0, 0, -1), POS_Z = new THREE.Vector3(0, 0, 1), Y_AXIS = new THREE.Vector3(0, 1, 0), X_AXIS = new THREE.Vector3(1, 0, 0);
 const _cp = new THREE.Vector3(), _chord = new THREE.Vector3();
-const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _dir = new THREE.Vector3(), _wind = new THREE.Vector3(), _side = new THREE.Vector3();
+const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _dir = new THREE.Vector3(), _wind = new THREE.Vector3(), _side = new THREE.Vector3(), _nrm = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3(1, 1, 1);
 const ZERO_M = new THREE.Matrix4().makeScale(0, 0, 0);
 
@@ -114,7 +123,7 @@ export class Projectiles {
   readonly mesh: THREE.InstancedMesh;
 
   private readonly kind: ProjectileKind;
-  private readonly game: Game; private readonly player: Player; private readonly forest: Forest;
+  private readonly game: Game; private readonly player: Player;
   private readonly targets: Targets | undefined;
   private readonly flying: Flying[] = [];
   private readonly stuck: Stuck[] = [];
@@ -124,7 +133,7 @@ export class Projectiles {
   private dirty = false;
 
   constructor(world: ProjectileWorld, targets: Targets | undefined, kind: ProjectileKind) {
-    this.game = world.game; this.player = world.player; this.forest = world.forest;
+    this.game = world.game; this.player = world.player;
     this.targets = targets; this.kind = kind;
     const cap = kind.maxFlying + kind.maxStuck;
     this.mesh = new THREE.InstancedMesh(kind.geometry, kind.material, cap);
@@ -132,7 +141,7 @@ export class Projectiles {
     this.mesh.frustumCulled = false; this.mesh.castShadow = false; this.mesh.receiveShadow = true;
     this.mesh.name = 'projectiles';
     for (let i = 0; i < cap; i++) this.mesh.setMatrixAt(i, ZERO_M);
-    for (let i = 0; i < kind.maxFlying; i++) this.flying.push({ slot: i, pos: new THREE.Vector3(), vel: new THREE.Vector3(), origin: new THREE.Vector3(), active: false, age: 0, roll: 0, scale: 1, hitScale: undefined });
+    for (let i = 0; i < kind.maxFlying; i++) this.flying.push({ slot: i, pos: new THREE.Vector3(), vel: new THREE.Vector3(), origin: new THREE.Vector3(), active: false, age: 0, roll: 0, scale: 1, hitScale: undefined, glanced: false });
     for (let i = cap - 1; i >= kind.maxFlying; i--) this.freeStuckSlots.push(i);
     world.game.scene.add(this.mesh, this.puffs.points);
   }
@@ -144,7 +153,7 @@ export class Projectiles {
     let f = this.flying.find((x) => !x.active);
     f ??= this.flying.reduce((a, x) => (x.age > a.age ? x : a));
     f.pos.copy(origin); f.origin.copy(origin); f.vel.copy(velocity);
-    f.active = true; f.age = 0; f.roll = Math.random() * Math.PI * 2;
+    f.active = true; f.age = 0; f.roll = Math.random() * Math.PI * 2; f.glanced = false;
     f.scale = opts.damageScale; f.hitScale = opts.onHitScale;
     this.writeFlying(f);
   }
@@ -190,42 +199,25 @@ export class Projectiles {
     for (let i = 0; i < 360 && n < max; i++) {
       this.step(pos, vel, h);
       if (i % 6 === 5) {
-        _chord.subVectors(pos, _cp);
-        const len = _chord.length();
-        if (len > 1e-4) {
-          _chord.multiplyScalar(1 / len);
-          const t = this.solidAlong(_cp, _chord, len);
-          if (t >= 0) {
-            this.landing.copy(_cp).addScaledVector(_chord, t);
-            this.landingNormal.copy(_chord).negate();
-            this.landed = true;
-            const reach = this.landing.distanceToSquared(origin);
-            while (n > 0) { // drop the dots written past the hit (up to a chord's worth)
-              const j = (n - 1) * 3;
-              const dx = (out[j] ?? 0) - origin.x, dy = (out[j + 1] ?? 0) - origin.y, dz = (out[j + 2] ?? 0) - origin.z;
-              if (dx * dx + dy * dy + dz * dz <= reach) break;
-              n--;
-            }
-            return n;
+        // every 6 steps, the chord since the last test through the physics world (terrain, trunks, every piece)
+        const wall = worldHit(_cp, pos, 0);
+        if (wall) {
+          this.landing.set(wall.point.x, wall.point.y, wall.point.z);
+          this.landingNormal.set(wall.normal.x, wall.normal.y, wall.normal.z);
+          if (this.landingNormal.dot(_chord.subVectors(pos, _cp)) > 0) this.landingNormal.negate();
+          this.landed = true;
+          const reach = this.landing.distanceToSquared(origin);
+          while (n > 0) { // drop the dots written past the hit (up to a chord's worth)
+            const j = (n - 1) * 3;
+            const dx = (out[j] ?? 0) - origin.x, dy = (out[j + 1] ?? 0) - origin.y, dz = (out[j + 2] ?? 0) - origin.z;
+            if (dx * dx + dy * dy + dz * dz <= reach) break;
+            n--;
           }
+          return n;
         }
         _cp.copy(pos);
       }
-      const ground = heightAt(pos.x, pos.z);
       const seg = Math.hypot(pos.x - px, pos.y - py, pos.z - pz);
-      if (pos.y < ground) {
-        // bisect the last segment onto the ground
-        let lo = 0, hi = 1;
-        for (let b = 0; b < 5; b++) {
-          const mid = (lo + hi) / 2;
-          const x = px + (pos.x - px) * mid, y = py + (pos.y - py) * mid, z = pz + (pos.z - pz) * mid;
-          if (y < heightAt(x, z)) hi = mid; else lo = mid;
-        }
-        this.landing.set(px + (pos.x - px) * lo, py + (pos.y - py) * lo, pz + (pos.z - pz) * lo);
-        { const nrm = normalAt(this.landing.x, this.landing.z); this.landingNormal.set(nrm[0], nrm[1], nrm[2]); }
-        this.landed = true;
-        return n;
-      }
       arc += seg;
       while (arc >= nextDot && n < max) {
         const back = arc - nextDot, t = seg > 1e-6 ? 1 - back / seg : 1;
@@ -307,8 +299,10 @@ export class Projectiles {
         return true;
       }
     }
+    const r = this.kind.radius ?? ARROW_RADIUS;
+    const wall = worldHit(prev, f.pos, r);
     if (this.targets && this.kind.hitsAnimals !== false) {
-      const hit = this.targets.raycast(prev, _dir, segLen);
+      const hit = this.targets.raycast(prev, _dir, wall ? wall.distance : segLen);   // an animal short of the wall
       if (hit) {
         const a = hit.animal;
         const dmg = Math.max(1, Math.round(a.damageFor(hit.headshot, hit.point.distanceTo(f.origin)) * f.scale * (f.hitScale?.(hit) ?? 1)));
@@ -319,46 +313,45 @@ export class Projectiles {
         return true;
       }
     }
-    // tree trunks, yurts, fences, the practice butts
-    const ts = this.solidAlong(prev, _dir, segLen);
-    if (ts >= 0) {
-      _v2.copy(prev).addScaledVector(_dir, ts);
-      this.stop(f, _v2, _dir, 'wood', null, true);
+    if (!wall) return false;
+    const n = _nrm.set(wall.normal.x, wall.normal.y, wall.normal.z);
+    if (n.dot(_dir) > 0) n.negate(); // facing the arrow
+    const at = _v2.set(wall.point.x, wall.point.y, wall.point.z); // the ball's centre, touching the surface
+    const surface = impactSurfaceOf(wall.material);
+    if (f.glanced) { this.rest(f, at, n); return true; } // a spent arrow lies where it lands
+    if (sticksIn(wall.material)) {
+      // the ball touches one radius off the surface: the tip carries on along the flight to it
+      at.addScaledVector(_dir, r / Math.max(0.25, -n.dot(_dir)));
+      this.stop(f, at, _dir, surface, null, true);
       return true;
     }
-    // terrain
-    if (f.pos.y < heightAt(f.pos.x, f.pos.z)) {
-      let lo = 0, hi = 1;
-      for (let i = 0; i < 6; i++) {
-        const mid = (lo + hi) / 2;
-        _v2.copy(prev).addScaledVector(_dir, segLen * mid);
-        if (_v2.y < heightAt(_v2.x, _v2.z)) hi = mid; else lo = mid;
-      }
-      _v2.copy(prev).addScaledVector(_dir, segLen * lo);
-      this.stop(f, _v2, _dir, 'ground', null, true);
-      return true;
-    }
+    // glance (stone, rock, metal): off the surface with little of the speed left, then gravity has it
+    if (this.kind.puffs !== false) this.puffs.emit(at, _dir, surface);
+    this.onImpact?.(surface, at);
+    if (this.kind.stick === false) { this.endFlying(f); return true; }
+    at.addScaledVector(n, GLANCE_LIFT);
+    const vn = f.vel.dot(n);
+    f.vel.addScaledVector(n, -vn).multiplyScalar(GLANCE_KEEP).addScaledVector(n, -vn * GLANCE_BOUNCE);
+    if (f.vel.length() > GLANCE_MAX) f.vel.setLength(GLANCE_MAX);
+    f.pos.copy(at);
+    f.glanced = true;
     return false;
   }
 
-  /** where along prev + dir·[0, len] the segment first meets a tree trunk or an oriented-box collider, or −1. Trunks: the
-   *  padded collision radius, then the real bark a little further on (Crossbow.ts does the same). */
-  private solidAlong(prev: THREE.Vector3, dir: THREE.Vector3, len: number): number {
-    let best = -1;
-    const mx = prev.x + dir.x * len * 0.5, mz = prev.z + dir.z * len * 0.5;
-    for (const tr of this.forest.nearby(mx, mz, len * 0.5 + 1)) {
-      const tf = segmentCylinder(prev, dir, len, tr.x, tr.z, tr.r, tr.y, tr.y + tr.height);
-      if (tf < 0) continue;
-      const tb = segmentCylinder(prev, dir, len + TRUNK_PAD * 4, tr.x, tr.z, Math.max(0.05, tr.r - TRUNK_PAD), tr.y, tr.y + tr.height);
-      const t = tb >= 0 ? tb : tf;
-      if (best < 0 || t < best) best = t;
-    }
-    for (const c of this.player.colliders) {
-      if (Math.abs(c.x - mx) > c.hw + c.hd + len * 0.5 + 1 || Math.abs(c.z - mz) > c.hw + c.hd + len * 0.5 + 1) continue;
-      const t = segmentBox(prev, dir, len, c.x, c.z, c.hw, c.hd, c.rot, c.yBottom, c.yTop);
-      if (t >= 0 && (best < 0 || t < best)) best = t;
-    }
-    return best;
+  /** a spent (glanced) arrow comes to rest lying on what it fell onto: along its travel, flat to the surface */
+  private rest(f: Flying, at: THREE.Vector3, n: THREE.Vector3): void {
+    const along = _v1.copy(_dir).addScaledVector(n, -_dir.dot(n));
+    if (along.lengthSq() < 1e-6) along.crossVectors(n, Math.abs(n.y) < 0.9 ? Y_AXIS : X_AXIS);
+    along.normalize();
+    // the tip half a shaft ahead of the contact, so the shaft lies across it
+    at.addScaledVector(n, -(this.kind.radius ?? ARROW_RADIUS) * 0.8).addScaledVector(along, this.kind.length * 0.5);
+    this.endFlying(f);
+    if (this.stuck.length >= this.kind.maxStuck) this.removeStuck(0);
+    const slot = this.freeStuckSlots.pop();
+    if (slot === undefined) return;
+    const s: Stuck = { slot, pos: at.clone(), dir: along.clone(), roll: f.roll, animal: null, local: new THREE.Vector3(), localDir: new THREE.Vector3(), recoverable: true };
+    this.stuck.push(s);
+    this.writeStuck(s);
   }
 
   private stop(f: Flying, point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface, animal: TargetAnimal | null, stick: boolean): void {
@@ -380,7 +373,7 @@ export class Projectiles {
     } else {
       // too high up a trunk / a yurt roof to reach: it stays as a trophy until the cap evicts it
       const midY = pos.y - dir.y * this.kind.length * 0.5;
-      s.recoverable = midY - heightAt(pos.x, pos.z) < RECOVER_UP - 0.2;
+      s.recoverable = midY - floorUnder(pos.x, midY, pos.z) < RECOVER_UP - 0.2;
     }
     this.stuck.push(s);
     this.writeStuck(s);
@@ -389,7 +382,7 @@ export class Projectiles {
   /** an arrow from a dead / vanished animal: into the ground where it hung, tilted a little off vertical */
   private dropToGround(s: Stuck): void {
     s.animal = null;
-    const g = heightAt(s.pos.x, s.pos.z);
+    const g = floorUnder(s.pos.x, s.pos.y, s.pos.z);   // the ground, a deck, a rock — whatever it hangs over
     s.dir.set(s.dir.x * 0.35, -1, s.dir.z * 0.35).normalize();
     s.pos.set(s.pos.x, g, s.pos.z).addScaledVector(s.dir, this.kind.bury * 1.5);
     s.recoverable = true;
@@ -422,25 +415,10 @@ export class Projectiles {
   }
 }
 
-/** distance along the segment where it enters a cylinder whose radius tapers to 20 % at yTop, or −1 (Crossbow.ts's test) */
-function segmentCylinder(o: THREE.Vector3, d: THREE.Vector3, len: number, cx: number, cz: number, r: number, yBot: number, yTop: number): number {
-  const ox = o.x - cx, oz = o.z - cz;
-  const a = d.x * d.x + d.z * d.z;
-  if (a < 1e-8) return -1;
-  const bq = 2 * (ox * d.x + oz * d.z);
-  let rr = r;
-  for (let pass = 0; pass < 2; pass++) {
-    const c = ox * ox + oz * oz - rr * rr;
-    const disc = bq * bq - 4 * a * c;
-    if (disc < 0) return -1;
-    const t = (-bq - Math.sqrt(disc)) / (2 * a);
-    if (t < 0 || t > len) return -1;
-    const y = o.y + d.y * t;
-    if (y < yBot || y > yTop) return -1;
-    if (pass === 1) return t;
-    rr = r * (1 - 0.8 * Math.min(1, Math.max(0, (y - yBot) / (yTop - yBot))));
-  }
-  return -1;
+/** the top of the world under (x, z) from just above y (terrain, a deck, a rock); the terrain when there is no physics */
+function floorUnder(x: number, y: number, z: number): number {
+  const ph = activePhysics();
+  return (ph ? floorBelow(ph, x, z, y + 0.3, 60) : undefined) ?? heightAt(x, z);
 }
 
 /** where along o + d·[0, len] the segment first comes within `r` of the vertical axis from `feet` to `feet + h`, or −1 */
@@ -458,23 +436,4 @@ function segmentCapsule(o: THREE.Vector3, d: THREE.Vector3, len: number, feet: T
   if (t < 0 || t > len) return -1;
   const y = o.y + d.y * t - feet.y;
   return y >= 0 && y <= h ? t : -1;
-}
-
-/** slab test of the segment against an oriented box (Player.ts's collider: centre, half sizes, rotation about Y, y range); t or −1 */
-function segmentBox(o: THREE.Vector3, d: THREE.Vector3, len: number, cx: number, cz: number, hw: number, hd: number, rot: number, yBot: number, yTop: number): number {
-  // into the box frame (Player.ts: local = R(−rot)·(p − c))
-  const cos = Math.cos(-rot), sin = Math.sin(-rot);
-  const px = o.x - cx, pz = o.z - cz;
-  const lx = px * cos - pz * sin, lz = px * sin + pz * cos;
-  const dx = d.x * cos - d.z * sin, dz = d.x * sin + d.z * cos;
-  let t0 = 0, t1 = len;
-  const slab = (p: number, v: number, lo: number, hi: number): boolean => {
-    if (Math.abs(v) < 1e-9) return p >= lo && p <= hi;
-    let a = (lo - p) / v, b = (hi - p) / v;
-    if (a > b) { const t = a; a = b; b = t; }
-    t0 = Math.max(t0, a); t1 = Math.min(t1, b);
-    return t0 <= t1;
-  };
-  if (!slab(lx, dx, -hw, hw) || !slab(lz, dz, -hd, hd) || !slab(o.y, d.y, yBot, yTop)) return -1;
-  return t0;
 }

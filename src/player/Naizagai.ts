@@ -4,6 +4,8 @@ import type { Player } from './Player';
 import type { AnimalManager } from '../entities/AnimalManager';
 import type { Animal } from '../entities/Animal';
 import { heightAt } from '../world/Heightfield';
+import { activePhysics } from '../physics/active';
+import { castRay, floorBelow } from '../physics/query';
 import { GroundTell } from '../game/Elite';
 import { fxMaterial, FX, annulus, type FxMaterial } from '../world/nalati/KurganDungeon';
 import { riding } from './riding';
@@ -246,17 +248,17 @@ export class Naizagai {
     }
   }
 
-  /** on foot, a full heavy: the ground point along the look within 25 m, a ring, then the bolt */
+  /** on foot, a full heavy: the first surface along the look within 25 m (NALATI-MERGE P2: a ray through the physics
+   *  world — terrain, rocks, decks, yurts), a ring on the floor there, then the bolt */
   private callBolt(): void {
     const cam = this.deps.camera;
     cam.getWorldPosition(_o); cam.getWorldDirection(_d);
-    let hit = false;
-    for (let s = 1; s <= CALL_RANGE; s += 0.5) {
-      _v.copy(_o).addScaledVector(_d, s);
-      if (_v.y <= heightAt(_v.x, _v.z)) { hit = true; break; }
-    }
-    if (!hit) { _v.copy(_o).addScaledVector(_w.set(_d.x, 0, _d.z).normalize(), CALL_RANGE); }
-    this.callAt.set(_v.x, heightAt(_v.x, _v.z), _v.z);
+    const ph = activePhysics();
+    const hit = ph ? castRay(ph, _o, _d, CALL_RANGE) : null;
+    if (hit) _v.set(hit.point.x, hit.point.y, hit.point.z);
+    else _v.copy(_o).addScaledVector(_w.set(_d.x, 0, _d.z).normalize(), CALL_RANGE);
+    // the ring lies on the floor under that point: a deck, a rock top, else the terrain
+    this.callAt.set(_v.x, (ph ? floorBelow(ph, _v.x, _v.z, _v.y + 0.5, 80) : undefined) ?? heightAt(_v.x, _v.z), _v.z);
     this.callT = 0;
   }
 }
