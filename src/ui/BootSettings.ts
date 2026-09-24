@@ -67,7 +67,8 @@ function build(): HTMLElement {
   document.body.append(r);
 
   const running = el('ws-gmenu-note');
-  running.textContent = `Running now: ${NAMES[setting('gpu')] ?? setting('gpu')} · ${TIER} quality${getActiveChunk().slug === 'driftwood-isle' ? ` · ${NAMES[setting('island')] ?? setting('island')} island` : ''}`;
+  const gpuNow = getActiveChunk().style === 'painterly' ? 'webgl' : setting('gpu'); // Nalati always runs WebGL (Game.ts, NALATI-MERGE F1)
+  running.textContent = `Running now: ${NAMES[gpuNow] ?? gpuNow} · ${TIER} quality${getActiveChunk().slug === 'driftwood-isle' ? ` · ${NAMES[setting('island')] ?? setting('island')} island` : ''}`;
   const status = el('ws-gmenu-note');
   const apply = el('ws-gmenu-btn resume', 'Apply &amp; reload', 'button') as HTMLButtonElement; apply.type = 'button';
   const paints: (() => void)[] = [];

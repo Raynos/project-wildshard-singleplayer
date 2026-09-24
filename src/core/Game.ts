@@ -103,7 +103,10 @@ export class Game {
     installAtmosphere(getActiveChunk().style === 'painterly'); // the painterly shard's air: aerial perspective + cloud shadows
     if (LOOK_V2) installLookV2Fog(); // Nalati look v2: the fog coloured from the panorama (src/nalati/look/fog.ts)
     installViewport(); // --ws-vh: the real height (an iOS home-screen app reports innerHeight a status bar short — viewport.ts)
-    this.renderer = new THREE.WebGLRenderer({ canvas: GPU_MODE ? document.createElement('canvas') : canvas, antialias: false, powerPreference: 'high-performance', stencil: false, depth: true });
+    // the WebGPU path is Driftwood-first (TSL ports of its materials only): the painterly shard (Nalati) always runs WebGL,
+    // whatever the saved renderer pick — its composer returns before gpu.build(), so WebGPU drew black (NALATI-MERGE F1)
+    const mode = getActiveChunk().style === 'painterly' ? null : GPU_MODE;
+    this.renderer = new THREE.WebGLRenderer({ canvas: mode ? document.createElement('canvas') : canvas, antialias: false, powerPreference: 'high-performance', stencil: false, depth: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, TIER_CONFIG.dpr));
     this.renderer.setSize(window.innerWidth, viewportHeight());
     this.renderer.toneMapping = THREE.NoToneMapping; // tone mapping happens in the composer
@@ -113,7 +116,6 @@ export class Game {
     setAnisotropy(this.renderer);
     this.camera = new THREE.PerspectiveCamera(72, window.innerWidth / viewportHeight(), 0.08, 2600);
     window.addEventListener('resize', () => this.resize());
-    const mode = GPU_MODE;
     if (mode) this.gpuReady = import('../gpu/GpuPath').then((m) => m.GpuPath.create(canvas, mode));
   }
 
