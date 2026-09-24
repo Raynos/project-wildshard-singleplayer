@@ -35,14 +35,14 @@ and [review-experience.md](../design/nalati/merge/review-experience.md) (HUD, re
 
 | # | row | files | size |
 |---|---|---|---|
-| F1 | WebGPU → Nalati always runs WebGL, whatever the saved renderer (black screen today) | Game.ts / gpu gate | S |
-| F2 | Nalati's `chunk.weapon` is 'sword' → its own value: no unused iron sword; the hurt arc (main's B3) on Nalati too | chunk def, main.ts | S |
-| F3 | deathLine: Nalati respawns on the north road ("respawning on the north road"), lightning / storm deaths named ("Struck by lightning") | HurtArc.ts | S |
-| F4 | Boot: declare the 6 rigged creature GLBs (~4 MB) in the boot pack; the service worker cache-first for `/assets/nalati/`; the immutable-header issue for edited models (hash or version the URLs) | boot/*, sw, vercel.json | S–M |
-| F5 | E91 NaN clamps where Nalati still has them unclamped (ghost riders, the kurgan dungeon); E89's shadow step on Nalati's clock | nalati/* | S |
-| F6 | Audio quick fixes: Nalati plays Pine Hollow's theme → the steppe mood / a placeholder until A3; leaked clips (the eagle elite screams with Driftwood's monkey, the leopard growls with Pine's bear, pine-needle footsteps on grass) | audio, nalati/sound.ts | S |
-| F7 | Settings that do nothing on Nalati (Tracers, Swing-turn speed) either work or hide; two runtime bakes empty after a GPU restore (E54 path) | settings, nalati/look | S |
-| F8 | The clocks behind one interface (wave 8): Settings ▸ Time of day, Explore's light presets and the HUD glyph reach Nalati's DayClock; one engine clock is a later row | world/DayNight, DayClock | M |
+| F1 | WebGPU → Nalati always runs WebGL, whatever the saved renderer (black screen today) | Game.ts / gpu gate | S · ✅ 1442d3f |
+| F2 | Nalati's `chunk.weapon` is 'sword' → its own value: no unused iron sword; the hurt arc (main's B3) on Nalati too | chunk def, main.ts | S · ✅ 747c837 (`weapon: 'nalati'`, `meleeShard()`) |
+| F3 | deathLine: Nalati respawns on the north road ("respawning on the north road"), lightning / storm deaths named ("Struck by lightning") | HurtArc.ts | S · ✅ 549c47c (+ b064fcb: a throw reads "Thrown from the saddle") |
+| F4 | Boot: declare the 6 rigged creature GLBs (~4 MB) in the boot pack; the service worker cache-first for `/assets/nalati/`; the immutable-header issue for edited models (hash or version the URLs) | boot/*, sw, vercel.json | S–M · ✅ 8fc4d5c (every Nalati file fetched as `?v=<content hash>`, so vercel.json's immutable stays right) |
+| F5 | E91 NaN clamps where Nalati still has them unclamped (ghost riders, the kurgan dungeon); E89's shadow step on Nalati's clock | nalati/* | S · ✅ 0278c4f |
+| F6 | Audio quick fixes: Nalati plays Pine Hollow's theme → the steppe mood / a placeholder until A3; leaked clips (the eagle elite screams with Driftwood's monkey, the leopard growls with Pine's bear, pine-needle footsteps on grass) | audio, nalati/sound.ts | S · ✅ b064fcb (the Golden King still borrows the bear growl / sailor groan → A5) |
+| F7 | Settings that do nothing on Nalati (Tracers, Swing-turn speed) either work or hide; two runtime bakes empty after a GPU restore (E54 path) | settings, nalati/look | S · ✅ 4492d17 (Tracers hidden; Swing turn speed already worked — the sabre sets `swinging`) |
+| F8 | The clocks behind one interface (wave 8): Settings ▸ Time of day, Explore's light presets and the HUD glyph reach Nalati's DayClock; one engine clock is a later row | world/DayNight, DayClock | M · ✅ c4d7407 (`src/world/WorldClock.ts`; the glyph itself is H2's) |
 
 ## R — riding (N17) and the horse's body
 
