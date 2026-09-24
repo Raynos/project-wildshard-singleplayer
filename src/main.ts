@@ -61,7 +61,7 @@ import { Inventory, harvestOf, ITEMS } from './game/Inventory';
 import { getNumber, onNumber, onSettingChange, setting } from './ui/Settings';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
-import { HurtArc, deathLine } from './ui/HurtArc';
+import { HurtArc, deathLine, respawnWhere, type Killer } from './ui/HurtArc';
 import { setAimTargets, meleeLock, lockOn as lockState } from './player/AimTargets';
 import { pastRidden, riding } from './player/riding';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
@@ -541,7 +541,7 @@ async function main() {
   // taking a hit (B3): the arc points at the attacker (src/ui/HurtArc.ts), a hurt grunt panned toward it (Audio.hurt — it
   // used to be the landing thud), and the killer is remembered for the death toast (B2)
   const hurtArc = new HurtArc();
-  let killer: { kind: string; label: string } | null = null;
+  let killer: Killer | null = null;
   animals.onCharge = (a, dmg) => {
     health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); music.combat(0.9);
     killer = { kind: a.kind, label: a.label };
@@ -577,10 +577,13 @@ async function main() {
     else audio.footstep(sprinting, pier?.floorHeightAt(p.x, p.z) !== undefined ? 'planks' : sea !== undefined && heightAt(p.x, p.z) - sea.level < 2.6 ? 'sand' : 'litter');
   };
   // Nalati's boss fights (src/nalati/kurganBoss.ts, B13): the Golden King needs the animals, the kit and the HUD
-  nalatiNow()?.bindPlay({ kit: nalatiKit, health01: () => health / 100, toast: (text) => hud.toast(text), flash: () => hud.damageFlash() }); // Nalati's creatures: brace kills, knock-downs, howl / stampede toasts
+  nalatiNow()?.bindPlay({
+    kit: nalatiKit, health01: () => health / 100, toast: (text) => hud.toast(text), flash: () => hud.damageFlash(),
+    hurt: (dmg) => { killer = { cause: 'Thrown by your horse' }; health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); }, // a throw / a bolt (Mount, Taming)
+  }); // Nalati's creatures: brace kills, knock-downs, howl / stampede toasts
   // Nalati's weather (src/nalati/weather.ts, B10): the storm's audio beds + thunder, and a lightning strike's 60 damage
   nalatiNow()?.sound?.bind(audio, music); // Nalati's sound (B16 audio): hoof ground, the steppe bed, the music's steppe mood
-  nalatiNow()?.weather.bind({ audio, hurt: (dmg, why) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); hud.toast(why); audio.land(true); } });
+  nalatiNow()?.weather.bind({ audio, hurt: (dmg, why) => { killer = { cause: 'Struck by lightning' }; health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); hud.toast(why); audio.land(true); } });
   nalatiNow()?.boss.bind({
     animals, setWeaponsEnabled: (on) => { weapons.setEnabled(on); }, bow: nalatiKit?.bow ?? null, refill: () => { nalatiKit?.refill(); }, interactables, params,
     toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, pickupHum: (on) => { audio.pickupHum(on); }, trophy: () => { inventory.add('gold-plaque'); },
@@ -596,7 +599,7 @@ async function main() {
   // Nalati's Storm Titan (src/nalati/stormTitan.ts, B14): the cairn prompt, the fight, Naizagai (the sabre upgrade) once won
   nalatiNow()?.titan.bind({
     animals, wildlife, ride, sabre: nalatiKit?.sabre ?? null, setWeaponsEnabled: (on) => { weapons.setEnabled(on); }, refill: () => { nalatiKit?.refill(); }, interactables, params,
-    hurt: (dmg, why) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); if (why) hud.toast(why); audio.land(true); },
+    hurt: (dmg, why) => { killer = { kind: 'storm-titan', label: 'the Storm Titan' }; health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); if (why) hud.toast(why); audio.land(true); },
     toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, record: (k, v) => { progress.recordKill(k, v); progress.recordEvent(k); }, pickupHum: (on) => { audio.pickupHum(on); },
     ownSkin: (id) => { nalatiNow()?.skins.own(id); },
     music: (e) => { if (e === 'death' || e === 'pickup') music.sting(e); else if (e === 'victory') music.sting('chunk'); else music.combat(1); },
@@ -759,7 +762,7 @@ async function main() {
     if (health <= 0) {
       health = 100; audio.death(); hud.damageFlash();
       if (ride?.mounted === true) ride.mount.dismount();
-      if (nalati?.boss.onPlayerDeath() !== true && nalati?.titan.onPlayerDeath() !== true) { hud.toast(deathLine(killer, isOcean)); respawn(); if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); }
+      if (nalati?.boss.onPlayerDeath() !== true && nalati?.titan.onPlayerDeath() !== true) { hud.toast(deathLine(killer, respawnWhere(chunk))); respawn(); if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); }
       killer = null; nalatiKit?.refill();
     }
     hurtArc.update(dt, player.position, player.yaw);

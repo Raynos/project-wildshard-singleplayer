@@ -62,6 +62,8 @@ export interface NalatiPlay {
   toast: (text: string) => void;
   /** the red damage flash (a knock-down) */
   flash: () => void;
+  /** damage with no animal behind it: the horse throws you / bolts (the death toast says so — NALATI-MERGE F3) */
+  hurt?: (damage: number) => void;
 }
 
 export interface Nalati {
@@ -381,7 +383,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
     };
     nalati.bindPlay = (p) => {
       bind(p);
-      ride?.bind({ kit: p.kit, toast: p.toast });   // hurt → animals.onCharge (main's damage path)
+      ride?.bind(p.hurt ? { kit: p.kit, toast: p.toast, hurt: p.hurt } : { kit: p.kit, toast: p.toast });   // hurt → main's damage path
       devMode = new URLSearchParams(location.search).get('ride');
     };
     nalati.onImpact = (surface, point) => {
