@@ -1,0 +1,13 @@
+{
+ "name": "canoe",
+ "source": "canoe-s7.glb",
+ "tris": 1976,
+ "size_m": [
+  1.02,
+  5.0,
+  1.01
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "material": "PBR: 1024\u00b2 WebP base colour (ungraded), roughness 0.7, smooth shading (hard past 40.0\u00b0), no COLOR_0",
+ "palette": []
+}

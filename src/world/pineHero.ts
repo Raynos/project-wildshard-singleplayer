@@ -6,7 +6,7 @@
  */
 export const PINE_HERO_DIR = '/assets/models/pine-hollow-hero';
 /** the props that are built (src/world/PineLandmarks.ts places each; one InstancedMesh per LOD) */
-export const PINE_HERO_IDS = ['stone-a', 'stone-b', 'stone-c', 'waystone', 'contract-board', 'cave-arch', 'beaver-dam'] as const;
+export const PINE_HERO_IDS = ['stone-a', 'stone-b', 'stone-c', 'waystone', 'contract-board', 'cave-arch', 'beaver-dam', 'canoe'] as const;
 export type PineHeroId = (typeof PINE_HERO_IDS)[number];
 export const pineHeroUrl = (id: string): string => `${PINE_HERO_DIR}/${id}/${id}.glb`;
 /** every file the landmarks fetch (desktop names: the boot maps them to the phone's copies) */

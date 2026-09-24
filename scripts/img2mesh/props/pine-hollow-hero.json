@@ -1,5 +1,5 @@
 {
- "about": "Pine Hollow's hero props (PINE-HOLLOW-REMASTER PH-B3, art/pine-hollow/round-8-assets): TRELLIS.2 generations -> photoreal PBR game props (--keep-texture: smooth-shaded, the generated texture baked ungraded + a normal map from the high mesh). Each ref builds three assets: <ref> (LOD0, 1024^2, desktop), <ref>-phone (the same mesh at 512^2: moved to <ref>/<ref>.phone.glb, which tierUrl serves the phone) and <ref>-lod1 (a quarter of the triangles, 256^2). Built with: python3 scripts/img2mesh/build_props.py scripts/img2mesh/props/pine-hollow-hero.json public/assets/models/pine-hollow-hero, then scripts/img2mesh/pine_hollow_phone.sh.",
+ "about": "Pine Hollow's hero props (PINE-HOLLOW-REMASTER PH-B3, art/pine-hollow/round-8-assets): TRELLIS.2 generations -> photoreal PBR game props (--keep-texture: smooth-shaded, the generated texture baked ungraded + a normal map from the high mesh). Each ref builds three assets: <ref> (LOD0, 1024^2, desktop), <ref>-phone (the same mesh at 512^2: moved to <ref>/<ref>.phone.glb, which tierUrl serves the phone) and <ref>-lod1 (a quarter of the triangles, 256^2). Built with: python3 scripts/img2mesh/build_props.py scripts/img2mesh/props/pine-hollow-hero.json public/assets/models/pine-hollow-hero, then scripts/img2mesh/pine_hollow_phone.sh. The canoe is ref-canoe-b.jpg at TRELLIS seed 7 (canoe-s7: seed 42 made two crossed hulls from both refs).",
  "gen": "~/ml/img2mesh/out/pine-hollow",
  "stage": "~/ml/img2mesh/out/pine-hollow-post",
  "args": [
@@ -79,15 +79,15 @@
    "args": "--name contract-board-lod1 --tris 640 --fit height --size 2.5 --atlas 256 --roughness 0.9 --normal-map 0"
   },
   {
-   "ref": "canoe-b",
+   "ref": "canoe-s7",
    "args": "--name canoe --tris 2000 --fit length --size 5.0 --atlas 1024 --roughness 0.7 --normal-map 0"
   },
   {
-   "ref": "canoe-b",
+   "ref": "canoe-s7",
    "args": "--name canoe-phone --tris 2000 --fit length --size 5.0 --atlas 512 --roughness 0.7 --normal-map 0"
   },
   {
-   "ref": "canoe-b",
+   "ref": "canoe-s7",
    "args": "--name canoe-lod1 --tris 480 --fit length --size 5.0 --atlas 256 --roughness 0.7 --normal-map 0"
   },
   {

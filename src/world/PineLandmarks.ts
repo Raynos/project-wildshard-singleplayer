@@ -501,7 +501,7 @@ function buildBridge(t: Timber, half: number): void {
 // ───────────────────────────── the image-to-3D hero props ─────────────────────────────
 
 /** every prop the landmarks can place (src/world/pineHero.ts lists the ones built so far: the rest are skipped) */
-type HeroId = PineHeroId | 'beaver-dam' | 'canoe';
+type HeroId = PineHeroId;
 interface Place { x: number; y: number; z: number; yaw: number; scale: number; pitch?: number; roll?: number }
 /**
  * the turn that brings each generation's front (the face the reference showed: the carved glyphs, the lantern's arm, the
@@ -736,7 +736,7 @@ export class PineLandmarks implements PineLandmarksHandle {
     // ~1.3 m over the pond's water line at the sill
     const flow = d0 && d1 ? Math.atan2(d1[0] - d0[0], d1[1] - d0[1]) : 0;
     add('beaver-dam', [{ x: BEAVER_DAM.x, y: ground(BEAVER_DAM.x, BEAVER_DAM.z) - 0.45, z: BEAVER_DAM.z, yaw: flow, scale: 1 }], 50, true, 'wood');
-    const cx = -66.8, cz = 119;                                     // its bow (local +Z) out toward the islet (−X), its stern up the bank
+    const cx = -67.8, cz = 119;                                     // its bow (local +Z) out toward the islet (−X), its stern up the bank
     const bowH = Math.max(ground(cx - 2.3, cz), POND.level), sternH = Math.max(ground(cx + 2.3, cz), POND.level);
     add('canoe', [{ x: cx, y: (bowH + sternH) / 2 - 0.05, z: cz, yaw: -Math.PI / 2, scale: 1, pitch: Math.atan2(sternH - bowH, 4.6) * 0.85 }], 40, true, 'wood');
 
