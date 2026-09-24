@@ -43,9 +43,9 @@ and [review-experience.md](../design/nalati/merge/review-experience.md) (HUD, re
 | F6 | Audio quick fixes: Nalati plays Pine Hollow's theme → the steppe mood / a placeholder until A3; leaked clips (the eagle elite screams with Driftwood's monkey, the leopard growls with Pine's bear, pine-needle footsteps on grass) | audio, nalati/sound.ts | S · ✅ b064fcb (the Golden King still borrows the bear growl / sailor groan → A5) |
 | F7 | Settings that do nothing on Nalati (Tracers, Swing-turn speed) either work or hide; two runtime bakes empty after a GPU restore (E54 path) | settings, nalati/look | S · ✅ 4492d17 (Tracers hidden; Swing turn speed already worked — the sabre sets `swinging`) |
 | F8 | The clocks behind one interface (wave 8): Settings ▸ Time of day, Explore's light presets and the HUD glyph reach Nalati's DayClock; one engine clock is a later row | world/DayNight, DayClock | M · ✅ c4d7407 (`src/world/WorldClock.ts`; the glyph itself is H2's) |
-| F9 | The Golden King lies tilted diagonally in his fight (procedural + the new model alike — a pose / orientation bug in src/nalati/kurganBoss.ts; progress/nalati-merge/d/d1-ingame.jpg) | kurganBoss | S |
-| F10 | Phone: the quest dialogue box (main's shared DialogueBox) covers the weapon tabs / discs on Nalati's HUD D — place it clear of them on Nalati | QuestUI / nalati-hud.css | S |
-| F11 | The full map: the elder's marker label "BAQYT ATA" overlaps "NOMAD CAMP" | Map / quest places | S |
+| F9 | The Golden King lies tilted diagonally in his fight (procedural + the new model alike — a pose / orientation bug in src/nalati/kurganBoss.ts; progress/nalati-merge/d/d1-ingame.jpg) | kurganBoss | S · ✅ 19bbf9a (root cause: Animal.sampleTerrain tilted him to the mound's slope 140 m below the chamber — pitch 21–64°, roll 26–62°; `levelGround` on the King + the adds → 0° through phases I–III; progress/nalati-merge/f9-11/f9-king-*.jpg) |
+| F10 | Phone: the quest dialogue box (main's shared DialogueBox) covers the weapon tabs / discs on Nalati's HUD D — place it clear of them on Nalati | QuestUI / nalati-hud.css | S · ✅ 17337a1 (quest.css under `#hud.nalati-d`, portrait: above AIM / JUMP, between the weapon tabs and CROUCH; over BRACE with the spear; f10-dialogue-phone.jpg) |
+| F11 | The full map: the elder's marker label "BAQYT ATA" overlaps "NOMAD CAMP" | Map / quest places | S · ✅ 88a6ab2 (`setPois(…, { declutter: true })`, Nalati only: the marker label goes above its diamond; f11-map-*.jpg) |
 
 ## R — riding (N17) and the horse's body
 
