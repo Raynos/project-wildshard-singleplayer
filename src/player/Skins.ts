@@ -14,11 +14,13 @@ import { fixIBL, isMesh, VIEWMODEL_GROUP, type Crossbow } from './Crossbow';
  *   skinFor(kind, variant)                                   // the skin a legendary kill drops, if any
  *
  * Which skin drops (the user's call): Ghost stag → GHOST STAG crossbow, Old Ironhide → IRONHIDE AR-15. HOLLOW ASH and
- * SCARBACK FURNACE exist in the code but nothing drops them yet. The SkinLocker persists what you own / wear.
+ * SCARBACK FURNACE exist in the code but nothing drops them yet. Pine Hollow's named elites (PH-C3, src/pinehollow/)
+ * drop theirs from the elite orb: + BLACKPAW and IMPERIAL crossbows; the Antler King (PH-C2) the WARDEN crossbow with the
+ * Warden's Longbow. All three are uniform-only overrides (no `plain`): no new programs. The SkinLocker persists what you own / wear.
  */
 
 export type WeaponKind = 'crossbow' | 'rifle';
-export type SkinId = 'ghost-stag' | 'hollow-ash' | 'ironhide' | 'scarback-furnace';
+export type SkinId = 'ghost-stag' | 'hollow-ash' | 'ironhide' | 'scarback-furnace' | 'blackpaw' | 'imperial' | 'warden';
 
 /** `plain` drops the base texture and the vertex-colour wear so `color` / `roughness` / `metalness` are exact (the normal map stays
  *  for relief) — that is a define change, so it costs one program per (weapon material, skin). */
@@ -73,6 +75,39 @@ export const SKINS: Record<SkinId, SkinDef> = {
       'rifle-poly': { color: IVORY, metalness: 0, roughness: 0.55, envMapIntensity: 0.7, plain: true },
       'rifle-steel': { color: 0x3a2a22, roughness: 0.9, emissive: EMBER, emissiveIntensity: 0.1 },
       'rifle-brass': { color: BRASS, roughness: 0.45, envMapIntensity: 1.2 },
+    },
+  },
+  'blackpaw': {
+    id: 'blackpaw', weapon: 'crossbow', name: 'Blackpaw', blurb: 'bear-black stock, claw-hook nocks, the rent in arrears',
+    mats: {
+      'xbow-wood': { color: 0x2a221d, roughness: 0.95, envMapIntensity: 0.7 },
+      'xbow-prod': { color: 0x16130f, roughness: 0.8 },
+      'xbow-iron': { color: 0x2b2a28, roughness: 0.7 },
+      'xbow-brass': { color: 0x8a7a64, roughness: 0.6 },
+      'xbow-leather': { color: 0x1d1714, roughness: 1 },
+      'xbow-cord': { color: 0x3a2e24 },
+    },
+  },
+  'imperial': {
+    id: 'imperial', weapon: 'crossbow', name: 'Imperial', blurb: 'antler-ivory stock, gold fittings, seven tines on the prod',
+    mats: {
+      'xbow-wood': { color: 0xe6d8b8, roughness: 0.55, envMapIntensity: 0.8 },
+      'xbow-prod': { color: 0xcfb58a, roughness: 0.5, envMapIntensity: 0.9 },
+      'xbow-iron': { color: BRASS, roughness: 0.35, metalness: 1, envMapIntensity: 1.3 },
+      'xbow-brass': { color: BRASS, roughness: 0.3, envMapIntensity: 1.4 },
+      'xbow-leather': { color: 0x5a2b1c, roughness: 0.8 },
+      'xbow-cord': { color: 0xf2e2b0 },
+    },
+  },
+  'warden': {
+    id: 'warden', weapon: 'crossbow', name: 'Warden', blurb: 'bark-bound limbs, amber in the grain, it hums at night',
+    mats: {
+      'xbow-wood': { color: 0x2e241a, roughness: 1, emissive: 0xff8a2a, emissiveIntensity: 0.06 },
+      'xbow-prod': { color: 0x3a2f22, roughness: 0.9 },
+      'xbow-iron': { color: 0x1f1c18, roughness: 0.8 },
+      'xbow-brass': { color: 0xffa040, emissive: 0xff8a2a, emissiveIntensity: 0.5, roughness: 0.5 },
+      'xbow-leather': { color: 0x3b4a22, roughness: 1 },
+      'xbow-cord': { color: 0xffc070, emissive: 0xff9a3a, emissiveIntensity: 0.9 },
     },
   },
   'scarback-furnace': {

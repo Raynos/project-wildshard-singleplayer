@@ -4,9 +4,9 @@
  * in the ranger's cabin (board B4 wall = C: mounts for what you have taken, chalk outlines for what is left).
  *
  * The animals match the species registry's real variants (src/entities/species/{deer,boar,elk,bear}.ts). The elites are
- * variants today (the Ghost stag, Old Ironhide, Old Blackpaw, the Imperial bull), so they can already be taken; when
- * the elite system (PH-C3) lands their `match` moves to the elite's own kind. The Antler King answers to kind
- * 'antler-king', which nothing spawns yet: its page stays "???" until the boss (PH-C2) registers that kind.
+ * variants (the Ghost stag, Old Ironhide, Old Blackpaw, the Imperial bull) and stay so: the elite system (PH-C3,
+ * src/pinehollow/elites.ts) places the same kind + variant at a lair, so these `match`es are the elites. The Antler King
+ * answers to kind 'antler-king', which the boss (PH-C2, src/pinehollow/antlerKing.ts) registers and spawns.
  * The places are the 18 Explore POIs of layout v2 (src/chunks/pineHollowLayout.ts).
  *
  * Sketches: art/pine-hollow/round-6-journal-sketches/ (codex image_gen), shipped as public/assets/pine-hollow/journal/

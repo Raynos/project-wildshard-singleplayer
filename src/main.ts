@@ -96,6 +96,7 @@ import { activePhysics } from './physics/active';
 import { lineOfSight } from './physics/query';
 import { pickInteractable, setSight } from './world/interact/Interactables';
 import { installCompendium } from './ui/compendium/install';
+import { installPineCombat } from './pinehollow';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
 const _animalXZ: { x: number; z: number }[] = [];
@@ -507,9 +508,11 @@ async function main() {
       skinDrops.splice(skinDrops.indexOf(drop), 1);
     };
   };
+  // Pine Hollow's fights (src/pinehollow/): PH-C3 the four named elites, PH-C2 the Antler King, PH-F1 the ranged kit's feel
+  const pineFights = chunk.slug === 'pine-hollow' ? installPineCombat({ game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables, params }) : null;
   animals.onKill = (a) => {
     hud.killFeed(`${a.label} · ${Math.round(a.position.distanceTo(player.position))} m`); progress.recordKill(a.kind, a.variant);
-    const skin = skinFor(a.kind, a.variant); if (skin && !skins.has(skin.id)) spawnSkinDrop(skin, a.position); // the legendary's drop, once
+    const skin = skinFor(a.kind, a.variant); if (skin && !skins.has(skin.id) && pineFights?.isElite(a) !== true) spawnSkinDrop(skin, a.position); // the legendary's drop, once (a named elite's comes from its own orb)
   };
   // the Compendium (PH-C5 / C4, src/ui/compendium/): the hunter's journal (N, the pause menu, the touch disc) + the trophy wall; chains onKill
   installCompendium({ chunkId: getActiveChunk().id, game, camera: game.camera, hud, menu, animals, cabins, interactables, weapons, touchUi, nolock });
@@ -525,8 +528,8 @@ async function main() {
   animals.onCharge = (a, dmg) => {
     health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); music.combat(0.9);
     killer = { kind: a.kind, label: a.label };
-    if (chunk.weapon === 'sword') hurtArc.hit(a.position.x, a.position.z, player.position, player.yaw, dmg); // the direction arc: the island only (D8)
-    if (chunk.weapon === 'sword') CameraFX.for(game).addTrauma(Math.min(0.85, 0.3 + dmg / 40)); // a trauma² shake (C3, the island only)
+    if (chunk.weapon === 'sword' || pineFights !== null) hurtArc.hit(a.position.x, a.position.z, player.position, player.yaw, dmg); // the direction arc: the island (D8) + Pine Hollow (PH-F1)
+    if (chunk.weapon === 'sword' || pineFights !== null) CameraFX.for(game).addTrauma(Math.min(0.85, 0.3 + dmg / 40)); // a trauma² shake (C3; Pine Hollow PH-F1)
     player.shove(a.position.x, a.position.z, 5 + Math.min(4, dmg * 0.15)); // knocked back a step, through the controller (PHYSICS P2)
     const dx = a.position.x - player.position.x, dz = a.position.z - player.position.z, d = Math.hypot(dx, dz);
     audio.hurt(dmg / 20, d > 0.3 ? ((dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw)) / d) * 0.7 : 0);
@@ -550,6 +553,7 @@ async function main() {
     animals.onWindup = (a) => { const e = a.kind === 'crab' ? 'crab' : a.kind === 'sailor' ? 'sailor' : a.kind === 'boar' || a.kind === 'bear' ? 'boar' : null; if (e !== null) islandSfx.windup(e, a.position); };
   }
   const ambience = sea ? new IslandAmbience(audio, { sea: sea.level, heightAt, palms: palmSpecs, wreck, cove: Cove.forIsland() }) : chunk.slug === 'pine-hollow' ? new ForestAmbience(audio, { heightAt, cabins, music }) : null; // PH-A2
+  if (ambience instanceof ForestAmbience) pineFights?.useSfx(ambience.sfx); // the King's bells / stomp / roar, the thralls
   player.onStep = (sprinting) => {
     const p = player.position;
     if (islandSfx && surfaces && !(player.wading && player.depth > 0.3)) islandSfx.footstep(player.wading ? 'water' : surfaces.surfaceAt(p.x, p.z, p.y), Math.hypot(player.velocity.x, player.velocity.z));
@@ -707,7 +711,7 @@ async function main() {
     // slow health regen; death → respawn at the gate
     if (health < 100 && performance.now() - lastHurt > 6000) health = Math.min(100, health + dt * 4);
     // death → the toast names the killer and this shard's respawn point (deathLine); only a weapon with ammo is topped up
-    if (health <= 0) { health = 100; audio.death(); hud.toast(deathLine(killer, isOcean)); killer = null; hud.damageFlash(); respawn(); if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); }
+    if (health <= 0) { health = 100; audio.death(); if (pineFights?.onPlayerDeath() !== true) { hud.toast(deathLine(killer, isOcean)); respawn(); } killer = null; hud.damageFlash(); if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); } // the Antler King's fight keeps its own checkpoint
     hurtArc.update(dt, player.position, player.yaw);
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));

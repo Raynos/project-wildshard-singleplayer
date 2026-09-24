@@ -13,6 +13,8 @@ import { floorBelow } from '../physics/query';
  *   'wood'   splinters (the drowned sailor's waterlogged timbers)
  *   'shell'  red-and-white shell shards (the reef crab)
  *   'sparks' hot white-yellow sparks, gravity-light and fast (the iron blade on shell or timber)
+ *   'dirt'   dark forest earth and needle litter (a bolt into Pine Hollow's ground, PH-F1; Old Blackpaw leaving his cave)
+ *   'stone'  grey granite chips (a bolt glancing off the Ridge's rock, PH-F1)
  *
  *   const impacts = Impacts.for(game);                  // one per game; built into the scene at boot (so it is precompiled)
  *   impacts.burst('shell', point, dir, 10);             // dir = the blow's direction (the chunks fly along it + up)
@@ -23,16 +25,16 @@ import { floorBelow } from '../physics/query';
  * oldest chunk is recycled. No allocations after construction.
  */
 
-export type ImpactKind = 'sand' | 'wood' | 'shell' | 'sparks';
+export type ImpactKind = 'sand' | 'wood' | 'shell' | 'sparks' | 'dirt' | 'stone';
 
 const POOL = 128;
 /** the floor ray starts this far over the burst point and reaches this far under it */
 const FLOOR_UP = 0.1, FLOOR_DOWN = 3;
-const GRAVITY: Record<ImpactKind, number> = { sand: 7, wood: 11, shell: 12, sparks: 4 };
-const LIFE: Record<ImpactKind, [number, number]> = { sand: [0.35, 0.6], wood: [0.5, 0.9], shell: [0.5, 0.9], sparks: [0.18, 0.35] };
-const SPEED: Record<ImpactKind, [number, number]> = { sand: [0.8, 2.2], wood: [1.6, 3.4], shell: [1.8, 3.6], sparks: [3.5, 7] };
-const SIZE: Record<ImpactKind, [number, number]> = { sand: [0.02, 0.045], wood: [0.025, 0.06], shell: [0.03, 0.06], sparks: [0.012, 0.022] };
-const DRAG: Record<ImpactKind, number> = { sand: 3.5, wood: 1.2, shell: 1.0, sparks: 2.2 };
+const GRAVITY: Record<ImpactKind, number> = { sand: 7, wood: 11, shell: 12, sparks: 4, dirt: 9, stone: 13 };
+const LIFE: Record<ImpactKind, [number, number]> = { sand: [0.35, 0.6], wood: [0.5, 0.9], shell: [0.5, 0.9], sparks: [0.18, 0.35], dirt: [0.4, 0.75], stone: [0.45, 0.8] };
+const SPEED: Record<ImpactKind, [number, number]> = { sand: [0.8, 2.2], wood: [1.6, 3.4], shell: [1.8, 3.6], sparks: [3.5, 7], dirt: [1.0, 2.6], stone: [2.0, 4.0] };
+const SIZE: Record<ImpactKind, [number, number]> = { sand: [0.02, 0.045], wood: [0.025, 0.06], shell: [0.03, 0.06], sparks: [0.012, 0.022], dirt: [0.02, 0.05], stone: [0.02, 0.045] };
+const DRAG: Record<ImpactKind, number> = { sand: 3.5, wood: 1.2, shell: 1.0, sparks: 2.2, dirt: 2.6, stone: 0.9 };
 /** linear colours (sparks > 1: they bloom) */
 const lin = (hex: number, k = 1) => new THREE.Color(hex).convertSRGBToLinear().multiplyScalar(k);
 const COLOURS: Record<ImpactKind, THREE.Color[]> = {
@@ -40,6 +42,8 @@ const COLOURS: Record<ImpactKind, THREE.Color[]> = {
   wood: [lin(0x8a6a44), lin(0x6e5236), lin(0xb08a5a)],
   shell: [lin(0xd8573c), lin(0xf0e6d8), lin(0xb8402c)],
   sparks: [lin(0xffe7a8, 5), lin(0xfff6dc, 6), lin(0xffc070, 4)],
+  dirt: [lin(0x3a2c1e), lin(0x4d3a26), lin(0x6b5433), lin(0x5a4a2a)],
+  stone: [lin(0x8c8a84), lin(0x6f6d68), lin(0xa8a59c)],
 };
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new THREE.Vector3(), _s = new THREE.Vector3();

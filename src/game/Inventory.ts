@@ -10,7 +10,10 @@
 import type { IconId } from '../ui/icons';
 
 export type ItemId = 'venison' | 'deer-hide' | 'boar-meat' | 'boar-hide' | 'boar-tusk' | 'antlers' | 'elk-meat' | 'elk-hide' | 'bear-pelt' | 'bear-claw'
-  | 'crab-meat' | 'crab-claw' | 'crab-shell' | 'coconut' | 'monkey-fur' | 'silver-fur' | 'doubloon' | 'sea-glass' | 'old-rope';
+  | 'crab-meat' | 'crab-claw' | 'crab-shell' | 'coconut' | 'monkey-fur' | 'silver-fur' | 'doubloon' | 'sea-glass' | 'old-rope'
+  // Pine Hollow's elite + boss trophies (PH-C2 / PH-C3, src/pinehollow/); 'warden-longbow' is the King's drop as a flag
+  // until the longbow itself (Nalati's Bow.ts) is ported
+  | 'ironhide-tusk' | 'ghost-antler' | 'blackpaw-claw' | 'imperial-crown' | 'amber-heartwood' | 'warden-longbow';
 
 export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'venison': { label: 'Venison', icon: 'meat' },
@@ -33,6 +36,13 @@ export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'doubloon': { label: 'Salt-crusted doubloon', icon: 'coin' },
   'sea-glass': { label: 'Sea glass', icon: 'seaglass' },
   'old-rope': { label: 'Old rope', icon: 'rope' },
+  // Pine Hollow's elites and the Antler King
+  'ironhide-tusk': { label: "Ironhide's broken tusk", icon: 'tusk' },
+  'ghost-antler': { label: 'Pale antler', icon: 'antlers' },
+  'blackpaw-claw': { label: "Old Blackpaw's claw", icon: 'claw' },
+  'imperial-crown': { label: 'Seven-tine crown', icon: 'antlers' },
+  'amber-heartwood': { label: 'Amber heartwood', icon: 'laurel' },
+  'warden-longbow': { label: "The Warden's Longbow", icon: 'crossbow' },
 };
 
 /** what a carcass of (kind, variant) yields when harvested */
