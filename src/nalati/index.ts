@@ -305,6 +305,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
     water, pois, weather, groups, boss, elites, wildlife, stealth, ride, titan, skins: new NalatiSkinLocker(),
     attachAnimals(animals) {
       animals.wetAt = nalatiWetAt;
+      animals.navSteer = true; // the packs, the herd, the flock's dog steer round what the navmesh walls off (NALATI-MERGE P3)
       const w = new Wildlife(animals, { scene: game.scene, sky, seed: ctx.chunk.seed }).build();
       wildlife = w; nalati.wildlife = w;
       weather.bind({ scare: (x, z) => { w.scare(x, z, 60); } }); // a lightning strike breaks a pack / stampedes a herd within 60 m

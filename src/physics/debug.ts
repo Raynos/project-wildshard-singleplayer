@@ -8,10 +8,12 @@
 import * as THREE from 'three';
 import type { Physics } from './Physics';
 import { tagOf } from './surface';
+import { activeNavmesh } from './navmesh';
 
 const LIFT = 0.02;
 
 export function installPhysicsDebug(physics: Physics, scene: THREE.Scene, params: URLSearchParams): void {
+  if (params.get('navmesh') === 'debug') installNavmeshDebug(scene);
   if (params.get('physics') !== 'debug') return;
   // for probes: which collider (and whose, what material) a query hit — `window.__physics.tagOf(collider)`
   (window as unknown as { __physics: unknown }).__physics = { physics, tagOf };
@@ -35,4 +37,32 @@ export function installPhysicsDebug(physics: Physics, scene: THREE.Scene, params
   };
   rebuild();
   setInterval(rebuild, 500);
+}
+
+/**
+ * `?navmesh=debug`: the shard's baked navmesh (src/physics/navmesh.ts, its smallest layer) drawn over the world — navcat's
+ * own helper (the polys filled, their edges), lifted 5 cm and drawn over everything, for the bake's authoring views
+ * (NALATI-MERGE P3). Dev only: navcat's three helpers load only with the param.
+ */
+function installNavmeshDebug(scene: THREE.Scene): void {
+  const layer = activeNavmesh()?.layers[0];
+  if (layer === undefined) { console.warn('[navmesh] ?navmesh=debug: this shard has no navmesh'); return; }
+  void (async () => {
+    const { createNavMeshHelper } = await import('navcat/three');
+    const { object } = createNavMeshHelper(layer.mesh);
+    object.name = 'navmesh-debug';
+    object.position.y = 0.05;
+    object.renderOrder = 11;
+    object.traverse((o) => {
+      if (!(o instanceof THREE.Mesh) && !(o instanceof THREE.Line)) return;
+      const m: unknown = o.material;
+      for (const mat of Array.isArray(m) ? m : [m]) {
+        if (!(mat instanceof THREE.MeshBasicMaterial || mat instanceof THREE.LineBasicMaterial)) continue;
+        // one readable colour over the painted world: the polys cyan, their edges dark teal
+        mat.vertexColors = false; mat.color.set(o instanceof THREE.Mesh ? 0x22e0ff : 0x006070);
+        mat.depthTest = false; mat.transparent = true; mat.opacity = o instanceof THREE.Mesh ? 0.32 : 0.9; mat.fog = false; mat.needsUpdate = true;
+      }
+    });
+    scene.add(object);
+  })();
 }

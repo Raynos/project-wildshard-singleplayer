@@ -283,7 +283,7 @@ export class Pack {
       case 'roam': {
         const tx = this.roamX + (m['ox'] ?? 0), tz = this.roamZ + (m['oz'] ?? 0);
         const td = Math.hypot(tx - a.position.x, tz - a.position.z);
-        if (td > 3) this.steerSep(a, c, Math.atan2(tx - a.position.x, tz - a.position.z), td > 25 ? TROT : 1.6, 2.5);
+        if (td > 3) this.steerSep(a, c, c.pathYaw(a, tx, tz, 2), td > 25 ? TROT : 1.6, 2.5);
         else { a.setMotion(a.yaw, 0, 1.5); a.state = 'graze'; }   // sniffing the ground
         if (td > 3) a.state = 'wander';
         break;
@@ -309,7 +309,7 @@ export class Pack {
         const sx = m['sx'] ?? a.position.x, sz = m['sz'] ?? a.position.z;
         const sd = Math.hypot(sx - a.position.x, sz - a.position.z);
         const speed = d > 55 ? RUN * 0.8 : sd > 4 ? TROT : sd > 1.5 ? 1.4 : 0;
-        if (speed > 0) this.steerSep(a, c, Math.atan2(sx - a.position.x, sz - a.position.z), speed, 3);
+        if (speed > 0) this.steerSep(a, c, c.pathYaw(a, sx, sz, 1.5), speed, 3);
         else a.setMotion(toTgt, 0, 2);
         break;
       }
@@ -355,7 +355,7 @@ export class Pack {
         const px = tgt.x + Math.sin(ang) * R, pz = tgt.z + Math.cos(ang) * R;
         const pd = Math.hypot(px - a.position.x, pz - a.position.z);
         low = 0.25;   // on the ring: slinking, head still over the grass
-        if (pd > 1.2) this.steerSep(a, c, Math.atan2(px - a.position.x, pz - a.position.z), pd > 10 ? RUN * 0.85 : pd > 3 ? TROT * 1.2 : 2.2, 4);
+        if (pd > 1.2) this.steerSep(a, c, pd > 6 ? c.pathYaw(a, px, pz, 0.8) : Math.atan2(px - a.position.x, pz - a.position.z), pd > 10 ? RUN * 0.85 : pd > 3 ? TROT * 1.2 : 2.2, 4);
         else a.setMotion(toTgt, 0, 3);
         break;
       }

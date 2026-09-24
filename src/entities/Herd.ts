@@ -372,7 +372,7 @@ export class HorseHerd {
           let tx = this.spotX, tz = this.spotZ;
           if (a !== lead && lead?.alive === true) { tx = lead.position.x - Math.sin(lead.yaw) * 4; tz = lead.position.z - Math.cos(lead.yaw) * 4; }
           const td = Math.hypot(tx - px, tz - pz);
-          if (a === lead || td > 6 || coh > 0) { vx = (tx - px) / (td || 1) + sepX * 1.5 + (nAli > 0 ? aliX / nAli * 0.4 : 0); vz = (tz - pz) / (td || 1) + sepZ * 1.5 + (nAli > 0 ? aliZ / nAli * 0.4 : 0); speed = td > 30 ? TROT * 0.8 : WALK; }
+          if (a === lead || td > 6 || coh > 0) { const y = td > 8 ? c.pathYaw(a, tx, tz, 2) : Math.atan2(tx - px, tz - pz); vx = Math.sin(y) + sepX * 1.5 + (nAli > 0 ? aliX / nAli * 0.4 : 0); vz = Math.cos(y) + sepZ * 1.5 + (nAli > 0 ? aliZ / nAli * 0.4 : 0); speed = td > 30 ? TROT * 0.8 : WALK; }
           break;
         }
         // grazing: stand and eat, with the odd step; drift back if too far from the herd, step away if crowded
@@ -433,7 +433,7 @@ export class HorseHerd {
         const gx = this.cx + (tx0 / td0) * out, gz = this.cz + (tz0 / td0) * out;
         const gd = Math.hypot(gx - a.position.x, gz - a.position.z);
         m['headUp'] = 1; a.lookWeight = 1;
-        if (gd > 3) { a.state = 'wander'; c.steer(a, Math.atan2(gx - a.position.x, gz - a.position.z), gd > 15 ? TROT : WALK, 1.8); }
+        if (gd > 3) { a.state = 'wander'; c.steer(a, c.pathYaw(a, gx, gz, 1.5), gd > 15 ? TROT : WALK, 1.8); }
         else { a.state = 'alert'; a.setMotion(toP, 0, 1.2); }
         if (this.stallionState === 'warn') {
           m['pin'] = 0.6;
@@ -453,7 +453,7 @@ export class HorseHerd {
         const tgt = ct?.alive === true ? ct.position : player;
         const tx = tgt.x - a.position.x, tz = tgt.z - a.position.z, td = Math.hypot(tx, tz);
         a.state = 'charge'; m['pin'] = 1;
-        c.steer(a, Math.atan2(tx, tz), CHARGE * a.mods.speed, 4.5);
+        c.steer(a, td > 6 ? c.pathYaw(a, tgt.x, tgt.z, 0.5) : Math.atan2(tx, tz), CHARGE * a.mods.speed, 4.5);
         if (td < 1.9 * a.scale) {
           _t.set(tx, 0, tz).normalize();
           if (ct?.alive === true) {

@@ -160,9 +160,14 @@ abstract class Base implements EliteScript {
     const p = this.env.player.position, dx = p.x - a.position.x, dz = p.z - a.position.z;
     return { d: Math.hypot(dx, dz), yaw: Math.atan2(dx, dz) };
   }
-  protected goHome(a: Animal, speed: number): void {
+  /** back to the lair, round what's in the way (the navmesh path — NALATI-MERGE P3) */
+  protected goHome(a: Animal, c: ThinkCtx, speed: number): void {
     const dx = this.def.lair.x - a.position.x, dz = this.def.lair.z - a.position.z;
-    a.setMotion(Math.atan2(dx, dz), Math.hypot(dx, dz) > 3 ? speed : 0, 3);
+    a.setMotion(c.pathYaw(a, this.def.lair.x, this.def.lair.z, 2), Math.hypot(dx, dz) > 3 ? speed : 0, 3);
+  }
+  /** the heading to the player: along the navmesh path while more than `near` m out, straight at him inside it */
+  protected chase(a: Animal, c: ThinkCtx, d: number, yaw: number, near = 6): number {
+    return d > near ? c.pathYaw(a, c.player.x, c.player.z, 0.6) : yaw;
   }
   protected melee(p: THREE.Vector3): boolean { const pl = this.env.player.position; return Math.hypot(p.x - pl.x, p.z - pl.z) < 3.8; }
 }
@@ -214,7 +219,7 @@ class Aqbars extends Base {
     a.lookTarget.copy(pl); a.lookWeight = this.st === 'lurk' ? 0.4 : 1;
     switch (this.st) {
       case 'lurk': a.setMotion(a.yaw, 0, 1); break;
-      case 'home': this.goHome(a, 5); if (Math.hypot(a.position.x - this.def.lair.x, a.position.z - this.def.lair.z) < 3) this.st = 'lurk'; break;
+      case 'home': this.goHome(a, c, 5); if (Math.hypot(a.position.x - this.def.lair.x, a.position.z - this.def.lair.z) < 3) this.st = 'lurk'; break;
       case 'stalk': case 'perch': {
         a.mem['low'] = this.st === 'stalk' ? 0.8 : 0.2;
         if (tp.d < 2.4 && this.cd <= 0) { this.st = 'swipe'; this.hitDone = 0; a.startAttack(1.0); a.setMotion(tp.yaw, 0, 6); break; }
@@ -224,7 +229,7 @@ class Aqbars extends Base {
           if (dp < 1.4) { this.startTell(a, pl); break; }
           a.setMotion(Math.atan2(perch.x - a.position.x, perch.z - a.position.z), 5.5, 4);
         } else if (tp.d > 7 && tp.d < 12 && this.cd <= 0) this.startTell(a, pl);   // no ledge: a run-up pounce on open ground
-        else a.setMotion(tp.yaw, tp.d > 9 ? 4.2 : tp.d < 6 ? -1 : 0, 3);
+        else a.setMotion(tp.d > 9 ? this.chase(a, c, tp.d, tp.yaw, 9) : tp.yaw, tp.d > 9 ? 4.2 : tp.d < 6 ? -1 : 0, 3);
         break;
       }
       case 'tell': a.setMotion(Math.atan2(this.to.x - a.position.x, this.to.z - a.position.z), 0, 6); break;
@@ -336,7 +341,7 @@ class Kokbori extends Base {
     this.cd -= c.dt;
     switch (this.st) {
       case 'den': a.setMotion(tp.yaw, 0, 1.5); break;
-      case 'home': this.goHome(a, 6); if (Math.hypot(a.position.x - this.def.lair.x, a.position.z - this.def.lair.z) < 4) this.st = 'den'; break;
+      case 'home': this.goHome(a, c, 6); if (Math.hypot(a.position.x - this.def.lair.x, a.position.z - this.def.lair.z) < 4) this.st = 'den'; break;
       case 'hold': {
         // 24–32 m out (close enough to read her over the grass), sliding round you — and off your line of sight when you look at her
         const lookX = wildEnv.playerFwdX, lookZ = wildEnv.playerFwdZ;
@@ -361,7 +366,7 @@ class Kokbori extends Base {
           break;
         }
         if (tp.d < 3.5 && this.cd <= 0) { this.bit = false; a.startAttack(0.9); break; }
-        a.setMotion(tp.yaw, tp.d > 2.5 ? 8 : 0, 3.5);
+        a.setMotion(this.chase(a, c, tp.d, tp.yaw), tp.d > 2.5 ? 8 : 0, 3.5);
         break;
       }
       default: break;

@@ -416,7 +416,7 @@ export function thinkSheepdog(a: Animal, c: ThinkCtx): void {
   }
   if (wolf !== null) {
     const tx = (wolf.position.x + f.cx) / 2, tz = (wolf.position.z + f.cz) / 2;
-    c.steer(a, Math.atan2(tx - px, tz - pz), Math.hypot(tx - px, tz - pz) > 3 ? 7.5 : 0, 5);
+    c.steer(a, c.pathYaw(a, tx, tz, 0.8), Math.hypot(tx - px, tz - pz) > 3 ? 7.5 : 0, 5);
     a.lookTarget.copy(wolf.position); a.lookWeight = 1; a.state = 'alert'; m['snarl'] = 1; m['low'] = 0.4;
     if ((m['barkT'] ?? 0) <= 0) { m['barkT'] = 0.5 + Math.random() * 0.6; f.onSound?.('dog_bark', px, pz); }
     c.confine(a); return;
@@ -431,7 +431,7 @@ export function thinkSheepdog(a: Animal, c: ThinkCtx): void {
     const bd = Math.hypot(bx - px, bz - pz);
     m['low'] = 0.8;
     a.state = 'stalk';
-    if (bd > 1) c.steer(a, Math.atan2(bx - px, bz - pz), bd > 8 ? 7.5 : 3, 5); else a.setMotion(Math.atan2(-ox, -oz), 0, 3);
+    if (bd > 1) c.steer(a, bd > 4 ? c.pathYaw(a, bx, bz, 1) : Math.atan2(bx - px, bz - pz), bd > 8 ? 7.5 : 3, 5); else a.setMotion(Math.atan2(-ox, -oz), 0, 3);
     a.lookTarget.set(_p.x, _p.y, _p.z); a.lookWeight = 0.8;
     c.confine(a); return;
   }
@@ -444,7 +444,7 @@ export function thinkSheepdog(a: Animal, c: ThinkCtx): void {
   const ang = Math.atan2(px - f.cx, pz - f.cz) + 0.35;
   const tx = f.cx + Math.sin(ang) * R, tz = f.cz + Math.cos(ang) * R;
   a.state = 'wander';
-  c.steer(a, Math.atan2(tx - px, tz - pz), 3.4, 3);
+  c.steer(a, c.pathYaw(a, tx, tz, 2), 3.4, 3);
   const pd = a.position.distanceTo(c.player);
   a.lookTarget.copy(c.player); a.lookWeight = pd < 6 ? 0.8 : 0;
   c.confine(a);
