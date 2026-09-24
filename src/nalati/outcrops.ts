@@ -1,6 +1,6 @@
 /**
  * Escarpment rock outcrops (Nalati look pass, lever 5; world agent): weathered granite breaking out of the steep ground
- * — the escarpment's ravines and rock bands, the upper face under the north rim, Snow Lotus Valley's walls — as real, smooth
+ * — the escarpment's ravines and rock bands, the upper face under the north rim — as real, smooth
  * meshes (soft-bevelled blocks with a couple of rounded stones leaning on them), painted like the POI rocks: warm
  * granite, lichen on the tops, a darker foot where they sink into the turf. The Crags and Eagle Rock are the POI
  * agent's (src/world/nalati/Crags.ts, EagleRock.ts); the loose scatter is the dressing agent's.
@@ -17,7 +17,7 @@ import { graniteBlock } from '../world/nalati/EagleRock';
 import { inPoiClearing } from '../world/nalati/clearings';
 import { heightAt, normalAt, trailDistance } from '../world/Heightfield';
 import { Noise2D } from '../core/noise';
-import { riverMask, rimZAt, RIVER, RIM_Z, snowValleyX, snowValleyHalf, SNOW_LINE, brookMask } from '../chunks/nalati-grasslands';
+import { riverMask, rimZAt, RIVER, RIM_Z, outcropAt, BROOK } from '../chunks/nalati-grasslands';
 import type { Collider } from '../player/Player';
 import type { Sky } from '../world/Sky';
 
@@ -48,8 +48,8 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
     if (y0 < -8.5 || y0 > 46) continue;
     if (trailDistance(x, z) < 7 || riverMask(x, z) > 0 || inPoiClearing(x, z, 4)) continue;
     if (Math.abs(x) > 238 || Math.abs(z) > 238) continue;
-    // clustered: groups of rock on the steepest ground, bare grass between
-    const c = cluster.fbm(x * 0.018, z * 0.018, 3);
+    // clustered where the ground paints rock (the def's outcropAt: rock breaking through the turf), grass between
+    const c = outcropAt(x, z) * 1.25 - 0.2;
     const keep = (c + 0.1) * 1.5 * Math.min(1, (slope - 0.035) * 10);
     if (rng.next() > keep) continue;
 
@@ -97,27 +97,7 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
     if (h > 1.1) colliders.push({ x, z, hw: w * 0.42, hd: d * 0.42, rot: yaw, yTop: y + h * 0.5, yBottom: y - h });
     count++;
   }
-  // Snow Lotus Valley's walls: cool granite breaking out of the scree either side of the floor, snow on their tops high up
-  for (let z = -58; z >= -242; z -= 3.6) {
-    const xv = snowValleyX(z), half = snowValleyHalf(z);
-    for (const side of [-1, 1]) {
-      if (rng.next() > 0.7) continue;
-      const x = xv + side * (half + rng.range(3, 26));
-      if (Math.abs(x) > 238 || trailDistance(x, z) < 6 || brookMask(x, z) > 0 || inPoiClearing(x, z, 4)) continue;
-      const [nx, ny, nz] = normalAt(x, z, 1.5);
-      if (1 - ny < 0.06) continue;
-      const size = rng.range(1.2, 3.2);
-      const w = size * rng.range(1.2, 2.2), h = size * rng.range(1.0, 1.8), d = size * rng.range(1.0, 1.6);
-      const yaw = Math.atan2(nx, nz) + Math.PI / 2 + rng.range(-0.4, 0.4);
-      const y0 = heightAt(x, z), y = y0 - h * 0.28;
-      kit.add(graniteBlock(w, h, d, rng.int(1, 1e6), 0.26), rng.next() < 0.6 ? C.cool : C.granite, {
-        matrix: M(x, y, z, yaw, 1, 1, 1, (1 - ny) * 0.8, 0),
-        top: y0 > SNOW_LINE - 6 ? { color: C.snow, threshold: 0.45, amount: 0.9 } : { color: C.lichen, threshold: 0.6, amount: 0.4 }, brush: 0.14, foot: 0.7,
-      });
-      if (h > 1.1) colliders.push({ x, z, hw: w * 0.42, hd: d * 0.42, rot: yaw, yTop: y + h * 0.5, yBottom: y - h });
-      count++;
-    }
-  }
+  // (Snow Lotus Valley's walls are src/nalati/cragRock.ts's: ribs standing against them, sunk into the rock)
   // the river's channels: boulders standing in the current (the white water breaks round them)
   for (let x = -240; x <= 240; x += 7) {
     if (rng.next() > 0.55 || Math.abs(x) < 16) continue;
@@ -143,6 +123,32 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
         });
       }
       count++;
+    }
+  }
+  // the meltwater stream (Snow Lotus Valley): boulders in its bed that the water runs round, heaped along both banks
+  for (let i = 0; i + 1 < BROOK.length; i++) {
+    const a = BROOK[i], b = BROOK[i + 1];
+    if (!a || !b) continue;
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]), tx = (b[0] - a[0]) / len, tz = (b[1] - a[1]) / len;
+    for (let d = rng.range(0, 2); d < len; d += rng.range(1.8, 3.6)) {
+      const px = a[0] + tx * d, pz = a[1] + tz * d;
+      if (trailDistance(px, pz) < 5 || inPoiClearing(px, pz, 1)) continue;
+      if (rng.next() < 0.45) {
+        const r = rng.range(0.3, 0.75), u = rng.range(-0.9, 0.9);
+        const bx = px - tz * u, bz = pz + tx * u;
+        kit.add(blob(r, rng, 1, 0.62, 0.2), C.cool, { matrix: M(bx, heightAt(bx, bz) - r * 0.15, bz, rng.range(0, 6.28)), brush: 0.1, foot: 0.55 });
+        count++;
+      }
+      for (const side of [-1, 1]) {
+        if (rng.next() > 0.6) continue;
+        const r = rng.range(0.45, 1.35), o = side * rng.range(1.9, 4.8);
+        const bx = px - tz * o + rng.range(-0.8, 0.8), bz = pz + tx * o + rng.range(-0.8, 0.8);
+        kit.add(blob(r, rng, 1, 0.7, 0.22), rng.next() < 0.6 ? C.cool : C.granite, {
+          matrix: M(bx, heightAt(bx, bz) - r * 0.3, bz, rng.range(0, 6.28)), top: { color: C.snow, threshold: 0.75, amount: 0.25 }, brush: 0.12, foot: 0.65,
+        });
+        if (r > 1.0) colliders.push({ x: bx, z: bz, hw: r * 0.7, hd: r * 0.7, rot: 0, yBottom: heightAt(bx, bz) - 1, yTop: heightAt(bx, bz) + r * 0.5 });
+        count++;
+      }
     }
   }
   const triangles = Math.round(kit.triangleCount);

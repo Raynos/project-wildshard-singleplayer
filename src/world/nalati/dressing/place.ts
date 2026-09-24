@@ -214,6 +214,7 @@ function rocks(plan: DressPlan, occ: Occupancy, nearTree: (x: number, z: number,
     const p = Math.min(1, 0.1 + smoothstep(0.06, 0.3, s) * 0.55 + bank + massif);
     if (coin > cl * 0.3 * p) continue;
     if (s > 0.6) continue; // a boulder glued to a cliff face reads as floating
+    if (s > 0.17 && zoneAt(x, z)[2] > 0.5) continue; // the snow ring's faces carry their own rock (src/nalati/cragRock.ts): boulders only at their feet
     const big = 0.4 + rng.next() ** 2.2 * (s > 0.2 || massif > 0.3 ? 2.1 : 1.5);
     if (blocked(x, z, h, { road: 4.5 + big, poi: 3 + big, brook: 3 + big })) continue;
     if (onKurgan(x, z, 2)) continue;
@@ -276,6 +277,7 @@ function scree(plan: DressPlan, occ: Occupancy): void {
     if (rng.next() > 0.25 + edge * 0.45 + f * 0.3) continue;
     const h = heightAt(x, z);
     if (h > SNOW_LINE + 4 || blocked(x, z, h, { road: 3.2, poi: 1, brook: 1.6 }) || glacierMask(x, z) > 0.1) continue;
+    if (slopeAt(x, z) > 0.17) continue; // not on the walls (a stone on a 40° face reads pasted on): the floor and the fans
     const big = rng.next() < 0.04 + edge * 0.05;
     if (big) {
       const r = 0.5 + rng.next() ** 2 * 1.4;

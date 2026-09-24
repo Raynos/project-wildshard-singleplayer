@@ -26,7 +26,7 @@ import { inSpruceClearing } from '../world/nalati/clearings';
 import {
   RIVER_LEVEL, riverZAt, riverHalfAt, BRIDGE_XZ, BOWL, RIM_N, SKY_ROAD, SKY_ROAD_RIM, EAGLE_ROCK, KOKPAR, KURGANS, SUMMER_YURTS,
   WATCHTOWER, CAIRN, SNOW_LINE, CRAGS, WEST_CRAGS, snowValleyX, snowValleyHalf, snowValleyFloor, GLACIER, MELT_STREAM,
-  LEOPARD_CAVE, ARGYMAQ_PASTURE, N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, CAMP_SPUR, BOWL_TRACKS, LONE_SPRUCE,
+  LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, CAMP_SPUR, BOWL_TRACKS, LONE_SPRUCE,
 } from './nalatiLayout';
 import type { ChunkDef, ChunkTerrain, RGB, Vec2 } from './ChunkDef';
 import thumbnail from './thumbs/nalati-grasslands.jpg';
@@ -80,6 +80,7 @@ const SKY_CLIMB: Vec2[] = SKY_ROAD.slice(0, SKY_ROAD_RIM + 1);
 const SKY_CLIMB_CUM = cumulative(SKY_CLIMB);
 const SKY_CLIMB_Y: [number, number] = [-8.6, 30];
 const BROOK_CUM = cumulative(MELT_STREAM);
+const S_ROAD_CUM = cumulative(S_ROAD_PTS);
 /** a soft minimum (k = blend metres) */
 const smin = (a: number, b: number, k: number): number => { const h = clamp(0.5 + (0.5 * (b - a)) / k, 0, 1); return lerp(b, a, h) - k * h * (1 - h); };
 
@@ -114,14 +115,82 @@ function ringMass(x: number, z: number): number {
   return Math.max(south, east, west);
 }
 
+/** 0..1: the glacier's trough and the rock walls either side of it (the snow ring reaches over the bowl's rim there) */
+function glacierNear(x: number, z: number): number {
+  const ax = GLACIER.x1 - GLACIER.x0, az = GLACIER.z1 - GLACIER.z0;
+  const t = ((x - GLACIER.x0) * ax + (z - GLACIER.z0) * az) / (ax * ax + az * az);
+  if (t < -0.3 || t > 1.2) return 0;
+  const dp = Math.hypot(x - (GLACIER.x0 + ax * t), z - (GLACIER.z0 + az * t));
+  return smoothstep(GLACIER.half + 30, GLACIER.half + 16, dp) * smoothstep(-0.3, -0.1, t);
+}
+
 /** the three zones' weights at (x, z): [valley, bowl, snow] (sum 1) — the palettes, the grass, the sound read them */
 export function zoneAt(x: number, z: number): [number, number, number] {
   const rz = rimZAt(x), valley = smoothstep(rz + 2, rz + 16, z);
-  const snow = (1 - valley) * Math.max(ringMass(x, z) * smoothstep(0.98, 1.1, bowlQ(x, z)), smoothstep(-52, -70, z));
+  const snow = (1 - valley) * Math.max(ringMass(x, z) * smoothstep(0.98, 1.1, bowlQ(x, z)), smoothstep(-52, -70, z), glacierNear(x, z));
   return [valley, Math.max(0, 1 - valley - snow), snow];
 }
 
 // ── the landscape ─────────────────────────────────────────────────────────────────────────────────────────────────
+
+/** ridged multifractal (Musgrave: each octave is weighted by the one before, so the fine detail gathers on the crests
+ *  and the hollows stay smooth) — 0 in the couloirs … ~1 on the arêtes */
+function ridgedMF(n: Noise2D, x: number, z: number, octaves: number): number {
+  let sum = 0, f = 1, amp = 1, w = 1, norm = 0;
+  for (let o = 0; o < octaves; o++) {
+    let s = 1 - Math.abs(n.get(x * f, z * f));
+    s = s * s * w;
+    w = clamp(s * 1.8, 0, 1);
+    sum += s * amp; norm += amp; amp *= 0.5; f *= 2.03;
+  }
+  return sum / norm;
+}
+
+/** 0..1: ribs radiating from a summit at (cx, cz) — arêtes (1) running down the faces with couloirs (0) between them,
+ *  ~20 m apart half way down, bending a little as they fall */
+function ribs(x: number, z: number, cx: number, cz: number, n: Noise2D): number {
+  const dx = x - cx, dz = z - cz, r = Math.hypot(dx, dz) + 1e-3;
+  // the heading round the summit, warped so the ribs wander and bunch (no sunburst)
+  const th = Math.atan2(dz, dx) + n.get(x * 0.013 + 4.1, z * 0.013) * 0.55 + r * 0.004;
+  const a = 1.25;
+  const w = n.get(Math.cos(th) * a + 13.7, Math.sin(th) * a - 6.1);
+  const s = 1 - Math.abs(w);
+  return s * s * smoothstep(8, 36, r);
+}
+
+/**
+ * The snow ring's mountains over the shoulder `d` metres beyond the bowl's rim: granite crags, not domes. A height
+ * budget (the two massifs' domes + a low-frequency peaks field) is carved by arêtes and couloirs — ribs radiating from
+ * each massif's summit, a domain-warped ridged multifractal between them — and, high up, broken into tilted strata
+ * (steep risers, ledges where the snow lies). The foot keeps a smooth scree apron (the bowl side stays walkable).
+ */
+function crags(x: number, z: number, d: number, n: Noise2D, n2: Noise2D): number {
+  const peaks = smoothstep(-0.35, 0.75, n.fbm(x * 0.0085 + 1.7, z * 0.0085 - 2.3, 3));
+  const east = smoothstep(135, 10, Math.hypot(x - CRAGS.x, z - CRAGS.z) + n.get(x * 0.02 + 5, z * 0.02) * 16);
+  const west = smoothstep(125, 10, Math.hypot(x - WEST_CRAGS.x, z - WEST_CRAGS.z) + n.get(x * 0.02 + 9, z * 0.02) * 14);
+  // the apron: a concave scree skirt off the rim, then the crags rise out of it
+  const apron = smoothstep(0, 50, d) ** 0.9 * 12;
+  const up = smoothstep(6, 42, d);
+  const env = (peaks ** 1.4 * 50 + (east ** 1.2 * 40 + west ** 1.2 * 32) * (0.55 + 0.45 * peaks)) * up;
+  // the relief: long knife-edged arêtes (one warped ridge octave, ~130 m), spurs off them (a ridged multifractal, ~45 m,
+  // weighted by the arête so the detail gathers on the crests), and couloirs cut down the faces (ribs radiating from
+  // each massif's summit)
+  const wx = x + n.get(x * 0.011 + 7.1, z * 0.011) * 30, wz = z + n2.get(x * 0.011, z * 0.011 - 3.3) * 30;
+  const r1 = 1 - Math.abs(n2.get(wx * 0.0078 + 11, wz * 0.0078 - 4)), arete = r1 * r1;
+  const spur = ridgedMF(n, wx * 0.017 - 3, wz * 0.017 + 8, 3);
+  const rib = Math.max(ribs(x, z, CRAGS.x, CRAGS.z, n) * east, ribs(x, z, WEST_CRAGS.x, WEST_CRAGS.z, n2) * west, 0.35);
+  const relief = (0.62 * arete + 0.5 * spur * (0.4 + 0.6 * arete)) * (0.6 + 0.4 * rib);
+  let hh = apron + env * (0.3 + 0.8 * relief);
+  // strata: tilted bands, each a steep riser over a sloping ledge — only on the high crags (above the apron)
+  const hi = smoothstep(34, 50, hh);
+  if (hi > 0) {
+    const tilt = n2.get(x * 0.014 + 2.2, z * 0.014) * 7 + (x * 0.04 - z * 0.02);
+    const lv = (hh + tilt) / 9, fl = Math.floor(lv), fr = lv - fl;
+    const stepped = (fl + smoothstep(0.45, 0.92, fr)) * 9 - tilt;
+    hh = lerp(hh, stepped, hi * 0.55);
+  }
+  return hh + n.fbm(x * 0.09, z * 0.09, 2) * 1.6 * up;
+}
 
 /** the high country south of the north rim: the bowl, its rims, the snow ring's mountains (no valley cut, no POI pads) */
 function upland(x: number, z: number, n: Noise2D, n2: Noise2D): number {
@@ -136,18 +205,7 @@ function upland(x: number, z: number, n: Noise2D, n2: Noise2D): number {
     const mass = ringMass(x, z);
     // outside the ring (the NW / NE corners, the W / E strips north of it): a rocky shoulder a few metres over the rim
     h = rim + smoothstep(0, 40, d) * (4 + n.fbm(x * 0.03, z * 0.03, 2) * 3);
-    if (mass > 0) {
-      // separate peaks and ridges, not a raised plateau: a low shoulder, then big low-frequency ridged peaks, the two
-      // massifs' domes under them, and sharp mid-frequency crests
-      // (big rounded masses from a low-frequency fbm, each topped by a gentler ridged crest: needles read as spikes)
-      const peaks = smoothstep(-0.35, 0.75, n.fbm(x * 0.0085 + 1.7, z * 0.0085 - 2.3, 3)), crest = n2.ridged(x * 0.022, z * 0.022, 3);
-      const base = smoothstep(0, 50, d) ** 0.9 * 12;
-      const east = smoothstep(135, 10, Math.hypot(x - CRAGS.x, z - CRAGS.z) + n.get(x * 0.02 + 5, z * 0.02) * 16);
-      const west = smoothstep(125, 10, Math.hypot(x - WEST_CRAGS.x, z - WEST_CRAGS.z) + n.get(x * 0.02 + 9, z * 0.02) * 14);
-      const up = smoothstep(0, 35, d);
-      const tall = (peaks ** 1.5 * 44 + crest * peaks * 12) * up + (east ** 1.3 * 26 + west ** 1.3 * 20) * up * (0.55 + 0.45 * peaks);
-      h += mass * (base + tall) + mass * n.fbm(x * 0.09, z * 0.09, 2) * 2.2;
-    }
+    if (mass > 0) h += mass * crags(x, z, d, n, n2);
   }
   return h;
 }
@@ -210,11 +268,25 @@ function landscape(x: number, z: number, n: Noise2D, n2: Noise2D): number {
     }
   }
 
-  // Snow Lotus Valley: a U-shaped glacial valley cut south through the ring from the bowl's south rim to the S gate
+  // Snow Lotus Valley: a U-shaped glacial valley cut south through the ring from the bowl's south rim to the S gate —
+  // its walls broken into buttresses and gullies (the wall line juts out / steps back every ~25 m), stepped by strata,
+  // a scree fan spilling out of every gully's mouth onto the floor (kept off the S road and the stream)
   if (z < -20) {
     const on = smoothstep(-22, -52, z);
-    const off = Math.abs(x - snowValleyX(z)) - snowValleyHalf(z);
-    const vf = snowValleyFloor(z) + n.fbm(x * 0.03, z * 0.03, 2) * 0.9 + Math.max(0, off) ** 1.28 * 0.62 + Math.max(0, -off) * 0.02;
+    const xv = snowValleyX(z), side = x > xv ? 1 : -1;
+    // (round the snow lotus clusters on the walls the slope stays climbable: no buttress, no strata)
+    let lotus = 0;
+    for (const c of SNOW_LOTUS) lotus = Math.max(lotus, smoothstep(c.r + 22, c.r + 8, Math.hypot(x - c.x, z - c.z)));
+    const g = n2.get(z * 0.04 + side * 31, 2.7 + side * 1.3), butt = (1 - Math.abs(g)) ** 2 * (1 - lotus);
+    // (the S road runs along the west wall's foot round z −100: the wall keeps 3 m back from it, no buttress juts at it)
+    const rd = polyNearest(x, z, S_ROAD_PTS, S_ROAD_CUM).d, keep = smoothstep(6, 16, rd);
+    const off = Math.abs(x - xv) - snowValleyHalf(z) + (butt * 9 - 4) * keep - (1 - keep) * 3;
+    let wall = Math.max(0, off) ** 1.3 * 0.62 * (1 + 0.3 * butt);
+    const st = smoothstep(4, 12, wall) * (1 - lotus);
+    if (st > 0) { const lv = (wall + n.get(z * 0.03, side * 5) * 4) / 7, fl = Math.floor(lv); wall = lerp(wall, (fl + smoothstep(0.4, 0.9, lv - fl)) * 7, st * 0.5); }
+    const clear = smoothstep(5, 12, rd) * (z < -85 ? smoothstep(3, 9, polyNearest(x, z, MELT_STREAM, BROOK_CUM).d) : 1);
+    const fan = Math.max(0, 1 + Math.min(0, off) / 15) ** 1.6 * 5.5 * (1 - butt) * clear * smoothstep(-40, -70, z);
+    const vf = snowValleyFloor(z) + n.fbm(x * 0.03, z * 0.03, 2) * 0.9 + wall + fan + Math.max(0, -off) * 0.02;
     h = lerp(h, smin(h, vf, 5), on);
   }
   // the glacier tongue: a smooth convex ice ramp from the east crags down into the valley head
@@ -225,9 +297,21 @@ function landscape(x: number, z: number, n: Noise2D, n2: Noise2D): number {
       const px = GLACIER.x0 + ax * t, pz = GLACIER.z0 + az * t;
       const dp = Math.hypot(x - px, z - pz) + n.get(x * 0.03, z * 0.03) * 3;
       const g = smoothstep(GLACIER.half + 6, GLACIER.half - 6, dp) * smoothstep(-0.15, 0.02, t) * smoothstep(1.08, 0.96, t);
+      // the rock walls the ice flows between: a crest either side standing ~12 m over the ice (so the tongue lies in its
+      // own trough, not on a ramp above the bowl's rim), fading out toward the snout
+      const fw = smoothstep(GLACIER.half - 2, GLACIER.half + 6, dp) * smoothstep(GLACIER.half + 22, GLACIER.half + 10, dp) * smoothstep(-0.12, 0.08, t) * smoothstep(0.85, 0.55, t) * smoothstep(0.93, 1.03, bowlQ(x, z));
+      if (fw > 0) h = Math.max(h, lerp(h, lerp(GLACIER.y0, GLACIER.y1, clamp(t, 0, 1) ** 0.85) + 4 + crags(x, z, 60, n, n2) * 0.3, fw));
       if (g > 0) {
         const ice = lerp(GLACIER.y0, GLACIER.y1, clamp(t, 0, 1) ** 0.85) + 3.2 * Math.max(0, 1 - (dp / GLACIER.half) ** 2) + n2.get(x * 0.06, z * 0.06) * 0.5;
-        h = lerp(h, ice, g);
+        // where the tongue stands over lower ground its side is a rock wall, not a smooth ramp: buttresses and gullies
+        // (a ridged edge), stepped by strata
+        const side = smoothstep(0.02, 0.25, g) * smoothstep(0.98, 0.7, g) * smoothstep(4, 14, ice - h);
+        let hg = lerp(h, ice, g);
+        if (side > 0) {
+          const lv = (hg + n.get(x * 0.05, z * 0.05) * 3) / 6, fl = Math.floor(lv);
+          hg = lerp(hg, (fl + smoothstep(0.35, 0.9, lv - fl)) * 6 + (ridgedMF(n2, x * 0.07 + 3, z * 0.07, 2) - 0.35) * 9, side * 0.7);
+        }
+        h = hg;
       }
     }
   }
@@ -297,6 +381,40 @@ export function kokparMask(x: number, z: number): number {
   return smoothstep(1.02, 0.9, e);
 }
 
+// ── the ground's materials: the one source for the splat (grass / placement), the painted vertex colour and the
+//    per-pixel surface masks (src/nalati/terrainSurface.ts) ──────────────────────────────────────────────────────
+
+const cn = new Noise2D(SEED + 91), cn2 = new Noise2D(SEED + 92);
+
+/** 0..1: where the escarpment's (and the rims') rock breaks through the turf — clusters of outcrop with grassy slopes
+ *  between them, not a uniform grey band (src/nalati/outcrops.ts plants its blocks by the same field) */
+export function outcropAt(x: number, z: number): number {
+  return smoothstep(0.02, 0.3, cn2.fbm(x * 0.021 + 19.3, z * 0.021 - 4.1, 3));
+}
+
+/**
+ * The snow ring's ground at (x, z), height `h`, slope `slope` (1 − n.y): [scree, rock, snow], each 0..1.
+ *   rock   the steep faces (≥ ~36°): bare granite
+ *   snow   above the snow line on whatever is flat enough to hold it (ledges, the strata's treads, the cols; a ragged
+ *          line), snowfields in the hollows a little lower, and patches lying on Snow Lotus Valley's floor
+ *   scree  the grey talus at the feet of the faces (the moderate slopes) and fans out across the valley floor
+ */
+export function ringGround(x: number, z: number, h: number, slope: number): [number, number, number] {
+  const patch = cn.fbm(x * 0.012, z * 0.012, 3);
+  const rock = smoothstep(0.17, 0.28, slope + smoothstep(46, 70, h) * 0.05);
+  const hi = smoothstep(58, 98, h); // high up the snow holds on steeper ground
+  const holds = 1 - smoothstep(0.19 + hi * 0.2, 0.29 + hi * 0.24, slope);
+  const line = SNOW_LINE + patch * 7;
+  const high = smoothstep(line - 3, line + 5, h) * holds;
+  const drift = smoothstep(0.3, 0.52, cn2.fbm(x * 0.028 + 7.7, z * 0.028, 2) + (h - SNOW_LINE) * 0.006) * holds * smoothstep(6, 14, h);
+  const snow = Math.max(high, drift * 0.95, glacierMask(x, z));
+  const fan = smoothstep(-0.2, 0.2, cn.fbm(x * 0.024 + 3.3, z * 0.024 - 1.9, 2));
+  // (Snow Lotus Valley's floor is stony all over, thin turf only in patches)
+  const turf = smoothstep(0.05, 0.3, cn2.fbm(x * 0.035 - 2.2, z * 0.035 + 6.1, 2));
+  const scree = Math.max(smoothstep(0.05, 0.15, slope), fan * 0.9, smoothstep(-40, -80, z) * 0.7 * (1 - turf)) * (1 - rock) * (1 - snow);
+  return [scree, rock, snow];
+}
+
 // ── the terrain ───────────────────────────────────────────────────────────────────────────────────────────────────
 
 const TERRAIN: ChunkTerrain = (() => {
@@ -314,11 +432,13 @@ const TERRAIN: ChunkTerrain = (() => {
       const h = t.heightAt(x, z);
       const [, ny] = t.normalAt(x, z, 1.0);
       const slope = 1 - ny;
-      const rock = smoothstep(0.2, 0.42, slope);
-      const snow = Math.max(smoothstep(SNOW_LINE - 3, SNOW_LINE + 3, h), glacierMask(x, z)) * (1 - rock * 0.6);
       const zs = zoneAt(x, z)[2];
-      const scree = zs * smoothstep(0.08, 0.2, slope) * (1 - snow) * 0.8;
-      const gravel = Math.max(riverMask(x, z) * smoothstep(-8.6, -9.4, h), smoothstep(4.5, 1.6, t.trailDistance(x, z)), kokparMask(x, z), scree);
+      // the green zones: rock only where an outcrop breaks through (the escarpment stays grassy between them)
+      const greenRock = smoothstep(0.2, 0.42, slope) * outcropAt(x, z);
+      const [scree, ringRock, ringSnow] = zs > 0 ? ringGround(x, z, h, slope) : [0, 0, 0];
+      const rock = lerp(greenRock, ringRock, zs);
+      const snow = Math.max(smoothstep(SNOW_LINE - 3, SNOW_LINE + 3, h) * (1 - smoothstep(0.2, 0.42, slope) * 0.6) * (1 - zs), ringSnow * zs);
+      const gravel = Math.max(riverMask(x, z) * smoothstep(-8.6, -9.4, h), smoothstep(4.5, 1.6, t.trailDistance(x, z)), kokparMask(x, z), scree * zs);
       const grass = Math.max(0, 1 - rock - snow - gravel);
       return [grass + 1e-4, gravel, rock, snow];
     },
@@ -348,7 +468,6 @@ const C = {
   ice: [0.62, 0.78, 0.9] as RGB,
   olive: [0.3, 0.31, 0.08] as RGB,
 };
-const cn = new Noise2D(SEED + 91), cn2 = new Noise2D(SEED + 92);
 const mixInto = (o: RGB, c: RGB, t: number): void => { o[0] += (c[0] - o[0]) * t; o[1] += (c[1] - o[1]) * t; o[2] += (c[2] - o[2]) * t; };
 
 /** height / slope / zone / noise → the painted palette (linear RGB), written into `out` */
@@ -366,10 +485,11 @@ function groundColor(x: number, z: number, h: number, slope: number, t: ChunkTer
     mixInto(pc, C.valleyLight, smoothstep(0.0, -0.5, patch) * 0.45);
     mixInto(out, pc, zb * smoothstep(12, 24, h));
   }
-  // the snow ring: thin alpine turf, grey scree on every slope
-  if (zs > 0) {
+  // the snow ring: thin alpine turf between grey scree, granite and snow (ringGround)
+  const ring = zs > 0 ? ringGround(x, z, h, slope) : null;
+  if (ring) {
     const ac: RGB = [C.alpine[0], C.alpine[1], C.alpine[2]];
-    mixInto(ac, C.scree, Math.min(1, smoothstep(0.05, 0.16, slope) * 0.85 + smoothstep(0.2, 0.7, patch) * 0.25));
+    mixInto(ac, C.scree, ring[0]);
     mixInto(out, ac, zs);
   }
   const k = 0.93 + mottle * 0.07;
@@ -387,17 +507,16 @@ function groundColor(x: number, z: number, h: number, slope: number, t: ChunkTer
   // the roads are drawn per pixel (src/nalati/terrainSurface.ts); here only a worn, browner margin
   const td = t.trailDistance(x, z);
   mixInto(out, C.olive, smoothstep(6.5, 3, td) * 0.45 * (1 - zs));
-  // rock on the steep faces: in the snow ring from ~26°, in the green zones only the steepest (the escarpment and the
-  // rims stay grassy, the outcrops carry their rock)
-  const rock = smoothstep(lerp(0.26, 0.1, zs), lerp(0.46, 0.26, zs), slope + smoothstep(40, 52, h) * 0.08 * zs);
+  // rock: in the snow ring every steep face; in the green zones only where an outcrop breaks through the turf
+  const rock = lerp(smoothstep(0.26, 0.46, slope) * outcropAt(x, z), ring ? ring[1] : 0, zs);
   if (rock > 0) {
     const rc: RGB = [C.rock[0], C.rock[1], C.rock[2]];
     mixInto(rc, C.rockCool, zs * 0.7);
-    mixInto(rc, C.rockLight, smoothstep(-0.3, 0.5, mottle + patch * 0.5));
+    mixInto(rc, C.rockLight, smoothstep(-0.3, 0.5, mottle + patch * 0.5) * (1 - zs * 0.6));
     mixInto(out, rc, rock);
   }
-  // snow above the line, holding on the flatter ledges
-  const snow = smoothstep(SNOW_LINE - 2 + patch * 5, SNOW_LINE + 3 + patch * 5, h) * (1 - smoothstep(0.45, 0.7, slope) * 0.7);
+  // snow: the ring's (ringGround); anywhere else only above the line
+  const snow = ring ? ring[2] * zs : smoothstep(SNOW_LINE - 2 + patch * 5, SNOW_LINE + 3 + patch * 5, h) * (1 - smoothstep(0.45, 0.7, slope) * 0.7);
   mixInto(out, C.snow, snow);
   // the glacier: blue-white ice, crevasse bands across its flow
   const gm = glacierMask(x, z);
@@ -414,11 +533,11 @@ function groundColor(x: number, z: number, h: number, slope: number, t: ChunkTer
 /** per-vertex masks for the per-pixel ground detail: [gravel, rock, snow] */
 function surfaceAt(x: number, z: number, h: number, slope: number): [number, number, number] {
   const zs = zoneAt(x, z)[2];
-  const gravel = Math.max(riverMask(x, z) * smoothstep(-8.3, -9.1, h), zs * smoothstep(0.05, 0.16, slope) * 0.8);
-  const rock = smoothstep(lerp(0.26, 0.1, zs), lerp(0.46, 0.26, zs), slope + smoothstep(40, 52, h) * 0.08 * zs);
-  const patch = cn.fbm(x * 0.012, z * 0.012, 3);
-  const snow = Math.max(smoothstep(SNOW_LINE - 2 + patch * 5, SNOW_LINE + 3 + patch * 5, h) * (1 - smoothstep(0.45, 0.7, slope) * 0.7), glacierMask(x, z));
-  return [gravel, rock * (1 - snow * 0.5), snow];
+  const green = smoothstep(0.26, 0.46, slope) * outcropAt(x, z);
+  if (zs <= 0) return [riverMask(x, z) * smoothstep(-8.3, -9.1, h), green, 0];
+  // the snow ring: the channels carry its scree / rock / snow (terrainSurface.ts paints the ring from them in look v2)
+  const [scree, rock, snow] = ringGround(x, z, h, slope);
+  return [Math.max(riverMask(x, z) * smoothstep(-8.3, -9.1, h), scree * zs), lerp(green, rock, zs), snow * zs];
 }
 
 /** the forest is cut: 1–3 lone spruces within ~5 m of each LONE_SPRUCE spot */

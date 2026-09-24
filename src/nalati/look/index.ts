@@ -56,7 +56,7 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   const cheat = new LightCheat(sky, getActiveChunk().grade.saturation);
   // step 6: the static casters' shadows + contact shade, baked (bake.ts) — re-baked as the key swings
   const bake = new StaticBake(game.renderer, game.scene, terrainHeightTexture());
-  for (const k of ['pois', 'dressing', 'outcrops'] as const) { const g = ctx.groups[k]; if (g) bake.add(g); }
+  for (const k of ['pois', 'dressing', 'outcrops', 'crags'] as const) { const g = ctx.groups[k]; if (g) bake.add(g); }
   bake.add(ctx.forest.group);
   // phone: the realtime shadow map now holds only what moves (the creatures, the player — bake.ts), so 512² does
   if (PHONE_STATIC_OFF_CSM) {

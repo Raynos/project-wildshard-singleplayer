@@ -37,38 +37,10 @@ export function buildCrags(ctx: PoiCtx): { piece: PoiPiece; ledges: Ledge[]; cav
   const downhill = (x: number, z: number) => { const e = 1.5; const gx = ground(x + e, z) - ground(x - e, z), gz = ground(x, z + e) - ground(x, z - e); const l = Math.hypot(gx, gz) || 1; return { x: -gx / l, z: -gz / l }; };
   const cave = CRAG_CAVE, cfx = -Math.sin(cave.rot), cfz = -Math.cos(cave.rot);
 
-  // ── outcrops on the steep faces ──
   const placed: { x: number; z: number; r: number }[] = [];
   const free = (x: number, z: number, r: number) => placed.every((p) => Math.hypot(p.x - x, p.z - z) > p.r + r) && Math.hypot(x - cave.x, z - cave.z) > 14 && x > -249 && z > -249;
-  for (let tries = 0; tries < 1400 && placed.length < 60; tries++) {
-    const M0 = tries % 2 === 0 ? CRAGS : WEST_CRAGS;                                     // both massifs of the snow ring
-    const a = rng.range(0, Math.PI * 2), d = rng.range(14, 105);
-    const x = M0.x + Math.cos(a) * d, z = M0.z + Math.sin(a) * d;
-    if (Math.abs(x) > 248 || Math.abs(z) > 248) continue;
-    const gy = ground(x, z), sl = slopeAt(x, z);
-    if (gy < 38 || sl < 0.42) continue;
-    // not on a crest (a block on a ridge line floats against the sky): the ground must not be a local high
-    let around = 0; for (let k = 0; k < 6; k++) { const t = (k / 6) * Math.PI * 2; around += ground(x + Math.cos(t) * 4, z + Math.sin(t) * 4); }
-    if (gy > around / 6 + 0.4) continue;
-    const s = rng.range(2.5, 6.0) * (gy > 58 ? 0.8 : 1);
-    if (!free(x, z, s * 0.9)) continue;
-    placed.push({ x, z, r: s * 0.9 });
-    const dh = downhill(x, z), yaw = Math.atan2(dh.x, dh.z) + rng.range(-0.4, 0.4);
-    const h = s * rng.range(0.6, 1.1);
-    const col = rng.next() < 0.5 ? C.granite : C.graniteCool;
-    // sit it on the LOWEST ground under its footprint, half sunk (the uphill side buried, the downhill foot in the slope)
-    let low = gy;
-    for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; low = Math.min(low, ground(x + Math.cos(t) * s * 0.6, z + Math.sin(t) * s * 0.6)); }
-    // a crag is a cluster: 2–3 jointed pillars / slabs leaning together, not one box
-    const nb = rng.int(2, 3);
-    for (let b = 0; b < nb; b++) {
-      const bw = s * rng.range(0.45, 0.75), bh = h * rng.range(0.7, 1.15), bd = s * rng.range(0.4, 0.65);
-      const ox = rng.range(-0.35, 0.35) * s, oz = rng.range(-0.25, 0.25) * s;
-      const g = rng.next() < 0.7 ? graniteBlock(bw, bh, bd, rng.int(1, 9999), 0.3, 2) : blob(bw * 0.6, rng, 2, 1.1, 0.3);
-      kit.add(g, col, { ...snowTop(CRAGS.snowLine - 3), matrix: M(x + ox, low + bh * 0.08, z + oz, yaw + rng.range(-0.5, 0.5), 1, 1, 1, rng.range(-0.18, 0.08), rng.range(-0.15, 0.15)) });
-    }
-    colliders.push({ x, z, hw: s * 0.55, hd: s * 0.4, rot: -yaw, yBottom: gy - 3, yTop: gy + h * 0.55 });
-  }
+  // (the outcrops that stood on the steep faces are src/nalati/cragRock.ts's now: fins on the crests, ribs against the
+  //  faces, sunk into the rock — no block sits on a slope)
 
   // ── ledges: flat slabs jutting from moderate slopes on the west massif's valley-facing flanks (round Aqbars' cave) ──
   const ledges: Ledge[] = [];

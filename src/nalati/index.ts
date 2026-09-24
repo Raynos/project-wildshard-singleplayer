@@ -25,6 +25,7 @@ import { wind } from '../world/Wind';
 import { windUniforms } from '../world/TreeFactory';
 import { NalatiWater } from './water';
 import { buildOutcrops } from './outcrops';
+import { buildCragRock } from './cragRock';
 import { NalatiPOIs } from '../world/nalati';
 import { NalatiDressing } from '../world/nalati/dressing';
 import { reseedPainterlyGrass } from '../world/GrassPainterly';
@@ -138,6 +139,13 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   game.scene.add(outcrops.mesh);
   ctx.player.colliders.push(...outcrops.colliders);
   groups['outcrops'] = outcrops.mesh;
+  await macrotask();
+
+  // ── the snow ring's crag rock (the crags pass): fins on the crests, ribs on the faces, broken towers on the shoulders ──
+  const crags = buildCragRock(sky);
+  game.scene.add(crags.group);
+  ctx.player.colliders.push(...crags.colliders);
+  groups['crags'] = crags.group;
   await macrotask();
 
   // ── grass + wind (grass agent, B1): the painterly carpet is Grass.ts (main.ts builds it); the Wind object goes here ──

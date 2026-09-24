@@ -21,10 +21,11 @@
  *   applyTerrainSurface(mat, textures)   // before sky.setupMaterial; the material's program key is 'painterly-terrain'
  */
 import * as THREE from 'three';
-import { TEX_METRES, TEX_MEAN, type NalatiTexName } from '../world/nalatiTextures';
+import { TEX_METRES, TEX_MEAN, isPhoneTier, type NalatiTexName } from '../world/nalatiTextures';
 import { LOOK_V2 } from './look/flag';
 import { V2_OLIVE_GLSL } from './look/light';
 import { LOOK_BAKE_GLSL, bakeUniforms, PHONE_STATIC_OFF_CSM } from './look/bake';
+import { SNOW_LINE } from '../chunks/nalatiLayout';
 
 export type TerrainTextures = Record<'meadow' | 'path' | 'gravel' | 'rock' | 'snow', THREE.Texture>;
 
@@ -44,6 +45,28 @@ vRdir = rdir;
 ${LOOK_V2 ? 'vZone = zone;' : ''}
 vTWorld = ( modelMatrix * vec4( transformed, 1.0 ) ).xyz;
 vTNormal = normalize( mat3( modelMatrix ) * objectNormal );
+`;
+
+/**
+ * look v2, the snow ring's granite: the painted rock triplanar at two scales (the big tap, stretched down the fall
+ * line on the side projections, breaks a 60 m face into blocks and streaks; desktop only), vertical fractures and
+ * tilted strata bands across the faces (along-face coordinate: x on the faces that look ±z, z on those that look ±x),
+ * dark and cool so the snow reads against it.
+ */
+const CRAG_ROCK_GLSL = /* glsl */`
+vec3 cragRock( vec3 p, vec3 N ) {
+  vec3 w = pow( abs( N ), vec3( 4.0 ) ); w /= ( w.x + w.y + w.z );
+  float s = uTexScale.w;
+  vec3 r = ( texture2D( tRock, p.zy * s ).rgb * w.x + texture2D( tRock, p.xz * s ).rgb * w.y + texture2D( tRock, p.xy * s ).rgb * w.z ) / uMeanRock;
+  ${isPhoneTier() ? '' : `vec2 st = vec2( 1.0, 0.45 ) * s * 0.21;
+  vec3 b = texture2D( tRock, p.zy * st ).rgb * w.x + texture2D( tRock, p.xz * s * 0.21 ).rgb * w.y + texture2D( tRock, p.xy * st ).rgb * w.z;
+  r *= mix( vec3( 1.0 ), b / uMeanRock, 0.6 );`}
+  float u = mix( p.x, p.z, w.x / max( w.x + w.z, 1e-3 ) );
+  float frac = smoothstep( 0.0, 0.07, abs( tNoise( vec2( u * 0.16, p.y * 0.018 ) ) - 0.5 ) );
+  float band = tNoise( vec2( u * 0.012, p.y * 0.11 + tNoise( p.xz * 0.02 ) * 2.0 ) );
+  r *= mix( 0.5, 1.0, frac ) * mix( 0.78, 1.14, band );
+  return r * vec3( 0.34, 0.35, 0.39 );
+}
 `;
 
 const FRAG_PARS = /* glsl */`
@@ -73,6 +96,7 @@ vec3 tTriplanar( sampler2D t, vec3 p, vec3 n, float s ) {
   vec3 w = pow( abs( n ), vec3( 4.0 ) ); w /= ( w.x + w.y + w.z );
   return texture2D( t, p.zy * s ).rgb * w.x + texture2D( t, p.xz * s ).rgb * w.y + texture2D( t, p.xy * s ).rgb * w.z;
 }
+${LOOK_V2 ? CRAG_ROCK_GLSL : ''}
 `;
 
 /**
@@ -87,12 +111,20 @@ const ZONES_V2 = /* glsl */`
     diffuseColor.rgb *= mix( vec3( 1.0 ), vec3( 0.86, 1.1, 0.8 ), zw.x * 0.55 );     // valley: lush, fresh green
     diffuseColor.rgb *= mix( vec3( 1.0 ), vec3( 1.2, 1.02, 0.6 ), zw.y * 0.65 );      // the bowl: gold
     if ( zw.z > 0.01 ) {
-      vec3 scree = tTiled( tGravel, wp * uTexScale.z * 0.6 ) * vec3( 0.86, 0.92, 1.04 );
-      vec3 granite = tTriplanar( tRock, vTWorld, normalize( vTNormal ), uTexScale.w ) / uMeanRock * vec3( 0.42, 0.44, 0.5 );
-      vec3 cold = mix( scree, granite, smoothstep( 0.8, 0.6, n ) );
-      float field = smoothstep( 0.5, 0.64, tNoise( wp * 0.03 + 5.0 ) * 0.6 + tNoise( wp * 0.1 - 2.0 ) * 0.4 + ( n - 0.8 ) * 0.9 );
-      cold = mix( cold, tTiled( tSnow, wp * uSnowScale ) * vec3( 0.97, 1.0, 1.06 ), field );
-      diffuseColor.rgb = mix( diffuseColor.rgb, cold, zw.z * ( 1.0 - vSurf.y ) );
+      // the snow ring (the def's ringGround in the surface channels: y scree, w rock, z snow): the thin turf of the
+      // vertex colour → grey scree → granite on the steep → snow, each edge broken per pixel
+      float brk = tNoise( wp * 0.31 ) - 0.5;
+      vec3 N = normalize( vTNormal );
+      vec3 scree = tTiled( tGravel, wp * uTexScale.z * 0.6 ) * vec3( 0.84, 0.9, 1.0 );
+      vec3 snow = tTiled( tSnow, wp * uSnowScale ) * vec3( 0.97, 1.0, 1.05 );
+      // snow in the shade goes blue, in the sun a touch warm
+      snow *= mix( vec3( 0.66, 0.77, 1.02 ), vec3( 1.03, 1.0, 0.96 ), smoothstep( -0.05, 0.45, dot( N, normalize( uPSunDir ) ) ) );
+      vec3 g = mix( diffuseColor.rgb, scree, smoothstep( 0.3, 0.6, vSurf.y + brk * 0.4 ) );
+      g = mix( g, cragRock( vTWorld, N ), smoothstep( 0.3, 0.6, vSurf.w + brk * 0.3 ) );
+      // snow: the def's fields, and above the line the flatter facets of a face catch a dusting of their own
+      float sn = max( smoothstep( 0.35, 0.6, vSurf.z + brk * 0.5 ), smoothstep( 0.8 - 0.16 * smoothstep( 65.0, 100.0, vTWorld.y ), 0.9 - 0.16 * smoothstep( 65.0, 100.0, vTWorld.y ), n ) * smoothstep( ${SNOW_LINE.toFixed(1)}, ${(SNOW_LINE + 10).toFixed(1)}, vTWorld.y + brk * 12.0 ) * 0.9 );
+      g = mix( g, snow, sn );
+      diffuseColor.rgb = mix( diffuseColor.rgb, g, zw.z );
     }
   }
 `;
@@ -101,6 +133,7 @@ const FRAG_MAIN = /* glsl */`
 #include <color_fragment>
 {
   vec2 wp = vTWorld.xz;
+  float ringK = ${LOOK_V2 ? 'vZone.z' : '0.0'}; // look v2 paints the snow ring itself (ZONES_V2): the generic rock / gravel / snow keep out
   float dist = length( vTWorld - cameraPosition );
   vec3 ground = diffuseColor.rgb;
   ${LOOK_V2 ? `ground = v2Olive( ground ); // look v2: the olive / golden values (src/nalati/look/light.ts)
@@ -117,16 +150,16 @@ const FRAG_MAIN = /* glsl */`
   ${LOOK_V2 ? ZONES_V2 : ''}
 
   // ── rock: painted granite, triplanar, tinted by the macro colour ──
-  if ( vSurf.w > 0.02 ) {
+  if ( vSurf.w * ( 1.0 - ringK ) > 0.02 ) {
     vec3 rock = tTriplanar( tRock, vTWorld, normalize( vTNormal ), uTexScale.w ) / uMeanRock;
-    diffuseColor.rgb = mix( diffuseColor.rgb, mix( vec3( 0.36, 0.33, 0.29 ), ground, 0.35 ) * rock, vSurf.w );
+    diffuseColor.rgb = mix( diffuseColor.rgb, mix( vec3( 0.36, 0.33, 0.29 ), ground, 0.35 ) * rock, vSurf.w * ( 1.0 - ringK ) );
   }
 
   // ── gravel bars: the painted river stones, darker and greener where wet ──
-  if ( vSurf.y > 0.02 ) {
+  if ( vSurf.y * ( 1.0 - ringK ) > 0.02 ) {
     vec3 bar = tTiled( tGravel, wp * uTexScale.z ) * 1.15;
     bar = mix( bar, bar * vec3( 0.62, 0.68, 0.66 ), smoothstep( -9.2, -9.9, vTWorld.y ) );
-    diffuseColor.rgb = mix( diffuseColor.rgb, bar, vSurf.y );
+    diffuseColor.rgb = mix( diffuseColor.rgb, bar, vSurf.y * ( 1.0 - ringK ) );
   }
 
   // ── roads: the painted dirt track laid along the road, wheel ruts, a grassy crown, a ragged verge ──
@@ -148,9 +181,9 @@ const FRAG_MAIN = /* glsl */`
   ${LOOK_V2 ? 'diffuseColor.rgb *= bakedContact( vTWorld ); // look v2: the contact shade round the yurts / rocks / trunks (look/bake.ts)' : ''}
 
   // ── snow ──
-  if ( vSurf.z > 0.02 ) {
+  if ( vSurf.z * ( 1.0 - ringK ) > 0.02 ) {
     vec3 snow = tTiled( tSnow, wp * uSnowScale ) * 1.05;
-    diffuseColor.rgb = mix( diffuseColor.rgb, snow, vSurf.z * 0.9 );
+    diffuseColor.rgb = mix( diffuseColor.rgb, snow, vSurf.z * 0.9 * ( 1.0 - ringK ) );
   }
 }
 `;
