@@ -19,13 +19,13 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { TIER } from '../core/tier';
+import { creatureRigUrl, type CreatureRigName } from './creatureRigs';
 import { modelsOn } from '../world/nalati/glbPaint';
 import { variantDef, type BoneDef } from './species/registry';
 import { coatAtlas, HULL_COATS } from './creatureCoats';
 
-/** the rigged hulls (scripts/nalati-rig-bake.mjs RIG_BAKES) */
-export type CreatureRigName = 'horse-wild' | 'horse-saddled' | 'wolf' | 'snow-leopard' | 'sheep' | 'eagle';
+/** the rigged hulls (scripts/nalati-rig-bake.mjs RIG_BAKES; the names + URLs in creatureRigs.ts, which the boot manifest declares) */
+export type { CreatureRigName } from './creatureRigs';
 
 const HULL: Readonly<Record<string, CreatureRigName>> = {
   // every coat wears its hull, recoloured (creatureCoats.ts)
@@ -55,7 +55,6 @@ export interface SkinnedHull {
 }
 export interface RigAsset { geometry: THREE.BufferGeometry; map: THREE.Texture | null; joints: { name: string; pos: THREE.Vector3 }[] }
 
-const DIR = '/assets/nalati/models/';
 /** the rigs whose surfaces are thin sheets (a wing is one layer of feathers): no back-face culling */
 const DOUBLE_SIDED: ReadonlySet<CreatureRigName> = new Set(['eagle']);
 let loader: GLTFLoader | null = null;
@@ -75,7 +74,7 @@ export function loadCreatureRig(name: CreatureRigName): Promise<RigAsset> {
   let p = loading.get(name);
   if (!p) {
     if (!loader) { loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder); }
-    p = loader.loadAsync(`${DIR}${name}${TIER === 'phone' ? '.phone' : ''}.rigged.glb`).then((gltf) => {
+    p = loader.loadAsync(creatureRigUrl(name)).then((gltf) => {
       gltf.scene.updateMatrixWorld(true);
       const found: THREE.SkinnedMesh[] = [];
       gltf.scene.traverse((o) => { if (isSkinned(o)) found.push(o); });

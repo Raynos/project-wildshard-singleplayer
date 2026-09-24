@@ -15,6 +15,7 @@ import { PUBLIC_BYTES } from './bytes.generated';
 import { nalatiUrl } from '../world/nalatiTextures';
 import { RAPIER_WASM_URL } from '../physics/wasmUrl';
 import { navmeshUrl } from '../physics/navmeshUrl';
+import { CREATURE_RIGS, creatureRigUrl } from '../entities/creatureRigs';
 
 const pbr = pbrUrls; // tier-aware: the phone's _1k files are what it downloads, so they are what it declares
 const gltf = (id: string) => [`/assets/models/${id}/${id}.gltf`, `/assets/models/${id}/${id}.bin`, ...['diff', 'nor_gl', 'arm'].map((k) => `/assets/models/${id}/textures/${id}_${k}_1k.jpg`)];
@@ -34,6 +35,9 @@ const painterlyBoot = (): string[] => [
   // draws the riders' far LOD), the far herds (the far LOD, one file on every tier)
   ...['watchtower', 'snow-lotus', 'horse-saddled', 'kokpar-rider'].map((m) => `/assets/nalati/models/${m}.glb`),
   '/assets/nalati/models/horse-wild.far.glb', '/assets/nalati/models/kokpar-rider.far.glb',
+  // the six rigged creature hulls (src/entities/glbCreatures.ts, ~4 MB desktop / ~1.4 MB phone): read in the animals step,
+  // declared here so DOWNLOAD counts them and the offline cache holds them (NALATI-MERGE F4)
+  ...CREATURE_RIGS.map(creatureRigUrl),
 ].filter((f) => tierUrl(f) in PUBLIC_BYTES || f in PUBLIC_BYTES);
 
 export function chunkFiles(def: ChunkDef): ChunkFiles {
