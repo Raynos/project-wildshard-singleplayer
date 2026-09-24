@@ -6,6 +6,7 @@
 //
 // --xray: the colliders drawn over everything (no depth test), coloured by material and without the terrain's
 // heightfield: wood / planks orange, rock / stone grey-blue, felt white, earth brown, sand tan, metal cyan, flesh red.
+// --navmesh: the baked navmesh instead (`?navmesh=debug`, NALATI-MERGE P3) — the polys a creature paths on, over the world.
 //
 //   node scripts/nalati-physics-shots.mjs --tag=before [--url=http://127.0.0.1:5188] [--only=camp,bridge] [--xray]
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -19,6 +20,7 @@ const TAG = flag('tag', 'latest');
 const OUT = resolvePath(flag('out', 'progress/nalati-merge/p1'));
 const only = flag('only', '').split(',').filter(Boolean);
 const XRAY = argv.includes('--xray');
+const NAVMESH = argv.includes('--navmesh');
 mkdirSync(OUT, { recursive: true });
 
 // [name, target x, target z, target lift over the ground, camera offset x, height over the target, offset z]
@@ -38,6 +40,12 @@ const SHOTS = [
   ['cave-access', 150, -45, 0, 22, 14, 8],
   ['cave-start', 176, 6, 0, 8, 5, 8],
   ['watchtower-stair', -186, -35, 2, 10, 8, 16],
+  // NALATI-MERGE P3 / P4: the camp and the bowl from above, the footpaths up to Eagle Rock, the cave and Argymaq
+  ['camp-top', 80, 208, 0, -2, 55, -22],
+  ['bowl-top', 40, 40, 0, -8, 120, -70],
+  ['eagle-trail', 178, 58, 0, -34, 26, -28],
+  ['cave-trail', 128, -56, 0, -4, 24, 24],
+  ['argymaq-trail', -176, -46, 0, 14, 26, 28],
 ];
 
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
@@ -46,7 +54,7 @@ try {
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
-  await page.goto(`${URL_BASE}/?chunk=nalati-grasslands&mute=1&nolock=1&skipintro=1&physics=debug&time=12&clock=0`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${URL_BASE}/?chunk=nalati-grasslands&mute=1&nolock=1&skipintro=1&${NAVMESH ? 'navmesh' : 'physics'}=debug&time=12&clock=0`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => Boolean(window.__world), undefined, { timeout: 240000, polling: 1000 });
   await new Promise((resolve) => { setTimeout(resolve, 6000); });
   const counts = await page.evaluate(() => {
@@ -100,7 +108,7 @@ try {
       cam.updateMatrixWorld();
     }, [tx, tz0, lift, ox, oy, oz]);
     await new Promise((resolve) => { setTimeout(resolve, 2500); });
-    writeFileSync(resolvePath(OUT, `${TAG}${XRAY ? '-xray' : ''}-${name}.jpg`), await page.screenshot({ type: 'jpeg', quality: 72 }));
+    writeFileSync(resolvePath(OUT, `${TAG}${XRAY ? '-xray' : ''}${NAVMESH ? '-navmesh' : ''}-${name}.jpg`), await page.screenshot({ type: 'jpeg', quality: 72 }));
     console.log(`  ${name}`);
   }
   if (errors.length > 0) console.log(`page errors:\n  ${errors.slice(0, 5).join('\n  ')}`);

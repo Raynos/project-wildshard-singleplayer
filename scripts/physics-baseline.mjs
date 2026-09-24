@@ -41,6 +41,10 @@ const POSES = [
   { shard: 'driftwood-isle', name: 'beach', q: 'x=-10&z=-150&yaw=4.3' },
   { shard: 'driftwood-isle', name: 'wreck', q: 'x=105&z=0&yaw=-1.5708' },
   { shard: 'driftwood-isle', name: 'shrine', q: 'x=-86&z=92&yaw=2.47' },
+  // Nalati (NALATI-MERGE P4): the camp from the spur, the bridge from the N road, the horse plains' herd from the bowl
+  { shard: 'nalati-grasslands', name: 'camp', q: 'x=60&z=214&yaw=-1.5708' },
+  { shard: 'nalati-grasslands', name: 'bridge', q: 'x=0&z=200&yaw=0' },
+  { shard: 'nalati-grasslands', name: 'plains', q: 'x=65&z=0&yaw=3.1416' },
 ];
 
 // ── compare ──
@@ -111,7 +115,7 @@ async function openGame(shard, q, { cpu, video }) {
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   const cdp = await ctx.newCDPSession(page);
   if (cpu > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpu });
-  await page.goto(`${BASE}/?chunk=${shard}&tier=phone&skipintro=1&nolock=1&sw=0${q ? `&${q}` : ''}`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
+  await page.goto(`${BASE}/?chunk=${shard}&tier=phone&skipintro=1&nolock=1&sw=0&mute=1${q ? `&${q}` : ''}`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
   await page.waitForFunction(() => !document.querySelector('.ws-load') && window.__world !== undefined, null, { timeout: TIMEOUT_MS, polling: 250 });
   await page.waitForTimeout(SETTLE_MS);
   return { ctx, page, errors };
@@ -166,17 +170,36 @@ if (MODE.includes('walk')) {
     const { ctx, page, errors } = await openGame(shard, `x=${first.start.x}&z=${first.start.z}&yaw=${first.start.yaw}`, { cpu: WALK_CPU, video: VIDEO });
     if (TRAILS) {
       const paths = (await page.evaluate(() => window.__hf.TRAILS)).slice(4);
+      // a path's ends under a deck (Nalati's sky road starts under the bridge's south ramp: the ramp's foot is where it
+      // joins the road) are drawn, not walked: its points more than 0.5 m under a registered floor are trimmed off the ends
+      const under = await page.evaluate((ps) => ps.map((path) => path.map(([x, z]) => {
+        const f = window.__world.registry?.floorAt(x, z);
+        return f !== undefined && f - window.__hf.heightAt(x, z) > 0.5;
+      })), paths.map((path) => {
+        const pts = [];
+        for (let k = 1; k < path.length; k++) {
+          const [ax, az] = path[k - 1], [bx, bz] = path[k], n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 3));
+          for (let j = k === 1 ? 0 : 1; j <= n; j++) pts.push([ax + (bx - ax) * j / n, az + (bz - az) * j / n]);
+        }
+        return pts;
+      }));
       legs.length = 0;
       paths.forEach((path, i) => {
+        const all = [];
+        for (let k = 1; k < path.length; k++) {
+          const [ax, az] = path[k - 1], [bx, bz] = path[k], n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 3));
+          for (let j = k === 1 ? 0 : 1; j <= n; j++) all.push({ x: ax + (bx - ax) * j / n, z: az + (bz - az) * j / n });
+        }
+        const flags = under[i] ?? [];
+        let a = 0, b = all.length;
+        while (a < b && flags[a] === true) a++;
+        while (b > a && flags[b - 1] === true) b--;
+        const kept = all.slice(a, b);
+        if (kept.length < 2) return;
         for (const dir of ['fwd', 'back']) {
-          const pts = dir === 'fwd' ? path : [...path].reverse();
-          const wps = [];
-          for (let k = 1; k < pts.length; k++) {
-            const [ax, az] = pts[k - 1], [bx, bz] = pts[k], n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 3));
-            for (let j = 1; j <= n; j++) wps.push({ x: ax + (bx - ax) * j / n, z: az + (bz - az) * j / n });
-          }
-          const [sx, sz] = pts[0];
-          legs.push({ name: `path${i}-${dir}`, start: { x: sx, z: sz, yaw: Math.atan2(-(wps[0].x - sx), -(wps[0].z - sz)) }, waypoints: wps, timeout: 240 });
+          const pts = dir === 'fwd' ? kept : [...kept].reverse();
+          const [s0, ...wps] = pts;
+          legs.push({ name: `path${i}-${dir}`, start: { x: s0.x, z: s0.z, yaw: Math.atan2(-(wps[0].x - s0.x), -(wps[0].z - s0.z)) }, waypoints: wps, timeout: 240 });
         }
       });
     }
@@ -187,8 +210,17 @@ if (MODE.includes('walk')) {
           const w = window.__world, p = w.player;
           p.keys.clear();
           p.velocity.set(0, 0, 0);
+          // spawn() puts the feet on the terrain: under a walkway board or a ramp that is inside it — land on the top of
+          // whatever static floor stands within 2.5 m over the ground there instead (a teleport, not the walk)
+          const land = () => {
+            const ph = w.physics, R = ph.R, x = p.position.x, z = p.position.z, top = p.position.y + 2.5;
+            const hit = ph.world.castRay(new R.Ray({ x, y: top, z }, { x: 0, y: -1, z: 0 }), 2.6, true, R.QueryFilterFlags.EXCLUDE_SENSORS, undefined, undefined, undefined, (c) => c.parent()?.isFixed() ?? true);
+            if (hit) p.position.y = Math.max(p.position.y, top - hit.timeOfImpact);
+            p.prevFeet?.copy(p.position);
+          };
           p.spawn(legIn.start.x, legIn.start.z, legIn.start.yaw);
-          if (typeof legIn.start.y === 'number') p.position.y = legIn.start.y; // spawn() puts the feet on the terrain; a deck start needs its floor
+          if (typeof legIn.start.y === 'number') p.position.y = legIn.start.y; // a deck start names its floor
+          else land();
           p.pitch = -0.12;
           if (w.animals.__frozen !== true) { w.animals.update = () => undefined; w.animals.__frozen = true; } // no creature in the way of the route (they are the poses' job)
           await new Promise((resolve) => { setTimeout(resolve, 600); }); // land, settle the camera
@@ -207,7 +239,7 @@ if (MODE.includes('walk')) {
               if (d < lastProg.d - 0.3) lastProg = { t, d };
               else if (t - lastProg.t > 2) { // no progress for 2 s: log it and skip on to the next waypoint
                 stuck.push({ wp: wi, x: Number(p.position.x.toFixed(2)), y: Number(p.position.y.toFixed(2)), z: Number(p.position.z.toFixed(2)) });
-                p.spawn(wp.x, wp.z, p.yaw); wi++; lastProg = { t, d: Infinity }; return;
+                p.spawn(wp.x, wp.z, p.yaw); land(); wi++; lastProg = { t, d: Infinity }; return;
               }
               p.yaw = Math.atan2(-dx, -dz);
               p.keys.add('KeyW');

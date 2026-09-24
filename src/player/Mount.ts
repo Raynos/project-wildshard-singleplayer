@@ -426,14 +426,9 @@ export class Mount {
       // no physics world (a node harness): the old ground follow, nothing stops it
       f.x += _want.x; f.z += _want.z; f.y = heightAt(f.x, f.z); grounded = true;
     }
-    // the P2 bridge: decks that are still floor functions (the Kunes bridge until its builder registers colliders) — stand
-    // on one the feet are on or just under, as the player does
-    this.onDeck = false;
-    if (this.vy <= 0) {
-      let best: number | undefined;
-      for (const pf of p.platforms) { const y = pf(f.x, f.z); if (y !== undefined && f.y >= y - 0.5 && (best === undefined || y > best)) best = y; }
-      if (best !== undefined && f.y - best <= 0.05) { f.y = best; grounded = true; this.onDeck = true; }
-    }
+    // on a deck: standing on a registered collider over the terrain (the Kunes bridge, a yurt's floor) — every Nalati
+    // floor is real geometry since NALATI-MERGE P1, so the motor carries the horse on it (no floor functions left)
+    this.onDeck = grounded && f.y - heightAt(f.x, f.z) > 0.3;
     // swimming: deeper than FORD_DEPTH the horse floats with its back dry (fording stays game code)
     const wl = waterLevel();
     this.swimming = f.y < wl - FORD_DEPTH && (wildEnv.wetAt?.(f.x, f.z) === true || heightAt(f.x, f.z) < wl);
@@ -596,10 +591,16 @@ export class Mount {
     }
   }
 
-  /** the ground under a freshly placed body: the deck it is on (a floor function), else the motor's own floor */
+  /**
+   * The ground under a freshly placed body (a mount, a teleport — the feet start on the terrain): up onto the deck over
+   * it, when one stands within 2.5 m (the Kunes bridge's planks over the gully) — a physics query, as every Nalati floor
+   * is a collider since NALATI-MERGE P1.
+   */
   private land(): void {
-    const f = this.feet;
-    for (const pf of this.player.platforms) { const y = pf(f.x, f.z); if (y !== undefined && f.y >= y - 0.5 && y > f.y) f.y = y; }
+    const f = this.feet, physics = activePhysics();
+    if (physics === null) return;
+    const top = floorBelow(physics, f.x, f.z, f.y + 2.5, 2.6, this.motor?.collider);
+    if (top !== undefined && top > f.y) { f.y = top; this.onDeck = top - heightAt(f.x, f.z) > 0.3; }
   }
 
   /**
