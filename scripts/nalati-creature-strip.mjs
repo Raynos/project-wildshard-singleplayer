@@ -194,6 +194,7 @@ try {
       if (fr.death !== undefined) { a.alive = false; a.state = 'dead'; a.deathT = fr.death; a.deathSide = 1; }
       else { a.alive = true; a.state = 'idle'; a.deathT = -1; }
       a.gaitW.fill(0);
+      if (spot.mem) { Object.assign(a.mem, spot.mem); a.mem.floorY = st.gy; if (fr.attack !== undefined) a.mem.act ??= 1; }   // --mem={...}: a custom rig's pose knobs (the King: pose 1 = standing)
       if (fr.mem) { for (const k of ['flap', 'fold', 'bank', 'ground', 'altY']) a.mem[k] = fr.mem[k] ?? 0; a.mem.altY = st.gy + 0.4; a.yOffset = 0.4; }
       a.update(1e-4, fr.t ?? 1, true);
       if (fr.death !== undefined) a.deathT = fr.death;
@@ -220,7 +221,7 @@ try {
         st.pose = { x: spot.x, y: ty + h * 0.12, z: spot.z - d, tx: spot.x, ty, tz: spot.z }; // the animal's left side (it faces +X)
       }
     };
-  }, { ...SPOT, double: flag('double', '0') === '1', sky: flag('skymarked', '0') === '1' });
+  }, { ...SPOT, double: flag('double', '0') === '1', sky: flag('skymarked', '0') === '1', mem: JSON.parse(flag('mem', 'null')) });
 
   const allRows = [];
   for (const subj of only) {
