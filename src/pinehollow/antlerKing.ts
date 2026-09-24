@@ -445,7 +445,7 @@ export class AntlerKingFight implements BossScript {
       if (th.mode === 'charge') { th.lane.update(a, dt, t, p, (dmg) => { this.ctx.hurt(a, dmg); this.ctx.trauma(0.3); }); if (!th.lane.busy) th.mode = 'approach'; }
       else {
         const d = Math.hypot(p.x - a.position.x, p.z - a.position.z);
-        a.setMotion(headingTo(a.position.x, a.position.z, p.x, p.z), d > 8 ? 4.8 : 0.8, 2.5);
+        a.setMotion(headingTo(a.position.x, a.position.z, p.x, p.z), d > 8 ? 4.8 : d > 4.5 ? 0.8 : 0, 2.5);
         if (d < 11 && Math.random() < dt * 0.9) { th.lane.start(a, p.x, p.z, 0.7); th.mode = 'charge'; this.ctx.shot('thrall_groan', a.position); }
       }
       const ad = Math.hypot(a.position.x - C.x, a.position.z - C.z);
@@ -524,8 +524,8 @@ export class AntlerKingFight implements BossScript {
     const seal = this.sealK, dark = this.darkK;
     if (seal <= 0 && dark <= 0 && this.fogLast.r < 0) return;
     const sky = this.ctx.sky, scene = this.ctx.game.scene;
-    // density: × up to 40 in the fight, × up to 140 in the dark (the night preset's 0.0007 → ~0.03 / ~0.1)
-    fogUniforms.fogDistDensity.value = this.dimFog.apply(fogUniforms.fogDistDensity.value, 1 + 40 * seal + 50 * dark);
+    // density: × 26 in the fight, × 76 in the dark (the night preset’s 0.0007 → ~0.018 / ~0.05)
+    fogUniforms.fogDistDensity.value = this.dimFog.apply(fogUniforms.fogDistDensity.value, 1 + 25 * seal + 50 * dark);
     const fog = scene.fog;
     if (fog instanceof THREE.Fog) {
       if (!fog.color.equals(this.fogLast)) this.fogCol.copy(fog.color);
