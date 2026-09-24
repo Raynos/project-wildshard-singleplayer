@@ -11,8 +11,10 @@ import type { WeaponId, Weapons } from '../player/Weapons';
  * One square glass slot per OWNED weapon in `weapons.available` order (slot n = key n), the held one outlined in cyan, the
  * ammo (arrows / javelins) in the corner, red at 0. **Tap a slot = hold it** (the kit's 0.25 + 0.25 s holster swap);
  * tapping the slot already held = back to the previous weapon (`weapons.last()`, the design's "double-tap = last").
- * Touch: docked in the TouchControls layer right of the left disc, level with it, and the layer's SWAP pill is hidden
- * (`.strip`). Desktop: a hotbar bottom-centre with the key numbers and names (`.desk`), clickable too.
+ * Touch: docked in the TouchControls layer as three edge tabs down the LEFT screen edge under the status column (layout D,
+ * NALATI-MERGE H2 — art/hud/round-12-nalati-merge/D-*.jpg), the slot number in each tab's corner (the ammo is the column's
+ * ARROWS row, src/ui/NalatiHUD.ts), and the layer's SWAP pill is hidden (`.strip`). Desktop: a hotbar bottom-centre with
+ * the key numbers and names (`.desk`), clickable too.
  * Styles: src/ui/styles/touch.css (`ws-touch-strip`, `ws-touch-slot*`).
  */
 

@@ -95,3 +95,15 @@
   .ws-boss-card-skip { bottom: calc(5vh - 7px); right: 14px; }
   .ws-boss-reward { top: calc(var(--ws-top) + 34vw + 40px); padding: 12px 18px; }
 }
+
+/* ── Nalati's phone HUD, layout D (NALATI-MERGE H2; #hud.nalati-d, src/ui/NalatiHUD.ts): the bar is the stack's middle piece
+   under the minimap — right-aligned to it, clear of the left column (--nh-top / --nh-right / --nh-w); the reward card
+   drops under the stack's top. Driftwood's finale (src/game/quest/Finale.ts) never has #hud.nalati-d ── */
+#hud.nalati-d .ws-boss-bar { left: auto; right: var(--nh-right, 14px); top: var(--nh-top, 130px); width: var(--nh-w, 60vw); transform: translateY(-8px); }
+#hud.nalati-d .ws-boss-bar.show { transform: none; }
+#hud.nalati-d .ws-boss-bar-name { font-size: 11px; letter-spacing: 0.2em; text-indent: 0.2em; line-height: 1.2; }
+#hud.nalati-d .ws-boss-bar-cap { width: 26px; height: 18px; }
+#hud.nalati-d .ws-boss-bar-frame { height: 18px; }
+#hud.nalati-d .ws-boss-bar-track { height: 10px; }
+#hud.nalati-d .ws-boss-bar-caption { font-size: 9px; letter-spacing: 0.3em; text-indent: 0.3em; }
+#hud.nalati-d .ws-boss-reward { top: 24%; }

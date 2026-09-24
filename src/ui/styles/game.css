@@ -264,3 +264,15 @@
   .ws-game-getlow { top: calc(var(--ws-top) + 34vw + 70px); font-size: 13px; letter-spacing: 0.16em; padding: 5px 12px 5px 9px; }
   .ws-game-getlow i { width: 16px; height: 16px; }
 }
+/* ─── Nalati's phone HUD, layout D "status left" (src/ui/NalatiHUD.ts, NALATI-MERGE H2; #hud.nalati-d is Nalati + touch only) ───
+   VITALS is the column's first row, 170 px like the others; the held weapon's BOLTS strip gives way to NalatiHUD's ARROWS row;
+   the storm chip lives in the SKY row; GET LOW joins the under-minimap stack (NalatiHUD sets --nh-top / --nh-right); the
+   feed and the toasts start under both columns (--nh-free), clear of the edge tabs */
+#hud.nalati-d .ws-game-vitals { order: 0; width: 170px; height: 24px; box-sizing: border-box; }
+#hud.nalati-d .ws-game-vitals .ws-game-vbar { flex: 1; }
+#hud.nalati-d .ws-game-bolts, #hud.nalati-d .ws-game-weather { display: none; }
+#hud.nalati-d .ws-game-getlow { left: auto; right: var(--nh-right, 14px); top: var(--nh-top, 30%); transform: none; max-width: var(--nh-w, 60vw); box-sizing: border-box; padding: 4px 10px 4px 8px; gap: 7px; font-size: 12px; letter-spacing: 0.14em; }
+#hud.nalati-d .ws-game-getlow i { width: 15px; height: 15px; }
+#hud.nalati-d .ws-game-feed { left: 52px; top: var(--nh-free, calc(var(--ws-top) + 170px)); max-width: calc(100vw - 64px); }
+#hud.nalati-d .ws-game-lockedge.l { left: 46px; } /* clear of the weapon tabs on the left edge */
+#hud.nalati-d .ws-game-toasts { left: 52px; top: calc(var(--nh-free, calc(var(--ws-top) + 170px)) + 44px); max-width: calc(100vw - 64px); }

@@ -80,3 +80,20 @@
   .ws-elite-banner-kicker { white-space: nowrap; }
   .ws-elite-banner-name { font-size: 11px; letter-spacing: 0.1em; white-space: normal; line-height: 1.25; } /* the long ones wrap (ARGYMAQ THE UNBROKEN · STALLION OF THE HIGH CRAGS) */
 }
+
+/* ── Nalati's phone HUD, layout D (NALATI-MERGE H2; #hud.nalati-d, src/ui/NalatiHUD.ts): the pinned bar and the NAMED ELITE
+   NEARBY banner join the ONE stack under the minimap — right-aligned to it, clear of the left column; NalatiHUD sets each
+   one's --nh-top (after the quest chip / the bar above it) and #hud's --nh-right / --nh-w. The banner reads the name alone
+   (D-saddle.jpg); the epithet is on the bar ── */
+#hud.nalati-d .ws-elite-bar.pinned { left: auto; right: var(--nh-right, 14px); top: var(--nh-top, 130px); width: var(--nh-w, 60vw); margin: 0; transform: none !important; }
+#hud.nalati-d .ws-elite-bar.pinned .ws-elite-name { font-size: 12px; letter-spacing: 0.14em; text-indent: 0.14em; white-space: normal; line-height: 1.15; }
+#hud.nalati-d .ws-elite-bar.pinned .ws-elite-epithet { font-size: 8px; letter-spacing: 0.16em; text-indent: 0.16em; white-space: normal; }
+#hud.nalati-d .ws-elite-bar.pinned .ws-elite-frame { height: 20px; }
+#hud.nalati-d .ws-elite-bar.pinned .ws-elite-skull { width: 20px; height: 20px; }
+#hud.nalati-d .ws-elite-bar.pinned .ws-elite-track { height: 9px; }
+#hud.nalati-d .ws-elite-banner { left: auto; right: var(--nh-right, 14px); top: var(--nh-top, 130px); width: auto; max-width: var(--nh-w, 60vw); box-sizing: border-box; padding: 5px 14px 5px 9px; gap: 7px; transform: translateY(-8px); clip-path: none; }
+#hud.nalati-d .ws-elite-banner.show { transform: none; }
+#hud.nalati-d .ws-elite-banner .ws-elite-skull { width: 22px; height: 22px; }
+#hud.nalati-d .ws-elite-banner-kicker { font-size: 7.5px; letter-spacing: 0.22em; color: #f3e3bd; text-shadow: 0 0 6px rgba(0, 0, 0, 0.8); }
+#hud.nalati-d .ws-elite-banner-name { margin-top: 2px; font-size: 11px; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(var(--nh-w, 60vw) - 56px); }
+#hud.nalati-d .ws-elite-banner-epithet { display: none; }

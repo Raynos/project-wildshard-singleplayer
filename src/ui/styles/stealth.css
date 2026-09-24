@@ -42,3 +42,23 @@
 
 @keyframes ws-stealth-pulse { 0%, 100% { opacity: 0.65; } 50% { opacity: 1; } }
 @keyframes ws-stealth-throb { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+
+/* ── layout D on the phone (NALATI-MERGE H2, #hud.nalati-d; art/hud/round-12-nalati-merge/D-foot.jpg): the eye + state is the
+   left status column's last row, VITALS' glass (the crosshair stays bare, the threat chevron still circles it); the GRASS
+   meter hangs under the column, its label level, above the weapon tabs ── */
+#hud.nalati-d .ws-stealth-pip { display: none; }
+.ws-stealth-row { --threat: 0; order: 4; display: flex; align-items: center; gap: 9px; width: 170px; height: 24px; padding: 3px 9px; box-sizing: border-box; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); pointer-events: none; font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--ws-cyan); white-space: nowrap; transition: color 0.2s, border-color 0.2s; }
+.ws-stealth-row[data-state='none'] { display: none; }
+.ws-stealth-row .ws-stealth-eye { width: 17px; height: 17px; }
+.ws-stealth-row[data-state='visible'] { color: var(--ws-text-dim); }
+.ws-stealth-row[data-state='hidden'] .ws-stealth-eye { filter: drop-shadow(0 0 5px rgba(143, 227, 255, 0.8)); }
+.ws-stealth-row[data-state='noticed'] { color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.55); }
+.ws-stealth-row[data-state='noticed'] .ws-stealth-label::after { content: ''; display: inline-block; width: 26px; height: 3px; margin-left: 8px; vertical-align: middle; background: linear-gradient(90deg, var(--ws-amber) calc(var(--threat) * 100%), rgba(255, 181, 71, 0.2) 0); }
+.ws-stealth-row[data-state='detected'] { color: var(--ws-red); border-color: rgba(255, 90, 74, 0.6); }
+.ws-stealth-row[data-state='detected'] .ws-stealth-eye { animation: ws-stealth-throb 0.7s ease-in-out infinite; filter: drop-shadow(0 0 6px rgba(255, 90, 74, 0.9)); }
+#hud.nalati-d .ws-stealth-grass { left: 12px; top: calc(var(--ws-top) + 144px); align-items: flex-start; gap: 4px; }
+#hud.nalati-d .ws-stealth-grass span { writing-mode: horizontal-tb; transform: none; font-size: 7.5px; letter-spacing: 0.22em; }
+#hud.nalati-d .ws-stealth-grass b { width: 10px; height: 70px; }
+/* the one-time TALL GRASS chip: right-aligned just above CROUCH (which sits above main's JUMP in D) — left of it is the
+   spear's BRACE */
+#hud.nalati-d .ws-stealth-hint.touch { right: 8px; bottom: calc(max(15vh, 104px) + 74px + min(15vw, 84px) * 2); transform: none; }

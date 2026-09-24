@@ -10,11 +10,14 @@
 .ws-ride-steed .ws-ride-sbar { position: relative; margin-top: 6px; height: 5px; background: rgba(255, 196, 74, 0.16); overflow: hidden; }
 .ws-ride-steed .ws-ride-sbar i { position: absolute; left: 0; top: 0; bottom: 0; background: #ffc44a; box-shadow: 0 0 10px rgba(255, 196, 74, 0.7); transition: width 0.2s linear; }
 .ws-ride-steed.winded .ws-ride-sbar i { background: #ff7a4a; }
-/* touch: a compact strip riding above the VITALS strip in the control bar's corner */
-.ws-ride-steed.ws-ride-touch { left: 12px; bottom: calc(100% + 34px); width: auto; height: 22px; padding: 3px 9px; background: var(--ws-glass-deep); border: 1px solid rgba(255, 196, 74, 0.45); display: none; }
-.ws-ride-steed.ws-ride-touch.show { display: flex; align-items: center; gap: 7px; }
-.ws-ride-steed.ws-ride-touch .ws-ride-glyph { width: 15px; height: 15px; }
-.ws-ride-steed.ws-ride-touch .ws-ride-sbar { margin-top: 0; width: 120px; height: 4px; }
+/* touch (layout D, NALATI-MERGE H2 — D-saddle.jpg): a row of the left status column under VITALS, VITALS' size — the horse,
+   its name, the amber bar, the gait */
+.ws-ride-steed.ws-ride-touch { position: relative; left: auto; bottom: auto; order: 1; width: 170px; height: 24px; padding: 3px 9px; box-sizing: border-box; background: var(--ws-glass-deep); border: 1px solid rgba(255, 196, 74, 0.45); display: none; }
+.ws-ride-steed.ws-ride-touch.show { display: flex; align-items: center; gap: 6px; }
+.ws-ride-steed.ws-ride-touch .ws-ride-glyph { flex: none; width: 15px; height: 15px; }
+.ws-ride-steed.ws-ride-touch .ws-ride-name { flex: 0 1 auto; min-width: 0; max-width: 66px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--ws-mono); font-weight: 400; font-size: 8px; letter-spacing: 0.13em; }
+.ws-ride-steed.ws-ride-touch .ws-ride-sbar { flex: 1; margin-top: 0; min-width: 18px; height: 4px; }
+.ws-ride-steed.ws-ride-touch .ws-ride-gait { flex: none; white-space: nowrap; font-size: 7.5px; letter-spacing: 0.14em; }
 /* GALLOP (touch): where JUMP was, amber when held */
 .ws-ride-gallop { left: calc(100% - var(--disc) / 2 - 8px); bottom: calc(var(--bar) + 58px); }
 .ws-ride-gallop.down, .ws-ride-lean.down, .ws-ride-offer.down { background: radial-gradient(circle at 50% 35%, rgba(255, 196, 74, 0.45), rgba(40, 24, 6, 0.85) 70%); border-color: #ffc44a; }
@@ -22,13 +25,18 @@
 /* the HORSE tab over HOVER: far = whistle, near = mount */
 .ws-ride-horse { left: auto; right: 0; bottom: auto; top: calc(46% - 60px); margin-left: 0; width: 52px; height: 52px; border-radius: 12px 0 0 12px; border-right: none; font-size: 7px; gap: 2px; }
 .ws-ride-horse::before, .ws-ride-horse::after { display: none; }
-/* in the saddle the same tab reads DISMOUNT (N17): small, on the right edge, well above GALLOP */
-.ws-ride-dismount svg { width: 40%; height: 40%; }
-.ws-ride-dismount span { font-size: 6.5px; letter-spacing: 0.1em; }
+/* in the saddle the same tab reads DISMOUNT (N17): small, on the right edge, well above GALLOP — amber (the horse's colour),
+   the horse over a down-arrow (layout D, D-saddle.jpg) */
+.ws-ride-dismount { height: 58px; gap: 1px; color: #ffc44a; border-color: rgba(255, 196, 74, 0.8); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 14px rgba(255, 196, 74, 0.25), inset 0 0 10px rgba(255, 196, 74, 0.12); }
+.ws-touch-disc.ws-ride-dismount > svg { width: 42%; height: auto; fill: #ffc44a; }
+.ws-ride-darrow { display: block; width: 12px; height: 10px; margin-top: -1px; }
+.ws-touch-disc.ws-ride-dismount .ws-ride-darrow svg { display: block; width: 100%; height: 100%; fill: none; }
+.ws-ride-dismount span { font-size: 6.5px; letter-spacing: 0.1em; color: #ffc44a; }
 /* taming: LEAN L / LEAN R one per thumb just above the bar (the edges); OFFER in AIM's place (AIM hides while it shows) */
 .ws-ride-lean.l { left: calc(var(--disc) / 2 + 14px); bottom: calc(var(--bar) + 40px); }
 .ws-ride-lean.r { left: calc(100% - var(--disc) / 2 - 14px); bottom: calc(var(--bar) + 40px); }
 .ws-ride-offer { left: calc(var(--split) + var(--atk) + var(--disc) / 2); bottom: calc(var(--bar) + 40px); }
+#hud.nalati-d .ws-ride-offer { left: calc(100% - var(--disc) * 1.5 - 58px); bottom: calc(var(--bar) + 16px + var(--disc)); } /* layout D: AIM's spot (touch.css) */
 /* the TRUST arc (top centre) and the stallion's ALERT ear (over his head) */
 .ws-ride-trust { position: absolute; left: 50%; top: calc(var(--ws-top, 14px) + 44px); width: 260px; margin-left: -130px; display: none; flex-direction: column; align-items: center; pointer-events: none; }
 .ws-ride-trust.show { display: flex; }

@@ -8,10 +8,11 @@ import type { Mount } from '../player/Mount';
  * 7-controls/controls-mounted-layout.png). Built into #hud next to the HUD it complements, never inside another
  * screen's markup — the one touch concession is hiding / showing TouchControls' own discs with inline styles:
  *
- *   STEED     amber bar + gait under VITALS while mounted (desktop panel over the health panel; touch strip over VITALS)
+ *   STEED     amber bar + gait under VITALS while mounted (desktop panel over the health panel; touch: a row of the left
+ *             status column under VITALS — the horse, its name, the bar, the gait — layout D, NALATI-MERGE H2)
  *   GALLOP    (touch) a held disc where JUMP is; JUMP, DODGE and the HOVER tab hide in the saddle
  *   HORSE     (touch) a small tab on the right edge: whistles your bonded horse (desktop: X); in the saddle the same tab
- *             reads DISMOUNT (N17 — the USE band's DISMOUNT hides while it is up)
+ *             reads DISMOUNT, amber, the horse over a down-arrow (N17, D-saddle.jpg — the USE band's DISMOUNT hides while it is up)
  *   TRUST     the arc over the crosshair while you approach a stallion (heart · horseshoe), and his ALERT ear over his head
  *   HOLD ON   TAMING n/5 + the balance arc while he bucks; LEAN L / LEAN R discs (touch) where AIM / GALLOP were
  *   OFFER     (touch) where AIM is, inside 12 m of the stallion (desktop: hold G)
@@ -60,7 +61,7 @@ export class RideHUD {
   private readonly ear: HTMLElement; private earCol = '';
   private readonly hold: HTMLElement; private readonly holdRound: HTMLElement; private readonly holdMark: SVGGElement;
   private readonly tags = new Map<string, HTMLElement>();
-  private touch: { root: HTMLElement; gallop: HTMLElement; horse: HTMLElement; horseSvg: string; use: HTMLElement | null; leanL: HTMLElement; leanR: HTMLElement; offer: HTMLElement; steed: HTMLElement; sbar: HTMLElement } | null = null;
+  private touch: { root: HTMLElement; gallop: HTMLElement; horse: HTMLElement; horseSvg: string; use: HTMLElement | null; leanL: HTMLElement; leanR: HTMLElement; offer: HTMLElement; steed: HTMLElement; sbar: HTMLElement; sname: HTMLElement; gait: HTMLElement } | null = null;
   private last = { mounted: false, breaking: false, offer: false, steed: -1, gait: '', winded: false };
 
   constructor(private readonly mount: Mount, private readonly camera: THREE.PerspectiveCamera) {
@@ -110,11 +111,12 @@ export class RideHUD {
     hold(leanR, () => { this.lean = 1; }, () => { if (this.lean > 0) this.lean = 0; });
     const offer = disc('ws-ride-offer', SVG_HAND, 'Offer');
     hold(offer, () => { this.offer = true; }, () => { this.offer = false; });
+    // STEED: a row of the left status column under VITALS (layout D, NALATI-MERGE H2 — D-saddle.jpg), the bar's corner without one
     const steed = document.createElement('div');
     steed.className = 'ws-ride-steed ws-ride-touch';
-    steed.innerHTML = `<i class="ws-ride-glyph">${SVG_HORSE}</i><span class="ws-ride-sbar"><i style="width:100%"></i></span>`;
-    bar.append(steed);
-    this.touch = { root, gallop, horse, horseSvg: SVG_HORSE, use, leanL, leanR, offer, steed, sbar: this.q(steed, '.ws-ride-sbar i') };
+    steed.innerHTML = `<i class="ws-ride-glyph">${SVG_HORSE}</i><span class="ws-ride-name">Steed</span><span class="ws-ride-sbar"><i style="width:100%"></i></span><span class="ws-ride-gait">stand</span>`;
+    (root.querySelector<HTMLElement>('.ws-touch-status') ?? bar).append(steed);
+    this.touch = { root, gallop, horse, horseSvg: SVG_HORSE, use, leanL, leanR, offer, steed, sbar: this.q(steed, '.ws-ride-sbar i'), sname: this.q(steed, '.ws-ride-name'), gait: this.q(steed, '.ws-ride-gait') };
     this.last.mounted = !this.mount.mounted; this.last.breaking = !this.mount.breaking; this.last.offer = !this.last.offer;   // force a sync
   }
 
@@ -155,7 +157,7 @@ export class RideHUD {
         this.showDisc('.ws-touch-disc.heavy', !breaking);
         t.horse.style.display = breaking ? 'none' : 'flex';
         t.horse.classList.toggle('ws-ride-dismount', mounted);
-        t.horse.innerHTML = mounted ? `${SVG_DOWN}<span>Dismount</span>` : `${t.horseSvg}<span>Horse</span>`;
+        t.horse.innerHTML = mounted ? `${t.horseSvg}<b class="ws-ride-darrow">${SVG_DOWN}</b><span>Dismount</span>` : `${t.horseSvg}<span>Horse</span>`;
         this.syncUse();
       }
       if (!breaking) this.lean = 0;
@@ -168,9 +170,9 @@ export class RideHUD {
         if (t !== null) { t.sbar.style.width = `${s}%`; t.steed.classList.toggle('winded', m.winded); t.gallop.classList.toggle('winded', m.winded); }
       }
       const gait = m.leanLow > 0.5 ? 'gallop · low' : m.gait;
-      if (gait !== this.last.gait) { this.last.gait = gait; this.gait.textContent = gait; }
+      if (gait !== this.last.gait) { this.last.gait = gait; this.gait.textContent = gait; if (t !== null) t.gait.textContent = m.gait; } // the phone row is 170 px: the gait alone (D-saddle.jpg)
       const name = m.horse?.label ?? 'Steed';
-      if (this.sname.textContent !== name) this.sname.textContent = name;
+      if (this.sname.textContent !== name) { this.sname.textContent = name; if (t !== null) t.sname.textContent = name; }
     }
     // ── taming ──
     const trust = view?.trust ?? null;

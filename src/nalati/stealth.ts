@@ -25,7 +25,7 @@ import '../ui/styles/stealth.css';
  * DETECTION: the creatures own their senses (Pack / Herd via wildEnv.playerVisibility — grass cover at you and along the
  * line to them, your speed, the light, hearing with the grass rustle, the wolves' and the stallion's smell from downwind
  * regardless of grass; Wildlife feeds `wildEnv.playerCrouched`). This module READS their awareness for the eye pip under
- * the crosshair:
+ * the crosshair (on the phone, layout D, the left status column's last row — NALATI-MERGE H2):
  *   HIDDEN    crouched, cover ≥ 0.85, every animal within 40 m under 0.2       closed eye, cyan
  *   VISIBLE   in long grass or crouched, nothing aware of you                  open eye, faint
  *   NOTICED   the most aware animal between 0.2 and its alert level             half eye, amber, + a chevron toward it
@@ -84,6 +84,8 @@ export class Stealth {
   private root: HTMLElement; private pip: HTMLElement; private pipIcon: HTMLElement; private pipLabel: HTMLElement;
   private chev: HTMLElement; private meter: HTMLElement; private meterFill: HTMLElement; private hint: HTMLElement;
   private layer: HTMLElement | null; private disc: HTMLElement | null = null;
+  /** touch, layout D (NALATI-MERGE H2): the eye + state as the left status column's last row (the crosshair stays bare) */
+  private row: HTMLElement | null = null; private rowIcon: HTMLElement | null = null; private rowLabel: HTMLElement | null = null;
   private shown: StealthState | '' = '';
   private lastCover = -1; private lastThreat = -1; private lookFrames = 0;
 
@@ -146,6 +148,16 @@ export class Stealth {
     d.addEventListener('pointerup', (e) => { e.stopPropagation(); });
     layer.append(d);
     this.disc = d;
+    // layout D (NALATI-MERGE H2, art/hud/round-12-nalati-merge/D-foot.jpg): the eye pip becomes the status column's HIDDEN row
+    const status = layer.querySelector<HTMLElement>('.ws-touch-status');
+    if (status !== null) {
+      const row = document.createElement('div');
+      row.className = 'ws-stealth-row'; row.dataset['state'] = 'none';
+      row.innerHTML = '<i class="ws-stealth-eye"></i><span class="ws-stealth-label"></span>';
+      status.append(row);
+      this.row = row; this.rowIcon = row.querySelector<HTMLElement>('.ws-stealth-eye'); this.rowLabel = row.querySelector<HTMLElement>('.ws-stealth-label');
+      this.shown = '';   // paint it now
+    }
     this.hint.textContent = 'Tall grass';
     this.hint.classList.add('touch');
   }
@@ -216,8 +228,10 @@ export class Stealth {
     if (s !== this.shown) {
       this.shown = s;
       this.root.dataset['state'] = s;
-      this.pipIcon.innerHTML = s === 'hidden' ? EYE_SHUT : s === 'noticed' ? EYE_HALF : s === 'detected' ? ALERT : EYE_OPEN;
-      this.pipLabel.textContent = s === 'hidden' ? 'Hidden' : s === 'noticed' ? 'Noticed' : s === 'detected' ? 'Detected' : 'Visible';
+      const icon = s === 'hidden' ? EYE_SHUT : s === 'noticed' ? EYE_HALF : s === 'detected' ? ALERT : EYE_OPEN;
+      const label = s === 'hidden' ? 'Hidden' : s === 'noticed' ? 'Noticed' : s === 'detected' ? 'Detected' : 'Visible';
+      this.pipIcon.innerHTML = icon; this.pipLabel.textContent = label;
+      if (this.row !== null) { this.row.dataset['state'] = s; if (this.rowIcon !== null) this.rowIcon.innerHTML = icon; if (this.rowLabel !== null) this.rowLabel.textContent = label; }
     }
     // the GRASS meter while crouched
     const crouched = this.player.crouching;
@@ -225,7 +239,7 @@ export class Stealth {
     const c = Math.round(this.cover * 100) / 100;
     if (c !== this.lastCover) { this.lastCover = c; this.meterFill.style.transform = `scaleY(${c.toFixed(2)})`; this.meter.classList.toggle('good', c >= HIDDEN_COVER); }
     const th = Math.round(this.threat * 50) / 50;
-    if (th !== this.lastThreat) { this.lastThreat = th; this.pip.style.setProperty('--threat', th.toFixed(2)); }
+    if (th !== this.lastThreat) { this.lastThreat = th; this.pip.style.setProperty('--threat', th.toFixed(2)); this.row?.style.setProperty('--threat', th.toFixed(2)); }
     // the chevron: round the crosshair, pointing at the most aware creature
     const threatening = s === 'noticed' || s === 'detected';
     this.chev.classList.toggle('on', threatening);

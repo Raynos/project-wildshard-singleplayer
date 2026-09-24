@@ -97,7 +97,10 @@ export class EliteBar {
     this.cap.textContent = text; this.cap.classList.add('show'); this.capT = seconds;
   }
   banner(name: string, epithet: string): void {
-    this.banName.textContent = `${name.toUpperCase()} · ${epithet.toUpperCase()}`;
+    // name · epithet (layout D on the phone shows the name alone — elite.css hides the epithet span there)
+    const n = document.createElement('span'), e = document.createElement('span');
+    n.textContent = name.toUpperCase(); e.className = 'ws-elite-banner-epithet'; e.textContent = ` · ${epithet.toUpperCase()}`;
+    this.banName.replaceChildren(n, e);
     // another elite's bar already pinned (two lairs close together): the banner drops below it instead of over it
     this.ban.classList.toggle('below', this.mode === 'pinned' && this.bar.classList.contains('show'));
     this.ban.classList.add('show'); this.banT = 4.5;
