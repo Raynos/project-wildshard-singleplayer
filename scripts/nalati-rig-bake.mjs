@@ -45,7 +45,7 @@ export const RIG_BAKES = [
   },
   // the camp flock: no species skeleton — the flock shader's parts (species/sheep.ts SHEEP_BONES, one bone per leg);
   // Flock.ts folds the skin back into its aRig
-  { hull: 'sheep', kind: 'sheep', flock: true, opts: { legs: [['FL'], ['FR'], ['BL'], ['BR']] } },
+  { hull: 'sheep', kind: 'sheep', flock: true, phoneTris: 2000, opts: { legs: [['FL'], ['FR'], ['BL'], ['BR']] } },
 ];
 
 // gltf-transform (core + functions are in this repo; the extensions + meshoptimizer ride along with the cli)
@@ -53,8 +53,9 @@ const cliAbs = realpathSync(resolvePath(ROOT, 'node_modules/@gltf-transform/cli'
 const req = createRequire(pathToFileURL(resolvePath(cliAbs, 'package.json')).href);
 const { NodeIO, Document } = await import(pathToFileURL(req.resolve('@gltf-transform/core')).href);
 const { ALL_EXTENSIONS, EXTMeshoptCompression } = await import(pathToFileURL(req.resolve('@gltf-transform/extensions')).href);
-const { MeshoptDecoder, MeshoptEncoder } = await import(pathToFileURL(req.resolve('meshoptimizer')).href);
-await MeshoptDecoder.ready; await MeshoptEncoder.ready;
+const { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } = await import(pathToFileURL(req.resolve('meshoptimizer')).href);
+const { weld, simplify } = await import(pathToFileURL(req.resolve('@gltf-transform/functions')).href);
+await MeshoptDecoder.ready; await MeshoptEncoder.ready; await MeshoptSimplifier.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder, 'meshopt.encoder': MeshoptEncoder });
 
 const b64 = (s, T) => { const b = Buffer.from(s, 'base64'); return new T(b.buffer, b.byteOffset, b.byteLength / T.BYTES_PER_ELEMENT); };
@@ -63,6 +64,19 @@ const b64 = (s, T) => { const b = Buffer.from(s, 'base64'); return new T(b.buffe
 /** the hull's source GLB: `src` (a repo path without the suffix — the rig-friendly regenerated hulls live with their
  *  references in art/, they are never loaded by the game) or public/assets/nalati/models/<hull> */
 function sourceOf(job, suffix) { return job.src ? resolvePath(ROOT, `${job.src}${suffix}.glb`) : resolvePath(MODELS, `${job.hull}${suffix}.glb`); }
+
+/** the hull's bytes; on the phone a job's `phoneTris` simplifies it first (meshoptimizer, the uv seams kept) */
+async function sourceBytes(job, file, tier) {
+  if (tier !== 'phone' || !job.phoneTris) return readFileSync(file);
+  const doc = await io.read(file);
+  const prim = doc.getRoot().listMeshes()[0]?.listPrimitives()[0];
+  const tris = prim ? (prim.getIndices()?.getCount() ?? 0) / 3 : 0;
+  if (tris <= job.phoneTris) return readFileSync(file);
+  await doc.transform(weld(), simplify({ simplifier: MeshoptSimplifier, ratio: job.phoneTris / tris, error: 0.02 }));
+  const after = (doc.getRoot().listMeshes()[0]?.listPrimitives()[0]?.getIndices()?.getCount() ?? 0) / 3;
+  console.log(`  ${job.hull} phone: ${tris} -> ${after} tris`);
+  return Buffer.from(await io.writeBinary(doc));
+}
 
 async function writeRigged(job, suffix, bake) {
   const srcPath = sourceOf(job, suffix);
@@ -157,7 +171,7 @@ try {
           index: enc(Uint32Array.from(idx ? idx.array : Array.from({ length: g.getAttribute('position').count }, (_, i) => i))),
           bones: r.bones, report: r.report,
         };
-      }, { ...job, srcB64: readFileSync(srcFile).toString('base64') });
+      }, { ...job, srcB64: (await sourceBytes(job, srcFile, tier)).toString('base64') });
       const w = await writeRigged(job, suffix, bake);
       console.log(`${job.hull} ${tier}: ${w.verts} verts, ${(w.bytes / 1024).toFixed(0)} KB → ${w.out.slice(ROOT.length + 1)}  legs ${JSON.stringify(bake.report.legs)} head ${bake.report.headDeg}°`);
     }
