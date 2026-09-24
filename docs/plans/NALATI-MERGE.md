@@ -1,6 +1,6 @@
 # NALATI-MERGE — bring Nalati into the fold
 
-**State:** `in progress` 2026-09-24 — done: M1–M2, F1–F8, R1–R4, H1–H4, P1–P4 (colliders, Explore, projectiles, navmesh, 0 stuck), Q1–Q5, L1–L4 (the Look Lab's three variants stay switchable until the user has played them), E1 (EARLY ACCESS). Building: A1–A4 (the Nalati sound set, music slot, ambience, the Kazakh score — agent; the user picks takes), D1–D2 (models, both pipelines — agent). Last: M3 (merge main again) + E2 (the landing: the user merges the branch himself).
+**State:** `in progress` 2026-09-24 — done: M1–M2 (+ M3 a5f4821), F1–F11, R1–R4, H1–H4, P1–P4, Q1–Q5, L1–L4, D1–D2, E1. The user's picks still open (all switchable in pause ▸ Settings ▸ Debug ▸ Look lab, he plays first): the three look variants, Yurts, Camp people. Building: A1–A4 (the Nalati sound set, music slot, ambience, the Kazakh score — agent; the user picks takes on a listening page). Last: M3 (a final main merge) + E2 (the landing: the user merges the branch himself).
 
 The ask: N16 ("main has moved a lot … bring Nalati into the fold … every new thing made for Wildshard has to be put into
 Nalati"), with N15 (map text), N17 (riding), N18 (the bow), N19 (the horizon seam). The decisions, verbatim, are in
