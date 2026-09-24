@@ -4,10 +4,11 @@
 // desktop tier 1600×900, HUD hidden, clock frozen, clear weather.
 //
 //   node scripts/nalati-chunk-views.mjs --out=art/nalati-grasslands/round-7-world-redesign [--url=http://127.0.0.1:5193]
+//   --views=<file.json> your own [{ id, cam, at, fov, eval? }] list instead of a set (eval: a JS expression run first);
 //   --set=crags   the snow ring + escarpment set (god views of the massifs, first person in Snow Lotus Valley / under the
 //                 escarpment); --only=<id substrings, comma-separated>; --tier=phone (390×844) for the phone's calls / tris; --query=<extra url params>
 // Each view's draw calls / triangles are printed and written to <out>/views.json.
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 
 const { chromium } = await import('playwright');
@@ -48,7 +49,10 @@ const CRAG_VIEWS = [
   { id: 'fp-escarp-below', cam: [-60, -6, 150], at: [-60, 18, 100], fov: 60 },
 ];
 const ONLY = flag('only', '').split(',').filter(Boolean);
-const LIST = (SET === 'crags' ? CRAG_VIEWS : VIEWS).filter((v) => ONLY.length === 0 || ONLY.some((o) => v.id.includes(o)));
+// --views=<file.json>: your own list of { id, cam, at, fov } (ids starting 'fp-' keep the eye 1.7 m over the ground)
+const VIEWS_FILE = flag('views', '');
+const OWN = VIEWS_FILE ? JSON.parse(readFileSync(resolvePath(VIEWS_FILE), 'utf8')) : null;
+const LIST = (OWN ?? (SET === 'crags' ? CRAG_VIEWS : VIEWS)).filter((v) => ONLY.length === 0 || ONLY.some((o) => v.id.includes(o)));
 const SIZE = TIER === 'phone' ? { width: 390, height: 844 } : { width: 1600, height: 900 };
 
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
@@ -83,6 +87,8 @@ try {
       await page.evaluate((vv) => { const y = window.__world.player.position.y; window.__cv = { ...vv, cam: [vv.cam[0], y + 1.7, vv.cam[2]] }; }, v);
       await new Promise((resolve) => { setTimeout(resolve, 1500); });
     }
+    // a view may carry `eval`: a JS expression run in the page before the capture (hide a mesh, pose a creature …)
+    if (v.eval) { await page.evaluate(v.eval); await new Promise((resolve) => { setTimeout(resolve, 800); }); }
     writeFileSync(resolvePath(OUT, `capture-${v.id}.jpg`), await page.screenshot({ type: 'jpeg', quality: 86 }));
     const perf = await page.evaluate(() => { const g = window.__world.game; return { calls: g.lastFrame.calls, tris: g.lastFrame.triangles }; });
     stats.push({ id: v.id, ...perf });
