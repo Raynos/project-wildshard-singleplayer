@@ -11,7 +11,8 @@ import * as THREE from 'three';
 import { PaintKit, M, pole, v3, blob } from './paint';
 import { graniteBlock } from './EagleRock';
 import { CRAGS, WEST_CRAGS, CRAG_CAVE } from './layout';
-import type { Collider } from '../../player/Player';
+import { highest, slab, type Box } from './solid';
+import type { ColliderDesc } from '../registry';
 import type { Platform, PoiCtx, PoiPiece } from './types';
 
 const C = {
@@ -30,7 +31,8 @@ export function buildCrags(ctx: PoiCtx): { piece: PoiPiece; ledges: Ledge[]; cav
   const { sky, ground } = ctx;
   const kit = new PaintKit(0xc4a6);
   const rng = kit.rng;
-  const colliders: Collider[] = [];
+  const colliders: Box[] = [];
+  const descs: ColliderDesc[] = [];
   const platforms: Platform[] = [];
   const snowTop = (minY: number) => ({ top: { color: C.snow, threshold: 0.45, amount: 0.95, minY }, brush: 0.1 });
   const slopeAt = (x: number, z: number) => { const e = 1.5; return Math.hypot(ground(x + e, z) - ground(x - e, z), ground(x, z + e) - ground(x, z - e)) / (2 * e); };
@@ -58,6 +60,7 @@ export function buildCrags(ctx: PoiCtx): { piece: PoiPiece; ledges: Ledge[]; cav
     placed.push({ x: px, z: pz, r: 3.2 });
     ledges.push({ x: px, y: top, z: pz, r: Math.min(w, d2) / 2 - 0.3 });
     colliders.push({ x: px, z: pz, hw: w / 2 - 0.3, hd: d2 / 2 - 0.3, rot: -yaw, yBottom: top - 6, yTop: top });
+    // (the box's top is the ledge: a real floor since P1 — `platforms` is placement only)
     const cs = Math.cos(yaw), sn = Math.sin(yaw), hw = w / 2 - 0.25, hd = d2 / 2 - 0.25;
     platforms.push((qx, qz) => { const dx = qx - px, dz = qz - pz, lx = dx * cs - dz * sn, lz = dx * sn + dz * cs; return Math.abs(lx) <= hw && Math.abs(lz) <= hd ? top : undefined; });
   }
@@ -103,6 +106,9 @@ export function buildCrags(ctx: PoiCtx): { piece: PoiPiece; ledges: Ledge[]; cav
     const gp = ground(porch.x, porch.z), th = Math.max(1.4, porchY - gp + 1.2);
     kit.add(graniteBlock(6.6, th, 4.4, 0xcafe, 0.1), C.graniteDark, { ...snowTop(CRAGS.snowLine), matrix: M(porch.x, porchY - th / 2 + 0.02, porch.z, yawIn) });
     colliders.push({ x: porch.x, z: porch.z, hw: 3.0, hd: 1.9, rot: -yawIn, yBottom: gp - 3, yTop: porchY });
+    // the cave's own floor, from the porch's back edge in to the back wall (P1: it was a floor function only)
+    const cf = L(0, 0, depth / 2 - 0.1);
+    descs.push(slab(cf.x, cf.z, porchY, 1.2, mouthW / 2 + 0.3, depth / 2 + 0.25, yawIn, 'rock'));
   }
   { const cs = Math.cos(yawIn), sn = Math.sin(yawIn); platforms.push((qx, qz) => { const dx = qx - porch.x, dz = qz - porch.z, lx = dx * cs - dz * sn, lz = dx * sn + dz * cs; return Math.abs(lx) <= 3.0 && lz <= 2.1 && lz >= -1.95 ? porchY : Math.abs(lx) <= mouthW / 2 && lz > 2.1 && lz < 2.1 + depth ? porchY : undefined; }); }
   // old bones on the porch: a few long bones, a ribcage arc, a skull
@@ -115,5 +121,5 @@ export function buildCrags(ctx: PoiCtx): { piece: PoiPiece; ledges: Ledge[]; cav
 
   const mesh = kit.mesh(sky, { ground, aoH: 1.2 });
   mesh.name = 'nalati-crags';
-  return { piece: { name: 'crags', object: mesh, colliders, platforms, tris: mesh.geometry.getAttribute('position').count / 3 }, ledges, cave: { x: porch.x, y: porchY, z: porch.z, facing: cave.rot } };
+  return { piece: { name: 'crags', object: mesh, colliders, surface: 'rock', descs, floor: highest(platforms), tris: mesh.geometry.getAttribute('position').count / 3 }, ledges, cave: { x: porch.x, y: porchY, z: porch.z, facing: cave.rot } };
 }

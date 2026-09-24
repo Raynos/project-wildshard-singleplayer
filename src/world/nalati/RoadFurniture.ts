@@ -12,7 +12,7 @@ import { addFence, PC } from './props';
 import { painterlyMaterial } from '../painterly';
 import { CAMP } from './layout';
 import { PASTURE, HORSE_PLAINS, KOKPAR, EAGLE_ROCK, SUMMER_YURTS, WATCHTOWER, KURGANS } from '../../chunks/nalatiLayout';
-import type { Collider } from '../../player/Player';
+import type { Box } from './solid';
 import type { PoiCtx, PoiPiece } from './types';
 
 interface Board { text: string; /** the way the arrow points (world yaw of the direction, atan2(dx, dz)) */ dir: number }
@@ -61,7 +61,7 @@ function makeAtlas(labels: string[]): THREE.CanvasTexture {
 export function buildRoadFurniture(ctx: PoiCtx): PoiPiece {
   const { sky, ground } = ctx;
   const kit = new PaintKit(0x70ad);
-  const colliders: Collider[] = [];
+  const colliders: Box[] = [];
 
   // ── fences ──
   // N road, both sides, gate to the bridge; the west side opens for the camp spur
@@ -132,5 +132,5 @@ export function buildRoadFurniture(ctx: PoiCtx): PoiPiece {
   text.receiveShadow = true;
   const group = new THREE.Group();
   group.add(mesh, text);
-  return { name: 'roads', object: group, colliders, platforms: [], tris: mesh.geometry.getAttribute('position').count / 3 + idx.length / 3 };
+  return { name: 'roads', object: group, colliders, surface: 'wood', tris: mesh.geometry.getAttribute('position').count / 3 + idx.length / 3 };
 }

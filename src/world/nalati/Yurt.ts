@@ -18,7 +18,8 @@
  */
 import * as THREE from 'three';
 import { type PaintKit, M, lathe, pole, v3, revolve, revolveUV } from './paint';
-import type { Collider } from '../../player/Player';
+import type { ColliderDesc } from '../registry';
+import { prism, type Box } from './solid';
 
 export interface YurtSpec {
   x: number; y: number; z: number;
@@ -70,7 +71,7 @@ export const YURT_C = {
   iron: new THREE.Color('#3b3a3a'),
 };
 
-export function addYurt(kit: PaintKit, s: YurtSpec, colliders: Collider[]): YurtTop {
+export function addYurt(kit: PaintKit, s: YurtSpec, colliders: Box[]): YurtTop {
   const R = s.r, wallH = 1.55 + (R - 3) * 0.12, rise = R * 0.52, eaveR = R + 0.22;
   const mat = M(s.x, s.y, s.z, s.rot);
   const rng = kit.rng;
@@ -242,9 +243,22 @@ export function addYurt(kit: PaintKit, s: YurtSpec, colliders: Collider[]): Yurt
     flue = v3(fx, top + 0.2, fz).applyMatrix4(mat);
   }
 
-  // colliders: an octagon of two crossed squares
+  // colliders: the solid is `yurtSolid` (the felt wall + the roof); the two crossed squares stay as data (the weather's yurts)
   for (const extra of [0, Math.PI / 4]) {
-    colliders.push({ x: s.x, z: s.z, hw: R * 0.93, hd: R * 0.93, rot: -(s.rot + extra), yBottom: s.y - 1, yTop: s.y + wallH + rise * 0.6 });
+    colliders.push({ x: s.x, z: s.z, hw: R * 0.93, hd: R * 0.93, rot: -(s.rot + extra), yBottom: s.y - 1, yTop: s.y + wallH + rise * 0.6, ghost: true });
   }
   return { crown: v3(0, crownY, 0).applyMatrix4(mat), flue, height: crownY };
+}
+
+/**
+ * A yurt's collision (NALATI-MERGE P1): the felt wall as a 16-sided prism of radius R from under the turf to the eave,
+ * and the roof as a frustum from the eave (R + 0.22) up to the crown ring — the drawn shape, not the old crossed
+ * squares whose corners stood 30 % of R out from the wall. `height`: the drawn crown (`YurtTop.height`).
+ */
+export function yurtSolid(s: YurtSpec, height: number): ColliderDesc[] {
+  const R = s.r, wallH = 1.55 + (R - 3) * 0.12;
+  return [
+    prism(s.x, s.z, s.y - 1, s.y + wallH, R + 0.02, 16, s.rot, 'felt'),
+    prism(s.x, s.z, s.y + wallH, s.y + Math.max(wallH + 0.3, height), R + 0.22, 16, s.rot, 'felt', R * 0.22),
+  ];
 }

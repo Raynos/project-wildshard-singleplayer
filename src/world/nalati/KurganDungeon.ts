@@ -24,7 +24,8 @@
  * uniform picks the look), additive or alpha-blended per material.
  *
  *   const dungeon = new KurganDungeon().build();
- *   scene.add(dungeon.group);  player.colliders.push(...dungeon.colliders);  player.platforms.push(dungeon.floorHeightAt);
+ *   scene.add(dungeon.group);  dungeon.register(activeRegistry());   // NALATI-MERGE P1: walls, floor slabs, plinth, beams,
+ *                                                                   // the seal (a follows piece) and the sand (a HeightPatch)
  *   dungeon.update(dt, t, player.position);
  *   dungeon.local(p) → { x, y, z }  chamber-local (origin = chamber floor centre, +z = north toward the dromos)
  *   dungeon.world(lx, ly, lz, out)  the other way
@@ -34,13 +35,17 @@
  *   dungeon.niches[i] / setNicheStatue(i, on)   the four wall niches the balbal adds step out of
  *   dungeon.setShaft(i, strength)    0 = the looter's-hole shaft on the coffin, 1 = the pedestal shaft (victory)
  *   dungeon.rings / streams / beam / dome / arc   hazard visuals the fight drives (see each)
- *   dungeon.sandAt(lx, lz) / addSand(lx, lz, r, dh)   the phase-II drifts (walkable: floorHeightAt includes them)
+ *   dungeon.sandAt(lx, lz) / addSand(lx, lz, r, dh)   the phase-II drifts (walkable: a heightfield rebuilt as they grow)
  *   dungeon.showHeap(on)             the heap of gold plaques the King crumbles into
  */
 import * as THREE from 'three';
 import { PaintKit, M, pole, v3, blob, lathe } from './paint';
 import { balbalGeometry } from './Balbals';
 import type { Collider } from '../../player/Player';
+import { boxDesc, type ColliderDesc, type WorldRegistry } from '../registry';
+import type { Material } from '../../physics/surface';
+import { HeightPatch } from '../../physics/heightPatch';
+import { activePhysics } from '../../physics/active';
 import type { Rng } from '../../core/rng';
 
 /** where the interior lives (world): the chamber floor centre. Flat plateau under it (see the header). */
@@ -314,6 +319,8 @@ export class KurganDungeon {
   private sandMesh!: THREE.Mesh;
   private sandLight = new Float32Array((SAND_N + 1) * (SAND_N + 1) * 3);
   private sandDirty = false;
+  /** the drifts' collision (P1): rebuilt with the drawn grid */
+  private sandPatch: HeightPatch | null = null;
   private sandAcc = 0;
 
   constructor() {
@@ -762,14 +769,47 @@ export class KurganDungeon {
     box(PEDESTAL.x, PEDESTAL.z, 0.6, 0.5, -0.5, PEDESTAL.h);
     for (const b of BRAZIERS) box(b.x, b.z, 0.45, 0.45, -0.5, 1.3);
     // floor + ceiling slabs: arrows stick in them (the player is never pushed: it stands above / below them)
-    box(0, 0, CH + 0.5, CH + 0.5, -1.2, -0.02);
-    box(0, (CH + DROMOS_END) / 2, DW + 0.5, (DROMOS_END - CH) / 2 + 0.5, -1.2, -0.02);
+    box(0, 0, CH + 0.5, CH + 0.5, -1.2, 0);
+    box(0, (CH + DROMOS_END) / 2, DW + 0.5, (DROMOS_END - CH) / 2 + 0.5, -1.2, 0);
     // the ceiling, minus the looter's hole (arrows loosed up through it fly out)
     box(0, -CH / 2 - 1.2, CH, CH / 2 - 1.2, BEAM_Y - 0.2, PLANK_Y + 0.5);
     box(0, CH / 2 + 0.8, CH, CH / 2 - 0.8, BEAM_Y - 0.2, PLANK_Y + 0.5);
     box(-CH / 2 - 1, COFFIN.z, CH / 2 - 1, 1.6, BEAM_Y - 0.2, PLANK_Y + 0.5);
     box(CH / 2 + 1.3, COFFIN.z, CH / 2 - 1.3, 1.6, BEAM_Y - 0.2, PLANK_Y + 0.5);
     this.colliders.push(this.sealCollider);
+  }
+
+  /**
+   * NALATI-MERGE P1: the interior into the world registry — the walls, ceiling and floor slabs as boxes (larch; the
+   * pedestal stone, the braziers metal), the coffin plinth + a step onto it and the pedestal's step as slabs, the fallen
+   * beams as capsules; the seal as a piece that follows the (still) interior group and collides only while sealed; the
+   * sand drifts as a heightfield rebuilt with the drawn grid. `floorHeightAt` stays for placement.
+   */
+  register(registry: WorldRegistry): void {
+    const Y0 = DUNGEON.y, at = (lx: number, lz: number) => ({ x: DUNGEON.x + lx, z: DUNGEON.z + lz });
+    const statics = this.colliders.filter((c) => c !== this.sealCollider);
+    const surfaceOf = (c: Collider): Material | undefined =>
+      BRAZIERS.some((b) => Math.abs(DUNGEON.x + b.x - c.x) < 0.01 && Math.abs(DUNGEON.z + b.z - c.z) < 0.01) ? 'metal'
+        : Math.abs(DUNGEON.x + PEDESTAL.x - c.x) < 0.01 && Math.abs(DUNGEON.z + PEDESTAL.z - c.z) < 0.01 ? 'stone' : undefined;
+    const descs: ColliderDesc[] = statics.map((c) => boxDesc(c, surfaceOf(c)));
+    const cf = at(COFFIN.x, COFFIN.z), pd = at(PEDESTAL.x, PEDESTAL.z);
+    descs.push({ kind: 'box', x: cf.x, y: Y0 + COFFIN.plinthH / 2, z: cf.z, hx: COFFIN.wid / 2 + 0.65, hy: COFFIN.plinthH / 2, hz: COFFIN.len / 2 + 0.6, surface: 'wood' });
+    descs.push({ kind: 'box', x: cf.x, y: Y0 + 0.11, z: cf.z, hx: COFFIN.wid / 2 + 0.95, hy: 0.11, hz: COFFIN.len / 2 + 0.9, surface: 'wood' });   // a step onto it (≤ 0.35)
+    descs.push({ kind: 'box', x: pd.x, y: Y0 + 0.09, z: pd.z, hx: 0.8, hy: 0.09, hz: 0.7, surface: 'stone' });
+    const up = new THREE.Vector3(0, 1, 0), axis = new THREE.Vector3(), q = new THREE.Quaternion();
+    for (const f of FALLEN) {
+      const dx = f.b[0] - f.a[0], dz = f.b[1] - f.a[1], len = Math.hypot(dx, dz), c = at((f.a[0] + f.b[0]) / 2, (f.a[1] + f.b[1]) / 2);
+      q.setFromUnitVectors(up, axis.set(dx / len, 0, dz / len));
+      descs.push({ kind: 'capsule', x: c.x, y: Y0 + f.r, z: c.z, halfHeight: Math.max(0.05, len / 2 - f.r), radius: f.r, rot: { x: q.x, y: q.y, z: q.z, w: q.w }, surface: 'wood' });
+    }
+    registry.add({ id: 'nalati-kurgan-dungeon', name: 'The Golden King\'s tomb', category: 'buildings', file: 'src/world/nalati/KurganDungeon.ts', surface: 'wood', colliders: descs, floor: this.floorHeightAt, solidFloor: true });
+    // the seal: its box in the interior group's frame (the group stands at DUNGEON, never moves)
+    registry.add({
+      id: 'nalati-kurgan-seal', name: 'The sand seal', category: 'buildings', file: 'src/world/nalati/KurganDungeon.ts', surface: 'sand', follows: this.group,
+      colliders: [{ kind: 'box', x: 0, y: DOOR_H / 2, z: CH + 0.1, hx: DOOR_W + 0.3, hy: DOOR_H / 2 + 1, hz: 0.25 }], active: () => this.sealed,
+    });
+    const ph = activePhysics();
+    if (ph) this.sandPatch = new HeightPatch(ph, { x: DUNGEON.x, y: Y0, z: DUNGEON.z, size: CH * 2, res: SAND_N + 1, material: 'sand', owner: this });
   }
 
   // ── walkable heights ──
@@ -827,6 +867,7 @@ export class KurganDungeon {
   private writeSand(): void {
     const g = this.sandMesh.geometry, pos = g.getAttribute('position'), col = g.getAttribute('color');
     const N1 = SAND_N + 1;
+    const grid = this.sandPatch ? new Float32Array(N1 * N1) : null;
     let any = false;
     for (let j = 0; j < N1; j++) for (let i = 0; i < N1; i++) {
       const v = j * N1 + i;
@@ -835,12 +876,14 @@ export class KurganDungeon {
       for (const [di, dj] of [[-1, -1], [0, -1], [-1, 0], [0, 0]] as const) { const ci = i + di, cj = j + dj; if (ci >= 0 && cj >= 0 && ci < SAND_N && cj < SAND_N) { s += this.sandH[cj * SAND_N + ci] ?? 0; c++; } }
       const h = c > 0 ? s / c : 0;
       if (h > 0.01) any = true;
+      if (grid) grid[v] = h;
       pos.setY(v, h > 0.01 ? h : -0.05);
       const k = 0.85 + 0.25 * Math.min(1, h / 0.6);
       col.setXYZ(v, C.sand.r * k * (this.sandLight[v * 3] ?? 1), C.sand.g * k * (this.sandLight[v * 3 + 1] ?? 1), C.sand.b * k * (this.sandLight[v * 3 + 2] ?? 1));
     }
     pos.needsUpdate = true; col.needsUpdate = true;
     this.sandMesh.visible = any;
+    if (grid) this.sandPatch?.set(grid);   // P1: the drifts are walkable as real geometry (row j = z, column i = x)
   }
 
   // ── state the fight drives ──

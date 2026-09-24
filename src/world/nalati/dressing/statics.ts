@@ -15,6 +15,8 @@ import { PaintKit, pole, v3, blob, lathe, logPainter, poiMaterial, M } from '../
 import type { Flutter } from '../Flutter';
 import type { Sky } from '../../Sky';
 import type { Collider } from '../../../player/Player';
+import type { ColliderDesc } from '../../registry';
+import { prism } from '../solid';
 import { addFence } from '../props';
 import { campClutterSpots, type DressPlan } from './place';
 
@@ -33,7 +35,7 @@ const RIBBONS = ['#6fb0e6', '#f3efe4', '#3f7fcf', '#f3efe4', '#d8402b', '#e8c23a
 type Ground = (x: number, z: number) => number;
 const ground: Ground = (x, z) => heightAt(x, z);
 
-export interface Statics { meshes: THREE.Mesh[]; tris: number; colliders: Collider[] }
+export interface Statics { meshes: THREE.Mesh[]; tris: number; colliders: Collider[]; descs: ColliderDesc[] }
 
 export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Statics {
   const regions = new Map<number, THREE.BufferGeometry[]>();
@@ -43,7 +45,9 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
     list.push(g);
   };
   const colliders: Collider[] = [];
+  const descs: ColliderDesc[] = [];
   const rng = new Rng(0x0d7e);
+  const up = new THREE.Vector3(0, 1, 0), axis = new THREE.Vector3(), qLog = new THREE.Quaternion();
 
   // ── logs + driftwood (no AO bake: a lone log has nothing to occlude it; the contact shade does the foot) ──
   for (const l of plan.logs) {
@@ -53,6 +57,9 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
     const a = v3(l.ax, ya + l.r * (1 - sink), l.az), b = v3(l.bx, yb + l.r * (1 - sink) * 0.85, l.bz);
     const bark = l.drift ? C.drift : rng.next() < 0.4 ? C.barkGrey : C.bark;
     kit.add(pole(a, b, l.r, l.r * 0.82, l.drift ? 6 : 9), logPainter(a, b, bark, l.drift ? C.driftDark : C.wood), { top: l.drift ? undefined : { color: C.moss, threshold: 0.72, amount: 0.55 }, brush: 0.12 });
+    // P1: the log collides as the capsule it draws (it was a box to the ground)
+    { const len = a.distanceTo(b); axis.subVectors(b, a).divideScalar(Math.max(1e-6, len)); qLog.setFromUnitVectors(up, axis);
+      descs.push({ kind: 'capsule', x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, z: (a.z + b.z) / 2, halfHeight: Math.max(0.05, len / 2 - l.r), radius: l.r * 0.92, rot: { x: qLog.x, y: qLog.y, z: qLog.z, w: qLog.w }, surface: 'wood' }); }
     // broken branch stubs (driftwood: one forked limb)
     const n = l.drift ? 1 : rng.int(2, 4);
     for (let i = 0; i < n; i++) {
@@ -94,6 +101,7 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
       }
     }
     kit.add(blob(R * 0.8, rng, 2, (H / R) * 0.9, 0.2), C.stone, { matrix: M(o.x, gy - 0.1, o.z) });
+    descs.push(prism(o.x, o.z, gy - 1, gy + H * 0.95, R * 0.95, 10, 0, 'stone', R * 0.3));   // P1: the heap
     // the pole bundle
     const top = v3(o.x, gy + H + 1.9 * o.s, o.z);
     for (let i = 0; i < 4; i++) {
@@ -174,7 +182,7 @@ export function buildStatics(sky: Sky, plan: DressPlan, flutter: Flutter): Stati
     meshes.push(m);
     tris += geo.getAttribute('position').count / 3;
   }
-  return { meshes, tris, colliders };
+  return { meshes, tris, colliders, descs };
 }
 
 /**

@@ -24,7 +24,7 @@ import { grassBaseHeightAt, grassToneAt, flowerPatchAt } from '../../GrassField'
 import { RIVER, riverMask, BROOK, CRAGS, WEST_CRAGS, SNOW_LINE, KURGANS, CAMP, SUMMER_YURTS, SKY_ROAD, CAMP_SPUR, zoneAt, snowValleyX, snowValleyHalf, glacierMask } from '../../../chunks/nalati-grasslands';
 import { inPoiClearing } from '../clearings';
 import type { Forest } from '../../Forest';
-import type { Collider } from '../../../player/Player';
+import type { Box } from '../solid';
 import type { Inst } from './layer';
 
 const SEED = 0x4a1a ^ 0xd7e5;
@@ -42,7 +42,8 @@ export interface DressPlan {
   fences: [number, number][][]; gates: { x: number; z: number; yaw: number }[];
   /** flower-drift hearts (butterflies hang round them) */
   drifts: { x: number; y: number; z: number; r: number }[];
-  colliders: Collider[];
+  /** the plan's boxes as data (their keep-outs); a `ghost` one's solid is a hull / capsule / prism elsewhere */
+  colliders: Box[];
 }
 
 // ── terrain queries ─────────────────────────────────────────────────────────────────────────────────
@@ -255,7 +256,8 @@ function addRock(plan: DressPlan, rng: Rng, into: Inst[], x: number, z: number, 
   into.push(inst);
   if (r > 0.75) {
     const ext = slab ? 1.3 : 0.85;
-    plan.colliders.push({ x, z, hw: sx * ext * 0.8, hd: sz * 0.8, rot: -inst.yaw, yBottom: h - 2, yTop: h + sy * 0.55 });
+    inst.solid = true;   // P1: its solid is the hull of the drawn rock (NalatiDressing); the box stays as data
+    plan.colliders.push({ x, z, hw: sx * ext * 0.8, hd: sz * 0.8, rot: -inst.yaw, yBottom: h - 2, yTop: h + sy * 0.55, ghost: true });
   }
 }
 
@@ -535,7 +537,7 @@ function woods(plan: DressPlan, occ: Occupancy, forest: Forest | null): void {
       occ.add(cx, cz, L * 0.4); logs++;
       plan.logs.push({ ax, az, bx, bz, r, drift: false });
       const hc = heightAt(cx, cz);
-      plan.colliders.push({ x: cx, z: cz, hw: r + 0.05, hd: L / 2, rot: -Math.atan2(bx - ax, bz - az), yBottom: hc - 1, yTop: hc + r * 1.6 });
+      plan.colliders.push({ x: cx, z: cz, hw: r + 0.05, hd: L / 2, rot: -Math.atan2(bx - ax, bz - az), yBottom: hc - 1, yTop: hc + r * 1.6, ghost: true }); // solid: the drawn log's capsule (statics.ts)
     }
   }
 }
@@ -574,7 +576,7 @@ function landmarks(plan: DressPlan, occ: Occupancy): void {
     sp.s = rng.range(0.8, 1.15);
     plan.ovoos.push(sp);
     const h = heightAt(sp.x, sp.z);
-    plan.colliders.push({ x: sp.x, z: sp.z, hw: 1.3 * sp.s, hd: 1.3 * sp.s, rot: 0, yBottom: h - 1, yTop: h + 1.1 * sp.s });
+    plan.colliders.push({ x: sp.x, z: sp.z, hw: 1.3 * sp.s, hd: 1.3 * sp.s, rot: 0, yBottom: h - 1, yTop: h + 1.1 * sp.s, ghost: true }); // solid: a stone prism (statics.ts)
   }
   for (const [x, z] of POLES) { const sp = settle(x, z, 0.6); if (sp) plan.poles.push(sp); }
 }
@@ -608,7 +610,7 @@ function roadFences(plan: DressPlan): void {
 // ── camp clutter spots (loose things round the yurt rings; the POI agent builds the structures) ─────
 
 /** true when (x, z) is within `m` metres of any oriented collider box (the POI set pieces, the outcrops …) */
-function nearCollider(x: number, z: number, avoid: readonly Collider[], m: number): boolean {
+function nearCollider(x: number, z: number, avoid: readonly Box[], m: number): boolean {
   for (const c of avoid) {
     const dx = x - c.x, dz = z - c.z;
     if (dx * dx + dz * dz > (c.hw + c.hd + m + 1) ** 2) continue;
@@ -631,7 +633,7 @@ const SPUR_A: [number, number] = CAMP_SPUR[1] ?? [40, 204], SPUR_B: [number, num
  * Every spot keeps 1 m off the POI agent's colliders (`avoid` = the player's colliders once the POIs are in), clear of the
  * hitching rail + its horses and the corral, and 2.4 m from the next.
  */
-export function campClutterSpots(avoid: readonly Collider[] = []): { x: number; z: number; yaw: number; kind: number }[] {
+export function campClutterSpots(avoid: readonly Box[] = []): { x: number; z: number; yaw: number; kind: number }[] {
   const rng = new Rng(SEED + 91);
   const out: { x: number; z: number; yaw: number; kind: number }[] = [];
   const corral = { x: CAMP.x + 27, z: CAMP.z + 9, r: 12 };

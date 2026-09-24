@@ -16,7 +16,8 @@
 import * as THREE from 'three';
 import { PaintKit, M, pole, v3, blob } from './paint';
 import { KURGANS, GREAT_KURGAN, GREAT_KURGAN_DOOR, KURGAN_BALBALS } from './layout';
-import type { Collider } from '../../player/Player';
+import type { ColliderDesc } from '../registry';
+import { highest, slab, type Box } from './solid';
 import type { Platform, PoiCtx, PoiPiece } from './types';
 
 const C = {
@@ -40,7 +41,8 @@ export function buildKurganField(ctx: PoiCtx): { piece: PoiPiece; entrance: Kurg
   const { sky, ground } = ctx;
   const kit = new PaintKit(0x4b62);
   const rng = kit.rng;
-  const colliders: Collider[] = [];
+  const colliders: Box[] = [];
+  const descs: ColliderDesc[] = [];
   const platforms: Platform[] = [];
   const great = GREAT_KURGAN;
   const D = GREAT_KURGAN_DOOR, fx = -Math.sin(D), fz = -Math.cos(D);           // the unit vector the door faces
@@ -147,8 +149,8 @@ export function buildKurganField(ctx: PoiCtx): { piece: PoiPiece; entrance: Kurg
       const tc = lzc / len, yTop = lintelY + 1.05 - tc * 1.2 + Math.sin(Math.PI * tc) * 0.25 - 0.25;
       const top = Math.max(yTop, ground(pc.x, pc.z));
       // over the passage it only blocks above the lintel; either side of it, all the way down
-      colliders.push({ x: pc.x, z: pc.z, hw: cw / 2 + 1.2, hd: len / 8, rot: -yawIn, yBottom: lintelY - 0.1, yTop: top });
-      for (const sx of [-1, 1]) { const q = L(sx * (cw / 2 + 0.75), 0, lzc); colliders.push({ x: q.x, z: q.z, hw: 0.55, hd: len / 8, rot: -yawIn, yBottom: footY - 1, yTop: top }); }
+      colliders.push({ x: pc.x, z: pc.z, hw: cw / 2 + 1.2, hd: len / 8, rot: -yawIn, yBottom: lintelY - 0.1, yTop: top, surface: 'earth' });
+      for (const sx of [-1, 1]) { const q = L(sx * (cw / 2 + 0.75), 0, lzc); colliders.push({ x: q.x, z: q.z, hw: 0.55, hd: len / 8, rot: -yawIn, yBottom: footY - 1, yTop: top, surface: 'earth' }); }
     }
     platforms.push((x, z) => {
       const dx = x - front.x, dz = z - front.z, lz = -(dx * fx + dz * fz), lx = dx * fz - dz * fx;
@@ -166,6 +168,14 @@ export function buildKurganField(ctx: PoiCtx): { piece: PoiPiece; entrance: Kurg
     return undefined;
   });
   { const bw = L(0, 0, dep + 0.1); colliders.push({ x: bw.x, z: bw.z, hw: cw / 2 + 0.3, hd: 0.3, rot: -yawIn, yBottom: floorY - 2, yTop: lintelY + 2 }); }
+  // P1: the passage floor + the threshold as a timber slab, the steps down to the grass as treads (rise ≤ 0.34 m)
+  { const pf = L(0, 0, (dep - 0.15) / 2); descs.push(slab(pf.x, pf.z, floorY, 0.6, cw / 2, (dep + 0.15) / 2, yawIn, 'wood')); }
+  if (nSteps > 0) {
+    // from the grass at the lowest drawn step's foot (the flank falls on past the foot line), rise ≤ 0.33 each
+    const run = nSteps * 0.5 + 0.3, a = L(0, 0, -0.15 - run), b = L(0, 0, -0.15);
+    const y0 = Math.min(footY, ground(a.x, a.z)) - 0.02, count = Math.max(nSteps + 1, Math.ceil((floorY - y0) / 0.33));
+    descs.push({ kind: 'treads', from: { x: a.x, y: y0, z: a.z }, to: { x: b.x, y: floorY, z: b.z }, width: cw - 0.2, count, surface: 'wood' });
+  }
 
   // ── crown balbals: a pair on every small mound, side by side on its crown, facing east (the rising sun, as they did) —
   // since layout v2 cut the balbal circle these are all the shard's balbals (B11 wakes them) ──
@@ -181,5 +191,5 @@ export function buildKurganField(ctx: PoiCtx): { piece: PoiPiece; entrance: Kurg
   const mesh = kit.mesh(sky, { ground });
   mesh.name = 'nalati-kurgans';
   const entrance: KurganEntrance = { x: front.x, y: floorY, z: front.z, facing: D };
-  return { piece: { name: 'kurgans', object: mesh, colliders, platforms, tris: mesh.geometry.getAttribute('position').count / 3 }, entrance, balbalSpots };
+  return { piece: { name: 'kurgans', object: mesh, colliders, surface: 'wood', descs, floor: highest(platforms), tris: mesh.geometry.getAttribute('position').count / 3 }, entrance, balbalSpots };
 }

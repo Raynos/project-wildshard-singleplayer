@@ -3,8 +3,14 @@
  *
  *   import { NalatiPOIs } from '../world/nalati';
  *   const pois = new NalatiPOIs(sky).build();          // uses the active chunk's heightAt
- *   pois.addTo(game.scene, player);                     // meshes + colliders + platforms
+ *   await pois.place(game.scene, player, macrotask);  // meshes; each POI into the world registry, a task apart
+ *   pois.addTo(game.scene, player);                    // the same at once (the dev pages)
  *   game.onUpdate((dt) => pois.update(dt));             // cloth + smoke
+ *
+ * NALATI-MERGE P1: every POI is a piece in the world registry (src/world/registry.ts via ./solid.ts) — its boxes (with
+ * their material), its decks / floors as slabs, its stairs as treads, its rocks as hulls; its floor function is
+ * placement only. Nothing goes into `player.colliders` / `player.platforms`; `colliders` stays as data (the weather's
+ * yurts, the dressing's keep-out).
  *
  * Handles for later rows: `pois.balbals` (B11 wakes them: `setAwake(i, true)` hides the statue), `HITCHING_RAIL` /
  * `HITCH_HORSE_SPOTS` (B8), `CRAG_CAVE` / `pois.crags.ledges` (B12 Aqbars), `GREAT_KURGAN` + `pois.kurgans.entrance`
@@ -27,20 +33,35 @@ import { buildEagleRock } from './EagleRock';
 import { buildCairn } from './Cairn';
 import { buildCrags, type Ledge } from './Crags';
 import { buildWatchtower, buildKokpar, buildFarHerds, buildSnowLotus, buildGlacier } from './Bowl';
-import type { Collider } from '../../player/Player';
 import type { Sky } from '../Sky';
-import type { Ground, Platform, PoiCtx, PoiPiece } from './types';
+import { activeRegistry, type PieceCategory, type WorldRegistry } from '../registry';
+import { boxDescs, registerSolid, type Box } from './solid';
+import type { Ground, PoiCtx, PoiPiece } from './types';
 
-
-export interface PoiHost { colliders: Collider[]; platforms: Platform[]; position?: THREE.Vector3 }
+/** each POI's entry in the registry (and Explore's catalog when `model`) */
+const ENTRY: Record<string, { name: string; category: PieceCategory; file: string; model: boolean }> = {
+  camp: { name: 'Spring camp', category: 'buildings', file: 'src/world/nalati/NomadCamp.ts', model: true },
+  bridge: { name: 'Kunes bridge', category: 'buildings', file: 'src/world/nalati/Bridge.ts', model: true },
+  roads: { name: 'Road fences', category: 'props', file: 'src/world/nalati/RoadFurniture.ts', model: false },
+  summerCamp: { name: 'Summer camp', category: 'buildings', file: 'src/world/nalati/SummerCamp.ts', model: true },
+  kurgans: { name: 'Kurgan field', category: 'buildings', file: 'src/world/nalati/KurganField.ts', model: true },
+  balbals: { name: 'Balbals', category: 'buildings', file: 'src/world/nalati/Balbals.ts', model: true },
+  eagleRock: { name: 'Eagle Rock', category: 'nature', file: 'src/world/nalati/EagleRock.ts', model: true },
+  cairn: { name: 'Wind Cairn', category: 'buildings', file: 'src/world/nalati/Cairn.ts', model: true },
+  crags: { name: 'Crag ledges + the leopard cave', category: 'nature', file: 'src/world/nalati/Crags.ts', model: true },
+  watchtower: { name: 'Watchtower', category: 'buildings', file: 'src/world/nalati/Bowl.ts', model: true },
+  kokpar: { name: 'Kokpar field', category: 'props', file: 'src/world/nalati/Bowl.ts', model: true },
+  snowLotus: { name: 'Snow lotus', category: 'nature', file: 'src/world/nalati/Bowl.ts', model: true },
+  glacier: { name: 'Glacier', category: 'nature', file: 'src/world/nalati/Bowl.ts', model: true },
+};
 
 export class NalatiPOIs {
   group = new THREE.Group();
   pieces: PoiPiece[] = [];
   flutter = new Flutter();
   smoke = new Smoke();
-  colliders: Collider[] = [];
-  platforms: Platform[] = [];
+  /** every POI's boxes, as data (the weather's yurts, the dressing's keep-out) — the physics has them via the registry */
+  colliders: Box[] = [];
   /** build ms per piece */
   timings: Record<string, number> = {};
   /** every balbal statue (on the kurgan crowns) — B11 wakes them */
@@ -66,7 +87,6 @@ export class NalatiPOIs {
       this.pieces.push(p);
       this.group.add(p.object);
       this.colliders.push(...p.colliders);
-      this.platforms.push(...p.platforms);
     };
     run('camp', buildNomadCamp);
     run('bridge', buildBridge);
@@ -90,11 +110,32 @@ export class NalatiPOIs {
     return this;
   }
 
-  addTo(scene: THREE.Object3D, player: PoiHost): void {
+  /** into the scene, and each POI into the world registry (drawn, collides, in Explore) — at once (the dev pages) */
+  addTo(scene: THREE.Object3D, player: { position?: THREE.Vector3 }, registry: WorldRegistry = activeRegistry()): void {
     scene.add(this.group);
-    player.colliders.push(...this.colliders);
-    player.platforms.push(...this.platforms);
     this.viewer = player.position ?? null;
+    for (const _ of this.registrations(registry)) { /* every piece, no yielding */ }
+  }
+
+  /** the shard's boot: the same, a task apart per POI (the 30 ms per-task collider budget on the phone) */
+  async place(scene: THREE.Object3D, player: { position?: THREE.Vector3 }, yieldTask: () => Promise<void>, registry: WorldRegistry = activeRegistry()): Promise<void> {
+    scene.add(this.group);
+    this.viewer = player.position ?? null;
+    for (const _ of this.registrations(registry)) await yieldTask();
+  }
+
+  private *registrations(registry: WorldRegistry): Generator<string> {
+    for (const p of this.pieces) {
+      const e = ENTRY[p.name];
+      const colliders = [...boxDescs(p.colliders), ...(p.descs ?? [])];
+      if (colliders.length === 0 && e?.model !== true) continue;
+      registerSolid(registry, {
+        id: `nalati-${p.name}`, name: e?.name ?? p.name, category: e?.category ?? 'props', file: e?.file ?? 'src/world/nalati/index.ts',
+        object: p.object, colliders, surface: p.surface, ...(p.floor ? { floor: p.floor } : {}), ...(e?.model === true ? { model: {} } : {}),
+      });
+      yield p.name;
+    }
+    this.balbals?.register(registry, this.group.getObjectByName('nalati-balbals') ?? this.group);
   }
 
   update(dt: number): void {

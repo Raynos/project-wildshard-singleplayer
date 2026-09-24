@@ -264,9 +264,11 @@ async function main() {
   const bridgeDeck = bridge ? new RopeChain(world.physics, bridge.chainSpec()) : null;
   if (bridgeDeck) game.onFixed('post', () => { bridgeDeck.capture(); });
   // the paths as walkways where they cross ground steeper than the motor climbs (PHYSICS P4) — now that the decks are
-  // registered, none where a deck carries the path (a board there pokes up through the bridge's planks)
-  registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/physics/paths.ts', surface: 'ground',
-    colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) });
+  // registered, none where a deck carries the path (a board there pokes up through the bridge's planks); Nalati's decks
+  // register in its props step (NALATI-MERGE P1), so its paths are laid after that
+  const addPaths = (): void => { registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/physics/paths.ts', surface: 'ground',
+    colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) }); };
+  if (!painterly) addPaths();
   // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52): ?island=blender|procedural, Settings ▸ Graphics ▸ Island
   const blenderIsland = isOcean && islandMode() === 'blender'
     ? await import('./world/BlenderIsland').then(({ BlenderIsland: B }) => B.install({
@@ -306,7 +308,7 @@ async function main() {
   });
   const { cabins, interactables } = homestead;
   const props = await step('props', async () => {
-    if (painterly) { nalati = await wireNalati({ game, sky, player, forest, chunk }); return null; } // the Nalati world (src/nalati/index.ts)
+    if (painterly) { nalati = await wireNalati({ game, sky, player, forest, chunk }); addPaths(); return null; } // the Nalati world (src/nalati/index.ts)
     if (isOcean) return null;
     const built = new Props(sky, forest);
     const object = await built.build();

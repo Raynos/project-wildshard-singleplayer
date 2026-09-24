@@ -6,7 +6,7 @@
  * and laid at two doors; an iron stove and a kazan on a tripod, both smoking; a cart, barrels, chests, a woodpile,
  * a saddle rack, a water trough and a hay pile.
  *
- *   const camp = buildNomadCamp(ctx);      // PoiPiece: object, colliders, platforms, tris
+ *   const camp = buildNomadCamp(ctx);      // PoiPiece: object, colliders (boxes, wood), descs (the yurts' felt), tris
  *
  * One merged mesh; the ribbons / pennants go into `ctx.flutter`, the plumes into `ctx.smoke`. With `modelsOn()` (glbPaint.ts:
  * 'yurt' / 'props') the yurts, the kazan, chests, woodpile, churns, ground saddles and the eagle are the generated GLB models instead
@@ -15,13 +15,14 @@
  */
 import * as THREE from 'three';
 import { PaintKit, M, pole, v3, blob } from './paint';
-import { addYurt } from './Yurt';
+import { addYurt, yurtSolid } from './Yurt';
 import { PC, addBarrel, addChest, addWoodpile, addStove, addKazan, addCart, addSaddleRack, addEagle, addGroundRug, addRugRack, addCarvedPost, addChurn, addRugLine, addChoppingBlock, addGroundSaddle, addMilkCans } from './props';
 import { buildYardDecal, wearDisc, wearPath } from './Yard';
 import { CAMP, CORRAL, HITCHING_RAIL } from './layout';
 import { ModelSink, modelsOn } from './glbPaint';
 import { addYurtModel, addKazanModel, addChestModel, addWoodpileModel, addChurnModel, addGroundSaddleModel, addEagleModel } from './modelProps';
-import type { Collider } from '../../player/Player';
+import type { ColliderDesc } from '../registry';
+import type { Box } from './solid';
 import type { PoiCtx, PoiPiece } from './types';
 
 /** the yurts: angle round the yard (deg, 0 = +x/west, 90 = +z/north), distance, radius, flue, palette */
@@ -40,7 +41,8 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
   const { sky, ground, flutter, smoke } = ctx;
   const kit = new PaintKit(0x7a17);
   const rng = kit.rng;
-  const colliders: Collider[] = [];
+  const colliders: Box[] = [];
+  const descs: ColliderDesc[] = [];
   const cx = CAMP.x, cz = CAMP.z;
   const models = modelsOn('props'), yurtModels = modelsOn('yurt');
   const sink = new ModelSink();
@@ -59,6 +61,7 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     gy = Math.min(gy, ground(x, z));
     const spec = { x, y: gy, z, rot, r: y.r, flue: y.flue, palette: y.pal, old: y.old ?? false, base: y.base };
     const top = yurtModels ? addYurtModel(kit, sink, spec, colliders) : addYurt(kit, spec, colliders);
+    descs.push(...yurtSolid(spec, top.height));
     if (top.flue) smoke.emitter(top.flue, { puffs: 40, rise: 7, size: [0.6, 4.2], life: 9 });
     // a red pennant on a short pole at the crown of every other yurt
     if (y.pal !== 2) {
@@ -192,7 +195,7 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     // hay pile + a feed trough inside
     const hx = x + 3, hz = z + 2, hy = ground(hx, hz);
     kit.add(new THREE.SphereGeometry(1.3, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.6, 1.3), PC.hay, { matrix: M(hx, hy - 0.05, hz, 0.4), brush: 0.14 });
-    colliders.push({ x: hx, z: hz, hw: 1.1, hd: 1.5, rot: -0.4, yBottom: hy - 1, yTop: hy + 0.7 });
+    colliders.push({ x: hx, z: hz, hw: 1.1, hd: 1.5, rot: -0.4, yBottom: hy - 1, yTop: hy + 0.7, surface: 'grass' });
     const fx = x - 2.5, fz = z + 5, fy = ground(fx, fz);
     kit.add(new THREE.BoxGeometry(0.6, 0.35, 1.8).translate(0, 0.35, 0), PC.woodDark, { matrix: M(fx, fy, fz, 0.9), flat: true });
     kit.add(new THREE.BoxGeometry(0.5, 0.05, 1.7).translate(0, 0.51, 0), PC.hay, { matrix: M(fx, fy, fz, 0.9), flat: true });
@@ -230,5 +233,5 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
   let tris = mesh.geometry.getAttribute('position').count / 3;
   if (felt) { felt.name = 'nalati-camp-felt'; group.add(felt); tris += felt.geometry.getAttribute('position').count / 3; }
   if (sink.size > 0) { tris += sink.tris(); void sink.flush(group, sky); }
-  return { name: 'camp', object: group, colliders, platforms: [], tris };
+  return { name: 'camp', object: group, colliders, surface: 'wood', descs, tris };
 }

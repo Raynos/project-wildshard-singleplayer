@@ -14,6 +14,7 @@ import { KurganDungeon, DUNGEON, CH, COFFIN, PEDESTAL, NICHES, STREAMS, CHECKPOI
 import { Boss, type BossDef, type BossScript } from '../game/Boss';
 import { BossBar } from '../ui/BossBar';
 import { GoldenBow, goldenBowModel } from '../player/GoldenBow';
+import { activeRegistry } from '../world/registry';
 
 /**
  * The Golden King fight (plan row B13; design docs/design/nalati/elites-and-bosses.md §2 "The Golden King fight, step by
@@ -631,8 +632,7 @@ export class KurganBoss {
   build(): this {
     this.dungeon.build();
     this.ctx.game.scene.add(this.dungeon.group);
-    this.ctx.player.colliders.push(...this.dungeon.colliders);
-    this.ctx.player.platforms.push(this.dungeon.floorHeightAt);
+    this.dungeon.register(activeRegistry());   // NALATI-MERGE P1: the interior's collision, the seal, the sand drifts
     this.spareLight.position.set(DUNGEON.x, DUNGEON.y - 30, DUNGEON.z);
     this.ctx.game.scene.add(this.spareLight);
     return this;

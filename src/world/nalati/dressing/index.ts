@@ -7,7 +7,8 @@
  *
  *   import { NalatiDressing } from '../world/nalati/dressing';
  *   const dressing = await new NalatiDressing(sky, forest).build(macrotask);   // deterministic from the seed; yields between passes
- *   dressing.addTo(game.scene, player);                          // meshes + colliders
+ *   dressing.addTo(game.scene, pois.colliders);                  // meshes (+ the camp clutter, clear of those boxes)
+ *   await dressing.place(activeRegistry(), macrotask);             // its collision into the world registry (NALATI-MERGE P1)
  *   game.onUpdate((dt) => dressing.update(dt, game.camera, player.position, renderer));
  *   dressing.stats()                                             // { calls, tris, perLayer } for the perf report
  *
@@ -31,6 +32,8 @@ import { loadNalatiModel, modelsOn, type NalatiModel } from '../glbPaint';
 import type { Sky } from '../../Sky';
 import type { Forest } from '../../Forest';
 import type { Collider } from '../../../player/Player';
+import type { ColliderDesc, WorldRegistry } from '../../registry';
+import { boxDescs, hullAt, hullCandidates, registerChunked, type Box } from '../solid';
 
 const PHONE = TIER === 'phone';
 
@@ -89,7 +92,10 @@ export class NalatiDressing {
   propTris = 0;
   flutter = new Flutter();
   life: DressLife | null = null;
-  colliders: Collider[] = [];
+  /** the boxes, as data (keep-outs); their solids are in `descs` or, for a `ghost`, a hull / capsule / prism there */
+  colliders: Box[] = [];
+  /** the collision as real geometry: big rocks as hulls of what they draw, logs as capsules, the ovoo heaps as prisms */
+  descs: ColliderDesc[] = [];
   plan: DressPlan | null = null;
   /** build ms per stage */
   timings: Record<string, number> = {};
@@ -118,6 +124,15 @@ export class NalatiDressing {
     const add = (name: string, geo: THREE.BufferGeometry, mat: THREE.Material, list: Inst[], far: number, o: { castShadow?: boolean; keepNear?: number } = {}) => {
       if (list.length === 0) { geo.dispose(); return; }
       const l = new DressLayer(name, geo, mat, list, { farScale: far, ...o });
+      // P1: a big rock collides as the hull of what this layer draws for it
+      if (list.some((it) => it.solid === true)) {
+        const cand = hullCandidates(geo), m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), p = new THREE.Vector3(), sc = new THREE.Vector3();
+        for (const it of list) {
+          if (it.solid !== true) continue;
+          m.compose(p.set(it.x, it.y, it.z), q.setFromEuler(e.set(it.tiltX ?? 0, it.yaw, it.tiltZ ?? 0, 'YXZ')), sc.set(it.sx, it.sy, it.sz));
+          this.descs.push(hullAt(cand, m, 'rock'));
+        }
+      }
       this.layers.push(l);
       this.group.add(l.mesh);
     };
@@ -156,6 +171,7 @@ export class NalatiDressing {
     for (const m of st.meshes) this.group.add(m);
     if (this.flutter.count > 0) this.group.add(this.flutter.build(this.sky));
     this.colliders = [...plan.colliders, ...st.colliders];
+    this.descs.push(...st.descs);
     lap('props');
 
     this.life = new DressLife(this.sky, plan.drifts).build();
@@ -164,14 +180,21 @@ export class NalatiDressing {
     return this;
   }
 
-  addTo(scene: THREE.Object3D, player: { colliders: Collider[] }): void {
+  /** into the scene; the camps' clutter keeps clear of `avoid` (the POIs' boxes, the outcrops') */
+  addTo(scene: THREE.Object3D, avoid: readonly Collider[]): void {
     scene.add(this.group);
-    // the camps' clutter goes in now that the POIs' colliders are on the player: it keeps clear of their set pieces
-    const cl = buildCampClutter(this.sky, player.colliders);
+    const cl = buildCampClutter(this.sky, avoid);
     if (cl.mesh) { this.group.add(cl.mesh); this.props.push(cl.mesh); this.propTris += cl.tris; }
     this.colliders.push(...cl.colliders);
-    player.colliders.push(...this.colliders);
     if (import.meta.env.DEV) Object.assign(window, { __nalatiDressing: this }); // dev: stats / poking from the console
+  }
+
+  /** NALATI-MERGE P1: the dressing's collision into the world registry — the rocks' hulls, then the props (wood) */
+  async place(registry: WorldRegistry, yieldTask: () => Promise<void>): Promise<void> {
+    const rocks = this.descs.filter((d) => d.surface === 'rock' || d.surface === 'stone');
+    const wood = [...this.descs.filter((d) => d.surface !== 'rock' && d.surface !== 'stone'), ...boxDescs(this.colliders)];
+    await registerChunked(registry, { id: 'nalati-dressing-rocks', name: 'Boulders + ovoo cairns', category: 'nature', file: 'src/world/nalati/dressing/place.ts', colliders: rocks, surface: 'rock' }, 150, yieldTask);
+    await registerChunked(registry, { id: 'nalati-dressing-props', name: 'Logs, stumps, fences + camp clutter', category: 'props', file: 'src/world/nalati/dressing/statics.ts', colliders: wood, surface: 'wood' }, 200, yieldTask);
   }
 
   update(dt: number, camera: THREE.PerspectiveCamera, player: THREE.Vector3, renderer: THREE.WebGLRenderer): void {

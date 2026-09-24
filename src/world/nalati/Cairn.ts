@@ -10,7 +10,8 @@
 import * as THREE from 'three';
 import { PaintKit, M, pole, v3, blob } from './paint';
 import { WIND_CAIRN } from './layout';
-import type { Collider } from '../../player/Player';
+import type { ColliderDesc } from '../registry';
+import { supportHull, type Box } from './solid';
 import type { PoiCtx, PoiPiece } from './types';
 
 const C = {
@@ -30,7 +31,8 @@ export function buildCairn(ctx: PoiCtx): { piece: PoiPiece; tieSpot: THREE.Vecto
   const { sky, ground, flutter } = ctx;
   const kit = new PaintKit(0xca19);
   const rng = kit.rng;
-  const colliders: Collider[] = [];
+  const colliders: Box[] = [];
+  const descs: ColliderDesc[] = [];
   const cx = WIND_CAIRN.x, cz = WIND_CAIRN.z, gy = ground(cx, cz);
   const R = 2.9, Hh = 2.4;
   const stone = { top: { color: C.lichen, threshold: 0.55, amount: 0.45 }, brush: 0.12 };
@@ -48,9 +50,10 @@ export function buildCairn(ctx: PoiCtx): { piece: PoiPiece; tieSpot: THREE.Vecto
     }
   }
   // a core so there are no holes between the stones
-  kit.add(new THREE.SphereGeometry(R * 0.95, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, Hh / R * 0.9, 1), C.stone, { matrix: M(cx, gy - 0.1, cz), brush: 0.2 });
-  colliders.push({ x: cx, z: cz, hw: R * 0.8, hd: R * 0.8, rot: 0, yBottom: gy - 1, yTop: gy + Hh * 0.6 });
-  colliders.push({ x: cx, z: cz, hw: R * 0.8, hd: R * 0.8, rot: Math.PI / 4, yBottom: gy - 1, yTop: gy + Hh * 0.6 });
+  const core = new THREE.SphereGeometry(R * 0.95, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, Hh / R * 0.9, 1);
+  // P1: the heap collides as the hull of its core dome (the stones sit on it)
+  descs.push(supportHull(core, M(cx, gy - 0.1, cz), 'stone'));
+  kit.add(core, C.stone, { matrix: M(cx, gy - 0.1, cz), brush: 0.2 });
 
   // ── the pole bundle: 7 poles lashed at ~4 m, splaying out of the heap ──
   const lash = v3(cx, gy + 4.6, cz);
@@ -110,5 +113,5 @@ export function buildCairn(ctx: PoiCtx): { piece: PoiPiece; tieSpot: THREE.Vecto
   const mesh = kit.mesh(sky, { ground });
   mesh.name = 'nalati-cairn';
   const tieSpot = v3(cx + 3.6, gy, cz);
-  return { piece: { name: 'cairn', object: mesh, colliders, platforms: [], tris: mesh.geometry.getAttribute('position').count / 3 }, tieSpot };
+  return { piece: { name: 'cairn', object: mesh, colliders, surface: 'wood', descs, tris: mesh.geometry.getAttribute('position').count / 3 }, tieSpot };
 }

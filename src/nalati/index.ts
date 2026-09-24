@@ -51,6 +51,8 @@ import { wireStormTitan, type StormTitan } from './stormTitan';
 import { NalatiSkinLocker, NalatiSkinPainter } from '../player/nalatiSkins';
 import { HITCHING_RAIL } from '../world/nalati/layout';
 import { heightAt } from '../world/Heightfield';
+import { activeRegistry } from '../world/registry';
+import { registerChunked } from '../world/nalati/solid';
 
 export interface NalatiCtx { game: Game; sky: Sky; player: Player; forest: Forest; chunk: ChunkDef }
 
@@ -139,16 +141,15 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   // ── rock outcrops (world agent, look pass): granite breaking out of the escarpment's steep ground ──
   const outcrops = buildOutcrops(sky);
   game.scene.add(outcrops.mesh);
-  ctx.player.colliders.push(...outcrops.colliders);
+  // NALATI-MERGE P1: every big block as the hull of what it draws, in the world registry (never `player.colliders`)
+  await registerChunked(activeRegistry(), { id: 'nalati-outcrops', name: 'Granite outcrops', category: 'nature', file: 'src/nalati/outcrops.ts', colliders: outcrops.descs, surface: 'rock' }, 200, macrotask);
   groups['outcrops'] = outcrops.mesh;
-  await macrotask();
 
   // ── the snow ring's crag rock (the crags pass): fins on the crests, ribs on the faces, broken towers on the shoulders ──
   const crags = buildCragRock(sky);
   game.scene.add(crags.group);
-  ctx.player.colliders.push(...crags.colliders);
+  await registerChunked(activeRegistry(), { id: 'nalati-crag-rock', name: 'Crag rock', category: 'nature', file: 'src/nalati/cragRock.ts', colliders: crags.descs, surface: 'rock' }, 150, macrotask);
   groups['crags'] = crags.group;
-  await macrotask();
 
   // ── grass + wind (grass agent, B1): the painterly carpet is Grass.ts (main.ts builds it); the Wind object goes here ──
 
@@ -156,7 +157,7 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
 
   // ── POIs (poi agent, B5): yurts + camp, bridge, fences, kurgans, balbals, Eagle Rock, the cairn, the Crags rocks ──
   const pois = new NalatiPOIs(sky).build();
-  pois.addTo(game.scene, ctx.player);
+  await pois.place(game.scene, ctx.player, macrotask);   // each POI into the world registry (NALATI-MERGE P1): drawn, collides, in Explore
   groups['pois'] = pois.group;
   updates.push((dt) => pois.update(dt));
   await macrotask();
@@ -165,7 +166,8 @@ export async function wireNalati(ctx: NalatiCtx): Promise<Nalati> {
   //    logs + stumps, ovoo cairns + ribbon poles, camp clutter, pollen, butterflies, kites — src/world/nalati/dressing/ ──
   const dressing = await new NalatiDressing(sky, ctx.forest).build(macrotask);
   reseedPainterlyGrass(); // grass seeded before the dressing regrows around its boulders / shrubs (dressingCover)
-  dressing.addTo(game.scene, ctx.player);
+  dressing.addTo(game.scene, [...pois.colliders, ...outcrops.colliders, ...crags.colliders]);   // the clutter keeps clear of these
+  await dressing.place(activeRegistry(), macrotask);
   groups['dressing'] = dressing.group;
   updates.push((dt) => dressing.update(dt, game.camera, ctx.player.position, game.renderer));
   await macrotask();

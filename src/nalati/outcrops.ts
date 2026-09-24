@@ -9,7 +9,8 @@
  * kept where the ground is steep, clustered by a noise field, kept off the roads, the river, the stream and the POI
  * clearings. One merged mesh on the shared painterly POI material — one draw call (+ its shadow).
  *
- *   const rocks = buildOutcrops(sky);   scene.add(rocks.mesh);   player.colliders.push(...rocks.colliders);
+ *   const rocks = buildOutcrops(sky);   scene.add(rocks.mesh);   registry.add({ …, colliders: rocks.descs, surface: 'rock' });
+ *   (NALATI-MERGE P1: every big block and bank boulder as the hull of what it draws; `colliders` = their old boxes, data only)
  */
 import * as THREE from 'three';
 import { PaintKit, M, blob } from '../world/nalati/paint';
@@ -19,6 +20,8 @@ import { heightAt, normalAt, trailDistance } from '../world/Heightfield';
 import { Noise2D } from '../core/noise';
 import { riverMask, rimZAt, RIVER, RIM_Z, outcropAt, BROOK } from '../chunks/nalati-grasslands';
 import type { Collider } from '../player/Player';
+import type { ColliderDesc } from '../world/registry';
+import { supportHull } from '../world/nalati/solid';
 import type { Sky } from '../world/Sky';
 
 const C = {
@@ -30,13 +33,14 @@ const C = {
   snow: new THREE.Color('#eef2f7'),
 };
 
-export interface Outcrops { mesh: THREE.Mesh; colliders: Collider[]; count: number; triangles: number }
+export interface Outcrops { mesh: THREE.Mesh; colliders: Collider[]; descs: ColliderDesc[]; count: number; triangles: number }
 
 export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
   const kit = new PaintKit(seed);
   const rng = kit.rng;
   const cluster = new Noise2D(seed + 11);
   const colliders: Collider[] = [];
+  const descs: ColliderDesc[] = [];
   let count = 0;
   const step = 8;
   for (let gx = -244; gx <= 244; gx += step) for (let gz = RIM_Z - 10; gz <= 160; gz += step) {
@@ -61,8 +65,10 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
     const tilt = Math.min(0.5, Math.acos(Math.min(1, ny)) * 0.55);
     const y = y0 - h * 0.32;
     const tint = rng.next() < 0.5 ? C.granite : rng.next() < 0.5 ? C.warm : C.cool;
-    kit.add(graniteBlock(w, h, d, rng.int(1, 1e6), 0.22), tint, {
-      matrix: M(x, y, z, yaw, 1, 1, 1, tilt * Math.cos(yaw - downYaw), tilt * Math.sin(yaw - downYaw)),
+    const block = graniteBlock(w, h, d, rng.int(1, 1e6), 0.22), bm = M(x, y, z, yaw, 1, 1, 1, tilt * Math.cos(yaw - downYaw), tilt * Math.sin(yaw - downYaw));
+    if (h > 1.1) descs.push(supportHull(block, bm, 'rock'));
+    kit.add(block, tint, {
+      matrix: bm,
       top: { color: C.lichen, threshold: 0.55, amount: 0.55 }, brush: 0.14, foot: 0.72,
     });
     // one or two rounded stones leaning on it, downhill
@@ -91,8 +97,10 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
     const w = size * rng.range(1.6, 2.8), h = size * rng.range(0.9, 1.5), d = size * rng.range(1.0, 1.5);
     const downYaw = Math.atan2(nx, nz), yaw = downYaw + Math.PI / 2 + rng.range(-0.25, 0.25);
     const y = heightAt(x, z) - h * 0.3;
-    kit.add(graniteBlock(w, h, d, rng.int(1, 1e6), 0.24), rng.next() < 0.5 ? C.granite : C.warm, {
-      matrix: M(x, y, z, yaw, 1, 1, 1, 0.12, 0), top: { color: C.lichen, threshold: 0.55, amount: 0.5 }, brush: 0.14, foot: 0.72,
+    const block = graniteBlock(w, h, d, rng.int(1, 1e6), 0.24), bm = M(x, y, z, yaw, 1, 1, 1, 0.12, 0);
+    if (h > 1.1) descs.push(supportHull(block, bm, 'rock'));
+    kit.add(block, rng.next() < 0.5 ? C.granite : C.warm, {
+      matrix: bm, top: { color: C.lichen, threshold: 0.55, amount: 0.5 }, brush: 0.14, foot: 0.72,
     });
     if (h > 1.1) colliders.push({ x, z, hw: w * 0.42, hd: d * 0.42, rot: yaw, yTop: y + h * 0.5, yBottom: y - h });
     count++;
@@ -143,8 +151,10 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
         if (rng.next() > 0.6) continue;
         const r = rng.range(0.45, 1.35), o = side * rng.range(1.9, 4.8);
         const bx = px - tz * o + rng.range(-0.8, 0.8), bz = pz + tx * o + rng.range(-0.8, 0.8);
-        kit.add(blob(r, rng, 1, 0.7, 0.22), rng.next() < 0.6 ? C.cool : C.granite, {
-          matrix: M(bx, heightAt(bx, bz) - r * 0.3, bz, rng.range(0, 6.28)), top: { color: C.snow, threshold: 0.75, amount: 0.25 }, brush: 0.12, foot: 0.65,
+        const stone = blob(r, rng, 1, 0.7, 0.22), tone = rng.next() < 0.6 ? C.cool : C.granite, sm = M(bx, heightAt(bx, bz) - r * 0.3, bz, rng.range(0, 6.28));
+        if (r > 1.0) descs.push(supportHull(stone, sm, 'rock'));
+        kit.add(stone, tone, {
+          matrix: sm, top: { color: C.snow, threshold: 0.75, amount: 0.25 }, brush: 0.12, foot: 0.65,
         });
         if (r > 1.0) colliders.push({ x: bx, z: bz, hw: r * 0.7, hd: r * 0.7, rot: 0, yBottom: heightAt(bx, bz) - 1, yTop: heightAt(bx, bz) + r * 0.5 });
         count++;
@@ -154,5 +164,5 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
   const triangles = Math.round(kit.triangleCount);
   const mesh = kit.mesh(sky, { ground: heightAt, ao: false, aoH: 0.8, aoMin: 0.6 });
   mesh.name = 'nalati-outcrops';
-  return { mesh, colliders, count, triangles };
+  return { mesh, colliders, descs, count, triangles };
 }

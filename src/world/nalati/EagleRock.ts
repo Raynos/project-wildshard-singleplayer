@@ -5,14 +5,16 @@
  * its foot. A scramble of granite slabs steps up round its flank from the south foot (less than one turn, 0.3 m
  * risers) to the summit, where a railed timber viewing deck looks north over the valley and a blue flag flies.
  *
- *   const rock = buildEagleRock(ctx);   // PoiPiece: platforms = the scramble (one function) + the summit
+ *   const rock = buildEagleRock(ctx);   // PoiPiece: the tor's layers as prisms, the scramble's slabs + the deck as real
+ *                                       // geometry (P1); `floor` = the scramble + the summit (placement)
  */
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { PaintKit, M, pole, v3, blob, mergeVerticesByPos } from './paint';
 import { Noise2D } from '../../core/noise';
 import { EAGLE_ROCK } from './layout';
-import type { Collider } from '../../player/Player';
+import type { ColliderDesc } from '../registry';
+import { highest, prism, slab, type Box } from './solid';
 import type { Platform, PoiCtx, PoiPiece } from './types';
 
 const C = {
@@ -45,7 +47,8 @@ export function buildEagleRock(ctx: PoiCtx): PoiPiece {
   const { sky, ground, flutter } = ctx;
   const kit = new PaintKit(0xea61);
   const rng = kit.rng;
-  const colliders: Collider[] = [];
+  const colliders: Box[] = [];
+  const descs: ColliderDesc[] = [];
   const platforms: Platform[] = [];
   const cx = EAGLE_ROCK.x, cz = EAGLE_ROCK.z, top = EAGLE_ROCK.top;
   let base = Infinity;
@@ -73,8 +76,10 @@ export function buildEagleRock(ctx: PoiCtx): PoiPiece {
       const col = rng.next() < 0.4 ? C.graniteDark : rng.next() < 0.5 ? C.granite : C.graniteWarm;
       kit.add(graniteBlock(bw, hb * rng.range(0.85, 1.15) + 0.45, bd, 0x70 + i * 8 + b, 0.32), (_p, nn) => (nn.y > 0.65 ? C.graniteWarm : col), { ...stone, matrix: M(bx, y + hb / 2 - 0.15, bz, byaw, 1, 1, 1, rng.range(-0.04, 0.04), rng.range(-0.04, 0.04)) });
     }
-    // the layer as an octagon of colliders (a hair inside the blocks)
-    for (const ex of [0, Math.PI / 4]) colliders.push({ x: cx, z: cz, hw: R * 0.86, hd: R * 0.86, rot: ex, yBottom: base - 4, yTop: y + hb });
+    // the layer as a 12-sided prism a hair inside the blocks, as narrow as the layer's top (the scramble's slabs run
+    // round it at 0.86 × the radius at their own height + 0.15)
+    const rIn = radiusAt(Math.min(1, (y + hb - base) / H)) * 0.86;
+    descs.push(prism(cx, cz, i === 0 ? base - 4 : y - 0.05, y + hb, rIn, 12, twist, 'rock'));
     y += hb;
   }
   // foot boulders (not on the path's first steps)
@@ -83,7 +88,7 @@ export function buildEagleRock(ctx: PoiCtx): PoiPiece {
     if (Math.abs(((a - Math.PI * 1.5) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI) < 0.5) continue;
     const x = cx + Math.cos(a) * r, z = cz + Math.sin(a) * r, s = rng.range(0.5, 1.9), g = ground(x, z);
     kit.add(blob(s, rng, 2, 0.6, 0.25), C.graniteDark, { ...stone, matrix: M(x, g + s * 0.12, z, rng.range(0, 6)) });
-    if (s > 0.9) colliders.push({ x, z, hw: s * 0.75, hd: s * 0.75, rot: 0, yBottom: g - 1, yTop: g + s * 0.5 });
+    if (s > 0.9) colliders.push({ x, z, hw: s * 0.75, hd: s * 0.75, rot: 0, yBottom: g - 1, yTop: g + s * 0.5, surface: 'rock' });
   }
 
   // ── the scramble: granite slabs stepping round the tor from its south foot to the summit (< one turn) ──
@@ -100,6 +105,8 @@ export function buildEagleRock(ctx: PoiCtx): PoiPiece {
     const len = Math.max(0.9, (rIn + W) * da + 0.25);
     const g = graniteBlock(W + 0.5, 0.7, len, 0x400 + s, 0.08, 1);
     kit.add(g, (_p, nn) => (nn.y > 0.6 ? C.graniteWarm : C.graniteDark), { top: { color: C.lichen, threshold: 0.7, amount: 0.25 }, brush: 0.1, matrix: M(x, sy - 0.35, z, -a) });
+    // the slab as real geometry: its top at the step, down to the one below (a stair of 0.3 m risers round the tor)
+    descs.push(slab(x, z, sy, Math.max(0.7, riser + 0.4), (W + 0.4) / 2, len / 2, -a, 'rock'));
   }
   platforms.push((x, z) => {
     const dx = x - cx, dz = z - cz, r = Math.hypot(dx, dz);
@@ -120,6 +127,7 @@ export function buildEagleRock(ctx: PoiCtx): PoiPiece {
     for (let i = 0; i <= 4; i++) kit.add(pole(v3(cx - 2.2 + i * 1.1, top - 0.1, dz + 1.15), v3(cx - 2.2 + i * 1.1, top + 1.1, dz + 1.15), 0.055, 0.05, 6), C.woodGrey);
     kit.add(pole(v3(cx - 2.3, top + 1.05, dz + 1.15), v3(cx + 2.3, top + 1.05, dz + 1.15), 0.045, 0.045, 5), C.woodGrey);
     colliders.push({ x: cx, z: dz + 1.2, hw: 2.3, hd: 0.1, rot: 0, yBottom: top - 0.5, yTop: top + 1.1 });
+    descs.push(slab(cx, dz, top + 0.1, 0.3, 2.2, 1.2, 0, 'planks'));
     const fp = v3(cx - 1.8, top, cz - 0.8);
     kit.add(pole(fp, fp.clone().add(v3(0, 4.2, 0)), 0.06, 0.045, 6), C.woodGrey);
     kit.add(blob(0.45, rng, 1, 0.7), C.graniteDark, { matrix: M(fp.x, top + 0.1, fp.z) });
@@ -130,5 +138,5 @@ export function buildEagleRock(ctx: PoiCtx): PoiPiece {
 
   const mesh = kit.mesh(sky, { ground, aoH: 1.4 });
   mesh.name = 'nalati-eagle-rock';
-  return { name: 'eagleRock', object: mesh, colliders, platforms, tris: mesh.geometry.getAttribute('position').count / 3 };
+  return { name: 'eagleRock', object: mesh, colliders, surface: 'wood', descs, floor: highest(platforms), tris: mesh.geometry.getAttribute('position').count / 3 };
 }

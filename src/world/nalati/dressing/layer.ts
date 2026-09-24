@@ -22,6 +22,8 @@ export interface Inst {
   sx: number; sy: number; sz: number;
   /** lean (radians) about x / z — rocks settling into a slope, a tilted clump */
   tiltX?: number; tiltZ?: number;
+  /** a big rock: it collides as the hull of what its layer draws (NALATI-MERGE P1, `NalatiDressing.descs`) */
+  solid?: true;
   /** metres: this instance's draw distance (before the tier scale) */
   far: number;
   /** linear RGB multiplier (instanceColor) */

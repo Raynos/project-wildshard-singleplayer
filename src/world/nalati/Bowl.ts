@@ -24,7 +24,9 @@ import { WATCHTOWER, KOKPAR, HORSE_PLAINS, SNOW_LOTUS, KURGANS, SUMMER_YURTS, SN
 import { inPoiClearing } from './clearings';
 import { Rng } from '../../core/rng';
 import { TIER } from '../../core/tier';
-import type { Collider } from '../../player/Player';
+import type { ColliderDesc } from '../registry';
+import { prism, type Box } from './solid';
+import { addStoneStair } from './Stair';
 import type { PoiCtx, PoiPiece } from './types';
 
 const PHONE = TIER === 'phone';
@@ -35,7 +37,7 @@ export function buildWatchtower(ctx: PoiCtx): PoiPiece {
   const { sky, ground } = ctx;
   const group = new THREE.Group();
   group.name = 'nalati-watchtower';
-  const colliders: Collider[] = [];
+  const colliders: Box[] = [];
   const { x, z } = WATCHTOWER;
   // stand it on the lowest ground under its footprint so no corner floats; the rubble skirt runs into the rock
   let y = ground(x, z);
@@ -53,10 +55,13 @@ export function buildWatchtower(ctx: PoiCtx): PoiPiece {
     const a = rng.range(0, Math.PI * 2), r = rng.range(5, 12), bx = x + Math.cos(a) * r, bz = z + Math.sin(a) * r, s = rng.range(0.35, 0.8);
     kit.add(blob(s, rng, 1, 0.7, 0.25), new THREE.Color('#948b7c'), { matrix: M(bx, ground(bx, bz) - s * 0.2, bz, rng.range(0, 6)), top: { color: new THREE.Color('#b3a35a'), threshold: 0.6, amount: 0.4 }, brush: 0.12 });
   }
+  // NALATI-MERGE P1: the tower's rock stands past the motor's 40° on every side — a stone stair climbs its west shoulder
+  // from the bowl (the walkable way up, found over the physics heightfield) to the doorway's terrace
+  const descs = addStoneStair(kit, ground, [[x + 31.5, z + 4.7], [x + 23.7, z + 2.7], [x + 10, z + 0.7], [x + 7.5, z + 0.5]], { depth: 0.4, maxRise: 0.33 });
   const mesh = kit.mesh(sky, { ground });
   group.add(mesh);
   void sink.flush(group, sky, { watchtower: { rim: 0.3, bands: 0.8 } });
-  return { name: 'watchtower', object: group, colliders, platforms: [], tris: sink.tris() + mesh.geometry.getAttribute('position').count / 3 };
+  return { name: 'watchtower', object: group, colliders, surface: 'stone', descs, tris: sink.tris() + mesh.geometry.getAttribute('position').count / 3 };
 }
 
 // ── the riders' gallop ──
@@ -115,7 +120,8 @@ export function buildKokpar(ctx: PoiCtx): PoiPiece {
   const { sky, ground, flutter } = ctx;
   const kit = new PaintKit(0x60ba);
   const rng = kit.rng;
-  const colliders: Collider[] = [];
+  const colliders: Box[] = [];
+  const descs: ColliderDesc[] = [];
   const group = new THREE.Group();
   group.name = 'nalati-kokpar';
   // marker posts round the oval, a pennant on every fourth
@@ -130,7 +136,7 @@ export function buildKokpar(ctx: PoiCtx): PoiPiece {
     const p = onOval(t, 0.82), gy = ground(p.x, p.z);
     kit.add(new THREE.CylinderGeometry(2.2, 2.6, 0.9, 18, 1), new THREE.Color('#6f5a3a'), { matrix: M(p.x, gy + 0.2, p.z), brush: 0.1 });
     kit.add(new THREE.TorusGeometry(2.25, 0.28, 6, 18).rotateX(Math.PI / 2), PC.stone, { matrix: M(p.x, gy + 0.68, p.z), brush: 0.1 });
-    colliders.push({ x: p.x, z: p.z, hw: 2.4, hd: 2.4, rot: 0, yBottom: gy - 1, yTop: gy + 0.75 });
+    descs.push(prism(p.x, p.z, gy - 1, gy + 0.72, 2.6, 18, 0, 'earth', 2.3));
   }
   const mesh = kit.mesh(sky, { ground });
   group.add(mesh);
@@ -175,7 +181,7 @@ export function buildKokpar(ctx: PoiCtx): PoiPiece {
     m.instanceMatrix.needsUpdate = true;
   };
   const riderTris = riders.length * (PHONE ? FAR_TRIS['kokpar-rider'] : MODEL_TRIS['kokpar-rider']);
-  return { name: 'kokpar', object: group, colliders, platforms: [], tris: mesh.geometry.getAttribute('position').count / 3 + sink.tris() + riderTris, update };
+  return { name: 'kokpar', object: group, colliders, surface: 'wood', descs, tris: mesh.geometry.getAttribute('position').count / 3 + sink.tris() + riderTris, update };
 }
 
 // ── the herds in the hundreds ────────────────────────────────────────────────────────────────────────────────────────
@@ -264,7 +270,7 @@ export function buildFarHerds(ctx: PoiCtx): PoiPiece {
       if (m.instanceColor) m.instanceColor.needsUpdate = true;
     }
   };
-  return { name: 'farHerds', object: group, colliders: [], platforms: [], tris: total * FAR_TRIS['horse-wild'], update };
+  return { name: 'farHerds', object: group, colliders: [], surface: 'ground', tris: total * FAR_TRIS['horse-wild'], update };
 }
 
 // ── snow lotus ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -288,7 +294,7 @@ export function buildSnowLotus(ctx: PoiCtx): PoiPiece {
   }
   void loadNalatiModel(sky, 'snow-lotus', { rim: 0.6, bands: 0.7 }).then((m) => { group.add(instanceModel(m, places, { castShadow: !PHONE })); return m; })
     .catch((e: unknown) => { console.warn('[nalati] snow lotus failed', e); });
-  return { name: 'snowLotus', object: group, colliders: [], platforms: [], tris: places.length * MODEL_TRIS['snow-lotus'] };
+  return { name: 'snowLotus', object: group, colliders: [], surface: 'ground', tris: places.length * MODEL_TRIS['snow-lotus'] };
 }
 
 // ── the glacier ──────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -337,5 +343,5 @@ export function buildGlacier(ctx: PoiCtx): PoiPiece {
   const mesh = new THREE.Mesh(geo, poiMaterial(sky));
   mesh.name = 'nalati-glacier';
   mesh.receiveShadow = true; mesh.castShadow = false;
-  return { name: 'glacier', object: mesh, colliders: [], platforms: [], tris: idx.length / 3 };
+  return { name: 'glacier', object: mesh, colliders: [], surface: 'ground', tris: idx.length / 3 };
 }

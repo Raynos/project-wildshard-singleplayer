@@ -16,7 +16,8 @@
  * snow line, blue in the shade. Placed from the terrain alone (seeded, deterministic): off the roads, the stream, the
  * POI clearings, the glacier and the ledges' spots.
  *
- *   const crags = buildCragRock(sky);   scene.add(crags.group);   player.colliders.push(...crags.colliders);
+ *   const crags = buildCragRock(sky);   scene.add(crags.group);   registry.add({ …, colliders: crags.descs, surface: 'rock' });
+ *   (NALATI-MERGE P1: every fin, rib and tower as the hull of what it draws — the fins and ribs had no collision before)
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -28,9 +29,11 @@ import { painterlyMaterial } from '../world/painterly';
 import { loadNalatiTextures, TEX_METRES, TEX_MEAN, isPhoneTier } from '../world/nalatiTextures';
 import { zoneAt, glacierMask, brookMask, SNOW_LINE, LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, WATCHTOWER } from '../chunks/nalati-grasslands';
 import type { Collider } from '../player/Player';
+import type { ColliderDesc } from '../world/registry';
+import { supportHull } from '../world/nalati/solid';
 import type { Sky } from '../world/Sky';
 
-export interface CragRock { group: THREE.Group; colliders: Collider[]; count: { fins: number; ribs: number; blocks: number }; triangles: number }
+export interface CragRock { group: THREE.Group; colliders: Collider[]; descs: ColliderDesc[]; count: { fins: number; ribs: number; blocks: number }; triangles: number }
 
 // ── the rock pieces ─────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -179,6 +182,7 @@ const RING = 7; // the crest test's radius (m)
 export function buildCragRock(sky: Sky, seed = 0xc4a9): CragRock {
   const rng = new Rng(seed), jitter = new Noise2D(seed + 3);
   const colliders: Collider[] = [];
+  const descs: ColliderDesc[] = [];
   const count = { fins: 0, ribs: 0, blocks: 0 };
   // four quadrant buckets (east / west × north / south of z = −110), each one mesh
   const parts: THREE.BufferGeometry[][] = [[], [], [], []];
@@ -202,6 +206,7 @@ export function buildCragRock(sky: Sky, seed = 0xc4a9): CragRock {
     for (let i = 0; i < n; i++) { cols[i * 3] = c.r; cols[i * 3 + 1] = c.g; cols[i * 3 + 2] = c.b; }
     g.setAttribute('color', new THREE.BufferAttribute(cols, 3));
     g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(pitch, yaw, roll, 'YXZ')), new THREE.Vector3(1, 1, 1)));
+    descs.push(supportHull(g, null, 'rock', true));
     parts[(x < 0 ? 0 : 1) + (z < -110 ? 2 : 0)]?.push(g);
   };
   const lowest = (x: number, z: number, r: number): number => {
@@ -286,5 +291,5 @@ export function buildCragRock(sky: Sky, seed = 0xc4a9): CragRock {
     m.castShadow = true; m.receiveShadow = true;
     group.add(m);
   });
-  return { group, colliders, count, triangles: Math.round(triangles) };
+  return { group, colliders, descs, count, triangles: Math.round(triangles) };
 }

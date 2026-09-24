@@ -5,7 +5,7 @@
  * post-and-rail handrails with knee braces. The ends are found from the terrain: the deck runs until the road meets
  * it (so a terrain tweak doesn't leave it floating or buried).
  *
- *   const bridge = buildBridge(ctx);  // PoiPiece; its platform is the deck
+ *   const bridge = buildBridge(ctx);  // PoiPiece: the deck as plank slabs (level + the two ramps), rails / cribs as boxes; `floor` = the deck (placement)
  *
  * The deck is level (−6) over the corridor and ramps down 1 : 5 at either end until it meets the road, so a bank lower
  * than the deck (the sky road's foot is at −8.6) gets a ramped approach instead of a step.
@@ -13,7 +13,8 @@
 import * as THREE from 'three';
 import { PaintKit, M, pole, v3, blob, logPainter } from './paint';
 import { BRIDGE } from './layout';
-import type { Collider } from '../../player/Player';
+import type { ColliderDesc } from '../registry';
+import { slab, type Box } from './solid';
 import type { PoiCtx, PoiPiece } from './types';
 
 const C = {
@@ -30,7 +31,8 @@ export function buildBridge(ctx: PoiCtx): PoiPiece {
   const { sky, ground } = ctx;
   const kit = new PaintKit(0xb21d);
   const rng = kit.rng;
-  const colliders: Collider[] = [];
+  const colliders: Box[] = [];
+  const descs: ColliderDesc[] = [];
   const bx = BRIDGE.x, bz = BRIDGE.z, deck = BRIDGE.deckY, W = BRIDGE.width;
 
   // the deck is level over the river corridor (±half0) and ramps down (1 : 5) beyond it until it meets the road
@@ -132,5 +134,15 @@ export function buildBridge(ctx: PoiCtx): PoiPiece {
   const mesh = kit.mesh(sky, { ground, aoH: 0.6 });
   mesh.name = 'nalati-bridge';
   const platform = (x: number, z: number): number | undefined => (Math.abs(x - bx) <= W / 2 + 0.1 && z >= zS - 0.3 && z <= zN + 0.3 ? prof(z) : undefined);
-  return { name: 'bridge', object: mesh, colliders, platforms: [platform], tris: mesh.geometry.getAttribute('position').count / 3 };
+  // the deck as real geometry (P1): the level span as one plank slab, each ramp a slab tipped 1 : 5 whose top meets the
+  // span's edge and runs 0.3 m past the road's lip (its low end is under the turf there)
+  const hx = W / 2 + 0.1, thick = 0.35;
+  descs.push(slab(bx, (zFs + zFn) / 2, top, thick, hx, (zFn - zFs) / 2, 0, 'planks'));
+  const pitch = Math.atan(SLOPE);
+  for (const [z0, z1, s] of [[zS - 0.3, zFs, -1], [zFn, zN + 0.3, 1]] as const) {
+    if (z1 - z0 < 0.2) continue;
+    const len = (z1 - z0) / Math.cos(pitch), zc = (z0 + z1) / 2;
+    descs.push(slab(bx, zc, prof(zc), thick, hx, len / 2, 0, 'planks', s < 0 ? -pitch : pitch));
+  }
+  return { name: 'bridge', object: mesh, colliders, surface: 'wood', descs, floor: platform, tris: mesh.geometry.getAttribute('position').count / 3 };
 }

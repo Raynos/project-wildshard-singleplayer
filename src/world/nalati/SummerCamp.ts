@@ -7,20 +7,22 @@
  */
 import * as THREE from 'three';
 import { PaintKit, M, pole, v3 } from './paint';
-import { addYurt } from './Yurt';
+import { addYurt, yurtSolid } from './Yurt';
 import { PC, addKazan, addCart, addGroundRug, addChest, addBarrel } from './props';
 import { SUMMER_CAMP } from './layout';
 import { ModelSink, modelsOn } from './glbPaint';
 import { addYurtModel, addKazanModel, addChestModel } from './modelProps';
 import { buildYardDecal, wearDisc, wearPath } from './Yard';
-import type { Collider } from '../../player/Player';
+import type { ColliderDesc } from '../registry';
+import type { Box } from './solid';
 import type { PoiCtx, PoiPiece } from './types';
 
 export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
   const { sky, ground, flutter, smoke } = ctx;
   const kit = new PaintKit(0x5a33);
   const rng = kit.rng;
-  const colliders: Collider[] = [];
+  const colliders: Box[] = [];
+  const descs: ColliderDesc[] = [];
   const cx = SUMMER_CAMP.x, cz = SUMMER_CAMP.z;
   const models = modelsOn('props'), yurtModels = modelsOn('yurt'); // the GLB yurts / kazan / chest (modelProps.ts), like the spring camp
   const sink = new ModelSink();
@@ -32,6 +34,7 @@ export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
     for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; gy = Math.min(gy, ground(x + Math.cos(t) * y.r, z + Math.sin(t) * y.r)); }
     const spec = { x, y: gy, z, rot, r: y.r, flue: y.flue, palette: y.pal, old: y.old ?? false };
     const top = yurtModels ? addYurtModel(kit, sink, spec, colliders) : addYurt(kit, spec, colliders);
+    descs.push(...yurtSolid(spec, top.height));
     if (top.flue) smoke.emitter(top.flue, { puffs: 40, rise: 7, size: [0.6, 4.2], life: 9 });
   }
   smoke.emitter(models ? addKazanModel(sink, ground, cx + 1, cz - 1, colliders) : addKazan(kit, ground, cx + 1, cz - 1, colliders), { puffs: 28, rise: 4.5, size: [0.5, 3.0], life: 6 });
@@ -85,5 +88,5 @@ export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
   let tris = mesh.geometry.getAttribute('position').count / 3;
   if (felt) { group.add(felt); tris += felt.geometry.getAttribute('position').count / 3; }
   if (sink.size > 0) { tris += sink.tris(); void sink.flush(group, sky); }
-  return { name: 'summerCamp', object: group, colliders, platforms: [], tris };
+  return { name: 'summerCamp', object: group, colliders, surface: 'wood', descs, tris };
 }

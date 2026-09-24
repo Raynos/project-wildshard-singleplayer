@@ -20,6 +20,8 @@ import * as THREE from 'three';
 import { PaintKit, M, pole, v3, poiMaterial, mergeVerticesByPos } from './paint';
 import { Noise2D } from '../../core/noise';
 import type { Collider } from '../../player/Player';
+import { boxDesc, type WorldRegistry } from '../registry';
+import type { Box } from './solid';
 import type { PoiCtx, PoiPiece } from './types';
 import { loadNalatiModel, modelsOn, MODEL_SIZE } from './glbPaint';
 
@@ -137,6 +139,22 @@ export class Balbals {
   meshes: THREE.InstancedMesh[] = [];
   private awake: boolean[] = [];
 
+  isAwake(i: number): boolean { return this.awake[i] === true; }
+
+  /**
+   * NALATI-MERGE P1: each statue is its own registry piece — a stone box on a body that follows the (never moving)
+   * balbal group, solid only while the statue stands (`active`): a woken warrior carries its own hitboxes.
+   */
+  register(registry: WorldRegistry, group: THREE.Object3D): void {
+    group.updateWorldMatrix(true, false);
+    this.statues.forEach((s, i) => {
+      registry.add({
+        id: `nalati-balbal-${i}`, name: 'Balbal', category: 'props', file: 'src/world/nalati/Balbals.ts', surface: 'stone',
+        follows: group, colliders: [boxDesc({ ...s.collider, yTop: s.y + 2.2 * s.scale, yBottom: s.y - 1 })], active: () => !this.isAwake(i),
+      });
+    });
+  }
+
   setAwake(i: number, awake: boolean): void {
     const s = this.statues[i], mesh = this.meshes[s?.variant ?? -1];
     if (!s || !mesh || this.awake[i] === awake) return;
@@ -153,7 +171,7 @@ export class Balbals {
 export function buildBalbals(ctx: PoiCtx, spots: { x: number; z: number; yaw: number; scale?: number; tilt?: number }[]): { piece: PoiPiece; balbals: Balbals } {
   const { sky, ground } = ctx;
   const b = new Balbals();
-  const colliders: Collider[] = [];
+  const colliders: Box[] = [];
   const counts = [0, 0];
   const placed = spots.map((s, i) => {
     const variant = (i * 7 + 3) % 3 === 0 ? 1 : 0;
@@ -177,7 +195,8 @@ export function buildBalbals(ctx: PoiCtx, spots: { x: number; z: number; yaw: nu
   for (const p of placed) {
     const scale = p.scale ?? 1;
     const y = ground(p.x, p.z) - 0.18 * scale;
-    const collider: Collider = { x: p.x, z: p.z, hw: 0.42 * scale, hd: 0.33 * scale, rot: -p.yaw, yBottom: y - 1, yTop: y + 2.2 * scale };
+    // data only here: `Balbals.register` makes each statue its own piece (a woken one stops colliding)
+    const collider: Box = { x: p.x, z: p.z, hw: 0.42 * scale, hd: 0.33 * scale, rot: -p.yaw, yBottom: y - 1, yTop: y + 2.2 * scale, ghost: true };
     const m = M(p.x, y, p.z, p.yaw, scale, scale, scale, 0, p.tilt ?? 0);
     b.meshes[p.variant]?.setMatrixAt(p.slot, m);
     b.statues.push({ x: p.x, y, z: p.z, yaw: p.yaw, scale, tilt: p.tilt ?? 0, variant: p.variant, slot: p.slot, collider });
@@ -196,7 +215,7 @@ export function buildBalbals(ctx: PoiCtx, spots: { x: number; z: number; yaw: nu
       return model;
     }).catch((e: unknown) => { console.warn('[nalati] balbal model failed', e); });
   }
-  return { piece: { name: 'balbals', object: group, colliders, platforms: [], tris }, balbals: b };
+  return { piece: { name: 'balbals', object: group, colliders, surface: 'stone', tris }, balbals: b };
 }
 
 /** the ring's spots on the knoll: 9 stones facing outward (the watchers), a little irregular */
@@ -217,7 +236,7 @@ export function buildBalbalCircleDressing(ctx: PoiCtx, cx: number, cz: number, r
   const { sky, ground } = ctx;
   const kit = new PaintKit(0xb1c1);
   const rng = kit.rng;
-  const colliders: Collider[] = [];
+  const colliders: Box[] = [];
   const gy = ground(cx, cz);
   const stone = { top: { color: C.lichenGold, threshold: 0.55, amount: 0.4 }, brush: 0.1 };
   kit.add(new THREE.CylinderGeometry(1.5, 1.7, 0.45, 9), C.stone, { ...stone, matrix: M(cx, gy + 0.12, cz, 0.3, 1, 1, 0.8) });
@@ -231,5 +250,5 @@ export function buildBalbalCircleDressing(ctx: PoiCtx, cx: number, cz: number, r
   }
   const mesh = kit.mesh(sky, { ground });
   mesh.name = 'nalati-balbal-circle';
-  return { name: 'balbalCircle', object: mesh, colliders, platforms: [(x, z) => (Math.hypot((x - cx) / 1.5, (z - cz) / 1.2) < 1 ? gy + 0.34 : undefined)], tris: mesh.geometry.getAttribute('position').count / 3 };
+  return { name: 'balbalCircle', object: mesh, colliders, surface: 'stone', floor: (x, z) => (Math.hypot((x - cx) / 1.5, (z - cz) / 1.2) < 1 ? gy + 0.34 : undefined), tris: mesh.geometry.getAttribute('position').count / 3 };
 }

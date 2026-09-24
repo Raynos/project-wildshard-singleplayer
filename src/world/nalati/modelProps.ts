@@ -17,12 +17,13 @@ import { type PaintKit, M, v3 } from './paint';
 import { YURT_C, type YurtSpec, type YurtTop } from './Yurt';
 import { MODEL_SIZE, type ModelSink } from './glbPaint';
 import type { Collider } from '../../player/Player';
+import type { Box } from './solid';
 import type { Ground } from './types';
 
 const FLIP = Math.PI;
 
 /** the yurt GLB scaled so its eave matches the procedural yurt of radius `s.r`; same octagon colliders; a stove pipe */
-export function addYurtModel(kit: PaintKit, sink: ModelSink, s: YurtSpec, colliders: Collider[]): YurtTop {
+export function addYurtModel(kit: PaintKit, sink: ModelSink, s: YurtSpec, colliders: Box[]): YurtTop {
   const R = s.r, wallH = 1.55 + (R - 3) * 0.12, rise = R * 0.52;
   const [w, h, d] = MODEL_SIZE.yurt;
   const k = (R + 0.22) / (Math.min(w, d) / 2);
@@ -38,7 +39,7 @@ export function addYurtModel(kit: PaintKit, sink: ModelSink, s: YurtSpec, collid
     flue = v3(fx, top + 0.2, fz).applyMatrix4(mat);
   }
   for (const extra of [0, Math.PI / 4]) {
-    colliders.push({ x: s.x, z: s.z, hw: R * 0.93, hd: R * 0.93, rot: -(s.rot + extra), yBottom: s.y - 1, yTop: s.y + wallH + rise * 0.6 });
+    colliders.push({ x: s.x, z: s.z, hw: R * 0.93, hd: R * 0.93, rot: -(s.rot + extra), yBottom: s.y - 1, yTop: s.y + wallH + rise * 0.6, ghost: true });
   }
   return { crown: v3(0, H - 0.05, 0).applyMatrix4(mat), flue, height: H };
 }
