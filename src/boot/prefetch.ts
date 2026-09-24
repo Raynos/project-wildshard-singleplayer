@@ -31,7 +31,8 @@ export function bootFetches(def: ChunkDef, files: ChunkFiles): string[] {
   const painted = def.style === 'lowpoly' || def.style === 'painterly'; // no ground textures: only the baked terrain
   const terrain = painted ? files.terrain.filter((f) => f.startsWith('/assets/baked/')) : files.terrain;
   const trees = def.trees.factory !== 'pine' ? [] : files.trees; // only the pine reads textures ('spruce' is painted, 'none' is none)
-  const homestead = def.ocean === undefined && def.style !== 'painterly' ? [...files.cabins, ...files.props] : [];
+  // a painterly shard (Nalati) builds no cabins; its `props` are its own boot reads (manifest.ts `painterlyBoot`)
+  const homestead = def.style === 'painterly' ? files.props : def.ocean === undefined ? [...files.cabins, ...files.props] : [];
   return [...files.sky, ...files.baked, ...terrain, ...trees, ...homestead];
 }
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };

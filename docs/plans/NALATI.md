@@ -104,9 +104,9 @@ user: D, E and A are the closest). Round 8 (`round-8-three-zones/`): the user pi
 | B11 | Balbal warriors + ghost riders | ✅ bodies render (`37b3115`: the ghost material now chains Atmosphere's shader hook) |
 | B12 | Named elites | ✅ (Argymaq → BROKEN → taming fixed, `HorseHerd.adoptStallion`) |
 | B13 | Boss system + Golden King + Golden Bow | ✅ (played in god mode only) |
-| B14 | Storm Titan + Naizagai | ✅ (`2691bde`): 3 phases, checkpoints, the reward at the cairn; look is a first pass (paler, blobbier than the mockups) |
+| B14 | Storm Titan + Naizagai | ✅ (`2691bde`): 3 phases, checkpoints, the reward at the cairn; look pass `5717952` (dark cumulus, lightning veins, spiral heart; phase 3 as 3D flame fronts + smoke — `stormTitanLook.ts`) |
 | B15 | Items, joke titles, tame + Titan achievements, wearable skins, the Nalati map / minimap, hidden wolves off minimap + aim assist | ✅ (`984fe3d`); map names follow `NALATI_MAP` from the def |
-| B16 | Audio ✅ · menu card / loading / hero art ❌ | 🟡 |
+| B16 | Audio ✅ · loading steps / nouns / weights + the boot's 2.7 MB declared and packed ✅ (polish agent) · menu card text ✅ · hero art ❌ (waits for layout v2) | 🟡 |
 | L | The look (mockup parity) | 🟡 ~30 % — painted textures, backdrop, dressing, 18 models generated; **v2 render path not started; models not in the world** |
 
 ## Phase A — the look (now)
@@ -153,9 +153,14 @@ bigger butterflies / kites.
 
 ## Phase C — ship
 
-1. Menu card + hero art (portrait + landscape) from in-engine shots; the loading steps / nouns for Nalati; the card
-   loses "not yet playable" (stays SUPER EXPERIMENTAL until the user says otherwise).
-2. Perf: phone tier ≥ 30 fps at every pose (≤ ~150 calls), desktop 60; load time; the 25 MB budget.
+1. Menu card + hero art (portrait + landscape) from in-engine shots — **open** (after layout v2); the loading steps /
+   nouns / weights for Nalati — **done** (`src/boot/steps.ts` `SHARD_STEPS`, its own timing store; the boot's panorama,
+   ground tiles, card atlas and GLB props declared in `manifest.ts` and streamed as one 2.7 MB phone pack); the card
+   has no "not yet playable" (the teaser row it lived on is gone), the blurb says what you can do, SUPER EXPERIMENTAL
+   stays until the user says otherwise.
+2. Perf: phone tier ≥ 30 fps at every pose (≤ ~110 calls, ≤ 1.6 M tris headless — met at the camp, the bowl, the
+   plains and the Titan fight: 79–95 calls, 1.1–1.4 M; settings in `handoff/port-v2.md` "Phone tier"; `?perf=1` shows
+   the check), desktop 60; load time; the 25 MB budget.
 3. All gates green on a clean export (`tsc`, `oxlint`, `check-css`, `vite build`, `pnpm test`); Pine Hollow and
    Driftwood unchanged.
 4. A preview deploy at each milestone (the `nalati-grasslands` Vercel project).

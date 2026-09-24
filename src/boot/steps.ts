@@ -22,9 +22,51 @@ const STEP_ROWS = [
   ['firstFrame', 'First frame', 3],
 ] as const satisfies readonly (readonly [string, string, number])[];
 export type BootStep = (typeof STEP_ROWS)[number][0];
-export const STEP_INFO = Object.fromEntries(STEP_ROWS.map(([key, label, weight]) => [key, { label, weight }])) as Record<BootStep, { readonly label: string; readonly weight: number }>;
+export interface StepInfo { readonly label: string; readonly weight: number }
+const BASE_INFO = Object.fromEntries(STEP_ROWS.map(([key, label, weight]) => [key, { label, weight }])) as Record<BootStep, StepInfo>;
+/** The step table as this shard shows it: the rows above, with its own nouns and weights over them (`useShardSteps`). */
+export const STEP_INFO: Record<BootStep, StepInfo> = { ...BASE_INFO };
 /** The steps in declared order. */
 export const BOOT_STEPS = STEP_ROWS.map((row) => row[0]) as readonly BootStep[];
+
+/**
+ * A shard's own loading-screen nouns and weights, over the shared steps (the step KEYS are the boot's; what each one
+ * builds differs per shard). Nalati builds its whole world in `props` (wireNalati) and has no cabins, forest or
+ * undergrowth to speak of; the weights are its measured wall-ms shape (phone tier, 2026-09-23: props 860, sky 245,
+ * shaders 220, terrain 175, grass 40, first frame 40 ms, the rest < 15), the first-run bar's pace until this device has
+ * timed a load of its own. `trees` is the byte label of the `cards` step's download.
+ */
+const SHARD_STEPS: Readonly<Record<string, Partial<Record<BootStep | 'trees', Partial<StepInfo>>>>> = {
+  'nalati-grasslands': {
+    renderer: { weight: 0.3 },
+    sky: { label: 'Sky · the painted panorama', weight: 2.5 },
+    terrain: { label: 'Steppe · the bowl · the snow ring', weight: 1.8 },
+    cards: { label: 'Spruce cards', weight: 0.1 },
+    forest: { label: 'Lone spruces', weight: 0.15 },
+    edge: { label: 'Kunes river · cloud sea · horizon', weight: 0.15 },
+    grass: { label: 'Grass rings · painted clumps', weight: 0.5 },
+    cabins: { label: 'Yurts', weight: 0.05 },
+    props: { label: 'Camp · kurgans · herds · the Storm Titan', weight: 8.5 },
+    animals: { label: 'Wolves · horses · sheep', weight: 0.1 },
+    weapon: { label: 'Recurve bow · HUD', weight: 0.05 },
+    shaders: { weight: 2.2 },
+    firstFrame: { weight: 0.5 },
+    trees: { label: 'spruce bark' },
+  },
+};
+
+let shard: string | null = null;
+/**
+ * The active shard's nouns + weights over the table (main.ts, before the boot plan is made). A shard without its own
+ * rows keeps the shared table exactly, and its load timings stay under the shared key (`shardTimingKey`).
+ */
+export function useShardSteps(slug: string): void {
+  const o = SHARD_STEPS[slug];
+  shard = o ? slug : null;
+  for (const k of BOOT_STEPS) STEP_INFO[k] = { label: o?.[k]?.label ?? BASE_INFO[k].label, weight: o?.[k]?.weight ?? BASE_INFO[k].weight };
+}
+/** '' for the shared table, else `:<slug>` — the timing store keys a shard with its own steps separately */
+export const shardTimingKey = (): string => (shard ? `:${shard}` : '');
 
 /**
  * DOWNLOAD byte sources: the bytes boot awaits, each reported by the reader that reads them and
@@ -36,4 +78,4 @@ export const BYTE_SOURCES = ['sky', 'baked', 'terrain', 'trees', 'cabins', 'prop
 export type ByteKey = (typeof BYTE_SOURCES)[number];
 const CLOSED_BY: Record<ByteKey, BootStep> = { sky: 'sky', baked: 'sky', terrain: 'terrain', trees: 'cards', cabins: 'cabins', props: 'props' };
 export const closedBy = (key: ByteKey): BootStep => CLOSED_BY[key];
-export const byteLabel = (key: ByteKey): string => key === 'trees' ? 'pine bark · twigs' : key === 'baked' ? 'baked textures' : STEP_INFO[closedBy(key)].label.toLowerCase();
+export const byteLabel = (key: ByteKey): string => key === 'trees' ? (shard ? SHARD_STEPS[shard]?.trees?.label : undefined) ?? 'pine bark · twigs' : key === 'baked' ? 'baked textures' : STEP_INFO[closedBy(key)].label.toLowerCase();

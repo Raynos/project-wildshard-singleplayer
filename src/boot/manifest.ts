@@ -12,11 +12,23 @@ import { bakedCardUrls } from '../world/BakedCards';
 import { bakedSkyUrls } from '../world/BakedSky';
 import { bakedTextureUrls } from './bakedTextures';
 import { PUBLIC_BYTES } from './bytes.generated';
+import { nalatiUrl } from '../world/nalatiTextures';
 
 const pbr = pbrUrls; // tier-aware: the phone's _1k files are what it downloads, so they are what it declares
 const gltf = (id: string) => [`/assets/models/${id}/${id}.gltf`, `/assets/models/${id}/${id}.bin`, ...['diff', 'nor_gl', 'arm'].map((k) => `/assets/models/${id}/textures/${id}_${k}_1k.jpg`)];
 const lod = (id: string) => [`/assets/models/${id}/${id}_lod.glb`];
 const uniq = (xs: string[]) => [...new Set(xs)];
+
+/**
+ * The painterly shard's (Nalati's) boot reads, all inside its `props` step (wireNalati): the painted ground tiles, the
+ * grass-card atlas, the sky panorama and the GLB props — measured off a phone-tier load's network log (2026-09-23,
+ * 2.1 MB of the boot's 2.7 MB). Declared so DOWNLOAD counts them and the prefetch starts them with the boot; a model
+ * added to the camp later belongs here too (an undeclared file still loads, it is just invisible to the bar).
+ */
+const painterlyBoot = (): string[] => [
+  ...['meadow', 'path', 'gravel', 'rock', 'snow', 'felt'].map((n) => nalatiUrl(`tex/${n}`)), nalatiUrl('cards'), nalatiUrl('panorama'),
+  ...['eagle', 'cauldron', 'firewood', 'kumis-churn', 'chest', 'saddle', 'balbal', 'boulder-1', 'boulder-2', 'boulder-3'].map((m) => `/assets/nalati/models/${m}.glb`),
+].filter((f) => tierUrl(f) in PUBLIC_BYTES || f in PUBLIC_BYTES);
 
 export function chunkFiles(def: ChunkDef): ChunkFiles {
   const baked = bakedTerrainUrl(def.slug); // scripts/bake-chunk.mjs output, when the build has one
@@ -45,6 +57,6 @@ export function chunkFiles(def: ChunkDef): ChunkFiles {
     terrain: t(lowpoly ? terrain.filter((f) => f.startsWith('/assets/baked/')) : terrain),
     trees: t(treeless ? [] : trees),
     cabins: t(ocean ? [] : cabins),
-    props: t(ocean ? [] : props),
+    props: t(def.style === 'painterly' ? painterlyBoot() : ocean ? [] : props),
   };
 }

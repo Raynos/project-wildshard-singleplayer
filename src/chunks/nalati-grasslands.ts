@@ -437,7 +437,7 @@ export const NALATI_GRASSLANDS: ChunkDef = {
   treeCount: 40,
   biome: 'Alpine steppe',
   experimental: true,
-  blurb: 'SUPER EXPERIMENTAL — the Tian Shan steppe, painted: cross the braided Kunes, climb to the golden bowl of the Sky Grassland where the herds run in hundreds, and on into the snow ring and Snow Lotus Valley. Built live, rough edges everywhere.',
+  blurb: 'SUPER EXPERIMENTAL — the Tian Shan steppe, painted: cross the braided Kunes, tame a steppe horse and hunt wolves from the saddle across the golden bowl of the Sky Grassland, break the Golden King in his kurgan, and ride out a storm to face the Storm Titan. Snow Lotus Valley waits in the snow ring. Built live, rough edges everywhere.',
   thumbnail, heroPortrait, heroLandscape,
   style: 'painterly',
   weapon: 'sword', // the Driftwood sword until the bow / sabre land (B2 / B3)

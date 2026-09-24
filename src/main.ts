@@ -56,6 +56,7 @@ import { Combat } from './ui/Combat';
 import { setAimTargets, meleeLock } from './player/AimTargets';
 import { pastRidden, riding } from './player/riding';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
+import { useShardSteps } from './boot/steps';
 import { declareTotals, installByteCounter } from './boot/bytes';
 import { chunkFiles } from './boot/manifest';
 import { bootFetches, prefetch } from './boot/prefetch';
@@ -84,6 +85,7 @@ async function main() {
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/boot/plan.ts).
   // Declared bytes come from the chunk's file list; every /assets fetch is counted on its way in.
   const files = chunkFiles(getActiveChunk());
+  useShardSteps(getActiveChunk().slug); // the shard's own loading nouns + weights (src/boot/steps.ts)
   const plan = createBootPlan((view) => loading.paint(view), { totals: declareTotals(files) });
   installByteCounter(plan, files);
   // a boot that throws shows WHY: the loading panel's foot line + the uncaught-exception modal (src/ui/ErrorModal.ts)
