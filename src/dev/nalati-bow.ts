@@ -1,4 +1,4 @@
-// Dev entry: the Nalati recurve bow (B2 of docs/plans/NALATI.md) — Bow.ts + Projectiles.ts on stub targets.
+// Dev entry: the Nalati recurve bow (B2 of project/archive/2026-09-23-nalati.md) — Bow.ts + Projectiles.ts on stub targets.
 // http://127.0.0.1:5188/dev/nalati-bow.html?chunk=nalati-grasslands&nolock=1&skipintro=1
 // Desktop: hold LMB draw, release loose; RMB steady; F snap shot. Keys: G = toggle the DRAW latch (the touch disc),
 //          V = loose (the LOOK tap), X = clear stuck arrows, N = the drop arc on / off.

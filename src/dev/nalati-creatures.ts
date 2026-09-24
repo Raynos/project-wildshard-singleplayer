@@ -1,4 +1,4 @@
-// Dev entry: the Nalati creatures (row B4 of docs/plans/NALATI.md) — wolves + Pack, wild horses + Herd, the sheep Flock + dog.
+// Dev entry: the Nalati creatures (row B4 of project/archive/2026-09-23-nalati.md) — wolves + Pack, wild horses + Herd, the sheep Flock + dog.
 // http://127.0.0.1:5188/dev/nalati-creatures.html?chunk=nalati-grasslands&nolock=1&skipintro=1&x=0&z=150&yaw=3.14&pitch=0
 //   &scene=lineup   every creature in a row 9–15 m ahead, side-on, AI off (&gait=walk|trot|gallop&phase=0.3 freezes a gait;
 //                   &knob=rear|buck|howl|snarl|low sets that pose knob on everyone)

@@ -1,6 +1,6 @@
 # Nalati — combat: bow, sabre, spear, javelins, and the saddle
 
-Round 2 design section for ASKS E11 / `docs/plans/NALATI.md` decision N2. The user's pick: **A horse archery ·
+Round 2 design section for ASKS E11 / `project/archive/2026-09-23-nalati.md` decision N2. The user's pick: **A horse archery ·
 C recurve bow on foot · D mounted sabre · B spear (+ javelins)**; the eagle hunter is parked. Style B (painterly)
 is locked, so every mockup below is a re-render of a round-1 pick in that look with the reference HUD.
 

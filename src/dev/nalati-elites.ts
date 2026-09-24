@@ -1,4 +1,4 @@
-// Dev entry: the Nalati named elites (row B12 of docs/plans/NALATI.md) — the elite system + the five, without the rest of the
+// Dev entry: the Nalati named elites (row B12 of project/archive/2026-09-23-nalati.md) — the elite system + the five, without the rest of the
 // shard's wiring (so another row's work in progress cannot take this page down).
 // http://127.0.0.1:5188/dev/nalati-elites.html?nolock=1&elite=aqbars|kokbori|qyran|qara-batyr|argymaq
 //   &wildlife=1   the shard's NALATI_WILDLIFE too (Kokbori's pack and Argymaq's herd are spawned either way)

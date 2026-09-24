@@ -1,4 +1,4 @@
-// Dev entry: base world + the painterly grass carpet (B1 of docs/plans/NALATI.md) + wind + trample.
+// Dev entry: base world + the painterly grass carpet (B1 of project/archive/2026-09-23-nalati.md) + wind + trample.
 // http://127.0.0.1:5188/dev/nalati-grass.html?chunk=nalati-grasslands&nolock=1&x=0&z=225&yaw=0&pitch=0
 // Before the Nalati chunk exists: ?chunk=pine-hollow&grass=painterly&noforest=1
 // Params: ?wind=<m/s>  ?winddir=<rad>  ?gust=<0..1>  ?wolves=<n> (fake movers circling the player)

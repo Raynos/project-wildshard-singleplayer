@@ -11,7 +11,7 @@ survey, the decisions, and the build order, so the next agent can start at step 
 
 Spec: `docs/design/nalati/elites-and-bosses.md`, "The Storm Titan fight, step by step" (the full fight: phases, damage
 numbers, the reward). Mockups: `art/nalati-grasslands/round-3/2-storm-titan/titan-1..5*.png` (portrait phone).
-Plan row: `docs/plans/NALATI.md` B14 (it needs B7 riding, B10 weather and B13 the boss system).
+Plan row: `project/archive/2026-09-23-nalati.md` B14 (it needs B7 riding, B10 weather and B13 the boss system).
 
 ## The coordinator's decisions (they win over the design doc)
 

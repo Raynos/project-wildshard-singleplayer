@@ -8,7 +8,7 @@ import { BALBAL, BALBAL_SLAM, balbalCombat, onBalbalCrack } from '../entities/sp
 import { NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW } from './nightFx';
 
 /**
- * Balbal warriors — the dusk half of row B11 (docs/plans/NALATI.md): at dusk some of the shard's balbal statues (the POI
+ * Balbal warriors — the dusk half of row B11 (project/archive/2026-09-23-nalati.md): at dusk some of the shard's balbal statues (the POI
  * agent's ring of 9 on the knoll + the kurgan crowns, `pois.balbals`) tear out of the ground and fight; at dawn the
  * survivors walk back to their plinths and sink into them, and every statue stands again.
  *

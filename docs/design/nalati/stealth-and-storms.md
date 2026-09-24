@@ -1,6 +1,6 @@
 # Nalati — grass stealth and steppe storms
 
-Round 2 design section for ASKS E11 / `docs/plans/NALATI.md` features F2 (living grass + stealth) and F3
+Round 2 design section for ASKS E11 / `project/archive/2026-09-23-nalati.md` features F2 (living grass + stealth) and F3
 (steppe storms). Both run on the same **wind** and the same **grass**: the grass is the terrain, the cover
 and the weather gauge at once.
 

@@ -5,7 +5,7 @@
  * costs the phone nothing. `?perf=0` hides it.
  *
  * `?perf=1` adds the budget check: the worst draw calls / triangles of the last ~10 s against the tier's budget
- * (phone ≤ 110 calls, ≤ 1.6 M triangles — docs/plans/NALATI.md, the phone-tier handoff; desktop shows the maxima only),
+ * (phone ≤ 110 calls, ≤ 1.6 M triangles — project/archive/2026-09-23-nalati.md, the phone-tier handoff; desktop shows the maxima only),
  * `OK` / `OVER` on the meter (red when over), and `window.__perfBudget` for scripted checks.
  */
 import type { Game } from '../core/Game';

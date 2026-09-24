@@ -5,7 +5,7 @@ achievements, wearable elite skins in `src/player/nalatiSkins.ts` + the Inventor
 the layout-v2 POI names from `NALATI_MAP`, hidden wolves off the minimap / aim assist). `pnpm test` green (183). The
 sections below are the history of the handoff.
 
-Stopped on the user's WRAP UP (token usage). Plan row: `docs/plans/NALATI.md` B15.
+Stopped on the user's WRAP UP (token usage). Plan row: `project/archive/2026-09-23-nalati.md` B15.
 
 ## Done
 

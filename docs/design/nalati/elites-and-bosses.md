@@ -1,6 +1,6 @@
 # Nalati — named elites and bosses
 
-*Design section for [`docs/plans/NALATI.md`](../../plans/NALATI.md), 2026-09-22. Mockups are in
+*Design section for [`project/archive/2026-09-23-nalati.md`](../../plans/NALATI.md), 2026-09-22. Mockups are in
 `art/nalati-grasslands/round-2/4-named-elites/` and `art/nalati-grasslands/round-2/5-bosses/`, plus round 3 in
 `art/nalati-grasslands/round-3/1-elite-swap/` and `art/nalati-grasslands/round-3/2-storm-titan/`, all in art style B (painterly).*
 

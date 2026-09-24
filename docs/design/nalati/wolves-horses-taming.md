@@ -1,6 +1,6 @@
 # Nalati — wolves, wild horses, taming, and riding
 
-Round 2 design section for ASKS E11 / `docs/plans/NALATI.md` decisions N3 (enemies) and F1 (mounts). The
+Round 2 design section for ASKS E11 / `project/archive/2026-09-23-nalati.md` decisions N3 (enemies) and F1 (mounts). The
 user's pick: **wolf packs, wild horse herds, taming the stallion** — plus ambient sheep. The snow leopard, the
 Kurgan King and the ghost riders are in `elites-and-bosses.md`.
 

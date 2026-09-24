@@ -1,5 +1,5 @@
 /**
- * Nalati weather + day/night wiring (row B10 of docs/plans/NALATI.md): the clock, the storm state machine, the storm's
+ * Nalati weather + day/night wiring (row B10 of project/archive/2026-09-23-nalati.md): the clock, the storm state machine, the storm's
  * visuals, and everything they touch — the sky rig (sun / moon, sky, fog, grade), the one Wind, the creatures'
  * `wildEnv` (light, storm), the HUD chip + GET LOW warning (the `ws:weather` event), the audio beds and thunder.
  *

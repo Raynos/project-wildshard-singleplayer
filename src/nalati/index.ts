@@ -1,5 +1,5 @@
 /**
- * The Nalati Grasslands wiring — everything this shard adds on top of the shared boot (docs/plans/NALATI.md).
+ * The Nalati Grasslands wiring — everything this shard adds on top of the shared boot (project/archive/2026-09-23-nalati.md).
  *
  * `main.ts` calls `wireNalati(ctx)` once, inside its `props` step, when `chunk.style === 'painterly'`, and
  * `nalati.update(dt, t)` every frame. Nothing here runs for Pine Hollow or Driftwood Isle.
