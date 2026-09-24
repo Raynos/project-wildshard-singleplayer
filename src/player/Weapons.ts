@@ -60,9 +60,9 @@ export interface KitWeapon extends WeaponHooks {
   holster: number;
   readonly state: WeaponState;
   readonly aimInfo: AimInfo | null;
-  /** 0..1 charge of a held-charge attack (the sword heavy) — the touch HEAVY disc's ring; absent = none */
+  /** 0..1 charge of a held-charge attack (the sword heavy; Nalati's bow draw) — the touch ATTACK / FIRE disc's ring; absent = none */
   readonly charge?: number;
-  /** a second held action (the Nalati spear's BRACE — the touch BRACE disc); absent on weapons without one */
+  /** a second held action (the Nalati spear's BRACE — the touch BRACE disc; Nalati's bow DRAW — the FIRE disc held, N18); absent on weapons without one */
   altHeld?: boolean;
   /** melee reach in metres from the eye (the swords: Sword.REACH); undefined for a ranged weapon */
   readonly reach?: number | undefined;
@@ -187,7 +187,7 @@ export class Weapons implements WeaponHooks {
   get adsHeld(): boolean { return this._adsHeld; }
   set adsHeld(on: boolean) { this._adsHeld = on; this.apply(); }
   get swappingNow(): boolean { return this.swapping !== null; }
-  /** the touch BRACE disc (the spear) — held, applied to the held weapon only; dropped on a swap */
+  /** the touch BRACE disc (the spear) / the FIRE disc held (the bow's draw) — applied to the held weapon only; dropped on a swap */
   get altHeld(): boolean { return this._altHeld; }
   set altHeld(on: boolean) { this._altHeld = on; this.apply(); }
 

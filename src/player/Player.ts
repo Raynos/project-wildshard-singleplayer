@@ -178,8 +178,10 @@ export class Player {
   moveScale = 1;
   /** a sword swing is running (Sword.ts sets it every frame): the look speed takes the 'swingLook' factor */
   swinging = false;
-  /** look-speed multiplier for mouse AND touch (Settings 'look', × 'swingLook' while swinging) — TouchControls reads it too */
-  get lookMult(): number { return getNumber('look') * (this.swinging ? getNumber('swingLook') : 1); }
+  /** the held weapon's zoom slows the look by this (Nalati's bow sets 1 / its AIM zoom; nothing else touches it) */
+  zoomLook = 1;
+  /** look-speed multiplier for mouse AND touch (Settings 'look', × 'swingLook' while swinging, × `zoomLook`) — TouchControls reads it too */
+  get lookMult(): number { return getNumber('look') * (this.swinging ? getNumber('swingLook') : 1) * this.zoomLook; }
   /** a dodge started / a lunge dash started (audio, haptics — main.ts) */
   onDodge?: () => void;
   onLunge?: () => void;

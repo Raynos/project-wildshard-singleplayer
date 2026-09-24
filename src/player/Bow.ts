@@ -7,8 +7,9 @@ import type { Forest } from '../world/Forest';
 import { painterlyMaterial } from '../world/painterly';
 import { wind as worldWind } from '../world/steppeWind';
 import { getSetting, setSetting } from '../ui/Settings';
-import { fovForAspect, FOV_HIP, FOV_ADS, type ImpactSurface, type Targets, type TargetHit } from './Crossbow';
+import { fovForAspect, FOV_HIP, type ImpactSurface, type Targets, type TargetHit } from './Crossbow';
 import { Projectiles, type ProjectileKind, type WindField } from './Projectiles';
+import { BowDraw, DRAW_TIME, RENOCK_TIME } from './bowDraw';
 import { gloveFist, riderArm, placeArm } from './nalatiArms';
 import type { Weapon } from './Weapon';
 
@@ -31,24 +32,25 @@ import type { Weapon } from './Weapon';
  *     `onDry` (quiver empty). Bow-only extras, wired on the instance: `onDrawStart`, `onRecover(survived)` (toast
  *     "Arrow recovered" / "Arrow broke" + `audio.hitMarker()`), `onLetDown`.
  *   - The respawn refill already works: `addBolts(n)` tops the quiver up.
- *   - TouchControls: the ranged AIM disc is the bow's DRAW (a latch on `weapons.adsHeld`); relabel it "Draw" while the bow
- *     is held and paint its ring from `weapons.current.charge` (the draw, 0..1) like the HEAVY disc. Nothing else changes:
- *     a tap on LOOK = `tryFire()` = loose (latched) or a snap shot (not latched).
+ *   - TouchControls: the FIRE disc is the draw — held = `weapons.altHeld` (the bow's `altHeld`), its ring painted from
+ *     `weapons.current.charge` (the draw, 0..1), lit `.ready` at full; the AIM disc is the zoom toggle (`adsHeld`).
  *   - The pause-menu switch: `sw('huntersEye', "Hunter's eye")` in Menu.ts's Gameplay list (Settings key `huntersEye`,
  *     default ON on touch, OFF with a mouse; `?arc=1` / `?arc=0` writes it once at load).
  *
- * Input (only while `inputAllowed()`):
- *   desktop  hold LMB = draw, release = loose; RMB toggles STEADY (1.3× zoom, sway × 0.4, spread × 0.5, like the crossbow's
- *            ADS toggle); F = snap shot.
- *   touch    the DRAW latch (`adsHeld`, the AIM disc): latched → the bow draws to full and holds; a tap on the LOOK pad
- *            (`tryFire`) looses; still latched → it re-nocks and draws again. Unlatching lets the draw down (no shot).
- *            Not latched, a LOOK tap is a SNAP shot: auto-draw to 60 % and loose (the "I'm in trouble" shot).
- *   Loosing under 25 % draw is a let-down (no arrow spent). Held at full: steady 2.5 s, then the aim sways (± 1.5° by 4 s),
- *   then the arms tire and the bow lets down for a second.
+ * Input (NALATI-MERGE H4, the user's ask N18 — "the bow should always be drawn … tap and hold to draw; if you don't hold
+ * it long enough until the draw completes, it cancels; if you let go, it shoots … aim is looking down the sight"; Skyrim's
+ * flow, research in docs/design/nalati/bow-research.md). The draw is bowDraw.ts's state machine:
+ *   hold     LMB / the FIRE disc (`altHeld`) draws; the string comes back over 0.75 s (0.9 s in the saddle)
+ *   release  at full draw = the loose, the only way an arrow leaves (no quick-fire, no snap shot, no weak shot);
+ *            before full = a LET-DOWN: no arrow, nothing spent, the string eases forward (0.4 s from full)
+ *   AIM      RMB / the AIM disc (`adsHeld`) TOGGLES the zoom down the arrow: the view narrows 2× (72° → 40°), the bow
+ *            comes up to the eye (the arrow on the centre line under the crosshair) and a draw is drawn in that view;
+ *            sway × 0.5, spread × 0.5, the look slows with the zoom. It changes the draw's perspective, it never draws.
+ *   Held at full: steady 3 s, then the aim trembles (± 1.5° by 8 s), then the arms give out (a let-down; lift, draw again).
  *
  * Numbers (combat.md §C): full draw 0.75 s (ease-out) × 1/`drawSpeedScale`; speed 30 + 28·p m/s; drag 0.015; gravity 5
  * (half real — the arc reads); wind drift 0.25 /s sideways; damage = the animal's own bolt model (32–40, falloff, ×2.5
- * head) × 1.2 × (0.35 + 0.65·p) × `damageMultiplier(hit)` → 40–48 body at full draw. Quiver QUIVER_MAX; stuck arrows are
+ * head) × 1.2 × `damageMultiplier(hit)` → 40–48 body (every loose is a full draw). Quiver QUIVER_MAX; stuck arrows are
  * picked up by walking over them, 70 % survive.
  *
  * The drop arc ("Hunter's eye"): while drawing, a faint dotted cyan arc of the arrow's real path (same integrator, wind
@@ -75,14 +77,14 @@ import type { Weapon } from './Weapon';
  */
 
 export const QUIVER_MAX = 24;
-const DRAW_TIME = 0.75;          // s to full draw on foot
-const MIN_LOOSE = 0.25;          // below this a release is a let-down
-const HOLD_STEADY = 2.5, HOLD_TIRE = 4.0, TIRED_TIME = 1.1, SWAY_MAX = THREE.MathUtils.degToRad(1.5);
-const RENOCK_TIME = 0.62;        // s from a loose to the next arrow on the string: follow-through, down to the quiver, back up with an arrow
-const SNAP_P = 0.6, SNAP_DELAY = 0.35;
+const ARC_FROM = 0.25;           // the Hunter's-eye arc fades in from this draw
+const SWAY_MAX = THREE.MathUtils.degToRad(1.5);
 const SPEED_BASE = 30, SPEED_DRAW = 28;
 const DAMAGE_SCALE = 1.2;        // × the bolt model's 32–40 → 38–48 at full draw
-const LETDOWN_RATE = 3.2;        // /s of draw time when the draw is let down
+/** AIM (the zoom down the arrow, N18): the view narrows this much (tan of the half-angle ÷ AIM_ZOOM: 72° → 40° landscape);
+ *  the viewmodel's depth is stretched by AIM_VM_ZOOM of it so the bow keeps (nearly) its hip size on screen while the world
+ *  magnifies; the look slows by 1 / AIM_ZOOM so the aim feels as heavy as it looks; sway × AIM_SWAY, spread × AIM_SPREAD */
+export const AIM_ZOOM = 2, AIM_VM_ZOOM = 0.85, AIM_SWAY = 0.5, AIM_SPREAD = 0.5, AIM_IN = 10;
 const ARC_MAX = 56, ARC_SPACING = 0.8, ARC_SKIP = 0.5, ARC_BLEND = 11, ARC_CYAN = 0x8fe3ff;
 const Q_ARC_PARAM = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('arc');
 if (Q_ARC_PARAM !== null) setSetting('huntersEye', Q_ARC_PARAM !== '0');
@@ -531,7 +533,7 @@ const _rollQ = new THREE.Quaternion(), _rDir = new THREE.Vector3();
  *  stretches forward to the string (the old "reaching" glitch); portrait turns it further down */
 const R_ARM_DIR = V(0.6, -0.42, 0.68).normalize(), R_ARM_DIR_PORT = V(0.42, -0.62, 0.66).normalize();
 /** the re-nock: follow-through (the hand flies back off the string), down to the quiver at the hip, back up with an arrow */
-const RN_FOLLOW = 0.18, RN_DROP = 0.52, RN_EARLY = 0.4, FOLLOW_OFF = V(0.035, 0.012, 0.075), QUIVER_OFF = V(0.3, -0.55, 0.12);
+const RN_FOLLOW = 0.18, RN_DROP = 0.52, FOLLOW_OFF = V(0.035, 0.012, 0.075), QUIVER_OFF = V(0.3, -0.55, 0.12);
 
 /* Poses in rig space (camera space / VM_SCALE). REST = the bow lowered and canted (style-B mockup: the left fist lower
  * right, no arrow). DRAWN = the fist right of centre, the bow canted ~20°, the arrow converging on the crosshair a
@@ -539,11 +541,17 @@ const RN_FOLLOW = 0.18, RN_DROP = 0.52, RN_EARLY = 0.4, FOLLOW_OFF = V(0.035, 0.
 const VM_SCALE = 0.72;
 /** the viewmodel's shade-side fill (painterly `shade`; 1 = the world's) */
 export const VM_SHADE = 2.4;
-const POSE = {
+export const POSE = {
   rest: { pos: V(0.34, -0.42, -0.86), aim: V(-0.1, 0.25, -4), cant: -0.62, pitch: -0.14 },
   drawn: { pos: V(0.22, -0.17, -1.12), aim: V(0, 0, -5.5), cant: -0.36, pitch: 0 },
   restPort: { pos: V(0.17, -0.5, -0.9), aim: V(-0.05, 0.12, -4), cant: -0.5, pitch: -0.12 },
   drawnPort: { pos: V(0.07, -0.1, -1.08), aim: V(0, 0, -5.5), cant: -0.3, pitch: 0 },
+  /** AIM (N18): down the arrow — the bow comes in toward the centre line and more upright, the fist BELOW the crosshair
+   *  (the mark stays clear over it), the arrow rising from the anchor to cross the crosshair ~7–8 m out (the aim point is
+   *  offset by the arrow's rest, ARROW_X / ARROW_Y, so it is the SHAFT that points there). Picked from live variants
+   *  (dev/nalati-bow.html's `__world.pose`): nearer / higher put the fist over the mark */
+  aim: { pos: V(0.12, -0.24, -1.15), aim: V(-0.02, -0.058, -7), cant: -0.32, pitch: 0 },
+  aimPort: { pos: V(0.04, -0.2, -1.15), aim: V(-0.02, -0.058, -8), cant: -0.22, pitch: 0 },
 } satisfies Record<string, GripPose>;
 const L_ELBOW = V(-0.42, -0.52, -0.3), L_ELBOW_PORT = V(-0.2, -0.75, -0.32);
 
@@ -556,8 +564,10 @@ export class Bow implements Weapon {
   state = { bolts: QUIVER_MAX, loaded: true, reloading: false, reloadProgress: 1, ads: false };
   enabled = true;
   allowUnlocked = false;
-  /** the touch DRAW latch (Weapons.adsHeld) — held = draw and hold; `?ads=1` forces it */
+  /** the AIM toggle (Weapons.adsHeld — the touch AIM disc; `?ads=1` forces it): the zoom down the arrow, never a draw */
   adsHeld = false;
+  /** the draw, held (Weapons.altHeld — the touch FIRE disc): hold = draw, release at full = loose, early = let-down */
+  altHeld = false;
   /** 0..1 weapon-swap blend driven by Weapons.ts (1 = dropped out of the frame) */
   holster = 0;
   aimInfo: { kind: string; distance: number } | null = null;
@@ -580,8 +590,10 @@ export class Bow implements Weapon {
   /** bow-only: the string starts coming back / a draw was let down / a stuck arrow was picked up (survived or broke) */
   onDrawStart?: (() => void) | undefined;
   onLetDown?: (() => void) | undefined;
+  /** bow-only: the draw reached full (the FIRE ring closes) */
+  onFullDraw?: (() => void) | undefined;
   onRecover?: ((survived: boolean) => void) | undefined;
-  /** the loose with its power (0.25..1) — audio can scale the twang */
+  /** the loose with its power (always 1 since N18: every loose is a full draw) — audio can scale the twang */
   onLoose?: ((power: number) => void) | undefined;
 
   readonly model = new THREE.Group();
@@ -599,15 +611,13 @@ export class Bow implements Weapon {
   private readonly arc: DropArc;
   private readonly mat: THREE.Material;
 
-  // draw state
-  private drawT = 0;          // 0..1 linear draw time (p = ease-out of it)
+  // draw state (bowDraw.ts)
+  private readonly draw = new BowDraw();
   private p = 0;              // the draw, 0..1
   private vis = 0; private visVel = 0; // the string's visual draw (a spring: the release overshoots)
   private mouseDraw = false; private mouseAds = false;
-  private snapT = -1;         // ≥ 0 while a snap shot runs
-  private looseQueued = false;
-  private holdT = 0; private tiredT = 0; private renockT = 0;
-  private wasWanting = false;
+  private mouseCancel = false; // LMB came up while input was off (the pointer lock lost): that release lets down
+  private aimBlend = 0;       // 0 hip … 1 zoomed down the arrow (AIM)
   private ready = 0;          // 0 lowered … 1 raised
   private recoil = 0;
   private swayYaw = 0; private swayPitch = 0; // applied aim sway (removed again as it changes)
@@ -665,57 +675,54 @@ export class Bow implements Weapon {
   /** the wind the arrows (and the arc) drift in */
   get wind(): WindField | null { return this.arrows.wind; }
   set wind(w: WindField | null) { this.arrows.wind = w; }
-  /** the draw, 0..1 — the touch DRAW disc's ring (Weapons' `charge`) */
+  /** the draw, 0..1 — the touch FIRE disc's ring (Weapons' `charge`) */
   get charge(): number { return this.p; }
   get drawing(): boolean { return this.p > 0.01; }
+  /** the draw is at full: a release now looses (the FIRE ring's `.ready`) */
+  get fullDraw(): boolean { return this.draw.full; }
+  /** 0..1 zoomed down the arrow (AIM) — for a HUD that wants to dim / tighten with it */
+  get aimed(): number { return this.aimBlend; }
+  /** AIM is on (RMB / the AIM disc toggle) */
+  aimOn = false;
 
   // ── input ──
   inputAllowed(): boolean { return this.enabled && (this.player.locked || this.allowUnlocked); }
   private bindInput(): void {
     document.addEventListener('mousedown', (e) => {
       if (!this.inputAllowed()) return;
-      if (e.button === 0) { if (this.state.bolts <= 0) this.onDry?.(); else this.mouseDraw = true; }
+      if (e.button === 0) { if (this.state.bolts <= 0) this.onDry?.(); else { this.mouseDraw = true; this.mouseCancel = false; } }
       if (e.button === 2) this.mouseAds = !this.mouseAds;
     });
     document.addEventListener('mouseup', (e) => {
       if (e.button !== 0 || !this.mouseDraw) return;
       this.mouseDraw = false;
-      if (this.inputAllowed()) this.loose(); else this.drawT = Math.min(this.drawT, 0.99);
+      if (!this.inputAllowed()) this.mouseCancel = true; // the pointer lock went (Esc, the menu): let the draw down, no arrow
     });
     document.addEventListener('contextmenu', (e) => { if (this.inputAllowed()) e.preventDefault(); });
-    document.addEventListener('keydown', (e) => { if (!e.repeat && e.code === 'KeyF' && this.inputAllowed()) this.tryFire(); });
-    window.addEventListener('blur', () => { this.mouseDraw = false; this.mouseAds = false; });
+    window.addEventListener('blur', () => { if (this.mouseDraw) this.mouseCancel = true; this.mouseDraw = false; this.mouseAds = false; });
   }
 
-  /** LOOK tap / F: loose a held draw, or a snap shot when nothing is drawn */
+  /** the FIRE disc's touch-down (Weapons.tryFire): the draw itself is the hold (`altHeld`), so this only clicks dry on an
+   *  empty quiver — there is no quick-fire (N18) */
   tryFire(): void {
-    if (!this.enabled) return;
-    if (this.state.bolts <= 0) { this.onDry?.(); return; }
-    if (this.renockT > 0 || this.snapT >= 0) return;
-    const held = this.adsHeld || this.mouseDraw;
-    if (held && this.p >= MIN_LOOSE) { this.loose(); return; }
-    if (held) { this.looseQueued = true; return; }      // still coming up: loose as soon as it reaches the snap draw
-    this.snapT = 0;
+    if (this.enabled && this.state.bolts <= 0) this.onDry?.();
   }
 
-  /** release: an arrow if drawn past MIN_LOOSE, else a let-down (nothing spent) */
-  loose(): void {
-    const p = this.p;
-    this.snapT = -1; this.looseQueued = false;
-    if (p < MIN_LOOSE || this.state.bolts <= 0 || this.renockT > 0) { if (p > 0.02) this.onLetDown?.(); this.drawT = Math.min(this.drawT, 0.3); return; }
+  /** the loose — only ever from a full draw (bowDraw's 'loose') */
+  private loose(): void {
+    const p = 1;
     this.aimRay(_v1, _fwd);
-    const spreadDeg = (0.3 + (1 - p) * 1.1) * (this.state.ads ? 0.5 : 1) + 0.6 * this.player.speedFactor + this.extraSpreadDeg + this.mountSpread;
+    const spreadDeg = 0.3 * (1 - (1 - AIM_SPREAD) * this.aimBlend) + 0.6 * this.player.speedFactor + this.extraSpreadDeg + this.mountSpread;
     const spread = THREE.MathUtils.degToRad(spreadDeg);
     _dir.copy(_fwd);
     _v2.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).cross(_fwd).normalize();
     _dir.addScaledVector(_v2, Math.tan(spread * Math.sqrt(Math.random()))).normalize();
     this.launchFrom(_dir, p, this.spawnPos, this.launchVel);
-    this.arrows.launch(this.spawnPos, this.launchVel, { damageScale: DAMAGE_SCALE * (0.35 + 0.65 * p), onHitScale: this.damageMultiplier });
+    this.arrows.launch(this.spawnPos, this.launchVel, { damageScale: DAMAGE_SCALE, onHitScale: this.damageMultiplier });
     this.state.bolts--;
-    this.drawT = 0; this.p = 0; this.holdT = 0;
-    this.renockT = RENOCK_TIME;
+    this.p = 0;
     this.releasePos.copy(this.handPos);
-    this.recoil = 0.6 + 0.4 * p;
+    this.recoil = 1;
     this.onFire?.(); this.onLoose?.(p);
   }
 
@@ -745,7 +752,7 @@ export class Bow implements Weapon {
    * `extraSpreadDeg` itself after this call.)
    */
   setMount(m: { speed: number; yaw: number } | null): void {
-    if (m === null) { this.mountDraw = 1; this.mountSpread = 0; this.carrierVelocity.set(0, 0, 0); this.mountArc = true; this.parthian = false; return; }
+    if (m === null) { this.mountDraw = 1; this.mountSpread = 0; this.carrierVelocity.set(0, 0, 0); this.mountArc = true; this.parthian = false; this.mounted = false; return; }
     const v = m.speed;
     const gait = v < 0.3 ? 0.3 : v < 3.2 ? 0.8 : v < 6.5 ? 3.0 : v < 10.5 ? 1.5 : 1.8;
     let off = this.player.yaw - m.yaw; off = Math.abs(Math.atan2(Math.sin(off), Math.cos(off)));
@@ -753,11 +760,13 @@ export class Bow implements Weapon {
     this.mountDraw = DRAW_TIME / (0.9 + (this.parthian ? 0.2 : 0));
     this.mountSpread = gait + (this.parthian ? 0.5 : 0);
     this.carrierVelocity.set(-Math.sin(m.yaw) * v, 0, -Math.cos(m.yaw) * v);
-    this.mountArc = false;
+    this.mountArc = false; this.mounted = true;
   }
   /** the saddle's share (setMount) — kept apart from `drawSpeedScale` / `extraSpreadDeg` / `arcAllowed`, which other
    *  systems (the Golden Bow) set: the two multiply / add / AND */
   private mountDraw = 1; private mountSpread = 0; private mountArc = true;
+  /** in the saddle: the horse's gallop sets `player.sprinting` (Mount.ts), which must not stop the draw — only running on foot does */
+  private mounted = false;
 
   /** the bow's look: 'recurve' (horn and birch) or 'golden' (the Golden King's reward) — repaints the limbs + string */
   setStyle(style: BowStyle): void { this.style = style; this.bowMesh.repaint(style); }
@@ -772,57 +781,53 @@ export class Bow implements Weapon {
   update(dt: number, t: number): void {
     const pl = this.player, cam = this.game.camera;
     cam.updateMatrixWorld();
-    this.renockT = Math.max(0, this.renockT - dt);
-    this.tiredT = Math.max(0, this.tiredT - dt);
-    if (!this.enabled) { this.mouseDraw = false; this.mouseAds = false; this.snapT = -1; this.looseQueued = false; }
+    if (!this.enabled) { this.mouseDraw = false; this.mouseAds = false; }
 
-    // ── the draw ──
-    // the next draw may start while the hand is still coming up from the quiver (RN_EARLY of the re-nock left): the
-    // string comes back to meet the hand halfway, instead of the hand reaching all the way out to the braced string
-    const blocked = !this.enabled || this.state.bolts <= 0 || this.renockT > RENOCK_TIME * RN_EARLY || this.tiredT > 0 || pl.sprinting || pl.swimming;
-    const want = !blocked && (this.mouseDraw || this.adsHeld || this.snapT >= 0);
-    if (want && !this.wasWanting) this.onDrawStart?.();
-    if (!want && this.wasWanting && this.p > 0.05) this.onLetDown?.();
-    this.wasWanting = want;
-    if (want) {
-      this.drawT = Math.min(1, this.drawT + (dt * this.drawSpeedScale * this.mountDraw) / DRAW_TIME);
-      if (this.snapT >= 0) {
-        this.snapT += dt;
-        this.drawT = Math.min(this.drawT, 1 - Math.sqrt(1 - SNAP_P));
-        if (this.snapT >= SNAP_DELAY) { this.p = 1 - (1 - this.drawT) ** 2; this.loose(); }
-      }
-    } else {
-      this.drawT = Math.max(0, this.drawT - dt * LETDOWN_RATE);
-      this.snapT = -1; this.looseQueued = false;
-    }
-    this.p = 1 - (1 - this.drawT) ** 2;
-    if (this.looseQueued && this.p >= SNAP_P) this.loose();
-    // held at full: steady, then sway, then the arms give out
-    if (this.p >= 0.999 && want) {
-      this.holdT += dt;
-      if (this.holdT >= HOLD_TIRE) { this.tiredT = TIRED_TIME; this.holdT = 0; this.mouseDraw = false; }
-    } else if (this.p < 0.9) this.holdT = 0;
+    // ── the draw (bowDraw.ts): hold = draw, release at full = loose, early = let-down. The next draw may start while the
+    //    hand is still coming up from the quiver (RN_EARLY of the re-nock left): the string comes back to meet the hand
+    //    halfway, instead of the hand reaching all the way out to the braced string ──
+    const held = this.mouseDraw || this.altHeld;
+    const running = pl.sprinting && !this.mounted; // sprinting on foot lowers the bow; a gallop does not (horse archery)
+    const blocked = !this.enabled || this.mouseCancel || this.state.bolts <= 0 || running || pl.swimming;
+    if (!held) this.mouseCancel = false;
+    const ev = this.draw.step(dt, held, blocked, this.drawSpeedScale * this.mountDraw);
+    if (ev === 'start') this.onDrawStart?.();
+    else if (ev === 'full') this.onFullDraw?.();
+    else if (ev === 'letdown' || ev === 'tired') this.onLetDown?.();
+    this.p = this.draw.p;
+    if (ev === 'loose') this.loose();
     this.state.loaded = this.state.bolts > 0;
     this.state.reloading = false;
-    this.state.reloadProgress = 1 - this.renockT / RENOCK_TIME;
+    this.state.reloadProgress = 1 - this.draw.renockT / RENOCK_TIME;
 
-    // ── steady (RMB) + FOV ──
-    if (pl.sprinting || !this.enabled) this.mouseAds = false;
-    this.state.ads = this.mouseAds && this.enabled && !pl.sprinting;
-    const steady = this.state.ads ? 1 : 0;
-    // the held weapon owns the FOV (Hor+ on portrait, 1.3× while steady, + the dodge kick); the cascades refit only on a base change
-    const baseFov = fovForAspect(steady ? FOV_ADS : FOV_HIP, cam.aspect);
+    // ── AIM (RMB / the AIM disc): the zoom down the arrow — a toggle, it never draws ──
+    if (running || !this.enabled) this.mouseAds = false;
+    // `state.ads` stays false: the HUD hides the crosshair on `ads` (the crossbow's iron sights replace it) — the bow has no
+    // sight, the crosshair over the arrow IS the aim, so it stays up (and `aimed` / `aimOn` say AIM is on)
+    this.aimOn = (this.mouseAds || this.adsHeld) && this.enabled && !running && !pl.swimming;
+    this.aimBlend += ((this.aimOn && this.model.visible ? 1 : 0) - this.aimBlend) * Math.min(1, dt * AIM_IN);
+    if (Math.abs(this.aimBlend - (this.aimOn ? 1 : 0)) < 0.002) this.aimBlend = this.aimOn ? 1 : 0;
+    const aimK = sstep(0, 1, this.aimBlend);
+    // the zoom now (1 … AIM_ZOOM), in tan space: tan(half-FOV) ÷ zoom. The held weapon owns the FOV (Hor+ on portrait,
+    // + the dodge kick); the cascades refit only on a base change
+    const zoom = 1 + (AIM_ZOOM - 1) * aimK;
+    const baseFov = fovForAspect(THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(FOV_HIP) / 2) / zoom)), cam.aspect);
     const prevFov = this.fov;
     this.fov += (baseFov - this.fov) * Math.min(1, dt * 12);
     if (Math.abs(baseFov - this.fov) < 0.02) this.fov = baseFov;
     const fovNow = this.fov + pl.fovKick;
     if (this.model.visible && Math.abs(fovNow - cam.fov) > 0.01) { cam.fov = fovNow; cam.updateProjectionMatrix(); if (Math.abs(prevFov - this.fov) > 0.001 || Math.abs(fovNow - this.fov) < 0.01) this.sky.csm.updateFrustums(); }
+    // the viewmodel keeps (nearly) its hip size while the world magnifies: stretching it along the view axis by the zoom
+    // projects every vertex where the hip FOV put it (x / (z·k · tan/k)); AIM_VM_ZOOM < 1 lets it grow a touch (leaning in)
+    this.model.scale.set(VM_SCALE, VM_SCALE, VM_SCALE * zoom ** AIM_VM_ZOOM);
+    // the look slows with the zoom (mouse and touch read `lookMult`), so a zoomed turn crosses the screen at the hip rate
+    pl.zoomLook = this.model.visible ? 1 / zoom : 1;
 
     // ── aim sway on a long hold (applied to the view and taken back as it changes) ──
     let sy = 0, sp = 0;
     if (this.p > 0.3) {
-      const over = clamp01((this.holdT - HOLD_STEADY) / (HOLD_TIRE - HOLD_STEADY));
-      const amp = (THREE.MathUtils.degToRad(0.06) + SWAY_MAX * over * over) * (steady ? 0.4 : 1) * this.p;
+      const over = this.draw.sway;
+      const amp = (THREE.MathUtils.degToRad(0.06) + SWAY_MAX * over * over) * (1 - (1 - AIM_SWAY) * aimK) * this.p;
       sy = Math.sin(t * 1.3) * amp + Math.sin(t * 2.9 + 1) * amp * 0.35;
       sp = Math.sin(t * 1.7 + 0.5) * amp * 0.8 + Math.sin(t * 3.7) * amp * 0.25;
     }
@@ -832,12 +837,12 @@ export class Bow implements Weapon {
     this.poseViewmodel(dt, t);
 
     // ── the drop arc ──
-    const arcOn = this.arcAllowed && this.mountArc && getSetting('huntersEye') && this.p > MIN_LOOSE && this.model.visible && this.holster < 0.01;
+    const arcOn = this.arcAllowed && this.mountArc && getSetting('huntersEye') && this.p > ARC_FROM && this.model.visible && this.holster < 0.01;
     if (arcOn) {
       this.aimRay(_v1, _fwd);
-      this.launchFrom(_fwd, this.p, _v2, _v3);
+      this.launchFrom(_fwd, 1, _v2, _v3); // every loose is a full draw: the arc shows that path, fading in with the draw
       this.nocked.getWorldPosition(_dir);
-      this.arc.show(this.arrows, _v2, _v3, _dir, sstep(MIN_LOOSE, 0.85, this.p), _v1, this.game.renderer.getPixelRatio());
+      this.arc.show(this.arrows, _v2, _v3, _dir, sstep(ARC_FROM, 0.85, this.p), _v1, this.game.renderer.getPixelRatio());
     } else this.arc.hide();
 
     // ── aim readout ──
@@ -855,7 +860,7 @@ export class Bow implements Weapon {
     const pl = this.player, cam = this.game.camera;
     const port = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
     // raised while drawing (and a beat after the loose so the follow-through reads)
-    const raise = this.p > 0.01 || this.mouseDraw || this.adsHeld || this.snapT >= 0 || this.renockT > 0;
+    const raise = this.p > 0.01 || this.mouseDraw || this.altHeld || this.aimBlend > 0.01 || this.draw.renockT > 0;
     this.ready += ((raise ? 1 : 0) - this.ready) * Math.min(1, dt * (raise ? 9 : 4));
     const r = sstep(0, 1, this.ready);
     // the string: a spring onto the draw (under-damped: the release snaps past the brace and back)
@@ -872,8 +877,16 @@ export class Bow implements Weapon {
     aim.lerpVectors(R.aim, RP.aim, port).lerp(_v2.lerpVectors(D.aim, DP.aim, port), r);
     let cant = THREE.MathUtils.lerp(THREE.MathUtils.lerp(R.cant, RP.cant, port), THREE.MathUtils.lerp(D.cant, DP.cant, port), r);
     const pitch = THREE.MathUtils.lerp(THREE.MathUtils.lerp(R.pitch, RP.pitch, port), 0, r);
-    // motion: breathing, walk bob (heavier at rest), look lag, the loose's follow-through
-    const sf = pl.speedFactor * (1 - 0.6 * r);
+    // AIM: the raised pose comes to the eye — down the arrow (the zoom itself is update's)
+    const ak = sstep(0, 1, this.aimBlend) * r;
+    if (ak > 0) {
+      const A = POSE.aim, AP = POSE.aimPort;
+      g.lerp(_v2.lerpVectors(A.pos, AP.pos, port), ak);
+      aim.lerp(_v2.lerpVectors(A.aim, AP.aim, port), ak);
+      cant = THREE.MathUtils.lerp(cant, THREE.MathUtils.lerp(A.cant, AP.cant, port), ak);
+    }
+    // motion: breathing, walk bob (heavier at rest, little when aimed), look lag, the loose's follow-through
+    const sf = pl.speedFactor * (1 - 0.6 * r) * (1 - 0.6 * ak);
     let dYaw = pl.yaw - this.lastYaw, dPitch = pl.pitch - this.lastPitch;
     this.lastYaw = pl.yaw; this.lastPitch = pl.pitch;
     if (Math.abs(dYaw) > 1) dYaw = 0; if (Math.abs(dPitch) > 1) dPitch = 0;
@@ -885,7 +898,7 @@ export class Bow implements Weapon {
       this.lagPitchV += (-this.lagPitch * 200 - this.lagPitchV * 20) * h; this.lagPitch += this.lagPitchV * h;
     }
     this.recoil *= Math.exp(-dt * 7);
-    const lagK = 1 - 0.6 * r;
+    const lagK = (1 - 0.6 * r) * (1 - 0.7 * ak);
     g.x += Math.sin(t * 0.8) * 0.004 + Math.cos(pl.bobTime) * 0.02 * sf + this.lagYaw * 0.3 * lagK;
     g.y += Math.sin(t * 1.2) * 0.003 - Math.abs(Math.sin(pl.bobTime)) * 0.018 * sf + this.lagPitch * 0.25 * lagK;
     g.z -= this.recoil * 0.05; g.y -= this.recoil * 0.012;
@@ -908,8 +921,8 @@ export class Bow implements Weapon {
     const nock = _v2.copy(this.bowMesh.nock).applyQuaternion(this.gripQuat).add(g);
     const H = this.handPos;
     let arrowInHand = this.state.bolts > 0;
-    if (this.renockT > 0) {
-      const u = 1 - this.renockT / RENOCK_TIME;
+    if (this.draw.renockT > 0) {
+      const u = 1 - this.draw.renockT / RENOCK_TIME;
       const follow = _v3.copy(this.releasePos).add(FOLLOW_OFF);
       if (u < RN_FOLLOW) H.lerpVectors(this.releasePos, follow, sstep(0, 1, u / RN_FOLLOW));
       else if (u < RN_DROP) { const k = (u - RN_FOLLOW) / (RN_DROP - RN_FOLLOW); H.copy(follow).lerp(_v1.copy(this.releasePos).add(QUIVER_OFF), k * k); }

@@ -44,6 +44,10 @@
  *  - AIM (ranged kit only): the iron-sights toggle latch (`weapons.adsHeld`, tap on / tap off, lit `.on`) sits up-right of
  *    the FIRE disc, clear of the pill, left of DODGE, on the same thumb. Crossing between melee and ranged drops the latch, so a sword never
  *    comes up charging and a crossbow never comes up sighted.
+ *  - Nalati's bow (`.bow`, NALATI-MERGE H4 / N18): FIRE reads "HOLD = DRAW" and is the draw — held = `weapons.altHeld`,
+ *    its `.ws-touch-charge` ring fills with the draw and glows `.ready` at full; lifting at full looses (`.fire` flash),
+ *    lifting early lets the arrow down (`.letdown`: no shot, the ring unwinds). A drag from it aims while drawing. AIM is
+ *    the zoom toggle (the same `adsHeld` latch): down the arrow, tap again to come out. No quick-fire.
  *  - SWAP: a pill over the divider, seated on the bar's top edge, just up-left of the ATTACK disc (its charge ring clear).
  *    It calls `weapons.swap()` (the Q key) and only shows once a second weapon is unlocked (`weapons.onUnlock`).
  *  - HOVER (E80, Jake's pick C, art/hud/round-11-hover-position/C-bar-tab-above-move.jpg): a folder tab on the bar's top
@@ -117,10 +121,10 @@ export class TouchControls {
   private lockShown = ''; private orbitShown = 0; // the lock-on state / the lit ORBIT arc as last painted (E50)
   private readonly flick = new FlickTracker(); private lookT0 = 0; private lookDown = { x: 0, y: 0 }; private lookInBar = false;
   private wasSpear = false; // THROW + BRACE replace AIM + JUMP while the spear is held
-  private wasBow = false; // the AIM disc reads DRAW (and rings the draw) while Nalati's bow is held
+  private wasBow = false; // Nalati's bow is held (.bow): FIRE is hold-to-draw with the draw ring, AIM the zoom toggle (N18)
+  private drawHeld = false; // the FIRE touch is the bow's draw (weapons.altHeld is ours to release)
   private wasLockable = false; // the LOCK disc shows while a weapon that locks is held (LOCK_WEAPONS: the swords, Nalati's sabre + spear)
   private wasRiding = false; // in Nalati's saddle MOVE steers the horse: it never reads ORBIT (`.riding`)
-  private drawShown = -1; // the DRAW ring (--charge on AIM) as last painted
 
   constructor(private player: Player, private weapons: Weapons, force = false, private lock?: LockOnSystem) {
     this.active = force || IS_TOUCH;
@@ -145,7 +149,7 @@ export class TouchControls {
         <div class="ws-touch-zone move"><span class="ws-touch-label">Move</span><div class="ws-touch-stick"><i></i></div><u class="ws-touch-orbit"><i></i><i></i></u><b class="ws-touch-sprint">Sprint</b></div>
         <div class="ws-touch-zone look"><div class="ws-touch-lookpad"><svg viewBox="0 0 24 24"><path d="M12 2.5 15.2 6.5H8.8zM12 21.5 8.8 17.5h6.4zM2.5 12 6.5 8.8v6.4zM21.5 12 17.5 15.2V8.8z"/></svg><svg class="sw" viewBox="0 0 24 24"><path d="M8.5 5.5 3 12l5.5 6.5M15.5 5.5 21 12l-5.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Look</span></div></div>
       </div>
-      <button class="ws-touch-attack" type="button"><i class="ws-touch-charge"></i><svg class="melee" viewBox="0 0 24 24"><path d="M20.5 3.5 9.2 14.8M20.5 3.5l-.6 4.2M20.5 3.5l-4.2.6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.6 12.2l5.2 5.2M8.4 15.6 4 20" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg><svg class="ranged" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.2"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="melee">Attack</span><span class="ranged">Fire</span><small class="melee">Hold = heavy</small></button>
+      <button class="ws-touch-attack" type="button"><i class="ws-touch-charge"></i><svg class="melee" viewBox="0 0 24 24"><path d="M20.5 3.5 9.2 14.8M20.5 3.5l-.6 4.2M20.5 3.5l-4.2.6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.6 12.2l5.2 5.2M8.4 15.6 4 20" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg><svg class="ranged" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.2"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="melee">Attack</span><span class="ranged">Fire</span><small class="melee">Hold = heavy</small><small class="draw">Hold = draw</small></button>
       <div class="ws-touch-pill"><button class="swap" type="button">Swap</button></div>
       <button class="ws-touch-hover" type="button"><svg viewBox="0 0 24 24"><path d="M2.5 13.5h19c0 1.7-1.3 2.5-3 2.5H5.5c-1.7 0-3-.8-3-2.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 16v2.5M17 16v2.5M6 10.5c1.8-3.2 10.2-3.2 12 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Hover</span></button>`;
     hud.append(root);
@@ -166,7 +170,7 @@ export class TouchControls {
 
     // ── aim assist: runs at the top of every player update (before the camera is posed) so a nudge shows the same frame ──
     const assist = this.assist = new AimAssist(root);
-    const aim = el(root, '.aim'), attack = el(root, '.ws-touch-attack'), dodge = el(root, '.dodge'), aimLabel = el(aim, 'span');
+    const aim = el(root, '.aim'), attack = el(root, '.ws-touch-attack'), dodge = el(root, '.dodge');
     const prevPre = player.preUpdate;
     player.preUpdate = (dt) => {
       prevPre?.(dt);
@@ -187,8 +191,18 @@ export class TouchControls {
       if (lockable !== this.wasLockable) { this.wasLockable = lockable; root.classList.toggle('lockable', lockable); }
       if (riding !== this.wasRiding) { this.wasRiding = riding; root.classList.toggle('riding', riding); this.lockShown = ''; }
       const bow = weapons.current.id === 'bow';
-      if (bow !== this.wasBow) { this.wasBow = bow; root.classList.toggle('bow', bow); aimLabel.textContent = bow ? 'Draw' : 'Aim'; }
-      if (bow) { const c = weapons.current.charge ?? 0; if (c !== this.drawShown) { this.drawShown = c; aim.style.setProperty('--charge', c.toFixed(3)); } }
+      if (bow !== this.wasBow) {
+        this.wasBow = bow; root.classList.toggle('bow', bow);
+        if (!bow && this.drawHeld) { this.drawHeld = false; weapons.altHeld = false; }
+        attack.classList.remove('on', 'ready'); this.chargeShown = -1;
+      }
+      if (bow) {
+        // the FIRE disc's draw ring (N18): fills with the draw while held, closes and glows (.ready) at full; a let-down
+        // unwinds it (the ring stays lit while the string eases forward)
+        const c = weapons.current.charge ?? 0;
+        if (c !== this.chargeShown) { this.chargeShown = c; attack.style.setProperty('--charge', c.toFixed(3)); attack.classList.toggle('ready', c >= 0.999); }
+        attack.classList.toggle('on', this.drawHeld || c > 0.01);
+      }
       if (melee) {
         // ATTACK held still past HOLD_MS → the heavy charge (released on lift). A fast tap lifts first and stays a light swing.
         if (this.attackPointer >= 0 && !this.heavyHeld && weapons.enabled && this.attackPath < HOLD_PX && performance.now() - this.attackT0 >= HOLD_MS) {
@@ -276,6 +290,14 @@ export class TouchControls {
         attack.classList.remove('down');
         // lifting a heavy hold releases the chop (Sword.ts queues it if the charge is not full yet)
         if (this.heavyHeld) { this.heavyHeld = false; this.weapons.adsHeld = false; attack.classList.remove('on'); }
+        // lifting the bow's draw: at full draw it looses (the disc flashes); before it, the arrow is let down (.letdown)
+        if (this.drawHeld) {
+          this.drawHeld = false;
+          const full = (this.weapons.current.charge ?? 0) >= 0.999;
+          this.weapons.altHeld = false;
+          const cls = full ? 'fire' : 'letdown';
+          attack.classList.remove('fire', 'letdown'); void attack.offsetWidth; attack.classList.add(cls);
+        }
       }
     };
     root.addEventListener('pointerup', release);
@@ -293,10 +315,10 @@ export class TouchControls {
       this.attackLast = { x: e.clientX, y: e.clientY }; this.attackPath = 0; this.attackT0 = performance.now();
       attack.setPointerCapture(e.pointerId);
       attack.classList.add('down');
-      if (this.weapons.enabled) {
-        this.weapons.tryFire();
-        attack.classList.remove('fire'); void attack.offsetWidth; attack.classList.add('fire'); // restart the swing flash
-      }
+      if (!this.weapons.enabled) return;
+      this.weapons.tryFire(); // the bow: only the dry click on an empty quiver — its draw is the hold
+      if (this.wasBow) { this.drawHeld = true; this.weapons.altHeld = true; attack.classList.add('on'); return; } // flashes on the loose (release)
+      attack.classList.remove('fire'); void attack.offsetWidth; attack.classList.add('fire'); // restart the swing flash
     });
 
     // ── buttons ──

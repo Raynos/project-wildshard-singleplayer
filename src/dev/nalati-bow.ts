@@ -1,18 +1,18 @@
 // Dev entry: the Nalati recurve bow (B2 of project/archive/2026-09-23-nalati.md) — Bow.ts + Projectiles.ts on stub targets.
 // http://127.0.0.1:5188/dev/nalati-bow.html?chunk=nalati-grasslands&nolock=1&skipintro=1
-// Desktop: hold LMB draw, release loose; RMB steady; F snap shot. Keys: G = toggle the DRAW latch (the touch disc),
-//          V = loose (the LOOK tap), X = clear stuck arrows, N = the drop arc on / off.
-// Params:  ?draw=1      hold the DRAW latch from the start (full draw + the arc)
+// Desktop: hold LMB draw, release at full = loose, early = let-down; RMB toggles AIM (the zoom). Keys: G = hold / release
+//          the draw (the FIRE disc), V = the AIM toggle (the AIM disc), X = clear stuck arrows, N = the drop arc on / off.
+// Params:  ?draw=1      hold the draw from the start (full draw + the arc)
 //          ?arc=1|0     the Hunter's eye setting (Settings `huntersEye`)
 //          ?shots=<n>   loose n full-draw arrows at the practice butt on load (the stuck-arrow shots)
 //          ?grass=1     the painterly grass carpet (on by default on the Nalati chunk)
 //          ?wolves=<n>  stub animals circling ahead (arrows ride them; a kill drops them in the grass)
-//          ?steady=1    the RMB steady toggle
+//          ?steady=1    AIM on (the RMB zoom toggle)
 //          ?freeze=1    freeze the wind (no gusts) — for comparing arcs
-// window.__world = { ...bootstrap(), bow, targets, butt, hud, audio, wind }
+// window.__world = { ...bootstrap(), bow, targets, butt, hud, audio, wind, pose } — `pose` = Bow.ts POSE, live-tunable
 import * as THREE from 'three';
 import { bootstrap } from '../core/bootstrap';
-import { Bow, QUIVER_MAX } from '../player/Bow';
+import { Bow, POSE, QUIVER_MAX } from '../player/Bow';
 import type { TargetAnimal, TargetHit, Targets } from '../player/Crossbow';
 import { heightAt } from '../world/Heightfield';
 import { painterlyMaterial, paintGeometry } from '../world/painterly';
@@ -128,7 +128,7 @@ for (let i = 0; i < nWolves; i++) {
 const nolock = params.has('nolock');
 const bow = new Bow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
 bow.wind = wind;
-bow.adsHeld = params.has('draw');
+bow.altHeld = params.has('draw');
 bow.inspect = Math.round(num('inspect', 0)); bow.inspectYaw = num('iyaw', 0.6); bow.inspectPitch = num('ipitch', 0);
 const hud = new HUD({ pointerLock: !nolock });
 const audio = new Audio();
@@ -148,17 +148,17 @@ if (params.has('skipintro')) { hud.markEntered(); if (!nolock) bow.enabled = fal
 else { bow.enabled = false; hud.showIntro(enter, { Targets: 'straw butt + stub wolves' }); }
 document.addEventListener('keydown', (e) => {
   audio.resume();
-  if (e.code === 'KeyG') bow.adsHeld = !bow.adsHeld;
-  if (e.code === 'KeyV') bow.tryFire();
+  if (e.code === 'KeyG') bow.altHeld = !bow.altHeld;
+  if (e.code === 'KeyV') bow.adsHeld = !bow.adsHeld;
   if (e.code === 'KeyX') bow.arrows.clearStuck();
   if (e.code === 'KeyN') setSetting('huntersEye', !getSetting('huntersEye'));
 });
-if (params.has('steady')) document.dispatchEvent(new MouseEvent('mousedown', { button: 2 }));
+if (params.has('steady')) bow.adsHeld = true;
 
 // ?shots=n: n full-draw arrows at the butt's gold, one every 1.4 s, then back to rest
 const shots = Math.round(num('shots', 0));
 let shotT = 0, shotsLeft = shots;
-if (shots > 0) { bow.adsHeld = true; player.yaw = yaw; }
+if (shots > 0) { bow.altHeld = true; player.yaw = yaw; }
 
 game.onUpdate((dt, t) => {
   if (!grass) wind.update(dt);
@@ -166,7 +166,9 @@ game.onUpdate((dt, t) => {
   for (const a of targets.list) a.update(t);
   if (shotsLeft > 0) {
     shotT += dt;
-    if (shotT > 1.4 && bow.charge > 0.99) { bow.tryFire(); shotT = 0; shotsLeft--; if (shotsLeft === 0) bow.adsHeld = params.has('draw'); }
+    // hold to full, release (the loose), press again on the next frame
+    if (!bow.altHeld && shotsLeft > 0) bow.altHeld = true;
+    else if (shotT > 1.4 && bow.fullDraw) { bow.altHeld = false; shotT = 0; shotsLeft--; if (shotsLeft === 0) setTimeout(() => { bow.altHeld = params.has('draw'); }, 50); }
   }
   bow.update(dt, t);
   audio.listenerYaw = player.yaw;
@@ -179,4 +181,4 @@ game.onUpdate((dt, t) => {
 });
 game.buildComposer();
 game.start();
-(window as unknown as { __world: unknown }).__world = { ...world, bow, targets, butt, hud, audio, wind, grass };
+(window as unknown as { __world: unknown }).__world = { ...world, bow, targets, butt, hud, audio, wind, grass, pose: POSE };
