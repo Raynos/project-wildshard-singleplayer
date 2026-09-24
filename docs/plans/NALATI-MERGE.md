@@ -127,3 +127,9 @@ and [review-experience.md](../design/nalati/merge/review-experience.md) (HUD, re
   status column, the rim glyph has none.
 - H2: Nalati's DODGE sits where D drew it (a flatter arc than main's DODGE / JUMP diagonal) — default: D's spot.
 - H2 (main's own layout, not Nalati): on Pine Hollow with the crossbow, AIM overlaps DODGE — flag to main's HUD owner.
+- H4: every loose is now a full draw, so the Golden Bow's sun arrow fires on every shot (it used to need a full draw) —
+  default: as is; limit it if it plays too strong.
+- H4 numbers: AIM 2× zoom, the arms tire at 8 s (a let-down), AIM a toggle with no stamina cost (Nalati has no player
+  stamina) — defaults as built.
+- H4: the draw creak / full-draw click / let-down have hooks but no sounds yet → A1 (the two-model sfx run).
+- H4 found: a 1 px vertical seam in the painted panorama due north, visible only when zoomed → L row (panorama art).
