@@ -1,6 +1,6 @@
 # NALATI-MERGE — bring Nalati into the fold
 
-**State:** `in progress` 2026-09-24 — done: M1–M2, F1–F8, R1–R3, H1–H4 (HUD D, lock-on, the Skyrim bow), P1–P2 (registry colliders, Explore, projectiles on physics), Q1–Q5 (the quest core, the camp people, all three chapters), L1 (the horizon blend). Building: P3–P4 (navmesh + walk baseline, agent), L2–L4 (the Look Lab, agent), A1–A4 (the Nalati sound set, music slot, ambience, the Kazakh score, agent). Open after them: D1–D2 (models), E1–E2 (EARLY ACCESS + landing). Lands on main when finished — the user merges it himself.
+**State:** `in progress` 2026-09-24 — done: M1–M2, F1–F8, R1–R4, H1–H4, P1–P4 (colliders, Explore, projectiles, navmesh, 0 stuck), Q1–Q5, L1–L4 (the Look Lab's three variants stay switchable until the user has played them), E1 (EARLY ACCESS). Building: A1–A4 (the Nalati sound set, music slot, ambience, the Kazakh score — agent; the user picks takes), D1–D2 (models, both pipelines — agent). Last: M3 (merge main again) + E2 (the landing: the user merges the branch himself).
 
 The ask: N16 ("main has moved a lot … bring Nalati into the fold … every new thing made for Wildshard has to be put into
 Nalati"), with N15 (map text), N17 (riding), N18 (the bow), N19 (the horizon seam). The decisions, verbatim, are in
@@ -111,7 +111,7 @@ and [review-experience.md](../design/nalati/merge/review-experience.md) (HUD, re
 
 | # | row | state |
 |---|---|---|
-| E1 | Nalati in the shard picker with an **EARLY ACCESS** tag | open |
+| E1 | Nalati in the shard picker with an **EARLY ACCESS** tag | ✅ b642a95 (ChunkDef.earlyAccess, a cyan EARLY ACCESS banner; progress/nalati-merge/e1/) |
 | E2 | The last main merge, the gates, a boot check on all shards, JPEG art, then the user merges the branch himself | open (last) |
 
 ## Out of scope (decided)
