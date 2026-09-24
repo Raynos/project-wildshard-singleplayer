@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
-"""fit-lut.py — fit the low-poly shard's learned colour LUT (DRIFTWOOD-REMASTER X1) from the E43 loop's frames.
+"""fit-lut.py — fit a shard's learned colour LUT (DRIFTWOOD-REMASTER X1; any shard since PINE-HOLLOW-REMASTER PH-0.3)
+from its mockup loop's frames.
 
+  python3 scripts/fit-lut.py [--shard <slug>] [--regions <json>] <mockup dir> '<pre-LUT captures>/{n}.png' [out.bin] [pred dir]
   python3 scripts/fit-lut.py art/driftwood-isle/round-4-remaster '<pre-LUT captures>/{n}.png' public/assets/lut/driftwood-isle.bin
 
-The captures must be taken WITHOUT the LUT (`&nolut`), with the cameras of art/driftwood-isle/round-4-remaster/README.md.
-Mockups and captures are not pixel-aligned (the mockups are recompositions), so the fit is per material, not per pixel:
-1. for every region of scripts/palette-delta.py (same rectangles, same material filters) each capture pixel gets a
+--shard defaults to driftwood-isle; out.bin to public/assets/lut/<shard>.bin (src/world/lut.ts loads it for that shard;
+a shard with no file gets no LUT pass); the regions to scripts/palette-regions/<shard>.json; the predicted frames go to
+/tmp unless a pred dir is given.
+
+The captures must be taken WITHOUT the LUT (`&nolut`), with the shard's loop cameras (Driftwood:
+art/driftwood-isle/round-4-remaster/README.md). Mockups and captures are not pixel-aligned (the mockups are
+recompositions), so the fit is per material, not per pixel:
+1. for every region of the shard's palette-regions JSON (same rectangles, same material filters) each capture pixel gets a
    target by Reinhard transfer in CIELAB — its offset from the capture's mean, scaled by the ratio of the spreads
    (clamped 0.7–1.4), re-centred on the mockup's mean — giving (source, target) colour pairs;
 2. a coarse identity lattice (7³, low weight) and the grey axis anchor every colour the regions never see (the sword,
@@ -17,7 +24,6 @@ Mockups and captures are not pixel-aligned (the mockups are recompositions), so 
    (index (b·33 + g)·33 + r) for src/world/lut.ts.
 """
 import importlib.util
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -33,7 +39,7 @@ N = 33
 SIGMA = 0.08
 LAMBDA = 2.0
 MAX_MOVE = 0.22
-WEIGHTS = {'sand shadow': 0.6, 'sky zenith': 0.5, 'sky horizon': 0.5}
+ROOT = HERE.parent
 
 
 def srgb_to_lab_arr(rgb):
@@ -56,13 +62,13 @@ def lab_to_srgb_arr(lab):
     return np.clip(c * 255, 0, 255)
 
 
-def pairs(mock_dir, game_pat, rng):
+def pairs(mock_dir, game_pat, rng, cfg):
     mocks = {n: Image.open(next(mock_dir.glob(f'mockup-{n}-*.jpg'))) for n in range(1, 10)}
     games = {n: Image.open(game_pat.format(n=n)) for n in range(1, 10) if Path(game_pat.format(n=n)).exists()}
     src, dst, wt = [], [], []
-    for mat, regs in PD.REGIONS.items():
-        m_all = [PD.select(mat, PD.pixels(mocks[n], r)) for n, r in regs if n in games]
-        g_all = [PD.select(mat, PD.pixels(games[n], r)) for n, r in regs if n in games]
+    for mat, regs in cfg['regions'].items():
+        m_all = [PD.select(mat, PD.pixels(mocks[n], r), cfg) for n, r in regs if n in games]
+        g_all = [PD.select(mat, PD.pixels(games[n], r), cfg) for n, r in regs if n in games]
         m = np.concatenate(m_all) if m_all else np.zeros((0, 3))
         g = np.concatenate(g_all) if g_all else np.zeros((0, 3))
         if len(m) < 50 or len(g) < 50: continue
@@ -70,7 +76,7 @@ def pairs(mock_dir, game_pat, rng):
         k = np.clip(lm.std(0) / np.maximum(lg.std(0), 1e-3), 0.7, 1.4)
         pick = g[rng.choice(len(g), size=min(len(g), 2500), replace=False)]
         tgt = lab_to_srgb_arr((srgb_to_lab_arr(pick) - lg.mean(0)) * k + lm.mean(0))
-        src.append(pick / 255); dst.append(tgt / 255); wt.append(np.full(len(pick), WEIGHTS.get(mat, 1.0)))
+        src.append(pick / 255); dst.append(tgt / 255); wt.append(np.full(len(pick), cfg['weights'].get(mat, 1.0)))
     # identity anchors: a coarse lattice + the grey axis
     lat = np.stack(np.meshgrid(*[np.linspace(0, 1, 7)] * 3, indexing='ij'), -1).reshape(-1, 3)
     grey = np.repeat(np.linspace(0, 1, 33)[:, None], 3, 1)
@@ -109,19 +115,24 @@ def apply(lut, img):
     return Image.fromarray((out * 255).round().clip(0, 255).astype(np.uint8))
 
 
-def main():
-    mock_dir, game_pat, out_path = Path(sys.argv[1]), sys.argv[2], Path(sys.argv[3])
+def main(argv=None):
+    ap = PD.arg_parser("fit a shard's 33³ colour LUT from its mockup loop")
+    ap.add_argument('out', nargs='?', default=None, help='the LUT (default public/assets/lut/<shard>.bin)')
+    ap.add_argument('pred_dir', nargs='?', default='/tmp', help='where the predicted frames go (default /tmp)')
+    a = ap.parse_args(argv)
+    cfg = PD.load_config(a.shard, a.regions)
+    mock_dir, game_pat = Path(a.mock_dir), a.game_pat
+    out_path = Path(a.out) if a.out else ROOT / 'public' / 'assets' / 'lut' / f'{a.shard}.bin'
     rng = np.random.default_rng(7)
-    src, dst, wt = pairs(mock_dir, game_pat, rng)
+    src, dst, wt = pairs(mock_dir, game_pat, rng, cfg)
     lut = fit(src, dst, wt)
     # predicted table: the captures through the LUT
-    pred_dir = Path('/tmp') if len(sys.argv) < 5 else Path(sys.argv[4])
+    pred_dir = Path(a.pred_dir)
     pred_dir.mkdir(parents=True, exist_ok=True)
     for n in range(1, 10):
         p = Path(game_pat.format(n=n))
         if p.exists(): apply(lut, Image.open(p)).save(pred_dir / f'pred-{n}.png')
-    sys.argv = ['palette-delta', str(mock_dir), str(pred_dir / 'pred-{n}.png')]
-    print('predicted after the LUT:'); PD.main()
+    print('predicted after the LUT:'); PD.report(mock_dir, str(pred_dir / 'pred-{n}.png'), cfg)
     rgba = np.concatenate([np.transpose(lut, (2, 1, 0, 3)).reshape(-1, 3), np.ones((N ** 3, 1))], 1)   # → [b][g][r]
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_bytes((rgba * 255).round().clip(0, 255).astype(np.uint8).tobytes())

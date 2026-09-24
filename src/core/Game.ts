@@ -154,8 +154,12 @@ export class Game {
         const chroma = new ChromaticAberrationEffect({ offset: new THREE.Vector2(0.0006, 0.0006), radialModulation: true, modulationOffset: 0.35 });
         const grain = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: true });
         grain.blendMode.opacity.value = 0.12;
+        // a PBR shard's learned LUT (lut.ts, per shard — PINE-HOLLOW PH-L4) ends its grade, before the grain; no file = no
+        // LUT, the chain as before. The low-poly shard's `?post=cinematic` A/B stays the pre-LUT chain.
+        const lut = this.sky.lut && getActiveChunk().style !== 'lowpoly' ? new LUT3DEffect(this.sky.lut, { inputColorSpace: THREE.SRGBColorSpace, tetrahedralInterpolation: true }) : null;
         // one EffectPass for the whole chain: one program and one full-screen pass fewer per frame
-        return new EffectPass(this.camera, vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain);
+        return lut ? new EffectPass(this.camera, vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, lut, grain)
+          : new EffectPass(this.camera, vol, godRays, bloom, chroma, vignette, tone, grade, contrast, split, grain);
       }
       // the stylized look (DRIFTWOOD-REMASTER L5): no volumetric haze, grain or fringe washing the toon bands to low
       // contrast — the colour-ramp fog does the aerial perspective; the god rays stay faint, the vignette light

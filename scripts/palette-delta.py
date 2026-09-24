@@ -1,17 +1,25 @@
 #!/usr/bin/env python3
-"""palette-delta.py — the Driftwood mockup loop's colour check (E43, DRIFTWOOD-REMASTER look track).
+"""palette-delta.py — a mockup loop's colour check, per shard (E43, DRIFTWOOD-REMASTER look track; any shard since
+PINE-HOLLOW-REMASTER PH-0.3).
 
-Samples the MEAN colour of the same regions in each mockup frame and its in-game capture (the 9 E43 spawn-cove
-cameras, art/driftwood-isle/round-4-remaster/README.md) and prints mockup vs game per region with CIEDE2000 ΔE.
+Samples the MEAN colour of the same regions in each mockup frame and its in-game capture and prints mockup vs game per
+region with CIEDE2000 ΔE. The regions belong to a shard's loop cameras and live in scripts/palette-regions/<shard>.json
+(Driftwood: the 9 E43 spawn-cove cameras, art/driftwood-isle/round-4-remaster/README.md).
 
+  python3 scripts/palette-delta.py [--shard driftwood-isle] [--regions <json>] <mockup dir> '<captures>/ingame-{n}.jpg'
   python3 scripts/palette-delta.py art/driftwood-isle/round-4-remaster 'art/driftwood-isle/round-6-loop/ingame-{n}.jpg'
+
+--shard defaults to driftwood-isle; --regions defaults to scripts/palette-regions/<shard>.json. Mockups are
+<mockup dir>/mockup-<n>-*.jpg, n = 1..9.
 
 Regions are fixed rectangles in normalised image coordinates per camera, the same for the mockup and the capture;
 inside each rectangle only the pixels that belong to the material count (a hue / saturation / value filter), so a
 palm or a HUD panel crossing the rectangle does not pollute the sand's mean. A material's mean is over every rectangle
-it has, in every frame. `sand shadow` is the sand-hued rectangle's pixels darker than 72 % of its lit sand's median.
+it has, in every frame. A shadow material (Driftwood's `sand shadow`) is its rectangles' pixels darker than a share
+(72 %) of the lit material's median.
 """
-import colorsys
+import argparse
+import json
 import math
 import sys
 from pathlib import Path
@@ -19,28 +27,27 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-# material → [(frame, (x0, y0, x1, y1))]
-REGIONS = {
-    'shallow water': [(5, (0.1, 0.62, 0.9, 0.95)), (6, (0.05, 0.62, 0.95, 0.95)), (7, (0.55, 0.35, 0.95, 0.95)), (9, (0.05, 0.12, 0.95, 0.3))],
-    'deep water': [(7, (0.45, 0.0, 1.0, 0.07)), (8, (0.0, 0.0, 0.55, 0.07)), (9, (0.0, 0.0, 1.0, 0.07))],
-    'sand': [(5, (0.05, 0.05, 0.95, 0.45)), (7, (0.1, 0.45, 0.5, 0.95)), (9, (0.1, 0.45, 0.9, 0.95))],
-    'sand shadow': [(5, (0.05, 0.05, 0.95, 0.45)), (7, (0.1, 0.45, 0.5, 0.95)), (9, (0.1, 0.45, 0.9, 0.95))],
-    'grass': [(6, (0.05, 0.12, 0.95, 0.38))],
-    'foliage': [(7, (0.0, 0.45, 0.2, 0.95)), (9, (0.25, 0.55, 0.6, 0.95))],
-    'sky zenith': [(2, (0.02, 0.12, 0.35, 0.2)), (3, (0.02, 0.12, 0.35, 0.2))],
-    'sky horizon': [(2, (0.02, 0.4, 0.35, 0.46)), (3, (0.02, 0.4, 0.35, 0.46))],
-}
+HERE = Path(__file__).resolve().parent
+DEFAULT_SHARD = 'driftwood-isle'
 
-# material → hue range (deg), min sat, min value, max value
-FILTERS = {
-    'shallow water': (160, 205, 0.25, 0.35, 1.0),
-    'deep water': (195, 245, 0.35, 0.15, 1.0),
-    'sand': (18, 55, 0.15, 0.5, 1.0),
-    'grass': (65, 160, 0.3, 0.35, 1.0),
-    'foliage': (65, 160, 0.35, 0.12, 1.0),
-    'sky zenith': (190, 240, 0.3, 0.3, 1.0),
-    'sky horizon': (185, 235, 0.12, 0.4, 1.0),
-}
+
+def load_config(shard=DEFAULT_SHARD, path=None):
+    """a shard's regions / filters / fit weights (scripts/palette-regions/<shard>.json, or `path`)"""
+    p = Path(path) if path else HERE / 'palette-regions' / f'{shard}.json'
+    if not p.exists():
+        sys.exit(f'palette-delta: no regions for {shard} ({p}); write one for the shard\'s loop cameras')
+    cfg = json.loads(p.read_text())
+    return {'regions': {m: [(n, tuple(r)) for n, r in regs] for m, regs in cfg['regions'].items()},
+            'filters': cfg['filters'], 'weights': cfg.get('fitWeights', {})}
+
+
+def arg_parser(desc):
+    ap = argparse.ArgumentParser(description=desc)
+    ap.add_argument('--shard', default=DEFAULT_SHARD, help='the shard slug (default driftwood-isle)')
+    ap.add_argument('--regions', default=None, help='a regions JSON (default scripts/palette-regions/<shard>.json)')
+    ap.add_argument('mock_dir', help='the mockup folder (mockup-<n>-*.jpg)')
+    ap.add_argument('game_pat', help="the captures, a path with {n} (1..9)")
+    return ap
 
 
 def hsv(px):
@@ -64,17 +71,19 @@ def pixels(img, rect):
     return np.asarray(img.crop((int(x0 * w), int(y0 * h), int(x1 * w), int(y1 * h))).convert('RGB'), dtype=np.float64).reshape(-1, 3)
 
 
-def select(mat, px):
+def select(mat, px, cfg):
     H, S, V = hsv(px)
     lum = px @ np.array([0.299, 0.587, 0.114])
-    if mat == 'sand shadow':
-        lo, hi, smin, vmin, vmax = FILTERS['sand']
+    f = cfg['filters'][mat]
+    if isinstance(f, dict):   # a shadow material: darker than a share of the lit material's median
+        lo, hi, smin, vmin, vmax = cfg['filters'][f['shadowOf']]
         lit = (H >= lo) & (H <= hi) & (S >= smin) & (V >= vmin)
         if lit.sum() < 20: return px[:0]
         med = np.median(lum[lit])
-        green = (H >= 65) & (H <= 160) & (S > 0.25)
-        return px[(lum < 0.72 * med) & (V > 0.12) & ~green]
-    lo, hi, smin, vmin, vmax = FILTERS[mat]
+        elo, ehi, esat = f['excludeHue']
+        excluded = (H >= elo) & (H <= ehi) & (S > esat)
+        return px[(lum < f['below'] * med) & (V > f['vmin']) & ~excluded]
+    lo, hi, smin, vmin, vmax = f
     return px[(H >= lo) & (H <= hi) & (S >= smin) & (V >= vmin) & (V <= vmax)]
 
 
@@ -116,17 +125,17 @@ def ciede2000(l1, l2):
     return math.sqrt((dLp / Sl) ** 2 + (dCp / Sc) ** 2 + (dHp / Sh) ** 2 + Rt * (dCp / Sc) * (dHp / Sh))
 
 
-def main():
-    mock_dir, game_pat = Path(sys.argv[1]), sys.argv[2]
+def report(mock_dir, game_pat, cfg):
+    mock_dir = Path(mock_dir)
     mocks = {n: Image.open(next(mock_dir.glob(f'mockup-{n}-*.jpg'))) for n in range(1, 10)}
     games = {n: Image.open(game_pat.format(n=n)) for n in range(1, 10) if Path(game_pat.format(n=n)).exists()}
     rows, worst = [], 0.0
-    for mat, regs in REGIONS.items():
+    for mat, regs in cfg['regions'].items():
         acc = {'m': [], 'g': []}
         for n, rect in regs:
             if n not in games: continue
-            acc['m'].append(select(mat, pixels(mocks[n], rect)))
-            acc['g'].append(select(mat, pixels(games[n], rect)))
+            acc['m'].append(select(mat, pixels(mocks[n], rect), cfg))
+            acc['g'].append(select(mat, pixels(games[n], rect), cfg))
         m = np.concatenate(acc['m']) if acc['m'] else np.zeros((0, 3))
         g = np.concatenate(acc['g']) if acc['g'] else np.zeros((0, 3))
         if len(m) < 20 or len(g) < 20:
@@ -142,6 +151,11 @@ def main():
         flag = '' if de < 10 else '  <-- over 10'
         print(f'{mat:14} {hexc(mm):8} {hexc(gm):8} {de:6.1f}   ({nm} / {ng}){flag}')
     print(f'worst ΔE00 = {worst:.1f}')
+
+
+def main(argv=None):
+    a = arg_parser('mockup vs capture colour per region (CIEDE2000)').parse_args(argv)
+    report(a.mock_dir, a.game_pat, load_config(a.shard, a.regions))
 
 
 if __name__ == '__main__':

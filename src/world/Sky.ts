@@ -15,7 +15,7 @@ import { macrotask } from '../boot/plan';
 import { installStylize, toonUniforms } from './stylize';
 import { StylizedSky } from './StylizedSky';
 import { DayNight } from './DayNight';
-import { loadStylizedLUT } from './lut';
+import { loadLUT } from './lut';
 import type { LookupTexture } from 'postprocessing';
 
 /** the low-poly shard's sun before the day / night clock moves it: mid-morning from the east-south-east, 38° up */
@@ -110,7 +110,8 @@ export class Sky {
     const pair = bakedSkyUrls(hdriName);
     const hdrUrl = `/assets/hdri/${hdriName}_2k.hdr`;
     const loadSky = pair ? loadSkyPair(pair).catch((e: unknown) => { console.warn(`[sky] gain-mapped pair not used (${String(e)}); loading the .hdr`); return loadHDR(hdrUrl); }) : loadHDR(hdrUrl);
-    const [hdr, , baked] = await Promise.all([loadSky, preloadBakedTextures(), loadBakedSky(hdriName)]);
+    const [hdr, , baked, lut] = await Promise.all([loadSky, preloadBakedTextures(), loadBakedSky(hdriName), loadLUT(getActiveChunk().slug)]);
+    this.lut = lut; // the shard's learned LUT (lut.ts) — none until PH-L4 fits pine-hollow.bin: no file, no fetch, no pass
     if (baked) this.sunDir.fromArray(baked.sunDir).normalize();
     else this.findSun(hdr);
     hdr.mapping = THREE.EquirectangularReflectionMapping;
@@ -139,7 +140,7 @@ export class Sky {
    * day / night clock's start time. Returns the fog colour (the dome's horizon).
    */
   stylized: StylizedSky | null = null;
-  /** the low-poly shard's learned colour LUT (lut.ts, X1) — Game.buildComposer ends the grade with it; null elsewhere */
+  /** the shard's learned colour LUT (lut.ts, X1; per shard) — Game.buildComposer ends the grade with it; null without a file */
   lut: LookupTexture | null = null;
   /** the low-poly shard's day / night clock (DayNight.ts) — null on a PBR shard */
   dayNight: DayNight | null = null;
@@ -148,7 +149,7 @@ export class Sky {
   private envRT: THREE.WebGLRenderTarget | null = null;
   private async setupStylized(): Promise<THREE.Color> {
     const { sky: S } = getActiveChunk();
-    const [, lut] = await Promise.all([preloadBakedTextures(), loadStylizedLUT()]);
+    const [, lut] = await Promise.all([preloadBakedTextures(), loadLUT(getActiveChunk().slug)]);
     this.lut = lut;
     this.sunDir.copy(STYLIZED_SUN);
     const st = new StylizedSky(this.sunDir).build();
