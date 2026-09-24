@@ -93,6 +93,9 @@ const REWARD: Record<string, { event: string; title: string }> = {
 };
 /** the saved elite store (src/game/Elite.ts 'ws.elites.v1'): a named elite felled once (Argymaq: broken) = its storm feather */
 const ELITE_STORE = 'ws.elites.v1';
+/** a chapter's achievement is announced by its reward caption (chapter, title earned): main.ts's generic achievement toast
+ *  stays quiet for these, or on the phone three banners stack over the caption saying the same thing */
+export const CAPTIONED_EVENTS: ReadonlySet<string> = new Set(Object.values(REWARD).map((r) => r.event));
 function elitesFelled(): Set<string> {
   const out = new Set<string>();
   try {
@@ -146,8 +149,7 @@ export function installNalatiAdventure<A extends { kind: string }>(w: NalatiAdve
   };
   const caption = new Map<string, RewardCaption>();
   line.onComplete = (q) => {
-    w.hud.toast(`Quest complete · ${chapterName(q)}`);
-    w.music.sting('chunk');
+    w.music.sting('chunk');   // no "Quest complete" toast: the caption below says it (the phone stacked both over it)
     const title = REWARD[q.def.id]?.title;
     let c = caption.get(q.def.id);
     if (!c) { c = new RewardCaption(`Chapter ${line.number(q)} · complete`, q.def.title, title !== undefined ? `Title earned · ${title}` : ''); caption.set(q.def.id, c); }

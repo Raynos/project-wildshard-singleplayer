@@ -30,7 +30,7 @@ import { CameraFX } from './player/CameraFX';
 import { buildNalatiKit } from './player/nalatiKit';
 import { IronSwordPickup, ironSwordSite } from './player/IronSword';
 import { installAdventure } from './game/quest/Adventure';
-import { installNalatiAdventure } from './nalati/adventure';
+import { installNalatiAdventure, CAPTIONED_EVENTS } from './nalati/adventure';
 import type { Weapon } from './player/Weapon';
 import { Horizon } from './world/Horizon';
 import { HorizonMatte } from './world/HorizonMatte';
@@ -450,7 +450,7 @@ async function main() {
     const q = queuedCount(); noteDisc.classList.toggle('queued', q > 0); if (noteBadge) noteBadge.textContent = String(q);
   };
   onReview(syncNoteDisc);
-  progress.onEarned = (d) => { hud.toast(`Achievement · ${d.name} — title unlocked: ${d.title}`); audio.hitMarker(); };
+  progress.onEarned = (d) => { if (d.event === undefined || !CAPTIONED_EVENTS.has(d.event)) hud.toast(`Achievement · ${d.name} — title unlocked: ${d.title}`); audio.hitMarker(); }; // a Nalati chapter's own caption announces its title
   const masterGain = () => { if (!audio.muted) audio.master.gain.setTargetAtTime(0.6 * getNumber('volume'), audio.ctx.currentTime, 0.05); };
   onNumber('volume', masterGain);
 
