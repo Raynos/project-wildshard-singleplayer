@@ -29,6 +29,12 @@
  *                                          first-boot loader never shows), skips the title and lands in the world under
  *                                          the pause menu (main.ts). Saves are write-through to localStorage already.
  *                                          Two reloads inside two minutes stop the loop: a RELOAD button instead.
+ *   show after AWAY_MAX_MS hidden        → reload the same way (E96). After a night in the background iOS handed back a
+ *                                          page whose WebGL canvas still drew but whose DOM never repainted: no HUD, no
+ *                                          pause menu, no resume screen, white strips round a shifted canvas, and no
+ *                                          event to catch it. A long absence is not worth waking in place: the reload
+ *                                          lands where the player stood (or on the title, if that is where they were),
+ *                                          on the newest build if its worker is waiting.
  *
  * Only for the WebGL canvas the player sees (`?gpu=webgpu` draws through WebGPU and is not covered here).
  */
@@ -46,6 +52,8 @@ export interface RecoveryHost {
   resumed: boolean;
 }
 
+/** wall-clock time hidden after which coming back reloads instead of waking the page in place (E96) */
+const AWAY_MAX_MS = 10 * 60_000;
 /** visible seconds a lost context may stay lost before the page reloads */
 const LOST_MAX_S = 5;
 /** visible seconds an in-place restore may take before the page reloads */
@@ -71,6 +79,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
 
   let phase: Phase = 'ok';
   let hidden = document.visibilityState === 'hidden';
+  let hiddenAt = hidden ? Date.now() : 0; // wall clock: performance.now() does not run while iOS suspends the page
   let epoch = 0; // a newer loss abandons an in-flight restore / reveal
   let visibleMs = 0; // visible time spent in the current lost / restoring phase
   let timer = 0;
@@ -95,7 +104,8 @@ export function installGpuRecovery(host: RecoveryHost): void {
   };
 
   const stopTimer = (): void => { if (timer !== 0) { clearInterval(timer); timer = 0; } };
-  const reload = (why: string): void => {
+  /** `away`: the long-absence reload — a player on the title gets the title back, and a waiting newer build is taken */
+  const reload = (why: string, away = false): void => {
     if (phase === 'reloading' || phase === 'stuck') return;
     epoch++;
     stopTimer();
@@ -109,8 +119,15 @@ export function installGpuRecovery(host: RecoveryHost): void {
     url.searchParams.delete('v');
     const pose = host.pose();
     if (pose) url.searchParams.set('at', [pose.x, pose.y, pose.z, pose.yaw, pose.pitch].map((v) => (Math.round(v * 100) / 100).toString()).join(','));
-    url.searchParams.set(RELOAD_PARAM, '1');
-    const go = (): void => { location.replace(url.toString()); };
+    if (!away || pose) url.searchParams.set(RELOAD_PARAM, '1'); // ?glreload skips the title: only for a player who was in the world
+    const to = url.toString();
+    const sw = away ? window.__ws_sw : undefined;
+    const go = (): void => {
+      void (async () => {
+        if (sw?.waiting && sw.waiting.state !== 'redundant') await sw.adopt(to); // navigates on the hand-over; returns only if it never landed
+        location.replace(to);
+      })();
+    };
     if (recent.length >= RELOADS_MAX) {
       phase = 'stuck';
       screen.stuck('Graphics lost · your progress is saved', go);
@@ -192,6 +209,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
   const hide = (): void => {
     if (hidden) return; // visibilitychange and pagehide both land here
     hidden = true;
+    hiddenAt = Date.now();
     epoch++;
     if (phase === 'ok') {
       // the still for the way back: one frame drawn now and copied in the same task (the buffer is not preserved)
@@ -206,6 +224,8 @@ export function installGpuRecovery(host: RecoveryHost): void {
   const show = (): void => {
     if (!hidden) return;
     hidden = false;
+    const away = Date.now() - hiddenAt;
+    if (hiddenAt > 0 && away > AWAY_MAX_MS && (phase === 'ok' || phase === 'lost')) { reload(`back after ${Math.round(away / 60_000)} min away`, true); return; }
     if (phase !== 'ok') return; // lost / restoring / reloading: the screen stays until that path ends
     if (gl.isContextLost()) { lose('context lost while hidden (no event)'); return; }
     game.kickLoop(); // the frame loop, if the browser dropped its animation frame across the switch

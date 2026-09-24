@@ -21,7 +21,8 @@
  *   ready: Promise<void>        resolves when the worker controls this page, or after CAP_MS, or at once when
  *                               service workers are off (`?sw=0`, dev without `?sw=1`, no SW support).
  *   waiting: ServiceWorker|null a newer build is installed and waiting to activate; null otherwise.
- *   adopt(): Promise<void>      take the waiting build now: SKIP_WAITING → controllerchange → location.reload().
+ *   adopt(to?): Promise<void>   take the waiting build now: SKIP_WAITING → controllerchange → location.reload()
+ *                               (or `location.replace(to)`: GpuRecovery's long-away reload keeps its ?glreload / ?at=).
  *                               Resolves (without reloading) if there is nothing waiting or the hand-over does
  *                               not land within CAP_MS. The pill's tap handler should prefer this over its plain
  *                               `?v=` reload when `waiting` is set, so the reload comes up on the new worker
@@ -54,7 +55,7 @@ export interface SwVersion {
 export interface WsSw {
   ready: Promise<void>;
   waiting: ServiceWorker | null;
-  adopt: () => Promise<void>;
+  adopt: (to?: string) => Promise<void>;
   version: () => Promise<SwVersion | null>;
 }
 
@@ -123,7 +124,8 @@ function watch(reg: ServiceWorkerRegistration): void {
   reg.addEventListener('updatefound', () => track(reg.installing));
 }
 
-async function adopt(): Promise<void> {
+/** `to`: where the page goes once the new worker controls it (default: reload this URL) */
+async function adopt(to?: string): Promise<void> {
   const w = api.waiting;
   if (!sw || !w) return;
   await new Promise<void>((resolve) => {
@@ -132,7 +134,8 @@ async function adopt(): Promise<void> {
       'controllerchange',
       () => {
         clearTimeout(timer);
-        location.reload();
+        if (to === undefined) location.reload();
+        else location.replace(to);
       },
       { once: true },
     );
