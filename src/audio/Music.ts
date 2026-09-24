@@ -40,6 +40,7 @@
 // (~30 MB of PCM each). `prefetchPine()` pulls the selected style's files into the offline cache while the player is in.
 // Quick links: `?music=pine-night`, `?music=pine-boss` (`-2` / `-3` for a phase), `?music=pine-dawn` (the sting after 2 s).
 import type { Audio } from './Audio';
+import { getActiveChunk } from '../chunks/registry';
 import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle } from '../ui/Settings';
 import { Deck, decodeStyle, setFiles, type BossPhase, type SlotAudio, type SlotName, type StyleBank } from './Stems';
 import { cachedBytes, decodeBytes, trackBusy } from './preload';
@@ -483,7 +484,8 @@ export class Music {
   /** ctx + the music bus (`volume` × the Settings 'music' slider → duck → audio.master) + the engine + the stems' bus, built on
    *  first use (play, after the first gesture) so boot never creates the AudioContext; state set before then waits in `pending` */
   private rig: { ctx: AudioContext; out: GainNode; duckGain: GainNode; engine: Engine; stemBus: GainNode } | undefined;
-  private pending: MusicState = { shard: 'pine', mode: 'menu', intensity: 0, underwater: false };
+  /** the shard comes from the active chunk (like Audio's bed): Driftwood, the default chunk, is 'island' — PH-0.4 B8 */
+  private pending: MusicState = { shard: getActiveChunk().ocean ? 'island' : 'pine', mode: 'menu', intensity: 0, underwater: false };
   private timer = 0;
   private _volume: number;
   private playing: ArrangementName | undefined;
