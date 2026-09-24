@@ -58,7 +58,11 @@ export const TIER_TABLE = {
     maxTexture: 4096, layerSize: 1024, dpr: 1.5, ao: true,
     cascades: 3, shadowMapSize: 2048, shadowFar: 220, shadowMargin: 120, softShadows: true,
     undergrowthShadows: true, animalShadowDist: 90, animalHideDist: 400, furShells: true,
-    animalEyeDist: Infinity, animalOneDrawDist: Infinity,
+    // PINE-HOLLOW PH-P2: an eye is under a pixel past ~20 m at 1600×900 and a hoof / antler tine past ~60 m, so the
+    // phone's draw LOD at 1.3–1.5× its distances. ~150 animals × 3 draws were half of every Pine Hollow desktop frame;
+    // a same-instant A/B at the gate / cabin / lookout / shore (scripts: every rig forced to the LOD, then back) moved
+    // no pixel past the frame-to-frame noise, next to a boar too
+    animalEyeDist: 60, animalOneDrawDist: 150,
     treeHiDist: 110, treeLoDist: 210, treeTwigDist: 38, loTreeShadows: true,
     grassRadius: 55, grassSlots: 96, grassQuads: 5,
     undergrowthFar: 110, propsFar: 700, propsMinAngular: 0.0012,

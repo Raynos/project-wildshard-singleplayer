@@ -1,4 +1,4 @@
-// n8ao ships no types: the slice of N8AOPostPass that Game.ts uses (constructor + the `configuration` proxy).
+// n8ao ships no types: the slice of N8AOPostPass that Game.ts uses (constructor, the `configuration` proxy, `renderTransparency`).
 declare module 'n8ao' {
   import type * as THREE from 'three';
   import type * as PP from 'postprocessing';
@@ -31,5 +31,7 @@ declare module 'n8ao' {
   export class N8AOPostPass extends PP.Pass {
     constructor(scene: THREE.Scene, camera: THREE.Camera, width?: number, height?: number);
     configuration: N8AOConfiguration;
+    /** the transparency-aware pre-passes (two extra renders of the scene); Game.ts wraps it (the multi-material fix) */
+    renderTransparency(renderer: THREE.WebGLRenderer): void;
   }
 }

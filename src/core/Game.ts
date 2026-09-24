@@ -141,6 +141,30 @@ export class Game {
       ao.configuration.screenSpaceRadius = false;
       ao.configuration.gammaCorrection = false;
       ao.configuration.color = new THREE.Color(0.05, 0.06, 0.05);
+      // n8ao's transparency pre-passes hide each mesh with `visible = was && material.transparent && …`. On a
+      // multi-material mesh (an animal's fur / hard / eye, the rifle pickup) `material.transparent` is undefined, the
+      // result is `undefined`, three draws it, and every rig on screen was drawn a second time into the depth-write
+      // pass — 200–350 extra desktop draws at the Pine Hollow poses. Opaque ones now sit that pass out; n8ao's own
+      // AO-only render mode is unchanged by it (5 m from a boar: max Δ 5, the frame-to-frame noise 17). PINE-HOLLOW PH-P2.
+      const opaqueMulti: THREE.Object3D[] = [];
+      const renderTransparency = ao.renderTransparency.bind(ao);
+      ao.renderTransparency = (renderer) => {
+        this.scene.traverseVisible((o) => {
+          if (!(o instanceof THREE.Mesh)) return;
+          const m = (o as THREE.Mesh).material; // instanceof leaves Mesh<any>: the default generics type the material
+          if (Array.isArray(m) && m.every((x) => !x.transparent)) opaqueMulti.push(o);
+        });
+        for (const o of opaqueMulti) o.visible = false;
+        // its two renderer.render calls re-drew every shadow cascade too (autoUpdate), cleared and refilled with only the
+        // meshes it left visible — after the main pass had used them, so nothing saw it: skip the redraw (Water.ts does too)
+        const autoShadows = renderer.shadowMap.autoUpdate;
+        renderer.shadowMap.autoUpdate = false;
+        try { renderTransparency(renderer); } finally {
+          renderer.shadowMap.autoUpdate = autoShadows;
+          for (const o of opaqueMulti) o.visible = true;
+          opaqueMulti.length = 0;
+        }
+      };
       composer.addPass(ao);
     }
 
