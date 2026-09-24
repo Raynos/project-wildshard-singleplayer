@@ -341,6 +341,9 @@ export class GameMenu {
       dbg.append(el('ws-gmenu-label', 'Look'), time);
       // Look Lab (E65) is done: the sky (E83), lighting (E87) and post (E88) picks are locked in; the URL alone builds the old looks
     }
+    // the app-switch RESUMING screen's look (E99): picking one shows it for a moment (src/ui/Resume.ts preview)
+    const looks: { v: OptionValue<'resume'>; text: string }[] = [{ v: 'a', text: 'A Title' }, { v: 'b', text: 'B Glass' }, { v: 'c', text: 'C Plate' }];
+    dbg.append(el('ws-gmenu-label', 'Resume screen'), picker('Look', looks, () => setting('resume'), (v) => { saveSetting('resume', v); }, (fn) => { onSettingChange('resume', fn); }));
     dbg.append(el('ws-gmenu-note', 'Renderer, island, quality and render scale: Exit to main menu ▸ Settings.'));
     dbg.append(this.buildReview());
   }

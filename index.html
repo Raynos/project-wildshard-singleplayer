@@ -89,12 +89,18 @@
     <!-- app-switch resume screen (E61, src/ui/Resume.ts; test/resume.test.ts keeps the two identical): a GPU-recovery reload
          (?glreload, src/core/GpuRecovery.ts) shows this tiny screen from the first paint, over the last frame's still, and
          never the first-boot loader above -->
-    <div class="ws-resume" aria-hidden="true"><div class="ws-resume-shot"></div><div class="ws-resume-card"><div class="ws-resume-mark"><i></i></div><div class="ws-resume-line">Resuming</div><div class="ws-resume-bar"><i></i></div><button type="button" class="ws-resume-btn">Reload</button></div></div>
+    <div class="ws-resume" aria-hidden="true"><div class="ws-resume-shot"></div><div class="ws-resume-hero"></div><div class="ws-resume-card"><div class="ws-resume-panel"><div class="ws-resume-word">Project <b>Wildshard</b></div><div class="ws-resume-mark"><i></i></div><div class="ws-resume-line">Resuming</div><div class="ws-resume-bar"><i></i></div><div class="ws-resume-shard"></div><div class="ws-resume-tag">A world that does not exist yet, arriving one chunk at a time.</div><button type="button" class="ws-resume-btn">Reload</button></div></div></div>
     <script>
       try {
         if (new URLSearchParams(location.search).has('glreload')) {
           const r = document.querySelector('.ws-resume'), shot = sessionStorage.getItem('wsResumeShot');
           if (shot) r.firstElementChild.style.backgroundImage = 'url("' + shot + '")';
+          // the look (Settings option `resume`, E99) and the shard's name + title art, before any bundle runs
+          const look = (JSON.parse(localStorage.getItem('ws.settings.v1') || '{}') || {}).resume;
+          r.classList.add('look-' + (look === 'b' || look === 'c' ? look : 'a'));
+          const brand = JSON.parse(sessionStorage.getItem('wsResumeBrand') || '{}') || {};
+          if (brand.name) r.querySelector('.ws-resume-shard').textContent = brand.name;
+          if (brand.hero) r.querySelector('.ws-resume-hero').style.backgroundImage = 'url("' + brand.hero + '")';
           r.querySelector('.ws-resume-bar').classList.add('busy');
           r.classList.add('show');
           document.querySelector('.ws-load').style.display = 'none';
