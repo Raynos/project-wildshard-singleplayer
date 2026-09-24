@@ -76,18 +76,33 @@ interface LogBoxOpts {
   openings?: Partial<Record<WallId, Opening[]>>;
 }
 
-interface WindowSpec { wall: WallId; at: number; w?: number; y?: number; h?: number }
-interface CabinSpec {
+/** `open`: an unglazed hatch (the trader's serving window: no glass, a counter + awning outside when on the front wall) */
+interface WindowSpec { wall: WallId; at: number; w?: number; y?: number; h?: number; open?: boolean }
+export interface CabinSpec {
   W: number; L: number; rows: number; pitch: number;
   doorZ: number;
   windows: WindowSpec[];
   chimney: 'zpos' | 'zneg';
+  /** no chimney stack or fireplace (a shed, the stall, the mill); `chimney` still names the end the annex / lean-to avoids */
+  noChimney?: boolean;
+  /** 0 = no porch (the floor is a 0.22 m step up from the pad) */
   porchDepth: number;
   annex?: { W: number; L: number; rows: number; pitch: number };   // L-shaped wing off the gable end opposite the chimney
   leanTo?: boolean;                                               // wood shed on the gable end opposite the chimney
   lantern?: boolean;
   firePit?: boolean;
   bench?: 'logs' | 'table';
+  /** 'swing' (default): a hinged door you open; 'fixed': shut for good, merged into the static mesh (0 draws of its own) */
+  door?: 'swing' | 'fixed';
+  /** what is inside: the ranger's 'home' (default), the lodge's 'hall', a 'store' of crates, the 'mill' stones, or 'none' */
+  interior?: 'home' | 'hall' | 'store' | 'mill' | 'none';
+  /** how far the stone plinth reaches below the pad (default 0.9; the mill's creek side falls away) */
+  plinthDrop?: number;
+  /**
+   * the watermill's wheel wing (PH-B3): a log room on stilts off the back wall (local −X), `L` long, reaching out over the
+   * creek's bank, and the undershot wheel beside its far end, turning in the creek (radius `r`, axle `axleY` above the pad)
+   */
+  wing?: { W: number; L: number; rows: number; pitch: number; r: number; axleY: number };
 }
 
 const SPECS: CabinSpec[] = [
@@ -118,7 +133,14 @@ type LightKind = 'fire' | 'lamp';
 interface Fire { light: THREE.PointLight; base: number; seed: number; kind: LightKind }
 /** phone tier: a point light's slot — the shared lights jump to the nearest cabin's anchors (`rank`: which ones get a light) */
 interface LightAnchor { anchor: THREE.Object3D; color: number; intensity: number; distance: number; decay: number; seed: number; kind: LightKind; rank: number }
-interface CabinLod { root: THREE.Object3D; detail: THREE.Object3D[]; far: THREE.Object3D[]; anchors: LightAnchor[]; detailOn: boolean; farOn: boolean }
+/** `pad`: metres added to the LOD distances (a cluster's root sits at its centroid, its buildings up to `pad` m away) */
+/** a room's floor rectangle in the building's frame (inside = the pooled pair lights the room: Cabins.update) */
+interface Room { x: number; z: number; hw: number; hd: number }
+interface CabinLod {
+  root: THREE.Object3D; detail: THREE.Object3D[]; far: THREE.Object3D[]; anchors: LightAnchor[]; detailOn: boolean; farOn: boolean; pad: number; lit?: () => boolean;
+  /** the building's rooms and its door (local x, z): an eye inside, or within 3 m of the door, ranks the room lamps first */
+  rooms?: Room[]; door?: [number, number];
+}
 interface Swing { pivot: THREE.Object3D; seed: number }
 interface Floor { x: number; z: number; rot: number; hw: number; hd: number; y: number }
 type PropKind = 'crate' | 'barrel' | 'bucket' | 'hatchet';
@@ -127,7 +149,7 @@ interface PropPart { geometry: THREE.BufferGeometry; material: THREE.Material; m
 
 // ───────────────────────────── materials ─────────────────────────────
 
-interface Mats {
+export interface Mats {
   log: THREE.MeshStandardMaterial; endGrain: THREE.MeshStandardMaterial; chink: THREE.MeshStandardMaterial;
   roof: THREE.MeshStandardMaterial; beam: THREE.MeshStandardMaterial; deck: THREE.MeshStandardMaterial;
   door: THREE.MeshStandardMaterial; stone: THREE.MeshStandardMaterial; glass: THREE.MeshStandardMaterial;
@@ -135,7 +157,15 @@ interface Mats {
   char: THREE.MeshStandardMaterial;
   smoke: THREE.ShaderMaterial; flame: THREE.ShaderMaterial; ember: THREE.ShaderMaterial; glow: THREE.MeshBasicMaterial;
 }
-type MatKey = Exclude<keyof Mats, 'smoke' | 'flame' | 'ember' | 'glow' | 'glass'>;
+export type MatKey = Exclude<keyof Mats, 'smoke' | 'flame' | 'ember' | 'glow' | 'glass'>;
+
+const matsCache = new WeakMap<Sky, Promise<Mats>>();
+/** the cabins' PBR materials, loaded once per sky and shared (PH-B3: the landmarks build with the same set — no new programs) */
+export function cabinMats(sky: Sky): Promise<Mats> {
+  let p = matsCache.get(sky);
+  if (p === undefined) { p = loadMats(sky); matsCache.set(sky, p); }
+  return p;
+}
 
 async function loadMats(sky: Sky): Promise<Mats> {
   const [logSet, roofSet, beamSet, deckSet, doorSet, stoneSet, barkSet] = await Promise.all([
@@ -205,7 +235,7 @@ function makeEndGrainTexture() {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
 }
 
-function makeGlowTexture() {
+export function makeGlowTexture(): THREE.CanvasTexture {
   const c = document.createElement('canvas'); c.width = c.height = 128;
   const g = c.getContext('2d');
   if (g === null) throw new Error('Cabin: no 2d canvas context');
@@ -440,7 +470,7 @@ function installMoss(mat: THREE.MeshStandardMaterial, sky: Sky, kind: 'roof' | '
 // ───────────────────────────── geometry helpers ─────────────────────────────
 
 /** planar UVs by dominant face normal, in the geometry's current space, metres / scale */
-function boxUV(geo: THREE.BufferGeometry, scale: number, uOff = 0, vOff = 0) {
+export function boxUV<G extends THREE.BufferGeometry>(geo: G, scale: number, uOff = 0, vOff = 0): G {
   const pos = geo.getAttribute('position'), nor = geo.getAttribute('normal');
   const uv = geo.getAttribute('uv');
   for (let i = 0; i < pos.count; i++) {
@@ -453,14 +483,14 @@ function boxUV(geo: THREE.BufferGeometry, scale: number, uOff = 0, vOff = 0) {
   }
   return geo;
 }
-function swapUV(geo: THREE.BufferGeometry) {
+export function swapUV<G extends THREE.BufferGeometry>(geo: G): G {
   const uv = geo.getAttribute('uv');
   for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getY(i), uv.getX(i));
   return geo;
 }
 
 /** a horizontal log along +X of `len`, radius r, textured with one board of the log-wall set (or bark when `bark`) */
-function logGeo(len: number, r: number, board: number, vOff: number, segs = 14, bark = false) {
+export function logGeo(len: number, r: number, board: number, vOff: number, segs = 14, bark = false): { side: THREE.CylinderGeometry; caps: THREE.BufferGeometry } {
   const side = new THREE.CylinderGeometry(r, r, len, segs, 1, true);
   const pos = side.getAttribute('position'), uv = side.getAttribute('uv');
   for (let i = 0; i < pos.count; i++) {
@@ -508,6 +538,14 @@ const shadowProxyMaterial = new THREE.MeshBasicMaterial({ colorWrite: false });
 /** merged parts that go too past 2× cabinDetailDist (log ends, woodpile bark, door frame) */
 const FAR_KEYS = new Set<MatKey>(['endGrain', 'bark', 'door']);
 
+/**
+ * PH-B3: a cluster of buildings (the mill hamlet) whose static parts merge into ONE set of per-material meshes under
+ * `root` — five buildings cost about one cabin's draws. Each member's builder writes its parts here in `root`'s frame.
+ */
+interface ClusterSink { root: THREE.Group; parts: Map<MatKey, THREE.BufferGeometry[]>; glass: THREE.BufferGeometry[] }
+/** a sub-frame inside a building (the mill's wing): local (x, z) turned by `yaw` about +Y, then moved to (x, y, z) */
+interface SubFrame { x: number; y: number; z: number; yaw: number }
+
 class CabinBuilder {
   root = new THREE.Group();
   /** small parts hidden beyond TIER_CONFIG.cabinDetailDist */
@@ -516,22 +554,38 @@ class CabinBuilder {
   far: THREE.Object3D[] = [];
   /** phone tier: where this cabin's point lights would be (see Cabins.sharedLights) */
   anchors: LightAnchor[] = [];
+  /** the rooms' floor rectangles and the door, in the building's frame (Cabins.update's indoor lamp ranking) */
+  rooms: Room[] = [];
+  doorAt: [number, number];
   private parts = new Map<MatKey, THREE.BufferGeometry[]>();
   private rng: Rng;
   private wallTop: number;
   private ridgeY: number;
   private tanP: number;
   private m = new THREE.Matrix4();
+  /** the active sub-frame (withFrame) and its matrix */
+  private frame: SubFrame | null = null;
+  private frameM = new THREE.Matrix4();
+  /** building frame → the cluster root's frame (a cluster member only) */
+  private toSink = new THREE.Matrix4();
+  /** a cluster member's lights are anchors only (the phone's pooled pair may visit them; never a light of their own) */
+  private anchorLights: boolean;
 
   constructor(
     private owner: Cabins, private spec: CabinSpec, private index: number,
     private cx: number, private cy: number, private cz: number, private rot: number,
     private mats: Mats, private sky: Sky, private propInstances: Record<PropKind, THREE.Matrix4[]>,
+    private sink?: ClusterSink,
   ) {
     this.rng = new Rng(SEED + 500 + index * 17);
     this.root.position.set(cx, cy, cz);
     this.root.rotation.y = rot;
     this.root.updateMatrixWorld(true);
+    this.anchorLights = sink !== undefined;
+    this.doorAt = [spec.W / 2, spec.doorZ];
+    this.rooms.push({ x: 0, z: 0, hw: spec.W / 2, hd: spec.L / 2 });
+    if (spec.wing) this.rooms.push({ x: -(spec.W / 2) - spec.wing.L / 2, z: 0, hw: spec.wing.L / 2, hd: spec.wing.W / 2 });
+    if (sink) { sink.root.updateMatrixWorld(true); this.toSink.copy(sink.root.matrixWorld).invert().multiply(this.root.matrixWorld); }
     this.wallTop = PLINTH + spec.rows * LOG;                // top of the eave (Z) walls
     this.tanP = Math.tan(spec.pitch);
     this.ridgeY = this.wallTop + (spec.W / 2) * this.tanP;
@@ -540,6 +594,7 @@ class CabinBuilder {
   // ── helpers ──
   private add(key: MatKey, geo: THREE.BufferGeometry, matrix?: THREE.Matrix4) {
     if (matrix) geo.applyMatrix4(matrix);
+    if (this.frame) geo.applyMatrix4(this.frameM);
     const g = geo.index ? geo.toNonIndexed() : geo;
     if ((key === 'roof' || key === 'stone') && !g.hasAttribute('moss')) {
       // moss density hint: stone = near the ground, roof default = mid-slope
@@ -547,9 +602,26 @@ class CabinBuilder {
       for (let i = 0; i < pos.count; i++) moss[i] = key === 'stone' ? clamp01((0.9 - pos.getY(i)) / 1.1) : 0.35;
       g.setAttribute('moss', new THREE.BufferAttribute(moss, 1));
     }
-    const list = this.parts.get(key);
-    if (list === undefined) this.parts.set(key, [g]); else list.push(g);
+    if (this.sink) g.applyMatrix4(this.toSink);
+    const parts = this.sink ? this.sink.parts : this.parts;
+    const list = parts.get(key);
+    if (list === undefined) parts.set(key, [g]); else list.push(g);
   }
+  /** build `fn`'s geometry, colliders and floors in a sub-frame of the building (the mill's wing) */
+  private withFrame(f: SubFrame, fn: () => void) {
+    this.frame = f;
+    this.frameM.makeRotationY(f.yaw).setPosition(f.x, f.y, f.z);
+    try { fn(); } finally { this.frame = null; }
+  }
+  /** a sub-frame point / turn → the building frame */
+  private fr(lx: number, lz: number): [number, number] {
+    const f = this.frame;
+    if (f === null) return [lx, lz];
+    const c = Math.cos(f.yaw), s = Math.sin(f.yaw);
+    return [f.x + lx * c + lz * s, f.z - lx * s + lz * c];
+  }
+  private get frYaw(): number { return this.frame?.yaw ?? 0; }
+  private get frY(): number { return this.frame?.y ?? 0; }
   private box(key: MatKey, w: number, h: number, d: number, x: number, y: number, z: number, uvScale = 1, ry = 0, rz = 0, rx = 0) {
     const g = new THREE.BoxGeometry(w, h, d);
     boxUV(g, uvScale, this.rng.range(0, 1), this.rng.range(0, 1));
@@ -563,7 +635,8 @@ class CabinBuilder {
     this.add(key, side, this.m);
     this.add('endGrain', caps, this.m);
   }
-  private collider(lx: number, lz: number, hw: number, hd: number, yBottom: number, yTop: number, localRot = 0): Collider {
+  private collider(lx0: number, lz0: number, hw: number, hd: number, yBottom0: number, yTop0: number, localRot0 = 0): Collider {
+    const [lx, lz] = this.fr(lx0, lz0), localRot = localRot0 + this.frYaw, yBottom = yBottom0 + this.frY, yTop = yTop0 + this.frY;
     const c = Math.cos(this.rot), s = Math.sin(this.rot);
     const col: Collider = {
       x: this.cx + lx * c + lz * s, z: this.cz - lx * s + lz * c,
@@ -576,18 +649,23 @@ class CabinBuilder {
    * PHYSICS P3: a static box for `Cabins.colliderDescs()` only (not a legacy `Collider`), in the cabin's local frame:
    * centre (lx, lz), half-extents hw × hd turned by `localRot`, from yBottom to yTop above the cabin base.
    */
-  private solid(lx: number, lz: number, hw: number, hd: number, yBottom: number, yTop: number, localRot = 0, surface?: 'stone' | 'wood') {
+  private solid(lx0: number, lz0: number, hw: number, hd: number, yBottom0: number, yTop0: number, localRot0 = 0, surface?: 'stone' | 'wood') {
+    const [lx, lz] = this.fr(lx0, lz0), localRot = localRot0 + this.frYaw, yBottom = yBottom0 + this.frY, yTop = yTop0 + this.frY;
     const c = Math.cos(this.rot), s = Math.sin(this.rot);
     this.owner._solid({
       kind: 'box', x: this.cx + lx * c + lz * s, y: this.cy + (yTop + yBottom) / 2, z: this.cz - lx * s + lz * c,
       hx: hw, hy: (yTop - yBottom) / 2, hz: hd, yaw: this.rot + localRot, ...(surface === undefined ? {} : { surface }),
     });
   }
-  private worldPos(lx: number, ly: number, lz: number) { return new THREE.Vector3(lx, ly, lz).applyMatrix4(this.root.matrixWorld); }
+  private worldPos(lx: number, ly: number, lz: number) {
+    const v = new THREE.Vector3(lx, ly, lz);
+    if (this.frame) v.applyMatrix4(this.frameM);
+    return v.applyMatrix4(this.root.matrixWorld);
+  }
   /** a flickering point light under `parent` — a real light on desktop, an anchor for the shared set on the phone (`rank`:
    *  the phone lights the lowest ranks of the nearest cabin: the fire pit, then the porch lantern, the room, the hearth) */
   private pointLight(parent: THREE.Object3D, color: number, intensity: number, distance: number, decay: number, x: number, y: number, z: number, seed: number, kind: LightKind, rank: number) {
-    if (TIER_CONFIG.sharedCabinLights) {
+    if (TIER_CONFIG.sharedCabinLights || this.anchorLights) {
       const anchor = new THREE.Object3D(); anchor.position.set(x, y, z); parent.add(anchor);
       this.anchors.push({ anchor, color, intensity, distance, decay, seed, kind, rank });
       this.anchors.sort((a, b) => a.rank - b.rank);
@@ -599,6 +677,7 @@ class CabinBuilder {
   }
   private placeProp(kind: PropKind, x: number, y: number, z: number, ry: number, scale = 1) {
     const local = new THREE.Matrix4().makeRotationY(ry).setPosition(x, y, z).scale(new THREE.Vector3(scale, scale, scale));
+    if (this.frame) local.premultiply(this.frameM);
     this.propInstances[kind].push(new THREE.Matrix4().multiplyMatrices(this.root.matrixWorld, local));
     // PHYSICS P3: the glTF props' bounds (wooden_crate_02 0.53 × 0.45 × 1.17, wine_barrel_01 ⌀0.74 × 0.87,
     // wooden_bucket_01 ⌀0.35 × 0.35); the hatchet sits in its chopping block's collider
@@ -618,32 +697,36 @@ class CabinBuilder {
       // the back wall is simply extended to cover the annex (no seam), the annex adds its own front + far gable walls
       const oz = annexSide * (hz + a.L / 2), ox = -(W / 2) + a.W / 2;
       annexBox = { ox, oz };
+      this.rooms.push({ x: ox, z: oz, hw: a.W / 2, hd: a.L / 2 });
       ext.back = annexSide > 0 ? { to: hz + a.L } : { from: -(hz + a.L) };
       (openings[annexSide > 0 ? 'zpos' : 'zneg'] ??= []).push({ a0: ox - 0.5, a1: ox + 0.5, y0: PLINTH - 0.05, y1: FLOOR + 2.0 });
     }
-    this.foundation(W, L, 0, 0);
+    if (this.spec.wing) (openings.back ??= []).push({ a0: -0.5, a1: 0.5, y0: PLINTH - 0.05, y1: snapRow(FLOOR + 2.1 + 0.1, false) });
+    this.foundation(W, L, 0, 0, this.spec.plinthDrop);
     this.floorPlanks(W, L, 0, 0);
     this.logBox(W, L, 0, 0, this.spec.rows, this.spec.pitch, { gables: { zpos: true, zneg: true }, ext, openings });
     this.roof(W, L, 0, 0, this.spec.pitch, this.wallTop, 0.12, 0.55, 0.5, 0.5);
     this.door();
     this.windows();
-    this.chimney();
-    this.porch();
-    this.interior();
+    if (!this.spec.noChimney) this.chimney();
+    if (this.spec.porchDepth > 0) this.porch();
+    const inside = this.spec.interior ?? 'home';
+    if (inside === 'home') this.interior();
+    else if (inside !== 'none') this.furnish(inside);
     if (annexBox && a) this.annex(annexBox.ox, annexBox.oz, annexSide, a);
     if (this.spec.leanTo) this.leanTo(annexSide);
-    else this.woodpile(-(W / 2) - 0.32, -annexSide * (L / 2 - 1.6), 0, 4, 1.8, { x: -(W / 2) - 0.25, z: -annexSide * (L / 2 + 0.9) });
+    else if (!this.spec.wing) this.woodpile(-(W / 2) - 0.32, -annexSide * (L / 2 - 1.6), 0, 4, 1.8, { x: -(W / 2) - 0.25, z: -annexSide * (L / 2 + 0.9) });
     if (this.spec.firePit) this.firePit(firePit);
-    this.lantern(lantern);
+    if (this.spec.lantern) this.lantern(lantern);
     this.outdoorProps();
     this.rubble();
-    this.smoke();
+    if (!this.spec.noChimney) this.smoke();
+    if (this.spec.wing) this.wing(this.spec.wing);
     this.finish();
   }
 
   // ── stone plinth: one course above ground, deep enough to hide any slope ──
-  private foundation(W: number, L: number, ox: number, oz: number) {
-    const drop = 0.9;
+  private foundation(W: number, L: number, ox: number, oz: number, drop = 0.9) {
     this.box('stone', W + 0.3, PLINTH + drop, L + 0.3, ox, (PLINTH - drop) / 2, oz, 2.0);
     this.box('stone', W + 0.44, 0.1, L + 0.44, ox, 0.05, oz, 2.0); // proud footing course at grade
     this.solid(ox, oz, W / 2 + 0.15, L / 2 + 0.15, -drop, PLINTH, 0, 'stone');   // PHYSICS P3: the plinth's top
@@ -655,7 +738,7 @@ class CabinBuilder {
     this.m.makeTranslation(ox, (FLOOR + PLINTH) / 2, oz);
     this.add('deck', g, this.m);
     const w = this.worldPos(ox, FLOOR, oz);
-    this.owner._floor({ x: w.x, z: w.z, rot: this.rot, hw: W / 2, hd: L / 2, y: w.y });
+    this.owner._floor({ x: w.x, z: w.z, rot: this.rot + this.frYaw, hw: W / 2, hd: L / 2, y: w.y });
     this.solid(ox, oz, W / 2, L / 2, PLINTH - 0.15, FLOOR, 0, 'wood');   // PHYSICS P3: the floor, its top = floorHeightAt
   }
 
@@ -795,8 +878,6 @@ class CabinBuilder {
     this.box('beam', fd, top - FLOOR, 0.1, x, (top + FLOOR) / 2, dz + 0.5, 1.0);
     this.box('beam', fd, top - (FLOOR + H + 0.04), 1.1, x, (top + FLOOR + H + 0.04) / 2, dz, 1.0);
     this.box('beam', fd + 0.06, 0.05, 1.1, x, FLOOR + 0.02, dz, 1.0);
-    const pivot = new THREE.Group();
-    pivot.position.set(x - 0.02, FLOOR + 0.02, dz - DW / 2);
     const leaf = new THREE.BoxGeometry(0.06, H, DW);
     {
       const uv = leaf.getAttribute('uv'), pos = leaf.getAttribute('position'), nor = leaf.getAttribute('normal');
@@ -806,6 +887,17 @@ class CabinBuilder {
       }
     }
     leaf.translate(0, H / 2, DW / 2);
+    if (this.spec.door === 'fixed') {
+      // shut for good: the leaf, its battens and strap hinges go into the merged mesh, one box keeps you out
+      this.m.makeTranslation(x - 0.02, FLOOR + 0.02, dz - DW / 2);
+      this.add('door', leaf, this.m);
+      for (const by of [0.35, H / 2, H - 0.35]) this.add('beam', boxUV(new THREE.BoxGeometry(0.03, 0.12, DW - 0.1), 1).translate(-0.045, by, DW / 2), this.m);
+      for (const hy of [0.32, H - 0.32]) this.add('iron', new THREE.BoxGeometry(0.015, 0.06, 0.42).translate(0.04, hy, 0.19), this.m);
+      this.collider(x, dz, 0.08, DW / 2, 0, FLOOR + H);
+      return;
+    }
+    const pivot = new THREE.Group();
+    pivot.position.set(x - 0.02, FLOOR + 0.02, dz - DW / 2);
     const doorMesh = new THREE.Mesh(leaf, this.mats.door);
     doorMesh.castShadow = true; doorMesh.receiveShadow = true;
     pivot.add(doorMesh);
@@ -843,7 +935,7 @@ class CabinBuilder {
   }
 
   // ── windows: frame, sill, mullions, glass ──
-  private windowFrame(o: Opening, alongZ: boolean, at: number, glass: THREE.BufferGeometry[]) {
+  private windowFrame(o: Opening, alongZ: boolean, at: number, glass: THREE.BufferGeometry[] | null) {
     const ww = o.a1 - o.a0, hh = o.y1 - o.y0, yc = (o.y0 + o.y1) / 2, ac = (o.a0 + o.a1) / 2;
     const rough = roughOpening(o, !alongZ);
     const sillH = o.y0 - rough.y0 + 0.01, headH = rough.y1 - o.y1 + 0.01;   // fill up to the log gaps
@@ -858,7 +950,9 @@ class CabinBuilder {
     fb(ww, 0.04, 0.04, 0, 0, 0);
     const m = new THREE.Matrix4().makeRotationY(alongZ ? -Math.PI / 2 : 0).setPosition(alongZ ? at : ac, yc, alongZ ? ac : at);
     this.add('beam', mergeGeometries(g.map((x) => x.toNonIndexed())), m);
-    glass.push(new THREE.PlaneGeometry(ww, hh).applyMatrix4(m));
+    if (glass === null) return;
+    const pane = new THREE.PlaneGeometry(ww, hh).applyMatrix4(m);
+    glass.push(this.frame ? pane.applyMatrix4(this.frameM) : pane);
   }
   private windows() {
     const { W, L } = this.spec;
@@ -866,12 +960,38 @@ class CabinBuilder {
     for (const w of this.spec.windows) {
       const alongZ = w.wall === 'front' || w.wall === 'back';
       const at = w.wall === 'front' ? W / 2 - LOG_R : w.wall === 'back' ? -(W / 2 - LOG_R) : w.wall === 'zpos' ? L / 2 - LOG_R : -(L / 2 - LOG_R);
-      this.windowFrame(this.windowOpening(w), alongZ, at, glass);
+      const o = this.windowOpening(w);
+      this.windowFrame(o, alongZ, at, w.open ? null : glass);
+      if (w.open && w.wall === 'front') this.counter(o);
     }
     this.glassMesh(glass);
   }
+  /** the trader's serving hatch: a plank counter on brackets under it, a shingle awning over it on two raked struts */
+  private counter(o: Opening) {
+    const { W } = this.spec;
+    const x0 = W / 2 - LOG_R, ww = o.a1 - o.a0 + 0.3, ac = (o.a0 + o.a1) / 2, cd = 0.55;
+    this.box('deck', cd, 0.06, ww, x0 + cd / 2, o.y0 - 0.03, ac, 1.3);
+    for (const z of [o.a0 + 0.05, o.a1 - 0.05]) {
+      this.box('beam', cd - 0.1, 0.08, 0.06, x0 + (cd - 0.1) / 2, o.y0 - 0.1, z, 1);
+      this.box('beam', 0.06, 0.4, 0.06, x0 + 0.08, o.y0 - 0.3, z, 1);
+    }
+    this.solid(x0 + cd / 2, ac, cd / 2, ww / 2, o.y0 - 0.4, o.y0, 0, 'wood');
+    const ad = 1.1, lean = 0.42, ay = o.y1 + 0.18;
+    const sheet = boxUV(new THREE.BoxGeometry(ad, SHEET, ww + 0.3), 1.5, this.rng.next(), 0);
+    const pos = sheet.getAttribute('position'), moss = new Float32Array(pos.count);
+    for (let i = 0; i < pos.count; i++) moss[i] = clamp01(0.3 + pos.getX(i) / ad);
+    sheet.setAttribute('moss', new THREE.BufferAttribute(moss, 1));
+    this.m.makeRotationZ(-lean).setPosition(x0 + ad / 2 * Math.cos(lean), ay - (ad / 2) * Math.sin(lean), ac);
+    this.add('roof', sheet, this.m);
+    for (const z of [o.a0 - 0.05, o.a1 + 0.05]) {
+      const len = 0.8;
+      this.m.makeRotationZ(0.75).setPosition(x0 + 0.28, ay - 0.42, z);
+      this.add('beam', boxUV(new THREE.BoxGeometry(0.06, len, 0.06), 1), this.m);
+    }
+  }
   private glassMesh(glass: THREE.BufferGeometry[]) {
     if (glass.length === 0) return;
+    if (this.sink) { for (const g of glass) this.sink.glass.push(g.applyMatrix4(this.toSink)); return; }
     const gm = new THREE.Mesh(mergeGeometries(glass), this.mats.glass);
     gm.receiveShadow = true; gm.renderOrder = 2;
     this.root.add(gm); this.detail.push(gm);
@@ -1273,6 +1393,13 @@ class CabinBuilder {
     const { L, porchDepth: D } = this.spec;
     const x0 = this.spec.W / 2 + 0.05, dz = this.spec.doorZ;
     const far = dz > 0 ? -1 : 1;
+    if (D === 0) {
+      // no porch: a barrel at the front corner, a crate beside it, the rain barrel under the back eave
+      this.placeProp('barrel', x0 + 0.45, 0, far * (L / 2 - 0.4), this.rng.range(0, 6));
+      this.placeProp('crate', x0 + 0.4, 0, far * (L / 2 - 1.3), Math.PI / 2 + this.rng.range(-0.15, 0.15), 0.9);
+      if (!this.spec.wing) this.placeProp('barrel', -(this.spec.W / 2) - 0.5, 0, -far * (L / 2 - 0.4), this.rng.range(0, 6));
+      return;
+    }
     this.placeProp('barrel', x0 + 0.5, FLOOR, far * (L / 2 - 0.6), this.rng.range(0, 6));
     this.placeProp('crate', x0 + 0.55, FLOOR, far * (L / 2 - 1.5), Math.PI / 2 + this.rng.range(-0.15, 0.15));
     this.placeProp('bucket', x0 + D - 0.45, FLOOR, far * (L / 2 - 0.5) * 0.9, this.rng.range(0, 6));
@@ -1302,6 +1429,188 @@ class CabinBuilder {
     }
   }
 
+  // ── the hamlet's other interiors (PH-B3): the lodge's hall, a store of crates, the mill's stones ──
+  private furnish(kind: 'hall' | 'store' | 'mill') {
+    const { W, L } = this.spec;
+    const chimSide = this.spec.chimney === 'zpos' ? 1 : -1;
+    const inX = W / 2 - LOG_R - 0.12, inZ = L / 2 - LOG_R - 0.12;   // the walls' inside faces, a hand's width off
+    if (kind === 'hall') {
+      // a long trestle table down the hall with a bench each side, a sideboard + shelves on the back wall, hides hung up
+      const tl = Math.min(L - 4.4, 5.6), tx = -0.35, tz = -chimSide * 0.7;
+      this.box('beam', 0.95, 0.07, tl, tx, FLOOR + 0.76, tz, 1);
+      for (const dz of [-tl / 2 + 0.45, tl / 2 - 0.45]) {
+        this.box('beam', 0.72, 0.7, 0.08, tx, FLOOR + 0.37, tz + dz, 1);
+        this.box('beam', 0.85, 0.08, 0.14, tx, FLOOR + 0.04, tz + dz, 1);
+      }
+      this.box('beam', 0.1, 0.1, tl - 1.0, tx, FLOOR + 0.3, tz, 1);
+      this.collider(tx, tz, 0.5, tl / 2, 0, FLOOR + 0.8);
+      for (const s of [-1, 1]) {
+        const bx = tx + s * 0.78;
+        this.box('deck', 0.3, 0.05, tl - 0.4, bx, FLOOR + 0.45, tz, 1.3);
+        for (const dz of [-tl / 2 + 0.6, 0, tl / 2 - 0.6]) this.box('beam', 0.24, 0.43, 0.07, bx, FLOOR + 0.215, tz + dz, 1);
+        this.collider(bx, tz, 0.16, (tl - 0.4) / 2, 0, FLOOR + 0.48);
+      }
+      const sz = chimSide * (inZ - 1.6);
+      this.box('beam', 0.5, 0.9, 2.2, -inX + 0.25, FLOOR + 0.45, sz, 1);
+      this.box('deck', 0.56, 0.05, 2.3, -inX + 0.28, FLOOR + 0.92, sz, 1.3);
+      this.solid(-inX + 0.28, sz, 0.28, 1.15, FLOOR, FLOOR + 0.95, 0, 'wood');
+      for (const y of [1.45, 1.9]) this.box('beam', 0.3, 0.035, 2.0, -inX + 0.15, FLOOR + y, -sz, 1);
+      this.solid(-inX + 0.15, -sz, 0.15, 1.0, FLOOR + 1.3, FLOOR + 1.95, 0, 'wood');
+      this.placeProp('bucket', -inX + 0.3, FLOOR + 0.945, sz + 0.6, this.rng.range(0, 6), 0.8);
+      this.placeProp('bucket', -inX + 0.15, FLOOR + 1.47, -sz - 0.5, this.rng.range(0, 6), 0.7);
+      for (const z of [-sz + 0.6, -sz - 0.6]) this.hide(-inX + 0.06, FLOOR + 2.35, z, Math.PI / 2);
+      this.placeProp('barrel', inX - 0.45, FLOOR, -chimSide * (inZ - 0.45), this.rng.range(0, 6));
+      this.placeProp('barrel', inX - 0.45, FLOOR, -chimSide * (inZ - 1.25), this.rng.range(0, 6), 0.9);
+      this.placeProp('crate', -inX + 0.4, FLOOR, -chimSide * (inZ - 0.5), this.rng.range(-0.2, 0.2), 0.9);
+      for (const s of [-1, 1]) this.chair(tx + this.rng.range(-0.1, 0.1), tz + s * (tl / 2 + 0.45), (s > 0 ? Math.PI : 0) + this.rng.range(-0.2, 0.2));
+      return;
+    }
+    if (kind === 'store') {
+      // crates stacked two high along the back wall, barrels in the corners, a shelf over the door side
+      for (let i = 0; i < 3; i++) {
+        const z = -inZ + 0.7 + i * 0.95;
+        if (z > inZ - 0.5) break;
+        this.placeProp('crate', -inX + 0.35, FLOOR, z, Math.PI / 2 + this.rng.range(-0.15, 0.15), 0.95);
+        if (i !== 1) this.placeProp('crate', -inX + 0.35, FLOOR + 0.43, z + this.rng.range(-0.05, 0.05), Math.PI / 2 + this.rng.range(-0.2, 0.2), 0.85);
+      }
+      this.placeProp('barrel', inX - 0.45, FLOOR, inZ - 0.45, this.rng.range(0, 6), 0.9);
+      this.placeProp('barrel', 0.1, FLOOR, inZ - 0.45, this.rng.range(0, 6), 0.9);
+      this.box('beam', 1.3, 0.035, 0.3, 0.2, FLOOR + 1.6, -inZ + 0.15, 1);
+      this.solid(0.2, -inZ + 0.15, 0.65, 0.15, FLOOR + 1.5, FLOOR + 1.64, 0, 'wood');
+      return;
+    }
+    // the mill: a pair of millstones on a timber hurst with the hopper over them, the shaft in from the wheel, flour sacks
+    const mx = 0.7, mz = -chimSide * 1.3;
+    this.box('beam', 1.7, 0.5, 1.7, mx, FLOOR + 0.25, mz, 1);
+    for (const [y, h] of [[FLOOR + 0.62, 0.24], [FLOOR + 0.87, 0.22]] as const) {
+      const g = boxUV(new THREE.CylinderGeometry(0.66, 0.68, h, 20), 1.6, this.rng.next(), this.rng.next());
+      this.m.makeTranslation(mx, y, mz); this.add('stone', g, this.m);
+    }
+    const hop = new THREE.CylinderGeometry(0.5, 0.12, 0.6, 4, 1, true).rotateY(Math.PI / 4);
+    boxUV(hop, 1);
+    this.m.makeTranslation(mx, FLOOR + 1.55, mz); this.add('beam', hop, this.m);
+    for (const s of [-1, 1]) this.box('beam', 0.07, 0.75, 0.07, mx + s * 0.42, FLOOR + 1.35, mz, 1);
+    this.solid(mx, mz, 0.85, 0.85, FLOOR, FLOOR + 1.0, 0, 'wood');
+    // the drive shaft from the wing's doorway line to the stones (under the floor's joists would hide it: run it low)
+    this.log(W / 2 - 0.3, -W / 4 + mx / 2, FLOOR + 0.25, mz, false, 0.09, 'bark');
+    for (let i = 0; i < 5; i++) this.cloth(0.42, 0.55, 0.3, inX - 0.4 - (i % 3) * 0.45, FLOOR + 0.275 + (i > 2 ? 0.5 : 0), chimSide * (inZ - 0.4), 0xd8ceb4, this.rng.range(-0.3, 0.3));
+    this.solid(inX - 0.85, chimSide * (inZ - 0.4), 0.7, 0.2, FLOOR, FLOOR + 1.0, 0, 'wood');
+    this.placeProp('barrel', -inX + 0.45, FLOOR, chimSide * (inZ - 0.45), this.rng.range(0, 6), 0.85);
+  }
+
+  /** a log from `a` to `b` (building-local, or the sub-frame's) */
+  private logBetween(a: THREE.Vector3, b: THREE.Vector3, r: number, key: MatKey = 'bark') {
+    const d = new THREE.Vector3().subVectors(b, a), len = d.length();
+    const { side, caps } = logGeo(len, r, this.rng.int(0, BOARDS - 1), this.rng.range(0, 2), 10, key === 'bark');
+    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), d.normalize());
+    const m = new THREE.Matrix4().makeRotationFromQuaternion(q).setPosition(a.clone().lerp(b, 0.5));
+    this.add(key, side, m.clone());
+    this.add('endGrain', caps, m);
+  }
+
+  // ── the watermill's wheel wing: a log room on stilts off the back wall, out over the bank, the wheel beside its far end ──
+  private wing(w: NonNullable<CabinSpec['wing']>) {
+    const { W } = this.spec;
+    // the doorway through the back wall into the wing
+    const xW = -(W / 2 - LOG_R);
+    for (const z of [-0.5, 0.5]) this.box('beam', 0.34, 2.0, 0.1, xW, FLOOR + 1.0, z, 1);
+    this.box('beam', 0.34, 0.12, 1.1, xW, FLOOR + 2.06, 0, 1);
+    const hz = w.L / 2;
+    // wing frame: its local +Z runs out along the building's −X (over the bank), its local +X along the building's +Z
+    this.withFrame({ x: -(W / 2) - hz, y: 0, z: 0, yaw: -Math.PI / 2 }, () => {
+      this.floorPlanks(w.W, w.L, 0, 0);
+      for (const s of [-1, 1]) this.box('beam', 0.22, 0.24, w.L, s * (w.W / 2 - 0.11), PLINTH - 0.12, 0, 1);
+      this.box('beam', w.W, 0.24, 0.22, 0, PLINTH - 0.12, hz - 0.11, 1);
+      const win: Opening = { a0: -0.4, a1: 0.4, y0: FLOOR + 1.0, y1: FLOOR + 1.7 };
+      const sideWin: Opening = { a0: hz - 3.6, a1: hz - 2.8, y0: FLOOR + 1.0, y1: FLOOR + 1.7 };
+      this.logBox(w.W, w.L, 0, 0, w.rows, w.pitch, {
+        gables: { zpos: true, zneg: false }, skip: ['zneg'],
+        ext: { front: { from: -hz + 0.02, overhangFrom: false }, back: { from: -hz + 0.02, overhangFrom: false } },
+        openings: { zpos: [roughOpening(win, true)], back: [roughOpening(sideWin, false)] },
+      });
+      this.roof(w.W, w.L, 0, 0, w.pitch, PLINTH + w.rows * LOG, 0.35, 0.35, 0.45, -0.08);
+      const glass: THREE.BufferGeometry[] = [];
+      this.windowFrame(win, false, hz - LOG_R, glass);
+      this.windowFrame(sideWin, true, -(w.W / 2 - LOG_R), glass);
+      this.glassMesh(glass);
+      // stilts: log posts from the bank up to the sill beams, every ~2.4 m down both sides, X-braced between
+      const n = Math.max(2, Math.round((w.L - 0.6) / 2.4));
+      const feet: { x: number; z: number; g: number }[][] = [[], []];
+      for (let i = 0; i <= n; i++) {
+        const z = -hz + 0.35 + (w.L - 0.7) * (i / n);
+        [-1, 1].forEach((s, k) => {
+          const x = s * (w.W / 2 - 0.12);
+          const wp = this.worldPos(x, 0, z);
+          const g = heightAt(wp.x, wp.z) - this.cy - 0.3;   // the posts sink 0.3 m into the bank
+          if (PLINTH - 0.24 - g < 0.25) return;
+          this.logBetween(new THREE.Vector3(x, g, z), new THREE.Vector3(x, PLINTH - 0.2, z), 0.13);
+          this.collider(x, z, 0.14, 0.14, g, PLINTH - 0.24);
+          feet[k]?.push({ x, z, g });
+        });
+      }
+      for (const side of feet) for (let i = 0; i + 1 < side.length; i++) {
+        const a = side[i], b = side[i + 1];
+        if (!a || !b) continue;
+        const lo = Math.max(a.g, b.g) + 0.6, hi = PLINTH - 0.35;
+        if (hi - lo < 0.8) continue;
+        this.logBetween(new THREE.Vector3(a.x, lo, a.z), new THREE.Vector3(b.x, hi, b.z), 0.07);
+        this.logBetween(new THREE.Vector3(a.x, hi, a.z), new THREE.Vector3(b.x, lo, b.z), 0.07);
+      }
+      // the wheel past the wing's far gable, out over the creek (its axle runs on along the wing's line, so the wheel turns
+      // in the plane of the flow), carried by a bearing beam across the last pair of stilts and an outer post in the bed
+      const half = 0.55, wz = hz + 0.3 + half;
+      const outZ = wz + half + 0.5, inZ = hz - 0.35;
+      const wpOut = this.worldPos(0, 0, outZ);
+      const gOut = heightAt(wpOut.x, wpOut.z) - this.cy - 0.3;
+      this.logBetween(new THREE.Vector3(0, gOut, outZ), new THREE.Vector3(0, w.axleY + 0.25, outZ), 0.16);
+      this.box('beam', 0.7, 0.22, 0.3, 0, w.axleY + 0.3, outZ, 1);
+      this.box('beam', w.W - 0.1, 0.24, 0.24, 0, w.axleY + 0.3, inZ, 1);
+      this.collider(0, outZ, 0.18, 0.18, gOut, w.axleY + 0.4);
+      this.solid(0, wz, w.r, half + 0.05, w.axleY - w.r, w.axleY + w.r, 0, 'wood');
+      const [bx, bz] = this.fr(0, wz);
+      const pivot = new THREE.Group();
+      pivot.position.set(bx, w.axleY, bz);
+      pivot.rotation.y = this.frYaw - Math.PI / 2;   // the wheel's own axle (local X) along the wing (its local +Z)
+      const wheel = new THREE.Mesh(this.wheelGeo(w.r, half, wz - inZ + 0.2, outZ - wz + 0.2), this.mats.beam);
+      wheel.castShadow = true; wheel.receiveShadow = true;
+      pivot.add(wheel);
+      this.root.add(pivot);
+      this.owner._wheel(wheel);
+    });
+  }
+
+  /** an undershot wheel about local X: hub, axle (`inner` m into the wall side, `outer` m out to the bearing), two rims, spokes, 20 paddles */
+  private wheelGeo(r: number, half: number, inner: number, outer: number) {
+    const g: THREE.BufferGeometry[] = [];
+    const push = (geo: THREE.BufferGeometry, m: THREE.Matrix4) => { g.push(boxUV(geo, 1, this.rng.next(), this.rng.next()).applyMatrix4(m).toNonIndexed()); };
+    const m = new THREE.Matrix4();
+    push(new THREE.CylinderGeometry(0.34, 0.34, half * 2 + 0.3, 12).rotateZ(Math.PI / 2), m.identity());
+    const axle = new THREE.CylinderGeometry(0.13, 0.13, inner + outer, 10).rotateZ(Math.PI / 2);
+    push(axle, m.makeTranslation((outer - inner) / 2, 0, 0));
+    const seg = 20, chord = 2 * r * Math.sin(Math.PI / seg) + 0.04;
+    for (const x of [-half + 0.06, half - 0.06]) {
+      for (let i = 0; i < seg; i++) {
+        const a = (i / seg) * Math.PI * 2;
+        m.makeRotationX(a).setPosition(x, Math.cos(a) * (r - 0.12), Math.sin(a) * (r - 0.12));
+        push(new THREE.BoxGeometry(0.1, 0.2, chord), m);
+      }
+      for (let i = 0; i < 8; i++) {
+        const a = (i / 8) * Math.PI * 2 + 0.2;
+        const len = r - 0.4;
+        m.makeRotationX(a).setPosition(x, Math.cos(a) * (0.3 + len / 2), Math.sin(a) * (0.3 + len / 2));
+        push(new THREE.BoxGeometry(0.09, len, 0.13), m);
+      }
+    }
+    for (let i = 0; i < seg; i++) {
+      const a = ((i + 0.5) / seg) * Math.PI * 2;
+      m.makeRotationX(a).setPosition(0, Math.cos(a) * (r - 0.3), Math.sin(a) * (r - 0.3));
+      push(new THREE.BoxGeometry(half * 2 - 0.1, 0.6, 0.05), m);
+    }
+    const merged = mergeGeometries(g);
+    merged.computeBoundingSphere();
+    return merged;
+  }
+
   private smoke() {
     const { L } = this.spec;
     const side = this.spec.chimney === 'zpos' ? 1 : -1;
@@ -1313,20 +1622,31 @@ class CabinBuilder {
   }
 
   private finish() {
+    if (this.sink) return; // a cluster member: Cabins merges the whole cluster once (finishParts on the sink)
+    finishParts(this.parts, this.mats, this.root, this.detail, this.far);
+  }
+}
+
+/**
+ * Merge a builder's (or a cluster's) parts per material under `root`: one mesh per material, the small hardware in
+ * `detail`, the mid parts in `far`, and the static shadow casters as two position-only proxies.
+ */
+export function finishParts(parts: Map<MatKey, THREE.BufferGeometry[]>, mats: Mats, root: THREE.Object3D, detailList: THREE.Object3D[], farList: THREE.Object3D[]): void {
+  {
     // the static shadow casters go into the shadow map as two position-only proxies (the silhouette set, and the far
     // set that hides with the far LOD) on SHADOW_LAYER, which only the sun's shadow cameras see: 2 shadow draws per
     // cabin instead of 7, the same depth (same triangles, all front-sided materials)
     const core: THREE.BufferGeometry[] = [], farSet: THREE.BufferGeometry[] = [];
-    for (const [key, list] of this.parts) {
+    for (const [key, list] of parts) {
       const merged = mergeOrNull(list);
       if (merged === null) continue;
       merged.computeBoundingSphere();
-      const mesh = new THREE.Mesh(merged, this.mats[key]);
+      const mesh = new THREE.Mesh(merged, mats[key]);
       mesh.receiveShadow = true;
-      this.root.add(mesh);
-      if (DETAIL_KEYS.has(key)) { mesh.castShadow = true; this.detail.push(mesh); continue; }
+      root.add(mesh);
+      if (DETAIL_KEYS.has(key)) { mesh.castShadow = true; detailList.push(mesh); continue; }
       const pos = new THREE.BufferGeometry(); pos.setAttribute('position', merged.getAttribute('position'));
-      if (FAR_KEYS.has(key)) { this.far.push(mesh); farSet.push(pos); } else core.push(pos);
+      if (FAR_KEYS.has(key)) { farList.push(mesh); farSet.push(pos); } else core.push(pos);
     }
     for (const [list, far] of [[core, false], [farSet, true]] as const) {
       const g = list.length > 0 ? mergeOrNull(list) : null;
@@ -1334,17 +1654,30 @@ class CabinBuilder {
       g.computeBoundingSphere();
       const proxy = new THREE.Mesh(g, shadowProxyMaterial);
       proxy.castShadow = true; proxy.layers.set(SHADOW_LAYER);
-      this.root.add(proxy);
-      if (far) this.far.push(proxy);
+      root.add(proxy);
+      if (far) farList.push(proxy);
     }
-    this.parts.clear();
+    parts.clear();
   }
 }
 
 // ───────────────────────────── the chunk's cabins ─────────────────────────────
 
+/**
+ * PH-B3: a building beyond the three cabins (Pine Hollow's mill hamlet), built with the same kit. All of them form one
+ * cluster: their static parts merge into one mesh per material (`Cabins.cluster`), their lights are anchors only (the
+ * phone's pooled pair visits the nearest; no light of their own on any tier). `rot` is the kit's frame: the door faces
+ * local +X, so a layout yaw `y` (facing (−sin y, −cos y)) is `rot = y + π/2`.
+ */
+export interface ExtraBuilding { id: string; x: number; z: number; rot: number; spec: CabinSpec }
+
 export class Cabins {
   group = new THREE.Group();
+  /** the merged cluster of the extra buildings (null without any) */
+  cluster: THREE.Group | null = null;
+  /** radians per second of every mill wheel (the miller's errand can stop it: 0) */
+  wheelSpeed = 0.55;
+  private wheels: THREE.Object3D[] = [];
   colliders: Collider[] = [];
   interactables: Interactable[] = [];
   firePits: { x: number; y: number; z: number }[] = [];
@@ -1362,13 +1695,19 @@ export class Cabins {
   /** emissive materials lit by the clock (window glass, lantern glass) and their full-night intensity (PH-L3) */
   private lampMats: { mat: THREE.MeshStandardMaterial; full: number }[] = [];
   private nearestCabin = -1;
+  /** the eye is inside the nearest building (or at its door): its room lamp + hearth take the pooled pair */
+  private indoors = false;
+  /** the nearest building's anchors in the order the pooled pair takes them */
+  private order: LightAnchor[] = [];
+  private tmpL = new THREE.Vector3();
+  private cabinCount = 0;
   private tmpV = new THREE.Vector3();
 
-  constructor(private sky: Sky) {}
+  constructor(private sky: Sky, private extra: readonly ExtraBuilding[] = []) {}
 
   async build(): Promise<{ group: THREE.Group; colliders: Collider[]; interactables: Interactable[] }> {
     // the seven PBR sets and the six models in one round of fetches (they were two, back to back)
-    const [mats, [firePitGltf, lanternGltf, crate, barrel, bucket, hatchet]] = await Promise.all([loadMats(this.sky), Promise.all([
+    const [mats, [firePitGltf, lanternGltf, crate, barrel, bucket, hatchet]] = await Promise.all([cabinMats(this.sky), Promise.all([
       loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadGLTF('wooden_crate_02'), loadGLTF('wine_barrel_01'), loadGLTF('wooden_bucket_01'), loadGLTF('hatchet'),
     ])]);
     // each model's parts share one material: merged into one part, a cabin's crates / barrels / buckets are one draw each (9 → 4)
@@ -1404,13 +1743,65 @@ export class Cabins {
         }
       }
       if (!TIER_CONFIG.cabinDetailShadows) for (const o of b.detail) o.traverse((c) => { c.castShadow = false; });
-      this.lods.push({ root: b.root, detail: b.detail, far: b.far, anchors: b.anchors, detailOn: true, farOn: false });
+      this.lods.push({ root: b.root, detail: b.detail, far: b.far, anchors: b.anchors, detailOn: true, farOn: false, pad: 0, rooms: b.rooms, door: b.doorAt });
     }
+    this.cabinCount = this.lods.length;
+    if (this.extra.length > 0) await this.buildCluster(mats, props, firePitGltf.scene, lanternGltf.scene);
     return { group: this.group, colliders: this.colliders, interactables: this.interactables };
   }
 
-  /** each cabin's own root, in CABIN_SITES order (Explore's catalog shows one at a time) */
-  get roots(): readonly THREE.Object3D[] { return this.lods.map((l) => l.root); }
+  /** the extra buildings as one merged cluster (PH-B3): per building only its doors, lantern, smoke and wheel draw alone */
+  private async buildCluster(mats: Mats, props: Record<PropKind, PropPart[]>, firePit: THREE.Object3D, lantern: THREE.Object3D): Promise<void> {
+    let sx = 0, sz = 0;
+    for (const e of this.extra) { sx += e.x; sz += e.z; }
+    const cx = sx / this.extra.length, cz = sz / this.extra.length;
+    const root = new THREE.Group();
+    root.name = 'cabin-cluster';
+    root.position.set(cx, heightAt(cx, cz), cz);
+    root.updateMatrixWorld(true);
+    const sink: ClusterSink = { root, parts: new Map(), glass: [] };
+    const propInstances: Record<PropKind, THREE.Matrix4[]> = { crate: [], barrel: [], bucket: [], hatchet: [] };
+    let pad = 0;
+    for (const [j, e] of this.extra.entries()) {
+      await macrotask(); // one building per task, as the cabins
+      const b = new CabinBuilder(this, e.spec, this.cabinCount + j, e.x, heightAt(e.x, e.z), e.z, e.rot, mats, this.sky, propInstances, sink);
+      b.root.name = e.id;
+      b.build(firePit, lantern);
+      this.group.add(b.root);
+      if (!TIER_CONFIG.cabinDetailShadows) for (const o of b.detail) o.traverse((c) => { c.castShadow = false; });
+      this.lods.push({ root: b.root, detail: b.detail, far: b.far, anchors: b.anchors, detailOn: true, farOn: false, pad: 0, rooms: b.rooms, door: b.doorAt });
+      pad = Math.max(pad, Math.hypot(e.x - cx, e.z - cz) + Math.max(e.spec.W, e.spec.L));
+    }
+    await macrotask();
+    const detail: THREE.Object3D[] = [], far: THREE.Object3D[] = [];
+    finishParts(sink.parts, mats, root, detail, far);
+    if (sink.glass.length > 0) {
+      const gm = new THREE.Mesh(mergeGeometries(sink.glass), mats.glass);
+      gm.receiveShadow = true; gm.renderOrder = 2;
+      root.add(gm); detail.push(gm);
+    }
+    for (const k of Object.keys(propInstances) as PropKind[]) {
+      const list = propInstances[k];
+      if (list.length === 0) continue;
+      for (const m of props[k]) {
+        const im = new THREE.InstancedMesh(m.geometry, m.material, list.length);
+        im.castShadow = true; im.receiveShadow = true;
+        const tmp = new THREE.Matrix4();
+        list.forEach((mat, i) => { im.setMatrixAt(i, tmp.copy(mat).multiply(m.matrix)); });
+        im.instanceMatrix.needsUpdate = true;
+        im.computeBoundingSphere();
+        this.group.add(im);
+        detail.push(im);
+      }
+    }
+    if (!TIER_CONFIG.cabinDetailShadows) for (const o of detail) o.traverse((c) => { c.castShadow = false; });
+    this.group.add(root);
+    this.cluster = root;
+    this.lods.push({ root, detail, far, anchors: [], detailOn: true, farOn: false, pad });
+  }
+
+  /** each cabin's own root, in CABIN_SITES order (Explore's catalog shows one at a time) — not the cluster's buildings */
+  get roots(): readonly THREE.Object3D[] { return this.lods.slice(0, this.cabinCount).map((l) => l.root); }
 
   /**
    * PHYSICS P3: every cabin's static collision in world space — the legacy boxes (walls, chimney, porch posts and rails,
@@ -1447,29 +1838,40 @@ export class Cabins {
     // lights follow the nearest cabin
     const cam = this.sky.viewCamera; cam.getWorldPosition(this.tmpV);
     let nearest = -1, nearestD2 = Infinity;
-    const dd = TIER_CONFIG.cabinDetailDist * TIER_CONFIG.cabinDetailDist;
+    const dd = TIER_CONFIG.cabinDetailDist;
     this.lods.forEach((l, i) => {
       const d2 = l.root.position.distanceToSquared(this.tmpV);
-      if (d2 < nearestD2) { nearestD2 = d2; nearest = i; }
-      const on = d2 < dd;
+      if (l.anchors.length > 0 && d2 < nearestD2 && (l.lit?.() ?? true)) { nearestD2 = d2; nearest = i; }
+      const d = Math.sqrt(d2) - l.pad;
+      const on = d < dd;
       if (on !== l.detailOn) { l.detailOn = on; for (const o of l.detail) o.visible = on; }
       // past 2× the detail distance only the silhouette parts stay (log walls, roof, stone, deck, beams, smoke)
-      const far = d2 > dd * 4;
+      const far = d > dd * 2;
       if (far !== l.farOn) { l.farOn = far; for (const o of l.far) o.visible = !far; }
     });
+    for (const w of this.wheels) w.rotation.x += dt * this.wheelSpeed;
     const l = this.lods[nearest];
     if (this.sharedLights.length > 0 && nearest >= 0 && l !== undefined) {
-      if (nearest !== this.nearestCabin) {
-        this.nearestCabin = nearest;
+      // indoors (the eye over one of its rooms' floors, or within 3 m of its door) the room light and the hearth take the
+      // pair, so the room is lit at night; outdoors the fire pit and the porch lantern keep it (intensity only either way)
+      let indoors = false;
+      if (l.rooms && l.door) {
+        const p = l.root.worldToLocal(this.tmpL.copy(this.tmpV));
+        indoors = l.rooms.some((r) => Math.abs(p.x - r.x) <= r.hw && Math.abs(p.z - r.z) <= r.hd) || Math.hypot(p.x - l.door[0], p.z - l.door[1]) < 3;
+      }
+      if (nearest !== this.nearestCabin || indoors !== this.indoors) {
+        this.nearestCabin = nearest; this.indoors = indoors;
+        const indoorRank = (a: LightAnchor): number => (a.rank === 2 ? 0 : a.rank === 3 ? 1 : a.rank + 2);
+        this.order = indoors ? [...l.anchors].sort((a, b) => indoorRank(a) - indoorRank(b)) : l.anchors;
         this.fires = this.fires.filter((f) => !this.sharedLights.includes(f.light));
         this.sharedLights.forEach((light, i) => {
-          const a = l.anchors[i];
+          const a = this.order[i];
           if (!a) { light.intensity = 0; return; }
           light.color.set(a.color); light.distance = a.distance; light.decay = a.decay;
           this.fires.push({ light, base: a.intensity, seed: a.seed, kind: a.kind });
         });
       }
-      this.sharedLights.forEach((light, i) => { const a = l.anchors[i]; if (a) a.anchor.getWorldPosition(light.position); });
+      this.sharedLights.forEach((light, i) => { const a = this.order[i]; if (a) a.anchor.getWorldPosition(light.position); });
     }
     for (const d of this.doors) {
       const target = d.open ? 1 : 0;
@@ -1498,6 +1900,16 @@ export class Cabins {
   /** @internal */ _particles(m: THREE.ShaderMaterial): void { this.particleMats.add(m); }
   /** @internal */ _floor(f: Floor): void { this.floors.push(f); }
   /** @internal */ _solid(d: ColliderDesc): void { this.solids.push(d); }
+  /** @internal */ _wheel(o: THREE.Object3D): void { this.wheels.push(o); }
+
+  /**
+   * PH-B3: a lamp the phone's pooled pair may visit when it is the nearest lit site (a waystone lantern): `anchor` sits in
+   * world space (a child of a group at the origin). No light of its own on any tier; `lit()` false keeps the pair away.
+   */
+  addLampSite(anchor: THREE.Object3D, color: number, intensity: number, distance: number, lit: () => boolean = () => true): void {
+    const a: LightAnchor = { anchor, color, intensity, distance, decay: 2, seed: anchor.position.x * 0.37, kind: 'lamp', rank: 0 };
+    this.lods.push({ root: anchor, detail: [], far: [], anchors: [a], detailOn: true, farOn: false, pad: 0, lit });
+  }
 }
 
 // ───────────────────────────── glTF helpers ─────────────────────────────
