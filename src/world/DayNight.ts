@@ -12,10 +12,10 @@
  *
  * Every frame it moves the sun (an east → south → west arc, 62° at noon) and, at night, the moon (a high arc, ≥ 25°),
  * and blends a keyframed set of presets — dawn, morning, midday, golden hour, sunset, dusk, night — into every knob the
- * look reads: the CSM light (direction, colour, intensity — the same lights, never added or removed), the hemisphere
- * fill, the toon uniforms (shade lift, rim, fog ramp), the fog colour / sun in-scatter, the sky dome + cumulus palette,
- * the sun / moon disc and the planet's lit side. The light fades to nothing at the horizon, swaps sun ↔ moon while dark,
- * and fades back, so the direction never visibly jumps. The PMREM environment is re-rendered every 15 s.
+ * look reads: the CSM light (direction in SHADOW_STEP steps, colour, intensity — the same lights, never added or
+ * removed), the hemisphere fill, the toon uniforms (shade lift, rim, fog ramp), the fog colour / sun in-scatter, the
+ * sky dome + cumulus palette, the sun / moon disc and the planet's lit side. The light fades to nothing at the horizon,
+ * swaps sun ↔ moon while dark, and fades back, so the direction never visibly jumps. The PMREM environment is re-rendered every 15 s.
  */
 import * as THREE from 'three';
 import { MIDDAY_SKY, type SkyPalette } from './StylizedSky';
@@ -97,6 +97,13 @@ const clonePreset = (p: Preset): Preset => ({
 });
 
 const d2r = Math.PI / 180;
+/**
+ * The shadow-casting light turns in steps of this, not every frame (E89). A shadow map that turns a hair each frame
+ * (the sun moves ~0.15°/s) re-rasterizes every shadow edge every frame: on the phone's 1024² map a post's or a palm's
+ * shadow crawled and flickered even with the camera still (0.40 % of the frame changed per frame, 0.025 % with the clock
+ * frozen). Held still, the texel-snapped map is stable; a 0.25° step moves a shadow ≤ ~1 texel about every 1.5 s.
+ */
+const SHADOW_STEP = 0.25 * d2r;
 /** compass azimuth (0 = north = +Z, 90 = east = −X) + elevation (deg) → unit vector toward the body */
 function dirFrom(az: number, el: number, out: THREE.Vector3): THREE.Vector3 {
   return out.set(-Math.sin(az * d2r) * Math.cos(el * d2r), Math.sin(el * d2r), Math.cos(az * d2r) * Math.cos(el * d2r));
@@ -143,7 +150,7 @@ export class DayNight {
     const time = setting('time'); // 'live' whenever ?tod / ?clock are in the URL
     if (time !== 'live') { this.frozen = true; this.phase = FIXED_PHASE[time]; }
     this.sunIScale = sunIntensityScale;
-    this.apply();
+    this.apply(true);
   }
 
   /** the sun's direction for the current phase (below the horizon at night) */
@@ -161,7 +168,7 @@ export class DayNight {
     this.frozen = t !== 'live';
     if (t === 'live') return;
     this.phase = FIXED_PHASE[t];
-    this.apply();
+    this.apply(true);
     this.envTimer = 0; this.T.refreshEnvironment();
   }
 
@@ -172,7 +179,10 @@ export class DayNight {
     if (this.envTimer > 15) { this.envTimer = 0; this.T.refreshEnvironment(); }
   }
 
-  private apply(): void {
+  private shadowWant = new THREE.Vector3();
+
+  /** `snap`: move the shadow light to the exact phase now (boot, a Time of day pick), not in SHADOW_STEP steps */
+  private apply(snap = false): void {
     const p = this.phase, T = this.T;
     // ── the preset blend ──
     let i = 0;
@@ -195,7 +205,8 @@ export class DayNight {
     this.dusk = P.dusk;
     T.toon.uToonNight.value = this.night;
     T.sunDir.copy(lightDir);
-    T.lightDirection.copy(lightDir).negate();
+    const want = this.shadowWant.copy(lightDir).negate();
+    if (snap || want.angleTo(T.lightDirection) > SHADOW_STEP) T.lightDirection.copy(want); // the sun ↔ moon swap is one big step
     for (const l of T.lights) { l.color.copy(P.sunColor); l.intensity = P.sunI * this.sunIScale * fade; }
     T.hemi.color.copy(P.hemiSky); T.hemi.groundColor.copy(P.hemiGround); T.hemi.intensity = P.hemiI;
     T.toon.uToonLift.value.copy(P.lift); T.toon.uToonRim.value.copy(P.rim); T.toon.uFogNear.value.copy(P.fogNear);
