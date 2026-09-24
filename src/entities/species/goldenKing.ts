@@ -34,9 +34,10 @@ import { heightAt } from '../../world/Heightfield';
 export const GOLDEN_KING = 'golden-king';
 
 const PALETTE = {
-  // darker than it reads: the chamber is unlit-baked, the King takes the full painterly sun — gold comes from the contrast
-  gold: [0.66, 0.45, 0.13], goldDark: [0.24, 0.13, 0.04], goldHi: [0.92, 0.74, 0.34],
-  red: [0.46, 0.07, 0.05], redDark: [0.2, 0.03, 0.03], felt: [0.42, 0.06, 0.04],
+  // gold that reads as gold, not ochre: saturated, the lit plaque edges past 1 (they catch the shaft / the sun like metal),
+  // a deep brown-gold in the gaps; the reds truer so the cloak and the felt cap stay red under the painterly grade
+  gold: [0.84, 0.56, 0.1], goldDark: [0.32, 0.17, 0.03], goldHi: [1.25, 0.98, 0.42],
+  red: [0.6, 0.06, 0.04], redDark: [0.3, 0.03, 0.03], felt: [0.56, 0.06, 0.04],
   skin: [0.29, 0.19, 0.11], skinDark: [0.13, 0.08, 0.05], leather: [0.20, 0.12, 0.07],
   eye: [1.0, 0.82, 0.32], blade: [1.0, 0.86, 0.46],
 } satisfies Record<string, RGB>;
