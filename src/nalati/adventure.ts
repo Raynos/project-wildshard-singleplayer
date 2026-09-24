@@ -58,7 +58,7 @@ export interface NalatiAdventureWorld<A extends { kind: string } = { kind: strin
   audio: { weaponSwap: () => void };
   music: { sting: (name: 'pickup' | 'death' | 'chunk') => void };
   progress?: ProgressSink;
-  fullMap?: { setPois: (source: () => MapPoi[]) => void; setQuest?: (source: () => MapQuest | null) => void };
+  fullMap?: { setPois: (source: () => MapPoi[], opts?: { declutter?: boolean }) => void; setQuest?: (source: () => MapQuest | null) => void };
   registry?: WorldRegistry | undefined;
   /** Nalati's riding + taming (src/nalati/ride.ts): the mount for the kokpar, the bonded horse for the quest */
   ride: { mount: KokparMount; taming: { phase: string; isArgymaq: boolean } } | null;
@@ -168,7 +168,7 @@ export function installNalatiAdventure<A extends { kind: string }>(w: NalatiAdve
 
   // ── places with saved discovery (replaces the fog read: names stay found across reloads) ──
   const places = placesWithDiscovery(NALATI_PLACES, flags, (t) => { w.hud.toast(t); }, markers);
-  w.fullMap?.setPois(places.mapPois);
+  w.fullMap?.setPois(places.mapPois, { declutter: true });   // F11: the elder's marker label stays off NOMAD CAMP's
 
   // ── a round of kokpar (TULPAR step 2; open any time) ──
   const kokpar = buildKokparRound(w.sky, floorAt, {
