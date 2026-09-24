@@ -6,8 +6,9 @@
  *                          spectators' horses at the rail, and six riders mid-game galloping laps round it (the generated
  *                          horse-and-rider model, one InstancedMesh moved every frame: lean into the turn, a canter bob)
  *   buildFarHerds(ctx)     the herds in the hundreds on the Sky Grassland: ~260 horses in four herds (the far LOD —
- *                          ~800 tris, vertex-coloured coats tinted per horse — ONE draw), grazing and drifting; the ones
- *                          within ~45 m of the viewer are hidden (the AI herd with the stallion is the near one)
+ *                          ~800 tris, vertex-coloured coats tinted per horse — one draw per herd, frustum-culled), grazing
+ *                          and drifting; the ones within ~45 m of the viewer are hidden (the AI herd with the stallion is
+ *                          the near one); on the phone a herd more than ~165 m off is not drawn
  *   buildSnowLotus(ctx)    snow lotus in the rocks of the snow ring, clustered at SNOW_LOTUS (one instanced draw)
  *
  * Each returns a PoiPiece; the animated ones carry `update(dt, viewer)`, which NalatiPOIs calls every frame.
@@ -150,63 +151,74 @@ export function buildFarHerds(ctx: PoiCtx): PoiPiece {
   const rng = new Rng(0x4e4d);
   const blocked = (x: number, z: number): boolean =>
     inPoiClearing(x, z, 4) || KURGANS.some((k) => Math.hypot(x - k.x, z - k.z) < k.r + 3) || Math.hypot(x - SUMMER_YURTS.x, z - SUMMER_YURTS.z) < 20;
-  interface Horse { x: number; z: number; yaw: number; s: number; hx: number; hz: number; hr: number; speed: number; turn: number; c: number }
-  const horses: Horse[] = [];
-  for (const h of HERDS) {
+  interface Horse { x: number; z: number; yaw: number; s: number; speed: number; turn: number; c: number }
+  interface Herd { x: number; z: number; r: number; horses: Horse[]; mesh: THREE.InstancedMesh | null }
+  const herds: Herd[] = HERDS.map((h) => ({ x: h.x, z: h.z, r: h.r, horses: [], mesh: null }));
+  let total = 0;
+  for (const [hi, h] of HERDS.entries()) {
+    const herd = herds[hi];
+    if (!herd) continue;
     const heading = rng.range(0, Math.PI * 2);
     for (let i = 0, tries = 0; i < h.n && tries < h.n * 20; tries++) {
       const a = rng.range(0, Math.PI * 2), d = Math.sqrt(rng.next()) * h.r;
       const x = h.x + Math.cos(a) * d, z = h.z + Math.sin(a) * d;
-      if (blocked(x, z) || horses.some((q) => Math.hypot(q.x - x, q.z - z) < 2.2)) continue;
+      if (blocked(x, z) || herd.horses.some((q) => Math.hypot(q.x - x, q.z - z) < 2.2)) continue;
       const foal = rng.next() < 0.12;
-      horses.push({ x, z, yaw: heading + rng.range(-1.2, 1.2), s: foal ? rng.range(0.58, 0.66) : rng.range(0.95, 1.06), hx: h.x, hz: h.z, hr: h.r, speed: rng.range(0.05, 0.25), turn: rng.range(-0.15, 0.15), c: rng.int(0, COATS.length - 1) });
+      herd.horses.push({ x, z, yaw: heading + rng.range(-1.2, 1.2), s: foal ? rng.range(0.58, 0.66) : rng.range(0.95, 1.06), speed: rng.range(0.05, 0.25), turn: rng.range(-0.15, 0.15), c: rng.int(0, COATS.length - 1) });
       i++;
     }
+    total += herd.horses.length;
   }
-  let inst: THREE.InstancedMesh | null = null;
-  const HIDE = 45, mat = new THREE.Matrix4(), place: ModelPlacement = { x: 0, y: 0, z: 0 }, col = new THREE.Color();
+  /** hidden within HIDE of the viewer (the AI herd is the near one); on the phone a whole herd goes past FAR */
+  const HIDE = 45, FAR = PHONE ? 165 : Infinity;
+  const mat = new THREE.Matrix4(), place: ModelPlacement = { x: 0, y: 0, z: 0 }, col = new THREE.Color();
   loadNalatiModel(sky, 'horse-wild', { rim: 0.8, bands: 0.85 }, 'far').then((m) => {
-    const im = new THREE.InstancedMesh(m.geometry, m.material, horses.length);
-    im.castShadow = false; im.receiveShadow = true;
-    im.name = 'nalati-far-herds';
-    im.frustumCulled = false; // one mesh over the whole bowl: the instances are culled by distance in update()
-    horses.forEach((h, i) => { const c = COATS[h.c] ?? [1, 1, 1]; im.setColorAt(i, col.setRGB(c[0], c[1], c[2])); });
-    if (im.instanceColor) im.instanceColor.needsUpdate = true;
-    inst = im;
-    group.add(im);
+    for (const herd of herds) {
+      // one InstancedMesh per herd, bounded by the herd's ground: a herd behind the camera costs nothing
+      const im = new THREE.InstancedMesh(m.geometry, m.material, Math.max(1, herd.horses.length));
+      im.castShadow = false; im.receiveShadow = true;
+      im.name = 'nalati-far-herd';
+      im.count = 0;
+      im.boundingSphere = new THREE.Sphere(new THREE.Vector3(herd.x, ground(herd.x, herd.z) + 1, herd.z), herd.r * 1.6 + 6);
+      herd.mesh = im;
+      group.add(im);
+    }
     return m;
   }).catch((e: unknown) => { console.warn('[nalati] far herds failed', e); });
 
   let acc = 1;
   const update = (dt: number, viewer: THREE.Vector3 | null): void => {
-    const m = inst;
-    if (!m) return;
     acc += dt;
     if (acc < 0.25) return; // a quarter-second step: grazing is slow
     const step = acc; acc = 0;
-    let n = 0;
-    for (const h of horses) {
-      // drift: amble along the heading, turn a little, turn back toward the herd's centre when straying
-      h.turn += (rng.next() - 0.5) * 0.08 * step;
-      h.turn = Math.max(-0.2, Math.min(0.2, h.turn));
-      const toC = Math.atan2(h.hx - h.x, h.hz - h.z), off = Math.hypot(h.x - h.hx, h.z - h.hz);
-      let dy = Math.atan2(Math.sin(toC - h.yaw), Math.cos(toC - h.yaw));
-      dy = off > h.hr * 0.9 ? dy * 0.3 : 0;
-      h.yaw += (h.turn + dy) * step;
-      const nx = h.x + Math.sin(h.yaw) * h.speed * step, nz = h.z + Math.cos(h.yaw) * h.speed * step;
-      if (!blocked(nx, nz)) { h.x = nx; h.z = nz; } else h.yaw += 1.5;
-      if (viewer && Math.hypot(h.x - viewer.x, h.z - viewer.z) < HIDE) continue;
-      place.x = h.x; place.z = h.z; place.y = ground(h.x, h.z) - 0.04; place.rot = h.yaw; place.scale = h.s;
-      m.setMatrixAt(n, placementMatrix(place, mat));
-      const c = COATS[h.c] ?? [1, 1, 1];
-      m.setColorAt(n, col.setRGB(c[0], c[1], c[2]));
-      n++;
+    for (const herd of herds) {
+      const m = herd.mesh;
+      if (!m) continue;
+      if (viewer && Math.hypot(herd.x - viewer.x, herd.z - viewer.z) > FAR + herd.r) { m.visible = false; continue; }
+      m.visible = true;
+      let n = 0;
+      for (const h of herd.horses) {
+        // drift: amble along the heading, turn a little, turn back toward the herd's centre when straying
+        h.turn += (rng.next() - 0.5) * 0.08 * step;
+        h.turn = Math.max(-0.2, Math.min(0.2, h.turn));
+        const toC = Math.atan2(herd.x - h.x, herd.z - h.z), off = Math.hypot(h.x - herd.x, h.z - herd.z);
+        const dy = off > herd.r * 0.9 ? Math.atan2(Math.sin(toC - h.yaw), Math.cos(toC - h.yaw)) * 0.3 : 0;
+        h.yaw += (h.turn + dy) * step;
+        const nx = h.x + Math.sin(h.yaw) * h.speed * step, nz = h.z + Math.cos(h.yaw) * h.speed * step;
+        if (!blocked(nx, nz)) { h.x = nx; h.z = nz; } else h.yaw += 1.5;
+        if (viewer && Math.hypot(h.x - viewer.x, h.z - viewer.z) < HIDE) continue;
+        place.x = h.x; place.z = h.z; place.y = ground(h.x, h.z) - 0.04; place.rot = h.yaw; place.scale = h.s;
+        m.setMatrixAt(n, placementMatrix(place, mat));
+        const c = COATS[h.c] ?? [1, 1, 1];
+        m.setColorAt(n, col.setRGB(c[0], c[1], c[2]));
+        n++;
+      }
+      m.count = n;
+      m.instanceMatrix.needsUpdate = true;
+      if (m.instanceColor) m.instanceColor.needsUpdate = true;
     }
-    m.count = n;
-    m.instanceMatrix.needsUpdate = true;
-    if (m.instanceColor) m.instanceColor.needsUpdate = true;
   };
-  return { name: 'farHerds', object: group, colliders: [], platforms: [], tris: horses.length * FAR_TRIS['horse-wild'], update };
+  return { name: 'farHerds', object: group, colliders: [], platforms: [], tris: total * FAR_TRIS['horse-wild'], update };
 }
 
 // ── snow lotus ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -219,7 +231,8 @@ export function buildSnowLotus(ctx: PoiCtx): PoiPiece {
   const places: ModelPlacement[] = [];
   const slope = (x: number, z: number): number => { const e = 1; return Math.hypot(ground(x + e, z) - ground(x - e, z), ground(x, z + e) - ground(x, z - e)) / (2 * e); };
   for (const c of SNOW_LOTUS) {
-    for (let i = 0, tries = 0; i < c.n && tries < c.n * 25; tries++) {
+    const want = Math.round(c.n * (PHONE ? 0.6 : 1));
+    for (let i = 0, tries = 0; i < want && tries < want * 25; tries++) {
       const a = rng.range(0, Math.PI * 2), d = Math.sqrt(rng.next()) * c.r;
       const x = c.x + Math.cos(a) * d, z = c.z + Math.sin(a) * d, y = ground(x, z);
       if (slope(x, z) > 0.9 || y > SNOW_LINE + 45 || places.some((p) => Math.hypot(p.x - x, p.z - z) < 0.9)) continue;

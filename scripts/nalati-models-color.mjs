@@ -67,7 +67,7 @@ const MODELS = {
   chest: { src: 'trellis', k: 0.8 },
   // layout v2 (N9)
   watchtower: { src: 'hy', k: 0.9, sat: 0.8, lift: 6 },
-  'snow-lotus': { src: 'trellis', k: 0.85 },
+  'snow-lotus': { src: 'trellis', k: 0.85, phoneRatio: 0.35 },
   'kokpar-rider': { src: 'hy', k: 0.8, farRatio: 0.12 },
 };
 // the far-herd LOD (<name>.far.glb: ~10 % of the vertices, a 256² atlas) for the instanced herds in the hundreds
