@@ -19,6 +19,7 @@ import { GPU_MODE } from '../gpu/flag';
 import type { GpuPath } from '../gpu/GpuPath';
 import { installViewport, viewportHeight } from './viewport';
 import { FIXED_STEP } from './fixedStep';
+import { SHADOW_LAYER } from './shadowLayer';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
@@ -104,6 +105,15 @@ export class Game {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFShadowMap; // r186 removed PCFSoft: it renders PCF anyway, and the type is in every program's cache key
     setAnisotropy(this.renderer);
+    // shadow-only casters (shadowLayer.ts): the shadow pass tests layers against the view camera, so the view camera sees
+    // SHADOW_LAYER while — and only while — the shadow maps draw. Before this the cabins' depth proxies (PLAY-PERF lever
+    // 12, 46868b5) were never drawn: the cabins cast no wall / roof shadow at all.
+    const shadowMap = this.renderer.shadowMap, renderShadows = shadowMap.render.bind(shadowMap);
+    shadowMap.render = (lights, scene, camera) => {
+      const mask = camera.layers.mask;
+      camera.layers.enable(SHADOW_LAYER);
+      try { renderShadows(lights, scene, camera); } finally { camera.layers.mask = mask; }
+    };
     this.camera = new THREE.PerspectiveCamera(72, window.innerWidth / viewportHeight(), 0.08, 2600);
     window.addEventListener('resize', () => this.resize());
     const mode = GPU_MODE;

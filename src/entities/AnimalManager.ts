@@ -10,6 +10,7 @@ import type { Forest } from '../world/Forest';
 import type { Sky } from '../world/Sky';
 import { AnimalFactory, speciesDef, variantDef, rollVariant, type AnimalKind, type AnimalStyle, type EnemyWorld, type ThinkCtx } from './AnimalFactory';
 import { Animal, damageFor } from './Animal';
+import { attachShadowCaster } from './animalShadow';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from '../core/tier';
 import { noReflect } from '../world/Water';
@@ -330,6 +331,8 @@ export class AnimalManager {
   private shellIdx = new Int32Array(SHELL_MAX);
   /** a melee shard (the sword): telegraphed charges, attacks on an arc (see the header) */
   private readonly melee = getActiveChunk().weapon === 'sword';
+  /** each multi-group rig's one-draw shadow caster (animalShadow.ts); the per-frame shadow distance switches it */
+  private readonly casters = new Map<Animal, THREE.SkinnedMesh>();
 
   /** `opts.style` forces the render style (dev harness); production reads `ChunkDef.style` ('pbr' | 'lowpoly') */
   constructor(private readonly scene: THREE.Scene, private readonly sky: Sky, private readonly forest: Forest, opts: { style?: AnimalStyle | undefined } = {}) {
@@ -494,6 +497,9 @@ export class AnimalManager {
     if (model.shells.length > 0) a.makeShells = () => this.factory.createShells(rig, model);   // none in 'lowpoly'
     a.prepareMaterial = (m) => this.sky.setupMaterial(m);
     a.sampleTerrain();
+    // one shadow draw per animal instead of one per material group (animalShadow.ts; PINE-HOLLOW PH-P1 / P2)
+    const caster = attachShadowCaster(a.mesh);
+    if (caster !== null) this.casters.set(a, caster);
     this.group.add(a.mesh);
     this.animals.push(a);
     const tune = this.tuningFor(a);
@@ -550,7 +556,7 @@ export class AnimalManager {
       if (this.melee && a.state === 'charge' && a.alive && !a.stunned) this.chargeContact(a, playerPos);
       // draw / shadow distance by tier: a deer at 150 m is a few pixels on a phone, and only near animals shadow
       a.mesh.visible = d2 < TIER_CONFIG.animalHideDist * TIER_CONFIG.animalHideDist;
-      a.mesh.castShadow = d2 < TIER_CONFIG.animalShadowDist * TIER_CONFIG.animalShadowDist;
+      (this.casters.get(a) ?? a.mesh).castShadow = d2 < TIER_CONFIG.animalShadowDist * TIER_CONFIG.animalShadowDist;
       a.setDrawLod(d2 < TIER_CONFIG.animalEyeDist * TIER_CONFIG.animalEyeDist ? 0 : d2 < TIER_CONFIG.animalOneDrawDist * TIER_CONFIG.animalOneDrawDist ? 1 : 2);
       if (TIER_CONFIG.furShells && d2 < SHELL_DIST * SHELL_DIST) {
         for (let k = 0; k < SHELL_MAX; k++) if (d2 < (sd[k] ?? Infinity)) {
