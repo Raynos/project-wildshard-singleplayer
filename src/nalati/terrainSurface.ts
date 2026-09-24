@@ -25,7 +25,7 @@ import { TEX_METRES, TEX_MEAN, isPhoneTier, type NalatiTexName } from '../world/
 import { LOOK_V2 } from './look/flag';
 import { V2_OLIVE_GLSL } from './look/light';
 import { LOOK_BAKE_GLSL, bakeUniforms, PHONE_STATIC_OFF_CSM } from './look/bake';
-import { SNOW_LINE } from '../chunks/nalatiLayout';
+import { SNOW_LINE, GLACIER } from '../chunks/nalatiLayout';
 
 export type TerrainTextures = Record<'meadow' | 'path' | 'gravel' | 'rock' | 'snow', THREE.Texture>;
 
@@ -118,12 +118,34 @@ const ZONES_V2 = /* glsl */`
       vec3 scree = tTiled( tGravel, wp * uTexScale.z * 0.6 ) * vec3( 0.84, 0.9, 1.0 );
       vec3 snow = tTiled( tSnow, wp * uSnowScale ) * vec3( 0.97, 1.0, 1.05 );
       // snow in the shade goes blue, in the sun a touch warm
-      snow *= mix( vec3( 0.66, 0.77, 1.02 ), vec3( 1.03, 1.0, 0.96 ), smoothstep( -0.05, 0.45, dot( N, normalize( uPSunDir ) ) ) );
+      snow *= mix( vec3( 0.84, 0.91, 1.08 ), vec3( 1.05, 1.02, 0.97 ), smoothstep( -0.05, 0.45, dot( N, normalize( uPSunDir ) ) ) );
       vec3 g = mix( diffuseColor.rgb, scree, smoothstep( 0.3, 0.6, vSurf.y + brk * 0.4 ) );
       g = mix( g, cragRock( vTWorld, N ), smoothstep( 0.3, 0.6, vSurf.w + brk * 0.3 ) );
       // snow: the def's fields, and above the line the flatter facets of a face catch a dusting of their own
-      float sn = max( smoothstep( 0.35, 0.6, vSurf.z + brk * 0.5 ), smoothstep( 0.8 - 0.16 * smoothstep( 65.0, 100.0, vTWorld.y ), 0.9 - 0.16 * smoothstep( 65.0, 100.0, vTWorld.y ), n ) * smoothstep( ${SNOW_LINE.toFixed(1)}, ${(SNOW_LINE + 10).toFixed(1)}, vTWorld.y + brk * 12.0 ) * 0.9 );
+      float hiS = smoothstep( 44.0, 84.0, vTWorld.y );
+      float sn = max( smoothstep( 0.35, 0.6, vSurf.z + brk * 0.5 ), smoothstep( 0.8 - 0.3 * hiS, 0.9 - 0.3 * hiS, n ) * smoothstep( ${(SNOW_LINE - 10).toFixed(1)}, ${(SNOW_LINE + 2).toFixed(1)}, vTWorld.y + brk * 12.0 ) * 0.9 );
+      // high up the snow also streaks down the steep faces' gullies (the round-8 peaks read white, ribbed with rock)
+      float fu = mix( vTWorld.x, vTWorld.z, abs( N.x ) / ( abs( N.x ) + abs( N.z ) + 1e-3 ) );
+      sn = max( sn, smoothstep( 0.46, 0.6, tNoise( vec2( fu * 0.07, vTWorld.y * 0.012 ) ) + brk * 0.25 + hiS * 0.12 ) * hiS * 0.94 );
       g = mix( g, snow, sn );
+      // the glacier tongue (GLACIER), per pixel: the snow going blue-white down the flow, crevasse bands across it
+      // (bowed downstream in the middle, where the ice flows fastest; sparse up top), grey moraine along both edges.
+      // Its snout's ice cliff and portal are Bowl.ts's mesh.
+      {
+        vec2 ga = vec2( ${GLACIER.x0.toFixed(1)}, ${GLACIER.z0.toFixed(1)} ), gb = vec2( ${(GLACIER.x1 - GLACIER.x0).toFixed(1)}, ${(GLACIER.z1 - GLACIER.z0).toFixed(1)} );
+        float gt = dot( wp - ga, gb ) / dot( gb, gb );
+        float gv = length( wp - ( ga + gb * gt ) ) / ${GLACIER.half.toFixed(1)} + ( tNoise( wp * 0.09 ) - 0.5 ) * 0.14;
+        float gm = smoothstep( 1.02, 0.86, gv ) * smoothstep( -0.1, 0.04, gt ) * smoothstep( 1.03, 0.97, gt );
+        if ( gm > 0.001 ) {
+          vec3 ice = snow * mix( vec3( 0.93, 0.98, 1.04 ), vec3( 0.72, 0.86, 1.03 ), smoothstep( 0.15, 1.0, gt ) );
+          float cs = gt * ${Math.hypot(GLACIER.x1 - GLACIER.x0, GLACIER.z1 - GLACIER.z0).toFixed(1)} / 7.0 + ( 1.0 - gv * gv ) * 0.9 + ( tNoise( wp * 0.13 ) - 0.5 ) * 0.45;
+          float crev = smoothstep( 0.84, 0.96, 1.0 - abs( fract( cs ) - 0.5 ) * 2.0 ) * smoothstep( 0.3, 0.55, tNoise( vec2( cs * 2.3, gv * 5.0 ) ) );
+          crev *= 0.35 + 0.65 * min( 1.0, gt * 1.6 );
+          ice = mix( ice, vec3( 0.2, 0.36, 0.52 ), crev * 0.85 );
+          ice = mix( ice, scree * 0.92, smoothstep( 0.72, 0.97, gv ) * 0.8 );
+          g = mix( g, ice, gm );
+        }
+      }
       diffuseColor.rgb = mix( diffuseColor.rgb, g, zw.z );
     }
   }
