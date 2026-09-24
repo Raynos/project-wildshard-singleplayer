@@ -80,8 +80,8 @@ export function snowValleyFloor(z: number): number {
 export const GLACIER = { x0: -150, z0: -55, y0: 80, x1: -48, z1: -92, y1: 36, half: 24 };
 /** the meltwater stream: from the glacier's snout across the valley head and down the valley floor to the S edge */
 export const MELT_STREAM: XZ[] = [[-46, -94], [-34, -101], [-24, -113], [-18, -132], [-22, -156], [-16, -180], [-22, -205], [-27, -228], [-29, -250]];
-/** Aqbars' cave on the west massif's flank, the mouth facing NE toward the valley head (a `rot`: 0 faces −z) */
-export const LEOPARD_CAVE = { x: 175, z: -98, y: 55, rot: Math.PI * 0.75 };
+/** Aqbars' cave on the west massif's north flank, the mouth facing north over the bowl (a `rot`: 0 faces −z; the spec's (+175, −98) was deep inside the massif) */
+export const LEOPARD_CAVE = { x: 138, z: -68, y: 54, rot: Math.PI * 0.85 };
 /** snow lotus clusters in the rocks: the biggest on the west massif's foot (the spec's (+143, −136) sits at +82 on the
  *  massif, out of reach — brought down to +60), the rest on Snow Lotus Valley's walls */
 export const SNOW_LOTUS: { x: number; z: number; r: number; n: number }[] = [

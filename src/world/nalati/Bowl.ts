@@ -10,14 +10,15 @@
  *                          and drifting; the ones within ~45 m of the viewer are hidden (the AI herd with the stallion is
  *                          the near one); on the phone a herd more than ~165 m off is not drawn
  *   buildSnowLotus(ctx)    snow lotus in the rocks of the snow ring, clustered at SNOW_LOTUS (one instanced draw)
+ *   buildGlacier(ctx)      the glacier tongue's ice skin (crevasse bands, moraine edges) + the snout's ice cliff and portal
  *
  * Each returns a PoiPiece; the animated ones carry `update(dt, viewer)`, which NalatiPOIs calls every frame.
  */
 import * as THREE from 'three';
-import { PaintKit, M, pole, v3, blob } from './paint';
+import { PaintKit, M, pole, v3, blob, poiMaterial } from './paint';
 import { PC } from './props';
 import { ModelSink, loadNalatiModel, instanceModel, MODEL_SIZE, MODEL_TRIS, FAR_TRIS, placementMatrix, type ModelPlacement } from './glbPaint';
-import { WATCHTOWER, KOKPAR, HORSE_PLAINS, SNOW_LOTUS, KURGANS, SUMMER_YURTS, SNOW_LINE } from '../../chunks/nalatiLayout';
+import { WATCHTOWER, KOKPAR, HORSE_PLAINS, SNOW_LOTUS, KURGANS, SUMMER_YURTS, SNOW_LINE, GLACIER } from '../../chunks/nalatiLayout';
 import { inPoiClearing } from './clearings';
 import { Rng } from '../../core/rng';
 import { TIER } from '../../core/tier';
@@ -243,4 +244,73 @@ export function buildSnowLotus(ctx: PoiCtx): PoiPiece {
   void loadNalatiModel(sky, 'snow-lotus', { rim: 0.6, bands: 0.7 }).then((m) => { group.add(instanceModel(m, places, { castShadow: !PHONE })); return m; })
     .catch((e: unknown) => { console.warn('[nalati] snow lotus failed', e); });
   return { name: 'snowLotus', object: group, colliders: [], platforms: [], tris: places.length * MODEL_TRIS['snow-lotus'] };
+}
+
+// ── the glacier ──────────────────────────────────────────────────────────────────────────────────────────────────────
+
+const ICE = { hi: new THREE.Color('#e9f2f8'), mid: new THREE.Color('#bcd6e8'), deep: new THREE.Color('#6f9fc4'), crevasse: new THREE.Color('#3f6f98'), moraine: new THREE.Color('#8a857c'), dark: new THREE.Color('#10202c') };
+
+/**
+ * The glacier tongue as ice (the terrain shapes its convex ramp, `GLACIER`): a skin laid over it — white-blue ice with
+ * crevasse bands across the flow and grey moraine along both edges — and at the snout a blue ice cliff with the dark
+ * portal the meltwater stream runs out of. One mesh on the POI material.
+ */
+export function buildGlacier(ctx: PoiCtx): PoiPiece {
+  const { sky, ground } = ctx;
+  const ax = GLACIER.x1 - GLACIER.x0, az = GLACIER.z1 - GLACIER.z0, len = Math.hypot(ax, az);
+  const ux = ax / len, uz = az / len, px = -uz, pz = ux;                        // along the flow, and across it
+  const noise = new Rng(0x61ac);
+  const jit = Array.from({ length: 64 }, () => noise.range(-1, 1));
+  const at = (t: number, v: number): { x: number; z: number } => ({ x: GLACIER.x0 + ax * t + px * v * GLACIER.half, z: GLACIER.z0 + az * t + pz * v * GLACIER.half });
+  const pos: number[] = [], col: number[] = [], idx: number[] = [];
+  const NT = 56, NV = 18, T0 = 0.02, T1 = 0.985;
+  const c = new THREE.Color();
+  for (let i = 0; i <= NT; i++) {
+    const t = T0 + (T1 - T0) * (i / NT);
+    for (let j = 0; j <= NV; j++) {
+      const v = (j / NV) * 2 - 1;
+      const w = 0.93 - 0.05 * Math.abs(jit[(i * 7 + j) % 64] ?? 0);
+      const p = at(t, v * w);
+      pos.push(p.x, ground(p.x, p.z) + 0.14, p.z);
+      // crevasses: bands across the flow, bowed downstream at the middle (the ice flows faster there), sparser on top
+      const s = t * len / 7 + (1 - v * v) * 0.9 + (jit[(i + j * 3) % 64] ?? 0) * 0.12;
+      const band = Math.max(0, 1 - Math.abs(s - Math.round(s)) * 7) * (0.35 + 0.65 * Math.min(1, t * 1.6));
+      c.copy(ICE.hi).lerp(ICE.mid, 0.3 + 0.3 * t + (jit[(i * 3 + j) % 64] ?? 0) * 0.1).lerp(ICE.crevasse, band * 0.75);
+      c.lerp(ICE.moraine, Math.max(0, (Math.abs(v) - 0.78) / 0.22) * 0.85);
+      col.push(c.r, c.g, c.b);
+    }
+  }
+  for (let i = 0; i < NT; i++) for (let j = 0; j < NV; j++) {
+    const a = i * (NV + 1) + j, b = a + NV + 1;
+    idx.push(a, a + 1, b, a + 1, b + 1, b);
+  }
+  // the snout: an ice cliff from the tongue's last row down to the valley floor, the portal dark in its middle
+  const base = pos.length / 3;
+  const tEnd = T1, drop = 2.5;
+  for (let j = 0; j <= NV; j++) {
+    const v = ((j / NV) * 2 - 1) * 0.93;
+    const top = at(tEnd, v), foot = at(tEnd + 0.03, v * 1.04);
+    const yTop = ground(top.x, top.z) + 0.14, yFoot = ground(foot.x, foot.z) - drop;
+    for (let k = 0; k <= 4; k++) {
+      const f = k / 4;
+      pos.push(top.x + (foot.x - top.x) * f, yTop + (yFoot - yTop) * f, top.z + (foot.z - top.z) * f);
+      const portal = Math.max(0, 1 - Math.abs(v - 0.1) / 0.16) * (f > 0.45 ? 1 : 0);
+      c.copy(ICE.mid).lerp(ICE.deep, 0.35 + f * 0.5).lerp(ICE.dark, portal * 0.9);
+      col.push(c.r, c.g, c.b);
+    }
+  }
+  for (let j = 0; j < NV; j++) for (let k = 0; k < 4; k++) {
+    const a = base + j * 5 + k, b = a + 5;
+    idx.push(a, b, a + 1, a + 1, b, b + 1);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  geo.computeBoundingSphere();
+  const mesh = new THREE.Mesh(geo, poiMaterial(sky));
+  mesh.name = 'nalati-glacier';
+  mesh.receiveShadow = true; mesh.castShadow = false;
+  return { name: 'glacier', object: mesh, colliders: [], platforms: [], tris: idx.length / 3 };
 }

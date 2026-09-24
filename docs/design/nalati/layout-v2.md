@@ -64,3 +64,19 @@ Read from the map (1 px ≈ 0.43 m, centre at px 627 / 640). Every POI module re
 | herds in the hundreds (instanced far herds, cheap), the kokpar field + riders, the ruined watchtower | layout rebuild (+ models) |
 | the horizon + painted backdrop re-aimed to the new layout (mountains south / east) | look agent |
 | minimap / full map for the new layout | features agent (B15) |
+
+## As built (2026-09-23, the layout rebuild — `src/chunks/nalatiLayout.ts` is the source of truth)
+
+Where the build moved a spec coordinate, and why:
+
+| POI | spec | built | why |
+|---|---|---|---|
+| Kunes | z +150 … +190 | centre z ≈ 168 (172 under the bridge), half-width 9 … 20 | kept north of the escarpment's foot so the climb to the rim is a slope, not a cliff |
+| Nomad camp | (+88, +196) | (+88, +212) | clear of the river's north bank |
+| Sheep pasture | (−120, +192) | (−120, +212), r 32 | the same |
+| North rim | z +110 … +140 | z ≈ +96 (bowing to ≈ +80 round the sky road), +34 | a wider, gentler escarpment; the sky road's five legs climb it at ~13 % |
+| Bowl | z +110 … −45 | squircle round (0, +24), 410 × 144 m | follows the rim |
+| Watchtower | (−214, −9) | (−208, −38), +44 | the spec spot is on the E road's levelled mouth (y = 0) |
+| Snow leopard cave | (+175, −98), +55 | (+138, −68), +54, facing north over the bowl | the spec spot is inside the west massif (+90) |
+| Snow lotus | round (+143, −136) | the biggest cluster at (+96, −112), +59; the rest on Snow Lotus Valley's walls | (+143, −136) is at +82 on the massif, out of reach |
+| Kokbori's den / Qara's cairn / Argymaq | — | (−172, +118) / (+82, −50) / (−160, −72) bench +52 | not in the spec |

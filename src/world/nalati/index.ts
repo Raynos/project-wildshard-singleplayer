@@ -26,7 +26,7 @@ import { buildBalbals, type Balbals } from './Balbals';
 import { buildEagleRock } from './EagleRock';
 import { buildCairn } from './Cairn';
 import { buildCrags, type Ledge } from './Crags';
-import { buildWatchtower, buildKokpar, buildFarHerds, buildSnowLotus } from './Bowl';
+import { buildWatchtower, buildKokpar, buildFarHerds, buildSnowLotus, buildGlacier } from './Bowl';
 import type { Collider } from '../../player/Player';
 import type { Sky } from '../Sky';
 import type { Ground, Platform, PoiCtx, PoiPiece } from './types';
@@ -85,6 +85,7 @@ export class NalatiPOIs {
     run('kokpar', buildKokpar);
     run('farHerds', buildFarHerds);
     run('snowLotus', buildSnowLotus);
+    run('glacier', buildGlacier);
     if (this.flutter.count > 0) this.group.add(this.flutter.build(this.sky));
     if (this.smoke.count > 0) this.group.add(this.smoke.build(this.sky));
     return this;
