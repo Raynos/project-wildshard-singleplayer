@@ -1,0 +1,132 @@
+{
+  "style": "piano",
+  "set": "pine-hollow",
+  "model": "MiniMax-Music3",
+  "credit": "Music: MiniMax-Music3",
+  "slots": {
+    "night": {
+      "calm": "night-calm-e935c4a1.m4a",
+      "bpm": 93.892,
+      "beatsPerBar": 4,
+      "loopStart": 15.6502,
+      "loopEnd": 46.3238,
+      "duration": 48.896,
+      "tension": "night-tension-48423068.m4a"
+    },
+    "boss": {
+      "calm": "boss-base-8b00b5cf.m4a",
+      "bpm": 84.375,
+      "beatsPerBar": 4,
+      "loopStart": 17.1828,
+      "loopEnd": 51.3161,
+      "duration": 54.1653,
+      "layers": [
+        "boss-bass-0ff27574.m4a",
+        "boss-drums-c4644a0b.m4a"
+      ],
+      "phases": {
+        "1": [
+          0.6,
+          0.0
+        ],
+        "2": [
+          1.0,
+          0.55
+        ],
+        "3": [
+          1.0,
+          1.0
+        ]
+      },
+      "phaseNames": {
+        "1": "I - the Warden",
+        "2": "II - Lanterns Fall",
+        "3": "III - the Last Light"
+      }
+    }
+  },
+  "stings": {
+    "dawn": "sting-dawn-6b0b4004.m4a"
+  },
+  "provenance": [
+    {
+      "file": "night-calm-e935c4a1.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: video game soundtrack, dark ambient piano with a slow, soft pulse. BPM: 76. Key: D minor. Instrumental only, no vocals, no choir. Setting: Pine Hollow at night, an eerie folklore forest - lanterns glowing between black pines, fog on the ground, something old watching from the trees; hushed and unsettling, never scary. Arrangement: a sparse, haunting grand-piano melody in the low-middle register with long rests, over a cold string drone and a faint music-box shimmer; a warm upright bass and a soft, steady heartbeat pulse of felt kick, brushed snare and low tom run under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Production: close felt piano, dark wooden-room reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 402,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-402",
+      "stem": "calm: mix - drums - bass/2",
+      "gain_db": 1.3
+    },
+    {
+      "file": "night-tension-48423068.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: video game soundtrack, dark ambient piano with a slow, soft pulse. BPM: 76. Key: D minor. Instrumental only, no vocals, no choir. Setting: Pine Hollow at night, an eerie folklore forest - lanterns glowing between black pines, fog on the ground, something old watching from the trees; hushed and unsettling, never scary. Arrangement: a sparse, haunting grand-piano melody in the low-middle register with long rests, over a cold string drone and a faint music-box shimmer; a warm upright bass and a soft, steady heartbeat pulse of felt kick, brushed snare and low tom run under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Production: close felt piano, dark wooden-room reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 402,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-402",
+      "stem": "tension: drums + bass/2 (htdemucs), mono",
+      "gain_db": 1.3
+    },
+    {
+      "file": "boss-base-8b00b5cf.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: video game boss battle music, dark cinematic piano and strings. BPM: 120. Key: D minor. Instrumental only, no vocals, no choir. The fight with the Antler King, an ancient forest guardian gone wrong, in a fog-filled clearing of standing stones and hanging lanterns - relentless, ominous, heroic underneath. Arrangement: a driving, hammered low-piano ostinato and a dark piano melody in octaves, over urgent string stabs; a heavy bass and a powerful, steady groove of taiko, kick, snare and toms runs under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Production: big, close and punchy, dark hall reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 401,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-401",
+      "stem": "base: mix - drums - bass",
+      "gain_db": -1.4
+    },
+    {
+      "file": "boss-bass-0ff27574.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: video game boss battle music, dark cinematic piano and strings. BPM: 120. Key: D minor. Instrumental only, no vocals, no choir. The fight with the Antler King, an ancient forest guardian gone wrong, in a fog-filled clearing of standing stones and hanging lanterns - relentless, ominous, heroic underneath. Arrangement: a driving, hammered low-piano ostinato and a dark piano melody in octaves, over urgent string stabs; a heavy bass and a powerful, steady groove of taiko, kick, snare and toms runs under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Production: big, close and punchy, dark hall reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 401,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-401",
+      "stem": "bass (htdemucs), mono",
+      "gain_db": -1.4
+    },
+    {
+      "file": "boss-drums-c4644a0b.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: video game boss battle music, dark cinematic piano and strings. BPM: 120. Key: D minor. Instrumental only, no vocals, no choir. The fight with the Antler King, an ancient forest guardian gone wrong, in a fog-filled clearing of standing stones and hanging lanterns - relentless, ominous, heroic underneath. Arrangement: a driving, hammered low-piano ostinato and a dark piano melody in octaves, over urgent string stabs; a heavy bass and a powerful, steady groove of taiko, kick, snare and toms runs under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Production: big, close and punchy, dark hall reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 401,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-401",
+      "stem": "drums (htdemucs), mono",
+      "gain_db": -1.4
+    },
+    {
+      "file": "sting-dawn-6b0b4004.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: video game victory and dawn theme, cinematic piano. BPM: 84. Key: D major. Instrumental only, no vocals, no choir. The quest's end: the Antler King is laid to rest and the first light of dawn rises over Pine Hollow, the fog lifting from the pines - relief, warmth, quiet triumph. Arrangement: a gentle grand-piano melody that opens up into warm strings and a cello line, swelling to one radiant, hopeful climax, then ends on a long resolved major chord that rings out. Production: rich close piano, warm hall reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Solo]\n[Instrumental]\n[Outro]",
+      "seed": 404,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-404",
+      "cut_from": "dawn at 47.05s (the last 8 s: the resolve)",
+      "seconds": 8.0,
+      "gain_db": 1.2
+    }
+  ]
+}
