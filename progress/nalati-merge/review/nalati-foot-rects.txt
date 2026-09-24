@@ -1,0 +1,54 @@
+ws-stealth                                       0,0 390x844 Visible Grass Tall grass
+ws-stealth-eye                                   150,455 20x20 
+ws-touch strip bow nalati                        0,0 390x844 Use 100VitalsBowArrows24 / 24 Draw Lock 
+ws-touch-status                                  12,36 180x50 100VitalsBowArrows24 / 24
+ws-game-vitals                                   12,36 170x22 100Vitals
+ws-game-glyph                                    22,40 15x15 
+ws-game-num                                      44,37 31x21 100
+ws-game-bolts                                    12,62 180x24 BowArrows24 / 24
+ws-game-tiny                                     22,65 37x18 BowArrows
+ws-game-num                                      107,64 53x21 24 / 24
+ws-game-glyph                                    167,67 15x15 
+ws-touch-disc aim                                269,619 59x59 Draw
+ws-touch-disc dodge                              247,609 59x59 Dodge
+ws-touch-disc jump                               324,601 59x59 Jump
+ws-touch-pause                                   12,6 81x24 Pause
+ws-touch-bar                                     0,717 390x127 MoveSprint Look
+ws-touch-zone move                               0,718 176x126 MoveSprint
+ws-touch-stick                                   39,733 96x96 
+ws-touch-zone look                               176,718 215x126 Look
+ws-touch-lookpad                                 283,734 94x94 Look
+ws-touch-attack                                  176,734 94x94 AttackFireHold = heavy
+ws-touch-pill show                               147,694 58x24 Swap
+ws-touch-hover                                   8,690 94x28 Hover
+ws-touch-strip                                   83,623 138x42 1Bow242Sabre3Spear3
+ws-touch-slot on                                 83,623 42x42 1Bow24
+ws-touch-slot                                    131,623 42x42 2Sabre
+ws-touch-slot                                    179,623 42x42 3Spear3
+ws-touch-disc ws-ride-horse                      338,328 52x52 Horse
+ws-game-bt                                       98,199 195x56 Chunk boundary
+ws-game-bs                                       98,260 195x39 No-man's land beyond · nothing has been 
+ws-minimap                                       270,6 106x106 N
+ws-minimap-canvas                                271,7 104x104 
+ws-elite-skulls                                  271,7 104x104 
+ws-boss                                          0,0 390x844 HOLD TO SKIP
+ws-boss-bar-frame                                12,192 366x20 
+ws-boss-bar-cap l                                12,191 34x22 
+ws-boss-bar-cap r                                344,191 34x22 
+ws-boss-card-band top                            0,-84 390x84 
+ws-boss-card-band bottom                         0,844 390x84 
+ws-boss-card-emblem                              166,406 58x38 
+ws-boss-reward-gem                               187,162 17x17 
+ws-elite                                         0,0 390x844 NAMED ELITE NEARBY
+ws-elite-frame                                   -105,-60 210x20 
+ws-elite-skull                                   -105,-61 22x22 
+ws-elite-skull                                   36,178 30x30 
+ws-elite-banner-text                             78,185 184x16 NAMED ELITE NEARBY
+ws-boss                                          0,0 390x844 HOLD TO SKIP
+ws-boss-bar-frame                                12,192 366x20 
+ws-boss-bar-cap l                                12,191 34x22 
+ws-boss-bar-cap r                                344,191 34x22 
+ws-boss-card-band top                            0,-84 390x84 
+ws-boss-card-band bottom                         0,844 390x84 
+ws-boss-card-emblem                              166,406 58x38 
+ws-boss-reward-gem                               187,162 17x17 
