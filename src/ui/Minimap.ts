@@ -462,7 +462,6 @@ export class Minimap {
         for (const poly of TRAILS) poly.forEach(([x, z], i) => (i ? ctx.lineTo(toU(x), toV(z)) : ctx.moveTo(toU(x), toV(z))));
         ctx.stroke();
       }
-      this.paintMs = performance.now() - t0;
       return;
     }
     if (ocean) {
