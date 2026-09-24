@@ -308,6 +308,10 @@ export class AnimalFactory {
         sheen: Math.max(0.01, style.sheen), sheenRoughness: 0.7, sheenColor: col3(style.sheenColor), envMapIntensity: style.envMapIntensity,
       });
       if (style.emissive !== undefined) { fur.emissive = col3(style.emissive); fur.emissiveIntensity = style.emissiveIntensity ?? 1; }
+      // traits.selfLight: the coat fed back as emissive (the Antler King reads in his night fight, as the Drowned Captain's
+      // selfLight) — its own program, only on that variant
+      const selfLight = Number(v.traits?.['selfLight'] ?? 0);
+      if (selfLight > 0) { fur.emissiveMap = hull.map; fur.emissive.setRGB(1, 1, 1); fur.emissiveIntensity = selfLight; }
       const rim = col3(style.rim);
       this.patchFur(fur, rim, undefined, -1, hull.thrall);
       this.sky.setupMaterial(fur);

@@ -6,8 +6,9 @@
  */
 import { TIER } from '../core/tier';
 
-export type PineRigName = 'deer-hind' | 'deer-stag' | 'boar' | 'elk-cow' | 'elk-bull' | 'bear-black' | 'bear-brown';
-export const PINE_CREATURE_RIGS: readonly PineRigName[] = ['deer-hind', 'deer-stag', 'boar', 'elk-cow', 'elk-bull', 'bear-black', 'bear-brown'];
+export type PineRigName = 'deer-hind' | 'deer-stag' | 'boar' | 'elk-cow' | 'elk-bull' | 'bear-black' | 'bear-brown' | 'antler-king';
+/** every rig; 'antler-king' is the Bark Warden (PH-M3), bound to the elk's bones and drawn ×2.6 (src/pinehollow/kingModel.ts) */
+export const PINE_CREATURE_RIGS: readonly PineRigName[] = ['deer-hind', 'deer-stag', 'boar', 'elk-cow', 'elk-bull', 'bear-black', 'bear-brown', 'antler-king'];
 
 /** the file `loadPineRig(name)` fetches on this tier: `<hull>[.phone].rigged.glb` */
 export function pineCreatureRigUrl(name: PineRigName, tier: 'phone' | 'desktop' = TIER): string {

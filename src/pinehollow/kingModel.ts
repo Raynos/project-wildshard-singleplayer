@@ -16,6 +16,11 @@ import type { Sky } from '../world/Sky';
  *     ribs spread, the core flares) for the shot window
  *   · a bone-white SKULL plate over the face
  *
+ * PH-M3 (the swap, done): with the generated creatures on (pineCreatures.ts, `?creatures=proc` = this stand-in) the King
+ * is the Bark Warden hull — `public/assets/pine-hollow/creatures/antler-king[.phone].rigged.glb`, codex ref → Hunyuan3D-2 →
+ * rig-baked onto the elk's bones (art/pine-hollow/round-9-creature-refs/) — and `dressAntlerKing` hangs the lanterns off
+ * its own rack and drops the skull plate (the hull has its skull face); the ribcage stays this kit's emissive part.
+ *
  * THE SWAP: everything model-specific is here — `KING_VARIANT` (the coat), `KING_ANTLER_SCALE`, and `dressAntlerKing()`
  * (the one factory the fight calls on a freshly spawned King). When PH-M3's Bark Warden hull exists, `dressAntlerKing`
  * keeps its `KingLook` contract (lanterns / ribcage / glow) and attaches to the hull's bones instead; antlerKing.ts
@@ -36,7 +41,8 @@ export const KING_VARIANT: VariantDef = {
     belly: [0.07, 0.06, 0.045], rump: [0.19, 0.22, 0.12], legDark: [0.065, 0.055, 0.045],
     antler: [0.42, 0.38, 0.31], antlerTip: [0.78, 0.74, 0.64],
   },
-  traits: { antlers: 1, antlerScale: KING_ANTLER_SCALE },
+  // selfLight: on the Bark Warden hull (PH-M3) his bark and bone feed back as emissive, so he reads in the dark arena
+  traits: { antlers: 1, antlerScale: KING_ANTLER_SCALE, selfLight: 0.45 },
 };
 
 /** where the three lanterns hang (head-bone local, model units): off the left dagger tine, the right beam, the right fifth tine */
@@ -44,6 +50,8 @@ const LANTERN_AT: [number, number, number][] = [[-0.6, 1.5, -0.19], [0.7, 1.02, 
 /** the ribcage basket (body-bone local): on the brisket, pushing out of the chest */
 const RIB_AT: [number, number, number] = [0, -0.22, 0.6];
 const RIB_R = 0.36;
+/** on the Bark Warden hull: in its chest cavity (body-bone local) */
+const RIB_AT_HULL: [number, number, number] = [0, -0.22, 0.6];
 
 const AMBER = new THREE.Color(1.0, 0.56, 0.16);
 
@@ -102,7 +110,43 @@ export interface KingLook {
   dispose: () => void;
 }
 
-/** dress a freshly spawned King (the species' elk rig): lanterns on the head bone, the ribcage on the body bone */
+/** the King is on a generated hull (pineCreatures.ts): one group and no fur-shell `furLen` (the procedural loft has it) */
+const isHull = (a: Animal): boolean => !a.mesh.geometry.hasAttribute('furLen');
+
+/**
+ * PH-M3: where the lanterns hang on the Bark Warden's own rack (head-bone local, model units) — three tine ends picked off
+ * the hull: the rack's outermost left and right points and the right beam's middle, each lantern hung just under its
+ * tine. Null when the King is the procedural stand-in (the offsets above) or the hull has no rack above the head.
+ */
+function hullLanterns(a: Animal): [number, number, number][] | null {
+  if (!isHull(a)) return null;
+  // the head bone's rest position, from the skeleton's bind (model units, the rig's own joints)
+  const sk = a.mesh.skeleton, hi = sk.bones.findIndex((b) => b.name === 'head'), inv = sk.boneInverses[hi];
+  if (hi === -1 || !inv) return null;
+  const hp = new THREE.Vector3().setFromMatrixPosition(inv.clone().invert());
+  const head: [number, number, number] = [hp.x, hp.y, hp.z];
+  const P = a.mesh.geometry.getAttribute('position');
+  let left = -1, right = -1, mid = -1, lx = Infinity, rx = -Infinity, best = -Infinity;
+  const above = (i: number): boolean => P.getY(i) > head[1] + 0.25 && Math.abs(P.getZ(i) - head[2]) < 1.2;
+  for (let i = 0; i < P.count; i++) {
+    if (!above(i)) continue;
+    const x = P.getX(i);
+    if (x < lx) { lx = x; left = i; }
+    if (x > rx) { rx = x; right = i; }
+  }
+  if (left < 0 || right < 0) return null;
+  // the right beam's middle: the highest rack point about halfway out to the right
+  for (let i = 0; i < P.count; i++) {
+    if (!above(i)) continue;
+    const x = P.getX(i);
+    if (Math.abs(x - rx * 0.5) < Math.abs(rx) * 0.15 && P.getY(i) > best) { best = P.getY(i); mid = i; }
+  }
+  const at = (i: number): [number, number, number] => [P.getX(i) - head[0], P.getY(i) - head[1] - 0.2, P.getZ(i) - head[2]];
+  return mid >= 0 ? [at(left), at(right), at(mid)] : [at(left), at(right)];
+}
+
+/** dress a freshly spawned King: lanterns on the head bone, the ribcage on the body bone. On the Bark Warden hull
+ *  (PH-M3, the generated model: its own skull face and rack) the lanterns hang off its rack and the skull plate is left off */
 export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
   const head = a.mesh.getObjectByName('head'), body = a.mesh.getObjectByName('body');
   if (!head || !body) throw new Error('antler-king: the rig has no head / body bone');
@@ -115,16 +159,20 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
     g.add(f, gl);
     return g;
   };
-  for (const p of LANTERN_AT) {
+  const hull = isHull(a);
+  for (const p of hullLanterns(a) ?? LANTERN_AT) {
     const l = makeLantern();
     l.position.set(p[0], p[1], p[2]);
     head.add(l); lanterns.push(l); own.push(l);
   }
-  const skull = new THREE.Mesh(kit.skullGeo, kit.skullMat);
-  skull.position.set(0, 0.03, 0.2); skull.rotation.x = 0.55; skull.castShadow = false;
-  head.add(skull); own.push(skull);
+  if (!hull) {
+    const skull = new THREE.Mesh(kit.skullGeo, kit.skullMat);
+    skull.position.set(0, 0.03, 0.2); skull.rotation.x = 0.55; skull.castShadow = false;
+    head.add(skull); own.push(skull);
+  }
   const cage = new THREE.Group();
-  cage.position.set(RIB_AT[0], RIB_AT[1], RIB_AT[2]);
+  const rib = hull ? RIB_AT_HULL : RIB_AT;
+  cage.position.set(rib[0], rib[1], rib[2]);
   const ribs = new THREE.Mesh(kit.ribGeo, kit.ribMat), core = new THREE.Mesh(kit.coreGeo, kit.coreMat);
   ribs.castShadow = false; core.castShadow = false;
   cage.add(core, ribs);

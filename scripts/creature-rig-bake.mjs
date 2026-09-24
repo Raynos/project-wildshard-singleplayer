@@ -49,6 +49,9 @@ export const CHUNKS = {
       // the black bear's leg columns merge in the length fit, so one scale
       { hull: 'bear-black', kind: 'bear', variant: 'black', phoneTris: 4500, opts: { unpose: false, fit: 'uniform' } },
       { hull: 'bear-brown', kind: 'bear', variant: 'brown', phoneTris: 4500, opts: { unpose: false } },
+      // PH-M3 the Antler King, the Bark Warden: his own hull on the elk's bones (the fight draws him ×2.6, antlerKing.ts);
+      // bound to the bull's skeleton (the King's species is the elk re-registered, the same bones by name)
+      { hull: 'antler-king', kind: 'elk', variant: 'bull', phoneTris: 14000, opts: {} },
     ],
   },
 };

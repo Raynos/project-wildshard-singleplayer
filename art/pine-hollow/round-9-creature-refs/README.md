@@ -11,6 +11,12 @@ the procedural fallback.
 | `<hull>.glb`, `<hull>.phone.glb` | the rig-ready hull: PBR base colour (colour-matched to the reference) + tangent-space normal map, 1024² / 512² WebP |
 | `board-<species>.jpg` | versus board per hull: reference · procedural before · generated after (in engine, desktop, day) |
 
+PH-M3, the Antler King (board B2 pick A, the Bark Warden): `ref-antler-king.jpg` (the one built; `ref-antler-king-alt.jpg`
+the 3/4 alternative), `antler-king.glb` / `.phone.glb` (Hunyuan3D-2 full + paint, 22 k / 14 k tris), rig-baked onto the
+elk's bones and drawn ×2.6 by the fight (`src/pinehollow/kingModel.ts`: the lanterns hang off his own rack, the ribcage
+stays the fight's emissive part, `traits.selfLight` feeds his bark back as emissive); `board-antler-king.jpg` = concept ·
+reference · the model by day · the stand-in's phase I · his phase I and III.
+
 Hulls: `deer-hind` (TRELLIS.2), `deer-stag`, `boar`, `elk-cow`, `elk-bull`, `bear-black`, `bear-brown` (Hunyuan3D-2 full +
 paint). TRELLIS.2's Mac port leaves shaggy coats (manes, the boar's bristles, the bears) as open, holed shells, so those
 are Hunyuan's watertight meshes; the hind's short coat came out clean on TRELLIS.

@@ -46,7 +46,7 @@ const CHUNKS = {
     src: 'art/pine-hollow/round-9-creature-refs',
     hulls: {
       'deer-hind': { k: 0.85 }, 'deer-stag': { k: 0.85 }, boar: { k: 0.85 },
-      'elk-cow': { k: 0.85 }, 'elk-bull': { k: 0.85 }, 'bear-black': { k: 0.8, lift: 2 }, 'bear-brown': { k: 0.85 },
+      'elk-cow': { k: 0.85 }, 'elk-bull': { k: 0.85 }, 'bear-black': { k: 0.8, lift: 2 }, 'bear-brown': { k: 0.85 }, 'antler-king': { k: 0.8 },
     },
   },
 };

@@ -294,6 +294,8 @@ export const PUBLIC_BYTES = {
   "/assets/music/pine-hollow-piano/night-tension-48423068.m4a": 403828,
   "/assets/music/pine-hollow-piano/sting-dawn-6b0b4004.m4a": 98488,
   "/assets/physics/rapier.wasm": 2196730,
+  "/assets/pine-hollow/creatures/antler-king.phone.rigged.glb": 704212,
+  "/assets/pine-hollow/creatures/antler-king.rigged.glb": 1049644,
   "/assets/pine-hollow/creatures/bear-black.phone.rigged.glb": 239144,
   "/assets/pine-hollow/creatures/bear-black.rigged.glb": 421008,
   "/assets/pine-hollow/creatures/bear-brown.phone.rigged.glb": 318676,

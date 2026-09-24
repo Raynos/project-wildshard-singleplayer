@@ -46,6 +46,8 @@ const HULL: Readonly<Record<string, PineRigName>> = {
   'elk:bull': 'elk-bull', 'elk:big-bull': 'elk-bull', 'elk:imperial': 'elk-bull', 'elk:thrall': 'elk-bull',
   'bear:black': 'bear-black', 'bear:black-blaze': 'bear-black', 'bear:black-old': 'bear-black',
   'bear:brown': 'bear-brown', 'bear:brown-old': 'bear-brown',
+  // the Antler King (PH-M3, board B2 pick A "the Bark Warden"): his own hull on the elk's bones (src/pinehollow/antlerKing.ts)
+  'antler-king:warden': 'antler-king',
 };
 
 /** per hull: the species palette, the variant it was generated as, and the [dark, body, light] coat keys (pineCoats.ts) */
@@ -57,6 +59,8 @@ const COATS: Readonly<Record<PineRigName, CoatSpec>> = {
   'elk-bull': { palette: ELK_PALETTE, source: ['elk', 'bull'], keys: ['neck', 'body', 'rump'] },
   'bear-black': { palette: BEAR_PALETTE, source: ['bear', 'black'], keys: ['dark', 'base', 'tip'] },
   'bear-brown': { palette: BEAR_PALETTE, source: ['bear', 'brown'], keys: ['dark', 'base', 'tip'] },
+  // the King wears his hull's own bark: its source is his one variant, so the coat is never recoloured
+  'antler-king': { palette: ELK_PALETTE, source: ['antler-king', 'warden'], keys: ['neck', 'body', 'rump'] },
 };
 
 /** the hull for (kind, variant) when the generated creatures are on, else null */
