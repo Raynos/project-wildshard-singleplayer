@@ -66,3 +66,63 @@ export function swayByHeight(g: THREE.BufferGeometry, w: number, y0: number, y1:
   for (let i = 0; i < pos.count; i++) { a[i * 2] = w * Math.min(1, Math.max(0, (pos.getY(i) - y0) / span)); a[i * 2 + 1] = phase; }
   g.setAttribute('aSway', new THREE.BufferAttribute(a, 2));
 }
+
+// ---------------------------------------------------------------- the forest's wind field (Pine Hollow, PH-L6)
+/*
+ * The same clock and the same slow gust (`windUniforms`), spread over the ground as a GUST FRONT: a band of stronger
+ * wind, FRONT_LEN metres from one to the next, rolling downwind at FRONT_SPEED m/s. Each front has a sharp leading edge
+ * and a long tail (a warped cosine, squared), a second, shorter family breaks up the rhythm, and a slow cross-wind bend +
+ * strength modulation keeps the fronts from being straight lines. Pines, grass, flowers and undergrowth all sample
+ * `windGustAt(worldXZ)` (≈0.1 in a lull … ≈1 under a front in a gust), so one front visibly crosses the canopy and the
+ * meadow together. Driftwood's `patchSway` above is untouched: this is a separate chunk on the same two uniforms.
+ */
+/** metres between gust fronts, their speed downwind (m/s), and the second front family's length (× FRONT_LEN) */
+export const FRONT_LEN = 150, FRONT_SPEED = 11, FRONT2_LEN = 0.61 * FRONT_LEN;
+/** the prevailing wind, unit xz, blowing toward (x, z) — the same as Driftwood's sway */
+export const WIND_DIR: { readonly x: number; readonly z: number } = { x: WX, z: WZ };
+const TAU = 6.283185307;
+
+/** GLSL: `uWindTime`, `uGust`, `windDirXZ()`, `windGustAt(worldXZ)`; `windGustAt` below is its CPU mirror */
+export const WIND_FIELD_GLSL = /* glsl */`
+  uniform float uWindTime; uniform float uGust;
+  vec2 windDirXZ() { return vec2( ${WX.toFixed(3)}, ${WZ.toFixed(3)} ); }
+  // one front per unit of s: peak at s = 0, a quick rise just ahead of it, a long tail behind (w is monotonic in s)
+  float windFront( float s ) {
+    float f = fract( s );
+    float w = f + 0.12 * ( 1.0 - cos( ${TAU} * f ) );
+    float c = 0.5 + 0.5 * cos( ${TAU} * w );
+    return c * c;
+  }
+  float windGustAt( vec2 p ) {
+    vec2 d = windDirXZ();
+    float along = dot( p, d ), across = dot( p, vec2( - d.y, d.x ) );
+    float bend = 22.0 * sin( across * 0.021 + uWindTime * 0.043 ) + 9.0 * sin( across * 0.057 - uWindTime * 0.031 );
+    float x = along + bend - uWindTime * ${FRONT_SPEED.toFixed(1)};
+    float f = 0.75 * windFront( x / ${FRONT_LEN.toFixed(1)} ) + 0.25 * windFront( x / ${FRONT2_LEN.toFixed(2)} + 0.37 );
+    float patchy = 0.62 + 0.38 * sin( across * 0.025 + along * 0.004 - uWindTime * 0.05 );
+    return ( 0.3 + 0.7 * uGust ) * ( 0.3 + 0.9 * f * patchy );
+  }
+`;
+
+/** add the wind field (uniforms + GLSL helpers) to a vertex shader, inside onBeforeCompile — the same uniform objects as
+ * Driftwood's sway, so everything that sways is on one clock */
+export function patchWindField(shader: { uniforms: Record<string, THREE.IUniform>; vertexShader: string }): void {
+  shader.uniforms['uWindTime'] = windUniforms.uWindTime;
+  shader.uniforms['uGust'] = windUniforms.uGust;
+  shader.vertexShader = shader.vertexShader.replace('#include <common>', `#include <common>\n${WIND_FIELD_GLSL}`);
+}
+
+const fract = (v: number): number => v - Math.floor(v);
+function windFront(s: number): number {
+  const f = fract(s), w = f + 0.12 * (1 - Math.cos(TAU * f)), c = 0.5 + 0.5 * Math.cos(TAU * w);
+  return c * c;
+}
+/** CPU mirror of the GLSL `windGustAt` (sound, tests): the gust strength at world (x, z) now, or at clock `t` / gust `gust` */
+export function windGustAt(x: number, z: number, t = windUniforms.uWindTime.value, gust = windUniforms.uGust.value): number {
+  const along = x * WX + z * WZ, across = -x * WZ + z * WX;
+  const bend = 22 * Math.sin(across * 0.021 + t * 0.043) + 9 * Math.sin(across * 0.057 - t * 0.031);
+  const s = along + bend - t * FRONT_SPEED;
+  const f = 0.75 * windFront(s / FRONT_LEN) + 0.25 * windFront(s / FRONT2_LEN + 0.37);
+  const patchy = 0.62 + 0.38 * Math.sin(across * 0.025 + along * 0.004 - t * 0.05);
+  return (0.3 + 0.7 * gust) * (0.3 + 0.9 * f * patchy);
+}

@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import type { ColliderDesc } from './registry';
 import { CHUNK_HALF, CHUNK_SIZE } from '../core/config';
 import { placeForest, TreeGrid, type TreeInstance } from './placement';
-import { type TreeFactory, windUniforms, forestFade } from './TreeFactory';
+import { type TreeFactory, forestFade } from './TreeFactory';
+import { updateWind } from './wind';
 import type { Sky } from './Sky';
 import { noReflect } from './Water';
 import { TIER_CONFIG } from '../core/tier';
@@ -211,7 +212,9 @@ export class Forest {
   }
 
   update(dt: number, viewer: THREE.Vector3): void {
-    windUniforms.uTime.value += dt;
+    // the ONE wind clock (wind.ts, PH-L6): pines, grass and undergrowth all read it. A shard with a forest has no palms
+    // (Palms.update ticks it on Driftwood, whose factory is 'none' → 0 trees), so it advances exactly once a frame.
+    if (this.trees.length > 0) updateWind(dt);
     forestFade.uViewer.value.copy(viewer); // the dissolve bands follow every frame; the buckets below only on a move / turn
     const cam = this.sky.viewCamera;
     cam.getWorldDirection(this.viewDir);

@@ -9,6 +9,7 @@ import { loadBakedCards, exportCardTextures } from './BakedCards';
 import { macrotask } from '../boot/plan';
 import { markGpuOnly } from '../core/gpuOnly';
 import { TREE_SPECS } from './placement';
+import { windUniforms as sharedWind, patchWindField } from './wind';
 
 /**
  * Pine trees built from a runtime-baked "branch card".
@@ -35,7 +36,9 @@ export interface TreeVariant {
 /** Texture ids from the shard's `ChunkTrees` (defaults are Pine Hollow's). */
 export interface TreeFactoryOptions { bark?: string; twigAtlas?: string }
 
-export const windUniforms = { uTime: { value: 0 }, uWindStrength: { value: 1.0 } };
+/** `uTime` IS wind.ts's clock (PH-L6, one wind: Forest.update advances it with updateWind); `uWindStrength` scales the
+ * forest's sway (pines, grass, undergrowth) */
+export const windUniforms = { uTime: sharedWind.uWindTime, uWindStrength: { value: 1.0 } };
 
 /**
  * The forest's LOD fades (E94): Forest writes the viewer (its LOD centre) here every frame and sets each material's band.
@@ -183,7 +186,7 @@ export class TreeFactory {
       roughness: 1, metalness: 0, color: new THREE.Color(0.85, 0.8, 0.75),
     });
     this.barkMaterial.onBeforeCompile = (shader) => {
-      attachFogUniforms(shader); patchWind(shader); patchFade(shader, this.fade.trunk);
+      attachFogUniforms(shader); patchWind(shader, true); patchFade(shader, this.fade.trunk);
       // Scots pine: dark plated bark low on the trunk, papery orange bark high up
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', '#include <common>\nvarying float vTrunkT;')
@@ -605,29 +608,52 @@ export class TreeFactory {
   }
 }
 
-/** Sway vertices in the wind; uses the shared windUniforms so every tree animates in step. */
-export function patchWind(shader: { vertexShader: string; uniforms: Record<string, THREE.IUniform> }): void {
-  shader.uniforms['uTime'] = windUniforms.uTime;
+/**
+ * Sway in the ONE wind (src/world/wind.ts, PH-L6): every tree leans downwind by the gust front at its root
+ * (`windGustAt`), sways about that lean like a pendulum (~0.28 Hz, per-tree phase) with a little cross-wind circling,
+ * and its foliage flutters faster on top. The offset is a world-space function of the rest position and the normalised
+ * height hN (windWeight; the trunk's windWeight is 0.35·hN, `trunk` undoes that), weighted hN² so the roots stay put
+ * and trunk + branches + twigs bend together without tearing apart. It goes into object space through the
+ * model · instance / batching matrix, a rotation × uniform scale: (off · M3) / |M3 column|² (no per-vertex inverse).
+ * No vertical squash. Crown top: ~0.2 m in a lull, ~0.6–1 m under a gust front. The needle / twig depth materials run
+ * the same patch (shadows move); the trunks cast with three's default depth material (their sway near the ground,
+ * where the shadow reads, is centimetres).
+ */
+export function patchWind(shader: { vertexShader: string; uniforms: Record<string, THREE.IUniform> }, trunk = false): void {
+  patchWindField(shader);
   shader.uniforms['uWindStrength'] = windUniforms.uWindStrength;
+  const flutter = trunk ? '' : /* glsl */`
+        // needles / twigs flutter: faster, smaller, out of phase across the crown (a branch flexes, it does not slide)
+        float fl = dot( wp.xyz, vec3( 0.83, 0.61, 0.71 ) );
+        float flut = ( sin( uWindTime * 6.1 + fl ) * 0.7 + sin( uWindTime * 9.7 + fl * 1.7 + ph ) * 0.3 ) * ( 0.02 + 0.06 * G ) * w;
+        off += vec3( d.x * flut, flut * 0.35, d.y * flut );`;
   shader.vertexShader = shader.vertexShader
     .replace('#include <common>', `#include <common>
-      uniform float uTime; uniform float uWindStrength;
+      uniform float uWindStrength;
       attribute float windWeight;`)
     .replace('#include <begin_vertex>', `#include <begin_vertex>
       {
+        // world = model · instance · batching · v (three's order): the tree's root, this vertex, and their 3×3
+        mat3 wm = mat3( 1.0 );
+        vec4 wo = vec4( 0.0, 0.0, 0.0, 1.0 );
         vec4 wp = vec4( transformed, 1.0 );
-        #ifdef USE_INSTANCING
-          wp = instanceMatrix * wp;
-        #endif
         #ifdef USE_BATCHING
-          wp = batchingMatrix * wp;
+          wm = mat3( batchingMatrix ); wo = batchingMatrix * wo; wp = batchingMatrix * wp;
         #endif
-        wp = modelMatrix * wp;
-        float phase = wp.x * 0.07 + wp.z * 0.09;
-        float w = windWeight * windWeight * uWindStrength;
-        float gust = sin( uTime * 0.9 + phase ) * 0.6 + sin( uTime * 2.3 + phase * 2.7 ) * 0.25 + sin( uTime * 5.1 + wp.y * 0.5 + phase * 4.0 ) * 0.08;
-        transformed.x += gust * w * 0.9;
-        transformed.z += cos( uTime * 0.7 + phase * 1.3 ) * w * 0.45;
-        transformed.y -= abs( gust ) * w * 0.15;
+        #ifdef USE_INSTANCING
+          wm = mat3( instanceMatrix ) * wm; wo = instanceMatrix * wo; wp = instanceMatrix * wp;
+        #endif
+        wm = mat3( modelMatrix ) * wm; wo = modelMatrix * wo; wp = modelMatrix * wp;
+        float hN = clamp( windWeight${trunk ? ' / 0.35' : ''}, 0.0, 1.2 );
+        float w = hN * hN * uWindStrength;
+        float G = windGustAt( wo.xz );
+        float ph = fract( sin( dot( wo.xz, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 ) * 6.2832;
+        float along = 0.1 + 0.6 * G
+          + sin( uWindTime * 1.75 + ph ) * ( 0.06 + 0.24 * G )
+          + sin( uWindTime * 2.9 + ph * 1.9 ) * 0.05 * G;
+        float across = sin( uWindTime * 1.3 + ph * 2.3 ) * ( 0.04 + 0.1 * G );
+        vec2 d = windDirXZ();
+        vec3 off = vec3( d.x * along - d.y * across, 0.0, d.y * along + d.x * across ) * w;${flutter}
+        transformed += ( off * wm ) / max( dot( wm[0], wm[0] ), 1e-6 );
       }`);
 }

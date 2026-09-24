@@ -1,0 +1,38 @@
+{
+  "tag": "L6-after",
+  "url": "http://127.0.0.1:4392",
+  "query": "",
+  "when": "2026-09-24T13:31:41.026Z",
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "gate",
+      "calls": 113,
+      "tris": 1419252,
+      "msP50": 16.799999713897705,
+      "msP95": 18.199999809265137,
+      "programs": 76,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "cabin",
+      "calls": 153,
+      "tris": 1677107,
+      "msP50": 16.699999809265137,
+      "msP95": 17.699999809265137,
+      "programs": 76,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "pond",
+      "calls": 151,
+      "tris": 1557172,
+      "msP50": 16.699999809265137,
+      "msP95": 17.5,
+      "programs": 76,
+      "forest": "batched"
+    }
+  ]
+}

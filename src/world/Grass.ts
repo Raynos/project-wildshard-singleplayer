@@ -5,6 +5,7 @@ import { Noise2D, smoothstep, lerp } from '../core/noise';
 import { heightAt, normalAt, splatAt, inChunk, pondMask, waterLevel } from './Heightfield';
 import { attachFogUniforms } from './Atmosphere';
 import { windUniforms } from './TreeFactory';
+import { patchWindField } from './wind';
 import type { Sky } from './Sky';
 import { noReflect } from './Water';
 import type { Forest } from './Forest';
@@ -24,7 +25,7 @@ import { TIER_CONFIG } from '../core/tier';
  * from the terrain splat (dense on the grass layer, sparse on forest floor, none on trail / rock /
  * cabin pads / inside trunks). Instances sit on `heightAt`, tilt to the cell's `normalAt`, and get
  * a per-instance colour (yellow-green ↔ deep green patches, olive-brown on the forest floor).
- * Everything else is in the shader: gust-front wind (windUniforms.uTime), distance LOD (3 → 2 → 1
+ * Everything else is in the shader: the shared gust front (wind.ts windGustAt, PH-L6) + local ripple / flutter, distance LOD (3 → 2 → 1
  * quads, then every other clump, then shrink to 0 in the outer FADE metres), fake root AO,
  * translucent light-wrap / sun backlight, alpha sharpening so distant grass keeps its coverage.
  * The CPU only works when the player crosses a cell boundary (≈0.13 ms per cell, at most
@@ -113,8 +114,9 @@ export class Grass {
     const farr = this.flowers.instanceMatrix.array as Float32Array;
     for (let i = 0; i < N * N * KF; i++) this.zeroM.toArray(farr, i * 16);
     this.group.add(this.flowers);
-    grassUniforms.uSunDir.value.copy(this.sky.sunDir);
-    grassUniforms.uSunColor.value.copy(this.sky.sunColor);
+    // the sky's own objects (not copies): the day / night clock moves the sun by mutating them in place
+    grassUniforms.uSunDir.value = this.sky.sunDir;
+    grassUniforms.uSunColor.value = this.sky.sunColor;
     noReflect(this.group);
     return this;
   }
@@ -128,11 +130,11 @@ export class Grass {
     mat.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
       Object.assign(shader.uniforms, grassUniforms);
-      shader.uniforms['uTime'] = windUniforms.uTime;
+      patchWindField(shader);
       shader.uniforms['uWindStrength'] = windUniforms.uWindStrength;
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', /* glsl */`#include <common>
-          uniform float uTime; uniform float uWindStrength; uniform float uGrassWind; uniform float uRadius; uniform float uFade;
+          uniform float uWindStrength; uniform float uGrassWind; uniform float uRadius; uniform float uFade;
           attribute float quadId;
           varying float vH;`)
         .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
@@ -153,14 +155,15 @@ export class Grass {
             transformed *= fade;
             float h = uv.y;
             vH = h;
-            // wind: a travelling gust front plus a faster ripple and a per-blade flutter
-            vec2 dir = vec2( 0.86, 0.5 );
+            // wind: the shared gust front (the one crossing the canopy) carrying a local swell, plus a faster ripple and a
+            // per-blade flutter — all on the shared clock and direction
+            vec2 dir = windDirXZ();
             vec3 wpos = ( modelMatrix * instanceMatrix * vec4( transformed, 1.0 ) ).xyz;
             float phase = dot( wpos.xz, dir ) * 0.32 + rnd * 1.7;
-            float gust = sin( uTime * 1.25 - phase ) * 0.5 + 0.5;
-            gust *= gust;
-            float ripple = sin( uTime * 2.9 - phase * 2.1 + wpos.x * 0.45 ) * 0.5 + 0.5;
-            float flutter = sin( uTime * 6.5 + wpos.x * 4.3 + wpos.z * 3.1 );
+            float swell = sin( uWindTime * 1.25 - phase ) * 0.5 + 0.5;
+            float gust = min( windGustAt( wpos.xz ), 1.3 ) * ( 0.35 + 0.65 * swell * swell ) * 1.25;
+            float ripple = sin( uWindTime * 2.9 - phase * 2.1 + wpos.x * 0.45 ) * 0.5 + 0.5;
+            float flutter = sin( uWindTime * 6.5 + wpos.x * 4.3 + wpos.z * 3.1 );
             float s2 = dot( im[0], im[0] );
             float amp = ( 0.02 + gust * 0.13 * ( 0.7 + 0.6 * rnd ) + ripple * 0.045 ) * uWindStrength * uGrassWind * sqrt( s2 ) * 2.0;
             float w = h * h;
@@ -199,12 +202,12 @@ export class Grass {
     const mat = new THREE.MeshStandardMaterial({ map: makeFlowerTexture(), alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.7, metalness: 0 });
     mat.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
-      shader.uniforms['uTime'] = windUniforms.uTime;
+      patchWindField(shader);
       shader.uniforms['uWindStrength'] = windUniforms.uWindStrength;
       shader.uniforms['uGrassWind'] = grassUniforms.uGrassWind;
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', /* glsl */`#include <common>
-          uniform float uTime; uniform float uWindStrength; uniform float uGrassWind;`)
+          uniform float uWindStrength; uniform float uGrassWind;`)
         .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
           {
             mat3 im = mat3( instanceMatrix );
@@ -214,11 +217,13 @@ export class Grass {
             transformed *= fade;
             float h = uv.y;
             vec3 wpos = ( modelMatrix * instanceMatrix * vec4( transformed, 1.0 ) ).xyz;
-            float phase = dot( wpos.xz, vec2( 0.86, 0.5 ) ) * 0.32;
-            float gust = sin( uTime * 1.25 - phase ) * 0.5 + 0.5; gust *= gust;
+            vec2 dir = windDirXZ();
+            float phase = dot( wpos.xz, dir ) * 0.32;
+            float swell = sin( uWindTime * 1.25 - phase ) * 0.5 + 0.5;
+            float gust = min( windGustAt( wpos.xz ), 1.3 ) * ( 0.35 + 0.65 * swell * swell ) * 1.25;
             float s2 = dot( im[0], im[0] );
             float amp = ( 0.01 + gust * 0.07 ) * uWindStrength * uGrassWind * sqrt( s2 ) * 2.0;
-            vec3 off = vec3( 0.86 * amp, 0.0, 0.5 * amp ) * h * h;
+            vec3 off = vec3( dir.x * amp, 0.0, dir.y * amp ) * h * h;
             transformed += ( off * im ) / max( s2, 1e-6 ) * fade;
           }`);
       shader.fragmentShader = shader.fragmentShader

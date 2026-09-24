@@ -3,6 +3,7 @@ import { SEED } from '../core/config';
 import { Rng } from '../core/rng';
 import { attachFogUniforms } from './Atmosphere';
 import { windUniforms } from './TreeFactory';
+import { patchWindField } from './wind';
 import type { Sky } from './Sky';
 import { noReflect } from './Water';
 import type { Forest } from './Forest';
@@ -73,8 +74,9 @@ export class Undergrowth {
   }
 
   private *stages(): Generator<void, void, undefined> {
-    underUniforms.uSunDir.value.copy(this.sky.sunDir);
-    underUniforms.uSunColor.value.copy(this.sky.sunColor);
+    // the sky's own objects (not copies): the day / night clock moves the sun by mutating them in place
+    underUniforms.uSunDir.value = this.sky.sunDir;
+    underUniforms.uSunColor.value = this.sky.sunColor;
     const fernTex = makeFernTexture(), shrubTex = makeShrubTexture(), litterTex = makeLitterTexture();
     const fernMat = this.makeMaterial(fernTex, 'fern', 0.35, 0.5);
     const shrubMat = this.makeMaterial(shrubTex, 'shrub', 0.25, 0.5);
@@ -186,14 +188,14 @@ export class Undergrowth {
 /** Distance fade (scale to 0) + gentle wind, shared by the lit and the shadow-depth materials. */
 function patchUndergrowthVertex(shader: { vertexShader: string; uniforms: Record<string, THREE.IUniform> }, wind: number) {
   shader.uniforms['uWindScale'] = { value: wind }; // per material, not baked into the source: the program is shared
-  shader.uniforms['uTime'] = windUniforms.uTime;
+  patchWindField(shader); // the shared clock + gust front (wind.ts, PH-L6)
   shader.uniforms['uWindStrength'] = windUniforms.uWindStrength;
   shader.uniforms['uFadeFar'] = underUniforms.uFadeFar;
   shader.uniforms['uFadeBand'] = underUniforms.uFadeBand;
   shader.uniforms['uViewerPos'] = underUniforms.uViewerPos;
   shader.vertexShader = shader.vertexShader
     .replace('#include <common>', /* glsl */`#include <common>
-      uniform float uTime; uniform float uWindStrength; uniform float uWindScale; uniform float uFadeFar; uniform float uFadeBand; uniform vec3 uViewerPos;
+      uniform float uWindStrength; uniform float uWindScale; uniform float uFadeFar; uniform float uFadeBand; uniform vec3 uViewerPos;
       varying float vH;`)
     .replace('#include <begin_vertex>', /* glsl */`#include <begin_vertex>
       {
@@ -206,13 +208,14 @@ function patchUndergrowthVertex(shader: { vertexShader: string; uniforms: Record
         vH = h;
         float s2 = dot( im[0], im[0] );
         vec3 wpos = ( modelMatrix * instanceMatrix * vec4( transformed, 1.0 ) ).xyz;
-        float phase = wpos.x * 0.28 + wpos.z * 0.16;
-        float gust = sin( uTime * 1.25 - phase ) * 0.5 + 0.5;
-        gust *= gust;
-        float flutter = sin( uTime * 5.0 + wpos.x * 3.0 + wpos.z * 2.0 );
+        vec2 dir = windDirXZ();
+        float phase = dot( wpos.xz, dir ) * 0.32;
+        float swell = sin( uWindTime * 1.25 - phase ) * 0.5 + 0.5;
+        float gust = min( windGustAt( wpos.xz ), 1.3 ) * ( 0.35 + 0.65 * swell * swell ) * 1.25;
+        float flutter = sin( uWindTime * 5.0 + wpos.x * 3.0 + wpos.z * 2.0 );
         float amp = ( 0.01 + gust * 0.05 ) * uWindStrength * uWindScale * 4.0;
         float w = h * h;
-        vec3 off = vec3( 0.86 * amp + flutter * 0.006, 0.0, 0.5 * amp + flutter * 0.004 ) * w;
+        vec3 off = vec3( dir.x * amp + flutter * 0.006, 0.0, dir.y * amp + flutter * 0.004 ) * w;
         off.y = - length( off.xz ) * 0.3;
         transformed += ( off * im ) / max( s2, 1e-6 ) * fade;
       }`);
