@@ -74,9 +74,9 @@ const P: Record<'sunrise' | 'golden' | 'day' | 'sunset' | 'dusk' | 'night' | 'da
     glow: c(2.2, 1.15, 0.55), disc: c(1.0, 0.78, 0.55), halo: c(1.0, 0.72, 0.5), haloO: 0.95, cloudSun: c(1.0, 0.72, 0.52), cloudLit: c(0.95, 0.82, 0.78), cloudA: 0.8, far: c(0.5, 0.5, 0.6), lamps: 0.35, sat: 0.16,
   },
   golden: {
-    key: 'golden', bg: 1.3, env: 1.1, light: c(1.0, 0.76, 0.5), lightI: 4.0, hemiSky: hex(0x93a6c8), hemiGround: hex(0x4e3a24), hemiI: 0.42,
-    fogSun: c(1.0, 0.8, 0.52), fogDist: 0.00042, fogHeight: 0.005, vol: 0.6, volColor: c(1.0, 0.8, 0.55), rays: 1,
-    glow: c(1.8, 1.2, 0.65), disc: c(1.0, 0.92, 0.78), halo: c(1.0, 0.82, 0.6), haloO: 0.85, cloudSun: c(1.0, 0.82, 0.6), cloudLit: c(1.0, 0.97, 0.92), cloudA: 0.75, far: c(0.52, 0.6, 0.74), lamps: 0, sat: 0.2,
+    key: 'golden', bg: 1.3, env: 1.05, light: c(1.0, 0.66, 0.36), lightI: 4.2, hemiSky: hex(0x9aa4c0), hemiGround: hex(0x5c3e20), hemiI: 0.4,
+    fogSun: c(1.0, 0.7, 0.4), fogDist: 0.00042, fogHeight: 0.005, vol: 0.66, volColor: c(1.0, 0.7, 0.4), rays: 1,
+    glow: c(2.2, 1.15, 0.5), disc: c(1.0, 0.88, 0.7), halo: c(1.0, 0.76, 0.5), haloO: 0.9, cloudSun: c(1.0, 0.72, 0.48), cloudLit: c(1.0, 0.92, 0.84), cloudA: 0.75, far: c(0.56, 0.58, 0.68), lamps: 0, sat: 0.24,
   },
   day: {
     key: 'day', bg: 1.8, env: 1.1, light: c(1.0, 0.96, 0.9), lightI: 4.4, hemiSky: hex(0xa0b8e0), hemiGround: hex(0x4d4232), hemiI: 0.5,
@@ -94,9 +94,9 @@ const P: Record<'sunrise' | 'golden' | 'day' | 'sunset' | 'dusk' | 'night' | 'da
     glow: c(0.45, 0.28, 0.3), disc: c(0.9, 0.93, 1.0), halo: c(0.6, 0.62, 0.8), haloO: 0.25, cloudSun: c(0.8, 0.5, 0.55), cloudLit: c(0.48, 0.44, 0.56), cloudA: 0.55, far: c(0.24, 0.24, 0.34), lamps: 1, sat: -0.05,
   },
   night: {
-    key: 'night', bg: 0.085, env: 2.4, light: c(0.55, 0.68, 1.0), lightI: 2.0, hemiSky: hex(0x3a4c84), hemiGround: hex(0x161b26), hemiI: 0.6,
+    key: 'night', bg: 0.11, env: 3.0, light: c(0.6, 0.72, 1.0), lightI: 3.2, hemiSky: hex(0x4a5e9c), hemiGround: hex(0x1e2434), hemiI: 0.95,
     fogSun: c(0.32, 0.4, 0.58), fogDist: 0.0007, fogHeight: 0.009, vol: 0.4, volColor: c(0.42, 0.52, 0.78), rays: 0.55,
-    glow: c(0.1, 0.13, 0.2), disc: c(1.7, 1.8, 2.0), halo: c(0.5, 0.6, 0.9), haloO: 0.35, cloudSun: c(0.3, 0.36, 0.5), cloudLit: c(0.16, 0.19, 0.27), cloudA: 0.18, far: c(0.035, 0.045, 0.075), lamps: 1, sat: -0.42,
+    glow: c(0.1, 0.13, 0.2), disc: c(1.7, 1.8, 2.0), halo: c(0.5, 0.6, 0.9), haloO: 0.35, cloudSun: c(0.3, 0.36, 0.5), cloudLit: c(0.16, 0.19, 0.27), cloudA: 0.18, far: c(0.05, 0.065, 0.1), lamps: 1, sat: -0.3,
   },
   dawn: {
     key: 'dawn', bg: 0.5, env: 1.2, light: c(0.55, 0.62, 0.9), lightI: 0.0, hemiSky: hex(0x6d7aa8), hemiGround: hex(0x2c2a30), hemiI: 0.3,
