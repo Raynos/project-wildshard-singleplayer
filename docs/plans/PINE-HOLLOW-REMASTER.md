@@ -1,208 +1,245 @@
-# Pine Hollow — the mega remaster (graduate "Pinewood" out of experimental)
+# Pine Hollow — the mega remaster (graduate Pine Hollow out of experimental)
 
-**State:** `draft` 2026-09-24 — written from main `4539c39` + the `nalati-grasslands` branch (`8a58b9d`, mid-merge of main). Nothing here is approved (Jake approved none); it waits on Jake's picks **PH-U1 (look)**, **PH-U2 (map)**, **PH-U3 (story)** and the go per wave. Wave 0 needs the Nalati merge (N10) on main first. No agent builds, "quickly tries" or partly lands a row until Jake names it.
+**State:** `in progress` 2026-09-24 — Jake's go ("mega build this plan") after 5 rounds of picks (§2). Built in the worktree `../wildshard-pine-hollow` (branch `pine-hollow-remaster`, never pushes; previews go to their own Vercel project; Jake merges). **Wave 0 is running:** the 4 decision boards (§2 B1–B4), the baseline plus the Track 0 bug audit, and the sound lane. Waves 3–4 reuse Nalati's systems, so they wait on the Nalati merge to main (N10). This is a parallel track, at equal priority with the other live work.
 
 ## 0. Why, and the finish line
 
-Pine Hollow is the original shard (16–17 Sep). It is a photoreal PBR hunting sandbox with good bones: 1,770 Scots pines on
-BatchedMesh with a 3-band LOD, 1.5 k lines of interactive log cabins, 4 species with rarity and legendaries, crossbow + rifle,
-harvest, Rapier colliders and a navmesh. Since then every remaster went around it. Driftwood's D8 kept it "byte-for-byte", and
-Nalati built its own look. Pine Hollow never got a quest, an NPC, a boss, day / night, weather, a mockup loop, a LUT, a painted
-horizon, Blender, image-to-3D, generated creatures or zoned sound. It is the heaviest shard on the phone, and the title still
-tapes it off as **EXPERIMENTAL · rough edges** (`src/chunks/pine-hollow.ts:84`, `src/ui/HUD.ts:448/491`).
+Pine Hollow is the original shard (16–17 Sep): a photoreal PBR hunting sandbox with good bones.
+- 1,770 Scots pines on BatchedMesh with a 3-band LOD.
+- 1.5 k lines of interactive log cabins.
+- 4 species with rarity and legendaries.
+- Crossbow, harvest, Rapier colliders, a navmesh.
+
+Every remaster since then went around it. Driftwood's D8 kept it "byte-for-byte". Nalati built its own look. So Pine Hollow never
+got a quest, an NPC, a boss, day / night, weather, a mockup loop, a LUT, a painted horizon, Blender, image-to-3D, generated
+creatures or zoned sound. The title still tapes it off as **EXPERIMENTAL · rough edges** (`src/chunks/pine-hollow.ts:84`,
+`src/ui/HUD.ts:448/491`).
+
+**Each shard keeps its own style** (Jake, PH-U1): Driftwood is faceted toon, Nalati is painterly, and **Pine Hollow stays
+photoreal PBR**. The remaster raises Pine Hollow *within* photoreal. It reuses the other shards' *pipelines* (mockup loops,
+Blender, image-to-3D, LUT fit, horizon painting, wind, rig bake), never their shading.
 
 **Finish line: Pine Hollow graduates.** Every item below is measured, not asserted:
+1. `experimental` is gone: blurb, enter hint and hazard band. It is a full card after Driftwood, which stays first.
+2. **Look:** the 9-angle mockup loop (photoreal targets) is signed off by Jake at every zone. Every region is under ΔE00 6.
+   The title hero is an in-engine capture.
+3. **Content** is on Nalati's level:
+   - the ranger's lantern quest ending at the Antler King, plus the lodge's rotating contracts;
+   - 4 named elites, and the King's thralls at night;
+   - day / night, dawn fog and rain;
+   - the trophy wall and the hunter's journal;
+   - resin, tokens and secrets;
+   - the mill hamlet with a trader and a miller;
+   - map discovery and 14 or more achievements.
+4. **Sound:** theme 1 kept, plus night, boss and the dawn sting; zoned ambience; a generated SFX set; NPC barks; interior reverb.
+5. **Perf:** Jake's iPhone holds a **steady, locked 30 fps** (Low Power off) at every pose. Desktop runs at 60 fps with at most
+   300 calls. Load is about 30 MB cold. Physics reports 0 stuck.
 
-1. `experimental: true` is gone, and the blurb, enter hint and hazard band go with it. Pine Hollow is a first-class card beside
-   Driftwood and Nalati.
-2. The look passes the same bar as Driftwood v0.2: the 9-angle mockup loop, signed off by Jake at every area (PH-L1). Every
-   region is under ΔE00 6 against its mockups (PH-L4). The title hero is an in-engine capture.
-3. Content is on Nalati's level. There is a quest spine with an NPC, a boss, 4–5 named elites, a night and a weather layer,
-   collectibles, map discovery, and 14 or more achievements. The shard's own identity (**the hunt**) has real systems behind it
-   (PH-C4).
-4. Sound is on Driftwood's level: a MUSIC v2 theme set (calm / tension / night / boss), zoned ambience, a generated SFX set, and
-   reverb for interiors.
-5. Perf meets the house gates. On the phone: at most 150 calls and 2.0 M tris at every pose (target Nalati's 110 / 1.6 M), no
-   tree or shadow pop, and ≥ 55 fps on Jake's iPhone with Low Power Mode off. Desktop: at most 300 calls. Load: ≤ 20 MB cold.
-   Physics: 0 stuck.
+## 1. The audit: Pine Hollow vs Driftwood vs Nalati (main `4539c39`, nalati `8a58b9d`)
 
-## 1. The audit: Pine Hollow vs Driftwood vs Nalati
-
-| Axis | Driftwood (v0.2 + V2) | Nalati (branch, archived plan) | Pine Hollow today |
+| Axis | Driftwood | Nalati | Pine Hollow today |
 |---|---|---|---|
-| Style | Faceted low-poly toon (`stylize.ts`) | Painterly (`painterly.ts`, look v2) | Photoreal PBR, Poly Haven splat |
-| Sky / time | Stylized sky, DayNight 20 + 4 min | Panorama sky + DayClock + dusk / night / storm regrade | Fixed HDRI sunset, no clock |
-| Horizon | Painted 360° matte (`HorizonMatte.ts`) | One seamless 360° panorama + horizon rings | 17 Sep procedural ridge rings |
+| Style | Faceted low-poly toon | Painterly | Photoreal PBR, Poly Haven splat |
+| Sky / time | Stylized sky, DayNight 20 + 4 min | Panorama + DayClock + regrade | Fixed HDRI sunset |
+| Horizon | Painted 360° matte | 360° panorama + rings | 17 Sep procedural ridge rings |
 | Colour | Learned 33³ LUT, every region under ΔE00 6 | Filmic grade + zone tints | Split-tone grade |
-| Wind | One shared wind (`wind.ts`, `aSway`), shadows move | `steppeWind.ts` | Grass-only private wind; the pines don't sway |
-| Ground / grass | GroundCover (5 kinds) | GPU blade rings + flowers + near cards + trample | Grass carpet + Undergrowth (good, older) |
-| Terrain / assets | Blender cove (baked AO, LOD tiles), TRELLIS / Hunyuan hero props, palette-snapped CC0 kit | Codex → TRELLIS → colour-matched GLB, PaintKit | Procedural + Poly Haven CC0 GLBs, runtime-baked pine cards |
-| Creatures | Rigs; captain via Hunyuan (V-M1 open) | Generated hulls skinned offline (`creatureRigBake.ts`), coats recoloured | Procedural PBR fur (deer / boar / elk / bear) |
-| Story | Castaway spine, 3 glyph shards, shrine, captain boss, golden-hour reward | No NPCs, but 2 bosses, 5 elites, taming | **None**: `Adventure.ts:5` returns null |
-| Systems | Interactables kit, collectibles, zipline, map discovery | Riding, taming, stealth, weather, packs / herds / flock, skins locker | Hunting + harvest + 2 legendary skins |
+| Wind | Shared `wind.ts` (`aSway`, shadows move) | `steppeWind.ts` | Grass-only private wind; the pines don't sway |
+| Assets | Blender cove, TRELLIS / Hunyuan props, CC0 kit | Codex → TRELLIS → colour-matched GLB | Procedural + Poly Haven GLBs, runtime pine cards |
+| Creatures | Rigs; captain via Hunyuan | Generated hulls rig-baked, coats | Procedural PBR fur |
+| Story | Castaway spine, captain boss | 2 bosses, 5 elites, taming | **None**: `Adventure.ts:5` returns null |
 | Achievements | Table | 14 | 6 |
-| Audio | MiniMax themes, `IslandAmbience` zones, merged SFX set | Creature voices, hooves, storm (synth) | `pine` theme v1, one forest bed, no zones, no combat SFX |
-| Phone perf | 72–160 calls, ≤ 0.96 M tris | 52–95 calls, 0.77–1.4 M | 104–133 calls, 1.23–1.54 M; pond p95 50 ms; **E94 pop**; iPhone 30 fps (old) |
-| Desktop | — | — | 741–989 calls (E4b, target ≤ 300) |
-| Load | ≤ 20 MB | 19.8 MB / 25 | 23.5–24.4 MB, 26.75 s cold 4G |
+| Audio | Themes, `IslandAmbience` zones, merged SFX | Creature voices, storm | `pine` theme 1, one forest bed |
+| Phone | 72–160 calls, ≤ 0.96 M | 52–95 calls, ≤ 1.4 M | 104–133 calls, ≤ 1.54 M; pond p95 50 ms; **E94 pop**; iPhone 30 fps (old) |
+| Desktop / load | — / ≤ 20 MB | — / 19.8 MB | 741–989 calls / 23.5–24.4 MB |
 
-**Keep (the strengths):**
-- the cabins: interiors, hinged doors, lanterns, chimneys;
+**Keep:**
+- the cabins;
 - the forest's scale;
-- the fauna and rarity system: legendaries plus joke-titled achievements, the "Pine Hollow rule";
-- the crossbow's feel and the harvest loop;
+- fauna rarity and legendaries (the "Pine Hollow rule": cosmetic drops, joke titles);
+- the crossbow's feel and harvest;
 - Explore World (E66).
 
-A remaster here is **art direction + content + audio + perf, on top of the engine that exists**, not a rebuild.
+## 2. Jake's decisions (2026-09-24)
 
-## 2. Jake's picks (decision boards; nothing downstream starts before its pick)
+| # | Decision |
+|---|---|
+| PH-U1 | **Look: photoreal PBR**. Each shard has its own style. The toon, painterly and "storybook" directions were declined. |
+| PH-U2 | **Map D**: the bowl + creek / waterfall into the pond + old-growth (the King's clearing) + the crag ridge with a fire-lookout tower and zipline + a bear cave + **the mill hamlet** (south). |
+| PH-U3 | **Story: both.** The ranger's *Warden's Hollow* lantern quest → the Antler King → dawn, **plus** the lodge contract board. |
+| PH-U4 | **Name: Pine Hollow** (unchanged). |
+| PH-U5 | **Rifle: a lever-action hunting rifle** replaces the AR-15 (same pickup, Old Ironhide's skin slot). |
+| PH-U7 | **Time: the full cycle.** 20 + 4 min, dawn / day / golden hour / night, like Driftwood, in photoreal. |
+| PH-U8 | **Weather: dawn ground fog + rain.** No thunderstorms or snow: Jake's final answer narrowed an earlier "incl. storms". |
+| PH-U9 | **No wolves, no fishing.** **The King's thralls** replace wolves: moss-grown, glassy-eyed elk and boar he calls from the fog. They are phase-II adds and roam the old-growth at night. |
+| PH-U10 | **The hunt's systems: the trophy wall + the hunter's journal.** No tracking, calls or tree stands. The journal is a **generic engine Compendium** (entries, discovered / taken, stats, a 3D viewer slot), filled with data per shard. Pine Hollow skins it as a leather hunter's journal. |
+| PH-U11 | **Creatures: generated + rigged** (Nalati's pipeline, PBR textures, rarity as coats). Procedural stays as the fallback. |
+| PH-U12 | **Music: keep theme 1** (pine calm / tension) **+ add** calm-night, the Antler King's boss track (3 phase stems) and the dawn sting. |
+| PH-U13 | **Elites (4):** Old Ironhide (boar), the Ghost Stag, Old Blackpaw (bear), the Imperial Bull (elk). |
+| PH-U14 | **The hamlet: the hunting lodge's contract board + a trader + the miller** (a side errand). |
+| PH-U15 | **Ranged only.** Crossbow, lever-action, and the Warden's Longbow (the King's drop). No melee. |
+| PH-U16 | **No currency.** The trader swaps items for items (hides / antlers / resin → special bolts, cartridges, cosmetics); contracts pay in trophies and skins. |
+| PH-U17 | **Trees: a Blender-built photoreal species set.** Hero Scots pine, old-growth fir / cedar, birch, dead snags, saplings; baked into the existing card + impostor LOD. |
+| PH-U18 | **Budgets: the phone at a steady locked 30 fps; load about 30 MB.** Desktop 60 fps, ≤ 300 calls. |
+| PH-U19 | **Title deck: Driftwood stays first.** |
+| PH-U20 | **Tone: eerie folklore.** Fog, lantern light, glassy-eyed thralls, the King an ancient guardian gone wrong. Unsettling, not gory; cleansed at dawn. |
+| PH-U21 | **Contracts: a rotating set of 3.** Finishing one draws the next. No real-time clock; works offline. |
+| PH-U22 | **Collectibles: ~30 amber resin drops, 8 carved wooden tokens, the secrets** (the vista bench, a hollow-log passage, the canoe to the islet). No lore notes. |
+| PH-U23 | **NPCs: text dialogue + short generated voice barks** (the SFX engines). No full voice acting. |
+| PH-U24 | **Priority: a parallel track**, equal with Driftwood V2 / HUD / physics polish / Nalati Phase D. |
 
-Each pick is one side-by-side board labelled A / B / C / D: portrait phone mockups made by codex editing live captures, filed in
-`art/pine-hollow/round-<n>-<label>/board.jpg`.
+**Boards Jake asked to see before the layout and the models are built.** Each is one portrait decision board, A / B / C / D,
+in `art/pine-hollow/round-<n>-<label>/board.jpg`:
+- **B1**, the Map D layout (3–4 top-down variants of the five zones + the hamlet);
+- **B2**, the Antler King (3–4 photoreal looks from the Nalati concept `art/nalati-grasslands/round-2/5-bosses/boss-6-alt-antler-king.png`);
+- **B3**, the thralls + the ranger (3 each);
+- **B4**, the journal + trophy wall UI (phone portrait).
 
-| # | Pick | Options (board) | Recommendation |
-|---|---|---|---|
-| **PH-U1** | **The look.** Three shards in three styles, or one house style? | **A** keep PBR, polished to the 17 Sep AAA mockups (AGENTS.md "photoreal PS5"). **B** Driftwood toon: faceted, flat-shaded pines. **C** Nalati painterly: cel bands, painted cards, panorama. **D** *Storybook PBR*: keep the textured pines, bark and cabins, and put them under the house light (toon ramp, stylized sky, clean post, learned LUT, painted horizon). | **D.** It keeps what Pine Hollow does best (texture-rich pines and cabins) while the three shards read as one game. Photoreal is the hardest target for this engine (HOW-DRIFTWOOD-GOT-BUILT §1), and "not our style" was said of a photoreal frame (Explore X11). Per "taste is the user's call", A stays reachable behind `?look=pbr` until Jake picks. |
-| **PH-U2** | **World layout v2**: Nalati's "map 4" moment | **A** same bowl, denser POIs. **B** the bowl + a creek from the ridge to the pond + old-growth (NW). **C** B + a crag ridge with a fire-lookout tower and zipline, plus a cave den. **D** C + a mill / waterfall hamlet south. | **C**, the zones in §4. It adds height, water and an interior without doubling the phone budget. |
-| **PH-U3** | **The story spine** | **A** *The Warden's Hollow*: relight three lanterns, wake and fell the Antler King. **B** *The Last Hunt*: a hunting-lodge contract board, with legendaries as bounties and the King as the final contract. **C** A + B: the ranger gives lantern beats *and* a bounty board. | **C.** A gives a Driftwood-style spine, B gives the replay loop that fits the hunt identity. |
-| **PH-U4** | **The name** | "Pine Hollow" (code, card) vs "Pinewood" (Jake's word) | Jake's call. A rename is one row (PH-S3) and changes the display name only; slug and saves keep `pine-hollow`. |
-| **PH-U5** | **The rifle** | Keep the AR-15 in cabin 1 / swap it for a period hunting rifle (lever-action) / drop it for the King's reward weapon | Period rifle: the AR-15 is the one anachronism in a lantern-lit forest. |
-| **PH-U6** | **The Antler King's look** | The Nalati round-2 concept (`art/nalati-grasslands/round-2/5-bosses/boss-6-alt-antler-king.png`) + 2 codex variants | After PH-U1. The concept must be re-drawn in the picked style. |
-
-## 3. Wave 0: prerequisites (engine and hygiene, no taste)
+## 3. Wave 0: prerequisites (running)
 
 | # | Row | Owner | Gate |
 |---|---|---|---|
-| PH-0.1 | **Nalati on main** (N10). Everything that reuses Elite / Boss / DayClock / Weather / Pack / Herd / creatureRigBake waits on it. | Nalati session | `git log main` has the squash; Pine Hollow and Driftwood load with 0 page errors |
-| PH-0.2 | **The shard module interface** (ENGINE-FIT E5): one `ShardModule { build, look, quest, audio, fauna, loadSteps }` per shard, so the `isOcean` / `chunk.style` / `slug ===` branches in `main.ts:143–322` (Driftwood's ~20 plus `wireNalati`) become three modules. Pine Hollow's branch moves out first. | engine agent | tsc + oxlint clean; each shard's shader-program SHA unchanged by the refactor alone |
-| PH-0.3 | **Generalise the house pipelines off their shard names**: `scripts/blender/export-scene.mjs` (hardcodes `driftwood-isle`) → `--chunk`; `fit-lut.py` / `palette-delta.py` / `scripts/horizon-matte/*` take the shard; `nalati-chunk-views` / `-camp9` / `-walk` / `-creature-*` → `chunk-views` etc.; `creatureRigBake` reads hulls from `public/assets/<shard>/models/`; the Adventure registry (`src/game/quest/Adventure.ts`) is keyed per shard | engine agent | each tool re-produces its Driftwood / Nalati output byte-for-byte |
-| PH-0.4 | **Track 0 bug audit** (as Driftwood's E7): **E94** forest / shadow pop; the rifle muzzle light recompiles programs (Driftwood 0.3 leftover); `config.ts:15` defaults `CHUNK_ID` to pine-hollow; `Music.ts` defaults `'pine'`; the loading steps "HDRI → PMREM / Pine branch cards / Cabins / Crossbow" show on Driftwood (V-X1); `isDry` treats valleys below pond level as dry; the splat NaN sweep (E66 found one; E91's `pow(1 − N·V)` class); stale `docs/SHARDS.md`; no `faunaTuning` | integrator | a B-table like Driftwood's (B1…), each row a commit with before / after |
-| PH-0.5 | **Baseline**: the 9-angle captures at 5 anchors (south gate, Hollow cabin, still pond, ridge cabin, bear den; `tod` frozen, cameras recorded); the phone ruler at gate / cabin / pond (+ desktop); one **iPhone reading** (Jake, Low Power off); `bench:ci` load. This is the "before" column of every later board. | look agent + Jake's phone | `art/pine-hollow/round-1-baseline/` + numbers in this plan |
+| PH-0.1 | **Nalati on main** (N10, Jake merges). Waves 3–4 reuse its Elite / Boss / DayClock / Weather / creatureRigBake / GroundTell. The branch merges main in after it lands. | Jake | Pine Hollow + Driftwood + Nalati load with 0 page errors |
+| PH-0.2 | **The shard module interface** (ENGINE-FIT E5): `ShardModule { build, look, quest, audio, fauna, loadSteps }`. Pine Hollow's `isOcean`-else branch moves out of `main.ts:143–322` first, into `src/shards/pineHollow/`. | engine lane (after 0.1, to avoid a second `main.ts` conflict) | each shard's program SHA unchanged by the refactor alone |
+| PH-0.3 | **Generalise the house pipelines off their shard names**: `scripts/blender/export-scene.mjs --chunk`; `fit-lut.py` / `palette-delta.py` / `scripts/horizon-matte/*` take the shard; `nalati-chunk-views` / `-camp9` / `-walk` / `-creature-*` → shard-agnostic; `creatureRigBake` reads `public/assets/<shard>/models/`; the Adventure registry per shard | tools lane | each tool re-produces its Driftwood / Nalati output byte-for-byte |
+| PH-0.4 | **Track 0 bug audit** (B-table like Driftwood's E7): E94 forest / shadow pop; the rifle muzzle light's program recompiles; `config.ts:15` and `Music.ts` defaulting to Pine Hollow; Pine Hollow's loading nouns showing on Driftwood (V-X1); `isDry` below pond level; the splat NaN sweep (E66 / E91 class); stale `docs/SHARDS.md` | baseline lane | one commit per bug with before / after |
+| PH-0.5 | **Baseline**: 9-angle captures at 5 anchors (south gate, Hollow cabin, still pond, ridge cabin, bear den; `tod` frozen, cameras recorded in a JSON the loops reuse); phone ruler at gate / cabin / pond; desktop; `bench:ci`; Jake's iPhone reading | baseline lane + Jake | `art/pine-hollow/round-1-baseline/` + numbers here |
+| PH-0.6 | **Boards B1–B4** (§2) | boards lane | Jake names a letter per board |
 
-## 4. The world (PH-U2 = C, subject to Jake's pick)
+## 4. The world (Map D; exact layout = board B1)
 
 All coordinates live in one import-free `src/chunks/pineHollowLayout.ts` (Nalati's pattern), with a 1 m flood-fill walkability
-check (≤ 44°) and a re-baked `terrain.bin` and navmesh.
+check (≤ 44°), then a re-baked `terrain.bin` and navmesh.
 
-| Zone | What's there | New landmarks |
+| Zone | What's there | New |
 |---|---|---|
-| **The Hollow** (bowl, today's core) | Spawn at the south gate, the crossroads, the Hollow cabin (the ranger's home, the hub), the East cabin | A **hunting lodge** at the crossroads: contract board, trophy wall, skinning rack |
-| **Still pond & the creek** | The pond (reworked, cheap reflection), reeds, a beaver dam; the creek from the ridge falls into it | Footbridge, a small waterfall, fishing jetty (hook for PH-C4f) |
-| **The Ridge** | Granite crags above the Ridge cabin (Blender-sculpted, snow dusting at the top) | **Fire-lookout tower**: a vista over the whole shard, and a zipline down to the Hollow (Driftwood's zipline kit) |
-| **The Den** | Bear country at the NW; a shallow **cave interior** (one room plus a squeeze) | The Old Blackpaw fight, cave reverb, bat flush |
-| **The Old-growth** | Giant firs and cedars 4–6× the pines' girth, ground fog, moss boulders, fallen giants to walk along | **The Antler King's clearing**: a ring of standing stones and lanterns hung in the canopy |
+| **The Hollow** (today's bowl) | South gate spawn, crossroads, the Hollow cabin = **the ranger's home** (trophy wall), East cabin | Waystone lantern posts on the paths |
+| **Still pond & the creek** | The pond (cheap reflection, PH-L9), reeds, a beaver dam; the creek falls from the ridge | Footbridge, waterfall, the canoe to the islet (secret) |
+| **The Ridge** | Blender-sculpted granite crags above the Ridge cabin | **Fire-lookout tower** (vista bench, the ridge lantern) and the **zipline** down to the Hollow |
+| **The Den** | Bear country, NW; a shallow **cave interior** | Old Blackpaw, the den lantern, cave reverb |
+| **The Old-growth** | Giant firs and cedars, ground fog, moss boulders, fallen giants to walk along | **The Antler King's clearing**: standing stones, lanterns hung in the canopy; thralls at night |
+| **The mill hamlet** (south) | Watermill + wheel on the creek, 3–4 buildings, fences, woodpiles | **The hunting lodge** (contract board), **the trader**, **the miller** |
 
 ## 5. The rows by track
 
-### L: the look (after PH-U1; method = Driftwood's)
+### L: the look (photoreal; the method is Driftwood's loop with photoreal targets)
 
 | # | Row | Gate |
 |---|---|---|
-| PH-L1 | **9-angle mockup loops at each zone** (`art/driftwood-isle/round-4-remaster/README.md` method): capture → 9 codex target mockups → per-angle gap list → TOP-10 routed to tracks → 3×3 sheets → loop until Jake signs off. Order: Hollow → pond → ridge → den → old-growth. | Jake signs each zone's 3×3 |
-| PH-L2 | **House light on Pine Hollow**: toon ramp (`stylize.ts`) patched into the PBR materials (D), or full swap (B / C); stylized sky + **DayNight** (20 + 4 min) replaces the fixed HDRI sunset; clean post (bloom above 1.0, SMAA). The volumetric god rays through the canopy stay: they are Pine Hollow's signature. | program count stable; `?look=pbr` still builds the old look |
-| PH-L3 | **Night & dusk**: cabin windows, lanterns and the fire pit on the clock (a fixed pool driven by intensity only, as Driftwood's `c282abe`, so no recompiles); moon shafts in the fog; fireflies at the pond | no program churn over a full day |
-| PH-L4 | **Learned LUT** `public/assets/lut/pine-hollow.bin` from the signed-off mockups (`fit-lut.py`, `&nolut` captures) | every region under ΔE00 6 |
-| PH-L5 | **Painted 360° horizon**: forested ridges + far peaks, day + night (the `scripts/horizon-matte` pipeline; top near 10° so it reads at phone width), replacing the 17 Sep ridge rings. Painted only at infinity; the walkable world stays real 3D. | seamless at every heading; −calls |
-| PH-L6 | **One shared wind in the forest**: pines, twigs, undergrowth and grass on `wind.ts` (`aSway`, `swayDepthMaterial` so shadows move); the gust front visibly crosses the canopy | 0 extra draws |
-| PH-L7 | **The forest, re-LODded** (E94 root cause): hi→lo swap and shadow cascade agree; lo trees cast on the phone; the impostor cross-fades (dither), no pop; E90's method and phone cost measured first | walk-around video: no visible pop |
-| PH-L8 | **Ground**: Nalati's GPU blade rings + near cards replace the carpet where they win (A / B board); forest-floor needle litter, moss, fern density by canopy; trample | ≤ the old grass's tris |
-| PH-L9 | **Water**: the pond off its planar re-render (panorama / probe reflection + ripples, lily pads, reeds bending); the creek + waterfall with foam; rain rings | pond pose p95 under 25 ms (was 50) |
+| PH-L1 | **9-angle mockup loops** per zone (`art/driftwood-isle/round-4-remaster/README.md`): capture → 9 codex *photoreal* target edits → gap list → TOP-10 routed to tracks → 3×3 sheets → loop. Order: Hollow → pond → ridge → den → old-growth → hamlet. | Jake signs each zone's 3×3 |
+| PH-L2 | **Photoreal day / night** (PH-U7): a physical sky + an HDRI set per time (dawn / day / golden / night, Poly Haven CC0, blended; `BakedSky` per key), CSM sun and moon, `Atmosphere` / `Volumetrics` re-keyed per time; the canopy god rays stay (the signature). The fixed sunset remains buildable by URL for captures. | program count stable over a full day; the variant sheet goes to Jake (taste) |
+| PH-L3 | **Night lights**: cabin windows, lanterns, the fire pit and the waystones on the clock, from a fixed light pool driven by intensity only (Driftwood `c282abe`); moon shafts in fog; fireflies at the pond | no program churn over a day |
+| PH-L4 | **Learned LUT** `public/assets/lut/pine-hollow.bin` from the signed-off photoreal mockups (`fit-lut.py`, `&nolut`) | every region under ΔE00 6; before / after sheet |
+| PH-L5 | **Painted 360° horizon, photoreal**: forested ridges and far peaks, day + night (the `horizon-matte` pipeline, stacks topping near 10°); replaces the 17 Sep rings. Only infinity is painted; the walkable world stays 3D. | seamless at every heading; −calls |
+| PH-L6 | **One shared wind**: pines, twigs, undergrowth and grass on `wind.ts` (`aSway`, `swayDepthMaterial`); a gust front visibly crosses the canopy | 0 extra draws |
+| PH-L7 | **The forest re-LODded** (E94): the hi→lo swap and the shadow cascade agree; lo trees cast; the impostor cross-fades (dither); E90's method, cost measured first | walk-around video, no pop |
+| PH-L8 | **Ground**: needle litter, moss and fern density by canopy; grass trample (Nalati's `GrassTrample`); photoreal ground sets re-checked for tiling from the mockups | ≤ the old tris |
+| PH-L9 | **Water**: the pond off its planar re-render (a probe / panorama reflection + ripples, lily pads, reeds); the creek + waterfall with foam; rain rings | pond pose p95 under 33 ms (phone 30 fps) |
+| PH-L10 | **Weather** (PH-U8): dawn ground fog pooling in the bowl and burning off; rain (canopy drips, wet PBR darkening + roughness drop, puddles, pond rings; animals shelter), on Nalati's `Weather` / `WeatherFX` | taste sheet (dry / fog / rain) to Jake |
 
 ### B: Blender and the asset pipeline
 
 | # | Row | Gate |
 |---|---|---|
-| PH-B1 | **Blender Hollow**: `pnpm blender:island --chunk pine-hollow`, terrain at 2× grid, Geometry-Nodes scatter (rocks, logs, stumps, ferns), Cycles AO + bounce lightmaps (sun live), caster / cover tiles LOD'd and distance-culled (`BlenderIsland.ts` generalised) | phone ≤ 150 calls, ≤ 2.0 M tris at every pose; colliders and anchors exported so quests run unchanged |
-| PH-B2 | **The Ridge crags + the cave** sculpted in Blender (V-B3's lesson: lightmap texel density up front) | crags hold at Native render scale |
-| PH-B3 | **Hero props from image-to-3D** (`scripts/img2mesh/`, TRELLIS.2 default, Hunyuan turbo for speed; `run-locked.sh`): hunting lodge, fire-lookout tower, standing stones, lantern posts, trophy mounts, beaver dam, footbridge, canoe, traps, the waystone lanterns, a totem / carved bear, old-growth stumps and root plates; budgets like Driftwood's (props 150–3 k tris, LOD1) | versus-board per batch |
-| PH-B4 | **Trees** (the biggest lever): hero Scots pine + **old-growth fir / cedar** + birch + dead snags + saplings. Built in Blender (Geometry Nodes / Sapling, *not* image-to-3D: trees come back as blobs), baked to the game's card and impostor atlases, and variant count up from 1 species to 5. | lineup board; forest pose tris flat or down |
-| PH-B5 | **CC0 forest kit** snapped to the picked palette (`cc0_export.py --family`): Kenney Nature Kit, Quaternius Stylized Nature MegaKit, KayKit Forest (already in `~/models/cc0/`, listed in CC0.md) | 20–30 models in `public/assets/models/pine-hollow-cc0/` |
-| PH-B6 | **The cabins, kept and lifted**: re-materialled for the new look; cabin 1 becomes the ranger's home (bunk, map table, the trophy wall); every cabin interior gets a reverb zone (PH-A4) | Explore models re-registered |
+| PH-B1 | **Blender Hollow**: `pnpm blender:island --chunk pine-hollow`; terrain at 2× grid; Geometry-Nodes scatter (rocks, logs, stumps, ferns); Cycles AO + bounce lightmaps (sun live); caster / cover tiles LOD'd and culled (`BlenderIsland` generalised); `?island=procedural` stays | phone ≤ the 30 fps budget at every pose; colliders + anchors exported |
+| PH-B2 | **The Ridge crags + the cave** sculpted in Blender (V-B3's lesson: lightmap texel density up front) | hold at Native render scale |
+| PH-B3 | **Hero props via image-to-3D** (TRELLIS.2 default, Hunyuan turbo; `run-locked.sh`; **PBR textures kept, no facet flattening**): the lodge, the lookout tower, the watermill + wheel, the standing stones, waystone lanterns, trophy mounts, beaver dam, footbridge, canoe, trader's stall, carved tokens, resin drops | a versus board per batch |
+| PH-B4 | **Trees** (PH-U17): hero Scots pine, old-growth fir / cedar, birch, snags, saplings in Blender (Geometry Nodes, photoreal bark + needle textures), baked into the card + impostor atlases | lineup board; forest pose tris flat or down |
+| PH-B5 | **CC0 photoreal kit**: Poly Haven models / textures (the shard's existing source), plus scanned rocks / logs; no low-poly packs | 20–30 models in `public/assets/models/pine-hollow-*` |
+| PH-B6 | **The cabins, kept and lifted**: the ranger's home (bunk, map table, the trophy wall), the lever-action on its rack; each interior gets a reverb zone | Explore models re-registered |
 
-### M: creatures (Nalati's pipeline, generalised in PH-0.3)
+### M: creatures and characters (Nalati's pipeline, PBR)
 
 | # | Row | Gate |
 |---|---|---|
-| PH-M1 | **Deer, boar, elk, bear** remodelled: codex reference (legs planted, head straight) → TRELLIS.2 → `creatureRigBake` onto their own procedural skeletons → `<hull>[.phone].rigged.glb`; rarity variants (Ghost stag, piebald, pale elk, Scarback…) as **coats** (`creatureCoats.ts`); `?creatures=proc` stays the fallback | strips + lineup + motion video; phone creature tris ≤ today's |
-| PH-M2 | **New fauna**: grey wolves (Nalati's `Pack.ts` + rigged wolf hull, forest-grey coats), a fox, hares, and owls / ravens / a woodpecker as ambient life (gull-style breadcrumbs toward unvisited POIs) | `animals.update` ≤ 1.4 ms, 0 stuck |
-| PH-M3 | **The Antler King** (after PH-U6): a 7 m moss-and-bark elk with a glowing ribcage and antler lanterns. Hunyuan full + paint (as the Drowned Captain) or a rigged hull; bound to his rig at load; `selfLight` on the ribcage | boss strip + fight video; phone calls with him close ≤ 150 |
-| PH-M4 | **The NPC**: the ranger, one generated, rigged human (the captain's path), with idle / talk / point clips | reads at 2 m on the phone |
+| PH-M1 | **Deer, boar, elk, bear remodelled** (PH-U11): codex reference (legs planted, head straight) → TRELLIS.2 / Hunyuan with PBR texture → `creatureRigBake` onto their procedural skeletons → `<hull>[.phone].rigged.glb`; the variants (Ghost Stag, piebald, pale elk, Scarback…) as coats; `?creatures=proc` fallback | strips + lineup + motion video; phone creature tris ≤ today's |
+| PH-M2 | **The thralls** (PH-U9): elk + boar hulls with a "thrall" coat (moss, bark scabs, glassy eyes) + a stiff gait variant | read as eerie folklore on the board (B3) |
+| PH-M3 | **The Antler King** (board B2): a 7 m moss-and-bark elk, a glowing ribcage, antler lanterns; Hunyuan full + paint (the Drowned Captain's path); `selfLight` on the ribcage | boss strip + fight video |
+| PH-M4 | **The NPCs**: the ranger (board B3), the miller, the trader. Generated, rigged humans with idle / talk / point clips. | read at 2 m on the phone |
+| PH-M5 | **Ambient life** without wolves: owls, ravens (they come to a carcass), a woodpecker, hares; gull-style breadcrumbs toward unvisited POIs | `animals.update` ≤ 1.4 ms |
 
-### C: content (the Nalati-level layer, on Nalati's engine systems)
+### C: content
 
 | # | Row | Detail |
 |---|---|---|
-| PH-C1 | **Quest spine: *The Warden's Hollow*** (PH-U3 A) | 1. Meet **the ranger** at the Hollow cabin. The Hollow's three waystone lanterns went dark, and something with antlers of light walks the old-growth at night. 2. **The pond lantern**: a creek-dam puzzle; drain the pool to reach it. 3. **The ridge lantern**: climb to the fire-lookout, then zipline back. 4. **The den lantern**: in Old Blackpaw's cave. 5. Follow **the Ghost stag's** trail to the old-growth. 6. **The Antler King**. 7. Reward: **dawn over the Hollow** (Driftwood's golden-hour beat, mirrored), the lanterns lit shard-wide, the King's weapon. Driftwood's objective HUD, flags and interactables kit (`src/world/interact/*`); saves per shard. |
-| PH-C2 | **The Antler King boss** (Nalati's `Boss.ts` / `BossBar.ts`, `GroundTell` telegraphs) | Only at night, in the clearing, fog closing in as the arena wall. **I, the Warden**: antler sweeps and root-ring stomps (jump the ring); shoot the ribcage when it opens. **II, Lanterns Fall**: his antler lanterns drop and burn as hazards; he summons a wolf pack. **III, the Last Light**: the clearing goes dark except his ribcage and your lantern, and he charges down lanes. Phase checkpoints, reward orb, `?boss=antler-king`. Drops the **Warden's Longbow** (or the PH-U5 pick) + a crossbow skin. |
-| PH-C3 | **Named elites** (Nalati's `Elite.ts`; the "retrofit" in `docs/design/nalati/elites-and-bosses.md`) | **Old Ironhide, Terror of the Hollow** (boar): telegraphed gore charge. **The Ghost Stag**: fades, unaimable for 2 s, reappears behind you, and leads the quest. **Old Blackpaw** (bear, the den): roar-stun + ambush from the cave mouth. **Whitefang** (wolf alpha, night): pack howl, broken by a hit. **The Imperial Bull** (elk, dusk rut): bugle calls rivals in. Each: leash, phase 2 at 50 %, banner, minimap skull, 20 min respawn, cosmetic drop + trophy. |
-| PH-C4 | **The hunt: Pine Hollow's identity** (what Driftwood's quest and Nalati's riding are to theirs) | **a. Tracking**: prints, broken twigs and blood trails that fade with time, and a "scent" chip that reads the shared wind (downwind = unseen). **b. Calls**: grunt / bugle / squeal lure a species; the elites answer theirs. **c. Hides & tree stands**: sit in one and animals relax. **d. The contract board** (PH-U3 B): daily bounties, rarity targets, a named elite per week. **e. The trophy wall** in the ranger's cabin: every legendary and elite you took, persisted, with the joke title. **f. Fishing** at the jetty (optional, its own pick). **g. Hunter's journal**: a bestiary that fills as you track and take each species / variant (ties into Explore's creature viewer). |
-| PH-C5 | **Night & weather** (Nalati's `DayClock` / `Weather` / `WeatherFX`) | Dawn **ground fog** in the bowl; **rain** on the canopy (drips, puddles, rain rings on the pond); **thunderstorms** where lightning hits the tallest pine, with a charred snag after; the **first snow** as a rare state (snow on the ridge sinks to the Hollow). Night brings wolves, owls and the King. Animals shelter in storms. |
-| PH-C6 | **Collectibles & secrets** | **Amber resin drops** (Driftwood's sea-glass role, ~30); **carved wooden tokens** at 8 hidden spots; the lookout's vista bench; a hollow-log secret passage; the canoe to the pond's islet. |
-| PH-C7 | **Map & places**: named places with discovery (Driftwood's POI system), quest markers, the pond reading dark fixed (EXPLORE-V2 V3), map pins for the new zones | every zone discoverable |
-| PH-C8 | **Achievements to 14 or more**, joke titles in the house voice: the King, each elite, the three lanterns, the resin set, the journal complete, a tree-stand ambush, "Stood Downwind Like An Amateur" | table in `achievements.ts` |
-| PH-C9 | **Loadout**: the crossbow stays the hero weapon; the rifle per PH-U5; Nalati's `Bow.ts` (drop arc, wind drift) becomes the Warden's Longbow; the sword question (Driftwood's) is Jake's call | weapon strip reads on touch |
+| PH-C1 | **Quest: *The Warden's Hollow*** | 1. The ranger: the Hollow's three waystone lanterns went dark, and something with antlers of light walks the old-growth at night. 2. **The pond lantern**: a creek-dam puzzle; drain the pool to reach it. 3. **The ridge lantern**: climb the lookout, then take the zipline back. 4. **The den lantern**: in Old Blackpaw's cave. 5. Follow the Ghost Stag to the old-growth. 6. **The Antler King**. 7. **Dawn over the Hollow**: the lanterns lit shard-wide, the Warden's Longbow. Driftwood's objective HUD, flags and interactables kit; saves per shard. |
+| PH-C2 | **The Antler King** (Nalati's `Boss.ts`, `GroundTell`) | Night only, in the clearing; the fog closes as the arena wall. **I, the Warden**: antler sweeps and root-ring stomps (jump the ring); shoot the ribcage when it opens. **II, Lanterns Fall**: his lanterns drop and burn as hazards; he calls **thralls** out of the fog. **III, the Last Light**: all dark but his ribcage and your lantern, then charges down lanes. Phase checkpoints, reward orb, `?boss=antler-king`. Drops the **Warden's Longbow** (Nalati's `Bow.ts`: drop arc, wind drift) + a crossbow skin. |
+| PH-C3 | **Four elites** (Nalati's `Elite.ts`) | **Old Ironhide, Terror of the Hollow**: telegraphed gore charge. **The Ghost Stag**: fades, unaimable for 2 s, reappears behind you; it leads quest beat 5. **Old Blackpaw**: roar-stun, ambush from the cave mouth. **The Imperial Bull**: at dusk his bugle calls rival bulls in. Each has a leash, phase 2 at 50 %, a banner, a minimap skull, a 20 min respawn, and a cosmetic drop + trophy. |
+| PH-C4 | **The trophy wall** | In the ranger's cabin: every legendary and elite taken, mounted and persisted, with the joke title. Examine one = its journal page. |
+| PH-C5 | **The Compendium (engine) + the hunter's journal (skin)** | `src/ui/compendium/`: data-driven entries (species / variant / elite / boss / place), discovered → seen → taken, per-entry stats, the Explore 3D viewer as the entry's plate. Each shard supplies data + a skin. Pine Hollow's: a leather journal, pencil sketches, pressed-page tabs (board B4). Driftwood / Nalati can adopt it later (not in this plan). |
+| PH-C6 | **The mill hamlet** | **The lodge's contract board**: 3 rotating contracts (a species / a rarity / an elite / a thrall cull); finishing one draws the next; pays in trophies + skins; works offline. **The trader**: item-for-item swaps. **The miller**: a side errand (e.g. clear the thralls off the millrace at night; the wheel turns again). |
+| PH-C7 | **Night & weather play** | Thralls roam the old-growth at night and flee the dawn. Rain makes animals shelter under the big firs. Dawn fog hides the Ghost Stag. |
+| PH-C8 | **Collectibles & secrets** | ~30 amber resin drops, 8 carved wooden tokens (all 8 = a cabin decoration + a title); the lookout's vista bench, a hollow-log passage, the canoe to the pond's islet |
+| PH-C9 | **Map & places**: named places with discovery, quest markers, the pond reading dark fixed (EXPLORE-V2 V3), pins for the new zones | every zone discoverable |
+| PH-C10 | **Achievements to 14 or more** in the house voice: the King, each elite, the three lanterns, all resin, all tokens, the journal complete, a contract streak, the miller's errand | `achievements.ts` |
+| PH-C11 | **Loadout** (ranged only): crossbow (hero), **lever-action** (PH-U5: model via image-to-3D, action cycle, its own SFX), the Warden's Longbow; special bolts / cartridges from the trader | the weapon strip reads on touch |
 
 ### F: combat feel
 
 | # | Row |
 |---|---|
-| PH-F1 | Driftwood's hit-stop, trauma shake, hurt arc and impact kit ported to the crossbow / rifle / bow and the animals (today those are sword / island-only). Bear and boar charges get Nalati's `GroundTell` telegraphs. Lock-on (E50) is checked on fast creatures. |
-| PH-F2 | Harvest feel: a short skinning beat with sound, and the carcass left to the ravens (ambient life) |
+| PH-F1 | Driftwood's hit-stop, trauma shake, hurt arc and impact kit for the crossbow / lever-action / longbow and the animals; `GroundTell` telegraphs for the bear and boar charges and the King; lock-on (E50) checked on fast creatures |
+| PH-F2 | Harvest feel: a short skinning beat with sound; the carcass stays for the ravens |
 
-### A: audio (the house engines: MiniMax only for music; MOSS v2 + Stable Audio 3, better take ships)
-
-| # | Row | Gate |
-|---|---|---|
-| PH-A1 | **MUSIC v2 for Pine Hollow**: new slots per style (piano / orchestral / folk): **calm-day, calm-night, tension, boss (the Antler King, 3 phases as stems), the dawn reward sting, storm**. About 6 takes per slot, `rank_v3.py`, demucs stems, bar-exact loops, −18 LUFS, ≤ 5 MB per style. Theme 1 is retired or kept as the night bed (Jake's ears). | round board published for Jake's listen, as E57 |
-| PH-A2 | **Zoned ambience**, `ForestAmbience` (the `IslandAmbience` pattern): Hollow (wind in pines, woodpecker), pond (frogs, loons, dragonflies), creek / waterfall, ridge (high wind, hawk), old-growth (hush, creaks, deep drips), cave (drips, bats), night (owls, crickets, far wolves), rain on canopy vs rain in the open, storm | zones cross-fade on the minimap |
-| PH-A3 | **Generated SFX set**: crossbow (draw, loose, bolt hits by surface), rifle, longbow; every animal's voice (elk bugle, bear roar, boar squeal, wolf howl chorus, the King's antler-bell and root-stomp); footsteps on needle / mud / snow / wood / rock; cabin doors, lanterns, the zipline, the waterfall | `sfx-best.json` per sound |
-| PH-A4 | **Generated reverb IRs**: cabin interior, the cave, old-growth, the open bowl | toggled on zone entry |
-
-### P: perf and load (every row carries its before / after numbers)
+### A: audio (MiniMax only for music; every SFX made by MOSS v2 + Stable Audio 3, the better take ships)
 
 | # | Row | Gate |
 |---|---|---|
-| PH-P1 | Phone poses re-measured after each wave (gate / cabin / pond + the new ridge / den / old-growth / King fight) | ≤ 150 calls, ≤ 2.0 M tris; target Nalati's 110 / 1.6 M |
-| PH-P2 | **Desktop draws** (E4b): 880–990 → ≤ 300 (merge the cabin detail, the BatchedMesh for props, the undergrowth by cell) | ≤ 300 at every pose |
-| PH-P3 | **Load**: 23.5 MB → ≤ 20 MB cold (KTX2 / Basis for the Poly Haven sets that remain, WebP atlases, the phone halves); a Pine Hollow `SHARD_STEPS` with honest nouns; boot pack like Nalati's 2.7 MB | `bench:ci` green |
-| PH-P4 | **Physics**: creature physics LOD for about 150 animals + wolves (ENGINE-FIT), navmesh re-baked for layout v2, `physics-baseline --mode=walk / --trails` 0 stuck, the zipline + cave colliders | ≤ 1.5 ms p50 |
-| PH-P5 | **iPhone reading** (Jake, Low Power off) at the end of each wave | ≥ 55 fps |
-| PH-P6 | **WebGPU** (V-G2): Pine Hollow on the TSL path; parity at the 9 cameras | mean \|Δ\| under 6/255; WebGL stays default |
+| PH-A1 | **Music** (PH-U12): **keep theme 1** (pine calm / tension, 3 styles) + **new slots**: calm-night, the Antler King (3 phase stems), the dawn reward sting; ~6 takes per slot, `rank_v3.py`, demucs stems, bar-exact loops, −18 LUFS, ≤ 5 MB per style | a listening page for Jake (E57 style) |
+| PH-A2 | **Zoned ambience**, `ForestAmbience` (the `IslandAmbience` pattern): Hollow, pond, creek / waterfall + the mill wheel, ridge wind, old-growth hush, cave, night (owls, crickets, the thralls' far calls), rain on canopy vs open, dawn birds | zones cross-fade |
+| PH-A3 | **SFX set**: crossbow, lever-action (cycle, shot, the ridge echo), longbow; every animal voice (elk bugle, bear roar, boar squeal) + the thralls + the King (antler-bells, root stomps); footsteps on needle / mud / wood / rock / wet; doors, lanterns, the zipline, the waterfall, the mill | `sfx-best.json` per sound |
+| PH-A4 | **NPC barks** (PH-U23): the ranger, the miller and the trader, 6–10 short generated barks each | versus-take page |
+| PH-A5 | **Reverb IRs**: cabin, cave, old-growth, the bowl | on zone entry |
+
+### P: perf and load (every row carries before / after numbers)
+
+| # | Row | Gate |
+|---|---|---|
+| PH-P1 | **The 30 fps tier** (PH-U18): Pine Hollow's phone frame cap locked at 30 (no 30↔60 judder); the phone budget re-derived from Jake's iPhone at 30 (headless proxy: calls / tris logged per pose, target set after PH-0.5) | steady 30 on the iPhone at every pose |
+| PH-P2 | **Desktop draws** (E4b): 880–990 → ≤ 300 (merge the cabin detail, BatchedMesh for props, undergrowth by cell) | ≤ 300, 60 fps |
+| PH-P3 | **Load**: ≤ 30 MB cold; KTX2 / Basis for the photoreal sets; a Pine Hollow `SHARD_STEPS` with honest nouns | `bench:ci` with Pine Hollow's own budget |
+| PH-P4 | **Physics**: creature physics LOD, navmesh re-baked for layout v2, `physics-baseline --mode=walk / --trails` 0 stuck, the zipline + cave colliders | ≤ 1.5 ms p50 |
+| PH-P5 | **WebGPU** (V-G2): Pine Hollow on the TSL path; parity at the 9 cameras | mean \|Δ\| under 6/255; WebGL stays default |
 
 ### S: ship (graduation)
 
 | # | Row |
 |---|---|
-| PH-S1 | Hero art from in-engine captures (landscape 1600×900, portrait 1024×1536, card 640×360; the King's clearing at night and the Hollow at dawn are the candidates); the native app icons re-made from them |
-| PH-S2 | `experimental` off; blurb, enter hint and hazard band gone; card order a Jake pick |
-| PH-S3 | The name (PH-U4) and `docs/SHARDS.md` rewritten for three shards |
-| PH-S4 | The plan finished and archived; tag **v0.3** ("three shards") |
+| PH-S1 | Hero art from in-engine captures (the King's clearing at night, the Hollow at dawn); the native icons re-made |
+| PH-S2 | `experimental` off; the blurb, enter hint and hazard band gone; the card sits after Driftwood |
+| PH-S3 | `docs/SHARDS.md` rewritten for three shards |
+| PH-S4 | Jake merges; the plan is archived; tag **v0.3** |
 
-## 6. How it gets built: waves and lanes
+## 6. How it gets built
 
-A wave starts only when Jake names it. Up to 3 build subagents per wave, on disjoint files. Each commit is a small deploy with
-before / after shots in `progress/pine-hollow-<row>-<nn>-<slug>.jpg` and the phone numbers. Art goes in `art/pine-hollow/round-<n>-<label>/`.
+**Where:**
+- worktree `../wildshard-pine-hollow`, branch `pine-hollow-remaster`, off main;
+- **never pushes**;
+- the dev server on its own port (5176);
+- a playable preview on its own Vercel project (`pine-hollow-remaster`), from a clean `git archive HEAD` export;
+- merged into main by Jake (the physics / Nalati recipe).
+
+**How:**
+- Up to 3 build subagents at a time, on disjoint files. The parent integrates, measures and redeploys the preview.
+- Every milestone gets before / after shots in `progress/pine-hollow-<row>-<nn>-<slug>.jpg`.
+- Art goes in `art/pine-hollow/round-<n>-<label>/`, committed as JPEG.
+- Every taste change keeps the old look selectable and goes to Jake as a board.
+- Headless browsers are muted, run as "iPhone 16 Pro", with at most 3 open on the machine.
 
 | Wave | Rows | Lanes (disjoint files) | Waits on |
 |---|---|---|---|
-| **0** | PH-0.1 → 0.5, the boards for PH-U1 / U2 / U3 / U5 | engine (`main.ts`, `src/shards/*`), tools (`scripts/*`), integrator (bugs) | the Nalati merge |
-| **1: Look** | PH-L1 → L9, PH-B4 trees | look (`world/stylize`, sky, LUT, horizon), forest (`Forest`, `TreeFactory`, `wind`), water (`Water`, pond) | PH-U1 |
-| **1b: Sound** (parallel, no browsers) | PH-A1 → A4 | music (`scripts/music`), sfx, ambience (`audio/*`) | PH-U3 (the beats name the stings) |
-| **2: World** | layout v2, PH-B1 / B2 / B3 / B5 / B6, PH-C7 | blender (`scripts/blender`, `BlenderIsland`), assets (`scripts/img2mesh`, `public/assets/models/pine-hollow-*`), layout (`pineHollowLayout.ts`, bake) | PH-U2 |
-| **3: Life** | PH-M1 → M4 | creatures (rig bake, coats), boss model, NPC | wave 2's layout (spawns) |
-| **4: Play** | PH-C1 → C9, PH-F1 / F2 | quest + NPC (`quest/*`), elites + boss (`pinehollow/*`), hunt systems (`game/hunt/*`) | waves 2–3 |
-| **5: Ship** | PH-P1 → P6 (running since wave 1), PH-S1 → S4 | integrator | Jake's 3×3 sign-offs + iPhone |
-
-**Size, as a yardstick.** Driftwood v1 (look + a quest spine) took about 2 days of agent time. Nalati (look + systems + two
-bosses) took 624 commits. This plan is between them. It reuses both shards' engines, so most of its cost is art loops, content
-and audio generation, not systems.
+| **0** | PH-0.3 → 0.6, PH-A1 → A5 | boards (`art/pine-hollow/`), baseline + bugs (`Forest`, `tier`, `Rifle`, `config`, boot steps), sound (`scripts/music`, `public/assets/{music,sfx}`, `audio/*`) | — |
+| **1: Look** | PH-L1 → L10, PH-B4 | look (sky / day-night / LUT / horizon), forest (`Forest`, `TreeFactory`, `wind`, Blender trees), water + weather | the baseline |
+| **2: World** | layout v2, PH-B1 / B2 / B3 / B5 / B6, PH-C9 | blender, assets, layout + bake | board B1 |
+| **3: Life** | PH-M1 → M5 | creatures, the King + thralls, NPCs | boards B2 / B3; Nalati on main |
+| **4: Play** | PH-C1 → C11, PH-F1 / F2, PH-0.2 | quest + NPCs, elites + boss, compendium + trophy wall + hamlet | waves 2–3; board B4 |
+| **5: Ship** | PH-P1 → P5 (running since wave 1), PH-S1 → S4 | integrator | Jake's sign-offs + iPhone |
 
 ## 7. Risks
 
-- **Perf is the tightest in the game already.** Every added zone must pay for itself: the pond re-render (PH-L9), desktop
-  draws (PH-P2) and the painted horizon (PH-L5, −calls) come first, so wave 2 has room.
-- **The style fork (PH-U1) touches every later row.** Picking late re-does mockups. That is why it is the first board.
-- **Trees through image-to-3D fail** (blobs), so PH-B4 is Blender-built on purpose.
-- **Shared-tree hazards**: 10 agents on `main`; this touches `main.ts` hardest (PH-0.2 first, alone).
-- **Nalati systems are young.** Elite / Boss / Weather have run only on the steppe; the retrofit will find their shard
+- **Photoreal is the hardest target**, and the phone was already the tightest in the game. The 30 fps lock buys headroom;
+  the pond, the desktop draws and the painted horizon are paid down first.
+- **The `main.ts` conflict with the Nalati merge.** PH-0.2 waits until Nalati is on main, and the branch keeps its
+  `main.ts` diff small until then.
+- **Trees through image-to-3D come out as blobs**, so PH-B4 is built in Blender on purpose.
+- **Nalati's systems are young.** Elite / Boss / Weather have only run on the steppe; the retrofit will find their shard
   assumptions (sealed-arena radius, grass-height stealth).
