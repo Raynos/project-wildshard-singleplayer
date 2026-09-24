@@ -23,7 +23,7 @@ import { thinkWolf } from '../Pack';
  * Palette keys (VariantDef.tint): back side cream leg dark nose earIn eye mouth scar.
  */
 
-const WOLF = {
+export const WOLF = {   // exported: glbCreatures.ts recolours the rigged hull per variant from it
   back: [0.20, 0.185, 0.175], side: [0.60, 0.52, 0.42], cream: [0.90, 0.86, 0.78], leg: [0.66, 0.55, 0.41],
   dark: [0.14, 0.12, 0.11], nose: [0.05, 0.045, 0.045], earIn: [0.82, 0.70, 0.58], eye: [0.86, 0.60, 0.16],
   mouth: [0.42, 0.10, 0.10], scar: [0.80, 0.55, 0.52],

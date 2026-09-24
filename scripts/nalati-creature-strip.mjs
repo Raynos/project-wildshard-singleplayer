@@ -48,8 +48,38 @@ const FLY_ROWS = [
   { label: 'flap', frames: [0, 0.1, 0.2, 0.3, 0.4].map((t) => ({ gait: 'idle', phase: 0, t: 10 + t, mem: { flap: 1 } })) },
   { label: 'fly', frames: [{ gait: 'idle', phase: 0, t: 10, mem: { flap: 0 } }, { gait: 'idle', phase: 0, t: 10, mem: { fold: 1 } }, { gait: 'idle', phase: 0, t: 10, mem: { bank: 0.6, flap: 0.3 } }, { gait: 'idle', phase: 0, t: 10.2, mem: { ground: 1 } }] },
 ];
+// --coats=1: one row per subject (side idle, side walk, 3/4 gallop), all subjects on one sheet: coats-<tag>.jpg
+const COATS = flag('coats', '0') === '1';
+const COAT_ROWS = [{ label: 'coat', frames: [{ gait: 'idle', phase: 0, t: 0.5 }, { gait: 'walk', phase: 0.25 }, { gait: 'gallop', phase: 0.4, view: 'front' }] }];
 const ROWSEL = flag('rows', '');
-const ROWS = flag('fly', '0') === '1' ? FLY_ROWS : ROWSEL ? ROWS_ALL.filter((r) => ROWSEL.split(',').includes(r.label)) : ROWS_ALL;
+const ROWS = COATS ? COAT_ROWS : flag('fly', '0') === '1' ? FLY_ROWS : ROWSEL ? ROWS_ALL.filter((r) => ROWSEL.split(',').includes(r.label)) : ROWS_ALL;
+async function compose(browserRef, rows, sheetTitle) {
+  const comp = await (await browserRef.newContext()).newPage();
+  const b64 = await comp.evaluate(async ({ rows: rs, cw, ch, title }) => {
+      const load = (src) => new Promise((resolve, reject) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = src; });
+      const maxC = Math.max(...rs.map((r) => r.cells.length));
+      const G = 4, LW = 0, TOP = 28, LAB = 20;
+      const c = document.createElement('canvas'); c.width = maxC * (cw + G) + G + LW; c.height = TOP + rs.length * (ch + LAB + G);
+      const x = c.getContext('2d'); x.fillStyle = '#111'; x.fillRect(0, 0, c.width, c.height);
+      x.font = '600 18px ui-sans-serif, system-ui'; x.fillStyle = '#ffd98a'; x.fillText(title, G, 20);
+      for (let r = 0; r < rs.length; r++) {
+        const row = rs[r];
+        const y = TOP + r * (ch + LAB + G);
+        for (let i = 0; i < row.cells.length; i++) {
+          const im = await load(`data:image/jpeg;base64,${row.cells[i]}`);
+          x.drawImage(im, G + i * (cw + G), y + LAB, cw, ch);
+          const f = row.frames[i];
+          const tag = f.attack !== undefined ? `attack ${f.attack}` : f.death !== undefined ? `death ${f.death}` : `${f.gait} ${f.phase}`;
+          x.font = '600 13px ui-monospace, monospace'; x.fillStyle = '#9fe6ff'; x.fillText(`${row.label} · ${tag}`, G + i * (cw + G) + 2, y + 15);
+        }
+      }
+      for (let qq = 0.85; qq >= 0.4; qq -= 0.05) { const u = c.toDataURL('image/jpeg', qq); if (u.length * 0.75 < 1.2e6) return u.split(',')[1]; }
+      return c.toDataURL('image/jpeg', 0.35).split(',')[1];
+    }, { rows, cw: CW, ch: CH, title: sheetTitle });
+  await comp.close();
+  return b64;
+}
+
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
   const ctx = await browser.newContext({ viewport: { width: CW, height: CH }, deviceScaleFactor: 1 });
@@ -188,6 +218,7 @@ try {
     };
   }, { ...SPOT, double: flag('double', '0') === '1' });
 
+  const allRows = [];
   for (const subj of only) {
     const [kind, variant] = subj.split(':');
     const hullNames = { horse: ['horse-wild', 'horse-saddled'], wolf: ['wolf'], leopard: ['snow-leopard'], eagle: ['eagle-flight'], 'golden-king': ['golden-king'], sheep: ['sheep'] }[kind] ?? [];
@@ -206,31 +237,15 @@ try {
       }
       rows.push({ label: row.label, cells, frames: row.frames });
     }
-    const comp = await (await browser.newContext()).newPage();
-    const b64 = await comp.evaluate(async ({ rows: rs, cw, ch, title }) => {
-      const load = (src) => new Promise((resolve, reject) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = src; });
-      const maxC = Math.max(...rs.map((r) => r.cells.length));
-      const G = 4, LW = 0, TOP = 28, LAB = 20;
-      const c = document.createElement('canvas'); c.width = maxC * (cw + G) + G + LW; c.height = TOP + rs.length * (ch + LAB + G);
-      const x = c.getContext('2d'); x.fillStyle = '#111'; x.fillRect(0, 0, c.width, c.height);
-      x.font = '600 18px ui-sans-serif, system-ui'; x.fillStyle = '#ffd98a'; x.fillText(title, G, 20);
-      for (let r = 0; r < rs.length; r++) {
-        const row = rs[r];
-        const y = TOP + r * (ch + LAB + G);
-        for (let i = 0; i < row.cells.length; i++) {
-          const im = await load(`data:image/jpeg;base64,${row.cells[i]}`);
-          x.drawImage(im, G + i * (cw + G), y + LAB, cw, ch);
-          const f = row.frames[i];
-          const tag = f.attack !== undefined ? `attack ${f.attack}` : f.death !== undefined ? `death ${f.death}` : `${f.gait} ${f.phase}`;
-          x.font = '600 13px ui-monospace, monospace'; x.fillStyle = '#9fe6ff'; x.fillText(`${row.label} · ${tag}`, G + i * (cw + G) + 2, y + 15);
-        }
-      }
-      for (let qq = 0.85; qq >= 0.4; qq -= 0.05) { const u = c.toDataURL('image/jpeg', qq); if (u.length * 0.75 < 1.2e6) return u.split(',')[1]; }
-      return c.toDataURL('image/jpeg', 0.35).split(',')[1];
-    }, { rows, cw: CW, ch: CH, title: `${subj} · ${TAG} (?creatures=${CREATURES}, ${TIER})` });
-    await comp.close();
+    if (COATS) { allRows.push(...rows.map((r) => ({ ...r, label: subj }))); continue; }
+    const b64 = await compose(browser, rows, `${subj} · ${TAG} (?creatures=${CREATURES}, ${TIER})`);
     const out = resolvePath(OUT, `${kind}-${variant}-${TAG}.jpg`);
     writeFileSync(out, Buffer.from(b64, 'base64'));
+    console.log(`  wrote ${out}`);
+  }
+  if (COATS) {
+    const out = resolvePath(OUT, `coats-${TAG}.jpg`);
+    writeFileSync(out, Buffer.from(await compose(browser, allRows, `coats · ${TAG} (?creatures=${CREATURES}, ${TIER})`), 'base64'));
     console.log(`  wrote ${out}`);
   }
   if (errors.length > 0) console.log('page errors:', errors.slice(0, 5).join(' | '));

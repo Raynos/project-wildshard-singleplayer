@@ -390,6 +390,11 @@ function patchSheep(mat: THREE.Material, uTime: { value: number }, depthOnly: bo
         }`)
       .replace('#include <begin_vertex>', 'vec3 transformed = sheepPos( vec3( position ) );');
     if (!depthOnly) shader.vertexShader = shader.vertexShader.replace('#include <beginnormal_vertex>', 'vec3 objectNormal = sheepNrm( vec3( normal ) );');
+    // the wool colour (the instance colour) tints only the fleece: with the generated sheep's atlas the dark face and
+    // legs stay dark instead of every sheep's face taking the wool (a near-black ewe's face was pitch)
+    if (!depthOnly) shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>', `#if defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR )
+      { float woolL = dot( diffuseColor.rgb, vec3( 0.2126, 0.7152, 0.0722 ) ); diffuseColor.rgb *= mix( vec3( 1.0 ), vColor.rgb, smoothstep( 0.05, 0.18, woolL ) ); }
+      #endif`);
   };
   const key = mat.customProgramCacheKey.bind(mat);
   mat.customProgramCacheKey = () => `${key()}|nalati-sheep${depthOnly ? '-depth' : ''}`;

@@ -39,7 +39,7 @@ import { wildEnv } from '../wildEnv';
 
 export const HORSE_SPEED = { walk: 1.8, trot: 4.5, canter: 8.5, gallop: 13 } as const;
 
-const HORSE = {
+export const HORSE = {   // exported: glbCreatures.ts recolours the rigged hull per variant from it
   coat: [0.50, 0.27, 0.14], belly: [0.60, 0.38, 0.22], points: [0.07, 0.055, 0.05], mane: [0.07, 0.055, 0.05],
   muzzle: [0.22, 0.15, 0.12], sock: [0.92, 0.90, 0.85], hoof: [0.20, 0.17, 0.15], eye: [0.04, 0.03, 0.025],
   earIn: [0.30, 0.20, 0.16], dorsal: [0.07, 0.055, 0.05],

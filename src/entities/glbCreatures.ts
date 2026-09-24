@@ -21,17 +21,21 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { TIER } from '../core/tier';
 import { modelsOn } from '../world/nalati/glbPaint';
-import type { BoneDef } from './species/registry';
+import { variantDef, type BoneDef } from './species/registry';
+import { coatAtlas, HULL_COATS } from './creatureCoats';
 
 /** the rigged hulls (scripts/nalati-rig-bake.mjs RIG_BAKES) */
 export type CreatureRigName = 'horse-wild' | 'horse-saddled' | 'wolf' | 'snow-leopard' | 'sheep' | 'eagle';
 
 const HULL: Readonly<Record<string, CreatureRigName>> = {
-  'horse:dun': 'horse-wild',
-  'horse:camp-bay': 'horse-saddled',
-  'wolf:grey': 'wolf',
-  'wolf:tawny': 'wolf',
-  'wolf:scout': 'wolf',
+  // every coat wears its hull, recoloured (creatureCoats.ts)
+  'horse:bay': 'horse-wild', 'horse:chestnut': 'horse-wild', 'horse:dun': 'horse-wild', 'horse:grey': 'horse-wild',
+  'horse:black': 'horse-wild', 'horse:foal-bay': 'horse-wild', 'horse:foal-chestnut': 'horse-wild', 'horse:stallion': 'horse-wild',
+  'argymaq:stallion': 'horse-wild',
+  'horse:camp-bay': 'horse-saddled', 'horse:camp-black': 'horse-saddled', 'horse:tulpar': 'horse-saddled',
+  'wolf:grey': 'wolf', 'wolf:tawny': 'wolf', 'wolf:dark': 'wolf', 'wolf:scout': 'wolf', 'wolf:alpha': 'wolf',
+  'kokbori:kokbori': 'wolf',
+  // not the sheepdog: on the wolf's hull a collie reads as a wolf circling the flock (it stays procedural)
   'leopard:aqbars': 'snow-leopard',
   'eagle:qyran': 'eagle',
 };
@@ -129,5 +133,7 @@ export function skinCreatureGlb(kind: string, variant: string, bones: readonly B
   if (!rig) return null;
   if (!jointsMatch(rig, bones)) { console.warn(`[nalati] creature rig ${name}: baked against other bones than ${kind}:${variant} — re-run scripts/nalati-rig-bake.mjs`); return null; }
   const out: BoneDef[] = bones.map((b, i) => { const p = rig.joints[i]?.pos; return { name: b.name, parent: b.parent, pos: p ? [p.x, p.y, p.z] : b.pos }; });
-  return { geometry: rig.geometry, map: rig.map, bones: out, doubleSided: DOUBLE_SIDED.has(name) };
+  const coat = HULL_COATS[name];
+  const map = coat && rig.map ? coatAtlas(`${name}:${kind}:${variant}`, coat, rig.geometry, rig.map, variantDef(kind, variant).tint) : rig.map;
+  return { geometry: rig.geometry, map, bones: out, doubleSided: DOUBLE_SIDED.has(name) };
 }
