@@ -12,10 +12,12 @@ export const GRASS_RADIUS = 60;
 // Live bindings mirrored from the active ChunkDef (src/chunks/registry.ts). They are set when the
 // registry module initialises (from ?chunk=) and again on setActiveChunk(); read them at build time,
 // not at module top level, unless your module imports the registry / Heightfield first.
-export let CHUNK_ID = 'chunk://local/pine-hollow';
-export let CHUNK_COORDS = '(+3, −2)';
-export let TREE_COUNT = 2600;
-export let SEED = 1337;
+// The defaults are the default shard's (registry DEFAULT_CHUNK = Driftwood Isle), so a read before the registry has run
+// sees the shard a bare URL boots, not Pine Hollow.
+export let CHUNK_ID = 'chunk://local/driftwood-isle';
+export let CHUNK_COORDS = '(−1, +6)';
+export let TREE_COUNT = 0;
+export let SEED = 0x5ea1;
 
 /** @internal — called by the chunk registry; do not call from features. */
 export function _applyChunkConstants(c: { id: string; gridCoords: string; seed: number; treeCount: number }): void {
