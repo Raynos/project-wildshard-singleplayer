@@ -1,0 +1,38 @@
+{
+  "tag": "e94-before-0.95",
+  "url": "http://localhost:4186",
+  "query": "",
+  "when": "2026-09-24T12:47:54.619Z",
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "gate",
+      "calls": 85,
+      "tris": 924288,
+      "msP50": 16.700000286102295,
+      "msP95": 17.09999990463257,
+      "programs": 76,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "cabin",
+      "calls": 121,
+      "tris": 1346074,
+      "msP50": 16.700000286102295,
+      "msP95": 17.300000190734863,
+      "programs": 76,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "pond",
+      "calls": 165,
+      "tris": 1567220,
+      "msP50": 16.799999713897705,
+      "msP95": 17.40000009536743,
+      "programs": 76,
+      "forest": "batched"
+    }
+  ]
+}

@@ -28,8 +28,14 @@ export const TIER_TABLE = {
     // animal draws (Animal.setDrawLod): fur / hard / eye within animalEyeDist, eyes in the hard material to animalOneDrawDist,
     // then the whole body in the fur material — 3 → 2 → 1 draws per animal
     animalEyeDist: 45, animalOneDrawDist: 100,
-    // trees: hi cards → lo cards → far card beyond loDist; lo trees never cast shadows (they are past shadowFar)
-    treeHiDist: 55, treeLoDist: 130, treeTwigDist: 24, loTreeShadows: false,
+    // trees: hi cards → lo cards → far card beyond loDist (Forest dissolves lo → far over its last 12 m, twigs over 6 m).
+    // E94: the hi cards reach the shadow cascade's edge (80 m; they swapped at 55 m, inside it, so a crown and its
+    // shadow changed shape in plain view), so no shadow ever changes shape. The batched path's lo cards share the casting
+    // needles mesh (loTreeShadows is the instanced fallback's; past 80 m there is no cascade to cast into). Phone ruler,
+    // with Forest's shadow-aware cull: yaw π +0.02–0.17 M triangles (gate 1.32 → 1.42, cabin 1.65 → 1.67, pond
+    // 1.39 → 1.56 M); looking down the sunset's shadows (yaw 0.95) +0.19–0.36 M (0.92 → 1.11, 1.35 → 1.61, 1.57 → 1.93 M).
+    // Calls unchanged. (Hi to 110 m, E90's palm distance, was another +0.06–0.24 M: pond 2.13 M looking down the shadows.)
+    treeHiDist: 80, treeLoDist: 130, treeTwigDist: 24, loTreeShadows: false,
     // grass carpet: ring radius / slots per 4 m cell / quads per clump
     grassRadius: 40, grassSlots: 56, grassQuads: 3,
     undergrowthFar: 60, propsFar: 220, propsMinAngular: 0.004, // a 0.5 m rock lives to 125 m, a boulder to 220 m

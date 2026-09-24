@@ -7,7 +7,7 @@
 // not a phone reading) and the linked program count. Writes progress/pine-hollow-perf-<tag>.json and prints a table.
 //
 //   node scripts/pine-hollow-perf.mjs --url=http://localhost:4186 --tag=baseline     # a `vite preview` of a clean export
-//   node scripts/pine-hollow-perf.mjs --tiers=phone --poses=gate --query=foo=1
+//   node scripts/pine-hollow-perf.mjs --tiers=phone --poses=gate --query=foo=1 --yaw=0.95
 //
 // Serve a clean `git archive HEAD` export (the dev server reloads whenever another lane saves a file); `sw=0` keeps the
 // service worker from serving a previous build. One headless Chromium on Metal, muted, closed at the end.
@@ -31,6 +31,8 @@ const POSES = [
   { id: 'cabin', x: -14, z: -62, yaw: 3.1416 },
   { id: 'pond', x: -56, z: 95, yaw: 3.1416 },
 ].filter((p) => flag('poses', '') === '' || flag('poses', '').split(',').includes(p.id));
+// --yaw=0.95: every pose looks down Pine Hollow's sunset shadows (the worst case for the shadow-aware tree cull)
+if (flag('yaw', '') !== '') for (const p of POSES) p.yaw = Number(flag('yaw', '0'));
 
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });

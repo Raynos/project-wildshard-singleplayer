@@ -37,6 +37,47 @@ export interface TreeFactoryOptions { bark?: string; twigAtlas?: string }
 
 export const windUniforms = { uTime: { value: 0 }, uWindStrength: { value: 1.0 } };
 
+/**
+ * The forest's LOD fades (E94): Forest writes the viewer (its LOD centre) here every frame and sets each material's band.
+ * A band is (start, end, dir) in metres from the viewer to the tree's origin: dir +1 dissolves the tree OUT from start to
+ * end (the lo cards / trunk into the impostor, the twigs as they reach their draw distance), −1 dissolves it IN (the
+ * impostor), 0 = never faded. The dissolve is a screen-door dither (interleaved gradient noise) whose threshold the +1 and
+ * −1 sides share, so across a cross-fade band every pixel is drawn by exactly one of the two LODs. Only the forest's
+ * instanced / batched draws fade: a single pine (Explore's specimen) is always whole.
+ */
+export const forestFade = { uViewer: { value: new THREE.Vector3(1e9, 0, 1e9) } };
+interface FadeBand { value: THREE.Vector3 }
+const noFade = (): FadeBand => ({ value: new THREE.Vector3(1e9, 1e9, 0) });
+function patchFade(shader: { vertexShader: string; fragmentShader: string; uniforms: Record<string, THREE.IUniform> }, band: FadeBand): void {
+  shader.uniforms['uViewer'] = forestFade.uViewer;
+  shader.uniforms['uFadeBand'] = band;
+  shader.vertexShader = shader.vertexShader
+    .replace('#include <common>', '#include <common>\nuniform vec3 uViewer; uniform vec3 uFadeBand; varying float vFadeKeep;')
+    .replace('#include <begin_vertex>', `#include <begin_vertex>
+      vFadeKeep = 1.0;
+      #if defined( USE_INSTANCING ) || defined( USE_BATCHING )
+      {
+        vec4 fo = vec4( 0.0, 0.0, 0.0, 1.0 );
+        #ifdef USE_INSTANCING
+          fo = instanceMatrix * fo;
+        #endif
+        #ifdef USE_BATCHING
+          fo = batchingMatrix * fo;
+        #endif
+        fo = modelMatrix * fo;
+        float ft = clamp( ( distance( fo.xz, uViewer.xz ) - uFadeBand.x ) / max( uFadeBand.y - uFadeBand.x, 1e-3 ), 0.0, 1.0 );
+        vFadeKeep = uFadeBand.z > 0.5 ? 1.0 - ft : ( uFadeBand.z < -0.5 ? ft : 1.0 );
+      }
+      #endif`);
+  shader.fragmentShader = shader.fragmentShader
+    .replace('#include <common>', '#include <common>\nuniform vec3 uFadeBand; varying float vFadeKeep;')
+    .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+      if ( vFadeKeep < 1.0 ) {
+        float ign = fract( 52.9829189 * fract( dot( gl_FragCoord.xy, vec2( 0.06711056, 0.00583715 ) ) ) );
+        if ( vFadeKeep <= ( uFadeBand.z < -0.5 ? 1.0 - ign : ign ) ) discard;
+      }`);
+}
+
 const _v = new THREE.Vector3(), _nm = new THREE.Matrix3();
 
 /**
@@ -95,6 +136,8 @@ export class TreeFactory {
   twigDepth!: THREE.MeshDepthMaterial;
   /** far-tree impostor: albedo + normal atlas, one column per variant (baked from the hi tree at load) */
   farMaterial!: THREE.MeshStandardMaterial;
+  /** each material's dissolve band (`forestFade`): Forest sets them from the tier's LOD distances */
+  readonly fade = { cards: noFade(), trunk: noFade(), far: noFade(), twigs: noFade() };
   variants: TreeVariant[] = [];
 
   private opts: Required<TreeFactoryOptions>;
@@ -140,7 +183,7 @@ export class TreeFactory {
       roughness: 1, metalness: 0, color: new THREE.Color(0.85, 0.8, 0.75),
     });
     this.barkMaterial.onBeforeCompile = (shader) => {
-      attachFogUniforms(shader); patchWind(shader);
+      attachFogUniforms(shader); patchWind(shader); patchFade(shader, this.fade.trunk);
       // Scots pine: dark plated bark low on the trunk, papery orange bark high up
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', '#include <common>\nvarying float vTrunkT;')
@@ -163,7 +206,7 @@ export class TreeFactory {
     });
     this.needleMaterial.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
-      patchWind(shader);
+      patchWind(shader); patchFade(shader, this.fade.cards);
       // Foliage shading: bend the card normal toward "up" so the crown lights like a volume
       // instead of a stack of flat planes, and darken cards toward the trunk / lower crown.
       shader.vertexShader = shader.vertexShader
@@ -203,7 +246,7 @@ export class TreeFactory {
       color: new THREE.Color(0.6, 0.8, 0.5), normalScale: new THREE.Vector2(0.7, 0.7),
     });
     this.twigMaterial.onBeforeCompile = (shader) => {
-      attachFogUniforms(shader); patchWind(shader);
+      attachFogUniforms(shader); patchWind(shader); patchFade(shader, this.fade.twigs);
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <normal_fragment_maps>', `
           { vec3 upV = normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz ); diffuseColor.rgb *= mix( 1.0, 0.5, smoothstep( 0.35, -0.5, dot( nonPerturbedNormal, upV ) ) ); }
@@ -214,10 +257,10 @@ export class TreeFactory {
     };
     this.twigMaterial.customProgramCacheKey = () => 'twigs';
     this.twigDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: twigDiff, alphaTest: 0.5, side: THREE.DoubleSide });
-    this.twigDepth.onBeforeCompile = (shader) => patchWind(shader);
-    this.twigDepth.customProgramCacheKey = () => 'tree-depth'; // same wind patch as the needles' depth material: one program
+    this.twigDepth.onBeforeCompile = (shader) => { patchWind(shader); patchFade(shader, this.fade.twigs); };
+    this.twigDepth.customProgramCacheKey = () => 'tree-depth'; // same wind + fade patch as the needles' depth material (its own band uniform): one program
     this.needleDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: card.albedo, alphaTest: 0.45, side: THREE.DoubleSide });
-    this.needleDepth.onBeforeCompile = (shader) => patchWind(shader);
+    this.needleDepth.onBeforeCompile = (shader) => { patchWind(shader); patchFade(shader, this.fade.cards); };
     this.needleDepth.customProgramCacheKey = () => 'tree-depth';
 
     const rng = new Rng(4242);
@@ -319,7 +362,7 @@ export class TreeFactory {
       color: new THREE.Color(1, 1, 1), normalScale: new THREE.Vector2(1, 1),
     });
     this.farMaterial.onBeforeCompile = (shader) => {
-      attachFogUniforms(shader); patchWind(shader);
+      attachFogUniforms(shader); patchWind(shader); patchFade(shader, this.fade.far);
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <alphatest_fragment>', /* glsl */`
           diffuseColor.a = clamp( ( diffuseColor.a - alphaTest ) / max( fwidth( diffuseColor.a ), 1e-4 ) + 0.5, 0.0, 1.0 );
