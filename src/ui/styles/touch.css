@@ -167,3 +167,38 @@
 .ws-touch-use { position: absolute; left: 12px; right: 12px; bottom: calc(var(--bar) + 70px + var(--disc)); height: 60px; display: none; align-items: center; justify-content: center; appearance: none; -webkit-appearance: none; margin: 0; padding: 0; border-radius: 8px; background: rgba(143, 227, 255, 0.16); border: 1px solid var(--ws-cyan); border-left: 4px solid var(--ws-cyan); box-shadow: 0 0 22px rgba(143, 227, 255, 0.25); color: #fff; font-family: var(--ws-display); font-weight: 700; font-size: 19px; letter-spacing: 0.24em; text-transform: uppercase; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .ws-touch-use.show { display: flex; }
 .ws-touch-use.down { background: rgba(143, 227, 255, 0.34); }
+/* ─── ported from Nalati (NALATI-MERGE H4 / B3) for Pine Hollow's 3-weapon kit (PH-C11): the bow's hold-to-draw FIRE and the weapon strip ─── */
+/* Nalati's bow held (.bow, NALATI-MERGE H4 / N18): FIRE is hold-to-draw — "HOLD = DRAW" under FIRE, the ring fills with
+   the draw (weapons.current.charge, Bow.ts) while .on and glows at full (.ready); lifting early lets the arrow down
+   (.letdown: a dim shake). AIM stays AIM: the zoom toggle, lit .on */
+.ws-touch-attack small.draw { display: none; }
+.ws-touch.bow .ws-touch-attack small.draw { display: block; }
+.ws-touch-attack.letdown { animation: ws-touch-letdown 0.3s ease-out; }
+@keyframes ws-touch-letdown { 0% { opacity: 0.55; } 25% { transform: translateX(-2px); } 55% { transform: translateX(2px); } 100% { opacity: 1; transform: none; } }
+/* the weapon strip (src/ui/WeaponStrip.ts; combat-E-weapon-swap.png, 3 slots per the plan): square glass slots, the held one
+   outlined in cyan; tap = hold it, tap the held one = back to the last. It replaces main's SWAP pill (.strip).
+   Touch (layout D, NALATI-MERGE H2, art/hud/round-12-nalati-merge/D-*.jpg): three edge tabs down the LEFT screen edge under
+   the status column (and its GRASS meter), the slot number in the corner — the ammo is the column's ARROWS row. Desktop
+   (.desk, controls-desktop-keys.png): a hotbar bottom-centre, key numbers + names + ammo. */
+.ws-touch.strip .ws-touch-pill { display: none; }
+.ws-touch-strip { --slot: 40px; position: absolute; display: flex; z-index: 3; pointer-events: auto; touch-action: none; }
+.ws-touch-strip:not(.desk) { left: 0; top: calc(var(--ws-top) + 240px); flex-direction: column; gap: 5px; }
+.ws-touch-strip:not(.desk) .ws-touch-slot { border-left: 0; border-radius: 0 9px 9px 0; }
+.ws-touch-strip:not(.desk) .ws-touch-slot svg { width: 58%; height: 58%; margin: -4px 0 0 -4px; }
+.ws-touch-strip:not(.desk) .ws-touch-slot-key { display: block; left: auto; top: auto; right: 4px; bottom: 3px; min-width: 0; padding: 0; border: 0; font-family: var(--ws-display); font-weight: 700; font-size: 11px; color: #fff; }
+.ws-touch-strip:not(.desk) .ws-touch-slot.on .ws-touch-slot-key { color: var(--ws-cyan); }
+.ws-touch-strip:not(.desk) .ws-touch-slot-ammo { display: none; }
+.ws-touch-strip.desk { --slot: 64px; left: 50%; bottom: 22px; transform: translateX(-50%); gap: 8px; }
+#hud.intro .ws-touch-strip { display: none; }
+.ws-touch-slot { position: relative; width: var(--slot); height: var(--slot); padding: 0; appearance: none; -webkit-appearance: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 7px; background: radial-gradient(circle at 50% 30%, rgba(24, 34, 48, 0.7), rgba(6, 10, 18, 0.82) 75%); border: 1px solid rgba(143, 227, 255, 0.4); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(143, 227, 255, 0.15); color: rgba(230, 242, 248, 0.85); font-family: var(--ws-mono); touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; }
+.ws-touch-slot svg { display: block; width: 62%; height: 62%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.6)); }
+.ws-touch-strip.desk .ws-touch-slot svg { width: 48%; height: 48%; }
+.ws-touch-slot.on { border-color: var(--ws-cyan); color: var(--ws-cyan); background: radial-gradient(circle at 50% 30%, rgba(143, 227, 255, 0.2), rgba(6, 10, 18, 0.85) 75%); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 18px rgba(143, 227, 255, 0.45), inset 0 0 0 1.5px var(--ws-cyan); }
+.ws-touch-slot.down { background: radial-gradient(circle at 50% 30%, rgba(143, 227, 255, 0.35), rgba(143, 227, 255, 0.15) 75%); }
+.ws-touch-slot-key { position: absolute; left: 5px; top: 4px; display: none; min-width: 12px; padding: 1px 3px; border: 1px solid rgba(143, 227, 255, 0.45); border-radius: 3px; font-style: normal; font-size: 8.5px; line-height: 1; color: rgba(230, 242, 248, 0.85); }
+.ws-touch-strip.desk .ws-touch-slot-key { display: block; }
+.ws-touch-slot-name { display: none; font-size: 8px; letter-spacing: 0.24em; text-transform: uppercase; line-height: 1; }
+.ws-touch-strip.desk .ws-touch-slot-name { display: block; }
+.ws-touch-slot-ammo { position: absolute; right: 4px; bottom: 3px; font-family: var(--ws-display); font-weight: 700; font-size: 11px; line-height: 1; color: #fff; font-variant-numeric: tabular-nums; }
+.ws-touch-strip.desk .ws-touch-slot-ammo { right: 6px; top: 5px; bottom: auto; font-size: 12px; }
+.ws-touch-slot-ammo.empty { color: var(--ws-red); }

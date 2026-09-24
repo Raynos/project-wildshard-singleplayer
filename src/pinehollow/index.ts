@@ -6,7 +6,6 @@ import type { AnimalManager } from '../entities/AnimalManager';
 import type { Animal } from '../entities/Animal';
 import type { Weapons } from '../player/Weapons';
 import type { Weapon } from '../player/Weapon';
-import type { Rifle } from '../player/Rifle';
 import { Crossbow, MAX_BOLTS } from '../player/Crossbow';
 import { SKINS, applySkin, crossbowDisplayModel, type SkinDef, type SkinId, type SkinLocker } from '../player/Skins';
 import { CameraFX } from '../player/CameraFX';
@@ -39,7 +38,11 @@ import { BOSS_NAMES } from '../ui/Combat';
 
 export interface PineCombatHost {
   game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: Weapons;
-  crossbow: Weapon; rifle: Rifle; skins: SkinLocker; wearSkin: (s: SkinDef) => void;
+  crossbow: Weapon; rifle: { displayModel: () => THREE.Group }; skins: SkinLocker; wearSkin: (s: SkinDef) => void;
+  /** the Warden's Longbow (PH-C11): the King's orb shows it, taking it hands it over (loadout.grantLongbow) */
+  longbow?: { displayModel: () => THREE.Group; grant: () => void } | null;
+  /** before a checkpoint's bolt refill: the loadout goes back to iron bolts, so the refill never tops up a special stack */
+  ironFirst?: () => void;
   inventory: Inventory; hud: HUD; audio: Audio; music: Music;
   interactables: Interactable[]; params: URLSearchParams;
 }
@@ -83,6 +86,11 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     ownSkin: (id) => { const s = SKINS[id]; h.skins.own(id); h.wearSkin(s); if (s.weapon === 'rifle') weapons.unlock('rifle'); },
     skinModel: (id) => { const m = parked.get(id); if (m) { parked.delete(id); m.removeFromParent(); m.visible = true; return m; } return buildSkin(id); },
     dusk: () => sky.pine?.dusk ?? 0, night: () => sky.pine?.night ?? 0,
+    longbow: h.longbow ? {
+      // the stave stands along the orb's item axis (−Z, tip up) at half size: a 1.7 m bow in a legendary's orb
+      model: () => { const w = new THREE.Group(), m = h.longbow?.displayModel(); if (m) { m.rotation.x = -Math.PI / 2; m.scale.setScalar(0.5); w.add(m); } return w; },
+      grant: () => { h.longbow?.grant(); },
+    } : null,
   };
 
   const feel = installPineFeel({ game, weapons, animals });
@@ -105,7 +113,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   BOSS_NAMES.set(KING_KIND, 'The Antler King');
   const king = new AntlerKing({
     ctx, interactables: h.interactables, params, music: h.music,
-    refill: () => { h.crossbow.addBolts(MAX_BOLTS - (h.crossbow.state.bolts ?? MAX_BOLTS)); },
+    refill: () => { h.ironFirst?.(); h.crossbow.addBolts(MAX_BOLTS - (h.crossbow.state.bolts ?? MAX_BOLTS)); },
     setWeaponsEnabled: (on) => { introLock = !on; legs(); weapons.setEnabled(on); },
     pickupHum: (on) => { h.audio.pickupHum(on); },
   });

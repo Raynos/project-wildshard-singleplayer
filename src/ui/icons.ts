@@ -5,7 +5,7 @@
  *
  *   icon('deer')  → '<svg …>…</svg>'
  */
-export type IconId = 'deer' | 'boar' | 'elk' | 'bear' | 'ghost' | 'ironhide' | 'meat' | 'hide' | 'tusk' | 'antlers' | 'claw' | 'shell' | 'coconut' | 'coin' | 'seaglass' | 'rope' | 'bolt' | 'crossbow' | 'sword' | 'rifle' | 'laurel' | 'lock' | 'check' | 'poi' | 'you';
+export type IconId = 'deer' | 'boar' | 'elk' | 'bear' | 'ghost' | 'ironhide' | 'meat' | 'hide' | 'tusk' | 'antlers' | 'claw' | 'shell' | 'coconut' | 'coin' | 'seaglass' | 'rope' | 'bolt' | 'crossbow' | 'sword' | 'rifle' | 'lever' | 'longbow' | 'laurel' | 'lock' | 'check' | 'poi' | 'you';
 
 const wrap = (body: string, extra = '') => `<svg viewBox="0 0 64 64" fill="currentColor" stroke="none" ${extra}>${body}</svg>`;
 const S = 'fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"';
@@ -121,6 +121,19 @@ const RIFLE = `
   <rect x="22" y="22" width="20" height="4" rx="1"/>
   <path d="M48 26 L48 22 L50 22 L50 30" ${S} stroke-width="1.5"/>`;
 
+/* Pine Hollow's lever-action (PH-C11): a straight-grip stock, the receiver, the barrel over its magazine tube, the loop lever */
+const LEVER = `
+  <path d="M3 35 L9 30 L21 30 L23 28 L34 28 L34 30 L62 30 L62 32.6 L34 32.6 L34 34.6 L58 34.6 L58 36.8 L34 36.8 L30 38 L21 38 L11 44 L3 44 Z"/>
+  <path d="M25 38 C24 46 35 46 33 37.6" ${S} stroke-width="2.4"/>
+  <rect x="55" y="27.4" width="1.8" height="3"/>`;
+/* the Warden's Longbow (PH-C11): a tall stave, its string, an arrow on it */
+const LONGBOW = `
+  <path d="M16 5 C42 16 42 48 16 59" ${S} stroke-width="4.2"/>
+  <path d="M16 5 L16 59" ${S} stroke-width="1.2"/>
+  <path d="M9 32 L55 32" ${S} stroke-width="2.2"/>
+  <path d="M53 27.5 L61 32 L53 36.5 Z"/>
+  <path d="M10 32 L5 27.5 M10 32 L5 36.5 M14 32 L9 27.5 M14 32 L9 36.5" ${S} stroke-width="1.6"/>`;
+
 /* ── glyphs ── */
 const LAUREL = `
   <path d="M18 14 C6 24 8 44 20 54 M46 14 C58 24 56 44 44 54" ${S} stroke-width="2.4"/>
@@ -140,7 +153,7 @@ const GLYPHS: Record<IconId, string> = {
   ghost: DEER, ironhide: BOAR,
   meat: MEAT, hide: HIDE, tusk: TUSK, antlers: ANTLERS, bolt: BOLT,
   claw: CLAW, shell: SHELL, coconut: COCONUT, coin: COIN, seaglass: SEAGLASS, rope: ROPE,
-  crossbow: CROSSBOW, sword: SWORD, rifle: RIFLE,
+  crossbow: CROSSBOW, sword: SWORD, rifle: RIFLE, lever: LEVER, longbow: LONGBOW,
   laurel: LAUREL, lock: LOCK, check: CHECK, poi: POI, you: YOU,
 };
 

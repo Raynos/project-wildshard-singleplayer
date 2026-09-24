@@ -69,7 +69,7 @@ const SIGHT_CYAN = 0x8fe3ff;
 // ───────────────────────────── textures ─────────────────────────────
 
 /** muzzle flash sprite: a hot white core, orange petals, alpha in the luminance (additive) */
-function makeFlashTexture(): THREE.CanvasTexture {
+export function makeFlashTexture(): THREE.CanvasTexture {
   const S = 128, cvs = document.createElement('canvas'); cvs.width = cvs.height = S;
   const ctx = cvs.getContext('2d');
   if (ctx === null) throw new Error('makeFlashTexture: no 2d canvas context');
@@ -94,7 +94,7 @@ function makeFlashTexture(): THREE.CanvasTexture {
 // ───────────────────────────── hitscan tracer ─────────────────────────────
 
 /** one straight red line, muzzle → impact, alive TRACER_TIME s */
-class HitLine {
+export class HitLine {
   readonly line: LineSegments2; readonly mat: LineMaterial;
   private geo: LineSegmentsGeometry; private buf = new Float32Array(6);
   t0 = -1;
@@ -106,12 +106,12 @@ class HitLine {
     this.line.frustumCulled = false; this.line.renderOrder = TRACER_ORDER; this.line.visible = false;
     scene.add(this.line);
   }
-  show(a: THREE.Vector3, b: THREE.Vector3, t: number) {
+  show(a: THREE.Vector3, b: THREE.Vector3, t: number): void {
     this.buf[0] = a.x; this.buf[1] = a.y; this.buf[2] = a.z; this.buf[3] = b.x; this.buf[4] = b.y; this.buf[5] = b.z;
     this.geo.setPositions(this.buf);
     this.mat.opacity = 1; this.line.visible = true; this.t0 = t;
   }
-  update(t: number, res: THREE.Vector2, life: number) {
+  update(t: number, res: THREE.Vector2, life: number): void {
     if (this.t0 < 0) return;
     this.mat.resolution.copy(res);
     const a = 1 - (t - this.t0) / life;
@@ -582,7 +582,7 @@ export class Rifle implements KitWeapon {
  * surface under the eject point says how far it falls, which says where it comes down; a second ray there gives that
  * spot's floor (the pier deck, not the sand under it; the sand, past the deck's edge). No world (node): the terrain.
  */
-function brassFloor(p: THREE.Vector3, v: THREE.Vector3): number {
+export function brassFloor(p: THREE.Vector3, v: THREE.Vector3): number {
   const physics = activePhysics();
   if (physics === null) return heightAt(p.x, p.z);
   const f0 = floorBelow(physics, p.x, p.z, p.y, 8) ?? heightAt(p.x, p.z);

@@ -3,8 +3,9 @@ import type { Sky } from '../world/Sky';
 import { fixIBL, isMesh, VIEWMODEL_GROUP, type Crossbow } from './Crossbow';
 
 /**
- * Weapon skins — the legendary drops (art/skin-*.png). A skin restyles the EXISTING crossbow / AR-15 model: the
- * weapons name their materials ('xbow-wood', 'xbow-prod', 'rifle-alu' …), so a skin is a table of per-material
+ * Weapon skins — the legendary drops (art/skin-*.png). A skin restyles the EXISTING crossbow / rifle model (the AR-15, or
+ * Pine Hollow's lever-action — the 'rifle' skins carry both): the weapons name their materials ('xbow-wood', 'xbow-prod',
+ * 'rifle-alu', 'lever-steel' …), so a skin is a table of per-material
  * overrides (colour, emissive, roughness, metalness) plus optional extra geometry (the Ghost Stag's antler tines).
  * Overrides are uniforms only and the clones are re-run through `fixIBL` + `sky.setupMaterial`, so a skinned
  * weapon costs no new shader programs.
@@ -75,6 +76,10 @@ export const SKINS: Record<SkinId, SkinDef> = {
       'rifle-poly': { color: IVORY, metalness: 0, roughness: 0.55, envMapIntensity: 0.7, plain: true },
       'rifle-steel': { color: 0x3a2a22, roughness: 0.9, emissive: EMBER, emissiveIntensity: 0.1 },
       'rifle-brass': { color: BRASS, roughness: 0.45, envMapIntensity: 1.2 },
+      // Pine Hollow's lever-action (LeverRifle.ts) wears it too: iron-dark steel, a tusk-ivory stock, brass
+      'lever-steel': { color: 0x5a3d2e, roughness: 1, metalness: 1, envMapIntensity: 0.9, emissive: EMBER, emissiveIntensity: 0.03 },
+      'lever-wood': { color: IVORY, roughness: 0.55, envMapIntensity: 0.7 },
+      'lever-brass': { color: BRASS, roughness: 0.45, envMapIntensity: 1.2 },
     },
   },
   'blackpaw': {
@@ -117,6 +122,9 @@ export const SKINS: Record<SkinId, SkinDef> = {
       'rifle-poly': { color: 0x2b1d16, metalness: 0, roughness: 0.95 },
       'rifle-steel': { color: 0x101114, roughness: 0.6, emissive: EMBER, emissiveIntensity: 0.25 },
       'rifle-brass': { color: BRASS, roughness: 0.35, envMapIntensity: 1.3 },
+      'lever-steel': { color: 0x0c0d11, roughness: 0.7, metalness: 1, envMapIntensity: 1.1, emissive: EMBER, emissiveIntensity: 0.16 },
+      'lever-wood': { color: 0x2b1d16, metalness: 0, roughness: 0.95 },
+      'lever-brass': { color: BRASS, roughness: 0.35, envMapIntensity: 1.3 },
     },
   },
 };

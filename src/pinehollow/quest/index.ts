@@ -62,7 +62,8 @@ export interface PineQuestHost {
   hud: HUD; audio: Audio; music: Music;
   inventory: Inventory; progress: Progress; skins: SkinLocker; wearSkin: (s: SkinDef) => void;
   weapons: { setEnabled: (on: boolean) => void; visible: boolean };
-  crossbow: { addBolts: (n: number) => void };
+  /** the crossbow's bolts, and the loadout's special ammo (PH-C11: pitch / broadhead bolts, cartridges, arrows) */
+  crossbow: { addBolts: (n: number) => void; addAmmo?: (kind: 'pitch' | 'broadhead' | 'cartridge' | 'arrow', n: number) => void };
   menu: { isOpen: boolean; close: (silent?: boolean) => void };
   interactables: Interactable[];
   registry: WorldRegistry;
@@ -268,6 +269,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
     for (const g of t.give) inventory.take(g.item, g.n);
     const got = t.get;
     if ('bolts' in got) h.crossbow.addBolts(got.bolts);
+    else if ('ammo' in got) h.crossbow.addAmmo?.(got.ammo, got.n);
     else if ('skin' in got) { const s = SKINS[got.skin]; h.skins.own(s.id); h.wearSkin(s); }
     else inventory.add(got.item, got.n);
     sfx?.bark('trader', traderVoice);

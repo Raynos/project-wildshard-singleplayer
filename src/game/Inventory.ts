@@ -45,7 +45,7 @@ export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'blackpaw-claw': { label: "Old Blackpaw's claw", icon: 'claw' },
   'imperial-crown': { label: 'Seven-tine crown', icon: 'antlers' },
   'amber-heartwood': { label: 'Amber heartwood', icon: 'laurel' },
-  'warden-longbow': { label: "The Warden's Longbow", icon: 'crossbow' },
+  'warden-longbow': { label: "The Warden's Longbow", icon: 'longbow' },
   'amber-resin': { label: 'Amber resin', icon: 'seaglass' },
   'lodge-ribbon': { label: 'Lodge ribbon', icon: 'laurel' },
 };

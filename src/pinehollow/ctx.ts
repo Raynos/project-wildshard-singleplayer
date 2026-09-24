@@ -34,6 +34,8 @@ export interface PineCtx {
   addItem: (id: ItemId) => void;
   ownSkin: (id: SkinId) => void;
   skinModel: (id: SkinId) => THREE.Object3D;
+  /** the Warden's Longbow (PH-C11, src/player/Longbow.ts): its orb model and its grant (the kit's 'bow'); null = not on this shard */
+  longbow: { model: () => THREE.Object3D; grant: () => void } | null;
   /** PineDayNight's 0..1 getters (0 with the fixed sky) */
   dusk: () => number;
   night: () => number;

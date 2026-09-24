@@ -281,8 +281,8 @@ export class HUD {
     if (statusKey !== L.statusKey) {
       L.statusKey = statusKey;
       this.ammoStatus.className = `ws-game-status ${statusKey === 'empty' ? 'empty' : statusKey === 'reloading' ? 'reloading' : ''}`;
-      const bow = label === 'Bolts';
-      this.ammoStatusText.textContent = statusKey === 'empty' ? (bow ? 'No bolts' : reserve > 0 ? 'Empty · R to reload' : 'No rounds') : statusKey === 'reloading' ? (bow ? 'Spanning' : 'Reloading') : statusKey === 'loaded' ? (bow ? 'Loaded' : 'Ready') : (bow ? 'Spent · R to span' : 'R to reload');
+      const bow = label === 'Bolts' || label === 'Pitch bolts' || label === 'Broadheads', arrows = label === 'Arrows'; // the crossbow's kinds (Pine Hollow's loadout), the longbow's quiver
+      this.ammoStatusText.textContent = statusKey === 'empty' ? (bow ? 'No bolts' : arrows ? 'No arrows' : reserve > 0 ? 'Empty · R to reload' : 'No rounds') : statusKey === 'reloading' ? (bow ? 'Spanning' : 'Reloading') : statusKey === 'loaded' ? (bow ? 'Loaded' : arrows ? 'Nocked' : 'Ready') : (bow ? 'Spent · R to span' : 'R to reload');
       this.syncBar('status');
     }
     const rp = s.reloading ? (s.reloadProgress ?? 0) : 0;

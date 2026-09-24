@@ -2,8 +2,9 @@
  * The trader's swaps (PINE-HOLLOW-REMASTER PH-C6, Jake's PH-U16: "no currency — the trader swaps items for items: hides /
  * antlers / resin → special bolts, cartridges, cosmetics"). Pure data + rules, no DOM (test/pine-quest.test.ts).
  *
- * The bolts are plain crossbow bolts for now: special bolts and the lever-action's cartridges are PH-C11's (the loadout
- * row), which adds them here as new `get` kinds. The finishes are Skins.ts's two that nothing else pays out.
+ * Ammunition (PH-C11, src/pinehollow/ammo.ts): plain iron bolts, PITCH-TIPPED bolts (resin-sealed: a flatter flight, true in
+ * the rain), BROADHEAD bolts (deep wounds in deer and boar), the lever-action's CARTRIDGES, the longbow's ARROWS. The
+ * finishes are Skins.ts's two that nothing else pays out.
  *
  *   tradeState(t, pack, owns) → { ok, missing: ['2 × Deer hide'] }
  */
@@ -15,14 +16,17 @@ export interface Trade {
   label: string;
   blurb: string;
   give: { item: TradeItem; n: number }[];
-  get: { bolts: number } | { skin: 'scarback-furnace' | 'hollow-ash' } | { item: 'amber-heartwood'; n: number };
+  get: { bolts: number } | { ammo: 'pitch' | 'broadhead' | 'cartridge' | 'arrow'; n: number } | { skin: 'scarback-furnace' | 'hollow-ash' } | { item: 'amber-heartwood'; n: number };
   /** a finish is bought once */
   once?: boolean;
 }
 
 export const TRADES: readonly Trade[] = [
   { id: 'bolts-hide', label: 'A quiver of bolts ×10', blurb: 'Fletched with goose, straight as a promise', give: [{ item: 'deer-hide', n: 2 }], get: { bolts: 10 } },
-  { id: 'bolts-resin', label: 'Pitch-tipped bolts ×10', blurb: 'Resin-sealed heads, they fly true in the rain', give: [{ item: 'amber-resin', n: 3 }], get: { bolts: 10 } },
+  { id: 'pitch-bolts', label: 'Pitch-tipped bolts ×10', blurb: 'Resin-sealed heads, they fly true in the rain', give: [{ item: 'amber-resin', n: 3 }], get: { ammo: 'pitch', n: 10 } },
+  { id: 'broadheads', label: 'Broadhead bolts ×8', blurb: 'Wide steel heads, they cut deep in deer and boar', give: [{ item: 'boar-hide', n: 1 }, { item: 'amber-resin', n: 2 }], get: { ammo: 'broadhead', n: 8 } },
+  { id: 'cartridges', label: 'Rifle cartridges ×14', blurb: '.30-30, a waxed-paper box of Mott\'s own', give: [{ item: 'venison', n: 2 }, { item: 'amber-resin', n: 1 }], get: { ammo: 'cartridge', n: 14 } },
+  { id: 'arrows', label: 'Goose-fletched arrows ×10', blurb: 'Ash shafts, for a longbow, if you have one', give: [{ item: 'deer-hide', n: 1 }, { item: 'amber-resin', n: 1 }], get: { ammo: 'arrow', n: 10 } },
   { id: 'heartwood', label: 'Amber heartwood', blurb: 'The Hollow\'s old luck, in a knot of pine', give: [{ item: 'antlers', n: 2 }, { item: 'amber-resin', n: 4 }], get: { item: 'amber-heartwood', n: 1 } },
   { id: 'hollow-ash', label: 'Hollow Ash crossbow finish', blurb: 'Charred ash, cold light in the cracks', give: [{ item: 'bear-pelt', n: 1 }, { item: 'amber-resin', n: 6 }], get: { skin: 'hollow-ash' }, once: true },
   { id: 'scarback', label: 'Scarback Furnace rifle finish', blurb: 'Forge-black steel, molten light through the vents', give: [{ item: 'boar-tusk', n: 2 }, { item: 'lodge-ribbon', n: 3 }, { item: 'amber-resin', n: 8 }], get: { skin: 'scarback-furnace' }, once: true },

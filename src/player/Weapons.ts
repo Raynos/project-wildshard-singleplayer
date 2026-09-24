@@ -1,7 +1,6 @@
 import type * as THREE from 'three';
 import { Crossbow, MAX_BOLTS, type ImpactSurface } from './Crossbow';
 import type { Weapon } from './Weapon';
-import type { Rifle } from './Rifle';
 
 /**
  * Weapons — the player's kit: the shard's base weapon (`Weapon.ts`: the crossbow, or Driftwood's sword) and the AR-15
@@ -29,7 +28,7 @@ import type { Rifle } from './Rifle';
  * own pose code; the manager only drives the blend. Input is off for the half second of the swap.
  */
 
-export type WeaponId = 'crossbow' | 'sword' | 'rifle' | 'sword-iron';
+export type WeaponId = 'crossbow' | 'sword' | 'rifle' | 'sword-iron' | 'bow' | 'sabre' | 'spear';
 /** species id (`Animal.kind`) — any registered species */
 export type AnimalKind = string;
 /** `ammo` undefined = no ammo on this weapon (the sword): the HUD hides its readouts */
@@ -60,8 +59,10 @@ export interface KitWeapon extends WeaponHooks {
   holster: number;
   readonly state: WeaponState;
   readonly aimInfo: AimInfo | null;
-  /** 0..1 charge of a held-charge attack (the sword heavy) — the touch HEAVY disc's ring; absent = none */
+  /** 0..1 charge of a held-charge attack (the sword heavy; Nalati's bow draw) — the touch ATTACK / FIRE disc's ring; absent = none */
   readonly charge?: number;
+  /** a second held action (the Nalati spear's BRACE — the touch BRACE disc; Nalati's bow DRAW — the FIRE disc held, N18); absent on weapons without one */
+  altHeld?: boolean;
   /** melee reach in metres from the eye (the swords: Sword.REACH); undefined for a ranged weapon */
   readonly reach?: number | undefined;
   tryFire: () => void;
@@ -76,7 +77,13 @@ export interface KitWeapon extends WeaponHooks {
 const SWAP_TIME = 0.25; // s per half (drop, then raise)
 
 /** a shard weapon (Weapon.ts) plus the optional hooks the manager uses when present (Crossbow and Sword both have them) */
-export type BaseLike = Weapon & Partial<Pick<KitWeapon, 'holster' | 'reload' | 'aimRay' | 'inputAllowed' | 'charge'>>;
+export type BaseLike = Weapon & Partial<Pick<KitWeapon, 'holster' | 'reload' | 'aimRay' | 'inputAllowed' | 'charge' | 'altHeld'>> & {
+  /** HUD ammo strip overrides (the spear's javelins: 'Javelins', 3 pips over a magazine of 3) */
+  readonly ammoLabel?: string; readonly segments?: number; readonly magazine?: number;
+};
+/** Nalati (nalatiKit.ts): the base weapon's kit id / HUD tag, the slot order of `available` (1 / 2 / 3 and the strip), and
+ *  Q = the LAST weapon held instead of the next one. Omitted = Pine Hollow / Driftwood exactly as before. */
+export interface WeaponsOptions { baseId?: WeaponId; baseName?: string; order?: WeaponId[]; lastOnQ?: boolean }
 /** an extra shard weapon for the kit (the iron sword): its rig, its kit id and its HUD tag */
 export interface ExtraWeapon { weapon: BaseLike; id: WeaponId; name: string }
 
@@ -85,13 +92,13 @@ export interface ExtraWeapon { weapon: BaseLike; id: WeaponId; name: string }
 class BaseWeapon implements KitWeapon {
   readonly id: WeaponId;
   readonly name: string;
-  readonly ammoLabel: string;
-  readonly segments: number;
+  private label: string;
+  private segs: number;
   onFire?: (() => void) | undefined; onHit?: KitWeapon['onHit']; onImpact?: KitWeapon['onImpact']; onReloadStart?: (() => void) | undefined; onReloadEnd?: (() => void) | undefined; onDry?: (() => void) | undefined;
   private cache: WeaponState = { ammo: 0, magazine: MAX_BOLTS, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
   constructor(private bow: BaseLike, id?: WeaponId, name?: string) {
     const isBow = bow instanceof Crossbow;
-    this.id = id ?? (isBow ? 'crossbow' : 'sword'); this.name = name ?? (isBow ? 'Crossbow' : 'Sword'); this.ammoLabel = isBow ? 'Bolts' : ''; this.segments = isBow ? 4 : 0;
+    this.id = id ?? (isBow ? 'crossbow' : 'sword'); this.name = name ?? (isBow ? 'Crossbow' : 'Sword'); this.label = isBow ? 'Bolts' : ''; this.segs = isBow ? 4 : 0;
     bow.onFire = () => this.onFire?.();
     bow.onHit = (k, h, d) => this.onHit?.(k, h, d);
     bow.onImpact = (s, p) => this.onImpact?.(s, p);
@@ -99,13 +106,16 @@ class BaseWeapon implements KitWeapon {
     bow.onReloadEnd = () => this.onReloadEnd?.();
     bow.onDry = () => this.onDry?.();
   }
+  get ammoLabel(): string { return this.bow.ammoLabel ?? this.label; }
+  get segments(): number { return this.bow.segments ?? this.segs; }
+  get altHeld(): boolean { return this.bow.altHeld ?? false; } set altHeld(v: boolean) { if (this.bow.altHeld !== undefined) this.bow.altHeld = v; }
   get model(): THREE.Object3D { return this.bow.model; }
   get enabled(): boolean { return this.bow.enabled; } set enabled(v: boolean) { this.bow.enabled = v; }
   get adsHeld(): boolean { return this.bow.adsHeld; } set adsHeld(v: boolean) { this.bow.adsHeld = v; }
   get holster(): number { return this.bow.holster ?? 0; } set holster(v: number) { this.bow.holster = v; }
   get state(): WeaponState {
     const s = this.bow.state, c = this.cache;
-    c.ammo = this.bow.hasAmmo ? s.bolts : undefined; c.loaded = s.loaded; c.reloading = s.reloading; c.reloadProgress = s.reloadProgress; c.ads = s.ads;
+    c.ammo = this.bow.hasAmmo ? s.bolts : undefined; c.magazine = this.bow.magazine ?? MAX_BOLTS; c.loaded = s.loaded; c.reloading = s.reloading; c.reloadProgress = s.reloadProgress; c.ads = s.ads;
     return c;
   }
   get aimInfo(): AimInfo | null { return this.bow.aimInfo; }
@@ -133,11 +143,18 @@ export class Weapons implements WeaponHooks {
   private unlocked = new Set<WeaponId>(['crossbow', 'sword']);
   private _enabled = true;
   private _adsHeld = false;
+  private _altHeld = false;
   private _visible = true;
+  private order: WeaponId[] | undefined;
+  private lastOnQ: boolean;
+  /** the weapon held before the current one (Q with `lastOnQ`, the strip's double tap) */
+  previous: WeaponId | null = null;
   private swapping: { from: KitWeapon; to: KitWeapon; t: number; switched: boolean } | null = null;
 
-  constructor(base: BaseLike, rifle: Rifle, extras: ExtraWeapon[] = []) {
-    const first = new BaseWeapon(base);
+  constructor(base: BaseLike, rifle: KitWeapon, extras: ExtraWeapon[] = [], opts: WeaponsOptions = {}) {
+    const first = new BaseWeapon(base, opts.baseId, opts.baseName);
+    this.unlocked.add(first.id);
+    this.order = opts.order; this.lastOnQ = opts.lastOnQ ?? false;
     this.list = [first, rifle, ...extras.map((e) => new BaseWeapon(e.weapon, e.id, e.name))];
     for (const w of this.list) {
       w.onFire = () => this.onFire?.();
@@ -153,7 +170,7 @@ export class Weapons implements WeaponHooks {
     document.addEventListener('keydown', (e) => {
       if (e.repeat || !this.current.inputAllowed()) return;
       if (e.code === 'Digit1' || e.code === 'Digit2' || e.code === 'Digit3') { const w = this.available[Number(e.code.slice(5)) - 1]; if (w) this.select(w.id); }
-      else if (e.code === 'KeyQ') this.swap();
+      else if (e.code === 'KeyQ') { if (this.lastOnQ) this.last(); else this.swap(); }
     });
     (window as unknown as { __weapons: Weapons }).__weapons = this; // dev / screenshot hook
   }
@@ -169,12 +186,16 @@ export class Weapons implements WeaponHooks {
   get adsHeld(): boolean { return this._adsHeld; }
   set adsHeld(on: boolean) { this._adsHeld = on; this.apply(); }
   get swappingNow(): boolean { return this.swapping !== null; }
+  /** the touch BRACE disc (the spear) / the FIRE disc held (the bow's draw) — applied to the held weapon only; dropped on a swap */
+  get altHeld(): boolean { return this._altHeld; }
+  set altHeld(on: boolean) { this._altHeld = on; this.apply(); }
 
   private apply(): void {
     for (const w of this.list) {
       const held = w === this.current && this.swapping === null;
       w.enabled = this._enabled && held;
       w.adsHeld = held && this._adsHeld;
+      if (w.altHeld !== undefined) w.altHeld = held && this._altHeld;
     }
   }
 
@@ -186,7 +207,13 @@ export class Weapons implements WeaponHooks {
   /** is `id` in the player's possession (the crossbow always; the rifle after its pickup / `?weapon=rifle`) */
   has(id: WeaponId): boolean { return this.unlocked.has(id); }
   /** the unlocked weapons, in kit order */
-  get available(): KitWeapon[] { return this.list.filter((w) => this.unlocked.has(w.id)); }
+  get available(): KitWeapon[] {
+    const list = this.list.filter((w) => this.unlocked.has(w.id));
+    const order = this.order;
+    if (order === undefined) return list;
+    const rank = (id: WeaponId) => { const i = order.indexOf(id); return i === -1 ? order.length : i; };
+    return list.sort((a, b) => rank(a.id) - rank(b.id));
+  }
   unlock(id: WeaponId): void {
     if (this.unlocked.has(id)) return;
     this.unlocked.add(id);
@@ -204,9 +231,15 @@ export class Weapons implements WeaponHooks {
       this.apply();
       return;
     }
+    this.previous = this.current.id;
     this.swapping = { from: this.current, to, t: 0, switched: false };
     this.apply();
     this.onSwap?.(id);
+  }
+  /** back to the weapon held before this one (Q in Nalati, the strip's double tap); no previous yet = the next one */
+  last(): void {
+    const p = this.previous;
+    if (p !== null && p !== this.current.id && this.unlocked.has(p)) this.select(p); else this.swap();
   }
   /** the next unlocked weapon after the held one (nothing happens while only the crossbow is owned) */
   swap(): void {

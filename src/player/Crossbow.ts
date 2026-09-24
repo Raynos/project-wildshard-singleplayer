@@ -561,7 +561,15 @@ class Tracer {
 
 // ───────────────────────────── the crossbow ─────────────────────────────
 
-interface Bolt { mesh: THREE.Mesh; pos: THREE.Vector3; vel: THREE.Vector3; active: boolean; age: number; roll: number; traced: boolean; tracer: Tracer | null; glow: THREE.Mesh; glanced: boolean }
+interface Bolt { mesh: THREE.Mesh; pos: THREE.Vector3; vel: THREE.Vector3; active: boolean; age: number; roll: number; traced: boolean; tracer: Tracer | null; glow: THREE.Mesh; glanced: boolean; mod: BoltMod }
+/**
+ * Special bolts (optional — Pine Hollow's loadout, src/pinehollow/loadout.ts): the flight + damage of the NEXT bolt to leave
+ * the rail, captured by each bolt as it launches. `gravity` / `drag` multiply the flight's, `damage(kind)` the damage model's
+ * number on an animal of that kind, `material` dresses the bolt (a uniform-only clone of the bolt material: no program).
+ * `PLAIN_BOLT` (the default) is the iron bolt exactly as before.
+ */
+export interface BoltMod { gravity: number; drag: number; damage: (kind: string) => number; material?: THREE.Material | undefined }
+export const PLAIN_BOLT: BoltMod = { gravity: 1, drag: 1, damage: () => 1 };
 interface Stuck { mesh: THREE.Mesh }
 
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3();
@@ -585,6 +593,10 @@ export class Crossbow implements Weapon {
   aimInfo: { kind: string; distance: number } | null = null;
   private aimFrame = 0;
   private aimCache = { kind: 'deer', distance: 0 };
+  /** the bolt on the rail (special bolts, BoltMod above): read at each loose; PLAIN_BOLT = iron */
+  boltMod: BoltMod = PLAIN_BOLT;
+  /** the HUD strip's ammo label (Weapons.ts BaseLike override): the loaded kind's ("Pitch bolts") */
+  ammoLabel = 'Bolts';
 
   onFire?: () => void;
   onHit?: (kind: string, headshot: boolean, killed: boolean) => void;
@@ -874,7 +886,7 @@ export class Crossbow implements Weapon {
       const glow = new THREE.Mesh(boltGlowGeo, glowMat); glow.renderOrder = TRACER_ORDER + 1; glow.position.set(0, 0, this.tipLocal.z + 0.05); glow.visible = false;
       mesh.add(glow);
       this.game.scene.add(mesh);
-      this.bolts.push({ mesh, pos: new THREE.Vector3(), vel: new THREE.Vector3(), active: false, age: 0, roll: 0, traced: false, tracer: null, glow, glanced: false });
+      this.bolts.push({ mesh, pos: new THREE.Vector3(), vel: new THREE.Vector3(), active: false, age: 0, roll: 0, traced: false, tracer: null, glow, glanced: false, mod: PLAIN_BOLT });
     }
     for (let i = 0; i < MAX_TRACERS; i++) this.tracers.push(new Tracer(this.game.scene));
   }
@@ -922,6 +934,7 @@ export class Crossbow implements Weapon {
     b.pos.copy(this.spawnPos).lerp(this.tipWorld(_v2), a);
     b.vel.copy(_dir).multiplyScalar(BOLT_SPEED);
     b.active = true; b.age = 0; b.roll = 0; b.glanced = false;
+    b.mod = this.boltMod; b.mesh.material = b.mod.material ?? this.boltMat;
     b.mesh.visible = true;
     b.mesh.position.copy(b.pos);
     b.mesh.quaternion.setFromUnitVectors(NEG_Z, _dir);
@@ -986,6 +999,7 @@ export class Crossbow implements Weapon {
     // loaded bolt: visible once the reload is ~85 % through (slides in from the rear)
     const showBolt = this.state.loaded || (this.state.reloading && this.state.reloadProgress > 0.8);
     this.loadedBolt.visible = showBolt;
+    this.loadedBolt.material = this.boltMod.material ?? this.boltMat;
     if (showBolt && this.state.reloading) {
       const slide = 1 - sstep(0.8, 1, this.state.reloadProgress);
       this.loadedBolt.position.z = 0.128 - 0.18 + slide * 0.12;
@@ -1117,8 +1131,8 @@ export class Crossbow implements Weapon {
       let stopped = false;
       for (let s = 0; s < sub; s++) {
         _v1.copy(b.pos); // previous
-        b.vel.y -= GRAVITY * h;
-        b.vel.multiplyScalar(1 - BOLT_DRAG * h * b.vel.length() * 0.1);
+        b.vel.y -= GRAVITY * b.mod.gravity * h;
+        b.vel.multiplyScalar(1 - BOLT_DRAG * b.mod.drag * h * b.vel.length() * 0.1);
         b.pos.addScaledVector(b.vel, h);
         if (this.testHit(b, _v1)) { stopped = true; break; }
         b.tracer?.addPoint(b.pos);
@@ -1152,7 +1166,7 @@ export class Crossbow implements Weapon {
     if (this.targets) {
       const hit = this.targets.raycast(prev, _dir, wall ? wall.distance : segLen);
       if (hit) {
-        const killed = hit.animal.applyDamage(hit.animal.damageFor(hit.headshot, hit.point.distanceTo(this.game.camera.position)), hit.point, _dir);
+        const killed = hit.animal.applyDamage(hit.animal.damageFor(hit.headshot, hit.point.distanceTo(this.game.camera.position)) * b.mod.damage(hit.animal.kind), hit.point, _dir);
         this.onHit?.(hit.animal.kind, hit.headshot, killed);
         this.stopBolt(b, hit.point, _dir, 'flesh', false);
         return true;
@@ -1204,7 +1218,7 @@ export class Crossbow implements Weapon {
     // standing proud. The geometry origin sits -tipLocal.z (≈ 21.5 cm, measured from the bounding box) behind
     // the tip, so the origin goes STUCK_BURY + tipLocal.z along the flight direction from the hit point.
     if (this.stuck.length >= MAX_STUCK) this.removeStuck(0);
-    const mesh = new THREE.Mesh(this.boltGeo, this.boltMat);
+    const mesh = new THREE.Mesh(this.boltGeo, b.mod.material ?? this.boltMat);
     mesh.castShadow = true;
     mesh.position.copy(point).addScaledVector(dir, bury + this.tipLocal.z);
     mesh.quaternion.setFromUnitVectors(NEG_Z, dir).multiply(_q.setFromAxisAngle(NEG_Z, b.roll));
@@ -1222,6 +1236,8 @@ export class Crossbow implements Weapon {
     if (s !== undefined) s.mesh.removeFromParent();
   }
 
+  /** the iron bolt's material (special bolts dress a uniform-only clone of it — BoltMod.material) */
+  get boltMaterial(): THREE.Material { return this.boltMat; }
   /** flying bolt count (for debugging / HUD) */
   get inFlight(): number { let n = 0; for (const b of this.bolts) if (b.active) n++; return n; }
   get stuckCount(): number { return this.stuck.length; }

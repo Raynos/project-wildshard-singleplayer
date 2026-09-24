@@ -42,6 +42,9 @@ import { Props } from './world/Props';
 import { AnimalManager } from './entities/AnimalManager';
 import { Crossbow, startViewmodelTextures, viewmodelTexturesReady, type Targets, type TargetHit } from './player/Crossbow';
 import { Rifle } from './player/Rifle';
+import { LeverRifle } from './player/LeverRifle';
+import { Longbow } from './player/Longbow';
+import { WeaponStrip } from './ui/WeaponStrip';
 import { Weapons, type WeaponId } from './player/Weapons';
 import { WeaponPickup } from './player/WeaponPickup';
 import { SKINS, SkinLocker, applySkin, crossbowDisplayModel, skinFor, type SkinDef, type SkinId } from './player/Skins';
@@ -99,6 +102,7 @@ import { installCompendium } from './ui/compendium/install';
 import { installPineCombat } from './pinehollow';
 import { installPineQuest } from './pinehollow/quest';
 import { installPineWeather } from './pinehollow/weather';
+import { installPineLoadout } from './pinehollow/loadout';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
 const _animalXZ: { x: number; z: number }[] = [];
@@ -354,16 +358,23 @@ async function main() {
     ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock })
     : new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
   await macrotask(); // each viewmodel in its own task
-  const rifle = new Rifle({ game, sky, player, forest }, targets, { allowUnlocked: nolock, muzzleLight: !isOcean }); // the AR-15 pickup is in a cabin: no muzzle light on the island
+  // the rifle slot: Pine Hollow's lever-action (PH-U5, LeverRifle.ts — the crossbow's walnut, shared), the AR-15 elsewhere
+  const isPine = chunk.slug === 'pine-hollow';
+  const rifle = isPine
+    ? new LeverRifle({ game, sky, player, forest }, targets, { allowUnlocked: nolock, woodFrom: crossbow instanceof Crossbow ? crossbow.model : null })
+    : new Rifle({ game, sky, player, forest }, targets, { allowUnlocked: nolock, muzzleLight: !isOcean }); // the AR-15 pickup is in a cabin: no muzzle light on the island
   await macrotask();
+  // Pine Hollow's third weapon: the Warden's Longbow, the Antler King's reward (PH-C11, Longbow.ts; locked until his orb)
+  const longbow = isPine ? new Longbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock }) : null;
   // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken
   const ironSword = chunk.weapon === 'sword' ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, blade: 'iron' }) : null;
-  const weapons = new Weapons(crossbow, rifle, ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : []); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
+  const weapons = new Weapons(crossbow, rifle, ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : longbow ? [{ weapon: longbow, id: 'bow', name: "Warden's longbow" }] : []); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
   const lockSys = new LockOnSystem(player, weapons, game.camera); // the Zelda lock-on (E50): LOCK / Z, orbit, flick-switch — src/player/LockOnTarget.ts
   new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
   weapons.adsHeld = params.has('ads');
   await macrotask();
   const hud = new HUD({ pointerLock: !nolock });
+  const weaponStrip = isPine ? new WeaponStrip(weapons) : null; // the 3-slot weapon strip (Nalati's, PH-C11): tabs down the left edge on touch, a hotbar on desktop
   const lockOn = new LockOn(game.camera); // sword lunge target brackets (meleeLock, Sword.ts)
   const speedLines = new SpeedLines(); // dodge / lunge edge streaks
   const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
@@ -387,7 +398,7 @@ async function main() {
   const skins = new SkinLocker();                          // legendary skins owned / worn (persisted; wired below)
   const menu = new GameMenu({
     fullMap, progress, inventory,
-    kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; return { id: w.id, name: (w.id === 'crossbow' ? 'Hunting crossbow' : w.id === 'sword' ? 'Wooden sword' : w.name) + (worn ? ` · ${worn.name}` : ''), ammoLabel: w.id === 'crossbow' ? 'Iron bolts' : w.id === 'rifle' ? 'Rounds' : '', ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? 'rifle' : w.id === 'crossbow' ? 'crossbow' : 'sword' }; }),
+    kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; return { id: w.id, name: (w.id === 'crossbow' ? 'Hunting crossbow' : w.id === 'sword' ? 'Wooden sword' : w.name) + (worn ? ` · ${worn.name}` : ''), ammoLabel: w.id === 'crossbow' ? (w.ammoLabel === 'Bolts' ? 'Iron bolts' : w.ammoLabel) : w.ammoLabel, ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? (isPine ? 'lever' : 'rifle') : w.id === 'bow' ? 'longbow' : w.id === 'crossbow' ? 'crossbow' : 'sword' }; }),
     onEquip: (id) => weapons.select(id as WeaponId),
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
@@ -468,13 +479,13 @@ async function main() {
     const site = CABIN_SITES[0]; if (!site || !cabins) return null;
     const lx = 1.5, lz = -1.6, c = Math.cos(site.rot), sn = Math.sin(site.rot);
     const x = site.x + lx * c + lz * sn, z = site.z - lx * sn + lz * c;
-    const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position: new THREE.Vector3(x, cabins.floorHeightAt(x, z) ?? heightAt(x, z), z), tier: 'common', prompt: 'Take AR-15' });
+    const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position: new THREE.Vector3(x, cabins.floorHeightAt(x, z) ?? heightAt(x, z), z), tier: 'common', prompt: isPine ? 'Take the lever-action' : 'Take AR-15' });
     interactables.push(drop.interactable);
     drop.onNear = (inside) => audio.pickupHum(inside); // the orb hums while you stand in its prompt radius
-    drop.onPickup = () => { weapons.unlock('rifle'); weapons.select('rifle'); audio.hitMarker(); music.sting('pickup'); hud.toast('AR-15 acquired · 1/2 to switch, Q to swap'); };
+    drop.onPickup = () => { weapons.unlock('rifle'); weapons.select('rifle'); audio.hitMarker(); music.sting('pickup'); hud.toast(isPine ? 'Lever-action rifle acquired · 1/2 to switch, Q to swap, R feeds the tube' : 'AR-15 acquired · 1/2 to switch, Q to swap'); };
     return drop;
   })();
-  if (params.get('weapon') === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle', true); rifleDrop?.dispose(); } // dev: start with it
+  if (params.get('weapon') === 'rifle' || params.get('weapon') === 'lever') { weapons.unlock('rifle'); weapons.select('rifle', true); rifleDrop?.dispose(); } // dev: start with it
   const ironDrop = (() => {
     if (!wreck || !ironSword) return null;
     const drop = new IronSwordPickup({ scene: game.scene, sky, position: ironSwordSite(wreck, heightAt) });
@@ -496,7 +507,7 @@ async function main() {
     const item = skin.weapon === 'rifle' ? rifle.displayModel() : crossbow instanceof Crossbow ? crossbowDisplayModel(crossbow, sky) : null;
     if (!item) return;
     applySkin(item, skin, sky);
-    const label = skin.weapon === 'rifle' ? 'AR-15' : 'crossbow';
+    const label = skin.weapon === 'rifle' ? (isPine ? 'lever-action' : 'AR-15') : 'crossbow';
     const toss = Math.random() * Math.PI * 2; // PHYSICS P7-L2: it pops out of the carcass, bounces and settles where it lands
     const drop = new WeaponPickup({ scene: game.scene, item, position: new THREE.Vector3(at.x, Math.max(at.y, heightAt(at.x, at.z)), at.z), tier: 'rare', prompt: `Take the ${skin.name} ${label}`, scale: skin.weapon === 'rifle' ? 1.35 : 1.6, // big — a legendary fills its orb
       toss: { x: Math.sin(toss) * 1.2, y: 3.5, z: Math.cos(toss) * 1.2 } });
@@ -511,7 +522,10 @@ async function main() {
     };
   };
   // Pine Hollow's fights (src/pinehollow/): PH-C3 the four named elites, PH-C2 the Antler King, PH-F1 the ranged kit's feel
-  const pineFights = chunk.slug === 'pine-hollow' ? installPineCombat({ game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables, params }) : null;
+  // PH-C11 the loadout: special bolts / cartridges / arrows, the lever gun's + the bow's sounds, the Longbow's grant
+  const pineLoadout = rifle instanceof LeverRifle && longbow ? installPineLoadout({ scene: game.scene, sky, weapons, crossbow: crossbow instanceof Crossbow ? crossbow : null, rifle, longbow, inventory, hud, audio, params }) : null;
+  const pineFights = chunk.slug === 'pine-hollow' ? installPineCombat({ game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables, params,
+    longbow: longbow && pineLoadout ? { displayModel: () => longbow.displayModel(), grant: () => { pineLoadout.grantLongbow(); } } : null, ironFirst: () => { pineLoadout?.onPlayerDeath(); } }) : null;
   animals.onKill = (a) => {
     hud.killFeed(`${a.label} · ${Math.round(a.position.distanceTo(player.position))} m`); progress.recordKill(a.kind, a.variant);
     const skin = skinFor(a.kind, a.variant); if (skin && !skins.has(skin.id) && pineFights?.isElite(a) !== true) spawnSkinDrop(skin, a.position); // the legendary's drop, once (a named elite's comes from its own orb)
@@ -519,7 +533,7 @@ async function main() {
   // the Compendium (PH-C5 / C4, src/ui/compendium/): the hunter's journal (N, the pause menu, the touch disc) + the trophy wall; chains onKill
   const compendium = installCompendium({ chunkId: getActiveChunk().id, game, camera: game.camera, hud, menu, animals, cabins, interactables, weapons, touchUi, nolock });
   // Pine Hollow's adventure (src/pinehollow/quest/): PH-C1 the lantern quest, PH-C6 the hamlet, PH-C7 the night, PH-C8 collectibles; chains onKill
-  const pineQuest = chunk.slug === 'pine-hollow' ? installPineQuest({ game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons, crossbow, menu, interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: getActiveChunk().id, params, touchUi, nolock }) : null;
+  const pineQuest = chunk.slug === 'pine-hollow' ? installPineQuest({ game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons, crossbow: pineLoadout ? { addBolts: (n) => { pineLoadout.addAmmo('iron', n); }, addAmmo: (k, n) => { pineLoadout.addAmmo(k, n); } } : crossbow, menu, interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: getActiveChunk().id, params, touchUi, nolock }) : null;
   for (const w of ['crossbow', 'rifle'] as const) { const s = skins.wearing(w); if (s) wearSkin(s); }
   const skinParam = params.get('skin'), dropParam = params.get('drop');
   if (skinParam && skinParam in SKINS) { const s = SKINS[skinParam as SkinId]; skins.own(s.id); wearSkin(s); if (s.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle', true); } }
@@ -559,8 +573,10 @@ async function main() {
   const ambience = sea ? new IslandAmbience(audio, { sea: sea.level, heightAt, palms: palmSpecs, wreck, cove: Cove.forIsland() }) : chunk.slug === 'pine-hollow' ? new ForestAmbience(audio, { heightAt, cabins, music }) : null; // PH-A2
   if (ambience instanceof ForestAmbience) pineFights?.useSfx(ambience.sfx); // the King's bells / stomp / roar, the thralls
   if (ambience instanceof ForestAmbience) pineQuest?.useSfx(ambience.sfx); // the NPC barks, the lanterns, the zipline, the night's thralls
+  if (ambience instanceof ForestAmbience) pineLoadout?.useSfx(ambience.sfx); // the lever gun's shot / echo / cycle, the bow's draw
   // PH-L10 / C7: the dawn fog + the showers (the sky, the fog, the wet PBR, the rain, the puddles, the rings, the herds' shelter)
-  if (chunk.slug === 'pine-hollow') installPineWeather({ game, sky, trees: forest.trees, animals, particles, ambience: ambience instanceof ForestAmbience ? ambience : null, roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined, stagAt: () => pineQuest?.stagAt() ?? null, viewer, horizonVeil: dressing.horizon.painted?.veil ?? null });
+  const pineWeather = chunk.slug === 'pine-hollow' ? installPineWeather({ game, sky, trees: forest.trees, animals, particles, ambience: ambience instanceof ForestAmbience ? ambience : null, roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined, stagAt: () => pineQuest?.stagAt() ?? null, viewer, horizonVeil: dressing.horizon.painted?.veil ?? null }) : null;
+  if (pineWeather) pineLoadout?.useRain(() => pineWeather.weather.rain); // wet bolts drop, pitch-tipped ones fly true
   player.onStep = (sprinting) => {
     const p = player.position;
     if (islandSfx && surfaces && !(player.wading && player.depth > 0.3)) islandSfx.footstep(player.wading ? 'water' : surfaces.surfaceAt(p.x, p.z, p.y), Math.hypot(player.velocity.x, player.velocity.z));
@@ -697,6 +713,7 @@ async function main() {
     if (player.swimming !== swimHold) { swimHold = player.swimming; weapons.visible = !swimHold; weapons.setEnabled(!swimHold); }
     animals.update(dt, t, player.position, player.sprinting);
     weapons.update(dt, t); // every weapon ticks (bolts in flight keep flying while the rifle is out)
+    pineLoadout?.update(dt); weaponStrip?.update();
     rifleDrop?.update(dt, t, game.renderer, game.camera);
     ironDrop?.update(dt, t, game.renderer, game.camera, player.position); // walk-to-pick-me-up
     for (const d of skinDrops) d.update(dt, t, game.renderer, game.camera);
@@ -718,7 +735,7 @@ async function main() {
     // slow health regen; death → respawn at the gate
     if (health < 100 && performance.now() - lastHurt > 6000) health = Math.min(100, health + dt * 4);
     // death → the toast names the killer and this shard's respawn point (deathLine); only a weapon with ammo is topped up
-    if (health <= 0) { health = 100; audio.death(); if (pineFights?.onPlayerDeath() !== true) { hud.toast(deathLine(killer, isOcean)); respawn(); } killer = null; hud.damageFlash(); if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); } // the Antler King's fight keeps its own checkpoint
+    if (health <= 0) { health = 100; audio.death(); if (pineFights?.onPlayerDeath() !== true) { hud.toast(deathLine(killer, isOcean)); respawn(); } killer = null; hud.damageFlash(); pineLoadout?.onPlayerDeath(); if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); } // the Antler King's fight keeps its own checkpoint
     hurtArc.update(dt, player.position, player.yaw);
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));

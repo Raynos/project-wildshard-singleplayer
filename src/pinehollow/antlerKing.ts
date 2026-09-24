@@ -41,9 +41,9 @@ import type { FxMaterial } from '../world/fx';
  *     clearing, chaining two or three, the ribcage flaring open at every skid.
  *
  *   Checkpoints per phase (Boss.ts): die and you are back at the stones' N gap, bolts refilled, the King at the start of
- *   the phase you reached. The reward (the gold legendary orb, once): THE WARDEN'S LONGBOW — the bow itself is Nalati's
- *   Bow.ts, not ported yet, so taking it grants the WARDEN crossbow skin + the 'warden-longbow' pack flag; a re-fight
- *   pays the trophy (Amber heartwood). Music: Music.ts's Pine Hollow boss slot (setPineScene('boss') / setBossPhase).
+ *   the phase you reached. The reward (the gold legendary orb, once): THE WARDEN'S LONGBOW — the bow itself (PH-C11,
+ *   src/player/Longbow.ts, adapted from Nalati's Bow.ts) joins the kit, with the WARDEN crossbow skin and the
+ *   'warden-longbow' pack flag that keeps it across sessions; a re-fight pays the trophy (Amber heartwood). Music: Music.ts's Pine Hollow boss slot (setPineScene('boss') / setBossPhase).
  *
  *   STAND-IN MODEL: kingModel.ts (the elk rig ×2.6, bark coat, lanterns, ribcage, skull) — `dressAntlerKing` is the one
  *   factory PH-M3's Bark Warden replaces. The King is its own kind, 'antler-king' (the journal's page answers to it).
@@ -592,8 +592,8 @@ export class AntlerKing {
       phases: PHASES, intro: 4.2, introShort: 1.4,
       reward: {
         tier: 'LEGENDARY', name: "THE WARDEN'S LONGBOW", flavour: 'his bow, and his amber for your crossbow', prompt: "Take the Warden's Longbow",
-        model: () => ctx.skinModel('warden'),
-        grant: () => { ctx.addItem('warden-longbow'); ctx.ownSkin('warden'); },
+        model: () => ctx.longbow?.model() ?? ctx.skinModel('warden'),
+        grant: () => { ctx.addItem('warden-longbow'); ctx.ownSkin('warden'); ctx.longbow?.grant(); },
         trophy: () => { ctx.addItem('amber-heartwood'); },
       },
     };
