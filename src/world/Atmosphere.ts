@@ -3,6 +3,7 @@
 // (terrain, instanced trees, glTF props, animals) gets it for free.
 import * as THREE from 'three';
 import { isStylized, toonUniforms } from './stylize';
+import { getActiveChunk } from '../chunks/registry';
 
 export const fogUniforms = {
   fogSunDir: { value: new THREE.Vector3(0, 1, 0) },
@@ -11,12 +12,21 @@ export const fogUniforms = {
   fogHeightFalloff: { value: 0.12 },
   fogHeightDensity: { value: 0.005 },
   fogDistDensity: { value: 0.00045 },
+  /**
+   * The slab's edge dissolving into the painted horizon's haze (Pine Hollow PH-L5, Nalati N19's method): x = strength (0 =
+   * off, the other shards and `?horizon=rings`), y / z = where it starts / is full (m from the slab centre, the larger of
+   * |x| |z|), w = how far below the eye the ground must lie for it (looking down over the edge from the lookout, not along
+   * the ground). Compiled into the fog chunk on Pine Hollow only, so no other shard's program source changes.
+   */
+  fogEdge: { value: new THREE.Vector4(0, 236, 252, 10) },
 };
 
 let installed = false;
 export function installAtmosphere(): void {
   if (installed) return;
   installed = true;
+  // Pine Hollow's slab edge haze (fogEdge): only its fog chunk carries it, every other shard's source stays byte-for-byte
+  const edge = getActiveChunk().slug === 'pine-hollow';
 
   THREE.ShaderChunk.fog_pars_vertex = /* glsl */`
     #ifdef USE_FOG
@@ -45,7 +55,7 @@ export function installAtmosphere(): void {
       uniform float fogHeight;
       uniform float fogHeightFalloff;
       uniform float fogHeightDensity;
-      uniform float fogDistDensity;
+      uniform float fogDistDensity;${edge ? '\n      uniform vec4 fogEdge;' : ''}
       varying float vFogDepth;
       varying vec3 vFogWorldPos;
     #endif`;
@@ -64,7 +74,11 @@ export function installAtmosphere(): void {
         float heightAmt = fogHeightDensity * camF * integ * rayLen;
         float distAmt = fogDistDensity * rayLen;
         float fogFactor = 1.0 - exp( - ( heightAmt + distAmt ) );
-        fogFactor = clamp( fogFactor, 0.0, 1.0 );
+        fogFactor = clamp( fogFactor, 0.0, 1.0 );${edge ? `
+        // the slab's last metres thicken into the painted horizon's haze, seen from above (PH-L5)
+        float edgeD = max( abs( vFogWorldPos.x ), abs( vFogWorldPos.z ) );
+        float fogE = fogEdge.x * smoothstep( fogEdge.y, fogEdge.z, edgeD ) * smoothstep( fogEdge.w, fogEdge.w * 4.0, cameraPosition.y - vFogWorldPos.y );
+        fogFactor = 1.0 - ( 1.0 - fogFactor ) * ( 1.0 - fogE );` : ''}
         float sunAmt = max( dot( viewDir, fogSunDir ), 0.0 );
         vec3 fogCol = mix( fogColor, fogSunColor, pow( sunAmt, 6.0 ) * 0.7 );
         gl_FragColor.rgb = mix( gl_FragColor.rgb, fogCol, fogFactor );

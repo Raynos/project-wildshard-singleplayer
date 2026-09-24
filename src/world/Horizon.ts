@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { CHUNK_DEPTH } from '../core/config';
 import { Noise2D } from '../core/noise';
-import { attachFogUniforms } from './Atmosphere';
+import { attachFogUniforms, fogUniforms } from './Atmosphere';
+import { PaintedHorizon, horizonStrips } from './HorizonMatte';
 import type { Sky } from './Sky';
 import { getActiveChunk } from '../chunks/registry';
 
@@ -26,6 +27,8 @@ export const horizonLight = {
  */
 export class Horizon {
   group = new THREE.Group();
+  /** Pine Hollow's painted horizon (PH-L5), in place of the rings and the cloud sea */
+  painted: PaintedHorizon | null = null;
   private cloudSea!: THREE.Mesh;
   private cloudU = { uTime: { value: 0 } };
 
@@ -33,6 +36,18 @@ export class Horizon {
 
   build(): this {
     const ocean = Boolean(getActiveChunk().ocean);
+    // Pine Hollow (PH-L5): the photoreal painting at infinity replaces the 17 Sep ridge rings and the cloud sea (from the
+    // lookout its flat white sheet read as paper); the slab's edge thickens into the painting's haze (Atmosphere fogEdge).
+    // `?horizon=rings` builds the rings + cloud sea instead: the before.
+    const strips = ocean ? null : horizonStrips(getActiveChunk().slug);
+    if (strips && new URLSearchParams(location.search).get('horizon') !== 'rings') {
+      const painted = new PaintedHorizon(strips).build();
+      if (painted.mesh) this.group.add(painted.mesh);
+      this.painted = painted;
+      fogUniforms.fogEdge.value.x = 0.4; // aerial perspective on the slab's last metres and cliffs, not a white-out
+      document.addEventListener('ws:ready', () => { setTimeout(() => { void painted.load(); }, 250); }, { once: true });
+      return this;
+    }
     this.buildRidges(ocean);
     if (!ocean) this.buildCloudSea();
     return this;
@@ -154,6 +169,8 @@ export class Horizon {
   }
 
   update(dt: number, camera: THREE.Camera): void {
+    const fog = (this.group.parent as THREE.Scene | null)?.fog;
+    if (this.painted && fog instanceof THREE.Fog) this.painted.update(dt, fog.color, this.sky.night, horizonLight.uHazeCol.value, horizonLight.uSeaSun.value);
     this.cloudU.uTime.value += dt;
     this.group.position.x = camera.position.x;
     this.group.position.z = camera.position.z;

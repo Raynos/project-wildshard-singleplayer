@@ -36,6 +36,8 @@ const POSES = [
   { id: 'hamlet', x: -118, z: -134, yaw: 1.5708 },
   // PH-B3: the fire lookout's south catwalk (deck +11 on the ridge pad, feet at y), facing down the zipline over the Hollow
   { id: 'lookout', x: 35.53, z: 211.14, yaw: 0.1635, y: 57.46 },
+  // PH-L5: the north catwalk facing N over the Ridge's edge: the view that ends in the painted horizon (the rings + cloud sea before)
+  { id: 'lookout-n', x: 36.47, z: 216.86, yaw: 3.3051, y: 57.46 },
 ].filter((p) => flag('poses', '') === '' || flag('poses', '').split(',').includes(p.id));
 // --yaw=0.95: every pose looks down Pine Hollow's sunset shadows (the worst case for the shadow-aware tree cull)
 if (flag('yaw', '') !== '') for (const p of POSES) p.yaw = Number(flag('yaw', '0'));

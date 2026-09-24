@@ -20,15 +20,17 @@
  *   the sun glow — so it rides every DayNight preset without a third texture. The alpha fades into the sky at the top.
  * - **textures**: the shard's strips (`horizonStrips(slug)`, below): two 4096 × 512 WebPs with alpha
  *   (`public/assets/horizon/<slug>-{day,night}.webp`, made by scripts/horizon-matte/ with `--shard <slug>`), fetched after
- *   boot; the band fades in over ~1.5 s once both are decoded. A shard without strips builds nothing (Pine Hollow until
- *   PH-L5 paints its own). Always on — the user locked it in (E78), so there is no menu toggle; only
+ *   boot; the band fades in over ~1.5 s once both are decoded. A shard without strips builds nothing; Pine Hollow's
+ *   photoreal strips are drawn at infinity by PaintedHorizon (below), not by this class. Always on — the user locked it in (E78), so there is no menu toggle; only
  *   `?matte=0` hides it (before / after captures), and a saved pick from the old pause-menu switch is ignored.
  */
 import * as THREE from 'three';
 import type { Sky } from './Sky';
 import { setting, settingFromUrl } from '../ui/Settings';
 import { MIDDAY_SKY } from './StylizedSky';
+import { fogUniforms } from './Atmosphere';
 import { getActiveChunk } from '../chunks/registry';
+import { TIER } from '../core/tier';
 
 /** the band's radius (m): inside the camera's far plane (2600) even at the top edge (R / cos 24° ≈ 2520) */
 const RADIUS = 2300;
@@ -38,11 +40,21 @@ const FADE_IN = 1.5;
  * A shard's painted horizon: its day / night strips and the elevation range their rows cover, bottom → top (degrees,
  * seen from the sea surface at RADIUS) — the `strip` of scripts/horizon-matte/configs/<slug>.json.
  */
-export interface HorizonStrips { day: string; night: string; elMin: number; elMax: number }
+export interface HorizonStrips {
+  day: string; night: string; elMin: number; elMax: number;
+  /** half-size copies for the phone tier */
+  phone?: { day: string; night: string };
+  /** the texels hold scene-linear light ÷ this (scripts/horizon-matte/encode.py: a PBR shard's painting, AgX-inverted) */
+  scale?: number;
+}
 
 const STRIPS: Readonly<Partial<Record<string, HorizonStrips>>> = {
   'driftwood-isle': { day: '/assets/horizon/driftwood-isle-day.webp', night: '/assets/horizon/driftwood-isle-night.webp', elMin: -4, elMax: 24 },
-  // 'pine-hollow': none yet — PH-L5 paints it (photoreal, day + night)
+  // PH-L5: photoreal far boreal country from the fire lookout (art/pine-hollow/round-10-horizon), drawn at infinity (PaintedHorizon)
+  'pine-hollow': {
+    day: '/assets/horizon/pine-hollow-day.webp', night: '/assets/horizon/pine-hollow-night.webp', elMin: -30, elMax: 14, scale: 4,
+    phone: { day: '/assets/horizon/pine-hollow-day-phone.webp', night: '/assets/horizon/pine-hollow-night-phone.webp' },
+  },
 };
 
 /** the shard's painted horizon, or null when it has none */
@@ -187,4 +199,164 @@ async function loadTexture(url: string): Promise<THREE.Texture> {
   t.generateMipmaps = true;
   t.needsUpdate = true;
   return t;
+}
+
+/**
+ * The photoreal shard's painted horizon (Pine Hollow, PINE-HOLLOW-REMASTER PH-L5): far boreal country — rolling forested
+ * ridges in aerial perspective, the snow-capped range to the north, lakes and valley mist — painted with codex image_gen
+ * over the clock's own sky seen from the fire lookout's deck (six chained edits, stitched and keyed:
+ * `art/pine-hollow/round-10-horizon/`, scripts/horizon-matte/ `--shard pine-hollow`). Day + moonlit night, same silhouettes.
+ *
+ *   const far = new PaintedHorizon(strips).build();   // Horizon.ts builds it on Pine Hollow instead of the ridge rings
+ *   group.add(far.mesh); … far.load() after boot; far.update(dt, fogColor, night) every frame
+ *
+ * - **at infinity**: the mesh is a unit sleeve around the eye (elMax down to the nadir) whose vertex shader drops it on the
+ *   far plane (z = w) and uses only the view's rotation, so it never parallaxes, sits behind everything and shows only
+ *   where nothing else was drawn: past the slab's edge and over the terrain's skyline. The horizon row is the eye's level
+ *   from any height (the Hollow's floor or the lookout's deck). Fogless, unlit, one draw, no depth write.
+ * - **look**: the textures hold scene-linear light (encode.py inverted the post chain's AgX), so the painting tone-maps back to
+ *   itself. The day painting is tinted by the clock's far haze and light relative to midday (golden hour warms it, dusk
+ *   dims it) and cross-fades into the night painting on the clock's `night`. Toward and below the horizon it drifts into the
+ *   live fog colour with the fog's own sun in-scatter — the same haze Atmosphere.ts' `fogEdge` thickens the slab's last
+ *   metres into, so the 3D edge, the haze under it and the painted valleys read as one band (Nalati N19's method).
+ * - **before the paintings load** (and if they fail) the band still draws the haze below the horizon: never the dome's
+ *   underside, never the old white cloud sea.
+ */
+export class PaintedHorizon {
+  mesh: THREE.Mesh | null = null;
+  private fade = 0;
+  private loaded = false;
+  private ready = false;
+  private readonly u = {
+    tDay: { value: placeholder() },
+    tNight: { value: placeholder() },
+    uFade: { value: 0 },
+    uNight: { value: 0 },
+    uScale: { value: 1 },
+    uElMin: { value: 0 },
+    uElMax: { value: 1 },
+    uTint: { value: new THREE.Color(1, 1, 1) },
+    uFog: { value: new THREE.Color(0.5, 0.58, 0.74) },
+    /** the paintings' bottom rows averaged (texel units): what lies under the strip, looking steeply down past the slab */
+    uFloorDay: { value: new THREE.Color(0, 0, 0) },
+    uFloorNight: { value: new THREE.Color(0, 0, 0) },
+    fogSunDir: fogUniforms.fogSunDir,
+    fogSunColor: fogUniforms.fogSunColor,
+  };
+
+  constructor(private strips: HorizonStrips) {}
+
+  build(): this {
+    const st = this.strips;
+    this.u.uScale.value = st.scale ?? 1;
+    this.u.uElMin.value = st.elMin; this.u.uElMax.value = st.elMax;
+    const mat = new THREE.ShaderMaterial({
+      uniforms: this.u, transparent: true, depthWrite: false, depthTest: true, fog: false, side: THREE.DoubleSide,
+      vertexShader: /* glsl */`
+        varying vec3 vDir; varying float vU;
+        void main() {
+          vDir = position; vU = uv.x;
+          vec4 p = projectionMatrix * vec4(mat3(viewMatrix) * position, 1.0);
+          gl_Position = p.xyww; // on the far plane: behind everything, drawn only where nothing else is
+        }`,
+      fragmentShader: /* glsl */`
+        uniform sampler2D tDay; uniform sampler2D tNight;
+        uniform float uFade; uniform float uNight; uniform float uScale; uniform float uElMin; uniform float uElMax;
+        uniform vec3 uTint; uniform vec3 uFog; uniform vec3 fogSunDir; uniform vec3 fogSunColor; uniform vec3 uFloorDay; uniform vec3 uFloorNight;
+        varying vec3 vDir; varying float vU;
+        void main() {
+          vec3 d = normalize(vDir);
+          float el = degrees(asin(clamp(d.y, -1.0, 1.0)));
+          vec2 uv = vec2(vU, clamp((el - uElMin) / (uElMax - uElMin), 0.0, 1.0));
+          // under the painting's bottom row (looking steeply down past the slab): the bottom rows' own blur, the valley floor
+          float under = smoothstep(uElMin + 2.0, uElMin - 4.0, el);
+          vec4 day = texture2D(tDay, uv);
+          vec3 night = texture2D(tNight, uv).rgb;
+          day.rgb = mix(day.rgb, uFloorDay, under); night = mix(night, uFloorNight, under);
+          vec3 land = mix(day.rgb * uTint, night, uNight) * uScale;
+          // the fog's colour this way (Atmosphere.ts' sun in-scatter): the painted haze is the terrain's haze
+          vec3 haze = mix(uFog, fogSunColor, pow(max(dot(d, fogSunDir), 0.0), 6.0) * 0.7);
+          // aerial perspective: the far skyline breathes a little of the live haze (the land below already holds its own)
+          float h = 0.12 * (1.0 - smoothstep(0.0, 6.0, el)) * smoothstep(-3.0, 0.0, el) + 0.03 * under;
+          land = mix(land, haze, clamp(h, 0.0, 1.0));
+          float below = 1.0 - smoothstep(-0.5, 0.0, el);        // under the horizon: always opaque (the land, or the haze)
+          vec3 col = mix(land, mix(haze, land, uFade), below);
+          gl_FragColor = vec4(col, max(day.a * uFade, below));
+        }`,
+    });
+    mat.name = 'paintedHorizon';
+    const mesh = new THREE.Mesh(sleeveGeometry(st.elMax), mat);
+    mesh.frustumCulled = false;
+    mesh.renderOrder = -16; // after the dome (−1000) and the sun disc, before the cloud layer (−10): the clouds pass in front
+    mesh.name = 'painted-horizon';
+    this.mesh = mesh;
+    return this;
+  }
+
+  /** fetch + decode both paintings off the critical path (after boot); the band fades in once both are decoded */
+  async load(): Promise<void> {
+    if (!this.mesh || this.loaded) return;
+    this.loaded = true;
+    const st = this.strips, src = TIER === 'phone' && st.phone ? st.phone : st;
+    try {
+      const [day, night] = await Promise.all([loadTexture(src.day), loadTexture(src.night)]);
+      this.u.tDay.value = day; this.u.tNight.value = night;
+      floorOf(day, this.u.uFloorDay.value); floorOf(night, this.u.uFloorNight.value);
+      this.ready = true;
+    } catch (e) {
+      console.warn('[painted-horizon] paintings not loaded; the haze band stays', e);
+    }
+  }
+
+  /**
+   * every frame: the fog's live colour, the clock's night (0 day … 1 night) and its far haze / light (horizonLight's
+   * uHazeCol, uSeaSun) for the day painting's tint
+   */
+  update(dt: number, fog: THREE.Color, night: number, far: THREE.Color, light: THREE.Color): void {
+    if (this.ready && this.fade < 1) { this.fade = Math.min(1, this.fade + dt / FADE_IN); this.u.uFade.value = this.fade * this.fade * (3 - 2 * this.fade); }
+    this.u.uFog.value.copy(fog);
+    this.u.uNight.value = night;
+    // relative to midday (PineDayNight's day preset: far 0.55 / 0.64 / 0.8, light 1 / 0.96 / 0.9)
+    const t = this.u.uTint.value;
+    t.setRGB(Math.min(far.r / 0.55, 1.5), Math.min(far.g / 0.64, 1.5), Math.min(far.b / 0.8, 1.5));
+    t.r *= 0.65 + 0.35 * Math.min(light.r / 1.0, 1.2); t.g *= 0.65 + 0.35 * Math.min(light.g / 0.96, 1.2); t.b *= 0.65 + 0.35 * Math.min(light.b / 0.9, 1.2);
+  }
+}
+
+/** the mean linear colour of a painting's bottom 4 % (a 32 × 4 canvas read, once at load) */
+function floorOf(tex: THREE.Texture, out: THREE.Color): void {
+  const img = tex.image as CanvasImageSource & { width: number; height: number };
+  const c = document.createElement('canvas'); c.width = 32; c.height = 4;
+  const g = c.getContext('2d', { willReadFrequently: true });
+  if (!g) return;
+  g.drawImage(img, 0, img.height * 0.96, img.width, img.height * 0.04, 0, 0, 32, 4);
+  const px = g.getImageData(0, 0, 32, 4).data;
+  let r = 0, gg = 0, b = 0;
+  for (let i = 0; i < px.length; i += 4) { r += (px[i] ?? 0) / 255; gg += (px[i + 1] ?? 0) / 255; b += (px[i + 2] ?? 0) / 255; }
+  const n = px.length / 4;
+  out.setRGB(r / n, gg / n, b / n, THREE.SRGBColorSpace); // sRGB-encoded texels → the working (linear) space, like the sampler
+}
+
+/** a unit sleeve round the eye from `top` degrees down to the nadir, u = azimuth (0 → +X, 0.25 → +Z); viewed from inside */
+function sleeveGeometry(top: number): THREE.BufferGeometry {
+  const SEG = 128, d2r = Math.PI / 180;
+  const rows = [top, top / 2, 0, -6, -12, -20, -30, -45, -70, -89.5];
+  const pos: number[] = [], uv: number[] = [], idx: number[] = [];
+  for (const el of rows) {
+    const c = Math.cos(el * d2r), y = Math.sin(el * d2r);
+    for (let s = 0; s <= SEG; s++) {
+      const u = s / SEG, a = u * Math.PI * 2;
+      pos.push(Math.cos(a) * c, y, Math.sin(a) * c);
+      uv.push(u, 0);
+    }
+  }
+  for (let r = 0; r < rows.length - 1; r++) for (let s = 0; s < SEG; s++) {
+    const a = r * (SEG + 1) + s, b = a + 1, c = a + SEG + 1, e = c + 1;
+    idx.push(a, b, c, b, e, c);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  return g;
 }
