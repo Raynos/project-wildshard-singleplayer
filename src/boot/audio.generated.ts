@@ -38,6 +38,72 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
    "pickup": "sting-pickup-332f81db.m4a"
   }
  },
+ "nalati": {
+  "style": "nalati",
+  "model": "MiniMax-Music3",
+  "credit": "Music: MiniMax-Music3",
+  "slots": {
+   "steppe-grass": {
+    "calm": "steppe-grass-calm-68234a31.m4a",
+    "tension": "steppe-grass-tension-e7aa4970.m4a",
+    "bpm": 120.119,
+    "beatsPerBar": 4,
+    "loopStart": 3.4598,
+    "loopEnd": 45.4182,
+    "duration": 47.424
+   },
+   "steppe-sky": {
+    "calm": "steppe-sky-calm-81e788bb.m4a",
+    "tension": "steppe-sky-tension-478decfa.m4a",
+    "bpm": 90.825,
+    "beatsPerBar": 4,
+    "loopStart": 17.0899,
+    "loopEnd": 43.5142,
+    "duration": 46.1653
+   },
+   "steppe-snow": {
+    "calm": "steppe-snow-calm-2723fb59.m4a",
+    "tension": "steppe-snow-tension-9f095e46.m4a",
+    "bpm": 105.874,
+    "beatsPerBar": 4,
+    "loopStart": 28.6766,
+    "loopEnd": 46.8114,
+    "duration": 49.088
+   },
+   "steppe-night": {
+    "calm": "steppe-night-calm-1b01c85d.m4a",
+    "tension": "steppe-night-tension-849680a6.m4a",
+    "bpm": 71.97,
+    "beatsPerBar": 4,
+    "loopStart": 8.6378,
+    "loopEnd": 51.9895,
+    "duration": 55.3387
+   },
+   "steppe-storm": {
+    "calm": "steppe-storm-calm-e64bb429.m4a",
+    "tension": "steppe-storm-tension-847136fa.m4a",
+    "bpm": 87.177,
+    "beatsPerBar": 4,
+    "loopStart": 8.7307,
+    "loopEnd": 52.779,
+    "duration": 55.552
+   },
+   "steppe-king": {
+    "calm": "steppe-king-calm-bbcfbe31.m4a",
+    "tension": "steppe-king-tension-9d5ec1d2.m4a",
+    "bpm": 79.712,
+    "beatsPerBar": 4,
+    "loopStart": 15.0233,
+    "loopEnd": 42.121,
+    "duration": 45.1413
+   }
+  },
+  "stings": {
+   "death": "sting-death-fc7a4dce.m4a",
+   "chunk": "sting-chunk-c85d0270.m4a",
+   "pickup": "sting-pickup-7ebca9f6.m4a"
+  }
+ },
  "orchestral": {
   "style": "orchestral",
   "model": "MiniMax-Music3",

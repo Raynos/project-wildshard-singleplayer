@@ -1,0 +1,239 @@
+{
+  "style": "nalati",
+  "model": "MiniMax-Music3",
+  "credit": "Music: MiniMax-Music3",
+  "slots": {
+    "steppe-grass": {
+      "calm": "steppe-grass-calm-68234a31.m4a",
+      "tension": "steppe-grass-tension-e7aa4970.m4a",
+      "bpm": 120.119,
+      "beatsPerBar": 4,
+      "loopStart": 3.4598,
+      "loopEnd": 45.4182,
+      "duration": 47.424
+    },
+    "steppe-sky": {
+      "calm": "steppe-sky-calm-81e788bb.m4a",
+      "tension": "steppe-sky-tension-478decfa.m4a",
+      "bpm": 90.825,
+      "beatsPerBar": 4,
+      "loopStart": 17.0899,
+      "loopEnd": 43.5142,
+      "duration": 46.1653
+    },
+    "steppe-snow": {
+      "calm": "steppe-snow-calm-2723fb59.m4a",
+      "tension": "steppe-snow-tension-9f095e46.m4a",
+      "bpm": 105.874,
+      "beatsPerBar": 4,
+      "loopStart": 28.6766,
+      "loopEnd": 46.8114,
+      "duration": 49.088
+    },
+    "steppe-night": {
+      "calm": "steppe-night-calm-1b01c85d.m4a",
+      "tension": "steppe-night-tension-849680a6.m4a",
+      "bpm": 71.97,
+      "beatsPerBar": 4,
+      "loopStart": 8.6378,
+      "loopEnd": 51.9895,
+      "duration": 55.3387
+    },
+    "steppe-storm": {
+      "calm": "steppe-storm-calm-e64bb429.m4a",
+      "tension": "steppe-storm-tension-847136fa.m4a",
+      "bpm": 87.177,
+      "beatsPerBar": 4,
+      "loopStart": 8.7307,
+      "loopEnd": 52.779,
+      "duration": 55.552
+    },
+    "steppe-king": {
+      "calm": "steppe-king-calm-bbcfbe31.m4a",
+      "tension": "steppe-king-tension-9d5ec1d2.m4a",
+      "bpm": 79.712,
+      "beatsPerBar": 4,
+      "loopStart": 15.0233,
+      "loopEnd": 42.121,
+      "duration": 45.1413
+    }
+  },
+  "stings": {
+    "death": "sting-death-fc7a4dce.m4a",
+    "chunk": "sting-chunk-c85d0270.m4a",
+    "pickup": "sting-pickup-7ebca9f6.m4a"
+  },
+  "provenance": [
+    {
+      "file": "steppe-grass-calm-68234a31.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: video game soundtrack, Kazakh folk. BPM: 108. Instrumental only, no vocals, no choir. Setting: the Nalati Grasslands, a green river valley of the Kazakh steppe with a nomad yurt camp and horse herds, in an open-world adventure game - wonder first, adventure second, a little melancholy underneath. Arrangement: a warm strummed ostinato on a two-string dombra lute in a galloping 6/8 horse-gait rhythm, a singable melody on a breathy wooden sybyzgy flute with long breaths, a soft drone of a raspy bowed horsehair fiddle (kobyz, a bowed instrument, never plucked) under it; a steady light groove of frame drum (dauylpaz) and soft low hand percussion runs under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. No western orchestra, no piano, no guitar, no synthesizers. Production: natural, close, airy open-air reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 302,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-302",
+      "stem": "calm: mix - drums - bass/2"
+    },
+    {
+      "file": "steppe-grass-tension-e7aa4970.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: video game soundtrack, Kazakh folk. BPM: 108. Instrumental only, no vocals, no choir. Setting: the Nalati Grasslands, a green river valley of the Kazakh steppe with a nomad yurt camp and horse herds, in an open-world adventure game - wonder first, adventure second, a little melancholy underneath. Arrangement: a warm strummed ostinato on a two-string dombra lute in a galloping 6/8 horse-gait rhythm, a singable melody on a breathy wooden sybyzgy flute with long breaths, a soft drone of a raspy bowed horsehair fiddle (kobyz, a bowed instrument, never plucked) under it; a steady light groove of frame drum (dauylpaz) and soft low hand percussion runs under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. No western orchestra, no piano, no guitar, no synthesizers. Production: natural, close, airy open-air reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 302,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-302",
+      "stem": "tension: drums + bass/2 (htdemucs), mono"
+    },
+    {
+      "file": "steppe-sky-calm-81e788bb.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: Kazakh folk music, a small village folk trio, video game soundtrack. BPM: 116. Instrumental only, no vocals, no choir. Setting: the Sky Grassland, a golden high plateau where wild horses graze, in an open-world adventure game - bright, light, playful. Arrangement: only three players: a fast strummed two-string dombra lute in a galloping 6/8 horse-gait rhythm, a breathy wooden sybyzgy flute playing a bright dancing melody, and a frame drum with hoof-like hand percussion that runs under the whole piece from the second bar to the end. A jaw harp twang now and then. No fade-out: the last bar is as full as the rest. Strictly no orchestra, no strings section, no brass, no piano, no guitar, no synthesizers. Production: dry, close, a small room.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 311,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-311",
+      "stem": "calm: mix - drums - bass/2"
+    },
+    {
+      "file": "steppe-sky-tension-478decfa.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: Kazakh folk music, a small village folk trio, video game soundtrack. BPM: 116. Instrumental only, no vocals, no choir. Setting: the Sky Grassland, a golden high plateau where wild horses graze, in an open-world adventure game - bright, light, playful. Arrangement: only three players: a fast strummed two-string dombra lute in a galloping 6/8 horse-gait rhythm, a breathy wooden sybyzgy flute playing a bright dancing melody, and a frame drum with hoof-like hand percussion that runs under the whole piece from the second bar to the end. A jaw harp twang now and then. No fade-out: the last bar is as full as the rest. Strictly no orchestra, no strings section, no brass, no piano, no guitar, no synthesizers. Production: dry, close, a small room.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 311,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-311",
+      "stem": "tension: drums + bass/2 (htdemucs), mono"
+    },
+    {
+      "file": "steppe-snow-calm-2723fb59.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: video game soundtrack, Kazakh folk. BPM: 84. Instrumental only, no vocals, no choir. Setting: the Snow Lotus Valley, a cold ring of snowfields and a glacier high above the steppe, in an open-world adventure game - cold, lonely, beautiful, a little dangerous. Arrangement: a sparse low plucked ostinato on a two-string dombra lute, a breathy wooden sybyzgy flute melody over a hummed drone, glassy harmonics on a raspy bowed horsehair fiddle; a soft slow groove of muted frame drum and low hand percussion keeps going under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. No western orchestra, no piano, no guitar, no synthesizers. Production: cold, spacious reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 301,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-301",
+      "stem": "calm: mix - drums - bass/2"
+    },
+    {
+      "file": "steppe-snow-tension-9f095e46.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: video game soundtrack, Kazakh folk. BPM: 84. Instrumental only, no vocals, no choir. Setting: the Snow Lotus Valley, a cold ring of snowfields and a glacier high above the steppe, in an open-world adventure game - cold, lonely, beautiful, a little dangerous. Arrangement: a sparse low plucked ostinato on a two-string dombra lute, a breathy wooden sybyzgy flute melody over a hummed drone, glassy harmonics on a raspy bowed horsehair fiddle; a soft slow groove of muted frame drum and low hand percussion keeps going under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. No western orchestra, no piano, no guitar, no synthesizers. Production: cold, spacious reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 301,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-301",
+      "stem": "tension: drums + bass/2 (htdemucs), mono"
+    },
+    {
+      "file": "steppe-night-calm-1b01c85d.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: video game soundtrack, Kazakh folk night theme. BPM: 72. Setting: the Kazakh steppe at night under the stars, wolves somewhere out in the dark, in an open-world adventure game - dark, calm, ancient. Arrangement: a low wordless throat-sung drone (kargyraa) held under the whole piece, a slow mournful melody on a raspy bowed horsehair fiddle (kobyz), sparse plucked notes on a two-string dombra lute; a soft steady frame drum pulse like a distant heartbeat runs under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. No western orchestra, no piano, no guitar, no synthesizers. Production: close, dark, deep reverb.",
+      "lyrics": "[Intro]\n[Chant]\nooo\nooo\n[Chant]\nooo\nooo\n[Outro]",
+      "seed": 301,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-301",
+      "stem": "calm: mix - drums - bass/2 (the voice kept: the drone)"
+    },
+    {
+      "file": "steppe-night-tension-849680a6.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: video game soundtrack, Kazakh folk night theme. BPM: 72. Setting: the Kazakh steppe at night under the stars, wolves somewhere out in the dark, in an open-world adventure game - dark, calm, ancient. Arrangement: a low wordless throat-sung drone (kargyraa) held under the whole piece, a slow mournful melody on a raspy bowed horsehair fiddle (kobyz), sparse plucked notes on a two-string dombra lute; a soft steady frame drum pulse like a distant heartbeat runs under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. No western orchestra, no piano, no guitar, no synthesizers. Production: close, dark, deep reverb.",
+      "lyrics": "[Intro]\n[Chant]\nooo\nooo\n[Chant]\nooo\nooo\n[Outro]",
+      "seed": 301,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-301",
+      "stem": "tension: drums + bass/2 (htdemucs), mono"
+    },
+    {
+      "file": "steppe-storm-calm-e64bb429.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: Kazakh folk music, fast and fierce, video game battle music. BPM: 132. Instrumental only, no vocals, no choir. Setting: a thunderstorm over the steppe and the fight with Jel Ata, the spirit of the wind, in an open-world adventure game. Arrangement: only folk instruments: two fast furiously strummed two-string dombra lutes in a driving 6/8 gallop, a breathy wooden sybyzgy flute shrieking like the wind, a raspy bowed horsehair fiddle sawing a drone, and pounding frame drums (dauylpaz) and big hand drums that drive the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Strictly no orchestra, no strings section, no brass, no electric guitar, no rock drum kit, no piano, no synthesizers. Production: close, raw, live folk ensemble.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 313,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-313",
+      "stem": "calm: mix - drums - bass/2"
+    },
+    {
+      "file": "steppe-storm-tension-847136fa.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: Kazakh folk music, fast and fierce, video game battle music. BPM: 132. Instrumental only, no vocals, no choir. Setting: a thunderstorm over the steppe and the fight with Jel Ata, the spirit of the wind, in an open-world adventure game. Arrangement: only folk instruments: two fast furiously strummed two-string dombra lutes in a driving 6/8 gallop, a breathy wooden sybyzgy flute shrieking like the wind, a raspy bowed horsehair fiddle sawing a drone, and pounding frame drums (dauylpaz) and big hand drums that drive the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Strictly no orchestra, no strings section, no brass, no electric guitar, no rock drum kit, no piano, no synthesizers. Production: close, raw, live folk ensemble.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 313,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-313",
+      "stem": "tension: drums + bass/2 (htdemucs), mono"
+    },
+    {
+      "file": "steppe-king-calm-bbcfbe31.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: video game soundtrack, Kazakh folk boss theme. BPM: 96. Setting: inside a Saka burial mound (kurgan), where the Golden King, an undead warrior king in gold armour, rises, in an open-world adventure game - a funeral dirge that turns into battle. Arrangement: it opens with a deep wordless throat-sung drone (kargyraa) and a mournful raspy bowed horsehair fiddle, then rises into battle: heavy frame drums and a war-drum groove enter in the second bar and drive the whole piece to the end, hammering strums on a two-string dombra lute in a 6/8 ostinato, the throat drone under everything. No fade-out: the last bar is as full as the rest. No western orchestra, no piano, no guitar, no synthesizers. Production: dark, stone-chamber reverb.",
+      "lyrics": "[Intro]\n[Chant]\nooo\nooo\n[Chant]\nooo\nooo\n[Outro]",
+      "seed": 302,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-302",
+      "stem": "calm: mix - drums - bass/2 (the voice kept: the drone)"
+    },
+    {
+      "file": "steppe-king-tension-9d5ec1d2.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: video game soundtrack, Kazakh folk boss theme. BPM: 96. Setting: inside a Saka burial mound (kurgan), where the Golden King, an undead warrior king in gold armour, rises, in an open-world adventure game - a funeral dirge that turns into battle. Arrangement: it opens with a deep wordless throat-sung drone (kargyraa) and a mournful raspy bowed horsehair fiddle, then rises into battle: heavy frame drums and a war-drum groove enter in the second bar and drive the whole piece to the end, hammering strums on a two-string dombra lute in a 6/8 ostinato, the throat drone under everything. No fade-out: the last bar is as full as the rest. No western orchestra, no piano, no guitar, no synthesizers. Production: dark, stone-chamber reverb.",
+      "lyrics": "[Intro]\n[Chant]\nooo\nooo\n[Chant]\nooo\nooo\n[Outro]",
+      "seed": 302,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-302",
+      "stem": "tension: drums + bass/2 (htdemucs), mono"
+    },
+    {
+      "file": "sting-death-fc7a4dce.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "prompt": "Genre: video game soundtrack, Kazakh folk. BPM: 108. Instrumental only, no vocals, no choir. Setting: the Nalati Grasslands, a green river valley of the Kazakh steppe with a nomad yurt camp and horse herds, in an open-world adventure game - wonder first, adventure second, a little melancholy underneath. Arrangement: a warm strummed ostinato on a two-string dombra lute in a galloping 6/8 horse-gait rhythm, a singable melody on a breathy wooden sybyzgy flute with long breaths, a soft drone of a raspy bowed horsehair fiddle (kobyz, a bowed instrument, never plucked) under it; a steady light groove of frame drum (dauylpaz) and soft low hand percussion runs under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. No western orchestra, no piano, no guitar, no synthesizers. Production: natural, close, airy open-air reverb.",
+      "seed": 302,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-302",
+      "cut_from": "grass: its last 4.5 s"
+    },
+    {
+      "file": "sting-chunk-c85d0270.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "prompt": "Genre: video game soundtrack, Kazakh folk. BPM: 108. Instrumental only, no vocals, no choir. Setting: the Nalati Grasslands, a green river valley of the Kazakh steppe with a nomad yurt camp and horse herds, in an open-world adventure game - wonder first, adventure second, a little melancholy underneath. Arrangement: a warm strummed ostinato on a two-string dombra lute in a galloping 6/8 horse-gait rhythm, a singable melody on a breathy wooden sybyzgy flute with long breaths, a soft drone of a raspy bowed horsehair fiddle (kobyz, a bowed instrument, never plucked) under it; a steady light groove of frame drum (dauylpaz) and soft low hand percussion runs under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. No western orchestra, no piano, no guitar, no synthesizers. Production: natural, close, airy open-air reverb.",
+      "seed": 302,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-302",
+      "cut_from": "grass: a 3.7x swell at 3.5 s"
+    },
+    {
+      "file": "sting-pickup-7ebca9f6.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "prompt": "Genre: video game soundtrack, Kazakh folk. BPM: 108. Instrumental only, no vocals, no choir. Setting: the Nalati Grasslands, a green river valley of the Kazakh steppe with a nomad yurt camp and horse herds, in an open-world adventure game - wonder first, adventure second, a little melancholy underneath. Arrangement: a warm strummed ostinato on a two-string dombra lute in a galloping 6/8 horse-gait rhythm, a singable melody on a breathy wooden sybyzgy flute with long breaths, a soft drone of a raspy bowed horsehair fiddle (kobyz, a bowed instrument, never plucked) under it; a steady light groove of frame drum (dauylpaz) and soft low hand percussion runs under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. No western orchestra, no piano, no guitar, no synthesizers. Production: natural, close, airy open-air reverb.",
+      "seed": 302,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-302",
+      "cut_from": "grass: its brightest onset at 10.3 s"
+    }
+  ]
+}

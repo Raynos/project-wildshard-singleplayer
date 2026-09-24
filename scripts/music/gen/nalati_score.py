@@ -15,6 +15,8 @@ on the page; until he does, the game ships the rank-1 take of every slot):
   seam     the best bar-aligned loop seam (analyze.loop_seam)
   clean    no clipping, no gap > 2 s, full band
   full     full length, no fade-out
+  drone    (night / King only, 25 %) CLAP's throat-singing share: the drone is the point of those cues
+  folk     the total x (0.5 + 0.5 min(1, kazakh / 0.6)): an orchestral / rock-band drift is scaled down as a whole
   voice    the separated vocal stem's share: over 20 % disqualifies a take, EXCEPT in the night and the King's slots, where the
            throat drone is wanted (the user, wave 6: the throat drone only in the night + boss cues) and only over 60 % does
 Build (stems.py's recipe): htdemucs -> calm = mix - drums - bass/2, tension = drums + bass/2 (in the night / King slots the
@@ -60,6 +62,8 @@ HEARD = {"dombra": "plucked lute", "kobyz": "bowed fiddle", "sybyzgy": "wooden f
 TEST_TARGET = {"dombra": ["dombra"], "kobyz": ["kobyz"], "sybyzgy": ["sybyzgy"], "throat": ["throat"],
                "ensemble-day": ["dombra", "sybyzgy", "kobyz"], "ensemble-night": ["throat", "kobyz"]}
 W_LOOP = {"kazakh": 0.35, "groove": 0.2, "seam": 0.2, "clean": 0.15, "full": 0.1}
+# the night and the King: the throat drone is the point of them (wave 6), so it is scored on its own
+W_DRONE = {"kazakh": 0.15, "drone": 0.25, "groove": 0.15, "seam": 0.2, "clean": 0.15, "full": 0.1}
 SLOT_TITLE = {"grass": "Nalati Grasslands", "sky": "Sky Grassland", "snow": "Snow Lotus Valley", "night": "Night on the steppe",
               "storm": "The storm (Jel Ata)", "king": "The Golden King"}
 SLOT_NOTE = {"grass": "the green Kunes valley and the camp: the calm exploration theme",
@@ -143,8 +147,12 @@ def score(m: dict, slot: str) -> tuple[float, dict, str | None]:
         "clean": clean_part(m),
         "full": max(0.0, min(1.0, (m["duration_s"] - m["silence"]["tail_silence_s"] - 45) / 20)),
     }
+    parts["drone"] = m.get("kazakh", {}).get("instrument_prob", {}).get("throat", 0.0)
     pen = 0.0 if slot in VOICE_OK else 0.5 * max(0.0, voice - 0.03)
-    return round(sum(W_LOOP[k] * parts[k] for k in W_LOOP) - pen, 3), {k: round(x, 3) for k, x in parts.items()}, None
+    w = W_DRONE if slot in VOICE_OK else W_LOOP
+    # a take that does not sound Kazakh is down-weighted as a whole (the orchestral / rock-band drift): x0.5 at 0, x1 from 0.6
+    folk = 0.5 + 0.5 * min(1.0, parts["kazakh"] / 0.6)
+    return round(sum(w[k] * parts[k] for k in w) * folk - pen, 3), {k: round(x, 3) for k, x in parts.items()}, None
 
 
 def preview(wav: Path, m: dict, dest: Path) -> int:
@@ -282,7 +290,7 @@ def page(rec: dict, verdict: dict) -> str:
   {''.join(secs)}
   <section class="notes">
     <h2>How the takes were ranked</h2>
-    <p>Kazakh instruments {int(W_LOOP['kazakh'] * 100)}%: the share CLAP gives the sounds of four Kazakh instruments (a plucked two-string lute, a raspy bowed fiddle, a breathy wooden flute, throat singing) against six foils (an orchestra, piano, acoustic guitar, synths, a rock band, a singer with words). CLAP does not know the instruments by name, so each is described by its sound. Groove {int(W_LOOP['groove'] * 100)}%: drums and bass across the take (htdemucs), because the game's tension layer is exactly those stems. Loop seam {int(W_LOOP['seam'] * 100)}%, clean audio {int(W_LOOP['clean'] * 100)}%, full length with no fade-out {int(W_LOOP['full'] * 100)}%. A take whose separated vocal stem holds over 20% of the energy is out, except in the night and the King's slots, where the throat drone is wanted; there the limit is 60%.</p>
+    <p>Kazakh instruments {int(W_LOOP['kazakh'] * 100)}%: the share CLAP gives the sounds of four Kazakh instruments (a plucked two-string lute, a raspy bowed fiddle, a breathy wooden flute, throat singing) against six foils (an orchestra, piano, acoustic guitar, synths, a rock band, a singer with words). CLAP does not know the instruments by name, so each is described by its sound. Groove {int(W_LOOP['groove'] * 100)}%: drums and bass across the take (htdemucs), because the game's tension layer is exactly those stems. Loop seam {int(W_LOOP['seam'] * 100)}%, clean audio {int(W_LOOP['clean'] * 100)}%, full length with no fade-out {int(W_LOOP['full'] * 100)}%. In the night and the King's slots the throat drone is scored on its own (25%, Kazakh sound 15%, groove 15%). A take that does not sound Kazakh is scaled down as a whole: by half when CLAP hears no Kazakh instrument at all, not at all from 60%. A take whose separated vocal stem holds over 20% of the energy is out, except in the night and the King's slots, where the throat drone is wanted; there the limit is 60%.</p>
   </section>
 </div>
 """
