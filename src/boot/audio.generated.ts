@@ -182,6 +182,14 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     "gain": 0.5,
     "shard": "nalati"
    },
+   "camp": {
+    "file": "bed-camp-1-c7570b1a.m4a",
+    "loopStart": 9.5,
+    "loopEnd": 19.5,
+    "duration": 20.5013,
+    "gain": 0.5,
+    "shard": "nalati"
+   },
    "highwind": {
     "file": "bed-highwind-1-95937f84.m4a",
     "loopStart": 2.5,

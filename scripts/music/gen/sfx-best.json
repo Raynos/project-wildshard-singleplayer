@@ -572,11 +572,11 @@
     "rule": "per family: each model's best take by CLAP (siblings in a group not competing); the lower rank wins, ties to the higher p; ships only in the top 5",
     "wins": {
       "moss": 24,
-      "medium": 24,
-      "synth": 3,
+      "medium": 25,
+      "synth": 2,
       "missing": 0
     },
-    "bytes": 2219266,
+    "bytes": 2388858,
     "families": {
       "wolf_howl": {
         "moss": {
@@ -611,7 +611,7 @@
       "wolf_bite": {
         "moss": {
           "rank": 1,
-          "p": 0.329,
+          "p": 0.326,
           "seed": 1,
           "best_match": "a wolf's jaws snapping shut in a bite"
         },
@@ -857,7 +857,7 @@
         },
         "medium": {
           "rank": 2,
-          "p": 0.219,
+          "p": 0.218,
           "seed": 1,
           "best_match": "a herd of wild horses stampeding past"
         },
@@ -881,13 +881,13 @@
       "footstep-grass": {
         "moss": {
           "rank": 1,
-          "p": 0.95,
+          "p": 0.949,
           "seed": 2,
           "best_match": "a single footstep on tall dry grass"
         },
         "medium": {
           "rank": 1,
-          "p": 0.934,
+          "p": 0.933,
           "seed": 1,
           "best_match": "a single footstep on tall dry grass"
         },
@@ -932,7 +932,7 @@
         },
         "medium": {
           "rank": 5,
-          "p": 0.019,
+          "p": 0.018,
           "seed": 2,
           "best_match": "a bow string twanging as an arrow is shot"
         },
@@ -940,8 +940,8 @@
       },
       "bowLetDown": {
         "moss": {
-          "rank": 4,
-          "p": 0.049,
+          "rank": 5,
+          "p": 0.047,
           "seed": 2,
           "best_match": "a sabre slashing into flesh"
         },
@@ -956,7 +956,7 @@
       "bowTwang": {
         "moss": {
           "rank": 2,
-          "p": 0.238,
+          "p": 0.235,
           "seed": 2,
           "best_match": "an arrow thudding into wood and quivering"
         },
@@ -992,7 +992,7 @@
         },
         "medium": {
           "rank": 1,
-          "p": 0.776,
+          "p": 0.775,
           "seed": 2,
           "best_match": "an arrow thudding into wood and quivering"
         },
@@ -1135,13 +1135,13 @@
       },
       "javelinImpact-flesh": {
         "moss": {
-          "rank": 23,
+          "rank": 24,
           "p": 0.002,
           "seed": 2,
           "best_match": "a javelin stabbing into the earth"
         },
         "medium": {
-          "rank": 39,
+          "rank": 40,
           "p": 0.0,
           "seed": 1,
           "best_match": "a sabre chopping into wood with a ringing blade"
@@ -1187,7 +1187,7 @@
         },
         "medium": {
           "rank": 1,
-          "p": 0.261,
+          "p": 0.258,
           "seed": 3,
           "best_match": "static electricity crackling before a lightning strike"
         },
@@ -1202,7 +1202,7 @@
         },
         "medium": {
           "rank": 1,
-          "p": 0.989,
+          "p": 0.998,
           "seed": 3,
           "best_match": "wind blowing through tall grass on an open steppe"
         },
@@ -1217,7 +1217,7 @@
         },
         "medium": {
           "rank": 1,
-          "p": 0.982,
+          "p": 0.972,
           "seed": 2,
           "best_match": "skylarks singing high above a meadow"
         },
@@ -1226,8 +1226,8 @@
       "bed-steppe-night": {
         "moss": {
           "rank": 1,
-          "p": 0.936,
-          "seed": 2,
+          "p": 0.942,
+          "seed": 1,
           "best_match": "crickets chirping in grassland at night"
         },
         "medium": {
@@ -1241,8 +1241,8 @@
       "bed-river": {
         "moss": {
           "rank": 1,
-          "p": 0.953,
-          "seed": 2,
+          "p": 0.96,
+          "seed": 1,
           "best_match": "a fast mountain river rushing over stones"
         },
         "medium": {
@@ -1256,7 +1256,7 @@
       "bed-meltwater": {
         "moss": {
           "rank": 1,
-          "p": 0.959,
+          "p": 0.958,
           "seed": 2,
           "best_match": "meltwater trickling and dripping from a glacier"
         },
@@ -1270,18 +1270,18 @@
       },
       "bed-camp": {
         "moss": {
-          "rank": 7,
-          "p": 0.008,
+          "rank": 1,
+          "p": 0.655,
           "seed": 1,
-          "best_match": "an arrow sticking into the ground"
+          "best_match": "a crackling wood fire with tent fabric flapping in the wind"
         },
         "medium": {
-          "rank": 10,
-          "p": 0.001,
-          "seed": 3,
-          "best_match": "a herd of wild horses stampeding past"
+          "rank": 1,
+          "p": 0.914,
+          "seed": 1,
+          "best_match": "a crackling wood fire with tent fabric flapping in the wind"
         },
-        "winner": "synth"
+        "winner": "medium"
       },
       "bed-highwind": {
         "moss": {
@@ -1292,7 +1292,7 @@
         },
         "medium": {
           "rank": 1,
-          "p": 0.453,
+          "p": 0.707,
           "seed": 1,
           "best_match": "wind blowing through tall grass on an open steppe"
         },
@@ -1307,7 +1307,7 @@
         },
         "medium": {
           "rank": 1,
-          "p": 0.988,
+          "p": 0.975,
           "seed": 3,
           "best_match": "a cold howling wind in snowy mountains"
         },
@@ -1316,13 +1316,13 @@
       "bed-rain": {
         "moss": {
           "rank": 1,
-          "p": 0.892,
+          "p": 0.935,
           "seed": 1,
           "best_match": "heavy rain falling on grassland"
         },
         "medium": {
           "rank": 1,
-          "p": 0.984,
+          "p": 0.979,
           "seed": 1,
           "best_match": "heavy rain falling on grassland"
         },
@@ -1337,7 +1337,7 @@
         },
         "medium": {
           "rank": 1,
-          "p": 0.983,
+          "p": 0.98,
           "seed": 2,
           "best_match": "a violent storm wind roaring"
         },

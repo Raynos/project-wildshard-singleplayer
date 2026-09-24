@@ -2,8 +2,8 @@
   "rule": "per family: each model's best take by CLAP (siblings in a group not competing); the lower rank wins, ties to the higher p; ships only in the top 5",
   "wins": {
     "moss": 24,
-    "medium": 24,
-    "synth": 3,
+    "medium": 25,
+    "synth": 2,
     "missing": 0
   },
   "families": {
@@ -40,7 +40,7 @@
     "wolf_bite": {
       "moss": {
         "rank": 1,
-        "p": 0.329,
+        "p": 0.326,
         "seed": 1,
         "best_match": "a wolf's jaws snapping shut in a bite"
       },
@@ -286,7 +286,7 @@
       },
       "medium": {
         "rank": 2,
-        "p": 0.219,
+        "p": 0.218,
         "seed": 1,
         "best_match": "a herd of wild horses stampeding past"
       },
@@ -310,13 +310,13 @@
     "footstep-grass": {
       "moss": {
         "rank": 1,
-        "p": 0.95,
+        "p": 0.949,
         "seed": 2,
         "best_match": "a single footstep on tall dry grass"
       },
       "medium": {
         "rank": 1,
-        "p": 0.934,
+        "p": 0.933,
         "seed": 1,
         "best_match": "a single footstep on tall dry grass"
       },
@@ -361,7 +361,7 @@
       },
       "medium": {
         "rank": 5,
-        "p": 0.019,
+        "p": 0.018,
         "seed": 2,
         "best_match": "a bow string twanging as an arrow is shot"
       },
@@ -369,8 +369,8 @@
     },
     "bowLetDown": {
       "moss": {
-        "rank": 4,
-        "p": 0.049,
+        "rank": 5,
+        "p": 0.047,
         "seed": 2,
         "best_match": "a sabre slashing into flesh"
       },
@@ -385,7 +385,7 @@
     "bowTwang": {
       "moss": {
         "rank": 2,
-        "p": 0.238,
+        "p": 0.235,
         "seed": 2,
         "best_match": "an arrow thudding into wood and quivering"
       },
@@ -421,7 +421,7 @@
       },
       "medium": {
         "rank": 1,
-        "p": 0.776,
+        "p": 0.775,
         "seed": 2,
         "best_match": "an arrow thudding into wood and quivering"
       },
@@ -564,13 +564,13 @@
     },
     "javelinImpact-flesh": {
       "moss": {
-        "rank": 23,
+        "rank": 24,
         "p": 0.002,
         "seed": 2,
         "best_match": "a javelin stabbing into the earth"
       },
       "medium": {
-        "rank": 39,
+        "rank": 40,
         "p": 0.0,
         "seed": 1,
         "best_match": "a sabre chopping into wood with a ringing blade"
@@ -616,7 +616,7 @@
       },
       "medium": {
         "rank": 1,
-        "p": 0.261,
+        "p": 0.258,
         "seed": 3,
         "best_match": "static electricity crackling before a lightning strike"
       },
@@ -631,7 +631,7 @@
       },
       "medium": {
         "rank": 1,
-        "p": 0.989,
+        "p": 0.998,
         "seed": 3,
         "best_match": "wind blowing through tall grass on an open steppe"
       },
@@ -646,7 +646,7 @@
       },
       "medium": {
         "rank": 1,
-        "p": 0.982,
+        "p": 0.972,
         "seed": 2,
         "best_match": "skylarks singing high above a meadow"
       },
@@ -655,8 +655,8 @@
     "bed-steppe-night": {
       "moss": {
         "rank": 1,
-        "p": 0.936,
-        "seed": 2,
+        "p": 0.942,
+        "seed": 1,
         "best_match": "crickets chirping in grassland at night"
       },
       "medium": {
@@ -670,8 +670,8 @@
     "bed-river": {
       "moss": {
         "rank": 1,
-        "p": 0.953,
-        "seed": 2,
+        "p": 0.96,
+        "seed": 1,
         "best_match": "a fast mountain river rushing over stones"
       },
       "medium": {
@@ -685,7 +685,7 @@
     "bed-meltwater": {
       "moss": {
         "rank": 1,
-        "p": 0.959,
+        "p": 0.958,
         "seed": 2,
         "best_match": "meltwater trickling and dripping from a glacier"
       },
@@ -699,18 +699,18 @@
     },
     "bed-camp": {
       "moss": {
-        "rank": 7,
-        "p": 0.008,
+        "rank": 1,
+        "p": 0.655,
         "seed": 1,
-        "best_match": "an arrow sticking into the ground"
+        "best_match": "a crackling wood fire with tent fabric flapping in the wind"
       },
       "medium": {
-        "rank": 10,
-        "p": 0.001,
-        "seed": 3,
-        "best_match": "a herd of wild horses stampeding past"
+        "rank": 1,
+        "p": 0.914,
+        "seed": 1,
+        "best_match": "a crackling wood fire with tent fabric flapping in the wind"
       },
-      "winner": "synth"
+      "winner": "medium"
     },
     "bed-highwind": {
       "moss": {
@@ -721,7 +721,7 @@
       },
       "medium": {
         "rank": 1,
-        "p": 0.453,
+        "p": 0.707,
         "seed": 1,
         "best_match": "wind blowing through tall grass on an open steppe"
       },
@@ -736,7 +736,7 @@
       },
       "medium": {
         "rank": 1,
-        "p": 0.988,
+        "p": 0.975,
         "seed": 3,
         "best_match": "a cold howling wind in snowy mountains"
       },
@@ -745,13 +745,13 @@
     "bed-rain": {
       "moss": {
         "rank": 1,
-        "p": 0.892,
+        "p": 0.935,
         "seed": 1,
         "best_match": "heavy rain falling on grassland"
       },
       "medium": {
         "rank": 1,
-        "p": 0.984,
+        "p": 0.979,
         "seed": 1,
         "best_match": "heavy rain falling on grassland"
       },
@@ -766,7 +766,7 @@
       },
       "medium": {
         "rank": 1,
-        "p": 0.983,
+        "p": 0.98,
         "seed": 2,
         "best_match": "a violent storm wind roaring"
       },
@@ -1004,26 +1004,26 @@
             "family": "bed-camp",
             "kind": "bed",
             "seed": 1,
-            "prompt": "Ambience of a nomad yurt camp: a wood stove crackling close by, felt tent flaps rustling in the wind, a distant goat and quiet camp life far away, no clear speech. Continuous field recording, no music.",
-            "desc": "a nomad camp with a crackling stove and flapping felt tents",
+            "prompt": "Ambience of a nomad camp: a wood fire crackling and popping close by, heavy felt and canvas tent flaps rustling and flapping in a steady wind, open grassland all around. Continuous field recording, no music, no voices.",
+            "desc": "a crackling wood fire with tent fabric flapping in the wind",
             "duration_s": 24.0,
             "steps": 100,
             "cfg": 4.0,
-            "gen_time_s": 43.8,
-            "model_load_s": 7.4,
+            "gen_time_s": 45.88,
+            "model_load_s": 8.4,
             "mps_driver_gb": 19.8
           },
-          "p": 0.008,
-          "rank": 7,
-          "best_match": "an arrow sticking into the ground",
-          "peak": 0.25,
+          "p": 0.655,
+          "rank": 1,
+          "best_match": "a crackling wood fire with tent fabric flapping in the wind",
+          "peak": 0.836,
           "seam": {
             "min_bars": 2,
-            "score": 0.552,
-            "similarity": 0.555,
-            "level_match": 0.985,
-            "start_s": 6.5,
-            "end_s": 21.5,
+            "score": 0.56,
+            "similarity": 0.564,
+            "level_match": 0.975,
+            "start_s": 3.75,
+            "end_s": 18.75,
             "bars": 3,
             "loop_s": 15.0
           }
@@ -1040,24 +1040,24 @@
             "family": "bed-camp",
             "kind": "bed",
             "seed": 2,
-            "prompt": "Ambience of a nomad yurt camp: a wood stove crackling close by, felt tent flaps rustling in the wind, a distant goat and quiet camp life far away, no clear speech. Continuous field recording, no music.",
-            "desc": "a nomad camp with a crackling stove and flapping felt tents",
+            "prompt": "Ambience of a nomad camp: a wood fire crackling and popping close by, heavy felt and canvas tent flaps rustling and flapping in a steady wind, open grassland all around. Continuous field recording, no music, no voices.",
+            "desc": "a crackling wood fire with tent fabric flapping in the wind",
             "duration_s": 24.0,
             "steps": 100,
             "cfg": 4.0,
-            "gen_time_s": 44.35,
-            "model_load_s": 7.4,
+            "gen_time_s": 43.31,
+            "model_load_s": 8.4,
             "mps_driver_gb": 19.8
           },
-          "p": 0.003,
-          "rank": 10,
-          "best_match": "an arrow sticking into the ground",
-          "peak": 0.699,
+          "p": 0.571,
+          "rank": 1,
+          "best_match": "a crackling wood fire with tent fabric flapping in the wind",
+          "peak": 0.961,
           "seam": {
             "min_bars": 2,
-            "score": 0.552,
-            "similarity": 0.562,
-            "level_match": 0.943,
+            "score": 0.546,
+            "similarity": 0.553,
+            "level_match": 0.959,
             "start_s": 2.25,
             "end_s": 17.25,
             "bars": 3,
@@ -1123,7 +1123,7 @@
             "model_load_s": 7.4,
             "mps_driver_gb": 19.8
           },
-          "p": 0.84,
+          "p": 0.911,
           "rank": 1,
           "best_match": "a cold howling wind in snowy mountains",
           "peak": 0.424,
@@ -1235,7 +1235,7 @@
             "model_load_s": 7.4,
             "mps_driver_gb": 19.8
           },
-          "p": 0.959,
+          "p": 0.958,
           "rank": 1,
           "best_match": "meltwater trickling and dripping from a glacier",
           "peak": 0.758,
@@ -1309,7 +1309,7 @@
             "model_load_s": 7.4,
             "mps_driver_gb": 19.8
           },
-          "p": 0.892,
+          "p": 0.935,
           "rank": 1,
           "best_match": "heavy rain falling on grassland",
           "peak": 0.232,
@@ -1345,7 +1345,7 @@
             "model_load_s": 7.4,
             "mps_driver_gb": 19.8
           },
-          "p": 0.853,
+          "p": 0.945,
           "rank": 1,
           "best_match": "heavy rain falling on grassland",
           "peak": 0.965,
@@ -1362,6 +1362,42 @@
         }
       ],
       "bed-river": [
+        {
+          "family": "bed-river",
+          "model": "moss",
+          "seed": 1,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "bed-river",
+            "kind": "bed",
+            "seed": 1,
+            "prompt": "Ambience beside a fast clear mountain river: water rushing and splashing over gravel and stones, steady and continuous. Field recording, no music.",
+            "desc": "a fast mountain river rushing over stones",
+            "duration_s": 24.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 57.98,
+            "model_load_s": 7.4,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.96,
+          "rank": 1,
+          "best_match": "a fast mountain river rushing over stones",
+          "peak": 0.365,
+          "seam": {
+            "min_bars": 2,
+            "score": 0.572,
+            "similarity": 0.573,
+            "level_match": 0.998,
+            "start_s": 7.25,
+            "end_s": 17.25,
+            "bars": 2,
+            "loop_s": 10.0
+          }
+        },
         {
           "family": "bed-river",
           "model": "moss",
@@ -1396,42 +1432,6 @@
             "end_s": 21.0,
             "bars": 3,
             "loop_s": 15.0
-          }
-        },
-        {
-          "family": "bed-river",
-          "model": "moss",
-          "seed": 1,
-          "side": {
-            "model": "MOSS-SoundEffect v2.0",
-            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
-            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
-            "backend": "PyTorch mps bf16",
-            "family": "bed-river",
-            "kind": "bed",
-            "seed": 1,
-            "prompt": "Ambience beside a fast clear mountain river: water rushing and splashing over gravel and stones, steady and continuous. Field recording, no music.",
-            "desc": "a fast mountain river rushing over stones",
-            "duration_s": 24.0,
-            "steps": 100,
-            "cfg": 4.0,
-            "gen_time_s": 57.98,
-            "model_load_s": 7.4,
-            "mps_driver_gb": 19.8
-          },
-          "p": 0.945,
-          "rank": 1,
-          "best_match": "a fast mountain river rushing over stones",
-          "peak": 0.365,
-          "seam": {
-            "min_bars": 2,
-            "score": 0.572,
-            "similarity": 0.573,
-            "level_match": 0.998,
-            "start_s": 7.25,
-            "end_s": 17.25,
-            "bars": 2,
-            "loop_s": 10.0
           }
         }
       ],
@@ -1493,7 +1493,7 @@
             "model_load_s": 7.4,
             "mps_driver_gb": 19.8
           },
-          "p": 1.0,
+          "p": 0.999,
           "rank": 1,
           "best_match": "skylarks singing high above a meadow",
           "peak": 0.824,
@@ -1510,6 +1510,42 @@
         }
       ],
       "bed-steppe-night": [
+        {
+          "family": "bed-steppe-night",
+          "model": "moss",
+          "seed": 1,
+          "side": {
+            "model": "MOSS-SoundEffect v2.0",
+            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
+            "backend": "PyTorch mps bf16",
+            "family": "bed-steppe-night",
+            "kind": "bed",
+            "seed": 1,
+            "prompt": "Ambience of a grassland at night: many crickets chirping steadily, a very light cool breeze in the grass, calm and still. Continuous field recording, no music.",
+            "desc": "crickets chirping in grassland at night",
+            "duration_s": 24.0,
+            "steps": 100,
+            "cfg": 4.0,
+            "gen_time_s": 55.74,
+            "model_load_s": 7.4,
+            "mps_driver_gb": 19.8
+          },
+          "p": 0.942,
+          "rank": 1,
+          "best_match": "crickets chirping in grassland at night",
+          "peak": 0.359,
+          "seam": {
+            "min_bars": 2,
+            "score": 0.516,
+            "similarity": 0.553,
+            "level_match": 0.776,
+            "start_s": 9.25,
+            "end_s": 19.25,
+            "bars": 2,
+            "loop_s": 10.0
+          }
+        },
         {
           "family": "bed-steppe-night",
           "model": "moss",
@@ -1542,42 +1578,6 @@
             "level_match": 0.875,
             "start_s": 9.5,
             "end_s": 19.5,
-            "bars": 2,
-            "loop_s": 10.0
-          }
-        },
-        {
-          "family": "bed-steppe-night",
-          "model": "moss",
-          "seed": 1,
-          "side": {
-            "model": "MOSS-SoundEffect v2.0",
-            "repo": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
-            "code_commit": "MOSS-TTS 934d682, torch 2.9.0",
-            "backend": "PyTorch mps bf16",
-            "family": "bed-steppe-night",
-            "kind": "bed",
-            "seed": 1,
-            "prompt": "Ambience of a grassland at night: many crickets chirping steadily, a very light cool breeze in the grass, calm and still. Continuous field recording, no music.",
-            "desc": "crickets chirping in grassland at night",
-            "duration_s": 24.0,
-            "steps": 100,
-            "cfg": 4.0,
-            "gen_time_s": 55.74,
-            "model_load_s": 7.4,
-            "mps_driver_gb": 19.8
-          },
-          "p": 0.838,
-          "rank": 1,
-          "best_match": "crickets chirping in grassland at night",
-          "peak": 0.359,
-          "seam": {
-            "min_bars": 2,
-            "score": 0.516,
-            "similarity": 0.553,
-            "level_match": 0.776,
-            "start_s": 9.25,
-            "end_s": 19.25,
             "bars": 2,
             "loop_s": 10.0
           }
@@ -1861,8 +1861,8 @@
             "model_load_s": 7.4,
             "mps_driver_gb": 19.8
           },
-          "p": 0.049,
-          "rank": 4,
+          "p": 0.047,
+          "rank": 5,
           "best_match": "a sabre slashing into flesh",
           "peak": 0.022
         },
@@ -1888,7 +1888,7 @@
             "mps_driver_gb": 19.8
           },
           "p": 0.001,
-          "rank": 14,
+          "rank": 15,
           "best_match": "a wooden bow being drawn with a creak",
           "peak": 0.385
         }
@@ -1915,7 +1915,7 @@
             "model_load_s": 7.4,
             "mps_driver_gb": 19.8
           },
-          "p": 0.238,
+          "p": 0.235,
           "rank": 2,
           "best_match": "an arrow thudding into wood and quivering",
           "peak": 0.013
@@ -2209,7 +2209,7 @@
             "model_load_s": 7.4,
             "mps_driver_gb": 19.8
           },
-          "p": 0.95,
+          "p": 0.949,
           "rank": 1,
           "best_match": "a single footstep on tall dry grass",
           "peak": 0.025
@@ -2235,7 +2235,7 @@
             "model_load_s": 7.4,
             "mps_driver_gb": 19.8
           },
-          "p": 0.599,
+          "p": 0.598,
           "rank": 1,
           "best_match": "a single footstep on tall dry grass",
           "peak": 0.1
@@ -2343,8 +2343,8 @@
             "model_load_s": 7.2,
             "mps_driver_gb": 19.8
           },
-          "p": 0.026,
-          "rank": 7,
+          "p": 0.025,
+          "rank": 8,
           "best_match": "a sabre chopping into wood with a ringing blade",
           "peak": 0.672
         },
@@ -2504,7 +2504,7 @@
             "mps_driver_gb": 19.8
           },
           "p": 0.0,
-          "rank": 27,
+          "rank": 28,
           "best_match": "a sabre chopping into wood with a ringing blade",
           "peak": 0.844
         },
@@ -2610,7 +2610,7 @@
             "mps_driver_gb": 19.8
           },
           "p": 0.0,
-          "rank": 27,
+          "rank": 28,
           "best_match": "a wolf yelping in pain",
           "peak": 0.848
         }
@@ -2798,7 +2798,7 @@
             "mps_driver_gb": 19.8
           },
           "p": 0.002,
-          "rank": 23,
+          "rank": 24,
           "best_match": "a javelin stabbing into the earth",
           "peak": 0.052
         },
@@ -3279,7 +3279,7 @@
             "model_load_s": 7.4,
             "mps_driver_gb": 19.8
           },
-          "p": 0.973,
+          "p": 0.972,
           "rank": 1,
           "best_match": "static electricity crackling before a lightning strike",
           "peak": 0.992
@@ -3735,7 +3735,7 @@
             "model_load_s": 7.2,
             "mps_driver_gb": 19.8
           },
-          "p": 0.895,
+          "p": 0.889,
           "rank": 1,
           "best_match": "a herd of wild horses stampeding past",
           "peak": 0.977
@@ -3871,7 +3871,7 @@
             "model_load_s": 7.5,
             "mps_driver_gb": 19.8
           },
-          "p": 0.329,
+          "p": 0.326,
           "rank": 1,
           "best_match": "a wolf's jaws snapping shut in a bite",
           "peak": 0.965
@@ -3924,7 +3924,7 @@
             "mps_driver_gb": 19.8
           },
           "p": 0.0,
-          "rank": 23,
+          "rank": 24,
           "best_match": "a sabre slashing into flesh",
           "peak": 0.617
         }
@@ -4433,7 +4433,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.19
           },
-          "p": 0.776,
+          "p": 0.775,
           "rank": 1,
           "best_match": "an arrow thudding into wood and quivering",
           "peak": 0.624
@@ -4575,42 +4575,6 @@
         {
           "family": "bed-camp",
           "model": "medium",
-          "seed": 3,
-          "side": {
-            "model": "Stable Audio 3 medium",
-            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-            "backend": "PyTorch mps fp32",
-            "family": "bed-camp",
-            "kind": "bed",
-            "seed": 3,
-            "prompt": "Ambience of a nomad yurt camp: a wood stove crackling close by, felt tent flaps rustling in the wind, a distant goat and quiet camp life far away, no clear speech. Continuous field recording, no music.",
-            "desc": "a nomad camp with a crackling stove and flapping felt tents",
-            "duration_s": 24,
-            "steps": 8,
-            "cfg": 1.0,
-            "gen_time_s": 2.69,
-            "model_load_s": 8.5,
-            "mps_driver_gb": 11.43
-          },
-          "p": 0.001,
-          "rank": 10,
-          "best_match": "a herd of wild horses stampeding past",
-          "peak": 0.869,
-          "seam": {
-            "min_bars": 2,
-            "score": 0.518,
-            "similarity": 0.54,
-            "level_match": 0.865,
-            "start_s": 8.0,
-            "end_s": 18.0,
-            "bars": 2,
-            "loop_s": 10.0
-          }
-        },
-        {
-          "family": "bed-camp",
-          "model": "medium",
           "seed": 1,
           "side": {
             "model": "Stable Audio 3 medium",
@@ -4620,26 +4584,62 @@
             "family": "bed-camp",
             "kind": "bed",
             "seed": 1,
-            "prompt": "Ambience of a nomad yurt camp: a wood stove crackling close by, felt tent flaps rustling in the wind, a distant goat and quiet camp life far away, no clear speech. Continuous field recording, no music.",
-            "desc": "a nomad camp with a crackling stove and flapping felt tents",
+            "prompt": "Ambience of a nomad camp: a wood fire crackling and popping close by, heavy felt and canvas tent flaps rustling and flapping in a steady wind, open grassland all around. Continuous field recording, no music, no voices.",
+            "desc": "a crackling wood fire with tent fabric flapping in the wind",
             "duration_s": 24,
             "steps": 8,
             "cfg": 1.0,
-            "gen_time_s": 2.45,
-            "model_load_s": 8.5,
-            "mps_driver_gb": 11.43
+            "gen_time_s": 7.1,
+            "model_load_s": 8.2,
+            "mps_driver_gb": 11.46
           },
-          "p": 0.0,
-          "rank": 9,
-          "best_match": "a herd of wild horses stampeding past",
-          "peak": 0.887,
+          "p": 0.914,
+          "rank": 1,
+          "best_match": "a crackling wood fire with tent fabric flapping in the wind",
+          "peak": 0.481,
           "seam": {
             "min_bars": 2,
-            "score": 0.587,
-            "similarity": 0.594,
-            "level_match": 0.961,
-            "start_s": 2.0,
-            "end_s": 12.0,
+            "score": 0.58,
+            "similarity": 0.591,
+            "level_match": 0.941,
+            "start_s": 9.5,
+            "end_s": 19.5,
+            "bars": 2,
+            "loop_s": 10.0
+          }
+        },
+        {
+          "family": "bed-camp",
+          "model": "medium",
+          "seed": 4,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "bed-camp",
+            "kind": "bed",
+            "seed": 4,
+            "prompt": "Ambience of a nomad camp: a wood fire crackling and popping close by, heavy felt and canvas tent flaps rustling and flapping in a steady wind, open grassland all around. Continuous field recording, no music, no voices.",
+            "desc": "a crackling wood fire with tent fabric flapping in the wind",
+            "duration_s": 24,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 2.46,
+            "model_load_s": 8.2,
+            "mps_driver_gb": 11.46
+          },
+          "p": 0.841,
+          "rank": 1,
+          "best_match": "a crackling wood fire with tent fabric flapping in the wind",
+          "peak": 0.368,
+          "seam": {
+            "min_bars": 2,
+            "score": 0.555,
+            "similarity": 0.559,
+            "level_match": 0.974,
+            "start_s": 5.5,
+            "end_s": 15.5,
             "bars": 2,
             "loop_s": 10.0
           }
@@ -4656,26 +4656,62 @@
             "family": "bed-camp",
             "kind": "bed",
             "seed": 2,
-            "prompt": "Ambience of a nomad yurt camp: a wood stove crackling close by, felt tent flaps rustling in the wind, a distant goat and quiet camp life far away, no clear speech. Continuous field recording, no music.",
-            "desc": "a nomad camp with a crackling stove and flapping felt tents",
+            "prompt": "Ambience of a nomad camp: a wood fire crackling and popping close by, heavy felt and canvas tent flaps rustling and flapping in a steady wind, open grassland all around. Continuous field recording, no music, no voices.",
+            "desc": "a crackling wood fire with tent fabric flapping in the wind",
             "duration_s": 24,
             "steps": 8,
             "cfg": 1.0,
-            "gen_time_s": 2.5,
-            "model_load_s": 8.5,
-            "mps_driver_gb": 11.43
+            "gen_time_s": 2.49,
+            "model_load_s": 8.2,
+            "mps_driver_gb": 11.46
           },
-          "p": 0.0,
-          "rank": 6,
-          "best_match": "a herd of wild horses stampeding past",
-          "peak": 0.872,
+          "p": 0.407,
+          "rank": 1,
+          "best_match": "a crackling wood fire with tent fabric flapping in the wind",
+          "peak": 0.649,
           "seam": {
             "min_bars": 2,
-            "score": 0.651,
-            "similarity": 0.655,
+            "score": 0.59,
+            "similarity": 0.608,
+            "level_match": 0.903,
+            "start_s": 2.25,
+            "end_s": 12.25,
+            "bars": 2,
+            "loop_s": 10.0
+          }
+        },
+        {
+          "family": "bed-camp",
+          "model": "medium",
+          "seed": 3,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "bed-camp",
+            "kind": "bed",
+            "seed": 3,
+            "prompt": "Ambience of a nomad camp: a wood fire crackling and popping close by, heavy felt and canvas tent flaps rustling and flapping in a steady wind, open grassland all around. Continuous field recording, no music, no voices.",
+            "desc": "a crackling wood fire with tent fabric flapping in the wind",
+            "duration_s": 24,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 2.49,
+            "model_load_s": 8.2,
+            "mps_driver_gb": 11.46
+          },
+          "p": 0.098,
+          "rank": 2,
+          "best_match": "a herd of wild horses stampeding past",
+          "peak": 0.585,
+          "seam": {
+            "min_bars": 2,
+            "score": 0.575,
+            "similarity": 0.578,
             "level_match": 0.98,
-            "start_s": 3.25,
-            "end_s": 13.25,
+            "start_s": 7.75,
+            "end_s": 17.75,
             "bars": 2,
             "loop_s": 10.0
           }
@@ -4703,7 +4739,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.43
           },
-          "p": 0.988,
+          "p": 0.975,
           "rank": 1,
           "best_match": "a cold howling wind in snowy mountains",
           "peak": 0.28,
@@ -4813,7 +4849,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.43
           },
-          "p": 0.453,
+          "p": 0.707,
           "rank": 1,
           "best_match": "wind blowing through tall grass on an open steppe",
           "peak": 0.265,
@@ -4826,6 +4862,42 @@
             "end_s": 12.5,
             "bars": 2,
             "loop_s": 10.0
+          }
+        },
+        {
+          "family": "bed-highwind",
+          "model": "medium",
+          "seed": 2,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "bed-highwind",
+            "kind": "bed",
+            "seed": 2,
+            "prompt": "Ambience on a high open mountain plateau: a strong steady wind blowing across wide grassland, deep whooshing gusts, far away a herd of horses. Continuous field recording, no music.",
+            "desc": "strong wind across a high open plateau",
+            "duration_s": 24,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 2.46,
+            "model_load_s": 8.5,
+            "mps_driver_gb": 11.43
+          },
+          "p": 0.102,
+          "rank": 3,
+          "best_match": "wind blowing through tall grass on an open steppe",
+          "peak": 0.561,
+          "seam": {
+            "min_bars": 2,
+            "score": 0.574,
+            "similarity": 0.599,
+            "level_match": 0.858,
+            "start_s": 2.0,
+            "end_s": 17.0,
+            "bars": 3,
+            "loop_s": 15.0
           }
         },
         {
@@ -4862,42 +4934,6 @@
             "end_s": 19.25,
             "bars": 2,
             "loop_s": 10.0
-          }
-        },
-        {
-          "family": "bed-highwind",
-          "model": "medium",
-          "seed": 2,
-          "side": {
-            "model": "Stable Audio 3 medium",
-            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-            "backend": "PyTorch mps fp32",
-            "family": "bed-highwind",
-            "kind": "bed",
-            "seed": 2,
-            "prompt": "Ambience on a high open mountain plateau: a strong steady wind blowing across wide grassland, deep whooshing gusts, far away a herd of horses. Continuous field recording, no music.",
-            "desc": "strong wind across a high open plateau",
-            "duration_s": 24,
-            "steps": 8,
-            "cfg": 1.0,
-            "gen_time_s": 2.46,
-            "model_load_s": 8.5,
-            "mps_driver_gb": 11.43
-          },
-          "p": 0.028,
-          "rank": 6,
-          "best_match": "wind blowing through tall grass on an open steppe",
-          "peak": 0.561,
-          "seam": {
-            "min_bars": 2,
-            "score": 0.574,
-            "similarity": 0.599,
-            "level_match": 0.858,
-            "start_s": 2.0,
-            "end_s": 17.0,
-            "bars": 3,
-            "loop_s": 15.0
           }
         }
       ],
@@ -4959,7 +4995,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.43
           },
-          "p": 0.957,
+          "p": 0.968,
           "rank": 1,
           "best_match": "meltwater trickling and dripping from a glacier",
           "peak": 0.312,
@@ -5033,7 +5069,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.43
           },
-          "p": 0.984,
+          "p": 0.979,
           "rank": 1,
           "best_match": "heavy rain falling on grassland",
           "peak": 0.606,
@@ -5069,7 +5105,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.43
           },
-          "p": 0.954,
+          "p": 0.951,
           "rank": 1,
           "best_match": "heavy rain falling on grassland",
           "peak": 0.562,
@@ -5105,7 +5141,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.43
           },
-          "p": 0.717,
+          "p": 0.803,
           "rank": 1,
           "best_match": "heavy rain falling on grassland",
           "peak": 0.433,
@@ -5161,6 +5197,42 @@
         {
           "family": "bed-river",
           "model": "medium",
+          "seed": 3,
+          "side": {
+            "model": "Stable Audio 3 medium",
+            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+            "backend": "PyTorch mps fp32",
+            "family": "bed-river",
+            "kind": "bed",
+            "seed": 3,
+            "prompt": "Ambience beside a fast clear mountain river: water rushing and splashing over gravel and stones, steady and continuous. Field recording, no music.",
+            "desc": "a fast mountain river rushing over stones",
+            "duration_s": 24,
+            "steps": 8,
+            "cfg": 1.0,
+            "gen_time_s": 2.43,
+            "model_load_s": 8.5,
+            "mps_driver_gb": 11.43
+          },
+          "p": 0.953,
+          "rank": 1,
+          "best_match": "a fast mountain river rushing over stones",
+          "peak": 0.287,
+          "seam": {
+            "min_bars": 2,
+            "score": 0.651,
+            "similarity": 0.652,
+            "level_match": 0.991,
+            "start_s": 2.25,
+            "end_s": 17.25,
+            "bars": 3,
+            "loop_s": 15.0
+          }
+        },
+        {
+          "family": "bed-river",
+          "model": "medium",
           "seed": 2,
           "side": {
             "model": "Stable Audio 3 medium",
@@ -5193,42 +5265,6 @@
             "bars": 2,
             "loop_s": 10.0
           }
-        },
-        {
-          "family": "bed-river",
-          "model": "medium",
-          "seed": 3,
-          "side": {
-            "model": "Stable Audio 3 medium",
-            "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-            "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-            "backend": "PyTorch mps fp32",
-            "family": "bed-river",
-            "kind": "bed",
-            "seed": 3,
-            "prompt": "Ambience beside a fast clear mountain river: water rushing and splashing over gravel and stones, steady and continuous. Field recording, no music.",
-            "desc": "a fast mountain river rushing over stones",
-            "duration_s": 24,
-            "steps": 8,
-            "cfg": 1.0,
-            "gen_time_s": 2.43,
-            "model_load_s": 8.5,
-            "mps_driver_gb": 11.43
-          },
-          "p": 0.94,
-          "rank": 1,
-          "best_match": "a fast mountain river rushing over stones",
-          "peak": 0.287,
-          "seam": {
-            "min_bars": 2,
-            "score": 0.651,
-            "similarity": 0.652,
-            "level_match": 0.991,
-            "start_s": 2.25,
-            "end_s": 17.25,
-            "bars": 3,
-            "loop_s": 15.0
-          }
         }
       ],
       "bed-steppe-larks": [
@@ -5253,7 +5289,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.43
           },
-          "p": 0.982,
+          "p": 0.972,
           "rank": 1,
           "best_match": "skylarks singing high above a meadow",
           "peak": 0.524,
@@ -5435,7 +5471,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.43
           },
-          "p": 0.86,
+          "p": 0.785,
           "rank": 1,
           "best_match": "crickets chirping in grassland at night",
           "peak": 0.368,
@@ -5473,7 +5509,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.43
           },
-          "p": 0.989,
+          "p": 0.998,
           "rank": 1,
           "best_match": "wind blowing through tall grass on an open steppe",
           "peak": 0.207,
@@ -5545,7 +5581,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.44
           },
-          "p": 0.766,
+          "p": 0.585,
           "rank": 1,
           "best_match": "wind blowing through tall grass on an open steppe",
           "peak": 0.314,
@@ -5583,7 +5619,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.43
           },
-          "p": 0.983,
+          "p": 0.98,
           "rank": 1,
           "best_match": "a violent storm wind roaring",
           "peak": 0.731,
@@ -5773,7 +5809,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.19
           },
-          "p": 0.019,
+          "p": 0.018,
           "rank": 5,
           "best_match": "a bow string twanging as an arrow is shot",
           "peak": 0.031
@@ -6253,7 +6289,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.2
           },
-          "p": 0.934,
+          "p": 0.933,
           "rank": 1,
           "best_match": "a single footstep on tall dry grass",
           "peak": 0.212
@@ -6359,7 +6395,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.2
           },
-          "p": 0.13,
+          "p": 0.129,
           "rank": 2,
           "best_match": "a sabre slashing into flesh",
           "peak": 0.51
@@ -6385,7 +6421,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.2
           },
-          "p": 0.107,
+          "p": 0.106,
           "rank": 2,
           "best_match": "a herd of wild horses stampeding past",
           "peak": 0.411
@@ -6573,7 +6609,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.19
           },
-          "p": 0.219,
+          "p": 0.218,
           "rank": 2,
           "best_match": "a herd of wild horses stampeding past",
           "peak": 0.578
@@ -6759,7 +6795,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.18
           },
-          "p": 0.228,
+          "p": 0.229,
           "rank": 3,
           "best_match": "a wolf snarling and growling through bared teeth",
           "peak": 0.477
@@ -6894,7 +6930,7 @@
             "mps_driver_gb": 11.19
           },
           "p": 0.0,
-          "rank": 39,
+          "rank": 40,
           "best_match": "a sabre chopping into wood with a ringing blade",
           "peak": 0.852
         },
@@ -6946,7 +6982,7 @@
             "mps_driver_gb": 11.19
           },
           "p": 0.0,
-          "rank": 23,
+          "rank": 24,
           "best_match": "a sabre chopping into wood with a ringing blade",
           "peak": 0.94
         }
@@ -7453,7 +7489,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.42
           },
-          "p": 0.261,
+          "p": 0.258,
           "rank": 1,
           "best_match": "static electricity crackling before a lightning strike",
           "peak": 0.79
@@ -8039,7 +8075,7 @@
             "model_load_s": 8.5,
             "mps_driver_gb": 11.2
           },
-          "p": 0.955,
+          "p": 0.946,
           "rank": 1,
           "best_match": "a herd of wild horses stampeding past",
           "peak": 0.446
@@ -8633,5 +8669,5 @@
       ]
     }
   },
-  "bytes": 2219266
+  "bytes": 2388858
 }
