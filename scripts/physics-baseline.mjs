@@ -161,7 +161,15 @@ if (MODE.includes('walk')) {
     const first = legs[0];
     const { ctx, page, errors } = await openGame(shard, `x=${first.start.x}&z=${first.start.z}&yaw=${first.start.yaw}`, { cpu: WALK_CPU, video: VIDEO });
     if (TRAILS) {
-      const paths = (await page.evaluate(() => window.__hf.TRAILS)).slice(4);
+      // a trail that ends AT a building standing over its end (the lookout trail runs to the tower's centre, where the stair
+      // cage stands under the deck) ends where the building starts: its end points under a floor ≥ 2 m up are dropped
+      const paths = await page.evaluate(() => window.__hf.TRAILS.slice(4).map((path) => {
+        const under = ([x, z]) => { const f = window.__world.registry.floorAt(x, z); return f !== undefined && f - window.__hf.heightAt(x, z) > 2; };
+        const pts = path.slice();
+        const trim = () => { const [ax, az] = pts.at(-2), [bx, bz] = pts.at(-1), n = Math.ceil(Math.hypot(bx - ax, bz - az)); let k = n; while (k > 0 && under([ax + (bx - ax) * k / n, az + (bz - az) * k / n])) k--; if (k < n) pts[pts.length - 1] = [ax + (bx - ax) * Math.max(0, k - 1) / n, az + (bz - az) * Math.max(0, k - 1) / n]; };
+        trim(); pts.reverse(); trim(); pts.reverse();
+        return pts;
+      }));
       legs.length = 0;
       paths.forEach((path, i) => {
         for (const dir of ['fwd', 'back']) {

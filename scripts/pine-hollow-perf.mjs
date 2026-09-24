@@ -32,6 +32,10 @@ const POSES = [
   { id: 'pond', x: -56, z: 95, yaw: 3.1416 },
   // layout v2's pond W shore facing E over the water (§4 as-built: the old pond pose now faces forest) — PH-L9's ruler
   { id: 'shore', x: -60, z: 106, yaw: 1.5708 },
+  // PH-B3: the mill hamlet from the S road spur's end, facing east over the lodge, trader, mill and shed
+  { id: 'hamlet', x: -118, z: -134, yaw: 1.5708 },
+  // PH-B3: the fire lookout's south catwalk (deck +11 on the ridge pad, feet at y), facing down the zipline over the Hollow
+  { id: 'lookout', x: 35.53, z: 211.14, yaw: 0.1635, y: 57.46 },
 ].filter((p) => flag('poses', '') === '' || flag('poses', '').split(',').includes(p.id));
 // --yaw=0.95: every pose looks down Pine Hollow's sunset shadows (the worst case for the shadow-aware tree cull)
 if (flag('yaw', '') !== '') for (const p of POSES) p.yaw = Number(flag('yaw', '0'));
@@ -58,7 +62,7 @@ try {
     const ready = (Date.now() - t0) / 1000;
     await sleep(SETTLE);
     for (const p of POSES) {
-      await page.evaluate((pp) => { const w = window.__world; w.player.spawn(pp.x, pp.z, pp.yaw); w.player.pitch = 0; }, p);
+      await page.evaluate((pp) => { const w = window.__world; w.player.spawn(pp.x, pp.z, pp.yaw); w.player.pitch = 0; if (pp.y !== undefined) w.player.position.y = pp.y; }, p);
       await sleep(SETTLE);
       const r = await page.evaluate((n) => new Promise((resolve) => {
         const g = window.__world.game, calls = [], tris = [], ms = [];

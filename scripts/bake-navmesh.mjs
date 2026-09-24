@@ -4,7 +4,7 @@
 // Builds the shard's walkable world in Node exactly as the game builds it — the baked terrain grid (terrain.bin, with the
 // sea cave's terrain cut) and the static builders' ColliderDescs (the ones src/main.ts / src/core/bootstrap.ts register:
 // forest trunks, path walkways, and per shard the pier / jetties / hut / lookout / wreck / shrine / trailside / bridge /
-// cove / palms / shore rocks, or the cabins and props) — triangulates it, and runs navcat's recast pipeline over it for
+// cove / palms / shore rocks, or the cabins (+ Pine Hollow's hamlet and landmarks) and props) — triangulates it, and runs navcat's recast pipeline over it for
 // each agent class in the shard's layers. Terrain under the water (the sea, the pond: `wetTest`) is left out, so it is
 // not walkable. Moving pieces (the boat, the cabin doors) and the hand-made interactable boxes are not in it: the
 // character motor still resolves every final move.
@@ -132,10 +132,17 @@ async function shardColliders(def) {
     add(new Palms(sky).build(Palms.scatterIsland(def.seed, undefined, AVOID)).colliderDescs());
   } else {
     // main.ts's `cabins` and `props` steps (the doors swing: moving pieces, not in the bake)
-    const [{ Cabins }, { Props }] = await Promise.all([src('world/Cabin.ts'), src('world/Props.ts')]);
-    const cabins = new Cabins(sky);
+    const [{ Cabins }, { Props }, { PineLandmarks, pineHamletBuildings }] = await Promise.all([src('world/Cabin.ts'), src('world/Props.ts'), src('world/PineLandmarks.ts')]);
+    const pine = def.slug === 'pine-hollow';
+    const cabins = new Cabins(sky, pine ? pineHamletBuildings() : []); // + the mill hamlet (PH-B3)
     await cabins.build();
     add(cabins.colliderDescs());
+    if (pine) {
+      // the landmarks' step (PH-B3): the fire lookout + its stair, the zipline landing, the footbridge, the hero props' hulls
+      const lm = await new PineLandmarks(sky).build(null);
+      add(lm.timberColliders);
+      add(lm.propColliders);
+    }
     const grid = forest.grid;
     const props = new Props(sky, { trees: forest.trees, nearby: (x, z, r) => grid ? grid.nearby(x, z, r) : [], onViewChange: noop });
     await props.build();
