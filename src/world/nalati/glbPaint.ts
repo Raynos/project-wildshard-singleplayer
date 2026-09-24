@@ -14,12 +14,20 @@
  * (the 512² atlas). `rot` in a placement is the yaw about +y (0 = the model's front faces +Z).
  *
  * `modelsOn(part)` is the adoption flag the POI builders read (`?models=0|1`, `?yurts=0|1`; see below).
+ *
+ * `setModelShade(on)` — the Look Lab's "Driftwood's shading for generated models" (NALATI-MERGE L3; Settings
+ * `modelShade`, src/nalati/look/lab.ts): the low-poly kit's AO bake (src/world/lowpolyKit.ts bakeAO — hemisphere rays
+ * through a voxel grid of the model's own triangles, plus the ground under it) run per VERTEX on every loaded static model,
+ * written into its vertex colours (which the atlas multiplies): the undersides, the cracks and the foot of a boulder, a
+ * balbal, a cauldron go dark in a warm umber instead of taking the painted sky's cool blue shade on a smooth, AO-less
+ * surface — the "blue plastic" of N14 — and their shade keeps its hue: the painted floor's cool lift of dark paint drops to
+ * a fifth on them (MODEL_FLOOR). Live: colours swapped in place, one uniform per material (no new program, no reload).
  */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { TIER } from '../../core/tier';
-import { painterlyMaterial } from '../painterly';
+import { painterlyMaterial, painterlyKnobs } from '../painterly';
 import type { Sky } from '../Sky';
 
 export type NalatiModelName =
@@ -101,6 +109,133 @@ export interface RawModel { geometry: THREE.BufferGeometry; map: THREE.Texture |
 const raw = new Map<string, Promise<RawModel>>();
 const ready = new Map<string, RawModel>();
 
+// ── the model shading variant (see the header) ──
+/** per loaded static model: its colours as loaded, and with the AO baked in (made the first time the variant is on) */
+const shades = new Map<THREE.BufferGeometry, { plain: Float32Array; ao: Float32Array | null }>();
+/** each model material → the model's own geometry (a builder may draw a fitted clone of it: the dressing's rocks) */
+let modelShadeOn = false;
+const modelMats = new WeakMap<THREE.Material, THREE.BufferGeometry>();
+const modelMatList = new Set<THREE.Material>();
+/**
+ * the other half of Driftwood's shading: its shade keeps the albedo's hue (hemisphere × albedo + a lift × albedo). The
+ * painterly floor (painterly.ts uPFloor) instead ADDS the cool sky tint to every dark channel — on a dark granite atlas
+ * with smooth normals that is exactly the blue plastic. The generated models take a fifth of it under the variant.
+ */
+const MODEL_FLOOR = 0.2;
+function applyFloor(mat: THREE.Material): void { const k = painterlyKnobs(mat); if (k) k.uPFloorAmt.value = modelShadeOn ? MODEL_FLOOR : 1; }
+/**
+ * the variant: bake (once per geometry) and show the AO'd colours, or put the plain ones back. `root` (the scene): the
+ * clones a builder made of a model (same vertices, other positions: fitRock) are found by their model material and
+ * baked in their own shape. Turned on before the world builds (the URL / the saved pick), the models are baked as they
+ * load, so a clone copies the baked colours and needs nothing more.
+ */
+export function setModelShade(on: boolean, root?: THREE.Object3D): void {
+  const changed = on !== modelShadeOn;
+  modelShadeOn = on;
+  root?.traverse((o) => {
+    if (!isMesh(o)) return;
+    const geo: THREE.BufferGeometry = o.geometry;
+    const mat: THREE.Material | THREE.Material[] = o.material;
+    if (shades.has(geo) || Array.isArray(mat)) return;
+    const orig = modelMats.get(mat);
+    const base = orig ? shades.get(orig) : undefined;
+    const col = geo.getAttribute('color');
+    if (!base || !(col instanceof THREE.BufferAttribute) || col.array.length !== base.plain.length) return;
+    shades.set(geo, { plain: base.plain, ao: null });
+    applyShade(geo);
+  });
+  if (changed) { for (const geo of shades.keys()) applyShade(geo); for (const m of modelMatList) applyFloor(m); }
+}
+function applyShade(geo: THREE.BufferGeometry): void {
+  const s = shades.get(geo);
+  const col = geo.getAttribute('color');
+  if (!s || !(col instanceof THREE.BufferAttribute) || !(col.array instanceof Float32Array)) return;
+  if (modelShadeOn && s.ao === null) s.ao = bakeVertexAO(geo, s.plain);
+  col.array.set(modelShadeOn && s.ao ? s.ao : s.plain);
+  col.needsUpdate = true;
+}
+
+// 14 hemisphere directions (+z up in a tangent frame; lowpolyKit's set, so the two bakes weigh alike)
+const HEMI: readonly (readonly [number, number, number])[] = (() => {
+  const out: [number, number, number][] = [];
+  for (const [cz, n] of [[0.95, 1], [0.72, 5], [0.38, 8]] as const) {
+    const sn = Math.sqrt(1 - cz * cz);
+    for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + cz * 1.7; out.push([Math.cos(a) * sn, Math.sin(a) * sn, cz]); }
+  }
+  return out;
+})();
+/** a warm umber, not the kit's violet: the painted world's shade is already cool, the crevices should read as earth */
+const AO_TINT = new THREE.Color('#5b4636');
+const AO_STRENGTH = 0.7, AO_DOWN = 0.22;
+
+/**
+ * lowpolyKit's voxel AO, per vertex for a smooth indexed mesh in its own space (the ground is the plane under its
+ * bounding box): the triangles are rasterised into an occupancy grid, each vertex marches
+ * 14 hemisphere rays from just off its surface, and the occluded fraction (+ a little for facing down) pulls its
+ * colour toward AO_TINT. ~5–40 ms per model, once.
+ */
+function bakeVertexAO(geo: THREE.BufferGeometry, plain: Float32Array): Float32Array {
+  const out = plain.slice();
+  const pos = geo.getAttribute('position'), nrm = geo.getAttribute('normal');
+  if (!geo.boundingBox) geo.computeBoundingBox();
+  const box = geo.boundingBox ?? new THREE.Box3();
+  const y0 = box.min.y;   // the ground: the model's base (0 for a GLB as loaded; a fitted clone's own bottom)
+  const ext = new THREE.Vector3(box.max.x - box.min.x, box.max.y - y0, box.max.z - box.min.z);
+  const cell = Math.max(0.03, Math.max(ext.x, ext.y, ext.z) / 64);
+  const pad = 3;
+  const ox = box.min.x - pad * cell, oy = y0 - pad * cell, oz = box.min.z - pad * cell;
+  const nx = Math.ceil(ext.x / cell) + pad * 2 + 1, ny = Math.ceil(ext.y / cell) + pad * 2 + 1, nz = Math.ceil(ext.z / cell) + pad * 2 + 1;
+  const grid = new Uint8Array(nx * ny * nz);
+  const cellOf = (x: number, y: number, z: number): number => {
+    const ix = Math.floor((x - ox) / cell), iy = Math.floor((y - oy) / cell), iz = Math.floor((z - oz) / cell);
+    return ix < 0 || iy < 0 || iz < 0 || ix >= nx || iy >= ny || iz >= nz ? -1 : (iz * ny + iy) * nx + ix;
+  };
+  const index = geo.getIndex();
+  const tri = index ? index.count / 3 : pos.count / 3;
+  const vi = (t: number, k: number): number => (index ? index.getX(t * 3 + k) : t * 3 + k);
+  for (let t = 0; t < tri; t++) {
+    const a = vi(t, 0), b = vi(t, 1), c = vi(t, 2);
+    const ax = pos.getX(a), ay = pos.getY(a), az = pos.getZ(a);
+    const bx = pos.getX(b) - ax, by = pos.getY(b) - ay, bz = pos.getZ(b) - az;
+    const cx = pos.getX(c) - ax, cy = pos.getY(c) - ay, cz = pos.getZ(c) - az;
+    const e = Math.max(Math.hypot(bx, by, bz), Math.hypot(cx, cy, cz), Math.hypot(cx - bx, cy - by, cz - bz));
+    const n = Math.min(200, Math.max(1, Math.ceil(e / (cell * 0.7))));
+    for (let u = 0; u <= n; u++) for (let v = 0; u + v <= n; v++) {
+      const s = u / n, w = v / n;
+      const k = cellOf(ax + bx * s + cx * w, ay + by * s + cy * w, az + bz * s + cz * w);
+      if (k >= 0) grid[k] = 1;
+    }
+  }
+  const solid = (x: number, y: number, z: number): boolean => {
+    if (y < y0) return true;                                  // the ground the model stands on
+    const k = cellOf(x, y, z);
+    return k >= 0 && grid[k] === 1;
+  };
+  const steps = 10, dist = cell * 10;
+  const N = new THREE.Vector3(), T = new THREE.Vector3(), B = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    N.set(nrm.getX(i), nrm.getY(i), nrm.getZ(i));
+    if (N.lengthSq() < 0.5) continue;
+    N.normalize();
+    T.set(Math.abs(N.y) < 0.9 ? 0 : 1, Math.abs(N.y) < 0.9 ? 1 : 0, 0).cross(N).normalize(); B.crossVectors(N, T);
+    const px = pos.getX(i) + N.x * cell * 1.5, py = pos.getY(i) + N.y * cell * 1.5, pz = pos.getZ(i) + N.z * cell * 1.5;
+    let occ = 0, wsum = 0;
+    for (const [hx, hy, hz] of HEMI) {
+      const dx = T.x * hx + B.x * hy + N.x * hz, dy = T.y * hx + B.y * hy + N.y * hz, dz = T.z * hx + B.z * hy + N.z * hz;
+      wsum += hz;
+      for (let st = 0; st < steps; st++) {
+        const d = (st + 0.5) * (dist / steps);
+        if (solid(px + dx * d, py + dy * d, pz + dz * d)) { occ += hz * (1 - (st / steps) * 0.5); break; }
+      }
+    }
+    const k = Math.min(1, (occ / wsum) * AO_STRENGTH + Math.max(0, -N.y) * AO_DOWN);
+    out[i * 3] = (plain[i * 3] ?? 1) * (1 - k + AO_TINT.r * k);
+    out[i * 3 + 1] = (plain[i * 3 + 1] ?? 1) * (1 - k + AO_TINT.g * k);
+    out[i * 3 + 2] = (plain[i * 3 + 2] ?? 1) * (1 - k + AO_TINT.b * k);
+  }
+  return out;
+}
+
 /** a model's float geometry + atlas (no material), loading it if needed — for code that builds its own mesh (creatures) */
 export function loadModelRaw(name: NalatiModelName): Promise<RawModel> { return loadRaw(name, 'near'); }
 /** the same, synchronously: the loaded model, or null while it is still loading (or failed) */
@@ -126,9 +261,12 @@ function loadRaw(name: NalatiModelName, lod: ModelLod): Promise<RawModel> {
       if (index) geometry.setIndex(Array.from(index.array));
       geometry.applyMatrix4(found.matrixWorld);
       if (!geometry.hasAttribute('normal')) geometry.computeVertexNormals();
-      // painterly materials always read vertex colours: the far LOD's own (its coat), else a white one (the atlas carries it)
-      if (src.hasAttribute('color')) geometry.setAttribute('color', floatAttr(src.getAttribute('color')));
-      else geometry.setAttribute('color', new THREE.BufferAttribute(new Uint8Array(geometry.getAttribute('position').count * 3).fill(255), 3, true));
+      // painterly materials always read vertex colours: the far LOD's own (its coat), else a white one (the atlas carries
+      // it). Float rgb, so the model-shading variant can swap its baked colours in place (setModelShade)
+      const nv = geometry.getAttribute('position').count;
+      const rgb = new Float32Array(nv * 3).fill(1);
+      if (src.hasAttribute('color')) { const c = src.getAttribute('color'); for (let i = 0; i < nv; i++) { rgb[i * 3] = c.getX(i); rgb[i * 3 + 1] = c.getY(i); rgb[i * 3 + 2] = c.getZ(i); } }
+      geometry.setAttribute('color', new THREE.BufferAttribute(rgb, 3));
       geometry.computeBoundingBox();
       geometry.computeBoundingSphere();
       const srcMat = found.material;
@@ -138,6 +276,8 @@ function loadRaw(name: NalatiModelName, lod: ModelLod): Promise<RawModel> {
       const box = geometry.boundingBox?.clone() ?? new THREE.Box3();
       const out = { geometry, map, box };
       ready.set(rkey, out);
+      shades.set(geometry, { plain: rgb.slice(), ao: null });
+      if (modelShadeOn) applyShade(geometry);
       return out;
     });
     raw.set(rkey, p);
@@ -153,12 +293,13 @@ export function loadNalatiModel(sky: Sky, name: NalatiModelName, look: ModelLook
   const key = `${name}|${lod}|${look.rim ?? ''}|${look.bands ?? ''}|${look.sway ?? ''}|${new THREE.Color(look.color ?? 0xffffff).getHexString()}`;
   let p = bySky.get(key);
   if (!p) {
-    p = loadRaw(name, lod).then((r) => ({
-      name,
-      geometry: r.geometry,
-      box: r.box,
-      material: painterlyMaterial(sky, { map: r.map, rim: look.rim ?? 0.35, bands: look.bands ?? 0.8, sway: look.sway ?? 0, color: look.color ?? 0xffffff }),
-    }));
+    p = loadRaw(name, lod).then((r) => {
+      const material = painterlyMaterial(sky, { map: r.map, rim: look.rim ?? 0.35, bands: look.bands ?? 0.8, sway: look.sway ?? 0, color: look.color ?? 0xffffff });
+      modelMats.set(material, r.geometry);
+      modelMatList.add(material);
+      applyFloor(material);
+      return { name, geometry: r.geometry, box: r.box, material };
+    });
     bySky.set(key, p);
   }
   return p;

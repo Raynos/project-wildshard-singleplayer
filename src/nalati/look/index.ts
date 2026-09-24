@@ -21,6 +21,8 @@ import { updateTint } from './tint';
 import { LightCheat } from './light';
 import { grassV2Uniforms, grassMood, terrainHeightTexture } from './grass';
 import { StaticBake, PHONE_STATIC_OFF_CSM } from './bake';
+import { TerrainLightBake } from './terrainLight';
+import { installLookLab } from './lab';
 import { applyCloudSeaV2 } from './cloudSea';
 import type { Forest } from '../../world/Forest';
 import { getActiveChunk } from '../../chunks/registry';
@@ -58,6 +60,9 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
   const bake = new StaticBake(game.renderer, game.scene, terrainHeightTexture());
   for (const k of ['pois', 'dressing', 'outcrops', 'crags'] as const) { const g = ctx.groups[k]; if (g) bake.add(g); }
   bake.add(ctx.forest.group);
+  // the Look Lab (lab.ts): the terrain's baked shadow / AO / bounce and the generated models' shading, each off until picked
+  const terrainLight = new TerrainLightBake(game.renderer, terrainHeightTexture());
+  installLookLab(terrainLight, game.scene);
   // phone: the realtime shadow map now holds only what moves (the creatures, the player — bake.ts), so 512² does
   if (PHONE_STATIC_OFF_CSM) {
     sky.csm.shadowMapSize = 512;
@@ -71,6 +76,7 @@ export async function wireLookV2(ctx: LookV2Ctx): Promise<void> {
     updateTint(look, w);
     cheat.apply(look); // step 4: the key swung round + lifted, the fill lower and cooler (light.ts)
     bake.update(sky.sunDir); // step 6: after the cheat, so the baked shadows fall from the key
+    terrainLight.update(sky.sunDir); // the Look Lab's terrain light: the same key, the same ~1.5° steps (nothing while off)
     u.uSunNow.value.copy(look.sunDir);
     grassV2Uniforms.uSunView.value.copy(look.sunDir); // the grass glows looking into the (painted, real) sun
     // night: the painted sky fades out above the ridge line, the rig's stars show through (it is hidden by day: no overdraw)

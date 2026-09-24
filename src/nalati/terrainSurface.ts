@@ -201,6 +201,15 @@ const FRAG_MAIN = /* glsl */`
   }
 
   ${LOOK_V2 ? 'diffuseColor.rgb *= bakedContact( vTWorld ); // look v2: the contact shade round the yurts / rocks / trunks (look/bake.ts)' : ''}
+  ${LOOK_V2 ? `// the Look Lab's terrain AO + bounce (look/terrainLight.ts; 1 / none when off): the sky's light into the ground by
+  // its sky visibility (and a painter's touch of the sun too, so a gully reads darker in the light as well), and the
+  // sunlit meadow round it bounced into the ambient (painterly.ts reads pIndirectK / pIndirectAdd)
+  {
+    float tAO = pTerrainAO( vTWorld );
+    diffuseColor.rgb *= mix( 1.0, tAO, 0.25 );
+    pIndirectK = tAO;
+    pIndirectAdd = uPSunRef * pTerrainBounce( vTWorld );
+  }` : ''}
 
   // ── snow ──
   if ( vSurf.z * ( 1.0 - ringK ) > 0.02 ) {
