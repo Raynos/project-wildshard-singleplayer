@@ -22,7 +22,7 @@ export const DEFAULT_CHUNK = 'driftwood-isle';
 export const CHUNKS: [ChunkDef, ...ChunkDef[]] = [
   DRIFTWOOD_ISLE,
   PINE_HOLLOW,
-  NALATI_GRASSLANDS, // EARLY ACCESS (docs/plans/NALATI-MERGE.md E1): playable, still being built
+  NALATI_GRASSLANDS, // EARLY ACCESS (project/archive/2026-09-24-nalati-merge.md E1): playable, still being built
 ];
 
 export function chunkSlugFromUrl(search = location.search): string {

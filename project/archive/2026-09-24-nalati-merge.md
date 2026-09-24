@@ -1,6 +1,6 @@
 # NALATI-MERGE — bring Nalati into the fold
 
-**State:** `in progress` 2026-09-24 — done: M1–M2 (+ M3 a5f4821), F1–F11, R1–R4, H1–H4, P1–P4, Q1–Q5, L1–L4, D1–D2, E1. The user's picks still open (all switchable in pause ▸ Settings ▸ Debug ▸ Look lab, he plays first): the three look variants, Yurts, Camp people. Building: A1–A4 (the Nalati sound set, music slot, ambience, the Kazakh score — agent; the user picks takes on a listening page). Last: M3 (a final main merge) + E2 (the landing: the user merges the branch himself).
+**State:** `archived` 2026-09-24 (finished 2026-09-24) — every row built on the nalati-grasslands branch (never pushed; the user merges it himself). Leftovers are open asks: N10 (the merge onto main — the user), N11 (a real-iPhone reading), N20 (the Look Lab picks after playing: terrain shadows, AO + bounce, model shading, yurts, camp people), N21 (the score's takes + the kobyz — https://claude.ai/artifact/EQdaQCVdG9Kjnwvs4qaQra), N22 (the parked defaults to confirm), N13 / N14 (the older riding / look polish leftovers).
 
 The ask: N16 ("main has moved a lot … bring Nalati into the fold … every new thing made for Wildshard has to be put into
 Nalati"), with N15 (map text), N17 (riding), N18 (the bow), N19 (the horizon seam). The decisions, verbatim, are in
@@ -29,7 +29,7 @@ and [review-experience.md](../design/nalati/merge/review-experience.md) (HUD, re
 |---|---|---|
 | M1 | Merge main (70c28ac) — 25 files / ~65 hunks; DayNight vs DayClock, Wind vs wind (case clash → steppeWind.ts), Sky, Sword (strikeMove, main's sweep), touch HUD (main's + Nalati extras), map (main's; N15), achievements (event rows), boot, audio | ✅ 1a0f1ef |
 | M2 | Merge main (4539c39: E96–E98) + the Minimap paint fix | ✅ deddcb9, 25e7cd8 |
-| M3 | Keep merging main as it moves; the last merge right before the user lands the branch | ongoing (main session) — a5f4821 (main 3b4150c, clean, gates + boot 3/3) |
+| M3 | Keep merging main as it moves; the last merge right before the user lands the branch | ✅ a5f4821 (main 3b4150c) · 87739fb (the last: main's E100 / E103, docs + art only) |
 
 ## F — merge breakage and small fixes (no pick needed)
 
@@ -115,7 +115,7 @@ and [review-experience.md](../design/nalati/merge/review-experience.md) (HUD, re
 | # | row | state |
 |---|---|---|
 | E1 | Nalati in the shard picker with an **EARLY ACCESS** tag | ✅ b642a95 (ChunkDef.earlyAccess, a cyan EARLY ACCESS banner; progress/nalati-merge/e1/) |
-| E2 | The last main merge, the gates, a boot check on all shards, JPEG art, then the user merges the branch himself | open (last) |
+| E2 | The last main merge, the gates, a boot check on all shards, JPEG art, then the user merges the branch himself | ✅ prepared: the last main merge (87739fb), the four gates + 398 tests on a clean export of HEAD, the boot check (3 shards, desktop + touch, 0 errors), the 91 Nalati mockup PNGs as JPEG (c00b885, 239 → 53 MB). The merge itself is the user's → N10 |
 
 ## Out of scope (decided)
 

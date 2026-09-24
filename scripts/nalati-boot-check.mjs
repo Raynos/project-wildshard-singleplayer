@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // nalati-boot-check.mjs — boot each shard headless (muted), wait for the world, report page errors + a screenshot each.
-// For the Nalati ⇄ main merges (docs/plans/NALATI-MERGE.md): every shard must still boot clean after a merge.
+// For the Nalati ⇄ main merges (project/archive/2026-09-24-nalati-merge.md): every shard must still boot clean after a merge.
 //
 //   node scripts/nalati-boot-check.mjs [--url=http://127.0.0.1:5188] [--out=<dir>] [--shards=nalati-grasslands,driftwood-isle,pine-hollow] [--touch]
 import { mkdirSync, writeFileSync } from 'node:fs';
