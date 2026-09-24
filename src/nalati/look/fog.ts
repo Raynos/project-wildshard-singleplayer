@@ -41,15 +41,26 @@ export const fogLut = ((): THREE.DataTexture => {
 
 /** x = density (1/m), y = clear distance (m), z = the valley floor's height (m, the height thinning's zero), w = the day's aerial density (the rig's fogDist above it thickens the v2 fog) */
 export const fogV2 = { value: new THREE.Vector4(0.0032, 30, -10, 0.002) };
+/**
+ * N19 — the edge haze (the user: "make this far background transition super smooth and invisible"; the pick: blend the
+ * painting). Where the slab ends the 3D land used to stop crisp, ~15 % fogged at 80 m, against the painting's far hills.
+ * Now the ground within the last metres before the slab edge (and every ring / cloud past it) thickens into the same
+ * panorama haze the dome's painted land dissolves into (sky.ts `uLandHaze`), so both sides of the seam are the one haze.
+ * x = strength, y = where it starts (m from the slab centre, the larger of |x| |z|), z = where it is full, w = the view
+ * distance it needs (ground near you stays clear: a player by the edge still sees his feet). `?horizonblend=0` = off.
+ */
+export const HORIZON_BLEND = new URLSearchParams(location.search).get('horizonblend') !== '0';
+export const fogEdgeV2 = { value: new THREE.Vector4(HORIZON_BLEND ? 0.95 : 0, 170, 256, 20) };
 
 let installed = false;
 export function installLookV2Fog(): void {
   if (installed) return;
   installed = true;
-  Object.assign(paintedAir, { fogLutV2: { value: fogLut }, fogV2 }, tintUniforms);
+  Object.assign(paintedAir, { fogLutV2: { value: fogLut }, fogV2, fogEdgeV2 }, tintUniforms);
   THREE.ShaderChunk.fog_pars_fragment = THREE.ShaderChunk.fog_pars_fragment.replace('#endif', /* glsl */`
       uniform sampler2D fogLutV2;
       uniform vec4 fogV2;
+      uniform vec4 fogEdgeV2;
       ${V2_TINT_GLSL}
     #endif`);
   THREE.ShaderChunk.fog_fragment = /* glsl */`
@@ -67,6 +78,10 @@ export function installLookV2Fog(): void {
         float ht = fogHeightFalloff * dy;
         float integ = abs( ht ) > 1e-3 ? ( 1.0 - exp( - ht ) ) / ht : 1.0;
         float f = clamp( 1.0 - exp( - aer - fogHeightDensity * camF * integ * rayLen ), 0.0, 1.0 );
+        // N19: the slab's edge dissolves into the haze the painting's land fades to (only seen from a distance)
+        float edgeD = max( abs( vFogWorldPos.x ), abs( vFogWorldPos.z ) );
+        float fe = fogEdgeV2.x * smoothstep( fogEdgeV2.y, fogEdgeV2.z, edgeD ) * smoothstep( fogEdgeV2.w, fogEdgeV2.w * 3.0, rayLen );
+        f = 1.0 - ( 1.0 - f ) * ( 1.0 - fe );
         vec3 haze = v2Regrade( texture2D( fogLutV2, vec2( atan( - viewDir.x, viewDir.z ) * 0.15915494, 0.5 ) ).rgb );
         gl_FragColor.rgb = mix( gl_FragColor.rgb, haze, f );
       }

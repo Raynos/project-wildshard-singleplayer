@@ -63,12 +63,14 @@ try {
   const errors = []; page.on('pageerror', (e) => errors.push(e.message.slice(0, 160)));
   await page.goto(`${URL_BASE}/?chunk=nalati-grasslands&mute=1&nolock=1&skipintro=1&weather=clear&clock=0&perf=0&tier=${TIER}${EXTRA ? `&${EXTRA}` : ''}`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => Boolean(window.__world && window.__weather), undefined, { timeout: 300000, polling: 1000 });
-  await page.addStyleTag({ content: '#hud,#hud *{display:none!important}' });
+  await page.addStyleTag({ content: 'body *{visibility:hidden!important} canvas{visibility:visible!important}' }); // main's HUD is not all under #hud any more: only the canvas shows
   await page.evaluate(() => {
     window.__weather.clock.paused = true;
     const w = window.__world, cam = w.game.camera;
     window.__cv = null;
-    w.game.onUpdate(() => {
+    // the late phase (after Player.update, which poses the camera since the physics merge); onUpdate on older builds
+    const hook = typeof w.game.onLate === 'function' ? w.game.onLate.bind(w.game) : w.game.onUpdate.bind(w.game);
+    hook(() => {
       const v = window.__cv; if (!v) return;
       cam.position.set(v.cam[0], v.cam[1], v.cam[2]); cam.lookAt(v.at[0], v.at[1], v.at[2]);
       if (Math.abs(cam.fov - v.fov) > 0.01) { cam.fov = v.fov; cam.far = Math.max(cam.far, 6000); cam.updateProjectionMatrix(); }

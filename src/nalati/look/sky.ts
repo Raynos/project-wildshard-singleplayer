@@ -24,6 +24,7 @@ import { nalatiUrl } from '../../world/nalatiTextures';
 import { V2_GRADE_GLSL, gradeUniforms } from './grade';
 import { V2_TINT_GLSL, tintUniforms } from './tint';
 import { PANO_HORIZON_V, PANO_DEG_PER_V, PANO_RIDGE_V } from './panoramaData';
+import { HORIZON_BLEND } from './fog';
 
 /** inside the camera's far plane (2600) with room; the vertex shader puts it at the far plane anyway */
 const R = 2300;
@@ -52,6 +53,7 @@ const FRAG = /* glsl */`
   uniform vec3 uSunNow;
   uniform vec3 uSunPainted;
   uniform float uNight;
+  uniform float uLandHaze;
   varying vec3 vDir;
   void main() {
     vec3 d = normalize(vDir);
@@ -75,6 +77,19 @@ const FRAG = /* glsl */`
     float elBot = -uHorizonV / uVPerDeg + uElShift;
     vec3 fogC = texture2D(tFogLut, vec2(az, 0.5)).rgb;
     c = mix(c, fogC, smoothstep(elBot + 7.0, elBot + 0.5, el));
+    // N19 (the user's pick: blend the painting): painted land behind a near 3D crest read as "one paint ends and another
+    // starts" — crisp, saturated painted detail right over the 3D skyline. Aerial perspective instead: under the ridge
+    // line the painting softens (a blurrier mip of itself) and drifts toward the sky colour just above that ridge, most at
+    // its foot; below the horizon it meets the 3D slab's edge haze (fog.ts fogEdgeV2) in the fog LUT's colour.
+    float ridgeV = texture2D(tRidge, vec2(az, 0.5)).r;
+    float ridgeEl = (ridgeV - uHorizonV) / uVPerDeg + uElShift;
+    float land = uLandHaze * (1.0 - smoothstep(ridgeEl - 0.5, ridgeEl + 1.5, el));
+    float foot = smoothstep(ridgeEl + 1.0, -1.5, el);
+    vec3 soft = v2Ungrade(textureLod(tPano, vec2(u, clamp(v, 0.002, 0.998)), 3.5).rgb);
+    c = mix(c, soft, land * 0.7 * foot);
+    vec3 skyH = v2Ungrade(textureLod(tPano, vec2(u, clamp(ridgeV + 0.035, 0.002, 0.998)), 6.0).rgb);
+    c = mix(c, skyH, land * (0.15 + 0.38 * foot));
+    c = mix(c, fogC, land * 0.9 * smoothstep(0.5, -3.0, el));
     // the painted sun dims as the clock moves the real one away from it
     float away = smoothstep(0.9986, 0.975, dot(uSunNow, uSunPainted));
     float disc = smoothstep(0.975, 0.997, dot(d, uSunPainted));
@@ -100,14 +115,14 @@ export class SkyDomeV2 {
   readonly mesh: THREE.Mesh;
   readonly uniforms: {
     tPano: { value: THREE.Texture }; tRidge: { value: THREE.Texture }; tFogLut: { value: THREE.Texture };
-    uHorizonV: { value: number }; uVPerDeg: { value: number }; uElShift: { value: number };
+    uHorizonV: { value: number }; uVPerDeg: { value: number }; uElShift: { value: number }; uLandHaze: { value: number };
     uZenith: { value: THREE.Color }; uSunNow: { value: THREE.Vector3 }; uSunPainted: { value: THREE.Vector3 }; uNight: { value: number };
   };
 
   private constructor(tex: THREE.Texture, fogLut: THREE.Texture, zenith: THREE.Color) {
     this.uniforms = {
       tPano: { value: tex }, tRidge: { value: ridgeTexture() }, tFogLut: { value: fogLut },
-      uHorizonV: { value: PANO_HORIZON_V }, uVPerDeg: { value: 1 / PANO_DEG_PER_V }, uElShift: { value: 0 },
+      uHorizonV: { value: PANO_HORIZON_V }, uVPerDeg: { value: 1 / PANO_DEG_PER_V }, uElShift: { value: 0 }, uLandHaze: { value: HORIZON_BLEND ? 1 : 0 },
       uZenith: { value: zenith }, uSunNow: { value: PAINTED_SUN.clone() }, uSunPainted: { value: PAINTED_SUN.clone() }, uNight: { value: 0 },
     };
     const mat = new THREE.ShaderMaterial({

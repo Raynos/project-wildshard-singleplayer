@@ -13,7 +13,7 @@
 import * as THREE from 'three';
 import { V2_GRADE_GLSL, gradeUniforms } from './grade';
 import { V2_TINT_GLSL, tintUniforms } from './tint';
-import { fogLut } from './fog';
+import { fogLut, HORIZON_BLEND } from './fog';
 
 /** the deck's height (m, world): under the valley floor (−10) and well over the slab's floor (−100) */
 export const CLOUD_SEA_Y = -68;
@@ -25,7 +25,7 @@ export function applyCloudSeaV2(mesh: THREE.Object3D, sunView: { value: THREE.Ve
   const uTime = old instanceof THREE.ShaderMaterial ? (old.uniforms['uTime'] as { value: number } | undefined) : undefined;
   if (!tNoise || !uTime) return;
   const mat = new THREE.ShaderMaterial({
-    uniforms: { tNoise, uTime, tFogLut: { value: fogLut }, uSunView: sunView, ...gradeUniforms, ...tintUniforms },
+    uniforms: { tNoise, uTime, tFogLut: { value: fogLut }, uSunView: sunView, uEdgeHaze: { value: HORIZON_BLEND ? 1 : 0 }, ...gradeUniforms, ...tintUniforms },
     transparent: true, depthWrite: false,
     vertexShader: /* glsl */`
       varying vec3 vW;
@@ -33,7 +33,7 @@ export function applyCloudSeaV2(mesh: THREE.Object3D, sunView: { value: THREE.Ve
     fragmentShader: /* glsl */`
       ${V2_GRADE_GLSL}
       ${V2_TINT_GLSL}
-      uniform sampler2D tNoise; uniform float uTime; uniform sampler2D tFogLut; uniform vec3 uSunView;
+      uniform sampler2D tNoise; uniform float uTime; uniform sampler2D tFogLut; uniform vec3 uSunView; uniform float uEdgeHaze;
       varying vec3 vW;
       float h12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * .1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
       float vn(vec2 p) { vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3. - 2. * f);
@@ -64,7 +64,9 @@ export function applyCloudSeaV2(mesh: THREE.Object3D, sunView: { value: THREE.Ve
         c = mix(shade * 0.7, c, 0.25 + 0.75 * crown);
         c = v2Ungrade(c);
         // far off the deck melts into the painted haze, then thins so the far ranges stand over it
-        c = mix(c, haze, smoothstep(300.0, 2600.0, dist) * 0.85);
+        // N19 (the user's pick: blend): the deck sits mostly in the haze from the slab's lip out, so the slab edge's haze
+        // (fog.ts fogEdgeV2), the deck and the painting's hazed land (sky.ts uLandHaze) read as one soft band
+        c = mix(c, haze, max(smoothstep(300.0, 2600.0, dist) * 0.85, uEdgeHaze * (0.76 + 0.2 * smoothstep(80.0, 1400.0, dist))));
         c = v2Regrade(c);
         float alpha = 1.0 - smoothstep(2800.0, 5200.0, dist);
         gl_FragColor = vec4(c, alpha);
