@@ -32,7 +32,7 @@ const POSES = [
   { id: 'pond', x: -56, z: 95, yaw: 3.1416 },
 ].filter((p) => flag('poses', '') === '' || flag('poses', '').split(',').includes(p.id));
 
-const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
+const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 const rows = [];
 try {
@@ -50,7 +50,7 @@ try {
     const q = ['chunk=pine-hollow', 'mute=1', 'skipintro=1', 'nolock=1', 'sw=0', `tier=${tier}`, tier === 'phone' ? 'touch' : '', `x=${p0.x}`, `z=${p0.z}`, `yaw=${p0.yaw}`, EXTRA].filter(Boolean).join('&');
     const t0 = Date.now();
     await page.goto(`${URL_BASE}/?${q}`, { waitUntil: 'domcontentloaded' });
-    await page.waitForFunction(() => Boolean(window.__world && window.__world.game), undefined, { timeout: 300000, polling: 500 });
+    await page.waitForFunction(() => Boolean(window.__world?.game), undefined, { timeout: 300000, polling: 500 });
     const ready = (Date.now() - t0) / 1000;
     await sleep(SETTLE);
     for (const p of POSES) {
@@ -66,7 +66,7 @@ try {
           const med = (a) => { const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)] ?? 0; };
           const pct = (a, f) => { const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(s.length * f))] ?? 0; };
           const info = g.renderer.info;
-          resolve({ calls: med(calls), tris: med(tris), msP50: pct(ms.slice(1), 0.5), msP95: pct(ms.slice(1), 0.95), programs: info.programs ? info.programs.length : -1, forest: window.__world.forest.path });
+          resolve({ calls: med(calls), tris: med(tris), msP50: pct(ms.slice(1), 0.5), msP95: pct(ms.slice(1), 0.95), programs: info.programs?.length ?? -1, forest: window.__world.forest.path });
         };
         requestAnimationFrame(tick);
       }), FRAMES);

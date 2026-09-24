@@ -40,7 +40,7 @@ const anchors = DEF.anchors.filter((a) => only.length === 0 || only.includes(a.i
 mkdirSync(OUT, { recursive: true }); mkdirSync(FRAMES, { recursive: true });
 
 const SHOTS = ['fp-front', 'fp-left', 'fp-right', 'fp-back', 'top', 'diag-front', 'diag-left', 'diag-right', 'diag-back'];
-const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
+const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 
 /** the nine cameras of one anchor, from P, faceTo and the ground height at P */
 function camerasFor(a, groundY) {
@@ -145,7 +145,7 @@ try {
     const rows = (shots.get(a.id) ?? []).sort((x, y) => x.n - y.n);
     const cells = rows.map((r) => ({ label: `${r.n} ${r.id} · ${r.calls} calls · ${(r.tris / 1e6).toFixed(2)} M`, src: `data:image/jpeg;base64,${readFileSync(r.file).toString('base64')}` }));
     const b64 = await page.evaluate(async (args) => {
-      const load = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+      const load = (src) => new Promise((resolve, reject) => { const i = new Image(); i.onload = () => resolve(i); i.onerror = reject; i.src = src; });
       const CW = 640, CH = 560, G = 6, TOPBAR = 26;
       const c = document.createElement('canvas'); c.width = CW * 3 + G * 4; c.height = CH * 3 + G * 4 + TOPBAR;
       const g = c.getContext('2d');
@@ -163,7 +163,7 @@ try {
       }
       for (let q = 0.86; q >= 0.4; q -= 0.04) { const u = c.toDataURL('image/jpeg', q); if (u.length * 0.75 < 490 * 1024) return u.split(',')[1]; }
       return c.toDataURL('image/jpeg', 0.35).split(',')[1];
-    }, { cells, title: `Pine Hollow · ${a.name} · P (${a.P.x}, ${a.P.z}) · ${TAG || 'baseline'} · FP phone 390×844 · god desktop 1600×900` });
+    }, { cells, title: `Pine Hollow · ${a.name} · P (${a.P.x}, ${a.P.z}) · ${TAG === '' ? 'baseline' : TAG} · FP phone 390×844 · god desktop 1600×900` });
     const out = resolvePath(OUT, `${TAG ? `${TAG}-` : ''}${a.id}-sheet.jpg`);
     writeFileSync(out, Buffer.from(b64, 'base64'));
     console.log(`sheet: ${relative(ROOT, out)}`);
