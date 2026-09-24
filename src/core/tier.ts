@@ -23,7 +23,8 @@ export const TIER_TABLE = {
     maxTexture: 1024, layerSize: 512, dpr: 2, ao: false, // DPR 2 + SMAA on (E70: 1.5 was a ~2× upscale on a 3× iPhone — "really bad and blurry"; 1.0 was already unacceptable); Settings ▸ Render scale overrides (Native = the screen's 3×)
     // shadows: one cascade to 80 m, 1024² — the 2-cascade rig re-drew the whole world twice (9.8 M tris)
     cascades: 1, shadowMapSize: 1024, shadowFar: 80, shadowMargin: 60, softShadows: false,
-    undergrowthShadows: false, animalShadowDist: 30, animalHideDist: 150, furShells: false,
+    // animals shadow as far as the cascade reaches (E90: at 30 m a boar's shadow switched on in plain view)
+    undergrowthShadows: false, animalShadowDist: 80, animalHideDist: 150, furShells: false,
     // animal draws (Animal.setDrawLod): fur / hard / eye within animalEyeDist, eyes in the hard material to animalOneDrawDist,
     // then the whole body in the fur material — 3 → 2 → 1 draws per animal
     animalEyeDist: 45, animalOneDrawDist: 100,

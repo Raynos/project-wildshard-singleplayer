@@ -39,10 +39,23 @@ const BASE = '/assets/models/driftwood-blender/';
 const CT = TIER === 'phone' ? 6 : 3, VT = TIER === 'phone' ? 8 : 4;
 /** the phone's share of the small ground cover (the palms, rocks and logs always build) */
 const PHONE_COVER = 0.7;
-/** past this (m, camera to the tile's rect) a caster tile draws its far copy / a cover tile is not drawn */
 /** how much of the terrain's baked AO reaches the direct sun (0 = physically only the fill) */
 const AO_DIRECT = 0.45;
-const LOD_D = TIER === 'phone' ? 24 : 110, COVER_D = TIER === 'phone' ? 32 : 150;
+/**
+ * Past this (m, camera to the tile's rect) a caster tile draws its far copy / a cover tile is not drawn. Nothing swaps
+ * or blinks where you can see it (E90): the palms keep their full model to 110 m on the phone too (at 24 m whole tiles
+ * of palms swapped to the 227-tri copy, and — the far copies casting none — their shadows vanished with them), and
+ * every far copy casts, so no shadow comes or goes at the swap (a low sun throws a palm's shadow 50 m and more).
+ * Measured on the phone tier, four cove poses (with tier.ts's animal shadows to 80 m): +176–274 k triangles (+18–31 %),
+ * +25–30 draws over the 24 m swap.
+ */
+const LOD_D = 110, COVER_D = TIER === 'phone' ? 32 : 150;
+/**
+ * Ground cover rises out of the ground over [COVER_RISE, COVER_GONE] m (camera to each vertex — a plant is ~1 m across,
+ * so it moves as one) instead of its tile blinking on at COVER_D: sunk COVER_SINK m, it is under the terrain before its
+ * tile switches off. The same grow-in as GroundCover's (FADE_R0 / FADE_R1).
+ */
+const COVER_RISE = COVER_D - 10, COVER_GONE = COVER_D - 1.5, COVER_SINK = 3;
 
 interface Tile { x0: number; x1: number; z0: number; z1: number; near: THREE.Mesh; far: THREE.Mesh | null; cover: boolean }
 
@@ -165,16 +178,23 @@ export class BlenderIsland {
     };
     terrainMat.customProgramCacheKey = () => 'island-terrain';
     ctx.sky.setupMaterial(terrainMat);
-    const propsMat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
-    propsMat.onBeforeCompile = (s) => {
-      attachFogUniforms(s);
-      // the colour's alpha is the prototype's Cycles AO: all of the fill, a little of the sun (the crown's inner fronds)
-      s.fragmentShader = s.fragmentShader.replace('#include <aomap_fragment>', `#include <aomap_fragment>
+    const makePropsMat = (cover: boolean) => {
+      const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
+      mat.onBeforeCompile = (s) => {
+        attachFogUniforms(s);
+        // the colour's alpha is the prototype's Cycles AO: all of the fill, a little of the sun (the crown's inner fronds)
+        s.fragmentShader = s.fragmentShader.replace('#include <aomap_fragment>', `#include <aomap_fragment>
 	reflectedLight.indirectDiffuse *= vColor.a;
 	reflectedLight.directDiffuse *= mix( 1.0, vColor.a, 0.35 );`);
+        // the cover rises out of the ground as you near it (the tiles are merged in world space: position is world)
+        if (cover) s.vertexShader = s.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+	transformed.y -= smoothstep( ${COVER_RISE.toFixed(1)}, ${COVER_GONE.toFixed(1)}, distance( transformed.xz, cameraPosition.xz ) ) * ${COVER_SINK.toFixed(1)};`);
+      };
+      mat.customProgramCacheKey = () => (cover ? 'island-cover' : 'island-props');
+      ctx.sky.setupMaterial(mat);
+      return mat;
     };
-    propsMat.customProgramCacheKey = () => 'island-props';
-    ctx.sky.setupMaterial(propsMat);
+    const propsMat = makePropsMat(false), coverMat = makePropsMat(true);
 
     // ── terrain tiles ──
     gltf.scene.updateMatrixWorld(true);
@@ -271,8 +291,8 @@ export class BlenderIsland {
       const w = (area.x1 - area.x0) / n, d = (area.z1 - area.z0) / n, tx = k % n, tz = Math.floor(k / n);
       return { x0: area.x0 + tx * w, x1: area.x0 + (tx + 1) * w, z0: area.z0 + tz * d, z1: area.z0 + (tz + 1) * d };
     };
-    const add = (geo: THREE.BufferGeometry, name: string, cast: boolean) => {
-      const mesh = new THREE.Mesh(geo, propsMat);
+    const add = (geo: THREE.BufferGeometry, name: string, cast: boolean, mat = propsMat) => {
+      const mesh = new THREE.Mesh(geo, mat);
       mesh.name = name; mesh.castShadow = cast; mesh.receiveShadow = true;
       this.group.add(mesh);
       return mesh;
@@ -280,13 +300,13 @@ export class BlenderIsland {
     for (const [k, items] of casters.entries()) {
       const hi = merge(items, false), lo = merge(items, true);
       if (!hi || !lo) continue;
-      this.tiles.push({ ...rect(k, CT), near: add(hi, `island-casters-${k}`, true), far: add(lo, `island-casters-${k}-far`, !phone), cover: false }); // the phone's 80 m cascade: far palms cast none
+      this.tiles.push({ ...rect(k, CT), near: add(hi, `island-casters-${k}`, true), far: add(lo, `island-casters-${k}-far`, true), cover: false });
       this.stats.propTris += (hi.getIndex()?.count ?? 0) / 3;
     }
     for (const [k, items] of covers.entries()) {
       const g = merge(items, false);
       if (!g) continue;
-      this.tiles.push({ ...rect(k, VT), near: add(g, `island-cover-${k}`, false), far: null, cover: true });
+      this.tiles.push({ ...rect(k, VT), near: add(g, `island-cover-${k}`, false, coverMat), far: null, cover: true });
       this.stats.propTris += (g.getIndex()?.count ?? 0) / 3;
     }
     this.stats.placements = used;
