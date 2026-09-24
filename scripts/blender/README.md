@@ -1,12 +1,26 @@
 # The Blender island (DRIFTWOOD-REMASTER X2, E52)
 
-`pnpm blender:island [--quick]` rebuilds Driftwood's spawn cove in Blender, headless, and writes
-`public/assets/models/driftwood-blender/`. In the game, `?island=blender` (or Settings ▸ Graphics ▸ Island) loads it in
-place of the procedural cove; `?island=procedural` is the default TypeScript island.
+`pnpm blender:island [--chunk <slug>] [--quick] [--export-only]` rebuilds a shard's area in Blender, headless, and
+writes `public/assets/models/<slug>-blender/`. `--chunk` defaults to `driftwood-isle` (Driftwood's spawn cove). In the
+game, `?island=blender` (or Settings ▸ Graphics ▸ Island) loads Driftwood's in place of the procedural cove;
+`?island=procedural` is the default TypeScript island.
+
+**Per shard (PINE-HOLLOW-REMASTER PH-0.3).** Three things name a shard:
+- its area: `src/world/blenderArea.ts`, `blenderAreaFor(slug)`. Driftwood's is also the `area` export that
+  BlenderIsland.ts clips at.
+- its half of the export: `scripts/blender/shards/<slug>.mjs`. `groundColor(ctx)` gives the area grid's colour;
+  `layout(ctx)` gives scene.json's shard keys, plus bake occluders through `ctx.addObject`.
+- its Blender builder in `run.sh` (`driftwood-isle` → `build_island.py`). A shard without one stops after the export.
+
+Pine Hollow has an area (provisional: the Hollow, until board B1) and an exporter. `area.bin` holds the splat-weighted
+PBR ground albedo, `splat.bin` the real layer weights, and `scene.json` every tree, the cabin sites, the pond and the
+trails. Its builder is wave 2 (PH-U17), so `pnpm blender:island --chunk pine-hollow` exports to
+`~/.cache/wildshard-blender/pine-hollow/` and writes nothing to `public/`. Every export reads the shard's baked grid,
+`public/assets/baked/<slug>/terrain.bin`; the cache is per shard, `~/.cache/wildshard-blender/<slug>/`.
 
 | Step | File | What |
 |---|---|---|
-| 1 | `export-scene.mjs` | Runs the game's own code in Node: the area's heights from the baked grid (the surface `heightAt` walks), the game's ground colour (`lowPolyGroundColor`), slope, trail distance; the whole chunk's coarse heights; the palms / boulders / bushes / trailside specs; the pier, hut and trailside meshes as triangle soup. → `~/.cache/wildshard-blender/` |
+| 1 | `export-scene.mjs` + `shards/driftwood-isle.mjs` | Runs the game's own code in Node: the area's heights from the baked grid (the surface `heightAt` walks), the game's ground colour (`lowPolyGroundColor`), slope, trail distance; the whole chunk's coarse heights; the palms / boulders / bushes / trailside specs; the pier, hut and trailside meshes as triangle soup. → `~/.cache/wildshard-blender/driftwood-isle/` |
 | 2 | `build_island.py` + `assets.py` | Blender 5.2, Cycles on the Metal GPU. Terrain on a grid twice the game's (edges on the game's grid lines, interior jittered for natural facets), ~60 prototypes from code (palms, crag slabs, boulders, ferns, hibiscus, bushes, flowers, grass, beach grass, shells, starfish, pebbles, driftwood), ~13 k placements by height / slope / path rules. Bakes, exports `island.glb` (no materials, no normals), `placements.bin`, `island.json`. |
 | 3 | `run.sh` | meshopt (`gltf-transform meshopt`), lightmaps to WebP (desktop 2048 / 1024, phone half), copy into `public/`. |
 

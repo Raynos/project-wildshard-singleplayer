@@ -27,14 +27,14 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { attachFogUniforms } from './Atmosphere';
-import { area, inArea, CELL } from './blenderArea';
+import { area, inArea, CELL, blenderModelsBase } from './blenderArea';
 import { CHUNK_HALF, TERRAIN_RES } from '../core/config';
 import { TIER } from '../core/tier';
 import type { Sky } from './Sky';
 import type { Collider } from '../player/Player';
 import type { PalmSpec } from './Palms';
 
-const BASE = '/assets/models/driftwood-blender/';
+const BASE = blenderModelsBase('driftwood-isle'); // Driftwood's build: its palms / toon / sea are this file's own
 /** tiles per side: the casters (palms, rocks, logs; near + far copies) and the ground cover */
 const CT = TIER === 'phone' ? 6 : 3, VT = TIER === 'phone' ? 8 : 4;
 /** the phone's share of the small ground cover (the palms, rocks and logs always build) */

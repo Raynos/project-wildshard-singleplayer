@@ -1,20 +1,43 @@
 #!/usr/bin/env bash
-# run.sh — the Blender island pipeline, end to end (DRIFTWOOD-REMASTER X2, E52).  `pnpm blender:island [--quick]`
+# run.sh — the Blender island pipeline, end to end (DRIFTWOOD-REMASTER X2, E52; per shard since PH-0.3).
+#   pnpm blender:island [--chunk <slug>] [--quick] [--export-only]      (--chunk defaults to driftwood-isle)
 #
-#   1. scripts/blender/export-scene.mjs   the game's heights / colours / layout → ~/.cache/wildshard-blender
-#   2. scripts/blender/build_island.py    Blender (headless, Cycles on the Metal GPU): model, scatter, bake GI + AO, export
+#   1. scripts/blender/export-scene.mjs   the game's heights / colours / layout → ~/.cache/wildshard-blender/<slug>
+#                                         (the shard's half: scripts/blender/shards/<slug>.mjs; its area: src/world/blenderArea.ts)
+#   2. the shard's Blender builder        headless, Cycles on the Metal GPU: model, scatter, bake GI + AO, export
+#                                         (driftwood-isle: build_island.py; a shard without one stops after step 1)
 #   3. compress                           meshopt (gltf-transform), lightmaps → WebP (desktop 2048 / phone 1024)
-#   4. copy into public/assets/models/driftwood-blender/ (loaded by src/world/BlenderIsland.ts under ?island=blender)
+#   4. copy into public/assets/models/<slug>-blender/ (Driftwood's is loaded by src/world/BlenderIsland.ts under ?island=blender)
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
-CACHE="${BLENDER_CACHE:-$HOME/.cache/wildshard-blender}"
+SLUG=driftwood-isle
+EXPORT_ONLY=0
+PASS=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --chunk) SLUG="${2:?--chunk needs a shard slug}"; shift 2 ;;
+    --chunk=*) SLUG="${1#--chunk=}"; shift ;;
+    --export-only) EXPORT_ONLY=1; shift ;;
+    *) PASS+=("$1"); shift ;;
+  esac
+done
+case "$SLUG" in
+  driftwood-isle) BUILDER=scripts/blender/build_island.py ;;
+  *) BUILDER="" ;;  # pine-hollow: the Blender build is wave 2 (PINE-HOLLOW-REMASTER PH-U17)
+esac
+CACHE="${BLENDER_CACHE:-$HOME/.cache/wildshard-blender}/$SLUG"
 BUILD="$CACHE/build"
-DEST=public/assets/models/driftwood-blender
+DEST="public/assets/models/$SLUG-blender"
 BLENDER="${BLENDER:-$(command -v blender || echo /opt/homebrew/bin/blender)}"
-mkdir -p "$CACHE" "$BUILD" "$DEST"
+mkdir -p "$CACHE" "$BUILD"
 
-node --experimental-transform-types --no-warnings --import ./scripts/bake-loader.mjs scripts/blender/export-scene.mjs "$CACHE"
-"$BLENDER" -b --factory-startup -P scripts/blender/build_island.py -- "$CACHE" "$BUILD" "$@" 2>&1 | grep -E '^\[island|Error|Traceback|  File|Exception' || true
+node --experimental-transform-types --no-warnings --import ./scripts/bake-loader.mjs scripts/blender/export-scene.mjs --chunk "$SLUG" "$CACHE"
+if [ "$EXPORT_ONLY" = 1 ] || [ -z "$BUILDER" ]; then
+  [ -z "$BUILDER" ] && echo "run.sh: no Blender builder for $SLUG yet — exported $CACHE only (nothing written to $DEST)"
+  exit 0
+fi
+mkdir -p "$DEST"
+"$BLENDER" -b --factory-startup -P "$BUILDER" -- "$CACHE" "$BUILD" ${PASS[@]+"${PASS[@]}"} 2>&1 | grep -E '^\[island|Error|Traceback|  File|Exception' || true
 test -s "$BUILD/island.glb" || { echo "run.sh: Blender produced no island.glb" >&2; exit 1; }
 
 # meshopt: quantised + filtered vertex streams (three's GLTFLoader decodes it with MeshoptDecoder)
