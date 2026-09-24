@@ -243,3 +243,10 @@ reference (no reference for the chalk). **Beasts + elites** (16, square, the ani
 vignettes, the POIs of layout v2): `place-<poi id>`. **Chalk** (5, white on black, the trophy wall's outlines):
 `chalk-stag`, `chalk-elk`, `chalk-boar`, `chalk-bear`, `chalk-king`. Re-rolled: `pale-elk` (came back cut out on black)
 and `chalk-king` (filled grey, not an outline). `scripts/journal-art.py` ships them to `public/assets/pine-hollow/journal/`.
+
+### Pine Hollow water (`art/pine-hollow/round-7-water/`, 2026-09-24, PH-L9)
+
+Live captures, not mockups (phone tier, iPhone 16 Pro, HUD hidden, `tod=day|night&clock=1e6`). `board.jpg`: "which pond?"
+— A the new pond (the clock's sky + the skyline probe, one draw), B the planar before (`?pond=planar`), at the pond's W
+shore day / night and the N shore's shallows. `water-day-night.jpg`: the new water at the pond shore, the waterfall's
+base, the beaver dam and the creek at the E road, day and night.
