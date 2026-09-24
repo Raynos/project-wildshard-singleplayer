@@ -29,7 +29,7 @@ and [review-experience.md](../design/nalati/merge/review-experience.md) (HUD, re
 |---|---|---|
 | M1 | Merge main (70c28ac) — 25 files / ~65 hunks; DayNight vs DayClock, Wind vs wind (case clash → steppeWind.ts), Sky, Sword (strikeMove, main's sweep), touch HUD (main's + Nalati extras), map (main's; N15), achievements (event rows), boot, audio | ✅ 1a0f1ef |
 | M2 | Merge main (4539c39: E96–E98) + the Minimap paint fix | ✅ deddcb9, 25e7cd8 |
-| M3 | Keep merging main as it moves; the last merge right before the user lands the branch | ongoing (main session) |
+| M3 | Keep merging main as it moves; the last merge right before the user lands the branch | ongoing (main session) — a5f4821 (main 3b4150c, clean, gates + boot 3/3) |
 
 ## F — merge breakage and small fixes (no pick needed)
 
