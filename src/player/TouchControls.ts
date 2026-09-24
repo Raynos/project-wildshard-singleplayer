@@ -56,9 +56,6 @@
  * layer owns an `AimAssist`, feeds it every look drag, runs it from `player.preUpdate` every frame and scales the drag by
  * `assist.lookScale()`.
  *
- * Sprint lock (R3, E71): push the stick past the ring (forward) and hold SPRINT_LOCK_T s → the sprint latches (the SPRINT tag
- * reads SPRINT LOCK, a lock glyph on the ring's top); lift the thumb and you keep running forward, the knob parked at the top.
- * Touching the stick again or pulling it back ends it, as do the water and the board.
  * Lock-on (E50, src/player/LockOnTarget.ts, project/archive/2026-09-23-lock-on.md): the LOCK disc (J — on the right-thumb arc above V DODGE,
  * melee only) toggles it; its states follow `lockOn.state` (off dim / available pulsing / LOCKED filled). While locked
  * every look drag (the LOOK side, the free-look area, a drag from ATTACK) is the ±10° glance that springs back, a FLICK on
@@ -82,7 +79,6 @@ export const IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(pointer
 const STICK_RADIUS = 48;      // px from base to full deflection — the ring's radius, so the knob's centre reaches the ring at full push
 const DEADZONE = 0.12;
 const SPRINT_AT = 0.85;
-const SPRINT_LOCK_T = 0.25; // s held past SPRINT_AT → the sprint latches (R3 / E71)
 // ONE look rate on every surface (E42, audit F6 / R17): the free-look rate above the bar, 0.0095 rad/px (≈ 0.54°/px, a 200 px
 // swipe turns ~110°). The LOOK pad's old 1.6× boost is dropped rather than applied everywhere: pointer capture lets a drag
 // that starts in the bar run up the screen, so the pad no longer needs extra reach, and the Look speed slider scales it all.
@@ -114,7 +110,6 @@ export class TouchControls {
   private wasMelee = false; // the AIM disc hides while a melee weapon is held
   private chargeShown = -1; // the ATTACK disc's heavy ring (--charge) as last painted
   private cdShown = -1; // the DODGE disc's cooldown sweep (--cd) as last painted
-  private sprintHoldT = 0; private sprintLatched = false; // R3 sprint lock (E71): time held past the ring, the latch
   private lockShown = ''; private orbitShown = 0; // the lock-on state / the lit ORBIT arc as last painted (E50)
   private readonly flick = new FlickTracker(); private lookT0 = 0; private lookDown = { x: 0, y: 0 }; private lookInBar = false;
 
@@ -153,7 +148,7 @@ export class TouchControls {
     for (const t of ['dragstart', 'contextmenu', 'selectstart'] as const) root.addEventListener(t, cancel);
     for (const t of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(t, cancel, { passive: false });
     for (const n of root.querySelectorAll('*')) n.setAttribute('draggable', 'false');
-    const stick = this.stick = el(root, '.ws-touch-stick'), sprintTag = el(root, '.ws-touch-sprint');
+    const stick = this.stick = el(root, '.ws-touch-stick');
     this.knob = el(stick, 'i');
     const moveZone = el(root, '.ws-touch-zone.move'), lookpad = el(root, '.ws-touch-lookpad');
     const lockBtn = el(root, '.ws-touch-disc.lock'), lockLabel = el(lockBtn, 'span'), lookLabel = el(lookpad, 'span'), moveLabel = el(moveZone, '.ws-touch-label');
@@ -194,15 +189,6 @@ export class TouchControls {
       }
       const orbit = ls === 'locked' ? Math.sign(Math.round(player.touchMove.x * 3) / 3) : 0;
       if (orbit !== this.orbitShown) { this.orbitShown = orbit; root.classList.toggle('orbit-l', orbit < 0); root.classList.toggle('orbit-r', orbit > 0); }
-      // R3 sprint lock (E71): held past the ring (forward) for SPRINT_LOCK_T s → the sprint latches (a lock on the SPRINT tag);
-      // with the thumb off the stick you keep running forward. Touching the stick again or pulling it back cancels; so do the
-      // water and the board
-      if (this.sprintLatched && (player.swimming || player.hover)) this.unlatchSprint();
-      if (!this.sprintLatched && this.stickPointer >= 0 && player.touchSprint) {
-        this.sprintHoldT += dt;
-        if (this.sprintHoldT >= SPRINT_LOCK_T) { this.sprintLatched = true; stick.classList.add('sprint-lock'); sprintTag.textContent = 'Sprint lock'; }
-      } else if (!player.touchSprint) this.sprintHoldT = 0;
-      if (this.sprintLatched && this.stickPointer < 0) { player.touchMove.x = 0; player.touchMove.y = 1; player.touchSprint = true; }
       // DODGE cooldown (E59): a dark clock sweep unwinds over the disc (--cd 1 → 0) and it flashes .ready when it is back
       const cd = Math.round(player.dodgeCooldown * 100) / 100;
       if (cd !== this.cdShown) {
@@ -223,7 +209,6 @@ export class TouchControls {
       if (!inBar && e.clientX <= zone.right) return; // above the bar on the left: not a control surface
       if (inMove && this.stickPointer < 0) {
         this.stickPointer = e.pointerId;
-        if (this.sprintLatched) this.unlatchSprint(); // R3: touching the stick again ends the sprint lock
         // the stick is anchored (its ring's centre, left of the ATTACK disc); a touch anywhere in the MOVE zone grabs it
         const ring = stick.getBoundingClientRect();
         this.stickBase = { x: ring.left + ring.width / 2, y: ring.top + ring.height / 2 };
@@ -261,13 +246,10 @@ export class TouchControls {
       if (e.pointerId === this.stickPointer) {
         this.stickPointer = -1;
         stick.classList.remove('held');
-        if (this.sprintLatched) { this.player.touchMove.x = 0; this.player.touchMove.y = 1; this.player.touchSprint = true; this.showKnob(0, -STICK_RADIUS); } // R3: the latch runs on
-        else {
-          this.player.touchMove.x = this.player.touchMove.y = 0;
-          this.player.touchSprint = false;
-          stick.classList.remove('sprint');
-          this.showKnob(0, 0);
-        }
+        this.player.touchMove.x = this.player.touchMove.y = 0;
+        this.player.touchSprint = false;
+        stick.classList.remove('sprint');
+        this.showKnob(0, 0);
       } else if (e.pointerId === this.lookPointer) {
         this.lookPointer = -1;
         lookpad.classList.remove('active');
@@ -399,17 +381,8 @@ export class TouchControls {
     this.player.touchMove.x = nx * scaled;
     this.player.touchMove.y = -ny * scaled;
     this.player.touchSprint = mag > SPRINT_AT && -ny > 0.5;
-    if (this.sprintLatched && -ny < -0.3 && scaled > 0.2) this.unlatchSprint(); // R3: pulling back ends the sprint lock
     this.stick?.classList.toggle('sprint', this.player.touchSprint); // the ring's top arc + the SPRINT tick light
     this.showKnob(kx, ky);
-  }
-
-  /** end the R3 sprint lock (a touch on the stick, a pull back, the water / the board) */
-  private unlatchSprint(): void {
-    this.sprintLatched = false; this.sprintHoldT = 0;
-    this.stick?.classList.remove('sprint-lock');
-    const tag = this.stick?.parentElement?.querySelector('.ws-touch-sprint'); if (tag) tag.textContent = 'Sprint';
-    if (this.stickPointer < 0) { this.player.touchMove.x = this.player.touchMove.y = 0; this.player.touchSprint = false; this.stick?.classList.remove('sprint'); this.showKnob(0, 0); }
   }
 
   /** the knob inside the always-drawn ring: follows the thumb while held, back at the centre on release */

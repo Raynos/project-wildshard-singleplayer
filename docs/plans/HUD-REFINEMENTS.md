@@ -1,6 +1,6 @@
 # Plan: tentative HUD / touch-control refinements
 
-**State:** `in progress` 2026-09-23 — built and live: the E58–E64 queue, the lock-on (E50, archived: project/archive/2026-09-23-lock-on.md; leftovers E74 / E75) and R3 sprint lock (E71, `9bb82c7`). Open: E63 waits on Jake's T / V pick. The other R-rows stay ideas.
+**State:** `in progress` 2026-09-23 — built and live: the E58–E64 queue, the lock-on (E50, archived: project/archive/2026-09-23-lock-on.md; leftovers E74 / E75) and R3 sprint lock (E71, `9bb82c7`) — since removed for good at Jake's ask (E79). Open: E63 waits on Jake's T / V pick. The other R-rows stay ideas.
 
 ## Read this first
 
@@ -29,7 +29,7 @@ The CoD Mobile study (E11, research relayed in chat 2026-09-22) compared its tou
 |---|---|---|---|---|---|
 | R1 | **Swing on press, not release** | While a sword is held, a touch that lands in the LOOK pad swings at once (today it swings on lift, and only if the touch was under 300 ms and 12 px: about 100 ms of delay, and swings get dropped when the thumb drifts). Dragging afterwards still turns the camera. | `src/player/TouchControls.ts` | S | A drag you meant only as a look also swings. Fine for melee, but the crossbow must keep tap-on-release. |
 | R2 | **Hold the LOOK pad = heavy** | Hold about 0.25 s to charge and release to chop, all on the right thumb, so the left thumb never leaves the stick (today HEAVY is on the left edge). Keep or drop the HEAVY disc. | `TouchControls.ts`, `Sword.ts` (hold path next to the latch) | S–M | Must never turn a fast tap-tap-tap combo into a heavy by accident. Interacts with R1. |
-| R3 | **Sprint lock** | Push the stick past its ring for 0.25 s and sprint latches, with a lock icon. Touching the stick or pulling back cancels it. | `TouchControls.ts`, `touch.css` | S | CODM players complain about getting stuck in sprint, so the way out has to be obvious. Declined once in E11; worth trying again after play. |
+| R3 | ~~**Sprint lock**~~ **Removed for good (E79, 2026-09-23): "Sprint lock is not nice". Don't bring it back.** | Push the stick past its ring for 0.25 s and sprint latches, with a lock icon. Touching the stick or pulling back cancels it. | `TouchControls.ts`, `touch.css` | S | CODM players complain about getting stuck in sprint, so the way out has to be obvious. Declined once in E11; worth trying again after play. |
 | R4 | **Floating stick** | The stick base appears where the thumb lands in the MOVE zone (clamped), instead of at its fixed centre. | `TouchControls.ts` | S | Some players prefer a fixed stick; could be a Settings switch. Declined once in E11. |
 | R5 | **HUD layout editor** | A Settings → Controls → Edit layout screen: drag, resize and set the opacity of every disc; saved per device. | new `src/ui/LayoutEditor.ts`, `TouchControls.ts`, `Settings.ts` | L | The biggest row. Positions must survive portrait / landscape and different screen sizes. |
 | R6 | **Look acceleration** | An optional curve: small drags stay precise, fast flicks turn further. A Settings switch plus a strength slider. | `TouchControls.ts`, `Settings.ts`, `Menu.ts` | S | Tuning by feel only. Off by default. |
@@ -71,7 +71,7 @@ is "what must the other thumb keep doing while this one presses?"
 
 | Thumb | Holds / presses | Why |
 |---|---|---|
-| Left: only the stick | A floating stick anywhere in the lower-left, bar plus ~150 px above it. Push past the ring to sprint-lock (R3). **Nothing else during a fight.** On ranged kit only, a small left FIRE copy above the stick (CODM's left fire). | Movement never stops. |
+| Left: only the stick | A floating stick anywhere in the lower-left, bar plus ~150 px above it. Push past the ring to sprint (no sprint lock: E79). **Nothing else during a fight.** On ranged kit only, a small left FIRE copy above the stick (CODM's left fire). | Movement never stops. |
 | Right: rest spot | One big **ATTACK** disc where the thumb rests. Touch-down swings at once, dragging turns the camera, holding still ~0.25 s charges the heavy and releasing chops (R1 + R2 as one visible button). On ranged kit, ATTACK = fire on down + drag-aim, with **AIM** next to it. | Attack and aim are the same thumb and never block each other. |
 | Right: its arc | **DODGE** is ~80 px up-left of ATTACK, the closest spot. **JUMP** is on the outer edge just above the bar. **USE** pops up as a disc on the same arc when a prompt is up. | Reflex actions within about 1 cm of where the thumb rests. |
 | Bottom centre | A **SWAP** weapon chip on the bar seam (CODM weapon card), with **HOVER** beside it. | Rare, can wait a beat, and either thumb can press it. |
