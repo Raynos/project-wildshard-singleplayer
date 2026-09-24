@@ -1,0 +1,48 @@
+{
+  "tag": "npcs-m4-before",
+  "url": "http://localhost:4466",
+  "query": "",
+  "when": "2026-09-24T20:32:25.929Z",
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "cabin",
+      "calls": 169,
+      "tris": 1553722,
+      "msP50": 20.200000286102295,
+      "msP95": 21.200000286102295,
+      "programs": 96,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "hamlet",
+      "calls": 134,
+      "tris": 1553468,
+      "msP50": 19.799999713897705,
+      "msP95": 20.799999713897705,
+      "programs": 96,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "cabin",
+      "calls": 520,
+      "tris": 10051426,
+      "msP50": 18.40000009536743,
+      "msP95": 21,
+      "programs": 104,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "hamlet",
+      "calls": 331,
+      "tris": 7489377,
+      "msP50": 16.700000286102295,
+      "msP95": 19.800000190734863,
+      "programs": 104,
+      "forest": "batched"
+    }
+  ]
+}
