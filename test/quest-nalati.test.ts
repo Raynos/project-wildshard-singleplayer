@@ -1,10 +1,10 @@
-// NALATI-MERGE Q1–Q3: the shared quest core (places with saved discovery, the chained line) and Nalati's chapter 1
-// (TULPAR) as data — validated, walked, caught up from a save that already tamed / won, and the elder's dialogue order.
+// NALATI-MERGE Q1–Q5: the shared quest core (places with saved discovery, the chained line) and Nalati's three chapters
+// as data — validated, walked, caught up from a save that already tamed / won / beat a boss, and the elder's dialogue order.
 import { describe, expect, it } from 'vitest';
 import { Flags } from '../src/world/interact/flags';
 import { lineFor, validateQuest } from '../src/game/quest/quest';
 import { QuestLine, placesWithDiscovery } from '../src/game/quest/core';
-import { CAMP_NPCS, ELDER, NALATI_PLACES, NALATI_QUESTS, NALATI_QUEST_EXTERNAL, TULPAR_DONE, TULPAR_QUEST } from '../src/game/quest/nalati';
+import { CAMP_NPCS, CLUE_FLAGS, ELDER, FEATHER_FLAGS, KING_DONE, NALATI_PLACES, NALATI_QUESTS, NALATI_QUEST_EXTERNAL, TULPAR_DONE, TULPAR_QUEST, WIND_DONE } from '../src/game/quest/nalati';
 import { NALATI_MAP } from '../src/chunks/nalatiLayout';
 
 const fresh = (): Flags => new Flags('chunk://test/nalati-quest', false);
@@ -47,8 +47,10 @@ describe('TULPAR, played', () => {
     expect(q?.current?.id).toBe('home');
     expect(talk(flags)[0]).toMatch(/whole valley/);
     expect(flags.has(TULPAR_DONE)).toBe(true);
-    expect(line.active).toBeNull();
+    expect(line.active?.def.id).toBe('golden-king');   // chapter 2 is next, given by the elder
+    expect(line.active?.isStarted).toBe(false);
     expect(talk(flags)[0]).toMatch(/sack of flour/);
+    expect(line.active?.current?.id).toBe('clues');
   });
   it('catches up: a save that already tamed and won finishes on the first talk', () => {
     const flags = fresh();
@@ -66,6 +68,53 @@ describe('TULPAR, played', () => {
     const line = new QuestLine(NALATI_QUESTS, flags);
     expect(talk(flags)[0]).toMatch(/ARGYMAQ/);
     expect(line.active?.current?.id).toBe('kokpar');
+  });
+});
+
+describe('THE GOLDEN KING and FATHER OF THE WIND, played', () => {
+  const afterTulpar = (): Flags => { const f = fresh(); for (const x of ['talked:elder', 'tamed:horse', 'won:kokpar', 'told:tulpar']) f.set(x); return f; };
+  it('the chain: the elder gives chapter 2, clues → door → king → home; then chapter 3, feathers → cairn → Jel Ata → home', () => {
+    const flags = afterTulpar();
+    const line = new QuestLine(NALATI_QUESTS, flags);
+    flags.set(TULPAR_DONE);
+    talk(flags);
+    const king = line.active;
+    expect(king?.def.id).toBe('golden-king');
+    expect(king?.objective()).toBe('Topple the balbal warriors at dusk · 0 / 3');
+    for (const c of CLUE_FLAGS) flags.set(c);
+    expect(king?.current?.id).toBe('door');
+    flags.set('entered:kurgan');
+    expect(king?.current?.id).toBe('king');
+    flags.set('dead:golden-king');
+    expect(king?.current?.id).toBe('home');
+    expect(talk(flags)[0]).toMatch(/Gold/);
+    expect(flags.has(KING_DONE)).toBe(true);
+    expect(line.active?.def.id).toBe('father-wind');
+    expect(talk(flags)[0]).toMatch(/kurgan/);
+    const wind = line.active;
+    expect(wind?.current?.id).toBe('feathers');
+    flags.set('felled:qyran');
+    expect(wind?.markers().map((m) => m.id)).not.toContain('qyran');
+    for (const f of FEATHER_FLAGS) flags.set(f);
+    expect(wind?.current?.id).toBe('cairn');
+    flags.set('lit:cairn');
+    expect(wind?.current?.id).toBe('titan');
+    flags.set('dead:jel-ata');
+    expect(talk(flags)[0]).toMatch(/storm/);
+    expect(flags.has(WIND_DONE)).toBe(true);
+    expect(line.active).toBeNull();
+    expect(talk(flags)[0]).toMatch(/thunder/);
+  });
+  it('a boss beaten before its chapter: the chapter finishes on the elder\'s first word about it', () => {
+    const flags = afterTulpar();
+    flags.set(TULPAR_DONE); flags.set('dead:golden-king');
+    const line = new QuestLine(NALATI_QUESTS, flags);
+    expect(talk(flags)[0]).toMatch(/Gold/);
+    expect(flags.has(KING_DONE)).toBe(true);
+    flags.set('dead:jel-ata');
+    expect(talk(flags)[0]).toMatch(/storm/);
+    expect(flags.has(WIND_DONE)).toBe(true);
+    expect(line.active).toBeNull();
   });
 });
 
