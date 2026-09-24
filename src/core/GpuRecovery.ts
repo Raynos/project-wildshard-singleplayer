@@ -52,6 +52,12 @@ export interface RecoveryHost {
   resumed: boolean;
 }
 
+/**
+ * The shortest the resume screen stays up after an app switch (E98). Dropped two frames after the first draw, it was fully
+ * up for ~40 ms and gone in ~170: on a 30 fps phone, one or two frames of dark glass that read as a black blink, never
+ * as a screen.
+ */
+const MIN_SHOW_MS = 500;
 /** wall-clock time hidden after which coming back reloads instead of waking the page in place (E96) */
 const AWAY_MAX_MS = 10 * 60_000;
 /** visible seconds a lost context may stay lost before the page reloads */
@@ -97,10 +103,24 @@ export function installGpuRecovery(host: RecoveryHost): void {
     try { const d = sctx.getImageData(32, 32, 1, 1).data; return !(d[0] === 255 && d[1] === 0 && d[2] === 255 && d[3] === 255); } catch { return true; }
   };
 
-  /** drop the resume screen once the loop has drawn a frame on a live context (two animation frames) */
-  const revealWhenDrawn = (): void => {
+  /** drop the resume screen once the loop has drawn a frame on a live context (two animation frames), `minMs` at the earliest */
+  const revealWhenDrawn = (minMs = 0): void => {
     const mine = epoch;
-    requestAnimationFrame(() => { requestAnimationFrame(() => { if (mine === epoch && phase === 'ok' && !gl.isContextLost()) screen.hide(); }); });
+    const t0 = performance.now();
+    const drop = (): void => { if (mine === epoch && phase === 'ok' && !gl.isContextLost()) screen.hide(); };
+    requestAnimationFrame(() => { requestAnimationFrame(() => { window.setTimeout(drop, Math.max(0, minMs - (performance.now() - t0))); }); });
+  };
+
+  /**
+   * The still for the way back: one frame drawn now and copied in the same task (the buffer is not preserved). Taken on
+   * `blur` too, which comes before `hidden` on an app switch while the page still draws. A hidden page may hand back an
+   * undrawn (transparent → black JPEG) buffer; a blank still never replaces a good one.
+   */
+  const takeStill = (): void => {
+    if (phase !== 'ok') return;
+    const still = game.snapshot(SHOT_W);
+    if (!still || blank(still)) return;
+    try { shot = still.toDataURL('image/jpeg', 0.7); sessionStorage.setItem(SHOT_KEY, shot); } catch { /* keep the last one */ }
   };
 
   const stopTimer = (): void => { if (timer !== 0) { clearInterval(timer); timer = 0; } };
@@ -211,13 +231,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
     hidden = true;
     hiddenAt = Date.now();
     epoch++;
-    if (phase === 'ok') {
-      // the still for the way back: one frame drawn now and copied in the same task (the buffer is not preserved)
-      const still = game.snapshot(SHOT_W);
-      if (still) {
-        try { shot = still.toDataURL('image/jpeg', 0.7); sessionStorage.setItem(SHOT_KEY, shot); } catch { /* keep the last one */ }
-      }
-    }
+    takeStill();
     screen.show(shot); // up while hidden: the switch back paints this first
     document.dispatchEvent(new Event('ws:background')); // the HUD pauses into the menu (a no-op on the title / already paused)
   };
@@ -229,15 +243,25 @@ export function installGpuRecovery(host: RecoveryHost): void {
     if (phase !== 'ok') return; // lost / restoring / reloading: the screen stays until that path ends
     if (gl.isContextLost()) { lose('context lost while hidden (no event)'); return; }
     game.kickLoop(); // the frame loop, if the browser dropped its animation frame across the switch
-    revealWhenDrawn();
+    revealWhenDrawn(MIN_SHOW_MS);
     const mine = epoch;
     window.setTimeout(() => { if (mine === epoch && phase === 'ok' && !gl.isContextLost()) screen.hide(); }, 1500); // never leave it up
   };
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') hide(); else show(); });
   window.addEventListener('pagehide', hide);
+  window.addEventListener('blur', () => { if (!hidden) takeStill(); });
   window.addEventListener('pageshow', (e) => { if (e.persisted) show(); });
 
   // a recovery reload: index.html put the screen up before any of this ran; the world is built and drawing now
   // (still in the background: show() drops it on the way back)
   if (host.resumed) { screen.progress(1); if (!hidden) revealWhenDrawn(); }
+}
+
+/** a still with nothing drawn in it: every sampled pixel near black (a transparent buffer encodes as black) */
+function blank(c: HTMLCanvasElement): boolean {
+  let d: Uint8ClampedArray;
+  try { const ctx = c.getContext('2d'); if (!ctx) return true; d = ctx.getImageData(0, 0, c.width, c.height).data; } catch { return true; }
+  let sum = 0, n = 0;
+  for (let i = 0; i + 2 < d.length; i += 4 * 7) { sum += (d[i] ?? 0) + (d[i + 1] ?? 0) + (d[i + 2] ?? 0); n++; }
+  return n === 0 || sum / (3 * n) < 6;
 }
