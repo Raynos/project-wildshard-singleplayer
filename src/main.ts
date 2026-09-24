@@ -59,6 +59,7 @@ import { GameMenu } from './ui/Menu';
 import { Progress } from './game/Progress';
 import { Inventory, harvestOf, ITEMS } from './game/Inventory';
 import { getNumber, onNumber, onSettingChange, setting } from './ui/Settings';
+import { dayClockClock, dayNightClock, setActiveClock } from './world/WorldClock';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
 import { HurtArc, deathLine, respawnWhere, type Killer } from './ui/HurtArc';
@@ -336,7 +337,12 @@ async function main() {
   else if (chunk.slug === 'pine-hollow') registerPineHollowModels({ sky, cabins, water, forest, props, at: { x: chunk.spawn.x + 8, z: chunk.spawn.z + 30 } });
   const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;
-  if (dayNight) onSettingChange('time', (t) => { dayNight.setTime(t); }); // pause menu ▸ Settings ▸ Time of day (E55)
+  // the day clock behind one interface (src/world/WorldClock.ts, NALATI-MERGE F8): Driftwood's DayNight or Nalati's DayClock —
+  // Settings ▸ Time of day, Explore's light presets and the HUD's sun / moon glyph reach either (a URL ?time= wins on Nalati)
+  const nalatiClock = nalatiNow()?.weather.clock;
+  const worldClock = dayNight ? dayNightClock(dayNight) : nalatiClock ? dayClockClock(nalatiClock, params.has('time') ? 'live' : setting('time')) : null;
+  setActiveClock(worldClock);
+  if (worldClock) onSettingChange('time', (t) => { worldClock.setTime(t); }); // pause menu ▸ Settings ▸ Time of day (E55)
 
   // ── player kit: the shard's weapon + the AR-15 (Weapons.ts: 1 / 2 / Q, touch SWAP; the rifle is a cabin pickup), HUD, audio ──
   await step('weapon', () => viewmodelTexturesReady()); // the viewmodels' textures from the worker (usually long done); the build below is synchronous

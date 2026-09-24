@@ -355,9 +355,10 @@ export class GameMenu {
     const lockCam = picker('Lock-on camera', lockCams, () => (getNumber('lockCam') >= 0.75 ? '1' : getNumber('lockCam') > 0.1 ? '0.5' : '0'), (v) => setNumber('lockCam', Number(v)), () => undefined);
     p.append(el('ws-gmenu-label', 'Lock-on'), lockCam, sw('autoLock', 'Auto re-lock'), el('ws-gmenu-note', 'LOCK (Z / middle mouse) locks the enemy nearest the centre. Flick the LOOK pad (mouse flick / wheel) to switch; MOVE circles it.'));
 
-    // look (E55, live — src/ui/Settings.ts OPTIONS): the low-poly shard's clock (DayNight.setTime; main.ts subscribes). The
-    // painted horizon (E78) and the colour grade (E85) are locked on. The boot-time graphics picks are on the title's Settings.
-    if (getActiveChunk().style === 'lowpoly') {
+    // look (E55, live — src/ui/Settings.ts OPTIONS): the shard's day clock (src/world/WorldClock.ts: Driftwood's DayNight, Nalati's
+    // DayClock — NALATI-MERGE F8; main.ts subscribes). The painted horizon (E78) and the colour grade (E85) are locked on. The
+    // boot-time graphics picks are on the title's Settings.
+    if (getActiveChunk().style === 'lowpoly' || getActiveChunk().style === 'painterly') {
       const times: { v: OptionValue<'time'>; text: string }[] = [{ v: 'live', text: 'Live' }, { v: 'midday', text: 'Midday' }, { v: 'golden', text: 'Golden' }, { v: 'sunset', text: 'Sunset' }, { v: 'night', text: 'Night' }];
       const time = picker('Time of day', times, () => setting('time'), (v) => { saveSetting('time', v); }, (fn) => { onSettingChange('time', fn); });
       dbg.append(el('ws-gmenu-label', 'Look'), time);
