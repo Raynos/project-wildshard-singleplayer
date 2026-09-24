@@ -27,6 +27,7 @@ import {
   RIVER_LEVEL, riverZAt, riverHalfAt, BRIDGE_XZ, BOWL, RIM_N, SKY_ROAD, SKY_ROAD_RIM, EAGLE_ROCK, KOKPAR, KURGANS, SUMMER_YURTS,
   WATCHTOWER, CAIRN, SNOW_LINE, CRAGS, WEST_CRAGS, snowValleyX, snowValleyHalf, snowValleyFloor, GLACIER, MELT_STREAM,
   LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, CAMP_SPUR, BOWL_TRACKS, LONE_SPRUCE,
+  NALATI_MAP,
 } from './nalatiLayout';
 import type { ChunkDef, ChunkTerrain, RGB, Vec2 } from './ChunkDef';
 import thumbnail from './thumbs/nalati-grasslands.jpg';
@@ -561,6 +562,10 @@ export const NALATI_GRASSLANDS: ChunkDef = {
   blurb: 'SUPER EXPERIMENTAL — the Tian Shan steppe, painted: cross the braided Kunes, tame a steppe horse and hunt wolves from the saddle across the golden bowl of the Sky Grassland, break the Golden King in his kurgan, and ride out a storm to face the Storm Titan. Snow Lotus Valley waits in the snow ring. Built live, rough edges everywhere.',
   thumbnail, heroPortrait, heroLandscape,
   style: 'painterly',
+  // EXPLORE WORLD (NALATI-MERGE P1, wave 8): the viewer over the steppe — every registered POI is in the Model Explorer
+  // (src/world/nalati/index.ts), the World Explorer map pins the map's named places
+  explore: true,
+  pois: NALATI_MAP.pois.map((p) => ({ id: p.label.toLowerCase().replaceAll(' ', '-'), name: p.label.charAt(0) + p.label.slice(1).toLowerCase(), x: p.x, z: p.z, r: 24 })),
   weapon: 'nalati', // its own kit (src/player/nalatiKit.ts: bow · sabre · spear) — no Driftwood sword built (NALATI-MERGE F2)
   // (the camera's far plane is 2.6 km: every ring stays inside 2.5 km)
   horizon: {
