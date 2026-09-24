@@ -1,6 +1,6 @@
 # NALATI-MERGE — bring Nalati into the fold
 
-**State:** `in progress` 2026-09-24 — main merged into the branch (1a0f1ef, deddcb9, 25e7cd8); the user answered 8 waves of decisions and said "finish the plan and mega build it with subagents". Building: R1 riding (N17, riding agent), H1 the HUD mockup round (HUD agent), L1 the horizon blend (N19, main session). Everything else below is open, taken ≤ 3 agents at a time on disjoint files. Lands on main when finished — the user merges it himself (EARLY ACCESS in the shard picker).
+**State:** `in progress` 2026-09-24 — main merged into the branch (1a0f1ef, deddcb9, 25e7cd8); the user answered 8 waves of decisions and said "finish the plan and mega build it with subagents". Done: M1–M2, R1 (riding, N17), H1 (the user picked HUD D). Building: F (fixes agent), P1 (physics + Explore agent), R2/R3 (the horse's motor agent), L1 (the horizon blend, N19, main session); H2 (build HUD D) takes the next free slot. Everything else below is open, taken ≤ 3 agents at a time on disjoint files. Lands on main when finished — the user merges it himself (EARLY ACCESS in the shard picker).
 
 The ask: N16 ("main has moved a lot … bring Nalati into the fold … every new thing made for Wildshard has to be put into
 Nalati"), with N15 (map text), N17 (riding), N18 (the bow), N19 (the horizon seam). The decisions, verbatim, are in
@@ -48,7 +48,7 @@ and [review-experience.md](../design/nalati/merge/review-experience.md) (HUD, re
 
 | # | row | state |
 |---|---|---|
-| R1 | Hotfix: the rider's capsule no longer blocks the horse; Player.update stops clobbering the saddle camera; the ridden horse off every aim / projectile query ("HORSE · 1 M"). Then the rebuild the user picked: the stick steers the horse, the camera follows (RDR2 / KCD first person), no strafing, inertia, head / neck lead the turn, gait bob; DISMOUNT = the HORSE right-edge tab (one toggle); HOVER hidden in the saddle; LEAN / OFFER placed on main's layout; research in docs/design/nalati/riding-research.md | 🔨 riding agent |
+| R1 | Hotfix: the rider's capsule no longer blocks the horse; Player.update stops clobbering the saddle camera; the ridden horse off every aim / projectile query ("HORSE · 1 M"). Then the rebuild the user picked: the stick steers the horse, the camera follows (RDR2 / KCD first person), no strafing, inertia, head / neck lead the turn, gait bob; DISMOUNT = the HORSE right-edge tab (one toggle); HOVER hidden in the saddle; LEAN / OFFER placed on main's layout; research in docs/design/nalati/riding-research.md | ✅ fa2ba06 ca80143 39deb1c (progress/nalati-riding/) |
 | R2 | The horse on its own CharacterMotor in the fixed step (wave 7), the rider's capsule off while mounted; the horse's climb limit (~35° at a gallop, steeper at a walk; 40° on foot stays); fence jumps, the bridge carries you | open (after R1) |
 | R3 | Stampedes: through a player on foot (knock-down + damage), collide with a rider (jostle, can unseat at a gallop) | open (with R2) |
 | R4 | Mounted lock-on (the camera tracks the target, the horse steers freely) | open (after H3, R1) |
@@ -57,8 +57,8 @@ and [review-experience.md](../design/nalati/merge/review-experience.md) (HUD, re
 
 | # | row | state |
 |---|---|---|
-| H1 | Mockup round: variants A–D (edge tabs · bar-edge folder tabs · one arc + a weapon card · status left / actions right), each on foot and in the saddle → one A/B/C/D board; the user picks | 🔨 HUD agent (art/hud/round-*-nalati-merge/) |
-| H2 | Build the pick: the merge breakage (DODGE over DRAW, CROUCH over JUMP, main's SWAP pill beside the weapon strip, GALLOP / storm chip / GET LOW / elite + boss bars placed for the old minimap) → one under-minimap stack (quest chip, storm, elite or boss bar, banners + GET LOW); the weapon switcher per the pick; the sun / moon glyph on the minimap rim; HOVER on foot only | open (after the pick) |
+| H1 | Mockup round: variants A–D (edge tabs · bar-edge folder tabs · one arc + a weapon card · status left / actions right), each on foot and in the saddle → one A/B/C/D board; the user picks | ✅ d629016 — art/hud/round-12-nalati-merge/board.jpg; **the user picked D (status left)** |
+| H2 | Build **D — status left** (a left column: VITALS, STEED, ARROWS, the day + storm row, HIDDEN; weapon tabs on the left edge; HORSE / DISMOUNT on the right edge; a clean centre) — A–D in art/hud/round-12-nalati-merge/D-*.jpg: the merge breakage (DODGE over DRAW, CROUCH over JUMP, main's SWAP pill beside the weapon strip, GALLOP / storm chip / GET LOW / elite + boss bars placed for the old minimap) → one under-minimap stack (quest chip, storm, elite or boss bar, banners + GET LOW); the weapon switcher per the pick; the sun / moon glyph on the minimap rim; HOVER on foot only | open (after the pick) |
 | H3 | Lock-on for the sabre and spear against every Nalati hostile (wolves, elites, ghost riders, balbals, bosses); the bow later with N18 | open |
 | H4 | The bow (N18): hold FIRE to draw, release to loose, release before full = let down (no shot); AIM a toggle that zooms down the arrow (Skyrim's flow; research first); desktop the same (LMB hold / RMB toggle); mounted archery keeps working | open (after H2) |
 
