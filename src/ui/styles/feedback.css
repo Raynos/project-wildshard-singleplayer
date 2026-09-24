@@ -2,7 +2,7 @@
    prefix ws-fb-. The ✎ NOTE disc is always loaded (it lives in #hud under PAUSE); the composer loads on first use. */
 
 /* ── the ✎ NOTE disc (touch, unlocked + Quick note on): top-left under the touch status column (VITALS / BOLTS, touch.css) ── */
-.ws-fb-disc { position: absolute; left: 12px; top: calc(var(--ws-top) + 110px); z-index: 6; display: none; align-items: center; gap: 7px; padding: 4px 10px 4px 5px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); border-radius: 999px; color: var(--ws-text); font-family: var(--ws-mono); font-size: 8.5px; letter-spacing: 0.22em; text-transform: uppercase; pointer-events: auto; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.ws-fb-disc { position: absolute; left: 12px; top: calc(var(--ws-top) + 90px); z-index: 6; display: none; align-items: center; gap: 7px; padding: 4px 10px 4px 5px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); border-radius: 999px; color: var(--ws-text); font-family: var(--ws-mono); font-size: 8.5px; letter-spacing: 0.22em; text-transform: uppercase; pointer-events: auto; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .ws-fb-disc.show { display: flex; }
 .ws-fb-disc svg { width: 22px; height: 22px; padding: 4px; border-radius: 50%; border: 1px solid var(--ws-cyan-line); color: var(--ws-cyan); }
 .ws-fb-disc .ws-fb-badge { display: none; min-width: 14px; height: 14px; padding: 0 3px; border-radius: 7px; background: var(--ws-amber); color: #140d02; font-size: 8px; letter-spacing: 0; line-height: 14px; text-align: center; }

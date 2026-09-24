@@ -42,7 +42,7 @@
 /* touch phone (layout E, E42): the top-left column holds PAUSE, the frame meter, VITALS / BOLTS and the ✎ disc and the minimap owns the
    top-right, so the bar drops into the left column under them, capped at the minimap's left edge */
 @media (max-width: 700px) {
-  #hud.touch .ws-quest-boss { left: 12px; top: calc(var(--ws-top) + 150px); width: calc(100vw - 27.2vw - 14px - 36px); transform: translateY(-6px); }
+  #hud.touch .ws-quest-boss { left: 12px; top: calc(var(--ws-top) + 130px); width: calc(100vw - 27.2vw - 14px - 36px); transform: translateY(-6px); }
   #hud.touch .ws-quest-boss.show { transform: none; }
 }
 .ws-quest-boss-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
