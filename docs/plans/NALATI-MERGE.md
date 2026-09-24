@@ -1,6 +1,6 @@
 # NALATI-MERGE — bring Nalati into the fold
 
-**State:** `in progress` 2026-09-24 — main merged into the branch (1a0f1ef, deddcb9, 25e7cd8); the user answered 8 waves of decisions and said "finish the plan and mega build it with subagents". Done: M1–M2, R1 (riding, N17), H1 (the user picked HUD D). Building: F (fixes agent), P1 (physics + Explore agent), R2/R3 (the horse's motor agent), L1 (the horizon blend, N19, main session); H2 (build HUD D) takes the next free slot. Everything else below is open, taken ≤ 3 agents at a time on disjoint files. Lands on main when finished — the user merges it himself (EARLY ACCESS in the shard picker).
+**State:** `in progress` 2026-09-24 — done: M1–M2, F1–F8, R1–R3, H1–H4 (HUD D, lock-on, the Skyrim bow), P1–P2 (registry colliders, Explore, projectiles on physics), Q1–Q5 (the quest core, the camp people, all three chapters), L1 (the horizon blend). Building: P3–P4 (navmesh + walk baseline, agent), L2–L4 (the Look Lab, agent), A1–A4 (the Nalati sound set, music slot, ambience, the Kazakh score, agent). Open after them: R4 (mounted lock-on is in H3 — check), D1–D2 (models), E1–E2 (EARLY ACCESS + landing). Lands on main when finished — the user merges it himself.
 
 The ask: N16 ("main has moved a lot … bring Nalati into the fold … every new thing made for Wildshard has to be put into
 Nalati"), with N15 (map text), N17 (riding), N18 (the bow), N19 (the horizon seam). The decisions, verbatim, are in
