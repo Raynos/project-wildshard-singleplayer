@@ -1,0 +1,706 @@
+{
+  "about": "Pine Hollow 9-angle cameras (PH-0.5). Shot by scripts/pine-hollow-views.mjs; the look loops (PH-L1) reuse them. Per anchor: P (x, z) and faceTo (x, z) set the front heading f; shots 1-4 are first person at P (phone, yaw f / f+pi/2 / f-pi/2 / f+pi, pitch -0.06), 5 TOP straight down with the front up, 6-9 DIAG front / left / right / back looking down at P. `cameras` is filled in by the script on the first run (ground height from the live heightfield) and then reused verbatim, so every later shot is the same frame. yaw faces (-sin yaw, -cos yaw) in x / z.",
+  "query": "chunk=pine-hollow&mute=1&nolock=1&skipintro=1&sw=0&perf=0&tod=0.4167&clock=1000000",
+  "fp": {
+    "device": "iPhone 16 Pro (UA, DPR 3, touch)",
+    "viewport": [
+      390,
+      844
+    ],
+    "query": "tier=phone&touch",
+    "pitch": -0.06
+  },
+  "god": {
+    "viewport": [
+      1600,
+      900
+    ],
+    "query": "tier=desktop",
+    "fovV": 72,
+    "topUp": 90,
+    "diagUp": 45,
+    "diagOut": 55
+  },
+  "anchors": [
+    {
+      "id": "gate",
+      "name": "South gate",
+      "P": {
+        "x": 0,
+        "z": -215
+      },
+      "faceTo": {
+        "x": -8,
+        "z": -150
+      },
+      "groundY": 0,
+      "cameras": [
+        {
+          "n": 1,
+          "id": "fp-front",
+          "mode": "fp",
+          "x": 0,
+          "z": -215,
+          "yaw": 3.019,
+          "pitch": -0.06
+        },
+        {
+          "n": 2,
+          "id": "fp-left",
+          "mode": "fp",
+          "x": 0,
+          "z": -215,
+          "yaw": 4.59,
+          "pitch": -0.06
+        },
+        {
+          "n": 3,
+          "id": "fp-right",
+          "mode": "fp",
+          "x": 0,
+          "z": -215,
+          "yaw": 1.448,
+          "pitch": -0.06
+        },
+        {
+          "n": 4,
+          "id": "fp-back",
+          "mode": "fp",
+          "x": 0,
+          "z": -215,
+          "yaw": 6.161,
+          "pitch": -0.06
+        },
+        {
+          "n": 5,
+          "id": "top",
+          "mode": "god",
+          "pos": [
+            0,
+            90,
+            -215
+          ],
+          "look": [
+            0,
+            0,
+            -215
+          ],
+          "fovV": 72,
+          "up": [
+            -0.122,
+            0,
+            0.993
+          ]
+        },
+        {
+          "n": 6,
+          "id": "diag-front",
+          "mode": "god",
+          "pos": [
+            6.719,
+            45,
+            -269.588
+          ],
+          "look": [
+            -2.443,
+            0,
+            -195.15
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 7,
+          "id": "diag-left",
+          "mode": "god",
+          "pos": [
+            54.588,
+            45,
+            -208.281
+          ],
+          "look": [
+            0,
+            0,
+            -215
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 8,
+          "id": "diag-right",
+          "mode": "god",
+          "pos": [
+            -54.588,
+            45,
+            -221.719
+          ],
+          "look": [
+            0,
+            0,
+            -215
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 9,
+          "id": "diag-back",
+          "mode": "god",
+          "pos": [
+            -6.719,
+            45,
+            -160.412
+          ],
+          "look": [
+            0,
+            0,
+            -215
+          ],
+          "fovV": 72
+        }
+      ]
+    },
+    {
+      "id": "cabin",
+      "name": "Hollow cabin",
+      "P": {
+        "x": -20,
+        "z": -50
+      },
+      "faceTo": {
+        "x": -14,
+        "z": -34
+      },
+      "groundY": 1.482,
+      "cameras": [
+        {
+          "n": 1,
+          "id": "fp-front",
+          "mode": "fp",
+          "x": -20,
+          "z": -50,
+          "yaw": -2.783,
+          "pitch": -0.06
+        },
+        {
+          "n": 2,
+          "id": "fp-left",
+          "mode": "fp",
+          "x": -20,
+          "z": -50,
+          "yaw": -1.212,
+          "pitch": -0.06
+        },
+        {
+          "n": 3,
+          "id": "fp-right",
+          "mode": "fp",
+          "x": -20,
+          "z": -50,
+          "yaw": -4.354,
+          "pitch": -0.06
+        },
+        {
+          "n": 4,
+          "id": "fp-back",
+          "mode": "fp",
+          "x": -20,
+          "z": -50,
+          "yaw": 0.359,
+          "pitch": -0.06
+        },
+        {
+          "n": 5,
+          "id": "top",
+          "mode": "god",
+          "pos": [
+            -20,
+            91.482,
+            -50
+          ],
+          "look": [
+            -20,
+            1.482,
+            -50
+          ],
+          "fovV": 72,
+          "up": [
+            0.351,
+            0,
+            0.936
+          ]
+        },
+        {
+          "n": 6,
+          "id": "diag-front",
+          "mode": "god",
+          "pos": [
+            -39.312,
+            46.482,
+            -101.498
+          ],
+          "look": [
+            -12.978,
+            1.482,
+            -31.273
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 7,
+          "id": "diag-left",
+          "mode": "god",
+          "pos": [
+            31.498,
+            46.482,
+            -69.312
+          ],
+          "look": [
+            -20,
+            1.482,
+            -50
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 8,
+          "id": "diag-right",
+          "mode": "god",
+          "pos": [
+            -71.498,
+            46.482,
+            -30.688
+          ],
+          "look": [
+            -20,
+            1.482,
+            -50
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 9,
+          "id": "diag-back",
+          "mode": "god",
+          "pos": [
+            -0.688,
+            46.482,
+            1.498
+          ],
+          "look": [
+            -20,
+            1.482,
+            -50
+          ],
+          "fovV": 72
+        }
+      ]
+    },
+    {
+      "id": "pond",
+      "name": "Still pond",
+      "P": {
+        "x": -56,
+        "z": 95
+      },
+      "faceTo": {
+        "x": -56,
+        "z": 120
+      },
+      "groundY": -6.056,
+      "cameras": [
+        {
+          "n": 1,
+          "id": "fp-front",
+          "mode": "fp",
+          "x": -56,
+          "z": 95,
+          "yaw": -3.142,
+          "pitch": -0.06
+        },
+        {
+          "n": 2,
+          "id": "fp-left",
+          "mode": "fp",
+          "x": -56,
+          "z": 95,
+          "yaw": -1.571,
+          "pitch": -0.06
+        },
+        {
+          "n": 3,
+          "id": "fp-right",
+          "mode": "fp",
+          "x": -56,
+          "z": 95,
+          "yaw": -4.712,
+          "pitch": -0.06
+        },
+        {
+          "n": 4,
+          "id": "fp-back",
+          "mode": "fp",
+          "x": -56,
+          "z": 95,
+          "yaw": 0,
+          "pitch": -0.06
+        },
+        {
+          "n": 5,
+          "id": "top",
+          "mode": "god",
+          "pos": [
+            -56,
+            83.944,
+            95
+          ],
+          "look": [
+            -56,
+            -6.056,
+            95
+          ],
+          "fovV": 72,
+          "up": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "n": 6,
+          "id": "diag-front",
+          "mode": "god",
+          "pos": [
+            -56,
+            38.944,
+            40
+          ],
+          "look": [
+            -56,
+            -6.056,
+            115
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 7,
+          "id": "diag-left",
+          "mode": "god",
+          "pos": [
+            -1,
+            38.944,
+            95
+          ],
+          "look": [
+            -56,
+            -6.056,
+            95
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 8,
+          "id": "diag-right",
+          "mode": "god",
+          "pos": [
+            -111,
+            38.944,
+            95
+          ],
+          "look": [
+            -56,
+            -6.056,
+            95
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 9,
+          "id": "diag-back",
+          "mode": "god",
+          "pos": [
+            -56,
+            38.944,
+            150
+          ],
+          "look": [
+            -56,
+            -6.056,
+            95
+          ],
+          "fovV": 72
+        }
+      ]
+    },
+    {
+      "id": "ridge",
+      "name": "Ridge cabin",
+      "P": {
+        "x": 100,
+        "z": 131
+      },
+      "faceTo": {
+        "x": 118,
+        "z": 142
+      },
+      "groundY": 1.591,
+      "cameras": [
+        {
+          "n": 1,
+          "id": "fp-front",
+          "mode": "fp",
+          "x": 100,
+          "z": 131,
+          "yaw": -2.119,
+          "pitch": -0.06
+        },
+        {
+          "n": 2,
+          "id": "fp-left",
+          "mode": "fp",
+          "x": 100,
+          "z": 131,
+          "yaw": -0.549,
+          "pitch": -0.06
+        },
+        {
+          "n": 3,
+          "id": "fp-right",
+          "mode": "fp",
+          "x": 100,
+          "z": 131,
+          "yaw": -3.69,
+          "pitch": -0.06
+        },
+        {
+          "n": 4,
+          "id": "fp-back",
+          "mode": "fp",
+          "x": 100,
+          "z": 131,
+          "yaw": 1.022,
+          "pitch": -0.06
+        },
+        {
+          "n": 5,
+          "id": "top",
+          "mode": "god",
+          "pos": [
+            100,
+            91.591,
+            131
+          ],
+          "look": [
+            100,
+            1.591,
+            131
+          ],
+          "fovV": 72,
+          "up": [
+            0.853,
+            0,
+            0.521
+          ]
+        },
+        {
+          "n": 6,
+          "id": "diag-front",
+          "mode": "god",
+          "pos": [
+            53.069,
+            46.591,
+            102.32
+          ],
+          "look": [
+            117.066,
+            1.591,
+            141.429
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 7,
+          "id": "diag-left",
+          "mode": "god",
+          "pos": [
+            128.68,
+            46.591,
+            84.069
+          ],
+          "look": [
+            100,
+            1.591,
+            131
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 8,
+          "id": "diag-right",
+          "mode": "god",
+          "pos": [
+            71.32,
+            46.591,
+            177.931
+          ],
+          "look": [
+            100,
+            1.591,
+            131
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 9,
+          "id": "diag-back",
+          "mode": "god",
+          "pos": [
+            146.931,
+            46.591,
+            159.68
+          ],
+          "look": [
+            100,
+            1.591,
+            131
+          ],
+          "fovV": 72
+        }
+      ]
+    },
+    {
+      "id": "den",
+      "name": "Bear den",
+      "P": {
+        "x": -127,
+        "z": -127
+      },
+      "faceTo": {
+        "x": -150,
+        "z": -150
+      },
+      "groundY": -5.655,
+      "cameras": [
+        {
+          "n": 1,
+          "id": "fp-front",
+          "mode": "fp",
+          "x": -127,
+          "z": -127,
+          "yaw": 0.785,
+          "pitch": -0.06
+        },
+        {
+          "n": 2,
+          "id": "fp-left",
+          "mode": "fp",
+          "x": -127,
+          "z": -127,
+          "yaw": 2.356,
+          "pitch": -0.06
+        },
+        {
+          "n": 3,
+          "id": "fp-right",
+          "mode": "fp",
+          "x": -127,
+          "z": -127,
+          "yaw": -0.785,
+          "pitch": -0.06
+        },
+        {
+          "n": 4,
+          "id": "fp-back",
+          "mode": "fp",
+          "x": -127,
+          "z": -127,
+          "yaw": 3.927,
+          "pitch": -0.06
+        },
+        {
+          "n": 5,
+          "id": "top",
+          "mode": "god",
+          "pos": [
+            -127,
+            84.345,
+            -127
+          ],
+          "look": [
+            -127,
+            -5.655,
+            -127
+          ],
+          "fovV": 72,
+          "up": [
+            -0.707,
+            0,
+            -0.707
+          ]
+        },
+        {
+          "n": 6,
+          "id": "diag-front",
+          "mode": "god",
+          "pos": [
+            -88.109,
+            39.345,
+            -88.109
+          ],
+          "look": [
+            -141.142,
+            -5.655,
+            -141.142
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 7,
+          "id": "diag-left",
+          "mode": "god",
+          "pos": [
+            -165.891,
+            39.345,
+            -88.109
+          ],
+          "look": [
+            -127,
+            -5.655,
+            -127
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 8,
+          "id": "diag-right",
+          "mode": "god",
+          "pos": [
+            -88.109,
+            39.345,
+            -165.891
+          ],
+          "look": [
+            -127,
+            -5.655,
+            -127
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 9,
+          "id": "diag-back",
+          "mode": "god",
+          "pos": [
+            -165.891,
+            39.345,
+            -165.891
+          ],
+          "look": [
+            -127,
+            -5.655,
+            -127
+          ],
+          "fovV": 72
+        }
+      ]
+    }
+  ]
+}

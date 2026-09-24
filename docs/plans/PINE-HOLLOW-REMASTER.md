@@ -105,6 +105,56 @@ in `art/pine-hollow/round-<n>-<label>/board.jpg`:
 | PH-0.5 | **Baseline**: 9-angle captures at 5 anchors (south gate, Hollow cabin, still pond, ridge cabin, bear den; `tod` frozen, cameras recorded in a JSON the loops reuse); phone ruler at gate / cabin / pond; desktop; `bench:ci`; Jake's iPhone reading | baseline lane + Jake | `art/pine-hollow/round-1-baseline/` + numbers here |
 | PH-0.6 | **Boards B1–B4** (§2) | boards lane | Jake names a letter per board |
 
+### Baseline (PH-0.5), measured 2026-09-24 at `0599c67`
+
+**9 angles × 5 anchors** in `art/pine-hollow/round-0-baseline/` (the round-1 slot went to board B1):
+- `cameras.json` holds every camera, resolved. Each anchor has P and a face-to point, its ground height, and the nine
+  cameras. The look loops (PH-L1) re-shoot exactly these with
+  `node scripts/pine-hollow-views.mjs [--only=pond] [--tag=after] [--url=…]`.
+- Shots 1–4 are FP at P: front / left / right / back, phone tier, iPhone 16 Pro UA, 390×844 @3, touch HUD, pitch −0.06.
+- Shot 5 is TOP, 90 m straight down with the front up. Shots 6–9 are DIAG front / left / right / back, 45 m up and
+  55 m out, looking at P. Shots 5–9 are desktop tier, 1600×900, fov 72°, no HUD, with the forest and grass LOD
+  around the eye.
+- Pine Hollow has no day clock yet (a fixed HDRI sunset), so `tod=0.4167&clock=1000000` only matters once PH-L2
+  lands. Clouds and wind still move between shots. Animals are `calm`.
+- The sheets are `gate-sheet.jpg` (P 0, −215), `cabin-sheet.jpg` (−20, −50 → the Hollow cabin),
+  `pond-sheet.jpg` (−56, 95 → north over the pond), `ridge-sheet.jpg` (100, 131 → the Ridge cabin) and
+  `den-sheet.jpg` (−127, −127 → the den at −150, −150). Each cell is labelled with its calls / tris.
+
+**What the sheets show, for the loops:**
+- The pine crowns read near-black from above.
+- Close crowns are flat radial cards: the den and the ridge FP-right look into one.
+- The 17 Sep ridge rings read as blue paper cut-outs in every DIAG.
+- The chunk-edge glass wall shows behind the gate.
+- The sun blows out into a bloom disc when you look west (cabin FP-left, den FP-back).
+
+**Phone ruler.** `node scripts/pine-hollow-perf.mjs --url=<vite preview of a clean git archive HEAD export>`.
+It reports the median of 30 frames of `game.lastFrame` per pose, 6 s after a spawn. Phone is iPhone 16 Pro
+390×844 @3 `tier=phone`; desktop is 1600×900 `tier=desktop`. Raw numbers: `progress/pine-hollow-perf-baseline.json`.
+
+| pose | phone calls / tris | desktop calls / tris |
+|---|---|---|
+| gate `x=0&z=-200&yaw=3.1416` | 114 / 1.32 M | 902 / 10.41 M |
+| cabin `x=-14&z=-62&yaw=3.1416` | 153 / 1.65 M | 1073 / 10.53 M |
+| pond `x=-56&z=95&yaw=3.1416` | 151 / 1.39 M | 690 / 8.31 M |
+
+- Programs at play: 76 on the phone, 84 on desktop. The forest is on the batched path.
+- Headless frame time is vsync-pinned at 16.6 ms p50. There is no 30 fps cap on the phone tier yet (PH-P1).
+- Against the 22 Sep lever-12 numbers (104 / 133 / 120 calls), the cabin and the pond have drifted up by 20–30 calls.
+  The drift is not yet broken down per group. One known contributor is E90: phone animal shadows now reach 80 m,
+  where they stopped at 30 m.
+
+The 9-angle FP shots at phone tier range from 79 calls / 0.72 M (the gate looking back) to 189 / 2.03 M (the pond
+looking west) and 169 / 2.08 M (the ridge looking back). The god views run 250–1 630 calls and 5–12 M tris at desktop
+tier. That is the E4b desktop problem, seen from above.
+
+**Load** (`bench-load.mjs --url=… --conditions=wifi --cache=cold --query=chunk=pine-hollow&tier=phone`, 390×844, 4×
+CPU):
+- 24.36 MB over the network in 132 requests; 9.8 MB of that is `.bin`.
+- Playable at 7.7 s. The longest steps are audio 2.0 s, shaders 1.05 s and terrain 1.03 s.
+
+Jake's iPhone reading is still to come (his part of PH-0.5).
+
 ## 4. The world (Map D; exact layout = board B1)
 
 All coordinates live in one import-free `src/chunks/pineHollowLayout.ts` (Nalati's pattern), with a 1 m flood-fill walkability
