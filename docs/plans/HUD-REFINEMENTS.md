@@ -1,6 +1,6 @@
 # Plan: tentative HUD / touch-control refinements
 
-**State:** `in progress` 2026-09-23 — built and live: the E58–E64 queue, the lock-on (E50, archived: project/archive/2026-09-23-lock-on.md; leftovers E74 / E75) and R3 sprint lock (E71, `9bb82c7`) — since removed for good at Jake's ask (E79). Open: E63 waits on Jake's T / V pick. The other R-rows stay ideas.
+**State:** `in progress` 2026-09-23 — built and live: the E58–E64 queue, the lock-on (E50, archived: project/archive/2026-09-23-lock-on.md; leftovers E74 / E75) and R3 sprint lock (E71, `9bb82c7`) — since removed for good at Jake's ask (E79). HOVER moved to a tab over MOVE (E80, pick C, `6c28553`). E63's dodge pick is made (T, docs/plans/DODGE-FEEL.md). Nothing open here: the other R-rows stay ideas until Jake names one.
 
 ## Read this first
 
