@@ -1,6 +1,6 @@
 # Nalati Grasslands — the master plan
 
-**State:** `in progress` 2026-09-23 — ~55 % overall (gameplay ~80 %, look ~30 %, ship 0 %). Built by the parent + up to 3 build agents (models, look, features). Order: **Phase A the look → Phase B the features → Phase C ship**; then the user merges the branch himself and polishes / balances (Phase D). Playable preview: https://nalati-grasslands.vercel.app/?chunk=nalati-grasslands (a separate Vercel project, built from a clean export of the branch — never a git push). Asks N4–N8.
+**State:** `in progress` 2026-09-23 — Phases A, B and C built on the branch (the look incl. the final look round, every feature row, the hero art + title card, all CI gates green on a clean export of `a95304b`, Pine Hollow + Driftwood load unchanged); waits only on the parent's last preview check, then archive. Leftovers for Phase D are listed under Phase C. Then the user merges the branch himself (Phase D). Playable preview: https://nalati-grasslands.vercel.app/?chunk=nalati-grasslands (a separate Vercel project, built from a clean export of the branch — never a git push). Asks N4–N9.
 
 The third shard (ASKS P6). A high alpine steppe in the Tian Shan, laid out like the real Nalati: you arrive in the
 Kunes river valley (yurts, sheep, the bridge), climb spruce gullies up the escarpment, and the **Sky Grassland**
@@ -106,10 +106,15 @@ user: D, E and A are the closest). Round 8 (`round-8-three-zones/`): the user pi
 | B13 | Boss system + Golden King + Golden Bow | ✅ (played in god mode only) |
 | B14 | Storm Titan + Naizagai | ✅ (`2691bde`): 3 phases, checkpoints, the reward at the cairn; look pass `5717952` (dark cumulus, lightning veins, spiral heart; phase 3 as 3D flame fronts + smoke — `stormTitanLook.ts`) |
 | B15 | Items, joke titles, tame + Titan achievements, wearable skins, the Nalati map / minimap, hidden wolves off minimap + aim assist | ✅ (`984fe3d`); map names follow `NALATI_MAP` from the def |
-| B16 | Audio ✅ · loading steps / nouns / weights + the boot's 2.7 MB declared and packed ✅ (polish agent) · menu card text ✅ · hero art ❌ (waits for layout v2) | 🟡 |
-| L | The look (mockup parity) | 🟡 ~30 % — painted textures, backdrop, dressing, 18 models generated; **v2 render path not started; models not in the world** |
+| B16 | Audio ✅ · loading steps / nouns / weights + the boot's 2.7 MB declared and packed ✅ (polish agent) · menu card text ✅ · hero art ✅ (`a95304b`: in-engine captures, `art/hero-images/round-3-nalati-in-engine/`) | ✅ |
+| L | The look (mockup parity) | ✅ built — v2 render path the default, the generated models in the world (statics + the rigged creatures), layout v2 + the crags pass, the final look round (`be974fb`…`ba2b136`: lush valley grass, the glacier's ice per pixel, snowier crags, fewer boulders on the green slopes, the Golden King's gold, the kokpar riders' gallop; progress/nalati-final/01–06). Parity polish beyond this is the user's (Phase D) |
 
-## Phase A — the look (now)
+## Phase A — the look
+
+**Status (2026-09-23): ✅ built.** A1 (the Golden King stays procedural — see row 5), A2 (v2 is the default; `?look=v1`),
+A3 (painted ground, braided river, slab lip, the crags pass), A4 (dressing; denser camp flowers / rocks → Phase D), and
+the final look round against round-8 (progress/nalati-final/01–06). A5's second 9-angle area was superseded by layout v2's
+whole-chunk views (`scripts/nalati-chunk-views.mjs`, default + `--set=crags`).
 
 Every step: measured with `nalati-camp9.mjs` (9 angles + budget) and a walk-around / orbit strip, and — for models —
 `nalati-models-compare.mjs`. Nothing ships if it only works from one camera.
@@ -164,16 +169,28 @@ bigger butterflies / kites.
 
 ## Phase C — ship
 
-1. Menu card + hero art (portrait + landscape) from in-engine shots — **open** (after layout v2); the loading steps /
+1. Menu card + hero art (portrait + landscape) from in-engine shots — **done** (`a95304b`: landscape = the kokpar field's
+   riders under the crags, portrait = the valley camp under the snow ring, the 640×360 thumb from the landscape;
+   `src/chunks/thumbs/nalati-grasslands*.jpg`, progress/nalati-final/07 shows the title card); the loading steps /
    nouns / weights for Nalati — **done** (`src/boot/steps.ts` `SHARD_STEPS`, its own timing store; the boot's panorama,
    ground tiles, card atlas and GLB props declared in `manifest.ts` and streamed as one 2.7 MB phone pack); the card
    has no "not yet playable" (the teaser row it lived on is gone), the blurb says what you can do, SUPER EXPERIMENTAL
    stays until the user says otherwise.
 2. Perf: phone tier ≥ 30 fps at every pose (≤ ~110 calls, ≤ 1.6 M tris headless — met at the camp, the bowl, the
    plains and the Titan fight: 79–95 calls, 1.1–1.4 M; settings in `handoff/port-v2.md` "Phone tier"; `?perf=1` shows
-   the check), desktop 60; load time; the 25 MB budget.
+   the check), desktop 60; load time; the 25 MB budget. **Done** — re-measured after the final look round (`a95304b`,
+   headless phone tier): spawn 76 calls / 0.91 M, rim 63 / 0.78 M, plateau 52 / 0.77 M, Eagle Rock 76 / 1.05 M, kokpar
+   69 / 0.85 M, camp 68 / 0.84 M; Nalati's desktop asset set ≤ 19.8 MB on disk (every model + texture, loaded or not).
 3. All gates green on a clean export (`tsc`, `oxlint`, `check-css`, `vite build`, `pnpm test`); Pine Hollow and
-   Driftwood unchanged.
+   Driftwood unchanged. **Done** on `a95304b`: `pnpm run typecheck` (incl. `tsc -p api`), whole-tree `oxlint`, `check-css`
+   (0 errors), `vite build`, `pnpm test` 183 / 183; Pine Hollow + Driftwood one muted headless load each, 60 fps, no page
+   errors.
+
+**Leftovers for Phase D** (the user's polish, from the handoff notes): the Golden King and the collie / Qara Batyr's
+horse stay procedural (no humanoid bake yet); riding extras not built (sheep raids + the mounted shepherd, panic from
+bites / lightning, riding with the stampede, a rename at the rail, reins); denser camp flowers / rocks, painted camp
+clutter, bigger butterflies; the escarpment's rock-splat patches read as flat grey rectangles from the valley; the
+meltwater ribbon climbs the glacier's side wall like a waterfall; the snow valley's boulders read blue-plastic in shade.
 4. A preview deploy at each milestone (the `nalati-grasslands` Vercel project).
 
 ## Phase D — the user

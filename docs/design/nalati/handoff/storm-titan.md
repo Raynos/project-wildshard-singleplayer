@@ -1,5 +1,10 @@
 # Handoff: B14, Jel Ata the Storm Titan
 
+**Status (2026-09-23, Phase C): ✅ done** — B14 built (`2691bde`: three phases, checkpoints, `weather.hold`,
+Naizagai + the Sky-Marked Saddle at the cairn) and its look pass (`5717952`, `stormTitanLook.ts`); both "small fixes
+from B12" are in (`cb56bf5`: elites and your horse get no combat nameplate; `ride.taming` → `elites.bind`). The
+"not started" state below is the history of the handoff.
+
 **State (2026-09-23):** not started in code. The work stopped (wrap-up call) after the design read and the code survey.
 **No Storm Titan code exists, and no file was changed for it.** The shard boots exactly as before. What follows is the
 survey, the decisions, and the build order, so the next agent can start at step 1 without re-reading everything.

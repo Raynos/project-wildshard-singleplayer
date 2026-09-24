@@ -1,5 +1,13 @@
 # Handoff — creatures (B4), riding (B7), taming (B8)
 
+**Status (2026-09-23, Phase C): ✅ done** — the glue below is in the shard (`cb56bf5`: the ride section in
+`src/nalati/index.ts`, main's one horse prompt, `extra.mounted`, `elites.bind` taming, holster while bucking); the
+one-horse rule (Argymaq replaces Tulpar, `HorseHerd.adoptStallion`); the bow's saddle factors multiply (the Golden Bow's
+bonus survives); `test/progress.test.ts` green; every horse / wolf / leopard / eagle / the flock is now the rigged
+generated hull (NALATI.md A1.5). **Left for Phase D (the user's polish, not built):** sheep raids at dusk + the mounted
+shepherd, panic from bites / lightning (rider thrown), riding with the stampede, a rename at the hitching rail, reins in
+the rider's hands. The sections below are the history of the handoff.
+
 Written 2026-09-23 by the creature / ride agent at wrap-up. The code is all on branch `nalati-grasslands`. Riding and
 taming run fully in the dev harness `dev/nalati-ride.html`, but **they are not wired into the shard yet** (see "Glue
 left to do" — about ten lines in `src/nalati/index.ts` and `src/main.ts`).

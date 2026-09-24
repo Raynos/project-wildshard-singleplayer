@@ -1,5 +1,12 @@
 # Handoff — Nalati dressing (look-pass lever 6, "density")
 
+**Status (2026-09-23, Phase C): ✅ done** — open item 1 (grass through rocks) is in: the v2 grass mask multiplies
+`1 − dressingCover`; item 2 went another way: the boulders / slabs are the generated rock GLBs (their own painted
+atlas); the final look round thinned the loose boulders on the green slopes (`place.ts`, progress/nalati-final/04).
+**Left for Phase D:** denser flowers to the track edge and small rocks round the camp (item 3), painted camp clutter
+(4), bigger butterflies / kites (5), a phone measurement of `planDressing`'s boot cost (6). The sections below are the
+history of the handoff.
+
 Owner until now: the dressing agent. Code: `src/world/nalati/dressing/` (+ the Dressing section in `src/nalati/index.ts`).
 Commits: `0422a8a`, `e734a51`, `4226eb8`, `ba4e99e`, `e81a609`.
 

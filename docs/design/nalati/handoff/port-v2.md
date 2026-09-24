@@ -1,5 +1,11 @@
 # Handoff: the Nalati look-v2 port (port lead, 2026-09-23)
 
+**Status (2026-09-23, Phase C): ✅ done** — steps 1–7 built, v2 is the Nalati default (`?look=v1` = the old path);
+the near-field painted grass cards are in (`src/nalati/look/grass.ts`); the final look round tuned the valley grass
+(lush green, not lime), the snow ring's snow and the glacier (progress/nalati-final/01–03). Phone tier measured at
+52–76 calls / 0.77–1.05 M tris at the spawn, rim, plateau, Eagle Rock, kokpar and camp poses. The sections below are
+the history of the handoff.
+
 The clean-room prototype (`dev/nalati-cleanroom/`, PLAN.md there) is the reference. This note covers what was ported
 into the shard, what is left in order, the user's hard rules, and how to test. **Status (2026-09-23, the look agent):
 steps 1–7 built — v2 is the Nalati default; `?look=v1` brings the old path back. Code in `src/nalati/look/`

@@ -1,5 +1,10 @@
 # B15 handoff — Nalati items, achievements + titles, skins, map (melee agent, 2026-09-23)
 
+**Status (2026-09-23, Phase C): ✅ done** — everything under "Left" below was built in `984fe3d` (tame + Titan
+achievements, wearable elite skins in `src/player/nalatiSkins.ts` + the Inventory tab, the Nalati map / minimap with
+the layout-v2 POI names from `NALATI_MAP`, hidden wolves off the minimap / aim assist). `pnpm test` green (183). The
+sections below are the history of the handoff.
+
 Stopped on the user's WRAP UP (token usage). Plan row: `docs/plans/NALATI.md` B15.
 
 ## Done
