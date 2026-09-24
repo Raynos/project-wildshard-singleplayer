@@ -106,8 +106,8 @@ export const PACKS: Readonly<Record<string, Readonly<Record<string, PackDef>>>> 
   },
   "nalati-grasslands": {
     "phone": {
-      url: "/assets/packs/nalati-grasslands.phone-dd3f3b00.bin",
-      bytes: 4745886,
+      url: "/assets/packs/nalati-grasslands.phone-e10ab3c8.bin",
+      bytes: 5527510,
       files: [
         ["/assets/baked/nalati-grasslands/terrain.bin",0,539530,"application/octet-stream"],
         ["/assets/nalati/tex/meadow.phone.webp",539530,109540,"image/webp"],
@@ -140,6 +140,9 @@ export const PACKS: Readonly<Record<string, Readonly<Record<string, PackDef>>>> 
         ["/assets/nalati/models/snow-leopard.phone.rigged.glb",4027926,379916,"model/gltf-binary"],
         ["/assets/nalati/models/sheep.phone.rigged.glb",4407842,154692,"model/gltf-binary"],
         ["/assets/nalati/models/eagle.phone.rigged.glb",4562534,183352,"model/gltf-binary"],
+        ["/assets/nalati/models/collie.phone.rigged.glb",4745886,268216,"model/gltf-binary"],
+        ["/assets/nalati/models/ghost-horse.phone.rigged.glb",5014102,309572,"model/gltf-binary"],
+        ["/assets/nalati/models/golden-king.phone.rigged.glb",5323674,203836,"model/gltf-binary"],
       ],
     },
   },
