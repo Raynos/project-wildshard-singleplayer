@@ -20,6 +20,7 @@
 //   node scripts/physics-baseline.mjs --no-build --mode=walk --video
 //   node scripts/physics-baseline.mjs --label=p2 --mode=walk
 //   node scripts/physics-baseline.mjs --compare progress/physics/p0-x.json progress/physics/p2-y.json
+//   node scripts/physics-baseline.mjs --mode=walk --shard=nalati-grasslands --url=http://127.0.0.1:5188   # a running dev server, no build
 import { spawn, execSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync, existsSync, renameSync, readdirSync, rmSync } from 'node:fs';
 import { resolve as resolvePath, join } from 'node:path';
@@ -76,23 +77,26 @@ const VIDEO = has('video');
 // both ways, a waypoint every 3 m — the stricter 0.35 m / 40° controller must not get stuck on a path players use
 const TRAILS = has('trails');
 const SERVE = resolvePath(flag('serve', ROOT)); // the checkout whose dist/ is served (a clean export of an older commit, for a same-session before / after)
+// --url: walk / pose against a server that is already running (the dev server: the working tree, no build, no preview)
+const URL_BASE = flag('url', '');
 
 const waitFor = async (fn, ms, what) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await fn()) return; await new Promise((resolve) => { setTimeout(resolve, 250); }); } throw new Error(what); };
 
 // ── build + preview ──
-if (!has('no-build')) { console.error('> pnpm build'); execSync('pnpm build', { cwd: ROOT, stdio: 'inherit' }); }
+if (URL_BASE) { /* a running server: nothing to build or serve */ }
+else if (!has('no-build')) { console.error('> pnpm build'); execSync('pnpm build', { cwd: ROOT, stdio: 'inherit' }); }
 else if (!existsSync(resolvePath(SERVE, 'dist/index.html'))) { console.error('dist/ missing; drop --no-build'); process.exit(2); }
-let listening = false, exited = null;
+let listening = URL_BASE !== '', exited = null;
 // vite itself, not `npx vite`: killing an npx wrapper leaves the server holding the port
-const preview = spawn(process.execPath, [resolvePath(ROOT, 'node_modules/vite/bin/vite.js'), 'preview', '--port', String(PORT), '--strictPort'], { cwd: SERVE, stdio: ['ignore', 'pipe', 'pipe'] });
+const preview = URL_BASE ? null : spawn(process.execPath, [resolvePath(ROOT, 'node_modules/vite/bin/vite.js'), 'preview', '--port', String(PORT), '--strictPort'], { cwd: SERVE, stdio: ['ignore', 'pipe', 'pipe'] });
 // oxlint-disable-next-line no-control-regex -- stripping vite's ANSI colours (it bolds the port number)
-preview.stdout.on('data', (d) => { if (String(d).replaceAll(/\u001B\[[\d;]*m/g, '').includes(`:${PORT}/`)) listening = true; });
-preview.stderr.on('data', (d) => { process.stderr.write(`[preview] ${d}`); });
-preview.on('exit', (code) => { exited = code ?? 'signal'; });
-const cleanup = () => { if (!preview.killed) preview.kill('SIGTERM'); };
+preview?.stdout.on('data', (d) => { if (String(d).replaceAll(/\u001B\[[\d;]*m/g, '').includes(`:${PORT}/`)) listening = true; });
+preview?.stderr.on('data', (d) => { process.stderr.write(`[preview] ${d}`); });
+preview?.on('exit', (code) => { exited = code ?? 'signal'; });
+const cleanup = () => { if (preview && !preview.killed) preview.kill('SIGTERM'); };
 process.on('exit', cleanup); process.on('SIGINT', () => { cleanup(); process.exit(130); });
 await waitFor(() => { if (exited !== null) { console.error(`vite preview exited (${exited}) — is port ${PORT} taken? --port=<free>`); process.exit(2); } return listening; }, 20_000, 'vite preview did not come up');
-const BASE = `http://localhost:${PORT}`;
+const BASE = URL_BASE === '' ? `http://localhost:${PORT}` : URL_BASE;
 let build = 'unknown';
 try { build = (await (await fetch(`${BASE}/version.json`, { cache: 'no-store' })).json()).build ?? build; } catch { /* keep 'unknown' */ }
 console.error(`> physics-baseline ${LABEL} build=${build} modes=${MODE.join(',')} cpu=${CPU}× (walk ${WALK_CPU}×)`);
