@@ -281,6 +281,8 @@ export interface ChunkDef {
   blurb: string;
   /** unfinished shard: the title deck stamps a big EXPERIMENTAL banner across its card */
   experimental?: boolean;
+  /** a playable shard still being built, open to everyone: the title deck stamps EARLY ACCESS (not EXPERIMENTAL) on its card */
+  earlyAccess?: boolean;
   /** URL of a 16:9 thumbnail for the picker (import a jpg from `src/chunks/thumbs/`) */
   thumbnail: string;
   /** full-bleed title-screen stills (jpg, ≤1600 px long side): the menu shows these instead of the live world */

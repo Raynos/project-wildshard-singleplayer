@@ -62,7 +62,7 @@ export type IntroStats = Record<string, string | { value: string; tone?: 'ok' | 
 /** One card in the title-screen deck: an authored chunk (playable) or a teaser (coming soon). */
 interface DeckCard {
   slug: string; displayName: string; label: string; thumbnail: string; tag: string; tagTone: 'ok' | 'soon' | '';
-  playable: boolean; active: boolean; heroPortrait?: string; heroLandscape?: string; blurb: string; experimental: boolean;
+  playable: boolean; active: boolean; heroPortrait?: string; heroLandscape?: string; blurb: string; experimental: boolean; earlyAccess: boolean;
   /** ChunkDef.explore: the shard offers EXPLORE WORLD */
   explore: boolean;
 }
@@ -468,12 +468,12 @@ export class HUD {
       ...CHUNKS.map((c): DeckCard => ({
         slug: c.slug, displayName: c.displayName, thumbnail: c.thumbnail, blurb: c.blurb,
         label: `${c.biome} · ${c.gridCoords} · ${CHUNK_SIZE} m shard`,
-        tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def, experimental: c.experimental === true, explore: c.explore === true,
+        tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def, experimental: c.experimental === true, earlyAccess: c.earlyAccess === true, explore: c.explore === true,
         heroPortrait: c.heroPortrait, heroLandscape: c.heroLandscape,
       })),
       ...PLACEHOLDERS.map((t): DeckCard => ({
         slug: t.slug, displayName: t.displayName, thumbnail: t.thumbnail, blurb: t.blurb,
-        label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false, experimental: false, explore: false,
+        label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false, experimental: false, earlyAccess: false, explore: false,
         heroPortrait: t.heroPortrait, heroLandscape: t.heroLandscape,
       })),
     ];
@@ -484,7 +484,7 @@ export class HUD {
       <div class="ws-menu-deck">
         <div class="ws-menu-cards"><div class="ws-menu-deck-track">${cards.map((c, i) => `
           <button class="ws-menu-card${c.active ? ' active' : ''}${c.playable ? '' : ' soon'}" type="button" data-i="${i}" title="${c.blurb.replaceAll('"', '&quot;')}">
-            <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-menu-card-tag ${c.tagTone}">${c.tag}</i>${c.experimental ? '<i class="ws-menu-card-exp">Experimental</i>' : ''}</span>
+            <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-menu-card-tag ${c.tagTone}">${c.tag}</i>${c.earlyAccess ? '<i class="ws-menu-card-exp ws-menu-card-ea">Early access</i>' : c.experimental ? '<i class="ws-menu-card-exp">Experimental</i>' : ''}</span>
             <b>${c.displayName}</b><small>${c.label}</small>
           </button>`).join('')}
         </div></div>
@@ -527,7 +527,7 @@ export class HUD {
       enterBtn.classList.toggle('soon', !c.playable);
       enterBtn.disabled = !c.playable;
       enterTitle.textContent = c.playable ? 'Enter world' : 'Coming soon';
-      enterHint.textContent = !c.playable ? 'Not yet playable' : c.experimental ? 'Experimental · rough edges' : c.active ? 'Play' : `Reloads with ${c.displayName}`;
+      enterHint.textContent = !c.playable ? 'Not yet playable' : c.earlyAccess ? 'Early access' : c.experimental ? 'Experimental · rough edges' : c.active ? 'Play' : `Reloads with ${c.displayName}`;
       exploreBtn.classList.toggle('off', !c.explore); // the shard's ChunkDef.explore (Driftwood + Pine Hollow — project/archive/2026-09-23-explore-world.md D4, E66)
     };
     const select = (raw: number, smooth = true): void => {

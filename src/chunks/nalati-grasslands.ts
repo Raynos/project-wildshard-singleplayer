@@ -561,7 +561,7 @@ export const NALATI_GRASSLANDS: ChunkDef = {
   seed: SEED,
   treeCount: 40,
   biome: 'Alpine steppe',
-  experimental: true,
+  earlyAccess: true, // NALATI-MERGE E1 (the user's pick): in the shard picker for everyone, tagged EARLY ACCESS
   blurb: 'SUPER EXPERIMENTAL — the Tian Shan steppe, painted: cross the braided Kunes, tame a steppe horse and hunt wolves from the saddle across the golden bowl of the Sky Grassland, break the Golden King in his kurgan, and ride out a storm to face the Storm Titan. Snow Lotus Valley waits in the snow ring. Built live, rough edges everywhere.',
   thumbnail, heroPortrait, heroLandscape,
   style: 'painterly',
