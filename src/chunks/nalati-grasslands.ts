@@ -27,7 +27,7 @@ import {
   RIVER_LEVEL, riverZAt, riverHalfAt, BRIDGE_XZ, BOWL, RIM_N, SKY_ROAD, SKY_ROAD_RIM, EAGLE_ROCK, KOKPAR, KURGANS, SUMMER_YURTS,
   WATCHTOWER, CAIRN, SNOW_LINE, CRAGS, WEST_CRAGS, snowValleyX, snowValleyHalf, snowValleyFloor, GLACIER, MELT_STREAM,
   LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, CAMP_SPUR, BOWL_TRACKS, LONE_SPRUCE,
-  NALATI_MAP,
+  NALATI_MAP, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL,
 } from './nalatiLayout';
 import type { ChunkDef, ChunkTerrain, RGB, Vec2 } from './ChunkDef';
 import thumbnail from './thumbs/nalati-grasslands.jpg';
@@ -423,9 +423,12 @@ export function ringGround(x: number, z: number, h: number, slope: number): [num
 const TERRAIN: ChunkTerrain = (() => {
   const base = buildTerrain(SEED, {
     landscape: (x, z, { n, n2 }) => landscape(x, z, n, n2),
-    // the four mandated entry roads first (edge midpoint, straight for ROAD_LENGTH), then the sky road, the camp spur and
-    // the bowl's tracks
-    trails: [S_ROAD_PTS, N_ROAD_PTS, E_ROAD_PTS, W_ROAD_PTS, SKY_ROAD, CAMP_SPUR, ...BOWL_TRACKS],
+    // the four mandated entry roads first (edge midpoint, straight for ROAD_LENGTH), then the sky road, the camp spur,
+    // the bowl's tracks and the footpaths up to Eagle Rock, the cave and Argymaq's pasture
+    trails: [S_ROAD_PTS, N_ROAD_PTS, E_ROAD_PTS, W_ROAD_PTS, SKY_ROAD, CAMP_SPUR, ...BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL],
+    // the footpaths climb no steeper than 27° (the player's motor: 40°; paths.ts boards what is past 30°) — cut and
+    // filled along the line, and a bench levelled across the whole way (they traverse slopes past 40°)
+    graded: { paths: [EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL], maxGrade: Math.tan(27 * Math.PI / 180), bench: true },
     cabinSites: [],
     /**
      * The painterly terrain paints itself (`groundColor` below); this splat is what grass / placement read:

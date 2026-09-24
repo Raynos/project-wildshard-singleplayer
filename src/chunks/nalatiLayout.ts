@@ -104,7 +104,24 @@ export const N_ROAD_PTS: XZ[] = [[0, 250], [0, 190], [0, 156]];
 export const S_ROAD_PTS: XZ[] = [[0, -250], [0, -190], [-4, -150], [-2, -110], [4, -76], [2, -50], [0, -20], [6, 12]];
 export const W_ROAD_PTS: XZ[] = [[250, 0], [190, 0], [165, 12], [140, 40], [120, 70]];
 export const E_ROAD_PTS: XZ[] = [[-250, 0], [-190, 0], [-166, 16], [-142, 42], [-118, 66]];
-export const CAMP_SPUR: XZ[] = [[0, 214], [40, 218], [CAMP.x - 14, CAMP.z]];
+/** the camp spur: the N road → the camp's east mouth — north of its split-rail fence (RoadFurniture, to x = 60), then
+ *  south of the hitching rail + its trough (NALATI-MERGE P4: its end ran into them at (CAMP.x − 17, CAMP.z)) */
+export const CAMP_SPUR: XZ[] = [[0, 214], [40, 218], [62, 215.5], [CAMP.x - 14, CAMP.z - 5.5]];
+/**
+ * The footpaths up to the POIs whose ground climbs past the player's 40° (NALATI-MERGE P4): graded (`TerrainSpec.graded`:
+ * the terrain cut and filled to ≤ 27° along each — under the 30° past which paths.ts lays walkway boards — and levelled
+ * across as a bench) and tracks (gravel on the map and the ground). Each ends where its shelf meets the ground (≤ 5 cm),
+ * so no step stands at the top.
+ *   EAGLE_TRAIL    from the W road round the knoll's south-west flank onto its crest beside the tor, where the scramble
+ *                  starts (the bench lifts the scramble's foot onto the crest: its first ten slabs lay buried under it,
+ *                  3 m over the old foot)
+ *   CAVE_TRAIL     from the bowl up the cave shelf's east side onto the flat south of Aqbars' cave (the porch is its
+ *                  north-east face: round the cave's west wall)
+ *   ARGYMAQ_TRAIL  from the bowl up the Crags' north flank in two long legs onto Argymaq's high pasture
+ */
+export const EAGLE_TRAIL: XZ[] = [[147, 33], [180, 44], [198, 58], [196, 70], [188, 73.8], [178, 73.4], [171.5, 77.5]];
+export const CAVE_TRAIL: XZ[] = [[140, -40], [122, -48], [121, -64], [127, -71], [132, -73.5], [137, -73]];
+export const ARGYMAQ_TRAIL: XZ[] = [[-166, -32], [-192, -42], [-168, -52], [-160, -60], [-156, -67]];
 /** the bowl's tracks: the gateway → the horse plains → the kokpar field → the kurgans; the S road up to the kokpar */
 export const BOWL_TRACKS: XZ[][] = [
   [[120, 70], [86, 54], [34, 40], [-26, 38]],

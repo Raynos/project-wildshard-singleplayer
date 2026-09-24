@@ -79,9 +79,11 @@ export interface TerrainSpec {
   /**
    * Paths graded to a walkable profile (PHYSICS.md: the player climbs ≤ 40°): along each polyline the ground is cut
    * and filled so the centreline never climbs steeper than `maxGrade` (rise / run), blended out over a few metres
-   * each side. Where the ground is already that gentle it is left exactly as it is.
+   * each side. Where the ground is already that gentle it is left exactly as it is — unless `bench`: then the whole
+   * path is a shelf levelled across (a footpath traversing a slope steeper than the motor climbs, whose own grade is
+   * gentle, still needs a flat tread to walk on).
    */
-  graded?: { paths: Vec2[][]; maxGrade: number };
+  graded?: { paths: Vec2[][]; maxGrade: number; bench?: boolean };
   /**
    * Ground-layer blend for `ChunkAssets.groundLayers` — [layer0, layer1, layer2, layer3], any
    * scale (normalised for you). `t` is the finished terrain so you can query slope, height,

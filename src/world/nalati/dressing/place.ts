@@ -622,7 +622,7 @@ function nearCollider(x: number, z: number, avoid: readonly Box[], m: number): b
 }
 
 /** the camp spur's last leg (CAMP_SPUR): the track the camp approach looks along */
-const SPUR_A: [number, number] = CAMP_SPUR[1] ?? [40, 204], SPUR_B: [number, number] = [CAMP.x - 14, CAMP.z];
+const SPUR_A: [number, number] = CAMP_SPUR[1] ?? [40, 204], SPUR_B: [number, number] = CAMP_SPUR.at(-1) ?? [CAMP.x - 14, CAMP.z];
 
 /**
  * Loose-clutter anchors (kind 0 firewood · 1 dung cakes · 2 chopping block · 3 pots · 4 sacks · 5 felts · 6 kumis churn),
