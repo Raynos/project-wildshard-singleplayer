@@ -1,0 +1,38 @@
+{
+  "tag": "ph-l10-rain",
+  "url": "http://localhost:4212",
+  "query": "tod=0.3&clock=1000000&weather=rain&weatherT=0.5",
+  "when": "2026-09-24T20:34:36.874Z",
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "gate",
+      "calls": 124,
+      "tris": 1427183,
+      "msP50": 19.299999713897705,
+      "msP95": 20.40000009536743,
+      "programs": 97,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "cabin",
+      "calls": 163,
+      "tris": 1571210,
+      "msP50": 20,
+      "msP95": 20.800000190734863,
+      "programs": 98,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "pond",
+      "calls": 106,
+      "tris": 1127442,
+      "msP50": 14.200000286102295,
+      "msP95": 20.199999809265137,
+      "programs": 98,
+      "forest": "batched"
+    }
+  ]
+}

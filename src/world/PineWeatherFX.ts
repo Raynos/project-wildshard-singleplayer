@@ -252,7 +252,7 @@ export class PineWeatherFX {
       r.uR.value = R;
       r.uLen.value = 0.42 + 0.26 * w.rain;
       r.uCol.value.copy(fogColor).multiplyScalar(1.5).addScalar(0.04);
-      r.uAlpha.value = 0.13 + 0.15 * w.rain;
+      r.uAlpha.value = 0.16 + 0.2 * w.rain;
       this.rain.geometry.setDrawRange(0, Math.ceil(this.rainCount * Math.min(1, w.rain * 1.1)) * 6);
     }
     this.puddleFade.value = THREE.MathUtils.smoothstep(w.wet, 0.05, 0.6);

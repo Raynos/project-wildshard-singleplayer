@@ -1,0 +1,38 @@
+{
+  "tag": "ph-l10-clear",
+  "url": "http://localhost:4212",
+  "query": "tod=0.3&clock=1000000&weather=clear",
+  "when": "2026-09-24T20:34:08.390Z",
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "gate",
+      "calls": 122,
+      "tris": 1415393,
+      "msP50": 17.699999809265137,
+      "msP95": 22.40000009536743,
+      "programs": 97,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "cabin",
+      "calls": 165,
+      "tris": 1573346,
+      "msP50": 14,
+      "msP95": 21.59999990463257,
+      "programs": 98,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "pond",
+      "calls": 103,
+      "tris": 1112725,
+      "msP50": 14.400000095367432,
+      "msP95": 21.40000009536743,
+      "programs": 98,
+      "forest": "batched"
+    }
+  ]
+}

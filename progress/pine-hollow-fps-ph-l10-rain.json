@@ -1,0 +1,52 @@
+{
+  "tag": "ph-l10-rain",
+  "url": "http://localhost:4212",
+  "query": "tod=0.3&clock=1000000&weather=rain&weatherT=0.5",
+  "cpu": 4,
+  "frames": 120,
+  "when": "2026-09-24T20:36:03.748Z",
+  "rows": [
+    {
+      "pose": "gate",
+      "intervalP50": 33.3,
+      "intervalP95": 33.9,
+      "intervalMin": 32.3,
+      "locked": 100,
+      "short": 0,
+      "workP50": 12.1,
+      "workP95": 14,
+      "workMax": 16.4,
+      "calls": 124,
+      "trisM": 1.43,
+      "fps": 30
+    },
+    {
+      "pose": "cabin",
+      "intervalP50": 33.3,
+      "intervalP95": 34,
+      "intervalMin": 25.3,
+      "locked": 98.3,
+      "short": 0,
+      "workP50": 15,
+      "workP95": 18.7,
+      "workMax": 22.1,
+      "calls": 162,
+      "trisM": 1.57,
+      "fps": 30
+    },
+    {
+      "pose": "pond",
+      "intervalP50": 33.4,
+      "intervalP95": 34,
+      "intervalMin": 32.3,
+      "locked": 100,
+      "short": 0,
+      "workP50": 12.9,
+      "workP95": 15.6,
+      "workMax": 17,
+      "calls": 107,
+      "trisM": 1.13,
+      "fps": 30
+    }
+  ]
+}

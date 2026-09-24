@@ -1,0 +1,38 @@
+{
+  "tag": "ph-l10-before",
+  "url": "http://localhost:4211",
+  "query": "tod=0.3&clock=1000000",
+  "when": "2026-09-24T20:33:35.490Z",
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "gate",
+      "calls": 123,
+      "tris": 1419393,
+      "msP50": 15.899999618530273,
+      "msP95": 20.199999809265137,
+      "programs": 96,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "cabin",
+      "calls": 166,
+      "tris": 1577359,
+      "msP50": 19.200000286102295,
+      "msP95": 21.700000286102295,
+      "programs": 97,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "pond",
+      "calls": 104,
+      "tris": 1117225,
+      "msP50": 13.799999713897705,
+      "msP95": 21.5,
+      "programs": 97,
+      "forest": "batched"
+    }
+  ]
+}

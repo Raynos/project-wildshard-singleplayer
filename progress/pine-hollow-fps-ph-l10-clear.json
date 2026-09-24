@@ -1,0 +1,52 @@
+{
+  "tag": "ph-l10-clear",
+  "url": "http://localhost:4212",
+  "query": "tod=0.3&clock=1000000&weather=clear",
+  "cpu": 4,
+  "frames": 120,
+  "when": "2026-09-24T20:35:24.836Z",
+  "rows": [
+    {
+      "pose": "gate",
+      "intervalP50": 33.3,
+      "intervalP95": 33.9,
+      "intervalMin": 32.4,
+      "locked": 100,
+      "short": 0,
+      "workP50": 12.4,
+      "workP95": 14.7,
+      "workMax": 16.8,
+      "calls": 123,
+      "trisM": 1.42,
+      "fps": 30
+    },
+    {
+      "pose": "cabin",
+      "intervalP50": 33.4,
+      "intervalP95": 34,
+      "intervalMin": 29,
+      "locked": 98.3,
+      "short": 0,
+      "workP50": 15.8,
+      "workP95": 19.4,
+      "workMax": 29.1,
+      "calls": 165,
+      "trisM": 1.57,
+      "fps": 30
+    },
+    {
+      "pose": "pond",
+      "intervalP50": 33.4,
+      "intervalP95": 33.9,
+      "intervalMin": 32.4,
+      "locked": 100,
+      "short": 0,
+      "workP50": 13.4,
+      "workP95": 16.2,
+      "workMax": 25.5,
+      "calls": 104,
+      "trisM": 1.11,
+      "fps": 30
+    }
+  ]
+}
