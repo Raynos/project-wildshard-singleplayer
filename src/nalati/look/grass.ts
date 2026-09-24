@@ -179,10 +179,12 @@ void main() {
   // colour: the root sunk into the painted ground → the tip, olive / green / gold by patch and the field's tone
   vec3 gnd = texture(tGround, fUV(xz)).rgb;
   float tone = fld.g;
-  vec3 tipA = vec3(.5, .56, .1), tipB = vec3(.74, .6, .15), tipC = vec3(.22, .36, .08);
-  float gold = clamp(smoothstep(.42, .78, gFbm(xz * .21 + 11.)) * .85 + tone * .45, 0., 1.);
+  // the valley (low tone) is lush: a deeper, cooler green and few gold patches; the plateau keeps its olive / gold
+  float lush = 1. - smoothstep(.3, .55, tone);
+  vec3 tipA = mix(vec3(.5, .56, .1), vec3(.3, .5, .11), lush), tipB = vec3(.74, .6, .15), tipC = mix(vec3(.22, .36, .08), vec3(.12, .29, .07), lush);
+  float gold = clamp(smoothstep(.42, .78, gFbm(xz * .21 + 11.)) * .85 + tone * .45, 0., 1.) * (1. - .7 * lush);
   vec3 tip = mix(mix(tipC, tipA, smoothstep(.2, .6, patchN)), tipB, gold);
-  tip = mix(tip, vec3(.72, .62, .32), step(.92, gHash12(cell + 4.4)) * .8);     // a dry straw blade here and there
+  tip = mix(tip, vec3(.72, .62, .32), step(.92 + .06 * lush, gHash12(cell + 4.4)) * .8);     // a dry straw blade here and there
   tip *= mix(.65, 1.2, r);
   vec3 rootC = mix(vec3(.02, .04, .012), gnd * .35, .35);
   vCol = mix(rootC, tip, smoothstep(0., .85, t));
@@ -358,8 +360,9 @@ void main() {
   vN = normalize(vec3(nrm.x, 0.9, nrm.y));
   vUv = vec2(mix(uvr.x, uvr.z, position.x + .5), mix(uvr.y, uvr.w, t));
   // the tint: the card's painted colour, pulled toward the field's gold / green patch and the ground under it
-  float gold = clamp(smoothstep(.42, .78, gFbm(xz * .21 + 11.)) * .85 + fld.g * .45, 0., 1.);
-  vTint = mix(vec3(.86, .98, .78), vec3(1.12, .98, .7), gold) * mix(.78, 1.08, r) * mix(.85, 1.05, patchN);
+  float lush = 1. - smoothstep(.3, .55, fld.g);   // the valley: greener, cooler clumps (the plateau keeps its gold)
+  float gold = clamp(smoothstep(.42, .78, gFbm(xz * .21 + 11.)) * .85 + fld.g * .45, 0., 1.) * (1. - .7 * lush);
+  vTint = mix(mix(vec3(.86, .98, .78), vec3(.68, .92, .7), lush), vec3(1.12, .98, .7), gold) * mix(.78, 1.08, r) * mix(.85, 1.05, patchN);
   vT = t;
   vSelf = mix(.42, 1., smoothstep(0., .8, t)) * mix(bakedContact(root), 1., t * .5);
   vFogWorldPos = p;
