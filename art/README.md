@@ -233,3 +233,13 @@ export of `7b1430b`), top row the Hollow cabin anchor's FP front (`round-0-basel
 bottom row the ranger's porch and fire pit (0, −42, yaw 2.1). **A** the new clock (`src/world/PineDayNight.ts`) at dawn
 (`?tod=dawn`), day, golden hour and night (moonlit, the lanterns and fire lit); **B** the old fixed HDRI sunset
 (`?tod=sunset-fixed`). No codex edits.
+
+### Pine Hollow hunter's-journal sketches (`art/pine-hollow/round-6-journal-sketches/`, 2026-09-24, PH-C5 / C4)
+
+codex image_gen, one run per image with the pencil plate of `round-4-journal-ui/A-journal-open-book.jpg` as the style
+reference (no reference for the chalk). **Beasts + elites** (16, square, the animal alone on blank paper): `red-deer`,
+`white-deer`, `piebald`, `boar`, `black-boar`, `scarback`, `elk`, `pale-elk`, `black-bear`, `brown-bear`, `grizzled-sow`,
+`ironhide`, `ghost-stag`, `blackpaw`, `imperial-bull`, `antler-king` (the Bark Warden, board B2 A). **Places** (18, 3:2
+vignettes, the POIs of layout v2): `place-<poi id>`. **Chalk** (5, white on black, the trophy wall's outlines):
+`chalk-stag`, `chalk-elk`, `chalk-boar`, `chalk-bear`, `chalk-king`. Re-rolled: `pale-elk` (came back cut out on black)
+and `chalk-king` (filled grey, not an outline). `scripts/journal-art.py` ships them to `public/assets/pine-hollow/journal/`.
