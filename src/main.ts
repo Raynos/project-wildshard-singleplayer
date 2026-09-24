@@ -63,7 +63,7 @@ import { dayClockClock, dayNightClock, setActiveClock } from './world/WorldClock
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
 import { HurtArc, deathLine, respawnWhere, type Killer } from './ui/HurtArc';
-import { setAimTargets, meleeLock, lockOn as lockState } from './player/AimTargets';
+import { setAimTargets, meleeLock, lockOn as lockState, type AimTarget } from './player/AimTargets';
 import { pastRidden, riding } from './player/riding';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
 import { useShardSteps } from './boot/steps';
@@ -475,7 +475,7 @@ async function main() {
   };
   // aim assist reads the live array; Nalati hands it a filtered copy each frame (B9 / B15: a wolf hidden in long grass, the
   // horse you ride and the camp horses / Tulpar are not targets — the sabre's pass side reads the same list)
-  const aimList: typeof animals.animals = [];
+  const aimList: AimTarget[] = [];
   setAimTargets(painterly ? aimList : animals.animals);
   // the AR-15 is found, not issued: a floating pickup on the floor of cabin 1 (the hollow), inside by the door wall
   // (cabin local frame: door on +X, chimney end -Z — Cabin.ts); "[E] Take AR-15" through the door / harvest prompt path
@@ -741,7 +741,7 @@ async function main() {
     // swimming holsters the weapon (hands only; Hands.ts follows)
     if (player.swimming !== swimHold) { swimHold = player.swimming; weapons.visible = !swimHold; weapons.setEnabled(!swimHold); }
     animals.update(dt, t, player.position, player.sprinting);
-    if (painterly) { aimList.length = 0; for (const a of animals.animals) if (a.mem['hidden'] !== 1 && a.mem['owned'] !== 1 && a !== riding.horse) aimList.push(a); }
+    if (painterly) { aimList.length = 0; for (const a of animals.animals) if (a.mem['hidden'] !== 1 && a.mem['owned'] !== 1 && a !== riding.horse) aimList.push(a); const heart = nalati?.titan.lockTarget() ?? null; if (heart !== null) aimList.push(heart); } // + Jel Ata's heart for the lock-on (NALATI-MERGE H3)
     weapons.update(dt, t); // every weapon ticks (bolts in flight keep flying while the rifle is out)
     rifleDrop?.update(dt, t, game.renderer, game.camera);
     ironDrop?.update(dt, t, game.renderer, game.camera, player.position); // walk-to-pick-me-up

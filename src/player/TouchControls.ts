@@ -39,6 +39,8 @@
  *    (--cd), a cyan flash when it is back (.ready), and a tap before then only shakes the disc (.deny). While the player swims (`player.onSwimChange`) JUMP gives its spot to DIVE, a HELD button
  *    (`player.touchDive` → `player.diveHeld`); once the eye is under (`player.submerged`, polled) SURFACE appears in
  *    DODGE's spot (`player.touchSurface`, hold to come up) and hides again on surfacing.
+ *  - LOCK shows while a weapon that locks is held (`.lockable` — LockOnTarget's LOCK_WEAPONS: the swords, Nalati's sabre and
+ *    spear, NALATI-MERGE H3); in Nalati's saddle (`player.ride`, `.riding`) MOVE steers the horse, so it never reads ORBIT.
  *  - AIM (ranged kit only): the iron-sights toggle latch (`weapons.adsHeld`, tap on / tap off, lit `.on`) sits up-right of
  *    the FIRE disc, clear of the pill, left of DODGE, on the same thumb. Crossing between melee and ranged drops the latch, so a sword never
  *    comes up charging and a crossbow never comes up sighted.
@@ -71,7 +73,7 @@ import type { Player } from './Player';
 import type { WeaponId, Weapons } from './Weapons';
 import { AimAssist } from './AimAssist';
 import { lockOn, meleeLock } from './AimTargets';
-import { FlickTracker, addLockOffset, type LockOnSystem } from './LockOnTarget';
+import { FlickTracker, LOCK_WEAPONS, addLockOffset, type LockOnSystem } from './LockOnTarget';
 import { getSetting } from '../ui/Settings';
 
 export const IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
@@ -116,6 +118,8 @@ export class TouchControls {
   private readonly flick = new FlickTracker(); private lookT0 = 0; private lookDown = { x: 0, y: 0 }; private lookInBar = false;
   private wasSpear = false; // THROW + BRACE replace AIM + JUMP while the spear is held
   private wasBow = false; // the AIM disc reads DRAW (and rings the draw) while Nalati's bow is held
+  private wasLockable = false; // the LOCK disc shows while a weapon that locks is held (LOCK_WEAPONS: the swords, Nalati's sabre + spear)
+  private wasRiding = false; // in Nalati's saddle MOVE steers the horse: it never reads ORBIT (`.riding`)
   private drawShown = -1; // the DRAW ring (--charge on AIM) as last painted
 
   constructor(private player: Player, private weapons: Weapons, force = false, private lock?: LockOnSystem) {
@@ -179,6 +183,9 @@ export class TouchControls {
         this.heavyHeld = false;
         aim.classList.remove('on'); attack.classList.remove('on');
       }
+      const lockable = LOCK_WEAPONS.has(weapons.current.id), riding = player.ride !== null;
+      if (lockable !== this.wasLockable) { this.wasLockable = lockable; root.classList.toggle('lockable', lockable); }
+      if (riding !== this.wasRiding) { this.wasRiding = riding; root.classList.toggle('riding', riding); this.lockShown = ''; }
       const bow = weapons.current.id === 'bow';
       if (bow !== this.wasBow) { this.wasBow = bow; root.classList.toggle('bow', bow); aimLabel.textContent = bow ? 'Draw' : 'Aim'; }
       if (bow) { const c = weapons.current.charge ?? 0; if (c !== this.drawShown) { this.drawShown = c; aim.style.setProperty('--charge', c.toFixed(3)); } }
@@ -196,9 +203,9 @@ export class TouchControls {
       if (ls !== this.lockShown) {
         this.lockShown = ls;
         root.classList.toggle('lock-available', ls === 'available'); root.classList.toggle('locked', ls === 'locked');
-        lockLabel.textContent = ls === 'locked' ? 'Locked' : 'Lock'; lookLabel.textContent = ls === 'locked' ? 'Switch' : 'Look'; moveLabel.textContent = ls === 'locked' ? 'Orbit' : 'Move';
+        lockLabel.textContent = ls === 'locked' ? 'Locked' : 'Lock'; lookLabel.textContent = ls === 'locked' ? 'Switch' : 'Look'; moveLabel.textContent = ls === 'locked' && !riding ? 'Orbit' : 'Move';
       }
-      const orbit = ls === 'locked' ? Math.sign(Math.round(player.touchMove.x * 3) / 3) : 0;
+      const orbit = ls === 'locked' && !riding ? Math.sign(Math.round(player.touchMove.x * 3) / 3) : 0;
       if (orbit !== this.orbitShown) { this.orbitShown = orbit; root.classList.toggle('orbit-l', orbit < 0); root.classList.toggle('orbit-r', orbit > 0); }
       // DODGE cooldown (E59): a dark clock sweep unwinds over the disc (--cd 1 → 0) and it flashes .ready when it is back
       const cd = Math.round(player.dodgeCooldown * 100) / 100;

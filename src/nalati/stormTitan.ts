@@ -6,6 +6,7 @@ import type { AnimalManager } from '../entities/AnimalManager';
 import type { Wildlife } from '../entities/Wildlife';
 import type { Interactable } from '../world/Cabin';
 import type { TargetAnimal, TargetHit } from '../player/Crossbow';
+import type { AimTarget } from '../player/AimTargets';
 import type { Sabre } from '../player/Sabre';
 import type { NalatiWeather } from './weather';
 import type { GhostRiders } from './ghostRiders';
@@ -576,6 +577,15 @@ export class StormTitanFight implements BossScript {
   };
   private readonly heartHit: TargetHit = { animal: this.heartTarget, point: new THREE.Vector3(), distance: 0, headshot: false };
 
+  /** the heart as a lock-on target (NALATI-MERGE H3, src/player/LockOnTarget.ts): while he fights, from anywhere in the arena
+   *  (`lockRange` — he stands 50–140 m out beyond the rim) — main.ts adds it to the aim list; null otherwise */
+  private readonly heartLock: AimTarget = { kind: 'storm-titan', position: new THREE.Vector3(), alive: true, lockRange: 150, dims: { bodyY: 0, bodyRadius: 4 } };
+  lockTarget(): AimTarget | null {
+    if (!this.fighting || !this.body.visible || this.victoryT >= 0) return null;
+    this.body.heartWorld(this.heartLock.position); this.heartLock.alive = !this.dead;
+    return this.heartLock;
+  }
+
   target(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, hit: TargetHit | null): TargetHit | null {
     if (!this.fighting || !this.body.visible || this.victoryT >= 0) return hit;
     const best = hit !== null ? Math.min(maxDist, hit.distance) : maxDist;
@@ -1098,6 +1108,8 @@ export class StormTitan {
 
   /** the heart in main's Targets chain */
   target(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, hit: TargetHit | null): TargetHit | null { return this.fight.target(origin, dir, maxDist, hit); }
+  /** the heart for the lock-on while he fights (H3), else null */
+  lockTarget(): AimTarget | null { return this.fight.lockTarget(); }
 }
 
 /** the wiring's one call (src/nalati/index.ts): the Titan's meshes built at boot (before the precompile), bound later */

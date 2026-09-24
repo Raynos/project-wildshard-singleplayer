@@ -21,6 +21,9 @@ export interface AimTarget {
   dims?: { bodyY?: number; bodyRadius?: number; bodyHalfLen?: number };
   /** the AI state ('attack' while winding up a hit) — the lock-on's tie-break (src/player/LockOnTarget.ts) */
   state?: string;
+  /** the lock-on's acquire range for this target (m, feet → body edge) when it is not the usual 12 m — Nalati's Storm
+   *  Titan, a 110 m giant beyond the rim, is locked on from the arena (NALATI-MERGE H3); it breaks at 1.5 × this */
+  lockRange?: number;
 }
 
 let targets: readonly AimTarget[] = [];
