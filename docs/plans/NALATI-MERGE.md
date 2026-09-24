@@ -121,6 +121,8 @@ and [review-experience.md](../design/nalati/merge/review-experience.md) (HUD, re
 
 ## Open questions for the user (parked while he is AFK; defaults in force)
 
+- L3 (the user, 2026-09-24): "I need to still play it — keep them all in the Look Lab": terrain shadows, terrain AO + bounce
+  and model shading all stay switchable (pause ▸ Settings ▸ Debug ▸ Look lab, default off) until he picks after playing.
 - H2: the sun / moon rim glyph on Driftwood + Pine Hollow too? (wave 8 said "every shard"; H2 kept it Nalati-only to leave
   main's HUD untouched) — default: Nalati only.
 - H2: D's sky row reads "DAY" next to the glyph while wave 6 said "no text" for the clock — default: keep D's word in the
