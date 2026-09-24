@@ -46,6 +46,8 @@
  *             cross-origin (Google Fonts) and `?sw=0`: untouched.
  *   message   { type: 'SKIP_WAITING' } → activate now (src/boot/sw.ts `adopt()`, wired to the build pill)
  *             { type: 'VERSION' }      → what this worker holds, back on the message port.
+ *             { type: 'BUILD' }        → just { build }: cheap, so a page can tell whether a waiting worker is the build it
+ *                                        already runs (src/boot/sw.ts `announce()`, E95).
  */
 const BUILD = '__BUILD_ID__';
 const ASSETS = '__ASSET_ID__';
@@ -187,6 +189,7 @@ self.addEventListener('message', (event) => {
   if (!data) return;
   if (data.type === 'SKIP_WAITING') self.skipWaiting();
   else if (data.type === 'VERSION') event.waitUntil(reply(event, version()));
+  else if (data.type === 'BUILD') event.waitUntil(reply(event, Promise.resolve({ type: 'BUILD', build: BUILD })));
 });
 
 async function reply(event, work) {

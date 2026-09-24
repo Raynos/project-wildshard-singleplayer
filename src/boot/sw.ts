@@ -36,6 +36,8 @@
  * worker is only registered with `?sw=1` (a stale worker would serve yesterday's bundle over HMR).
  */
 
+declare const __BUILD_ID__: string;
+
 /** The longest boot waits for the worker to take control, or for a hand-over to a new build. */
 const CAP_MS = 2500;
 
@@ -74,10 +76,38 @@ function swAllowed(): boolean {
   return true;
 }
 
-/** A newer worker reached `installed` while we are controlled: announce it, do not adopt it. */
+/**
+ * A newer worker reached `installed` while we are controlled: announce it, do not adopt it — unless it holds the build
+ * this page already runs. That happens when the pill was tapped before the worker finished installing: the `?v=`
+ * reload fetched the new build from the network under the old worker, and the new worker then came up waiting. Lighting
+ * the pill for it asked for a second tap and a second loading screen for the build already on screen (E95), so it is
+ * activated quietly instead (no reload: the page is that build already).
+ */
 function announce(w: ServiceWorker): void {
-  api.waiting = w;
-  window.dispatchEvent(new CustomEvent('ws-sw-waiting', { detail: { waiting: w } }));
+  void (async () => {
+    const build = await buildOf(w);
+    if (w.state === 'redundant') return;
+    if (build?.startsWith(`${__BUILD_ID__}-`) === true) {
+      // oxlint-disable-next-line unicorn/require-post-message-target-origin -- ServiceWorker.postMessage has no targetOrigin parameter (that is Window.postMessage)
+      w.postMessage({ type: 'SKIP_WAITING' });
+      return;
+    }
+    api.waiting = w;
+    window.dispatchEvent(new CustomEvent('ws-sw-waiting', { detail: { waiting: w } }));
+  })();
+}
+
+/** The build a worker holds (`<BUILD_ID>-<content hash>`, src/pwa/sw.js), or null if it does not answer in time. */
+function buildOf(w: ServiceWorker): Promise<string | null> {
+  return new Promise<string | null>((resolve) => {
+    const ch = new MessageChannel();
+    const timer = setTimeout(() => resolve(null), CAP_MS);
+    ch.port1.onmessage = (e: MessageEvent<{ build?: unknown }>) => {
+      clearTimeout(timer);
+      resolve(typeof e.data.build === 'string' ? e.data.build : null);
+    };
+    w.postMessage({ type: 'BUILD' }, [ch.port2]);
+  });
 }
 
 function watch(reg: ServiceWorkerRegistration): void {
