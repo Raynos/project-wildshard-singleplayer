@@ -211,10 +211,13 @@ function rocks(plan: DressPlan, occ: Occupancy, nearTree: (x: number, z: number,
     const dCr = Math.hypot(x - CRAGS.x, z - CRAGS.z), dSw = Math.hypot(x - WEST_CRAGS.x, z - WEST_CRAGS.z);
     const massif = smoothstep(170, 90, dCr) * 0.7 + smoothstep(130, 70, dSw) * 0.6 + zoneAt(x, z)[2] * 0.45;
     if (glacierMask(x, z) > 0.2) continue;
-    const p = Math.min(1, 0.1 + smoothstep(0.06, 0.3, s) * 0.55 + bank + massif);
+    // off the snow ring the green slopes stay mostly turf: a rock on every slope read as brown lumps pasted over the
+    // escarpment from the valley (the final look round); the ring's feet and the banks keep theirs
+    const ringZ = zoneAt(x, z)[2];
+    const p = Math.min(1, 0.1 * (0.5 + 0.5 * ringZ) + smoothstep(0.06, 0.3, s) * (0.2 + 0.35 * ringZ) + bank + massif);
     if (coin > cl * 0.3 * p) continue;
     if (s > 0.6) continue; // a boulder glued to a cliff face reads as floating
-    if (s > 0.17 && zoneAt(x, z)[2] > 0.5) continue; // the snow ring's faces carry their own rock (src/nalati/cragRock.ts): boulders only at their feet
+    if (s > 0.17 && ringZ > 0.5) continue; // the snow ring's faces carry their own rock (src/nalati/cragRock.ts): boulders only at their feet
     const big = 0.4 + rng.next() ** 2.2 * (s > 0.2 || massif > 0.3 ? 2.1 : 1.5);
     if (blocked(x, z, h, { road: 4.5 + big, poi: 3 + big, brook: 3 + big })) continue;
     if (onKurgan(x, z, 2)) continue;
