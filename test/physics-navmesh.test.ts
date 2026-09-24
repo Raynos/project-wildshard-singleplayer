@@ -52,6 +52,13 @@ function onMeshAlong(nav: Navmesh, radius: number, a: P, b: P): boolean {
   return true;
 }
 
+/**
+ * Wall-clock bounds: as written on a dev machine, 4× on a shared CI runner (E76) — there they catch an order-of-magnitude
+ * regression, not runner jitter (a docs-only push once tripped `mean < 0.3` at 0.317 ms and blocked the deploy).
+ */
+const env = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process?.env ?? {}; // no node typings in the tests
+const TIME_SLACK = env['CI'] === undefined ? 1 : 4;
+
 const length = (pts: readonly P[]): number => pts.reduce((sum, p, i) => { const q = pts[i - 1]; return q ? sum + Math.hypot(p.x - q.x, p.z - q.z) : sum; }, 0);
 
 describe('navmesh (P6b)', () => {
@@ -65,7 +72,7 @@ describe('navmesh (P6b)', () => {
     expect(ph.nav.layerFor(0.9).radius).toBeCloseTo(0.5);
     for (const { nav } of [di, ph]) for (const l of nav.layers) expect(Object.keys(l.mesh.tiles).length).toBeGreaterThan(100);
     console.info(`[navmesh] parse: driftwood ${(di.nav.bytes / 1024).toFixed(0)} KB in ${di.ms.toFixed(1)} ms, pine hollow ${(ph.nav.bytes / 1024).toFixed(0)} KB in ${ph.ms.toFixed(1)} ms`);
-    expect(di.ms + ph.ms).toBeLessThan(1000);
+    expect(di.ms + ph.ms).toBeLessThan(1000 * TIME_SLACK);
   });
 
   it('routes round a building: the straight line is blocked, every leg of the path stays on the mesh', async () => {
@@ -121,6 +128,8 @@ describe('navmesh (P6b)', () => {
       const starts: P[] = [];
       while (starts.length < 300) { const s = findRandomPoint(mesh, DEFAULT_QUERY_FILTER, rand); if (s.success) starts.push({ x: s.position[0], y: s.position[1], z: s.position[2] }); }
       const out: THREE.Vector3[] = [];
+      // warm up first (JIT + the query's lazily built tables), so the mean measures steady-state queries
+      for (const s of starts.slice(0, 30)) nav.findPath(s, { x: s.x + 10, y: s.y, z: s.z }, 0.5, out);
       nav.resetStats();
       let paths = 0;
       for (const s of starts) {
@@ -134,8 +143,8 @@ describe('navmesh (P6b)', () => {
       const worst = (performance.now() - t0) / far.length;
       console.info(`[navmesh] ${name}: ${paths}/${starts.length} short paths, mean ${mean.toFixed(3)} ms; cross-map ${worst.toFixed(3)} ms`);
       expect(paths).toBeGreaterThan(starts.length * 0.9);
-      expect(mean).toBeLessThan(0.3); // desktop node; the phone is ~4x — a few queries per 10 Hz think, not per frame
-      expect(worst).toBeLessThan(5);
+      expect(mean).toBeLessThan(0.3 * TIME_SLACK); // desktop node; the phone is ~4x — a few queries per 10 Hz think, not per frame
+      expect(worst).toBeLessThan(5 * TIME_SLACK);
     }
   });
 });
