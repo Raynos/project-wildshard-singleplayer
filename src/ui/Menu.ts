@@ -157,6 +157,14 @@ export class GameMenu {
     if (!silent) this.onClose?.();
   }
   toggle(tab: MenuTab): void { if (this._open && this._tab === tab) this.close(); else this.open(tab); }
+  /** an extra header button left of CLOSE, in CLOSE's look (`cls` styles it further — the Compendium's JOURNAL) */
+  addHeadButton(label: string, cls: string, onClick: () => void): HTMLButtonElement {
+    const close = this.sheet.querySelector('.ws-gmenu-close');
+    const b = el(`ws-gmenu-close ${cls}`, esc(label), 'button') as HTMLButtonElement; b.type = 'button';
+    b.addEventListener('click', onClick);
+    close?.before(b);
+    return b;
+  }
 
   select(tab: MenuTab): void {
     this._tab = tab;

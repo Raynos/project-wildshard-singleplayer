@@ -93,6 +93,7 @@ import type { Material } from './physics/surface';
 import { activePhysics } from './physics/active';
 import { lineOfSight } from './physics/query';
 import { pickInteractable, setSight } from './world/interact/Interactables';
+import { installCompendium } from './ui/compendium/install';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
 const _animalXZ: { x: number; z: number }[] = [];
@@ -503,6 +504,8 @@ async function main() {
     hud.killFeed(`${a.label} · ${Math.round(a.position.distanceTo(player.position))} m`); progress.recordKill(a.kind, a.variant);
     const skin = skinFor(a.kind, a.variant); if (skin && !skins.has(skin.id)) spawnSkinDrop(skin, a.position); // the legendary's drop, once
   };
+  // the Compendium (PH-C5 / C4, src/ui/compendium/): the hunter's journal (N, the pause menu, the touch disc) + the trophy wall; chains onKill
+  installCompendium({ chunkId: getActiveChunk().id, game, camera: game.camera, hud, menu, animals, cabins, interactables, weapons, touchUi, nolock });
   for (const w of ['crossbow', 'rifle'] as const) { const s = skins.wearing(w); if (s) wearSkin(s); }
   const skinParam = params.get('skin'), dropParam = params.get('drop');
   if (skinParam && skinParam in SKINS) { const s = SKINS[skinParam as SkinId]; skins.own(s.id); wearSkin(s); if (s.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle', true); } }
