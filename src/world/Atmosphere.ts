@@ -21,12 +21,34 @@ export const fogUniforms = {
   fogEdge: { value: new THREE.Vector4(0, 236, 252, 10) },
 };
 
+/**
+ * Pine Hollow's weather (PH-L10, src/pinehollow/weather.ts drives them), compiled into Pine Hollow's shaders only — every
+ * other shard's program source stays byte-for-byte:
+ *   uWet        0 dry … 1 soaked: every lit PBR surface (MeshStandard / Physical, the terrain's splat) darkens where it is
+ *               porous and turns glossy, up-facing surfaces most (appended to `normal_fragment_begin`, which every
+ *               standard program includes and none of the shard's custom materials replace; the water overrides it after)
+ *   fogBlob     a local fog bank (xyz, radius) of strength fogBlobAmt: the dawn fog closing round the Ghost Stag (PH-C7)
+ */
+export const weatherUniforms = {
+  uWet: { value: 0 },
+  fogBlob: { value: new THREE.Vector4(0, -1e4, 0, 1) },
+  fogBlobAmt: { value: 0 },
+};
+let pineWeather = false;
+/**
+ * The volumetric shafts' own height fog (core/Volumetrics.ts reads it before `fogUniforms`): null = follow the geometry
+ * fog. Pine Hollow's dawn fog (PH-L10) lifts the geometry fog's floor into the bowl, which the march — tuned for a thin
+ * haze — would turn into a white-out; the weather keeps the march on the clear-sky floor.
+ */
+export const volumetricFog: { height: number | null; falloff: number | null } = { height: null, falloff: null };
+
 let installed = false;
 export function installAtmosphere(): void {
   if (installed) return;
   installed = true;
   // Pine Hollow's slab edge haze (fogEdge): only its fog chunk carries it, every other shard's source stays byte-for-byte
   const edge = getActiveChunk().slug === 'pine-hollow';
+  pineWeather = edge;
 
   THREE.ShaderChunk.fog_pars_vertex = /* glsl */`
     #ifdef USE_FOG
@@ -55,7 +77,7 @@ export function installAtmosphere(): void {
       uniform float fogHeight;
       uniform float fogHeightFalloff;
       uniform float fogHeightDensity;
-      uniform float fogDistDensity;${edge ? '\n      uniform vec4 fogEdge;' : ''}
+      uniform float fogDistDensity;${edge ? '\n      uniform vec4 fogEdge;\n      uniform vec4 fogBlob;\n      uniform float fogBlobAmt;' : ''}
       varying float vFogDepth;
       varying vec3 vFogWorldPos;
     #endif`;
@@ -78,12 +100,32 @@ export function installAtmosphere(): void {
         // the slab's last metres thicken into the painted horizon's haze, seen from above (PH-L5)
         float edgeD = max( abs( vFogWorldPos.x ), abs( vFogWorldPos.z ) );
         float fogE = fogEdge.x * smoothstep( fogEdge.y, fogEdge.z, edgeD ) * smoothstep( fogEdge.w, fogEdge.w * 4.0, cameraPosition.y - vFogWorldPos.y );
-        fogFactor = 1.0 - ( 1.0 - fogFactor ) * ( 1.0 - fogE );` : ''}
+        fogFactor = 1.0 - ( 1.0 - fogFactor ) * ( 1.0 - fogE );
+        // the Ghost Stag's fog bank (PH-C7): thick round it, thin up close (you can walk into it and see)
+        float fogB = fogBlobAmt * ( 1.0 - smoothstep( 0.1, 1.0, length( vFogWorldPos - fogBlob.xyz ) / fogBlob.w ) ) * smoothstep( 5.0, 24.0, rayLen );
+        fogFactor = 1.0 - ( 1.0 - fogFactor ) * ( 1.0 - fogB );` : ''}
         float sunAmt = max( dot( viewDir, fogSunDir ), 0.0 );
         vec3 fogCol = mix( fogColor, fogSunColor, pow( sunAmt, 6.0 ) * 0.7 );
         gl_FragColor.rgb = mix( gl_FragColor.rgb, fogCol, fogFactor );
       }
     #endif`;
+
+  if (edge) {
+    // the rain's wet PBR (PH-L10): after the geometry normal exists, before the normal map and the lighting read the surface
+    THREE.ShaderChunk.normal_fragment_begin = `${THREE.ShaderChunk.normal_fragment_begin}
+      #if defined( STANDARD ) && defined( USE_FOG )
+      {
+        float wetUp = ( vec4( normal, 0.0 ) * viewMatrix ).y;   // the face's world up-ness (view → world: the transpose)
+        float wetK = uWet * mix( 0.4, 1.0, smoothstep( -0.3, 0.6, wetUp ) ) * ( 1.0 - metalnessFactor );
+        diffuseColor.rgb *= 1.0 - 0.42 * wetK * smoothstep( 0.3, 0.85, roughnessFactor );
+        roughnessFactor = mix( roughnessFactor, roughnessFactor * 0.5 + 0.12, wetK );
+      }
+      #endif`;
+    THREE.ShaderChunk.fog_pars_fragment += /* glsl */`
+    #if defined( STANDARD ) && defined( USE_FOG )
+      uniform float uWet;
+    #endif`;
+  }
 
   // Inject the shared uniform objects into every material that compiles with fog.
   const proto = THREE.Material.prototype as unknown as { onBeforeCompile: (s: THREE.WebGLProgramParametersWithUniforms) => void };
@@ -92,6 +134,7 @@ export function installAtmosphere(): void {
 
 export function attachFogUniforms(shader: { uniforms: Record<string, THREE.IUniform> }): void {
   for (const k of Object.keys(fogUniforms) as (keyof typeof fogUniforms)[]) shader.uniforms[k] = fogUniforms[k];
+  if (pineWeather) for (const k of Object.keys(weatherUniforms) as (keyof typeof weatherUniforms)[]) shader.uniforms[k] = weatherUniforms[k];
   // the low-poly shard's toon lighting (stylize.ts) rides the same hook: every fogged material already calls this
   if (isStylized()) for (const k of Object.keys(toonUniforms) as (keyof typeof toonUniforms)[]) shader.uniforms[k] = toonUniforms[k];
 }

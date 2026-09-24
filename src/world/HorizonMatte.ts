@@ -227,6 +227,8 @@ export class PaintedHorizon {
   private fade = 0;
   private loaded = false;
   private ready = false;
+  /** the weather's veil (PH-L10, src/pinehollow/weather.ts): x a rain deck over the whole band, y the dawn fog on its low rows */
+  readonly veil = { value: new THREE.Vector2(0, 0) };
   private readonly u = {
     tDay: { value: placeholder() },
     tNight: { value: placeholder() },
@@ -242,6 +244,7 @@ export class PaintedHorizon {
     uFloorNight: { value: new THREE.Color(0, 0, 0) },
     fogSunDir: fogUniforms.fogSunDir,
     fogSunColor: fogUniforms.fogSunColor,
+    uVeil: this.veil,
   };
 
   constructor(private strips: HorizonStrips) {}
@@ -263,6 +266,7 @@ export class PaintedHorizon {
         uniform sampler2D tDay; uniform sampler2D tNight;
         uniform float uFade; uniform float uNight; uniform float uScale; uniform float uElMin; uniform float uElMax;
         uniform vec3 uTint; uniform vec3 uFog; uniform vec3 fogSunDir; uniform vec3 fogSunColor; uniform vec3 uFloorDay; uniform vec3 uFloorNight;
+        uniform vec2 uVeil;
         varying vec3 vDir; varying float vU;
         void main() {
           vec3 d = normalize(vDir);
@@ -278,6 +282,8 @@ export class PaintedHorizon {
           vec3 haze = mix(uFog, fogSunColor, pow(max(dot(d, fogSunDir), 0.0), 6.0) * 0.7);
           // aerial perspective: the far skyline breathes a little of the live haze (the land below already holds its own)
           float h = 0.12 * (1.0 - smoothstep(0.0, 6.0, el)) * smoothstep(-3.0, 0.0, el) + 0.03 * under;
+          // the weather (PH-L10): a rain deck veils the whole band, the dawn fog the valleys under the far peaks
+          h = 1.0 - (1.0 - h) * (1.0 - uVeil.x) * (1.0 - uVeil.y * (1.0 - smoothstep(-1.0, 4.0, el)));
           land = mix(land, haze, clamp(h, 0.0, 1.0));
           float below = 1.0 - smoothstep(-0.5, 0.0, el);        // under the horizon: always opaque (the land, or the haze)
           vec3 col = mix(land, mix(haze, land, uFade), below);

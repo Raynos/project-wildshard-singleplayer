@@ -37,7 +37,12 @@ export interface WaterMaterialOptions {
   skyline: { tex: THREE.Texture; x: number; z: number; level: number } | null;
   /** sin(elevation) below which a reflection sees the banks / trees when there is no skyline */
   forestSinEl?: number;
+  /** × the water's alpha (the rain's puddles fade in and out, PH-L10); default 1 */
+  fade?: { value: number };
 }
+
+/** the rain on the water (PH-L10, src/pinehollow/weather.ts): 0 … 1 rings on every water surface (pond, creek, puddles) */
+export const waterWeather = { uRainRings: { value: 0 } };
 
 export interface WaterMaterial { material: THREE.MeshPhysicalMaterial }
 
@@ -49,7 +54,7 @@ const WX = WIND_DIR.x.toFixed(3), WZ = WIND_DIR.z.toFixed(3);
 const FRAG_PARS = /* glsl */`
   uniform float uWindTime;
   uniform sampler2D uSkyline; uniform vec4 uSkyC; uniform float uForestSinEl; uniform vec3 uForestAlbedo;
-  uniform vec3 uShallow; uniform vec3 uDeep;
+  uniform vec3 uShallow; uniform vec3 uDeep; uniform float uRainRings; uniform float uFade;
   varying vec4 vWaterA; varying vec3 vWaterW; varying float vGust;
   vec2 waterSkyAt( vec2 p ) {
     float az = atan( p.y, p.x ) * 0.1591549 + 0.5;
@@ -76,6 +81,23 @@ const FRAG_PARS = /* glsl */`
   }
   float waterFoamMask = 0.0;
   float waterEdgeN = 0.5;
+  float waterHash( vec2 c ) { return fract( sin( dot( c, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 ); }
+  /** rain rings: two offset lattices of ~0.5 m cells, each a drop at a random time and spot; the slope of the ring's wave */
+  vec2 waterRainSlope( vec2 p, float T, float amt ) {
+    vec2 s = vec2( 0.0 );
+    for ( int k = 0; k < 2; k ++ ) {
+      vec2 q = p * 2.1 + float( k ) * vec2( 0.37, 0.61 );
+      vec2 cell = floor( q ), f = fract( q ) - 0.5;
+      float h = waterHash( cell + float( k ) * 17.0 );
+      float t = fract( T * 0.85 + h );
+      vec2 d = f - ( vec2( waterHash( cell + 3.1 ), waterHash( cell + 7.7 ) ) - 0.5 ) * 0.4;
+      float r = length( d ), R = t * 0.42;
+      float e = ( r - R ) * 26.0;   // (no pow of a negative base: NaN on some GPUs)
+      float w = exp( - e * e ) * sin( ( r - R ) * 45.0 ) * ( 1.0 - t ) * ( 1.0 - t );
+      s += d / max( r, 1e-3 ) * w * step( h * 0.999, amt );
+    }
+    return s;
+  }
 `;
 
 const NORMAL_GLSL = /* glsl */`
@@ -95,12 +117,15 @@ const NORMAL_GLSL = /* glsl */`
     vec2 slope = ( tA.xy * 2.0 - 1.0 ) + ( tB.xy * 2.0 - 1.0 ) * 0.9 + ( tC.xy * 2.0 - 1.0 ) * 0.45;
     float dist = length( vWaterW - cameraPosition );
     float strength = mix( 0.025 + 0.3 * gust * gust, 0.26, flowK ) / ( 1.0 + dist * 0.012 );
-    vec3 mapN = normalize( vec3( slope * strength, 1.0 ) );
+    // the rings up close (past ~25 m they are sub-pixel: there the rain is a rougher surface instead, below)
+    float ringNear = uRainRings * ( 1.0 - smoothstep( 4.0, 15.0, dist ) );
+    vec2 rainS = ringNear > 0.0 ? waterRainSlope( vWaterW.xz, T, uRainRings ) * ( 1.0 - 0.6 * flowK ) * 0.4 * ringNear / max( uRainRings, 1e-3 ) : vec2( 0.0 );
+    vec3 mapN = normalize( vec3( slope * strength + rainS, 1.0 ) );
     vec3 nN = normalize( tbn * mapN );
     // a degenerate uv frame (the ring's centre) or a NaN falls back to the geometry normal
     normal = dot( nN, nN ) > 0.5 ? nN : normal;
     // gusts roughen still water (the reflection blurs under a front); running water is always a little rough
-    roughnessFactor = mix( 0.025 + 0.09 * gust, 0.08, flowK );
+    roughnessFactor = mix( 0.025 + 0.09 * gust, 0.08, flowK ) + uRainRings * ( 0.03 + 0.07 * smoothstep( 4.0, 15.0, dist ) );
     // foam: a noise channel thresholded by the vertex's amount, plus the shore's broken scum line on still water
     // on running water a finer, faster layer breaks the foam into streaks and clumps
     float fS = texture2D( normalMap, vec2( uvm.x / 1.1, ( uvm.y - T ) / 0.32 ) + 0.53 ).a;
@@ -158,7 +183,7 @@ const COMPOSE_GLSL = /* glsl */`
       float wet = smoothstep( 0.0, -0.05, depthW ) * ( 1.0 - smoothstep( -0.4, -0.12, depthW ) );
       col = spec * 1.4; a = 0.35 * wet;
     }
-    gl_FragColor = vec4( col, clamp( a, 0.0, 1.0 ) );
+    gl_FragColor = vec4( col, clamp( a * uFade, 0.0, 1.0 ) );
   }
 `;
 
@@ -172,6 +197,8 @@ export function createWaterMaterial(sky: Sky, opts: WaterMaterialOptions): Water
     uForestAlbedo: { value: new THREE.Color(0.035, 0.052, 0.03) },
     uShallow: { value: new THREE.Color(0.042, 0.04, 0.02) },
     uDeep: { value: new THREE.Color(0.005, 0.01, 0.008) },
+    uRainRings: waterWeather.uRainRings,
+    uFade: opts.fade ?? { value: 1 },
   };
   const mat = new THREE.MeshPhysicalMaterial({
     color: 0xffffff, roughness: 0.04, metalness: 0, ior: 1.333, transparent: true, depthWrite: false,

@@ -11,11 +11,15 @@
 import * as THREE from 'three';
 
 export const windUniforms = { uWindTime: { value: 0 }, uGust: { value: 0.5 } };
+/** 0 … 1 wind the weather adds (Pine Hollow's rain, PH-L10: src/pinehollow/weather.ts); 0 = the wind exactly as before */
+export const windBoost = { value: 0 };
 
 /** advance the wind clock and the gust (a few incommensurate sines: long lulls, a stronger puff every half-minute or so) */
 export function updateWind(dt: number): void {
   const t = (windUniforms.uWindTime.value += dt);
-  const g = 0.5 + 0.28 * Math.sin(t * 0.11) + 0.16 * Math.sin(t * 0.37 + 1.3) + 0.08 * Math.sin(t * 1.3 + 0.4);
+  let g = 0.5 + 0.28 * Math.sin(t * 0.11) + 0.16 * Math.sin(t * 0.37 + 1.3) + 0.08 * Math.sin(t * 1.3 + 0.4);
+  const b = windBoost.value;
+  if (b > 0) g += b * (0.45 - 0.25 * g); // the lulls fill in more than the puffs grow
   windUniforms.uGust.value = Math.min(1, Math.max(0, g));
 }
 

@@ -358,6 +358,9 @@ export class GameMenu {
       if (setting('pinesky') === 'clock') {
         const times: { v: OptionValue<'time'>; text: string }[] = [{ v: 'live', text: 'Live' }, { v: 'midday', text: 'Midday' }, { v: 'golden', text: 'Golden' }, { v: 'sunset', text: 'Sunset' }, { v: 'night', text: 'Night' }];
         dbg.append(picker('Time of day', times, () => setting('time'), (v) => { saveSetting('time', v); }, (fn) => { onSettingChange('time', fn); }));
+        // PH-L10: the weather (live: the dawn fog + the showers) or Clear, the look before it; Fog / Rain hold one (live)
+        const weathers: { v: OptionValue<'weather'>; text: string }[] = [{ v: 'live', text: 'Live' }, { v: 'clear', text: 'Clear' }, { v: 'fog', text: 'Fog' }, { v: 'rain', text: 'Rain' }];
+        dbg.append(picker('Weather', weathers, () => setting('weather'), (v) => { saveSetting('weather', v); }, (fn) => { onSettingChange('weather', fn); }));
       }
     }
     // the frame cap (PINE-HOLLOW PH-P1, tier.ts frameCapFps; live): Auto = Pine Hollow's phone tier at a locked 30, else uncapped

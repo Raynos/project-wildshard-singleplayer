@@ -4,7 +4,7 @@ import {
   WebGLRenderTarget, HalfFloatType, ShaderMaterial, Mesh, BufferGeometry, Float32BufferAttribute, Scene, OrthographicCamera, type WebGLRenderer,
   type DepthPackingStrategies, BasicDepthPacking,
 } from 'three';
-import { fogUniforms } from '../world/Atmosphere';
+import { fogUniforms, volumetricFog } from '../world/Atmosphere';
 
 /** the march's uniforms, typed per slot so the per-frame `.value.copy(...)` calls are checked */
 interface MarchUniforms {
@@ -173,8 +173,8 @@ export class VolumetricsEffect extends Effect {
     this.viewProj.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
     u.uViewProj.value.copy(this.viewProj);
     u.uCamPos.value.copy(cam.position);
-    u.uHeight.value = fogUniforms.fogHeight.value;
-    u.uFalloff.value = fogUniforms.fogHeightFalloff.value;
+    u.uHeight.value = volumetricFog.height ?? fogUniforms.fogHeight.value;
+    u.uFalloff.value = volumetricFog.falloff ?? fogUniforms.fogHeightFalloff.value;
     u.uFrame.value = (this.frame++ % 64);
     if (this.rt && this.marchMat && this.marchScene) {
       this.nearU.value = cam.near; this.farU.value = cam.far;

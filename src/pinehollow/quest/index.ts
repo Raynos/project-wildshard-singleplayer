@@ -79,6 +79,8 @@ export interface PineQuestHost {
 
 export interface PineQuest {
   useSfx: (sfx: PineHollowSfx) => void;
+  /** where the pale stag stands while it leads (null: not out) — the weather's dawn fog closes round it (PH-C7) */
+  stagAt: () => THREE.Vector3 | null;
 }
 
 const TALK_R = 3.2;
@@ -545,5 +547,5 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   };
   Object.assign(window, { __pineQuest: debug });
   if (quest.current?.id === 'dawn') runDawn();   // an early kill (or `?quest=dawn`): the dawn plays now
-  return { useSfx: (s) => { sfx = s; } };
+  return { useSfx: (s) => { sfx = s; }, stagAt: () => stag.position };
 }

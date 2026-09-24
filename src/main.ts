@@ -98,6 +98,7 @@ import { pickInteractable, setSight } from './world/interact/Interactables';
 import { installCompendium } from './ui/compendium/install';
 import { installPineCombat } from './pinehollow';
 import { installPineQuest } from './pinehollow/quest';
+import { installPineWeather } from './pinehollow/weather';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
 const _animalXZ: { x: number; z: number }[] = [];
@@ -558,6 +559,8 @@ async function main() {
   const ambience = sea ? new IslandAmbience(audio, { sea: sea.level, heightAt, palms: palmSpecs, wreck, cove: Cove.forIsland() }) : chunk.slug === 'pine-hollow' ? new ForestAmbience(audio, { heightAt, cabins, music }) : null; // PH-A2
   if (ambience instanceof ForestAmbience) pineFights?.useSfx(ambience.sfx); // the King's bells / stomp / roar, the thralls
   if (ambience instanceof ForestAmbience) pineQuest?.useSfx(ambience.sfx); // the NPC barks, the lanterns, the zipline, the night's thralls
+  // PH-L10 / C7: the dawn fog + the showers (the sky, the fog, the wet PBR, the rain, the puddles, the rings, the herds' shelter)
+  if (chunk.slug === 'pine-hollow') installPineWeather({ game, sky, trees: forest.trees, animals, particles, ambience: ambience instanceof ForestAmbience ? ambience : null, roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined, stagAt: () => pineQuest?.stagAt() ?? null, viewer, horizonVeil: dressing.horizon.painted?.veil ?? null });
   player.onStep = (sprinting) => {
     const p = player.position;
     if (islandSfx && surfaces && !(player.wading && player.depth > 0.3)) islandSfx.footstep(player.wading ? 'water' : surfaces.surfaceAt(p.x, p.z, p.y), Math.hypot(player.velocity.x, player.velocity.z));

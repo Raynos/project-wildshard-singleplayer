@@ -133,7 +133,7 @@ export function pineNightAt(p: number): number {
 const SKY_GLSL = /* glsl */`
   uniform sampler2D tA; uniform sampler2D tB; uniform float uMix;
   uniform vec2 uRotA; uniform vec2 uRotB; uniform float uGainA; uniform float uGainB;
-  uniform vec3 uLightDir; uniform vec3 uGlow;
+  uniform vec3 uLightDir; uniform vec3 uGlow; uniform float uGrey; uniform vec3 uFlat;
   vec3 keySample(sampler2D t, vec3 d, vec2 rot) {
     vec3 r = vec3(rot.x * d.x - rot.y * d.z, d.y, rot.y * d.x + rot.x * d.z);
     return texture2D(t, equirectUv(r)).rgb;
@@ -143,6 +143,9 @@ const SKY_GLSL = /* glsl */`
     float mu = clamp(dot(d, uLightDir), 0.0, 1.0);
     float up = smoothstep(-0.12, 0.02, d.y);             // the aureole stays above the haze line
     col += uGlow * (0.55 * pow(mu, 900.0) + 0.3 * pow(mu, 60.0) + 0.12 * pow(mu, 8.0)) * up;
+    // the weather's cloud deck (PineSkyMod.overcast): the photo's blue and its clouds go to a flat cool grey
+    // (the photo's own clouds soften into it: mostly the flat deck, a little of their shading left)
+    col = mix(col, mix(vec3(dot(col, vec3(0.2126, 0.7152, 0.0722))), uFlat, 0.7) * vec3(0.94, 0.97, 1.0), uGrey);
     return col;
   }`;
 
@@ -171,6 +174,22 @@ export interface PinePost {
   hueSat: { saturation: number } | null;
 }
 
+/**
+ * The weather's hook on the clock (PH-L10, src/pinehollow/weather.ts writes it every frame): multipliers laid over the keyed
+ * presets after they are blended — the presets' own numbers are never edited. Identity ({ overcast 0, fog × 1 }) is the
+ * clock exactly as it was.
+ */
+export interface PineSkyMod {
+  /** 0 … 1 the cloud deck: the sun and moon hidden (light, shafts, rays, disc, aureole), the sky and its IBL dimmed and
+   *  greyed, the far haze and the fog greyed and thickened, the cloud layer full, colour drained, lamps lit early */
+  overcast: number;
+  /** × the fog's distance / height densities (the dawn fog, the rain's haze, the old-growth) */
+  fogDist: number;
+  fogHeight: number;
+  /** 0 … 1 the dawn ground fog: the fog's colour paled toward a cool white (a mist, not a haze) */
+  mist: number;
+}
+
 export class PineDayNight {
   phase: number;
   readonly cycle: number;
@@ -178,12 +197,14 @@ export class PineDayNight {
   dusk = 0;
   dawn = 0;
   lamps = 0;
+  /** the weather's multipliers (see PineSkyMod); identity = no weather */
+  readonly mod: PineSkyMod = { overcast: 0, fogDist: 1, fogHeight: 1, mist: 0 };
   /** the dome: add it to the scene; Sky.update keeps it on the camera */
   readonly dome: THREE.Mesh;
   private readonly u = {
     tA: { value: null as THREE.Texture | null }, tB: { value: null as THREE.Texture | null }, uMix: { value: 0 },
     uRotA: { value: new THREE.Vector2(1, 0) }, uRotB: { value: new THREE.Vector2(1, 0) }, uGainA: { value: 1 }, uGainB: { value: 1 },
-    uLightDir: { value: new THREE.Vector3(0, 1, 0) }, uGlow: { value: new THREE.Color() },
+    uLightDir: { value: new THREE.Vector3(0, 1, 0) }, uGlow: { value: new THREE.Color() }, uGrey: { value: 0 }, uFlat: { value: new THREE.Color() },
   };
   private frozen = false;
   private T: PineTargets | null = null;
@@ -386,6 +407,7 @@ export class PineDayNight {
     const [a, b, t] = this.segment(p);
     lerpPreset(this.cur, a[1], b[1], t);
     const C = this.cur;
+    const ov = weatherOver(C, this.mod);
     pineSunAt(p, this.sun);
     pineMoonAt(p, this.moon);
     const day = p < DAY;
@@ -400,11 +422,17 @@ export class PineDayNight {
       this.u.uMix.value = ra && rb ? t : 0;
       this.rot(ra ? a[1].key : b[1].key, glowBody(ra ? a[1].key : b[1].key), this.u.uRotA.value);
       this.rot(rb ? b[1].key : a[1].key, glowBody(rb ? b[1].key : a[1].key), this.u.uRotB.value);
-      this.u.uGainA.value = ra ? a[1].bg : b[1].bg; this.u.uGainB.value = rb ? b[1].bg : a[1].bg;
+      const dim = 1 - 0.5 * ov; // the deck: the sky's brightness under it
+      this.u.uGainA.value = (ra ? a[1].bg : b[1].bg) * dim; this.u.uGainB.value = (rb ? b[1].bg : a[1].bg) * dim;
       this.fogCol.copy(A.horizon).multiplyScalar(this.u.uGainA.value).lerp(tmpC.copy(B.horizon).multiplyScalar(this.u.uGainB.value), this.u.uMix.value);
       const m = Math.max(this.fogCol.r, this.fogCol.g, this.fogCol.b, 1e-3);
       if (m > 1.1) this.fogCol.multiplyScalar(1.1 / m);
+      if (ov > 0) { const g = (this.fogCol.r * 0.2126 + this.fogCol.g * 0.7152 + this.fogCol.b * 0.0722) * 0.92; this.fogCol.lerp(tmpC.setRGB(g * 0.95, g * 0.98, g * 1.03), ov * 0.85); }
+      const mist = Math.min(1, Math.max(0, this.mod.mist));
+      if (mist > 0) { const g = (this.fogCol.r * 0.2126 + this.fogCol.g * 0.7152 + this.fogCol.b * 0.0722) * 1.08; this.fogCol.lerp(tmpC.setRGB(g * 0.96, g, g * 1.05), mist * 0.6); }
     }
+    this.u.uGrey.value = 0.92 * ov;
+    this.u.uFlat.value.copy(this.fogCol).multiplyScalar(1.05);
     if (!ra || !rb) void Promise.all([this.ensure(a[1].key), this.ensure(b[1].key)]);
     // decode the key after this segment ahead of time (its upload lands mid-segment, not on the transition)
     const [, next] = this.segment((b[0] + 0.0005) % 1);
@@ -421,7 +449,7 @@ export class PineDayNight {
     this.dawn = 1 - THREE.MathUtils.smoothstep(dd, 0.01, 0.07);
     this.lamps = Math.max(C.lamps, this.night);
     this.u.uLightDir.value.copy(day || this.night < 0.5 ? this.sun : this.moon);
-    this.u.uGlow.value.copy(C.glow).multiplyScalar(day ? THREE.MathUtils.smoothstep(this.sun.y, -0.08, 0.02) : 1);
+    this.u.uGlow.value.copy(C.glow).multiplyScalar((day ? THREE.MathUtils.smoothstep(this.sun.y, -0.08, 0.02) : 1) * (1 - ov));
     const T = this.T;
     if (!T) return;
     T.sunDir.copy(lightDir);
@@ -442,7 +470,7 @@ export class PineDayNight {
     const above = THREE.MathUtils.smoothstep(lightDir.y, -0.03, 0.02);
     // the moon comes and goes by size, not colour: a darkened disc would read as a black dot on the dusk sky
     (T.disc.material as THREE.MeshBasicMaterial).color.copy(C.disc).multiplyScalar(above);
-    T.disc.scale.setScalar(day ? 1 : 0.6 * Math.max(1e-3, fade));
+    T.disc.scale.setScalar((day ? 1 : 0.6 * Math.max(1e-3, fade)) * Math.max(1e-3, 1 - ov));
     if (T.halo) { T.halo.material.color.copy(C.halo); T.halo.material.opacity = C.haloO * above * (day ? 1 : fade); }
     T.cloud.uSunDir.value.copy(day || this.night < 0.5 ? this.sun : this.moon);
     T.cloud.uSunColor.value.copy(C.cloudSun); T.cloud.uCloudLit.value.copy(C.cloudLit); T.cloud.uCloudAlpha.value = C.cloudA;
@@ -470,6 +498,29 @@ function horizonOf(tex: THREE.DataTexture): THREE.Color {
     out.r += THREE.DataUtils.fromHalfFloat(data[i] ?? 0); out.g += THREE.DataUtils.fromHalfFloat(data[i + 1] ?? 0); out.b += THREE.DataUtils.fromHalfFloat(data[i + 2] ?? 0); n++;
   }
   return out.multiplyScalar(1 / Math.max(1, n));
+}
+
+/** lay the weather over the blended preset (in place); returns the overcast it applied */
+function weatherOver(C: Preset, mod: PineSkyMod): number {
+  const ov = Math.min(1, Math.max(0, mod.overcast));
+  C.fogDist *= mod.fogDist; C.fogHeight *= mod.fogHeight;
+  if (ov <= 0) return 0;
+  const k = 1 - ov;
+  C.lightI *= 1 - 0.82 * ov;                        // the sun behind the deck: soft shadows, little direct light
+  C.env *= 1 - 0.3 * ov;
+  C.hemiI *= 1 + 0.15 * ov;                         // the diffuse sky takes over
+  const grey = (col: THREE.Color, amt: number): void => { const l = col.r * 0.2126 + col.g * 0.7152 + col.b * 0.0722; col.lerp(tmpC.setRGB(l * 0.95, l * 0.98, l * 1.04), amt); };
+  grey(C.hemiSky, 0.7 * ov); grey(C.light, 0.6 * ov); grey(C.fogSun, 0.9 * ov); grey(C.far, 0.8 * ov); grey(C.cloudLit, 0.9 * ov); grey(C.cloudSun, 0.9 * ov);
+  C.cloudLit.multiplyScalar(1 - 0.45 * ov);
+  C.far.multiplyScalar(1 - 0.35 * ov);
+  C.fogSun.multiplyScalar(1 - 0.5 * ov);
+  C.cloudA *= 1 - 0.75 * ov;                        // the painted cloud layer melts into the deck
+  C.vol *= 1 - 0.75 * ov; C.rays *= k;
+  C.haloO *= k; C.glow.multiplyScalar(k);          // (the disc shrinks away in apply: a darkened disc reads as a black dot)
+  C.fogDist *= 1 + 1.6 * ov;                        // rain haze
+  C.sat -= 0.12 * ov;
+  C.lamps = Math.max(C.lamps, 0.35 * ov);           // the cabins light up under a dark sky
+  return ov;
 }
 
 function clonePreset(p: Preset): Preset {

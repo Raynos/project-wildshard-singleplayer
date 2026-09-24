@@ -34,6 +34,8 @@ export class StagLead {
   }
 
   get active(): boolean { return this.a !== null; }
+  /** where the apparition stands (null: not out) — the dawn fog closes round it (PH-C7, src/pinehollow/weather.ts) */
+  get position(): THREE.Vector3 | null { return this.a?.position ?? null; }
 
   /** per frame. `on` = the beat is current and it is night; off → the apparition leaves (a burst) */
   update(dt: number, t: number, on: boolean, player: THREE.Vector3): void {

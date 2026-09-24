@@ -320,6 +320,9 @@ export class AnimalManager {
   calm = false;
   /** the shard's pieces for the self-thinking enemy species (see the header; Enemies.ts fills it) */
   enemyWorld: EnemyWorld = {};
+  /** a place a herd animal's wander walks to instead of a random point (within r m of it), or null for the usual wander —
+   *  Pine Hollow's rain sends the grazers in under the big trees (src/pinehollow/weather.ts, PH-C7) */
+  wanderGoal: ((a: Animal) => { x: number; z: number; r: number } | null) | null = null;
   private brains = new Map<Animal, Brain>();
   private rng = new Rng(SEED + 31);
   private thinkAcc = 0;
@@ -792,7 +795,12 @@ export class AnimalManager {
         const herd = a.herd >= 0 ? this.herds[a.herd] ?? null : null;
         let ok = false;
         const nav = activeNavmesh();
-        if (nav !== null) {
+        const goal = this.wanderGoal?.(a) ?? null;
+        if (goal !== null && nav !== null) {
+          const t = nav.randomPointNear(_navFrom.set(goal.x, heightAt(goal.x, goal.z), goal.z), goal.r, this.agentRadius(a), () => rng.next(), _navTo);
+          if (t !== null && inChunk(t.x, t.z, 20)) { br.tx = t.x; br.tz = t.z; ok = true; }
+        }
+        if (nav !== null && !ok) {
           // a reachable point 5–25 m away on the navmesh; a straggler > 15 m from its herd wanders back toward the centre
           const far = herd !== null && Math.hypot(a.position.x - herd.cx, a.position.z - herd.cz) > 15;
           const origin = herd !== null && far ? _navFrom.set(herd.cx, heightAt(herd.cx, herd.cz), herd.cz) : a.position;
@@ -811,7 +819,7 @@ export class AnimalManager {
           br.tx = tx; br.tz = tz; ok = true;
         }
         if (!ok) { a.state = 'idle'; br.timer = 2; break; }
-        br.timer = rng.range(8, 20);
+        br.timer = rng.range(8, 20) + (goal !== null ? Math.hypot(br.tx - a.position.x, br.tz - a.position.z) : 0); // a goal: time to walk there
         break;
       }
       case 'alert':

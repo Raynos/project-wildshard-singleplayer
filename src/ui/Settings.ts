@@ -110,6 +110,7 @@ export const OPTION_VALUES = {
   sky: ['stylized', 'hdri'],                           // Driftwood: the gradient dome + faceted cumulus (L2) — locked in (E83, the user's pick); only ?sky=hdri reads it
   post: ['clean', 'cinematic'],                        // Driftwood: the clean low-poly post (L5) — locked in (E88, the user's pick); only ?post=cinematic reads it
   pinesky: ['clock', 'sunset'],                        // Pine Hollow: the day / night clock (PH-L2, src/world/PineDayNight.ts) or the pre-remaster fixed HDRI sunset — Jake picks (a reload)
+  weather: ['live', 'clear', 'fog', 'rain'],           // Pine Hollow: the weather (PH-L10, src/pinehollow/weather.ts) — live: dawn fog + showers; clear = none (the before); fog / rain hold one — live
   fps: ['auto', '30', '60'],                           // frame cap (Game.start, tier.ts frameCapFps): auto = Pine Hollow's phone tier locked at 30 (PH-P1), else the display's rate — live
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
@@ -130,6 +131,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly 
   sky: { def: 'stylized', params: ['sky'], url: (q) => q.get('sky') },
   post: { def: 'clean', params: ['post'], url: (q) => q.get('post') },
   pinesky: { def: 'clock', params: ['pinesky'], url: (q) => (q.get('tod') === 'sunset-fixed' ? 'sunset' : q.get('pinesky')) }, // ?tod=sunset-fixed: the before shots
+  weather: { def: 'live', params: ['weather', 'weatherT'], url: (q) => q.get('weather') },            // ?weather=rain&weatherT=0.5: a held shower (captures)
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
 };
 // Settings ▸ Graphics ▸ Island (X2) saved under its own key before E55: carried over once
@@ -137,7 +139,7 @@ if (saved['island'] === undefined) { try { const legacy = localStorage.getItem('
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => new Choice<OptionValue<K>>(k, OPTION_VALUES[k], OPTION_SPECS[k].def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   gpu: option('gpu'), island: option('island'), tier: option('tier'), touch: option('touch'), matte: option('matte'), time: option('time'), lut: option('lut'),
-  lighting: option('lighting'), sky: option('sky'), post: option('post'), pinesky: option('pinesky'), fps: option('fps'),
+  lighting: option('lighting'), sky: option('sky'), post: option('post'), pinesky: option('pinesky'), weather: option('weather'), fps: option('fps'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 
