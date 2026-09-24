@@ -11,29 +11,42 @@
  *
  * - **mesh**: one open cylinder (128 × 8 quads) of radius `RADIUS` that follows the camera on XZ and stays at sea level,
  *   so the painted horizon row lands on the ocean's own horizon from any eye height. Rows map linearly to elevation
- *   `EL_MIN` … `EL_MAX` (y = sea + R·tan e). Inside the camera's far plane (2600 m) up to the top edge.
+ *   the strips' `elMin` … `elMax` (y = sea + R·tan e). Inside the camera's far plane (2600 m) up to the top edge.
  * - **draw**: unlit, fogless, transparent, depth-tested (terrain / props in front hide it) with no depth write;
  *   renderOrder −16 — after the dome (−20), before the cumulus (−15), the planet (−12 / −11) and the sea (4), so the 3D
  *   clouds and the planet stay in front and the sea covers everything below its own horizon line. One draw call.
  * - **look**: the day texture × the cumulus' lit colour relative to midday (golden hour warms it, dusk dims it), faded into
  *   the night texture by the clock's `night`, then hazed toward the dome's live horizon colour near the sea and lit by
  *   the sun glow — so it rides every DayNight preset without a third texture. The alpha fades into the sky at the top.
- * - **textures**: two 4096 × 512 WebPs with alpha (`public/assets/horizon/`), fetched after boot; the band fades in over
- *   ~1.5 s once both are decoded. Always on — the user locked it in (E78), so there is no menu toggle; only
+ * - **textures**: the shard's strips (`horizonStrips(slug)`, below): two 4096 × 512 WebPs with alpha
+ *   (`public/assets/horizon/<slug>-{day,night}.webp`, made by scripts/horizon-matte/ with `--shard <slug>`), fetched after
+ *   boot; the band fades in over ~1.5 s once both are decoded. A shard without strips builds nothing (Pine Hollow until
+ *   PH-L5 paints its own). Always on — the user locked it in (E78), so there is no menu toggle; only
  *   `?matte=0` hides it (before / after captures), and a saved pick from the old pause-menu switch is ignored.
  */
 import * as THREE from 'three';
 import type { Sky } from './Sky';
 import { setting, settingFromUrl } from '../ui/Settings';
 import { MIDDAY_SKY } from './StylizedSky';
+import { getActiveChunk } from '../chunks/registry';
 
 /** the band's radius (m): inside the camera's far plane (2600) even at the top edge (R / cos 24° ≈ 2520) */
 const RADIUS = 2300;
-/** the elevation range the strip's rows cover, bottom → top (degrees, seen from the sea surface at RADIUS) */
-const EL_MIN = -4, EL_MAX = 24;
-const URL_DAY = '/assets/horizon/driftwood-isle-day.webp';
-const URL_NIGHT = '/assets/horizon/driftwood-isle-night.webp';
 const FADE_IN = 1.5;
+
+/**
+ * A shard's painted horizon: its day / night strips and the elevation range their rows cover, bottom → top (degrees,
+ * seen from the sea surface at RADIUS) — the `strip` of scripts/horizon-matte/configs/<slug>.json.
+ */
+export interface HorizonStrips { day: string; night: string; elMin: number; elMax: number }
+
+const STRIPS: Readonly<Partial<Record<string, HorizonStrips>>> = {
+  'driftwood-isle': { day: '/assets/horizon/driftwood-isle-day.webp', night: '/assets/horizon/driftwood-isle-night.webp', elMin: -4, elMax: 24 },
+  // 'pine-hollow': none yet — PH-L5 paints it (photoreal, day + night)
+};
+
+/** the shard's painted horizon, or null when it has none */
+export function horizonStrips(slug: string): HorizonStrips | null { return STRIPS[slug] ?? null; }
 
 export class HorizonMatte {
   mesh: THREE.Mesh | null = null;
@@ -51,16 +64,19 @@ export class HorizonMatte {
     uSunGlow: { value: new THREE.Color() },
     uSunDir: { value: new THREE.Vector3(0, 1, 0) },
     uMiddayLit: { value: MIDDAY_SKY.cloudLit.clone() },
-    uHorizonV: { value: -EL_MIN / (EL_MAX - EL_MIN) },
+    uHorizonV: { value: 0 },   // the painted horizon row, set from the strips in build()
     uGain: { value: 1.1 },
     uNightGain: { value: 0.72 },  // the painted moonlight sits a little bright against the night dome
   };
 
-  constructor(private sky: Sky, private seaLevel = 0) {}
+  /** `strips`: the painting to show — the active shard's by default; null builds nothing */
+  constructor(private sky: Sky, private seaLevel = 0, private strips: HorizonStrips | null = horizonStrips(getActiveChunk().slug)) {}
 
   build(): this {
     const st = this.sky.stylized;
-    if (!st) return this;
+    const strips = this.strips;
+    if (!st || !strips) return this;
+    this.u.uHorizonV.value = -strips.elMin / (strips.elMax - strips.elMin);
     // share the dome's live palette uniforms (DayNight writes them): read-only here
     this.u.uHorizon = st.u.uHorizon; this.u.uCloudLit = st.u.uCloudLit; this.u.uSunGlow = st.u.uSunGlow; this.u.uSunDir = st.u.uSunDir;
     const mat = new THREE.ShaderMaterial({
@@ -94,7 +110,7 @@ export class HorizonMatte {
         }`,
     });
     mat.name = 'horizonMatte';
-    const mesh = new THREE.Mesh(bandGeometry(), mat);
+    const mesh = new THREE.Mesh(bandGeometry(strips.elMin, strips.elMax), mat);
     mesh.frustumCulled = false;
     mesh.renderOrder = -16; // visible from the start at alpha 0: its program compiles with the rest at boot, never mid-play
     mesh.name = 'horizon-matte';
@@ -109,10 +125,11 @@ export class HorizonMatte {
    * it stays the fallback when the paintings fail to load or `?matte=0`.
    */
   async load(replaces?: THREE.Object3D): Promise<void> {
-    if (!this.mesh || this.loaded) return;
+    const strips = this.strips;
+    if (!this.mesh || !strips || this.loaded) return;
     this.loaded = true;
     try {
-      const [day, night] = await Promise.all([loadTexture(URL_DAY), loadTexture(URL_NIGHT)]);
+      const [day, night] = await Promise.all([loadTexture(strips.day), loadTexture(strips.night)]);
       this.u.tDay.value = day; this.u.tNight.value = night;
       this.ready = true;
       if (replaces) replaces.visible = !this.shown;
@@ -131,13 +148,13 @@ export class HorizonMatte {
   }
 }
 
-/** an open cylinder, u = azimuth (0 → +X, 0.25 → +Z), v = elevation EL_MIN → EL_MAX; viewed from inside */
-function bandGeometry(): THREE.BufferGeometry {
+/** an open cylinder, u = azimuth (0 → +X, 0.25 → +Z), v = elevation elMin → elMax; viewed from inside */
+function bandGeometry(elMin: number, elMax: number): THREE.BufferGeometry {
   const SEG = 128, ROWS = 8, d2r = Math.PI / 180;
   const pos: number[] = [], uv: number[] = [], idx: number[] = [];
   for (let r = 0; r <= ROWS; r++) {
     const v = r / ROWS;
-    const y = RADIUS * Math.tan((EL_MIN + (EL_MAX - EL_MIN) * v) * d2r);
+    const y = RADIUS * Math.tan((elMin + (elMax - elMin) * v) * d2r);
     for (let s = 0; s <= SEG; s++) {
       const u = s / SEG, a = u * Math.PI * 2;
       pos.push(Math.cos(a) * RADIUS, y, Math.sin(a) * RADIUS);

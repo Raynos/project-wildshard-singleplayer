@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""run_codex.py <jobs.json> — one headless codex image_gen run per job, in parallel.
+"""run_codex.py <jobs.json> [--timeout 1500] — one headless codex image_gen run per job, in parallel.
 
-Each job: {"id", "inputs": [paths], "prompt", "out"}. The runner reads `session id:` from each run's log,
-polls ~/.codex/generated_images/<session id>/ for the PNG, copies it to `out` and kills that codex (AGENTS.md).
+Shard-agnostic: the jobs (mkjobs.py --shard <slug>) carry the shard's prompts and paths. Each job: {"id", "inputs":
+[paths], "prompt", "out"}. The runner reads `session id:` from each run's log, polls
+~/.codex/generated_images/<session id>/ for the PNG, copies it to `out` and kills that codex (AGENTS.md).
 """
 import json, os, re, subprocess, sys, time, shutil, signal
 
@@ -10,6 +11,7 @@ HERE = os.getcwd()  # logs + -o files land in the working directory (run it from
 GEN = os.path.expanduser('~/.codex/generated_images')
 
 jobs = json.load(open(sys.argv[1]))
+TIMEOUT = float(sys.argv[sys.argv.index('--timeout') + 1]) if '--timeout' in sys.argv else 1500
 procs = {}
 for j in jobs:
     if os.path.exists(j['out']):
@@ -26,7 +28,7 @@ for j in jobs:
 
 t0 = time.time()
 pending = dict(procs)
-while pending and time.time() - t0 < 1500:
+while pending and time.time() - t0 < TIMEOUT:
     time.sleep(10)
     for jid, (p, log, j) in list(pending.items()):
         txt = open(log, errors='ignore').read()

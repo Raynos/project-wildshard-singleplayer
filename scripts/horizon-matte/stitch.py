@@ -1,21 +1,35 @@
 #!/usr/bin/env python3
-"""stitch.py <pattern-with-{d}> <out.png> [--seams seams.npy] [--save-seams seams.npy]
+"""stitch.py [--shard <slug> | --config <json>] <pattern-with-{d}> <out.png> [--seams seams.npy] [--save-seams seams.npy]
 
-Projects six 1536x1024 perspective segments (heading t = 0,60..300 deg, dir = (cos t, 0, sin t), pitch 0, vfov 72,
-aspect 1.5) into one cylindrical strip W x H (u = azimuth, rows linear in elevation EL_MAX..EL_MIN), joins neighbours
-along a min-cost vertical seam inside their overlap and feathers it. Seamless at the 0/360 wrap by construction
-(the wrap is the middle of segment 0).
+Projects the shard's perspective segments (its capture: headings t, dir = (cos t, 0, sin t), pitch 0, vfov, frame size;
+Driftwood: six 1536x1024 at t = 0,60..300, vfov 72) into one cylindrical strip W x H (u = azimuth, rows linear in
+elevation EL_MAX..EL_MIN), joins neighbours along a min-cost vertical seam inside their overlap and feathers it.
+Seamless at the 0/360 wrap by construction (the wrap is the middle of segment 0). Parameters:
+scripts/horizon-matte/configs/<shard>.json (capture, strip, stitch).
 """
-import sys, numpy as np
+import argparse
+import numpy as np
 from PIL import Image
 
-W, H = 4096, 512
-EL_MIN, EL_MAX = -4.0, 24.0
-HEADS = [0, 60, 120, 180, 240, 300]
-VFOV = 72.0
-IW, IH = 1536, 1024
+import config
+
+ap = config.add_args(argparse.ArgumentParser(description='stitch a shard\'s horizon segments into one strip'))
+ap.add_argument('pattern', help='segment paths with {d} = the heading in degrees')
+ap.add_argument('out')
+ap.add_argument('--seams', default=None, help='reuse these seams (the night strip on the day seams)')
+ap.add_argument('--save-seams', default=None)
+ARGS = ap.parse_args()
+CFG = config.load(ARGS)
+W, H = CFG['strip']['width'], CFG['strip']['height']
+EL_MIN, EL_MAX = CFG['strip']['elMin'], CFG['strip']['elMax']
+HEADS = CFG['capture']['headings']
+VFOV = CFG['capture']['vfov']
+IW, IH = CFG['capture']['width'], CFG['capture']['height']
 TV = np.tan(np.radians(VFOV / 2)); TH = TV * IW / IH
-FEATHER = 10  # px each side
+FEATHER = CFG['stitch']['feather']  # px each side
+FEATHER_SKY = CFG['stitch']['featherSky']  # px each side in the open sky
+SEAM_WIN = CFG['stitch']['seamWindow']  # deg each side of a boundary
+HALF = 360 / len(HEADS) / 2  # each segment owns +-HALF deg around its heading
 
 
 def bilinear(img, x, y):
@@ -59,26 +73,26 @@ def seam_path(cost):
 
 
 def main():
-    pat, out = sys.argv[1], sys.argv[2]
-    load_seams = sys.argv[sys.argv.index('--seams') + 1] if '--seams' in sys.argv else None
-    save_seams = sys.argv[sys.argv.index('--save-seams') + 1] if '--save-seams' in sys.argv else None
+    pat, out = ARGS.pattern, ARGS.out
+    load_seams, save_seams = ARGS.seams, ARGS.save_seams
     layers, masks = [], []
     for d in HEADS:
         img = np.asarray(Image.open(pat.format(d=d)).convert('RGB').resize((IW, IH), Image.LANCZOS), dtype=np.float32) / 255
         l, m = project(img, d)
         layers.append(l); masks.append(m)
-    # ownership: segment k owns [t_k - 30, t_k + 30]; each boundary b_k at t_k + 30 is replaced by a seam in a +-11 deg window
+    # ownership: segment k owns [t_k - HALF, t_k + HALF]; each boundary b_k at t_k + HALF is replaced by a seam in a
+    # +-SEAM_WIN deg window (Driftwood: 30, 11)
     xs = np.arange(W)
     own = np.zeros((H, W), int)
     colt = (xs + 0.5) / W * 360
     for k, d in enumerate(HEADS):
         rel = (colt - d + 180) % 360 - 180
-        own[:, np.abs(rel) <= 30] = k
+        own[:, np.abs(rel) <= HALF] = k
     seams = np.load(load_seams) if load_seams else np.zeros((len(HEADS), H), int)
-    win = int(11 / 360 * W)
+    win = int(SEAM_WIN / 360 * W)
     for k, d in enumerate(HEADS):
         k2 = (k + 1) % len(HEADS)
-        bx = int(round((d + 30) / 360 * W))
+        bx = int(round((d + HALF) / 360 * W))
         cols = (np.arange(bx - win, bx + win)) % W
         if not load_seams:
             A = layers[k][:, cols]; B = layers[k2][:, cols]
@@ -97,7 +111,7 @@ def main():
     res = np.zeros((H, W, 3), np.float32); wsum = np.zeros((H, W, 1), np.float32)
     # feather per row: wide in the open sky high up (hides the segments' sky-tone steps), narrow where the content is
     el = EL_MAX - (EL_MAX - EL_MIN) * (np.arange(H) + 0.5) / H
-    rad = np.round(FEATHER + (150 - FEATHER) * np.clip((el - 7) / 6, 0, 1)).astype(int)
+    rad = np.round(FEATHER + (FEATHER_SKY - FEATHER) * np.clip((el - 7) / 6, 0, 1)).astype(int)
     PADN = 160
     for k in range(len(HEADS)):
         ind = (own == k).astype(np.float32)

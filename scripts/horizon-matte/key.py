@@ -1,17 +1,29 @@
 #!/usr/bin/env python3
-"""key.py <strip.png> <out_rgba.png> [--night] [--alpha-from other_rgba.png]
+"""key.py [--shard <slug> | --config <json>] <strip.png> <out_rgba.png> [--night] [--alpha-from other_rgba.png]
 
 Pulls the painted far distance off the painted sky: a per-row, slowly varying sky model S(x, y) estimated from the
 strip's own sky pixels, alpha = how far a pixel is from it, colour un-mixed (F = S + (P - S) / a). Below the horizon
-row the painted sea is kept for 0.6 deg then faded out by -1.6 deg (the game's sea covers it).
+row the painted feet are kept for `key.feet` deg then faded out by -`key.fadeTo` deg (Driftwood: 0.6 / 1.6 — the game's
+sea covers it). The strip's elevation range and the feet come from scripts/horizon-matte/configs/<shard>.json.
 """
-import sys, numpy as np
+import argparse
+import numpy as np
 from PIL import Image
 from scipy.ndimage import uniform_filter1d, gaussian_filter
 
-EL_MIN, EL_MAX = -4.0, 24.0
-src, out = sys.argv[1], sys.argv[2]
-night = '--night' in sys.argv
+import config
+
+ap = config.add_args(argparse.ArgumentParser(description='key a stitched horizon strip to RGBA'))
+ap.add_argument('src')
+ap.add_argument('out')
+ap.add_argument('--night', action='store_true', help='the night strip: a darker sky classifier')
+ap.add_argument('--alpha-from', default=None, help='take alpha from this keyed RGBA (the night strip reuses the day alpha)')
+ARGS = ap.parse_args()
+CFG = config.load(ARGS)
+EL_MIN, EL_MAX = CFG['strip']['elMin'], CFG['strip']['elMax']
+FEET, FADE_TO = CFG['key']['feet'], CFG['key']['fadeTo']
+src, out = ARGS.src, ARGS.out
+night = ARGS.night
 P = np.asarray(Image.open(src).convert('RGB'), dtype=np.float32) / 255
 H, W, _ = P.shape
 el = EL_MAX - (EL_MAX - EL_MIN) * (np.arange(H) + 0.5) / H
@@ -51,20 +63,20 @@ A = gaussian_filter(A, 0.6)
 # fill enclosed holes (hazy blue-grey rock faces read as sky): low-alpha pockets not connected to the open sky above
 from scipy.ndimage import binary_fill_holes, binary_closing
 solid = binary_closing(A > 0.45, structure=np.ones((5, 5)), iterations=1)
-solid[int(H * (EL_MAX - 0) / (EL_MAX - EL_MIN)):, :] = True           # the sea closes every pocket from below
+solid[int(H * (EL_MAX - 0) / (EL_MAX - EL_MIN)):, :] = True           # the sea / ground closes every pocket from below
 wrapw = 64
 tiled = np.concatenate([solid[:, -wrapw:], solid, solid[:, :wrapw]], 1)
 filled = binary_fill_holes(tiled)[:, wrapw:wrapw + W]
 A = np.maximum(A, gaussian_filter(filled.astype(np.float32), 0.8) * filled)
-# below the horizon: keep the painted feet 0.6 deg, then fade the painted sea out
+# below the horizon: keep the painted feet FEET deg, then fade the painted sea out
 elg = el[:, None] * np.ones((1, W))
-below = np.clip((elg + 1.6) / (1.6 - 0.6), 0, 1)   # 1 at -0.6 deg, 0 at -1.6
-A = np.where(elg < 0, np.where(elg > -0.6, 1.0, below), A)
+below = np.clip((elg + FADE_TO) / (FADE_TO - FEET), 0, 1)   # 1 at -FEET deg, 0 at -FADE_TO (Driftwood 0.6 / 1.6)
+A = np.where(elg < 0, np.where(elg > -FEET, 1.0, below), A)
 # very top: nothing
 A *= np.clip((EL_MAX - 0.3 - elg) / 2.0, 0, 1)
 
-if '--alpha-from' in sys.argv:
-    other = np.asarray(Image.open(sys.argv[sys.argv.index('--alpha-from') + 1]), dtype=np.float32) / 255
+if ARGS.alpha_from:
+    other = np.asarray(Image.open(ARGS.alpha_from), dtype=np.float32) / 255
     A = other[..., 3]
 
 a = np.maximum(A, 1e-3)[..., None]
