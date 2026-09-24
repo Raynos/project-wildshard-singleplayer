@@ -359,6 +359,9 @@ export class GameMenu {
         dbg.append(picker('Time of day', times, () => setting('time'), (v) => { saveSetting('time', v); }, (fn) => { onSettingChange('time', fn); }));
       }
     }
+    // the frame cap (PINE-HOLLOW PH-P1, tier.ts frameCapFps; live): Auto = Pine Hollow's phone tier at a locked 30, else uncapped
+    const caps: { v: OptionValue<'fps'>; text: string }[] = [{ v: 'auto', text: 'Auto' }, { v: '30', text: '30' }, { v: '60', text: 'Uncapped' }];
+    dbg.append(el('ws-gmenu-label', 'Frame rate'), picker('Frame cap', caps, () => setting('fps'), (v) => { saveSetting('fps', v); }, (fn) => { onSettingChange('fps', fn); }));
     dbg.append(el('ws-gmenu-note', 'Renderer, island, quality and render scale: Exit to main menu ▸ Settings.'));
     dbg.append(this.buildReview());
   }

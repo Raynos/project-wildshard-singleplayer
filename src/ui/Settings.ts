@@ -110,6 +110,7 @@ export const OPTION_VALUES = {
   sky: ['stylized', 'hdri'],                           // Driftwood: the gradient dome + faceted cumulus (L2) — locked in (E83, the user's pick); only ?sky=hdri reads it
   post: ['clean', 'cinematic'],                        // Driftwood: the clean low-poly post (L5) — locked in (E88, the user's pick); only ?post=cinematic reads it
   pinesky: ['clock', 'sunset'],                        // Pine Hollow: the day / night clock (PH-L2, src/world/PineDayNight.ts) or the pre-remaster fixed HDRI sunset — Jake picks (a reload)
+  fps: ['auto', '30', '60'],                           // frame cap (Game.start, tier.ts frameCapFps): auto = Pine Hollow's phone tier locked at 30 (PH-P1), else the display's rate — live
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -129,13 +130,14 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly 
   sky: { def: 'stylized', params: ['sky'], url: (q) => q.get('sky') },
   post: { def: 'clean', params: ['post'], url: (q) => q.get('post') },
   pinesky: { def: 'clock', params: ['pinesky'], url: (q) => (q.get('tod') === 'sunset-fixed' ? 'sunset' : q.get('pinesky')) }, // ?tod=sunset-fixed: the before shots
+  fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
 };
 // Settings ▸ Graphics ▸ Island (X2) saved under its own key before E55: carried over once
 if (saved['island'] === undefined) { try { const legacy = localStorage.getItem('ws.island.v1'); if (legacy !== null) saved['island'] = legacy; } catch { /* private mode */ } }
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => new Choice<OptionValue<K>>(k, OPTION_VALUES[k], OPTION_SPECS[k].def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   gpu: option('gpu'), island: option('island'), tier: option('tier'), touch: option('touch'), matte: option('matte'), time: option('time'), lut: option('lut'),
-  lighting: option('lighting'), sky: option('sky'), post: option('post'), pinesky: option('pinesky'),
+  lighting: option('lighting'), sky: option('sky'), post: option('post'), pinesky: option('pinesky'), fps: option('fps'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 

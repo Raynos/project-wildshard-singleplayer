@@ -101,3 +101,16 @@ export function saveGfxPrefs(): void { try { localStorage.setItem(GFX_KEY, JSON.
 if (gfxPrefs.dpr !== 'auto') TIER_CONFIG.dpr = gfxPrefs.dpr === 'native' ? 4 : Number(gfxPrefs.dpr);
 if (gfxPrefs.aa === 'on' && TIER_CONFIG.smaa === 'off') TIER_CONFIG.smaa = 'low';
 if (gfxPrefs.aa === 'off') TIER_CONFIG.smaa = 'off';
+
+/**
+ * The frame cap in fps, 0 = none (the display's own rate). PINE-HOLLOW-REMASTER PH-U18 / PH-P1: Pine Hollow's phone
+ * tier renders at a locked 30 — a steady 30 reads better than a 40–60 that judders, and the photoreal shard has no
+ * headroom for 60 on a phone. Every other shard and tier stays uncapped. Settings ▸ Debug ▸ Frame rate / `?fps=60`
+ * lifts it (a test), `?fps=30` caps any shard. Read every frame (a live option).
+ */
+export function frameCapFps(slug: string): number {
+  const f = setting('fps');
+  if (f === '30') return 30;
+  if (f === '60') return 0;
+  return TIER === 'phone' && slug === 'pine-hollow' ? 30 : 0;
+}

@@ -10,7 +10,7 @@ import { Sky } from '../world/Sky';
 import { GradeEffect } from './Grade';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '../chunks/registry';
-import { TIER_CONFIG } from './tier';
+import { TIER_CONFIG, frameCapFps } from './tier';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 import { worldTime } from './time';
@@ -23,6 +23,8 @@ import { SHADOW_LAYER } from './shadowLayer';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
+/** the frame cap's tolerance for vsync timestamp jitter (see Game.start) */
+const FRAME_CAP_SLACK_MS = 4;
 const MAX_FIXED_STEPS = 3; // per frame; past it the backlog is dropped (a stall never replays as a burst)
 /** the three slots of one fixed step, in order: `pre` readies the world, `step` advances it, `post` moves against it */
 export type FixedPhase = 'pre' | 'step' | 'post';
@@ -323,10 +325,24 @@ export class Game {
     // One chain only: every animation-frame callback of a frame gets the same timestamp, so a second chain (kickLoop
     // restarting a loop that was merely paused) finds its frame taken and ends there.
     let lastNow = -1, lastRun = performance.now();
+    // The frame cap (tier.ts frameCapFps; PINE-HOLLOW PH-P1: Pine Hollow's phone tier at a locked 30). The animation frame
+    // still comes every vsync; a frame is drawn only once 1/cap has passed since the last one drawn, less a slack under
+    // one vsync of the fastest display (4 ms < 8.3 ms at 120 Hz) to absorb timestamp jitter. So it draws every 2nd vsync
+    // at 60 Hz, every 4th at 120 Hz, every one at 30 (iOS Low Power), and never two vsyncs running: no 30 ↔ 60 judder.
+    // A skipped vsync does nothing at all — not even the clock — so the drawn frame's dt is the whole 33 ms, the fixed
+    // steps catch up (2 × 1/60), and input read in that frame has everything since the last one.
+    const slug = getActiveChunk().slug;
+    let lastDrawn = -Infinity;
     const loop = (now?: number) => {
       if (now !== undefined) { if (now === lastNow) return; lastNow = now; }
       schedule(loop);
       lastRun = performance.now();
+      const cap = frameCapFps(slug);
+      if (cap > 0 && !forceFrame) {
+        const t = now ?? lastRun;
+        if (t - lastDrawn < 1000 / cap - FRAME_CAP_SLACK_MS) return;
+        lastDrawn = t;
+      }
       if (this.hold) { this.clock.getDelta(); return; } // the context is lost / being rebuilt (GpuRecovery.ts): a draw now would re-link every program in one stall
       if (!forceFrame && !this.frameGate()) { this.clock.getDelta(); return; } // keep the clock moving so the next frame's dt is sane
       forceFrame = false;
