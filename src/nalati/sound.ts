@@ -12,12 +12,17 @@
  *   sound.update(dt)              // every frame (index.ts pushes it)
  *   audio.counts                  // the tally of every sound played (`window.__nalatiSound.counts()` in a headless check)
  *
+ * NALATI-MERGE A1 / A2 / A4: the bow's draw creak / full-draw click / let-down (Bow.onDrawStart / onFullDraw / onLetDown);
+ * the zoned sample beds (src/audio/SteppeAmbience.ts: Nalati Grasslands / Sky Grassland / Snow Lotus Valley, fed from here at
+ * 4 Hz) over the synth bed's fallback; the score's scene (music.setSteppe: the zone, night, the storm, the Golden King).
+ *
  * Pine Hollow and Driftwood never build this; the only engine-side change they could see is none (Audio's new methods
  * and the 'steppe' bed are only reached from here).
  */
 import * as THREE from 'three';
 import type { Audio, AnimalSound, HoofSurface, ImpactKind } from '../audio/Audio';
 import type { Music } from '../audio/Music';
+import { SteppeAmbience } from '../audio/SteppeAmbience';
 import type { Player } from '../player/Player';
 import type { NalatiKit } from '../player/nalatiKit';
 import type { Nalati } from './index';
@@ -27,7 +32,7 @@ import { wind } from '../world/steppeWind';
 import { wildEnv } from '../entities/wildEnv';
 import { lightLevel } from '../world/DayClock';
 import { trailDistance } from '../world/Heightfield';
-import { RIVER, BRIDGE, CAMP, SUMMER_YURTS, GLACIER, BROOK, riverMask } from '../chunks/nalati-grasslands';
+import { RIVER, BRIDGE, CAMP, SUMMER_YURTS, GLACIER, BROOK, riverMask, zoneAt } from '../chunks/nalati-grasslands';
 
 export interface NalatiSound {
   bind: (audio: Audio, music?: Music) => void;
@@ -40,6 +45,8 @@ export interface NalatiSound {
   event: (name: string, x: number, z: number) => void;
   /** the tally so far (sound → calls) */
   counts: () => Record<string, number>;
+  /** the zoned beds (A4), once bound */
+  readonly ambience: SteppeAmbience | null;
 }
 
 /** the creature names Wildlife / Flock / Marmots send (the AnimalManager ones reach Audio.animal through main.ts) */
@@ -55,7 +62,8 @@ function hoofSurfaceAt(x: number, z: number): HoofSurface {
   return 'grass';
 }
 
-/** metres to the brook's polyline */
+/** metres to the brook's polyline (the meltwater stream), and the side it lies on (`side.x`, `side.z`: a unit vector toward it) */
+const side = { x: 0, z: 0 };
 function brookDistance(x: number, z: number): number {
   let best = Infinity;
   for (let i = 0; i < BROOK.length - 1; i++) {
@@ -63,7 +71,8 @@ function brookDistance(x: number, z: number): number {
     if (!a || !b) continue;
     const vx = b[0] - a[0], vz = b[1] - a[1], l2 = vx * vx + vz * vz;
     const t = l2 > 0 ? Math.min(1, Math.max(0, ((x - a[0]) * vx + (z - a[1]) * vz) / l2)) : 0;
-    best = Math.min(best, Math.hypot(x - a[0] - vx * t, z - a[1] - vz * t));
+    const px = a[0] + vx * t, pz = a[1] + vz * t, d = Math.hypot(x - px, z - pz);
+    if (d < best) { best = d; side.x = d > 0 ? (px - x) / d : 0; side.z = d > 0 ? (pz - z) / d : 0; }
   }
   return best;
 }
@@ -94,6 +103,11 @@ export function wireSound(nalati: Nalati, ctx: { player: Player; weather: Nalati
     kit.bow.onLoose = (power) => { loose?.(power); audio?.bowTwang(power); };
     const thrown = kit.spear.onThrow;
     kit.spear.onThrow = () => { thrown?.(); thrustPending = false; audio?.javelinThrow(); };
+    // H4's hold-to-draw: the limbs creak as you draw, click at full draw, ease back on a let-down (A1)
+    const drawStart = kit.bow.onDrawStart, full = kit.bow.onFullDraw, letDown = kit.bow.onLetDown;
+    kit.bow.onDrawStart = () => { drawStart?.(); audio?.bowDraw(); };
+    kit.bow.onFullDraw = () => { full?.(); audio?.bowFullDraw(); };
+    kit.bow.onLetDown = () => { letDown?.(); audio?.bowLetDown(); };
   };
 
   // ── self-wiring onto the shard's hooks (the integrator's index.ts calls wireSound once) ──
@@ -113,6 +127,7 @@ export function wireSound(nalati: Nalati, ctx: { player: Player; weather: Nalati
 
   // ── the dusk / night chorus: now and then a pack far off answers (never in a storm, never in the kurgan) ──
   let chorusT = 20, bedT = 0;
+  let amb: SteppeAmbience | null = null, score: Music | undefined;
   const chorus = (): void => {
     if (!audio) return;
     const a = Math.random() * Math.PI * 2, d = 260 + Math.random() * 330;
@@ -139,6 +154,10 @@ export function wireSound(nalati: Nalati, ctx: { player: Player; weather: Nalati
       }
       a.setAmbient('steppe');
       music?.setState({ shard: 'steppe' });
+      // A4: the zones' sampled beds (the synth bed stays the fallback); A2: the score follows the zone they report
+      score = music;
+      amb = new SteppeAmbience(a);
+      amb.onZone = (zone) => { score?.setSteppe({ zone }); };
     },
     fire(id) {
       if (!audio) return false;
@@ -161,6 +180,7 @@ export function wireSound(nalati: Nalati, ctx: { player: Player; weather: Nalati
     },
     emit, event,
     counts: () => ({ ...audio?.counts }),
+    get ambience() { return amb; },
     update(dt) {
       if (!audio) return;
       const p = player.position, clock = weather.clock;
@@ -174,8 +194,21 @@ export function wireSound(nalati: Nalati, ctx: { player: Player; weather: Nalati
         const night = smooth(0.75, 0.45, lightLevel(clock));
         // in the kurgan's sealed chamber the steppe is gone (the boss fight has its own sound)
         const out = nalati.boss.inside ? 0 : 1;
-        audio.setSteppe({ wind: wind.speed * out, gust: wind.gustAt(p.x, p.z) * out, river: Math.max(river, brook) * out, waterfall: fall * out, camp: camp * out, night: night * out });
+        const gust = wind.gustAt(p.x, p.z);
+        audio.setSteppe({ wind: wind.speed * out, gust: gust * out, river: Math.max(river, brook) * out, waterfall: fall * out, camp: camp * out, night: night * out });
+        if (amb) {
+          const bd = brookDistance(p.x, p.z), cs = Math.cos(player.yaw), sn = Math.sin(player.yaw);
+          const panTo = (dx: number, dz: number): number => { const d = Math.hypot(dx, dz); return d > 0.5 ? ((dx * cs - dz * sn) / d) * 0.7 : 0; };
+          const toCamp = Math.hypot(p.x - CAMP.x, p.z - CAMP.z) < Math.hypot(p.x - SUMMER_YURTS.x, p.z - SUMMER_YURTS.z) ? CAMP : SUMMER_YURTS;
+          amb.set({
+            zones: zoneAt(p.x, p.z), river, melt: Math.max(fall, smooth(40, 3, bd)), camp, night, wind: wind.speed, gust, out,
+            pan: { river: panTo(0, RIVER.z(p.x) - p.z), camp: panTo(toCamp.x - p.x, toCamp.z - p.z), melt: bd < 40 ? panTo(side.x, side.z) : panTo(GLACIER.x1 - p.x, GLACIER.z1 - p.z) },
+          });
+        }
+        // A2: the score's scene — the King's barrow, a storm (Jel Ata's cue), the night; the zone comes from amb.onZone
+        score?.setSteppe({ night: night > 0.5, storm: weather.weather.stormActive || nalati.titan.engaged, boss: nalati.boss.inside ? 'king' : null });
       }
+      amb?.update(dt, p, player.yaw);
       chorusT -= dt;
       if (chorusT <= 0) {
         const dark = clock.phase === 'dusk' || clock.phase === 'night';

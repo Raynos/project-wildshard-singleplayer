@@ -30,6 +30,11 @@ import { Voices } from './Voices';
  *   audio.hoofSurfaceAt = (x, z) => 'grass'|'gravel'|'wood'   — 'hoofsteps' then sound on that ground (unset = the old hooves)
  *   audio.stampede(distance, pan)  audio.bowTwang(power)  audio.arrowWhoosh(power)  audio.arrowImpact(kind, pan?, gain?)
  *   audio.javelinThrow()  audio.javelinImpact(kind, pan?, gain?)  audio.sabreSwing()  audio.sabreHit(kind, pan?, gain?)  audio.spearThrust()
+ *   audio.bowDraw()  audio.bowFullDraw()  audio.bowLetDown()   // H4's hold-to-draw: the creak, the full-draw click, the ease-back
+ *   Every one of them (and the creatures, hooves, stampede, thunder, crackle) plays the one set's Nalati take when it decoded
+ *   (NALATI-MERGE A1: MOSS v2 vs Stable Audio 3 Medium per sound, `shard: 'nalati'` in sfx.json — decoded on the steppe only),
+ *   else its synth. The sampled beds are src/audio/SteppeAmbience.ts's: `audio.sampledSteppe(true)` stops the synth steppe bed,
+ *   `audio.stormSink` takes the storm's levels for its rain / gale beds (the synth storm stays silent while it does).
  *   audio.setAmbient('steppe') + audio.setSteppe({ wind, gust, river, waterfall, camp, night })   // the grassland bed: grass wind
  *     layered by gust, the Kunes near the river, the stove crackle at the camp, larks by day, crickets at night
  *   audio.counts                                          // { [sound]: calls } — a debug tally (headless checks)
@@ -62,7 +67,8 @@ export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squea
   | 'crab_click' | 'crab_snap' | 'monkey_chatter' | 'monkey_shriek' | 'sailor_groan' | 'sailor_slash' | 'coconut_hit' | 'coconut_land'   // Driftwood Isle's enemies (src/entities/Enemies.ts)
   | 'wolf_howl' | 'wolf_snarl' | 'wolf_bite' | 'wolf_yip' | 'wolf_yelp' | 'horse_neigh' | 'horse_snort' | 'horse_squeal'
   | 'dog_bark' | 'dog_yelp' | 'sheep_bleat' | 'marmot_whistle'   // Nalati's creatures (src/entities/Wildlife.ts, Pack / Herd / Flock)
-  | 'eagle_cry' | 'leopard_growl';   // Nalati's elites (src/nalati/elites.ts: Qyran, Aqbars) — synth only, no other shard's sample
+  | 'eagle_cry' | 'leopard_growl'   // Nalati's elites (src/nalati/elites.ts: Qyran, Aqbars) — their own voices, no other shard's sample
+  | 'king_call' | 'king_hurt';      // the Golden King (species/goldenKing.ts) — the synth falls back to the bear's growl / hurt
 export type AmbientBed = 'forest' | 'island' | 'steppe';
 /** the ground under a hoof (Nalati: the steppe, the gravel bars and roads, the bridge deck) */
 export type HoofSurface = 'grass' | 'gravel' | 'wood';
@@ -82,8 +88,16 @@ export type StepSurface = 'litter' | 'planks' | 'sand' | 'grass' | 'gravel';   /
 /** sfx.json `oneshots` keys: the method each replaces (`footstep-sand`, `boltImpact-wood`, `land-hard`, the AnimalSound ids, `gull`) */
 export type OneShot = 'crossbowFire' | 'dryFire' | `boltImpact-${ImpactKind}` | 'swordSwing' | 'swordHeavy' | `swordHit-${'flesh' | 'wood'}`
   | 'dodge' | 'lunge' | 'reload' | 'rifleFire' | 'rifleReload' | 'weaponSwap' | `footstep-${StepSurface}` | 'jump' | 'land' | 'land-hard'
-  | 'splash' | 'wadeStep' | 'swimStroke' | 'waterExit' | 'dive' | 'surface' | 'hitMarker' | 'kill' | AnimalSound | 'gull';
-export type LoopName = AmbientBed | 'underwater' | 'pickup' | 'shrine';
+  | 'splash' | 'wadeStep' | 'swimStroke' | 'waterExit' | 'dive' | 'surface' | 'hitMarker' | 'kill' | AnimalSound | 'gull'
+  | NalatiShot;
+/** Nalati's one-shots (NALATI-MERGE A1: MOSS v2 vs Stable Audio 3 Medium, the better take per sound) — sfx.json tags them
+ *  `shard: 'nalati'`, so only the steppe decodes them (preload.ts) */
+export type NalatiShot = `hoof-${HoofSurface}` | 'stampede' | 'bowDraw' | 'bowFullDraw' | 'bowLetDown' | 'bowTwang' | 'arrowWhoosh'
+  | `arrowImpact-${ImpactKind}` | 'sabreSwing' | `sabreHit-${'flesh' | 'wood'}` | 'spearThrust' | 'javelinThrow' | `javelinImpact-${ImpactKind}`
+  | 'thunder-near' | 'thunder-far' | 'lightningCrackle';
+/** Nalati's sampled beds (sfx.json `beds`, shard 'nalati'): src/audio/SteppeAmbience.ts mixes them by zone, place, clock, weather */
+export type SteppeLoop = 'steppe-wind' | 'steppe-larks' | 'steppe-night' | 'river' | 'meltwater' | 'camp' | 'highwind' | 'coldwind' | 'rain' | 'stormwind';
+export type LoopName = AmbientBed | 'underwater' | 'pickup' | 'shrine' | SteppeLoop;
 /** a decoded loop (a bed or a hum): the buffer, its loop points in the file, and a gain from sfx.json (default per kind) */
 export interface SampleLoop { buffer: AudioBuffer; loopStart: number; loopEnd: number; gain: number }
 
@@ -189,17 +203,19 @@ export class Audio {
     void (async () => { this.useSamples(await trackBusy('sfx', decodeSfxSet(v, this.bed, cachedBytes))); })();
   }
   /** a random variant of `family` with a little pitch / gain jitter, routed like the synth call; false = not sampled, play the synth */
-  private shot(family: OneShot, o: { pan?: number; gain?: number; out?: AudioNode } = {}): boolean {
+  private shot(family: OneShot, o: { pan?: number; gain?: number; out?: AudioNode; t?: number; rate?: number } = {}): boolean {
     const set = this.shots.get(family);
     if (!set || !this.g) return false;
     const buf = set.bufs[Math.floor(Math.random() * set.bufs.length)];
     if (!buf) return false;
     const c = this.g.ctx, src = c.createBufferSource(); src.buffer = buf;
-    src.playbackRate.value = 2 ** (rnd(-40, 40) / 1200);
+    src.playbackRate.value = (o.rate ?? 1) * 2 ** (rnd(-40, 40) / 1200);
     const g = c.createGain(); g.gain.value = set.gain * (o.gain ?? 1) * rnd(0.84, 1);
-    src.connect(g); this.route(g, o.pan ?? 0, o.out); src.start();
+    src.connect(g); this.route(g, o.pan ?? 0, o.out); src.start(o.t ?? 0);
     return true;
   }
+  /** a sampled one-shot of this set exists (Nalati's ambience scatters calls only when they are sampled) */
+  hasShot(family: OneShot): boolean { return this.shots.has(family); }
   /** a looping source of `l` (loopStart → loopEnd) started now, from a random point inside the loop so two plays never phase */
   private loopSource(l: SampleLoop): AudioBufferSourceNode {
     const c = this.ctx, s = c.createBufferSource(); s.buffer = l.buffer; s.loop = true; s.loopStart = l.loopStart; s.loopEnd = l.loopEnd;
@@ -825,6 +841,7 @@ export class Audio {
         }
         break;
       }
+      case 'king_call': // the Golden King's groan when no sample decoded: the bear's growl (its old voice)
       case 'bear_growl': { // low chesty huff-growl: a slow sawtooth rumble under a breathy lowpass exhale, one or two huffs
         const n = 1 + Math.floor(rnd(0, 1.8));
         for (let i = 0; i < n; i++) {
@@ -890,6 +907,7 @@ export class Audio {
         this.burst({ t: t + 0.01, type: 'lowpass', freq: 1400, gain: 0.3, attack: 0.01, decay: 0.12, out: bus });
         break;
       }
+      case 'king_hurt': // the King struck, unsampled: the bear's bark-roar
       case 'bear_hurt': { // a hit: a sharp bark-roar, higher and shorter than the charge bellow, dropping into a grunt
         this.tone({ t, type: 'sawtooth', f0: 220, f1: 330, glide: 0.08, gain: 0.9, attack: 0.01, hold: 0.12, decay: 0.28, vibrato: { rate: 22, depth: 30 }, lowpass: 1800, out: bus });
         this.tone({ t: t + 0.05, type: 'sawtooth', f0: 330, f1: 120, glide: 0.35, gain: 0.6, attack: 0.01, decay: 0.4, vibrato: { rate: 16, depth: 20 }, lowpass: 1000, out: bus });
@@ -1033,9 +1051,14 @@ export class Audio {
   // ─────────────── weather (Nalati storms) ───────────────
   private storm: { rain: GainNode; hiss: GainNode; roar: GainNode; roarLp: BiquadFilterNode } | undefined;
 
+  /** Nalati's sampled storm (SteppeAmbience's rain + storm-wind beds): true = it plays them, the synth storm stays silent */
+  stormSink?: ((rain: number, wind: number) => boolean) | undefined;
   /** the storm beds: `rain` 0..1 (a close patter + a wide hiss), `wind` 0..1 (a low roar, brighter as it rises). Built on first use. */
-  setStorm(rain: number, wind: number): void {
+  setStorm(rainIn: number, windIn: number): void {
     if (!this.g) return; // before the first gesture: nothing can play
+    const sunk = this.stormSink?.(rainIn, windIn) === true;
+    if (sunk && !this.storm) return;
+    const rain = sunk ? 0 : rainIn, wind = sunk ? 0 : windIn;
     if (!this.storm) {
       if (rain <= 0.001 && wind <= 0.001) return;
       const c = this.ctx;
@@ -1069,6 +1092,12 @@ export class Audio {
     this.tally('thunder');
     const c = this.ctx, delay = Math.min(12, distance / 343), t = c.currentTime + delay;
     const near = Math.max(0, 1 - distance / 900), level = 0.25 + 0.75 * near;
+    // sampled: the close crack under ~400 m, the far roll past it, darker with distance (a per-call low-pass)
+    if (this.shots.has(distance < 400 ? 'thunder-near' : 'thunder-far')) {
+      const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 12000 / (1 + distance / 300);
+      this.route(lp, pan * 0.6);
+      if (this.shot(distance < 400 ? 'thunder-near' : 'thunder-far', { out: lp, t, gain: 0.5 + 0.7 * near })) return;
+    }
     if (distance < 400) {
       // the crack: a bright broadband tear, then a snapping tail
       this.burst({ t, type: 'highpass', freq: 900, q: 0.3, gain: 0.9 * near, attack: 0.004, decay: 0.35, pan });
@@ -1086,6 +1115,7 @@ export class Audio {
   lightningCrackle(pan = 0, gain = 1): void {
     if (!this.g) return;
     this.tally('lightningCrackle');
+    if (this.shot('lightningCrackle', { pan, gain })) return;
     const t0 = this.ctx.currentTime;
     for (let i = 0; i < 26; i++) {
       const k = i / 26, t = t0 + k * 1.15 + rnd(0, 0.03);
@@ -1108,6 +1138,7 @@ export class Audio {
     // a herd galloping past fires dozens of footfalls a second: keep ~18 / s near, fewer far off
     if (t - this.lastHoof < 0.055 * (1 + dist / 20)) return;
     this.lastHoof = t;
+    if (this.shot(`hoof-${surf}`, { out: bus, t, gain: 0.8 })) return; // one sampled take is the whole pair
     for (const b of [0, rnd(0.03, 0.06)]) {
       const ti = t + b;
       if (surf === 'wood') { // the bridge deck: a hollow knock
@@ -1132,6 +1163,7 @@ export class Audio {
     const bus = this.ctx.createGain(); bus.gain.value = k;
     const lp = this.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 5000 / (1 + distance / 40);
     bus.connect(lp); this.route(lp, pan * 0.7);
+    if (this.shot('stampede', { out: bus })) return;
     this.burst({ t, type: 'lowpass', freq: 110, q: 0.7, gain: 0.9, attack: 0.6, hold: 2.2, decay: 1.4, out: bus, rate: 0.6 });
     this.burst({ t, type: 'bandpass', freq: 260, q: 0.6, gain: 0.35, attack: 0.5, hold: 2, decay: 1.2, out: bus });
     for (let i = 0; i < 40; i++) { this.lastHoof = 0; this.hooves(Math.random() < 0.8 ? 'grass' : 'gravel', t + rnd(0, 3.2), bus); }
@@ -1142,6 +1174,7 @@ export class Audio {
     if (!this.g) return;
     this.tally('bowTwang');
     const t = this.ctx.currentTime, p = Math.max(0.2, Math.min(1, power));
+    if (this.shot('bowTwang', { gain: 0.55 + 0.45 * p, rate: 0.94 + 0.08 * p })) { this.arrowWhoosh(p); return; }
     this.tone({ t, type: 'triangle', f0: 150 + 40 * p, f1: 118, glide: 0.18, gain: 0.35 + 0.3 * p, attack: 0.002, decay: 0.28, vibrato: { rate: 38, depth: 6 } });
     this.tone({ t, type: 'sawtooth', f0: 300 + 80 * p, f1: 240, glide: 0.1, gain: 0.12 + 0.1 * p, attack: 0.002, decay: 0.14, lowpass: 1800 });
     this.burst({ t, type: 'highpass', freq: 2500, gain: 0.3 * p, decay: 0.02 });
@@ -1153,14 +1186,46 @@ export class Audio {
   arrowWhoosh(power = 1): void {
     if (!this.g) return;
     this.tally('arrowWhoosh');
+    if (this.shot('arrowWhoosh', { gain: 0.35 + 0.35 * power })) return;
     const t = this.ctx.currentTime;
     this.burst({ t: t + 0.01, type: 'bandpass', freq: 2600, freqEnd: 700, q: 1.4, gain: 0.12 + 0.12 * power, attack: 0.02, decay: 0.22 });
+  }
+
+  /** the bow drawn (Bow.onDrawStart — H4's hold-to-draw): the limbs' creak and the string stretching */
+  bowDraw(): void {
+    if (!this.g) return;
+    this.tally('bowDraw');
+    if (this.shot('bowDraw', { gain: 0.7 })) return;
+    const t = this.ctx.currentTime;
+    this.tone({ t, type: 'sawtooth', f0: rnd(95, 115), f1: rnd(130, 150), glide: 0.7, gain: 0.05, attack: 0.15, hold: 0.4, decay: 0.25, vibrato: { rate: 23, depth: 14 }, lowpass: 1100 });
+    this.burst({ t, type: 'bandpass', freq: 1300, freqEnd: 2100, q: 3, gain: 0.04, attack: 0.2, hold: 0.35, decay: 0.2 });
+  }
+
+  /** full draw reached (Bow.onFullDraw): one tight creak and the nock's click */
+  bowFullDraw(): void {
+    if (!this.g) return;
+    this.tally('bowFullDraw');
+    if (this.shot('bowFullDraw', { gain: 0.6 })) return;
+    const t = this.ctx.currentTime;
+    this.burst({ t, type: 'highpass', freq: 3200, gain: 0.12, decay: 0.012 });
+    this.tone({ t: t + 0.01, type: 'sawtooth', f0: 150, f1: 138, glide: 0.1, gain: 0.04, attack: 0.01, decay: 0.12, vibrato: { rate: 30, depth: 10 }, lowpass: 1400 });
+  }
+
+  /** the draw eased back without a shot (Bow.onLetDown: an early release, or the arm tiring) */
+  bowLetDown(): void {
+    if (!this.g) return;
+    this.tally('bowLetDown');
+    if (this.shot('bowLetDown', { gain: 0.6 })) return;
+    const t = this.ctx.currentTime;
+    this.tone({ t, type: 'sawtooth', f0: rnd(140, 150), f1: rnd(95, 105), glide: 0.45, gain: 0.04, attack: 0.05, hold: 0.15, decay: 0.3, vibrato: { rate: 21, depth: 12 }, lowpass: 1000 });
+    this.burst({ t: t + 0.35, type: 'bandpass', freq: 2400, q: 2, gain: 0.03, decay: 0.05 });
   }
 
   /** an arrow striking: the shaft's quiver in wood, a dull thump in the turf, a wet thud in flesh */
   arrowImpact(kind: ImpactKind, pan = 0, gain = 1): void {
     if (!this.g) return;
     this.tally(`arrowImpact:${kind}`);
+    if (this.shot(`arrowImpact-${kind}`, { pan, gain })) return;
     const t = this.ctx.currentTime;
     if (kind === 'wood') {
       this.burst({ t, type: 'bandpass', freq: 1500, q: 1.8, gain: 0.55 * gain, decay: 0.05, pan });
@@ -1178,6 +1243,7 @@ export class Audio {
   javelinThrow(): void {
     if (!this.g) return;
     this.tally('javelinThrow');
+    if (this.shot('javelinThrow')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 1400, freqEnd: 300, q: 1, gain: 0.3, attack: 0.04, decay: 0.45 });
     this.burst({ t, type: 'lowpass', freq: 500, gain: 0.2, attack: 0.02, decay: 0.12 });
@@ -1188,6 +1254,7 @@ export class Audio {
   javelinImpact(kind: ImpactKind, pan = 0, gain = 1): void {
     if (!this.g) return;
     this.tally(`javelinImpact:${kind}`);
+    if (this.shot(`javelinImpact-${kind}`, { pan, gain })) return;
     const t = this.ctx.currentTime;
     this.tone({ t, type: 'sine', f0: 120, f1: 48, glide: 0.08, gain: 0.6 * gain, decay: 0.14, pan });
     this.burst({ t, type: 'lowpass', freq: kind === 'flesh' ? 500 : 700, gain: 0.55 * gain, decay: 0.1, pan });
@@ -1199,6 +1266,7 @@ export class Audio {
   sabreSwing(): void {
     if (!this.g) return;
     this.tally('sabreSwing');
+    if (this.shot('sabreSwing')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 1800, freqEnd: 4200, q: 1.4, gain: 0.28, attack: 0.03, decay: 0.16 });
     this.steelRing(t + 0.02, 0.045);
@@ -1208,6 +1276,7 @@ export class Audio {
   sabreHit(kind: ImpactKind, pan = 0, gain = 1): void {
     if (!this.g) return;
     this.tally(`sabreHit:${kind}`);
+    if (kind !== 'ground' && this.shot(`sabreHit-${kind}`, { pan, gain })) return;
     this.swordHit(kind, pan, gain);
     this.steelRing(this.ctx.currentTime, 0.07 * gain, pan);
   }
@@ -1223,12 +1292,21 @@ export class Audio {
   spearThrust(): void {
     if (!this.g) return;
     this.tally('spearThrust');
+    if (this.shot('spearThrust')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 900, freqEnd: 2600, q: 1.2, gain: 0.3, attack: 0.02, decay: 0.14 });
     this.tone({ t, type: 'triangle', f0: 230, f1: 190, glide: 0.08, gain: 0.07, attack: 0.01, decay: 0.08 });
   }
 
   // ─────────────── Nalati: the steppe bed ───────────────
+  private steppeSampled = false;
+  /** Nalati's zoned sample beds are playing (src/audio/SteppeAmbience.ts): the synth steppe bed below stops — false brings it
+   *  back (the synth set, or no bed decoded) */
+  sampledSteppe(on: boolean): void {
+    if (on === this.steppeSampled) return;
+    this.steppeSampled = on;
+    if (this.started && this.bed === 'steppe' && !this.sampleBed) { this.stopBed(); this.startBed(); }
+  }
   private steppe: { grass: GainNode; low: GainNode; mid: GainNode; river: GainNode; fall: GainNode; stove: GainNode } | undefined;
   private steppeLv: SteppeLevels = { wind: 5, gust: 0.3, river: 0, waterfall: 0, camp: 0, night: 0 };
   private larkTimer = 0; private cricketTimer = 0; private crackleTimer = 0;
@@ -1341,7 +1419,7 @@ export class Audio {
     const l = this.loops.get(this.bed);
     this.sampleBed = l !== undefined;
     if (l) this.startSampleBed(l);
-    else if (this.bed === 'island') { if (!this.zoned) this.startIsland(); } else if (this.bed === 'steppe') this.startSteppe(); else this.startForest();
+    else if (this.bed === 'island') { if (!this.zoned) this.startIsland(); } else if (this.bed === 'steppe') { if (!this.steppeSampled) this.startSteppe(); } else this.startForest();
   }
   /** sfx.json's bed for this shard: one looping source faded in over 2 s (replaces the synth winds, birds, gusts and surf) */
   private startSampleBed(l: SampleLoop) {

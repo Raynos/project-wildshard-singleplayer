@@ -707,13 +707,15 @@ async function main() {
   });
 
   let musicPoll = 0;
+  const steppeMusic = chunk.style === 'painterly';
   game.onUpdate((dt, t) => {
     // music: once a second (not per frame) — an animal that has noticed you within 40 m lifts calm → alert; combat comes from the hit hooks and decays by itself
     if (t - musicPoll > 1) {
       musicPoll = t;
       syncNoteDisc(); // the ✎ disc follows entered / the touch layer / the Quick note switch, once a second
       if (music.state.mode !== 'combat' && music.state.mode !== 'menu') {
-        const noticed = animals.animals.some((a) => a.alive && (a.state === 'alert' || a.state === 'stalk') && a.position.distanceTo(player.position) < 40);
+        // (the steppe's herds and the flock dog go 'alert' as you ride by: only a hostile one lifts Nalati's score — NALATI-MERGE A2)
+        const noticed = animals.animals.some((a) => a.alive && (a.state === 'alert' || a.state === 'stalk') && (!steppeMusic || a.aggressive) && a.position.distanceTo(player.position) < 40);
         music.setState({ mode: noticed ? 'alert' : 'calm', intensity: noticed ? 0.5 : 0 });
       }
     }
@@ -802,6 +804,7 @@ async function main() {
   // last: the audio downloads while the shaders compile; the selected style + set are decoded as their bytes land
   const banks = await step('audio', (p) => audioLoad.wait(p));
   if (banks.music) music.useBank(banks.music); // the title theme's first gesture plays the stems at once
+  if (banks.steppe) music.steppe.useBank(banks.steppe); // Nalati's own score: its first slot + stings (NALATI-MERGE A2)
   audio.useSamples(banks.sfx);
   (plan as unknown as { done: () => void }).done(); // throws unless both tracks are exactly 1
   game.start();

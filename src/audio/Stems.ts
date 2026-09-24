@@ -20,7 +20,12 @@ import { MUSIC_MANIFESTS } from '../boot/audio.generated';
  *  no 404 in the console, no request at all while the generated music has not landed */
 export const shipped = (path: string): boolean => path in PUBLIC_BYTES;
 
-export type SlotName = 'pine' | 'island' | 'title';
+/** NALATI-MERGE A2: Nalati's own score (public/assets/music/nalati/music.json — one Kazakh-folk score whatever the style,
+ *  src/audio/SteppeScore.ts): a theme per zone, the night, the storm (Jel Ata's cue), the Golden King */
+export type SteppeSlot = 'steppe-grass' | 'steppe-sky' | 'steppe-snow' | 'steppe-night' | 'steppe-storm' | 'steppe-king';
+export const STEPPE_SLOTS: readonly SteppeSlot[] = ['steppe-grass', 'steppe-sky', 'steppe-snow', 'steppe-night', 'steppe-storm', 'steppe-king'];
+export const isSteppeSlot = (s: string | null | undefined): s is SteppeSlot => s?.startsWith('steppe-') === true;
+export type SlotName = 'pine' | 'island' | 'title' | SteppeSlot;
 export type StemSting = 'pickup' | 'death' | 'chunk';
 export interface SlotSpec {
   /** the calm stem (pine / island) or the full mix (title) — file names relative to the manifest */
@@ -29,7 +34,7 @@ export interface SlotSpec {
 }
 export interface MusicManifest { style: string; credit: string; slots: Partial<Record<SlotName, SlotSpec>>; stings: Partial<Record<StemSting, string>> }
 
-const SLOTS: SlotName[] = ['pine', 'island', 'title'];
+const SLOTS: SlotName[] = ['pine', 'island', 'title', ...STEPPE_SLOTS];
 const STINGS: StemSting[] = ['pickup', 'death', 'chunk'];
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const num = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);

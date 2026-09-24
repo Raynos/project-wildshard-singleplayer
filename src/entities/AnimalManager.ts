@@ -89,7 +89,8 @@ import { worldTime } from '../core/time';
 export interface AnimalHit { animal: Animal; point: THREE.Vector3; distance: number; headshot: boolean; damage: number }
 export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal' | 'bear_growl' | 'bear_roar' | 'bear_hurt'
   | 'crab_click' | 'crab_snap' | 'monkey_chatter' | 'monkey_shriek' | 'sailor_groan' | 'sailor_slash' | 'coconut_hit' | 'coconut_land'
-  | 'eagle_cry' | 'leopard_growl'; // Nalati's eagle + snow leopard (they borrowed the monkey's and the bear's)
+  | 'eagle_cry' | 'leopard_growl' // Nalati's eagle + snow leopard (they borrowed the monkey's and the bear's)
+  | 'king_call' | 'king_hurt'; // the Golden King's own voice (NALATI-MERGE A1; it borrowed Pine's bear + Driftwood's drowned sailor)
 
 export interface Herd { kind: AnimalKind; cx: number; cz: number; members: Animal[] }
 

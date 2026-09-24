@@ -30,6 +30,7 @@ import { whenPrefetched } from './prefetch';
 import { decodeBytes, decodeSfxSet, sfxFiles, type SfxBank } from '../audio/preload';
 import type { AmbientBed } from '../audio/Audio';
 import { decodeStyle, styleFiles, type SlotName, type StyleBank } from '../audio/Stems';
+import { decodeSteppe, steppeBootFiles, steppeFiles, type SteppeBank } from '../audio/SteppeScore';
 import { getMusicStyle, getSfxSet } from '../ui/Settings';
 import { CHUNKS } from '../chunks/registry';
 import { PLACEHOLDERS } from '../chunks/placeholders';
@@ -59,12 +60,15 @@ function artFor(def: ChunkDef): { urls: string[]; bytes: Record<string, number> 
 export function bootFiles(def: ChunkDef): ChunkFiles {
   const art = artFor(def);
   addBytes(art.bytes);
-  return { ...chunkFiles(def), art: art.urls, ...audioFiles() };
+  const audio = audioFiles();
+  // Nalati's own score (NALATI-MERGE A2): downloaded on the steppe only — no other shard plays it
+  if (def.style === 'painterly') audio.music.push(...steppeFiles());
+  return { ...chunkFiles(def), art: art.urls, ...audio };
 }
 
 /** the art and the audio for the prefetch queue: the selected style + set (decoded in the bar) ahead of the others (downloaded only) */
 export function extraFetches(files: ChunkFiles): string[] {
-  const mine = (p: string): boolean => p.startsWith(musicDir(getMusicStyle())) || p.startsWith(sfxDir(getSfxSet()));
+  const mine = (p: string): boolean => p.startsWith(musicDir(getMusicStyle())) || p.startsWith(sfxDir(getSfxSet())) || p.startsWith(musicDir('nalati'));
   const audio = [...files.music, ...files.sfx];
   return [...files.art, ...audio.filter(mine), ...audio.filter((p) => !mine(p))];
 }
@@ -124,7 +128,7 @@ export function startMenuPreload(files: ChunkFiles, def: ChunkDef): Preload<void
   };
 }
 
-export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank }
+export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank; steppe: SteppeBank | undefined }
 
 export function startAudioPreload(files: ChunkFiles, def: ChunkDef): Preload<AudioBanks> {
   const ocean = def.ocean !== undefined, steppe = def.style === 'painterly';
@@ -132,7 +136,9 @@ export function startAudioPreload(files: ChunkFiles, def: ChunkDef): Preload<Aud
   // the other shard's slot is never played here (a shard change reloads); the steppe has no stems yet (Music.ts shardSlot)
   const slots: SlotName[] = ocean ? ['title', 'island'] : steppe ? ['title'] : ['title', 'pine'];
   const bed: AmbientBed = ocean ? 'island' : steppe ? 'steppe' : 'forest'; // the same bed Audio's constructor picks
-  const decoded = new Set([...styleFiles(style, slots), ...sfxFiles(set, bed)]);
+  // the steppe: its own score's first slot (the camp is in the valley) + stings, whatever the style — unless the style is synth
+  const steppeNow = steppe && style !== 'synth';
+  const decoded = new Set([...styleFiles(style, slots), ...sfxFiles(set, bed), ...(steppeNow ? steppeBootFiles() : [])]);
   const rest = [...files.music, ...files.sfx].filter((u) => !decoded.has(u));
   const c = counter(decoded.size + rest.length);
   // the boot's counted fetch (the prefetch hands over the bytes it already has); a file two decoders share is read once
@@ -153,6 +159,7 @@ export function startAudioPreload(files: ChunkFiles, def: ChunkDef): Preload<Aud
     return undefined;
   });
   const sfx = decodeSfxSet(set, bed, read, c.tick);
+  const score = steppeNow ? decodeSteppe(['steppe-grass'], read, decodeBytes, true, c.tick) : Promise.resolve(undefined);
   // every other style / set: downloaded to the last byte (through the service worker, which keeps it), then let go
   const others = rest.map(async (u) => {
     try { await whenPrefetched(u); const res = await fetch(u); await res.arrayBuffer(); } catch { /* offline with no copy: that style / set decodes to the synth later */ }
@@ -161,9 +168,9 @@ export function startAudioPreload(files: ChunkFiles, def: ChunkDef): Preload<Aud
   return {
     async wait(p) {
       c.attach(p, 'audio files');
-      const [m, s] = await Promise.all([music, sfx, ...others]);
+      const [m, s, st] = await Promise.all([music, sfx, score, ...others]);
       reads.clear();
-      return { music: m, sfx: s };
+      return { music: m, sfx: s, steppe: st };
     },
   };
 }

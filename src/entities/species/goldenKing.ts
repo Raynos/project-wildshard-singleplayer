@@ -426,7 +426,7 @@ registerSpecies({
   chargeDamage: 14,
   // no corpseFade: a fade clones the painterly material (a new program at the victory); the fight sinks + hides him
   eyeGlow: [0.9, 0.55, 0.12], eyeGlowIntensity: 0.18,
-  sounds: { call: 'bear_growl', hurt: 'sailor_groan', callEvery: [18, 40] },
+  sounds: { call: 'king_call', hurt: 'king_hurt', callEvery: [18, 40] }, // its own voice (NALATI-MERGE A1), not Pine's bear / Driftwood's sailor
   variants: [
     { id: 'king', label: 'The Golden King', weight: 1, rarity: 'legendary', scale: [1.22, 1.22], hp: 2400 },
   ],
