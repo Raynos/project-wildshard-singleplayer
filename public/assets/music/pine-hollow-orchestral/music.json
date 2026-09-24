@@ -1,0 +1,132 @@
+{
+  "style": "orchestral",
+  "set": "pine-hollow",
+  "model": "MiniMax-Music3",
+  "credit": "Music: MiniMax-Music3",
+  "slots": {
+    "night": {
+      "calm": "night-calm-da54e0eb.m4a",
+      "bpm": 85.421,
+      "beatsPerBar": 4,
+      "loopStart": 7.4072,
+      "loopEnd": 41.1225,
+      "duration": 43.9467,
+      "tension": "night-tension-ba25e774.m4a"
+    },
+    "boss": {
+      "calm": "boss-base-d7203ec0.m4a",
+      "bpm": 89.221,
+      "beatsPerBar": 4,
+      "loopStart": 24.381,
+      "loopEnd": 59.3502,
+      "duration": 62.0587,
+      "layers": [
+        "boss-bass-c368d6c3.m4a",
+        "boss-drums-4c4efeb7.m4a"
+      ],
+      "phases": {
+        "1": [
+          0.6,
+          0.0
+        ],
+        "2": [
+          1.0,
+          0.55
+        ],
+        "3": [
+          1.0,
+          1.0
+        ]
+      },
+      "phaseNames": {
+        "1": "I - the Warden",
+        "2": "II - Lanterns Fall",
+        "3": "III - the Last Light"
+      }
+    }
+  },
+  "stings": {
+    "dawn": "sting-dawn-eafd4a6d.m4a"
+  },
+  "provenance": [
+    {
+      "file": "night-calm-da54e0eb.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: dark orchestral video game soundtrack, eerie folklore, in the spirit of Ori and the Blind Forest's darker cues. BPM: 76. Key: D minor. Instrumental only, no vocals, no choir. Setting: Pine Hollow at night - lanterns glowing between black pines, fog on the ground, an ancient guardian stirring in the old-growth; hushed and unsettling, never scary. Arrangement: a lonely alto flute and solo viola melody over sul tasto string harmonics and a slow harp ostinato; pizzicato basses and cellos walk underneath, and a soft, steady pulse of frame drum, low toms and muffled timpani runs under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Production: dark concert-hall reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 402,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-402",
+      "stem": "calm: mix - drums - bass/2",
+      "gain_db": -4.4
+    },
+    {
+      "file": "night-tension-ba25e774.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: dark orchestral video game soundtrack, eerie folklore, in the spirit of Ori and the Blind Forest's darker cues. BPM: 76. Key: D minor. Instrumental only, no vocals, no choir. Setting: Pine Hollow at night - lanterns glowing between black pines, fog on the ground, an ancient guardian stirring in the old-growth; hushed and unsettling, never scary. Arrangement: a lonely alto flute and solo viola melody over sul tasto string harmonics and a slow harp ostinato; pizzicato basses and cellos walk underneath, and a soft, steady pulse of frame drum, low toms and muffled timpani runs under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Production: dark concert-hall reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 402,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-402",
+      "stem": "tension: drums + bass/2 (htdemucs), mono",
+      "gain_db": -4.4
+    },
+    {
+      "file": "boss-base-d7203ec0.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: epic orchestral video game boss battle music, dark folklore. BPM: 120. Key: D minor. Instrumental only, no vocals, no choir. The fight with the Antler King, an ancient forest guardian gone wrong, in a fog-filled clearing of standing stones and hanging lanterns - relentless, ominous, heroic underneath. Arrangement: driving spiccato string ostinatos, a menacing French horn and low brass theme, cello and double-bass runs; a powerful, steady groove of taiko, timpani, bass drum and toms runs under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Production: big concert-hall sound.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 404,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-404",
+      "stem": "base: mix - drums - bass",
+      "gain_db": 0.6
+    },
+    {
+      "file": "boss-bass-c368d6c3.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: epic orchestral video game boss battle music, dark folklore. BPM: 120. Key: D minor. Instrumental only, no vocals, no choir. The fight with the Antler King, an ancient forest guardian gone wrong, in a fog-filled clearing of standing stones and hanging lanterns - relentless, ominous, heroic underneath. Arrangement: driving spiccato string ostinatos, a menacing French horn and low brass theme, cello and double-bass runs; a powerful, steady groove of taiko, timpani, bass drum and toms runs under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Production: big concert-hall sound.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 404,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-404",
+      "stem": "bass (htdemucs), mono",
+      "gain_db": 0.6
+    },
+    {
+      "file": "boss-drums-4c4efeb7.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: epic orchestral video game boss battle music, dark folklore. BPM: 120. Key: D minor. Instrumental only, no vocals, no choir. The fight with the Antler King, an ancient forest guardian gone wrong, in a fog-filled clearing of standing stones and hanging lanterns - relentless, ominous, heroic underneath. Arrangement: driving spiccato string ostinatos, a menacing French horn and low brass theme, cello and double-bass runs; a powerful, steady groove of taiko, timpani, bass drum and toms runs under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Production: big concert-hall sound.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 404,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-404",
+      "stem": "drums (htdemucs), mono",
+      "gain_db": 0.6
+    },
+    {
+      "file": "sting-dawn-eafd4a6d.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: warm orchestral video game victory and dawn theme in the spirit of Joe Hisaishi. BPM: 84. Key: D major. Instrumental only, no vocals, no lead choir. The quest's end: the Antler King is laid to rest and the first light of dawn rises over Pine Hollow, the fog lifting from the pines - relief, warmth, quiet triumph. Arrangement: a solo French horn and flute over shimmering strings and harp, swelling to one radiant full-orchestra climax with soft timpani, then ends on a long resolved major chord that rings out. Production: warm concert-hall reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Solo]\n[Instrumental]\n[Outro]",
+      "seed": 402,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-402",
+      "cut_from": "dawn at 47.05s (the last 8 s: the resolve)",
+      "seconds": 8.0,
+      "gain_db": 5.6
+    }
+  ]
+}
