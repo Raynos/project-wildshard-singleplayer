@@ -1,0 +1,488 @@
+{
+  "model": "MOSS-SoundEffect v2 + Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+  "licence": "Per file (see provenance.source): MOSS-SoundEffect v2.0 is Apache-2.0; Stable Audio 3 Medium is the Stability AI Community License (free below USD 1M revenue, register with Stability AI for commercial use, show 'Powered by Stability AI').",
+  "set": "pine-hollow",
+  "beds": {},
+  "hums": {},
+  "oneshots": {
+    "deer_snort": {
+      "files": [
+        "deer_snort-2-29cb5be9.m4a"
+      ],
+      "gain": 1.0
+    },
+    "leverCycle": {
+      "files": [
+        "leverCycle-1-0bc0a070.m4a",
+        "leverCycle-3-db4d61a3.m4a"
+      ],
+      "gain": 1.0
+    },
+    "leverShot": {
+      "files": [
+        "leverShot-1-f43899bf.m4a",
+        "leverShot-3-551ac455.m4a"
+      ],
+      "gain": 1.0
+    },
+    "leverEcho": {
+      "files": [
+        "leverEcho-3-31387108.m4a"
+      ],
+      "gain": 1.0
+    },
+    "longbowDraw": {
+      "files": [
+        "longbowDraw-2-08004dc6.m4a",
+        "longbowDraw-3-13c08903.m4a"
+      ],
+      "gain": 1.0
+    },
+    "thrall_call": {
+      "files": [
+        "thrall_call-1-d9d16a02.m4a",
+        "thrall_call-3-f6736e19.m4a"
+      ],
+      "gain": 1.0
+    },
+    "thrall_groan": {
+      "files": [
+        "thrall_groan-2-44c87d6d.m4a",
+        "thrall_groan-3-7fad18a9.m4a"
+      ],
+      "gain": 1.0
+    },
+    "thrall_move": {
+      "files": [
+        "thrall_move-2-000b58d3.m4a",
+        "thrall_move-3-fbb0b7a0.m4a"
+      ],
+      "gain": 1.0
+    },
+    "king_bells": {
+      "files": [
+        "king_bells-3-382976e6.m4a"
+      ],
+      "gain": 1.0
+    },
+    "king_stomp": {
+      "files": [
+        "king_stomp-2-fb8d3696.m4a",
+        "king_stomp-3-fbcd79cf.m4a"
+      ],
+      "gain": 1.0
+    },
+    "king_roar": {
+      "files": [
+        "king_roar-2-3c879291.m4a",
+        "king_roar-3-ac03b790.m4a"
+      ],
+      "gain": 1.0
+    },
+    "doorOpen": {
+      "files": [
+        "doorOpen-1-c289151d.m4a"
+      ],
+      "gain": 1.0
+    },
+    "doorClose": {
+      "files": [
+        "doorClose-3-6e783142.m4a",
+        "doorClose-2-93812e54.m4a"
+      ],
+      "gain": 1.0
+    },
+    "lanternLight": {
+      "files": [
+        "lanternLight-1-864cd94b.m4a",
+        "lanternLight-2-45776ffa.m4a"
+      ],
+      "gain": 1.0
+    },
+    "lanternCreak": {
+      "files": [
+        "lanternCreak-1-6d38d61d.m4a",
+        "lanternCreak-3-b84fd75d.m4a"
+      ],
+      "gain": 1.0
+    },
+    "zipline": {
+      "files": [
+        "zipline-3-1612a3d1.m4a",
+        "zipline-1-894e055e.m4a"
+      ],
+      "gain": 1.0
+    }
+  },
+  "provenance": [
+    {
+      "file": "deer_snort-2-29cb5be9.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A startled deer blowing a loud alarm snort through its nose, a sharp whoosh of breath, then a stamp of a hoof. Outdoors, no music.",
+      "seed": 2,
+      "steps": 8,
+      "clap_p": 0.037,
+      "clap_rank": 3,
+      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+      "set_of_origin": "sa3-medium",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "leverCycle-1-0bc0a070.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "Working the lever of an old lever-action hunting rifle: the lever snaps down with a metallic clack, the spent brass case tinkles out, and the lever slams back up, closing the action. Close, dry, no gunshot, no music.",
+      "seed": 1,
+      "steps": 100,
+      "clap_p": 0.969,
+      "clap_rank": 1,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "leverCycle-3-db4d61a3.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "Working the lever of an old lever-action hunting rifle: the lever snaps down with a metallic clack, the spent brass case tinkles out, and the lever slams back up, closing the action. Close, dry, no gunshot, no music.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.967,
+      "clap_rank": 1,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "leverShot-1-f43899bf.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "A single loud lever-action hunting rifle gunshot fired in an open pine forest: a sharp crack and boom with a short outdoor tail. Close, no music.",
+      "seed": 1,
+      "steps": 100,
+      "clap_p": 0.998,
+      "clap_rank": 1,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "leverShot-3-551ac455.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "A single loud lever-action hunting rifle gunshot fired in an open pine forest: a sharp crack and boom with a short outdoor tail. Close, no music.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.989,
+      "clap_rank": 1,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "leverEcho-3-31387108.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "The rolling echo of a rifle shot in a mountain valley: a far-off boom rebounding off rocky ridges and rumbling away into the distance. Wide, outdoors, no music.",
+      "seed": 3,
+      "steps": 8,
+      "clap_p": 0.701,
+      "clap_rank": 1,
+      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+      "set_of_origin": "sa3-medium",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "longbowDraw-2-08004dc6.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "Drawing a wooden longbow: an arrow slides on the rest, the yew limbs creak and the bowstring stretches tight. Close, quiet, no music.",
+      "seed": 2,
+      "steps": 100,
+      "clap_p": 0.943,
+      "clap_rank": 1,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "longbowDraw-3-13c08903.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "Drawing a wooden longbow: an arrow slides on the rest, the yew limbs creak and the bowstring stretches tight. Close, quiet, no music.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.538,
+      "clap_rank": 1,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "thrall_call-1-d9d16a02.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "An eerie, unnatural creature call echoing through a foggy forest at night: a hollow, groaning, wooden moan like a tree splitting slowly, with a wet, breathy rattle. Distant, unsettling, no music.",
+      "seed": 1,
+      "steps": 8,
+      "clap_p": 0.846,
+      "clap_rank": 1,
+      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+      "set_of_origin": "sa3-medium",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "thrall_call-3-f6736e19.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "An eerie, unnatural creature call echoing through a foggy forest at night: a hollow, groaning, wooden moan like a tree splitting slowly, with a wet, breathy rattle. Distant, unsettling, no music.",
+      "seed": 3,
+      "steps": 8,
+      "clap_p": 0.775,
+      "clap_rank": 1,
+      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+      "set_of_origin": "sa3-medium",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "thrall_groan-2-44c87d6d.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A monstrous forest creature made of wet wood and moss groaning close by: a deep creaking, cracking-bark growl with a gurgling, waterlogged breath. Close, eerie, no music.",
+      "seed": 2,
+      "steps": 8,
+      "clap_p": 0.796,
+      "clap_rank": 1,
+      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+      "set_of_origin": "sa3-medium",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "thrall_groan-3-7fad18a9.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A monstrous forest creature made of wet wood and moss groaning close by: a deep creaking, cracking-bark growl with a gurgling, waterlogged breath. Close, eerie, no music.",
+      "seed": 3,
+      "steps": 8,
+      "clap_p": 0.573,
+      "clap_rank": 1,
+      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+      "set_of_origin": "sa3-medium",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "thrall_move-2-000b58d3.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "A creature of wet wood and moss moving: stiff creaking of old branches, cracking twigs and the squelch of sodden moss with every heavy step. Close, eerie, no music.",
+      "seed": 2,
+      "steps": 100,
+      "clap_p": 0.421,
+      "clap_rank": 1,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "thrall_move-3-fbb0b7a0.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "A creature of wet wood and moss moving: stiff creaking of old branches, cracking twigs and the squelch of sodden moss with every heavy step. Close, eerie, no music.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.102,
+      "clap_rank": 2,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "king_bells-3-382976e6.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "Dozens of small old bronze bells hung on huge antlers, jangling and chiming as a giant beast tosses its head: an eerie, shimmering, irregular chime that rings out. Outdoors at night, no music.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.512,
+      "clap_rank": 1,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "king_stomp-2-fb8d3696.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A giant creature stomping the forest floor: a deep, heavy ground-shaking boom, the crack of roots tearing up out of the earth and soil scattering. Powerful, close, no music.",
+      "seed": 2,
+      "steps": 8,
+      "clap_p": 0.991,
+      "clap_rank": 1,
+      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+      "set_of_origin": "sa3-medium",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "king_stomp-3-fbcd79cf.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "A giant creature stomping the forest floor: a deep, heavy ground-shaking boom, the crack of roots tearing up out of the earth and soil scattering. Powerful, close, no music.",
+      "seed": 3,
+      "steps": 8,
+      "clap_p": 0.99,
+      "clap_rank": 1,
+      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+      "set_of_origin": "sa3-medium",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "king_roar-2-3c879291.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "A colossal, ancient antlered forest beast roaring: a huge, deep, bellowing roar like a giant elk bugle mixed with creaking timber and a hollow wind, echoing through a clearing. Terrifying but majestic, no music.",
+      "seed": 2,
+      "steps": 100,
+      "clap_p": 0.38,
+      "clap_rank": 2,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "king_roar-3-ac03b790.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "A colossal, ancient antlered forest beast roaring: a huge, deep, bellowing roar like a giant elk bugle mixed with creaking timber and a hollow wind, echoing through a clearing. Terrifying but majestic, no music.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.379,
+      "clap_rank": 2,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "doorOpen-1-c289151d.m4a",
+      "model": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+      "code": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+      "prompt": "An old wooden log-cabin door opening slowly: the iron latch lifts with a clack and the hinges creak long and low. Close, no music.",
+      "seed": 1,
+      "steps": 8,
+      "clap_p": 0.107,
+      "clap_rank": 4,
+      "source": "Stable Audio 3 Medium (stabilityai/stable-audio-3-medium, Stability AI Community License)",
+      "set_of_origin": "sa3-medium",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "doorClose-3-6e783142.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "An old wooden log-cabin door swinging shut: a short hinge creak, then a solid wooden thud and the iron latch dropping. Close, no music.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.522,
+      "clap_rank": 1,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "doorClose-2-93812e54.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "An old wooden log-cabin door swinging shut: a short hinge creak, then a solid wooden thud and the iron latch dropping. Close, no music.",
+      "seed": 2,
+      "steps": 100,
+      "clap_p": 0.116,
+      "clap_rank": 2,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "lanternLight-1-864cd94b.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "Lighting an oil lantern: a wooden match strikes and flares, the glass chimney clinks open and the wick catches with a soft whoomp of flame. Close, quiet, no music.",
+      "seed": 1,
+      "steps": 100,
+      "clap_p": 0.538,
+      "clap_rank": 1,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "lanternLight-2-45776ffa.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "Lighting an oil lantern: a wooden match strikes and flares, the glass chimney clinks open and the wick catches with a soft whoomp of flame. Close, quiet, no music.",
+      "seed": 2,
+      "steps": 100,
+      "clap_p": 0.35,
+      "clap_rank": 2,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "lanternCreak-1-6d38d61d.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "A metal lantern hanging from a branch, swinging in the wind: its iron handle creaks and squeaks slowly back and forth. Close, outdoors at night, no music.",
+      "seed": 1,
+      "steps": 100,
+      "clap_p": 0.776,
+      "clap_rank": 1,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "lanternCreak-3-b84fd75d.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "A metal lantern hanging from a branch, swinging in the wind: its iron handle creaks and squeaks slowly back and forth. Close, outdoors at night, no music.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.686,
+      "clap_rank": 1,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "zipline-3-1612a3d1.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "Riding a zipline: a metal pulley trolley whirring and whizzing faster and faster down a long steel cable, the cable humming and rattling, wind rushing past. No music.",
+      "seed": 3,
+      "steps": 100,
+      "clap_p": 0.41,
+      "clap_rank": 1,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    },
+    {
+      "file": "zipline-1-894e055e.m4a",
+      "model": "OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "code": "MOSS-TTS 934d682, torch 2.9.0",
+      "prompt": "Riding a zipline: a metal pulley trolley whirring and whizzing faster and faster down a long steel cable, the cable humming and rattling, wind rushing past. No music.",
+      "seed": 1,
+      "steps": 100,
+      "clap_p": 0.042,
+      "clap_rank": 3,
+      "source": "MOSS-SoundEffect v2.0 (OpenMOSS-Team/MOSS-SoundEffect-v2.0, Apache-2.0)",
+      "set_of_origin": "moss",
+      "round": "pine-hollow"
+    }
+  ],
+  "synth_keeps": [
+    "boltImpact-rock",
+    "longbowLoose"
+  ]
+}

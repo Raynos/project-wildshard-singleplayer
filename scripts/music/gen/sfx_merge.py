@@ -166,7 +166,7 @@ def merge_ph(fams: dict, sets: dict, ranking: dict, src_root: Path, entry, score
         sec[key] = e
         table[fam] = row
     man["synth_keeps"] = [f for f in keeps if fams[f].get("into") != "best"]
-    best["synth_keeps"] = sorted(set(best.get("synth_keeps", [])) - {f for f in fams if table[f]["winner"] not in ("synth", "kept-round-2")})
+    best["synth_keeps"] = sorted(set(best.get("synth_keeps", [])) - {f for f in fams if table.get(f, {}).get("winner", "synth") not in ("synth", "kept-round-2")})
     (best_dir / "sfx.json").write_text(json.dumps(best, indent=2, ensure_ascii=False) + "\n")
     (ph_dir / "sfx.json").write_text(json.dumps(man, indent=2, ensure_ascii=False) + "\n")
     table_doc["wins"] = {k: sum(1 for t in table.values() if t["winner"] == k) for k in ("moss", "sa3-medium", "synth", "kept-round-2")}

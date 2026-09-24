@@ -1,0 +1,56 @@
+{
+  "medium": {
+    "title": "Stable Audio 3 Medium",
+    "licence": "Stability AI Community (< $1M, register, credit)",
+    "families_rendered": 72,
+    "rank1": 26,
+    "top5": 56,
+    "mean_rank": 3.9,
+    "median_rank": 2.5,
+    "mean_gen_s": 1.43,
+    "mps_driver_gb_max": 12.61,
+    "shipped": 56,
+    "synth_keeps": [
+      "bark-miller-5",
+      "bark-ranger-1",
+      "bark-ranger-2",
+      "bark-ranger-3",
+      "bark-ranger-6",
+      "bark-ranger-8",
+      "bark-trader-3",
+      "bark-trader-7",
+      "bed-hollow",
+      "bed-oldgrowth",
+      "boar_grunt",
+      "boltImpact-rock",
+      "deer_call",
+      "lanternLight",
+      "longbowLoose",
+      "thrall_move"
+    ],
+    "bytes": 3060297,
+    "peak_gb": 19.4
+  },
+  "moss": {
+    "title": "MOSS-SoundEffect v2.0",
+    "licence": "Apache-2.0",
+    "families_rendered": 34,
+    "rank1": 19,
+    "top5": 28,
+    "mean_rank": 3.09,
+    "median_rank": 1.0,
+    "mean_gen_s": 51.79,
+    "mps_driver_gb_max": 19.8,
+    "shipped": 28,
+    "synth_keeps": [
+      "boar_grunt",
+      "boar_squeal",
+      "boltImpact-rock",
+      "deer_call",
+      "deer_snort",
+      "longbowLoose"
+    ],
+    "bytes": 745193,
+    "peak_gb": 16.3
+  }
+}
