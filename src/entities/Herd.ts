@@ -4,6 +4,10 @@ import type { ThinkCtx } from './species/registry';
 import { inChunk, normalAt } from '../world/Heightfield';
 import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from './wildEnv';
 import { Pack } from './Pack';
+import type { GroupName } from '../physics/groups';
+
+/** the kinds a stampeding horse's body lets through (R3): the player on foot · none */
+const THROUGH_PLAYER: readonly GroupName[] = ['PLAYER'], BLOCKED: readonly GroupName[] = [];
 
 /**
  * HorseHerd — a wild horse herd's shared brain (docs/design/nalati/wolves-horses-taming.md "Wild horses — the herd").
@@ -335,6 +339,11 @@ export class HorseHerd {
   drive(a: Animal, c: ThinkCtx): void {
     const m = a.mem;
     if (a === this.ridden || (m['ridden'] ?? 0) === 1) return;
+    // R3 (D8 (c)): a stampede — and the stallion's charge — runs THROUGH a player on foot (the knock-down in `trample` /
+    // the charge is the hit, not a pile-up against his capsule), but a rider's horse is a body it collides with (Mount
+    // jostles the rider, or throws him at a gallop)
+    const through = !wildEnv.playerMounted && ((this.stampeding && this.mode === 'flee') || (a === this.stallion && this.stallionState === 'charge'));
+    a.motor?.passThrough(through ? THROUGH_PLAYER : BLOCKED);
     if (a === this.stallion) { this.driveStallion(a, c); c.confine(a); return; }
     const foal = this.foals.includes(a);
     const mother = this.mothers.get(a);
