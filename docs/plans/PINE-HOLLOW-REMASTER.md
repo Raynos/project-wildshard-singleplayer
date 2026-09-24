@@ -89,7 +89,7 @@ Blender, image-to-3D, LUT fit, horizon painting, wind, rig bake), never their sh
 
 **Boards Jake asked to see before the layout and the models are built.** Each is one portrait decision board, A / B / C / D,
 in `art/pine-hollow/round-<n>-<label>/board.jpg`:
-- **B1**, the Map D layout (3–4 top-down variants of the five zones + the hamlet);
+- **B1**, the Map D layout → **Jake picked A** (2026-09-24): the Ridge along the north (fire lookout, waterfall, zipline south to the Hollow), the Den in the NW corner, the old-growth + the King's clearing in the west, the still pond north-centre-east fed by the waterfall, the creek running SE to **the mill hamlet in the SE** (hunting lodge), the Hollow + ranger's cabin at the centre, the south-gate spawn unchanged (`art/pine-hollow/round-1-map/A-ridge-north.jpg`);
 - **B2**, the Antler King (3–4 photoreal looks from the Nalati concept `art/nalati-grasslands/round-2/5-bosses/boss-6-alt-antler-king.png`);
 - **B3**, the thralls + the ranger (3 each);
 - **B4**, the journal + trophy wall UI (phone portrait).
@@ -155,7 +155,9 @@ CPU):
 
 Jake's iPhone reading is still to come (his part of PH-0.5).
 
-## 4. The world (Map D; exact layout = board B1)
+## 4. The world (Map D, layout A — `art/pine-hollow/round-1-map/`)
+
+**Compass first:** today's names disagree with the compass (the "East cabin" at x = +62 sits west of the crossroads on the in-game compass; the den at (−150, −150) is SE on it). Layout A follows the **in-game compass** (N up on the minimap): the build renames / moves POIs to match it, and whoever writes `pineHollowLayout.ts` records the axis convention in its header.
 
 All coordinates live in one import-free `src/chunks/pineHollowLayout.ts` (Nalati's pattern), with a 1 m flood-fill walkability
 check (≤ 44°), then a re-baked `terrain.bin` and navmesh.
