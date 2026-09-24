@@ -1,7 +1,7 @@
 // src/boot/plan.ts + steps.ts + timing.ts — the loading screen's progress invariants (header of plan.ts):
 // both fractions are monotone, a running step never reads complete, and done() reads exactly 1 / 1.
 import { describe, expect, it, vi } from 'vitest';
-import { BOOT_STEPS, BYTE_SOURCES, STEP_INFO, byteLabel, closedBy, type BootStep, type ByteKey } from '../src/boot/steps';
+import { BOOT_STEPS, BYTE_SOURCES, STEP_INFO, byteLabel, closedBy, shardTimingKey, useShardSteps, type BootStep, type ByteKey } from '../src/boot/steps';
 import { createBootPlan, formatMB, runDirect, type Plan, type PlanOptions, type ProgressView, type StepProgress } from '../src/boot/plan';
 import { expectedDurations, loadTimings, saveTimings, type Timings } from '../src/boot/timing';
 
@@ -193,5 +193,25 @@ describe('timing (expected step durations)', () => {
     expect(loadTimings()).toEqual({ renderer: 100, sky: 400 });
     saveTimings({ renderer: 200, sky: Number.NaN });
     expect(loadTimings()).toEqual({ renderer: 150 });
+  });
+});
+
+describe('per-shard step nouns (steps.ts SHARD_STEPS)', () => {
+  const labels = () => BOOT_STEPS.map((k) => STEP_INFO[k].label).join(' | ');
+  it('the shared table is neutral: Driftwood Isle shows no pines, cabins, HDRI or crossbow', () => {
+    useShardSteps('driftwood-isle');
+    expect(labels()).not.toMatch(/pine|cabin|hdri|crossbow|herds/i);
+    expect(byteLabel('trees')).toBe('tree bark · twigs');
+    expect(shardTimingKey()).toBe('');
+  });
+  it('Pine Hollow names its own steps and keeps the shared weights, under its own timing key', () => {
+    useShardSteps('pine-hollow');
+    expect(STEP_INFO.cards.label).toBe('Pine branch cards');
+    expect(STEP_INFO.sky.label).toBe('Sky · HDRI → PMREM');
+    expect(STEP_INFO.weapon.label).toBe('Crossbow · HUD');
+    expect(byteLabel('trees')).toBe('pine bark · twigs');
+    expect(shardTimingKey()).toBe(':pine-hollow');
+    useShardSteps('driftwood-isle');
+    for (const k of BOOT_STEPS) expect(STEP_INFO[k].weight).toBeGreaterThan(0);
   });
 });

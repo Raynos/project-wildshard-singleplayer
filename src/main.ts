@@ -63,6 +63,7 @@ import { Combat } from './ui/Combat';
 import { HurtArc, deathLine } from './ui/HurtArc';
 import { setAimTargets, meleeLock, lockOn as lockState } from './player/AimTargets';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
+import { useShardSteps } from './boot/steps';
 import { declareTotals, installByteCounter } from './boot/bytes';
 import { bootFiles, extraFetches, startAudioPreload, startMenuPreload } from './boot/extras';
 import { bootFetches, prefetch, prefetchAfter } from './boot/prefetch';
@@ -111,6 +112,7 @@ async function main() {
   // preload swaps it for an in-memory blob: that one would not survive a recovery reload)
   resumeScreen().brand(getActiveChunk().slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '), getActiveChunk().heroPortrait);
   const files = bootFiles(getActiveChunk()); // + the title / explore art and every audio file (project/archive/2026-09-23-preload-offline.md)
+  useShardSteps(getActiveChunk().slug); // the shard's own loading nouns + weights (src/boot/steps.ts)
   const plan = createBootPlan((view) => { loading.paint(view); resumeProgress(view.setup); }, { totals: declareTotals(files) });
   installByteCounter(plan, files);
   // a boot that throws shows WHY: the loading panel's foot line + the uncaught-exception modal (src/ui/ErrorModal.ts)

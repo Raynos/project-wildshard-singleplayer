@@ -9,9 +9,12 @@
  * turns out slower stalls just short of its share instead of lying past it.
  */
 import { TIER } from '../core/tier';
-import { BOOT_STEPS, STEP_INFO, type BootStep } from './steps';
+import { BOOT_STEPS, STEP_INFO, shardTimingKey, type BootStep } from './steps';
 
-const KEY = `ws-load-times:v1:${TIER}:${typeof navigator !== 'undefined' ? (navigator as { hardwareConcurrency?: number }).hardwareConcurrency ?? 0 : 0}`;
+const BASE_KEY = `ws-load-times:v1:${TIER}:${typeof navigator !== 'undefined' ? (navigator as { hardwareConcurrency?: number }).hardwareConcurrency ?? 0 : 0}`;
+/** per device + tier; a shard with its own step table (steps.ts `useShardSteps`) also per shard — Nalati's one long
+ *  `props` step must not pace Driftwood's bar, nor the other way round */
+const key = (): string => `${BASE_KEY}${shardTimingKey()}`;
 const FIRST_RUN_MS_PER_WEIGHT = 300;
 const EMA = 0.5;
 
@@ -19,7 +22,7 @@ export type Timings = Partial<Record<BootStep, number>>;
 
 export function loadTimings(): Timings {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(key());
     if (!raw) return {};
     const obj = JSON.parse(raw) as Record<string, unknown>;
     const out: Timings = {};
@@ -39,7 +42,7 @@ export function saveTimings(measured: Timings): void {
       const p = prev[k];
       next[k] = p === undefined ? m : p * (1 - EMA) + m * EMA;
     }
-    localStorage.setItem(KEY, JSON.stringify(next));
+    localStorage.setItem(key(), JSON.stringify(next));
   } catch { /* private mode, quota: the next run just falls back to weights */ }
 }
 
