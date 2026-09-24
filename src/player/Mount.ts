@@ -171,7 +171,6 @@ export class Mount {
     if (this.horse !== null || !this.canRide(a)) return false;
     const p = this.player;
     p.setHover(false);
-    p.setBodyEnabled(false);   // the on-foot capsule leaves the world while you ride (the horse is the body)
     this.horse = a; riding.horse = a;
     this.breaking = breaking;
     const herd = HorseHerd.of(a);
@@ -184,6 +183,7 @@ export class Mount {
     this.eyeY = heightAt(a.position.x, a.position.z);
     this.prev.copy(a.position);
     p.ride = this;
+    p.setBodyEnabled(false);   // the on-foot capsule leaves the world while you ride (the horse is the body; Player gates it on `ride`)
     wildEnv.playerMounted = true;
     this.onMountChange?.(a);
     return true;

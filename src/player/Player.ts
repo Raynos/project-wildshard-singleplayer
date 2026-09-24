@@ -357,8 +357,9 @@ export class Player {
     if (this.touchDodge) { this.touchDodge = false; this.dodge(); }
   }
 
-  /** Explore's free camera / the tour own the view: the body leaves the world's way until they hand it back. */
-  setBodyEnabled(on: boolean): void { this.motor.setEnabled(on); }
+  /** Explore's free camera / the tour own the view: the body leaves the world's way until they hand it back (and it
+   *  stays out while you ride — bootstrap re-enables it every fixed step, so the gate is here). */
+  setBodyEnabled(on: boolean): void { this.motor.setEnabled(on && this.ride === null); }   // in the saddle the horse is the body (N17)
 
   /** One fixed step (Game's `post` slot, dt = FIXED_STEP): the move, against the stepped physics world. */
   step(dt: number): void {
