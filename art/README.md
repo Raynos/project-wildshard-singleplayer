@@ -236,3 +236,24 @@ edge, above MOVE. **D** `D-under-objective.jpg`: a small tab under the GLYPH SHA
 `E-disc-left-edge.jpg`: a round disc on the left edge, above MOVE, for the left thumb. `board.jpg` = BEFORE + A–E.
 Re-rolled: B twice (the first take shrank and moved the whole HUD; the second lifted JUMP ~120 px) and D once (it came
 back 2:3 and squashed the frame).
+
+### Nalati HUD on main's touch HUD (`art/hud/round-12-nalati-merge/`, 2026-09-24, N16)
+
+The Nalati merge's HUD round (spec: `docs/design/nalati/merge/review-experience.md` §1.4, with the user's wave-4
+decisions: HOVER on foot only, DISMOUNT a small right-edge tab, bow = hold FIRE to draw / AIM a zoom latch, LOCK with the
+sabre and spear, no text on the minimap, chapter 1 quest chip "TULPAR"). codex edits of the merged build's live 390×844
+captures (`progress/nalati-merge/review/nalati-foot.jpg`, `nalati-mounted.jpg`; `driftwood-main.jpg` passed as the HUD-style
+reference). Each variant has two frames: `<L>-foot.jpg` (crouched in the grass, the bow half drawn, storm coming) and
+`<L>-saddle.jpg` (galloping on Tulpar with the sabre, the elite AQBARS THE PALE spotted).
+- **A** "edge tabs": HORSE / DISMOUNT plus the three weapon tabs stacked on the right edge. STEED row under VITALS. Storm
+  chip under the quest chip. A sun glyph on the minimap rim.
+- **B** "bar-edge folder tabs": HOVER, a segmented BOW / sabre / spear tab and HORSE / DISMOUNT grow out of the bar's top
+  edge. STEED is an amber line on the MOVE edge. Quest + storm are one two-line chip. The clock is "DAY" in the fps pill.
+- **C** "one arc and a weapon card": AIM / CROUCH / DODGE / JUMP on one arc over FIRE (LOCK / GALLOP in the saddle). A
+  BOW / SABRE card with dots sits on the divider. The storm is "0:45" on the quest chip. The clock is a sun + "DAY 1" beside the minimap.
+- **D** "status left": left column VITALS / STEED / ARROWS / sky row (day + storm) / stealth "HIDDEN", weapon tabs on the
+  left edge, HORSE / DISMOUNT on the right edge, a bare crosshair.
+
+`board.jpg` has four columns (A–D) and two rows (on foot · bow / saddle · sabre). Re-rolled: B-foot once (the first take
+came back 793×1983 and stretched the frame), A-saddle once (the MOVE label dropped under the stick), C-saddle once (the
+weapon card's dots lit the first slot, not the sabre's, and the bar lost its see-through look).
