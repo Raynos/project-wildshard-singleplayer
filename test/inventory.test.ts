@@ -1,7 +1,7 @@
 // src/game/Inventory.ts — what a carcass yields, and the per-shard pack.
 import { describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
-import { ITEMS, Inventory, PACK_SLOTS, harvestOf, type ItemId } from '../src/game/Inventory';
+import { ITEMS, Inventory, PACK_SLOTS, PINE_PACK_SLOTS, harvestOf, type ItemId } from '../src/game/Inventory';
 import { speciesDef } from '../src/entities/species/registry';
 
 const STORE = 'ws.inventory.v1';
@@ -120,10 +120,12 @@ describe('Inventory', () => {
     expect(fn).not.toHaveBeenCalled();
   });
 
-  it('holds one slot per kind, at most PACK_SLOTS kinds', () => {
+  it('holds one slot per kind, at most its shard\'s slots', () => {
     const inv = new Inventory(PINE);
     for (const id of ALL_ITEMS) inv.add(id);
-    expect(inv.items.length).toBe(Math.min(ALL_ITEMS.length, PACK_SLOTS));
+    expect(inv.slots).toBe(PINE_PACK_SLOTS);
+    expect(inv.items.length).toBe(Math.min(ALL_ITEMS.length, PINE_PACK_SLOTS));
+    expect(new Inventory('chunk://local/driftwood-isle').slots).toBe(PACK_SLOTS);
     // once full, a kind already in the pack still stacks
     const first = inv.items[0];
     if (first === undefined) throw new Error('pack is empty');
@@ -162,5 +164,16 @@ describe('Inventory', () => {
     const inv = new Inventory(PINE);
     inv.add('bear-claw', 2);
     expect(inv.total).toBe(2);
+  });
+
+  it('takes items out for a trade, all or nothing, freeing the slot at 0', () => {
+    const inv = new Inventory(PINE);
+    inv.add('amber-resin', 5); inv.add('deer-hide', 2);
+    expect(inv.take('amber-resin', 6)).toBe(false);
+    expect(inv.count('amber-resin')).toBe(5);
+    expect(inv.take('amber-resin', 3)).toBe(true);
+    expect(inv.count('amber-resin')).toBe(2);
+    expect(inv.take('deer-hide', 2)).toBe(true);
+    expect(inv.items.map((i) => i.id)).toEqual(['amber-resin']);
   });
 });

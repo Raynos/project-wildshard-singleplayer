@@ -314,6 +314,8 @@ export class Interactables {
         if (look === 'flint') this.part(lv, this.geo('flint', 'lit', () => Mdl.flintKit(this.s())), 'lit', still);
         else if (look === 'seaglass') this.part(lv, this.geo('seaglass', 'glow', () => Mdl.seaGlass(this.s())), 'glow', bob(0.45, 0.07, 1.1), { animated: true, glow: pulse(2.2) });
         else if (look === 'coin') this.part(lv, this.geo('coin', 'glow', () => Mdl.coinModel(this.s())), 'glow', bob(0.6, 0.06, 2.4), { animated: true, glow: pulse(1.4) });
+        else if (look === 'resin') this.part(lv, this.geo('resin', 'glow', () => Mdl.resinDrop(this.s())), 'glow', bob(0.0, 0.025, 0.35), { animated: true, glow: pulse(1.25) });
+        else if (look === 'token') { this.part(lv, this.geo('token', 'lit', () => Mdl.carvedToken(this.s())), 'lit', bob(0.55, 0.05, 1.3), { animated: true }); this.part(lv, this.geo('token-rim', 'glow', () => Mdl.tokenRim(this.s())), 'glow', bob(0.55, 0.05, 1.3), { animated: true, glow: pulse(0.9) }); }
         else this.part(lv, this.geo('shard', 'glow', () => Mdl.glyphShard(this.s())), 'glow', bob(1.2, 0.12, 0.9), { animated: true, glow: pulse(2.2) });
         break;
       }

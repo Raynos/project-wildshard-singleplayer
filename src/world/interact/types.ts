@@ -84,7 +84,8 @@ export interface PlateDef extends Base { kind: 'plate'; /** square side, metres 
 export interface BarrelDef extends Base { kind: 'barrel'; /** the barrel is returned here if it strays further than this (m) from its start */ leash: number }
 export interface PickupDef extends Base {
   kind: 'pickup';
-  look: 'seaglass' | 'shard' | 'flint' | 'coin';
+  /** 'resin' / 'token': Pine Hollow's amber resin drop (glow) and carved wooden token (lit) — PH-C8 */
+  look: 'seaglass' | 'shard' | 'flint' | 'coin' | 'resin' | 'token';
   /** an inventory item id to add (Inventory.ts ItemId) */
   item?: string;
   label: string;

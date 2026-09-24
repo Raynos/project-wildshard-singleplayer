@@ -21,7 +21,8 @@ import { EliteBar } from '../ui/EliteBar';
 import { voice, type PineCtx } from './ctx';
 import { installPineFeel } from './feel';
 import { makePineElites, swapRolledElites, isPineElite } from './elites';
-import { AntlerKing } from './antlerKing';
+import { AntlerKing, KING_KIND } from './antlerKing';
+import { BOSS_NAMES } from '../ui/Combat';
 
 /**
  * Pine Hollow's fights, wired in one call (PINE-HOLLOW-REMASTER: PH-C3 the four named elites, PH-C2 the Antler King,
@@ -100,7 +101,8 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   }, new EliteBar());
   const pineElites = makePineElites(ctx, elites);
 
-  // ── the Antler King ──
+  // ── the Antler King ── (his name, not his kind, in the aim readout; no floating plate: he has the boss bar)
+  BOSS_NAMES.set(KING_KIND, 'The Antler King');
   const king = new AntlerKing({
     ctx, interactables: h.interactables, params, music: h.music,
     refill: () => { h.crossbow.addBolts(MAX_BOLTS - (h.crossbow.state.bolts ?? MAX_BOLTS)); },

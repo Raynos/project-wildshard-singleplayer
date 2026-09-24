@@ -127,6 +127,37 @@ export function coinModel(seed: number): THREE.BufferGeometry {
   return done(k, false);
 }
 
+/** Pine Hollow's amber resin drop (PH-C8) — glow batch: a bead of amber weeping down a trunk, a smaller drip under it */
+export function resinDrop(seed: number): THREE.BufferGeometry {
+  const k = new LowPolyKit(seed);
+  const bead = new THREE.IcosahedronGeometry(0.075, 1); bead.scale(0.85, 1.35, 0.7);
+  k.add(bead, '#ffb23a', { matrix: at(0, 0.02, 0), jitter: 0.12 });
+  const drip = new THREE.IcosahedronGeometry(0.04, 0); drip.scale(0.8, 1.5, 0.8);
+  k.add(drip, '#ff9a1f', { matrix: at(0.012, -0.1, 0.01), jitter: 0.1 });
+  k.add(new THREE.OctahedronGeometry(0.03, 0), '#ffe08a', { matrix: at(-0.03, 0.07, 0.035), jitter: 0.1 });
+  return done(k, false);
+}
+/** a carved wooden token (PH-C8) — lit batch: a pine disc on edge, a burnt antler glyph on both faces, a bark rim */
+export function carvedToken(seed: number): THREE.BufferGeometry {
+  const k = new LowPolyKit(seed);
+  k.add(new THREE.CylinderGeometry(0.15, 0.15, 0.036, 12).rotateX(Math.PI / 2), C.woodLight, { jitter: 0.04 });
+  k.add(new THREE.TorusGeometry(0.15, 0.014, 4, 12), C.woodDark);
+  for (const z of [-0.02, 0.02]) {
+    k.add(new THREE.BoxGeometry(0.018, 0.16, 0.006), C.char, { matrix: at(0, -0.01, z) });
+    for (const s of [-1, 1]) {
+      k.add(new THREE.BoxGeometry(0.014, 0.08, 0.006), C.char, { matrix: at(s * 0.035, 0.07, z, 0, 0, s * -0.7) });
+      k.add(new THREE.BoxGeometry(0.012, 0.05, 0.006), C.char, { matrix: at(s * 0.03, 0.02, z, 0, 0, s * -1.1) });
+    }
+  }
+  return done(k, false);
+}
+/** the token's faint ember rim (glow batch), so a token reads at a few metres in the undergrowth */
+export function tokenRim(seed: number): THREE.BufferGeometry {
+  const k = new LowPolyKit(seed);
+  k.add(new THREE.TorusGeometry(0.168, 0.006, 3, 16), '#ffb060');
+  return done(k, false);
+}
+
 // ── doors ────────────────────────────────────────────────────────────────────────────────────────
 
 /** the frame (static, lit): posts + lintel for plank / grate, a stone cheek + lintel for the sluice */

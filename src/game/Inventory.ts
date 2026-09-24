@@ -13,7 +13,10 @@ export type ItemId = 'venison' | 'deer-hide' | 'boar-meat' | 'boar-hide' | 'boar
   | 'crab-meat' | 'crab-claw' | 'crab-shell' | 'coconut' | 'monkey-fur' | 'silver-fur' | 'doubloon' | 'sea-glass' | 'old-rope'
   // Pine Hollow's elite + boss trophies (PH-C2 / PH-C3, src/pinehollow/); 'warden-longbow' is the King's drop as a flag
   // until the longbow itself (Nalati's Bow.ts) is ported
-  | 'ironhide-tusk' | 'ghost-antler' | 'blackpaw-claw' | 'imperial-crown' | 'amber-heartwood' | 'warden-longbow';
+  | 'ironhide-tusk' | 'ghost-antler' | 'blackpaw-claw' | 'imperial-crown' | 'amber-heartwood' | 'warden-longbow'
+  // Pine Hollow's collectibles and the lodge (PH-C6 / C8, src/pinehollow/quest/): resin is the trader's currency-free swap
+  // good, a ribbon is what a lodge contract pays
+  | 'amber-resin' | 'lodge-ribbon';
 
 export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'venison': { label: 'Venison', icon: 'meat' },
@@ -43,6 +46,8 @@ export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'imperial-crown': { label: 'Seven-tine crown', icon: 'antlers' },
   'amber-heartwood': { label: 'Amber heartwood', icon: 'laurel' },
   'warden-longbow': { label: "The Warden's Longbow", icon: 'crossbow' },
+  'amber-resin': { label: 'Amber resin', icon: 'seaglass' },
+  'lodge-ribbon': { label: 'Lodge ribbon', icon: 'laurel' },
 };
 
 /** what a carcass of (kind, variant) yields when harvested */
@@ -60,6 +65,8 @@ export function harvestOf(kind: string, variant?: string): ItemId[] {
 }
 
 export const PACK_SLOTS = 12;
+/** Pine Hollow's pack: its harvest, the elites' trophies, resin and ribbons fill more than 12 kinds (PH-C6) */
+export const PINE_PACK_SLOTS = 18;
 const STORE = 'ws.inventory.v1';
 
 export class Inventory {
@@ -84,9 +91,21 @@ export class Inventory {
 
   add(id: ItemId, n = 1): void {
     if (!(id in ITEMS)) return;
-    if (!this.order.includes(id)) { if (this.order.length >= PACK_SLOTS) return; this.order.push(id); }
+    if (!this.order.includes(id)) { if (this.order.length >= this.slots) return; this.order.push(id); }
     this.counts[id] = (this.counts[id] ?? 0) + n;
     this.save(); this.onChange?.();
+  }
+  /** this shard's pack size */
+  get slots(): number { return this.chunkId.endsWith('/pine-hollow') ? PINE_PACK_SLOTS : PACK_SLOTS; }
+  /** how many of `id` the pack holds */
+  count(id: ItemId): number { return this.counts[id] ?? 0; }
+  /** take `n` of `id` out of the pack (a trade); false, and nothing taken, when there are fewer. At 0 the slot frees up. */
+  take(id: ItemId, n = 1): boolean {
+    const have = this.counts[id] ?? 0;
+    if (n <= 0 || have < n) return n <= 0;
+    if (have === n) { delete this.counts[id]; this.order = this.order.filter((o) => o !== id); } else this.counts[id] = have - n;
+    this.save(); this.onChange?.();
+    return true;
   }
   get items(): { id: ItemId; count: number; label: string; icon: IconId }[] { return this.order.map((id) => ({ id, count: this.counts[id] ?? 0, ...ITEMS[id] })); }
   get total(): number { return this.order.reduce((s, id) => s + (this.counts[id] ?? 0), 0); }

@@ -32,6 +32,18 @@ import './styles/combat.css';
  * swing at a boar 30 m off is not a miss, it is out of range.
  */
 
+/** bosses by kind → their name. A boss has its own wide top bar (BossBar.ts): no floating plate over it as well, and the
+ *  aim readout names it, not its raw kind (PH-C1's fix: the King showed "ANTLER-KING · 9 M", the plate and the bar at
+ *  once). The boss's module adds itself: `BOSS_NAMES.set('antler-king', 'The Antler King')`. */
+export const BOSS_NAMES = new Map<string, string>();
+const bossAim = { kind: '', distance: 0 };
+/** the HUD's aim readout for `info`: a boss by its name, anything else as it is */
+export function aimReadout(info: { kind: string; distance: number } | null): { kind: string; distance: number } | null {
+  const name = info ? BOSS_NAMES.get(info.kind) : undefined;
+  if (!info || name === undefined) return info;
+  bossAim.kind = name; bossAim.distance = info.distance;
+  return bossAim;
+}
 const BAR_DIST = 60;                       // m: bars only this close
 const BAR_HOLD = 4000;                     // ms: a bar stays up this long after the last hit
 const BAR_MAX = TIER === 'phone' ? 6 : 12;  // pooled bar elements
@@ -175,7 +187,7 @@ export class Combat {
     _o.setFromMatrixPosition(this.camera.matrixWorld);
     for (let i = 0; i < list.length; i++) {
       const a = list[i];
-      if (a === undefined || a.hidden) continue;
+      if (a === undefined || a.hidden || BOSS_NAMES.has(a.kind)) continue;
       const show = now - a.lastHitT < BAR_HOLD || a === this.aimed || (lockOn.state === 'locked' && a === lockOn.target); // the locked enemy keeps its tag (E50, N)
       if (!show) continue;
       const d2 = a.position.distanceToSquared(_o);

@@ -201,7 +201,8 @@ const TOWER = { base: 3.0, top: 2.1, deck: ZIPLINE.from.deck, deckHalf: 3.4, cab
 const LAUNCH = { half: 0.8, out: 1.4, gantry: 3.6, cable: 3.3 };
 const LANDING = { hx: 1.5, hz: 1.6, deck: ZIPLINE.to.deck, gantry: 3.8, cable: 3.3 };
 /** the tower (and landing) turn: local −Z points from the lookout down the cable to the landing */
-const ZIP_YAW = Math.atan2(ZIPLINE.from.x - ZIPLINE.to.x, ZIPLINE.from.z - ZIPLINE.to.z);
+/** the tower / landing turn (exported for the ride and the vista bench, PH-C1 / C8) */
+export const ZIP_YAW = Math.atan2(ZIPLINE.from.x - ZIPLINE.to.x, ZIPLINE.from.z - ZIPLINE.to.z);
 
 function buildLookout(t: Timber): { zipTop: V3; launch: V3 } {
   const { base, top, deck, deckHalf, cab, cabH } = TOWER;
@@ -613,6 +614,15 @@ const faceYaw = (fromX: number, fromZ: number, toX: number, toZ: number): number
 /** where the lookout trail comes in (its second-last vertex) */
 const LOOKOUT_TRAIL_IN: [number, number] = (SPURS['lookout'] ?? [])[3] ?? [76, 196];
 
+/** where the canoe is drawn up on the pond's W shore (its bow toward the islet) — the canoe secret's put-in (PH-C8) */
+export const CANOE_SITE = { x: -67.8, z: 119 };
+/** the lodge's contract board: beside its porch steps, facing the way in (PH-C6 reads it for the board's prompt) */
+export function contractBoardSite(): { x: number; z: number; yaw: number } {
+  const L = HAMLET_SITES.lodge, fyaw = L.rot;
+  const fx = -Math.sin(fyaw), fz = -Math.cos(fyaw), rx = Math.cos(fyaw), rz = -Math.sin(fyaw);   // front, and its right hand
+  return { x: L.x + fx * (3.5 + 2.6 + 1.4) + rx * 4.2, z: L.z + fz * (3.5 + 2.6 + 1.4) + rz * 4.2, yaw: fyaw + Math.PI };
+}
+
 export type WaystoneId = 'pond' | 'ridge' | 'den';
 /** the three waystone lanterns (PH-C1): the pond's W shore by the pond spur, the ridge by the lookout's stair door, the den's cave mouth */
 export function waystoneSites(): Record<WaystoneId, { x: number; z: number; yaw: number }> {
@@ -638,6 +648,7 @@ export interface PineLandmarksHandle {
   /** the zipline's cable ends (world) and where you stand to ride / where you land */
   zip: { top: V3; bottom: V3; launch: V3; landing: V3 };
   setLit: (id: WaystoneId, on: boolean) => void;
+  setCanoeAway: (away: boolean) => void;
   isLit: (id: WaystoneId) => boolean;
   floorHeightAt: (x: number, z: number) => number | undefined;
 }
@@ -652,6 +663,7 @@ export class PineLandmarks implements PineLandmarksHandle {
   private timbers: { t: Timber; pad: number; detailOn: boolean; farOn: boolean }[] = [];
   private sets: HeroSet[] = [];
   private lit: Record<WaystoneId, boolean> = { pond: true, ridge: true, den: true };
+  private canoe: HeroSet | null = null;
   private glow: THREE.Points | null = null;
   private glowMat: THREE.PointsMaterial | null = null;
   private anchors: Record<WaystoneId, THREE.Object3D> | null = null;
@@ -736,15 +748,13 @@ export class PineLandmarks implements PineLandmarksHandle {
     // ~1.3 m over the pond's water line at the sill
     const flow = d0 && d1 ? Math.atan2(d1[0] - d0[0], d1[1] - d0[1]) : 0;
     add('beaver-dam', [{ x: BEAVER_DAM.x, y: ground(BEAVER_DAM.x, BEAVER_DAM.z) - 0.45, z: BEAVER_DAM.z, yaw: flow, scale: 1 }], 50, true, 'wood');
-    const cx = -67.8, cz = 119;                                     // its bow (local +Z) out toward the islet (−X), its stern up the bank
+    const cx = CANOE_SITE.x, cz = CANOE_SITE.z;                     // its bow (local +Z) out toward the islet (−X), its stern up the bank
     const bowH = Math.max(ground(cx - 2.3, cz), POND.level), sternH = Math.max(ground(cx + 2.3, cz), POND.level);
-    add('canoe', [{ x: cx, y: (bowH + sternH) / 2 - 0.05, z: cz, yaw: -Math.PI / 2, scale: 1, pitch: Math.atan2(sternH - bowH, 4.6) * 0.85 }], 40, true, 'wood');
+    this.canoe = add('canoe', [{ x: cx, y: (bowH + sternH) / 2 - 0.05, z: cz, yaw: -Math.PI / 2, scale: 1, pitch: Math.atan2(sternH - bowH, 4.6) * 0.85 }], 40, true, 'wood');
 
     // the lodge's contract board, beside its porch steps, facing the way in
-    const L = HAMLET_SITES.lodge, fyaw = L.rot;
-    const fx = -Math.sin(fyaw), fz = -Math.cos(fyaw), rx = Math.cos(fyaw), rz = -Math.sin(fyaw);   // front, and its right hand
-    const bx = L.x + fx * (3.5 + 2.6 + 1.4) + rx * 4.2, bz = L.z + fz * (3.5 + 2.6 + 1.4) + rz * 4.2;
-    add('contract-board', [{ x: bx, y: ground(bx, bz) - 0.1, z: bz, yaw: fyaw + Math.PI, scale: 1 }], 40, true, 'wood');
+    const B = contractBoardSite();
+    add('contract-board', [{ x: B.x, y: ground(B.x, B.z) - 0.1, z: B.z, yaw: B.yaw, scale: 1 }], 40, true, 'wood');
 
     // the bear cave's mouth: the rock arch set into the den wall, a dark plane just inside its opening
     const cyaw = BEAR_CAVE.rot, cfx = -Math.sin(cyaw), cfz = -Math.cos(cyaw);
@@ -811,6 +821,14 @@ export class PineLandmarks implements PineLandmarksHandle {
     this.group.add(this.glow);
     this.anchors = anchors;
     if (cabins) for (const id of ids) { const a = anchors[id]; cabins.addLampSite(a, 0xffb060, 9, 12, () => this.lit[id]); }
+  }
+
+  /** the canoe secret (PH-C8): the drawn-up canoe is gone from the shore while you paddle it (the ride draws its own) */
+  setCanoeAway(away: boolean): void {
+    const set = this.canoe, p = set?.places[0];
+    if (!set || !p) return;
+    const m = away ? new THREE.Matrix4().makeScale(0, 0, 0) : placeMatrix(p);
+    for (const im of [set.lod0, set.lod1]) if (im) { im.setMatrixAt(0, m); im.instanceMatrix.needsUpdate = true; }
   }
 
   setLit(id: WaystoneId, on: boolean): void {

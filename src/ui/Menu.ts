@@ -17,7 +17,7 @@ import { getActiveChunk } from '../chunks/registry';
 import { CHUNK_SIZE } from '../core/config';
 import type { FullMap } from './Map';
 import type { Progress } from '../game/Progress';
-import { PACK_SLOTS, type Inventory } from '../game/Inventory';
+import type { Inventory } from '../game/Inventory';
 import { icon, type IconId } from './icons';
 import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, setting, saveSetting, onSettingChange, settingsReloadUrl, type SettingKey, type NumberKey, type MusicStyle, type SfxSet, type OptionValue } from './Settings';
 import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
@@ -212,9 +212,10 @@ export class GameMenu {
       p.append(card);
     }
     const items = this.opts.inventory.items;
-    p.append(el('ws-gmenu-label', `Pack · ${items.length} / ${PACK_SLOTS}`));
+    const slots = this.opts.inventory.slots;
+    p.append(el('ws-gmenu-label', `Pack · ${items.length} / ${slots}`));
     const grid = el('ws-gmenu-grid');
-    for (let i = 0; i < PACK_SLOTS; i++) {
+    for (let i = 0; i < slots; i++) {
       const it = items[i];
       grid.append(it
         ? el('ws-gmenu-slot', `<i class="ws-gmenu-sicon">${icon(it.icon)}</i><b class="ws-gmenu-count">×${it.count}</b><span class="ws-gmenu-sname">${esc(it.label)}</span>`)

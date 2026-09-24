@@ -61,7 +61,7 @@ import { Progress } from './game/Progress';
 import { Inventory, harvestOf, ITEMS } from './game/Inventory';
 import { getNumber, onNumber, onSettingChange, setting } from './ui/Settings';
 import { KeepAlive } from './core/KeepAlive';
-import { Combat } from './ui/Combat';
+import { Combat, aimReadout } from './ui/Combat';
 import { HurtArc, deathLine } from './ui/HurtArc';
 import { setAimTargets, meleeLock, lockOn as lockState } from './player/AimTargets';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
@@ -97,6 +97,7 @@ import { lineOfSight } from './physics/query';
 import { pickInteractable, setSight } from './world/interact/Interactables';
 import { installCompendium } from './ui/compendium/install';
 import { installPineCombat } from './pinehollow';
+import { installPineQuest } from './pinehollow/quest';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
 const _animalXZ: { x: number; z: number }[] = [];
@@ -292,7 +293,7 @@ async function main() {
   const { grass, under, particles } = carpet;
 
   const homestead = await step('cabins', async () => {
-    if (isOcean) return { cabins: null, interactables: [] as Awaited<ReturnType<Cabins['build']>>['interactables'] };
+    if (isOcean) return { cabins: null, interactables: [] as Awaited<ReturnType<Cabins['build']>>['interactables'], landmarks: null };
     const cabins = new Cabins(sky, chunk.slug === 'pine-hollow' ? pineHamletBuildings() : []); // PH-B3: + the mill hamlet, one merged cluster
     const { group: cabinGroup, interactables } = await cabins.build();
     game.scene.add(cabinGroup);
@@ -305,10 +306,10 @@ async function main() {
         active: () => !d.swinging() && d.pivot.getWorldPosition(_dp).distanceToSquared(player.position) > 1.4 * 1.4 });
     }
     // PH-B3: the fire lookout + zipline, the footbridge, the standing stones, waystones, dam, canoe, board and cave mouth
-    if (chunk.slug === 'pine-hollow') await installPineLandmarks({ sky, registry, cabins, onUpdate: (fn) => { game.onUpdate(fn); } });
-    return { cabins, interactables };
+    const landmarks = chunk.slug === 'pine-hollow' ? await installPineLandmarks({ sky, registry, cabins, onUpdate: (fn) => { game.onUpdate(fn); } }) : null;
+    return { cabins, interactables, landmarks };
   });
-  const { cabins, interactables } = homestead;
+  const { cabins, interactables, landmarks } = homestead;
   const props = await step('props', async () => {
     if (isOcean) return null;
     const built = new Props(sky, forest);
@@ -515,7 +516,9 @@ async function main() {
     const skin = skinFor(a.kind, a.variant); if (skin && !skins.has(skin.id) && pineFights?.isElite(a) !== true) spawnSkinDrop(skin, a.position); // the legendary's drop, once (a named elite's comes from its own orb)
   };
   // the Compendium (PH-C5 / C4, src/ui/compendium/): the hunter's journal (N, the pause menu, the touch disc) + the trophy wall; chains onKill
-  installCompendium({ chunkId: getActiveChunk().id, game, camera: game.camera, hud, menu, animals, cabins, interactables, weapons, touchUi, nolock });
+  const compendium = installCompendium({ chunkId: getActiveChunk().id, game, camera: game.camera, hud, menu, animals, cabins, interactables, weapons, touchUi, nolock });
+  // Pine Hollow's adventure (src/pinehollow/quest/): PH-C1 the lantern quest, PH-C6 the hamlet, PH-C7 the night, PH-C8 collectibles; chains onKill
+  const pineQuest = chunk.slug === 'pine-hollow' ? installPineQuest({ game, sky, player, animals, hud, audio, music, inventory, progress, skins, wearSkin, weapons, crossbow, menu, interactables, registry, cabins, landmarks, trees: forest.trees, fullMap, compendium: compendium?.state ?? null, chunkId: getActiveChunk().id, params, touchUi, nolock }) : null;
   for (const w of ['crossbow', 'rifle'] as const) { const s = skins.wearing(w); if (s) wearSkin(s); }
   const skinParam = params.get('skin'), dropParam = params.get('drop');
   if (skinParam && skinParam in SKINS) { const s = SKINS[skinParam as SkinId]; skins.own(s.id); wearSkin(s); if (s.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle', true); } }
@@ -554,6 +557,7 @@ async function main() {
   }
   const ambience = sea ? new IslandAmbience(audio, { sea: sea.level, heightAt, palms: palmSpecs, wreck, cove: Cove.forIsland() }) : chunk.slug === 'pine-hollow' ? new ForestAmbience(audio, { heightAt, cabins, music }) : null; // PH-A2
   if (ambience instanceof ForestAmbience) pineFights?.useSfx(ambience.sfx); // the King's bells / stomp / roar, the thralls
+  if (ambience instanceof ForestAmbience) pineQuest?.useSfx(ambience.sfx); // the NPC barks, the lanterns, the zipline, the night's thralls
   player.onStep = (sprinting) => {
     const p = player.position;
     if (islandSfx && surfaces && !(player.wading && player.depth > 0.3)) islandSfx.footstep(player.wading ? 'water' : surfaces.surfaceAt(p.x, p.z, p.y), Math.hypot(player.velocity.x, player.velocity.z));
@@ -716,7 +720,7 @@ async function main() {
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 && hud.entered);
-    hud.setAimInfo(weapons.aimInfo);
+    hud.setAimInfo(aimReadout(weapons.aimInfo)); // a boss by its name (PH-C1)
     lockOn.update();
     speedLines.update(dt, player.dashing, meleeLock.lunging);
     if (hud.entered) { hud.setAnimals(animalPositions(animals.animals)); minimap.update(player.position, player.yaw, animals.animals); fullMap.update(player.position, player.yaw); } // compass paw + minimap (hidden under the menu)
