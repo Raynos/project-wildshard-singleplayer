@@ -2,6 +2,8 @@
  * The hamlet's people, stand-ins (PINE-HOLLOW-REMASTER PH-C1 / C6): Hale the ranger, Brandt the miller, Mott the trader
  * as simple standing figures until PH-M4's generated, rigged humans land. ONE factory — `makeNpcFigure(kind, sky)` —
  * is all PH-M4 swaps: the quest only reads the returned handle (`group`, `talkPoint`, `collider`, `update`).
+ * PH-M4 (built): the figure below is the stand-in until the person's generated model has loaded (npcModels.ts: photoreal,
+ * rigged at load, idle / talk / point clips); `update` swaps it in on the first frame it is ready (`?npcs=proc` = never).
  *
  * Each figure is one merged mesh on a vertex-coloured PBR material shared by all three (+ the ranger's lantern glass on
  * the glow material): 1–2 draws, no lights. The ranger is board B3's "old warden": a long coat, a campaign hat, a grey
@@ -11,6 +13,8 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Sky } from '../../world/Sky';
 import type { Collider } from '../../player/Player';
+import { KINGS_CLEARING } from '../../chunks/pineHollowLayout';
+import { npcRig, preloadNpcModels, type NpcRig } from './npcModels';
 
 export type NpcKind = 'ranger' | 'miller' | 'trader';
 
@@ -141,6 +145,7 @@ function lanternGlass(): THREE.BufferGeometry {
 /** a stand-in NPC at `feet` facing `yaw` (the quest's one factory: PH-M4 replaces this body, nothing else) */
 export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: number; z: number }, yaw: number): NpcFigure {
   const L = LOOKS[kind];
+  preloadNpcModels();
   const group = new THREE.Group();
   group.name = `npc-${kind}`;
   group.position.set(feet.x, feet.y, feet.z);
@@ -148,7 +153,29 @@ export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: num
   const mesh = new THREE.Mesh(body(L), npcMaterial(sky));
   mesh.castShadow = true; mesh.receiveShadow = true;
   group.add(mesh);
-  if (L.lantern) group.add(new THREE.Mesh(lanternGlass(), npcGlowMaterial()));
+  const glass = L.lantern ? new THREE.Mesh(lanternGlass(), npcGlowMaterial()) : null;
+  if (glass) group.add(glass);
+  // PH-M4: the generated person, once loaded (then the stand-in above leaves the group)
+  let rig: NpcRig | null = null, shown: THREE.Mesh = mesh;
+  let talkK = 0, pointK = 0, talkT = 0;
+  const adopt = (r: NpcRig): void => {
+    rig = r;
+    group.remove(mesh); if (glass) group.remove(glass);
+    r.mesh.castShadow = mesh.castShadow;
+    group.add(r.mesh);
+    shown = r.mesh;
+    if (r.lanternAt) {
+      // the lantern's flame: a small glow in the model's own lantern, riding the right hand
+      const flame = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), npcGlowMaterial());
+      const hand = new THREE.Vector3().setFromMatrixPosition(r.handR.matrixWorld).applyMatrix4(new THREE.Matrix4().copy(group.matrixWorld).invert());
+      flame.position.copy(r.lanternAt).sub(hand);
+      const col = new Float32Array(flame.geometry.getAttribute('position').count * 3);
+      for (let i = 0; i < col.length; i += 3) { col[i] = 2.4; col[i + 1] = 1.35; col[i + 2] = 0.45; }
+      flame.geometry.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      flame.castShadow = false;
+      r.handR.add(flame);
+    }
+  };
   const collider: Collider = { x: feet.x, z: feet.z, hw: 0.28, hd: 0.28, rot: 0, yTop: feet.y + 1.8, yBottom: feet.y - 0.3 };
   const talkPoint = new THREE.Vector3(feet.x, feet.y + 1.6, feet.z);
   const home = yaw;
@@ -159,7 +186,7 @@ export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: num
     lod: (d) => {
       const st = d > 140 ? 0 : d > 45 ? 1 : 2;
       if (st === lodState) return;
-      lodState = st; group.visible = st > 0; mesh.castShadow = st === 2;
+      lodState = st; group.visible = st > 0; shown.castShadow = st === 2; mesh.castShadow = st === 2;
     },
     update: (dt, t, player) => {
       const dx = player.x - feet.x, dz = player.z - feet.z, near = dx * dx + dz * dz < 9 * 9;
@@ -167,6 +194,19 @@ export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: num
       let d = want - cur; d = Math.atan2(Math.sin(d), Math.cos(d));
       cur += d * Math.min(1, dt * 3);
       group.rotation.y = cur;
+      if (rig === null) { const r = npcRig(kind, sky); if (r) adopt(r); }
+      if (rig !== null) {
+        // idle / talk / point (npcModels.ts): the talk eases in and out; the ranger points toward the old-growth now and then
+        talkK += ((fig.talking ? 1 : 0) - talkK) * Math.min(1, dt * 4);
+        talkT = fig.talking ? talkT + dt : 0;
+        const pointing = kind === 'ranger' && fig.talking && talkT % 9 > 5.5 && talkT % 9 < 8;
+        pointK += ((pointing ? 1 : 0) - pointK) * Math.min(1, dt * 3);
+        let py = Math.atan2(KINGS_CLEARING.x - feet.x, KINGS_CLEARING.z - feet.z) - cur;
+        py = Math.max(-1, Math.min(1, Math.atan2(Math.sin(py), Math.cos(py))));
+        const look = near ? Math.max(-0.6, Math.min(0.6, Math.atan2(Math.sin(want - cur), Math.cos(want - cur)))) : 0;
+        rig.pose(t, talkK, pointK, py, look);
+        return;
+      }
       mesh.scale.y = 1 + Math.sin(t * 1.7) * 0.006;
       mesh.rotation.z = fig.talking ? Math.sin(t * 2.3) * 0.025 : 0;
     },
