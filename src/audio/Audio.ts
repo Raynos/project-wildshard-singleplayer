@@ -1419,7 +1419,7 @@ export class Audio {
     const l = this.loops.get(this.bed);
     this.sampleBed = l !== undefined;
     if (l) this.startSampleBed(l);
-    else if (this.bed === 'island') { if (!this.zoned) this.startIsland(); } else if (this.bed === 'steppe') { if (!this.steppeSampled) this.startSteppe(); } else this.startForest();
+    else if (this.bed === 'island') { if (!this.zoned) this.startIsland(); } else if (this.bed === 'steppe') { if (!this.steppeSampled) this.startSteppe(); else if (!this.loops.has('camp')) this.scheduleCrackle(); } else this.startForest();
   }
   /** sfx.json's bed for this shard: one looping source faded in over 2 s (replaces the synth winds, birds, gusts and surf) */
   private startSampleBed(l: SampleLoop) {
