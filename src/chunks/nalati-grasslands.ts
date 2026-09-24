@@ -561,7 +561,7 @@ export const NALATI_GRASSLANDS: ChunkDef = {
   blurb: 'SUPER EXPERIMENTAL — the Tian Shan steppe, painted: cross the braided Kunes, tame a steppe horse and hunt wolves from the saddle across the golden bowl of the Sky Grassland, break the Golden King in his kurgan, and ride out a storm to face the Storm Titan. Snow Lotus Valley waits in the snow ring. Built live, rough edges everywhere.',
   thumbnail, heroPortrait, heroLandscape,
   style: 'painterly',
-  weapon: 'sword', // the Driftwood sword until the bow / sabre land (B2 / B3)
+  weapon: 'nalati', // its own kit (src/player/nalatiKit.ts: bow · sabre · spear) — no Driftwood sword built (NALATI-MERGE F2)
   // (the camera's far plane is 2.6 km: every ring stays inside 2.5 km)
   horizon: {
     cloudSea: true,

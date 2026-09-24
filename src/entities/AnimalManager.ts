@@ -11,6 +11,7 @@ import type { Sky } from '../world/Sky';
 import { AnimalFactory, speciesDef, variantDef, rollVariant, type AnimalKind, type AnimalStyle, type EnemyWorld, type ThinkCtx } from './AnimalFactory';
 import { Animal, damageFor } from './Animal';
 import { getActiveChunk } from '../chunks/registry';
+import { meleeShard } from '../chunks/ChunkDef';
 import { TIER_CONFIG } from '../core/tier';
 import { noReflect } from '../world/Water';
 import { worldTime } from '../core/time';
@@ -73,7 +74,7 @@ import { worldTime } from '../core/time';
  * perches, the coconut thrower, the wreck's hold — Enemies.ts fills it; a missing piece degrades to ground behaviour.
  * `animals.addHerd(kind, cx, cz)` makes a herd for such a spawner (`spawn()` then `animal.herd = index`).
  *
- * MELEE SHARDS (`ChunkDef.weapon === 'sword'`, Driftwood C5 — Pine Hollow's crossbow hunting is untouched): every attack
+ * MELEE SHARDS (`meleeShard(ChunkDef)`: 'sword' / 'nalati', Driftwood C5 — Pine Hollow's crossbow hunting is untouched): every attack
  * is telegraphed and lands on an arc, so strafing is the dodge.
  *   • A charge starts with a WIND-UP (CHARGE_WINDUP: boar 0.55 s, bear 0.65 s): the animal stops, turns to you, drops its
  *     head and paws the ground (Animal.poseWindup) with the roar / grunt as the cue, then runs. A sword blow during the
@@ -329,7 +330,7 @@ export class AnimalManager {
   private shellDist = new Float64Array(SHELL_MAX);
   private shellIdx = new Int32Array(SHELL_MAX);
   /** a melee shard (the sword): telegraphed charges, attacks on an arc (see the header) */
-  private readonly melee = getActiveChunk().weapon === 'sword';
+  private readonly melee = meleeShard(getActiveChunk()); // Driftwood's swords, Nalati's sabre / spear
 
   /** `opts.style` forces the render style (dev harness); production reads `ChunkDef.style` ('pbr' | 'lowpoly') */
   constructor(private readonly scene: THREE.Scene, private readonly sky: Sky, private readonly forest: Forest, opts: { style?: AnimalStyle | undefined } = {}) {

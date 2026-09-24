@@ -71,6 +71,7 @@ import { bootFiles, extraFetches, startAudioPreload, startMenuPreload } from './
 import { bootFetches, prefetch, prefetchAfter } from './boot/prefetch';
 import { packFor, streamPack } from './boot/pack';
 import { getActiveChunk } from './chunks/registry';
+import { meleeShard } from './chunks/ChunkDef';
 import { Audio } from './audio/Audio';
 import { Music } from './audio/Music';
 import { ShrineHum } from './audio/ShrineHum';
@@ -130,7 +131,7 @@ async function main() {
   // world's files; the selected style + set are decoded as their bytes land — nothing is fetched after the bar
   prefetchAfter(extraFetches(files), packStreamed);
   const menuLoad = startMenuPreload(files, getActiveChunk()), audioLoad = startAudioPreload(files, getActiveChunk());
-  startViewmodelTextures(getActiveChunk().weapon !== 'sword'); // the crossbow's + rifle's textures, drawn in a worker while the world builds
+  startViewmodelTextures((getActiveChunk().weapon ?? 'crossbow') === 'crossbow'); // the crossbow's + rifle's textures, drawn in a worker while the world builds
   const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk, registry } = world;
   // a static builder into the world registry (PHYSICS P2b): drawn, collides (its boxes as ColliderDescs), and until P4
@@ -544,8 +545,8 @@ async function main() {
   animals.onCharge = (a, dmg) => {
     health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); music.combat(0.9);
     killer = { kind: a.kind, label: a.label };
-    if (chunk.weapon === 'sword') hurtArc.hit(a.position.x, a.position.z, player.position, player.yaw, dmg); // the direction arc: the island only (D8)
-    if (chunk.weapon === 'sword') CameraFX.for(game).addTrauma(Math.min(0.85, 0.3 + dmg / 40)); // a trauma² shake (C3, the island only)
+    if (meleeShard(chunk)) hurtArc.hit(a.position.x, a.position.z, player.position, player.yaw, dmg); // the direction arc: the melee shards (D8; Nalati too, NALATI-MERGE F2)
+    if (meleeShard(chunk)) CameraFX.for(game).addTrauma(Math.min(0.85, 0.3 + dmg / 40)); // a trauma² shake (C3)
     player.shove(a.position.x, a.position.z, 5 + Math.min(4, dmg * 0.15)); // knocked back a step, through the controller (PHYSICS P2)
     const dx = a.position.x - player.position.x, dz = a.position.z - player.position.z, d = Math.hypot(dx, dz);
     audio.hurt(dmg / 20, d > 0.3 ? ((dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw)) / d) * 0.7 : 0);

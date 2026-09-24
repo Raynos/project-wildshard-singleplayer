@@ -252,8 +252,14 @@ export interface HorizonBand { azimuth: number; spread: number; height: number; 
 export interface HorizonRing { r: number; base: number; color: RGB; top: RGB; snowLine: number; haze: number; bands: HorizonBand[]; floor: number }
 /** A shard-specific horizon (`src/world/Horizon.ts`): rings near → far; replaces the default three ridge rings. */
 export interface ChunkHorizon { rings: HorizonRing[]; cloudSea: boolean }
-/** The first-person weapon the shard hands the player (`src/player/Crossbow.ts` / `src/player/Sword.ts`). */
-export type ChunkWeapon = 'crossbow' | 'sword';
+/**
+ * The first-person weapon the shard hands the player: `src/player/Crossbow.ts`, `src/player/Sword.ts` (+ the iron sword
+ * on the wreck), or the Nalati kit (`src/player/nalatiKit.ts`: bow · sabre · spear). 'sword' and 'nalati' are the
+ * melee shards (`meleeShard`): telegraphed charges on an arc, the hurt arc + trauma shake.
+ */
+export type ChunkWeapon = 'crossbow' | 'sword' | 'nalati';
+/** a shard whose weapons are melee-first (Driftwood's swords, Nalati's sabre / spear): AnimalManager's telegraphed charges, the hurt arc */
+export const meleeShard = (def: { weapon?: ChunkWeapon | undefined }): boolean => def.weapon === 'sword' || def.weapon === 'nalati';
 
 export interface ChunkDef {
   /** canonical id, e.g. `chunk://local/pine-hollow` */
