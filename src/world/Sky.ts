@@ -55,8 +55,9 @@ export class Sky {
 
   async build(): Promise<this> {
     const { sky: S, atmosphere: A, style } = getActiveChunk();
-    // Look Lab (E65): main menu ▸ Settings ▸ Look Lab keeps the pre-remaster looks selectable (reload to apply)
-    const toon = style === 'lowpoly' && setting('lighting') === 'toon', stylizedSky = style === 'lowpoly' && !(settingFromUrl('sky') && setting('sky') === 'hdri'); // stylized locked in (E83, the user's Look Lab pick): only ?sky=hdri brings back the photo HDRI
+    // Look Lab (E65): the sky (E83) and toon lighting (E87) are locked in; the URL alone still builds the pre-remaster looks
+    const toon = style === 'lowpoly' && !(settingFromUrl('lighting') && setting('lighting') === 'standard'), // toon locked in (E87): only ?lighting=standard lights it the old way
+      stylizedSky = style === 'lowpoly' && !(settingFromUrl('sky') && setting('sky') === 'hdri'); // stylized locked in (E83, the user's Look Lab pick): only ?sky=hdri brings back the photo HDRI
     if (toon) installStylize(); // the toon lighting model (D1) — patched into three's chunk before anything compiles
     const qs = new URLSearchParams(location.search);
     const qn = (k: string, d: number) => { const v = qs.get(k); return v === null ? d : Number.parseFloat(v); };

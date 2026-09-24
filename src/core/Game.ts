@@ -14,7 +14,7 @@ import { TIER_CONFIG } from './tier';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 import { worldTime } from './time';
-import { setting, onSettingChange } from '../ui/Settings';
+import { setting, settingFromUrl } from '../ui/Settings';
 import { GPU_MODE } from '../gpu/flag';
 import type { GpuPath } from '../gpu/GpuPath';
 import { installViewport, viewportHeight } from './viewport';
@@ -167,14 +167,9 @@ export class Game {
       const lut = this.sky.lut ? new LUT3DEffect(this.sky.lut, { inputColorSpace: THREE.SRGBColorSpace, tetrahedralInterpolation: true }) : null;
       return lut ? new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split, lut) : new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split);
     };
-    if (getActiveChunk().style === 'lowpoly') {
-      // Look Lab (E65): both chains are built and the pause menu's Look ▸ Post pick enables one, live — the clean L5 chain
-      // or the original haze + grain + fringe ("cinematic"); the first switch compiles the other pass once, in the menu
-      const clean = chain(true), cinematic = chain(false);
-      composer.addPass(clean); composer.addPass(cinematic);
-      const apply = (v: 'clean' | 'cinematic') => { clean.enabled = v === 'clean'; cinematic.enabled = v === 'cinematic'; };
-      apply(setting('post')); onSettingChange('post', apply);
-    } else composer.addPass(chain(false));
+    // the low-poly shard runs the clean L5 chain — locked in (E88, the user's Look Lab pick); only `?post=cinematic` builds
+    // the original haze + grain + fringe chain there, which every other shard keeps
+    composer.addPass(chain(getActiveChunk().style === 'lowpoly' && !(settingFromUrl('post') && setting('post') === 'cinematic')));
     if (TIER_CONFIG.smaa !== 'off') {
       const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
       composer.addPass(new EffectPass(this.camera, smaa));

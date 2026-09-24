@@ -106,14 +106,14 @@ export const OPTION_VALUES = {
   time: ['live', 'midday', 'golden', 'sunset', 'night'], // the day / night clock (src/world/DayNight.ts) — live
   lut: ['on', 'off'],                                  // the learned colour LUT (src/world/lut.ts, Game.buildComposer) — locked on (E85): only ?nolut reads it
   // Look Lab (E65): the remaster's TASTE axes, each keeping the pre-remaster look selectable — the user picks, not us
-  lighting: ['toon', 'standard'],                      // Driftwood: the toon ramp (src/world/stylize.ts, L1) or three's standard lighting
+  lighting: ['toon', 'standard'],                      // Driftwood: the toon ramp (src/world/stylize.ts, L1) — locked in (E87, the user's pick); only ?lighting=standard reads it
   sky: ['stylized', 'hdri'],                           // Driftwood: the gradient dome + faceted cumulus (L2) — locked in (E83, the user's pick); only ?sky=hdri reads it
-  post: ['clean', 'cinematic'],                        // Driftwood: the clean low-poly post (L5) or the original haze + grain + fringe chain — live
+  post: ['clean', 'cinematic'],                        // Driftwood: the clean low-poly post (L5) — locked in (E88, the user's pick); only ?post=cinematic reads it
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
 /** read once while the page loads: main menu ▸ Settings, APPLY & RELOAD. Every other option applies live (pause menu). */
-export const BOOT_OPTIONS: readonly OptionKey[] = ['gpu', 'island', 'tier', 'touch', 'lighting'];
+export const BOOT_OPTIONS: readonly OptionKey[] = ['gpu', 'island', 'tier', 'touch'];
 const onOff = (v: string | null): 'on' | 'off' | null => (v === null ? null : v === '0' || v === 'off' || v === 'false' ? 'off' : 'on');
 /** per option: the default, the URL params that override it (dropped by settingsReloadUrl) and how they read */
 const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly string[]; url: (q: URLSearchParams) => string | null } } = {

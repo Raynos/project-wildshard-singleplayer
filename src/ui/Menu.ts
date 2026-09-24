@@ -19,8 +19,7 @@ import type { FullMap } from './Map';
 import type { Progress } from '../game/Progress';
 import { PACK_SLOTS, type Inventory } from '../game/Inventory';
 import { icon, type IconId } from './icons';
-import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, setting, savedSetting, saveSetting, onSettingChange, type SettingKey, type NumberKey, type MusicStyle, type SfxSet, type OptionValue } from './Settings';
-import { askReload } from './ReloadPrompt';
+import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, setting, saveSetting, onSettingChange, type SettingKey, type NumberKey, type MusicStyle, type SfxSet, type OptionValue } from './Settings';
 import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
 import { onAudioBusy } from '../audio/preload';
 import { CAN_VIBRATE } from './haptics';
@@ -254,7 +253,7 @@ export class GameMenu {
    *  are read at boot and live in main menu ▸ Settings (src/ui/BootSettings.ts, APPLY & RELOAD). Two cards (E81, the user's
    *  split): SETTINGS holds what ships with the finished game; DEBUG holds the variant pickers and taste toggles that
    *  exist only while the look and sound are being decided — each leaves that card once it is locked in (E78 the
-   *  painted horizon, E83 the photo sky, E85 the colour grade) */
+   *  painted horizon, E83 the photo sky, E85 the colour grade, E87 the lighting, E88 the post) */
   private buildSettings(): void {
     const panel = this.panels.settings;
     const resume = el('ws-gmenu-btn resume', 'Resume', 'button') as HTMLButtonElement; resume.type = 'button';
@@ -340,13 +339,7 @@ export class GameMenu {
       const times: { v: OptionValue<'time'>; text: string }[] = [{ v: 'live', text: 'Live' }, { v: 'midday', text: 'Midday' }, { v: 'golden', text: 'Golden' }, { v: 'sunset', text: 'Sunset' }, { v: 'night', text: 'Night' }];
       const time = picker('Time of day', times, () => setting('time'), (v) => { saveSetting('time', v); }, (fn) => { onSettingChange('time', fn); });
       dbg.append(el('ws-gmenu-label', 'Look'), time);
-      // Look Lab (E65): the remaster's taste axes, each keeping the pre-remaster look — the user picks. Post is live;
-      // lighting rebuilds every shader, so it asks to reload and come straight back here
-      const post = picker('Post', [{ v: 'clean' as const, text: 'Clean' }, { v: 'cinematic' as const, text: 'Cinematic' }], () => setting('post'), (v) => { saveSetting('post', v); }, (fn) => { onSettingChange('post', fn); });
-      const onReload = <K extends 'lighting'>(k: K, label: string) => (v: OptionValue<K>) => { saveSetting(k, v); if (v !== setting(k)) askReload(document.body, label, 'game'); };
-      const lighting = picker('Lighting', [{ v: 'toon' as const, text: 'Toon' }, { v: 'standard' as const, text: 'Standard' }], () => savedSetting('lighting'), onReload('lighting', 'Lighting'), (fn) => { onSettingChange('lighting', fn); });
-      dbg.append(el('ws-gmenu-label', 'Look lab'), post, lighting,
-        el('ws-gmenu-note', 'Taste picks: every option is a real look, old and new. Post switches at once; lighting reloads and brings you back here.'));
+      // Look Lab (E65) is done: the sky (E83), lighting (E87) and post (E88) picks are locked in; the URL alone builds the old looks
     }
     dbg.append(el('ws-gmenu-note', 'Renderer, island, quality and render scale: Exit to main menu ▸ Settings.'));
     dbg.append(this.buildReview());
