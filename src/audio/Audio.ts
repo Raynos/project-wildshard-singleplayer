@@ -1,5 +1,9 @@
 import type { Vector3 } from 'three';
 import { getActiveChunk } from '../chunks/registry';
+import { getSfxSet, onSfxSet, type SfxSet } from '../ui/Settings';
+import { setSfxCredit } from './credits';
+import { cachedBytes, decodeSfxSet, trackBusy, type SfxBank } from './preload';
+import { Voices } from './Voices';
 
 /**
  * Audio — every sound is synthesised with WebAudio (no files).
@@ -32,6 +36,21 @@ import { getActiveChunk } from '../chunks/registry';
  *   audio.setStorm(rain, wind)  audio.thunder(distance, pan?)  audio.lightningCrackle(pan?, gain?)   // Nalati weather (src/nalati/weather.ts):
  *     the rain bed (0..1), the storm-wind roar (0..1, the gust front's grass roar), a thunderclap delayed by distance / 343 m/s
  *     (a crack + a long rumble near, a low roll far off), the 1.2 s crackle before a strike — nothing else calls them
+ *   audio.worldMuted = true|false        // sfx + ambient only (the title screen: the music plays, the frozen world is quiet)
+ *   audio.useZonedAmbience()             // Driftwood: src/audio/IslandAmbience.ts owns the island's beds — the synth island bed is not started
+ *   audio.world                          // the bus sfx + ambient share (IslandAmbience sends its reverb returns here)
+ *   audio.hurt(strength, pan)  audio.death()   // the player takes a hit (strength = dmg / 20, pan toward the attacker) / dies — both shards (B3)
+ *   audio.voices                         // the procedural one-shot bank (src/audio/Voices.ts + gen.ts): Driftwood's footsteps + combat layers (IslandSfx)
+ *
+ * Samples (project/archive/2026-09-23-music.md v3 row 7): `audio.useSamples(bank)` — the loading bar decoded (src/audio/preload.ts,
+ * project/archive/2026-09-23-preload-offline.md; nothing is fetched after it) the selected set's public/assets/sfx/<set>/sfx.json (Settings 'sfxSet': 'best' — the better take per sound of MOSS-SoundEffect v2 and Stable Audio 3 Medium — · 'synth')
+ * when the build ships one and decodes what it lists: ambient `beds` (forest / island /
+ * underwater, looped loopStart → loopEnd, replacing that synth bed), `hums` (pickup / shrine) and `oneshots` (a family →
+ * variant files; each call picks one at random with ±40 cents / −1.5 dB of jitter). Every sound sfx.json does not cover
+ * keeps its synth version, and the synth is the fallback for everything (no file, a failed fetch or decode, offline).
+ * One-shot families are the method names, with the variant after a dash where the method takes one — see `OneShot`.
+ * Switching the set (the pause menu) decodes the new one from the offline cache (every set was downloaded at the bar) while
+ * the old one plays on, then swaps it in and drops the old buffers; a set's `credit` goes to src/audio/credits.ts for the menu.
  *
  * Ambient starts on resume() and runs on its own scheduler. The bed follows the chunk: `new Audio()` reads
  * `getActiveChunk().ocean` — an ocean shard gets surf swells, a warm breeze and gulls ('island'); otherwise the
@@ -58,13 +77,22 @@ const REACH: Partial<Record<AnimalSound, [number, number]>> = {
   wolf_howl: [700, 60], horse_neigh: [260, 22], dog_bark: [220, 20], marmot_whistle: [180, 16], sheep_bleat: [160, 12], horse_squeal: [200, 18],
 };
 export type StepSurface = 'litter' | 'planks' | 'sand';
+/** sfx.json `oneshots` keys: the method each replaces (`footstep-sand`, `boltImpact-wood`, `land-hard`, the AnimalSound ids, `gull`) */
+export type OneShot = 'crossbowFire' | 'dryFire' | `boltImpact-${ImpactKind}` | 'swordSwing' | 'swordHeavy' | `swordHit-${'flesh' | 'wood'}`
+  | 'dodge' | 'lunge' | 'reload' | 'rifleFire' | 'rifleReload' | 'weaponSwap' | `footstep-${StepSurface}` | 'jump' | 'land' | 'land-hard'
+  | 'splash' | 'wadeStep' | 'swimStroke' | 'waterExit' | 'dive' | 'surface' | 'hitMarker' | 'kill' | AnimalSound | 'gull';
+export type LoopName = AmbientBed | 'underwater' | 'pickup' | 'shrine';
+/** a decoded loop (a bed or a hum): the buffer, its loop points in the file, and a gain from sfx.json (default per kind) */
+export interface SampleLoop { buffer: AudioBuffer; loopStart: number; loopEnd: number; gain: number }
 
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 
-interface Graph { ctx: AudioContext; master: GainNode; sfx: GainNode; ambient: GainNode; muffle: BiquadFilterNode; noise: AudioBuffer }
+interface Graph { ctx: AudioContext; master: GainNode; world: GainNode; sfx: GainNode; ambient: GainNode; muffle: BiquadFilterNode; noise: AudioBuffer }
 
 export class Audio {
   listenerYaw = 0;
+  /** the procedural one-shot bank (gen.ts rendered to AudioBuffers after the first gesture) — src/audio/IslandSfx.ts plays it */
+  readonly voices = new Voices(this);
   /** the WebAudio graph, built on the first gesture (resume) — creating the first AudioContext is a ~150 ms main-thread
    *  task on the phone tier, so boot never pays it; sounds asked for before then are dropped (the context could not play them) */
   private g: Graph | undefined;
@@ -74,15 +102,25 @@ export class Audio {
   private birdTimer = 0; private gustTimer = 0;
   private windGain: GainNode | undefined; private windGain2: GainNode | undefined;
   private _muted = false;
+  private _worldMuted = false;
   private bed: AmbientBed;
   private bedNodes: AudioNode[] = [];
   private surfTimer = 0;
-  private hum: { out: GainNode; stop: () => void } | undefined;
+  private hum: { out: GainNode; level: number; sample: boolean; stop: () => void } | undefined;
+  private humOn = false;
   private underwater = false; private underGain?: GainNode; private bubbleTimer = 0;
+  /** the synth hum's sources under water (swapped for the underwater bed when one decodes) */
+  private underFeed: AudioScheduledSourceNode[] = []; private underSample = false;
+  // ── samples (sfx.json) ──
+  private sfxSet: SfxSet = getSfxSet();
+  private loops = new Map<LoopName, SampleLoop>();
+  private shots = new Map<string, { bufs: AudioBuffer[]; gain: number }>();
+  private sampleBed = false;
 
   constructor() {
     const def = getActiveChunk();
     this.bed = def.ocean ? 'island' : def.style === 'painterly' ? 'steppe' : 'forest';
+    onSfxSet((v) => { this.switchSet(v); });
   }
 
   /** the graph, built on first use: master → muffle → compressor → out, with the sfx and ambient buses and a 2 s noise buffer */
@@ -97,21 +135,82 @@ export class Audio {
     comp.threshold.value = -12; comp.knee.value = 18; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.16;
     const muffle = ctx.createBiquadFilter(); muffle.type = 'lowpass'; muffle.frequency.value = 20000; muffle.Q.value = 0.5;
     master.connect(muffle).connect(comp).connect(ctx.destination);
-    const sfx = ctx.createGain(); sfx.gain.value = 1; sfx.connect(master);
-    const ambient = ctx.createGain(); ambient.gain.value = this.ambientOn ? 0.55 : 0; ambient.connect(master);
+    // sfx + ambient share a `world` gain, so the title screen can hush the (frozen) world while the music plays on the master
+    const world = ctx.createGain(); world.gain.value = this._worldMuted ? 0 : 1; world.connect(master);
+    const sfx = ctx.createGain(); sfx.gain.value = 1; sfx.connect(world);
+    const ambient = ctx.createGain(); ambient.gain.value = this.ambientOn ? 0.55 : 0; ambient.connect(world);
     const len = ctx.sampleRate * 2, noise = ctx.createBuffer(1, len, ctx.sampleRate), d = noise.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-    this.g = { ctx, master, sfx, ambient, muffle, noise };
+    this.g = { ctx, master, world, sfx, ambient, muffle, noise };
     return this.g;
   }
   get ctx(): AudioContext { return this.graph().ctx; }
   get master(): GainNode { return this.graph().master; }
   get sfx(): GainNode { return this.graph().sfx; }
   get ambient(): GainNode { return this.graph().ambient; }
+  /** sfx + ambient's shared bus (hushed on the title screen) — reverb returns go here */
+  get world(): GainNode { return this.graph().world; }
+  /** the master low-pass under water: cutoff (Hz) and ramp (s); Driftwood sets 500 / 0.15 (S2), Pine Hollow keeps 520 / 0.3 */
+  underwaterCutoff = 520; underwaterRamp = 0.3;
+  private zoned = false;
+  /** a zoned ambience (IslandAmbience) replaces the synth island bed: it is stopped / never started (a sampled bed still plays) */
+  useZonedAmbience(): void {
+    if (this.zoned) return;
+    this.zoned = true;
+    if (this.started && !this.sampleBed && this.bed === 'island') { this.stopBed(); this.startBed(); }
+  }
+  /** the graph exists (a gesture has happened) — per-frame callers check this so they never create the context */
+  get ready(): boolean { return this.g !== undefined; }
+  /** a decoded bed / hum from sfx.json, or undefined (the caller plays its synth version) */
+  loop(name: LoopName): SampleLoop | undefined { return this.loops.get(name); }
+  /** diagnostics: which sounds sfx.json replaced */
+  get samples(): { set: SfxSet; loops: LoopName[]; oneshots: string[]; sampleBed: boolean; underSample: boolean } {
+    return { set: this.sfxSet, loops: [...this.loops.keys()], oneshots: [...this.shots.keys()], sampleBed: this.sampleBed, underSample: this.underSample };
+  }
+
+  /** a decoded set — the loading bar's (src/boot/extras.ts) or a menu switch's — replaces the synth versions (and the previous
+   *  set) where they sound; before the first gesture it only fills the maps, and resume() starts the bed from them */
+  useSamples(bank: SfxBank): void {
+    if (bank.set !== this.sfxSet) return; // another set was picked while this one decoded
+    const hadBed = this.sampleBed, hadUnder = this.underSample, hadHum = this.hum?.sample === true;
+    this.loops = new Map(bank.loops); this.shots = new Map(bank.shots);
+    if (bank.credit !== undefined) setSfxCredit(this.sfxSet, bank.credit);
+    if (!this.g) return;
+    if (this.started && (hadBed || this.loops.has(this.bed))) { this.stopBed(); this.startBed(); }
+    if (this.underGain && (hadUnder || this.loops.has('underwater'))) this.feedUnder();
+    if (this.hum && (hadHum || this.loops.has('pickup'))) { const h = this.hum; this.hum = undefined; h.stop(); if (this.humOn) this.pickupHum(true); }
+  }
+  /** the pause menu picked another set: decoded from the offline cache (the bar downloaded every set), swapped in when ready */
+  private switchSet(v: SfxSet): void {
+    if (v === this.sfxSet) return;
+    this.sfxSet = v;
+    void (async () => { this.useSamples(await trackBusy('sfx', decodeSfxSet(v, this.bed, cachedBytes))); })();
+  }
+  /** a random variant of `family` with a little pitch / gain jitter, routed like the synth call; false = not sampled, play the synth */
+  private shot(family: OneShot, o: { pan?: number; gain?: number; out?: AudioNode } = {}): boolean {
+    const set = this.shots.get(family);
+    if (!set || !this.g) return false;
+    const buf = set.bufs[Math.floor(Math.random() * set.bufs.length)];
+    if (!buf) return false;
+    const c = this.g.ctx, src = c.createBufferSource(); src.buffer = buf;
+    src.playbackRate.value = 2 ** (rnd(-40, 40) / 1200);
+    const g = c.createGain(); g.gain.value = set.gain * (o.gain ?? 1) * rnd(0.84, 1);
+    src.connect(g); this.route(g, o.pan ?? 0, o.out); src.start();
+    return true;
+  }
+  /** a looping source of `l` (loopStart → loopEnd) started now, from a random point inside the loop so two plays never phase */
+  private loopSource(l: SampleLoop): AudioBufferSourceNode {
+    const c = this.ctx, s = c.createBufferSource(); s.buffer = l.buffer; s.loop = true; s.loopStart = l.loopStart; s.loopEnd = l.loopEnd;
+    s.start(c.currentTime, l.loopStart + Math.random() * (l.loopEnd - l.loopStart));
+    return s;
+  }
   /** the master lowpass: wide open on land, shut down to ~500 Hz under water (setUnderwater) */
   private get muffle(): BiquadFilterNode { return this.graph().muffle; }
   private get noise(): AudioBuffer { return this.graph().noise; }
 
+  /** the world's sounds (sfx + ambient) silenced while the music (on the master) plays — the title / main menu (main.ts) */
+  get worldMuted(): boolean { return this._worldMuted; }
+  set worldMuted(v: boolean) { this._worldMuted = v; if (this.g) this.g.world.gain.setTargetAtTime(v ? 0 : 1, this.g.ctx.currentTime, 0.08); }
   get muted(): boolean { return this._muted; }
   set muted(v: boolean) { this._muted = v; if (this.g) this.g.master.gain.setTargetAtTime(v ? 0 : 0.6, this.g.ctx.currentTime, 0.05); }
 
@@ -121,6 +220,7 @@ export class Audio {
     if (c.state !== 'running') void c.resume();
     if (!built && this.underwater) { this.underwater = false; this.setUnderwater(true); } // dove before the first gesture
     if (!this.started) { this.started = true; this.startAmbient(); }
+    if (!built) window.setTimeout(() => this.voices.prewarm(['hurt', 'death']), 1500); // rendered in the background, before the first hit
   }
 
   /** `true`/`false` mutes the bed; `'forest'`/`'island'` swaps it (pine wind + birds ↔ surf + breeze + gulls) */
@@ -186,7 +286,7 @@ export class Audio {
 
   // ─────────────── weapon ───────────────
   crossbowFire(): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('crossbowFire')) return;
     const t = this.ctx.currentTime;
     // latch release click
     this.burst({ t, type: 'highpass', freq: 2500, gain: 0.35, decay: 0.012 });
@@ -200,14 +300,14 @@ export class Audio {
   }
 
   dryFire(): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('dryFire')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'highpass', freq: 3000, gain: 0.25, decay: 0.01 });
     this.tone({ t, type: 'square', f0: 700, gain: 0.05, decay: 0.03, lowpass: 2000 });
   }
 
   boltImpact(kind: ImpactKind, pan = 0, gain = 1): void {
-    if (!this.g) return;
+    if (!this.g || this.shot(`boltImpact-${kind}`, { pan, gain })) return;
     const t = this.ctx.currentTime;
     if (kind === 'wood') {
       this.burst({ t, type: 'bandpass', freq: 1900, q: 2.5, gain: 0.55 * gain, decay: 0.05, pan });
@@ -228,7 +328,7 @@ export class Audio {
 
   /** sword swing: a whoosh — bandpass noise sweeping up then down over ~0.2 s, a hair of low air under it (src/player/Sword.ts onFire) */
   swordSwing(): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('swordSwing')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 500, freqEnd: 2200, q: 0.6, gain: 0.32, attack: 0.05, decay: 0.09, rate: 1.1 });
     this.burst({ t: t + 0.09, type: 'bandpass', freq: 2200, freqEnd: 700, q: 0.7, gain: 0.4, attack: 0.02, decay: 0.13 });
@@ -237,7 +337,7 @@ export class Audio {
 
   /** a dodge (Player.onDodge): a body whoosh — lower and airier than a blade, a cloth flap, the scuff of the push-off */
   dodge(): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('dodge')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 260, freqEnd: 1100, q: 0.5, gain: 0.34, attack: 0.03, decay: 0.16, rate: 1.2 });
     this.burst({ t: t + 0.04, type: 'highpass', freq: 3200, gain: 0.08, attack: 0.01, decay: 0.07 });
@@ -246,7 +346,7 @@ export class Audio {
 
   /** a lunge (Player.onLunge, under the swing's whoosh): a short low rush of closing distance */
   lunge(): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('lunge')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 180, freqEnd: 620, q: 0.6, gain: 0.3, attack: 0.02, decay: 0.12, rate: 1.4 });
     this.tone({ t, type: 'sine', f0: 90, f1: 60, glide: 0.1, gain: 0.18, attack: 0.01, decay: 0.12 });
@@ -254,7 +354,7 @@ export class Audio {
 
   /** the heavy's release (Sword.onHeavy, on top of swordSwing): a longer, deeper whoosh — a low rush that climbs, a chest-thump of effort, a breathy tail */
   swordHeavy(): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('swordHeavy')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 220, freqEnd: 900, q: 0.8, gain: 0.45, attack: 0.09, decay: 0.22, rate: 0.9 });
     this.burst({ t: t + 0.12, type: 'bandpass', freq: 1400, freqEnd: 380, q: 0.9, gain: 0.5, attack: 0.03, decay: 0.26 });
@@ -264,7 +364,7 @@ export class Audio {
 
   /** sword hit: a wooden thud on flesh (or a knock on wood) — low thump, a damp mid knock, a short bright crack; panned like boltImpact */
   swordHit(kind: ImpactKind = 'flesh', pan = 0, gain = 1): void {
-    if (!this.g) return;
+    if (!this.g || this.shot(kind === 'wood' ? 'swordHit-wood' : 'swordHit-flesh', { pan, gain })) return;
     const t = this.ctx.currentTime;
     if (kind === 'wood') {
       this.burst({ t, type: 'bandpass', freq: 1400, q: 2, gain: 0.5 * gain, decay: 0.05, pan });
@@ -279,7 +379,7 @@ export class Audio {
 
   /** ratchet clicks over ~1.2 s (matches the crossbow's span animation) */
   reload(): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('reload')) return;
     const t0 = this.ctx.currentTime + 0.12;
     const n = 11;
     for (let i = 0; i < n; i++) {
@@ -300,7 +400,7 @@ export class Audio {
 
   /** AR-15 semi-auto report: a hard supersonic crack, the gas-port bark, a 150 → 45 Hz chest thump and a short forest echo tail */
   rifleFire(): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('rifleFire')) return;
     const t = this.ctx.currentTime;
     // the crack: a ~5 ms highpass transient at full tilt
     this.burst({ t, type: 'highpass', freq: 3800, gain: 0.9, decay: 0.018 });
@@ -317,7 +417,7 @@ export class Audio {
 
   /** mag release · mag drops out · fresh mag seated · bolt release slams home (matches the 1.6 s reload) */
   rifleReload(): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('rifleReload')) return;
     const t0 = this.ctx.currentTime + 0.05;
     // mag release button
     this.burst({ t: t0, type: 'bandpass', freq: 2600, q: 3, gain: 0.25, decay: 0.015 });
@@ -338,7 +438,7 @@ export class Audio {
 
   /** weapon swap: sling rustle as one drops, a strap snap and the other's grip clack as it comes up */
   weaponSwap(): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('weaponSwap')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 900, freqEnd: 1600, q: 0.5, gain: 0.16, attack: 0.03, decay: 0.2 });
     this.burst({ t: t + 0.22, type: 'highpass', freq: 3000, gain: 0.18, decay: 0.012 });
@@ -350,9 +450,16 @@ export class Audio {
   /** the item-pickup orb's hum while the player stands inside its prompt radius (WeaponPickup.onNear): a low-passed
    *  220 Hz sine with a 5.5 Hz tremolo and a faint fifth, looped, faded in over 0.35 s and out over 0.5 s */
   pickupHum(on: boolean): void {
+    this.humOn = on;
     if (!this.g) return;
     const c = this.ctx, t = c.currentTime;
     if (on) {
+      const sample = this.loops.get('pickup');
+      if (!this.hum && sample) {
+        const out = c.createGain(); out.gain.value = 0;
+        const s = this.loopSource(sample); s.connect(out).connect(this.sfx);
+        this.hum = { out, level: sample.gain, sample: true, stop: () => { s.stop(); out.disconnect(); } };
+      }
       if (!this.hum) {
         const out = c.createGain(); out.gain.value = 0;
         const trem = c.createGain(); trem.gain.value = 0.7;
@@ -364,9 +471,9 @@ export class Audio {
         const g2 = c.createGain(); g2.gain.value = 0.18;
         o1.connect(lp); o2.connect(g2).connect(lp); lp.connect(trem).connect(out).connect(this.sfx);
         o1.start(t); o2.start(t);
-        this.hum = { out, stop: () => { o1.stop(); o2.stop(); lfo.stop(); out.disconnect(); } };
+        this.hum = { out, level: 0.11, sample: false, stop: () => { o1.stop(); o2.stop(); lfo.stop(); out.disconnect(); } };
       }
-      this.hum.out.gain.cancelScheduledValues(t); this.hum.out.gain.setTargetAtTime(0.11, t, 0.12);
+      this.hum.out.gain.cancelScheduledValues(t); this.hum.out.gain.setTargetAtTime(this.hum.level, t, 0.12);
     } else if (this.hum) {
       const h = this.hum; this.hum = undefined;
       h.out.gain.cancelScheduledValues(t); h.out.gain.setTargetAtTime(0, t, 0.16);
@@ -380,6 +487,7 @@ export class Audio {
     const t = this.ctx.currentTime;
     this.stepSide = -this.stepSide;
     const pan = this.stepSide * 0.14;
+    if (this.shot(`footstep-${surface}`, { pan, gain: sprinting ? 1 : 0.7 })) return;
     if (surface === 'planks') {
       // a boot on a pier deck: a hollow wooden knock that rings down the planks, a hint of a creak
       this.burst({ t, type: 'bandpass', freq: rnd(220, 320), q: 1.6, gain: sprinting ? 0.55 : 0.38, decay: sprinting ? 0.09 : 0.12, pan });
@@ -403,14 +511,14 @@ export class Audio {
   }
 
   jump(): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('jump')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 400, freqEnd: 1400, q: 0.6, gain: 0.16, attack: 0.02, decay: 0.16 });
     this.burst({ t, type: 'lowpass', freq: 500, gain: 0.25, decay: 0.05 });
   }
 
   land(hard: boolean): void {
-    if (!this.g) return;
+    if (!this.g || this.shot(hard ? 'land-hard' : 'land')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'lowpass', freq: hard ? 380 : 500, gain: hard ? 0.8 : 0.45, decay: hard ? 0.16 : 0.09 });
     this.tone({ t, type: 'sine', f0: hard ? 75 : 85, f1: 40, glide: 0.08, gain: hard ? 0.7 : 0.35, decay: hard ? 0.22 : 0.12 });
@@ -424,6 +532,7 @@ export class Audio {
     if (!this.g) return;
     const t = this.ctx.currentTime;
     const k = Math.min(1, impact / 10);            // 0 = stepping in, 1 = a dive off the pier
+    if (this.shot('splash', { gain: 0.35 + 0.65 * k })) return;
     // the body of the splash: a low "gloop" plus a mid slap that scales with how hard we hit
     this.tone({ t, type: 'sine', f0: 160 + 60 * k, f1: 45, glide: 0.12 + 0.08 * k, gain: 0.25 + 0.55 * k, attack: 0.008, decay: 0.2 + 0.2 * k });
     this.burst({ t, type: 'lowpass', freq: 700 + 900 * k, freqEnd: 180, gain: 0.35 + 0.6 * k, attack: 0.004, decay: 0.12 + 0.18 * k });
@@ -445,6 +554,7 @@ export class Audio {
     this.stepSide = -this.stepSide;
     const pan = this.stepSide * 0.14;
     const d = Math.min(1, depth / 1.1);
+    if (this.shot('wadeStep', { pan, gain: (sprinting ? 1 : 0.7) * (0.6 + 0.4 * d) })) return;
     this.burst({ t, type: 'lowpass', freq: 900 - 400 * d, freqEnd: 250, gain: (sprinting ? 0.42 : 0.28) * (0.6 + 0.6 * d), attack: 0.006, decay: 0.09 + 0.1 * d, pan });
     this.burst({ t: t + 0.01, type: 'bandpass', freq: rnd(1900, 3000), freqEnd: 1200, q: 0.7, gain: 0.08 + 0.14 * d, attack: 0.015, decay: 0.12 + 0.12 * d, pan });
     this.tone({ t, type: 'sine', f0: rnd(90, 130), f1: 50, glide: 0.07, gain: 0.12 + 0.12 * d, decay: 0.09, pan });
@@ -452,7 +562,7 @@ export class Audio {
 
   /** one swim stroke: an arm sweeping through the water, a soft wash off to one side */
   swimStroke(): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('swimStroke')) return;
     const t = this.ctx.currentTime;
     this.stepSide = -this.stepSide;
     const pan = this.stepSide * 0.35;
@@ -463,7 +573,7 @@ export class Audio {
 
   /** climbing / wading out: water sheeting off and a few drips */
   waterExit(): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('waterExit')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 1200, freqEnd: 500, q: 0.6, gain: 0.16, attack: 0.02, decay: 0.3 });
     for (let i = 0; i < 4; i++) this.burst({ t: t + 0.15 + rnd(0, 0.5), type: 'bandpass', freq: rnd(2200, 4000), q: 4, gain: rnd(0.02, 0.05), decay: 0.03, pan: rnd(-0.4, 0.4) });
@@ -472,7 +582,7 @@ export class Audio {
   // ─────────────── diving (Player.onSubmerge / onSurface) ───────────────
   /** the head goes under: a soft whump of water closing over the ears and a trail of bubbles */
   dive(): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('dive')) return;
     const t = this.ctx.currentTime;
     this.tone({ t, type: 'sine', f0: 140, f1: 40, glide: 0.25, gain: 0.35, attack: 0.02, decay: 0.35 });
     this.burst({ t, type: 'lowpass', freq: 900, freqEnd: 160, gain: 0.4, attack: 0.02, decay: 0.32 });
@@ -484,7 +594,7 @@ export class Audio {
 
   /** breaking the surface: water sheeting off the head, a gasp of air, a couple of drips */
   surface(): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('surface')) return;
     const t = this.ctx.currentTime;
     this.burst({ t, type: 'bandpass', freq: 1400, freqEnd: 500, q: 0.6, gain: 0.34, attack: 0.01, decay: 0.28 });
     this.burst({ t: t + 0.03, type: 'lowpass', freq: 1200, freqEnd: 300, gain: 0.22, attack: 0.01, decay: 0.16 });
@@ -502,22 +612,39 @@ export class Audio {
     const c = this.ctx, t = c.currentTime;
     this.muffle.frequency.cancelScheduledValues(t);
     this.muffle.frequency.setValueAtTime(this.muffle.frequency.value, t);
-    this.muffle.frequency.exponentialRampToValueAtTime(on ? 520 : 20000, t + 0.3);
+    this.muffle.frequency.exponentialRampToValueAtTime(on ? this.underwaterCutoff : 20000, t + this.underwaterRamp);
     if (!this.underGain) {
       // the hum: brown-ish noise through a 90 Hz lowpass, swelling on a slow LFO; lives on the ambient bus (mutes with it)
-      const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; src.start(0, Math.random());
-      const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 90; lp.Q.value = 0.9;
-      const lp2 = c.createBiquadFilter(); lp2.type = 'lowpass'; lp2.frequency.value = 220;
-      const g = this.underGain = c.createGain(); g.gain.value = 0;
-      const lfo = c.createOscillator(); lfo.frequency.value = 0.13; const lg = c.createGain(); lg.gain.value = 0.35;
-      const sw = c.createGain(); sw.gain.value = 1; lfo.connect(lg).connect(sw.gain); lfo.start();
-      src.connect(lp).connect(lp2).connect(sw).connect(g).connect(this.ambient);
+      this.underGain = c.createGain(); this.underGain.gain.value = 0; this.underGain.connect(this.ambient);
+      this.feedUnder();
     }
     this.underGain.gain.cancelScheduledValues(t);
     this.underGain.gain.setValueAtTime(this.underGain.gain.value, t);
     this.underGain.gain.linearRampToValueAtTime(on ? 1.4 : 0, t + (on ? 0.6 : 0.3));
     clearTimeout(this.bubbleTimer);
     if (on) this.scheduleBubble();
+  }
+
+  /** what feeds the underwater gain: the set's underwater bed when one decoded, else the synth hum (re-run when either changes;
+   *  the envelope in setUnderwater is untouched) */
+  private feedUnder(): void {
+    const g = this.underGain;
+    if (!g) return;
+    const c = this.ctx, l = this.loops.get('underwater');
+    for (const n of this.underFeed) { try { n.stop(); } catch { /* not started */ } }
+    if (l) {
+      const lvl = c.createGain(); lvl.gain.value = l.gain / 1.4; // the synth hum's envelope peaks at 1.4
+      const s = this.loopSource(l); s.connect(lvl).connect(g);
+      this.underFeed = [s]; this.underSample = true;
+      return;
+    }
+    const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; src.start(0, Math.random());
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 90; lp.Q.value = 0.9;
+    const lp2 = c.createBiquadFilter(); lp2.type = 'lowpass'; lp2.frequency.value = 220;
+    const lfo = c.createOscillator(); lfo.frequency.value = 0.13; const lg = c.createGain(); lg.gain.value = 0.35;
+    const sw = c.createGain(); sw.gain.value = 1; lfo.connect(lg).connect(sw.gain); lfo.start();
+    src.connect(lp).connect(lp2).connect(sw).connect(g);
+    this.underFeed = [src, lfo]; this.underSample = false;
   }
 
   private scheduleBubble() {
@@ -531,14 +658,52 @@ export class Audio {
 
   // ─────────────── feedback ───────────────
   hitMarker(): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('hitMarker')) return;
     const t = this.ctx.currentTime;
     this.tone({ t, type: 'sine', f0: 1900, gain: 0.16, decay: 0.045 });
     this.tone({ t: t + 0.012, type: 'sine', f0: 2600, gain: 0.1, decay: 0.05 });
   }
 
-  kill(): void {
+  /** the player takes a hit (both shards, B3): a short grunt ("uh" / "ah" / "oof") over a body blow, from the bank (gen.ts
+   *  hurt). `strength` ≈ dmg / 20 (0.1 … 1.5): louder and a little lower / heavier as it grows; `pan` −1 … 1 toward the attacker. */
+  hurt(strength = 0.5, pan = 0): void {
     if (!this.g) return;
+    const s = Math.max(0.1, Math.min(1, strength));
+    this.voices.play('hurt', { gain: 0.45 + 0.4 * s, rate: 1.05 - 0.12 * s, pan: Math.max(-1, Math.min(1, pan)) * 0.6 });
+  }
+
+  /** the player dies (both shards): the hit, a groan falling out of breath, the body hitting the ground (~1.6 s) */
+  death(): void {
+    if (!this.g) return;
+    this.voices.play('death', { gain: 0.85, jitter: 0.03 });
+  }
+
+  /** lock-on (E50, src/player/LockOnTarget.ts): a short bright two-note chime on LOCK (the Navi "ping" idea, no voice) */
+  lockOn(): void {
+    if (!this.g) return;
+    const t = this.ctx.currentTime;
+    this.tone({ t, type: 'sine', f0: 1320, gain: 0.12, decay: 0.08 });
+    this.tone({ t: t + 0.06, type: 'sine', f0: 1980, gain: 0.13, decay: 0.16 });
+    this.tone({ t: t + 0.06, type: 'triangle', f0: 3960, gain: 0.025, decay: 0.12 });
+  }
+  /** lock-on: a softer single ping when the lock switches to another enemy */
+  lockSwitch(): void {
+    if (!this.g) return;
+    this.tone({ t: this.ctx.currentTime, type: 'sine', f0: 1660, gain: 0.09, decay: 0.1 });
+  }
+  /** lock-on: a low falling tone when the lock is released or breaks */
+  lockOff(): void {
+    if (!this.g) return;
+    this.tone({ t: this.ctx.currentTime, type: 'sine', f0: 880, f1: 520, glide: 0.1, gain: 0.08, decay: 0.14 });
+  }
+  /** lock-on: a dull tick — LOCK with nothing lockable, or a flick with nothing on that side */
+  lockNone(): void {
+    if (!this.g) return;
+    this.burst({ t: this.ctx.currentTime, type: 'bandpass', freq: 900, q: 2, gain: 0.07, decay: 0.035 });
+  }
+
+  kill(): void {
+    if (!this.g || this.shot('kill')) return;
     const t = this.ctx.currentTime;
     this.tone({ t, type: 'sine', f0: 660, gain: 0.18, decay: 0.16 });
     this.tone({ t: t + 0.09, type: 'sine', f0: 990, gain: 0.2, decay: 0.32 });
@@ -568,6 +733,7 @@ export class Audio {
     const bus = this.ctx.createGain(); bus.gain.value = att;
     const lp = this.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 9000 / (1 + dist / 25);
     bus.connect(lp); this.route(lp, pan);
+    if (this.shot(kind, { out: bus })) return;
     const t = this.ctx.currentTime;
     switch (kind) {
       case 'deer_call': { // bleat: FM-ish sawtooth with a rising-falling contour
@@ -797,7 +963,7 @@ export class Audio {
   // ─────────────── gulls ───────────────
   /** a gull: a short two-note squawk — a nasal sawtooth "kyow" that breaks up, then a lower "ow"; sometimes a third yelp */
   gullCall(pan = 0, gain = 1): void {
-    if (!this.g) return;
+    if (!this.g || this.shot('gull', { pan, gain, out: this.ambient })) return;
     const c = this.ctx, t = c.currentTime;
     const bus = c.createGain(); bus.gain.value = 0.28 * gain;
     const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1900; bp.Q.value = 0.7;
@@ -1137,7 +1303,17 @@ export class Audio {
   }
 
   private startBed() {
-    if (this.bed === 'island') this.startIsland(); else if (this.bed === 'steppe') this.startSteppe(); else this.startForest();
+    const l = this.loops.get(this.bed);
+    this.sampleBed = l !== undefined;
+    if (l) this.startSampleBed(l);
+    else if (this.bed === 'island') { if (!this.zoned) this.startIsland(); } else if (this.bed === 'steppe') this.startSteppe(); else this.startForest();
+  }
+  /** sfx.json's bed for this shard: one looping source faded in over 2 s (replaces the synth winds, birds, gusts and surf) */
+  private startSampleBed(l: SampleLoop) {
+    const c = this.ctx, t = c.currentTime, g = c.createGain();
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(l.gain, t + 2);
+    const s = this.loopSource(l); s.connect(g).connect(this.ambient);
+    this.bedNodes.push(g, s);
   }
 
   /** a looping noise band: bandpass + lowpass, slow amplitude and filter LFOs, panned into the ambient bus */

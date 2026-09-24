@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import { bootstrap } from './core/bootstrap';
+import { installGpuRecovery, RELOAD_PARAM } from './core/GpuRecovery';
+import { setPoseProvider } from './ui/ReloadPrompt';
 import { CHUNK_HALF, ROAD_LENGTH } from './core/config';
-import { hasPond, heightAt, CABIN_SITES } from './world/Heightfield';
+import { hasPond, heightAt, normalAt, trailDistance, CABIN_SITES, TRAILS } from './world/Heightfield';
 import { Boundary } from './world/Boundary';
 import { Water } from './world/Water';
 import { Ocean } from './world/Ocean';
@@ -10,6 +12,7 @@ import { Boat } from './world/Boat';
 import { Boulders } from './world/Boulders';
 import { Hut } from './world/Hut';
 import { Palms } from './world/Palms';
+import { GroundCover } from './world/GroundCover';
 import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE } from './chunks/driftwood-isle';
 import { RopeBridge } from './world/RopeBridge';
 import { Seabed } from './world/Seabed';
@@ -22,11 +25,14 @@ import { Bushes } from './world/Bushes';
 import { Gulls } from './world/Gulls';
 import { Trailside } from './world/Trailside';
 import { Hands } from './player/Hands';
-import { Sword } from './player/Sword';
+import { Sword, swordEvents } from './player/Sword';
+import { CameraFX } from './player/CameraFX';
 import { buildNalatiKit } from './player/nalatiKit';
 import { IronSwordPickup, ironSwordSite } from './player/IronSword';
+import { installAdventure } from './game/quest/Adventure';
 import type { Weapon } from './player/Weapon';
 import { Horizon } from './world/Horizon';
+import { HorizonMatte } from './world/HorizonMatte';
 import { Grass } from './world/Grass';
 import { Undergrowth } from './world/Undergrowth';
 import { Particles } from './world/Particles';
@@ -41,34 +47,54 @@ import { SKINS, SkinLocker, applySkin, crossbowDisplayModel, skinFor, type SkinD
 import { TouchControls } from './player/TouchControls';
 import { HUD } from './ui/HUD';
 import { LockOn } from './ui/LockOn';
+import { LockOnSystem } from './player/LockOnTarget';
 import { SpeedLines } from './ui/SpeedLines';
 import { buzz, HAPTIC } from './ui/haptics';
 import { Loading } from './ui/Loading';
+import { resumeProgress } from './ui/Resume';
 import { Perf } from './ui/Perf';
-import { Minimap } from './ui/Minimap';
-import { FullMap } from './ui/Map';
+import { Minimap, mapPois } from './ui/Minimap';
+import { FullMap, type MapPoi as MapPin } from './ui/Map';
 import { GameMenu } from './ui/Menu';
 import { Progress } from './game/Progress';
 import { Inventory, harvestOf, ITEMS } from './game/Inventory';
-import { getNumber, onNumber } from './ui/Settings';
+import { getNumber, onNumber, onSettingChange, setting } from './ui/Settings';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat } from './ui/Combat';
-import { setAimTargets, meleeLock } from './player/AimTargets';
+import { HurtArc, deathLine } from './ui/HurtArc';
+import { setAimTargets, meleeLock, lockOn as lockState } from './player/AimTargets';
 import { pastRidden, riding } from './player/riding';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
 import { useShardSteps } from './boot/steps';
 import { declareTotals, installByteCounter } from './boot/bytes';
-import { chunkFiles } from './boot/manifest';
-import { bootFetches, prefetch } from './boot/prefetch';
+import { bootFiles, extraFetches, startAudioPreload, startMenuPreload } from './boot/extras';
+import { bootFetches, prefetch, prefetchAfter } from './boot/prefetch';
 import { packFor, streamPack } from './boot/pack';
 import { getActiveChunk } from './chunks/registry';
 import { Audio } from './audio/Audio';
 import { Music } from './audio/Music';
+import { ShrineHum } from './audio/ShrineHum';
+import { IslandSfx } from './audio/IslandSfx';
+import { SurfaceMap } from './audio/Surface';
+import { IslandAmbience } from './audio/IslandAmbience';
 import { installErrorModal, showError } from './ui/ErrorModal';
 import { onReview, queuedCount, quickNote } from './ui/review';
+import { rotateGated } from './ui/RotateGate';
 import type { Feedback } from './ui/Feedback';
+import type { Explore, ExploreMode } from './explore/Explore';
+import { registerDriftwoodModels, registerPineHollowModels } from './explore/catalog';
 import { TIER } from './core/tier';
 import { wireNalati, type Nalati } from './nalati';
+import { islandMode } from './world/blenderArea';
+import { boxDesc, type ColliderDesc, type ModelEntry, type PieceCategory } from './world/registry';
+import { cutTerrain } from './physics/terrain';
+import { RopeChain } from './physics/ropeChain';
+import { pathRampDescs } from './physics/paths';
+import type { Collider } from './player/Player';
+import type { Material } from './physics/surface';
+import { activePhysics } from './physics/active';
+import { lineOfSight } from './physics/query';
+import { pickInteractable, setSight } from './world/interact/Interactables';
 
 // live animal positions for the compass, reused buffers (no per-frame allocations in the update loop)
 const _animalXZ: { x: number; z: number }[] = [];
@@ -84,9 +110,9 @@ async function main() {
   const loading = new Loading();
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/boot/plan.ts).
   // Declared bytes come from the chunk's file list; every /assets fetch is counted on its way in.
-  const files = chunkFiles(getActiveChunk());
+  const files = bootFiles(getActiveChunk()); // + the title / explore art and every audio file (project/archive/2026-09-23-preload-offline.md)
   useShardSteps(getActiveChunk().slug); // the shard's own loading nouns + weights (src/boot/steps.ts)
-  const plan = createBootPlan((view) => loading.paint(view), { totals: declareTotals(files) });
+  const plan = createBootPlan((view) => { loading.paint(view); resumeProgress(view.setup); }, { totals: declareTotals(files) });
   installByteCounter(plan, files);
   // a boot that throws shows WHY: the loading panel's foot line + the uncaught-exception modal (src/ui/ErrorModal.ts)
   window.addEventListener('unhandledrejection', (e) => plan.fail(`BOOT FAILED · ${String((e.reason as { message?: string } | null | undefined)?.message ?? e.reason)}`.slice(0, 300)));
@@ -98,12 +124,27 @@ async function main() {
   // one (src/boot/pack.ts), else file by file (src/boot/prefetch.ts); anything the pack lacks still goes file by file
   const pack = packFor(getActiveChunk());
   const packed = new Set(pack ? pack.files.map(([p]) => p) : []);
-  if (pack) streamPack(pack, plan, files);
+  const packStreamed = pack ? streamPack(pack, plan, files) : Promise.resolve();
   prefetch(bootFetches(getActiveChunk(), files).filter((p) => !packed.has(p)));
+  // then the title art and ALL audio (project/archive/2026-09-23-preload-offline.md), after the pack so they do not split the pipe with the
+  // world's files; the selected style + set are decoded as their bytes land — nothing is fetched after the bar
+  prefetchAfter(extraFetches(files), packStreamed);
+  const menuLoad = startMenuPreload(files, getActiveChunk()), audioLoad = startAudioPreload(files, getActiveChunk());
   startViewmodelTextures(getActiveChunk().weapon !== 'sword'); // the crossbow's + rifle's textures, drawn in a worker while the world builds
   const world = await bootstrap(step);
-  const { game, sky, player, forest, params, chunk } = world;
+  const { game, sky, player, forest, params, chunk, registry } = world;
+  // a static builder into the world registry (PHYSICS P2b): drawn, collides (its boxes as ColliderDescs), and until P4
+  // lends the player its floor function. `statics` keeps the boxes for the ocean's foam rings.
+  const statics: Collider[] = [];
+  // `model`: it is also in Explore's catalog (the one registry: drawn, collides, explorable — ENGINE-FIT E1 / X10)
+  const addBuilt = (id: string, name: string, category: PieceCategory, file: string, object: THREE.Object3D, boxes: readonly Collider[], surface: Material, floor?: (x: number, z: number) => number | undefined, descs?: ColliderDesc[], model?: ModelEntry): void => {
+    statics.push(...boxes);
+    // P4: a builder that emits its own ColliderDescs (floors as real geometry) — its floor function is placement only
+    registry.add({ id, name, category, file, object, colliders: descs ?? boxes.map((c) => boxDesc(c)), surface, ...(floor ? { floor } : {}), ...(descs ? { solidFloor: true } : {}), ...(model ? { model } : {}) });
+  };
   const nolock = params.has('nolock');
+  // what the view-dependent layers (ground cover, grass, mist) fill around: the player, or Explore's free camera (E66)
+  const viewer = (): THREE.Vector3 => (world.freeCamera ? game.camera.position : player.position);
   const sea = chunk.ocean, isOcean = sea !== undefined; // open-water shard (Driftwood Isle): ocean + pier, no forest carpet / cabins / props
   const painterly = chunk.style === 'painterly'; // Nalati: no undergrowth / cabins / props — its world is wired by src/nalati (the props step)
   let nalati: Nalati | null = null;
@@ -119,44 +160,44 @@ async function main() {
     const ocean = isOcean ? new Ocean(sky).build() : null;
     if (ocean) game.scene.add(ocean.group);
     // the south entry road is a wooden pier over the water; the player spawns on its deck
-    const pier = sea ? new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: sea.level + 1.2 }).build() : null;
+    const pier = sea ? new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: sea.level + 1.2, landing: true }).build() : null;
     if (pier) {
-      game.scene.add(pier.group);
-      player.colliders.push(...pier.colliders);
-      player.platforms.push((x, z) => pier.floorHeightAt(x, z));
+      addBuilt('pier', 'Pier', 'buildings', 'src/world/Pier.ts', pier.group, pier.colliders, 'planks', (x, z) => pier.floorHeightAt(x, z), pier.colliderDescs(), {});
       const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y;
     }
     // the little sailboat you arrived in, moored to the pier's sea-end bollards; you can drop into it
     const boat = pier && sea ? new Boat(sky, { x: -4.2, z: -CHUNK_HALF + 6, heading: 0, waterY: sea.level, moorTo: pier.mooringsFor(-4.2, -CHUNK_HALF + 6) }).build() : null;
     if (boat) {
-      game.scene.add(boat.group); if (boat.ropes) game.scene.add(boat.ropes);
-      player.colliders.push(...boat.colliders);
-      player.platforms.push((x, z) => boat.floorHeightAt(x, z));
+      // the boat rides the swell: its colliders (in the boat's own frame) follow the group on a kinematic body (P4)
+      statics.push(...boat.colliders);
+      registry.add({ id: 'boat', name: 'Sailboat', category: 'buildings', file: 'src/world/Boat.ts', object: boat.group, follows: boat.group,
+        colliders: boat.colliderLocalDescs(), surface: 'planks', floor: (x, z) => boat.floorHeightAt(x, z), solidFloor: true, model: {} });
+      if (boat.ropes) game.scene.add(boat.ropes);
     }
     await slice();
     // faceted shore boulders along the beach
     const rockSpecs = isOcean ? Boulders.scatterShore(chunk.seed) : [];
     const rocks = isOcean ? new Boulders(sky).build(rockSpecs) : null;
-    if (rocks) { game.scene.add(rocks.mesh); player.colliders.push(...rocks.colliders); }
+    if (rocks) addBuilt('rocks', 'Shore boulders', 'nature', 'src/world/Boulders.ts', rocks.mesh, rocks.colliders, 'rock', undefined, rocks.colliderDescs());
     await slice();
     // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
     const hut = isOcean ? new Hut(sky, HUT).build() : null;
-    if (hut) { game.scene.add(hut.group); player.colliders.push(...hut.colliders); player.platforms.push((x, z) => hut.floorHeightAt(x, z)); }
+    if (hut) addBuilt('hut', 'Hut', 'buildings', 'src/world/Hut.ts', hut.group, hut.colliders, 'planks', (x, z) => hut.floorHeightAt(x, z), hut.colliderDescs(), {});
     await slice();
     // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
     const lookout = isOcean ? new Lookout(sky, LOOKOUT).build() : null;
-    if (lookout) { game.scene.add(lookout.group); player.colliders.push(...lookout.colliders); player.platforms.push((x, z) => lookout.floorHeightAt(x, z)); }
+    if (lookout) addBuilt('lookout', 'Lookout tower', 'buildings', 'src/world/Lookout.ts', lookout.group, lookout.colliders, 'planks', (x, z) => lookout.floorHeightAt(x, z), lookout.colliderDescs(), {});
     await slice();
     const wreck = isOcean ? new Wreck(sky, WRECK).build() : null;
-    if (wreck) { game.scene.add(wreck.group); player.colliders.push(...wreck.colliders); player.platforms.push((x, z) => wreck.floorHeightAt(x, z)); }
+    if (wreck) addBuilt('wreck', 'Shipwreck', 'buildings', 'src/world/Wreck.ts', wreck.group, wreck.colliders, 'planks', (x, z) => wreck.floorHeightAt(x, z), wreck.colliderDescs(), {});
     await slice();
     // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
     const shrine = isOcean ? new Shrine(sky, SHRINE).build() : null;
-    if (shrine) { game.scene.add(shrine.group); player.colliders.push(...shrine.colliders); player.platforms.push((x, z) => shrine.floorHeightAt(x, z)); }
+    if (shrine) addBuilt('shrine', 'Ring shrine', 'buildings', 'src/world/Shrine.ts', shrine.group, shrine.colliders, 'stone', (x, z) => shrine.floorHeightAt(x, z), shrine.colliderDescs(), {});
     await slice();
     const jetties: ReturnType<Pier['build']>[] = [];
     if (sea) for (const j of JETTIES) { jetties.push(new Pier(sky, { x: j.x, z: j.z, rot: j.rot, length: j.length, width: 3, deckY: sea.level + 1.2 }).build()); await slice(); }
-    for (const j of jetties) { game.scene.add(j.group); player.colliders.push(...j.colliders); player.platforms.push((x, z) => j.floorHeightAt(x, z)); }
+    jetties.forEach((j, i) => { addBuilt(`jetty-${i}`, 'Jetty', 'buildings', 'src/world/Pier.ts', j.group, j.colliders, 'planks', (x, z) => j.floorHeightAt(x, z), j.colliderDescs(), i === 0 ? { id: 'jetty' } : undefined); });
     await slice();
     const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
     const bushes = isOcean ? new Bushes(sky).build(Bushes.scatterIsland(chunk.seed, undefined, AVOID)) : null;
@@ -177,11 +218,11 @@ async function main() {
     await slice();
     // sand paths between the POIs: plank steps up the crag, rope fences, signposts
     const trailside = isOcean ? new Trailside(sky).build(Trailside.forIsland()) : null;
-    if (trailside) { game.scene.add(trailside.mesh); player.colliders.push(...trailside.colliders); }
+    if (trailside) addBuilt('trailside', 'Trailside', 'props', 'src/world/Trailside.ts', trailside.mesh, trailside.colliders, 'wood', undefined, trailside.colliderDescs());
     await slice();
-    // the swaying rope bridge over the tidal creek on the hut → lookout path
+    // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
     const bridge = isOcean ? new RopeBridge(sky, BRIDGE).build() : null;
-    if (bridge) { game.scene.add(bridge.mesh); player.colliders.push(...bridge.colliders); player.platforms.push((x, z) => bridge.floorHeightAt(x, z)); }
+    if (bridge) addBuilt('bridge', 'Rope bridge', 'buildings', 'src/world/RopeBridge.ts', bridge.mesh, bridge.colliders, 'planks', (x, z) => bridge.floorHeightAt(x, z), bridge.colliderDescs(), {});
     await slice();
     // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
     const seabed = isOcean ? new Seabed(sky).build(Seabed.scatterLagoon(chunk.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }])) : null;
@@ -193,25 +234,54 @@ async function main() {
     await slice();
     // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
     const cove = isOcean ? new Cove(sky).build(Cove.forIsland()) : null;
-    if (cove) { game.scene.add(cove.group); player.colliders.push(...cove.colliders); }
+    if (cove) {
+      addBuilt('cove', 'Wreck cove', 'nature', 'src/world/Cove.ts', cove.group, cove.colliders, 'rock', (x, z) => cove.floorHeightAt(x, z), cove.colliderDescs(), {});
+      cutTerrain(world.physics, cove.terrainCuts()); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
+    }
     await slice();
-    if (palms) { game.scene.add(palms.mesh); player.colliders.push(...palms.colliders); }
+    if (palms) addBuilt('palms', 'Coconut palms', 'nature', 'src/world/Palms.ts', palms.mesh, palms.colliders, 'wood', undefined, palms.colliderDescs());
+    // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
+    const cover = sea ? new GroundCover(sky, { sea: sea.level, palms: palmSpecs }).build() : null;
+    if (cover) { game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer())); }
+    ocean?.foamAround(statics); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
     await macrotask();
     const horizon = new Horizon(sky).build();
     game.scene.add(horizon.group);
-    return { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon };
+    // the painted 360° horizon (X4): far sea stacks, islands and cloud banks on the sea, day + night; the paintings load after boot
+    const matte = sea ? new HorizonMatte(sky, sea.level).build() : null;
+    if (matte?.mesh) {
+      game.scene.add(matte.mesh);
+      game.onUpdate((dt) => { matte.update(dt, game.camera, sky.dayNight?.night ?? 0); });
+      document.addEventListener('ws:ready', () => { setTimeout(() => { void matte.load(horizon.group); }, 250); }, { once: true });
+    }
+    return { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon, rocks, cover };
   });
   const { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon } = dressing;
+  // the rope bridge's deck hangs as a jointed chain (PHYSICS.md): it sags and bounces under you, the drawn planks follow
+  const bridgeDeck = bridge ? new RopeChain(world.physics, bridge.chainSpec()) : null;
+  if (bridgeDeck) game.onFixed('post', () => { bridgeDeck.capture(); });
+  // the paths as walkways where they cross ground steeper than the motor climbs (PHYSICS P4) — now that the decks are
+  // registered, none where a deck carries the path (a board there pokes up through the bridge's planks)
+  registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/physics/paths.ts', surface: 'ground',
+    colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) });
+  // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52): ?island=blender|procedural, Settings ▸ Graphics ▸ Island
+  const blenderIsland = isOcean && islandMode() === 'blender'
+    ? await import('./world/BlenderIsland').then(({ BlenderIsland: B }) => B.install({
+      scene: game.scene, sky, colliders: player.colliders, terrain: world.terrain.mesh, palms: palms?.mesh ?? null, palmSpecs,
+      replace: [bushes?.mesh ?? null, dressing.rocks?.mesh ?? null], cover: dressing.cover?.group ?? null,
+    })).catch((e: unknown) => { console.warn('[island] the Blender island did not load; procedural', e); return null; })
+    : null;
+  if (blenderIsland) game.onUpdate(() => { blenderIsland.update(sky); });
 
   const carpet = await step('grass', async () => {
     // no forest carpet over open water (grass scattered the whole sea floor for 19 s)
     const grass = isOcean ? null : new Grass(sky, forest).build();
     await macrotask();
     const under = isOcean || painterly ? null : await new Undergrowth(sky, forest).buildAsync(macrotask); // a task per placement pass
-    const particles = new Particles(sky, forest).build();
+    const particles = isOcean ? null : new Particles(sky, forest).build(); // pine-forest mist + needle fall: nothing to fall from on the island (E7 B8)
     if (grass) game.scene.add(grass.group);
     if (under) game.scene.add(under.group);
-    game.scene.add(particles.group);
+    if (particles) game.scene.add(particles.group);
     return { grass, under, particles };
   });
   const { grass, under, particles } = carpet;
@@ -219,10 +289,16 @@ async function main() {
   const homestead = await step('cabins', async () => {
     if (isOcean || painterly) return { cabins: null, interactables: [] as Awaited<ReturnType<Cabins['build']>>['interactables'] };
     const cabins = new Cabins(sky);
-    const { group: cabinGroup, colliders, interactables } = await cabins.build();
+    const { group: cabinGroup, interactables } = await cabins.build();
     game.scene.add(cabinGroup);
-    player.colliders.push(...colliders);
-    player.platforms.push((x, z) => cabins.floorHeightAt(x, z));
+    // P3: the cabins as real colliders (walls, floors, porch + step, furniture); their doors swing as kinematic pieces that
+    // collide only when fully shut or open, and never switch on around a player standing in the doorway
+    registry.add({ id: 'cabins', name: 'Cabins', category: 'buildings', file: 'src/world/Cabin.ts', surface: 'wood', colliders: cabins.colliderDescs(), floor: (x, z) => cabins.floorHeightAt(x, z), solidFloor: true });
+    const _dp = new THREE.Vector3();
+    for (const d of cabins.doorPieces()) {
+      registry.add({ id: d.id, name: 'Cabin door', category: 'buildings', file: 'src/world/Cabin.ts', surface: 'wood', follows: d.pivot, colliders: d.colliders,
+        active: () => !d.swinging() && d.pivot.getWorldPosition(_dp).distanceToSquared(player.position) > 1.4 * 1.4 });
+    }
     return { cabins, interactables };
   });
   const { cabins, interactables } = homestead;
@@ -230,8 +306,16 @@ async function main() {
     if (painterly) { nalati = await wireNalati({ game, sky, player, forest, chunk }); return null; } // the Nalati world (src/nalati/index.ts)
     if (isOcean) return null;
     const built = new Props(sky, forest);
-    game.scene.add(await built.build());
-    player.colliders.push(...built.colliders);
+    const object = await built.build();
+    // P3: rocks and stumps as hulls, logs as capsules — three pieces a task apart (the phone's 30 ms per-task collider budget)
+    const descs = built.colliderDescs();
+    const rock = descs.filter((d) => d.surface === 'rock'), wood = descs.filter((d) => d.surface !== 'rock');
+    statics.push(...built.colliders);
+    registry.add({ id: 'props', name: 'Props', category: 'props', file: 'src/world/Props.ts', object, surface: 'rock', colliders: rock.slice(0, Math.ceil(rock.length / 2)) });
+    await macrotask();
+    registry.add({ id: 'props-rocks-2', name: 'Props', category: 'props', file: 'src/world/Props.ts', surface: 'rock', colliders: rock.slice(Math.ceil(rock.length / 2)) });
+    await macrotask();
+    registry.add({ id: 'props-wood', name: 'Stumps and logs', category: 'props', file: 'src/world/Props.ts', surface: 'wood', colliders: wood });
     return built;
   });
 
@@ -246,6 +330,12 @@ async function main() {
   if (ride) interactables.push(ride.interactable);
   // the island's enemies (Enemies.ts): reef crabs at the tidepools, coconut monkeys in the groves, the drowned sailor in the wreck's hold
   const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [] }).build() : null;
+  // the island's models, for Explore World's catalog and tap-to-select (src/explore/registry.ts: a shard registers what it built)
+  if (isOcean) registerDriftwoodModels({ sky, palms, bushes, palmSpecs });
+  else if (chunk.slug === 'pine-hollow') registerPineHollowModels({ sky, cabins, water, forest, props, at: { x: chunk.spawn.x + 8, z: chunk.spawn.z + 30 } });
+  const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
+  if (dayNight) animals.enemyWorld.night = () => dayNight.night;
+  if (dayNight) onSettingChange('time', (t) => { dayNight.setTime(t); }); // pause menu ▸ Settings ▸ Time of day (E55)
 
   // ── player kit: the shard's weapon + the AR-15 (Weapons.ts: 1 / 2 / Q, touch SWAP; the rifle is a cabin pickup), HUD, audio ──
   await step('weapon', () => viewmodelTexturesReady()); // the viewmodels' textures from the worker (usually long done); the build below is synchronous
@@ -268,7 +358,8 @@ async function main() {
   // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken
   const ironSword = chunk.weapon === 'sword' ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, blade: 'iron' }) : null;
   const weapons = new Weapons(crossbow, rifle, nalatiKit ? nalatiKit.extras : ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : [], nalatiKit?.options); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
-  new TouchControls(player, weapons, params.has('touch')); // on-screen FPS controls on coarse-pointer devices (?touch=1 forces)
+  const lockSys = new LockOnSystem(player, weapons, game.camera); // the Zelda lock-on (E50): LOCK / Z, orbit, flick-switch — src/player/LockOnTarget.ts
+  new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
   nalatiKit?.install(weapons, game); // Nalati: all three slots owned, the bow in hand, the weapon strip
   weapons.adsHeld = params.has('ads');
   await macrotask();
@@ -280,11 +371,14 @@ async function main() {
   const fullMap = new FullMap(minimap); // the menu's MAP tab (Menu.ts mounts it); tap the minimap / M to open
   const keepAlive = new KeepAlive();
   await macrotask();
+  await step('menu', (p) => menuLoad.wait(p)); // the cards' art in memory before the title builds its deck (showIntro below)
   const audio = new Audio();
   if (params.has('mute')) { audio.muted = true; audio.master.disconnect(); } // headless tests / captures: never make a sound
-  // the Wildshard theme (docs/plans/MUSIC.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
+  // the Wildshard theme (project/archive/2026-09-23-music.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
   const music = new Music(audio);
   music.setState({ shard: chunk.ocean ? 'island' : 'pine', mode: 'menu', intensity: 0, underwater: false });
+  // the ring shrine hums by proximity and ducks the score up close (project/archive/2026-09-23-music.md v3 row 9)
+  const shrineHum = shrine ? new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z }) : null;
   const respawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } music.sting('death'); };
   let kills = 0, health = 100, lastHurt = 0, swimHold = false;
   const harvested = new Set<object>();
@@ -309,14 +403,17 @@ async function main() {
   let feedbackHeld = false;
   let feedback: Promise<Feedback> | null = null;
   const touchUi = () => document.getElementById('hud')?.classList.contains('touch') === true;
+  let explore: Explore | null = null; // Explore World (below) — while it is up, notes describe the viewer, not the player
+  const exploring = (): boolean => explore?.active === true;
   const loadFeedback = (): Promise<Feedback> => { feedback ??= import('./ui/Feedback').then(({ Feedback: F }) => new F({
     capture: () => game.captureFrame(1280),
-    context: () => ({
+    context: () => (explore?.active === true ? { shard: getActiveChunk().slug, ...explore.context(), tier: TIER, fps: game.stats.fps, calls: game.lastFrame.calls, tris: game.lastFrame.triangles } : {
       shard: getActiveChunk().slug, pos: [player.position.x, player.position.y, player.position.z].map((v) => Number(v.toFixed(2))),
       yaw: Number(player.yaw.toFixed(3)), pitch: Number(player.pitch.toFixed(3)), weapon: weapons.current.id, health: Math.round(health), kills,
       swimming: player.swimming, hover: player.hover, tier: TIER, fps: game.stats.fps, calls: game.lastFrame.calls, tris: game.lastFrame.triangles,
     }),
     hold: (on) => {
+      if (explore?.active === true) { feedbackHeld = on; explore.hold(on); return; }
       feedbackHeld = on; hud.holdPause = on;
       if (on) { weapons.setEnabled(false); if (document.pointerLockElement) document.exitPointerLock(); return; }
       weapons.setEnabled(!player.swimming);
@@ -324,7 +421,7 @@ async function main() {
       player.lock(); // Enter / a click on SEND is the user gesture; if the lock is refused, fall back to the pause menu
       setTimeout(() => { if (!document.pointerLockElement && hud.entered && !menu.isOpen && !feedbackHeld) hud.setPaused(true); }, 400);
     },
-    toast: (t) => hud.toast(t),
+    toast: (t) => { if (explore?.active === true) explore.toast(t); else hud.toast(t); },
     touch: touchUi,
   })); return feedback; };
   document.addEventListener('keydown', (e) => {
@@ -348,9 +445,10 @@ async function main() {
   onNumber('volume', masterGain);
 
   const hands = new Hands(sky, game.camera); // white-gloved swimming hands (shown only while player.swimming)
-  if (chunk.weapon === 'sword') (crossbow as Sword).onHeavy = () => audio.swordHeavy(); // the charged overhead (Weapons does not forward it)
+  if (chunk.weapon === 'sword') (crossbow as Sword).onHeavy = () => { if (!isOcean) audio.swordHeavy(); }; // the charged overhead (Weapons does not forward it); the island's is swordEvents.onSwing
   const meleeHeld = () => chunk.weapon === 'sword' || nalatiKit?.melee(weapons.current.id) === true; // the swords / the sabre / the spear
-  weapons.onFire = () => { if (nalatiNow()?.sound?.fire(weapons.current.id) === true) { /* Nalati's kit voices (src/nalati/sound.ts) */ } else if (weapons.current.id === 'rifle') audio.rifleFire(); else if (meleeHeld()) audio.swordSwing(); else audio.crossbowFire(); nalatiNow()?.onShot(); };
+  // Nalati's kit voices (src/nalati/sound.ts) first; the island's whoosh is swordEvents.onSwing
+  weapons.onFire = () => { if (nalatiNow()?.sound?.fire(weapons.current.id) === true) { /* voiced */ } else if (weapons.current.id === 'rifle') audio.rifleFire(); else if (!meleeHeld()) audio.crossbowFire(); else if (!isOcean) audio.swordSwing(); nalatiNow()?.onShot(); };
   weapons.onDry = () => audio.dryFire();
   weapons.onReloadStart = () => (weapons.current.id === 'rifle' ? audio.rifleReload() : audio.reload());
   weapons.onSwap = () => audio.weaponSwap();
@@ -358,7 +456,7 @@ async function main() {
     const dx = point.x - player.position.x, dz = point.z - player.position.z, d = Math.hypot(dx, dz);
     const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
     const pan = d > 1 ? ((dx * rx + dz * rz) / d) * 0.7 : 0, gain = 1 / (1 + d / 12);
-    if (nalatiNow()?.sound?.impact(weapons.current.id, surface, pan, gain) === true) { /* Nalati: arrow / javelin / sabre (src/nalati/sound.ts) */ } else if (weapons.current.id !== 'rifle' && meleeHeld()) audio.swordHit(surface, pan, gain); else audio.boltImpact(surface, pan, gain);
+    if (nalatiNow()?.sound?.impact(weapons.current.id, surface, pan, gain) === true) { /* Nalati: arrow / javelin / sabre (src/nalati/sound.ts) */ } else if (weapons.current.id !== 'rifle' && meleeHeld()) { if (!isOcean) audio.swordHit(surface, pan, gain); } else audio.boltImpact(surface, pan, gain); // the island's: swordEvents.onStrike
     nalatiNow()?.onImpact(surface, point); // Nalati: an arrow landing by a herd / the flock spooks it
   };
   weapons.onHit = (_kind, headshot, killed) => {
@@ -394,6 +492,18 @@ async function main() {
     return drop;
   })();
   if (params.get('weapon') === 'iron' && ironSword) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); ironDrop?.dispose(); }
+  // ── Driftwood's adventure (plan Track A: interactables, the quest, the castaway, collectibles; src/game/quest/Adventure.ts) — null on any other shard ──
+  installAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, inventory, progress, fullMap, animals, ironDrop, setViewmodel: (on) => { weapons.visible = on; }, bridgeFloor: bridge ? (x, z) => bridge.floorHeightAt(x, z) : undefined, pois: { hut, lookout, wreck, shrine, cave: cove }, params });
+  // Nalati's places on the full map (main's map rules): named once you have been near, "?" until then; no names on the minimap
+  if (chunk.style === 'painterly') {
+    const places = mapPois();
+    let pins: MapPin[] = [], pinsAt = -1e9; // the map asks every frame it is open: re-read the fog at most twice a second
+    fullMap.setPois(() => {
+      const now = performance.now();
+      if (now - pinsAt > 500) { pinsAt = now; pins = places.map((p) => ({ x: p.x, z: p.z, label: p.label, kind: minimap.explored(p.x, p.z) ? 'place' : 'unknown' })); }
+      return pins;
+    });
+  }
   // ── legendary skins (src/player/Skins.ts): the Ghost stag drops the GHOST STAG crossbow, Old Ironhide the IRONHIDE AR-15 —
   // a big purple floating pickup where the animal fell (WeaponPickup tier 'rare'); taking it swaps the skin (and hands you the
   // rifle if you had not found it). What you own / wear persists; `?skin=ghost-stag` previews, `?drop=ironhide` spawns one ahead.
@@ -405,7 +515,9 @@ async function main() {
     if (!item) return;
     applySkin(item, skin, sky);
     const label = skin.weapon === 'rifle' ? 'AR-15' : 'crossbow';
-    const drop = new WeaponPickup({ scene: game.scene, item, position: new THREE.Vector3(at.x, heightAt(at.x, at.z), at.z), tier: 'rare', prompt: `Take the ${skin.name} ${label}`, scale: skin.weapon === 'rifle' ? 1.35 : 1.6 }); // big — a legendary fills its orb
+    const toss = Math.random() * Math.PI * 2; // PHYSICS P7-L2: it pops out of the carcass, bounces and settles where it lands
+    const drop = new WeaponPickup({ scene: game.scene, item, position: new THREE.Vector3(at.x, Math.max(at.y, heightAt(at.x, at.z)), at.z), tier: 'rare', prompt: `Take the ${skin.name} ${label}`, scale: skin.weapon === 'rifle' ? 1.35 : 1.6, // big — a legendary fills its orb
+      toss: { x: Math.sin(toss) * 1.2, y: 3.5, z: Math.cos(toss) * 1.2 } });
     interactables.push(drop.interactable);
     skinDrops.push(drop);
     drop.onPickup = () => {
@@ -425,8 +537,44 @@ async function main() {
   if (skinParam && skinParam in SKINS) { const s = SKINS[skinParam as SkinId]; skins.own(s.id); wearSkin(s); if (s.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle', true); } }
   if (dropParam && dropParam in SKINS) { const f = 4.5; spawnSkinDrop(SKINS[dropParam as SkinId], new THREE.Vector3(player.position.x - Math.sin(player.yaw) * f, 0, player.position.z - Math.cos(player.yaw) * f)); }
   new Combat(game, animals, weapons, game.camera); // health bars over animals + MMO-style damage / MISS floats (self-wiring); Combat only taps onFire / onImpact, which the manager forwards for every weapon
-  animals.onSound = (name, pos) => audio.animal(name, pos, player.position, player.yaw);
-  animals.onCharge = (_a, dmg) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); music.combat(0.9); };
+  // taking a hit (B3): the arc points at the attacker (src/ui/HurtArc.ts), a hurt grunt panned toward it (Audio.hurt — it
+  // used to be the landing thud), and the killer is remembered for the death toast (B2)
+  const hurtArc = new HurtArc();
+  let killer: { kind: string; label: string } | null = null;
+  animals.onCharge = (a, dmg) => {
+    health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); music.combat(0.9);
+    killer = { kind: a.kind, label: a.label };
+    if (chunk.weapon === 'sword') hurtArc.hit(a.position.x, a.position.z, player.position, player.yaw, dmg); // the direction arc: the island only (D8)
+    if (chunk.weapon === 'sword') CameraFX.for(game).addTrauma(Math.min(0.85, 0.3 + dmg / 40)); // a trauma² shake (C3, the island only)
+    player.shove(a.position.x, a.position.z, 5 + Math.min(4, dmg * 0.15)); // knocked back a step, through the controller (PHYSICS P2)
+    const dx = a.position.x - player.position.x, dz = a.position.z - player.position.z, d = Math.hypot(dx, dz);
+    audio.hurt(dmg / 20, d > 0.3 ? ((dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw)) / d) * 0.7 : 0);
+  };
+  // footsteps (B9): the island asks its surface map — planks on every deck, stone on the shrine dais, sand / wet sand / grass /
+  // rock off them as the terrain paints it, an ankle splash in the shallows — pitched and levelled by speed; Pine Hollow as before
+  const islandSfx = sea ? new IslandSfx(audio) : null;
+  const surfaces = sea ? new SurfaceMap({ sea: sea.level, heightAt, trailDistance, decks: [pier, ...jetties, boat, hut, lookout, bridge, wreck], stone: [shrine] }) : null;
+  // the island's zoned soundscape + reverb rooms (S1 / S2): surf on the shoreline, palms, jungle, cove + waterfall, lookout wind; hold / cave / shrine reverb
+  animals.onSound = (name, pos) => { if (!islandSfx?.animal(name, pos)) audio.animal(name, pos, player.position, player.yaw); }; // the island's enemies from the bank (S3)
+  // the sword's combat layers on the island (S3 bank via IslandSfx; Pine Hollow has no sword): a whoosh per swing, an impact per blade
+  // hit by material (+ a death bark), a clang where the blade meets a wall / trunk, each enemy wind-up's cue (C5)
+  if (islandSfx) {
+    swordEvents.onSwing = (speed, heavy, dir) => { islandSfx.whoosh(speed, { heavy, dir }); };
+    swordEvents.onStrike = (kind, point, strength, killed) => {
+      islandSfx.impact(kind === 'crab' ? 'shell' : kind === 'sailor' ? 'wood' : 'flesh', strength, point);
+      const enemy = kind === 'boar' || kind === 'crab' || kind === 'monkey' || kind === 'sailor' ? kind : null;
+      if (killed && enemy !== null) islandSfx.vocal(enemy, point, 1.3);
+    };
+    swordEvents.onClang = (point, strength, clang) => { islandSfx.impact(clang, strength, point); }; // stone / wood by what the tip met (P5)
+    animals.onWindup = (a) => { const e = a.kind === 'crab' ? 'crab' : a.kind === 'sailor' ? 'sailor' : a.kind === 'boar' || a.kind === 'bear' ? 'boar' : null; if (e !== null) islandSfx.windup(e, a.position); };
+  }
+  const ambience = sea ? new IslandAmbience(audio, { sea: sea.level, heightAt, palms: palmSpecs, wreck, cove: Cove.forIsland() }) : null;
+  player.onStep = (sprinting) => {
+    const p = player.position;
+    if (islandSfx && surfaces && !(player.wading && player.depth > 0.3)) islandSfx.footstep(player.wading ? 'water' : surfaces.surfaceAt(p.x, p.z, p.y), Math.hypot(player.velocity.x, player.velocity.z));
+    else if (player.wading) audio.wadeStep(player.depth, sprinting);
+    else audio.footstep(sprinting, pier?.floorHeightAt(p.x, p.z) !== undefined ? 'planks' : sea !== undefined && heightAt(p.x, p.z) - sea.level < 2.6 ? 'sand' : 'litter');
+  };
   // Nalati's boss fights (src/nalati/kurganBoss.ts, B13): the Golden King needs the animals, the kit and the HUD
   nalatiNow()?.bindPlay({ kit: nalatiKit, health01: () => health / 100, toast: (text) => hud.toast(text), flash: () => hud.damageFlash() }); // Nalati's creatures: brace kills, knock-downs, howl / stampede toasts
   // Nalati's weather (src/nalati/weather.ts, B10): the storm's audio beds + thunder, and a lightning strike's 60 damage
@@ -440,7 +588,7 @@ async function main() {
   // Nalati's named elites (src/nalati/elites.ts, B12): lairs, bars, banners, drops — taming (B8) hands in when it is wired
   nalatiNow()?.elites.bind({
     animals, wildlife, taming: ride?.taming ?? null, ghosts: null, interactables, params,
-    toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, addItem: (id) => { inventory.add(id); }, record: (k, v) => { progress.recordKill(k, v); },
+    toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, addItem: (id) => { inventory.add(id); }, record: (k, v) => { progress.recordKill(k, v); progress.recordEvent(k); },
     pickupHum: (on) => { audio.pickupHum(on); }, sound: (n, at) => { audio.animal(n, at, player.position, player.yaw); },
     sting: (e) => { if (e === 'kill') music.sting('chunk'); else music.combat(e === 'phase2' ? 1 : 0.8); },
   });
@@ -448,36 +596,43 @@ async function main() {
   nalatiNow()?.titan.bind({
     animals, wildlife, ride, sabre: nalatiKit?.sabre ?? null, setWeaponsEnabled: (on) => { weapons.setEnabled(on); }, refill: () => { nalatiKit?.refill(); }, interactables, params,
     hurt: (dmg, why) => { health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); if (why) hud.toast(why); audio.land(true); },
-    toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, record: (k, v) => { progress.recordKill(k, v); }, pickupHum: (on) => { audio.pickupHum(on); },
+    toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, record: (k, v) => { progress.recordKill(k, v); progress.recordEvent(k); }, pickupHum: (on) => { audio.pickupHum(on); },
     ownSkin: (id) => { nalatiNow()?.skins.own(id); },
     music: (e) => { if (e === 'death' || e === 'pickup') music.sting(e); else if (e === 'victory') music.sting('chunk'); else music.combat(1); },
   });
   if (ride) ride.taming.onBreaking = (on) => { weapons.visible = !on; weapons.setEnabled(!on); }; // both hands in the mane while he bucks
-  if (ride) ride.taming.onBonded = () => { progress.recordKill('tame'); }; // B15: the Horse Sense achievement
-  player.onStep = (sprinting) => (player.wading ? audio.wadeStep(player.depth, sprinting)
-    : audio.footstep(sprinting, pier?.floorHeightAt(player.position.x, player.position.z) !== undefined ? 'planks'
-      : sea !== undefined && heightAt(player.position.x, player.position.z) - sea.level < 2.6 ? 'sand' : 'litter'));
+  if (ride) ride.taming.onBonded = () => { progress.recordEvent('tame'); }; // B15: the Horse Sense achievement
   if (gulls) gulls.onCall = (pos) => audio.gullCallAt(pos, player.position, player.yaw);
   player.onEnterWater = (impact) => audio.splash(impact);
-  player.onSubmerge = () => { audio.dive(); audio.setUnderwater(true); music.setState({ underwater: true }); };
-  player.onSurface = () => { audio.surface(); audio.setUnderwater(false); music.setState({ underwater: false }); };
+  player.onSubmerge = () => { audio.dive(); islandSfx?.plunge(false); audio.setUnderwater(true); ambience?.setUnderwater(true); music.setState({ underwater: true }); };
+  player.onSurface = () => { audio.surface(); islandSfx?.plunge(true); audio.setUnderwater(false); ambience?.setUnderwater(false); music.setState({ underwater: false }); };
   player.onExitWater = () => audio.waterExit();
   player.onStroke = () => audio.swimStroke();
   player.onJump = () => audio.jump();
   player.onDodge = () => { audio.dodge(); buzz(HAPTIC.dodge); };
+  lockSys.onLock = () => { audio.lockOn(); buzz(HAPTIC.lock); };
+  lockSys.onSwitch = () => { audio.lockSwitch(); buzz(HAPTIC.lockSwitch); };
+  lockSys.onUnlock = () => { audio.lockOff(); buzz(HAPTIC.lockBreak); };
+  lockSys.onNone = () => { audio.lockNone(); };
+  lockSys.onFlickMiss = (dir) => { lockOn.flashMiss(dir); };
   player.onLunge = () => { audio.lunge(); buzz(HAPTIC.lunge); };
-  player.onLand = (hard) => { audio.land(hard); if (hard) { health = Math.max(0, health - 8); hud.damageFlash(); } };
+  player.onLand = (hard) => { audio.land(hard); if (hard) { health = Math.max(0, health - 8); hud.damageFlash(); if (health <= 0) killer = null; } };
   hud.onSoundToggle = (on) => { audio.muted = !on; masterGain(); };
 
   // ── menu ↔ world: the world is fully loaded, then sits frozen and silent under the menu (hero art
   // covers the canvas) until ENTER WORLD; "Exit to main menu" freezes it again — no reload, no
   // loading screen. `?skipintro=1` (bench / screenshots) and `?tour=1` go straight to the world.
   const tour = world.tour;
-  const menuFirst = !params.has('skipintro') && !params.has('tour');
+  // a GPU-recovery reload (E61) skips the title: straight back into the world at the saved spot, under the pause menu
+  const resuming = params.has(RELOAD_PARAM);
+  const menuFirst = !params.has('skipintro') && !params.has('tour') && !resuming;
+  let firstIn = true;
   const enter = () => {
     audio.resume();
-    if (!music.isPlaying) { music.play('theme'); music.sting('chunk'); } // the resolve chord on the first frame in
-    music.setState({ mode: 'calm', intensity: 0 });
+    audio.worldMuted = false;
+    if (!music.isPlaying) music.play('theme'); // normally already playing: the title screen's first gesture started it
+    if (firstIn) { firstIn = false; music.sting('chunk'); } // the resolve chord on the first frame in
+    music.setState({ mode: 'calm', intensity: 0 }); // title → the shard's theme, crossfaded on a bar
     void keepAlive.start(); // screen wake lock — needs this user gesture
     weapons.setEnabled(true);
     weapons.visible = true;
@@ -486,15 +641,49 @@ async function main() {
     if (!nolock) player.lock();
   };
   hud.onResume = enter;
-  hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); music.setState({ mode: 'menu' }); noteDisc.classList.remove('show'); }; // the HUD mutes audio and clears `entered`; the gate does the rest
-  // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
-  game.frameGate = () => hud.entered && !feedbackHeld; // … and the review composer freezes it on the captured frame
-  if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.muted = true; hud.showIntro(enter); }
-  else { hud.markEntered(); weapons.setEnabled(!nolock || params.has('skipintro')); }
-  document.addEventListener('keydown', () => audio.resume(), { once: true });
-  document.addEventListener('mousedown', () => audio.resume(), { once: true });
+  hud.onExitToMenu = () => { weapons.setEnabled(false); perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); noteDisc.classList.remove('show'); }; // the world hushes, the title theme comes back; the HUD clears `entered`, the gate does the rest
 
-  // ── interaction (doors) ──
+  // ── Explore World (project/archive/2026-09-23-explore-world.md): the title's EXPLORE WORLD panel — the viewer over this same loaded shard (a
+  // lazy chunk). God-mode camera, Model Explorer, one ✎ to the review inbox; ✕ comes back here to the title.
+  const exitExplore = () => { perf.setActive(false); audio.worldMuted = true; music.setState({ mode: 'menu' }); hud.showIntro(enter); };
+  const noteSheet = async (): Promise<void> => { const f = await loadFeedback(); await f.openSheet(); };
+  const openExplore = async (mode: ExploreMode, opts: { cam?: number[]; model?: string } = {}): Promise<void> => {
+    audio.resume();
+    audio.worldMuted = false;
+    if (!music.isPlaying) music.play('theme');
+    music.setState({ mode: 'calm', intensity: 0 });
+    void keepAlive.start();
+    weapons.setEnabled(false); weapons.visible = false;
+    perf.setActive(false); // the Explore readout carries fps / calls / tris
+    const { Explore: X } = await import('./explore/Explore');
+    explore ??= new X({ world, onExit: exitExplore, openFeedback: () => { void noteSheet(); }, hide: [boundary.group], creatures: animals.animals,
+      overhead: [grass?.group, under?.group, particles?.group, gulls?.group, dressing.cover?.group].filter((g) => g !== undefined) });
+    explore.open(mode, opts);
+  };
+  const exploreParam = params.get('explore');
+  const exploreMode: ExploreMode = exploreParam === 'world' || exploreParam === 'model' ? exploreParam : 'hub';
+  hud.onExplore = () => { void openExplore('hub'); };
+  // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
+  game.frameGate = () => (hud.entered || exploring()) && !feedbackHeld && !rotateGated(); // … and the review composer freezes it on the captured frame; the rotate page (E38) stops it too
+  if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.worldMuted = true; hud.showIntro(enter); }
+  else { hud.markEntered(enter); weapons.setEnabled(!nolock || params.has('skipintro')); }
+  // ?explore=hub|world|model[&cam=x,y,z,yaw,pitch][&model=id] — straight into the viewer (a shard with ChunkDef.explore — D4, E66; a note's "go there")
+  if (exploreParam !== null && chunk.explore === true) {
+    const cam = (params.get('cam') ?? '').split(',').filter((v) => v !== '').map(Number);
+    const model = params.get('model');
+    hud.onExplore = () => { hud.onExplore = () => { void openExplore('hub'); }; void openExplore(exploreMode, { ...(cam.length >= 3 ? { cam } : {}), ...(model !== null ? { model } : {}) }); };
+    hud.startExplore();
+  }
+  // the first gesture builds the AudioContext; on the title screen it also starts the title theme (synth, then the title stems)
+  const firstGesture = () => { audio.resume(); if (!hud.entered && !music.isPlaying) music.play('theme'); };
+  document.addEventListener('keydown', firstGesture, { once: true });
+  document.addEventListener('mousedown', firstGesture, { once: true });
+
+  // ── interaction (doors, chests, pickups, carcasses): the nearest one within its radius that the eye can SEE (PHYSICS P5 —
+  // a Rapier ray from the camera; a door or chest behind a wall neither prompts nor opens) ──
+  // a cabin door's prompt stands 0.5 m out from its leaf: seen from inside, the shut leaf is its own body, not a wall
+  if (cabins) for (const it of cabins.interactables) setSight(it, { slack: 0.75 });
+  const carcassAt = new THREE.Vector3();
   let prompt: string | undefined;
   let nearest: (typeof interactables)[number] | undefined;
   let carcass: (typeof animals.animals)[number] | undefined;
@@ -528,14 +717,15 @@ async function main() {
     boat?.update(dt);
     palms?.update(dt);
     gulls?.update(dt, player.position);
-    bridge?.update(dt);
+    if (bridge && bridgeDeck?.awake === true) bridge.setPoses(bridgeDeck, game.alpha);
     seabed?.update(dt);
     cove?.update(dt); shrine?.update(dt); enemies?.update(dt, t, player.position);
+    if (dayNight) { shrine?.setDusk(dayNight.dusk); if (ambience) ambience.night = dayNight.night; }
     hands.update(dt, player);
     horizon.update(dt, game.camera);
-    grass?.update(dt, player.position);
-    under?.update(dt, player.position);
-    particles.update(dt, player.position, game.camera);
+    grass?.update(dt, viewer());
+    under?.update(dt, viewer());
+    particles?.update(dt, viewer(), game.camera);
     cabins?.update(dt, t);
     nalati?.update(dt, t);
     // swimming holsters the weapon (hands only; Hands.ts follows)
@@ -547,18 +737,31 @@ async function main() {
     ironDrop?.update(dt, t, game.renderer, game.camera, player.position); // walk-to-pick-me-up
     for (const d of skinDrops) d.update(dt, t, game.renderer, game.camera);
     audio.listenerYaw = player.yaw;
+    shrineHum?.update(game.camera);
+    ambience?.update(dt, game.camera);
 
     // nearest interactable
-    nearest = undefined; let best = 1e9;
-    for (const it of interactables) { const d = it.position.distanceTo(game.camera.position); if (d < it.radius && d < best) { best = d; nearest = it; } }
+    const physics = activePhysics();
+    nearest = pickInteractable(interactables, game.camera.position, physics);
     carcass = undefined;
-    if (!nearest) for (const a of animals.animals) { if (!a.alive && !harvested.has(a) && a.position.distanceTo(player.position) < 2.6) { carcass = a; break; } }
+    if (!nearest) for (const a of animals.animals) {
+      if (a.alive || harvested.has(a) || a.position.distanceTo(player.position) >= 2.6) continue;
+      if (physics && !lineOfSight(physics, game.camera.position, carcassAt.copy(a.position).setY(a.position.y + 0.4), 0.6)) continue; // not through a wall (animals aren't physics yet: their body blocks nothing)
+      carcass = a; break;
+    }
     prompt = nearest ? `[E] ${nearest.label}` : carcass ? `[E] Harvest ${carcass.label || carcass.kind}` : undefined; // "Harvest Royal bull", not "Harvest elk"
 
     // slow health regen; death → respawn at the gate
     if (health < 100 && performance.now() - lastHurt > 6000) health = Math.min(100, health + dt * 4);
-    // a death in a boss fight is handled there (back at the phase checkpoint, arrows refilled); anywhere else → the gate
-    if (health <= 0) { health = 100; hud.damageFlash(); if (ride?.mounted === true) ride.mount.dismount(); if (nalati?.boss.onPlayerDeath() !== true && nalati?.titan.onPlayerDeath() !== true) { hud.toast('Gored — respawning at the south gate'); respawn(); crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); } nalatiKit?.refill(); }
+    // death → the toast names the killer and this shard's respawn point (deathLine); only a weapon with ammo is topped up.
+    // A death in a Nalati boss fight is handled there (back at the phase checkpoint, arrows refilled)
+    if (health <= 0) {
+      health = 100; audio.death(); hud.damageFlash();
+      if (ride?.mounted === true) ride.mount.dismount();
+      if (nalati?.boss.onPlayerDeath() !== true && nalati?.titan.onPlayerDeath() !== true) { hud.toast(deathLine(killer, isOcean)); respawn(); if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); }
+      killer = null; nalatiKit?.refill();
+    }
+    hurtArc.update(dt, player.position, player.yaw);
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
     hud.setBoundaryWarning(edge < 14 && hud.entered);
@@ -580,6 +783,8 @@ async function main() {
     const [x = 0, y = 0, z = 0, yaw = player.yaw, pitch = 0] = at;
     player.position.set(x, y, z); player.yaw = yaw; player.pitch = pitch;
   }
+  // back from a GPU-recovery reload (E54): the pose is applied; take it off the address so a later reload spawns as usual
+  if (params.has(RELOAD_PARAM)) { const u = new URL(location.href); u.searchParams.delete(RELOAD_PARAM); u.searchParams.delete('at'); history.replaceState(history.state, '', u); }
 
   await macrotask();
   game.buildComposer();
@@ -588,10 +793,18 @@ async function main() {
   const programs = () => `${game.renderer.info.programs?.length ?? 0} programs`;
   await step('shaders', (p) => game.precompile((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
   await step('firstFrame', (p) => game.firstFrame((d, n, what) => p.set(d, n, `${what} · ${programs()}`)));
+  // last: the audio downloads while the shaders compile; the selected style + set are decoded as their bytes land
+  const banks = await step('audio', (p) => audioLoad.wait(p));
+  if (banks.music) music.useBank(banks.music); // the title theme's first gesture plays the stems at once
+  audio.useSamples(banks.sfx);
   (plan as unknown as { done: () => void }).done(); // throws unless both tracks are exactly 1
   game.start();
+  // an app switch that takes the GPU (iOS): hold the loop, restore in place or reload where the player stood (E54)
+  if (resuming) hud.setPaused(true); // RESUME is the gesture that brings the audio back (enter)
+  installGpuRecovery({ game, rebuild: () => { sky.rebuildEnvironment(); }, pose: () => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null), resumed: resuming });
+  setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
-  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, cove, enemies, hands, grass, under, particles, cabins, props, animals, wildlife, crossbow, hud, audio, nalati: nalatiNow(), ride, weapons };
+  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, wildlife, nalati: nalatiNow(), ride, weapons };
 }
 main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));

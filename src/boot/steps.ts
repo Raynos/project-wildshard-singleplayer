@@ -12,14 +12,20 @@ const STEP_ROWS = [
   ['terrain', 'Terrain · heightfield + splat', 2],
   ['cards', 'Pine branch cards', 1],
   ['forest', 'Forest', 2],
+  ['physics', 'Physics · Rapier · navmesh', 1],
   ['edge', 'Chunk edge · water · horizon', 1],
   ['grass', 'Grass · ferns · litter', 2],
   ['cabins', 'Cabins', 2],
   ['props', 'Props', 1],
   ['animals', 'Herds', 1],
   ['weapon', 'Crossbow · HUD', 1],
+  // project/archive/2026-09-23-preload-offline.md: the title / explore art and the lazy UI code (before the title builds its deck)
+  ['menu', 'Title art · explore', 1],
   ['shaders', 'Shaders', 3],
   ['firstFrame', 'First frame', 3],
+  // last, so the shaders compile while it downloads: every audio file (all styles, all sets), the selected music style +
+  // sound-effect set decoded as their bytes land — nothing is fetched after the bar (project/archive/2026-09-23-preload-offline.md)
+  ['audio', 'Audio · music + sound effects', 3],
 ] as const satisfies readonly (readonly [string, string, number])[];
 export type BootStep = (typeof STEP_ROWS)[number][0];
 export interface StepInfo { readonly label: string; readonly weight: number }
@@ -74,8 +80,10 @@ export const shardTimingKey = (): string => (shard ? `:${shard}` : '');
  * the number because it is in this table, and complete because its step is — `done()` reads 1
  * by arithmetic, never by reclassification.
  */
-export const BYTE_SOURCES = ['sky', 'baked', 'terrain', 'trees', 'cabins', 'props'] as const;
+export const BYTE_SOURCES = ['sky', 'baked', 'terrain', 'trees', 'physics', 'cabins', 'props', 'art', 'music', 'sfx'] as const;
 export type ByteKey = (typeof BYTE_SOURCES)[number];
-const CLOSED_BY: Record<ByteKey, BootStep> = { sky: 'sky', baked: 'sky', terrain: 'terrain', trees: 'cards', cabins: 'cabins', props: 'props' };
+const CLOSED_BY: Record<ByteKey, BootStep> = { sky: 'sky', baked: 'sky', terrain: 'terrain', trees: 'cards', physics: 'physics', cabins: 'cabins', props: 'props', art: 'menu', music: 'audio', sfx: 'audio' };
 export const closedBy = (key: ByteKey): BootStep => CLOSED_BY[key];
-export const byteLabel = (key: ByteKey): string => key === 'trees' ? (shard ? SHARD_STEPS[shard]?.trees?.label : undefined) ?? 'pine bark · twigs' : key === 'baked' ? 'baked textures' : STEP_INFO[closedBy(key)].label.toLowerCase();
+const LABELS: Partial<Record<ByteKey, string>> = { trees: 'pine bark · twigs', baked: 'baked textures', art: 'title art', music: 'music · every style', sfx: 'sound effects · every set' };
+// a shard may name its own tree bytes (SHARD_STEPS: Nalati's spruce / props)
+export const byteLabel = (key: ByteKey): string => (key === 'trees' && shard ? SHARD_STEPS[shard]?.trees?.label : undefined) ?? LABELS[key] ?? STEP_INFO[closedBy(key)].label.toLowerCase();

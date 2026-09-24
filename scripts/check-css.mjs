@@ -46,6 +46,10 @@ const FILES = [
   { file: join(STYLES, 'stealth.css'), prefix: 'ws-stealth-', strict: true }, // Nalati grass stealth: the eye pip, GRASS meter, vignette (src/nalati/stealth.ts, B9)
   { file: join(STYLES, 'boss.css'), prefix: 'ws-boss-', strict: true }, // the boss system (src/ui/BossBar.ts, src/game/Boss.ts): the wide top bar, name / retry / reward cards
   { file: join(STYLES, 'elite.css'), prefix: 'ws-elite-', strict: true }, // named elites (src/ui/EliteBar.ts, src/game/Elite.ts): the named bar, the NEARBY banner, the edge chevron, the minimap skulls
+  { file: join(STYLES, 'explore.css'), prefix: 'ws-x-', strict: true }, // Explore World, the viewer (src/explore/Explore.ts), imported by the lazy chunk
+  { file: join(STYLES, 'rotate.css'), prefix: 'ws-rotate-', strict: true }, // the portrait-only gate on landscape phones (index.html, src/ui/RotateGate.ts)
+  { file: join(STYLES, 'quest.css'), prefix: 'ws-quest-', strict: true }, // the adventure layer: objective line, NPC dialogue, reward caption (src/game/quest/*)
+  { file: join(STYLES, 'resume.css'), prefix: 'ws-resume-', strict: true }, // the app-switch resume screen (src/ui/Resume.ts, index.html; E54 / E61)
   // loading screen: owned by src/ui/Loading.ts — warn only while its owner finishes the ws-load-* rename
   { file: join(ROOT, 'src/ui/loading.css'), prefix: 'ws-load-', strict: false },
   // frame meter (src/ui/Perf.ts) — warn only; not part of the HUD split

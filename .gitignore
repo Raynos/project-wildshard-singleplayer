@@ -10,3 +10,5 @@ public/assets/packs/
 
 # review inbox notes pulled by `pnpm inbox:pull` (scripts/inbox-pull.mjs)
 .review/
+# Rapier WASM: copied from node_modules by every build (vite/rapier.ts)
+public/assets/physics/

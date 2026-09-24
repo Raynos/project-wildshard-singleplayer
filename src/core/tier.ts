@@ -1,24 +1,30 @@
 /**
  * Quality tier, picked once at boot. Phones get smaller textures, fewer shadow cascades, no AO and a
  * DPR cap — the difference between "loads in minutes then dies" and playable. `?tier=phone|desktop`
- * overrides for testing. Every knob below is measured in project/archive/2026-09-22-play-perf.md.
+ * overrides for testing, else main menu ▸ Settings ▸ Quality (E55, `setting('tier')`). Every knob below is measured in
+ * project/archive/2026-09-22-play-perf.md.
  */
+import { setting } from '../ui/Settings';
+
 export type Tier = 'phone' | 'desktop';
 
-const params = new URLSearchParams(location.search);
 const ua = navigator.userAgent;
 const isIPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
 const mobileUA = /iPhone|iPad|iPod|Android/i.test(ua) || isIPadOS;
-const forced = params.get('tier');
+const forced = setting('tier');
 
-export const TIER: Tier = forced === 'phone' || forced === 'desktop' ? forced : mobileUA ? 'phone' : 'desktop';
+/** the tier 'auto' picks on this device (Settings shows it) */
+export const AUTO_TIER: Tier = mobileUA ? 'phone' : 'desktop';
+export const TIER: Tier = forced === 'auto' ? AUTO_TIER : forced;
 
-export const TIER_CONFIG = {
+/** both tiers' tables — Explore's DETAIL TIERS view builds a model at the other tier with `withTier` (src/explore/tiers.ts) */
+export const TIER_TABLE = {
   phone: {
-    maxTexture: 1024, layerSize: 512, dpr: 1.5, ao: false, // DPR 1.5 + SMAA on: confirmed by the user as the phone default (the crossbow at 1.0 was unacceptable); Settings ▸ Render scale overrides
+    maxTexture: 1024, layerSize: 512, dpr: 2, ao: false, // DPR 2 + SMAA on (E70: 1.5 was a ~2× upscale on a 3× iPhone — "really bad and blurry"; 1.0 was already unacceptable); Settings ▸ Render scale overrides (Native = the screen's 3×)
     // shadows: one cascade to 80 m, 1024² — the 2-cascade rig re-drew the whole world twice (9.8 M tris)
     cascades: 1, shadowMapSize: 1024, shadowFar: 80, shadowMargin: 60, softShadows: false,
-    undergrowthShadows: false, animalShadowDist: 30, animalHideDist: 150, furShells: false,
+    // animals shadow as far as the cascade reaches (E90: at 30 m a boar's shadow switched on in plain view)
+    undergrowthShadows: false, animalShadowDist: 80, animalHideDist: 150, furShells: false,
     // animal draws (Animal.setDrawLod): fur / hard / eye within animalEyeDist, eyes in the hard material to animalOneDrawDist,
     // then the whole body in the fur material — 3 → 2 → 1 draws per animal
     animalEyeDist: 45, animalOneDrawDist: 100,
@@ -56,14 +62,16 @@ export const TIER_CONFIG = {
     godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, volumetricScale: 1, smaa: 'high' as 'off' | 'low' | 'high', bloomLevels: 8,
     oceanCell: 2.75, palmCount: 150, palmFrondSegs: 6, bushCount: 260, bushDetail: 1, bushShadows: true, boulderShadows: true,
   },
-}[TIER];
+};
+
+export const TIER_CONFIG = TIER_TABLE[TIER];
 
 /**
  * The player's graphics prefs — the menu's Settings ▸ Graphics rows (src/ui/Menu.ts), read once at boot, so a
  * change needs a restart. 'auto' = the tier default above. The old DBG pill kept a tier / dpr / aa / meter
  * override under 'ws.debug'; the pill is gone and that key is dropped once so a stale override stops applying.
  */
-export interface GfxPrefs { dpr: 'auto' | '1' | '1.25' | '1.5'; aa: 'auto' | 'on' | 'off' }
+export interface GfxPrefs { dpr: 'auto' | '1' | '1.25' | '1.5' | '2' | 'native'; aa: 'auto' | 'on' | 'off' }
 const GFX_KEY = 'ws.gfx.v1';
 function readGfxPrefs(): GfxPrefs {
   const prefs: GfxPrefs = { dpr: 'auto', aa: 'auto' };
@@ -71,7 +79,7 @@ function readGfxPrefs(): GfxPrefs {
     localStorage.removeItem('ws.debug');
     const raw = JSON.parse(localStorage.getItem(GFX_KEY) ?? '{}') as Partial<Record<string, unknown>>;
     const dpr = raw['dpr'], aa = raw['aa'];
-    if (dpr === '1' || dpr === '1.25' || dpr === '1.5') prefs.dpr = dpr;
+    if (dpr === '1' || dpr === '1.25' || dpr === '1.5' || dpr === '2' || dpr === 'native') prefs.dpr = dpr;
     if (aa === 'on' || aa === 'off') prefs.aa = aa;
   } catch { /* private mode / disabled storage: tier defaults */ }
   return prefs;
@@ -79,6 +87,7 @@ function readGfxPrefs(): GfxPrefs {
 export const gfxPrefs: GfxPrefs = readGfxPrefs();
 export function saveGfxPrefs(): void { try { localStorage.setItem(GFX_KEY, JSON.stringify(gfxPrefs)); } catch { /* private mode */ } }
 
-if (gfxPrefs.dpr !== 'auto') TIER_CONFIG.dpr = Number(gfxPrefs.dpr);
+// 'native' = the screen's own density (the renderer caps at min(devicePixelRatio, dpr)): sharpest, and the costliest fill
+if (gfxPrefs.dpr !== 'auto') TIER_CONFIG.dpr = gfxPrefs.dpr === 'native' ? 4 : Number(gfxPrefs.dpr);
 if (gfxPrefs.aa === 'on' && TIER_CONFIG.smaa === 'off') TIER_CONFIG.smaa = 'low';
 if (gfxPrefs.aa === 'off') TIER_CONFIG.smaa = 'off';

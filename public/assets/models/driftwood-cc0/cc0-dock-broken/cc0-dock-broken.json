@@ -1,0 +1,17 @@
+{
+ "name": "cc0-dock-broken",
+ "source": "~/models/cc0/quaternius/pirate-kit/glTF/Environment_Dock_Broken.gltf",
+ "licence": "CC0 1.0 (see scripts/img2mesh/CC0.md)",
+ "tris": 2052,
+ "size_m": [
+  5.39,
+  6.0,
+  6.8
+ ],
+ "palette": [
+  "ropeDark",
+  "trunk",
+  "woodDeep"
+ ],
+ "vertex_colour": "COLOR_0 rgb = Driftwood palette albedo, a = 1"
+}

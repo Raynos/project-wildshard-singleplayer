@@ -1,0 +1,571 @@
+{
+  "rule": "lower CLAP rank wins, ties to the higher p; ships only in the top 5",
+  "wins": {
+    "moss": 30,
+    "sa3-medium": 20,
+    "synth": 1
+  },
+  "families": {
+    "bed-forest": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 1,
+        "p": 0.967
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.993
+      }
+    },
+    "bed-island": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.958
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.931
+      }
+    },
+    "bed-underwater": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 1,
+        "p": 0.896
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.951
+      }
+    },
+    "hum-pickup": {
+      "winner": "moss",
+      "moss": {
+        "rank": 2,
+        "p": 0.008
+      },
+      "sa3-medium": {
+        "rank": 8,
+        "p": 0.011
+      }
+    },
+    "hum-shrine": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.989
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.468
+      }
+    },
+    "crossbowFire": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 4,
+        "p": 0.146
+      },
+      "sa3-medium": {
+        "rank": 3,
+        "p": 0.011
+      }
+    },
+    "dryFire": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.643
+      },
+      "sa3-medium": {
+        "rank": 2,
+        "p": 0.166
+      }
+    },
+    "boltImpact-wood": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.994
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.605
+      }
+    },
+    "boltImpact-ground": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 2,
+        "p": 0.322
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.876
+      }
+    },
+    "boltImpact-flesh": {
+      "winner": "moss",
+      "moss": {
+        "rank": 2,
+        "p": 0.048
+      },
+      "sa3-medium": {
+        "rank": 2,
+        "p": 0.003
+      }
+    },
+    "swordSwing": {
+      "winner": "moss",
+      "moss": {
+        "rank": 3,
+        "p": 0.058
+      },
+      "sa3-medium": {
+        "rank": 4,
+        "p": 0.007
+      }
+    },
+    "swordHeavy": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.816
+      },
+      "sa3-medium": {
+        "rank": 2,
+        "p": 0.164
+      }
+    },
+    "swordHit-flesh": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 1,
+        "p": 0.442
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.644
+      }
+    },
+    "swordHit-wood": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.371
+      },
+      "sa3-medium": {
+        "rank": 6,
+        "p": 0.071
+      }
+    },
+    "dodge": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.905
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.895
+      }
+    },
+    "lunge": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 6,
+        "p": 0.009
+      },
+      "sa3-medium": {
+        "rank": 5,
+        "p": 0.058
+      }
+    },
+    "reload": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.855
+      },
+      "sa3-medium": {
+        "rank": 2,
+        "p": 0.455
+      }
+    },
+    "rifleFire": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 1,
+        "p": 0.508
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.775
+      }
+    },
+    "rifleReload": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 1,
+        "p": 0.483
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.899
+      }
+    },
+    "weaponSwap": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.812
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.44
+      }
+    },
+    "footstep-litter": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 2,
+        "p": 0.311
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.945
+      }
+    },
+    "footstep-planks": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.384
+      },
+      "sa3-medium": {
+        "rank": 3,
+        "p": 0.012
+      }
+    },
+    "footstep-sand": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 2,
+        "p": 0.285
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.68
+      }
+    },
+    "jump": {
+      "winner": "synth",
+      "moss": {
+        "rank": 11,
+        "p": 0.004
+      },
+      "sa3-medium": {
+        "rank": 32,
+        "p": 0.0
+      }
+    },
+    "land": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 7,
+        "p": 0.021
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.696
+      }
+    },
+    "land-hard": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.993
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.953
+      }
+    },
+    "splash": {
+      "winner": "moss",
+      "moss": {
+        "rank": 3,
+        "p": 0.011
+      },
+      "sa3-medium": {
+        "rank": 14,
+        "p": 0.0
+      }
+    },
+    "wadeStep": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.919
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.856
+      }
+    },
+    "swimStroke": {
+      "winner": "moss",
+      "moss": {
+        "rank": 5,
+        "p": 0.009
+      },
+      "sa3-medium": {
+        "rank": 6,
+        "p": 0.001
+      }
+    },
+    "waterExit": {
+      "winner": "moss",
+      "moss": {
+        "rank": 4,
+        "p": 0.014
+      },
+      "sa3-medium": {
+        "rank": 5,
+        "p": 0.009
+      }
+    },
+    "dive": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.938
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.831
+      }
+    },
+    "surface": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.95
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.898
+      }
+    },
+    "hitMarker": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 18,
+        "p": 0.0
+      },
+      "sa3-medium": {
+        "rank": 5,
+        "p": 0.004
+      }
+    },
+    "kill": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 3,
+        "p": 0.004
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.601
+      }
+    },
+    "gull": {
+      "winner": "moss",
+      "moss": {
+        "rank": 5,
+        "p": 0.008
+      },
+      "sa3-medium": {
+        "rank": 6,
+        "p": 0.014
+      }
+    },
+    "deer_call": {
+      "winner": "moss",
+      "moss": {
+        "rank": 3,
+        "p": 0.047
+      },
+      "sa3-medium": {
+        "rank": 3,
+        "p": 0.008
+      }
+    },
+    "boar_grunt": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 6,
+        "p": 0.004
+      },
+      "sa3-medium": {
+        "rank": 4,
+        "p": 0.025
+      }
+    },
+    "hoofsteps": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.795
+      },
+      "sa3-medium": {
+        "rank": 5,
+        "p": 0.078
+      }
+    },
+    "boar_squeal": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 5,
+        "p": 0.001
+      },
+      "sa3-medium": {
+        "rank": 4,
+        "p": 0.003
+      }
+    },
+    "elk_bugle": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 2,
+        "p": 0.091
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.719
+      }
+    },
+    "bear_growl": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.799
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.527
+      }
+    },
+    "bear_roar": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 1,
+        "p": 0.927
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.959
+      }
+    },
+    "bear_hurt": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.982
+      },
+      "sa3-medium": {
+        "rank": 2,
+        "p": 0.248
+      }
+    },
+    "crab_click": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 3,
+        "p": 0.145
+      },
+      "sa3-medium": {
+        "rank": 2,
+        "p": 0.365
+      }
+    },
+    "crab_snap": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 1,
+        "p": 0.533
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.688
+      }
+    },
+    "monkey_chatter": {
+      "winner": "moss",
+      "moss": {
+        "rank": 3,
+        "p": 0.06
+      },
+      "sa3-medium": {
+        "rank": 5,
+        "p": 0.04
+      }
+    },
+    "monkey_shriek": {
+      "winner": "sa3-medium",
+      "moss": {
+        "rank": 3,
+        "p": 0.014
+      },
+      "sa3-medium": {
+        "rank": 3,
+        "p": 0.073
+      }
+    },
+    "sailor_groan": {
+      "winner": "moss",
+      "moss": {
+        "rank": 3,
+        "p": 0.112
+      },
+      "sa3-medium": {
+        "rank": 3,
+        "p": 0.038
+      }
+    },
+    "sailor_slash": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.956
+      },
+      "sa3-medium": {
+        "rank": 1,
+        "p": 0.62
+      }
+    },
+    "coconut_hit": {
+      "winner": "moss",
+      "moss": {
+        "rank": 1,
+        "p": 0.43
+      },
+      "sa3-medium": {
+        "rank": 3,
+        "p": 0.149
+      }
+    },
+    "coconut_land": {
+      "winner": "moss",
+      "moss": {
+        "rank": 3,
+        "p": 0.122
+      },
+      "sa3-medium": {
+        "rank": 4,
+        "p": 0.041
+      }
+    }
+  }
+}

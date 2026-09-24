@@ -14,7 +14,7 @@
  */
 import * as THREE from 'three';
 import type { Sky } from '../../world/Sky';
-import type { SkyLook } from '../../world/DayNight';
+import type { SkyLook } from '../../world/DayClock';
 import { syncPainterlySun } from '../../world/painterly';
 import { gradeUniforms } from './grade';
 

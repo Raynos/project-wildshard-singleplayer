@@ -16,11 +16,12 @@ import type { RGB } from '../chunks/ChunkDef';
 
 // ── low-poly palette (sRGB in, linear out via THREE.Color) ──
 const LP = {
-  seabed: new THREE.Color('#a39b76'),
-  wetSand: new THREE.Color('#c4ad78'),
-  sand: new THREE.Color('#dcc48a'),
+  seabed: new THREE.Color('#15a0b4'),   // the lagoon floor as seen through the water (Beer–Lambert's green-cyan baked in: the sea over it is clear)
+  wetSand: new THREE.Color('#caa66c'),   // the swash tint: a shade darker than the dry sand, not mud
+  sand: new THREE.Color('#ffd98c'),   // warm golden (E43 round 6: matched to the mockups by palette-delta.py)
   grass: new THREE.Color('#6cae47'),
   grassDark: new THREE.Color('#4d8c33'),
+  grassHigh: new THREE.Color('#9acb52'),
   rock: new THREE.Color('#666a70'),
   rockLight: new THREE.Color('#84888e'),
   path: new THREE.Color('#d6bd84'),
@@ -73,9 +74,12 @@ export class Terrain {
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.92, metalness: 0 });
     mat.onBeforeCompile = (shader) => {
       attachFogUniforms(shader);
-      // `flat` interpolation: the whole triangle gets its last vertex's colour (three #defines varying → out / in)
-      shader.vertexShader = shader.vertexShader.replace('varying vec4 vColor;', 'flat varying vec4 vColor;');
-      shader.fragmentShader = shader.fragmentShader.replace('varying vec4 vColor;', 'flat varying vec4 vColor;');
+      // `flat` interpolation: the whole triangle gets its last vertex's colour. The declaration lives inside the
+      // color_pars includes, which are still unexpanded here — so expand them first (replacing the bare string never
+      // matched, and the ground was smooth-shaded until E43 round 6)
+      const flat = (chunk: string) => chunk.replace('varying vec4 vColor;', 'flat varying vec4 vColor;');
+      shader.vertexShader = shader.vertexShader.replace('#include <color_pars_vertex>', flat(THREE.ShaderChunk.color_pars_vertex));
+      shader.fragmentShader = shader.fragmentShader.replace('#include <color_pars_fragment>', flat(THREE.ShaderChunk.color_pars_fragment));
     };
     mat.customProgramCacheKey = () => 'terrain-lowpoly';
     this.material = mat;
@@ -84,7 +88,7 @@ export class Terrain {
     while (r.done !== true) { await macrotask(); r = rows.next(); } // a band of rows per task: the 256² grid was one ~120 ms task at 4x CPU
     this.mesh = new THREE.Mesh(r.value, mat);
     this.mesh.receiveShadow = true;
-    this.mesh.castShadow = false;
+    this.mesh.castShadow = true; // L6: the cliffs and the plateau shade the beach (+1 draw, ~130 k tris into the shadow map; phone: one 80 m cascade)
     this.group.add(this.mesh);
     this.group.add(this.buildLowPolySlab());
     return this;
@@ -248,10 +252,14 @@ export class Terrain {
         const y = heightAt(x, z);
         pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
         const [, ny] = normalAt(x, z, d * 0.5);
-        lowPolyGroundColor(c, y - wl, 1 - ny, x, z);
+        // a cliff's top edge (L6): steep here but nothing much higher within 2.5 m → the grass lips over it
+        let lip = 0;
+        if (ny < 0.8) { const hi = Math.max(heightAt(x + 2.5, z), heightAt(x - 2.5, z), heightAt(x, z + 2.5), heightAt(x, z - 2.5)); lip = 1 - ss(hi - y, 0.4, 1.4); }
+        lowPolyGroundColor(c, y - wl, 1 - ny, x, z, lip);
         // the sand paths: trails above the beach are painted sand over the grass (a 3 m bed with a soft edge)
         if (y - wl > 1.5) { const td = trailDistance(x, z); if (td < 4.5) { _pathC.copy(LP.path).multiplyScalar(0.94 + hash2(x, z) * 0.12); c.lerp(_pathC, 1 - ss(td, 2.2, 4.5)); } }
-        col[i * 3] = Math.round(c.r * 255); col[i * 3 + 1] = Math.round(c.g * 255); col[i * 3 + 2] = Math.round(c.b * 255);
+        // clamped: a Uint8Array wraps 256+ to ~0, so a bright sand facet jittered over 1.0 turned mint (r 1.07 → 17)
+        col[i * 3] = Math.min(255, Math.round(c.r * 255)); col[i * 3 + 1] = Math.min(255, Math.round(c.g * 255)); col[i * 3 + 2] = Math.min(255, Math.round(c.b * 255));
       }
     }
     const idx = new Uint32Array(n * n * 6);
@@ -382,7 +390,7 @@ export class Terrain {
           float camDist = length(vWPos - cameraPosition);
           vec2 tuv = vWPos.xz;
           vec4 w = vSplat;
-          w = pow(w, vec4(2.2)); w /= (w.x + w.y + w.z + w.w);
+          w = pow(max(w, vec4(0.0)), vec4(2.2)); w /= max(w.x + w.y + w.z + w.w, 1e-5); // guarded: a 0 / 0 here was a NaN pixel, and bloom spreads one NaN into a black square (E67)
           vec4 alb = vec4(0.0);
           vec3 nrm = vec3(0.0);
           vec3 arm = vec3(0.0);
@@ -399,7 +407,7 @@ export class Terrain {
           alb.rgb *= macro * macro2;
           alb.rgb *= mix(1.0, 0.55, vCanopy);
           diffuseColor *= alb;
-          vec3 splatNormal = normalize(nrm);
+          vec3 splatNormal = dot(nrm, nrm) > 1e-8 ? normalize(nrm) : vec3(0.0, 0.0, 1.0);
           vec3 splatArm = arm;`)
         .replace('#include <normal_fragment_maps>', `
           {
@@ -505,15 +513,26 @@ function signedTrailDistance(segs: Seg[], x: number, z: number, cap: number, out
 }
 
 /** One facet's colour from its height above the sea (m), slope (0 flat → 1 vertical) and position (jitter). */
-export function lowPolyGroundColor(out: THREE.Color, h: number, slope: number, x: number, z: number): THREE.Color {
-  if (h < 0) out.lerpColors(LP.seabed, LP.wetSand, ss(h, -3, 0));
-  else out.lerpColors(LP.wetSand, LP.sand, ss(h, 0, 0.9));
-  // grass takes over above the beach, darker in the folds
-  const g = ss(h, 2.2, 4.5);
-  if (g > 0) { _tmpC.lerpColors(LP.grass, LP.grassDark, hash2(Math.floor(x * 0.11), Math.floor(z * 0.11)) * 0.6); out.lerp(_tmpC, g); }
-  // rock on the steep facets (a hair lighter on the flatter ledges)
-  const r = ss(slope, 0.24, 0.4);
-  if (r > 0) { _tmpC.lerpColors(LP.rock, LP.rockLight, 1 - ss(slope, 0.45, 0.8)); out.lerp(_tmpC, r); }
+/**
+ * One facet's colour from its height above the sea (m), slope (0 flat → 1 vertical) and position (jitter). `lip` (0..1)
+ * marks a steep facet at the top edge of a cliff: it keeps the grass (the mockups' grass-topped cliff lips, L6).
+ */
+export function lowPolyGroundColor(out: THREE.Color, h: number, slope: number, x: number, z: number, lip = 0): THREE.Color {
+  if (h < 0) out.lerpColors(LP.seabed, LP.wetSand, ss(h, -1.6, 0));
+  else out.lerpColors(LP.wetSand, LP.sand, ss(h, 0.25, 0.55));                 // a distinct dark wet band along the swash line
+  // grass takes over above the beach, darker in the folds, sun-bleached lighter as the ground climbs
+  const g = ss(h, 2.9, 3.5);                                                  // a hard sand → grass line
+  if (g > 0) {
+    _tmpC.lerpColors(LP.grass, LP.grassDark, hash2(Math.floor(x * 0.11), Math.floor(z * 0.11)) * 0.6);
+    _tmpC.lerp(LP.grassHigh, ss(h, 6, 24) * 0.7);
+    out.lerp(_tmpC, g);
+  }
+  // rock on the steep facets (a hair lighter on the flatter ledges, faint strata bands) — except a grass lip on the rim
+  const r = ss(slope, 0.3, 0.36) * (1 - lip * ss(h, 2.5, 4.5));              // a hard grass → rock line: crisp faceted crags
+  if (r > 0) {
+    _tmpC.lerpColors(LP.rock, LP.rockLight, 1 - ss(slope, 0.45, 0.8)).multiplyScalar(0.92 + 0.1 * Math.sin(h * 1.4 + hash2(Math.floor(x * 0.05), 0) * 2));
+    out.lerp(_tmpC, r);
+  }
   // per-facet jitter so the flat shading reads as facets, not a gradient
   return out.multiplyScalar(0.93 + hash2(x, z) * 0.14);
 }

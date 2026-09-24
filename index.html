@@ -2,7 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <!-- no viewport-fit=cover (E58): an iOS home-screen app drawn under the status bar had WebKit shrink the viewport ~62 px after
+         load and leave a black strip at the bottom; below the status bar the page runs to the bottom edge (src/core/viewport.ts) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Project Wildshard — Chunk Playtest</title>
     <meta name="apple-mobile-web-app-title" content="Wildshard" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -48,6 +50,8 @@
     <link rel="stylesheet" href="/src/ui/styles/update.css" />
     <link rel="stylesheet" href="/src/ui/styles/feedback.css" />
     <link rel="stylesheet" href="/src/ui/styles/minimap.css" />
+    <link rel="stylesheet" href="/src/ui/styles/rotate.css" />
+    <link rel="stylesheet" href="/src/ui/styles/resume.css" />
   </head>
   <body>
     <script>
@@ -82,7 +86,35 @@
 </div>
 </div>
 <div class="ws-load-foot"><span>local build · unuploaded</span><span data-el="foot">an in-progress private project</span></div></div>
+    <!-- app-switch resume screen (E61, src/ui/Resume.ts; test/resume.test.ts keeps the two identical): a GPU-recovery reload
+         (?glreload, src/core/GpuRecovery.ts) shows this tiny screen from the first paint, over the last frame's still, and
+         never the first-boot loader above -->
+    <div class="ws-resume" aria-hidden="true"><div class="ws-resume-shot"></div><div class="ws-resume-card"><div class="ws-resume-mark"><i></i></div><div class="ws-resume-line">Resuming</div><div class="ws-resume-bar"><i></i></div><button type="button" class="ws-resume-btn">Reload</button></div></div>
+    <script>
+      try {
+        if (new URLSearchParams(location.search).has('glreload')) {
+          const r = document.querySelector('.ws-resume'), shot = sessionStorage.getItem('wsResumeShot');
+          if (shot) r.firstElementChild.style.backgroundImage = 'url("' + shot + '")';
+          r.querySelector('.ws-resume-bar').classList.add('busy');
+          r.classList.add('show');
+          document.querySelector('.ws-load').style.display = 'none';
+        }
+      } catch { /* the first-boot loader shows instead */ }
+    </script>
+    <!-- rotate gate (E38): portrait only on phones — a touch device held landscape sees only this (rotate.css, src/ui/RotateGate.ts) -->
+    <div class="ws-rotate" role="alertdialog" aria-modal="true" aria-label="Rotate to portrait"><div class="ws-rotate-panel">
+<div class="ws-rotate-glyph"><svg viewBox="0 0 92 92" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" aria-hidden="true">
+<path d="M12.5 40 A34 34 0 0 1 40 12.5" opacity="0.55" /><path d="M35 7.5 L40 12.5 L35 17.5" opacity="0.55" />
+<g class="ws-rotate-phone"><rect x="33" y="22" width="26" height="48" rx="4" /><path d="M42 26.5 H50" /><path d="M41 65.5 H51" opacity="0.6" /></g>
+</svg></div>
+<div class="ws-rotate-text">
+<div class="ws-rotate-kicker">Portrait only</div>
+<div class="ws-rotate-title">Rotate to <b>portrait</b></div>
+<div class="ws-rotate-sub">Wildshard is played upright · turn your phone to continue</div>
+</div>
+</div></div>
     <script type="module" src="/src/boot/sw.ts"></script>
+    <script type="module" src="/src/ui/RotateGate.ts"></script>
     <script type="module" src="/src/boot/entry.ts"></script>
     <script type="module" src="/src/ui/Update.ts"></script>
   </body>

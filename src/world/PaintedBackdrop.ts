@@ -29,7 +29,7 @@
 import * as THREE from 'three';
 import { fetchImage } from '../boot/bytes';
 import { nalatiUrl, isPhoneTier } from './nalatiTextures';
-import type { SkyLook } from './DayNight';
+import type { SkyLook } from './DayClock';
 
 export const BACKDROP_R = 2470;
 /**

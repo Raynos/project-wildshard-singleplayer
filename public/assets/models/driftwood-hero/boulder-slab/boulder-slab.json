@@ -1,0 +1,20 @@
+{
+ "name": "boulder-slab",
+ "source": "boulders.glb",
+ "tris": 420,
+ "size_m": [
+  1.36,
+  1.01,
+  0.47
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#677381",
+  "#697583",
+  "#6a7784",
+  "#6d7987",
+  "#6f7c8a",
+  "#72808e"
+ ]
+}

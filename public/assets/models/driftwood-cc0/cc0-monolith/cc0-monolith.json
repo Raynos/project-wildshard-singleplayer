@@ -1,0 +1,16 @@
+{
+ "name": "cc0-monolith",
+ "source": "~/models/cc0/kenney/nature-kit/Models/GLTF format/stone_tallA.glb",
+ "licence": "CC0 1.0 (see scripts/img2mesh/CC0.md)",
+ "tris": 136,
+ "size_m": [
+  2.96,
+  2.06,
+  3.0
+ ],
+ "palette": [
+  "rock",
+  "rockLight"
+ ],
+ "vertex_colour": "COLOR_0 rgb = Driftwood palette albedo, a = 1"
+}

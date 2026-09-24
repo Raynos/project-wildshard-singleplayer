@@ -1,4 +1,8 @@
 import * as THREE from 'three';
+import { activePhysics } from '../physics/active';
+import { activeNavmesh } from '../physics/navmesh';
+import { castRay, floorBelow } from '../physics/query';
+import { CreatureBodies } from '../physics/creatures';
 import { SEED, CHUNK_HALF } from '../core/config';
 import { Rng } from '../core/rng';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel } from '../world/Heightfield';
@@ -9,6 +13,7 @@ import { Animal, damageFor } from './Animal';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from '../core/tier';
 import { noReflect } from '../world/Water';
+import { worldTime } from '../core/time';
 
 /**
  * AnimalManager — spawns the chunk's huntable wildlife (the active ChunkDef's `fauna` herd plans),
@@ -45,6 +50,8 @@ import { noReflect } from '../world/Water';
  *   animals.onKill   = (animal) => …
  *   animals.onCharge = (animal, damage) => …          a boar reached the player
  *   animals.onSound  = (name, position) => …          'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal'
+ *   animals.onWindup = (animal) => …                  melee shards: an attack's wind-up began (the charge telegraph, a crab's
+ *                                                     claw raise, the sailor's cutlass) — play its cue (IslandSfx.windup)
  *   animals.animals: Animal[]   animals.alive (count)
  *
  * Species + variants: every kind comes from the species registry (`src/entities/species/<kind>.ts`, see
@@ -65,6 +72,17 @@ import { noReflect } from '../world/Water';
  * the same `onCharge(animal, damage)`. `animals.enemyWorld` (EnemyWorld) is what the shard hands those AIs: palm
  * perches, the coconut thrower, the wreck's hold — Enemies.ts fills it; a missing piece degrades to ground behaviour.
  * `animals.addHerd(kind, cx, cz)` makes a herd for such a spawner (`spawn()` then `animal.herd = index`).
+ *
+ * MELEE SHARDS (`ChunkDef.weapon === 'sword'`, Driftwood C5 — Pine Hollow's crossbow hunting is untouched): every attack
+ * is telegraphed and lands on an arc, so strafing is the dodge.
+ *   • A charge starts with a WIND-UP (CHARGE_WINDUP: boar 0.55 s, bear 0.65 s): the animal stops, turns to you, drops its
+ *     head and paws the ground (Animal.poseWindup) with the roar / grunt as the cue, then runs. A sword blow during the
+ *     wind-up interrupts it (Animal.stagger cancels the attack → `staggered` sends it back to alert / stalk).
+ *   • A running charge connects per frame, not at 10 Hz, and only if you are inside CHARGE_ARC of its heading when it
+ *     reaches you; inside the last CHARGE_COMMIT m it can barely turn — sidestep late and it thunders past.
+ *   • The self-thinking species' strikes (crab snap, monkey bite, cutlass) only hurt inside HURT_ARC of the attacker's
+ *     facing, and while an attack runs the animal turns at most ATTACK_TURN rad/s (Animal.attackTurnCap): a wind-up
+ *     commits to a direction you can step out of.
  */
 
 export interface AnimalHit { animal: Animal; point: THREE.Vector3; distance: number; headshot: boolean; damage: number }
@@ -85,6 +103,9 @@ interface Brain {
   spooked: boolean;     // alert: bolt as soon as the freeze ends, whatever the senses say (herd panic, impact, hit)
   wary: number;         // seconds of sharpened senses left after a scare
   sensed: boolean;      // the player was sensed this think
+  windup: number;       // melee shards: seconds of charge wind-up left (0 = running / none)
+  // ── the navmesh path being followed (PHYSICS P6b; empty without a navmesh) ──
+  path: THREE.Vector3[]; pathI: number; goalX: number; goalZ: number; repathAt: number;
 }
 
 /** One animal kind's hunting-loop numbers. Player speeds for reference: crouch 2.2, walk 4.3, sprint 7.2 m/s. */
@@ -161,6 +182,10 @@ export const BOAR_TUNING: HuntTuning = {
 
 const DEER_WALK = 1.3, BOAR_WALK = 1.1, BOAR_CHARGE = 7.5, CHARGE_HIT_DIST = 1.4;   // species defaults (SpeciesDef.walkSpeed / chargeSpeed override)
 const CHARGE_WHEN_HIT_DIST = 25;   // a wounded boar this close turns on you instead of running
+/** melee shards (see the header): the charge wind-up per species (s), the contact arc (half-angle, rad), the self-thinking species' strike arc, the turn cap while attacking */
+const CHARGE_WINDUP: Record<string, number> = { boar: 0.55, bear: 0.65 }, CHARGE_WINDUP_DEFAULT = 0.5;
+const CHARGE_ARC = THREE.MathUtils.degToRad(50), HURT_ARC = THREE.MathUtils.degToRad(70), ATTACK_TURN = 1.5;
+const CHARGE_COMMIT = 4.5, CHARGE_COMMIT_TURN = 1.1;   // m from the player inside which a charge stops tracking, and its turn rate there (rad/s)
 const ANIM_LOD = 140;
 const SHELL_DIST = 18, SHELL_MAX = 4;   // fur shells: nearest SHELL_MAX animals within SHELL_DIST m
 
@@ -181,12 +206,17 @@ function makeDropTexture(): THREE.CanvasTexture {
 }
 
 const MAX_P = 384, MAX_DECALS = 24;
+/** blood lands on the first world surface within this far under the burst (m) */
+const BLOOD_DROP = 4;
+const DOWN = { x: 0, y: -1, z: 0 } as const;
 
 class BloodFX {
   group = new THREE.Group();
   private pos = new Float32Array(MAX_P * 3);
   private vel = new Float32Array(MAX_P * 3);
   private life = new Float32Array(MAX_P);
+  /** where each droplet lands (PHYSICS P7: one ray down per burst) */
+  private floor = new Float32Array(MAX_P);
   private points: THREE.Points;
   private posAttr: THREE.BufferAttribute;
   private next = 0;
@@ -221,8 +251,11 @@ class BloodFX {
 
   burst(at: THREE.Vector3, dir: THREE.Vector3, strength = 1): void {
     const n = Math.round(22 * strength);
+    const physics = activePhysics();
+    const fl = (physics ? floorBelow(physics, at.x, at.z, at.y + 0.3, BLOOD_DROP) : undefined) ?? heightAt(at.x, at.z);
     for (let i = 0; i < n; i++) {
       const k = this.next; this.next = (this.next + 1) % MAX_P;
+      this.floor[k] = fl;
       this.pos[k * 3] = at.x; this.pos[k * 3 + 1] = at.y; this.pos[k * 3 + 2] = at.z;
       // spray mostly along the shot direction (exit) with a wide cone
       const s = 1.5 + Math.random() * 3.5;
@@ -236,10 +269,10 @@ class BloodFX {
     const d = this.decals[this.decalNext]; this.decalNext = (this.decalNext + 1) % MAX_DECALS;
     if (d === undefined) return;
     const gx = at.x + dir.x * 0.4, gz = at.z + dir.z * 0.4;
-    const gy = heightAt(gx, gz);
-    const nrm = normalAt(gx, gz);
-    d.position.set(gx, gy + 0.015, gz);
-    _d.set(nrm[0], nrm[1], nrm[2]);
+    // the patch lands on what is under it: a deck, a rock, the hold floor — not the terrain beneath them
+    const hit = physics ? castRay(physics, _c.set(gx, at.y + 0.3, gz), DOWN, BLOOD_DROP) : null;
+    if (hit) { d.position.set(gx, hit.point.y + 0.015, gz); _d.set(hit.normal.x, hit.normal.y, hit.normal.z); }
+    else { const nrm = normalAt(gx, gz); d.position.set(gx, heightAt(gx, gz) + 0.015, gz); _d.set(nrm[0], nrm[1], nrm[2]); }
     d.quaternion.setFromUnitVectors(_c.set(0, 0, 1), _d);
     d.rotateZ(Math.random() * Math.PI * 2);
     const r = 0.14 + Math.random() * 0.14 * strength;
@@ -260,12 +293,15 @@ class BloodFX {
       const j = k * 3;
       vel[j + 1] = (vel[j + 1] ?? 0) - 9.8 * dt;
       pos[j] = (pos[j] ?? 0) + (vel[j] ?? 0) * dt; pos[j + 1] = (pos[j + 1] ?? 0) + (vel[j + 1] ?? 0) * dt; pos[j + 2] = (pos[j + 2] ?? 0) + (vel[j + 2] ?? 0) * dt;
+      const fl = this.floor[k] ?? -1e9;
+      if ((pos[j + 1] ?? 0) < fl) { pos[j + 1] = fl + 0.01; vel[j] = vel[j + 1] = vel[j + 2] = 0; } // landed: it soaks in where it fell
     }
     this.active = alive;
     this.posAttr.needsUpdate = true;
   }
 }
 
+const _navFrom = new THREE.Vector3(), _navTo = new THREE.Vector3();
 export class AnimalManager {
   group = new THREE.Group();
   animals: Animal[] = [];
@@ -274,6 +310,8 @@ export class AnimalManager {
   onKill?: (animal: Animal) => void;
   onCharge?: (animal: Animal, damage: number) => void;
   onSound?: (name: AnimalSound, position: THREE.Vector3) => void;
+  /** melee shards: an attack's wind-up began (see the header) */
+  onWindup?: ((animal: Animal) => void) | undefined;
   /** every non-lethal AND lethal hit: amount actually dealt, world hit point, whether it was the head (Combat draws the numbers) */
   onDamage?: (animal: Animal, amount: number, hitPoint: THREE.Vector3, headshot: boolean, died: boolean) => void;
   debug = false;
@@ -290,6 +328,8 @@ export class AnimalManager {
   private playerPrev = new THREE.Vector3(); private playerSpeed = 0; private playerInit = false;
   private shellDist = new Float64Array(SHELL_MAX);
   private shellIdx = new Int32Array(SHELL_MAX);
+  /** a melee shard (the sword): telegraphed charges, attacks on an arc (see the header) */
+  private readonly melee = getActiveChunk().weapon === 'sword';
 
   /** `opts.style` forces the render style (dev harness); production reads `ChunkDef.style` ('pbr' | 'lowpoly') */
   constructor(private readonly scene: THREE.Scene, private readonly sky: Sky, private readonly forest: Forest, opts: { style?: AnimalStyle | undefined } = {}) {
@@ -330,8 +370,18 @@ export class AnimalManager {
    *  src/nalati/wet.ts); null = the water line alone */
   wetAt: ((x: number, z: number) => boolean) | null = null;
 
-  /** dry ground: above the pond's water line (and not in the shard's own water, `wetAt`) */
-  private isDry(x: number, z: number): boolean { return heightAt(x, z) > waterLevel() + 0.25 && this.wetAt?.(x, z) !== true; }
+  /**
+   * Dry ground: above the pond's level, or — with a navmesh — walkable on it. (Pine Hollow has dry valleys lower than the
+   * pond's surface; the navmesh bake knows only the pond itself is water, and the herds follow the navmesh.)
+   */
+  private isDry(x: number, z: number): boolean {
+    if (this.wetAt?.(x, z) === true) return false; // the shard's own water (Nalati: src/nalati/wet.ts)
+    if (heightAt(x, z) > waterLevel() + 0.25) return true;
+    const nav = activeNavmesh();
+    if (nav === null) return false;
+    const p = nav.closestWalkable(_navFrom.set(x, heightAt(x, z), z), 0, _navTo);
+    return p !== null && Math.hypot(p.x - x, p.z - z) < 1;
+  }
 
   /**
    * Ground an animal can stand on. `clearingR` > 3 asks for a clearing (few trunks in that radius);
@@ -443,8 +493,10 @@ export class AnimalManager {
     const tune = this.tuningFor(a);
     this.brains.set(a, {
       timer: this.rng.range(1, 4), tx: x, tz: z, fleeT: 0, fleeUntil: this.rng.range(tune.fleeUntil, tune.fleeUntilMax), chargeCd: 0,
-      callT: this.rng.range(10, 60), awareness: 0, freeze: 0, spooked: false, wary: 0, sensed: false,
+      callT: this.rng.range(10, 60), awareness: 0, freeze: 0, spooked: false, wary: 0, sensed: false, windup: 0,
+      path: [], pathI: 0, goalX: 0, goalZ: 0, repathAt: 0,
     });
+    if (this.melee) { a.attackTurnCap = ATTACK_TURN; a.onAttack = (who) => { this.onWindup?.(who); }; }
     return a;
   }
 
@@ -464,6 +516,9 @@ export class AnimalManager {
 
   update(dt: number, t: number, playerPos: THREE.Vector3, playerSprinting = false): void {
     this.playerPos.copy(playerPos);
+    this.clock += dt;
+    // hitboxes posed from last frame's bones, bodies handed out / back by distance (PHYSICS P6)
+    this.bodiesFor()?.sync(this.animals, playerPos);
     // AI at 10 Hz, staggered across animals so the cost is flat
     this.thinkAcc += dt;
     const n = this.animals.length;
@@ -474,6 +529,7 @@ export class AnimalManager {
       const moved = Math.hypot(playerPos.x - this.playerPrev.x, playerPos.z - this.playerPrev.z);
       this.playerPrev.copy(playerPos);
       this.playerSpeed += (Math.min(moved / 0.1, 9) - this.playerSpeed) * 0.5;
+      this.repaths = 0;
       for (const a of this.animals) this.think(a, 0.1, playerPos, playerSprinting);
     }
     // fur shells: pick the SHELL_MAX nearest animals inside SHELL_DIST (tiny insertion sort, no allocs)
@@ -485,6 +541,7 @@ export class AnimalManager {
       const d2 = a.position.distanceToSquared(playerPos);
       const near = d2 < ANIM_LOD * ANIM_LOD;
       a.update(dt, t, near);
+      if (this.melee && a.state === 'charge' && a.alive && !a.stunned) this.chargeContact(a, playerPos);
       // draw / shadow distance by tier: a deer at 150 m is a few pixels on a phone, and only near animals shadow
       a.mesh.visible = d2 < TIER_CONFIG.animalHideDist * TIER_CONFIG.animalHideDist;
       a.mesh.castShadow = d2 < TIER_CONFIG.animalShadowDist * TIER_CONFIG.animalShadowDist;
@@ -501,7 +558,7 @@ export class AnimalManager {
       for (let k = 0; k < SHELL_MAX; k++) if (si[k] === i) { const d = Math.sqrt(sd[k] ?? Infinity); level = d < 6 ? 8 : d < 11 ? 6 : 4; }
       this.animals[i]?.setShellLevel(level);
     }
-    this.blood.update(dt);
+    this.blood.update(worldTime.realDt || dt); // blood keeps flying through a hit-stop (worldTime, Game.hitStop)
     if (this.debug) this.updateDebug();
   }
 
@@ -522,14 +579,14 @@ export class AnimalManager {
       const herd = a.herd >= 0 ? this.herds[a.herd] ?? null : null;
       c.dt = dt; c.t = performance.now() * 0.001; c.player = player; c.playerSpeed = sprinting ? 7.2 : this.playerSpeed;
       c.calm = this.calm; c.herd = herd !== null ? herd.members : null; c.world = this.enemyWorld;
-      c.hurt = (damage) => { this.onCharge?.(a, damage); };
+      c.hurt = (damage) => { if (!this.melee || this.facing(a, player, HURT_ARC)) this.onCharge?.(a, damage); }; // melee shards: only in front of it
       c.sound = (name) => { this.onSound?.(name as AnimalSound, a.position); };
       a.sampleTerrain();
       self(a, c);
       if (herd !== null) this.updateHerd(herd);
       return;
     }
-    if (!a.alive) { a.lookWeight = 0; a.settleCorpse(); return; }
+    if (!a.alive) { a.lookWeight = 0; return; }   // the corpse is a ragdoll (PHYSICS P8) or the keyframed collapse: nothing to think
     if (a.stunned) { br.chargeCd = Math.max(0, br.chargeCd - dt); a.setMotion(a.yaw, 0, 1); a.lookTarget.copy(player); a.lookWeight = 1; this.confine(a); return; }   // staggered by a sword blow (Animal.stagger): the AI holds (the charge cooldown still ticks)
     const rng = this.rng;
     const sp = speciesDef(a.kind);
@@ -590,7 +647,7 @@ export class AnimalManager {
           const tdx = br.tx - a.position.x, tdz = br.tz - a.position.z;
           const td = Math.hypot(tdx, tdz);
           if (td < 1.2 || br.timer <= 0) { this.enter(a, br, rng.next() < 0.6 ? 'graze' : 'idle'); break; }
-          this.steer(a, Math.atan2(tdx, tdz), sp.walkSpeed ?? (boar ? BOAR_WALK : DEER_WALK), 1.8);
+          this.steerTo(a, br, br.tx, br.tz, sp.walkSpeed ?? (boar ? BOAR_WALK : DEER_WALK), 1.8, 4);
         } else {
           a.setMotion(a.desiredYaw, 0, 1.5);
           if (br.timer <= 0) {
@@ -631,7 +688,8 @@ export class AnimalManager {
         if (done) { this.enter(a, br, 'alert'); br.freeze = T.lookBack; br.spooked = false; br.timer = T.relaxAfter; break; }
         // gallop, easing to a trot for the last stretch
         const speed = (dPlayer > br.fleeUntil * 0.8 && br.fleeT > T.fleeMinTime ? T.trotSpeed : T.runSpeed * (0.92 + 0.08 * Math.sin(a.seed * 9))) * M.speed;
-        this.steer(a, Math.atan2(ax, az), speed, 3.5);
+        const al = Math.hypot(ax, az) + 1e-3;
+        this.steerTo(a, br, a.position.x + ax / al * 20, a.position.z + az / al * 20, speed, 3.5, 1);
         a.lookWeight = 0;
         break;
       }
@@ -641,23 +699,29 @@ export class AnimalManager {
         if (st === undefined) throw new Error(`AnimalManager: ${a.kind} is stalking without HuntTuning.stalk`);
         if (this.calm || dPlayer > st.giveUp) { br.awareness = 0; br.spooked = false; this.enter(a, br, 'wander'); break; }
         if (panic && br.chargeCd <= 0) { this.enter(a, br, 'charge'); break; }
-        this.steer(a, Math.atan2(dx, dz), st.speed * M.speed, 2.5);
+        this.steerTo(a, br, player.x, player.z, st.speed * M.speed, 2.5, 0.4);
         a.lookTarget.copy(player); a.lookWeight = 1;
         br.timer -= dt;
         if (br.timer <= 0) { br.timer = rng.range(st.huffMin, st.huffMax); if (dPlayer < 80) this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position); }
         break;
       }
       case 'charge': {
+        if (br.windup > 0) {
+          // melee shard: the telegraph — stand, face the player, head down, paw (Animal.poseWindup); then run
+          br.windup -= dt;
+          a.setMotion(Math.atan2(dx, dz), 0, 3.0);
+          a.lookTarget.copy(player); a.lookWeight = 1;
+          if (br.windup <= 0) { br.windup = 0; a.cancelAttack(); }
+          break;
+        }
         br.timer -= dt;
-        this.steer(a, Math.atan2(dx, dz), (sp.chargeSpeed ?? BOAR_CHARGE) * M.speed, 4.0);
+        // melee shards: the last CHARGE_COMMIT m are committed (it can barely turn) — a late sidestep makes it thunder past
+        if (this.melee && dPlayer < CHARGE_COMMIT) this.steer(a, Math.atan2(dx, dz), (sp.chargeSpeed ?? BOAR_CHARGE) * M.speed, CHARGE_COMMIT_TURN); // the committed stretch: straight
+        else this.steerTo(a, br, player.x, player.z, (sp.chargeSpeed ?? BOAR_CHARGE) * M.speed, 4.0, 0.3);
         a.lookTarget.copy(player); a.lookWeight = 0.5;
         const after: Animal['state'] = T.stalk !== undefined ? 'stalk' : 'flee';   // a hunter keeps pressing; a boar wheels away
-        if (dPlayer < CHARGE_HIT_DIST * Math.max(1, a.scale)) {
-          this.onCharge?.(a, M.chargeDamage);
-          this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
-          br.chargeCd = T.stalk !== undefined ? T.stalk.rechargeCd : M.relentless ? 2 : 6;   // Old Ironhide wheels round and comes again
-          this.enter(a, br, after);
-        } else if (br.timer <= 0) { br.chargeCd = T.stalk !== undefined ? T.stalk.rechargeCd : M.relentless ? 1.5 : 4; this.enter(a, br, after); }
+        if (!this.melee && dPlayer < CHARGE_HIT_DIST * Math.max(1, a.scale)) this.chargeHit(a, br);   // melee shards connect per frame on an arc (chargeContact)
+        else if (br.timer <= 0) { br.chargeCd = T.stalk !== undefined ? T.stalk.rechargeCd : M.relentless ? 1.5 : 4; this.enter(a, br, after); }
         break;
       }
       case 'attack': case 'dead': case 'hide': case 'perch': case 'rise': case 'sidestep': break;
@@ -666,6 +730,33 @@ export class AnimalManager {
     // keep every animal inside the chunk / off steep ground / out of trunks
     this.confine(a);
     if (herd !== null) this.updateHerd(herd);
+  }
+
+  /** a charge reached the player: the damage, the grunt, the cooldown, and back to stalk (hunters) / flee (a boar wheels away) */
+  private chargeHit(a: Animal, br: Brain): void {
+    const T = this.tuningFor(a), sp = speciesDef(a.kind);
+    this.onCharge?.(a, a.mods.chargeDamage);
+    this.onSound?.((sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
+    br.chargeCd = T.stalk !== undefined ? T.stalk.rechargeCd : a.mods.relentless ? 2 : 6;   // Old Ironhide wheels round and comes again
+    this.enter(a, br, T.stalk !== undefined ? 'stalk' : 'flee');
+  }
+
+  /** melee shards, every frame: a running charge connects when it reaches the player AND the player is inside CHARGE_ARC of its heading */
+  private chargeContact(a: Animal, player: THREE.Vector3): void {
+    const br = this.brains.get(a);
+    if (br === undefined || br.windup > 0) return;
+    const dx = player.x - a.position.x, dz = player.z - a.position.z;
+    const reach = CHARGE_HIT_DIST * Math.max(1, a.scale);
+    if (dx * dx + dz * dz > reach * reach || Math.abs(player.y - a.position.y) > 2.5) return;
+    if (!this.facing(a, player, CHARGE_ARC)) return; // it runs past a player who stepped aside
+    this.chargeHit(a, br);
+  }
+
+  /** the player is within ±`arc` of the animal's heading */
+  private facing(a: Animal, player: THREE.Vector3, arc: number): boolean {
+    let rel = Math.atan2(player.x - a.position.x, player.z - a.position.z) - a.yaw;
+    rel = Math.atan2(Math.sin(rel), Math.cos(rel));
+    return Math.abs(rel) <= arc;
   }
 
   private thinkCtx: ThinkCtx = {
@@ -687,6 +778,14 @@ export class AnimalManager {
       case 'wander': {
         const herd = a.herd >= 0 ? this.herds[a.herd] ?? null : null;
         let ok = false;
+        const nav = activeNavmesh();
+        if (nav !== null) {
+          // a reachable point 5–25 m away on the navmesh; a straggler > 15 m from its herd wanders back toward the centre
+          const far = herd !== null && Math.hypot(a.position.x - herd.cx, a.position.z - herd.cz) > 15;
+          const origin = herd !== null && far ? _navFrom.set(herd.cx, heightAt(herd.cx, herd.cz), herd.cz) : a.position;
+          const t = nav.randomPointNear(origin, far ? 10 : rng.range(5, 25), this.agentRadius(a), () => rng.next(), _navTo);
+          if (t !== null && inChunk(t.x, t.z, 20)) { br.tx = t.x; br.tz = t.z; ok = true; }
+        }
         for (let i = 0; i < 12 && !ok; i++) {
           const ang = rng.range(0, Math.PI * 2), r = rng.range(5, 25);
           let tx = a.position.x + Math.cos(ang) * r, tz = a.position.z + Math.sin(ang) * r;
@@ -720,6 +819,9 @@ export class AnimalManager {
         break;
       case 'charge':
         br.timer = a.mods.relentless ? 12 : 4; br.wary = T.waryTime;
+        // melee shard: the charge opens with a readable wind-up (think 'charge'; the roar below is its cue)
+        br.windup = this.melee ? CHARGE_WINDUP[a.kind] ?? CHARGE_WINDUP_DEFAULT : 0;
+        if (br.windup > 0) { a.startAttack(br.windup); a.setMotion(a.yaw, 0, 3); }
         this.onSound?.((T.stalk?.roar ?? sp.sounds?.call ?? 'boar_grunt') as AnimalSound, a.position);
         break;
       case 'attack': case 'dead': case 'hide': case 'perch': case 'rise': case 'sidestep': break;
@@ -770,7 +872,43 @@ export class AnimalManager {
     }
   }
 
-  /** desired heading with trunk repulsion, slope + edge avoidance */
+  /** the creature's navmesh layer radius — the same size as its physics body (src/physics/creatures.ts) */
+  private agentRadius(a: Animal): number {
+    return THREE.MathUtils.clamp(Math.min(a.dims.bodyRadius, a.dims.bodyHalfLen) * a.scale, 0.12, 0.9);
+  }
+
+  private repaths = 0;
+  /** seconds of world time (the path re-plan timers run on it) */
+  private clock = 0; // path searches this think tick (capped: a herd bolting at once doesn't search 20 paths in one tick)
+
+  /**
+   * Head for (tx, tz) along the navmesh (PHYSICS P6b): re-path when the goal moved > 2 m or every `every` s, follow the
+   * path's corners, and let the physics body resolve the last metre. Without a navmesh (dev scenes, an old build):
+   * the straight heading through `steer`'s trunk / slope / edge bending, as before.
+   */
+  private steerTo(a: Animal, br: Brain, tx: number, tz: number, speed: number, turnRate: number, every: number): void {
+    const nav = activeNavmesh();
+    if (nav === null) { this.steer(a, Math.atan2(tx - a.position.x, tz - a.position.z), speed, turnRate); return; }
+    const now = this.clock;
+    const stale = br.path.length === 0 || Math.hypot(tx - br.goalX, tz - br.goalZ) > 2 || now >= br.repathAt;
+    if (stale && this.repaths < 8) {
+      this.repaths++;
+      _navTo.set(tx, heightAt(tx, tz), tz);
+      const p = nav.findPath(a.position, _navTo, this.agentRadius(a), br.path);
+      if (p === null) br.path.length = 0;
+      br.pathI = 0; br.goalX = tx; br.goalZ = tz; br.repathAt = now + every;
+    }
+    while (br.pathI < br.path.length) {
+      const c = br.path[br.pathI];
+      if (c === undefined || Math.hypot(c.x - a.position.x, c.z - a.position.z) > 0.8) break;
+      br.pathI++;
+    }
+    const c = br.path[br.pathI];
+    const aimX = c === undefined ? tx : c.x, aimZ = c === undefined ? tz : c.z;
+    a.setMotion(Math.atan2(aimX - a.position.x, aimZ - a.position.z), speed, turnRate);
+  }
+
+  /** desired heading with trunk repulsion, slope + edge avoidance — the no-navmesh fallback of `steerTo` */
   private steer(a: Animal, yaw: number, speed: number, turnRate: number): void {
     let vx = Math.sin(yaw), vz = Math.cos(yaw);
     const px = a.position.x, pz = a.position.z;
@@ -830,32 +968,25 @@ export class AnimalManager {
    * (the returned object is reused between calls — copy what you need).
    */
   raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number, aliveOnly = true): AnimalHit | null {
-    let best = maxDist, bestA: Animal | null = null, bestHead = false;
-    for (const a of this.animals) {
-      if ((aliveOnly && !a.alive) || a.hidden) continue;
-      // broad phase: bounding sphere around the animal
-      _c.copy(a.position); _c.y += a.dims.bodyY * a.scale;
-      _d.subVectors(_c, origin);
-      const tca = _d.dot(dir);
-      if (tca < -2 || tca > best + 2) continue;
-      const bR = (a.dims.bodyHalfLen + 1.2) * a.scale;
-      if (_d.lengthSq() - tca * tca > bR * bR) continue;
-      // head
-      a.headWorld(_p);
-      const th = raySphere(origin, dir, _p, a.dims.headRadius * a.scale);
-      if (th >= 0 && th < best) { best = th; bestA = a; bestHead = true; }
-      // body capsule
-      a.bodyCapsule(_a, _b);
-      const tb = rayCapsule(origin, dir, _a, _b, a.dims.bodyRadius * a.scale);
-      if (tb >= 0 && tb < best) { best = tb; bestA = a; bestHead = false; }
-    }
-    if (bestA === null) return null;
-    const h = this.hitResult ??= { animal: bestA, point: new THREE.Vector3(), distance: 0, headshot: false, damage: 0 };
-    h.animal = bestA; h.distance = best; h.headshot = bestHead;
-    h.point.copy(origin).addScaledVector(dir, best);
-    h.damage = this.damageFor(bestHead, h.point.distanceTo(this.playerPos));
+    // PHYSICS P6: the animals' head / body hitboxes in the physics world (posed every update); dead ones have none
+    void aliveOnly;
+    const hit = this.bodiesFor()?.cast(origin, dir, maxDist) ?? null;
+    if (hit === null) return null;
+    const h = this.hitResult ??= { animal: hit.creature, point: new THREE.Vector3(), distance: 0, headshot: false, damage: 0 };
+    h.animal = hit.creature; h.distance = hit.distance; h.headshot = hit.head;
+    h.point.copy(hit.point);
+    h.damage = this.damageFor(hit.head, h.point.distanceTo(this.playerPos));
     return h;
   }
+
+  private bodies: CreatureBodies<Animal> | null = null;
+  /** the physics side of the herds (src/physics/creatures.ts), made once the shard's world exists */
+  private bodiesFor(): CreatureBodies<Animal> | null {
+    if (this.bodies === null) { const p = activePhysics(); if (p !== null) this.bodies = new CreatureBodies<Animal>(p); }
+    return this.bodies;
+  }
+  /** how many animals have a physics body (the near LOD) — the bench reads it */
+  get physicsBodies(): number { return this.bodies?.bodies ?? 0; }
 
   /**
    * The living animal whose head sphere or body capsule passes within `tol` m of the ray (nearest along the ray),
@@ -925,8 +1056,16 @@ export class AnimalManager {
    */
   private staggered = (a: Animal, strength: number, running: boolean): void => {
     const br = this.brains.get(a);
-    if (br === undefined || !running || a.state !== 'charge' || speciesDef(a.kind).think !== undefined) return;
+    if (br === undefined || a.state !== 'charge' || speciesDef(a.kind).think !== undefined) return;
     const T = this.tuningFor(a);
+    if (br.windup > 0) {
+      // a blow during the wind-up interrupts the charge (melee shards): glare, then come again once the cooldown lets it
+      br.windup = 0; br.chargeCd = 1.0 + strength;
+      this.enter(a, br, T.stalk !== undefined ? 'stalk' : 'alert');
+      br.freeze = 0.4 + strength * 0.6;
+      return;
+    }
+    if (!running) return;
     br.chargeCd = strength >= 0.75 ? (T.stalk !== undefined ? T.stalk.rechargeCd : 1.4) : 0.3;
     this.enter(a, br, T.stalk !== undefined ? 'stalk' : 'alert');
     br.freeze = 0.3 + strength * 0.8;
@@ -959,16 +1098,8 @@ export class AnimalManager {
 // Ray helpers
 // ─────────────────────────────────────────────────────────────────────────────────────────
 
-const _oc = new THREE.Vector3(), _ab = new THREE.Vector3(), _ao = new THREE.Vector3();
+const _ab = new THREE.Vector3(), _ao = new THREE.Vector3();
 
-function raySphere(o: THREE.Vector3, d: THREE.Vector3, c: THREE.Vector3, r: number): number {
-  _oc.subVectors(o, c);
-  const b = _oc.dot(d), cc = _oc.dot(_oc) - r * r;
-  const disc = b * b - cc;
-  if (disc < 0) return -1;
-  const t = -b - Math.sqrt(disc);
-  return t >= 0 ? t : (cc < 0 ? 0 : -1);
-}
 
 /** squared distance between a ray (o, d unit) and a segment a-b (closest points, clamped to the segment and t ≥ 0) */
 function segRayDist2(o: THREE.Vector3, d: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3): number {
@@ -983,24 +1114,3 @@ function segRayDist2(o: THREE.Vector3, d: THREE.Vector3, a: THREE.Vector3, b: TH
   return px * px + py * py + pz * pz;
 }
 
-/** ray vs capsule (segment a-b, radius r): infinite-cylinder test clipped to the segment, plus the end spheres */
-function rayCapsule(o: THREE.Vector3, d: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3, r: number): number {
-  _ab.subVectors(b, a); _ao.subVectors(o, a);
-  const abab = _ab.dot(_ab), abd = _ab.dot(d), abao = _ab.dot(_ao), aod = _ao.dot(d), aoao = _ao.dot(_ao);
-  const A = abab - abd * abd, B = abab * aod - abao * abd, C = abab * (aoao - r * r) - abao * abao;
-  let best = -1;
-  if (A > 1e-6) {
-    const disc = B * B - A * C;
-    if (disc >= 0) {
-      const t = (-B - Math.sqrt(disc)) / A;
-      if (t >= 0) {
-        const y = abao + t * abd;
-        if (y >= 0 && y <= abab) best = t;
-      }
-    }
-  }
-  const ta = raySphere(o, d, a, r), tb = raySphere(o, d, b, r);
-  if (ta >= 0 && (best < 0 || ta < best)) best = ta;
-  if (tb >= 0 && (best < 0 || tb < best)) best = tb;
-  return best;
-}

@@ -3,7 +3,7 @@ import type { Game } from '../core/Game';
 import type { Sky } from '../world/Sky';
 import type { Player } from '../player/Player';
 import type { Forest } from '../world/Forest';
-import type { DayClock } from '../world/DayNight';
+import type { DayClock } from '../world/DayClock';
 import type { Balbals } from '../world/nalati/Balbals';
 import type { AnimalManager } from '../entities/AnimalManager';
 import type { TargetHit } from '../player/Crossbow';

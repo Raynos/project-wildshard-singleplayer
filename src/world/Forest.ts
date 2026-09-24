@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import type { ColliderDesc } from './registry';
 import { CHUNK_HALF, CHUNK_SIZE } from '../core/config';
 import { placeForest, TreeGrid, type TreeInstance } from './placement';
 import { type TreeFactory, windUniforms } from './TreeFactory';
@@ -49,7 +50,7 @@ export class Forest {
   /** Called whenever the tree buckets are refilled (view moved > 1.5 m or turned > 3°), with the padded cull frustum. */
   onViewChange(fn: (frustum: THREE.Frustum, viewer: THREE.Vector3) => void): void { this.viewListeners.push(fn); this.lastLodPos.set(1e9, 0, 0); }
 
-  constructor(private factory: TreeFactory, private sky: Sky) { this.path = factory.multiDraw ? 'batched' : 'instanced'; }
+  constructor(readonly factory: TreeFactory, private sky: Sky) { this.path = factory.multiDraw ? 'batched' : 'instanced'; }
 
   /** Soft canopy-density texture (for terrain darkening under trees, and grass thinning). */
   canopyMap!: THREE.DataTexture;
@@ -163,6 +164,14 @@ export class Forest {
 
   /** trees whose trunk might intersect a circle at (x,z) — for collision */
   nearby(x: number, z: number, radius = 2): TreeInstance[] { return this.grid.nearby(x, z, radius); }
+
+  /** PHYSICS P3: the trunks as upright capsules (their radius, ground to crown) — src/physics/pieces.ts builds them. */
+  colliderDescs(): ColliderDesc[] {
+    return this.trees.map((t) => {
+      const h = Math.max(1, t.height);
+      return { kind: 'capsule', x: t.x, y: t.y + h / 2, z: t.z, halfHeight: Math.max(0.05, h / 2 - t.r), radius: t.r };
+    });
+  }
 
   private tmpM = new THREE.Matrix4();
   private tmpQ = new THREE.Quaternion();

@@ -15,7 +15,7 @@ import { BossBar } from '../ui/BossBar';
 import { GroundTell } from '../game/Elite';
 import { fxMaterial, FX, type FxMaterial } from '../world/nalati/KurganDungeon';
 import { heightAt, normalAt } from '../world/Heightfield';
-import { wind } from '../world/Wind';
+import { wind } from '../world/steppeWind';
 import { wildEnv } from '../entities/wildEnv';
 import { setEliteDamage } from '../entities/eliteBrain';
 import { CAIRN } from '../chunks/nalati-grasslands';

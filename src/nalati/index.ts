@@ -21,7 +21,7 @@ import type { Player } from '../player/Player';
 import type { Forest } from '../world/Forest';
 import type { ChunkDef } from '../chunks/ChunkDef';
 import { syncPainterlySun, updatePainterly, setPainterlyLook, painterlyUniforms } from '../world/painterly';
-import { wind } from '../world/Wind';
+import { wind } from '../world/steppeWind';
 import { windUniforms } from '../world/TreeFactory';
 import { NalatiWater } from './water';
 import { buildOutcrops } from './outcrops';

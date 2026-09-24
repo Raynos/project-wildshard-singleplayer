@@ -1,4 +1,8 @@
 import * as THREE from 'three';
+import type { CharacterMotor } from '../physics/CharacterMotor';
+import { activePhysics } from '../physics/active';
+import { ragdollsFor, type Ragdoll } from '../physics/ragdoll';
+import { TIER } from '../core/tier';
 import { heightAt } from '../world/Heightfield';
 import { variantMods, type AnimalDims, type AnimalKind, type AnimalModel, type AnimalRig, type Rarity, type VariantMods, type RigAnimCtx } from './AnimalFactory';
 
@@ -9,6 +13,12 @@ import { variantMods, type AnimalDims, type AnimalKind, type AnimalModel, type A
  * written into a flat Float32Array of joint angles, plus additive layers (alert look-at,
  * hit flinch, death collapse) and terrain adaptation (body tilt to the slope, per-foot
  * knee flex so hooves plant). The result is applied to the rig's bones every frame.
+ *
+ * DEATH (PHYSICS P8): the killing hit hands the body to a ragdoll (src/physics/ragdoll.ts) — built at the pose it died
+ * in, thrown by the hit's `dir` / damage, posed from the physics every frame, frozen to a static corpse once it rests.
+ * A quadruped's bones are all physics; a custom rig (crab: one tumbling body; monkey / sailor: one upright body that
+ * falls) keeps its species' keyframed death on the limbs. Past the tier's live-ragdoll cap (phone 2, desktop 6), or with
+ * no physics world (dev scenes), the death is the keyframed collapse below.
  *
  * Public surface used by other systems:
  *   animal.kind: 'deer' | 'boar' | …  animal.alive      animal.position (feet, world)
@@ -21,6 +31,13 @@ import { variantMods, type AnimalDims, type AnimalKind, type AnimalModel, type A
  *   animal.stagger(dir, strength)     a melee blow: pushed STAGGER_PUSH m along `dir` over 0.25 s, AI frozen (`stunned`)
  *                                     for 0.4–0.8 s in a braced flinch; strength 0 = light (0.6 m / 0.4 s), 1 = heavy (1.5 m / 0.8 s)
  *   animal.headWorld(out) / bodyCapsule(a, b)  — hit volumes (world space)
+ *   animal.hitFlash(strength)         a melee blow's white flash (Sword.ts): the body's per-animal material glows white and
+ *                                     fades over FLASH_T s (world time — it holds through a hit-stop)
+ *   animal.attackTurnCap              rad/s the heading may turn while an attack runs (Infinity = free; the Driftwood manager
+ *                                     sets ATTACK_TURN so a committed swing can be strafed out of — "strafe is the dodge")
+ *   A stagger CANCELS a running attack (a hit interrupts a wind-up: the species' think sees attackPhase < 0 and recovers).
+ *   Custom rigs lean away from the blow (the root tilts by the directional flinch); quadrupeds with an attack running (the
+ *   manager's charge wind-up) drop the head, lower the front and paw the ground (poseWindup).
  *
  * The AnimalManager owns AI state and calls animal.setMotion(desiredYaw, desiredSpeed).
  *
@@ -75,10 +92,14 @@ const _v = new THREE.Vector3();
 
 /** stagger (a sword blow, Sword.ts): push distance / hold time at strength 0 (light) and 1 (heavy), the push's duration */
 const STAGGER_PUSH = [0.6, 1.5] as const, STAGGER_STUN = [0.4, 0.8] as const, STAGGER_PUSH_T = 0.25;
+/** the melee hit flash: seconds to fade, emissive intensity at strength 1 */
+const FLASH_T = 0.14, FLASH_I = 0.9;
 
 /** the bones Animal.ts poses by name on a quadruped rig (resolved once at construction; a custom rig only has body + head) */
 interface QuadBones { body: THREE.Bone; neck1: THREE.Bone; neck2: THREE.Bone; head: THREE.Bone; earL: THREE.Bone; earR: THREE.Bone; tail: THREE.Bone; belly: THREE.Bone }
 type LegBones = readonly [THREE.Bone, THREE.Bone, THREE.Bone];
+
+const _want = { x: 0, y: 0, z: 0 };
 
 export class Animal {
   kind: AnimalKind;
@@ -114,6 +135,11 @@ export class Animal {
   /** per-animal scratch for a species' think / animate (numbers only) */
   mem: Record<string, number> = {};
   private attackT = -1; private attackDur = 1;
+  /** rad/s the heading may turn while an attack runs (see the header) */
+  attackTurnCap = Infinity;
+  /** the per-animal body material (AnimalFactory clones the fur per instance for its tint) the hit flash drives, or null */
+  private flashMat: THREE.MeshStandardMaterial | THREE.MeshLambertMaterial | null = null; // Lambert: the painterly shard's creatures
+  private flashBase = new THREE.Color(); private flashBaseI = 1; private flash = 0;
 
   private bones: Record<string, THREE.Bone>;
   /** the two bones every rig has (hit volumes), and the full quadruped set (null on a custom rig) */
@@ -154,7 +180,9 @@ export class Animal {
   /** draw LOD (see setDrawLod): the rig's own geometry + [fur, hard, eye] materials, kept while a lower level is on */
   private drawLod = 0;
   private lodBase: { geometry: THREE.BufferGeometry; materials: THREE.Material[] } | null = null;
-  private legAbd = new Float32Array(4);       // corpse: per-leg sideways angle so hooves settle on the ground
+  private legAbd = new Float32Array(4);       // keyframed corpse: per-leg sideways angle (ground-side legs tuck, top legs drape)
+  /** the death's ragdoll (PHYSICS P8): drives the mesh + bones while live, then holds the frozen corpse; null = keyframed */
+  private ragdoll: Ragdoll | null = null;
 
   constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1) {
     this.kind = model.kind;
@@ -182,6 +210,8 @@ export class Animal {
     }
     this.gaitW[G_IDLE] = 1;
     this.gaitTrot = model.species.gait?.trot ?? 2.4; this.gaitGallop = model.species.gait?.gallop ?? 4.6;
+    const fur = rig.materials[0];
+    if (fur !== undefined && fur !== model.hard) { this.flashMat = fur; this.flashBase.copy(fur.emissive); this.flashBaseI = fur.emissiveIntensity; }
     this.rigCtx = {
       bones: this.bones, dims: model.dims, dt: 0, t: 0, seed, scale, speed: 0, strafe: 0, phase: 0, state: 'idle', alive: true,
       deathT: -1, flinch: 0, brace: 0, attack: -1, lookTarget: this.lookTarget, lookWeight: 0, position: this.position, yaw: 0, mem: this.mem, animal: this,
@@ -209,10 +239,26 @@ export class Animal {
   setStrafe(mps: number): void { this.desiredStrafe = mps; }
 
   /** begin an attack lasting `dur` s: `attackPhase` runs 0 → 1 (the species' animate poses the wind-up and the strike from it) */
-  startAttack(dur: number): void { this.attackT = 0; this.attackDur = Math.max(0.05, dur); }
+  startAttack(dur: number): void { this.attackT = 0; this.attackDur = Math.max(0.05, dur); this.onAttack?.(this, this.attackDur); }
+  /** set by the manager: an attack (a wind-up) just started — the telegraph's sound cue */
+  onAttack?: ((animal: Animal, dur: number) => void) | undefined;
   /** 0..1 through the current attack, -1 when none (held at 1 until the next startAttack / cancelAttack) */
   get attackPhase(): number { return this.attackT < 0 ? -1 : Math.min(1, this.attackT / this.attackDur); }
   cancelAttack(): void { this.attackT = -1; }
+
+  /** a melee blow's white flash (0..1): the body glows white and fades over FLASH_T s (see the header) */
+  hitFlash(strength = 1): void {
+    if (this.flashMat === null) return;
+    this.flash = Math.max(this.flash, THREE.MathUtils.clamp(strength, 0, 1));
+    this.applyFlash();
+  }
+  private applyFlash(): void {
+    const m = this.flashMat;
+    if (m === null) return;
+    const k = this.flash;
+    if (k <= 0) { m.emissive.copy(this.flashBase); m.emissiveIntensity = this.flashBaseI; return; }
+    m.emissive.setRGB(1, 1, 1).lerp(this.flashBase, 1 - k); m.emissiveIntensity = THREE.MathUtils.lerp(this.flashBaseI, FLASH_I, k);
+  }
 
   // ── combat ─────────────────────────────────────────────────────────────────────────────
 
@@ -266,12 +312,54 @@ export class Animal {
       this.deathT = 0; this.deathSide = lx >= 0 ? -1 : 1; // pushed over away from the shot (legs face the shooter)
       for (let l = 0; l < 4; l++) this.legAbd[l] = ((l % 2 === 0) === (this.deathSide < 0)) ? 0.35 : 0.25;
       this.desiredSpeed = 0;
+      this.startRagdoll(dealt, hitPoint, dir);
       this.onDamaged?.(this, dealt, hitPoint, dir, true);
       return true;
     }
     this.onDamaged?.(this, dealt, hitPoint, dir, false);
     return false;
   }
+
+  /**
+   * The death's ragdoll (see the header): the build from the rig, the animal's own motion plus the hit's throw. Null
+   * past the tier cap or with no physics world — then the keyframed collapse runs as before.
+   */
+  private startRagdoll(damage: number, hitPoint: THREE.Vector3, dir: THREE.Vector3): void {
+    const physics = activePhysics();
+    if (physics === null) return;
+    const d = this.model.dims;
+    const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
+    this.mesh.updateMatrixWorld(true);
+    this.ragdoll = ragdollsFor(physics).spawn({
+      build: !this.custom ? 'quadruped' : d.capsuleAxis === 'y' ? 'upright' : 'rigid',
+      root: this.mesh, bones: this.bones, dims: d, scale: this.scale, lite: TIER === 'phone',
+      // forward along the heading, strafe to the animal's left (world (cos yaw, -sin yaw))
+      velocity: { x: sin * this.speed + cos * this.strafe, y: 0, z: cos * this.speed - sin * this.strafe },
+      hitPoint, dir, damage,
+    });
+  }
+
+  /** A ragdolled death's frame: the physics poses the mesh (and a quadruped's bones), a custom rig's limbs keep their keyframes. */
+  private updateRagdoll(r: Ragdoll, dt: number, t: number, near: boolean): void {
+    this.speed = 0; this.strafe = 0;
+    if (this.custom && near) {
+      if (this.flinch > 0.001) this.flinch *= Math.exp(-dt * 5.5);
+      if (this.deathT >= 0) this.deathT = Math.min(1, this.deathT + dt / 0.8);
+      const c = this.rigCtx;
+      c.dt = dt; c.t = t; c.speed = 0; c.strafe = 0; c.phase = this.phase; c.state = this.state; c.alive = false;
+      c.deathT = this.deathT; c.flinch = this.flinch; c.brace = 0; c.attack = -1; c.lookWeight = 0; c.yaw = this.yaw;
+      this.model.species.animate?.(c);
+    }
+    r.pose(dt);
+    // the corpse's place (loot, harvest): under the torso, or the custom rig's root
+    r.rootPosition(this.position);
+    if (!this.custom) this.position.y -= this.model.dims.halfWidth * this.scale;
+    this.updateFade(dt);
+    if (this.hidden) r.dispose();
+  }
+
+  /** the physics body while near the player (src/physics/creatures.ts hands it out and takes it back) */
+  motor: CharacterMotor | null = null;
 
   /** true while a stagger holds it: the manager skips its think, it neither steers nor walks */
   get stunned(): boolean { return this.stunT > 0; }
@@ -294,6 +382,7 @@ export class Animal {
     this.brace = 1;
     this.speed = 0; this.desiredSpeed = 0;
     this.flinch = Math.max(this.flinch, 0.8 + 0.2 * s);
+    this.cancelAttack(); // a hit interrupts a wind-up
     this.onStaggered?.(this, s, running);
   }
 
@@ -302,6 +391,9 @@ export class Animal {
   /** Integrate motion and animate. `t` = global seconds; `near` = within animation LOD range. */
   update(dt: number, t: number, near: boolean): void {
     const d = this.model.dims;
+    const x0 = this.position.x, z0 = this.position.z;
+    if (this.flash > 0) { this.flash = Math.max(0, this.flash - dt / FLASH_T); this.applyFlash(); }
+    if (this.ragdoll !== null) { this.updateRagdoll(this.ragdoll, dt, t, near); return; }
     if (this.alive && this.stunT > 0) {
       // staggered: no steering, no gait — shoved back along the blow with an ease-out, then held
       this.stunT -= dt; this.speed = 0;
@@ -317,7 +409,7 @@ export class Animal {
       // heading + speed steering
       let dy = this.desiredYaw - this.yaw;
       dy = Math.atan2(Math.sin(dy), Math.cos(dy));
-      const maxTurn = this.turnRate * dt;
+      const maxTurn = (this.attackT >= 0 ? Math.min(this.turnRate, this.attackTurnCap) : this.turnRate) * dt;
       this.yaw += THREE.MathUtils.clamp(dy, -maxTurn, maxTurn);
       const accel = this.desiredSpeed > this.speed ? 7 : 11;
       this.speed += THREE.MathUtils.clamp(this.desiredSpeed - this.speed, -accel * dt, accel * dt);
@@ -332,6 +424,18 @@ export class Animal {
         this.position.z -= Math.sin(this.yaw) * this.strafe * dt;
       }
     } else { this.speed = 0; this.strafe = 0; }
+
+    // near the player the move goes through the physics body (PHYSICS P6): walls, rocks, trunks, the player and other
+    // animals stop it — the walk, the charge and a knock-back alike
+    if (this.motor !== null && this.alive) {
+      const dx = this.position.x - x0, dz = this.position.z - z0;
+      if (dx !== 0 || dz !== 0) {
+        this.position.x = x0; this.position.z = z0;
+        _want.x = dx; _want.y = 0; _want.z = dz;
+        this.motor.move(this.position, _want, true);
+        this.position.y = this.groundY + this.yOffset; // the motor ignores the terrain: the ground follow below owns y
+      }
+    }
 
     // ground follow (smoothed so bumps in the heightfield don't jitter the body)
     const gy = heightAt(this.position.x, this.position.z);
@@ -443,6 +547,9 @@ export class Animal {
       if (this.stunT <= 0) this.brace *= Math.exp(-dt * 7);
     }
 
+    // ── attack wind-up (the manager's charge telegraph on a melee shard): head down, front low, a front hoof paws ──
+    if (this.alive && this.attackT >= 0) this.poseWindup(t);
+
     // ── death collapse ──
     if (this.deathT >= 0) {
       this.deathT = Math.min(1, this.deathT + dt / 0.8);
@@ -536,22 +643,19 @@ export class Animal {
     if (k >= 1) { this.hidden = true; this.mesh.visible = false; this.fadeT = -1; }
   }
 
-  /**
-   * Corpse: measure each hoof against the terrain and swing the ground-side legs down until the hooves
-   * rest on it (the top-side legs lie across the body). Called by the manager at 10 Hz for dead animals.
-   */
-  settleCorpse(): void {
-    if (this.alive || this.deathT < 0.6 || this.custom) return;
-    const side = this.deathSide;
-    for (let l = 0; l < 4; l++) {
-      const down = (l % 2 === 0) === (side < 0);
-      const leg = this.legDir[l];
-      if (leg === undefined) continue;
-      _v.set(0, -0.11, 0).applyMatrix4(leg[2].matrixWorld);          // hoof tip in world space (bone matrices carry the mesh scale)
-      const clr = _v.y - heightAt(_v.x, _v.z);
-      // swing the leg toward the ground while the hoof is in the air, back if it digs in; top legs only drape so far
-      this.legAbd[l] = THREE.MathUtils.clamp((this.legAbd[l] ?? 0) + THREE.MathUtils.clamp(clr * 1.5, -0.12, 0.12), -0.15, down ? 1.2 : 0.4);
-    }
+  /** the charge telegraph, additive on the pose: eased in over the first 30 % of the attack, held, eased out in the last 15 % */
+  private poseWindup(t: number): void {
+    const ph = this.attackPhase;
+    const env = smooth01(Math.min(1, ph / 0.3)) * smooth01(Math.min(1, (1 - ph) / 0.15));
+    if (env <= 0.001) return;
+    this.add(P_BODY_PITCH, 0.1 * env);                       // nose down, rump up
+    this.add(P_BODY_Y, -0.05 * env * this.model.dims.bodyY);
+    this.add(P_NECK1, 0.45 * env); this.add(P_NECK2, 0.15 * env); this.add(P_HEAD_P, 0.25 * env);
+    this.add(P_EARL_P, 0.55 * env); this.add(P_EARR_P, 0.55 * env);  // ears pinned
+    this.add(P_TAIL_P, 0.6 * env);                          // tail up
+    const paw = Math.max(0, Math.sin(t * 13 + this.seed * 5));        // the front-right hoof scrapes back, twice a second
+    this.add(P_LEG + 1 * 3, (-0.35 + 0.7 * paw) * env); this.add(P_LEG + 1 * 3 + 1, 0.45 * paw * env);
+    this.add(P_LEG + 2 * 3 + 1, 0.12 * env); this.add(P_LEG + 3 * 3 + 1, 0.12 * env);  // hind legs load
   }
 
   // ── pose generators (write into this.tmp) ────────────────────────────────────────────
@@ -714,8 +818,8 @@ export class Animal {
       u.rotation.x = -(p[P_LEG + l * 3] ?? 0);
       m.rotation.x = p[P_LEG + l * 3 + 1] ?? 0;
       lo.rotation.x = p[P_LEG + l * 3 + 2] ?? 0;
-      // corpse: legs swing toward the ground (settled per hoof by settleCorpse); ground is local +X when the
-      // body rolled onto its left side (side < 0), local -X otherwise
+      // keyframed corpse: legs swing sideways by legAbd; ground is local +X when the body rolled onto its left side
+      // (side < 0), local -X otherwise
       u.rotation.z = dead * (this.legAbd[l] ?? 0) * (this.deathSide < 0 ? 1 : -1);
     }
     // breathing: the belly bone swells (visible at a few metres), faster after running
@@ -732,7 +836,9 @@ export class Animal {
   private applyRoot(): void {
     const m = this.mesh;
     m.position.copy(this.position);
-    m.rotation.set(this.tiltPitch, this.yaw, this.tiltRoll, 'YXZ');
+    // a custom rig has no flinch in its bones' pose code here: the whole body leans away from the blow instead
+    const f = this.custom && this.alive ? this.flinch * 1.8 : 0;
+    m.rotation.set(this.tiltPitch + this.flinchPitch * f, this.yaw, this.tiltRoll + this.flinchRoll * f, 'YXZ');
   }
 }
 

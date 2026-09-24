@@ -17,6 +17,11 @@ import type { Collider } from '../player/Player';
 import { Rng } from '../core/rng';
 import { SEED } from '../core/config';
 import type { Sky } from './Sky';
+import { heightAt } from './Heightfield';
+import { waveHeight, seaDamp } from './waves';
+import { attachFogUniforms } from './Atmosphere';
+import { patchSway, swayDepthMaterial } from './wind';
+import type { ColliderDesc } from './registry';
 
 export interface BoatSpec {
   x: number; z: number;
@@ -121,6 +126,7 @@ export class Boat {
     add(new THREE.CylinderGeometry(0.06, 0.085, mastH, 7).translate(0, 0.32 + mastH / 2, mz), C.mast, 0.05);
     add(new THREE.CylinderGeometry(0.045, 0.045, 3.3, 6).rotateX(Math.PI / 2).translate(0, 1.45, mz + 1.65), C.mast, 0.05);
     add(new THREE.CylinderGeometry(0.04, 0.04, 2.2, 6).rotateX(Math.PI / 2).translate(0, 0.32 + mastH - 0.05, mz + 1.1), C.mast, 0.05); // gaff-ish yard
+    const sail0 = parts.length;
     {
       const cols = 6, rows = 8, top = 0.32 + mastH - 0.1, bot = 1.55, foot = 3.1, head = 2.0;
       const pt = (u: number, v: number): number[] => {
@@ -135,16 +141,31 @@ export class Boat {
         quad(pt(u0, v0), pt(u1, v0), pt(u1, v1), pt(u0, v1), patch ? C.patch : C.sail, 0.04);
       }
     }
+    // the sail flutters in the shared wind (M5): still at the mast, most at the leech halfway up
+    for (let i = sail0; i < parts.length; i++) {
+      const g = parts[i];
+      if (g === undefined) continue;
+      const p = g.getAttribute('position'), a = new Float32Array(p.count * 2), top = 0.32 + mastH - 0.1, bot = 1.55;
+      for (let k = 0; k < p.count; k++) {
+        const u = Math.min(1, Math.max(0, (p.getZ(k) - mz) / 3.1)), v = Math.min(1, Math.max(0, (p.getY(k) - bot) / (top - bot)));
+        a[k * 2] = u * (0.25 + 0.75 * Math.sin(v * Math.PI)) * 0.8; a[k * 2 + 1] = 2.1;
+      }
+      g.setAttribute('aSway', new THREE.BufferAttribute(a, 2));
+    }
     // rudder + tiller
     add(new THREE.BoxGeometry(0.06, 1.0, 0.5).translate(0, 0.1, LENGTH / 2 + 0.2), C.trim, 0.05);
     add(new THREE.BoxGeometry(0.05, 0.05, 1.3).translate(0, 0.78, LENGTH / 2 - 0.5), C.mast, 0.05);
 
+    for (const g of parts) if (!g.hasAttribute('aSway')) g.setAttribute('aSway', new THREE.BufferAttribute(new Float32Array(g.getAttribute('position').count * 2), 2));
     const geo = mergeGeometries(parts, false);
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.85, metalness: 0, side: THREE.DoubleSide });
+    mat.onBeforeCompile = (sh) => { attachFogUniforms(sh); patchSway(sh); };
+    mat.customProgramCacheKey = () => 'boat-sway';
     this.sky.setupMaterial(mat);
     this.mesh = new THREE.Mesh(geo, mat);
     this.mesh.castShadow = true; this.mesh.receiveShadow = true;
+    this.mesh.customDepthMaterial = swayDepthMaterial();
     this.group.add(this.mesh);
     this.group.position.set(this.spec.x, this.spec.waterY, this.spec.z);
     this.group.rotation.y = this.spec.heading ?? 0;
@@ -168,7 +189,23 @@ export class Boat {
         ni.setAttribute('color', new THREE.BufferAttribute(c, 3));
         ropeParts.push(ni);
       });
-      const ropes = new THREE.Mesh(mergeGeometries(ropeParts, false), mat);
+      const ropeGeo = mergeGeometries(ropeParts, false);
+      // each rope vertex remembers its rest position, which rope it is and how far along it lies (1 at the cleat, 0 at
+      // the post), so update() can lift the cleat end with the boat on the swell and leave the post end tied
+      const rp = ropeGeo.getAttribute('position');
+      this.ropeRest = new Float32Array(rp.array);
+      this.ropeW = new Float32Array(rp.count);
+      this.ropeWhich = new Uint8Array(rp.count);
+      const perRope = rp.count / ropeParts.length;
+      for (let k = 0; k < rp.count; k++) {
+        const which = Math.min(ropeParts.length - 1, Math.floor(k / perRope)), a = ends[which], post = this.spec.moorTo[which];
+        if (a === undefined || post === undefined) continue;
+        const bx = post.x, bz = post.z, dx = bx - a.x, dz = bz - a.z, len2 = dx * dx + dz * dz || 1;
+        const t = Math.min(1, Math.max(0, ((rp.getX(k) - a.x) * dx + (rp.getZ(k) - a.z) * dz) / len2));
+        this.ropeW[k] = 1 - t; this.ropeWhich[k] = which;
+      }
+      this.cleatZ = [-LENGTH / 2 + 0.3, LENGTH / 2 - 0.3];
+      const ropes = new THREE.Mesh(ropeGeo, mat);
       ropes.castShadow = true;
       this.ropes = ropes;
     }
@@ -180,6 +217,36 @@ export class Boat {
       wall(-BEAM / 2, 0, 0.08, LENGTH / 2); wall(BEAM / 2, 0, 0.08, LENGTH / 2); wall(0, -LENGTH / 2, BEAM / 2, 0.08); wall(0, LENGTH / 2, BEAM / 2, 0.08);
     }
     return this;
+  }
+
+  /**
+   * PHYSICS P4: the boat's collision in the boat group's LOCAL frame (origin = the hull's waterline centre at rest,
+   * (spec.x, waterY, spec.z); −z = the bow; no heading) — the four gunwale / bow / stern walls (the legacy boxes) and
+   * the floor boards as a slab whose top is `floorHeightAt`'s floor, widened to the walls' inner faces so the tub is
+   * closed. A kinematic body can re-pose these every step to ride the swell; `colliderDescs()` is them at rest.
+   */
+  colliderLocalDescs(): ColliderDesc[] {
+    const yTop = 0.8, yBottom = -1.2, wy = (yTop + yBottom) / 2, wh = (yTop - yBottom) / 2, t = 0.08;
+    const wall = (x: number, z: number, hx: number, hz: number): ColliderDesc => ({ kind: 'box', x, y: wy, z, hx, hy: wh, hz });
+    const floorTop = this.floorY - this.spec.waterY, fh = 0.1;
+    return [
+      wall(-BEAM / 2, 0, t, LENGTH / 2), wall(BEAM / 2, 0, t, LENGTH / 2), wall(0, -LENGTH / 2, BEAM / 2, t), wall(0, LENGTH / 2, BEAM / 2, t),
+      { kind: 'box', x: 0, y: floorTop - fh, z: 0, hx: BEAM / 2 - t, hy: fh, hz: LENGTH / 2 - t },
+    ];
+  }
+
+  /**
+   * PHYSICS P4: this builder's static collision in world space — its walls (the legacy boxes) and the floor
+   * `floorHeightAt` describes, as real geometry: `colliderLocalDescs()` placed at the boat's rest pose.
+   */
+  colliderDescs(): ColliderDesc[] {
+    const h = this.spec.heading ?? 0, cs = Math.cos(h), sn = Math.sin(h);
+    const out: ColliderDesc[] = [];
+    for (const d of this.colliderLocalDescs()) {
+      if (d.kind !== 'box') continue; // the local set is boxes only
+      out.push({ ...d, x: this.spec.x + d.x * cs + d.z * sn, y: this.spec.waterY + d.y, z: this.spec.z - d.x * sn + d.z * cs, yaw: h + (d.yaw ?? 0) });
+    }
+    return out;
   }
 
   /** static mesh with the mooring lines (world space) — add it to the scene beside `group` */
@@ -194,11 +261,36 @@ export class Boat {
     return this.floorY;
   }
 
+  private ropeRest: Float32Array | null = null;
+  private ropeW = new Float32Array(0);
+  private ropeWhich = new Uint8Array(0);
+  private cleatZ = [0, 0];
+  private cleatDy = [0, 0];
+
+  /**
+   * Ride the shared swell (W3, src/world/waves.ts — the same Gerstner sum the ocean shader draws): heave from the wave
+   * height under the hull, pitch from 2 m fore / aft, roll from 2 m to either side; the mooring lines' cleat ends follow.
+   */
   update(dt: number): void {
     this.t += dt;
-    const g = this.group;
-    g.position.y = this.spec.waterY + Math.sin(this.t * 0.9) * 0.05 + Math.sin(this.t * 1.7 + 1) * 0.02;
-    g.rotation.z = Math.sin(this.t * 0.8) * 0.025;
-    g.rotation.x = Math.sin(this.t * 0.55 + 0.7) * 0.012;
+    const g = this.group, x = this.spec.x, z = this.spec.z, w = this.spec.waterY;
+    const damp = seaDamp(w - heightAt(x, z));
+    const h = this.spec.heading ?? 0, fx = -Math.sin(h), fz = -Math.cos(h), sx = Math.cos(h), sz = -Math.sin(h);   // bow (local −z), starboard (+x)
+    const hFore = waveHeight(x + fx * 2, z + fz * 2, undefined, damp), hAft = waveHeight(x - fx * 2, z - fz * 2, undefined, damp);
+    const hStar = waveHeight(x + sx * 2, z + sz * 2, undefined, damp), hPort = waveHeight(x - sx * 2, z - sz * 2, undefined, damp);
+    g.rotation.order = 'YXZ';
+    g.position.y = w + waveHeight(x, z, undefined, damp);
+    g.rotation.x = Math.atan2(hFore - hAft, 4);            // bow up when the crest is under it
+    g.rotation.z = Math.atan2(hStar - hPort, 4);           // port side up when the crest is to port
+    // the mooring lines: lift each rope's cleat end with the hull (heave + pitch at that cleat), the post end stays put
+    const rest = this.ropeRest;
+    if (this.ropes && rest) {
+      const heave = g.position.y - w, s = Math.sin(g.rotation.x);
+      for (let i = 0; i < 2; i++) this.cleatDy[i] = heave - (this.cleatZ[i] ?? 0) * s;
+      const pos = this.ropes.geometry.getAttribute('position') as THREE.BufferAttribute;
+      const arr = pos.array as Float32Array;
+      for (let k = 0; k < this.ropeW.length; k++) arr[k * 3 + 1] = (rest[k * 3 + 1] ?? 0) + (this.cleatDy[this.ropeWhich[k] ?? 0] ?? 0) * (this.ropeW[k] ?? 0);
+      pos.needsUpdate = true;
+    }
   }
 }

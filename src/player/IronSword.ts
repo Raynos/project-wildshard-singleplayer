@@ -3,6 +3,7 @@ import { ItemPickup, type PickupTier } from './WeaponPickup';
 import type { Interactable } from '../world/Cabin';
 import type { Sky } from '../world/Sky';
 import { WRECK } from '../chunks/driftwood-isle';
+import { LightPool } from '../fx/LightPool';
 
 /**
  * IronSword — the iron sword as LOOT on Driftwood Isle ("the whole point of Project Wildshard is that you can find
@@ -19,14 +20,15 @@ import { WRECK } from '../chunks/driftwood-isle';
  *   interactables.push(drop.interactable);                       // "[E] Take iron sword" within `radius` (the door / harvest prompt path)
  *   drop.onPickup = () => { weapons.unlock('sword-iron'); weapons.select('sword-iron'); hud.toast('Iron sword acquired · 1/2 to switch, Q to swap'); audio.hitMarker(); };
  *   drop.onNear = (on) => audio.pickupHum(on);
- *   game.onUpdate((dt, t) => drop.update(dt, t, game.renderer, game.camera, player.position));   // the player POSITION
- *                                                                // makes it walk-to-pick-me-up: feet within TAKE_R m of the orb → take()
+ *   game.onUpdate((dt, t) => drop.update(dt, t, game.renderer, game.camera, player.position));
+ *   drop.guard = () => sailorDead ? null : 'Guarded — …';        // B4 / D6 (src/game/quest/Adventure.ts sets it on Driftwood):
+ *   drop.onGuarded = (why) => hud.toast(why);                    // the prompt shows why, E does nothing until the guard is down
  *   `?weapon=iron` (dev): weapons.unlock('sword-iron'); weapons.select('sword-iron', true); drop.dispose();
  *
- * `ironSwordSite(wreck)` = the world point on the heeled deck at the broken midships planks (Wreck.ts: local
- * z = +4.2 toward the stern — 3 m aft of the mainmast so it reads from the bow — a little to port). The deck is ~1.2–1.7 m above the cove
- * sand: one jump from the low (starboard) rail puts you on it. Falls back to the sand beside the hull if the wreck has
- * no deck there (a future hull change) — `ironSwordSite` never returns undefined.
+ * `ironSwordSite(wreck)` = in the wreck's hold in front of the weapon rack (the model's `anchors.swordRack`); a hull
+ * without the anchor → the heeled deck at the broken midships planks (local (-0.7, 4.2)), else the sand beside the
+ * hull — `ironSwordSite` never returns undefined. No walk-in take any more (it grabbed the sword before the sailor had
+ * risen, B4): the sword is taken with E, once `guard` lets it go.
  */
 
 export interface IronSwordPickupOptions {
@@ -50,7 +52,7 @@ const C = {
   grip: lin(0x4a2d1a), wrap: lin(0x6e4629), pommelCap: lin(0x6b6e77), gem: lin(0xd94b3a),
 };
 const WARM = 0xffb257;
-const TAKE_R = 1.2;                // m, feet to the orb's floor point (the orb is 0.46 m in radius, hovering 0.7 m up)
+const TAKE_R = 0;                  // m, feet to the orb's floor point for a walk-in take — off (B4): the sword is taken with E, once its guard is down
 const LIFT = 0.22;                 // m the orb's floor point sits over the deck: the big sword (DISPLAY_SCALE × 1.25 m) pokes out of the
                                    // orb top and bottom, so the pommel clears the planks
 const DISPLAY_SCALE = 1.3, TILT = THREE.MathUtils.degToRad(40);   // fills the orb diagonally like the AR-15 in the mockup
@@ -196,8 +198,14 @@ function makeHalo(): THREE.CanvasTexture {
   return t;
 }
 
-/** the world floor point for the pickup: the wreck's heeled deck at the broken midships planks, else the sand beside the hull */
+/**
+ * The world floor point for the pickup (D6): in the hold, in front of the weapon rack (`wreck.anchors.swordRack`, the
+ * model agent's point on the port wall facing into the hold — the orb hangs 0.55 m out from the wall so it clears the
+ * pegs); a wreck without the anchor → the heeled deck at the broken midships planks, else the sand beside the hull.
+ */
 export function ironSwordSite(wreck: { floorHeightAt: (x: number, z: number) => number | undefined }, heightAt: (x: number, z: number) => number): THREE.Vector3 {
+  const rack = rackAnchor(wreck);
+  if (rack) return new THREE.Vector3(rack.x + Math.sin(rack.yaw) * 0.55, rack.y, rack.z + Math.cos(rack.yaw) * 0.55);
   const h = WRECK.heading, cs = Math.cos(h), sn = Math.sin(h);
   // hull frame (Wreck.ts): local x = starboard, z = stern; world = R_y(heading) · local
   const lx = -0.7, lz = 4.2;
@@ -208,9 +216,26 @@ export function ironSwordSite(wreck: { floorHeightAt: (x: number, z: number) => 
   return new THREE.Vector3(sx, heightAt(sx, sz), sz);
 }
 
+function rackAnchor(wreck: object): { x: number; y: number; z: number; yaw: number } | null {
+  if (!('anchors' in wreck)) return null;
+  const a: unknown = wreck.anchors;
+  if (typeof a !== 'object' || a === null || !('swordRack' in a)) return null;
+  const r: unknown = a.swordRack;
+  if (typeof r !== 'object' || r === null || !('x' in r) || !('y' in r) || !('z' in r)) return null;
+  const { x, y, z } = r, yaw = 'yaw' in r ? r.yaw : 0;
+  return typeof x === 'number' && typeof y === 'number' && typeof z === 'number' ? { x, y, z, yaw: typeof yaw === 'number' ? yaw : 0 } : null;
+}
+
 export class IronSwordPickup {
   readonly pickup: ItemPickup;
+  /** the "[E]" prompt: the pickup's, unless `guard` says why it can't be taken yet */
   readonly interactable: Interactable;
+  /**
+   * B4 / D6: while this returns a reason the sword can't be taken (the drowned sailor still guards it) the prompt shows
+   * the reason and E does nothing but `onGuarded(reason)`. Null = free to take (Pine Hollow / dev: no guard).
+   */
+  guard: (() => string | null) | null = null;
+  onGuarded?: (reason: string) => void;
   private light: THREE.PointLight;
   private halo: THREE.Sprite;
   private haloMat: THREE.SpriteMaterial;
@@ -225,9 +250,15 @@ export class IronSwordPickup {
     this.floor = opts.position.clone(); this.floor.y += LIFT;
     this.takeRadius = opts.takeRadius ?? TAKE_R;
     this.pickup = new ItemPickup({ scene: opts.scene, item: buildIronSwordDisplay(opts.sky), position: this.floor, tier: opts.tier ?? 'common', prompt: opts.prompt ?? 'Take iron sword', radius: opts.radius ?? 2.6, scale: DISPLAY_SCALE, tilt: TILT });
-    this.interactable = this.pickup.interactable;
+    const base = this.pickup.interactable, reason = (): string | null => this.guard?.() ?? null;
+    this.interactable = {
+      position: base.position,
+      get radius() { return base.radius; },
+      get label() { return reason() ?? base.label; },
+      onInteract: () => { const r = reason(); if (r !== null) this.onGuarded?.(r); else base.onInteract(); },
+    };
     // the warm glow: an amber point light over the deck (the orb's own is a short cyan one) and a big soft halo
-    this.light = new THREE.PointLight(WARM, 18, 11, 1.6);
+    this.light = LightPool.for(opts.scene).acquire(WARM, 18, 11, 1.6); // pooled (B7): released dark on pickup, never removed
     this.light.position.set(this.floor.x, this.floor.y + 1.3, this.floor.z);
     haloTex ??= makeHalo();
     this.haloMat = new THREE.SpriteMaterial({ map: haloTex, color: WARM, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false });
@@ -235,7 +266,7 @@ export class IronSwordPickup {
     this.halo.position.set(this.floor.x, this.floor.y + 0.75, this.floor.z);
     this.halo.scale.setScalar(3.2);
     this.halo.renderOrder = 19;
-    opts.scene.add(this.light, this.halo);
+    opts.scene.add(this.halo);
   }
 
   get onPickup(): (() => void) | undefined { return this.pickup.onPickup; }
@@ -254,7 +285,8 @@ export class IronSwordPickup {
   private removeGlow(): void {
     if (this.gone) return;
     this.gone = true;
-    this.scene.remove(this.light, this.halo);
+    this.scene.remove(this.halo);
+    LightPool.for(this.scene).release(this.light); // dark, still in the scene: a light-count change would recompile every lit program
     this.haloMat.dispose();
   }
 
@@ -262,7 +294,7 @@ export class IronSwordPickup {
   update(dt: number, t: number, renderer?: THREE.WebGLRenderer, camera?: THREE.PerspectiveCamera, playerPos?: THREE.Vector3): void {
     this.pickup.update(dt, t, renderer, camera);
     if (!this.pickup.taken) {
-      if (playerPos && this.takeRadius > 0) {
+      if (playerPos && this.takeRadius > 0 && (this.guard?.() ?? null) === null) {
         const dx = playerPos.x - this.floor.x, dz = playerPos.z - this.floor.z;
         if (dx * dx + dz * dz < this.takeRadius * this.takeRadius && Math.abs(playerPos.y - this.floor.y) < TAKE_DY + LIFT) this.take();
       }

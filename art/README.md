@@ -146,3 +146,93 @@ Base = an in-engine phone-tier screenshot at the trail pose with the HUD hidden 
 &x=0&z=-200&yaw=3.1416`, viewport 390×844 @3×), given to codex as the edit target with the invariants
 repeated. F icon rail · G refined row · H split cluster (thumb-reachable) · I rings · J staging console.
 Parallel-run rule: each run copies the path its own image_gen result reported, never "the newest file".
+
+### Touch HUD thumb-reach audit (`art/hud/round-8-thumb-audit/`, 2026-09-22, E37)
+
+Live captures, not codex images: the deployed sword HUD with each control's live rect drawn in. Orange = left (move) thumb,
+green = right (look) thumb. The rings are about 130 CSS px of thumb travel around each thumb's resting spot, and a red box
+is outside that ring. `A-portrait-thumb-reach.jpg` is 390×844. `B-landscape-broken.jpg` is 844×390, where the minimap
+hides JUMP / DODGE / HOVER (this led to the E38 rotate-to-portrait gate). Analysis: docs/plans/HUD-REFINEMENTS.md → "E37 thumb-flow audit".
+
+### Touch HUD layout board (`art/hud/round-9-layout-board/`, 2026-09-22, E37)
+
+codex edits of the live 390×844 sword frame (`before-live.jpg`), one run each. `board.jpg` puts BEFORE next to A, B and C.
+**A** keeps the bar: ATTACK takes the LOOK pad's place ("HOLD = HEAVY"), DODGE and JUMP sit beside it, and SWAP / HOVER
+are chips on the centre seam. VITALS moves under PAUSE. **B** drops the bar: a floating stick with a sprint lock, and a
+CoD Mobile arc of ATTACK / DODGE / JUMP. SWAP / HOVER sit at the bottom centre. **C** is B's layout with the crossbow:
+FIRE and AIM on the right, a small left FIRE copy above the stick, and a BOLTS readout beside VITALS. None was re-rolled.
+Plan rows: docs/plans/HUD-REFINEMENTS.md R12–R18.
+
+### Separate LOOK / ATTACK zones (`art/hud/round-10-look-zone/`, 2026-09-23, E37 → E42)
+
+After the A/B/C board, Jake: "look and attack [must] be different touch zones — doubling them up was causing a lot of
+problems". The whole right half still looks, and a LOOK rest pad sits in the bar's bottom-right. **D** puts ATTACK above
+the pad, **E** puts ATTACK inboard in the bar beside the pad, and **F** makes LOOK a joystick ring. `board.jpg` = BEFORE + D/E/F.
+**Jake picked E** (E42). D and F were copied out of `~/.codex/generated_images/<session>/` after codex hung on reconnects.
+
+### Compact quest tracker (`art/quest/round-1-compact/`, 2026-09-23, E49)
+
+codex edits of Jake's iPhone screenshot (`before-iphone.jpg`). Every variant shrinks the minimap to 80 %, drops the heading readout
+and replaces the 4-row quest block. **G:** one chip, "GLYPH SHARDS 0/3 | SEA CAVE 230 M ▸". **H:** the quest on the minimap
+ring (objective diamond + "230 M" at its bearing, a "SHARDS 0/3" tab under the ring, a dim "SEA CAVE" line). **I:** a CoD-style
+waypoint in the world ("SEA CAVE 230 M") plus a "SHARDS 0/3" pill. `board.jpg` = BEFORE + G/H/I. None re-rolled; G garbled
+the untouched ATTACK sub-label.
+
+### Lock-on HUD (`art/combat/round-1-lockon/`, 2026-09-23, E50)
+
+codex edits of one live 390×844 capture of the crab tidepool north of the wreck (`before-live.jpg`; `ref-clean.jpg` is the
+same frame with the lunge brackets and HP tag hidden, the edit source), with E46's 45 / 55 bar split injected from the
+working tree. HUD-only edits: the world is kept as captured. Plan: `docs/plans/LOCK-ON.md` (draft).
+**Board 1 (`board-1-button.jpg`, LOCK button, "available" state):** **J** a LOCK disc on the right-thumb arc left of DODGE,
+**K** a LOCK chip on top of the LOOK pad, **L** no button (a "TAP TO LOCK" ring on the enemy), **M** a LOCK | HOVER split pill.
+**Board 2 (`board-2-locked.jpg`, the locked view):** **N** Zelda ▼ + corner brackets + "REEF CRAB" tag, edge chevron "4 M",
+SWITCH pad, ORBIT stick; **O** ring reticle, fixed top banner, hollow diamonds on the other crabs, FLICK pad; **P** a ground
+ring, "REEF CRAB · 3 M" under the crosshair, bare chevron, vignette; **Q** a dot reticle that turns amber on a wind-up, a
+bottom banner. **Board 3 (`board-3-storyboards.jpg`, N's language, captured at 3 poses):** **R1→R2** flick left on the pad,
+the lock jumps to the next crab; **S1→S2** hold MOVE left, circle the crab. Re-rolled: J and K (the first J put LOCK
+inside the bar and shoved DODGE along; the first K garbled the quest title into "WRETCHED ISLE"), L (dropped the quest title), O (LOCK
+inside the bar), R1 / R2 / S1 / S2 (LOCK and DODGE drifted into the bar; the storyboards now carry no LOCK disc).
+
+### Painted 360° horizon (`art/driftwood-isle/round-9-horizon/`, 2026-09-23, E52 X4)
+
+Six in-game captures looking out to sea (headings 0, 60 … 300°, horizon on the middle row) were each edited by codex
+into far sea stacks, far islands and a horizon cloud bank (`segment-day-*`), then re-lit as a moonlit night with the same
+silhouettes (`segment-night-*`). They were stitched into a seamless 4096 × 512 cylindrical strip and keyed off the sky;
+it ships as `public/assets/horizon/driftwood-isle-{day,night}.webp`. `sheet-before-after.jpg` shows the 9 spawn-cove
+cameras before and after. The first day round (stacks ~3° high, too small at phone width) was dropped. Nothing else was
+re-rolled.
+
+### Hero-prop references + comparison board (`art/driftwood-isle/round-8-assets/`, 2026-09-23, asset-agent)
+
+`ref-<prop>.jpg` holds 12 codex image_gen references, the inputs for local image-to-3D (TRELLIS.2 on MPS,
+`scripts/img2mesh/README.md`). Each shows one prop in 3/4 view on white, in the faceted Driftwood style. The props:
+- palm-a, palm-b, palm-c, piling, sailboat, hut, wreck and shrine, one each;
+- boulders and driftwood, each a sheet of separate pieces;
+- clutter and coco, each a sheet that `split_sheet.py` cuts into single crops.
+
+`board.jpg` has one row per prop and four columns: the concept-art crop, the reference, the new asset
+(`public/assets/models/driftwood-hero/`, an Eevee still under the same light), and the current procedural model
+(a Model Explorer capture of the live build). `hunyuan-vs-trellis.jpg` shows the palm and the hut from each model.
+Nothing was re-rolled.
+
+### Dodge feel storyboards (`art/combat/round-2-dodge/`, 2026-09-23, E60)
+
+codex edits of one live 390×844 capture on the Driftwood pier (`ref-live.jpg`, `?touch&tier=phone&skipintro&nolock&weapon=sword`, the stick held right);
+`before-live.jpg` is today's dodge mid-dash (a ×0.1 slow-mo capture). Each variant is 4 frames of a dodge to the right: anticipation 0–40 ms,
+burst 60 ms, peak 150 ms, recovery 350 ms. The DODGE disc's cooldown sweep (E59) is shown, not designed. Plan: `docs/plans/DODGE-FEEL.md` (draft).
+- `board-T-lean-smear.jpg` **T1–T4**: the camera rolls into the dodge, a horizontal smear on the outer thirds, the sword flung left and whipping back (recommended).
+- `board-U-afterimage.jpg` **U1–U4**: a cyan rim flash, 3 cyan ghosts of the sword left behind, shard flakes, a fringe, a corner glow.
+- `board-V-roll-dip.jpg` **V1–V4**: a crouch-height dive and rise, a +10° FOV punch, dust + splinters, a vignette, the sword tucked flat.
+- `board-0-overview.jpg`: BEFORE + the peak frame of T / U / V.
+Re-rolled: V2 once (steel blade), V4 three times (squashed HUD).
+
+### HOVER button position (`art/hud/round-11-hover-position/`, 2026-09-23, E80)
+
+Jake: "I don't like the hover position". These are codex edits of his iPhone screenshot (`before-iphone.jpg`), where the
+HOVER pill floats over the bottom bar, left of V DODGE. Every variant takes the pill out of that spot and puts one HOVER
+control somewhere else. **A** `A-top-row-pill.jpg`: a third pill in the top row, after "30 fps". **B** `B-disc-above-jump.jpg`:
+a round disc above JUMP in the right-thumb cluster. **C** `C-bar-tab-above-move.jpg`: a folder tab on the bottom bar's top
+edge, above MOVE. **D** `D-under-objective.jpg`: a small tab under the GLYPH SHARDS / SEA CAVE strip. **E**
+`E-disc-left-edge.jpg`: a round disc on the left edge, above MOVE, for the left thumb. `board.jpg` = BEFORE + A–E.
+Re-rolled: B twice (the first take shrank and moved the whole HUD; the second lifted JUMP ~120 px) and D once (it came
+back 2:3 and squashed the frame).

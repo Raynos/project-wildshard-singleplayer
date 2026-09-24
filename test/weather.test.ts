@@ -2,7 +2,7 @@
 // lightning's target choice (the highest thing), the GET LOW rule, and the day clock's schedule / sun / phase events.
 import { describe, expect, it } from 'vitest';
 import { Weather, STORM_PHASES, type Exposed, type LightningPlayer, type LightningWorld, type Strike } from '../src/world/Weather';
-import { DayClock, DEFAULT_SCHEDULE, lightLevel } from '../src/world/DayNight';
+import { DayClock, DEFAULT_SCHEDULE, lightLevel } from '../src/world/DayClock';
 
 function world(opts: { trees?: Exposed[]; player?: Partial<LightningPlayer>; ground?: (x: number, z: number) => number } = {}): LightningWorld {
   const p: LightningPlayer = { x: 0, y: 0, z: 0, crouched: false, mounted: false, sheltered: false, ...opts.player };

@@ -164,6 +164,14 @@ export interface AnimalSpecies {
   /** eye spheres (glossy clearcoat material) */
   eyeParts: THREE.BufferGeometry[];
   dims: AnimalDims;
+  /** low-poly style: a base-colour texture on the rig's material (a generated model's own paint, e.g. the Drowned
+   *  Captain); the vertex colours multiply it, so textured parts carry white */
+  map?: THREE.Texture;
+  /** low-poly style: the per-facet lightness jitter (lowpoly.ts facetGeometry, default 0.12) — 0 for a textured model */
+  facetJitter?: number;
+  /** low-poly style, with `map`: the texture fed back as emissive at this intensity, so a painted model keeps its colours
+   *  in shade (the flat toon fill alone left the captain's navy coat near-black) */
+  selfLight?: number;
 }
 
 /** Fur texture + material look of a species (per-variant overrides via VariantDef.fur). */

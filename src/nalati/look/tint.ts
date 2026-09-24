@@ -12,7 +12,7 @@
  * `updateTint(look, weather)` writes the uniforms once a frame (no allocation).
  */
 import * as THREE from 'three';
-import type { SkyLook } from '../../world/DayNight';
+import type { SkyLook } from '../../world/DayClock';
 
 /** the key light the panorama was painted under (the def's late-afternoon sun, ChunkSky.sunColor) */
 const PAINTED_KEY = new THREE.Color(1.0, 0.85, 0.64);

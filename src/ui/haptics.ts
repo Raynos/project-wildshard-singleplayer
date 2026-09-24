@@ -15,6 +15,9 @@ export const HAPTIC = {
   kill: [22, 40, 34],
   dodge: 10,
   lunge: 8,
+  lock: 12,      // lock-on (E50): lock …
+  lockSwitch: 6, // … switch …
+  lockBreak: 20, // … release / break
 } as const satisfies Record<string, number | readonly number[]>;
 
 export function buzz(pattern: number | readonly number[]): void {

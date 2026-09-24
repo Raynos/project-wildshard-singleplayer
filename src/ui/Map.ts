@@ -10,9 +10,18 @@
  *   const fullMap = new FullMap(minimap);   // builds the canvas only
  *   fullMap.mount(frame)                    // the menu puts it in its map frame (Menu.ts); show()/hide() are the menu's
  *   fullMap.setZoom(2) / fullMap.zoom / fullMap.onZoom / fullMap.fit()
+ *   fullMap.setPois(() => MapPoi[])        // a shard's own points of interest (Driftwood: its places with discovery + the
+ *                                          // quest's markers, src/game/quest/Places.ts); unset = the cabins / pond as before
+ *   fullMap.setQuest(() => MapQuest|null)  // the quest in full — title, objective, sub-steps — for the MAP tab's card (E51)
  */
 import { CHUNK_HALF, CHUNK_SIZE } from '../core/config';
-import { mapPois, mapZones, type Minimap } from './Minimap';
+import { CABIN_SITES, POND, hasPond } from '../world/Heightfield';
+import type { Minimap } from './Minimap';
+
+/** a point on the full map: a discovered place (named), an undiscovered one ("?"), or a live quest marker (pulsing diamond) */
+export interface MapPoi { x: number; z: number; label: string; kind: 'place' | 'unknown' | 'quest' }
+/** the quest in full for the MAP tab's quest card (the HUD only shows its short chip, E51): chapter title, objective, sub-steps */
+export interface MapQuest { title: string; objective: string; hint: string }
 
 const FOG_BRIGHTNESS = 0.3;
 const ZOOM_MIN = 1, ZOOM_MAX = 6;
@@ -30,8 +39,8 @@ export class FullMap {
   private pointers = new Map<number, { x: number; y: number }>();
   private pinchDist = 0; private pinchZoom = 1;
   onToggle?: (open: boolean) => void;
-  private pois: ReturnType<typeof mapPois> | null = null;
-  private zones: ReturnType<typeof mapZones> | null = null;
+  private poiSource: (() => MapPoi[]) | null = null;
+  private questSource: (() => MapQuest | null) | null = null;
   /** the zoom changed (pinch / wheel / setZoom) — the menu's zoom chips follow */
   onZoom?: (zoom: number) => void;
 
@@ -70,6 +79,11 @@ export class FullMap {
   }
 
   get isOpen(): boolean { return this.open; }
+  /** replace the default points of interest (cabins, pond) with the shard's own list, read every frame the map is open */
+  setPois(source: () => MapPoi[]): void { this.poiSource = source; }
+  /** the shard's quest, read by the menu each time the MAP tab shows (null = no quest card) */
+  setQuest(source: () => MapQuest | null): void { this.questSource = source; }
+  get quest(): MapQuest | null { return this.questSource?.() ?? null; }
   get zoom(): number { return this._zoom; }
   /** zoom about the frame centre (the menu's 1× / 2× / 4× chips) */
   setZoom(z: number): void { const r = this.canvas.getBoundingClientRect(); this.zoomTo(z, { x: r.left + r.width / 2, y: r.top + r.height / 2 }); }
@@ -162,21 +176,11 @@ export class FullMap {
       ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)'; ctx.lineWidth = 3 * this.dpr; ctx.strokeText(label, px, py + r + 3 * this.dpr);
       ctx.fillText(label, px, py + r + 3 * this.dpr);
     };
-    // the zones (Nalati: NALATI GRASSLANDS / SKY GRASSLAND / SNOW LOTUS VALLEY), big and letter-spaced, under the pins
-    this.zones ??= mapZones();
-    if (this.zones.length > 0) {
-      ctx.save();
-      ctx.font = `700 ${Math.round(fs * 1.9)}px Rajdhani, sans-serif`; ctx.textBaseline = 'middle';
-      ctx.letterSpacing = `${Math.round(fs * 0.35)}px`;
-      for (const z of this.zones) {
-        ctx.strokeStyle = 'rgba(6, 10, 18, 0.6)'; ctx.lineWidth = 4 * this.dpr; ctx.strokeText(z.label, sx(z.x), sz(z.z));
-        ctx.fillStyle = 'rgba(232, 242, 255, 0.78)'; ctx.fillText(z.label, sx(z.x), sz(z.z));
-      }
-      ctx.restore();
-      ctx.textBaseline = 'top';
+    if (this.poiSource) this.drawPois(this.poiSource(), sx, sz, fs, poi);
+    else {
+      CABIN_SITES.forEach((c, i) => poi(c.x, c.z, `CABIN ${i + 1}`, '#8fe3ff'));
+      if (hasPond()) poi(POND.x, POND.z, 'THE POND', '#6fb8e8');
     }
-    this.pois ??= mapPois();   // Nalati: the named places from the chunk def; elsewhere the cabins + the pond (Minimap.ts)
-    for (const p of this.pois) poi(p.x, p.z, p.label, p.color);
 
     // you
     const deg = 180 - (yaw * 180) / Math.PI;
@@ -193,5 +197,30 @@ export class FullMap {
     // N marker at the top edge of the chunk
     ctx.fillStyle = '#8fe3ff'; ctx.font = `700 ${Math.max(12 * this.dpr, fs * 1.3)}px Rajdhani, sans-serif`; ctx.textBaseline = 'bottom';
     ctx.fillText('N', ox + side / 2, oy - 4 * this.dpr);
+  }
+
+  /** a shard's own POIs: places (named dots), undiscovered places (dim "?"), quest markers (pulsing cyan diamonds, on top) */
+  private drawPois(list: MapPoi[], sx: (x: number) => number, sz: (z: number) => number, fs: number, poi: (x: number, z: number, label: string, color: string) => void): void {
+    const ctx = this.ctx, d = this.dpr;
+    for (const p of list) {
+      if (p.kind === 'place') poi(p.x, p.z, p.label, '#e6f2f8');
+      else if (p.kind === 'unknown') {
+        const px = sx(p.x), py = sz(p.z), r = Math.max(3.5 * d, fs * 0.3);
+        ctx.fillStyle = 'rgba(196, 220, 232, 0.35)'; ctx.strokeStyle = 'rgba(6, 10, 18, 0.8)'; ctx.lineWidth = 1.5 * d;
+        ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = 'rgba(230, 242, 248, 0.7)'; ctx.fillText('?', px, py + r + 3 * d);
+      }
+    }
+    const pulse = (performance.now() % 1600) / 1600;
+    for (const p of list) {
+      if (p.kind !== 'quest') continue;
+      const px = sx(p.x), py = sz(p.z), r = Math.max(6 * d, fs * 0.55);
+      ctx.strokeStyle = `rgba(143, 227, 255, ${0.7 * (1 - pulse)})`; ctx.lineWidth = 2 * d;
+      ctx.beginPath(); ctx.arc(px, py, r * (1.2 + pulse * 1.6), 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#8fe3ff'; ctx.strokeStyle = 'rgba(6, 10, 18, 0.9)'; ctx.lineWidth = 2 * d;
+      ctx.beginPath(); ctx.moveTo(px, py - r); ctx.lineTo(px + r, py); ctx.lineTo(px, py + r); ctx.lineTo(px - r, py); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#8fe3ff'; ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)'; ctx.lineWidth = 3 * d;
+      ctx.strokeText(p.label, px, py + r + 3 * d); ctx.fillText(p.label, px, py + r + 3 * d);
+    }
   }
 }

@@ -30,3 +30,17 @@
   .ws-combat-float b { font-size: 22px; }
   .ws-combat-float.head b { font-size: 30px; }
 }
+
+/* ── hurt direction (src/ui/HurtArc.ts): a red tapered arc on a ring round the crosshair, turned toward the attacker ── */
+.ws-combat-hurt { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+#hud.intro .ws-combat-hurt { display: none; }
+.ws-combat-hurt-arc {
+  --ws-hurt-w: 50deg;
+  position: absolute; left: 50%; top: 50%; width: min(64vmin, 440px); aspect-ratio: 1; translate: -50% -50%;
+  display: none; border-radius: 50%; will-change: transform, opacity;
+  background: conic-gradient(from calc(var(--ws-hurt-w) * -0.5), rgba(255, 70, 52, 0) 0deg, rgba(255, 70, 52, 0.95) calc(var(--ws-hurt-w) * 0.5), rgba(255, 70, 52, 0) var(--ws-hurt-w), rgba(255, 70, 52, 0) 360deg);
+  -webkit-mask: radial-gradient(circle closest-side, transparent 80%, #000 83%, #000 95%, transparent 97%);
+  mask: radial-gradient(circle closest-side, transparent 80%, #000 83%, #000 95%, transparent 97%);
+  filter: drop-shadow(0 0 6px rgba(255, 60, 40, 0.7));
+}
+.ws-combat-hurt-arc.show { display: block; }

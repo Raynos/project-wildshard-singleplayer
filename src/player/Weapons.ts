@@ -17,6 +17,7 @@ import type { Rifle } from './Rifle';
  *   game.onUpdate((dt, t) => weapons.update(dt, t));       // AFTER player.update — updates BOTH weapons (bolts in flight,
  *                                                          // brass, puffs and tracers keep going while a weapon is holstered)
  *   weapons.current.state → { ammo, magazine, reserve, loaded, reloading, reloadProgress, ads }   (the HUD reads this)
+ *   weapons.reach → the held weapon's melee reach in m (the swords), undefined for the crossbow / rifle   (Combat reads this)
  *
  * Input (only while the held weapon's `inputAllowed()`): `1` / `2` / `3` the OWNED weapons in kit order (Pine Hollow:
  * 1 crossbow, 2 AR-15; Driftwood: 1 wooden sword, 2 iron sword once found), `Q` swap — a locked weapon is ignored. Touch: the SWAP pill (TouchControls.ts, shown once a second weapon is unlocked — `onUnlock`) calls `swap()`.
@@ -63,6 +64,8 @@ export interface KitWeapon extends WeaponHooks {
   readonly charge?: number;
   /** a second held action (the Nalati spear's BRACE — the touch BRACE disc); absent on weapons without one */
   altHeld?: boolean;
+  /** melee reach in metres from the eye (the swords: Sword.REACH); undefined for a ranged weapon */
+  readonly reach?: number | undefined;
   tryFire: () => void;
   reload: () => void;
   update: (dt: number, t: number) => void;
@@ -118,6 +121,7 @@ class BaseWeapon implements KitWeapon {
   }
   get aimInfo(): AimInfo | null { return this.bow.aimInfo; }
   get charge(): number { return this.bow.charge ?? 0; }
+  get reach(): number | undefined { return this.bow.reach; }
   tryFire(): void { this.bow.tryFire(); }
   reload(): void { this.bow.reload?.(); }
   update(dt: number, t: number): void { this.bow.update(dt, t); }
@@ -260,6 +264,8 @@ export class Weapons implements WeaponHooks {
   aimRay(o: THREE.Vector3, d: THREE.Vector3): THREE.Vector3 { return this.current.aimRay(o, d); }
   get aimInfo(): AimInfo | null { return this.current.aimInfo; }
   get state(): WeaponState { return this.current.state; }
+  /** the HELD weapon's melee reach (m from the eye), undefined while a ranged weapon is out — Combat's MISS judgement reads it per swing */
+  get reach(): number | undefined { return this.current.reach; }
 
   update(dt: number, t: number): void {
     const s = this.swapping;

@@ -31,7 +31,6 @@ import type { Collider } from '../../player/Player';
 import type { Sky } from '../Sky';
 import type { Ground, Platform, PoiCtx, PoiPiece } from './types';
 
-export * from './layout';
 
 export interface PoiHost { colliders: Collider[]; platforms: Platform[]; position?: THREE.Vector3 }
 

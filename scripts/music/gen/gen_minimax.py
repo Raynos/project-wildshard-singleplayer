@@ -56,6 +56,8 @@ def main() -> None:
     ap.add_argument("--steps", type=int, default=30)
     ap.add_argument("--tag", default="minimax3")
     ap.add_argument("--out", required=True)
+    ap.add_argument("--jobs", default=None, help="v3 jobs file (v3-jobs.json); renders --keys instead of --styles")
+    ap.add_argument("--keys", default="", help="comma-separated job keys, e.g. piano/pine,piano/island")
     args = ap.parse_args()
 
     os.environ.setdefault("HF_HUB_OFFLINE", "1")
@@ -68,23 +70,48 @@ def main() -> None:
     t0 = time.time()
     pipe = ModularPipeline.from_pretrained(str(view))
     pipe.load_components(dtype=torch.bfloat16)
-    pipe.to(dev)
+    if os.environ.get("MINIMAX_OFFLOAD"):
+        # memory cap (the user: "don't hammer the machine's memory"): the 8B global LM (~16 GB bf16) streams from
+        # disk one leaf module at a time (diffusers group offloading); everything else sits on the device
+        from diffusers.hooks import apply_group_offloading
+
+        off = Path(os.environ.get("MINIMAX_OFFLOAD_DIR", Path.home() / "ml/music/minimax-music3/offload"))
+        off.mkdir(parents=True, exist_ok=True)
+        for name in pipe.components:
+            comp = getattr(pipe, name, None)
+            if isinstance(comp, torch.nn.Module) and name != "language_model":
+                comp.to(dev)
+        apply_group_offloading(pipe.language_model, onload_device=torch.device(dev), offload_device=torch.device("cpu"),
+                               offload_type="leaf_level", offload_to_disk_path=str(off))  # leaf: the AR loop calls embed_tokens / lm_head directly
+    else:
+        pipe.to(dev)
     load_s = round(time.time() - t0, 1)
     print(f"[gen_minimax] loaded on {dev} in {load_s}s", flush=True)
     briefs = json.loads((HERE / "briefs.json").read_text())
     import diffusers
 
-    for style in args.styles.split(","):
-        s = briefs["styles"][style]
-        dur = args.duration or briefs["shared"]["duration_s"]
+    # one work list for both modes: (folder, style, slot, prompt, lyrics, duration)
+    work = []
+    if args.jobs:
+        jf = json.loads((HERE / args.jobs).read_text() if not Path(args.jobs).is_absolute() else Path(args.jobs).read_text())
+        for key in [k for k in args.keys.split(",") if k]:
+            j = jf["jobs"][key]
+            work.append((key.replace("/", "-"), j["style"], j["slot"], j["prompt"], jf["lyrics"][j["lyrics"]],
+                         args.duration or j["duration"]))
+    else:
+        for style in args.styles.split(","):
+            s = briefs["styles"][style]
+            work.append((style, style, None, s["minimax_prompt"], LYRICS, args.duration or briefs["shared"]["duration_s"]))
+
+    for folder, style, slot, prompt, lyrics, dur in work:
         for seed in [int(x) for x in args.seeds.split(",")]:
-            dest = Path(args.out) / style / f"{args.tag}-{seed}.wav"
+            dest = Path(args.out) / folder / f"{args.tag}-{seed}.wav"
             if dest.exists():
                 print(f"[gen_minimax] have {dest}", flush=True)
                 continue
             dest.parent.mkdir(parents=True, exist_ok=True)
             t1 = time.time()
-            audio = pipe(prompt=s["minimax_prompt"], lyrics=LYRICS, audio_duration=dur, num_inference_steps=args.steps,
+            audio = pipe(prompt=prompt, lyrics=lyrics, audio_duration=dur, num_inference_steps=args.steps,
                          generator=torch.Generator("cpu").manual_seed(seed), output="audios")[0]
             import numpy as np
 
@@ -98,9 +125,10 @@ def main() -> None:
                 "code_commit": f"diffusers {diffusers.__version__}, torch {torch.__version__}",
                 "backend": f"PyTorch {dev} bf16",
                 "style": style,
+                "slot": slot,
                 "seed": seed,
-                "prompt": s["minimax_prompt"],
-                "lyrics": LYRICS,
+                "prompt": prompt,
+                "lyrics": lyrics,
                 "duration_s": dur,
                 "steps": args.steps,
                 "gen_time_s": dt,
@@ -108,7 +136,7 @@ def main() -> None:
                 "mps_driver_gb": round(torch.mps.driver_allocated_memory() / 1e9, 2) if dev == "mps" else None,
             }
             dest.with_suffix(".json").write_text(json.dumps(side, indent=2))
-            print(f"[gen_minimax] {style} seed={seed} {dt}s -> {dest}", flush=True)
+            print(f"[gen_minimax] {folder} seed={seed} {dt}s -> {dest}", flush=True)
 
 
 if __name__ == "__main__":

@@ -10,12 +10,22 @@
  *   __BUNDLE__    the emitted /assets/<name>-<hash>.* paths of this build — the worker's only name for the
  *                 content-addressed set (gauntlet had load-manifest.json for this); precached at install,
  *                 and `activate` PRUNES the immutable cache to it.
+ *   __FONTS__     the self-hosted /fonts/*.woff2 — precached at install (the first visit's CSS fetched them before
+ *                 this worker controlled the page, so without this an offline launch had no type).
+ *
+ * OFFLINE (project/archive/2026-09-23-preload-offline.md): after one complete load the same shard boots and plays with the network off.
+ * The shell + code + fonts are precached here; every file the loading bar declares (the shard's pack / files, the title
+ * art, and ALL audio — every music style and every sound-effect set) passes through `cacheFirst` / `networkFirst` below
+ * while the bar downloads it, so it is stored on that single download (nothing is fetched twice). A style / set switch in
+ * the menu reads its files straight from Cache Storage (src/audio/preload.ts cachedBytes).
  *
  * THREE caches, because they expire on three different clocks:
  *   ws-immutable            content-addressed, therefore forever: /assets/<name>-<8>.{js,css,jpg}. `activate`
  *                           prunes it to __BUNDLE__ — it never deletes it wholesale.
  *   ws-static-<assets>      unhashed but rarely edited: /assets/tex|models|hdri/**, /basis/**, /fonts/**, root
- *                           icons. Keyed by a hash of public/ alone, so a JS-only deploy does NOT re-download
+ *                           icons, and the music / sfx audio (the .m4a files under /assets/music and /assets/sfx, named
+ *                           by content hash; downloaded by the loading bar and cached as they pass through here). Keyed
+ *                           by a hash of public/ alone, so a JS-only deploy does NOT re-download
  *                           the 70 MB the boot streams. Cached on use — the boot fetches everything up front
  *                           anyway, and every one of those requests passes through `cacheFirst` below.
  *   ws-shell-<build>        the few KB that change every build: index.html, manifest.webmanifest,
@@ -26,7 +36,9 @@
  *   activate  migrate the previous ws-static-* entries whose size still matches asset-index.json into the new
  *             static cache, drop stale ws-shell/ws-static caches, prune (never wipe) the immutable cache, claim.
  *   fetch     hashed bundle: cache-first into ws-immutable;
- *             tex / models / hdri / basis / fonts / icons: cache-first into the static cache;
+ *             tex / models / hdri / basis / fonts / icons / music + sfx audio: cache-first into the static cache;
+ *             the music / sfx manifests (music.json, sfx.json) are compiled into the bundle and never fetched;
+ *             offline (navigator.onLine false) network-first answers from the cache without trying the network;
  *             the document: cache-first with a background revalidate (a flapping link must never hold the
  *             first paint); a `?v=` reload from the build pill (src/ui/Update.ts) is network-first;
  *             asset-index.json / sw.js / manifest.webmanifest: network-first, cache fallback;
@@ -34,11 +46,15 @@
  *             cross-origin (Google Fonts) and `?sw=0`: untouched.
  *   message   { type: 'SKIP_WAITING' } → activate now (src/boot/sw.ts `adopt()`, wired to the build pill)
  *             { type: 'VERSION' }      → what this worker holds, back on the message port.
+ *             { type: 'BUILD' }        → just { build }: cheap, so a page can tell whether a waiting worker is the build it
+ *                                        already runs (src/boot/sw.ts `announce()`, E95).
  */
 const BUILD = '__BUILD_ID__';
 const ASSETS = '__ASSET_ID__';
 /** @type {string[]} */
 const BUNDLE = JSON.parse('__BUNDLE__');
+/** @type {string[]} */
+const FONTS = JSON.parse('__FONTS__');
 const SHELL = `ws-shell-${BUILD}`;
 const STATIC = `ws-static-${ASSETS}`;
 const IMMUTABLE_CACHE = 'ws-immutable';
@@ -52,10 +68,15 @@ const STATIC_OPTIONAL = ['/apple-touch-icon.png', '/favicon.png', '/icon-192.png
 
 /** Vite's hashed output sits directly under /assets/ — the unhashed Poly Haven dirs are one level deeper. */
 const IMMUTABLE_RE = /^\/assets\/[^/]+-[\w-]{8}\.\w+$/;
-const STATIC_RE = /^\/assets\/(tex|models|hdri|baked|packs)\/|^\/basis\/|^\/fonts\/|^\/(apple-touch-icon|favicon|icon-\d+)\.png$/;
+const STATIC_RE = /^\/assets\/(tex|models|hdri|baked|packs)\/|^\/assets\/(music|sfx)\/.+\.m4a$|^\/basis\/|^\/fonts\/|^\/(apple-touch-icon|favicon|icon-\d+)\.png$/;
 const NETWORK_FIRST_RE = /^\/(asset-index\.json|sw\.js|manifest\.webmanifest)$/;
 
 const IMAGE_RE = /\.(jpe?g|png|webp|avif|gif|svg)$/;
+// the opt-in WebGPU renderer (?gpu=webgpu, src/gpu/): ~240 kB gz of three/webgpu that no default boot loads — cached when used
+const OPT_IN = '/assets/GpuPath-';
+
+/** the device says it has no network: answer from the cache instead of a fetch that can only fail */
+const offline = () => !self.navigator.onLine;
 
 const cacheFor = (pathname) => (IMMUTABLE_RE.test(pathname) ? IMMUTABLE_CACHE : STATIC);
 
@@ -88,8 +109,8 @@ self.addEventListener('install', (event) => {
       // the host, so this is served by the HTTP cache, not the network, when the page just fetched it.
       // Code and styles only: the hashed images (every shard's hero stills, portrait AND landscape, ~2 MB) are cached
       // by cacheFirst when the menu actually shows one — a phone never shows the landscape set (ask P5, cold bytes).
-      await fillMissing(await caches.open(IMMUTABLE_CACHE), BUNDLE.filter((p) => !IMAGE_RE.test(p)));
-      await fillMissing(await caches.open(STATIC), STATIC_OPTIONAL);
+      await fillMissing(await caches.open(IMMUTABLE_CACHE), BUNDLE.filter((p) => !IMAGE_RE.test(p) && !p.includes(OPT_IN)));
+      await fillMissing(await caches.open(STATIC), [...STATIC_OPTIONAL, ...FONTS]);
     })(),
   );
 });
@@ -168,6 +189,7 @@ self.addEventListener('message', (event) => {
   if (!data) return;
   if (data.type === 'SKIP_WAITING') self.skipWaiting();
   else if (data.type === 'VERSION') event.waitUntil(reply(event, version()));
+  else if (data.type === 'BUILD') event.waitUntil(reply(event, Promise.resolve({ type: 'BUILD', build: BUILD })));
 });
 
 async function reply(event, work) {
@@ -242,6 +264,7 @@ async function documentResponse(event, req, url) {
   if (url.searchParams.has('v')) return networkFirst(req, SHELL, key);
   const hit = await cache.match(key, MATCH_OPTS);
   if (hit) {
+    if (offline()) return hit; // no revalidate that can only fail
     event.waitUntil(
       fetch(req)
         .then((res) => (res.ok ? cache.put(key, res.clone()) : undefined))
@@ -266,6 +289,10 @@ async function cacheFirst(req, name) {
 /** @param {string} [key] store/match under this URL instead of the request's own (the document's `?v=` reload) */
 async function networkFirst(req, name, key) {
   const cache = await caches.open(name);
+  if (offline()) {
+    const hit = await cache.match(key ?? req, MATCH_OPTS);
+    if (hit) return hit;
+  }
   try {
     const res = await fetch(req);
     if (res.ok) cache.put(key ?? req, res.clone()).catch(() => undefined);

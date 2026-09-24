@@ -28,6 +28,11 @@ Playable: `pnpm install && pnpm assets && pnpm dev` → http://localhost:5173 (s
 Target look: `art/<subject>/round-<n>/` (codex/OpenAI image-gen mockups, index in `art/README.md`); gap list: `docs/AAA-PLAN.md`;
 progress photos, `timelapse.mp4` and `progress-video.mp4`: `progress/`.
 
+Physics: Rapier 3D (`src/physics/`). Both shards collide for real: the player and nearby creatures on a character
+controller, every structure as colliders, projectiles and blades against the world, items as bodies, ragdolls, and a
+navmesh for the herds. How it fits together, and the numbers before and after: `project/archive/2026-09-23-physics.md`, or its archive
+once finished. Working rules: `AGENTS.md` → Physics.
+
 ## Plans
 
 Live plans are in `docs/plans/` — each opens with a **State** line (`draft` · `in progress` · `blocked`).

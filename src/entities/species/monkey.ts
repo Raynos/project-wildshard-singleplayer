@@ -3,7 +3,7 @@ import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
 import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
 import type { Animal } from '../Animal';
-import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
+import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from './rigs';
 
 /**
  * Coconut Monkey — the palm-grove troop (art/driftwood-isle/round-3-enemies/driftwood-enemy-2-monkey.png): tan faceted fur, a dark face with a pale
@@ -224,12 +224,13 @@ function animateMonkey(c: RigAnimCtx): void {
   R(b.tail1, -0.5 * curl - 0.4 * run + 0.9 * dead, 0, 0.25 * Math.sin(t * 1.7 + seed) * (1 - run) + lash * 0.4);
   R(b.tail2, -0.8 * curl + 0.3 * Math.sin(t * 2.1 + seed) * sit, 0, 0.2 * Math.sin(t * 1.7 + 1 + seed) + lash * 0.6);
   R(b.tail3, -0.9 * curl + 0.4 * Math.sin(t * 2.6 + seed), 0, lash);
+  squashBody(b.body, c.flinch);
 }
 
 // ── AI ───────────────────────────────────────────────────────────────────────────────────
 
 const ST_PERCH = 0, ST_GROUND_IDLE = 1, ST_ATTACK = 2, ST_DROP = 3, ST_GROUND = 4, ST_RETURN = 5, ST_CLIMB = 6;
-const THROW_R = 14, THROW_DUR = 1.0, THROW_RELEASE = 0.62, BITE_R = 1.3, BITE_DAMAGE = 6, BITE_DUR = 0.7, UNDER_R = 2.6, UNDER_T = 2.0, RUN = 3.2;
+const THROW_R = 14, THROW_DUR = 1.0, THROW_RELEASE = 0.62, BITE_R = 1.3, BITE_DAMAGE = 6, BITE_DUR = 0.9 /* the bite lands at 0.45 → a 0.41 s readable wind-up */, UNDER_R = 2.6, UNDER_T = 2.0, RUN = 3.2;
 
 function pickPerch(a: Animal, c: ThinkCtx, minD: number, maxD: number, awayFrom?: THREE.Vector3): number {
   const P = c.world.perches; if (P === undefined || P.length === 0) return -1;

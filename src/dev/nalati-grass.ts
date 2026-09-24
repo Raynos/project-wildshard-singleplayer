@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import { bootstrap } from '../core/bootstrap';
 import { Grass } from '../world/Grass';
-import { wind } from '../world/Wind';
+import { wind } from '../world/steppeWind';
 import { trample, grassHeightAt } from '../world/GrassTrample';
 import { heightAt } from '../world/Heightfield';
 

@@ -21,8 +21,8 @@ const SEED = 0x5ea1;
 export const OCEAN: OceanDef = {
   level: 0.8,
   // albedo (linear); the sun + sky here add up to ~3× so the palette stays under 0.5 or it tone-maps to white
-  shallowColor: [0.07, 0.5, 0.46],
-  deepColor: [0.006, 0.07, 0.24],
+  shallowColor: [0.0, 0.8, 0.88],
+  deepColor: [0.008, 0.15, 0.52],
   deepDepth: 6,
 };
 
@@ -37,7 +37,9 @@ export const JETTIES = [
 /** the sand paths between the POIs (also `trails[4..]`): [pier → hut], [hut → lookout], [fork → wreck], [hut → shrine] */
 export const PATHS: [number, number][][] = [
   [[0, -188], [-8, -172], [-30, -142], [-30, -104], [-24, -80], [-20, -68]],
-  [[-20, -68], [-8, -50], [14, -24], [17, 8], [24, 22], [31, 30], [50, 44], [66, 62], [90, 90]],
+  // hut → lookout: over the rope bridge end to end (BRIDGE.a → .b), then up the headland ramp's diagonal with its plank
+  // steps and fence (Trailside), not beside them over the crags (PHYSICS.md P9: the old line climbed 2–3 m a metre)
+  [[-20, -68], [-8, -50], [14, -24], [17, 8], [15, 12], [16, 14], [32, 30], [34, 32], [46, 46], [86, 86], [90, 90]],
   [[17, 8], [60, 0], [100, -2], [140, 4]],
   [[-20, -68], [-52, -30], [-72, 20], [-88, 70], [-96, 96]],
 ];
@@ -49,11 +51,11 @@ export const PLATEAU = { x: -24, z: -62, r: 46, h: 13 };
 export const HUT = { x: PLATEAU.x + 2, z: PLATEAU.z - 2, rot: 0 };
 /** the north-east massif: a tall craggy headland (a broad shoulder + a high top) with the lookout on its summit */
 export const HEADLAND = { x: 98, z: 96, r: 48, h: 22, shoulderR: 80, shoulderH: 9 };
-/** Wreck Cove: a bay bitten out of the east shore; the wreck lies heeled on its sand, bow to the land */
+/** Wreck Cove: a bay bitten out of the east shore; the wreck lies half sunk on the reef at its mouth, bow run up the sand, heeled toward the beach (Wreck.ts) */
 export const COVE = { ang: -0.02, depth: 46, width: 0.5 };
-export const WRECK = { x: 149, z: 4, heading: 2.1, roll: 0.32 };
-/** the ring shrine on a knoll in the north-west jungle (rot: which way its pillars face — south-east, toward the hut) */
-export const SHRINE = { x: -98, z: 108, rot: 2.4 };
+export const WRECK = { x: 153, z: 2, heading: 2.7, roll: -0.2, pitch: 0.05, floorY: 1.45 };
+/** the ring shrine on a knoll in the north-west jungle (rot: its stair faces south-east toward the hut path; its back points at the planet, so the ring frames it from the stair head) */
+export const SHRINE = { x: -98, z: 108, rot: 2.51 };
 /** the tidal creek across the hut → lookout path (a ravine cut below sea level, so the lagoon runs into it) and the rope bridge over it */
 export const GULLY = { x: 24, z: 22, width: 11, depth: 7, length: 64 };
 export const BRIDGE = { a: [16, 14] as [number, number], b: [32, 30] as [number, number], sag: 0.9 };
@@ -76,13 +78,22 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   style: 'lowpoly',
   weapon: 'sword',
   ocean: OCEAN,
+  explore: true,
+  pois: [
+    { id: 'jetty', name: 'Jetty', x: 0, z: -CHUNK_HALF + 24, r: 16 },
+    { id: 'hut', name: 'Hut', x: HUT.x, z: HUT.z, r: 12 },
+    { id: 'shrine', name: 'Ring shrine', x: SHRINE.x, z: SHRINE.z, r: 16 },
+    { id: 'lookout', name: 'Lookout', x: LOOKOUT.x, z: LOOKOUT.z, r: 12 },
+    { id: 'wreck', name: 'Wreck cove', x: WRECK.x, z: WRECK.z, r: 20 },
+    { id: 'bridge', name: 'Rope bridge', x: (BRIDGE.a[0] + BRIDGE.b[0]) / 2, z: (BRIDGE.a[1] + BRIDGE.b[1]) / 2, r: 12 },
+  ],
 
   terrain: buildTerrain(SEED, {
     oceanLevel: OCEAN.level,
     /**
      * The island: a noise-warped disc centred a little north of the chunk centre. `m` is signed
-     * metres inside the shoreline. Out to sea the floor is 5 m down and shelves up over the last
-     * 60 m (the turquoise lagoon over sand); the beach climbs from the water line to ~2.6 m over
+     * metres inside the shoreline. Out to sea the floor is 2.6 m down and shelves up over the last
+     * 130 m (a wide, clear turquoise lagoon over sand — 1.5–2.5 m deep around the pier); the beach climbs from the water line to ~2.6 m over
      * 25 m, then the interior rises gently to grass at ~6 m. The plateau, cliffs and lookout are
      * added on top as their pieces land. Entry roads are forced to 0 by buildTerrain (sandbars).
      */
@@ -96,7 +107,7 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
       // the shelf and the beach keep a real slope through the water line (a smoothstep there would flatten
       // the shallows into a 20 m wide foam sheet)
       let h = m < 0
-        ? -5.0 + clamp(1 + m / 70, 0, 1) ** 1.6 * (sea + 5.0)                              // shelf up to the water line
+        ? -2.6 + clamp(1 + m / 130, 0, 1) ** 1.1 * (sea + 2.6)                             // a wide sandy lagoon: 1.5–2.5 m under the pier (clear turquoise over sand, the spawn mockup)
         : sea + clamp(m / 26, 0, 1) ** 0.85 * 1.8 + smoothstep(20, 90, m) * 3.6;            // beach, then the grassy interior
       h += n.fbm(x * 0.04, z * 0.04, 2) * 0.25 * smoothstep(-10, 15, m);       // small dune / ground bumps on land
       // the hut plateau: a flat-topped crag with a craggy (noise-warped) rim and a gentler ramp on the south side
@@ -135,6 +146,21 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
      * plateau ramp → the hut; hut → east → the headland ramp → the lookout; the fork east on to Wreck Cove;
      * hut → north-west → the shrine. The low-poly terrain paints them sand (Terrain.ts, trailDistance).
      */
+    /**
+     * The paths that climb crags are graded (cut and filled to ≤ 32° along the centreline): hut → lookout on both sides
+     * of the bridge (never across the creek), the fork → wreck, hut → shrine. Only outside the Blender spawn cove
+     * (blenderArea.ts, z < −20.6 — its terrain is baked in Blender from these heights): each graded stretch starts
+     * a shelf's width (7 m) clear of it. The plateau rim inside it is climbed by stairs (Trailside `flights`).
+     */
+    graded: {
+      paths: [
+        [[14.9, -13.5], [17, 8], [15, 12], [16, 14]],
+        [[32, 30], [34, 32], [46, 46], [86, 86], [90, 90]],
+        [[17, 8], [60, 0], [100, -2], [140, 4]],
+        [[-58.6, -13.5], [-72, 20], [-88, 70], [-96, 96]],
+      ],
+      maxGrade: Math.tan(32 * Math.PI / 180),
+    },
     trails: [
       [[0, -CHUNK_HALF], [0, -CHUNK_HALF + ROAD_LENGTH]],
       [[0, CHUNK_HALF], [0, CHUNK_HALF - ROAD_LENGTH]],
@@ -191,25 +217,26 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   sky: {
     hdri: 'kloofendal_48d_partly_cloudy_puresky',
     sunColor: [1.0, 0.97, 0.9],
-    sunIntensity: 2.2,
+    sunIntensity: 2.7,
     envIntensity: 0.7,
     bgIntensity: 1.0,
     fogSunColor: [1.0, 0.98, 0.92],
     cloudSunColor: [1.0, 0.98, 0.94],
-    hemiSky: 0x9fd8ff, hemiGround: 0x2a6f8a, hemiIntensity: 0.4,
+    // toon ambient (stylize.ts): the whole shade band — a lavender-blue sky fill, a warm sand bounce from below
+    hemiSky: 0x7b90f4, hemiGround: 0xd8a878, hemiIntensity: 0.9,
     // the ringed gas giant high in the north-east (up and right of the pier's view), lit from the NW sun
     planet: { azimuth: 36, elevation: 38, size: 17, tilt: 24, roll: -16 },
   },
   atmosphere: {
     fogHeight: -20.0,
     fogHeightFalloff: 0.08,
-    fogHeightDensity: 0.0012,
-    fogDistDensity: 0.00032,
+    fogHeightDensity: 0.0004,
+    fogDistDensity: 0.00014,
     volumetricSunColor: [1.0, 0.97, 0.9],
   },
   grade: {
-    saturation: 0.32, brightness: 0.02, contrast: 0.12,
-    bloomIntensity: 0.22, bloomThreshold: 0.95,
+    saturation: 0.3, brightness: 0.0, contrast: 0.2,
+    bloomIntensity: 0.4, bloomThreshold: 1.0,
     shadowTint: [0.94, 0.98, 1.06], highTint: [1.04, 1.01, 0.96],
     lift: [0.0, 0.0, 0.005], gain: [1.02, 1.02, 1.0], gamma: 1.0,
   },

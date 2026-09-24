@@ -35,14 +35,17 @@ async function runAll(plan: Plan<BootStep>, work: Work): Promise<Plan<never>> {
   const p3 = await p2.step('terrain', w('terrain'));
   const p4 = await p3.step('cards', w('cards'));
   const p5 = await p4.step('forest', w('forest'));
-  const p6 = await p5.step('edge', w('edge'));
+  const p5b = await p5.step('physics', w('physics'));
+  const p6 = await p5b.step('edge', w('edge'));
   const p7 = await p6.step('grass', w('grass'));
   const p8 = await p7.step('cabins', w('cabins'));
   const p9 = await p8.step('props', w('props'));
   const p10 = await p9.step('animals', w('animals'));
   const p11 = await p10.step('weapon', w('weapon'));
-  const p12 = await p11.step('shaders', w('shaders'));
-  return p12.step('firstFrame', w('firstFrame'));
+  const p12 = await p11.step('menu', w('menu'));
+  const p13 = await p12.step('shaders', w('shaders'));
+  const p14 = await p13.step('firstFrame', w('firstFrame'));
+  return p14.step('audio', w('audio'));
 }
 
 const monotone = (xs: number[]): boolean => xs.every((x, i) => i === 0 || x >= (xs[i - 1] ?? 0));
@@ -116,7 +119,7 @@ describe('createBootPlan', () => {
     expect(plan.view.bytes).toMatchObject({ key: 'sky', done: 600, total: 1000 });
     sky.add(5000);          // over-read is capped at the total
     expect(plan.view.bytesRead).toBe(1000);
-    expect(plan.view.download).toBeCloseTo(1000 / 6000);
+    expect(plan.view.download).toBeCloseTo(1000 / (1000 * BYTE_SOURCES.length));
     await plan.step('renderer', () => undefined);
     await plan.step('sky', () => undefined); // closes 'sky' and 'baked' (baked never read a byte)
     expect(plan.view.bytesRead).toBe(2000);

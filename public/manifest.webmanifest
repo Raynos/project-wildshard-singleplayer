@@ -3,7 +3,7 @@
   "short_name": "Wildshard",
   "start_url": "/",
   "display": "fullscreen",
-  "orientation": "landscape",
+  "orientation": "portrait",
   "background_color": "#34424f",
   "theme_color": "#34424f",
   "icons": [

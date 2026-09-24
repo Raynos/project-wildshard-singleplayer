@@ -5,7 +5,7 @@ import type { Player } from '../player/Player';
 import type { Forest } from '../world/Forest';
 import type { Animal } from '../entities/Animal';
 import type { AnimalManager } from '../entities/AnimalManager';
-import type { DayClock } from '../world/DayNight';
+import type { DayClock } from '../world/DayClock';
 import type { TargetAnimal, TargetHit } from '../player/Crossbow';
 import { heightAt } from '../world/Heightfield';
 import { HORSE_SPEED } from '../entities/species/horse';

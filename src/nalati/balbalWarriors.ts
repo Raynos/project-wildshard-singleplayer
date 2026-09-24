@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Animal } from '../entities/Animal';
 import type { AnimalManager } from '../entities/AnimalManager';
 import type { Balbals } from '../world/nalati/Balbals';
-import type { DayClock } from '../world/DayNight';
+import type { DayClock } from '../world/DayClock';
 import { heightAt } from '../world/Heightfield';
 import { BALBAL, BALBAL_SLAM, balbalCombat, onBalbalCrack } from '../entities/species/balbal';
 import { NightParticles, FLAG_GRAVITY, FLAG_BOUNCE, FLAG_GROW } from './nightFx';

@@ -23,9 +23,9 @@ import type { NalatiKit } from '../player/nalatiKit';
 import type { Nalati } from './index';
 import type { NalatiWeather } from './weather';
 import type { AnimalManager } from '../entities/AnimalManager';
-import { wind } from '../world/Wind';
+import { wind } from '../world/steppeWind';
 import { wildEnv } from '../entities/wildEnv';
-import { lightLevel } from '../world/DayNight';
+import { lightLevel } from '../world/DayClock';
 import { trailDistance } from '../world/Heightfield';
 import { RIVER, BRIDGE, CAMP, SUMMER_YURTS, GLACIER, BROOK, riverMask } from '../chunks/nalati-grasslands';
 

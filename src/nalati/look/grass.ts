@@ -32,7 +32,7 @@ import { TIER } from '../../core/tier';
 import { CHUNK_HALF } from '../../core/config';
 import { heightAt, trailDistance, splatAt } from '../../world/Heightfield';
 import { grassBaseHeightAt, trailGrass, grassToneAt, groundColorAt, grassBloomAt, flowerSpeciesAt } from '../../world/GrassField';
-import { wind, WIND_GLSL } from '../../world/Wind';
+import { wind, WIND_GLSL } from '../../world/steppeWind';
 import { trample, TRAMPLE_GLSL } from '../../world/GrassTrample';
 import { painterlyUniforms } from '../../world/painterly';
 import { fogUniforms, paintedAir } from '../../world/Atmosphere';

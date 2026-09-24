@@ -1,0 +1,27 @@
+{
+ "name": "wreck",
+ "source": "wreck.glb",
+ "tris": 2989,
+ "size_m": [
+  13.72,
+  7.78,
+  12.53
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#311e0e",
+  "#362211",
+  "#38200c",
+  "#3b2513",
+  "#3f260f",
+  "#402916",
+  "#462b14",
+  "#472e19",
+  "#4f321c",
+  "#593820",
+  "#654025",
+  "#b7ada0"
+ ],
+ "atlas": "wreck.tex.glb: 512\u00b2 WebP base colour on smart-project UVs, no COLOR_0"
+}

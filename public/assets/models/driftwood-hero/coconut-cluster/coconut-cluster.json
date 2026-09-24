@@ -1,0 +1,20 @@
+{
+ "name": "coconut-cluster",
+ "source": "coconut-cluster.glb",
+ "tris": 360,
+ "size_m": [
+  0.61,
+  0.56,
+  0.49
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#373300",
+  "#3d5b00",
+  "#5b6d03",
+  "#609a0f",
+  "#6f9500",
+  "#8bb806"
+ ]
+}

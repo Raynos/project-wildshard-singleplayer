@@ -1,12 +1,12 @@
 {
-  "$doc": "Load budgets from project/archive/2026-09-22-load-perf.md §1, checked by `pnpm bench:ci` (scripts/bench-load.mjs --ci). cond = <network>/<cold|warm>; metric = a row field of progress/bench/*.json; max (with unit MB|s|count) or equals. Missing rows print n/a and do not fail.",
+  "$doc": "Load budgets from project/archive/2026-09-22-load-perf.md §1 (re-set 2026-09-23 for E44 — each re-set row says why), checked by `pnpm bench:ci` (scripts/bench-load.mjs --ci). cond = <network>/<cold|warm>; metric = a row field of progress/bench/*.json; max (with unit MB|s|count) or equals. Missing rows print n/a and do not fail.",
   "rows": [
     { "name": "title screen visible", "cond": "4g/cold", "metric": "titleMs", "max": 1000, "unit": "s" },
-    { "name": "first-launch transfer", "cond": "wifi/cold", "metric": "netBytes", "max": 12582912, "unit": "MB" },
+    { "name": "first-launch transfer", "cond": "wifi/cold", "metric": "netBytes", "max": 20971520, "unit": "MB", "why": "2026-09-23 E44 (project/archive/2026-09-23-preload-offline.md): every audio file (3 music styles + every SFX set, ~11.9 MB) and the title art (~2 MB) now load at the bar — the user picked completeness over cold bytes; Driftwood measured 16.1 MB (was ≤ 12 MB)" },
     { "name": "warm transfer (SW cache)", "cond": "wifi/warm", "metric": "netBytes", "max": 104857, "unit": "MB" },
-    { "name": "requests, first launch", "cond": "wifi/cold", "metric": "requests", "max": 20, "unit": "count" },
-    { "name": "time to play, cold", "cond": "4g/cold", "metric": "playMs", "max": 10000, "unit": "s" },
-    { "name": "time to play, warm", "cond": "4g/warm", "metric": "playMs", "max": 3000, "unit": "s" },
+    { "name": "requests, first launch", "cond": "wifi/cold", "metric": "requests", "max": 180, "unit": "count", "why": "E44: the ~135 audio / art files are fetched one by one so a style / set switch and an offline launch read each from the SW cache; Driftwood measured 161 (was ≤ 20)" },
+    { "name": "time to play, cold", "cond": "4g/cold", "metric": "playMs", "max": 22000, "unit": "s", "why": "E44: +14 MB at Fast 4G's 9 Mbit/s is ~13 s; Driftwood measured 19.5 s (was ≤ 10 s). The launch the player repeats is the warm one below" },
+    { "name": "time to play, warm", "cond": "4g/warm", "metric": "playMs", "max": 4000, "unit": "s", "why": "E44: L1 / P5 now target the cached launch; it decodes the selected music style + SFX set from the cache before playable. Measured 3.3–3.8 s on a loaded host where 015861d read 3.1 s (was ≤ 3 s)" },
     { "name": "longest main-thread task", "cond": "wifi/cold", "metric": "longTaskMaxMs", "max": 100, "unit": "ms" },
     { "name": "service worker controls warm run", "cond": "wifi/warm", "metric": "swController", "equals": true }
   ]

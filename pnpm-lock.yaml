@@ -26,6 +26,9 @@ importers:
       '@capgo/capacitor-updater':
         specifier: 8.51.21
         version: 8.51.21(@capacitor/core@8.5.2)
+      '@dimforge/rapier3d-simd':
+        specifier: 0.20.0
+        version: 0.20.0
       '@fontsource/jetbrains-mono':
         specifier: 5.3.0
         version: 5.3.0
@@ -38,6 +41,9 @@ importers:
       n8ao:
         specifier: ^2.0.1
         version: 2.0.1(postprocessing@6.39.5(three@0.186.0))(three@0.186.0)
+      navcat:
+        specifier: 0.4.1
+        version: 0.4.1(three@0.186.0)
       postprocessing:
         specifier: ^6.39.5
         version: 6.39.5(three@0.186.0)
@@ -130,6 +136,9 @@ packages:
 
   '@dimforge/rapier3d-compat@0.12.0':
     resolution: {integrity: sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow==}
+
+  '@dimforge/rapier3d-simd@0.20.0':
+    resolution: {integrity: sha512-0Gx0GVp0PlTibBoiiPqfaflV0L0e/5Lk9M6DwxqCmLp/Ii8UBwZ+opgdT7/6ah/AvIHipwoyC7JlqAzLob723Q==}
 
   '@donmccurdy/caporal@0.0.10':
     resolution: {integrity: sha512-VdaJjOqYFYcDTM5We2x8cL+B+U9UFQvq0iW2ypqEGX31SDf2oYFjEg7INEJorBwJJnFNXV8jXoYGzJyLeYl1EQ==}
@@ -1309,6 +1318,9 @@ packages:
   magic-string@1.4.1:
     resolution: {integrity: sha512-8lyCu36ErXR0J9uaGKlKQoiLZKmtI63YGLE8G2o9jyRPdr4X47LusSOwgOJOzcVtp81fTAAjxR7BwKz682Jhow==}
 
+  mathcat@0.0.12:
+    resolution: {integrity: sha512-gUBe1U/sh7JQ+aSMJDiLG++B3t5rSGAYdEIqPBSEEFUHK9mAcC7yE0f7RZ1SjXI57bDLSYJyrA74XQPT1tJxoA==}
+
   merge-stream@2.0.0:
     resolution: {integrity: sha512-abv/qOcuPfk3URPfDzmZU1LKmuw8kT+0nIHvKrKgFrwifol/doWcdA4ZqsWQ8ENrFKkd67Mfpo/LovbIUsbt3w==}
 
@@ -1367,6 +1379,14 @@ packages:
     resolution: {integrity: sha512-U1PllBuzW5d1gfan+88L+Hky2eZx+9gv3Pf6rNBxKbORxi7boHzqiA6QFGSnqMem4j0A9tZ08NMIs5+0m/VS1Q==}
     engines: {node: '>=16.0.0'}
     hasBin: true
+
+  navcat@0.4.1:
+    resolution: {integrity: sha512-dMsXyMh06V5MZaDx93C+xO9GnGIU6TczsnNI8zD41EL1ybOxHgk0uqVTiVZel8cmysR2E+hJA4bK1EOTSM+S6Q==}
+    peerDependencies:
+      three: '>=0.180.0'
+    peerDependenciesMeta:
+      three:
+        optional: true
 
   ndarray-lanczos@0.3.0:
     resolution: {integrity: sha512-5kBmmG3Zvyj77qxIAC4QFLKuYdDIBJwCG+DukT6jQHNa1Ft74/hPH1z5mbQXeHBt8yvGPBGVrr3wEOdJPYYZYg==}
@@ -1937,6 +1957,8 @@ snapshots:
       kuler: 2.0.0
 
   '@dimforge/rapier3d-compat@0.12.0': {}
+
+  '@dimforge/rapier3d-simd@0.20.0': {}
 
   '@donmccurdy/caporal@0.0.10':
     dependencies:
@@ -2917,6 +2939,8 @@ snapshots:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
 
+  mathcat@0.0.12: {}
+
   merge-stream@2.0.0: {}
 
   meshoptimizer@1.1.1: {}
@@ -2972,6 +2996,12 @@ snapshots:
       yauzl: 2.10.0
     transitivePeerDependencies:
       - supports-color
+
+  navcat@0.4.1(three@0.186.0):
+    dependencies:
+      mathcat: 0.0.12
+    optionalDependencies:
+      three: 0.186.0
 
   ndarray-lanczos@0.3.0:
     dependencies:

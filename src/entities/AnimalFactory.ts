@@ -6,7 +6,7 @@ import { attachFogUniforms, fogUniforms } from '../world/Atmosphere';
 import { bakedTexture } from '../boot/bakedTextures';
 import { speciesDef, variantDef, type SpeciesDef, type VariantDef, type AnimalDims, type BoneDef, type FurStyle } from './species/registry';
 import { setLowPoly } from './species/loft';
-import { facetGeometry, lowPolyMaterials } from './lowpoly';
+import { facetGeometry, lowPolyMaterials, oneMaterial, patchEyeGlow } from './lowpoly';
 import { preloadCreatureGlbs, creatureHull, skinCreatureGlb, loadCreatureRig } from './glbCreatures';
 import { painterlyAnimalMaterial } from './painterlyAnimals';
 
@@ -329,9 +329,16 @@ export class AnimalFactory {
     }
     if (lowPoly) {
       // faceted: flat per-face normals, flat-shaded untextured materials, no fur shells
-      geometry = facetGeometry(geometry);
+      geometry = facetGeometry(geometry, sp.facetJitter);
       const lp = lowPolyMaterials();
+      // one material, one draw per rig (M3): the hard parts + eyes fold into the body group; glowing eyes ride aGlow
+      const glow = oneMaterial(geometry, species.eyeGlow !== undefined ? 2 : null);
       if (species.eyeGlow !== undefined) { lp.eye.emissive = col3(species.eyeGlow); lp.eye.emissiveIntensity = species.eyeGlowIntensity ?? 1; }   // the sailor's cyan eyes
+      if (glow) patchEyeGlow(lp.fur, lp.eye.emissive, lp.eye.emissiveIntensity);
+      if (sp.map) { // a generated model's own paint (the Drowned Captain), set before the program compiles
+        lp.fur.map = sp.map;
+        if (sp.selfLight !== undefined && sp.selfLight > 0) { lp.fur.emissiveMap = sp.map; lp.fur.emissive.setRGB(1, 1, 1); lp.fur.emissiveIntensity = sp.selfLight; }
+      }
       this.sky.setupMaterial(lp.fur); this.sky.setupMaterial(lp.hard); this.sky.setupMaterial(lp.eye);
       m = { kind, variant: v.id, style: 'lowpoly', species, variantDef: v, geometry, bones: sp.bones, dims: sp.dims, fur: lp.fur, hard: lp.hard, eye: lp.eye, shells: [] };
       this.models.set(key, m);
@@ -467,10 +474,12 @@ export class AnimalFactory {
     if (model.style === 'pbr' && model.rim !== undefined) {
       this.patchFur(fur as THREE.MeshPhysicalMaterial, model.rim);   // clone() does not carry onBeforeCompile
     }
+    if (model.style === 'lowpoly' && model.geometry.hasAttribute('aGlow') && fur instanceof THREE.MeshStandardMaterial) patchEyeGlow(fur, model.eye.emissive, model.eye.emissiveIntensity);
     const v = (tint - 0.5) * (model.style === 'lowpoly' ? 0.3 : 0.2);
     fur.color.setRGB(0.9 + v, 0.9 + v * 0.9, 0.9 + v * 0.7);
     this.sky.setupMaterial(fur);
-    const mesh = new THREE.SkinnedMesh(model.geometry, [fur, model.hard, model.eye]);
+    // low-poly rigs are one group (oneMaterial): one draw, and the per-animal body clone is the whole body (the hit flash)
+    const mesh = new THREE.SkinnedMesh(model.geometry, model.style === 'lowpoly' ? [fur] : [fur, model.hard, model.eye]);
     this.pendingRigs.get(`${model.kind}:${model.variant}`)?.push({ mesh, fur });
     const root = bones['body'];
     if (root === undefined) throw new Error(`species '${model.kind}': no 'body' bone`);

@@ -3,7 +3,7 @@ import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef, type RigAnimCtx, type ThinkCtx } from './registry';
 import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, type Paint, type RGB } from './loft';
 import type { Animal } from '../Animal';
-import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
+import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from './rigs';
 
 /**
  * Reef Crab — Wreck Cove's tidepool crab (art/driftwood-isle/round-3-enemies/driftwood-enemy-1-crab.png): a wide domed orange-red carapace with
@@ -103,8 +103,8 @@ function buildCrab(v: VariantDef, rng: Rng): AnimalSpecies {
     eyes.push(skinPlain(eye, head, 'eye', paint));
   }
   // barnacles: a crust of little cones over the top of the shell
-  for (let i = 0; i < 7; i++) {
-    const bx = rng.range(-0.26, 0.26), bz = rng.range(-0.16, 0.16);
+  for (let i = 0; i < 13; i++) {
+    const bx = rng.range(-0.28, 0.28), bz = rng.range(-0.18, 0.18);
     const by = 0.21 + 0.105 * 1.4 * Math.sqrt(Math.max(0, 1 - (bx / 0.35) ** 2 - (bz / 0.22) ** 2)) - 0.015;
     const r = rng.range(0.025, 0.045);
     hard.push(loft([S(bx, by - 0.01, bz, r, r, body), S(bx, by + r * 0.9, bz, r * 0.55, r * 0.55, body), S(bx, by + r * 1.15, bz, r * 0.2, r * 0.2, body)], 8, 'barnacle', paint, false, true));
@@ -119,16 +119,16 @@ function buildCrab(v: VariantDef, rng: Rng): AnimalSpecies {
       S(sx * 0.50, 0.18, 0.38, 0.055 * cs, 0.05 * cs, arm, hand, 0.5),
     ], 8, 'arm', paint, true, false));
     fur.push(loft([
-      S(sx * 0.50, 0.18, 0.38, 0.06 * cs, 0.055 * cs, hand),
-      S(sx * 0.58, 0.18, 0.47, 0.105 * cs, 0.08 * cs, hand),
-      S(sx * 0.66, 0.175, 0.58, 0.085 * cs, 0.07 * cs, hand),
-      S(sx * 0.70, 0.15, 0.70, 0.035 * cs, 0.03 * cs, hand),
-      S(sx * 0.72, 0.13, 0.78, 0.008, 0.008, hand),
+      S(sx * 0.50, 0.18, 0.38, 0.075 * cs, 0.07 * cs, hand),
+      S(sx * 0.58, 0.185, 0.48, 0.17 * cs, 0.13 * cs, hand),
+      S(sx * 0.67, 0.18, 0.61, 0.14 * cs, 0.11 * cs, hand),
+      S(sx * 0.72, 0.15, 0.75, 0.055 * cs, 0.045 * cs, hand),
+      S(sx * 0.745, 0.12, 0.86, 0.01, 0.01, hand),
     ], 8, 'claw', paint, false, true));
     fur.push(loft([
-      S(sx * 0.60, 0.20, 0.52, 0.035 * cs, 0.03 * cs, tip),
-      S(sx * 0.66, 0.23, 0.64, 0.028 * cs, 0.022 * cs, tip),
-      S(sx * 0.68, 0.235, 0.76, 0.008, 0.008, tip),
+      S(sx * 0.60, 0.21, 0.52, 0.055 * cs, 0.045 * cs, tip),
+      S(sx * 0.665, 0.25, 0.66, 0.045 * cs, 0.036 * cs, tip),
+      S(sx * 0.69, 0.25, 0.80, 0.01, 0.01, tip),
     ], 8, 'tip', paint, true, true));
     // legs: upper segment rising to the knee, lower segment down to a pointed foot
     for (const i of LEG_IDX) {
@@ -205,6 +205,7 @@ function animateCrab(c: RigAnimCtx): void {
   // ── eyestalks follow the target ──
   const look = lookAngles(c, 0.36, 1.0, 0.5);
   b.head.rotation.set(-look.pitch * 0.4 + 0.15 * dead, look.yaw * 0.6, 0.06 * Math.sin(t * 3.1 + seed * 7));
+  squashBody(b.body, c.flinch);
 }
 
 // ── AI ───────────────────────────────────────────────────────────────────────────────────

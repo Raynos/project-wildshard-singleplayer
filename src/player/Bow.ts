@@ -5,7 +5,7 @@ import type { Sky } from '../world/Sky';
 import type { Player } from './Player';
 import type { Forest } from '../world/Forest';
 import { painterlyMaterial } from '../world/painterly';
-import { wind as worldWind } from '../world/Wind';
+import { wind as worldWind } from '../world/steppeWind';
 import { getSetting, setSetting } from '../ui/Settings';
 import { fovForAspect, FOV_HIP, FOV_ADS, type ImpactSurface, type Targets, type TargetHit } from './Crossbow';
 import { Projectiles, type ProjectileKind, type WindField } from './Projectiles';

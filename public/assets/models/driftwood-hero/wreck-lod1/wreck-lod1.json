@@ -1,0 +1,24 @@
+{
+ "name": "wreck-lod1",
+ "source": "wreck.glb",
+ "tris": 1420,
+ "size_m": [
+  12.85,
+  7.27,
+  12.44
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#34200f",
+  "#382310",
+  "#3d2612",
+  "#3f2816",
+  "#432914",
+  "#442c18",
+  "#4b2f1a",
+  "#52341d",
+  "#5c3b22",
+  "#a69e94"
+ ]
+}

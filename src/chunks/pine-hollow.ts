@@ -84,6 +84,17 @@ export const PINE_HOLLOW: ChunkDef = {
   experimental: true,
   blurb: 'Experimental — Scots pines on a rolling shard with three log cabins in a sheltered hollow and a still pond below the ridge. Deer graze the trail edges; boar root under the canopy.',
   thumbnail, heroPortrait, heroLandscape,
+  // EXPLORE WORLD (E66): the viewer over this shard, and the World Explorer map's pins
+  explore: true,
+  pois: [
+    { id: 'gate', name: 'South gate', x: SPAWN.x, z: SPAWN.z + 20, r: 18 },
+    { id: 'cabin-1', name: 'Hollow cabin', x: CABIN_SITES[0]?.x ?? 0, z: CABIN_SITES[0]?.z ?? 0, r: 12 },
+    { id: 'cabin-2', name: 'East cabin', x: CABIN_SITES[1]?.x ?? 0, z: CABIN_SITES[1]?.z ?? 0, r: 12 },
+    { id: 'cabin-3', name: 'Ridge cabin', x: CABIN_SITES[2]?.x ?? 0, z: CABIN_SITES[2]?.z ?? 0, r: 12 },
+    { id: 'pond', name: 'Still pond', x: POND.x, z: POND.z, r: 24 },
+    { id: 'crossroads', name: 'Crossroads', x: 0, z: -10, r: 16 },
+    { id: 'black-bear', name: 'Bear den', x: -150, z: -150, r: 22 },
+  ],
 
   terrain: TERRAIN,
 

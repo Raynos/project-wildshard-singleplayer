@@ -1,0 +1,264 @@
+/* ─── Explore World — the viewer (src/explore/Explore.ts; project/archive/2026-09-23-explore-world.md) ─── prefix ws-x- ───
+   an overlay on document.body over the live canvas: top bar (wordmark + EXPLORE tag, MODELS | WORLD tabs, ✕), the
+   p02 hub cards, the god-mode flight rail (▲ ▼ speed, the phone's FLY stick), one ✎ and a toast. Imported by the
+   lazy Explore chunk, so the title never pays for it. The canvas under it takes the desktop mouse (FreeCam). */
+.ws-x { position: fixed; inset: 0; z-index: 40; display: none; pointer-events: none; font-family: var(--ws-mono); color: var(--ws-text); user-select: none; -webkit-user-select: none; }
+.ws-x.show { display: block; }
+.ws-x button { font-family: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+/* top bar */
+.ws-x-top { position: absolute; left: 12px; right: 12px; top: calc(10px + env(safe-area-inset-top, 0px)); display: flex; align-items: center; gap: 12px; padding: 8px 10px 8px 14px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.ws-x-brand { display: flex; align-items: center; gap: 10px; margin-right: auto; font-family: var(--ws-display); font-weight: 700; font-size: 18px; letter-spacing: 0.16em; text-transform: uppercase; white-space: nowrap; }
+.ws-x-brand b { color: var(--ws-cyan); font-weight: 700; }
+.ws-x-brand i { font-style: normal; font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.24em; padding: 3px 8px; color: var(--ws-amber); border: 1px solid rgba(255, 181, 71, 0.6); }
+.ws-x-tabs { display: flex; border: 1px solid var(--ws-cyan-line); }
+.ws-x-tabs button { padding: 7px 14px; background: none; border: 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-x-tabs button.on { color: var(--ws-cyan); background: rgba(143, 227, 255, 0.12); box-shadow: inset 0 -2px 0 var(--ws-cyan); }
+.ws-x-close { width: 34px; height: 34px; background: none; border: 1px solid var(--ws-cyan-line); font-size: 16px; }
+.ws-x[data-mode="hub"] .ws-x-tabs { visibility: hidden; }
+
+/* readout under the bar (world mode) */
+.ws-x-readout { position: absolute; white-space: pre; line-height: 1.6; left: 14px; top: calc(66px + env(safe-area-inset-top, 0px)); padding: 4px 9px; font-size: 10px; letter-spacing: 0.14em; color: #bfeeff; background: rgba(13, 27, 38, 0.62); border: 1px solid var(--ws-cyan-faint); border-top: 0; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
+.ws-x:not([data-mode="world"]) .ws-x-readout { display: none; }
+
+/* hub: two cards over the orbiting island */
+.ws-x-hub { position: absolute; left: 50%; bottom: max(28px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: none; flex-direction: column; gap: 14px; width: min(560px, calc(100% - 28px)); pointer-events: auto; }
+.ws-x[data-mode="hub"] .ws-x-hub { display: flex; }
+.ws-x-card { position: relative; display: flex; align-items: center; gap: 16px; padding: 8px; text-align: left; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5); transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
+.ws-x-card:hover, .ws-x-card:focus-visible { border-color: var(--ws-cyan); box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5), 0 0 28px rgba(143, 227, 255, 0.3); outline: none; transform: translateY(-2px); }
+.ws-x-card .ws-x-card-art { flex: 0 0 44%; aspect-ratio: 386 / 200; background-size: cover; background-position: center; border: 1px solid rgba(143, 227, 255, 0.25); }
+.ws-x-card .ws-x-card-text { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.ws-x-card b { font-family: var(--ws-display); font-weight: 700; font-size: 22px; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
+.ws-x-card b::after { content: ''; display: block; width: 30px; height: 2px; margin-top: 6px; background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); }
+.ws-x-card small { font-size: 11px; letter-spacing: 0.06em; line-height: 1.5; color: var(--ws-text-dim); }
+.ws-x-card .ws-x-card-go { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin-right: 6px; border: 1px solid var(--ws-cyan); border-radius: 50%; color: var(--ws-cyan); font-size: 24px; }
+
+/* world mode: flight rail on the right edge, the phone's stick bottom-left, a keys hint on desktop */
+.ws-x-fly { display: none; }
+.ws-x[data-mode="world"] .ws-x-fly { display: block; }
+.ws-x-rail { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); display: none; flex-direction: column; align-items: flex-end; gap: 10px; pointer-events: auto; }
+.ws-x.touch .ws-x-rail { display: flex; }
+.ws-x.mapopen .ws-x-rail { top: calc(96px + env(safe-area-inset-top, 0px)); transform: none; } /* the map sheet has the lower half: the rail rides above it */
+.ws-x-btn { width: 56px; height: 56px; border-radius: 50%; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: 18px; color: #eaf8ff; touch-action: none; }
+.ws-x-btn.on { background: rgba(143, 227, 255, 0.28); border-color: var(--ws-cyan); }
+.ws-x-chip { padding: 8px 11px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; }
+.ws-x-hint { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); padding: 6px 12px; font-size: 10px; letter-spacing: 0.12em; white-space: nowrap; color: var(--ws-text-dim); background: var(--ws-glass); border: 1px solid var(--ws-cyan-faint); }
+.ws-x.touch .ws-x-hint { display: none; }
+.ws-x-stick { position: absolute; left: max(22px, env(safe-area-inset-left, 0px)); bottom: max(24px, env(safe-area-inset-bottom, 0px)); width: 128px; height: 128px; border-radius: 50%; background: radial-gradient(circle, rgba(13, 27, 38, 0.2) 40%, rgba(13, 27, 38, 0.55)); border: 1px solid var(--ws-cyan-line); box-shadow: inset 0 0 18px rgba(143, 227, 255, 0.12); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); pointer-events: auto; touch-action: none; }
+.ws-x-stick i { position: absolute; left: 50%; top: 50%; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; background: rgba(143, 227, 255, 0.22); border: 1px solid var(--ws-cyan); box-shadow: 0 0 14px rgba(143, 227, 255, 0.35); }
+.ws-x-stick b { position: absolute; left: 0; right: 0; bottom: 12px; text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 0.28em; text-transform: uppercase; color: #cfefff; pointer-events: none; }
+.ws-x-stick.on i { background: rgba(143, 227, 255, 0.4); }
+
+/* ✎ — one button, every mode */
+.ws-x-note { position: absolute; right: 14px; bottom: max(22px, env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; pointer-events: auto; background: rgba(143, 227, 255, 0.16); border: 1px solid var(--ws-cyan); box-shadow: 0 0 18px rgba(143, 227, 255, 0.3); color: #fff; }
+.ws-x-note svg { width: 24px; height: 24px; }
+.ws-x[data-mode="hub"] .ws-x-note { display: none; }
+
+/* the one-time review password ask (D3: sending feedback is the gate) */
+.ws-x-unlock { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; gap: 10px; width: min(320px, calc(100% - 40px)); padding: 16px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); }
+.ws-x-unlock b { font-family: var(--ws-display); font-size: 16px; letter-spacing: 0.1em; text-transform: uppercase; }
+.ws-x-unlock input { padding: 10px; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--ws-cyan-line); color: #fff; font: inherit; font-size: 14px; }
+.ws-x-unlock div { display: flex; gap: 8px; }
+.ws-x-unlock div button { flex: 1; padding: 9px; background: rgba(143, 227, 255, 0.14); border: 1px solid var(--ws-cyan-line); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+.ws-x-unlock small { min-height: 1em; font-size: 10px; color: var(--ws-amber); }
+
+.ws-x-toast { position: absolute; left: 50%; top: calc(88px + env(safe-area-inset-top, 0px)); transform: translate(-50%, -8px); padding: 8px 14px; font-size: 11px; letter-spacing: 0.08em; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); opacity: 0; transition: opacity 0.25s, transform 0.25s; }
+.ws-x-toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* panes from other modules (Model Explorer …) share the overlay */
+.ws-x-pane { position: absolute; inset: 0; display: none; pointer-events: none; }
+.ws-x-pane.show { display: block; }
+
+/* ─── Model Explorer (src/explore/ModelExplorer.ts; mockups p04 catalog, p03 turntable) ─── */
+.ws-x-models .ws-x-catalog, .ws-x-models .ws-x-turntable { display: none; }
+.ws-x-models[data-view="catalog"] .ws-x-catalog { display: flex; }
+.ws-x-models[data-view="model"] .ws-x-turntable { display: block; }
+.ws-x-catalog { position: absolute; left: 12px; right: 12px; top: calc(66px + env(safe-area-inset-top, 0px)); bottom: max(86px, calc(env(safe-area-inset-bottom, 0px) + 80px)); flex-direction: column; gap: 10px; padding: 10px; pointer-events: auto; background: rgba(6, 10, 18, 0.72); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.ws-x-filter { display: flex; flex-wrap: wrap; gap: 6px; }
+.ws-x-filter button, .ws-x-views button, .ws-x-lights button { padding: 6px 11px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-x-filter button.on, .ws-x-views button.on, .ws-x-lights button.on { color: var(--ws-cyan); border-color: var(--ws-cyan); background: rgba(143, 227, 255, 0.14); }
+.ws-x-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); align-content: start; gap: 8px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.ws-x-model { display: flex; flex-direction: column; gap: 3px; padding: 5px 5px 8px; text-align: left; background: var(--ws-glass-deep); border: 1px solid rgba(143, 227, 255, 0.2); }
+.ws-x-model:hover, .ws-x-model:focus-visible { border-color: var(--ws-cyan); outline: none; }
+.ws-x-model .ws-x-model-thumb { display: block; aspect-ratio: 4 / 3; background: radial-gradient(circle at 50% 60%, rgba(143, 227, 255, 0.12), rgba(6, 10, 18, 0.6)); overflow: hidden; }
+.ws-x-model .ws-x-model-thumb canvas { display: block; width: 100%; height: 100%; }
+.ws-x-model b { padding: 2px 4px 0; font-family: var(--ws-display); font-size: 14px; letter-spacing: 0.12em; text-transform: uppercase; color: #fff; }
+.ws-x-model small { padding: 0 4px; font-size: 9px; letter-spacing: 0.12em; color: var(--ws-cyan-dim); }
+/* turntable: view + light chips up top, the sheet low */
+.ws-x-views, .ws-x-lights { position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; pointer-events: auto; }
+.ws-x-views { top: calc(68px + env(safe-area-inset-top, 0px)); }
+.ws-x-lights { top: calc(104px + env(safe-area-inset-top, 0px)); }
+.ws-x-turntable.noclock .ws-x-lights { display: none; }
+.ws-x-sheet { position: absolute; left: 12px; right: 84px; bottom: max(16px, env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; max-width: 620px; padding: 10px 14px 12px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.ws-x-sheet-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.ws-x-sheet-head .ws-x-back { padding: 4px 8px; background: none; border: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ws-cyan); }
+.ws-x-sheet-head b { font-family: var(--ws-display); font-size: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; }
+.ws-x-sheet-head span { font-size: 11px; color: var(--ws-text-dim); }
+.ws-x-stats { font-size: 11px; letter-spacing: 0.14em; color: var(--ws-cyan); }
+.ws-x-actions { display: flex; gap: 8px; }
+.ws-x-actions button { padding: 8px 14px; background: rgba(143, 227, 255, 0.12); border: 1px solid var(--ws-cyan-line); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; }
+
+.ws-x-budget { position: relative; display: flex; align-items: center; height: 18px; border: 1px solid var(--ws-cyan-faint); background: rgba(0, 0, 0, 0.25); }
+.ws-x-budget i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, rgba(143, 227, 255, 0.55), rgba(143, 227, 255, 0.25)); }
+.ws-x-budget span { position: relative; padding: 0 8px; font-size: 9px; letter-spacing: 0.08em; color: var(--ws-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-x-tierlabel { position: fixed; left: 0; top: 0; display: flex; flex-direction: column; align-items: center; padding: 4px 9px; pointer-events: none; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); }
+.ws-x-tierlabel b { font-family: var(--ws-display); font-size: 14px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-cyan); }
+.ws-x-tierlabel small { font-size: 9px; letter-spacing: 0.1em; color: var(--ws-text-dim); }
+
+/* creature viewer (X8; mockup p05): clips to watch, variants, skeleton, half speed — between the model and the sheet */
+.ws-x-creature { position: absolute; left: 12px; right: 12px; bottom: max(206px, calc(env(safe-area-inset-bottom, 0px) + 200px)); display: none; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
+.ws-x-turntable.creature .ws-x-creature { display: flex; }
+.ws-x-clips, .ws-x-creature-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; pointer-events: auto; }
+.ws-x-clips button, .ws-x-creature-row button, .ws-x-filter .ws-x-lineup { padding: 6px 10px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-x-clips button.on, .ws-x-creature-row button.on { color: var(--ws-cyan); border-color: var(--ws-cyan); background: rgba(143, 227, 255, 0.14); }
+.ws-x-variants { display: flex; gap: 4px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.ws-x-variants button { flex: 0 0 auto; white-space: nowrap; }
+.ws-x-creature-row { flex-wrap: nowrap; max-width: 100%; }
+.ws-x-variants button { padding: 6px 9px; background: var(--ws-glass-deep); border: 1px solid rgba(255, 181, 71, 0.4); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-x-variants button.on { color: var(--ws-amber); border-color: var(--ws-amber); }
+.ws-x-filter .ws-x-lineup { margin-left: auto; color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.5); }
+.ws-x-filter { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.ws-x-filter button { flex: 0 0 auto; }
+.ws-x-turntable.lineup .ws-x-inworld, .ws-x-turntable.lineup .ws-x-views button[data-v="tiers"] { display: none; }
+.ws-x-lineuplabel { padding: 3px 6px; }
+.ws-x-lineuplabel b { font-size: 11px; letter-spacing: 0.1em; }
+.ws-x-lineuplabel small { font-size: 8px; }
+.ws-x-lineuplabel.low { margin-top: -26px; } /* every other label sits a row higher so neighbours never overlap */
+.ws-x-rulemark { position: fixed; left: 0; top: 0; font-size: 9px; letter-spacing: 0.1em; color: var(--ws-cyan-dim); pointer-events: none; text-shadow: 0 1px 2px #000; }
+
+/* ─── X12 polish (target art/build-world/round-6-midway/07 + 06) ─── */
+/* the view / light chips: two glass segmented controls instead of rows of boxes */
+.ws-x-views, .ws-x-lights { gap: 0; padding: 3px; background: rgba(6, 12, 20, 0.72); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.ws-x-views button, .ws-x-lights button { background: none; border: 0; border-right: 1px solid rgba(143, 227, 255, 0.14); padding: 6px 11px; }
+.ws-x-views button:last-child, .ws-x-lights button:last-child { border-right: 0; }
+.ws-x-views button.on, .ws-x-lights button.on { background: rgba(143, 227, 255, 0.16); box-shadow: inset 0 -2px 0 var(--ws-cyan), 0 0 14px rgba(143, 227, 255, 0.18); }
+/* the sheet: a glass card, corner ticks, stat blocks, a slim labelled budget bar */
+.ws-x-sheet { background: linear-gradient(180deg, rgba(16, 36, 54, 0.82), rgba(5, 11, 19, 0.9)); border: 1px solid rgba(143, 227, 255, 0.32); box-shadow: 0 -1px 0 rgba(143, 227, 255, 0.25) inset, 0 18px 50px rgba(0, 0, 0, 0.55); }
+.ws-x-sheet::before, .ws-x-sheet::after { content: ''; position: absolute; width: 14px; height: 14px; border-color: var(--ws-cyan); border-style: solid; }
+.ws-x-sheet::before { left: -1px; top: -1px; border-width: 1px 0 0 1px; }
+.ws-x-sheet::after { right: -1px; bottom: -1px; border-width: 0 1px 1px 0; }
+.ws-x-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 0; letter-spacing: 0; }
+.ws-x-stats span { display: flex; flex-direction: column; gap: 2px; padding: 6px 8px; background: rgba(143, 227, 255, 0.06); border: 1px solid rgba(143, 227, 255, 0.14); }
+.ws-x-stats i { font-style: normal; font-size: 8.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-x-stats b { font-family: var(--ws-display); font-size: 17px; font-weight: 700; letter-spacing: 0.06em; color: var(--ws-cyan); }
+.ws-x-budget { height: auto; flex-direction: column; align-items: stretch; gap: 4px; border: 0; background: none; }
+.ws-x-budget span { padding: 0; font-size: 8.5px; letter-spacing: 0.1em; color: var(--ws-text-dim); }
+.ws-x-budget-bar { position: relative; height: 4px; background: rgba(143, 227, 255, 0.1); }
+.ws-x-budget-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); }
+.ws-x-actions .ws-x-inworld { border-color: var(--ws-cyan); color: var(--ws-cyan); background: rgba(143, 227, 255, 0.1); }
+/* catalog tiles: glass with a glow, the thumbnail on a soft vignette */
+.ws-x-model { background: linear-gradient(180deg, rgba(18, 40, 60, 0.7), rgba(6, 12, 20, 0.88)); border-color: rgba(143, 227, 255, 0.22); transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
+.ws-x-model:hover, .ws-x-model:focus-visible { box-shadow: 0 0 18px rgba(143, 227, 255, 0.28); transform: translateY(-1px); }
+.ws-x-model .ws-x-model-thumb { box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.55); }
+
+/* ─── the selection card (src/explore/Select.ts; mockups p09 / g09 / g13): anchored under the picked model ─── */
+.ws-x-select { position: absolute; left: 0; top: 0; display: none; flex-direction: column; gap: 3px; width: 200px; max-width: calc(100vw - 16px); padding: 9px 10px 10px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); box-shadow: 0 0 18px rgba(143, 227, 255, 0.25), 0 12px 40px rgba(0, 0, 0, 0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.ws-x-select.show { display: flex; }
+.ws-x:not([data-mode="world"]) .ws-x-select { display: none; }
+.ws-x-select b { font-family: var(--ws-display); font-size: 16px; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-x-select small { font-size: 9px; letter-spacing: 0.04em; color: var(--ws-text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-x-select-actions { display: grid; grid-template-columns: 1fr 38px; gap: 6px; margin-top: 6px; }
+.ws-x-select-actions button { padding: 8px 6px; background: rgba(143, 227, 255, 0.08); border: 1px solid var(--ws-cyan-line); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; }
+.ws-x-select-actions .ws-x-open { grid-column: 1 / -1; color: var(--ws-cyan); border-color: var(--ws-cyan); background: rgba(143, 227, 255, 0.14); }
+.ws-x-select-dim { position: absolute; left: 0; top: 0; display: none; padding: 3px 8px; font-size: 10px; letter-spacing: 0.12em; white-space: nowrap; color: #eaf8ff; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); pointer-events: none; }
+.ws-x-select-dim.show { display: block; }
+.ws-x:not([data-mode="world"]) .ws-x-select-dim { display: none; }
+
+/* ─── the mini map (src/explore/MiniMap.ts; mockups g11 / g12): a MAP button under the bar, a glass sheet ─── */
+.ws-x-mapbtn { position: absolute; right: 14px; top: calc(68px + env(safe-area-inset-top, 0px)); display: none; align-items: center; gap: 8px; padding: 8px 12px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #eaf8ff; }
+.ws-x-mapbtn.on { border-color: var(--ws-cyan); color: var(--ws-cyan); box-shadow: 0 0 14px rgba(143, 227, 255, 0.3); }
+.ws-x-mapbtn svg { width: 18px; height: 18px; }
+.ws-x[data-mode="world"] .ws-x-mapbtn { display: flex; }
+.ws-x-map { position: absolute; right: 14px; bottom: max(14px, env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 10px; width: min(440px, calc(100vw - 28px)); padding: 8px 14px 14px; pointer-events: none; visibility: hidden; transform: translateY(calc(100% + 24px)); transition: transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s 0.34s; background: linear-gradient(180deg, rgba(13, 27, 38, 0.92), rgba(8, 18, 28, 0.94)); border: 1px solid var(--ws-cyan); border-radius: 14px 14px 4px 4px; box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.5), 0 0 24px rgba(143, 227, 255, 0.18); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.ws-x-map.show { pointer-events: auto; visibility: visible; transform: none; transition: transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1), visibility 0s; }
+.ws-x:not([data-mode="world"]) .ws-x-map { display: none; }
+.ws-x-map-grab { display: block; align-self: center; width: 46px; height: 4px; border-radius: 2px; background: rgba(143, 227, 255, 0.55); }
+.ws-x-map-head { display: flex; align-items: center; gap: 8px; }
+.ws-x-map-head > div { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.ws-x-map-head b { font-family: var(--ws-display); font-size: 24px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ws-cyan); text-shadow: 0 0 14px rgba(143, 227, 255, 0.35); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-x-map-head small { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-x-map-head button { display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; background: rgba(143, 227, 255, 0.06); border: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; }
+.ws-x-map-head button svg { width: 16px; height: 16px; }
+.ws-x-map-head .ws-x-map-close { justify-content: center; width: 36px; padding: 0; font-size: 14px; }
+.ws-x-map-board { position: relative; aspect-ratio: 1; overflow: hidden; border: 1px solid var(--ws-cyan-line); border-radius: 6px; background: #0b3448; cursor: crosshair; }
+.ws-x-map-board canvas { display: block; width: 100%; height: 100%; image-rendering: auto; }
+.ws-x-map-board::after { content: ''; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 40px rgba(4, 14, 22, 0.55); }
+.ws-x-pin { position: absolute; z-index: 1; transform: translate(-9px, -50%); display: flex; align-items: center; gap: 0; padding: 0; background: none; border: 0; }
+.ws-x-pin i { position: relative; z-index: 1; flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%; background: #06121c; border: 3px solid var(--ws-cyan); box-shadow: 0 0 10px rgba(143, 227, 255, 0.7); }
+.ws-x-pin i::after { content: ''; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: #eaf8ff; }
+.ws-x-pin span { margin-left: -4px; padding: 3px 8px 3px 10px; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; color: #eaf8ff; background: rgba(8, 18, 28, 0.86); border: 1px solid var(--ws-cyan-line); border-radius: 0 4px 4px 0; }
+.ws-x-pin.flip { flex-direction: row-reverse; transform: translate(calc(-100% + 9px), -50%); }
+.ws-x-pin.flip span { margin: 0 -4px 0 0; padding: 3px 10px 3px 8px; border-radius: 4px 0 0 4px; }
+.ws-x-pin:hover span, .ws-x-pin:focus-visible span { border-color: var(--ws-cyan); color: var(--ws-cyan); }
+.ws-x-map-me { position: absolute; z-index: 2; width: 72px; height: 72px; pointer-events: none; filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.7)); }
+.ws-x-map-me svg { display: block; width: 100%; height: 100%; }
+.ws-x-map-north { position: absolute; left: 12px; bottom: 44px; display: flex; flex-direction: column; align-items: center; font-family: var(--ws-display); font-size: 15px; color: #eaf8ff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8); pointer-events: none; }
+.ws-x-map-north svg { width: 12px; height: 12px; }
+.ws-x-map-scale { position: absolute; left: 12px; bottom: 10px; display: flex; justify-content: space-between; height: 22px; font-size: 9px; color: #eaf8ff; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9); pointer-events: none; }
+.ws-x-map-scale i { position: absolute; left: 0; right: 0; top: 0; height: 6px; border: 1.5px solid #eaf8ff; border-top: 0; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8)); }
+.ws-x-map-scale span { position: relative; top: 9px; width: 0; display: flex; justify-content: center; white-space: nowrap; }
+
+/* ─── compare with the mockup (src/explore/Compare.ts; mockup p06): picker, then the mockup over the live frame ─── */
+.ws-x-comparebtn { position: absolute; right: 14px; top: calc(108px + env(safe-area-inset-top, 0px)); display: none; align-items: center; gap: 6px; padding: 7px 10px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid rgba(255, 181, 71, 0.5); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-amber); }
+.ws-x-comparebtn svg { width: 18px; height: 18px; }
+.ws-x[data-mode="world"] .ws-x-comparebtn { display: flex; }
+.ws-x-picker { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: none; flex-direction: column; gap: 10px; width: min(460px, calc(100vw - 24px)); padding: 12px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-amber); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.ws-x-picker.show { display: flex; }
+.ws-x-picker-head { display: flex; align-items: center; justify-content: space-between; }
+.ws-x-picker-head b { font-family: var(--ws-display); font-size: 17px; letter-spacing: 0.14em; text-transform: uppercase; }
+.ws-x-picker-head button { width: 30px; height: 30px; background: none; border: 1px solid var(--ws-cyan-line); }
+.ws-x-picker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ws-x-target { display: flex; flex-direction: column; gap: 5px; padding: 5px 5px 8px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--ws-cyan-line); text-align: left; }
+.ws-x-target:hover, .ws-x-target:focus-visible { border-color: var(--ws-amber); outline: none; }
+.ws-x-target .ws-x-target-img { display: block; aspect-ratio: 720 / 925; background-size: cover; background-position: center; }
+.ws-x-target b { font-family: var(--ws-display); font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; }
+.ws-x-compare { position: absolute; inset: 0; display: none; pointer-events: none; }
+.ws-x-compare.show { display: block; }
+.ws-x-compare img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ws-x-divider { position: absolute; top: 0; bottom: 0; width: 44px; transform: translateX(-50%); pointer-events: auto; touch-action: none; cursor: ew-resize; }
+.ws-x-divider::before { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; transform: translateX(-50%); background: var(--ws-cyan); box-shadow: 0 0 12px var(--ws-cyan); }
+.ws-x-divider i { position: absolute; left: 50%; top: 50%; width: 34px; height: 34px; transform: translate(-50%, -50%); border-radius: 50%; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan); }
+.ws-x-compare[data-mode="fade"] .ws-x-divider, .ws-x-compare[data-mode="fade"] .ws-x-side { display: none; }
+.ws-x-compare-bar input { display: none; width: 90px; }
+.ws-x-compare[data-mode="fade"] .ws-x-compare-bar input { display: block; }
+.ws-x-side { position: absolute; top: calc(112px + env(safe-area-inset-top, 0px)); padding: 4px 8px; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); }
+.ws-x-side-l { left: 12px; }
+.ws-x-side-r { right: 12px; color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.5); }
+.ws-x-compare.swapped .ws-x-side-l { color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.5); }
+.ws-x-compare.swapped .ws-x-side-r { color: var(--ws-text); border-color: var(--ws-cyan-line); }
+.ws-x-compare-bar { position: absolute; left: 50%; bottom: max(90px, calc(env(safe-area-inset-bottom, 0px) + 84px)); transform: translateX(-50%); display: flex; align-items: center; gap: 6px; padding: 7px 8px; pointer-events: auto; background: var(--ws-glass-deep); border: 1px solid var(--ws-amber); white-space: nowrap; }
+.ws-x-compare-bar b { margin-right: 4px; font-family: var(--ws-display); font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ws-amber); }
+.ws-x-compare-bar button { padding: 6px 9px; background: rgba(143, 227, 255, 0.1); border: 1px solid var(--ws-cyan-line); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; }
+.ws-x-compare-bar button.on { color: var(--ws-cyan); border-color: var(--ws-cyan); }
+
+/* phone portrait */
+@media (max-width: 700px) {
+  .ws-x-top { left: 8px; right: 8px; gap: 8px; padding: 6px 6px 6px 10px; }
+  .ws-x-brand { gap: 6px; font-size: 13px; letter-spacing: 0.1em; }
+  .ws-x-brand span { display: none; }
+  .ws-x-tabs button { padding: 7px 10px; font-size: 10px; letter-spacing: 0.14em; }
+  .ws-x-readout { top: calc(58px + env(safe-area-inset-top, 0px)); left: 10px; font-size: 9px; }
+  .ws-x-card { gap: 10px; }
+  .ws-x-card b { font-size: 17px; letter-spacing: 0.12em; }
+  .ws-x-card small { font-size: 10px; }
+  .ws-x-card .ws-x-card-go { width: 32px; height: 32px; font-size: 20px; margin-right: 2px; }
+  .ws-x-catalog { left: 8px; right: 8px; top: calc(58px + env(safe-area-inset-top, 0px)); }
+  .ws-x-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .ws-x-model b { font-size: 11px; letter-spacing: 0.08em; }
+  .ws-x-views { top: calc(60px + env(safe-area-inset-top, 0px)); }
+  .ws-x-lights { top: calc(94px + env(safe-area-inset-top, 0px)); }
+  .ws-x-views button, .ws-x-lights button { padding: 6px 8px; font-size: 9px; letter-spacing: 0.1em; }
+  .ws-x-sheet { left: 8px; right: 76px; }
+  .ws-x-sheet-head b { font-size: 18px; }
+  .ws-x-creature { left: 8px; right: 8px; bottom: max(214px, calc(env(safe-area-inset-bottom, 0px) + 208px)); }
+  .ws-x-clips button, .ws-x-creature-row button, .ws-x-variants button { padding: 6px 7px; font-size: 9px; letter-spacing: 0.08em; }
+  .ws-x-map { left: 6px; right: 6px; bottom: max(6px, env(safe-area-inset-bottom, 0px)); width: auto; padding: 8px 12px 12px; }
+  .ws-x-map-head b { font-size: 20px; }
+  .ws-x-mapbtn { top: calc(62px + env(safe-area-inset-top, 0px)); right: 8px; }
+  .ws-x-comparebtn { top: calc(100px + env(safe-area-inset-top, 0px)); right: 8px; }
+  .ws-x-compare-bar b { display: none; }
+  .ws-x-stats { font-size: 9px; letter-spacing: 0.08em; }
+}
+@media (max-width: 700px) {
+  .ws-x-brand::before { content: 'WILDSHARD'; color: var(--ws-cyan); }
+}

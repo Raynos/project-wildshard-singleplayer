@@ -77,6 +77,12 @@ export interface TerrainSpec {
   /** open-water shard: `waterLevel()` returns this (pass `ChunkDef.ocean.level`) and the landscape below it is sea floor */
   oceanLevel?: number;
   /**
+   * Paths graded to a walkable profile (PHYSICS.md: the player climbs ≤ 40°): along each polyline the ground is cut
+   * and filled so the centreline never climbs steeper than `maxGrade` (rise / run), blended out over a few metres
+   * each side. Where the ground is already that gentle it is left exactly as it is.
+   */
+  graded?: { paths: Vec2[][]; maxGrade: number };
+  /**
    * Ground-layer blend for `ChunkAssets.groundLayers` — [layer0, layer1, layer2, layer3], any
    * scale (normalised for you). `t` is the finished terrain so you can query slope, height,
    * trail distance and the masks.
@@ -306,4 +312,12 @@ export interface ChunkDef {
   surfaceAt?: (x: number, z: number, h: number, slope: number) => [number, number, number];
   /** open water over the whole shard; omitted = dry land with an optional pond */
   ocean?: OceanDef;
+  /** named places — Explore World's mini map pins them and flies to them (src/explore/MiniMap.ts); omitted = none */
+  pois?: ChunkPoi[];
+  /** the title's EXPLORE WORLD is offered on this shard (project/archive/2026-09-23-explore-world.md; the models it shows are what the
+   *  shard's setup registers — src/explore/registry.ts); omitted = play only */
+  explore?: boolean;
 }
+
+/** a named place on the shard: world XZ in metres; `r` ≈ its size (how far back the fly-to camera stands) */
+export interface ChunkPoi { id: string; name: string; x: number; z: number; r?: number }

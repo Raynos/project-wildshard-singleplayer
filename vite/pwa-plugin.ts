@@ -10,6 +10,8 @@
  *   __ASSET_ID__  a hash of the public/assets file list + sizes alone, so the static cache (the 70 MB of
  *                 unhashed art) survives a JS-only deploy instead of being re-downloaded.
  *   __BUNDLE__    the emitted `/assets/<name>-<hash>.*` paths: precached at install, and the prune list.
+ *   __FONTS__     the self-hosted `/fonts/*.woff2`: precached at install, so an offline launch has its type even though
+ *                 the first visit's CSS asked for them before the worker controlled the page (project/archive/2026-09-23-preload-offline.md).
  *
  * Preview: replays the `vercel.json` header rules (last match wins, same as the host) so the bench measures
  * what production sends — `immutable` on the hashed bundle, `no-store` on the document/sw.js/version.json.
@@ -66,8 +68,9 @@ function vercelHeaders(root: string): { re: RegExp; headers: { key: string; valu
 export function pwaPlugin(buildId: string): Plugin {
   let root = process.cwd();
   const swSource = () => readFileSync(join(root, 'src', 'pwa', 'sw.js'), 'utf8');
+  const fonts = (): string[] => { const dir = join(root, 'public', 'fonts'); return existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.woff2')).sort().map((f) => `/fonts/${f}`) : []; };
   const stamp = (src: string, build: string, assets: string, bundle: string[]) =>
-    src.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_ID__', assets).replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(bundle)));
+    src.replaceAll('__BUILD_ID__', build).replaceAll('__ASSET_ID__', assets).replace("'__BUNDLE__'", JSON.stringify(JSON.stringify(bundle))).replace("'__FONTS__'", JSON.stringify(JSON.stringify(fonts())));
   return {
     name: 'wildshard-pwa',
     configResolved(c) {

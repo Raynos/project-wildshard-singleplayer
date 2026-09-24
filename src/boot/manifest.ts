@@ -13,6 +13,8 @@ import { bakedSkyUrls } from '../world/BakedSky';
 import { bakedTextureUrls } from './bakedTextures';
 import { PUBLIC_BYTES } from './bytes.generated';
 import { nalatiUrl } from '../world/nalatiTextures';
+import { RAPIER_WASM_URL } from '../physics/wasmUrl';
+import { navmeshUrl } from '../physics/navmeshUrl';
 
 const pbr = pbrUrls; // tier-aware: the phone's _1k files are what it downloads, so they are what it declares
 const gltf = (id: string) => [`/assets/models/${id}/${id}.gltf`, `/assets/models/${id}/${id}.bin`, ...['diff', 'nor_gl', 'arm'].map((k) => `/assets/models/${id}/textures/${id}_${k}_1k.jpg`)];
@@ -55,12 +57,18 @@ export function chunkFiles(def: ChunkDef): ChunkFiles {
   const lowpoly = def.style === 'lowpoly' || def.style === 'painterly', treeless = def.trees.factory !== 'pine', ocean = def.ocean !== undefined || def.style === 'painterly';
   // the phone tier's .phone.webp / .phone.glb copies (fetchImage and three's loaders fetch through the same map)
   const t = (xs: string[]) => xs.map(tierUrl);
+  const nav = navmeshUrl(def.slug); // scripts/bake-navmesh.mjs output, when the build has one
   return {
     sky: t(sky),
     baked: t(bakedTextureUrls(def.slug)),
     terrain: t(lowpoly ? terrain.filter((f) => f.startsWith('/assets/baked/')) : terrain),
     trees: t(treeless ? [] : trees),
+    physics: [RAPIER_WASM_URL, ...(nav ? [nav] : [])], // Rapier's WASM, every shard (src/physics/rapier.ts); the shard's baked navmesh (src/physics/navmesh.ts)
     cabins: t(ocean ? [] : cabins),
     props: t(def.style === 'painterly' ? painterlyBoot() : ocean ? [] : props),
+    // filled by src/boot/extras.ts `bootFiles` (project/archive/2026-09-23-preload-offline.md): the title / explore art (bundled, hashed URLs)
+    // and every audio file of every style and set (the lists follow the menu's Settings, a module Node's type stripping cannot
+    // load — this file also runs in scripts/bake-packs.mjs, and neither goes in a shard's boot pack)
+    art: [], music: [], sfx: [],
   };
 }

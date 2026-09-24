@@ -19,8 +19,9 @@ import type { FullMap } from './Map';
 import type { Progress } from '../game/Progress';
 import { PACK_SLOTS, type Inventory } from '../game/Inventory';
 import { icon, type IconId } from './icons';
-import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, type SettingKey, type NumberKey } from './Settings';
-import { gfxPrefs, saveGfxPrefs } from '../core/tier';
+import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, setting, saveSetting, onSettingChange, type SettingKey, type NumberKey, type MusicStyle, type SfxSet, type OptionValue } from './Settings';
+import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
+import { onAudioBusy } from '../audio/preload';
 import { CAN_VIBRATE } from './haptics';
 import { lockReview, onReview, quickNote, reviewUnlocked, setQuickNote, unlockReview } from './review';
 
@@ -58,6 +59,7 @@ export class GameMenu {
   private panels: Record<MenuTab, HTMLElement>;
   private hint: HTMLElement;
   private mapMeta: HTMLElement;
+  private mapQuest: HTMLElement;
   private zoomChips: HTMLButtonElement[] = [];
   private _tab: MenuTab = 'settings';
   private _open = false;
@@ -94,6 +96,7 @@ export class GameMenu {
 
     // ── MAP: the FullMap canvas lives inside this panel (Map.ts embedded mode) ──
     this.mapMeta = el('ws-gmenu-mapmeta', `${esc(def.displayName)} · ${CHUNK_SIZE} m`);
+    this.mapQuest = el('ws-gmenu-mapquest');
     const frame = el('ws-gmenu-mapframe');
     opts.fullMap.mount(frame);
     const foot = el('ws-gmenu-mapfoot');
@@ -104,11 +107,11 @@ export class GameMenu {
       zooms.append(b); this.zoomChips.push(b);
     }
     foot.append(zooms, el('ws-gmenu-legend', `<span><i class="poi">${icon('poi')}</i>POI</span><span><i class="you">${icon('you')}</i>You</span>`));
-    this.panels.map.append(this.mapMeta, frame, foot);
+    this.panels.map.append(this.mapMeta, this.mapQuest, frame, foot);
     opts.fullMap.onZoom = () => this.syncZoom();
 
     // ── SETTINGS ──
-    this.applyBtn = this.buildSettings();
+    this.buildSettings();
 
     // close: the CLOSE button, the backdrop (desktop habit), Esc
     const closeBtn = this.sheet.querySelector('.ws-gmenu-close'); if (!closeBtn) throw new Error('GameMenu: no .ws-gmenu-close');
@@ -144,7 +147,7 @@ export class GameMenu {
     this.root.classList.add('show');
     this.root.inert = false;
     this.refresh();
-    if (tab === 'map') this.opts.fullMap.show();
+    if (tab === 'map') { this.opts.fullMap.show(); this.renderQuest(); }
     if (tab === 'feedback') this.onFeedbackTab?.(this.panels.feedback);
     this.onOpen?.(tab);
   }
@@ -164,7 +167,7 @@ export class GameMenu {
     for (const b of this.tabBar.children) (b as HTMLElement).classList.toggle('active', (b as HTMLElement).dataset['tab'] === tab);
     for (const [id, p] of Object.entries(this.panels)) p.classList.toggle('active', id === tab);
     this.hint.textContent = HINTS[tab];
-    if (this._open) { if (tab === 'map') { this.opts.fullMap.show(); this.syncZoom(); } else this.opts.fullMap.hide(); }
+    if (this._open) { if (tab === 'map') { this.opts.fullMap.show(); this.syncZoom(); this.renderQuest(); } else this.opts.fullMap.hide(); }
     if (tab === 'inventory') this.renderInventory();
     if (tab === 'achievements') this.renderAchievements();
     if (tab === 'feedback' && this._open) this.onFeedbackTab?.(this.panels.feedback);
@@ -172,6 +175,14 @@ export class GameMenu {
 
   /** re-render the data tabs */
   refresh(): void { this.renderInventory(); this.renderAchievements(); this.syncZoom(); }
+
+  /** the quest card over the map: chapter title, the full objective, its sub-steps (the HUD shows only the short chip, E51) */
+  private renderQuest(): void {
+    const q = this.opts.fullMap.quest;
+    this.mapQuest.hidden = q === null || q.objective === '';
+    if (!q) return;
+    this.mapQuest.innerHTML = `<div class="ws-gmenu-mapquest-title">${esc(q.title)}</div><div class="ws-gmenu-mapquest-obj"><i></i>${esc(q.objective)}</div>${q.hint ? `<div class="ws-gmenu-mapquest-hint">${esc(q.hint)}</div>` : ''}`;
+  }
 
   private syncZoom() {
     const z = this.opts.fullMap.zoom;
@@ -258,14 +269,20 @@ export class GameMenu {
   }
 
   // ── SETTINGS ──
-  /** builds the Settings tab; returns the RESTART TO APPLY button (see `markReload`) */
-  private buildSettings(): HTMLButtonElement {
-    const p = this.panels.settings;
+  /** builds the Settings tab: only what applies live (E55) — renderer, island, quality, render scale, AA and touch controls
+   *  are read at boot and live in main menu ▸ Settings (src/ui/BootSettings.ts, APPLY & RELOAD). Two cards (E81, the user's
+   *  split): SETTINGS holds what ships with the finished game; DEBUG holds the variant pickers and taste toggles that
+   *  exist only while the look and sound are being decided — each leaves that card once it is locked in (E78 the
+   *  painted horizon, E83 the photo sky, E85 the colour grade, E87 the lighting, E88 the post) */
+  private buildSettings(): void {
+    const panel = this.panels.settings;
     const resume = el('ws-gmenu-btn resume', 'Resume', 'button') as HTMLButtonElement; resume.type = 'button';
     resume.addEventListener('click', () => this.close());
     const exit = el('ws-gmenu-btn exit', 'Exit to main menu', 'button') as HTMLButtonElement; exit.type = 'button';
     exit.addEventListener('click', () => { this.close(true); this.onExit?.(); });
-    p.append(resume, exit, el('ws-gmenu-rule'));
+    const p = el('ws-gmenu-card', '<div class="ws-gmenu-cardtitle">Settings</div>');
+    const dbg = el('ws-gmenu-card debug', '<div class="ws-gmenu-cardtitle">Debug<small>for playtests — goes away when the game ships</small></div>');
+    panel.append(resume, exit, p, dbg);
 
     const sw = (key: SettingKey, label: string) => {
       const b = el('ws-gmenu-switch', `<span class="ws-gmenu-swlabel">${label}</span><i class="ws-gmenu-pill"></i>`, 'button') as HTMLButtonElement; b.type = 'button'; b.setAttribute('role', 'switch');
@@ -292,27 +309,6 @@ export class GameMenu {
     };
     p.append(el('ws-gmenu-label', 'Controls'), mult('look', 'Look speed'), mult('swingLook', 'Swing turn speed'));
 
-    // graphics: the boot prefs in src/core/tier.ts (read at start-up → reload to apply)
-    const seg = (label: string, options: { v: string; text: string }[], get: () => string, set: (v: string) => void) => {
-      const row = el('ws-gmenu-row', `<span class="ws-gmenu-swlabel">${label}</span>`);
-      const box = el('ws-gmenu-seg');
-      const paint = () => { for (const c of box.children) (c as HTMLElement).classList.toggle('active', (c as HTMLElement).dataset['v'] === get()); };
-      for (const o of options) {
-        const b = el('ws-gmenu-segbtn', o.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = o.v;
-        b.addEventListener('click', () => { set(o.v); paint(); this.markReload(); });
-        box.append(b);
-      }
-      paint(); row.append(box); return row;
-    };
-    const dprOpts = [{ v: '1', text: '1.0×' }, { v: '1.25', text: '1.25×' }, { v: '1.5', text: '1.5×' }, { v: 'auto', text: 'Auto' }];
-    const aaOpts = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }, { v: 'auto', text: 'Auto' }];
-    p.append(el('ws-gmenu-label', 'Graphics'),
-      seg('Render scale', dprOpts, () => gfxPrefs.dpr, (v) => { if (v === 'auto' || v === '1' || v === '1.25' || v === '1.5') { gfxPrefs.dpr = v; saveGfxPrefs(); } }),
-      seg('Anti-aliasing', aaOpts, () => gfxPrefs.aa, (v) => { if (v === 'auto' || v === 'on' || v === 'off') { gfxPrefs.aa = v; saveGfxPrefs(); } }));
-    const apply = el('ws-gmenu-apply', 'Restart to apply', 'button') as HTMLButtonElement; apply.type = 'button'; apply.hidden = true;
-    apply.addEventListener('click', () => location.reload());
-    p.append(apply);
-
     // audio: master volume (Settings 'volume', 0..1) — main.ts drives the AudioContext gain from it
     const vol = el('ws-gmenu-row', '<span class="ws-gmenu-swlabel">Master volume</span>');
     const slider = document.createElement('input'); slider.type = 'range'; slider.min = '0'; slider.max = '100'; slider.className = 'ws-gmenu-slider';
@@ -327,9 +323,47 @@ export class GameMenu {
     mslider.addEventListener('input', () => setNumber('music', Number(mslider.value) / 100));
     mslider.addEventListener('pointerdown', (e) => e.stopPropagation());
     mus.append(mslider);
-    p.append(el('ws-gmenu-label', 'Audio'), vol, mus);
-    p.append(this.buildReview());
-    return apply;
+    // music style (Settings 'musicStyle', project/archive/2026-09-23-music.md v3): the MiniMax-Music3 scores or the v1 synth — Music.ts crossfades on a bar;
+    // sound effects (Settings 'sfxSet'): the generated set (MOSS-SoundEffect v2 + Stable Audio 3 Medium) or all-synth — Audio.ts swaps them
+    const picker = <T extends string>(label: string, options: { v: T; text: string }[], get: () => T, set: (v: T) => void, on: (fn: () => void) => void) => {
+      const row = el('ws-gmenu-row', `<span class="ws-gmenu-swlabel">${label}</span>`);
+      const box = el('ws-gmenu-seg');
+      const paint = () => { for (const c of box.children) (c as HTMLElement).classList.toggle('active', (c as HTMLElement).dataset['v'] === get()); };
+      for (const o of options) {
+        const b = el('ws-gmenu-segbtn', o.text, 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['v'] = o.v;
+        b.addEventListener('click', () => { set(o.v); paint(); });
+        box.append(b);
+      }
+      paint(); on(paint); row.append(box); return row;
+    };
+    const styles: { v: MusicStyle; text: string }[] = [{ v: 'piano', text: 'Piano' }, { v: 'orchestral', text: 'Orchestral' }, { v: 'folk', text: 'Folk' }, { v: 'synth', text: 'Synth' }];
+    const sets: { v: SfxSet; text: string }[] = [{ v: 'best', text: 'Generated' }, { v: 'synth', text: 'Synth' }];
+    const style = picker('Music style', styles, getMusicStyle, setMusicStyle, (fn) => { onMusicStyle(fn); });
+    const sfx = picker('Sound effects', sets, getSfxSet, setSfxSet, (fn) => { onSfxSet(fn); });
+    // a pick decodes from the offline cache (project/archive/2026-09-23-preload-offline.md): a spinner by the label only past 300 ms
+    onAudioBusy((kind, on) => { (kind === 'music' ? style : sfx).classList.toggle('busy', on); });
+    // the licences ask for the models' names in the UI: MiniMax-Music3, and the sfx set's credit ("Powered by Stability AI")
+    const sfxNote = el('ws-gmenu-note');
+    const paintCredit = () => { const c = sfxCredit(getSfxSet()); sfxNote.textContent = c; sfxNote.hidden = c === ''; };
+    paintCredit(); onSfxSet(paintCredit); onSfxCredit(paintCredit);
+    p.append(el('ws-gmenu-label', 'Audio'), vol, mus, el('ws-gmenu-note', MUSIC_CREDIT), sfxNote);
+    dbg.append(el('ws-gmenu-label', 'Audio variants'), style, sfx);
+    // lock-on (E50, src/player/LockOnTarget.ts): how hard the view follows a locked enemy (Gentle = Jake's pick; Off keeps the
+    // lock — the reticle, orbit strafing, the lunge, switching — but never turns the view: the motion-sickness escape)
+    const lockCams: { v: '1' | '0.5' | '0'; text: string }[] = [{ v: '1', text: 'Follow' }, { v: '0.5', text: 'Gentle' }, { v: '0', text: 'Off' }];
+    const lockCam = picker('Lock-on camera', lockCams, () => (getNumber('lockCam') >= 0.75 ? '1' : getNumber('lockCam') > 0.1 ? '0.5' : '0'), (v) => setNumber('lockCam', Number(v)), () => undefined);
+    p.append(el('ws-gmenu-label', 'Lock-on'), lockCam, sw('autoLock', 'Auto re-lock'), el('ws-gmenu-note', 'LOCK (Z / middle mouse) locks the enemy nearest the centre. Flick the LOOK pad (mouse flick / wheel) to switch; MOVE circles it.'));
+
+    // look (E55, live — src/ui/Settings.ts OPTIONS): the low-poly shard's clock (DayNight.setTime; main.ts subscribes). The
+    // painted horizon (E78) and the colour grade (E85) are locked on. The boot-time graphics picks are on the title's Settings.
+    if (getActiveChunk().style === 'lowpoly') {
+      const times: { v: OptionValue<'time'>; text: string }[] = [{ v: 'live', text: 'Live' }, { v: 'midday', text: 'Midday' }, { v: 'golden', text: 'Golden' }, { v: 'sunset', text: 'Sunset' }, { v: 'night', text: 'Night' }];
+      const time = picker('Time of day', times, () => setting('time'), (v) => { saveSetting('time', v); }, (fn) => { onSettingChange('time', fn); });
+      dbg.append(el('ws-gmenu-label', 'Look'), time);
+      // Look Lab (E65) is done: the sky (E83), lighting (E87) and post (E88) picks are locked in; the URL alone builds the old looks
+    }
+    dbg.append(el('ws-gmenu-note', 'Renderer, island, quality and render scale: Exit to main menu ▸ Settings.'));
+    dbg.append(this.buildReview());
   }
   /** Settings → REVIEW: a password unlocks the review inbox (src/ui/review.ts); unlocked, the Quick note switch + LOCK */
   private buildReview(): HTMLElement {
@@ -368,7 +402,4 @@ export class GameMenu {
     render(); onReview(render);
     return box;
   }
-  /** the render scale / AA rows changed a boot pref (src/core/tier.ts `gfxPrefs`) — only a reload applies it */
-  private applyBtn: HTMLButtonElement;
-  private markReload(): void { this.applyBtn.hidden = false; }
 }

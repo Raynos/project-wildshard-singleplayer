@@ -1,0 +1,2944 @@
+{
+  "build": "504d988-mudw2jfs",
+  "url": "http://localhost:4175",
+  "at": "2026-09-23T09:59:17.760Z",
+  "host": "darwin arm64 node v24.18.1",
+  "cpu": 4,
+  "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+  "runsPerCondition": 1,
+  "viewport": [
+    390,
+    844
+  ],
+  "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+  "rows": {
+    "wifi/cold": {
+      "cond": "wifi",
+      "cache": "cold",
+      "runs": 1,
+      "status": "ok",
+      "swController": true,
+      "titleMs": 187,
+      "playMs": 6255,
+      "domContentLoadedMs": 166,
+      "requests": 15,
+      "swFetches": 18,
+      "fromSW": 5,
+      "netBytes": 11726154,
+      "cacheBytes": 506425,
+      "longTasks": 18,
+      "longTaskMs": 1511,
+      "longTaskMaxMs": 146,
+      "heapMB": 99.5,
+      "textures": 186,
+      "geometries": 89,
+      "programs": 76,
+      "firstFrameMs": null,
+      "bytes": {
+        "js": {
+          "net": 711249,
+          "cache": 506425,
+          "n": 3
+        },
+        "css": {
+          "net": 14779,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 452185,
+          "cache": 0,
+          "n": 2
+        },
+        "png": {
+          "net": 410379,
+          "cache": 0,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 10056307,
+          "cache": 0,
+          "n": 1
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 69698,
+          "cache": 0,
+          "n": 5
+        },
+        "json": {
+          "net": 5176,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 5673,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 708,
+          "cache": 0,
+          "n": 0
+        }
+      },
+      "steps": [
+        [
+          165,
+          "—",
+          null
+        ],
+        [
+          480,
+          "renderer",
+          null
+        ],
+        [
+          613,
+          "sky",
+          null
+        ],
+        [
+          1013,
+          "terrain",
+          null
+        ],
+        [
+          2095,
+          "cards",
+          null
+        ],
+        [
+          2475,
+          "forest",
+          null
+        ],
+        [
+          2561,
+          "edge",
+          null
+        ],
+        [
+          2792,
+          "grass",
+          null
+        ],
+        [
+          3053,
+          "cabins",
+          null
+        ],
+        [
+          3784,
+          "props",
+          null
+        ],
+        [
+          4004,
+          "animals",
+          null
+        ],
+        [
+          4353,
+          "weapon",
+          null
+        ],
+        [
+          4640,
+          "shaders",
+          null
+        ],
+        [
+          5808,
+          "firstFrame",
+          null
+        ]
+      ],
+      "errors": []
+    },
+    "wifi/warm": {
+      "cond": "wifi",
+      "cache": "warm",
+      "runs": 1,
+      "status": "ok",
+      "swController": true,
+      "titleMs": 175,
+      "playMs": 4233,
+      "domContentLoadedMs": 84,
+      "requests": 16,
+      "swFetches": 5,
+      "fromSW": 15,
+      "netBytes": 1172,
+      "cacheBytes": 12660022,
+      "longTasks": 11,
+      "longTaskMs": 979,
+      "longTaskMaxMs": 118,
+      "heapMB": 97.5,
+      "textures": 186,
+      "geometries": 89,
+      "programs": 76,
+      "firstFrameMs": null,
+      "bytes": {
+        "js": {
+          "net": 0,
+          "cache": 2125177,
+          "n": 4
+        },
+        "css": {
+          "net": 0,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 0,
+          "cache": 451593,
+          "n": 2
+        },
+        "png": {
+          "net": 0,
+          "cache": 8896,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 0,
+          "cache": 10055992,
+          "n": 1
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 690,
+          "cache": 18364,
+          "n": 5
+        },
+        "json": {
+          "net": 330,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 152,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        }
+      },
+      "steps": [
+        [
+          84,
+          "—",
+          null
+        ],
+        [
+          281,
+          "renderer",
+          null
+        ],
+        [
+          380,
+          "sky",
+          null
+        ],
+        [
+          754,
+          "terrain",
+          null
+        ],
+        [
+          1069,
+          "cards",
+          null
+        ],
+        [
+          1321,
+          "forest",
+          null
+        ],
+        [
+          1376,
+          "edge",
+          null
+        ],
+        [
+          1542,
+          "grass",
+          null
+        ],
+        [
+          1706,
+          "cabins",
+          null
+        ],
+        [
+          2200,
+          "props",
+          null
+        ],
+        [
+          2388,
+          "animals",
+          null
+        ],
+        [
+          2688,
+          "weapon",
+          null
+        ],
+        [
+          2948,
+          "shaders",
+          null
+        ],
+        [
+          3793,
+          "firstFrame",
+          null
+        ]
+      ],
+      "errors": []
+    },
+    "4g/cold": {
+      "cond": "4g",
+      "cache": "cold",
+      "runs": 1,
+      "status": "ok",
+      "swController": true,
+      "titleMs": 496,
+      "playMs": 13255,
+      "domContentLoadedMs": 430,
+      "requests": 15,
+      "swFetches": 18,
+      "fromSW": 5,
+      "netBytes": 11726385,
+      "cacheBytes": 0,
+      "longTasks": 13,
+      "longTaskMs": 1011,
+      "longTaskMaxMs": 118,
+      "heapMB": 97.1,
+      "textures": 186,
+      "geometries": 89,
+      "programs": 76,
+      "firstFrameMs": null,
+      "bytes": {
+        "js": {
+          "net": 711480,
+          "cache": 0,
+          "n": 3
+        },
+        "css": {
+          "net": 14779,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 452185,
+          "cache": 0,
+          "n": 2
+        },
+        "png": {
+          "net": 410379,
+          "cache": 0,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 10056307,
+          "cache": 0,
+          "n": 1
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 69698,
+          "cache": 0,
+          "n": 5
+        },
+        "json": {
+          "net": 5176,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 5673,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 708,
+          "cache": 0,
+          "n": 0
+        }
+      },
+      "steps": [
+        [
+          429,
+          "—",
+          null
+        ],
+        [
+          1503,
+          "renderer",
+          null
+        ],
+        [
+          2121,
+          "sky",
+          null
+        ],
+        [
+          3271,
+          "terrain",
+          null
+        ],
+        [
+          6515,
+          "cards",
+          null
+        ],
+        [
+          7369,
+          "forest",
+          null
+        ],
+        [
+          7421,
+          "edge",
+          null
+        ],
+        [
+          7580,
+          "grass",
+          null
+        ],
+        [
+          7747,
+          "cabins",
+          null
+        ],
+        [
+          10176,
+          "props",
+          null
+        ],
+        [
+          11387,
+          "animals",
+          null
+        ],
+        [
+          11687,
+          "weapon",
+          null
+        ],
+        [
+          11950,
+          "shaders",
+          null
+        ],
+        [
+          12841,
+          "firstFrame",
+          null
+        ]
+      ],
+      "errors": []
+    },
+    "4g/warm": {
+      "cond": "4g",
+      "cache": "warm",
+      "runs": 1,
+      "status": "ok",
+      "swController": true,
+      "titleMs": 362,
+      "playMs": 4880,
+      "domContentLoadedMs": 75,
+      "requests": 16,
+      "swFetches": 5,
+      "fromSW": 15,
+      "netBytes": 1172,
+      "cacheBytes": 12660022,
+      "longTasks": 13,
+      "longTaskMs": 1273,
+      "longTaskMaxMs": 178,
+      "heapMB": 88.1,
+      "textures": 186,
+      "geometries": 89,
+      "programs": 76,
+      "firstFrameMs": null,
+      "bytes": {
+        "js": {
+          "net": 0,
+          "cache": 2125177,
+          "n": 4
+        },
+        "css": {
+          "net": 0,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 0,
+          "cache": 451593,
+          "n": 2
+        },
+        "png": {
+          "net": 0,
+          "cache": 8896,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 0,
+          "cache": 10055992,
+          "n": 1
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 690,
+          "cache": 18364,
+          "n": 5
+        },
+        "json": {
+          "net": 330,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 152,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        }
+      },
+      "steps": [
+        [
+          75,
+          "—",
+          null
+        ],
+        [
+          251,
+          "renderer",
+          null
+        ],
+        [
+          361,
+          "sky",
+          null
+        ],
+        [
+          743,
+          "terrain",
+          null
+        ],
+        [
+          1061,
+          "cards",
+          null
+        ],
+        [
+          1314,
+          "forest",
+          null
+        ],
+        [
+          1363,
+          "edge",
+          null
+        ],
+        [
+          1514,
+          "grass",
+          null
+        ],
+        [
+          1668,
+          "cabins",
+          null
+        ],
+        [
+          2209,
+          "props",
+          null
+        ],
+        [
+          2429,
+          "animals",
+          null
+        ],
+        [
+          2832,
+          "weapon",
+          null
+        ],
+        [
+          3213,
+          "shaders",
+          null
+        ],
+        [
+          4374,
+          "firstFrame",
+          null
+        ]
+      ],
+      "errors": []
+    }
+  },
+  "raw": [
+    {
+      "cond": "wifi",
+      "cache": "cold",
+      "run": 1,
+      "status": "ok",
+      "label": "wifi/cold",
+      "errors": [],
+      "requests": 15,
+      "swFetches": 18,
+      "fromSW": 5,
+      "netBytes": 11726154,
+      "cacheBytes": 506425,
+      "bytes": {
+        "js": {
+          "net": 711249,
+          "cache": 506425,
+          "n": 3
+        },
+        "css": {
+          "net": 14779,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 452185,
+          "cache": 0,
+          "n": 2
+        },
+        "png": {
+          "net": 410379,
+          "cache": 0,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 10056307,
+          "cache": 0,
+          "n": 1
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 69698,
+          "cache": 0,
+          "n": 5
+        },
+        "json": {
+          "net": 5176,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 5673,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 708,
+          "cache": 0,
+          "n": 0
+        }
+      },
+      "reqs": [
+        [
+          "page",
+          "/?nolock=1&bench=1&chunk=pine-hollow&tier=phone",
+          2813
+        ],
+        [
+          "page",
+          "/assets/style-C35JC6ie.css",
+          14779
+        ],
+        [
+          "page",
+          "/fonts/rajdhani-700-latin.woff2",
+          9648
+        ],
+        [
+          "page",
+          "/fonts/jetbrains-mono-latin.woff2",
+          31686
+        ],
+        [
+          "page",
+          "/assets/index-B9jxYFud.js",
+          2860
+        ],
+        [
+          "sw",
+          "/sw.js",
+          302
+        ],
+        [
+          "page",
+          "/fonts/rajdhani-400-latin.woff2",
+          9312
+        ],
+        [
+          "page",
+          "/version.json?t=1790157521828",
+          330
+        ],
+        [
+          "sw",
+          "/manifest.webmanifest",
+          708
+        ],
+        [
+          "sw",
+          "/index.html",
+          2860
+        ],
+        [
+          "sw",
+          "/asset-index.json",
+          4846
+        ],
+        [
+          "page",
+          "/favicon.png",
+          9187
+        ],
+        [
+          "sw",
+          "/assets/index-B9jxYFud.js",
+          179
+        ],
+        [
+          "sw",
+          "/assets/Feedback-Bi6Hy6mW.js",
+          4072
+        ],
+        [
+          "sw",
+          "/assets/Explore-DZM_Ks9_.js",
+          10666
+        ],
+        [
+          "page",
+          "/assets/three.module-4gI5Z-_B.js",
+          185831
+        ],
+        [
+          "sw",
+          "/assets/three.module-4gI5Z-_B.js",
+          179
+        ],
+        [
+          "sw",
+          "/assets/main-xmulzryg.js",
+          507160
+        ],
+        [
+          "page",
+          "/assets/main-xmulzryg.js",
+          231
+        ],
+        [
+          "sw",
+          "/favicon.png",
+          178
+        ],
+        [
+          "sw",
+          "/apple-touch-icon.png",
+          52370
+        ],
+        [
+          "sw",
+          "/icon-192.png",
+          58147
+        ],
+        [
+          "sw",
+          "/icon-512.png",
+          290497
+        ],
+        [
+          "page",
+          "blob:/6a30f27a-4c04-4b6a-b0ad-56066b8a46ce",
+          -1
+        ],
+        [
+          "page",
+          "blob:/794a24b3-9b29-4ed3-85a8-fed9f429289e",
+          -1
+        ],
+        [
+          "page",
+          "blob:/bcf4720d-37e1-4795-b8bc-08768a245208",
+          0
+        ],
+        [
+          "page",
+          "blob:/a4788da6-3f55-4bdc-bae5-24aa80c49fbd",
+          0
+        ],
+        [
+          "page",
+          "blob:/da1fd4ae-277e-4e19-9919-7621ee402860",
+          0
+        ],
+        [
+          "page",
+          "blob:/0b20ec2f-8259-40f5-8034-6adfc2496124",
+          0
+        ],
+        [
+          "page",
+          "blob:/5af4af5e-3efa-4e4b-b448-f2f356b9a7fa",
+          0
+        ],
+        [
+          "page",
+          "blob:/9ce29a7c-3d21-4fd0-86db-4b19fb7de68b",
+          0
+        ],
+        [
+          "page",
+          "blob:/312f9a7b-0b14-4995-b821-988673a237cf",
+          0
+        ],
+        [
+          "page",
+          "blob:/55314ae7-3024-4300-a5c4-a0797740cdfe",
+          0
+        ],
+        [
+          "page",
+          "blob:/0aa5dd6f-6506-486e-a436-8f559b7795a2",
+          0
+        ],
+        [
+          "page",
+          "blob:/7472e2e7-414e-4e0f-888d-7d5eb1542785",
+          0
+        ],
+        [
+          "page",
+          "blob:/4ded8229-c089-4905-b8b5-f54dd4d333a6",
+          0
+        ],
+        [
+          "page",
+          "blob:/cc462640-2c74-4b04-814c-5309afbf83d5",
+          0
+        ],
+        [
+          "page",
+          "blob:/c4401106-01f7-43c4-88fb-8b3f0b4811fe",
+          0
+        ],
+        [
+          "page",
+          "blob:/1ae3653b-e1f4-4c20-85d4-aa226643de12",
+          0
+        ],
+        [
+          "page",
+          "blob:/405365d0-35d3-4d1b-b53e-0e7f4d793915",
+          0
+        ],
+        [
+          "page",
+          "blob:/1ef809b1-5b36-4900-a45f-212cd4b7a8be",
+          0
+        ],
+        [
+          "page",
+          "blob:/8916ff9d-8d63-4338-b4e4-ccea5af17564",
+          0
+        ],
+        [
+          "page",
+          "blob:/e154a904-5126-4228-b9bf-7a8bd447f7c5",
+          0
+        ],
+        [
+          "page",
+          "blob:/f37ce6b9-8632-4c42-8ea8-5bae4a7c60d5",
+          0
+        ],
+        [
+          "page",
+          "blob:/765bb6c4-9f38-4b0e-9f8a-b1581a566d05",
+          0
+        ],
+        [
+          "page",
+          "blob:/e820c37a-300c-4c5e-bc6e-9da7458c4693",
+          0
+        ],
+        [
+          "page",
+          "blob:/404cabdd-bdad-4204-b8f4-09a430307527",
+          0
+        ],
+        [
+          "page",
+          "blob:/e30541ee-1978-4ef4-8e4b-b207f27258b5",
+          0
+        ],
+        [
+          "page",
+          "blob:/7a3d38b9-0ae6-4b1d-9b13-49018141e11d",
+          0
+        ],
+        [
+          "page",
+          "blob:/ccef1770-ae55-4e0e-97ed-fb4e629cd1a0",
+          0
+        ],
+        [
+          "page",
+          "blob:/3e2b177f-1eb1-4756-af0e-bca5a7f51f34",
+          0
+        ],
+        [
+          "page",
+          "blob:/4e439767-0d9c-4e5f-8d27-d9460fe6103d",
+          0
+        ],
+        [
+          "page",
+          "blob:/bf5743ec-93f8-417e-b847-335cf0bb1100",
+          0
+        ],
+        [
+          "page",
+          "blob:/f4c6fcca-f44b-4246-9e41-b581732a9ea6",
+          0
+        ],
+        [
+          "page",
+          "blob:/39f82f67-9efd-4c0f-8a2b-ee6a4f313b57",
+          0
+        ],
+        [
+          "sw",
+          "/assets/packs/pine-hollow.phone-bdfb9ccc.bin",
+          10056307
+        ],
+        [
+          "page<sw",
+          "/assets/packs/pine-hollow.phone-bdfb9ccc.bin",
+          0
+        ],
+        [
+          "page",
+          "blob:/9ca4156a-0a5d-468b-b475-02c0b591e3f0",
+          0
+        ],
+        [
+          "page",
+          "blob:/87e68fd6-de3d-4eaa-a64b-4b728d9b6a82",
+          0
+        ],
+        [
+          "page",
+          "blob:/3228c79b-cc5c-4da6-b56c-fbb62a953907",
+          0
+        ],
+        [
+          "page",
+          "blob:/200d36d4-1e71-40e3-a4ca-38486b5544b8",
+          0
+        ],
+        [
+          "page",
+          "blob:/232bbf29-40fe-43c2-bce9-329566d531c9",
+          0
+        ],
+        [
+          "page",
+          "blob:/7f24a759-a2e3-41cb-bfc7-d723fcd2fa58",
+          0
+        ],
+        [
+          "page",
+          "blob:/9216f7f6-87cd-45b4-a9da-ec017822810c",
+          0
+        ],
+        [
+          "page",
+          "blob:/736b2d6d-c632-4eac-b823-c4ef2805c591",
+          0
+        ],
+        [
+          "page",
+          "blob:/089735cf-b859-42d1-b360-94e7933736d0",
+          0
+        ],
+        [
+          "page",
+          "blob:/63176732-bab5-4c65-bb4d-c64a59252119",
+          0
+        ],
+        [
+          "page",
+          "blob:/30f0bfed-1f78-4458-b0f6-d9328ae6d790",
+          0
+        ],
+        [
+          "page",
+          "blob:/f464e982-09cc-4a48-a402-4193b99bdbff",
+          0
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          9308
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          9744
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          0
+        ],
+        [
+          "sw",
+          "/assets/pine-hollow-DQXPgZYW.jpg",
+          70539
+        ],
+        [
+          "sw",
+          "/assets/pine-hollow-portrait-C6gQ-sN2.jpg",
+          381646
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-DQXPgZYW.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-portrait-C6gQ-sN2.jpg",
+          0
+        ]
+      ],
+      "titleMs": 187,
+      "playMs": 6255,
+      "domContentLoadedMs": 166,
+      "loadEventMs": 182,
+      "longList": [
+        [
+          417,
+          63
+        ],
+        [
+          533,
+          57
+        ],
+        [
+          905,
+          96
+        ],
+        [
+          1700,
+          51
+        ],
+        [
+          1842,
+          137
+        ],
+        [
+          2367,
+          109
+        ],
+        [
+          2500,
+          60
+        ],
+        [
+          2581,
+          70
+        ],
+        [
+          2681,
+          74
+        ],
+        [
+          2945,
+          82
+        ],
+        [
+          3361,
+          62
+        ],
+        [
+          3497,
+          146
+        ],
+        [
+          3650,
+          66
+        ],
+        [
+          3721,
+          52
+        ],
+        [
+          3916,
+          88
+        ],
+        [
+          4010,
+          59
+        ],
+        [
+          4511,
+          130
+        ],
+        [
+          5824,
+          109
+        ]
+      ],
+      "longTasks": 18,
+      "longTaskMs": 1511,
+      "longTaskMaxMs": 146,
+      "steps": [
+        [
+          165,
+          "—",
+          null
+        ],
+        [
+          480,
+          "renderer",
+          null
+        ],
+        [
+          613,
+          "sky",
+          null
+        ],
+        [
+          1013,
+          "terrain",
+          null
+        ],
+        [
+          2095,
+          "cards",
+          null
+        ],
+        [
+          2475,
+          "forest",
+          null
+        ],
+        [
+          2561,
+          "edge",
+          null
+        ],
+        [
+          2792,
+          "grass",
+          null
+        ],
+        [
+          3053,
+          "cabins",
+          null
+        ],
+        [
+          3784,
+          "props",
+          null
+        ],
+        [
+          4004,
+          "animals",
+          null
+        ],
+        [
+          4353,
+          "weapon",
+          null
+        ],
+        [
+          4640,
+          "shaders",
+          null
+        ],
+        [
+          5808,
+          "firstFrame",
+          null
+        ]
+      ],
+      "heapMB": 99.5,
+      "textures": 186,
+      "geometries": 89,
+      "programs": 76,
+      "firstFrameMs": null,
+      "swController": true,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "dpr": 1,
+      "viewport": [
+        390,
+        844
+      ]
+    },
+    {
+      "cond": "wifi",
+      "cache": "warm",
+      "run": 1,
+      "status": "ok",
+      "label": "wifi/warm",
+      "errors": [],
+      "requests": 16,
+      "swFetches": 5,
+      "fromSW": 15,
+      "netBytes": 1172,
+      "cacheBytes": 12660022,
+      "bytes": {
+        "js": {
+          "net": 0,
+          "cache": 2125177,
+          "n": 4
+        },
+        "css": {
+          "net": 0,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 0,
+          "cache": 451593,
+          "n": 2
+        },
+        "png": {
+          "net": 0,
+          "cache": 8896,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 0,
+          "cache": 10055992,
+          "n": 1
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 690,
+          "cache": 18364,
+          "n": 5
+        },
+        "json": {
+          "net": 330,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 152,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        }
+      },
+      "reqs": [
+        [
+          "sw",
+          "/?nolock=1&bench=1&chunk=pine-hollow&tier=phone",
+          152
+        ],
+        [
+          "sw",
+          "/assets/style-C35JC6ie.css",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/style-C35JC6ie.css",
+          0
+        ],
+        [
+          "page<sw",
+          "/?nolock=1&bench=1&chunk=pine-hollow&tier=phone",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/index-B9jxYFud.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/index-B9jxYFud.js",
+          0
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-700-latin.woff2",
+          230
+        ],
+        [
+          "sw",
+          "/fonts/jetbrains-mono-latin.woff2",
+          230
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-700-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/jetbrains-mono-latin.woff2",
+          0
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-400-latin.woff2",
+          230
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-400-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/three.module-4gI5Z-_B.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/favicon.png",
+          0
+        ],
+        [
+          "page",
+          "/version.json?t=1790157529920",
+          330
+        ],
+        [
+          "page<sw",
+          "/assets/main-xmulzryg.js",
+          0
+        ],
+        [
+          "page",
+          "blob:/0edf1c08-5fa8-4366-8c40-0bce9908b7bf",
+          -1
+        ],
+        [
+          "page<sw",
+          "/assets/packs/pine-hollow.phone-bdfb9ccc.bin",
+          0
+        ],
+        [
+          "page",
+          "blob:/4cf0c2f1-b315-4cc0-a028-adb2d8e3f082",
+          -1
+        ],
+        [
+          "page",
+          "blob:/582138b4-9ac7-4ef2-93ad-11ad944e0376",
+          0
+        ],
+        [
+          "page",
+          "blob:/ec8504cc-8eb6-452f-a661-449282410009",
+          0
+        ],
+        [
+          "page",
+          "blob:/7b845dcf-aeb6-444f-961f-d5dabc214f7e",
+          0
+        ],
+        [
+          "page",
+          "blob:/70a6ae99-8f35-4b86-8095-00f56305c1a5",
+          0
+        ],
+        [
+          "page",
+          "blob:/bb5c06a5-a1d3-4c6a-990e-b92b0fdfd146",
+          0
+        ],
+        [
+          "page",
+          "blob:/13f4466c-5e97-4e0e-90ae-a487c1fc6e17",
+          0
+        ],
+        [
+          "page",
+          "blob:/feb366f7-6ab9-47ac-b6f5-cf3868a2ba57",
+          0
+        ],
+        [
+          "page",
+          "blob:/9c61103e-26c9-483e-a51a-cac88da39b84",
+          0
+        ],
+        [
+          "page",
+          "blob:/7e7c5937-0c44-43ab-9175-a0cbd827aac9",
+          0
+        ],
+        [
+          "page",
+          "blob:/7b91b2a9-9fff-4e03-99d8-cef15ae943ba",
+          0
+        ],
+        [
+          "page",
+          "blob:/25cb9076-a614-4f3a-9819-066d2aca77d6",
+          0
+        ],
+        [
+          "page",
+          "blob:/9f1e1064-252b-4185-bac0-7001586668a8",
+          0
+        ],
+        [
+          "page",
+          "blob:/649a8d6a-0d40-4cf8-b076-a68954039afd",
+          0
+        ],
+        [
+          "page",
+          "blob:/a5587c21-40d2-470b-a5f2-80feca7ee440",
+          0
+        ],
+        [
+          "page",
+          "blob:/b7bebb38-f559-481e-9ee0-0d39ddc7e823",
+          0
+        ],
+        [
+          "page",
+          "blob:/c05da538-d209-443f-bcfe-2b7766b37902",
+          0
+        ],
+        [
+          "page",
+          "blob:/3a74cd67-c686-47c3-afe2-ed26fd8f7386",
+          0
+        ],
+        [
+          "page",
+          "blob:/d20d4eb2-9b42-4c4c-a0db-dfa6e388ae62",
+          0
+        ],
+        [
+          "page",
+          "blob:/1932309e-ab27-4be7-9454-da4898bb2596",
+          0
+        ],
+        [
+          "page",
+          "blob:/ec7f7925-f7af-4177-af48-ae35cfbd00a2",
+          0
+        ],
+        [
+          "page",
+          "blob:/9dae9123-7f61-4404-8329-598b0ada86a1",
+          0
+        ],
+        [
+          "page",
+          "blob:/6dadbf4f-7e2c-4dd1-9550-b3e2849a9530",
+          0
+        ],
+        [
+          "page",
+          "blob:/277aaa45-a1a7-4e49-b77f-a2fa957d951e",
+          0
+        ],
+        [
+          "page",
+          "blob:/75d35d84-39e3-4517-8c40-8d550055c4a3",
+          0
+        ],
+        [
+          "page",
+          "blob:/78c23826-9bcc-4185-8d5d-7cc53559bdd9",
+          0
+        ],
+        [
+          "page",
+          "blob:/93fe32c4-195f-4ccf-87f7-414f556c6d10",
+          0
+        ],
+        [
+          "page",
+          "blob:/fdbecc81-5512-4233-a5d3-1da6287edacd",
+          0
+        ],
+        [
+          "page",
+          "blob:/30bc0828-808b-449a-b7de-49095036d9db",
+          0
+        ],
+        [
+          "page",
+          "blob:/be676c94-d619-4cd6-92e7-ce1a4be9df1d",
+          0
+        ],
+        [
+          "page",
+          "blob:/495cb890-5acd-46e9-847d-e029a48d9567",
+          0
+        ],
+        [
+          "page",
+          "blob:/15db1bf9-a9da-42ae-acb4-87d6c6f2788b",
+          0
+        ],
+        [
+          "page",
+          "blob:/5e0669d8-2051-4e0d-a0df-125000179fc7",
+          0
+        ],
+        [
+          "page",
+          "blob:/e4162f77-ba89-4707-a051-207bf57848ed",
+          0
+        ],
+        [
+          "page",
+          "blob:/51ecc565-7422-4492-a31c-c85b974f0fa4",
+          0
+        ],
+        [
+          "page",
+          "blob:/9bc1f16e-1322-4562-8be1-a21eeacde514",
+          0
+        ],
+        [
+          "page",
+          "blob:/5f08f331-01e4-441e-93f7-02eb944ea8cd",
+          0
+        ],
+        [
+          "page",
+          "blob:/2396d80e-44ed-42af-b8c5-4f51efa8a1c3",
+          0
+        ],
+        [
+          "page",
+          "blob:/4dd762e8-7d2b-4725-902c-2311c580c4ad",
+          0
+        ],
+        [
+          "page",
+          "blob:/2e48fedf-30b7-44d1-8a38-a4c284b9b6ae",
+          0
+        ],
+        [
+          "page",
+          "blob:/c136e65f-132e-4599-891b-b7ecc0a0f385",
+          0
+        ],
+        [
+          "page",
+          "blob:/b9f846c5-fdff-442a-b126-d13870bef4b8",
+          0
+        ],
+        [
+          "page",
+          "blob:/1c3b024a-7e45-4558-b392-402dde29235d",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-portrait-C6gQ-sN2.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-DQXPgZYW.jpg",
+          0
+        ]
+      ],
+      "titleMs": 175,
+      "playMs": 4233,
+      "domContentLoadedMs": 84,
+      "loadEventMs": 146,
+      "longList": [
+        [
+          217,
+          118
+        ],
+        [
+          662,
+          84
+        ],
+        [
+          889,
+          117
+        ],
+        [
+          1236,
+          87
+        ],
+        [
+          1384,
+          64
+        ],
+        [
+          1458,
+          63
+        ],
+        [
+          1630,
+          59
+        ],
+        [
+          1976,
+          108
+        ],
+        [
+          2311,
+          77
+        ],
+        [
+          2833,
+          116
+        ],
+        [
+          3805,
+          86
+        ]
+      ],
+      "longTasks": 11,
+      "longTaskMs": 979,
+      "longTaskMaxMs": 118,
+      "steps": [
+        [
+          84,
+          "—",
+          null
+        ],
+        [
+          281,
+          "renderer",
+          null
+        ],
+        [
+          380,
+          "sky",
+          null
+        ],
+        [
+          754,
+          "terrain",
+          null
+        ],
+        [
+          1069,
+          "cards",
+          null
+        ],
+        [
+          1321,
+          "forest",
+          null
+        ],
+        [
+          1376,
+          "edge",
+          null
+        ],
+        [
+          1542,
+          "grass",
+          null
+        ],
+        [
+          1706,
+          "cabins",
+          null
+        ],
+        [
+          2200,
+          "props",
+          null
+        ],
+        [
+          2388,
+          "animals",
+          null
+        ],
+        [
+          2688,
+          "weapon",
+          null
+        ],
+        [
+          2948,
+          "shaders",
+          null
+        ],
+        [
+          3793,
+          "firstFrame",
+          null
+        ]
+      ],
+      "heapMB": 97.5,
+      "textures": 186,
+      "geometries": 89,
+      "programs": 76,
+      "firstFrameMs": null,
+      "swController": true,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "dpr": 1,
+      "viewport": [
+        390,
+        844
+      ]
+    },
+    {
+      "cond": "4g",
+      "cache": "cold",
+      "run": 1,
+      "status": "ok",
+      "label": "4g/cold",
+      "errors": [],
+      "requests": 15,
+      "swFetches": 18,
+      "fromSW": 5,
+      "netBytes": 11726385,
+      "cacheBytes": 0,
+      "bytes": {
+        "js": {
+          "net": 711480,
+          "cache": 0,
+          "n": 3
+        },
+        "css": {
+          "net": 14779,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 452185,
+          "cache": 0,
+          "n": 2
+        },
+        "png": {
+          "net": 410379,
+          "cache": 0,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 10056307,
+          "cache": 0,
+          "n": 1
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 69698,
+          "cache": 0,
+          "n": 5
+        },
+        "json": {
+          "net": 5176,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 5673,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 708,
+          "cache": 0,
+          "n": 0
+        }
+      },
+      "reqs": [
+        [
+          "page",
+          "/?nolock=1&bench=1&chunk=pine-hollow&tier=phone",
+          2813
+        ],
+        [
+          "page",
+          "/assets/index-B9jxYFud.js",
+          2860
+        ],
+        [
+          "page",
+          "/fonts/rajdhani-700-latin.woff2",
+          9648
+        ],
+        [
+          "page",
+          "/assets/style-C35JC6ie.css",
+          14779
+        ],
+        [
+          "sw",
+          "/sw.js",
+          302
+        ],
+        [
+          "page",
+          "/fonts/jetbrains-mono-latin.woff2",
+          31686
+        ],
+        [
+          "sw",
+          "/manifest.webmanifest",
+          708
+        ],
+        [
+          "page",
+          "/version.json?t=1790157536399",
+          330
+        ],
+        [
+          "sw",
+          "/index.html",
+          2860
+        ],
+        [
+          "page",
+          "/fonts/rajdhani-400-latin.woff2",
+          9312
+        ],
+        [
+          "sw",
+          "/asset-index.json",
+          4846
+        ],
+        [
+          "page",
+          "/assets/three.module-4gI5Z-_B.js",
+          185831
+        ],
+        [
+          "page",
+          "/favicon.png",
+          9187
+        ],
+        [
+          "sw",
+          "/assets/index-B9jxYFud.js",
+          179
+        ],
+        [
+          "sw",
+          "/assets/Feedback-Bi6Hy6mW.js",
+          4072
+        ],
+        [
+          "sw",
+          "/assets/Explore-DZM_Ks9_.js",
+          10666
+        ],
+        [
+          "sw",
+          "/assets/three.module-4gI5Z-_B.js",
+          179
+        ],
+        [
+          "sw",
+          "/assets/main-xmulzryg.js",
+          179
+        ],
+        [
+          "page",
+          "/assets/main-xmulzryg.js",
+          507212
+        ],
+        [
+          "sw",
+          "/favicon.png",
+          178
+        ],
+        [
+          "sw",
+          "/apple-touch-icon.png",
+          52370
+        ],
+        [
+          "sw",
+          "/icon-192.png",
+          58147
+        ],
+        [
+          "sw",
+          "/icon-512.png",
+          290497
+        ],
+        [
+          "page",
+          "blob:/9caaa169-3f35-473f-a847-a898e47eac37",
+          -1
+        ],
+        [
+          "page",
+          "blob:/202b12e0-c031-447a-9b40-0dc16d829ffa",
+          -1
+        ],
+        [
+          "page",
+          "blob:/72c2eb12-105a-413a-afa4-02f85fe3375b",
+          0
+        ],
+        [
+          "page",
+          "blob:/b038fca7-d08e-4787-abdc-56ce0b36a738",
+          0
+        ],
+        [
+          "page",
+          "blob:/72d6a095-fb68-4f7a-b757-c938b641c4a9",
+          0
+        ],
+        [
+          "page",
+          "blob:/051a7dfb-520d-4fbe-a1cf-f1b94e636132",
+          0
+        ],
+        [
+          "page",
+          "blob:/22fad408-3d46-400b-b859-1ade8e95f318",
+          0
+        ],
+        [
+          "page",
+          "blob:/8c4775b1-ce68-4c22-a371-ce6ec0b05168",
+          0
+        ],
+        [
+          "page",
+          "blob:/aa7d8424-980e-4154-bc8d-f1d75412f2cd",
+          0
+        ],
+        [
+          "page",
+          "blob:/f39333f3-cdf2-4ea9-a087-cc6708e60dfb",
+          0
+        ],
+        [
+          "page",
+          "blob:/bca8dbc5-fcc0-4696-9936-96bedcbd277a",
+          0
+        ],
+        [
+          "page",
+          "blob:/967b03ab-b6a7-4a87-93f4-7a72b2261b77",
+          0
+        ],
+        [
+          "page",
+          "blob:/6707307c-9f1c-4b00-b9bd-a684306b65dd",
+          0
+        ],
+        [
+          "page",
+          "blob:/10f8b9a5-3533-48c9-80f9-dcae6fdc11a3",
+          0
+        ],
+        [
+          "page",
+          "blob:/1dcd5776-f729-4fe7-94ea-9a75bbe86da1",
+          0
+        ],
+        [
+          "page",
+          "blob:/8bf36b02-ccfb-4f40-a8f0-e392569081dc",
+          0
+        ],
+        [
+          "page",
+          "blob:/cf714b90-6d6b-447a-9e7a-dfa458df40b0",
+          0
+        ],
+        [
+          "page",
+          "blob:/e032625f-b607-4685-85e4-7b46a0ce4c65",
+          0
+        ],
+        [
+          "page",
+          "blob:/ed9b56cf-0af4-4706-8c88-c1c9e74f474a",
+          0
+        ],
+        [
+          "page",
+          "blob:/3141392b-8169-473e-b013-4edbd7c41552",
+          0
+        ],
+        [
+          "page",
+          "blob:/5bced779-cea3-431c-8eaf-c208f7edbbd2",
+          0
+        ],
+        [
+          "page",
+          "blob:/de6ce16d-8889-4429-b0e2-d2c63413e846",
+          0
+        ],
+        [
+          "page",
+          "blob:/15d0c2ea-7fd2-41d4-aa83-712fb4b8e1ea",
+          0
+        ],
+        [
+          "page",
+          "blob:/1c269b63-496d-4da8-b619-54e21f0c3ad3",
+          0
+        ],
+        [
+          "page",
+          "blob:/80c7b3d7-8a3d-4507-b03d-d3cd11b8a3f6",
+          0
+        ],
+        [
+          "page",
+          "blob:/d5cc0a5a-f57b-4488-ac41-7bfd230b245b",
+          0
+        ],
+        [
+          "page",
+          "blob:/16ba062b-d231-425a-b29a-505eeef83815",
+          0
+        ],
+        [
+          "sw",
+          "/assets/packs/pine-hollow.phone-bdfb9ccc.bin",
+          10056307
+        ],
+        [
+          "page<sw",
+          "/assets/packs/pine-hollow.phone-bdfb9ccc.bin",
+          0
+        ],
+        [
+          "page",
+          "blob:/44f07931-aa01-4b93-a82c-c81c372b408c",
+          0
+        ],
+        [
+          "page",
+          "blob:/49e34e5a-d6b2-4eaf-8b04-91ca435dc288",
+          0
+        ],
+        [
+          "page",
+          "blob:/b0709da0-f836-4882-8b73-82f79b2156a1",
+          0
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          9308
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          9744
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          0
+        ],
+        [
+          "sw",
+          "/assets/pine-hollow-DQXPgZYW.jpg",
+          70539
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-DQXPgZYW.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/pine-hollow-portrait-C6gQ-sN2.jpg",
+          381646
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-portrait-C6gQ-sN2.jpg",
+          0
+        ]
+      ],
+      "titleMs": 496,
+      "playMs": 13255,
+      "domContentLoadedMs": 430,
+      "loadEventMs": 628,
+      "longList": [
+        [
+          1447,
+          56
+        ],
+        [
+          3187,
+          76
+        ],
+        [
+          6337,
+          115
+        ],
+        [
+          7283,
+          86
+        ],
+        [
+          7432,
+          58
+        ],
+        [
+          7501,
+          56
+        ],
+        [
+          7674,
+          62
+        ],
+        [
+          9964,
+          100
+        ],
+        [
+          10071,
+          54
+        ],
+        [
+          11183,
+          57
+        ],
+        [
+          11310,
+          77
+        ],
+        [
+          11832,
+          118
+        ],
+        [
+          12846,
+          96
+        ]
+      ],
+      "longTasks": 13,
+      "longTaskMs": 1011,
+      "longTaskMaxMs": 118,
+      "steps": [
+        [
+          429,
+          "—",
+          null
+        ],
+        [
+          1503,
+          "renderer",
+          null
+        ],
+        [
+          2121,
+          "sky",
+          null
+        ],
+        [
+          3271,
+          "terrain",
+          null
+        ],
+        [
+          6515,
+          "cards",
+          null
+        ],
+        [
+          7369,
+          "forest",
+          null
+        ],
+        [
+          7421,
+          "edge",
+          null
+        ],
+        [
+          7580,
+          "grass",
+          null
+        ],
+        [
+          7747,
+          "cabins",
+          null
+        ],
+        [
+          10176,
+          "props",
+          null
+        ],
+        [
+          11387,
+          "animals",
+          null
+        ],
+        [
+          11687,
+          "weapon",
+          null
+        ],
+        [
+          11950,
+          "shaders",
+          null
+        ],
+        [
+          12841,
+          "firstFrame",
+          null
+        ]
+      ],
+      "heapMB": 97.1,
+      "textures": 186,
+      "geometries": 89,
+      "programs": 76,
+      "firstFrameMs": null,
+      "swController": true,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "dpr": 1,
+      "viewport": [
+        390,
+        844
+      ]
+    },
+    {
+      "cond": "4g",
+      "cache": "warm",
+      "run": 1,
+      "status": "ok",
+      "label": "4g/warm",
+      "errors": [],
+      "requests": 16,
+      "swFetches": 5,
+      "fromSW": 15,
+      "netBytes": 1172,
+      "cacheBytes": 12660022,
+      "bytes": {
+        "js": {
+          "net": 0,
+          "cache": 2125177,
+          "n": 4
+        },
+        "css": {
+          "net": 0,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 0,
+          "cache": 451593,
+          "n": 2
+        },
+        "png": {
+          "net": 0,
+          "cache": 8896,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 0,
+          "cache": 10055992,
+          "n": 1
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 690,
+          "cache": 18364,
+          "n": 5
+        },
+        "json": {
+          "net": 330,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 152,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        }
+      },
+      "reqs": [
+        [
+          "sw",
+          "/assets/style-C35JC6ie.css",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/style-C35JC6ie.css",
+          0
+        ],
+        [
+          "page<sw",
+          "/?nolock=1&bench=1&chunk=pine-hollow&tier=phone",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/index-B9jxYFud.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/index-B9jxYFud.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/three.module-4gI5Z-_B.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/main-xmulzryg.js",
+          0
+        ],
+        [
+          "sw",
+          "/?nolock=1&bench=1&chunk=pine-hollow&tier=phone",
+          152
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-700-latin.woff2",
+          230
+        ],
+        [
+          "sw",
+          "/fonts/jetbrains-mono-latin.woff2",
+          230
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-400-latin.woff2",
+          230
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-700-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/jetbrains-mono-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-400-latin.woff2",
+          0
+        ],
+        [
+          "page",
+          "blob:/0038b6f4-8db4-482a-9a03-a1554edfd511",
+          -1
+        ],
+        [
+          "page",
+          "/version.json?t=1790157551213",
+          330
+        ],
+        [
+          "page<sw",
+          "/favicon.png",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/packs/pine-hollow.phone-bdfb9ccc.bin",
+          0
+        ],
+        [
+          "page",
+          "blob:/06313642-5c16-4cb4-ba98-c40b287b3c44",
+          -1
+        ],
+        [
+          "page",
+          "blob:/d4f8289a-ce32-4b2e-bb19-4684f5f4b1ba",
+          0
+        ],
+        [
+          "page",
+          "blob:/f7058492-889b-41ce-93f7-85a01b05324f",
+          0
+        ],
+        [
+          "page",
+          "blob:/5fb900d5-48f1-46cb-a288-dcd4057c1458",
+          0
+        ],
+        [
+          "page",
+          "blob:/3a102b06-141e-4e2f-9c87-e37c818a7072",
+          0
+        ],
+        [
+          "page",
+          "blob:/0eee6893-1767-4cf9-87d5-a7addfb0e30f",
+          0
+        ],
+        [
+          "page",
+          "blob:/9992dda2-0934-4688-8e52-d48e992637c0",
+          0
+        ],
+        [
+          "page",
+          "blob:/20f226b0-b3ce-45f5-9f8f-01ee35691f36",
+          0
+        ],
+        [
+          "page",
+          "blob:/fb8eda90-b70d-4c6e-abf8-5463c8d50f2f",
+          0
+        ],
+        [
+          "page",
+          "blob:/a29906d5-0249-4ee5-a4e6-2c730bfd928b",
+          0
+        ],
+        [
+          "page",
+          "blob:/af941621-d9c0-4273-ac34-fa45d3226f09",
+          0
+        ],
+        [
+          "page",
+          "blob:/0d9f0a7e-c2b4-46a8-9bf4-c7c049dfcd15",
+          0
+        ],
+        [
+          "page",
+          "blob:/f4a12e20-631f-4aa9-bcfe-293fe19f431c",
+          0
+        ],
+        [
+          "page",
+          "blob:/8301c976-ec14-4827-bb4d-1262e1b23ebe",
+          0
+        ],
+        [
+          "page",
+          "blob:/1076a97e-b969-4791-a2e4-fd27456a78c6",
+          0
+        ],
+        [
+          "page",
+          "blob:/1dd608cf-c3e8-41e2-8b1c-4f48457a23b1",
+          0
+        ],
+        [
+          "page",
+          "blob:/40d28e99-8ed2-464a-8b8a-906824beffc5",
+          0
+        ],
+        [
+          "page",
+          "blob:/6add5cba-16f6-451f-bfc7-4518af5e93e6",
+          0
+        ],
+        [
+          "page",
+          "blob:/ca453163-d1ab-4634-917e-214651672246",
+          0
+        ],
+        [
+          "page",
+          "blob:/04e27625-ab26-4bb0-a8f1-3cfbcf64f0ac",
+          0
+        ],
+        [
+          "page",
+          "blob:/a490b052-6d3b-4e07-a71a-40a0977c082c",
+          0
+        ],
+        [
+          "page",
+          "blob:/6a094c0f-25d6-4883-b23c-d5298aef58cc",
+          0
+        ],
+        [
+          "page",
+          "blob:/e0173566-a853-4f6e-8864-ac947700fb10",
+          0
+        ],
+        [
+          "page",
+          "blob:/b249bc6c-6401-458f-9321-7916b1ba92a8",
+          0
+        ],
+        [
+          "page",
+          "blob:/432ef3c5-c34e-48d1-8540-39556b5b39f9",
+          0
+        ],
+        [
+          "page",
+          "blob:/4af3fe2e-537d-42f3-b95a-d20c7ad8c7ed",
+          0
+        ],
+        [
+          "page",
+          "blob:/8b9db553-6594-4959-8844-74091b57e8c6",
+          0
+        ],
+        [
+          "page",
+          "blob:/0667d379-153d-4480-80b6-98a7c3d34e46",
+          0
+        ],
+        [
+          "page",
+          "blob:/ba773a7f-1434-4b0c-abc2-7f39ceed567b",
+          0
+        ],
+        [
+          "page",
+          "blob:/3c71a355-9b7b-4ebf-9730-39d403aba14b",
+          0
+        ],
+        [
+          "page",
+          "blob:/d1638152-7cc3-4642-ae8d-b93c6cf18dd6",
+          0
+        ],
+        [
+          "page",
+          "blob:/136f5a14-4644-4b63-b787-9f2fcd078ccb",
+          0
+        ],
+        [
+          "page",
+          "blob:/f7c88560-00ec-4c7a-8fee-aa5ae58b3c23",
+          0
+        ],
+        [
+          "page",
+          "blob:/289edcd8-0bc6-4da4-9811-f93cea4655ad",
+          0
+        ],
+        [
+          "page",
+          "blob:/76d3c339-78cf-4dcb-a879-c53c29212ee8",
+          0
+        ],
+        [
+          "page",
+          "blob:/1be55bf2-b698-4f75-a010-2af5e4817307",
+          0
+        ],
+        [
+          "page",
+          "blob:/25b4f952-ba6b-45f0-8306-fbb191919d9b",
+          0
+        ],
+        [
+          "page",
+          "blob:/7f0bad3b-0050-4c5f-b79c-d753d875287a",
+          0
+        ],
+        [
+          "page",
+          "blob:/e07236db-4050-4818-a8e2-5a8479d946db",
+          0
+        ],
+        [
+          "page",
+          "blob:/23224ffb-0d6c-4f53-a6d4-43d24246207a",
+          0
+        ],
+        [
+          "page",
+          "blob:/e1545abb-b2c2-417d-9afc-1930d37b0e2e",
+          0
+        ],
+        [
+          "page",
+          "blob:/93843f53-0d84-40ea-9d82-bb083e0a741e",
+          0
+        ],
+        [
+          "page",
+          "blob:/f271de75-080a-42d7-8add-e2b81875efa3",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-portrait-C6gQ-sN2.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-DQXPgZYW.jpg",
+          0
+        ]
+      ],
+      "titleMs": 362,
+      "playMs": 4880,
+      "domContentLoadedMs": 75,
+      "loadEventMs": 308,
+      "longList": [
+        [
+          140,
+          165
+        ],
+        [
+          649,
+          85
+        ],
+        [
+          887,
+          114
+        ],
+        [
+          1233,
+          81
+        ],
+        [
+          1370,
+          58
+        ],
+        [
+          1437,
+          56
+        ],
+        [
+          1594,
+          59
+        ],
+        [
+          1941,
+          130
+        ],
+        [
+          2076,
+          60
+        ],
+        [
+          2339,
+          91
+        ],
+        [
+          2436,
+          60
+        ],
+        [
+          3037,
+          178
+        ],
+        [
+          4383,
+          136
+        ]
+      ],
+      "longTasks": 13,
+      "longTaskMs": 1273,
+      "longTaskMaxMs": 178,
+      "steps": [
+        [
+          75,
+          "—",
+          null
+        ],
+        [
+          251,
+          "renderer",
+          null
+        ],
+        [
+          361,
+          "sky",
+          null
+        ],
+        [
+          743,
+          "terrain",
+          null
+        ],
+        [
+          1061,
+          "cards",
+          null
+        ],
+        [
+          1314,
+          "forest",
+          null
+        ],
+        [
+          1363,
+          "edge",
+          null
+        ],
+        [
+          1514,
+          "grass",
+          null
+        ],
+        [
+          1668,
+          "cabins",
+          null
+        ],
+        [
+          2209,
+          "props",
+          null
+        ],
+        [
+          2429,
+          "animals",
+          null
+        ],
+        [
+          2832,
+          "weapon",
+          null
+        ],
+        [
+          3213,
+          "shaders",
+          null
+        ],
+        [
+          4374,
+          "firstFrame",
+          null
+        ]
+      ],
+      "heapMB": 88.1,
+      "textures": 186,
+      "geometries": 89,
+      "programs": 76,
+      "firstFrameMs": null,
+      "swController": true,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "dpr": 1,
+      "viewport": [
+        390,
+        844
+      ]
+    }
+  ]
+}

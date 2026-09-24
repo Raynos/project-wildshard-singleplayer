@@ -3,12 +3,14 @@ import { CHUNKS, getActiveChunk, chunkUrl } from '../chunks/registry';
 import { PLACEHOLDERS } from '../chunks/placeholders';
 import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
+import { openBootSettings } from './BootSettings';
 
 /**
  * HUD — DOM overlay in `#hud`, styled by `src/ui/styles/game.css` / `menu.css` (the in-game menu is src/ui/Menu.ts + gmenu.css) on top of `base.css` (Wildshard glass identity; one class prefix per screen, see scripts/check-css.mjs).
  *
  *   const hud = new HUD({ pointerLock?: boolean });   // pointerLock:false in ?nolock dev mode (no pause overlay)
- *   hud.showIntro(() => player.lock())                 // title screen: shard deck; ENTER WORLD / any key → onEnter
+ *   hud.showIntro(() => player.lock())                 // title screen: shard deck + ENTER WORLD / EXPLORE WORLD; any key → onEnter
+ *   hud.onExplore = () => …  hud.startExplore()        // EXPLORE WORLD (src/explore/Explore.ts); startExplore = a `?explore=` deep link
  *   hud.setState({ bolts?, loaded, reloading, reloadProgress?, health, fps, pos: {x, z}, yaw, kills, prompt?, speed?, ads?,
  *                  maxBolts?, reserve?, ammoLabel?, weaponName?, segments? })
  *     — the ammo strip is generic: `bolts` is the held weapon's ammo (BOLTS 27 / 30 for the crossbow, ROUNDS 27 / 30 + 60
@@ -61,8 +63,12 @@ export type IntroStats = Record<string, string | { value: string; tone?: 'ok' | 
 interface DeckCard {
   slug: string; displayName: string; label: string; thumbnail: string; tag: string; tagTone: 'ok' | 'soon' | '';
   playable: boolean; active: boolean; heroPortrait?: string; heroLandscape?: string; blurb: string; experimental: boolean;
+  /** ChunkDef.explore: the shard offers EXPLORE WORLD */
+  explore: boolean;
 }
 const HERO_FADE_MS = 350;
+const GLYPH_SWORD = '<svg viewBox="0 0 24 24"><path d="M19.5 3.5L9 14l1 1L20.5 4.5z M6.5 12.5l5 5 M8 14l-4.5 4.5 1 1L9 15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+const GLYPH_EYE = '<svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
 
 const CARDINALS: [number, string, boolean][] = [[0, 'N', true], [45, 'NE', false], [90, 'E', true], [135, 'SE', false], [180, 'S', true], [225, 'SW', false], [270, 'W', true], [315, 'NW', false]];
 const BAND_DEGREES = 292; // the band spans this much heading (W · N · E all visible, like the K1 mockup); px/deg follows its width
@@ -97,16 +103,18 @@ export class HUD {
   root: HTMLElement;
   onResume?: () => void;
   onExitToMenu?: () => void;
-  private soundOff = false; // the menu's sound toggle; applied via onSoundToggle on enter, muted on exit-to-menu
+  private soundOff = false; // the menu's sound toggle; applied via onSoundToggle when toggled (the title music) and on enter
   onSoundToggle?: (on: boolean) => void;
   private opts: HUDOptions;
   entered = false;
   private onEnter?: () => void;
+  /** EXPLORE WORLD on the title (main.ts opens src/explore/Explore.ts) */
+  onExplore?: () => void;
 
   private compassStrip!: HTMLElement; private band!: HTMLElement;
   private markHouse!: HTMLElement; private markPaw!: HTMLElement; private range!: HTMLElement;
   private animals: { x: number; z: number }[] = [];
-  /** P2 touch layout: vitals + bolts strips rendered INTO the control bar's corners (`.ws-touch-bar`, TouchControls) */
+  /** touch layout E (E42): the vitals + bolts strips rendered into TouchControls' top-left status column (`.ws-touch-status`, under PAUSE) */
   private bar?: { hval: HTMLElement; hbar: HTMLElement; bolts: HTMLElement; bcount: HTMLElement; segs: HTMLElement[]; segBox: HTMLElement; label: HTMLElement; weapon: HTMLElement; max: HTMLElement; reserve: HTMLElement };
   private lastMark = { house: Number.NaN, paw: Number.NaN, range: '' };
   private ppd = 1.2; // compass px per degree — measured from the band (`--ppd`), see build()
@@ -330,11 +338,11 @@ export class HUD {
     if (this.hitTimer > 0 && (this.hitTimer -= 1) === 0) this.cross.classList.remove('hit', 'head');
   }
 
-  /** touch (P2): heart · 100 · bar · VITALS in the bar's top-left corner, BOLTS · segments · 27 / 30 · bolt top-right.
-   *  Rendered into TouchControls' `.ws-touch-bar` once it exists; the numbers are HUD state, so the HUD owns them. */
+  /** touch (E42): heart · 100 · bar · VITALS top-left under PAUSE / the frame meter, and under it (ranged kit) BOLTS · segments · 27 / 30 · bolt.
+   *  Rendered into TouchControls' `.ws-touch-status` once it exists; the numbers are HUD state, so the HUD owns them. */
   private mountBar(): boolean {
     if (this.bar) return true;
-    const bar = this.root.querySelector<HTMLElement>('.ws-touch-bar');
+    const bar = this.root.querySelector<HTMLElement>('.ws-touch-status');
     if (!bar) return false;
     const vitals = el('div', 'ws-game-vitals', `<i class="ws-game-glyph">${SVG_HEART}</i><b class="ws-game-num">100</b><span class="ws-game-vbar"><i></i></span><span class="ws-game-tiny">Vitals</span>`);
     const L = this.last, segN = L.segments ?? 4, reserve = L.reserve ?? 0;
@@ -445,10 +453,12 @@ export class HUD {
   get paused(): boolean { return this._menu?.isOpen ?? false; }
 
   /**
-   * Title screen: the shard deck IS the menu. A horizontal snap carousel of shard cards over the
-   * live world; the centred card is the selection. Real chunks are playable (the active one enters,
-   * another reloads with `?chunk=`); teasers from `PLACEHOLDERS` crossfade their hero art in behind
-   * the deck and turn ENTER WORLD into COMING SOON. `stats` is accepted for API compatibility.
+   * Title screen: the shard deck IS the menu. A horizontal snap carousel of shard cards over the live world (the
+   * neighbours peek in from the edges, dots below — a swipe steps the shard); the centred card is the selection. Under it
+   * two compact buttons: ENTER WORLD (play; the active shard enters, another reloads with `?chunk=`) and EXPLORE WORLD
+   * (the viewer, project/archive/2026-09-23-explore-world.md; the shards whose ChunkDef.explore is on — D4, E66). Teasers from `PLACEHOLDERS` crossfade their hero art in
+   * behind the deck and turn ENTER WORLD into COMING SOON. `stats` is accepted for API compatibility. (The user,
+   * 2026-09-23, on the p12 split panels: "way too big … it does not make it obvious you can swipe" — back to the deck.)
    */
   showIntro(onEnter: () => void, _stats?: IntroStats): void {
     this.onEnter = onEnter;
@@ -458,12 +468,12 @@ export class HUD {
       ...CHUNKS.map((c): DeckCard => ({
         slug: c.slug, displayName: c.displayName, thumbnail: c.thumbnail, blurb: c.blurb,
         label: `${c.biome} · ${c.gridCoords} · ${CHUNK_SIZE} m shard`,
-        tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def, experimental: c.experimental === true,
+        tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def, experimental: c.experimental === true, explore: c.explore === true,
         heroPortrait: c.heroPortrait, heroLandscape: c.heroLandscape,
       })),
       ...PLACEHOLDERS.map((t): DeckCard => ({
         slug: t.slug, displayName: t.displayName, thumbnail: t.thumbnail, blurb: t.blurb,
-        label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false, experimental: false,
+        label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false, experimental: false, explore: false,
         heroPortrait: t.heroPortrait, heroLandscape: t.heroLandscape,
       })),
     ];
@@ -479,16 +489,20 @@ export class HUD {
           </button>`).join('')}
         </div></div>
         <div class="ws-menu-dots">${cards.map((_, i) => `<i data-i="${i}"></i>`).join('')}</div>
-        <button class="ws-menu-enter" type="button"><b>Enter world</b><small>Press any key</small></button>
-        <div class="ws-menu-row"><div class="ws-menu-sound">Sound on</div></div>
+        <div class="ws-menu-modes">
+          <button class="ws-menu-mode ws-menu-play" type="button"><span class="ws-menu-mode-glyph">${GLYPH_SWORD}</span><b>Enter world</b><small></small></button>
+          <button class="ws-menu-mode ws-menu-explore" type="button"><span class="ws-menu-mode-glyph">${GLYPH_EYE}</span><b>Explore world</b><small>Fly · inspect</small></button>
+        </div>
+        <div class="ws-menu-row"><button class="ws-menu-settings" type="button">Settings</button><div class="ws-menu-sound">Sound on</div></div>
       </div>`;
     const hero = q(intro, '.ws-menu-hero');
     const list = q(intro, '.ws-menu-cards');
     const cardEls = Array.from(list.querySelectorAll<HTMLElement>('.ws-menu-card'));
     const dots = Array.from(intro.querySelectorAll<HTMLElement>('.ws-menu-dots i'));
-    const enterBtn = intro.querySelector<HTMLButtonElement>('.ws-menu-enter');
-    if (!enterBtn) throw new Error('HUD: no .ws-menu-enter');
+    const enterBtn = intro.querySelector<HTMLButtonElement>('.ws-menu-play');
+    if (!enterBtn) throw new Error('HUD: no .ws-menu-play');
     const enterTitle = q(enterBtn, 'b'), enterHint = q(enterBtn, 'small');
+    const exploreBtn = q(intro, '.ws-menu-explore');
 
     const portrait = (): boolean => innerWidth < innerHeight;
     const heroUrl = (c: DeckCard): string => (portrait() ? c.heroPortrait : c.heroLandscape) ?? '';
@@ -513,7 +527,8 @@ export class HUD {
       enterBtn.classList.toggle('soon', !c.playable);
       enterBtn.disabled = !c.playable;
       enterTitle.textContent = c.playable ? 'Enter world' : 'Coming soon';
-      enterHint.textContent = !c.playable ? 'Not yet playable' : c.experimental ? 'Experimental shard — rough edges ahead' : c.active ? 'Press any key' : `Reloads with ${c.displayName}`;
+      enterHint.textContent = !c.playable ? 'Not yet playable' : c.experimental ? 'Experimental · rough edges' : c.active ? 'Play' : `Reloads with ${c.displayName}`;
+      exploreBtn.classList.toggle('off', !c.explore); // the shard's ChunkDef.explore (Driftwood + Pine Hollow — project/archive/2026-09-23-explore-world.md D4, E66)
     };
     const select = (raw: number, smooth = true): void => {
       const i = Math.max(0, Math.min(cards.length - 1, raw));
@@ -550,9 +565,17 @@ export class HUD {
     cardEls.forEach((e, i) => { e.addEventListener('click', (ev) => { ev.stopPropagation(); if (i !== index && performance.now() - swipedAt > 400) select(i); }); });
     dots.forEach((d, i) => { d.addEventListener('click', (ev) => { ev.stopPropagation(); select(i); }); });
     enterBtn.addEventListener('click', (ev) => { ev.stopPropagation(); activate(); });
+    exploreBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const c = cards[index];
+      if (c?.explore !== true) return;
+      if (!c.active) { const u = new URL(chunkUrl(c.slug)); u.searchParams.set('explore', 'hub'); location.href = u.toString(); return; }
+      this.leaveForExplore();
+    });
+    q(intro, '.ws-menu-settings').addEventListener('click', (e) => { e.stopPropagation(); openBootSettings(); }); // E55: the reload-to-apply picks
     const soundBtn = q(intro, '.ws-menu-sound');
     if (this.soundOff) { soundBtn.classList.add('off'); soundBtn.textContent = 'Sound off'; }
-    soundBtn.addEventListener('click', (e) => { e.stopPropagation(); this.soundOff = soundBtn.classList.toggle('off'); soundBtn.textContent = this.soundOff ? 'Sound off' : 'Sound on'; });
+    soundBtn.addEventListener('click', (e) => { e.stopPropagation(); this.soundOff = soundBtn.classList.toggle('off'); soundBtn.textContent = this.soundOff ? 'Sound off' : 'Sound on'; this.onSoundToggle?.(!this.soundOff); });
     // orientation flips swap the hero file and re-centre the selected card (card width is viewport-relative)
     let wasPortrait = portrait();
     const onResize = (): void => {
@@ -578,6 +601,19 @@ export class HUD {
     requestAnimationFrame(() => { place(index, 0, false); }); // after layout: offsets need the intro in the DOM
   }
 
+  /** EXPLORE WORLD: the title goes away but the play HUD stays hidden (`#hud.intro` is kept) — Explore draws its own overlay */
+  private leaveForExplore(): void {
+    if (!this.intro) return;
+    const intro = this.intro; this.intro = undefined; this.deck = undefined;
+    intro.classList.add('hide');
+    setTimeout(() => { intro.remove(); }, Math.max(700, HERO_FADE_MS * 2));
+    this.onSoundToggle?.(!this.soundOff);
+    this.onExplore?.();
+  }
+
+  /** skip the title straight into Explore (`?explore=` deep links) */
+  startExplore(): void { this.root.classList.add('intro'); if (this.intro) this.leaveForExplore(); else this.onExplore?.(); }
+
   private enter(): void {
     if (!this.intro) return;
     const intro = this.intro; this.intro = undefined; this.deck = undefined;
@@ -585,12 +621,13 @@ export class HUD {
     setTimeout(() => { intro.remove(); }, Math.max(700, HERO_FADE_MS * 2));
     this.root.classList.remove('intro');
     this.entered = true;
-    this.onSoundToggle?.(!this.soundOff); // the world is silent under the menu; the player's choice applies on entry
+    this.onSoundToggle?.(!this.soundOff); // the player's choice (main.ts hushes the world under the menu; the title music plays)
     this.onEnter?.();
   }
 
-  /** dev: skip the intro entirely */
-  markEntered(): void { this.entered = true; this.root.classList.remove('intro'); }
+  /** skip the intro (`?skipintro`, `?tour`, a GPU-recovery reload): straight into the world. `onEnter` is what the title's
+   *  ENTER WORLD runs once pause → "Exit to main menu" brings the title back — without it that exit froze the game (E86) */
+  markEntered(onEnter?: () => void): void { if (onEnter) this.onEnter = onEnter; this.entered = true; this.root.classList.remove('intro'); }
 
   /** Pause → "Exit to main menu": back to the chunk selection without a reload. The world stays loaded;
    *  `onExitToMenu` is where main.ts stops the loop / mutes audio. The next ENTER WORLD fires `onEnter` again. */
@@ -599,8 +636,7 @@ export class HUD {
     this._menu?.close(true);
     this.entered = false;
     if (document.pointerLockElement) document.exitPointerLock();
-    this.onSoundToggle?.(false);
-    this.onExitToMenu?.();
+    this.onExitToMenu?.(); // main.ts hushes the world's sounds; the title theme plays
     if (this.onEnter) this.showIntro(this.onEnter);
   }
 }

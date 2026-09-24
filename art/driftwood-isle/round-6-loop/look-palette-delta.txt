@@ -1,0 +1,22 @@
+region         mockup   game       ΔE00   (pixels mock / game)
+shallow water  #2fc7d4  #64c3d6     5.4   (1238234 / 1028620)
+deep water     #429eed  #258ce0     5.7   (213311 / 197560)
+sand           #f5d193  #e2c493     4.4   (991175 / 1006682)
+sand shadow    #7a6c5c  #5c5964    16.0   (182715 / 151886)  <-- over 10
+grass          #759d47  #6da757     4.6   (137597 / 127576)
+foliage        #628b2b  #5a9c3f     6.3   (138323 / 121598)
+sky zenith     #3e9dfc  #499dec     1.3   (66926 / 15752)
+sky horizon    #9acefa  #a5cadf     6.3   (41536 / 7159)
+worst ΔE00 = 16.0
+
+after the LUT:
+region         mockup   game       ΔE00   (pixels mock / game)
+shallow water  #2fc7d4  #44c8d8     1.8   (1238234 / 1092021)
+deep water     #429eed  #3698ec     1.8   (213311 / 191741)
+sand           #f5d193  #f4d092     0.2   (991175 / 1027703)
+sand shadow    #7a6c5c  #7c675d     5.8   (182715 / 129578)
+grass          #759d47  #779e48     0.4   (137597 / 124339)
+foliage        #628b2b  #5e8a2b     0.9   (138323 / 125678)
+sky zenith     #3e9dfc  #47a3f9     1.7   (66926 / 15850)
+sky horizon    #9acefa  #9ecef1     2.1   (41536 / 8664)
+worst ΔE00 = 5.8

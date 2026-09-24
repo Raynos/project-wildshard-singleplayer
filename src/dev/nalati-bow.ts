@@ -17,7 +17,7 @@ import type { TargetAnimal, TargetHit, Targets } from '../player/Crossbow';
 import { heightAt } from '../world/Heightfield';
 import { painterlyMaterial, paintGeometry } from '../world/painterly';
 import { Grass } from '../world/Grass';
-import { wind } from '../world/Wind';
+import { wind } from '../world/steppeWind';
 import { HUD } from '../ui/HUD';
 import { Audio } from '../audio/Audio';
 import { getSetting, setSetting } from '../ui/Settings';

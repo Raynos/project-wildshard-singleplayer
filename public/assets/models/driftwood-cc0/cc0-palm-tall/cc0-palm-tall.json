@@ -1,0 +1,16 @@
+{
+ "name": "cc0-palm-tall",
+ "source": "~/models/cc0/quaternius/pirate-kit/glTF/Environment_PalmTree_1.gltf",
+ "licence": "CC0 1.0 (see scripts/img2mesh/CC0.md)",
+ "tris": 3208,
+ "size_m": [
+  5.82,
+  5.62,
+  8.0
+ ],
+ "palette": [
+  "leafLight",
+  "trunk"
+ ],
+ "vertex_colour": "COLOR_0 rgb = Driftwood palette albedo, a = 1"
+}

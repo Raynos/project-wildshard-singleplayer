@@ -1,0 +1,29 @@
+{
+ "name": "hut",
+ "source": "hut.glb",
+ "tris": 2992,
+ "size_m": [
+  5.14,
+  5.75,
+  5.51
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#271102",
+  "#4e280a",
+  "#60350e",
+  "#6e3b0d",
+  "#744716",
+  "#7c521e",
+  "#824710",
+  "#84581e",
+  "#955311",
+  "#a0621b",
+  "#ab650d",
+  "#b87214",
+  "#ca841b",
+  "#d69225"
+ ],
+ "atlas": "hut.tex.glb: 512\u00b2 WebP base colour on smart-project UVs, no COLOR_0"
+}

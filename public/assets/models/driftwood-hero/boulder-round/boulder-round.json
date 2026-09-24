@@ -1,0 +1,20 @@
+{
+ "name": "boulder-round",
+ "source": "boulders.glb",
+ "tris": 600,
+ "size_m": [
+  1.62,
+  1.62,
+  1.39
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#667280",
+  "#687481",
+  "#697583",
+  "#6b7785",
+  "#6e7a88",
+  "#73808e"
+ ]
+}

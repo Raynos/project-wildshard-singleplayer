@@ -15,15 +15,26 @@ el.type = 'button';
 el.innerHTML = `<span class="ws-update-dot"></span><span data-el="text">${sha} · reload</span>`;
 document.body.append(el);
 
-const reload = (): void => {
+let busy = false;
+const reload = async (): Promise<void> => {
+  if (busy) return;
+  busy = true;
+  const text = el.querySelector('[data-el="text"]');
+  if (text) text.textContent = 'updating…'; // the tap is acknowledged at once, whatever the hand-over does
   // A newer service worker waiting: adopt it (SKIP_WAITING → controllerchange → reload, src/boot/sw.ts).
-  // Otherwise cache-bust the document itself; keep ?chunk= and friends.
-  if (window.__ws_sw?.waiting) { void window.__ws_sw.adopt(); return; }
+  const sw = window.__ws_sw;
+  if (sw?.waiting && sw.waiting.state !== 'redundant') await sw.adopt();
+  // Still here: nothing was waiting, or the hand-over never landed within adopt()'s cap — e.g. the announced worker went
+  // redundant because a later deploy superseded it, which left the pill dead to taps (E53). Cache-bust the document
+  // itself; keep ?chunk= and friends.
   const url = new URL(location.href);
   url.searchParams.set('v', Date.now().toString(36));
   location.replace(url.toString());
 };
-el.addEventListener('click', reload);
+// pointerup as well as click: iOS drops the synthesized click when a tap jitters (index.html cancels touchmove for the
+// rubber-band), so the pill answers the lift itself; `busy` keeps the pair from running twice
+el.addEventListener('pointerup', () => { void reload(); });
+el.addEventListener('click', () => { void reload(); });
 
 let newer = false;
 const lightUp = (label: string): void => {
@@ -36,7 +47,7 @@ const lightUp = (label: string): void => {
 window.addEventListener('ws-sw-waiting', () => { lightUp('build'); });
 
 async function check(): Promise<void> {
-  if (newer) return;
+  if (newer || !navigator.onLine) return; // offline (the PWA plays from its cache): no request that can only fail
   try {
     const r = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
     if (!r.ok) return;

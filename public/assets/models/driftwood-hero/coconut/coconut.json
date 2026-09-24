@@ -1,0 +1,19 @@
+{
+ "name": "coconut",
+ "source": "coconut.glb",
+ "tris": 159,
+ "size_m": [
+  0.13,
+  0.24,
+  0.13
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#5c2701",
+  "#5f2b09",
+  "#5f2c01",
+  "#623011",
+  "#65391d"
+ ]
+}

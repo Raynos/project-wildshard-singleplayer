@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { TIER_CONFIG } from '../core/tier';
+import { setting, settingFromUrl } from '../ui/Settings';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { loadHDR } from '../core/assets';
 import { fogUniforms, paintedAir, patchCloudShadows, isPaintedAir } from './Atmosphere';
 import { buildPainterlyClouds, skyLayerUniforms, type SkyLayerUniforms } from './PainterlySky';
 import { buildPainterlyRange } from './PainterlyRange';
-import { wind } from './Wind';
+import { wind } from './steppeWind';
 import { Noise2D } from '../core/noise';
 import { Rng } from '../core/rng';
 import { getActiveChunk } from '../chunks/registry';
@@ -14,6 +15,14 @@ import { bakedTexture, preloadBakedTextures } from '../boot/bakedTextures';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
 import { macrotask } from '../boot/plan';
+import { installStylize, toonUniforms } from './stylize';
+import { StylizedSky } from './StylizedSky';
+import { DayNight } from './DayNight';
+import { loadStylizedLUT } from './lut';
+import type { LookupTexture } from 'postprocessing';
+
+/** the low-poly shard's sun before the day / night clock moves it: mid-morning from the east-south-east, 38° up */
+const STYLIZED_SUN = new THREE.Vector3(-0.74, 0.616, -0.27).normalize();
 
 /** how far the planet group sits from the camera (Game.ts re-places it every frame along `planetDir`) */
 export const PLANET_DIST = 1700;
@@ -40,7 +49,7 @@ export class Sky {
   sunDisc!: THREE.Mesh;
   planet = new THREE.Group();
   planetDir = new THREE.Vector3(-0.75, 0.33, 0.55).normalize();
-  /** the fill light (ChunkSky.hemiSky / hemiGround / hemiIntensity) — a runtime handle for the day/night clock (DayNight.ts) */
+  /** the fill light (ChunkSky.hemiSky / hemiGround / hemiIntensity) — a runtime handle for the day/night clocks (DayNight.ts, DayClock.ts) */
   hemi!: THREE.HemisphereLight;
   private materials = new Set<THREE.Material>();
 
@@ -50,9 +59,57 @@ export class Sky {
   get viewCamera(): THREE.PerspectiveCamera { return this.camera; }
 
   async build(): Promise<this> {
-    const { sky: S, atmosphere: A } = getActiveChunk();
+    const { sky: S, atmosphere: A, style } = getActiveChunk();
+    // Look Lab (E65): the sky (E83) and toon lighting (E87) are locked in; the URL alone still builds the pre-remaster looks
+    const toon = style === 'lowpoly' && !(settingFromUrl('lighting') && setting('lighting') === 'standard'), // toon locked in (E87): only ?lighting=standard lights it the old way
+      stylizedSky = style === 'lowpoly' && !(settingFromUrl('sky') && setting('sky') === 'hdri'); // stylized locked in (E83, the user's Look Lab pick): only ?sky=hdri brings back the photo HDRI
+    if (toon) installStylize(); // the toon lighting model (D1) — patched into three's chunk before anything compiles
     const qs = new URLSearchParams(location.search);
     const qn = (k: string, d: number) => { const v = qs.get(k); return v === null ? d : Number.parseFloat(v); };
+    const horizon = stylizedSky ? await this.setupStylized() : await this.setupHDRI(qs, qn);
+    this.scene.fog = new THREE.Fog(horizon, 1, 1e6); // distances unused: Atmosphere.ts overrides the maths
+    fogUniforms.fogSunDir.value.copy(this.sunDir);
+    fogUniforms.fogSunColor.value.set(...S.fogSunColor);
+    fogUniforms.fogHeight.value = A.fogHeight;
+    fogUniforms.fogHeightFalloff.value = A.fogHeightFalloff;
+    fogUniforms.fogHeightDensity.value = A.fogHeightDensity;
+    fogUniforms.fogDistDensity.value = A.fogDistDensity;
+
+    this.csm = new CSM({
+      camera: this.camera, parent: this.scene, cascades: TIER_CONFIG.cascades, mode: 'practical',
+      maxFar: TIER_CONFIG.shadowFar, shadowMapSize: TIER_CONFIG.shadowMapSize, lightDirection: this.sunDir.clone().negate(),
+      lightIntensity: qn('sunI', S.sunIntensity), shadowBias: -0.00012, lightMargin: TIER_CONFIG.shadowMargin, lightNear: 1, lightFar: 600,
+    });
+    this.csm.fade = true;
+    if (!TIER_CONFIG.softShadows) this.renderer.shadowMap.type = THREE.PCFShadowMap; // 16-tap PCFSoft → 9-tap PCF on the phone
+    patchCSMShaderChunk();
+    patchCloudShadows(); // painterly shards: the drifting cloud shadows in the sun loop (a no-op elsewhere)
+    // the stylized shard's low sun (golden hour, dawn) grazes the flat decks: more normal bias or the planks speckle with acne
+    for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = this.stylized ? 0.14 : 0.05; l.shadow.radius = this.stylized ? 0.6 : 2; }
+
+    this.hemi = new THREE.HemisphereLight(S.hemiSky, S.hemiGround, S.hemiIntensity);
+    this.scene.add(this.hemi);
+
+    this.buildSunDisc();
+    this.buildPlanet();
+    if (this.stylized) {
+      const st = this.stylized, fog = this.scene.fog;
+      this.clouds = st.dome; // Game.ts keeps `clouds` on the camera: the dome and its cumulus ring
+      // the day / night clock (L7, D3) turns every knob above from here on
+      if (fog instanceof THREE.Fog) this.dayNight = new DayNight({
+        sunDir: this.sunDir, lights: this.csm.lights, lightDirection: this.csm.lightDirection, hemi: this.hemi, fog,
+        fogSunDir: fogUniforms.fogSunDir.value, fogSunColor: fogUniforms.fogSunColor.value, toon: toonUniforms,
+        setSkyPalette: (pal, dir) => { st.setPalette(pal); st.u.uSunDir.value.copy(dir); },
+        disc: this.sunDisc, planetSun: this.giantUniforms.uSunDir.value, planetHaze: this.giantUniforms.uHaze.value,
+        refreshEnvironment: () => { this.refreshEnvironment(); },
+      }, qn('sunI', S.sunIntensity) / 2.7);
+    } else this.buildClouds();
+    return this;
+  }
+
+  /** Pine Hollow's rig (and any `style: 'pbr'` shard): the HDRI is the background and the IBL; returns the fog colour. */
+  private async setupHDRI(qs: URLSearchParams, qn: (k: string, d: number) => number): Promise<THREE.Color> {
+    const { sky: S } = getActiveChunk();
     const hdriName = qs.get('hdri') ?? S.hdri;
     // baked procedural textures (clouds, fur…) and the baked sun / horizon (scripts/bake-sky.mjs) ride along with the HDR
     // the HDR itself: the gain-mapped JPEG + PNG pair (~0.3 MB, BakedSky.ts) when the build has it, else the 4–5 MB .hdr
@@ -82,33 +139,57 @@ export class Sky {
     this.scene.backgroundBlurriness = 0.0;
 
     // Fog colour = average of the sky just above the horizon in the view direction
-    const horizon = baked ? new THREE.Color(...baked.horizon) : this.sampleHorizon(hdr);
-    this.scene.fog = new THREE.Fog(horizon, 1, 1e6); // distances unused: Atmosphere.ts overrides the maths
-    fogUniforms.fogSunDir.value.copy(this.sunDir);
-    fogUniforms.fogSunColor.value.set(...S.fogSunColor);
-    fogUniforms.fogHeight.value = A.fogHeight;
-    fogUniforms.fogHeightFalloff.value = A.fogHeightFalloff;
-    fogUniforms.fogHeightDensity.value = A.fogHeightDensity;
-    fogUniforms.fogDistDensity.value = A.fogDistDensity;
+    return baked ? new THREE.Color(...baked.horizon) : this.sampleHorizon(hdr);
+  }
 
-    this.csm = new CSM({
-      camera: this.camera, parent: this.scene, cascades: TIER_CONFIG.cascades, mode: 'practical',
-      maxFar: TIER_CONFIG.shadowFar, shadowMapSize: TIER_CONFIG.shadowMapSize, lightDirection: this.sunDir.clone().negate(),
-      lightIntensity: qn('sunI', S.sunIntensity), shadowBias: -0.00012, lightMargin: TIER_CONFIG.shadowMargin, lightNear: 1, lightFar: 600,
-    });
-    this.csm.fade = true;
-    if (!TIER_CONFIG.softShadows) this.renderer.shadowMap.type = THREE.PCFShadowMap; // 16-tap PCFSoft → 9-tap PCF on the phone
-    patchCSMShaderChunk();
-    patchCloudShadows(); // painterly shards: the drifting cloud shadows in the sun loop (a no-op elsewhere)
-    for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = 0.05; l.shadow.radius = 2; }
+  /**
+   * The low-poly shard (D2): no HDRI at all — the stylized gradient dome + faceted cumulus (StylizedSky.ts) is the
+   * background, a PMREM of the dome is the (specular-only, stylize.ts) environment, and the sun comes from the
+   * day / night clock's start time. Returns the fog colour (the dome's horizon).
+   */
+  stylized: StylizedSky | null = null;
+  /** the low-poly shard's learned colour LUT (lut.ts, X1) — Game.buildComposer ends the grade with it; null elsewhere */
+  lut: LookupTexture | null = null;
+  /** the low-poly shard's day / night clock (DayNight.ts) — null on a PBR shard */
+  dayNight: DayNight | null = null;
+  private pmrem: THREE.PMREMGenerator | null = null;
+  private envRT: THREE.WebGLRenderTarget | null = null;
+  private async setupStylized(): Promise<THREE.Color> {
+    const { sky: S } = getActiveChunk();
+    const [, lut] = await Promise.all([preloadBakedTextures(), loadStylizedLUT()]);
+    this.lut = lut;
+    this.sunDir.copy(STYLIZED_SUN);
+    const st = new StylizedSky(this.sunDir).build();
+    this.stylized = st;
+    this.scene.add(st.dome);
+    this.scene.background = null;
+    this.refreshEnvironment();
+    this.scene.environmentIntensity = S.envIntensity;
+    toonUniforms.uFogZenith.value.copy(st.u.uZenith.value); // the colour-ramp fog (L3) fades into the dome's own gradient
+    return st.u.uHorizon.value.clone();
+  }
 
-    this.hemi = new THREE.HemisphereLight(S.hemiSky, S.hemiGround, S.hemiIntensity);
-    this.scene.add(this.hemi);
+  /**
+   * After an in-place WebGL restore (src/core/GpuRecovery.ts, E54): the PMREM environment was a render target, so it came
+   * back empty. Render it again — the stylized dome through refreshEnvironment, the HDR shard from its background texture.
+   */
+  rebuildEnvironment(): void {
+    if (this.stylized) { this.pmrem = null; this.envRT = null; this.refreshEnvironment(); return; } // a fresh generator: the old one's targets belong to the lost context
+    const hdr = this.scene.background;
+    if (!(hdr instanceof THREE.Texture)) return;
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    this.scene.environment = pmrem.fromEquirectangular(hdr).texture;
+    pmrem.dispose();
+  }
 
-    this.buildSunDisc();
-    this.buildPlanet();
-    this.buildClouds();
-    return this;
+  /** re-render the dome into the PMREM environment (DayNight calls it when the sky has moved on; ~1 ms of GPU) */
+  refreshEnvironment(): void {
+    if (!this.stylized) return;
+    this.pmrem ??= new THREE.PMREMGenerator(this.renderer);
+    const rt = this.pmrem.fromScene(this.stylized.envScene, 0, 1, 3000, { size: 64 });
+    this.envRT?.dispose();
+    this.envRT = rt;
+    this.scene.environment = rt.texture;
   }
 
   /**
@@ -163,6 +244,7 @@ export class Sky {
 
   update(dt = 0): void {
     this.csm.update(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
+    if (this.stylized) { this.dayNight?.update(dt); this.stylized.update(dt); toonUniforms.uCloudTime.value += dt; }
     if (this.painterly) {
       // the sky's clouds and their shadows on the ground drift downwind (the shadows at ~1.6× the wind, as clouds aloft do)
       const s = (wind.speed * 1.6 + 2) * dt;
@@ -172,7 +254,7 @@ export class Sky {
     }
   }
 
-  // ── runtime setters (the day/night clock + weather, src/world/DayNight.ts; nothing calls them on a fixed-time shard) ──
+  // ── runtime setters (the day/night clock + weather, src/world/DayClock.ts; nothing calls them on a fixed-time shard) ──
 
   /**
    * Move the key light (the sun, or the moon at night) and recolour it: the CSM direction + colour × intensity, the
@@ -369,6 +451,7 @@ export class Sky {
     this.giantUniforms.uHaze.value.copy(haze);
     this.giantUniforms.uRadius.value = R;
     if (getActiveChunk().sky.painted) { this.giantUniforms.uHazeAmt.value = 0.22; this.giantUniforms.uGain.value = 1.5; this.giantUniforms.uFar.value = 1; }
+    this.giantUniforms.uCrisp.value = this.stylized ? 1 : 0;
 
     const body = new THREE.Mesh(new THREE.SphereGeometry(R, 48, 32), new THREE.ShaderMaterial({
       uniforms: { ...this.giantUniforms, tBands: { value: bands } },
@@ -382,7 +465,7 @@ export class Sky {
           if (uFar > 0.5) gl_Position.z = gl_Position.w * 0.9999; // behind every range and cloud (the painterly sky)
         }`,
       fragmentShader: /* glsl */`
-        uniform sampler2D tBands; uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uTime; uniform vec3 uLight; uniform float uOpacity; uniform float uHazeAmt; uniform float uGain;
+        uniform sampler2D tBands; uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uTime; uniform vec3 uLight; uniform float uOpacity; uniform float uHazeAmt; uniform float uGain; uniform float uCrisp;
         varying vec3 vN; varying vec3 vW;
         void main() {
           vec3 N = normalize(vN);
@@ -393,14 +476,14 @@ export class Sky {
           float lat = dot(N, uAxis);
           float lon = atan(dot(N, B), dot(N, T)) / 6.2831853 + uTime * 0.0025;
           vec3 col = texture2D(tBands, vec2(lon, lat * 0.5 + 0.5)).rgb;
-          float mu = max(dot(N, V), 0.0);
+          float mu = clamp(dot(N, V), 0.0, 1.0);                // ≤ 1: pow(1 − mu) below must never see a negative (NaN → bloom black square, E91)
           float day = smoothstep(-0.35, 0.3, dot(N, uSunDir));   // a wide soft terminator: the disc reads bright, with a shaded crescent
           float limb = 0.45 + 0.55 * mu;                       // limb darkening
           vec3 lit = col * (0.24 + 0.95 * day) * limb + col * vec3(0.05, 0.08, 0.14) * (1.0 - day); // a little sky bounce on the night side
           // sky haze: the disc is pale and airy, more so at the limb (it sits in the atmosphere, not in front of it)
-          float h = (0.1 + 0.45 * pow(1.0 - mu, 2.4)) * uHazeAmt;
+          float h = (0.1 + 0.45 * pow(1.0 - mu, 2.4)) * uHazeAmt * (1.0 - 0.7 * uCrisp);   // uCrisp (the stylized sky): a crisp, opaque disc
           vec3 c = mix(lit * uGain, uHaze, h);
-          gl_FragColor = vec4(c * uLight, (0.92 - 0.25 * pow(1.0 - mu, 3.0)) * uOpacity);
+          gl_FragColor = vec4(c * uLight, mix(0.92 - 0.25 * pow(1.0 - mu, 3.0), 1.0, uCrisp) * uOpacity);
         }`,
     }));
     body.renderOrder = -12;
@@ -418,7 +501,7 @@ export class Sky {
           if (uFar > 0.5) gl_Position.z = gl_Position.w * 0.9999;
         }`,
       fragmentShader: /* glsl */`
-        uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uRadius; uniform vec3 uLight; uniform float uOpacity; uniform float uHazeAmt; uniform float uGain;
+        uniform vec3 uSunDir; uniform vec3 uHaze; uniform vec3 uAxis; uniform float uRadius; uniform vec3 uLight; uniform float uOpacity; uniform float uHazeAmt; uniform float uGain; uniform float uCrisp;
         varying vec3 vW; varying vec2 vL; varying vec3 vC;
         // does the ray o + d t (t > 0, t < tmax) pass through the body?
         bool hitsBody(vec3 o, vec3 d, float tmax) {
@@ -445,8 +528,8 @@ export class Sky {
           float sameSide = sign(dot(uAxis, V)) == sign(dot(uAxis, uSunDir)) ? 1.0 : 0.6;
           float lit = (0.5 + 0.5 * abs(dot(uAxis, uSunDir))) * sameSide * shadow;
           vec3 col = vec3(0.98, 0.95, 0.88) * (0.45 + 0.9 * lit) * bright * uGain;
-          col = mix(col, uHaze, 0.2 * uHazeAmt);
-          gl_FragColor = vec4(col * uLight, a * 0.8 * uOpacity);
+          col = mix(col, uHaze, 0.2 * uHazeAmt * (1.0 - 0.6 * uCrisp));
+          gl_FragColor = vec4(col * uLight, a * mix(0.8, 0.95, uCrisp) * uOpacity);
         }`,
     }));
     ring.rotation.set((90 - P.tilt) * d2r, 0, (P.roll ?? 20) * d2r, 'ZXY');
@@ -460,8 +543,8 @@ export class Sky {
     this.planet.traverse((o) => { o.frustumCulled = false; });
     this.scene.add(this.planet);
   }
-  /** uHazeAmt / uGain / uFar: Driftwood's giant is 1 / 1 / 0; the painterly sky draws it brighter, clearer and at the far plane (behind the ranges) */
-  private giantUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uHaze: { value: new THREE.Color() }, uAxis: { value: new THREE.Vector3(0, 1, 0) }, uRadius: { value: 1 }, uLight: { value: new THREE.Color(1, 1, 1) }, uOpacity: { value: 1 }, uHazeAmt: { value: 1 }, uGain: { value: 1 }, uFar: { value: 0 } };
+  /** uHazeAmt / uGain / uFar: Driftwood's giant is 1 / 1 / 0; the painterly sky draws it brighter, clearer and at the far plane (behind the ranges); uCrisp: the stylized (low-poly) sky's crisp, opaque disc */
+  private giantUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uHaze: { value: new THREE.Color() }, uAxis: { value: new THREE.Vector3(0, 1, 0) }, uRadius: { value: 1 }, uLight: { value: new THREE.Color(1, 1, 1) }, uOpacity: { value: 1 }, uHazeAmt: { value: 1 }, uGain: { value: 1 }, uFar: { value: 0 }, uCrisp: { value: 0 } };
 }
 
 /**

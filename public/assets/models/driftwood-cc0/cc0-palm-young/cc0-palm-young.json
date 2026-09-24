@@ -1,0 +1,16 @@
+{
+ "name": "cc0-palm-young",
+ "source": "~/models/cc0/poly-pizza/palm/Quaternius-Palm-Tree_A6cKJYFsIb.glb",
+ "licence": "CC0 1.0 (see scripts/img2mesh/CC0.md)",
+ "tris": 3134,
+ "size_m": [
+  5.32,
+  5.12,
+  5.0
+ ],
+ "palette": [
+  "leafLight",
+  "trunk"
+ ],
+ "vertex_colour": "COLOR_0 rgb = Driftwood palette albedo, a = 1"
+}

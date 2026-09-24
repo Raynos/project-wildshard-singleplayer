@@ -7,6 +7,11 @@ import type { PalmSpec } from '../world/Palms';
 import type { AnimalManager } from './AnimalManager';
 import type { Animal } from './Animal';
 import { WRECK } from '../chunks/driftwood-isle';
+import { worldTime } from '../core/time';
+import { waveHeight } from '../world/waves';
+import { getActiveChunk } from '../chunks/registry';
+import { activeBodies, type Body, type BodySpec } from '../physics/bodies';
+import { groups } from '../physics/groups';
 
 /**
  * Enemies — Driftwood Isle's three enemy species placed into the island's spaces, plus the pieces their AIs need
@@ -25,8 +30,10 @@ import { WRECK } from '../chunks/driftwood-isle';
  *
  * Damage to the player from every enemy attack (crab snap 10, coconut 8, monkey bite 6, cutlass 18) arrives through
  * `animals.onCharge(animal, damage)` — the same hook a boar charge uses, so main.ts needs no new wiring for it.
- * Coconuts: a 16-slot InstancedMesh of faceted brown spheres on ballistic arcs (one draw call); a hit is the sphere
- * passing within 0.45 m of the player's feet→head segment; a landed one lies on the sand 4 s. Splash: a pooled Points
+ * Coconuts (PHYSICS P7): a 16-slot InstancedMesh of faceted brown spheres (one draw call), each a dynamic ball in the
+ * physics world (src/physics/bodies.ts) — thrown on a ballistic arc, it bounces, rolls down the beach and floats on the
+ * swell. In flight it is DEBRIS (the world only) and a hit is the ball passing within 0.45 m of the player's feet→head
+ * segment; once it lands it is an ITEM the player nudges. It goes after resting 4 s (or 16 s of bobbing). Splash: a pooled Points
  * burst (cyan-white droplets, gravity). The sailor's light: one PointLight at its skull while it is up, off at death.
  */
 
@@ -42,7 +49,24 @@ export interface EnemiesOpts {
   troops?: number;
 }
 
-const COCONUTS = 16, COCONUT_R = 0.13, G = 9.8, REST_T = 4;
+const COCONUTS = 16, COCONUT_R = 0.13, G = 9.81, REST_T = 4, MAX_AGE = 16;
+/** a knock this hard (m/s of velocity change) in flight is the landing */
+const LAND_IMPACT = 1.5;
+/** below this speed (m/s) a landed coconut counts as resting */
+const REST_SPEED = 0.15;
+const DEBRIS_GROUPS = groups('DEBRIS');
+/** the sea surface a coconut floats on: the still level + the swell, where the ground is under water */
+const seaSurface = (x: number, z: number): number | undefined => {
+  const lvl = waterLevel();
+  if (heightAt(x, z) >= lvl) return undefined;
+  return getActiveChunk().ocean ? lvl + waveHeight(x, z) : lvl;
+};
+/** a coconut's body (PHYSICS P7): a light ball that bounces a little, rolls (its spin damped so it stops on the flat) and
+ *  floats (lighter than water); DEBRIS in flight; removed, not frozen, when the body cap is full */
+export const COCONUT_BODY = {
+  shape: { ball: COCONUT_R }, material: 'wood', group: 'DEBRIS', density: 650, friction: 0.7, restitution: 0.35,
+  angularDamping: 3, ccd: true, expendable: true, float: { surface: seaSurface, buoyancy: 1.6, drag: 1.5 },
+} as const satisfies Omit<BodySpec, 'owner'>;
 const DROPS = 240;
 
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _e = new THREE.Euler();
@@ -53,11 +77,10 @@ export class Enemies {
   placed = { crabs: 0, monkeys: 0, sailors: 0, troops: 0, crabGroups: 0 };
   private rng = new Rng(SEED ^ 0xe11e);
   private coconuts!: THREE.InstancedMesh;
-  private cPos = new Float32Array(COCONUTS * 3);
-  private cVel = new Float32Array(COCONUTS * 3);
-  private cState = new Int8Array(COCONUTS);     // 0 free, 1 flying, 2 resting
-  private cRest = new Float32Array(COCONUTS);
-  private cSpin = new Float32Array(COCONUTS);
+  private cBody: (Body | null)[] = [];
+  private cState = new Int8Array(COCONUTS);     // 0 free, 1 flying, 2 landed
+  private cRest = new Float32Array(COCONUTS);   // seconds at rest (landed)
+  private cAge = new Float32Array(COCONUTS);
   private cThrower: (Animal | null)[] = [];
   private cNext = 0;
   private drops!: THREE.Points;
@@ -92,7 +115,7 @@ export class Enemies {
       opts.sky.setupMaterial(mat);
       this.coconuts = new THREE.InstancedMesh(g, mat, COCONUTS);
       this.coconuts.castShadow = true; this.coconuts.frustumCulled = false;
-      for (let i = 0; i < COCONUTS; i++) { this.coconuts.setMatrixAt(i, _m.makeScale(0, 0, 0)); this.cThrower.push(null); }
+      for (let i = 0; i < COCONUTS; i++) { this.coconuts.setMatrixAt(i, _m.makeScale(0, 0, 0)); this.cThrower.push(null); this.cBody.push(null); }
       this.coconuts.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       this.group.add(this.coconuts);
     }
@@ -189,12 +212,35 @@ export class Enemies {
 
   /** lob a coconut from `from` to land on `to` in 0.8–1.5 s (the flight time grows with the range) */
   throwCoconut(from: THREE.Vector3, to: THREE.Vector3, thrower: Animal | null): void {
+    const bodies = activeBodies();
+    if (bodies === null) return;
     const k = this.cNext; this.cNext = (this.cNext + 1) % COCONUTS;
+    this.freeCoconut(k);
     const dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z;
     const T = THREE.MathUtils.clamp(Math.hypot(dx, dz) / 9, 0.8, 1.5);
-    this.cPos[k * 3] = from.x; this.cPos[k * 3 + 1] = from.y; this.cPos[k * 3 + 2] = from.z;
-    this.cVel[k * 3] = dx / T; this.cVel[k * 3 + 1] = dy / T + 0.5 * G * T; this.cVel[k * 3 + 2] = dz / T;
-    this.cState[k] = 1; this.cSpin[k] = this.rng.range(0, 6.28); this.cThrower[k] = thrower;
+    const spin = this.rng.range(0, 6.28);
+    _q.setFromEuler(_e.set(spin, spin * 0.7, 0));
+    const spec: BodySpec = {
+      ...COCONUT_BODY, owner: this,
+      onRemoved: (b) => { if (this.cBody[k] === b) { this.cBody[k] = null; this.cState[k] = 0; this.coconuts.setMatrixAt(k, _m.makeScale(0, 0, 0)); this.coconuts.instanceMatrix.needsUpdate = true; } },
+    };
+    const b = bodies.spawn(spec, from, { x: dx / T, y: dy / T + 0.5 * G * T, z: dz / T }, _q);
+    b.rb.setAngvel({ x: this.rng.range(-7, 7), y: this.rng.range(-3, 3), z: this.rng.range(-7, 7) }, true);
+    this.cBody[k] = b; this.cState[k] = 1; this.cRest[k] = 0; this.cAge[k] = 0; this.cThrower[k] = thrower;
+  }
+
+  /** take slot `k`'s coconut out of the world */
+  private freeCoconut(k: number): void {
+    const b = this.cBody[k];
+    this.cBody[k] = null; this.cState[k] = 0;
+    if (b) activeBodies()?.remove(b);
+    this.coconuts.setMatrixAt(k, _m.makeScale(0, 0, 0));
+  }
+
+  /** a flying coconut came down: from now on the player nudges it and plates feel it */
+  private land(k: number, b: Body): void {
+    this.cState[k] = 2; this.cRest[k] = 0;
+    b.setGroup('ITEM');
   }
 
   /** a burst of water droplets at `at` (strength 1 = the sailor surfacing) */
@@ -213,65 +259,56 @@ export class Enemies {
 
   update(dt: number, t: number, playerPos: THREE.Vector3): void {
     this.playerPos.copy(playerPos);
-    // ── coconuts ──
+    // ── coconuts: their bodies fly, bounce, roll and float in the physics world; this reads them ──
+    const bodies = activeBodies();
     let dirty = false;
-    const P = this.cPos, V = this.cVel;
     for (let k = 0; k < COCONUTS; k++) {
-      const st = this.cState[k];
-      if (!st) continue;
+      const st = this.cState[k], b = this.cBody[k];
+      if (!st || b === null || b === undefined || bodies === null) continue;
       dirty = true;
-      const i = k * 3;
+      b.pose(bodies.alpha, _v, _q);
+      const age = (this.cAge[k] ?? 0) + dt; this.cAge[k] = age;
       if (st === 1) {
-        V[i + 1] = (V[i + 1] ?? 0) - G * dt;
-        P[i] = (P[i] ?? 0) + (V[i] ?? 0) * dt; P[i + 1] = (P[i + 1] ?? 0) + (V[i + 1] ?? 0) * dt; P[i + 2] = (P[i + 2] ?? 0) + (V[i + 2] ?? 0) * dt;
-        this.cSpin[k] = (this.cSpin[k] ?? 0) + 7 * dt;
-        const x = P[i] ?? 0, y = P[i + 1] ?? 0, z = P[i + 2] ?? 0;
         // the player: feet → head segment
-        const px = playerPos.x, pz = playerPos.z, py0 = playerPos.y, py1 = playerPos.y + 1.75;
-        const cy = THREE.MathUtils.clamp(y, py0, py1);
-        const d2 = (x - px) ** 2 + (cy - y) ** 2 + (z - pz) ** 2;
-        if (d2 < 0.45 * 0.45) {
+        const cy = THREE.MathUtils.clamp(_v.y, playerPos.y, playerPos.y + 1.75);
+        if ((_v.x - playerPos.x) ** 2 + (cy - _v.y) ** 2 + (_v.z - playerPos.z) ** 2 < 0.45 * 0.45) {
           const th = this.cThrower[k];
           if (th !== null && th !== undefined) this.animals.onCharge?.(th, 8);
-          this.animals.onSound?.('coconut_hit', _v.set(x, y, z));
-          this.cState[k] = 2; this.cRest[k] = 1.2; V[i] = (V[i] ?? 0) * -0.2; V[i + 2] = (V[i + 2] ?? 0) * -0.2; V[i + 1] = 1.5;   // bounces off you
+          this.animals.onSound?.('coconut_hit', _v);
+          const vel = b.rb.linvel();
+          b.launch({ x: vel.x * -0.2, y: 1.5, z: vel.z * -0.2 });   // bounces off you (still DEBRIS: it is inside your capsule)
+          this.cState[k] = 2; this.cRest[k] = 0;
           continue;
         }
-        const ground = Math.max(heightAt(x, z), waterLevel());
-        if (y <= ground + COCONUT_R) {
-          P[i + 1] = ground + COCONUT_R;
-          this.cState[k] = 2; this.cRest[k] = REST_T;
-          this.animals.onSound?.('coconut_land', _v.set(x, P[i + 1] ?? 0, z));
-          if (ground <= waterLevel() + 0.01) this.splash(_v, 0.3);
+        if (b.takeImpact() > LAND_IMPACT || b.wet > 0 || age > 3) {
+          if (age <= 3) this.animals.onSound?.('coconut_land', _v);
+          if (b.wet > 0) this.splash(_v, 0.3);
+          this.land(k, b);
         }
       } else {
-        this.cRest[k] = (this.cRest[k] ?? 0) - dt;
-        if ((V[i + 1] ?? 0) > 0 || (P[i + 1] ?? 0) > heightAt(P[i] ?? 0, P[i + 2] ?? 0) + COCONUT_R + 0.01) {   // the bounce off the player
-          V[i + 1] = (V[i + 1] ?? 0) - G * dt; P[i] = (P[i] ?? 0) + (V[i] ?? 0) * dt; P[i + 1] = (P[i + 1] ?? 0) + (V[i + 1] ?? 0) * dt; P[i + 2] = (P[i + 2] ?? 0) + (V[i + 2] ?? 0) * dt;
-          const g = heightAt(P[i] ?? 0, P[i + 2] ?? 0) + COCONUT_R;
-          if ((P[i + 1] ?? 0) < g) { P[i + 1] = g; V[i] = V[i + 1] = V[i + 2] = 0; this.cRest[k] = REST_T; }
-        }
-        if ((this.cRest[k] ?? 0) <= 0) { this.cState[k] = 0; this.coconuts.setMatrixAt(k, _m.makeScale(0, 0, 0)); continue; }
+        if (b.collider.collisionGroups() === DEBRIS_GROUPS && Math.hypot(_v.x - playerPos.x, _v.z - playerPos.z) > 0.8) b.setGroup('ITEM'); // clear of you after a bounce
+        const rest = b.rb.isSleeping() || b.speed < REST_SPEED;
+        this.cRest[k] = rest ? (this.cRest[k] ?? 0) + dt : 0;
+        if ((this.cRest[k] ?? 0) > REST_T || age > MAX_AGE) { this.freeCoconut(k); continue; }
       }
-      const spin = this.cSpin[k] ?? 0;
-      _q.setFromEuler(_e.set(spin, spin * 0.7, 0));
-      _m.compose(_v.set(P[i] ?? 0, P[i + 1] ?? 0, P[i + 2] ?? 0), _q, _s.set(1, 1, 1));
+      _m.compose(_v, _q, _s.set(1, 1, 1));
       this.coconuts.setMatrixAt(k, _m);
     }
     if (dirty) this.coconuts.instanceMatrix.needsUpdate = true;
     // ── droplets ──
     if (this.dActive) {
+      const rdt = worldTime.realDt || dt; // droplets keep falling through a hit-stop
       let alive = 0;
       const life = this.dLife, pos = this.dPos, vel = this.dVel;
       for (let k = 0; k < DROPS; k++) {
         const l0 = life[k] ?? 0;
         if (l0 <= 0) continue;
-        life[k] = l0 - dt;
+        life[k] = l0 - rdt;
         if ((life[k] ?? 0) <= 0) { pos[k * 3 + 1] = -1000; continue; }
         alive++;
         const j = k * 3;
-        vel[j + 1] = (vel[j + 1] ?? 0) - G * dt;
-        pos[j] = (pos[j] ?? 0) + (vel[j] ?? 0) * dt; pos[j + 1] = (pos[j + 1] ?? 0) + (vel[j + 1] ?? 0) * dt; pos[j + 2] = (pos[j + 2] ?? 0) + (vel[j + 2] ?? 0) * dt;
+        vel[j + 1] = (vel[j + 1] ?? 0) - G * rdt;
+        pos[j] = (pos[j] ?? 0) + (vel[j] ?? 0) * rdt; pos[j + 1] = (pos[j + 1] ?? 0) + (vel[j + 1] ?? 0) * rdt; pos[j + 2] = (pos[j + 2] ?? 0) + (vel[j + 2] ?? 0) * rdt;
       }
       this.dActive = alive;
       this.dAttr.needsUpdate = true;
@@ -282,7 +319,7 @@ export class Enemies {
       a.headWorld(_w);
       s.light.position.copy(_w).y += 0.1;
       if (!a.alive && !s.dead) { s.dead = true; s.fade = 1; this.splash(a.position, 1.4); }
-      if (s.dead) { s.fade = Math.max(0, s.fade - dt * 1.6); s.light.intensity = 4.5 * s.fade; if (s.fade <= 0) s.light.visible = false; continue; }
+      if (s.dead) { s.fade = Math.max(0, s.fade - dt * 1.6); s.light.intensity = 4.5 * s.fade; continue; } // stays in the scene at 0: hiding it changes the light count → every lit program recompiles (B7)
       const up = THREE.MathUtils.clamp(a.mem['rise'] ?? 0, 0, 1);
       const flick = 0.85 + 0.15 * Math.sin(t * 11 + Math.sin(t * 3.7) * 2);
       s.light.intensity = 4.5 * up * flick * (a.position.distanceToSquared(playerPos) < 60 * 60 ? 1 : 0);

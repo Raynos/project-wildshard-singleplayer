@@ -17,15 +17,16 @@
  *   3. animal dots — yellow = passive (deer), red = can turn on you (boar, bear: `aggressive`, else the
  *      species registry's flag); a red dot that is charging / stalking / alert (or, without a public state,
  *      wounded) pulses;
- *   4. the player arrow, a rim vignette. The cyan rim, 45° ticks, "N" and the heading readout are CSS.
+ *   4. the player arrow, a rim vignette. The cyan rim, 45° ticks and "N" are CSS. (The heading readout under the circle is
+ *      gone, E51: the arrow already says where you face.)
  *
  * Nothing is allocated per frame: every canvas, gradient and sprite is built at construction or on resize.
  *
  * NALATI (`chunk.style === 'painterly'`, plan row B15): the ground is painted in the shard's own colours instead — the green
  * valley, the gold-olive Sky Grassland, grey rock on the escarpment, snow over the snow line, the Kunes' braided channels
  * (glacial blue) and gravel bars, the plateau brook, the spruce gullies stippled from the chunk's own spruce mask — and the
- * map-01 names (NOMAD CAMP, KUNES RIVER, SKY GRASSLAND, …: `mapPois()`, read from the chunk def / layout, never
- * hard-coded) sit on the map. A wolf lying hidden in long grass (`mem.hidden`, Pack.ts) is not on it (the stealth rule).
+ * map-01 places (NOMAD CAMP, KUNES RIVER, …: `mapPois()`, read from the chunk def / layout, never hard-coded) are the
+ * full map's pins (main.ts `fullMap.setPois`: named once explored, "?" before) — no names on the minimap itself. A wolf lying hidden in long grass (`mem.hidden`, Pack.ts) is not on it (the stealth rule).
  */
 import { CHUNK_HALF, CHUNK_SIZE, SEED } from '../core/config';
 import { heightAt, trailDistance, TRAILS, CABIN_SITES, POND, hasPond } from '../world/Heightfield';
@@ -73,14 +74,7 @@ const labelled = (list: unknown, color: string): MapPoi[] => {
   if (Array.isArray(list)) for (const e of list) if (isObj(e) && typeof e['label'] === 'string' && typeof e['x'] === 'number' && typeof e['z'] === 'number') out.push({ x: e['x'], z: e['z'], label: e['label'], color: typeof e['color'] === 'string' ? e['color'] : color });
   return out;
 };
-const POI_COLOR = '#f0e6c8', ZONE_COLOR = '#e8f2ff';
-
-/** Nalati's zone names (NALATI GRASSLANDS / SKY GRASSLAND / SNOW LOTUS VALLEY): the def's `NALATI_MAP.zones` */
-export function mapZones(): MapPoi[] {
-  if (getActiveChunk().style !== 'painterly') return [];
-  const m = NDEF.get('NALATI_MAP');
-  return isObj(m) ? labelled(m['zones'], ZONE_COLOR) : [];
-}
+const POI_COLOR = '#f0e6c8';
 
 /** the active shard's named places: Nalati's (the def's `NALATI_MAP.pois`, else whichever named consts it exports), else the
  *  cabins + the pond */
@@ -115,13 +109,13 @@ export function mapPois(): MapPoi[] {
 }
 
 const VIEW_RADIUS = 110;          // metres from the player to the rim
-const LAYER_PPM = 2;              // terrain layer px per metre (1000 × 1000 for the 500 m chunk)
+export const LAYER_PPM = 2;       // terrain layer px per metre (1000 × 1000 for the 500 m chunk)
 const HEIGHT_STEP = 2;            // metres between height samples for the ground shading
 const COVER_PPM = 0.5;            // fog coverage px per metre (1 px per 2 m)
 const REVEAL_RADIUS = 45;         // metres a visited position reveals
 const STAMP_EVERY = 4;            // metres moved between coverage stamps
 const FOG_BRIGHTNESS = 0.3;       // unexplored ground brightness
-const DESKTOP_SIZE = 180;         // css px (phone size comes from the stylesheet: 26vw)
+const DESKTOP_SIZE = 144;         // css px, the fallback before layout (the stylesheet sets it: 144 px desktop, 27.2vw phone — E51, 80 % of 180 / 34vw)
 
 // palette — the game's muted ground tones (see the mockup): olive grass, grey rock, khaki dirt, slate water
 const GRASS_LO: RGB = [104, 118, 58], GRASS_HI: RGB = [150, 158, 84];   // olive meadow, lighter with altitude
@@ -132,12 +126,12 @@ const TRAIL_EDGE = 'rgba(80, 64, 44, 0.85)', TRAIL = '#a08a66';
 const CROWN_DARK = '#2b4229', CROWN_MID = '#3c5a34', CROWN_LIGHT = '#66864a', CROWN_SHADOW = 'rgba(18, 34, 20, 0.5)';
 const ROOF = '#74523a', ROOF_RIDGE = '#9a7a58', ROOF_SHADOW = 'rgba(0, 0, 0, 0.45)';
 const VOID = '#0b1016';
+const OPEN_SEA = 'rgb(22, 74, 128)';                                        // an ocean shard past the painted map: the deep-sea colour (SEA_DEEP)
 const DOT_PASSIVE = '#ffe066', DOT_AGGRESSIVE = '#ff5a4a', DOT_OUTLINE = 'rgba(6, 10, 18, 0.9)';
 const ARROW = '#ffffff';
 
 type RGB = [number, number, number];
 const mix = (a: RGB, b: RGB, t: number, out: RGB) => { out[0] = a[0] + (b[0] - a[0]) * t; out[1] = a[1] + (b[1] - a[1]) * t; out[2] = a[2] + (b[2] - a[2]) * t; return out; };
-const CARDINAL4 = ['N', 'E', 'S', 'W'];
 
 function canvas(w: number, h: number): HTMLCanvasElement { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
 function ctx2d(c: HTMLCanvasElement): CanvasRenderingContext2D { const ctx = c.getContext('2d'); if (!ctx) throw new Error('Minimap: no 2d context'); return ctx; }
@@ -167,13 +161,9 @@ export class Minimap {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private nLabel: HTMLSpanElement;
-  private headingEl: HTMLSpanElement;
 
   private layer = canvas(CHUNK_SIZE * LAYER_PPM, CHUNK_SIZE * LAYER_PPM);
   private layerDirty = true;
-  /** the named places drawn on the minimap (Nalati only: the cabins / pond read without) */
-  private pois: MapPoi[] = [];
-  private zones: MapPoi[] = [];
   /** last paint time of the terrain layer, ms */
   paintMs = 0;
 
@@ -188,7 +178,6 @@ export class Minimap {
 
   private size = 0;      // device px, square
   private dpr = 1;
-  private lastHeading = -1;
   private visible = true;
   private ro: ResizeObserver | null = null;
 
@@ -200,10 +189,7 @@ export class Minimap {
     this.nLabel = document.createElement('span');
     this.nLabel.className = 'ws-minimap-n';
     this.nLabel.textContent = 'N';
-    this.headingEl = document.createElement('span');
-    this.headingEl.className = 'ws-minimap-heading';
-    this.headingEl.textContent = '000° N';
-    this.root.append(this.canvas, this.nLabel, this.headingEl);
+    this.root.append(this.canvas, this.nLabel);
     (parent ?? document.body).append(this.root);
     this.ctx = ctx2d(this.canvas);
 
@@ -227,6 +213,13 @@ export class Minimap {
     this.root.classList.toggle('hidden', !v);
   }
 
+  /** has the player been near (x, z)? — the fog-of-war coverage (a place on the full map is named once explored, else "?") */
+  explored(x: number, z: number): boolean {
+    const px = Math.floor((CHUNK_HALF - x) * COVER_PPM), pz = Math.floor((CHUNK_HALF - z) * COVER_PPM);
+    if (px < 0 || pz < 0 || px >= this.cover.width || pz >= this.cover.height) return false;
+    return (this.coverCtx.getImageData(px, pz, 1, 1).data[3] ?? 0) > 128;
+  }
+
   /** Forget everything explored (a new chunk, a respawn to a fresh shard). */
   clearCoverage(): void {
     this.coverCtx.clearRect(0, 0, this.cover.width, this.cover.height);
@@ -242,14 +235,8 @@ export class Minimap {
     if (this.size === 0) this.fit();
     if (this.size === 0) return;
 
-    // heading readout — the compass band's convention (HUD.ts): +Z is north, turning left decreases the heading
+    // heading, for the player arrow — the compass band's convention (HUD.ts): +Z is north, turning left decreases it
     let deg = 180 - (yaw * 180) / Math.PI; deg = ((deg % 360) + 360) % 360;
-    const degR = Math.round(deg) % 360;
-    if (degR !== this.lastHeading) {
-      this.lastHeading = degR;
-      const card = CARDINAL4[Math.round(deg / 90) % 4];
-      this.headingEl.textContent = `${String(degR).padStart(3, '0')}° ${card}`;
-    }
 
     // fog of war: stamp the visited position every STAMP_EVERY metres
     if (Number.isNaN(this.lastStampX) || Math.hypot(pos.x - this.lastStampX, pos.z - this.lastStampZ) >= STAMP_EVERY) {
@@ -262,7 +249,7 @@ export class Minimap {
     const ctx = this.ctx;
     ctx.save();
     ctx.beginPath(); ctx.arc(c, c, c, 0, Math.PI * 2); ctx.clip();
-    ctx.fillStyle = VOID; ctx.fillRect(0, 0, D, D);
+    ctx.fillStyle = getActiveChunk().ocean ? OPEN_SEA : VOID; ctx.fillRect(0, 0, D, D); // the island's sea runs on past the chunk edge (the pier spawn looks off it)
 
     // 1. terrain, the player centred, north up (layer u = (HALF − x) · ppm so east (−X) is screen right)
     const lr = VIEW_RADIUS * LAYER_PPM;
@@ -301,29 +288,6 @@ export class Minimap {
         ctx.beginPath(); ctx.arc(sx, sy, r + 2.2 * this.dpr, 0, Math.PI * 2);
         ctx.strokeStyle = a.rarity === 'legendary' ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.7)'; ctx.stroke();
         ctx.strokeStyle = DOT_OUTLINE;
-      }
-    }
-
-    // 3b. the place names (Nalati): small caps over the terrain, only those in view
-    if (this.zones.length > 0) {
-      ctx.font = `700 ${Math.round(9 * this.dpr)}px Rajdhani, sans-serif`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineWidth = 3 * this.dpr;
-      for (const p of this.zones) {
-        const dx = p.x - pos.x, dz = p.z - pos.z;
-        if (dx * dx + dz * dz > (VIEW_RADIUS - 20) * (VIEW_RADIUS - 20)) continue;
-        ctx.strokeStyle = 'rgba(8, 12, 18, 0.7)'; ctx.strokeText(p.label, c - dx * k, c - dz * k);
-        ctx.fillStyle = 'rgba(232, 242, 255, 0.8)'; ctx.fillText(p.label, c - dx * k, c - dz * k);
-      }
-    }
-    if (this.pois.length > 0) {
-      ctx.font = `600 ${Math.round(7.5 * this.dpr)}px JetBrains Mono, Menlo, monospace`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineWidth = 2.5 * this.dpr;
-      for (const p of this.pois) {
-        const dx = p.x - pos.x, dz = p.z - pos.z;
-        if (dx * dx + dz * dz > (VIEW_RADIUS - 12) * (VIEW_RADIUS - 12)) continue;
-        const sx = c - dx * k, sy = c - dz * k;
-        ctx.strokeStyle = 'rgba(8, 12, 18, 0.8)'; ctx.strokeText(p.label, sx, sy);
-        ctx.fillStyle = p.color; ctx.fillText(p.label, sx, sy);
       }
     }
 
@@ -386,8 +350,6 @@ export class Minimap {
     const SEA_DEEP: RGB = [22, 74, 128], SEA_SHALLOW: RGB = [78, 196, 214], SAND: RGB = [226, 206, 150];
     const painted = chunk.style === 'painterly';   // Nalati: its own palette (nalatiGround), its names, no pines / cabins
     const spruce = painted ? chunk.forest.mask : undefined;
-    this.pois = painted ? mapPois() : [];
-    this.zones = painted ? mapZones() : [];
     const density = new Noise2D(SEED + 5);   // Forest.ts thins its tree candidates with this field: groves are dark floor, clearings meadow
     for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
       const wx = CHUNK_HALF - i * HEIGHT_STEP, wz = CHUNK_HALF - j * HEIGHT_STEP;

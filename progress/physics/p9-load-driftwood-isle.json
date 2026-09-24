@@ -1,0 +1,6310 @@
+{
+  "build": "86291d2-muejh9ld",
+  "url": "http://localhost:4175",
+  "at": "2026-09-23T20:24:57.621Z",
+  "host": "darwin arm64 node v24.18.1",
+  "cpu": 4,
+  "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+  "runsPerCondition": 1,
+  "viewport": [
+    390,
+    844
+  ],
+  "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+  "rows": {
+    "wifi/cold": {
+      "cond": "wifi",
+      "cache": "cold",
+      "runs": 1,
+      "status": "ok",
+      "swController": true,
+      "titleMs": 145,
+      "playMs": 7588,
+      "domContentLoadedMs": 79,
+      "requests": 140,
+      "swFetches": 152,
+      "fromSW": 128,
+      "netBytes": 16950029,
+      "cacheBytes": 596538,
+      "longTasks": 14,
+      "longTaskMs": 1112,
+      "longTaskMaxMs": 128,
+      "heapMB": 104.2,
+      "textures": 66,
+      "geometries": 69,
+      "programs": 92,
+      "firstFrameMs": null,
+      "bytes": {
+        "js": {
+          "net": 827692,
+          "cache": 596538,
+          "n": 7
+        },
+        "css": {
+          "net": 18114,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 2059454,
+          "cache": 0,
+          "n": 9
+        },
+        "png": {
+          "net": 410379,
+          "cache": 0,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 1268281,
+          "cache": 0,
+          "n": 3
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 135418,
+          "cache": 0,
+          "n": 5
+        },
+        "json": {
+          "net": 5981,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 5675,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 12219035,
+          "cache": 0,
+          "n": 112
+        }
+      },
+      "steps": [
+        [
+          79,
+          "—",
+          null
+        ],
+        [
+          398,
+          "renderer",
+          null
+        ],
+        [
+          601,
+          "sky",
+          null
+        ],
+        [
+          3442,
+          "terrain",
+          null
+        ],
+        [
+          3609,
+          "cards",
+          null
+        ],
+        [
+          3636,
+          "forest",
+          null
+        ],
+        [
+          3643,
+          "physics",
+          null
+        ],
+        [
+          3695,
+          "edge",
+          null
+        ],
+        [
+          4777,
+          "grass",
+          null
+        ],
+        [
+          4783,
+          "cabins",
+          null
+        ],
+        [
+          4784,
+          "props",
+          null
+        ],
+        [
+          4814,
+          "animals",
+          null
+        ],
+        [
+          4899,
+          "weapon",
+          null
+        ],
+        [
+          4953,
+          "menu",
+          null
+        ],
+        [
+          5099,
+          "shaders",
+          null
+        ],
+        [
+          5555,
+          "firstFrame",
+          null
+        ],
+        [
+          5656,
+          "audio",
+          null
+        ]
+      ],
+      "errors": []
+    },
+    "wifi/warm": {
+      "cond": "wifi",
+      "cache": "warm",
+      "runs": 1,
+      "status": "ok",
+      "swController": true,
+      "titleMs": 98,
+      "playMs": 2718,
+      "domContentLoadedMs": 45,
+      "requests": 141,
+      "swFetches": 7,
+      "fromSW": 140,
+      "netBytes": 660,
+      "cacheBytes": 17007830,
+      "longTasks": 14,
+      "longTaskMs": 1091,
+      "longTaskMaxMs": 132,
+      "heapMB": 154.7,
+      "textures": 66,
+      "geometries": 69,
+      "programs": 92,
+      "firstFrameMs": null,
+      "bytes": {
+        "js": {
+          "net": 0,
+          "cache": 2537561,
+          "n": 8
+        },
+        "css": {
+          "net": 0,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 0,
+          "cache": 2056787,
+          "n": 9
+        },
+        "png": {
+          "net": 0,
+          "cache": 8896,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 178,
+          "cache": 958633,
+          "n": 3
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 0,
+          "cache": 67976,
+          "n": 5
+        },
+        "json": {
+          "net": 330,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 152,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 0,
+          "cache": 11377977,
+          "n": 112
+        }
+      },
+      "steps": [
+        [
+          45,
+          "—",
+          null
+        ],
+        [
+          154,
+          "renderer",
+          null
+        ],
+        [
+          233,
+          "sky",
+          null
+        ],
+        [
+          428,
+          "terrain",
+          null
+        ],
+        [
+          559,
+          "cards",
+          null
+        ],
+        [
+          585,
+          "forest",
+          null
+        ],
+        [
+          594,
+          "physics",
+          null
+        ],
+        [
+          647,
+          "edge",
+          null
+        ],
+        [
+          1749,
+          "grass",
+          null
+        ],
+        [
+          1763,
+          "cabins",
+          null
+        ],
+        [
+          1766,
+          "props",
+          null
+        ],
+        [
+          1801,
+          "animals",
+          null
+        ],
+        [
+          1925,
+          "weapon",
+          null
+        ],
+        [
+          1973,
+          "menu",
+          null
+        ],
+        [
+          2106,
+          "shaders",
+          null
+        ],
+        [
+          2351,
+          "firstFrame",
+          null
+        ],
+        [
+          2437,
+          "audio",
+          null
+        ]
+      ],
+      "errors": []
+    },
+    "4g/cold": {
+      "cond": "4g",
+      "cache": "cold",
+      "runs": 1,
+      "status": "ok",
+      "swController": true,
+      "titleMs": 485,
+      "playMs": 18795,
+      "domContentLoadedMs": 423,
+      "requests": 140,
+      "swFetches": 152,
+      "fromSW": 128,
+      "netBytes": 16950260,
+      "cacheBytes": 1396,
+      "longTasks": 13,
+      "longTaskMs": 1062,
+      "longTaskMaxMs": 134,
+      "heapMB": 106.9,
+      "textures": 66,
+      "geometries": 69,
+      "programs": 92,
+      "firstFrameMs": null,
+      "bytes": {
+        "js": {
+          "net": 827923,
+          "cache": 1396,
+          "n": 7
+        },
+        "css": {
+          "net": 18114,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 2059454,
+          "cache": 0,
+          "n": 9
+        },
+        "png": {
+          "net": 410379,
+          "cache": 0,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 1268281,
+          "cache": 0,
+          "n": 3
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 135418,
+          "cache": 0,
+          "n": 5
+        },
+        "json": {
+          "net": 5981,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 5675,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 12219035,
+          "cache": 0,
+          "n": 112
+        }
+      },
+      "steps": [
+        [
+          423,
+          "—",
+          null
+        ],
+        [
+          1559,
+          "renderer",
+          null
+        ],
+        [
+          2909,
+          "sky",
+          null
+        ],
+        [
+          4180,
+          "terrain",
+          null
+        ],
+        [
+          4738,
+          "cards",
+          null
+        ],
+        [
+          4762,
+          "forest",
+          null
+        ],
+        [
+          4764,
+          "physics",
+          null
+        ],
+        [
+          4817,
+          "edge",
+          null
+        ],
+        [
+          5829,
+          "grass",
+          null
+        ],
+        [
+          5829,
+          "cabins",
+          null
+        ],
+        [
+          5830,
+          "props",
+          null
+        ],
+        [
+          5858,
+          "animals",
+          null
+        ],
+        [
+          5931,
+          "weapon",
+          null
+        ],
+        [
+          5970,
+          "menu",
+          null
+        ],
+        [
+          7180,
+          "shaders",
+          null
+        ],
+        [
+          7444,
+          "firstFrame",
+          null
+        ],
+        [
+          7533,
+          "audio",
+          null
+        ]
+      ],
+      "errors": []
+    },
+    "4g/warm": {
+      "cond": "4g",
+      "cache": "warm",
+      "runs": 1,
+      "status": "ok",
+      "swController": true,
+      "titleMs": 90,
+      "playMs": 2667,
+      "domContentLoadedMs": 44,
+      "requests": 141,
+      "swFetches": 7,
+      "fromSW": 140,
+      "netBytes": 660,
+      "cacheBytes": 17007830,
+      "longTasks": 13,
+      "longTaskMs": 1018,
+      "longTaskMaxMs": 124,
+      "heapMB": 101.8,
+      "textures": 66,
+      "geometries": 69,
+      "programs": 92,
+      "firstFrameMs": null,
+      "bytes": {
+        "js": {
+          "net": 0,
+          "cache": 2537561,
+          "n": 8
+        },
+        "css": {
+          "net": 0,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 0,
+          "cache": 2056787,
+          "n": 9
+        },
+        "png": {
+          "net": 0,
+          "cache": 8896,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 178,
+          "cache": 958633,
+          "n": 3
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 0,
+          "cache": 67976,
+          "n": 5
+        },
+        "json": {
+          "net": 330,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 152,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 0,
+          "cache": 11377977,
+          "n": 112
+        }
+      },
+      "steps": [
+        [
+          44,
+          "—",
+          null
+        ],
+        [
+          153,
+          "renderer",
+          null
+        ],
+        [
+          230,
+          "sky",
+          null
+        ],
+        [
+          376,
+          "terrain",
+          null
+        ],
+        [
+          540,
+          "cards",
+          null
+        ],
+        [
+          567,
+          "forest",
+          null
+        ],
+        [
+          574,
+          "physics",
+          null
+        ],
+        [
+          631,
+          "edge",
+          null
+        ],
+        [
+          1707,
+          "grass",
+          null
+        ],
+        [
+          1722,
+          "cabins",
+          null
+        ],
+        [
+          1731,
+          "props",
+          null
+        ],
+        [
+          1774,
+          "animals",
+          null
+        ],
+        [
+          1874,
+          "weapon",
+          null
+        ],
+        [
+          1920,
+          "menu",
+          null
+        ],
+        [
+          2055,
+          "shaders",
+          null
+        ],
+        [
+          2307,
+          "firstFrame",
+          null
+        ],
+        [
+          2378,
+          "audio",
+          null
+        ]
+      ],
+      "errors": []
+    }
+  },
+  "raw": [
+    {
+      "cond": "wifi",
+      "cache": "cold",
+      "run": 1,
+      "status": "ok",
+      "label": "wifi/cold",
+      "errors": [],
+      "requests": 140,
+      "swFetches": 152,
+      "fromSW": 128,
+      "netBytes": 16950029,
+      "cacheBytes": 596538,
+      "bytes": {
+        "js": {
+          "net": 827692,
+          "cache": 596538,
+          "n": 7
+        },
+        "css": {
+          "net": 18114,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 2059454,
+          "cache": 0,
+          "n": 9
+        },
+        "png": {
+          "net": 410379,
+          "cache": 0,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 1268281,
+          "cache": 0,
+          "n": 3
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 135418,
+          "cache": 0,
+          "n": 5
+        },
+        "json": {
+          "net": 5981,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 5675,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 12219035,
+          "cache": 0,
+          "n": 112
+        }
+      },
+      "reqs": [
+        [
+          "page",
+          "/?nolock=1&bench=1&tier=phone",
+          2814
+        ],
+        [
+          "page",
+          "/assets/index-DJB8PNOD.js",
+          2979
+        ],
+        [
+          "page",
+          "/fonts/rajdhani-700-latin.woff2",
+          9648
+        ],
+        [
+          "page",
+          "/assets/style-iS36p0AJ.css",
+          18114
+        ],
+        [
+          "sw",
+          "/sw.js",
+          302
+        ],
+        [
+          "page",
+          "/fonts/jetbrains-mono-latin.woff2",
+          31686
+        ],
+        [
+          "sw",
+          "/manifest.webmanifest",
+          708
+        ],
+        [
+          "sw",
+          "/index.html",
+          2861
+        ],
+        [
+          "page",
+          "/fonts/rajdhani-400-latin.woff2",
+          9312
+        ],
+        [
+          "sw",
+          "/asset-index.json",
+          5651
+        ],
+        [
+          "page",
+          "/version.json?t=1790195058947",
+          330
+        ],
+        [
+          "sw",
+          "/assets/BufferGeometryUtils-BAXKzBmC.js",
+          1741
+        ],
+        [
+          "page",
+          "/favicon.png",
+          9187
+        ],
+        [
+          "sw",
+          "/assets/BlenderIsland-Q1D4RtDu.js",
+          11210
+        ],
+        [
+          "sw",
+          "/assets/Explore-CEKkFIsS.js",
+          17963
+        ],
+        [
+          "page",
+          "/assets/three.module-CHVpAPmZ.js",
+          185923
+        ],
+        [
+          "sw",
+          "/assets/Feedback-Bsa8V83A.js",
+          4203
+        ],
+        [
+          "sw",
+          "/assets/index-DJB8PNOD.js",
+          179
+        ],
+        [
+          "page",
+          "/assets/BufferGeometryUtils-BAXKzBmC.js",
+          231
+        ],
+        [
+          "page",
+          "/assets/tier-LJ-IhHaD.js",
+          6897
+        ],
+        [
+          "sw",
+          "/assets/three.module-CHVpAPmZ.js",
+          179
+        ],
+        [
+          "sw",
+          "/assets/tier-LJ-IhHaD.js",
+          179
+        ],
+        [
+          "sw",
+          "/assets/main-DobeU0ra.js",
+          595937
+        ],
+        [
+          "page",
+          "/assets/main-DobeU0ra.js",
+          231
+        ],
+        [
+          "sw",
+          "/favicon.png",
+          178
+        ],
+        [
+          "sw",
+          "/apple-touch-icon.png",
+          52370
+        ],
+        [
+          "sw",
+          "/icon-192.png",
+          58147
+        ],
+        [
+          "sw",
+          "/fonts/jetbrains-mono-cyrillic-ext.woff2",
+          1956
+        ],
+        [
+          "sw",
+          "/fonts/jetbrains-mono-cyrillic.woff2",
+          9184
+        ],
+        [
+          "sw",
+          "/fonts/jetbrains-mono-greek.woff2",
+          7092
+        ],
+        [
+          "sw",
+          "/fonts/jetbrains-mono-latin-ext.woff2",
+          11890
+        ],
+        [
+          "sw",
+          "/fonts/jetbrains-mono-latin.woff2",
+          178
+        ],
+        [
+          "sw",
+          "/fonts/jetbrains-mono-vietnamese.woff2",
+          6164
+        ],
+        [
+          "sw",
+          "/icon-512.png",
+          290497
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-400-latin-ext.woff2",
+          7152
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-400-latin.woff2",
+          178
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-500-latin-ext.woff2",
+          7116
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          9256
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-600-latin-ext.woff2",
+          7500
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          9692
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-700-latin-ext.woff2",
+          7236
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-700-latin.woff2",
+          178
+        ],
+        [
+          "page",
+          "blob:/c917ea2c-f13c-4408-8fb3-f118273c9339",
+          -1
+        ],
+        [
+          "sw",
+          "/assets/lut/driftwood-isle.bin",
+          144059
+        ],
+        [
+          "page<sw",
+          "/assets/lut/driftwood-isle.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/baked/driftwood-isle/navmesh.bin",
+          165278
+        ],
+        [
+          "sw",
+          "/assets/packs/driftwood-isle.phone-0d70b99c.bin",
+          958944
+        ],
+        [
+          "page<sw",
+          "/assets/baked/driftwood-isle/navmesh.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/packs/driftwood-isle.phone-0d70b99c.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/physics/rapier.wasm",
+          537312
+        ],
+        [
+          "sw",
+          "/assets/driftwood-isle-BVzLt_iD.jpg",
+          55580
+        ],
+        [
+          "page<sw",
+          "/assets/physics/rapier.wasm",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/driftwood-isle-BVzLt_iD.jpg",
+          0
+        ],
+        [
+          "page",
+          "blob:/88809b90-67ae-43cf-9ab4-f08b71303ffe",
+          0
+        ],
+        [
+          "sw",
+          "/assets/nalati-grasslands-DIF9Zrq8.jpg",
+          71058
+        ],
+        [
+          "page<sw",
+          "/assets/nalati-grasslands-DIF9Zrq8.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/driftwood-isle-landscape-D6yliCVe.jpg",
+          226599
+        ],
+        [
+          "sw",
+          "/assets/driftwood-isle-portrait-DaXkti5c.jpg",
+          229816
+        ],
+        [
+          "sw",
+          "/assets/models-DGMqtLX6.webp",
+          22123
+        ],
+        [
+          "page<sw",
+          "/assets/driftwood-isle-landscape-D6yliCVe.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/driftwood-isle-portrait-DaXkti5c.jpg",
+          0
+        ],
+        [
+          "page",
+          "blob:/32b57ef6-2977-4ca4-a27a-749034e442cc",
+          0
+        ],
+        [
+          "sw",
+          "/assets/world-aFxyb8Rq.webp",
+          21093
+        ],
+        [
+          "sw",
+          "/assets/pine-hollow-DQXPgZYW.jpg",
+          70539
+        ],
+        [
+          "page<sw",
+          "/assets/models-DGMqtLX6.webp",
+          0
+        ],
+        [
+          "sw",
+          "/assets/nalati-grasslands-landscape-Cq-Auf7E.jpg",
+          335410
+        ],
+        [
+          "sw",
+          "/assets/nalati-grasslands-portrait-C-u1q0iU.jpg",
+          367077
+        ],
+        [
+          "sw",
+          "/assets/pine-hollow-landscape-COziSeMH.jpg",
+          321729
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-DQXPgZYW.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/world-aFxyb8Rq.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/nalati-grasslands-landscape-Cq-Auf7E.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/nalati-grasslands-portrait-C-u1q0iU.jpg",
+          0
+        ],
+        [
+          "page",
+          "blob:/5f9e3ea2-e054-421d-ab68-83aec7b6bbc6",
+          0
+        ],
+        [
+          "page",
+          "blob:/1ebcac67-9317-413c-b637-a1ac9c913440",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-landscape-COziSeMH.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models-DGMqtLX6.webp",
+          0
+        ],
+        [
+          "sw",
+          "/assets/pine-hollow-portrait-C6gQ-sN2.jpg",
+          381646
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-portrait-C6gQ-sN2.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/piano/sting-death-99b071e0.m4a",
+          56042
+        ],
+        [
+          "page",
+          "blob:/c807fcb6-a050-4179-ba5a-3bd112a59452",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/world-aFxyb8Rq.webp",
+          0
+        ],
+        [
+          "page",
+          "blob:/daf37be7-4f33-4c16-a34d-73200d06e0dd",
+          0
+        ],
+        [
+          "page",
+          "blob:/aa1b1672-be1f-4ec6-8ab8-e873acfaa535",
+          0
+        ],
+        [
+          "page",
+          "blob:/e7fafaa4-4ddf-4f7c-96ca-c4d3b3283b14",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/sting-death-99b071e0.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+          43852
+        ],
+        [
+          "sw",
+          "/assets/music/piano/sting-pickup-6ed91318.m4a",
+          25442
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+          0
+        ],
+        [
+          "page",
+          "blob:/8b03bb06-71ac-4af0-ae00-340d83ab5923",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/sting-pickup-6ed91318.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/piano/pine-tension-cc014e5b.m4a",
+          508703
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/pine-tension-cc014e5b.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/piano/island-tension-7faf0468.m4a",
+          480605
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/island-tension-7faf0468.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/Feedback-Bsa8V83A.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/Explore-CEKkFIsS.js",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bed-island-1-4611714d.m4a",
+          199668
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bed-forest-2-0cd11be5.m4a",
+          340824
+        ],
+        [
+          "sw",
+          "/assets/music/piano/island-calm-05125ed8.m4a",
+          710973
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bed-island-1-4611714d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bed-forest-2-0cd11be5.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/island-calm-05125ed8.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/piano/pine-calm-923e0056.m4a",
+          753427
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/crossbowFire-1-40af4c48.m4a",
+          5439
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/pine-calm-923e0056.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/dryFire-2-88071d1d.m4a",
+          2267
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/dryFire-3-173415cb.m4a",
+          2467
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crossbowFire-1-40af4c48.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/boltImpact-wood-1-2cae58f6.m4a",
+          3835
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/boltImpact-wood-2-d803992d.m4a",
+          6506
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bed-underwater-3-cbe2810d.m4a",
+          269788
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/boltImpact-ground-2-c6623243.m4a",
+          8533
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dryFire-2-88071d1d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dryFire-3-173415cb.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/boltImpact-ground-1-e51592f5.m4a",
+          9872
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-wood-1-2cae58f6.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bed-underwater-3-cbe2810d.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/piano/title-3d1f713a.m4a",
+          762315
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/boltImpact-flesh-3-da30d4fb.m4a",
+          3507
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/swordSwing-1-6303fc5d.m4a",
+          2969
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-wood-2-d803992d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-ground-2-c6623243.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/title-3d1f713a.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/hum-shrine-2-d89ed03a.m4a",
+          119316
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/swordHeavy-2-1debcc8f.m4a",
+          6658
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/hum-pickup-3-7b7db58f.m4a",
+          126638
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/swordHeavy-3-1bed510f.m4a",
+          4924
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/swordHit-flesh-1-07225bb8.m4a",
+          9952
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/swordHit-flesh-2-efbf5fd7.m4a",
+          9039
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-ground-1-e51592f5.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-flesh-3-da30d4fb.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordSwing-1-6303fc5d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hum-shrine-2-d89ed03a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hum-pickup-3-7b7db58f.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHeavy-2-1debcc8f.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHeavy-3-1bed510f.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHit-flesh-1-07225bb8.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHit-flesh-2-efbf5fd7.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/swordHit-wood-2-800b6fe9.m4a",
+          3668
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/swordHit-wood-3-6381cc6b.m4a",
+          4893
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/dodge-3-453516f6.m4a",
+          7365
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/dodge-2-13887dd8.m4a",
+          9188
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/lunge-3-be45ba7a.m4a",
+          3625
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/reload-2-c48de6a0.m4a",
+          11675
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/reload-1-a220fb6e.m4a",
+          13659
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHit-wood-3-6381cc6b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHit-wood-2-800b6fe9.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dodge-2-13887dd8.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dodge-3-453516f6.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/rifleReload-2-1ad54372.m4a",
+          9844
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/rifleFire-3-8ed56841.m4a",
+          15072
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/rifleFire-2-a850ad83.m4a",
+          15354
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/lunge-3-be45ba7a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/reload-2-c48de6a0.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/reload-1-a220fb6e.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/rifleFire-3-8ed56841.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/rifleFire-2-a850ad83.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/weaponSwap-3-fbe81018.m4a",
+          5611
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/rifleReload-2-1ad54372.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/rifleReload-3-20027167.m4a",
+          11209
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/rifleReload-3-20027167.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/weaponSwap-3-fbe81018.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/footstep-planks-1-cec98032.m4a",
+          5073
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/footstep-planks-3-77f11491.m4a",
+          7238
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/footstep-litter-2-19b0df36.m4a",
+          7969
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/footstep-litter-1-b1476674.m4a",
+          8131
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/footstep-sand-2-4b40473a.m4a",
+          7986
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-planks-1-cec98032.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-planks-3-77f11491.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-litter-2-19b0df36.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-litter-1-b1476674.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/footstep-sand-1-09a40a2f.m4a",
+          8047
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-sand-2-4b40473a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-sand-1-09a40a2f.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/land-2-773487f2.m4a",
+          8139
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/land-2-773487f2.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/land-3-eebff605.m4a",
+          7574
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/land-3-eebff605.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/land-hard-3-5aed2a6b.m4a",
+          9670
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/land-hard-1-2ce640be.m4a",
+          9658
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/land-hard-3-5aed2a6b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/land-hard-1-2ce640be.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/splash-3-9509efbe.m4a",
+          17970
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/splash-3-9509efbe.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/splash-2-03ab63ae.m4a",
+          17605
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/splash-2-03ab63ae.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/wadeStep-1-83e1423c.m4a",
+          9592
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/wadeStep-1-83e1423c.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/wadeStep-2-402e850a.m4a",
+          9484
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/wadeStep-2-402e850a.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/swimStroke-2-9e35721b.m4a",
+          10877
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swimStroke-2-9e35721b.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/waterExit-1-d85f0e47.m4a",
+          13667
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/waterExit-1-d85f0e47.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/dive-1-4b978224.m4a",
+          13625
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/dive-3-e74abc72.m4a",
+          13785
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dive-1-4b978224.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dive-3-e74abc72.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/hitMarker-1-46ef1236.m4a",
+          5591
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/surface-2-e5ac4e8a.m4a",
+          13482
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/surface-3-85550528.m4a",
+          14006
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/kill-3-5f7ea225.m4a",
+          8822
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/kill-2-5e4acc1b.m4a",
+          8570
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/surface-3-85550528.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/surface-2-e5ac4e8a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hitMarker-1-46ef1236.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/kill-3-5f7ea225.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/gull-1-5fa9130b.m4a",
+          22058
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/kill-2-5e4acc1b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/gull-1-5fa9130b.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/deer_call-3-1d601bb4.m4a",
+          12571
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/boar_grunt-3-4e4a9bec.m4a",
+          15849
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/deer_call-3-1d601bb4.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/deer_call-1-7cd35867.m4a",
+          17874
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/hoofsteps-3-f1c11f8f.m4a",
+          17850
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boar_grunt-3-4e4a9bec.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/hoofsteps-1-9580d36a.m4a",
+          17855
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/boar_squeal-1-6415e380.m4a",
+          14194
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/deer_call-1-7cd35867.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hoofsteps-3-f1c11f8f.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hoofsteps-1-9580d36a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boar_squeal-1-6415e380.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/elk_bugle-2-7048925b.m4a",
+          23503
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/elk_bugle-2-7048925b.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/elk_bugle-1-375e7428.m4a",
+          18189
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/elk_bugle-1-375e7428.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bear_growl-3-97b2d496.m4a",
+          21208
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bear_growl-2-7996ef48.m4a",
+          21147
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bear_roar-1-cdda7f3d.m4a",
+          20977
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bear_roar-3-6e416479.m4a",
+          21308
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bear_hurt-1-43b45d1e.m4a",
+          17714
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bear_hurt-3-3aea6172.m4a",
+          13484
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/crab_click-2-aefbc41d.m4a",
+          12808
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/crab_snap-2-bff601ad.m4a",
+          2750
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/crab_snap-3-69ea11c0.m4a",
+          2648
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/crab_click-3-f47e95a3.m4a",
+          11213
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/monkey_chatter-3-1c7d7e2d.m4a",
+          22069
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/monkey_shriek-2-54acd647.m4a",
+          11204
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/sailor_slash-3-5a10eada.m4a",
+          6124
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/monkey_shriek-1-1a358b4e.m4a",
+          13945
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/sailor_slash-1-611ba654.m4a",
+          10723
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/sailor_groan-2-43e2a981.m4a",
+          17335
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_growl-3-97b2d496.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_growl-2-7996ef48.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_roar-1-cdda7f3d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_roar-3-6e416479.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_hurt-1-43b45d1e.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_hurt-3-3aea6172.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crab_click-2-aefbc41d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crab_click-3-f47e95a3.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crab_snap-2-bff601ad.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crab_snap-3-69ea11c0.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/monkey_chatter-3-1c7d7e2d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/monkey_shriek-2-54acd647.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/monkey_shriek-1-1a358b4e.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/sailor_groan-2-43e2a981.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/sailor_slash-3-5a10eada.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/sailor_slash-1-611ba654.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/coconut_hit-2-83ed831d.m4a",
+          2138
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/coconut_hit-3-9c8e8fd7.m4a",
+          4306
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/coconut_hit-2-83ed831d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/coconut_hit-3-9c8e8fd7.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/coconut_land-1-42389b0a.m4a",
+          11368
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/coconut_land-1-42389b0a.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/orchestral/sting-death-771d34f7.m4a",
+          55967
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/sting-death-771d34f7.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/orchestral/sting-chunk-a639b19e.m4a",
+          43721
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/sting-chunk-a639b19e.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/orchestral/sting-pickup-65f7ac5b.m4a",
+          25439
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/sting-pickup-65f7ac5b.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/orchestral/pine-tension-525d8c6d.m4a",
+          371061
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/pine-tension-525d8c6d.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/orchestral/island-tension-73116f36.m4a",
+          454429
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/island-tension-73116f36.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/orchestral/pine-calm-fbc4a99e.m4a",
+          550015
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/pine-calm-fbc4a99e.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/orchestral/title-b47c8a52.m4a",
+          560921
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/title-b47c8a52.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/orchestral/island-calm-27861d1b.m4a",
+          674426
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/island-calm-27861d1b.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/folk/sting-death-67f54fe8.m4a",
+          56017
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/sting-death-67f54fe8.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/folk/sting-chunk-31c10eaf.m4a",
+          43807
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/sting-chunk-31c10eaf.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/folk/sting-pickup-332f81db.m4a",
+          25489
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/sting-pickup-332f81db.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/folk/island-tension-bb05ab64.m4a",
+          375865
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/island-tension-bb05ab64.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/folk/pine-tension-180bc197.m4a",
+          605047
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/pine-tension-180bc197.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/folk/island-calm-d7d189f9.m4a",
+          555504
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/island-calm-d7d189f9.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/folk/pine-calm-10905c79.m4a",
+          891546
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/pine-calm-10905c79.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/folk/title-50001128.m4a",
+          808604
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/title-50001128.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/horizon/driftwood-isle-day.webp",
+          0
+        ],
+        [
+          "sw",
+          "/assets/horizon/driftwood-isle-day.webp",
+          147883
+        ],
+        [
+          "sw",
+          "/assets/horizon/driftwood-isle-night.webp",
+          166361
+        ],
+        [
+          "page<sw",
+          "/assets/horizon/driftwood-isle-night.webp",
+          0
+        ]
+      ],
+      "titleMs": 145,
+      "playMs": 7588,
+      "domContentLoadedMs": 79,
+      "loadEventMs": 122,
+      "longList": [
+        [
+          3355,
+          78
+        ],
+        [
+          3701,
+          80
+        ],
+        [
+          3825,
+          62
+        ],
+        [
+          3896,
+          56
+        ],
+        [
+          3964,
+          111
+        ],
+        [
+          4085,
+          128
+        ],
+        [
+          4259,
+          53
+        ],
+        [
+          4321,
+          63
+        ],
+        [
+          4442,
+          92
+        ],
+        [
+          4541,
+          121
+        ],
+        [
+          4671,
+          87
+        ],
+        [
+          4957,
+          63
+        ],
+        [
+          5039,
+          60
+        ],
+        [
+          5564,
+          58
+        ]
+      ],
+      "longTasks": 14,
+      "longTaskMs": 1112,
+      "longTaskMaxMs": 128,
+      "steps": [
+        [
+          79,
+          "—",
+          null
+        ],
+        [
+          398,
+          "renderer",
+          null
+        ],
+        [
+          601,
+          "sky",
+          null
+        ],
+        [
+          3442,
+          "terrain",
+          null
+        ],
+        [
+          3609,
+          "cards",
+          null
+        ],
+        [
+          3636,
+          "forest",
+          null
+        ],
+        [
+          3643,
+          "physics",
+          null
+        ],
+        [
+          3695,
+          "edge",
+          null
+        ],
+        [
+          4777,
+          "grass",
+          null
+        ],
+        [
+          4783,
+          "cabins",
+          null
+        ],
+        [
+          4784,
+          "props",
+          null
+        ],
+        [
+          4814,
+          "animals",
+          null
+        ],
+        [
+          4899,
+          "weapon",
+          null
+        ],
+        [
+          4953,
+          "menu",
+          null
+        ],
+        [
+          5099,
+          "shaders",
+          null
+        ],
+        [
+          5555,
+          "firstFrame",
+          null
+        ],
+        [
+          5656,
+          "audio",
+          null
+        ]
+      ],
+      "heapMB": 104.2,
+      "textures": 66,
+      "geometries": 69,
+      "programs": 92,
+      "firstFrameMs": null,
+      "swController": true,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "dpr": 1,
+      "viewport": [
+        390,
+        844
+      ]
+    },
+    {
+      "cond": "wifi",
+      "cache": "warm",
+      "run": 1,
+      "status": "ok",
+      "label": "wifi/warm",
+      "errors": [],
+      "requests": 141,
+      "swFetches": 7,
+      "fromSW": 140,
+      "netBytes": 660,
+      "cacheBytes": 17007830,
+      "bytes": {
+        "js": {
+          "net": 0,
+          "cache": 2537561,
+          "n": 8
+        },
+        "css": {
+          "net": 0,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 0,
+          "cache": 2056787,
+          "n": 9
+        },
+        "png": {
+          "net": 0,
+          "cache": 8896,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 178,
+          "cache": 958633,
+          "n": 3
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 0,
+          "cache": 67976,
+          "n": 5
+        },
+        "json": {
+          "net": 330,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 152,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 0,
+          "cache": 11377977,
+          "n": 112
+        }
+      },
+      "reqs": [
+        [
+          "sw",
+          "/assets/style-iS36p0AJ.css",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/jetbrains-mono-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-700-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/style-iS36p0AJ.css",
+          0
+        ],
+        [
+          "page<sw",
+          "/?nolock=1&bench=1&tier=phone",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/index-DJB8PNOD.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/index-DJB8PNOD.js",
+          0
+        ],
+        [
+          "sw",
+          "/?nolock=1&bench=1&tier=phone",
+          152
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-400-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/three.module-CHVpAPmZ.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/favicon.png",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/BufferGeometryUtils-BAXKzBmC.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tier-LJ-IhHaD.js",
+          0
+        ],
+        [
+          "page",
+          "/version.json?t=1790195068302",
+          330
+        ],
+        [
+          "page<sw",
+          "/assets/main-DobeU0ra.js",
+          0
+        ],
+        [
+          "sw",
+          "/assets/physics/rapier.wasm",
+          0
+        ],
+        [
+          "sw",
+          "/assets/baked/driftwood-isle/navmesh.bin",
+          178
+        ],
+        [
+          "page",
+          "blob:/250bc4fb-eebc-4d48-b7ad-fac52606689c",
+          -1
+        ],
+        [
+          "sw",
+          "/assets/lut/driftwood-isle.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/packs/driftwood-isle.phone-0d70b99c.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/baked/driftwood-isle/navmesh.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/driftwood-isle-landscape-D6yliCVe.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/driftwood-isle-portrait-DaXkti5c.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/driftwood-isle-BVzLt_iD.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/nalati-grasslands-landscape-Cq-Auf7E.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/nalati-grasslands-portrait-C-u1q0iU.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/nalati-grasslands-DIF9Zrq8.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-landscape-COziSeMH.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-portrait-C6gQ-sN2.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-DQXPgZYW.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models-DGMqtLX6.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/world-aFxyb8Rq.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/pine-calm-923e0056.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/pine-tension-cc014e5b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/island-calm-05125ed8.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/island-tension-7faf0468.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/title-3d1f713a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/lut/driftwood-isle.bin",
+          0
+        ],
+        [
+          "page",
+          "blob:/15ac650b-9c61-425e-95b0-9957651fd8e0",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models-DGMqtLX6.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/sting-death-99b071e0.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/world-aFxyb8Rq.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/physics/rapier.wasm",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/sting-pickup-6ed91318.m4a",
+          0
+        ],
+        [
+          "page",
+          "blob:/9ac41d38-ea55-4be2-9058-c66b40f32e57",
+          0
+        ],
+        [
+          "page",
+          "blob:/1aabeaa2-e33a-443a-bc21-781563700ee1",
+          0
+        ],
+        [
+          "page",
+          "blob:/2be1d190-93c4-4345-bb0e-ce88cf63fede",
+          0
+        ],
+        [
+          "page",
+          "blob:/d3f7b793-cbfa-4886-8263-7936fcf2415e",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bed-forest-2-0cd11be5.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bed-island-1-4611714d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bed-underwater-3-cbe2810d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hum-pickup-3-7b7db58f.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hum-shrine-2-d89ed03a.m4a",
+          0
+        ],
+        [
+          "page",
+          "blob:/3abc0b85-b44a-4fac-9e8b-67b5a45f286c",
+          0
+        ],
+        [
+          "page",
+          "blob:/6de33902-d0fa-472d-b196-693e3651fff9",
+          0
+        ],
+        [
+          "page",
+          "blob:/704bbe50-1f38-4bf6-8004-6435b77f0a22",
+          0
+        ],
+        [
+          "page",
+          "blob:/168c806e-1d73-498a-9685-e66f0d3f2d5c",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crossbowFire-1-40af4c48.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dryFire-2-88071d1d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dryFire-3-173415cb.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-wood-1-2cae58f6.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-wood-2-d803992d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-ground-2-c6623243.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-ground-1-e51592f5.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-flesh-3-da30d4fb.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordSwing-1-6303fc5d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHeavy-2-1debcc8f.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHeavy-3-1bed510f.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHit-flesh-1-07225bb8.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHit-flesh-2-efbf5fd7.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHit-wood-3-6381cc6b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHit-wood-2-800b6fe9.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dodge-2-13887dd8.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dodge-3-453516f6.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/lunge-3-be45ba7a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/reload-2-c48de6a0.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/reload-1-a220fb6e.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/rifleFire-3-8ed56841.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/rifleFire-2-a850ad83.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/rifleReload-2-1ad54372.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/rifleReload-3-20027167.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/weaponSwap-3-fbe81018.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-litter-2-19b0df36.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-litter-1-b1476674.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-planks-1-cec98032.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-planks-3-77f11491.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-sand-2-4b40473a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-sand-1-09a40a2f.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/land-2-773487f2.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/land-3-eebff605.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/land-hard-3-5aed2a6b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/land-hard-1-2ce640be.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/splash-3-9509efbe.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/splash-2-03ab63ae.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/wadeStep-1-83e1423c.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/wadeStep-2-402e850a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swimStroke-2-9e35721b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/waterExit-1-d85f0e47.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dive-1-4b978224.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dive-3-e74abc72.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/surface-3-85550528.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/surface-2-e5ac4e8a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hitMarker-1-46ef1236.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/kill-3-5f7ea225.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/kill-2-5e4acc1b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/gull-1-5fa9130b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/deer_call-3-1d601bb4.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/deer_call-1-7cd35867.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boar_grunt-3-4e4a9bec.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hoofsteps-3-f1c11f8f.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hoofsteps-1-9580d36a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boar_squeal-1-6415e380.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/elk_bugle-2-7048925b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/elk_bugle-1-375e7428.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_growl-3-97b2d496.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_growl-2-7996ef48.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_roar-3-6e416479.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_roar-1-cdda7f3d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_hurt-1-43b45d1e.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_hurt-3-3aea6172.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crab_click-2-aefbc41d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crab_click-3-f47e95a3.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crab_snap-2-bff601ad.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crab_snap-3-69ea11c0.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/monkey_chatter-3-1c7d7e2d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/monkey_shriek-2-54acd647.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/monkey_shriek-1-1a358b4e.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/sailor_groan-2-43e2a981.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/sailor_slash-3-5a10eada.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/sailor_slash-1-611ba654.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/coconut_hit-3-9c8e8fd7.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/coconut_hit-2-83ed831d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/coconut_land-1-42389b0a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/pine-calm-fbc4a99e.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/pine-tension-525d8c6d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/island-calm-27861d1b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/island-tension-73116f36.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/title-b47c8a52.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/sting-death-771d34f7.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/sting-chunk-a639b19e.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/sting-pickup-65f7ac5b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/pine-calm-10905c79.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/pine-tension-180bc197.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/island-calm-d7d189f9.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/island-tension-bb05ab64.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/title-50001128.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/sting-death-67f54fe8.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/sting-chunk-31c10eaf.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/sting-pickup-332f81db.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/Feedback-Bsa8V83A.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/Explore-CEKkFIsS.js",
+          0
+        ],
+        [
+          "sw",
+          "/assets/horizon/driftwood-isle-day.webp",
+          0
+        ],
+        [
+          "sw",
+          "/assets/horizon/driftwood-isle-night.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/horizon/driftwood-isle-day.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/horizon/driftwood-isle-night.webp",
+          0
+        ]
+      ],
+      "titleMs": 98,
+      "playMs": 2718,
+      "domContentLoadedMs": 45,
+      "loadEventMs": 49,
+      "longList": [
+        [
+          111,
+          80
+        ],
+        [
+          346,
+          70
+        ],
+        [
+          657,
+          71
+        ],
+        [
+          791,
+          62
+        ],
+        [
+          870,
+          57
+        ],
+        [
+          942,
+          106
+        ],
+        [
+          1057,
+          132
+        ],
+        [
+          1299,
+          62
+        ],
+        [
+          1421,
+          88
+        ],
+        [
+          1517,
+          115
+        ],
+        [
+          1640,
+          85
+        ],
+        [
+          1979,
+          60
+        ],
+        [
+          2054,
+          53
+        ],
+        [
+          2366,
+          50
+        ]
+      ],
+      "longTasks": 14,
+      "longTaskMs": 1091,
+      "longTaskMaxMs": 132,
+      "steps": [
+        [
+          45,
+          "—",
+          null
+        ],
+        [
+          154,
+          "renderer",
+          null
+        ],
+        [
+          233,
+          "sky",
+          null
+        ],
+        [
+          428,
+          "terrain",
+          null
+        ],
+        [
+          559,
+          "cards",
+          null
+        ],
+        [
+          585,
+          "forest",
+          null
+        ],
+        [
+          594,
+          "physics",
+          null
+        ],
+        [
+          647,
+          "edge",
+          null
+        ],
+        [
+          1749,
+          "grass",
+          null
+        ],
+        [
+          1763,
+          "cabins",
+          null
+        ],
+        [
+          1766,
+          "props",
+          null
+        ],
+        [
+          1801,
+          "animals",
+          null
+        ],
+        [
+          1925,
+          "weapon",
+          null
+        ],
+        [
+          1973,
+          "menu",
+          null
+        ],
+        [
+          2106,
+          "shaders",
+          null
+        ],
+        [
+          2351,
+          "firstFrame",
+          null
+        ],
+        [
+          2437,
+          "audio",
+          null
+        ]
+      ],
+      "heapMB": 154.7,
+      "textures": 66,
+      "geometries": 69,
+      "programs": 92,
+      "firstFrameMs": null,
+      "swController": true,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "dpr": 1,
+      "viewport": [
+        390,
+        844
+      ]
+    },
+    {
+      "cond": "4g",
+      "cache": "cold",
+      "run": 1,
+      "status": "ok",
+      "label": "4g/cold",
+      "errors": [],
+      "requests": 140,
+      "swFetches": 152,
+      "fromSW": 128,
+      "netBytes": 16950260,
+      "cacheBytes": 1396,
+      "bytes": {
+        "js": {
+          "net": 827923,
+          "cache": 1396,
+          "n": 7
+        },
+        "css": {
+          "net": 18114,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 2059454,
+          "cache": 0,
+          "n": 9
+        },
+        "png": {
+          "net": 410379,
+          "cache": 0,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 1268281,
+          "cache": 0,
+          "n": 3
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 135418,
+          "cache": 0,
+          "n": 5
+        },
+        "json": {
+          "net": 5981,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 5675,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 12219035,
+          "cache": 0,
+          "n": 112
+        }
+      },
+      "reqs": [
+        [
+          "page",
+          "/?nolock=1&bench=1&tier=phone",
+          2814
+        ],
+        [
+          "page",
+          "/assets/index-DJB8PNOD.js",
+          2979
+        ],
+        [
+          "page",
+          "/fonts/rajdhani-700-latin.woff2",
+          9648
+        ],
+        [
+          "page",
+          "/assets/style-iS36p0AJ.css",
+          18114
+        ],
+        [
+          "sw",
+          "/sw.js",
+          302
+        ],
+        [
+          "page",
+          "/fonts/jetbrains-mono-latin.woff2",
+          31686
+        ],
+        [
+          "sw",
+          "/manifest.webmanifest",
+          708
+        ],
+        [
+          "page",
+          "/version.json?t=1790195073154",
+          330
+        ],
+        [
+          "sw",
+          "/index.html",
+          2861
+        ],
+        [
+          "page",
+          "/fonts/rajdhani-400-latin.woff2",
+          9312
+        ],
+        [
+          "page",
+          "/assets/three.module-CHVpAPmZ.js",
+          185923
+        ],
+        [
+          "sw",
+          "/asset-index.json",
+          5651
+        ],
+        [
+          "page",
+          "/favicon.png",
+          9187
+        ],
+        [
+          "sw",
+          "/assets/BufferGeometryUtils-BAXKzBmC.js",
+          1741
+        ],
+        [
+          "page",
+          "/assets/tier-LJ-IhHaD.js",
+          6897
+        ],
+        [
+          "sw",
+          "/assets/BlenderIsland-Q1D4RtDu.js",
+          11210
+        ],
+        [
+          "sw",
+          "/assets/Explore-CEKkFIsS.js",
+          17963
+        ],
+        [
+          "page",
+          "/assets/BufferGeometryUtils-BAXKzBmC.js",
+          231
+        ],
+        [
+          "sw",
+          "/assets/Feedback-Bsa8V83A.js",
+          4203
+        ],
+        [
+          "sw",
+          "/assets/index-DJB8PNOD.js",
+          179
+        ],
+        [
+          "sw",
+          "/assets/three.module-CHVpAPmZ.js",
+          179
+        ],
+        [
+          "sw",
+          "/assets/tier-LJ-IhHaD.js",
+          179
+        ],
+        [
+          "sw",
+          "/assets/main-DobeU0ra.js",
+          179
+        ],
+        [
+          "page",
+          "/assets/main-DobeU0ra.js",
+          595989
+        ],
+        [
+          "sw",
+          "/favicon.png",
+          178
+        ],
+        [
+          "sw",
+          "/apple-touch-icon.png",
+          52370
+        ],
+        [
+          "sw",
+          "/icon-192.png",
+          58147
+        ],
+        [
+          "sw",
+          "/fonts/jetbrains-mono-cyrillic-ext.woff2",
+          1956
+        ],
+        [
+          "sw",
+          "/fonts/jetbrains-mono-cyrillic.woff2",
+          9184
+        ],
+        [
+          "sw",
+          "/fonts/jetbrains-mono-greek.woff2",
+          7092
+        ],
+        [
+          "sw",
+          "/icon-512.png",
+          290497
+        ],
+        [
+          "sw",
+          "/fonts/jetbrains-mono-latin-ext.woff2",
+          11890
+        ],
+        [
+          "sw",
+          "/fonts/jetbrains-mono-latin.woff2",
+          178
+        ],
+        [
+          "sw",
+          "/fonts/jetbrains-mono-vietnamese.woff2",
+          6164
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-400-latin-ext.woff2",
+          7152
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-400-latin.woff2",
+          178
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-500-latin-ext.woff2",
+          7116
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          9256
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-600-latin-ext.woff2",
+          7500
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          9692
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-700-latin-ext.woff2",
+          7236
+        ],
+        [
+          "sw",
+          "/fonts/rajdhani-700-latin.woff2",
+          178
+        ],
+        [
+          "page",
+          "blob:/a99d7d16-983e-450f-ae32-67a32563eed5",
+          -1
+        ],
+        [
+          "sw",
+          "/assets/lut/driftwood-isle.bin",
+          144059
+        ],
+        [
+          "page<sw",
+          "/assets/lut/driftwood-isle.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/baked/driftwood-isle/navmesh.bin",
+          165278
+        ],
+        [
+          "page<sw",
+          "/assets/baked/driftwood-isle/navmesh.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/physics/rapier.wasm",
+          537312
+        ],
+        [
+          "page<sw",
+          "/assets/physics/rapier.wasm",
+          0
+        ],
+        [
+          "sw",
+          "/assets/packs/driftwood-isle.phone-0d70b99c.bin",
+          958944
+        ],
+        [
+          "page<sw",
+          "/assets/packs/driftwood-isle.phone-0d70b99c.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/driftwood-isle-BVzLt_iD.jpg",
+          55580
+        ],
+        [
+          "page<sw",
+          "/assets/driftwood-isle-BVzLt_iD.jpg",
+          0
+        ],
+        [
+          "sw",
+          "/assets/nalati-grasslands-DIF9Zrq8.jpg",
+          71058
+        ],
+        [
+          "page<sw",
+          "/assets/nalati-grasslands-DIF9Zrq8.jpg",
+          0
+        ],
+        [
+          "page",
+          "blob:/e9f06390-bbb9-45c6-9530-5f2b9ff62f83",
+          0
+        ],
+        [
+          "page",
+          "blob:/addc512e-e574-4852-be67-8a93243d7aea",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          0
+        ],
+        [
+          "sw",
+          "/assets/driftwood-isle-landscape-D6yliCVe.jpg",
+          226599
+        ],
+        [
+          "page<sw",
+          "/assets/Feedback-Bsa8V83A.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/Explore-CEKkFIsS.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/driftwood-isle-landscape-D6yliCVe.jpg",
+          0
+        ],
+        [
+          "page",
+          "blob:/ac817e0c-3305-41aa-b5f1-62cece2f9320",
+          0
+        ],
+        [
+          "sw",
+          "/assets/driftwood-isle-portrait-DaXkti5c.jpg",
+          229816
+        ],
+        [
+          "page<sw",
+          "/assets/driftwood-isle-portrait-DaXkti5c.jpg",
+          0
+        ],
+        [
+          "page",
+          "blob:/52a8ad75-cb8c-4757-ad43-b15aaec5cc48",
+          0
+        ],
+        [
+          "sw",
+          "/assets/models-DGMqtLX6.webp",
+          22123
+        ],
+        [
+          "page<sw",
+          "/assets/models-DGMqtLX6.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models-DGMqtLX6.webp",
+          0
+        ],
+        [
+          "sw",
+          "/assets/nalati-grasslands-landscape-Cq-Auf7E.jpg",
+          335410
+        ],
+        [
+          "page<sw",
+          "/assets/nalati-grasslands-landscape-Cq-Auf7E.jpg",
+          0
+        ],
+        [
+          "page",
+          "blob:/2bbe51a9-89eb-4b6f-b868-052807f5fbf1",
+          0
+        ],
+        [
+          "sw",
+          "/assets/pine-hollow-DQXPgZYW.jpg",
+          70539
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-DQXPgZYW.jpg",
+          0
+        ],
+        [
+          "page",
+          "blob:/cf100585-edda-4843-967b-459be7d3e962",
+          0
+        ],
+        [
+          "sw",
+          "/assets/world-aFxyb8Rq.webp",
+          21093
+        ],
+        [
+          "page<sw",
+          "/assets/world-aFxyb8Rq.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/world-aFxyb8Rq.webp",
+          0
+        ],
+        [
+          "sw",
+          "/assets/nalati-grasslands-portrait-C-u1q0iU.jpg",
+          367077
+        ],
+        [
+          "page<sw",
+          "/assets/nalati-grasslands-portrait-C-u1q0iU.jpg",
+          0
+        ],
+        [
+          "page",
+          "blob:/b1183839-3a32-4e94-8214-0acc743d96a1",
+          0
+        ],
+        [
+          "sw",
+          "/assets/pine-hollow-landscape-COziSeMH.jpg",
+          321729
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-landscape-COziSeMH.jpg",
+          0
+        ],
+        [
+          "page",
+          "blob:/62f80f5d-bf85-408f-a6a3-6e87024bf94b",
+          0
+        ],
+        [
+          "sw",
+          "/assets/pine-hollow-portrait-C6gQ-sN2.jpg",
+          381646
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-portrait-C6gQ-sN2.jpg",
+          0
+        ],
+        [
+          "page",
+          "blob:/9eaa4003-7fd0-4139-b825-69e1c1887d4b",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/piano/sting-death-99b071e0.m4a",
+          56042
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/sting-death-99b071e0.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+          43852
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/piano/sting-pickup-6ed91318.m4a",
+          25442
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/sting-pickup-6ed91318.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/piano/island-tension-7faf0468.m4a",
+          480605
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/island-tension-7faf0468.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/piano/pine-tension-cc014e5b.m4a",
+          508703
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/pine-tension-cc014e5b.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bed-forest-2-0cd11be5.m4a",
+          340824
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bed-forest-2-0cd11be5.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/piano/island-calm-05125ed8.m4a",
+          710973
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/island-calm-05125ed8.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/piano/pine-calm-923e0056.m4a",
+          753427
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/pine-calm-923e0056.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bed-island-1-4611714d.m4a",
+          199668
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bed-island-1-4611714d.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/crossbowFire-1-40af4c48.m4a",
+          5439
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crossbowFire-1-40af4c48.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/dryFire-2-88071d1d.m4a",
+          2267
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dryFire-2-88071d1d.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/piano/title-3d1f713a.m4a",
+          762315
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/title-3d1f713a.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bed-underwater-3-cbe2810d.m4a",
+          269788
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bed-underwater-3-cbe2810d.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/hum-pickup-3-7b7db58f.m4a",
+          126638
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hum-pickup-3-7b7db58f.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/dryFire-3-173415cb.m4a",
+          2467
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dryFire-3-173415cb.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/hum-shrine-2-d89ed03a.m4a",
+          119316
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/boltImpact-wood-1-2cae58f6.m4a",
+          3835
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hum-shrine-2-d89ed03a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-wood-1-2cae58f6.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/boltImpact-wood-2-d803992d.m4a",
+          6506
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-wood-2-d803992d.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/boltImpact-ground-2-c6623243.m4a",
+          8533
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-ground-2-c6623243.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/boltImpact-flesh-3-da30d4fb.m4a",
+          3507
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-flesh-3-da30d4fb.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/boltImpact-ground-1-e51592f5.m4a",
+          9872
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-ground-1-e51592f5.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/swordSwing-1-6303fc5d.m4a",
+          2969
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordSwing-1-6303fc5d.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/swordHeavy-2-1debcc8f.m4a",
+          6658
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHeavy-2-1debcc8f.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/swordHeavy-3-1bed510f.m4a",
+          4924
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHeavy-3-1bed510f.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/swordHit-flesh-1-07225bb8.m4a",
+          9952
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHit-flesh-1-07225bb8.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/swordHit-wood-3-6381cc6b.m4a",
+          4893
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHit-wood-3-6381cc6b.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/swordHit-wood-2-800b6fe9.m4a",
+          3668
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHit-wood-2-800b6fe9.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/swordHit-flesh-2-efbf5fd7.m4a",
+          9039
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHit-flesh-2-efbf5fd7.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/dodge-2-13887dd8.m4a",
+          9188
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dodge-2-13887dd8.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/dodge-3-453516f6.m4a",
+          7365
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dodge-3-453516f6.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/lunge-3-be45ba7a.m4a",
+          3625
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/lunge-3-be45ba7a.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/reload-2-c48de6a0.m4a",
+          11675
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/reload-2-c48de6a0.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/reload-1-a220fb6e.m4a",
+          13659
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/reload-1-a220fb6e.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/rifleFire-3-8ed56841.m4a",
+          15072
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/rifleFire-3-8ed56841.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/rifleFire-2-a850ad83.m4a",
+          15354
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/rifleFire-2-a850ad83.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/rifleReload-2-1ad54372.m4a",
+          9844
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/rifleReload-2-1ad54372.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/rifleReload-3-20027167.m4a",
+          11209
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/rifleReload-3-20027167.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/weaponSwap-3-fbe81018.m4a",
+          5611
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/weaponSwap-3-fbe81018.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/footstep-litter-2-19b0df36.m4a",
+          7969
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-litter-2-19b0df36.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/footstep-litter-1-b1476674.m4a",
+          8131
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-litter-1-b1476674.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/footstep-planks-1-cec98032.m4a",
+          5073
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-planks-1-cec98032.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/footstep-planks-3-77f11491.m4a",
+          7238
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-planks-3-77f11491.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/footstep-sand-2-4b40473a.m4a",
+          7986
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-sand-2-4b40473a.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/footstep-sand-1-09a40a2f.m4a",
+          8047
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-sand-1-09a40a2f.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/land-2-773487f2.m4a",
+          8139
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/land-2-773487f2.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/land-3-eebff605.m4a",
+          7574
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/land-3-eebff605.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/land-hard-3-5aed2a6b.m4a",
+          9670
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/land-hard-3-5aed2a6b.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/land-hard-1-2ce640be.m4a",
+          9658
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/land-hard-1-2ce640be.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/splash-3-9509efbe.m4a",
+          17970
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/splash-3-9509efbe.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/wadeStep-1-83e1423c.m4a",
+          9592
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/wadeStep-1-83e1423c.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/splash-2-03ab63ae.m4a",
+          17605
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/splash-2-03ab63ae.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/wadeStep-2-402e850a.m4a",
+          9484
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/wadeStep-2-402e850a.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/swimStroke-2-9e35721b.m4a",
+          10877
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swimStroke-2-9e35721b.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/waterExit-1-d85f0e47.m4a",
+          13667
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/waterExit-1-d85f0e47.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/dive-1-4b978224.m4a",
+          13625
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dive-1-4b978224.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/dive-3-e74abc72.m4a",
+          13785
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dive-3-e74abc72.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/surface-3-85550528.m4a",
+          14006
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/surface-3-85550528.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/surface-2-e5ac4e8a.m4a",
+          13482
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/surface-2-e5ac4e8a.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/hitMarker-1-46ef1236.m4a",
+          5591
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hitMarker-1-46ef1236.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/kill-3-5f7ea225.m4a",
+          8822
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/kill-3-5f7ea225.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/kill-2-5e4acc1b.m4a",
+          8570
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/kill-2-5e4acc1b.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/gull-1-5fa9130b.m4a",
+          22058
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/gull-1-5fa9130b.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/deer_call-3-1d601bb4.m4a",
+          12571
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/deer_call-3-1d601bb4.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/boar_grunt-3-4e4a9bec.m4a",
+          15849
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boar_grunt-3-4e4a9bec.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/deer_call-1-7cd35867.m4a",
+          17874
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/deer_call-1-7cd35867.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/hoofsteps-3-f1c11f8f.m4a",
+          17850
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hoofsteps-3-f1c11f8f.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/hoofsteps-1-9580d36a.m4a",
+          17855
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hoofsteps-1-9580d36a.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/boar_squeal-1-6415e380.m4a",
+          14194
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boar_squeal-1-6415e380.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/elk_bugle-2-7048925b.m4a",
+          23503
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/elk_bugle-2-7048925b.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/elk_bugle-1-375e7428.m4a",
+          18189
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/elk_bugle-1-375e7428.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bear_growl-3-97b2d496.m4a",
+          21208
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_growl-3-97b2d496.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bear_growl-2-7996ef48.m4a",
+          21147
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_growl-2-7996ef48.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bear_roar-3-6e416479.m4a",
+          21308
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_roar-3-6e416479.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bear_roar-1-cdda7f3d.m4a",
+          20977
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_roar-1-cdda7f3d.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bear_hurt-1-43b45d1e.m4a",
+          17714
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_hurt-1-43b45d1e.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/crab_snap-2-bff601ad.m4a",
+          2750
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crab_snap-2-bff601ad.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/bear_hurt-3-3aea6172.m4a",
+          13484
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_hurt-3-3aea6172.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/crab_click-2-aefbc41d.m4a",
+          12808
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crab_click-2-aefbc41d.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/crab_click-3-f47e95a3.m4a",
+          11213
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crab_click-3-f47e95a3.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/crab_snap-3-69ea11c0.m4a",
+          2648
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crab_snap-3-69ea11c0.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/monkey_chatter-3-1c7d7e2d.m4a",
+          22069
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/monkey_chatter-3-1c7d7e2d.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/sailor_slash-3-5a10eada.m4a",
+          6124
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/sailor_slash-3-5a10eada.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/monkey_shriek-2-54acd647.m4a",
+          11204
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/monkey_shriek-2-54acd647.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/monkey_shriek-1-1a358b4e.m4a",
+          13945
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/monkey_shriek-1-1a358b4e.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/sailor_groan-2-43e2a981.m4a",
+          17335
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/sailor_groan-2-43e2a981.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/sailor_slash-1-611ba654.m4a",
+          10723
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/sailor_slash-1-611ba654.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/coconut_hit-3-9c8e8fd7.m4a",
+          4306
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/coconut_hit-3-9c8e8fd7.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/coconut_hit-2-83ed831d.m4a",
+          2138
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/coconut_hit-2-83ed831d.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/sfx/best/coconut_land-1-42389b0a.m4a",
+          11368
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/coconut_land-1-42389b0a.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/orchestral/sting-death-771d34f7.m4a",
+          55967
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/sting-death-771d34f7.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/orchestral/sting-chunk-a639b19e.m4a",
+          43721
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/sting-chunk-a639b19e.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/orchestral/sting-pickup-65f7ac5b.m4a",
+          25439
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/sting-pickup-65f7ac5b.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/orchestral/pine-tension-525d8c6d.m4a",
+          371061
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/pine-tension-525d8c6d.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/orchestral/island-tension-73116f36.m4a",
+          454429
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/island-tension-73116f36.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/orchestral/pine-calm-fbc4a99e.m4a",
+          550015
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/pine-calm-fbc4a99e.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/orchestral/title-b47c8a52.m4a",
+          560921
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/title-b47c8a52.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/orchestral/island-calm-27861d1b.m4a",
+          674426
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/island-calm-27861d1b.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/folk/sting-death-67f54fe8.m4a",
+          56017
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/sting-death-67f54fe8.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/folk/sting-chunk-31c10eaf.m4a",
+          43807
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/sting-chunk-31c10eaf.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/folk/sting-pickup-332f81db.m4a",
+          25489
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/sting-pickup-332f81db.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/folk/island-tension-bb05ab64.m4a",
+          375865
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/island-tension-bb05ab64.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/folk/pine-tension-180bc197.m4a",
+          605047
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/pine-tension-180bc197.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/folk/island-calm-d7d189f9.m4a",
+          555504
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/island-calm-d7d189f9.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/folk/pine-calm-10905c79.m4a",
+          891546
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/pine-calm-10905c79.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/music/folk/title-50001128.m4a",
+          808604
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/title-50001128.m4a",
+          0
+        ],
+        [
+          "sw",
+          "/assets/horizon/driftwood-isle-day.webp",
+          147883
+        ],
+        [
+          "page<sw",
+          "/assets/horizon/driftwood-isle-day.webp",
+          0
+        ],
+        [
+          "sw",
+          "/assets/horizon/driftwood-isle-night.webp",
+          166361
+        ],
+        [
+          "page<sw",
+          "/assets/horizon/driftwood-isle-night.webp",
+          0
+        ]
+      ],
+      "titleMs": 485,
+      "playMs": 18795,
+      "domContentLoadedMs": 423,
+      "loadEventMs": 621,
+      "longList": [
+        [
+          4100,
+          73
+        ],
+        [
+          4821,
+          66
+        ],
+        [
+          4892,
+          88
+        ],
+        [
+          4984,
+          52
+        ],
+        [
+          5041,
+          109
+        ],
+        [
+          5155,
+          127
+        ],
+        [
+          5381,
+          67
+        ],
+        [
+          5501,
+          82
+        ],
+        [
+          5586,
+          134
+        ],
+        [
+          5728,
+          86
+        ],
+        [
+          7038,
+          72
+        ],
+        [
+          7126,
+          54
+        ],
+        [
+          7454,
+          52
+        ]
+      ],
+      "longTasks": 13,
+      "longTaskMs": 1062,
+      "longTaskMaxMs": 134,
+      "steps": [
+        [
+          423,
+          "—",
+          null
+        ],
+        [
+          1559,
+          "renderer",
+          null
+        ],
+        [
+          2909,
+          "sky",
+          null
+        ],
+        [
+          4180,
+          "terrain",
+          null
+        ],
+        [
+          4738,
+          "cards",
+          null
+        ],
+        [
+          4762,
+          "forest",
+          null
+        ],
+        [
+          4764,
+          "physics",
+          null
+        ],
+        [
+          4817,
+          "edge",
+          null
+        ],
+        [
+          5829,
+          "grass",
+          null
+        ],
+        [
+          5829,
+          "cabins",
+          null
+        ],
+        [
+          5830,
+          "props",
+          null
+        ],
+        [
+          5858,
+          "animals",
+          null
+        ],
+        [
+          5931,
+          "weapon",
+          null
+        ],
+        [
+          5970,
+          "menu",
+          null
+        ],
+        [
+          7180,
+          "shaders",
+          null
+        ],
+        [
+          7444,
+          "firstFrame",
+          null
+        ],
+        [
+          7533,
+          "audio",
+          null
+        ]
+      ],
+      "heapMB": 106.9,
+      "textures": 66,
+      "geometries": 69,
+      "programs": 92,
+      "firstFrameMs": null,
+      "swController": true,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "dpr": 1,
+      "viewport": [
+        390,
+        844
+      ]
+    },
+    {
+      "cond": "4g",
+      "cache": "warm",
+      "run": 1,
+      "status": "ok",
+      "label": "4g/warm",
+      "errors": [],
+      "requests": 141,
+      "swFetches": 7,
+      "fromSW": 140,
+      "netBytes": 660,
+      "cacheBytes": 17007830,
+      "bytes": {
+        "js": {
+          "net": 0,
+          "cache": 2537561,
+          "n": 8
+        },
+        "css": {
+          "net": 0,
+          "cache": 0,
+          "n": 1
+        },
+        "jpg": {
+          "net": 0,
+          "cache": 2056787,
+          "n": 9
+        },
+        "png": {
+          "net": 0,
+          "cache": 8896,
+          "n": 1
+        },
+        "hdr": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "glb": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "gltf": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "bin": {
+          "net": 178,
+          "cache": 958633,
+          "n": 3
+        },
+        "ktx2": {
+          "net": 0,
+          "cache": 0,
+          "n": 0
+        },
+        "font": {
+          "net": 0,
+          "cache": 67976,
+          "n": 5
+        },
+        "json": {
+          "net": 330,
+          "cache": 0,
+          "n": 1
+        },
+        "html": {
+          "net": 152,
+          "cache": 0,
+          "n": 1
+        },
+        "other": {
+          "net": 0,
+          "cache": 11377977,
+          "n": 112
+        }
+      },
+      "reqs": [
+        [
+          "sw",
+          "/assets/style-iS36p0AJ.css",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/jetbrains-mono-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-700-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/style-iS36p0AJ.css",
+          0
+        ],
+        [
+          "page<sw",
+          "/?nolock=1&bench=1&tier=phone",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/index-DJB8PNOD.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/index-DJB8PNOD.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-400-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/three.module-CHVpAPmZ.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/favicon.png",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/tier-LJ-IhHaD.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/BufferGeometryUtils-BAXKzBmC.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/main-DobeU0ra.js",
+          0
+        ],
+        [
+          "sw",
+          "/assets/physics/rapier.wasm",
+          0
+        ],
+        [
+          "sw",
+          "/?nolock=1&bench=1&tier=phone",
+          152
+        ],
+        [
+          "page",
+          "blob:/e83b8cc0-35b6-457e-a1d3-f52527df513c",
+          -1
+        ],
+        [
+          "sw",
+          "/assets/lut/driftwood-isle.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/packs/driftwood-isle.phone-0d70b99c.bin",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/driftwood-isle-landscape-D6yliCVe.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/driftwood-isle-portrait-DaXkti5c.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/driftwood-isle-BVzLt_iD.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/nalati-grasslands-landscape-Cq-Auf7E.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/nalati-grasslands-portrait-C-u1q0iU.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/nalati-grasslands-DIF9Zrq8.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-landscape-COziSeMH.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-portrait-C6gQ-sN2.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/pine-hollow-DQXPgZYW.jpg",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models-DGMqtLX6.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/world-aFxyb8Rq.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/pine-calm-923e0056.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/pine-tension-cc014e5b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/island-calm-05125ed8.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/island-tension-7faf0468.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/title-3d1f713a.m4a",
+          0
+        ],
+        [
+          "page",
+          "/version.json?t=1790195093364",
+          330
+        ],
+        [
+          "page<sw",
+          "/assets/lut/driftwood-isle.bin",
+          0
+        ],
+        [
+          "sw",
+          "/assets/baked/driftwood-isle/navmesh.bin",
+          178
+        ],
+        [
+          "page",
+          "blob:/edd8293c-14a9-4a25-8aa6-57fb5dab7689",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/sting-death-99b071e0.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/models-DGMqtLX6.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/world-aFxyb8Rq.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/sting-chunk-a4f2ffab.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/piano/sting-pickup-6ed91318.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/physics/rapier.wasm",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/baked/driftwood-isle/navmesh.bin",
+          0
+        ],
+        [
+          "page",
+          "blob:/d0263f9b-8e9e-44ef-9b86-08f022076cc4",
+          0
+        ],
+        [
+          "page",
+          "blob:/a540e482-6a1c-4fd1-9054-c569ae79bc08",
+          0
+        ],
+        [
+          "page",
+          "blob:/00755c00-3f0f-4f61-b2ad-4222d1b3cdc5",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bed-forest-2-0cd11be5.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bed-island-1-4611714d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bed-underwater-3-cbe2810d.m4a",
+          0
+        ],
+        [
+          "page",
+          "blob:/67a32d0a-ec93-4d28-be62-bb98a89a7609",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hum-pickup-3-7b7db58f.m4a",
+          0
+        ],
+        [
+          "page",
+          "blob:/0cc25930-1f79-4886-8186-787c8966fc73",
+          0
+        ],
+        [
+          "page",
+          "blob:/00af2e1e-a128-439a-95d2-a0b599e20223",
+          0
+        ],
+        [
+          "page",
+          "blob:/9e00e04e-fd0e-4776-aab0-c48564fe5fb9",
+          0
+        ],
+        [
+          "page",
+          "blob:/07728b3e-dfc8-471d-b3ac-35fd9a559395",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hum-shrine-2-d89ed03a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crossbowFire-1-40af4c48.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dryFire-2-88071d1d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dryFire-3-173415cb.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-wood-1-2cae58f6.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-wood-2-d803992d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-ground-2-c6623243.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-ground-1-e51592f5.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boltImpact-flesh-3-da30d4fb.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordSwing-1-6303fc5d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHeavy-2-1debcc8f.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHeavy-3-1bed510f.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHit-flesh-1-07225bb8.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHit-flesh-2-efbf5fd7.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHit-wood-3-6381cc6b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swordHit-wood-2-800b6fe9.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dodge-2-13887dd8.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dodge-3-453516f6.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/lunge-3-be45ba7a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/reload-2-c48de6a0.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/reload-1-a220fb6e.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/rifleFire-3-8ed56841.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/rifleFire-2-a850ad83.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/rifleReload-2-1ad54372.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/rifleReload-3-20027167.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/weaponSwap-3-fbe81018.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-litter-2-19b0df36.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-litter-1-b1476674.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-planks-1-cec98032.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-planks-3-77f11491.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-sand-2-4b40473a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/footstep-sand-1-09a40a2f.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/land-2-773487f2.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/land-3-eebff605.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/land-hard-3-5aed2a6b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/land-hard-1-2ce640be.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/splash-3-9509efbe.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/splash-2-03ab63ae.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/wadeStep-1-83e1423c.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/wadeStep-2-402e850a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/swimStroke-2-9e35721b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/waterExit-1-d85f0e47.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dive-1-4b978224.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/dive-3-e74abc72.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/surface-3-85550528.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/surface-2-e5ac4e8a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hitMarker-1-46ef1236.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/kill-3-5f7ea225.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/kill-2-5e4acc1b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/gull-1-5fa9130b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/deer_call-3-1d601bb4.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/deer_call-1-7cd35867.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boar_grunt-3-4e4a9bec.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hoofsteps-3-f1c11f8f.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/hoofsteps-1-9580d36a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/boar_squeal-1-6415e380.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/elk_bugle-2-7048925b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/elk_bugle-1-375e7428.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_growl-3-97b2d496.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_growl-2-7996ef48.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_roar-3-6e416479.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_roar-1-cdda7f3d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_hurt-1-43b45d1e.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/bear_hurt-3-3aea6172.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crab_click-2-aefbc41d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crab_click-3-f47e95a3.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crab_snap-2-bff601ad.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/crab_snap-3-69ea11c0.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/monkey_chatter-3-1c7d7e2d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/monkey_shriek-2-54acd647.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/monkey_shriek-1-1a358b4e.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/sailor_groan-2-43e2a981.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/sailor_slash-3-5a10eada.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/sailor_slash-1-611ba654.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/coconut_hit-3-9c8e8fd7.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/coconut_hit-2-83ed831d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/sfx/best/coconut_land-1-42389b0a.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/pine-calm-fbc4a99e.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/pine-tension-525d8c6d.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/island-calm-27861d1b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/island-tension-73116f36.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/title-b47c8a52.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/sting-death-771d34f7.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/sting-chunk-a639b19e.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/orchestral/sting-pickup-65f7ac5b.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/pine-calm-10905c79.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/pine-tension-180bc197.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/island-calm-d7d189f9.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/island-tension-bb05ab64.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/title-50001128.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/sting-death-67f54fe8.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/sting-chunk-31c10eaf.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/music/folk/sting-pickup-332f81db.m4a",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-500-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/fonts/rajdhani-600-latin.woff2",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/Feedback-Bsa8V83A.js",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/Explore-CEKkFIsS.js",
+          0
+        ],
+        [
+          "sw",
+          "/assets/horizon/driftwood-isle-day.webp",
+          0
+        ],
+        [
+          "sw",
+          "/assets/horizon/driftwood-isle-night.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/horizon/driftwood-isle-day.webp",
+          0
+        ],
+        [
+          "page<sw",
+          "/assets/horizon/driftwood-isle-night.webp",
+          0
+        ]
+      ],
+      "titleMs": 90,
+      "playMs": 2667,
+      "domContentLoadedMs": 44,
+      "loadEventMs": 48,
+      "longList": [
+        [
+          109,
+          81
+        ],
+        [
+          298,
+          68
+        ],
+        [
+          645,
+          68
+        ],
+        [
+          768,
+          62
+        ],
+        [
+          846,
+          57
+        ],
+        [
+          921,
+          105
+        ],
+        [
+          1034,
+          124
+        ],
+        [
+          1267,
+          57
+        ],
+        [
+          1382,
+          81
+        ],
+        [
+          1471,
+          115
+        ],
+        [
+          1595,
+          87
+        ],
+        [
+          1928,
+          60
+        ],
+        [
+          2002,
+          53
+        ]
+      ],
+      "longTasks": 13,
+      "longTaskMs": 1018,
+      "longTaskMaxMs": 124,
+      "steps": [
+        [
+          44,
+          "—",
+          null
+        ],
+        [
+          153,
+          "renderer",
+          null
+        ],
+        [
+          230,
+          "sky",
+          null
+        ],
+        [
+          376,
+          "terrain",
+          null
+        ],
+        [
+          540,
+          "cards",
+          null
+        ],
+        [
+          567,
+          "forest",
+          null
+        ],
+        [
+          574,
+          "physics",
+          null
+        ],
+        [
+          631,
+          "edge",
+          null
+        ],
+        [
+          1707,
+          "grass",
+          null
+        ],
+        [
+          1722,
+          "cabins",
+          null
+        ],
+        [
+          1731,
+          "props",
+          null
+        ],
+        [
+          1774,
+          "animals",
+          null
+        ],
+        [
+          1874,
+          "weapon",
+          null
+        ],
+        [
+          1920,
+          "menu",
+          null
+        ],
+        [
+          2055,
+          "shaders",
+          null
+        ],
+        [
+          2307,
+          "firstFrame",
+          null
+        ],
+        [
+          2378,
+          "audio",
+          null
+        ]
+      ],
+      "heapMB": 101.8,
+      "textures": 66,
+      "geometries": 69,
+      "programs": 92,
+      "firstFrameMs": null,
+      "swController": true,
+      "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5 Max, Unspecified Version)",
+      "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36",
+      "dpr": 1,
+      "viewport": [
+        390,
+        844
+      ]
+    }
+  ]
+}

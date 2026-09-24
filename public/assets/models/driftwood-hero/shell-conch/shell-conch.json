@@ -1,0 +1,20 @@
+{
+ "name": "shell-conch",
+ "source": "conch.glb",
+ "tris": 238,
+ "size_m": [
+  0.12,
+  0.22,
+  0.12
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#d82106",
+  "#dc8787",
+  "#e34223",
+  "#f1623e",
+  "#f77a54",
+  "#fa9570"
+ ]
+}

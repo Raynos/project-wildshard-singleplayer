@@ -1,0 +1,20 @@
+{
+ "name": "driftwood-stump",
+ "source": "driftwood.glb",
+ "tris": 519,
+ "size_m": [
+  1.75,
+  1.74,
+  1.0
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#77695e",
+  "#87776a",
+  "#948272",
+  "#9e8f82",
+  "#ad9b8c",
+  "#bdab9a"
+ ]
+}

@@ -42,10 +42,17 @@ const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&
 /** compass heading as the HUD shows it: +Z is north, `180 − yaw°` (src/ui/HUD.ts) */
 export function headingDeg(yaw: number): number { const d = 180 - (yaw * 180) / Math.PI; return Math.round(((d % 360) + 360) % 360) % 360; }
 
-/** the URL that reloads the game on this spot: `?chunk=&at=x,y,z,yaw,pitch&weapon=&skipintro` (main.ts reads `at`) */
+/** the URL that reloads the game on this spot: `?chunk=&at=x,y,z,yaw,pitch&weapon=&skipintro` (main.ts reads `at`), or in Explore `?chunk=&explore=&cam=&model=` */
 export function reproUrl(origin: string, c: Record<string, ContextValue>): string {
   const q = new URLSearchParams();
   if (typeof c['shard'] === 'string') q.set('chunk', c['shard']);
+  // a note filed in Explore World reopens the same view: `?explore=world|model&cam=x,y,z,yaw,pitch&model=id` (main.ts)
+  if (typeof c['explore'] === 'string') {
+    q.set('explore', c['explore']);
+    if (Array.isArray(c['cam'])) q.set('cam', c['cam'].map((v) => Number(v.toFixed(2))).join(','));
+    if (typeof c['model'] === 'string') q.set('model', c['model']);
+    return `${origin}/?${q.toString()}`;
+  }
   const pos = c['pos'], yaw = c['yaw'], pitch = c['pitch'];
   if (Array.isArray(pos) && typeof yaw === 'number' && typeof pitch === 'number') q.set('at', [...pos, yaw, pitch].map((v) => Number(v.toFixed(2))).join(','));
   if (typeof c['weapon'] === 'string') q.set('weapon', c['weapon']);
@@ -206,8 +213,17 @@ export class Feedback {
     text.addEventListener('input', () => { this.text = text.value; });
     if (mode === 'tab') text.addEventListener('keydown', (e) => { if (e.code === 'Enter' && !e.shiftKey) { e.preventDefault(); void this.send(); } });
     sheet.append(text);
-    const c = this.ctx, pos = c['pos'];
-    const kv: [string, string][] = [
+    const c = this.ctx, pos = c['pos'], cam = c['cam'];
+    // Explore World notes (src/explore/Explore.ts context) describe the viewer: mode, camera, what is on the turntable / selected
+    const exploring = typeof c['explore'] === 'string';
+    const kv: [string, string][] = exploring ? [
+      ['Shard', String(c['shard'] ?? '—')],
+      ['Explore', String(c['explore'])],
+      ['Camera', Array.isArray(cam) ? `${Math.round(cam[0] ?? 0)} · ${Math.round(cam[1] ?? 0)} · ${Math.round(cam[2] ?? 0)}` : '—'],
+      ['Heading', Array.isArray(cam) && typeof cam[3] === 'number' ? `${headingDeg(cam[3])}°` : '—'],
+      ['Model', String(c['model'] ?? c['selected'] ?? '—')],
+      ['Tier', String(c['tier'] ?? '—')],
+    ] : [
       ['Shard', String(c['shard'] ?? '—')],
       ['Pos', Array.isArray(pos) ? `${Math.round(pos[0] ?? 0)} · ${Math.round(pos[2] ?? 0)}` : '—'],
       ['Heading', typeof c['yaw'] === 'number' ? `${headingDeg(c['yaw'])}°` : '—'],

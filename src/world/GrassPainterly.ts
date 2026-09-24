@@ -7,7 +7,7 @@ import { attachFogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
 import type { Forest } from './Forest';
 import { noReflect } from './Water';
-import { wind, WIND_GLSL } from './Wind';
+import { wind, WIND_GLSL } from './steppeWind';
 import { trample, TRAMPLE_GLSL } from './GrassTrample';
 import { grassBaseHeightAt, grassToneAt, flowerKindAt, groundColorAt } from './GrassField';
 import { painterlyUniforms } from './painterly';

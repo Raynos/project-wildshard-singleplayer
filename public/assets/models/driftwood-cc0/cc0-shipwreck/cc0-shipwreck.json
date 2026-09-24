@@ -1,0 +1,23 @@
+{
+ "name": "cc0-shipwreck",
+ "source": "~/models/cc0/kenney/pirate-kit/Models/GLB format/ship-wreck.glb",
+ "licence": "CC0 1.0 (see scripts/img2mesh/CC0.md)",
+ "tris": 2282,
+ "size_m": [
+  5.43,
+  12.0,
+  11.28
+ ],
+ "palette": [
+  "black",
+  "frond",
+  "plank",
+  "plankLight",
+  "ring",
+  "rockDark",
+  "teal",
+  "trunk",
+  "white"
+ ],
+ "vertex_colour": "COLOR_0 rgb = Driftwood palette albedo, a = 1"
+}

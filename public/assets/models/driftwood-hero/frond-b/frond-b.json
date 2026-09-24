@@ -1,0 +1,20 @@
+{
+ "name": "frond-b",
+ "source": "frond-b.glb",
+ "tris": 410,
+ "size_m": [
+  2.9,
+  3.5,
+  4.26
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#185914",
+  "#2c6b13",
+  "#376022",
+  "#3b7f10",
+  "#436f21",
+  "#59a10f"
+ ]
+}

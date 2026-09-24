@@ -69,6 +69,12 @@
   authored instead.
 - **Keep pushes small.** `.githooks/pre-commit` refuses a `progress/` image over 500 KB: save
   screenshots as JPEG / WebP. `.gitattributes` marks binaries `-delta`.
+- **The pre-push gate builds what Vercel builds.** `.githooks/pre-push` runs `scripts/vercel-tree-gate.sh` on the tip
+  you push (~6 s, stamped per commit). The script checks out only the files `.vercelignore` lets through and runs
+  check-css · typecheck · oxlint · vitest · vite build on them. It refuses the push when `.vercelignore` would drop
+  anything under `src/`, `public/`, `api/` or `scripts/`. Before it (E41), unanchored patterns (`art`) dropped
+  `src/explore/art/`, and deploys went red on Vercel with CI green. Anchor every `.vercelignore` line with `/`. A red
+  gate is yours to fix before the push, not after. Escape (rare): `SKIP_VERCEL_GATE=1`.
 - **Hooks on:** every checkout runs `git config core.hooksPath .githooks` once (the session brief
   warns when it's off). The Claude hooks are in `.claude/settings.json`; an edit there takes effect
   on a session restart.
@@ -120,6 +126,11 @@ on his laptop.
   $REPO/art/<subject>/round-<n>-<label>/<id>.png. Create or modify no other file." > "$SP/<id>.log" 2>&1
   ```
 
+  **Don't wait for codex to copy its own file.** The image lands in
+  `~/.codex/generated_images/<session id>/` about 3 min in. codex's follow-up "copy it" turn can then hang 10+ min on
+  reconnects over the slow uplink (E41, 2026-09-23). The runner reads `session id:` from each run's log, polls that
+  folder, copies the PNG the moment it appears and kills that codex. Pass the reference as a JPEG (~300 KB, not a
+  1.4 MB PNG): every run uploads it. More parallel runs don't slow each other; the waiting is per run, not a queue.
   The model and effort come from `~/.codex/config.toml`. `image_gen` is codex's built-in tool (the
   system `imagegen` skill), so it needs no `OPENAI_API_KEY`. Write the prompts and the runner script
   into the scratchpad with the Write tool: the `dcg` hook blocks shell redirects to computed paths.
@@ -141,6 +152,42 @@ on his laptop.
 
 - A finished game will run at 60 FPS only.
 - A finished game will have AAA graphics that are photo realistic worthy of PS5
+
+## Audio engines (the user, 2026-09-23)
+
+- **Music: MiniMax Music 3**, generated locally (weights in `~/projects/weights`). New music is made with it and
+  nothing else; the in-game credit "Music: MiniMax-Music3" is a licence condition.
+- **Sound effects: every sound is generated twice**, once with **MOSS-SoundEffect v2** and once with
+  **Stable Audio 3 Medium**, and **the better take of the two ships**, picked per sound. The game has one merged
+  set, not a set per model. Both credits show ("Powered by Stability AI" is a Stability licence condition).
+- Local model runs: one model at a time, under `lockf -k ~/projects/localai/.model.lock`, and evict after.
+  How-tos and traps: `~/projects/localai/docs/music-models.md`; pipeline scripts: `scripts/music/gen/`.
+
+## Physics (Rapier, PHYSICS.md — since the physics merge)
+
+- **`src/physics/` owns collision.** It is the only code that imports Rapier. Nothing else hand-rolls a collision test:
+  no ray-vs-box maths, no terrain bisection, no push-out loops. Ask `src/physics/query.ts` (`castRay`,
+  `castSegment`, `lineOfSight`, `sweepBall`, `floorBelow`). Code that isn't handed the world gets it from
+  `activePhysics()`. `heightAt()` stays for placement and drawing only.
+- **A new static thing collides by registering.** The builder emits `colliderDescs(): ColliderDesc[]` beside the
+  geometry it draws:
+  - box / capsule / ball / hull;
+  - `treads` for any stair: rise ≤ 0.35 m and tread depth ≥ 0.36 m, or the capsule rides the edges;
+  - trimesh only for walk-inside shapes.
+  Then register it with `registry.add({ id, name, category, file, object, colliders, surface, floor?, solidFloor,
+  model? })` (src/world/registry.ts). A moving piece `follows` its Object3D, which puts it on a kinematic body. `model`
+  puts it in Explore's catalog: it is the one registry, so never register a built thing a second time for Explore.
+  Don't push into `player.colliders`: that list is the legacy bridge for boxes that move (interactables, NPCs, dev
+  scenes).
+- **The player walks on colliders.** Step 0.35 m, max climb 40° (the user's picks). A walkable surface needs real
+  geometry. A path over a crag is graded into the terrain (`TerrainSpec.graded`, never inside the Blender cove's
+  baked area); a steep one gets a walkway from `src/physics/paths.ts`. After changing a builder's colliders, re-run
+  `node scripts/physics-baseline.mjs --no-build --mode=walk` (and `--trails`): 0 stuck is the bar. If structures
+  moved, re-bake the navmesh (`node --experimental-transform-types --import ./scripts/bake-loader.mjs
+  scripts/bake-navmesh.mjs`; `--check` tells you when it's stale).
+- **Moving things** go in Game's fixed step (`game.onFixed('pre' | 'step' | 'post')`, 60 Hz, hit-stop slows it) and
+  are interpolated with `game.alpha`. Dynamic bodies go through `src/physics/bodies.ts`, which enforces the per-tier
+  caps (phone 40 awake / 2 ragdolls).
 
 ## Deploy
 

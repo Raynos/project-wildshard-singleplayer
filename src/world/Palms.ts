@@ -16,26 +16,29 @@ import { Rng } from '../core/rng';
 import { Noise2D } from '../core/noise';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
+import type { ColliderDesc } from './registry';
 import { TIER_CONFIG } from '../core/tier';
+import { windUniforms, updateWind } from './wind';
 
 export interface PalmSpec { x: number; z: number; h: number; lean: number; leanDir: number; rot: number; fronds: number }
 
 const C = {
   trunk: new THREE.Color('#8a6a48'), ring: new THREE.Color('#6d5238'),
   frond: new THREE.Color('#4f9a3a'), frondLight: new THREE.Color('#72b94c'), frondDark: new THREE.Color('#3b7d2c'),
-  nut: new THREE.Color('#6b5a2e'),
+  nut: new THREE.Color('#6b5a2e'), nutGreen: new THREE.Color('#7f9a3a'),
 };
 
 export class Palms {
   mesh!: THREE.Mesh;
   colliders: Collider[] = [];
   count = 0;
-  private uniforms = { uTime: { value: 0 } };
+  /** PHYSICS P4: each trunk as capsules along its bent axis (see colliderDescs) */
+  private trunks: ColliderDesc[] = [];
 
   constructor(private sky: Sky) {}
 
   /** Island rule: behind the beach and on the plateau top, denser in groves, never on steep rock, clear of the hut and piers. */
-  static scatterIsland(seed: number, count = TIER_CONFIG.palmCount, avoid: { x: number; z: number; r: number }[] = []): PalmSpec[] {
+  static scatterIsland(seed: number, count = Math.round(TIER_CONFIG.palmCount * 1.7), avoid: { x: number; z: number; r: number }[] = []): PalmSpec[] {
     const rng = new Rng(seed ^ 0x9a1e), grove = new Noise2D(seed + 21);
     const wl = waterLevel();
     const out: PalmSpec[] = [];
@@ -48,12 +51,12 @@ export class Palms {
       const [, ny] = normalAt(x, z, 1.5);
       if (ny < 0.9) continue;                                                      // not on the crag walls
       const g = grove.fbm(x * 0.012, z * 0.012, 3);
-      const beachEdge = h < 3.2 ? 0.55 : 0;                                        // the beach top is always lined with palms
+      const beachEdge = h < 3.4 ? 0.95 : 0;                                        // the back beach is lined with palms (E43: twice as many)
       if (rng.next() > Math.max(beachEdge, (g + 0.35) * 0.9)) continue;           // groves inland
       if (Math.abs(x) < ROAD_WIDTH / 2 + 6 && Math.abs(z) > 140) continue;
       if (Math.abs(z) < ROAD_WIDTH / 2 + 6 && Math.abs(x) > 140) continue;
       if (avoid.some((a) => Math.hypot(a.x - x, a.z - z) < a.r)) continue;
-      if (out.some((p) => Math.hypot(p.x - x, p.z - z) < 4.5)) continue;
+      if (out.some((p) => Math.hypot(p.x - x, p.z - z) < 3.8)) continue;
       out.push({ x, z, h: rng.range(5, 9.5), lean: rng.range(0.05, 0.35), leanDir: rng.range(0, Math.PI * 2), rot: rng.range(0, Math.PI * 2), fronds: rng.int(9, 13) });
     }
     return out;
@@ -74,11 +77,15 @@ export class Palms {
         sway.push(wa, phase, wb, phase, wd, phase);
       };
       // ── trunk: a curve leaning by `lean` in `leanDir`, 7 segments, 6 sides, thinner at the top ──
-      const segs = 7, sides = 6;
-      const axis = (t: number) => tmp.set(p.x + Math.cos(p.leanDir) * p.lean * p.h * t * t, base + p.h * t, p.z + Math.sin(p.leanDir) * p.lean * p.h * t * t).clone();
+      const segs = 11, sides = 6;
+      // a curved trunk: the lean grows with height and a slight S-bend (the base kicks back before it arches out)
+      const axis = (t: number) => {
+        const off = p.lean * p.h * (t * t - 0.12 * Math.sin(t * Math.PI));
+        return tmp.set(p.x + Math.cos(p.leanDir) * off, base + p.h * t, p.z + Math.sin(p.leanDir) * off).clone();
+      };
       const rings: THREE.Vector3[][] = [];
       for (let s = 0; s <= segs; s++) {
-        const t = s / segs, r = 0.3 * (1 - t * 0.45) * (s % 2 ? 1.0 : 1.12), centre = axis(t);
+        const t = s / segs, r = 0.3 * (1 - t * 0.45) * (s % 2 ? 0.94 : 1.16) * (s === 0 ? 1.25 : 1), centre = axis(t);
         const ring: THREE.Vector3[] = [];
         for (let k = 0; k < sides; k++) { const a = (k / sides) * Math.PI * 2 + p.rot; ring.push(new THREE.Vector3(centre.x + Math.cos(a) * r, centre.y, centre.z + Math.sin(a) * r)); }
         rings.push(ring);
@@ -97,11 +104,13 @@ export class Palms {
       }
       const top = axis(1);
       // ── crown: fronds radiating out and drooping, zig-zag leaflet edges ──
-      const n = p.fronds;
-      for (let f = 0; f < n; f++) {
-        const ang = (f / n) * Math.PI * 2 + p.rot + rng.range(-0.15, 0.15);
-        const tilt = rng.range(-0.1, 0.35);            // some fronds droop lower
-        const L = rng.range(3.2, 4.3), fs = TIER_CONFIG.palmFrondSegs; // 6 desktop / 4 phone segments per frond
+      // two layers (E43: twice the fronds): the long drooping skirt, then a shorter crown of younger fronds on top
+      const n = p.fronds, n2 = Math.round(n * 0.9);
+      for (let f = 0; f < n + n2; f++) {
+        const upper = f >= n, fi = upper ? f - n + 0.5 : f, nn = upper ? n2 : n;
+        const ang = (fi / nn) * Math.PI * 2 + p.rot + rng.range(-0.15, 0.15);
+        const tilt = upper ? rng.range(-0.45, -0.2) : rng.range(-0.1, 0.35);   // the young fronds stand up, some old ones droop low
+        const L = upper ? rng.range(2.2, 3.0) : rng.range(3.2, 4.3), fs = TIER_CONFIG.palmFrondSegs; // 6 desktop / 4 phone segments per frond
         const dir = new THREE.Vector3(Math.cos(ang), 0, Math.sin(ang));
         const side = new THREE.Vector3(-Math.sin(ang), 0, Math.cos(ang));
         const shade = rng.next();
@@ -121,11 +130,16 @@ export class Palms {
         }
       }
       // ── coconuts ──
-      for (let k = 0; k < 3; k++) {
-        const a = rng.range(0, Math.PI * 2), g = new THREE.IcosahedronGeometry(0.16, 0);
-        g.translate(top.x + Math.cos(a) * 0.32, top.y - 0.25, top.z + Math.sin(a) * 0.32);
-        const pp = g.getAttribute('position');
-        for (let i = 0; i < pp.count; i++) { pos.push(pp.getX(i), pp.getY(i), pp.getZ(i)); col.push(C.nut.r, C.nut.g, C.nut.b); sway.push(0.3, phase); }
+      // a coconut cluster under the crown (5–7, brown and green)
+      const nuts = rng.int(5, 7);
+      for (let k = 0; k < nuts; k++) {
+        const a = (k / nuts) * Math.PI * 2 + rng.range(-0.3, 0.3), rr = rng.range(0.17, 0.22), g = new THREE.IcosahedronGeometry(rr, 0);
+        g.translate(top.x + Math.cos(a) * 0.36, top.y - 0.22 - (k % 2) * 0.2, top.z + Math.sin(a) * 0.36);
+        const pp = g.getAttribute('position'), nc = k % 3 === 0 ? C.nutGreen : C.nut;
+        for (let i = 0; i < pp.count; i += 3) {
+          const j = 0.85 + rng.next() * 0.3;
+          for (let v = 0; v < 3; v++) { pos.push(pp.getX(i + v), pp.getY(i + v), pp.getZ(i + v)); col.push(nc.r * j, nc.g * j, nc.b * j); sway.push(0.3, phase); }
+        }
       }
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
@@ -133,6 +147,17 @@ export class Palms {
       geo.setAttribute('sway', new THREE.Float32BufferAttribute(sway, 2));
       parts.push(geo);
       this.colliders.push({ x: p.x, z: p.z, hw: 0.3, hd: 0.3, rot: 0, yTop: base + p.h, yBottom: base - 1 });
+      // the trunk's collision: three capsules whose segments run along the bent axis (t 0 → ⅓ → ⅔ → 1, the first sunk 0.3 m into the
+      // ground), each as thick as the trunk's rings at its lower end (0.3 m tapering by 45 % to the crown)
+      const cuts = [0, 1 / 3, 2 / 3, 1];
+      for (let k = 0; k < 3; k++) {
+        const t0 = cuts[k] ?? 0, t1 = cuts[k + 1] ?? 1;
+        const p0 = axis(t0), p1 = axis(t1);
+        if (k === 0) p0.y -= 0.3;
+        const along = p1.clone().sub(p0), len = along.length(), radius = 0.3 * (1 - t0 * 0.45);
+        const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), along.divideScalar(len));
+        this.trunks.push({ kind: 'capsule', x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2, z: (p0.z + p1.z) / 2, halfHeight: len / 2, radius, rot: { x: q.x, y: q.y, z: q.z, w: q.w } });
+      }
       this.count++;
     }
     // an empty scatter (a stale terrain, a def with no land) must not throw in mergeGeometries: an empty mesh instead
@@ -140,27 +165,47 @@ export class Palms {
     const geo = parts.length > 0 ? mergeGeometries(parts, false) : new THREE.BufferGeometry();
     geo.computeBoundingSphere();
     const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.85, metalness: 0, side: THREE.DoubleSide });
-    mat.onBeforeCompile = (shader) => {
-      attachFogUniforms(shader);
-      Object.assign(shader.uniforms, this.uniforms);
-      shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', '#include <common>\nattribute vec2 sway; uniform float uTime;')
-        .replace('#include <begin_vertex>', `
-          vec3 transformed = vec3( position );
-          {
-            float w = sway.x, ph = sway.y;
-            float g = sin(uTime * 1.3 + ph) * 0.6 + sin(uTime * 2.9 + ph * 1.7) * 0.25;
-            transformed.x += g * w * 0.22;
-            transformed.z += cos(uTime * 1.1 + ph) * w * 0.14;
-            transformed.y -= abs(g) * w * 0.05;
-          }`);
-    };
+    mat.onBeforeCompile = (shader) => { attachFogUniforms(shader); patchPalmSway(shader); };
     mat.customProgramCacheKey = () => 'palms-sway';
     this.sky.setupMaterial(mat);
     this.mesh = new THREE.Mesh(geo, mat);
     this.mesh.castShadow = true; this.mesh.receiveShadow = true;
+    // the shadow pass sways the fronds too, so the palm shadows on the sand move (M5)
+    const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side: THREE.DoubleSide });
+    depth.onBeforeCompile = (shader) => patchPalmSway(shader);
+    depth.customProgramCacheKey = () => 'palms-sway-depth';
+    this.mesh.customDepthMaterial = depth;
     return this;
   }
 
-  update(dt: number): void { this.uniforms.uTime.value += dt; }
+  /**
+   * PHYSICS P4: this builder's static collision in world space — every trunk as three capsules following its lean
+   * and bend (in place of the legacy upright 0.6 m box, which `colliders` still carries for foam). src/physics/pieces.ts
+   * turns it into Rapier colliders. Palms have no floors.
+   */
+  colliderDescs(): ColliderDesc[] { return this.trunks.slice(); }
+
+  /** the island's wind gust, 0 calm … 1 gusting (wind.ts) — what the fronds, bushes, grass, sails and banner sway with; the
+   * sound agent's palm rustle reads it */
+  get gust(): number { return windUniforms.uGust.value; }
+
+  /** advances the shared wind (wind.ts) — once a frame, for everything that sways */
+  update(dt: number): void { updateWind(dt); }
+}
+
+/** the fronds' sway (per-vertex weight + phase in `sway`), stronger in a gust — for the lit and the shadow-pass material */
+function patchPalmSway(shader: { uniforms: Record<string, THREE.IUniform>; vertexShader: string }): void {
+  shader.uniforms['uTime'] = windUniforms.uWindTime;
+  shader.uniforms['uGust'] = windUniforms.uGust;
+  shader.vertexShader = shader.vertexShader
+    .replace('#include <common>', '#include <common>\nattribute vec2 sway; uniform float uTime; uniform float uGust;')
+    .replace('#include <begin_vertex>', `
+      vec3 transformed = vec3( position );
+      {
+        float w = sway.x * (0.55 + 0.8 * uGust), ph = sway.y;
+        float g = sin(uTime * 1.3 + ph) * 0.6 + sin(uTime * 2.9 + ph * 1.7) * 0.25 + 0.35 * uGust;
+        transformed.x += g * w * 0.22;
+        transformed.z += cos(uTime * 1.1 + ph) * w * 0.14;
+        transformed.y -= abs(g) * w * 0.05;
+      }`);
 }

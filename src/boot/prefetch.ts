@@ -19,6 +19,12 @@ import type { ChunkDef } from '../chunks/ChunkDef';
 import type { ChunkFiles } from './bytes';
 
 const CONCURRENCY = 6;
+/**
+ * The art + audio queue (prefetchAfter): ~150 files, most of them 3–30 KB one-shots, after the pack has the pipe to itself.
+ * At 6 in flight a 4G round trip (~170 ms) per small file left the pipe idle between them; the world's files are in by
+ * then, so nothing downstream is starved by more at once.
+ */
+const EXTRA_CONCURRENCY = 16;
 
 /**
  * The declared files this shard's boot really reads, in step order. The boot manifest (src/boot/manifest.ts)
@@ -33,15 +39,42 @@ export function bootFetches(def: ChunkDef, files: ChunkFiles): string[] {
   const trees = def.trees.factory !== 'pine' ? [] : files.trees; // only the pine reads textures ('spruce' is painted, 'none' is none)
   // a painterly shard (Nalati) builds no cabins; its `props` are its own boot reads (manifest.ts `painterlyBoot`)
   const homestead = def.style === 'painterly' ? files.props : def.ocean === undefined ? [...files.cabins, ...files.props] : [];
-  return [...files.sky, ...files.baked, ...terrain, ...trees, ...homestead];
+  return [...files.sky, ...files.baked, ...terrain, ...trees, ...homestead]; // not files.physics: Rapier fetches its own WASM at boot start (streamed compile), outside the uncompressed pack
 }
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };
 
+/** path → settles when the queue has downloaded it (src/boot/extras.ts waits on these instead of jumping the queue) */
+const landed = new Map<string, { done: Promise<void>; settle: () => void }>();
+const landing = (p: string): { done: Promise<void>; settle: () => void } => {
+  let e = landed.get(p);
+  if (!e) { let settle: () => void = () => undefined; const done = new Promise<void>((resolve) => { settle = resolve; }); e = { done, settle }; landed.set(p, e); }
+  return e;
+};
+/**
+ * Resolves once the queue has downloaded `url` (or failed to): the next GET of it is then answered from memory. A path
+ * that was never queued resolves at once. Waiting here keeps the queue's order and concurrency — a plain early fetch()
+ * would start the file on the spot, ahead of the files the world's steps need first.
+ */
+export function whenPrefetched(url: string): Promise<void> { return landed.get(pathOf(url))?.done ?? Promise.resolve(); }
+
+/**
+ * Queue `paths` once `after` has settled (the boot pack streamed): the art and the audio wait for the shard's own files
+ * instead of splitting the pipe with them. `whenPrefetched` already knows them, so nobody jumps the queue meanwhile.
+ */
+export function prefetchAfter(paths: readonly string[], after: Promise<unknown>): void {
+  for (const p of paths) landing(p);
+  void (async () => {
+    try { await after; } catch { /* a failed pack frees the pipe all the same */ }
+    prefetch(paths, EXTRA_CONCURRENCY);
+  })();
+}
+
 /** Queue `paths` now; the first plain GET of each is served the prefetched response. Returns how many were queued. */
-export function prefetch(paths: readonly string[]): number {
+export function prefetch(paths: readonly string[], concurrency = CONCURRENCY): number {
   const fetchNow = window.fetch.bind(window);
   const queue = [...new Set(paths)];
   const queued = new Set(queue);
+  for (const p of queue) landing(p);
   const started = new Map<string, Promise<Response>>();
   let active = 0;
   const start = (p: string): Promise<Response> => {
@@ -50,13 +83,13 @@ export function prefetch(paths: readonly string[]): number {
     // read to the end here: the download finishing (not its headers) is what frees the slot for the next file
     const res = fetchNow(p)
       .then(async (r) => (r.ok ? new Response(await r.blob(), { status: r.status, statusText: r.statusText, headers: r.headers }) : r))
-      .finally(() => { active--; pump(); });
+      .finally(() => { active--; landing(p).settle(); pump(); });
     res.catch(() => undefined); // a failed prefetch is re-asked for (and its error surfaced) by the step that needs it
     started.set(p, res);
     return res;
   };
   function pump(): void {
-    for (let free = CONCURRENCY - active; free > 0;) {
+    for (let free = concurrency - active; free > 0;) {
       const p = queue.shift();
       if (p === undefined) return;
       if (queued.has(p)) { void start(p); free--; }

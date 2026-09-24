@@ -4,6 +4,7 @@
    above the HUD, the minimap (z 6) and the phone's touch layer (z 5). */
 .ws-gmenu { position: fixed; inset: 0; z-index: 70; display: flex; align-items: stretch; justify-content: center; padding: calc(var(--ws-top) + 4px) 10px calc(10px + env(safe-area-inset-bottom, 0px)); background: rgba(6, 10, 18, 0.55); backdrop-filter: blur(6px) saturate(1.1); -webkit-backdrop-filter: blur(6px) saturate(1.1); opacity: 0; pointer-events: none; transition: opacity 0.18s; font-family: var(--ws-mono); color: var(--ws-text); }
 .ws-gmenu.show { opacity: 1; pointer-events: auto; }
+.ws-gmenu * { box-sizing: border-box; } /* on <body>, outside #hud's reset: a 100 %-wide padded .ws-gmenu-row ran 26 px past the sheet */
 .ws-gmenu .ws-gmenu-sheet { width: 100%; max-width: 560px; display: flex; flex-direction: column; min-height: 0; background: rgba(8, 12, 20, 0.86); padding: 0; }
 .ws-gmenu .ws-gmenu-sheet::after { content: ''; position: absolute; right: -1px; bottom: -1px; width: 18px; height: 18px; border-right: 1px solid var(--ws-cyan); border-bottom: 1px solid var(--ws-cyan); opacity: 0.8; pointer-events: none; }
 
@@ -39,6 +40,13 @@
 /* MAP: label row, a square frame the FullMap canvas fills, zoom chips + legend */
 .ws-gmenu .ws-gmenu-panel.map { touch-action: none; padding-bottom: 8px; }
 .ws-gmenu .ws-gmenu-mapmeta { flex: none; margin-bottom: 8px; font-size: 9.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ws-text-dim); }
+/* the quest card (E51): the chapter title, the full objective and its sub-steps — the HUD carries only the short chip */
+.ws-gmenu .ws-gmenu-mapquest { flex: none; margin-bottom: 10px; padding: 8px 10px 8px 12px; border: 1px solid rgba(143, 227, 255, 0.22); border-left: 2px solid var(--ws-cyan); background: rgba(143, 227, 255, 0.05); }
+.ws-gmenu .ws-gmenu-mapquest[hidden] { display: none; }
+.ws-gmenu .ws-gmenu-mapquest-title { font-size: 8.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ws-cyan); }
+.ws-gmenu .ws-gmenu-mapquest-obj { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-family: var(--ws-display); font-weight: 600; font-size: 15px; letter-spacing: 0.03em; color: var(--ws-text); }
+.ws-gmenu .ws-gmenu-mapquest-obj i { flex: none; width: 7px; height: 7px; transform: rotate(45deg); background: var(--ws-cyan); box-shadow: 0 0 8px rgba(143, 227, 255, 0.8); }
+.ws-gmenu .ws-gmenu-mapquest-hint { margin-top: 3px; padding-left: 15px; font-size: 9.5px; letter-spacing: 0.06em; color: var(--ws-text-dim); }
 .ws-gmenu .ws-gmenu-mapframe { position: relative; flex: 0 1 auto; width: 100%; aspect-ratio: 1; min-height: 0; border: 1px solid rgba(143, 227, 255, 0.22); background: rgba(4, 7, 12, 0.9); overflow: hidden; }
 .ws-gmenu .ws-gmenu-mapfoot { flex: none; display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
 .ws-gmenu .ws-gmenu-zooms { display: flex; gap: 6px; }
@@ -85,7 +93,7 @@
 .ws-gmenu .ws-gmenu-ach:not(.earned) .ws-gmenu-aicon { color: rgba(230, 242, 248, 0.75); }
 .ws-gmenu .ws-gmenu-abody { flex: 1; min-width: 0; }
 .ws-gmenu .ws-gmenu-aname { font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
-.ws-gmenu .ws-gmenu-agoal { margin-top: 2px; font-size: 8.5px; letter-spacing: 0.12em; white-space: nowrap; text-transform: uppercase; color: var(--ws-text-dim); }
+.ws-gmenu .ws-gmenu-agoal { margin-top: 2px; font-size: 8.5px; line-height: 1.45; letter-spacing: 0.12em; white-space: normal; overflow-wrap: anywhere; text-transform: uppercase; color: var(--ws-text-dim); } /* wraps inside its column: a long goal + counter never runs under the title (Driftwood, 390 px) */
 .ws-gmenu .ws-gmenu-abody .ws-bar { margin-top: 6px; height: 4px; }
 .ws-gmenu .ws-gmenu-areward { flex: none; display: flex; align-items: center; gap: 8px; width: 34%; max-width: 170px; }
 .ws-gmenu .ws-gmenu-amark { flex: none; width: 22px; height: 22px; color: var(--ws-text-dim); }
@@ -123,6 +131,12 @@
 @media (min-aspect-ratio: 1/1) { .ws-gmenu { padding-top: calc(var(--ws-top) + 8px); } .ws-gmenu .ws-gmenu-sheet { max-width: 640px; } }
 .ws-gmenu .ws-gmenu-mapcanvas { position: absolute; inset: 0; }
 
+/* Settings: two cards (Menu.ts buildSettings) — SETTINGS ships with the game; DEBUG (dashed, amber) is the playtest-only pickers */
+.ws-gmenu .ws-gmenu-card { flex: none; display: flex; flex-direction: column; margin-bottom: 12px; padding: 12px 12px 6px; border: 1px solid rgba(143, 227, 255, 0.22); background: rgba(143, 227, 255, 0.03); }
+.ws-gmenu .ws-gmenu-card.debug { border: 1px dashed rgba(255, 196, 120, 0.45); background: rgba(255, 196, 120, 0.03); }
+.ws-gmenu .ws-gmenu-cardtitle { flex: none; margin-bottom: 10px; font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.26em; text-transform: uppercase; color: #fff; }
+.ws-gmenu .ws-gmenu-card.debug .ws-gmenu-cardtitle { color: rgb(255, 206, 140); }
+.ws-gmenu .ws-gmenu-cardtitle small { display: block; margin-top: 4px; font-family: var(--ws-mono); font-weight: 400; font-size: 9px; letter-spacing: 0.16em; color: var(--ws-text-dim); }
 /* Settings → REVIEW (Menu.ts buildReview; src/ui/review.ts): password + UNLOCK, then the Quick note switch + LOCK */
 .ws-gmenu .ws-gmenu-review { flex: none; display: flex; flex-direction: column; }
 .ws-gmenu .ws-gmenu-input { flex: 1 1 140px; min-width: 0; padding: 7px 9px; background: rgba(6, 10, 18, 0.6); border: 1px solid var(--ws-cyan-line); border-radius: 0; color: var(--ws-text); font: 12px var(--ws-mono); outline: none; }
@@ -130,3 +144,8 @@
 .ws-gmenu .ws-gmenu-unlock { flex: none; padding: 7px 14px; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.16); border: 1px solid var(--ws-cyan); color: #fff; font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; }
 .ws-gmenu .ws-gmenu-unlock:disabled { opacity: 0.5; }
 .ws-gmenu .ws-gmenu-note { flex: none; margin: 0 2px 8px; font-size: 10px; line-height: 1.5; color: var(--ws-text-dim); }
+/* the music / sfx picker while a pick decodes from the offline cache for more than 300 ms (src/audio/preload.ts trackBusy) */
+.ws-gmenu .ws-gmenu-row.busy .ws-gmenu-swlabel::after { content: ''; display: inline-block; width: 9px; height: 9px; margin-left: 8px; vertical-align: -1px; border: 1.5px solid var(--ws-cyan); border-right-color: transparent; border-radius: 50%; animation: ws-gmenu-spin 0.8s linear infinite; }
+@keyframes ws-gmenu-spin { to { transform: rotate(360deg); } }
+/* main menu ▸ Settings (src/ui/BootSettings.ts, E55): the amber EXPERIMENTAL chip beside a row's label (the title deck's amber) */
+.ws-gmenu .ws-gmenu-chip.exp { display: inline-block; margin-left: 8px; font-style: normal; font-size: 7.5px; color: var(--ws-amber); border-color: rgba(255, 181, 71, 0.6); vertical-align: 1px; }

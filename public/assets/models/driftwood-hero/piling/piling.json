@@ -1,0 +1,23 @@
+{
+ "name": "piling",
+ "source": "piling.glb",
+ "tris": 700,
+ "size_m": [
+  0.76,
+  0.74,
+  2.6
+ ],
+ "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+ "vertex_colour": "COLOR_0 rgb = albedo (sRGB-graded, stored linear), a = Cycles AO (0.35..1)",
+ "palette": [
+  "#2d2e12",
+  "#4a4928",
+  "#5a5546",
+  "#666054",
+  "#756d5f",
+  "#7f6e42",
+  "#968454",
+  "#a6935f"
+ ],
+ "atlas": "piling.tex.glb: 256\u00b2 WebP base colour on smart-project UVs, no COLOR_0"
+}

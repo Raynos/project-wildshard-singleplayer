@@ -7,6 +7,7 @@ import { TIER_CONFIG } from '../core/tier';
 import { getActiveChunk } from '../chunks/registry';
 import { loadBakedCards, exportCardTextures } from './BakedCards';
 import { macrotask } from '../boot/plan';
+import { markGpuOnly } from '../core/gpuOnly';
 import { TREE_SPECS } from './placement';
 
 /**
@@ -242,6 +243,7 @@ export class TreeFactory {
    * wears it. Beyond `treeLoDist` a tree is 4 triangles instead of ~1 300.
    */
   private bakeImpostors(cardAlbedo: THREE.Texture, barkMap: THREE.Texture) {
+    markGpuOnly('pine impostors'); // render targets only: a lost context cannot bring them back in place (E54)
     const n = this.variants.length;
     const COL = TIER_CONFIG.maxTexture >= 2048 ? 512 : 256, W = COL * n, H = COL * 2;
     const rt = (colorSpace: THREE.ColorSpace) => new THREE.WebGLRenderTarget(W, H, { colorSpace, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter, magFilter: THREE.LinearFilter });
@@ -334,6 +336,7 @@ export class TreeFactory {
 
   // ---------------------------------------------------------------- branch card bake
   private bakeBranchCard(diff: THREE.Texture, nor: THREE.Texture, arm: THREE.Texture) {
+    markGpuOnly('branch cards');
     // twig region in the atlas (vertical twig, base at the bottom)
     const u0 = 30 / 1024, u1 = 230 / 1024, v0 = 1 - 448 / 1024, v1 = 1 - 40 / 1024;
     const twigGeo = new THREE.PlaneGeometry(1, 1);

@@ -5,7 +5,7 @@ export interface PackDef { readonly url: string; readonly bytes: number; readonl
 export const PACKS: Readonly<Record<string, Readonly<Record<string, PackDef>>>> = {
   "driftwood-isle": {
     "phone": {
-      url: "/assets/packs/driftwood-isle.phone-982bbf86.bin",
+      url: "/assets/packs/driftwood-isle.phone-041bcb5f.bin",
       bytes: 958633,
       files: [
         ["/assets/hdri/kloofendal_48d_partly_cloudy_puresky_2k.sky.jpg",0,350530,"image/jpeg"],
@@ -101,6 +101,39 @@ export const PACKS: Readonly<Record<string, Readonly<Record<string, PackDef>>>> 
         ["/assets/models/rock_moss_set_01/rock_moss_set_01_lod.phone.glb",8656168,402960,"model/gltf-binary"],
         ["/assets/models/tree_stump_01/tree_stump_01_lod.phone.glb",9059128,588736,"model/gltf-binary"],
         ["/assets/models/dead_tree_trunk/dead_tree_trunk_lod.phone.glb",9647864,408128,"model/gltf-binary"],
+      ],
+    },
+  },
+  "nalati-grasslands": {
+    "phone": {
+      url: "/assets/packs/nalati-grasslands.phone-b4564be5.bin",
+      bytes: 3271720,
+      files: [
+        ["/assets/baked/nalati-grasslands/terrain.bin",0,539522,"application/octet-stream"],
+        ["/assets/nalati/tex/meadow.phone.webp",539522,109540,"image/webp"],
+        ["/assets/nalati/tex/path.phone.webp",649062,93708,"image/webp"],
+        ["/assets/nalati/tex/gravel.phone.webp",742770,102924,"image/webp"],
+        ["/assets/nalati/tex/rock.phone.webp",845694,96844,"image/webp"],
+        ["/assets/nalati/tex/snow.phone.webp",942538,51752,"image/webp"],
+        ["/assets/nalati/tex/felt.phone.webp",994290,62218,"image/webp"],
+        ["/assets/nalati/cards.phone.webp",1056508,318112,"image/webp"],
+        ["/assets/nalati/panorama.phone.webp",1374620,439852,"image/webp"],
+        ["/assets/nalati/models/eagle.phone.glb",1814472,158760,"model/gltf-binary"],
+        ["/assets/nalati/models/cauldron.phone.glb",1973232,99288,"model/gltf-binary"],
+        ["/assets/nalati/models/firewood.phone.glb",2072520,121408,"model/gltf-binary"],
+        ["/assets/nalati/models/kumis-churn.phone.glb",2193928,107344,"model/gltf-binary"],
+        ["/assets/nalati/models/chest.phone.glb",2301272,104028,"model/gltf-binary"],
+        ["/assets/nalati/models/saddle.phone.glb",2405300,108832,"model/gltf-binary"],
+        ["/assets/nalati/models/balbal.phone.glb",2514132,80628,"model/gltf-binary"],
+        ["/assets/nalati/models/boulder-1.phone.glb",2594760,33672,"model/gltf-binary"],
+        ["/assets/nalati/models/boulder-2.phone.glb",2628432,24844,"model/gltf-binary"],
+        ["/assets/nalati/models/boulder-3.phone.glb",2653276,25216,"model/gltf-binary"],
+        ["/assets/nalati/models/watchtower.phone.glb",2678492,99376,"model/gltf-binary"],
+        ["/assets/nalati/models/snow-lotus.phone.glb",2777868,163120,"model/gltf-binary"],
+        ["/assets/nalati/models/horse-saddled.phone.glb",2940988,146840,"model/gltf-binary"],
+        ["/assets/nalati/models/kokpar-rider.phone.glb",3087828,170376,"model/gltf-binary"],
+        ["/assets/nalati/models/horse-wild.far.glb",3258204,6012,"model/gltf-binary"],
+        ["/assets/nalati/models/kokpar-rider.far.glb",3264216,7504,"model/gltf-binary"],
       ],
     },
   },

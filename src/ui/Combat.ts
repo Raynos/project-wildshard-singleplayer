@@ -5,6 +5,8 @@ import type { Animal } from '../entities/Animal';
 import type { Weapon } from '../player/Weapon';
 import { TIER } from '../core/tier';
 import { riding, pastRidden } from '../player/riding';
+import { viewportHeight } from '../core/viewport';
+import { lockOn } from '../player/AimTargets';
 import './styles/combat.css';
 
 /**
@@ -26,8 +28,9 @@ import './styles/combat.css';
  * weapon/animals updaters so it reads this frame's positions) and taps `weapon.onFire` / `weapon.onImpact` and
  * `animals.onDamage` without clobbering callbacks assigned before OR after (the taps are property accessors).
  * The crosshair hit-marker stays with hud.showHitMarker (weapon.onHit) — nothing here duplicates it.
- * `weapon` is any `Weapon` (src/player/Weapon.ts): crossbow or sword. A melee weapon's `reach` caps the MISS
- * judgement — a swing at a boar 30 m off is not a miss, it is out of range.
+ * `weapon` is any `Weapon` (src/player/Weapon.ts): crossbow or sword — or the `Weapons` kit manager, whose `reach` is
+ * the HELD weapon's. A melee weapon's `reach` (read at every fire, so a swap is honoured) caps the MISS judgement — a
+ * swing at a boar 30 m off is not a miss, it is out of range.
  */
 
 const BAR_DIST = 60;                       // m: bars only this close
@@ -42,6 +45,7 @@ const FLOAT_LIFT = 34;                     // px: floats start this far above th
 const PENDING_MAX = 4;                     // shots in the air we track for MISS
 const BOLT_SPEED_EST = 50;                 // m/s: bolt speed after drag, for the "it has flown past the target" deadline
 const PENDING_GRACE = 0.25;                // s: past that deadline with no hit → MISS over the target
+const MELEE_DEADLINE = 0.75;               // s: a swing's blade reaches its targets through the whole active window (+ hit-stop), not at once
 
 interface BarSlot { el: HTMLElement; fill: HTMLElement; kind: HTMLElement; animal: Animal | null; lastHp: number; shown: boolean; }
 interface FloatSlot { el: HTMLElement; num: HTMLElement; label: HTMLElement; x: number; y: number; t: number; active: boolean; }
@@ -68,10 +72,11 @@ export class Combat {
   private candDist: number[] = [];
   private t = 0;
 
-  private reach: number;
+  /** read at every fire, not once: the kit swaps between the sword (reach 2.2 m) and ranged weapons (no reach) mid-play */
+  private weapon: { readonly reach?: number | undefined };
 
-  constructor(game: Game, private animals: AnimalManager, weapon: Pick<Weapon, 'reach' | 'onFire' | 'onImpact'>, private camera: THREE.Camera) {
-    this.reach = weapon.reach ?? Infinity;
+  constructor(game: Game, private animals: AnimalManager, weapon: Pick<Weapon, 'onFire' | 'onImpact'> & { readonly reach?: number | undefined }, private camera: THREE.Camera) {
+    this.weapon = weapon;
     this.layer = document.createElement('div');
     this.layer.className = 'ws-combat-layer';
     const hud = document.getElementById('hud');
@@ -93,7 +98,7 @@ export class Combat {
     }
     for (let i = 0; i < PENDING_MAX; i++) this.pending.push({ animal: null, t: 0, deadline: 0, active: false });
 
-    const measure = (): void => { this.w = window.innerWidth; this.h = window.innerHeight; };
+    const measure = (): void => { this.w = window.innerWidth; this.h = viewportHeight(); };
     measure(); window.addEventListener('resize', measure);
 
     tap(weapon, 'onFire', () => { this.fired(); });
@@ -108,12 +113,13 @@ export class Combat {
     // judged at the moment of firing: was an animal on (or nearly on) the aim ray?
     if (!this.aimed) return;
     _o.setFromMatrixPosition(this.camera.matrixWorld);
-    if (this.aimed.position.distanceTo(_o) > this.reach + 1) return; // melee: out of reach is not a miss
+    const reach = this.weapon.reach ?? Infinity; // the HELD weapon's (Weapons.reach): undefined = ranged
+    if (this.aimed.position.distanceTo(_o) > reach + 1) return; // melee: out of reach is not a miss
     let slot = this.pending.find((p) => !p.active);
     if (!slot) { for (const p of this.pending) if (!slot || p.t < slot.t) slot = p; } // recycle the oldest
     if (!slot) return;
     slot.animal = this.aimed; slot.t = this.t; slot.active = true;
-    slot.deadline = this.t + this.aimed.position.distanceTo(_o) / BOLT_SPEED_EST + PENDING_GRACE;
+    slot.deadline = this.t + (this.weapon.reach !== undefined ? MELEE_DEADLINE : this.aimed.position.distanceTo(_o) / BOLT_SPEED_EST + PENDING_GRACE);
   }
 
   private damage(a: Animal, amount: number, point: THREE.Vector3, headshot: boolean, died: boolean): void {
@@ -173,7 +179,7 @@ export class Combat {
       const a = list[i];
       // a boss / a named elite has its own wide bar (src/game/Boss.ts, src/game/Elite.ts); the horse you ride has none
       if (a === undefined || a.hidden || a.mem['noHeadBar'] === 1 || a === riding.horse) continue;
-      const show = now - a.lastHitT < BAR_HOLD || a === this.aimed;
+      const show = now - a.lastHitT < BAR_HOLD || a === this.aimed || (lockOn.state === 'locked' && a === lockOn.target); // the locked enemy keeps its tag (E50, N)
       if (!show) continue;
       const d2 = a.position.distanceToSquared(_o);
       if (d2 > BAR_DIST * BAR_DIST) continue;

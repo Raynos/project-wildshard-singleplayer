@@ -79,4 +79,145 @@ describe('Settings', () => {
     s.setNumber('volume', 0.3);
     expect(s.getNumber('volume')).toBe(0.3);
   });
+
+  it('musicStyle: piano by default, persisted, validated, notifies once per change', async () => {
+    const s = await fresh();
+    expect(s.getMusicStyle()).toBe('piano');
+    const fn = vi.fn<(v: string) => void>();
+    s.onMusicStyle(fn);
+    s.setMusicStyle('folk');
+    s.setMusicStyle('folk');
+    expect(fn.mock.calls).toEqual([['folk']]);
+    expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ musicStyle: 'folk', volume: 0.8 });
+    expect((await fresh()).getMusicStyle()).toBe('folk');
+    localStorage.setItem(STORE, JSON.stringify({ musicStyle: 'dubstep' }));
+    expect((await fresh()).getMusicStyle()).toBe('piano');
+  });
+
+  it('sfxSet: best by default, a retired saved set reads as best, persisted beside musicStyle, ?sfx=synth overrides without persisting', async () => {
+    localStorage.setItem(STORE, JSON.stringify({ sfxSet: 'moss' })); // a set from SFX round 2, retired by the merged one
+    expect((await fresh()).getSfxSet()).toBe('best');
+    localStorage.clear();
+    const s = await fresh();
+    expect(s.getSfxSet()).toBe('best');
+    s.setSfxSet('synth');
+    expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'synth', musicStyle: 'piano' });
+    s.setSfxSet('best');
+    vi.stubGlobal('location', new URL('http://localhost:5173/?sfx=synth'));
+    try {
+      const t = await fresh();
+      expect(t.getSfxSet()).toBe('synth');
+      t.setNumber('volume', 0.5);
+      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ sfxSet: 'best' });
+    } finally { vi.stubGlobal('location', new URL('http://localhost:5173/')); }
+  });
+
+  it('?music=<style> overrides the saved style without persisting it', async () => {
+    localStorage.setItem(STORE, JSON.stringify({ musicStyle: 'orchestral' }));
+    vi.stubGlobal('location', new URL('http://localhost:5173/?music=synth'));
+    try {
+      const s = await fresh();
+      expect(s.getMusicStyle()).toBe('synth');
+      s.setNumber('volume', 0.4); // an unrelated write keeps the saved pick
+      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ musicStyle: 'orchestral' });
+      s.setMusicStyle('folk');
+      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ musicStyle: 'folk' });
+    } finally { vi.stubGlobal('location', new URL('http://localhost:5173/')); }
+  });
 });
+
+// E55: the OPTIONS — the player-facing toggles that were query params. setting(k) = URL param › saved pick › default.
+describe('Settings OPTIONS (setting / saveSetting)', () => {
+  const at = (search: string): Promise<typeof SettingsModule> => {
+    vi.stubGlobal('location', new URL(`http://localhost:5173/${search}`));
+    return fresh();
+  };
+  const reset = () => { vi.stubGlobal('location', new URL('http://localhost:5173/')); };
+
+  it('defaults: WebGL, Blender island, auto tier, auto touch, horizon on, live clock', async () => {
+    const s = await fresh();
+    expect([s.setting('gpu'), s.setting('island'), s.setting('tier'), s.setting('touch'), s.setting('matte'), s.setting('time')])
+      .toEqual(['webgl', 'blender', 'auto', 'auto', 'on', 'live']);
+    expect(s.pendingReload()).toEqual([]);
+  });
+
+  it('precedence: the URL param wins for this load, else the saved pick, else the default', async () => {
+    localStorage.setItem(STORE, JSON.stringify({ island: 'blender', gpu: 'webgpu', tier: 'phone', matte: 'off', time: 'night' }));
+    try {
+      const saved = await at('');
+      expect([saved.setting('island'), saved.setting('gpu'), saved.setting('tier'), saved.setting('matte'), saved.setting('time')]).toEqual(['blender', 'webgpu', 'phone', 'off', 'night']);
+      expect(saved.settingFromUrl('island')).toBe(false);
+      const url = await at('?island=procedural&gpu=webgpu-gl&tier=desktop&matte=1&tod=0.5&touch');
+      expect([url.setting('island'), url.setting('gpu'), url.setting('tier'), url.setting('matte'), url.setting('time'), url.setting('touch')])
+        .toEqual(['procedural', 'webgpu-gl', 'desktop', 'on', 'live', 'on']);
+      expect(url.settingFromUrl('island')).toBe(true);
+      expect(url.savedSetting('island')).toBe('blender'); // the URL is never persisted
+      url.setNumber('volume', 0.3);
+      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ island: 'blender', gpu: 'webgpu', tier: 'phone', matte: 'off', time: 'night' });
+    } finally { reset(); }
+  });
+
+  it('URL forms: ?matte=0 is off, an unknown ?gpu= is WebGL, an invalid ?island= falls through to the saved pick', async () => {
+    localStorage.setItem(STORE, JSON.stringify({ island: 'blender', gpu: 'webgpu' }));
+    try {
+      const s = await at('?matte=0&gpu=nope&island=lego');
+      expect(s.setting('matte')).toBe('off');
+      expect(s.setting('gpu')).toBe('webgl');
+      expect(s.setting('island')).toBe('blender');
+      expect(s.settingFromUrl('island')).toBe(false);
+    } finally { reset(); }
+  });
+
+  it('a saved value outside the option set falls back to the default', async () => {
+    localStorage.setItem(STORE, JSON.stringify({ gpu: 'vulkan', time: 42 }));
+    const s = await fresh();
+    expect(s.setting('gpu')).toBe('webgl');
+    expect(s.setting('time')).toBe('live');
+  });
+
+  it('a boot option saves the pick but keeps running what the page was built with, until the reload', async () => {
+    const s = await fresh();
+    const fn = vi.fn<(v: string) => void>();
+    s.onSettingChange('island', fn);
+    s.saveSetting('island', 'procedural');
+    s.saveSetting('island', 'procedural');
+    expect(s.setting('island')).toBe('blender');
+    expect(s.savedSetting('island')).toBe('procedural');
+    expect(fn.mock.calls).toEqual([['procedural']]);
+    expect(s.pendingReload()).toEqual(['island']);
+    const next = await fresh();
+    expect(next.setting('island')).toBe('procedural');
+    expect(next.pendingReload()).toEqual([]);
+  });
+
+  it('a live option applies at once and notifies once per real change, even over a URL override', async () => {
+    try {
+      const s = await at('?matte=0');
+      const fn = vi.fn<(v: string) => void>();
+      s.onSettingChange('matte', fn);
+      s.saveSetting('matte', 'on');
+      s.saveSetting('matte', 'on');
+      expect(s.setting('matte')).toBe('on');
+      s.saveSetting('time', 'golden');
+      expect(s.setting('time')).toBe('golden');
+      expect(fn.mock.calls).toEqual([['on']]);
+      expect(s.pendingReload()).toEqual([]); // live options never wait for a reload
+      expect(JSON.parse(localStorage.getItem(STORE) ?? '{}')).toMatchObject({ matte: 'on', time: 'golden' });
+    } finally { reset(); }
+  });
+
+  it('carries the pre-E55 island pick (ws.island.v1) over once', async () => {
+    localStorage.setItem('ws.island.v1', 'procedural');
+    expect((await fresh()).setting('island')).toBe('procedural');
+    localStorage.setItem(STORE, JSON.stringify({ island: 'blender' }));
+    expect((await fresh()).setting('island')).toBe('blender'); // the new store wins once it has a pick
+  });
+
+  it('settingsReloadUrl drops every option / audio override and the extras, keeps the chunk and the dev params', async () => {
+    const s = await fresh();
+    const out = new URL(s.settingsReloadUrl('http://localhost:5173/?chunk=driftwood-isle&island=blender&gpu=webgpu&tier=phone&touch&matte=0&tod=0.5&clock=60&music=synth&sfx=moss&skipintro&nolock&x=3', ['skipintro']));
+    expect([...out.searchParams.keys()]).toEqual(['chunk', 'nolock', 'x']);
+    expect(s.settingParams('time')).toEqual(['tod', 'clock']);
+  });
+});
+

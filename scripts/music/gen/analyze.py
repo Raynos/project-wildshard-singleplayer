@@ -215,7 +215,17 @@ class Vocals:
         vr = np.array([np.sqrt((voc[:, i * win:(i + 1) * win] ** 2).mean()) for i in range(n)])
         mr = np.array([np.sqrt((y[:, i * win:(i + 1) * win] ** 2).mean()) for i in range(n)]) + 1e-9
         active = float((20 * np.log10(vr / mr + 1e-9) > -20).mean()) if n else 0.0
-        return {"vocal_energy_share": round(share, 4), "vocal_active_frac": round(active, 3)}
+        st = stems.numpy()
+        shares = {src: round(float((st[i] ** 2).sum()) / tot, 4) for i, src in enumerate(self.model.sources)}
+        # groove continuity for the v3 tension layer: share of 1 s windows where drums+bass sit within 20 dB of the mix
+        gb = st[self.model.sources.index("drums")] + st[self.model.sources.index("bass")]
+        gr = np.array([np.sqrt((gb[:, i * win:(i + 1) * win] ** 2).mean()) for i in range(n)])
+        groove = float((20 * np.log10(gr / mr + 1e-9) > -20).mean()) if n else 0.0
+        dr = st[self.model.sources.index("drums")]
+        drr = np.array([np.sqrt((dr[:, i * win:(i + 1) * win] ** 2).mean()) for i in range(n)])
+        drums_active = float((20 * np.log10(drr / mr + 1e-9) > -24).mean()) if n else 0.0
+        return {"vocal_energy_share": round(share, 4), "vocal_active_frac": round(active, 3), "stem_share": shares,
+                "groove_active_frac": round(groove, 3), "drums_active_frac": round(drums_active, 3)}
 
 
 def analyze(wav: Path, side: dict, brief: dict, clap: Clap | None, vocals: Vocals | None = None) -> dict:
@@ -283,7 +293,8 @@ def main() -> None:
         if not side_p.exists() or (out.exists() and not args.force):
             continue
         side = json.loads(side_p.read_text())
-        m = analyze(wav, side, briefs["styles"][side["style"]], clap, vocals)
+        brief = briefs["styles"].get(side["style"]) or {"bpm": side.get("bpm") or 100}  # v3 stings / sfx have no style brief
+        m = analyze(wav, side, brief, clap, vocals)
         out.write_text(json.dumps(m, indent=2))
         c = m.get("clap", {})
         print(f"{wav.parent.name}/{wav.name}: {m['loudness']['lufs']} LUFS, tempo {m['tempo']['estimated_bpm']}, "

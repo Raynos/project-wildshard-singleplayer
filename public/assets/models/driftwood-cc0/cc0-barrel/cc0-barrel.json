@@ -1,0 +1,16 @@
+{
+ "name": "cc0-barrel",
+ "source": "~/models/cc0/quaternius/pirate-kit/glTF/Prop_Barrel.gltf",
+ "licence": "CC0 1.0 (see scripts/img2mesh/CC0.md)",
+ "tris": 640,
+ "size_m": [
+  1.08,
+  1.08,
+  1.0
+ ],
+ "palette": [
+  "rock",
+  "woodDeep"
+ ],
+ "vertex_colour": "COLOR_0 rgb = Driftwood palette albedo, a = 1"
+}

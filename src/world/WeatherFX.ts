@@ -22,7 +22,7 @@ import { Rng } from '../core/rng';
 import { attachFogUniforms } from './Atmosphere';
 import { heightAt, trailDistance, inChunk } from './Heightfield';
 import type { Weather, Strike } from './Weather';
-import type { SkyLook } from './DayNight';
+import type { SkyLook } from './DayClock';
 
 export interface WeatherFXOpts { phone: boolean; seed: number }
 

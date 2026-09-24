@@ -121,8 +121,6 @@ function buildSabre(material: THREE.Material, steel: THREE.Material): SwordRig &
 // ───────────────────────────── the sabre's arcs ─────────────────────────────
 
 const ice = (r: number, g: number, b: number) => new THREE.Color(r, g, b);
-const WIDE = { yaws: [0, -0.18, 0.18, -0.36, 0.36, -0.55, 0.55], pitches: [-0.3, 0.0, -0.6, -0.9] };
-const DIAG = { yaws: [0, -0.14, 0.14, -0.3, 0.3], pitches: [0.05, -0.25, -0.5, -0.75, -0.95] };
 
 
 const S_SLASH: Move = {
@@ -133,7 +131,7 @@ const S_SLASH: Move = {
     key(0.24, -0.06, -0.4, -0.46, -0.9, 0.05, -0.43, 0.45),   // out low left: a falling arc, not a flat line
   ],
   windup: 0.07, slashEnd: 0.24, total: 0.35,
-  damage: 1, stagger: 0, sweep: 1, hitStop: 0.045, fan: WIDE,
+  damage: 1, stagger: 0, sweep: 1, hitStop: 0.045, kick: { pitch: -0.6, roll: 1.6 },
   trail: { from: 0.58, color: ice(0.78, 0.92, 1), alpha: 0.65, inner: 0, life: 0.14 },
 };
 const S_BACKHAND: Move = {
@@ -144,7 +142,7 @@ const S_BACKHAND: Move = {
     key(0.22, 0.42, -0.14, -0.5, 0.86, 0.46, -0.22, -0.7),     // high right: a rising arc
   ],
   windup: 0.06, slashEnd: 0.22, total: 0.34,
-  damage: 1, stagger: 0, sweep: -1, hitStop: 0.045, fan: WIDE,
+  damage: 1, stagger: 0, sweep: -1, hitStop: 0.045, kick: { pitch: -0.6, roll: -1.6 },
   trail: { from: 0.58, color: ice(0.72, 0.88, 1), alpha: 0.65, inner: 0, life: 0.14 },
 };
 const S_FINISHER: Move = {
@@ -155,7 +153,7 @@ const S_FINISHER: Move = {
     key(0.28, -0.16, -0.46, -0.44, -0.7, -0.36, -0.62, 0.15),  // low left
   ],
   windup: 0.1, slashEnd: 0.28, total: 0.44,
-  damage: 16 / 12, stagger: 0.25, sweep: 0.5, hitStop: 0.06, fan: DIAG,
+  damage: 16 / 12, stagger: 0.25, sweep: 0.5, hitStop: 0.06, kick: { pitch: -1.8, roll: 1.1 },
   trail: { from: 0.5, color: ice(0.86, 0.95, 1), alpha: 0.75, inner: 0.05, life: 0.16 },
 };
 const S_HEAVY: Move = {
@@ -166,7 +164,7 @@ const S_HEAVY: Move = {
     key(0.3, -0.14, -0.5, -0.44, -0.58, -0.44, -0.68, 0.0),
   ],
   windup: 0.06, slashEnd: 0.3, total: 0.62,
-  damage: 2, stagger: 1, sweep: 0.35, hitStop: 0.08, fan: DIAG,
+  damage: 2, stagger: 1, sweep: 0.35, hitStop: 0.08, kick: { pitch: -2.6, roll: 0.8, fov: -2 },
   trail: { from: 0.3, color: ice(0.9, 0.97, 1), alpha: 1.0, inner: 0.35, life: 0.22 },
 };
 /** mounted: a wide pass on the right — high forward-right, down and back along the horse's flank */
@@ -178,8 +176,7 @@ export const PASS_RIGHT: Move = {
     key(0.3, 0.38, -0.42, -0.36, 0.75, -0.45, -0.2, 1.5),    // follow-through low right, trailing back along the flank
   ],
   windup: 0.09, slashEnd: 0.3, total: 0.5,
-  damage: 1, stagger: 1, sweep: -1, hitStop: 0.05, reach: MOUNT_REACH,
-  fan: { yaws: [-0.35, -0.6, -0.85, -1.1, -1.35], pitches: [-0.2, -0.35, -0.55, -0.8] },
+  damage: 1, stagger: 1, sweep: -1, hitStop: 0.05, kick: { pitch: -0.5, roll: -1.2 }, reach: MOUNT_REACH,
   trail: { from: 0.3, color: ice(0.8, 0.94, 1), alpha: 0.9, inner: 0.2, life: 0.2 },
 };
 /** mounted: the backhand pass on the left */
@@ -191,8 +188,7 @@ export const PASS_LEFT: Move = {
     key(0.3, -0.15, -0.42, -0.4, -0.8, -0.45, -0.2, -0.9),   // follow-through low left
   ],
   windup: 0.09, slashEnd: 0.3, total: 0.5,
-  damage: 1, stagger: 1, sweep: 1, hitStop: 0.05, reach: MOUNT_REACH,
-  fan: { yaws: [0.35, 0.6, 0.85, 1.1, 1.35], pitches: [-0.2, -0.35, -0.55, -0.8] },
+  damage: 1, stagger: 1, sweep: 1, hitStop: 0.05, kick: { pitch: -0.5, roll: 1.2 }, reach: MOUNT_REACH,
   trail: { from: 0.3, color: ice(0.8, 0.94, 1), alpha: 0.9, inner: 0.2, life: 0.2 },
 };
 export const SABRE_MOVES: SwordMoveSet = { rest: SABRE_REST, charge: SABRE_CHARGE, sprint: SABRE_SPRINT, combo: [S_SLASH, S_BACKHAND, S_FINISHER], heavy: S_HEAVY };
@@ -233,7 +229,7 @@ export class Sabre extends Sword {
     const side = this.passSide(m);
     const chainMul = Math.min(CHAIN_MAX, 1 + CHAIN_STEP * (this.chainT > 0 ? this.passChain : 0));
     this.damage = Math.round(DAMAGE * (1 + Math.max(0, m.speed) / 12) * chainMul);
-    if (this.strike(side < 0 ? PASS_LEFT : PASS_RIGHT, false)) this.mountCd = MOUNT_COOLDOWN;
+    if (this.strikeMove(side < 0 ? PASS_LEFT : PASS_RIGHT, false)) this.mountCd = MOUNT_COOLDOWN;
   }
 
   /** −1 = left, +1 = right of the horse's heading: the nearest live animal within PASS_SENSE, else the way you look */

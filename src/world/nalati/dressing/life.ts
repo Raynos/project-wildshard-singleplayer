@@ -20,7 +20,7 @@ import { clamp, smoothstep } from '../../../core/noise';
 import { TIER } from '../../../core/tier';
 import { heightAt } from '../../Heightfield';
 import { grassBaseHeightAt } from '../../GrassField';
-import { wind } from '../../Wind';
+import { wind } from '../../steppeWind';
 import { painterlyMaterial, painterlyUniforms } from '../../painterly';
 import type { Sky } from '../../Sky';
 

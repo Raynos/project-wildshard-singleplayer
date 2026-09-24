@@ -1,15 +1,27 @@
-/* frame meter (src/ui/Perf.ts) — one small line top-right, under the build pill on the title screen and the bolts panel in play */
-.ws-perf { position: fixed; right: 12px; top: calc(10px + env(safe-area-inset-top, 0px)); z-index: 55; display: flex; align-items: baseline; gap: 5px; padding: 2px 5px; pointer-events: none; font-family: var(--ws-mono); font-size: 8px; letter-spacing: 0.04em; color: rgba(196, 220, 232, 0.55); background: rgba(6, 10, 18, 0.45); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* frame meter (src/ui/Perf.ts) — one small line top-right on desktop; on phones a compact pill on PAUSE's row that opens a
+   details panel over the minimap (E47) */
+.ws-perf { position: fixed; right: 12px; top: calc(10px + env(safe-area-inset-top, 0px)); z-index: 55; display: flex; align-items: baseline; gap: 5px; margin: 0; padding: 2px 5px; border: 0; appearance: none; -webkit-appearance: none; pointer-events: none; font-family: var(--ws-mono); font-size: 8px; letter-spacing: 0.04em; line-height: 1; text-align: left; color: rgba(196, 220, 232, 0.55); background: rgba(6, 10, 18, 0.45); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ws-perf b { font-family: var(--ws-mono); font-weight: 500; font-size: 10px; line-height: 1; color: rgba(255, 255, 255, 0.85); }
 .ws-perf b::after { content: ' fps'; font-size: 8px; font-weight: 400; color: rgba(196, 220, 232, 0.55); }
 .ws-perf.slow b { color: #ffd27a; }
 .ws-perf.bad b { color: #ff7a6b; }
 .ws-perf[hidden] { display: none; }
-.ws-perf .ws-perf-short { display: none; }
+.ws-perf .ws-perf-ms { display: none; }
+.ws-perf-panel { display: none; }
 @media (max-width: 700px) {
-  /* phone: one short line top-right, above the compass band (its top edge is max(9vh, safe-area + 10px)); the PAUSE pill is top-left */
-  .ws-perf { left: 12px; right: auto; top: calc(var(--ws-top) + 30px); font-size: 8px; gap: 4px; padding: 2px 5px; } /* under the PAUSE pill (--ws-top = the shared top edge token in base.css); the minimap owns the top-right */
+  /* phone (E47): "59 fps 17 ms" in a glass pill the height of PAUSE, just right of it on the same row (PAUSE's 44 px hit
+     area ends 6 px past its edge, this pill starts 8 px past it). A tap opens the panel; the pill never passes a touch on. */
+  .ws-perf { left: 101px; right: auto; top: var(--ws-top); height: 24px; box-sizing: border-box; align-items: center; gap: 6px; padding: 0 10px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); font-size: 8.5px; letter-spacing: 0.08em; pointer-events: auto; cursor: pointer; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-user-drag: none; -webkit-tap-highlight-color: transparent; transition: border-color 0.12s, background 0.12s; }
+  .ws-perf::after { content: ''; position: absolute; inset: -10px -4px -10px 0; } /* ≥ 44 px hit target */
+  .ws-perf * { pointer-events: none; }
   .ws-perf .ws-perf-long { display: none; }
-  .ws-perf .ws-perf-short { display: inline; }
-  .ws-perf b { font-size: 9px; }
+  .ws-perf .ws-perf-ms { display: inline; color: var(--ws-text-dim); }
+  .ws-perf b { font-size: 10px; }
+  .ws-perf.open { border-color: var(--ws-cyan); background: rgba(13, 27, 38, 0.92); }
+  /* the details: dropped over the minimap (top-right), above everything; a tap on it or anywhere else closes it */
+  .ws-perf-panel.open { position: fixed; right: 12px; top: var(--ws-top); z-index: 56; display: block; box-sizing: border-box; width: max(38vw, 176px); padding: 8px 10px 6px; background: rgba(6, 10, 18, 0.92); border: 1px solid var(--ws-cyan); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 18px rgba(143, 227, 255, 0.18); font-family: var(--ws-mono); font-size: 9.5px; line-height: 1.2; color: var(--ws-text); font-variant-numeric: tabular-nums; pointer-events: auto; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  .ws-perf-panel .ws-perf-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 4px 0; border-bottom: 1px solid rgba(143, 227, 255, 0.12); }
+  .ws-perf-panel .ws-perf-row:last-child { border-bottom: 0; }
+  .ws-perf-panel .ws-perf-row i { font-style: normal; font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-cyan-dim); }
+  .ws-perf-panel .ws-perf-row span { white-space: nowrap; text-align: right; }
 }

@@ -7,7 +7,9 @@ import type { Game } from '../core/Game';
 import type { Sky } from '../world/Sky';
 import type { Player } from '../player/Player';
 import type { Forest } from '../world/Forest';
-import { heightAt } from '../world/Heightfield';
+import { activePhysics } from '../physics/active';
+import { castSegment, sweepBall, sticksIn, type Hit } from '../physics/query';
+import type { Material } from '../physics/surface';
 import { CHUNK_HALF } from '../core/config';
 import { getSetting, setSetting } from '../ui/Settings';
 import { makePixels, clamp01, sstep, CROSSBOW_SETS, RIFLE_SETS, type Pixels, type SetName, type Ctx2D } from './viewmodelTextures';
@@ -29,7 +31,8 @@ import type { Weapon } from './Weapon';
  * Events (assign callbacks):
  *   onFire()                                       — a bolt left the rail (play crossbowFire, kick crosshair)
  *   onHit(kind, headshot, killed)                  — a bolt hit an animal from `targets`
- *   onImpact(surface: 'wood'|'ground'|'flesh', point) — any bolt impact (play boltImpact)
+ *   onImpact(surface: 'wood'|'ground'|'flesh', point) — any bolt impact (play boltImpact); the surface is the hit
+ *                                                    collider's material (impactSurfaceOf)
  *   onReloadStart() / onReloadEnd()
  *   onDry()                                        — trigger pulled with nothing loaded
  * State: `crossbow.state` → { bolts, loaded, reloading, reloadProgress, ads }  (bolts includes the loaded one)
@@ -55,6 +58,35 @@ export interface TargetAnimal {
 export interface TargetHit { animal: TargetAnimal; point: THREE.Vector3; distance: number; headshot: boolean }
 export interface Targets { raycast: (origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number) => TargetHit | null }
 export type ImpactSurface = 'wood' | 'ground' | 'flesh';
+/** The impact sound / puff family of what was hit (three sample sets): bark and planks are wood, everything else ground. */
+export function impactSurfaceOf(m: Material): ImpactSurface {
+  return m === 'flesh' ? 'flesh' : m === 'wood' || m === 'planks' ? 'wood' : 'ground';
+}
+interface Vec3 { x: number; y: number; z: number }
+/**
+ * The first world surface a bolt's step (`radius` > 0: a ball swept a → b) or a shot (`radius` 0: the ray a → b) meets,
+ * looking through the invisible chunk-edge walls so nothing stops in mid-air; `distance` is from `a`. Null when the
+ * way is clear — and when there is no physics world (before boot, node tests): then nothing in the world is hit.
+ */
+const _aimEnd = new THREE.Vector3();
+/** The Object3D a hit collider moves with: a registered piece that `follows` one (the boat, a cabin door), else null. */
+function movingOwner(owner: unknown): THREE.Object3D | null {
+  if (typeof owner !== 'object' || owner === null || !('follows' in owner)) return null;
+  const f = (owner as { follows?: unknown }).follows;
+  return f instanceof THREE.Object3D ? f : null;
+}
+
+export function worldHit(a: Vec3, b: Vec3, radius: number): Hit | null {
+  const physics = activePhysics();
+  if (!physics) return null;
+  let from = a, skip: Hit['collider'] | undefined, travelled = 0;
+  for (let pass = 0; pass < 4; pass++) {
+    const hit = radius > 0 ? sweepBall(physics, from, b, radius, undefined, skip) : castSegment(physics, from, b, undefined, skip);
+    if (hit?.material !== 'edge') { if (hit) hit.distance += travelled; return hit; }
+    travelled += hit.distance; from = hit.point; skip = hit.collider;
+  }
+  return null;
+}
 export interface CrossbowWorld { game: Game; sky: Sky; player: Player; forest: Forest }
 export interface CrossbowOptions { allowUnlocked?: boolean }
 
@@ -70,8 +102,11 @@ const MAX_FLYING = 8;
 const MAX_STUCK = 200;
 /** how deep the broadhead sits in wood / ground (m); the rest of the bolt stands proud of the surface */
 const STUCK_BURY = 0.08;
-/** Forest pads every trunk's collision radius (`TreeInstance.r`) by this much over the drawn trunk (Forest.ts) */
-const TRUNK_PAD = 0.15;
+/** a flying bolt is swept through the physics world as a ball this big (m) — the broadhead's reach */
+const BOLT_RADIUS = 0.03;
+/** a bolt glancing off stone / rock / metal keeps this much of its speed along the surface, bounces off it with this
+ *  much of its speed into it, and never leaves faster than GLANCE_MAX (m/s): a short skip, then it falls and lies */
+const GLANCE_KEEP = 0.2, GLANCE_BOUNCE = 0.25, GLANCE_MAX = 9, GLANCE_LIFT = 0.01;
 /**
  * TRACERS (for sighting-in the iron sights): a traced bolt gets a big red glow while it flies, leaves a fat solid-red
  * trail of its whole flight path (drawn through trees: no depth test) and drops a red impact marker where it stopped;
@@ -528,7 +563,7 @@ class Tracer {
 
 // ───────────────────────────── the crossbow ─────────────────────────────
 
-interface Bolt { mesh: THREE.Mesh; pos: THREE.Vector3; vel: THREE.Vector3; active: boolean; age: number; roll: number; traced: boolean; tracer: Tracer | null; glow: THREE.Mesh }
+interface Bolt { mesh: THREE.Mesh; pos: THREE.Vector3; vel: THREE.Vector3; active: boolean; age: number; roll: number; traced: boolean; tracer: Tracer | null; glow: THREE.Mesh; glanced: boolean }
 interface Stuck { mesh: THREE.Mesh }
 
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3();
@@ -561,7 +596,7 @@ export class Crossbow implements Weapon {
   onDry?: () => void;
 
   readonly model = new THREE.Group();
-  private game: Game; private sky: Sky; private player: Player; private forest: Forest;
+  private game: Game; private sky: Sky; private player: Player;
   private targets: Targets | undefined;
 
   // viewmodel parts we animate
@@ -600,7 +635,7 @@ export class Crossbow implements Weapon {
   private spawnPos = new THREE.Vector3();
 
   constructor(world: CrossbowWorld, targets?: Targets, opts: CrossbowOptions = {}) {
-    this.game = world.game; this.sky = world.sky; this.player = world.player; this.forest = world.forest;
+    this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
@@ -841,7 +876,7 @@ export class Crossbow implements Weapon {
       const glow = new THREE.Mesh(boltGlowGeo, glowMat); glow.renderOrder = TRACER_ORDER + 1; glow.position.set(0, 0, this.tipLocal.z + 0.05); glow.visible = false;
       mesh.add(glow);
       this.game.scene.add(mesh);
-      this.bolts.push({ mesh, pos: new THREE.Vector3(), vel: new THREE.Vector3(), active: false, age: 0, roll: 0, traced: false, tracer: null, glow });
+      this.bolts.push({ mesh, pos: new THREE.Vector3(), vel: new THREE.Vector3(), active: false, age: 0, roll: 0, traced: false, tracer: null, glow, glanced: false });
     }
     for (let i = 0; i < MAX_TRACERS; i++) this.tracers.push(new Tracer(this.game.scene));
   }
@@ -888,7 +923,7 @@ export class Crossbow implements Weapon {
     this.spawnPos.lerp(_v2, 0.8);
     b.pos.copy(this.spawnPos).lerp(this.tipWorld(_v2), a);
     b.vel.copy(_dir).multiplyScalar(BOLT_SPEED);
-    b.active = true; b.age = 0; b.roll = 0;
+    b.active = true; b.age = 0; b.roll = 0; b.glanced = false;
     b.mesh.visible = true;
     b.mesh.position.copy(b.pos);
     b.mesh.quaternion.setFromUnitVectors(NEG_Z, _dir);
@@ -1045,7 +1080,9 @@ export class Crossbow implements Weapon {
     if (this.targets && (++this.aimFrame & 3) === 0) {
       this.model.updateMatrixWorld(); // the pose was just set; the sight ray goes through the tip
       this.aimRay(_v3, _fwd);
-      const hit = this.targets.raycast(_v3, _fwd, 120);
+      // an animal behind a wall shows no range (P5-L2): the world hit along the sight ray caps the reach
+      const wall = worldHit(_v3, _aimEnd.copy(_v3).addScaledVector(_fwd, 120), 0);
+      const hit = this.targets.raycast(_v3, _fwd, wall?.distance ?? 120);
       if (hit?.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; this.aimInfo = this.aimCache; }
       else this.aimInfo = null;
     }
@@ -1098,16 +1135,24 @@ export class Crossbow implements Weapon {
     }
   }
 
-  /** segment prev→b.pos vs animals, trees, terrain. Returns true when the bolt stopped. */
+  /**
+   * The step prev → b.pos: the nearer of an animal (AnimalManager.raycast, cut short at the world hit so a wall in
+   * front wins) and the world (a BOLT_RADIUS ball swept through the physics world — terrain, trunks, rocks,
+   * structures). By the surface's material the bolt sticks (wood, planks, ground, sand, grass), or glances off
+   * (stone, rock, metal, shell): a short skip with most of its speed lost, then it lies on the first floor it falls on
+   * (knocking off any wall on the way).
+   * Returns true when the bolt stopped.
+   */
   private testHit(b: Bolt, prev: THREE.Vector3): boolean {
     _dir.subVectors(b.pos, prev);
     const segLen = _dir.length();
     if (segLen < 1e-6) return false;
     _dir.multiplyScalar(1 / segLen);
+    const wall = worldHit(prev, b.pos, BOLT_RADIUS);
 
-    // animals
+    // animals, short of the wall
     if (this.targets) {
-      const hit = this.targets.raycast(prev, _dir, segLen);
+      const hit = this.targets.raycast(prev, _dir, wall ? wall.distance : segLen);
       if (hit) {
         const killed = hit.animal.applyDamage(hit.animal.damageFor(hit.headshot, hit.point.distanceTo(this.game.camera.position)), hit.point, _dir);
         this.onHit?.(hit.animal.kind, hit.headshot, killed);
@@ -1115,59 +1160,47 @@ export class Crossbow implements Weapon {
         return true;
       }
     }
-    // tree trunks (tapered cylinders): the full collision radius (trunk + TRUNK_PAD) over the whole trunk height, so a
-    // bolt that visibly meets bark sticks instead of slipping through; it is then stuck into the REAL bark (the
-    // padded hit is up to 15 cm short of it) by looking a little further along the flight for the unpadded trunk
-    for (const tr of this.forest.nearby(b.pos.x, b.pos.z, 1)) {
-      const tf = this.segmentCylinder(prev, _dir, segLen, tr.x, tr.z, tr.r, tr.y, tr.y + tr.height);
-      if (tf >= 0) {
-        const tb = this.segmentCylinder(prev, _dir, segLen + TRUNK_PAD * 4, tr.x, tr.z, Math.max(0.05, tr.r - TRUNK_PAD), tr.y, tr.y + tr.height);
-        _v2.copy(prev).addScaledVector(_dir, tb >= 0 ? tb : tf);
-        this.stopBolt(b, _v2, _dir, 'wood', true);
-        return true;
-      }
-    }
-    // terrain
-    if (b.pos.y < heightAt(b.pos.x, b.pos.z)) {
-      let lo = 0, hi = 1;
-      for (let i = 0; i < 5; i++) {
-        const mid = (lo + hi) / 2;
-        _v2.copy(prev).addScaledVector(_dir, segLen * mid);
-        if (_v2.y < heightAt(_v2.x, _v2.z)) hi = mid; else lo = mid;
-      }
-      _v2.copy(prev).addScaledVector(_dir, segLen * lo);
-      this.stopBolt(b, _v2, _dir, 'ground', true);
+    if (!wall) return false;
+    const n = _v2.set(wall.normal.x, wall.normal.y, wall.normal.z);
+    if (n.dot(_dir) > 0) n.negate(); // facing the bolt
+    const at = _v3.set(wall.point.x, wall.point.y, wall.point.z); // the ball's centre, touching the surface
+    if (b.glanced && n.y >= 0.5) { this.restBolt(b, at, n); return true; } // a spent bolt lies where it lands
+    const surface = impactSurfaceOf(wall.material);
+    if (!b.glanced && sticksIn(wall.material)) {
+      // the ball touches one radius off the surface: the tip carries on along the flight to it
+      at.addScaledVector(_dir, BOLT_RADIUS / Math.max(0.25, -n.dot(_dir)));
+      this.stopBolt(b, at, _dir, surface, true, STUCK_BURY, false, movingOwner(wall.owner));
       return true;
     }
+    // glance: off the surface with little of the speed left, then gravity has it
+    at.addScaledVector(n, GLANCE_LIFT);
+    if (!b.glanced) { this.puffs.emit(at, _dir, surface); this.onImpact?.(surface, at); } // a spent bolt knocks off walls quietly
+    const vn = b.vel.dot(n);
+    b.vel.addScaledVector(n, -vn).multiplyScalar(GLANCE_KEEP).addScaledVector(n, -vn * GLANCE_BOUNCE);
+    if (b.vel.length() > GLANCE_MAX) b.vel.setLength(GLANCE_MAX);
+    b.pos.copy(at);
+    b.glanced = true;
     return false;
   }
 
-  /** distance along the segment where it enters a cylinder whose radius tapers to 20 % at yTop, or -1 */
-  private segmentCylinder(o: THREE.Vector3, d: THREE.Vector3, len: number, cx: number, cz: number, r: number, yBot: number, yTop: number): number {
-    const ox = o.x - cx, oz = o.z - cz;
-    const a = d.x * d.x + d.z * d.z;
-    if (a < 1e-8) return -1;
-    const bq = 2 * (ox * d.x + oz * d.z);
-    let rr = r;
-    for (let pass = 0; pass < 2; pass++) {
-      const c = ox * ox + oz * oz - rr * rr;
-      const disc = bq * bq - 4 * a * c;
-      if (disc < 0) return -1;
-      const t = (-bq - Math.sqrt(disc)) / (2 * a);
-      if (t < 0 || t > len) return -1;
-      const y = o.y + d.y * t;
-      if (y < yBot || y > yTop) return -1;
-      if (pass === 1) return t;
-      rr = r * (1 - 0.8 * clamp01((y - yBot) / (yTop - yBot)));
-    }
-    return -1;
+  /** A spent (glanced) bolt comes to rest lying on the surface it fell onto: along its travel, flat to the surface. */
+  private restBolt(b: Bolt, at: THREE.Vector3, n: THREE.Vector3): void {
+    const along = _v1.copy(_dir).addScaledVector(n, -_dir.dot(n));
+    if (along.lengthSq() < 1e-6) along.crossVectors(n, Math.abs(n.y) < 0.9 ? Y_AXIS : X_AXIS); // fell straight down: any way along the surface
+    along.normalize();
+    // the tip half a bolt ahead of the contact so the shaft lies across it, on the surface instead of a radius above it
+    at.addScaledVector(n, -BOLT_RADIUS * 0.8).addScaledVector(along, (this.nockZ - this.tipLocal.z) * 0.5);
+    this.stopBolt(b, at, along, 'ground', true, 0, true);
   }
 
-  private stopBolt(b: Bolt, point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface, stick: boolean): void {
+  /** `bury`: how deep the broadhead goes in; `quiet`: no puff / impact event (a spent bolt settling) */
+  private stopBolt(b: Bolt, point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface, stick: boolean, bury = STUCK_BURY, quiet = false, rideOn: THREE.Object3D | null = null): void {
     b.active = false; b.mesh.visible = false;
     this.endTracer(b, point);
-    this.puffs.emit(point, dir, surface);
-    this.onImpact?.(surface, point);
+    if (!quiet) {
+      this.puffs.emit(point, dir, surface);
+      this.onImpact?.(surface, point);
+    }
     if (!stick) return;
     // stick: a static mesh, permanent, with the broadhead STUCK_BURY into the surface and the shaft + fletching
     // standing proud. The geometry origin sits -tipLocal.z (≈ 21.5 cm, measured from the bounding box) behind
@@ -1175,7 +1208,7 @@ export class Crossbow implements Weapon {
     if (this.stuck.length >= MAX_STUCK) this.removeStuck(0);
     const mesh = new THREE.Mesh(this.boltGeo, this.boltMat);
     mesh.castShadow = true;
-    mesh.position.copy(point).addScaledVector(dir, STUCK_BURY + this.tipLocal.z);
+    mesh.position.copy(point).addScaledVector(dir, bury + this.tipLocal.z);
     mesh.quaternion.setFromUnitVectors(NEG_Z, dir).multiply(_q.setFromAxisAngle(NEG_Z, b.roll));
     if (b.traced) { // permanent red dot on the nock so a traced bolt reads from a distance
       const dot = new THREE.Mesh(stuckDotGeo, glowMat); dot.renderOrder = TRACER_ORDER + 1;
@@ -1183,11 +1216,12 @@ export class Crossbow implements Weapon {
       mesh.add(dot);
     }
     this.game.scene.add(mesh);
+    if (rideOn !== null) rideOn.attach(mesh); // stuck in something that moves (the boat, a door): it rides along (P5-L1)
     this.stuck.push({ mesh });
   }
   private removeStuck(i: number): void {
     const s = this.stuck.splice(i, 1)[0];
-    if (s !== undefined) this.game.scene.remove(s.mesh);
+    if (s !== undefined) s.mesh.removeFromParent();
   }
 
   /** flying bolt count (for debugging / HUD) */
