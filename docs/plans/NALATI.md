@@ -131,7 +131,8 @@ Every step: measured with `nalati-camp9.mjs` (9 angles + budget) and a walk-arou
    coat + foals + the black stallion + Argymaq + the camp horses / Tulpar, every wolf + Greymane + Kokbori, Aqbars and
    Qyran (re-generated for the rig: `art/nalati-grasslands/round-9-rig-hulls/`), the sheep flock (baked onto its shader
    parts; phone 2 k tris). Same draw calls; phone creature tris below the procedural. Procedural still: the collie (a
-   wolf hull reads as a wolf at the flock), Qara Batyr's ghost horse, the Golden King (see its row / the last commit).
+   wolf hull reads as a wolf at the flock), Qara Batyr's ghost horse, the Golden King (a humanoid bake — two legs + arms, the
+   cape / crown take-offs — is more than an hour, and his hull is still the bronze blockout).
    Checked in motion: `scripts/nalati-creature-strip.mjs` (every gait), `nalati-creature-motion.mjs` (herds, packs, the
    flock, the elites live), `nalati-creature-lineup.mjs`; progress/nalati-creatures-glb-01…08.
 
