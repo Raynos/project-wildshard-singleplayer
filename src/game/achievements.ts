@@ -53,6 +53,9 @@ const NALATI: AchievementDef[] = [
   { id: 'argymaq', name: 'Unbroken, Until Now', goal: 'Tame Argymaq', count: 1, event: 'argymaq', title: 'Horse Whisperer (Shouting)', icon: 'laurel' },
   // the tame (B8, src/game/Taming.ts → main.ts's onBonded): any wild stallion broken in five rounds
   { id: 'tame', name: 'Horse Sense', goal: 'Break a wild stallion and bond him', count: 1, event: 'tame', title: 'Stable Genius', icon: 'laurel' },
+  // the quest line (NALATI-MERGE Q3, src/nalati/adventure.ts): a kokpar round won, chapter 1 finished
+  { id: 'kokpar', name: 'Goat Rodeo', goal: 'Win a round of kokpar', count: 1, event: 'kokpar', title: 'Varsity Goat Carrier', icon: 'laurel' },
+  { id: 'tulpar', name: 'Tulpar', goal: 'Finish chapter 1: TULPAR', count: 1, event: 'tulpar', title: 'Formerly On Foot', icon: 'laurel' },
   // the steppe's counts (B15) — joke titles, the Pine Hollow style
   { id: 'wolf5', name: 'Wolfbane', goal: 'Kill 5 wolves', count: 5, kind: 'wolf', title: 'Pack Leader (Self-Appointed)', icon: 'laurel' },
   { id: 'wolf25', name: 'The Big Bad', goal: 'Kill 25 wolves', count: 25, kind: 'wolf', title: 'Not Afraid Of The Big Bad Anything', icon: 'laurel' },

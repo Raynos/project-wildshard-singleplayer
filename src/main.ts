@@ -30,6 +30,7 @@ import { CameraFX } from './player/CameraFX';
 import { buildNalatiKit } from './player/nalatiKit';
 import { IronSwordPickup, ironSwordSite } from './player/IronSword';
 import { installAdventure } from './game/quest/Adventure';
+import { installNalatiAdventure } from './nalati/adventure';
 import type { Weapon } from './player/Weapon';
 import { Horizon } from './world/Horizon';
 import { HorizonMatte } from './world/HorizonMatte';
@@ -53,8 +54,8 @@ import { buzz, HAPTIC } from './ui/haptics';
 import { Loading } from './ui/Loading';
 import { resumeProgress } from './ui/Resume';
 import { Perf } from './ui/Perf';
-import { Minimap, mapPois } from './ui/Minimap';
-import { FullMap, type MapPoi as MapPin } from './ui/Map';
+import { Minimap } from './ui/Minimap';
+import { FullMap } from './ui/Map';
 import { GameMenu } from './ui/Menu';
 import { Progress } from './game/Progress';
 import { Inventory, harvestOf, ITEMS } from './game/Inventory';
@@ -501,16 +502,9 @@ async function main() {
   if (params.get('weapon') === 'iron' && ironSword) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); ironDrop?.dispose(); }
   // ── Driftwood's adventure (plan Track A: interactables, the quest, the castaway, collectibles; src/game/quest/Adventure.ts) — null on any other shard ──
   installAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, inventory, progress, fullMap, animals, ironDrop, setViewmodel: (on) => { weapons.visible = on; }, bridgeFloor: bridge ? (x, z) => bridge.floorHeightAt(x, z) : undefined, pois: { hut, lookout, wreck, shrine, cave: cove }, params });
-  // Nalati's places on the full map (main's map rules): named once you have been near, "?" until then; no names on the minimap
-  if (chunk.style === 'painterly') {
-    const places = mapPois();
-    let pins: MapPin[] = [], pinsAt = -1e9; // the map asks every frame it is open: re-read the fog at most twice a second
-    fullMap.setPois(() => {
-      const now = performance.now();
-      if (now - pinsAt > 500) { pinsAt = now; pins = places.map((p) => ({ x: p.x, z: p.z, label: p.label, kind: minimap.explored(p.x, p.z) ? 'place' : 'unknown' })); }
-      return pins;
-    });
-  }
+  // ── Nalati's adventure (NALATI-MERGE Q1–Q3: the camp's people, the quest line, places with saved discovery on the full map;
+  // src/nalati/adventure.ts on the shared quest core) — null on any other shard ──
+  installNalatiAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, progress, fullMap, ride, params });
   // ── legendary skins (src/player/Skins.ts): the Ghost stag drops the GHOST STAG crossbow, Old Ironhide the IRONHIDE AR-15 —
   // a big purple floating pickup where the animal fell (WeaponPickup tier 'rare'); taking it swaps the skin (and hands you the
   // rifle if you had not found it). What you own / wear persists; `?skin=ghost-stag` previews, `?drop=ironhide` spawns one ahead.
