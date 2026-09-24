@@ -36,7 +36,7 @@ the cloud. Mockups are the exception: they still come from codex. Two repos next
 | SFX, the pick | the better take per sound (CLAP rank) | — | `scripts/music/gen/sfx_merge.py` → `public/assets/sfx/best/` | both credits |
 | 3D props / creatures | **TRELLIS.2-4B** (MPS), then a Blender post | `microsoft/TRELLIS.2-4B` + TRELLIS-image-large, DINOv3, BiRefNet | `~/ml/img2mesh/trellis-mac/.venv` + `scripts/img2mesh/` ([README](scripts/img2mesh/README.md)) | MIT. Hunyuan3D-2 is in the store and faster, but **not for this game** (its licence bars the EU, UK and South Korea) |
 | Mockups | **codex `image_gen`** (OpenAI, cloud): see [Mockups](#mockups) | — | `codex exec` / `scripts/horizon-matte/run_codex.py` | — |
-| Mockups, local trial | **Qwen-Image-2.1** (7B, diffusers, MPS bf16): E100, on trial against codex | `Qwen/Qwen-Image-2.1` | `~/ml/imagegen/` (`gen_qwen21.py`, `combo.py`) | **Qwen Research Licence: evaluation only, nothing it makes ships** |
+| Mockups, local trial | **Qwen-Image-2.1** (7B, diffusers, MPS bf16): E100, on trial against codex. Results: [`art/local-image/round-1-qwen21-vs-codex/`](art/local-image/round-1-qwen21-vs-codex/README.md) | `Qwen/Qwen-Image-2.1` | `~/ml/imagegen/run_each.sh` (one process per job; [how-to](../../localai/docs/image-models.md)) | **Qwen Research Licence: evaluation only, nothing it makes ships** |
 
 - **One model at a time, machine-wide.** Other agents (herdr panes making music, SFX and 3D for the other shards)
   load models on this same box.

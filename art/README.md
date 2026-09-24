@@ -258,3 +258,11 @@ reference). Each variant has two frames: `<L>-foot.jpg` (crouched in the grass, 
 `board.jpg` has four columns (A–D) and two rows (on foot · bow / saddle · sabre). Re-rolled: B-foot once (the first take
 came back 793×1983 and stretched the frame), A-saddle once (the MOVE label dropped under the stick), C-saddle once (the
 weapon card's dots lit the first slot, not the sabre's, and the bar lost its see-through look).
+
+### Local Qwen-Image-2.1 vs codex (`art/local-image/round-1-qwen21-vs-codex/`, 2026-09-24, E100)
+
+Not codex images. Ten existing codex mockups were remade on this Mac with **Qwen-Image-2.1** (7B, diffusers on MPS bf16,
+84–132 s each), from the same input frames and the same verbatim prompts. Each JPEG is codex (left) vs local (right),
+one take per image. Qwen keeps the layout and large UI text, but garbles small text, greys Driftwood's toon palette and
+re-composes the camera when given several references. Codex holds the frame closer. Qwen's licence is research-only,
+so nothing it made may ship. Verdicts per image are in the round's `README.md`.
