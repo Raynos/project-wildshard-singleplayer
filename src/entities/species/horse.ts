@@ -505,6 +505,10 @@ function horsePostPose(c: RigAnimCtx): void {
   // head −1.2 in total)
   const graze = ez('graze', alive && c.state === 'graze' && c.speed < 0.3 ? 1 : 0, 2.2);
   if (graze > 0.001) { n1.rotation.x += 1.35 * graze; n2.rotation.x -= 0.1 * graze; head.rotation.x -= 1.55 * graze; }
+  // ridden (Mount.ts `turnLead` −1..1, + = left): the neck bends into the rein before the body turns — eased here (~0.3 s),
+  // so a turn reads as the head leading and the body following, never a snap; the head sits a little over the neck's bend
+  const lead = ez('turnLead', alive ? clamp(m['turnLead'] ?? 0, -1, 1) : 0, 3.2);
+  if (Math.abs(lead) > 0.001) { n1.rotation.y += 0.2 * lead; n2.rotation.y += 0.2 * lead; head.rotation.y += 0.16 * lead; head.rotation.z -= 0.06 * lead; }
   // head high + ears forward (watching); ears pinned (warning); a toss
   n1.rotation.x -= 0.28 * headUp + 0.35 * toss;
   n2.rotation.x -= 0.1 * headUp;

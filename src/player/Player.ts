@@ -363,6 +363,8 @@ export class Player {
   /** One fixed step (Game's `post` slot, dt = FIXED_STEP): the move, against the stepped physics world. */
   step(dt: number): void {
     this.prevFeet.copy(this.position);
+    // in the saddle (Mount.drive, in the input phase) the horse carries you and poses the camera: no walk, no motor
+    if (this.ride !== null) return;
     if (this.carried) { this.velocity.set(0, 0, 0); this.onGround = false; return; }
     const k = this.keys;
     const fwd = this.inFwd, str = this.inStr;
@@ -648,6 +650,7 @@ export class Player {
    */
   update(dtRaw: number, alpha = 1): void {
     const dt = Math.min(dtRaw, 0.05);
+    if (this.ride !== null) { this.renderFeet.copy(this.position); return; }   // the saddle's eye (Mount.drive) owns the camera
     const hover = this.hover;
     const swim = this.swimming && !hover;
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);

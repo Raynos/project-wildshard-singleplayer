@@ -16,15 +16,19 @@
 .ws-ride-steed.ws-ride-touch .ws-ride-glyph { width: 15px; height: 15px; }
 .ws-ride-steed.ws-ride-touch .ws-ride-sbar { margin-top: 0; width: 120px; height: 4px; }
 /* GALLOP (touch): where JUMP was, amber when held */
-.ws-ride-gallop { left: calc(100% - var(--disc) / 2 - 10px); }
+.ws-ride-gallop { left: calc(100% - var(--disc) / 2 - 8px); bottom: calc(var(--bar) + 58px); }
 .ws-ride-gallop.down, .ws-ride-lean.down, .ws-ride-offer.down { background: radial-gradient(circle at 50% 35%, rgba(255, 196, 74, 0.45), rgba(40, 24, 6, 0.85) 70%); border-color: #ffc44a; }
 .ws-ride-gallop.winded { opacity: 0.45; }
 /* the HORSE tab over HOVER: far = whistle, near = mount */
 .ws-ride-horse { left: auto; right: 0; bottom: auto; top: calc(46% - 60px); margin-left: 0; width: 52px; height: 52px; border-radius: 12px 0 0 12px; border-right: none; font-size: 7px; gap: 2px; }
 .ws-ride-horse::before, .ws-ride-horse::after { display: none; }
-/* taming: LEAN L / LEAN R where AIM and GALLOP sit; OFFER where AIM sits */
-.ws-ride-lean.l, .ws-ride-offer { left: calc(var(--disc) / 2 + 10px); }
-.ws-ride-lean.r { left: calc(100% - var(--disc) / 2 - 10px); }
+/* in the saddle the same tab reads DISMOUNT (N17): small, on the right edge, well above GALLOP */
+.ws-ride-dismount svg { width: 40%; height: 40%; }
+.ws-ride-dismount span { font-size: 6.5px; letter-spacing: 0.1em; }
+/* taming: LEAN L / LEAN R one per thumb just above the bar (the edges); OFFER in AIM's place (AIM hides while it shows) */
+.ws-ride-lean.l { left: calc(var(--disc) / 2 + 14px); bottom: calc(var(--bar) + 40px); }
+.ws-ride-lean.r { left: calc(100% - var(--disc) / 2 - 14px); bottom: calc(var(--bar) + 40px); }
+.ws-ride-offer { left: calc(var(--split) + var(--atk) + var(--disc) / 2); bottom: calc(var(--bar) + 40px); }
 /* the TRUST arc (top centre) and the stallion's ALERT ear (over his head) */
 .ws-ride-trust { position: absolute; left: 50%; top: calc(var(--ws-top, 14px) + 44px); width: 260px; margin-left: -130px; display: none; flex-direction: column; align-items: center; pointer-events: none; }
 .ws-ride-trust.show { display: flex; }

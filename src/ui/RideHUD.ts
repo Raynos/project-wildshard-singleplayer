@@ -9,8 +9,9 @@ import type { Mount } from '../player/Mount';
  * screen's markup — the one touch concession is hiding / showing TouchControls' own discs with inline styles:
  *
  *   STEED     amber bar + gait under VITALS while mounted (desktop panel over the health panel; touch strip over VITALS)
- *   GALLOP    (touch) a held disc where JUMP is; JUMP, DODGE and HOVER hide in the saddle (the USE button reads DISMOUNT)
- *   HORSE     (touch) a tab over HOVER: whistles your bonded horse (desktop: X)
+ *   GALLOP    (touch) a held disc where JUMP is; JUMP, DODGE and the HOVER tab hide in the saddle
+ *   HORSE     (touch) a small tab on the right edge: whistles your bonded horse (desktop: X); in the saddle the same tab
+ *             reads DISMOUNT (N17 — the USE band's DISMOUNT hides while it is up)
  *   TRUST     the arc over the crosshair while you approach a stallion (heart · horseshoe), and his ALERT ear over his head
  *   HOLD ON   TAMING n/5 + the balance arc while he bucks; LEAN L / LEAN R discs (touch) where AIM / GALLOP were
  *   OFFER     (touch) where AIM is, inside 12 m of the stallion (desktop: hold G)
@@ -37,6 +38,7 @@ const SVG_HORSE = '<svg viewBox="0 0 24 24"><path d="M19.5 3.2c-1.6.2-3 .9-4.1 2
 const SVG_SHOE = '<svg viewBox="0 0 24 24"><path d="M12 3C7.6 3 4.5 6.6 4.5 11c0 3.4 1.5 6.8 3 9.2.3.5 1 .6 1.5.3l.8-.5c.4-.3.6-.8.3-1.3C8.7 16.6 7.5 13.8 7.5 11c0-2.8 2-5 4.5-5s4.5 2.2 4.5 5c0 2.8-1.2 5.6-2.6 7.7-.3.5-.1 1 .3 1.3l.8.5c.5.3 1.2.2 1.5-.3 1.5-2.4 3-5.8 3-9.2C19.5 6.6 16.4 3 12 3z"/></svg>';
 const SVG_HEART = '<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.4-9.3C1.2 8.2 3.4 4.5 7 4.5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.6 0 5.8 3.7 4.4 7.2C19.5 16.4 12 21 12 21z"/></svg>';
 const SVG_EAR = (col: string): string => `<svg viewBox="0 0 30 30"><path d="M9 26c-2-6-1-15 4-22 4 5 7 13 5 21-2 2-7 3-9 1z" fill="${col}" stroke="rgba(0,0,0,0.5)" stroke-width="1"/><path d="M12.5 21c-.8-4 0-9 1.8-12.5 1.8 3.4 2.6 8 1.8 12" fill="rgba(0,0,0,0.25)"/><path d="M22 10c2 2 3 5 3 8M24.5 7.5c3 3 4 7 3.6 11" fill="none" stroke="${col}" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+const SVG_DOWN = '<svg viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const SVG_LEFT = '<svg viewBox="0 0 24 24"><path d="M15 4 7 12l8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const SVG_RIGHT = '<svg viewBox="0 0 24 24"><path d="M9 4l8 8-8 8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const SVG_HAND = '<svg viewBox="0 0 24 24"><path d="M7 21c-2.2-2-3.5-4.4-3.8-7.3-.1-.7.5-1.3 1.2-1.3.5 0 .9.3 1.1.8l.9 2.3V5.2c0-.8.6-1.4 1.3-1.4s1.3.6 1.3 1.4v6h.6V3.6c0-.8.6-1.4 1.3-1.4s1.3.6 1.3 1.4v7.6h.6V4.6c0-.8.6-1.4 1.3-1.4s1.3.6 1.3 1.4v6.6h.6V7c0-.8.6-1.4 1.3-1.4s1.3.6 1.3 1.4v8.6c0 2.6-1.1 4.3-2.5 5.4z"/></svg>';
@@ -58,7 +60,7 @@ export class RideHUD {
   private readonly ear: HTMLElement; private earCol = '';
   private readonly hold: HTMLElement; private readonly holdRound: HTMLElement; private readonly holdMark: SVGGElement;
   private readonly tags = new Map<string, HTMLElement>();
-  private touch: { root: HTMLElement; gallop: HTMLElement; horse: HTMLElement; leanL: HTMLElement; leanR: HTMLElement; offer: HTMLElement; steed: HTMLElement; sbar: HTMLElement } | null = null;
+  private touch: { root: HTMLElement; gallop: HTMLElement; horse: HTMLElement; horseSvg: string; use: HTMLElement | null; leanL: HTMLElement; leanR: HTMLElement; offer: HTMLElement; steed: HTMLElement; sbar: HTMLElement } | null = null;
   private last = { mounted: false, breaking: false, offer: false, steed: -1, gait: '', winded: false };
 
   constructor(private readonly mount: Mount, private readonly camera: THREE.PerspectiveCamera) {
@@ -97,8 +99,12 @@ export class RideHUD {
     };
     const gallop = disc('ws-ride-gallop', SVG_SHOE, 'Gallop');
     hold(gallop, () => { this.mount.touchGallop = true; }, () => { this.mount.touchGallop = false; });
+    // HORSE ⇄ DISMOUNT (N17): one small tab on the right edge — on foot it whistles your horse, in the saddle it reads
+    // DISMOUNT and gets you off (the full-width USE band's DISMOUNT hides, syncUse)
     const horse = disc('ws-ride-horse', SVG_HORSE, 'Horse');
-    hold(horse, () => { this.mount.whistle(); }, () => undefined);
+    hold(horse, () => { if (this.mount.mounted) { if (!this.mount.breaking) this.mount.dismount(); } else this.mount.whistle(); }, () => undefined);
+    const use = root.querySelector<HTMLElement>('.ws-touch-use');
+    if (use !== null) new MutationObserver(() => { this.syncUse(); }).observe(use, { childList: true, characterData: true, subtree: true });
     const leanL = disc('ws-ride-lean l', SVG_LEFT, 'Lean L'), leanR = disc('ws-ride-lean r', SVG_RIGHT, 'Lean R');
     hold(leanL, () => { this.lean = -1; }, () => { if (this.lean < 0) this.lean = 0; });
     hold(leanR, () => { this.lean = 1; }, () => { if (this.lean > 0) this.lean = 0; });
@@ -108,8 +114,18 @@ export class RideHUD {
     steed.className = 'ws-ride-steed ws-ride-touch';
     steed.innerHTML = `<i class="ws-ride-glyph">${SVG_HORSE}</i><span class="ws-ride-sbar"><i style="width:100%"></i></span>`;
     bar.append(steed);
-    this.touch = { root, gallop, horse, leanL, leanR, offer, steed, sbar: this.q(steed, '.ws-ride-sbar i') };
+    this.touch = { root, gallop, horse, horseSvg: SVG_HORSE, use, leanL, leanR, offer, steed, sbar: this.q(steed, '.ws-ride-sbar i') };
     this.last.mounted = !this.mount.mounted; this.last.breaking = !this.mount.breaking; this.last.offer = !this.last.offer;   // force a sync
+  }
+
+  /** the USE band (TouchControls) reading DISMOUNT hides while the DISMOUNT tab is up; any other action in the saddle
+   *  (a gate, a chest) still shows it. Event-driven (its label changes / mount changes), never per frame */
+  private syncUse(): void {
+    const t = this.touch;
+    const use = t?.use ?? null;
+    if (use === null) return;
+    const hide = this.mount.mounted && use.textContent.trim().toLowerCase() === 'dismount';
+    use.style.visibility = hide ? 'hidden' : '';
   }
 
   /** show / hide one of TouchControls' own discs (inline, so its stylesheet stays its own) */
@@ -134,10 +150,13 @@ export class RideHUD {
         t.leanL.style.display = t.leanR.style.display = breaking ? 'flex' : 'none';
         this.showDisc('.ws-touch-disc.jump', !mounted);
         this.showDisc('.ws-touch-disc.dodge', !mounted);
-        this.showDisc('.ws-touch-disc.hover', !mounted);
+        this.showDisc('.ws-touch-hover', !mounted);   // main's HOVER folder tab (E80): no board in the saddle
         this.showDisc('.ws-touch-disc.aim', !breaking);
         this.showDisc('.ws-touch-disc.heavy', !breaking);
-        t.horse.style.display = mounted ? 'none' : 'flex';
+        t.horse.style.display = breaking ? 'none' : 'flex';
+        t.horse.classList.toggle('ws-ride-dismount', mounted);
+        t.horse.innerHTML = mounted ? `${SVG_DOWN}<span>Dismount</span>` : `${t.horseSvg}<span>Horse</span>`;
+        this.syncUse();
       }
       if (!breaking) this.lean = 0;
     }
