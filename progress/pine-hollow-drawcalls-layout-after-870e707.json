@@ -1,0 +1,2738 @@
+{
+ "tag": "layout-after-870e707",
+ "url": "http://localhost:4193",
+ "query": "",
+ "when": "2026-09-24T15:23:44.429Z",
+ "rows": [
+  {
+   "tier": "phone",
+   "pose": "gate",
+   "calls": 122,
+   "tris": 1372082,
+   "totalsSeen": [
+    122,
+    122,
+    122,
+    122,
+    122,
+    122,
+    122,
+    122,
+    122
+   ],
+   "groups": {
+    "cabins": {
+     "main": 18,
+     "shadow": 0,
+     "post": 0,
+     "tris": 18288
+    },
+    "animals": {
+     "main": 10,
+     "shadow": 15,
+     "post": 0,
+     "tris": 40088
+    },
+    "boundary": {
+     "main": 8,
+     "shadow": 1,
+     "post": 0,
+     "tris": 2570
+    },
+    "props": {
+     "main": 3,
+     "shadow": 3,
+     "post": 0,
+     "tris": 257612
+    },
+    "sky": {
+     "main": 9,
+     "shadow": 0,
+     "post": 0,
+     "tris": 15898
+    },
+    "viewmodel": {
+     "main": 13,
+     "shadow": 0,
+     "post": 0,
+     "tris": 4030
+    },
+    "post": {
+     "main": 0,
+     "shadow": 0,
+     "post": 21,
+     "tris": 1124
+    },
+    "forest": {
+     "main": 3,
+     "shadow": 3,
+     "post": 0,
+     "tris": 460722
+    },
+    "other": {
+     "main": 2,
+     "shadow": 0,
+     "post": 0,
+     "tris": 12
+    },
+    "terrain": {
+     "main": 2,
+     "shadow": 0,
+     "post": 0,
+     "tris": 131588
+    },
+    "grass": {
+     "main": 2,
+     "shadow": 0,
+     "post": 0,
+     "tris": 416000
+    },
+    "undergrowth": {
+     "main": 5,
+     "shadow": 0,
+     "post": 0,
+     "tris": 15414
+    },
+    "particles": {
+     "main": 3,
+     "shadow": 0,
+     "post": 0,
+     "tris": 544
+    },
+    "water": {
+     "main": 1,
+     "shadow": 0,
+     "post": 0,
+     "tris": 8192
+    }
+   },
+   "entries": [
+    {
+     "pass": "main",
+     "label": "cabins.group.children[]",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 18,
+     "tris": 18288,
+     "group": "cabins"
+    },
+    {
+     "pass": "shadow",
+     "label": "animals.group.children[]",
+     "name": "boar 3part<45m",
+     "rt": "1024x1024#0",
+     "calls": 9,
+     "tris": 8808,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "boundary.group.children[]",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 6,
+     "tris": 2312,
+     "group": "boundary"
+    },
+    {
+     "pass": "shadow",
+     "label": "animals.group.children[]",
+     "name": "deer 2part45-80m",
+     "rt": "1024x1024#0",
+     "calls": 4,
+     "tris": 10800,
+     "group": "animals"
+    },
+    {
+     "pass": "shadow",
+     "label": "props.group.children[]",
+     "name": "Mesh",
+     "rt": "1024x1024#0",
+     "calls": 3,
+     "tris": 121672,
+     "group": "props"
+    },
+    {
+     "pass": "main",
+     "label": "animals.group.children[]",
+     "name": "boar 3part<45m",
+     "rt": "780x1688#1",
+     "calls": 3,
+     "tris": 2968,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "sky.planet.children[]",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 3,
+     "tris": 8576,
+     "group": "sky"
+    },
+    {
+     "pass": "shadow",
+     "label": "animals.group.children[]",
+     "name": "boar 2part45-80m",
+     "rt": "1024x1024#0",
+     "calls": 2,
+     "tris": 2872,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "animals.group.children[]",
+     "name": "boar 2part45-80m",
+     "rt": "780x1688#1",
+     "calls": 2,
+     "tris": 2872,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "animals.group.children[]",
+     "name": "elk 1part100-150m",
+     "rt": "780x1688#1",
+     "calls": 2,
+     "tris": 5928,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "animals.group.children[]",
+     "name": "boar 1part100-150m",
+     "rt": "780x1688#1",
+     "calls": 2,
+     "tris": 5840,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-leather",
+     "rt": "780x1688#1",
+     "calls": 2,
+     "tris": 776,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "post",
+     "label": "post:KawaseBlurMaterial",
+     "name": "KawaseBlurMaterial",
+     "rt": "195x422#4",
+     "calls": 2,
+     "tris": 2,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:KawaseBlurMaterial",
+     "name": "KawaseBlurMaterial",
+     "rt": "195x422#5",
+     "calls": 2,
+     "tris": 2,
+     "group": "post"
+    },
+    {
+     "pass": "shadow",
+     "label": "forest.batched.needles",
+     "name": "Mesh",
+     "rt": "1024x1024#0",
+     "calls": 1,
+     "tris": 290328,
+     "group": "forest"
+    },
+    {
+     "pass": "shadow",
+     "label": "forest.batched.bark",
+     "name": "Mesh",
+     "rt": "1024x1024#0",
+     "calls": 1,
+     "tris": 18540,
+     "group": "forest"
+    },
+    {
+     "pass": "shadow",
+     "label": "forest.batched.twigs",
+     "name": "Mesh",
+     "rt": "1024x1024#0",
+     "calls": 1,
+     "tris": 2850,
+     "group": "forest"
+    },
+    {
+     "pass": "shadow",
+     "label": "boundary.group.children[]",
+     "name": "Mesh",
+     "rt": "1024x1024#0",
+     "calls": 1,
+     "tris": 256,
+     "group": "boundary"
+    },
+    {
+     "pass": "main",
+     "label": "loose:Mesh",
+     "name": "BackgroundCubeMaterial",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 12,
+     "group": "other"
+    },
+    {
+     "pass": "main",
+     "label": "terrain.mesh",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 130050,
+     "group": "terrain"
+    },
+    {
+     "pass": "main",
+     "label": "terrain.group.children[]",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1538,
+     "group": "terrain"
+    },
+    {
+     "pass": "main",
+     "label": "forest.batched.bark",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 9900,
+     "group": "forest"
+    },
+    {
+     "pass": "main",
+     "label": "forest.batched.needles",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 137144,
+     "group": "forest"
+    },
+    {
+     "pass": "main",
+     "label": "forest.batched.far",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1960,
+     "group": "forest"
+    },
+    {
+     "pass": "main",
+     "label": "horizon",
+     "name": "ridge0",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1440,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "horizon",
+     "name": "ridge1",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1440,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "horizon",
+     "name": "ridge2",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1080,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "grass.mesh",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 403200,
+     "group": "grass"
+    },
+    {
+     "pass": "main",
+     "label": "grass.flowers",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 12800,
+     "group": "grass"
+    },
+    {
+     "pass": "main",
+     "label": "under.ferns",
+     "name": "under-fern",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 14256,
+     "group": "undergrowth"
+    },
+    {
+     "pass": "main",
+     "label": "under.shrubs",
+     "name": "under-shrub",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 672,
+     "group": "undergrowth"
+    },
+    {
+     "pass": "main",
+     "label": "under.litter",
+     "name": "under-litter",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 232,
+     "group": "undergrowth"
+    },
+    {
+     "pass": "main",
+     "label": "under.stones",
+     "name": "under-stone",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 160,
+     "group": "undergrowth"
+    },
+    {
+     "pass": "main",
+     "label": "under.moss",
+     "name": "under-moss",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 94,
+     "group": "undergrowth"
+    },
+    {
+     "pass": "main",
+     "label": "particles.needles",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 400,
+     "group": "particles"
+    },
+    {
+     "pass": "main",
+     "label": "props.group.children[]",
+     "name": "rock_moss_set_01",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 51684,
+     "group": "props"
+    },
+    {
+     "pass": "main",
+     "label": "props.group.children[]",
+     "name": "dead_tree_trunk",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 28496,
+     "group": "props"
+    },
+    {
+     "pass": "main",
+     "label": "props.group.children[]",
+     "name": "tree_stump_01",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 55760,
+     "group": "props"
+    },
+    {
+     "pass": "main",
+     "label": "sky.clouds",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 2256,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "horizon",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 2,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "sky.sunDisc",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1104,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "boundary.group.children[]",
+     "name": "Sprite",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 2,
+     "group": "boundary"
+    },
+    {
+     "pass": "main",
+     "label": "boundary.group.children[]",
+     "name": "LineSegments",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 0,
+     "group": "boundary"
+    },
+    {
+     "pass": "main",
+     "label": "particles.mist",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 144,
+     "group": "particles"
+    },
+    {
+     "pass": "main",
+     "label": "water.mesh",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 8192,
+     "group": "water"
+    },
+    {
+     "pass": "main",
+     "label": "animals.blood.points",
+     "name": "Points",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 0,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "particles.motes",
+     "name": "Points",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 0,
+     "group": "particles"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.puffs.points",
+     "name": "Points",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 0,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "scene#49:Points(ShaderMaterial)",
+     "name": "Points",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 0,
+     "group": "other"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 12,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-cord",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 40,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-prod",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 320,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.loadedBolt",
+     "name": "xbow-bolt",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 118,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.stringRight",
+     "name": "xbow-cord",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 28,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-brass",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 284,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.stringLeft",
+     "name": "xbow-cord",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 28,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-iron",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1476,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-wood",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 916,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.serving",
+     "name": "xbow-cord",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 32,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "post",
+     "label": "post:ShaderMaterial",
+     "name": "Mesh",
+     "rt": "390x844#2",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:CopyMaterial",
+     "name": "CopyMaterial",
+     "rt": "780x1688#3",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:MeshBasicMaterial",
+     "name": "Mesh",
+     "rt": "780x1688#3",
+     "calls": 1,
+     "tris": 1104,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:CopyMaterial",
+     "name": "CopyMaterial",
+     "rt": "195x422#6",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:GodRaysMaterial",
+     "name": "GodRaysMaterial",
+     "rt": "195x422#7",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:LuminanceMaterial",
+     "name": "LuminanceMaterial",
+     "rt": "780x1688#8",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:DownsamplingMaterial",
+     "name": "DownsamplingMaterial",
+     "rt": "390x844#9",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:DownsamplingMaterial",
+     "name": "DownsamplingMaterial",
+     "rt": "195x422#10",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:DownsamplingMaterial",
+     "name": "DownsamplingMaterial",
+     "rt": "98x211#11",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:DownsamplingMaterial",
+     "name": "DownsamplingMaterial",
+     "rt": "49x106#12",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:UpsamplingMaterial",
+     "name": "UpsamplingMaterial",
+     "rt": "98x211#13",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:UpsamplingMaterial",
+     "name": "UpsamplingMaterial",
+     "rt": "195x422#14",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:UpsamplingMaterial",
+     "name": "UpsamplingMaterial",
+     "rt": "390x844#15",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:EffectMaterial",
+     "name": "EffectMaterial",
+     "rt": "780x1688#16",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:EdgeDetectionMaterial",
+     "name": "EdgeDetectionMaterial",
+     "rt": "780x1688#17",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:SMAAWeightsMaterial",
+     "name": "SMAAWeightsMaterial",
+     "rt": "780x1688#18",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:EffectMaterial",
+     "name": "EffectMaterial",
+     "rt": "canvas",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    }
+   ]
+  },
+  {
+   "tier": "phone",
+   "pose": "cabin",
+   "calls": 175,
+   "tris": 1504381,
+   "totalsSeen": [
+    175,
+    175,
+    175,
+    175,
+    175,
+    175,
+    175,
+    175,
+    175
+   ],
+   "groups": {
+    "cabins": {
+     "main": 29,
+     "shadow": 2,
+     "post": 0,
+     "tris": 85939
+    },
+    "animals": {
+     "main": 21,
+     "shadow": 37,
+     "post": 0,
+     "tris": 114664
+    },
+    "boundary": {
+     "main": 8,
+     "shadow": 1,
+     "post": 0,
+     "tris": 2570
+    },
+    "other": {
+     "main": 9,
+     "shadow": 0,
+     "post": 0,
+     "tris": 6030
+    },
+    "props": {
+     "main": 3,
+     "shadow": 3,
+     "post": 0,
+     "tris": 397832
+    },
+    "sky": {
+     "main": 9,
+     "shadow": 0,
+     "post": 0,
+     "tris": 15898
+    },
+    "viewmodel": {
+     "main": 13,
+     "shadow": 0,
+     "post": 0,
+     "tris": 4030
+    },
+    "post": {
+     "main": 0,
+     "shadow": 0,
+     "post": 21,
+     "tris": 1124
+    },
+    "forest": {
+     "main": 3,
+     "shadow": 3,
+     "post": 0,
+     "tris": 311132
+    },
+    "terrain": {
+     "main": 2,
+     "shadow": 0,
+     "post": 0,
+     "tris": 131588
+    },
+    "grass": {
+     "main": 2,
+     "shadow": 0,
+     "post": 0,
+     "tris": 416000
+    },
+    "undergrowth": {
+     "main": 5,
+     "shadow": 0,
+     "post": 0,
+     "tris": 8838
+    },
+    "particles": {
+     "main": 3,
+     "shadow": 0,
+     "post": 0,
+     "tris": 544
+    },
+    "water": {
+     "main": 1,
+     "shadow": 0,
+     "post": 0,
+     "tris": 8192
+    }
+   },
+   "entries": [
+    {
+     "pass": "main",
+     "label": "cabins.group.children[]",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 18,
+     "tris": 13646,
+     "group": "cabins"
+    },
+    {
+     "pass": "shadow",
+     "label": "animals.group.children[]",
+     "name": "deer 2part45-80m",
+     "rt": "1024x1024#0",
+     "calls": 16,
+     "tris": 27408,
+     "group": "animals"
+    },
+    {
+     "pass": "shadow",
+     "label": "animals.group.children[]",
+     "name": "deer 3part<45m",
+     "rt": "1024x1024#0",
+     "calls": 9,
+     "tris": 13288,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "animals.group.children[]",
+     "name": "deer 1part100-150m",
+     "rt": "780x1688#1",
+     "calls": 8,
+     "tris": 34968,
+     "group": "animals"
+    },
+    {
+     "pass": "shadow",
+     "label": "animals.group.children[]",
+     "name": "boar 3part<45m",
+     "rt": "1024x1024#0",
+     "calls": 6,
+     "tris": 5840,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "boundary.group.children[]",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 6,
+     "tris": 2312,
+     "group": "boundary"
+    },
+    {
+     "pass": "main",
+     "label": "animals.group.children[]",
+     "name": "deer 2part45-80m",
+     "rt": "780x1688#1",
+     "calls": 6,
+     "tris": 13288,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "scene#50:Group(rifle-alu,rifle-poly,rifle-steel)",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 6,
+     "tris": 6018,
+     "group": "other"
+    },
+    {
+     "pass": "shadow",
+     "label": "animals.group.children[]",
+     "name": "elk 2part45-80m",
+     "rt": "1024x1024#0",
+     "calls": 4,
+     "tris": 5928,
+     "group": "animals"
+    },
+    {
+     "pass": "shadow",
+     "label": "props.group.children[]",
+     "name": "Mesh",
+     "rt": "1024x1024#0",
+     "calls": 3,
+     "tris": 196816,
+     "group": "props"
+    },
+    {
+     "pass": "main",
+     "label": "cabins.doors[].pivot",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 3,
+     "tris": 340,
+     "group": "cabins"
+    },
+    {
+     "pass": "main",
+     "label": "sky.planet.children[]",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 3,
+     "tris": 8576,
+     "group": "sky"
+    },
+    {
+     "pass": "shadow",
+     "label": "cabins.doors[].pivot",
+     "name": "Mesh",
+     "rt": "1024x1024#0",
+     "calls": 2,
+     "tris": 24,
+     "group": "cabins"
+    },
+    {
+     "pass": "shadow",
+     "label": "animals.group.children[]",
+     "name": "boar 2part45-80m",
+     "rt": "1024x1024#0",
+     "calls": 2,
+     "tris": 2872,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "animals.group.children[]",
+     "name": "deer 2part80-100m",
+     "rt": "780x1688#1",
+     "calls": 2,
+     "tris": 5232,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "animals.group.children[]",
+     "name": "boar 2part45-80m",
+     "rt": "780x1688#1",
+     "calls": 2,
+     "tris": 2872,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "animals.group.children[]",
+     "name": "boar 2part80-100m",
+     "rt": "780x1688#1",
+     "calls": 2,
+     "tris": 2968,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-leather",
+     "rt": "780x1688#1",
+     "calls": 2,
+     "tris": 776,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "post",
+     "label": "post:KawaseBlurMaterial",
+     "name": "KawaseBlurMaterial",
+     "rt": "195x422#4",
+     "calls": 2,
+     "tris": 2,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:KawaseBlurMaterial",
+     "name": "KawaseBlurMaterial",
+     "rt": "195x422#5",
+     "calls": 2,
+     "tris": 2,
+     "group": "post"
+    },
+    {
+     "pass": "shadow",
+     "label": "forest.batched.needles",
+     "name": "Mesh",
+     "rt": "1024x1024#0",
+     "calls": 1,
+     "tris": 203824,
+     "group": "forest"
+    },
+    {
+     "pass": "shadow",
+     "label": "forest.batched.bark",
+     "name": "Mesh",
+     "rt": "1024x1024#0",
+     "calls": 1,
+     "tris": 13680,
+     "group": "forest"
+    },
+    {
+     "pass": "shadow",
+     "label": "forest.batched.twigs",
+     "name": "Mesh",
+     "rt": "1024x1024#0",
+     "calls": 1,
+     "tris": 7956,
+     "group": "forest"
+    },
+    {
+     "pass": "shadow",
+     "label": "boundary.group.children[]",
+     "name": "Mesh",
+     "rt": "1024x1024#0",
+     "calls": 1,
+     "tris": 256,
+     "group": "boundary"
+    },
+    {
+     "pass": "main",
+     "label": "loose:Mesh",
+     "name": "BackgroundCubeMaterial",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 12,
+     "group": "other"
+    },
+    {
+     "pass": "main",
+     "label": "terrain.mesh",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 130050,
+     "group": "terrain"
+    },
+    {
+     "pass": "main",
+     "label": "terrain.group.children[]",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1538,
+     "group": "terrain"
+    },
+    {
+     "pass": "main",
+     "label": "forest.batched.bark",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 6840,
+     "group": "forest"
+    },
+    {
+     "pass": "main",
+     "label": "forest.batched.needles",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 78168,
+     "group": "forest"
+    },
+    {
+     "pass": "main",
+     "label": "forest.batched.far",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 664,
+     "group": "forest"
+    },
+    {
+     "pass": "main",
+     "label": "horizon",
+     "name": "ridge0",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1440,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "horizon",
+     "name": "ridge1",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1440,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "horizon",
+     "name": "ridge2",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1080,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "grass.mesh",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 403200,
+     "group": "grass"
+    },
+    {
+     "pass": "main",
+     "label": "grass.flowers",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 12800,
+     "group": "grass"
+    },
+    {
+     "pass": "main",
+     "label": "under.ferns",
+     "name": "under-fern",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 7920,
+     "group": "undergrowth"
+    },
+    {
+     "pass": "main",
+     "label": "under.shrubs",
+     "name": "under-shrub",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 592,
+     "group": "undergrowth"
+    },
+    {
+     "pass": "main",
+     "label": "under.litter",
+     "name": "under-litter",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 144,
+     "group": "undergrowth"
+    },
+    {
+     "pass": "main",
+     "label": "under.stones",
+     "name": "under-stone",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 90,
+     "group": "undergrowth"
+    },
+    {
+     "pass": "main",
+     "label": "under.moss",
+     "name": "under-moss",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 92,
+     "group": "undergrowth"
+    },
+    {
+     "pass": "main",
+     "label": "particles.needles",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 400,
+     "group": "particles"
+    },
+    {
+     "pass": "main",
+     "label": "cabins.group.children[]",
+     "name": "wooden_bucket_01",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 10232,
+     "group": "cabins"
+    },
+    {
+     "pass": "main",
+     "label": "cabins.group.children[]",
+     "name": "wooden_crate_02",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 15528,
+     "group": "cabins"
+    },
+    {
+     "pass": "main",
+     "label": "cabins.group.children[]",
+     "name": "wine_barrel_01",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 32460,
+     "group": "cabins"
+    },
+    {
+     "pass": "main",
+     "label": "cabins.group.children[]",
+     "name": "stone_fire_pit",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 3887,
+     "group": "cabins"
+    },
+    {
+     "pass": "main",
+     "label": "cabins.swings[].pivot",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 144,
+     "group": "cabins"
+    },
+    {
+     "pass": "main",
+     "label": "cabins.group.children[]",
+     "name": "hatchet",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 5250,
+     "group": "cabins"
+    },
+    {
+     "pass": "main",
+     "label": "cabins.swings[].pivot",
+     "name": "Lantern_01",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 3698,
+     "group": "cabins"
+    },
+    {
+     "pass": "main",
+     "label": "props.group.children[]",
+     "name": "rock_moss_set_01",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 65586,
+     "group": "props"
+    },
+    {
+     "pass": "main",
+     "label": "props.group.children[]",
+     "name": "dead_tree_trunk",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 53430,
+     "group": "props"
+    },
+    {
+     "pass": "main",
+     "label": "props.group.children[]",
+     "name": "tree_stump_01",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 82000,
+     "group": "props"
+    },
+    {
+     "pass": "main",
+     "label": "sky.clouds",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 2256,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "horizon",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 2,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "sky.sunDisc",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1104,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "boundary.group.children[]",
+     "name": "Sprite",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 2,
+     "group": "boundary"
+    },
+    {
+     "pass": "main",
+     "label": "boundary.group.children[]",
+     "name": "LineSegments",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 0,
+     "group": "boundary"
+    },
+    {
+     "pass": "main",
+     "label": "cabins.swings[].pivot",
+     "name": "Lantern_01_glass",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 730,
+     "group": "cabins"
+    },
+    {
+     "pass": "main",
+     "label": "particles.mist",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 144,
+     "group": "particles"
+    },
+    {
+     "pass": "main",
+     "label": "water.mesh",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 8192,
+     "group": "water"
+    },
+    {
+     "pass": "main",
+     "label": "animals.blood.points",
+     "name": "Points",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 0,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "particles.motes",
+     "name": "Points",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 0,
+     "group": "particles"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.puffs.points",
+     "name": "Points",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 0,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "scene#49:Points(ShaderMaterial)",
+     "name": "Points",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 0,
+     "group": "other"
+    },
+    {
+     "pass": "main",
+     "label": "scene#50:Group(rifle-alu,rifle-poly,rifle-steel)",
+     "name": "Points",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 0,
+     "group": "other"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 12,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-cord",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 40,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-prod",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 320,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.loadedBolt",
+     "name": "xbow-bolt",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 118,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.stringRight",
+     "name": "xbow-cord",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 28,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-brass",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 284,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.stringLeft",
+     "name": "xbow-cord",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 28,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-iron",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1476,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-wood",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 916,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.serving",
+     "name": "xbow-cord",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 32,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "post",
+     "label": "post:ShaderMaterial",
+     "name": "Mesh",
+     "rt": "390x844#2",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:CopyMaterial",
+     "name": "CopyMaterial",
+     "rt": "780x1688#3",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:MeshBasicMaterial",
+     "name": "Mesh",
+     "rt": "780x1688#3",
+     "calls": 1,
+     "tris": 1104,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:CopyMaterial",
+     "name": "CopyMaterial",
+     "rt": "195x422#6",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:GodRaysMaterial",
+     "name": "GodRaysMaterial",
+     "rt": "195x422#7",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:LuminanceMaterial",
+     "name": "LuminanceMaterial",
+     "rt": "780x1688#8",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:DownsamplingMaterial",
+     "name": "DownsamplingMaterial",
+     "rt": "390x844#9",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:DownsamplingMaterial",
+     "name": "DownsamplingMaterial",
+     "rt": "195x422#10",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:DownsamplingMaterial",
+     "name": "DownsamplingMaterial",
+     "rt": "98x211#11",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:DownsamplingMaterial",
+     "name": "DownsamplingMaterial",
+     "rt": "49x106#12",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:UpsamplingMaterial",
+     "name": "UpsamplingMaterial",
+     "rt": "98x211#13",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:UpsamplingMaterial",
+     "name": "UpsamplingMaterial",
+     "rt": "195x422#14",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:UpsamplingMaterial",
+     "name": "UpsamplingMaterial",
+     "rt": "390x844#15",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:EffectMaterial",
+     "name": "EffectMaterial",
+     "rt": "780x1688#16",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:EdgeDetectionMaterial",
+     "name": "EdgeDetectionMaterial",
+     "rt": "780x1688#17",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:SMAAWeightsMaterial",
+     "name": "SMAAWeightsMaterial",
+     "rt": "780x1688#18",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:EffectMaterial",
+     "name": "EffectMaterial",
+     "rt": "canvas",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    }
+   ]
+  },
+  {
+   "tier": "phone",
+   "pose": "pond",
+   "calls": 161,
+   "tris": 1336052,
+   "totalsSeen": [
+    161,
+    161,
+    161,
+    161,
+    161,
+    161,
+    161,
+    161,
+    161
+   ],
+   "groups": {
+    "animals": {
+     "main": 7,
+     "shadow": 37,
+     "post": 0,
+     "tris": 66704
+    },
+    "boundary": {
+     "main": 16,
+     "shadow": 1,
+     "post": 0,
+     "tris": 4884
+    },
+    "props": {
+     "main": 3,
+     "shadow": 3,
+     "post": 0,
+     "tris": 155444
+    },
+    "sky": {
+     "main": 18,
+     "shadow": 0,
+     "post": 0,
+     "tris": 31796
+    },
+    "viewmodel": {
+     "main": 26,
+     "shadow": 0,
+     "post": 0,
+     "tris": 8060
+    },
+    "post": {
+     "main": 0,
+     "shadow": 0,
+     "post": 21,
+     "tris": 1124
+    },
+    "forest": {
+     "main": 6,
+     "shadow": 3,
+     "post": 0,
+     "tris": 348616
+    },
+    "other": {
+     "main": 4,
+     "shadow": 0,
+     "post": 0,
+     "tris": 24
+    },
+    "terrain": {
+     "main": 4,
+     "shadow": 0,
+     "post": 0,
+     "tris": 263176
+    },
+    "grass": {
+     "main": 2,
+     "shadow": 0,
+     "post": 0,
+     "tris": 416000
+    },
+    "undergrowth": {
+     "main": 6,
+     "shadow": 0,
+     "post": 0,
+     "tris": 31488
+    },
+    "particles": {
+     "main": 3,
+     "shadow": 0,
+     "post": 0,
+     "tris": 544
+    },
+    "water": {
+     "main": 1,
+     "shadow": 0,
+     "post": 0,
+     "tris": 8192
+    }
+   },
+   "entries": [
+    {
+     "pass": "shadow",
+     "label": "animals.group.children[]",
+     "name": "boar 2part45-80m",
+     "rt": "1024x1024#0",
+     "calls": 18,
+     "tris": 25944,
+     "group": "animals"
+    },
+    {
+     "pass": "shadow",
+     "label": "animals.group.children[]",
+     "name": "deer 3part<45m",
+     "rt": "1024x1024#0",
+     "calls": 15,
+     "tris": 21680,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "boundary.group.children[]",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 6,
+     "tris": 2312,
+     "group": "boundary"
+    },
+    {
+     "pass": "main",
+     "label": "animals.group.children[]",
+     "name": "boar 2part45-80m",
+     "rt": "780x1688#1",
+     "calls": 6,
+     "tris": 8616,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "boundary.group.children[]",
+     "name": "Mesh",
+     "rt": "512x256#19",
+     "calls": 6,
+     "tris": 2312,
+     "group": "boundary"
+    },
+    {
+     "pass": "shadow",
+     "label": "animals.group.children[]",
+     "name": "deer 2part45-80m",
+     "rt": "1024x1024#0",
+     "calls": 4,
+     "tris": 10464,
+     "group": "animals"
+    },
+    {
+     "pass": "shadow",
+     "label": "props.group.children[]",
+     "name": "Mesh",
+     "rt": "1024x1024#0",
+     "calls": 3,
+     "tris": 89232,
+     "group": "props"
+    },
+    {
+     "pass": "main",
+     "label": "sky.planet.children[]",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 3,
+     "tris": 8576,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "sky.planet.children[]",
+     "name": "Mesh",
+     "rt": "512x256#19",
+     "calls": 3,
+     "tris": 8576,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-leather",
+     "rt": "512x256#19",
+     "calls": 2,
+     "tris": 776,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-leather",
+     "rt": "780x1688#1",
+     "calls": 2,
+     "tris": 776,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "post",
+     "label": "post:KawaseBlurMaterial",
+     "name": "KawaseBlurMaterial",
+     "rt": "195x422#4",
+     "calls": 2,
+     "tris": 2,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:KawaseBlurMaterial",
+     "name": "KawaseBlurMaterial",
+     "rt": "195x422#5",
+     "calls": 2,
+     "tris": 2,
+     "group": "post"
+    },
+    {
+     "pass": "shadow",
+     "label": "forest.batched.needles",
+     "name": "Mesh",
+     "rt": "1024x1024#0",
+     "calls": 1,
+     "tris": 158784,
+     "group": "forest"
+    },
+    {
+     "pass": "shadow",
+     "label": "forest.batched.bark",
+     "name": "Mesh",
+     "rt": "1024x1024#0",
+     "calls": 1,
+     "tris": 9360,
+     "group": "forest"
+    },
+    {
+     "pass": "shadow",
+     "label": "forest.batched.twigs",
+     "name": "Mesh",
+     "rt": "1024x1024#0",
+     "calls": 1,
+     "tris": 1816,
+     "group": "forest"
+    },
+    {
+     "pass": "shadow",
+     "label": "boundary.group.children[]",
+     "name": "Mesh",
+     "rt": "1024x1024#0",
+     "calls": 1,
+     "tris": 256,
+     "group": "boundary"
+    },
+    {
+     "pass": "main",
+     "label": "loose:Mesh",
+     "name": "BackgroundCubeMaterial",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 12,
+     "group": "other"
+    },
+    {
+     "pass": "main",
+     "label": "terrain.mesh",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 130050,
+     "group": "terrain"
+    },
+    {
+     "pass": "main",
+     "label": "terrain.group.children[]",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1538,
+     "group": "terrain"
+    },
+    {
+     "pass": "main",
+     "label": "forest.batched.bark",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 4500,
+     "group": "forest"
+    },
+    {
+     "pass": "main",
+     "label": "forest.batched.needles",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 84752,
+     "group": "forest"
+    },
+    {
+     "pass": "main",
+     "label": "forest.batched.far",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 76,
+     "group": "forest"
+    },
+    {
+     "pass": "main",
+     "label": "horizon",
+     "name": "ridge0",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1440,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "horizon",
+     "name": "ridge1",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1440,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "horizon",
+     "name": "ridge2",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1080,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "grass.mesh",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 403200,
+     "group": "grass"
+    },
+    {
+     "pass": "main",
+     "label": "grass.flowers",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 12800,
+     "group": "grass"
+    },
+    {
+     "pass": "main",
+     "label": "under.ferns",
+     "name": "under-fern",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 15480,
+     "group": "undergrowth"
+    },
+    {
+     "pass": "main",
+     "label": "under.shrubs",
+     "name": "under-shrub",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 464,
+     "group": "undergrowth"
+    },
+    {
+     "pass": "main",
+     "label": "under.litter",
+     "name": "under-litter",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 256,
+     "group": "undergrowth"
+    },
+    {
+     "pass": "main",
+     "label": "under.stones",
+     "name": "under-stone",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 126,
+     "group": "undergrowth"
+    },
+    {
+     "pass": "main",
+     "label": "under.moss",
+     "name": "under-moss",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 114,
+     "group": "undergrowth"
+    },
+    {
+     "pass": "main",
+     "label": "under.reeds",
+     "name": "under-reed",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 15048,
+     "group": "undergrowth"
+    },
+    {
+     "pass": "main",
+     "label": "particles.needles",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 400,
+     "group": "particles"
+    },
+    {
+     "pass": "main",
+     "label": "props.group.children[]",
+     "name": "rock_moss_set_01",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 25160,
+     "group": "props"
+    },
+    {
+     "pass": "main",
+     "label": "props.group.children[]",
+     "name": "dead_tree_trunk",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 21372,
+     "group": "props"
+    },
+    {
+     "pass": "main",
+     "label": "props.group.children[]",
+     "name": "tree_stump_01",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 19680,
+     "group": "props"
+    },
+    {
+     "pass": "main",
+     "label": "sky.clouds",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 2256,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "horizon",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 2,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "sky.sunDisc",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1104,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "boundary.group.children[]",
+     "name": "Sprite",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 2,
+     "group": "boundary"
+    },
+    {
+     "pass": "main",
+     "label": "boundary.group.children[]",
+     "name": "LineSegments",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 0,
+     "group": "boundary"
+    },
+    {
+     "pass": "main",
+     "label": "particles.mist",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 144,
+     "group": "particles"
+    },
+    {
+     "pass": "main",
+     "label": "loose:Mesh",
+     "name": "BackgroundCubeMaterial",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 12,
+     "group": "other"
+    },
+    {
+     "pass": "main",
+     "label": "terrain.mesh",
+     "name": "Mesh",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 130050,
+     "group": "terrain"
+    },
+    {
+     "pass": "main",
+     "label": "terrain.group.children[]",
+     "name": "Mesh",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 1538,
+     "group": "terrain"
+    },
+    {
+     "pass": "main",
+     "label": "forest.batched.bark",
+     "name": "Mesh",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 4500,
+     "group": "forest"
+    },
+    {
+     "pass": "main",
+     "label": "forest.batched.needles",
+     "name": "Mesh",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 84752,
+     "group": "forest"
+    },
+    {
+     "pass": "main",
+     "label": "forest.batched.far",
+     "name": "Mesh",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 76,
+     "group": "forest"
+    },
+    {
+     "pass": "main",
+     "label": "horizon",
+     "name": "ridge0",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 1440,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "horizon",
+     "name": "ridge1",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 1440,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "horizon",
+     "name": "ridge2",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 1080,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "sky.clouds",
+     "name": "Mesh",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 2256,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "horizon",
+     "name": "Mesh",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 2,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "boundary.group.children[]",
+     "name": "LineSegments",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 0,
+     "group": "boundary"
+    },
+    {
+     "pass": "main",
+     "label": "boundary.group.children[]",
+     "name": "Sprite",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 2,
+     "group": "boundary"
+    },
+    {
+     "pass": "main",
+     "label": "sky.sunDisc",
+     "name": "Mesh",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 1104,
+     "group": "sky"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.puffs.points",
+     "name": "Points",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 0,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "scene#49:Points(ShaderMaterial)",
+     "name": "Points",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 0,
+     "group": "other"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "Mesh",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 12,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.serving",
+     "name": "xbow-cord",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 32,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.stringLeft",
+     "name": "xbow-cord",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 28,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.stringRight",
+     "name": "xbow-cord",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 28,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.loadedBolt",
+     "name": "xbow-bolt",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 118,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-iron",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 1476,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-brass",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 284,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-wood",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 916,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-prod",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 320,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-cord",
+     "rt": "512x256#19",
+     "calls": 1,
+     "tris": 40,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "water.mesh",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 8192,
+     "group": "water"
+    },
+    {
+     "pass": "main",
+     "label": "animals.blood.points",
+     "name": "Points",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 0,
+     "group": "animals"
+    },
+    {
+     "pass": "main",
+     "label": "particles.motes",
+     "name": "Points",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 0,
+     "group": "particles"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.puffs.points",
+     "name": "Points",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 0,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "scene#49:Points(ShaderMaterial)",
+     "name": "Points",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 0,
+     "group": "other"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "Mesh",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 12,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-cord",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 40,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-prod",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 320,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.loadedBolt",
+     "name": "xbow-bolt",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 118,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.stringRight",
+     "name": "xbow-cord",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 28,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-brass",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 284,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.stringLeft",
+     "name": "xbow-cord",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 28,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-iron",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 1476,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.model.children[]",
+     "name": "xbow-wood",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 916,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "main",
+     "label": "crossbow.serving",
+     "name": "xbow-cord",
+     "rt": "780x1688#1",
+     "calls": 1,
+     "tris": 32,
+     "group": "viewmodel"
+    },
+    {
+     "pass": "post",
+     "label": "post:ShaderMaterial",
+     "name": "Mesh",
+     "rt": "390x844#2",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:CopyMaterial",
+     "name": "CopyMaterial",
+     "rt": "780x1688#3",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:MeshBasicMaterial",
+     "name": "Mesh",
+     "rt": "780x1688#3",
+     "calls": 1,
+     "tris": 1104,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:CopyMaterial",
+     "name": "CopyMaterial",
+     "rt": "195x422#6",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:GodRaysMaterial",
+     "name": "GodRaysMaterial",
+     "rt": "195x422#7",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:LuminanceMaterial",
+     "name": "LuminanceMaterial",
+     "rt": "780x1688#8",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:DownsamplingMaterial",
+     "name": "DownsamplingMaterial",
+     "rt": "390x844#9",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:DownsamplingMaterial",
+     "name": "DownsamplingMaterial",
+     "rt": "195x422#10",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:DownsamplingMaterial",
+     "name": "DownsamplingMaterial",
+     "rt": "98x211#11",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:DownsamplingMaterial",
+     "name": "DownsamplingMaterial",
+     "rt": "49x106#12",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:UpsamplingMaterial",
+     "name": "UpsamplingMaterial",
+     "rt": "98x211#13",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:UpsamplingMaterial",
+     "name": "UpsamplingMaterial",
+     "rt": "195x422#14",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:UpsamplingMaterial",
+     "name": "UpsamplingMaterial",
+     "rt": "390x844#15",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:EffectMaterial",
+     "name": "EffectMaterial",
+     "rt": "780x1688#16",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:EdgeDetectionMaterial",
+     "name": "EdgeDetectionMaterial",
+     "rt": "780x1688#17",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:SMAAWeightsMaterial",
+     "name": "SMAAWeightsMaterial",
+     "rt": "780x1688#18",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    },
+    {
+     "pass": "post",
+     "label": "post:EffectMaterial",
+     "name": "EffectMaterial",
+     "rt": "canvas",
+     "calls": 1,
+     "tris": 1,
+     "group": "post"
+    }
+   ]
+  }
+ ]
+}
