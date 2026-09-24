@@ -391,7 +391,7 @@ export class Sky {
           float lat = dot(N, uAxis);
           float lon = atan(dot(N, B), dot(N, T)) / 6.2831853 + uTime * 0.0025;
           vec3 col = texture2D(tBands, vec2(lon, lat * 0.5 + 0.5)).rgb;
-          float mu = max(dot(N, V), 0.0);
+          float mu = clamp(dot(N, V), 0.0, 1.0);                // ≤ 1: pow(1 − mu) below must never see a negative (NaN → bloom black square, E91)
           float day = smoothstep(-0.35, 0.3, dot(N, uSunDir));   // a wide soft terminator: the disc reads bright, with a shaded crescent
           float limb = 0.45 + 0.55 * mu;                       // limb darkening
           vec3 lit = col * (0.24 + 0.95 * day) * limb + col * vec3(0.05, 0.08, 0.14) * (1.0 - day); // a little sky bounce on the night side

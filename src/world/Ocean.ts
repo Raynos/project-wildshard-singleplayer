@@ -182,7 +182,7 @@ export class Ocean {
             vec3 R = reflect(-V, fn);
             float e = max(R.y, 0.0);
             vec3 skyR = mix(fogColor, uFogZenith, pow(smoothstep(0.0, 0.75, e), 0.62) * 0.6 + 0.4); // biased to the saturated zenith: no white wash
-            float fres = 0.02 + 0.98 * pow(1.0 - max(dot(fn, V), 0.0), 5.0);
+            float fres = 0.02 + 0.98 * pow(1.0 - clamp(dot(fn, V), 0.0, 1.0), 5.0);
             float sd = max(dot(R, fogSunDir), 0.0);
             // glints break up facet by facet into sparkles (a flat patch facing the sun would be one blinding blob)
             float sparkle = step(0.92, hash21(floor(vOceanW.xz * 1.3) + floor(uTime * 3.0)));

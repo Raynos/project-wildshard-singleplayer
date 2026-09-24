@@ -116,7 +116,9 @@ export class StylizedSky {
           vec3 col = mix(uCloudShade, uCloudLit, lit);
           col = mix(col, uCloudShade * 0.82, vBelly * 0.55);                         // darker, flatter bellies
           // silver lining: rims facing away from the eye glow when the sun sits behind the cloud
-          float fres = pow(1.0 - abs(dot(N, V)), 2.5);
+          // clamped: a facet square to the eye rounds |N·V| past 1 (mediump on iOS), pow(negative) is NaN, and bloom's mip
+          // chain smears that one NaN pixel into a flickering black square in the sky (E91)
+          float fres = pow(clamp(1.0 - abs(dot(N, V)), 0.0, 1.0), 2.5);
           float behind = pow(max(dot(-V, uSunDir), 0.0), 3.0);
           col += uSunGlow * fres * (0.25 + 1.6 * behind);
           // the lowest puffs melt into the horizon haze
