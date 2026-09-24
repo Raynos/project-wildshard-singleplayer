@@ -92,7 +92,8 @@ describe('chunk terrain', () => {
         const h = t.heightAt(x, z);
         expect(Number.isFinite(h), at).toBe(true);
         expect(h, at).toBeGreaterThan(-60);
-        expect(h, at).toBeLessThan(100); // Nalati's Crags top out a little over +80
+        // Nalati layout v2's snow ring (docs/design/nalati/layout-v2.md): the Crags and the west massif peak at +90 … +127
+        expect(h, at).toBeLessThan(135);
         const [nx, ny, nz] = t.normalAt(x, z);
         expect(Math.hypot(nx, ny, nz), at).toBeCloseTo(1, 6);
         expect(ny, at).toBeGreaterThan(0);

@@ -28,6 +28,10 @@ const uniq = (xs: string[]) => [...new Set(xs)];
 const painterlyBoot = (): string[] => [
   ...['meadow', 'path', 'gravel', 'rock', 'snow', 'felt'].map((n) => nalatiUrl(`tex/${n}`)), nalatiUrl('cards'), nalatiUrl('panorama'),
   ...['eagle', 'cauldron', 'firewood', 'kumis-churn', 'chest', 'saddle', 'balbal', 'boulder-1', 'boulder-2', 'boulder-3'].map((m) => `/assets/nalati/models/${m}.glb`),
+  // layout v2 (src/world/nalati/Bowl.ts): the watchtower, snow lotus, the kokpar field's spectators + riders (the phone
+  // draws the riders' far LOD), the far herds (the far LOD, one file on every tier)
+  ...['watchtower', 'snow-lotus', 'horse-saddled', 'kokpar-rider'].map((m) => `/assets/nalati/models/${m}.glb`),
+  '/assets/nalati/models/horse-wild.far.glb', '/assets/nalati/models/kokpar-rider.far.glb',
 ].filter((f) => tierUrl(f) in PUBLIC_BYTES || f in PUBLIC_BYTES);
 
 export function chunkFiles(def: ChunkDef): ChunkFiles {
