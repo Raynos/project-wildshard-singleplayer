@@ -118,3 +118,12 @@ and [review-experience.md](../design/nalati/merge/review-experience.md) (HUD, re
 
 - A Blender terrain bake for Nalati (its look v2 bake stays) · the WebGPU port · the shard-module refactor (ENGINE-FIT E5) ·
   the learned LUT (not in the first Look Lab wave).
+
+## Open questions for the user (parked while he is AFK; defaults in force)
+
+- H2: the sun / moon rim glyph on Driftwood + Pine Hollow too? (wave 8 said "every shard"; H2 kept it Nalati-only to leave
+  main's HUD untouched) — default: Nalati only.
+- H2: D's sky row reads "DAY" next to the glyph while wave 6 said "no text" for the clock — default: keep D's word in the
+  status column, the rim glyph has none.
+- H2: Nalati's DODGE sits where D drew it (a flatter arc than main's DODGE / JUMP diagonal) — default: D's spot.
+- H2 (main's own layout, not Nalati): on Pine Hollow with the crossbow, AIM overlaps DODGE — flag to main's HUD owner.
