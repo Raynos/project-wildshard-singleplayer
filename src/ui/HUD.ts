@@ -586,8 +586,9 @@ export class HUD {
     this.onEnter?.();
   }
 
-  /** dev: skip the intro entirely */
-  markEntered(): void { this.entered = true; this.root.classList.remove('intro'); }
+  /** skip the intro (`?skipintro`, `?tour`, a GPU-recovery reload): straight into the world. `onEnter` is what the title's
+   *  ENTER WORLD runs once pause → "Exit to main menu" brings the title back — without it that exit froze the game (E86) */
+  markEntered(onEnter?: () => void): void { if (onEnter) this.onEnter = onEnter; this.entered = true; this.root.classList.remove('intro'); }
 
   /** Pause → "Exit to main menu": back to the chunk selection without a reload. The world stays loaded;
    *  `onExitToMenu` is where main.ts stops the loop / mutes audio. The next ENTER WORLD fires `onEnter` again. */
