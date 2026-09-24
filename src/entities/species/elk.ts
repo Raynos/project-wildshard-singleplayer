@@ -4,6 +4,7 @@ import type { HuntTuning } from '../AnimalManager';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef } from './registry';
 import { loft, tube, skinPlain, S, boneIndex, mix, sstep, paintNoise, setShag, isLowPoly, paletteColors, type Paint, type RGB } from './loft';
 import { deerPaintLow } from '../lowpoly';
+import { THRALL_TRAITS, thrallPose } from './thrall';
 
 /**
  * Elk (wapiti) — a much bigger beast than the deer: 1.5 m at the shoulder, ~2.4 m of body, a heavy neck
@@ -20,7 +21,7 @@ import { deerPaintLow } from '../lowpoly';
  * bodyDark neck mane belly rump legDark nose muzzle eyeRing earIn antler antlerTip hoof eye.
  */
 
-const ELK_PALETTE = {
+export const ELK_PALETTE = {   // exported: pineCoats.ts recolours the rigged hull per variant from it
   // pale tan barrel, dark chocolate neck + legs + belly, straw-cream rump patch, near-black mane
   body: [0.47, 0.37, 0.25], bodyDark: [0.35, 0.27, 0.18],
   neck: [0.19, 0.125, 0.08], mane: [0.11, 0.075, 0.05], belly: [0.26, 0.20, 0.14], rump: [0.82, 0.76, 0.62],
@@ -37,6 +38,12 @@ const PALE_TINT: Record<string, RGB> = {
 };
 
 /** the Imperial bull: a warmer, gold-cast coat with an even darker mane; the glow is in the fur override */
+/** the King's thrall (PH-M2): a dead, damp coat gone olive; the moss, lichen and eyes are the hull's coat (pineCoats.ts) */
+const THRALL_TINT: Record<string, RGB> = {
+  body: [0.30, 0.28, 0.20], bodyDark: [0.20, 0.19, 0.13], neck: [0.12, 0.11, 0.07], mane: [0.08, 0.09, 0.05], belly: [0.16, 0.14, 0.10],
+  rump: [0.42, 0.42, 0.32], legDark: [0.14, 0.12, 0.09],
+};
+
 const IMPERIAL_TINT: Record<string, RGB> = {
   body: [0.52, 0.40, 0.24], bodyDark: [0.40, 0.30, 0.17],
   neck: [0.22, 0.15, 0.09], mane: [0.14, 0.10, 0.07], belly: [0.28, 0.21, 0.14], rump: [0.92, 0.84, 0.62],
@@ -313,6 +320,7 @@ registerSpecies({
   // bulls bugle (AnimalManager: sounds.callVariants / callEvery); a hit gets the deer's bark
   sounds: { call: 'elk_bugle', hurt: 'deer_call', callVariants: ['bull', 'big-bull', 'imperial'], callEvery: [40, 120] },
   pose: { grazeNeck: 0.9, gallopTail: 0.4 },
+  postPose: thrallPose,   // a no-op but on the thrall (its stiff gait)
   // weights sum to 100: cow 50 % · bull 38 % · Royal bull 8 % · pale 3 % · Imperial 1 %; every variant's body hits do ×0.8 (hide)
   variants: [
     { id: 'cow', label: 'Elk cow', weight: 50, rarity: 'common', scale: [0.95, 1.05], hp: 160, mods: { damageTaken: 0.8 } },
@@ -326,6 +334,10 @@ registerSpecies({
       fur: { rim: [1.0, 0.86, 0.45], emissive: [0.55, 0.40, 0.12], emissiveIntensity: 0.06, sheenColor: [0.75, 0.60, 0.30] },
       mods: { speed: 1.15, damageTaken: 0.8 },
     },
+  ],
+  // the Antler King's thrall (PH-U9 / PH-M2): spawned by id at night / in his fight, never rolled (species/thrall.ts)
+  spawnOnly: [
+    { id: 'thrall', label: 'Thrall', weight: 1, rarity: 'rare', scale: [1.1, 1.2], hp: 220, tint: THRALL_TINT, traits: { antlers: 1, ...THRALL_TRAITS }, mods: { damageTaken: 0.8, speed: 0.9 } },
   ],
   build: buildElk,
 });

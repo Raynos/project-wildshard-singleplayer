@@ -13,8 +13,9 @@
  * `anchor`'s local frame: origin on the wall face at floor level, +x along the wall (the viewer's right), +y up, +z out
  * of the wall into the room. Cheap: ONE merged mesh for every mount + shield (vertex colours, one MeshStandardMaterial)
  * and ONE merged mesh for every chalk decal (a canvas atlas); no lights, nothing per frame but a ray-plane test.
- * The mount geometry is the species' bind-pose model clipped at the neck (AnimalFactory.model), until the creature lane
- * swaps in generated mounts.
+ * The mount geometry is the species' bind-pose model clipped at the neck (AnimalFactory.model): the generated hull where
+ * the animal is one (Pine Hollow PH-M1, pineCreatures.ts — its coat atlas sampled into the vertex colours, so the wall
+ * stays one mesh), else the procedural model's own paint.
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -71,13 +72,40 @@ function shieldGeometry(w: number, h: number): THREE.BufferGeometry {
   return g.toNonIndexed();
 }
 
+/** a texture's pixels (downscaled to ≤ 512²), to sample a generated hull's coat per vertex; null when unreadable */
+function texturePixels(map: THREE.Texture): { data: Uint8ClampedArray; w: number; h: number; flipY: boolean } | null {
+  const img = map.image as (CanvasImageSource & { width: number; height: number }) | null;
+  if (!img || typeof document === 'undefined' || !(img.width > 0)) return null;
+  const k = Math.min(1, 512 / Math.max(img.width, img.height));
+  const w = Math.max(1, Math.round(img.width * k)), h = Math.max(1, Math.round(img.height * k));
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d', { willReadFrequently: true });
+  if (!g) return null;
+  g.drawImage(img, 0, 0, w, h);
+  return { data: g.getImageData(0, 0, w, h).data, w, h, flipY: map.flipY };
+}
+
 /** the head and shoulders of a (kind, variant) model: its bind-pose triangles in front of the neck's base, above the chest */
 function mountGeometry(factory: AnimalFactory, kind: string, variant: string): THREE.BufferGeometry | null {
   const model = factory.model(kind, variant);
+  // a generated hull (PH-M1): white vertex colours under a photo atlas — the atlas, sampled at each vertex, is its paint
+  const atlas = model.hull !== undefined && model.fur.map ? texturePixels(model.fur.map) : null;
+  const uv = atlas ? model.geometry.getAttribute('uv') : null, col = model.geometry.getAttribute('color');
+  const sc = new THREE.Color();
+  const paint = (v: number): [number, number, number] => {
+    if (atlas && uv) {
+      const u = uv.getX(v) - Math.floor(uv.getX(v)), t = uv.getY(v) - Math.floor(uv.getY(v));
+      const x = Math.min(atlas.w - 1, Math.floor(u * atlas.w)), y = Math.min(atlas.h - 1, Math.floor((atlas.flipY ? 1 - t : t) * atlas.h));
+      const o = (y * atlas.w + x) * 4;
+      sc.setRGB((atlas.data[o] ?? 0) / 255, (atlas.data[o + 1] ?? 0) / 255, (atlas.data[o + 2] ?? 0) / 255, THREE.SRGBColorSpace);
+      return [sc.r, sc.g, sc.b];
+    }
+    return [col.getX(v) * FUR_TONE, col.getY(v) * FUR_TONE, col.getZ(v) * FUR_TONE];
+  };
   const neck = model.bones.find((b) => b.name === 'neck1')?.pos, body = model.bones.find((b) => b.name === 'body')?.pos;
   if (!neck || !body) return null;
   const src = model.geometry;
-  const pos = src.getAttribute('position'), nrm = src.getAttribute('normal'), col = src.getAttribute('color');
+  const pos = src.getAttribute('position'), nrm = src.getAttribute('normal');
   const idx = src.getIndex();
   const cutZ = neck[2] - 0.06, cutY = body[1] - 0.04;
   const P: number[] = [], N: number[] = [], C: number[] = [];
@@ -87,7 +115,7 @@ function mountGeometry(factory: AnimalFactory, kind: string, variant: string): T
     for (const v of [a, b, c]) {
       P.push(pos.getX(v) - neck[0], pos.getY(v) - neck[1], pos.getZ(v) - cutZ);
       N.push(nrm.getX(v), nrm.getY(v), nrm.getZ(v));
-      C.push(col.getX(v) * FUR_TONE, col.getY(v) * FUR_TONE, col.getZ(v) * FUR_TONE);
+      C.push(...paint(v));
     }
   };
   const n = idx ? idx.count : pos.count;

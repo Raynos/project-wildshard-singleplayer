@@ -64,6 +64,8 @@ ap.add_argument("--keep-texture", action="store_true",
                 help="PBR mode (photoreal shards): keep the texture, no facet colours / grade / quant, smooth shading")
 ap.add_argument("--normal-map", type=int, default=-1, help="--keep-texture: N² normal map baked from the high mesh (default the atlas size, 0 = none)")
 ap.add_argument("--roughness", type=float, default=0.9, help="--keep-texture: the material's roughness")
+ap.add_argument("--recalc-normals", action="store_true",
+                help="after decimating, turn every face outward (a generation's patches of inside-out faces show as holes under back-face culling)")
 ap.add_argument("--smooth-angle", type=float, default=40.0, help="--keep-texture: edges sharper than this (degrees) stay hard")
 a = ap.parse_args(argv)
 if a.keep_texture:
@@ -352,6 +354,12 @@ for ai, ob in enumerate(assets):
     print("DEC", ob.name, "->", len(ob.data.polygons), flush=True)
     tri = ob.modifiers.new("tri", "TRIANGULATE")
     bpy.ops.object.modifier_apply(modifier=tri.name)
+    if a.recalc_normals:
+        bm_n = bmesh.new()
+        bm_n.from_mesh(ob.data)
+        bmesh.ops.recalc_face_normals(bm_n, faces=bm_n.faces[:])
+        bm_n.to_mesh(ob.data)
+        bm_n.free()
     for p in ob.data.polygons:
         p.use_smooth = False
     me = ob.data

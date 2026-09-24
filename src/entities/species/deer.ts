@@ -12,7 +12,7 @@ import { deerPaintLow } from '../lowpoly';
  * earIn antler antlerTip hoof eye.
  */
 
-const DEER_PALETTE = {
+export const DEER_PALETTE = {   // exported: pineCoats.ts recolours the rigged hull per variant from it
   // autumn coat: ~#7a5a3c body, greyer neck/legs, cream belly + throat, pale rump patch with a dark tail stripe
   body: [0.40, 0.335, 0.265], bodyDark: [0.30, 0.25, 0.20], grey: [0.38, 0.34, 0.30], greyDark: [0.29, 0.255, 0.22],
   belly: [0.68, 0.62, 0.52], cream: [0.74, 0.68, 0.56], rump: [0.62, 0.57, 0.47],

@@ -357,6 +357,7 @@ export class AnimalManager {
   async buildAsync(pause: () => Promise<void>): Promise<this> {
     this.blood = new BloodFX(this.sky);
     this.group.add(this.blood.group);
+    await this.factory.ready;   // Pine Hollow's generated hulls (pineCreatures.ts) before the first herd: a model is made once
     for (const _herd of this.spawnHerds()) await pause();
     return this.finish();
   }

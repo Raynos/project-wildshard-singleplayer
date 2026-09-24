@@ -7,6 +7,7 @@ import { bakedTexture } from '../boot/bakedTextures';
 import { speciesDef, variantDef, type SpeciesDef, type VariantDef, type AnimalDims, type BoneDef, type FurStyle } from './species/registry';
 import { setLowPoly } from './species/loft';
 import { facetGeometry, lowPolyMaterials, oneMaterial, patchEyeGlow } from './lowpoly';
+import { preloadPineCreatures, skinPineHull, type EyeSpot } from './pineCreatures';
 
 // every species file registers itself on import: drop `src/entities/species/<kind>.ts` in and it exists
 import.meta.glob(['./species/*.ts', '!./species/registry.ts', '!./species/loft.ts'], { eager: true });
@@ -101,6 +102,9 @@ export interface AnimalModel {
   shells: THREE.MeshPhysicalMaterial[];
   /** the fur's backlit rim colour (FurStyle.rim), needed to re-patch a cloned fur material; absent in 'lowpoly' */
   rim?: THREE.Color;
+  /** 'pbr' on a generated hull (Pine Hollow, pineCreatures.ts): one group, the fur material over the hull's PBR atlas +
+   *  normal map, no fur shells; `thrall` = its eyes glow and its fern clumps take their vertex colour (aThrall) */
+  hull?: { thrall: boolean };
 }
 
 /** one fur-shell layer's uniforms (see patchFur) */
@@ -240,8 +244,14 @@ export class AnimalFactory {
   private strandTex?: THREE.Texture;
 
   readonly style: AnimalStyle;
+  /** resolves once the generated hulls this factory may use have loaded (Pine Hollow's rigs; at once elsewhere): a model
+   *  made before it is the procedural one for good, so AnimalManager.buildAsync waits for it before the first herd */
+  readonly ready: Promise<void>;
 
-  constructor(private readonly sky: Sky, opts: { style?: AnimalStyle | undefined } = {}) { this.style = opts.style ?? 'pbr'; }
+  constructor(private readonly sky: Sky, opts: { style?: AnimalStyle | undefined } = {}) {
+    this.style = opts.style ?? 'pbr';
+    this.ready = this.style === 'pbr' ? preloadPineCreatures() : Promise.resolve();
+  }
 
   /** The cached model for (kind, variant id). An unknown variant id falls back to the species' first variant. */
   model(kind: AnimalKind, variant?: string): AnimalModel {
@@ -255,6 +265,9 @@ export class AnimalFactory {
     const sp = species.build(v, new Rng(hashSeed(key)));
     setLowPoly(false);
     if (sp.bones[0]?.name !== 'body') throw new Error(`species '${kind}': bones[0] must be 'body'`);
+    // the procedural eyes, where a thrall's glowing eyes go on a generated hull
+    const eyes: EyeSpot[] = [];
+    for (const g of sp.eyeParts) { g.computeBoundingSphere(); const bs = g.boundingSphere; if (bs !== null) eyes.push({ centre: bs.center.clone(), radius: bs.radius }); }
     const furGeo = mergeGeometries(sp.furParts, false);
     const hardGeo = mergeGeometries(sp.hardParts, false);
     const eyeGeo = mergeGeometries(sp.eyeParts, false);
@@ -283,6 +296,25 @@ export class AnimalFactory {
     }
 
     const style: FurStyle = { ...species.fur, ...v.fur };
+    // a generated hull skinned to this skeleton (Pine Hollow PH-M1, pineCreatures.ts; `?creatures=proc` = the procedural
+    // animal): one group drawn with the same fur material over the hull's photoreal atlas (the variant's coat) + normal
+    // map, so the program is the procedural fur's own; no fur shells
+    const hull = skinPineHull(kind, v.id, sp.bones, eyes);
+    if (hull !== null && hull.map !== null) {
+      geometry.dispose();
+      const fur = new THREE.MeshPhysicalMaterial({
+        map: hull.map, normalMap: hull.normalMap, normalScale: new THREE.Vector2(1.0, -1.0),   // glTF's normal map, derivative tangents (as GLTFLoader); every rig ships one
+        roughness: style.roughness, metalness: 0, vertexColors: true, color: new THREE.Color(1.0, 1.0, 1.0),
+        sheen: Math.max(0.01, style.sheen), sheenRoughness: 0.7, sheenColor: col3(style.sheenColor), envMapIntensity: style.envMapIntensity,
+      });
+      if (style.emissive !== undefined) { fur.emissive = col3(style.emissive); fur.emissiveIntensity = style.emissiveIntensity ?? 1; }
+      const rim = col3(style.rim);
+      this.patchFur(fur, rim, undefined, -1, hull.thrall);
+      this.sky.setupMaterial(fur);
+      m = { kind, variant: v.id, style: 'pbr', species, variantDef: v, geometry: hull.geometry, bones: hull.bones, dims: sp.dims, fur, hard: fur, eye: new THREE.MeshPhysicalMaterial(), shells: [], rim, hull: { thrall: hull.thrall } };
+      this.models.set(key, m);
+      return m;
+    }
     let tex = this.tex.get(kind);
     if (tex === undefined) { tex = makeFurTextures(species.fur.texSeed, species.fur.tex, kind); this.tex.set(kind, tex); }
     // MeshPhysicalMaterial for the sheen term (soft velvet), plus a backlit Fresnel rim patched in below.
@@ -322,9 +354,26 @@ export class AnimalFactory {
    * skinned normal by furLen x layer length (combed down/back by gravity), a strand cross-section is
    * alpha-tested so hairs thin out toward the outer layers, and inner layers are darkened (root AO).
    * The patched source has no per-species text, so one program serves every kind (see customProgramCacheKey).
+   * `thrall` (a generated hull's thrall, PH-M2): the `aThrall` attribute's x takes the vertex colour instead of the atlas
+   * and its normal map (the fern clumps), y glows cyan (the glass eyes) — one more program, only while a thrall exists.
    */
-  private patchFur(fur: THREE.MeshPhysicalMaterial, rim: THREE.Color, shell?: ShellLayer, shellIndex = -1): void {
+  private patchFur(fur: THREE.MeshPhysicalMaterial, rim: THREE.Color, shell?: ShellLayer, shellIndex = -1, thrall = false): void {
     fur.onBeforeCompile = (shader) => {
+      if (thrall) {
+        shader.vertexShader = shader.vertexShader
+          .replace('#include <clipping_planes_pars_vertex>', `#include <clipping_planes_pars_vertex>
+            attribute vec2 aThrall; varying vec2 vThrall;`)
+          .replace('#include <begin_vertex>', `#include <begin_vertex>
+            vThrall = aThrall;`);
+        shader.fragmentShader = shader.fragmentShader
+          .replace('#include <clipping_planes_pars_fragment>', `#include <clipping_planes_pars_fragment>
+            varying vec2 vThrall;`)
+          .replace('#include <map_fragment>', `#include <map_fragment>
+            diffuseColor.rgb = mix( diffuseColor.rgb, diffuse, vThrall.x );`)
+          .replace('mapN.xy *= normalScale;', 'mapN.xy *= normalScale * ( 1.0 - vThrall.x );')
+          .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+            totalEmissiveRadiance += vec3( 0.45, 0.95, 1.1 ) * 2.6 * vThrall.y;`);
+      }
       attachFogUniforms(shader);
       shader.uniforms['furRimColor'] = { value: rim };
       shader.uniforms['furSunDir'] = fogUniforms.fogSunDir;
@@ -367,7 +416,7 @@ export class AnimalFactory {
             diffuseColor.rgb *= shellDark;`);
       }
     };
-    fur.customProgramCacheKey = () => `animal-fur${shell !== undefined ? `-shell${shellIndex}` : ''}`;
+    fur.customProgramCacheKey = () => `animal-fur${shell !== undefined ? `-shell${shellIndex}` : ''}${thrall ? '-thrall' : ''}`;
   }
 
   /** Fur-shell meshes for one rig: SHELL_LAYERS SkinnedMeshes sharing geometry + skeleton, parented to the body mesh, all hidden. [] in 'lowpoly'. */
@@ -406,14 +455,15 @@ export class AnimalFactory {
     }
     const fur = model.fur.clone();
     if (model.style === 'pbr' && model.rim !== undefined) {
-      this.patchFur(fur as THREE.MeshPhysicalMaterial, model.rim);   // clone() does not carry onBeforeCompile
+      this.patchFur(fur as THREE.MeshPhysicalMaterial, model.rim, undefined, -1, model.hull?.thrall ?? false);   // clone() does not carry onBeforeCompile
     }
     if (model.style === 'lowpoly' && model.geometry.hasAttribute('aGlow')) patchEyeGlow(fur, model.eye.emissive, model.eye.emissiveIntensity);
     const v = (tint - 0.5) * (model.style === 'lowpoly' ? 0.3 : 0.2);
     fur.color.setRGB(0.9 + v, 0.9 + v * 0.9, 0.9 + v * 0.7);
     this.sky.setupMaterial(fur);
     // low-poly rigs are one group (oneMaterial): one draw, and the per-animal body clone is the whole body (the hit flash)
-    const mesh = new THREE.SkinnedMesh(model.geometry, model.style === 'lowpoly' ? [fur] : [fur, model.hard, model.eye]);
+    // a generated hull (Pine Hollow) is one group too: one draw, and one shadow draw without animalShadow's caster
+    const mesh = new THREE.SkinnedMesh(model.geometry, model.style === 'lowpoly' || model.hull !== undefined ? [fur] : [fur, model.hard, model.eye]);
     const root = bones['body'];
     if (root === undefined) throw new Error(`species '${model.kind}': no 'body' bone`);
     mesh.add(root);

@@ -3,6 +3,7 @@ import type { Rng } from '../../core/rng';
 import { registerSpecies, type AnimalSpecies, type BoneDef, type VariantDef } from './registry';
 import { loft, tube, skinPlain, S, boneIndex, srgb, mix, sstep, paintNoise, setShag, isLowPoly, paletteColors, type Paint, type RGB } from './loft';
 import { boarPaintLow, crestSpikes } from '../lowpoly';
+import { THRALL_TRAITS, thrallPose } from './thrall';
 
 /**
  * Wild boar — 0.62 m at the spine, shoulder hump, bristle crest, tusks, held-low wedge head.
@@ -12,7 +13,7 @@ import { boarPaintLow, crestSpikes } from '../lowpoly';
  * Palette keys (VariantDef.tint): base grizzle dark black snout tusk hoof eye cheek scar.
  */
 
-const BOAR_PALETTE = {
+export const BOAR_PALETTE = {   // exported: pineCoats.ts recolours the rigged hull per variant from it
   // dark grey-brown with grizzled pale bristle tips along the spine, pale tusks
   base: [0.36, 0.29, 0.225], grizzle: [0.58, 0.50, 0.40], dark: [0.16, 0.13, 0.10], black: [0.06, 0.05, 0.045],
   snout: [0.16, 0.09, 0.08], tusk: [0.90, 0.86, 0.74], hoof: [0.09, 0.075, 0.065], eye: [0.02, 0.015, 0.01], cheek: [0.40, 0.36, 0.30],
@@ -33,6 +34,11 @@ const SCARBACK_TINT: Record<string, RGB> = {
 const IRONHIDE_TINT: Record<string, RGB> = {
   base: [0.28, 0.29, 0.31], grizzle: [0.52, 0.54, 0.56], dark: [0.12, 0.125, 0.14], black: [0.05, 0.05, 0.06], cheek: [0.40, 0.41, 0.42],
   snout: [0.12, 0.10, 0.10], tusk: [0.80, 0.78, 0.70], hoof: [0.08, 0.08, 0.085],
+};
+
+/** the King's thrall (PH-M2): a dead, damp coat gone olive; the moss, lichen and eyes are the hull's coat (pineCoats.ts) */
+const THRALL_TINT: Record<string, RGB> = {
+  base: [0.20, 0.19, 0.13], grizzle: [0.34, 0.36, 0.22], dark: [0.09, 0.09, 0.06], black: [0.04, 0.04, 0.03], cheek: [0.26, 0.26, 0.18],
 };
 
 function boarPaint(v: VariantDef): Paint {
@@ -240,6 +246,7 @@ registerSpecies({
   chargeDamage: 25,
   sounds: { call: 'boar_grunt', hurt: 'boar_squeal' },
   pose: { grazeNeck: 0.3, gallopTail: 0.5 },
+  postPose: thrallPose,   // a no-op but on the thrall (its stiff gait)
   // weights sum to 97: boar 50 % · sow 27 % · black 10 % · big 8 % · scarback 3 % · ironhide 1 %
   variants: [
     { id: 'boar', label: 'Boar', weight: 49, rarity: 'common', scale: [0.95, 1.1] },
@@ -257,6 +264,10 @@ registerSpecies({
       fur: { rim: [0.75, 0.78, 0.85], sheenColor: [0.4, 0.42, 0.46] },
       mods: { damageTaken: 0.6, chargeDist: 1.8, chargeDamage: 40, relentless: true, speed: 1.05 },
     },
+  ],
+  // the Antler King's thrall (PH-U9 / PH-M2): spawned by id at night / in his fight, never rolled (species/thrall.ts)
+  spawnOnly: [
+    { id: 'thrall', label: 'Thrall', weight: 1, rarity: 'rare', scale: [1.1, 1.2], hp: 140, tint: THRALL_TINT, traits: { tuskScale: 1.4, ...THRALL_TRAITS }, mods: { chargeDist: 1.4 } },
   ],
   build: buildBoar,
 });

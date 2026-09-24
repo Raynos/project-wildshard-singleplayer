@@ -201,6 +201,9 @@ export interface SpeciesDef {
   label: string;
   /** the weighted variant table; the first entry is the fallback when spawn() is given an unknown id */
   variants: VariantDef[];
+  /** variants that are only ever spawned by id (`animals.spawn(kind, x, z, yaw, id)`): never rolled, not in the hunt
+   *  tables or the journal — the Antler King's thralls (Pine Hollow PH-M2, species/thrall.ts) */
+  spawnOnly?: VariantDef[];
   fur: FurStyle;
   /** build the mesh parts for one variant; called once per (kind, variant) and cached by the factory */
   build: (variant: VariantDef, rng: Rng) => AnimalSpecies;
@@ -270,7 +273,7 @@ export function variantDef(kind: string, id: string | undefined): VariantDef {
   const d = speciesDef(kind);
   const first = d.variants[0];
   if (first === undefined) throw new Error(`species '${kind}' has no variants`);   // registerSpecies rejects an empty table
-  return (id !== undefined && id !== '' ? d.variants.find((v) => v.id === id) : undefined) ?? first;
+  return (id !== undefined && id !== '' ? d.variants.find((v) => v.id === id) ?? d.spawnOnly?.find((v) => v.id === id) : undefined) ?? first;
 }
 
 /** Fully-populated gameplay multipliers for a variant (missing keys → 1 / species default). */
