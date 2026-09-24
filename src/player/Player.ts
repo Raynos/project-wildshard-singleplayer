@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { heightAt, pondMask, waterLevel } from '../world/Heightfield';
+import { heightAt, pondMask, waterLevel, streamAt } from '../world/Heightfield';
 import { getActiveChunk } from '../chunks/registry';
 import { Hoverboard } from './Hoverboard';
 import { WaterLine } from './WaterLine';
@@ -232,11 +232,12 @@ export class Player {
     this.onHoverChange?.(on);
   }
 
-  /** water surface height at (x, z): the shard's ocean if it has one, else the pond where the basin mask is set, else null */
+  /** water surface height at (x, z): the shard's ocean if it has one, else the pond where the basin mask is set, else running
+   *  water (Pine Hollow's creek, PH-L9), else null */
   waterSurfaceAt(x: number, z: number): number | null {
     const ocean = getActiveChunk().ocean;
     if (ocean) return ocean.level;
-    return pondMask(x, z) > 0 ? waterLevel() : null;
+    return pondMask(x, z) > 0 ? waterLevel() : streamAt(x, z);
   }
 
   private setSwimming(on: boolean): void {

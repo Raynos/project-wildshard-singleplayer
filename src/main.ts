@@ -6,6 +6,7 @@ import { CHUNK_HALF, ROAD_LENGTH } from './core/config';
 import { hasPond, heightAt, normalAt, trailDistance, CABIN_SITES, TRAILS } from './world/Heightfield';
 import { Boundary } from './world/Boundary';
 import { Water } from './world/Water';
+import { PineStreams } from './world/PineStreams';
 import { Ocean } from './world/Ocean';
 import { Pier } from './world/Pier';
 import { Boat } from './world/Boat';
@@ -155,8 +156,11 @@ async function main() {
     const boundary = new Boundary(sky).build();
     game.scene.add(boundary.group);
     await macrotask(); // boundary · water · horizon each in its own task
-    const water = !isOcean && hasPond() ? new Water(sky).build() : null;
-    if (water) game.scene.add(water.mesh);
+    const water = !isOcean && hasPond() ? new Water(sky, forest.trees).build() : null;
+    if (water) game.scene.add(water.group);
+    // PH-L9: Pine Hollow's creek, waterfall, plunge foam and spray (two draws; they run on the wind clock)
+    const streams = chunk.slug === 'pine-hollow' ? new PineStreams(sky).build() : null;
+    if (streams) game.scene.add(streams.group);
     const ocean = isOcean ? new Ocean(sky).build() : null;
     if (ocean) game.scene.add(ocean.group);
     // the south entry road is a wooden pier over the water; the player spawns on its deck
@@ -254,7 +258,7 @@ async function main() {
       game.onUpdate((dt) => { matte.update(dt, game.camera, sky.dayNight?.night ?? 0); });
       document.addEventListener('ws:ready', () => { setTimeout(() => { void matte.load(horizon.group); }, 250); }, { once: true });
     }
-    return { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon, rocks, cover };
+    return { boundary, water, streams, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon, rocks, cover };
   });
   const { boundary, water, ocean, pier, jetties, boat, palms, palmSpecs, cove, hut, lookout, wreck, shrine, bushes, gulls, bridge, seabed, horizon } = dressing;
   // the rope bridge's deck hangs as a jointed chain (PHYSICS.md): it sags and bounces under you, the drawn planks follow
@@ -745,6 +749,6 @@ async function main() {
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
-  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState };
+  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState };
 }
 main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));

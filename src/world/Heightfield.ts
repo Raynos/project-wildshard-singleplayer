@@ -27,6 +27,9 @@ export let cabinMask: ChunkTerrain['cabinMask'] = T.cabinMask;
 export let pondMask: ChunkTerrain['pondMask'] = T.pondMask;
 /** still-water surface height (far below the terrain when the chunk has no pond) */
 export let waterLevel: ChunkTerrain['waterLevel'] = T.waterLevel;
+const noStream = (): number | null => null;
+/** running water's surface at (x, z) (Pine Hollow's creek), or null off it */
+export let streamAt: NonNullable<ChunkTerrain['streamAt']> = T.streamAt ?? noStream;
 /** Trail polylines (xz). The first four enter at the edge midpoints. */
 export let TRAILS: ChunkTerrain['trails'] = T.trails;
 export let CABIN_SITES: ChunkTerrain['cabinSites'] = T.cabinSites;
@@ -38,7 +41,7 @@ export function hasPond(): boolean { return T.pond !== null; }
 onActiveChunkChange((def) => {
   T = def.terrain;
   heightAt = T.heightAt; normalAt = T.normalAt; splatAt = T.splatAt;
-  trailDistance = T.trailDistance; cabinMask = T.cabinMask; pondMask = T.pondMask; waterLevel = T.waterLevel;
+  trailDistance = T.trailDistance; cabinMask = T.cabinMask; pondMask = T.pondMask; waterLevel = T.waterLevel; streamAt = T.streamAt ?? noStream;
   TRAILS = T.trails; CABIN_SITES = T.cabinSites; POND = T.pond ?? NO_POND;
 });
 

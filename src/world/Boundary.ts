@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CHUNK_HALF, CHUNK_DEPTH, ROAD_WIDTH } from '../core/config';
-import { heightAt as terrainHeightAt, waterLevel } from './Heightfield';
+import { heightAt as terrainHeightAt, waterLevel, pondMask, streamAt } from './Heightfield';
+import { getActiveChunk } from '../chunks/registry';
 import type { Sky } from './Sky';
 import { TIER_CONFIG } from '../core/tier';
 
@@ -12,7 +13,14 @@ import { TIER_CONFIG } from '../core/tier';
  * across each entry road. Purely additive/emissive geometry — no lighting needed.
  * Over an open-water shard everything sits on the sea surface instead of the sea floor.
  */
-const heightAt = (x: number, z: number) => Math.max(terrainHeightAt(x, z), waterLevel());
+/** the ground, or the water over it: the sea on an open-water shard, else the pond inside its basin or running water (a
+ *  creek's notch in the slab's edge: the line dips into it with the water, not ~6 m over it at the pond's level, PH-L9) */
+function heightAt(x: number, z: number): number {
+  const ground = terrainHeightAt(x, z);
+  if (getActiveChunk().ocean) return Math.max(ground, waterLevel());
+  const water = pondMask(x, z) > 0 ? waterLevel() : streamAt(x, z);
+  return water === null ? ground : Math.max(ground, water);
+}
 interface BeaconMats { pole: THREE.Material; head: THREE.Material; beam: THREE.Material }
 export class Boundary {
   group = new THREE.Group();

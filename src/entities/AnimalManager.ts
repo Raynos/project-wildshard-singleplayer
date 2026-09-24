@@ -5,7 +5,7 @@ import { castRay, floorBelow } from '../physics/query';
 import { CreatureBodies } from '../physics/creatures';
 import { SEED, CHUNK_HALF } from '../core/config';
 import { Rng } from '../core/rng';
-import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel, hasPond, POND } from '../world/Heightfield';
+import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel, hasPond, POND, streamAt } from '../world/Heightfield';
 import type { Forest } from '../world/Forest';
 import type { Sky } from '../world/Sky';
 import { AnimalFactory, speciesDef, variantDef, rollVariant, type AnimalKind, type AnimalStyle, type EnemyWorld, type ThinkCtx } from './AnimalFactory';
@@ -371,10 +371,13 @@ export class AnimalManager {
    * (+ 0.25 m) inside the square src/world/Water.ts draws (2r + 30 m across). Pine Hollow has ~3.1 ha of dry valleys lower
    * than the pond's surface with no water drawn in them; the navmesh bake (scripts/bake-navmesh.mjs `wetTest`) already
    * walks them, and this is the same test, so a herd no longer needs a navmesh query per call to stand there (and the
-   * no-navmesh fallback no longer calls them wet).
+   * no-navmesh fallback no longer calls them wet). Running water (Pine Hollow's creek, PH-L9) is wet here too, so nothing
+   * spawns or settles standing in it; the navmesh still fords it (0.45 m), so herds cross it on the way somewhere.
    */
   private isDry(x: number, z: number): boolean {
-    if (heightAt(x, z) > waterLevel() + 0.25) return true;
+    const y = heightAt(x, z), s = streamAt(x, z);
+    if (s !== null && y < s - 0.05) return false;
+    if (y > waterLevel() + 0.25) return true;
     if (getActiveChunk().ocean) return false;
     if (!hasPond()) return true;
     const half = POND.r + 15;

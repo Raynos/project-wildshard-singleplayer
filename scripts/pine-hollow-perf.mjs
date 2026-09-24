@@ -30,6 +30,8 @@ const POSES = [
   { id: 'gate', x: 0, z: -200, yaw: 3.1416 },
   { id: 'cabin', x: -14, z: -62, yaw: 3.1416 },
   { id: 'pond', x: -56, z: 95, yaw: 3.1416 },
+  // layout v2's pond W shore facing E over the water (§4 as-built: the old pond pose now faces forest) — PH-L9's ruler
+  { id: 'shore', x: -60, z: 106, yaw: 1.5708 },
 ].filter((p) => flag('poses', '') === '' || flag('poses', '').split(',').includes(p.id));
 // --yaw=0.95: every pose looks down Pine Hollow's sunset shadows (the worst case for the shadow-aware tree cull)
 if (flag('yaw', '') !== '') for (const p of POSES) p.yaw = Number(flag('yaw', '0'));

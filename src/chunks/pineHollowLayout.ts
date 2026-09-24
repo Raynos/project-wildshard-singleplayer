@@ -220,3 +220,40 @@ export function ziplineAt(t: number, lookoutGround: number, landingGround: numbe
   const { from, to } = ZIPLINE;
   return { x: from.x + (to.x - from.x) * t, z: from.z + (to.z - from.z) * t, y: (lookoutGround + from.deck) * (1 - t) + (landingGround + to.deck) * t };
 }
+
+// ── the water on the creek (PH-L9) ──────────────────────────────────────────────────────────────────────────────────
+/*
+ * The creek's water surface, flow and foam along its arc length `s`, for the ribbon PineStreams.ts draws and for the
+ * player / animals (`streamAt` in the terrain: wading, the dry-ground test). Upstream of the dam's crest the outlet is the
+ * pond (its level); over the crest a thin sheet spills, down the dam's face it runs fast and white, and from the toe it is
+ * a clear 0.45 m run falling with the bed. The surface never rises downstream (the max of two falling profiles).
+ */
+/** depth over the bed in the run, the sheet over the crest, flow speeds (m/s) in the run / down the dam's face, how far
+ *  before the crest the ribbon starts, and the half-width of the wetted strip the physics asks about */
+export const CREEK_WATER = { depth: 0.45, crest: 0.1, run: 0.55, dam: 2.4, lead: 1.5, halfWidth: 6 };
+const S_DAM = arcTo(CREEK, BEAVER_DAM.at), S_END = arcTo(CREEK, CREEK.length - 1);
+/** the dam's crest and the creek's end (arc lengths) */
+export function creekSpan(): { dam: number; end: number } { return { dam: S_DAM, end: S_END }; }
+const sstep = (a: number, b: number, v: number): number => { const t = Math.min(1, Math.max(0, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
+/** the creek's water surface at arc length `s` */
+export function creekSurfaceAt(s: number): number {
+  if (s < S_DAM - CREEK_WATER.lead) return POND.level;
+  if (s <= S_DAM) return creekBedAt(s) + CREEK_WATER.crest;
+  const run = CREEK_BED.afterDam + (CREEK_BED.edge - CREEK_BED.afterDam) * ((s - S_DAM - 3) / (S_END - S_DAM - 3)) + CREEK_WATER.depth;
+  return Math.max(creekBedAt(s) + CREEK_WATER.crest, run);
+}
+/** flow speed (m/s): quick over the crest and down the dam's face, a gentle run after */
+export function creekFlowAt(s: number): number {
+  return CREEK_WATER.run + (CREEK_WATER.dam - CREEK_WATER.run) * sstep(S_DAM - 1.5, S_DAM, s) * (1 - sstep(S_DAM + 2.5, S_DAM + 6, s));
+}
+/** white water 0..1: the dam's face, a tail of foam drifting off it, a few bubbles in the run */
+export function creekFoamAt(s: number): number {
+  const face = sstep(S_DAM - 0.6, S_DAM + 0.4, s) * (1 - sstep(S_DAM + 2.5, S_DAM + 5, s));
+  const tail = sstep(S_DAM, S_DAM + 1, s) * (1 - sstep(S_DAM + 3, S_DAM + 14, s));
+  return Math.max(0.06, 0.72 * face, 0.3 * tail);
+}
+/** the running water's surface at (x, z), or null off the creek: the terrain's `streamAt` (wading, the dry test) */
+export function creekWaterAt(x: number, z: number): number | null {
+  const n = nearestOnPolyline(CREEK, x, z);
+  return n.d <= CREEK_WATER.halfWidth ? creekSurfaceAt(n.s) : null;
+}

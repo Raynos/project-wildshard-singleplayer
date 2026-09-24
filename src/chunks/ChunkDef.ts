@@ -49,6 +49,8 @@ export interface ChunkTerrain {
   pondMask: (x: number, z: number) => number;
   /** still-water surface height (far below the terrain when the chunk has no pond) */
   waterLevel: () => number;
+  /** running water (a creek): its surface at (x, z), or null off it — wading, the dry-ground test, the boundary line */
+  streamAt?: (x: number, z: number) => number | null;
   trails: Vec2[][];
   cabinSites: CabinSite[];
   pond: PondDef | null;
@@ -88,6 +90,8 @@ export interface TerrainSpec {
    * an islet standing out of the pond's dish (Pine Hollow). Omitted = nothing.
    */
   finish?: (x: number, z: number, h: number) => number;
+  /** running water beyond the pond (Pine Hollow's creek): its surface at (x, z), or null off it. Omitted = none. */
+  streamAt?: (x: number, z: number) => number | null;
   /**
    * Ground-layer blend for `ChunkAssets.groundLayers` — [layer0, layer1, layer2, layer3], any
    * scale (normalised for you). `t` is the finished terrain so you can query slope, height,

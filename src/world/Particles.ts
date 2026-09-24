@@ -36,7 +36,7 @@ const MOTE_COUNT = 1500, MOTE_RANGE = 12;    // half-extent of the wrap box (m)
 const MIST_COUNT = 72;
 const NEEDLE_COUNT = 200;
 
-const fogGLSL = /* glsl */`
+export const fogGLSL = /* glsl */`
   uniform vec3 fogColor; uniform vec3 fogSunDir; uniform vec3 fogSunColor;
   uniform float fogHeight; uniform float fogHeightFalloff; uniform float fogHeightDensity; uniform float fogDistDensity;
   float atmosFogFactor( vec3 wp ) {
@@ -378,7 +378,7 @@ function makeMoteSprite() {
 }
 
 /** Soft noise blob: many faint overlapping discs inside a radial falloff, alpha only. */
-function makeMistTexture() {
+export function makeMistTexture(): THREE.CanvasTexture {
   const S = 256;
   const c = document.createElement('canvas'); c.width = c.height = S;
   const g = ctx2d(c);

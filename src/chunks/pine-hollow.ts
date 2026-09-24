@@ -13,7 +13,7 @@ import type { ChunkDef, TerrainNoise, Vec2 } from './ChunkDef';
 import {
   SPAWN, CABIN_SITES, RIDGE, ridgeFootZ, LOOKOUT, ZIPLINE, POND, ISLET, WATERFALL, RIDGE_STREAM, CREEK, CREEK_BED, CREEK_BRIDGE,
   DEN, BEAR_CAVE, OLD_GROWTH, KINGS_CLEARING, HAMLET, S_ROAD, N_ROAD, W_ROAD, E_ROAD, SPURS, GRADED, PINE_HOLLOW_POIS,
-  nearestOnPolyline, creekBedAt,
+  nearestOnPolyline, creekBedAt, creekWaterAt,
 } from './pineHollowLayout';
 import thumbnail from './thumbs/pine-hollow.jpg';
 import heroPortrait from './thumbs/pine-hollow-portrait.jpg';
@@ -119,6 +119,8 @@ const TERRAIN = buildTerrain(1337, {
   pond: { x: POND.x, z: POND.z, r: POND.r },
   pondFill: POND.level - POND.floor,
   graded: { paths: GRADED.paths, maxGrade: GRADED.maxGrade },
+  /** the creek's running water (PH-L9): wading, the animals' dry-ground test, the boundary line over its notch */
+  streamAt: creekWaterAt,
   /** the islet stands out of the pond's dish */
   finish(x, z, h) {
     const d = Math.hypot(x - ISLET.x, z - ISLET.z);
