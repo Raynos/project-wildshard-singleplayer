@@ -11,6 +11,7 @@ when the images were generated.
 | `pine-hollow/` | `round-1-target-look` (09-16) | `mockup-01…06` — the AAA target look + title screen (below) |
 | `hero-images/` | `round-1-coming-soon` (09-17) | `hero-{driftwood-isle,nalati-grasslands}-{portrait,landscape}` — deck-menu heroes for the "coming soon" shards |
 | | `round-2-pine-hollow` (09-17) | `hero-pine-hollow-{portrait,landscape}` (copied into `src/chunks/thumbs/`) |
+| | `round-3-nalati-in-engine` (09-23) | `hero-nalati-grasslands-{portrait,landscape}` — in-engine captures of the finished shard (the valley camp; the kokpar field under the crags), lightly graded, no paint-over (copied into `src/chunks/thumbs/`, + the 640×360 thumbnail) |
 | `menu/` | `round-1-main-menu` (09-17) | `menu-{A-cinematic,B-list,C-cards}` — main menu directions; C picked |
 | | `round-2-tabs` (09-18) | `menu-tab-{map,inventory,achievements,settings}` — the in-game MENU overlay |
 | `hud/` | `round-1-directions` (09-17) | `hud-A…E` — five HUD directions (below) |

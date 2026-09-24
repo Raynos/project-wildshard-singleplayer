@@ -4,7 +4,7 @@
 // desktop tier 1600×900, HUD hidden, clock frozen, clear weather.
 //
 //   node scripts/nalati-chunk-views.mjs --out=art/nalati-grasslands/round-7-world-redesign [--url=http://127.0.0.1:5193]
-//   --views=<file.json> your own [{ id, cam, at, fov, eval? }] list instead of a set (eval: a JS expression run first);
+//   --size=WxH --dpr=<n> (hero captures); --views=<file.json> your own [{ id, cam, at, fov, eval? }] list instead of a set (eval: a JS expression run first);
 //   --set=crags   the snow ring + escarpment set (god views of the massifs, first person in Snow Lotus Valley / under the
 //                 escarpment); --only=<id substrings, comma-separated>; --tier=phone (390×844) for the phone's calls / tris; --query=<extra url params>
 // Each view's draw calls / triangles are printed and written to <out>/views.json.
@@ -53,11 +53,13 @@ const ONLY = flag('only', '').split(',').filter(Boolean);
 const VIEWS_FILE = flag('views', '');
 const OWN = VIEWS_FILE ? JSON.parse(readFileSync(resolvePath(VIEWS_FILE), 'utf8')) : null;
 const LIST = (OWN ?? (SET === 'crags' ? CRAG_VIEWS : VIEWS)).filter((v) => ONLY.length === 0 || ONLY.some((o) => v.id.includes(o)));
-const SIZE = TIER === 'phone' ? { width: 390, height: 844 } : { width: 1600, height: 900 };
+const SZ = flag('size', '').split('x').map(Number);   // --size=WxH (e.g. 1024x1536 for a portrait hero), --dpr=2 for a sharper capture
+const SIZE = SZ.length === 2 && SZ.every((v) => v > 0) ? { width: SZ[0], height: SZ[1] } : TIER === 'phone' ? { width: 390, height: 844 } : { width: 1600, height: 900 };
+const DPR = Number(flag('dpr', '1')) || 1;
 
 const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist'] });
 try {
-  const page = await (await browser.newContext({ viewport: SIZE })).newPage();
+  const page = await (await browser.newContext({ viewport: SIZE, deviceScaleFactor: DPR })).newPage();
   const errors = []; page.on('pageerror', (e) => errors.push(e.message.slice(0, 160)));
   await page.goto(`${URL_BASE}/?chunk=nalati-grasslands&mute=1&nolock=1&skipintro=1&weather=clear&clock=0&perf=0&tier=${TIER}${EXTRA ? `&${EXTRA}` : ''}`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => Boolean(window.__world && window.__weather), undefined, { timeout: 300000, polling: 1000 });
