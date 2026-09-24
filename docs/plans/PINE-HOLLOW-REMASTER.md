@@ -197,6 +197,67 @@ check (≤ 44°), then a re-baked `terrain.bin` and navmesh.
 | **The Old-growth** | Giant firs and cedars, ground fog, moss boulders, fallen giants to walk along | **The Antler King's clearing**: standing stones, lanterns hung in the canopy; thralls at night |
 | **The mill hamlet** (south) | Watermill + wheel on the creek, 3–4 buildings, fences, woodpiles | **The hunting lodge** (contract board), **the trader**, **the miller** |
 
+### As built: layout v2 (layout lane, 2026-09-24, `870e707`)
+
+**Axis convention (checked in code):** origin at the slab centre, ±250 m. **+z = north, +x = WEST, −x = east.** Sources: `HUD.ts` `bearingTo`
+(heading = 180 − yaw°, 0 = +Z, 90 = −X), `Minimap.ts` (u = HALF − x, v = HALF − z), and spawn yaw π faces +Z. A map-A pixel (col, row)
+on the 1254² board is ≈ (250 − 0.41·col, 250 − 0.41·row). Every coordinate is in `src/chunks/pineHollowLayout.ts`, whose header carries this.
+Evidence: `progress/pine-hollow-layout-01-vs-map-a.jpg` (map A | god top-down | walk-check reach map) and
+`progress/pine-hollow-layout-01-fp.jpg` (phone FP at the lookout, pond, hamlet and clearing).
+
+| What | v1 | v2 (x, z · height) | Why |
+|---|---|---|---|
+| Spawn, crossroads, S road | (0, −235) π · (0, −10) | unchanged | map A: the gate and the Hollow stay |
+| Ranger's cabin (v1 "Hollow cabin") | (−14, −34) | same site, pad +2.96 → **+3.59** | renamed; the landscape under it changed |
+| **West cabin** (v1 "East cabin") | (62, 30) | same site, pad −11.2 → **−1.4** | x = +62 is west on the compass; the soft floor lifts it out of the old basin |
+| Ridge cabin | (118, 142) | unchanged, +4.7 | it sits at the new ridge's foot, on the way to the Den |
+| **Still pond** | (−56, 120), r 22, water −6.06 | **(−100, 110), r 30, water −3.00** | map A puts it north-centre-east, fed by the waterfall. The water line is now the datum: only the pond and the creek bed sit below it (0.56 ha, v1 2.96 ha of dry land below the pond) |
+| Islet | — | (−94, 118), r 8, +1.4 above the water | the canoe secret; not reachable on foot; no trees on it (the forest skips pondMask) |
+| The Ridge | — | foot z ≈ 150–175, crags +40 … +63, pass \|x\| < 13 for the N road | map A's north edge; the fundamentals keep the N road at y = 0, so it crosses through a pass |
+| **Fire lookout** pad | — | **(36, 214), +46.5**, r 7 | the pass's west shoulder (map A: top centre). Reached by a graded traverse from the den spur: (150, 142) → (146, 158) → (110, 178) → (76, 196) → pad, ≤ 29° |
+| Zipline | — | lookout deck (+11) → landing (4, 20), +0.3 (+3 deck) | 197 m, drop 54 m (15.4°), ≥ 6.4 m over the ground; a 5 m cut through the forest |
+| Waterfall | — | lip (−86, 178) +32.8 → foot (−88, 146) +2.4; ridge-top stream from (−70, 236) | map A: it drops off the ridge into the pond's north shore |
+| **Creek** | — | 13 points (−118, 92) → (−218, −250), 360 m. Bed −3.45 → beaver-dam sill (−138, 64) −2.8 → −4 … −9 at the S edge; ~31° banks | map A: pond → SE → the mill → off the slab |
+| Creek bridge | — | (−151, −3), on the E road | the E road crosses the gully (a ford until the footbridge is built) |
+| **The Den** | "Bear den" (−150, −150), SE on the compass | **(190, 186)**, floor +9, rock walls to +36 N and W; bear cave mouth **(200, 200)**, facing SE | map A: the NW corner |
+| Bears | black ×2 at (−150, −150), brown at (+150, −150) (= SW) | black ×2 at (196, 192), brown at (182, 172), all in the Den | "move the bears' den there"; still 3 bears |
+| Old-growth | — | ellipse (150, −40), 105 × 175 m; tree keep × 4, scale × 1.25 | map A: the west third |
+| **King's clearing** | — | **(150, −30)**, flat r 30 (+3.8), blend to 42, bare to 38; 7 stones at r 24 with a gap facing the path in from the N | the boss arena |
+| **Mill hamlet** pad | — | **(−150, −138)**, r 32, −0.4 (2.6 m above the water line) | map A: SE, on the creek's west bank |
+| Hamlet sites | — | lodge (−162, −118), trader (−126, −120), miller (−142, −162), mill (−181, −144) + wheel (−191, −144) in the gully, shed (−118, −150) | pads for the asset lane's buildings |
+| Trails | 5 (4 entry roads + a ridge-cabin spur) | 12: S / N / W / E roads + den, clearing, pond, hamlet ×2, ridge-cabin, lookout spurs | every zone joined; the W road runs through the old-growth, the E road over the creek |
+| Explore POIs | 7 | 18, compass names (`PINE_HOLLOW_POIS`) | "Bear den" → The Den + Bear cave; plus lookout, zipline, waterfall, islet, dam, bridge, clearing, hamlet, lodge, mill |
+| Trees | 1 770 | 1 519 | the ridge face is too steep to plant (−240); the pond, creek and pads take the rest; the old-growth gains |
+| Fauna | deer 90 · elk 24 · boar 51 · bear 3 | deer 90 · elk 22 · boar 53 · bear 3 | fauna grid 60 → 56 m, so the cells the ridge / hamlet / arena / Den take come back elsewhere |
+| Height range | −13.5 … +16.8 | −9.0 … +63.4 | the ridge (the chunks test's ceiling is 80; no change needed) |
+
+**Checks.**
+- **Walk check** (`node scripts/pine-hollow-walkcheck.mjs`, 1 m, ≤ 44° by the surface gradient): every POI with a foot spot is reachable from the gate; 85 % of the slab is reachable; the zipline clears the ground. PASS.
+- **`physics-baseline --mode=walk`:** 0 stuck. The route's pond leg now goes to the new shore, and the porch expects +3.815.
+- **`physics-baseline --trails`:** 14 legs, 0 stuck, 0 swim frames.
+- **Draft fixes.** The first draft's lookout switchbacks got stuck at every hairpin: two graded shelves meet on the bisector with a step. A leg that climbs the face head-on becomes a half-fill embankment that starts metres above the ground. The fix is one diagonal traverse, with no hairpins.
+- **Bake guard.** `bake-chunk.mjs` now hashes a chunk's sibling modules. Before, a layout-only edit left a stale `terrain.bin` marked "up to date".
+
+**Phone ruler** (`pine-hollow-perf.mjs`, clean exports, same session). Before is `e2beca4`, after is `870e707`:
+
+| pose | phone calls / tris before → after | desktop calls / tris before → after |
+|---|---|---|
+| gate | 113 / 1.42 M → 122 / 1.37 M | 902 / 10.41 M → 1052 / 10.64 M |
+| cabin | 153 / 1.68 M → 175 / 1.50 M | 1073 / 10.53 M → 1073 / 9.94 M |
+| pond pose (−56, 95), now forest between the Hollow and the new pond | 151 / 1.56 M → 161 / 1.34 M | 729 / 8.36 M → 637 / 6.52 M |
+
+Phone tris fall everywhere. Phone calls rise by 9–22, and that is **not yet attributed**. Trees within 160 m of each pose went down, not up
+(cabin 560 → 515). Suspects: the fauna grid moved (56 m cells), and the ridge's terrain and shadow casters now show above the horizon.
+PH-P1 should break this down per group. Phone FP at the new places: lookout 130 / 1.37 M, pond W shore 158 / 1.33 M, hamlet 122 / 1.21 M,
+clearing 126 / 1.55 M.
+
+**Left for other lanes:**
+- **No water surface in the creek or the waterfall.** `Water.ts` draws only the pond's square. The creek is a dry gully with a stony bed until a creek / cascade mesh lands (look / asset lane).
+- **Boundary line over the creek's exit.** `Boundary.ts` draws the edge line at max(terrain, water line), so it hangs ~6 m over the notch where the creek leaves the slab.
+- **Baseline anchors point at empty forest.** In `art/pine-hollow/round-0-baseline/cameras.json`, the anchors `pond` (−56, 95) and `den` (−127, −127) now point at empty forest, and so do `pine-hollow-perf.mjs`'s pond pose and `physics-baseline.mjs`'s PH poses. New spots for the baseline lane's next round: pond (−60, 106) facing E; den (170, 165) facing NW.
+- **Provisional Blender area.** `blenderArea.ts`'s provisional Pine Hollow area (the Hollow) is still valid, and wave 2 re-cuts it for map A.
+- **Landmarks are pads only.** The tower, zipline, cave, stones, hamlet buildings, bridge and dam have no placeholder meshes yet. The coordinates are in the layout file for the asset lane.
+
 ## 5. The rows by track
 
 ### L: the look (photoreal; the method is Driftwood's loop with photoreal targets)
