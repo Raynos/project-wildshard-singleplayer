@@ -175,7 +175,7 @@ try {
       const byLabel = new Map();
       for (const e of entries) { const k = `${e.pass} ${e.label}`; byLabel.set(k, (byLabel.get(k) ?? 0) + e.calls); }
       const byRt = new Map();
-      for (const e of entries) { const k = `${e.pass}@${e.rt}`; byRt.set(k, (byRt.get(k) ?? 0) + e.calls); }
+      for (const e of entries) { const k = e.pass === 'post' ? 'post' : `${e.pass}@${e.rt}`; byRt.set(k, (byRt.get(k) ?? 0) + e.calls); } // post: one bucket (its ~35 targets)
       console.log(`  targets: ${[...byRt].sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k}=${v}`).join(' · ')}`);
       console.log(`  top: ${[...byLabel].sort((a, b) => b[1] - a[1]).slice(0, DETAIL).map(([k, v]) => `${k}=${v}`).join(' · ')}`);
     }

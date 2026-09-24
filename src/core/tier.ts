@@ -67,7 +67,10 @@ export const TIER_TABLE = {
     grassRadius: 55, grassSlots: 96, grassQuads: 5,
     undergrowthFar: 110, propsFar: 700, propsMinAngular: 0.0012,
     cabinDetailDist: 160, cabinDetailShadows: true, sharedCabinLights: false, beaconLights: true,
-    pickupItemDist: Infinity, pickupOrbDist: Infinity,
+    // PINE-HOLLOW PH-P2: the AR-15 floats inside cabin 1 and was ~20 draws + 10 shadow from anywhere in the chunk. A
+    // same-instant A/B hiding the whole pickup at 26 / 74 / 165 / 253 m, day and night, moved no pixel past the noise
+    // (the walls hide it); in the open a 1 m item is ~8 px at 90 m, and the orb stays a beacon to 200 m
+    pickupItemDist: 90, pickupOrbDist: 200,
     reflectionWidth: 1024, reflectDetail: true,
     godRaysSamples: 60, godRaysScale: 0.5, volumetricSteps: 14, volumetricScale: 1, smaa: 'high' as 'off' | 'low' | 'high', bloomLevels: 8,
     oceanCell: 2.75, palmCount: 150, palmFrondSegs: 6, bushCount: 260, bushDetail: 1, bushShadows: true, boulderShadows: true,
