@@ -95,7 +95,7 @@ and [review-experience.md](../design/nalati/merge/review-experience.md) (HUD, re
 
 | # | row | state |
 |---|---|---|
-| L1 | N19 — the far background: the painted panorama's lower band **blends** into the fog / terrain colour (the user's pick: blend, no new far geometry); no visible cut where the slab ends | 🔨 main session |
+| L1 | N19 — the far background: the painted panorama's lower band **blends** into the fog / terrain colour (the user's pick: blend, no new far geometry); no visible cut where the slab ends | ✅ 1324ac6 (progress/nalati-horizon/n19-sheet.jpg; `?horizonblend=0` = before) |
 | L2 | The Nalati Look Lab: Settings ▸ Look switches + comparison sheets, like Driftwood's | open |
 | L3 | Variants (wave 6): terrain in the shadow bake (long dusk shadows off the crags) · baked terrain AO / bounce · Driftwood's shading for generated models (the "blue plastic" boulders) | open (after L2) |
 | L4 | The phone budget at 30 fps with main's 2× render scale + 80 m animal shadows (the camp poses); 1.5× only if 2× can't hold 30 | open |
