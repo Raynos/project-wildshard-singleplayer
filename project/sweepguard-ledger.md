@@ -41,3 +41,4 @@ One line per `SKIP_SWEEPGUARD=1` use, appended by `.claude/hooks/guard-git-add-a
 - 2026-09-24 06:42 · w5:p1 · `FILES=$(git diff --name-only | grep -v "^public/assets/baked/.*/terrain.json$" | sort -u); echo "$FILES" | wc -l; echo "$FILES" | grep -v "^src/\|^test/\|^scripts/\|^project/"; SKIP_SWEEPGUARD=1 git a`
 - 2026-09-24 06:43 · w5:p1 · `SKIP_SWEEPGUARD=1 git commit -q -F /Users/raynos/.claude/jobs/a0515af4/tmp/mergemsg.txt 2>&1 | tail -5; git log --oneline -2; git log --format='%P' -1`
 - 2026-09-24 06:44 · w5:p1 · `git cat-file -e 70c28ac:progress/settings-title-390x844.jpg && echo "on main already"; SKIP_SWEEPGUARD=1 git commit -q --no-verify -F /Users/raynos/.claude/jobs/a0515af4/tmp/mergemsg.txt 2>&1 | tail -`
+- 2026-09-24 06:44 · w5:p1 · `npx tsc --noEmit -p . --pretty false 2>&1 | grep "error TS" | head; npx oxlint --type-aware >/dev/null 2>&1; echo "oxlint $?"; pnpm test 2>&1 | grep -E "Tests "; SKIP_SWEEPGUARD=1 git commit -q --no-v`
