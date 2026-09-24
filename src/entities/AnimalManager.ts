@@ -5,7 +5,7 @@ import { castRay, floorBelow } from '../physics/query';
 import { CreatureBodies } from '../physics/creatures';
 import { SEED, CHUNK_HALF } from '../core/config';
 import { Rng } from '../core/rng';
-import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel } from '../world/Heightfield';
+import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel, hasPond, POND } from '../world/Heightfield';
 import type { Forest } from '../world/Forest';
 import type { Sky } from '../world/Sky';
 import { AnimalFactory, speciesDef, variantDef, rollVariant, type AnimalKind, type AnimalStyle, type EnemyWorld, type ThinkCtx } from './AnimalFactory';
@@ -366,17 +366,19 @@ export class AnimalManager {
 
   // ── spawning ───────────────────────────────────────────────────────────────────────────
 
-  /** dry ground: above the pond's water line */
   /**
-   * Dry ground: above the pond's level, or — with a navmesh — walkable on it. (Pine Hollow has dry valleys lower than the
-   * pond's surface; the navmesh bake knows only the pond itself is water, and the herds follow the navmesh.)
+   * Dry ground: not under water. The water is the sea on an open-water shard, else only the pond — below its surface
+   * (+ 0.25 m) inside the square src/world/Water.ts draws (2r + 30 m across). Pine Hollow has ~3.1 ha of dry valleys lower
+   * than the pond's surface with no water drawn in them; the navmesh bake (scripts/bake-navmesh.mjs `wetTest`) already
+   * walks them, and this is the same test, so a herd no longer needs a navmesh query per call to stand there (and the
+   * no-navmesh fallback no longer calls them wet).
    */
   private isDry(x: number, z: number): boolean {
     if (heightAt(x, z) > waterLevel() + 0.25) return true;
-    const nav = activeNavmesh();
-    if (nav === null) return false;
-    const p = nav.closestWalkable(_navFrom.set(x, heightAt(x, z), z), 0, _navTo);
-    return p !== null && Math.hypot(p.x - x, p.z - z) < 1;
+    if (getActiveChunk().ocean) return false;
+    if (!hasPond()) return true;
+    const half = POND.r + 15;
+    return Math.abs(x - POND.x) > half || Math.abs(z - POND.z) > half;
   }
 
   /**
