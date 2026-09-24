@@ -7,11 +7,21 @@ import { heightAt } from '../world/Heightfield';
 import { activePhysics } from '../physics/active';
 import { floorBelow } from '../physics/query';
 import { getSetting } from '../ui/Settings';
+import { LightPool } from '../fx/LightPool';
 import {
   Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01,
   TRACER_RED, TRACER_ORDER, isMesh, worldHit, impactSurfaceOf, type TexSet, type Targets, type ImpactSurface, type CrossbowWorld, type CrossbowOptions,
 } from './Crossbow';
 import type { KitWeapon, WeaponState, AimInfo } from './Weapons';
+
+export interface RifleOptions extends CrossbowOptions {
+  /**
+   * Take the muzzle-flash light from the scene's LightPool at boot (default). A shard where the rifle can't be found
+   * (Driftwood: no cabin, no AR-15 pickup) passes false: its flash is the quads only and every lit program there keeps
+   * one point light fewer.
+   */
+  muzzleLight?: boolean;
+}
 
 /**
  * Rifle — AR-15 style semi-automatic carbine, the crossbow's stablemate (same world hooks, same `Targets`, the
@@ -143,7 +153,7 @@ export class Rifle implements KitWeapon {
 
   // animated parts
   private mag!: THREE.Mesh; private magRest = new THREE.Vector3(); private handle!: THREE.Mesh; private bolt!: THREE.Mesh;
-  private flash = new THREE.Group(); private flashQuads: THREE.Mesh[] = []; private flashLight!: THREE.PointLight; private flashFrames = 0; private flashLightT = 0;
+  private flash = new THREE.Group(); private flashQuads: THREE.Mesh[] = []; private flashLight: THREE.PointLight; private flashFrames = 0; private flashLightT = 0;
   private rearGlow!: THREE.Material;
   /** geometry + material pairs for `displayModel()` (the cabin pickup) */
   private displayParts: { geo: THREE.BufferGeometry; mat: THREE.Material; pos?: THREE.Vector3 }[] = [];
@@ -167,8 +177,12 @@ export class Rifle implements KitWeapon {
   /** the solved shouldered pose (dev / verification: `__weapons.get('rifle').adsPose`) */
   readonly adsPose = { px: 0, py: 0, pz: 0, scale: 1, rearDepth: 0, frontDepth: 0, muzzleDepth: 0 };
 
-  constructor(world: CrossbowWorld, targets?: Targets, opts: CrossbowOptions = {}) {
+  constructor(world: CrossbowWorld, targets?: Targets, opts: RifleOptions = {}) {
     this.game = world.game; this.sky = world.sky; this.player = world.player;
+    // the muzzle light is a pooled scene light (B7), taken now, at boot: in the viewmodel it came and went with the
+    // model's visibility, and every change of the scene's light count recompiled every lit program in view (taking the
+    // AR-15 mid-play: 28 programs). Dark at rest, lit by intensity only, placed at the muzzle in world space when it fires.
+    this.flashLight = opts.muzzleLight === false ? new THREE.PointLight(0xffb060, 0, 8, 2) : LightPool.for(this.game.scene).acquire(0xffb060, 0, 8, 2);
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
@@ -204,6 +218,12 @@ export class Rifle implements KitWeapon {
     if (!on) { this.enabled = false; this.mouseAds = false; }
   }
 
+  /** the pooled muzzle light, just ahead of the muzzle, in world space (the pool's group sits at the scene origin) */
+  private placeFlashLight(): void {
+    this.model.updateWorldMatrix(true, false);
+    this.model.localToWorld(this.flashLight.position.set(0, 0.03, MUZZLE_Z + 0.1));
+  }
+
   /** Pull the trigger: one round if the mag has one, else a dry click and (after a beat) a reload. */
   tryFire(): void {
     if (this.state.reloading || this.cooldown > 0) return;
@@ -226,7 +246,7 @@ export class Rifle implements KitWeapon {
     this.recoil = 1; this.kickPending = KICK_PITCH;
     this.flashFrames = FLASH_FRAMES; this.flashLightT = FLASH_LIGHT_TIME;
     for (const q of this.flashQuads) { q.rotation.z = Math.random() * Math.PI * 2; q.scale.setScalar(0.8 + Math.random() * 0.5); }
-    this.flash.visible = true; this.flashLight.intensity = FLASH_LIGHT;
+    this.flash.visible = true; this.flashLight.intensity = FLASH_LIGHT; this.placeFlashLight();
     this.onFire?.(); // before the hit resolves: Combat registers the aimed shot, the damage float then closes it
     this.hitscan();
     this.ejectBrass();
@@ -363,9 +383,7 @@ export class Rifle implements KitWeapon {
     this.flash.add(q1, q2);
     this.flash.position.set(0, 0.002, MUZZLE_Z - 0.02);
     this.flash.visible = false;
-    this.flashLight = new THREE.PointLight(0xffb060, 0, 8, 2);
-    this.flashLight.position.set(0, 0.03, MUZZLE_Z + 0.1);
-    this.model.add(this.flash, this.flashLight);
+    this.model.add(this.flash);
 
     // depth clear + render after the world, exactly like the crossbow (see Crossbow.ts buildViewmodel)
     const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false })); // fogless: draws nothing, shares the fogless MeshBasic program (as the crossbow's);
@@ -479,7 +497,7 @@ export class Rifle implements KitWeapon {
 
     // muzzle flash: FLASH_FRAMES frames of quads, the light for FLASH_LIGHT_TIME
     if (this.flashFrames > 0 && --this.flashFrames === 0) this.flash.visible = false;
-    if (this.flashLightT > 0) { this.flashLightT -= dt; this.flashLight.intensity = this.flashLightT <= 0 ? 0 : FLASH_LIGHT * clamp01(this.flashLightT / FLASH_LIGHT_TIME); }
+    if (this.flashLightT > 0) { this.flashLightT -= dt; this.flashLight.intensity = this.flashLightT <= 0 ? 0 : FLASH_LIGHT * clamp01(this.flashLightT / FLASH_LIGHT_TIME); this.placeFlashLight(); }
 
     // ADS + FOV (only the held weapon owns the camera FOV)
     if (p.sprinting || !this.enabled) this.mouseAds = false; // sprinting / pause / holster drop the RMB toggle

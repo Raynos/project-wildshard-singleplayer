@@ -343,7 +343,7 @@ async function main() {
     ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock })
     : new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
   await macrotask(); // each viewmodel in its own task
-  const rifle = new Rifle({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
+  const rifle = new Rifle({ game, sky, player, forest }, targets, { allowUnlocked: nolock, muzzleLight: !isOcean }); // the AR-15 pickup is in a cabin: no muzzle light on the island
   await macrotask();
   // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken
   const ironSword = chunk.weapon === 'sword' ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, blade: 'iron' }) : null;
