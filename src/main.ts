@@ -604,7 +604,7 @@ async function main() {
   // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
   game.frameGate = () => (hud.entered || exploring()) && !feedbackHeld && !rotateGated(); // … and the review composer freezes it on the captured frame; the rotate page (E38) stops it too
   if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.worldMuted = true; hud.showIntro(enter); }
-  else { hud.markEntered(enter); weapons.setEnabled(!nolock || params.has('skipintro')); }
+  else { hud.markEntered(); weapons.setEnabled(!nolock || params.has('skipintro')); }
   // ?explore=hub|world|model[&cam=x,y,z,yaw,pitch][&model=id] — straight into the viewer (a shard with ChunkDef.explore — D4, E66; a note's "go there")
   if (exploreParam !== null && chunk.explore === true) {
     const cam = (params.get('cam') ?? '').split(',').filter((v) => v !== '').map(Number);
