@@ -1,0 +1,28 @@
+{
+ "about": "Driftwood's hero props (DRIFTWOOD-REMASTER, art/driftwood-isle/round-8-assets): TRELLIS.2 generations -> faceted, vertex-coloured game assets. ref = <gen>/<ref>.glb; args = driftwood_post.py's (sizes in metres; --tris is the per-asset triangle budget). The list moved verbatim from build_driftwood.sh (PH-0.3).",
+ "gen": "~/ml/img2mesh/out/driftwood",
+ "stage": "~/ml/img2mesh/out/driftwood-post",
+ "args": [],
+ "props": [
+  {"ref": "palm-a", "args": "--name palm-a --tris 2000 --fit height --size 9.0 --atlas 256 --quant 12"},
+  {"ref": "palm-b", "args": "--name palm-b --tris 2000 --fit height --size 7.5 --atlas 256 --quant 12"},
+  {"ref": "palm-c", "args": "--name palm-c --tris 1600 --fit height --size 3.4 --atlas 256 --quant 12"},
+  {"ref": "boulders", "args": "--name boulder --split --names boulder-round,boulder-slab,boulder-wedge,boulder-small-a,boulder-small-b --tris 600,420,520,260,220 --fit height --size 1.7 --quant 6 --simplifier blender"},
+  {"ref": "driftwood", "args": "--name driftwood --split --names driftwood-log,driftwood-fork,driftwood-branch,driftwood-stump --tris 420,520,380,520 --fit length --size 3.6 --quant 6 --simplifier blender"},
+  {"ref": "piling", "args": "--name piling --tris 700 --fit height --size 2.6 --atlas 256 --quant 8 --remesh 0.008 --simplifier blender"},
+  {"ref": "sailboat", "args": "--name sailboat --tris 2600 --fit length --size 6.5 --atlas 512 --quant 12 --remesh 0.007 --simplifier blender"},
+  {"ref": "hut", "args": "--name hut --tris 3000 --fit height --size 5.6 --atlas 512 --quant 14 --simplifier blender"},
+  {"ref": "wreck", "args": "--name wreck --tris 3000 --fit length --size 14 --atlas 512 --quant 12 --simplifier blender --solidify 0.004 --remesh 0.005"},
+  {"ref": "wreck", "args": "--name wreck-lod1 --tris 1400 --fit length --size 14 --quant 10 --simplifier blender --solidify 0.004 --remesh 0.007"},
+  {"ref": "shrine", "args": "--name shrine --tris 2200 --fit height --size 5.5 --atlas 512 --quant 12 --simplifier blender"},
+  {"ref": "conch", "args": "--name shell-conch --tris 240 --fit length --size 0.22 --quant 6"},
+  {"ref": "scallop", "args": "--name shell-scallop --tris 200 --fit length --size 0.16 --quant 6"},
+  {"ref": "cowrie", "args": "--name shell-cowrie --tris 140 --fit length --size 0.09 --quant 5"},
+  {"ref": "starfish-a", "args": "--name starfish-a --tris 220 --fit length --size 0.26 --quant 5 --up x90 --simplifier blender --remesh 0.025"},
+  {"ref": "starfish-b", "args": "--name starfish-b --tris 220 --fit length --size 0.22 --quant 5"},
+  {"ref": "coconut-half", "args": "--name coconut-half --tris 180 --fit length --size 0.2 --quant 5"},
+  {"ref": "coconut", "args": "--name coconut --tris 160 --fit length --size 0.24 --quant 5"},
+  {"ref": "coconut-cluster", "args": "--name coconut-cluster --tris 360 --fit length --size 0.6 --quant 6"},
+  {"ref": "frond-b", "args": "--name frond-b --tris 420 --fit length --size 3.6 --quant 6"}
+ ]
+}

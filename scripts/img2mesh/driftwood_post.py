@@ -1,4 +1,5 @@
-"""Clean an image-to-3D mesh into a Driftwood hero prop: low-poly, faceted, vertex-coloured, metres, pivot at the base.
+"""Clean an image-to-3D mesh into a game prop: Driftwood's low-poly, faceted, vertex-coloured hero props (the default),
+or, with --keep-texture, a photoreal PBR prop (Pine Hollow, PINE-HOLLOW-REMASTER PH-0.3). Metres, pivot at the base.
 
   blender -b -P scripts/img2mesh/driftwood_post.py -- --in ~/ml/img2mesh/out/driftwood/palm-a.glb \
       --name palm-a --out public/assets/models/driftwood-hero --tris 1800 --fit height --size 9
@@ -16,7 +17,12 @@ What it does (headless, deterministic):
  6. scales so the largest asset's --fit (height | length) is --size metres (a set keeps its relative sizes), puts the
     pivot at the centre of the lowest 3 % of the mesh (a leaning palm pivots on its trunk foot) at z = 0;
  7. exports <out>/<asset>/<asset>.glb (no textures, COLOR_0 only) + <asset>.json (tris, size, colours).
-Then scripts/img2mesh/finish.sh meshopt-compresses the glbs with gltf-transform.
+Then scripts/img2mesh/build_props.py (build_driftwood.sh) meshopt-compresses the glbs with gltf-transform.
+
+--keep-texture (PBR, a photoreal shard): no facet flattening. Steps 4-5 become: smooth shading (sharp past
+--smooth-angle), the generated texture baked UNGRADED onto the low mesh's own UVs (--atlas, default 1024) plus a
+tangent-space normal map from the high mesh (--normal-map N², default the atlas size; 0 = none); no vertex colour, no AO
+bake. Step 7 exports <asset>.glb with that PBR material (WebP base colour + normal, --roughness), no .tex.glb.
 """
 import argparse
 import json
@@ -54,7 +60,15 @@ ap.add_argument("--simplifier", choices=["fqmr", "blender"], default="fqmr",
 ap.add_argument("--planar", type=float, default=0.0, help="degrees: planar-dissolve what the collapse left over budget")
 ap.add_argument("--solidify", type=float, default=0.0, help="thicken open shells by this x size before --remesh")
 ap.add_argument("--atlas", type=int, default=0, help="also bake the generated texture to an N² WebP atlas (<name>.tex.glb)")
+ap.add_argument("--keep-texture", action="store_true",
+                help="PBR mode (photoreal shards): keep the texture, no facet colours / grade / quant, smooth shading")
+ap.add_argument("--normal-map", type=int, default=-1, help="--keep-texture: N² normal map baked from the high mesh (default the atlas size, 0 = none)")
+ap.add_argument("--roughness", type=float, default=0.9, help="--keep-texture: the material's roughness")
+ap.add_argument("--smooth-angle", type=float, default=40.0, help="--keep-texture: edges sharper than this (degrees) stay hard")
 a = ap.parse_args(argv)
+if a.keep_texture:
+    a.atlas = a.atlas or 1024
+    a.normal_map = a.atlas if a.normal_map < 0 else a.normal_map
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=os.path.expanduser(a.src))
@@ -246,8 +260,20 @@ def bake_atlas(ob):
     bk.use_pass_direct = bk.use_pass_indirect = False
     bk.use_pass_color = True
     bpy.ops.object.bake(type="DIFFUSE", pass_filter={"COLOR"})
+    if a.keep_texture and a.normal_map > 0:   # PBR: the high mesh's detail as a tangent-space normal map
+        imn = bpy.data.images.new(ob.name + "-normal", a.normal_map, a.normal_map)
+        imn.colorspace_settings.name = "Non-Color"
+        nn = mat.node_tree.nodes.new("ShaderNodeTexImage")
+        nn.image = imn
+        mat.node_tree.nodes.active = nn
+        bk.normal_space = "TANGENT"
+        bpy.ops.object.bake(type="NORMAL")
+        ob["normal"] = imn.name
     bk.use_selected_to_active = False
     hi.select_set(False)
+    ob["atlas"] = im.name
+    if a.keep_texture:
+        return   # PBR: the texture as generated, no grade
     # the same grade as the facet colours
     n = a.atlas * a.atlas
     pix = np.empty(n * 4, dtype=np.float32)
@@ -260,7 +286,6 @@ def bake_atlas(ob):
     pix[:, :3] = np.clip(c * a.val, 0, 1)
     im.pixels.foreach_set(pix.ravel())
     im.update()
-    ob["atlas"] = im.name
 
 
 # --- one scale for the whole set: the largest asset's fit dimension = --size ---
@@ -330,48 +355,54 @@ for ai, ob in enumerate(assets):
     for p in ob.data.polygons:
         p.use_smooth = False
     me = ob.data
+    if a.keep_texture:   # PBR: smooth, hard only past --smooth-angle
+        me.shade_smooth()
+        me.set_sharp_from_angle(angle=math.radians(a.smooth_angle))
     for uv in list(me.uv_layers):
         me.uv_layers.remove(uv)
     if a.atlas:
         bake_atlas(ob)
 
-    # one colour per facet: mean of 4 texture samples under the face
-    co = np.array([v.co[:] for v in me.vertices], dtype=np.float32)
-    cols = []
-    for p in me.polygons:
-        vs = co[list(p.vertices)]
-        c = vs.mean(0)
-        pts = [c] + [0.6 * c + 0.4 * v for v in vs]
-        cols.append(sample(pts).mean(0))
-    cols = np.clip(np.array(cols), 0, 1)
-
-    # grade in HSV: a touch more saturation / value, like the painted concept
-    mx, mn = cols.max(1), cols.min(1)
-    s = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0)
-    grey = mx[:, None]
-    cols = grey + (cols - grey) * (np.clip(s * a.sat, 0, 1) / np.maximum(s, 1e-6))[:, None]
-    cols = np.clip(cols * a.val, 0, 1)
-
-    # snap to k flat colours (k-means, area-weighted): the hand-painted facet palette
-    if a.quant > 0 and len(cols) > a.quant:
-        area = np.array([p.area for p in me.polygons]) + 1e-9
-        rng = np.random.default_rng(1)
-        cent = cols[rng.choice(len(cols), a.quant, replace=False, p=area / area.sum())]
-        for _ in range(20):
-            lab = ((cols[:, None, :] - cent[None]) ** 2).sum(2).argmin(1)
-            for k in range(a.quant):
-                m = lab == k
-                if m.any():
-                    cent[k] = (cols[m] * area[m, None]).sum(0) / area[m].sum()
-        cols = cent[lab]
-        palette = sorted({"#%02x%02x%02x" % tuple(int(round(v * 255)) for v in c) for c in cent[np.unique(lab)]})
+    if a.keep_texture:
+        palette = []   # PBR: the baked texture carries the colour
     else:
-        palette = []
+        # one colour per facet: mean of 4 texture samples under the face
+        co = np.array([v.co[:] for v in me.vertices], dtype=np.float32)
+        cols = []
+        for p in me.polygons:
+            vs = co[list(p.vertices)]
+            c = vs.mean(0)
+            pts = [c] + [0.6 * c + 0.4 * v for v in vs]
+            cols.append(sample(pts).mean(0))
+        cols = np.clip(np.array(cols), 0, 1)
 
-    attr = me.color_attributes.new("Color", "FLOAT_COLOR", "CORNER")
-    for p, c in zip(me.polygons, cols):
-        for li in p.loop_indices:
-            attr.data[li].color_srgb = (float(c[0]), float(c[1]), float(c[2]), 1.0)
+        # grade in HSV: a touch more saturation / value, like the painted concept
+        mx, mn = cols.max(1), cols.min(1)
+        s = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0)
+        grey = mx[:, None]
+        cols = grey + (cols - grey) * (np.clip(s * a.sat, 0, 1) / np.maximum(s, 1e-6))[:, None]
+        cols = np.clip(cols * a.val, 0, 1)
+
+        # snap to k flat colours (k-means, area-weighted): the hand-painted facet palette
+        if a.quant > 0 and len(cols) > a.quant:
+            area = np.array([p.area for p in me.polygons]) + 1e-9
+            rng = np.random.default_rng(1)
+            cent = cols[rng.choice(len(cols), a.quant, replace=False, p=area / area.sum())]
+            for _ in range(20):
+                lab = ((cols[:, None, :] - cent[None]) ** 2).sum(2).argmin(1)
+                for k in range(a.quant):
+                    m = lab == k
+                    if m.any():
+                        cent[k] = (cols[m] * area[m, None]).sum(0) / area[m].sum()
+            cols = cent[lab]
+            palette = sorted({"#%02x%02x%02x" % tuple(int(round(v * 255)) for v in c) for c in cent[np.unique(lab)]})
+        else:
+            palette = []
+
+        attr = me.color_attributes.new("Color", "FLOAT_COLOR", "CORNER")
+        for p, c in zip(me.polygons, cols):
+            for li in p.loop_indices:
+                attr.data[li].color_srgb = (float(c[0]), float(c[1]), float(c[2]), 1.0)
 
     # scale + pivot: metres, the base of the prop at the origin
     ob.scale = (scale, scale, scale)
@@ -389,8 +420,8 @@ for ai, ob in enumerate(assets):
         bpy.ops.object.transform_apply(rotation=True)
     report.append((ob, palette))
 
-# --- AO into the vertex colour alpha (Cycles, per asset, alone in the scene) ---
-if a.ao > 0:
+# --- AO into the vertex colour alpha (Cycles, per asset, alone in the scene; not in PBR mode: no vertex colour) ---
+if a.ao > 0 and not a.keep_texture:
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
     scene.cycles.device = "CPU"
@@ -435,14 +466,44 @@ nt.links.new(vc.outputs["Color"], bsdf.inputs["Base Color"])
 bsdf.inputs["Roughness"].default_value = 0.9
 summary = []
 for ob, palette in report:
-    ob.data.materials.clear()
-    ob.data.materials.append(out_mat)
     d = ob.dimensions
     folder = os.path.join(out_root, ob.name)
     os.makedirs(folder, exist_ok=True)
     path = os.path.join(folder, ob.name + ".glb")
     bpy.ops.object.select_all(action="DESELECT")
     ob.select_set(True)
+    if a.keep_texture:   # PBR: base colour + normal atlases, constant roughness, no COLOR_0
+        pm = bpy.data.materials.new(ob.name + "-pbr")
+        pm.use_nodes = True
+        pt = pm.node_tree
+        pb = pt.nodes["Principled BSDF"]
+        tn = pt.nodes.new("ShaderNodeTexImage")
+        tn.image = bpy.data.images[ob["atlas"]]
+        pt.links.new(tn.outputs["Color"], pb.inputs["Base Color"])
+        if "normal" in ob:
+            nt_ = pt.nodes.new("ShaderNodeTexImage")
+            nt_.image = bpy.data.images[ob["normal"]]
+            nm = pt.nodes.new("ShaderNodeNormalMap")
+            pt.links.new(nt_.outputs["Color"], nm.inputs["Color"])
+            pt.links.new(nm.outputs["Normal"], pb.inputs["Normal"])
+        pb.inputs["Roughness"].default_value = a.roughness
+        pb.inputs["Metallic"].default_value = 0.0
+        ob.data.materials.clear()
+        ob.data.materials.append(pm)
+        bpy.ops.export_scene.gltf(filepath=path, export_format="GLB", use_selection=True, export_yup=True,
+                                  export_vertex_color="NONE", export_normals=True, export_tangents="normal" in ob,
+                                  export_image_format="WEBP", export_image_quality=85)
+        info = {"name": ob.name, "source": os.path.basename(a.src), "tris": len(ob.data.polygons),
+                "size_m": [round(d.x, 2), round(d.y, 2), round(d.z, 2)], "pivot": "base centre, z=0 (Blender z-up; glTF y-up)",
+                "material": f"PBR: {a.atlas}² WebP base colour (ungraded)"
+                            + (f" + {a.normal_map}² tangent-space normal map" if "normal" in ob else "")
+                            + f", roughness {a.roughness}, smooth shading (hard past {a.smooth_angle}°), no COLOR_0",
+                "palette": palette}
+        json.dump(info, open(os.path.join(folder, ob.name + ".json"), "w"), indent=1)
+        summary.append(info)
+        continue
+    ob.data.materials.clear()
+    ob.data.materials.append(out_mat)
     bpy.ops.export_scene.gltf(filepath=path, export_format="GLB", use_selection=True, export_yup=True,
                               export_vertex_color="ACTIVE", export_all_vertex_colors=False, export_normals=True,
                               export_image_format="NONE")

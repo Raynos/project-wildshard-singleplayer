@@ -30,8 +30,10 @@ build_driftwood.sh (gltf-transform meshopt) ──▶ public/assets/models/drift
 | File | What |
 |---|---|
 | `trellis_batch.py` | TRELLIS.2 batch runner: loads once, writes `<stem>.glb` (decimated + baked), `<stem>.hi.obj` (raw), `<stem>.json` (timings) |
-| `driftwood_post.py` | the clean-up: weld → drop crumbs → `--split` sets into assets → decimate (`--simplifier fqmr` quadric / `blender` collapse, `--remesh` voxel first for solid props) → per-facet colour from the generated texture (4 BVH samples, HSV grade, k-means `--quant`) → AO → scale / pivot → glb; `--atlas N` also bakes an N² WebP base-colour atlas (`<asset>.tex.glb`) |
-| `build_driftwood.sh` | the prop list (every size, budget and option) + meshopt into `public/` |
+| `driftwood_post.py` | the clean-up: weld → drop crumbs → `--split` sets into assets → decimate (`--simplifier fqmr` quadric / `blender` collapse, `--remesh` voxel first for solid props) → per-facet colour from the generated texture (4 BVH samples, HSV grade, k-means `--quant`) → AO → scale / pivot → glb; `--atlas N` also bakes an N² WebP base-colour atlas (`<asset>.tex.glb`); `--keep-texture` is the PBR mode (below) |
+| `build_props.py` | any shard: `build_props.py <props.json> <out dir> [ref …]`: runs `driftwood_post.py` per prop of the list into a staging folder, then meshopt into `<out dir>/<asset>/` (PH-0.3) |
+| `build_driftwood.sh` | Driftwood's: `build_props.py props/driftwood-hero.json public/assets/models/driftwood-hero` (the list: every size, budget and option) |
+| `props/<list>.json` | a prop list: `gen` (the generations), `stage`, `args` for every prop (`["--keep-texture"]` for a photoreal shard), `props: [{ref, args}]` |
 | `split_sheet.py` | cut a sheet of separate objects on white into one RGBA crop per object |
 | `render_still.py` | a 3/4 Eevee still, the same sun + sky for every model; `a.glb,b.glb,…` lays a set out in a row |
 | `board.py` | the comparison board `art/driftwood-isle/round-8-assets/board.jpg`: concept crop, reference, new asset, current in-game model |
@@ -44,6 +46,13 @@ The output convention matches `scripts/blender/` and `src/world/BlenderIsland.ts
 - flat normals, no textures (except `.tex.glb`);
 - metres, Y-up, pivot at the base centre (a leaning palm pivots on its trunk foot);
 - `EXT_meshopt_compression`, so the loader needs `new GLTFLoader().setMeshoptDecoder(MeshoptDecoder)`.
+
+**PBR mode (`--keep-texture`, a photoreal shard such as Pine Hollow, PH-0.3).** No facet flattening. The prop is shaded
+smooth, with edges past `--smooth-angle` (40°) kept hard. The generated texture is baked **ungraded** onto the low mesh's
+own UVs (`--atlas`, default 1024). A tangent-space normal map is baked from the high mesh (`--normal-map`, default the
+atlas size). `<asset>.glb` carries that material: WebP base colour + normal, `--roughness`, no `COLOR_0`, no AO bake and
+no `.tex.glb`. Driftwood's outputs are unchanged: `build_driftwood.sh` re-produces the committed `driftwood-hero` files
+byte-for-byte.
 
 To regenerate one prop, e.g. the hut:
 ```bash
