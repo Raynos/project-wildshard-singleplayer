@@ -44,8 +44,11 @@ export function blenderAreaFor(slug: string): BlenderArea | null {
   return I ? toWorld(I) : null;
 }
 
-/** where `pnpm blender:island --chunk <slug>` puts a shard's build (a public URL, trailing slash) */
-export function blenderModelsBase(slug: string): string { return `/assets/models/${slug}-blender/`; }
+/** a shard's build folder name when it is not `<slug>-blender` (Driftwood's predates the per-shard pipeline) */
+const MODEL_DIRS: Readonly<Partial<Record<string, string>>> = { 'driftwood-isle': 'driftwood-blender' };
+
+/** where `pnpm blender:island --chunk <slug>` puts a shard's build (a public URL, trailing slash; scripts/blender/run.sh) */
+export function blenderModelsBase(slug: string): string { return `/assets/models/${MODEL_DIRS[slug] ?? `${slug}-blender`}/`; }
 
 /** Driftwood Isle's area (x −110.8 … 110.8, z −214.7 … −20.6) — the one BlenderIsland.ts builds */
 export const area: BlenderArea = toWorld(DRIFTWOOD);

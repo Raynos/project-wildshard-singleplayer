@@ -1,8 +1,11 @@
 /**
- * installAdventure — Driftwood Isle's adventure layer (plan Track A) wired into the running game in ONE call from
- * main.ts. Everything it adds is data: the interactables table (src/world/interact/driftwood.ts) built by the kit
- * (src/world/interact/Interactables.ts); state lives in `Flags` (persisted per shard). Any other shard gets `null`
- * and nothing is built (Pine Hollow stays byte-for-byte, D8).
+ * installAdventure — the active shard's adventure layer wired into the running game in ONE call from main.ts, looked
+ * up in a per-shard registry (`ADVENTURES`, the bottom of this file; PINE-HOLLOW-REMASTER PH-0.3). A shard with no
+ * entry gets `null` and nothing is built — Pine Hollow today (its slot is empty until its lantern quest lands).
+ *
+ * Driftwood Isle's (plan Track A, `installDriftwoodAdventure`): everything it adds is data: the interactables table
+ * (src/world/interact/driftwood.ts) built by the kit (src/world/interact/Interactables.ts); state lives in `Flags`
+ * (persisted per shard).
  *
  *   const adventure = installAdventure({ game, sky, player, chunk, prompts: interactables, hud, audio, music,
  *                                        inventory, progress, animals, fullMap, pois: { hut, lookout, wreck, shrine, cove }, ironDrop });
@@ -103,8 +106,8 @@ const FRAMES: Record<Exclude<PoiId, 'world'>, { x: number; z: number; rot: numbe
   pier: { x: PIER.x, z: PIER.z, rot: 0 },
 };
 
-export function installAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): Adventure | null {
-  if (w.chunk.slug !== 'driftwood-isle') return null;
+/** Driftwood Isle's adventure (plan Track A): the castaway spine, feats, places, the captain's finale, the zipline */
+function installDriftwoodAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): Adventure {
   const flags = new Flags(w.chunk.id);
   if (w.params?.has('resetquest')) flags.reset();
 
@@ -226,4 +229,22 @@ export function installAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): Adv
   w.game.onUpdate((_dt, t) => { if (t - placeT > 0.25) { placeT = t; places.update(w.player.position.x, w.player.position.z); } });
   Object.assign(window, { __adventure: adventure });
   return adventure;
+}
+
+/** a shard's adventure layer: builds it into the running game (null when it opts out at runtime) */
+export type AdventureInstaller = <A extends AdvAnimal>(w: AdventureWorld<A>) => Adventure | null;
+
+/** each shard's adventure, by slug (PH-0.3). A shard with no entry gets no adventure layer. */
+const ADVENTURES: Readonly<Partial<Record<string, AdventureInstaller>>> = {
+  'driftwood-isle': installDriftwoodAdventure,
+  // 'pine-hollow': the ranger's lantern quest + the lodge's contracts (PINE-HOLLOW-REMASTER, wave 3) — empty until then
+};
+
+/** does this shard have an adventure layer? */
+export function hasAdventure(slug: string): boolean { return ADVENTURES[slug] !== undefined; }
+
+/** build the shard's adventure (`w.chunk.slug`), or null when it has none */
+export function installAdventure<A extends AdvAnimal>(w: AdventureWorld<A>): Adventure | null {
+  const install = ADVENTURES[w.chunk.slug];
+  return install ? install(w) : null;
 }

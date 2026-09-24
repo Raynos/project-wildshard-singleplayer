@@ -7,7 +7,8 @@
 #   2. the shard's Blender builder        headless, Cycles on the Metal GPU: model, scatter, bake GI + AO, export
 #                                         (driftwood-isle: build_island.py; a shard without one stops after step 1)
 #   3. compress                           meshopt (gltf-transform), lightmaps → WebP (desktop 2048 / phone 1024)
-#   4. copy into public/assets/models/<slug>-blender/ (Driftwood's is loaded by src/world/BlenderIsland.ts under ?island=blender)
+#   4. copy into public/assets/models/<slug>-blender/ (Driftwood: driftwood-blender/, as blenderModelsBase() says — loaded by
+#      src/world/BlenderIsland.ts under ?island=blender)
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 SLUG=driftwood-isle
@@ -22,12 +23,12 @@ while [ $# -gt 0 ]; do
   esac
 done
 case "$SLUG" in
-  driftwood-isle) BUILDER=scripts/blender/build_island.py ;;
-  *) BUILDER="" ;;  # pine-hollow: the Blender build is wave 2 (PINE-HOLLOW-REMASTER PH-U17)
+  driftwood-isle) BUILDER=scripts/blender/build_island.py; DIR=driftwood-blender ;;
+  *) BUILDER=""; DIR="$SLUG-blender" ;;  # pine-hollow: the Blender build is wave 2 (PINE-HOLLOW-REMASTER PH-U17)
 esac
 CACHE="${BLENDER_CACHE:-$HOME/.cache/wildshard-blender}/$SLUG"
 BUILD="$CACHE/build"
-DEST="public/assets/models/$SLUG-blender"
+DEST="public/assets/models/$DIR"
 BLENDER="${BLENDER:-$(command -v blender || echo /opt/homebrew/bin/blender)}"
 mkdir -p "$CACHE" "$BUILD"
 
