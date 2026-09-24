@@ -10,6 +10,10 @@
  *   child   Ayan — a green vest, an embroidered taqiya — skipping rings round the ribbon pole
  *   cook    Gulnar Apa at the iron stove — a long red dress, a velvet waistcoat, a white apron and headscarf, a ladle
  *
+ * D2 (the Look Lab, Settings `campPeople`, `?people=proc|blender|gen`): the same five as generated + rigged models, two
+ * pipelines (src/nalati/campPeopleModels.ts) — one SkinnedMesh on the figures' own root / head / arm pivots, driven by this
+ * runtime; the procedural batch stays the default until the user picks.
+ *
  * ONE BatchedMesh for all of them (a body, a head and a right arm per figure = 15 instances): 1 draw + 1 shadow draw,
  * whatever the tier (the phone budget, ≤ ~110 calls at the camp). Each figure turns to face you as you come near,
  * breathes, glances about; the head follows you; while talking it gestures (the arm) and nods; the cook stirs, the
@@ -27,6 +31,8 @@ import { PaintKit, pole, v3, lathe, poiMaterial } from '../world/nalati/paint';
 import type { Sky } from '../world/Sky';
 import type { WorldRegistry, ColliderDesc } from '../world/registry';
 import { CAMP_PEOPLE } from '../game/quest/nalati';
+import { setting, onSettingChange } from '../ui/Settings';
+import { loadPeopleRig, type PersonFrame, type PeopleRig, type ModelPeopleLook } from './campPeopleModels';
 
 export type PersonId = keyof typeof CAMP_PEOPLE;
 
@@ -200,6 +206,21 @@ function cook(seed: number): Parts {
   return { body: finish(b, true), head: finish(h), arm: finish(a), neck: v3(0, 1.45, 0.01), shoulder: v3(-0.21, 1.34, 0), height: 1.75, radius: 0.33 };
 }
 
+/** each figure's builder (the seeds fix its brush noise) */
+const BUILD: Readonly<Record<PersonId, () => Parts>> = {
+  elder: () => elder(0xe1d3), herderGate: () => herder(0x4e7a, 'tymaq', C.coat), herderRail: () => herder(0x4e7b, 'kalpak', C.coat2),
+  child: () => child(0xc41d), cook: () => cook(0xc00c),
+};
+
+/** one procedural figure at rest (feet at the origin, facing +z) — the comparison sheets (scripts/nalati-models-merge-compare.mjs) */
+export function personPreview(sky: Sky, id: PersonId): THREE.Group {
+  const p = BUILD[id](), mat = poiMaterial(sky), g = new THREE.Group();
+  g.add(new THREE.Mesh(p.body, mat));
+  const headM = new THREE.Mesh(p.head, mat); headM.position.copy(p.neck); g.add(headM);
+  const armM = new THREE.Mesh(p.arm, mat); armM.position.copy(p.shoulder); g.add(armM);
+  return g;
+}
+
 // ── the runtime ──────────────────────────────────────────────────────────────────────────────────────────────────────
 
 interface Live extends Person {
@@ -215,16 +236,14 @@ interface Live extends Person {
   anchor: THREE.Object3D | null;
 }
 
-const _m = new THREE.Matrix4(), _b = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(1, 1, 1), _p = new THREE.Vector3();
+const _m = new THREE.Matrix4(), _b = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _s = new THREE.Vector3(1, 1, 1);
 const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
 const damp = (a: number, b: number, k: number, dt: number): number => a + (b - a) * (1 - Math.exp(-k * dt));
 
 const CHILD_RING = 2.3;
 
 export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => number, registry: WorldRegistry | null): CampPeople {
-  const built: Record<PersonId, Parts> = {
-    elder: elder(0xe1d3), herderGate: herder(0x4e7a, 'tymaq', C.coat), herderRail: herder(0x4e7b, 'kalpak', C.coat2), child: child(0xc41d), cook: cook(0xc00c),
-  };
+  const built: Record<PersonId, Parts> = { elder: BUILD.elder(), herderGate: BUILD.herderGate(), herderRail: BUILD.herderRail(), child: BUILD.child(), cook: BUILD.cook() };
   const ids = Object.keys(built) as PersonId[];
   let verts = 0;
   for (const id of ids) { const p = built[id]; verts += p.body.getAttribute('position').count + p.head.getAttribute('position').count + p.arm.getAttribute('position').count; }
@@ -266,19 +285,61 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
     registry.add({ id: 'nalati-camp-child', name: 'Camp child', category: 'creatures', file: 'src/nalati/campPeople.ts', colliders: [capsule(fig.child, true)], surface: 'flesh', follows: childAnchor });
   }
 
+  // D2: the generated + rigged figures (campPeopleModels.ts), loaded when the Look Lab picks them
+  const frames = {} as Record<PersonId, PersonFrame>;
+  for (const id of ids) { const pp = fig[id].parts; frames[id] = { height: pp.height, neck: pp.neck, shoulder: pp.shoulder }; }
+  let rig: PeopleRig<PersonId> | null = null;
+  const rigs = new Map<ModelPeopleLook, Promise<PeopleRig<PersonId> | null>>();
+
+  const _hq = new THREE.Quaternion(), _aq = new THREE.Quaternion();
   const pose = (p: Live): void => {
     const breathe = 1 + Math.sin(p.phase * 1.3) * 0.012;
     _b.compose(p.feet, _q.setFromEuler(_e.set(0, p.yaw, 0)), _s.set(1, breathe, 1));
-    batch.setMatrixAt(p.ids.body, _b);
-    // the head: a turn + a tilt about the neck
-    _m.compose(_p.copy(p.parts.neck), _q.setFromEuler(_e.set(p.headPitch, p.headYaw, 0, 'YXZ')), _s.set(1, 1, 1));
-    batch.setMatrixAt(p.ids.head, _m.premultiply(_b));
-    _m.compose(_p.copy(p.parts.shoulder), _q.setFromEuler(_e.set(p.armX, 0, p.armZ)), _s.set(1, 1, 1));
-    batch.setMatrixAt(p.ids.arm, _m.premultiply(_b));
+    // the head: a turn + a tilt about the neck; the arm: a swing about the shoulder
+    _hq.setFromEuler(_e.set(p.headPitch, p.headYaw, 0, 'YXZ'));
+    _aq.setFromEuler(_e.set(p.armX, 0, p.armZ));
+    _s.set(1, 1, 1);
+    if (rig) {
+      const b = rig.bones[p.id];
+      b.root.matrixWorld.copy(_b);
+      b.head.matrixWorld.compose(b.neck, _hq, _s).premultiply(_b);
+      b.arm.matrixWorld.compose(b.shoulder, _aq, _s).premultiply(_b);
+    } else {
+      batch.setMatrixAt(p.ids.body, _b);
+      batch.setMatrixAt(p.ids.head, _m.compose(p.parts.neck, _hq, _s).premultiply(_b));
+      batch.setMatrixAt(p.ids.arm, _m.compose(p.parts.shoulder, _aq, _s).premultiply(_b));
+    }
     p.headWorld.copy(p.parts.neck).applyMatrix4(_b);
     p.headWorld.y += 0.12;
   };
+
+  /** the Look Lab's pick: the procedural batch, or one of the model rigs (loaded once, kept for a switch back) */
+  const applyLook = (): void => {
+    const look = setting('campPeople');
+    if (look === 'proc') {
+      if (rig) rig.mesh.visible = false;
+      rig = null; batch.visible = true;
+      for (const id of ids) pose(fig[id]);
+      return;
+    }
+    let pr = rigs.get(look);
+    if (!pr) {
+      pr = loadPeopleRig(sky, look, frames).then((r) => { r.mesh.visible = false; group.add(r.mesh); return r; })
+        .catch((e: unknown) => { console.warn(`[nalati] camp people (${look}) failed`, e); return null; });
+      rigs.set(look, pr);
+    }
+    void pr.then((r) => {
+      if (r !== null && setting('campPeople') === look) {
+        if (rig) rig.mesh.visible = false;
+        rig = r; r.mesh.visible = true; batch.visible = false;
+        for (const id of ids) pose(fig[id]);
+      }
+      return r;
+    });
+  };
   for (const id of ids) pose(fig[id]);
+  applyLook();
+  onSettingChange('campPeople', applyLook);
 
   let asleep = false;
   const update = (dt: number, t: number, player: THREE.Vector3): void => {
