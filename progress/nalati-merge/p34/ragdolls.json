@@ -1,0 +1,254 @@
+{
+ "phone": {
+  "tier": "phone",
+  "before": {
+   "dynamic": 0,
+   "awake": 0
+  },
+  "kill1": {
+   "killed": [
+    "horse",
+    "horse",
+    "horse",
+    "wolf",
+    "wolf"
+   ]
+  },
+  "right": {
+   "victims": [
+    {
+     "kind": "horse",
+     "ragdoll": "live",
+     "bodies": 6
+    },
+    {
+     "kind": "horse",
+     "ragdoll": "live",
+     "bodies": 6
+    },
+    {
+     "kind": "horse",
+     "ragdoll": "keyframed",
+     "bodies": 0
+    },
+    {
+     "kind": "wolf",
+     "ragdoll": "keyframed",
+     "bodies": 0
+    },
+    {
+     "kind": "wolf",
+     "ragdoll": "keyframed",
+     "bodies": 0
+    }
+   ],
+   "world": {
+    "dynamic": 12,
+    "awake": 12
+   }
+  },
+  "settled": {
+   "victims": [
+    {
+     "kind": "horse",
+     "ragdoll": "frozen",
+     "bodies": 0
+    },
+    {
+     "kind": "horse",
+     "ragdoll": "frozen",
+     "bodies": 0
+    },
+    {
+     "kind": "horse",
+     "ragdoll": "keyframed",
+     "bodies": 0
+    },
+    {
+     "kind": "wolf",
+     "ragdoll": "keyframed",
+     "bodies": 0
+    },
+    {
+     "kind": "wolf",
+     "ragdoll": "keyframed",
+     "bodies": 0
+    }
+   ],
+   "world": {
+    "dynamic": 0,
+    "awake": 0
+   }
+  },
+  "kill2": {
+   "killed": [
+    "horse"
+   ]
+  },
+  "again": {
+   "victims": [
+    {
+     "kind": "horse",
+     "ragdoll": "frozen",
+     "bodies": 0
+    },
+    {
+     "kind": "horse",
+     "ragdoll": "frozen",
+     "bodies": 0
+    },
+    {
+     "kind": "horse",
+     "ragdoll": "keyframed",
+     "bodies": 0
+    },
+    {
+     "kind": "wolf",
+     "ragdoll": "keyframed",
+     "bodies": 0
+    },
+    {
+     "kind": "wolf",
+     "ragdoll": "keyframed",
+     "bodies": 0
+    },
+    {
+     "kind": "horse",
+     "ragdoll": "live",
+     "bodies": 6
+    }
+   ],
+   "world": {
+    "dynamic": 6,
+    "awake": 6
+   }
+  },
+  "errors": []
+ },
+ "desktop": {
+  "tier": "desktop",
+  "before": {
+   "dynamic": 0,
+   "awake": 0
+  },
+  "kill1": {
+   "killed": [
+    "horse",
+    "horse",
+    "horse",
+    "wolf",
+    "wolf"
+   ]
+  },
+  "right": {
+   "victims": [
+    {
+     "kind": "horse",
+     "ragdoll": "live",
+     "bodies": 11
+    },
+    {
+     "kind": "horse",
+     "ragdoll": "live",
+     "bodies": 11
+    },
+    {
+     "kind": "horse",
+     "ragdoll": "live",
+     "bodies": 11
+    },
+    {
+     "kind": "wolf",
+     "ragdoll": "live",
+     "bodies": 11
+    },
+    {
+     "kind": "wolf",
+     "ragdoll": "live",
+     "bodies": 11
+    }
+   ],
+   "world": {
+    "dynamic": 55,
+    "awake": 55
+   }
+  },
+  "settled": {
+   "victims": [
+    {
+     "kind": "horse",
+     "ragdoll": "frozen",
+     "bodies": 0
+    },
+    {
+     "kind": "horse",
+     "ragdoll": "frozen",
+     "bodies": 0
+    },
+    {
+     "kind": "horse",
+     "ragdoll": "frozen",
+     "bodies": 0
+    },
+    {
+     "kind": "wolf",
+     "ragdoll": "frozen",
+     "bodies": 0
+    },
+    {
+     "kind": "wolf",
+     "ragdoll": "frozen",
+     "bodies": 0
+    }
+   ],
+   "world": {
+    "dynamic": 0,
+    "awake": 0
+   }
+  },
+  "kill2": {
+   "killed": [
+    "horse"
+   ]
+  },
+  "again": {
+   "victims": [
+    {
+     "kind": "horse",
+     "ragdoll": "frozen",
+     "bodies": 0
+    },
+    {
+     "kind": "horse",
+     "ragdoll": "frozen",
+     "bodies": 0
+    },
+    {
+     "kind": "horse",
+     "ragdoll": "frozen",
+     "bodies": 0
+    },
+    {
+     "kind": "wolf",
+     "ragdoll": "frozen",
+     "bodies": 0
+    },
+    {
+     "kind": "wolf",
+     "ragdoll": "frozen",
+     "bodies": 0
+    },
+    {
+     "kind": "horse",
+     "ragdoll": "live",
+     "bodies": 11
+    }
+   ],
+   "world": {
+    "dynamic": 11,
+    "awake": 11
+   }
+  },
+  "errors": []
+ }
+}
