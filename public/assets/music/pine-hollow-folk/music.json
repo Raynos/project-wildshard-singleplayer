@@ -1,0 +1,132 @@
+{
+  "style": "folk",
+  "set": "pine-hollow",
+  "model": "MiniMax-Music3",
+  "credit": "Music: MiniMax-Music3",
+  "slots": {
+    "night": {
+      "calm": "night-calm-e5eeff22.m4a",
+      "bpm": 86.006,
+      "beatsPerBar": 4,
+      "loopStart": 24.1952,
+      "loopEnd": 71.6336,
+      "duration": 74.432,
+      "tension": "night-tension-0071c7a3.m4a"
+    },
+    "boss": {
+      "calm": "boss-base-1ad74736.m4a",
+      "bpm": 85.562,
+      "beatsPerBar": 4,
+      "loopStart": 15.2787,
+      "loopEnd": 57.3533,
+      "duration": 60.16,
+      "layers": [
+        "boss-bass-2f96accb.m4a",
+        "boss-drums-90b1e7cb.m4a"
+      ],
+      "phases": {
+        "1": [
+          0.6,
+          0.0
+        ],
+        "2": [
+          1.0,
+          0.55
+        ],
+        "3": [
+          1.0,
+          1.0
+        ]
+      },
+      "phaseNames": {
+        "1": "I - the Warden",
+        "2": "II - Lanterns Fall",
+        "3": "III - the Last Light"
+      }
+    }
+  },
+  "stings": {
+    "dawn": "sting-dawn-35a7550c.m4a"
+  },
+  "provenance": [
+    {
+      "file": "night-calm-e5eeff22.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: dark folk video game soundtrack, eerie folklore, acoustic. BPM: 76. Key: D minor. Instrumental only, no vocals. Setting: Pine Hollow at night - lanterns glowing between black pines, fog on the ground, old tales of the Antler King told by the fire; hushed and unsettling, never scary. Arrangement: a slow, haunting nyckelharpa and low whistle melody over fingerpicked open-tuned guitar and a bowed-psaltery drone; an upright bass and a soft, steady groove of bodhran, frame drum and shaker run under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Production: intimate wooden-room sound with a dark reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 403,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-403",
+      "stem": "calm: mix - drums - bass/2",
+      "gain_db": -2.6
+    },
+    {
+      "file": "night-tension-0071c7a3.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: dark folk video game soundtrack, eerie folklore, acoustic. BPM: 76. Key: D minor. Instrumental only, no vocals. Setting: Pine Hollow at night - lanterns glowing between black pines, fog on the ground, old tales of the Antler King told by the fire; hushed and unsettling, never scary. Arrangement: a slow, haunting nyckelharpa and low whistle melody over fingerpicked open-tuned guitar and a bowed-psaltery drone; an upright bass and a soft, steady groove of bodhran, frame drum and shaker run under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Production: intimate wooden-room sound with a dark reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 403,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-403",
+      "stem": "tension: drums + bass/2 (htdemucs), mono",
+      "gain_db": -2.6
+    },
+    {
+      "file": "boss-base-1ad74736.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: dark folk battle video game music, Nordic folklore, driving and acoustic. BPM: 120. Key: D minor. Instrumental only, no vocals. The fight with the Antler King, an ancient forest guardian gone wrong, in a fog-filled clearing of standing stones and hanging lanterns - relentless, ominous, heroic underneath. Arrangement: a fierce hardanger fiddle and nyckelharpa melody over hard-strummed guitars and a droning hurdy-gurdy; an upright bass and a powerful, steady groove of war drums, bodhran, frame drum and stomping kick run under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Production: raw, close, a wooden-hall reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 404,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-404",
+      "stem": "base: mix - drums - bass",
+      "gain_db": -2.9
+    },
+    {
+      "file": "boss-bass-2f96accb.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: dark folk battle video game music, Nordic folklore, driving and acoustic. BPM: 120. Key: D minor. Instrumental only, no vocals. The fight with the Antler King, an ancient forest guardian gone wrong, in a fog-filled clearing of standing stones and hanging lanterns - relentless, ominous, heroic underneath. Arrangement: a fierce hardanger fiddle and nyckelharpa melody over hard-strummed guitars and a droning hurdy-gurdy; an upright bass and a powerful, steady groove of war drums, bodhran, frame drum and stomping kick run under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Production: raw, close, a wooden-hall reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 404,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-404",
+      "stem": "bass (htdemucs), mono",
+      "gain_db": -2.9
+    },
+    {
+      "file": "boss-drums-90b1e7cb.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: dark folk battle video game music, Nordic folklore, driving and acoustic. BPM: 120. Key: D minor. Instrumental only, no vocals. The fight with the Antler King, an ancient forest guardian gone wrong, in a fog-filled clearing of standing stones and hanging lanterns - relentless, ominous, heroic underneath. Arrangement: a fierce hardanger fiddle and nyckelharpa melody over hard-strummed guitars and a droning hurdy-gurdy; an upright bass and a powerful, steady groove of war drums, bodhran, frame drum and stomping kick run under the whole piece from the second bar to the end. No fade-out: the last bar is as full as the rest. Production: raw, close, a wooden-hall reverb.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Instrumental]\n[Solo]\n[Instrumental]",
+      "seed": 404,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-404",
+      "stem": "drums (htdemucs), mono",
+      "gain_db": -2.9
+    },
+    {
+      "file": "sting-dawn-35a7550c.m4a",
+      "model": "MiniMaxAI/MiniMax-Music3",
+      "diffusers": "0.40.0",
+      "prompt": "Genre: folk video game victory and dawn theme, acoustic and warm. BPM: 84. Key: D major. Instrumental only, no vocals. The quest's end: the Antler King is laid to rest and the first light of dawn rises over Pine Hollow, the fog lifting from the pines - relief, warmth, quiet triumph. Arrangement: a tender fiddle and tin whistle melody over fingerpicked guitar and mandolin, swelling with the whole band and a frame drum to one radiant climax, then ends on a long resolved major chord that rings out. Production: natural wooden-room sound.",
+      "lyrics": "[Intro]\n[Instrumental]\n[Solo]\n[Instrumental]\n[Outro]",
+      "seed": 406,
+      "steps": 30,
+      "licence": "MiniMax-Music3 Community (UI credit, < $20M)",
+      "take": "minimax3-406",
+      "cut_from": "dawn at 47.05s (the last 8 s: the resolve)",
+      "seconds": 8.0,
+      "gain_db": -2.5
+    }
+  ]
+}
