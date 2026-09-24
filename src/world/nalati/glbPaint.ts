@@ -241,42 +241,62 @@ export function loadModelRaw(name: NalatiModelName): Promise<RawModel> { return 
 /** the same, synchronously: the loaded model, or null while it is still loading (or failed) */
 export function modelRawIfLoaded(name: NalatiModelName): RawModel | null { return ready.get(`${name}|near`) ?? null; }
 
+/**
+ * A loaded GLB's first mesh as the float geometry + atlas every Nalati model is drawn from (the node transform baked in,
+ * meshopt's quantised attributes de-quantised, a float rgb `color` always present). The Blender pipeline's models
+ * (scripts/blender/*, img2mesh/driftwood_post.py: no texture, COLOR_0 rgb = albedo, a = Cycles AO 0.35..1) bring their
+ * colours; the AO in the alpha darkens them (0.4 + 0.6 × AO). Exported for the dev pages that load a candidate file
+ * through the game's own path (scripts/nalati-models-merge-compare.mjs).
+ */
+export function rawFromGltf(scene: THREE.Object3D, label: string): RawModel {
+  scene.updateMatrixWorld(true);
+  const meshes: THREE.Mesh[] = [];
+  scene.traverse((o) => { if (isMesh(o)) meshes.push(o); });
+  const found = meshes[0];
+  if (!found) throw new Error(`nalati model ${label}: no mesh`);
+  const src = found.geometry;
+  const geometry = new THREE.BufferGeometry();
+  for (const key of ['position', 'normal', 'uv'] as const) {
+    if (src.hasAttribute(key)) geometry.setAttribute(key, floatAttr(src.getAttribute(key)));
+  }
+  const index = src.getIndex();
+  if (index) geometry.setIndex(Array.from(index.array));
+  geometry.applyMatrix4(found.matrixWorld);
+  if (!geometry.hasAttribute('normal')) geometry.computeVertexNormals();
+  // painterly materials always read vertex colours: the model's own (a far LOD's coat, a Blender model's albedo), else a
+  // white one (the atlas carries it). Float rgb, so the model-shading variant can swap its baked colours in place
+  const nv = geometry.getAttribute('position').count;
+  const rgb = new Float32Array(nv * 3).fill(1);
+  if (src.hasAttribute('color')) {
+    const c = src.getAttribute('color');
+    const ao = c.itemSize === 4;
+    for (let i = 0; i < nv; i++) {
+      const k = ao ? 0.4 + 0.6 * c.getW(i) : 1;
+      rgb[i * 3] = c.getX(i) * k; rgb[i * 3 + 1] = c.getY(i) * k; rgb[i * 3 + 2] = c.getZ(i) * k;
+    }
+  }
+  geometry.setAttribute('color', new THREE.BufferAttribute(rgb, 3));
+  geometry.computeBoundingBox();
+  geometry.computeBoundingSphere();
+  const srcMat = found.material;
+  const first = Array.isArray(srcMat) ? srcMat[0] : srcMat;
+  const map = first instanceof THREE.MeshStandardMaterial && first.map ? first.map : null;
+  if (map) { map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4; }
+  const box = geometry.boundingBox?.clone() ?? new THREE.Box3();
+  return { geometry, map, box };
+}
+
 function loadRaw(name: NalatiModelName, lod: ModelLod): Promise<RawModel> {
   const rkey = `${name}|${lod}`;
   let p = raw.get(rkey);
   if (!p) {
     const url = lod === 'far' ? `${DIR}${name}.far.glb` : `${DIR}${name}${TIER === 'phone' ? '.phone' : ''}.glb`;
     p = gltfLoader().loadAsync(url).then((gltf) => {
-      gltf.scene.updateMatrixWorld(true);
-      const meshes: THREE.Mesh[] = [];
-      gltf.scene.traverse((o) => { if (isMesh(o)) meshes.push(o); });
-      const found = meshes[0];
-      if (!found) throw new Error(`nalati model ${name}: no mesh`);
-      const src = found.geometry;
-      const geometry = new THREE.BufferGeometry();
-      for (const key of ['position', 'normal', 'uv'] as const) {
-        if (src.hasAttribute(key)) geometry.setAttribute(key, floatAttr(src.getAttribute(key)));
-      }
-      const index = src.getIndex();
-      if (index) geometry.setIndex(Array.from(index.array));
-      geometry.applyMatrix4(found.matrixWorld);
-      if (!geometry.hasAttribute('normal')) geometry.computeVertexNormals();
-      // painterly materials always read vertex colours: the far LOD's own (its coat), else a white one (the atlas carries
-      // it). Float rgb, so the model-shading variant can swap its baked colours in place (setModelShade)
-      const nv = geometry.getAttribute('position').count;
-      const rgb = new Float32Array(nv * 3).fill(1);
-      if (src.hasAttribute('color')) { const c = src.getAttribute('color'); for (let i = 0; i < nv; i++) { rgb[i * 3] = c.getX(i); rgb[i * 3 + 1] = c.getY(i); rgb[i * 3 + 2] = c.getZ(i); } }
-      geometry.setAttribute('color', new THREE.BufferAttribute(rgb, 3));
-      geometry.computeBoundingBox();
-      geometry.computeBoundingSphere();
-      const srcMat = found.material;
-      const first = Array.isArray(srcMat) ? srcMat[0] : srcMat;
-      const map = first instanceof THREE.MeshStandardMaterial && first.map ? first.map : null;
-      if (map) { map.colorSpace = THREE.SRGBColorSpace; map.anisotropy = 4; }
-      const box = geometry.boundingBox?.clone() ?? new THREE.Box3();
-      const out = { geometry, map, box };
+      const out = rawFromGltf(gltf.scene, name);
+      const { geometry } = out;
       ready.set(rkey, out);
-      shades.set(geometry, { plain: rgb.slice(), ao: null });
+      const rgb = geometry.getAttribute('color').array;
+      shades.set(geometry, { plain: rgb instanceof Float32Array ? rgb.slice() : new Float32Array(rgb), ao: null });
       if (modelShadeOn) applyShade(geometry);
       return out;
     });
