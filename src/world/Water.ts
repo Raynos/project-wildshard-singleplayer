@@ -78,7 +78,7 @@ export class Water {
             vec3 V = normalize(vViewPosition);
             float NdotV = clamp(dot(normal, V), 0.0, 1.0);
             float F = 0.02 + 0.55 * pow(1.0 - NdotV, 3.5);
-            vec2 muv = vMirror.xy / vMirror.w + rippleN.xy * 0.06;
+            vec2 muv = vMirror.xy / max(vMirror.w, 1e-4) + rippleN.xy * 0.06; // guarded: a w of 0 is an Inf / NaN pixel for bloom to smear (E67 / E91 class)
             vec3 refl = texture2D(tReflection, muv).rgb;
             // a real pond is darker than the sky it mirrors: compress bright (sky) reflections harder than dark (tree) ones
             refl = refl / (1.0 + refl * 1.6) * vec3(0.5, 0.58, 0.62);
