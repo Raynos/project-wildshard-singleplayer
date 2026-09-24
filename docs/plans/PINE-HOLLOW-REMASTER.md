@@ -1,6 +1,6 @@
 # Pine Hollow — the mega remaster (graduate Pine Hollow out of experimental)
 
-**State:** `in progress` 2026-09-24 — Jake's go ("mega build this plan") after 5 rounds of picks (§2). Built in the worktree `../wildshard-pine-hollow` (branch `pine-hollow-remaster`, never pushes; previews go to their own Vercel project; Jake merges). **Wave 0 is running:** the 4 decision boards (§2 B1–B4), the baseline plus the Track 0 bug audit, and the sound lane. Waves 3–4 reuse Nalati's systems, so they wait on the Nalati merge to main (N10). **Wave 1 look:** PH-L2 day / night (`1cdeab3`), PH-L3 night lights (`7b1430b`) and PH-L6 wind (`20b58c9`) are built; the day / night board (`art/pine-hollow/round-5-day-night/board.jpg`, A clock vs B fixed sunset) waits on Jake's pick. PH-L9 water is built (`f996e5c`); its pond board (`art/pine-hollow/round-7-water/board.jpg`, A new vs B planar) waits on Jake's pick. This is a parallel track, at equal priority with the other live work.
+**State:** `in progress` 2026-09-24 — Jake's go ("mega build this plan") after 5 rounds of picks (§2). Built in the worktree `../wildshard-pine-hollow` (branch `pine-hollow-remaster`, never pushes; previews go to their own Vercel project; Jake merges). **Wave 0 is running:** the 4 decision boards (§2 B1–B4), the baseline plus the Track 0 bug audit, and the sound lane. Waves 3–4 reuse Nalati's systems, so they wait on the Nalati merge to main (N10). **Wave 1 look:** PH-L2 day / night (`1cdeab3`), PH-L3 night lights (`7b1430b`) and PH-L6 wind (`20b58c9`) are built; the day / night board (`art/pine-hollow/round-5-day-night/board.jpg`, A clock vs B fixed sunset) waits on Jake's pick. PH-L9 water is built (`f996e5c`); its pond board (`art/pine-hollow/round-7-water/board.jpg`, A new vs B planar) waits on Jake's pick. **The perf lane** (§5 P, `ce944b5` → `fcb1f66`): the phone tier is locked at 30 fps, phone calls 99–155 at the six poses, desktop 1 059–1 070 → 224–490 (≤ 300 at 3 of 6; the rest waits on Cabin.ts merges and far animals); the cabins cast shadows again; the sky rings were the old planet. This is a parallel track, at equal priority with the other live work.
 
 ## 0. Why, and the finish line
 
@@ -254,7 +254,7 @@ Evidence: `progress/pine-hollow-layout-01-vs-map-a.jpg` (map A | god top-down | 
 
 Phone tris fall everywhere. Phone calls rise by 9–22, and that is **not yet attributed**. Trees within 160 m of each pose went down, not up
 (cabin 560 → 515). Suspects: the fauna grid moved (56 m cells), and the ridge's terrain and shadow casters now show above the horizon.
-PH-P1 should break this down per group. Phone FP at the new places: lookout 130 / 1.37 M, pond W shore 158 / 1.33 M, hamlet 122 / 1.21 M,
+~~PH-P1 should break this down per group.~~ **Attributed** (perf lane, `ce944b5`, `progress/pine-hollow-drawcalls-layout-*.json`): all of it is animals — gate +4 main +5 shadow, cabin +14 +9, pond +2 +8; terrain, sky, forest and horizon unchanged. The 56 m fauna grid put more rigs within 45 m (3 draws each, per pass) and inside the 80 m cascade; the ridge adds nothing. Paid back by one shadow draw per animal (`925f0cf`). Phone FP at the new places: lookout 130 / 1.37 M, pond W shore 158 / 1.33 M, hamlet 122 / 1.21 M,
 clearing 126 / 1.55 M.
 
 **Left for other lanes:**
@@ -339,11 +339,87 @@ clearing 126 / 1.55 M.
 
 | # | Row | Gate |
 |---|---|---|
-| PH-P1 | **The 30 fps tier** (PH-U18): Pine Hollow's phone frame cap locked at 30 (no 30↔60 judder); the phone budget re-derived from Jake's iPhone at 30 (headless proxy: calls / tris logged per pose, target set after PH-0.5) | steady 30 on the iPhone at every pose |
-| PH-P2 | **Desktop draws** (E4b): 880–990 → ≤ 300 (merge the cabin detail, BatchedMesh for props, undergrowth by cell) | ≤ 300, 60 fps |
+| PH-P1 | **The 30 fps tier** (PH-U18): Pine Hollow's phone frame cap locked at 30 (no 30↔60 judder); the phone budget re-derived from Jake's iPhone at 30 (headless proxy: calls / tris logged per pose, target set after PH-0.5) | steady 30 on the iPhone at every pose — **built `bea1910`** (headless: 100 % of drawn frames at 33.3 ms at all 6 poses, 4× CPU work p95 12.6–14.7 ms; the budget below). **Jake's iPhone reading is next** (Low Power off; `?fps=60` for the uncapped comparison) |
+| PH-P2 | **Desktop draws** (E4b): 880–990 → ≤ 300 (merge the cabin detail, BatchedMesh for props, undergrowth by cell) | ≤ 300, 60 fps — **in progress**: 1 059–1 070 → 224–490 (`925f0cf`, `0bf74dc`, `fcb1f66`); ≤ 300 at the pond, shore and hamlet; the gate 358, lookout 376 and cabin 490 wait on the levers under "Left" |
 | PH-P3 | **Load**: ≤ 30 MB cold; KTX2 / Basis for the photoreal sets; a Pine Hollow `SHARD_STEPS` with honest nouns | `bench:ci` with Pine Hollow's own budget |
 | PH-P4 | **Physics**: creature physics LOD, navmesh re-baked for layout v2, `physics-baseline --mode=walk / --trails` 0 stuck, the zipline + cave colliders | ≤ 1.5 ms p50 |
 | PH-P5 | **WebGPU** (V-G2): Pine Hollow on the TSL path; parity at the 9 cameras | mean \|Δ\| under 6/255; WebGL stays default |
+
+### P as built: the perf lane (2026-09-24, `ce944b5` → `fcb1f66`)
+
+**Rulers.**
+- `node scripts/pine-hollow-drawcalls.mjs --url=<clean export> [--tiers=] [--poses=] [--query=tod=day&clock=1000000]` charges
+  every draw three.js counts to the `__world` entry that owns the object, its pass (main / shadow / post) and its render
+  target. The sum is exactly `game.lastFrame.calls`. Six poses: gate, cabin, pond, shore, hamlet (−150, −130) facing S
+  and lookout (36, 208) facing S. It writes `progress/pine-hollow-drawcalls-<tag>.json`.
+- `node scripts/pine-hollow-fps.mjs --url=<clean export>` runs the phone tier at 4× CPU. It records the drawn-frame
+  interval (p50 / p95, the share at 33.3 ± 4 ms, frames under 25 ms) and the main-thread work per frame (input → fixed
+  steps → updaters → composer.render).
+
+**Per group, calls (main + shadow), tod = day.** Before is `ea1f44e`, after is `fcb1f66`.
+
+| pose | phone before → after | desktop before → after | desktop after: animals · cabins · post · viewmodel · boundary · shadows total |
+|---|---|---|---|
+| gate | 126 → **114** | 1 059 → **358** | 130+26 · 27+12 · 37 · 26 · 19+3 · 65 |
+| cabin | 178 → **155** | 1 070 → **490** | 84+61 · 83+76 · 37 · 26 · 17+3 · 179 |
+| pond | 125 → **99** | 563 → **261** | 17+49 · 0+44 · 37 · 26 · 15+3 · 123 |
+| shore | 120 → **99** | 613 → **274** | 32+45 · 0+47 · 37 · 26 · 15+3 · 122 |
+| hamlet | 123 → **103** | 580 → **224** | 30+48 · 0+6 · 37 · 26 · 15+3 · 81 |
+| lookout | 124 → **123** | 1 052 → **376** | 119+23 · 50+37 · 37 · 26 · 19+3 · 87 |
+
+On the phone after, the cabin pose is animals 16+17, cabins 30+6, post 21, viewmodel 13, sky 7, boundary 8+1, pickup 8,
+forest 3+3, props 3+3, undergrowth 5, water 4, particles 3, terrain 2 and grass 2.
+
+**What was built.**
+- **Animal shadows, one draw per rig** (`925f0cf`, `src/entities/animalShadow.ts`). three.js drew each fur / hard / eye
+  group into every cascade. Now a skinned caster on the rig's own skeleton and buffers draws it once. A same-instant
+  A/B lands inside the frame-to-frame noise.
+- **Shadow-only casters are drawn at all** (`925f0cf`, `src/core/shadowLayer.ts`). three tests a caster's layers
+  against the view camera in the shadow pass, so Cabin.ts's depth proxies (lever 12, `46868b5`) had never been drawn.
+  **Since 22 Sep the cabins and the hamlet cast no wall or roof shadow.** They do again: phone cabin pose +4 shadow draws.
+- **n8ao's transparency pass** (`0bf74dc`, desktop). It set `visible = undefined` on every multi-material mesh, so every
+  animal was drawn a second time, 200–350 draws. It also re-drew all 3 shadow cascades after the main pass. Both are
+  gone. The AO-only view is unchanged.
+- **Desktop animal draw LOD** (`0bf74dc`): eyes merge at 60 m, one draw at 150 m (the phone uses 45 / 100). A
+  same-instant A/B at 4 poses shows no animal in the diff.
+- **The pickup's desktop draw distance** (`fcb1f66`): item 90 m, orb 200 m. The walls hide the AR-15 in cabin 1 at
+  every distance measured.
+- **The sky rings** (`297ca39`) were the 16 Sep ringed planet (`Sky.buildPlanet`, NE). Its banded ring read as ripples
+  on the photo day keys, and it ignored the clock. On the clock it now fades with `Sky.night` and is not drawn by day.
+  The fixed sunset is unchanged. `progress/pine-hollow-P-01-sky-rings.jpg`.
+- **The 30 fps lock** (`bea1910`, `Game.start` + `tier.ts frameCapFps`). A frame is drawn once 33.3 ms − 4 ms have
+  passed since the last one. That is every 2nd vsync at 60 Hz, every 4th at 120 Hz and every one in Low Power, and
+  never two vsyncs in a row. A skipped vsync does nothing, so dt = 33 ms and the fixed steps run 2 × 1/60. Only Pine
+  Hollow's phone tier is capped. Settings ▸ Debug ▸ Frame rate or `?fps=60|30` overrides it.
+- Programs are unchanged: Driftwood 93 / 101, Pine Hollow 81 / 90; the cache keys differ only in minified names.
+
+**The phone budget at a locked 30** (headless proxy; Jake's iPhone is the truth):
+
+| | budget | now, worst pose | derived from |
+|---|---|---|---|
+| calls | ≤ 180 | 155 (cabin) | the 22 Sep iPhone held 30 at 179–209 calls (levers 1–3) and not 60 at ~180 |
+| tris | ≤ 2.0 M | 1.55 M (cabin) | the same receipts at 1.7–2.2 M |
+| 4× CPU work p95 | ≤ 20 ms | 14.7 ms (pond) | 60 % of the 33.3 ms frame; the rest is GPU and compositor |
+| lock | ≥ 98 % of drawn frames at 33.3 ± 4 ms, 0 under 25 ms | 100 %, 0 | `pine-hollow-fps.mjs` |
+
+The old 60 fps line (≤ 150 calls, iPhone ≤ 18 ms) is retired for Pine Hollow.
+
+**Left (desktop ≤ 300 at gate / cabin / lookout).**
+- **Cabin.ts (the assets lane's).** The cabin pose draws 83 main + 76 shadow cabin calls. Merge each cabin's detail
+  (hardware / lantern / fire pit / crates / glass) per material. The near cabin's 20+ detail meshes and the props'
+  per-cabin InstancedMeshes could share one `BatchedMesh`, and the detail casters could go into the depth proxy (desktop
+  `cabinDetailShadows`). Worth about −100 at the cabin and −40 at the lookout. Import `SHADOW_LAYER` from
+  `src/core/shadowLayer.ts` in place of Cabin.ts's own `9`.
+- **Far animals** are ~100 one-draw rigs at 150–400 m: 130 draws at the gate, 119 at the lookout. Hiding past 250 m is
+  inside the noise at the gate, cabin and mid poses, but moved a speck at the lookout vista, so it is a look change and
+  Jake's call. The structural fix is a far-animal impostor batch: one draw.
+- **Per-cascade shadow culling.** Near casters are drawn into all 3 cascades (cabin pose: 46 / 65 / 68 per cascade).
+  Skipping a small caster in a cascade its shadow cannot reach is worth −30 to −40 at the cabin.
+- **n8ao gives the world almost no AO.** In its AO-only view only the crossbow is shaded, because its transparency mask
+  cancels the AO wherever nothing transparent is drawn. Its two extra scene renders cost ~40 desktop draws for that.
+  Turning `transparencyAware` off would give the world AO (a look change, Jake's call) and save those draws.
+- **The post chain** (37 on desktop, 21 on the phone) and the viewmodel (13, drawn 26 on desktop through n8ao) are
+  other lanes' and unchanged.
 
 ### S: ship (graduation)
 
