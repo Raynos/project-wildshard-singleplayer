@@ -272,6 +272,7 @@ export class Sky {
 
   update(dt = 0): void {
     this.pine?.update(dt, this.camera); // before the CSM: the clock turns its light
+    if (this.pine !== null) this.fadePlanet(this.night);
     this.csm.update(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
     if (this.stylized) { this.stylizedClock?.update(dt); this.stylized.update(dt); toonUniforms.uCloudTime.value += dt; }
   }
@@ -364,6 +365,20 @@ export class Sky {
     this.scene.add(this.sunDisc);
   }
 
+  /** the 16 Sep ringed planet's materials and their built opacities (Pine Hollow's clock fades them, fadePlanet) */
+  private planetFade: { m: THREE.Material; base: number }[] = [];
+  /**
+   * Pine Hollow's clock (PH-L2) keeps the pre-remaster ringed planet a night-sky body. It was drawn at full strength all
+   * day on the photographic keys, where its banded ring read as concentric ripples in the sky NE of the pond (PH-P
+   * lane, `art/pine-hollow/round-7-water/board.jpg`): now it fades with the night (Sky.night: 0 by day … 1 at night),
+   * the way Driftwood's giant hazes out by day, and is not drawn at all by day. The fixed sunset keeps it as it was.
+   */
+  private fadePlanet(night: number): void {
+    const k = Math.min(1, Math.max(0, night));
+    this.planet.visible = k > 0.01;
+    for (const { m, base } of this.planetFade) m.opacity = base * k;
+  }
+
   private buildPlanet() {
     const P = getActiveChunk().sky.planet;
     if (P) { this.buildGasGiant(P); return; }
@@ -391,6 +406,7 @@ export class Sky {
     }
     ring.rotation.x = Math.PI / 2 - 0.42; ring.rotation.z = 0.35;
     this.planet.add(body, ring);
+    this.planetFade = [{ m: body.material, base: body.material.opacity }, { m: ring.material, base: ring.material.opacity }];
     this.planet.position.copy(dir).multiplyScalar(dist);
     this.planet.lookAt(0, 0, 0);
     this.planet.traverse((o) => { o.frustumCulled = false; });
