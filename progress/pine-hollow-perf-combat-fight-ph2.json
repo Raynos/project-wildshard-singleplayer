@@ -1,0 +1,28 @@
+{
+  "tag": "combat-fight-ph2",
+  "url": "http://localhost:4612",
+  "query": "boss=antler-king&bossGod=1&bossPhase=2&tod=night&clock=1e6",
+  "when": "2026-09-24T18:42:36.587Z",
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "clearing",
+      "calls": 124,
+      "tris": 1529716,
+      "msP50": 19.799999713897705,
+      "msP95": 20.700000286102295,
+      "programs": 91,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "clearing",
+      "calls": 364,
+      "tris": 9122544,
+      "msP50": 32.59999990463257,
+      "msP95": 42.30000019073486,
+      "programs": 108,
+      "forest": "batched"
+    }
+  ]
+}

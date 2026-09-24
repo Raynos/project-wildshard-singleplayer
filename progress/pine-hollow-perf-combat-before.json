@@ -1,0 +1,48 @@
+{
+  "tag": "combat-before",
+  "url": "http://localhost:4611",
+  "query": "tod=night&clock=1e6",
+  "when": "2026-09-24T18:34:22.976Z",
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "gate",
+      "calls": 126,
+      "tris": 1360050,
+      "msP50": 18.40000009536743,
+      "msP95": 20.699999809265137,
+      "programs": 82,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "clearing",
+      "calls": 101,
+      "tris": 1484908,
+      "msP50": 18.800000190734863,
+      "msP95": 19.699999809265137,
+      "programs": 82,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "gate",
+      "calls": 391,
+      "tris": 10002956,
+      "msP50": 17.09999990463257,
+      "msP95": 19.5,
+      "programs": 91,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "clearing",
+      "calls": 306,
+      "tris": 8966756,
+      "msP50": 21.800000190734863,
+      "msP95": 23.59999990463257,
+      "programs": 91,
+      "forest": "batched"
+    }
+  ]
+}
