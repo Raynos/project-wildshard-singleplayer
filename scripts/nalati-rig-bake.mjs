@@ -28,19 +28,19 @@ const MODELS = resolvePath(ROOT, 'public/assets/nalati/models');
  * Tuned by watching scripts/nalati-creature-strip.mjs --bake=1 (a frame strip of every gait), not one pose.
  */
 export const RIG_BAKES = [
-  { hull: 'horse-wild', kind: 'horse', variant: 'dun', opts: { tail: { x: 0.1, z: -0.8 }, legWeights: 'proc' } },
-  { hull: 'horse-saddled', kind: 'horse', variant: 'camp-bay', opts: { tail: { x: 0.1, z: -0.8 }, legWeights: 'proc' } },
-  { hull: 'wolf', kind: 'wolf', variant: 'grey', opts: {} },
+  { hull: 'horse-wild', kind: 'horse', variant: 'dun', phoneTris: 4500, opts: { tail: { x: 0.1, z: -0.8 }, legWeights: 'proc' } },
+  { hull: 'horse-saddled', kind: 'horse', variant: 'camp-bay', phoneTris: 5000, opts: { tail: { x: 0.1, z: -0.8 }, legWeights: 'proc' } },
+  { hull: 'wolf', kind: 'wolf', variant: 'grey', phoneTris: 4000, opts: {} },
   // Aqbars: the first hull curled its tail round a hind paw and turned its head; this one was re-generated for the rig
   // (art/nalati-grasslands/round-9-rig-hulls/): legs planted apart, the tail trailing on the ground, the head straight
   {
-    hull: 'snow-leopard', src: 'art/nalati-grasslands/round-9-rig-hulls/snow-leopard-rig', kind: 'leopard', variant: 'aqbars',
+    hull: 'snow-leopard', phoneTris: 4500, src: 'art/nalati-grasslands/round-9-rig-hulls/snow-leopard-rig', kind: 'leopard', variant: 'aqbars',
     opts: { fitZMin: -0.3, fit: 'uniform', retarget: true, headYaw: 0, tail: { x: 0.3, z: -0.5, y: 10 }, tailBones: ['tail', 'tail2'] },
   },
   // Qyran: the perched hull can't fly — a new one with the wings spread (art/nalati-grasslands/round-9-rig-hulls/);
   // fitted by its wingspan, each wing turned flat about its shoulder, no legs
   {
-    hull: 'eagle', src: 'art/nalati-grasslands/round-9-rig-hulls/eagle-flight', kind: 'eagle', variant: 'qyran',
+    hull: 'eagle', phoneTris: 4000, src: 'art/nalati-grasslands/round-9-rig-hulls/eagle-flight', kind: 'eagle', variant: 'qyran',
     opts: { fit: 'box', legs: [], seedR: 0.12, wings: [['wingL1', 'wingL2'], ['wingR1', 'wingR2']] },
   },
   // the camp flock: no species skeleton — the flock shader's parts (species/sheep.ts SHEEP_BONES, one bone per leg);

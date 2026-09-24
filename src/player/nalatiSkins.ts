@@ -4,6 +4,7 @@ import type { Bow } from './Bow';
 import type { Sabre } from './Sabre';
 import { horseBones } from '../entities/species/horse';
 import { riding } from './riding';
+import { skyMarkedAtlas } from '../entities/creatureCoats';
 
 /**
  * Nalati's wearable skins (plan row B15; handoff docs/design/nalati/handoff/b15-items-map.md §2). The named elites drop
@@ -108,7 +109,8 @@ const STORM_BLUE = new THREE.Color(0.62, 0.78, 1.0), STORM_GLOW = new THREE.Colo
 const GOLD_ARROW = new THREE.Color(1.35, 1.0, 0.42);
 const NIGHT_COAT = new THREE.Color(0.3, 0.3, 0.36), NIGHT_GLOW = new THREE.Color(0.008, 0.03, 0.045);
 
-interface HorseDress { coat: THREE.Color; emissive: THREE.Color; skin: string; geo?: THREE.BufferGeometry }
+const FELT_BLUE = new THREE.Color(0.03, 0.09, 0.42), FELT_WHITE = new THREE.Color(0.8, 0.82, 0.88), BLAZE = new THREE.Color(0.95, 0.96, 1.0);
+interface HorseDress { coat: THREE.Color; emissive: THREE.Color; skin: string; geo?: THREE.BufferGeometry; map?: THREE.Texture }
 
 export class NalatiSkinPainter {
   private applied = -1;
@@ -179,10 +181,18 @@ export class NalatiSkinPainter {
     if (skin === 'sky-marked-saddle') {
       // the horse's own felt blanket repainted white-and-blue, a white blaze down the face — on a clone of its geometry
       // (the variant's geometry is shared), so taking the skin off hands the original back
-      const orig = a.mesh.geometry, g = orig.clone();
-      let head = -1;
-      try { head = a.mesh.skeleton.bones.indexOf(horseBones(a).head); } catch { /* not a horse rig */ }
-      if (skyMarked(g, head)) { a.mesh.geometry = g; d.geo = orig; } else g.dispose();
+      // a rigged hull (the default creatures, glbCreatures.ts) carries its felt in the atlas: the atlas is repainted
+      const m0 = mats[0];
+      if (m0?.map) {
+        d.map = m0.map;
+        const felt = skyMarkedAtlas(m0.map, FELT_BLUE, FELT_WHITE);
+        for (const m of mats) { m.map = felt; m.needsUpdate = true; }
+      } else {
+        const orig = a.mesh.geometry, g = orig.clone();
+        let head = -1;
+        try { head = a.mesh.skeleton.bones.indexOf(horseBones(a).head); } catch { /* not a horse rig */ }
+        if (skyMarked(g, head)) { a.mesh.geometry = g; d.geo = orig; } else g.dispose();
+      }
     }
     this.dressed.set(a, d);
   }
@@ -192,11 +202,11 @@ export class NalatiSkinPainter {
     if (d === undefined) return;
     for (const m of this.coatMats(a)) { m.color.copy(d.coat); m.emissive.copy(d.emissive); }
     if (d.geo !== undefined) { a.mesh.geometry.dispose(); a.mesh.geometry = d.geo; }
+    if (d.map !== undefined) for (const m of this.coatMats(a)) { m.map = d.map; m.needsUpdate = true; }
     this.dressed.delete(a);
   }
 }
 
-const FELT_BLUE = new THREE.Color(0.03, 0.09, 0.42), FELT_WHITE = new THREE.Color(0.8, 0.82, 0.88), BLAZE = new THREE.Color(0.95, 0.96, 1.0);
 /** repaint a horse geometry's red felt (the camp / Tulpar blanket and tassels: red ≫ green, unlike the leather or the
  *  straps) white with blue in its dark rules, and a white blaze on the head bone's top midline; false when nothing changed */
 function skyMarked(g: THREE.BufferGeometry, head: number): boolean {

@@ -124,6 +124,16 @@ Every step: measured with `nalati-camp9.mjs` (9 angles + budget) and a walk-arou
    firewood, chest), the eagle on its perch, the spruce (instanced + the impostor as a far LOD only).
 5. Rig and animate the creatures (img2-character skill: the quadruped rig the procedural species use) and replace the
    procedural horse / wolf / sheep / snow leopard / eagle / Golden King meshes, keeping the AI.
+   ✅ **the default since 2026-09-23** (`?creatures=proc` = the procedural fallback). The hulls are skinned OFFLINE to
+   the species' own skeletons (`src/entities/creatureRigBake.ts` via `scripts/nalati-rig-bake.mjs` →
+   `public/assets/nalati/models/<hull>[.phone].rigged.glb`; the stance un-posed, weights spread along the surface), loaded
+   by `glbCreatures.ts`; every coat is the hull's atlas recoloured per variant (`creatureCoats.ts`). Rigged: every horse
+   coat + foals + the black stallion + Argymaq + the camp horses / Tulpar, every wolf + Greymane + Kokbori, Aqbars and
+   Qyran (re-generated for the rig: `art/nalati-grasslands/round-9-rig-hulls/`), the sheep flock (baked onto its shader
+   parts; phone 2 k tris). Same draw calls; phone creature tris below the procedural. Procedural still: the collie (a
+   wolf hull reads as a wolf at the flock), Qara Batyr's ghost horse, the Golden King (see its row / the last commit).
+   Checked in motion: `scripts/nalati-creature-strip.mjs` (every gait), `nalati-creature-motion.mjs` (herds, packs, the
+   flock, the elites live), `nalati-creature-lineup.mjs`; progress/nalati-creatures-glb-01…08.
 
 **A2 The v2 render path** (`handoff/port-v2.md`, behind `?look=v2`, default when it wins)
 1. Sky dome with the round-6 panorama (seamless, at infinity), day / dusk / night / storm re-tint.

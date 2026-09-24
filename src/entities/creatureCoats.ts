@@ -52,6 +52,56 @@ const hueOf = (r: number, g: number, b: number): number => {
 
 const cache = new Map<string, THREE.Texture>();
 
+/** an atlas's pixels on a canvas (null when the image can't be read) */
+function readAtlas(map: THREE.Texture): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; data: ImageData } | null {
+  const img = map.image as CanvasImageSource & { width: number; height: number } | null;
+  if (!img || typeof document === 'undefined') return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width; canvas.height = img.height;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return null;
+  ctx.drawImage(img, 0, 0);
+  return { canvas, ctx, data: ctx.getImageData(0, 0, img.width, img.height) };
+}
+function atlasTexture(canvas: HTMLCanvasElement, map: THREE.Texture, name: string): THREE.Texture {
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.flipY = map.flipY; tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = map.anisotropy;
+  tex.wrapS = map.wrapS; tex.wrapT = map.wrapT; tex.name = name;
+  return tex;
+}
+
+/**
+ * The Sky-Marked Saddle (src/player/nalatiSkins.ts) on a rigged hull: the red felt of the saddle cloth (the atlas's
+ * saturated brick-red texels) repainted from deep blue to white by their brightness, as the painter does to the procedural
+ * blanket's vertex colours. Cached per source atlas.
+ */
+export function skyMarkedAtlas(map: THREE.Texture, blue: THREE.Color, white: THREE.Color): THREE.Texture {
+  const key = `sky:${map.uuid}`;
+  const hit = cache.get(key);
+  if (hit) return hit;
+  const a = readAtlas(map);
+  if (!a) return map;
+  const px = a.data.data;
+  const c = new THREE.Color();
+  for (let o = 0; o < px.length; o += 4) {
+    // the felt: brick red in the atlas (sRGB hue 0–12°, saturated, bright), apart from the orange-brown coat (16–24°)
+    const R = (px[o] ?? 0) / 255, G = (px[o + 1] ?? 0) / 255, B = (px[o + 2] ?? 0) / 255;
+    const mx = Math.max(R, G, B), mn = Math.min(R, G, B);
+    if (mx - mn < 0.05) continue;
+    let dh = Math.abs(hueOf(R, G, B) - 4); if (dh > 180) dh = 360 - dh;
+    const w = (1 - THREE.MathUtils.smoothstep(dh, 9, 13)) * THREE.MathUtils.smoothstep(1 - mn / mx, 0.5, 0.6) * THREE.MathUtils.smoothstep(mx, 0.3, 0.45);
+    if (w <= 0) continue;
+    const k = Math.min(1, Math.max(0, (mx - 0.2) / 0.5));
+    c.copy(blue).lerp(white, k * k * (3 - 2 * k));
+    const tr = toSrgb[Math.round(Math.min(1, c.r) * LUT_N)] ?? 0, tg = toSrgb[Math.round(Math.min(1, c.g) * LUT_N)] ?? 0, tb = toSrgb[Math.round(Math.min(1, c.b) * LUT_N)] ?? 0;
+    px[o] = (px[o] ?? 0) + (tr - (px[o] ?? 0)) * w; px[o + 1] = (px[o + 1] ?? 0) + (tg - (px[o + 1] ?? 0)) * w; px[o + 2] = (px[o + 2] ?? 0) + (tb - (px[o + 2] ?? 0)) * w;
+  }
+  a.ctx.putImageData(a.data, 0, 0);
+  const tex = atlasTexture(a.canvas, map, `${map.name}:sky-marked`);
+  cache.set(key, tex);
+  return tex;
+}
+
 /** true when `tint` changes none of the coat keys from the hull's own coat */
 export function isOwnCoat(spec: CoatSpec, tint: Readonly<Record<string, RGB>> | undefined): boolean {
   return spec.keys.every((k) => {

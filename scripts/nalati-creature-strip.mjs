@@ -145,6 +145,10 @@ try {
       a.prepareMaterial = (m) => w.sky.setupMaterial(m);
       a.place(spot.x, spot.z, Math.PI / 2); // facing +X: the camera stands on its left side
       a.sampleTerrain?.();
+      if (spot.sky && model.map) {   // --skymarked=1: the Sky-Marked Saddle skin's atlas repaint (src/player/nalatiSkins.ts)
+        const { skyMarkedAtlas } = await import('/src/entities/creatureCoats.ts');
+        for (const m of [rig.mesh.material].flat()) { m.map = skyMarkedAtlas(model.map, new THREE.Color(0.03, 0.09, 0.42), new THREE.Color(0.8, 0.82, 0.88)); m.needsUpdate = true; }
+      }
       rig.mesh.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (spot.double) for (const m of [o.material].flat()) { m.side = THREE.DoubleSide; m.needsUpdate = true; } } });
       w.game.scene.add(rig.mesh);
       st.cur = a;
@@ -216,7 +220,7 @@ try {
         st.pose = { x: spot.x, y: ty + h * 0.12, z: spot.z - d, tx: spot.x, ty, tz: spot.z }; // the animal's left side (it faces +X)
       }
     };
-  }, { ...SPOT, double: flag('double', '0') === '1' });
+  }, { ...SPOT, double: flag('double', '0') === '1', sky: flag('skymarked', '0') === '1' });
 
   const allRows = [];
   for (const subj of only) {

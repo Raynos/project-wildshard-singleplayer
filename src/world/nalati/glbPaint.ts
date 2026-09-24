@@ -64,11 +64,11 @@ export interface ModelLook {
  * The adoption flags. By default the balbals, the rocks and the camp props are the generated models; the yurts stay
  * procedural (the camp orbit, 2026-09-23: the GLB yurt's felt reads stained and its ornament soft up close, the
  * procedural yurt is cleaner). `?models=0` → every POI procedural, `?models=1` → every model on (yurts included),
- * `?yurts=1` / `?yurts=0` → the yurts alone, `?creatures=glb` / `?creatures=proc` → the skinned creature GLBs
- * (src/entities/glbCreatures.ts) alone.
+ * `?yurts=1` / `?yurts=0` → the yurts alone, `?creatures=glb` / `?creatures=proc` → the rigged creature GLBs
+ * (src/entities/glbCreatures.ts, on by default since 2026-09-23; `proc` = the procedural creatures) alone.
  */
 export type ModelPart = 'yurt' | 'props' | 'rocks' | 'balbal' | 'creatures';
-const PART_DEFAULT: Readonly<Record<ModelPart, boolean>> = { yurt: false, props: true, rocks: true, balbal: true, creatures: false };
+const PART_DEFAULT: Readonly<Record<ModelPart, boolean>> = { yurt: false, props: true, rocks: true, balbal: true, creatures: true };
 
 export function modelsOn(part: ModelPart): boolean {
   if (typeof location === 'undefined') return PART_DEFAULT[part];
