@@ -161,7 +161,9 @@ export class Particles {
           }
           float blink = smoothstep( 0.3, 0.85, sin( uTime * ( 0.7 + seed.y * 0.9 ) + seed.z * 31.0 ) );
           vFly = fly;
-          vAlpha = mix( twinkle * edge * near * ( 1.0 - cand ), blink * edge * smoothstep( 0.3, 0.8, dist ), fly );
+          // dust only reads in sunlight: it fades out through dusk (in moonlight, additive motes bloomed into cyan orbs indoors)
+          float dustLit = 1.0 - smoothstep( 0.2, 0.7, uNight );
+          vAlpha = mix( twinkle * edge * near * ( 1.0 - cand ) * dustLit, blink * edge * smoothstep( 0.3, 0.8, dist ), fly );
           gl_PointSize = mix( clamp( ( 1.0 + seed.z * 1.6 ) * uPixelScale / dist, 1.0, 8.0 ), clamp( ( 2.0 + seed.z * 2.0 ) * uPixelScale / dist, 4.0, 26.0 ), fly );
           gl_Position = projectionMatrix * mv;
         }`,
