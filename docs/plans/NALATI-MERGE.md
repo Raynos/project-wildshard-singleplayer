@@ -104,8 +104,8 @@ and [review-experience.md](../design/nalati/merge/review-experience.md) (HUD, re
 
 | # | row | state |
 |---|---|---|
-| D1 | N12's leftovers (the Golden King, the collie, Qara Batyr's ghost horse, the generated yurt): both pipelines (main's Blender + TRELLIS.2 / Hunyuan3D), the better one in-engine per model, registered through the world registry | open |
-| D2 | The camp's people as generated + rigged models (after Q2's look is approved) | open |
+| D1 | N12's leftovers (the Golden King, the collie, Qara Batyr's ghost horse, the generated yurt): both pipelines (main's Blender + TRELLIS.2 / Hunyuan3D), the better one in-engine per model, registered through the world registry | ✅ 2bfe2e8 0f1741a fe6fe3b 2e6ecdc — sheets progress/nalati-merge/d/ (models-sheet, generators-sheet, d1-ingame, yurt-camp). Kept: King, collie, ghost horse = image-to-3D (Hunyuan3D-2 beat TRELLIS.2 on all; the Blender cut loses the King's scale and rigged the ghost horse badly), rigged: the King on his own bones (new humanoidRigBake.ts; crown + cloak still come off), the collie on the sheepdog, the ghost horse for kind ghost-rider (captain + night riders) — all AnimalManager species, so Explore's creature catalog shows them. Yurt: procedural still wins in the camp; of the two models the Blender one (scripts/blender/nalati_yurt.py, 76 KB) replaces the Hunyuan yurt, a Look Lab pick (Yurts, next load) — **the user's pick** |
+| D2 | The camp's people as generated + rigged models (after Q2's look is approved) | ✅ fe6fe3b 2e6ecdc — both pipelines per figure (Blender faceted / image-to-3D atlas, Hunyuan3D-2), one SkinnedMesh on the procedural figures' root / head / arm (src/nalati/campPeopleModels.ts), procedural stays default: Look lab ▸ Camp people (`?people=proc|blender|gen`); sheet progress/nalati-merge/d/people-sheet.jpg (same draw calls, +≤ 0.05 M tris) — **needs the user's pick** |
 
 ## E — landing
 
