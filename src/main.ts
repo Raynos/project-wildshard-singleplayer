@@ -52,7 +52,7 @@ import { LockOnSystem } from './player/LockOnTarget';
 import { SpeedLines } from './ui/SpeedLines';
 import { buzz, HAPTIC } from './ui/haptics';
 import { Loading } from './ui/Loading';
-import { resumeProgress } from './ui/Resume';
+import { resumeProgress, resumeScreen } from './ui/Resume';
 import { Perf } from './ui/Perf';
 import { Minimap } from './ui/Minimap';
 import { FullMap } from './ui/Map';
@@ -113,6 +113,9 @@ async function main() {
   const loading = new Loading();
   // The boot plan: DOWNLOAD = bytes read / bytes declared, SETUP = weighted steps (src/boot/plan.ts).
   // Declared bytes come from the chunk's file list; every /assets fetch is counted on its way in.
+  // the RESUMING screen's brand (E99): the shard's name + title art, while its URL is still the served file (the menu
+  // preload swaps it for an in-memory blob: that one would not survive a recovery reload)
+  resumeScreen().brand(getActiveChunk().slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '), getActiveChunk().heroPortrait);
   const files = bootFiles(getActiveChunk()); // + the title / explore art and every audio file (project/archive/2026-09-23-preload-offline.md)
   useShardSteps(getActiveChunk().slug); // the shard's own loading nouns + weights (src/boot/steps.ts)
   const plan = createBootPlan((view) => { loading.paint(view); resumeProgress(view.setup); }, { totals: declareTotals(files) });

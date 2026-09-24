@@ -1,22 +1,26 @@
 /**
  * The app-switch resume screen (E61): what the player sees between coming back to the app and the first good frame.
- * NOT the first-boot loader — no wordmark, no chunk / tier / download breakdown: a blurred still of the last frame, a
- * small mark, "RESUMING" and a hairline. Styled by src/ui/styles/resume.css (prefix ws-resume-).
+ * NOT the first-boot loader (no chunk / tier / download breakdown), but branded (E99, the user: "I don't want a black
+ * resuming screen I want a branded resuming screen"; of three looks, "A title looks best to me and simplest"): the title
+ * screen itself — the shard's title art full-bleed, the PROJECT WILDSHARD wordmark where the title has it, RESUMING, a
+ * hairline and the shard's name low. The blurred still of the last frame shows only where there is no art.
  *
- * The markup is in index.html (RESUME_HTML, kept identical by test/resume.test.ts) with an inline script, so on a
- * GPU-recovery reload (`?glreload`, src/core/GpuRecovery.ts) it is up from the first paint — before any bundle runs —
- * and the first-boot loader never shows. In play, GpuRecovery puts it up while the page is HIDDEN (visibilitychange /
- * pagehide), so the first frame after the switch back is already this screen, never a black or broken canvas.
+ * Styled by src/ui/styles/resume.css (prefix ws-resume-). The markup is in index.html (RESUME_HTML, kept identical by
+ * test/resume.test.ts) with an inline script, so on a GPU-recovery reload (`?glreload`, src/core/GpuRecovery.ts) it is
+ * up from the first paint — before any bundle runs — and the first-boot loader never shows. In play, GpuRecovery puts it
+ * up while the page is HIDDEN (visibilitychange / pagehide), so the first frame after the switch back is this screen.
  *
- *   resumeScreen().show(shot)       // busy: a short segment sweeps the hairline
- *   resumeScreen().progress(0.4)    // a fraction: the boot plan's setup, or the in-place shader rebuild
- *   resumeScreen().hide()           // fades out (fast)
+ *   resumeScreen().brand(name, hero)  // the shard's name + portrait title art (main.ts, once at boot)
+ *   resumeScreen().show(shot)         // busy: a short segment sweeps the hairline
+ *   resumeScreen().progress(0.4)      // a fraction: the boot plan's setup, or the in-place shader rebuild
+ *   resumeScreen().hide()             // fades out (fast)
  */
-
-export const RESUME_HTML = '<div class="ws-resume-shot"></div><div class="ws-resume-card"><div class="ws-resume-mark"><i></i></div><div class="ws-resume-line">Resuming</div><div class="ws-resume-bar"><i></i></div><button type="button" class="ws-resume-btn">Reload</button></div>';
+export const RESUME_HTML = '<div class="ws-resume-shot"></div><div class="ws-resume-hero"></div><div class="ws-resume-word">Project <b>Wildshard</b></div><div class="ws-resume-card"><div class="ws-resume-line">Resuming</div><div class="ws-resume-bar"><i></i></div><div class="ws-resume-shard"></div><button type="button" class="ws-resume-btn">Reload</button></div>';
 
 /** sessionStorage key of the last still (a small JPEG data URL) — survives the recovery reload */
 export const SHOT_KEY = 'wsResumeShot';
+/** sessionStorage key of `{ name, hero }` — the shard's name and title art for index.html's first paint of a recovery reload */
+export const BRAND_KEY = 'wsResumeBrand';
 
 class ResumeScreen {
   private readonly root: HTMLElement;
@@ -24,6 +28,7 @@ class ResumeScreen {
   private readonly line: HTMLElement | null;
   private readonly bar: HTMLElement | null;
   private readonly btn: HTMLButtonElement | null;
+  private heroImg: HTMLImageElement | null = null; // keeps the title art decoded: a hidden page loads nothing
   private onButton: (() => void) | null = null;
   private outTimer = 0;
 
@@ -46,6 +51,21 @@ class ResumeScreen {
   }
 
   get visible(): boolean { return this.root.classList.contains('show') && !this.root.classList.contains('out'); }
+
+  /** the shard this page plays: its name under the hairline and its portrait title art */
+  brand(name: string, hero: string): void {
+    const shard = this.root.querySelector('.ws-resume-shard');
+    if (shard) shard.textContent = name;
+    const art = this.root.querySelector<HTMLElement>('.ws-resume-hero');
+    if (art && hero !== '') {
+      art.style.backgroundImage = `url("${hero}")`;
+      this.heroImg = new Image();
+      this.heroImg.src = hero;
+      void this.heroImg.decode().catch(() => undefined);
+    }
+    // a blob: URL dies with the page: the recovery reload then shows the still behind the wordmark instead
+    try { sessionStorage.setItem(BRAND_KEY, JSON.stringify({ name, hero: hero.startsWith('blob:') ? '' : hero })); } catch { /* no first-paint brand */ }
+  }
 
   /** Up at once (no fade in). `shot`: a data URL of the last frame, or null for the dark glass alone. */
   show(shot: string | null, line = 'Resuming'): void {
