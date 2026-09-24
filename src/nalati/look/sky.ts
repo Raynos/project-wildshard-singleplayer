@@ -7,7 +7,11 @@
  * the slice seams and writes the horizon / ridge / fog data in panoramaData.ts):
  *
  *   u = compass azimuth `atan(-d.x, d.z)` (0 = north = +z, 0.25 = east = −x — the PaintedBackdrop convention), sampled
- *       with textureGrad on whichever azimuth branch is continuous, so the u = 0 / 1 wrap has no mip seam;
+ *       with textureGrad on whichever azimuth branch is continuous, so the u = 0 / 1 wrap has no mip seam. The strip
+ *       carries PANO_PAD_PX columns of the other end on either side (the lossy codec encodes an image's edge columns
+ *       on their own: the bare wrap showed a 1-px seam due north, NALATI-MERGE L4), so the crisp tap reads the inner
+ *       strip only, and over the pad's width either side of north every tap cross-fades into the other copy (half-and-half
+ *       at north itself, so both sides of the jump read the very same texels, at every mip);
  *   v = the painted horizon row at elevation `uElShift`, linear in elevation at the strip's own 15.36 px / degree;
  *   up:   from +30° the painting eases into its own top rows blurred per azimuth (textureLod), and those converge on one
  *         zenith colour straight up — a 20° + 40° band, colour-matched, so there is no line anywhere;
@@ -28,6 +32,8 @@ import { HORIZON_BLEND } from './fog';
 
 /** inside the camera's far plane (2600) with room; the vertex shader puts it at the far plane anyway */
 const R = 2300;
+/** the columns of wrap each strip carries on either side (scripts/nalati-panorama.py PANO_PAD) */
+const PANO_PAD_PX = 16;
 const D2R = Math.PI / 180;
 /** the painted sun (compass 250°, 26° up — the def's own sun, README of round-6) */
 const PAINTED_SUN = new THREE.Vector3(-Math.sin(250 * D2R) * Math.cos(26 * D2R), Math.sin(26 * D2R), Math.cos(250 * D2R) * Math.cos(26 * D2R));
@@ -47,6 +53,7 @@ const FRAG = /* glsl */`
   uniform sampler2D tRidge;
   uniform sampler2D tFogLut;
   uniform float uHorizonV;
+  uniform float uPad;
   uniform float uVPerDeg;
   uniform float uElShift;
   uniform vec3 uZenith;
@@ -55,6 +62,11 @@ const FRAG = /* glsl */`
   uniform float uNight;
   uniform float uLandHaze;
   varying vec3 vDir;
+  // a blurred tap (explicit mip), cross-faded into the other copy at north like the crisp one
+  vec3 panoLod(float u, float uX, float wX, float v, float lod) {
+    vec3 c = textureLod(tPano, vec2(u, v), lod).rgb;
+    return wX > 0.0 ? mix(c, textureLod(tPano, vec2(uX, v), lod).rgb, wX) : c;
+  }
   void main() {
     vec3 d = normalize(vDir);
     float el = degrees(asin(clamp(d.y, -1.0, 1.0)));
@@ -64,12 +76,23 @@ const FRAG = /* glsl */`
     float azB = fract(az + 0.5) - 0.5;
     vec2 gA = vec2(dFdx(az), dFdy(az)), gB = vec2(dFdx(azB), dFdy(azB));
     vec2 g = dot(gA, gA) < dot(gB, gB) ? gA : gB;
-    float u = fract(az);
+    // every tap reads the inner strip (inside the pads), and over the pad's width either side of north it also reads the
+    // other copy of those columns, half-and-half at north itself, so both sides of the jump show the very same texels
+    // (the copies differ by the codec's noise, and their mips by the NPOT mip chain's rounding)
+    float uLoop = fract(az);
+    float uSpan = 1.0 - 2.0 * uPad;
+    float u = uPad + uLoop * uSpan;
+    g *= uSpan;
+    float edge = uPad / uSpan;
+    float wR = smoothstep(1.0 - edge, 1.0, uLoop), wL = smoothstep(edge, 0.0, uLoop);
+    float wX = 0.5 * (wR + wL), uX = wR > 0.0 ? u - uSpan : u + uSpan;
     vec2 dv = vec2(dFdx(el), dFdy(el)) * uVPerDeg;
-    vec3 c = textureGrad(tPano, vec2(u, clamp(v, 0.002, 0.998)), vec2(g.x, dv.x), vec2(g.y, dv.y)).rgb;
+    float vc = clamp(v, 0.002, 0.998);
+    vec3 c = textureGrad(tPano, vec2(u, vc), vec2(g.x, dv.x), vec2(g.y, dv.y)).rgb;
+    if (wX > 0.0) c = mix(c, textureGrad(tPano, vec2(uX, vc), vec2(g.x, dv.x), vec2(g.y, dv.y)).rgb, wX);
     // up: into the strip's own top rows, blurred per azimuth, then one zenith colour
     float elTop = (1.0 - uHorizonV) / uVPerDeg + uElShift;     // where the painting ends (~ +52°)
-    vec3 top = textureLod(tPano, vec2(u, 0.985), 9.0).rgb;
+    vec3 top = panoLod(u, uX, wX, 0.985, 9.0);
     c = mix(c, top, smoothstep(elTop - 22.0, elTop - 1.0, el));
     c = mix(c, uZenith, smoothstep(elTop - 10.0, 80.0, el));
     c = v2Ungrade(c);
@@ -85,9 +108,9 @@ const FRAG = /* glsl */`
     float ridgeEl = (ridgeV - uHorizonV) / uVPerDeg + uElShift;
     float land = uLandHaze * (1.0 - smoothstep(ridgeEl - 0.5, ridgeEl + 1.5, el));
     float foot = smoothstep(ridgeEl + 1.0, -1.5, el);
-    vec3 soft = v2Ungrade(textureLod(tPano, vec2(u, clamp(v, 0.002, 0.998)), 3.5).rgb);
+    vec3 soft = v2Ungrade(panoLod(u, uX, wX, vc, 3.5));
     c = mix(c, soft, land * 0.7 * foot);
-    vec3 skyH = v2Ungrade(textureLod(tPano, vec2(u, clamp(ridgeV + 0.035, 0.002, 0.998)), 6.0).rgb);
+    vec3 skyH = v2Ungrade(panoLod(u, uX, wX, clamp(ridgeV + 0.035, 0.002, 0.998), 6.0));
     c = mix(c, skyH, land * (0.15 + 0.38 * foot));
     c = mix(c, fogC, land * 0.9 * smoothstep(0.5, -3.0, el));
     // the painted sun dims as the clock moves the real one away from it
@@ -115,14 +138,14 @@ export class SkyDomeV2 {
   readonly mesh: THREE.Mesh;
   readonly uniforms: {
     tPano: { value: THREE.Texture }; tRidge: { value: THREE.Texture }; tFogLut: { value: THREE.Texture };
-    uHorizonV: { value: number }; uVPerDeg: { value: number }; uElShift: { value: number }; uLandHaze: { value: number };
+    uHorizonV: { value: number }; uPad: { value: number }; uVPerDeg: { value: number }; uElShift: { value: number }; uLandHaze: { value: number };
     uZenith: { value: THREE.Color }; uSunNow: { value: THREE.Vector3 }; uSunPainted: { value: THREE.Vector3 }; uNight: { value: number };
   };
 
-  private constructor(tex: THREE.Texture, fogLut: THREE.Texture, zenith: THREE.Color) {
+  private constructor(tex: THREE.Texture, width: number, fogLut: THREE.Texture, zenith: THREE.Color) {
     this.uniforms = {
       tPano: { value: tex }, tRidge: { value: ridgeTexture() }, tFogLut: { value: fogLut },
-      uHorizonV: { value: PANO_HORIZON_V }, uVPerDeg: { value: 1 / PANO_DEG_PER_V }, uElShift: { value: 0 }, uLandHaze: { value: HORIZON_BLEND ? 1 : 0 },
+      uHorizonV: { value: PANO_HORIZON_V }, uPad: { value: PANO_PAD_PX / Math.max(1, width) }, uVPerDeg: { value: 1 / PANO_DEG_PER_V }, uElShift: { value: 0 }, uLandHaze: { value: HORIZON_BLEND ? 1 : 0 },
       uZenith: { value: zenith }, uSunNow: { value: PAINTED_SUN.clone() }, uSunPainted: { value: PAINTED_SUN.clone() }, uNight: { value: 0 },
     };
     const mat = new THREE.ShaderMaterial({
@@ -167,6 +190,6 @@ export class SkyDomeV2 {
         zenith.setRGB(r / n / 255, gg / n / 255, b / n / 255, THREE.SRGBColorSpace);
       }
     } catch { /* keep the default */ }
-    return new SkyDomeV2(tex, fogLut, zenith);
+    return new SkyDomeV2(tex, image.width, fogLut, zenith);
   }
 }

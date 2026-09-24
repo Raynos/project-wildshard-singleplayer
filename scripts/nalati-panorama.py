@@ -10,7 +10,9 @@ Two things happen before the encode:
    colour step down the whole height, x ≈ 1842 and 4914). Each is found as a column whose mean step is far above the
    median, then removed with a gain ramp (and the 1-px line a feathered join leaves is re-drawn from its neighbours): per channel, per row band (blurred vertically), the ratio across the seam is
    split half / half and eased out over ±SEAM_W px on each side — no step, no visible band.
-2. **The wrap.** Column 0 and column W−1 are made continuous the same way (the dome samples with RepeatWrapping).
+2. **The wrap.** Column 0 and column W−1 are made continuous the same way, then re-drawn between their neighbours; each
+   written strip carries PANO_PAD columns of the other end on either side (the lossy codec encodes an image's edges on
+   their own: an unpadded wrap came back with a 1-px step due north), and the phone strip is resized as a loop.
 
 Desktop keeps the native 5530 px (no upscale), the phone gets 4096 px. Both sRGB WebP.
 
@@ -28,6 +30,7 @@ from PIL import Image
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 SRC = os.path.join(ROOT, 'art/nalati-grasslands/round-6-panorama/panorama-5530x1024.jpg')
 OUT = os.path.join(ROOT, 'public/assets/nalati')
+PANO_PAD = 16         # px of wrap copied onto each side of the written strips (sky.ts PANO_PAD_PX)
 SEAM_W = 90          # px each side the gain ramp spans
 ROW_BLUR = 24        # rows: the per-row ratio is smoothed this much (a seam's step varies slowly with height)
 
@@ -162,12 +165,33 @@ def main() -> None:
     after = find_seams(a)
     print('left after repair:', after)
     write_data(a)
+    # the wrap's own 1-px line (NALATI-MERGE L4: a thin vertical seam due north when zoomed): the gain ramp above only
+    # matches the brightness either side, row-blurred, so the two edge columns kept their own per-row step. Re-draw them
+    # between their neighbours, like every stitched seam (after write_data: the ridge / fog data stay as they were)
+    deline(a, a.shape[1] - 1)
     out = Image.fromarray(np.clip(a + 0.5, 0, 255).astype(np.uint8))
     os.makedirs(OUT, exist_ok=True)
     desk = os.path.join(OUT, 'panorama.webp')
     phone = os.path.join(OUT, 'panorama.phone.webp')
-    out.save(desk, 'WEBP', quality=86, method=6)
-    out.resize((4096, round(4096 * out.height / out.width)), Image.LANCZOS).save(phone, 'WEBP', quality=84, method=6)
+    # the phone strip: resized as a LOOP (half the strip wrapped onto either side, resized, cropped back) — a plain
+    # LANCZOS resize filters the two edges against nothing, which put a fresh step at the wrap
+    W, H = out.size
+    PW, PH = 4096, round(4096 * H / W)
+    half = W // 2
+    wide = Image.new('RGB', (W + 2 * half, H))
+    wide.paste(out.crop((W - half, 0, W, H)), (0, 0)); wide.paste(out, (half, 0)); wide.paste(out.crop((0, 0, half, H)), (W + half, 0))
+    k = PW / W
+    big = wide.resize((round(wide.width * k), PH), Image.LANCZOS)
+    x0 = round(half * k)
+    small = big.crop((x0, 0, x0 + PW, PH))
+    # both files carry PANO_PAD columns of the other end on either side: the lossy codec treats an image's edge blocks
+    # on their own, so a strip whose 0° / 360° columns ARE its edges comes back with a step between them however clean
+    # it went in. With the pad the wrap sits inside the image on both sides (sky.ts samples the inner strip only)
+    for img, path, q in ((out, desk, 86), (small, phone, 84)):
+        w, h = img.size
+        padded = Image.new('RGB', (w + 2 * PANO_PAD, h))
+        padded.paste(img.crop((w - PANO_PAD, 0, w, h)), (0, 0)); padded.paste(img, (PANO_PAD, 0)); padded.paste(img.crop((0, 0, PANO_PAD, h)), (w + PANO_PAD, 0))
+        padded.save(path, 'WEBP', quality=q, method=6)
     for p in (desk, phone):
         print(p, os.path.getsize(p) // 1024, 'KB', Image.open(p).size)
 
