@@ -96,6 +96,12 @@ in `art/pine-hollow/round-<n>-<label>/board.jpg`:
 
 **All four boards are picked** (2026-09-24): map A, King A, ranger A, thralls A, journal A, wall C.
 
+**Round 6 (2026-09-24, after Wave 0):**
+- **Day / night = A + a brighter night.** Keep the clock. Lift the moonlight so the forest reads at night, warm golden hour up so it doesn't read as dawn, and give cabin interiors a warm room lamp at night (from the light pool, intensity only).
+- **Nalati: port the pieces now.** Jake chose not to wait for N10. The generic systems (Elite / EliteBar / eliteBrain, Boss / BossBar, the creature pipeline creatureRigBake / glbCreatures / creatureCoats / creatureRigs, and the shared Animal / AnimalFactory / AnimalManager / registry / WeaponPickup hunks they need) are copied from `nalati-grasslands` **verbatim** where possible, so the later merge sees identical files. Anything adapted is listed in the port commit.
+- **Perf is a lane now**, at the next free slot: trace the +9–22 phone calls from the layout, the locked 30 fps phone cap, the desktop draw cut (~1,000 → 300).
+- **No preview site.** Jake follows progress through images and boards only.
+
 ## 3. Wave 0: prerequisites (running)
 
 | # | Row | Owner | Gate |
