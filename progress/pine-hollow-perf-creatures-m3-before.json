@@ -1,0 +1,168 @@
+{
+  "tag": "creatures-m3-before",
+  "url": "http://localhost:4465",
+  "query": "",
+  "when": "2026-09-24T19:47:51.633Z",
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "gate",
+      "calls": 120,
+      "tris": 1429101,
+      "msP50": 17.5,
+      "msP95": 21,
+      "programs": 96,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "cabin",
+      "calls": 171,
+      "tris": 1608092,
+      "msP50": 17.299999713897705,
+      "msP95": 20.59999990463257,
+      "programs": 97,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "pond",
+      "calls": 109,
+      "tris": 1136891,
+      "msP50": 17.200000286102295,
+      "msP95": 20.299999713897705,
+      "programs": 97,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "shore",
+      "calls": 112,
+      "tris": 1154561,
+      "msP50": 17.40000009536743,
+      "msP95": 20.90000009536743,
+      "programs": 97,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "hamlet",
+      "calls": 132,
+      "tris": 1543607,
+      "msP50": 18,
+      "msP95": 20.09999990463257,
+      "programs": 97,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "lookout",
+      "calls": 130,
+      "tris": 1345513,
+      "msP50": 17.90000009536743,
+      "msP95": 20.40000009536743,
+      "programs": 97,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "lookout-n",
+      "calls": 82,
+      "tris": 662394,
+      "msP50": 17.59999990463257,
+      "msP95": 20.799999713897705,
+      "programs": 97,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "clearing",
+      "calls": 103,
+      "tris": 1520049,
+      "msP50": 18.59999990463257,
+      "msP95": 19.90000009536743,
+      "programs": 97,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "gate",
+      "calls": 384,
+      "tris": 10833051,
+      "msP50": 16.600000381469727,
+      "msP95": 18.40000009536743,
+      "programs": 113,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "cabin",
+      "calls": 519,
+      "tris": 10028129,
+      "msP50": 16.5,
+      "msP95": 18.600000381469727,
+      "programs": 113,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "pond",
+      "calls": 277,
+      "tris": 5972585,
+      "msP50": 16.5,
+      "msP95": 18.100000381469727,
+      "programs": 113,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "shore",
+      "calls": 315,
+      "tris": 6674429,
+      "msP50": 16.600000381469727,
+      "msP95": 17.90000009536743,
+      "programs": 113,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "hamlet",
+      "calls": 338,
+      "tris": 7516152,
+      "msP50": 16.59999990463257,
+      "msP95": 17.699999809265137,
+      "programs": 113,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "lookout",
+      "calls": 392,
+      "tris": 8245361,
+      "msP50": 16.799999713897705,
+      "msP95": 18.299999713897705,
+      "programs": 113,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "lookout-n",
+      "calls": 175,
+      "tris": 3384224,
+      "msP50": 16.799999713897705,
+      "msP95": 18.199999809265137,
+      "programs": 113,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "clearing",
+      "calls": 285,
+      "tris": 9392870,
+      "msP50": 16.800000190734863,
+      "msP95": 18.699999809265137,
+      "programs": 113,
+      "forest": "batched"
+    }
+  ]
+}
