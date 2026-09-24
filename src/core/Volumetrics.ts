@@ -152,6 +152,8 @@ export class VolumetricsEffect extends Effect {
 
   setSun(dir: Vector3, color: Color): void { this.marchUniforms.uSunDir.value.copy(dir); this.marchUniforms.uSunColor.value.copy(color); }
   setFogColor(c: Color): void { this.marchUniforms.uFogColor.value.copy(c); }
+  /** the in-scatter's strength (0.55 by default; Pine Hollow's day / night clock keys it) */
+  setStrength(s: number): void { this.marchUniforms.uStrength.value = s; }
 
   override setDepthTexture(depthTexture: Texture, depthPacking: DepthPackingStrategies = BasicDepthPacking): void {
     if (!this.marchMat) return;

@@ -3,7 +3,7 @@ import { TIER_CONFIG } from '../core/tier';
 import { setting, settingFromUrl } from '../ui/Settings';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { loadHDR } from '../core/assets';
-import { fogUniforms } from './Atmosphere';
+import { fogUniforms, isUnderwater } from './Atmosphere';
 import { Noise2D } from '../core/noise';
 import { Rng } from '../core/rng';
 import { getActiveChunk } from '../chunks/registry';
@@ -14,7 +14,10 @@ import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
 import { macrotask } from '../boot/plan';
 import { installStylize, toonUniforms } from './stylize';
 import { StylizedSky } from './StylizedSky';
-import { DayNight } from './DayNight';
+import { DayNight, type DayClock } from './DayNight';
+import { PineDayNight, pineSunAt, type PinePost } from './PineDayNight';
+import { horizonLight } from './Horizon';
+import { GPU_MODE } from '../gpu/flag';
 import { loadLUT } from './lut';
 import type { LookupTexture } from 'postprocessing';
 
@@ -50,6 +53,8 @@ export class Sky {
 
   constructor(private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, private renderer: THREE.WebGLRenderer) {}
 
+  /** the scene the sky lights (the LightPool's home) */
+  get sceneRoot(): THREE.Scene { return this.scene; }
   /** the player's camera (world modules cull against it) */
   get viewCamera(): THREE.PerspectiveCamera { return this.camera; }
 
@@ -61,7 +66,10 @@ export class Sky {
     if (toon) installStylize(); // the toon lighting model (D1) — patched into three's chunk before anything compiles
     const qs = new URLSearchParams(location.search);
     const qn = (k: string, d: number) => { const v = qs.get(k); return v === null ? d : Number.parseFloat(v); };
-    const horizon = stylizedSky ? await this.setupStylized() : await this.setupHDRI(qs, qn);
+    // Pine Hollow's day / night clock (PH-L2) unless the Look Lab asks for the pre-remaster fixed sunset (?pinesky=sunset,
+    // ?tod=sunset-fixed); the WebGPU path has no port of its dome and keeps the fixed sky
+    const pineClock = !stylizedSky && getActiveChunk().slug === 'pine-hollow' && setting('pinesky') === 'clock' && GPU_MODE === null && !qs.has('hdri');
+    const horizon = stylizedSky ? await this.setupStylized() : pineClock ? await this.setupPine() : await this.setupHDRI(qs, qn);
     this.scene.fog = new THREE.Fog(horizon, 1, 1e6); // distances unused: Atmosphere.ts overrides the maths
     fogUniforms.fogSunDir.value.copy(this.sunDir);
     fogUniforms.fogSunColor.value.set(...S.fogSunColor);
@@ -90,16 +98,49 @@ export class Sky {
       const st = this.stylized, fog = this.scene.fog;
       this.clouds = st.dome; // Game.ts keeps `clouds` on the camera: the dome and its cumulus ring
       // the day / night clock (L7, D3) turns every knob above from here on
-      if (fog instanceof THREE.Fog) this.dayNight = new DayNight({
+      if (fog instanceof THREE.Fog) this.dayNight = this.stylizedClock = new DayNight({
         sunDir: this.sunDir, lights: this.csm.lights, lightDirection: this.csm.lightDirection, hemi: this.hemi, fog,
         fogSunDir: fogUniforms.fogSunDir.value, fogSunColor: fogUniforms.fogSunColor.value, toon: toonUniforms,
         setSkyPalette: (pal, dir) => { st.setPalette(pal); st.u.uSunDir.value.copy(dir); },
         disc: this.sunDisc, planetSun: this.giantUniforms.uSunDir.value, planetHaze: this.giantUniforms.uHaze.value,
         refreshEnvironment: () => { this.refreshEnvironment(); },
       }, qn('sunI', S.sunIntensity) / 2.7);
-    } else this.buildClouds();
+    } else {
+      this.buildClouds();
+      const pine = this.pine, fog = this.scene.fog, halo = this.sunDisc.children[0];
+      if (pine && fog instanceof THREE.Fog) {
+        this.dayNight = pine;
+        pine.bind({
+          sunDir: this.sunDir, sunColor: this.sunColor, lights: this.csm.lights, lightDirection: this.csm.lightDirection, hemi: this.hemi, fog,
+          fogU: fogUniforms, underwater: isUnderwater, disc: this.sunDisc, halo: halo instanceof THREE.Sprite ? halo : null,
+          cloud: this.cloudUniforms, far: horizonLight,
+        });
+      }
+    }
     return this;
   }
+
+  /**
+   * Pine Hollow's clock (PineDayNight.ts, PH-L2): the photographic sky keys blended on a dome, the environment rendered from
+   * the blend. Returns the fog colour (the clock sets it every frame from here on).
+   */
+  pine: PineDayNight | null = null;
+  private async setupPine(): Promise<THREE.Color> {
+    const [pine, , lut] = await Promise.all([PineDayNight.create(this.renderer, this.scene), preloadBakedTextures(), loadLUT(getActiveChunk().slug)]);
+    this.lut = lut;
+    this.pine = pine;
+    pineSunAt(pine.phase, this.sunDir);
+    this.scene.background = null;
+    this.scene.add(pine.dome);
+    return new THREE.Color(...getActiveChunk().sky.fogSunColor);
+  }
+
+  /** the clock's grip on the post chain (Game.buildComposer): the volumetric shafts and the god rays follow the hour */
+  attachPost(post: PinePost): void { this.pine?.attachPost(post); }
+  /** 0 = day … 1 = full night; the fixed skies stay at their own (Driftwood's clock, else 0) */
+  get night(): number { return this.dayNight?.night ?? 0; }
+  /** the night lights (cabin windows, lanterns): the clock's 0 by day … 1 by night; the fixed sunset keeps them all lit (1) */
+  get lamps(): number { return this.pine ? this.pine.lamps : 1; }
 
   /** Pine Hollow's rig (and any `style: 'pbr'` shard): the HDRI is the background and the IBL; returns the fog colour. */
   private async setupHDRI(qs: URLSearchParams, qn: (k: string, d: number) => number): Promise<THREE.Color> {
@@ -142,8 +183,9 @@ export class Sky {
   stylized: StylizedSky | null = null;
   /** the shard's learned colour LUT (lut.ts, X1; per shard) — Game.buildComposer ends the grade with it; null without a file */
   lut: LookupTexture | null = null;
-  /** the low-poly shard's day / night clock (DayNight.ts) — null on a PBR shard */
-  dayNight: DayNight | null = null;
+  /** the day / night clock: the low-poly shard's (DayNight.ts) or Pine Hollow's (PineDayNight.ts); null on a fixed sky */
+  dayNight: DayClock | null = null;
+  private stylizedClock: DayNight | null = null;
   hemi!: THREE.HemisphereLight;
   private pmrem: THREE.PMREMGenerator | null = null;
   private envRT: THREE.WebGLRenderTarget | null = null;
@@ -167,6 +209,7 @@ export class Sky {
    * back empty. Render it again — the stylized dome through refreshEnvironment, the HDR shard from its background texture.
    */
   rebuildEnvironment(): void {
+    if (this.pine) { this.pine.rebuild(); return; }
     if (this.stylized) { this.pmrem = null; this.envRT = null; this.refreshEnvironment(); return; } // a fresh generator: the old one's targets belong to the lost context
     const hdr = this.scene.background;
     if (!(hdr instanceof THREE.Texture)) return;
@@ -224,9 +267,14 @@ export class Sky {
   }
 
   clouds!: THREE.Mesh;
-  private cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() } };
+  /** uCloudLit / uCloudAlpha: the lit / shade tint and the cover's opacity (Pine Hollow's clock turns them; 1 = the fixed sky) */
+  private cloudUniforms = { uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3() }, uSunColor: { value: new THREE.Color() }, uCloudLit: { value: new THREE.Color(1, 1, 1) }, uCloudAlpha: { value: 1 } };
 
-  update(dt = 0): void { this.csm.update(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt; if (this.stylized) { this.dayNight?.update(dt); this.stylized.update(dt); toonUniforms.uCloudTime.value += dt; } }
+  update(dt = 0): void {
+    this.pine?.update(dt, this.camera); // before the CSM: the clock turns its light
+    this.csm.update(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
+    if (this.stylized) { this.stylizedClock?.update(dt); this.stylized.update(dt); toonUniforms.uCloudTime.value += dt; }
+  }
 
   /** Thin procedural cirrus/cumulus layer on a sky dome — the HDRI has none, and a forest needs a sky with some drama. */
   private buildClouds() {
@@ -242,7 +290,7 @@ export class Sky {
         varying vec3 vDir;
         void main() { vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
       fragmentShader: /* glsl */`
-        uniform sampler2D tClouds; uniform float uTime; uniform vec3 uSunDir; uniform vec3 uSunColor;
+        uniform sampler2D tClouds; uniform float uTime; uniform vec3 uSunDir; uniform vec3 uSunColor; uniform vec3 uCloudLit; uniform float uCloudAlpha;
         varying vec3 vDir;
         void main() {
           vec3 d = normalize(vDir);
@@ -256,8 +304,8 @@ export class Sky {
           float horizon = smoothstep(0.02, 0.22, d.y);
           float sunAmt = max(dot(d, uSunDir), 0.0);
           vec3 lit = mix(vec3(0.62, 0.66, 0.74), vec3(1.0, 0.94, 0.86), smoothstep(0.3, 0.9, a));
-          lit = mix(lit, uSunColor * 1.3, pow(sunAmt, 6.0) * 0.6);
-          float alpha = cover * horizon * 0.85;
+          lit = mix(lit, uSunColor * 1.3, pow(sunAmt, 6.0) * 0.6) * uCloudLit;
+          float alpha = cover * horizon * 0.85 * uCloudAlpha;
           gl_FragColor = vec4(lit, alpha);
         }`,
     });

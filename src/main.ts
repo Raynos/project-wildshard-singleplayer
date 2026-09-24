@@ -665,6 +665,7 @@ async function main() {
     seabed?.update(dt);
     cove?.update(dt); shrine?.update(dt); enemies?.update(dt, t, player.position);
     if (dayNight) { shrine?.setDusk(dayNight.dusk); if (ambience) ambience.night = dayNight.night; }
+    if (sky.pine && ambience instanceof ForestAmbience) ambience.dawn = sky.pine.dawn; // PH-L2: the dawn chorus on Pine Hollow's clock
     hands.update(dt, player);
     horizon.update(dt, game.camera);
     grass?.update(dt, viewer());

@@ -6,6 +6,17 @@ import type { Sky } from './Sky';
 import { getActiveChunk } from '../chunks/registry';
 
 /**
+ * The far light, shared by every ring and the cloud sea: the fixed skies keep these values; Pine Hollow's day / night clock
+ * (PineDayNight.ts) turns them with the hour (uniform objects, so no program changes).
+ */
+export const horizonLight = {
+  uHazeCol: { value: new THREE.Color(0.5, 0.58, 0.74) },
+  uSeaSky: { value: new THREE.Color(0.55, 0.62, 0.75) },
+  uSeaSun: { value: new THREE.Color(1.0, 0.75, 0.45) },
+  uSeaSunDir: { value: new THREE.Vector3(0, 1, 0) },
+};
+
+/**
  * What lies beyond the chunk: a sea of clouds far below the slab (the Wildshard grid hangs in
  * the sky) and three rings of mountain ridges on the horizon, drawn as fogged silhouettes.
  * All of it moves with the camera on XZ so it never parallaxes wrong up close.
@@ -83,14 +94,15 @@ export class Horizon {
       mat.onBeforeCompile = (shader) => {
         attachFogUniforms(shader);
         shader.uniforms['uHaze'] = { value: ring.haze }; // per ring as a uniform, so the three rings share one program
+        if (!ocean) shader.uniforms['uHazeCol'] = horizonLight.uHazeCol; // the open-water shard's source stays byte-for-byte (its constant haze)
         // aerial perspective: far ranges dissolve into a cool blue haze, warmer toward the sun
         shader.fragmentShader = shader.fragmentShader
-          .replace('#include <common>', '#include <common>\nuniform float uHaze;')
+          .replace('#include <common>', ocean ? '#include <common>\nuniform float uHaze;' : '#include <common>\nuniform float uHaze; uniform vec3 uHazeCol;')
           .replace('#include <fog_fragment>', `
           {
             vec3 ray = normalize(vFogWorldPos - cameraPosition);
             float sunAmt = max(dot(ray, fogSunDir), 0.0);
-            vec3 hazeCol = mix(vec3(0.5, 0.58, 0.74), fogSunColor * 0.9, pow(sunAmt, 3.0) * 0.7);
+            vec3 hazeCol = mix(${ocean ? 'vec3(0.5, 0.58, 0.74)' : 'uHazeCol'}, fogSunColor * 0.9, pow(sunAmt, 3.0) * 0.7);
             gl_FragColor.rgb = mix(gl_FragColor.rgb, hazeCol, uHaze);
           }`);
       };
@@ -108,9 +120,9 @@ export class Horizon {
     const geo = new THREE.PlaneGeometry(size, size, 1, 1);
     geo.rotateX(-Math.PI / 2);
     const tex = cloudNoise();
-    const sunDir = this.sky.sunDir;
+    horizonLight.uSeaSunDir.value.copy(this.sky.sunDir);
     const mat = new THREE.ShaderMaterial({
-      uniforms: { ...this.cloudU, tNoise: { value: tex }, uSun: { value: sunDir.clone() }, uSunColor: { value: new THREE.Color(1.0, 0.75, 0.45) }, uSky: { value: new THREE.Color(0.55, 0.62, 0.75) } },
+      uniforms: { ...this.cloudU, tNoise: { value: tex }, uSun: horizonLight.uSeaSunDir, uSunColor: horizonLight.uSeaSun, uSky: horizonLight.uSeaSky },
       transparent: true, depthWrite: false,
       vertexShader: /* glsl */`
         varying vec3 vW;

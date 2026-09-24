@@ -109,6 +109,18 @@ function dirFrom(az: number, el: number, out: THREE.Vector3): THREE.Vector3 {
   return out.set(-Math.sin(az * d2r) * Math.cos(el * d2r), Math.sin(el * d2r), Math.cos(az * d2r) * Math.cos(el * d2r));
 }
 
+/** what the game reads off a shard's day / night clock (this one, or Pine Hollow's PineDayNight.ts): `sky.dayNight` */
+export interface DayClock {
+  /** 0..1 over the cycle (Finale / Explore write it) */
+  phase: number;
+  /** 0 = day … 1 = night */
+  readonly night: number;
+  /** 0 = broad day … 1 = golden hour / dusk / night */
+  readonly dusk: number;
+  /** Settings ▸ Time of day */
+  setTime: (t: OptionValue<'time'>) => void;
+}
+
 /** the knobs DayNight turns — Sky hands them over (no Sky import: Sky imports this) */
 export interface DayNightTargets {
   sunDir: THREE.Vector3;
@@ -124,7 +136,7 @@ export interface DayNightTargets {
   refreshEnvironment: () => void;
 }
 
-export class DayNight {
+export class DayNight implements DayClock {
   /** 0..1 over the whole cycle */
   phase: number;
   /** 0 = day … 1 = night */

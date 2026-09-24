@@ -19,7 +19,7 @@ import type { FullMap } from './Map';
 import type { Progress } from '../game/Progress';
 import { PACK_SLOTS, type Inventory } from '../game/Inventory';
 import { icon, type IconId } from './icons';
-import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, setting, saveSetting, onSettingChange, type SettingKey, type NumberKey, type MusicStyle, type SfxSet, type OptionValue } from './Settings';
+import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, setting, saveSetting, onSettingChange, settingsReloadUrl, type SettingKey, type NumberKey, type MusicStyle, type SfxSet, type OptionValue } from './Settings';
 import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
 import { onAudioBusy } from '../audio/preload';
 import { CAN_VIBRATE } from './haptics';
@@ -340,6 +340,16 @@ export class GameMenu {
       const time = picker('Time of day', times, () => setting('time'), (v) => { saveSetting('time', v); }, (fn) => { onSettingChange('time', fn); });
       dbg.append(el('ws-gmenu-label', 'Look'), time);
       // Look Lab (E65) is done: the sky (E83), lighting (E87) and post (E88) picks are locked in; the URL alone builds the old looks
+    } else if (getActiveChunk().slug === 'pine-hollow') {
+      // Pine Hollow's look lab (PH-L2): the day / night clock or the pre-remaster fixed sunset (a reload: the sky rig is built
+      // once), and the clock's time of day
+      const skies: { v: OptionValue<'pinesky'>; text: string }[] = [{ v: 'clock', text: 'Day / night' }, { v: 'sunset', text: 'Fixed sunset' }];
+      const sky = picker('Sky', skies, () => setting('pinesky'), (v) => { saveSetting('pinesky', v); location.href = settingsReloadUrl(location.href); }, (fn) => { onSettingChange('pinesky', fn); });
+      dbg.append(el('ws-gmenu-label', 'Look'), sky);
+      if (setting('pinesky') === 'clock') {
+        const times: { v: OptionValue<'time'>; text: string }[] = [{ v: 'live', text: 'Live' }, { v: 'midday', text: 'Midday' }, { v: 'golden', text: 'Golden' }, { v: 'sunset', text: 'Sunset' }, { v: 'night', text: 'Night' }];
+        dbg.append(picker('Time of day', times, () => setting('time'), (v) => { saveSetting('time', v); }, (fn) => { onSettingChange('time', fn); }));
+      }
     }
     dbg.append(el('ws-gmenu-note', 'Renderer, island, quality and render scale: Exit to main menu ▸ Settings.'));
     dbg.append(this.buildReview());

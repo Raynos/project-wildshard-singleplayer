@@ -1,0 +1,68 @@
+{
+  "tag": "L2-before-head",
+  "url": "http://127.0.0.1:4293",
+  "query": "",
+  "when": "2026-09-24T13:51:07.887Z",
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "gate",
+      "calls": 122,
+      "tris": 1372082,
+      "msP50": 16.699999809265137,
+      "msP95": 17.200000286102295,
+      "programs": 76,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "cabin",
+      "calls": 175,
+      "tris": 1504381,
+      "msP50": 16.59999990463257,
+      "msP95": 17.300000190734863,
+      "programs": 76,
+      "forest": "batched"
+    },
+    {
+      "tier": "phone",
+      "pose": "pond",
+      "calls": 161,
+      "tris": 1336052,
+      "msP50": 16.699999809265137,
+      "msP95": 17.5,
+      "programs": 76,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "gate",
+      "calls": 1052,
+      "tris": 10641000,
+      "msP50": 18.899999618530273,
+      "msP95": 39,
+      "programs": 84,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "cabin",
+      "calls": 1067,
+      "tris": 9932086,
+      "msP50": 19,
+      "msP95": 21.09999990463257,
+      "programs": 84,
+      "forest": "batched"
+    },
+    {
+      "tier": "desktop",
+      "pose": "pond",
+      "calls": 640,
+      "tris": 6524635,
+      "msP50": 18.300000190734863,
+      "msP95": 20.5,
+      "programs": 84,
+      "forest": "batched"
+    }
+  ]
+}
