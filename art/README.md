@@ -190,3 +190,14 @@ burst 60 ms, peak 150 ms, recovery 350 ms. The DODGE disc's cooldown sweep (E59)
 - `board-V-roll-dip.jpg` **V1–V4**: a crouch-height dive and rise, a +10° FOV punch, dust + splinters, a vignette, the sword tucked flat.
 - `board-0-overview.jpg`: BEFORE + the peak frame of T / U / V.
 Re-rolled: V2 once (steel blade), V4 three times (squashed HUD).
+
+### HOVER button position (`art/hud/round-11-hover-position/`, 2026-09-23, E80)
+
+Jake: "I don't like the hover position". These are codex edits of his iPhone screenshot (`before-iphone.jpg`), where the
+HOVER pill floats over the bottom bar, left of V DODGE. Every variant takes the pill out of that spot and puts one HOVER
+control somewhere else. **A** `A-top-row-pill.jpg`: a third pill in the top row, after "30 fps". **B** `B-disc-above-jump.jpg`:
+a round disc above JUMP in the right-thumb cluster. **C** `C-bar-tab-above-move.jpg`: a folder tab on the bottom bar's top
+edge, above MOVE. **D** `D-under-objective.jpg`: a small tab under the GLYPH SHARDS / SEA CAVE strip. **E**
+`E-disc-left-edge.jpg`: a round disc on the left edge, above MOVE, for the left thumb. `board.jpg` = BEFORE + A–E.
+Re-rolled: B twice (the first take shrank and moved the whole HUD; the second lifted JUMP ~120 px) and D once (it came
+back 2:3 and squashed the frame).
