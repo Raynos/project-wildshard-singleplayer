@@ -42,10 +42,10 @@
  *  - AIM (ranged kit only): the iron-sights toggle latch (`weapons.adsHeld`, tap on / tap off, lit `.on`) sits up-right of
  *    the FIRE disc, clear of the pill, left of DODGE, on the same thumb. Crossing between melee and ranged drops the latch, so a sword never
  *    comes up charging and a crossbow never comes up sighted.
- *  - SWAP | HOVER: one split pill over the divider, seated on the bar's top edge, just up-left of the ATTACK disc (its
- *    charge ring clear). SWAP calls `weapons.swap()` (the Q
- *    key) and only shows once a second weapon is unlocked (`weapons.onUnlock`); without it the pill is just HOVER, a
- *    toggle (`player.setHover`, mirrors the H key; lit `.on` while riding).
+ *  - SWAP: a pill over the divider, seated on the bar's top edge, just up-left of the ATTACK disc (its charge ring clear).
+ *    It calls `weapons.swap()` (the Q key) and only shows once a second weapon is unlocked (`weapons.onUnlock`).
+ *  - HOVER (E80, Jake's pick C, art/hud/round-11-hover-position/C-bar-tab-above-move.jpg): a folder tab on the bar's top
+ *    edge above the MOVE label, a toggle (`player.setHover`, mirrors the H key; lit `.on` while riding).
  *  - PAUSE top-left; under it the `?perf` frame meter, then a status column (`.ws-touch-status`) that the HUD (HUD.ts) fills
  *    with the VITALS strip and, on ranged kit, the BOLTS readout — out of the thumb lane.
  *  - USE: a big band above the right-thumb arc, shown only while the HUD has an interact prompt; it dispatches the same
@@ -135,7 +135,8 @@ export class TouchControls {
         <div class="ws-touch-zone look"><div class="ws-touch-lookpad"><svg viewBox="0 0 24 24"><path d="M12 2.5 15.2 6.5H8.8zM12 21.5 8.8 17.5h6.4zM2.5 12 6.5 8.8v6.4zM21.5 12 17.5 15.2V8.8z"/></svg><svg class="sw" viewBox="0 0 24 24"><path d="M8.5 5.5 3 12l5.5 6.5M15.5 5.5 21 12l-5.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Look</span></div></div>
       </div>
       <button class="ws-touch-attack" type="button"><i class="ws-touch-charge"></i><svg class="melee" viewBox="0 0 24 24"><path d="M20.5 3.5 9.2 14.8M20.5 3.5l-.6 4.2M20.5 3.5l-4.2.6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.6 12.2l5.2 5.2M8.4 15.6 4 20" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg><svg class="ranged" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.2"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="melee">Attack</span><span class="ranged">Fire</span><small class="melee">Hold = heavy</small></button>
-      <div class="ws-touch-pill"><button class="swap" type="button">Swap</button><button class="hover" type="button">Hover</button></div>`;
+      <div class="ws-touch-pill"><button class="swap" type="button">Swap</button></div>
+      <button class="ws-touch-hover" type="button"><svg viewBox="0 0 24 24"><path d="M2.5 13.5h19c0 1.7-1.3 2.5-3 2.5H5.5c-1.7 0-3-.8-3-2.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 16v2.5M17 16v2.5M6 10.5c1.8-3.2 10.2-3.2 12 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Hover</span></button>`;
     hud.append(root);
     // ── iOS WebKit hardening (E46 — Jake's iPhone): a long press on a button lifted a drag preview of the ATTACK disc (and
     //    fired pointercancel, so the heavy never charged), a quick double tap zoomed, a press selected text. Pointer events
@@ -310,13 +311,13 @@ export class TouchControls {
     // SWAP: crossbow ⇄ rifle (Weapons.swap, the Q key); the pill flashes .down while pressed, nothing latches. Hidden until a
     // second weapon is unlocked (the AR-15 pickup — Weapons.onUnlock)
     btn('.swap', () => { if (this.weapons.enabled) this.weapons.swap(); });
-    const swap = el(root, '.swap');
-    const syncSwap = () => swap.classList.toggle('show', this.weapons.available.length > 1);
+    const swapPill = el(root, '.ws-touch-pill');
+    const syncSwap = () => swapPill.classList.toggle('show', this.weapons.available.length > 1);
     const prevUnlock = this.weapons.onUnlock;
     this.weapons.onUnlock = (id) => { syncSwap(); prevUnlock?.(id); };
     syncSwap();
-    // HOVER is a toggle too; the H key flips the same state, so the lit look follows the player, not the button
-    const hover = el(root, '.hover');
+    // HOVER (the tab over MOVE, E80) is a toggle too; the H key flips the same state, so the lit look follows the player, not the button
+    const hover = el(root, '.ws-touch-hover');
     hover.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.player.setHover(!this.player.hover); });
     hover.addEventListener('pointerup', (e) => e.stopPropagation());
     const prevHover = this.player.onHoverChange;
