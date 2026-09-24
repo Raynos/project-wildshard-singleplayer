@@ -3,7 +3,11 @@
 // quest chip + markers + the MAP tab card, TULPAR's steps driven (flags / the kokpar's dev win), a reload that keeps the
 // progress and the discovered places; then Driftwood's quest on the shared core (Wendell's talk, a shard, the chip).
 //
-//   node scripts/nalati-quest-check.mjs --url=http://127.0.0.1:5196 [--out=progress/nalati-merge/q] [--touch] [--only=nalati|driftwood]
+//   node scripts/nalati-quest-check.mjs --url=http://127.0.0.1:5196 [--out=progress/nalati-merge/q] [--touch] [--only=nalati|chapters|driftwood]
+//
+// `chapters` (Q4 / Q5): chapter 2 and 3 from a save that finished TULPAR — the elder gives each, a balbal's carving (the
+// onKill path's own function), the Golden King / Jel Ata beaten in the SAVED boss store and the elites felled in the
+// saved elite store before a reload (the quest catches up from what the game saved), the cairn's strip tied.
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
 
@@ -35,8 +39,103 @@ const boot = async (query) => {
   await sleep(6000);
 };
 
+const standAtElder = async () => {
+  await q(`(() => { const f = window.__nalatiQuest.people.fig.elder, p = window.__world.player; p.position.set(f.feet.x, f.feet.y + 0.2, f.feet.z - 2.4); p.yaw = Math.PI; p.pitch = 0.05; })()`);
+  await sleep(1500);
+};
+const talkThrough = async (id, name) => {
+  await q(`window.__nalatiQuest.talk('${id}')`);
+  await sleep(2000);
+  if (name) await shot(name);
+  for (let i = 0; i < 16 && await q(`window.__nalatiQuest.dialogue.isOpen`); i++) { await q(`window.__nalatiQuest.talk('${id}')`); await sleep(150); }
+  await sleep(700);
+};
+/** write the game's own saved stores (the boss / elite modules read them at boot) — a reload follows */
+const saveStores = (boss, elites) => q(`(() => {
+  const b = JSON.parse(localStorage.getItem('ws.boss.v1') ?? '{}'); for (const id of ${JSON.stringify(boss)}) b['nalati-grasslands#' + id] = { defeated: true, rewardTaken: true, kills: 1 };
+  localStorage.setItem('ws.boss.v1', JSON.stringify(b));
+  const e = JSON.parse(localStorage.getItem('ws.elites.v1') ?? '{}'); for (const id of ${JSON.stringify(elites)}) e[id] = { ...(e[id] ?? { timer: 0, discovered: true, skinTaken: true, retired: false }), kills: 1 };
+  localStorage.setItem('ws.elites.v1', JSON.stringify(e));
+})()`);
+const drain = async () => { for (let i = 0; i < 12 && await q(`window.__nalatiQuest.dialogue.isOpen`); i++) { await q(`window.__nalatiQuest.dialogue.advance()`); await sleep(120); } };
+async function chapters() {
+  const FROM = 'chunk=nalati-grasslands&at=88,-6,205,3.14,0';
+  await boot(`${FROM}&resetquest=1&questflags=talked:elder,tamed:horse,won:kokpar,told:tulpar,quest:tulpar`);
+  await q(`(() => { localStorage.removeItem('ws.boss.v1'); localStorage.removeItem('ws.elites.v1'); })()`);
+  const c0 = await chipText();
+  check('chapters: after TULPAR the chip points at the elder (The Golden King │ BAQYT ATA)', /Golden King/i.test(c0) && /BAQYT/i.test(c0), c0);
+  await standAtElder();
+  await talkThrough('elder', 'q4-dialogue');
+  await q(`(() => { const p = window.__world.player; p.position.x += 6; p.position.z -= 9; })()`);
+  await sleep(1500);
+  const c1 = await chipText();
+  check('chapters: THE GOLDEN KING 1/4 │ KURGAN FIELD', /1\/4/.test(c1) && /KURGAN FIELD/i.test(c1), c1);
+  await shot('q4-chip-clues');
+  await q(`window.__nalatiQuest.carving()`);
+  await sleep(2200);
+  const carving = await q(`document.querySelector('.ws-quest-talk.show')?.textContent ?? ''`);
+  check('chapters: a toppled balbal shows its carving (clue 1/3)', /balbal/i.test(carving) && /sun/i.test(carving), carving.slice(0, 80));
+  await shot('q4-carving');
+  for (let k = 0; k < 2; k++) { await drain(); await q(`window.__nalatiQuest.carving()`); await sleep(500); }
+  await drain();
+  await sleep(1200);
+  const c2 = await chipText();
+  check('chapters: three clues → 2/4 │ GREAT KURGAN', /2\/4/.test(c2) && /GREAT KURGAN/i.test(c2), c2);
+  // the King beaten in the saved boss store (as in an earlier session) → reload: the quest catches up
+  await saveStores(['golden-king'], []);
+  await boot(FROM);
+  const c3 = await chipText();
+  check('chapters: the saved King → 4/4 │ BAQYT ATA (door + king skipped)', /4\/4/.test(c3) && /BAQYT/i.test(c3), c3);
+  await standAtElder();
+  await talkThrough('elder', 'q4-dialogue-plaque');
+  await sleep(1500);
+  check('chapters: THE GOLDEN KING complete', await q(`window.__nalatiQuest.flags.has('quest:golden-king')`));
+  await shot('q4-reward');
+  await sleep(5500);
+  await talkThrough('elder', 'q5-dialogue');
+  await q(`(() => { const p = window.__world.player; p.position.x += 6; p.position.z -= 9; })()`);
+  await sleep(1500);
+  const c4 = await chipText();
+  check('chapters: FATHER OF THE WIND 1/4 │ an elite', /Father of the Wind/i.test(c4) && /1\/4/.test(c4), c4);
+  await shot('q5-chip-feathers');
+  // two elites felled in the saved elite store → reload: two feathers
+  await saveStores([], ['kokbori', 'qyran']);
+  await boot(FROM);
+  await sleep(2500);
+  const f2 = await q(`window.__nalatiQuest.flags.all.filter((f) => f.startsWith('feather:')).length`);
+  check('chapters: two elites felled (saved) → two storm feathers', f2 === 2, String(f2));
+  await (TOUCH ? page.click('.ws-minimap') : page.keyboard.press('KeyM'));
+  await sleep(2000);
+  const card = await q(`document.querySelector('.ws-gmenu-mapquest')?.textContent ?? ''`);
+  check('chapters: MAP card (Chapter 3 · feathers 2 / 3)', /Chapter 3/.test(card) && /2 \/ 3/.test(card), card.slice(0, 120));
+  await shot('q5-map-card');
+  await (TOUCH ? q(`document.querySelector('.ws-gmenu-close, .ws-gmenu [data-close]')?.click?.()`) : page.keyboard.press('Escape'));
+  await sleep(800);
+  await saveStores([], ['aqbars']);
+  await boot(FROM);
+  await sleep(2500);
+  const c5 = await chipText();
+  check('chapters: the third feather → 2/4 │ WIND CAIRN', /2\/4/.test(c5) && /WIND CAIRN/i.test(c5), c5);
+  // the strip tied at the cairn (the titan's own `tied`, which the cairn's prompt sets in a storm)
+  await q(`window.__world.nalati.titan.fight.tied = true`);
+  await sleep(1200);
+  await q(`window.__world.nalati.titan.fight.tied = false`);
+  const c6 = await chipText();
+  check('chapters: the strip tied → 3/4 │ JEL ATA', /3\/4/.test(c6) && /JEL ATA/i.test(c6), c6);
+  await saveStores(['storm-titan'], []);
+  await boot(FROM);
+  const c7 = await chipText();
+  check('chapters: Jel Ata beaten (saved) → 4/4 │ BAQYT ATA', /4\/4/.test(c7) && /BAQYT/i.test(c7), c7);
+  await standAtElder();
+  await talkThrough('elder', 'q5-dialogue-home');
+  await sleep(1500);
+  check('chapters: FATHER OF THE WIND complete, the line finished', await q(`window.__nalatiQuest.flags.has('quest:father-wind') && window.__nalatiQuest.line.active === null`));
+  await shot('q5-reward');
+  await q(`(() => { localStorage.removeItem('ws.boss.v1'); localStorage.removeItem('ws.elites.v1'); })()`);
+}
+
 try {
-  if (ONLY !== 'driftwood') {
+  if (ONLY === '' || ONLY === 'nalati') {
     // ── Nalati: a fresh start by the camp ──
     await boot('chunk=nalati-grasslands&resetquest=1&at=88,-6,205,3.14,0');
     const nq = await q(`Boolean(window.__nalatiQuest)`);
@@ -131,7 +230,11 @@ try {
     }
   }
 
-  if (ONLY !== 'nalati') {
+  if (ONLY === '' || ONLY === 'chapters') {
+    await chapters();
+  }
+
+  if (ONLY === '' || ONLY === 'driftwood') {
     // ── Driftwood: the Sealed Ring on the shared core, unchanged ──
     await boot('chunk=driftwood-isle&resetquest=1');
     check('driftwood: the adventure is installed', await q(`Boolean(window.__adventure?.spine)`));
