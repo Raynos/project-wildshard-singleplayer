@@ -75,9 +75,9 @@ and [review-experience.md](../design/nalati/merge/review-experience.md) (HUD, re
 
 | # | row | state |
 |---|---|---|
-| Q1 | Split a shared quest core out of Driftwood's Adventure code (objective line, NPC dialogue, reward caption, map places with discovery that persists, blue markers, the quest chip + the MAP tab card) so a second shard can use it; Driftwood unchanged | open |
-| Q2 | The camp's people: painterly procedural figures now (the elder = the quest giver, herders, a child, a woman at the stove); generated + rigged models later (row D2) | open |
-| Q3 | Chapter 1 **TULPAR**: the elder, tame Argymaq, win the kokpar | open (after Q1, Q2) |
+| Q1 | Split a shared quest core out of Driftwood's Adventure code (objective line, NPC dialogue, reward caption, map places with discovery that persists, blue markers, the quest chip + the MAP tab card) so a second shard can use it; Driftwood unchanged | ✅ f879edf (src/game/quest/core.ts: QuestChip · NpcTalk · placesWithDiscovery · QuestLine; Driftwood on it, checked: Wendell by E, the chip, a shard, its marker) + 1697056 (Nalati's 17 map places on saved `seen:` discovery, not the unsaved fog) — evidence de4f1b7 |
+| Q2 | The camp's people: painterly procedural figures now (the elder = the quest giver, herders, a child, a woman at the stove); generated + rigged models later (row D2) | ✅ aa36a2c — src/nalati/campPeople.ts: Baqyt Ata, Dauren, Erlan, Ayan, Gulnar Apa; one BatchedMesh (1 draw + 1 shadow); face you, gesture while talking; registry capsules — progress/nalati-merge/q/q2-* |
+| Q3 | Chapter 1 **TULPAR**: the elder, tame Argymaq, win the kokpar | ✅ 1697056 — the elder → break a stallion (Argymaq has his own lines) → a kokpar round (src/nalati/kokpar.ts, new: snatch the goat mounted, into a tai-qazan) → home; chip ◆ TULPAR n/3 │ marker, MAP card, title "Formerly On Foot"; catches up from the saved taming — progress/nalati-merge/q/q3-* (25/25, phone + desktop) |
 | Q4 | Chapter 2 **THE GOLDEN KING**: three balbal clues at dusk, open the great kurgan, the boss, the gold plaque home | open |
 | Q5 | Chapter 3 **FATHER OF THE WIND**: three storm feathers from the elites, light the wind cairn, Jel Ata in the storm | open |
 | — | The bosses stay open any time; the quest catches up from the saved boss state (wave 5) | rule |
