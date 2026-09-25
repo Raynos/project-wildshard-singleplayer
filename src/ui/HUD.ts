@@ -649,7 +649,13 @@ export class HUD {
 
   /** E155: the deck picked this shard while it was resident: into the world at once, as its own ENTER WORLD would */
   enterNow(): void {
-    if (this.intro) { this.enter(); return; }
+    if (this.intro) {
+      // the deck was parked on the card the player left for: its own card back first, so the fade-out shows this shard's art
+      const d = this.deck, own = d ? d.cards.findIndex((c) => c.active) : -1;
+      if (d && own !== -1 && own !== d.index) d.select(own, false);
+      this.enter();
+      return;
+    }
     if (this.entered) return;
     this.markEntered();
     this.onSoundToggle?.(!this.soundOff);
