@@ -25,6 +25,11 @@
   .ws-perf-panel .ws-perf-head { position: sticky; top: -8px; z-index: 1; display: flex; justify-content: space-between; align-items: center; margin: -8px -10px 2px; padding: 6px 10px; background: rgba(6, 10, 18, 0.97); border-bottom: 1px solid var(--ws-cyan-line); }
   .ws-perf-panel .ws-perf-head i { font-style: normal; font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-cyan); }
   .ws-perf-panel .ws-perf-close { padding: 6px 12px; font-size: 9px; }
+  .ws-perf-panel .ws-perf-live { display: flex; align-items: baseline; gap: 6px; min-width: 0; overflow: hidden; margin-left: auto; margin-right: 10px; padding: 3px 8px; border: 1px solid var(--ws-cyan-line); background: rgba(13, 27, 38, 0.9); font-size: 8.5px; letter-spacing: 0.08em; color: var(--ws-text-dim); white-space: nowrap; }
+  .ws-perf-panel .ws-perf-live b { font-weight: 500; font-size: 11px; color: rgba(255, 255, 255, 0.9); }
+  .ws-perf-panel .ws-perf-live b::after { content: ' fps'; font-size: 8px; font-weight: 400; color: rgba(196, 220, 232, 0.55); }
+  .ws-perf-panel .ws-perf-live.slow b { color: #ffd27a; }
+  .ws-perf-panel .ws-perf-live.bad b { color: #ff7a6b; }
   .ws-perf-panel .ws-perf-row i { font-style: normal; font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-cyan-dim); }
   .ws-perf-panel .ws-perf-row span { white-space: nowrap; text-align: right; }
   /* E142: the on-device probe (src/ui/perfProbe.ts): its button, and its table under the rows (the panel widens for it) */

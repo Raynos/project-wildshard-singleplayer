@@ -40,6 +40,7 @@ export class Perf {
   private readonly recent: { calls: number; tris: number }[] = [];
   readonly budget: PerfBudget = { maxCalls: 0, maxTris: 0, calls: BUDGET?.calls ?? Infinity, tris: BUDGET?.tris ?? Infinity, over: false };
   private panel: HTMLElement;
+  private live: { box: HTMLElement; fps: HTMLElement; ms: HTMLElement };
   private rows: { p50: HTMLElement; p95: HTMLElement; calls: HTMLElement; tris: HTMLElement; tier: HTMLElement; gl: HTMLElement };
 
   constructor(private game: Game) {
@@ -50,9 +51,14 @@ export class Perf {
     root.innerHTML = '<b>—</b><span class="ws-perf-ms"></span><span class="ws-perf-long"></span>';
     const panel = this.panel = document.createElement('div');
     panel.className = 'ws-perf-panel';
-    panel.innerHTML = '<div class="ws-perf-head"><i>Frame meter</i><button type="button" class="ws-perf-btn ws-perf-close" aria-label="Close the frame meter">CLOSE ✕</button></div><div class="ws-perf-row"><i>Frame p50</i><span data-r="p50">—</span></div><div class="ws-perf-row"><i>Frame p95</i><span data-r="p95">—</span></div><div class="ws-perf-row"><i>Draw calls</i><span data-r="calls">—</span></div><div class="ws-perf-row"><i>Triangles</i><span data-r="tris">—</span></div><div class="ws-perf-row"><i>Tier · DPR</i><span data-r="tier">—</span></div><div class="ws-perf-row"><i>GL</i><span data-r="gl">ok</span></div><pre class="ws-perf-stats"></pre><canvas class="ws-perf-spark" width="240" height="30"></canvas><div class="ws-perf-row"><i>Record</i><span><button type="button" class="ws-perf-btn ws-perf-rec">REC 30 S</button> <button type="button" class="ws-perf-btn ws-perf-copy">COPY</button></span></div><pre class="ws-perf-rec-out"></pre><div class="ws-perf-row"><i>Probe</i><button type="button" class="ws-perf-probe">RUN PROBE</button></div><pre class="ws-perf-probe-out"></pre>';
+    panel.innerHTML = '<div class="ws-perf-head"><i>Frame meter</i><span class="ws-perf-live"><b>—</b><span></span></span><button type="button" class="ws-perf-btn ws-perf-close" aria-label="Close the frame meter">CLOSE ✕</button></div><div class="ws-perf-row"><i>Frame p50</i><span data-r="p50">—</span></div><div class="ws-perf-row"><i>Frame p95</i><span data-r="p95">—</span></div><div class="ws-perf-row"><i>Draw calls</i><span data-r="calls">—</span></div><div class="ws-perf-row"><i>Triangles</i><span data-r="tris">—</span></div><div class="ws-perf-row"><i>Tier · DPR</i><span data-r="tier">—</span></div><div class="ws-perf-row"><i>GL</i><span data-r="gl">ok</span></div><pre class="ws-perf-stats"></pre><canvas class="ws-perf-spark" width="240" height="30"></canvas><div class="ws-perf-row"><i>Record</i><span><button type="button" class="ws-perf-btn ws-perf-rec">REC 30 S</button> <button type="button" class="ws-perf-btn ws-perf-copy">COPY</button></span></div><pre class="ws-perf-rec-out"></pre><div class="ws-perf-row"><i>Probe</i><button type="button" class="ws-perf-probe">RUN PROBE</button></div><pre class="ws-perf-probe-out"></pre>';
     const row = (r: string): HTMLElement => { const e = panel.querySelector<HTMLElement>(`[data-r="${r}"]`); if (e === null) throw new Error(`Perf: missing row ${r}`); return e; };
     this.rows = { p50: row('p50'), p95: row('p95'), calls: row('calls'), tris: row('tris'), tier: row('tier'), gl: row('gl') };
+    // the open panel covers the pill on phones: its header carries a live copy (fps + ms, the same slow / bad colours)
+    const livePill = panel.querySelector<HTMLElement>('.ws-perf-live');
+    const liveFps = livePill?.querySelector<HTMLElement>('b'), liveMs = livePill?.querySelector<HTMLElement>('span');
+    if (livePill === null || liveFps === null || liveFps === undefined || liveMs === null || liveMs === undefined) throw new Error('Perf: missing live pill');
+    this.live = { box: livePill, fps: liveFps, ms: liveMs };
     document.body.append(root, panel);
     // the pill is a button on phones: toggle on the lift; cancel its touches (iOS double-tap zoom / callout / selection)
     // and never let them reach the look layer. The panel closes on a tap on it or anywhere else (not cancelled, so a
@@ -116,7 +122,7 @@ export class Perf {
     Object.assign(window, { __perfHud: this.hud });
     game.onUpdate(() => this.update(performance.now()), 'hud.perf');
     // frames are gated on the menu (Game.frameGate): say so rather than freeze on the last number
-    setInterval(() => { if (performance.now() - this.lastPaint > 1500 && this.lastText !== 'idle') { this.lastText = 'idle'; (this.root.firstElementChild as HTMLElement).textContent = '—'; (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = 'world paused'; (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = 'paused'; this.root.classList.remove('slow', 'bad'); } }, 500);
+    setInterval(() => { if (performance.now() - this.lastPaint > 1500 && this.lastText !== 'idle') { this.lastText = 'idle'; (this.root.firstElementChild as HTMLElement).textContent = '—'; (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = 'world paused'; (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = 'paused'; this.root.classList.remove('slow', 'bad'); this.mirror(); } }, 500);
   }
 
   /** Hidden while the menu is up (the world is not rendering, so there is nothing to measure). */
@@ -190,5 +196,15 @@ export class Perf {
     R.gl.textContent = gl === '' ? 'ok' : gl.replace(/^ · /, '');
     this.root.classList.toggle('slow', p50 > 20);   // under 50 fps
     this.root.classList.toggle('bad', p50 > 33.4 || (this.budgetOn && this.budget.over));  // under 30 fps (or over the draw budget)
+    this.mirror();
+  }
+
+  /** copy the pill into the panel header's live pill */
+  private mirror(): void {
+    const L = this.live;
+    L.fps.textContent = (this.root.firstElementChild as HTMLElement).textContent;
+    L.ms.textContent = (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent;
+    L.box.classList.toggle('slow', this.root.classList.contains('slow'));
+    L.box.classList.toggle('bad', this.root.classList.contains('bad'));
   }
 }
