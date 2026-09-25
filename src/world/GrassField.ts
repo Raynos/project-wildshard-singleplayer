@@ -30,8 +30,6 @@ const LN = Math.ceil((CHUNK_HALF * 2) / LATTICE) + 1; // 126 corners a side
 
 /** tall-grass height of the stealth fields (m) */
 export const TALL_GRASS = 1.12;
-/** below this the grass hides nothing (the crouch disc appears at ≥ 0.7 m) */
-export const MEADOW_GRASS = 0.6;
 
 interface Zone { x: number; z: number; r: number; h: number }
 

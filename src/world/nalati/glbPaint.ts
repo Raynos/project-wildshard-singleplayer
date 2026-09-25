@@ -237,8 +237,6 @@ function bakeVertexAO(geo: THREE.BufferGeometry, plain: Float32Array): Float32Ar
 
 /** a model's float geometry + atlas (no material), loading it if needed — for code that builds its own mesh (creatures) */
 export function loadModelRaw(name: NalatiModelName): Promise<RawModel> { return loadRaw(name, 'near'); }
-/** the same, synchronously: the loaded model, or null while it is still loading (or failed) */
-export function modelRawIfLoaded(name: NalatiModelName): RawModel | null { return ready.get(`${name}|near`) ?? null; }
 
 /**
  * A loaded GLB's first mesh as the float geometry + atlas every Nalati model is drawn from (the node transform baked in,

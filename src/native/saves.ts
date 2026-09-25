@@ -15,14 +15,13 @@ import { Preferences } from '@capacitor/preferences';
 const PREFIX = 'ws.';
 
 let chain: Promise<void> = Promise.resolve();
-let failures = 0;
 
 /** Writes land in order (a later value for a key never loses to an earlier one still in flight). */
 function queue(write: () => Promise<void>): void {
   const previous = chain;
   chain = (async () => {
     await previous;
-    try { await write(); } catch (error) { failures++; console.warn('[native] save mirror write failed', error); }
+    try { await write(); } catch (error) { console.warn('[native] save mirror write failed', error); }
   })();
 }
 
@@ -55,8 +54,5 @@ export async function hydrateSaves(): Promise<number> {
   return rows.length;
 }
 
-/** Every queued mirror write has landed (or failed and been counted). */
+/** Every queued mirror write has landed (or failed). */
 export async function flushSaves(): Promise<void> { await chain; }
-
-/** Mirror writes that failed this session (shown by the native diagnostics). */
-export function saveFailures(): number { return failures; }

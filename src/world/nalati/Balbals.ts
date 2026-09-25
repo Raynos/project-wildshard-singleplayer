@@ -217,38 +217,3 @@ export function buildBalbals(ctx: PoiCtx, spots: { x: number; z: number; yaw: nu
   }
   return { piece: { name: 'balbals', object: group, colliders, surface: 'stone', tris }, balbals: b };
 }
-
-/** the ring's spots on the knoll: 9 stones facing outward (the watchers), a little irregular */
-export function balbalRingSpots(cx: number, cz: number, r: number, n: number, seed = 0xb9): { x: number; z: number; yaw: number; scale: number; tilt: number }[] {
-  const out: { x: number; z: number; yaw: number; scale: number; tilt: number }[] = [];
-  let s = seed;
-  const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
-  for (let i = 0; i < n; i++) {
-    const a = (i / n) * Math.PI * 2 + (rnd() - 0.5) * 0.12, rr = r + (rnd() - 0.5) * 0.8;
-    const fx = Math.cos(a), fz = Math.sin(a);
-    out.push({ x: cx + fx * rr, z: cz + fz * rr, yaw: Math.atan2(-fx, -fz) + (rnd() - 0.5) * 0.3, scale: 0.95 + rnd() * 0.22, tilt: rnd() < 0.25 ? (rnd() - 0.5) * 0.16 : 0 });
-  }
-  return out;
-}
-
-/** the circle's ground dressing: a flat offering stone in the middle with a few small stones and a bowl on it, fallen stones */
-export function buildBalbalCircleDressing(ctx: PoiCtx, cx: number, cz: number, r: number): PoiPiece {
-  const { sky, ground } = ctx;
-  const kit = new PaintKit(0xb1c1);
-  const rng = kit.rng;
-  const colliders: Box[] = [];
-  const gy = ground(cx, cz);
-  const stone = { top: { color: C.lichenGold, threshold: 0.55, amount: 0.4 }, brush: 0.1 };
-  kit.add(new THREE.CylinderGeometry(1.5, 1.7, 0.45, 9), C.stone, { ...stone, matrix: M(cx, gy + 0.12, cz, 0.3, 1, 1, 0.8) });
-  kit.add(new THREE.CylinderGeometry(0.2, 0.14, 0.12, 12).translate(0, 0.41, 0), new THREE.Color('#8a5a2e'), { matrix: M(cx + 0.3, gy, cz - 0.1) });
-  for (let i = 0; i < 6; i++) { const a = rng.range(0, 6.28), d = rng.range(0.3, 1.1); kit.add(new THREE.SphereGeometry(rng.range(0.06, 0.12), 7, 5), C.stoneWarm, { matrix: M(cx + Math.cos(a) * d, gy + 0.38, cz + Math.sin(a) * d * 0.8) }); }
-  colliders.push({ x: cx, z: cz, hw: 1.4, hd: 1.1, rot: -0.3, yBottom: gy - 1, yTop: gy + 0.34 });
-  for (let i = 0; i < 4; i++) {
-    const a = rng.range(0, Math.PI * 2), d = r + rng.range(-3, 4);
-    const x = cx + Math.cos(a) * d, z = cz + Math.sin(a) * d;
-    kit.add(new THREE.CapsuleGeometry(0.3, 1.2, 3, 10).rotateZ(Math.PI / 2).scale(1, 0.75, 0.8), C.stone, { ...stone, matrix: M(x, ground(x, z) + 0.12, z, rng.range(0, 6)) });
-  }
-  const mesh = kit.mesh(sky, { ground });
-  mesh.name = 'nalati-balbal-circle';
-  return { name: 'balbalCircle', object: mesh, colliders, surface: 'stone', floor: (x, z) => (Math.hypot((x - cx) / 1.5, (z - cz) / 1.2) < 1 ? gy + 0.34 : undefined), tris: mesh.geometry.getAttribute('position').count / 3 };
-}
