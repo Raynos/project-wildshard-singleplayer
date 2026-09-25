@@ -93,6 +93,7 @@ Blender, image-to-3D, LUT fit, horizon painting, wind, rig bake), never their sh
 | PH-U29 | **Horizon = A, the painted 360° far country** (2026-09-25, `art/pine-hollow/round-10-horizon/board.jpg`), day + night; `?horizon=rings` keeps the 17 Sep rings for captures. |
 | PH-U30 | **Weather = A, dawn fog + rain showers** (2026-09-25, `art/pine-hollow/round-11-weather/board.jpg`); `?weather=clear` keeps the before for captures. |
 | PH-U31 | **Crags + cave = A, keep** (2026-09-25, `art/pine-hollow/round-13-crags-cave/board.jpg`): the granite face skin + crag kit + the bear cave; `?crags=v1` keeps the smooth slopes for captures. |
+| PH-U32 | **Finish sooner** (2026-09-25): 5 build agents in parallel (was 3). **Moved to a follow-up plan after the merge** (not built in this remaster): PH-P5 WebGPU, PH-0.2 the per-shard code split, PH-B1 the whole-map Blender pass, PH-B5 / B6 the CC0 kit + cabin lift → `docs/plans/PINE-HOLLOW-FOLLOWUPS.md` (draft; Jake approved none). |
 
 **Boards Jake asked to see before the layout and the models are built.** Each is one portrait decision board, A / B / C / D,
 in `art/pine-hollow/round-<n>-<label>/board.jpg`:
