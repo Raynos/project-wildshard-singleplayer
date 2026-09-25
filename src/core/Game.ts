@@ -14,6 +14,7 @@ import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG, frameCapFps, phoneCut } from './tier';
 import { installLookV2Fog } from '../nalati/look/fog';
 import { buildLookV2Chain } from '../nalati/look/grade';
+import { chunkShadowCasters } from '../world/shadowChunks';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 import { worldTime } from './time';
@@ -379,6 +380,11 @@ export class Game {
     // compiled AGAIN by the first frame (desktop 105 → 179 programs). Settle it before compiling.
     // oxlint-disable-next-line typescript/no-deprecated -- the guard exists to migrate away from the deprecated value
     if (this.renderer.shadowMap.type === THREE.PCFSoftShadowMap) this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    // E153: island-wide casters draw into each shadow map in pieces, culled per cascade (shadowChunks.ts; ?shadowpieces=0 = whole)
+    if (new URLSearchParams(location.search).get('shadowpieces') !== '0') {
+      const cut = chunkShadowCasters(this.scene);
+      if (cut.meshes > 0) console.info(`[shadow] ${String(cut.meshes)} casters in ${String(cut.pieces)} pieces (${String(cut.tris)} tris)`);
+    }
     const rt = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
     const { jobs, materials } = sceneJobs(this.scene, rt);
     jobs.push(...shadowJobs(this.scene, rt));
