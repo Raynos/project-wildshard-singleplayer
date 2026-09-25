@@ -1,6 +1,6 @@
 # Plan: keep shards in memory — switch shards from the main menu without the loading screen (E155)
 
-**State:** `in progress` 2026-09-25 — M1–M5 built by the E155 subagent (its worktree branch, rebased on main at 4ff49d2; not merged, not deployed): switch shards from the title deck in the page, 2 resident (E159), an evicted one rebuilt in the page (2.4–3.1 s to its title), a resident return in < 0.1 s with no loader; desktop + phone headless runs PASS (scripts/e155-shard-switch.mjs, progress/268–269). Open: M0 on a real iPhone (the memory of two resident shards; phone-tier cap), the merge + deploy (the E155 session).
+**State:** `in progress` 2026-09-25 — M1–M5 built by the E155 subagent (its worktree branch, rebased on main a5cf0da6 with E157 A + B; not merged, not deployed): switch shards from the title deck in the page, 2 resident (E159; pause ▸ Settings ▸ Debug ▸ Shards in memory 2 / 1, with an on-device memory readout), an evicted one rebuilt in the page, a resident return in < 0.12 s with no loader; KTX2 (E157) per shard build. Desktop + phone (Images and KTX2) headless runs PASS (scripts/e155-shard-switch.mjs, e155-tex-auto.mjs; progress/271–273). Open: M0 on a real iPhone (read the Debug card there), the merge + deploy (the E155 session).
 
 ## The ask (E155)
 
@@ -90,10 +90,18 @@ between the three shards."
   debug globals removed, the renderer's `dispose` listeners taken off shared module-cached materials and textures
   (src/shard/disposeListeners.ts). Checked with CDP `queryObjects` after a GC: live Game / Scene / Physics / renderer
   instances = the resident count, every step. A parked shard that loses its context is evicted (no resume screen).
+- **Textures (E157).** The texture mode (Debug ▸ GPU textures; Auto = this shard's KTX2 set is cached) is decided per
+  shard build and kept by it: each build asks for its own shard, a resident shard keeps what it was built with. KTX2 drops a
+  texture's mips from JS once uploaded, so a model / texture cached for the page could not be uploaded by a second renderer:
+  unless the pick is Images, those caches are per shard. `scripts/e155-tex-auto.mjs`: Auto with the first shard's set cached
+  and the second's not (and the reverse) — the cached one builds KTX2 (from the worker's cache), the other images with no
+  KTX2 request at all; a resident return keeps its mode.
+- **On the iPhone.** pause ▸ Settings ▸ Debug (developer mode) ▸ Memory: Shards in memory 2 / 1 (live: 1 evicts the other at
+  once) and a readout — the resident shards with their texture MB, the JS heap ("n/a" on iOS) and the device's memory.
 - **Audio.** One AudioContext; every shard its own Audio on it (parked = cut from the speakers); the score is the
   shell's and follows the running shard's master.
 
-## Measured (headless Chromium on the M5 Max, Metal, a `vite preview` of the build; progress/268–269)
+## Measured (headless Chromium on the M5 Max, Metal, a `vite preview` of the build; progress/271–273)
 
 | | desktop 1600×900 | phone tier 390×844 @2× |
 |---|---|---|
@@ -105,6 +113,8 @@ between the three shards."
 | … two resident (the cap) | D+N 462 · D+P 570 · P+N 430–440 MB | D+N 389 · D+P 393 · P+N 313–321 MB |
 | … all three resident (`setCap(3)`) | 693–702 MB | 518–520 MB |
 | scene textures, estimate (px × bytes, mips) | D 62 · N 274–302 · P 822 MB | D 41 · N 102–117 · P 397 MB |
+| … with KTX2 (phone tier only: the desktop has no stand-ins) | — | D 18 · N 71–87 · P 178 MB |
+| JS heap, two resident, KTX2 | — | D+N 393 · D+P 399 · P+N 324–332 MB |
 
 - Also run: EXPLORE WORLD on another card (a build, then a resident return) in the page; `physics-baseline --mode=walk`: 0 stuck on all 27 legs.
 - The evicted shard's memory comes back: D+P 570 → P+N 437 MB after Driftwood's eviction (desktop).

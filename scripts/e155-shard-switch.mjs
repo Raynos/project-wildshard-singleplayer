@@ -53,14 +53,14 @@ const query = (slug) => `chunk=${slug}&mute=1&nolock=1${PHONE ? '&touch=1&tier=p
 const contextOpts = PHONE ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true } : { viewport: { width: 1600, height: 900 } };
 const titleWait = (page, slug) => page.waitForFunction((s) => {
   const host = window.__shardHost, hud = document.getElementById('hud');
-  return host !== undefined && host.active === s && !host.switching && hud?.classList.contains('intro') === true && document.querySelector('#hud .ws-menu-play') !== null && document.querySelector('.ws-load') === null;
+  return host !== undefined && host.active === s && !host.switching && hud?.classList.contains('intro') === true && document.querySelector('#hud .ws-menu:not(.hide) .ws-menu-play') !== null && document.querySelector('.ws-load') === null;
 }, slug, { timeout: Number(process.env.E155_TITLE_MS ?? 420000), polling: 250 });
 // …and when it never comes, where the build stopped (the loader's step, its last rows and foot line)
 const titleUp = async (page, slug) => {
   try { await titleWait(page, slug); } catch (e) {
     const at = await page.evaluate(async () => {
       const raf = await Promise.race([new Promise((resolve) => { requestAnimationFrame(() => { resolve('raf ok'); }); }), new Promise((resolve) => { window.setTimeout(() => { resolve('raf NONE in 2 s'); }, 2000); })]);
-      const l = document.querySelector('.ws-load'); return l === null ? 'no loader' : { raf, visible: document.visibilityState, error: document.querySelector('#wserr')?.textContent.replaceAll(/\s+/g, ' ').slice(0, 400) ?? null, step: l.dataset.step, setup: l.dataset.setup, download: l.dataset.download, foot: l.querySelector('[data-el="foot"]')?.textContent, rows: [...l.querySelectorAll('[data-el="rows"] > div')].map((d) => d.textContent).slice(-3) }; }).catch(() => 'unreadable');
+      const l = document.querySelector('.ws-load'); const host = window.__shardHost; const where = { active: host?.active, slugs: host?.slugs, switching: host?.switching, intro: document.getElementById('hud')?.classList.contains('intro'), entered: window.__world?.hud.entered, last: host?.timings.at(-1) }; return l === null ? { loader: 'none', ...where } : { raf, visible: document.visibilityState, error: document.querySelector('#wserr')?.textContent.replaceAll(/\s+/g, ' ').slice(0, 400) ?? null, step: l.dataset.step, setup: l.dataset.setup, download: l.dataset.download, foot: l.querySelector('[data-el="foot"]')?.textContent, rows: [...l.querySelectorAll('[data-el="rows"] > div')].map((d) => d.textContent).slice(-3) }; }).catch(() => 'unreadable');
     throw new Error(`${slug}: no title (${e instanceof Error ? e.message.split('\n')[0] : String(e)}) — the loader: ${JSON.stringify(at)}`, { cause: e });
   }
 };
@@ -120,7 +120,7 @@ try {
   const pose = () => page.evaluate(() => { const w = window.__world; const p = w.player.position; return { x: Number(p.x.toFixed(3)), y: Number(p.y.toFixed(3)), z: Number(p.z.toFixed(3)), yaw: Number(w.player.yaw.toFixed(4)), weapon: w.weapons.current.id }; });
   // the deck: select the target's card (a script click selects it); ENTER WORLD is then pressed with a real click (the gesture)
   const selectCard = async (slug) => {
-    await page.evaluate((k) => { document.querySelector(`#hud .ws-menu-card[data-i="${k}"]`)?.click(); }, SLUGS.indexOf(slug));
+    await page.evaluate((k) => { document.querySelector(`#hud .ws-menu:not(.hide) .ws-menu-card[data-i="${k}"]`)?.click(); }, SLUGS.indexOf(slug));
     await sleep(450);
   };
   // live instances of a class (CDP queryObjects runs a GC first): an evicted shard's Game / Scene / Physics must be gone
@@ -153,14 +153,14 @@ try {
     if (s === 0) {
       await titleUp(page, slug);
       step.toTitleMs = await page.evaluate(() => Math.round(performance.now())); // since the navigation began
-      await page.click('#hud .ws-menu-play');
+      await page.click('#hud .ws-menu:not(.hide) .ws-menu-play');
     } else {
-      await page.click('#hud .ws-menu-play');
+      await page.click('#hud .ws-menu:not(.hide) .ws-menu-play');
       if (!wasResident) {
         await titleUp(page, slug);
         step.toTitleMs = Math.round(performance.now() - t0);
         await sleep(300);
-        await page.click('#hud .ws-menu-play'); // a shard built in the page lands on its title, as a reload did
+        await page.click('#hud .ws-menu:not(.hide) .ws-menu-play'); // a shard built in the page lands on its title, as a reload did
       }
     }
     await page.waitForFunction((x) => window.__shardHost.active === x && window.__world?.hud.entered === true, slug, { timeout: 60000, polling: 16 });
@@ -244,7 +244,7 @@ try {
       if (after.slugs.includes(parked)) fail(`--lose: ${parked} lost its context while parked but is still resident`);
       if (after.active !== running || after.resume || after.mark !== mark) fail('--lose: the running shard was disturbed (a reload, the resume screen or a switch)');
       // …and it plays on
-      await selectCard(running); await page.click('#hud .ws-menu-play');
+      await selectCard(running); await page.click('#hud .ws-menu:not(.hide) .ws-menu-play');
       await page.waitForFunction(() => window.__world?.hud.entered === true, undefined, { timeout: 30000 });
       await waitFrames(3, performance.now());
       await page.evaluate(() => { window.__world.hud.exitToMenu(); });
@@ -256,10 +256,10 @@ try {
     // two resident first (the context-loss check may have left one): build another shard in the page
     if ((await page.evaluate(() => window.__shardHost.slugs.length)) < 2) {
       const other = await page.evaluate((all) => all.find((x) => !window.__shardHost.has(x)) ?? null, SLUGS);
-      if (other !== null) { await selectCard(other); await page.click('#hud .ws-menu-play'); await titleUp(page, other); }
+      if (other !== null) { await selectCard(other); await page.click('#hud .ws-menu:not(.hide) .ws-menu-play'); await titleUp(page, other); }
     }
     const slug = await page.evaluate(() => window.__shardHost.active);
-    await selectCard(slug); await page.click('#hud .ws-menu-play');
+    await selectCard(slug); await page.click('#hud .ws-menu:not(.hide) .ws-menu-play');
     await page.waitForFunction(() => window.__world?.hud.entered === true, undefined, { timeout: 30000 });
     await page.evaluate(() => { window.__world.hud.setPaused(true); });
     await sleep(2600);
@@ -296,7 +296,7 @@ try {
       p.on('pageerror', (e) => { report.errors.push(`baseline ${slug}: ${e.message.slice(0, 300)}`); });
       await p.goto(`${URL_BASE}/?${query(slug)}`, { waitUntil: 'domcontentloaded' });
       await titleUp(p, slug);
-      await p.click('#hud .ws-menu-play');
+      await p.click('#hud .ws-menu:not(.hide) .ws-menu-play');
       await p.waitForFunction(() => window.__world?.hud.entered === true, undefined, { timeout: 60000 });
       await sleep(2500);
       const name = `baseline-${slug}`;

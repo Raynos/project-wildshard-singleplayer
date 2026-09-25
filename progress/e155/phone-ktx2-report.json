@@ -1,7 +1,7 @@
 {
- "tag": "desktop",
+ "tag": "phone-ktx2",
  "url": "http://127.0.0.1:5321",
- "phone": false,
+ "phone": true,
  "cap": "default (2)",
  "route": [
   "driftwood-isle",
@@ -16,27 +16,27 @@
    "n": 0,
    "slug": "driftwood-isle",
    "kind": "first",
-   "toTitleMs": 2269,
-   "toFirstFrameMs": 2401,
-   "hostMs": 1907,
+   "toTitleMs": 1821,
+   "toFirstFrameMs": 1920,
+   "hostMs": 1646,
    "hostKind": "first",
    "evicted": [],
    "bootSteps": {
-    "renderer": 10,
-    "sky": 52,
-    "terrain": 32,
+    "renderer": 13,
+    "sky": 102,
+    "terrain": 29,
     "cards": 1,
-    "forest": 6,
+    "forest": 5,
     "physics": 3,
-    "edge": 482,
-    "grass": 2,
+    "edge": 417,
+    "grass": 1,
     "cabins": 0,
     "props": 0,
-    "animals": 22,
+    "animals": 17,
     "weapon": 0,
-    "menu": 7,
-    "shaders": 299,
-    "firstFrame": 138,
+    "menu": 3,
+    "shaders": 180,
+    "firstFrame": 116,
     "audio": 0
    },
    "loadingShown": false,
@@ -47,9 +47,9 @@
     "yaw": 3.1416,
     "weapon": "sword"
    },
-   "shot": "/Users/raynos/projects/games/wildshard-singleplayer/.claude/worktrees/agent-a28ef91886e36c097/progress/e155/desktop-00-driftwood-isle-first.jpg",
+   "shot": "/Users/raynos/projects/games/wildshard-singleplayer/.claude/worktrees/agent-a28ef91886e36c097/progress/e155/phone-ktx2-00-driftwood-isle-first.jpg",
    "markOk": true,
-   "heapMB": 297.5,
+   "heapMB": 236.8,
    "resident": [
     "driftwood-isle"
    ],
@@ -57,10 +57,10 @@
     {
      "slug": "driftwood-isle",
      "running": true,
-     "geometries": 772,
-     "textures": 127,
-     "programs": 105,
-     "textureMB": 61.9,
+     "geometries": 426,
+     "textures": 109,
+     "programs": 98,
+     "textureMB": 18.4,
      "contextLost": false
     }
    ],
@@ -68,7 +68,7 @@
    "unuploadable": [],
    "live": {
     "Game": 1,
-    "Scene": 18,
+    "Scene": 19,
     "Physics": 1,
     "WebGLRenderer": 1
    }
@@ -77,27 +77,27 @@
    "n": 1,
    "slug": "nalati-grasslands",
    "kind": "build",
-   "toTitleMs": 4592,
-   "toFirstFrameMs": 5143,
-   "hostMs": 4500,
+   "toTitleMs": 3278,
+   "toFirstFrameMs": 3806,
+   "hostMs": 3199,
    "hostKind": "build",
    "evicted": [],
    "bootSteps": {
     "renderer": 14,
-    "sky": 277,
-    "terrain": 324,
-    "cards": 3,
+    "sky": 281,
+    "terrain": 287,
+    "cards": 4,
     "forest": 33,
-    "physics": 4,
-    "edge": 13,
-    "grass": 51,
+    "physics": 3,
+    "edge": 14,
+    "grass": 46,
     "cabins": 0,
-    "props": 1375,
+    "props": 1392,
     "animals": 1,
     "weapon": 0,
-    "menu": 1,
-    "shaders": 391,
-    "firstFrame": 120,
+    "menu": 0,
+    "shaders": 107,
+    "firstFrame": 109,
     "audio": 0
    },
    "loadingShown": true,
@@ -108,9 +108,9 @@
     "yaw": 0,
     "weapon": "bow"
    },
-   "shot": "/Users/raynos/projects/games/wildshard-singleplayer/.claude/worktrees/agent-a28ef91886e36c097/progress/e155/desktop-01-nalati-grasslands-build.jpg",
+   "shot": "/Users/raynos/projects/games/wildshard-singleplayer/.claude/worktrees/agent-a28ef91886e36c097/progress/e155/phone-ktx2-01-nalati-grasslands-build.jpg",
    "markOk": true,
-   "heapMB": 462.3,
+   "heapMB": 392.5,
    "resident": [
     "driftwood-isle",
     "nalati-grasslands"
@@ -119,19 +119,19 @@
     {
      "slug": "driftwood-isle",
      "running": false,
-     "geometries": 772,
-     "textures": 127,
-     "programs": 105,
-     "textureMB": 61.9,
+     "geometries": 426,
+     "textures": 109,
+     "programs": 98,
+     "textureMB": 18.4,
      "contextLost": false
     },
     {
      "slug": "nalati-grasslands",
      "running": true,
-     "geometries": 363,
-     "textures": 161,
-     "programs": 112,
-     "textureMB": 302.1,
+     "geometries": 111,
+     "textures": 127,
+     "programs": 96,
+     "textureMB": 86.8,
      "contextLost": false
     }
    ],
@@ -139,7 +139,7 @@
    "unuploadable": [],
    "live": {
     "Game": 2,
-    "Scene": 24,
+    "Scene": 22,
     "Physics": 2,
     "WebGLRenderer": 2
    }
@@ -148,7 +148,7 @@
    "n": 2,
    "slug": "driftwood-isle",
    "kind": "resident",
-   "toFirstFrameMs": 80,
+   "toFirstFrameMs": 64,
    "hostMs": 3,
    "hostKind": "resident",
    "evicted": [],
@@ -167,10 +167,10 @@
     "dyaw": 0,
     "weapon": "sword → sword"
    },
-   "shot": "/Users/raynos/projects/games/wildshard-singleplayer/.claude/worktrees/agent-a28ef91886e36c097/progress/e155/desktop-02-driftwood-isle-resident.jpg",
-   "diffVsLeft": 3.2,
+   "shot": "/Users/raynos/projects/games/wildshard-singleplayer/.claude/worktrees/agent-a28ef91886e36c097/progress/e155/phone-ktx2-02-driftwood-isle-resident.jpg",
+   "diffVsLeft": 1.7,
    "markOk": true,
-   "heapMB": 455.3,
+   "heapMB": 384.8,
    "resident": [
     "nalati-grasslands",
     "driftwood-isle"
@@ -179,19 +179,19 @@
     {
      "slug": "nalati-grasslands",
      "running": false,
-     "geometries": 363,
-     "textures": 161,
-     "programs": 112,
-     "textureMB": 274.1,
+     "geometries": 111,
+     "textures": 127,
+     "programs": 96,
+     "textureMB": 71.4,
      "contextLost": false
     },
     {
      "slug": "driftwood-isle",
      "running": true,
-     "geometries": 772,
-     "textures": 127,
-     "programs": 105,
-     "textureMB": 61.9,
+     "geometries": 426,
+     "textures": 109,
+     "programs": 98,
+     "textureMB": 18.4,
      "contextLost": false
     }
    ],
@@ -199,7 +199,7 @@
    "unuploadable": [],
    "live": {
     "Game": 2,
-    "Scene": 24,
+    "Scene": 22,
     "Physics": 2,
     "WebGLRenderer": 2
    }
@@ -208,42 +208,42 @@
    "n": 3,
    "slug": "pine-hollow",
    "kind": "build",
-   "toTitleMs": 3016,
-   "toFirstFrameMs": 3776,
-   "hostMs": 2868,
+   "toTitleMs": 2025,
+   "toFirstFrameMs": 2520,
+   "hostMs": 1766,
    "hostKind": "build",
    "evicted": [
     "nalati-grasslands"
    ],
    "bootSteps": {
-    "renderer": 14,
-    "sky": 109,
-    "terrain": 154,
-    "cards": 77,
-    "forest": 11,
+    "renderer": 8,
+    "sky": 108,
+    "terrain": 85,
+    "cards": 42,
+    "forest": 12,
     "physics": 2,
     "edge": 24,
-    "grass": 27,
-    "cabins": 331,
-    "props": 26,
-    "animals": 347,
+    "grass": 26,
+    "cabins": 294,
+    "props": 44,
+    "animals": 195,
     "weapon": 0,
     "menu": 0,
-    "shaders": 557,
-    "firstFrame": 139,
+    "shaders": 191,
+    "firstFrame": 116,
     "audio": 0
    },
    "loadingShown": true,
    "pose": {
     "x": 0,
-    "y": 0.001,
+    "y": 0,
     "z": -235,
     "yaw": 3.1416,
     "weapon": "crossbow"
    },
-   "shot": "/Users/raynos/projects/games/wildshard-singleplayer/.claude/worktrees/agent-a28ef91886e36c097/progress/e155/desktop-03-pine-hollow-build.jpg",
+   "shot": "/Users/raynos/projects/games/wildshard-singleplayer/.claude/worktrees/agent-a28ef91886e36c097/progress/e155/phone-ktx2-03-pine-hollow-build.jpg",
    "markOk": true,
-   "heapMB": 566.1,
+   "heapMB": 399.1,
    "resident": [
     "driftwood-isle",
     "pine-hollow"
@@ -252,19 +252,19 @@
     {
      "slug": "driftwood-isle",
      "running": false,
-     "geometries": 770,
-     "textures": 127,
-     "programs": 105,
-     "textureMB": 61.9,
+     "geometries": 430,
+     "textures": 109,
+     "programs": 98,
+     "textureMB": 18.4,
      "contextLost": false
     },
     {
      "slug": "pine-hollow",
      "running": true,
-     "geometries": 274,
-     "textures": 445,
-     "programs": 112,
-     "textureMB": 821.6,
+     "geometries": 233,
+     "textures": 395,
+     "programs": 101,
+     "textureMB": 177.6,
      "contextLost": false
     }
    ],
@@ -274,7 +274,7 @@
    "unuploadable": [],
    "live": {
     "Game": 2,
-    "Scene": 36,
+    "Scene": 38,
     "Physics": 2,
     "WebGLRenderer": 2
    }
@@ -283,29 +283,29 @@
    "n": 4,
    "slug": "nalati-grasslands",
    "kind": "rebuild",
-   "toTitleMs": 2927,
-   "toFirstFrameMs": 3448,
-   "hostMs": 2800,
+   "toTitleMs": 2579,
+   "toFirstFrameMs": 3100,
+   "hostMs": 2434,
    "hostKind": "rebuild",
    "evicted": [
     "driftwood-isle"
    ],
    "bootSteps": {
-    "renderer": 6,
-    "sky": 108,
-    "terrain": 238,
+    "renderer": 10,
+    "sky": 106,
+    "terrain": 245,
     "cards": 3,
-    "forest": 31,
+    "forest": 30,
     "physics": 1,
-    "edge": 12,
+    "edge": 11,
     "grass": 39,
     "cabins": 0,
-    "props": 1355,
+    "props": 1310,
     "animals": 0,
     "weapon": 0,
     "menu": 0,
-    "shaders": 422,
-    "firstFrame": 123,
+    "shaders": 117,
+    "firstFrame": 102,
     "audio": 0
    },
    "loadingShown": true,
@@ -316,10 +316,10 @@
     "yaw": 0,
     "weapon": "bow"
    },
-   "shot": "/Users/raynos/projects/games/wildshard-singleplayer/.claude/worktrees/agent-a28ef91886e36c097/progress/e155/desktop-04-nalati-grasslands-rebuild.jpg",
-   "diffVsFirst": 1.3,
+   "shot": "/Users/raynos/projects/games/wildshard-singleplayer/.claude/worktrees/agent-a28ef91886e36c097/progress/e155/phone-ktx2-04-nalati-grasslands-rebuild.jpg",
+   "diffVsFirst": 0.6,
    "markOk": true,
-   "heapMB": 442.3,
+   "heapMB": 331.9,
    "resident": [
     "pine-hollow",
     "nalati-grasslands"
@@ -328,19 +328,19 @@
     {
      "slug": "pine-hollow",
      "running": false,
-     "geometries": 272,
-     "textures": 444,
-     "programs": 112,
-     "textureMB": 821.6,
+     "geometries": 231,
+     "textures": 395,
+     "programs": 101,
+     "textureMB": 177.6,
      "contextLost": false
     },
     {
      "slug": "nalati-grasslands",
      "running": true,
-     "geometries": 363,
-     "textures": 161,
-     "programs": 112,
-     "textureMB": 302.1,
+     "geometries": 111,
+     "textures": 127,
+     "programs": 96,
+     "textureMB": 86.8,
      "contextLost": false
     }
    ],
@@ -351,7 +351,7 @@
    "unuploadable": [],
    "live": {
     "Game": 2,
-    "Scene": 24,
+    "Scene": 22,
     "Physics": 2,
     "WebGLRenderer": 2
    }
@@ -360,8 +360,8 @@
    "n": 5,
    "slug": "pine-hollow",
    "kind": "resident",
-   "toFirstFrameMs": 115,
-   "hostMs": 5,
+   "toFirstFrameMs": 89,
+   "hostMs": 4,
    "hostKind": "resident",
    "evicted": [],
    "bootSteps": null,
@@ -379,10 +379,10 @@
     "dyaw": 0,
     "weapon": "crossbow → crossbow"
    },
-   "shot": "/Users/raynos/projects/games/wildshard-singleplayer/.claude/worktrees/agent-a28ef91886e36c097/progress/e155/desktop-05-pine-hollow-resident.jpg",
-   "diffVsLeft": 4,
+   "shot": "/Users/raynos/projects/games/wildshard-singleplayer/.claude/worktrees/agent-a28ef91886e36c097/progress/e155/phone-ktx2-05-pine-hollow-resident.jpg",
+   "diffVsLeft": 2.8,
    "markOk": true,
-   "heapMB": 435.9,
+   "heapMB": 324.1,
    "resident": [
     "nalati-grasslands",
     "pine-hollow"
@@ -391,19 +391,19 @@
     {
      "slug": "nalati-grasslands",
      "running": false,
-     "geometries": 363,
-     "textures": 161,
-     "programs": 112,
-     "textureMB": 274.1,
+     "geometries": 111,
+     "textures": 127,
+     "programs": 96,
+     "textureMB": 71.4,
      "contextLost": false
     },
     {
      "slug": "pine-hollow",
      "running": true,
-     "geometries": 274,
-     "textures": 444,
-     "programs": 112,
-     "textureMB": 821.6,
+     "geometries": 233,
+     "textures": 395,
+     "programs": 101,
+     "textureMB": 177.6,
      "contextLost": false
     }
    ],
@@ -414,16 +414,16 @@
    "unuploadable": [],
    "live": {
     "Game": 2,
-    "Scene": 24,
+    "Scene": 22,
     "Physics": 2,
     "WebGLRenderer": 2
    }
   }
  ],
  "baseline": {
-  "driftwood-isle": 1.1,
-  "nalati-grasslands": 2.1,
-  "pine-hollow": 4.2
+  "driftwood-isle": 0.4,
+  "nalati-grasslands": 1.3,
+  "pine-hollow": 2.5
  },
  "lose": {
   "parked": "nalati-grasslands",
@@ -433,14 +433,14 @@
   ],
   "active": "pine-hollow",
   "resume": false,
-  "mark": 0.15356299025802778
+  "mark": 0.08014240292181918
  },
  "errors": [],
  "navigations": 1,
  "ok": true,
  "failures": [],
  "debugCard": {
-  "before": "Resident (oldest first, keeps 2):\n1. pine-hollow · textures ~822 MB\n2. driftwood-isle (playing) · textures ~62 MB\nJS heap: 606 MB · device memory: 32 GB",
+  "before": "Resident (oldest first, keeps 2):\n1. pine-hollow · textures ~178 MB\n2. driftwood-isle (playing) · textures ~18 MB\nJS heap: 439 MB · device memory: 32 GB",
   "drop": {
    "before": 2,
    "after": {
@@ -450,6 +450,6 @@
     "cap": 1
    }
   },
-  "after": "Resident (oldest first, keeps 1):\n1. driftwood-isle (playing) · textures ~62 MB\nJS heap: 603 MB · device memory: 32 GB"
+  "after": "Resident (oldest first, keeps 1):\n1. driftwood-isle (playing) · textures ~18 MB\nJS heap: 448 MB · device memory: 32 GB"
  }
 }

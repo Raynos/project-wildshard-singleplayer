@@ -1,0 +1,54 @@
+{
+ "url": "http://127.0.0.1:5321",
+ "markers": {
+  "driftwood-isle": "9-52cf2ec4",
+  "pine-hollow": "108-30f455a7",
+  "nalati-grasslands": "24-1d154e18"
+ },
+ "scenarios": [
+  {
+   "name": "first complete, second not",
+   "missing": "nalati-grasslands",
+   "builds": [
+    {
+     "slug": "driftwood-isle",
+     "expect": "ktx2",
+     "compressed": 2,
+     "gpuRequests": 7,
+     "gpuFromNetwork": 0
+    },
+    {
+     "slug": "nalati-grasslands",
+     "expect": "img",
+     "compressed": 0,
+     "gpuRequests": 0,
+     "gpuFromNetwork": 0
+    }
+   ],
+   "errors": []
+  },
+  {
+   "name": "first not, second complete",
+   "missing": "driftwood-isle",
+   "builds": [
+    {
+     "slug": "driftwood-isle",
+     "expect": "img",
+     "compressed": 0,
+     "gpuRequests": 0,
+     "gpuFromNetwork": 0
+    },
+    {
+     "slug": "nalati-grasslands",
+     "expect": "ktx2",
+     "compressed": 15,
+     "gpuRequests": 22,
+     "gpuFromNetwork": 0
+    }
+   ],
+   "errors": []
+  }
+ ],
+ "ok": true,
+ "failures": []
+}
