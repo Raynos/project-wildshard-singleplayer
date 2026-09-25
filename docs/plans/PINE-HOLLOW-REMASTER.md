@@ -90,6 +90,7 @@ Blender, image-to-3D, LUT fit, horizon painting, wind, rig bake), never their sh
 | PH-U26 | **Load: ~34 MB is fine** (2026-09-25, Jake: "34 MB is fine"), superseding PH-U18's ~30 MB: the Pine Hollow phone rows in `bench.budget.json` are 35 MB transfer / 40 s cold 4G. |
 | PH-U27 | **Trees = A, the Blender species set** (2026-09-25, `art/pine-hollow/round-12-trees/board.jpg`); the Hollow's tree density goes up (it read thinner and park-like against B). `?trees=v1` keeps today's pines for captures. |
 | PH-U28 | **Water = A, the new pond** (2026-09-25, `art/pine-hollow/round-7-water/board.jpg`): the sky + skyline probe, no second scene render; `?pond=planar` keeps the before. |
+| PH-U29 | **Horizon = A, the painted 360° far country** (2026-09-25, `art/pine-hollow/round-10-horizon/board.jpg`), day + night; `?horizon=rings` keeps the 17 Sep rings for captures. |
 
 **Boards Jake asked to see before the layout and the models are built.** Each is one portrait decision board, A / B / C / D,
 in `art/pine-hollow/round-<n>-<label>/board.jpg`:
