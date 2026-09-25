@@ -5,16 +5,18 @@
  *   ravens       2–3 come to every fresh deer / boar / elk / bear kill 18–52 s after it (never past the minute): they
  *                sail in high, circle it, drop down beside it and feed (pecking bouts, a look round, a hop); walk up
  *                and they lift off and wait overhead, landing again once you have backed away; after a minute or so
- *                of feeding they leave for good. A harvested carcass stays (dimmed: the hide is off) until they have
+ *                of feeding they leave for good. They croak as they come in, now and then over the kill, and lift off
+ *                with a clatter of wings. A harvested carcass stays (dimmed: the hide is off) until they have
  *                been and gone, then it sinks away (`carcassMayGo`).
  *   the owl      after dark, a great grey owl on a snag top near you (a branch of a big pine when no snag is near),
- *                its head swivelling after you, eye-shine in the dark; walk under it and it glides off — toward the
- *                nearest place your journal has not seen, when there is one.
- *   woodpecker   by day, a pileated woodpecker on a snag / pine trunk, drumming in bursts (a synth roll; the SFX set
- *                has no woodpecker), hitching up the trunk; flushes to another trunk when you come close.
+ *                its head swivelling after you, eye-shine in the dark, hooting every 14–28 s; walk under it and it glides
+ *                off (silently) — toward the nearest place your journal has not seen, when there is one.
+ *   woodpecker   by day, a pileated woodpecker on a snag / pine trunk, drumming in bursts, calling now and then,
+ *                hitching up the trunk; flushes (calling) to another trunk when you come close.
  *   breadcrumbs  every ~1.5–2.5 min by day, when no fight is on, 2–3 ravens overtake you low under the crowns and fly on
  *                toward the nearest place the journal has not seen (Driftwood's `gulls.breadcrumb` idea, `nearestUnvisited`;
- *                the Hollow's ravens show the way — folklore; a small songbird was a speck on the phone).
+ *                the Hollow's ravens show the way — folklore; a small songbird was a speck on the phone), croaking as
+ *                they pass so you look up.
  *   hares        5 snowshoe hares on open ground around you: they graze, hop, sit up alert when you are near and
  *                bolt in zig-zags when you come closer; the ones left far behind are quietly re-seated around you.
  *
@@ -23,9 +25,14 @@
  * (AnimalManager) is the hunt; these are the forest's life. `?life=0` turns it off; `window.__pineLife` has the pieces
  * (captures: `crumbs()`, `owlNow()`, `ravensTo(x, z)`, `beat()`).
  *
+ * The voices are PineHollowSfx one-shots (`h.sfx`, ForestAmbience's set: raven_caw / raven_pair / raven_flap, owl_hoot,
+ * woodpecker_drum / woodpecker_call, skinCut-a / -b), placed in the world; each logs to `window.__audioLog`. Without the
+ * set (Settings ▸ Sound effects = Synth, or not decoded yet) the woodpecker keeps its synth roll and the knife Audio's
+ * blade-in-flesh; the birds are quiet.
+ *
  * The skinning beat (`harvest(carcass, give)`): ~1.5 s — the weapon lowered, the view kneels and pitches down to the
  * carcass, a gloved hand brings the skinning knife up (skinKnife.ts: the Blender model on the viewmodels' program), two
- * knife strokes (the SFX set's blade-in-flesh, a small kick each), then the drops land (`give`: the pack + the toast), the
+ * knife strokes (the Pine Hollow set's two skinning strokes, a small kick each), then the drops land (`give`: the pack + the toast), the
  * knife drops away and the view comes back up.
  */
 import * as THREE from 'three';
@@ -34,6 +41,7 @@ import type { Sky } from '../../world/Sky';
 import type { Player } from '../../player/Player';
 import type { Weapons } from '../../player/Weapons';
 import type { Audio } from '../../audio/Audio';
+import type { PhShot, PineHollowSfx } from '../../audio/PineHollowSfx';
 import type { AnimalManager } from '../../entities/AnimalManager';
 import type { Animal } from '../../entities/Animal';
 import type { TreeInstance } from '../../world/placement';
@@ -57,6 +65,8 @@ export interface PineLifeHost {
   /** a fight is on (no breadcrumbs then) */
   inCombat: () => boolean;
   params: URLSearchParams;
+  /** Pine Hollow's generated one-shots (ForestAmbience's `sfx`): the birds' voices, the knife's strokes; null = none */
+  sfx?: PineHollowSfx | null;
 }
 export interface PineLife {
   mesh: THREE.InstancedMesh;
@@ -190,6 +200,23 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     b.pose.a1 = 0; b.pose.b1 = 1; b.pose.b2 = 0; b.pose.a2 = 0; b.pose.a3 = 0; b.mode = 'fly'; b.burst = 4; b.flapT = 0;
   };
   const off = (b: Bird): void => { b.mode = 'off'; b.after = null; };
+  // ── the voices (PineHollowSfx one-shots, placed at the bird) ──
+  const voice = (family: PhShot, at: { x: number; y: number; z: number } | undefined, gain = 1): boolean => h.sfx?.shot(family, { at, gain }) ?? false;
+  let ravenVoiceT = 0, flapT = 0;
+  /** a raven's croak from `r` (two ravens trading croaks when `pair`): one at a time across the flock, a few seconds apart */
+  const caw = (r: Bird, pair = false): void => {
+    const t = performance.now() / 1000;
+    if (t < ravenVoiceT) return;
+    ravenVoiceT = t + rng.range(3, 6);
+    voice(pair ? 'raven_pair' : 'raven_caw', r.pose, 0.9);
+  };
+  /** a raven's wings as it lifts off (one clatter for a flock going up together) */
+  const flap = (r: Bird): void => {
+    const t = performance.now() / 1000;
+    if (t < flapT) return;
+    flapT = t + 0.6;
+    voice('raven_flap', r.pose, 0.8);
+  };
   /** the wingbeat: bursts of beats, then a glide; the woodpecker bounds (beats, then wings shut) */
   const wings = (b: Bird, dt: number): void => {
     const k = b.pose.kind, bounding = k === KIND.woodpecker;
@@ -272,7 +299,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   const flyOff = (r: Bird): void => {
     const p = player.position, dx = r.pose.x - p.x, dz = r.pose.z - p.z, d = Math.hypot(dx, dz) || 1;
     const ang = Math.atan2(dz / d, dx / d) + rng.range(-0.6, 0.6);
-    if (r.mode === 'ground') { r.pose.b1 = 0; r.burst = 6; }
+    if (r.mode === 'ground') { r.pose.b1 = 0; r.burst = 6; flap(r); }
     flyTo(r, r.pose.x + Math.cos(ang) * 140, r.pose.y + rng.range(35, 50), r.pose.z + Math.sin(ang) * 140, 11, 4, null);
   };
   const dim = (c: Carcass): void => {
@@ -308,6 +335,8 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
             spawnAt(r, a.position.x + Math.cos(ang) * far, heightAt(a.position.x, a.position.z) + rng.range(30, 40), a.position.z + Math.sin(ang) * far, a.position.x, a.position.z);
             flyTo(r, a.position.x + Math.cos(ang) * 9, heightAt(a.position.x, a.position.z) + 14, a.position.z + Math.sin(ang) * 9, 10, 2, () => { circleOver(r, c, false); });
           }
+          const lead = c.ravens[0];
+          if (lead) caw(lead, c.ravens.length > 1); // they announce themselves coming in
         }
       }
       if (c.visit === 'overhead' || c.visit === 'feeding') {
@@ -319,7 +348,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
           if (r === undefined) continue;
           if (r.mode === 'ground') {
             feeding = true;
-            if (near < flushAt) { r.pose.b1 = 0; r.burst = 7; flyTo(r, r.pose.x + rng.range(-4, 4), r.pose.y + rng.range(9, 13), r.pose.z + rng.range(-4, 4), 6, 3, () => { circleOver(r, c, true); }); }
+            if (near < flushAt) { r.pose.b1 = 0; r.burst = 7; flyTo(r, r.pose.x + rng.range(-4, 4), r.pose.y + rng.range(9, 13), r.pose.z + rng.range(-4, 4), 6, 3, () => { circleOver(r, c, true); }); flap(r); caw(r); }
           } else if (r.mode === 'circle' && dist > RAVEN_RELAND && r.timer <= 0 && t < c.leaveT) landBy(r, c, k);
         }
         c.visit = feeding ? 'feeding' : 'overhead';
@@ -345,6 +374,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
         p.b1 = 1;
         // soaring: mostly held wings, the odd few beats
         if (r.burst > 0 || rng.next() < dt * 0.25) wings(r, dt); else { p.a0 += (0.1 - p.a0) * Math.min(1, dt * 4); p.a1 += (0 - p.a1) * Math.min(1, dt * 4); }
+        if (rng.next() < dt * 0.1) caw(r, rng.next() < 0.35); // a croak from overhead now and then
         break;
       }
       case 'ground': {
@@ -366,6 +396,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
           lookAbout(r, dt, 1.1, 1.4);
           if (r.timer <= 0) {
             r.timer = rng.range(1.2, 3.5);
+            if (rng.next() < 0.12) caw(r, true); // squabbling over the kill
             if (rng.next() < 0.22 && c) { // a hop (a flick of the wings)
               const [x, z] = groundSpot(c, rng.int(0, 5), 6); r.gy = heightAt(x, z); r.ax = p.x; r.az = p.z; r.cx = x; r.cz = z; r.t = 0; r.dur = 0.35; r.burst = 1;
             } else { r.peck = rng.int(2, 5); r.peckT = 0; }
@@ -389,7 +420,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   const crumbTarget = (): PlaceSpot | null => (h.places ? nearestUnvisited(h.places(), h.visited, player.position.x, player.position.z) : null);
 
   // ── the owl (night) ──
-  let owlNextT = 0;
+  let owlNextT = 0, owlHootT = 0;
   const owlPerch = (near: THREE.Vector3, rMin: number, rMax: number, toward: PlaceSpot | null): { x: number; y: number; z: number } | null => {
     // a snag's broken top (the bark's own top, not the placement's height), the nearer / the more toward `toward` the better
     const tree = perchTree(near.x, near.z, rMin, rMax, (t, d) => {
@@ -400,7 +431,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   };
   const owlSettle = (spot: { x: number; y: number; z: number }): void => {
     owl.gy = spot.y;
-    flyTo(owl, spot.x, spot.y + OWL_STAND, spot.z, 7.5, 2.5, () => { owl.mode = 'perch'; owl.pose.pitch = 1.1; owl.pose.roll = 0; owl.pose.b1 = 0; owl.pose.b2 = 1.1; owl.timer = rng.range(2, 5); });
+    flyTo(owl, spot.x, spot.y + OWL_STAND, spot.z, 7.5, 2.5, () => { owl.mode = 'perch'; owl.pose.pitch = 1.1; owl.pose.roll = 0; owl.pose.b1 = 0; owl.pose.b2 = 1.1; owl.timer = rng.range(2, 5); owlHootT = now() + rng.range(1.5, 4); });
   };
   const updateOwl = (dt: number, night: number): void => {
     const p = owl.pose, pp = player.position;
@@ -425,6 +456,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     if (d >= 45) lookAbout(owl, dt, 1.6, 0.35); else p.a2 += (owl.headTo - p.a2) * Math.min(1, dt * 2.5);
     p.a3 = 1.1 + Math.sin(now() * 0.7) * 0.05; p.a0 += (-0.05 - p.a0) * Math.min(1, dt * 5); p.a1 += (1 - p.a1) * Math.min(1, dt * 5);
     place(owl, p.x, owl.gy + OWL_STAND, p.z);
+    if (now() >= owlHootT) { owlHootT = now() + rng.range(14, 28); if (d < 150) voice('owl_hoot', p, 0.9); }
     if (night < 0.4) { p.b2 = 0; p.pitch = 0; owl.burst = 4; flyOff(owl); return; } // dawn: it leaves
     if (d < 14 || d > 120) {
       // flushed (or left far behind): a silent glide on — toward the nearest place the journal has not seen, if any
@@ -436,7 +468,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   };
 
   // ── the woodpecker (day) ──
-  let woodNextT = 0, drumT = 0, drumOn = 0;
+  let woodNextT = 0, drumT = 0, drumOn = 0, drumVoiced = false;
   const trunkSpot = (near: { x: number; z: number }, rMin: number, rMax: number): { x: number; y: number; z: number; yaw: number } | null => {
     const tree = perchTree(near.x, near.z, rMin, rMax, (t) => (t.species === 'snag' ? 3 : t.species === 'birch' ? 1.5 : t.species === 'pine' ? 1 : 0));
     if (!tree) return null;
@@ -489,19 +521,23 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
       // the drum roll: ~16 knocks a second for ~1.2 s, the head a blur against the trunk
       drumOn -= dt; drumT += dt * 16;
       p.a3 = 0.75 + 0.35 * Math.abs(Math.sin(drumT * Math.PI));
-      if (drumT >= 1) { drumT -= 1; const g = 0.5 / (1 + d / 12) ** 1.3 * Math.min(1, drumOn + 0.3); if (d < 60) knock(g, THREE.MathUtils.clamp(((p.x - pp.x) * Math.cos(player.yaw) - (p.z - pp.z) * Math.sin(player.yaw)) / (d || 1), -1, 1) * 0.8); }
+      if (drumT >= 1) { drumT -= 1; const g = 0.5 / (1 + d / 12) ** 1.3 * Math.min(1, drumOn + 0.3); if (d < 60 && !drumVoiced) knock(g, THREE.MathUtils.clamp(((p.x - pp.x) * Math.cos(player.yaw) - (p.z - pp.z) * Math.sin(player.yaw)) / (d || 1), -1, 1) * 0.8); }
     } else {
       p.a3 += (0.35 - p.a3) * Math.min(1, dt * 6);
       lookAbout(wood, dt, 0.7, 0.8);
       if (wood.timer <= 0) {
         wood.timer = rng.range(3.5, 8);
-        if (rng.next() < 0.3) { place(wood, p.x, p.y + 0.18, p.z); } // hitches up the trunk
-        else { drumOn = rng.range(0.9, 1.4); drumT = 0; }
+        const r = rng.next();
+        if (r < 0.3) { place(wood, p.x, p.y + 0.18, p.z); } // hitches up the trunk
+        else if (r < 0.42 && d < 110) voice('woodpecker_call', p, 0.8);
+        // the drum: the set's burst (the synth roll when the set is not there)
+        else { drumOn = rng.range(0.9, 1.4); drumT = 0; drumVoiced = d < 60 && voice('woodpecker_drum', p, 0.8); }
       }
     }
     if (night > 0.45 || d > 110) { p.b2 = 0; p.pitch = 0; wood.burst = 3; flyOff(wood); woodNextT = now() + 30; return; }
     if (d < 9) {
       p.b2 = 0; p.pitch = 0; wood.burst = 3; p.b1 = 1;
+      voice('woodpecker_call', p, 0.8); // flushed: it calls as it goes
       const s = trunkSpot({ x: p.x, z: p.z }, 22, 45);
       if (s) woodSettle(s); else flyOff(wood);
     }
@@ -530,6 +566,8 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
       });
       j.t = -i * 0.14; // a loose, staggered flock
     });
+    const lead = guides[0];
+    if (lead && n > 0) { ravenVoiceT = 0; caw(lead, n > 1); } // croaking as they pass over: look up
     return target;
   };
   const updateCrumbs = (dt: number, night: number): void => {
@@ -661,7 +699,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     const cut = BEAT.cuts[cutsDone];
     if (cut !== undefined && beatT >= cut) {
       cutsDone++;
-      h.audio.swordHit('flesh', (Math.random() - 0.5) * 0.3, 0.42);
+      if (!voice(cutsDone % 2 === 1 ? 'skinCut-a' : 'skinCut-b', undefined, 0.85)) h.audio.swordHit('flesh', (Math.random() - 0.5) * 0.3, 0.42);
       fx.kick(-1.1, cutsDone % 2 === 0 ? 0.8 : -0.8);
     }
     if (beatT >= BEAT.len) {

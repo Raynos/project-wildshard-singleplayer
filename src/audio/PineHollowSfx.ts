@@ -6,9 +6,10 @@
  *
  *   beds     the zoned ambience's loops (ForestAmbience plays them): hollow · pond · cabin (+ creek · waterfall · mill · ridge ·
  *            oldgrowth · cave · night · nightfog · rain-canopy · rain-open · dawn, ready for zones / the clock / the weather)
- *   shots    ready for events that do not exist yet: the lever-action (cycle, shot, the ridge echo), the longbow, a bolt on rock,
- *            the deer's alarm snort, the thralls (call, groan, move), the Antler King (bells, stomp, roar), cabin doors, lanterns,
- *            the zipline
+ *   shots    the lever-action (cycle, shot, the ridge echo, the dry click, a round through the gate), the longbow (draw,
+ *            loose), a bolt / arrow on rock, the deer's alarm snort, the thralls (call, groan, move), the Antler King (bells,
+ *            stomp, roar), cabin doors, lanterns, the zipline; the life's birds (the ravens' caw / pair / take-off flaps, the
+ *            owl's hoot, the woodpecker's drum + call) and the skinning knife's two strokes (src/pinehollow/life/)
  *   barks    the ranger, the miller and the trader (8 short non-verbal / one-word barks each; PH-U23)
  *
  *   const sfx = new PineHollowSfx(audio);          // ForestAmbience makes one: `ambience.sfx`
@@ -37,7 +38,10 @@ export type PhBed = 'hollow' | 'pond' | 'cabin' | 'creek' | 'waterfall' | 'mill'
   | 'rain-canopy' | 'rain-open' | 'dawn';
 export type PhShot = 'boltImpact-rock' | 'deer_snort' | 'leverCycle' | 'leverShot' | 'leverEcho' | 'longbowDraw' | 'longbowLoose'
   | 'thrall_call' | 'thrall_groan' | 'thrall_move' | 'king_bells' | 'king_stomp' | 'king_roar' | 'doorOpen' | 'doorClose'
-  | 'lanternLight' | 'lanternCreak' | 'zipline';
+  | 'lanternLight' | 'lanternCreak' | 'zipline'
+  // the sound-gaps round: the lever gun's dry click + a round thumbed through its gate; the life's birds; the skinning strokes
+  | 'leverDry' | 'leverRoundIn' | 'raven_caw' | 'raven_pair' | 'raven_flap' | 'owl_hoot' | 'woodpecker_drum' | 'woodpecker_call'
+  | 'skinCut-a' | 'skinCut-b';
 export type Npc = 'ranger' | 'miller' | 'trader';
 export const PH_BEDS: readonly PhBed[] = ['hollow', 'pond', 'cabin', 'creek', 'waterfall', 'mill', 'ridge', 'oldgrowth', 'cave', 'night', 'nightfog', 'rain-canopy', 'rain-open', 'dawn'];
 export const NPCS: readonly Npc[] = ['ranger', 'miller', 'trader'];

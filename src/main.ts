@@ -589,7 +589,7 @@ async function main() {
   if (pineWeather) pineLoadout?.useRain(() => pineWeather.weather.rain); // wet bolts drop, pitch-tipped ones fly true
   // PH-M5 / F2: the forest's small life (ravens to a kill, the owl, a woodpecker, hares, the ravens' breadcrumbs) in one draw,
   // and the harvest's skinning beat; the carcass waits for the ravens (src/pinehollow/life/)
-  const pineLife = chunk.slug === 'pine-hollow' ? installPineLife({ game, sky, player, animals, weapons, audio, trees: forest.trees, trunks: forest.factory.variants, params,
+  const pineLife = chunk.slug === 'pine-hollow' ? installPineLife({ game, sky, player, animals, weapons, audio, sfx: ambience instanceof ForestAmbience ? ambience.sfx : null, trees: forest.trees, trunks: forest.factory.variants, params,
     places: compendium ? () => compendium.state.def.entries.flatMap((e) => (e.place ? [{ id: e.id, ...e.place }] : [])) : null,
     visited: (id) => compendium?.state.reached(id, 'seen') ?? true, inCombat: () => music.state.mode === 'combat' }) : null;
   player.onStep = (sprinting) => {

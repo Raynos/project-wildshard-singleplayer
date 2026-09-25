@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Sky } from '../world/Sky';
 import type { Weapons } from '../player/Weapons';
-import { fixIBL, VIEWMODEL_GROUP, PLAIN_BOLT, type BoltMod, type Crossbow } from '../player/Crossbow';
+import { fixIBL, VIEWMODEL_GROUP, PLAIN_BOLT, worldHit, type BoltMod, type Crossbow } from '../player/Crossbow';
 import type { LeverRifle } from '../player/LeverRifle';
 import type { Longbow } from '../player/Longbow';
 import type { Inventory } from '../game/Inventory';
@@ -21,9 +21,11 @@ import { BOLT_KINDS, BOLT_LABEL, BOLT_NAME, Quiver, boltDamage, boltFlight, type
  *     live, and its damage by the animal it lands in) and its HUD label; a special stack that runs dry falls back to iron.
  *     The specials are kept across sessions (`ws.ph.loadout.v1`); iron bolts refill as ever.
  *   · THE LEVER-ACTION'S SOUNDS — Pine Hollow's generated set (PineHollowSfx): the shot + its echo off the ridge, the
- *     lever's cycle; Audio.ts's AR-15 shot until the set decodes. A cartridge through the gate clicks (Audio.dryFire).
+ *     lever's cycle, the hammer on an empty chamber (`leverDry`), a cartridge thumbed through the gate (`leverRoundIn`);
+ *     Audio.ts's AR-15 shot / latch click until the set decodes.
  *   · THE LONGBOW — owned once the King falls (`grantLongbow`; the pack's 'warden-longbow' flag re-grants it on load);
- *     its draw creak (`longbowDraw`), its loose (Audio.crossbowFire until a `longbowLoose` ships).
+ *     its draw creak (`longbowDraw`), its loose (`longbowLoose`; Audio.crossbowFire until the set decodes).
+ *   · STONE — a bolt, an arrow or a round landing on rock / stone plays `boltImpact-rock` (the crack + the ricochet).
  *   · FEEL — nothing here: the combat feel (feel.ts: hit-stop, kick, trauma, debris) hooks `Weapons.onHit / onImpact`,
  *     which every kit weapon forwards, so the rifle and the bow land with it like the crossbow.
  *
@@ -59,6 +61,16 @@ const TINT: Readonly<Record<Exclude<BoltKind, 'iron'>, { color: number; roughnes
   pitch: { color: 0x9a6a36, roughness: 0.55 },     // resin-dark, a warm sheen
   broadhead: { color: 0xc8ccd4, roughness: 0.8 },  // bright cold steel
 };
+
+/** the impact point sits on stone (the physics material a short probe through it meets, up / across / along) */
+const PROBE = [[0, 1, 0], [1, 0, 0], [0, 0, 1]] as const;
+function stony(p: { x: number; y: number; z: number }): boolean {
+  for (const [x, y, z] of PROBE) {
+    const m = worldHit({ x: p.x + x * 0.4, y: p.y + y * 0.4, z: p.z + z * 0.4 }, { x: p.x - x * 0.4, y: p.y - y * 0.4, z: p.z - z * 0.4 }, 0)?.material;
+    if (m !== undefined) return m === 'rock' || m === 'stone';
+  }
+  return false;
+}
 
 export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   const { weapons, crossbow, rifle, longbow, hud, audio, inventory, params } = h;
@@ -140,7 +152,17 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
   const prevReload = weapons.onReloadStart;
   weapons.onReloadStart = () => { if (weapons.current.id !== 'rifle') prevReload?.(); }; // the lever gun's reload is its rounds (onRoundIn), not the AR's magazine
   rifle.onCycle = () => { shot('leverCycle'); };
-  rifle.onRoundIn = () => { audio.dryFire(); };
+  rifle.onRoundIn = () => { if (!shot('leverRoundIn', 0.9)) audio.dryFire(); };
+  // the lever gun's hammer on an empty chamber (the crossbow keeps Audio's latch click)
+  const prevDry = weapons.onDry;
+  weapons.onDry = () => { if (weapons.current.id === 'rifle' && shot('leverDry')) return; prevDry?.(); };
+  // a bolt / arrow / round on stone (a crag, a boulder, the cave): the crack and the ricochet instead of main.ts's ground thud.
+  // The impact point is on the surface, so a short probe through it on each axis in turn meets what was hit.
+  const prevImpact = weapons.onImpact;
+  weapons.onImpact = (surface, point) => {
+    if (surface === 'ground' && stony(point) && sfx?.shot('boltImpact-rock', { at: point }) === true) return;
+    prevImpact?.(surface, point);
+  };
   longbow.onDrawStart = () => { shot('longbowDraw', 0.8); };
   longbow.onRecover = (ok) => { hud.toast(ok ? 'Arrow recovered' : 'Arrow broke'); };
 
@@ -165,7 +187,7 @@ export function installPineLoadout(h: PineLoadoutHost): PineLoadout {
     addAmmo, count, selectBolt, cycleBolt, grantLongbow,
     get bolt() { return quiver.selected; },
     onPlayerDeath: () => { if (quiver.selected !== 'iron') selectBolt('iron', true); },
-    useSfx: (s) => { sfx = s; s.prewarm(['leverShot', 'leverEcho', 'leverCycle', 'longbowDraw', 'longbowLoose']); },
+    useSfx: (s) => { sfx = s; s.prewarm(['leverShot', 'leverEcho', 'leverCycle', 'leverDry', 'leverRoundIn', 'longbowDraw', 'longbowLoose', 'boltImpact-rock']); },
     useRain: (r) => { rain = r; },
     update: (dt) => {
       if (!crossbow) return;

@@ -35,6 +35,9 @@ STYLE_TITLE = {"piano": "Piano + ambient", "orchestral": "Warm orchestral", "fol
 PHASES = {"1": "I, the Warden", "2": "II, Lanterns Fall", "3": "III, the Last Light"}
 MODELS = {"moss": "MOSS-SoundEffect v2", "sa3-medium": "Stable Audio 3 Medium"}
 RAW_DIR = {"moss": "moss", "sa3-medium": "medium"}  # the generators' folder names in the raw dir
+# the sound-gaps round (the remaster's A-rows): the sounds the game played borrowed or not at all, on the page together
+GAPS = ("longbowLoose", "boltImpact-rock", "leverDry", "leverRoundIn", "raven_caw", "raven_pair", "raven_flap", "owl_hoot",
+        "woodpecker_drum", "woodpecker_call", "skinCut-a", "skinCut-b")
 
 
 def esc(x: object) -> str:
@@ -123,7 +126,7 @@ def sfx_section(sfx_raw: Path) -> tuple[str, str, int]:
     fams = json.loads((HERE / "sfx-ph-jobs.json").read_text())["families"]
     rank = {m: json.loads(p.read_text())["families"] for m in MODELS if (p := HERE / f"sfx-ph-{m}.json").exists()}
     table = json.loads((HERE / "sfx-best.json").read_text())["families"]
-    rows: dict[str, list[str]] = {"bark": [], "bed": [], "oneshot": []}
+    rows: dict[str, list[str]] = {"gap": [], "bark": [], "bed": [], "oneshot": []}
     for fam, j in fams.items():
         if not all(fam in rank.get(m, {}) for m in MODELS):
             continue
@@ -145,15 +148,19 @@ def sfx_section(sfx_raw: Path) -> tuple[str, str, int]:
         where = {"best": "in the game now", "pine-hollow": "Pine Hollow set"}.get(j.get("into", ""), "")
         if win in ("synth", "kept-round-2"):
             where = "neither take ranked: " + ("the synth plays it" if win == "synth" else "the old take stays")
-        kind = "bark" if fam.startswith("bark-") else j["kind"] if j["kind"] == "bed" else "oneshot"
+        kind = "gap" if fam in GAPS else "bark" if fam.startswith("bark-") else j["kind"] if j["kind"] == "bed" else "oneshot"
         rows[kind].append(f"<tr><th scope='row'>{esc(fam)}<br><span class='meta'>{esc(j['desc'])}</span><br><span class='meta'>{esc(where)}</span></th>{''.join(cells)}</tr>")
     head = f"<thead><tr><th>sound</th>{''.join(f'<th>{esc(t)}</th>' for t in MODELS.values())}</tr></thead>"
     tab = lambda k: f"<div class='tablewrap'><table class='grid'>{head}<tbody>{''.join(rows[k])}</tbody></table></div>" if rows[k] else "<p class='empty'>Not rendered yet.</p>"  # noqa: E731
+    gaps = (f'<section class="style" id="gaps"><header class="style-head"><h2>New: the missing sounds <span class="tag new">new</span></h2><p class="ref">'
+            f'The sounds the game played borrowed or not at all: the Warden\'s Longbow loose (it played the crossbow\'s), an arrow on stone, '
+            f'the lever gun\'s dry click and a round thumbed through its gate, the ravens (a croak, a pair, the take-off wings), the owl, the woodpecker '
+            f'(its drum was a synth roll), and two skinning strokes (the harvest reused the arrow-in-flesh hit). Both engines side by side; the chip marks the take that ships.</p></header>{tab("gap")}</section>')
     barks = f'<section class="style" id="barks"><header class="style-head"><h2>NPC barks</h2><p class="ref">The ranger, the miller and the trader: short non-verbal or one-word barks, both engines side by side, the better take ships.</p></header>{tab("bark")}</section>'
     rest = (f'<section class="style" id="ambience"><header class="style-head"><h2>Zoned ambience</h2><p class="ref">Each bed, 15 s of its best take per engine.</p></header>{tab("bed")}</section>'
             f'<section class="style" id="sfx"><header class="style-head"><h2>Sound effects</h2><p class="ref">Crossbow, lever-action, longbow, animals, the thralls, the Antler King, footsteps, doors, lanterns, the zipline.</p></header>{tab("oneshot")}</section>')
     total = sum(p.stat().st_size for p in (ART / "sfx").glob("*/*.m4a"))
-    return barks, rest, total
+    return gaps + barks, rest, total
 
 
 CSS_EXTRA = """
@@ -179,7 +186,7 @@ def main() -> None:
     music, mbytes = music_section(raw)
     barks, rest, sbytes = sfx_section(sfx_raw)
     styles = [s for s in STYLES if (ART / s).exists()]
-    nav = "".join(f'<a href="#{s}">{esc(STYLE_TITLE[s])}</a>' for s in styles) + '<a href="#barks">Barks</a><a href="#ambience">Ambience</a><a href="#sfx">Sound effects</a>'
+    nav = "".join(f'<a href="#{s}">{esc(STYLE_TITLE[s])}</a>' for s in styles) + '<a href="#gaps">New sounds</a><a href="#barks">Barks</a><a href="#ambience">Ambience</a><a href="#sfx">Sound effects</a>'
     (ART / "index.html").write_text(f"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -204,7 +211,7 @@ def main() -> None:
   {rest}
   <section class="notes"><h2>How it was made</h2>
     <p>Music: MiniMax Music 3, run locally. Each slot's pick is split by demucs into stems on one timeline and cut to a loop of whole bars. Calm night plays like theme 1: the calm stem, with the drums and bass joining when danger is near. The Antler King is a single take in three layers. Phase I is the melody and the low strings with half the bass. Phase II brings in the full bass and the drums at 55 %. Phase III plays everything. Each change lands on the next bar.</p>
-    <p>Sounds: every sound was rendered 3 times by each engine, MOSS-SoundEffect v2 and Stable Audio 3 Medium. CLAP ranks every take against every other sound's description. The better engine's best take ships, if it ranks in the top 5. An NPC's barks, and the footstep surfaces, are not ranked against each other.</p>
+    <p>Sounds: every sound was rendered 3 times by each engine (the longbow's loose and the arrow on stone, which missed the first round, 3 more times with a sharper prompt), MOSS-SoundEffect v2 and Stable Audio 3 Medium. CLAP ranks every take against every other sound's description. The better engine's best take ships, if it ranks in the top 5. An NPC's barks, and the footstep surfaces, are not ranked against each other.</p>
   </section>
 </div>
 """)
