@@ -1,6 +1,6 @@
 # NALATI-FINISH — land Nalati on main, then the user's picks and the leftovers
 
-**State:** `blocked` 2026-09-24 — U1 + U2 done: Nalati landed on main (b3d4e00, live b3d4e00-muga27bg). P2 done (the user delegated the score); P1, P3, P4 wait on the user (N20, N22, N11); B1–B4 are open for an agent, on main now. U3 (delete the local branch) is the user's.
+**State:** `blocked` 2026-09-24 — U1 + U2 done: Nalati landed on main (b3d4e00, live b3d4e00-muga27bg). P2 + P3 done (the score delegated; the defaults answered — HUD + Golden Bow are the user's own later); P1, P4 wait on the user (N20, N11); B5 (the camp people need more work) added; B1–B4 are open for an agent, on main now. U3 (delete the local branch) is the user's.
 
 The mini plan for everything left after [NALATI-MERGE](../../project/archive/2026-09-24-nalati-merge.md) (archived
 2026-09-24, every row built on the `nalati-grasslands` branch). The asks: N10, N11, N13, N14, N20, N21, N22.
@@ -25,7 +25,7 @@ deploy). The final fast-forward of main then sends almost nothing.
 |---|---|---|
 | P1 | N20: the Look Lab picks after playing: terrain shadows · terrain AO + bounce · model shading · Yurts (procedural / Blender) · Camp people (procedural / Blender / image-to-3D). Then lock the picks in and remove the losing variants | needs pick |
 | P2 | N21: a take per score slot (grass / sky / snow / night / storm / king, e.g. "king 301") on https://claude.ai/artifact/EQdaQCVdG9Kjnwvs4qaQra; keep or drop the kobyz (MiniMax plays it plucked) | ✅ the user delegated ("pick the music you think is best"): the measured #1 takes stay, the kobyz stays |
-| P3 | N22: confirm the parked defaults: the day glyph on Nalati only · the "DAY" word in HUD D · DODGE on D's arc · the Golden Bow's sun arrow on every full draw · AIM 2×, arms tire at 8 s · the new joke titles · the camp people's look · the Hunyuan-sourced models (for main's licence ask E101) | needs pick |
+| P3 | N22: confirm the parked defaults: the day glyph on Nalati only · the "DAY" word in HUD D · DODGE on D's arc · the Golden Bow's sun arrow on every full draw · AIM 2×, arms tire at 8 s · the new joke titles · the camp people's look · the Hunyuan-sourced models (for main's licence ask E101) | ✅ answered: glyph / AIM / titles / licence fine; HUD + the Golden Bow the user fixes himself later; the camp people need more work → B5 |
 | P4 | N11: one real-iPhone reading with Low Power Mode off (target 30 fps, max graphics) | needs the user |
 
 ## B — leftovers an agent can build (after U2, on main)
@@ -35,4 +35,5 @@ deploy). The final fast-forward of main then sends almost nothing.
 | B1 | N13 riding extras: wolves raiding the sheep + a mounted shepherd, the horse panicking from bites / lightning, renaming the horse at the rail, reins in the hands; plus R1's not-built list (the horse following a road when you let go, a rhythm spur, a skid stop) and the look-behind limit (±170° today; the research says ±120–150°) | open |
 | B2 | N14 look polish, what is still true: denser camp flowers / small rocks + painted camp clutter, bigger butterflies; the escarpment's flat grey rock patches; the meltwater ribbon climbing the glacier wall; the saddle skin repainting only the trim (the minimap label overlap is gone since N15; the blue-plastic boulders are the Look Lab's model-shading variant) | open |
 | B3 | Audio: the two sounds still synth (the spear thrust, the javelin into flesh) re-rolled; more MOSS takes for the sounds that only got two; the Golden King's music verified in the browser (a unit test only so far) | open |
+| B5 | The camp people need more work (the user, N22: "Camp people lol needs more work") — the five figures (procedural / Blender / image-to-3D, Look Lab ▸ Camp people): faces, proportions, clothing, animation; a mockup round first | open |
 | B4 | A heads-up for the pine-hollow-remaster branch: its `Music.ts` / `Stems.ts` edits (339a484) meet Nalati's SteppeScore hooks | open |
