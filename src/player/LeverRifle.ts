@@ -1,10 +1,12 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { getSetting } from '../ui/Settings';
 import { LightPool } from '../fx/LightPool';
 import {
   Puffs, viewmodelMaterial, viewmodelTexSet, whiteColors, edgeWear, fovForAspect, FOV_HIP, FOV_ADS, box, cyl, stripExtra, sstep, clamp01,
-  isMesh, worldHit, impactSurfaceOf, type TexSet, type Targets, type ImpactSurface, type CrossbowWorld, type CrossbowOptions,
+  isMesh, worldHit, impactSurfaceOf, fixIBL, VIEWMODEL_GROUP, type TexSet, type Targets, type ImpactSurface, type CrossbowWorld, type CrossbowOptions,
 } from './Crossbow';
 import { makeFlashTexture, HitLine, brassFloor } from './Rifle';
 import type { KitWeapon, WeaponState, AimInfo } from './Weapons';
@@ -21,12 +23,19 @@ import { SHADOW_LAYER } from '../core/shadowLayer';
  *   rifle.onCycle = () => sfx.shot('leverCycle')     // the lever thrown (after every shot, and to chamber after a reload)
  *   rifle.onRoundIn = () => …                        // one cartridge thumbed through the loading gate
  *
- * The model is procedural (thin parts: image-to-3D mangles a 9 mm barrel and a lever loop — Rifle.ts's reasoning): a
- * blued receiver with the loading gate on the right, the exposed hammer, the top bolt that slides back on the cycle, a
- * 20" round barrel over a full-length magazine tube, a carbine barrel band, a walnut forend and a straight-grip walnut
- * stock with a steel butt plate, the loop lever, a semi-buckhorn rear sight and a gold-bead front blade. Four materials
- * ('lever-wood', 'lever-steel', 'lever-brass', + the flash), all on the viewmodels' shared lit program
- * (Crossbow.viewmodelMaterial) — the rifle compiles no program of its own. The walnut is the crossbow's texture, shared.
+ * The model (PH-C11 remaster) is modelled + baked in Blender (scripts/blender/weapons/: lever_rifle.py, run.sh) and loaded
+ * from `LEVER_MODEL_URL` (meshopt, WebP atlases; the phone tier's `.phone.glb` through tierUrl — ≈ 8 k tris + 1024²
+ * atlases desktop, ≈ 4 k + 512² phone): a colour-case-hardened receiver (the bolt in its top channel, the loading gate on
+ * the right), the hammer + spur, a round tapered barrel with a crowned muzzle over the magazine tube, the forend band and
+ * the carbine's barrel band, the loop lever, the trigger, the tangs, an oiled-walnut forend and straight-grip stock with a
+ * crescent buttplate, a semi-buckhorn rear sight on its base, the front ramp + blade (the gold bead stays this file's
+ * sphere, the aim reference). `preloadLeverModel()` (main.ts, awaited by the weapon step) fetches it; `?rifle=proc` — or a
+ * failed load — keeps the procedural build below (thin parts: image-to-3D mangles a 9 mm barrel and a lever loop). Either
+ * way the same parts (the static steel, the forend, the stock, the lever / hammer about their pivots, the bolt), the same
+ * seven draws and four materials ('lever-wood', 'lever-steel', 'lever-brass', + the flash), all on the viewmodels'
+ * shared lit program (Crossbow.viewmodelMaterial) — the rifle compiles no program of its own. The skins restyle it by
+ * those names. The cabin pickup (`displayModel`) draws with its own copies of the materials, so its orb's glow stays off
+ * the rifle in your hands.
  *
  * Action: TUBE_MAX rounds in the tube + one chambered (7 in the gun). A shot fires the chambered round (HITSCAN like
  * Rifle.ts, ×DAMAGE_SCALE the bolt model — a .30-30 hits hard) and drops the hammer; after CYCLE_DELAY the lever is thrown
@@ -44,8 +53,11 @@ import { SHADOW_LAYER } from '../core/shadowLayer';
 export interface LeverRifleOptions extends CrossbowOptions {
   /** take the muzzle flash's light from the scene's LightPool at boot (default) — Rifle.ts's reasoning */
   muzzleLight?: boolean;
-  /** a viewmodel to borrow the walnut from (the crossbow's 'xbow-wood' textures, shared on the GPU); absent = drawn here */
+  /** a viewmodel to borrow the walnut from (the crossbow's 'xbow-wood' textures, shared on the GPU); absent = drawn here.
+   *  The procedural build's only. */
   woodFrom?: THREE.Object3D | null;
+  /** the Blender model to build from; absent = whatever `preloadLeverModel()` has delivered, null = the procedural build */
+  model?: LeverModel | null;
 }
 
 export const TUBE_MAX = 6;
@@ -77,6 +89,9 @@ const RECV_F = -0.035, RECV_B = 0.14;
 const LEVER_PIVOT = new THREE.Vector3(0, -0.047, -0.018);
 const HAMMER_PIVOT = new THREE.Vector3(0, -0.006, 0.122);
 const GATE = new THREE.Vector3(0.0158, -0.024, 0.028);
+/** the Blender model's receiver is 16 mm shallower (a real 1894's proportions): its lever pivot and loading gate sit higher */
+const MODEL_LEVER_PIVOT = new THREE.Vector3(0, -0.031, -0.018);
+const MODEL_GATE = new THREE.Vector3(0.0158, -0.021, 0.028);
 const PORT = new THREE.Vector3(0.0, 0.026, 0.045);
 const BEAD_R = 0.0055;
 
@@ -111,6 +126,90 @@ export function feedRound(a: ActionState): ActionState {
   if (a.tube >= TUBE_MAX || a.reserve <= 0) return { ...a };
   return { ...a, tube: a.tube + 1, reserve: a.reserve - 1 };
 }
+
+// ───────────────────────────── the Blender model ─────────────────────────────
+
+/** scripts/blender/weapons/run.sh's output; the phone tier gets `lever-rifle.phone.glb` (tierUrl, the loaders' URL modifier) */
+export const LEVER_MODEL_URL = '/assets/pine-hollow/weapons/lever-rifle.glb';
+/** the GLB's meshes: the static steel, the forend, the stock (hidden sighted), the lever + hammer (each about its pivot), the bolt */
+const MODEL_PARTS = ['steel', 'forend', 'stock', 'lever', 'hammer', 'bolt'] as const;
+type ModelPart = (typeof MODEL_PARTS)[number];
+/** the loaded model: plain float geometry per part (model space, as the procedural build's) + the two atlases */
+export interface LeverModel { geo: Record<ModelPart, THREE.BufferGeometry>; steel: TexSet; wood: TexSet }
+let modelLoad: Promise<LeverModel | null> | null = null;
+let modelReady: LeverModel | null = null;
+
+/** `?rifle=proc` keeps the procedural lever-action (the fallback, and the before of the remaster board) */
+export function leverModelWanted(search: string = typeof location === 'undefined' ? '' : location.search): boolean {
+  return new URLSearchParams(search).get('rifle') !== 'proc';
+}
+
+/** Fetch + decode the Blender model once (main.ts starts it early; the weapon step awaits it). null = the procedural build. */
+export function preloadLeverModel(): Promise<LeverModel | null> {
+  if (!leverModelWanted()) return Promise.resolve(null);
+  modelLoad ??= new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(LEVER_MODEL_URL)
+    .then((gltf) => { modelReady = parseLeverModel(gltf.scene); return modelReady; })
+    .catch((e: unknown) => { console.warn('[lever-action] the Blender model did not load — the procedural build stands in:', e); return null; });
+  return modelLoad;
+}
+
+/** one GLB mesh as plain float geometry: meshopt's quantised streams decoded, its node's dequantising transform applied,
+ *  only what the viewmodel program reads (position, normal, uv; the colour attribute is added white by the constructor) */
+function plainGeometry(mesh: THREE.Mesh): THREE.BufferGeometry {
+  const src = mesh.geometry, g = new THREE.BufferGeometry();
+  const copy = (name: string, size: number): Float32Array => {
+    const a = src.getAttribute(name) as THREE.BufferAttribute | THREE.InterleavedBufferAttribute | undefined;
+    if (!a) throw new Error(`[lever-action] ${mesh.name}: no ${name}`);
+    const out = new Float32Array(a.count * size);
+    for (let i = 0; i < a.count; i++) {
+      out[i * size] = a.getX(i); out[i * size + 1] = a.getY(i);
+      if (size > 2) out[i * size + 2] = a.getZ(i);
+    }
+    return out;
+  };
+  g.setAttribute('position', new THREE.BufferAttribute(copy('position', 3), 3));
+  g.setAttribute('normal', new THREE.BufferAttribute(copy('normal', 3), 3));
+  g.setAttribute('uv', new THREE.BufferAttribute(copy('uv', 2), 2));
+  const idx = src.getIndex();
+  if (!idx) throw new Error(`[lever-action] ${mesh.name}: not indexed`);
+  g.setIndex(new THREE.BufferAttribute(Uint32Array.from(idx.array), 1));
+  mesh.updateWorldMatrix(true, false);
+  g.applyMatrix4(mesh.matrixWorld);
+  g.computeBoundingSphere();
+  src.dispose();
+  return g;
+}
+
+/** the atlas a GLB mesh's material carries: albedo, normal, ARM (the glTF's occlusion + metallic-roughness image) */
+function atlasOf(mesh: THREE.Mesh): TexSet {
+  const m = mesh.material;
+  if (Array.isArray(m) || !(m instanceof THREE.MeshStandardMaterial)) throw new Error(`[lever-action] ${mesh.name}: not a PBR material`);
+  const { map, normalMap, roughnessMap } = m;
+  if (map === null || normalMap === null || roughnessMap === null) throw new Error(`[lever-action] ${mesh.name}: an atlas map is missing`);
+  for (const t of [map, normalMap, roughnessMap]) { t.anisotropy = 8; t.needsUpdate = true; }
+  return { map, normalMap, armMap: roughnessMap };
+}
+
+function parseLeverModel(root: THREE.Object3D): LeverModel {
+  root.updateMatrixWorld(true);
+  const meshes = new Map<string, THREE.Mesh>();
+  root.traverse((o) => { if (isMesh(o)) meshes.set(o.name, o); });
+  const need = (p: ModelPart): THREE.Mesh => {
+    const m = meshes.get(p);
+    if (!m) throw new Error(`[lever-action] ${LEVER_MODEL_URL} has no mesh '${p}'`);
+    return m;
+  };
+  // the atlases first (plainGeometry disposes the GLB's own buffers)
+  const steel = atlasOf(need('steel')), wood = atlasOf(need('forend'));
+  const geo: Record<ModelPart, THREE.BufferGeometry> = {
+    steel: plainGeometry(need('steel')), forend: plainGeometry(need('forend')), stock: plainGeometry(need('stock')),
+    lever: plainGeometry(need('lever')), hammer: plainGeometry(need('hammer')), bolt: plainGeometry(need('bolt')),
+  };
+  return { geo, steel, wood };
+}
+
+/** a build's parts, in model space (the lever / hammer about their pivots) */
+interface LeverParts { wood: THREE.BufferGeometry; stock: THREE.BufferGeometry; steel: THREE.BufferGeometry; lever: THREE.BufferGeometry; hammer: THREE.BufferGeometry; bolt: THREE.BufferGeometry; leverPivot: THREE.Vector3; gate: THREE.Vector3 }
 
 export class LeverRifle implements KitWeapon {
   readonly id = 'rifle' as const;
@@ -156,6 +255,8 @@ export class LeverRifle implements KitWeapon {
 
   // parts
   private readonly stock: THREE.Mesh;
+  /** where the loading gate is (the cartridge's reload path aims at it) — the build's */
+  private readonly gate: THREE.Vector3;
   private readonly lever: THREE.Mesh; private readonly hammer: THREE.Mesh; private readonly bolt: THREE.Mesh; private readonly round: THREE.Mesh;
   private readonly flash = new THREE.Group(); private readonly flashQuads: THREE.Mesh[] = []; private readonly flashLight: THREE.PointLight;
   private flashFrames = 0; private flashLightT = 0;
@@ -189,132 +290,45 @@ export class LeverRifle implements KitWeapon {
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
 
     // ── materials: the viewmodels' shared lit program (MeshPhysical + vertex colours + the five map slots) ──
-    const wood = borrowWood(opts.woodFrom ?? null), steel = viewmodelTexSet('steel-rifle');
-    for (const t of [wood.map, wood.normalMap, wood.armMap]) t.repeat.set(1.6, 0.9);
-    for (const t of [steel.map, steel.normalMap, steel.armMap]) t.repeat.set(2, 2);
+    const model = opts.model !== undefined ? opts.model : modelReady;
     const std = (name: string, t: TexSet, extra: THREE.MeshPhysicalMaterialParameters) => viewmodelMaterial(this.sky, name, { map: t.map, normalMap: t.normalMap, aoMap: t.armMap, roughnessMap: t.armMap, metalnessMap: t.armMap, roughness: 1, metalness: 1, ...extra });
-    const woodMat = std('lever-wood', wood, { normalScale: new THREE.Vector2(0.8, 0.8), color: new THREE.Color(0.62, 0.47, 0.36), metalness: 0, roughness: 0.8, envMapIntensity: 0.5, specularIntensity: 0.45 });
-    const steelMat = std('lever-steel', steel, { normalScale: new THREE.Vector2(0.45, 0.45), color: new THREE.Color(0.1, 0.105, 0.12), roughness: 0.95, envMapIntensity: 0.7 });
-    this.brassMat = std('lever-brass', steel, { normalScale: new THREE.Vector2(0.25, 0.25), color: new THREE.Color(0.95, 0.7, 0.34), roughness: 0.75, envMapIntensity: 1.1 });
+    const steelTex = viewmodelTexSet('steel-rifle'); // the brass's (the cartridges' tiled UVs), and the procedural build's steel
+    for (const t of [steelTex.map, steelTex.normalMap, steelTex.armMap]) t.repeat.set(2, 2);
+    this.brassMat = std('lever-brass', steelTex, { normalScale: new THREE.Vector2(0.25, 0.25), color: new THREE.Color(0.95, 0.7, 0.34), roughness: 0.75, envMapIntensity: 1.1 });
+    let woodMat: THREE.MeshPhysicalMaterial, steelMat: THREE.MeshPhysicalMaterial, parts: LeverParts;
+    if (model) {
+      // the baked atlases carry the colour, the AO and the roughness / metalness: the factors stay 1 (the skins set theirs);
+      // glTF's v runs down the image, so the normal map's green is flipped (three's GLTFLoader does the same)
+      woodMat = std('lever-wood', model.wood, { normalScale: new THREE.Vector2(0.9, -0.9), envMapIntensity: 0.55, specularIntensity: 0.55 });
+      steelMat = std('lever-steel', model.steel, { normalScale: new THREE.Vector2(0.8, -0.8), envMapIntensity: 0.95 });
+      const g = model.geo;
+      parts = { wood: g.forend, stock: g.stock, steel: g.steel, lever: g.lever, hammer: g.hammer, bolt: g.bolt, leverPivot: MODEL_LEVER_PIVOT, gate: MODEL_GATE };
+    } else {
+      const wood = borrowWood(opts.woodFrom ?? null);
+      for (const t of [wood.map, wood.normalMap, wood.armMap]) t.repeat.set(1.6, 0.9);
+      woodMat = std('lever-wood', wood, { normalScale: new THREE.Vector2(0.8, 0.8), color: new THREE.Color(0.62, 0.47, 0.36), metalness: 0, roughness: 0.8, envMapIntensity: 0.5, specularIntensity: 0.45 });
+      steelMat = std('lever-steel', steelTex, { normalScale: new THREE.Vector2(0.45, 0.45), color: new THREE.Color(0.1, 0.105, 0.12), roughness: 0.95, envMapIntensity: 0.7 });
+      parts = proceduralParts();
+    }
+    this.gate = parts.gate;
 
-    const W: THREE.BufferGeometry[] = [], S: THREE.BufferGeometry[] = [], B: THREE.BufferGeometry[] = [];
-    let stockGeo: THREE.BufferGeometry;
-    // ── receiver: a flat-sided block, rounded on top at the back, the lower tang running back under the wrist ──
-    {
-      const sh = new THREE.Shape(); // x = forward (→ −Z), y = up
-      sh.moveTo(-RECV_F, 0.021);
-      sh.lineTo(-0.07, 0.021);
-      sh.quadraticCurveTo(-0.118, 0.021, -0.132, 0.008);
-      sh.lineTo(-RECV_B, -0.002);
-      sh.lineTo(-RECV_B - 0.05, -0.004); // upper tang
-      sh.lineTo(-RECV_B - 0.05, -0.012);
-      sh.lineTo(-RECV_B, -0.014);
-      sh.lineTo(-RECV_B, -0.046);
-      sh.lineTo(-RECV_B - 0.07, -0.05); // lower tang (the trigger plate)
-      sh.lineTo(-RECV_B - 0.07, -0.058);
-      sh.lineTo(-0.06, -0.056);
-      sh.quadraticCurveTo(-RECV_F + 0.004, -0.056, -RECV_F, -0.046);
-      sh.closePath();
-      const g = new THREE.ExtrudeGeometry(sh, { depth: 0.028, bevelEnabled: true, bevelThickness: 0.0018, bevelSize: 0.0016, bevelSegments: 2, curveSegments: 8 });
-      g.rotateY(Math.PI / 2); g.translate(-0.014, 0, 0);
-      S.push(g);
-    }
-    // the loading gate (right side), its screw, the side-plate screws, the saddle-ring stud (left)
-    S.push(box(0.0022, 0.017, 0.034, GATE.x, GATE.y, GATE.z));
-    for (const [y, z] of [[-0.008, 0.02], [-0.03, 0.095], [0.004, -0.02]] as const) for (const sx of [-1, 1]) S.push(cyl(0.0028, 0.0028, 0.002, 10, sx * 0.0156, y, z, 0, 0, Math.PI / 2));
-    // ── barrel (a little taper) + the muzzle crown; the magazine tube under it with its end cap ──
-    S.push(cyl(0.0098, 0.0089, RECV_F - MUZZLE_Z, 14, 0, 0, (RECV_F + MUZZLE_Z) / 2, Math.PI / 2, 0, 0)); // cyl's top end lands at +Z (the breech)
-    S.push(cyl(0.0094, 0.0094, 0.004, 14, 0, 0, MUZZLE_Z + 0.002, Math.PI / 2, 0, 0));
-    S.push(cyl(0.0079, 0.0079, 0.445, 12, 0, -0.0192, -0.26, Math.PI / 2, 0, 0));
-    S.push(cyl(0.0084, 0.0084, 0.012, 12, 0, -0.0192, -0.484, Math.PI / 2, 0, 0));
-    // the carbine barrel band (round over the barrel, round under the tube) and the forend cap
-    for (const [z, d] of [[-0.462, 0.011], [-0.272, 0.013]] as const) {
-      S.push(cyl(0.0112, 0.0112, d, 14, 0, 0, z, Math.PI / 2, 0, 0));
-      S.push(cyl(0.0101, 0.0101, d, 12, 0, -0.0192, z, Math.PI / 2, 0, 0));
-      S.push(box(0.0215, 0.0192, d, 0, -0.0096, z));
-    }
-    // ── the rear sight: a raised base, the semi-buckhorn leaf with its U notch and ears. The notch floor sits under the
-    //    sight line by the bead's radius as the eye sees it, so the whole gold bead sits ON the floor, its centre on the aim ──
-    {
-      S.push(box(0.011, 0.018, 0.03, 0, 0.0165, REAR_Z)); // the raised base
-      const floor = SIGHT_Y - BEAD_R * (EYE_Z - REAR_Z) / (EYE_Z - FRONT_Z);
-      const leafBot = 0.024, notchW = 0.0074, earTop = SIGHT_Y + 0.0065;
-      S.push(box(0.026, floor - leafBot, 0.0022, 0, (floor + leafBot) / 2, REAR_Z)); // up to the notch floor
-      for (const sx of [-1, 1]) {
-        const x0 = notchW / 2, x1 = 0.013;
-        S.push(box(x1 - x0, earTop - floor, 0.0022, sx * (x0 + x1) / 2, (earTop + floor) / 2, REAR_Z));
-        S.push(box(0.004, 0.006, 0.0022, sx * 0.0142, earTop + 0.0018, REAR_Z, 0, 0, sx * -0.55)); // the buckhorn's ear
-      }
-      S.push(box(0.012, 0.004, 0.018, 0, 0.0238, REAR_Z + 0.02)); // the elevator
-    }
-    // ── the front sight: a ramp, a blade, the gold bead on the sight line ──
-    S.push(box(0.008, 0.024, 0.032, 0, 0.02, FRONT_Z + 0.006, -0.12, 0, 0)); // the ramp
-    S.push(box(0.0028, SIGHT_Y - 0.03, 0.011, 0, (SIGHT_Y + 0.03) / 2, FRONT_Z)); // the blade
-    { const bead = new THREE.SphereGeometry(BEAD_R, 12, 10); bead.translate(0, SIGHT_Y, FRONT_Z - 0.0035); B.push(bead); }
-    // ── trigger + the lower tang's guard notch ──
-    { const trig = new THREE.TorusGeometry(0.014, 0.0026, 8, 12, Math.PI * 0.55); trig.rotateY(Math.PI / 2); trig.rotateX(Math.PI * 0.5); trig.translate(0, -0.056, 0.13); S.push(trig); }
-    // ── walnut: the forend (rounded section under the barrel + tube) and the straight-grip stock ──
-    {
-      const fw = 0.0175, fh = 0.019, fr = 0.009, fs = new THREE.Shape();
-      fs.moveTo(-fw + fr, -fh); fs.lineTo(fw - fr, -fh); fs.quadraticCurveTo(fw, -fh, fw, -fh + fr); fs.lineTo(fw, fh - 0.004); fs.lineTo(-fw, fh - 0.004); fs.lineTo(-fw, -fh + fr); fs.quadraticCurveTo(-fw, -fh, -fw + fr, -fh);
-      const fore = new THREE.ExtrudeGeometry(fs, { depth: 0.23, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.003, bevelSegments: 3, curveSegments: 6 });
-      fore.translate(0, -0.0165, -0.266); // z −0.266 … −0.036
-      W.push(fore);
-      const st = new THREE.Shape(); // x = forward (→ −Z), y = up
-      st.moveTo(-RECV_B + 0.002, -0.004);
-      st.lineTo(-0.2, 0.0);
-      st.quadraticCurveTo(-0.29, 0.004, -0.49, -0.012); // the comb falls a touch to the heel
-      st.lineTo(-0.5, -0.016);
-      st.lineTo(-0.5, -0.128);                           // the butt
-      st.lineTo(-0.47, -0.128);
-      st.quadraticCurveTo(-0.33, -0.088, -0.232, -0.06); // the belly up to the wrist
-      st.lineTo(-RECV_B - 0.066, -0.056);
-      st.lineTo(-RECV_B + 0.002, -0.046);
-      st.closePath();
-      const stock = new THREE.ExtrudeGeometry(st, { depth: 0.03, bevelEnabled: true, bevelThickness: 0.0055, bevelSize: 0.0045, bevelSegments: 3, curveSegments: 10 });
-      stock.rotateY(Math.PI / 2); stock.translate(-0.015, 0, 0);
-      stockGeo = stripExtra(stock);
-    }
-    // the steel butt plate, its two screws
-    S.push(box(0.04, 0.114, 0.006, 0, -0.072, 0.503));
-    for (const y of [-0.03, -0.11]) S.push(cyl(0.003, 0.003, 0.002, 10, 0, y, 0.507, Math.PI / 2, 0, 0));
-
-    const woodGeo = mergeGeometries(W.map(stripExtra), false); edgeWear(woodGeo, 0.22);
-    edgeWear(stockGeo, 0.22);
-    // the stock is its own draw: sighted, the wrist and comb sit under the eye (a flat brown plane across the view) — hidden
-    this.stock = new THREE.Mesh(stockGeo, woodMat);
-    const beadGeo = mergeGeometries(B.map(stripExtra), false);
-    // the gold bead catches the light: a vertex colour over 1 brightens it on the shared program (no emissive, no new draw)
+    // the gold bead (both builds): the aim reference, on the sight line; it catches the light — a vertex colour over 1
+    // brightens it on the shared program (no emissive, no new draw)
+    const beadGeo = new THREE.SphereGeometry(BEAD_R, 12, 10); beadGeo.translate(0, SIGHT_Y, FRONT_Z - 0.0035);
     beadGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(beadGeo.getAttribute('position').count * 3).fill(2.2), 3));
-    const meshW = new THREE.Mesh(woodGeo, woodMat), meshS = new THREE.Mesh(mergeGeometries(S.map(stripExtra), false), steelMat), meshB = new THREE.Mesh(beadGeo, this.brassMat);
+    // the stock is its own draw: sighted, the wrist and comb sit under the eye (a flat brown plane across the view) — hidden
+    this.stock = new THREE.Mesh(parts.stock, woodMat);
+    const meshW = new THREE.Mesh(parts.wood, woodMat), meshS = new THREE.Mesh(parts.steel, steelMat), meshB = new THREE.Mesh(beadGeo, this.brassMat);
     this.model.add(meshW, this.stock, meshS, meshB);
-
     // ── animated: the lever (in its pivot's frame), the hammer, the bolt, the cartridge being thumbed in ──
-    {
-      const L: THREE.BufferGeometry[] = [];
-      L.push(box(0.009, 0.0065, 0.108, 0, -0.004, 0.058)); // the bar under the receiver, pivot → the loop
-      const loop = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(0, -0.004, 0.105), new THREE.Vector3(0, -0.024, 0.118), new THREE.Vector3(0, -0.046, 0.142), new THREE.Vector3(0, -0.058, 0.18),
-        new THREE.Vector3(0, -0.052, 0.214), new THREE.Vector3(0, -0.036, 0.222), new THREE.Vector3(0, -0.02, 0.2), new THREE.Vector3(0, -0.006, 0.168),
-      ], false, 'catmullrom', 0.5);
-      L.push(new THREE.TubeGeometry(loop, 28, 0.0036, 8, false));
-      L.push(cyl(0.0052, 0.0052, 0.012, 12, 0, 0, 0, 0, 0, Math.PI / 2)); // the pivot boss
-      const leverGeo = mergeGeometries(L.map(stripExtra), false);
-      this.lever = new THREE.Mesh(leverGeo, steelMat); this.lever.position.copy(LEVER_PIVOT);
-      const H: THREE.BufferGeometry[] = [];
-      H.push(box(0.007, 0.03, 0.01, 0, 0.012, 0.004, -0.2, 0, 0));
-      H.push(box(0.009, 0.006, 0.02, 0, 0.028, 0.014, 0.35, 0, 0)); // the spur
-      for (let k = 0; k < 4; k++) H.push(box(0.0092, 0.0012, 0.0016, 0, 0.0312, 0.008 + k * 0.004, 0.35, 0, 0)); // chequering
-      const hammerGeo = mergeGeometries(H.map(stripExtra), false);
-      this.hammer = new THREE.Mesh(hammerGeo, steelMat); this.hammer.position.copy(HAMMER_PIVOT); this.hammer.rotation.x = HAMMER_COCKED;
-      const boltGeo = mergeGeometries([stripExtra(box(0.013, 0.0085, 0.075, 0, 0.0215, 0.068)), stripExtra(box(0.004, 0.003, 0.05, 0, 0.0265, 0.07))], false);
-      this.bolt = new THREE.Mesh(boltGeo, steelMat);
-      this.caseGeo = cartridgeGeometry(false);
-      this.round = new THREE.Mesh(cartridgeGeometry(true), this.brassMat); this.round.visible = false;
-      this.model.add(this.lever, this.hammer, this.bolt, this.round);
-      this.displayParts.push({ geo: woodGeo, mat: woodMat }, { geo: stockGeo, mat: woodMat }, { geo: meshS.geometry, mat: steelMat }, { geo: meshB.geometry, mat: this.brassMat },
-        { geo: leverGeo, mat: steelMat, pos: LEVER_PIVOT.clone() }, { geo: hammerGeo, mat: steelMat, pos: HAMMER_PIVOT.clone(), rot: new THREE.Euler(HAMMER_DOWN, 0, 0) }, { geo: boltGeo, mat: steelMat });
-    }
+    this.lever = new THREE.Mesh(parts.lever, steelMat); this.lever.position.copy(parts.leverPivot);
+    this.hammer = new THREE.Mesh(parts.hammer, steelMat); this.hammer.position.copy(HAMMER_PIVOT); this.hammer.rotation.x = HAMMER_COCKED;
+    this.bolt = new THREE.Mesh(parts.bolt, steelMat);
+    this.caseGeo = cartridgeGeometry(false);
+    this.round = new THREE.Mesh(cartridgeGeometry(true), this.brassMat); this.round.visible = false;
+    this.model.add(this.lever, this.hammer, this.bolt, this.round);
+    this.displayParts.push({ geo: parts.wood, mat: woodMat }, { geo: parts.stock, mat: woodMat }, { geo: parts.steel, mat: steelMat }, { geo: beadGeo, mat: this.brassMat },
+      { geo: parts.lever, mat: steelMat, pos: parts.leverPivot.clone() }, { geo: parts.hammer, mat: steelMat, pos: HAMMER_PIVOT.clone(), rot: new THREE.Euler(HAMMER_DOWN, 0, 0) }, { geo: parts.bolt, mat: steelMat });
 
     // ── muzzle flash: two additive quads (Rifle.ts's sprite), the pooled light ──
     const flashMat = new THREE.MeshBasicMaterial({ map: makeFlashTexture(), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, toneMapped: false, fog: false, side: THREE.DoubleSide });
@@ -470,11 +484,21 @@ export class LeverRifle implements KitWeapon {
     if (surface) { this.puffs.emit(point, _d, surface); this.onImpact?.(surface, point); }
   }
 
-  /** A world-space copy for the cabin pickup / the skin drops: the same geometry + materials (one program), hammer down. */
+  /** A world-space copy for the cabin pickup / the skin drops: the same geometry, its own copies of the materials (one
+   *  program), hammer down. */
   displayModel(): THREE.Group {
     // one mesh per material (PINE-HOLLOW PH-P2): the seven parts were 7 draws + 7 per shadow cascade wherever the pickup
-    // was in range; the posed parts are baked into their material's geometry (the same triangles, the same materials)
+    // was in range; the posed parts are baked into their material's geometry (the same triangles)
     const g = new THREE.Group();
+    // the copy's own materials (PH-C11): the pickup orb tints its item's materials, and on shared ones the glow sat on the
+    // rifle in your hands until the orb was taken. A clone is the same program: the dfg fix's group and the sky's CSM
+    // hooks re-applied, as a skin's clones (Skins.cloneWith)
+    const own = new Map<THREE.Material, THREE.Material>();
+    const copyOf = (m: THREE.Material): THREE.Material => {
+      let c = own.get(m);
+      if (!c) { c = m.clone(); c.name = m.name; fixIBL(c, VIEWMODEL_GROUP); this.sky.setupMaterial(c); own.set(m, c); }
+      return c;
+    };
     const byMat = new Map<THREE.Material, THREE.BufferGeometry[]>();
     const xf = new THREE.Matrix4(), quat = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1);
     for (const { geo, mat, pos, rot } of this.displayParts) {
@@ -487,7 +511,7 @@ export class LeverRifle implements KitWeapon {
     for (const [mat, parts] of byMat) {
       const merged = parts.length > 1 ? mergeGeometries(parts, false) : parts[0] ?? null;
       for (const geo of merged === null ? parts : [merged]) {
-        const m = new THREE.Mesh(geo, mat);
+        const m = new THREE.Mesh(geo, copyOf(mat));
         m.castShadow = false; m.receiveShadow = true;
         g.add(m);
         const p = new THREE.BufferGeometry(); p.setAttribute('position', geo.getAttribute('position')); p.setIndex(geo.getIndex());
@@ -684,9 +708,114 @@ export class LeverRifle implements KitWeapon {
     const k = (inT % ROUND_TIME) / ROUND_TIME;
     this.round.visible = k < 0.8;
     const approach = sstep(0, 0.45, k), push = sstep(0.45, 0.8, k);
-    this.round.position.set(GATE.x + 0.03 * (1 - approach) + 0.003, GATE.y - 0.03 * (1 - approach), GATE.z + 0.03 + 0.05 * (1 - approach) - push * 0.05);
+    const gate = this.gate;
+    this.round.position.set(gate.x + 0.03 * (1 - approach) + 0.003, gate.y - 0.03 * (1 - approach), gate.z + 0.03 + 0.05 * (1 - approach) - push * 0.05);
     this.round.rotation.set(0, -0.35 * (1 - approach), 0);
   }
+}
+
+/** The procedural lever-action (the build before the Blender model; `?rifle=proc`, or the model failed to load) */
+function proceduralParts(): LeverParts {
+  const W: THREE.BufferGeometry[] = [], S: THREE.BufferGeometry[] = [];
+  let stockGeo: THREE.BufferGeometry;
+  // ── receiver: a flat-sided block, rounded on top at the back, the lower tang running back under the wrist ──
+  {
+    const sh = new THREE.Shape(); // x = forward (→ −Z), y = up
+    sh.moveTo(-RECV_F, 0.021);
+    sh.lineTo(-0.07, 0.021);
+    sh.quadraticCurveTo(-0.118, 0.021, -0.132, 0.008);
+    sh.lineTo(-RECV_B, -0.002);
+    sh.lineTo(-RECV_B - 0.05, -0.004); // upper tang
+    sh.lineTo(-RECV_B - 0.05, -0.012);
+    sh.lineTo(-RECV_B, -0.014);
+    sh.lineTo(-RECV_B, -0.046);
+    sh.lineTo(-RECV_B - 0.07, -0.05); // lower tang (the trigger plate)
+    sh.lineTo(-RECV_B - 0.07, -0.058);
+    sh.lineTo(-0.06, -0.056);
+    sh.quadraticCurveTo(-RECV_F + 0.004, -0.056, -RECV_F, -0.046);
+    sh.closePath();
+    const g = new THREE.ExtrudeGeometry(sh, { depth: 0.028, bevelEnabled: true, bevelThickness: 0.0018, bevelSize: 0.0016, bevelSegments: 2, curveSegments: 8 });
+    g.rotateY(Math.PI / 2); g.translate(-0.014, 0, 0);
+    S.push(g);
+  }
+  // the loading gate (right side), its screw, the side-plate screws, the saddle-ring stud (left)
+  S.push(box(0.0022, 0.017, 0.034, GATE.x, GATE.y, GATE.z));
+  for (const [y, z] of [[-0.008, 0.02], [-0.03, 0.095], [0.004, -0.02]] as const) for (const sx of [-1, 1]) S.push(cyl(0.0028, 0.0028, 0.002, 10, sx * 0.0156, y, z, 0, 0, Math.PI / 2));
+  // ── barrel (a little taper) + the muzzle crown; the magazine tube under it with its end cap ──
+  S.push(cyl(0.0098, 0.0089, RECV_F - MUZZLE_Z, 14, 0, 0, (RECV_F + MUZZLE_Z) / 2, Math.PI / 2, 0, 0)); // cyl's top end lands at +Z (the breech)
+  S.push(cyl(0.0094, 0.0094, 0.004, 14, 0, 0, MUZZLE_Z + 0.002, Math.PI / 2, 0, 0));
+  S.push(cyl(0.0079, 0.0079, 0.445, 12, 0, -0.0192, -0.26, Math.PI / 2, 0, 0));
+  S.push(cyl(0.0084, 0.0084, 0.012, 12, 0, -0.0192, -0.484, Math.PI / 2, 0, 0));
+  // the carbine barrel band (round over the barrel, round under the tube) and the forend cap
+  for (const [z, d] of [[-0.462, 0.011], [-0.272, 0.013]] as const) {
+    S.push(cyl(0.0112, 0.0112, d, 14, 0, 0, z, Math.PI / 2, 0, 0));
+    S.push(cyl(0.0101, 0.0101, d, 12, 0, -0.0192, z, Math.PI / 2, 0, 0));
+    S.push(box(0.0215, 0.0192, d, 0, -0.0096, z));
+  }
+  // ── the rear sight: a raised base, the semi-buckhorn leaf with its U notch and ears. The notch floor sits under the
+  //    sight line by the bead's radius as the eye sees it, so the whole gold bead sits ON the floor, its centre on the aim ──
+  {
+    S.push(box(0.011, 0.018, 0.03, 0, 0.0165, REAR_Z)); // the raised base
+    const floor = SIGHT_Y - BEAD_R * (EYE_Z - REAR_Z) / (EYE_Z - FRONT_Z);
+    const leafBot = 0.024, notchW = 0.0074, earTop = SIGHT_Y + 0.0065;
+    S.push(box(0.026, floor - leafBot, 0.0022, 0, (floor + leafBot) / 2, REAR_Z)); // up to the notch floor
+    for (const sx of [-1, 1]) {
+      const x0 = notchW / 2, x1 = 0.013;
+      S.push(box(x1 - x0, earTop - floor, 0.0022, sx * (x0 + x1) / 2, (earTop + floor) / 2, REAR_Z));
+      S.push(box(0.004, 0.006, 0.0022, sx * 0.0142, earTop + 0.0018, REAR_Z, 0, 0, sx * -0.55)); // the buckhorn's ear
+    }
+    S.push(box(0.012, 0.004, 0.018, 0, 0.0238, REAR_Z + 0.02)); // the elevator
+  }
+  // ── the front sight: a ramp, a blade, the gold bead on the sight line ──
+  S.push(box(0.008, 0.024, 0.032, 0, 0.02, FRONT_Z + 0.006, -0.12, 0, 0)); // the ramp
+  S.push(box(0.0028, SIGHT_Y - 0.03, 0.011, 0, (SIGHT_Y + 0.03) / 2, FRONT_Z)); // the blade
+  // ── trigger + the lower tang's guard notch ──
+  { const trig = new THREE.TorusGeometry(0.014, 0.0026, 8, 12, Math.PI * 0.55); trig.rotateY(Math.PI / 2); trig.rotateX(Math.PI * 0.5); trig.translate(0, -0.056, 0.13); S.push(trig); }
+  // ── walnut: the forend (rounded section under the barrel + tube) and the straight-grip stock ──
+  {
+    const fw = 0.0175, fh = 0.019, fr = 0.009, fs = new THREE.Shape();
+    fs.moveTo(-fw + fr, -fh); fs.lineTo(fw - fr, -fh); fs.quadraticCurveTo(fw, -fh, fw, -fh + fr); fs.lineTo(fw, fh - 0.004); fs.lineTo(-fw, fh - 0.004); fs.lineTo(-fw, -fh + fr); fs.quadraticCurveTo(-fw, -fh, -fw + fr, -fh);
+    const fore = new THREE.ExtrudeGeometry(fs, { depth: 0.23, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.003, bevelSegments: 3, curveSegments: 6 });
+    fore.translate(0, -0.0165, -0.266); // z −0.266 … −0.036
+    W.push(fore);
+    const st = new THREE.Shape(); // x = forward (→ −Z), y = up
+    st.moveTo(-RECV_B + 0.002, -0.004);
+    st.lineTo(-0.2, 0.0);
+    st.quadraticCurveTo(-0.29, 0.004, -0.49, -0.012); // the comb falls a touch to the heel
+    st.lineTo(-0.5, -0.016);
+    st.lineTo(-0.5, -0.128);                           // the butt
+    st.lineTo(-0.47, -0.128);
+    st.quadraticCurveTo(-0.33, -0.088, -0.232, -0.06); // the belly up to the wrist
+    st.lineTo(-RECV_B - 0.066, -0.056);
+    st.lineTo(-RECV_B + 0.002, -0.046);
+    st.closePath();
+    const stock = new THREE.ExtrudeGeometry(st, { depth: 0.03, bevelEnabled: true, bevelThickness: 0.0055, bevelSize: 0.0045, bevelSegments: 3, curveSegments: 10 });
+    stock.rotateY(Math.PI / 2); stock.translate(-0.015, 0, 0);
+    stockGeo = stripExtra(stock);
+  }
+  // the steel butt plate, its two screws
+  S.push(box(0.04, 0.114, 0.006, 0, -0.072, 0.503));
+  for (const y of [-0.03, -0.11]) S.push(cyl(0.003, 0.003, 0.002, 10, 0, y, 0.507, Math.PI / 2, 0, 0));
+
+  const woodGeo = mergeGeometries(W.map(stripExtra), false); edgeWear(woodGeo, 0.22);
+  edgeWear(stockGeo, 0.22);
+  const steelGeo = mergeGeometries(S.map(stripExtra), false);
+  const L: THREE.BufferGeometry[] = [];
+  L.push(box(0.009, 0.0065, 0.108, 0, -0.004, 0.058)); // the bar under the receiver, pivot → the loop
+  const loop = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0, -0.004, 0.105), new THREE.Vector3(0, -0.024, 0.118), new THREE.Vector3(0, -0.046, 0.142), new THREE.Vector3(0, -0.058, 0.18),
+    new THREE.Vector3(0, -0.052, 0.214), new THREE.Vector3(0, -0.036, 0.222), new THREE.Vector3(0, -0.02, 0.2), new THREE.Vector3(0, -0.006, 0.168),
+  ], false, 'catmullrom', 0.5);
+  L.push(new THREE.TubeGeometry(loop, 28, 0.0036, 8, false));
+  L.push(cyl(0.0052, 0.0052, 0.012, 12, 0, 0, 0, 0, 0, Math.PI / 2)); // the pivot boss
+  const leverGeo = mergeGeometries(L.map(stripExtra), false);
+  const H: THREE.BufferGeometry[] = [];
+  H.push(box(0.007, 0.03, 0.01, 0, 0.012, 0.004, -0.2, 0, 0));
+  H.push(box(0.009, 0.006, 0.02, 0, 0.028, 0.014, 0.35, 0, 0)); // the spur
+  for (let k = 0; k < 4; k++) H.push(box(0.0092, 0.0012, 0.0016, 0, 0.0312, 0.008 + k * 0.004, 0.35, 0, 0)); // chequering
+  const hammerGeo = mergeGeometries(H.map(stripExtra), false);
+  const boltGeo = mergeGeometries([stripExtra(box(0.013, 0.0085, 0.075, 0, 0.0215, 0.068)), stripExtra(box(0.004, 0.003, 0.05, 0, 0.0265, 0.07))], false);
+  return { wood: woodGeo, stock: stockGeo, steel: steelGeo, lever: leverGeo, hammer: hammerGeo, bolt: boltGeo, leverPivot: LEVER_PIVOT, gate: GATE };
 }
 
 /** a .30-30 cartridge (tip at −Z, 6.8 cm long); `live` has the bullet, an empty is the case alone */

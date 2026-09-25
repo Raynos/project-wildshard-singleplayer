@@ -336,6 +336,8 @@ export const PUBLIC_BYTES = {
   "/assets/pine-hollow/creatures/elk-bull.rigged.glb": 485516,
   "/assets/pine-hollow/creatures/elk-cow.phone.rigged.glb": 199684,
   "/assets/pine-hollow/creatures/elk-cow.rigged.glb": 375380,
+  "/assets/pine-hollow/weapons/lever-rifle.glb": 713536,
+  "/assets/pine-hollow/weapons/lever-rifle.phone.glb": 253348,
   "/assets/sfx/best/bear_growl-3-f91d7740.m4a": 15123,
   "/assets/sfx/best/bear_hurt-1-43b45d1e.m4a": 17420,
   "/assets/sfx/best/bear_hurt-3-3aea6172.m4a": 13190,

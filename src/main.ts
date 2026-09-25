@@ -42,7 +42,7 @@ import { Props } from './world/Props';
 import { AnimalManager } from './entities/AnimalManager';
 import { Crossbow, startViewmodelTextures, viewmodelTexturesReady, type Targets, type TargetHit } from './player/Crossbow';
 import { Rifle } from './player/Rifle';
-import { LeverRifle } from './player/LeverRifle';
+import { LeverRifle, preloadLeverModel } from './player/LeverRifle';
 import { Longbow } from './player/Longbow';
 import { WeaponStrip } from './ui/WeaponStrip';
 import { Weapons, type WeaponId } from './player/Weapons';
@@ -144,6 +144,7 @@ async function main() {
   prefetchAfter(extraFetches(files), packStreamed);
   const menuLoad = startMenuPreload(files, getActiveChunk()), audioLoad = startAudioPreload(files, getActiveChunk());
   startViewmodelTextures(getActiveChunk().weapon !== 'sword'); // the crossbow's + rifle's textures, drawn in a worker while the world builds
+  if (getActiveChunk().slug === 'pine-hollow') void preloadLeverModel(); // the lever-action's Blender model (PH-C11), fetched while the world builds
   const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk, registry } = world;
   // a static builder into the world registry (PHYSICS P2b): drawn, collides (its boxes as ColliderDescs), and until P4
@@ -351,7 +352,7 @@ async function main() {
   if (dayNight) onSettingChange('time', (t) => { dayNight.setTime(t); }); // pause menu ▸ Settings ▸ Time of day (E55)
 
   // ── player kit: the shard's weapon + the AR-15 (Weapons.ts: 1 / 2 / Q, touch SWAP; the rifle is a cabin pickup), HUD, audio ──
-  await step('weapon', () => viewmodelTexturesReady()); // the viewmodels' textures from the worker (usually long done); the build below is synchronous
+  await step('weapon', () => Promise.all([viewmodelTexturesReady(), chunk.slug === 'pine-hollow' ? preloadLeverModel() : null])); // the viewmodels' textures from the worker + the lever-action's model (usually long done); the build below is synchronous
   const targets: Targets = {
     raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null {
       const h = animals.raycast(origin, dir, maxDist);
@@ -484,7 +485,7 @@ async function main() {
     const site = CABIN_SITES[0]; if (!site || !cabins) return null;
     const lx = 1.5, lz = -1.6, c = Math.cos(site.rot), sn = Math.sin(site.rot);
     const x = site.x + lx * c + lz * sn, z = site.z - lx * sn + lz * c;
-    const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position: new THREE.Vector3(x, cabins.floorHeightAt(x, z) ?? heightAt(x, z), z), tier: 'common', prompt: isPine ? 'Take the lever-action' : 'Take AR-15' });
+    const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position: new THREE.Vector3(x, cabins.floorHeightAt(x, z) ?? heightAt(x, z), z), tier: 'common', prompt: isPine ? 'Take the lever-action' : 'Take AR-15', ...(isPine ? { scale: 1.3 } : {}) }); // the lever-action is slim: bigger, it fills its orb
     interactables.push(drop.interactable);
     drop.onNear = (inside) => audio.pickupHum(inside); // the orb hums while you stand in its prompt radius
     drop.onPickup = () => { weapons.unlock('rifle'); weapons.select('rifle'); audio.hitMarker(); music.sting('pickup'); hud.toast(isPine ? 'Lever-action rifle acquired · 1/2 to switch, Q to swap, R feeds the tube' : 'AR-15 acquired · 1/2 to switch, Q to swap'); };
