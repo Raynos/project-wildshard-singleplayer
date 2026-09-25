@@ -22,7 +22,7 @@ Each row names where it came from (the remaster lane that left it) so the next a
 | F-J1 | **An iPhone reading** (Low Power Mode off): Pine Hollow's locked 30 fps at the gate / cabin / pond / hamlet / lookout / King's clearing (headless says 100 % of frames at 33.3 ms; the phone is the truth) |
 | F-J2 | **A listen**: the new music (calm-night, the Antler King's 3 phases, the dawn sting) and the SFX / barks on `art/music/round-3-pine-hollow/index.html` — every pick there was made by the automatic rankers; veto any slot |
 | F-J3 | **Mott the trader's voice**: the sound lane voiced the trader as a woman while the name and the model read as a man — keep or re-roll |
-| F-J4 | **The app icon + splash from the new art**: the hero lane re-made the native icon (the Antler King's skull + ribcage, was the painted cabin / sunset) and splash screens in 7dbbf32 — reverted in 02ae476 because it changes the whole app, not just Pine Hollow (Jake's taste call). `git revert 02ae476` brings it back; it also fixes scripts/native-icons.py's moved source paths |
+| F-J4 | ~~The app icon + splash from the new art~~ — **closed** 2026-09-25, Jake: keep the painted cabin (7dbbf32 stays reverted by 02ae476) |
 
 ## Look (from the look loop, crags, trees and water lanes)
 
