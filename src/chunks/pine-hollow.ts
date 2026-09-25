@@ -1,6 +1,6 @@
 /**
  * Pine Hollow — the first shard: a boreal Scots-pine forest on grid (+3, −2). World layout v2 = Map D, layout A (Jake's
- * pick, docs/plans/PINE-HOLLOW-REMASTER.md §4): the granite Ridge along the north edge with the fire lookout and the
+ * pick, project/archive/2026-09-25-pine-hollow-remaster.md §4): the granite Ridge along the north edge with the fire lookout and the
  * waterfall into the Still pond, the Den in the NW corner, the Old-growth and the King's clearing in the west, the creek
  * running SE from the pond to the Mill hamlet, and the Hollow with its cabins and the crossroads at the centre. Every
  * coordinate lives in ./pineHollowLayout.ts (+z north, +x WEST — see its header). Golden-hour sunset sky.

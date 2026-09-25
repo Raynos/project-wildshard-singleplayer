@@ -1,6 +1,6 @@
 # Pine Hollow — the mega remaster (graduate Pine Hollow out of experimental)
 
-**State:** `in progress` 2026-09-25 — every build row is done and every board is picked (look signed off PH-U34, render fix A PH-U35); the branch is level with origin/main (9145951 + 71166d6). tsc / oxlint / check-css / build / vitest 509 green, 0 stuck on 27 walk legs, all three shards boot with 0 errors. PH-S1 (the in-engine hero art) is built: wired A + A, the Antler King at night; Jake picks on `art/hero-images/round-4-pine-hollow-in-engine/board.jpg`. Open: the merge to main on Jake's go. Follow-ups parked in PINE-HOLLOW-FOLLOWUPS.md.
+**State:** `archived` 2026-09-25 (finished 2026-09-25) — every row built or moved out by Jake (PH-U32), every board picked (PH-U1…U35), the in-engine hero art wired (S1: the Antler King at night). Landed on main by fast-forward (the branch had main merged in: Nalati v0.3.0 + main through 48740dc). tsc / oxlint / check-css / build / vitest 509 green, 0 stuck on 27 walk legs, all three shards boot with 0 errors. Every leftover is a row in **docs/plans/PINE-HOLLOW-FOLLOWUPS.md** (draft, approved none), not a queue here.
 
 ## 0. Why, and the finish line
 

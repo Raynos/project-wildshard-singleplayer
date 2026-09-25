@@ -243,7 +243,7 @@ back 2:3 and squashed the frame).
 
 ### Pine Hollow remaster boards B1–B4 (`art/pine-hollow/round-1..4-*/`, 2026-09-24, PH-0.6)
 
-Jake's four pre-build decision boards for `docs/plans/PINE-HOLLOW-REMASTER.md` §2. All are photoreal codex image_gen edits of real
+Jake's four pre-build decision boards for `project/archive/2026-09-25-pine-hollow-remaster.md` §2. All are photoreal codex image_gen edits of real
 captures from the worktree dev server (:5176): a top-down god-camera shot (`round-1-map/capture-today-top-down.jpg`, north up
 per the HUD compass) and an iPhone 16 Pro portrait frame with the real touch HUD (`round-4-journal-ui/capture-iphone16pro-hollow-cabin.jpg`).
 - `round-1-map/board.jpg` **B1 Map D layout**: **A** `A-ridge-north.jpg` ridge along the north, old-growth west, hamlet SE;

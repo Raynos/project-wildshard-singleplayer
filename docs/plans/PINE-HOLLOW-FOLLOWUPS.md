@@ -22,6 +22,7 @@ Each row names where it came from (the remaster lane that left it) so the next a
 | F-J1 | **An iPhone reading** (Low Power Mode off): Pine Hollow's locked 30 fps at the gate / cabin / pond / hamlet / lookout / King's clearing (headless says 100 % of frames at 33.3 ms; the phone is the truth) |
 | F-J2 | **A listen**: the new music (calm-night, the Antler King's 3 phases, the dawn sting) and the SFX / barks on `art/music/round-3-pine-hollow/index.html` — every pick there was made by the automatic rankers; veto any slot |
 | F-J3 | **Mott the trader's voice**: the sound lane voiced the trader as a woman while the name and the model read as a man — keep or re-roll |
+| F-J4 | **The app icon + splash from the new art**: the hero lane re-made the native icon (the Antler King's skull + ribcage, was the painted cabin / sunset) and splash screens in 7dbbf32 — reverted in 02ae476 because it changes the whole app, not just Pine Hollow (Jake's taste call). `git revert 02ae476` brings it back; it also fixes scripts/native-icons.py's moved source paths |
 
 ## Look (from the look loop, crags, trees and water lanes)
 
@@ -33,6 +34,7 @@ Each row names where it came from (the remaster lane that left it) so the next a
 | F-L4 | Grass trample (Nalati's `GrassTrample` is on main now) | look loop |
 | F-L5 | Weather extras: rain on the lens, splashes at the feet, puddles off the trails, the cave mouth masked from rain | weather lane |
 | F-L6 | The beaver pool doesn't visibly drain in the dam puzzle (pond and creek share one water level) | quest lane |
+| F-L7 | Under `weather=fog` the Antler King turns pale ghost-white (the fog laid over his material) — likely a bug in the fog / selfLight mix | hero lane (`art/hero-images/round-4-pine-hollow-in-engine/README.md`) |
 
 ## Models and animation (from the creatures, polish, loadout and assets lanes)
 
@@ -53,5 +55,6 @@ Each row names where it came from (the remaster lane that left it) so the next a
 |---|---|---|
 | F-A1 | The ambience beds are short loops (8–16 s; the cabin fire 8 s) — longer takes if they read repetitive | sound lane |
 | F-U1 | The Explore map's pin tags overlap in the hamlet / Den / pond clusters (the in-game MAP tab is fixed) | verify lane |
+| F-U2 | Touch HUD: on Pine Hollow with the crossbow the AIM disc overlaps DODGE (main's layout after E119) — main's own ask **N25** (`docs/tasks/asks/N25.md`) | the Nalati HUD agent |
 | F-P1 | Load: 36.01 MiB phone cold vs the 37 MiB row; the one big lever left is the two unselected music styles (3.85 MiB) — Jake kept them (PH-U33); others: Nalati code out of the main bundle (+0.34 MiB), glTF geometry compression (~0.25 MiB) | verify lane |
 | F-P2 | The shared machine was too loaded for a clean desktop 60 fps reading after the render fix — one quiet desktop run | render-fix lane |

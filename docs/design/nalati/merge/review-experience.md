@@ -296,7 +296,7 @@ Nalati also has.
 - **Driftwood only** (`main.ts:555, 571`, gated on `sea`): `IslandAmbience.ts` (9 zones, a surf line emitter, generated
   reverb rooms, an unused `onZone` hook for music), `IslandSfx.ts` + `Voices.ts` (surface footsteps and combat sounds
   rendered from code), `ShrineHum.ts`.
-- **Pine Hollow:** the `pine` theme in each style and one forest bed. Main's draft `docs/plans/PINE-HOLLOW-REMASTER.md`
+- **Pine Hollow:** the `pine` theme in each style and one forest bed. Main's draft `project/archive/2026-09-25-pine-hollow-remaster.md`
   proposes slots calm-day / calm-night / tension / boss / storm / dawn sting. **Nalati should use the same slot names.**
 
 ### What Nalati has

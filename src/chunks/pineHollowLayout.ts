@@ -1,5 +1,5 @@
 /**
- * Pine Hollow world layout v2 — Map D, layout A "the ridge north" (docs/plans/PINE-HOLLOW-REMASTER.md §2 B1 / §4, Jake's
+ * Pine Hollow world layout v2 — Map D, layout A "the ridge north" (project/archive/2026-09-25-pine-hollow-remaster.md §2 B1 / §4, Jake's
  * pick: art/pine-hollow/round-1-map/A-ridge-north.jpg). Every coordinate of the shard as plain data with NO imports, so the
  * chunk def (src/chunks/pine-hollow.ts), the placers, the fauna and the walk check (scripts/pine-hollow-walkcheck.mjs) read
  * one source. No Pine Hollow position is hard-coded anywhere else.
