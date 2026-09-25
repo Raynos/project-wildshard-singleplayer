@@ -51,10 +51,11 @@ for id in fir_bark metasequoia_bark birch_bark bark_willow_02; do
   magick "$BUILD/tex/$id/diffuse.png" -quality 86 "public/assets/tex/$id/diffuse.jpg"
   magick "$BUILD/tex/$id/nor_gl.png" -quality 88 -sampling-factor 1x1 "public/assets/tex/$id/nor_gl.jpg"
   magick "$BUILD/tex/$id/arm.png" -quality 86 "public/assets/tex/$id/arm.jpg"
-  # the phone's copies (scripts/tex-tiers.mjs's settings; not run here: it prunes other lanes' phone copies)
-  cwebp -quiet -q 75 -sharp_yuv "$BUILD/tex/$id/diffuse.png" -o "public/assets/tex/$id/diffuse.phone.webp"
-  cwebp -quiet -q 80 "$BUILD/tex/$id/nor_gl.png" -o "public/assets/tex/$id/nor_gl.phone.webp"
-  magick "$BUILD/tex/$id/arm.png" -resize 512x512 "$BUILD/tex/$id/arm.half.png"
-  cwebp -quiet -q 75 "$BUILD/tex/$id/arm.half.png" -o "public/assets/tex/$id/arm.phone.webp"
+  # the phone's copies at 512² — the phone's bark array layer size (TIER_CONFIG.layerSize): no texel downloaded to be
+  # scaled away (scripts/tex-tiers.mjs is not run here: it prunes other lanes' phone copies)
+  for k in diffuse nor_gl arm; do
+    magick "$BUILD/tex/$id/$k.png" -resize 512x512 "$BUILD/tex/$id/$k.half.png"
+    cwebp -quiet -q "$([ $k = nor_gl ] && echo 82 || echo 76)" -sharp_yuv "$BUILD/tex/$id/$k.half.png" -o "public/assets/tex/$id/$k.phone.webp"
+  done
 done
 ls -la "$DEST"

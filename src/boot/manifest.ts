@@ -15,6 +15,8 @@ import { PUBLIC_BYTES } from './bytes.generated';
 import { RAPIER_WASM_URL } from '../physics/wasmUrl';
 import { navmeshUrl } from '../physics/navmeshUrl';
 import { pineHeroUrls } from '../world/pineHero';
+import { treeSetOf } from '../world/placement';
+import { BARK_LAYERS, treeSetFiles } from '../world/treeSet';
 import { pineSkyKeyUrls } from '../world/pineSkyKeys';
 import { PINE_CREATURE_RIGS, pineCreatureRigUrl } from '../entities/pineCreatureRigs';
 
@@ -27,7 +29,10 @@ export function chunkFiles(def: ChunkDef): ChunkFiles {
   const baked = bakedTerrainUrl(def.slug); // scripts/bake-chunk.mjs output, when the build has one
   const terrain = uniq([...(baked ? [baked] : []), ...[...def.assets.groundLayers, def.assets.slabRock].flatMap(pbr)]);
   const cards = bakedCardUrls(def.slug); // scripts/bake-cards.mjs output, when the build has it
-  const trees = uniq([...(cards ? Object.values(cards) : []), ...pbr(def.trees.bark), `/assets/tex/${def.trees.twigAtlas}/twig_rgba.png`, `/assets/tex/${def.trees.twigAtlas}/twig_nor_gl.jpg`, `/assets/tex/${def.trees.twigAtlas}/twig_arm.jpg`]);
+  const set = treeSetOf(def.trees, (u) => u in PUBLIC_BYTES); // PH-B4: the Blender species set (?trees=v1: the runtime pines)
+  const trees = set
+    ? uniq([...treeSetFiles(set), ...BARK_LAYERS.flatMap(pbr)])
+    : uniq([...(cards ? Object.values(cards) : []), ...pbr(def.trees.bark), `/assets/tex/${def.trees.twigAtlas}/twig_rgba.png`, `/assets/tex/${def.trees.twigAtlas}/twig_nor_gl.jpg`, `/assets/tex/${def.trees.twigAtlas}/twig_arm.jpg`]);
   const cabins = uniq([
     ...['wood_trunk_wall', 'wood_planks_grey', 'wood_planks_dirt', 'rough_pine_door', 'stone_wall'].flatMap(pbr),
     ...['stone_fire_pit', 'wooden_crate_02', 'wine_barrel_01', 'wooden_bucket_01', 'hatchet'].flatMap(gltf),
