@@ -6,7 +6,7 @@ the near-field painted grass cards are in (`src/nalati/look/grass.ts`); the fina
 52–76 calls / 0.77–1.05 M tris at the spawn, rim, plateau, Eagle Rock, kokpar and camp poses. The sections below are
 the history of the handoff.
 
-The clean-room prototype (`dev/nalati-cleanroom/`, PLAN.md there) is the reference. This note covers what was ported
+The clean-room prototype (`dev/nalati-cleanroom/`, PLAN.md there — removed from the tree before the merge onto main; in history at `247572c`, live at https://nalati-cleanroom.vercel.app) is the reference. This note covers what was ported
 into the shard, what is left in order, the user's hard rules, and how to test. **Status (2026-09-23, the look agent):
 steps 1–7 built — v2 is the Nalati default; `?look=v1` brings the old path back. Code in `src/nalati/look/`
 (index.ts lists the one-line hooks). See "Built" below; the steps further down are the original plan, kept as the spec.**
