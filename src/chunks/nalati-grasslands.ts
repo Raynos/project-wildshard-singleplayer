@@ -29,6 +29,7 @@ import {
   LEOPARD_CAVE, ARGYMAQ_PASTURE, SNOW_LOTUS, N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, CAMP_SPUR, BOWL_TRACKS, LONE_SPRUCE,
   NALATI_MAP, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL,
 } from './nalatiLayout';
+import { EDGE_ON, EDGE_BAKE, edgeRise, edgeSpruceMask } from './nalatiEdge';
 import type { ChunkDef, ChunkTerrain, RGB, Vec2 } from './ChunkDef';
 import thumbnail from './thumbs/nalati-grasslands.jpg';
 import heroPortrait from './thumbs/nalati-grasslands-portrait.jpg';
@@ -420,6 +421,16 @@ export function ringGround(x: number, z: number, h: number, slope: number): [num
 
 // ── the terrain ───────────────────────────────────────────────────────────────────────────────────────────────────
 
+/** the ground the splat reads: the finished field (N23's berm on top when the Look Lab's Edge is on), set once built */
+let surface: ChunkTerrain | null = null;
+/** the field under N23's berm (buildTerrain's, the entry roads levelled): what the berm stands on */
+let underBerm: Pick<ChunkTerrain, 'heightAt'> | null = null;
+
+/** N23: the edge berm's rise at (x, z) (0 when the Look Lab's Edge is off) — the spruce lines and the crest's granite read it */
+export function edgeBermAt(x: number, z: number): number {
+  return EDGE_ON && underBerm ? edgeRise(x, z, underBerm.heightAt(x, z)) : 0;
+}
+
 const TERRAIN: ChunkTerrain = (() => {
   const base = buildTerrain(SEED, {
     landscape: (x, z, { n, n2 }) => landscape(x, z, n, n2),
@@ -434,7 +445,8 @@ const TERRAIN: ChunkTerrain = (() => {
      * The painterly terrain paints itself (`groundColor` below); this splat is what grass / placement read:
      * [grass, gravel + dirt, rock, snow].
      */
-    splat(x, z, t) {
+    splat(x, z, t0) {
+      const t = surface ?? t0;
       const h = t.heightAt(x, z);
       const [, ny] = t.normalAt(x, z, 1.0);
       const slope = 1 - ny;
@@ -451,7 +463,22 @@ const TERRAIN: ChunkTerrain = (() => {
   });
   // the river is the shard's water: Player swims / wades in it (pondMask > 0 → waterLevel), grass and placement keep out
   // (and the meltwater stream: the grass keeps out of its bed; its surface is far above the river level, so nobody swims)
-  return { ...base, pondMask: (x, z) => Math.max(riverMask(x, z), brookMask(x, z)), waterLevel: () => RIVER.level };
+  const out: ChunkTerrain = { ...base, pondMask: (x, z) => Math.max(riverMask(x, z), brookMask(x, z)), waterLevel: () => RIVER.level };
+  if (EDGE_ON) {
+    // N23: the berm on top of the finished field — after the entry roads are levelled, so its road cuts are its own
+    // (a notch the road's width, nalatiEdge.ts), not the engine's 60 m funnel
+    underBerm = base;
+    const heightAt = (x: number, z: number): number => { const h = base.heightAt(x, z); return h + edgeRise(x, z, h); };
+    const normalAt = (x: number, z: number, eps = 0.6): [number, number, number] => {
+      const nx = heightAt(x - eps, z) - heightAt(x + eps, z), nz = heightAt(x, z - eps) - heightAt(x, z + eps), ny = 2 * eps;
+      const l = Math.hypot(nx, ny, nz);
+      return [nx / l, ny / l, nz / l];
+    };
+    out.heightAt = heightAt;
+    out.normalAt = normalAt;
+  }
+  surface = out;
+  return out;
 })();
 
 // ── the painted ground (Terrain.ts painterly branch) ──────────────────────────────────────────────────────────────
@@ -559,7 +586,7 @@ export const NALATI_GRASSLANDS: ChunkDef = {
   displayName: 'Nalati Grasslands',
   gridCoords: '(+4, −2)',
   seed: SEED,
-  treeCount: 40,
+  treeCount: EDGE_ON ? 1400 : 40, // (N23's edge: the berm's spruce lines too)
   biome: 'Alpine steppe',
   earlyAccess: true, // NALATI-MERGE E1 (the user's pick): in the shard picker for everyone, tagged EARLY ACCESS
   blurb: 'SUPER EXPERIMENTAL — the Tian Shan steppe, painted: cross the braided Kunes, tame a steppe horse and hunt wolves from the saddle across the golden bowl of the Sky Grassland, break the Golden King in his kurgan, and ride out a storm to face the Storm Titan. Snow Lotus Valley waits in the snow ring. Built live, rough edges everywhere.',
@@ -621,7 +648,8 @@ export const NALATI_GRASSLANDS: ChunkDef = {
     maxSlope: 0.6,
     tintHue: 0.3, tintHueJitter: [-0.06, 0.06], tintSat: [0.05, 0.25], tintLight: [0.8, 0.95],
     largeVariantChance: 0.15,
-    mask: (x: number, z: number) => (inSpruceClearing(x, z) ? 0 : loneSpruceMask(x, z)), // never in a POI (clearings.ts)
+    // never in a POI (clearings.ts); N23's edge: the spruce lines on the berm's crest
+    mask: (x: number, z: number) => (inSpruceClearing(x, z) ? 0 : Math.max(loneSpruceMask(x, z), EDGE_ON ? edgeSpruceMask(x, z, edgeBermAt(x, z)) : 0)),
   },
   fauna: [], // wolves, horses and sheep: the creatures agent (B4)
   sky: {
@@ -655,4 +683,5 @@ export const NALATI_GRASSLANDS: ChunkDef = {
     lift: [0.0, 0.004, 0.018], gain: [1.02, 1.02, 1.0], gamma: 1.0,
   },
   spawn: SPAWN,
+  bakeVariant: EDGE_BAKE, // N23: the edge's own terrain + navmesh bake when the Look Lab's Edge is on
 };

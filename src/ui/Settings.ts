@@ -112,6 +112,7 @@ export const OPTION_VALUES = {
   post: ['clean', 'cinematic'],                        // Driftwood: the clean low-poly post (L5) — locked in (E88, the user's pick); only ?post=cinematic reads it
   // the Nalati Look Lab (NALATI-MERGE L2, src/nalati/look/lab.ts): wave 6's picks are locked in (N20, the user: terrain
   // shadows off, terrain AO off, model shading on, yurts procedural, camp people the image-to-3D models) and their switches gone
+  edge: ['off', 'on'],                                 // N23: the berm + spruce lines hiding the slab's edge (src/chunks/nalatiEdge.ts) — a second terrain bake, on the next load
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -130,13 +131,14 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly 
   lighting: { def: 'toon', params: ['lighting'], url: (q) => q.get('lighting') },
   sky: { def: 'stylized', params: ['sky'], url: (q) => q.get('sky') },
   post: { def: 'clean', params: ['post'], url: (q) => q.get('post') },
+  edge: { def: 'off', params: ['edge'], url: (q) => onOff(q.get('edge')) },                           // ?edge=1: the N23 board
 };
 // Settings ▸ Graphics ▸ Island (X2) saved under its own key before E55: carried over once
 if (saved['island'] === undefined) { try { const legacy = localStorage.getItem('ws.island.v1'); if (legacy !== null) saved['island'] = legacy; } catch { /* private mode */ } }
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => new Choice<OptionValue<K>>(k, OPTION_VALUES[k], OPTION_SPECS[k].def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   gpu: option('gpu'), island: option('island'), tier: option('tier'), touch: option('touch'), matte: option('matte'), time: option('time'), lut: option('lut'),
-  lighting: option('lighting'), sky: option('sky'), post: option('post'),
+  lighting: option('lighting'), sky: option('sky'), post: option('post'), edge: option('edge'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 

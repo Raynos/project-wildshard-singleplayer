@@ -364,7 +364,14 @@ export class GameMenu {
       dbg.append(el('ws-gmenu-label', 'Look'), time);
       // Look Lab (E65) is done: the sky (E83), lighting (E87) and post (E88) picks are locked in; the URL alone builds the old looks
     }
-    // the Nalati Look Lab (NALATI-MERGE L2): wave 6's picks are locked in (N20) — no switch left
+    // the Nalati Look Lab (NALATI-MERGE L2; wave 6's picks are locked in, N20): N23's Edge — the berm + spruce lines hiding
+    // the slab's edge (src/chunks/nalatiEdge.ts), a second terrain bake, so it applies on the next load
+    if (getActiveChunk().slug === 'nalati-grasslands') {
+      const edge = picker('Edge (next load)', [{ v: 'off' as const, text: 'Off' }, { v: 'on' as const, text: 'On' }],
+        () => setting('edge'), (v) => { saveSetting('edge', v); }, (fn) => { onSettingChange('edge', fn); });
+      dbg.append(el('ws-gmenu-label', 'Look lab'), edge,
+        el('ws-gmenu-note', 'Edge: a grassy rise with spruce and granite along the slab\'s edges, so the land never ends in a line in front of the painted hills. Off = today. Reload to see it.'));
+    }
     dbg.append(el('ws-gmenu-note', 'Renderer, island, quality and render scale: Exit to main menu ▸ Settings.'));
     dbg.append(this.buildReview());
   }

@@ -62,7 +62,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   const num = (k: string, d: number): number => { const v = params.get(k); return v === null ? d : Number.parseFloat(v); };
   const def = setActiveChunk(chunkSlugFromUrl(location.search));
   const rapier = loadRapier(); // streamed compile from the first moment of boot; the `physics` step below awaits it
-  const navmesh = loadNavmesh(def.slug); // the shard's baked navmesh (P6b), a declared boot file; the `physics` step awaits it
+  const navmesh = loadNavmesh(def.slug, def.bakeVariant); // the shard's baked navmesh (P6b), a declared boot file; the `physics` step awaits it
   const canvas = document.getElementById('game') as HTMLCanvasElement;
   const game = await step('renderer', () => new Game(canvas));
   const sky = await step('sky', () => game.buildSky());
