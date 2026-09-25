@@ -217,14 +217,14 @@ function overdraw(wantHeat) {
       const saved = mats.get(m) ?? { obc: m.onBeforeCompile, key: m.customProgramCacheKey, blending: m.blending, bs: m.blendSrc, bd: m.blendDst, be: m.blendEquation, bsa: m.blendSrcAlpha, bda: m.blendDstAlpha, bea: m.blendEquationAlpha, dt: m.depthTest, dw: m.depthWrite, at: m.alphaTest, pa: m.premultipliedAlpha, cw: m.colorWrite };
       mats.set(m, saved);
       const c = channel(m), v = ['0.0', '0.0', '0.0']; v[c] = '1.0';
-      m.onBeforeCompile = function obc(s, rr) {
+      m.onBeforeCompile = function onBeforeCompile(s, rr) {
         saved.obc.call(this, s, rr);
         const fs = s.fragmentShader, end = fs.lastIndexOf('}');
         const named = fs.match(/out\s+(?:highp\s+|mediump\s+)?vec4\s+(\w+)/);
         const out = /gl_FragColor/.test(fs) || named === null ? 'gl_FragColor' : named[1];
         s.fragmentShader = `${fs.slice(0, end)}\n  ${out} = vec4(${v.join(', ')}, 0.0) / 255.0;\n}\n`;
       };
-      m.customProgramCacheKey = function key() { return `${saved.key.call(this)}|od${c}${keepAlpha ? 'k' : 'r'}`; };
+      m.customProgramCacheKey = function customProgramCacheKey() { return `${saved.key.call(this)}|od${c}${keepAlpha ? 'k' : 'r'}`; };
       // CustomBlending (5), AddEquation (100), OneFactor (201) both ways: every fragment adds its channel
       m.blending = 5; m.blendEquation = 100; m.blendSrc = 201; m.blendDst = 201; m.blendEquationAlpha = 100; m.blendSrcAlpha = 201; m.blendDstAlpha = 201;
       m.depthTest = false; m.depthWrite = false; m.premultipliedAlpha = false; m.colorWrite = true;
@@ -271,7 +271,7 @@ function overdraw(wantHeat) {
     const sum = (h) => {
       let mean = 0, acc = 0, p50 = -1, p95 = -1, max = 0, over4 = 0;
       for (let v = 0; v < 256; v++) { const k = h[v]; if (k === 0) continue; mean += v * k; acc += k; max = v; if (p50 < 0 && acc >= n * 0.5) p50 = v; if (p95 < 0 && acc >= n * 0.95) p95 = v; if (v > 4) over4 += k; }
-      return { mean: +(mean / n).toFixed(2), p50, p95, max, over4: +(over4 / n).toFixed(3) };
+      return { mean: Number((mean / n).toFixed(2)), p50, p95, max, over4: Number((over4 / n).toFixed(3)) };
     };
     return { opaque: sum(chans[0]), alpha: sum(chans[1]), transparent: sum(chans[2]), total: sum(chans[3]) };
   };
@@ -327,7 +327,7 @@ try {
     return { gpu: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : '?', buffer: `${g.renderer.domElement.width}x${g.renderer.domElement.height}`, pixelRatio: g.renderer.getPixelRatio() };
   });
   out.env = env;
-  console.log(`[gpu] ${env.gpu} · drawing buffer ${env.buffer} (pixel ratio ${env.pixelRatio}) · query ${EXTRA || '—'}`);
+  console.log(`[gpu] ${env.gpu} · drawing buffer ${env.buffer} (pixel ratio ${env.pixelRatio}) · query ${EXTRA === '' ? '—' : EXTRA}`);
   for (const p of POSES) {
     // the game's own loop runs while the pose settles (LOD buckets, streaming), then stops drawing; the tool draws the frozen frame
     await page.evaluate((pp) => {
