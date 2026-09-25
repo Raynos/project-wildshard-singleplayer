@@ -116,3 +116,20 @@ the worker matches with `ignoreVary`.
 | build A, second launch | 0 (7 responses: document, `version.json`, Google Fonts) |
 | add one 1 MB asset under `public/assets/`, build B, `adopt()` → reload | **0.83 MB in 24 responses** (the new bundle + shell; before the migration this was the full 33 MB) |
 | build B, next launch | 0 |
+
+2026-09-25, E158 / E160 / E161 (`vite preview`, headless Chromium on Metal, CDP-throttled "wifi" 30 Mbit/s · 20 ms on
+the page and the worker; MB = MiB on the wire, page responses the worker did not serve + the worker's own fetches):
+
+| check | before | after |
+|---|---|---|
+| first switch Driftwood → Nalati, phone (`scripts/bench-shard-switch.mjs --tier=phone`) | 12.38 MB, 26 requests | ~4 KB (the document + `version.json`) |
+| first switch Driftwood → Pine Hollow, phone | 25.11 MB, 44 requests | ~4 KB |
+| first switch Driftwood → Nalati / Pine Hollow, desktop | 17.38 / 79.82 MB | ~4 KB / ~4 KB |
+| first switch Pine Hollow → Driftwood, phone / desktop (`--from=pine-hollow`) | — | ~4 KB / ~4 KB |
+| the background download itself, from Driftwood, phone / desktop | — | 37.8 MB in 19 s / 97.5 MB in 37 s |
+| frame time while it runs (title screen, phone tier, CPU 1× and 4×) | p50 16.7 ms, p95 16.7–16.8 ms, 0 long tasks | the same |
+| Cache Storage after all three shards (`navigator.storage.estimate`), phone / desktop | — | 66.5 MB / 127 MB |
+| Pine Hollow 4g/warm, phone (`bench-load.mjs --conditions=4g`) | 17.52 MB net, play 21.6 s | 0.00 MB, play 6.2 s |
+| deploy of one texture (+64 B) + one same-size glTF edit, phone, Pine Hollow (`bench-asset-deploy.mjs`) | 19.40 MB (the 17.5 MB pack) | 5.47 MB (two parts, 2.5 + 1.9 MB, + 1.07 MB of JS) |
+| the same, desktop | 8.28 MB and the glTF served **stale** | 6.91 MB (the 5.77 MB texture + JS), glTF fresh |
+| landing E160 on a player's pre-E160 cache (`--to=`), desktop / phone | — | 1.94 MB (1.07 MB of JS + 0.8 MB the old build re-fetched for its own last launch; 140 old entries verified by hash, 0 dropped) / 18.83 MB once (the Pine pack is re-cut into parts) |
