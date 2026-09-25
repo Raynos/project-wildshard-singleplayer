@@ -6,33 +6,37 @@
  *
  * One SVG inside `.ws-minimap`, so it follows the minimap's size, place, intro fade and hide. Its box starts at the circle's
  * centre and runs up and right; the drawing is in units where the minimap's radius is 100:
- *   - the piece: straight top and right edges at SIDE (just past the rim's tick tips at ~111), a concave edge on the circle
- *     of radius CUT around the centre (a crescent cut-out that hugs the tick ring with a ~3 px gap), glass fill + a
- *     cyan hairline on all three edges, a brighter bracket on the outer corner;
+ *   - the piece: straight top and right edges at SIDE (just past the rim's tick tips at ~111), a concave edge ON the rim
+ *     (round 12, the user: "make it bigger by touching the minimap … the little blue things that stick out … in this
+ *     corner can go away": the NE tick is gone, minimap.css), short end caps just past the N and E ticks; glass fill, a
+ *     cyan hairline on the straight edges and the caps (the rim is the minimap's own border), a bracket on the corner;
  *   - the backpack glyph tucked into the outer corner, where the piece is widest;
- *   - an invisible hit shape: the piece grown by HIT_OUT outward (up and right, into the screen margin) and a little
- *     inward, so the target is ≥ 44 px across on a phone while a tap on the map itself still opens the MAP tab.
+ *   - an invisible hit shape: the piece grown by HIT_OUT outward (up and right, into the screen margin), so the target
+ *     is ≥ 44 px across on a phone while a tap on the map itself still opens the MAP tab.
  * Styled by src/ui/styles/minimap.css (prefix ws-minimap-). Pressed = `.down` (the minimap's pointerdown preventDefault
  * would swallow :active on iOS).
  */
 
-/** the straight edges (the square's half side), the concave cut's radius, the hit area's outward reach — minimap radius = 100 */
-const SIDE = 113, CUT = 116, HIT_OUT = 26, HIT_IN = 8;
+/** minimap radius = 100: the straight edges (the square's half side: the tick tips reach ~111), the concave edge (ON the
+ *  rim: the piece touches the minimap, round 12), where the piece ends short of the N and E ticks, the hit's outward reach */
+const SIDE = 113, RIM = 100, END = 8, HIT_OUT = 26;
 const f = (n: number): string => n.toFixed(2);
+/** where each end cap meets the rim, measured along the axis (the centre is (0, SIDE) in the SVG) */
+const RIM_AT_END = Math.sqrt(RIM * RIM - END * END);
 
-/** the piece's outline: top edge from the cut's tip to the corner, down the right edge, back along the cut */
-function piecePath(side: number, cut: number): string {
-  const tip = Math.sqrt(cut * cut - side * side); // where the cut meets each straight edge, from the centre line
-  // the centre is (0, SIDE) in the SVG; the cut runs from the right tip back to the top tip, counter-clockwise on screen
-  return `M${f(tip)} ${f(SIDE - side)} L${f(side)} ${f(SIDE - side)} L${f(side)} ${f(SIDE - tip)} A${f(cut)} ${f(cut)} 0 0 0 ${f(tip)} ${f(SIDE - side)} Z`;
+/** the fill: the top-right quadrant of the square minus the circle — top edge from the N end to the corner, down the right
+ *  edge to the E end, in to the rim, back along the rim (counter-clockwise on screen) */
+function fillPath(): string {
+  return `M${f(END)} 0 H${f(SIDE)} V${f(SIDE - END)} H${f(RIM_AT_END)} A${RIM} ${RIM} 0 0 0 ${f(END)} ${f(SIDE - RIM_AT_END)} Z`;
 }
-
-/** the hit shape: out to the grown corner, in along the axes to just inside the cut */
+/** the hairline: both end caps and the two straight edges — not the rim, which is the minimap's own border (the shared edge) */
+function edgePath(): string {
+  return `M${f(END)} ${f(SIDE - RIM_AT_END)} V0 H${f(SIDE)} V${f(SIDE - END)} H${f(RIM_AT_END)}`;
+}
+/** the hit shape: the piece grown up and right into the screen margin */
 function hitPath(): string {
-  const r = CUT - HIT_IN, o = SIDE + HIT_OUT, top = SIDE - o;
-  const a0 = Math.asin(Math.min(1, 40 / r)); // start the inner arc 40 units off each axis — the N label and the E tick stay the map's
-  const x0 = r * Math.sin(a0), y0 = SIDE - r * Math.cos(a0), x1 = r * Math.cos(a0), y1 = SIDE - r * Math.sin(a0);
-  return `M${f(x0)} ${f(top)} L${f(o)} ${f(top)} L${f(o)} ${f(y1)} L${f(x1)} ${f(y1)} A${f(r)} ${f(r)} 0 0 0 ${f(x0)} ${f(y0)} Z`;
+  const o = SIDE + HIT_OUT;
+  return `M${f(END)} ${f(-HIT_OUT)} H${f(o)} V${f(SIDE - END)} H${f(RIM_AT_END)} A${RIM} ${RIM} 0 0 0 ${f(END)} ${f(SIDE - RIM_AT_END)} Z`;
 }
 
 /** the backpack, drawn in a 64-unit box (it spans x 12–52, y 8–56): a small grab loop, a domed body (not the padlock's
@@ -43,8 +47,8 @@ const PACK = `
   <path class="ws-minimap-bag-seam" d="M12 34 C21 39 43 39 52 34"/>
   <rect class="ws-minimap-bag-seam" x="21" y="43" width="22" height="9" rx="2.5"/>`;
 /** the glyph sits in the corner, PAD in from both straight edges, GLYPH tall — the most the piece holds before its
- *  lower-left corner meets the cut (the widest part of the piece is the corner, ~23 px deep on a phone) */
-const PAD = 4.5, GLYPH = 26;
+ *  lower-left corner meets the rim (the widest part of the piece is the corner, ~33 px deep on a phone) */
+const PAD = 5, GLYPH = 37;
 
 export class BagButton {
   readonly root: HTMLButtonElement;
@@ -60,7 +64,8 @@ export class BagButton {
     const bracket = 16;
     b.innerHTML = `<svg viewBox="0 ${f(SIDE - box)} ${f(box)} ${f(box)}" aria-hidden="true">
       <path class="ws-minimap-bag-hit" d="${hitPath()}"/>
-      <path class="ws-minimap-bag-piece" d="${piecePath(SIDE, CUT)}"/>
+      <path class="ws-minimap-bag-piece" d="${fillPath()}"/>
+      <path class="ws-minimap-bag-edge" d="${edgePath()}"/>
       <path class="ws-minimap-bag-corner" d="M${f(SIDE - bracket)} 0 H${f(SIDE)} V${f(bracket)}"/>
       <g class="ws-minimap-bag-icon" transform="translate(${f(tx)} ${f(ty)}) scale(${f(k)})">${PACK}</g>
     </svg>`;
