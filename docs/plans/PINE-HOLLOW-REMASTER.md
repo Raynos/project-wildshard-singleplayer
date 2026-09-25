@@ -1,6 +1,6 @@
 # Pine Hollow — the mega remaster (graduate Pine Hollow out of experimental)
 
-**State:** `in progress` 2026-09-25 — every build row is done; main is merged in and the branch is level with origin/main (9145951: Nalati v0.3.0 + main through 48740dc). tsc / oxlint / check-css / build / vitest 509 green, 0 stuck on 27 walk legs, all three shards boot with 0 errors. Waiting on Jake: the look sign-off (round 3, `art/pine-hollow/round-17-look-loop-3/`) and the render fix (A / B, `art/pine-hollow/round-16-render-fix/`); then PH-S1 (the in-engine hero art) and the merge to main (Jake's go). Follow-ups parked in PINE-HOLLOW-FOLLOWUPS.md.
+**State:** `in progress` 2026-09-25 — every build row is done and every board is picked (look signed off PH-U34, render fix A PH-U35); the branch is level with origin/main (9145951 + 71166d6). tsc / oxlint / check-css / build / vitest 509 green, 0 stuck on 27 walk legs, all three shards boot with 0 errors. Open: PH-S1 (the in-engine hero art, capturing now), then the merge to main on Jake's go. Follow-ups parked in PINE-HOLLOW-FOLLOWUPS.md.
 
 ## 0. Why, and the finish line
 
@@ -138,6 +138,7 @@ lanes' own. **Status:** done · partial · open · Jake (waits on his pick, sign
 | PH-U32 | **Finish sooner** (2026-09-25): 5 build agents in parallel (was 3). **Moved to a follow-up plan after the merge** (not built in this remaster): PH-P5 WebGPU, PH-0.2 the per-shard code split, PH-B1 the whole-map Blender pass, PH-B5 / B6 the CC0 kit + cabin lift → `docs/plans/PINE-HOLLOW-FOLLOWUPS.md` (draft; Jake approved none). |
 | PH-U33 | **Load: accept ~36 MB** (2026-09-25): every music style stays at the loading bar (E44, offline style switching); the transfer row is 37 MiB (measured 36.01 MiB). |
 | PH-U34 | **Look signed off** (2026-09-25, Jake: "look is fine for now"): look loop round 3 (`art/pine-hollow/round-17-look-loop-3/`) at all six zones, with the LUT, the boreal ground and the grade layer; `?ground=v1` / `?grade=v1` / `?nolut` keep the befores. |
+| PH-U35 | **Render fix = A** (2026-09-25, Jake: "if A is best, just do A"; `art/pine-hollow/round-16-render-fix/board.jpg`): the post chain reads the world's depth — world AO on desktop, fog and god rays stop at walls, on every shard; `?aofix=0` keeps the before for captures. |
 
 **Boards Jake asked to see before the layout and the models are built.** Each is one portrait decision board, A / B / C / D,
 in `art/pine-hollow/round-<n>-<label>/board.jpg`:
