@@ -2,9 +2,9 @@
 
 **State:** `in progress` 2026-09-25.
 - **Done:** 7 (E130, `5de4ef9-mugvhywt`), 8 (E129), 9a, the complete screen (E132, `81a8c05-mugw0flt`), and 10 (E125 + E128).
-- **In flight:** nothing. Item 6 is waiting on the user's answers (dev-screen decisions).
+- **In flight:** 6 (E140: a Developer switch, dev-only perf meter, loading details and Debug card, a player build pill; the dead-items board comes before any deletion).
 - **Not started:** 9b, the reasons to wander.
-- **Not started:** 1–6.
+- **Not started:** 1–5. **The user, 2026-09-25: "1-5 we do later"**, after the GAME-NORMALIZATION freeze. Item 6 is in flight as E140.
 - **Timing:** the GAME-NORMALIZATION full feature freeze starts once Pine Hollow is merged. Rows still open then pause until the freeze ends.
 
 ## Read this first
