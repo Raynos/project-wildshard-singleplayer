@@ -86,6 +86,7 @@ Blender, image-to-3D, LUT fit, horizon painting, wind, rig bake), never their sh
 | PH-U22 | **Collectibles: ~30 amber resin drops, 8 carved wooden tokens, the secrets** (the vista bench, a hollow-log passage, the canoe to the islet). No lore notes. |
 | PH-U23 | **NPCs: text dialogue + short generated voice barks** (the SFX engines). No full voice acting. |
 | PH-U24 | **Priority: a parallel track**, equal with Driftwood V2 / HUD / physics polish / Nalati Phase D. |
+| PH-U25 | **Lever-action = A, the Blender model** (2026-09-25, board `art/pine-hollow/round-15-rifle/board.jpg`): case-hardened receiver, oiled walnut, worn bluing; `?rifle=proc` keeps the code-built one for captures. |
 
 **Boards Jake asked to see before the layout and the models are built.** Each is one portrait decision board, A / B / C / D,
 in `art/pine-hollow/round-<n>-<label>/board.jpg`:
