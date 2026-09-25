@@ -8,11 +8,16 @@
  *   const npc = new Castaway(sky, { x, y, z, yaw }, { x, y, z }).build();   // his feet; the fire's centre
  *   scene.add(npc.group);  player.colliders.push(npc.collider);
  *   game.onUpdate((dt, t) => npc.update(dt, t, player.position));
- *   npc.talking = true    // gestures with the free arm while the dialogue is open
+ *   npc.talking = true    // gestures with the free arm while the dialogue is open (and keeps facing you)
  *   npc.wave()            // a big overhead wave (the first time you come near)
  *   npc.headWorld(v)      // where the "[E] Talk" prompt sits
  *
- * Draw calls: body + campfire (one merged mesh, the only shadow caster), head, waving arm (each its own pivot), flames
+ * He turns to face you (E129): within FACE_R, or while the dialogue is open, the whole figure (body + head + arm, one
+ * pivot at his feet) eases round toward you at no more than TURN_MAX rad/s, the head leading it; walk off and he eases
+ * back to his idle facing. The feet don't step — at that rate a turn on the spot reads as a shuffle, not a moonwalk.
+ * The campfire stays put in the NPC group's frame.
+ *
+ * Draw calls: body, campfire (two merged meshes, the shadow casters), head, waving arm (each its own pivot), flames
  * (unlit), smoke (Points); past 85 m only the smoke. The smoke is a thin, broken wisp: each puff grows as it climbs,
  * fades in over the fire and out toward the top (per-puff size + alpha on the points shader), wanders on its own
  * turbulence and leans downwind — so from the pier it reads as smoke, not a straight bright streak.
@@ -40,6 +45,9 @@ const SMOKE = 42;
 const SMOKE_RISE = 21, SMOKE_LIFE = 13;   // metres the column climbs, seconds a puff lives
 const WIND_X = 0.8, WIND_Z = 0.55;         // the lean (NPC-local; the trade wind off the sea)
 const NEAR_R = 85;
+const FACE_R = 6;          // m (feet to feet): inside this, or while talking, he turns his body to face you
+const TURN_K = 3;          // 1/s: the body's ease toward the facing it wants …
+const TURN_MAX = 2.2;      // … capped at this many rad/s (180° in ~1.5 s)
 
 export interface Pos { x: number; y: number; z: number; yaw?: number }
 
@@ -48,6 +56,10 @@ export class Castaway {
   readonly collider: Collider;
   talking = false;
   private body!: THREE.Mesh;
+  private camp!: THREE.Mesh;
+  /** body + head + arm: turns about his feet to face you (E129); the campfire is not in it */
+  private readonly figure = new THREE.Group();
+  private turn = 0;   // the figure's yaw off his idle facing (rad)
   private head!: THREE.Mesh;
   private arm!: THREE.Mesh;
   private flames!: THREE.Mesh;
@@ -81,7 +93,7 @@ export class Castaway {
     this.group.rotation.y = this.bodyYaw;
     this.group.name = 'castaway';
 
-    // ── body + the campfire (one mesh) ──
+    // ── body (turns with the figure) ──
     const k = new LowPolyKit(0xca57a);
     for (const sx of [-1, 1]) {
       // bare feet, shins, rolled trouser cuffs, thighs
@@ -105,16 +117,19 @@ export class Castaway {
     k.add(new THREE.IcosahedronGeometry(0.05, 0), C.skin, { matrix: at(0.27, 0.9, 0.16) });
     k.add(log(V(0.3, 0, 0.2), V(0.26, 1.35, 0.14), 0.03, 0.028, 5, 0.3), C.staff, { wobble: 0.008 });
     k.add(rock(0.06, 0, k.rng, 1, 0.3), C.staff, { matrix: at(0.26, 1.37, 0.14) });
-    // the campfire (fire-local): a ring of stones, crossed logs, char
-    const f = this.fireLocal;
-    for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; k.add(rock(0.16, 0, k.rng, 0.7, 0.3), i % 2 ? C.stone : C.stoneDark, { matrix: at(f.x + Math.cos(a) * 0.55, f.y + 0.06, f.z + Math.sin(a) * 0.55) }); }
-    k.add(new THREE.CylinderGeometry(0.42, 0.45, 0.04, 9), C.char, { matrix: at(f.x, f.y + 0.02, f.z) });
-    for (let i = 0; i < 4; i++) { const a = (i / 4) * Math.PI + 0.3; k.add(log(V(f.x + Math.cos(a) * 0.42, f.y + 0.05, f.z + Math.sin(a) * 0.42), V(f.x - Math.cos(a) * 0.1, f.y + 0.3, f.z - Math.sin(a) * 0.1), 0.05, 0.04, 5), C.log); }
-    // a log seat and a stick propped over the fire
-    k.add(log(V(f.x - 1.1, f.y + 0.16, f.z + 0.6), V(f.x - 1.1, f.y + 0.16, f.z - 0.7), 0.17, 0.16, 7), C.log);
-    k.add(plank(0.9, 0.05, 0.03, k.rng), C.staff, { matrix: at(f.x + 0.3, f.y + 0.4, f.z - 0.35, 0.6, 0, 0.5) });
     this.body = new THREE.Mesh(k.finish({ ao: { floorY: 0, strength: 0.45 } }), mat);
     this.body.castShadow = true; this.body.receiveShadow = true;
+    // ── the campfire (fire-local, stays put while he turns): a ring of stones, crossed logs, char ──
+    const cf = new LowPolyKit(0xca57e);
+    const f = this.fireLocal;
+    for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2; cf.add(rock(0.16, 0, cf.rng, 0.7, 0.3), i % 2 ? C.stone : C.stoneDark, { matrix: at(f.x + Math.cos(a) * 0.55, f.y + 0.06, f.z + Math.sin(a) * 0.55) }); }
+    cf.add(new THREE.CylinderGeometry(0.42, 0.45, 0.04, 9), C.char, { matrix: at(f.x, f.y + 0.02, f.z) });
+    for (let i = 0; i < 4; i++) { const a = (i / 4) * Math.PI + 0.3; cf.add(log(V(f.x + Math.cos(a) * 0.42, f.y + 0.05, f.z + Math.sin(a) * 0.42), V(f.x - Math.cos(a) * 0.1, f.y + 0.3, f.z - Math.sin(a) * 0.1), 0.05, 0.04, 5), C.log); }
+    // a log seat and a stick propped over the fire
+    cf.add(log(V(f.x - 1.1, f.y + 0.16, f.z + 0.6), V(f.x - 1.1, f.y + 0.16, f.z - 0.7), 0.17, 0.16, 7), C.log);
+    cf.add(plank(0.9, 0.05, 0.03, cf.rng), C.staff, { matrix: at(f.x + 0.3, f.y + 0.4, f.z - 0.35, 0.6, 0, 0.5) });
+    this.camp = new THREE.Mesh(cf.finish({ ao: { floorY: 0, strength: 0.45 } }), mat);
+    this.camp.castShadow = true; this.camp.receiveShadow = true;
 
     // ── head (pivot at the neck): face, nose, eyes, the beard, the straw hat ──
     const h = new LowPolyKit(0xca57b);
@@ -178,7 +193,8 @@ export class Castaway {
     this.smoke = new THREE.Points(g, smokeMat);
     this.smoke.renderOrder = 4;
 
-    this.group.add(this.body, this.head, this.arm, this.flames, this.smoke);
+    this.figure.add(this.body, this.head, this.arm);
+    this.group.add(this.figure, this.camp, this.flames, this.smoke);
     return this;
   }
 
@@ -207,12 +223,17 @@ export class Castaway {
     const dx = player.x - gp.x, dz = player.z - gp.z, d = Math.hypot(dx, dz);
     // past NEAR_R only the smoke column is drawn (the breadcrumb from the pier): the man and his fire are a few pixels there
     const near = d < NEAR_R;
-    if (near !== this.body.visible) { this.body.visible = this.head.visible = this.arm.visible = this.flames.visible = near; }
-    // the head turns toward you whenever you are near (the body stays put: it carries the campfire in one mesh)
+    if (near !== this.figure.visible) { this.figure.visible = this.camp.visible = this.flames.visible = near; }
+    // the body turns to face you when you come to talk (or while you do), and eases back to his idle facing after
     const toYou = Math.atan2(dx, dz);
+    const wantTurn = d < FACE_R || this.talking ? wrap(toYou - this.bodyYaw) : 0;
+    const dTurn = wrap(wantTurn - this.turn) * (1 - Math.exp(-TURN_K * dt));
+    this.turn = wrap(this.turn + THREE.MathUtils.clamp(dTurn, -TURN_MAX * dt, TURN_MAX * dt));
+    this.figure.rotation.y = this.turn;
+    // the head leads: it turns toward you whenever you are near, on top of the body's turn
     let wantYaw: number, wantPitch: number;
     if (d < 9) {
-      wantYaw = THREE.MathUtils.clamp(wrap(toYou - this.bodyYaw), -1.1, 1.1);
+      wantYaw = THREE.MathUtils.clamp(wrap(toYou - this.bodyYaw - this.turn), -1.1, 1.1);
       wantPitch = THREE.MathUtils.clamp(-Math.atan2(player.y + 1.6 - (gp.y + NECK + 0.1), Math.max(0.5, d)), -0.4, 0.4);
     } else {
       // idle: glance at the fire, the sea, the fire again

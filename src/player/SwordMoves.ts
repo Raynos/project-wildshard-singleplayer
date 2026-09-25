@@ -53,8 +53,9 @@ export function poseQuat(out: THREE.Quaternion, dir: THREE.Vector3, roll: number
 export const key = (t: number, px: number, py: number, pz: number, dx: number, dy: number, dz: number, roll: number): Key =>
   ({ t, pos: new THREE.Vector3(px, py, pz), q: poseQuat(new THREE.Quaternion(), new THREE.Vector3(dx, dy, dz).normalize(), roll) });
 
-/** rest = the spawn mockup: hands lower-right, blade up-left toward the frame centre */
-export const REST = key(0, 0.27, -0.33, -0.52, -0.34, 0.76, -0.55, 0.35);
+/** rest = the spawn mockup, held lower (E129: it covered Wendell and the middle-right of the view): hands at the lower-right
+ *  edge, the blade tipped forward so its tip rests low-right of the crosshair, clear of an NPC you walk up to (was 0.27, -0.33 · dir -0.34, 0.76, -0.55) */
+export const REST = key(0, 0.31, -0.35, -0.52, -0.20, 0.58, -0.79, 0.35);
 /** RMB / touch AIM held: the blade raised high over the right shoulder, tip up and a little back — the heavy's charge */
 export const CHARGE = key(0, 0.27, -0.09, -0.50, 0.24, 0.92, 0.30, 0.1);
 export const SPRINT = key(0, 0.34, -0.46, -0.58, -0.2, 0.55, -0.81, 0.6);

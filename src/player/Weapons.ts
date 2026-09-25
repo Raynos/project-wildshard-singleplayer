@@ -27,6 +27,9 @@ import type { Rifle } from './Rifle';
  * Swap animation (SWAP_TIME each way): the outgoing weapon's `holster` runs 0 → 1 (its pose code drops it out of the
  * frame), then it is hidden and disabled, the incoming one is shown and its `holster` runs 1 → 0. Every weapon keeps its
  * own pose code; the manager only drives the blend. Input is off for the half second of the swap.
+ *
+ * `stowed` (E129, Driftwood's dialogue): the held weapon eases down out of the frame over STOW_TIME on the same
+ * `holster` blend and its input is off; false brings it back up.
  */
 
 export type WeaponId = 'crossbow' | 'sword' | 'rifle' | 'sword-iron' | 'bow' | 'sabre' | 'spear';
@@ -76,6 +79,7 @@ export interface KitWeapon extends WeaponHooks {
 }
 
 const SWAP_TIME = 0.25; // s per half (drop, then raise)
+const STOW_TIME = 0.25; // s to lower the held weapon out of the frame for a talk (and to raise it again)
 
 /** a shard weapon (Weapon.ts) plus the optional hooks the manager uses when present (Crossbow and Sword both have them) */
 export type BaseLike = Weapon & Partial<Pick<KitWeapon, 'holster' | 'reload' | 'aimRay' | 'inputAllowed' | 'charge' | 'altHeld'>> & {
@@ -146,6 +150,7 @@ export class Weapons implements WeaponHooks {
   private _adsHeld = false;
   private _altHeld = false;
   private _visible = true;
+  private _stowed = false; private stowT = 0;
   private order: WeaponId[] | undefined;
   private lastOnQ: boolean;
   /** the weapon held before the current one (Q with `lastOnQ`, the strip's double tap) */
@@ -187,6 +192,9 @@ export class Weapons implements WeaponHooks {
   get adsHeld(): boolean { return this._adsHeld; }
   set adsHeld(on: boolean) { this._adsHeld = on; this.apply(); }
   get swappingNow(): boolean { return this.swapping !== null; }
+  /** lowered out of the frame, input off (a dialogue is open — E129); false raises it again */
+  get stowed(): boolean { return this._stowed; }
+  set stowed(on: boolean) { this._stowed = on; this.apply(); }
   /** the touch BRACE disc (the spear) / the FIRE disc held (the bow's draw) — applied to the held weapon only; dropped on a swap */
   get altHeld(): boolean { return this._altHeld; }
   set altHeld(on: boolean) { this._altHeld = on; this.apply(); }
@@ -194,7 +202,7 @@ export class Weapons implements WeaponHooks {
   private apply(): void {
     for (const w of this.list) {
       const held = w === this.current && this.swapping === null;
-      w.enabled = this._enabled && held;
+      w.enabled = this._enabled && held && !this._stowed;
       w.adsHeld = held && this._adsHeld;
       if (w.altHeld !== undefined) w.altHeld = held && this._altHeld;
     }
@@ -278,6 +286,8 @@ export class Weapons implements WeaponHooks {
         if (s.t >= SWAP_TIME * 2) this.finishSwap();
       }
     }
+    this.stowT = Math.min(1, Math.max(0, this.stowT + (this._stowed ? dt : -dt) / STOW_TIME));
+    if (this.swapping === null) this.current.holster = this.stowT;
     for (const w of this.list) w.update(dt, t);
   }
 }

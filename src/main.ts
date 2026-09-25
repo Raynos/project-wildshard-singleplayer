@@ -511,7 +511,7 @@ async function main() {
   })();
   if (params.get('weapon') === 'iron' && ironSword) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); ironDrop?.dispose(); }
   // ── Driftwood's adventure (plan Track A: interactables, the quest, the castaway, collectibles; src/game/quest/Adventure.ts) — null on any other shard ──
-  installAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, inventory, progress, fullMap, animals, ironDrop, setViewmodel: (on) => { weapons.visible = on; }, bridgeFloor: bridge ? (x, z) => bridge.floorHeightAt(x, z) : undefined, pois: { hut, lookout, wreck, shrine, cave: cove }, params });
+  installAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, inventory, progress, fullMap, animals, ironDrop, setViewmodel: (on) => { weapons.visible = on; }, stowWeapon: (on) => { weapons.stowed = on; }, bridgeFloor: bridge ? (x, z) => bridge.floorHeightAt(x, z) : undefined, pois: { hut, lookout, wreck, shrine, cave: cove }, params });
   // ── Nalati's adventure (NALATI-MERGE Q1–Q5: the camp's people, the quest line, places with saved discovery on the full map;
   // src/nalati/adventure.ts on the shared quest core) — null on any other shard ──
   installNalatiAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, progress, fullMap, ride, animals, nalati: nalatiNow(), params });

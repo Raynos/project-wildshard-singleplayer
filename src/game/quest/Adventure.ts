@@ -72,6 +72,8 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   registry?: WorldRegistry | undefined;
   /** show / hide the weapon viewmodel (the golden-hour reward view lowers it) */
   setViewmodel?: (on: boolean) => void;
+  /** lower the held weapon out of the frame and turn its input off while a dialogue is open (E129); false raises it */
+  stowWeapon?: (on: boolean) => void;
   ironDrop?: { guard: (() => string | null) | null; onGuarded?: ((reason: string) => void) | undefined } | null;
 }
 
