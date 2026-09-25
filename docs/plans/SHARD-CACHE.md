@@ -74,4 +74,5 @@ between the three shards."
 | M1 | Split `main()` into shell + `buildShard()`; listeners on an AbortController; a real `Game.stop()` | L |
 | M2 | Per-shard shader-patch tables + one renderer / canvas per shard | M |
 | M3 | Module state → per-shard (config, Heightfield, GrassField, Minimap coverage, tier, registries) | L |
-| M4 | ShardHost: LRU cache, activate / park / evict, the deck's switchTo | M |
+| M4 | ShardHost: LRU cache (**cap 2**, the user 2026-09-25, E159), activate / park / evict, the deck's switchTo | M |
+| M5 | **Fast rebuild of an evicted shard** (E159, "C"): in-page, no download (E158 prefetch), reuse the shell's decoded audio / art / code, parallel shader compile, cache what is expensive to rebuild (baked terrain / navmesh / grass fields) across builds; measure time-to-play of a re-built shard | M |
