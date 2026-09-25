@@ -346,3 +346,11 @@ through the real hide → show path. `board.jpg` sets the three looks side by si
 screen with the wordmark), **B** glass card over the blurred paused game, **C** a navy plate with the shard mark.
 `a-title.jpg`, `b-glass.jpg` and `c-plate.jpg` are the single frames. Jake picked **A**. `picked-a-per-shard.jpg` and
 `picked-a-three-shards.jpg` show A on Driftwood Isle, Pine Hollow and Nalati Grasslands.
+
+### Pier pennant shadow (`art/shadows/round-2-flag-video/`, 2026-09-25, E147)
+
+Live phone-tier captures of the pier pennant's shadow on the deck, not codex images. `zoom-now-vs-continuous.jpg` and
+`change-heatmap-now-vs-continuous.jpg` show the 0.25° stepped sun against a sun moved every frame (the flicker returns).
+`poses-wide-close.jpg` are the two video poses. `c-near-cascade-board.jpg` compares the near-shadow sharpness options
+(A now · B 5×5 blur · C 3 cascades 7/22 m · D 5/18 m); Jake picked A + B + C, and C shipped. `before-after-zoom.jpg` is
+a frame of the before / after video. The videos themselves are not committed (the uplink).
