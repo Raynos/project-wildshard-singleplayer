@@ -14,6 +14,7 @@ when the images were generated.
 | | `round-3-nalati-in-engine` (09-23) | `hero-nalati-grasslands-{portrait,landscape}` — in-engine captures of the finished shard (the valley camp; the kokpar field under the crags), lightly graded, no paint-over (copied into `src/chunks/thumbs/`, + the 640×360 thumbnail) |
 | `menu/` | `round-1-main-menu` (09-17) | `menu-{A-cinematic,B-list,C-cards}` — main menu directions; C picked |
 | | `round-2-tabs` (09-18) | `menu-tab-{map,inventory,achievements,settings}` — the in-game MENU overlay |
+| | `round-3-explore-placement` (09-25) | `{A,B,C}.jpg` + `board.jpg` — E137: one ENTER WORLD banner; EXPLORE WORLD on the card / top-right / footer |
 | `hud/` | `round-1-directions` (09-17) | `hud-A…E` — five HUD directions (below) |
 | | `round-2-overlays` | `hud-F…J` — overlays on the real phone frame (below) |
 | | `round-3-klmn` | `hud-K-bethesda`, `L-mobileshooter`, `M-diegetic`, `N-outsidebox` |
