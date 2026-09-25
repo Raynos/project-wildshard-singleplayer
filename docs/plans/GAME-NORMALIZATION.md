@@ -1,6 +1,6 @@
 # Plan: game normalization (E127). One core game, three shard modules on top
 
-**State:** `blocked` 2026-09-25. All of Jake's decisions are in (11 of them) ([§9](#9-decisions-made-2026-09-25)). **Blocked on the Pine Hollow merge, which is in progress.** Nothing here starts until Pine Hollow is on main. After that, Jake starts a new top-level session to build this plan from [§0](#0-start-here-for-the-build-session). The plan was written from three read-only research passes on `main` @ `188fc54`.
+**State:** `draft` 2026-09-25. All 11 of Jake's decisions are in ([§9](#9-decisions-made-2026-09-25)). **Pine Hollow has landed on main** (`18b3d6be`, the remaster plan is archived), so the gate is open. The plan waits for Jake to start a new top-level session that builds it from [§0](#0-start-here-for-the-build-session), beginning with the P0 re-count on the merged tree. The plan was written from three read-only research passes on `main` @ `188fc54`, before the merge.
 
 ## 0. Start here (for the build session)
 
