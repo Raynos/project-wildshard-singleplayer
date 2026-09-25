@@ -74,12 +74,15 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 setInterval(check, 5 * 60 * 1000);
 
 // Only show while on the loading / title screen; hide once the player has entered the chunk. Players: only when a new build waits.
-const hud = document.getElementById('hud');
+// The running shard's #hud (E155: each resident shard has its own; a switch swaps them in <body>, which runs sync below)
+let hud: HTMLElement | null = null;
+const hudClass = new MutationObserver(() => { sync(); });
 function sync(): void {
+  const now = document.getElementById('hud');
+  if (now !== hud) { hudClass.disconnect(); hud = now; if (hud) hudClass.observe(hud, { attributes: true, attributeFilter: ['class'] }); }
   const onTitle = document.querySelector('.ws-load') !== null || (hud?.classList.contains('intro') ?? false);
   el.classList.toggle('visible', onTitle && (newer || isDev())); // menu-only: never over the game view, even when a newer build exists
 }
 sync();
 onDev(() => { paint(); sync(); });
 new MutationObserver(sync).observe(document.body, { childList: true, subtree: false, attributes: true, attributeFilter: ['class'] });
-if (hud) new MutationObserver(sync).observe(hud, { attributes: true, attributeFilter: ['class'] });

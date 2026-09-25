@@ -3,6 +3,7 @@ import type { Animal } from './Animal';
 import type { ThinkCtx } from './species/registry';
 import { inChunk, normalAt } from '../world/Heightfield';
 import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from './wildEnv';
+import { listSlot } from '../core/shardState';
 
 /**
  * Pack — one wolf pack's shared hunt (docs/design/nalati/wolves-horses-taming.md "Steppe wolves"). The wolves are
@@ -425,3 +426,6 @@ export function thinkWolf(a: Animal, c: ThinkCtx): void {
   p.drive(a, c);
   c.confine(a);
 }
+
+// E155 (src/core/shardState.ts): the running shard's packs
+listSlot('packs.all', Pack.all);

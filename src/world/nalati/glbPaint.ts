@@ -30,6 +30,7 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { TIER } from '../../core/tier';
 import { painterlyMaterial, painterlyKnobs } from '../painterly';
 import type { Sky } from '../Sky';
+import { setSlot } from '../../core/shardState';
 
 export type NalatiModelName =
   | 'horse-saddled' | 'horse-wild' | 'wolf' | 'sheep' | 'snow-leopard' | 'eagle' | 'golden-king' | 'spruce'
@@ -394,3 +395,6 @@ export class ModelSink {
     return Promise.all([...this.lists].map(([name, l]) => addModelInstances(parent, sky, name, l, look[name] ?? {})));
   }
 }
+
+// E155 (src/core/shardState.ts): the running shard's painted materials (a rebuilt Nalati's, not the evicted one's)
+setSlot('nalati.modelMats', modelMatList);

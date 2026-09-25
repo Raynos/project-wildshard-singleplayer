@@ -6,4 +6,9 @@
  * impact particles, the hit stars, the camera kick / shake, the trail fade. Audio (WebAudio) and the post chain never
  * see the scale. `scale` is 1 whenever nothing is stopped (Pine Hollow never calls hitStop).
  */
+import { stateSlot } from './shardState';
+
 export const worldTime = { scale: 1, realDt: 0 };
+
+// E155 (src/core/shardState.ts)
+stateSlot('worldTime', worldTime);

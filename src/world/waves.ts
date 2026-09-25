@@ -11,6 +11,7 @@
  * `waveClock.t` is advanced by `Ocean.update(dt)` (seconds). Gerstner: every wave moves points in a circle, so the
  * height at a fixed (x, z) is found by undoing the horizontal push (two fixed-point steps — plenty at these steepnesses).
  */
+import { stateSlot } from '../core/shardState';
 
 /** [dirX, dirZ, amplitude m, wavelength m, speed m/s, steepness 0..1] — gentle lagoon swell; λ ≥ 11 m so the phone's 4 m grid resolves them */
 export const WAVES: readonly (readonly [number, number, number, number, number, number])[] = [
@@ -80,3 +81,6 @@ ${WAVES.map(([wx, wz, a, len, speed, q]) => {
   }).join('\n')}
   return normalize(cross(vec3(0.0, 0.0, 1.0) + tz * damp, vec3(1.0, 0.0, 0.0) + tx * damp));
 }`;
+
+// E155 (src/core/shardState.ts): the running shard's swell clock
+stateSlot('waves.clock', waveClock);

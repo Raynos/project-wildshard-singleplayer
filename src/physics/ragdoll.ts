@@ -31,6 +31,7 @@ import { groups } from './groups';
 import { castRay } from './query';
 import { FIXED_STEP } from '../core/fixedStep';
 import { TIER } from '../core/tier';
+import { shardSlot } from '../core/shardState';
 
 /** live ragdolls per world, per tier (the plan's Budgets: phone ≤ 2, desktop ≤ 6) */
 export const RAGDOLL_CAP = { phone: 2, desktop: 6 } as const;
@@ -446,3 +447,6 @@ export function ragdollsFor(physics: Physics): Ragdolls {
   if (r === undefined) { r = new Ragdolls(physics); systems.set(physics, r); }
   return r;
 }
+
+// E155 (src/core/shardState.ts): the running shard's interpolation clock
+shardSlot('physics.ragdollClock', () => alphaClock, (v) => { alphaClock = v; });

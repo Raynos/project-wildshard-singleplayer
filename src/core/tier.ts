@@ -103,7 +103,19 @@ export const TIER_CONFIG = TIER_TABLE[TIER];
  */
 export const PINE_HOLLOW_PHONE = { treeHiDist: 60, shadowFar: 60, animalShadowDist: 60, grassSlots: 40 } as const;
 const PAGE_QUERY = typeof location === 'undefined' ? new URLSearchParams() : new URLSearchParams(location.search);
-if (TIER === 'phone' && PAGE_QUERY.get('chunk') === 'pine-hollow' && PAGE_QUERY.get('phknobs') !== '0') Object.assign(TIER_CONFIG, PINE_HOLLOW_PHONE);
+/** the shard the knobs are set for: the URL's at first; the shard host (src/shard/ShardHost.ts) moves it on a switch */
+let tierShard = PAGE_QUERY.get('chunk');
+/** the tier row's own values of the keys Pine Hollow's phone knobs override (applyShardTier puts them back for another shard) */
+const ROW_BASE: Record<keyof typeof PINE_HOLLOW_PHONE, number> = { treeHiDist: TIER_CONFIG.treeHiDist, shadowFar: TIER_CONFIG.shadowFar, animalShadowDist: TIER_CONFIG.animalShadowDist, grassSlots: TIER_CONFIG.grassSlots };
+/**
+ * The knobs for `slug` (E155: several shards live in one page): Pine Hollow's phone knobs on, or the phone row's own
+ * values back. Build-time readers see the building shard's; the frame cap and phoneCut read them every frame.
+ */
+export function applyShardTier(slug: string): void {
+  tierShard = slug;
+  Object.assign(TIER_CONFIG, TIER === 'phone' && slug === 'pine-hollow' && PAGE_QUERY.get('phknobs') !== '0' ? PINE_HOLLOW_PHONE : ROW_BASE);
+}
+if (TIER === 'phone' && tierShard === 'pine-hollow' && PAGE_QUERY.get('phknobs') !== '0') Object.assign(TIER_CONFIG, PINE_HOLLOW_PHONE);
 
 /**
  * E142, the 30-fps-at-2× lane (Jake: "we should just be doing performance optimizations necessary for hitting 30 FPS
@@ -111,7 +123,7 @@ if (TIER === 'phone' && PAGE_QUERY.get('chunk') === 'pine-hollow' && PAGE_QUERY.
  * URL names it `=0` (`?depthslice=0`), and `?at2x=0` switches them all off (the frame as before, for A/B).
  */
 export function phoneCut(lever: string): boolean {
-  return TIER === 'phone' && PAGE_QUERY.get('chunk') === 'pine-hollow' && PAGE_QUERY.get('at2x') !== '0' && PAGE_QUERY.get(lever) !== '0';
+  return TIER === 'phone' && tierShard === 'pine-hollow' && PAGE_QUERY.get('at2x') !== '0' && PAGE_QUERY.get(lever) !== '0';
 }
 
 /**

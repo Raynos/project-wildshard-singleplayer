@@ -5,6 +5,7 @@ import { loft, skinPlain, S, boneIndex, mix, sstep, paletteColors, paintNoise, t
 import type { Animal } from '../Animal';
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp } from './rigs';
 import { heightAt } from '../../world/Heightfield';
+import { stateSlot } from '../../core/shardState';
 
 /**
  * The Golden King — Nalati's first boss (docs/design/nalati/elites-and-bosses.md §2, plan row B13; mockups
@@ -435,3 +436,6 @@ registerSpecies({
   think: thinkKing,
   damageMul: (a, hitPoint, dir) => goldenKingBrain.damageMul?.(a, hitPoint, dir) ?? 1,
 });
+
+// E155 (src/core/shardState.ts): the running Nalati's fight (a rebuilt one hooks in again; an evicted one's is let go)
+stateSlot('goldenKing.brain', goldenKingBrain);

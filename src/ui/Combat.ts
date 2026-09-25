@@ -8,6 +8,7 @@ import { riding, pastRidden } from '../player/riding';
 import { viewportHeight } from '../core/viewport';
 import { lockOn } from '../player/AimTargets';
 import './styles/combat.css';
+import { stateSlot } from '../core/shardState';
 
 /**
  * Combat — MMO-style hunting feedback drawn over the game (DOM in `#hud`, styled by `src/ui/styles/combat.css`,
@@ -272,3 +273,6 @@ export class Combat {
     return this.project(_v);
   }
 }
+
+// E155 (src/core/shardState.ts)
+stateSlot('combat.bossAim', bossAim);

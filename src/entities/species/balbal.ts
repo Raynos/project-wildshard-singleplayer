@@ -5,6 +5,7 @@ import { loft, tube, skinPlain, S, boneIndex, mix, sstep, paletteColors, paintNo
 import type { Animal } from '../Animal';
 import { NO_FUR, lookAngles, smooth01, step, clamp } from './rigs';
 import { heightAt } from '../../world/Heightfield';
+import { stateSlot } from '../../core/shardState';
 
 /**
  * Balbal — THE stone warrior (NALATI.md B11; elites-and-bosses.md E4: "they wake at dusk, 2.5 m, 220 hp, amber cracks
@@ -479,3 +480,6 @@ registerSpecies({
   damageMul: balbalDamageMul,
   blood: false,   // stone: the controller throws chips / sparks instead
 });
+
+// E155 (src/core/shardState.ts)
+stateSlot('balbal.combat', balbalCombat);

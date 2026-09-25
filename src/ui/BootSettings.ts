@@ -11,6 +11,7 @@
  * ones that skip the title, so the reload lands back on this title screen. Reuses the in-game menu's look (gmenu.css).
  */
 import { AUTO_TIER, TIER, gfxPrefs, saveGfxPrefs } from '../core/tier';
+import { asShell } from '../core/shardScope';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { getActiveChunk } from '../chunks/registry';
 import { askReload } from './ReloadPrompt';
@@ -37,7 +38,7 @@ const TITLE_SKIPPERS = ['skipintro', 'tour', 'explore', 'cam', 'model', 'at', RE
 let root: HTMLElement | undefined;
 
 export function openBootSettings(): void {
-  const r = root ?? build();
+  const r = root ?? asShell(build); // the page's one panel (src/core/shardScope.ts): its Esc listener is not a shard's
   root = r;
   r.classList.add('show');
   r.inert = false;
@@ -51,6 +52,7 @@ function close(): void {
 
 function build(): HTMLElement {
   const r = el('ws-gmenu');
+  r.dataset['wsShell'] = ''; // the page's one boot-settings panel: never a resident shard's (src/core/shardScope.ts)
   r.inert = true;
   const sheet = el('ws-gmenu-sheet ws-glass');
   sheet.innerHTML = `

@@ -20,6 +20,7 @@
 import * as THREE from 'three';
 import type { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { CSMFrustum } from 'three/examples/jsm/csm/CSMFrustum.js';
+import { stateSlot } from '../core/shardState';
 
 /** the fade's progress, 0 = the old direction … 1 = the new (settled); every CSM material shares it */
 export const sunFadeUniform = { value: 1 };
@@ -161,3 +162,6 @@ export class ShadowFade {
     ghost.target.position.copy(_center).add(this.from);
   }
 }
+
+// E155 (src/core/shardState.ts): the running shard's fade
+stateSlot('shadowFade.sunFade', sunFadeUniform);

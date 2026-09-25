@@ -13,6 +13,7 @@ import { TIER_CONFIG } from '../core/tier';
 import { macrotask } from '../boot/plan';
 import { LightPool } from '../fx/LightPool';
 import { SHADOW_LAYER } from '../core/shadowLayer';
+import { stateSlot } from '../core/shardState';
 
 /**
  * The three log cabins of the chunk.
@@ -2162,3 +2163,6 @@ export function prepModel(scene: THREE.Object3D, sky: Sky): PropPart[] {
   });
   return out;
 }
+
+// E155 (src/core/shardState.ts): the running shard's cabin night
+stateSlot('cabin.night', cabinNight);

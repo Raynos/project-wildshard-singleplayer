@@ -11,6 +11,7 @@ import { TIER_CONFIG } from '../core/tier';
 import { CelledInstances } from './Culling';
 import { DecisionLog, placeUndergrowth, placementChecksum, sameChecksum, type Placement, type UnderPlacements } from './placement';
 import { bakedUndergrowth } from './BakedTerrain';
+import { stateSlot } from '../core/shardState';
 
 /**
  * Forest-floor undergrowth: instanced ferns, low round-leaf shrubs and needle/twig litter.
@@ -530,3 +531,6 @@ function makeLitterTexture() {
   }
   return canvasTexture(c);
 }
+
+// E155 (src/core/shardState.ts): the running shard's undergrowth light
+stateSlot('undergrowth.uniforms', underUniforms);

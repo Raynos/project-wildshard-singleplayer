@@ -5,6 +5,7 @@ import { inChunk, normalAt } from '../world/Heightfield';
 import { wildEnv, playerVisibility, downwindOf, hearingRadius, angDiff } from './wildEnv';
 import { Pack } from './Pack';
 import type { GroupName } from '../physics/groups';
+import { listSlot } from '../core/shardState';
 
 /** the kinds a stampeding horse's body lets through (R3): the player on foot · none */
 const THROUGH_PLAYER: readonly GroupName[] = ['PLAYER'], BLOCKED: readonly GroupName[] = [];
@@ -526,3 +527,6 @@ export function horseDamageMul(a: Animal): number {
   if (a.variant !== 'stallion') return 1;
   return THREE.MathUtils.clamp((f - 0.2) / 0.8, 0, 1);
 }
+
+// E155 (src/core/shardState.ts): the running shard's herds (a rebuilt Nalati's, not the evicted one's)
+listSlot('herds.all', HorseHerd.all);

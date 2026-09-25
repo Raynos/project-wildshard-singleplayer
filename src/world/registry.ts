@@ -11,6 +11,7 @@
 import type * as THREE from 'three';
 import type { Material } from '../physics/surface';
 import type { Tier } from '../core/tier';
+import { shardSlot } from '../core/shardState';
 
 interface Vec3 { x: number; y: number; z: number }
 interface Quat { x: number; y: number; z: number; w: number }
@@ -158,3 +159,6 @@ export function activeRegistry(): WorldRegistry { running ??= new WorldRegistry(
 export function boxDesc(c: { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }, surface?: Material): ColliderDesc {
   return { kind: 'box', x: c.x, y: (c.yTop + c.yBottom) / 2, z: c.z, hx: c.hw, hy: Math.max(0.005, (c.yTop - c.yBottom) / 2), hz: c.hd, yaw: -c.rot, ...(surface === undefined ? {} : { surface }) };
 }
+
+// E155 (src/core/shardState.ts): each resident shard has its own registry; a new shard starts with none (made on first use)
+shardSlot<WorldRegistry | null>('world.registry', () => running, (v) => { running = v; }, () => null);

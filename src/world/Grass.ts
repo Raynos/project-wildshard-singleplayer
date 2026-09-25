@@ -13,6 +13,7 @@ import { TIER_CONFIG } from '../core/tier';
 import { getActiveChunk } from '../chunks/registry';
 import { groundSet } from './lookFlags';
 import { GrassV2 } from '../nalati/look/grass';
+import { stateSlot } from '../core/shardState';
 
 /**
  * Wind-swept grass carpet around the player (Skyrim SE / Horizon style).
@@ -570,3 +571,6 @@ function drawBlade(g: CanvasRenderingContext2D, rx: number, ry: number, bendX: n
   for (let i = 0; i <= steps * 0.8; i++) { const r = right[i]; if (!r) continue; const [x, y] = r; if (i === 0) g.moveTo(x, y); else g.lineTo(x, y); }
   g.stroke();
 }
+
+// E155 (src/core/shardState.ts): the running shard's grass light / wind
+stateSlot('grass.uniforms', grassUniforms);

@@ -4,6 +4,7 @@
 import * as THREE from 'three';
 import { isStylized, toonUniforms } from './stylize';
 import { getActiveChunk } from '../chunks/registry';
+import { shardSlot, stateSlot } from '../core/shardState';
 
 export const fogUniforms = {
   fogSunDir: { value: new THREE.Vector3(0, 1, 0) },
@@ -283,3 +284,12 @@ export function updateUnderwater(dt: number, fog: THREE.Fog | THREE.FogExp2 | nu
   fogUniforms.fogHeightDensity.value = dry.height * (1 - t);
   if (fog) fog.color.copy(dry.color).lerp(_c.copy(UNDER_COLOR), t);
 }
+
+// E155 (src/core/shardState.ts): the air is the running shard's — each resident shard keeps its own patch state, fog
+// uniforms and underwater blend, swapped in when it plays
+shardSlot('atmosphere', () => ({ pineWeather, painted, installed, underTarget, underBlend }), (s) => { ({ pineWeather, painted, installed, underTarget, underBlend } = s); });
+stateSlot('atmosphere.fogUniforms', fogUniforms);
+stateSlot('atmosphere.weatherUniforms', weatherUniforms);
+stateSlot('atmosphere.volumetricFog', volumetricFog);
+stateSlot('atmosphere.paintedAir', paintedAir);
+stateSlot('atmosphere.dry', dry);

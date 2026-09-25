@@ -15,6 +15,7 @@
 import type { OptionValue } from '../ui/Settings';
 import type { DayNight } from './DayNight';
 import type { DayClock, DayPhase } from './DayClock';
+import { shardSlot } from '../core/shardState';
 
 /** Settings ▸ Time of day's values: 'live' runs the clock, the rest park it */
 export type TimePick = OptionValue<'time'>;
@@ -97,3 +98,6 @@ let active: WorldClock | null = null;
 export function setActiveClock(c: WorldClock | null): void { active = c; }
 /** the running shard's clock, or null (Pine Hollow: a fixed sun) */
 export function activeClock(): WorldClock | null { return active; }
+
+// E155 (src/core/shardState.ts): the running shard's clock
+shardSlot('world.clock', () => active, (v) => { active = v; });

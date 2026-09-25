@@ -24,6 +24,7 @@ import { groups, queryGroups, type GroupName } from './groups';
 import { tagCollider, tagOf, untagCollider, type Material } from './surface';
 import { TIER } from '../core/tier';
 import { floorBelow } from './query';
+import { shardSlot } from '../core/shardState';
 
 interface Vec3 { x: number; y: number; z: number }
 interface Quat { x: number; y: number; z: number; w: number }
@@ -394,3 +395,6 @@ let current: Bodies | null = null;
 /** bootstrap sets the shard's body service once the world is built; null before that and in node tests */
 export function setActiveBodies(b: Bodies | null): Bodies | null { current = b; return b; }
 export function activeBodies(): Bodies | null { return current; }
+
+// E155 (src/core/shardState.ts): the running shard's bodies
+shardSlot('physics.bodies', () => current, (v) => { current = v; });

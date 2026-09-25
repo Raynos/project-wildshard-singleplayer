@@ -9,6 +9,7 @@
  * material, so shadows move with what casts them (`mesh.customDepthMaterial = swayDepthMaterial()`).
  */
 import * as THREE from 'three';
+import { stateSlot } from '../core/shardState';
 
 export const windUniforms = { uWindTime: { value: 0 }, uGust: { value: 0.5 } };
 /** 0 … 1 wind the weather adds (Pine Hollow's rain, PH-L10: src/pinehollow/weather.ts); 0 = the wind exactly as before */
@@ -130,3 +131,7 @@ export function windGustAt(x: number, z: number, t = windUniforms.uWindTime.valu
   const patchy = 0.62 + 0.38 * Math.sin(across * 0.025 + along * 0.004 - t * 0.05);
   return (0.3 + 0.7 * gust) * (0.3 + 0.9 * f * patchy);
 }
+
+// E155 (src/core/shardState.ts): the running shard's wind
+stateSlot('wind.uniforms', windUniforms);
+stateSlot('wind.boost', windBoost);

@@ -10,6 +10,7 @@
  * itself from position deltas, so a plain `{ alive, position }` object also works.
  */
 import type * as THREE from 'three';
+import { shardSlot, stateSlot } from '../core/shardState';
 
 export interface AimTarget {
   kind?: string;
@@ -56,3 +57,8 @@ export const lockOn: {
   offYaw: number; offPitch: number; r0: number;
   left: AimTarget | null; right: AimTarget | null; leftDist: number; rightDist: number;
 } = { state: 'off', target: null, candidate: null, offYaw: 0, offPitch: 0, r0: 0, left: null, right: null, leftDist: 0, rightDist: 0 };
+
+// E155 (src/core/shardState.ts): the running shard's targets and lock state
+shardSlot('aim.targets', () => targets, (v) => { targets = v; });
+stateSlot('aim.meleeLock', meleeLock);
+stateSlot('aim.lockOn', lockOn);

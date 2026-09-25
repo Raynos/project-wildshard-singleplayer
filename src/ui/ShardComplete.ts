@@ -13,6 +13,7 @@
  * While it is up, `#hud.ws-complete-up` hides the rest of the HUD and the touch controls; the toasts stay (under the dim).
  */
 import './styles/complete.css';
+import { shardSlot } from '../core/shardState';
 
 export interface CompleteStat {
   label: string;
@@ -126,3 +127,6 @@ export class ShardComplete {
     window.removeEventListener('keydown', this.onKey, true);
   }
 }
+
+// E155 (src/core/shardState.ts): each shard's complete card + menu row
+shardSlot('shardComplete', () => ({ up, entry }), (s) => { ({ up, entry } = s); });

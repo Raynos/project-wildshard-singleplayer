@@ -11,6 +11,7 @@ import { modelsOn } from '../world/nalati/glbPaint';
 import { TIER } from '../core/tier';
 import { painterlyAnimalMaterial } from './painterlyAnimals';
 import { wildEnv, angDiff } from './wildEnv';
+import { listSlot } from '../core/shardState';
 
 /**
  * Flock — the camp's sheep (docs/design/nalati/wolves-horses-taming.md "Sheep"): 20–60 fat-tailed sheep as ONE
@@ -450,3 +451,6 @@ export function thinkSheepdog(a: Animal, c: ThinkCtx): void {
   c.confine(a);
 }
 
+
+// E155 (src/core/shardState.ts): the running shard's flock wolves
+listSlot('flock.dogWolves', dogWolves);

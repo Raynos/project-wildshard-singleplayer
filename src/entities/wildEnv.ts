@@ -1,4 +1,5 @@
 import type * as THREE from 'three';
+import { stateSlot } from '../core/shardState';
 
 /**
  * wildEnv — the one shared view of the world the Nalati creature AIs read (wolf packs `Pack.ts`, horse herds `Herd.ts`,
@@ -90,3 +91,6 @@ export function hearingRadius(r: [number, number, number, number], player: THREE
 
 /** shortest signed angle a − b, radians */
 export const angDiff = (a: number, b: number): number => Math.atan2(Math.sin(a - b), Math.cos(a - b));
+
+// E155 (src/core/shardState.ts): the running shard's wildlife environment
+stateSlot('wildEnv', wildEnv);

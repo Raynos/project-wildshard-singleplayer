@@ -18,6 +18,7 @@ import type { AmbientBed, LoopName, SampleLoop, SteppeLoop } from './Audio';
 import { SFX_MANIFESTS } from '../boot/audio.generated';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { sfxDir, DRIFTWOOD_SOUNDS } from '../boot/audioFiles';
+import { onScopeDispose } from '../core/shardScope';
 
 export const DECODE_RATE = 48000;
 let offline: OfflineAudioContext | undefined;
@@ -45,7 +46,7 @@ export async function cachedBytes(url: string): Promise<ArrayBuffer> {
 export type AudioKind = 'music' | 'sfx';
 const BUSY_MS = 300;
 const busyFns = new Set<(kind: AudioKind, on: boolean) => void>();
-export function onAudioBusy(fn: (kind: AudioKind, on: boolean) => void): () => void { busyFns.add(fn); return () => { busyFns.delete(fn); }; }
+export function onAudioBusy(fn: (kind: AudioKind, on: boolean) => void): () => void { busyFns.add(fn); const off = (): void => { busyFns.delete(fn); }; onScopeDispose(off); return off; } // a resident shard's (its menu): gone with it
 /** run `work`; the picker shows a spinner only if it is still running after BUSY_MS */
 export function trackBusy<T>(kind: AudioKind, work: Promise<T>): Promise<T> {
   let shown = false;

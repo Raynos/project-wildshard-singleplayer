@@ -13,6 +13,7 @@ import { activePhysics } from '../physics/active';
 import { worldTime } from '../core/time';
 import { CameraFX } from './CameraFX';
 import { Impacts } from '../fx/Impacts';
+import { stateSlot } from '../core/shardState';
 
 /**
  * Sword — the Driftwood Isle melee weapon (`ChunkDef.weapon === 'sword'`): a low-poly wooden sword (pale carved blade
@@ -949,3 +950,6 @@ export class Sword implements Weapon {
     this.stars.update(worldTime.realDt, this.game.renderer, cam); // particles keep flying through a hit-stop
   }
 }
+
+// E155 (src/core/shardState.ts): the running shard's sword hooks (the island's sfx)
+stateSlot('sword.events', swordEvents);

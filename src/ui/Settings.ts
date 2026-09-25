@@ -27,6 +27,10 @@
 //   a value a player saved for one before is never read, and the next save drops it from localStorage.
 //
 // localStorage is wrapped in try/catch (iOS private mode throws on write) — the in-memory copy is the truth for the session.
+//
+// A listener a resident shard adds while it builds or runs is removed when that shard is evicted (src/core/shardScope.ts).
+import { onScopeDispose } from '../core/shardScope';
+
 export type SettingKey = 'aimAssist' | 'tracers' | 'haptics' | 'autoLock' | 'huntersEye';
 export type NumberKey = 'volume' | 'music' | 'look' | 'swingLook' | 'lockCam';
 export const MUSIC_STYLES = ['piano', 'orchestral', 'folk', 'synth'] as const;
@@ -94,7 +98,7 @@ class Choice<T extends string> {
     persist();
     if (changed) this.listeners.forEach((fn) => fn(v));
   }
-  on(fn: (v: T) => void): () => void { this.listeners.add(fn); return () => { this.listeners.delete(fn); }; }
+  on(fn: (v: T) => void): () => void { this.listeners.add(fn); const off = (): void => { this.listeners.delete(fn); }; onScopeDispose(off); return off; }
 }
 const musicStyle = new Choice<MusicStyle>('musicStyle', MUSIC_STYLES, 'piano', (q) => q.get('music'));
 const sfxSet = new Choice<SfxSet>('sfxSet', SFX_SETS, 'best', (q) => q.get('sfx'));
@@ -216,7 +220,9 @@ export function onNumber(k: NumberKey, fn: (v: number) => void): () => void {
   if (!set) { set = new Set(); numListeners.set(k, set); }
   set.add(fn);
   const s = set;
-  return () => { s.delete(fn); };
+  const off = (): void => { s.delete(fn); };
+  onScopeDispose(off);
+  return off;
 }
 
 export function onSetting(k: SettingKey, fn: (v: boolean) => void): () => void {
@@ -224,7 +230,9 @@ export function onSetting(k: SettingKey, fn: (v: boolean) => void): () => void {
   if (!set) { set = new Set(); listeners.set(k, set); }
   set.add(fn);
   const s = set;
-  return () => { s.delete(fn); };
+  const off = (): void => { s.delete(fn); };
+  onScopeDispose(off);
+  return off;
 }
 
 export function getMusicStyle(): MusicStyle { return musicStyle.value; }

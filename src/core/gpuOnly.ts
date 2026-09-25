@@ -3,6 +3,8 @@
  * only on the GPU, so an in-place WebGL restore brings it back empty. A module that makes such a bake marks it here, and
  * src/core/GpuRecovery.ts reloads the page on a context loss instead of restoring in place (E54).
  */
+import { listSlot, shardSlot } from './shardState';
+
 const labels = new Set<string>();
 
 export function markGpuOnly(label: string): void { labels.add(label); }
@@ -19,3 +21,7 @@ export function rebakeGpuContent(): void { for (const f of rebakes) f(); }
 
 /** what was marked (empty: an in-place restore brings the whole scene back) */
 export function gpuOnlyContent(): readonly string[] { return [...labels]; }
+
+// E155 (src/core/shardState.ts): each resident shard's own bakes
+shardSlot('gpuOnly.labels', () => [...labels], (v) => { labels.clear(); for (const l of v) labels.add(l); }, () => []);
+listSlot('gpuOnly.rebakes', rebakes);

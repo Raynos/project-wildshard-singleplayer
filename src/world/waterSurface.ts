@@ -28,6 +28,7 @@ import * as THREE from 'three';
 import { patchWindField, windUniforms, WIND_DIR } from './wind';
 import type { Sky } from './Sky';
 import type { TreeInstance } from './placement';
+import { stateSlot } from '../core/shardState';
 
 /** the skyline texture's encoding: R = occluder top above the water (/ SKY_TOP m), G = its distance (/ SKY_DIST m) */
 const SKY_TOP = 80, SKY_DIST = 400, SKY_BINS = 512;
@@ -346,3 +347,7 @@ export function buildSkyline(cx: number, cz: number, level: number, trees: reado
 
 /** the wind clock the water scrolls on (wind.ts, advanced by Forest.update) — for callers that animate on the CPU */
 export function waterTime(): number { return windUniforms.uWindTime.value; }
+
+// E155 (src/core/shardState.ts): the running shard's water
+stateSlot('water.weather', waterWeather);
+stateSlot('water.view', waterView);

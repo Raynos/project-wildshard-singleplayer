@@ -16,6 +16,7 @@ import { PINE_HOLLOW } from './pine-hollow';
 import { DRIFTWOOD_ISLE } from './driftwood-isle';
 import { NALATI_GRASSLANDS } from './nalati-grasslands';
 import { _applyChunkConstants } from '../core/config';
+import { onScopeDispose } from '../core/shardScope';
 
 export const DEFAULT_CHUNK = 'driftwood-isle';
 
@@ -52,7 +53,10 @@ export function setActiveChunk(slug: string): ChunkDef {
   return active;
 }
 
-export function onActiveChunkChange(fn: (def: ChunkDef) => void): void { listeners.push(fn); }
+export function onActiveChunkChange(fn: (def: ChunkDef) => void): void {
+  listeners.push(fn);
+  onScopeDispose(() => { const i = listeners.indexOf(fn); if (i !== -1) listeners.splice(i, 1); }); // a resident shard's (its Minimap): gone with it
+}
 
 /** URL for the same page with another chunk selected (other params kept). */
 export function chunkUrl(slug: string, from: string = location.href): string {

@@ -44,6 +44,7 @@ import { NALATI_WILDLIFE } from '../entities/Wildlife';
 import { activeRegistry } from '../world/registry';
 import { mapShapes, mapWants, type MapPoly, type MapShapes } from './mapShapes';
 import { activeClock } from '../world/WorldClock';
+import { scopesInstalled } from '../core/shardScope';
 
 export interface MinimapAnimal {
   kind: string;
@@ -217,7 +218,9 @@ export class Minimap {
 
     this.stamp = this.buildStamp();
     this.layerDirty = true;
-    onActiveChunkChange(() => { this.layerDirty = true; this.clearCoverage(); });
+    // a dev page swapping its chunk in place: a new map. In the game several shards are resident (E155) and a change is a
+    // switch between them — this map's shard, its painted layer and its explored fog stay as they are
+    onActiveChunkChange(() => { if (scopesInstalled()) return; this.layerDirty = true; this.clearCoverage(); });
     // a piece the map draws that lands after the layer was painted (the zipline, with the adventure) → paint again
     activeRegistry().onAdd((p) => { if (this.shapes !== null && mapWants(getActiveChunk().map, p.id)) this.layerDirty = true; });
 

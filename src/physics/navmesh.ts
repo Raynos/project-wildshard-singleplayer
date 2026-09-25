@@ -17,6 +17,7 @@ import {
 } from 'navcat';
 import { navmeshUrl } from './navmeshUrl';
 import { frameCost } from '../core/frameCost';
+import { shardSlot } from '../core/shardState';
 
 export { navmeshUrl } from './navmeshUrl';
 
@@ -245,3 +246,6 @@ export async function loadNavmesh(slug: string): Promise<Navmesh | null> {
     return null;
   }
 }
+
+// E155 (src/core/shardState.ts): the running shard's navmesh
+shardSlot('physics.navmesh', () => active, (v) => { active = v; });

@@ -13,6 +13,7 @@
  */
 import * as THREE from 'three';
 import type { SkyLook } from '../../world/DayClock';
+import { stateSlot } from '../../core/shardState';
 
 /** the key light the panorama was painted under (the def's late-afternoon sun, ChunkSky.sunColor) */
 const PAINTED_KEY = new THREE.Color(1.0, 0.85, 0.64);
@@ -60,3 +61,6 @@ export function updateTint(look: SkyLook, w: TintWeather): void {
   u.uV2Veil.value = Math.min(0.9, w.overcast * 0.6 + w.rain * 0.35);
   u.uV2Flash.value = w.flash;
 }
+
+// E155 (src/core/shardState.ts): a rebuilt Nalati starts from these
+stateSlot('nalati.tint', tintUniforms);

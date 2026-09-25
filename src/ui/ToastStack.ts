@@ -19,6 +19,8 @@
  * crosses the toasts (`toastArea`, read by EliteBar). Pushed down toward the crosshair (half the screen, less a margin),
  * the oldest toasts leave early — the newest always shows.
  */
+import { stateSlot } from '../core/shardState';
+
 const MAX = 3;
 const LIFE = 3200, OUT = 500, EVERY = 160, GAP = 8;
 /** top-anchored boxes the column never draws over (only when shown) */
@@ -101,3 +103,6 @@ export class ToastStack {
     toastArea.left = left; toastArea.right = right; toastArea.top = top; toastArea.bottom = top + h;
   }
 }
+
+// E155 (src/core/shardState.ts): the running shard's toast area
+stateSlot('toastArea', toastArea);

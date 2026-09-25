@@ -21,6 +21,8 @@
  * mouse / trackpad device nothing mounts: the calls are harmless and the elements stay detached.
  */
 
+import { shardSlot } from '../core/shardState';
+
 export type DiscSpot = 'r0' | 'r1' | 'r2' | 'r3' | 'aim' | 'up0' | 'lean-l' | 'lean-r' | 'edge-r';
 export interface DiscOpts {
   /** the disc's own class(es), styled by the owner's stylesheet (`ws-ride-gallop`, `ws-stealth-crouch`) */
@@ -89,6 +91,13 @@ class HudSlots {
   }
 
   show(el: HTMLElement, on: boolean): void { el.classList.toggle('show', on); }
+
+  /** E155: each resident shard has its own touch layer — the host swaps the slots' state with the running shard */
+  snapshot(): HudSlotsState { return { layer: this.layer, status: this.status, pending: [...this.pending] }; }
+  restore(s: HudSlotsState): void { this.layer = s.layer; this.status = s.status; this.pending = [...s.pending]; }
 }
+interface HudSlotsState { layer: HTMLElement | null; status: HTMLElement | null; pending: ((layer: HTMLElement, status: HTMLElement) => void)[] }
 
 export const hudSlots = new HudSlots();
+// E155 (src/core/shardState.ts): a new shard starts with no layer (its TouchControls mounts its own)
+shardSlot('hudSlots', () => hudSlots.snapshot(), (v) => { hudSlots.restore(v); }, () => ({ layer: null, status: null, pending: [] }));

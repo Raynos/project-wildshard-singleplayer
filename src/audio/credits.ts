@@ -8,6 +8,7 @@
 //   onSfxCredit(fn)          → a set's sfx.json credit arrived (Audio.ts calls setSfxCredit)
 import type { SfxSet } from '../ui/Settings';
 import { shipped } from './Stems';
+import { onScopeDispose } from '../core/shardScope';
 
 export const MUSIC_CREDIT = 'Music: MiniMax-Music3';
 const STABILITY = 'Powered by Stability AI';
@@ -29,4 +30,4 @@ export function setSfxCredit(set: SfxSet, credit: string): void {
   loaded.set(set, credit.trim());
   listeners.forEach((fn) => fn());
 }
-export function onSfxCredit(fn: () => void): () => void { listeners.add(fn); return () => { listeners.delete(fn); }; }
+export function onSfxCredit(fn: () => void): () => void { listeners.add(fn); const off = (): void => { listeners.delete(fn); }; onScopeDispose(off); return off; }

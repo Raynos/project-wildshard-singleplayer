@@ -17,6 +17,7 @@ import { getActiveChunk } from '../chunks/registry';
 import { landscapeHash } from '../chunks/terrain';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import type { ChunkTerrain } from '../chunks/ChunkDef';
+import { shardSlot } from '../core/shardState';
 
 export interface BakedGrid { res: number; size: number; seed: number; /** fingerprint of the def's heightAt the bake was made from (0 = legacy, unhashed) */ landscapeHash: number; heights: Float32Array; splat: Uint8Array; /** the undergrowth decision log, when the bake has one */ undergrowth: BakedPlacement | null }
 
@@ -132,3 +133,6 @@ export async function loadBakedTerrain(): Promise<boolean> {
     return false;
   }
 }
+
+// E155 (src/core/shardState.ts): which shard's bake is installed follows the running shard (Heightfield's samplers too)
+shardSlot('bakedTerrain', () => ({ installedFor, installedPlacement }), (s) => { ({ installedFor, installedPlacement } = s); });

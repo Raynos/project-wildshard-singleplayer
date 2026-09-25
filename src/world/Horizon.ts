@@ -6,6 +6,7 @@ import { PaintedHorizon, horizonStrips } from './HorizonMatte';
 import type { Sky } from './Sky';
 import { getActiveChunk } from '../chunks/registry';
 import type { ChunkHorizon } from '../chunks/ChunkDef';
+import { stateSlot } from '../core/shardState';
 
 /**
  * The far light, shared by every ring and the cloud sea: the fixed skies keep these values; Pine Hollow's day / night clock
@@ -314,3 +315,6 @@ function cloudNoise() {
   g.putImageData(img, 0, 0);
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
 }
+
+// E155 (src/core/shardState.ts): the running shard's horizon light
+stateSlot('horizon.light', horizonLight);

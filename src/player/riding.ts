@@ -1,4 +1,5 @@
 import type { Animal } from '../entities/Animal';
+import { stateSlot } from '../core/shardState';
 
 /**
  * The horse under the player right now (null on foot; Mount.ts sets it on mount / dismount). A module of its own so the
@@ -15,3 +16,6 @@ export function pastRidden<T>(fn: () => T): T {
   h.hidden = true;
   try { return fn(); } finally { h.hidden = false; }
 }
+
+// E155 (src/core/shardState.ts): the running shard's ride
+stateSlot('riding', riding);
