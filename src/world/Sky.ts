@@ -16,6 +16,7 @@ import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
 import { macrotask } from '../boot/plan';
 import { installStylize, toonUniforms } from './stylize';
 import { FILTER_RADII, PHONE_SHADOW_FILTER, installShadowFilter, shadowFilterFromUrl } from './shadowFilter';
+import { SUN_FADE_S, ShadowFade, installShadowFadeChunk, sunFadeUniform } from './shadowFade';
 import { patchPointLightSkip } from './pointLightSkip';
 import { StylizedSky } from './StylizedSky';
 import { DayNight, type DayClock } from './DayNight';
@@ -32,13 +33,14 @@ const KEY_SHADOW_STEP = 0.25 * Math.PI / 180;
 
 /** the sun's shadow map(s): cascade count, map size (px), how far they reach (m), the caster margin (m) and, for two
  *  cascades, where the near one ends (m) */
-export interface ShadowRig { cascades: number; size: number; far: number; margin: number; split: number; /** the phone's low-poly rig (E123): normal bias in texels */ phone: boolean }
+export interface ShadowRig { cascades: number; size: number; far: number; margin: number; /** where each cascade but the last ends (m); empty = CSM's practical splits */ splits: number[]; /** the phone's low-poly rig (E123): normal bias in texels */ phone: boolean }
 
-/** the phone's rig on the low-poly shard (E123, the user's pick `2c2k`, 2026-09-25, "both 2048 and 2c"): two cascades at
- *  2048², the near one to 14 m — 1.7 cm a texel near you, ~+0.5 ms a frame on the M5 against the one 2048² square it replaced */
+/** the phone's rig on the low-poly shard. E123 (the user's pick `2c2k`, "both 2048 and 2c"): cascades at 2048². E147 (the
+ *  user's pick C, crisper near shadows): three of them, to 7 / 22 / 80 m — 0.8 cm a texel near you, half E123's 1.6 cm, for
+ *  ~+0.08 ms a frame on the M5; `?psplit=14` is E123's two */
 // Its filter and radii are shadowFilter.ts's since E138 (E128's three-PCF near radius of 1.2 is `?pshadowfilter=cheap`;
 // `?pradius=` overrides the near cascade's radius)
-const PHONE_SHADOW: Omit<ShadowRig, 'margin' | 'phone'> = { cascades: 2, size: 2048, far: 80, split: 14 };
+const PHONE_SHADOW: Omit<ShadowRig, 'margin' | 'phone'> = { cascades: 3, size: 2048, far: 80, splits: [7, 22] };
 
 /**
  * The shadow rig for this tier and shard. The phone's portrait camera (94° vertical FOV) makes a cascade's square far
@@ -47,9 +49,12 @@ const PHONE_SHADOW: Omit<ShadowRig, 'margin' | 'phone'> = { cascades: 2, size: 2
  */
 export function shadowRig(stylized: boolean): ShadowRig {
   const T = TIER_CONFIG;
-  const base: ShadowRig = { cascades: T.cascades, size: T.shadowMapSize, far: T.shadowFar, margin: T.shadowMargin, split: 0, phone: false };
+  const base: ShadowRig = { cascades: T.cascades, size: T.shadowMapSize, far: T.shadowFar, margin: T.shadowMargin, splits: [], phone: false };
   if (T.cascades !== 1 || !stylized) return base; // desktop / the other shards: the tier table
-  return { ...PHONE_SHADOW, margin: base.margin, phone: true };
+  // `?psplit=7,22`: the cascades' ends (m), one cascade more than the list (E147's A/B of a tighter near cascade)
+  const want = (new URLSearchParams(location.search).get('psplit') ?? '').split(',').map(Number).filter((v) => Number.isFinite(v) && v > 0);
+  const splits = want.length > 0 ? want : PHONE_SHADOW.splits;
+  return { ...PHONE_SHADOW, cascades: splits.length + 1, splits, margin: base.margin, phone: true };
 }
 
 /** the low-poly shard's sun before the day / night clock moves it: mid-morning from the east-south-east, 38° up */
@@ -114,9 +119,9 @@ export class Sky {
 
     const rig = shadowRig(this.stylized !== null);
     this.csm = new CSM({
-      camera: this.camera, parent: this.scene, cascades: rig.cascades, mode: rig.split > 0 ? 'custom' : 'practical',
-      // the near cascade ends at `split` m: a tight square round the player (the deck, the pier under foot), the far one takes the rest
-      customSplitsCallback: (_n: number, _near: number, far: number, out: number[]) => { out.push(Math.min(0.9, rig.split / far), 1); },
+      camera: this.camera, parent: this.scene, cascades: rig.cascades, mode: rig.splits.length > 0 ? 'custom' : 'practical',
+      // the near cascade ends at `splits[0]` m: a tight square round the player (the deck, the pier under foot), the last one takes the rest
+      customSplitsCallback: (_n: number, _near: number, far: number, out: number[]) => { for (const m of rig.splits) out.push(Math.min(0.9, m / far)); out.push(1); },
       maxFar: rig.far, shadowMapSize: rig.size, lightDirection: this.sunDir.clone().negate(),
       lightIntensity: qn('sunI', S.sunIntensity), shadowBias: -0.00012, lightMargin: rig.margin, lightNear: 1, lightFar: 600,
     });
@@ -128,6 +133,9 @@ export class Sky {
     const filter = this.stylized && (rig.phone || qs.has('pshadowfilter')) ? shadowFilterFromUrl(PHONE_SHADOW_FILTER) : null;
     if (filter) this.renderer.shadowMap.type = installShadowFilter(filter);
     patchCSMShaderChunk();
+    // E147: the low-poly shard's clock steps the sun's shadow; each step crossfades over `?sunfade=` s (0 = pops, as before)
+    const fadeS = qn('sunfade', SUN_FADE_S);
+    if (this.stylized && fadeS > 0 && installShadowFadeChunk()) this.shadowFade = new ShadowFade(this.csm, this.camera, this.scene, fadeS);
     if (getActiveChunk().slug === 'pine-hollow') patchPointLightSkip(); // E142: a far / dark point light skips its BRDF (pointLightSkip.ts)
     patchCloudShadows(); // painterly shards: the drifting cloud shadows in the sun loop (a no-op elsewhere)
     // the stylized shard's low sun (golden hour, dawn) grazes the flat decks: more normal bias or the planks speckle with acne
@@ -153,6 +161,7 @@ export class Sky {
         setSkyPalette: (pal, dir) => { st.setPalette(pal); st.u.uSunDir.value.copy(dir); },
         disc: this.sunDisc, planetSun: this.giantUniforms.uSunDir.value, planetHaze: this.giantUniforms.uHaze.value,
         refreshEnvironment: () => { this.refreshEnvironment(); },
+        shadowBusy: () => this.shadowFade?.busy ?? false,
       }, qn('sunI', S.sunIntensity) / 2.7);
     } else {
       this.buildClouds();
@@ -313,7 +322,9 @@ export class Sky {
     const own = mat.onBeforeCompile.bind(mat);
     this.csm.setupMaterial(mat);
     const csmHook = mat.onBeforeCompile.bind(mat);
-    mat.onBeforeCompile = (shader, renderer) => { own(shader, renderer); csmHook(shader, renderer); };
+    const fade = this.shadowFade !== null;
+    if (this.shadowFade) mat.defines = { ...mat.defines, CSM_GHOSTS: this.shadowFade.ghosts.length }; // E147: the cascades mix in the fade's ghost shadows
+    mat.onBeforeCompile = (shader, renderer) => { own(shader, renderer); csmHook(shader, renderer); if (fade) shader.uniforms['uSunFade'] = sunFadeUniform; };
     const key = mat.customProgramCacheKey.bind(mat);
     mat.customProgramCacheKey = () => `${key()}|csm`;
     mat.needsUpdate = true;
@@ -330,6 +341,8 @@ export class Sky {
   /** a painted sky (Nalati): the painterly clouds + the cloud shadows drift with the one Wind */
   private painterly = false;
 
+  /** E147: the sun's shadow steps crossfade (shadowFade.ts); null = they pop (other shards, `?sunfade=0`) */
+  private shadowFade: ShadowFade | null = null;
   /** where the key light's shadow wants to point (setKeyLight); null on a shard nothing moves the sun on */
   private keyShadowWant: THREE.Vector3 | null = null;
 
@@ -352,7 +365,9 @@ export class Sky {
     const want = this.keyShadowWant;
     if (want !== null && want.angleTo(this.csm.lightDirection) > KEY_SHADOW_STEP) this.csm.lightDirection.copy(want); // a big jump (a Time of day pick, the sun ↔ moon swap) moves at once
     this.csm.update();
-    if (this.texelBias) this.fitNormalBias(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
+    if (this.texelBias) this.fitNormalBias();
+    this.shadowFade?.update(dt); // after the CSM and its bias: each ghost copies its cascade's square
+    this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
     if (this.stylized) { this.stylizedClock?.update(dt); this.stylized.update(dt); toonUniforms.uCloudTime.value += dt; }
     if (this.painterly) {
       // the sky's clouds and their shadows on the ground drift downwind (the shadows at ~1.6× the wind, as clouds aloft do)

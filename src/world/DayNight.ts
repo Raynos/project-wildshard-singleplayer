@@ -1,12 +1,13 @@
 /**
  * The day / night clock of the low-poly shard (DRIFTWOOD-REMASTER L7, the user's pick D3: "a real clock — 20 min day +
- * 4 min night, night moonlit blue and playable"). Sky.ts builds it with the stylized sky and ticks it from `sky.update`.
+ * 4 min night, night moonlit blue and playable"; E147: "48 is good" — both doubled, a 40 min day + 8 min night). Sky.ts
+ * builds it with the stylized sky and ticks it from `sky.update`.
  *
- *   sky.dayNight.phase      // 0..1 over the 24-minute cycle: [0, 20/24) is the day (sunrise → sunset), the rest the night
+ *   sky.dayNight.phase      // 0..1 over the 48-minute cycle: [0, 20/24) is the day (sunrise → sunset), the rest the night
  *   sky.dayNight.night      // 0 = day … 1 = full night          → EnemyWorld.night, IslandAmbience.night
  *   sky.dayNight.dusk       // 0 = broad day … 1 = golden hour / night → Shrine.setDusk (glyphs, fireflies)
  *   ?tod=0.5                // start phase (default 0.2 of the day: mid-morning, the sun 36° up in the ESE)
- *   ?clock=120              // cycle length in seconds (default 1440 = 24 min) — for testing the whole loop quickly
+ *   ?clock=120              // cycle length in seconds (default 2880 = 48 min) — for testing the whole loop quickly
  *   dayNight.setTime('golden')  // pause menu ▸ Settings ▸ Time of day (E55, `setting('time')`): park the sun at a fixed
  *                               // phase (midday / golden / sunset / night) or 'live' to run the clock; ?tod / ?clock win
  *
@@ -22,6 +23,8 @@ import { MIDDAY_SKY, type SkyPalette } from './StylizedSky';
 import { setting, type OptionValue } from '../ui/Settings';
 
 const DAY = 20 / 24;
+/** the whole cycle in seconds (E147, the user: "72 minutes is too big … 48 is good"; it was 24 min, as BotW's) */
+const CYCLE_S = 48 * 60;
 /** Settings ▸ Time of day's fixed picks → the phase they park the clock at (noon, the GOLDEN / SUNSET keys, mid-night) */
 const FIXED_PHASE: Record<Exclude<OptionValue<'time'>, 'live'>, number> = { midday: DAY / 2, golden: 0.74, sunset: DAY - 0.02, night: 0.92 };
 const c = (r: number, g: number, b: number) => new THREE.Color(r, g, b);
@@ -99,9 +102,11 @@ const clonePreset = (p: Preset): Preset => ({
 const d2r = Math.PI / 180;
 /**
  * The shadow-casting light turns in steps of this, not every frame (E89). A shadow map that turns a hair each frame
- * (the sun moves ~0.15°/s) re-rasterizes every shadow edge every frame: on the phone's 1024² map a post's or a palm's
- * shadow crawled and flickered even with the camera still (0.40 % of the frame changed per frame, 0.025 % with the clock
- * frozen). Held still, the texel-snapped map is stable; a 0.25° step moves a shadow ≤ ~1 texel about every 1.5 s.
+ * re-rasterizes every shadow edge every frame: a post's or a palm's shadow crawls and flickers even with the camera still
+ * (E89 on the old 1024² map: 0.40 % of the frame changed per frame; E147 on the 2c2k rig: 0.46 % against 0.079 %
+ * stepped). Held still, the texel-snapped map is stable. A step moves the pier pennant's shadow ~3 cm, several of the
+ * phone rig's 0.8 cm near texels, so each step now crossfades in over ~2 s (Sky's ShadowFade, shadowFade.ts) instead of
+ * popping; the sun moves ~0.075°/s on the 48-minute day, a step every ~3–4 s.
  */
 const SHADOW_STEP = 0.25 * d2r;
 /** compass azimuth (0 = north = +Z, 90 = east = −X) + elevation (deg) → unit vector toward the body */
@@ -134,6 +139,8 @@ export interface DayNightTargets {
   disc: THREE.Mesh;
   planetSun: THREE.Vector3; planetHaze: THREE.Color;
   refreshEnvironment: () => void;
+  /** E147: a shadow step is still fading in (Sky's ShadowFade): hold the next one */
+  shadowBusy?: () => boolean;
 }
 
 export class DayNight implements DayClock {
@@ -158,7 +165,7 @@ export class DayNight implements DayClock {
     const tod = Number.parseFloat(qs.get('tod') ?? '');
     const clock = Number.parseFloat(qs.get('clock') ?? '');
     this.phase = Number.isFinite(tod) ? ((tod % 1) + 1) % 1 : 0.2 * DAY;
-    this.cycle = Number.isFinite(clock) && clock > 1 ? clock : 24 * 60;
+    this.cycle = Number.isFinite(clock) && clock > 1 ? clock : CYCLE_S;
     const time = setting('time'); // 'live' whenever ?tod / ?clock are in the URL
     if (time !== 'live') { this.frozen = true; this.phase = FIXED_PHASE[time]; }
     this.sunIScale = sunIntensityScale;
@@ -218,7 +225,8 @@ export class DayNight implements DayClock {
     T.toon.uToonNight.value = this.night;
     T.sunDir.copy(lightDir);
     const want = this.shadowWant.copy(lightDir).negate();
-    if (snap || want.angleTo(T.lightDirection) > SHADOW_STEP) T.lightDirection.copy(want); // the sun ↔ moon swap is one big step
+    // the sun ↔ moon swap is one big step; a small one waits for the last one's fade (E147)
+    if (snap || (want.angleTo(T.lightDirection) > SHADOW_STEP && !(T.shadowBusy?.() ?? false))) T.lightDirection.copy(want);
     for (const l of T.lights) { l.color.copy(P.sunColor); l.intensity = P.sunI * this.sunIScale * fade; }
     T.hemi.color.copy(P.hemiSky); T.hemi.groundColor.copy(P.hemiGround); T.hemi.intensity = P.hemiI;
     T.toon.uToonLift.value.copy(P.lift); T.toon.uToonRim.value.copy(P.rim); T.toon.uFogNear.value.copy(P.fogNear);
