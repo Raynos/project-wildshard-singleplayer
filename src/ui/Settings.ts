@@ -131,7 +131,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly 
   lighting: { def: 'toon', params: ['lighting'], url: (q) => q.get('lighting') },
   sky: { def: 'stylized', params: ['sky'], url: (q) => q.get('sky') },
   post: { def: 'clean', params: ['post'], url: (q) => q.get('post') },
-  edge: { def: 'off', params: ['edge'], url: (q) => onOff(q.get('edge')) },                           // ?edge=1: the N23 board
+  edge: { def: 'on', params: ['edge'], url: (q) => onOff(q.get('edge')) },                            // on by default: the user's pick after the N23 board ("Edge on", 2026-09-25); ?edge=0 = the old look
 };
 // Settings ▸ Graphics ▸ Island (X2) saved under its own key before E55: carried over once
 if (saved['island'] === undefined) { try { const legacy = localStorage.getItem('ws.island.v1'); if (legacy !== null) saved['island'] = legacy; } catch { /* private mode */ } }
