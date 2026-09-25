@@ -183,6 +183,7 @@ export class GameMenu {
       if (on) shown++;
     }
     this.tabBar.classList.toggle('review', shown >= 5);
+    this.tabBar.classList.toggle('four', shown === 4); // BAG with Pine Hollow's JOURNAL: ACHIEVEMENTS must fit a phone
     this.tabBar.hidden = shown <= 1;
     this.title.textContent = split ? TITLE[group] : 'Menu';
   }

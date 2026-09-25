@@ -33,6 +33,8 @@
 .ws-gmenu .ws-gmenu-tab[hidden] { display: none; }
 .ws-gmenu .ws-gmenu-tabs[hidden] { display: none; } /* split menus (E124): PAUSED with only Settings has no bar */
 /* five tabs (FEEDBACK, once the review inbox is unlocked) on a phone: tighter lettering so ACHIEVEMENTS still fits */
+/* four tabs (BAG + Pine Hollow's JOURNAL): tighter tracking so ACHIEVEMENTS fits a phone's quarter width */
+@media (max-width: 560px) { .ws-gmenu .ws-gmenu-tabs.four .ws-gmenu-tab { padding-left: 2px; padding-right: 2px; letter-spacing: 0.1em; } }
 @media (max-width: 560px) { .ws-gmenu .ws-gmenu-tabs.review .ws-gmenu-tab { padding-left: 1px; padding-right: 1px; font-size: 8.5px; letter-spacing: 0.06em; } }
 .ws-gmenu .ws-gmenu-tab.active { color: #fff; text-shadow: 0 0 10px rgba(143, 227, 255, 0.5); }
 .ws-gmenu .ws-gmenu-tab.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--ws-cyan); box-shadow: 0 0 10px rgba(143, 227, 255, 0.8); }
