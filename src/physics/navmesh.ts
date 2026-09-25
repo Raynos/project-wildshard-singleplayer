@@ -220,9 +220,9 @@ export function setActiveNavmesh(slug: string, navmesh: Navmesh | null): void { 
  * the loading bar counts it and the service worker caches it). Resolves null — a warning, never a failure — when the
  * build has none or it doesn't parse: the creatures then steer as they did before the navmesh.
  */
-export async function loadNavmesh(slug: string, variant = ''): Promise<Navmesh | null> {
+export async function loadNavmesh(slug: string): Promise<Navmesh | null> {
   if (active?.slug === slug) return active.navmesh;
-  const url = navmeshUrl(slug, variant); // ChunkDef.bakeVariant: the variant's own bake
+  const url = navmeshUrl(slug);
   if (url === null) return null;
   try {
     const res = await fetch(url);

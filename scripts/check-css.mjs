@@ -49,6 +49,7 @@ const FILES = [
   { file: join(STYLES, 'explore.css'), prefix: 'ws-x-', strict: true }, // Explore World, the viewer (src/explore/Explore.ts), imported by the lazy chunk
   { file: join(STYLES, 'rotate.css'), prefix: 'ws-rotate-', strict: true }, // the portrait-only gate on landscape phones (index.html, src/ui/RotateGate.ts)
   { file: join(STYLES, 'quest.css'), prefix: 'ws-quest-', strict: true }, // the adventure layer: objective line, NPC dialogue, reward caption (src/game/quest/*)
+  { file: join(STYLES, 'complete.css'), prefix: 'ws-complete-', strict: true }, // the "<shard> complete" card (src/ui/ShardComplete.ts, E132)
   { file: join(STYLES, 'resume.css'), prefix: 'ws-resume-', strict: true }, // the app-switch resume screen (src/ui/Resume.ts, index.html; E54 / E61)
   { file: join(STYLES, 'compendium.css'), prefix: 'ws-cmp-', strict: true }, // the Compendium: the book + its skins, the trophy wall's tip, the journal disc (src/ui/compendium/*)
   { file: join(STYLES, 'pinehollow.css'), prefix: 'ws-ph-', strict: true }, // Pine Hollow's hamlet screens + the collectibles counter (src/pinehollow/quest/ui.ts)

@@ -1,6 +1,6 @@
 /**
- * Main menu ▸ SETTINGS (E55): the picks that are read once while the page loads — renderer, island, quality tier, render
- * scale, anti-aliasing, touch controls — with APPLY & RELOAD. The title's SETTINGS link (src/ui/HUD.ts showIntro) opens it.
+ * Main menu ▸ SETTINGS (E55): the picks that are read once while the page loads — renderer, quality tier, render scale,
+ * anti-aliasing, touch controls — with APPLY & RELOAD. The title's SETTINGS link (src/ui/HUD.ts showIntro) opens it.
  * The live toggles (audio, look speed, time of day, painted horizon) are the pause menu's (src/ui/Menu.ts); the user,
  * 2026-09-23: "Settings in the main menu can be different from settings in the pause menu, to reduce chaos."
  *
@@ -19,16 +19,15 @@ import { BOOT_OPTIONS, getSfxSet, pendingReload, saveSetting, savedSetting, sett
 
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
 
-type BootKey = 'tier' | 'gpu' | 'island' | 'touch';
+type BootKey = 'tier' | 'gpu' | 'touch';
 interface Row<K extends BootKey> { label: string; experimental?: boolean; options: { v: OptionValue<K>; text: string }[] }
 const LABELS: { [K in BootKey]: Row<K> } = {
   tier: { label: 'Quality', options: [{ v: 'auto', text: `Auto · ${AUTO_TIER}` }, { v: 'phone', text: 'Phone' }, { v: 'desktop', text: 'Desktop' }] },
   gpu: { label: 'Renderer', experimental: true, options: [{ v: 'webgl', text: 'WebGL' }, { v: 'webgpu', text: 'WebGPU' }, { v: 'webgpu-gl', text: 'WebGPU · GL' }] },
-  island: { label: 'Island', experimental: true, options: [{ v: 'procedural', text: 'Procedural' }, { v: 'blender', text: 'Blender' }] },
   touch: { label: 'Touch controls', options: [{ v: 'auto', text: 'Auto' }, { v: 'on', text: 'Always' }] },
 };
-const optionLabel = (k: OptionKey): string => (k === 'tier' || k === 'gpu' || k === 'island' || k === 'touch' ? LABELS[k].label : k);
-const NAMES: Record<string, string> = { webgl: 'WebGL', webgpu: 'WebGPU', 'webgpu-gl': 'WebGPU · GL', procedural: 'procedural', blender: 'Blender' };
+const optionLabel = (k: OptionKey): string => (k === 'tier' || k === 'gpu' || k === 'touch' ? LABELS[k].label : k);
+const NAMES: Record<string, string> = { webgl: 'WebGL', webgpu: 'WebGPU', 'webgpu-gl': 'WebGPU · GL' };
 /** the render scale / AA picks this page was built with (tier.ts applied them at import) */
 const BOOT_GFX = { ...gfxPrefs };
 /** params that skip the title (dev / deep links): APPLY & RELOAD lands on the title screen */
@@ -68,7 +67,7 @@ function build(): HTMLElement {
 
   const running = el('ws-gmenu-note');
   const gpuNow = getActiveChunk().style === 'painterly' ? 'webgl' : setting('gpu'); // Nalati always runs WebGL (Game.ts, NALATI-MERGE F1)
-  running.textContent = `Running now: ${NAMES[gpuNow] ?? gpuNow} · ${TIER} quality${getActiveChunk().slug === 'driftwood-isle' ? ` · ${NAMES[setting('island')] ?? setting('island')} island` : ''}`;
+  running.textContent = `Running now: ${NAMES[gpuNow] ?? gpuNow} · ${TIER} quality`;
   const status = el('ws-gmenu-note');
   const apply = el('ws-gmenu-btn resume', 'Apply &amp; reload', 'button') as HTMLButtonElement; apply.type = 'button';
   const paints: (() => void)[] = [];
@@ -102,8 +101,7 @@ function build(): HTMLElement {
     el('ws-gmenu-label', 'Graphics'), row('tier', LABELS.tier),
     seg('Render scale', false, dprOpts, () => gfxPrefs.dpr, (v) => { if (v === 'auto' || v === '1' || v === '1.25' || v === '1.5' || v === '2' || v === 'native') { gfxPrefs.dpr = v; saveGfxPrefs(); if (v !== BOOT_GFX.dpr) askReload(document.body, 'Render scale', 'title'); } }),
     seg('Anti-aliasing', false, aaOpts, () => gfxPrefs.aa, (v) => { if (v === 'auto' || v === 'on' || v === 'off') { gfxPrefs.aa = v; saveGfxPrefs(); } }),
-    el('ws-gmenu-label', 'Experimental'), row('gpu', LABELS.gpu), row('island', LABELS.island),
-    el('ws-gmenu-note', 'Island: Driftwood Isle’s spawn cove, hand-built in Blender or generated in code.'),
+    el('ws-gmenu-label', 'Experimental'), row('gpu', LABELS.gpu),
     el('ws-gmenu-label', 'Controls'), row('touch', LABELS.touch));
   // the agents' screenshot URLs carry params that win over the saved picks for that load: say so
   const overridden = BOOT_OPTIONS.filter((k) => settingFromUrl(k));

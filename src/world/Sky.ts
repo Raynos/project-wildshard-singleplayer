@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { TIER_CONFIG } from '../core/tier';
-import { setting, settingFromUrl } from '../ui/Settings';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { installCascadeCull } from './cascadeCull';
 import { loadHDR } from '../core/assets';
@@ -19,6 +18,7 @@ import { macrotask } from '../boot/plan';
 import { installStylize, toonUniforms } from './stylize';
 import { StylizedSky } from './StylizedSky';
 import { DayNight, type DayClock } from './DayNight';
+import { setting } from '../ui/Settings';
 import { PineDayNight, pineSunAt, type PinePost } from './PineDayNight';
 import { horizonLight } from './Horizon';
 import { GPU_MODE } from '../gpu/flag';
@@ -33,18 +33,9 @@ const KEY_SHADOW_STEP = 0.25 * Math.PI / 180;
  *  cascades, where the near one ends (m) */
 export interface ShadowRig { cascades: number; size: number; far: number; margin: number; split: number; /** the phone's low-poly rig (E123): normal bias in texels */ phone: boolean }
 
-/** `?pshadow=` names for the phone's on-device A/B (E123); `<size>x<cascades>@<far>[/<split>]` spells any other */
-const PHONE_SHADOW_RIGS: Record<string, Omit<ShadowRig, 'margin' | 'phone'>> = {
-  old: { cascades: 1, size: 1024, far: 80, split: 0 },    // before E123: one 189 m square at 1024², 18.5 cm a texel
-  '2k': { cascades: 1, size: 2048, far: 80, split: 0 },
-  '2c': { cascades: 2, size: 1024, far: 80, split: 14 },
-  '2c2k': { cascades: 2, size: 2048, far: 80, split: 14 }, // the user's pick (2026-09-25, "both 2048 and 2c"): 1.7 cm a texel near you
-  near: { cascades: 1, size: 1024, far: 55, split: 0 },
-};
-
-/** the phone's rig on the low-poly shard when the URL names none (E123, the user's pick: `2c2k`, two cascades at 2048², the near
- *  one to 14 m — ~+0.5 ms a frame on the M5 against `2k`; `?pshadow=2k` is the one-square rig it replaced) */
-const PHONE_SHADOW_DEFAULT = '2c2k';
+/** the phone's rig on the low-poly shard (E123, the user's pick `2c2k`, 2026-09-25, "both 2048 and 2c"): two cascades at
+ *  2048², the near one to 14 m — 1.7 cm a texel near you, ~+0.5 ms a frame on the M5 against the one 2048² square it replaced */
+const PHONE_SHADOW: Omit<ShadowRig, 'margin' | 'phone'> = { cascades: 2, size: 2048, far: 80, split: 14 };
 
 /** the PCF radius (texels) of the phone rig's near cascade (E128). three's PCF is 5 hardware-filtered taps whatever the radius,
  *  so this costs nothing. At 0.6 the 1.7 cm texels drew every palm and stair shadow edge as a serrated saw (the E123 "crisp
@@ -55,19 +46,13 @@ const PHONE_NEAR_RADIUS = 1.2;
 /**
  * The shadow rig for this tier and shard. The phone's portrait camera (94° vertical FOV) makes a cascade's square far
  * wider than its reach: the one 80 m cascade was 189 m across, so a 1024² texel was 18.5 cm and every shadow edge a
- * row of 18 cm steps smeared by the PCF (E123: "blocky, blobby, pixelated, bleeding"). `?pshadow=` overrides on the phone.
+ * row of 18 cm steps smeared by the PCF (E123: "blocky, blobby, pixelated, bleeding").
  */
 export function shadowRig(stylized: boolean): ShadowRig {
   const T = TIER_CONFIG;
   const base: ShadowRig = { cascades: T.cascades, size: T.shadowMapSize, far: T.shadowFar, margin: T.shadowMargin, split: 0, phone: false };
-  if (T.cascades !== 1 || !stylized && !new URLSearchParams(location.search).has('pshadow')) return base; // desktop / the other shards: the tier table
-  const want = new URLSearchParams(location.search).get('pshadow') ?? PHONE_SHADOW_DEFAULT;
-  const named = PHONE_SHADOW_RIGS[want];
-  if (named) return { ...named, margin: base.margin, phone: true };
-  const m = /^(512|1024|2048|4096)x([12])@(\d+)(?:\/(\d+))?$/.exec(want);
-  if (!m) { console.warn(`[sky] ?pshadow=${want}: not a rig (${Object.keys(PHONE_SHADOW_RIGS).join(' · ')} · <size>x<cascades>@<far>[/<split>])`); return base; }
-  const cascades = Number(m[2]);
-  return { size: Number(m[1]), cascades, far: Number(m[3]), split: cascades === 2 ? Number(m[4] ?? 14) : 0, margin: base.margin, phone: true };
+  if (T.cascades !== 1 || !stylized) return base; // desktop / the other shards: the tier table
+  return { ...PHONE_SHADOW, margin: base.margin, phone: true };
 }
 
 /** the low-poly shard's sun before the day / night clock moves it: mid-morning from the east-south-east, 38° up */
@@ -111,10 +96,10 @@ export class Sky {
 
   async build(): Promise<this> {
     const { sky: S, atmosphere: A, style } = getActiveChunk();
-    // Look Lab (E65): the sky (E83) and toon lighting (E87) are locked in; the URL alone still builds the pre-remaster looks
+    // Look Lab (E65): the low-poly shard's toon lighting (E87) and stylized sky (E83) are the user's picks, the only looks
+    // since E136; the other shards light from their HDRI
     const qs = new URLSearchParams(location.search);
-    const toon = style === 'lowpoly' && !(settingFromUrl('lighting') && setting('lighting') === 'standard'), // toon locked in (E87): only ?lighting=standard lights it the old way
-      stylizedSky = style === 'lowpoly' && !(settingFromUrl('sky') && setting('sky') === 'hdri'); // stylized locked in (E83, the user's Look Lab pick): only ?sky=hdri brings back the photo HDRI
+    const toon = style === 'lowpoly', stylizedSky = toon;
     if (toon) installStylize(); // the toon lighting model (D1) — patched into three's chunk before anything compiles
     if (toon && qs.has('pedge')) toonUniforms.uToonEdge.value = Number.parseFloat(qs.get('pedge') ?? '1') || 0; // E123 A/B: the warm band round cast shadows
     const qn = (k: string, d: number) => { const v = qs.get(k); return v === null ? d : Number.parseFloat(v); };

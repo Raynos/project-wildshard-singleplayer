@@ -17,7 +17,6 @@ import { paintedAir } from '../../world/Atmosphere';
 import { V2_TINT_GLSL, tintUniforms } from './tint';
 import { ungrade } from './grade';
 import { PANO_FOG_SRGB } from './panoramaData';
-import { EDGE_ON } from '../../chunks/nalatiEdge';
 
 /** the LUT: scene-linear (already un-graded), half float, RepeatWrapping on the azimuth */
 export const fogLut = ((): THREE.DataTexture => {
@@ -46,15 +45,14 @@ export const fogV2 = { value: new THREE.Vector4(0.0032, 30, -10, 0.002) };
  * N19 — the edge haze (the user: "make this far background transition super smooth and invisible"; the pick: blend the
  * painting). Where the slab ends the 3D land used to stop crisp, ~15 % fogged at 80 m, against the painting's far hills.
  * Now the ground within the last metres before the slab edge (and every ring / cloud past it) thickens into the same
- * panorama haze the dome's painted land dissolves into (sky.ts `uLandHaze`), so both sides of the seam are the one haze.
+ * panorama haze the dome's painted land dissolves into (sky.ts `land`), so both sides of the seam are the one haze.
  * x = strength, y = where it starts (m from the slab centre, the larger of |x| |z|), z = where it is full, w = the view
- * distance it needs (ground near you stays clear: a player by the edge still sees his feet). `?horizonblend=0` = off.
+ * distance it needs (ground near you stays clear: a player by the edge still sees his feet).
+ *
+ * N23's edge berm (src/chunks/nalatiEdge.ts) on the slab's last metres IS the skyline now — real ground, trees and rock,
+ * only as hazed as any ground that far away — so the edge haze starts past the slab (the rings): 251 → 270 m.
  */
-export const HORIZON_BLEND = new URLSearchParams(location.search).get('horizonblend') !== '0';
-export const fogEdgeV2 = { value: new THREE.Vector4(HORIZON_BLEND ? 0.95 : 0, 170, 256, 20) };
-// N23's Edge (the Look Lab, src/chunks/nalatiEdge.ts): the berm on the slab's last metres IS the skyline now — real
-// ground, trees and rock, only as hazed as any ground that far away; the edge haze starts past the slab (the rings)
-if (EDGE_ON) fogEdgeV2.value.set(HORIZON_BLEND ? 0.95 : 0, 251, 270, 20);
+export const fogEdgeV2 = { value: new THREE.Vector4(0.95, 251, 270, 20) };
 
 let installed = false;
 export function installLookV2Fog(): void {

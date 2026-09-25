@@ -5,15 +5,12 @@ export interface PackDef { readonly url: string; readonly bytes: number; readonl
 export const PACKS: Readonly<Record<string, Readonly<Record<string, PackDef>>>> = {
   "driftwood-isle": {
     "phone": {
-      url: "/assets/packs/driftwood-isle.phone-041bcb5f.bin",
-      bytes: 958633,
+      url: "/assets/packs/driftwood-isle.phone-184f64ed.bin",
+      bytes: 548788,
       files: [
-        ["/assets/hdri/kloofendal_48d_partly_cloudy_puresky_2k.sky.jpg",0,350530,"image/jpeg"],
-        ["/assets/hdri/kloofendal_48d_partly_cloudy_puresky_2k.gain.png",350530,59036,"image/png"],
-        ["/assets/baked/driftwood-isle/sky.json",409566,279,"application/json"],
-        ["/assets/baked/driftwood-isle/tex/clouds.phone.webp",409845,16988,"image/webp"],
-        ["/assets/baked/driftwood-isle/tex/giant.phone.webp",426833,7488,"image/webp"],
-        ["/assets/baked/driftwood-isle/terrain.bin",434321,524312,"application/octet-stream"],
+        ["/assets/baked/driftwood-isle/tex/clouds.phone.webp",0,16988,"image/webp"],
+        ["/assets/baked/driftwood-isle/tex/giant.phone.webp",16988,7488,"image/webp"],
+        ["/assets/baked/driftwood-isle/terrain.bin",24476,524312,"application/octet-stream"],
       ],
     },
   },

@@ -25,6 +25,7 @@ import type { FullMap } from './Map';
 import type { Progress } from '../game/Progress';
 import type { Inventory } from '../game/Inventory';
 import { icon, type IconId } from './icons';
+import { completeEntry } from './ShardComplete';
 import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, setting, saveSetting, onSettingChange, settingsReloadUrl, type SettingKey, type NumberKey, type MusicStyle, type SfxSet, type OptionValue } from './Settings';
 import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
 import { onAudioBusy } from '../audio/preload';
@@ -296,6 +297,14 @@ export class GameMenu {
     const pr = this.opts.progress, p = this.panels.achievements; p.replaceChildren();
     const rows = pr.rows, n = rows.length, e = pr.earnedCount;
     const def = getActiveChunk();
+    // the shard's "complete" card (E132, src/ui/ShardComplete.ts), once its quest is done: a row on top that reopens it
+    const done = completeEntry();
+    if (done) {
+      const row = el('ws-gmenu-done', `<i class="ws-gmenu-done-icon">${icon('laurel')}</i><div class="ws-gmenu-abody"><div class="ws-gmenu-aname">${esc(done.label)}</div><div class="ws-gmenu-agoal">${esc(done.sub)}</div></div><span class="ws-gmenu-chip">Open</span>`, 'button');
+      (row as HTMLButtonElement).type = 'button';
+      row.addEventListener('click', () => { this.close(true); done.open(); });   // silent: the card resumes play itself
+      p.append(row);
+    }
     p.append(el('ws-gmenu-label', `${esc(def.displayName)} · ${e} / ${n} earned`));
     p.append(el('ws-bar ws-gmenu-total', `<i style="width:${n ? (e / n) * 100 : 0}%"></i>`));
     p.append(el('ws-gmenu-label', 'Your title'));
@@ -325,7 +334,7 @@ export class GameMenu {
   }
 
   // ── SETTINGS ──
-  /** builds the Settings tab: only what applies live (E55) — renderer, island, quality, render scale, AA and touch controls
+  /** builds the Settings tab: only what applies live (E55) — renderer, quality, render scale, AA and touch controls
    *  are read at boot and live in main menu ▸ Settings (src/ui/BootSettings.ts, APPLY & RELOAD). Two cards (E81, the user's
    *  split): SETTINGS holds what ships with the finished game; DEBUG holds the variant pickers and taste toggles that
    *  exist only while the look and sound are being decided — each leaves that card once it is locked in (E78 the
@@ -428,7 +437,7 @@ export class GameMenu {
       const times: { v: OptionValue<'time'>; text: string }[] = [{ v: 'live', text: 'Live' }, { v: 'midday', text: 'Midday' }, { v: 'golden', text: 'Golden' }, { v: 'sunset', text: 'Sunset' }, { v: 'night', text: 'Night' }];
       const time = picker('Time of day', times, () => setting('time'), (v) => { saveSetting('time', v); }, (fn) => { onSettingChange('time', fn); });
       section(dbg, 'Look', [(c) => c.chunk.style === 'lowpoly' || c.chunk.style === 'painterly', time]); // the shards with a day clock
-      // Look Lab (E65) is done: the sky (E83), lighting (E87) and post (E88) picks are locked in; the URL alone builds the old looks
+      // Look Lab (E65) is done: the sky (E83), lighting (E87) and post (E88) picks are locked in and their switches gone (E136)
     }
     if (getActiveChunk().slug === 'pine-hollow') {
       // Pine Hollow's look lab (PH-L2): the day / night clock or the pre-remaster fixed sunset (a reload: the sky rig is built
@@ -447,16 +456,7 @@ export class GameMenu {
     // the frame cap (PINE-HOLLOW PH-P1, tier.ts frameCapFps; live): Auto = Pine Hollow's phone tier at a locked 30, else uncapped
     const caps: { v: OptionValue<'fps'>; text: string }[] = [{ v: 'auto', text: 'Auto' }, { v: '30', text: '30' }, { v: '60', text: 'Uncapped' }];
     dbg.append(el('ws-gmenu-label', 'Frame rate'), picker('Frame cap', caps, () => setting('fps'), (v) => { saveSetting('fps', v); }, (fn) => { onSettingChange('fps', fn); }));
-    // the Nalati Look Lab (NALATI-MERGE L2; wave 6's picks are locked in, N20): N23's Edge — the berm + spruce lines hiding
-    // the slab's edge (src/chunks/nalatiEdge.ts), a second terrain bake, so it applies on the next load
-    {
-      const edge = picker('Edge (next load)', [{ v: 'off' as const, text: 'Off' }, { v: 'on' as const, text: 'On' }],
-        () => setting('edge'), (v) => { saveSetting('edge', v); }, (fn) => { onSettingChange('edge', fn); });
-      const nalatiEdge: When = (c) => c.chunk.slug === 'nalati-grasslands';
-      section(dbg, 'Look lab', [nalatiEdge, edge],
-        [nalatiEdge, el('ws-gmenu-note', 'Edge: a grassy rise with spruce and granite along the slab\'s edges, so the land never ends in a line in front of the painted hills. On by default; Off = the old look. Reload to see it.')]);
-    }
-    dbg.append(el('ws-gmenu-note', 'Renderer, island, quality and render scale: Exit to main menu ▸ Settings.'));
+    dbg.append(el('ws-gmenu-note', 'Renderer, quality and render scale: Exit to main menu ▸ Settings.'));
     dbg.append(this.buildReview());
   }
   /** show only the Settings rows that apply now (E130: the weapons you hold, the shard) — every open and every Settings select */

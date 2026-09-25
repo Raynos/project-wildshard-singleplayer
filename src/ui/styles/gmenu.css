@@ -102,6 +102,12 @@
 .ws-gmenu .ws-gmenu-atitle { font-size: 8.5px; line-height: 1.5; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ws-text-dim); }
 .ws-gmenu .ws-gmenu-ach.earned .ws-gmenu-atitle { color: var(--ws-cyan); }
 .ws-gmenu .ws-gmenu-areward .ws-gmenu-chip { display: inline-block; margin-top: 4px; }
+/* the shard's "complete" row on top of ACHIEVEMENTS (E132): reopens the card (src/ui/ShardComplete.ts) */
+.ws-gmenu .ws-gmenu-done { flex: none; display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 12px; padding: 10px 12px 10px 10px; appearance: none; -webkit-appearance: none; text-align: left; cursor: pointer; background: rgba(255, 210, 138, 0.07); border: 1px solid rgba(255, 210, 138, 0.55); color: var(--ws-text); font-family: var(--ws-mono); }
+.ws-gmenu .ws-gmenu-done:active { background: rgba(255, 210, 138, 0.18); }
+.ws-gmenu .ws-gmenu-done-icon { flex: none; width: 40px; height: 40px; padding: 6px; color: #ffd28a; filter: drop-shadow(0 0 6px rgba(255, 190, 110, 0.5)); }
+.ws-gmenu .ws-gmenu-done .ws-gmenu-aname { color: #fff4dc; }
+.ws-gmenu .ws-gmenu-done .ws-gmenu-chip { flex: none; }
 
 /* SETTINGS: the two big buttons, then switch rows, segmented pickers, the volume slider */
 .ws-gmenu .ws-gmenu-btn { flex: none; display: block; width: 100%; margin-bottom: 10px; padding: 14px 22px; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.08); border: 1px solid var(--ws-cyan-line); color: #fff; cursor: pointer; font-family: var(--ws-display); font-weight: 700; font-size: 16px; letter-spacing: 0.26em; text-transform: uppercase; }

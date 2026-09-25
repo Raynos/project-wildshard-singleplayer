@@ -13,10 +13,6 @@
 //
 //   node --import ./scripts/bake-loader.mjs scripts/bake-chunk.mjs [--force] [--check]
 //
-// Bake variants (a Look Lab pick that moves the ground, e.g. Nalati's N23 edge berm, `?edge=1`): VARIANTS lists them per
-// shard; each is baked by a child run of this script under BAKE_VARIANT=<suffix>, with the variant's query in the page's
-// `location` (so the def reads the pick at import, as in the browser), into terrain<suffix>.bin / .json.
-//
 // Format (little-endian): 'WSTR' u32 version=1 · u32 res · f32 size · u32 seed · u32 landscapeHash (0 = unhashed legacy) ·
 //   f32[res²] height · u8[res²·4] splat weights (each row sums to ≈ 255) — vertex i = iz·res + ix at
 //   (x, z) = (−half + ix·d, −half + iz·d), d = size / (res − 1).
@@ -27,22 +23,14 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { spawnSync } from 'node:child_process';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const OUT = resolve(ROOT, 'public/assets/baked');
 const force = process.argv.includes('--force');
 const check = process.argv.includes('--check');
 const VERSION = 1;
-/** per shard: the bake variants (file suffix → the page query that selects them; the def's `bakeVariant` names the suffix) */
-const VARIANTS = { 'nalati-grasslands': { '.edge': 'edge=1' } };
-const VARIANT = process.env.BAKE_VARIANT ?? '';
-const variantQuery = (slug) => (VARIANT ? VARIANTS[slug]?.[VARIANT] ?? null : '');
 // before any game module loads: the settings (and the defs that read them) take the page's query at import
-if (!('location' in globalThis)) {
-  const q = VARIANT ? Object.values(VARIANTS).map((v) => v[VARIANT]).find(Boolean) ?? '' : '';
-  Object.assign(globalThis, { location: new URL(`http://localhost/${q ? `?${q}` : ''}`) });
-}
+if (!('location' in globalThis)) Object.assign(globalThis, { location: new URL('http://localhost/') });
 
 const { CHUNK_SIZE, CHUNK_HALF, TERRAIN_RES } = await import(pathToFileURL(resolve(ROOT, 'src/core/config.ts')).href);
 const { landscapeHash } = await import(pathToFileURL(resolve(ROOT, 'src/chunks/terrain.ts')).href);
@@ -102,18 +90,17 @@ for (const file of chunkFiles) {
   const mod = await import(pathToFileURL(resolve(ROOT, 'src/chunks', file)).href);
   for (const def of Object.values(mod)) {
     if (!def || typeof def !== 'object' || typeof def.slug !== 'string' || !def.terrain) continue;
-    if (variantQuery(def.slug) === null) continue; // a variant run bakes only the shards that have that variant
     const res = TERRAIN_RES;
     const hash = createHash('sha1');
-    hash.update(`v${VERSION}:${res}:${CHUNK_SIZE}:${VARIANT}`); hash.update(readFileSync(resolve(ROOT, 'src/chunks', file)));
+    hash.update(`v${VERSION}:${res}:${CHUNK_SIZE}:`); hash.update(readFileSync(resolve(ROOT, 'src/chunks', file)));
     for (const dep of EXTRA_DEPS[file] ?? []) hash.update(readFileSync(resolve(ROOT, dep)));
     for (const s of shared) hash.update(s);
     if (EXTRA_DEPS[file] === undefined) for (const s of localImports(file)) hash.update(s); // a chunk with declared deps hashes exactly those
     const digest = hash.digest('hex').slice(0, 16);
     const dir = resolve(OUT, def.slug);
-    const meta = resolve(dir, `terrain${VARIANT}.json`);
-    const bin = resolve(dir, `terrain${VARIANT}.bin`);
-    const tag = `${def.slug}${VARIANT}`;
+    const meta = resolve(dir, 'terrain.json');
+    const bin = resolve(dir, 'terrain.bin');
+    const tag = def.slug;
     const prev = existsSync(meta) && existsSync(bin) ? JSON.parse(readFileSync(meta, 'utf8')) : null;
     if (!force && prev?.hash === digest) { console.log(`bake: ${tag} terrain up to date (${digest})`); continue; }
     if (check) { console.log(`bake: ${tag} terrain STALE (${prev?.hash ?? 'none'} → ${digest})`); stale++; continue; }
@@ -155,13 +142,6 @@ for (const file of chunkFiles) {
     writeFileSync(meta, `${JSON.stringify({ hash: digest, version: VERSION, res, size: CHUNK_SIZE, seed: def.seed, landscapeHash: lhash, bytes: bytes.byteLength, placement: section ? { decisions: section.decisions, counts: section.counts } : null, heightRange: [min, max], bakedAt: new Date().toISOString() }, null, 2)}\n`);
     written++;
     console.log(`bake: ${tag} terrain ${res}² → ${(buf.byteLength / 1024).toFixed(0)} KB in ${Math.round(performance.now() - t0)} ms (h ${min.toFixed(1)}…${max.toFixed(1)} m, ${digest})`);
-  }
-}
-// the variants: one child run per suffix (a fresh process, so every module reads the variant's query at import)
-if (!VARIANT) {
-  for (const suffix of new Set(Object.values(VARIANTS).flatMap((v) => Object.keys(v)))) {
-    const r = spawnSync(process.execPath, [...process.execArgv, ...process.argv.slice(1)], { stdio: 'inherit', env: { ...process.env, BAKE_VARIANT: suffix } });
-    if (r.status !== 0) { if (check) stale++; else process.exit(r.status ?? 1); }
   }
 }
 if (check && stale) process.exit(1);

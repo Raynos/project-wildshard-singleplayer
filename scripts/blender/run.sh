@@ -8,7 +8,7 @@
 #                                         (driftwood-isle: build_island.py; a shard without one stops after step 1)
 #   3. compress                           meshopt (gltf-transform), lightmaps → WebP (desktop 2048 / phone 1024)
 #   4. copy into public/assets/models/<slug>-blender/ (Driftwood: driftwood-blender/, as blenderModelsBase() says — loaded by
-#      src/world/BlenderIsland.ts under ?island=blender)
+#      src/world/BlenderIsland.ts on Driftwood)
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 SLUG=driftwood-isle

@@ -97,7 +97,7 @@ import type { Explore, ExploreMode } from './explore/Explore';
 import { registerDriftwoodModels, registerPineHollowModels } from './explore/catalog';
 import { TIER } from './core/tier';
 import { wireNalati, type Nalati } from './nalati';
-import { islandMode } from './world/blenderArea';
+import { shardCompleteUp } from './ui/ShardComplete';
 import { boxDesc, type ColliderDesc, type ModelEntry, type PieceCategory } from './world/registry';
 import { cutTerrain } from './physics/terrain';
 import { RopeChain } from './physics/ropeChain';
@@ -291,8 +291,9 @@ async function main() {
   const addPaths = (): void => { registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/physics/paths.ts', surface: 'ground',
     colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) }); };
   if (!painterly) addPaths();
-  // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52): ?island=blender|procedural, Settings ▸ Graphics ▸ Island
-  const blenderIsland = isOcean && islandMode() === 'blender'
+  // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52; the only island since E136): it sits on the procedural cove,
+  // which stays as the fallback when it fails to load
+  const blenderIsland = isOcean
     ? await import('./world/BlenderIsland').then(({ BlenderIsland: B }) => B.install({
       scene: game.scene, sky, colliders: player.colliders, terrain: world.terrain.mesh, palms: palms?.mesh ?? null, palmSpecs,
       replace: [bushes?.mesh ?? null, dressing.rocks?.mesh ?? null], cover: dressing.cover?.group ?? null,
@@ -440,6 +441,7 @@ async function main() {
     split: params.get('bagbtn') !== '0', // E124: PAUSE → Settings + Feedback, the BAG button → Map · Inventory · Achievements
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
+  game.onUpdate((dt) => { if (hud.entered && !menu.isOpen) progress.addPlay(dt); }); // E132: this shard's time played (the complete card shows it), in the world only
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); });
   // E124: the INVENTORY button squaring out the minimap's top-right corner (src/ui/BagButton.ts); ?bagbtn=0 = none + the one menu
   if (params.get('bagbtn') !== '0') new BagButton(minimap.root, () => { if (hud.entered) menu.open('inventory'); });
@@ -735,7 +737,7 @@ async function main() {
   const exploreMode: ExploreMode = exploreParam === 'world' || exploreParam === 'model' ? exploreParam : 'hub';
   hud.onExplore = () => { void openExplore('hub'); };
   // Not a frame is rendered or ticked while the menu is up: hud.entered is the gate.
-  game.frameGate = () => (hud.entered || exploring()) && !feedbackHeld && !rotateGated(); // … and the review composer freezes it on the captured frame; the rotate page (E38) stops it too
+  game.frameGate = () => (hud.entered || exploring()) && !feedbackHeld && !rotateGated() && !shardCompleteUp(); // … and the review composer freezes it on the captured frame; the rotate page (E38) stops it too
   if (menuFirst) { weapons.setEnabled(false); weapons.visible = false; perf.setActive(false); audio.worldMuted = true; hud.showIntro(enter); }
   else { hud.markEntered(enter); weapons.setEnabled(!nolock || params.has('skipintro')); }
   // ?explore=hub|world|model[&cam=x,y,z,yaw,pitch][&model=id] — straight into the viewer (a shard with ChunkDef.explore — D4, E66; a note's "go there")

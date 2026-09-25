@@ -15,10 +15,6 @@
 //
 //   node --experimental-transform-types --import ./scripts/bake-loader.mjs scripts/bake-navmesh.mjs [--force] [--check] [slug…]
 //
-// Bake variants (as scripts/bake-chunk.mjs: Nalati's N23 edge, `?edge=1`): a child run per suffix under
-// BAKE_VARIANT=<suffix>, the variant's query in the page's `location`, reading terrain<suffix>.bin and writing
-// navmesh<suffix>.bin / .json.
-//
 // Format (little-endian): 'WSNM' u32 version=1 · u32 layers · then per layer:
 //   f32 radius · f32 height · f32 climb · f32 cellSize · f32 cellHeight · f32 origin[3] · f32 tileSize · u32 tiles · per tile:
 //     i32 tileX · i32 tileY · f32 bounds[6] · u32 nVerts · u32 nPolys · u32 nDetailVerts · u32 nDetailTris ·
@@ -30,17 +26,12 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { brotliCompressSync, gzipSync } from 'node:zlib';
-import { spawnSync } from 'node:child_process';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const force = process.argv.includes('--force');
 const check = process.argv.includes('--check');
 const only = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const VERSION = 1;
-/** per shard: the bake variants (file suffix → the page query that selects them) — the same table as bake-chunk.mjs */
-const VARIANTS = { 'nalati-grasslands': { '.edge': 'edge=1' } };
-const VARIANT = process.env.BAKE_VARIANT ?? '';
-const VARIANT_Q = VARIANT ? Object.values(VARIANTS).map((v) => v[VARIANT]).find(Boolean) ?? '' : '';
 const Q = 100; // vertex quantisation: 1 cm
 const NEI_EXT = 248; // a one-byte neighbour ≥ this is a portal: 0x8000 | (byte − NEI_EXT)
 
@@ -79,7 +70,7 @@ const el = () => ({ width: 1, height: 1, style: {}, classList: { add: noop, remo
 const HOST = 'http://localhost/';
 const NodeRequest = globalThis.Request, nodeFetch = globalThis.fetch;
 Object.assign(globalThis, {
-  location: new URL(`${HOST}${VARIANT_Q ? `?${VARIANT_Q}` : ''}`), self: globalThis,
+  location: new URL(HOST), self: globalThis,
   document: { createElement: el, createElementNS: el, getElementById: () => null, head: el(), body: el(), addEventListener: noop, removeEventListener: noop, querySelector: () => null, querySelectorAll: () => [], pointerLockElement: null },
   window: { addEventListener: noop, removeEventListener: noop, devicePixelRatio: 1, innerWidth: 1600, innerHeight: 900, matchMedia: () => ({ matches: false, addEventListener: noop }), location: new URL(HOST) },
   // three's loaders build Requests from site-relative URLs
@@ -406,9 +397,8 @@ function writeLayer(w, layer, nav) {
 let stale = 0;
 for (const def of registry.CHUNKS) {
   if (only.length > 0 && !only.includes(def.slug)) continue;
-  if (VARIANT && VARIANTS[def.slug]?.[VARIANT] === undefined) continue; // a variant run bakes only the shards that have it
-  const bakedFile = resolve(ROOT, 'public/assets/baked', def.slug, `terrain${VARIANT}.bin`);
-  if (!existsSync(bakedFile)) { console.log(`[navmesh] ${def.slug}${VARIANT}: no terrain${VARIANT}.bin — skipped (run scripts/bake-chunk.mjs first)`); continue; }
+  const bakedFile = resolve(ROOT, 'public/assets/baked', def.slug, 'terrain.bin');
+  if (!existsSync(bakedFile)) { console.log(`[navmesh] ${def.slug}: no terrain.bin — skipped (run scripts/bake-chunk.mjs first)`); continue; }
   const t0 = performance.now();
   registry.setActiveChunk(def.slug);
   const buf = readFileSync(bakedFile);
@@ -429,12 +419,12 @@ for (const def of registry.CHUNKS) {
   hash.update(readFileSync(import.meta.filename)); // this script: the triangulation and the file format
   hash.update(Float32Array.from(soup.positions)); hash.update(Uint32Array.from(soup.indices));
   const digest = hash.digest('hex');
-  const dir = resolve(ROOT, 'public/assets/baked', def.slug), jsonFile = resolve(dir, `navmesh${VARIANT}.json`), binFile = resolve(dir, `navmesh${VARIANT}.bin`);
+  const dir = resolve(ROOT, 'public/assets/baked', def.slug), jsonFile = resolve(dir, 'navmesh.json'), binFile = resolve(dir, 'navmesh.bin');
   const prev = existsSync(jsonFile) ? JSON.parse(readFileSync(jsonFile, 'utf8')) : null;
   const tIn = performance.now() - t0;
-  console.log(`[navmesh] ${def.slug}${VARIANT}: ${colliders.length} colliders (${Object.entries(counts).map(([k, n]) => `${n} ${k}`).join(', ')}), ${soup.indices.length / 3} triangles (${dropped} wet terrain triangles left out) in ${tIn.toFixed(0)} ms`);
-  if (!force && prev?.hash === digest && existsSync(binFile)) { console.log(`[navmesh] ${def.slug}${VARIANT}: up to date`); continue; }
-  if (check) { console.log(`[navmesh] ${def.slug}${VARIANT}: STALE`); stale++; continue; }
+  console.log(`[navmesh] ${def.slug}: ${colliders.length} colliders (${Object.entries(counts).map(([k, n]) => `${n} ${k}`).join(', ')}), ${soup.indices.length / 3} triangles (${dropped} wet terrain triangles left out) in ${tIn.toFixed(0)} ms`);
+  if (!force && prev?.hash === digest && existsSync(binFile)) { console.log(`[navmesh] ${def.slug}: up to date`); continue; }
+  if (check) { console.log(`[navmesh] ${def.slug}: STALE`); stale++; continue; }
   const w = new Writer();
   w.u8(0x57, 0x53, 0x4e, 0x4d); w.u32(VERSION, LAYERS.length); // 'WSNM'
   const layers = [];
@@ -443,22 +433,12 @@ for (const def of registry.CHUNKS) {
     const nav = generate(soup, layer);
     const stats = writeLayer(w, layer, nav);
     layers.push({ ...layer, ...stats, ms: Math.round(performance.now() - t1) });
-    console.log(`[navmesh] ${def.slug}${VARIANT} ${layer.name} r=${layer.radius}: ${stats.tiles} tiles, ${stats.polys} polys, ${stats.detailTris} detail tris in ${((performance.now() - t1) / 1000).toFixed(1)} s`);
+    console.log(`[navmesh] ${def.slug} ${layer.name} r=${layer.radius}: ${stats.tiles} tiles, ${stats.polys} polys, ${stats.detailTris} detail tris in ${((performance.now() - t1) / 1000).toFixed(1)} s`);
   }
   const bytes = w.bytes(), gz = gzipSync(bytes, { level: 9 }).byteLength, br = brotliCompressSync(bytes).byteLength;
   mkdirSync(dir, { recursive: true });
   writeFileSync(binFile, bytes);
   writeFileSync(jsonFile, `${JSON.stringify({ version: VERSION, hash: digest, bytes: bytes.byteLength, gzip: gz, brotli: br, layers }, null, 1)}\n`);
-  console.log(`[navmesh] ${def.slug}${VARIANT}: wrote navmesh.bin ${(bytes.byteLength / 1024).toFixed(1)} KB (${(gz / 1024).toFixed(1)} KB gzip, ${(br / 1024).toFixed(1)} KB brotli)`);
-}
-// the variants: one child run per suffix (a fresh process, so every module reads the variant's query at import)
-if (!VARIANT) {
-  for (const [slug, vs] of Object.entries(VARIANTS)) {
-    if (only.length > 0 && !only.includes(slug)) continue;
-    for (const suffix of Object.keys(vs)) {
-      const r = spawnSync(process.execPath, [...process.execArgv, process.argv[1] ?? '', ...process.argv.slice(2).filter((a) => a.startsWith('--')), slug], { stdio: 'inherit', env: { ...process.env, BAKE_VARIANT: suffix } });
-      if (r.status !== 0) { if (check) stale++; else process.exit(r.status ?? 1); }
-    }
-  }
+  console.log(`[navmesh] ${def.slug}: wrote navmesh.bin ${(bytes.byteLength / 1024).toFixed(1)} KB (${(gz / 1024).toFixed(1)} KB gzip, ${(br / 1024).toFixed(1)} KB brotli)`);
 }
 if (check && stale > 0) process.exit(1);

@@ -19,7 +19,6 @@ import { buildLookV2Chain } from '../nalati/look/grade';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 import { worldTime } from './time';
-import { setting, settingFromUrl } from '../ui/Settings';
 import { GPU_MODE } from '../gpu/flag';
 import type { GpuPath } from '../gpu/GpuPath';
 import { installViewport, viewportHeight } from './viewport';
@@ -256,9 +255,9 @@ export class Game {
       this.buildPainterlyChain(composer, vol, godRays);
       return;
     }
-    // the low-poly shard runs the clean L5 chain — locked in (E88, the user's Look Lab pick); only `?post=cinematic` builds
-    // the original haze + grain + fringe chain there, which every other shard keeps
-    composer.addPass(chain(getActiveChunk().style === 'lowpoly' && !(settingFromUrl('post') && setting('post') === 'cinematic')));
+    // the low-poly shard runs the clean L5 chain (E88, the user's Look Lab pick); every other shard keeps the original
+    // haze + grain + fringe chain
+    composer.addPass(chain(getActiveChunk().style === 'lowpoly'));
     if (TIER_CONFIG.smaa !== 'off') {
       const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
       composer.addPass(new EffectPass(this.camera, smaa));

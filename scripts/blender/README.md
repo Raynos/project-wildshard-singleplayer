@@ -1,10 +1,8 @@
 # The Blender island (DRIFTWOOD-REMASTER X2, E52)
 
-`pnpm blender:island [--chunk <slug>] [--quick] [--export-only]` rebuilds a shard's area in Blender, headless, and
-writes `public/assets/models/<slug>-blender/` (Driftwood's keeps its old name, `driftwood-blender/`;
-`blenderModelsBase(slug)` knows both). `--chunk` defaults to `driftwood-isle` (Driftwood's spawn cove). In the
-game, `?island=blender` (or Settings ▸ Graphics ▸ Island) loads Driftwood's in place of the procedural cove;
-`?island=procedural` is the default TypeScript island.
+`pnpm blender:island [--quick]` rebuilds Driftwood's spawn cove in Blender, headless, and writes
+`public/assets/models/driftwood-blender/`. The game always loads it in place of the procedural cove (the user's pick, E7;
+the `?island` switch is gone since E136); the procedural cove stays underneath as the load-failure fallback.
 
 **Per shard (PINE-HOLLOW-REMASTER PH-0.3).** Three things name a shard:
 - its area: `src/world/blenderArea.ts`, `blenderAreaFor(slug)`. Driftwood's is also the `area` export that
