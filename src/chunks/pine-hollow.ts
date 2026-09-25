@@ -211,8 +211,8 @@ export const PINE_HOLLOW: ChunkDef = {
   seed: 1337,
   treeCount: 2600,
   biome: 'Boreal pine forest',
-  experimental: true,
-  blurb: 'Experimental — Scots pines on a rolling shard with three log cabins in a sheltered hollow and a still pond below the ridge. Deer graze the trail edges; boar root under the canopy.',
+  // PH-S2: graduated — no EXPERIMENTAL band or "rough edges" hint on the title deck; the card sits after Driftwood (PH-U19)
+  blurb: "A photoreal boreal forest, from dawn fog to lantern-lit night. Hunt deer, boar, elk and bear through the pines, relight the ranger's three dark waystone lanterns and face the Antler King in the old-growth — his thralls walk the fog until dawn.",
   thumbnail, heroPortrait, heroLandscape,
   // EXPLORE WORLD (E66): the viewer over this shard, and the World Explorer map's pins (compass-true names, layout v2)
   explore: true,

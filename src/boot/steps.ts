@@ -40,12 +40,15 @@ export const BOOT_STEPS = STEP_ROWS.map((row) => row[0]) as readonly BootStep[];
 /**
  * A shard's own loading-screen nouns and weights, over the shared steps (the step KEYS are the boot's; what each one
  * builds differs per shard), and the nouns of its downloads (`bytes`: what the DOWNLOAD line names while those bytes
- * land). The same table as the Nalati branch's (N-merge). Pine Hollow's (PINE-HOLLOW-REMASTER PH-P3), each what that
- * step really builds there: the day / night sky keys blended into the PMREM, the splat terrain, the baked pine branch
- * cards and the pines, the pond, the creek + waterfall and the painted horizon at the chunk's edge, the three cabins +
- * the mill hamlet + the landmarks (the fire lookout and its zipline, the footbridge, the standing stones), the rocks and
- * logs, the herds on their generated hulls, and the three weapons. Its weights stay the shared ones (they were measured
- * on Pine Hollow).
+ * land). The same table as the Nalati branch's (N-merge). Pine Hollow's (PINE-HOLLOW-REMASTER PH-P3, re-read at PH-S2
+ * after the trees / crags / life / rifle lanes), each what that step really builds there: the seven day / night sky keys
+ * blended into the PMREM, the splat terrain on the boreal ground, the Blender species set (PH-B4: pine, fir, the
+ * old-growth giants, birch, snags, saplings) and the forest planted from it, the pond, the creek + waterfall and the
+ * painted far country at the chunk's edge, the ferns and bilberry of the understory, the three cabins + the mill hamlet +
+ * the landmarks (the fire lookout and its zipline, the footbridge, the standing stones) + the Ridge's granite and the bear
+ * cave (PH-B2), the rocks and logs, the herds on their generated hulls, the three weapons, and its own score (theme 1,
+ * night, the King's stems, the dawn sting) + the zoned beds and the one-shot sprite. Its weights stay the shared ones
+ * (they were measured on Pine Hollow).
  */
 interface ShardSteps {
   readonly steps: Partial<Record<BootStep, Partial<StepInfo>>>;
@@ -54,23 +57,25 @@ interface ShardSteps {
 const SHARD_STEPS: Readonly<Record<string, ShardSteps>> = {
   'pine-hollow': {
     steps: {
-      sky: { label: 'Sky · day / night keys' },
-      terrain: { label: 'Terrain · heightfield + splat' },
-      cards: { label: 'Pine branch cards' },
-      forest: { label: 'Forest · Scots pines' },
-      edge: { label: 'Pond · creek · horizon' },
-      grass: { label: 'Grass · ferns · litter' },
-      cabins: { label: 'Cabins · hamlet · landmarks' },
+      sky: { label: 'Sky · dawn to moonlight' },
+      terrain: { label: 'Terrain · boreal ground' },
+      cards: { label: 'Tree species · pine · fir · birch' },
+      forest: { label: 'Forest · pines · old-growth giants' },
+      edge: { label: 'Pond · creek · waterfall · far country' },
+      grass: { label: 'Grass · ferns · bilberry' },
+      cabins: { label: 'Cabins · hamlet · lookout · crags · cave' },
       props: { label: 'Rocks · logs' },
-      animals: { label: 'Herds · elk · deer · boar · bears' },
+      animals: { label: 'Herds · deer · boar · elk · bears' },
       weapon: { label: 'Crossbow · lever-action · longbow' },
+      audio: { label: 'Audio · score · forest sound' },
     },
     bytes: {
       sky: 'sky keys · dawn to moonlight',
-      trees: 'pine bark · twigs',
+      trees: 'tree species · bark · needles',
       cabins: 'cabin timber · stone · props',
-      props: 'landmarks · creatures',
-      music: 'music · every style',
+      props: 'landmarks · crags · creatures',
+      music: 'score · day · night · the King · dawn',
+      sfx: 'forest beds · rain · calls · barks',
     },
   },
 };
