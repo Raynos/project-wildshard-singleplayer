@@ -15,6 +15,7 @@ import type { Sky } from '../../world/Sky';
 import type { Collider } from '../../player/Player';
 import { KINGS_CLEARING } from '../../chunks/pineHollowLayout';
 import { npcRig, preloadNpcModels, type NpcRig } from './npcModels';
+import { shardSlot } from '../../core/shardState';
 
 export type NpcKind = 'ranger' | 'miller' | 'trader';
 
@@ -213,3 +214,6 @@ export function makeNpcFigure(kind: NpcKind, sky: Sky, feet: { x: number; y: num
   };
   return fig;
 }
+
+// E155 (src/core/shardState.ts): set up for one shard's sky (its CSM light loop): per shard, an evicted Pine Hollow's let go
+shardSlot('npcFigure.mats', () => ({ sharedMat, sharedGlow }), (v) => { ({ sharedMat, sharedGlow } = v); }, () => ({ sharedMat: null, sharedGlow: null }));

@@ -100,6 +100,14 @@ export function setSlot(name: string, set: Set<unknown>): void {
   });
 }
 
+/** a map's entries, per shard (a module cache of loaded assets that must not cross renderers); reset = empty */
+export function mapSlot(name: string, map: Map<unknown, unknown>): void {
+  slots.set(name, {
+    capture: () => { const entries = [...map]; return () => { map.clear(); for (const [k, v] of entries) map.set(k, v); }; },
+    reset: () => { map.clear(); },
+  });
+}
+
 export type ShardSnapshot = ReadonlyMap<string, Restore>;
 
 /** every slot's value now (parking the running shard) */

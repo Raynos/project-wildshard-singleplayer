@@ -23,6 +23,8 @@ import { creatureRigUrl, type CreatureRigName } from './creatureRigs';
 import { modelsOn } from '../world/nalati/glbPaint';
 import { variantDef, type BoneDef } from './species/registry';
 import { coatAtlas, HULL_COATS } from './creatureCoats';
+import { mapSlot } from '../core/shardState';
+import { MAY_KTX2 } from '../boot/gpuFiles';
 
 /** the rigged hulls (scripts/nalati-rig-bake.mjs RIG_BAKES; the names + URLs in creatureRigs.ts, which the boot manifest declares) */
 export type { CreatureRigName } from './creatureRigs';
@@ -147,3 +149,8 @@ export function skinCreatureGlb(kind: string, variant: string, bones: readonly B
   const map = coat && rig.map ? coatAtlas(`${name}:${kind}:${variant}`, coat, rig.geometry, rig.map, variantDef(kind, variant).tint) : rig.map;
   return { geometry: rig.geometry, map, bones: out, doubleSided: DOUBLE_SIDED.has(name) };
 }
+
+// E155 × E157 (src/core/shardState.ts): with KTX2 a loaded texture's mips leave JS once uploaded, so another shard's renderer
+// (the other resident, or this shard rebuilt) could not upload a cached copy: the cache is per shard unless Debug ▸ GPU
+// textures = Images (then one per page).
+if (MAY_KTX2) { mapSlot('glbCreatures.loading', loading); mapSlot('glbCreatures.ready', ready); }

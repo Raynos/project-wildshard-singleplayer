@@ -6,6 +6,9 @@
 //        [--out=progress/e155] [--tag=desktop] [--sheet=progress/262-e155-shard-switch-desktop.jpg]
 //        [--baseline]   each shard of the route also loaded fresh (its own page, as a reload did): its frame vs the in-page build's
 //        [--lose]       at the end: a parked shard loses its WebGL context — it must be evicted, the running one play on
+//        [--tex=ktx2|img]  Debug ▸ GPU textures for the run (the saved setting, written before the page loads — no URL switch)
+//        [--debugcard]  at the end: pause ▸ Settings ▸ Debug ▸ Memory read on the page, then Shards in memory 2 → 1 (evicts at
+//                       once) → 2
 //
 // Against a `vite preview` of the build. One browser page drives the real title deck: ENTER WORLD, a few seconds in
 // the world, the view turned (a pose of its own), pause → "Exit to main menu", the next shard's card + ENTER WORLD (the
@@ -36,6 +39,8 @@ const ROUTE = flag('route', 'driftwood-isle,nalati-grasslands,driftwood-isle,pin
 const OUT = resolvePath(flag('out', 'progress/e155'));
 const TAG = flag('tag', PHONE ? 'phone' : 'desktop');
 const SHEET = flag('sheet', '');
+const TEX = flag('tex', '');
+const DEBUGCARD = argv.includes('--debugcard');
 mkdirSync(OUT, { recursive: true });
 const SLUGS = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands']; // the deck's order (src/chunks/registry.ts CHUNKS)
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
@@ -46,10 +51,19 @@ const report = { tag: TAG, url: URL_BASE, phone: PHONE, cap: CAP === '' ? 'defau
 const fail = (msg) => { report.ok = false; report.failures.push(msg); console.log(`  FAIL ${msg}`); };
 const query = (slug) => `chunk=${slug}&mute=1&nolock=1${PHONE ? '&touch=1&tier=phone' : ''}`;
 const contextOpts = PHONE ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true } : { viewport: { width: 1600, height: 900 } };
-const titleUp = (page, slug) => page.waitForFunction((s) => {
+const titleWait = (page, slug) => page.waitForFunction((s) => {
   const host = window.__shardHost, hud = document.getElementById('hud');
   return host !== undefined && host.active === s && !host.switching && hud?.classList.contains('intro') === true && document.querySelector('#hud .ws-menu-play') !== null && document.querySelector('.ws-load') === null;
-}, slug, { timeout: 420000, polling: 250 });
+}, slug, { timeout: Number(process.env.E155_TITLE_MS ?? 420000), polling: 250 });
+// …and when it never comes, where the build stopped (the loader's step, its last rows and foot line)
+const titleUp = async (page, slug) => {
+  try { await titleWait(page, slug); } catch (e) {
+    const at = await page.evaluate(async () => {
+      const raf = await Promise.race([new Promise((resolve) => { requestAnimationFrame(() => { resolve('raf ok'); }); }), new Promise((resolve) => { window.setTimeout(() => { resolve('raf NONE in 2 s'); }, 2000); })]);
+      const l = document.querySelector('.ws-load'); return l === null ? 'no loader' : { raf, visible: document.visibilityState, error: document.querySelector('#wserr')?.textContent.replaceAll(/\s+/g, ' ').slice(0, 400) ?? null, step: l.dataset.step, setup: l.dataset.setup, download: l.dataset.download, foot: l.querySelector('[data-el="foot"]')?.textContent, rows: [...l.querySelectorAll('[data-el="rows"] > div')].map((d) => d.textContent).slice(-3) }; }).catch(() => 'unreadable');
+    throw new Error(`${slug}: no title (${e instanceof Error ? e.message.split('\n')[0] : String(e)}) — the loader: ${JSON.stringify(at)}`, { cause: e });
+  }
+};
 const shots = {};
 const shoot = async (page, name) => {
   const buf = await page.screenshot({ type: 'jpeg', quality: 70 });
@@ -70,6 +84,17 @@ const diff = (page, a, b) => page.evaluate(async ([x, y]) => {
 
 try {
   const ctx = await browser.newContext(contextOpts);
+  // the saved settings the page reads at load: the texture mode (E157) and developer mode (the Debug card shows only in it)
+  if (TEX !== '' || DEBUGCARD) {
+    await ctx.addInitScript(({ tex, dev }) => {
+      try {
+        const k = 'ws.settings.v1', saved = JSON.parse(localStorage.getItem(k) ?? '{}');
+        if (tex !== '' && saved.tex === undefined) saved.tex = tex;
+        localStorage.setItem(k, JSON.stringify(saved));
+        if (dev) localStorage.setItem('ws.dev', '1');
+      } catch { /* storage blocked: defaults */ }
+    }, { tex: TEX, dev: DEBUGCARD });
+  }
   const page = await ctx.newPage();
   page.on('pageerror', (e) => { report.errors.push(e.message.slice(0, 300)); console.log(`  pageerror: ${e.message.slice(0, 200)}`); });
   page.on('console', (m) => { const t = m.text(); if (/\[shard\]|\[gl\]/.test(t)) console.log(`  console: ${t.slice(0, 200)}`); });
@@ -176,6 +201,14 @@ try {
     step.stats = await page.evaluate(() => window.__shardHost.stats());
     step.evictions = await page.evaluate(() => window.__shardHost.evictions.map((e) => `${e.slug}:${e.contextLost ? 'lost' : 'LIVE'}`));
     for (const e of step.evicted) if (!step.evictions.includes(`${e}:lost`)) fail(`step ${s}: evicted ${e} but its WebGL context was not lost (${step.evictions.join(', ')})`);
+    // KTX2 (E157): a compressed texture in the running scene whose mips were dropped after another renderer's upload and
+    // that this renderer never uploaded would draw nothing (or throw at upload): a module cache shared across renderers
+    step.unuploadable = await page.evaluate(() => {
+      const w = window.__world, props = w.game.renderer.properties, bad = new Set();
+      w.game.scene.traverse((o) => { const ms = Array.isArray(o.material) ? o.material : o.material ? [o.material] : []; for (const m of ms) for (const v of Object.values(m)) if (v?.isCompressedTexture === true && v.mipmaps.length === 0 && props.get(v).__webglTexture === undefined) bad.add(v.name !== '' ? v.name : v.uuid.slice(0, 8)); });
+      return [...bad];
+    });
+    if (step.unuploadable.length > 0) fail(`step ${s} ${slug}: ${step.unuploadable.length} KTX2 textures lost their mips to another renderer (${step.unuploadable.slice(0, 5).join(', ')})`);
     step.live = await instances();
     if (step.live.Game !== null && step.live.Game > step.resident.length) fail(`step ${s}: ${step.live.Game} Game instances alive for ${step.resident.length} resident shards (an evicted world is retained)`);
     console.log(`  ${step.kind}: host ${step.hostMs} ms (${step.hostKind})${step.toTitleMs === undefined ? '' : ` · title ${step.toTitleMs} ms`} · first frame ${step.toFirstFrameMs} ms · loading ${step.loadingShown ? 'SHOWN' : 'no'} · evicted [${step.evicted.join(', ')}]`);
@@ -217,6 +250,41 @@ try {
       await page.evaluate(() => { window.__world.hud.exitToMenu(); });
       await sleep(400);
     }
+  }
+  if (DEBUGCARD) {
+    console.log('\n── pause ▸ Settings ▸ Debug ▸ Memory');
+    // two resident first (the context-loss check may have left one): build another shard in the page
+    if ((await page.evaluate(() => window.__shardHost.slugs.length)) < 2) {
+      const other = await page.evaluate((all) => all.find((x) => !window.__shardHost.has(x)) ?? null, SLUGS);
+      if (other !== null) { await selectCard(other); await page.click('#hud .ws-menu-play'); await titleUp(page, other); }
+    }
+    const slug = await page.evaluate(() => window.__shardHost.active);
+    await selectCard(slug); await page.click('#hud .ws-menu-play');
+    await page.waitForFunction(() => window.__world?.hud.entered === true, undefined, { timeout: 30000 });
+    await page.evaluate(() => { window.__world.hud.setPaused(true); });
+    await sleep(2600);
+    const read = () => page.evaluate(() => document.querySelector('.ws-gmenu-mem')?.textContent ?? null);
+    report.debugCard = { before: await read() };
+    console.log(`  readout:\n    ${String(report.debugCard.before).replaceAll('\n', '\n    ')}`);
+    if (report.debugCard.before === null || !String(report.debugCard.before).includes('Resident')) fail('--debugcard: no memory readout in the Debug card');
+    const before = await page.evaluate(() => window.__shardHost.slugs.length);
+    const pick = (v) => page.evaluate((x) => {
+      const row = [...document.querySelectorAll('.ws-gmenu-row')].find((r) => r.textContent.includes('Shards in memory'));
+      row?.querySelector(`.ws-gmenu-segbtn[data-v="${x}"]`)?.click();
+      return row !== undefined;
+    }, v);
+    if (!(await pick('1'))) fail('--debugcard: no Shards in memory picker');
+    await sleep(2300);
+    const after = await page.evaluate(() => ({ slugs: window.__shardHost.slugs, cap: window.__shardHost.cap }));
+    report.debugCard.drop = { before, after };
+    report.debugCard.after = await read();
+    console.log(`  Shards in memory → 1: resident ${before} → [${after.slugs.join(', ')}] (cap ${after.cap})\n    ${String(report.debugCard.after).replaceAll('\n', '\n    ')}`);
+    if (after.slugs.length !== 1 || after.cap !== 1) fail('--debugcard: lowering Shards in memory to 1 did not evict down at once');
+    await pick('2');
+    await page.evaluate(() => { window.__world.hud.setPaused(false); });
+    await sleep(300);
+    const timer = await page.evaluate(() => window.__world.hud.menu.isOpen);
+    if (timer) fail('--debugcard: the menu did not close');
   }
   if (report.navigations > 1) fail(`the page loaded ${report.navigations} documents`);
 

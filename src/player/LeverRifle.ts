@@ -11,6 +11,8 @@ import {
 import { makeFlashTexture, HitLine, brassFloor } from './Rifle';
 import type { KitWeapon, WeaponState, AimInfo } from './Weapons';
 import { SHADOW_LAYER } from '../core/shadowLayer';
+import { shardSlot } from '../core/shardState';
+import { MAY_KTX2 } from '../boot/gpuFiles';
 
 /**
  * LeverRifle — Pine Hollow's rifle (PINE-HOLLOW-REMASTER PH-U5 / PH-C11): a 1900s backwoods lever-action carbine in the
@@ -842,3 +844,8 @@ function borrowWood(from: THREE.Object3D | null): TexSet {
   }
   return viewmodelTexSet('walnut');
 }
+
+// E155 × E157 (src/core/shardState.ts): with KTX2 a loaded texture's mips leave JS once uploaded, so another shard's renderer
+// (the other resident, or this shard rebuilt) could not upload a cached copy: the cache is per shard unless Debug ▸ GPU
+// textures = Images (then one per page).
+if (MAY_KTX2) shardSlot('leverRifle.model', () => ({ modelLoad, modelReady }), (v) => { ({ modelLoad, modelReady } = v); }, () => ({ modelLoad: null, modelReady: null }));

@@ -30,7 +30,8 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { TIER } from '../../core/tier';
 import { painterlyMaterial, painterlyKnobs } from '../painterly';
 import type { Sky } from '../Sky';
-import { setSlot } from '../../core/shardState';
+import { mapSlot, setSlot } from '../../core/shardState';
+import { MAY_KTX2 } from '../../boot/gpuFiles';
 
 export type NalatiModelName =
   | 'horse-saddled' | 'horse-wild' | 'wolf' | 'sheep' | 'snow-leopard' | 'eagle' | 'golden-king' | 'spruce'
@@ -398,3 +399,8 @@ export class ModelSink {
 
 // E155 (src/core/shardState.ts): the running shard's painted materials (a rebuilt Nalati's, not the evicted one's)
 setSlot('nalati.modelMats', modelMatList);
+
+// E155 × E157 (src/core/shardState.ts): with KTX2 a loaded texture's mips leave JS once uploaded, so another shard's renderer
+// (the other resident, or this shard rebuilt) could not upload a cached copy: the cache is per shard unless Debug ▸ GPU
+// textures = Images (then one per page).
+if (MAY_KTX2) { mapSlot('glbPaint.raw', raw); mapSlot('glbPaint.ready', ready); }

@@ -21,6 +21,7 @@ import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { texMode, gpuFile } from '../boot/gpuFiles';
 import { markGpuOnly } from './gpuOnly';
+import { shardSlot } from './shardState';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
 export const BASIS_PATH = `/basis/r${THREE.REVISION}/`;
@@ -30,9 +31,10 @@ let gameRenderer: THREE.WebGLRenderer | null = null;
 
 /** detect the GPU's formats and start the transcoder download (idempotent) */
 export function initKtx2(renderer: THREE.WebGLRenderer): void {
-  gameRenderer ??= renderer;
-  if (loader !== null || texMode() !== 'ktx2') return;
-  markGpuOnly('KTX2 textures (their mips are dropped from JS once uploaded)');
+  gameRenderer ??= renderer; // the building shard's (a slot: each resident shard has its own, below)
+  if (texMode() !== 'ktx2') return;
+  markGpuOnly('KTX2 textures (their mips are dropped from JS once uploaded)'); // this build's (a shard built with images restores in place)
+  if (loader !== null) return; // the formats are the GPU's: one loader for every KTX2 build
   loader = new KTX2Loader().setTranscoderPath(BASIS_PATH).detectSupport(renderer);
   loader.init().catch((e: unknown) => { console.warn('[ktx2] transcoder failed to load', e); });
 }
@@ -189,3 +191,7 @@ export function readTexturePixels(tex: THREE.Texture, w: number, h: number, rend
   for (let y = 0; y < h; y++) rows.set(out.subarray((h - 1 - y) * stride, (h - y) * stride), y * stride);
   return rows;
 }
+
+// E155 (src/core/shardState.ts): the game renderer is the running shard's; a new shard's Game sets its own (initKtx2). The
+// loader's format detection is the GPU's, the same for every renderer on the page, and it keeps no renderer.
+shardSlot<THREE.WebGLRenderer | null>('ktx2.renderer', () => gameRenderer, (v) => { gameRenderer = v; }, () => null);

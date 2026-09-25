@@ -3,6 +3,7 @@ import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { fetchImage, tierUrl } from '../boot/bytes';
 import { initKtx2, ktx2Layers, ktx2Texture, releaseAfterUpload } from './ktx2';
+import { shardSlot } from './shardState';
 import { TIER_CONFIG } from './tier';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 
@@ -165,3 +166,6 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
   const [map, normalMap, armMap] = await Promise.all([build('diffuse', true), build('nor_gl', false), build('arm', false)]);
   return { map, normalMap, armMap };
 }
+
+// E155 (src/core/shardState.ts): the renderer the texture arrays are built on is the running shard's
+shardSlot<THREE.WebGLRenderer | null>('assets.gpu', () => gpu, (v) => { gpu = v; }, () => null);

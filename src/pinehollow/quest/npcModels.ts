@@ -24,6 +24,8 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { TIER } from '../../core/tier';
 import type { Sky } from '../../world/Sky';
 import type { NpcKind } from './npcFigure';
+import { mapSlot } from '../../core/shardState';
+import { MAY_KTX2 } from '../../boot/gpuFiles';
 
 export const NPC_KINDS: readonly NpcKind[] = ['ranger', 'trader', 'miller'];
 
@@ -245,3 +247,9 @@ export function npcRig(kind: NpcKind, sky: Sky): NpcRig | null {
     },
   };
 }
+
+// E155 (src/core/shardState.ts): the shared materials are set up for one shard's sky (its CSM, its fog) and the built figures
+// wear them: per shard — an evicted Pine Hollow's must not be held. With KTX2 the loaded models too (a texture's mips leave
+// JS once uploaded, so a rebuilt shard's renderer could not upload a cached copy).
+mapSlot('npcModels.built', built); mapSlot('npcModels.mats', sharedMats);
+if (MAY_KTX2) { mapSlot('npcModels.sources', sources); mapSlot('npcModels.loading', loading); }

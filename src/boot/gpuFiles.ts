@@ -20,18 +20,26 @@
  *                                                      background after the first visit and, when the worker has confirmed
  *                                                      every file, writes a marker (the set's hash) that the next page load
  *                                                      reads here. A half-downloaded set has no marker: images.
- * Resolved once per page, on the first question (`texMode()`), and never changed after: no swap in a running world. The
+ * Resolved once per SHARD BUILD, on the build's first question (`texMode()`), and never changed inside it: no swap in a
+ * running world. E155 builds several shards in one page (src/shard/ShardHost.ts): the answer is shard state
+ * (src/core/shardState.ts) — reset before each build, so every build asks for its own shard (the `?chunk=` the host keeps on
+ * the address), and put back when a resident shard plays again. An explicit Debug pick applies to every build. The
  * resolver that checks the marker is registered by shardPrefetch.ts (it owns the set's list); a page that never loads it
  * (dev pages, the bake scripts in Node) reads Auto as Images.
  */
 import { GPU_FILES } from './gpu.generated';
 import { TIER } from '../core/tier';
 import { setting } from '../ui/Settings';
+import { shardSlot } from '../core/shardState';
 
 export type TexMode = 'ktx2' | 'img';
 
-/** the shard this page boots (src/chunks/registry.ts chunkSlugFromUrl — read here without loading every chunk def) */
-const BOOT_SLUG = typeof location === 'undefined' ? '' : new URLSearchParams(location.search).get('chunk') ?? 'driftwood-isle';
+/** the shard being built (src/chunks/registry.ts chunkSlugFromUrl — read here without loading every chunk def): the shard
+ *  host puts `?chunk=` on the address before a build, so a later build reads its own */
+const buildSlug = (): string => (typeof location === 'undefined' ? '' : new URLSearchParams(location.search).get('chunk') ?? 'driftwood-isle');
+/** a page that may load KTX2 in some build (Debug ▸ GPU textures is not Images): its model / texture caches are per shard
+ *  (KTX2 drops a texture's mips once uploaded — another renderer could not upload a cached copy; E155) */
+export const MAY_KTX2 = setting('tex') !== 'img';
 
 let autoReady: ((slug: string) => boolean) | null = null;
 /** shardPrefetch.ts: how Auto learns that a shard's KTX2 set is cached (the marker check) */
@@ -47,8 +55,7 @@ export function texModeWhy(): { mode: TexMode; why: string } {
   try {
     const picked = setting('tex');
     if (picked !== 'auto') resolved = { mode: picked, why: `picked (Settings ▸ Debug ▸ GPU textures: ${picked})` };
-    else if (autoReady?.(BOOT_SLUG) === true) resolved = { mode: 'ktx2', why: `auto: ${BOOT_SLUG}'s KTX2 set is cached` };
-    else resolved = { mode: 'img', why: `auto: ${BOOT_SLUG}'s KTX2 set is not cached (yet)` };
+    else { const slug = buildSlug(); resolved = autoReady?.(slug) === true ? { mode: 'ktx2', why: `auto: ${slug}'s KTX2 set is cached` } : { mode: 'img', why: `auto: ${slug}'s KTX2 set is not cached (yet)` }; }
   } finally { resolving = false; }
   return resolved;
 }
@@ -62,3 +69,6 @@ export function standIn(served: string, tex: TexMode): string | undefined {
 export function gpuFile(served: string): string | undefined {
   return standIn(served, texMode());
 }
+
+// E155: each shard build resolves its own mode (a fresh page's first question); a resident shard keeps the one it built with
+shardSlot<{ mode: TexMode; why: string } | null>('gpuFiles.texMode', () => resolved, (v) => { resolved = v; }, () => null);

@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import type { BoneDef } from './registry';
+import { shardSlot } from '../../core/shardState';
+import { MAY_KTX2 } from '../../boot/gpuFiles';
 
 /**
  * The Drowned Captain's generated mesh (v0.2, DRIFTWOOD-REMASTER M3): a codex concept (art/driftwood-isle/round-8-assets/
@@ -131,3 +133,8 @@ export function captainMeshFor(bones: BoneDef[]): { parts: [THREE.BufferGeometry
   g.dispose();
   return { parts: [a, b], map: texture };
 }
+
+// E155 × E157 (src/core/shardState.ts): with KTX2 a loaded texture's mips leave JS once uploaded, so another shard's renderer
+// (the other resident, or this shard rebuilt) could not upload a cached copy: the cache is per shard unless Debug ▸ GPU
+// textures = Images (then one per page).
+if (MAY_KTX2) shardSlot('captain.mesh', () => ({ source, texture, loading }), (v) => { ({ source, texture, loading } = v); }, () => ({ source: null, texture: null, loading: null }));
