@@ -173,7 +173,15 @@ export class Ocean {
             float p3 = mix(5.0, 2.2, fract(ph + 0.5));
             float l3 = (1.0 - smoothstep(0.08, 0.22, abs(d0 - p3))) * step(0.55, vnoise(vOceanW.xz * 0.7 + 13.0)) * 0.8;
             float lace = max(l1, max(l2, l3)) * inC * (1.0 - smoothstep(6.0, 9.0, shoreD)) * step(0.0, still);   // never where a crest pokes over the sand
-            float ring = smoothstep(0.45, 0.65, sea.g + (n - 0.5) * 0.3) * step(0.25, n) * (0.75 + 0.25 * sin(uTime * 2.4 + sea.g * 9.0)) * inC;
+            // rings round what stands in the water (E125): a broken lace collar hugging it + a thin ripple walking outward.
+            // G is a ~1 m-texel proximity field, so any iso-line of it is the texel polygon (it drew as solid white hexagons):
+            // turn it back into metres, wobble that by noise wider than a texel, and draw only thin broken bands of it
+            float od = (1.0 - sea.g) * 3.0 + (n - 0.5) * 0.5 + (vnoise(vOceanW.xz * 1.3 - uTime * 0.2) - 0.5) * 0.35;
+            float rn = vnoise(vOceanW.xz * 2.4 + vec2(uTime * 0.35, -uTime * 0.25));
+            float r1 = (1.0 - smoothstep(0.22, 0.3, od - vCrest * 0.4)) * step(0.42, rn);
+            float rp = fract(uTime * 0.3 + n * 0.25);
+            float r2 = (1.0 - smoothstep(0.05, 0.14, abs(od - mix(0.45, 1.9, rp)))) * step(0.5, rn) * (1.0 - rp) * 0.9;
+            float ring = max(r1, r2) * smoothstep(0.0, 0.12, sea.g) * inC;
             float cap = smoothstep(0.2, 0.26, vCrest) * step(0.62, vnoise(vOceanW.xz * 0.2 + 3.1)) * smoothstep(2.5, 8.0, still) * 0.85;
             float foam = clamp(max(max(lace, ring), cap), 0.0, 1.0);
             diffuseColor.rgb = mix(water, vec3(1.0), foam);
@@ -220,10 +228,10 @@ export class Ocean {
 
   /**
    * Foam rings (W2) around every collider box that pierces the sea surface — pier piles, boulders, hulls, the boat.
-   * Stamps a 1.8 m proximity falloff into the sea texture's G channel (once, at build; call again if the set changes).
+   * Stamps a 3 m proximity falloff (the shader reads (1 − G) × 3 back as metres) into the sea texture's G channel (once, at build; call again if the set changes).
    */
   foamAround(boxes: readonly ColliderBox[]): void {
-    const cell = CHUNK_SIZE / SEA_RES, reach = 1.1, prox = new Float32Array(SEA_RES * SEA_RES);
+    const cell = CHUNK_SIZE / SEA_RES, reach = 3.0, prox = new Float32Array(SEA_RES * SEA_RES);
     for (const b of boxes) {
       if (!(b.yBottom < this.level + 0.3 && b.yTop > this.level - 0.3)) continue;
       const r = Math.hypot(b.hw, b.hd) + reach;
