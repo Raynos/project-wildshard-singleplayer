@@ -29,6 +29,7 @@ import { completeEntry } from './ShardComplete';
 import { getSetting, setSetting, onSetting, getNumber, setNumber, NUM_RANGE, getMusicStyle, setMusicStyle, onMusicStyle, getSfxSet, setSfxSet, onSfxSet, setting, saveSetting, onSettingChange, settingsReloadUrl, type SettingKey, type NumberKey, type MusicStyle, type SfxSet, type OptionValue } from './Settings';
 import { MUSIC_CREDIT, sfxCredit, onSfxCredit } from '../audio/credits';
 import { texMode } from '../boot/gpuFiles';
+import { shardMemory } from '../shard/switch';
 import { onAudioBusy } from '../audio/preload';
 import { CAN_VIBRATE } from './haptics';
 import { lockReview, onReview, quickNote, reviewUnlocked, setQuickNote, unlockReview } from './review';
@@ -190,12 +191,32 @@ export class GameMenu {
   }
 
   get isOpen(): boolean { return this._open; }
+
+  // ── the Debug card's memory readout (E155) ──
+  private memEl: HTMLElement | null = null;
+  private dbgCard: HTMLElement | null = null;
+  private memTimer = 0;
+  /** the resident shards, their texture estimate, the JS heap and the device's memory — only when it can be seen */
+  private paintMemory(): void {
+    const out = this.memEl;
+    if (out === null || !this._open || this._tab !== 'settings' || this.dbgCard?.hidden !== false) return;
+    const m = shardMemory();
+    // Chrome's performance.memory / navigator.deviceMemory: absent on iOS (and not in the DOM typings)
+    const pm: unknown = Reflect.get(performance, 'memory'), used: unknown = typeof pm === 'object' && pm !== null ? Reflect.get(pm, 'usedJSHeapSize') : undefined;
+    const dm: unknown = Reflect.get(navigator, 'deviceMemory');
+    const heap = typeof used === 'number' ? `${Math.round(used / 1e6)} MB` : 'n/a';
+    const shards = m === null ? ['no shard host'] : m.shards.map((x, i) => `${i + 1}. ${x.slug}${x.running ? ' (playing)' : ''} · textures ~${Math.round(x.textureMB)} MB`);
+    const text = [`Resident (oldest first, keeps ${m?.cap ?? '?'}):`, ...shards, `JS heap: ${heap} · device memory: ${typeof dm === 'number' ? `${dm} GB` : 'n/a'}`].join('\n');
+    if (out.textContent !== text) out.textContent = text;
+  }
   get tab(): MenuTab { return this._tab; }
 
   open(tab: MenuTab = this._tab): void {
     this.select(tab);
     if (this._open) return;
     this._open = true;
+    this.paintMemory();
+    this.memTimer = window.setInterval(() => { this.paintMemory(); }, 2000); // while open only (close() stops it)
     this.root.classList.add('show');
     this.root.inert = false;
     this.refresh();
@@ -208,6 +229,7 @@ export class GameMenu {
   close(silent = false): void {
     if (!this._open) return;
     this._open = false;
+    window.clearInterval(this.memTimer); this.memTimer = 0;
     this.root.classList.remove('show');
     this.root.inert = true; // faded to opacity 0 but still in the DOM: out of the tab order and the accessibility tree (VoiceOver / XCUITest)
     this.opts.fullMap.hide();
@@ -489,6 +511,12 @@ export class GameMenu {
     // E158: the other shards' files download in the background once this one is playable (the next session obeys a change)
     const bg: { v: OptionValue<'prefetch'>; text: string }[] = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }];
     dbg.append(el('ws-gmenu-label', 'Other shards'), picker('Download in background', bg, () => setting('prefetch'), (v) => { saveSetting('prefetch', v); }, (fn) => { onSettingChange('prefetch', fn); }));
+    // E155 / E159: how many built shards stay in memory (src/shard/ShardHost.ts) — live, lowering it evicts at once — and what
+    // they hold, read on the device (the iPhone has no dev tools): refreshed only while this menu is open on Settings
+    const caps2: { v: OptionValue<'shardCap'>; text: string }[] = [{ v: '2', text: '2' }, { v: '1', text: '1' }];
+    const mem = el('ws-gmenu-note ws-gmenu-mem');
+    dbg.append(el('ws-gmenu-label', 'Memory'), picker('Shards in memory', caps2, () => setting('shardCap'), (v) => { saveSetting('shardCap', v); this.paintMemory(); }, (fn) => { onSettingChange('shardCap', fn); }), mem);
+    this.memEl = mem; this.dbgCard = dbg;
     dbg.append(el('ws-gmenu-note', 'Renderer, quality and render scale: Exit to main menu ▸ Settings.'));
     // Review is not debug (E140): playtesters unlock notes with it, so it stays in Settings, with the Developer switch
     p.append(this.buildReview(), ...devSwitchRows());

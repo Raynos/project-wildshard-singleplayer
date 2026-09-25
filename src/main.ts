@@ -151,7 +151,11 @@ async function main() {
   setShardSwitcher({
     go: (slug, req) => { host.switchTo(slug, req).catch((e: unknown) => { showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''); }); },
     resident: (slug) => host.has(slug),
+    memory: () => host.memory(),
   });
+  // pause ▸ Settings ▸ Debug ▸ Shards in memory (the iPhone's knob, no URL): live — lowering it evicts down at once
+  host.setCap(Number(setting('shardCap')));
+  onSettingChange('shardCap', (v) => { host.setCap(Number(v)); });
   (window as unknown as { __shardHost: ShardHost }).__shardHost = host; // the E155 test + debugging: resident shards, switch timings, memory
   hostRef = host;
   await host.start(getActiveChunk().slug);

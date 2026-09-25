@@ -127,6 +127,9 @@ export const OPTION_VALUES = {
   // A load-time pick (pause ▸ Settings ▸ Debug saves and reloads); no URL switch (Jake: never) — the A/B scripts set it in
   // the saved settings
   tex: ['auto', 'ktx2', 'img'],
+  // E155 / E159: how many built shards stay in memory (src/shard/ShardHost.ts; the user: two) — 1 on a phone that runs short;
+  // live: lowering it evicts down at once. The debug menu only (no URL switch)
+  shardCap: ['2', '1'],
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -146,6 +149,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly 
   coverRange: { def: 'normal', params: [], url: () => null },
   prefetch: { def: 'on', params: [], url: () => null },
   tex: { def: 'auto', params: [], url: () => null },
+  shardCap: { def: '2', params: [], url: () => null },
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => new Choice<OptionValue<K>>(k, OPTION_VALUES[k], OPTION_SPECS[k].def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
@@ -154,6 +158,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   coverTint: option('coverTint'), coverReach: option('coverReach'), coverBlend: option('coverBlend'), coverFar: option('coverFar'), coverRange: option('coverRange'),
   prefetch: option('prefetch'),
   tex: option('tex'),
+  shardCap: option('shardCap'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 

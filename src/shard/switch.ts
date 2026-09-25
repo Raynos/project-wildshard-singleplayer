@@ -16,7 +16,9 @@ export interface ShardRequest {
   /** into the Explore viewer's hub (EXPLORE WORLD) */
   explore?: boolean;
 }
-interface Switcher { go: (slug: string, req: ShardRequest) => void; resident: (slug: string) => boolean }
+/** what the Debug card shows (Menu.ts): the resident shards, least → most recently used, and their estimated texture memory */
+export interface ShardMemory { cap: number; shards: { slug: string; running: boolean; textureMB: number }[] }
+interface Switcher { go: (slug: string, req: ShardRequest) => void; resident: (slug: string) => boolean; memory: () => ShardMemory }
 
 let switcher: Switcher | null = null;
 
@@ -29,6 +31,9 @@ export function requestShard(slug: string, req: ShardRequest = {}): void {
   if (req.explore === true) u.searchParams.set('explore', 'hub');
   location.href = u.toString();
 }
+
+/** the resident shards' memory (null without a host: a dev page) */
+export function shardMemory(): ShardMemory | null { return switcher?.memory() ?? null; }
 
 /** is `slug` in memory (switching to it is instant)? */
 export function shardResident(slug: string): boolean { return switcher?.resident(slug) ?? false; }
