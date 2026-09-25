@@ -96,6 +96,9 @@ export interface EliteHost {
   pickupHum?: (inside: boolean) => void;
   /** a first-kill skin was taken: own it (B15 wears it) */
   ownSkin?: (skin: string) => void;
+  /** does the eye see the elite's head (no wall / rock / ground between)? The name over its head hides while it does not
+   *  (a cabin wall between you and it); absent = always seen */
+  canSee?: (from: THREE.Vector3, to: THREE.Vector3) => boolean;
 }
 
 type State = 'absent' | 'idle' | 'aware' | 'engaged' | 'leash' | 'dead' | 'broken' | 'retired';
@@ -116,7 +119,7 @@ interface Saved { timer: number; discovered: boolean; skinTaken: boolean; kills:
 const STORE = 'ws.elites.v1';
 function loadAll(): Record<string, Saved> { try { return (JSON.parse(localStorage.getItem(STORE) ?? '{}') as Record<string, Saved> | null) ?? {}; } catch { return {}; } }
 
-const BANNER_R = 80, DISCOVER_R = 60, REARM_T = 60, LEASH_HOME_T = 12;
+const BANNER_R = 80, DISCOVER_R = 60, REARM_T = 60, LEASH_HOME_T = 12, SIGHT_EVERY = 0.2;
 const _h = new THREE.Vector3();
 
 export class Elites {
@@ -126,6 +129,8 @@ export class Elites {
   private lastDusk = false;
   /** the elite whose bar is up (nearest aware / engaged) */
   focus: Entry | null = null;
+  /** the focus's head in line of sight (re-cast every SIGHT_EVERY s while its bar floats over its head) */
+  private seen = true; private sightT = 0;
 
   constructor(private readonly host: EliteHost, private readonly bar: EliteBar) {}
 
@@ -226,14 +231,18 @@ export class Elites {
     }
     // ── the bar: the nearest aware / engaged elite ──
     if (best !== this.focus) {
-      this.focus = best;
+      this.focus = best; this.sightT = 0;
       if (best) this.bar.show(best.script.def.name, best.script.def.epithet); else this.bar.hide();
     }
     if (this.focus) {
       const e = this.focus, a = e.script.animal;
       if (a) {
         a.headWorld(_h); _h.y += 0.55 * a.scale;
-        this.bar.set(e.script.barFrac?.() ?? a.hp / a.maxHp, e.state === 'engaged' ? 'pinned' : 'head', _h, this.host.camera, e.beatT > 0);
+        const pinned = e.state === 'engaged';
+        // the floating name is world-anchored: behind a wall it hides (a pinned bar is the fight's and stays)
+        if (pinned || !this.host.canSee) { this.seen = true; this.sightT = 0; }
+        else if ((this.sightT -= dt) <= 0) { this.sightT = SIGHT_EVERY; this.seen = this.host.canSee(this.host.camera.position, _h); }
+        this.bar.set(e.script.barFrac?.() ?? a.hp / a.maxHp, pinned ? 'pinned' : 'head', _h, this.host.camera, e.beatT > 0, false, !this.seen);
       }
     }
     this.bar.skulls(this.entries.map((e) => ({

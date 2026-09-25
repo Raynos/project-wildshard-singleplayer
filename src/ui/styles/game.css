@@ -151,6 +151,11 @@
 .ws-game-toasts { position: absolute; right: 22px; top: 60px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .ws-game-toasts .ws-game-toast { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 12px; color: var(--ws-text); animation: ws-feed-in 0.25s ease-out; }
 .ws-game-toasts .ws-game-toast.out { animation: ws-feed-out 0.5s ease-in forwards; }
+/* ONE queue (src/ui/ToastStack.ts): ≤ 3 up, the newest at the bottom at full strength, the older ones dimmed; the column
+   steps down under the top bars (the elite's pinned bar / banner, the boss bar, the quest chip) with a transform */
+.ws-game-toasts { transition: transform 0.22s ease-out; }
+.ws-game-toasts .ws-game-toast:not(:last-child) { opacity: 0.72; }
+.ws-game-toasts .ws-game-toast:nth-last-child(3) { opacity: 0.45; }
 
 /* ── damage flash + vignette ── */
 .ws-game-flash { position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 45%, rgba(255, 40, 20, 0.55) 100%); opacity: 0; }
@@ -210,6 +215,8 @@
 @media (max-width: 700px) {
   #hud.touch .ws-game-feed { top: calc(var(--ws-top) + 170px); }
   #hud.touch .ws-game-toasts { top: calc(var(--ws-top) + 214px); }
+  /* the weapon strip's edge tabs (touch.css, left 0, from +240) own the screen edge: the toasts sit just right of them */
+  #hud.touch:has(.ws-touch-strip:not(.desk)) .ws-game-toasts { left: 50px; max-width: calc(100vw - 34vw - 14px - 62px); }
 }
 .ws-game-vitals .ws-game-glyph, .ws-game-bolts .ws-game-glyph { display: block; width: 15px; height: 15px; }
 .ws-game-vitals .ws-game-glyph svg, .ws-game-bolts .ws-game-glyph svg { display: block; width: 100%; height: 100%; fill: #fff; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6)); }

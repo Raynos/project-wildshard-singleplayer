@@ -4,6 +4,7 @@ import { PLACEHOLDERS } from '../chunks/placeholders';
 import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
 import { openBootSettings } from './BootSettings';
+import { ToastStack } from './ToastStack';
 
 /**
  * HUD — DOM overlay in `#hud`, styled by `src/ui/styles/game.css` / `menu.css` (the in-game menu is src/ui/Menu.ts + gmenu.css) on top of `base.css` (Wildshard glass identity; one class prefix per screen, see scripts/check-css.mjs).
@@ -104,7 +105,7 @@ export class HUD {
   private bar?: { hval: HTMLElement; hbar: HTMLElement; bolts: HTMLElement; bcount: HTMLElement; segs: HTMLElement[]; segBox: HTMLElement; label: HTMLElement; weapon: HTMLElement; max: HTMLElement; reserve: HTMLElement };
   private lastMark = { house: Number.NaN, paw: Number.NaN, range: '' };
   private ppd = 1.2; // compass px per degree — measured from the band (`--ppd`), see build()
-  private feed!: HTMLElement; private toasts!: HTMLElement;
+  private feed!: HTMLElement; private toasts!: ToastStack;
   private fps!: HTMLElement; private fpsNum!: HTMLElement; private coords!: HTMLElement;
   private healthVal!: HTMLElement; private healthBar!: HTMLElement;
   private ammoCount!: HTMLElement; private ammoNum!: HTMLElement; private ammoStatus!: HTMLElement; private ammoStatusText!: HTMLElement; private reloadBar!: HTMLElement; private pips: HTMLElement[] = [];
@@ -217,7 +218,7 @@ export class HUD {
 
     this.prompt = el('div', 'ws-glass ws-game-prompt'); r.append(this.prompt);
     this.boundary = el('div', 'ws-game-boundary', '<div class="ws-game-bt">Chunk boundary</div><div class="ws-game-bs">No-man\'s land beyond · nothing has been generated here</div>'); r.append(this.boundary);
-    this.toasts = el('div', 'ws-game-toasts'); r.append(this.toasts);
+    const toasts = el('div', 'ws-game-toasts'); r.append(toasts); this.toasts = new ToastStack(toasts);
     this.flash = el('div', 'ws-game-flash'); r.append(this.flash);
 
     // pause = the in-game menu on its Settings tab (src/ui/Menu.ts, attached by main.ts as `hud.menu`):
@@ -238,6 +239,7 @@ export class HUD {
   // ── per-frame state ──
   setState(s: HUDState): void {
     const L = this.last;
+    this.toasts.tick();
     // the held weapon: label / name / magazine size / reserve (Weapons.ts) — rebuilds the pips + bars when the weapon changes
     const maxBolts = s.maxBolts ?? this.opts.maxBolts ?? 30, label = s.ammoLabel ?? 'Bolts', name = s.weaponName ?? 'Crossbow', segments = s.segments ?? 4, reserve = s.reserve ?? 0;
     if (maxBolts !== L.maxBolts || label !== L.ammoLabel || name !== L.weaponName || segments !== L.segments) {
@@ -398,12 +400,8 @@ export class HUD {
     setTimeout(() => { item.classList.add('out'); setTimeout(() => { item.remove(); }, 500); }, 4200);
   }
 
-  toast(text: string): void {
-    const t = el('div', 'ws-glass ws-game-toast', text);
-    this.toasts.append(t);
-    while (this.toasts.children.length > 4) this.toasts.firstElementChild?.remove();
-    setTimeout(() => { t.classList.add('out'); setTimeout(() => { t.remove(); }, 500); }, 3200);
-  }
+  /** one queue (src/ui/ToastStack.ts): ≤ 3 up, the older ones dimmed, always under the top bars (elite / boss / quest) */
+  toast(text: string): void { this.toasts.push(text); }
 
   damageFlash(): void { this.flash.classList.remove('show'); void this.flash.offsetWidth; this.flash.classList.add('show'); }
   setBoundaryWarning(visible: boolean): void { this.boundary.classList.toggle('show', visible); }

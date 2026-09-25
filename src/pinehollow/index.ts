@@ -22,6 +22,8 @@ import { installPineFeel } from './feel';
 import { makePineElites, swapRolledElites, isPineElite } from './elites';
 import { AntlerKing, KING_KIND } from './antlerKing';
 import { BOSS_NAMES } from '../ui/Combat';
+import { activePhysics } from '../physics/active';
+import { lineOfSight } from '../physics/query';
 
 /**
  * Pine Hollow's fights, wired in one call (PINE-HOLLOW-REMASTER: PH-C3 the four named elites, PH-C2 the Antler King,
@@ -108,6 +110,8 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     sting: (e) => { if (e === 'kill') h.music.sting('chunk'); else h.music.combat(e === 'phase2' ? 1 : 0.8); },
     pickupHum: (on) => { h.audio.pickupHum(on); },
     ownSkin: (id) => { if (id in SKINS) ctx.ownSkin(id as keyof typeof SKINS); },
+    // the floating name hides behind the cabin's walls, the crags, a rise (no physics yet: always seen)
+    canSee: (from, to) => { const ph = activePhysics(); return ph === null || lineOfSight(ph, from, to, 0.6); },
   }, new EliteBar());
   const pineElites = makePineElites(ctx, elites);
 

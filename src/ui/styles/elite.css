@@ -11,6 +11,8 @@
 /* ── the bar: over the head (translate3d set per frame, centred above the point) ── */
 .ws-elite-bar { position: absolute; left: 0; top: 0; width: 250px; margin: -64px 0 0 -125px; opacity: 0; transition: opacity 0.35s; will-change: transform; text-align: center; }
 .ws-elite-bar.show { opacity: 1; }
+.ws-elite-bar.show.dim { opacity: 0.22; } /* floating under the toast column (ToastStack's toastArea): the toasts read first */
+.ws-elite-bar.show.occluded { opacity: 0; } /* over its head, a wall between (Elite.ts host.canSee): never drawn through it */
 .ws-elite-name { font-family: var(--serif); font-weight: 700; font-size: 15px; letter-spacing: 0.24em; text-indent: 0.24em; color: #fbecc2; text-shadow: 0 1px 0 #3a2406, 0 0 8px rgba(0, 0, 0, 0.95); text-transform: uppercase; white-space: nowrap; }
 .ws-elite-epithet { margin-top: 1px; font-family: var(--serif); font-size: 9.5px; letter-spacing: 0.32em; text-indent: 0.32em; color: var(--gold); text-shadow: 0 0 6px rgba(0, 0, 0, 0.95); text-transform: uppercase; white-space: nowrap; }
 .ws-elite-frame { position: relative; display: flex; align-items: center; height: 20px; margin-top: 4px; }

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import './styles/elite.css';
+import { toastArea } from './ToastStack';
 
 /**
  * EliteBar — the named-elite screen pieces (src/game/Elite.ts drives them), styled by `src/ui/styles/elite.css` (prefix
@@ -8,9 +9,10 @@ import './styles/elite.css';
  *
  *   const ui = new EliteBar();                               // mounts into #hud
  *   ui.show('Aqbars the Pale', 'Irbis of the Crags');  ui.hide();
- *   ui.set(frac, 'head' | 'pinned', headWorld, camera, shimmer, broken)   // every frame: OVER THE HEAD until the fight
+ *   ui.set(frac, 'head' | 'pinned', headWorld, camera, shimmer, broken, occluded)   // every frame: OVER THE HEAD until the fight
  *                                                            // starts (clamped to the screen edge with an arrow when off it),
- *                                                            // then PINNED top-centre (the user's rule); 50 % tick; grey BROKEN
+ *                                                            // then PINNED top-centre (the user's rule); 50 % tick; grey BROKEN;
+ *                                                            // `occluded` (no line of sight): the floating name fades out
  *   ui.caption('POUNCE')                                     // the signature's name / ENRAGED / BROKEN under the bar
  *   ui.banner(name, epithet)                                 // "NAMED ELITE NEARBY" — slim glass, gold edges, ~4.5 s
  *   ui.chevron(worldPoint | null, camera)                    // a gold chevron at the screen edge toward a threat (Qyran's stoop)
@@ -63,15 +65,17 @@ export class EliteBar {
     this.bar.classList.remove('broken');
     this.bar.classList.add('show');
   }
-  hide(): void { this.bar.classList.remove('show', 'pinned', 'offscreen', 'beat', 'broken'); this.mode = 'head'; }
+  hide(): void { this.bar.classList.remove('show', 'pinned', 'offscreen', 'beat', 'broken', 'occluded', 'dim'); this.mode = 'head'; }
 
-  set(frac: number, mode: 'head' | 'pinned', head: THREE.Vector3 | null, camera: THREE.PerspectiveCamera, beat: boolean, broken = false): void {
+  set(frac: number, mode: 'head' | 'pinned', head: THREE.Vector3 | null, camera: THREE.PerspectiveCamera, beat: boolean, broken = false, occluded = false): void {
     const f = Math.max(0, Math.min(1, frac));
     if (Math.abs(f - this.frac) > 1e-4) { if (f < this.frac) this.lagT = 0.5; this.frac = f; if (f > this.lagFrac) this.lagFrac = f; this.write(); }
     if (mode !== this.mode) { this.mode = mode; this.bar.classList.toggle('pinned', mode === 'pinned'); if (mode === 'pinned') this.ban.classList.remove('show'); }
     this.bar.classList.toggle('beat', beat);
     this.bar.classList.toggle('broken', broken);
-    if (mode === 'pinned' || head === null) { this.bar.style.transform = ''; this.bar.classList.remove('offscreen'); return; }
+    // over its head but out of sight (a wall between): the world-anchored name fades out rather than show through it
+    this.bar.classList.toggle('occluded', occluded && mode === 'head');
+    if (mode === 'pinned' || head === null) { this.bar.style.transform = ''; this.bar.classList.remove('offscreen', 'dim'); return; }
     // over its head: project; off screen → clamp to the edge, the arrow points at it
     _v.copy(head).project(camera);
     const w = innerWidth, h = innerHeight;
@@ -88,6 +92,9 @@ export class EliteBar {
       ang = Math.atan2(dy, dx);
     }
     this.bar.classList.toggle('offscreen', !inside);
+    // under the toast column (ToastStack): the world-anchored name steps back (the bar's box: 250 × ~64 above the point)
+    const T = toastArea, hw = inside ? 125 : 85;
+    this.bar.classList.toggle('dim', T.bottom > T.top && x + hw > T.left && x - hw < T.right && y > T.top && y - 64 < T.bottom);
     this.arrow.style.transform = `rotate(${ang.toFixed(3)}rad)`;
     this.bar.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
   }
