@@ -52,6 +52,8 @@
  *             { type: 'VERSION' }      → what this worker holds, back on the message port.
  *             { type: 'BUILD' }        → just { build }: cheap, so a page can tell whether a waiting worker is the build it
  *                                        already runs (src/boot/sw.ts `announce()`, E95).
+ *             { type: 'PREFETCH', url } → E158: that file into its cache unless it is there (src/boot/shardPrefetch.ts, the
+ *                                        other shards' boot files after playable); answers { type: 'PREFETCHED', status, bytes }.
  */
 const BUILD = '__BUILD_ID__';
 const ASSETS = '__ASSET_ID__';
@@ -243,7 +245,34 @@ self.addEventListener('message', (event) => {
   if (data.type === 'SKIP_WAITING') self.skipWaiting();
   else if (data.type === 'VERSION') event.waitUntil(reply(event, version()));
   else if (data.type === 'BUILD') event.waitUntil(reply(event, Promise.resolve({ type: 'BUILD', build: BUILD })));
+  else if (data.type === 'PREFETCH' && typeof data.url === 'string') event.waitUntil(reply(event, prefetchOne(data.url)));
 });
+
+/**
+ * E158: one file of another shard's boot (src/boot/shardPrefetch.ts), into the cache its request would be served from.
+ * Already there → 'hit' (nothing fetched: a later session resumes where this one stopped). Fetched at low priority and
+ * stored whole before the reply, so the page's "done" means on disk. `bytes` = the body stored.
+ * @param {string} u
+ */
+async function prefetchOne(u) {
+  const url = new URL(u, self.registration.scope);
+  const out = (status, bytes = 0) => ({ type: 'PREFETCHED', status, bytes });
+  if (url.origin !== self.location.origin) return out('failed');
+  const cache = await caches.open(cacheFor(url.pathname));
+  if (await cache.match(url.href, MATCH_OPTS)) return out('hit');
+  try {
+    const res = await fetch(url.href, { priority: 'low' });
+    if (!res.ok || !res.body) return out('failed');
+    let bytes = 0;
+    const [keep, count] = res.body.tee();
+    const counted = (async () => { const r = count.getReader(); for (;;) { const { done, value } = await r.read(); if (done) return; bytes += value.byteLength; } })();
+    await cache.put(url.href, new Response(keep, { status: res.status, statusText: res.statusText, headers: res.headers }));
+    await counted;
+    return out('stored', bytes);
+  } catch {
+    return out('failed');
+  }
+}
 
 async function reply(event, work) {
   const payload = await work.catch((e) => ({ type: 'VERSION', error: String(e) }));

@@ -82,6 +82,7 @@ import { declareTotals, installByteCounter } from './boot/bytes';
 import { bootFiles, extraFetches, startAudioPreload, startMenuPreload } from './boot/extras';
 import { bootFetches, prefetch, prefetchAfter } from './boot/prefetch';
 import { packFor, streamPack } from './boot/pack';
+import { startShardPrefetch } from './boot/shardPrefetch';
 import { getActiveChunk } from './chunks/registry';
 import { meleeShard } from './chunks/ChunkDef';
 import { Audio } from './audio/Audio';
@@ -923,6 +924,7 @@ async function main() {
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
+  startShardPrefetch(getActiveChunk()); // E158: the other shards' boot files into the worker's cache, in the background
   (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, wildlife, nalati: nalatiNow(), ride, weapons, pineLife };
 }
 main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));
