@@ -58,7 +58,9 @@ const POSES = {
   'nalati-grasslands': [{ name: 'camp', x: 60, z: 214, yaw: -1.5708 }, { name: 'bridge', x: 0, z: 200, yaw: 0 }, { name: 'plains', x: 65, z: 0, yaw: 3.1416 }],
   'pine-hollow': [{ name: 'gate', x: 0, z: -200, yaw: 3.1416 }, { name: 'cabin', x: -14, z: -62, yaw: 3.1416 }, { name: 'pond', x: -56, z: 95, yaw: 3.1416 }],
 };
-const ROUTE = ['driftwood-isle', 'nalati-grasslands', 'pine-hollow', 'driftwood-isle'];
+// the switch route (E155 / E159, 2 resident): a first build, a resident return, a build that evicts the least recently
+// used shard, and the evicted one's rebuild. Step 1 (Driftwood → Nalati) keeps the key of the old navigation route.
+const ROUTE = ['driftwood-isle', 'nalati-grasslands', 'driftwood-isle', 'pine-hollow', 'nalati-grasslands'];
 const NETS = {
   wifi: { latency: 20, down: 30e6 / 8, up: 15e6 / 8 },
   '4g': { latency: 170, down: 9e6 / 8, up: 1.5e6 / 8 },
@@ -142,6 +144,10 @@ if (!URL_BASE) {
   URL_BASE = `http://localhost:${PORT}`;
 } else if (RETOUCH) { console.error('--retouch needs --export or --serve (it serves two builds on one origin)'); process.exit(2); }
 const build = await buildIdOf(URL_BASE);
+// the boot pack parts the build's table names must be served: a failed bake only warns at build time, and then every part
+// 404s and the boot silently falls back to one request per packed file (2026-09-25: production did exactly that)
+const PACK_CHECK = await checkPacks();
+if (PACK_CHECK && PACK_CHECK.missing.length > 0) console.error(`> WARNING: ${PACK_CHECK.missing.length} of ${PACK_CHECK.parts} boot pack parts are not served (${PACK_CHECK.missing.slice(0, 3).join(', ')}…): the boot will fetch file by file`);
 const TAG = flag('tag', build);
 const SHOT_DIR = join(OUT_DIR, TAG);
 const GOLDEN_DIR = join(OUT_DIR, 'baseline');
@@ -159,7 +165,9 @@ const INIT_SCRIPT = `(() => {
   const epoch = () => performance.timeOrigin + performance.now();
   try { new PerformanceObserver((l) => { for (const e of l.getEntries()) W.__sc_long.push([performance.timeOrigin + e.startTime, Math.round(e.duration), Math.round(e.startTime)]); }).observe({ type: 'longtask', buffered: true }); } catch {}
   // readiness: playable = no loading screen, a world, not on the title / menu; __sc_ready = the shard + when it became so
-  W.__sc_loadSeen = 0; let loadOn = false, wasReady = false;
+  // every __sc_* global exists before the page's first script: ShardHost (E155) takes the __* globals a shard sets and
+  // gives them back when it runs again — one set later would travel with the shard that was running
+  W.__sc_loadSeen = 0; W.__sc_ready = null; let loadOn = false, wasReady = false;
   setInterval(() => {
     const load = document.querySelector('.ws-load') !== null;
     if (load && !loadOn) W.__sc_loadSeen++;
@@ -292,6 +300,8 @@ const MEMORY = `(() => {
     glTexBytes: mine ? mine.texBytes : null, glTextures: mine ? mine.textures : null, glRbBytes: mine ? mine.rbBytes : null, glBufBytes: mine ? mine.bufBytes : null,
     glCompressedUploads: mine ? mine.compressedUploads : null, canvas: mine ? mine.canvas : null, glTop: mine ? mine.top : null,
     otherContexts: others.length, otherTexBytes: others.reduce((s, g) => s + g.texBytes + g.rbBytes, 0),
+    // every live context's textures + renderbuffers: with E155 a parked shard keeps its renderer (2 resident)
+    glContexts: gls.length, glAllTexBytes: gls.reduce((s, g) => s + g.texBytes + g.rbBytes, 0),
     sceneTexBytes: Math.round(est), sceneTextures: n, sceneCompressed: compressed,
     textures: info ? info.memory.textures : null, geometries: info ? info.memory.geometries : null, programs: info && info.programs ? info.programs.length : null,
     slug: world && world.chunk ? world.chunk.slug : null,
@@ -327,7 +337,7 @@ try {
 }
 
 // ── rows ──
-const result = { tag: TAG, build, url: URL_BASE, at: new Date().toISOString(), host: `${process.platform} ${process.arch} node ${process.version}`, net: NET, cpu: CPU, runs: RUNS, sampleMs: SAMPLE_MS, rows: buildRows(runs), raw: runs };
+const result = { tag: TAG, build, url: URL_BASE, packCheck: PACK_CHECK, at: new Date().toISOString(), host: `${process.platform} ${process.arch} node ${process.version}`, net: NET, cpu: CPU, runs: RUNS, sampleMs: SAMPLE_MS, rows: buildRows(runs), raw: runs };
 mkdirSync(OUT_DIR, { recursive: true });
 writeFileSync(join(OUT_DIR, `${TAG}.json`), `${JSON.stringify(result, null, 1)}\n`);
 let md = renderMarkdown(result);
@@ -350,13 +360,17 @@ function pageUrl(shard, vp) { return `${URL_BASE}/?chunk=${shard}&skipintro=1&no
 async function newContext(vp) {
   const ctx = await browser.newContext({ ...VIEWPORTS[vp].ctx, serviceWorkers: 'allow' });
   await ctx.addInitScript(INIT_SCRIPT);
-  // every finished request of the context: the page's and the service worker's own fetches, with when it finished
+  // every finished request of the context: the page's and the service worker's own fetches, with when it started and
+  // finished (a boot counts the requests STARTED before playable; the background download starts after it)
   const log = [];
   const inflight = [];
+  const started = new WeakMap();
+  ctx.on('request', (req) => { started.set(req, Date.now()); });
   ctx.on('requestfinished', (req) => {
+    const s = started.get(req) ?? Date.now();
     inflight.push((async () => {
       const [sizes, res] = await Promise.all([within(req.sizes(), 5000), within(req.response(), 5000)]);
-      log.push({ t: Date.now(), url: req.url(), bySW: req.serviceWorker() !== null, fromSW: Boolean(res?.fromServiceWorker()), body: sizes?.responseBodySize ?? 0, headers: sizes?.responseHeadersSize ?? 0 });
+      log.push({ s, t: Date.now(), url: req.url(), bySW: req.serviceWorker() !== null, fromSW: Boolean(res?.fromServiceWorker()), body: sizes?.responseBodySize ?? 0, headers: sizes?.responseHeadersSize ?? 0 });
     })());
   });
   const net = {
@@ -368,19 +382,20 @@ async function newContext(vp) {
   return { ctx, net };
 }
 
-/** net bytes + page request count of the log slice [from, to) (bench-load's accounting: SW fetches + page responses not served by the SW) */
-function account(log, from, to = log.length, until = Infinity) {
+/** net bytes + page request count of the log slice [from, to) (bench-load's accounting: SW fetches + page responses not
+ *  served by the SW); `after` / `until` keep the requests that STARTED in (after, until] */
+function account(log, from, to = log.length, until = Infinity, after = -Infinity) {
   let bytes = 0, requests = 0, swFetches = 0;
-  const byType = {};
+  const byType = {}, reqByType = {};
   for (const r of log.slice(from, to)) {
-    if (r.t > until || /^(blob|data):/.test(r.url)) continue;
-    const ext = (r.url.split(/[?#]/)[0].match(/\.([a-z0-9]+)$/i)?.[1] ?? 'html').toLowerCase();
+    if (r.s > until || r.s <= after || /^(blob|data):/.test(r.url)) continue;
+    const ext = (/\.([a-z0-9]+)$/i.exec(r.url.split(/[?#]/)[0])?.[1] ?? 'html').toLowerCase();
     const n = r.body + r.headers;
     if (r.bySW) { swFetches++; bytes += n; byType[ext] = (byType[ext] ?? 0) + n; continue; }
-    requests++;
+    requests++; reqByType[ext] = (reqByType[ext] ?? 0) + 1;
     if (!r.fromSW && r.body > 0) { bytes += n; byType[ext] = (byType[ext] ?? 0) + n; }
   }
-  return { bytes, requests, swFetches, byType };
+  return { bytes, requests, swFetches, byType, reqByType };
 }
 
 async function throttlePage(ctx, page, preset = NET) {
@@ -412,9 +427,10 @@ async function load(ctx, net, url, label, preset = NET) {
     return { playMs: play > 0 ? play : null, playEpoch: play > 0 ? performance.timeOrigin + play : null, longTaskMaxMs: long.reduce((mx, e) => Math.max(mx, e[1]), 0), longTasks: long.length, swController: navigator.serviceWorker.controller !== null };
   }).catch((e) => { errors.push(`collect: ${e.message}`); return {}; });
   await net.settle();
-  const toPlay = account(net.log, from, net.log.length, m.playEpoch ? m.playEpoch + 1500 : Infinity);
+  // the boot: every request that started before playable (the background download starts after it: E158 waits 4 s)
+  const toPlay = account(net.log, from, net.log.length, m.playEpoch ?? Infinity);
   console.error(`  ${label.padEnd(34)} ${status} play ${fmtS(m.playMs)} · ${fmtMB(toPlay.bytes)} MB net · ${toPlay.requests} req · longest ${m.longTaskMaxMs ?? '?'} ms · sw=${m.swController} (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
-  return { page, status, errors, from, netBytes: toPlay.bytes, requests: toPlay.requests, swFetches: toPlay.swFetches, byType: toPlay.byType, ...m };
+  return { page, status, errors, from, netBytes: toPlay.bytes, requests: toPlay.requests, swFetches: toPlay.swFetches, byType: toPlay.byType, reqByType: toPlay.reqByType, ...m };
 }
 
 /** wait until no request has finished for quietMs (a background prefetch / the SW's precache), at most maxMs */
@@ -458,12 +474,15 @@ async function measureShard(shard, vp, run, shots) {
     }
     const cold = await load(ctx, net, url, `${shard}/${vp} cold`);
     // cold bytes until the network is quiet: the SW's precache, a background prefetch of the other shards
-    const quietMs = await waitQuiet(net, 5000, 120_000);
-    out.cold = { status: cold.status, errors: cold.errors, playMs: cold.playMs, netBytes: cold.netBytes, requests: cold.requests, swFetches: cold.swFetches, longTaskMaxMs: cold.longTaskMaxMs, longTasks: cold.longTasks, byType: cold.byType, swController: cold.swController,
-      idleNetBytes: account(net.log, cold.from).bytes, idleWaitMs: quietMs };
+    // (E158 downloads the other shards + the KTX2 sets for ~100 MB after play: wait for it, up to 4 min)
+    const quietMs = await waitQuiet(net, 6000, 240_000);
+    const bg = account(net.log, cold.from, net.log.length, Infinity, cold.playEpoch ?? Infinity);
+    out.cold = { status: cold.status, errors: cold.errors, playMs: cold.playMs, netBytes: cold.netBytes, requests: cold.requests, swFetches: cold.swFetches, longTaskMaxMs: cold.longTaskMaxMs, longTasks: cold.longTasks, byType: cold.byType, reqByType: cold.reqByType, swController: cold.swController,
+      idleNetBytes: account(net.log, cold.from).bytes, idleWaitMs: quietMs, bgNetBytes: bg.bytes, bgSwFetches: bg.swFetches, bgRequests: bg.requests, bgByType: bg.byType };
+    console.error(`    background after play: ${fmtMB(bg.bytes)} MB · ${bg.swFetches} worker fetches · ${bg.requests} page requests (quiet after ${(quietMs / 1000).toFixed(0)} s)`);
     await within(cold.page.close(), 10_000);
     const warm = await load(ctx, net, url, `${shard}/${vp} warm`);
-    out.warm = { status: warm.status, errors: warm.errors, playMs: warm.playMs, netBytes: warm.netBytes, requests: warm.requests, swFetches: warm.swFetches, longTaskMaxMs: warm.longTaskMaxMs, longTasks: warm.longTasks, byType: warm.byType, swController: warm.swController };
+    out.warm = { status: warm.status, errors: warm.errors, playMs: warm.playMs, netBytes: warm.netBytes, requests: warm.requests, swFetches: warm.swFetches, longTaskMaxMs: warm.longTaskMaxMs, longTasks: warm.longTasks, byType: warm.byType, reqByType: warm.reqByType, swController: warm.swController };
     const page = warm.page;
     if (warm.status === 'ok') {
       // creatures keep walking, grazing and animating, but stop reacting to the player: an elite charging the pose (Pine
@@ -540,10 +559,34 @@ async function measurePose(page, shard, vp, pose, run, shots) {
   mkdirSync(dir, { recursive: true });
   const target = join(dir, RUNS > 1 && !(GOLDENS && run === 1) ? file.replace(/\.jpg$/, `.run${run}.jpg`) : file);
   const buf = await page.screenshot({ type: 'jpeg', quality: 80, scale: 'css' });
+  // where the creatures are on screen (CSS px boxes): SSIM leaves them out — it measures the render, not where the herd
+  // wandered (the Chestnut Mare, the camp horses). Each animal's skinned mesh bounds projected, padded, + a label strip.
+  const boxes = await page.evaluate(() => {
+    const w = window.__world, cam = w.game.camera, list = w.animals?.animals ?? [];
+    const V = w.player.position.constructor, W = innerWidth, H = innerHeight, out = [];
+    cam.updateMatrixWorld();
+    const right = new V().setFromMatrixColumn(cam.matrixWorld, 0).normalize();
+    for (const a of list) {
+      const m = a.mesh;
+      if (!m?.geometry) continue;
+      if (!m.geometry.boundingSphere) m.geometry.computeBoundingSphere();
+      const bs = m.geometry.boundingSphere;
+      const c = bs.center.clone().applyMatrix4(m.matrixWorld);
+      const r = Math.max(bs.radius * m.matrixWorld.getMaxScaleOnAxis(), 0.8 * (a.scale ?? 1));
+      const p = c.clone().project(cam);
+      if (p.z > 1 || p.z < -1) continue; // behind the camera / past the far plane
+      const q = c.clone().addScaledVector(right, r).project(cam);
+      const sx = (p.x + 1) / 2 * W, sy = (1 - p.y) / 2 * H, pr = Math.hypot((q.x - p.x) / 2 * W, (q.y - p.y) / 2 * H) * 1.25 + 6;
+      const box = [Math.max(0, sx - pr), Math.max(0, sy - pr - 34), Math.min(W, sx + pr), Math.min(H, sy + pr)];
+      if (box[2] > box[0] && box[3] > box[1]) out.push(box.map((v) => Math.round(v)));
+    }
+    return out;
+  }).catch(() => []);
   writeFileSync(target, buf);
   row.shot = rel(target);
   row.shotKB = Math.round(buf.length / 1024);
-  shots.push({ key: `${shard}/${vp}/${pose.name}`, file: target, golden: join(GOLDEN_DIR, file), run });
+  row.creatureBoxes = boxes.length;
+  shots.push({ key: `${shard}/${vp}/${pose.name}`, file: target, golden: join(GOLDEN_DIR, file), run, boxes });
   console.error(`    pose ${pose.name.padEnd(7)} ${row.fps} fps · p95 ${row.frameP95Ms} ms · cpu p50/p95 ${row.cpuP50Ms}/${row.cpuP95Ms} ms · ${row.calls} calls · ${row.trisK}k tris · ${row.shotKB} KB`);
   return row;
 }
@@ -556,36 +599,67 @@ async function switchRoute(vp) {
   try {
     const first = await load(ctx, net, pageUrl(ROUTE[0], vp), `switch ${vp} cold ${ROUTE[0]}`);
     out.first = { playMs: first.playMs, netBytes: first.netBytes, status: first.status };
-    out.quietMs = await waitQuiet(net, 5000, 120_000); // a background prefetch of the other shards lands here
-    out.prefetchBytes = account(net.log, first.from).bytes - first.netBytes;
+    out.quietMs = await waitQuiet(net, 6000, 240_000); // the background download of the other shards (E158) lands here
+    out.prefetchBytes = account(net.log, first.from, net.log.length, Infinity, first.playEpoch ?? Infinity).bytes;
     const page = first.page;
+    // the live deck only: a deck being left fades out for ~0.7 s with its buttons still in the DOM (e155-shard-switch.mjs)
+    const DECK = '#hud .ws-menu:not(.hide)';
     for (let i = 1; i < ROUTE.length; i++) {
       const to = ROUTE[i];
       const step = { from: ROUTE[i - 1], to };
       try {
         await page.evaluate(() => { window.__world?.hud?.exitToMenu(); });
-        await page.waitForSelector('.ws-menu-card', { state: 'visible', timeout: 20_000 });
+        await page.waitForFunction((d) => document.querySelector(`${d} .ws-menu-card`) !== null, DECK, { timeout: 20_000, polling: 100 });
         await sleep(900);
         // pick the card (a DOM click: the deck is a transformed track, the target card can sit outside the viewport)
-        const picked = await page.evaluate((name) => {
-          const card = [...document.querySelectorAll('.ws-menu-card')].find((e) => e.querySelector('b')?.textContent.trim() === name);
+        const picked = await page.evaluate(({ d, name }) => {
+          const deck = document.querySelector(d);
+          const card = [...(deck?.querySelectorAll('.ws-menu-card') ?? [])].find((e) => e.querySelector('b')?.textContent.trim() === name);
           if (!card) return 'no card';
           card.click();
-          return document.querySelector('.ws-menu-card.selected b')?.textContent.trim() ?? 'none selected';
-        }, NAMES[to]);
+          return deck?.querySelector('.ws-menu-card.selected b')?.textContent.trim() ?? 'none selected';
+        }, { d: DECK, name: NAMES[to] });
         if (picked !== NAMES[to]) throw new Error(`menu: picked "${picked}", wanted "${NAMES[to]}"`);
         await sleep(700);
+        // the navigation marker: NOT a __* name (ShardHost moves those with the shard that set them)
         const token = `sc${Date.now()}`;
-        await page.evaluate((t) => { window.__sc_doc = t; window.__sc_loadSeen = 0; }, token);
+        const f0 = await page.evaluate((t) => { window.scDocMark = t; window.__sc_loadSeen = 0; return window.__shardHost?.timings.length ?? 0; }, token);
         const from = net.mark();
         const t0 = Date.now();
-        // ENTER WORLD (a navigation today: the evaluate may lose its context mid-flight)
-        await page.evaluate(() => { document.querySelector('.ws-menu-play')?.click(); }).catch(() => undefined);
-        const at = await pollReady(page, to, t0);
+        // ENTER WORLD: in the page (E155), or a navigation (the old build: the page may go away under the click)
+        const clicked = await page.click(`${DECK} .ws-menu-play`, { noWaitAfter: true, timeout: 5000 }).then(() => true, () => false);
+        if (!clicked) await page.evaluate((d) => { document.querySelector(`${d} .ws-menu-play`)?.click(); }, DECK).catch(() => undefined);
+        // a shard built in the page lands on its own title, as a reload did: ENTER WORLD once more when it is up
+        let at = 0;
+        while (Date.now() - t0 < TIMEOUT_MS) {
+          const s = await page.evaluate(({ slug, d }) => {
+            const r = window.__sc_ready, host = window.__shardHost, hud = document.getElementById('hud');
+            const title = host !== undefined && host.active === slug && !host.switching && hud?.classList.contains('intro') === true && document.querySelector('.ws-load') === null && document.querySelector(`${d} .ws-menu-play`) !== null;
+            return { ready: r !== null && r.slug === slug ? r.at : 0, title };
+          }, { slug: to, d: DECK }).catch(() => ({ ready: 0, title: false }));
+          if (s.ready > t0) { at = s.ready; break; }
+          if (s.title && step.titleMs === undefined) {
+            step.titleMs = Date.now() - t0;
+            await page.click(`${DECK} .ws-menu-play`, { noWaitAfter: true, timeout: 5000 }).catch(() => undefined);
+          }
+          await sleep(40);
+        }
         step.ms = at > 0 ? Math.round(at - t0) : null;
         step.status = at > 0 ? 'ok' : 'timeout';
-        const st = await page.evaluate(({ tok, t }) => ({ same: window.__sc_doc === tok, loadSeen: window.__sc_loadSeen, long: (window.__sc_long ?? []).filter((e) => e[0] >= t).reduce((m, e) => Math.max(m, e[1]), 0) }), { tok: token, t: t0 });
+        if (at > 0) {
+          // the first drawn frames of the shard entered
+          const n0 = await page.evaluate(() => window.__world?.game.frameNo ?? 0);
+          await page.waitForFunction((n) => (window.__world?.game.frameNo ?? 0) >= n + 2, n0, { timeout: 30_000, polling: 16 }).catch(() => undefined);
+          step.firstFrameMs = Date.now() - t0;
+        }
+        const st = await page.evaluate(({ tok, t, k }) => {
+          const host = window.__shardHost, last = host !== undefined && host.timings.length > k ? host.timings[host.timings.length - 1] : null;
+          return { same: window.scDocMark === tok, loadSeen: window.__sc_loadSeen, long: (window.__sc_long ?? []).filter((e) => e[0] >= t).reduce((m, e) => Math.max(m, e[1]), 0),
+            kind: last?.kind ?? null, hostMs: last === null ? null : Math.round(last.ms), evicted: last?.evicted ?? [], resident: host?.slugs ?? null };
+        }, { tok: token, t: t0, k: f0 });
         step.navigated = !st.same;
+        step.kind = step.navigated ? 'navigation' : st.kind ?? 'unknown';
+        step.hostMs = st.hostMs; step.evicted = st.evicted; step.resident = st.resident;
         step.loadingShown = st.loadSeen > 0;
         step.longTaskMaxMs = st.long;
         await sleep(Math.max(3000, SETTLE_MS));
@@ -593,8 +667,9 @@ async function switchRoute(vp) {
         step.netBytes = account(net.log, from).bytes;
         const mem = await memory(ctx, page);
         step.heapBytes = mem.heapBytes; step.glTexBytes = mem.glTexBytes; step.glBufBytes = mem.glBufBytes; step.glRbBytes = mem.glRbBytes; step.slug = mem.slug;
+        step.glAllTexBytes = mem.glAllTexBytes; step.glContexts = mem.glContexts;
       } catch (e) { step.status = 'error'; step.error = String(e.message ?? e).split('\n')[0].slice(0, 200); }
-      console.error(`  ${step.from} → ${step.to}: ${step.status} ${fmtS(step.ms)} s · navigated ${step.navigated} · loading screen ${step.loadingShown} · ${fmtMB(step.netBytes)} MB net · longest ${step.longTaskMaxMs} ms · heap ${fmtMB(step.heapBytes)} MB · GL tex ${fmtMB(step.glTexBytes)} MB`);
+      console.error(`  ${step.from} → ${step.to}: ${step.status} ${step.kind ?? ''} ${fmtS(step.ms)} s (first frame ${fmtS(step.firstFrameMs)} s${step.titleMs === undefined ? '' : `, title ${fmtS(step.titleMs)} s`}) · navigated ${step.navigated} · loading screen ${step.loadingShown} · ${fmtMB(step.netBytes)} MB net · longest ${step.longTaskMaxMs} ms · heap ${fmtMB(step.heapBytes)} MB · GL tex ${fmtMB(step.glTexBytes)} MB running / ${fmtMB(step.glAllTexBytes)} MB all ${step.glContexts} contexts · resident [${(step.resident ?? []).join(', ')}]${step.evicted?.length ? ` · evicted [${step.evicted.join(', ')}]` : ''}`);
       out.steps.push(step);
     }
     out.storage = await page.evaluate(async () => { const e = await navigator.storage.estimate(); return { usage: e.usage ?? null, caches: e.usageDetails?.caches ?? null }; }).catch(() => null);
@@ -604,30 +679,31 @@ async function switchRoute(vp) {
   return out;
 }
 
-/** poll until the page reports `to` playable after t0 (survives a navigation); the epoch ms it became so, 0 on timeout */
-async function pollReady(page, to, t0) {
-  while (Date.now() - t0 < TIMEOUT_MS) {
-    const at = await page.evaluate((slug) => { const r = window.__sc_ready; return r && r.slug === slug ? r.at : 0; }, to).catch(() => 0);
-    if (at > t0) return at;
-    await sleep(50);
-  }
-  return 0;
-}
-
 /** SSIM of every shot against its golden, computed in a blank page (7×7 uniform window on luma, like skimage's default) */
 async function scoreShots(allRuns) {
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
+  // the golden's creature boxes: from this run when it wrote the goldens, else from the committed baseline's JSON
+  const goldenBoxes = new Map();
+  const baselineJson = join(OUT_DIR, 'baseline.json');
+  if (existsSync(baselineJson)) {
+    try { for (const s of loadResult(baselineJson).raw[0]?.shots ?? []) goldenBoxes.set(s.key, s.boxes ?? []); } catch { /* an older baseline: no boxes */ }
+  }
+  for (const r of allRuns) for (const s of r.shots) if (s.file === s.golden) goldenBoxes.set(s.key, s.boxes ?? []);
   try {
     for (const r of allRuns) for (const s of r.shots) {
       if (!existsSync(s.golden) || s.file === s.golden) { s.ssim = s.file === s.golden ? 1 : null; continue; }
-      const res = await page.evaluate(SSIM_FN, { a: readFileSync(s.golden).toString('base64'), b: readFileSync(s.file).toString('base64') });
+      const mask = [...(goldenBoxes.get(s.key) ?? []), ...(s.boxes ?? [])];
+      const res = await page.evaluate(SSIM_FN, { a: readFileSync(s.golden).toString('base64'), b: readFileSync(s.file).toString('base64'), mask });
       s.ssim = typeof res.ssim === 'number' ? round(res.ssim, 4) : null;
+      s.ssimUnmasked = typeof res.full === 'number' ? round(res.full, 4) : null;
+      s.masked = res.masked;
       s.note = res.note;
     }
   } finally { await within(ctx.close(), 10_000); }
 }
-async function SSIM_FN({ a, b }) {
+/** SSIM on luma, 7×7 windows; windows touching a `mask` box (the creatures in either frame) are left out */
+async function SSIM_FN({ a, b, mask }) {
   const decode = (b64) => { const bin = Uint8Array.from(atob(b64), (c) => c.codePointAt(0) ?? 0); return createImageBitmap(new Blob([bin], { type: 'image/jpeg' })); };
   const [ia, ib] = await Promise.all([decode(a), decode(b)]);
   if (ia.width !== ib.width || ia.height !== ib.height) return { ssim: 0, note: `size ${ia.width}×${ia.height} vs ${ib.width}×${ib.height}` };
@@ -638,13 +714,19 @@ async function SSIM_FN({ a, b }) {
   const Sx = integral((i) => X[i]), Sy = integral((i) => Y[i]), Sxx = integral((i) => X[i] * X[i]), Syy = integral((i) => Y[i] * Y[i]), Sxy = integral((i) => X[i] * Y[i]);
   const k = 7, N = k * k, cov = N / (N - 1), C1 = (0.01 * 255) ** 2, C2 = (0.03 * 255) ** 2;
   const box = (S, r, c) => S[(r + k) * W1 + c + k] - S[r * W1 + c + k] - S[(r + k) * W1 + c] + S[r * W1 + c];
-  let sum = 0, n = 0;
+  const M = new Uint8Array(w * h);
+  for (const [x0, y0, x1, y1] of mask ?? []) for (let y = Math.max(0, Math.floor(y0)); y < Math.min(h, Math.ceil(y1)); y++) M.fill(1, y * w + Math.max(0, Math.floor(x0)), y * w + Math.min(w, Math.ceil(x1)));
+  const Sm = integral((i) => M[i]);
+  let sum = 0, n = 0, all = 0, nAll = 0;
   for (let r = 0; r + k <= h; r++) for (let c = 0; c + k <= w; c++) {
     const mx = box(Sx, r, c) / N, my = box(Sy, r, c) / N;
     const vx = (box(Sxx, r, c) / N - mx * mx) * cov, vy = (box(Syy, r, c) / N - my * my) * cov, vxy = (box(Sxy, r, c) / N - mx * my) * cov;
-    sum += ((2 * mx * my + C1) * (2 * vxy + C2)) / ((mx * mx + my * my + C1) * (vx + vy + C2)); n++;
+    const s = ((2 * mx * my + C1) * (2 * vxy + C2)) / ((mx * mx + my * my + C1) * (vx + vy + C2));
+    all += s; nAll++;
+    if (box(Sm, r, c) > 0) continue;
+    sum += s; n++;
   }
-  return { ssim: sum / n, note: null };
+  return { ssim: n > 0 ? sum / n : null, full: all / nAll, masked: Math.round((1 - n / nAll) * 1000) / 1000, note: n === 0 ? 'the whole frame is masked' : null };
 }
 
 /** --retouch: build the same tree again with one texture re-encoded; load build A (cold + warm), switch the origin to
@@ -723,7 +805,10 @@ function buildRows(allRuns) {
         put(`${p}/${c}.requests`, 'count', `${c} requests`, L.requests);
         put(`${p}/${c}.playMs`, 'time', `${c} time to play`, L.playMs);
         put(`${p}/${c}.longTaskMaxMs`, 'longtask', `${c} longest task`, L.longTaskMaxMs);
-        if (c === 'cold') put(`${p}/cold.idleNetBytes`, 'bytes', 'cold transfer until idle', L.idleNetBytes);
+        if (c === 'cold') { // the background download (E158: the other shards + the KTX2 sets) — info, not a boot row
+          put(`${p}/cold.idleNetBytes`, 'info', 'cold transfer until idle (boot + background)', L.idleNetBytes);
+          put(`${p}/cold.bgNetBytes`, 'info', 'background transfer after playable', L.bgNetBytes);
+        }
       }
       if (s.cold4g?.status === 'ok') put(`${p}/cold4g.playMs`, 'time', 'cold time to play, Fast 4G', s.cold4g.playMs);
       const m = s.memory;
@@ -747,17 +832,24 @@ function buildRows(allRuns) {
         put(`${q}.trisK`, 'drawcalls', `${pose.name} triangles (k)`, pose.trisK);
       }
     }
-    for (const s of r.shots) if (typeof s.ssim === 'number') put(`${s.key.replace(/\/([^/]+)$/, '/pose.$1')}.ssim`, 'ssim', 'SSIM vs golden', s.ssim);
+    for (const s of r.shots) {
+      if (typeof s.ssim !== 'number') continue;
+      const k = s.key.replace(/\/([^/]+)$/, '/pose.$1');
+      put(`${k}.ssim`, 'ssim', 'SSIM vs golden, creatures masked', s.ssim);
+      if (typeof s.masked === 'number') put(`${k}.maskedFrac`, 'info', 'share of the frame masked (creatures)', s.masked);
+    }
     for (const [vp, sw] of Object.entries(r.switches)) {
       put(`switch/${vp}/prefetchBytes`, 'info', 'bytes after the first play, until idle', sw.prefetchBytes);
       sw.steps.forEach((st, i) => {
         const q = `switch/${vp}/${i + 1}.${st.from}>${st.to}`;
         if (st.status !== 'ok') return;
         put(`${q}.ms`, 'time', 'switch to playable', st.ms);
+        put(`${q}.firstFrameMs`, 'time', 'switch to the first drawn frames', st.firstFrameMs);
         put(`${q}.netBytes`, 'bytes', 'switch transfer', st.netBytes);
         put(`${q}.longTaskMaxMs`, 'longtask', 'switch longest task', st.longTaskMaxMs);
         put(`${q}.heapBytes`, 'memory', 'JS heap after', st.heapBytes);
-        put(`${q}.glTexBytes`, 'memory', 'GPU textures after', st.glTexBytes);
+        put(`${q}.glTexBytes`, 'memory', 'GPU textures after (the running shard)', st.glTexBytes);
+        put(`${q}.glAllTexBytes`, 'memory', 'GPU textures after (every resident shard)', st.glAllTexBytes);
         put(`${q}.navigated`, 'info', 'page navigated', st.navigated ? 1 : 0);
         put(`${q}.loadingShown`, 'info', 'loading screen shown', st.loadingShown ? 1 : 0);
       });
@@ -860,10 +952,12 @@ function renderMarkdown(res) {
   const v = (k, kind) => (R[k] ? fmtKind(R[k].value, kind ?? R[k].kind) + (R[k].spread > 0.001 && R[k].values.length > 1 ? ` <small>±${(R[k].spread * 50).toFixed(0)}%</small>` : '') : 'n/a');
   let out = `# scorecard ${res.tag} — build ${res.build}, ${res.at.slice(0, 16).replace('T', ' ')}\n\n`;
   out += `${res.url} · headless Chromium, ANGLE Metal, muted · network ${res.net} (service worker throttled too) · CPU ${res.cpu}× · ${res.runs} run${res.runs > 1 ? 's (median; ±x% = half the run-to-run range)' : ''} · ${res.sampleMs / 1000} s of frames per pose · ${res.host}\n\n`;
-  out += '## load\n\n| shard / viewport | cold MB to play | cold req | cold MB until idle | cold play s | cold 4G play s | cold longest task ms | warm MB | warm req | warm play s | warm longest task ms |\n|---|---|---|---|---|---|---|---|---|---|---|\n';
+  if (res.packCheck?.missing?.length > 0) out += `> **Boot pack parts not served: ${res.packCheck.missing.length} of ${res.packCheck.parts}** (${res.packCheck.missing.slice(0, 4).join(', ')}…). The bake failed at build time; the boot fetches every packed file on its own.\n\n`;
+  else if (res.packCheck) out += `Boot pack parts: all ${res.packCheck.parts} served.\n\n`;
+  out += '## load\n\n| shard / viewport | cold MB to play | cold req | background MB after play (info) | cold play s | cold 4G play s | cold longest task ms | warm MB | warm req | warm play s | warm longest task ms |\n|---|---|---|---|---|---|---|---|---|---|---|\n';
   for (const s of ONLY_SHARDS) for (const vp of ONLY_VPS) {
     const p = `${s}/${vp}`;
-    out += `| ${p} | ${v(`${p}/cold.netBytes`)} | ${v(`${p}/cold.requests`)} | ${v(`${p}/cold.idleNetBytes`)} | ${v(`${p}/cold.playMs`)} | ${v(`${p}/cold4g.playMs`)} | ${v(`${p}/cold.longTaskMaxMs`)} | ${v(`${p}/warm.netBytes`)} | ${v(`${p}/warm.requests`)} | ${v(`${p}/warm.playMs`)} | ${v(`${p}/warm.longTaskMaxMs`)} |\n`;
+    out += `| ${p} | ${v(`${p}/cold.netBytes`)} | ${v(`${p}/cold.requests`)} | ${v(`${p}/cold.bgNetBytes`, 'bytes')} | ${v(`${p}/cold.playMs`)} | ${v(`${p}/cold4g.playMs`)} | ${v(`${p}/cold.longTaskMaxMs`)} | ${v(`${p}/warm.netBytes`)} | ${v(`${p}/warm.requests`)} | ${v(`${p}/warm.playMs`)} | ${v(`${p}/warm.longTaskMaxMs`)} |\n`;
   }
   out += '\n## memory (warm page, settled, after GC)\n\n| shard / viewport | JS heap MB | GPU textures MB (GL) | renderbuffers MB | GPU buffers MB | scene textures MB (est) | textures | geometries | programs |\n|---|---|---|---|---|---|---|---|---|\n';
   for (const s of ONLY_SHARDS) for (const vp of ONLY_VPS) {
@@ -877,11 +971,13 @@ function renderMarkdown(res) {
   }
   const sw = Object.keys(R).filter((k) => k.startsWith('switch/') && k.endsWith('.ms'));
   if (sw.length > 0) {
-    out += '\n## switch route (A → menu → B …, from ENTER WORLD to playable)\n\n| viewport / switch | s | navigated | loading screen | MB downloaded | longest task ms | heap MB after | GPU tex MB after |\n|---|---|---|---|---|---|---|---|\n';
+    out += '\n## switch route (menu → ENTER WORLD on another card → playable; a shard built in the page lands on its title first)\n\n| viewport / switch | kind | s to playable | s to first frame | navigated | loading screen | MB downloaded | longest task ms | heap MB after | GPU tex MB after (running / all resident) |\n|---|---|---|---|---|---|---|---|---|---|\n';
     for (const k of sw) {
       const q = k.slice(0, -3);
       const yes = (x) => (R[x] ? (R[x].values.every((y) => y === 1) ? 'yes' : R[x].values.every((y) => y === 0) ? 'no' : 'mixed') : 'n/a');
-      out += `| ${q.replace('switch/', '')} | ${v(k)} | ${yes(`${q}.navigated`)} | ${yes(`${q}.loadingShown`)} | ${v(`${q}.netBytes`)} | ${v(`${q}.longTaskMaxMs`)} | ${v(`${q}.heapBytes`)} | ${v(`${q}.glTexBytes`)} |\n`;
+      const [, vp, n] = /^switch\/([^/]+)\/(\d+)\./.exec(q) ?? [];
+      const kinds = [...new Set(res.raw.map((r) => r.switches[vp]?.steps[Number(n) - 1]?.kind).filter((x) => typeof x === 'string'))].join(' / ');
+      out += `| ${q.replace('switch/', '')} | ${kinds === '' ? 'n/a' : kinds} | ${v(k)} | ${v(`${q}.firstFrameMs`)} | ${yes(`${q}.navigated`)} | ${yes(`${q}.loadingShown`)} | ${v(`${q}.netBytes`)} | ${v(`${q}.longTaskMaxMs`)} | ${v(`${q}.heapBytes`)} | ${v(`${q}.glTexBytes`)} / ${v(`${q}.glAllTexBytes`)} |\n`;
     }
     for (const vp of ONLY_VPS) if (R[`switch/${vp}/cacheStorageBytes`]) out += `\n- ${vp}: Cache Storage after all three shards: **${v(`switch/${vp}/cacheStorageBytes`)} MB**; downloaded after the first play until idle: ${v(`switch/${vp}/prefetchBytes`, 'bytes')} MB`;
     out += '\n';
@@ -945,6 +1041,20 @@ async function startPreview(distDir, port) {
   await waitFor(() => { if (exited !== null) throw new Error(`vite preview exited (${exited}) — port ${port} taken?`); return listening; }, 20_000, 'vite preview did not come up');
   await waitFor(async () => (await fetch(`http://localhost:${port}/version.json`)).ok, 20_000, 'vite preview did not serve version.json');
   return p;
+}
+
+/** HEAD every boot pack part the served tree's table names (src/boot/packs.generated.ts); null without a tree */
+async function checkPacks() {
+  const table = SERVE ? join(SERVE, 'src/boot/packs.generated.ts') : '';
+  if (!table || !existsSync(table)) return null;
+  const parts = [...readFileSync(table, 'utf8').matchAll(/url: "(\/assets\/packs\/[^"]+)",\s*bytes: (\d+)/g)].map((m) => [m[1], Number(m[2])]);
+  const missing = [];
+  for (const [u, bytes] of parts) {
+    // `vite preview` answers a missing file with index.html (200): the part's own size is the test
+    const size = await fetch(`${URL_BASE}${u}`, { method: 'HEAD' }).then((r) => (r.ok ? Number(r.headers.get('content-length') ?? -1) : -1), () => -1);
+    if (size !== bytes) missing.push(u);
+  }
+  return { parts: parts.length, missing };
 }
 
 async function buildIdOf(base) {
