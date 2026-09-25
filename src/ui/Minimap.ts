@@ -20,6 +20,10 @@
  *   4. the player arrow, a rim vignette. The cyan rim, 45° ticks and "N" are CSS. (The heading readout under the circle is
  *      gone, E51: the arrow already says where you face.)
  *
+ * The built world (E130, `ChunkDef.map`): the shard's sand paths and its registered pieces' collider footprints as flat
+ * silhouettes (src/ui/mapShapes.ts) — Driftwood's pier, jetties, boat, hut, bridge, lookout, wreck, zipline, shrine, the sea
+ * cave's vault and the palms' crowns — painted into the same layer and zoom tiles, so the minimap and the full map both show them.
+ *
  * Nothing is allocated per frame: every canvas, gradient and sprite is built at construction or on resize.
  *
  * NALATI (`chunk.style === 'painterly'`, plan row B15): the ground is painted in the shard's own colours instead — the green
@@ -37,6 +41,8 @@ import { hasSpecies, speciesDef } from '../entities/species/registry';
 import * as NALATI_DEF from '../chunks/nalati-grasslands';
 import { nalatiWetAt } from '../nalati/wet';
 import { NALATI_WILDLIFE } from '../entities/Wildlife';
+import { activeRegistry } from '../world/registry';
+import { mapShapes, mapWants, type MapPoly, type MapShapes } from './mapShapes';
 
 export interface MinimapAnimal {
   kind: string;
@@ -125,6 +131,9 @@ const WATER = '#3b607c', WATER_EDGE = '#2a4458';
 const TRAIL_EDGE = 'rgba(80, 64, 44, 0.85)', TRAIL = '#a08a66';
 const CROWN_DARK = '#2b4229', CROWN_MID = '#3c5a34', CROWN_LIGHT = '#66864a', CROWN_SHADOW = 'rgba(18, 34, 20, 0.5)';
 const ROOF = '#74523a', ROOF_RIDGE = '#9a7a58', ROOF_SHADOW = 'rgba(0, 0, 0, 0.45)';
+// the built world's looks (ChunkDef.map): fill, outline — flat, like the roofs
+const LOOK: Record<MapPoly['look'], [string, string]> = { planks: ['#c9a46c', '#5e4630'], timber: ['#8e5d38', '#3a2716'], stone: ['#ddd6c4', '#5f5a50'], rock: ['#8f8a7e', '#403c36'] };
+const PATH_EDGE = 'rgba(112, 90, 58, 0.6)', PATH = '#e4cd96', PALM = '#3d7a3c', PALM_SHADOW = 'rgba(10, 30, 16, 0.4)';
 const VOID = '#0b1016';
 const OPEN_SEA = 'rgb(22, 74, 128)';                                        // an ocean shard past the painted map: the deep-sea colour (SEA_DEEP)
 const DOT_PASSIVE = '#ffe066', DOT_AGGRESSIVE = '#ff5a4a', DOT_OUTLINE = 'rgba(6, 10, 18, 0.9)';
@@ -196,6 +205,8 @@ export class Minimap {
     this.stamp = this.buildStamp();
     this.layerDirty = true;
     onActiveChunkChange(() => { this.layerDirty = true; this.clearCoverage(); });
+    // a piece the map draws that lands after the layer was painted (the zipline, with the adventure) → paint again
+    activeRegistry().onAdd((p) => { if (this.shapes !== null && mapWants(getActiveChunk().map, p.id)) this.layerDirty = true; });
 
     if (typeof ResizeObserver !== 'undefined') {
       this.ro = new ResizeObserver(() => this.fit());
@@ -333,6 +344,7 @@ export class Minimap {
     const t0 = performance.now();
     this.layerDirty = false;
     this.crowns = null;
+    this.shapes = null;
     this.layerGen++;
     this.paintRegion(ctx2d(this.layer), 0, 0, CHUNK_SIZE, this.layer.width, HEIGHT_STEP);
     this.paintMs = performance.now() - t0;
@@ -464,12 +476,7 @@ export class Minimap {
       }
       return;
     }
-    if (ocean) {
-      // the south pier (src/world/Pier.ts: 4 m deck from the edge midpoint 60 m north) — the entry roads are submerged sandbars
-      ctx.fillStyle = '#b8945e';
-      ctx.fillRect(toU(2), toV(-CHUNK_HALF + 60), 4 * ppm, 60 * ppm);
-      return;
-    }
+    if (ocean) { this.paintBuilt(ctx, toU, toV, ppm, px, k); return; } // the piers, the paths, the island's buildings: all from ChunkDef.map
     // trails: a dark bed with a lighter dirt centre
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     const stroke = (w: number, style: string): void => {
@@ -504,6 +511,43 @@ export class Minimap {
       ctx.fillStyle = ROOF; ctx.fillRect(-w / 2, -dpt / 2, w, dpt);
       ctx.fillStyle = ROOF_RIDGE; ctx.fillRect(-w / 2, -k, w, 2 * k);
       ctx.restore();
+    }
+  }
+
+  /** the def's built world as shapes (mapShapes), read from the registry once per layer paint */
+  private shapes: MapShapes | null = null;
+  /** ChunkDef.map over the square: the sand paths, the palms' crowns, then each look's footprints — outlined as one
+   *  silhouette (every outline first, then every fill), a soft shadow under them like the cabin roofs */
+  private paintBuilt(ctx: CanvasRenderingContext2D, toU: (x: number) => number, toV: (z: number) => number, ppm: number, px: number, k: number): void {
+    const def = getActiveChunk().map;
+    if (!def) return;
+    this.shapes ??= mapShapes(def, activeRegistry().pieces);
+    const { polys, dots } = this.shapes;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    for (const [w, style] of [[4.5, PATH_EDGE], [3, PATH]] as const) {
+      ctx.lineWidth = w * ppm; ctx.strokeStyle = style; ctx.beginPath();
+      for (const poly of def.paths ?? []) poly.forEach(([x, z], i) => (i ? ctx.lineTo(toU(x), toV(z)) : ctx.moveTo(toU(x), toV(z))));
+      ctx.stroke();
+    }
+    const inside = (u0: number, v0: number, u1: number, v1: number): boolean => Math.max(u0, u1) > -4 && Math.max(v0, v1) > -4 && Math.min(u0, u1) < px + 4 && Math.min(v0, v1) < px + 4;
+    const r = Math.max(1.6 * ppm, 1.1), sh = Math.max(ppm * 0.6, 1);
+    ctx.fillStyle = PALM_SHADOW; ctx.beginPath();
+    for (const d of dots) { const u = toU(d.x), v = toV(d.z); if (inside(u, v, u, v)) { ctx.moveTo(u + sh + r, v + sh); ctx.arc(u + sh, v + sh, r, 0, Math.PI * 2); } }
+    ctx.fill();
+    ctx.fillStyle = PALM; ctx.beginPath();
+    for (const d of dots) { const u = toU(d.x), v = toV(d.z); if (inside(u, v, u, v)) { ctx.moveTo(u + r, v); ctx.arc(u, v, r, 0, Math.PI * 2); } }
+    ctx.fill();
+    const trace = (p: MapPoly, du: number, dv: number): void => {
+      for (let i = 0; i < p.pts.length; i += 2) { const u = toU(p.pts[i] ?? 0) + du, v = toV(p.pts[i + 1] ?? 0) + dv; if (i === 0) ctx.moveTo(u, v); else ctx.lineTo(u, v); }
+      ctx.closePath();
+    };
+    for (const look of ['rock', 'planks', 'timber', 'stone'] as const) {
+      const mine = polys.filter((p) => p.look === look && inside(toU(p.x0), toV(p.z0), toU(p.x1), toV(p.z1)));
+      if (mine.length === 0) continue;
+      const [fill, edge] = LOOK[look];
+      ctx.fillStyle = ROOF_SHADOW; ctx.beginPath(); for (const p of mine) trace(p, 1.5 * k, 2 * k); ctx.fill();
+      ctx.strokeStyle = edge; ctx.lineWidth = Math.max(0.7 * ppm, 1.2); ctx.beginPath(); for (const p of mine) trace(p, 0, 0); ctx.stroke();
+      ctx.fillStyle = fill; ctx.beginPath(); for (const p of mine) trace(p, 0, 0); ctx.fill();
     }
   }
 

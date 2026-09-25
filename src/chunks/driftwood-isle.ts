@@ -79,6 +79,19 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
   weapon: 'sword',
   ocean: OCEAN,
   explore: true,
+  // the maps draw the island's built world (E130): the sand paths, then the pieces' footprints from the registry (main.ts
+  // registers them under these ids) — palms as crowns, the decks as planks, the hut / tower / wreck / zipline as timber, the
+  // shrine as stone, the sea cave's vault as rock
+  map: {
+    paths: PATHS,
+    pieces: [
+      { ids: ['palms'], look: 'dot' },
+      { ids: ['cove'], look: 'rock' },
+      { ids: ['pier', 'jetty-*', 'bridge', 'boat'], look: 'planks' },
+      { ids: ['hut', 'lookout', 'wreck', 'zipline'], look: 'timber' },
+      { ids: ['shrine'], look: 'stone' },
+    ],
+  },
   pois: [
     { id: 'jetty', name: 'Jetty', x: 0, z: -CHUNK_HALF + 24, r: 16 },
     { id: 'hut', name: 'Hut', x: HUT.x, z: HUT.z, r: 12 },
