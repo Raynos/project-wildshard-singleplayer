@@ -1,8 +1,8 @@
 {
   "rule": "lower CLAP rank wins, ties to the higher p; ships only in the top 5",
   "wins": {
-    "moss": 56,
-    "sa3-medium": 58,
+    "moss": 57,
+    "sa3-medium": 57,
     "synth": 4,
     "kept-round-2": 2
   },
@@ -1334,12 +1334,12 @@
     "bark-trader-1": {
       "winner": "sa3-medium",
       "moss": {
-        "rank": 4,
-        "p": 0.045
+        "rank": 10,
+        "p": 0.008
       },
       "sa3-medium": {
         "rank": 1,
-        "p": 0.962
+        "p": 0.64
       },
       "round": "pine-hollow",
       "into": "pine-hollow"
@@ -1347,12 +1347,12 @@
     "bark-trader-2": {
       "winner": "sa3-medium",
       "moss": {
-        "rank": 19,
-        "p": 0.0
+        "rank": 8,
+        "p": 0.01
       },
       "sa3-medium": {
-        "rank": 3,
-        "p": 0.013
+        "rank": 4,
+        "p": 0.03
       },
       "round": "pine-hollow",
       "into": "pine-hollow"
@@ -1361,11 +1361,11 @@
       "winner": "sa3-medium",
       "moss": {
         "rank": 2,
-        "p": 0.395
+        "p": 0.215
       },
       "sa3-medium": {
         "rank": 1,
-        "p": 0.328
+        "p": 0.53
       },
       "round": "pine-hollow",
       "into": "pine-hollow"
@@ -1373,25 +1373,25 @@
     "bark-trader-4": {
       "winner": "sa3-medium",
       "moss": {
-        "rank": 4,
-        "p": 0.147
+        "rank": 15,
+        "p": 0.001
       },
       "sa3-medium": {
-        "rank": 1,
-        "p": 0.874
+        "rank": 3,
+        "p": 0.146
       },
       "round": "pine-hollow",
       "into": "pine-hollow"
     },
     "bark-trader-5": {
-      "winner": "sa3-medium",
+      "winner": "moss",
       "moss": {
-        "rank": 34,
-        "p": 0.001
+        "rank": 1,
+        "p": 0.72
       },
       "sa3-medium": {
-        "rank": 1,
-        "p": 0.81
+        "rank": 4,
+        "p": 0.018
       },
       "round": "pine-hollow",
       "into": "pine-hollow"
@@ -1399,12 +1399,12 @@
     "bark-trader-6": {
       "winner": "sa3-medium",
       "moss": {
-        "rank": 15,
-        "p": 0.002
+        "rank": 4,
+        "p": 0.089
       },
       "sa3-medium": {
-        "rank": 3,
-        "p": 0.061
+        "rank": 2,
+        "p": 0.027
       },
       "round": "pine-hollow",
       "into": "pine-hollow"
@@ -1412,12 +1412,12 @@
     "bark-trader-7": {
       "winner": "sa3-medium",
       "moss": {
-        "rank": 9,
-        "p": 0.005
+        "rank": 6,
+        "p": 0.012
       },
       "sa3-medium": {
-        "rank": 3,
-        "p": 0.065
+        "rank": 1,
+        "p": 0.468
       },
       "round": "pine-hollow",
       "into": "pine-hollow"
@@ -1425,12 +1425,12 @@
     "bark-trader-8": {
       "winner": "sa3-medium",
       "moss": {
-        "rank": 4,
-        "p": 0.02
+        "rank": 5,
+        "p": 0.025
       },
       "sa3-medium": {
-        "rank": 1,
-        "p": 0.944
+        "rank": 2,
+        "p": 0.275
       },
       "round": "pine-hollow",
       "into": "pine-hollow"

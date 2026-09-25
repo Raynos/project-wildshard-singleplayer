@@ -1414,60 +1414,6 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     ],
     "gain": 1
    },
-   "bark-trader-1": {
-    "files": [
-     "bark-trader-1-2-11e0f6b3.m4a",
-     "bark-trader-1-3-1f1d6562.m4a"
-    ],
-    "gain": 1
-   },
-   "bark-trader-2": {
-    "files": [
-     "bark-trader-2-1-8ac027ef.m4a",
-     "bark-trader-2-2-9b5ec2d9.m4a"
-    ],
-    "gain": 1
-   },
-   "bark-trader-3": {
-    "files": [
-     "bark-trader-3-2-d71e3d35.m4a",
-     "bark-trader-3-1-928354ac.m4a"
-    ],
-    "gain": 1
-   },
-   "bark-trader-4": {
-    "files": [
-     "bark-trader-4-3-ecc68b8e.m4a",
-     "bark-trader-4-1-2e7e09c3.m4a"
-    ],
-    "gain": 1
-   },
-   "bark-trader-5": {
-    "files": [
-     "bark-trader-5-1-f6ad16fb.m4a",
-     "bark-trader-5-2-5344dcfa.m4a"
-    ],
-    "gain": 1
-   },
-   "bark-trader-6": {
-    "files": [
-     "bark-trader-6-3-f29e1de3.m4a"
-    ],
-    "gain": 1
-   },
-   "bark-trader-7": {
-    "files": [
-     "bark-trader-7-2-5746d56d.m4a"
-    ],
-    "gain": 1
-   },
-   "bark-trader-8": {
-    "files": [
-     "bark-trader-8-3-43cd6fcd.m4a",
-     "bark-trader-8-2-aebeb467.m4a"
-    ],
-    "gain": 1
-   },
    "boltImpact-rock": {
     "files": [
      "boltImpact-rock-5-8817d8c7.m4a",
@@ -1550,12 +1496,64 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
      "leverRoundIn-1-ad1c3d11.m4a"
     ],
     "gain": 1
+   },
+   "bark-trader-1": {
+    "files": [
+     "bark-trader-1-1-7f6b0119.m4a",
+     "bark-trader-1-4-0f960554.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-trader-2": {
+    "files": [
+     "bark-trader-2-1-1bd4ec10.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-trader-3": {
+    "files": [
+     "bark-trader-3-4-b52811b3.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-trader-4": {
+    "files": [
+     "bark-trader-4-2-5467a2fd.m4a",
+     "bark-trader-4-3-5c1f248c.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-trader-5": {
+    "files": [
+     "bark-trader-5-1-19139f95.m4a",
+     "bark-trader-5-3-1452b6ae.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-trader-6": {
+    "files": [
+     "bark-trader-6-2-b4bb5c1d.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-trader-7": {
+    "files": [
+     "bark-trader-7-1-b9379ea3.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-trader-8": {
+    "files": [
+     "bark-trader-8-4-1990222d.m4a",
+     "bark-trader-8-2-ef2074c1.m4a"
+    ],
+    "gain": 1
    }
   },
   "sprite": {
-   "file": "oneshots-2e703ba3.m4a",
+   "file": "oneshots-362ce515.m4a",
    "gap": 0.2,
-   "duration": 162.036,
+   "duration": 159.833,
    "clips": {
     "deer_snort-2-29cb5be9.m4a": [
      0.2,
@@ -1753,153 +1751,145 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
      99.734229,
      1.416521
     ],
-    "bark-trader-1-2-11e0f6b3.m4a": [
-     101.35075,
-     0.886021
-    ],
-    "bark-trader-1-3-1f1d6562.m4a": [
-     102.436771,
-     1.457062
-    ],
-    "bark-trader-2-1-8ac027ef.m4a": [
-     104.093833,
-     1.235125
-    ],
-    "bark-trader-2-2-9b5ec2d9.m4a": [
-     105.528958,
-     1.214771
-    ],
-    "bark-trader-3-2-d71e3d35.m4a": [
-     106.943729,
-     1.485667
-    ],
-    "bark-trader-3-1-928354ac.m4a": [
-     108.629396,
-     1.466958
-    ],
-    "bark-trader-4-3-ecc68b8e.m4a": [
-     110.296354,
-     1.088188
-    ],
-    "bark-trader-4-1-2e7e09c3.m4a": [
-     111.584542,
-     1.235313
-    ],
-    "bark-trader-5-1-f6ad16fb.m4a": [
-     113.019854,
-     1.487979
-    ],
-    "bark-trader-5-2-5344dcfa.m4a": [
-     114.707833,
-     1.463667
-    ],
-    "bark-trader-6-3-f29e1de3.m4a": [
-     116.3715,
-     1.476063
-    ],
-    "bark-trader-7-2-5746d56d.m4a": [
-     118.047562,
-     0.973938
-    ],
-    "bark-trader-8-3-43cd6fcd.m4a": [
-     119.2215,
-     1.423667
-    ],
-    "bark-trader-8-2-aebeb467.m4a": [
-     120.845167,
-     1.486312
-    ],
     "boltImpact-rock-5-8817d8c7.m4a": [
-     122.531479,
+     101.35075,
      0.825042
     ],
     "boltImpact-rock-3-91f80620.m4a": [
-     123.556521,
-     0.682667
+     102.375792,
+     0.677854
     ],
     "longbowLoose-4-aaeb804d.m4a": [
-     124.439188,
+     103.253646,
      1.103875
     ],
     "raven_caw-4-29cdf0f3.m4a": [
-     125.743062,
+     104.557521,
      1.5
     ],
     "raven_caw-6-23989150.m4a": [
-     127.443062,
+     106.257521,
      1.374333
     ],
     "raven_pair-1-f8070ef6.m4a": [
-     129.017396,
+     107.831854,
      2.834
     ],
     "raven_pair-2-d6566778.m4a": [
-     132.051396,
+     110.865854,
      2.896604
     ],
     "raven_flap-3-d8de68a0.m4a": [
-     135.148,
+     113.962458,
      1.649917
     ],
     "raven_flap-1-ef724c18.m4a": [
-     136.997917,
+     115.812375,
      1.621458
     ],
     "owl_hoot-3-cdbe93cd.m4a": [
-     138.819375,
+     117.633833,
      3
     ],
     "owl_hoot-1-805b5cfa.m4a": [
-     142.019375,
+     120.833833,
      3
     ],
     "woodpecker_drum-1-6125f4ba.m4a": [
-     145.219375,
+     124.033833,
      2
     ],
     "woodpecker_drum-2-1ce56686.m4a": [
-     147.419375,
+     126.233833,
      2
     ],
     "woodpecker_call-3-caf7f9bc.m4a": [
-     149.619375,
+     128.433833,
      2.500021
     ],
     "woodpecker_call-1-82e24909.m4a": [
-     152.319396,
+     131.133854,
      2.500021
     ],
     "skinCut-a-1-a68e8922.m4a": [
-     155.019417,
+     133.833875,
      0.2935
     ],
     "skinCut-a-2-22d9c5b6.m4a": [
-     155.512917,
+     134.327375,
      1
     ],
     "skinCut-b-3-f5ea4aeb.m4a": [
-     156.712917,
+     135.527375,
      0.842458
     ],
     "skinCut-b-1-63445de8.m4a": [
-     157.755375,
+     136.569833,
      0.933021
     ],
     "leverDry-2-6fc79d84.m4a": [
-     158.888396,
+     137.702854,
      0.679146
     ],
     "leverDry-3-4d807418.m4a": [
-     159.767542,
+     138.582,
      0.589083
     ],
     "leverRoundIn-3-c42635c5.m4a": [
-     160.556625,
+     139.371083,
      0.516312
     ],
     "leverRoundIn-1-ad1c3d11.m4a": [
-     161.272938,
+     140.087396,
      0.563625
+    ],
+    "bark-trader-1-1-7f6b0119.m4a": [
+     140.851021,
+     1.417146
+    ],
+    "bark-trader-1-4-0f960554.m4a": [
+     142.468167,
+     1.413375
+    ],
+    "bark-trader-2-1-1bd4ec10.m4a": [
+     144.081542,
+     1.444333
+    ],
+    "bark-trader-3-4-b52811b3.m4a": [
+     145.725875,
+     1.473
+    ],
+    "bark-trader-4-2-5467a2fd.m4a": [
+     147.398875,
+     1.458687
+    ],
+    "bark-trader-4-3-5c1f248c.m4a": [
+     149.057562,
+     1.458333
+    ],
+    "bark-trader-5-1-19139f95.m4a": [
+     150.715896,
+     1.390729
+    ],
+    "bark-trader-5-3-1452b6ae.m4a": [
+     152.306625,
+     1.34275
+    ],
+    "bark-trader-6-2-b4bb5c1d.m4a": [
+     153.849375,
+     1.607479
+    ],
+    "bark-trader-7-1-b9379ea3.m4a": [
+     155.656854,
+     1.44675
+    ],
+    "bark-trader-8-4-1990222d.m4a": [
+     157.303604,
+     0.997812
+    ],
+    "bark-trader-8-2-ef2074c1.m4a": [
+     158.501417,
+     1.131667
     ]
    }
   }

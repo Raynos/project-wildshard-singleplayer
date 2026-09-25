@@ -1236,7 +1236,7 @@
     "bark-trader-1": [
       {
         "family": "bark-trader-1",
-        "seed": 2,
+        "seed": 1,
         "side": {
           "model": "Stable Audio 3 medium",
           "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
@@ -1244,20 +1244,45 @@
           "backend": "PyTorch mps fp32",
           "family": "bark-trader-1",
           "kind": "oneshot",
-          "seed": 2,
-          "prompt": "A sly, husky-voiced woman trader saying 'Well, well...' with a knowing smile in her voice. Close voice recording, no music.",
-          "desc": "a sly woman saying well well",
+          "seed": 1,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, giving one short, low, grunted 'Hm.' of acknowledgement. Close voice recording of an adult man, one sound only, no music.",
+          "desc": "a gruff middle-aged man saying hm",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 1.02,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 5.21,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.23
         },
-        "p": 0.962,
+        "p": 0.64,
         "rank": 1,
-        "best_match": "a sly woman saying well well",
-        "peak": 0.439
+        "best_match": "a man with a deep voice grunting hmph",
+        "peak": 0.516
+      },
+      {
+        "family": "bark-trader-1",
+        "seed": 4,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-trader-1",
+          "kind": "oneshot",
+          "seed": 4,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, giving one short, low, grunted 'Hm.' of acknowledgement. Close voice recording of an adult man, one sound only, no music.",
+          "desc": "a gruff middle-aged man saying hm",
+          "duration_s": 1.5,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 1.12,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
+        },
+        "p": 0.502,
+        "rank": 1,
+        "best_match": "a man with a deep voice grunting hmph",
+        "peak": 0.76
       },
       {
         "family": "bark-trader-1",
@@ -1270,23 +1295,23 @@
           "family": "bark-trader-1",
           "kind": "oneshot",
           "seed": 3,
-          "prompt": "A sly, husky-voiced woman trader saying 'Well, well...' with a knowing smile in her voice. Close voice recording, no music.",
-          "desc": "a sly woman saying well well",
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, giving one short, low, grunted 'Hm.' of acknowledgement. Close voice recording of an adult man, one sound only, no music.",
+          "desc": "a gruff middle-aged man saying hm",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 1.02,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 1.19,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.962,
-        "rank": 1,
-        "best_match": "a sly woman saying well well",
-        "peak": 0.471
+        "p": 0.132,
+        "rank": 3,
+        "best_match": "a man with a deep voice grunting hmph",
+        "peak": 0.539
       },
       {
         "family": "bark-trader-1",
-        "seed": 1,
+        "seed": 2,
         "side": {
           "model": "Stable Audio 3 medium",
           "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
@@ -1294,20 +1319,20 @@
           "backend": "PyTorch mps fp32",
           "family": "bark-trader-1",
           "kind": "oneshot",
-          "seed": 1,
-          "prompt": "A sly, husky-voiced woman trader saying 'Well, well...' with a knowing smile in her voice. Close voice recording, no music.",
-          "desc": "a sly woman saying well well",
+          "seed": 2,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, giving one short, low, grunted 'Hm.' of acknowledgement. Close voice recording of an adult man, one sound only, no music.",
+          "desc": "a gruff middle-aged man saying hm",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 1.07,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 1.14,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.959,
-        "rank": 1,
-        "best_match": "a sly woman saying well well",
-        "peak": 0.491
+        "p": 0.112,
+        "rank": 3,
+        "best_match": "a man with a deep voice grunting hmph",
+        "peak": 0.798
       }
     ],
     "bark-trader-2": [
@@ -1322,19 +1347,19 @@
           "family": "bark-trader-2",
           "kind": "oneshot",
           "seed": 1,
-          "prompt": "A husky-voiced woman trader saying one word, 'Deal.', crisply and pleased. Close voice recording, no music.",
-          "desc": "a woman saying deal",
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, saying one word, 'Deal.', flatly satisfied. Close voice recording of an adult man, no music.",
+          "desc": "a gruff man saying deal",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 1.03,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 1.1,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.013,
-        "rank": 3,
-        "best_match": "a sly woman saying well well",
-        "peak": 0.66
+        "p": 0.03,
+        "rank": 4,
+        "best_match": "a crossbow being cranked and cocked with a ratchet",
+        "peak": 0.504
       },
       {
         "family": "bark-trader-2",
@@ -1347,19 +1372,44 @@
           "family": "bark-trader-2",
           "kind": "oneshot",
           "seed": 2,
-          "prompt": "A husky-voiced woman trader saying one word, 'Deal.', crisply and pleased. Close voice recording, no music.",
-          "desc": "a woman saying deal",
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, saying one word, 'Deal.', flatly satisfied. Close voice recording of an adult man, no music.",
+          "desc": "a gruff man saying deal",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 0.92,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 1.1,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
+        },
+        "p": 0.021,
+        "rank": 4,
+        "best_match": "a lever-action rifle being cycled",
+        "peak": 0.675
+      },
+      {
+        "family": "bark-trader-2",
+        "seed": 4,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-trader-2",
+          "kind": "oneshot",
+          "seed": 4,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, saying one word, 'Deal.', flatly satisfied. Close voice recording of an adult man, no music.",
+          "desc": "a gruff man saying deal",
+          "duration_s": 1.5,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 1.1,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
         "p": 0.013,
-        "rank": 3,
+        "rank": 6,
         "best_match": "a lever-action rifle being cycled",
-        "peak": 0.672
+        "peak": 0.707
       },
       {
         "family": "bark-trader-2",
@@ -1372,25 +1422,25 @@
           "family": "bark-trader-2",
           "kind": "oneshot",
           "seed": 3,
-          "prompt": "A husky-voiced woman trader saying one word, 'Deal.', crisply and pleased. Close voice recording, no music.",
-          "desc": "a woman saying deal",
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, saying one word, 'Deal.', flatly satisfied. Close voice recording of an adult man, no music.",
+          "desc": "a gruff man saying deal",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 0.85,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 1.09,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.004,
-        "rank": 3,
-        "best_match": "a sly woman saying well well",
-        "peak": 0.537
+        "p": 0.011,
+        "rank": 4,
+        "best_match": "a lever-action rifle being cycled",
+        "peak": 0.57
       }
     ],
     "bark-trader-3": [
       {
         "family": "bark-trader-3",
-        "seed": 2,
+        "seed": 4,
         "side": {
           "model": "Stable Audio 3 medium",
           "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
@@ -1398,45 +1448,20 @@
           "backend": "PyTorch mps fp32",
           "family": "bark-trader-3",
           "kind": "oneshot",
-          "seed": 2,
-          "prompt": "A husky-voiced woman making a low, interested 'mmm' sound while considering an offer. Close voice recording, one sound only, no music.",
-          "desc": "a woman making an interested mmm sound",
+          "seed": 4,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, making a low, drawn-out 'mmm' in his chest while he weighs up an offer. Close voice recording of an adult man, one sound only, no music.",
+          "desc": "a man making a low considering mmm sound",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 0.86,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 1.06,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.328,
+        "p": 0.53,
         "rank": 1,
-        "best_match": "a woman humming curiously",
-        "peak": 0.545
-      },
-      {
-        "family": "bark-trader-3",
-        "seed": 1,
-        "side": {
-          "model": "Stable Audio 3 medium",
-          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-          "backend": "PyTorch mps fp32",
-          "family": "bark-trader-3",
-          "kind": "oneshot",
-          "seed": 1,
-          "prompt": "A husky-voiced woman making a low, interested 'mmm' sound while considering an offer. Close voice recording, one sound only, no music.",
-          "desc": "a woman making an interested mmm sound",
-          "duration_s": 1.5,
-          "steps": 8,
-          "cfg": 1.0,
-          "gen_time_s": 0.84,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
-        },
-        "p": 0.227,
-        "rank": 1,
-        "best_match": "a sly woman saying well well",
-        "peak": 0.526
+        "best_match": "a man with a deep voice grunting hmph",
+        "peak": 0.664
       },
       {
         "family": "bark-trader-3",
@@ -1449,24 +1474,99 @@
           "family": "bark-trader-3",
           "kind": "oneshot",
           "seed": 3,
-          "prompt": "A husky-voiced woman making a low, interested 'mmm' sound while considering an offer. Close voice recording, one sound only, no music.",
-          "desc": "a woman making an interested mmm sound",
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, making a low, drawn-out 'mmm' in his chest while he weighs up an offer. Close voice recording of an adult man, one sound only, no music.",
+          "desc": "a man making a low considering mmm sound",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 0.86,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 1.09,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.009,
-        "rank": 6,
-        "best_match": "a wet, creaking creature groan close by",
-        "peak": 0.441
+        "p": 0.015,
+        "rank": 4,
+        "best_match": "a lever-action rifle being cycled",
+        "peak": 0.763
+      },
+      {
+        "family": "bark-trader-3",
+        "seed": 1,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-trader-3",
+          "kind": "oneshot",
+          "seed": 1,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, making a low, drawn-out 'mmm' in his chest while he weighs up an offer. Close voice recording of an adult man, one sound only, no music.",
+          "desc": "a man making a low considering mmm sound",
+          "duration_s": 1.5,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 1.1,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
+        },
+        "p": 0.014,
+        "rank": 8,
+        "best_match": "a man with a deep voice saying deal",
+        "peak": 0.517
+      },
+      {
+        "family": "bark-trader-3",
+        "seed": 2,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-trader-3",
+          "kind": "oneshot",
+          "seed": 2,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, making a low, drawn-out 'mmm' in his chest while he weighs up an offer. Close voice recording of an adult man, one sound only, no music.",
+          "desc": "a man making a low considering mmm sound",
+          "duration_s": 1.5,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 1.1,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
+        },
+        "p": 0.001,
+        "rank": 11,
+        "best_match": "a giant stomp that shakes the ground and cracks roots",
+        "peak": 0.736
       }
     ],
     "bark-trader-4": [
       {
         "family": "bark-trader-4",
+        "seed": 2,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-trader-4",
+          "kind": "oneshot",
+          "seed": 2,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, giving one short, rough, amused laugh, 'heh heh'. Close voice recording of an adult man, no music.",
+          "desc": "a gruff man giving a short laugh",
+          "duration_s": 1.5,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 1.04,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
+        },
+        "p": 0.146,
+        "rank": 3,
+        "best_match": "a man grunting as he lifts a heavy sack",
+        "peak": 0.753
+      },
+      {
+        "family": "bark-trader-4",
         "seed": 3,
         "side": {
           "model": "Stable Audio 3 medium",
@@ -1476,19 +1576,19 @@
           "family": "bark-trader-4",
           "kind": "oneshot",
           "seed": 3,
-          "prompt": "A husky-voiced woman giving a short, soft, amused laugh. Close voice recording, no music.",
-          "desc": "a woman laughing softly",
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, giving one short, rough, amused laugh, 'heh heh'. Close voice recording of an adult man, no music.",
+          "desc": "a gruff man giving a short laugh",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 0.85,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 1.04,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.874,
-        "rank": 1,
-        "best_match": "a man laughing heartily",
-        "peak": 0.577
+        "p": 0.095,
+        "rank": 2,
+        "best_match": "a man with a deep voice grunting hmph",
+        "peak": 0.698
       },
       {
         "family": "bark-trader-4",
@@ -1501,23 +1601,23 @@
           "family": "bark-trader-4",
           "kind": "oneshot",
           "seed": 1,
-          "prompt": "A husky-voiced woman giving a short, soft, amused laugh. Close voice recording, no music.",
-          "desc": "a woman laughing softly",
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, giving one short, rough, amused laugh, 'heh heh'. Close voice recording of an adult man, no music.",
+          "desc": "a gruff man giving a short laugh",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 0.86,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 1.05,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.762,
-        "rank": 1,
-        "best_match": "a man laughing heartily",
-        "peak": 0.645
+        "p": 0.028,
+        "rank": 3,
+        "best_match": "an older man clearing his throat",
+        "peak": 0.64
       },
       {
         "family": "bark-trader-4",
-        "seed": 2,
+        "seed": 4,
         "side": {
           "model": "Stable Audio 3 medium",
           "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
@@ -1525,26 +1625,26 @@
           "backend": "PyTorch mps fp32",
           "family": "bark-trader-4",
           "kind": "oneshot",
-          "seed": 2,
-          "prompt": "A husky-voiced woman giving a short, soft, amused laugh. Close voice recording, no music.",
-          "desc": "a woman laughing softly",
+          "seed": 4,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, giving one short, rough, amused laugh, 'heh heh'. Close voice recording of an adult man, no music.",
+          "desc": "a gruff man giving a short laugh",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 0.87,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 1.05,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.741,
-        "rank": 1,
-        "best_match": "a man laughing heartily",
-        "peak": 0.696
+        "p": 0.029,
+        "rank": 6,
+        "best_match": "a man with a deep voice grunting hmph",
+        "peak": 0.805
       }
     ],
     "bark-trader-5": [
       {
         "family": "bark-trader-5",
-        "seed": 1,
+        "seed": 3,
         "side": {
           "model": "Stable Audio 3 medium",
           "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
@@ -1552,20 +1652,20 @@
           "backend": "PyTorch mps fp32",
           "family": "bark-trader-5",
           "kind": "oneshot",
-          "seed": 1,
-          "prompt": "A woman tutting disapprovingly, clicking her tongue twice, 'tsk tsk'. Close voice recording, one sound only, no music.",
-          "desc": "a woman tutting and clicking her tongue",
+          "seed": 3,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, scoffing a short, dismissive 'hmph!' through his nose at a lowball offer while haggling. Close voice recording of an adult man, one sound only, no music.",
+          "desc": "a man scoffing hmph at a low offer",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 0.83,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 0.84,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.81,
-        "rank": 1,
-        "best_match": "a woman tutting and clicking her tongue",
-        "peak": 0.733
+        "p": 0.018,
+        "rank": 4,
+        "best_match": "a lever-action rifle being cycled",
+        "peak": 0.507
       },
       {
         "family": "bark-trader-5",
@@ -1578,23 +1678,23 @@
           "family": "bark-trader-5",
           "kind": "oneshot",
           "seed": 2,
-          "prompt": "A woman tutting disapprovingly, clicking her tongue twice, 'tsk tsk'. Close voice recording, one sound only, no music.",
-          "desc": "a woman tutting and clicking her tongue",
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, scoffing a short, dismissive 'hmph!' through his nose at a lowball offer while haggling. Close voice recording of an adult man, one sound only, no music.",
+          "desc": "a man scoffing hmph at a low offer",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 0.82,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 0.81,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.518,
-        "rank": 1,
-        "best_match": "a woman tutting and clicking her tongue",
-        "peak": 0.689
+        "p": 0.014,
+        "rank": 4,
+        "best_match": "a lever-action rifle being cycled",
+        "peak": 0.695
       },
       {
         "family": "bark-trader-5",
-        "seed": 3,
+        "seed": 1,
         "side": {
           "model": "Stable Audio 3 medium",
           "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
@@ -1602,50 +1702,50 @@
           "backend": "PyTorch mps fp32",
           "family": "bark-trader-5",
           "kind": "oneshot",
-          "seed": 3,
-          "prompt": "A woman tutting disapprovingly, clicking her tongue twice, 'tsk tsk'. Close voice recording, one sound only, no music.",
-          "desc": "a woman tutting and clicking her tongue",
+          "seed": 1,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, scoffing a short, dismissive 'hmph!' through his nose at a lowball offer while haggling. Close voice recording of an adult man, one sound only, no music.",
+          "desc": "a man scoffing hmph at a low offer",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 0.83,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 0.87,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.006,
-        "rank": 7,
+        "p": 0.007,
+        "rank": 5,
         "best_match": "a crossbow being cranked and cocked with a ratchet",
-        "peak": 0.695
+        "peak": 0.522
+      },
+      {
+        "family": "bark-trader-5",
+        "seed": 4,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-trader-5",
+          "kind": "oneshot",
+          "seed": 4,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, scoffing a short, dismissive 'hmph!' through his nose at a lowball offer while haggling. Close voice recording of an adult man, one sound only, no music.",
+          "desc": "a man scoffing hmph at a low offer",
+          "duration_s": 1.5,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 1.0,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
+        },
+        "p": 0.007,
+        "rank": 5,
+        "best_match": "a lever-action rifle being cycled",
+        "peak": 0.483
       }
     ],
     "bark-trader-6": [
       {
         "family": "bark-trader-6",
-        "seed": 3,
-        "side": {
-          "model": "Stable Audio 3 medium",
-          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-          "backend": "PyTorch mps fp32",
-          "family": "bark-trader-6",
-          "kind": "oneshot",
-          "seed": 3,
-          "prompt": "A husky-voiced woman trader beckoning, 'Come, see.', low and inviting. Close voice recording, no music.",
-          "desc": "a woman saying come see",
-          "duration_s": 1.5,
-          "steps": 8,
-          "cfg": 1.0,
-          "gen_time_s": 0.82,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
-        },
-        "p": 0.061,
-        "rank": 3,
-        "best_match": "a sly woman saying well well",
-        "peak": 0.524
-      },
-      {
-        "family": "bark-trader-6",
         "seed": 2,
         "side": {
           "model": "Stable Audio 3 medium",
@@ -1655,19 +1755,44 @@
           "family": "bark-trader-6",
           "kind": "oneshot",
           "seed": 2,
-          "prompt": "A husky-voiced woman trader beckoning, 'Come, see.', low and inviting. Close voice recording, no music.",
-          "desc": "a woman saying come see",
-          "duration_s": 1.5,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, asking 'What'll it be?' in a low, gruff, businesslike voice. Close voice recording of an adult man, no music.",
+          "desc": "a gruff man asking what'll it be",
+          "duration_s": 2.0,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 0.83,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 1.01,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.058,
-        "rank": 4,
-        "best_match": "a sly woman saying well well",
-        "peak": 0.425
+        "p": 0.027,
+        "rank": 2,
+        "best_match": "a lever-action rifle being cycled",
+        "peak": 0.507
+      },
+      {
+        "family": "bark-trader-6",
+        "seed": 3,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-trader-6",
+          "kind": "oneshot",
+          "seed": 3,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, asking 'What'll it be?' in a low, gruff, businesslike voice. Close voice recording of an adult man, no music.",
+          "desc": "a gruff man asking what'll it be",
+          "duration_s": 2.0,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 1.04,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
+        },
+        "p": 0.005,
+        "rank": 7,
+        "best_match": "a lever-action rifle being cycled",
+        "peak": 0.51
       },
       {
         "family": "bark-trader-6",
@@ -1680,24 +1805,99 @@
           "family": "bark-trader-6",
           "kind": "oneshot",
           "seed": 1,
-          "prompt": "A husky-voiced woman trader beckoning, 'Come, see.', low and inviting. Close voice recording, no music.",
-          "desc": "a woman saying come see",
-          "duration_s": 1.5,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, asking 'What'll it be?' in a low, gruff, businesslike voice. Close voice recording of an adult man, no music.",
+          "desc": "a gruff man asking what'll it be",
+          "duration_s": 2.0,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 0.83,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 1.57,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.015,
-        "rank": 7,
+        "p": 0.003,
+        "rank": 6,
         "best_match": "a lever-action rifle being cycled",
-        "peak": 0.382
+        "peak": 0.642
+      },
+      {
+        "family": "bark-trader-6",
+        "seed": 4,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-trader-6",
+          "kind": "oneshot",
+          "seed": 4,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, asking 'What'll it be?' in a low, gruff, businesslike voice. Close voice recording of an adult man, no music.",
+          "desc": "a gruff man asking what'll it be",
+          "duration_s": 2.0,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 1.12,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
+        },
+        "p": 0.003,
+        "rank": 6,
+        "best_match": "a lever-action rifle being cycled",
+        "peak": 0.544
       }
     ],
     "bark-trader-7": [
       {
         "family": "bark-trader-7",
+        "seed": 1,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-trader-7",
+          "kind": "oneshot",
+          "seed": 1,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, saying one word, 'Aye.', gruffly. Close voice recording of an adult man, no music.",
+          "desc": "a gruff man saying aye",
+          "duration_s": 1.5,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 1.7,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
+        },
+        "p": 0.468,
+        "rank": 1,
+        "best_match": "a man with a deep voice saying aye",
+        "peak": 0.538
+      },
+      {
+        "family": "bark-trader-7",
+        "seed": 4,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-trader-7",
+          "kind": "oneshot",
+          "seed": 4,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, saying one word, 'Aye.', gruffly. Close voice recording of an adult man, no music.",
+          "desc": "a gruff man saying aye",
+          "duration_s": 1.5,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 2.0,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
+        },
+        "p": 0.066,
+        "rank": 4,
+        "best_match": "a heavy hunting crossbow firing a bolt",
+        "peak": 0.607
+      },
+      {
+        "family": "bark-trader-7",
         "seed": 2,
         "side": {
           "model": "Stable Audio 3 medium",
@@ -1707,19 +1907,19 @@
           "family": "bark-trader-7",
           "kind": "oneshot",
           "seed": 2,
-          "prompt": "A husky-voiced woman trader saying one word, 'No.', firmly and flatly. Close voice recording, no music.",
-          "desc": "a woman saying no in a firm voice",
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, saying one word, 'Aye.', gruffly. Close voice recording of an adult man, no music.",
+          "desc": "a gruff man saying aye",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 0.9,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 1.6,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.065,
-        "rank": 3,
-        "best_match": "a sly woman saying well well",
-        "peak": 0.645
+        "p": 0.057,
+        "rank": 5,
+        "best_match": "a lever-action rifle being cycled",
+        "peak": 0.82
       },
       {
         "family": "bark-trader-7",
@@ -1732,50 +1932,25 @@
           "family": "bark-trader-7",
           "kind": "oneshot",
           "seed": 3,
-          "prompt": "A husky-voiced woman trader saying one word, 'No.', firmly and flatly. Close voice recording, no music.",
-          "desc": "a woman saying no in a firm voice",
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, saying one word, 'Aye.', gruffly. Close voice recording of an adult man, no music.",
+          "desc": "a gruff man saying aye",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 1.0,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
-        },
-        "p": 0.013,
-        "rank": 6,
-        "best_match": "a crossbow being cranked and cocked with a ratchet",
-        "peak": 0.538
-      },
-      {
-        "family": "bark-trader-7",
-        "seed": 1,
-        "side": {
-          "model": "Stable Audio 3 medium",
-          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
-          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
-          "backend": "PyTorch mps fp32",
-          "family": "bark-trader-7",
-          "kind": "oneshot",
-          "seed": 1,
-          "prompt": "A husky-voiced woman trader saying one word, 'No.', firmly and flatly. Close voice recording, no music.",
-          "desc": "a woman saying no in a firm voice",
-          "duration_s": 1.5,
-          "steps": 8,
-          "cfg": 1.0,
-          "gen_time_s": 0.84,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 2.16,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
         "p": 0.002,
-        "rank": 8,
-        "best_match": "a crossbow being cranked and cocked with a ratchet",
+        "rank": 13,
+        "best_match": "a heavy hunting crossbow firing a bolt",
         "peak": 0.573
       }
     ],
     "bark-trader-8": [
       {
         "family": "bark-trader-8",
-        "seed": 3,
+        "seed": 4,
         "side": {
           "model": "Stable Audio 3 medium",
           "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
@@ -1783,20 +1958,20 @@
           "backend": "PyTorch mps fp32",
           "family": "bark-trader-8",
           "kind": "oneshot",
-          "seed": 3,
-          "prompt": "A husky-voiced woman humming a curious, rising 'hm?' as she looks something over. Close voice recording, one sound only, no music.",
-          "desc": "a woman humming curiously",
+          "seed": 4,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, letting out one low, short grunt, 'unh', as he sets a heavy crate down on a counter. Close voice recording of an adult man, one sound only, no music.",
+          "desc": "a man grunting low",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 1.03,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 0.86,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.944,
-        "rank": 1,
-        "best_match": "a sly woman saying well well",
-        "peak": 0.389
+        "p": 0.275,
+        "rank": 2,
+        "best_match": "a man with a deep voice grunting hmph",
+        "peak": 0.412
       },
       {
         "family": "bark-trader-8",
@@ -1809,19 +1984,44 @@
           "family": "bark-trader-8",
           "kind": "oneshot",
           "seed": 2,
-          "prompt": "A husky-voiced woman humming a curious, rising 'hm?' as she looks something over. Close voice recording, one sound only, no music.",
-          "desc": "a woman humming curiously",
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, letting out one low, short grunt, 'unh', as he sets a heavy crate down on a counter. Close voice recording of an adult man, one sound only, no music.",
+          "desc": "a man grunting low",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 1.0,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 0.9,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.927,
-        "rank": 1,
-        "best_match": "a sly woman saying well well",
-        "peak": 0.445
+        "p": 0.246,
+        "rank": 2,
+        "best_match": "a man with a deep voice grunting hmph",
+        "peak": 0.598
+      },
+      {
+        "family": "bark-trader-8",
+        "seed": 3,
+        "side": {
+          "model": "Stable Audio 3 medium",
+          "repo": "stabilityai/stable-audio-3-medium (mirror stable-audio-3-medium)",
+          "code_commit": "stable-audio-3 779434a908193105335fd8d833418603625b2859, torch 2.7.1",
+          "backend": "PyTorch mps fp32",
+          "family": "bark-trader-8",
+          "kind": "oneshot",
+          "seed": 3,
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, letting out one low, short grunt, 'unh', as he sets a heavy crate down on a counter. Close voice recording of an adult man, one sound only, no music.",
+          "desc": "a man grunting low",
+          "duration_s": 1.5,
+          "steps": 8,
+          "cfg": 1.0,
+          "gen_time_s": 0.9,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
+        },
+        "p": 0.099,
+        "rank": 3,
+        "best_match": "a man with a deep voice grunting hmph",
+        "peak": 0.391
       },
       {
         "family": "bark-trader-8",
@@ -1834,19 +2034,19 @@
           "family": "bark-trader-8",
           "kind": "oneshot",
           "seed": 1,
-          "prompt": "A husky-voiced woman humming a curious, rising 'hm?' as she looks something over. Close voice recording, one sound only, no music.",
-          "desc": "a woman humming curiously",
+          "prompt": "A gruff, middle-aged backwoods trader, a man with a deep, rough, gravelly voice, letting out one low, short grunt, 'unh', as he sets a heavy crate down on a counter. Close voice recording of an adult man, one sound only, no music.",
+          "desc": "a man grunting low",
           "duration_s": 1.5,
           "steps": 8,
           "cfg": 1.0,
-          "gen_time_s": 1.07,
-          "model_load_s": 8.3,
-          "mps_driver_gb": 12.35
+          "gen_time_s": 1.1,
+          "model_load_s": 9.7,
+          "mps_driver_gb": 11.24
         },
-        "p": 0.767,
-        "rank": 1,
-        "best_match": "a sly woman saying well well",
-        "peak": 0.32
+        "p": 0.015,
+        "rank": 4,
+        "best_match": "a man with a deep voice grunting hmph",
+        "peak": 0.263
       }
     ],
     "bear_growl": [
