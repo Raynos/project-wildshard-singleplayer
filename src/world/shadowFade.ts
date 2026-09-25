@@ -14,7 +14,8 @@
  * - The last cascade steps without a fade: its texel is ~9 cm, larger than one step's move.
  *
  * DayNight holds its next step until the fade ends (`busy`). A turn larger than MAX_FADE (the sun ↔ moon swap, a Time of
- * day pick) moves at once. `?sunfade=<s>` sets the fade (0 = off: no ghosts, the look before E147).
+ * day pick) moves at once. `?sunfade=<s>` sets the fade (0 = off: no ghosts, the look before E147). `?sunfadefilter=cheap | 5x5`
+ * samples the fading-out ghost with a smaller tent (E153's B; the default is the cascade's own).
  */
 import * as THREE from 'three';
 import type { CSM } from 'three/examples/jsm/csm/CSM.js';
@@ -72,7 +73,12 @@ export class ShadowFade {
   private readonly lsFrustum = new CSMFrustum();
   private t = 1;
 
-  constructor(private readonly csm: CSM, private readonly camera: THREE.Camera, parent: THREE.Object3D, readonly seconds: number) {
+  /**
+   * `ghostRadius`: the ghosts' `shadow.radius`, i.e. their tent (shadowFilter.ts: < 1 is the 3×3 tent, 4 hardware taps;
+   * < 1.5 the 5×5, 9 taps). null = each ghost copies its cascade's (the 7×7, 16 taps on the phone). E153's B:
+   * `?sunfadefilter=cheap` (3×3) or `5x5` — the fading-out map sampled cheaper, while a fade runs only.
+   */
+  constructor(private readonly csm: CSM, private readonly camera: THREE.Camera, parent: THREE.Object3D, readonly seconds: number, private readonly ghostRadius: number | null = null) {
     const n = Math.max(1, csm.lights.length - 1);
     for (let i = 0; i < n; i++) {
       const src = csm.lights[i];
@@ -137,7 +143,7 @@ export class ShadowFade {
       cam.updateProjectionMatrix();
     }
     const s = ghost.shadow;
-    s.normalBias = light.shadow.normalBias; s.radius = light.shadow.radius; s.intensity = light.shadow.intensity;
+    s.normalBias = light.shadow.normalBias; s.radius = this.ghostRadius ?? light.shadow.radius; s.intensity = light.shadow.intensity;
     const size = s.mapSize.x, texelW = (cam.right - cam.left) / size, texelH = (cam.top - cam.bottom) / size;
     _lo.lookAt(_origin, this.from, _up);
     _loInv.copy(_lo).invert();
