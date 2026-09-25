@@ -139,25 +139,34 @@ export class Trailside {
       }
     }
     // ── plank steps: treads every 0.7 m along a climb, each let into the slope ──
+    // A tread rolls with the ground across it (E118): where a climb crosses a hillside — the headland ramp past its crest —
+    // a level tread at its centre's height sank its uphill end into the sand. The side rails follow the ground in short
+    // runs instead of one straight beam from the bottom to the top (that one went metres under the crest).
     this.steps = spec.steps;
     for (const s of spec.steps) {
       const w = s.width ?? 2.4;
       const dx = s.to[0] - s.from[0], dz = s.to[1] - s.from[1], len = Math.hypot(dx, dz), n = Math.floor(len / 0.7);
-      const ang = Math.atan2(dx, dz);
+      const ang = Math.atan2(dx, dz), ax = Math.cos(ang), az = -Math.sin(ang); // the tread's local +x (across), in the world
+      const at = (t: number): [number, number] => [s.from[0] + dx * t, s.from[1] + dz * t];
       for (let i = 0; i <= n; i++) {
-        const t = i / n, x = s.from[0] + dx * t, z = s.from[1] + dz * t;
-        const y = heightAt(x, z);
-        const g = new THREE.BoxGeometry(w, 0.14, 0.42); g.rotateY(ang); g.translate(x, y + 0.02, z);
+        const [x, z] = at(i / n), hw = w / 2;
+        const lo = heightAt(x - ax * hw, z - az * hw), hi = heightAt(x + ax * hw, z + az * hw);
+        const y = Math.max(heightAt(x, z), (lo + hi) / 2);
+        const g = new THREE.BoxGeometry(w, 0.14, 0.42); g.rotateZ(Math.atan2(hi - lo, w)); g.rotateY(ang); g.translate(x, y + 0.02, z);
         add(g, i % 2 ? C.plankDark : C.plank, 0.05);
       }
+      const runs = Math.max(1, Math.round(len / 2.8));
       for (const side of [-1, 1]) {
-        const ox = Math.cos(ang) * side * (w / 2 + 0.05), oz = -Math.sin(ang) * side * (w / 2 + 0.05);
-        const g = new THREE.BoxGeometry(0.12, 0.18, len + 0.4);
-        const a = new THREE.Vector3(s.from[0] + ox, heightAt(s.from[0] + ox, s.from[1] + oz) + 0.1, s.from[1] + oz), b = new THREE.Vector3(s.to[0] + ox, heightAt(s.to[0] + ox, s.to[1] + oz) + 0.1, s.to[1] + oz);
-        g.translate(0, 0, (len + 0.4) / 2);
-        g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), b.clone().sub(a).normalize()));
-        g.translate(a.x, a.y, a.z);
-        add(g, C.plankDark, 0.05);
+        const o = side * (w / 2 + 0.05);
+        const rail = (t: number): THREE.Vector3 => { const [x, z] = at(t), rx = x + ax * o, rz = z + az * o; return new THREE.Vector3(rx, heightAt(rx, rz) + 0.1, rz); };
+        for (let r = 0; r < runs; r++) {
+          const a = rail(r / runs), b = rail((r + 1) / runs), l = a.distanceTo(b) + 0.06;
+          const g = new THREE.BoxGeometry(0.12, 0.18, l);
+          g.translate(0, 0, l / 2 - 0.03);
+          g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), b.clone().sub(a).normalize()));
+          g.translate(a.x, a.y, a.z);
+          add(g, C.plankDark, 0.05);
+        }
       }
     }
     // ── trestle stairs: treads on two stringers, posts down to the ground every ~2.4 m, a handrail each side ──
