@@ -41,6 +41,12 @@ const PHONE_SHADOW_RIGS: Record<string, Omit<ShadowRig, 'margin' | 'phone'>> = {
  *  one to 14 m — ~+0.5 ms a frame on the M5 against `2k`; `?pshadow=2k` is the one-square rig it replaced) */
 const PHONE_SHADOW_DEFAULT = '2c2k';
 
+/** the PCF radius (texels) of the phone rig's near cascade (E128). three's PCF is 5 hardware-filtered taps whatever the radius,
+ *  so this costs nothing. At 0.6 the 1.7 cm texels drew every palm and stair shadow edge as a serrated saw (the E123 "crisp
+ *  stair-steps"); 1.2 (a ~2 cm penumbra) draws a clean edge; 2 brings back the dotted IGN fringe and a wider warm rim. The
+ *  far cascade (9 cm texels) keeps 0.6. `?pradius=0.6` is the look before E128. */
+const PHONE_NEAR_RADIUS = 1.2;
+
 /**
  * The shadow rig for this tier and shard. The phone's portrait camera (94° vertical FOV) makes a cascade's square far
  * wider than its reach: the one 80 m cascade was 189 m across, so a 1024² texel was 18.5 cm and every shadow edge a
@@ -129,6 +135,8 @@ export class Sky {
     // the stylized shard's low sun (golden hour, dawn) grazes the flat decks: more normal bias or the planks speckle with acne
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = this.stylized ? 0.14 : 0.05; l.shadow.radius = this.stylized ? 0.6 : 2; }
     this.texelBias = this.stylized !== null && rig.phone;
+    const nearLight = this.csm.lights[0];
+    if (this.stylized && rig.phone && rig.cascades === 2 && nearLight) nearLight.shadow.radius = qn('pradius', PHONE_NEAR_RADIUS);
 
     this.hemi = new THREE.HemisphereLight(S.hemiSky, S.hemiGround, S.hemiIntensity);
     this.scene.add(this.hemi);
