@@ -9,7 +9,8 @@
 import type { Collider } from '@dimforge/rapier3d-simd';
 import type { Surface } from '../audio/Surface';
 
-export type Material = Surface | 'wood' | 'metal' | 'flesh' | 'shell' | 'ground' | 'edge';
+/** `felt` (a yurt's walls) and `earth` (a kurgan's turf, a kokpar goal mound): Nalati's soft surfaces — arrows stick, blades thud */
+export type Material = Surface | 'wood' | 'metal' | 'flesh' | 'shell' | 'ground' | 'edge' | 'felt' | 'earth';
 
 export interface ColliderTag { material: Material; owner: unknown }
 

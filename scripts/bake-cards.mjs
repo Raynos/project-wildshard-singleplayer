@@ -35,7 +35,7 @@ if (!force && prev?.hash === digest && complete) { console.log(`bake-cards: ${SL
 if (check) { console.log(`bake-cards: ${SLUG} STALE (${prev?.hash ?? 'none'} → ${digest}) — run \`node scripts/bake-cards.mjs\` with the dev server up and commit public/assets/baked/${SLUG}/`); process.exit(1); }
 
 const { chromium } = await import('playwright');
-const browser = await chromium.launch({ headless: true, args: ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ headless: true, args: ['--mute-audio', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'] });
 try {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 720 } })).newPage();
   await page.goto(`${URL_BASE}/?chunk=${SLUG}&tier=desktop&skipintro=1&nolock=1&nobake=1&bakecards=1`);

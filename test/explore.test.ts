@@ -28,7 +28,7 @@ describe('Explore World', () => {
     expect(url.searchParams.get('at')).toBe('1,2,3,0,0');
   });
 
-  const EXPLORABLE = ['driftwood-isle', 'pine-hollow']; // D4 → E66: Pine Hollow joined Driftwood
+  const EXPLORABLE = ['driftwood-isle', 'pine-hollow', 'nalati-grasslands']; // D4 → E66: Pine Hollow joined Driftwood; NALATI-MERGE P1: Nalati
 
   it.each(EXPLORABLE)("%s's points of interest are named, unique and inside the shard", (slug) => {
     const pois = findChunk(slug)?.pois ?? [];
@@ -45,7 +45,7 @@ describe('Explore World', () => {
     for (const c of CHUNKS) if (!EXPLORABLE.includes(c.slug)) expect(c.pois ?? [], c.slug).toEqual([]);
   });
 
-  it('EXPLORE WORLD is switched on per shard — Driftwood and Pine Hollow (E66; X10 made the viewer itself shard-agnostic)', () => {
+  it('EXPLORE WORLD is switched on per shard — Driftwood, Pine Hollow and Nalati (E66; X10 made the viewer itself shard-agnostic)', () => {
     for (const c of CHUNKS) expect(c.explore === true, c.slug).toBe(EXPLORABLE.includes(c.slug));
   });
 

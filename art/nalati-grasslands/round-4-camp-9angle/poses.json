@@ -1,0 +1,324 @@
+{
+ "area": "Nalati nomad camp (CAMP 95,205, y -8; rail 78,208; corral 122,214; eagle perch 86,206.5)",
+ "coords": "engine metres, +z north, +x WEST (-x east); yaw 0 faces -z (south), +pi/2 faces east; pitch radians (+ up); camera rotation order YXZ = (pitch, yaw, 0)",
+ "anchorP": {
+  "x": 61,
+  "z": 211.3,
+  "note": "on the camp spur track (CAMP_SPUR in src/chunks/nalati-grasslands.ts), ~10 m east of the hitching rail; FP-front yaw -0.95 = heading 234 deg WSW (layout v2: the camp moved (95, 205) \u2192 (88, 212); every pose shifted by (\u22127, +7) and the ground rise +4.02 m)"
+ },
+ "orbitTarget": [
+  83,
+  -3.9800000000000004,
+  212
+ ],
+ "url": "http://127.0.0.1:5188/?chunk=nalati-grasslands&nolock=1&skipintro=1&weather=clear&clock=0&perf=0&tier=phone&touch&x=68&z=204.3&yaw=-0.95&pitch=-0.1",
+ "tier": "phone for all 9 (one page load; the god shots resize the same page to 1600x900 @1x)",
+ "clock": "clock=0 freezes the def's own start hour (16.22 = golden afternoon); weather=clear",
+ "howTo": {
+  "fp": "__world.player.spawn(x, z, yaw); __world.player.pitch = pitch  (eye 1.68 m above the ground)",
+  "god": "install a last-registered updater once: __world.game.onUpdate(() => { if (!pose) return; cam.position.set(x,y,z); cam.rotation.set(pitch, yaw, 0, 'YXZ'); hide cam.children (viewmodels) }) \u2014 it runs after player.update and before the composer, so the frame renders from the free camera; restore cam.children visibility when pose is cleared. Keep the player spawned at anchor P so streaming (grass ring, LODs) stays centred on the camp. Hide the HUD with a <style>#hud{display:none!important}</style>. See the capture script in README.",
+  "settle": "7-8 s after each pose (40 s after a fresh load)"
+ },
+ "source": "captured from a clean export of HEAD 9308588 (private vite on :5189), 2026-09-23",
+ "poses": [
+  {
+   "n": 1,
+   "id": "fp-front",
+   "mode": "fp",
+   "camera": {
+    "x": 61,
+    "y": -2.15,
+    "z": 211.3,
+    "yaw": -0.95,
+    "pitch": -0.1,
+    "fovV": 93.81
+   },
+   "capture": "capture-1-fp-front.jpg",
+   "mockup": "mockup-1-fp-front.jpg",
+   "measured": {
+    "calls": 104,
+    "tris": 1569022
+   },
+   "viewport": [
+    390,
+    844
+   ],
+   "dpr": 1.5,
+   "hud": "phone touch HUD shown",
+   "player": {
+    "x": 61.0,
+    "z": 211.3,
+    "yaw": -0.95,
+    "pitch": -0.1
+   }
+  },
+  {
+   "n": 2,
+   "id": "fp-left",
+   "mode": "fp",
+   "camera": {
+    "x": 61,
+    "y": -2.15,
+    "z": 211.3,
+    "yaw": 0.6208,
+    "pitch": -0.1,
+    "fovV": 93.81
+   },
+   "capture": "capture-2-fp-left.jpg",
+   "mockup": "mockup-2-fp-left.jpg",
+   "measured": {
+    "calls": 112,
+    "tris": 1582190
+   },
+   "viewport": [
+    390,
+    844
+   ],
+   "dpr": 1.5,
+   "hud": "phone touch HUD shown",
+   "player": {
+    "x": 61.0,
+    "z": 211.3,
+    "yaw": 0.6208,
+    "pitch": -0.1
+   }
+  },
+  {
+   "n": 3,
+   "id": "fp-right",
+   "mode": "fp",
+   "camera": {
+    "x": 61,
+    "y": -2.15,
+    "z": 211.3,
+    "yaw": -2.5208,
+    "pitch": -0.1,
+    "fovV": 93.81
+   },
+   "capture": "capture-3-fp-right.jpg",
+   "mockup": "mockup-3-fp-right.jpg",
+   "measured": {
+    "calls": 97,
+    "tris": 1368096
+   },
+   "viewport": [
+    390,
+    844
+   ],
+   "dpr": 1.5,
+   "hud": "phone touch HUD shown",
+   "player": {
+    "x": 61.0,
+    "z": 211.3,
+    "yaw": -2.5208,
+    "pitch": -0.1
+   }
+  },
+  {
+   "n": 4,
+   "id": "fp-back",
+   "mode": "fp",
+   "camera": {
+    "x": 61,
+    "y": -2.15,
+    "z": 211.3,
+    "yaw": 2.1916,
+    "pitch": -0.1,
+    "fovV": 93.81
+   },
+   "capture": "capture-4-fp-back.jpg",
+   "mockup": "mockup-4-fp-back.jpg",
+   "measured": {
+    "calls": 100,
+    "tris": 1308624
+   },
+   "viewport": [
+    390,
+    844
+   ],
+   "dpr": 1.5,
+   "hud": "phone touch HUD shown",
+   "player": {
+    "x": 61.0,
+    "z": 211.3,
+    "yaw": 2.1916,
+    "pitch": -0.1
+   }
+  },
+  {
+   "n": 5,
+   "id": "top",
+   "mode": "god",
+   "camera": {
+    "x": 83,
+    "y": 66.02,
+    "z": 212,
+    "yaw": -0.95,
+    "pitch": -1.5703,
+    "fovV": 72
+   },
+   "capture": "capture-5-top.jpg",
+   "mockup": "mockup-5-top.jpg",
+   "measured": {
+    "calls": 99,
+    "tris": 1548034
+   },
+   "viewport": [
+    1600,
+    900
+   ],
+   "dpr": 1,
+   "hud": "hidden (#hud display:none)",
+   "player": {
+    "x": 61,
+    "z": 211.3,
+    "yaw": -0.95
+   },
+   "lookAt": [
+    83.0,
+    -3.98,
+    212.0
+   ]
+  },
+  {
+   "n": 6,
+   "id": "diag-front",
+   "mode": "god",
+   "camera": {
+    "x": 50.46,
+    "y": 36.02,
+    "z": 235.27,
+    "yaw": -0.95,
+    "pitch": -0.7854,
+    "fovV": 72
+   },
+   "capture": "capture-6-diag-front.jpg",
+   "mockup": "mockup-6-diag-front.jpg",
+   "measured": {
+    "calls": 99,
+    "tris": 1575678
+   },
+   "viewport": [
+    1600,
+    900
+   ],
+   "dpr": 1,
+   "hud": "hidden (#hud display:none)",
+   "player": {
+    "x": 61,
+    "z": 211.3,
+    "yaw": -0.95
+   },
+   "lookAt": [
+    83.0,
+    -3.98,
+    212.0
+   ]
+  },
+  {
+   "n": 7,
+   "id": "diag-left",
+   "mode": "god",
+   "camera": {
+    "x": 106.27,
+    "y": 36.02,
+    "z": 244.54,
+    "yaw": 0.6208,
+    "pitch": -0.7854,
+    "fovV": 72
+   },
+   "capture": "capture-7-diag-left.jpg",
+   "mockup": "mockup-7-diag-left.jpg",
+   "measured": {
+    "calls": 106,
+    "tris": 1767326
+   },
+   "viewport": [
+    1600,
+    900
+   ],
+   "dpr": 1,
+   "hud": "hidden (#hud display:none)",
+   "player": {
+    "x": 61,
+    "z": 211.3,
+    "yaw": -0.95
+   },
+   "lookAt": [
+    83.0,
+    -3.98,
+    212.0
+   ]
+  },
+  {
+   "n": 8,
+   "id": "diag-right",
+   "mode": "god",
+   "camera": {
+    "x": 59.73,
+    "y": 36.02,
+    "z": 179.46,
+    "yaw": -2.5208,
+    "pitch": -0.7854,
+    "fovV": 72
+   },
+   "capture": "capture-8-diag-right.jpg",
+   "mockup": "mockup-8-diag-right.jpg",
+   "measured": {
+    "calls": 97,
+    "tris": 1497920
+   },
+   "viewport": [
+    1600,
+    900
+   ],
+   "dpr": 1,
+   "hud": "hidden (#hud display:none)",
+   "player": {
+    "x": 61,
+    "z": 211.3,
+    "yaw": -0.95
+   },
+   "lookAt": [
+    83.0,
+    -3.98,
+    212.0
+   ]
+  },
+  {
+   "n": 9,
+   "id": "diag-back",
+   "mode": "god",
+   "camera": {
+    "x": 115.54,
+    "y": 36.02,
+    "z": 188.73,
+    "yaw": 2.1916,
+    "pitch": -0.7854,
+    "fovV": 72
+   },
+   "capture": "capture-9-diag-back.jpg",
+   "mockup": "mockup-9-diag-back.jpg",
+   "measured": {
+    "calls": 100,
+    "tris": 1631640
+   },
+   "viewport": [
+    1600,
+    900
+   ],
+   "dpr": 1,
+   "hud": "hidden (#hud display:none)",
+   "player": {
+    "x": 61,
+    "z": 211.3,
+    "yaw": -0.95
+   },
+   "lookAt": [
+    83.0,
+    -3.98,
+    212.0
+   ]
+  }
+ ]
+}

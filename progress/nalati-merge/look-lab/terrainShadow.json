@@ -1,0 +1,202 @@
+[
+ {
+  "tier": "phone",
+  "pose": "plateau-dusk-fp",
+  "state": "off",
+  "p50": 16.600000381469727,
+  "p95": 18.399999618530273,
+  "calls": 95,
+  "tris": 1197225,
+  "file": "terrainShadow-frames/phone-plateau-dusk-fp-off.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "plateau-dusk-fp",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 18.399999618530273,
+  "calls": 95,
+  "tris": 1197225,
+  "file": "terrainShadow-frames/phone-plateau-dusk-fp-on.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "rim-dusk-fp",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 18.299999237060547,
+  "calls": 85,
+  "tris": 1276860,
+  "file": "terrainShadow-frames/phone-rim-dusk-fp-off.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "rim-dusk-fp",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 18.200000762939453,
+  "calls": 85,
+  "tris": 1276860,
+  "file": "terrainShadow-frames/phone-rim-dusk-fp-on.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "eagle-dusk-god",
+  "state": "off",
+  "p50": 16.600000381469727,
+  "p95": 18.299999237060547,
+  "calls": 86,
+  "tris": 833414,
+  "file": "terrainShadow-frames/phone-eagle-dusk-god-off.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "eagle-dusk-god",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 18.200000762939453,
+  "calls": 84,
+  "tris": 822834,
+  "file": "terrainShadow-frames/phone-eagle-dusk-god-on.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "crags-dusk-god",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 70,
+  "tris": 643688,
+  "file": "terrainShadow-frames/phone-crags-dusk-god-off.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "crags-dusk-god",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 17.5,
+  "calls": 70,
+  "tris": 649748,
+  "file": "terrainShadow-frames/phone-crags-dusk-god-on.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "top-dusk-god",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 116,
+  "tris": 1424172,
+  "file": "terrainShadow-frames/phone-top-dusk-god-off.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "top-dusk-god",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 112,
+  "tris": 1406172,
+  "file": "terrainShadow-frames/phone-top-dusk-god-on.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "plateau-dusk-fp",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 310,
+  "tris": 7301648,
+  "file": "terrainShadow-frames/desktop-plateau-dusk-fp-off.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "plateau-dusk-fp",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 307,
+  "tris": 7276858,
+  "file": "terrainShadow-frames/desktop-plateau-dusk-fp-on.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "rim-dusk-fp",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 274,
+  "tris": 6652329,
+  "file": "terrainShadow-frames/desktop-rim-dusk-fp-off.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "rim-dusk-fp",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 18.299999237060547,
+  "calls": 274,
+  "tris": 6652329,
+  "file": "terrainShadow-frames/desktop-rim-dusk-fp-on.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "eagle-dusk-god",
+  "state": "off",
+  "p50": 16.600000381469727,
+  "p95": 17.899999618530273,
+  "calls": 240,
+  "tris": 4862573,
+  "file": "terrainShadow-frames/desktop-eagle-dusk-god-off.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "eagle-dusk-god",
+  "state": "on",
+  "p50": 16.600000381469727,
+  "p95": 18,
+  "calls": 240,
+  "tris": 4863363,
+  "file": "terrainShadow-frames/desktop-eagle-dusk-god-on.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "crags-dusk-god",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 17.100000381469727,
+  "calls": 194,
+  "tris": 4886690,
+  "file": "terrainShadow-frames/desktop-crags-dusk-god-off.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "crags-dusk-god",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 17.100000381469727,
+  "calls": 195,
+  "tris": 4893134,
+  "file": "terrainShadow-frames/desktop-crags-dusk-god-on.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "top-dusk-god",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 179,
+  "tris": 6014196,
+  "file": "terrainShadow-frames/desktop-top-dusk-god-off.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "top-dusk-god",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 179,
+  "tris": 6014986,
+  "file": "terrainShadow-frames/desktop-top-dusk-god-on.jpg"
+ }
+]

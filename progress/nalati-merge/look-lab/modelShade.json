@@ -1,0 +1,162 @@
+[
+ {
+  "tier": "phone",
+  "pose": "camp-props-fp",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 17.100000381469727,
+  "calls": 74,
+  "tris": 1049059,
+  "file": "modelShade-frames/phone-camp-props-fp-off.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-props-fp",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 17.100000381469727,
+  "calls": 74,
+  "tris": 1049059,
+  "file": "modelShade-frames/phone-camp-props-fp-on.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "boulder-near",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 62,
+  "tris": 789913,
+  "file": "modelShade-frames/phone-boulder-near-off.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "boulder-near",
+  "state": "on",
+  "p50": 16.600000381469727,
+  "p95": 18.100000381469727,
+  "calls": 62,
+  "tris": 789913,
+  "file": "modelShade-frames/phone-boulder-near-on.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "boulder-tall-near",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 18.299999237060547,
+  "calls": 57,
+  "tris": 634706,
+  "file": "modelShade-frames/phone-boulder-tall-near-off.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "boulder-tall-near",
+  "state": "on",
+  "p50": 16.600000381469727,
+  "p95": 18.399999618530273,
+  "calls": 57,
+  "tris": 634706,
+  "file": "modelShade-frames/phone-boulder-tall-near-on.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "snow-boulder-near",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 17,
+  "calls": 69,
+  "tris": 773118,
+  "file": "modelShade-frames/phone-snow-boulder-near-off.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "snow-boulder-near",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 17.5,
+  "calls": 69,
+  "tris": 773118,
+  "file": "modelShade-frames/phone-snow-boulder-near-on.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "camp-props-fp",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 207,
+  "tris": 6189135,
+  "file": "modelShade-frames/desktop-camp-props-fp-off.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "camp-props-fp",
+  "state": "on",
+  "p50": 16.600000381469727,
+  "p95": 18.299999237060547,
+  "calls": 206,
+  "tris": 6181135,
+  "file": "modelShade-frames/desktop-camp-props-fp-on.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "boulder-near",
+  "state": "off",
+  "p50": 16.600000381469727,
+  "p95": 18,
+  "calls": 198,
+  "tris": 5031944,
+  "file": "modelShade-frames/desktop-boulder-near-off.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "boulder-near",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 18.399999618530273,
+  "calls": 198,
+  "tris": 5031944,
+  "file": "modelShade-frames/desktop-boulder-near-on.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "boulder-tall-near",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 18.399999618530273,
+  "calls": 194,
+  "tris": 4963281,
+  "file": "modelShade-frames/desktop-boulder-tall-near-off.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "boulder-tall-near",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 17.5,
+  "calls": 194,
+  "tris": 4963281,
+  "file": "modelShade-frames/desktop-boulder-tall-near-on.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "snow-boulder-near",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 17.200000762939453,
+  "calls": 230,
+  "tris": 5854391,
+  "file": "modelShade-frames/desktop-snow-boulder-near-off.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "snow-boulder-near",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 17.100000381469727,
+  "calls": 230,
+  "tris": 5854391,
+  "file": "modelShade-frames/desktop-snow-boulder-near-on.jpg"
+ }
+]

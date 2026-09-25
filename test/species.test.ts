@@ -13,14 +13,15 @@ describe('species registry', () => {
     expect(() => speciesDef('dragon')).toThrow(/unknown animal kind/);
   });
 
-  it('every variant table is well-formed: unique ids, positive weights, a known rarity, a sane scale range and hp', () => {
+  it('every variant table is well-formed: unique ids, weights ≥ 0 (0 = by name only: a foal, the camp horses, a pack alpha) with one rollable, a known rarity, a sane scale range and hp', () => {
     for (const s of ALL()) {
       expect(s.variants.length, s.kind).toBeGreaterThan(0);
+      expect(s.variants.some((v) => v.weight > 0), s.kind).toBe(true);
       expect(new Set(s.variants.map((v) => v.id)).size, s.kind).toBe(s.variants.length);
       for (const v of s.variants) {
         const at = `${s.kind}/${v.id}`;
         expect(v.label.length, at).toBeGreaterThan(0);
-        expect(v.weight, at).toBeGreaterThan(0);
+        expect(v.weight, at).toBeGreaterThanOrEqual(0);
         expect(RARITY_ORDER, at).toContain(v.rarity);
         expect(v.scale[0], at).toBeGreaterThan(0);
         expect(v.scale[0], at).toBeLessThanOrEqual(v.scale[1]);
@@ -30,12 +31,16 @@ describe('species registry', () => {
     }
   });
 
-  it('the first variant (the fallback) is a common-or-uncommon one, and legendaries are the rarest roll', () => {
+  it('the first variant (the fallback) is the species\' most common rarity, and legendaries are the rarest roll', () => {
     for (const s of ALL()) {
+      if (s.variants.every((v) => v.rarity === 'legendary')) continue; // a unique boss (the Golden King): nothing but the legend
       const first = s.variants[0];
-      expect(first?.rarity === 'common' || first?.rarity === 'uncommon', s.kind).toBe(true);
+      // huntable species fall back to a common / uncommon animal; an enemy class spawned by name (Nalati's ghost riders: all
+      // rare + their legendary captain) falls back to its most common tier — never to something rarer than it has
+      const lowest = Math.min(...s.variants.map((v) => RARITY_ORDER.indexOf(v.rarity)));
+      expect(first !== undefined && RARITY_ORDER.indexOf(first.rarity) === lowest && first.rarity !== 'legendary', s.kind).toBe(true);
       const legend = s.variants.filter((v) => v.rarity === 'legendary');
-      const minOther = Math.min(...s.variants.filter((v) => v.rarity !== 'legendary').map((v) => v.weight));
+      const minOther = Math.min(...s.variants.filter((v) => v.rarity !== 'legendary' && v.weight > 0).map((v) => v.weight));
       for (const l of legend) expect(l.weight, `${s.kind}/${l.id}`).toBeLessThanOrEqual(minOther);
     }
   });
@@ -87,6 +92,7 @@ describe('rollVariant', () => {
 
   it('excludeLegendary never yields a legendary', () => {
     for (const s of ALL()) {
+      if (s.variants.every((v) => v.rarity === 'legendary')) continue; // a unique boss: nothing else to give (see below)
       const r = new Rng(13);
       for (let i = 0; i < 500; i++) expect(rollVariant(s, r, undefined, true).rarity, s.kind).not.toBe('legendary');
     }

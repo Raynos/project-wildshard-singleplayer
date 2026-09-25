@@ -10,12 +10,18 @@
  * tier · DPR, GL losses). A tap on the panel or anywhere else closes it. The pill cancels its own touch events (no
  * double-tap zoom, no callout / selection on iOS) and toggles on pointerup, so it never starts a look drag. Desktop keeps
  * the one-line readout, click-through as before.
+ * `?perf=1` adds the budget check: the worst draw calls / triangles of the last ~10 s against the tier's budget
+ * (phone ≤ 110 calls, ≤ 1.6 M triangles — project/archive/2026-09-23-nalati.md, the phone-tier handoff; desktop shows the maxima only),
+ * `OK` / `OVER` on the meter (red when over), and `window.__perfBudget` for scripted checks.
  */
 import type { Game } from '../core/Game';
 import { TIER } from '../core/tier';
 import './perf.css';
 
 const PAINT_MS = 500;
+const BUDGET = TIER === 'phone' ? { calls: 110, tris: 1.6e6 } : null;
+const WINDOW = 20; // paints (~10 s)
+export interface PerfBudget { maxCalls: number; maxTris: number; calls: number; tris: number; over: boolean }
 const k = (n: number) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : String(n));
 
 export class Perf {
@@ -23,6 +29,9 @@ export class Perf {
   private lastPaint = 0;
   private lastText = '';
   private sorted = new Float32Array(120);
+  private readonly budgetOn = new URLSearchParams(location.search).get('perf') === '1';
+  private readonly recent: { calls: number; tris: number }[] = [];
+  readonly budget: PerfBudget = { maxCalls: 0, maxTris: 0, calls: BUDGET?.calls ?? Infinity, tris: BUDGET?.tris ?? Infinity, over: false };
   private panel: HTMLElement;
   private rows: { p50: HTMLElement; p95: HTMLElement; calls: HTMLElement; tris: HTMLElement; tier: HTMLElement; gl: HTMLElement };
 
@@ -49,6 +58,7 @@ export class Perf {
     document.addEventListener('pointerdown', (e) => { if (e.target instanceof Node && !root.contains(e.target)) this.open(false); }, true);
     document.querySelectorAll<HTMLElement>('.ws-game-fps').forEach((e) => { e.hidden = true; }); // the HUD's old faint readout; this meter replaces it
     if (new URLSearchParams(location.search).get('perf') === '0') { this.userHidden = true; this.root.hidden = true; }
+    if (this.budgetOn) Object.assign(window, { __perfBudget: this.budget });
     game.onUpdate(() => this.update(performance.now()));
     // frames are gated on the menu (Game.frameGate): say so rather than freeze on the last number
     setInterval(() => { if (performance.now() - this.lastPaint > 1500 && this.lastText !== 'idle') { this.lastText = 'idle'; (this.root.firstElementChild as HTMLElement).textContent = '—'; (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = 'world paused'; (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = 'paused'; this.root.classList.remove('slow', 'bad'); } }, 500);
@@ -72,7 +82,16 @@ export class Perf {
     const p50 = q(0.5), p95 = q(0.95);
     const r = g.lastFrame;
     const gl = g.gl.events ? ` · gl lost ×${g.gl.events}${g.gl.restoredAt > g.gl.lostAt ? ` restored ${Math.round(g.gl.restoredAt - g.gl.lostAt)} ms` : ''}` : '';
-    const text = `${Math.round(1000 / p50)}|${p50.toFixed(1)} / ${p95.toFixed(1)} ms · ${r.calls} calls · ${k(r.triangles)} tris · ${TIER} ${g.renderer.getPixelRatio().toFixed(2)}×${gl}`;
+    let check = '';
+    if (this.budgetOn) {
+      this.recent.push({ calls: r.calls, tris: r.triangles });
+      if (this.recent.length > WINDOW) this.recent.shift();
+      const b = this.budget;
+      b.maxCalls = Math.max(...this.recent.map((x) => x.calls)); b.maxTris = Math.max(...this.recent.map((x) => x.tris));
+      b.over = b.maxCalls > b.calls || b.maxTris > b.tris;
+      check = ` · max ${b.maxCalls}c / ${k(b.maxTris)}${BUDGET ? ` ${b.over ? 'OVER' : 'OK'} (≤${BUDGET.calls}c / ${k(BUDGET.tris)})` : ''}`;
+    }
+    const text = `${Math.round(1000 / p50)}|${p50.toFixed(1)} / ${p95.toFixed(1)} ms · ${r.calls} calls · ${k(r.triangles)} tris · ${TIER} ${g.renderer.getPixelRatio().toFixed(2)}×${gl}${check}`;
     if (text === this.lastText) return;
     this.lastText = text;
     const [fps = '', rest = ''] = text.split('|');
@@ -80,7 +99,7 @@ export class Perf {
     (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = rest;
     // phones: the pill shows fps + p50 ms; the panel carries the draw calls / triangles the phone-tier budget is measured in
     // (project/archive/2026-09-22-play-perf.md), the p95, the tier and DPR
-    (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = `${Math.round(p50)} ms`;
+    (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = `${Math.round(p50)} ms${check}`; // ?perf=1: OK / OVER the phone budget
     const R = this.rows;
     R.p50.textContent = `${p50.toFixed(1)} ms`;
     R.p95.textContent = `${p95.toFixed(1)} ms`;
@@ -89,6 +108,6 @@ export class Perf {
     R.tier.textContent = `${TIER} · ${g.renderer.getPixelRatio().toFixed(2)}×`;
     R.gl.textContent = gl === '' ? 'ok' : gl.replace(/^ · /, '');
     this.root.classList.toggle('slow', p50 > 20);   // under 50 fps
-    this.root.classList.toggle('bad', p50 > 33.4);  // under 30 fps
+    this.root.classList.toggle('bad', p50 > 33.4 || (this.budgetOn && this.budget.over));  // under 30 fps (or over the draw budget)
   }
 }

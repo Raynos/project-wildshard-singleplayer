@@ -3,9 +3,9 @@ import type { Sky } from '../world/Sky';
 import { fixIBL, isMesh, VIEWMODEL_GROUP, type Crossbow } from './Crossbow';
 
 /**
- * Weapon skins — the legendary drops (art/skin-*.png). A skin restyles the EXISTING crossbow / rifle model (the AR-15, or
- * Pine Hollow's lever-action — the 'rifle' skins carry both): the weapons name their materials ('xbow-wood', 'xbow-prod',
- * 'rifle-alu', 'lever-steel' …), so a skin is a table of per-material
+ * Weapon skins — the legendary drops (art/skins/round-1/skin-*.png). A skin restyles the EXISTING crossbow / rifle model (the
+ * AR-15, or Pine Hollow's lever-action — the 'rifle' skins carry both): the weapons name their materials ('xbow-wood',
+ * 'xbow-prod', 'rifle-alu', 'lever-steel' …), so a skin is a table of per-material
  * overrides (colour, emissive, roughness, metalness) plus optional extra geometry (the Ghost Stag's antler tines).
  * Overrides are uniforms only and the clones are re-run through `fixIBL` + `sky.setupMaterial`, so a skinned
  * weapon costs no new shader programs.

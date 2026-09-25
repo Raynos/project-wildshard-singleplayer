@@ -20,11 +20,12 @@ import type { Explore, ExplorePane } from './Explore';
 import { BUDGET, CURRENT_TIER, TIERS } from './tiers';
 import type { Tier } from '../core/tier';
 import type { Animal } from '../entities/Animal';
+import { activeClock, type LightPreset, type WorldClock } from '../world/WorldClock';
 
 type View = 'solid' | 'wire' | 'facets' | 'paint' | 'tiers';
 const VIEWS: readonly [View, string][] = [['solid', 'Solid'], ['wire', 'Wireframe'], ['facets', 'Facets'], ['paint', 'Paint'], ['tiers', 'Tiers']];
-/** day/night phases (src/world/DayNight.ts: the day is [0, 20/24) sunrise → sunset, then the night) */
-const LIGHTS: readonly [string, number][] = [['Dawn', 0.03], ['Noon', 0.42], ['Dusk', 0.8], ['Night', 0.92]];
+/** the light presets: held on the shard's day clock (src/world/WorldClock.ts — Driftwood's DayNight or Nalati's DayClock) */
+const LIGHTS: readonly [string, LightPreset][] = [['Dawn', 'dawn'], ['Noon', 'noon'], ['Dusk', 'dusk'], ['Night', 'night']];
 const THUMB_W = 240, THUMB_H = 180;
 /** what the creature viewer can play — a gait speed on the treadmill, or an event (stagger, death) */
 type Clip = 'idle' | 'walk' | 'trot' | 'charge' | 'hit' | 'die';
@@ -35,6 +36,14 @@ const GAIT: Record<Clip, number> = { idle: 0, walk: 1.3, trot: 3.2, charge: 7, h
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
 /** 86 tris · 5.3k tris */
 const trisLabel = (n: number): string => (n < 1000 ? `${n} tris` : `${(n / 1000).toFixed(1)}k tris`);
+/** the turntable's shadow map, every tier: one model in the map, so 2048 is cheap */
+const STUDIO_SHADOW_MAP = 2048;
+
+function setShadowMapSize(l: THREE.DirectionalLight, n: number): void {
+  if (l.shadow.mapSize.x === n) return;
+  l.shadow.mapSize.set(n, n); l.shadow.map?.dispose(); l.shadow.map = null;
+}
+
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
 
 export class ModelExplorer implements ExplorePane {
@@ -51,7 +60,6 @@ export class ModelExplorer implements ExplorePane {
   private filter: Category | 'all' = 'all';
   private view: View = 'solid';
   private light = -1;
-  private savedPhase: number | null = null;
   private readonly hidden = new Map<THREE.Object3D, boolean>();
   private readonly swapped = new Map<THREE.Mesh, THREE.Material | THREE.Material[]>();
   private readonly overlays: THREE.Object3D[] = [];
@@ -98,6 +106,8 @@ export class ModelExplorer implements ExplorePane {
         <div class="ws-x-actions"><button class="ws-x-inworld" type="button">View in world</button></div>
       </div>`);
     this.el.append(this.grid, this.sheet);
+    // index.html swallows touchmove outside [data-scroll]: without the mark the catalog can't scroll on a phone (E109)
+    for (const s of this.el.querySelectorAll<HTMLElement>('.ws-x-grid, .ws-x-filter, .ws-x-variants')) s.dataset['scroll'] = '';
     this.grid.querySelectorAll<HTMLElement>('.ws-x-filter button').forEach((b) => { b.addEventListener('click', () => { this.filter = (b.dataset['f'] ?? 'all') as Category | 'all'; this.renderGrid(); }); });
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-views button').forEach((b) => { b.addEventListener('click', () => { this.setView((b.dataset['v'] ?? 'solid') as View); }); });
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-lights button').forEach((b) => { b.addEventListener('click', () => { this.setLight(Number(b.dataset['l'] ?? -1)); }); });
@@ -140,13 +150,8 @@ export class ModelExplorer implements ExplorePane {
 
   get entryList(): readonly CatalogEntry[] { return this.entries; }
 
-  /** the low-poly shard's day/night clock (src/world/DayNight.ts, the remaster's L7) when this build has it: the light presets pin its phase */
-  private clock(): { phase: number } | null {
-    const sky: object = this.world.game.sky;
-    if (!('dayNight' in sky)) return null;
-    const dn = sky.dayNight;
-    return typeof dn === 'object' && dn !== null && 'phase' in dn && typeof dn.phase === 'number' ? dn as { phase: number } : null;
-  }
+  /** the shard's day clock (src/world/WorldClock.ts) when it has one: the light presets hold it */
+  private clock(): WorldClock | null { return activeClock(); }
 
   show(opts: Record<string, string>): void {
     this.el.classList.add('show');
@@ -224,6 +229,7 @@ export class ModelExplorer implements ExplorePane {
     if (!this.current) { this.unisolate(); return; }
     this.setView('solid', false);
     this.restoreLight();
+    this.releaseShadows();
     this.unisolate();
     this.current = null;
   }
@@ -254,6 +260,34 @@ export class ModelExplorer implements ExplorePane {
     this.hidden.clear();
     this.studio.visible = false;
     if (this.savedBackground !== undefined) { this.world.game.scene.background = this.savedBackground; this.savedBackground = undefined; }
+  }
+
+  /** the turntable's shadow (E115): the shard's cascade spans 80 m at 1024 px on a phone, so a 6 m model got a hand's
+   *  width per shadow texel — blocky, swimming as you orbit, and the world's 0.14 m normal bias let light leak past every
+   *  edge. While a model is on show the cascade ends just past it, the map is STUDIO_SHADOW_MAP and the bias ~2.5 texels. */
+  private shadowSaved: { maxFar: number; bias: number[]; size: number } | null = null;
+
+  private fitShadows(): void {
+    const csm = this.world.game.sky.csm;
+    if (!this.shadowSaved) {
+      this.shadowSaved = { maxFar: csm.maxFar, bias: csm.lights.map((l) => l.shadow.normalBias), size: csm.lights[0]?.shadow.mapSize.x ?? 1024 };
+      for (const l of csm.lights) setShadowMapSize(l, STUDIO_SHADOW_MAP);
+    }
+    const far = this.dist + this.floor.scale.x * 1.4; // the floor disc is scaled to the model's (or the lineup's) radius
+    if (Math.abs(far - csm.maxFar) < far * 0.04) return;
+    csm.maxFar = far; csm.updateFrustums();
+    const texel = (far * 1.6) / STUDIO_SHADOW_MAP; // the cascade's box ≈ the view slice's bounding sphere, ~1.6 × far across
+    const saved = this.shadowSaved.bias;
+    csm.lights.forEach((l, i) => { l.shadow.normalBias = Math.min(saved[i] ?? 0.05, texel * 2.5); });
+  }
+
+  private releaseShadows(): void {
+    const s = this.shadowSaved;
+    if (!s) return;
+    this.shadowSaved = null;
+    const csm = this.world.game.sky.csm;
+    csm.maxFar = s.maxFar; csm.updateFrustums();
+    csm.lights.forEach((l, i) => { l.shadow.normalBias = s.bias[i] ?? l.shadow.normalBias; setShadowMapSize(l, s.size); });
   }
 
   private frameModel(o: THREE.Object3D): void {
@@ -478,16 +512,12 @@ export class ModelExplorer implements ExplorePane {
   private setLight(i: number): void {
     this.light = i;
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-lights button').forEach((b) => { b.classList.toggle('on', Number(b.dataset['l']) === i); });
-    const dn = this.clock();
-    if (!dn || i < 0) return;
-    this.savedPhase ??= dn.phase;
-    dn.phase = LIGHTS[i]?.[1] ?? dn.phase;
+    const preset = LIGHTS[i]?.[1];
+    if (preset !== undefined) this.clock()?.pin(preset);
   }
 
   private restoreLight(): void {
-    const dn = this.clock();
-    if (dn && this.savedPhase !== null) dn.phase = this.savedPhase;
-    this.savedPhase = null;
+    this.clock()?.pin(null);
     this.light = -1;
   }
 
@@ -540,6 +570,7 @@ export class ModelExplorer implements ExplorePane {
     const { camera } = this.world.game;
     const e = this.current;
     if (e) {
+      this.fitShadows();
       this.idle += dt;
       if (this.idle > 2.5 && !this.drag && this.tierShown.length === 0 && this.lineup === null) this.yaw += dt * 0.22; // the turntable turns while you look (not while comparing tiers / the lineup)
       const cp = Math.cos(this.pitch);
@@ -568,8 +599,8 @@ export class ModelExplorer implements ExplorePane {
         p.project(camera);
         t.label.style.transform = `translate(${Math.round((p.x * 0.5 + 0.5) * innerWidth)}px, ${Math.round((-p.y * 0.5 + 0.5) * innerHeight) - 34}px) translateX(-50%)`;
       }
-      const dn = this.clock();
-      if (dn && this.light >= 0) dn.phase = LIGHTS[this.light]?.[1] ?? dn.phase; // pinned while you look
+      const preset = LIGHTS[this.light]?.[1];
+      if (preset !== undefined) this.clock()?.pin(preset); // held while you look
       return;
     }
     // the catalog floats over a slow orbit of the island, like the hub

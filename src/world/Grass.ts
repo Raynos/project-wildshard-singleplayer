@@ -10,6 +10,16 @@ import type { Sky } from './Sky';
 import { noReflect } from './Water';
 import type { Forest } from './Forest';
 import { TIER_CONFIG } from '../core/tier';
+import { getActiveChunk } from '../chunks/registry';
+import { GrassPainterly } from './GrassPainterly';
+import { GrassV2 } from '../nalati/look/grass';
+import { LOOK_V2 } from '../nalati/look/flag';
+
+/** the painterly carpet (GrassPainterly.ts) replaces this one on a `style: 'painterly'` shard (Nalati), or anywhere with `?grass=painterly` */
+export function isPainterlyGrass(): boolean {
+  const style: string = getActiveChunk().style ?? 'pbr';
+  return style === 'painterly' || new URLSearchParams(location.search).get('grass') === 'painterly';
+}
 
 /**
  * Wind-swept grass carpet around the player (Skyrim SE / Horizon style).
@@ -38,6 +48,10 @@ import { TIER_CONFIG } from '../core/tier';
  *
  * Public: `group`, `mesh`, `flowers`, `material`, `update(dt, playerPos)`, `radius`,
  *         `params` = { budget, windStrength } (live tunables).
+ *
+ * On a painterly shard (`isPainterlyGrass()`) `build()` builds a `GrassPainterly` instead (exposed as
+ * `painterly`; `mesh` / `material` / `flowers` stay unset) and `update()` forwards to it — the Pine Hollow /
+ * Driftwood path below is untouched.
  */
 
 const RADIUS = TIER_CONFIG.grassRadius; // metres: ring around the player that has grass (55 desktop, 40 phone)
@@ -68,6 +82,10 @@ export class Grass {
   readonly radius = RADIUS;
   /** live tunables */
   params = { budget: 6, windStrength: 1.0 };
+  /** the painterly carpet, when the shard is painterly (then nothing below is built) */
+  painterly: GrassPainterly | null = null;
+  /** Nalati look v2 (`?look=v2`): the GPU blade rings + shader flowers instead (src/nalati/look/grass.ts) */
+  v2: GrassV2 | null = null;
 
   private slotKeyX = new Int32Array(N * N).fill(0x7fffffff);
   private slotKeyZ = new Int32Array(N * N).fill(0x7fffffff);
@@ -90,6 +108,12 @@ export class Grass {
   constructor(private sky: Sky, private forest: Forest) {}
 
   build(): this {
+    if (LOOK_V2) { this.v2 = new GrassV2(this.sky, this.forest).build(); this.group.add(this.v2.group); return this; } // Nalati look v2: the GPU blade rings (src/nalati/look/grass.ts)
+    if (isPainterlyGrass()) {
+      this.painterly = new GrassPainterly(this.sky, this.forest).build();
+      this.group.add(this.painterly.group);
+      return this;
+    }
     const geo = buildClumpGeometry();
     this.material = this.buildMaterial();
     this.mesh = new THREE.InstancedMesh(geo, this.material, N * N * K);
@@ -247,7 +271,9 @@ export class Grass {
     return (((cx % N) + N) % N) * N + (((cz % N) + N) % N);
   }
 
-  update(_dt: number, playerPos: THREE.Vector3): void {
+  update(dt: number, playerPos: THREE.Vector3): void {
+    if (this.v2) { this.v2.update(dt, playerPos); return; }
+    if (this.painterly) { this.painterly.update(dt, playerPos); return; }
     grassUniforms.uGrassWind.value = this.params.windStrength;
     const pcx = Math.floor(playerPos.x / CELL), pcz = Math.floor(playerPos.z / CELL);
     if (pcx !== this.lastCellX || pcz !== this.lastCellZ) {

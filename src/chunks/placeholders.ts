@@ -6,9 +6,7 @@
  * hero images are full-bleed backdrops the menu crossfades in behind the deck while the card is
  * selected: `heroPortrait` on tall viewports (aspect < 1), `heroLandscape` otherwise.
  */
-import nalatiThumb from './thumbs/nalati-grasslands.jpg';
-import nalatiPortrait from './thumbs/nalati-grasslands-portrait.jpg';
-import nalatiLandscape from './thumbs/nalati-grasslands-landscape.jpg';
+// Nalati Grasslands graduated to a real shard (src/chunks/nalati-grasslands.ts); its thumb / hero images moved with it.
 
 export interface ShardTeaser {
   slug: string;
@@ -23,15 +21,4 @@ export interface ShardTeaser {
   heroLandscape: string;
 }
 
-export const PLACEHOLDERS: ShardTeaser[] = [
-  {
-    slug: 'nalati-grasslands',
-    displayName: 'Nalati Grasslands',
-    biome: 'Alpine steppe',
-    gridCoords: '(+4, −2)',
-    blurb: 'Wind-combed steppe under a huge sky. Horse herds on the horizon, larch groves in the folds. Not yet playable.',
-    thumbnail: nalatiThumb,
-    heroPortrait: nalatiPortrait,
-    heroLandscape: nalatiLandscape,
-  },
-];
+export const PLACEHOLDERS: ShardTeaser[] = [];

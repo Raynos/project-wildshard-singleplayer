@@ -43,7 +43,8 @@ describe('chunk registry data', () => {
 
   it('every herd names a registered species, real variants, a positive count, a sane trail band and an in-chunk anchor', () => {
     for (const c of CHUNKS) {
-      expect(c.fauna.length, c.slug).toBeGreaterThan(0);
+      // Nalati's wolves / horses / sheep are placed by Wildlife (src/entities/Wildlife.ts), not by `fauna`
+      if (c.slug !== 'nalati-grasslands') expect(c.fauna.length, c.slug).toBeGreaterThan(0);
       for (const h of c.fauna) {
         const at = `${c.slug}: ${h.kind}`;
         expect(hasSpecies(h.kind), at).toBe(true);
@@ -91,7 +92,8 @@ describe('chunk terrain', () => {
         const h = t.heightAt(x, z);
         expect(Number.isFinite(h), at).toBe(true);
         expect(h, at).toBeGreaterThan(-60);
-        expect(h, at).toBeLessThan(80);
+        // Nalati layout v2's snow ring (docs/design/nalati/layout-v2.md): the Crags and the west massif peak at +90 … +127
+        expect(h, at).toBeLessThan(135);
         const [nx, ny, nz] = t.normalAt(x, z);
         expect(Math.hypot(nx, ny, nz), at).toBeCloseTo(1, 6);
         expect(ny, at).toBeGreaterThan(0);

@@ -38,6 +38,72 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
    "pickup": "sting-pickup-332f81db.m4a"
   }
  },
+ "nalati": {
+  "style": "nalati",
+  "model": "MiniMax-Music3",
+  "credit": "Music: MiniMax-Music3",
+  "slots": {
+   "steppe-grass": {
+    "calm": "steppe-grass-calm-68234a31.m4a",
+    "tension": "steppe-grass-tension-e7aa4970.m4a",
+    "bpm": 120.119,
+    "beatsPerBar": 4,
+    "loopStart": 3.4598,
+    "loopEnd": 45.4182,
+    "duration": 47.424
+   },
+   "steppe-sky": {
+    "calm": "steppe-sky-calm-81e788bb.m4a",
+    "tension": "steppe-sky-tension-478decfa.m4a",
+    "bpm": 90.825,
+    "beatsPerBar": 4,
+    "loopStart": 17.0899,
+    "loopEnd": 43.5142,
+    "duration": 46.1653
+   },
+   "steppe-snow": {
+    "calm": "steppe-snow-calm-2723fb59.m4a",
+    "tension": "steppe-snow-tension-9f095e46.m4a",
+    "bpm": 105.874,
+    "beatsPerBar": 4,
+    "loopStart": 28.6766,
+    "loopEnd": 46.8114,
+    "duration": 49.088
+   },
+   "steppe-night": {
+    "calm": "steppe-night-calm-1b01c85d.m4a",
+    "tension": "steppe-night-tension-849680a6.m4a",
+    "bpm": 71.97,
+    "beatsPerBar": 4,
+    "loopStart": 8.6378,
+    "loopEnd": 51.9895,
+    "duration": 55.3387
+   },
+   "steppe-storm": {
+    "calm": "steppe-storm-calm-e64bb429.m4a",
+    "tension": "steppe-storm-tension-847136fa.m4a",
+    "bpm": 87.177,
+    "beatsPerBar": 4,
+    "loopStart": 8.7307,
+    "loopEnd": 52.779,
+    "duration": 55.552
+   },
+   "steppe-king": {
+    "calm": "steppe-king-calm-bbcfbe31.m4a",
+    "tension": "steppe-king-tension-9d5ec1d2.m4a",
+    "bpm": 79.712,
+    "beatsPerBar": 4,
+    "loopStart": 15.0233,
+    "loopEnd": 42.121,
+    "duration": 45.1413
+   }
+  },
+  "stings": {
+   "death": "sting-death-fc7a4dce.m4a",
+   "chunk": "sting-chunk-c85d0270.m4a",
+   "pickup": "sting-pickup-7ebca9f6.m4a"
+  }
+ },
  "orchestral": {
   "style": "orchestral",
   "model": "MiniMax-Music3",
@@ -294,6 +360,86 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     "loopEnd": 21,
     "duration": 22.016,
     "gain": 0.5
+   },
+   "steppe-wind": {
+    "file": "bed-steppe-wind-3-51fa5a78.m4a",
+    "loopStart": 2,
+    "loopEnd": 12,
+    "duration": 13.0133,
+    "gain": 0.5,
+    "shard": "nalati"
+   },
+   "steppe-larks": {
+    "file": "bed-steppe-larks-2-b0d20bcd.m4a",
+    "loopStart": 2.75,
+    "loopEnd": 17.75,
+    "duration": 18.752,
+    "gain": 0.5,
+    "shard": "nalati"
+   },
+   "steppe-night": {
+    "file": "bed-steppe-night-1-e1a88138.m4a",
+    "loopStart": 2.75,
+    "loopEnd": 17.75,
+    "duration": 18.752,
+    "gain": 0.5,
+    "shard": "nalati"
+   },
+   "river": {
+    "file": "bed-river-1-beb1a9a8.m4a",
+    "loopStart": 6.25,
+    "loopEnd": 21.25,
+    "duration": 22.2507,
+    "gain": 0.5,
+    "shard": "nalati"
+   },
+   "meltwater": {
+    "file": "bed-meltwater-2-608d0e3b.m4a",
+    "loopStart": 8.75,
+    "loopEnd": 18.75,
+    "duration": 19.7547,
+    "gain": 0.5,
+    "shard": "nalati"
+   },
+   "camp": {
+    "file": "bed-camp-1-c7570b1a.m4a",
+    "loopStart": 9.5,
+    "loopEnd": 19.5,
+    "duration": 20.5013,
+    "gain": 0.5,
+    "shard": "nalati"
+   },
+   "highwind": {
+    "file": "bed-highwind-1-95937f84.m4a",
+    "loopStart": 2.5,
+    "loopEnd": 12.5,
+    "duration": 13.504,
+    "gain": 0.5,
+    "shard": "nalati"
+   },
+   "coldwind": {
+    "file": "bed-coldwind-3-2fe1886b.m4a",
+    "loopStart": 2,
+    "loopEnd": 12,
+    "duration": 13.0133,
+    "gain": 0.5,
+    "shard": "nalati"
+   },
+   "rain": {
+    "file": "bed-rain-1-abadcece.m4a",
+    "loopStart": 2.25,
+    "loopEnd": 17.25,
+    "duration": 18.2613,
+    "gain": 0.5,
+    "shard": "nalati"
+   },
+   "stormwind": {
+    "file": "bed-stormwind-2-465916b5.m4a",
+    "loopStart": 3,
+    "loopEnd": 13,
+    "duration": 14.016,
+    "gain": 0.5,
+    "shard": "nalati"
    }
   },
   "hums": {
@@ -613,6 +759,309 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
      "coconut_land-1-42389b0a.m4a"
     ],
     "gain": 1
+   },
+   "wolf_howl": {
+    "files": [
+     "wolf_howl-3-b1d62e56.m4a",
+     "wolf_howl-1-9f1204b6.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "wolf_snarl": {
+    "files": [
+     "wolf_snarl-1-cbccb5ca.m4a",
+     "wolf_snarl-2-14ee8a80.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "wolf_bite": {
+    "files": [
+     "wolf_bite-1-a7669147.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "wolf_yip": {
+    "files": [
+     "wolf_yip-3-57734ee6.m4a",
+     "wolf_yip-1-916cfc1c.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "wolf_yelp": {
+    "files": [
+     "wolf_yelp-3-0b926af1.m4a",
+     "wolf_yelp-1-0a654844.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "horse_neigh": {
+    "files": [
+     "horse_neigh-1-2d461ec9.m4a",
+     "horse_neigh-3-0fb050e4.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "horse_snort": {
+    "files": [
+     "horse_snort-3-71c7762c.m4a",
+     "horse_snort-1-e17c9310.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "horse_squeal": {
+    "files": [
+     "horse_squeal-2-deba46fc.m4a",
+     "horse_squeal-3-d3ec1b12.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "dog_bark": {
+    "files": [
+     "dog_bark-1-b5697b0b.m4a",
+     "dog_bark-2-b970e2be.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "dog_yelp": {
+    "files": [
+     "dog_yelp-1-3c70e498.m4a",
+     "dog_yelp-3-ff2849fb.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "sheep_bleat": {
+    "files": [
+     "sheep_bleat-1-e8ac7f93.m4a",
+     "sheep_bleat-3-aeefea06.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "marmot_whistle": {
+    "files": [
+     "marmot_whistle-1-b7eecab8.m4a",
+     "marmot_whistle-3-cb2183cf.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "eagle_cry": {
+    "files": [
+     "eagle_cry-3-4fc31339.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "leopard_growl": {
+    "files": [
+     "leopard_growl-3-35bd3b8b.m4a",
+     "leopard_growl-2-d3af9bac.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "king_call": {
+    "files": [
+     "king_call-2-be937d44.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "king_hurt": {
+    "files": [
+     "king_hurt-3-170faca9.m4a",
+     "king_hurt-2-af879fbf.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "hoof-grass": {
+    "files": [
+     "hoof-grass-2-5f364e1d.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "hoof-gravel": {
+    "files": [
+     "hoof-gravel-1-44e6b20f.m4a",
+     "hoof-gravel-2-ee23d114.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "hoof-wood": {
+    "files": [
+     "hoof-wood-1-90597c92.m4a",
+     "hoof-wood-2-b5f90eb8.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "stampede": {
+    "files": [
+     "stampede-2-17664d37.m4a",
+     "stampede-1-2e9f5914.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "footstep-grass": {
+    "files": [
+     "footstep-grass-2-5a248407.m4a",
+     "footstep-grass-1-12997b46.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "footstep-gravel": {
+    "files": [
+     "footstep-gravel-2-fd612069.m4a",
+     "footstep-gravel-1-19e4eea2.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "bowDraw": {
+    "files": [
+     "bowDraw-3-c29c9c43.m4a",
+     "bowDraw-2-a565b317.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "bowFullDraw": {
+    "files": [
+     "bowFullDraw-2-ee0e4dd9.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "bowLetDown": {
+    "files": [
+     "bowLetDown-2-06e19a6d.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "bowTwang": {
+    "files": [
+     "bowTwang-2-04acbe73.m4a",
+     "bowTwang-1-66536b93.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "arrowWhoosh": {
+    "files": [
+     "arrowWhoosh-2-3792e59f.m4a",
+     "arrowWhoosh-1-a831cab6.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "arrowImpact-wood": {
+    "files": [
+     "arrowImpact-wood-2-b5a11d70.m4a",
+     "arrowImpact-wood-3-6940161f.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "arrowImpact-ground": {
+    "files": [
+     "arrowImpact-ground-2-a04ed94d.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "arrowImpact-flesh": {
+    "files": [
+     "arrowImpact-flesh-3-a82fa369.m4a",
+     "arrowImpact-flesh-2-bb61e810.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "sabreSwing": {
+    "files": [
+     "sabreSwing-1-ae5a26f0.m4a",
+     "sabreSwing-2-02d47131.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "sabreHit-flesh": {
+    "files": [
+     "sabreHit-flesh-3-762ce5fc.m4a",
+     "sabreHit-flesh-2-e6417bf6.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "sabreHit-wood": {
+    "files": [
+     "sabreHit-wood-2-a5b2f0b1.m4a",
+     "sabreHit-wood-1-e4853660.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "javelinThrow": {
+    "files": [
+     "javelinThrow-2-0cb3c85f.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "javelinImpact-wood": {
+    "files": [
+     "javelinImpact-wood-1-1d56a392.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "javelinImpact-ground": {
+    "files": [
+     "javelinImpact-ground-1-30313064.m4a",
+     "javelinImpact-ground-3-8ebe2f3b.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "thunder-near": {
+    "files": [
+     "thunder-near-1-25a8635e.m4a",
+     "thunder-near-2-63591c82.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "thunder-far": {
+    "files": [
+     "thunder-far-1-615a697f.m4a",
+     "thunder-far-3-a9a4b0c0.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
+   },
+   "lightningCrackle": {
+    "files": [
+     "lightningCrackle-1-38ea4f51.m4a",
+     "lightningCrackle-2-f39ea4ea.m4a"
+    ],
+    "gain": 1,
+    "shard": "nalati"
    },
    "footstep-mud": {
     "files": [

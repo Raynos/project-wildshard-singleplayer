@@ -1,0 +1,162 @@
+[
+ {
+  "tier": "phone",
+  "pose": "escarpment-god",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 62,
+  "tris": 610852,
+  "file": "terrainAO-frames/phone-escarpment-god-off.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "escarpment-god",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 16.899999618530273,
+  "calls": 62,
+  "tris": 610852,
+  "file": "terrainAO-frames/phone-escarpment-god-on.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "valley-gully-fp",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 87,
+  "tris": 1092552,
+  "file": "terrainAO-frames/phone-valley-gully-fp-off.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "valley-gully-fp",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 87,
+  "tris": 1092552,
+  "file": "terrainAO-frames/phone-valley-gully-fp-on.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "bowl-god",
+  "state": "off",
+  "p50": 16.600000381469727,
+  "p95": 17.600000381469727,
+  "calls": 84,
+  "tris": 821430,
+  "file": "terrainAO-frames/phone-bowl-god-off.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "bowl-god",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 17.700000762939453,
+  "calls": 84,
+  "tris": 820640,
+  "file": "terrainAO-frames/phone-bowl-god-on.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-golden-fp",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 17.600000381469727,
+  "calls": 74,
+  "tris": 1022159,
+  "file": "terrainAO-frames/phone-camp-golden-fp-off.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-golden-fp",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 17.200000762939453,
+  "calls": 74,
+  "tris": 1022159,
+  "file": "terrainAO-frames/phone-camp-golden-fp-on.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "escarpment-god",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 224,
+  "tris": 4745632,
+  "file": "terrainAO-frames/desktop-escarpment-god-off.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "escarpment-god",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 224,
+  "tris": 4745632,
+  "file": "terrainAO-frames/desktop-escarpment-god-on.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "valley-gully-fp",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 238,
+  "tris": 6224905,
+  "file": "terrainAO-frames/desktop-valley-gully-fp-off.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "valley-gully-fp",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 238,
+  "tris": 6224905,
+  "file": "terrainAO-frames/desktop-valley-gully-fp-on.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "bowl-god",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 18.200000762939453,
+  "calls": 224,
+  "tris": 5093147,
+  "file": "terrainAO-frames/desktop-bowl-god-off.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "bowl-god",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 18,
+  "calls": 224,
+  "tris": 5093147,
+  "file": "terrainAO-frames/desktop-bowl-god-on.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "camp-golden-fp",
+  "state": "off",
+  "p50": 16.700000762939453,
+  "p95": 17.600000381469727,
+  "calls": 205,
+  "tris": 6056367,
+  "file": "terrainAO-frames/desktop-camp-golden-fp-off.jpg"
+ },
+ {
+  "tier": "desktop",
+  "pose": "camp-golden-fp",
+  "state": "on",
+  "p50": 16.700000762939453,
+  "p95": 17.399999618530273,
+  "calls": 205,
+  "tris": 6056367,
+  "file": "terrainAO-frames/desktop-camp-golden-fp-on.jpg"
+ }
+]

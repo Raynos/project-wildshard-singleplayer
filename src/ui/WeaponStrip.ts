@@ -1,9 +1,9 @@
 import type { WeaponId, Weapons } from '../player/Weapons';
 
 /**
- * WeaponStrip — the Nalati weapon slots (plan row B3; mockups art/nalati-grasslands/round-2/1-combat/combat-E-weapon-swap.png,
+ * WeaponStrip — the Nalati weapon slots (plan row B3; mockups art/nalati-grasslands/round-2/1-combat/combat-E-weapon-swap.jpg,
  * 3 slots per the plan's decision — bow · sabre · spear, the javelins live in the spear slot — and
- * art/nalati-grasslands/round-2/7-controls/controls-desktop-keys.png for the desktop hotbar).
+ * art/nalati-grasslands/round-2/7-controls/controls-desktop-keys.jpg for the desktop hotbar).
  *
  *   const strip = new WeaponStrip(weapons);   // after TouchControls (it docks into its layer on touch)
  *   game.onUpdate(() => strip.update());      // cheap: DOM writes only when the kit / held weapon / ammo changes

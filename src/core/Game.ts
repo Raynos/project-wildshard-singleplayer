@@ -7,11 +7,15 @@ import { N8AOPostPass } from 'n8ao';
 import { installAtmosphere } from '../world/Atmosphere';
 import { setAnisotropy } from './assets';
 import { Sky } from '../world/Sky';
-import { GradeEffect } from './Grade';
+import { GradeEffect, PaintGradeEffect } from './Grade';
 import { activeGrade } from '../world/lookFlags';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '../chunks/registry';
-import { TIER_CONFIG, frameCapFps } from './tier';
+import { TIER, TIER_CONFIG, frameCapFps } from './tier';
+import { KuwaharaEffect } from './Kuwahara';
+import { LOOK_V2 } from '../nalati/look/flag';
+import { installLookV2Fog } from '../nalati/look/fog';
+import { buildLookV2Chain } from '../nalati/look/grade';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
 import { sceneJobs, shadowJobs, backgroundJob, postJobs, runPrecompile } from '../boot/precompile';
 import { worldTime } from './time';
@@ -93,15 +97,21 @@ export class Game {
   }
   private renderPass!: RenderPass;
   volumetrics!: VolumetricsEffect;
+  /** runtime handles on the colour chain (set by buildComposer) — the day/night clock + weather retune them (src/world/DayNight.ts) */
+  post: { grade: GradeEffect; saturation: HueSaturationEffect; contrast: BrightnessContrastEffect; bloom: BloomEffect } | null = null;
   /** the post chain — set by buildComposer(); resize() and the loop hold the nullable field directly */
   get composer(): EffectComposer { if (this._composer === null) throw new Error('Game.composer read before buildComposer()'); return this._composer; }
   /** the sky — set by buildSky() */
   get sky(): Sky { if (this._sky === null) throw new Error('Game.sky read before buildSky()'); return this._sky; }
 
   constructor(public canvas: HTMLCanvasElement) {
-    installAtmosphere();
+    installAtmosphere(getActiveChunk().style === 'painterly'); // the painterly shard's air: aerial perspective + cloud shadows
+    if (LOOK_V2) installLookV2Fog(); // Nalati look v2: the fog coloured from the panorama (src/nalati/look/fog.ts)
     installViewport(); // --ws-vh: the real height (an iOS home-screen app reports innerHeight a status bar short — viewport.ts)
-    this.renderer = new THREE.WebGLRenderer({ canvas: GPU_MODE ? document.createElement('canvas') : canvas, antialias: false, powerPreference: 'high-performance', stencil: false, depth: true });
+    // the WebGPU path is Driftwood-first (TSL ports of its materials only): the painterly shard (Nalati) always runs WebGL,
+    // whatever the saved renderer pick — its composer returns before gpu.build(), so WebGPU drew black (NALATI-MERGE F1)
+    const mode = getActiveChunk().style === 'painterly' ? null : GPU_MODE;
+    this.renderer = new THREE.WebGLRenderer({ canvas: mode ? document.createElement('canvas') : canvas, antialias: false, powerPreference: 'high-performance', stencil: false, depth: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, TIER_CONFIG.dpr));
     this.renderer.setSize(window.innerWidth, viewportHeight());
     this.renderer.toneMapping = THREE.NoToneMapping; // tone mapping happens in the composer
@@ -120,7 +130,6 @@ export class Game {
     };
     this.camera = new THREE.PerspectiveCamera(72, window.innerWidth / viewportHeight(), 0.08, 2600);
     window.addEventListener('resize', () => this.resize());
-    const mode = GPU_MODE;
     if (mode) this.gpuReady = import('../gpu/GpuPath').then((m) => m.GpuPath.create(canvas, mode));
   }
 
@@ -131,6 +140,7 @@ export class Game {
   }
 
   buildComposer(): void {
+    if (LOOK_V2) { this._composer = buildLookV2Chain(this.renderer, this.scene, this.camera); return; } // Nalati look v2: MSAA → the one grade (src/nalati/look/grade.ts)
     const { atmosphere: A } = getActiveChunk();
     const { grade: G, look } = activeGrade(getActiveChunk()); // + the look loop's layer (PH-L1 / L4) unless ?grade=v1
     const composer = new EffectComposer(this.renderer, { frameBufferType: THREE.HalfFloatType, multisampling: 0 });
@@ -147,7 +157,8 @@ export class Game {
       ao.configuration.halfRes = true;
       ao.configuration.screenSpaceRadius = false;
       ao.configuration.gammaCorrection = false;
-      ao.configuration.color = new THREE.Color(0.05, 0.06, 0.05);
+      // a painterly shard's contact shadows are a cool painted blue, not a black-green smudge
+      ao.configuration.color = getActiveChunk().style === 'painterly' ? new THREE.Color(0.1, 0.13, 0.26) : new THREE.Color(0.05, 0.06, 0.05);
       // n8ao's transparency pre-passes hide each mesh with `visible = was && material.transparent && …`. On a
       // multi-material mesh (an animal's fur / hard / eye, the rifle pickup) `material.transparent` is undefined, the
       // result is `undefined`, three draws it, and every rig on screen was drawn a second time into the depth-write
@@ -190,6 +201,7 @@ export class Game {
     const vol = new VolumetricsEffect(this.camera, makeNoiseTexture(), TIER_CONFIG.volumetricSteps, TIER_CONFIG.volumetricScale);
     vol.setSun(this.sky.sunDir, new THREE.Color(...A.volumetricSunColor));
     if (this.scene.fog) vol.setFogColor((this.scene.fog as THREE.Fog).color);
+    if (A.volumetric) vol.setMedium(A.volumetric);
     this.volumetrics = vol;
     // the colour chain, built by a factory: an Effect belongs to one EffectPass, so each chain gets its own instances
     const chain = (clean: boolean): EffectPass => {
@@ -204,6 +216,7 @@ export class Game {
       const contrast = new BrightnessContrastEffect({ brightness: G.brightness, contrast: G.contrast });
       const split = new GradeEffect(G, look);
       if (!clean) this.grade = split;
+      this.post = { grade: split, saturation: grade, contrast, bloom };
       if (!clean) {
         const chroma = new ChromaticAberrationEffect({ offset: new THREE.Vector2(0.0006, 0.0006), radialModulation: true, modulationOffset: 0.35 });
         const grain = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: true });
@@ -226,6 +239,15 @@ export class Game {
       const lut = this.sky.lut ? new LUT3DEffect(this.sky.lut, { inputColorSpace: THREE.SRGBColorSpace, tetrahedralInterpolation: true }) : null;
       return lut ? new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split, lut) : new EffectPass(this.camera, godRays, bloom, vignette, tone, grade, contrast, split);
     };
+    // the painterly shard (Nalati): its own chain (buildPainterlyChain) — god rays, then the painted grade
+    if (getActiveChunk().style === 'painterly') {
+      const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
+        blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
+        exposure: 0.4, samples: TIER_CONFIG.godRaysSamples, clampMax: 1.0, resolutionScale: TIER_CONFIG.godRaysScale,
+      });
+      this.buildPainterlyChain(composer, vol, godRays);
+      return;
+    }
     // the low-poly shard runs the clean L5 chain — locked in (E88, the user's Look Lab pick); only `?post=cinematic` builds
     // the original haze + grain + fringe chain there, which every other shard keeps
     composer.addPass(chain(getActiveChunk().style === 'lowpoly' && !(settingFromUrl('post') && setting('post') === 'cinematic')));
@@ -235,6 +257,45 @@ export class Game {
     }
     this._composer = composer;
     this.gpu?.build(this.scene, this.camera, this.sky, this.renderer);
+  }
+
+  /** the painterly look's own handle (Nalati): hue / vibrance / value shaping after the split-tone grade */
+  paintGrade: PaintGradeEffect | null = null;
+  /** the painterly filter (desktop): `game.painterlyFilter.set({ strength })` */
+  painterlyFilter: KuwaharaEffect | null = null;
+
+  /**
+   * The painterly shard's colour chain (look pass lever 8): no film grain, no chromatic fringe — a painting, not a
+   * photograph. Khronos Neutral tone mapping (keeps the hues and saturation AgX bleaches out of the sky and the felt),
+   * a wider softer bloom so the sky and the sunlit tops glow, a gentle vignette, then the def's saturation / contrast,
+   * the split-tone grade and the painterly hue shaping (PaintGradeEffect). Same runtime handles (`post`) as the default
+   * chain, so the day/night rig drives it unchanged.
+   */
+  private buildPainterlyChain(composer: EffectComposer, vol: VolumetricsEffect, godRays: GodRaysEffect): void {
+    const { grade: G } = getActiveChunk();
+    const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: 0.35, mipmapBlur: true, radius: 0.75, levels: TIER_CONFIG.bloomLevels });
+    const vignette = new VignetteEffect({ offset: 0.38, darkness: 0.42 });
+    const tone = new ToneMappingEffect({ mode: ToneMappingMode.NEUTRAL });
+    const saturation = new HueSaturationEffect({ saturation: G.saturation });
+    const contrast = new BrightnessContrastEffect({ brightness: G.brightness, contrast: G.contrast });
+    const split = new GradeEffect(G);
+    const paint = new PaintGradeEffect();
+    this.post = { grade: split, saturation, contrast, bloom };
+    this.paintGrade = paint;
+    composer.addPass(new EffectPass(this.camera, vol, godRays, bloom, vignette, tone, saturation, contrast, split, paint));
+    // the painterly filter (anisotropic Kuwahara, src/core/Kuwahara.ts) — an experiment, OFF: at parity it smears the
+    // felt ornaments and grass tufts into watercolour while the mockups are crisp, detailed digital paint (look-pass.md,
+    // 2026-09-23, ~2 ms at 1600×900). `?kuwahara=1` turns it on (desktop tier) to look again.
+    const kq = new URLSearchParams(location.search).get('kuwahara');
+    if (kq === '1' && TIER === 'desktop') {
+      this.painterlyFilter = new KuwaharaEffect();
+      composer.addPass(new EffectPass(this.camera, this.painterlyFilter));
+    }
+    if (TIER_CONFIG.smaa !== 'off') {
+      const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
+      composer.addPass(new EffectPass(this.camera, smaa));
+    }
+    this._composer = composer;
   }
 
   onUpdate(fn: (dt: number, t: number) => void): void { this.updaters.push(fn); }

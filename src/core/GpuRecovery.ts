@@ -39,7 +39,7 @@
  * Only for the WebGL canvas the player sees (`?gpu=webgpu` draws through WebGPU and is not covered here).
  */
 import type { Game } from './Game';
-import { gpuOnlyContent } from './gpuOnly';
+import { gpuOnlyContent, rebakeGpuContent } from './gpuOnly';
 import { resumeScreen, SHOT_KEY } from '../ui/Resume';
 
 export interface RecoveryHost {
@@ -197,6 +197,7 @@ export function installGpuRecovery(host: RecoveryHost): void {
       await game.precompile((done, total) => { if (mine === epoch) screen.progress(total > 0 ? 0.9 * done / total : 0); });
       if (mine !== epoch) return;
       host.rebuild();
+      rebakeGpuContent(); // the runtime bakes that can paint themselves again (gpuOnly.ts onGpuRestored)
       screen.progress(0.95);
       await game.firstFrame();
       if (mine !== epoch) return;

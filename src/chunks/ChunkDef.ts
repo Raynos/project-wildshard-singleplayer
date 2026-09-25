@@ -82,9 +82,11 @@ export interface TerrainSpec {
   /**
    * Paths graded to a walkable profile (PHYSICS.md: the player climbs ≤ 40°): along each polyline the ground is cut
    * and filled so the centreline never climbs steeper than `maxGrade` (rise / run), blended out over a few metres
-   * each side. Where the ground is already that gentle it is left exactly as it is.
+   * each side. Where the ground is already that gentle it is left exactly as it is — unless `bench`: then the whole
+   * path is a shelf levelled across (a footpath traversing a slope steeper than the motor climbs, whose own grade is
+   * gentle, still needs a flat tread to walk on).
    */
-  graded?: { paths: Vec2[][]; maxGrade: number };
+  graded?: { paths: Vec2[][]; maxGrade: number; bench?: boolean };
   /**
    * A last touch on the finished height, after the graded paths, the pond dish, the trail beds and the cabin pads but
    * before the entry roads are levelled (so the fundamentals still hold): for what the shared shaping would flatten —
@@ -122,9 +124,9 @@ export interface ChunkTrees {
   /**
    * `'pine'` → `src/world/TreeFactory.ts` (baked branch cards). New species = new factory id. `'none'`: the
    * shard has no forest trees — no tree textures, geometry or branch-card bake at launch, an empty Forest
-   * (collision / culling hooks still work).
+   * (collision / culling hooks still work). `'spruce'` → `src/world/Spruce.ts` (painterly Tian Shan spruce, no textures).
    */
-  factory: 'pine' | 'none';
+  factory: 'pine' | 'spruce' | 'none';
   /** PBR set for the trunks */
   bark: string;
   /** folder under `public/assets/tex/` holding `twig_rgba.png`, `twig_nor_gl.jpg`, `twig_arm.jpg` */
@@ -177,6 +179,8 @@ export interface ChunkForest {
    * tested after the chunk's own candidates by the same rules (density, trails, pads, slope). Omitted = none.
    */
   infill?: { x: number; z: number; r: number };
+  /** optional keep probability 0..1 at (x, z), applied after the clearing noise (Nalati: spruce only in the gullies, `src/world/spruceMask.ts`); omitted = everywhere */
+  mask?: (x: number, z: number) => number;
 }
 
 /** a registered species kind (`src/entities/species/<kind>.ts`): 'deer' | 'boar' built in; bear / elk… as they register */
@@ -219,6 +223,17 @@ export interface ChunkSky {
    * ring's lean on the sky (optional, default 20).
    */
   planet?: { azimuth: number; elevation: number; size: number; tilt: number; roll?: number };
+  /**
+   * Put the sun here instead of at the HDRI's brightest pixel (degrees: compass azimuth as `planet`, elevation above
+   * the horizon). Nalati: a late-afternoon sun from the WSW.
+   */
+  sun?: { azimuth: number; elevation: number };
+  /**
+   * A painted sky instead of the HDRI (`style: 'painterly'`): `Sky.ts` paints a small equirectangular gradient —
+   * `zenith` overhead → `horizon` at the skyline → `ground` below it, a warm `glow` around the sun — and uses it as
+   * the background and the environment. Nothing is downloaded for the sky (`hdri` is then unused).
+   */
+  painted?: { zenith: RGB; horizon: RGB; ground: RGB; glow: RGB };
 }
 
 /** Height + distance fog (`src/world/Atmosphere.ts`) and the volumetric sun shafts. */
@@ -230,6 +245,8 @@ export interface ChunkAtmosphere {
   fogDistDensity: number;
   /** colour of the god-ray / volumetric light */
   volumetricSunColor: RGB;
+  /** the volumetric light's medium (`src/core/Volumetrics.ts`); omitted = the forest haze (height −8, falloff 0.12, density 0.0045, strength 0.55) */
+  volumetric?: { height: number; falloff: number; density: number; strength: number };
 }
 
 /** Post-process colour grade (`src/core/Game.ts` composer + `src/core/Grade.ts`). */
@@ -285,10 +302,31 @@ export interface OceanDef {
   deepDepth: number;
 }
 
-/** How the shard is rendered: textured PBR (Pine Hollow) or faceted flat-shaded vertex colours, no textures (Driftwood Isle). */
-export type ChunkStyle = 'pbr' | 'lowpoly';
-/** The first-person weapon the shard hands the player (`src/player/Crossbow.ts` / `src/player/Sword.ts`). */
-export type ChunkWeapon = 'crossbow' | 'sword';
+/**
+ * How the shard is rendered: textured PBR (Pine Hollow), faceted flat-shaded vertex colours with no textures
+ * (Driftwood Isle), or soft cel-banded vertex/gradient colour with painted shadows and rim light, no textures
+ * (Nalati Grasslands — every mesh on the shared `src/world/painterly.ts` material).
+ */
+export type ChunkStyle = 'pbr' | 'lowpoly' | 'painterly';
+
+/**
+ * One azimuth band of a horizon ring (`ChunkHorizon`): a bump in the ring's height profile centred on a compass
+ * bearing (0 = north = +Z, 90 = east = −X), `spread` degrees either side (cosine falloff), `height` metres above
+ * the ring's base at its peak. `rough` 0 = smooth rolling hills … 1 = jagged ridged peaks.
+ */
+export interface HorizonBand { azimuth: number; spread: number; height: number; rough: number }
+/** A painted horizon ring: radius (m), base height (m, relative to y = 0), colours (linear), snow above `snowLine` of its height (0..1, > 1 = none), haze 0..1 */
+export interface HorizonRing { r: number; base: number; color: RGB; top: RGB; snowLine: number; haze: number; bands: HorizonBand[]; floor: number }
+/** A shard-specific horizon (`src/world/Horizon.ts`): rings near → far; replaces the default three ridge rings. */
+export interface ChunkHorizon { rings: HorizonRing[]; cloudSea: boolean }
+/**
+ * The first-person weapon the shard hands the player: `src/player/Crossbow.ts`, `src/player/Sword.ts` (+ the iron sword
+ * on the wreck), or the Nalati kit (`src/player/nalatiKit.ts`: bow · sabre · spear). 'sword' and 'nalati' are the
+ * melee shards (`meleeShard`): telegraphed charges on an arc, the hurt arc + trauma shake.
+ */
+export type ChunkWeapon = 'crossbow' | 'sword' | 'nalati';
+/** a shard whose weapons are melee-first (Driftwood's swords, Nalati's sabre / spear): AnimalManager's telegraphed charges, the hurt arc */
+export const meleeShard = (def: { weapon?: ChunkWeapon | undefined }): boolean => def.weapon === 'sword' || def.weapon === 'nalati';
 
 export interface ChunkDef {
   /** canonical id, e.g. `chunk://local/pine-hollow` */
@@ -308,6 +346,8 @@ export interface ChunkDef {
   blurb: string;
   /** unfinished shard: the title deck stamps a big EXPERIMENTAL banner across its card */
   experimental?: boolean;
+  /** a playable shard still being built, open to everyone: the title deck stamps EARLY ACCESS (not EXPERIMENTAL) on its card */
+  earlyAccess?: boolean;
   /** URL of a 16:9 thumbnail for the picker (import a jpg from `src/chunks/thumbs/`) */
   thumbnail: string;
   /** full-bleed title-screen stills (jpg, ≤1600 px long side): the menu shows these instead of the live world */
@@ -335,6 +375,18 @@ export interface ChunkDef {
   style?: ChunkStyle;
   /** player weapon; omitted = 'crossbow' */
   weapon?: ChunkWeapon;
+  /** a painted horizon of its own (Nalati: the plateau rolling on, the snow range south); omitted = the default ridge rings */
+  horizon?: ChunkHorizon;
+  /**
+   * `style: 'painterly'`: the ground's painted colour (linear RGB, written into `out` and returned) at (x, z), given the
+   * surface height `h` and `slope` (0 flat → 1 vertical) — height, slope and noise → a palette ramp. `src/world/Terrain.ts` calls it once per terrain vertex; no textures are loaded.
+   */
+  groundColor?: (x: number, z: number, h: number, slope: number, t: ChunkTerrain, out: RGB) => RGB;
+  /**
+   * `style: 'painterly'`: the per-vertex masks for the per-pixel ground detail (src/nalati/terrainSurface.ts) —
+   * [gravel, rock, snow], each 0..1, given the surface height `h` and `slope`. Roads come from the trails.
+   */
+  surfaceAt?: (x: number, z: number, h: number, slope: number) => [number, number, number];
   /** open water over the whole shard; omitted = dry land with an optional pond */
   ocean?: OceanDef;
   /** named places — Explore World's mini map pins them and flies to them (src/explore/MiniMap.ts); omitted = none */

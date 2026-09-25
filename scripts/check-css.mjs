@@ -43,12 +43,16 @@ const FILES = [
   { file: join(STYLES, 'minimap.css'), prefix: 'ws-minimap-', strict: true },
   { file: join(STYLES, 'combat.css'), prefix: 'ws-combat-', strict: true }, // hunting feedback (src/ui/Combat.ts), imported by the module
   { file: join(STYLES, 'feedback.css'), prefix: 'ws-fb-', strict: true }, // the review inbox: ✎ disc + the lazy composer (src/ui/review.ts, Feedback.ts)
+  { file: join(STYLES, 'stealth.css'), prefix: 'ws-stealth-', strict: true }, // Nalati grass stealth: the eye pip, GRASS meter, vignette (src/nalati/stealth.ts, B9)
+  { file: join(STYLES, 'boss.css'), prefix: 'ws-boss-', strict: true }, // the boss system (src/ui/BossBar.ts, src/game/Boss.ts): the wide top bar, name / retry / reward cards
+  { file: join(STYLES, 'elite.css'), prefix: 'ws-elite-', strict: true }, // named elites (src/ui/EliteBar.ts, src/game/Elite.ts): the named bar, the NEARBY banner, the edge chevron, the minimap skulls
   { file: join(STYLES, 'explore.css'), prefix: 'ws-x-', strict: true }, // Explore World, the viewer (src/explore/Explore.ts), imported by the lazy chunk
   { file: join(STYLES, 'rotate.css'), prefix: 'ws-rotate-', strict: true }, // the portrait-only gate on landscape phones (index.html, src/ui/RotateGate.ts)
   { file: join(STYLES, 'quest.css'), prefix: 'ws-quest-', strict: true }, // the adventure layer: objective line, NPC dialogue, reward caption (src/game/quest/*)
   { file: join(STYLES, 'resume.css'), prefix: 'ws-resume-', strict: true }, // the app-switch resume screen (src/ui/Resume.ts, index.html; E54 / E61)
   { file: join(STYLES, 'compendium.css'), prefix: 'ws-cmp-', strict: true }, // the Compendium: the book + its skins, the trophy wall's tip, the journal disc (src/ui/compendium/*)
   { file: join(STYLES, 'pinehollow.css'), prefix: 'ws-ph-', strict: true }, // Pine Hollow's hamlet screens + the collectibles counter (src/pinehollow/quest/ui.ts)
+  { file: join(STYLES, 'nalati-hud.css'), prefix: 'ws-nh-', strict: true }, // Nalati's phone HUD, layout D (src/ui/NalatiHUD.ts, NALATI-MERGE H2): the ARROWS / SKY rows, the minimap's day glyph
   // loading screen: owned by src/ui/Loading.ts — warn only while its owner finishes the ws-load-* rename
   { file: join(ROOT, 'src/ui/loading.css'), prefix: 'ws-load-', strict: false },
   // frame meter (src/ui/Perf.ts) — warn only; not part of the HUD split

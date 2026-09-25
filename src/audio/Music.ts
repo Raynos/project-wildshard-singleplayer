@@ -2,7 +2,7 @@
 //
 //   const music = new Music(audio);                 // its own `music` gain → audio.master; shares the AudioContext
 //   music.play('theme');                            // on ENTER (after audio.resume()); loops D → B for as long as it plays
-//   music.setState({ shard: 'pine' | 'island', mode: 'menu' | 'calm' | 'alert' | 'combat', intensity: 0..1, underwater: false });
+//   music.setState({ shard: 'pine' | 'island' | 'steppe', mode: 'menu' | 'calm' | 'alert' | 'combat', intensity: 0..1, underwater: false });
 //   music.sting('pickup' | 'death' | 'chunk');      // the bell motif · the minor turn then 6 s of silence · the resolve chord
 //   music.stop();                                   // fades the bus over a bar and silences every voice
 //   music.volume = 0.7;                             // persisted as Settings 'music' (the pause menu's MUSIC slider drives it)
@@ -41,10 +41,15 @@
 // The game drives them from src/pinehollow/audioWiring.ts (the clock → night / day, an engaged elite → combat) and the
 // King's fight (antlerKing.ts → boss + phases); every scene / phase / sting / deck lands in `window.__audioLog`.
 // Quick links: `?music=pine-night`, `?music=pine-boss` (`-2` / `-3` for a phase), `?music=pine-dawn` (the sting after 2 s).
+// Nalati (NALATI-MERGE A2): the steppe plays its own score, not a style slot — src/audio/SteppeScore.ts (public/assets/music/
+// nalati/, downloaded on the steppe only; every style but synth plays it). `music.setSteppe({ zone, night, storm, boss })` picks
+// the slot (the King's barrow → steppe-king, a storm → steppe-storm, night → steppe-night, else the zone's theme); a slot
+// decodes from the offline cache when first wanted while the old one plays on, then crossfades over ≥ 6 s on the old deck's bar.
 import type { Audio } from './Audio';
 import { getActiveChunk } from '../chunks/registry';
 import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle } from '../ui/Settings';
-import { Deck, decodeStyle, setFiles, type BossPhase, type SlotAudio, type SlotName, type StyleBank } from './Stems';
+import { Deck, decodeStyle, isSteppeSlot, setFiles, type BossPhase, type SlotAudio, type SlotName, type StyleBank } from './Stems';
+import { SteppeScore, type SteppeScene } from './SteppeScore';
 import { cachedBytes, decodeBytes, trackBusy } from './preload';
 import { audioLog } from './audioLog';
 import {
@@ -52,7 +57,10 @@ import {
   type Arrangement, type ArrangementName, type ChordName, type LayerId, type MixKey, type NoteEv, type Segment,
 } from './score/wildshard-theme';
 
-export type Shard = 'pine' | 'island';
+/** the shard's mood: 'steppe' = Nalati — its own score (SteppeScore, NALATI-MERGE A2 / A3), not a style slot: shardSlot is null */
+export type Shard = 'pine' | 'island' | 'steppe';
+/** the stems slot a shard plays in game; null = none yet (the synth theme) */
+export function shardSlot(shard: Shard): SlotName | null { return shard === 'island' ? 'island' : shard === 'pine' ? 'pine' : null; }
 export type MusicMode = 'menu' | 'calm' | 'alert' | 'combat';
 export type StingName = 'pickup' | 'death' | 'chunk' | 'dawn';
 /** Pine Hollow's music scene (PINE-HOLLOW-REMASTER PH-A1): 'day' = theme 1 ('pine'), 'night' = calm-night, 'boss' = the Antler King */
@@ -518,7 +526,11 @@ export class Music {
   /** `?music=pine-dawn`: play the dawn sting once the Pine Hollow stems play */
   private urlDawn = false;
 
+  /** Nalati's own score (NALATI-MERGE A2): its zone / night / storm / boss slots, decoded on demand — src/audio/SteppeScore.ts */
+  readonly steppe: SteppeScore;
+
   constructor(private readonly audio: Audio) {
+    this.steppe = new SteppeScore(cachedBytes, decodeBytes, () => { this.sync(); });
     const q = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('music');
     const m = q === null ? null : /^pine-(night|boss|dawn)(?:-([123]))?$/.exec(q);
     if (m) {
@@ -592,6 +604,14 @@ export class Music {
     if (idle) idle(go); else window.setTimeout(go, 2000);
   }
 
+  /** Nalati: what the score follows (sound.ts: the zone from SteppeAmbience, the clock, the storm, the King's fight) — the deck
+   *  changes on the bar once the slot is decoded (the old one plays on meanwhile). No effect off the steppe. */
+  setSteppe(scene: Partial<SteppeScene>): void {
+    const s = this.steppe.scene, before = `${s.zone}/${String(s.night)}/${String(s.storm)}/${String(s.boss)}`;
+    Object.assign(s, scene);
+    if (`${s.zone}/${String(s.night)}/${String(s.storm)}/${String(s.boss)}` !== before) this.sync();
+  }
+
   /** the stems the loading bar decoded (src/boot/extras.ts) — the selected style's title + this shard's slot + stings */
   useBank(bank: StyleBank): void {
     if (bank.style !== this._style) return; // the style changed while the bar ran: prepare() decodes that one
@@ -611,7 +631,11 @@ export class Music {
     if (idle) idle(() => this.engine.warm(arr)); else window.setTimeout(() => this.engine.warm(arr), 300);
     if (name === 'theme') this.sync();
   }
-  private stemsReady(): boolean { const b = this.bank; return this._style !== 'synth' && b !== undefined && b.style === this._style && b.slots.has(this.baseSlot()); }
+  private stemsReady(): boolean {
+    // Pine Hollow's night / boss live in their own set: the base bank must hold the theme they fall back to
+    const b = this.bank, want = this.wantSlot(), slot = want === 'night' || want === 'boss' ? this.baseSlot() : want;
+    return this._style !== 'synth' && b !== undefined && b.style === this._style && slot !== null && b.slots.has(slot);
+  }
   private pump() {
     const spb = this.engine.currentSpb();
     this.engine.pump(this.ctx.currentTime + LOOKAHEAD_BARS * 4 * spb);
@@ -645,16 +669,18 @@ export class Music {
   }
 
   // ─────────────── the stems (project/archive/2026-09-23-music.md v3 row 7) ───────────────
-  /** the slot the state asks for: the title cut on the menu, else the shard's theme */
-  private wantSlot(): SlotName {
+  /** the slot the state asks for: the title cut on the menu, else the shard's theme; null = no stems for this shard yet —
+   *  the steppe (Nalati) plays the synth theme's plucked lead until its own score lands, never Pine Hollow's stems (NALATI-MERGE F6) */
+  private wantSlot(): SlotName | null {
     const s = this.state;
     if (s.mode !== 'menu' && s.shard === 'pine' && this._scene !== 'day') return this._scene; // 'night' | 'boss' (PH-A1)
+    if (s.mode !== 'menu' && s.shard === 'steppe') return this.steppe.target() ?? null; // Nalati's score (A2)
     return this.baseSlot();
   }
   /** the slot of the base set: the title on the menu, else the shard's theme (Pine Hollow's night / boss fall back to 'pine') */
-  private baseSlot(): SlotName {
+  private baseSlot(): SlotName | null {
     const s = this.state;
-    return s.mode === 'menu' ? 'title' : s.shard === 'island' ? 'island' : 'pine';
+    return s.mode === 'menu' ? 'title' : shardSlot(s.shard);
   }
   private tension(): number { return TENSION[this.state.mode]; }
 
@@ -662,11 +688,20 @@ export class Music {
   private sync(): void {
     if (!this.rig || !this.playing) return;
     const now = this.rig.ctx.currentTime, style = this._style;
-    if (style === 'synth' || this.failed.has(style)) { this.toSynth(now); return; }
+    if (style === 'synth' || this.failed.has(style) || this.wantSlot() === null) { this.toSynth(now); return; }
     this.deck?.setTension(this.tension(), now); // a deck of another slot / style plays on (at the right level) until the new one is in
+    if (isSteppeSlot(this.wantSlot())) { // Nalati's score: whatever the style, decoded on demand, crossfaded at the zone lines
+      const playing = this.deck && isSteppeSlot(this.deck.slot) ? this.deck.slot : undefined;
+      const a = this.steppe.want(playing);
+      if (a === undefined) { if (!this.steppe.pending || !this.deck) this.toSynth(now); return; } // decoding: what plays, plays on
+      if (this.deck?.slot === a.slot) return;
+      this.startDeck(a, playing === undefined ? 0 : 6); // zone / scene changes: a slow crossfade (≥ 6 s)
+      return;
+    }
     const bank = this.bank;
     if (bank?.style !== style) { this.prepare(style); if (!this.deck && !this.synthOn) this.startSynth(now + 0.05, 1); return; }
     let slot = this.wantSlot();
+    if (slot === null) { this.toSynth(now); return; }
     if (slot === 'night' || slot === 'boss') {
       const ph = this.ph?.style === style ? this.ph.slot : undefined;
       if (ph?.slot === slot) {
@@ -676,6 +711,7 @@ export class Music {
       }
       this.preparePine(style, slot); // decoded in the background: the theme plays until it is in (or for good, if it fails)
       slot = this.baseSlot();
+      if (slot === null) { this.toSynth(now); return; }
     }
     if (this.deck?.slot === slot && this.deck.style === style) return;
     const a = bank.slots.get(slot);
@@ -717,7 +753,8 @@ export class Music {
     void this.decodeFor(style);
   }
   private async decodeFor(style: MusicStyle): Promise<void> {
-    const slots: SlotName[] = ['title', this.state.shard === 'island' ? 'island' : 'pine'];
+    const own = shardSlot(this.state.shard);
+    const slots: SlotName[] = own === null ? ['title'] : ['title', own];
     let bank: StyleBank;
     try { bank = await trackBusy('music', decodeStyle(style, slots, cachedBytes, decodeBytes)); }
     catch (err: unknown) {
@@ -732,13 +769,13 @@ export class Music {
   }
 
   /** a decoded slot takes over on a bar: from the synth (its bar grid) or from the other deck (that deck's grid), faded over ≥ 1 bar */
-  private startDeck(a: SlotAudio): void {
+  private startDeck(a: SlotAudio, minFade = 0): void {
     if (!this.rig) return;
     const now = this.rig.ctx.currentTime, old = this.deck;
     const bar = (60 / a.spec.bpm) * a.spec.beatsPerBar;
     let t: number, fade: number;
     if (old) {
-      t = old.nextBar(now + 0.05); fade = Math.max(bar, old.bar, 2);
+      t = old.nextBar(now + 0.05); fade = Math.max(bar, old.bar, 2, minFade);
       old.fadeOut(t, fade);
     } else if (this.synthOn) {
       t = Math.max(now + 0.05, this.engine.nextBarAfter(now + 0.05)); fade = Math.max(bar, 2);
@@ -804,7 +841,7 @@ export class Music {
     if (!this.rig) return;
     const { ctx, engine, stemBus } = this.rig, t = ctx.currentTime + 0.02, deck = this.deck;
     if (name === 'dawn') { this.dawn(); return; }
-    const buf = deck && this.bank?.style === deck.style ? this.bank.stings.get(name) : undefined;
+    const buf = deck && isSteppeSlot(deck.slot) ? this.steppe.sting(name) : deck && this.bank?.style === deck.style ? this.bank.stings.get(name) : undefined;
     if (buf) { const src = ctx.createBufferSource(); src.buffer = buf; src.connect(engine.stingBus); src.start(t); }
     else engine.sting(name, t);
     if (name === 'death' && deck) {

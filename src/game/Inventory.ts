@@ -16,7 +16,9 @@ export type ItemId = 'venison' | 'deer-hide' | 'boar-meat' | 'boar-hide' | 'boar
   | 'ironhide-tusk' | 'ghost-antler' | 'blackpaw-claw' | 'imperial-crown' | 'amber-heartwood' | 'warden-longbow'
   // Pine Hollow's collectibles and the lodge (PH-C6 / C8, src/pinehollow/quest/): resin is the trader's currency-free swap
   // good, a ribbon is what a lodge contract pays
-  | 'amber-resin' | 'lodge-ribbon';
+  | 'amber-resin' | 'lodge-ribbon'
+  | 'gold-plaque' | 'leopard-pelt' | 'grey-mother-pelt' | 'eagle-feather' | 'captain-standard' | 'mane-braid'
+  | 'wolf-pelt' | 'wolf-fang' | 'horsehair' | 'stone-shard' | 'grave-dust' | 'marmot-fur';
 
 export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'venison': { label: 'Venison', icon: 'meat' },
@@ -39,6 +41,21 @@ export const ITEMS: Record<ItemId, { label: string; icon: IconId }> = {
   'doubloon': { label: 'Salt-crusted doubloon', icon: 'coin' },
   'sea-glass': { label: 'Sea glass', icon: 'seaglass' },
   'old-rope': { label: 'Old rope', icon: 'rope' },
+  // Nalati Grasslands — boss trophies (src/nalati/kurganBoss.ts)
+  'gold-plaque': { label: "Golden King's plaque", icon: 'coin' },
+  // Nalati — named-elite trophies (src/nalati/elites.ts)
+  'leopard-pelt': { label: 'Snow-leopard pelt', icon: 'hide' },
+  'grey-mother-pelt': { label: "The grey mother's pelt", icon: 'hide' },
+  'eagle-feather': { label: 'Golden eagle feather', icon: 'rope' },
+  'captain-standard': { label: "The captain's standard", icon: 'ghost' },
+  'mane-braid': { label: 'Black mane braid', icon: 'rope' },
+  // Nalati — the steppe's ordinary harvests (B15)
+  'wolf-pelt': { label: 'Wolf pelt', icon: 'hide' },
+  'wolf-fang': { label: 'Wolf fang', icon: 'tusk' },
+  'horsehair': { label: 'Horsehair', icon: 'rope' },
+  'stone-shard': { label: 'Balbal stone shard', icon: 'shell' },
+  'grave-dust': { label: 'Grave dust', icon: 'ghost' },
+  'marmot-fur': { label: 'Marmot fur', icon: 'hide' },
   // Pine Hollow's elites and the Antler King
   'ironhide-tusk': { label: "Ironhide's broken tusk", icon: 'tusk' },
   'ghost-antler': { label: 'Pale antler', icon: 'antlers' },
@@ -60,6 +77,12 @@ export function harvestOf(kind: string, variant?: string): ItemId[] {
     case 'crab': return variant === 'big' ? ['crab-meat', 'crab-claw', 'crab-shell'] : ['crab-meat', 'crab-claw']; // only the big one's shell is worth keeping
     case 'monkey': return variant === 'elder' ? ['coconut', 'silver-fur'] : ['coconut', 'monkey-fur']; // every monkey was carrying one
     case 'sailor': return ['doubloon', 'sea-glass', 'old-rope']; // the drowned sailor's pockets
+    // Nalati Grasslands (B15) — the named elites' trophies come from src/nalati/elites.ts, not a harvest
+    case 'wolf': return variant === 'alpha' ? ['wolf-pelt', 'wolf-fang', 'wolf-fang'] : ['wolf-pelt', 'wolf-fang'];
+    case 'horse': return ['horsehair'];                      // a wild horse's tail (the camp's saddled horses can't die)
+    case 'balbal': return ['stone-shard'];                   // the stone warriors crumble
+    case 'ghost-rider': return ['grave-dust'];
+    case 'marmot': return ['marmot-fur'];
     default: return [];
   }
 }

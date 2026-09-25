@@ -1,0 +1,36 @@
+[
+  {
+    "tag": "b0-03-braids",
+    "pose": "camp",
+    "tier": "desktop",
+    "x": 72,
+    "z": 228,
+    "yaw": -0.62,
+    "pitch": -0.14,
+    "time": null,
+    "p50": 35.400001525878906,
+    "p95": 45.79999923706055,
+    "fps": 29,
+    "calls": 206,
+    "tris": 4521666,
+    "file": "progress/nalati-look/b0-03-braids-camp-desktop.jpg",
+    "kb": 459
+  },
+  {
+    "tag": "b0-03-braids",
+    "pose": "gully",
+    "tier": "desktop",
+    "x": 64,
+    "z": 203,
+    "yaw": 0.05,
+    "pitch": 0.04,
+    "time": null,
+    "p50": 35.79999923706055,
+    "p95": 45.29999923706055,
+    "fps": 27,
+    "calls": 211,
+    "tris": 5009476,
+    "file": "progress/nalati-look/b0-03-braids-gully-desktop.jpg",
+    "kb": 435
+  }
+]

@@ -1,0 +1,202 @@
+[
+ {
+  "tier": "phone",
+  "pose": "camp-fp-front",
+  "state": "none",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 74,
+  "tris": 1049059,
+  "file": "budget-frames/phone-camp-fp-front-none.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-front",
+  "state": "terrainShadow",
+  "p50": 16.700000762939453,
+  "p95": 18.399999618530273,
+  "calls": 74,
+  "tris": 1049059,
+  "file": "budget-frames/phone-camp-fp-front-terrainShadow.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-front",
+  "state": "terrainAO",
+  "p50": 16.600000381469727,
+  "p95": 18.100000381469727,
+  "calls": 74,
+  "tris": 1049059,
+  "file": "budget-frames/phone-camp-fp-front-terrainAO.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-front",
+  "state": "modelShade",
+  "p50": 16.600000381469727,
+  "p95": 17.799999237060547,
+  "calls": 74,
+  "tris": 1049059,
+  "file": "budget-frames/phone-camp-fp-front-modelShade.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-front",
+  "state": "all",
+  "p50": 16.700000762939453,
+  "p95": 17.600000381469727,
+  "calls": 74,
+  "tris": 1049059,
+  "file": "budget-frames/phone-camp-fp-front-all.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-left",
+  "state": "none",
+  "p50": 16.700000762939453,
+  "p95": 18,
+  "calls": 93,
+  "tris": 1272205,
+  "file": "budget-frames/phone-camp-fp-left-none.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-left",
+  "state": "terrainShadow",
+  "p50": 16.700000762939453,
+  "p95": 18.100000381469727,
+  "calls": 93,
+  "tris": 1272205,
+  "file": "budget-frames/phone-camp-fp-left-terrainShadow.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-left",
+  "state": "terrainAO",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 93,
+  "tris": 1272205,
+  "file": "budget-frames/phone-camp-fp-left-terrainAO.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-left",
+  "state": "modelShade",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 93,
+  "tris": 1272205,
+  "file": "budget-frames/phone-camp-fp-left-modelShade.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-left",
+  "state": "all",
+  "p50": 16.700000762939453,
+  "p95": 16.899999618530273,
+  "calls": 93,
+  "tris": 1272205,
+  "file": "budget-frames/phone-camp-fp-left-all.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-right",
+  "state": "none",
+  "p50": 16.700000762939453,
+  "p95": 16.899999618530273,
+  "calls": 65,
+  "tris": 878678,
+  "file": "budget-frames/phone-camp-fp-right-none.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-right",
+  "state": "terrainShadow",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 65,
+  "tris": 878678,
+  "file": "budget-frames/phone-camp-fp-right-terrainShadow.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-right",
+  "state": "terrainAO",
+  "p50": 16.600000381469727,
+  "p95": 17.600000381469727,
+  "calls": 65,
+  "tris": 878678,
+  "file": "budget-frames/phone-camp-fp-right-terrainAO.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-right",
+  "state": "modelShade",
+  "p50": 16.600000381469727,
+  "p95": 17.5,
+  "calls": 65,
+  "tris": 878678,
+  "file": "budget-frames/phone-camp-fp-right-modelShade.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-right",
+  "state": "all",
+  "p50": 16.600000381469727,
+  "p95": 17,
+  "calls": 65,
+  "tris": 878678,
+  "file": "budget-frames/phone-camp-fp-right-all.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-back",
+  "state": "none",
+  "p50": 16.700000762939453,
+  "p95": 16.899999618530273,
+  "calls": 63,
+  "tris": 855585,
+  "file": "budget-frames/phone-camp-fp-back-none.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-back",
+  "state": "terrainShadow",
+  "p50": 16.700000762939453,
+  "p95": 16.899999618530273,
+  "calls": 63,
+  "tris": 855585,
+  "file": "budget-frames/phone-camp-fp-back-terrainShadow.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-back",
+  "state": "terrainAO",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 63,
+  "tris": 855585,
+  "file": "budget-frames/phone-camp-fp-back-terrainAO.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-back",
+  "state": "modelShade",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 63,
+  "tris": 855585,
+  "file": "budget-frames/phone-camp-fp-back-modelShade.jpg"
+ },
+ {
+  "tier": "phone",
+  "pose": "camp-fp-back",
+  "state": "all",
+  "p50": 16.700000762939453,
+  "p95": 16.799999237060547,
+  "calls": 63,
+  "tris": 855585,
+  "file": "budget-frames/phone-camp-fp-back-all.jpg"
+ }
+]

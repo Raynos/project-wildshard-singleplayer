@@ -8,6 +8,8 @@ import { speciesDef, variantDef, type SpeciesDef, type VariantDef, type AnimalDi
 import { setLowPoly } from './species/loft';
 import { facetGeometry, lowPolyMaterials, oneMaterial, patchEyeGlow } from './lowpoly';
 import { preloadPineCreatures, skinPineHull, type EyeSpot } from './pineCreatures';
+import { preloadCreatureGlbs, creatureHull, skinCreatureGlb, loadCreatureRig } from './glbCreatures';
+import { painterlyAnimalMaterial } from './painterlyAnimals';
 
 // every species file registers itself on import: drop `src/entities/species/<kind>.ts` in and it exists
 import.meta.glob(['./species/*.ts', '!./species/registry.ts', '!./species/loft.ts'], { eager: true });
@@ -83,7 +85,8 @@ export type KnownAnimalKind = 'deer' | 'boar';
 /** @deprecated variant ids are per species now — see SpeciesDef.variants */
 export type AnimalVariant = string;
 
-export type AnimalStyle = 'pbr' | 'lowpoly';
+/** 'pbr' Pine Hollow (fur texture + shells) · 'lowpoly' Driftwood (faceted) · 'painterly' Nalati (smooth, vertex colour, ONE draw) */
+export type AnimalStyle = 'pbr' | 'lowpoly' | 'painterly';
 
 export interface AnimalModel {
   kind: AnimalKind;
@@ -94,10 +97,12 @@ export interface AnimalModel {
   geometry: THREE.BufferGeometry;
   bones: BoneDef[];
   dims: AnimalDims;
-  /** MeshPhysicalMaterial (fur) in 'pbr', a flat-shaded MeshStandardMaterial in 'lowpoly' */
-  fur: THREE.MeshStandardMaterial;
-  hard: THREE.MeshStandardMaterial;
-  eye: THREE.MeshPhysicalMaterial;
+  /** MeshPhysicalMaterial (fur) in 'pbr', a flat-shaded MeshStandardMaterial in 'lowpoly', the shared painterly
+   *  MeshLambertMaterial (src/world/painterly.ts) in 'painterly' */
+  fur: AnimalMaterial;
+  /** hooves / antlers; in 'painterly' the same material as `fur` (one group, one draw) */
+  hard: AnimalMaterial;
+  eye: AnimalMaterial;
   /** SHELL_LAYERS fur-shell materials, innermost first (shared by every animal of this kind:variant); empty in 'lowpoly' */
   shells: THREE.MeshPhysicalMaterial[];
   /** the fur's backlit rim colour (FurStyle.rim), needed to re-patch a cloned fur material; absent in 'lowpoly' */
@@ -105,6 +110,10 @@ export interface AnimalModel {
   /** 'pbr' on a generated hull (Pine Hollow, pineCreatures.ts): one group, the fur material over the hull's PBR atlas +
    *  normal map, no fur shells; `thrall` = its eyes glow and its fern clumps take their vertex colour (aThrall) */
   hull?: { thrall: boolean };
+  /** 'painterly' with a generated hull (glbCreatures.ts): the hull's atlas, set as every instance's `map` */
+  map?: THREE.Texture | null;
+  /** the hull is thin sheets (the eagle's wings): every instance's material is double-sided */
+  doubleSided?: boolean;
 }
 
 /** one fur-shell layer's uniforms (see patchFur) */
@@ -113,8 +122,11 @@ interface ShellLayer { layer: number; len: number; threshold: number; dark: numb
 export interface AnimalRig {
   mesh: THREE.SkinnedMesh;
   bones: Record<string, THREE.Bone>;
-  materials: THREE.MeshStandardMaterial[];
+  materials: AnimalMaterial[];
 }
+
+/** what an animal is drawn with: the PBR / low-poly standard materials, or the painterly Lambert */
+export type AnimalMaterial = THREE.MeshStandardMaterial | THREE.MeshLambertMaterial;
 
 // ─────────────────────────────────────────────────────────────────────────────────────────
 // Procedural fur textures
@@ -242,6 +254,35 @@ export class AnimalFactory {
   private models = new Map<string, AnimalModel>();
   private tex = new Map<string, { map: THREE.Texture; normalMap: THREE.Texture }>();
   private strandTex?: THREE.Texture;
+  /** painterly rigs still on the procedural stand-in while their hull loads, per model key */
+  private pendingRigs = new Map<string, { mesh: THREE.SkinnedMesh; fur: AnimalMaterial }[]>();
+
+  /** the hull for `key` has loaded: swap the cached model and every rig already made from it onto the skinned hull */
+  private upgradeHull(key: string): void {
+    const m = this.models.get(key), rigs = this.pendingRigs.get(key);
+    this.pendingRigs.delete(key);
+    if (!m) return;
+    const hull = skinCreatureGlb(m.kind, m.variant, m.bones);
+    if (!hull) return;
+    const old = m.geometry;
+    m.geometry = hull.geometry; m.map = hull.map; m.bones = hull.bones; m.doubleSided = hull.doubleSided;
+    for (const r of rigs ?? []) {
+      r.mesh.geometry = hull.geometry;
+      r.fur.map = hull.map; if (hull.doubleSided) r.fur.side = THREE.DoubleSide; r.fur.needsUpdate = true;
+      const bs = hull.geometry.boundingSphere;
+      if (bs !== null) r.mesh.boundingSphere = bs.clone();
+      // the rig's skeleton (a leg may be retargeted): every bone back to its new rest, then bound again — the next
+      // frame's pose starts from there
+      for (const b of r.mesh.skeleton.bones) {
+        const d = hull.bones.find((x) => x.name === b.name), p = d?.parent ? hull.bones.find((x) => x.name === d.parent) : null;
+        if (!d) continue;
+        b.position.set(d.pos[0] - (p ? p.pos[0] : 0), d.pos[1] - (p ? p.pos[1] : 0), d.pos[2] - (p ? p.pos[2] : 0));
+        b.quaternion.identity(); b.scale.set(1, 1, 1);
+      }
+      r.mesh.bind(r.mesh.skeleton);
+    }
+    old.dispose();
+  }
 
   readonly style: AnimalStyle;
   /** resolves once the generated hulls this factory may use have loaded (Pine Hollow's rigs; at once elsewhere): a model
@@ -251,6 +292,7 @@ export class AnimalFactory {
   constructor(private readonly sky: Sky, opts: { style?: AnimalStyle | undefined } = {}) {
     this.style = opts.style ?? 'pbr';
     this.ready = this.style === 'pbr' ? preloadPineCreatures() : Promise.resolve();
+    if (this.style === 'painterly') preloadCreatureGlbs();
   }
 
   /** The cached model for (kind, variant id). An unknown variant id falls back to the species' first variant. */
@@ -277,6 +319,25 @@ export class AnimalFactory {
     if (geometry.boundingSphere !== null) geometry.boundingSphere.radius += 0.6; // animated legs / neck / corpse roll never leave this
     geometry.computeBoundingBox();
 
+    if (this.style === 'painterly') {
+      // Nalati: the smooth loft, vertex colours only, no fur texture / shells — and fur, hooves and eyes in ONE group so a
+      // wolf / horse is a single draw call; the soft cel light is the material's (src/entities/painterlyAnimals.ts)
+      const count = geometry.index !== null ? geometry.index.count : (geometry.getAttribute('position') as THREE.BufferAttribute).count;
+      geometry.clearGroups(); geometry.addGroup(0, count, 0);
+      const mat = painterlyAnimalMaterial(this.sky, species.eyeGlow, species.eyeGlowIntensity);
+      // a generated hull skinned to this skeleton (?creatures=glb, glbCreatures.ts). While it is still loading the
+      // procedural mesh stands in, and every rig made from it is upgraded in place when the hull arrives (upgradeHull)
+      const hullName = creatureHull(kind, v.id);
+      const hull = hullName !== null ? skinCreatureGlb(kind, v.id, sp.bones) : null;
+      if (hull) { geometry.dispose(); geometry = hull.geometry; }
+      m = { kind, variant: v.id, style: 'painterly', species, variantDef: v, geometry, bones: hull?.bones ?? sp.bones, dims: sp.dims, fur: mat, hard: mat, eye: mat, shells: [], map: hull?.map ?? null, doubleSided: hull?.doubleSided ?? false };
+      this.models.set(key, m);
+      if (hullName !== null && !hull) {
+        this.pendingRigs.set(key, []);
+        loadCreatureRig(hullName).then(() => { this.upgradeHull(key); return null; }).catch(() => { this.pendingRigs.delete(key); });
+      }
+      return m;
+    }
     if (lowPoly) {
       // faceted: flat per-face normals, flat-shaded untextured materials, no fur shells
       geometry = facetGeometry(geometry, sp.facetJitter);
@@ -472,17 +533,21 @@ export class AnimalFactory {
         pb.add(b);
       }
     }
-    const fur = model.fur.clone();
+    // painterly: a fresh material (a clone would drop the painterly shader patch)
+    const fur = model.style === 'painterly' ? painterlyAnimalMaterial(this.sky, model.species.eyeGlow, model.species.eyeGlowIntensity) : model.fur.clone();
+    if (model.map) fur.map = model.map;
+    if (model.doubleSided === true) fur.side = THREE.DoubleSide;
     if (model.style === 'pbr' && model.rim !== undefined) {
       this.patchFur(fur as THREE.MeshPhysicalMaterial, model.rim, undefined, -1, model.hull?.thrall ?? false);   // clone() does not carry onBeforeCompile
     }
-    if (model.style === 'lowpoly' && model.geometry.hasAttribute('aGlow')) patchEyeGlow(fur, model.eye.emissive, model.eye.emissiveIntensity);
+    if (model.style === 'lowpoly' && model.geometry.hasAttribute('aGlow') && fur instanceof THREE.MeshStandardMaterial) patchEyeGlow(fur, model.eye.emissive, model.eye.emissiveIntensity);
     const v = (tint - 0.5) * (model.style === 'lowpoly' ? 0.3 : 0.2);
     fur.color.setRGB(0.9 + v, 0.9 + v * 0.9, 0.9 + v * 0.7);
     this.sky.setupMaterial(fur);
     // low-poly rigs are one group (oneMaterial): one draw, and the per-animal body clone is the whole body (the hit flash)
     // a generated hull (Pine Hollow) is one group too: one draw, and one shadow draw without animalShadow's caster
     const mesh = new THREE.SkinnedMesh(model.geometry, model.style === 'lowpoly' || model.hull !== undefined ? [fur] : [fur, model.hard, model.eye]);
+    this.pendingRigs.get(`${model.kind}:${model.variant}`)?.push({ mesh, fur });
     const root = bones['body'];
     if (root === undefined) throw new Error(`species '${model.kind}': no 'body' bone`);
     mesh.add(root);

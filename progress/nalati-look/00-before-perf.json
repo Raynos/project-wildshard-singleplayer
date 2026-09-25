@@ -1,0 +1,36 @@
+[
+  {
+    "tag": "00-before",
+    "pose": "camp",
+    "tier": "desktop",
+    "x": 72,
+    "z": 228,
+    "yaw": -0.62,
+    "pitch": -0.14,
+    "time": null,
+    "p50": 5.699999809265137,
+    "p95": 12.600000381469727,
+    "fps": 153,
+    "calls": 156,
+    "tris": 3194258,
+    "file": "progress/nalati-look/00-before-camp-desktop.jpg",
+    "kb": 444
+  },
+  {
+    "tag": "00-before",
+    "pose": "camp",
+    "tier": "phone",
+    "x": 72,
+    "z": 228,
+    "yaw": -0.62,
+    "pitch": -0.22,
+    "time": null,
+    "p50": 9.300000190734863,
+    "p95": 12.899999618530273,
+    "fps": 107,
+    "calls": 77,
+    "tris": 929636,
+    "file": "progress/nalati-look/00-before-camp-phone.jpg",
+    "kb": 341
+  }
+]

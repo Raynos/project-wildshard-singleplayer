@@ -1,0 +1,107 @@
+{
+ "pause": [
+  12,
+  6,
+  81,
+  24,
+  "Pause"
+ ],
+ "status": [
+  12,
+  36,
+  170,
+  108,
+  "Arrows24 / 24Day100VitalsSabre30 / 30Vis"
+ ],
+ "vitals": [
+  12,
+  36,
+  170,
+  24,
+  "100Vitals"
+ ],
+ "steed": [
+  12,
+  64,
+  170,
+  24,
+  "Camp horsegallop"
+ ],
+ "arrows": [
+  12,
+  92,
+  170,
+  24,
+  "Arrows24 / 24"
+ ],
+ "sky": [
+  12,
+  120,
+  170,
+  24,
+  "Day"
+ ],
+ "minimap": [
+  270,
+  6,
+  106,
+  106,
+  "N"
+ ],
+ "clock": [
+  360,
+  77,
+  17,
+  17,
+  ""
+ ],
+ "eliteBanner": [
+  211,
+  124,
+  166,
+  38,
+  "NAMED ELITE NEARBYAQBARS THE PALE · IRBI"
+ ],
+ "strip": [
+  0,
+  246,
+  40,
+  130,
+  "1Bow242Sabre3Spear3"
+ ],
+ "horse": [
+  338,
+  328,
+  52,
+  58,
+  "Dismount"
+ ],
+ "lock": [
+  215,
+  584,
+  59,
+  59,
+  "Lock"
+ ],
+ "gallop": [
+  324,
+  601,
+  59,
+  59,
+  "Gallop"
+ ],
+ "attack": [
+  176,
+  734,
+  94,
+  94,
+  "AttackFireHold = heavy"
+ ],
+ "lookpad": [
+  283,
+  734,
+  94,
+  94,
+  "Look"
+ ]
+}

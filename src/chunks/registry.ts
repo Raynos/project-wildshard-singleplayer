@@ -14,6 +14,7 @@
 import type { ChunkDef } from './ChunkDef';
 import { PINE_HOLLOW } from './pine-hollow';
 import { DRIFTWOOD_ISLE } from './driftwood-isle';
+import { NALATI_GRASSLANDS } from './nalati-grasslands';
 import { _applyChunkConstants } from '../core/config';
 
 export const DEFAULT_CHUNK = 'driftwood-isle';
@@ -21,6 +22,7 @@ export const DEFAULT_CHUNK = 'driftwood-isle';
 export const CHUNKS: [ChunkDef, ...ChunkDef[]] = [
   DRIFTWOOD_ISLE,
   PINE_HOLLOW,
+  NALATI_GRASSLANDS, // EARLY ACCESS (project/archive/2026-09-24-nalati-merge.md E1): playable, still being built
 ];
 
 export function chunkSlugFromUrl(search = location.search): string {

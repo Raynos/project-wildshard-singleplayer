@@ -98,5 +98,5 @@ export function sweepBall(physics: Physics, a: Vec3, b: Vec3, radius: number, se
 
 /** Materials a bolt / arrow sticks in; anything else it glances off (stone, rock, metal, shell). */
 export function sticksIn(m: Material): boolean {
-  return m === 'wood' || m === 'planks' || m === 'flesh' || m === 'grass' || m === 'sand' || m === 'wetSand' || m === 'ground';
+  return m === 'wood' || m === 'planks' || m === 'flesh' || m === 'grass' || m === 'sand' || m === 'wetSand' || m === 'ground' || m === 'felt' || m === 'earth';
 }

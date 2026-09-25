@@ -25,7 +25,7 @@
 //   saving one changes setting() at once and notifies (main.ts hands it to HorizonMatte.setShown / DayNight.setTime).
 //
 // localStorage is wrapped in try/catch (iOS private mode throws on write) — the in-memory copy is the truth for the session.
-export type SettingKey = 'aimAssist' | 'tracers' | 'haptics' | 'autoLock';
+export type SettingKey = 'aimAssist' | 'tracers' | 'haptics' | 'autoLock' | 'huntersEye';
 export type NumberKey = 'volume' | 'music' | 'look' | 'swingLook' | 'lockCam';
 export const MUSIC_STYLES = ['piano', 'orchestral', 'folk', 'synth'] as const;
 export type MusicStyle = (typeof MUSIC_STYLES)[number];
@@ -33,7 +33,8 @@ export const SFX_SETS = ['best', 'synth'] as const;
 export type SfxSet = (typeof SFX_SETS)[number];
 
 const STORE = 'ws.settings.v1';
-const DEFAULTS: Record<SettingKey, boolean> = { aimAssist: true, tracers: true, haptics: true, autoLock: true }; // autoLock: a kill re-locks the next enemy (E50)
+// autoLock: a kill re-locks the next enemy (E50); huntersEye: the bow's dotted drop arc while drawing (Nalati, src/player/Bow.ts) — on by default on touch, off with a mouse
+const DEFAULTS: Record<SettingKey, boolean> = { aimAssist: true, tracers: true, haptics: true, autoLock: true, huntersEye: typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches };
 const NUM_DEFAULTS: Record<NumberKey, number> = { volume: 0.8, music: 0.7, look: 1, swingLook: 0.7, lockCam: 0.5 }; // lockCam: the lock-on camera, Follow 1 / Gentle 0.5 / Off 0 (E50: Jake picked Gentle)
 export const NUM_RANGE: Record<NumberKey, readonly [number, number]> = { volume: [0, 1], music: [0, 1], look: [0.5, 2], swingLook: [0.5, 2], lockCam: [0, 1] };
 const clampNum = (k: NumberKey, v: number) => Math.min(NUM_RANGE[k][1], Math.max(NUM_RANGE[k][0], v));
@@ -112,6 +113,8 @@ export const OPTION_VALUES = {
   pinesky: ['clock', 'sunset'],                        // Pine Hollow: the day / night clock (PH-L2, src/world/PineDayNight.ts) or the pre-remaster fixed HDRI sunset — Jake picks (a reload)
   weather: ['live', 'clear', 'fog', 'rain'],           // Pine Hollow: the weather (PH-L10, src/pinehollow/weather.ts) — live: dawn fog + showers; clear = none (the before); fog / rain hold one — live
   fps: ['auto', '30', '60'],                           // frame cap (Game.start, tier.ts frameCapFps): auto = Pine Hollow's phone tier locked at 30 (PH-P1), else the display's rate — live
+  // the Nalati Look Lab (NALATI-MERGE L2, src/nalati/look/lab.ts): wave 6's picks are locked in (N20, the user: terrain
+  // shadows off, terrain AO off, model shading on, yurts procedural, camp people the image-to-3D models) and their switches gone
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];

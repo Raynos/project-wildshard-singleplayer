@@ -1,0 +1,36 @@
+[
+  {
+    "tag": "b0-06-whitewater",
+    "pose": "camp",
+    "tier": "desktop",
+    "x": 72,
+    "z": 228,
+    "yaw": -0.62,
+    "pitch": -0.14,
+    "time": null,
+    "p50": 28.5,
+    "p95": 35,
+    "fps": 35,
+    "calls": 252,
+    "tris": 5235516,
+    "file": "progress/nalati-look/b0-06-whitewater-camp-desktop.jpg",
+    "kb": 462
+  },
+  {
+    "tag": "b0-06-whitewater",
+    "pose": "gully",
+    "tier": "desktop",
+    "x": 64,
+    "z": 203,
+    "yaw": 0.05,
+    "pitch": 0.04,
+    "time": null,
+    "p50": 21.600000381469727,
+    "p95": 25.700000762939453,
+    "fps": 44,
+    "calls": 267,
+    "tris": 5889572,
+    "file": "progress/nalati-look/b0-06-whitewater-gully-desktop.jpg",
+    "kb": 483
+  }
+]

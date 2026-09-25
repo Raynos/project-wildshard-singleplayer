@@ -8,14 +8,14 @@
  *   spine.quest.objective()  spine.markers()        // the map reads the live markers (A5)
  */
 import * as THREE from 'three';
-import { QuestState, lineFor, type QuestMarker } from './quest';
+import { QuestState, type QuestMarker } from './quest';
 import { CASTAWAY, DRIFTWOOD_QUEST } from './driftwood';
-import { DialogueBox, ObjectiveLine } from './QuestUI';
+import { DialogueBox, type ObjectiveLine } from './QuestUI';
 import { Castaway } from '../../entities/npc/Castaway';
+import { NpcTalk, QuestChip, type LiveMarker } from './core';
 import type { Adventure, AdventureWorld, AdvAnimal } from './Adventure';
-import type { Interactable } from '../../world/Cabin';
 
-export interface LiveMarker { id: string; label: string; short: string; x: number; z: number }
+export type { LiveMarker } from './core';
 
 export interface Spine {
   quest: QuestState;
@@ -31,7 +31,10 @@ const TALK_R = 3.2;
 export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>): Spine {
   const { flags, kit, place } = adv;
   const quest = new QuestState(DRIFTWOOD_QUEST, flags);
-  const objective = new ObjectiveLine();
+  const markers = (): LiveMarker[] => quest.markers().map((m: QuestMarker) => { const p = place(m.at); return { id: m.id, label: m.label, short: m.short ?? m.label, x: p.x, z: p.z }; });
+  // the chip (the shared quest core, core.ts) — built before the dialogue box, as it always was (their DOM order)
+  const chip = new QuestChip({ chip: () => quest.chip(), markers });
+  const objective = chip.line;
   const dialogue = new DialogueBox();
 
   // ── Wendell at his campfire in front of the hut steps (hut local frame: the door faces −z) ──
@@ -43,24 +46,8 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   castaway.group.updateMatrixWorld(true);
   const talkAt = castaway.headWorld(new THREE.Vector3());
   let waved = false;
-  const talk = (): void => {
-    if (dialogue.isOpen) { dialogue.advance(); return; }
-    const entry = lineFor(CASTAWAY, flags);
-    if (!entry) return;
-    castaway.talking = true;
-    dialogue.open(CASTAWAY.name, entry.lines, () => {
-      castaway.talking = false;
-      for (const f of entry.sets ?? []) flags.set(f);
-    });
-    w.audio.weaponSwap();
-  };
-  const prompt: Interactable = {
-    position: talkAt,
-    get radius() { return dialogue.isOpen ? 0 : TALK_R; },   // hidden while talking: the box has its own NEXT (E / a tap)
-    label: 'Talk to Wendell',
-    onInteract: talk,
-  };
-  w.prompts.push(prompt);
+  const talk = new NpcTalk({ dialogue, flags, npc: CASTAWAY, at: talkAt, radius: TALK_R, label: 'Talk to Wendell', speaker: castaway, onOpen: () => { w.audio.weaponSwap(); } });
+  w.prompts.push(talk.prompt);
 
   // ── the quest's beats: a toast + the chunk sting on every step, a fanfare at the end ──
   quest.onStep = (step, prev) => {
@@ -86,33 +73,19 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
     };
   };
 
-  const markers = (): LiveMarker[] => quest.markers().map((m: QuestMarker) => { const p = place(m.at); return { id: m.id, label: m.label, short: m.short ?? m.label, x: p.x, z: p.z }; });
   // the full quest — chapter title, objective, sub-steps — on the menu's MAP tab (the HUD chip only carries the short form, E51)
   const chapter = (): string => (quest.isStarted ? DRIFTWOOD_QUEST.title : 'Driftwood Isle');
   w.fullMap?.setQuest?.(() => ({ title: chapter(), objective: quest.objective(), hint: quest.isComplete ? '' : quest.hint() }));
 
   // ── per frame: the quest chip, the nearest marker, the dialogue ──
-  let navT = 0;
   w.game.onUpdate((dt, t) => {
     if (!chained) chainKill();
     const pp = w.player.position;
     dialogue.update(dt);
-    if (dialogue.isOpen && pp.distanceTo(talkAt) > TALK_R + 2.5) { dialogue.close(false); castaway.talking = false; }
+    talk.update(pp);
     castaway.update(dt, t, pp);
     if (!waved && !flags.has('talked:castaway') && pp.distanceToSquared(castaway.position) < 16 * 16) { waved = true; castaway.wave(); }
-    objective.update(t);
-    if (t - navT > 0.1) {
-      navT = t;
-      const chip = quest.chip();
-      objective.set(chip.label, chip.count);
-      let best: LiveMarker | null = null, bd = Infinity;
-      for (const m of markers()) { const d = Math.hypot(m.x - pp.x, m.z - pp.z); if (d < bd) { bd = d; best = m; } }
-      if (best && bd > 6) {
-        // bearing relative to the view: forward = (−sin yaw, −cos yaw), right = (cos yaw, −sin yaw) (Player / main.ts)
-        const dx = best.x - pp.x, dz = best.z - pp.z, sy = Math.sin(w.player.yaw), cy = Math.cos(w.player.yaw);
-        objective.setNav(best.short, bd, Math.atan2(dx * cy - dz * sy, -dx * sy - dz * cy));
-      } else objective.setNav(null, 0, 0);
-    }
+    chip.update(t, w.player);
   });
   return { quest, castaway, dialogue, objective, markers };
 }

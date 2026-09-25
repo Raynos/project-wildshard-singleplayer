@@ -32,7 +32,9 @@ import { audioFiles, musicDir, sfxDir, shardMusicSets, shardSfxSets } from './au
 import { decodePineShots, pineShotFiles } from '../audio/PineHollowSfx';
 import { whenPrefetched } from './prefetch';
 import { decodeBytes, decodeSfxSet, sfxFiles, type SfxBank } from '../audio/preload';
+import type { AmbientBed } from '../audio/Audio';
 import { decodeStyle, styleFiles, type SlotName, type StyleBank } from '../audio/Stems';
+import { decodeSteppe, steppeBootFiles, steppeFiles, type SteppeBank } from '../audio/SteppeScore';
 import { getMusicStyle, getSfxSet } from '../ui/Settings';
 import { CHUNKS, getActiveChunk } from '../chunks/registry';
 import { PLACEHOLDERS } from '../chunks/placeholders';
@@ -62,13 +64,16 @@ function artFor(def: ChunkDef): { urls: string[]; bytes: Record<string, number> 
 export function bootFiles(def: ChunkDef): ChunkFiles {
   const art = artFor(def);
   addBytes(art.bytes);
-  return { ...chunkFiles(def), art: art.urls, ...audioFiles(def.slug) };
+  const audio = audioFiles(def.slug);
+  // Nalati's own score (NALATI-MERGE A2): downloaded on the steppe only — no other shard plays it
+  if (def.style === 'painterly') audio.music.push(...steppeFiles());
+  return { ...chunkFiles(def), art: art.urls, ...audio };
 }
 
 /** the art and the audio for the prefetch queue: the selected style + set (decoded in the bar) ahead of the others (downloaded only) */
 export function extraFetches(files: ChunkFiles): string[] {
   const slug = getActiveChunk().slug, own = [...shardMusicSets(slug).map(musicDir), ...shardSfxSets(slug).map(sfxDir)]; // the shard's own sets (Pine Hollow's)
-  const mine = (p: string): boolean => p.startsWith(musicDir(getMusicStyle())) || p.startsWith(sfxDir(getSfxSet())) || own.some((d) => p.startsWith(d));
+  const mine = (p: string): boolean => p.startsWith(musicDir(getMusicStyle())) || p.startsWith(sfxDir(getSfxSet())) || own.some((d) => p.startsWith(d)) || p.startsWith(musicDir('nalati'));
   const audio = [...files.music, ...files.sfx];
   return [...files.art, ...audio.filter(mine), ...audio.filter((p) => !mine(p))];
 }
@@ -128,16 +133,19 @@ export function startMenuPreload(files: ChunkFiles, def: ChunkDef): Preload<void
   };
 }
 
-export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank }
+export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank; steppe: SteppeBank | undefined }
 
 export function startAudioPreload(files: ChunkFiles, def: ChunkDef): Preload<AudioBanks> {
-  const ocean = def.ocean !== undefined;
+  const ocean = def.ocean !== undefined, steppe = def.style === 'painterly';
   const style = getMusicStyle(), set = getSfxSet();
-  const slots: SlotName[] = ['title', ocean ? 'island' : 'pine']; // the other shard's slot is never played here (a shard change reloads)
-  const bed = ocean ? 'island' : 'forest';
+  // the other shard's slot is never played here (a shard change reloads); the steppe has no stems yet (Music.ts shardSlot)
+  const slots: SlotName[] = ocean ? ['title', 'island'] : steppe ? ['title'] : ['title', 'pine'];
+  const bed: AmbientBed = ocean ? 'island' : steppe ? 'steppe' : 'forest'; // the same bed Audio's constructor picks
+  // the steppe: its own score's first slot (the camp is in the valley) + stings, whatever the style — unless the style is synth
+  const steppeNow = steppe && style !== 'synth';
   // Pine Hollow's one-shots + barks (its own set, E44): decoded at the bar so no first shot / bark is silent
-  const pineShots = !ocean && shardSfxSets(def.slug).length > 0 && set !== 'synth' ? pineShotFiles() : [];
-  const decoded = new Set([...styleFiles(style, slots), ...sfxFiles(set, bed), ...pineShots]);
+  const pineShots = !ocean && !steppe && shardSfxSets(def.slug).length > 0 && set !== 'synth' ? pineShotFiles() : [];
+  const decoded = new Set([...styleFiles(style, slots), ...sfxFiles(set, bed), ...pineShots, ...(steppeNow ? steppeBootFiles() : [])]);
   const rest = [...files.music, ...files.sfx].filter((u) => !decoded.has(u));
   const c = counter(decoded.size + rest.length);
   // the boot's counted fetch (the prefetch hands over the bytes it already has); a file two decoders share is read once
@@ -159,6 +167,7 @@ export function startAudioPreload(files: ChunkFiles, def: ChunkDef): Preload<Aud
   });
   const sfx = decodeSfxSet(set, bed, read, c.tick);
   const shots = pineShots.length > 0 ? decodePineShots(read, c.tick) : Promise.resolve();
+  const score = steppeNow ? decodeSteppe(['steppe-grass'], read, decodeBytes, true, c.tick) : Promise.resolve(undefined);
   // every other style / set: downloaded to the last byte (through the service worker, which keeps it), then let go
   const others = rest.map(async (u) => {
     try { await whenPrefetched(u); const res = await fetch(u); await res.arrayBuffer(); } catch { /* offline with no copy: that style / set decodes to the synth later */ }
@@ -167,9 +176,9 @@ export function startAudioPreload(files: ChunkFiles, def: ChunkDef): Preload<Aud
   return {
     async wait(p) {
       c.attach(p, 'audio files');
-      const [m, s] = await Promise.all([music, sfx, shots, ...others]);
+      const [m, s, st] = await Promise.all([music, sfx, score, shots, ...others]);
       reads.clear();
-      return { music: m, sfx: s };
+      return { music: m, sfx: s, steppe: st };
     },
   };
 }

@@ -72,16 +72,30 @@ export class HurtArc {
 /** how each killer kills you (species id → verb); anything else is "Killed by …" */
 const VERB: Record<string, string> = {
   boar: 'Gored by', bear: 'Mauled by', crab: 'Snapped up by', monkey: 'Mobbed by', sailor: 'Cut down by', deer: 'Trampled by', elk: 'Trampled by',
+  // Nalati (NALATI-MERGE F3)
+  wolf: 'Torn down by', kokbori: 'Torn down by', leopard: 'Mauled by', eagle: 'Stooped on by', horse: 'Trampled by', argymaq: 'Trampled by',
+  'ghost-rider': 'Ridden down by', 'golden-king': 'Cut down by', 'storm-titan': 'Struck down by',
 };
+
+/** who (or what) hurt you last: an animal (`Animal.kind` / `Animal.label`), or a cause with no attacker ("Struck by lightning") */
+export type Killer = { kind: string; label: string } | { cause: string };
+
+/** where this shard puts you back (the death toast's tail) */
+export function respawnWhere(def: { slug: string; ocean?: unknown }): string {
+  if (def.ocean !== undefined) return 'washed back to the pier';
+  if (def.slug === 'nalati-grasslands') return 'respawning on the north road';
+  return 'respawning at the south gate';
+}
 
 /**
  * The death toast (B2): who killed you and where you come back — "Snapped up by a big reef crab — washed back to the
- * pier" on an ocean shard, "Gored by a boar — respawning at the south gate" in the forest; a fall (no attacker) is
- * "Fell too far". `killer` = the last animal that hurt you (`Animal.kind` / `Animal.label`), null for a fall.
+ * pier" on an ocean shard, "Gored by a boar — respawning at the south gate" in the forest, "Struck by lightning —
+ * respawning on the north road" on Nalati; a fall (no attacker) is "Fell too far". `killer` = the last thing that hurt
+ * you, null for a fall; `where` = `respawnWhere(chunk)`.
  */
-export function deathLine(killer: { kind: string; label: string } | null, ocean: boolean): string {
-  const where = ocean ? 'washed back to the pier' : 'respawning at the south gate';
+export function deathLine(killer: Killer | null, where: string): string {
   if (killer === null) return `Fell too far — ${where}`;
+  if ('cause' in killer) return `${killer.cause} — ${where}`;
   const name = killer.label.trim() === '' ? killer.kind : killer.label.toLowerCase();
   const article = /^(the |a |an )/.test(name) ? '' : /^[aeiou]/.test(name) ? 'an ' : 'a ';
   return `${VERB[killer.kind] ?? 'Killed by'} ${article}${name} — ${where}`;

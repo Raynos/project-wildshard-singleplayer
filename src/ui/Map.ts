@@ -45,6 +45,8 @@ export class FullMap {
   private pinchDist = 0; private pinchZoom = 1;
   onToggle?: (open: boolean) => void;
   private poiSource: (() => MapPoi[]) | null = null;
+  /** move a quest marker's label off a place's label it would cover (setPois' `declutter`; Nalati only) */
+  private declutter = false;
   private questSource: (() => MapQuest | null) | null = null;
   /** the zoom changed (pinch / wheel / setZoom) — the menu's zoom chips follow */
   onZoom?: (zoom: number) => void;
@@ -84,8 +86,10 @@ export class FullMap {
   }
 
   get isOpen(): boolean { return this.open; }
-  /** replace the default points of interest (cabins, pond) with the shard's own list, read every frame the map is open */
-  setPois(source: () => MapPoi[]): void { this.poiSource = source; }
+  /** replace the default points of interest (cabins, pond) with the shard's own list, read every frame the map is open;
+   *  `declutter`: a quest marker's label that would cover a place's name goes above its diamond (NALATI-MERGE F11: the
+   *  elder's "BAQYT ATA" sat on "NOMAD CAMP"). Off by default, so a shard that does not ask draws exactly as before */
+  setPois(source: () => MapPoi[], opts: { declutter?: boolean } = {}): void { this.poiSource = source; this.declutter = opts.declutter === true; }
   /** the shard's quest, read by the menu each time the MAP tab shows (null = no quest card) */
   setQuest(source: () => MapQuest | null): void { this.questSource = source; }
   get quest(): MapQuest | null { return this.questSource?.() ?? null; }
@@ -253,16 +257,40 @@ export class FullMap {
         ctx.fillStyle = 'rgba(230, 242, 248, 0.7)'; ctx.fillText('?', px, py + r + 3 * d);
       }
     }
+    // declutter: the boxes the place names (and the "?"s) take, then each quest label's, so a marker's label that would
+    // land on one goes above its diamond instead
+    const taken: Box[] = [];
+    if (this.declutter) {
+      for (const p of list) {
+        if (p.kind === 'quest') continue;
+        const px = sx(p.x), py = sz(p.z), r = p.kind === 'place' ? Math.max(4 * d, fs * 0.35) : Math.max(3.5 * d, fs * 0.3);
+        taken.push(labelBox(ctx, p.kind === 'place' ? p.label : '?', px, py + r + 3 * d, fs));
+      }
+    }
     const pulse = (performance.now() % 1600) / 1600;
     for (const p of list) {
       if (p.kind !== 'quest') continue;
       const px = sx(p.x), py = sz(p.z), r = Math.max(6 * d, fs * 0.55);
+      let ly = py + r + 3 * d;
+      if (this.declutter) {
+        const below = labelBox(ctx, p.label, px, ly, fs), above = labelBox(ctx, p.label, px, py - r - 3 * d - fs, fs);
+        const hits = (b: Box) => taken.some((t) => b.x0 < t.x1 && b.x1 > t.x0 && b.y0 < t.y1 && b.y1 > t.y0);
+        const pick = hits(below) && !hits(above) ? above : below;
+        ly = pick.y0; taken.push(pick);
+      }
       ctx.strokeStyle = `rgba(143, 227, 255, ${0.7 * (1 - pulse)})`; ctx.lineWidth = 2 * d;
       ctx.beginPath(); ctx.arc(px, py, r * (1.2 + pulse * 1.6), 0, Math.PI * 2); ctx.stroke();
       ctx.fillStyle = '#8fe3ff'; ctx.strokeStyle = 'rgba(6, 10, 18, 0.9)'; ctx.lineWidth = 2 * d;
       ctx.beginPath(); ctx.moveTo(px, py - r); ctx.lineTo(px + r, py); ctx.lineTo(px, py + r); ctx.lineTo(px - r, py); ctx.closePath(); ctx.fill(); ctx.stroke();
       ctx.fillStyle = '#8fe3ff'; ctx.strokeStyle = 'rgba(6, 10, 18, 0.85)'; ctx.lineWidth = 3 * d;
-      ctx.strokeText(p.label, px, py + r + 3 * d); ctx.fillText(p.label, px, py + r + 3 * d);
+      ctx.strokeText(p.label, px, ly); ctx.fillText(p.label, px, ly);
     }
   }
+}
+
+interface Box { x0: number; y0: number; x1: number; y1: number }
+/** the box a centred, top-baseline label takes at (x, top) in the current font (fs px tall) */
+function labelBox(ctx: CanvasRenderingContext2D, label: string, x: number, top: number, fs: number): Box {
+  const w = ctx.measureText(label).width;
+  return { x0: x - w / 2, y0: top, x1: x + w / 2, y1: top + fs };
 }

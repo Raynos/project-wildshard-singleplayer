@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { SEED } from '../core/config';
 import { Rng } from '../core/rng';
 import { smoothstep } from '../core/noise';
@@ -308,7 +309,11 @@ export class Props {
     const clump: THREE.BufferGeometry[] = [];
     for (let i = 0; i < 7; i++) {
       const r = rng.range(0.28, 0.5);
-      const s = new THREE.IcosahedronGeometry(r, 2);
+      // IcosahedronGeometry is non-indexed: weld it first or each face's copy of a corner rough-ens alone and cracks open (E114)
+      const ico = new THREE.IcosahedronGeometry(r, 2);
+      ico.deleteAttribute('normal'); ico.deleteAttribute('uv');
+      const s = mergeVertices(ico);
+      ico.dispose();
       // roughen the surface a little so it doesn't read as a perfect sphere
       const pos = s.getAttribute('position');
       for (let k = 0; k < pos.count; k++) {
