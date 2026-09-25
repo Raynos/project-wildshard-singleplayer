@@ -50,7 +50,7 @@ export class Perf {
     root.innerHTML = '<b>—</b><span class="ws-perf-ms"></span><span class="ws-perf-long"></span>';
     const panel = this.panel = document.createElement('div');
     panel.className = 'ws-perf-panel';
-    panel.innerHTML = '<div class="ws-perf-row"><i>Frame p50</i><span data-r="p50">—</span></div><div class="ws-perf-row"><i>Frame p95</i><span data-r="p95">—</span></div><div class="ws-perf-row"><i>Draw calls</i><span data-r="calls">—</span></div><div class="ws-perf-row"><i>Triangles</i><span data-r="tris">—</span></div><div class="ws-perf-row"><i>Tier · DPR</i><span data-r="tier">—</span></div><div class="ws-perf-row"><i>GL</i><span data-r="gl">ok</span></div><pre class="ws-perf-stats"></pre><canvas class="ws-perf-spark" width="240" height="30"></canvas><div class="ws-perf-row"><i>Record</i><span><button type="button" class="ws-perf-btn ws-perf-rec">REC 30 S</button> <button type="button" class="ws-perf-btn ws-perf-copy">COPY</button></span></div><pre class="ws-perf-rec-out"></pre><div class="ws-perf-row"><i>Probe</i><button type="button" class="ws-perf-probe">RUN PROBE</button></div><pre class="ws-perf-probe-out"></pre>';
+    panel.innerHTML = '<div class="ws-perf-head"><i>Frame meter</i><button type="button" class="ws-perf-btn ws-perf-close" aria-label="Close the frame meter">CLOSE ✕</button></div><div class="ws-perf-row"><i>Frame p50</i><span data-r="p50">—</span></div><div class="ws-perf-row"><i>Frame p95</i><span data-r="p95">—</span></div><div class="ws-perf-row"><i>Draw calls</i><span data-r="calls">—</span></div><div class="ws-perf-row"><i>Triangles</i><span data-r="tris">—</span></div><div class="ws-perf-row"><i>Tier · DPR</i><span data-r="tier">—</span></div><div class="ws-perf-row"><i>GL</i><span data-r="gl">ok</span></div><pre class="ws-perf-stats"></pre><canvas class="ws-perf-spark" width="240" height="30"></canvas><div class="ws-perf-row"><i>Record</i><span><button type="button" class="ws-perf-btn ws-perf-rec">REC 30 S</button> <button type="button" class="ws-perf-btn ws-perf-copy">COPY</button></span></div><pre class="ws-perf-rec-out"></pre><div class="ws-perf-row"><i>Probe</i><button type="button" class="ws-perf-probe">RUN PROBE</button></div><pre class="ws-perf-probe-out"></pre>';
     const row = (r: string): HTMLElement => { const e = panel.querySelector<HTMLElement>(`[data-r="${r}"]`); if (e === null) throw new Error(`Perf: missing row ${r}`); return e; };
     this.rows = { p50: row('p50'), p95: row('p95'), calls: row('calls'), tris: row('tris'), tier: row('tier'), gl: row('gl') };
     document.body.append(root, panel);
@@ -69,6 +69,12 @@ export class Perf {
     for (const t of ['touchstart', 'touchmove', 'touchend'] as const) probe.addEventListener(t, cancel, { passive: false });
     probe.addEventListener('pointerdown', cancel);
     probe.addEventListener('pointerup', (e) => { cancel(e); void this.runProbe(); });
+    // the open panel covers the pill on phones, so it carries its own CLOSE (sticky at the top while it scrolls)
+    const close = panel.querySelector<HTMLButtonElement>('.ws-perf-close');
+    if (close === null) throw new Error('Perf: missing close button');
+    for (const t of ['touchstart', 'touchmove', 'touchend'] as const) close.addEventListener(t, cancel, { passive: false });
+    close.addEventListener('pointerdown', cancel);
+    close.addEventListener('pointerup', (e) => { cancel(e); this.open(false); });
     // E142 aggro-perf: the timing / counts block, the sparkline, REC 30 S + COPY (src/ui/perfHud.ts)
     const q = (sel: string): HTMLElement => { const e = panel.querySelector<HTMLElement>(sel); if (e === null) throw new Error(`Perf: missing ${sel}`); return e; };
     const recBtn = q('.ws-perf-rec'), copyBtn = q('.ws-perf-copy'), recOut = q('.ws-perf-rec-out'), spark = q('.ws-perf-spark');

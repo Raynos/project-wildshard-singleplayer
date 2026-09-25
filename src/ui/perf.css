@@ -22,6 +22,9 @@
   .ws-perf-panel.open { position: fixed; right: 12px; top: var(--ws-top); z-index: 56; display: block; box-sizing: border-box; width: max(38vw, 176px); padding: 8px 10px 6px; background: rgba(6, 10, 18, 0.92); border: 1px solid var(--ws-cyan); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 18px rgba(143, 227, 255, 0.18); font-family: var(--ws-mono); font-size: 9.5px; line-height: 1.2; color: var(--ws-text); font-variant-numeric: tabular-nums; pointer-events: auto; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   .ws-perf-panel .ws-perf-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 4px 0; border-bottom: 1px solid rgba(143, 227, 255, 0.12); }
   .ws-perf-panel .ws-perf-row:last-child { border-bottom: 0; }
+  .ws-perf-panel .ws-perf-head { position: sticky; top: -8px; z-index: 1; display: flex; justify-content: space-between; align-items: center; margin: -8px -10px 2px; padding: 6px 10px; background: rgba(6, 10, 18, 0.97); border-bottom: 1px solid var(--ws-cyan-line); }
+  .ws-perf-panel .ws-perf-head i { font-style: normal; font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-cyan); }
+  .ws-perf-panel .ws-perf-close { padding: 6px 12px; font-size: 9px; }
   .ws-perf-panel .ws-perf-row i { font-style: normal; font-size: 7.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ws-cyan-dim); }
   .ws-perf-panel .ws-perf-row span { white-space: nowrap; text-align: right; }
   /* E142: the on-device probe (src/ui/perfProbe.ts): its button, and its table under the rows (the panel widens for it) */
