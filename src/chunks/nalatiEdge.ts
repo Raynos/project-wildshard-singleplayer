@@ -17,21 +17,13 @@
  *     berm either side; where the Kunes leaves the slab the gorge narrows to a ~12 m slot by the south bank; it keeps
  *     back from the camp, the corral and the pasture
  *
- * A Look Lab variant (Settings `edge`, `?edge=1`; pause ▸ Settings ▸ Debug ▸ Look lab ▸ Edge, on the next load): the
- * height field is baked, so the variant is a second bake — public/assets/baked/nalati-grasslands/terrain.edge.bin and
- * navmesh.edge.bin (scripts/bake-chunk.mjs / bake-navmesh.mjs bake both), picked at load (ChunkDef.bakeVariant →
- * BakedTerrain.ts, physics/navmesh.ts). The def adds the rise on top of buildTerrain's field (nalati-grasslands.ts
- * TERRAIN). Off = today's slab, byte for byte. Read once at module load, like the def it shapes.
+ * Always on (the user's pick on the N23 board, "Edge on"; NALATI-FINISH B7 removed the switch and the no-edge bake): the
+ * def adds the rise on top of buildTerrain's field (nalati-grasslands.ts TERRAIN), and the one bake —
+ * public/assets/baked/nalati-grasslands/terrain.bin and navmesh.bin — carries it.
  */
 import { Noise2D, smoothstep, clamp } from '../core/noise';
 import { CHUNK_HALF, ROAD_WIDTH } from '../core/config';
-import { setting } from '../ui/Settings';
 import { CAMP, PASTURE, riverZAt, riverHalfAt } from './nalatiLayout';
-
-/** the variant is on for this page (the saved Look Lab pick, the URL's `?edge=` over it) */
-export const EDGE_ON: boolean = setting('edge') === 'on';
-/** the bake file suffix of the variant (`terrain${EDGE_BAKE}.bin`, `navmesh${EDGE_BAKE}.bin`) */
-export const EDGE_BAKE = EDGE_ON ? '.edge' : '';
 
 const bn = new Noise2D(0x4a1a + 313), bn2 = new Noise2D(0x4a1a + 317);
 const ROAD_HALF = ROAD_WIDTH / 2;
@@ -64,10 +56,9 @@ function edgeProfile(d: number, s: number, k: number, m: number): number {
 /**
  * The berm's rise at (x, z) over the finished field's height `h` there (buildTerrain's, the entry roads already at y = 0 at
  * the edge): the highest of the four edges' profiles — faded out on high ground (the crags), cut at the roads and the
- * river, kept back from the camp and the pasture and lower by them — roughened. 0 when the variant is off.
+ * river, kept back from the camp and the pasture and lower by them — roughened.
  */
 export function edgeRise(x: number, z: number, h: number): number {
-  if (!EDGE_ON) return 0;
   const dN = CHUNK_HALF - z, dS = z + CHUNK_HALF, dW = CHUNK_HALF - x, dE = x + CHUNK_HALF;
   if (Math.min(dN, dS, dW, dE) > 60) return 0;
   // the crags are their own skyline: none on high ground (the snow ring's walls), a little on the shoulders
@@ -105,7 +96,7 @@ export function edgeDistance(x: number, z: number): number {
 
 /** 0..1: the spruce lines on the berm's crest and upper face — clustered along the edge, gaps between (the def's forest mask) */
 export function edgeSpruceMask(x: number, z: number, rise: number): number {
-  if (!EDGE_ON || rise < 3) return 0;
+  if (rise < 3) return 0;
   const d = edgeDistance(x, z);
   const band = smoothstep(30, 6, d);
   const s = Math.abs(x) > Math.abs(z) ? z : x;

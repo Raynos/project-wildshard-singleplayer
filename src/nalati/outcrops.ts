@@ -19,7 +19,6 @@ import { inPoiClearing } from '../world/nalati/clearings';
 import { heightAt, normalAt, trailDistance } from '../world/Heightfield';
 import { Noise2D } from '../core/noise';
 import { riverMask, rimZAt, RIVER, RIM_Z, outcropAt, BROOK, edgeBermAt } from '../chunks/nalati-grasslands';
-import { EDGE_ON } from '../chunks/nalatiEdge';
 import { CHUNK_HALF } from '../core/config';
 import type { Collider } from '../player/Player';
 import type { ColliderDesc } from '../world/registry';
@@ -163,31 +162,29 @@ export function buildOutcrops(sky: Sky, seed = 0x0c7): Outcrops {
       }
     }
   }
-  // N23 (the Look Lab's Edge): granite breaking out of the edge berm's crest and its steep upper face — clustered, the
+  // N23 (the edge berm): granite breaking out of the edge berm's crest and its steep upper face — clustered, the
   // spruce lines between — so its skyline is rock and trees, and nobody walks up the last metres onto the crest
-  if (EDGE_ON) {
-    for (let s = -CHUNK_HALF + 3; s <= CHUNK_HALF - 3; s += 4.2) {
-      for (let side = 0; side < 4; side++) {
-        if (cluster.fbm(s * 0.035 + side * 23.1, 5.7, 2) < -0.08 || rng.next() > 0.7) continue;
-        const d = rng.range(1.5, 9) ** 1.1;
-        const x = side === 0 ? s : side === 1 ? -s : side === 2 ? CHUNK_HALF - d : -CHUNK_HALF + d;
-        const z = side === 0 ? CHUNK_HALF - d : side === 1 ? -CHUNK_HALF + d : side === 2 ? -s : s;
-        const rise = edgeBermAt(x, z);
-        if (rise < 4 || trailDistance(x, z) < 9 || inPoiClearing(x, z, 2)) continue;
-        const [nx, ny, nz] = normalAt(x, z, 1.5);
-        const size = 1.1 + rng.next() * 2.4 * Math.min(1, rise / 12);
-        const w = size * rng.range(1.3, 2.5), h = size * rng.range(0.9, 1.6), dd = size * rng.range(1.0, 1.5);
-        const downYaw = Math.atan2(nx, nz), yaw = downYaw + Math.PI / 2 + rng.range(-0.5, 0.5);
-        const tilt = Math.min(0.45, Math.acos(Math.min(1, ny)) * 0.5);
-        const y = heightAt(x, z) - h * 0.3;
-        const block = graniteBlock(w, h, dd, rng.int(1, 1e6), 0.24);
-        const bm = M(x, y, z, yaw, 1, 1, 1, tilt * Math.cos(yaw - downYaw), tilt * Math.sin(yaw - downYaw));
-        descs.push(supportHull(block, bm, 'rock'));
-        const tint = rng.next() < 0.5 ? C.granite : rng.next() < 0.5 ? C.warm : C.cool;
-        kit.add(block, tint, { matrix: bm, top: { color: C.lichen, threshold: 0.55, amount: 0.5 }, brush: 0.14, foot: 0.72 });
-        colliders.push({ x, z, hw: w * 0.42, hd: dd * 0.42, rot: yaw, yTop: y + h * 0.5, yBottom: y - h });
-        count++;
-      }
+  for (let s = -CHUNK_HALF + 3; s <= CHUNK_HALF - 3; s += 4.2) {
+    for (let side = 0; side < 4; side++) {
+      if (cluster.fbm(s * 0.035 + side * 23.1, 5.7, 2) < -0.08 || rng.next() > 0.7) continue;
+      const d = rng.range(1.5, 9) ** 1.1;
+      const x = side === 0 ? s : side === 1 ? -s : side === 2 ? CHUNK_HALF - d : -CHUNK_HALF + d;
+      const z = side === 0 ? CHUNK_HALF - d : side === 1 ? -CHUNK_HALF + d : side === 2 ? -s : s;
+      const rise = edgeBermAt(x, z);
+      if (rise < 4 || trailDistance(x, z) < 9 || inPoiClearing(x, z, 2)) continue;
+      const [nx, ny, nz] = normalAt(x, z, 1.5);
+      const size = 1.1 + rng.next() * 2.4 * Math.min(1, rise / 12);
+      const w = size * rng.range(1.3, 2.5), h = size * rng.range(0.9, 1.6), dd = size * rng.range(1.0, 1.5);
+      const downYaw = Math.atan2(nx, nz), yaw = downYaw + Math.PI / 2 + rng.range(-0.5, 0.5);
+      const tilt = Math.min(0.45, Math.acos(Math.min(1, ny)) * 0.5);
+      const y = heightAt(x, z) - h * 0.3;
+      const block = graniteBlock(w, h, dd, rng.int(1, 1e6), 0.24);
+      const bm = M(x, y, z, yaw, 1, 1, 1, tilt * Math.cos(yaw - downYaw), tilt * Math.sin(yaw - downYaw));
+      descs.push(supportHull(block, bm, 'rock'));
+      const tint = rng.next() < 0.5 ? C.granite : rng.next() < 0.5 ? C.warm : C.cool;
+      kit.add(block, tint, { matrix: bm, top: { color: C.lichen, threshold: 0.55, amount: 0.5 }, brush: 0.14, foot: 0.72 });
+      colliders.push({ x, z, hw: w * 0.42, hd: dd * 0.42, rot: yaw, yTop: y + h * 0.5, yBottom: y - h });
+      count++;
     }
   }
   const triangles = Math.round(kit.triangleCount);

@@ -83,7 +83,7 @@ const TRAILS = has('trails');
 const SERVE = resolvePath(flag('serve', ROOT)); // the checkout whose dist/ is served (a clean export of an older commit, for a same-session before / after)
 // --url: walk / pose against a server that is already running (the dev server: the working tree, no build, no preview)
 const URL_BASE = flag('url', '');
-// --query=<k=v&…>: appended to every page's URL (a Look Lab variant, e.g. N23's `--query=edge=1`)
+// --query=<k=v&…>: appended to every page's URL (a dev param, e.g. `--query=tier=phone`)
 const EXTRA_Q = flag('query', '');
 
 const waitFor = async (fn, ms, what) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await fn()) return; await new Promise((resolve) => { setTimeout(resolve, 250); }); } throw new Error(what); };
