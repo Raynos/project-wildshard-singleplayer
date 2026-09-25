@@ -136,6 +136,7 @@ lanes' own. **Status:** done · partial · open · Jake (waits on his pick, sign
 | PH-U30 | **Weather = A, dawn fog + rain showers** (2026-09-25, `art/pine-hollow/round-11-weather/board.jpg`); `?weather=clear` keeps the before for captures. |
 | PH-U31 | **Crags + cave = A, keep** (2026-09-25, `art/pine-hollow/round-13-crags-cave/board.jpg`): the granite face skin + crag kit + the bear cave; `?crags=v1` keeps the smooth slopes for captures. |
 | PH-U32 | **Finish sooner** (2026-09-25): 5 build agents in parallel (was 3). **Moved to a follow-up plan after the merge** (not built in this remaster): PH-P5 WebGPU, PH-0.2 the per-shard code split, PH-B1 the whole-map Blender pass, PH-B5 / B6 the CC0 kit + cabin lift → `docs/plans/PINE-HOLLOW-FOLLOWUPS.md` (draft; Jake approved none). |
+| PH-U33 | **Load: accept ~36 MB** (2026-09-25): every music style stays at the loading bar (E44, offline style switching); the transfer row is 37 MiB (measured 36.01 MiB). |
 
 **Boards Jake asked to see before the layout and the models are built.** Each is one portrait decision board, A / B / C / D,
 in `art/pine-hollow/round-<n>-<label>/board.jpg`:
