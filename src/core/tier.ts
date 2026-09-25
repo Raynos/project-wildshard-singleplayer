@@ -106,6 +106,15 @@ const PAGE_QUERY = typeof location === 'undefined' ? new URLSearchParams() : new
 if (TIER === 'phone' && PAGE_QUERY.get('chunk') === 'pine-hollow' && PAGE_QUERY.get('phknobs') !== '0') Object.assign(TIER_CONFIG, PINE_HOLLOW_PHONE);
 
 /**
+ * E142, the 30-fps-at-2× lane (Jake: "we should just be doing performance optimizations necessary for hitting 30 FPS
+ * at 2"): Pine Hollow's phone-tier cost cuts that keep the picture — the render scale stays 2×. Each is on unless the
+ * URL names it `=0` (`?depthslice=0`), and `?at2x=0` switches them all off (the frame as before, for A/B).
+ */
+export function phoneCut(lever: string): boolean {
+  return TIER === 'phone' && PAGE_QUERY.get('chunk') === 'pine-hollow' && PAGE_QUERY.get('at2x') !== '0' && PAGE_QUERY.get(lever) !== '0';
+}
+
+/**
  * The player's graphics prefs — the menu's Settings ▸ Graphics rows (src/ui/Menu.ts), read once at boot, so a
  * change needs a restart. 'auto' = the tier default above. The old DBG pill kept a tier / dpr / aa / meter
  * override under 'ws.debug'; the pill is gone and that key is dropped once so a stale override stops applying.

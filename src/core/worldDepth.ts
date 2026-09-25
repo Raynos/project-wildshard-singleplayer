@@ -22,6 +22,21 @@ import { RenderPass, type EffectComposer } from 'postprocessing';
 /** `?aofix=0`: the depth clear leaks into the post chain again (the pre-fix look, for A/B shots) */
 export const WORLD_DEPTH_FIX: boolean = typeof location === 'undefined' || new URLSearchParams(location.search).get('aofix') !== '0';
 
+/**
+ * E142 (the 30-fps-at-2× lane): the depth slices. The blit above runs mid-pass — at the viewmodel's clear — and on a
+ * tile GPU (every iPhone) that ends the scene pass: the colour (half float) and depth tiles are stored, the depth copied,
+ * both reloaded to finish the pass, then the merge draws. At the phone's 804×1748 that is ~45 MB of memory traffic a
+ * frame. Instead of clearing, the viewmodels draw into a near slice of the depth range (`gl.depthRange`): the world is
+ * drawn at depth ≥ 0.3 (nothing of it within 0.114 m of the eye, near plane 0.08), each clear moves to the next slice
+ * nearer the eye, so the weapon still never clips into a wall and a later viewmodel still draws over an earlier one.
+ * The scene's own depth texture then holds the world (+ the weapon, near 0) with no copy at all, and the depth readers
+ * read it directly (Game.buildComposer). Same colour for the world; on the weapon only the pixels where two of its own
+ * parts meet can round the other way (the crossbow's arrow on its rail: ~0.01–0.03 % of the frame), and the march /
+ * god rays see the weapon ~0.1 m away instead of ~0.4 m (no visible difference: 0.4 m of air). −0.07…−0.17 ms on the
+ * M5 at 1206×2622 (scripts/pine-hollow-gpu.mjs, the old `depthcopy` subtraction), more on the phone's narrower memory.
+ */
+const DEPTH_SLICES: readonly (readonly [number, number])[] = [[0.225, 0.3], [0.15, 0.225], [0.075, 0.15], [0, 0.075]];
+
 /** a render target's framebuffer, once three has set it up */
 function framebufferOf(renderer: THREE.WebGLRenderer, rt: THREE.WebGLRenderTarget): WebGLFramebuffer | null {
   const props: unknown = renderer.properties.get(rt);
@@ -70,7 +85,14 @@ export class WorldRenderPass extends RenderPass {
   private readonly mergeScene = new THREE.Scene();
   private readonly mergeCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-  constructor(scene: THREE.Scene, camera: THREE.Camera, private readonly composer: EffectComposer) {
+  /** the depth slices (above): the next one a clear moves to; DEPTH_SLICES.length = past the last (it stays there) */
+  private slice = 0;
+
+  /**
+   * `slices` (E142): the viewmodels draw into the near depth slices instead of clearing, and the effects read the scene
+   * target's own depth texture (Game.buildComposer points them at it) — no copy, no merge
+   */
+  constructor(scene: THREE.Scene, camera: THREE.Camera, private readonly composer: EffectComposer, readonly slices = false) {
     super(scene, camera);
     if (!WORLD_DEPTH_FIX) return;
     Reflect.set(this, 'needsDepthBlit', false); // this pass fills the stable depth itself (render below)
@@ -81,7 +103,7 @@ export class WorldRenderPass extends RenderPass {
     this.mergeScene.add(quad);
     const renderer = composer.getRenderer();
     const clearDepth = renderer.clearDepth.bind(renderer);
-    renderer.clearDepth = () => { this.keepWorldDepth(renderer); clearDepth(); };
+    renderer.clearDepth = () => { if (!this.keepWorldDepth(renderer)) clearDepth(); };
   }
 
   /** the composer's stable depth target (made when the first depth-reading pass is added; null = nothing reads depth) */
@@ -93,17 +115,38 @@ export class WorldRenderPass extends RenderPass {
   /** read through a call: the clear sets it from inside `super.render`, where control-flow narrowing cannot see */
   private keptThisFrame(): boolean { return this.kept; }
 
-  /** before a depth clear: the first one of the scene pass saves the world's depth */
-  private keepWorldDepth(renderer: THREE.WebGLRenderer): void {
+  /**
+   * before a depth clear: the first one of the scene pass saves the world's depth. With the slices, a clear of the scene
+   * pass moves the depth range to the next slice instead; true = do not clear
+   */
+  private keepWorldDepth(renderer: THREE.WebGLRenderer): boolean {
     const target = this.drawing;
-    if (target === null || this.kept || renderer.getRenderTarget() !== target) return;
+    if (target === null || renderer.getRenderTarget() !== target) return false;
+    if (this.slices) {
+      const s = DEPTH_SLICES[Math.min(this.slice, DEPTH_SLICES.length - 1)];
+      if (s === undefined) return false;
+      renderer.getContext().depthRange(s[0], s[1]);
+      this.slice++;
+      return true;
+    }
+    if (this.kept) return false;
     const stable = this.stableTarget();
     if (stable !== null && blitDepth(renderer, target, stable)) this.kept = true;
+    return false;
   }
 
   override render(renderer: THREE.WebGLRenderer, inputBuffer: THREE.WebGLRenderTarget | null, outputBuffer: THREE.WebGLRenderTarget | null, deltaTime?: number, stencilTest?: boolean): void {
     const stable = WORLD_DEPTH_FIX ? this.stableTarget() : null;
     if (stable === null || inputBuffer === null || this.renderToScreen) { super.render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest); return; }
+    if (this.slices) {
+      this.slice = 0;
+      this.drawing = inputBuffer;
+      try { super.render(renderer, inputBuffer, outputBuffer, deltaTime, stencilTest); } finally {
+        this.drawing = null;
+        renderer.getContext().depthRange(0, 1);
+      }
+      return;
+    }
     renderer.initRenderTarget(stable); // a no-op once set up (again after a resize)
     this.kept = false;
     this.drawing = inputBuffer;

@@ -11,7 +11,7 @@ import { GradeEffect } from './Grade';
 import { activeGrade } from '../world/lookFlags';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '../chunks/registry';
-import { TIER_CONFIG, frameCapFps } from './tier';
+import { TIER_CONFIG, frameCapFps, phoneCut } from './tier';
 import { installLookV2Fog } from '../nalati/look/fog';
 import { buildLookV2Chain } from '../nalati/look/grade';
 import { PERFLOAD, snapshotPrograms, newProgramsSince, describeProgram, perfLog, dumpPrograms, parallelCompile } from '../boot/perflog';
@@ -157,7 +157,10 @@ export class Game {
     const composer = new EffectComposer(this.renderer, { frameBufferType: THREE.HalfFloatType, multisampling: 0 });
     // the scene pass keeps the world's depth for the depth readers below (AO, the volumetric march, the god rays' sun mask):
     // the viewmodels' depth clear used to leave them the weapon alone (worldDepth.ts; `?aofix=0` = the old pass)
-    this.renderPass = new WorldRenderPass(this.scene, this.camera, composer);
+    // E142: on Pine Hollow's phone tier the viewmodels draw into near depth slices instead of clearing, so the world's
+    // depth needs no mid-pass copy (worldDepth.ts; `?depthslice=0` = the copy)
+    const slices = phoneCut('depthslice');
+    this.renderPass = new WorldRenderPass(this.scene, this.camera, composer, slices);
     composer.addPass(this.renderPass);
 
     if (TIER_CONFIG.ao) {
@@ -256,6 +259,9 @@ export class Game {
       const smaa = new SMAAEffect({ preset: TIER_CONFIG.smaa === 'high' ? SMAAPreset.HIGH : SMAAPreset.LOW, edgeDetectionMode: EdgeDetectionMode.COLOR });
       composer.addPass(new EffectPass(this.camera, smaa));
     }
+    // the depth slices: every depth reader reads the scene target's own depth texture (the world + the weapon, no copy)
+    const sceneDepth = composer.inputBuffer.depthTexture;
+    if (slices && sceneDepth !== null) for (const p of composer.passes) if (p !== this.renderPass) p.setDepthTexture(sceneDepth);
     this._composer = composer;
     this.gpu?.build(this.scene, this.camera, this.sky, this.renderer);
   }
