@@ -73,6 +73,8 @@ export class VolumetricsEffect extends Effect {
    *               effect only composites it; 1 → the march runs in the effect's own fragment (desktop, as before)
    */
   constructor(camera: PerspectiveCamera, blueNoise: Texture, steps = 14, private readonly scale = 1) {
+    // held as our own typed uniform: the Effect's uniform map is typed loosely (postprocessing's bare `Uniform`)
+    const scatter = new Uniform<Texture | null>(null);
     super('VolumetricsEffect', scale < 1
       ? /* glsl */`
         uniform sampler2D tScatter;
@@ -85,7 +87,7 @@ export class VolumetricsEffect extends Effect {
         }`, {
       blendFunction: BlendFunction.SRC,
       attributes: EffectAttribute.DEPTH,
-      uniforms: new Map<string, Uniform>(scale < 1 ? [['tScatter', new Uniform(null)]] : []),
+      uniforms: new Map<string, Uniform>(scale < 1 ? [['tScatter', scatter]] : []),
     });
     this.camera = camera;
     this.nearU = new Uniform(camera.near); this.farU = new Uniform(camera.far);
@@ -106,8 +108,7 @@ export class VolumetricsEffect extends Effect {
     };
     if (scale < 1) {
       this.rt = new WebGLRenderTarget(1, 1, { type: HalfFloatType, depthBuffer: false, minFilter: LinearFilter, magFilter: LinearFilter });
-      const tScatter = this.uniforms.get('tScatter');
-      if (tScatter !== undefined) tScatter.value = this.rt.texture;
+      scatter.value = this.rt.texture;
       this.marchMat = new ShaderMaterial({
         uniforms: { ...this.marchUniforms, depthBuffer: this.depthU, cameraNear: this.nearU, cameraFar: this.farU },
         defines: { DEPTH_PACKING: '0' },
@@ -154,6 +155,11 @@ export class VolumetricsEffect extends Effect {
   setFogColor(c: Color): void { this.marchUniforms.uFogColor.value.copy(c); }
   /** the in-scatter's strength (0.55 by default; Pine Hollow's day / night clock keys it) */
   setStrength(s: number): void { this.marchUniforms.uStrength.value = s; }
+  /** the scattering medium (`ChunkAtmosphere.volumetric`): densest below `height` m, `falloff` per metre above it, overall `strength` */
+  setMedium(m: { height: number; falloff: number; density: number; strength: number }): void {
+    const u = this.marchUniforms;
+    u.uHeight.value = m.height; u.uFalloff.value = m.falloff; u.uDensity.value = m.density; u.uStrength.value = m.strength;
+  }
 
   override setDepthTexture(depthTexture: Texture, depthPacking: DepthPackingStrategies = BasicDepthPacking): void {
     if (!this.marchMat) return;

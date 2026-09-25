@@ -1,0 +1,98 @@
+[
+ {
+  "group": "eagle",
+  "label": "eagle N",
+  "calls": 76,
+  "tris": 1127738
+ },
+ {
+  "group": "eagle",
+  "label": "eagle E",
+  "calls": 89,
+  "tris": 1158402
+ },
+ {
+  "group": "eagle",
+  "label": "eagle S",
+  "calls": 61,
+  "tris": 916069
+ },
+ {
+  "group": "eagle",
+  "label": "eagle W",
+  "calls": 62,
+  "tris": 883978
+ },
+ {
+  "group": "plateau",
+  "label": "plateau S",
+  "calls": 62,
+  "tris": 911628
+ },
+ {
+  "group": "plateau",
+  "label": "plateau W",
+  "calls": 65,
+  "tris": 917139
+ },
+ {
+  "group": "valley",
+  "label": "valley 0",
+  "calls": 97,
+  "tris": 1436436
+ },
+ {
+  "group": "valley",
+  "label": "valley 1",
+  "calls": 94,
+  "tris": 1368306
+ },
+ {
+  "group": "valley",
+  "label": "valley 2",
+  "calls": 92,
+  "tris": 1413113
+ },
+ {
+  "group": "valley",
+  "label": "valley 3",
+  "calls": 98,
+  "tris": 1315132
+ },
+ {
+  "group": "valley",
+  "label": "valley 4",
+  "calls": 88,
+  "tris": 1342171
+ },
+ {
+  "group": "valley",
+  "label": "valley 5",
+  "calls": 86,
+  "tris": 1356070
+ },
+ {
+  "group": "valley",
+  "label": "valley E wall",
+  "calls": 64,
+  "tris": 986831
+ },
+ {
+  "group": "valley",
+  "label": "valley W wall",
+  "calls": 63,
+  "tris": 1020857
+ },
+ {
+  "group": "valley",
+  "label": "valley back S",
+  "calls": 63,
+  "tris": 946968
+ },
+ {
+  "group": "valley",
+  "label": "glacier",
+  "calls": 80,
+  "tris": 1118474
+ }
+]

@@ -7,5 +7,15 @@ const labels = new Set<string>();
 
 export function markGpuOnly(label: string): void { labels.add(label); }
 
+/**
+ * A runtime bake that can paint itself again (Nalati's painted range, look v2's shadow / contact bake) registers its
+ * re-bake here instead of marking itself GPU-only: an in-place restore calls it after re-linking the programs, before
+ * the first frame (NALATI-MERGE F7), so the restore stays in place instead of reloading the page.
+ */
+const rebakes: (() => void)[] = [];
+export function onGpuRestored(rebake: () => void): void { rebakes.push(rebake); }
+/** GpuRecovery.ts: re-paint every registered bake (after an in-place restore) */
+export function rebakeGpuContent(): void { for (const f of rebakes) f(); }
+
 /** what was marked (empty: an in-place restore brings the whole scene back) */
 export function gpuOnlyContent(): readonly string[] { return [...labels]; }

@@ -20,6 +20,7 @@
 //   node scripts/physics-baseline.mjs --no-build --mode=walk --video
 //   node scripts/physics-baseline.mjs --label=p2 --mode=walk
 //   node scripts/physics-baseline.mjs --compare progress/physics/p0-x.json progress/physics/p2-y.json
+//   node scripts/physics-baseline.mjs --mode=walk --shard=nalati-grasslands --url=http://127.0.0.1:5188   # a running dev server, no build
 import { spawn, execSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync, existsSync, renameSync, readdirSync, rmSync } from 'node:fs';
 import { resolve as resolvePath, join } from 'node:path';
@@ -40,6 +41,10 @@ const POSES = [
   { shard: 'driftwood-isle', name: 'beach', q: 'x=-10&z=-150&yaw=4.3' },
   { shard: 'driftwood-isle', name: 'wreck', q: 'x=105&z=0&yaw=-1.5708' },
   { shard: 'driftwood-isle', name: 'shrine', q: 'x=-86&z=92&yaw=2.47' },
+  // Nalati (NALATI-MERGE P4): the camp from the spur, the bridge from the N road, the horse plains' herd from the bowl
+  { shard: 'nalati-grasslands', name: 'camp', q: 'x=60&z=214&yaw=-1.5708' },
+  { shard: 'nalati-grasslands', name: 'bridge', q: 'x=0&z=200&yaw=0' },
+  { shard: 'nalati-grasslands', name: 'plains', q: 'x=65&z=0&yaw=3.1416' },
 ];
 
 // ── compare ──
@@ -76,23 +81,26 @@ const VIDEO = has('video');
 // both ways, a waypoint every 3 m — the stricter 0.35 m / 40° controller must not get stuck on a path players use
 const TRAILS = has('trails');
 const SERVE = resolvePath(flag('serve', ROOT)); // the checkout whose dist/ is served (a clean export of an older commit, for a same-session before / after)
+// --url: walk / pose against a server that is already running (the dev server: the working tree, no build, no preview)
+const URL_BASE = flag('url', '');
 
 const waitFor = async (fn, ms, what) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await fn()) return; await new Promise((resolve) => { setTimeout(resolve, 250); }); } throw new Error(what); };
 
 // ── build + preview ──
-if (!has('no-build')) { console.error('> pnpm build'); execSync('pnpm build', { cwd: ROOT, stdio: 'inherit' }); }
+if (URL_BASE) { /* a running server: nothing to build or serve */ }
+else if (!has('no-build')) { console.error('> pnpm build'); execSync('pnpm build', { cwd: ROOT, stdio: 'inherit' }); }
 else if (!existsSync(resolvePath(SERVE, 'dist/index.html'))) { console.error('dist/ missing; drop --no-build'); process.exit(2); }
-let listening = false, exited = null;
+let listening = URL_BASE !== '', exited = null;
 // vite itself, not `npx vite`: killing an npx wrapper leaves the server holding the port
-const preview = spawn(process.execPath, [resolvePath(ROOT, 'node_modules/vite/bin/vite.js'), 'preview', '--port', String(PORT), '--strictPort'], { cwd: SERVE, stdio: ['ignore', 'pipe', 'pipe'] });
+const preview = URL_BASE ? null : spawn(process.execPath, [resolvePath(ROOT, 'node_modules/vite/bin/vite.js'), 'preview', '--port', String(PORT), '--strictPort'], { cwd: SERVE, stdio: ['ignore', 'pipe', 'pipe'] });
 // oxlint-disable-next-line no-control-regex -- stripping vite's ANSI colours (it bolds the port number)
-preview.stdout.on('data', (d) => { if (String(d).replaceAll(/\u001B\[[\d;]*m/g, '').includes(`:${PORT}/`)) listening = true; });
-preview.stderr.on('data', (d) => { process.stderr.write(`[preview] ${d}`); });
-preview.on('exit', (code) => { exited = code ?? 'signal'; });
-const cleanup = () => { if (!preview.killed) preview.kill('SIGTERM'); };
+preview?.stdout.on('data', (d) => { if (String(d).replaceAll(/\u001B\[[\d;]*m/g, '').includes(`:${PORT}/`)) listening = true; });
+preview?.stderr.on('data', (d) => { process.stderr.write(`[preview] ${d}`); });
+preview?.on('exit', (code) => { exited = code ?? 'signal'; });
+const cleanup = () => { if (preview && !preview.killed) preview.kill('SIGTERM'); };
 process.on('exit', cleanup); process.on('SIGINT', () => { cleanup(); process.exit(130); });
 await waitFor(() => { if (exited !== null) { console.error(`vite preview exited (${exited}) — is port ${PORT} taken? --port=<free>`); process.exit(2); } return listening; }, 20_000, 'vite preview did not come up');
-const BASE = `http://localhost:${PORT}`;
+const BASE = URL_BASE === '' ? `http://localhost:${PORT}` : URL_BASE;
 let build = 'unknown';
 try { build = (await (await fetch(`${BASE}/version.json`, { cache: 'no-store' })).json()).build ?? build; } catch { /* keep 'unknown' */ }
 console.error(`> physics-baseline ${LABEL} build=${build} modes=${MODE.join(',')} cpu=${CPU}× (walk ${WALK_CPU}×)`);
@@ -107,7 +115,7 @@ async function openGame(shard, q, { cpu, video }) {
   page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));
   const cdp = await ctx.newCDPSession(page);
   if (cpu > 1) await cdp.send('Emulation.setCPUThrottlingRate', { rate: cpu });
-  await page.goto(`${BASE}/?chunk=${shard}&tier=phone&skipintro=1&nolock=1&sw=0${q ? `&${q}` : ''}`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
+  await page.goto(`${BASE}/?chunk=${shard}&tier=phone&skipintro=1&nolock=1&sw=0&mute=1${q ? `&${q}` : ''}`, { waitUntil: 'commit', timeout: TIMEOUT_MS });
   await page.waitForFunction(() => !document.querySelector('.ws-load') && window.__world !== undefined, null, { timeout: TIMEOUT_MS, polling: 250 });
   await page.waitForTimeout(SETTLE_MS);
   return { ctx, page, errors };
@@ -161,26 +169,37 @@ if (MODE.includes('walk')) {
     const first = legs[0];
     const { ctx, page, errors } = await openGame(shard, `x=${first.start.x}&z=${first.start.z}&yaw=${first.start.yaw}`, { cpu: WALK_CPU, video: VIDEO });
     if (TRAILS) {
-      // a trail that ends AT a building standing over its end (the lookout trail runs to the tower's centre, where the stair
-      // cage stands under the deck) ends where the building starts: its end points under a floor ≥ 2 m up are dropped
-      const paths = await page.evaluate(() => window.__hf.TRAILS.slice(4).map((path) => {
-        const under = ([x, z]) => { const f = window.__world.registry.floorAt(x, z); return f !== undefined && f - window.__hf.heightAt(x, z) > 2; };
-        const pts = path.slice();
-        const trim = () => { const [ax, az] = pts.at(-2), [bx, bz] = pts.at(-1), n = Math.ceil(Math.hypot(bx - ax, bz - az)); let k = n; while (k > 0 && under([ax + (bx - ax) * k / n, az + (bz - az) * k / n])) k--; if (k < n) pts[pts.length - 1] = [ax + (bx - ax) * Math.max(0, k - 1) / n, az + (bz - az) * Math.max(0, k - 1) / n]; };
-        trim(); pts.reverse(); trim(); pts.reverse();
+      const paths = (await page.evaluate(() => window.__hf.TRAILS)).slice(4);
+      // a path's ends under a deck (Nalati's sky road starts under the bridge's south ramp: the ramp's foot is where it
+      // joins the road) are drawn, not walked: its points more than 0.5 m under a registered floor are trimmed off the ends
+      const under = await page.evaluate((ps) => ps.map((path) => path.map(([x, z]) => {
+        const f = window.__world.registry?.floorAt(x, z);
+        return f !== undefined && f - window.__hf.heightAt(x, z) > 0.5;
+      })), paths.map((path) => {
+        const pts = [];
+        for (let k = 1; k < path.length; k++) {
+          const [ax, az] = path[k - 1], [bx, bz] = path[k], n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 3));
+          for (let j = k === 1 ? 0 : 1; j <= n; j++) pts.push([ax + (bx - ax) * j / n, az + (bz - az) * j / n]);
+        }
         return pts;
       }));
       legs.length = 0;
       paths.forEach((path, i) => {
+        const all = [];
+        for (let k = 1; k < path.length; k++) {
+          const [ax, az] = path[k - 1], [bx, bz] = path[k], n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 3));
+          for (let j = k === 1 ? 0 : 1; j <= n; j++) all.push({ x: ax + (bx - ax) * j / n, z: az + (bz - az) * j / n });
+        }
+        const flags = under[i] ?? [];
+        let a = 0, b = all.length;
+        while (a < b && flags[a] === true) a++;
+        while (b > a && flags[b - 1] === true) b--;
+        const kept = all.slice(a, b);
+        if (kept.length < 2) return;
         for (const dir of ['fwd', 'back']) {
-          const pts = dir === 'fwd' ? path : [...path].reverse();
-          const wps = [];
-          for (let k = 1; k < pts.length; k++) {
-            const [ax, az] = pts[k - 1], [bx, bz] = pts[k], n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 3));
-            for (let j = 1; j <= n; j++) wps.push({ x: ax + (bx - ax) * j / n, z: az + (bz - az) * j / n });
-          }
-          const [sx, sz] = pts[0];
-          legs.push({ name: `path${i}-${dir}`, start: { x: sx, z: sz, yaw: Math.atan2(-(wps[0].x - sx), -(wps[0].z - sz)) }, waypoints: wps, timeout: 240 });
+          const pts = dir === 'fwd' ? kept : [...kept].reverse();
+          const [s0, ...wps] = pts;
+          legs.push({ name: `path${i}-${dir}`, start: { x: s0.x, z: s0.z, yaw: Math.atan2(-(wps[0].x - s0.x), -(wps[0].z - s0.z)) }, waypoints: wps, timeout: 240 });
         }
       });
     }
@@ -191,8 +210,17 @@ if (MODE.includes('walk')) {
           const w = window.__world, p = w.player;
           p.keys.clear();
           p.velocity.set(0, 0, 0);
+          // spawn() puts the feet on the terrain: under a walkway board or a ramp that is inside it — land on the top of
+          // whatever static floor stands within 2.5 m over the ground there instead (a teleport, not the walk)
+          const land = () => {
+            const ph = w.physics, R = ph.R, x = p.position.x, z = p.position.z, top = p.position.y + 2.5;
+            const hit = ph.world.castRay(new R.Ray({ x, y: top, z }, { x: 0, y: -1, z: 0 }), 2.6, true, R.QueryFilterFlags.EXCLUDE_SENSORS, undefined, undefined, undefined, (c) => c.parent()?.isFixed() ?? true);
+            if (hit) p.position.y = Math.max(p.position.y, top - hit.timeOfImpact);
+            p.prevFeet?.copy(p.position);
+          };
           p.spawn(legIn.start.x, legIn.start.z, legIn.start.yaw);
-          if (typeof legIn.start.y === 'number') p.position.y = legIn.start.y; // spawn() puts the feet on the terrain; a deck start needs its floor
+          if (typeof legIn.start.y === 'number') p.position.y = legIn.start.y; // a deck start names its floor
+          else land();
           p.pitch = -0.12;
           if (w.animals.__frozen !== true) { w.animals.update = () => undefined; w.animals.__frozen = true; } // no creature in the way of the route (they are the poses' job)
           await new Promise((resolve) => { setTimeout(resolve, 600); }); // land, settle the camera
@@ -211,7 +239,7 @@ if (MODE.includes('walk')) {
               if (d < lastProg.d - 0.3) lastProg = { t, d };
               else if (t - lastProg.t > 2) { // no progress for 2 s: log it and skip on to the next waypoint
                 stuck.push({ wp: wi, x: Number(p.position.x.toFixed(2)), y: Number(p.position.y.toFixed(2)), z: Number(p.position.z.toFixed(2)) });
-                p.spawn(wp.x, wp.z, p.yaw); wi++; lastProg = { t, d: Infinity }; return;
+                p.spawn(wp.x, wp.z, p.yaw); land(); wi++; lastProg = { t, d: Infinity }; return;
               }
               p.yaw = Math.atan2(-dx, -dz);
               p.keys.add('KeyW');

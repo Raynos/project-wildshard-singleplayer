@@ -6,7 +6,7 @@ import type { Animal } from '../Animal';
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from './rigs';
 
 /**
- * Drowned Sailor — the wreck's guardian (art/driftwood-enemy-3-wreckghost.png): a bone-white faceted skeleton in the
+ * Drowned Sailor — the wreck's guardian (art/driftwood-isle/round-3-enemies/driftwood-enemy-3-wreckghost.png): a bone-white faceted skeleton in the
  * rags of a striped shirt and dark breeches, a red bandana, seaweed hanging off its shoulders and belt, glowing cyan
  * eyes (the eye material is emissive — `eyeGlow`; Enemies.ts adds the faint cyan point light) and a cutlass in its
  * right hand. Humanoid custom rig: body (pelvis, root) · spine · chest · head · per side arm sh / el / hand, leg

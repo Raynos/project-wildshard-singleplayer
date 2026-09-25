@@ -25,7 +25,13 @@ import { MUSIC_MANIFESTS } from '../boot/audio.generated';
  *  no 404 in the console, no request at all while the generated music has not landed */
 export const shipped = (path: string): boolean => path in PUBLIC_BYTES;
 
-export type SlotName = 'pine' | 'island' | 'title' | 'night' | 'boss';
+/** NALATI-MERGE A2: Nalati's own score (public/assets/music/nalati/music.json — one Kazakh-folk score whatever the style,
+ *  src/audio/SteppeScore.ts): a theme per zone, the night, the storm (Jel Ata's cue), the Golden King */
+export type SteppeSlot = 'steppe-grass' | 'steppe-sky' | 'steppe-snow' | 'steppe-night' | 'steppe-storm' | 'steppe-king';
+export const STEPPE_SLOTS: readonly SteppeSlot[] = ['steppe-grass', 'steppe-sky', 'steppe-snow', 'steppe-night', 'steppe-storm', 'steppe-king'];
+export const isSteppeSlot = (s: string | null | undefined): s is SteppeSlot => s?.startsWith('steppe-') === true;
+/** 'night' / 'boss': Pine Hollow's (PH-A1, the `pine-hollow` music set) */
+export type SlotName = 'pine' | 'island' | 'title' | 'night' | 'boss' | SteppeSlot;
 export type StemSting = 'pickup' | 'death' | 'chunk' | 'dawn';
 /** a music set: the style's own folder, or Pine Hollow's (`pine-hollow-<style>/`) */
 export type MusicSet = 'base' | 'pine-hollow';
@@ -40,7 +46,7 @@ export interface SlotSpec {
 }
 export interface MusicManifest { style: string; credit: string; slots: Partial<Record<SlotName, SlotSpec>>; stings: Partial<Record<StemSting, string>> }
 
-const SLOTS: SlotName[] = ['pine', 'island', 'title', 'night', 'boss'];
+const SLOTS: SlotName[] = ['pine', 'island', 'title', 'night', 'boss', ...STEPPE_SLOTS];
 const STINGS: StemSting[] = ['pickup', 'death', 'chunk', 'dawn'];
 const PHASES: BossPhase[] = [1, 2, 3];
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);

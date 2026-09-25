@@ -28,8 +28,10 @@ import { Trailside } from './world/Trailside';
 import { Hands } from './player/Hands';
 import { Sword, swordEvents } from './player/Sword';
 import { CameraFX } from './player/CameraFX';
+import { buildNalatiKit } from './player/nalatiKit';
 import { IronSwordPickup, ironSwordSite } from './player/IronSword';
 import { installAdventure } from './game/quest/Adventure';
+import { installNalatiAdventure, CAPTIONED_EVENTS } from './nalati/adventure';
 import type { Weapon } from './player/Weapon';
 import { Horizon } from './world/Horizon';
 import { HorizonMatte } from './world/HorizonMatte';
@@ -63,10 +65,13 @@ import { GameMenu } from './ui/Menu';
 import { Progress } from './game/Progress';
 import { Inventory, harvestOf, ITEMS } from './game/Inventory';
 import { getNumber, onNumber, onSettingChange, setting } from './ui/Settings';
+import { dayClockClock, dayNightClock, setActiveClock } from './world/WorldClock';
+import { DayNight } from './world/DayNight';
 import { KeepAlive } from './core/KeepAlive';
 import { Combat, aimReadout } from './ui/Combat';
-import { HurtArc, deathLine } from './ui/HurtArc';
-import { setAimTargets, meleeLock, lockOn as lockState } from './player/AimTargets';
+import { HurtArc, deathLine, respawnWhere, type Killer } from './ui/HurtArc';
+import { setAimTargets, meleeLock, lockOn as lockState, type AimTarget } from './player/AimTargets';
+import { pastRidden, riding } from './player/riding';
 import { createBootPlan, macrotask, slicer, type StepRunner } from './boot/plan';
 import { useShardSteps } from './boot/steps';
 import { declareTotals, installByteCounter } from './boot/bytes';
@@ -74,6 +79,7 @@ import { bootFiles, extraFetches, startAudioPreload, startMenuPreload } from './
 import { bootFetches, prefetch, prefetchAfter } from './boot/prefetch';
 import { packFor, streamPack } from './boot/pack';
 import { getActiveChunk } from './chunks/registry';
+import { meleeShard } from './chunks/ChunkDef';
 import { Audio } from './audio/Audio';
 import { Music } from './audio/Music';
 import { ShrineHum } from './audio/ShrineHum';
@@ -89,6 +95,7 @@ import type { Feedback } from './ui/Feedback';
 import type { Explore, ExploreMode } from './explore/Explore';
 import { registerDriftwoodModels, registerPineHollowModels } from './explore/catalog';
 import { TIER } from './core/tier';
+import { wireNalati, type Nalati } from './nalati';
 import { islandMode } from './world/blenderArea';
 import { boxDesc, type ColliderDesc, type ModelEntry, type PieceCategory } from './world/registry';
 import { cutTerrain } from './physics/terrain';
@@ -142,7 +149,7 @@ async function main() {
   // world's files; the selected style + set are decoded as their bytes land — nothing is fetched after the bar
   prefetchAfter(extraFetches(files), packStreamed);
   const menuLoad = startMenuPreload(files, getActiveChunk()), audioLoad = startAudioPreload(files, getActiveChunk());
-  startViewmodelTextures(getActiveChunk().weapon !== 'sword'); // the crossbow's + rifle's textures, drawn in a worker while the world builds
+  startViewmodelTextures((getActiveChunk().weapon ?? 'crossbow') === 'crossbow'); // the crossbow's + rifle's textures, drawn in a worker while the world builds
   const world = await bootstrap(step);
   const { game, sky, player, forest, params, chunk, registry } = world;
   // a static builder into the world registry (PHYSICS P2b): drawn, collides (its boxes as ColliderDescs), and until P4
@@ -158,6 +165,8 @@ async function main() {
   // what the view-dependent layers (ground cover, grass, mist) fill around: the player, or Explore's free camera (E66)
   const viewer = (): THREE.Vector3 => (world.freeCamera ? game.camera.position : player.position);
   const sea = chunk.ocean, isOcean = sea !== undefined; // open-water shard (Driftwood Isle): ocean + pier, no forest carpet / cabins / props
+  const painterly = chunk.style === 'painterly'; // Nalati: no undergrowth / cabins / props — its world is wired by src/nalati (the props step)
+  let nalati: Nalati | null = null;
 
   // ── world dressing ──
   const dressing = await step('edge', async () => {
@@ -274,9 +283,11 @@ async function main() {
   const bridgeDeck = bridge ? new RopeChain(world.physics, bridge.chainSpec()) : null;
   if (bridgeDeck) game.onFixed('post', () => { bridgeDeck.capture(); });
   // the paths as walkways where they cross ground steeper than the motor climbs (PHYSICS P4) — now that the decks are
-  // registered, none where a deck carries the path (a board there pokes up through the bridge's planks)
-  registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/physics/paths.ts', surface: 'ground',
-    colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) });
+  // registered, none where a deck carries the path (a board there pokes up through the bridge's planks); Nalati's decks
+  // register in its props step (NALATI-MERGE P1), so its paths are laid after that
+  const addPaths = (): void => { registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/physics/paths.ts', surface: 'ground',
+    colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) }); };
+  if (!painterly) addPaths();
   // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52): ?island=blender|procedural, Settings ▸ Graphics ▸ Island
   const blenderIsland = isOcean && islandMode() === 'blender'
     ? await import('./world/BlenderIsland').then(({ BlenderIsland: B }) => B.install({
@@ -290,16 +301,17 @@ async function main() {
     // no forest carpet over open water (grass scattered the whole sea floor for 19 s)
     const grass = isOcean ? null : new Grass(sky, forest).build();
     await macrotask();
-    const under = isOcean ? null : await new Undergrowth(sky, forest).buildAsync(macrotask); // a task per placement pass
+    const under = isOcean || painterly ? null : await new Undergrowth(sky, forest).buildAsync(macrotask); // a task per placement pass
     const particles = isOcean ? null : new Particles(sky, forest).build(); // pine-forest mist + needle fall: nothing to fall from on the island (E7 B8)
-    if (grass && under) game.scene.add(grass.group, under.group);
+    if (grass) game.scene.add(grass.group);
+    if (under) game.scene.add(under.group);
     if (particles) game.scene.add(particles.group);
     return { grass, under, particles };
   });
   const { grass, under, particles } = carpet;
 
   const homestead = await step('cabins', async () => {
-    if (isOcean) return { cabins: null, interactables: [] as Awaited<ReturnType<Cabins['build']>>['interactables'], landmarks: null };
+    if (isOcean || painterly) return { cabins: null, interactables: [] as Awaited<ReturnType<Cabins['build']>>['interactables'], landmarks: null };
     const cabins = new Cabins(sky, chunk.slug === 'pine-hollow' ? pineHamletBuildings() : []); // PH-B3: + the mill hamlet, one merged cluster
     const { group: cabinGroup, interactables } = await cabins.build();
     game.scene.add(cabinGroup);
@@ -317,6 +329,7 @@ async function main() {
   });
   const { cabins, interactables, landmarks } = homestead;
   const props = await step('props', async () => {
+    if (painterly) { nalati = await wireNalati({ game, sky, player, forest, chunk }); addPaths(); return null; } // the Nalati world (src/nalati/index.ts)
     if (isOcean) return null;
     const built = new Props(sky, forest);
     const object = await built.build();
@@ -337,6 +350,10 @@ async function main() {
     p.detail(`${a.animals.length} animals`);
     return a;
   });
+  const nalatiNow = (): Nalati | null => nalati; // (a closure: TS narrows the `let` to null after the props step's callback)
+  const wildlife = nalatiNow()?.attachAnimals(animals) ?? null; // Nalati's wolves / horses / sheep over the AnimalManager (src/nalati/index.ts)
+  const ride = nalatiNow()?.ride ?? null; // Nalati's riding + taming (src/nalati/ride.ts): ONE prompt, always the nearest horse action
+  if (ride) interactables.push(ride.interactable);
   // the island's enemies (Enemies.ts): reef crabs at the tidepools, coconut monkeys in the groves, the drowned sailor in the wreck's hold
   const enemies = isOcean ? new Enemies(animals, { scene: game.scene, sky, palms: palmSpecs, wreck, crabSites: cove?.crabSites ?? [] }).build() : null;
   // the island's models, for Explore World's catalog and tap-to-select (src/explore/registry.ts: a shard registers what it built)
@@ -344,18 +361,27 @@ async function main() {
   else if (chunk.slug === 'pine-hollow') registerPineHollowModels({ sky, cabins, water, forest, props, at: { x: chunk.spawn.x + 8, z: chunk.spawn.z + 30 } });
   const dayNight = sky.dayNight; // the low-poly shard's clock (DayNight.ts, D3): the sailor walks at night, the shrine glows, the jungle swaps to crickets
   if (dayNight) animals.enemyWorld.night = () => dayNight.night;
-  if (dayNight) onSettingChange('time', (t) => { dayNight.setTime(t); }); // pause menu ▸ Settings ▸ Time of day (E55)
+  // the day clock behind one interface (src/world/WorldClock.ts, NALATI-MERGE F8): Driftwood's DayNight or Nalati's DayClock —
+  // Settings ▸ Time of day, Explore's light presets and the HUD's sun / moon glyph reach either (a URL ?time= wins on Nalati)
+  const nalatiClock = nalatiNow()?.weather.clock;
+  // Pine Hollow's clock (PineDayNight) keeps its own Settings (Debug ▸ Time of day): only Driftwood's DayNight goes through WorldClock
+  const worldClock = dayNight instanceof DayNight ? dayNightClock(dayNight) : nalatiClock ? dayClockClock(nalatiClock, params.has('time') ? 'live' : setting('time')) : null;
+  setActiveClock(worldClock);
+  if (worldClock) onSettingChange('time', (t) => { worldClock.setTime(t); }); // pause menu ▸ Settings ▸ Time of day (E55)
 
   // ── player kit: the shard's weapon + the AR-15 (Weapons.ts: 1 / 2 / Q, touch SWAP; the rifle is a cabin pickup), HUD, audio ──
   await step('weapon', () => viewmodelTexturesReady()); // the viewmodels' textures from the worker (usually long done); the build below is synchronous
   const targets: Targets = {
     raycast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): TargetHit | null {
-      const h = animals.raycast(origin, dir, maxDist);
-      return h ? { animal: h.animal as unknown as TargetHit['animal'], point: h.point, distance: h.distance, headshot: h.headshot } : null; // Animal.kind is any species id; the weapons only read deer / boar
+      const h = pastRidden(() => animals.raycast(origin, dir, maxDist)); // never the horse you ride (src/player/riding.ts)
+      const hit = h ? { animal: h.animal as unknown as TargetHit['animal'], point: h.point, distance: h.distance, headshot: h.headshot } : null; // Animal.kind is any species id; the weapons only read deer / boar
+      return wildlife ? nalatiNow()?.sheepTarget(origin, dir, maxDist, hit) ?? hit : hit; // Nalati: the sheep flock is a target too
     },
   };
-  // the shard hands the player its weapon (ChunkDef.weapon): the wooden sword on Driftwood Isle, the crossbow elsewhere
-  const crossbow: Weapon = chunk.weapon === 'sword'
+  // the shard hands the player its weapon (ChunkDef.weapon): the wooden sword on Driftwood Isle, the crossbow elsewhere;
+  // Nalati its own three (src/player/nalatiKit.ts: bow · sabre · spear + javelins, the weapon strip)
+  const nalatiKit = chunk.slug === 'nalati-grasslands' ? buildNalatiKit({ game, sky, player, forest }, targets, nolock) : null;
+  const crossbow: Weapon = nalatiKit ? nalatiKit.base : chunk.weapon === 'sword'
     ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock })
     : new Crossbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
   await macrotask(); // each viewmodel in its own task
@@ -369,9 +395,10 @@ async function main() {
   const longbow = isPine ? new Longbow({ game, sky, player, forest }, targets, { allowUnlocked: nolock }) : null;
   // the iron sword is FOUND on the wreck's deck (IronSword.ts) — wooden stays 1, iron becomes 2 once taken
   const ironSword = chunk.weapon === 'sword' ? new Sword({ game, sky, player, forest }, targets, { allowUnlocked: nolock, blade: 'iron' }) : null;
-  const weapons = new Weapons(crossbow, rifle, ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : longbow ? [{ weapon: longbow, id: 'bow', name: "Warden's longbow" }] : []); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
+  const weapons = new Weapons(crossbow, rifle, nalatiKit ? nalatiKit.extras : ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : longbow ? [{ weapon: longbow, id: 'bow', name: "Warden's longbow" }] : [], nalatiKit?.options); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
   const lockSys = new LockOnSystem(player, weapons, game.camera); // the Zelda lock-on (E50): LOCK / Z, orbit, flick-switch — src/player/LockOnTarget.ts
   new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
+  nalatiKit?.install(weapons, game); // Nalati: all three slots owned, the bow in hand, the weapon strip
   weapons.adsHeld = params.has('ads');
   await macrotask();
   const hud = new HUD({ pointerLock: !nolock });
@@ -385,9 +412,10 @@ async function main() {
   await macrotask();
   await step('menu', (p) => menuLoad.wait(p)); // the cards' art in memory before the title builds its deck (showIntro below)
   const audio = new Audio();
+  if (params.has('mute')) { audio.muted = true; audio.master.disconnect(); } // headless tests / captures: never make a sound
   // the Wildshard theme (project/archive/2026-09-23-music.md): the same score as the trailer, adaptive in play — menu / calm / alert / combat / underwater + stings
   const music = new Music(audio);
-  music.setState({ shard: chunk.ocean ? 'island' : 'pine', mode: 'menu', intensity: 0, underwater: false });
+  music.setState({ shard: chunk.ocean ? 'island' : chunk.style === 'painterly' ? 'steppe' : 'pine', mode: 'menu', intensity: 0, underwater: false });
   // the ring shrine hums by proximity and ducks the score up close (project/archive/2026-09-23-music.md v3 row 9)
   const shrineHum = shrine ? new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z }) : null;
   const respawn = () => { player.spawn(chunk.spawn.x, chunk.spawn.z, chunk.spawn.yaw); if (pier) { const y = pier.floorHeightAt(player.position.x, player.position.z); if (y !== undefined) player.position.y = y; } music.sting('death'); };
@@ -401,6 +429,7 @@ async function main() {
     fullMap, progress, inventory,
     kit: () => weapons.available.map((w) => { const worn = w.id === 'crossbow' || w.id === 'rifle' ? skins.wearing(w.id) : null; return { id: w.id, name: (w.id === 'crossbow' ? 'Hunting crossbow' : w.id === 'sword' ? 'Wooden sword' : w.name) + (worn ? ` · ${worn.name}` : ''), ammoLabel: w.id === 'crossbow' ? (w.ammoLabel === 'Bolts' ? 'Iron bolts' : w.ammoLabel) : w.ammoLabel, ammo: w.state.ammo ?? 0, magazine: w.state.magazine, reserve: w.state.reserve, equipped: w === weapons.current, icon: w.id === 'rifle' ? (isPine ? 'lever' : 'rifle') : w.id === 'bow' ? 'longbow' : w.id === 'crossbow' ? 'crossbow' : 'sword' }; }),
     onEquip: (id) => weapons.select(id as WeaponId),
+    skins: () => nalatiNow()?.skins.entries() ?? [], onWearSkin: (id) => { nalatiNow()?.skins.toggle(id); }, // Nalati's wearable skins (B15)
   });
   hud.menu = menu; // pause → Settings tab; the menu's CLOSE → hud.onResume
   fullMap.bindMinimap(() => { if (hud.entered) menu.open('map'); });
@@ -450,13 +479,15 @@ async function main() {
     const q = queuedCount(); noteDisc.classList.toggle('queued', q > 0); if (noteBadge) noteBadge.textContent = String(q);
   };
   onReview(syncNoteDisc);
-  progress.onEarned = (d) => { hud.toast(`Achievement · ${d.name} — title unlocked: ${d.title}`); audio.hitMarker(); };
+  progress.onEarned = (d) => { if (d.event === undefined || !CAPTIONED_EVENTS.has(d.event)) hud.toast(`Achievement · ${d.name} — title unlocked: ${d.title}`); audio.hitMarker(); }; // a Nalati chapter's own caption announces its title
   const masterGain = () => { if (!audio.muted) audio.master.gain.setTargetAtTime(0.6 * getNumber('volume'), audio.ctx.currentTime, 0.05); };
   onNumber('volume', masterGain);
 
   const hands = new Hands(sky, game.camera); // white-gloved swimming hands (shown only while player.swimming)
   if (chunk.weapon === 'sword') (crossbow as Sword).onHeavy = () => { if (!isOcean) audio.swordHeavy(); }; // the charged overhead (Weapons does not forward it); the island's is swordEvents.onSwing
-  weapons.onFire = () => { if (weapons.current.id === 'rifle') audio.rifleFire(); else if (chunk.weapon !== 'sword') audio.crossbowFire(); else if (!isOcean) audio.swordSwing(); }; // the island's whoosh: swordEvents.onSwing
+  const meleeHeld = () => chunk.weapon === 'sword' || nalatiKit?.melee(weapons.current.id) === true; // the swords / the sabre / the spear
+  // Nalati's kit voices (src/nalati/sound.ts) first; the island's whoosh is swordEvents.onSwing
+  weapons.onFire = () => { if (nalatiNow()?.sound?.fire(weapons.current.id) === true) { /* voiced */ } else if (weapons.current.id === 'rifle') audio.rifleFire(); else if (!meleeHeld()) audio.crossbowFire(); else if (!isOcean) audio.swordSwing(); nalatiNow()?.onShot(); };
   weapons.onDry = () => audio.dryFire();
   weapons.onReloadStart = () => (weapons.current.id === 'rifle' ? audio.rifleReload() : audio.reload());
   weapons.onSwap = () => audio.weaponSwap();
@@ -464,7 +495,8 @@ async function main() {
     const dx = point.x - player.position.x, dz = point.z - player.position.z, d = Math.hypot(dx, dz);
     const rx = Math.cos(player.yaw), rz = -Math.sin(player.yaw);
     const pan = d > 1 ? ((dx * rx + dz * rz) / d) * 0.7 : 0, gain = 1 / (1 + d / 12);
-    if (weapons.current.id !== 'rifle' && chunk.weapon === 'sword') { if (!isOcean) audio.swordHit(surface, pan, gain); } else audio.boltImpact(surface, pan, gain); // the island's: swordEvents.onStrike
+    if (nalatiNow()?.sound?.impact(weapons.current.id, surface, pan, gain) === true) { /* Nalati: arrow / javelin / sabre (src/nalati/sound.ts) */ } else if (weapons.current.id !== 'rifle' && meleeHeld()) { if (!isOcean) audio.swordHit(surface, pan, gain); } else audio.boltImpact(surface, pan, gain); // the island's: swordEvents.onStrike
+    nalatiNow()?.onImpact(surface, point); // Nalati: an arrow landing by a herd / the flock spooks it
   };
   weapons.onHit = (_kind, headshot, killed) => {
     music.combat(0.7);
@@ -473,7 +505,10 @@ async function main() {
     if (killed) { kills++; audio.kill(); }
     buzz(killed ? HAPTIC.kill : HAPTIC.hit);
   };
-  setAimTargets(animals.animals); // aim assist reads the live array
+  // aim assist reads the live array; Nalati hands it a filtered copy each frame (B9 / B15: a wolf hidden in long grass, the
+  // horse you ride and the camp horses / Tulpar are not targets — the sabre's pass side reads the same list)
+  const aimList: AimTarget[] = [];
+  setAimTargets(painterly ? aimList : animals.animals);
   // the AR-15 is found, not issued: a floating pickup on the floor of cabin 1 (the hollow), inside by the door wall
   // (cabin local frame: door on +X, chimney end -Z — Cabin.ts); "[E] Take AR-15" through the door / harvest prompt path
   const rifleDrop = (() => {
@@ -498,6 +533,9 @@ async function main() {
   if (params.get('weapon') === 'iron' && ironSword) { weapons.unlock('sword-iron'); weapons.select('sword-iron', true); ironDrop?.dispose(); }
   // ── Driftwood's adventure (plan Track A: interactables, the quest, the castaway, collectibles; src/game/quest/Adventure.ts) — null on any other shard ──
   installAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, inventory, progress, fullMap, animals, ironDrop, setViewmodel: (on) => { weapons.visible = on; }, bridgeFloor: bridge ? (x, z) => bridge.floorHeightAt(x, z) : undefined, pois: { hut, lookout, wreck, shrine, cave: cove }, params });
+  // ── Nalati's adventure (NALATI-MERGE Q1–Q5: the camp's people, the quest line, places with saved discovery on the full map;
+  // src/nalati/adventure.ts on the shared quest core) — null on any other shard ──
+  installNalatiAdventure({ game, sky, player, chunk, prompts: interactables, registry, hud, audio, music, progress, fullMap, ride, animals, nalati: nalatiNow(), params });
   // ── legendary skins (src/player/Skins.ts): the Ghost stag drops the GHOST STAG crossbow, Old Ironhide the IRONHIDE AR-15 —
   // a big purple floating pickup where the animal fell (WeaponPickup tier 'rare'); taking it swaps the skin (and hands you the
   // rifle if you had not found it). What you own / wear persists; `?skin=ghost-stag` previews, `?drop=ironhide` spawns one ahead.
@@ -543,12 +581,12 @@ async function main() {
   // taking a hit (B3): the arc points at the attacker (src/ui/HurtArc.ts), a hurt grunt panned toward it (Audio.hurt — it
   // used to be the landing thud), and the killer is remembered for the death toast (B2)
   const hurtArc = new HurtArc();
-  let killer: { kind: string; label: string } | null = null;
+  let killer: Killer | null = null;
   animals.onCharge = (a, dmg) => {
     health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); music.combat(0.9);
     killer = { kind: a.kind, label: a.label };
-    if (chunk.weapon === 'sword' || pineFights !== null) hurtArc.hit(a.position.x, a.position.z, player.position, player.yaw, dmg); // the direction arc: the island (D8) + Pine Hollow (PH-F1)
-    if (chunk.weapon === 'sword' || pineFights !== null) CameraFX.for(game).addTrauma(Math.min(0.85, 0.3 + dmg / 40)); // a trauma² shake (C3; Pine Hollow PH-F1)
+    if (meleeShard(chunk) || pineFights !== null) hurtArc.hit(a.position.x, a.position.z, player.position, player.yaw, dmg); // the direction arc: the melee shards (D8; Nalati F2) + Pine Hollow (PH-F1)
+    if (meleeShard(chunk) || pineFights !== null) CameraFX.for(game).addTrauma(Math.min(0.85, 0.3 + dmg / 40)); // a trauma² shake (C3; Pine Hollow PH-F1)
     player.shove(a.position.x, a.position.z, 5 + Math.min(4, dmg * 0.15)); // knocked back a step, through the controller (PHYSICS P2)
     const dx = a.position.x - player.position.x, dz = a.position.z - player.position.z, d = Math.hypot(dx, dz);
     audio.hurt(dmg / 20, d > 0.3 ? ((dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw)) / d) * 0.7 : 0);
@@ -584,8 +622,38 @@ async function main() {
     const p = player.position;
     if (islandSfx && surfaces && !(player.wading && player.depth > 0.3)) islandSfx.footstep(player.wading ? 'water' : surfaces.surfaceAt(p.x, p.z, p.y), Math.hypot(player.velocity.x, player.velocity.z));
     else if (player.wading) audio.wadeStep(player.depth, sprinting);
-    else audio.footstep(sprinting, pier?.floorHeightAt(p.x, p.z) !== undefined ? 'planks' : sea !== undefined && heightAt(p.x, p.z) - sea.level < 2.6 ? 'sand' : ambience instanceof ForestAmbience ? ambience.stepSurface(p.x, p.z, p.y) : 'litter');
+    else { const hoof = audio.hoofSurfaceAt?.(p.x, p.z); audio.footstep(sprinting, hoof !== undefined ? (hoof === 'wood' ? 'planks' : hoof) : pier?.floorHeightAt(p.x, p.z) !== undefined ? 'planks' : sea !== undefined && heightAt(p.x, p.z) - sea.level < 2.6 ? 'sand' : ambience instanceof ForestAmbience ? ambience.stepSurface(p.x, p.z, p.y) : 'litter'); } // Nalati: its hoof ground (src/nalati/sound.ts); Pine Hollow: ForestAmbience's ground (PH-A3)
   };
+  // Nalati's boss fights (src/nalati/kurganBoss.ts, B13): the Golden King needs the animals, the kit and the HUD
+  nalatiNow()?.bindPlay({
+    kit: nalatiKit, health01: () => health / 100, toast: (text) => hud.toast(text), flash: () => hud.damageFlash(),
+    hurt: (dmg) => { killer = { cause: 'Thrown from the saddle' }; health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); audio.land(true); }, // a throw / a bolt (Mount, Taming)
+  }); // Nalati's creatures: brace kills, knock-downs, howl / stampede toasts
+  // Nalati's weather (src/nalati/weather.ts, B10): the storm's audio beds + thunder, and a lightning strike's 60 damage
+  nalatiNow()?.sound?.bind(audio, music); // Nalati's sound (B16 audio): hoof ground, the steppe bed, the music's steppe mood
+  nalatiNow()?.weather.bind({ audio, hurt: (dmg, why) => { killer = { cause: 'Struck by lightning' }; health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); hud.toast(why); audio.land(true); } });
+  nalatiNow()?.boss.bind({
+    animals, setWeaponsEnabled: (on) => { weapons.setEnabled(on); }, bow: nalatiKit?.bow ?? null, refill: () => { nalatiKit?.refill(); }, interactables, params,
+    toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, pickupHum: (on) => { audio.pickupHum(on); }, trophy: () => { inventory.add('gold-plaque'); },
+    music: (e) => { if (e === 'death' || e === 'pickup') music.sting(e); else if (e === 'victory') music.sting('chunk'); else music.combat(1); },
+  });
+  // Nalati's named elites (src/nalati/elites.ts, B12): lairs, bars, banners, drops — taming (B8) hands in when it is wired
+  nalatiNow()?.elites.bind({
+    animals, wildlife, taming: ride?.taming ?? null, ghosts: null, interactables, params,
+    toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, addItem: (id) => { inventory.add(id); }, record: (k, v) => { progress.recordKill(k, v); progress.recordEvent(k); },
+    pickupHum: (on) => { audio.pickupHum(on); }, sound: (n, at) => { audio.animal(n, at, player.position, player.yaw); },
+    sting: (e) => { if (e === 'kill') music.sting('chunk'); else music.combat(e === 'phase2' ? 1 : 0.8); },
+  });
+  // Nalati's Storm Titan (src/nalati/stormTitan.ts, B14): the cairn prompt, the fight, Naizagai (the sabre upgrade) once won
+  nalatiNow()?.titan.bind({
+    animals, wildlife, ride, sabre: nalatiKit?.sabre ?? null, setWeaponsEnabled: (on) => { weapons.setEnabled(on); }, refill: () => { nalatiKit?.refill(); }, interactables, params,
+    hurt: (dmg, why) => { killer = { kind: 'storm-titan', label: 'the Storm Titan' }; health = Math.max(0, health - dmg); lastHurt = performance.now(); hud.damageFlash(); if (why) hud.toast(why); audio.land(true); },
+    toast: (s) => { hud.toast(s); }, feed: (s) => { hud.killFeed(s); }, record: (k, v) => { progress.recordKill(k, v); progress.recordEvent(k); }, pickupHum: (on) => { audio.pickupHum(on); },
+    ownSkin: (id) => { nalatiNow()?.skins.own(id); },
+    music: (e) => { if (e === 'death' || e === 'pickup') music.sting(e); else if (e === 'victory') music.sting('chunk'); else music.combat(1); },
+  });
+  if (ride) ride.taming.onBreaking = (on) => { weapons.visible = !on; weapons.setEnabled(!on); }; // both hands in the mane while he bucks
+  if (ride) ride.taming.onBonded = () => { progress.recordEvent('tame'); }; // B15: the Horse Sense achievement
   if (gulls) gulls.onCall = (pos) => audio.gullCallAt(pos, player.position, player.yaw);
   player.onEnterWater = (impact) => audio.splash(impact);
   player.onSubmerge = () => { audio.dive(); islandSfx?.plunge(false); audio.setUnderwater(true); ambience?.setUnderwater(true); music.setState({ underwater: true }); };
@@ -685,13 +753,15 @@ async function main() {
   });
 
   let musicPoll = 0;
+  const steppeMusic = chunk.style === 'painterly';
   game.onUpdate((dt, t) => {
     // music: once a second (not per frame) — an animal that has noticed you within 40 m lifts calm → alert; combat comes from the hit hooks and decays by itself
     if (t - musicPoll > 1) {
       musicPoll = t;
       syncNoteDisc(); // the ✎ disc follows entered / the touch layer / the Quick note switch, once a second
       if (music.state.mode !== 'combat' && music.state.mode !== 'menu') {
-        const noticed = animals.animals.some((a) => a.alive && (a.state === 'alert' || a.state === 'stalk') && a.position.distanceTo(player.position) < 40);
+        // (the steppe's herds and the flock dog go 'alert' as you ride by: only a hostile one lifts Nalati's score — NALATI-MERGE A2)
+        const noticed = animals.animals.some((a) => a.alive && (a.state === 'alert' || a.state === 'stalk') && (!steppeMusic || a.aggressive) && a.position.distanceTo(player.position) < 40);
         music.setState({ mode: noticed ? 'alert' : 'calm', intensity: noticed ? 0.5 : 0 });
       }
     }
@@ -712,9 +782,11 @@ async function main() {
     under?.update(dt, viewer());
     particles?.update(dt, viewer(), game.camera);
     cabins?.update(dt, t);
+    nalati?.update(dt, t);
     // swimming holsters the weapon (hands only; Hands.ts follows)
     if (player.swimming !== swimHold) { swimHold = player.swimming; weapons.visible = !swimHold; weapons.setEnabled(!swimHold); }
     animals.update(dt, t, player.position, player.sprinting, game.camera);
+    if (painterly) { aimList.length = 0; for (const a of animals.animals) if (a.mem['hidden'] !== 1 && a.mem['owned'] !== 1 && a !== riding.horse) aimList.push(a); const heart = nalati?.titan.lockTarget() ?? null; if (heart !== null) aimList.push(heart); } // + Jel Ata's heart for the lock-on (NALATI-MERGE H3)
     weapons.update(dt, t); // every weapon ticks (bolts in flight keep flying while the rifle is out)
     pineLoadout?.update(dt); weaponStrip?.update();
     rifleDrop?.update(dt, t, game.renderer, game.camera);
@@ -737,8 +809,15 @@ async function main() {
 
     // slow health regen; death → respawn at the gate
     if (health < 100 && performance.now() - lastHurt > 6000) health = Math.min(100, health + dt * 4);
-    // death → the toast names the killer and this shard's respawn point (deathLine); only a weapon with ammo is topped up
-    if (health <= 0) { health = 100; audio.death(); if (pineFights?.onPlayerDeath() !== true) { hud.toast(deathLine(killer, isOcean)); respawn(); } killer = null; hud.damageFlash(); pineLoadout?.onPlayerDeath(); if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30)); } // the Antler King's fight keeps its own checkpoint
+    // death → the toast names the killer and this shard's respawn point (deathLine); only a weapon with ammo is topped up.
+    // A death in a boss fight is handled there (back at the phase checkpoint): Nalati's King / Titan, Pine Hollow's Antler King
+    if (health <= 0) {
+      health = 100; audio.death(); hud.damageFlash();
+      if (ride?.mounted === true) ride.mount.dismount();
+      if (pineFights?.onPlayerDeath() !== true && nalati?.boss.onPlayerDeath() !== true && nalati?.titan.onPlayerDeath() !== true) { hud.toast(deathLine(killer, respawnWhere(chunk))); respawn(); }
+      if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30));
+      killer = null; nalatiKit?.refill(); pineLoadout?.onPlayerDeath();
+    }
     hurtArc.update(dt, player.position, player.yaw);
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
@@ -774,6 +853,7 @@ async function main() {
   // last: the audio downloads while the shaders compile; the selected style + set are decoded as their bytes land
   const banks = await step('audio', (p) => audioLoad.wait(p));
   if (banks.music) music.useBank(banks.music); // the title theme's first gesture plays the stems at once
+  if (banks.steppe) music.steppe.useBank(banks.steppe); // Nalati's own score: its first slot + stings (NALATI-MERGE A2)
   audio.useSamples(banks.sfx);
   (plan as unknown as { done: () => void }).done(); // throws unless both tracks are exactly 1
   game.start();
@@ -783,6 +863,6 @@ async function main() {
   setPoseProvider(() => (hud.entered ? { x: player.position.x, y: player.position.y, z: player.position.z, yaw: player.yaw, pitch: player.pitch } : null)); // the Look Lab's reload prompt comes back right here (E65)
   await loading.done();
   document.dispatchEvent(new Event('ws:ready')); // booted to the title: the native shell's update watchdog (src/native/boot.ts) waits for this
-  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState };
+  (window as unknown as { __world: unknown }).__world = { ...world, boundary, water, streams: dressing.streams, ocean, pier, jetties, boat, hut, lookout, wreck, shrine, bushes, gulls, bridge, bridgeDeck, cove, enemies, hands, grass, under, particles, cabins, props, animals, crossbow, hud, audio, music, shrineHum, islandSfx, surfaces, ambience, lockSys, lockState, wildlife, nalati: nalatiNow(), ride, weapons };
 }
 main().catch((e: unknown) => showError(e instanceof Error ? `${e.name}: ${e.message}` : String(e), e instanceof Error ? e.stack ?? '' : ''));

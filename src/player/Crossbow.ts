@@ -52,6 +52,8 @@ export interface TargetAnimal {
   kind: string;
   position: THREE.Vector3;
   alive: boolean;
+  /** a melee / javelin blow's knock-back (Animal.stagger: 0 light … 1 heavy, breaks a running charge); absent on targets without one */
+  stagger?: (dir: THREE.Vector3, strength: number) => void;
 }
 export interface TargetHit { animal: TargetAnimal; point: THREE.Vector3; distance: number; headshot: boolean }
 export interface Targets { raycast: (origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number) => TargetHit | null }
@@ -137,7 +139,7 @@ const KICK_PITCH = THREE.MathUtils.degToRad(0.8);
 const ADS_EYE_ABOVE_RAIL = 0.056; // m — cheek on the stock: the eye is this far above the rail, looking straight down the bolt
 const ADS_NEAR_MARGIN = 0.03, ADS_PITCH = 0, ADS_BLEND_TIME = 0.18, ADS_MOTION = 0.3;
 // damage numbers live in the damage model (src/entities/Animal.ts damageFor)
-/** Rear PEEP sight (mockup art/ads-C-peep-sight.png): a dark-iron ring on a post just in front of the nut (the stock
+/** Rear PEEP sight (mockup art/ads-aim/round-1/ads-C-peep-sight.png): a dark-iron ring on a post just in front of the nut (the stock
  *  behind the nut is inside the near plane when sighted), placed on the eye→tip line so that at full ADS its centre
  *  projects exactly where the tip does — the tip is seen through the ring. Outer diameter ≈ 4 % of the screen width
  *  (≥ 7 % of the height, so it stays a ring on a portrait phone). Hidden at the hip, fades in with the ADS blend. */

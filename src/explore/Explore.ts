@@ -145,7 +145,7 @@ export class Explore {
     if ((host.world.chunk.pois ?? []).length > 0) this.map = new MiniMap(this, host.world, host.overhead ?? []);
     if (hasCompareTargets(host.world.chunk.slug)) this.compare = new Compare(this, host.world);
     const { chunk } = host.world;
-    const entries = catalogEntries(host.world.sky, host.creatures ?? [], chunk.style === 'lowpoly' ? 'lowpoly' : 'pbr', chunk.spawn);
+    const entries = catalogEntries(host.world.sky, host.creatures ?? [], chunk.style ?? 'pbr', chunk.spawn); // the shard's own creature style (Nalati: painterly)
     if (entries.length > 0) {
       this.addPane('model', new ModelExplorer(this, host.world, entries));
       this.select = new Select(this, host.world, selectTargets(entries, host.creatures ?? []), entries);

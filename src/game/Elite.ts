@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Animal } from '../entities/Animal';
 import { heightAt } from '../world/Heightfield';
-import { fxMaterial, annulus, FX, type FxMaterial } from '../world/fx';
+import { fxMaterial, annulus, FX, type FxMaterial } from '../world/nalati/KurganDungeon';
 import { WeaponPickup } from '../player/WeaponPickup';
 import type { Interactable } from '../world/Cabin';
 import type { EliteBar } from '../ui/EliteBar';

@@ -22,7 +22,8 @@
  * THREE caches, because they expire on three different clocks:
  *   ws-immutable            content-addressed, therefore forever: /assets/<name>-<8>.{js,css,jpg}. `activate`
  *                           prunes it to __BUNDLE__ — it never deletes it wholesale.
- *   ws-static-<assets>      unhashed but rarely edited: /assets/tex|models|hdri/**, /basis/**, /fonts/**, root
+ *   ws-static-<assets>      unhashed but rarely edited: /assets/tex|models|hdri/**, /assets/nalati/** (requested as
+ *                           `?v=<content hash>`, src/boot/bytes.ts versionedUrl, so an edit is a new key), /basis/**, /fonts/**, root
  *                           icons, and the music / sfx audio (the .m4a files under /assets/music and /assets/sfx, named
  *                           by content hash; downloaded by the loading bar and cached as they pass through here). Keyed
  *                           by a hash of public/ alone, so a JS-only deploy does NOT re-download
@@ -68,7 +69,7 @@ const STATIC_OPTIONAL = ['/apple-touch-icon.png', '/favicon.png', '/icon-192.png
 
 /** Vite's hashed output sits directly under /assets/ — the unhashed Poly Haven dirs are one level deeper. */
 const IMMUTABLE_RE = /^\/assets\/[^/]+-[\w-]{8}\.\w+$/;
-const STATIC_RE = /^\/assets\/(tex|models|hdri|baked|packs)\/|^\/assets\/(music|sfx)\/.+\.m4a$|^\/basis\/|^\/fonts\/|^\/(apple-touch-icon|favicon|icon-\d+)\.png$/;
+const STATIC_RE = /^\/assets\/(tex|models|hdri|baked|packs|nalati)\/|^\/assets\/(music|sfx)\/.+\.m4a$|^\/basis\/|^\/fonts\/|^\/(apple-touch-icon|favicon|icon-\d+)\.png$/;
 const NETWORK_FIRST_RE = /^\/(asset-index\.json|sw\.js|manifest\.webmanifest)$/;
 
 const IMAGE_RE = /\.(jpe?g|png|webp|avif|gif|svg)$/;

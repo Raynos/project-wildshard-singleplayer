@@ -42,6 +42,13 @@ describe('achievement tables', () => {
       }
     }
   });
+
+  it('Nalati has the tame, the Storm Titan and the elites, the event rows marked as such', () => {
+    const n = achievementsFor('chunk://local/nalati-grasslands');
+    const byId = (id: string): AchievementDef | undefined => n.find((d) => d.id === id);
+    for (const id of ['tame', 'storm-titan', 'argymaq']) expect(byId(id)?.event, id).toBe(id); // recorded by the code that sees the moment (Progress.recordEvent)
+    for (const id of ['aqbars', 'kokbori', 'qyran', 'qara-batyr', 'golden-king']) expect(byId(id), id).toBeDefined();
+  });
 });
 
 describe('Progress', () => {

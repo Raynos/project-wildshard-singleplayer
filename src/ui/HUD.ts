@@ -26,6 +26,10 @@ import { openBootSettings } from './BootSettings';
  * (`CABIN_SITES` — static, so the HUD reads them itself) and a "CABIN · 180 m" readout under it; the paw marker comes
  * from `state.nearest` (bearing in compass degrees, 0 = north) when the caller has one, else from `setAnimals`.
  *
+ * Weather (Nalati, src/nalati/weather.ts): a `ws:weather` document event (`WeatherHUD` detail, `WEATHER_EVENT`) shows the
+ * small STORM chip under the minimap ("STORM IN 0:45 · WIND 14 m/s", "STORM 2:10 · WIND 22 m/s") and the amber
+ * "LIGHTNING — GET LOW" warning top-centre. Nothing is built until the first event, so other shards never see either.
+ *
  * Call `setState` every frame (it diffs and only touches the DOM on change). Pause = the in-game menu on its
  * Settings tab: opened by the touch PAUSE button, Esc, or a released pointer lock after the chunk was entered
  * (`pointerLock` mode only); closing it fires `onResume`.
@@ -43,12 +47,22 @@ export interface HUDState {
   nearest?: { bearing: number; distance: number; kind: string } | undefined;
 }
 export interface HUDOptions { pointerLock?: boolean; maxBolts?: number }
+/** the `ws:weather` event's detail — sent on change only (src/nalati/weather.ts) */
+export interface WeatherHUD {
+  /** the chip under the minimap: `title` "STORM IN 0:45" / "STORM 2:10", `sub` "WIND 22 m/s"; null hides it */
+  chip: { title: string; sub: string; tone: 'soon' | 'storm' | 'clearing' } | null;
+  /** the amber LIGHTNING — GET LOW warning */
+  getLow: boolean;
+}
+export const WEATHER_EVENT = 'ws:weather';
+const SVG_STORM = '<svg viewBox="0 0 24 24"><path d="M7 15a5 5 0 0 1-.6-9.96A6.5 6.5 0 0 1 18.8 7.1 4 4 0 0 1 18 15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M13.2 11.5 10 16.6h3l-2 5.2 5.2-6.6h-3l1.6-3.7z" fill="currentColor"/></svg>';
+const SVG_WARN = '<svg viewBox="0 0 24 24"><path d="M12 3 1.8 20.5h20.4z" fill="currentColor"/><path d="M12 9.5v5.2M12 16.8v1.6" stroke="#1a1204" stroke-width="2.2" stroke-linecap="round"/></svg>';
 export type IntroStats = Record<string, string | { value: string; tone?: 'ok' | 'warn' }>;
 
 /** One card in the title-screen deck: an authored chunk (playable) or a teaser (coming soon). */
 interface DeckCard {
   slug: string; displayName: string; label: string; thumbnail: string; tag: string; tagTone: 'ok' | 'soon' | '';
-  playable: boolean; active: boolean; heroPortrait?: string; heroLandscape?: string; blurb: string; experimental: boolean;
+  playable: boolean; active: boolean; heroPortrait?: string; heroLandscape?: string; blurb: string; experimental: boolean; earlyAccess: boolean;
   /** ChunkDef.explore: the shard offers EXPLORE WORLD */
   explore: boolean;
 }
@@ -118,6 +132,9 @@ export class HUD {
   private ammoPanel!: HTMLElement;
   private ammoLabel!: HTMLElement; private ammoMax!: HTMLElement; private ammoReserve!: HTMLElement; private ammoWeapon!: HTMLElement; private pipBox!: HTMLElement;
   private hitTimer = 0; private spread = 7;
+
+  /** the weather chip + GET LOW warning (built on the first `ws:weather` event) */
+  private weather?: { chip: HTMLElement; title: HTMLElement; sub: HTMLElement; low: HTMLElement; last: string };
 
   /** the review composer (src/ui/Feedback.ts) is up: losing the pointer lock does not open the pause menu */
   holdPause = false;
@@ -228,6 +245,28 @@ export class HUD {
     // Android Back → close the menu or pause; preventDefault() tells the shell it was used (else it minimizes the app)
     document.addEventListener('ws:background', () => { if (this.entered && !this.paused) this.setPaused(true); });
     document.addEventListener('ws:back', (e) => { if (!this.entered) return; e.preventDefault(); this.setPaused(!this.paused); });
+    document.addEventListener(WEATHER_EVENT, (e) => { if (e instanceof CustomEvent) this.setWeather(e.detail as WeatherHUD); });
+  }
+
+  /** the storm chip + GET LOW warning (see WeatherHUD); normally driven by the `ws:weather` event */
+  setWeather(w: WeatherHUD): void {
+    if (!this.weather) {
+      if (!w.chip && !w.getLow) return;
+      const chip = el('div', 'ws-game-weather', `<i class="ws-game-wicon">${SVG_STORM}</i><div><div class="ws-game-wt"></div><div class="ws-game-ws"></div></div>`);
+      const low = el('div', 'ws-game-getlow', `<i>${SVG_WARN}</i><span>Lightning — get low</span>`);
+      this.root.append(chip, low);
+      this.weather = { chip, title: q(chip, '.ws-game-wt'), sub: q(chip, '.ws-game-ws'), low, last: '' };
+    }
+    const W = this.weather;
+    const key = `${w.chip?.title ?? ''}|${w.chip?.sub ?? ''}|${w.chip?.tone ?? ''}|${String(w.getLow)}`;
+    if (key === W.last) return;
+    W.last = key;
+    W.chip.classList.toggle('show', w.chip !== null);
+    if (w.chip) {
+      W.title.textContent = w.chip.title; W.sub.textContent = w.chip.sub;
+      W.chip.classList.toggle('storm', w.chip.tone === 'storm');
+    }
+    W.low.classList.toggle('show', w.getLow);
   }
 
   private buildPips(n: number): void {
@@ -429,12 +468,12 @@ export class HUD {
       ...CHUNKS.map((c): DeckCard => ({
         slug: c.slug, displayName: c.displayName, thumbnail: c.thumbnail, blurb: c.blurb,
         label: `${c.biome} · ${c.gridCoords} · ${CHUNK_SIZE} m shard`,
-        tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def, experimental: c.experimental === true, explore: c.explore === true,
+        tag: c === def ? 'Loaded' : 'Load', tagTone: c === def ? 'ok' : '', playable: true, active: c === def, experimental: c.experimental === true, earlyAccess: c.earlyAccess === true, explore: c.explore === true,
         heroPortrait: c.heroPortrait, heroLandscape: c.heroLandscape,
       })),
       ...PLACEHOLDERS.map((t): DeckCard => ({
         slug: t.slug, displayName: t.displayName, thumbnail: t.thumbnail, blurb: t.blurb,
-        label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false, experimental: false, explore: false,
+        label: `${t.biome} · ${t.gridCoords}`, tag: 'Coming soon', tagTone: 'soon', playable: false, active: false, experimental: false, earlyAccess: false, explore: false,
         heroPortrait: t.heroPortrait, heroLandscape: t.heroLandscape,
       })),
     ];
@@ -445,7 +484,7 @@ export class HUD {
       <div class="ws-menu-deck">
         <div class="ws-menu-cards"><div class="ws-menu-deck-track">${cards.map((c, i) => `
           <button class="ws-menu-card${c.active ? ' active' : ''}${c.playable ? '' : ' soon'}" type="button" data-i="${i}" title="${c.blurb.replaceAll('"', '&quot;')}">
-            <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-menu-card-tag ${c.tagTone}">${c.tag}</i>${c.experimental ? '<i class="ws-menu-card-exp">Experimental</i>' : ''}</span>
+            <span class="ws-menu-card-img" style="background-image:url('${c.thumbnail}')"><i class="ws-menu-card-tag ${c.tagTone}">${c.tag}</i>${c.earlyAccess ? '<i class="ws-menu-card-exp ws-menu-card-ea">Early access</i>' : c.experimental ? '<i class="ws-menu-card-exp">Experimental</i>' : ''}</span>
             <b>${c.displayName}</b><small>${c.label}</small>
           </button>`).join('')}
         </div></div>
@@ -488,7 +527,7 @@ export class HUD {
       enterBtn.classList.toggle('soon', !c.playable);
       enterBtn.disabled = !c.playable;
       enterTitle.textContent = c.playable ? 'Enter world' : 'Coming soon';
-      enterHint.textContent = !c.playable ? 'Not yet playable' : c.experimental ? 'Experimental · rough edges' : c.active ? 'Play' : `Reloads with ${c.displayName}`;
+      enterHint.textContent = !c.playable ? 'Not yet playable' : c.earlyAccess ? 'Early access' : c.experimental ? 'Experimental · rough edges' : c.active ? 'Play' : `Reloads with ${c.displayName}`;
       exploreBtn.classList.toggle('off', !c.explore); // the shard's ChunkDef.explore (Driftwood + Pine Hollow — project/archive/2026-09-23-explore-world.md D4, E66)
     };
     const select = (raw: number, smooth = true): void => {

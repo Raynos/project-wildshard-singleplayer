@@ -46,6 +46,11 @@ export const BOOT_STEPS = STEP_ROWS.map((row) => row[0]) as readonly BootStep[];
  * the mill hamlet + the landmarks (the fire lookout and its zipline, the footbridge, the standing stones), the rocks and
  * logs, the herds on their generated hulls, and the three weapons. Its weights stay the shared ones (they were measured
  * on Pine Hollow).
+ *
+ * Nalati: Nalati builds its whole world in `props` (wireNalati) and has no cabins, forest or
+ * undergrowth to speak of; the weights are its measured wall-ms shape (phone tier, 2026-09-23: props 860, sky 245,
+ * shaders 220, terrain 175, grass 40, first frame 40 ms, the rest < 15), the first-run bar's pace until this device has
+ * timed a load of its own. `trees` is the byte label of the `cards` step's download.
  */
 interface ShardSteps {
   readonly steps: Partial<Record<BootStep, Partial<StepInfo>>>;
@@ -57,7 +62,7 @@ const SHARD_STEPS: Readonly<Record<string, ShardSteps>> = {
       sky: { label: 'Sky · day / night keys' },
       terrain: { label: 'Terrain · heightfield + splat' },
       cards: { label: 'Pine branch cards' },
-      forest: { label: 'Forest · Scots pines' },
+      forest: { label: 'Forest · pines · firs · old-growth giants' },
       edge: { label: 'Pond · creek · horizon' },
       grass: { label: 'Grass · ferns · litter' },
       cabins: { label: 'Cabins · hamlet · landmarks' },
@@ -72,6 +77,24 @@ const SHARD_STEPS: Readonly<Record<string, ShardSteps>> = {
       props: 'landmarks · creatures',
       music: 'music · every style',
     },
+  },
+  'nalati-grasslands': {
+    steps: {
+      renderer: { weight: 0.3 },
+      sky: { label: 'Sky · the painted panorama', weight: 2.5 },
+      terrain: { label: 'Steppe · the bowl · the snow ring', weight: 1.8 },
+      cards: { label: 'Spruce cards', weight: 0.1 },
+      forest: { label: 'Lone spruces', weight: 0.15 },
+      edge: { label: 'Kunes river · cloud sea · horizon', weight: 0.15 },
+      grass: { label: 'Grass rings · painted clumps', weight: 0.5 },
+      cabins: { label: 'Yurts', weight: 0.05 },
+      props: { label: 'Camp · kurgans · herds · the Storm Titan', weight: 8.5 },
+      animals: { label: 'Wolves · horses · sheep', weight: 0.1 },
+      weapon: { label: 'Recurve bow · HUD', weight: 0.05 },
+      shaders: { weight: 2.2 },
+      firstFrame: { weight: 0.5 },
+    },
+    bytes: { trees: 'spruce bark' },
   },
 };
 

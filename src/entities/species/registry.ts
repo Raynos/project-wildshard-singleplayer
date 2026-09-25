@@ -146,8 +146,12 @@ export interface ThinkCtx {
   world: EnemyWorld;
   heightAt: (x: number, z: number) => number;
   waterLevel: () => number;
-  /** the manager's steering with trunk / edge / slope avoidance (sets the animal's motion) */
+  /** the manager's steering with trunk / edge / slope avoidance (sets the animal's motion) — on a shard that sets
+   *  `AnimalManager.navSteer` (Nalati), round what the navmesh walls off */
   steer: (a: Animal, yaw: number, speed: number, turnRate: number) => void;
+  /** the heading toward (tx, tz) along the navmesh (the next corner of a path, re-planned when the goal moves > 2 m or
+   *  every `every` s); the straight heading without one */
+  pathYaw: (a: Animal, tx: number, tz: number, every?: number) => number;
   /** keep inside the chunk and off the water (the manager's confine) */
   confine: (a: Animal) => void;
 }

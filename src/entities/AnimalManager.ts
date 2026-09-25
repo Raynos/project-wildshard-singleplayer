@@ -13,6 +13,7 @@ import { Animal, damageFor } from './Animal';
 import { attachShadowCaster } from './animalShadow';
 import { FarHerd, type FarMember } from './farHerd';
 import { getActiveChunk } from '../chunks/registry';
+import { meleeShard } from '../chunks/ChunkDef';
 import { TIER_CONFIG } from '../core/tier';
 import { noReflect } from '../world/Water';
 import { worldTime } from '../core/time';
@@ -75,7 +76,7 @@ import { worldTime } from '../core/time';
  * perches, the coconut thrower, the wreck's hold — Enemies.ts fills it; a missing piece degrades to ground behaviour.
  * `animals.addHerd(kind, cx, cz)` makes a herd for such a spawner (`spawn()` then `animal.herd = index`).
  *
- * MELEE SHARDS (`ChunkDef.weapon === 'sword'`, Driftwood C5 — Pine Hollow's crossbow hunting is untouched): every attack
+ * MELEE SHARDS (`meleeShard(ChunkDef)`: 'sword' / 'nalati', Driftwood C5 — Pine Hollow's crossbow hunting is untouched): every attack
  * is telegraphed and lands on an arc, so strafing is the dodge.
  *   • A charge starts with a WIND-UP (CHARGE_WINDUP: boar 0.55 s, bear 0.65 s): the animal stops, turns to you, drops its
  *     head and paws the ground (Animal.poseWindup) with the roar / grunt as the cue, then runs. A sword blow during the
@@ -89,7 +90,9 @@ import { worldTime } from '../core/time';
 
 export interface AnimalHit { animal: Animal; point: THREE.Vector3; distance: number; headshot: boolean; damage: number }
 export type AnimalSound = 'deer_call' | 'boar_grunt' | 'hoofsteps' | 'boar_squeal' | 'bear_growl' | 'bear_roar' | 'bear_hurt'
-  | 'crab_click' | 'crab_snap' | 'monkey_chatter' | 'monkey_shriek' | 'sailor_groan' | 'sailor_slash' | 'coconut_hit' | 'coconut_land';
+  | 'crab_click' | 'crab_snap' | 'monkey_chatter' | 'monkey_shriek' | 'sailor_groan' | 'sailor_slash' | 'coconut_hit' | 'coconut_land'
+  | 'eagle_cry' | 'leopard_growl' // Nalati's eagle + snow leopard (they borrowed the monkey's and the bear's)
+  | 'king_call' | 'king_hurt'; // the Golden King's own voice (NALATI-MERGE A1; it borrowed Pine's bear + Driftwood's drowned sailor)
 
 export interface Herd { kind: AnimalKind; cx: number; cz: number; members: Animal[] }
 
@@ -310,6 +313,8 @@ interface FarRig extends FarMember {
   /** the rig's own layer mask while the far herd draws it (its layers are 0 then: the rig is not drawn, its children are) */
   mask: number | null;
 }
+/** the bearings `steerNav` tries round a blocked heading (rad, each side) */
+const NAV_FAN = [0.4, 0.8, 1.2, 1.6, 2.1, 2.6];
 export class AnimalManager {
   group = new THREE.Group();
   animals: Animal[] = [];
@@ -340,7 +345,7 @@ export class AnimalManager {
   private shellDist = new Float64Array(SHELL_MAX);
   private shellIdx = new Int32Array(SHELL_MAX);
   /** a melee shard (the sword): telegraphed charges, attacks on an arc (see the header) */
-  private readonly melee = getActiveChunk().weapon === 'sword';
+  private readonly melee = meleeShard(getActiveChunk()); // Driftwood's swords, Nalati's sabre / spear
   /** each multi-group rig's one-draw shadow caster (animalShadow.ts); the per-frame shadow distance switches it */
   private readonly casters = new Map<Animal, THREE.SkinnedMesh>();
   /** PH-P2: the far animals drawn per model (farHerd.ts), desktop past TIER_CONFIG.animalFarBatchDist; each rig's entry */
@@ -407,7 +412,13 @@ export class AnimalManager {
     if (s !== null && y < s - 0.05) return false;
     if (y > waterLevel() + 0.25) return true;
     if (getActiveChunk().ocean) return false;
-    if (!hasPond()) return true;
+    if (!hasPond()) {
+      // no pond to measure against (Nalati): the navmesh bake's own wet test — walkable on it = dry
+      const nav = activeNavmesh();
+      if (nav === null) return false;
+      const p = nav.closestWalkable(_navFrom.set(x, y, z), 0, _navTo);
+      return p !== null && Math.hypot(p.x - x, p.z - z) < 1;
+    }
     const half = POND.r + 15;
     return Math.abs(x - POND.x) > half || Math.abs(z - POND.z) > half;
   }
@@ -819,7 +830,8 @@ export class AnimalManager {
   private thinkCtx: ThinkCtx = {
     dt: 0.1, t: 0, player: new THREE.Vector3(), playerSpeed: 0, rng: this.rng, calm: false, herd: null,
     hurt: () => undefined, sound: () => undefined, world: {}, heightAt, waterLevel,
-    steer: (a, yaw, speed, turnRate) => this.steer(a, yaw, speed, turnRate),
+    steer: (a, yaw, speed, turnRate) => { if (this.navSteer) this.steerNav(a, yaw, speed, turnRate); else this.steer(a, yaw, speed, turnRate); },
+    pathYaw: (a, tx, tz, every = 1) => { const br = this.brains.get(a); return br === undefined ? Math.atan2(tx - a.position.x, tz - a.position.z) : this.pathYaw(a, br, tx, tz, every); },
     confine: (a) => this.confine(a),
   };
 
@@ -949,8 +961,17 @@ export class AnimalManager {
    * the straight heading through `steer`'s trunk / slope / edge bending, as before.
    */
   private steerTo(a: Animal, br: Brain, tx: number, tz: number, speed: number, turnRate: number, every: number): void {
+    if (activeNavmesh() === null) { this.steer(a, Math.atan2(tx - a.position.x, tz - a.position.z), speed, turnRate); return; }
+    a.setMotion(this.pathYaw(a, br, tx, tz, every), speed, turnRate);
+  }
+
+  /**
+   * The heading toward (tx, tz) along the navmesh: the next corner of the path there (re-planned when the goal moved
+   * > 2 m or every `every` s — at most 8 plans a think tick), the straight heading without a navmesh or a path.
+   */
+  private pathYaw(a: Animal, br: Brain, tx: number, tz: number, every: number): number {
     const nav = activeNavmesh();
-    if (nav === null) { this.steer(a, Math.atan2(tx - a.position.x, tz - a.position.z), speed, turnRate); return; }
+    if (nav === null) return Math.atan2(tx - a.position.x, tz - a.position.z);
     const now = this.clock;
     const stale = br.path.length === 0 || Math.hypot(tx - br.goalX, tz - br.goalZ) > 2 || now >= br.repathAt;
     if (stale && this.repaths < 8) {
@@ -967,7 +988,35 @@ export class AnimalManager {
     }
     const c = br.path[br.pathI];
     const aimX = c === undefined ? tx : c.x, aimZ = c === undefined ? tz : c.z;
-    a.setMotion(Math.atan2(aimX - a.position.x, aimZ - a.position.z), speed, turnRate);
+    return Math.atan2(aimX - a.position.x, aimZ - a.position.z);
+  }
+
+  /**
+   * A shard's own thinkers steer by the navmesh (Nalati: `navSteer`, set by src/nalati/index.ts — NALATI-MERGE P3): the
+   * heading is kept while the navmesh is clear `look` m along it; blocked (a yurt, a fence, a boulder, the river, ground
+   * past 40°) it turns to the nearest clear bearing, toward the side the wall's normal opens on. Off the mesh (the
+   * river bank, a creature shoved onto a crag) it falls back to `steer`.
+   */
+  navSteer = false;
+  private steerNav(a: Animal, yaw: number, speed: number, turnRate: number): void {
+    const nav = activeNavmesh();
+    if (nav === null || speed <= 0.05) { this.steer(a, yaw, speed, turnRate); return; }
+    const r = this.agentRadius(a), look = Math.max(3, 1.5 + speed * 0.7);
+    const ahead = nav.clearAhead(a.position, yaw, look, r);
+    if (ahead === null) { this.steer(a, yaw, speed, turnRate); return; }
+    if (ahead.clear >= 1) { a.setMotion(yaw, speed, turnRate); return; }
+    // blocked: the side the wall opens toward first, then alternate, widening
+    const side = Math.sin(yaw) * ahead.normalZ - Math.cos(yaw) * ahead.normalX >= 0 ? 1 : -1;
+    let best = yaw, bestClear = ahead.clear;
+    for (const step of NAV_FAN) {
+      for (const s of [side, -side]) {
+        const y = yaw + s * step, c = nav.clearAhead(a.position, y, look, r);
+        if (c === null) continue;
+        if (c.clear >= 1) { a.setMotion(y, speed, turnRate); return; }
+        if (c.clear > bestClear + 0.05) { bestClear = c.clear; best = y; }
+      }
+    }
+    a.setMotion(best, bestClear * look < 0.6 ? speed * 0.3 : speed, turnRate);
   }
 
   /** desired heading with trunk repulsion, slope + edge avoidance — the no-navmesh fallback of `steerTo` */

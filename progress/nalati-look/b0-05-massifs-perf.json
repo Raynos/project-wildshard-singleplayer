@@ -1,0 +1,53 @@
+[
+  {
+    "tag": "b0-05-massifs",
+    "pose": "horses",
+    "tier": "desktop",
+    "x": 150,
+    "z": -62,
+    "yaw": -0.1,
+    "pitch": -0.06,
+    "time": null,
+    "p50": 5.300000190734863,
+    "p95": 13,
+    "fps": 161,
+    "calls": 297,
+    "tris": 5191978,
+    "file": "progress/nalati-look/b0-05-massifs-horses-desktop.jpg",
+    "kb": 478
+  },
+  {
+    "tag": "b0-05-massifs",
+    "pose": "gully",
+    "tier": "desktop",
+    "x": 64,
+    "z": 203,
+    "yaw": 0.05,
+    "pitch": 0.04,
+    "time": null,
+    "p50": 7.300000190734863,
+    "p95": 14.600000381469727,
+    "fps": 129,
+    "calls": 267,
+    "tris": 5764932,
+    "file": "progress/nalati-look/b0-05-massifs-gully-desktop.jpg",
+    "kb": 487
+  },
+  {
+    "tag": "b0-05-massifs",
+    "pose": "kurgan",
+    "tier": "desktop",
+    "x": -128,
+    "z": -62,
+    "yaw": 0.22,
+    "pitch": -0.02,
+    "time": "golden",
+    "p50": 5.800000190734863,
+    "p95": 11.899999618530273,
+    "fps": 150,
+    "calls": 203,
+    "tris": 5239314,
+    "file": "progress/nalati-look/b0-05-massifs-kurgan-desktop.jpg",
+    "kb": 460
+  }
+]

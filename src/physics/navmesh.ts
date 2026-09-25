@@ -12,7 +12,7 @@
 import * as THREE from 'three';
 import {
   addTile, buildTile, createFindNearestPolyResult, createNavMesh, createSlicedNodePathQuery, DEFAULT_QUERY_FILTER, finalizeSlicedFindNodePath,
-  findNearestPoly, findRandomPointAroundCircle, findStraightPath, initSlicedFindNodePath, SlicedFindNodePathStatusFlags, updateSlicedFindNodePath,
+  findNearestPoly, findRandomPointAroundCircle, findStraightPath, initSlicedFindNodePath, raycast, SlicedFindNodePathStatusFlags, updateSlicedFindNodePath,
   type Box3, type NavMesh, type NavMeshPoly, type NavMeshPolyDetail, type Vec3,
 } from 'navcat';
 import { navmeshUrl } from './navmeshUrl';
@@ -168,6 +168,25 @@ export class Navmesh {
       if (!s.success) return null;
       const r = findRandomPointAroundCircle(mesh, s.nodeRef, s.position, radius, DEFAULT_QUERY_FILTER, rand);
       return r.success ? out.set(r.position[0], r.position[1], r.position[2]) : null;
+    } finally { this.count(t0); }
+  }
+
+  /**
+   * How far a creature of `agentRadius` can walk from `p` along the bearing `yaw` (three's: +z at 0, +x at π/2) within
+   * `dist` m, over the navmesh: `clear` 1 = the whole way, else the fraction to the wall it meets (a hole round a yurt,
+   * a fence, the water's edge, ground past 40°) and that wall's normal (xz). Null when `p` is off the mesh.
+   */
+  clearAhead(p: XYZ, yaw: number, dist: number, agentRadius = 0): { clear: number; normalX: number; normalZ: number } | null {
+    const t0 = performance.now();
+    try {
+      const { mesh } = this.layerFor(agentRadius);
+      const s = findNearestPoly(this.nearest, mesh, toVec3(p, this.a), SNAP, DEFAULT_QUERY_FILTER);
+      if (!s.success) return null;
+      const b = this.b;
+      b[0] = s.position[0] + Math.sin(yaw) * dist; b[1] = s.position[1]; b[2] = s.position[2] + Math.cos(yaw) * dist;
+      const r = raycast(mesh, s.nodeRef, s.position, b, DEFAULT_QUERY_FILTER);
+      if (r.t >= 1) return { clear: 1, normalX: 0, normalZ: 0 };
+      return { clear: Math.max(0, r.t), normalX: r.hitNormal[0], normalZ: r.hitNormal[2] };
     } finally { this.count(t0); }
   }
 

@@ -130,6 +130,7 @@ export function placeForest(variants: readonly PlantSpec[]): { trees: TreeInstan
     const d = density.fbm(x * F.densityFreq, z * F.densityFreq, 3); // clearings & dense groves
     const keep = (smoothstep(F.clearings[0], F.clearings[1], d) * 0.92 + 0.08) * (F.density ? F.density(x, z) : 1);
     if (rng.next() > keep) continue;
+    if (F.mask && rng.next() > F.mask(x, z)) continue;          // a shard's own planting field (Nalati's spruce gullies)
     const roadEntry = (Math.abs(x) < 16 && Math.abs(z) > CHUNK_HALF - 95) || (Math.abs(z) < 16 && Math.abs(x) > CHUNK_HALF - 95);
     if (roadEntry) continue;
     if (trailDistance(x, z) < 9 + rng.range(0, 4)) continue;

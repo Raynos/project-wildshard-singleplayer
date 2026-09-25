@@ -1,0 +1,36 @@
+[
+  {
+    "tag": "b0-02-rocks-river",
+    "pose": "camp",
+    "tier": "desktop",
+    "x": 72,
+    "z": 228,
+    "yaw": -0.62,
+    "pitch": -0.14,
+    "time": null,
+    "p50": 47.599998474121094,
+    "p95": 57.099998474121094,
+    "fps": 21,
+    "calls": 206,
+    "tris": 4387108,
+    "file": "progress/nalati-look/b0-02-rocks-river-camp-desktop.jpg",
+    "kb": 466
+  },
+  {
+    "tag": "b0-02-rocks-river",
+    "pose": "gully",
+    "tier": "desktop",
+    "x": 64,
+    "z": 203,
+    "yaw": 0.05,
+    "pitch": 0.04,
+    "time": null,
+    "p50": 47.900001525878906,
+    "p95": 58.099998474121094,
+    "fps": 20,
+    "calls": 213,
+    "tris": 4893434,
+    "file": "progress/nalati-look/b0-02-rocks-river-gully-desktop.jpg",
+    "kb": 487
+  }
+]

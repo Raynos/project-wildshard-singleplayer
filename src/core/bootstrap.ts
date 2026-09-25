@@ -5,6 +5,7 @@ import { Terrain } from '../world/Terrain';
 import { TreeFactory } from '../world/TreeFactory';
 import { treeSetOf } from '../world/placement';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
+import { SpruceFactory } from '../world/Spruce';
 import { Forest } from '../world/Forest';
 import { Player } from '../player/Player';
 import type { Sky } from '../world/Sky';
@@ -27,8 +28,9 @@ import { installPhysicsDebug } from '../physics/debug';
 
 /** Tree builders by `ChunkTrees.factory` id. Add a species here when a shard needs one. */
 const TREE_FACTORIES = {
-  pine: (renderer: THREE.WebGLRenderer, def: ChunkDef) => new TreeFactory(renderer, { bark: def.trees.bark, twigAtlas: def.trees.twigAtlas, set: treeSetOf(def.trees, (u) => u in PUBLIC_BYTES) }).build(),
-  none: (renderer: THREE.WebGLRenderer) => new TreeFactory(renderer).buildEmpty(),
+  pine: (renderer: THREE.WebGLRenderer, def: ChunkDef, _sky: Sky) => new TreeFactory(renderer, { bark: def.trees.bark, twigAtlas: def.trees.twigAtlas, set: treeSetOf(def.trees, (u) => u in PUBLIC_BYTES) }).build(),
+  spruce: (renderer: THREE.WebGLRenderer, _def: ChunkDef, sky: Sky) => new SpruceFactory(renderer, sky).build(), // Nalati: painterly Tian Shan spruce (src/world/Spruce.ts)
+  none: (renderer: THREE.WebGLRenderer, _def: ChunkDef, _sky: Sky) => new TreeFactory(renderer).buildEmpty(),
 } as const;
 
 export interface World {
@@ -73,7 +75,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
     p.detail(`${TERRAIN_RES}² heightfield · ${def.assets.groundLayers.length} splat layers`);
     return t;
   });
-  const factory = await step('cards', () => TREE_FACTORIES[def.trees.factory](game.renderer, def));
+  const factory = await step('cards', () => TREE_FACTORIES[def.trees.factory](game.renderer, def, sky));
   const forest = await step('forest', (p) => {
     const f = new Forest(factory, sky).build();
     if (f.trees.length === 0) f.group.visible = false; // an ocean shard: the empty needle / twig batches still cost 24k tris + shadow draws on the phone
@@ -118,7 +120,7 @@ export async function bootstrap(step: StepRunner = runDirect): Promise<World> {
   if (params.get('debug') === 'card') {
     // show the baked branch card in front of the camera
     const m = factory.needleMaterial;
-    const tex = params.get('map') === 'normal' ? m.normalMap : params.get('map') === 'arm' ? m.roughnessMap : m.map;
+    const tex = params.get('map') === 'normal' ? m.normalMap : params.get('map') === 'arm' ? ('roughnessMap' in m ? m.roughnessMap : null) : m.map;
     const q = new THREE.Mesh(new THREE.PlaneGeometry(2, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
     game.camera.add(q); q.position.set(0, 0, -1.2); game.scene.add(game.camera);
   }

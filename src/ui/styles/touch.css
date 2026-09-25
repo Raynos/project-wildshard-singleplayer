@@ -103,7 +103,7 @@
    water. Three states from `lockOn.state`: off (dim), available (.lock-available: a cyan rim that pulses), LOCKED (.locked:
    filled cyan). "No target" flashes amber-free, a quick dim shake (.none) */
 .ws-touch-disc.lock { left: calc(100% - var(--disc) * 1.5 - 58px); bottom: calc(var(--bar) + 16px + var(--disc)); }
-.ws-touch:not(.melee) .ws-touch-disc.lock, .ws-touch.swimming .ws-touch-disc.lock { display: none; }
+.ws-touch:not(.lockable) .ws-touch-disc.lock, .ws-touch.swimming .ws-touch-disc.lock { display: none; } /* .lockable: LockOnTarget's LOCK_WEAPONS (the swords; Nalati's sabre + spear, H3) */
 .ws-touch-disc.lock svg { width: 36%; height: 36%; opacity: 0.55; transition: opacity 0.15s; }
 .ws-touch-disc.lock span { font-size: 7.5px; letter-spacing: 0.16em; white-space: nowrap; opacity: 0.6; }
 .ws-touch.lock-available .ws-touch-disc.lock { border-color: var(--ws-cyan); animation: ws-touch-lock-pulse 1.1s ease-in-out infinite; }
@@ -120,6 +120,7 @@
 .ws-touch.locked .ws-touch-lookpad::before { border-style: solid; border-color: rgba(143, 227, 255, 0.35); }
 .ws-touch-orbit { position: absolute; left: 50%; top: calc(50% - var(--safe) / 2); width: 116px; height: 116px; margin: -58px 0 0 -58px; pointer-events: none; display: none; }
 .ws-touch.locked .ws-touch-orbit { display: block; }
+.ws-touch.riding.locked .ws-touch-orbit { display: none; } /* Nalati's saddle: MOVE steers the horse, never orbits */
 .ws-touch-orbit i { position: absolute; inset: 0; border-radius: 50%; border: 2px solid transparent; opacity: 0.45; transition: opacity 0.12s, filter 0.12s; }
 .ws-touch-orbit i:first-child { border-left-color: var(--ws-cyan); transform: rotate(-12deg); }
 .ws-touch-orbit i:last-child { border-right-color: var(--ws-cyan); transform: rotate(-12deg); }
@@ -167,7 +168,18 @@
 .ws-touch-use { position: absolute; left: 12px; right: 12px; bottom: calc(var(--bar) + 70px + var(--disc)); height: 60px; display: none; align-items: center; justify-content: center; appearance: none; -webkit-appearance: none; margin: 0; padding: 0; border-radius: 8px; background: rgba(143, 227, 255, 0.16); border: 1px solid var(--ws-cyan); border-left: 4px solid var(--ws-cyan); box-shadow: 0 0 22px rgba(143, 227, 255, 0.25); color: #fff; font-family: var(--ws-display); font-weight: 700; font-size: 19px; letter-spacing: 0.24em; text-transform: uppercase; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .ws-touch-use.show { display: flex; }
 .ws-touch-use.down { background: rgba(143, 227, 255, 0.34); }
-/* ─── ported from Nalati (NALATI-MERGE H4 / B3) for Pine Hollow's 3-weapon kit (PH-C11): the bow's hold-to-draw FIRE and the weapon strip ─── */
+/* ─── Nalati (B3, art/nalati-grasslands/round-2/1-combat/): the spear's THROW + BRACE discs and the 3-slot weapon strip ─── */
+/* the spear held (.spear, TouchControls polls weapons.current): THROW (held — wind a javelin up, release to throw) takes AIM's
+   spot, BRACE (held — plant the spear) takes JUMP's (combat-B-spear-brace.png) */
+.ws-touch-disc.throw { left: calc(var(--split) + var(--atk) + var(--disc) / 2); bottom: calc(var(--bar) + 40px); display: none; }
+.ws-touch-disc.brace { left: calc(100% - var(--disc) / 2 - 8px); bottom: calc(var(--bar) + 58px); display: none; }
+.ws-touch.spear .ws-touch-disc.aim { display: none; }
+/* the spear's ATTACK is its thrust: it reads ATTACK (no heavy: a hold is THROW's), not FIRE */
+.ws-touch.spear .ws-touch-attack svg.melee, .ws-touch.spear .ws-touch-attack span.melee { display: block; }
+.ws-touch.spear:not(.melee) .ws-touch-attack .ranged { display: none; }
+#hud:not(.nalati-d) .ws-touch.spear .ws-touch-disc.jump { display: none; } /* layout D keeps JUMP with the spear (BRACE moved off it) */
+.ws-touch.spear .ws-touch-disc.throw, .ws-touch.spear:not(.swimming) .ws-touch-disc.brace { display: flex; }
+.ws-touch-disc.throw svg, .ws-touch-disc.brace svg { width: 42%; height: 42%; }
 /* Nalati's bow held (.bow, NALATI-MERGE H4 / N18): FIRE is hold-to-draw — "HOLD = DRAW" under FIRE, the ring fills with
    the draw (weapons.current.charge, Bow.ts) while .on and glows at full (.ready); lifting early lets the arrow down
    (.letdown: a dim shake). AIM stays AIM: the zoom toggle, lit .on */
@@ -202,3 +214,23 @@
 .ws-touch-slot-ammo { position: absolute; right: 4px; bottom: 3px; font-family: var(--ws-display); font-weight: 700; font-size: 11px; line-height: 1; color: #fff; font-variant-numeric: tabular-nums; }
 .ws-touch-strip.desk .ws-touch-slot-ammo { right: 6px; top: 5px; bottom: auto; font-size: 12px; }
 .ws-touch-slot-ammo.empty { color: var(--ws-red); }
+/* ─── Nalati crouch (B9, src/nalati/stealth.ts injects the disc and sets .nalati / .crouch-avail on the layer) ───
+   decision D (art/nalati-grasslands/round-3/3-crouch-disc/): a CROUCH disc the size of JUMP, directly above main's JUMP (8 px
+   gap), shown only in long grass: fades in over 250 ms, out over 400 ms; a toggle (.on = crouched); the first time per
+   session a soft ring pulses twice (.pulse). DODGE / JUMP stay main's arc (E63 T; the old Nalati DODGE override sat on
+   DRAW and LOCK after the merge). */
+.ws-touch-disc.crouch { left: calc(100% - var(--disc) / 2 - 8px); bottom: calc(var(--bar) + 66px + var(--disc)); opacity: 0; pointer-events: none; transform: translateY(6px); transition: opacity 0.4s, transform 0.4s, background 0.15s, box-shadow 0.15s; }
+.ws-touch-disc.crouch svg { width: 40%; height: 40%; fill: none; }
+.ws-touch-disc.crouch span { font-size: 7.5px; letter-spacing: 0.14em; }
+.ws-touch.crouch-avail .ws-touch-disc.crouch { opacity: 1; pointer-events: auto; transform: none; transition: opacity 0.25s, transform 0.25s, background 0.15s, box-shadow 0.15s; }
+.ws-touch.swimming .ws-touch-disc.crouch { display: none; }
+.ws-touch-disc.crouch.pulse { animation: ws-touch-crouch-pulse 1.1s ease-out 2; }
+/* ─── Nalati's right-thumb arc, layout D (NALATI-MERGE H2, D-foot.jpg): JUMP main's, CROUCH above it; the bow's AIM (the
+   zoom toggle, H4) takes the LOCK disc's spot (the bow never locks, the sabre / spear never aim) and DODGE sits between the two,
+   level with JUMP's lower half — D's flatter arc, so nothing overlaps (the old Nalati DODGE sat on DRAW and LOCK); the
+   spear's THROW rides just above FIRE and its BRACE sits up-left of CROUCH, so JUMP and LOCK stay with the spear ── */
+#hud.nalati-d .ws-touch-disc.aim { left: calc(100% - var(--disc) * 1.5 - 58px); bottom: calc(var(--bar) + 16px + var(--disc)); }
+#hud.nalati-d .ws-touch-disc.dodge, #hud.nalati-d .ws-touch-disc.surface { left: calc(100% - var(--disc) / 2 - 70px); bottom: calc(var(--bar) + 8px + var(--disc) / 2); }
+#hud.nalati-d .ws-touch-disc.throw { left: calc(var(--split) + var(--atk) / 2); bottom: calc(var(--bar) + 6px); }
+#hud.nalati-d .ws-touch-disc.brace { left: calc(100% - var(--disc) * 1.75); bottom: calc(var(--bar) + 66px + var(--disc)); }
+@keyframes ws-touch-crouch-pulse { 0% { box-shadow: 0 0 0 0 rgba(143, 227, 255, 0.7), 0 8px 24px rgba(0, 0, 0, 0.4); } 100% { box-shadow: 0 0 0 22px rgba(143, 227, 255, 0), 0 8px 24px rgba(0, 0, 0, 0.4); } }

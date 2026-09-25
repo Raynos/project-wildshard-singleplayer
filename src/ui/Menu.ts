@@ -1,5 +1,5 @@
 /**
- * The in-game MENU — one overlay, four tabs: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (art/menu-tab-*.png), plus FEEDBACK once
+ * The in-game MENU — one overlay, four tabs: MAP · INVENTORY · ACHIEVEMENTS · SETTINGS (art/menu/round-2-tabs/menu-tab-*.png), plus FEEDBACK once
  * a reviewer has unlocked the review inbox in Settings → REVIEW (src/ui/review.ts; the tab's composer is the lazy Feedback.ts).
  * Replaces the old pause box and the stand-alone full-map screen: tapping the minimap (or M) opens it on
  * the Map tab, the pause button / Esc opens it on Settings (Resume, Exit to main menu and the switches live
@@ -30,7 +30,7 @@ const TABS: { id: MenuTab; label: string }[] = [
   { id: 'map', label: 'Map' }, { id: 'inventory', label: 'Inventory' }, { id: 'achievements', label: 'Achievements' }, { id: 'settings', label: 'Settings' },
   { id: 'feedback', label: 'Feedback' }, // only while the review inbox is unlocked (syncReview)
 ];
-const HINTS: Record<MenuTab, string> = { map: 'Drag to pan · pinch to zoom', inventory: 'Tap a weapon to hold it', achievements: 'Tap an earned title to wear it', settings: 'Tap outside or Esc to resume', feedback: 'Enter sends · the frame under the menu goes with it' };
+const HINTS: Record<MenuTab, string> = { map: 'Drag to pan · pinch to zoom', inventory: 'Tap a weapon to hold it · a skin to wear it', achievements: 'Tap an earned title to wear it', settings: 'Tap outside or Esc to resume', feedback: 'Enter sends · the frame under the menu goes with it' };
 
 /** the weapons as the Inventory tab shows them — read live from Weapons (src/player/Weapons.ts) */
 export interface KitEntry { id: string; name: string; ammoLabel: string; ammo: number; magazine: number; reserve: number; equipped: boolean; icon: IconId }
@@ -43,7 +43,11 @@ export interface GameMenuOptions {
   kit: () => KitEntry[];
   /** hold a weapon from the Inventory tab */
   onEquip?: (id: string) => void;
+  /** the shard's wearable skins you own (Nalati: src/player/nalatiSkins.ts) — listed under the weapons, tap to wear / take off */
+  skins?: () => SkinRow[];
+  onWearSkin?: (id: string) => void;
 }
+export interface SkinRow { id: string; name: string; blurb: string; worn: boolean }
 
 const el = (cls: string, html = '', tag = 'div'): HTMLElement => { const e = document.createElement(tag); e.className = cls; if (html) e.innerHTML = html; return e; };
 const esc = (s: string): string => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;');
@@ -211,6 +215,22 @@ export class GameMenu {
       card.addEventListener('click', () => { if (!w.equipped) { this.opts.onEquip?.(w.id); this.renderInventory(); } });
       p.append(card);
     }
+    const skins = this.opts.skins?.() ?? [];
+    if (skins.length > 0) {
+      p.append(el('ws-gmenu-label', 'Skins'));
+      for (const s of skins) {
+        const card = el(`ws-gmenu-weapon${s.worn ? ' equipped' : ''}`, `
+          <i class="ws-gmenu-wicon">${icon('laurel')}</i>
+          <div class="ws-gmenu-wbody">
+            <div class="ws-gmenu-wname">${esc(s.name)}</div>
+            <div class="ws-gmenu-wammo">${esc(s.blurb)}</div>
+          </div>
+          <span class="ws-gmenu-chip">${s.worn ? 'Worn' : 'Wear'}</span>`, 'button');
+        (card as HTMLButtonElement).type = 'button';
+        card.addEventListener('click', () => { this.opts.onWearSkin?.(s.id); this.renderInventory(); });
+        p.append(card);
+      }
+    }
     const items = this.opts.inventory.items;
     const slots = this.opts.inventory.slots;
     p.append(el('ws-gmenu-label', `Pack · ${items.length} / ${slots}`));
@@ -280,7 +300,9 @@ export class GameMenu {
       b.addEventListener('click', () => setSetting(key, !getSetting(key)));
       return b;
     };
-    p.append(el('ws-gmenu-label', 'Gameplay'), sw('aimAssist', 'Aim assist'), sw('tracers', 'Tracer bolts'));
+    p.append(el('ws-gmenu-label', 'Gameplay'), sw('aimAssist', 'Aim assist'));
+    if (getActiveChunk().style !== 'painterly') p.append(sw('tracers', 'Tracer bolts')); // the crossbow's / rifle's: Nalati's bow draws none (NALATI-MERGE F7)
+    if (getActiveChunk().slug === 'nalati-grasslands') p.append(sw('huntersEye', "Hunter's eye")); // the bow's drop arc (Bow.ts): on by default on touch
     if (CAN_VIBRATE) p.append(sw('haptics', 'Vibration')); // Android only — iOS Safari has no vibrate (src/ui/haptics.ts)
 
     // controls: the 0.5–2× look multipliers (Settings 'look' / 'swingLook') — read live by TouchControls + Player's mouse look
@@ -342,9 +364,10 @@ export class GameMenu {
     const lockCam = picker('Lock-on camera', lockCams, () => (getNumber('lockCam') >= 0.75 ? '1' : getNumber('lockCam') > 0.1 ? '0.5' : '0'), (v) => setNumber('lockCam', Number(v)), () => undefined);
     p.append(el('ws-gmenu-label', 'Lock-on'), lockCam, sw('autoLock', 'Auto re-lock'), el('ws-gmenu-note', 'LOCK (Z / middle mouse) locks the enemy nearest the centre. Flick the LOOK pad (mouse flick / wheel) to switch; MOVE circles it.'));
 
-    // look (E55, live — src/ui/Settings.ts OPTIONS): the low-poly shard's clock (DayNight.setTime; main.ts subscribes). The
-    // painted horizon (E78) and the colour grade (E85) are locked on. The boot-time graphics picks are on the title's Settings.
-    if (getActiveChunk().style === 'lowpoly') {
+    // look (E55, live — src/ui/Settings.ts OPTIONS): the shard's day clock (src/world/WorldClock.ts: Driftwood's DayNight, Nalati's
+    // DayClock — NALATI-MERGE F8; main.ts subscribes). The painted horizon (E78) and the colour grade (E85) are locked on. The
+    // boot-time graphics picks are on the title's Settings.
+    if (getActiveChunk().style === 'lowpoly' || getActiveChunk().style === 'painterly') {
       const times: { v: OptionValue<'time'>; text: string }[] = [{ v: 'live', text: 'Live' }, { v: 'midday', text: 'Midday' }, { v: 'golden', text: 'Golden' }, { v: 'sunset', text: 'Sunset' }, { v: 'night', text: 'Night' }];
       const time = picker('Time of day', times, () => setting('time'), (v) => { saveSetting('time', v); }, (fn) => { onSettingChange('time', fn); });
       dbg.append(el('ws-gmenu-label', 'Look'), time);
@@ -366,6 +389,19 @@ export class GameMenu {
     // the frame cap (PINE-HOLLOW PH-P1, tier.ts frameCapFps; live): Auto = Pine Hollow's phone tier at a locked 30, else uncapped
     const caps: { v: OptionValue<'fps'>; text: string }[] = [{ v: 'auto', text: 'Auto' }, { v: '30', text: '30' }, { v: '60', text: 'Uncapped' }];
     dbg.append(el('ws-gmenu-label', 'Frame rate'), picker('Frame cap', caps, () => setting('fps'), (v) => { saveSetting('fps', v); }, (fn) => { onSettingChange('fps', fn); }));
+    // the Nalati Look Lab (NALATI-MERGE L2, src/nalati/look/lab.ts): the wave-6 variants, each off (today's look) until the
+    // user picks — all live, the next frame shows the pick
+    if (getActiveChunk().slug === 'nalati-grasslands') {
+      const onOff = [{ v: 'off' as const, text: 'Off' }, { v: 'on' as const, text: 'On' }];
+      const lab = (k: 'terrainShadow' | 'terrainAO' | 'modelShade', label: string) =>
+        picker(label, onOff, () => setting(k), (v) => { saveSetting(k, v); }, (fn) => { onSettingChange(k, fn); });
+      const yurts = picker('Yurts (next load)', [{ v: 'proc' as const, text: 'Procedural' }, { v: 'model' as const, text: 'Blender model' }],
+        () => setting('yurts'), (v) => { saveSetting('yurts', v); }, (fn) => { onSettingChange('yurts', fn); });
+      const people = picker('Camp people', [{ v: 'proc' as const, text: 'Procedural' }, { v: 'blender' as const, text: 'Blender' }, { v: 'gen' as const, text: 'Image-to-3D' }],
+        () => setting('campPeople'), (v) => { saveSetting('campPeople', v); }, (fn) => { onSettingChange('campPeople', fn); });
+      dbg.append(el('ws-gmenu-label', 'Look lab'), lab('terrainShadow', 'Terrain shadows'), lab('terrainAO', 'Terrain AO + bounce'), lab('modelShade', 'Model shading'), yurts, people,
+        el('ws-gmenu-note', 'Taste picks, each a real look: the ridges casting their dusk shadows · gullies darker and a green bounce off the sunlit meadow · the generated rocks and props with a baked AO (Driftwood\'s model shading) · the camp\'s yurts as the Blender model (on the next load) · the camp\'s five people as generated, rigged models (Blender\'s faceted colours or the image-to-3D atlas). Off / Procedural = today.'));
+    }
     dbg.append(el('ws-gmenu-note', 'Renderer, island, quality and render scale: Exit to main menu ▸ Settings.'));
     dbg.append(this.buildReview());
   }

@@ -39,12 +39,15 @@
  *    (--cd), a cyan flash when it is back (.ready), and a tap before then only shakes the disc (.deny). While the player swims (`player.onSwimChange`) JUMP gives its spot to DIVE, a HELD button
  *    (`player.touchDive` → `player.diveHeld`); once the eye is under (`player.submerged`, polled) SURFACE appears in
  *    DODGE's spot (`player.touchSurface`, hold to come up) and hides again on surfacing.
+ *  - LOCK shows while a weapon that locks is held (`.lockable` — LockOnTarget's LOCK_WEAPONS: the swords, Nalati's sabre and
+ *    spear, NALATI-MERGE H3); in Nalati's saddle (`player.ride`, `.riding`) MOVE steers the horse, so it never reads ORBIT.
  *  - AIM (ranged kit only): the iron-sights toggle latch (`weapons.adsHeld`, tap on / tap off, lit `.on`) sits up-right of
  *    the FIRE disc, clear of the pill, left of DODGE, on the same thumb. Crossing between melee and ranged drops the latch, so a sword never
  *    comes up charging and a crossbow never comes up sighted.
- *  - A bow (`.bow`, Pine Hollow's Warden's Longbow — NALATI-MERGE H4 / N18's code): FIRE reads "HOLD = DRAW" and is the
- *    draw — held = `weapons.altHeld`, its `.ws-touch-charge` ring fills with the draw and glows `.ready` at full; lifting at
- *    full looses (`.fire` flash), lifting early lets the arrow down (`.letdown`). AIM is the zoom toggle.
+ *  - Nalati's bow (`.bow`, NALATI-MERGE H4 / N18): FIRE reads "HOLD = DRAW" and is the draw — held = `weapons.altHeld`,
+ *    its `.ws-touch-charge` ring fills with the draw and glows `.ready` at full; lifting at full looses (`.fire` flash),
+ *    lifting early lets the arrow down (`.letdown`: no shot, the ring unwinds). A drag from it aims while drawing. AIM is
+ *    the zoom toggle (the same `adsHeld` latch): down the arrow, tap again to come out. No quick-fire.
  *  - SWAP: a pill over the divider, seated on the bar's top edge, just up-left of the ATTACK disc (its charge ring clear).
  *    It calls `weapons.swap()` (the Q key) and only shows once a second weapon is unlocked (`weapons.onUnlock`).
  *  - HOVER (E80, Jake's pick C, art/hud/round-11-hover-position/C-bar-tab-above-move.jpg): a folder tab on the bar's top
@@ -74,7 +77,7 @@ import type { Player } from './Player';
 import type { WeaponId, Weapons } from './Weapons';
 import { AimAssist } from './AimAssist';
 import { lockOn, meleeLock } from './AimTargets';
-import { FlickTracker, addLockOffset, type LockOnSystem } from './LockOnTarget';
+import { FlickTracker, LOCK_WEAPONS, addLockOffset, type LockOnSystem } from './LockOnTarget';
 import { getSetting } from '../ui/Settings';
 
 export const IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
@@ -88,7 +91,9 @@ const SPRINT_AT = 0.85;
 const LOOK_RATE = 0.0095;
 const HOLD_PX = 12;           // an ATTACK touch that travels less than this …
 const HOLD_MS = 250;          // … and is still down after this starts the heavy charge (melee only)
-const MELEE: ReadonlySet<WeaponId> = new Set<WeaponId>(['sword', 'sword-iron']); // ATTACK + hold-heavy (no AIM) while one of these is held
+const MELEE: ReadonlySet<WeaponId> = new Set<WeaponId>(['sword', 'sword-iron', 'sabre']); // ATTACK + hold-heavy (no AIM) while one of these is held (Nalati's sabre too)
+/** Nalati's spear (Spear.ts): THROW (held, a javelin) takes AIM's spot and BRACE (held) takes JUMP's (combat-B mockup) */
+const SPEAR: ReadonlySet<WeaponId> = new Set<WeaponId>(['spear']);
 const LUNGE_TURN_RATE = 6;    // /s — exponential ease of the lunge camera turn (≈ 60 % of the bearing over a 0.15 s lunge)
 const LUNGE_TURN_MAX = 150 * Math.PI / 180; // rad/s cap on it
 
@@ -117,6 +122,9 @@ export class TouchControls {
   private cdShown = -1; // the DODGE disc's cooldown sweep (--cd) as last painted
   private lockShown = ''; private orbitShown = 0; // the lock-on state / the lit ORBIT arc as last painted (E50)
   private readonly flick = new FlickTracker(); private lookT0 = 0; private lookDown = { x: 0, y: 0 }; private lookInBar = false;
+  private wasSpear = false; // THROW + BRACE replace AIM + JUMP while the spear is held
+  private wasLockable = false; // the LOCK disc shows while a weapon that locks is held (LOCK_WEAPONS: the swords, Nalati's sabre + spear)
+  private wasRiding = false; // in Nalati's saddle MOVE steers the horse: it never reads ORBIT (`.riding`)
 
   constructor(private player: Player, private weapons: Weapons, force = false, private lock?: LockOnSystem) {
     this.active = force || IS_TOUCH;
@@ -128,9 +136,11 @@ export class TouchControls {
     root.innerHTML = `
       <button class="ws-touch-use" type="button">Use</button>
       <div class="ws-touch-status"></div>
-      <button class="ws-touch-disc aim" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="1.4"/><path d="M12 1.5v4.5M12 18v4.5M1.5 12H6M18 12h4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Aim</span></button>
+      <button class="ws-touch-disc aim" type="button"><i class="ws-touch-charge"></i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="1.4"/><path d="M12 1.5v4.5M12 18v4.5M1.5 12H6M18 12h4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Aim</span></button>
       <button class="ws-touch-disc lock" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 1.8v4.4M12 17.8v4.4M1.8 12h4.4M17.8 12h4.4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="12" cy="12" r="2.1"/></svg><span>Lock</span></button>
       <button class="ws-touch-disc dodge" type="button"><i class="ws-touch-cd"></i><svg viewBox="0 0 24 24"><path d="M5 5.5 11.5 12 5 18.5M12.5 5.5 19 12l-6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Dodge</span></button>
+      <button class="ws-touch-disc throw" type="button"><svg viewBox="0 0 24 24"><path d="M4 20 18.5 5.5M13 5h6v6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20l2.5-5.5L9.5 17.5z"/></svg><span>Throw</span></button>
+      <button class="ws-touch-disc brace" type="button"><svg viewBox="0 0 24 24"><path d="M9 3.5 3.5 5.5v5c0 4 2.4 6.6 5.5 8 3.1-1.4 5.5-4 5.5-8v-5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M8 21 21 3.5M16 3.5h5v5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Brace</span></button>
       <button class="ws-touch-disc jump" type="button"><svg viewBox="0 0 24 24"><path d="M12 2.5 4 11h5v10.5h6V11h5z"/></svg><span>Jump</span></button>
       <button class="ws-touch-disc surface" type="button"><svg viewBox="0 0 24 24"><path d="M12 21.5V9M7.5 13.5 12 9l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 5.5c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4 1.7-1.4 3.4-1.4 1.6 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>Surface</span></button>
       <button class="ws-touch-disc dive" type="button"><svg viewBox="0 0 24 24"><path d="M12 2v11.5M7.5 9.5 12 14l4.5-4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 18.5c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4 1.7-1.4 3.4-1.4 1.6 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M4 22c1.7 0 1.7-1.4 3.3-1.4s1.7 1.4 3.4 1.4 1.7-1.4 3.3-1.4 1.7 1.4 3.3 1.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/></svg><span>Dive</span></button>
@@ -169,14 +179,17 @@ export class TouchControls {
       if (weapons.enabled && lockOn.state !== 'locked') assist.update(dt, player, weapons.adsHeld, this.lookSpeed); // locked (E50): the lock aims, not the assist
       // AIM (ranged latch) and the ATTACK hold-heavy (melee) share `weapons.adsHeld`; crossing between the two drops it, so a
       // sword never comes up charging and a crossbow never comes up sighted from the other's latch
-      const melee = MELEE.has(weapons.current.id);
-      if (melee !== this.wasMelee) {
-        this.wasMelee = melee; root.classList.toggle('melee', melee);
+      const melee = MELEE.has(weapons.current.id), spear = SPEAR.has(weapons.current.id);
+      if (melee !== this.wasMelee || spear !== this.wasSpear) {
+        this.wasMelee = melee; this.wasSpear = spear; root.classList.toggle('melee', melee); root.classList.toggle('spear', spear);
         if (weapons.adsHeld) weapons.adsHeld = false;
         if (weapons.altHeld) weapons.altHeld = false;
         this.heavyHeld = false;
         aim.classList.remove('on'); attack.classList.remove('on');
       }
+      const lockable = LOCK_WEAPONS.has(weapons.current.id), riding = player.ride !== null;
+      if (lockable !== this.wasLockable) { this.wasLockable = lockable; root.classList.toggle('lockable', lockable); }
+      if (riding !== this.wasRiding) { this.wasRiding = riding; root.classList.toggle('riding', riding); this.lockShown = ''; }
       const bow = weapons.current.id === 'bow';
       if (bow !== this.wasBow) {
         this.wasBow = bow; root.classList.toggle('bow', bow);
@@ -184,8 +197,8 @@ export class TouchControls {
         attack.classList.remove('on', 'ready'); this.chargeShown = -1;
       }
       if (bow) {
-        // the FIRE disc's draw ring (NALATI-MERGE N18): fills with the draw while held, closes and glows (.ready) at full; a
-        // let-down unwinds it (the ring stays lit while the string eases forward)
+        // the FIRE disc's draw ring (N18): fills with the draw while held, closes and glows (.ready) at full; a let-down
+        // unwinds it (the ring stays lit while the string eases forward)
         const c = weapons.current.charge ?? 0;
         if (c !== this.chargeShown) { this.chargeShown = c; attack.style.setProperty('--charge', c.toFixed(3)); attack.classList.toggle('ready', c >= 0.999); }
         attack.classList.toggle('on', this.drawHeld || c > 0.01);
@@ -204,9 +217,9 @@ export class TouchControls {
       if (ls !== this.lockShown) {
         this.lockShown = ls;
         root.classList.toggle('lock-available', ls === 'available'); root.classList.toggle('locked', ls === 'locked');
-        lockLabel.textContent = ls === 'locked' ? 'Locked' : 'Lock'; lookLabel.textContent = ls === 'locked' ? 'Switch' : 'Look'; moveLabel.textContent = ls === 'locked' ? 'Orbit' : 'Move';
+        lockLabel.textContent = ls === 'locked' ? 'Locked' : 'Lock'; lookLabel.textContent = ls === 'locked' ? 'Switch' : 'Look'; moveLabel.textContent = ls === 'locked' && !riding ? 'Orbit' : 'Move';
       }
-      const orbit = ls === 'locked' ? Math.sign(Math.round(player.touchMove.x * 3) / 3) : 0;
+      const orbit = ls === 'locked' && !riding ? Math.sign(Math.round(player.touchMove.x * 3) / 3) : 0;
       if (orbit !== this.orbitShown) { this.orbitShown = orbit; root.classList.toggle('orbit-l', orbit < 0); root.classList.toggle('orbit-r', orbit > 0); }
       // DODGE cooldown (E59): a dark clock sweep unwinds over the disc (--cd 1 → 0) and it flashes .ready when it is back
       const cd = Math.round(player.dodgeCooldown * 100) / 100;
@@ -351,6 +364,9 @@ export class TouchControls {
     this.player.onHoverChange = (on) => { hover.classList.toggle('on', on); prevHover?.(on); };
     hover.classList.toggle('on', this.player.hover);
     btn('.jump', () => { this.player.touchJump = true; });
+    // the spear (Nalati): THROW = hold to wind a javelin up, release to throw; BRACE = hold to plant the spear (Spear.ts)
+    btn('.throw', () => { if (this.weapons.enabled) this.weapons.adsHeld = true; }, () => { this.weapons.adsHeld = false; });
+    btn('.brace', () => { if (this.weapons.enabled) this.weapons.altHeld = true; }, () => { this.weapons.altHeld = false; });
     // DIVE replaces JUMP while swimming: a held control (down = held), released on up / cancel / leave
     btn('.dive', () => { this.player.touchDive = true; }, () => { this.player.touchDive = false; });
     const prevSwim = this.player.onSwimChange;

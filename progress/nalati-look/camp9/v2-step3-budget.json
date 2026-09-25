@@ -1,0 +1,101 @@
+[
+  {
+    "n": 1,
+    "id": "fp-front",
+    "mode": "fp",
+    "p50": 16.700000762939453,
+    "p95": 16.899999618530273,
+    "calls": 85,
+    "tris": 1735797,
+    "file": "progress/nalati-look/camp9/v2-step3-1-fp-front.jpg",
+    "target": "art/nalati-grasslands/round-4-camp-9angle/mockup-1-fp-front.jpg"
+  },
+  {
+    "n": 2,
+    "id": "fp-left",
+    "mode": "fp",
+    "p50": 16.700000762939453,
+    "p95": 16.799999237060547,
+    "calls": 94,
+    "tris": 1771379,
+    "file": "progress/nalati-look/camp9/v2-step3-2-fp-left.jpg",
+    "target": "art/nalati-grasslands/round-4-camp-9angle/mockup-2-fp-left.jpg"
+  },
+  {
+    "n": 3,
+    "id": "fp-right",
+    "mode": "fp",
+    "p50": 16.700000762939453,
+    "p95": 16.799999237060547,
+    "calls": 81,
+    "tris": 1543085,
+    "file": "progress/nalati-look/camp9/v2-step3-3-fp-right.jpg",
+    "target": "art/nalati-grasslands/round-4-camp-9angle/mockup-3-fp-right.jpg"
+  },
+  {
+    "n": 4,
+    "id": "fp-back",
+    "mode": "fp",
+    "p50": 16.700000762939453,
+    "p95": 17.5,
+    "calls": 82,
+    "tris": 1493595,
+    "file": "progress/nalati-look/camp9/v2-step3-4-fp-back.jpg",
+    "target": "art/nalati-grasslands/round-4-camp-9angle/mockup-4-fp-back.jpg"
+  },
+  {
+    "n": 5,
+    "id": "top",
+    "mode": "god",
+    "p50": 16.700000762939453,
+    "p95": 17.5,
+    "calls": 81,
+    "tris": 1733143,
+    "file": "progress/nalati-look/camp9/v2-step3-5-top.jpg",
+    "target": "art/nalati-grasslands/round-4-camp-9angle/mockup-5-top.jpg"
+  },
+  {
+    "n": 6,
+    "id": "diag-front",
+    "mode": "god",
+    "p50": 16.700000762939453,
+    "p95": 17.399999618530273,
+    "calls": 81,
+    "tris": 1761905,
+    "file": "progress/nalati-look/camp9/v2-step3-6-diag-front.jpg",
+    "target": "art/nalati-grasslands/round-4-camp-9angle/mockup-6-diag-front.jpg"
+  },
+  {
+    "n": 7,
+    "id": "diag-left",
+    "mode": "god",
+    "p50": 16.700000762939453,
+    "p95": 17.399999618530273,
+    "calls": 87,
+    "tris": 1950857,
+    "file": "progress/nalati-look/camp9/v2-step3-7-diag-left.jpg",
+    "target": "art/nalati-grasslands/round-4-camp-9angle/mockup-7-diag-left.jpg"
+  },
+  {
+    "n": 8,
+    "id": "diag-right",
+    "mode": "god",
+    "p50": 16.700000762939453,
+    "p95": 16.799999237060547,
+    "calls": 79,
+    "tris": 1684435,
+    "file": "progress/nalati-look/camp9/v2-step3-8-diag-right.jpg",
+    "target": "art/nalati-grasslands/round-4-camp-9angle/mockup-8-diag-right.jpg"
+  },
+  {
+    "n": 9,
+    "id": "diag-back",
+    "mode": "god",
+    "p50": 16.700000762939453,
+    "p95": 16.799999237060547,
+    "calls": 82,
+    "tris": 1817455,
+    "file": "progress/nalati-look/camp9/v2-step3-9-diag-back.jpg",
+    "target": "art/nalati-grasslands/round-4-camp-9angle/mockup-9-diag-back.jpg"
+  }
+]

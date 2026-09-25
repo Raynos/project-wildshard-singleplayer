@@ -7,7 +7,7 @@ import { LightPool } from '../fx/LightPool';
 
 /**
  * IronSword — the iron sword as LOOT on Driftwood Isle ("the whole point of Project Wildshard is that you can find
- * equipment on the floor"): a big faceted display model of the iron sword (art/driftwood-fp-sword-iron.png — steel
+ * equipment on the floor"): a big faceted display model of the iron sword (art/driftwood-isle/round-2-first-person/driftwood-fp-sword-iron.png — steel
  * blade with a bright bevelled edge and a darker fuller, dark iron cross guard, leather-wrapped grip, round pommel;
  * flat-shaded vertex colours, no textures) hovering ~1 m over the wreck's broken midships deck inside the item orb
  * (`WeaponPickup.ts` — the AR-15's floating bubble, reused unchanged), with a warm amber point light + a soft halo so

@@ -1,5 +1,5 @@
 /* ─── in-game MENU (src/ui/Menu.ts): MAP · INVENTORY · ACHIEVEMENTS · SETTINGS ─── prefix ws-gmenu- ───
-   One full-height glass sheet over the blurred, still-running world (art/menu-tab-*.png). Header (MENU / shard,
+   One full-height glass sheet over the blurred, still-running world (art/menu/round-2-tabs/menu-tab-*.png). Header (MENU / shard,
    CLOSE), a four-tab bar with the cyan underline, the active tab's panel, a footer hint. Lives on <body>
    above the HUD, the minimap (z 6) and the phone's touch layer (z 5). */
 .ws-gmenu { position: fixed; inset: 0; z-index: 70; display: flex; align-items: stretch; justify-content: center; padding: calc(var(--ws-top) + 4px) 10px calc(10px + env(safe-area-inset-bottom, 0px)); background: rgba(6, 10, 18, 0.55); backdrop-filter: blur(6px) saturate(1.1); -webkit-backdrop-filter: blur(6px) saturate(1.1); opacity: 0; pointer-events: none; transition: opacity 0.18s; font-family: var(--ws-mono); color: var(--ws-text); }

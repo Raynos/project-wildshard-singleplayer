@@ -1,6 +1,9 @@
 /**
  * LockOnTarget — the Zelda-style lock-on (E50, project/archive/2026-09-23-lock-on.md; Jake's picks: the J disc, the N locked HUD, a
- * toggle, auto-next within 8 m, a Gentle camera, melee only). It runs the shared `lockOn` state in AimTargets.ts:
+ * toggle, auto-next within 8 m, a Gentle camera, melee only). Nalati (NALATI-MERGE H3): the sabre and the spear lock too
+ * (`LOCK_WEAPONS`), on every Nalati hostile (`HOSTILE`), on foot and in the saddle (Mount.pose holds its re-centring while
+ * locked, so the view tracks the target and the stick still steers the horse); Jel Ata locks from the arena (`lockRange`).
+ * It runs the shared `lockOn` state in AimTargets.ts:
  *
  *   const lock = new LockOnSystem(player, weapons, camera);   // chains player.preUpdate, owns the desktop binds (Z / middle mouse /
  *                                                     // mouse flick / wheel)
@@ -44,8 +47,14 @@ export const LOCK = {
   OFF_YAW: 10 * DEG, OFF_PITCH: 6 * DEG, OFF_RETURN: 12, // /s: the glance springs back in ~0.25 s
   REFRACTORY: 0.25,      // s after a switch before the next flick counts
 } as const;
-const HOSTILE: ReadonlySet<string> = new Set(['crab', 'boar', 'monkey', 'sailor', 'bear', 'captain']);
-const MELEE: ReadonlySet<WeaponId> = new Set<WeaponId>(['sword', 'sword-iron']);
+/** what may be locked: Driftwood's and Pine Hollow's enemies, and every Nalati hostile (NALATI-MERGE H3) — the wolves (alphas
+ *  included), the named elites (Kokbori, Aqbars the leopard, Qyran the eagle; Argymaq is tamed, not fought), the ghost riders
+ *  (Qara Batyr's rig and Jel Ata's storm riders too), the balbal warriors (the kurgan's adds are the same species), the
+ *  Golden King and Jel Ata's heart (`storm-titan`, src/nalati/stormTitan.ts `lockTarget`). Horses, sheep and the dog never. */
+const HOSTILE: ReadonlySet<string> = new Set(['crab', 'boar', 'monkey', 'sailor', 'bear', 'captain',
+  'wolf', 'kokbori', 'leopard', 'eagle', 'ghost-rider', 'balbal', 'golden-king', 'storm-titan']);
+/** the weapons that lock: the Driftwood swords and Nalati's sabre + spear (H3). The bow waits for its own lock (H4 / N18) */
+export const LOCK_WEAPONS: ReadonlySet<WeaponId> = new Set<WeaponId>(['sword', 'sword-iron', 'sabre', 'spear']);
 
 export type FlickDir = 'left' | 'right' | 'up' | 'down';
 const SECTOR = Math.tan(60 * DEG); // a flick takes what lies within ±60° of its direction
@@ -153,7 +162,7 @@ export class LockOnSystem {
   /** a melee weapon in hand, the game running, on foot */
   private get usable(): boolean {
     const p = this.player;
-    return this.weapons.enabled && MELEE.has(this.weapons.current.id) && !p.swimming && !p.hover;
+    return this.weapons.enabled && LOCK_WEAPONS.has(this.weapons.current.id) && !p.swimming && !p.hover;
   }
 
   toggle(): void {
@@ -243,7 +252,7 @@ export class LockOnSystem {
     for (const t of getAimTargets()) {
       if (!t.alive || t.hidden || !HOSTILE.has(t.kind ?? '')) continue;
       const hd = Math.hypot(t.position.x - p.x, t.position.z - p.z), dist = hd - targetRadius(t);
-      if (dist > LOCK.ACQUIRE && t !== lockOn.target) continue;
+      if (dist > (t.lockRange ?? LOCK.ACQUIRE) && t !== lockOn.target) continue;
       aimPoint(t, _aim);
       const dx = _aim.x - _eye.x, dy = _aim.y - _eye.y, dz = _aim.z - _eye.z, len = Math.hypot(dx, dy, dz);
       if (len < 1e-3) continue;
@@ -253,11 +262,13 @@ export class LockOnSystem {
     }
   }
 
-  private best(within: number = LOCK.CONE, maxDist: number = LOCK.ACQUIRE): Cand | null {
+  /** the best candidate inside `within` of the view and `maxDist` m (default: each target's own acquire range) */
+  private best(within: number = LOCK.CONE, maxDist?: number): Cand | null {
     let best: Cand | null = null, bestS = Infinity;
     for (const c of this.cands) {
-      if (c.t === lockOn.target || c.angle > within || c.dist > maxDist) continue;
-      const s = lockScore(c.angle, c.dist, c.t.state === 'attack');
+      const range = c.t.lockRange ?? LOCK.ACQUIRE;
+      if (c.t === lockOn.target || c.angle > within || c.dist > (maxDist ?? range)) continue;
+      const s = lockScore(c.angle, c.dist * LOCK.ACQUIRE / range, c.t.state === 'attack'); // a far-lock giant scores by its own range
       if (s < bestS) { bestS = s; best = c; }
     }
     return best;
@@ -301,7 +312,7 @@ export class LockOnSystem {
       }
       // breaks: too far, out of sight too long
       const dist = Math.hypot(t.position.x - p.position.x, t.position.z - p.position.z) - targetRadius(t);
-      if (dist > LOCK.BREAK) { this.unlock(true); return; }
+      if (dist > (t.lockRange !== undefined ? t.lockRange * 1.5 : LOCK.BREAK)) { this.unlock(true); return; }
       this.losLostT = this.visible(t) ? 0 : this.losLostT + dt;
       if (this.losLostT > LOCK.LOS_GRACE) { this.unlock(true); return; }
 

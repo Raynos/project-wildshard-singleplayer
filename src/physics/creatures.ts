@@ -26,6 +26,8 @@ export interface Creature {
   bodyCapsule: (a: THREE.Vector3, b: THREE.Vector3) => void;
   /** set by CreatureBodies while the animal is near: its moves go through this */
   motor: CharacterMotor | null;
+  /** another body carries it (the ridden horse, on Mount's motor): no creature body of its own */
+  readonly driven: boolean;
 }
 
 /** The owner tag on a hitbox: which animal, which part. */
@@ -43,6 +45,9 @@ export class CreatureBodies<C extends Creature = Creature> {
   private readonly hitGroups = queryGroups(['HITBOX'], 'PROJECTILE');
   private readonly hitPoint = new THREE.Vector3();
   private result: CreatureHit<C> | null = null;
+  /** skips a hitbox whose creature is hidden right now — the colliders only turn off at the next sync, and pastRidden
+   *  (src/player/riding.ts) hides the ridden horse for the one call, so a rider never aims at / shoots his own mount */
+  private readonly shown = (col: Collider): boolean => { const o = tagOf(col)?.owner as HitboxOwner<C> | undefined; return o === undefined || !o.creature.hidden; };
   /** how many creatures had a body (a controller) at the last sync — the bench reads it */
   bodies = 0;
 
@@ -77,8 +82,8 @@ export class CreatureBodies<C extends Creature = Creature> {
       }
       // the creature physics LOD
       const dist = Math.hypot(c.position.x - player.x, c.position.z - player.z);
-      if (c.motor === null && live && dist < NEAR) c.motor = this.motorFor(c);
-      else if (c.motor !== null && (!live || dist > FAR)) { c.motor.dispose(); c.motor = null; }
+      if (c.motor === null && live && dist < NEAR && !c.driven) c.motor = this.motorFor(c);
+      else if (c.motor !== null && (!live || dist > FAR || c.driven)) { c.motor.dispose(); c.motor = null; }
       if (c.motor !== null) bodies++;
     }
     this.bodies = bodies;
@@ -94,7 +99,7 @@ export class CreatureBodies<C extends Creature = Creature> {
   /** The nearest head / body along the ray within `maxDist` (the returned object is reused). */
   cast(origin: THREE.Vector3, dir: THREE.Vector3, maxDist: number): CreatureHit<C> | null {
     const { R, world } = this.physics;
-    const hit = world.castRay(new R.Ray(origin, dir), maxDist, true, R.QueryFilterFlags.EXCLUDE_SENSORS, this.hitGroups);
+    const hit = world.castRay(new R.Ray(origin, dir), maxDist, true, R.QueryFilterFlags.EXCLUDE_SENSORS, this.hitGroups, undefined, undefined, this.shown);
     if (!hit) return null;
     const owner = tagOf(hit.collider)?.owner as HitboxOwner<C> | undefined;
     if (owner === undefined) return null;

@@ -19,6 +19,11 @@ registerHooks({
   },
   load(url, context, next) {
     if (IMAGE.test(url)) return { format: 'module', source: `export default ${JSON.stringify(url.replace(/^.*\/src\//, '/src/'))};`, shortCircuit: true };
-    return next(url, context);
+    const out = next(url, context);
+    // Vite's `import.meta.env` (a dev-only console hook in a builder) is undefined under Node: a production build's values
+    if (!url.endsWith('.ts')) return out;
+    const src = out.source, text = typeof src === 'string' ? src : src instanceof Uint8Array ? new TextDecoder().decode(src) : '';
+    if (text.includes('import.meta.env')) return { ...out, source: text.replaceAll('import.meta.env', '({ DEV: false, PROD: true, MODE: "production" })') };
+    return out;
   },
 });

@@ -6,7 +6,7 @@ import type { Animal } from '../Animal';
 import { NO_FUR, lookAngles, smooth01, bump, step, clamp, squashBody } from './rigs';
 
 /**
- * Coconut Monkey — the palm-grove troop (art/driftwood-enemy-2-monkey.png): tan faceted fur, a dark face with a pale
+ * Coconut Monkey — the palm-grove troop (art/driftwood-isle/round-3-enemies/driftwood-enemy-2-monkey.png): tan faceted fur, a dark face with a pale
  * muzzle, round ears, long arms, a long tail curling up over its back. Troops of 3–4, each in a palm crown. Custom rig:
  * body (pelvis, root) · spine · chest · head · per side arm sh / el / hand, leg hip / knee / foot · tail1..3.
  *

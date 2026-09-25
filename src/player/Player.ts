@@ -166,14 +166,22 @@ export class Player {
   onStep?: (sprinting: boolean) => void;
   /** runs first thing in update(), before input is read and the camera is posed — the touch aim assist nudges yaw/pitch here */
   preUpdate?: (dt: number) => void;
+  /** riding (Nalati B7, src/player/Mount.ts): while set, the frame is handed to it — `drive` reads the input (input
+   *  phase), `step` moves the horse on its own motor (each fixed step), `pose` places the rider and the camera from the
+   *  interpolated saddle (update, `alpha`) — and walking / swimming / the board are skipped */
+  ride: { drive: (dt: number) => void; step: (dt: number) => void; pose: (dt: number, alpha: number) => void } | null = null;
   private lastBobPhase = 0;
   // ── dash: dodge + lunge (see `dodge()` / `dash()`) ──
   /** the DODGE disc was tapped (TouchControls) — consumed next update, like `touchJump` */
   touchDodge = false;
+  /** walking speed multiplier a weapon may pin (the Nalati spear's BRACE: 0 = planted, the view still turns) */
+  moveScale = 1;
   /** a sword swing is running (Sword.ts sets it every frame): the look speed takes the 'swingLook' factor */
   swinging = false;
-  /** look-speed multiplier for mouse AND touch (Settings 'look', × 'swingLook' while swinging) — TouchControls reads it too */
-  get lookMult(): number { return getNumber('look') * (this.swinging ? getNumber('swingLook') : 1); }
+  /** the held weapon's zoom slows the look by this (Nalati's bow sets 1 / its AIM zoom; nothing else touches it) */
+  zoomLook = 1;
+  /** look-speed multiplier for mouse AND touch (Settings 'look', × 'swingLook' while swinging, × `zoomLook`) — TouchControls reads it too */
+  get lookMult(): number { return getNumber('look') * (this.swinging ? getNumber('swingLook') : 1) * this.zoomLook; }
   /** a dodge started / a lunge dash started (audio, haptics — main.ts) */
   onDodge?: () => void;
   onLunge?: () => void;
@@ -342,6 +350,7 @@ export class Player {
   input(dtRaw: number): void {
     const dt = Math.min(dtRaw, 0.05);
     this.preUpdate?.(dt);
+    if (this.ride !== null) { this.ride.drive(dt); return; }
     const k = this.keys;
     this.inFwd = Math.max(-1, Math.min(1, (k.has('KeyW') ? 1 : 0) - (k.has('KeyS') ? 1 : 0) + this.touchMove.y));
     this.inStr = Math.max(-1, Math.min(1, (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0) + this.touchMove.x));
@@ -352,12 +361,15 @@ export class Player {
     if (this.touchDodge) { this.touchDodge = false; this.dodge(); }
   }
 
-  /** Explore's free camera / the tour own the view: the body leaves the world's way until they hand it back. */
-  setBodyEnabled(on: boolean): void { this.motor.setEnabled(on); }
+  /** Explore's free camera / the tour own the view: the body leaves the world's way until they hand it back (and it
+   *  stays out while you ride — bootstrap re-enables it every fixed step, so the gate is here). */
+  setBodyEnabled(on: boolean): void { this.motor.setEnabled(on && this.ride === null); }   // in the saddle the horse is the body (N17)
 
   /** One fixed step (Game's `post` slot, dt = FIXED_STEP): the move, against the stepped physics world. */
   step(dt: number): void {
     this.prevFeet.copy(this.position);
+    // in the saddle the horse carries you (Mount.step, on the horse's own motor): no walk, no motor of yours
+    if (this.ride !== null) { this.ride.step(dt); return; }
     if (this.carried) { this.velocity.set(0, 0, 0); this.onGround = false; return; }
     const k = this.keys;
     const fwd = this.inFwd, str = this.inStr;
@@ -367,7 +379,7 @@ export class Player {
     const wadeT = !hover && !swim && this.onGround ? Math.min(1, this.depth / WADE_MAX) : 0;
     this.crouching = !hover && !swim && (k.has('ControlLeft') || k.has('KeyC'));
     this.sprinting = !hover && !swim && this.depth < NO_SPRINT_DEPTH && (k.has('ShiftLeft') || this.touchSprint) && fwd > 0 && !this.crouching;
-    const speed = (this.crouching ? 2.2 : this.sprinting ? 7.2 : 4.3) * (1 - 0.55 * wadeT);
+    const speed = (this.crouching ? 2.2 : this.sprinting ? 7.2 : 4.3) * (1 - 0.55 * wadeT) * this.moveScale;
     this.waveTime += dt;
 
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);
@@ -643,6 +655,7 @@ export class Player {
    */
   update(dtRaw: number, alpha = 1): void {
     const dt = Math.min(dtRaw, 0.05);
+    if (this.ride !== null) { this.ride.pose(dt, alpha); this.renderFeet.copy(this.position); return; }   // the saddle's eye (Mount.pose) owns the camera
     const hover = this.hover;
     const swim = this.swimming && !hover;
     const sin = Math.sin(this.yaw), cos = Math.cos(this.yaw);

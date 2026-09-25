@@ -4,7 +4,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 /**
  * nalatiArms — the Nalati rider's first-person arms, shared by every Nalati viewmodel (Bow.ts, Sabre.ts, Spear.ts) so
  * all three weapons are held by the same hands (look pass, docs/design/nalati/look-pass.md §7; mockups
- * art/nalati-grasslands/round-1/1-art-style/style-B-painterly.png, round-2/1-combat/*.png).
+ * art/nalati-grasslands/round-1/1-art-style/style-B-painterly.jpg, round-2/1-combat/*.png).
  *
  * The rider: brown leather gloves (a stitched back, stitched finger seams, a flared gauntlet with a rolled, stitched
  * edge), a thick white fleece cuff, and cream wool sleeves with red Kazakh ram's-horn (qoshqar mùiz) ornament bands,

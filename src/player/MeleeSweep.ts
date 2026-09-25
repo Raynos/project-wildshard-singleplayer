@@ -34,8 +34,8 @@ export function bladeBlocked(physics: Physics | null, eye: Vec3, point: Vec3, ex
 export type Clang = 'stone' | 'wood';
 const CLANG: Record<Material, Clang | null> = {
   stone: 'stone', rock: 'stone', metal: 'stone', shell: 'stone',
-  wood: 'wood', planks: 'wood',
-  sand: null, wetSand: null, grass: null, water: null, ground: null, edge: null, flesh: null,
+  wood: 'wood', planks: 'wood', felt: 'wood',
+  sand: null, wetSand: null, grass: null, water: null, ground: null, edge: null, flesh: null, earth: null,
 };
 export function clangOf(m: Material): Clang | null { return CLANG[m]; }
 

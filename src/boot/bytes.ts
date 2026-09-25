@@ -13,6 +13,7 @@
 import type { Plan, ByteProgress } from './plan';
 import type { BootStep, ByteKey } from './steps';
 import { PUBLIC_BYTES } from './bytes.generated';
+import { ASSET_VERSIONS } from './versions.generated';
 import { DefaultLoadingManager } from 'three';
 import { TIER_CONFIG } from '../core/tier';
 
@@ -54,6 +55,27 @@ DefaultLoadingManager.setURLModifier(tierUrl);
 
 const pathOf = (url: string): string => { try { return new URL(url, location.href).pathname; } catch { return url; } };
 
+/**
+ * The URL the network sees for a file that is edited in place (public/assets/nalati/**, vite.config.ts
+ * `writeVersionsModule`): `<path>?v=<content hash>`, so a changed file is a new URL to the HTTP cache and the service
+ * worker. Everything above the network (the byte counter, the pack, the prefetch queue) keys files by path and never
+ * sees the query. Any other URL, or one that already carries a query: as is.
+ */
+export function versionedUrl(url: string): string {
+  if (!url.includes('/assets/nalati/') || url.includes('?')) return url;
+  const v = ASSET_VERSIONS[pathOf(url)];
+  return v === undefined ? url : `${url}?v=${v}`;
+}
+/** `fetch` with `versionedUrl` applied (three's FileLoader hands fetch a Request) */
+function versionedFetch(net: typeof window.fetch): typeof window.fetch {
+  return (input, init) => {
+    if (typeof input === 'string') return net(versionedUrl(input), init);
+    if (input instanceof URL) return net(versionedUrl(input.href), init);
+    const u = versionedUrl(input.url);
+    return net(u === input.url ? input : new Request(u, input), init);
+  };
+}
+
 export function installByteCounter(plan: Plan<BootStep>, files: ChunkFiles): void {
   const sourceOf = new Map<string, ByteKey>();
   for (const key of Object.keys(files) as ByteKey[]) for (const f of files[key]) sourceOf.set(f, key);
@@ -62,7 +84,7 @@ export function installByteCounter(plan: Plan<BootStep>, files: ChunkFiles): voi
   const seen = new Set<string>();     // files whose bytes were counted by the tee
   const finished = new Set<string>();
 
-  const orig = window.fetch.bind(window);
+  const orig = versionedFetch(window.fetch.bind(window)); // the innermost layer: the network sees `?v=` (versionedUrl)
   window.fetch = async (input, init) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     const p = pathOf(url);

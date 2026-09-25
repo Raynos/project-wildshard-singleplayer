@@ -38,7 +38,7 @@ const GRADE_LEAD = 5;
  * the ground (levelled across, so the crag's roughness beside the line doesn't come back between grid vertices): 1
  * within GRADE_LEAD of any sample the grading moved by 0.4 m or more, 0 where nothing within it moved 5 cm.
  */
-function gradeProfile(poly: Vec2[], maxGrade: number, ground: (x: number, z: number) => number) {
+function gradeProfile(poly: Vec2[], maxGrade: number, ground: (x: number, z: number) => number, bench = false) {
   const cum: number[] = [0];
   for (let k = 1; k < poly.length; k++) { const a = poly[k - 1], b = poly[k]; cum.push((cum[k - 1] ?? 0) + (a && b ? Math.hypot(b[0] - a[0], b[1] - a[1]) : 0)); }
   const total = cum[cum.length - 1] ?? 0, n = Math.max(2, Math.ceil(total / GRADE_STEP) + 1);
@@ -57,6 +57,7 @@ function gradeProfile(poly: Vec2[], maxGrade: number, ground: (x: number, z: num
   const shelf = g.map((_, i) => ((up[i] ?? 0) + (dn[i] ?? 0)) / 2), moved = shelf.map((v, i) => Math.abs(v - (g[i] ?? 0)));
   const lead = Math.round(GRADE_LEAD / GRADE_STEP);
   const need = moved.map((_, i) => {
+    if (bench) return 1; // a bench the whole way (TerrainSpec.graded.bench)
     let m = 0;
     for (let j = Math.max(0, i - lead); j <= Math.min(n - 1, i + lead); j++) m = Math.max(m, moved[j] ?? 0);
     return smoothstep(0.05, 0.4, m);
@@ -101,7 +102,7 @@ export function buildTerrain(seed: number, spec: TerrainSpec): ChunkTerrain {
   const oceanLevel = spec.oceanLevel ?? null;
   const landscape = (x: number, z: number) => spec.landscape(x, z, noise);
   const finish = spec.finish ?? null;
-  const graded = (spec.graded?.paths ?? []).map((poly) => gradeProfile(poly, spec.graded?.maxGrade ?? 1, landscape));
+  const graded = (spec.graded?.paths ?? []).map((poly) => gradeProfile(poly, spec.graded?.maxGrade ?? 1, landscape, spec.graded?.bench === true));
   /** a graded path's pull on (x, z): the shelf height there, and how far toward it (1 within GRADE_IN of a stretch
    *  that needed grading, 0 past GRADE_OUT or where the ground was gentle anyway) */
   const _grade = { y: 0, w: 0 };

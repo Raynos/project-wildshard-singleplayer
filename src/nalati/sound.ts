@@ -1,0 +1,222 @@
+/**
+ * Nalati's sound (row B16, the audio half): the steppe's creatures, hooves on the ground they cross, the stampede, the
+ * grassland bed (wind in the grass by gust strength, the Kunes, the waterfall, the camp stove, larks / crickets), the
+ * dusk / night howl chorus, and the kit's own voices (bow twang + arrow whoosh / thud, javelin throw / impact, the
+ * sabre's steel, the spear's thrust). Everything plays through `src/audio/Audio.ts`; this file decides what and where.
+ *
+ *   const sound = wireSound(nalati, { player, weather });   // src/nalati/index.ts: wraps attachAnimals (the flock / dog /
+ *                                                            // marmot sounds), bindPlay (the kit's hooks), wildEnv.onEvent
+ *   sound.bind(audio, music)      // main.ts, once the audio exists: the hoof ground, the steppe bed, the music's 'steppe' mood
+ *   sound.fire(weaponId)          // main's weapons.onFire: true = handled here (the kit), false = the old sounds
+ *   sound.impact(weaponId, surface, pan, gain)   // main's weapons.onImpact: true = handled here
+ *   sound.update(dt)              // every frame (index.ts pushes it)
+ *   audio.counts                  // the tally of every sound played (`window.__nalatiSound.counts()` in a headless check)
+ *
+ * NALATI-MERGE A1 / A2 / A4: the bow's draw creak / full-draw click / let-down (Bow.onDrawStart / onFullDraw / onLetDown);
+ * the zoned sample beds (src/audio/SteppeAmbience.ts: Nalati Grasslands / Sky Grassland / Snow Lotus Valley, fed from here at
+ * 4 Hz) over the synth bed's fallback; the score's scene (music.setSteppe: the zone, night, the storm, the Golden King).
+ *
+ * Pine Hollow and Driftwood never build this; the only engine-side change they could see is none (Audio's new methods
+ * and the 'steppe' bed are only reached from here).
+ */
+import * as THREE from 'three';
+import type { Audio, AnimalSound, HoofSurface, ImpactKind } from '../audio/Audio';
+import type { Music } from '../audio/Music';
+import { SteppeAmbience } from '../audio/SteppeAmbience';
+import type { Player } from '../player/Player';
+import type { NalatiKit } from '../player/nalatiKit';
+import type { Nalati } from './index';
+import type { NalatiWeather } from './weather';
+import type { AnimalManager } from '../entities/AnimalManager';
+import { wind } from '../world/steppeWind';
+import { wildEnv } from '../entities/wildEnv';
+import { lightLevel } from '../world/DayClock';
+import { trailDistance } from '../world/Heightfield';
+import { RIVER, BRIDGE, CAMP, SUMMER_YURTS, GLACIER, BROOK, riverMask, zoneAt } from '../chunks/nalati-grasslands';
+
+export interface NalatiSound {
+  bind: (audio: Audio, music?: Music) => void;
+  fire: (weaponId: string) => boolean;
+  impact: (weaponId: string, surface: ImpactKind, pan: number, gain: number) => boolean;
+  update: (dt: number) => void;
+  /** a creature sound from the flock / dog / marmots (Wildlife.onSound) */
+  emit: (name: string, position: THREE.Vector3) => void;
+  /** a wildEnv event ('stampede', 'howl', …) */
+  event: (name: string, x: number, z: number) => void;
+  /** the tally so far (sound → calls) */
+  counts: () => Record<string, number>;
+  /** the zoned beds (A4), once bound */
+  readonly ambience: SteppeAmbience | null;
+}
+
+/** the creature names Wildlife / Flock / Marmots send (the AnimalManager ones reach Audio.animal through main.ts) */
+const WILD: ReadonlySet<string> = new Set<AnimalSound>(['sheep_bleat', 'dog_bark', 'dog_yelp', 'marmot_whistle', 'wolf_howl', 'wolf_snarl', 'wolf_bite', 'wolf_yip', 'wolf_yelp', 'horse_neigh', 'horse_snort', 'horse_squeal']);
+function isAnimalSound(n: string): n is AnimalSound { return WILD.has(n); }
+
+const smooth = (e0: number, e1: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+
+/** the ground under a hoof: the bridge deck, the gravel bars / roads, else turf */
+function hoofSurfaceAt(x: number, z: number): HoofSurface {
+  if (Math.abs(x - BRIDGE.x) < 3 && Math.abs(z - BRIDGE.z) < BRIDGE.span / 2) return 'wood';
+  if (riverMask(x, z) > 0.5 || trailDistance(x, z) < 2.2) return 'gravel';
+  return 'grass';
+}
+
+/** metres to the brook's polyline (the meltwater stream), and the side it lies on (`side.x`, `side.z`: a unit vector toward it) */
+const side = { x: 0, z: 0 };
+function brookDistance(x: number, z: number): number {
+  let best = Infinity;
+  for (let i = 0; i < BROOK.length - 1; i++) {
+    const a = BROOK[i], b = BROOK[i + 1];
+    if (!a || !b) continue;
+    const vx = b[0] - a[0], vz = b[1] - a[1], l2 = vx * vx + vz * vz;
+    const t = l2 > 0 ? Math.min(1, Math.max(0, ((x - a[0]) * vx + (z - a[1]) * vz) / l2)) : 0;
+    const px = a[0] + vx * t, pz = a[1] + vz * t, d = Math.hypot(x - px, z - pz);
+    if (d < best) { best = d; side.x = d > 0 ? (px - x) / d : 0; side.z = d > 0 ? (pz - z) / d : 0; }
+  }
+  return best;
+}
+
+export function wireSound(nalati: Nalati, ctx: { player: Player; weather: NalatiWeather }): NalatiSound {
+  const { player, weather } = ctx;
+  let audio: Audio | null = null;
+  const _v = new THREE.Vector3();
+
+  /** pan of a world point for the listener (Player.yaw convention: right = (cos yaw, −sin yaw)) */
+  const panOf = (x: number, z: number): number => {
+    const dx = x - player.position.x, dz = z - player.position.z, d = Math.hypot(dx, dz);
+    return d > 0.5 ? ((dx * Math.cos(player.yaw) - dz * Math.sin(player.yaw)) / d) * 0.8 : 0;
+  };
+
+  const emit = (name: string, position: THREE.Vector3): void => {
+    if (audio && isAnimalSound(name)) audio.animal(name, position, player.position, player.yaw);
+  };
+  const event = (name: string, x: number, z: number): void => {
+    if (!audio) return;
+    if (name === 'stampede') audio.stampede(Math.hypot(x - player.position.x, z - player.position.z), panOf(x, z));
+  };
+
+  // ── the kit: the bow's twang carries the draw's power; the spear's thrust vs throw is known only after onFire ──
+  let thrustPending = false;
+  const bindKit = (kit: NalatiKit): void => {
+    const loose = kit.bow.onLoose;
+    kit.bow.onLoose = (power) => { loose?.(power); audio?.bowTwang(power); };
+    const thrown = kit.spear.onThrow;
+    kit.spear.onThrow = () => { thrown?.(); thrustPending = false; audio?.javelinThrow(); };
+    // H4's hold-to-draw: the limbs creak as you draw, click at full draw, ease back on a let-down (A1)
+    const drawStart = kit.bow.onDrawStart, full = kit.bow.onFullDraw, letDown = kit.bow.onLetDown;
+    kit.bow.onDrawStart = () => { drawStart?.(); audio?.bowDraw(); };
+    kit.bow.onFullDraw = () => { full?.(); audio?.bowFullDraw(); };
+    kit.bow.onLetDown = () => { letDown?.(); audio?.bowLetDown(); };
+  };
+
+  // ── self-wiring onto the shard's hooks (the integrator's index.ts calls wireSound once) ──
+  let manager: AnimalManager | null = null;
+  const attach = nalati.attachAnimals;
+  nalati.attachAnimals = (animals) => {
+    manager = animals;
+    const w = attach(animals);
+    const prev = w.onSound;
+    w.onSound = (name, pos) => { prev?.(name, pos); emit(name, pos); };
+    return w;
+  };
+  const bindPlay = nalati.bindPlay;
+  nalati.bindPlay = (p) => { bindPlay(p); if (p.kit !== null) bindKit(p.kit); };
+  const onEvent = wildEnv.onEvent;
+  wildEnv.onEvent = (name, x, z) => { onEvent?.(name, x, z); event(name, x, z); };
+
+  // ── the dusk / night chorus: now and then a pack far off answers (never in a storm, never in the kurgan) ──
+  let chorusT = 20, bedT = 0;
+  let amb: SteppeAmbience | null = null, score: Music | undefined;
+  const chorus = (): void => {
+    if (!audio) return;
+    const a = Math.random() * Math.PI * 2, d = 260 + Math.random() * 330;
+    _v.set(player.position.x + Math.cos(a) * d, player.position.y + 20, player.position.z + Math.sin(a) * d);
+    audio.animal('wolf_howl', _v, player.position, player.yaw);
+  };
+
+  const sound: NalatiSound = {
+    bind(a, music) {
+      audio = a;
+      a.hoofSurfaceAt = hoofSurfaceAt;
+      // the manager's footfalls are 'hoofsteps' for every animal: only a horse's are hooves — a wolf's or the dog's paws
+      // are silent in the grass (bind runs after main.ts sets animals.onSound, so this wraps it)
+      const m = manager;
+      if (m?.onSound) {
+        const prev = m.onSound;
+        m.onSound = (name, pos) => {
+          if (name === 'hoofsteps') {
+            const who = m.animals.find((x) => x.position === pos);
+            if (who && who.kind !== 'horse') return;
+          }
+          prev(name, pos);
+        };
+      }
+      a.setAmbient('steppe');
+      music?.setState({ shard: 'steppe' });
+      // A4: the zones' sampled beds (the synth bed stays the fallback); A2: the score follows the zone they report
+      score = music;
+      amb = new SteppeAmbience(a);
+      amb.onZone = (zone) => { score?.setSteppe({ zone }); };
+    },
+    fire(id) {
+      if (!audio) return false;
+      if (id === 'bow') return true; // the twang comes with the loose's power (bindKit)
+      if (id === 'sabre') { audio.sabreSwing(); return true; }
+      if (id === 'spear') {
+        // a throw calls onFire then onThrow in the same task: only a thrust is still pending after it
+        thrustPending = true;
+        queueMicrotask(() => { if (thrustPending) { thrustPending = false; audio?.spearThrust(); } });
+        return true;
+      }
+      return false;
+    },
+    impact(id, surface, pan, gain) {
+      if (!audio) return false;
+      if (id === 'bow') { audio.arrowImpact(surface, pan, gain); return true; }
+      if (id === 'spear') { audio.javelinImpact(surface, pan, gain); return true; }
+      if (id === 'sabre') { audio.sabreHit(surface, pan, gain); return true; }
+      return false;
+    },
+    emit, event,
+    counts: () => ({ ...audio?.counts }),
+    get ambience() { return amb; },
+    update(dt) {
+      if (!audio) return;
+      const p = player.position, clock = weather.clock;
+      bedT -= dt;
+      if (bedT <= 0) {
+        bedT = 0.25;
+        const river = smooth(70, 6, Math.abs(p.z - RIVER.z(p.x)) - RIVER.half(p.x));
+        const brook = smooth(24, 2, brookDistance(p.x, p.z)) * 0.45;
+        const fall = smooth(90, 10, Math.hypot(p.x - GLACIER.x1, p.z - GLACIER.z1)) * 0.6; // the meltwater roaring out from under the glacier's snout
+        const camp = Math.max(smooth(45, 6, Math.hypot(p.x - CAMP.x, p.z - CAMP.z)), 0.6 * smooth(30, 5, Math.hypot(p.x - SUMMER_YURTS.x, p.z - SUMMER_YURTS.z)));
+        const night = smooth(0.75, 0.45, lightLevel(clock));
+        // in the kurgan's sealed chamber the steppe is gone (the boss fight has its own sound)
+        const out = nalati.boss.inside ? 0 : 1;
+        const gust = wind.gustAt(p.x, p.z);
+        audio.setSteppe({ wind: wind.speed * out, gust: gust * out, river: Math.max(river, brook) * out, waterfall: fall * out, camp: camp * out, night: night * out });
+        if (amb) {
+          const bd = brookDistance(p.x, p.z), cs = Math.cos(player.yaw), sn = Math.sin(player.yaw);
+          const panTo = (dx: number, dz: number): number => { const d = Math.hypot(dx, dz); return d > 0.5 ? ((dx * cs - dz * sn) / d) * 0.7 : 0; };
+          const toCamp = Math.hypot(p.x - CAMP.x, p.z - CAMP.z) < Math.hypot(p.x - SUMMER_YURTS.x, p.z - SUMMER_YURTS.z) ? CAMP : SUMMER_YURTS;
+          amb.set({
+            zones: zoneAt(p.x, p.z), river, melt: Math.max(fall, smooth(40, 3, bd)), camp, night, wind: wind.speed, gust, out,
+            pan: { river: panTo(0, RIVER.z(p.x) - p.z), camp: panTo(toCamp.x - p.x, toCamp.z - p.z), melt: bd < 40 ? panTo(side.x, side.z) : panTo(GLACIER.x1 - p.x, GLACIER.z1 - p.z) },
+          });
+        }
+        // A2: the score's scene — the King's barrow, a storm (Jel Ata's cue), the night; the zone comes from amb.onZone
+        score?.setSteppe({ night: night > 0.5, storm: weather.weather.stormActive || nalati.titan.engaged, boss: nalati.boss.inside ? 'king' : null });
+      }
+      amb?.update(dt, p, player.yaw);
+      chorusT -= dt;
+      if (chorusT <= 0) {
+        const dark = clock.phase === 'dusk' || clock.phase === 'night';
+        chorusT = dark ? 35 + Math.random() * 55 : 20;
+        if (dark && !weather.weather.stormActive && !nalati.boss.inside) chorus();
+      }
+    },
+  };
+  Object.assign(window, { __nalatiSound: sound });
+  return sound;
+}

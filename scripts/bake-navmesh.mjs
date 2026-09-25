@@ -48,6 +48,12 @@ const SHARD_LAYERS = {
     { name: 'small', radius: 0.3, height: 1.8, climb: 0.3, slope: 40 }, // crabs, monkeys, sailors, the captain
     { name: 'large', radius: 0.5, height: 1.8, climb: 0.3, slope: 40 }, // boar, deer, bear
   ],
+  // Nalati (NALATI-MERGE P3): one layer — wolves 0.16–0.22, sheep, the dog, the leopards 0.17–0.26, the mares 0.29–0.31;
+  // the stallion (0.32) and Kokbori (0.49) path on it too (a second 0.5 m layer is +88 KB brotli: 216 KB, past the
+  // budget). Climb 0.4: recast calls a cell a ledge when its neighbours' floors span more than the climb, and across two
+  // 0.25 m cells that caps the slope at atan(climb / 0.5) — 31° at 0.3, where Nalati's roads and knolls run 32–39°
+  // (the bridge's own north approach is 34°); 0.4 walks to ~38.7°, 5 cm over the motors' step
+  'nalati-grasslands': [{ name: 'small', radius: 0.3, height: 1.8, climb: 0.4, slope: 40 }],
   default: [{ name: 'large', radius: 0.5, height: 1.8, climb: 0.3, slope: 40 }],
 };
 const layersFor = (slug) => JSON.parse(process.env.NAVMESH_LAYERS ?? 'null') ?? SHARD_LAYERS[slug] ?? SHARD_LAYERS.default;
@@ -106,6 +112,7 @@ async function shardColliders(def) {
   const forest = def.trees.factory === 'none' ? { trees: [], grid: null } : placeForest(plantSpecs(def.trees)); // the species set's trunks (PH-B4)
   group = 'trunks';
   add(Forest.prototype.colliderDescs.call({ trees: forest.trees }));
+  if (def.style === 'painterly') return nalatiColliders(forest, { out, cuts, counts, add, setGroup: (g) => { group = g; } });
   group = 'paths';
   add(pathRampDescs(HF.TRAILS, (x, z) => HF.heightAt(x, z), (x, z) => HF.normalAt(x, z)[1]));
   const sea = def.ocean;
@@ -148,6 +155,39 @@ async function shardColliders(def) {
     await props.build();
     add(props.colliderDescs());
   }
+  return { colliders: out, cuts, counts };
+}
+
+/**
+ * Nalati (NALATI-MERGE P3): src/nalati/index.ts's static world as it registers it — the granite outcrops, the crag rock,
+ * every POI (src/world/nalati: the camp, the bridge's deck + ramps, the fences, the summer camp, the kurgans, Eagle Rock,
+ * the cairn, the crags + the cave porch, the watchtower …) and the dressing (boulders, logs, the camp clutter) — into a
+ * registry of its own, read back piece by piece; then main.ts's paths, laid where no deck carries them. Moving pieces
+ * (the balbals, `follows`) and the kurgan dungeon (a sealed room at y 140 the boss walks by itself) are not in it.
+ */
+async function nalatiColliders(forest, { out, cuts, counts, add, setGroup }) {
+  const { WorldRegistry } = await src('world/registry.ts');
+  const { registerChunked } = await src('world/nalati/solid.ts');
+  const [{ buildOutcrops }, { buildCragRock }, { NalatiPOIs }, { NalatiDressing }] = await Promise.all(
+    ['nalati/outcrops.ts', 'nalati/cragRock.ts', 'world/nalati/index.ts', 'world/nalati/dressing/index.ts'].map((m) => src(m)));
+  const reg = new WorldRegistry(), none = () => Promise.resolve();
+  const outcrops = buildOutcrops(sky);
+  await registerChunked(reg, { id: 'nalati-outcrops', name: 'Granite outcrops', category: 'nature', file: 'src/nalati/outcrops.ts', colliders: outcrops.descs, surface: 'rock' }, 200, none);
+  const crags = buildCragRock(sky);
+  await registerChunked(reg, { id: 'nalati-crag-rock', name: 'Crag rock', category: 'nature', file: 'src/nalati/cragRock.ts', colliders: crags.descs, surface: 'rock' }, 150, none);
+  const pois = new NalatiPOIs(sky).build();
+  pois.addTo(new THREE.Group(), {}, reg);
+  const grid = forest.grid;
+  const dressing = await new NalatiDressing(sky, { trees: forest.trees, nearby: (x, z, r) => grid ? grid.nearby(x, z, r) : [] }).build();
+  dressing.addTo(new THREE.Group(), [...pois.colliders, ...outcrops.colliders, ...crags.colliders]);
+  await dressing.place(reg, none);
+  for (const p of reg.pieces) {
+    if (p.follows || !p.colliders) continue;
+    setGroup(p.id.replace(/^nalati-/, '').replace(/-\d+$/, ''));
+    add(p.colliders);
+  }
+  setGroup('paths');
+  add(pathRampDescs(HF.TRAILS, (x, z) => HF.heightAt(x, z), (x, z) => HF.normalAt(x, z)[1], { carried: (x, z) => reg.floorAt(x, z) !== undefined }));
   return { colliders: out, cuts, counts };
 }
 
@@ -237,9 +277,16 @@ function addDesc(soup, d) {
  * (2r + 30 m across) and below its surface; 0.25 m of margin, as AnimalManager's `isDry`. (A pond shard's valleys lower
  * than the pond elsewhere are dry land: no water is drawn there, though `isDry` still calls them wet.)
  */
-function wetTest(def) {
+async function wetTest(def) {
   const wl = HF.waterLevel() + 0.25;
   if (def.ocean) return (_x, _z, y) => y <= wl;
+  if (def.style === 'painterly') {
+    // Nalati: the Kunes' whole braided corridor (channels + gravel bars) and the plateau brook's bed — what the animals
+    // call water (src/nalati/wet.ts, AnimalManager.wetAt) — but a road through the corridor's margin (the N road onto
+    // the bridge) stays walkable above the water line, or the bridge's ends would stand in a hole
+    const { nalatiWetAt } = await src('nalati/wet.ts');
+    return (x, z, y) => y <= wl || (nalatiWetAt(x, z) && HF.trailDistance(x, z) > 3.5);
+  }
   if (!HF.hasPond()) return () => false;
   const P = HF.POND, half = P.r + 15;
   return (x, z, y) => y <= wl && Math.abs(x - P.x) <= half && Math.abs(z - P.z) <= half;
@@ -358,8 +405,12 @@ for (const def of registry.CHUNKS) {
   if (!grid) throw new Error(`bake-navmesh: ${def.slug}/terrain.bin does not parse`);
   HF._installBakedTerrain(BT.bakedSamplers(grid)); // as loadBakedTerrain does at launch
   const { colliders, cuts, counts } = await shardColliders(def);
+  if (process.env.NAVMESH_DUMP) { // debugging: NAVMESH_DUMP=x,z,r prints the colliders centred within r m of (x, z)
+    const [dx, dz, dr] = process.env.NAVMESH_DUMP.split(',').map(Number);
+    for (const d of colliders) { const c = d.kind === 'treads' ? d.from : d; if (Math.hypot(c.x - dx, c.z - dz) < dr) console.log(JSON.stringify(d, (k, v) => (v instanceof Float32Array ? `[${v.length / 3} points]` : typeof v === 'number' ? Math.round(v * 100) / 100 : v))); }
+  }
   const soup = new Soup();
-  const dropped = addTerrain(soup, cuts, wetTest(def));
+  const dropped = addTerrain(soup, cuts, await wetTest(def));
   for (const d of colliders) addDesc(soup, d);
   const hash = createHash('sha1');
   const LAYERS = layersFor(def.slug);

@@ -1,0 +1,20 @@
+{
+ "colliders": 2056,
+ "byShape": {
+  "0": 34,
+  "1": 1949,
+  "2": 72,
+  "7": 1
+ },
+ "legacyBoxes": 1834,
+ "floorFunctions": 13,
+ "pieces": [
+  "forest:32",
+  "paths:111",
+  "nalati-camp-people:4",
+  "nalati-camp-child:1"
+ ],
+ "models": [
+  "creatures/nalati-camp-people"
+ ]
+}

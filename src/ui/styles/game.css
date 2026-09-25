@@ -227,3 +227,52 @@
 .ws-game-bolts .ws-game-segs i.off { background: rgba(143, 227, 255, 0.22); box-shadow: none; }
 .ws-game-bolts.reloading .ws-game-segs i:not(.off) { background: var(--ws-amber); box-shadow: 0 0 6px rgba(255, 181, 71, 0.5); animation: ws-blink 0.6s ease-in-out infinite; }
 .ws-game-bolts.empty .ws-game-num { color: var(--ws-red); }
+
+/* ── weather (Nalati storms, HUD.setWeather / the `ws:weather` event): a chip under the minimap + the GET LOW warning ── */
+/* built on the first weather event only — Pine Hollow / Driftwood never have these elements */
+.ws-game-weather {
+  position: absolute; right: 112px; top: 288px; transform: translateX(50%);
+  display: none; align-items: center; gap: 9px; padding: 5px 13px 6px 9px; white-space: nowrap; pointer-events: none;
+  background: rgba(6, 10, 18, 0.66); border: 1px solid rgba(143, 227, 255, 0.45); border-radius: 9px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 6px 22px rgba(0, 0, 0, 0.3), 0 0 14px rgba(143, 227, 255, 0.12);
+}
+.ws-game-weather.show { display: flex; animation: ws-feed-in 0.3s ease-out; }
+.ws-game-weather .ws-game-wicon { display: block; width: 24px; height: 24px; color: var(--ws-cyan); filter: drop-shadow(0 0 5px rgba(143, 227, 255, 0.55)); }
+.ws-game-weather .ws-game-wicon svg { display: block; width: 100%; height: 100%; }
+.ws-game-weather .ws-game-wt { font-family: var(--ws-display); font-weight: 700; font-size: 15px; line-height: 1.05; letter-spacing: 0.2em; text-transform: uppercase; color: #fff; font-variant-numeric: tabular-nums; }
+.ws-game-weather .ws-game-ws { margin-top: 1px; font-family: var(--ws-mono); font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ws-cyan); }
+.ws-game-weather.storm { border-color: rgba(190, 170, 255, 0.6); }
+.ws-game-weather.storm .ws-game-wicon { color: #d9ccff; animation: ws-blink 2.4s ease-in-out infinite; }
+
+.ws-game-getlow {
+  position: absolute; left: 50%; top: 13%; transform: translateX(-50%);
+  display: none; align-items: center; gap: 9px; padding: 6px 16px 6px 11px; white-space: nowrap; pointer-events: none;
+  background: rgba(26, 18, 4, 0.72); border: 1.5px solid var(--ws-amber); border-radius: 9px;
+  font-family: var(--ws-display); font-weight: 700; font-size: 16px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-amber);
+  text-shadow: 0 0 12px rgba(255, 181, 71, 0.5); box-shadow: 0 0 18px rgba(255, 181, 71, 0.3), inset 0 0 12px rgba(255, 181, 71, 0.12);
+}
+.ws-game-getlow.show { display: flex; animation: ws-blink 1.1s ease-in-out infinite; }
+.ws-game-getlow i { display: block; width: 20px; height: 20px; color: var(--ws-amber); }
+.ws-game-getlow i svg { display: block; width: 100%; height: 100%; }
+
+@media (max-width: 700px) {
+  /* under the phone minimap (34vw wide at the safe top, heading tab below it) */
+  .ws-game-weather { right: calc(14px + 17vw); top: calc(var(--ws-top) + 34vw + 30px); padding: 3px 9px 4px 6px; gap: 6px; border-radius: 7px; }
+  .ws-game-weather .ws-game-wicon { width: 18px; height: 18px; }
+  .ws-game-weather .ws-game-wt { font-size: 12px; letter-spacing: 0.16em; }
+  .ws-game-weather .ws-game-ws { font-size: 8px; letter-spacing: 0.12em; }
+  .ws-game-getlow { top: calc(var(--ws-top) + 34vw + 70px); font-size: 13px; letter-spacing: 0.16em; padding: 5px 12px 5px 9px; }
+  .ws-game-getlow i { width: 16px; height: 16px; }
+}
+/* ─── Nalati's phone HUD, layout D "status left" (src/ui/NalatiHUD.ts, NALATI-MERGE H2; #hud.nalati-d is Nalati + touch only) ───
+   VITALS is the column's first row, 170 px like the others; the held weapon's BOLTS strip gives way to NalatiHUD's ARROWS row;
+   the storm chip lives in the SKY row; GET LOW joins the under-minimap stack (NalatiHUD sets --nh-top / --nh-right); the
+   feed and the toasts start under both columns (--nh-free), clear of the edge tabs */
+#hud.nalati-d .ws-game-vitals { order: 0; width: 170px; height: 24px; box-sizing: border-box; }
+#hud.nalati-d .ws-game-vitals .ws-game-vbar { flex: 1; }
+#hud.nalati-d .ws-game-bolts, #hud.nalati-d .ws-game-weather { display: none; }
+#hud.nalati-d .ws-game-getlow { left: auto; right: var(--nh-right, 14px); top: var(--nh-top, 30%); transform: none; max-width: var(--nh-w, 60vw); box-sizing: border-box; padding: 4px 10px 4px 8px; gap: 7px; font-size: 12px; letter-spacing: 0.14em; }
+#hud.nalati-d .ws-game-getlow i { width: 15px; height: 15px; }
+#hud.nalati-d .ws-game-feed { left: 52px; top: var(--nh-free, calc(var(--ws-top) + 170px)); max-width: calc(100vw - 64px); }
+#hud.nalati-d .ws-game-lockedge.l { left: 46px; } /* clear of the weapon tabs on the left edge */
+#hud.nalati-d .ws-game-toasts { left: 52px; top: calc(var(--nh-free, calc(var(--ws-top) + 170px)) + 44px); max-width: calc(100vw - 64px); }

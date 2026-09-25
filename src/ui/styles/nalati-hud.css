@@ -1,0 +1,43 @@
+/* ─── Nalati's phone HUD, layout D "status left" (src/ui/NalatiHUD.ts, NALATI-MERGE H2; the user's pick,
+   art/hud/round-12-nalati-merge/D-foot.jpg / D-saddle.jpg) ─── prefix ws-nh- ───
+   #hud.nalati-d (set only on Nalati with the touch layer) gates every D rule; each element's own stylesheet places it
+   (touch.css the discs + weapon tabs, ride.css STEED / HORSE, stealth.css HIDDEN / GRASS, elite.css / boss.css / game.css the
+   under-minimap stack). This file styles what NalatiHUD builds: the ARROWS and SKY rows of the left column and the
+   minimap rim's sun / moon glyph. */
+
+/* ── the left column rows (VITALS' glass: dark navy, a cyan hairline), 170 px, in D's order via `order` ── */
+.ws-nh-row { position: relative; display: flex; align-items: center; gap: 7px; width: 170px; height: 24px; padding: 3px 9px; box-sizing: border-box; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); pointer-events: none; white-space: nowrap; }
+.ws-nh-arrows { order: 2; }
+.ws-nh-sky { order: 3; gap: 6px; }
+.ws-nh-glyph { display: block; flex: none; width: 15px; height: 15px; font-style: normal; }
+.ws-nh-glyph svg { display: block; width: 100%; height: 100%; fill: none; stroke: #fff; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6)); }
+.ws-nh-tiny { font-size: 7.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-cyan-dim); }
+.ws-nh-num { margin-left: auto; font-family: var(--ws-display); font-weight: 700; font-size: 19px; line-height: 1; letter-spacing: 0.02em; color: #fff; font-variant-numeric: tabular-nums; }
+.ws-nh-num small { font-size: 12px; font-weight: 600; color: rgba(230, 242, 248, 0.8); }
+/* ARROWS: dim while the bow is not in hand (D-saddle), red at 0 */
+.ws-nh-arrows:not(.held) .ws-nh-num, .ws-nh-arrows:not(.held) .ws-nh-glyph { opacity: 0.55; }
+.ws-nh-arrows.empty .ws-nh-num { color: var(--ws-red); }
+/* SKY: the day glyph (sun warm, moon pale) + the phase, then the storm's countdown + wind when one is coming */
+.ws-nh-sky .ws-nh-body svg { fill: #ffd98a; stroke: #ffd98a; }
+.ws-nh-sky .ws-nh-body.moon svg { fill: #cfe3ff; stroke: none; }
+.ws-nh-sky .ws-nh-phase { color: var(--ws-text); letter-spacing: 0.24em; }
+.ws-nh-storm { display: none; align-items: center; gap: 2px; margin-left: auto; min-width: 0; overflow: hidden; }
+.ws-nh-sky.storming { gap: 4px; padding: 3px 5px 3px 7px; }
+.ws-nh-sky.storming .ws-nh-storm { display: flex; }
+.ws-nh-sky.storming .ws-nh-phase { letter-spacing: 0.1em; }
+.ws-nh-storm .ws-nh-glyph { width: 13px; height: 13px; }
+.ws-nh-storm .ws-nh-glyph svg { stroke: var(--ws-amber); }
+.ws-nh-storm .ws-nh-glyph svg path:last-child { fill: var(--ws-amber); stroke: none; }
+.ws-nh-storm.storm .ws-nh-glyph svg { stroke: #d9ccff; }
+.ws-nh-storm.storm .ws-nh-glyph svg path:last-child { fill: #d9ccff; animation: ws-nh-blink 2.4s ease-in-out infinite; }
+.ws-nh-st, .ws-nh-ss { font-size: 6.4px; letter-spacing: 0; text-transform: uppercase; font-variant-numeric: tabular-nums; }
+.ws-nh-st { color: #fff; }
+.ws-nh-ss { color: var(--ws-cyan); margin-left: 2px; }
+@keyframes ws-nh-blink { 50% { opacity: 0.35; } }
+
+/* ── the sun / moon on the minimap's rim, at 4 o'clock: a small glass notch, no text (N16 wave 6) ── */
+.ws-nh-clock { position: absolute; left: 93.3%; top: 75%; width: 17px; height: 17px; margin: -8.5px 0 0 -8.5px; padding: 2px; box-sizing: border-box; border-radius: 50%; background: rgba(6, 10, 18, 0.82); border: 1px solid var(--ws-cyan-line); pointer-events: none; }
+.ws-nh-clock svg { display: block; width: 100%; height: 100%; fill: #ffd98a; stroke: #ffd98a; filter: drop-shadow(0 0 3px rgba(255, 196, 74, 0.6)); }
+.ws-nh-clock.moon svg { fill: #cfe3ff; stroke: none; filter: drop-shadow(0 0 3px rgba(207, 227, 255, 0.6)); }
+.ws-nh-clock[data-phase='golden'] svg, .ws-nh-clock[data-phase='dusk'] svg, .ws-nh-clock[data-phase='dawn'] svg { fill: #ffb45a; stroke: #ffb45a; }
+@media (min-width: 701px) { .ws-nh-clock { width: 22px; height: 22px; margin: -11px 0 0 -11px; padding: 3px; } }

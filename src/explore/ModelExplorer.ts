@@ -20,11 +20,12 @@ import type { Explore, ExplorePane } from './Explore';
 import { BUDGET, CURRENT_TIER, TIERS } from './tiers';
 import type { Tier } from '../core/tier';
 import type { Animal } from '../entities/Animal';
+import { activeClock, type LightPreset, type WorldClock } from '../world/WorldClock';
 
 type View = 'solid' | 'wire' | 'facets' | 'paint' | 'tiers';
 const VIEWS: readonly [View, string][] = [['solid', 'Solid'], ['wire', 'Wireframe'], ['facets', 'Facets'], ['paint', 'Paint'], ['tiers', 'Tiers']];
-/** day/night phases (src/world/DayNight.ts: the day is [0, 20/24) sunrise → sunset, then the night) */
-const LIGHTS: readonly [string, number][] = [['Dawn', 0.03], ['Noon', 0.42], ['Dusk', 0.8], ['Night', 0.92]];
+/** the light presets: held on the shard's day clock (src/world/WorldClock.ts — Driftwood's DayNight or Nalati's DayClock) */
+const LIGHTS: readonly [string, LightPreset][] = [['Dawn', 'dawn'], ['Noon', 'noon'], ['Dusk', 'dusk'], ['Night', 'night']];
 const THUMB_W = 240, THUMB_H = 180;
 /** what the creature viewer can play — a gait speed on the treadmill, or an event (stagger, death) */
 type Clip = 'idle' | 'walk' | 'trot' | 'charge' | 'hit' | 'die';
@@ -51,7 +52,6 @@ export class ModelExplorer implements ExplorePane {
   private filter: Category | 'all' = 'all';
   private view: View = 'solid';
   private light = -1;
-  private savedPhase: number | null = null;
   private readonly hidden = new Map<THREE.Object3D, boolean>();
   private readonly swapped = new Map<THREE.Mesh, THREE.Material | THREE.Material[]>();
   private readonly overlays: THREE.Object3D[] = [];
@@ -140,13 +140,8 @@ export class ModelExplorer implements ExplorePane {
 
   get entryList(): readonly CatalogEntry[] { return this.entries; }
 
-  /** the low-poly shard's day/night clock (src/world/DayNight.ts, the remaster's L7) when this build has it: the light presets pin its phase */
-  private clock(): { phase: number } | null {
-    const sky: object = this.world.game.sky;
-    if (!('dayNight' in sky)) return null;
-    const dn = sky.dayNight;
-    return typeof dn === 'object' && dn !== null && 'phase' in dn && typeof dn.phase === 'number' ? dn as { phase: number } : null;
-  }
+  /** the shard's day clock (src/world/WorldClock.ts) when it has one: the light presets hold it */
+  private clock(): WorldClock | null { return activeClock(); }
 
   show(opts: Record<string, string>): void {
     this.el.classList.add('show');
@@ -478,16 +473,12 @@ export class ModelExplorer implements ExplorePane {
   private setLight(i: number): void {
     this.light = i;
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-lights button').forEach((b) => { b.classList.toggle('on', Number(b.dataset['l']) === i); });
-    const dn = this.clock();
-    if (!dn || i < 0) return;
-    this.savedPhase ??= dn.phase;
-    dn.phase = LIGHTS[i]?.[1] ?? dn.phase;
+    const preset = LIGHTS[i]?.[1];
+    if (preset !== undefined) this.clock()?.pin(preset);
   }
 
   private restoreLight(): void {
-    const dn = this.clock();
-    if (dn && this.savedPhase !== null) dn.phase = this.savedPhase;
-    this.savedPhase = null;
+    this.clock()?.pin(null);
     this.light = -1;
   }
 
@@ -568,8 +559,8 @@ export class ModelExplorer implements ExplorePane {
         p.project(camera);
         t.label.style.transform = `translate(${Math.round((p.x * 0.5 + 0.5) * innerWidth)}px, ${Math.round((-p.y * 0.5 + 0.5) * innerHeight) - 34}px) translateX(-50%)`;
       }
-      const dn = this.clock();
-      if (dn && this.light >= 0) dn.phase = LIGHTS[this.light]?.[1] ?? dn.phase; // pinned while you look
+      const preset = LIGHTS[this.light]?.[1];
+      if (preset !== undefined) this.clock()?.pin(preset); // held while you look
       return;
     }
     // the catalog floats over a slow orbit of the island, like the hub
