@@ -19,9 +19,10 @@ import { carvedToken } from '../../world/interact/models';
 
 /**
  * The ranger's cabin (Cabin.ts SPECS[0]: W 5, L 7, chimney −Z): the mantel is 1.7 × 0.7 m centred on x −0.6, z −3.15,
- * its top 1.60 m over the cabin's base (PLINTH 0.18 + 1.55 + half its 0.1 thickness). The rack sits on its front half.
+ * its top 1.78 m over the cabin's root (PLINTH 0.18 + its centre 1.55 + half its 0.1 thickness). The rack sits on its
+ * front half.
  */
-export const TOKEN_SHELF_AT = { x: -0.6, y: 1.6, z: -3.02 } as const;
+export const TOKEN_SHELF_AT = { x: -0.6, y: 1.78, z: -3.02 } as const;
 const TOKENS = 8, SCALE = 0.6, PITCH = 0.185, LEAN = -0.14;
 /** past this (m, from the rack) it is not drawn: it is indoors, and one draw is still a draw */
 const CULL = 28;

@@ -18,6 +18,7 @@ describe('the token shelf (PH-C8: all eight carved tokens on the ranger\'s mante
     expect(b.max.x - b.min.x).toBeLessThan(1.7);
     expect(b.min.y).toBeGreaterThanOrEqual(-0.01);
     expect(b.max.y).toBeLessThan(0.3);
+    expect(TOKEN_SHELF_AT.y).toBeCloseTo(0.18 + 1.55 + 0.05, 5);        // on the mantel's top (Cabin.ts: PLINTH + its centre + half its thickness), not in it
     expect(TOKEN_SHELF_AT.z + b.min.z).toBeGreaterThan(-3.5 + 0.112); // in front of the gable's inner log face
     expect(TOKEN_SHELF_AT.z + b.max.z).toBeLessThan(-2.8);            // on the mantel's front edge, not over it
   });
