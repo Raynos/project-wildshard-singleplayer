@@ -35,7 +35,11 @@ export class ShardScope {
   readonly timeouts = new Set<number>();
   /** run on eviction (shell-level registrations the shard made: settings listeners …) */
   readonly disposers: (() => void)[] = [];
-  constructor(readonly slug: string) {}
+  // a plain field, not a constructor parameter property: node's type stripping loads this module for the boot-pack bake
+  // (scripts/bake-packs.mjs, run by every vite build) and cannot parse parameter properties — the bake failed, every pack
+  // part 404'd and the phones booted file by file
+  readonly slug: string;
+  constructor(slug: string) { this.slug = slug; }
 }
 
 /** the shell's overlays: never a shard's, whatever was current when they were appended */
