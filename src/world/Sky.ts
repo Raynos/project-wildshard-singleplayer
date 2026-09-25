@@ -133,7 +133,7 @@ export class Sky {
     this.lut = lut;
     this.pine = pine;
     const { look } = activeGrade(getActiveChunk()); // the look loop's haze / saturation layer (PH-L1 / L4; ?grade=v1: none)
-    if (look) Object.assign(pine.look, { vol: look.vol, fogDist: look.fogDist, sat: look.sat });
+    if (look) Object.assign(pine.look, { vol: look.vol, fogDist: look.fogDist, sat: look.sat, ambient: look.ambient });
     pineSunAt(pine.phase, this.sunDir);
     this.scene.background = null;
     this.scene.add(pine.dome);

@@ -14,7 +14,7 @@ import { TREE_SPECIES, type SpeciesWeights } from '../world/treeSpecies';
 import {
   SPAWN, CABIN_SITES, RIDGE, ridgeFootZ, LOOKOUT, ZIPLINE, POND, ISLET, WATERFALL, RIDGE_STREAM, CREEK, CREEK_BED, CREEK_BRIDGE,
   DEN, BEAR_CAVE, OLD_GROWTH, KINGS_CLEARING, HAMLET, S_ROAD, N_ROAD, W_ROAD, E_ROAD, SPURS, GRADED, PINE_HOLLOW_POIS,
-  nearestOnPolyline, creekBedAt, creekWaterAt,
+  nearestOnPolyline, creekBedAt, creekWaterAt, HOLLOW_GROVE,
 } from './pineHollowLayout';
 import thumbnail from './thumbs/pine-hollow.jpg';
 import heroPortrait from './thumbs/pine-hollow-portrait.jpg';
@@ -171,7 +171,8 @@ function forestDensity(x: number, z: number): number {
   if (Math.hypot(x - DEN.x, z - DEN.z) < 14 || Math.hypot(x - BEAR_CAVE.x, z - BEAR_CAVE.z) < 9) return 0;
   if (nearestOnPolyline(CREEK, x, z).d < 7 || ziplineDistance(x, z) < ZIPLINE.corridor) return 0.02;
   if (Math.hypot(x - WATERFALL.foot.x, z - WATERFALL.foot.z) < 10 || Math.hypot(x - CREEK_BRIDGE.x, z - CREEK_BRIDGE.z) < 10) return 0.02;
-  return (1 + oldGrowthMask(x, z) * 3) * (1 - smoothstep(0.3, 0.9, ridgeWeight(x, z)) * 0.6); // × 4 saturates the old-growth at its 8.5 m grid
+  const grove = 1 + HOLLOW_GROVE.boost * smoothstep(HOLLOW_GROVE.r, HOLLOW_GROVE.r * 0.6, Math.hypot(x - HOLLOW_GROVE.x, z - HOLLOW_GROVE.z)); // the Hollow's pines (PH-L1 r2)
+  return (1 + oldGrowthMask(x, z) * 3) * grove * (1 - smoothstep(0.3, 0.9, ridgeWeight(x, z)) * 0.6); // × 4 saturates the old-growth at its 8.5 m grid
 }
 
 /** a + (b − a)·t over species weights */
@@ -224,7 +225,7 @@ export const PINE_HOLLOW: ChunkDef = {
     // PH-L8 (the look loop, art/pine-hollow/round-14-look-loop/): the floor is Poly Haven's pine-needle litter
     // (forrest_ground_03) on the boreal shader — canopy-warmed litter, moss patches, tiling breakup; `?ground=v1` = before
     groundLayers: ['forrest_ground_03', 'leafy_grass', 'rock_ground', 'stony_dirt_path'],
-    groundTints: [[0.86, 0.78, 0.68], [0.72, 0.8, 0.6], [0.85, 0.85, 0.85], [0.8, 0.62, 0.45]],
+    groundTints: [[0.86, 0.78, 0.68], [0.72, 0.8, 0.6], [0.85, 0.85, 0.85], [0.8, 0.66, 0.52]],
     slabRock: 'rock_ground',
     boreal: {
       normalK: [1.2, 1.0, 1.4, 1.1],
@@ -249,6 +250,8 @@ export const PINE_HOLLOW: ChunkDef = {
     // PH-L8: the boreal understory the look loop's targets carpet the floor with — bilberry shrubs × 4, ferns × 1.5 and
     // into the dense shade (the old-growth)
     understory: { ferns: 1.5, shrubs: 4, fernCanopy: true },
+    // PH-L1 round 2 (the Blender species set read as park land in the Hollow): the grove's second candidate grid
+    infill: { x: HOLLOW_GROVE.x, z: HOLLOW_GROVE.z, r: HOLLOW_GROVE.r },
   },
   // Fauna: MANY SMALL GROUPS across the whole shard (user: "I don't want to search endlessly in an empty
   // forest" — nor nine boars in one clearing). `layoutFauna` lays a ~60 m grid of cells over the chunk (25 m
@@ -310,7 +313,7 @@ export const PINE_HOLLOW: ChunkDef = {
   // (its presets untouched); the learned LUT fits the rest. `?grade=v1` = the grade before the loop.
   look: {
     grade: { shadowTint: [0.95, 0.97, 1.03] },
-    curve: 0.2, vibrance: 0.2, vol: 0.5, fogDist: 0.55, sat: 0.04, dayMist: 0.25,
+    curve: 0.2, vibrance: 0.2, vol: 0.5, fogDist: 0.55, sat: 0.04, dayMist: 0.25, ambient: 1.3,
   },
   spawn: SPAWN,
 };

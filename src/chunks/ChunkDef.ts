@@ -172,6 +172,11 @@ export interface ChunkForest {
    * Omitted = the engine's counts.
    */
   understory?: { ferns: number; shrubs: number; fernCanopy: boolean };
+  /**
+   * A denser stand than `spacing` allows: a second candidate grid, half a cell off the first, inside the circle (x, z, r),
+   * tested after the chunk's own candidates by the same rules (density, trails, pads, slope). Omitted = none.
+   */
+  infill?: { x: number; z: number; r: number };
 }
 
 /** a registered species kind (`src/entities/species/<kind>.ts`): 'deer' | 'boar' built in; bear / elk… as they register */
@@ -257,6 +262,8 @@ export interface ChunkLook {
   vol: number;
   fogDist: number;
   sat: number;
+  /** × the sky's fill light (the IBL and the hemisphere): lighter shade under the canopy, the sun untouched */
+  ambient: number;
   /** × the ground-mist sheets under a high sun (1 at dawn, dusk and night: the mist is the morning's and the night's) */
   dayMist: number;
 }

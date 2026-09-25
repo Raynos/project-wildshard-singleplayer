@@ -124,7 +124,17 @@ export function placeForest(variants: readonly PlantSpec[]): { trees: TreeInstan
     trees.push(t);
     grid.add(t);
   };
-  for (const [x, z] of candidates) {
+  // a zone's infill (ChunkForest.infill; Pine Hollow's Hollow grove, PH-L1 round 2): a second candidate grid half a cell
+  // off the first, inside a circle, tested after the chunk's own (so every tree the grid placed stays where it was)
+  const infill: [number, number][] = [];
+  const fill = F.infill;
+  if (fill) {
+    for (let x = fill.x - fill.r + cell / 2; x < fill.x + fill.r; x += cell) for (let z = fill.z - fill.r + cell / 2; z < fill.z + fill.r; z += cell) {
+      const jx = x + rng.range(-cell * 0.3, cell * 0.3), jz = z + rng.range(-cell * 0.3, cell * 0.3);
+      if (Math.hypot(jx - fill.x, jz - fill.z) < fill.r) infill.push([jx, jz]);
+    }
+  }
+  for (const [x, z] of [...candidates, ...infill]) {
     if (trees.length >= TREE_COUNT) break;
     if (!inChunk(x, z, 4)) continue;
     const d = density.fbm(x * F.densityFreq, z * F.densityFreq, 3); // clearings & dense groves

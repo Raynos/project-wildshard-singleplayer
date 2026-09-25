@@ -1,0 +1,434 @@
+{
+  "about": "Pine Hollow look loop round 14 (PH-L1): 9-angle cameras at 3 zones, the round-0 method (scripts/pine-hollow-views.mjs). cabin = the round-0 anchor unchanged (the ranger's cabin did not move); pond = layout v2's W shore (-60, 106) facing E over the water; oldgrowth = the W road's clearing spur (158, 12) facing S through the stones' gap into the King's clearing (150, -30), the old-growth around. `cameras` filled in on the first run and reused verbatim. yaw faces (-sin yaw, -cos yaw) in x / z.",
+  "query": "chunk=pine-hollow&mute=1&nolock=1&skipintro=1&sw=0&perf=0&tod=0.4167&clock=1000000&weather=clear&bossGod=1",
+  "fp": {
+    "device": "iPhone 16 Pro (UA, DPR 3, touch)",
+    "viewport": [
+      390,
+      844
+    ],
+    "query": "tier=phone&touch",
+    "pitch": -0.06
+  },
+  "god": {
+    "viewport": [
+      1600,
+      900
+    ],
+    "query": "tier=desktop",
+    "fovV": 72,
+    "topUp": 90,
+    "diagUp": 45,
+    "diagOut": 55
+  },
+  "anchors": [
+    {
+      "id": "cabin",
+      "name": "The Hollow (ranger's cabin)",
+      "P": {
+        "x": -20,
+        "z": -50
+      },
+      "faceTo": {
+        "x": -14,
+        "z": -34
+      },
+      "groundY": 2.661,
+      "cameras": [
+        {
+          "n": 1,
+          "id": "fp-front",
+          "mode": "fp",
+          "x": -20,
+          "z": -50,
+          "yaw": -2.783,
+          "pitch": -0.06
+        },
+        {
+          "n": 2,
+          "id": "fp-left",
+          "mode": "fp",
+          "x": -20,
+          "z": -50,
+          "yaw": -1.212,
+          "pitch": -0.06
+        },
+        {
+          "n": 3,
+          "id": "fp-right",
+          "mode": "fp",
+          "x": -20,
+          "z": -50,
+          "yaw": -4.354,
+          "pitch": -0.06
+        },
+        {
+          "n": 4,
+          "id": "fp-back",
+          "mode": "fp",
+          "x": -20,
+          "z": -50,
+          "yaw": 0.359,
+          "pitch": -0.06
+        },
+        {
+          "n": 5,
+          "id": "top",
+          "mode": "god",
+          "pos": [
+            -20,
+            92.661,
+            -50
+          ],
+          "look": [
+            -20,
+            2.661,
+            -50
+          ],
+          "fovV": 72,
+          "up": [
+            0.351,
+            0,
+            0.936
+          ]
+        },
+        {
+          "n": 6,
+          "id": "diag-front",
+          "mode": "god",
+          "pos": [
+            -39.312,
+            47.661,
+            -101.498
+          ],
+          "look": [
+            -12.978,
+            2.661,
+            -31.273
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 7,
+          "id": "diag-left",
+          "mode": "god",
+          "pos": [
+            31.498,
+            47.661,
+            -69.312
+          ],
+          "look": [
+            -20,
+            2.661,
+            -50
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 8,
+          "id": "diag-right",
+          "mode": "god",
+          "pos": [
+            -71.498,
+            47.661,
+            -30.688
+          ],
+          "look": [
+            -20,
+            2.661,
+            -50
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 9,
+          "id": "diag-back",
+          "mode": "god",
+          "pos": [
+            -0.688,
+            47.661,
+            1.498
+          ],
+          "look": [
+            -20,
+            2.661,
+            -50
+          ],
+          "fovV": 72
+        }
+      ]
+    },
+    {
+      "id": "pond",
+      "name": "Still pond (W shore)",
+      "P": {
+        "x": -60,
+        "z": 106
+      },
+      "faceTo": {
+        "x": -100,
+        "z": 110
+      },
+      "groundY": -1.091,
+      "cameras": [
+        {
+          "n": 1,
+          "id": "fp-front",
+          "mode": "fp",
+          "x": -60,
+          "z": 106,
+          "yaw": 1.67,
+          "pitch": -0.06
+        },
+        {
+          "n": 2,
+          "id": "fp-left",
+          "mode": "fp",
+          "x": -60,
+          "z": 106,
+          "yaw": 3.241,
+          "pitch": -0.06
+        },
+        {
+          "n": 3,
+          "id": "fp-right",
+          "mode": "fp",
+          "x": -60,
+          "z": 106,
+          "yaw": 0.1,
+          "pitch": -0.06
+        },
+        {
+          "n": 4,
+          "id": "fp-back",
+          "mode": "fp",
+          "x": -60,
+          "z": 106,
+          "yaw": 4.812,
+          "pitch": -0.06
+        },
+        {
+          "n": 5,
+          "id": "top",
+          "mode": "god",
+          "pos": [
+            -60,
+            88.909,
+            106
+          ],
+          "look": [
+            -60,
+            -1.091,
+            106
+          ],
+          "fovV": 72,
+          "up": [
+            -0.995,
+            0,
+            0.1
+          ]
+        },
+        {
+          "n": 6,
+          "id": "diag-front",
+          "mode": "god",
+          "pos": [
+            -5.273,
+            43.909,
+            100.527
+          ],
+          "look": [
+            -79.901,
+            -1.091,
+            107.99
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 7,
+          "id": "diag-left",
+          "mode": "god",
+          "pos": [
+            -54.527,
+            43.909,
+            160.727
+          ],
+          "look": [
+            -60,
+            -1.091,
+            106
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 8,
+          "id": "diag-right",
+          "mode": "god",
+          "pos": [
+            -65.473,
+            43.909,
+            51.273
+          ],
+          "look": [
+            -60,
+            -1.091,
+            106
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 9,
+          "id": "diag-back",
+          "mode": "god",
+          "pos": [
+            -114.727,
+            43.909,
+            111.473
+          ],
+          "look": [
+            -60,
+            -1.091,
+            106
+          ],
+          "fovV": 72
+        }
+      ]
+    },
+    {
+      "id": "oldgrowth",
+      "name": "Old-growth + King's clearing",
+      "P": {
+        "x": 158,
+        "z": 12
+      },
+      "faceTo": {
+        "x": 150,
+        "z": -30
+      },
+      "groundY": 3.111,
+      "cameras": [
+        {
+          "n": 1,
+          "id": "fp-front",
+          "mode": "fp",
+          "x": 158,
+          "z": 12,
+          "yaw": 0.188,
+          "pitch": -0.06
+        },
+        {
+          "n": 2,
+          "id": "fp-left",
+          "mode": "fp",
+          "x": 158,
+          "z": 12,
+          "yaw": 1.759,
+          "pitch": -0.06
+        },
+        {
+          "n": 3,
+          "id": "fp-right",
+          "mode": "fp",
+          "x": 158,
+          "z": 12,
+          "yaw": -1.383,
+          "pitch": -0.06
+        },
+        {
+          "n": 4,
+          "id": "fp-back",
+          "mode": "fp",
+          "x": 158,
+          "z": 12,
+          "yaw": 3.33,
+          "pitch": -0.06
+        },
+        {
+          "n": 5,
+          "id": "top",
+          "mode": "god",
+          "pos": [
+            158,
+            93.111,
+            12
+          ],
+          "look": [
+            158,
+            3.111,
+            12
+          ],
+          "fovV": 72,
+          "up": [
+            -0.187,
+            0,
+            -0.982
+          ]
+        },
+        {
+          "n": 6,
+          "id": "diag-front",
+          "mode": "god",
+          "pos": [
+            168.291,
+            48.111,
+            66.029
+          ],
+          "look": [
+            154.258,
+            3.111,
+            -7.647
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 7,
+          "id": "diag-left",
+          "mode": "god",
+          "pos": [
+            103.971,
+            48.111,
+            22.291
+          ],
+          "look": [
+            158,
+            3.111,
+            12
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 8,
+          "id": "diag-right",
+          "mode": "god",
+          "pos": [
+            212.029,
+            48.111,
+            1.709
+          ],
+          "look": [
+            158,
+            3.111,
+            12
+          ],
+          "fovV": 72
+        },
+        {
+          "n": 9,
+          "id": "diag-back",
+          "mode": "god",
+          "pos": [
+            147.709,
+            48.111,
+            -42.029
+          ],
+          "look": [
+            158,
+            3.111,
+            12
+          ],
+          "fovV": 72
+        }
+      ]
+    }
+  ]
+}

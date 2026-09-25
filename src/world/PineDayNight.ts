@@ -200,8 +200,9 @@ export class PineDayNight {
   /** the weather's multipliers (see PineSkyMod); identity = no weather */
   readonly mod: PineSkyMod = { overcast: 0, fogDist: 1, fogHeight: 1, mist: 0 };
   /** the look loop's layer over every preset (PH-L1 / L4, ChunkLook; Sky sets it, `?grade=v1` leaves the identity): × the
-   *  volumetric in-scatter, × the distance fog, + the grade saturation — the presets' numbers untouched */
-  readonly look = { vol: 1, fogDist: 1, sat: 0 };
+   *  volumetric in-scatter, × the distance fog, + the grade saturation, × the sky's fill (IBL + hemisphere) — the presets'
+   *  numbers untouched */
+  readonly look = { vol: 1, fogDist: 1, sat: 0, ambient: 1 };
   /** the dome: add it to the scene; Sky.update keeps it on the camera */
   readonly dome: THREE.Mesh;
   private readonly u = {
@@ -412,6 +413,8 @@ export class PineDayNight {
     const C = this.cur;
     const ov = weatherOver(C, this.mod);
     C.vol *= this.look.vol; C.fogDist *= this.look.fogDist; C.sat += this.look.sat;
+    const fill = 1 + (this.look.ambient - 1) * (1 - pineNightAt(p)); // by day: the night's moonlight is its own (PH-L2)
+    C.env *= fill; C.hemiI *= fill;
     pineSunAt(p, this.sun);
     pineMoonAt(p, this.moon);
     const day = p < DAY;
