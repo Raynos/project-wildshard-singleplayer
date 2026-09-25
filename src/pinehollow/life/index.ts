@@ -727,7 +727,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     for (const hr of hares) updateHare(hr, dt);
     wild.commit();
     perfMs = perfMs * 0.95 + (performance.now() - t0) * 0.05;
-  });
+  }, 'world.life');
 
   const life: PineLife = { mesh: wild.mesh, harvest, get busy() { return beatT >= 0; } };
   Object.assign(window, { __pineLife: {

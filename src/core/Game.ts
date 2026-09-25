@@ -25,6 +25,7 @@ import { FIXED_STEP } from './fixedStep';
 import { SHADOW_LAYER } from './shadowLayer';
 import { WorldRenderPass } from './worldDepth';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from './faults';
+import { frameCost } from './frameCost';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
@@ -115,6 +116,8 @@ export class Game {
   frameMs = new Float32Array(120); frameI = 0;
   /** the same frames' main-thread time in ms (input → the frame submitted), slot for slot with `frameMs` (src/ui/perfProbe.ts) */
   workMs = new Float32Array(120);
+  /** …of which the game logic (input → fixed steps → updaters → late) and the draw's CPU side (sky + composer.render) */
+  updateMs = new Float32Array(120); renderMs = new Float32Array(120);
   /** frames drawn since start() */
   frameCount = 0;
   /** draw calls / triangles of the last whole frame (all composer passes) */
@@ -335,9 +338,12 @@ export class Game {
   private isDead(): boolean { return this.dead; }
   /** one fixed phase, each system guarded */
   private runPhase(list: readonly GameSystem<(dt: number) => void>[]): void {
+    const on = frameCost.on; // the dev fps panel's timing rows (src/core/frameCost.ts): one boolean read while it is closed
     for (const s of list) {
       if (!s.on) continue;
+      const t0 = on ? performance.now() : 0;
       try { s.fn(FIXED_STEP); } catch (e) { this.fault(s, e); }
+      if (on) frameCost.system(s.label, performance.now() - t0);
     }
   }
 
@@ -515,21 +521,31 @@ export class Game {
       worldTime.scale = scale; worldTime.realDt = realDt;
       const dt = realDt * scale;
       this.frameNo++;
+      // the dev fps panel's timing rows (src/core/frameCost.ts): each system timed by its label only while the panel is open
+      const on = frameCost.on;
+      if (on) frameCost.begin();
       // each system in its own try/catch (faults.ts): one that throws is counted, reported and, if it keeps at it, switched off
       for (const s of this.inputs) {
         if (!s.on) continue;
+        const t0 = on ? performance.now() : 0;
         try { s.fn(dt); } catch (e) { this.fault(s, e); }
+        if (on) frameCost.system(s.label, performance.now() - t0);
       }
       this.runFixed(dt);
       for (const s of this.updaters) {
         if (!s.on) continue;
+        const t0 = on ? performance.now() : 0;
         try { s.fn(dt, t); } catch (e) { this.fault(s, e); }
+        if (on) frameCost.system(s.label, performance.now() - t0);
       }
       for (const s of this.lates) {
         if (!s.on) continue;
+        const t0 = on ? performance.now() : 0;
         try { s.fn(dt); } catch (e) { this.fault(s, e); }
+        if (on) frameCost.system(s.label, performance.now() - t0);
       }
       if (this.isDead()) return; // a core system died in this frame's steps
+      const renderAt = performance.now();
       try {
         sky.update(realDt);
         // planet + sun disc travel with the camera so they stay "infinitely" far
@@ -537,8 +553,10 @@ export class Game {
         if (gpu) gpu.render(); else composer.render(realDt);
       } catch (e) { this.fault(this.renderSystem, e); return; }
       if (this.captures.length > 0) this.flushCaptures();
-      const work = performance.now() - lastRun;
+      const done = performance.now(), work = done - lastRun;
       this.workMs[this.frameI] = work; this.frameCount++;
+      this.updateMs[this.frameI] = renderAt - lastRun; this.renderMs[this.frameI] = done - renderAt;
+      if (on) frameCost.end(realDt * 1000, renderAt - lastRun, done - renderAt, cap > 0 ? 1000 / cap : 0);
       if (gpu) { this.lastFrame.calls = gpu.info.calls; this.lastFrame.triangles = gpu.info.triangles; }
       else { this.lastFrame.calls = this.renderer.info.render.calls; this.lastFrame.triangles = this.renderer.info.render.triangles; }
       this.frameMs[this.frameI] = realDt * 1000; this.frameI = (this.frameI + 1) % this.frameMs.length;

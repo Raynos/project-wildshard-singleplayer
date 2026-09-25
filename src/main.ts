@@ -99,6 +99,8 @@ import type { Feedback } from './ui/Feedback';
 import type { Explore, ExploreMode } from './explore/Explore';
 import { registerDriftwoodModels, registerPineHollowModels } from './explore/catalog';
 import { TIER } from './core/tier';
+import { frameCost, type Bucket } from './core/frameCost';
+import { Impacts } from './fx/Impacts';
 import { wireNalati, type Nalati } from './nalati';
 import { shardCompleteUp } from './ui/ShardComplete';
 import { boxDesc, type ColliderDesc, type ModelEntry, type PieceCategory } from './world/registry';
@@ -631,6 +633,21 @@ async function main() {
   if (ambience instanceof ForestAmbience) pineLoadout?.useSfx(ambience.sfx); // the lever gun's shot / echo / cycle, the bow's draw
   // the A-rows' audio wiring: the clock → night beds + calm-night music, an engaged elite → combat, the layout's zones, deer snorts, doors
   if (ambience instanceof ForestAmbience) installPineAudio({ game, sky, music, ambience, animals, cabins, eliteEngaged: () => pineFights?.eliteEngaged() ?? false, params });
+  // the dev fps panel's COUNTS (src/ui/perfHud.ts; read ≤ 4× a second while it is open): who is running AI near you
+  perf.addCounts(() => {
+    let alive = 0, near = 0, motors = 0, chase = 0, flee = 0;
+    for (const a of animals.animals) {
+      if (!a.alive || a.hidden) continue;
+      alive++;
+      const d = a.position.distanceTo(player.position);
+      if (d < 60) near++;
+      if (a.motor !== null) motors++;
+      if (a.state === 'charge' || a.state === 'stalk' || a.state === 'attack' || (a.state === 'sidestep' && d < 80)) chase++; // 'sidestep' = a Pine Hollow fight owns it (pinehollow/ctx.ts SCRIPTED): the elite, the bull's rivals
+      else if (a.state === 'flee') flee++;
+    }
+    const ph = activePhysics();
+    return { animals: alive, near, motors, chase, flee, elite: pineFights?.eliteEngaged() === true ? 1 : 0, bodies: ph?.world.bodies.len() ?? 0, colliders: ph?.world.colliders.len() ?? 0, 'fx chips': Impacts.for(game).mesh.count };
+  });
   // PH-B2: the cave's bed and reverb deeper in than the mouth's spot (the passage, the squeeze, the room)
   if (ambience instanceof ForestAmbience) for (const s of landmarks?.crags?.caveSpots() ?? []) ambience.addSpot({ zone: 'cave', ...s, fade: 3 });
   // PH-L10 / C7: the dawn fog + the showers (the sky, the fog, the wet PBR, the rain, the puddles, the rings, the herds' shelter)
@@ -782,7 +799,13 @@ async function main() {
 
   let musicPoll = 0;
   const steppeMusic = chunk.style === 'painterly';
+  // the dev fps panel's split of this updater (src/core/frameCost.ts; free while the panel is closed): `mark(b)` books the
+  // time since the last mark to bucket b, `unmark()` leaves it in 'other'
+  let markT = 0;
+  const mark = (b: Bucket): void => { if (frameCost.on) { const now = performance.now(); frameCost.section(b, markT); markT = now; } };
+  const unmark = (): void => { if (frameCost.on) markT = performance.now(); };
   game.onUpdate((dt, t) => {
+    unmark();
     // music: once a second (not per frame) — an animal that has noticed you within 40 m lifts calm → alert; combat comes from the hit hooks and decays by itself
     if (t - musicPoll > 1) {
       musicPoll = t;
@@ -804,25 +827,32 @@ async function main() {
     cove?.update(dt); shrine?.update(dt); enemies?.update(dt, t, player.position);
     if (dayNight) { shrine?.setDusk(dayNight.dusk); if (ambience) ambience.night = dayNight.night; }
     if (sky.pine && ambience instanceof ForestAmbience) ambience.dawn = sky.pine.dawn; // PH-L2: the dawn chorus on Pine Hollow's clock
+    mark('world');
     hands.update(dt, player);
+    mark('player');
     horizon.update(dt, game.camera);
     grass?.update(dt, viewer());
     under?.update(dt, viewer());
     particles?.update(dt, viewer(), game.camera);
     cabins?.update(dt, t);
     nalati?.update(dt, t);
+    mark('world');
     // swimming holsters the weapon (hands only; Hands.ts follows)
     if (player.swimming !== swimHold) { swimHold = player.swimming; weapons.visible = !swimHold; weapons.setEnabled(!swimHold); }
+    unmark();
     animals.update(dt, t, player.position, player.sprinting, viewer(), game.camera); // drawn by distance to the viewer (Explore's free camera), AI by the player (E125); the camera for the far herd (PH-P2)
     if (painterly) { aimList.length = 0; for (const a of animals.animals) if (a.mem['hidden'] !== 1 && a.mem['owned'] !== 1 && a !== riding.horse) aimList.push(a); const heart = nalati?.titan.lockTarget() ?? null; if (heart !== null) aimList.push(heart); } // + Jel Ata's heart for the lock-on (NALATI-MERGE H3)
+    mark('animals');
     weapons.update(dt, t); // every weapon ticks (bolts in flight keep flying while the rifle is out)
     pineLoadout?.update(dt); weaponStrip?.update();
     rifleDrop?.update(dt, t, game.renderer, game.camera);
     ironDrop?.update(dt, t, game.renderer, game.camera, player.position); // walk-to-pick-me-up
     for (const d of skinDrops) d.update(dt, t, game.renderer, game.camera);
+    mark('player');
     audio.listenerYaw = player.yaw;
     shrineHum?.update(game.camera);
     ambience?.update(dt, game.camera);
+    mark('audio');
 
     // nearest interactable
     const physics = activePhysics();
@@ -846,6 +876,7 @@ async function main() {
       if (crossbow.hasAmmo) crossbow.addBolts(30 - (crossbow.state.bolts ?? 30));
       killer = null; nalatiKit?.refill(); pineLoadout?.onPlayerDeath();
     }
+    unmark();
     hurtArc.update(dt, player.position, player.yaw);
 
     const edge = CHUNK_HALF - Math.max(Math.abs(player.position.x), Math.abs(player.position.z));
@@ -860,7 +891,8 @@ async function main() {
       health, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
       prompt, speed: player.speedFactor, ads: weapons.state.ads,
     });
-  });
+    mark('hud');
+  }, 'main');
 
   // `?at=x,y,z,yaw,pitch` — a review note's repro URL (src/ui/Feedback.ts reproUrl) starts you on the spot it was filed from
   const at = (params.get('at') ?? '').split(',').map(Number);

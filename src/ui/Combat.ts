@@ -116,7 +116,7 @@ export class Combat {
     tap(weapon, 'onFire', () => { this.fired(); });
     tap(weapon, 'onImpact', (surface, point) => { this.impact(surface as string, point as THREE.Vector3); });
     tap(animals, 'onDamage', (a, amount, point, headshot, died) => { this.damage(a as Animal, amount as number, point as THREE.Vector3, headshot as boolean, died as boolean); });
-    game.onUpdate((dt, t) => { this.update(dt, t); });
+    game.onUpdate((dt, t) => { this.update(dt, t); }, 'hud.combat');
   }
 
   // ── events ──

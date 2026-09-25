@@ -125,6 +125,6 @@ export function installPineAudio(h: PineAudioHost): void {
       snortAt = t;
       amb.sfx.shot('deer_snort', { at: a.position });
     }
-  });
+  }, 'audio');
   Object.assign(window, { __pineAudio: { spots, get night() { return night; } } });
 }

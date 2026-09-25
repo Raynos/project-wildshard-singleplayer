@@ -146,7 +146,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
     bench: { x: bench.x, y: deckY, z: bench.z, yaw: ZIP_YAW - Math.PI / 4 },
   });
   const kit = new Interactables({ scene: game.scene, sky, player, flags, place, floorAt, prompts: h.interactables }).build(table);
-  game.onUpdate((dt, t) => { kit.update(dt, t); });
+  game.onUpdate((dt, t) => { kit.update(dt, t); }, 'quest.kit');
 
   // ── the counters, the toasts ──
   const chip = new CountChip();
@@ -157,7 +157,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   if (shelf && rangerRoot) {
     rangerRoot.add(shelf.mesh);
     shelf.setShown(tokenCount() === TOKEN_NAMES.length);
-    game.onUpdate(() => { shelf.update(game.camera); });
+    game.onUpdate(() => { shelf.update(game.camera); }, 'quest.shelf');
   }
   kit.onEvent = (e: InteractEvent) => {
     const d = e.def;
@@ -530,7 +530,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
       }
       if (journalFull()) progress.recordEvent('journal', 1);
     }
-  });
+  }, 'quest');
 
   // ── dev: `?quest=<beat>` puts you where the beat starts (and `__pineQuest.goto(beat)` does it without a reload) ──
   const standAt = (bt: Beat): void => {

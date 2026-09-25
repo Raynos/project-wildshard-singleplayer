@@ -52,7 +52,7 @@ export class Impacts {
   private static byGame = new WeakMap<Game, Impacts>();
   static for(game: Game): Impacts {
     let fx = Impacts.byGame.get(game);
-    if (fx === undefined) { const made = new Impacts(game.scene); fx = made; Impacts.byGame.set(game, made); game.onUpdate(() => { made.update(worldTime.realDt); }); }
+    if (fx === undefined) { const made = new Impacts(game.scene); fx = made; Impacts.byGame.set(game, made); game.onUpdate(() => { made.update(worldTime.realDt); }, 'world.impacts'); }
     return fx;
   }
 

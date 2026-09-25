@@ -16,6 +16,7 @@ import {
   type Box3, type NavMesh, type NavMeshPoly, type NavMeshPolyDetail, type Vec3,
 } from 'navcat';
 import { navmeshUrl } from './navmeshUrl';
+import { frameCost } from '../core/frameCost';
 
 export { navmeshUrl } from './navmeshUrl';
 
@@ -198,7 +199,7 @@ export class Navmesh {
     } finally { this.count(t0); }
   }
 
-  private count(t0: number): void { this.stats.queries++; this.stats.ms += performance.now() - t0; }
+  private count(t0: number): void { const ms = performance.now() - t0; this.stats.queries++; this.stats.ms += ms; frameCost.nav(ms); }
 }
 
 /** Parse a navmesh.bin (scripts/bake-navmesh.mjs's format); null when it isn't one of this version. */

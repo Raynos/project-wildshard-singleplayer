@@ -180,7 +180,7 @@ export class Body {
 /** what the service needs of `Game`: its fixed phases and the render interpolation factor */
 export interface FixedClock {
   alpha: number;
-  onFixed: (phase: 'pre' | 'step' | 'post', fn: (dt: number) => void) => void;
+  onFixed: (phase: 'pre' | 'step' | 'post', fn: (dt: number) => void, label?: string) => void;
 }
 
 export class Bodies {
@@ -201,8 +201,8 @@ export class Bodies {
   /** run in the game's fixed phases; `alpha` comes from its clock from now on */
   attach(game: FixedClock): this {
     this.clock = game;
-    game.onFixed('pre', (dt) => { this.pre(dt); });
-    game.onFixed('post', (dt) => { this.post(dt); });
+    game.onFixed('pre', (dt) => { this.pre(dt); }, 'physics.bodies');
+    game.onFixed('post', (dt) => { this.post(dt); }, 'physics.bodies');
     return this;
   }
 

@@ -20,9 +20,12 @@ import type { Game } from '../core/Game';
 import { TIER } from '../core/tier';
 import { isDev, onDev } from '../core/devMode';
 import { runPerfProbe, probeLines } from './perfProbe';
+import { PerfHud, type Counts } from './perfHud';
 import './perf.css';
 
 const PAINT_MS = 500;
+/** the open panel's timing / counts block (src/ui/perfHud.ts): ≤ 4 repaints a second */
+const STATS_MS = 250;
 const BUDGET = TIER === 'phone' ? { calls: 110, tris: 1.6e6 } : null;
 const WINDOW = 20; // paints (~10 s)
 export interface PerfBudget { maxCalls: number; maxTris: number; calls: number; tris: number; over: boolean }
@@ -47,7 +50,7 @@ export class Perf {
     root.innerHTML = '<b>—</b><span class="ws-perf-ms"></span><span class="ws-perf-long"></span>';
     const panel = this.panel = document.createElement('div');
     panel.className = 'ws-perf-panel';
-    panel.innerHTML = '<div class="ws-perf-row"><i>Frame p50</i><span data-r="p50">—</span></div><div class="ws-perf-row"><i>Frame p95</i><span data-r="p95">—</span></div><div class="ws-perf-row"><i>Draw calls</i><span data-r="calls">—</span></div><div class="ws-perf-row"><i>Triangles</i><span data-r="tris">—</span></div><div class="ws-perf-row"><i>Tier · DPR</i><span data-r="tier">—</span></div><div class="ws-perf-row"><i>GL</i><span data-r="gl">ok</span></div><div class="ws-perf-row"><i>Probe</i><button type="button" class="ws-perf-probe">RUN PROBE</button></div><pre class="ws-perf-probe-out"></pre>';
+    panel.innerHTML = '<div class="ws-perf-row"><i>Frame p50</i><span data-r="p50">—</span></div><div class="ws-perf-row"><i>Frame p95</i><span data-r="p95">—</span></div><div class="ws-perf-row"><i>Draw calls</i><span data-r="calls">—</span></div><div class="ws-perf-row"><i>Triangles</i><span data-r="tris">—</span></div><div class="ws-perf-row"><i>Tier · DPR</i><span data-r="tier">—</span></div><div class="ws-perf-row"><i>GL</i><span data-r="gl">ok</span></div><pre class="ws-perf-stats"></pre><canvas class="ws-perf-spark" width="240" height="30"></canvas><div class="ws-perf-row"><i>Record</i><span><button type="button" class="ws-perf-btn ws-perf-rec">REC 30 S</button> <button type="button" class="ws-perf-btn ws-perf-copy">COPY</button></span></div><pre class="ws-perf-rec-out"></pre><div class="ws-perf-row"><i>Probe</i><button type="button" class="ws-perf-probe">RUN PROBE</button></div><pre class="ws-perf-probe-out"></pre>';
     const row = (r: string): HTMLElement => { const e = panel.querySelector<HTMLElement>(`[data-r="${r}"]`); if (e === null) throw new Error(`Perf: missing row ${r}`); return e; };
     this.rows = { p50: row('p50'), p95: row('p95'), calls: row('calls'), tris: row('tris'), tier: row('tier'), gl: row('gl') };
     document.body.append(root, panel);
@@ -66,6 +69,28 @@ export class Perf {
     for (const t of ['touchstart', 'touchmove', 'touchend'] as const) probe.addEventListener(t, cancel, { passive: false });
     probe.addEventListener('pointerdown', cancel);
     probe.addEventListener('pointerup', (e) => { cancel(e); void this.runProbe(); });
+    // E142 aggro-perf: the timing / counts block, the sparkline, REC 30 S + COPY (src/ui/perfHud.ts)
+    const q = (sel: string): HTMLElement => { const e = panel.querySelector<HTMLElement>(sel); if (e === null) throw new Error(`Perf: missing ${sel}`); return e; };
+    const recBtn = q('.ws-perf-rec'), copyBtn = q('.ws-perf-copy'), recOut = q('.ws-perf-rec-out'), spark = q('.ws-perf-spark');
+    if (!(spark instanceof HTMLCanvasElement)) throw new Error('Perf: the sparkline is not a canvas');
+    this.recBtn = recBtn;
+    this.hud = new PerfHud(game, q('.ws-perf-stats'), spark, [root, panel]);
+    if (this.hud.lastRecText !== '') recOut.textContent = `last recording (COPY):\n${this.hud.lastRecText.split('\n').slice(0, 4).join('\n')}`;
+    this.hud.onRecDone = (text) => { recOut.textContent = text; recBtn.textContent = 'REC 30 S'; console.info(`[perf rec]\n${text}`); };
+    for (const b of [recBtn, copyBtn]) {
+      for (const t of ['touchstart', 'touchmove', 'touchend'] as const) b.addEventListener(t, cancel, { passive: false });
+      b.addEventListener('pointerdown', cancel);
+    }
+    recBtn.addEventListener('pointerup', (e) => { cancel(e); if (!this.hud.recording) { this.hud.startRec(); recOut.textContent = 'recording 30 s — play on (fight, sprint); the panel can stay open or closed'; } });
+    copyBtn.addEventListener('pointerup', (e) => {
+      cancel(e);
+      const text = this.hud.lastRecText !== '' ? this.hud.lastRecText : q('.ws-perf-stats').textContent;
+      const done = (ok: boolean): void => { copyBtn.textContent = ok ? 'COPIED' : 'SELECT ↓'; setTimeout(() => { copyBtn.textContent = 'COPY'; }, 1500); };
+      const fallback = (): void => { recOut.textContent = text; const r = document.createRange(); r.selectNodeContents(recOut); const sel = getSelection(); sel?.removeAllRanges(); sel?.addRange(r); done(false); };
+      // (no clipboard API — an http page, an old WebKit — throws in here too: the text is selected for a manual copy)
+      const copy = async (): Promise<void> => { try { await navigator.clipboard.writeText(text); done(true); } catch { fallback(); } };
+      void copy();
+    });
     // a toggle (E142, Jake: "detail mode on, move around a lot and keep looking at it — it shouldn't just fade away"): only a
     // tap on the pill closes the panel; moving, looking and shooting leave it up
     if (new URLSearchParams(location.search).get('probe') === '1') {
@@ -82,7 +107,8 @@ export class Perf {
     this.userHidden = hide(); this.root.hidden = this.userHidden;
     onDev(() => { this.userHidden = hide(); if (this.active) this.setActive(true); });
     if (this.budgetOn) Object.assign(window, { __perfBudget: this.budget });
-    game.onUpdate(() => this.update(performance.now()));
+    Object.assign(window, { __perfHud: this.hud });
+    game.onUpdate(() => this.update(performance.now()), 'hud.perf');
     // frames are gated on the menu (Game.frameGate): say so rather than freeze on the last number
     setInterval(() => { if (performance.now() - this.lastPaint > 1500 && this.lastText !== 'idle') { this.lastText = 'idle'; (this.root.firstElementChild as HTMLElement).textContent = '—'; (this.root.querySelector('.ws-perf-long') as HTMLElement).textContent = 'world paused'; (this.root.querySelector('.ws-perf-ms') as HTMLElement).textContent = 'paused'; this.root.classList.remove('slow', 'bad'); } }, 500);
   }
@@ -105,10 +131,21 @@ export class Perf {
   }
   private active = true; // until the menu first hides it (main.ts)
   /** the details panel over the minimap (phones) */
-  private open(on: boolean): void { const show = on && this.root.hidden === false; this.panel.classList.toggle('open', show); this.root.classList.toggle('open', show); }
+  private open(on: boolean): void { const show = on && this.root.hidden === false; this.panel.classList.toggle('open', show); this.root.classList.toggle('open', show); this.hud.setOpen(show); }
+  private readonly hud: PerfHud;
+  private readonly recBtn: HTMLElement;
+  private lastStats = 0;
+  /** main.ts: the game's counts for the panel (animals, the elite, Rapier …) — read ≤ 4× a second while it is open */
+  addCounts(fn: () => Counts): void { this.hud.addCounts(fn); }
   private userHidden = false;
 
   private update(now: number) {
+    this.hud.tick(now);
+    if ((this.panel.classList.contains('open') || this.hud.recording) && now - this.lastStats >= STATS_MS) {
+      this.lastStats = now;
+      this.hud.paint();
+      if (this.hud.recording) this.recBtn.textContent = 'REC…';
+    }
     if (now - this.lastPaint < PAINT_MS) return;
     this.lastPaint = now;
     const g = this.game;

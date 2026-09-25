@@ -179,7 +179,7 @@ export function installPineWeather(h: PineWeatherHost): PineWeatherRig | null {
     fx.update(dt, weather, fogCol, wind);
     shelterHerds(dt);
     stagInFog(eye);
-  });
+  }, 'world.weather');
 
   const rig: PineWeatherRig = { weather, fx, setMode: (m, t = 0.5) => { weather.setMode(m, t); } };
   (window as unknown as { __pineWeather: unknown }).__pineWeather = {

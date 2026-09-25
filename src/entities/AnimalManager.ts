@@ -17,6 +17,7 @@ import { meleeShard } from '../chunks/ChunkDef';
 import { TIER_CONFIG } from '../core/tier';
 import { noReflect } from '../world/Water';
 import { worldTime } from '../core/time';
+import { frameCost } from '../core/frameCost';
 
 /**
  * AnimalManager — spawns the chunk's huntable wildlife (the active ChunkDef's `fauna` herd plans),
@@ -581,7 +582,9 @@ export class AnimalManager {
       this.playerPrev.copy(playerPos);
       this.playerSpeed += (Math.min(moved / 0.1, 9) - this.playerSpeed) * 0.5;
       this.repaths = 0;
+      const t0 = frameCost.on ? performance.now() : 0;
       for (const a of this.animals) this.think(a, 0.1, playerPos, playerSprinting);
+      if (frameCost.on) frameCost.sub('think', t0);
     }
     // fur shells: pick the SHELL_MAX nearest animals inside SHELL_DIST (tiny insertion sort, no allocs)
     const sd = this.shellDist, si = this.shellIdx;
@@ -590,6 +593,7 @@ export class AnimalManager {
     if (farD > 0) this.farHerd.begin(camera);
     const herdShadows = TIER_CONFIG.animalShadowBatch && this.pbr;
     if (herdShadows) this.shadowHerd.begin(null);
+    const poseT0 = frameCost.on ? performance.now() : 0;
     for (let i = 0; i < n; i++) {
       const a = this.animals[i];
       if (a === undefined || a.hidden) continue;
@@ -629,6 +633,7 @@ export class AnimalManager {
         }
       }
     }
+    if (frameCost.on) frameCost.sub('pose', poseT0);
     if (farD > 0) this.farHerd.end();
     if (herdShadows) this.shadowHerd.end();
     for (let i = 0; i < n; i++) {

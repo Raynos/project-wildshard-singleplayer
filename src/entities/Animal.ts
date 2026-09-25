@@ -3,6 +3,7 @@ import type { CharacterMotor } from '../physics/CharacterMotor';
 import { activePhysics } from '../physics/active';
 import { ragdollsFor, type Ragdoll } from '../physics/ragdoll';
 import { TIER } from '../core/tier';
+import { frameCost } from '../core/frameCost';
 import { heightAt } from '../world/Heightfield';
 import { variantMods, type AnimalDims, type AnimalKind, type AnimalModel, type AnimalRig, type Rarity, type VariantMods, type RigAnimCtx } from './AnimalFactory';
 
@@ -443,7 +444,9 @@ export class Animal {
       if (dx !== 0 || dz !== 0) {
         this.position.x = x0; this.position.z = z0;
         _want.x = dx; _want.y = 0; _want.z = dz;
+        const t0 = frameCost.on ? performance.now() : 0;
         this.motor.move(this.position, _want, true);
+        if (frameCost.on) frameCost.sub('motor', t0);
         this.position.y = this.groundY + this.yOffset; // the motor ignores the terrain: the ground follow below owns y
       }
     }

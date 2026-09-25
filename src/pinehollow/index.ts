@@ -140,7 +140,7 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     feel.update(dt, t);
     pineElites.update(dt, t);
     king.update(dt, t);
-  });
+  }, 'elites');
   Object.assign(window, { __pineElites: pineElites, __antlerKing: king });
 
   return {
