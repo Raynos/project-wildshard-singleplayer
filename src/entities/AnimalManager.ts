@@ -554,7 +554,12 @@ export class AnimalManager {
       a.update(dt, t, near);
       if (this.melee && a.state === 'charge' && a.alive && !a.stunned) this.chargeContact(a, playerPos);
       // draw / shadow distance by tier: a deer at 150 m is a few pixels on a phone, and only near animals shadow
-      a.mesh.visible = d2 < TIER_CONFIG.animalHideDist * TIER_CONFIG.animalHideDist;
+      // … shrinking away over the last 15 % of the draw distance rather than blinking out at it (E117: no pop)
+      const hide = TIER_CONFIG.animalHideDist;
+      const fade = d2 < (hide * 0.85) ** 2 ? 1 : Math.max(0, Math.min(1, (hide - Math.sqrt(d2)) / (hide * 0.15)));
+      a.mesh.visible = fade > 0;
+      const sc = a.scale * fade * fade * (3 - 2 * fade);
+      if (a.mesh.scale.x !== sc) a.mesh.scale.setScalar(sc);
       a.mesh.castShadow = d2 < TIER_CONFIG.animalShadowDist * TIER_CONFIG.animalShadowDist;
       a.setDrawLod(d2 < TIER_CONFIG.animalEyeDist * TIER_CONFIG.animalEyeDist ? 0 : d2 < TIER_CONFIG.animalOneDrawDist * TIER_CONFIG.animalOneDrawDist ? 1 : 2);
       if (TIER_CONFIG.furShells && d2 < SHELL_DIST * SHELL_DIST) {

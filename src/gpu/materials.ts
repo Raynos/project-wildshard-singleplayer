@@ -3,7 +3,7 @@
  * live uniforms through `harvest`, so the owner keeps driving them):
  *
  *   terrain-lowpoly   Terrain.ts   facet colours: a `flat` vertex-colour varying when its patch declares one
- *   ground-cover      GroundCover  grow-in by distance, bend away from the player, wind sway (instanced)
+ *   ground-cover      GroundCover  grow-in by distance (each plant at its own edge, E117), bend away from the player, wind sway (instanced)
  *   palms-sway        Palms.ts     frond sway          rope-bridge-sway  RopeBridge.ts   deck sway
  *   seabed-sway       Seabed.ts    kelp / coral current
  *   gulls-anim        Gulls.ts     wings / head / legs from the per-instance aAnim (before the instance transform)
@@ -15,16 +15,16 @@
  */
 import * as THREE from 'three';
 import {
-  abs, attribute, cameraPosition, cos, dot, float, fract, instancedDynamicBufferAttribute, length, max, mix, modelWorldMatrix,
+  abs, atan, attribute, cameraPosition, cos, dot, float, fract, instancedDynamicBufferAttribute, length, max, mix, modelWorldMatrix,
   normalize, output, positionGeometry, positionLocal, positionWorld, pow, select, sin, smoothstep, uniform, varying, vec2, vec3, vec4, vertexColor,
   materialColor, materialEmissive,
 } from 'three/tsl';
 import { InstancedInterleavedBuffer, type Node, type NodeBuilder } from 'three/webgpu';
 import { asVec3, asVec4, gpuUniforms } from './bridge';
-import { harvest, hFloat, hVec2, hVec3, registerPort, toonCopy } from './ports';
+import { harvest, hFloat, hVec3, registerPort, toonCopy } from './ports';
 import { ToonStandardNodeMaterial } from './toon';
 
-const fU = hFloat, v3U = hVec3, v2U = hVec2;
+const fU = hFloat, v3U = hVec3;
 
 /** a toon material whose vertices are displaced BEFORE the instance / skin transform (the GLSL patches' `transformed`) */
 export class PreDisplacedToonMaterial extends ToonStandardNodeMaterial {
@@ -137,7 +137,7 @@ export function installPorts(): void {
   // ── ground cover: grow in from the draw edge, bend away from the player's legs, sway in the shared wind ──
   registerPort('ground-cover', (src) => {
     const h = harvest(src);
-    const uPlayer = v3U(h, 'uPlayer'), uTime = fU(h, 'uTime'), uWind = fU(h, 'uWind'), uR = v2U(h, 'uR');
+    const uPlayer = v3U(h, 'uPlayer'), uTime = fU(h, 'uTime'), uWind = fU(h, 'uWind'), uReach = v3U(h, 'uReach');
     const m = toonCopy(src, PreDisplacedToonMaterial);
     m.postDisplace = (builder) => {
       // after the instance transform: the instance's own origin and scale come from its matrix
@@ -148,7 +148,9 @@ export function installPorts(): void {
       const scale = length(M.axis0);
       const away = ioW.xz.sub(uPlayer.xz).toVar();
       const dl = max(length(away), 1e-3).toVar();
-      const k = float(1).sub(smoothstep(uR.x, uR.y, dl));
+      // this plant's edge in [near + grow, far] from its yaw, measured camera to plant in 3D (GroundCover.ts, E117)
+      const edge = mix(uReach.x.add(uReach.z), uReach.y, fract(atan(M.axis0.z.negate(), M.axis0.x).div(6.2831853).add(1))).toVar();
+      const k = float(1).sub(smoothstep(edge.sub(uReach.z), edge, length(ioW.sub(cameraPosition))));
       const hgt = max(positionGeometry.y, 0).toVar();
       const push = away.div(dl).mul(float(1).sub(smoothstep(0.35, 1.5, dl))).mul(1.1);
       const ph = ioW.x.mul(0.31).add(ioW.z.mul(0.23));

@@ -26,6 +26,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.module.js';
 import { attachFogUniforms } from './Atmosphere';
 import { area, inArea, CELL } from './blenderArea';
 import { CHUNK_HALF, TERRAIN_RES } from '../core/config';
@@ -49,13 +50,41 @@ const AO_DIRECT = 0.45;
  * Measured on the phone tier, four cove poses (with tier.ts's animal shadows to 80 m): +176–274 k triangles (+18–31 %),
  * +25–30 draws over the 24 m swap.
  */
-const LOD_D = 110, COVER_D = TIER === 'phone' ? 32 : 150;
 /**
- * Ground cover rises out of the ground over [COVER_RISE, COVER_GONE] m (camera to each vertex — a plant is ~1 m across,
- * so it moves as one) instead of its tile blinking on at COVER_D: sunk COVER_SINK m, it is under the terrain before its
- * tile switches off. The same grow-in as GroundCover's (FADE_R0 / FADE_R1).
+ * Ground cover rises out of the ground as the camera nears it instead of its tile blinking on at COVER_D (E117, the same
+ * grow-in as GroundCover's): every plant inside COVER_NEAR stands; past it each plant has its own edge in
+ * [COVER_NEAR + COVER_GROW, COVER_FAR] (a per-vertex `aEdge`, one value per placement) and sinks COVER_SINK m over the
+ * COVER_GROW m before it (camera to each vertex, in 3D — a plant is ~1 m across, so it moves as one). So the cover
+ * thins out over ~25 m instead of ending in a ring, and it is all under the terrain before its tile switches off.
  */
-const COVER_RISE = COVER_D - 10, COVER_GONE = COVER_D - 1.5, COVER_SINK = 3;
+const COVER_NEAR = TIER === 'phone' ? 16 : 100, COVER_FAR = TIER === 'phone' ? 40 : 148, COVER_GROW = TIER === 'phone' ? 6 : 12, COVER_SINK = 3;
+const LOD_D = 110, COVER_D = COVER_FAR + 1;
+/**
+ * E117: a caster tile's far copy is its near one simplified (meshoptimizer: to FAR_RATIO of the triangles, never past
+ * FAR_ERROR of the model's size — ~8 cm on a palm, under a pixel at LOD_D), not the file's hand-made `_lo` palms: those
+ * (227 tris) have another crown, a thinner trunk and another height, so a whole tile of palms changed shape at LOD_D as
+ * you flew. ~780 tris a palm instead of 227; the swap can no longer be seen.
+ */
+const FAR_RATIO = 0.25, FAR_ERROR = 0.01;
+
+interface Proto { pos: Float32Array; col: Uint8Array; index: Uint32Array }
+/** `p` with its triangles simplified and its vertices compacted to the ones they use */
+function simplified(p: Proto): Proto {
+  const target = Math.max(3, Math.floor((p.index.length * FAR_RATIO) / 3) * 3);
+  const [idx] = MeshoptSimplifier.simplify(p.index, p.pos, 3, target, FAR_ERROR);
+  const remap = new Int32Array(p.pos.length / 3).fill(-1);
+  let n = 0;
+  for (const v of idx) if ((remap[v] ?? 0) < 0) remap[v] = n++;
+  const pos = new Float32Array(n * 3), col = new Uint8Array(n * 4), index = new Uint32Array(idx.length);
+  for (let v = 0; v < remap.length; v++) {
+    const r = remap[v] ?? -1;
+    if (r < 0) continue;
+    pos.set(p.pos.subarray(v * 3, v * 3 + 3), r * 3);
+    col.set(p.col.subarray(v * 4, v * 4 + 4), r * 4);
+  }
+  for (let i = 0; i < idx.length; i++) index[i] = remap[idx[i] ?? 0] ?? 0;
+  return { pos, col, index };
+}
 
 interface Tile { x0: number; x1: number; z0: number; z1: number; near: THREE.Mesh; far: THREE.Mesh | null; cover: boolean }
 
@@ -187,8 +216,9 @@ export class BlenderIsland {
 	reflectedLight.indirectDiffuse *= vColor.a;
 	reflectedLight.directDiffuse *= mix( 1.0, vColor.a, 0.35 );`);
         // the cover rises out of the ground as you near it (the tiles are merged in world space: position is world)
-        if (cover) s.vertexShader = s.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
-	transformed.y -= smoothstep( ${COVER_RISE.toFixed(1)}, ${COVER_GONE.toFixed(1)}, distance( transformed.xz, cameraPosition.xz ) ) * ${COVER_SINK.toFixed(1)};`);
+        if (cover) s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nattribute float aEdge;').replace('#include <begin_vertex>', `#include <begin_vertex>
+	{ float edge = mix( ${(COVER_NEAR + COVER_GROW).toFixed(1)}, ${COVER_FAR.toFixed(1)}, aEdge );
+	  transformed.y -= smoothstep( edge - ${COVER_GROW.toFixed(1)}, edge, distance( transformed, cameraPosition ) ) * ${COVER_SINK.toFixed(1)}; }`);
       };
       mat.customProgramCacheKey = () => (cover ? 'island-cover' : 'island-props');
       ctx.sky.setupMaterial(mat);
@@ -198,7 +228,7 @@ export class BlenderIsland {
 
     // ── terrain tiles ──
     gltf.scene.updateMatrixWorld(true);
-    const protos: { pos: Float32Array; col: Uint8Array; index: Uint32Array }[] = [];
+    const protos: Proto[] = [];
     const protoIndex = new Map<string, number>(meta.protos.map((p, i) => [`proto_${p.name}`, i]));
     const v = new THREE.Vector3();
     const found: THREE.Mesh[] = [];
@@ -240,6 +270,8 @@ export class BlenderIsland {
     const cover = Math.round((count - meta.mustDraw) * (phone ? PHONE_COVER : 1));
     const used = meta.mustDraw + cover;
     const lodOf = new Map<number, number>(Object.entries(meta.lod).map(([k, lo]) => [Number(k), lo]));
+    await MeshoptSimplifier.ready;
+    for (const [pi, lo] of lodOf) { const near = protos[pi]; if (near) protos[lo] = simplified(near); } // E117: far = near, simplified
     const tileOf = (x: number, z: number, n: number) => {
       const tx = Math.min(n - 1, Math.max(0, Math.floor((x - area.x0) / (area.x1 - area.x0) * n)));
       const tz = Math.min(n - 1, Math.max(0, Math.floor((z - area.z0) / (area.z1 - area.z0) * n)));
@@ -253,12 +285,14 @@ export class BlenderIsland {
     }
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), t = new THREE.Vector3();
     const e = m.elements;
-    const merge = (items: number[], far: boolean): THREE.BufferGeometry | null => {
+    // a placement's own edge in the cover's reach (0..1): a hash of where it stands
+    const edgeOf = (x: number, z: number): number => { const hsh = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return hsh - Math.floor(hsh); };
+    const merge = (items: number[], far: boolean, edges = false): THREE.BufferGeometry | null => {
       let verts = 0, indices = 0;
       const pick = (i: number) => { const pi = f[i * 10] ?? 0; return protos[far ? lodOf.get(pi) ?? pi : pi]; };
       for (const i of items) { const pr = pick(i); if (pr) { verts += pr.pos.length / 3; indices += pr.index.length; } }
       if (indices === 0) return null;
-      const pos = new Float32Array(verts * 3), col = new Uint8Array(verts * 4), index = new Uint32Array(indices);
+      const pos = new Float32Array(verts * 3), col = new Uint8Array(verts * 4), index = new Uint32Array(indices), edge = edges ? new Float32Array(verts) : null;
       let vo = 0, io = 0;
       for (const i of items) {
         const o = i * 10, pr = pick(i);
@@ -267,6 +301,7 @@ export class BlenderIsland {
         const sc = f[o + 8] ?? 1, tint = f[o + 9] ?? 1;
         m.compose(t, q, s.set(sc, sc, sc));
         const n = pr.pos.length / 3;
+        if (edge) edge.fill(edgeOf(t.x, t.z), vo, vo + n);
         for (let k = 0; k < n; k++) {
           const px = pr.pos[k * 3] ?? 0, py = pr.pos[k * 3 + 1] ?? 0, pz = pr.pos[k * 3 + 2] ?? 0, d = (vo + k) * 3;
           pos[d] = e[0] * px + e[4] * py + e[8] * pz + e[12];
@@ -282,6 +317,7 @@ export class BlenderIsland {
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
       geo.setAttribute('color', new THREE.BufferAttribute(col, 4, true));
+      if (edge) geo.setAttribute('aEdge', new THREE.BufferAttribute(edge, 1));
       geo.setIndex(new THREE.BufferAttribute(index, 1));
       geo.computeVertexNormals(); // the CSM normal bias (flat lighting ignores them): without them the facets streak with acne
       geo.computeBoundingSphere();
@@ -304,7 +340,7 @@ export class BlenderIsland {
       this.stats.propTris += (hi.getIndex()?.count ?? 0) / 3;
     }
     for (const [k, items] of covers.entries()) {
-      const g = merge(items, false);
+      const g = merge(items, false, true);
       if (!g) continue;
       this.tiles.push({ ...rect(k, VT), near: add(g, `island-cover-${k}`, false, coverMat), far: null, cover: true });
       this.stats.propTris += (g.getIndex()?.count ?? 0) / 3;
