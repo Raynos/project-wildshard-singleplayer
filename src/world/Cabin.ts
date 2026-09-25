@@ -12,6 +12,7 @@ import { boxDesc, type ColliderDesc } from './registry';
 import { TIER_CONFIG } from '../core/tier';
 import { macrotask } from '../boot/plan';
 import { LightPool } from '../fx/LightPool';
+import { SHADOW_LAYER } from '../core/shadowLayer';
 
 /**
  * The three log cabins of the chunk.
@@ -41,7 +42,7 @@ import { LightPool } from '../fx/LightPool';
  * silhouette, interleaved notched-corner overhangs, chinking slab behind), the roof is planks over
  * rafters + purlins + a ridge log, doors are hinged plank doors that swing inward, windows have
  * frames, mullions and reflective glass with a warm interior glow. Static geometry is merged per
- * material: ~14 draw calls per cabin, props are instanced across cabins.
+ * material, the never-hidden materials across the cabins (Cabins.batchCores); props are instanced across cabins.
  */
 
 export interface Interactable { position: THREE.Vector3; radius: number; label: string; onInteract: () => void }
@@ -140,10 +141,13 @@ interface CabinLod {
   root: THREE.Object3D; detail: THREE.Object3D[]; far: THREE.Object3D[]; anchors: LightAnchor[]; detailOn: boolean; farOn: boolean; pad: number; lit?: () => boolean;
   /** the building's rooms and its door (local x, z): an eye inside, or within 3 m of the door, ranks the room lamps first */
   rooms?: Room[]; door?: [number, number];
+  /** desktop: casters that cast only while the detail LOD is off (a near proxy in `detail` draws their depth while it is on) */
+  swap?: THREE.Object3D[];
 }
 interface Swing { pivot: THREE.Object3D; seed: number }
 interface Floor { x: number; z: number; rot: number; hw: number; hd: number; y: number }
 type PropKind = 'crate' | 'barrel' | 'bucket' | 'hatchet';
+const PROP_KINDS: readonly PropKind[] = ['crate', 'barrel', 'bucket', 'hatchet'];
 /** one (geometry, material, world matrix) part of a flattened glTF prop */
 interface PropPart { geometry: THREE.BufferGeometry; material: THREE.Material; matrix: THREE.Matrix4 }
 
@@ -531,10 +535,59 @@ function wallSlab(a0: number, a1: number, h: number, thick: number, openings: Op
 // ───────────────────────────── one cabin ─────────────────────────────
 
 const DETAIL_KEYS = new Set<MatKey>(['iron', 'cloth', 'char', 'chink']);
-/** a layer only the sun's shadow cameras render (Cabins.build enables it on them): the cabins' shadow-caster proxies */
-const SHADOW_LAYER = 9;
-/** never drawn in a view (layer), only its depth: front-sided like every cabin material, so the shadow side matches */
+/** never drawn in a view (SHADOW_LAYER), only its depth: front-sided like every cabin material, so the shadow side matches */
 const shadowProxyMaterial = new THREE.MeshBasicMaterial({ colorWrite: false });
+
+/** position-only merged caster on SHADOW_LAYER (drawn into the sun's shadow maps and nowhere else); null for an empty list */
+function shadowProxy(list: THREE.BufferGeometry[]): THREE.Mesh | null {
+  const g = list.length > 0 ? mergeOrNull(list) : null;
+  if (g === null) return null;
+  g.computeBoundingSphere();
+  const proxy = new THREE.Mesh(g, shadowProxyMaterial);
+  proxy.castShadow = true; proxy.layers.set(SHADOW_LAYER);
+  return proxy;
+}
+/**
+ * `geo`'s positions only, moved by `m`, indexed with every triangle twice — as it is and with its winding reversed — for
+ * the front-sided shadowProxyMaterial: the glTF casters (fire pit, crates, barrels, buckets, hatchet) are double-sided,
+ * whose depth pass draws each triangle whichever way it faces; the front-sided (back-face) depth pass draws exactly one of
+ * the pair, so the same depth — with the depth program the cabins' proxies already use, no double-sided one.
+ */
+function twoSidedPositions(geo: THREE.BufferGeometry, m: THREE.Matrix4): THREE.BufferGeometry {
+  const out = new THREE.BufferGeometry();
+  const pos = geo.getAttribute('position');
+  out.setAttribute('position', pos.clone());
+  const src = geo.index, n = src ? src.count : pos.count;
+  const idx = new Uint32Array(n * 2);
+  for (let i = 0; i + 2 < n; i += 3) {
+    const a = src ? src.getX(i) : i, b = src ? src.getX(i + 1) : i + 1, c = src ? src.getX(i + 2) : i + 2;
+    idx[i] = a; idx[i + 1] = b; idx[i + 2] = c;
+    idx[n + i] = a; idx[n + i + 1] = c; idx[n + i + 2] = b;
+  }
+  out.setIndex(new THREE.BufferAttribute(idx, 1));
+  return out.applyMatrix4(m);
+}
+/** `geo`'s positions only (non-indexed, sharing the attribute when it already is): a caster for a front-sided proxy */
+function flatPositions(geo: THREE.BufferGeometry): THREE.BufferGeometry {
+  const g = geo.index ? geo.toNonIndexed() : geo;
+  const out = new THREE.BufferGeometry(); out.setAttribute('position', g.getAttribute('position'));
+  return out;
+}
+
+/**
+ * Desktop (TIER_CONFIG.cabinDetailShadows): the casters of a building's near shadow proxies, position-only in its root's
+ * frame, merged into ONE proxy drawn while the detail LOD is on: `front`, the front-sided sets (the core, far and detail
+ * merges: it stands in for the core + far proxies and the four detail meshes); `double`, the double-sided glTF casters
+ * (fire pit, props), each triangle both ways round (twoSidedPositions).
+ */
+interface NearCasters { front: THREE.BufferGeometry[]; double: THREE.BufferGeometry[] }
+/** a non-indexed position-only geometry with the plain index 0 … n−1 (its position attribute shared) */
+function sequentialIndex(geo: THREE.BufferGeometry): THREE.BufferGeometry {
+  const pos = geo.getAttribute('position'), idx = new Uint32Array(pos.count);
+  for (let i = 0; i < idx.length; i++) idx[i] = i;
+  const out = new THREE.BufferGeometry(); out.setAttribute('position', pos); out.setIndex(new THREE.BufferAttribute(idx, 1));
+  return out;
+}
 /** merged parts that go too past 2× cabinDetailDist (log ends, woodpile bark, door frame) */
 const FAR_KEYS = new Set<MatKey>(['endGrain', 'bark', 'door']);
 
@@ -552,6 +605,12 @@ class CabinBuilder {
   detail: THREE.Object3D[] = [];
   /** mid parts hidden beyond 2× cabinDetailDist */
   far: THREE.Object3D[] = [];
+  /** desktop: the near proxies' casters (see NearCasters; null on the phone, whose detail casts no shadow) */
+  readonly casters: NearCasters | null = TIER_CONFIG.cabinDetailShadows ? { front: [], double: [] } : null;
+  /** casters whose shadow a near proxy draws while the detail LOD is on: they cast only while it is off (Cabins.update) */
+  swap: THREE.Object3D[] = [];
+  /** the never-hidden per-material meshes (finishParts' core set) — Cabins.batchCores merges them across the cabins */
+  core: CoreMesh[] = [];
   /** phone tier: where this cabin's point lights would be (see Cabins.sharedLights) */
   anchors: LightAnchor[] = [];
   /** the rooms' floor rectangles and the door, in the building's frame (Cabins.update's indoor lamp ranking) */
@@ -899,7 +958,7 @@ class CabinBuilder {
     const pivot = new THREE.Group();
     pivot.position.set(x - 0.02, FLOOR + 0.02, dz - DW / 2);
     const doorMesh = new THREE.Mesh(leaf, this.mats.door);
-    doorMesh.castShadow = true; doorMesh.receiveShadow = true;
+    doorMesh.castShadow = this.casters === null; doorMesh.receiveShadow = true;
     pivot.add(doorMesh);
     const iron: THREE.BufferGeometry[] = [];
     for (const hy of [0.32, H - 0.32]) {
@@ -909,15 +968,22 @@ class CabinBuilder {
     iron.push(new THREE.TorusGeometry(0.045, 0.008, 6, 14).rotateY(Math.PI / 2).translate(0.045, 1.0, DW - 0.13));
     iron.push(new THREE.CylinderGeometry(0.012, 0.012, 0.09, 6).rotateZ(Math.PI / 2).translate(0.01, 1.0, DW - 0.13));
     const ironMesh = new THREE.Mesh(mergeGeometries(iron.map((g) => g.toNonIndexed())), this.mats.iron);
-    ironMesh.castShadow = true;
+    ironMesh.castShadow = this.casters === null;
     pivot.add(ironMesh); this.detail.push(ironMesh);
     const battens: THREE.BufferGeometry[] = [];
     for (const by of [0.35, H / 2, H - 0.35]) battens.push(boxUV(new THREE.BoxGeometry(0.03, 0.12, DW - 0.1), 1).translate(-0.045, by, DW / 2));
     battens.push(boxUV(new THREE.BoxGeometry(0.03, 0.12, Math.hypot(H - 0.7, DW - 0.1) - 0.1), 1).rotateX(Math.atan2(H - 0.7, DW - 0.1)).translate(-0.045, H / 2, DW / 2));
     const battenMesh = new THREE.Mesh(mergeGeometries(battens.map((g) => g.toNonIndexed())), this.mats.beam);
-    battenMesh.castShadow = true;
+    battenMesh.castShadow = this.casters === null;
     pivot.add(battenMesh); this.detail.push(battenMesh);
     this.root.add(pivot); this.far.push(doorMesh);
+    if (this.casters !== null) {
+      // desktop: the leaf, its strap hinges and its battens cast as ONE proxy in the pivot (it swings with the door) while
+      // the detail LOD is on (3 → 1 shadow draw per cascade); past it the leaf casts alone again, as before (this.swap)
+      const proxy = shadowProxy([doorMesh, ironMesh, battenMesh].map((m) => flatPositions(m.geometry)));
+      if (proxy !== null) { pivot.add(proxy); this.detail.push(proxy); this.swap.push(doorMesh); }
+      else doorMesh.castShadow = true;
+    }
 
     const col = this.collider(x, dz, 0.08, DW / 2, 0, FLOOR + H);
     const d: Door = {
@@ -1274,6 +1340,17 @@ class CabinBuilder {
     pit.position.set(fx, 0.19 - 0.06, fz);
     pit.rotation.y = this.rng.range(0, 6);
     this.root.add(pit); this.detail.push(pit);
+    const casters = this.casters;
+    if (casters !== null) {
+      // desktop: its depth goes into the building's double-sided near proxy (addNearProxies), in the root's frame
+      pit.updateMatrixWorld(true);
+      const toRoot = this.root.matrixWorld.clone().invert(), m = new THREE.Matrix4();
+      pit.traverse((mesh) => {
+        if (!isMesh(mesh)) return;
+        mesh.castShadow = false;
+        casters.double.push(twoSidedPositions(mesh.geometry, m.multiplyMatrices(toRoot, mesh.matrixWorld)));
+      });
+    }
     for (let i = 0; i < 5; i++) {
       const a = (i / 5) * Math.PI * 2 + 0.3;
       const g = boxUV(new THREE.CylinderGeometry(0.05, 0.065, 0.75, 7), 1);
@@ -1623,15 +1700,35 @@ class CabinBuilder {
 
   private finish() {
     if (this.sink) return; // a cluster member: Cabins merges the whole cluster once (finishParts on the sink)
-    finishParts(this.parts, this.mats, this.root, this.detail, this.far);
+    this.core = finishParts(this.parts, this.mats, this.root, this.detail, this.far, this.casters === null ? undefined : { front: this.casters.front, swap: this.swap });
+  }
+
+  /**
+   * Desktop: the building's near shadow proxy from `casters` (after `build`, and after Cabins baked its props into
+   * `casters.double`), hidden with the detail LOD — it stands in for the core + far proxies (`swap`), the iron / cloth /
+   * char / chink meshes, the fire pit and the props: the same triangles, the same depth, one shadow draw per cascade.
+   * A cluster member has only its fire pit here (the cluster's merged hardware and props cast no shadow).
+   */
+  addNearProxies(): void {
+    const c = this.casters;
+    if (c === null) return;
+    // one proxy: mergeGeometries takes all-indexed or none, so with glTF casters the flat sets get a plain index
+    const proxy = shadowProxy(c.double.length === 0 ? c.front : [...c.front.map(sequentialIndex), ...c.double]);
+    if (proxy !== null) { this.root.add(proxy); this.detail.push(proxy); }
+    c.front.length = 0; c.double.length = 0;
   }
 }
 
 /**
  * Merge a builder's (or a cluster's) parts per material under `root`: one mesh per material, the small hardware in
  * `detail`, the mid parts in `far`, and the static shadow casters as two position-only proxies.
+ *
+ * `near` (a cabin on desktop): every set's positions also go to `near.front` for the builder's one near proxy
+ * (CabinBuilder.addNearProxies); the detail meshes then cast no shadow of their own, and the core + far proxies go to
+ * `near.swap` — they cast only while the detail LOD is off (Cabins.update), so the depth is the same at every distance.
  */
-export function finishParts(parts: Map<MatKey, THREE.BufferGeometry[]>, mats: Mats, root: THREE.Object3D, detailList: THREE.Object3D[], farList: THREE.Object3D[]): void {
+export function finishParts(parts: Map<MatKey, THREE.BufferGeometry[]>, mats: Mats, root: THREE.Object3D, detailList: THREE.Object3D[], farList: THREE.Object3D[], near?: { front: THREE.BufferGeometry[]; swap: THREE.Object3D[] }): CoreMesh[] {
+  const coreMeshes: CoreMesh[] = [];
   {
     // the static shadow casters go into the shadow map as two position-only proxies (the silhouette set, and the far
     // set that hides with the far LOD) on SHADOW_LAYER, which only the sun's shadow cameras see: 2 shadow draws per
@@ -1644,21 +1741,60 @@ export function finishParts(parts: Map<MatKey, THREE.BufferGeometry[]>, mats: Ma
       const mesh = new THREE.Mesh(merged, mats[key]);
       mesh.receiveShadow = true;
       root.add(mesh);
-      if (DETAIL_KEYS.has(key)) { mesh.castShadow = true; detailList.push(mesh); continue; }
       const pos = new THREE.BufferGeometry(); pos.setAttribute('position', merged.getAttribute('position'));
-      if (FAR_KEYS.has(key)) { farList.push(mesh); farSet.push(pos); } else core.push(pos);
+      near?.front.push(pos);
+      if (DETAIL_KEYS.has(key)) { mesh.castShadow = near === undefined; detailList.push(mesh); continue; }
+      if (FAR_KEYS.has(key)) { farList.push(mesh); farSet.push(pos); } else { core.push(pos); coreMeshes.push({ key, mesh }); }
     }
     for (const [list, far] of [[core, false], [farSet, true]] as const) {
-      const g = list.length > 0 ? mergeOrNull(list) : null;
-      if (g === null) continue;
-      g.computeBoundingSphere();
-      const proxy = new THREE.Mesh(g, shadowProxyMaterial);
-      proxy.castShadow = true; proxy.layers.set(SHADOW_LAYER);
+      const proxy = shadowProxy(list);
+      if (proxy === null) continue;
       root.add(proxy);
       if (far) farList.push(proxy);
+      if (near) { proxy.castShadow = false; near.swap.push(proxy); }
     }
     parts.clear();
   }
+  return coreMeshes;
+}
+
+/** one never-hidden per-material mesh of a building (finishParts' core set: log, roof, beam, deck, stone), in its root */
+interface CoreMesh { key: MatKey; mesh: THREE.Mesh }
+
+/**
+ * PERF-2: the cabins' core meshes of one material merged into ONE draw (Cabins.batchCores), in the cabins' group frame.
+ * Culled per cabin: it is drawn in a pass when any cabin's own mesh (`views`) would have been — never where none would.
+ */
+class CoreBatch extends THREE.Mesh {
+  readonly views: CoreView[] = [];
+  override intersectsFrustum(frustum: THREE.Frustum | THREE.FrustumArray): boolean {
+    return this.views.some((v) => v.inFrustum(frustum));
+  }
+}
+
+/**
+ * A cabin's own core mesh of one material, still in its root (Explore isolates one cabin root; its selection box, ray
+ * hits and tri count): its buffers are views (subarrays) into its batch's, no copy. It never draws while its batch is
+ * shown — only when the batch is hidden (Explore's isolation hides the root's siblings, the batch among them).
+ */
+class CoreView extends THREE.Mesh {
+  constructor(geometry: THREE.BufferGeometry, material: THREE.Material | THREE.Material[], private readonly batch: CoreBatch) {
+    super(geometry, material);
+  }
+  /** the renderer's own test for this cabin's part (the batch's culling asks it) */
+  inFrustum(frustum: THREE.Frustum | THREE.FrustumArray): boolean { return super.intersectsFrustum(frustum); }
+  override intersectsFrustum(frustum: THREE.Frustum | THREE.FrustumArray): boolean { return !this.batch.visible && super.intersectsFrustum(frustum); }
+}
+
+/** vertices [start, start + count) of a non-indexed geometry: every attribute a subarray of `geo`'s (shared memory) */
+function geometrySlice(geo: THREE.BufferGeometry, start: number, count: number): THREE.BufferGeometry | null {
+  const out = new THREE.BufferGeometry();
+  for (const [name, a] of Object.entries(geo.attributes)) {
+    if (!(a instanceof THREE.BufferAttribute)) return null;
+    out.setAttribute(name, new THREE.BufferAttribute(a.array.subarray(start * a.itemSize, (start + count) * a.itemSize), a.itemSize, a.normalized));
+  }
+  out.computeBoundingSphere(); out.computeBoundingBox();
+  return out;
 }
 
 // ───────────────────────────── the chunk's cabins ─────────────────────────────
@@ -1689,6 +1825,12 @@ export class Cabins {
   /** PHYSICS P3: static boxes that are only in colliderDescs() (floors, porch, step, plinth, furniture, props) */
   private solids: ColliderDesc[] = [];
   private lods: CabinLod[] = [];
+  /**
+   * the three cabins' props: ONE InstancedMesh per prop part across the cabins (was one per cabin), holding only the
+   * instances of the cabins within cabinDetailDist (refreshProps, when one crosses it) — the same props drawn as before,
+   * a draw per part instead of one per part per cabin. Their shadow is the cabins' double-sided near proxies (desktop).
+   */
+  private sharedProps: { im: THREE.InstancedMesh; lists: { lod: CabinLod; matrices: THREE.Matrix4[] }[] }[] = [];
   /** phone tier: the one shared set of point lights, taken from the scene's LightPool at boot (a constant NUM_POINT_LIGHTS
    *  keeps every shader from recompiling); they follow the nearest cabin's top-ranked anchors */
   private sharedLights: THREE.PointLight[] = [];
@@ -1716,38 +1858,86 @@ export class Cabins {
     // the phone's shared cabin lights (PH-L3): TWO pooled lights, not one per anchor — every point light is per-fragment
     // cost on every lit surface, grass included; the nearest cabin's fire pit and porch lantern (else its room / hearth)
     if (TIER_CONFIG.sharedCabinLights) for (let k = 0; k < SHARED_CABIN_LIGHTS; k++) this.sharedLights.push(LightPool.for(this.sky.sceneRoot).acquire(0xffa050, 0, 10, 2));
+    const cabinProps: { lod: CabinLod; inst: Record<PropKind, THREE.Matrix4[]> }[] = [];
+    const cores: { root: THREE.Object3D; core: CoreMesh[] }[] = [];
     for (const [i, site] of CABIN_SITES.entries()) {
       if (i > 0) await macrotask(); // one cabin per task: the whole homestead in one go was a 180 ms long task at 4x CPU
       const spec = SPECS[i];
       if (spec === undefined) throw new Error(`Cabins: no spec for site ${i}`);
       const y = heightAt(site.x, site.z);
-      // per-cabin prop instances: each cabin's crates / barrels / buckets / hatchet are its own detail meshes
-      // (hidden with the rest of its hardware past cabinDetailDist) — 8 chunk-wide instanced meshes were always drawn
+      // per-cabin prop instances: a cabin's crates / barrels / buckets / hatchet show only within cabinDetailDist (with
+      // the rest of its hardware), drawn by the shared per-part instanced meshes (sharedProps)
       const propInstances: Record<PropKind, THREE.Matrix4[]> = { crate: [], barrel: [], bucket: [], hatchet: [] };
       const b = new CabinBuilder(this, spec, i, site.x, y, site.z, site.rot, mats, this.sky, propInstances);
       b.build(firePitGltf.scene, lanternGltf.scene);
       this.group.add(b.root);
-      for (const l of this.sky.csm.lights) l.shadow.camera.layers.enable(SHADOW_LAYER);
-      for (const k of Object.keys(propInstances) as PropKind[]) {
-        const list = propInstances[k];
-        if (list.length === 0) continue;
-        for (const m of props[k]) {
-          const im = new THREE.InstancedMesh(m.geometry, m.material, list.length);
-          im.castShadow = true; im.receiveShadow = true;
-          const tmp = new THREE.Matrix4();
-          list.forEach((mat, j) => { im.setMatrixAt(j, tmp.copy(mat).multiply(m.matrix)); });
-          im.instanceMatrix.needsUpdate = true;
-          im.computeBoundingSphere();
-          this.group.add(im);
-          b.detail.push(im);
-        }
+      if (b.casters !== null) {
+        // desktop: the props' depth goes into this cabin's double-sided near proxy (they cast no shadow of their own)
+        const toRoot = b.root.matrixWorld.clone().invert(), m = new THREE.Matrix4();
+        for (const k of PROP_KINDS) for (const part of props[k]) for (const mat of propInstances[k]) b.casters.double.push(twoSidedPositions(part.geometry, m.multiplyMatrices(toRoot, mat).multiply(part.matrix)));
       }
+      b.addNearProxies();
       if (!TIER_CONFIG.cabinDetailShadows) for (const o of b.detail) o.traverse((c) => { c.castShadow = false; });
-      this.lods.push({ root: b.root, detail: b.detail, far: b.far, anchors: b.anchors, detailOn: true, farOn: false, pad: 0, rooms: b.rooms, door: b.doorAt });
+      const lod: CabinLod = { root: b.root, detail: b.detail, far: b.far, anchors: b.anchors, detailOn: true, farOn: false, pad: 0, rooms: b.rooms, door: b.doorAt, swap: b.swap };
+      this.lods.push(lod);
+      cabinProps.push({ lod, inst: propInstances });
+      cores.push({ root: b.root, core: b.core });
     }
     this.cabinCount = this.lods.length;
+    for (const k of PROP_KINDS) for (const part of props[k]) {
+      const lists = cabinProps.map(({ lod, inst }) => ({ lod, matrices: inst[k].map((mat) => mat.clone().multiply(part.matrix)) })).filter((l) => l.matrices.length > 0);
+      const total = lists.reduce((n, l) => n + l.matrices.length, 0);
+      if (total === 0) continue;
+      const im = new THREE.InstancedMesh(part.geometry, part.material, total);
+      im.castShadow = false; im.receiveShadow = true;   // desktop: the near proxies cast for them; the phone: no prop shadow
+      this.group.add(im);
+      this.sharedProps.push({ im, lists });
+    }
+    this.refreshProps();
+    await macrotask();
+    this.batchCores(cores);
     if (this.extra.length > 0) await this.buildCluster(mats, props, firePitGltf.scene, lanternGltf.scene);
     return { group: this.group, colliders: this.colliders, interactables: this.interactables };
+  }
+
+  /**
+   * PERF-2: the cabins' never-hidden per-material meshes (log, roof, beam, deck, stone — no LOD on any tier) merged across
+   * the cabins into one CoreBatch per material: 1 draw instead of 1 per cabin in view. The same triangles and attributes,
+   * baked into the group's frame (the hamlet cluster's way). Each cabin keeps a CoreView of its part in its root (never
+   * drawn beside the batch); its shadow proxies (per cabin, by distance) are untouched.
+   */
+  private batchCores(cabins: { root: THREE.Object3D; core: CoreMesh[] }[]): void {
+    const byKey = new Map<MatKey, { root: THREE.Object3D; mesh: THREE.Mesh }[]>();
+    for (const { root, core } of cabins) for (const { key, mesh } of core) {
+      const list = byKey.get(key);
+      if (list === undefined) byKey.set(key, [{ root, mesh }]); else list.push({ root, mesh });
+    }
+    for (const list of byKey.values()) {
+      const first = list[0];
+      if (list.length < 2 || first === undefined) continue;
+      const merged = mergeOrNull(list.map(({ root, mesh }) => mesh.geometry.clone().applyMatrix4(root.matrix)));   // root → group frame
+      if (merged === null) continue;
+      merged.computeBoundingSphere();
+      const batch = new CoreBatch(merged, first.mesh.material);
+      batch.receiveShadow = true;
+      const views: { root: THREE.Object3D; mesh: THREE.Mesh; view: CoreView }[] = [];
+      let start = 0;
+      for (const { root, mesh } of list) {
+        const n = mesh.geometry.getAttribute('position').count;
+        const g = geometrySlice(merged, start, n);
+        start += n;
+        if (g === null) break;
+        const view = new CoreView(g, mesh.material, batch);
+        view.receiveShadow = true;
+        view.matrixAutoUpdate = false;
+        view.matrix.copy(root.matrix).invert();   // its buffers are in the group's frame: undo the root's placement
+        view.matrixWorldNeedsUpdate = true;
+        views.push({ root, mesh, view });
+      }
+      if (views.length !== list.length) continue;   // never half a batch: the cabins keep their own meshes
+      for (const { root, mesh, view } of views) { root.remove(mesh); root.add(view); batch.views.push(view); }
+      this.group.add(batch);
+    }
   }
 
   /** the extra buildings as one merged cluster (PH-B3): per building only its doors, lantern, smoke and wheel draw alone */
@@ -1768,8 +1958,9 @@ export class Cabins {
       b.root.name = e.id;
       b.build(firePit, lantern);
       this.group.add(b.root);
+      b.addNearProxies();
       if (!TIER_CONFIG.cabinDetailShadows) for (const o of b.detail) o.traverse((c) => { c.castShadow = false; });
-      this.lods.push({ root: b.root, detail: b.detail, far: b.far, anchors: b.anchors, detailOn: true, farOn: false, pad: 0, rooms: b.rooms, door: b.doorAt });
+      this.lods.push({ root: b.root, detail: b.detail, far: b.far, anchors: b.anchors, detailOn: true, farOn: false, pad: 0, rooms: b.rooms, door: b.doorAt, swap: b.swap });
       pad = Math.max(pad, Math.hypot(e.x - cx, e.z - cz) + Math.max(e.spec.W, e.spec.L));
     }
     await macrotask();
@@ -1841,16 +2032,22 @@ export class Cabins {
     const cam = this.sky.viewCamera; cam.getWorldPosition(this.tmpV);
     let nearest = -1, nearestD2 = Infinity;
     const dd = TIER_CONFIG.cabinDetailDist;
-    this.lods.forEach((l, i) => {
+    let propsDirty = false;
+    for (const [i, l] of this.lods.entries()) {
       const d2 = l.root.position.distanceToSquared(this.tmpV);
       if (l.anchors.length > 0 && d2 < nearestD2 && (l.lit?.() ?? true)) { nearestD2 = d2; nearest = i; }
       const d = Math.sqrt(d2) - l.pad;
       const on = d < dd;
-      if (on !== l.detailOn) { l.detailOn = on; for (const o of l.detail) o.visible = on; }
+      if (on !== l.detailOn) {
+        l.detailOn = on; propsDirty = true;
+        for (const o of l.detail) o.visible = on;
+        if (l.swap) for (const o of l.swap) o.castShadow = !on;
+      }
       // past 2× the detail distance only the silhouette parts stay (log walls, roof, stone, deck, beams, smoke)
       const far = d > dd * 2;
       if (far !== l.farOn) { l.farOn = far; for (const o of l.far) o.visible = !far; }
-    });
+    }
+    if (propsDirty) this.refreshProps();
     for (const w of this.wheels) w.rotation.x += dt * this.wheelSpeed;
     const l = this.lods[nearest];
     if (this.sharedLights.length > 0 && nearest >= 0 && l !== undefined) {
@@ -1893,6 +2090,18 @@ export class Cabins {
     cabinNight.uLamps.value = lamps; cabinNight.uShade.value = 1 - 0.8 * this.sky.night;
     for (const sw of this.swings) { sw.pivot.rotation.z = Math.sin(t * 1.35 + sw.seed) * 0.05 + Math.sin(t * 2.9 + sw.seed * 1.7) * 0.015; sw.pivot.rotation.x = Math.cos(t * 1.1 + sw.seed) * 0.03; }
     for (const m of this.particleMats) { const u = m.uniforms['uTime']; if (u !== undefined) u.value = t; }
+  }
+
+  /** the shared prop meshes hold the instances of the cabins whose detail LOD is on (and hide when none is) */
+  private refreshProps(): void {
+    for (const { im, lists } of this.sharedProps) {
+      let n = 0;
+      for (const { lod, matrices } of lists) if (lod.detailOn) for (const m of matrices) im.setMatrixAt(n++, m);
+      im.count = n; im.visible = n > 0;
+      if (n === 0) continue;
+      im.instanceMatrix.needsUpdate = true;
+      im.computeBoundingSphere();
+    }
   }
 
   /** @internal */ _door(d: Door): void { this.doors.push(d); this.colliders.push(d.collider); this.interactables.push(d.interactable); }

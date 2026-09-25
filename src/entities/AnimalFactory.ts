@@ -437,6 +437,21 @@ export class AnimalFactory {
     return out;
   }
 
+  /**
+   * The far herd's material for `model` (farHerd.ts, PINE-HOLLOW PH-P2): the rig's own fur (cloned, patched and set up
+   * exactly as `instantiate` does — the same program) in white, the per-animal tint going into the batch's vertex
+   * colours. null where a batch would not draw the rig's pixels: low-poly rigs and thralls (their shader reads the colour).
+   */
+  farMaterial(model: AnimalModel): THREE.Material | null {
+    if (model.style !== 'pbr' || model.rim === undefined || model.hull?.thrall === true) return null;
+    const fur = model.fur.clone();
+    if (!(fur instanceof THREE.MeshPhysicalMaterial)) return null;
+    this.patchFur(fur, model.rim, undefined, -1, false);
+    fur.color.setRGB(1, 1, 1);
+    this.sky.setupMaterial(fur);
+    return fur;
+  }
+
   /** Build a SkinnedMesh + skeleton for one animal. `tint` (0..1) slightly varies the fur colour per individual. */
   instantiate(model: AnimalModel, tint = 0.5): AnimalRig {
     const bones: Record<string, THREE.Bone> = {};

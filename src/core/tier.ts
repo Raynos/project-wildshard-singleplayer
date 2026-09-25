@@ -28,6 +28,14 @@ export const TIER_TABLE = {
     // animal draws (Animal.setDrawLod): fur / hard / eye within animalEyeDist, eyes in the hard material to animalOneDrawDist,
     // then the whole body in the fur material — 3 → 2 → 1 draws per animal
     animalEyeDist: 45, animalOneDrawDist: 100,
+    // the far herd (farHerd.ts): past this, a rig is drawn in one draw per model with every other far animal; 0 = off (the
+    // phone hides its animals at 150 m)
+    animalFarBatchDist: 0,
+    // the far herd takes the generated hulls (Pine Hollow) at every distance (one draw per model); off here: the batch keeps a
+    // copy of the hull per animal on the GPU
+    animalHullBatch: false,
+    // the shadow herd (farHerd.ts { shadow }): the casting animals' shadows in one draw per model per cascade
+    animalShadowBatch: true,
     // trees: hi cards → lo cards → far card beyond loDist (Forest dissolves lo → far over its last 12 m, twigs over 6 m).
     // E94: the hi cards reach the shadow cascade's edge (80 m; they swapped at 55 m, inside it, so a crown and its
     // shadow changed shape in plain view), so no shadow ever changes shape. The batched path's lo cards share the casting
@@ -63,6 +71,11 @@ export const TIER_TABLE = {
     // a same-instant A/B at the gate / cabin / lookout / shore (scripts: every rig forced to the LOD, then back) moved
     // no pixel past the frame-to-frame noise, next to a boar too
     animalEyeDist: 60, animalOneDrawDist: 150,
+    // PH-P2: ~100 one-draw rigs at 150–400 m were 90–120 draws at the gate / lookout — the far herd draws them per model
+    animalFarBatchDist: 150,
+    // PH-P2: and the generated hulls at every distance — their batch draws the same pixels near as far (one group, no shells)
+    animalHullBatch: true,
+    animalShadowBatch: true,
     treeHiDist: 110, treeLoDist: 210, treeTwigDist: 38, loTreeShadows: true,
     grassRadius: 55, grassSlots: 96, grassQuads: 5,
     undergrowthFar: 110, propsFar: 700, propsMinAngular: 0.0012,

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { TIER_CONFIG } from '../core/tier';
 import { setting, settingFromUrl } from '../ui/Settings';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
+import { installCascadeCull } from './cascadeCull';
 import { loadHDR } from '../core/assets';
 import { fogUniforms, isUnderwater } from './Atmosphere';
 import { Noise2D } from '../core/noise';
@@ -84,6 +85,7 @@ export class Sky {
       lightIntensity: qn('sunI', S.sunIntensity), shadowBias: -0.00012, lightMargin: TIER_CONFIG.shadowMargin, lightNear: 1, lightFar: 600,
     });
     this.csm.fade = true;
+    installCascadeCull(this.csm, this.camera); // each cascade draws only the casters its own slice can see the shadow of (PH-P2)
     if (!TIER_CONFIG.softShadows) this.renderer.shadowMap.type = THREE.PCFShadowMap; // 16-tap PCFSoft → 9-tap PCF on the phone
     patchCSMShaderChunk();
     // the stylized shard's low sun (golden hour, dawn) grazes the flat decks: more normal bias or the planks speckle with acne

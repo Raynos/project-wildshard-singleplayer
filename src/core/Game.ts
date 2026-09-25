@@ -148,15 +148,25 @@ export class Game {
       // result is `undefined`, three draws it, and every rig on screen was drawn a second time into the depth-write
       // pass — 200–350 extra desktop draws at the Pine Hollow poses. Opaque ones now sit that pass out; n8ao's own
       // AO-only render mode is unchanged by it (5 m from a boar: max Δ 5, the frame-to-frame noise 17). PINE-HOLLOW PH-P2.
+      //
+      // Its first pre-pass (the transparents that write no depth: glass, clouds, water, smoke, particles, the pickup orb —
+      // 20–40 desktop draws) is skipped as well (PH-P2): the compositer takes max(that pass's alpha, (1 − the
+      // depth-writing pass's alpha) × [no depth-writing transparent drew there]), which is 1 — no AO — wherever no
+      // depth-writing transparent (the viewmodels, the pickup item, lantern glass) drew, whatever the first pass held. It
+      // could only matter where a depth-free transparent lies in front of one of those, and a same-instant A/B at the
+      // perf poses, day and rain, shows no pixel past the frame noise. `aoLeanTransparency = false` draws it again.
       const opaqueMulti: THREE.Object3D[] = [];
+      const lean: THREE.Object3D[] = [];
       const renderTransparency = ao.renderTransparency.bind(ao);
       ao.renderTransparency = (renderer) => {
         this.scene.traverseVisible((o) => {
-          if (!(o instanceof THREE.Mesh)) return;
-          const m = (o as THREE.Mesh).material; // instanceof leaves Mesh<any>: the default generics type the material
-          if (Array.isArray(m) && m.every((x) => !x.transparent)) opaqueMulti.push(o);
+          const m = (o as Partial<THREE.Mesh>).material;
+          if (m === undefined) return;
+          if (Array.isArray(m)) { if (o instanceof THREE.Mesh && m.every((x) => !x.transparent)) opaqueMulti.push(o); return; }
+          if (this.aoLeanTransparency && m.transparent && !m.depthWrite && o.userData['treatAsOpaque'] !== true) lean.push(o);
         });
         for (const o of opaqueMulti) o.visible = false;
+        for (const o of lean) o.userData['treatAsOpaque'] = true; // n8ao's own opt-out of both pre-passes
         // its two renderer.render calls re-drew every shadow cascade too (autoUpdate), cleared and refilled with only the
         // meshes it left visible — after the main pass had used them, so nothing saw it: skip the redraw (Water.ts does too)
         const autoShadows = renderer.shadowMap.autoUpdate;
@@ -165,6 +175,8 @@ export class Game {
           renderer.shadowMap.autoUpdate = autoShadows;
           for (const o of opaqueMulti) o.visible = true;
           opaqueMulti.length = 0;
+          for (const o of lean) delete o.userData['treatAsOpaque'];
+          lean.length = 0;
         }
       };
       composer.addPass(ao);
@@ -249,6 +261,8 @@ export class Game {
    * moving (particles, camera shake). Overlapping stops take the longer. The sky and the post chain always run real time.
    */
   hitStop(seconds: number): void { this.stopLeft = Math.max(this.stopLeft, seconds); }
+  /** skip n8ao's depth-free transparency pre-pass (buildComposer; PH-P2) — a live switch for A/B captures */
+  aoLeanTransparency = true;
 
   /**
    * Build every program the first frame would otherwise compile in one stall — the scene's

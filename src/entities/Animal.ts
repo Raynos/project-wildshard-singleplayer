@@ -229,6 +229,8 @@ export class Animal {
   private readonly gaitTrot: number; private readonly gaitGallop: number;
 
   get dims(): AnimalDims { return this.model.dims; }
+  /** fading out (fadeOut): its own transparent materials, so the far herd leaves it alone */
+  get fading(): boolean { return this.fadeT >= 0; }
 
   /** place on the ground, facing `yaw` */
   place(x: number, z: number, yaw: number): void {

@@ -8,9 +8,10 @@ import { Rng } from '../core/rng';
 import { heightAt, normalAt, trailDistance, cabinMask, inChunk, waterLevel, hasPond, POND, streamAt } from '../world/Heightfield';
 import type { Forest } from '../world/Forest';
 import type { Sky } from '../world/Sky';
-import { AnimalFactory, speciesDef, variantDef, rollVariant, type AnimalKind, type AnimalStyle, type EnemyWorld, type ThinkCtx } from './AnimalFactory';
+import { AnimalFactory, speciesDef, variantDef, rollVariant, type AnimalKind, type AnimalModel, type AnimalStyle, type EnemyWorld, type ThinkCtx } from './AnimalFactory';
 import { Animal, damageFor } from './Animal';
 import { attachShadowCaster } from './animalShadow';
+import { FarHerd, type FarMember } from './farHerd';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG } from '../core/tier';
 import { noReflect } from '../world/Water';
@@ -303,6 +304,12 @@ class BloodFX {
 }
 
 const _navFrom = new THREE.Vector3(), _navTo = new THREE.Vector3();
+/** a rig as the far herd sees it (its model: the batch's material) */
+interface FarRig extends FarMember {
+  readonly model: AnimalModel;
+  /** the rig's own layer mask while the far herd draws it (its layers are 0 then: the rig is not drawn, its children are) */
+  mask: number | null;
+}
 export class AnimalManager {
   group = new THREE.Group();
   animals: Animal[] = [];
@@ -336,10 +343,18 @@ export class AnimalManager {
   private readonly melee = getActiveChunk().weapon === 'sword';
   /** each multi-group rig's one-draw shadow caster (animalShadow.ts); the per-frame shadow distance switches it */
   private readonly casters = new Map<Animal, THREE.SkinnedMesh>();
+  /** PH-P2: the far animals drawn per model (farHerd.ts), desktop past TIER_CONFIG.animalFarBatchDist; each rig's entry */
+  private readonly farHerd = new FarHerd<FarRig>((m) => this.factory.farMaterial(m.model), { keyOf: (m) => m.model });
+  private readonly farRigs = new Map<Animal, FarRig>();
+  /** PH-P2: the casting animals' shadows per model (farHerd.ts { shadow }), within animalShadowDist */
+  private readonly shadowHerd = new FarHerd<FarRig>((m) => m.model.fur, { shadow: true });
+  private readonly pbr: boolean;
 
   /** `opts.style` forces the render style (dev harness); production reads `ChunkDef.style` ('pbr' | 'lowpoly') */
   constructor(private readonly scene: THREE.Scene, private readonly sky: Sky, private readonly forest: Forest, opts: { style?: AnimalStyle | undefined } = {}) {
-    this.factory = new AnimalFactory(sky, { style: opts.style ?? getActiveChunk().style ?? 'pbr' });
+    const style = opts.style ?? getActiveChunk().style ?? 'pbr';
+    this.factory = new AnimalFactory(sky, { style });
+    this.pbr = style === 'pbr';
     this.group.name = 'animals';
   }
 
@@ -366,6 +381,7 @@ export class AnimalManager {
   }
 
   private finish(): this {
+    this.group.add(this.farHerd.group, this.shadowHerd.group);
     if (!TIER_CONFIG.reflectDetail) noReflect(this.group);
     this.scene.add(this.group);
     return this;
@@ -504,6 +520,8 @@ export class AnimalManager {
     // one shadow draw per animal instead of one per material group (animalShadow.ts; PINE-HOLLOW PH-P1 / P2)
     const caster = attachShadowCaster(a.mesh);
     if (caster !== null) this.casters.set(a, caster);
+    const fur = rig.materials[0];
+    if (fur !== undefined) this.farRigs.set(a, { mesh: a.mesh, tint: fur.color, model, mask: null });
     this.group.add(a.mesh);
     this.animals.push(a);
     const tune = this.tuningFor(a);
@@ -530,7 +548,8 @@ export class AnimalManager {
 
   // ── per frame ──────────────────────────────────────────────────────────────────────────
 
-  update(dt: number, t: number, playerPos: THREE.Vector3, playerSprinting = false): void {
+  /** `camera`: the view — the far herd skips the far animals outside it, as three's frustum test skips a rig */
+  update(dt: number, t: number, playerPos: THREE.Vector3, playerSprinting = false, camera: THREE.PerspectiveCamera | null = null): void {
     this.playerPos.copy(playerPos);
     this.clock += dt;
     // hitboxes posed from last frame's bones, bodies handed out / back by distance (PHYSICS P6)
@@ -551,6 +570,10 @@ export class AnimalManager {
     // fur shells: pick the SHELL_MAX nearest animals inside SHELL_DIST (tiny insertion sort, no allocs)
     const sd = this.shellDist, si = this.shellIdx;
     sd.fill(Infinity); si.fill(-1);
+    const farD = TIER_CONFIG.animalFarBatchDist, far2 = farD > 0 ? farD * farD : Infinity;
+    if (farD > 0) this.farHerd.begin(camera);
+    const herdShadows = TIER_CONFIG.animalShadowBatch && this.pbr;
+    if (herdShadows) this.shadowHerd.begin(null);
     for (let i = 0; i < n; i++) {
       const a = this.animals[i];
       if (a === undefined || a.hidden) continue;
@@ -560,7 +583,23 @@ export class AnimalManager {
       if (this.melee && a.state === 'charge' && a.alive && !a.stunned) this.chargeContact(a, playerPos);
       // draw / shadow distance by tier: a deer at 150 m is a few pixels on a phone, and only near animals shadow
       a.mesh.visible = d2 < TIER_CONFIG.animalHideDist * TIER_CONFIG.animalHideDist;
-      (this.casters.get(a) ?? a.mesh).castShadow = d2 < TIER_CONFIG.animalShadowDist * TIER_CONFIG.animalShadowDist;
+      const fr = this.farRigs.get(a);
+      // the rig's cull sphere: the model's bind-pose sphere + 0.6 m, as AnimalFactory.instantiate pads it
+      const radius = fr === undefined ? 0 : ((fr.model.geometry.boundingSphere?.radius ?? 3) + 0.6) * a.scale;
+      // the far herd draws it (or leaves it out of view): the rig's layers go to 0 — it is not drawn, what hangs on its
+      // bones still is (the King's kit, a stuck bolt)
+      // a generated hull (one group, no shells, no draw LOD) is the same pixels in the batch at any distance (desktop:
+      // animalHullBatch); a procedural rig only once it is one draw (past animalOneDrawDist ≤ animalFarBatchDist)
+      const from2 = fr?.model.hull !== undefined && TIER_CONFIG.animalHullBatch && herdShadows ? 0 : far2; // its shadow: the shadow herd
+      const batched = fr !== undefined && farD > 0 && a.mesh.visible && d2 >= from2 && !a.fading && this.farHerd.take(fr, a.position, radius);
+      if (fr !== undefined) {
+        if (batched && fr.mask === null) { fr.mask = a.mesh.layers.mask; a.mesh.layers.mask = 0; }
+        else if (!batched && fr.mask !== null) { a.mesh.layers.mask = fr.mask; fr.mask = null; }
+      }
+      // shadows within animalShadowDist: one draw per model per cascade (the shadow herd), else the rig's own caster
+      let cast = d2 < TIER_CONFIG.animalShadowDist * TIER_CONFIG.animalShadowDist;
+      if (cast && herdShadows && fr !== undefined && a.mesh.visible && !a.fading && this.shadowHerd.take(fr, a.position, radius)) cast = false;
+      (this.casters.get(a) ?? a.mesh).castShadow = cast;
       a.setDrawLod(d2 < TIER_CONFIG.animalEyeDist * TIER_CONFIG.animalEyeDist ? 0 : d2 < TIER_CONFIG.animalOneDrawDist * TIER_CONFIG.animalOneDrawDist ? 1 : 2);
       if (TIER_CONFIG.furShells && d2 < SHELL_DIST * SHELL_DIST) {
         for (let k = 0; k < SHELL_MAX; k++) if (d2 < (sd[k] ?? Infinity)) {
@@ -569,6 +608,8 @@ export class AnimalManager {
         }
       }
     }
+    if (farD > 0) this.farHerd.end();
+    if (herdShadows) this.shadowHerd.end();
     for (let i = 0; i < n; i++) {
       let level = 0;
       for (let k = 0; k < SHELL_MAX; k++) if (si[k] === i) { const d = Math.sqrt(sd[k] ?? Infinity); level = d < 6 ? 8 : d < 11 ? 6 : 4; }

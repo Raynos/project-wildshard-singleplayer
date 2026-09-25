@@ -8,6 +8,7 @@ import {
 } from './Crossbow';
 import { makeFlashTexture, HitLine, brassFloor } from './Rifle';
 import type { KitWeapon, WeaponState, AimInfo } from './Weapons';
+import { SHADOW_LAYER } from '../core/shadowLayer';
 
 /**
  * LeverRifle — Pine Hollow's rifle (PINE-HOLLOW-REMASTER PH-U5 / PH-C11): a 1900s backwoods lever-action carbine in the
@@ -85,6 +86,10 @@ type Phase = 'idle' | 'beat' | 'cycle' | 'reload';
 
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3();
 const _q = new THREE.Quaternion();
+/** mergeGeometries as it behaves: null (and a console error) when the parts' attributes do not match */
+function mergeOrNull(list: THREE.BufferGeometry[]): THREE.BufferGeometry | null { return mergeGeometries(list, false); }
+/** the display model's shadow: depth only, on SHADOW_LAYER (front-sided like the lever's materials, so the same depth) */
+const DEPTH_ONLY = new THREE.MeshBasicMaterial({ colorWrite: false });
 
 /** the lever's throw over one cycle u 0..1: down fast, a beat open, up and home */
 export function leverOpen(u: number): number {
@@ -467,14 +472,37 @@ export class LeverRifle implements KitWeapon {
 
   /** A world-space copy for the cabin pickup / the skin drops: the same geometry + materials (one program), hammer down. */
   displayModel(): THREE.Group {
+    // one mesh per material (PINE-HOLLOW PH-P2): the seven parts were 7 draws + 7 per shadow cascade wherever the pickup
+    // was in range; the posed parts are baked into their material's geometry (the same triangles, the same materials)
     const g = new THREE.Group();
+    const byMat = new Map<THREE.Material, THREE.BufferGeometry[]>();
+    const xf = new THREE.Matrix4(), quat = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1);
     for (const { geo, mat, pos, rot } of this.displayParts) {
-      const m = new THREE.Mesh(geo, mat);
-      m.castShadow = true; m.receiveShadow = true;
-      if (pos) m.position.copy(pos);
-      if (rot) m.rotation.copy(rot);
-      g.add(m);
+      const part = pos || rot ? geo.clone().applyMatrix4(xf.compose(pos ?? new THREE.Vector3(), rot ? quat.setFromEuler(rot) : quat.identity(), one)) : geo;
+      const list = byMat.get(mat) ?? [];
+      list.push(part);
+      byMat.set(mat, list);
     }
+    const positions: THREE.BufferGeometry[] = [];
+    for (const [mat, parts] of byMat) {
+      const merged = parts.length > 1 ? mergeGeometries(parts, false) : parts[0] ?? null;
+      for (const geo of merged === null ? parts : [merged]) {
+        const m = new THREE.Mesh(geo, mat);
+        m.castShadow = false; m.receiveShadow = true;
+        g.add(m);
+        const p = new THREE.BufferGeometry(); p.setAttribute('position', geo.getAttribute('position')); p.setIndex(geo.getIndex());
+        positions.push(p);
+      }
+    }
+    // one shadow draw per cascade for the three materials' parts (3 → 1)
+    const indexed = positions.every((p) => p.getIndex() !== null);
+    // three types mergeGeometries non-null; it returns null (and logs) on mismatched attributes: then each part casts itself
+    const caster = mergeOrNull(indexed ? positions : positions.map((p) => (p.getIndex() === null ? p : p.toNonIndexed())));
+    if (caster !== null) {
+      const proxy = new THREE.Mesh(caster, DEPTH_ONLY);
+      proxy.castShadow = true; proxy.layers.set(SHADOW_LAYER);
+      g.add(proxy);
+    } else for (const m of g.children) m.castShadow = true;
     return g;
   }
 
