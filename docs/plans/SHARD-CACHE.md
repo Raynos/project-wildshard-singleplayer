@@ -103,9 +103,10 @@ between the three shards."
 | **rebuild of an evicted shard** (click → its title) | Nalati 2.9–3.1 s (3.2 s before M5's cloud cache) | Nalati 2.4 s |
 | JS heap after GC: Driftwood alone | 297 MB | 233 MB |
 | … two resident (the cap) | D+N 462 · D+P 570 · P+N 430–440 MB | D+N 389 · D+P 393 · P+N 313–321 MB |
-| … all three resident (`setCap(3)`) | 693–702 MB | not run |
+| … all three resident (`setCap(3)`) | 693–702 MB | 518–520 MB |
 | scene textures, estimate (px × bytes, mips) | D 62 · N 274–302 · P 822 MB | D 41 · N 102–117 · P 397 MB |
 
+- Also run: EXPLORE WORLD on another card (a build, then a resident return) in the page; `physics-baseline --mode=walk`: 0 stuck on all 27 legs.
 - The evicted shard's memory comes back: D+P 570 → P+N 437 MB after Driftwood's eviction (desktop).
 - An in-page build looks like a fresh page load of that shard: mean |Δ| of a 64×36 thumbnail 0.4–4.8 / 255, the same as
   two fresh loads of it (Pine Hollow 4.5, Nalati 2.1 — its grass and animals move).
