@@ -37,7 +37,7 @@ const { landscapeHash } = await import(pathToFileURL(resolve(ROOT, 'src/chunks/t
 const chunkFiles = readdirSync(resolve(ROOT, 'src/chunks')).filter((f) => f.endsWith('.ts') && !/^(registry|terrain|ChunkDef|_template|placeholders)\.ts$/.test(f));
 const shared = ['src/chunks/terrain.ts', 'src/core/noise.ts', 'src/core/rng.ts', 'src/core/config.ts', 'scripts/bake-chunk.mjs',
   // the placement decision log: the placer, the samplers it plants on, the field they are bound into
-  'src/world/placement.ts', 'src/world/BakedTerrain.ts', 'src/world/Heightfield.ts'].map((f) => readFileSync(resolve(ROOT, f)));
+  'src/world/placement.ts', 'src/world/treeSpecies.ts', 'src/world/BakedTerrain.ts', 'src/world/Heightfield.ts'].map((f) => readFileSync(resolve(ROOT, f)));
 
 // the game's placement code runs here as it runs in the browser (the registry reads `location` at init)
 if (!('location' in globalThis)) Object.assign(globalThis, { location: new URL('http://localhost/') });
@@ -51,7 +51,7 @@ function placementSection(def, gridBuf) {
   if (def.ocean || !registry.findChunk(def.slug)) return null;
   registry.setActiveChunk(def.slug);
   heightfield._installBakedTerrain(bakedTerrain.bakedSamplers(bakedTerrain.parseBakedTerrain(gridBuf))); // as loadBakedTerrain does at launch
-  const variants = def.trees.factory === 'none' ? [] : placement.TREE_SPECS.map((s) => ({ trunkRadius: s.trunk, height: s.height }));
+  const variants = placement.plantSpecs(def.trees); // the species set when the shard has one (PH-B4), else the runtime pines
   const { trees, grid } = placement.placeForest(variants);
   if (trees.length === 0) return null;
   const log = placement.DecisionLog.record();

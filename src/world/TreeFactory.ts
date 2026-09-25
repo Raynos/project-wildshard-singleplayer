@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { loadTexture, loadPBR } from '../core/assets';
+import { loadTexture, loadPBR, loadPBRArray } from '../core/assets';
 import { Rng } from '../core/rng';
 import { attachFogUniforms } from './Atmosphere';
 import { TIER_CONFIG } from '../core/tier';
@@ -8,7 +8,8 @@ import { getActiveChunk } from '../chunks/registry';
 import { loadBakedCards, exportCardTextures } from './BakedCards';
 import { macrotask } from '../boot/plan';
 import { markGpuOnly } from '../core/gpuOnly';
-import { TREE_SPECS } from './placement';
+import { TREE_SPECS, TREE_SPECS_V2, type TreeSpecies } from './placement';
+import { BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, standIn, treeSetUrls } from './treeSet';
 import { windUniforms as sharedWind, patchWindField } from './wind';
 
 /**
@@ -31,10 +32,16 @@ export interface TreeVariant {
   far: THREE.BufferGeometry;
   height: number;
   trunkRadius: number;
+  /** the bark past treeHiDist (the species set's trunk without its small limbs); absent = `trunk` at every distance */
+  trunkLo?: THREE.BufferGeometry;
+  /** the species set's (PH-B4); the runtime pines have none */
+  species?: TreeSpecies;
+  /** the species set's capsule factor over the trunk radius (placement.ts TREE_SPECS_V2) */
+  collider?: number;
 }
 
-/** Texture ids from the shard's `ChunkTrees` (defaults are Pine Hollow's). */
-export interface TreeFactoryOptions { bark?: string; twigAtlas?: string }
+/** Texture ids from the shard's `ChunkTrees` (defaults are Pine Hollow's). `set`: a Blender species set to build instead (PH-B4). */
+export interface TreeFactoryOptions { bark?: string; twigAtlas?: string; set?: string | null }
 
 /** `uTime` IS wind.ts's clock (PH-L6, one wind: Forest.update advances it with updateWind); `uWindStrength` scales the
  * forest's sway (pines, grass, undergrowth) */
@@ -49,7 +56,7 @@ export const windUniforms = { uTime: sharedWind.uWindTime, uWindStrength: { valu
  * instanced / batched draws fade: a single pine (Explore's specimen) is always whole.
  */
 export const forestFade = { uViewer: { value: new THREE.Vector3(1e9, 0, 1e9) } };
-interface FadeBand { value: THREE.Vector3 }
+export interface FadeBand { value: THREE.Vector3 }
 const noFade = (): FadeBand => ({ value: new THREE.Vector3(1e9, 1e9, 0) });
 function patchFade(shader: { vertexShader: string; fragmentShader: string; uniforms: Record<string, THREE.IUniform> }, band: FadeBand): void {
   shader.uniforms['uViewer'] = forestFade.uViewer;
@@ -142,12 +149,14 @@ export class TreeFactory {
   /** each material's dissolve band (`forestFade`): Forest sets them from the tier's LOD distances */
   readonly fade = { cards: noFade(), trunk: noFade(), far: noFade(), twigs: noFade() };
   variants: TreeVariant[] = [];
+  /** the per-tree tint reaches the bark too (the runtime pines; the species set's bark carries its own colour) */
+  tintBark = true;
 
   private opts: Required<TreeFactoryOptions>;
   /** WEBGL_multi_draw present → Forest draws every tree LOD of a material as one BatchedMesh (else InstancedMesh per variant) */
   readonly multiDraw: boolean;
   constructor(private renderer: THREE.WebGLRenderer, opts: TreeFactoryOptions = {}) {
-    this.opts = { bark: 'pine_bark', twigAtlas: 'pine_tree_01', ...opts };
+    this.opts = { bark: 'pine_bark', twigAtlas: 'pine_tree_01', set: null, ...opts };
     this.multiDraw = renderer.extensions.has('WEBGL_multi_draw') && !new URLSearchParams(location.search).has('nobatch');
   }
 
@@ -166,6 +175,7 @@ export class TreeFactory {
   }
 
   async build(): Promise<this> {
+    if (this.opts.set) return this.buildSet(this.opts.set);
     const atlas = `/assets/tex/${this.opts.twigAtlas}`;
     const [twigDiff, twigNor, twigArm, bark] = await Promise.all([
       loadTexture(`${atlas}/twig_rgba.png`, true),
@@ -360,11 +370,16 @@ export class TreeFactory {
     for (const t of [albedoRT, normalRT]) { t.viewport.set(0, 0, W, H); t.scissor.set(0, 0, W, H); t.scissorTest = false; }
     this.renderer.setRenderTarget(prev); this.renderer.setClearColor(prevClear, prevAlpha); this.renderer.toneMapping = prevTone;
     for (const t of [albedoRT.texture, normalRT.texture]) { t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 4; }
-    this.farMaterial = new THREE.MeshStandardMaterial({
-      map: albedoRT.texture, normalMap: normalRT.texture, alphaTest: 0.3, side: THREE.DoubleSide, roughness: 0.96, metalness: 0, envMapIntensity: 0.45,
-      color: new THREE.Color(1, 1, 1), normalScale: new THREE.Vector2(1, 1),
+    this.farMaterial = this.makeFarMaterial(albedoRT.texture, normalRT.texture);
+  }
+
+  /** the impostor: albedo + normal atlas on the 2-quad crosses, alpha sharpened by its own derivative, fading in (E94) */
+  private makeFarMaterial(albedo: THREE.Texture, normal: THREE.Texture, color = new THREE.Color(1, 1, 1)): THREE.MeshStandardMaterial {
+    const far = new THREE.MeshStandardMaterial({
+      map: albedo, normalMap: normal, alphaTest: 0.3, side: THREE.DoubleSide, roughness: 0.96, metalness: 0, envMapIntensity: 0.45,
+      color, normalScale: new THREE.Vector2(1, 1),
     });
-    this.farMaterial.onBeforeCompile = (shader) => {
+    far.onBeforeCompile = (shader) => {
       attachFogUniforms(shader); patchWind(shader); patchFade(shader, this.fade.far);
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <alphatest_fragment>', /* glsl */`
@@ -374,7 +389,89 @@ export class TreeFactory {
         .replace('#include <lights_fragment_begin>', `#include <lights_fragment_begin>
           reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.06;`);
     };
-    this.farMaterial.customProgramCacheKey = () => 'tree-far';
+    far.customProgramCacheKey = () => 'tree-far';
+    return far;
+  }
+
+  // ---------------------------------------------------------------- the Blender species set (PH-B4)
+  /**
+   * The species set: geometry, card and impostor atlases baked in Blender (src/world/treeSet.ts), nothing baked at
+   * launch. Same four materials, same LOD slots as the runtime pines — so the same four batches and three shadow draws.
+   * The bark tiles five PBR sets from one texture array (the layer per vertex); the cards carry their crown occlusion
+   * in the vertex colour and crown-bent normals (treegen.py), lit from both faces alike.
+   */
+  private async buildSet(set: string): Promise<this> {
+    const U = treeSetUrls(set);
+    const [geo, cardAlbedo, cardNormal, cardArm, farAlbedo, farNormal, bark] = await Promise.all([
+      loadTreeSetGeometry(U.glb, TREE_SPECS_V2),
+      loadTexture(U.cardsAlbedo, true), loadTexture(U.cardsNormal), loadTexture(U.cardsArm),
+      loadTexture(U.farAlbedo, true), loadTexture(U.farNormal),
+      loadPBRArray([...BARK_LAYERS], TIER_CONFIG.layerSize),
+    ]);
+    for (const t of [cardAlbedo, cardNormal, cardArm]) { t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 8; }
+    for (const t of [farAlbedo, farNormal]) { t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 4; }
+    this.tintBark = false;
+
+    const white = standIn([255, 255, 255, 255]);
+    this.barkMaterial = new THREE.MeshStandardMaterial({
+      map: white, normalMap: standIn([128, 128, 255, 255]), roughnessMap: white, aoMap: white,
+      roughness: 1, metalness: 0, vertexColors: true, color: new THREE.Color(1.22, 1.2, 1.18),
+    });
+    this.barkMaterial.onBeforeCompile = (shader) => { attachFogUniforms(shader); patchWind(shader, true); patchFade(shader, this.fade.trunk); patchBarkArrays(shader, bark); };
+    this.barkMaterial.customProgramCacheKey = () => 'bark-set';
+
+    const needles = (band: FadeBand, key: string): THREE.MeshStandardMaterial => {
+      const m = new THREE.MeshStandardMaterial({
+        map: cardAlbedo, normalMap: cardNormal, aoMap: cardArm, alphaTest: 0.45, side: THREE.DoubleSide, roughness: 0.92, metalness: 0,
+        envMapIntensity: 0.5, vertexColors: true, color: new THREE.Color(0.86, 0.92, 0.8), normalScale: new THREE.Vector2(0.8, 0.8),
+      });
+      m.onBeforeCompile = (shader) => {
+        attachFogUniforms(shader); patchWind(shader); patchFade(shader, band);
+        shader.fragmentShader = shader.fragmentShader
+          // both faces of a card take the crown-bent vertex normal: a crown lights as a volume from any side
+          .replace('#include <normal_fragment_begin>', THREE.ShaderChunk.normal_fragment_begin.replace('normal *= faceDirection;', ''))
+          .replace('#include <normal_fragment_maps>', `
+            {
+              vec3 upV = normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz );
+              diffuseColor.rgb *= mix( 1.0, 0.6, smoothstep( 0.2, -0.7, dot( nonPerturbedNormal, upV ) ) );
+            }
+            #include <normal_fragment_maps>
+            {
+              vec3 upV = normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz );
+              normal = normalize( mix( normal, upV, 0.25 ) );
+            }`)
+          .replace('#include <lights_fragment_begin>', `#include <lights_fragment_begin>
+            {
+              // needle / leaf translucency: the sun through the crown toward the viewer glows
+              #if NUM_DIR_LIGHTS > 0
+                vec3 Lv = directionalLights[0].direction;
+                vec3 Vv = normalize( vViewPosition );
+                float vdotl = saturate( dot( -Vv, Lv ) );
+                float trans = pow( vdotl, 5.0 ) * 0.55 + 0.08;
+                reflectedLight.indirectDiffuse += diffuseColor.rgb * directionalLights[0].color * trans * 0.35;
+              #endif
+              reflectedLight.indirectDiffuse += diffuseColor.rgb * 0.04;
+            }`);
+      };
+      m.customProgramCacheKey = () => key;
+      return m;
+    };
+    this.needleMaterial = needles(this.fade.cards, 'needles-set');
+    this.twigMaterial = needles(this.fade.twigs, 'twigs-set');
+    this.needleDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: cardAlbedo, alphaTest: 0.45, side: THREE.DoubleSide });
+    this.needleDepth.onBeforeCompile = (shader) => { patchWind(shader); patchFade(shader, this.fade.cards); };
+    this.needleDepth.customProgramCacheKey = () => 'tree-depth';
+    this.twigDepth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: cardAlbedo, alphaTest: 0.45, side: THREE.DoubleSide });
+    this.twigDepth.onBeforeCompile = (shader) => { patchWind(shader); patchFade(shader, this.fade.twigs); };
+    this.twigDepth.customProgramCacheKey = () => 'tree-depth';
+    this.farMaterial = this.makeFarMaterial(farAlbedo, farNormal, new THREE.Color(0.92, 0.95, 0.9));
+
+    for (const s of TREE_SPECS_V2) {
+      const g = geo.get(s.name);
+      if (!g) throw new Error(`[trees] the set has no ${s.name}`);
+      this.variants.push({ trunk: g.trunk, trunkLo: g.trunkLo, cardsHi: g.hi, cardsLo: g.lo, twigs: g.twigs, far: g.far, height: s.height, trunkRadius: s.trunk, species: s.species, collider: s.collider });
+    }
+    return this;
   }
 
   // ---------------------------------------------------------------- branch card bake

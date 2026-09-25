@@ -41,6 +41,8 @@ const POSES = [
   // PH-C2: inside the King's clearing (the stones' N gap side, 16 m from the centre), facing S at him — the Antler King's
   // fight ruler: `--poses=clearing "--query=boss=antler-king&bossGod=1&bossPhase=2&tod=night&clock=1e6"`
   { id: 'clearing', x: 150, z: -14, yaw: 0 },
+  // PH-B4: inside the old-growth (W), facing into the firs and the giants
+  { id: 'oldgrowth', x: 118, z: -118, yaw: 3.6 },
 ].filter((p) => flag('poses', '') === '' || flag('poses', '').split(',').includes(p.id));
 // --yaw=0.95: every pose looks down Pine Hollow's sunset shadows (the worst case for the shadow-aware tree cull)
 if (flag('yaw', '') !== '') for (const p of POSES) p.yaw = Number(flag('yaw', '0'));

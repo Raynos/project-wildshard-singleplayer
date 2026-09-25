@@ -51,7 +51,7 @@ export class Forest {
   private mats!: Float32Array;   // 16 floats per tree
   private tints!: Float32Array;  // 3 floats per tree
   /** batched path (WEBGL_multi_draw): one BatchedMesh per material, one instance per tree, LOD = geometry id + visibility */
-  private batched: { needles: THREE.BatchedMesh; far: THREE.BatchedMesh; bark: THREE.BatchedMesh; twigs: THREE.BatchedMesh; geoHi: number[]; geoLo: number[]; geoFar: number[]; geoTrunk: number[]; geoTwig: number[] } | null = null;
+  private batched: { needles: THREE.BatchedMesh; far: THREE.BatchedMesh; bark: THREE.BatchedMesh; twigs: THREE.BatchedMesh; geoHi: number[]; geoLo: number[]; geoFar: number[]; geoTrunk: number[]; geoTrunkLo: number[] | null; geoTwig: number[] } | null = null;
   /** why the tree draw count is what it is — the perf meter / reports read this */
   readonly path: 'batched' | 'instanced';
   private frustum = new THREE.Frustum();
@@ -105,7 +105,7 @@ export class Forest {
         return im;
       };
       this.trunks.push(mk(v.trunk, this.factory.barkMaterial, true, undefined, false));
-      this.trunksFar.push(mk(v.trunk, this.factory.barkMaterial, TIER_CONFIG.loTreeShadows, undefined, false));
+      this.trunksFar.push(mk(v.trunkLo ?? v.trunk, this.factory.barkMaterial, TIER_CONFIG.loTreeShadows, undefined, false));
       this.hi.push(mk(v.cardsHi, this.factory.needleMaterial, true, this.factory.needleDepth));
       this.lo.push(mk(v.cardsLo, this.factory.needleMaterial, TIER_CONFIG.loTreeShadows, this.factory.needleDepth));
       this.far.push(mk(v.far, this.factory.farMaterial, false));
@@ -136,7 +136,9 @@ export class Forest {
     };
     const needles = mk([...V.map((v) => v.cardsHi), ...V.map((v) => v.cardsLo)], this.factory.needleMaterial, true, this.factory.needleDepth);
     const far = mk(V.map((v) => v.far), this.factory.farMaterial, false);
-    const bark = mk(V.map((v) => v.trunk), this.factory.barkMaterial, true);
+    // the species set's trunks swap to their lo bark past treeHiDist (a second geometry per variant in the same batch)
+    const trunkLo = V.some((v) => v.trunkLo !== undefined && v.trunkLo !== v.trunk);
+    const bark = mk([...V.map((v) => v.trunk), ...(trunkLo ? V.map((v) => v.trunkLo ?? v.trunk) : [])], this.factory.barkMaterial, true);
     const twigs = mk(V.map((v) => v.twigs), this.factory.twigMaterial, true, this.factory.twigDepth);
     noReflect(twigs.bm);
     const m = new THREE.Matrix4();
@@ -146,12 +148,14 @@ export class Forest {
         const gid = ids[t.variant];
         if (gid === undefined) throw new Error(`[forest] no geometry for tree variant ${t.variant}`);
         const id = bm.addInstance(gid);   // ids line up with tree index (one instance per tree, in order)
-        bm.setMatrixAt(id, m); bm.setColorAt(id, t.tint); bm.setVisibleAt(id, false);
+        bm.setMatrixAt(id, m); bm.setVisibleAt(id, false);
+        if (bm !== bark.bm || this.factory.tintBark) bm.setColorAt(id, t.tint);
       }
     });
     this.batched = {
       needles: needles.bm, far: far.bm, bark: bark.bm, twigs: twigs.bm,
-      geoHi: needles.ids.slice(0, V.length), geoLo: needles.ids.slice(V.length), geoFar: far.ids, geoTrunk: bark.ids, geoTwig: twigs.ids,
+      geoHi: needles.ids.slice(0, V.length), geoLo: needles.ids.slice(V.length), geoFar: far.ids,
+      geoTrunk: bark.ids.slice(0, V.length), geoTrunkLo: trunkLo ? bark.ids.slice(V.length) : null, geoTwig: twigs.ids,
     };
   }
 
@@ -247,6 +251,7 @@ export class Forest {
         const vis = d2 <= keepD2 || this.seen(t, d2 <= shadowD2);
         const near = d2 < hiD2, mid = d2 < farD2;
         if (vis && mid) B.needles.setGeometryIdAt(i, (near ? B.geoHi[t.variant] : B.geoLo[t.variant]) ?? 0);
+        if (vis && mid && B.geoTrunkLo) B.bark.setGeometryIdAt(i, (near ? B.geoTrunk[t.variant] : B.geoTrunkLo[t.variant]) ?? 0);
         B.needles.setVisibleAt(i, vis && mid);
         B.bark.setVisibleAt(i, vis && mid);
         B.far.setVisibleAt(i, vis && d2 >= bandD2);

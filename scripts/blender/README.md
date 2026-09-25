@@ -51,3 +51,22 @@ sun already gets right); baking the full combined light (static, wrong 23 minute
 
 Measured (first bake): AO mean 0.83; the bounce is small on open ground (mean 0.003 of the sun's irradiance, up to
 0.08–0.11 at the foot of the crag and under the pier): honest for a low-poly beach, most of its GI is sky occlusion.
+
+## The tree species set (PINE-HOLLOW-REMASTER PH-B4)
+
+`bash scripts/blender/trees/run.sh [--quick] [--only=bark,cards,trees,lineup] [--no-copy]` builds Pine Hollow's photoreal
+species set — Scots pine ×4, fir ×2, old-growth giant ×2 (4–6× a pine's girth), silver birch ×2, dead snag ×2, sapling ×2 —
+under the machine-wide model lock (`~/projects/localai/.model.lock`: it waits for a running model job), in ~90 s of
+Blender once it has the lock.
+
+| File | What |
+|---|---|
+| `trees/treegen.py` | The species as numpy geometry, per variant five LOD parts (trunk / trunkLo bark, hi / lo / twigs cards) + the vertex data the game reads (bark layer, bark tint, crown occlusion, crown-bent card normals). `SPECS` = the game's `TREE_SPECS_V2` (`src/world/treeSpecies.ts`, checked by `test/tree-species.test.ts`). |
+| `trees/barkgen.py` | The silver birch's bark, generated seamless (Poly Haven has none). |
+| `trees/build_trees.py` | Blender 5.2: the bark sets, the branch-card atlas (branches modelled from CC0 photoscan sprigs, rendered top-down in Cycles: albedo × AO, camera-space normal, ARM), `trees.glb`, the impostor atlas (each variant's hi LOD from the side), a lit lineup preview. |
+| `trees/glb.py` | A minimal glTF writer (meshes `<variant>__<part>`). |
+| `trees/run.sh` | Blender → meshopt (gltf-transform), pngquant / JPEG / half-size `.phone.webp` → `public/assets/models/pine-hollow-trees/` + `public/assets/tex/{fir_bark,metasequoia_bark,birch_bark,bark_willow_02}/`. |
+
+Sources are Poly Haven CC0 (fir_tree_01's sprays + bark, tree_small_02's leaves, pine_tree_01's twig, metasequoia_bark,
+bark_willow_02), cached in `~/.cache/wildshard-blender/trees-src/`. The game side is `src/world/treeSet.ts` (the GLB →
+plain float geometry, the bark array lookups) and `TreeFactory.buildSet`; `?trees=v1` keeps the runtime pines.

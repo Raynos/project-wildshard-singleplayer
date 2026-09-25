@@ -10,6 +10,7 @@ import { CHUNK_HALF } from '../core/config';
 import { buildTerrain } from './terrain';
 import { layoutFauna } from './fauna-layout';
 import type { ChunkDef, TerrainNoise, Vec2 } from './ChunkDef';
+import { TREE_SPECIES, type SpeciesWeights } from '../world/treeSpecies';
 import {
   SPAWN, CABIN_SITES, RIDGE, ridgeFootZ, LOOKOUT, ZIPLINE, POND, ISLET, WATERFALL, RIDGE_STREAM, CREEK, CREEK_BED, CREEK_BRIDGE,
   DEN, BEAR_CAVE, OLD_GROWTH, KINGS_CLEARING, HAMLET, S_ROAD, N_ROAD, W_ROAD, E_ROAD, SPURS, GRADED, PINE_HOLLOW_POIS,
@@ -173,6 +174,35 @@ function forestDensity(x: number, z: number): number {
   return (1 + oldGrowthMask(x, z) * 3) * (1 - smoothstep(0.3, 0.9, ridgeWeight(x, z)) * 0.6); // × 4 saturates the old-growth at its 8.5 m grid
 }
 
+/** a + (b − a)·t over species weights */
+function mixW(a: SpeciesWeights, b: SpeciesWeights, t: number): SpeciesWeights {
+  if (t <= 0) return a;
+  const out: SpeciesWeights = {};
+  for (const k of TREE_SPECIES) out[k] = lerp(a[k] ?? 0, b[k] ?? 0, t);
+  return out;
+}
+
+/**
+ * PH-B4, the species by zone (ChunkForest.species): the Hollow is Scots pine with a few birches; the old-growth (west)
+ * firs round old cedar giants, snags and moss; the King's clearing ringed by giants; the Ridge sparse pines and silver
+ * snags; the pond and the creek birches and saplings. Relative weights; the giants thin themselves (placement.ts keeps
+ * other trunks off their buttresses).
+ */
+const HOLLOW_MIX: SpeciesWeights = { pine: 0.8, birch: 0.08, fir: 0.05, snag: 0.03, sapling: 0.04 };
+const OLD_GROWTH_MIX: SpeciesWeights = { giant: 0.3, fir: 0.5, pine: 0.05, snag: 0.11, sapling: 0.04 };
+const KINGS_RING_MIX: SpeciesWeights = { giant: 0.78, fir: 0.12, snag: 0.1 };
+const RIDGE_MIX: SpeciesWeights = { pine: 0.62, snag: 0.28, fir: 0.06, sapling: 0.04 };
+const WET_MIX: SpeciesWeights = { birch: 0.5, sapling: 0.18, pine: 0.2, fir: 0.12 };
+function speciesMix(x: number, z: number): SpeciesWeights {
+  const kc = Math.hypot(x - KINGS_CLEARING.x, z - KINGS_CLEARING.z);
+  const ring = smoothstep(KINGS_CLEARING.clear - 2, KINGS_CLEARING.clear + 6, kc) * smoothstep(KINGS_CLEARING.clear + 42, KINGS_CLEARING.clear + 18, kc);
+  const wet = Math.max(smoothstep(40, 6, Math.hypot(x - POND.x, z - POND.z) - POND.r), smoothstep(26, 8, nearestOnPolyline(CREEK, x, z).d));
+  let w = mixW(HOLLOW_MIX, RIDGE_MIX, smoothstep(0.15, 0.6, ridgeWeight(x, z)));
+  w = mixW(w, WET_MIX, wet);
+  w = mixW(w, OLD_GROWTH_MIX, oldGrowthMask(x, z));
+  return mixW(w, KINGS_RING_MIX, ring);
+}
+
 export const PINE_HOLLOW: ChunkDef = {
   id: 'chunk://local/pine-hollow',
   slug: 'pine-hollow',
@@ -195,7 +225,7 @@ export const PINE_HOLLOW: ChunkDef = {
     groundTints: [[0.78, 0.74, 0.68], [0.72, 0.8, 0.6], [0.85, 0.85, 0.85], [0.62, 0.56, 0.5]],
     slabRock: 'rock_ground',
   },
-  trees: { factory: 'pine', bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'pines' },
+  trees: { factory: 'pine', bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'trees', set: 'pine-hollow-trees' },
   forest: {
     spacing: 8.5,
     densityFreq: 0.008,
@@ -204,8 +234,9 @@ export const PINE_HOLLOW: ChunkDef = {
     tintHue: 0.25, tintHueJitter: [-0.04, 0.03], tintSat: [0.25, 0.5], tintLight: [0.5, 0.68],
     largeVariantChance: 0.1,
     density: forestDensity,
-    /** the old-growth's pines stand a quarter taller (the giants; the asset lane's fir / cedar set replaces them, PH-U17) */
+    /** the old-growth's pines and firs stand a quarter taller (its giants are their own species, PH-B4) */
     scale: (x, z) => 1 + oldGrowthMask(x, z) * 0.25,
+    species: speciesMix,
   },
   // Fauna: MANY SMALL GROUPS across the whole shard (user: "I don't want to search endlessly in an empty
   // forest" — nor nine boars in one clearing). `layoutFauna` lays a ~60 m grid of cells over the chunk (25 m

@@ -18,8 +18,11 @@ import { Rng } from '../core/rng';
 import { Noise2D, smoothstep, lerp } from '../core/noise';
 import { heightAt, normalAt, splatAt, trailDistance, cabinMask, inChunk, pondMask, waterLevel, POND } from './Heightfield';
 import { getActiveChunk } from '../chunks/registry';
+import { TREE_SPECIES, TREE_SPECS_V2, type TreeSpecies, type SpeciesWeights } from './treeSpecies';
 
-export interface TreeInstance { x: number; y: number; z: number; r: number; variant: number; scale: number; rot: number; height: number; tint: THREE.Color }
+export { TREE_SPECIES, TREE_SPECS_V2, type TreeSpecies, type SpeciesWeights } from './treeSpecies';
+
+export interface TreeInstance { x: number; y: number; z: number; r: number; variant: number; scale: number; rot: number; height: number; tint: THREE.Color; species?: TreeSpecies | undefined }
 
 /** The pine variants TreeFactory builds (heights / trunk radii are all placement needs of them). */
 export const TREE_SPECS = [
@@ -28,6 +31,28 @@ export const TREE_SPECS = [
   { height: 26, trunk: 0.5, seed: 3 },
   { height: 13, trunk: 0.27, seed: 4 },
 ] as const;
+
+/** What placement needs of a variant (TreeFactory's variants carry these; the build's bakes pass them from the specs). */
+export interface PlantSpec { trunkRadius: number; height: number; species?: TreeSpecies | undefined; collider?: number | undefined }
+
+/**
+ * The Blender species set a shard plants (`ChunkTrees.set`), or null for the runtime pines — a shard without a set, or
+ * `?trees=v1` (today's trees, kept selectable for the taste board), or (`has`: the byte table's lookup) a build that does
+ * not have the set's files. Pure: the build's bakes call it with no `location`.
+ */
+export function treeSetOf(trees: { set?: string | undefined }, has?: (url: string) => boolean): string | null {
+  if (trees.set === undefined) return null;
+  if (has && !has(`/assets/models/${trees.set}/trees.glb`)) return null; // a build without the set's files: the runtime pines
+  const q = typeof location === 'undefined' ? '' : location.search;
+  return new URLSearchParams(q).get('trees') === 'v1' ? null : trees.set;
+}
+
+/** The variants placement plants for a shard's trees (the bakes; TreeFactory builds the same list with geometry). */
+export function plantSpecs(trees: { factory: string; set?: string | undefined }): PlantSpec[] {
+  if (trees.factory === 'none') return [];
+  if (treeSetOf(trees) !== null) return TREE_SPECS_V2.map((s) => ({ trunkRadius: s.trunk, height: s.height, species: s.species, collider: s.collider }));
+  return TREE_SPECS.map((s) => ({ trunkRadius: s.trunk, height: s.height }));
+}
 
 /** A 16 m grid cell as one integer (exact for cells within 2^20 of the origin: any coordinate a query meets in play). */
 const cellKey = (cx: number, cz: number): number => (cx + 1048576) * 2097152 + (cz + 1048576);
@@ -54,7 +79,7 @@ export class TreeGrid {
 }
 
 /** The active chunk's trees for these variants (none for an empty list: a treeless shard). */
-export function placeForest(variants: readonly { trunkRadius: number; height: number }[]): { trees: TreeInstance[]; grid: TreeGrid } {
+export function placeForest(variants: readonly PlantSpec[]): { trees: TreeInstance[]; grid: TreeGrid } {
   const trees: TreeInstance[] = [];
   const grid = new TreeGrid();
   if (variants.length === 0) return { trees, grid };
@@ -70,6 +95,35 @@ export function placeForest(variants: readonly { trunkRadius: number; height: nu
   // shuffle so thinning is unbiased
   for (let i = candidates.length - 1; i > 0; i--) { const j = Math.floor(rng.next() * (i + 1)); const a = candidates[i], b = candidates[j]; if (a && b) { candidates[i] = b; candidates[j] = a; } }
 
+  // PH-B4: a species set picks each tree's species from the chunk's zone mix, then one of that species' variants
+  const mix = F.species && variants.every((v) => v.species !== undefined) ? F.species : null;
+  const bySpecies = new Map<TreeSpecies, number[]>();
+  variants.forEach((v, i) => { if (v.species) bySpecies.set(v.species, [...(bySpecies.get(v.species) ?? []), i]); });
+  const plantSpecies = (x: number, y: number, z: number, w: SpeciesWeights): void => {
+    let total = 0;
+    for (const s of TREE_SPECIES) total += bySpecies.has(s) ? Math.max(0, w[s] ?? 0) : 0;
+    if (total <= 0) return;
+    let r = rng.next() * total, species: TreeSpecies = 'pine';
+    for (const s of TREE_SPECIES) { const k = bySpecies.has(s) ? Math.max(0, w[s] ?? 0) : 0; if (r < k) { species = s; break; } r -= k; }
+    const list = bySpecies.get(species) ?? [];
+    const variant = list[rng.int(0, list.length - 1)] ?? 0;
+    const v = variants[variant];
+    if (!v) throw new Error(`[forest] no tree variant ${variant}`);
+    const giant = species === 'giant';
+    const grows = species === 'pine' || species === 'fir';
+    const scale = giant ? rng.range(0.88, 1.08) : species === 'sapling' ? rng.range(0.7, 1.3) : rng.range(0.8, 1.2) * (grows && F.scale ? F.scale(x, z) : 1);
+    const r0 = v.trunkRadius * scale * (v.collider ?? 1) + (species === 'sapling' ? 0.04 : 0.15);
+    // no trunk inside another's: a giant keeps its neighbours off its buttresses and out from under its limbs
+    for (const o of grid.nearby(x, z, r0 + 8)) {
+      const gap = giant || o.species === 'giant' ? 3.5 : species === 'sapling' || o.species === 'sapling' ? 0.6 : 1.2;
+      if (Math.hypot(o.x - x, o.z - z) < o.r + r0 + gap) return;
+    }
+    const h = F.tintHue + rng.range(F.tintHueJitter[0], F.tintHueJitter[1]);
+    const tint = new THREE.Color().setHSL(h + (species === 'birch' ? -0.03 : 0), rng.range(0.1, 0.3), rng.range(0.8, 0.95));
+    const t: TreeInstance = { x, y: y - 0.25, z, r: r0, variant, scale, rot: rng.range(0, Math.PI * 2), height: v.height * scale, tint, species };
+    trees.push(t);
+    grid.add(t);
+  };
   for (const [x, z] of candidates) {
     if (trees.length >= TREE_COUNT) break;
     if (!inChunk(x, z, 4)) continue;
@@ -84,6 +138,7 @@ export function placeForest(variants: readonly { trunkRadius: number; height: nu
     const [, ny] = normalAt(x, z);
     if (ny < F.maxSlope) continue;                               // too steep
     const y = heightAt(x, z);
+    if (mix) { plantSpecies(x, y, z, mix(x, z)); continue; }
     const variant = rng.next() < F.largeVariantChance ? 3 : rng.int(0, 2);
     const scale = rng.range(0.8, 1.2) * (F.scale ? F.scale(x, z) : 1);
     const v = variants[variant];

@@ -136,7 +136,8 @@ export function registerPineHollowModels(h: PineHollowModels): void {
 function pineSpecimen(forest: Forest, x: number, z: number): THREE.Object3D {
   const f = forest.factory;
   let vi = 0;
-  f.variants.forEach((c, i) => { if (c.height > (f.variants[vi]?.height ?? 0)) vi = i; });
+  const pine = (c: { species?: string | undefined }) => c.species === undefined || c.species === 'pine'; // the species set: the tallest Scots pine
+  f.variants.forEach((c, i) => { if (pine(c) && (!pine(f.variants[vi] ?? {}) || c.height > (f.variants[vi]?.height ?? 0))) vi = i; });
   const v = f.variants[vi];
   const g = new THREE.Group();
   if (!v) return g;

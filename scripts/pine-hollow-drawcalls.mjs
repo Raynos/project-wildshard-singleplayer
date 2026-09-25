@@ -40,6 +40,9 @@ const POSES = [
   { id: 'shore', x: -60, z: 106, yaw: 1.5708 },
   { id: 'hamlet', x: -150, z: -130, yaw: 0 },
   { id: 'lookout', x: 36, z: 208, yaw: 0 },
+  // PH-B4: the King's clearing facing S (the giants' ring) and the old-growth (W) facing into the firs and the giants
+  { id: 'clearing', x: 150, z: -14, yaw: 0 },
+  { id: 'oldgrowth', x: 118, z: -118, yaw: 3.6 },
 ].filter((p) => flag('poses', '') === '' || flag('poses', '').split(',').includes(p.id));
 
 /** label → group; first match wins */

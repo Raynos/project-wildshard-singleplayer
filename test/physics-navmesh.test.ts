@@ -114,7 +114,7 @@ describe('navmesh (P6b)', () => {
     for (let i = 0; i < 20; i++) {
       const t = nav.randomPointNear(from, 20, 0.33, () => rng.next());
       if (t === null) throw new Error('no wander target');
-      expect(Math.hypot(t.x - from.x, t.z - from.z)).toBeLessThan(40); // navcat bounds the polys searched, not the point
+      expect(Math.hypot(t.x - from.x, t.z - from.z)).toBeLessThan(45); // navcat bounds the polys searched, not the point (PH-B4: the species set leaves bigger polys between its trunks: 41 m seen)
       const path = nav.findPath(from, t, 0.33);
       const end = path?.[path.length - 1];
       if (end === undefined) throw new Error('unreachable wander target');

@@ -3,6 +3,8 @@ import { Game } from './Game';
 import { TERRAIN_RES } from './config';
 import { Terrain } from '../world/Terrain';
 import { TreeFactory } from '../world/TreeFactory';
+import { treeSetOf } from '../world/placement';
+import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { Forest } from '../world/Forest';
 import { Player } from '../player/Player';
 import type { Sky } from '../world/Sky';
@@ -25,7 +27,7 @@ import { installPhysicsDebug } from '../physics/debug';
 
 /** Tree builders by `ChunkTrees.factory` id. Add a species here when a shard needs one. */
 const TREE_FACTORIES = {
-  pine: (renderer: THREE.WebGLRenderer, def: ChunkDef) => new TreeFactory(renderer, { bark: def.trees.bark, twigAtlas: def.trees.twigAtlas }).build(),
+  pine: (renderer: THREE.WebGLRenderer, def: ChunkDef) => new TreeFactory(renderer, { bark: def.trees.bark, twigAtlas: def.trees.twigAtlas, set: treeSetOf(def.trees, (u) => u in PUBLIC_BYTES) }).build(),
   none: (renderer: THREE.WebGLRenderer) => new TreeFactory(renderer).buildEmpty(),
 } as const;
 

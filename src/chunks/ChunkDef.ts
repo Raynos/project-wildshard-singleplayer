@@ -17,6 +17,7 @@
  */
 import type { Noise2D } from '../core/noise';
 import type { HuntTuning } from '../entities/AnimalManager';
+import type { SpeciesWeights } from '../world/treeSpecies';
 
 /** [x, z] metres, origin at the chunk centre, chunk spans ±250 on both axes */
 export type Vec2 = [number, number];
@@ -124,6 +125,12 @@ export interface ChunkTrees {
   twigAtlas: string;
   /** what the HUD calls them, plural ("pines", "birches") */
   noun: string;
+  /**
+   * A Blender-built species set (PH-B4): the folder under `public/assets/models/` with its trees.glb + card / impostor
+   * atlases (scripts/blender/trees/run.sh). Its variants are `TREE_SPECS_V2` (src/world/placement.ts), planted by
+   * `ChunkForest.species`. `?trees=v1` keeps the runtime pines above. Omitted: the runtime pines.
+   */
+  set?: string;
 }
 
 /** Forest placement tuning (`src/world/Forest.ts`). The total is `ChunkDef.treeCount`. */
@@ -149,8 +156,10 @@ export interface ChunkForest {
    * Omitted = 1 everywhere.
    */
   density?: (x: number, z: number) => number;
-  /** per-place multiplier on a tree's size (the old-growth's giants); omitted = 1 */
+  /** per-place multiplier on a tree's size (the old-growth's giants); omitted = 1. With a species set: pines and firs only */
   scale?: (x: number, z: number) => number;
+  /** with a species set (`ChunkTrees.set`): the species mix at (x, z), relative weights (src/world/placement.ts) */
+  species?: (x: number, z: number) => SpeciesWeights;
 }
 
 /** a registered species kind (`src/entities/species/<kind>.ts`): 'deer' | 'boar' built in; bear / elk… as they register */

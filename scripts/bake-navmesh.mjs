@@ -91,7 +91,7 @@ const { CHUNK_HALF, ROAD_LENGTH, TERRAIN_RES, CHUNK_SIZE } = await src('core/con
 const { terrainGrid } = await src('physics/terrain.ts');
 const { treadBoxes } = await src('physics/pieces.ts');
 const { pathRampDescs } = await src('physics/paths.ts');
-const { placeForest, TREE_SPECS } = await src('world/placement.ts');
+const { placeForest, plantSpecs } = await src('world/placement.ts');
 const { Forest } = await src('world/Forest.ts');
 
 const sky = new Proxy({ setupMaterial: noop, csm: { lights: [] }, viewCamera: new THREE.PerspectiveCamera(), sunDir: new THREE.Vector3(0, 1, 0) },
@@ -103,7 +103,7 @@ async function shardColliders(def) {
   let group = '';
   const add = (descs) => { for (const d of descs) out.push(d); counts[group] = (counts[group] ?? 0) + descs.length; };
   // bootstrap.ts: the forest's trunks and the path walkways
-  const forest = def.trees.factory === 'none' ? { trees: [], grid: null } : placeForest(TREE_SPECS.map((s) => ({ trunkRadius: s.trunk, height: s.height })));
+  const forest = def.trees.factory === 'none' ? { trees: [], grid: null } : placeForest(plantSpecs(def.trees)); // the species set's trunks (PH-B4)
   group = 'trunks';
   add(Forest.prototype.colliderDescs.call({ trees: forest.trees }));
   group = 'paths';
