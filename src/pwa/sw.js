@@ -114,6 +114,10 @@ const abs = (p) => new URL(p, self.registration.scope).href;
 async function fillMissing(cache, urls, strict = false) {
   await Promise.all(urls.map(async (u) => {
     if (await cache.match(abs(u), MATCH_OPTS)) return;
+    // the previous build's static cache still holds it (the icons, the fonts): a copy, not a download (E160 — an asset
+    // deploy names a new static cache before `activate` carries the old one over, and install re-fetched ~0.5 MB here)
+    const held = await caches.match(abs(u), MATCH_OPTS);
+    if (held) { await cache.put(abs(u), held); return; }
     await (strict ? cache.add(u) : cache.add(u).catch(() => undefined));
   }));
 }
