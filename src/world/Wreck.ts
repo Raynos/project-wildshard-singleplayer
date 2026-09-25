@@ -39,6 +39,7 @@ import { Rng } from '../core/rng';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
 import { boxDesc, type ColliderDesc } from './registry';
+import { addDriftLog, DRIFT } from './driftwood';
 
 /** a world-height plane over the hull-aligned horizontal local (lx, lz): y = a + bx·lx + bz·lz */
 interface Plane { a: number; bx: number; bz: number }
@@ -62,7 +63,7 @@ const C = {
   weed: '#4e6b37', weedDark: '#3a5230', moss: '#6f9a3e', mossLight: '#8ab44c', barnacle: '#a8a08a',
   deck: '#9a7a52', deckB: '#8a6b47', rail: '#5d442e', mast: '#5a4230', sail: '#e3d9c1', sailB: '#cdbf9f', sailStain: '#b3a585',
   rope: '#b99d6c', ropeDark: '#8d7650', barrel: '#8a5a34', barrelB: '#76492a', band: '#3b3b3f', crate: '#a47b4b', crateB: '#8b6538',
-  drift: '#d2c6ae', driftB: '#bfb197', driftC: '#e2d8c4', driftDark: '#a39277', net: '#8c7650',
+  driftDark: '#a39277', net: '#8c7650',
   rock: '#4f545c', rockB: '#454a52', rockDark: '#383c43', brass: '#b08a3a', iron: '#3a3c42', floor: '#7f6444', floorB: '#6c5439',
   door: '#4a3526', flame: '#ffc46a',
 };
@@ -576,7 +577,6 @@ export class Wreck {
     const wm = (x: number, y: number, z: number, ry = 0, rx = 0, rz = 0): THREE.Matrix4 =>
       W0.clone().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz, 'YXZ')), new THREE.Vector3(1, 1, 1));
     const hw = (lx: number, lz: number): [number, number] => [this.spec.x + lx * this.cs + lz * this.sn, this.spec.z - lx * this.sn + lz * this.cs];
-    const driftCols = [C.drift, C.driftB, C.driftC];
     const pile = (px: number, pz: number, n: number, spread: number, seedYaw: number): void => {
       let layer = 0;
       for (let k = 0; k < n; k++) {
@@ -585,10 +585,10 @@ export class Wreck {
         const dx = Math.cos(yaw) * len / 2, dz = Math.sin(yaw) * len / 2;
         const ya = heightAt(ox - dx, oz - dz), yb = heightAt(ox + dx, oz + dz), lift = layer * 0.28 + r * 0.8;
         const a = new THREE.Vector3(ox - dx, ya + lift + rng.range(0, 0.15), oz - dz), b = new THREE.Vector3(ox + dx, yb + lift + rng.range(0, 0.15), oz + dz);
-        kit.add(log(a, b, r, r * rng.range(0.6, 0.85), 7, rng.range(0, 1)), driftCols[k % 3] ?? C.drift, { wobble: 0.03, jitter: 0.07 });
+        addDriftLog(kit, a, b, r, r * rng.range(0.6, 0.85), { sides: 7, twist: rng.range(0, 1), tone: k, wobble: 0.03 });
         if (rng.next() < 0.45) {                                          // a snapped branch stub
           const m = a.clone().lerp(b, rng.range(0.3, 0.7));
-          kit.add(log(m, m.clone().add(new THREE.Vector3(rng.range(-0.4, 0.4), rng.range(0.3, 0.6), rng.range(-0.4, 0.4))), r * 0.35, r * 0.2, 5), C.driftB);
+          kit.add(log(m, m.clone().add(new THREE.Vector3(rng.range(-0.4, 0.4), rng.range(0.3, 0.6), rng.range(-0.4, 0.4))), r * 0.35, r * 0.2, 5), DRIFT.stub);
         }
         if (rng.next() < 0.3) {                                           // a rope lashed round it
           const m = a.clone().lerp(b, rng.range(0.2, 0.8)), dir = b.clone().sub(a).normalize();

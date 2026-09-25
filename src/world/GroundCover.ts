@@ -42,6 +42,7 @@ import { attachFogUniforms } from './Atmosphere';
 import { SEED } from '../core/config';
 import { Rng } from '../core/rng';
 import { LowPolyKit, fern, hibiscus, grassTuft, rock, log, broadClump, tris, lowPolyMaterial, PLANT, type Part } from './lowpolyKit';
+import { addDriftLog, DRIFT } from './driftwood';
 import { HUT, LOOKOUT, SHRINE, WRECK, ISLAND } from '../chunks/driftwood-isle';
 import { Cove } from './Cove';
 import { windUniforms } from './wind';
@@ -318,10 +319,9 @@ export class GroundCover {
   private edge = (h: number, sl: number): number => ss(1.9, 2.7, h) * (1 - ss(4.8, 7, h)) * (1 - ss(0.2, 0.3, sl));
   private dune = (h: number): number => ss(1.2, 1.8, h) * (1 - ss(2.6, 3.4, h));
 
-  /** bleached driftwood logs along the dune line all round the island, one every ~9 m (one static mesh) */
+  /** bleached driftwood logs (the E149 painter, driftwood.ts) along the dune line all round the island, one every ~9 m (one static mesh) */
   private buildDriftwood(): void {
     const kit = new LowPolyKit(SEED ^ 0x6c08), rng = kit.rng, sea = this.opts.sea;
-    const cols = ['#d6cbb4', '#c7b99f', '#e3dac7'];
     for (let a = 0; a < Math.PI * 2; a += 9 / 200) {
       const dx = Math.cos(a), dz = Math.sin(a);
       // march outward from inland to the first sand below the dune crest (~1.6 m over the sea)
@@ -336,8 +336,8 @@ export class GroundCover {
         const len = rng.range(2.2, 4.2), rad = rng.range(0.12, 0.24), yaw = a + Math.PI / 2 + rng.range(-0.6, 0.6) + k * 1.1;
         const hx = Math.cos(yaw) * len / 2, hz = Math.sin(yaw) * len / 2;
         const A = new THREE.Vector3(x - hx, heightAt(x - hx, z - hz) + rad * 0.7 + k * 0.2, z - hz), B = new THREE.Vector3(x + hx, heightAt(x + hx, z + hz) + rad * 0.7 + k * 0.2, z + hz);
-        kit.add(log(A, B, rad, rad * 0.7, 6, rng.range(0, 1)), cols[(k + Math.floor(a * 10)) % 3] ?? '#d6cbb4', { wobble: 0.02, jitter: 0.07 });
-        if (rng.next() < 0.5) { const m = A.clone().lerp(B, rng.range(0.3, 0.7)); kit.add(log(m, m.clone().add(new THREE.Vector3(rng.range(-0.3, 0.3), rng.range(0.25, 0.5), rng.range(-0.3, 0.3))), rad * 0.4, rad * 0.25, 5), '#c2b49a'); }
+        addDriftLog(kit, A, B, rad, rad * 0.7, { sides: 6, twist: rng.range(0, 1), tone: k + Math.floor(a * 10), wobble: 0.02 });
+        if (rng.next() < 0.5) { const m = A.clone().lerp(B, rng.range(0.3, 0.7)); kit.add(log(m, m.clone().add(new THREE.Vector3(rng.range(-0.3, 0.3), rng.range(0.25, 0.5), rng.range(-0.3, 0.3))), rad * 0.4, rad * 0.25, 5), DRIFT.stub); }
       }
     }
     const geo = kit.finish({ ao: { ground: heightAt, cell: 0.35, strength: 0.5 } });
