@@ -4,7 +4,7 @@
 #   1. scripts/blender/export-scene.mjs   the game's heights / colours / layout → ~/.cache/wildshard-blender
 #   2. scripts/blender/build_island.py    Blender (headless, Cycles on the Metal GPU): model, scatter, bake GI + AO, export
 #   3. compress                           meshopt (gltf-transform), lightmaps → WebP (desktop 2048 / phone 1024)
-#   4. copy into public/assets/models/driftwood-blender/ (loaded by src/world/BlenderIsland.ts under ?island=blender)
+#   4. copy into public/assets/models/driftwood-blender/ (loaded by src/world/BlenderIsland.ts on Driftwood)
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 CACHE="${BLENDER_CACHE:-$HOME/.cache/wildshard-blender}"

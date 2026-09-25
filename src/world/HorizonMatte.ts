@@ -19,12 +19,10 @@
  *   the night texture by the clock's `night`, then hazed toward the dome's live horizon colour near the sea and lit by
  *   the sun glow — so it rides every DayNight preset without a third texture. The alpha fades into the sky at the top.
  * - **textures**: two 4096 × 512 WebPs with alpha (`public/assets/horizon/`), fetched after boot; the band fades in over
- *   ~1.5 s once both are decoded. Always on — the user locked it in (E78), so there is no menu toggle; only
- *   `?matte=0` hides it (before / after captures), and a saved pick from the old pause-menu switch is ignored.
+ *   ~1.5 s once both are decoded. Always on — the user locked it in (E78); the `?matte=0` switch is gone (E136).
  */
 import * as THREE from 'three';
 import type { Sky } from './Sky';
-import { setting, settingFromUrl } from '../ui/Settings';
 import { MIDDAY_SKY } from './StylizedSky';
 
 /** the band's radius (m): inside the camera's far plane (2600) even at the top edge (R / cos 24° ≈ 2520) */
@@ -42,7 +40,6 @@ export class HorizonMatte {
   private fade = 0;
   private loaded = false;
   private ready = false;
-  private readonly shown = !settingFromUrl('matte') || setting('matte') === 'on'; // locked on (E78): only ?matte=0 hides it
   private readonly u = {
     tDay: { value: placeholder() },
     tNight: { value: placeholder() },
@@ -100,7 +97,6 @@ export class HorizonMatte {
     mesh.frustumCulled = false;
     mesh.renderOrder = -16; // visible from the start at alpha 0: its program compiles with the rest at boot, never mid-play
     mesh.name = 'horizon-matte';
-    mesh.visible = this.shown;
     this.mesh = mesh;
     return this;
   }
@@ -108,7 +104,7 @@ export class HorizonMatte {
   /**
    * fetch + decode both paintings off the critical path (call once boot is done); resolves when the band is shown.
    * `replaces`: geometry the painting stands in for (Horizon.ts' faceted islet rings), hidden as the band fades in —
-   * it stays the fallback when the paintings fail to load or `?matte=0`.
+   * it stays the fallback when the paintings fail to load.
    */
   async load(replaces?: THREE.Object3D): Promise<void> {
     if (!this.mesh || this.loaded) return;
@@ -117,7 +113,7 @@ export class HorizonMatte {
       const [day, night] = await Promise.all([loadTexture(URL_DAY), loadTexture(URL_NIGHT)]);
       this.u.tDay.value = day; this.u.tNight.value = night;
       this.ready = true;
-      if (replaces) replaces.visible = !this.shown;
+      if (replaces) replaces.visible = false;
     } catch (e) {
       console.warn('[horizon-matte] paintings not loaded; the band stays off', e);
     }

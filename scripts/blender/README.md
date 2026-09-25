@@ -1,8 +1,8 @@
 # The Blender island (DRIFTWOOD-REMASTER X2, E52)
 
 `pnpm blender:island [--quick]` rebuilds Driftwood's spawn cove in Blender, headless, and writes
-`public/assets/models/driftwood-blender/`. In the game, `?island=blender` (or Settings ▸ Graphics ▸ Island) loads it in
-place of the procedural cove; `?island=procedural` is the default TypeScript island.
+`public/assets/models/driftwood-blender/`. The game always loads it in place of the procedural cove (the user's pick, E7;
+the `?island` switch is gone since E136); the procedural cove stays underneath as the load-failure fallback.
 
 | Step | File | What |
 |---|---|---|

@@ -228,7 +228,7 @@ export const DRIFTWOOD_ISLE: ChunkDef = {
     deer: { sightRange: 44, sightRangeGraze: 22, noticeRate: 0.4 },
   },
   sky: {
-    hdri: 'kloofendal_48d_partly_cloudy_puresky',
+    hdri: 'kloofendal_48d_partly_cloudy_puresky', // unused: the sky is the stylized dome (Sky.setupStylized)
     sunColor: [1.0, 0.97, 0.9],
     sunIntensity: 2.7,
     envIntensity: 0.7,

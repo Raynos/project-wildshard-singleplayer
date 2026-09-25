@@ -89,7 +89,6 @@ import type { Explore, ExploreMode } from './explore/Explore';
 import { registerDriftwoodModels, registerPineHollowModels } from './explore/catalog';
 import { TIER } from './core/tier';
 import { wireNalati, type Nalati } from './nalati';
-import { islandMode } from './world/blenderArea';
 import { boxDesc, type ColliderDesc, type ModelEntry, type PieceCategory } from './world/registry';
 import { cutTerrain } from './physics/terrain';
 import { RopeChain } from './physics/ropeChain';
@@ -273,8 +272,9 @@ async function main() {
   const addPaths = (): void => { registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/physics/paths.ts', surface: 'ground',
     colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) }); };
   if (!painterly) addPaths();
-  // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52): ?island=blender|procedural, Settings ▸ Graphics ▸ Island
-  const blenderIsland = isOcean && islandMode() === 'blender'
+  // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52; the only island since E136): it sits on the procedural cove,
+  // which stays as the fallback when it fails to load
+  const blenderIsland = isOcean
     ? await import('./world/BlenderIsland').then(({ BlenderIsland: B }) => B.install({
       scene: game.scene, sky, colliders: player.colliders, terrain: world.terrain.mesh, palms: palms?.mesh ?? null, palmSpecs,
       replace: [bushes?.mesh ?? null, dressing.rocks?.mesh ?? null], cover: dressing.cover?.group ?? null,

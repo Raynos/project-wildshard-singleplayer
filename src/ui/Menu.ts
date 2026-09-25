@@ -316,7 +316,7 @@ export class GameMenu {
   }
 
   // ── SETTINGS ──
-  /** builds the Settings tab: only what applies live (E55) — renderer, island, quality, render scale, AA and touch controls
+  /** builds the Settings tab: only what applies live (E55) — renderer, quality, render scale, AA and touch controls
    *  are read at boot and live in main menu ▸ Settings (src/ui/BootSettings.ts, APPLY & RELOAD). Two cards (E81, the user's
    *  split): SETTINGS holds what ships with the finished game; DEBUG holds the variant pickers and taste toggles that
    *  exist only while the look and sound are being decided — each leaves that card once it is locked in (E78 the
@@ -419,18 +419,9 @@ export class GameMenu {
       const times: { v: OptionValue<'time'>; text: string }[] = [{ v: 'live', text: 'Live' }, { v: 'midday', text: 'Midday' }, { v: 'golden', text: 'Golden' }, { v: 'sunset', text: 'Sunset' }, { v: 'night', text: 'Night' }];
       const time = picker('Time of day', times, () => setting('time'), (v) => { saveSetting('time', v); }, (fn) => { onSettingChange('time', fn); });
       section(dbg, 'Look', [(c) => c.chunk.style === 'lowpoly' || c.chunk.style === 'painterly', time]); // the shards with a day clock
-      // Look Lab (E65) is done: the sky (E83), lighting (E87) and post (E88) picks are locked in; the URL alone builds the old looks
+      // Look Lab (E65) is done: the sky (E83), lighting (E87) and post (E88) picks are locked in and their switches gone (E136)
     }
-    // the Nalati Look Lab (NALATI-MERGE L2; wave 6's picks are locked in, N20): N23's Edge — the berm + spruce lines hiding
-    // the slab's edge (src/chunks/nalatiEdge.ts), a second terrain bake, so it applies on the next load
-    {
-      const edge = picker('Edge (next load)', [{ v: 'off' as const, text: 'Off' }, { v: 'on' as const, text: 'On' }],
-        () => setting('edge'), (v) => { saveSetting('edge', v); }, (fn) => { onSettingChange('edge', fn); });
-      const nalatiEdge: When = (c) => c.chunk.slug === 'nalati-grasslands';
-      section(dbg, 'Look lab', [nalatiEdge, edge],
-        [nalatiEdge, el('ws-gmenu-note', 'Edge: a grassy rise with spruce and granite along the slab\'s edges, so the land never ends in a line in front of the painted hills. On by default; Off = the old look. Reload to see it.')]);
-    }
-    dbg.append(el('ws-gmenu-note', 'Renderer, island, quality and render scale: Exit to main menu ▸ Settings.'));
+    dbg.append(el('ws-gmenu-note', 'Renderer, quality and render scale: Exit to main menu ▸ Settings.'));
     dbg.append(this.buildReview());
   }
   /** show only the Settings rows that apply now (E130: the weapons you hold, the shard) — every open and every Settings select */

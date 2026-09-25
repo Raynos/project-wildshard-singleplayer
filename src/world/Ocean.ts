@@ -29,7 +29,7 @@ import { getActiveChunk } from '../chunks/registry';
 import type { Sky } from './Sky';
 import { TIER_CONFIG } from '../core/tier';
 import { WAVES_GLSL, waveClock } from './waves';
-import { isStylized, toonUniforms } from './stylize';
+import { toonUniforms } from './stylize';
 import { HORIZON_RADIUS } from './HorizonMatte';
 
 const SEA_RES = 512; // the sea-floor texture: ~1 m per texel over the chunk
@@ -113,8 +113,8 @@ export class Ocean {
         uShallow: { value: shallow }, uDeep: { value: deep }, uDeepDepth: { value: def.deepDepth }, uLevel: { value: def.level },
         tSea: { value: this.seaTex }, uChunkHalf: { value: CHUNK_HALF },
         // the sea ends where the painted horizon stands (E125): past it, the far plane cut it on a hard straight line above the
-        // matte's islands when seen from altitude. The stylized sky is the one that paints the band (HorizonMatte.build)
-        uSeaEnd: { value: isStylized() ? HORIZON_RADIUS : 1e7 },
+        // matte's islands when seen from altitude
+        uSeaEnd: { value: HORIZON_RADIUS },
       });
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', /* glsl */`#include <common>
@@ -135,7 +135,6 @@ export class Ocean {
         .replace('#include <common>', /* glsl */`#include <common>
           uniform vec3 uShallow; uniform vec3 uDeep; uniform float uDeepDepth; uniform float uTime; uniform float uLevel;
           uniform sampler2D tSea; uniform float uChunkHalf; uniform float uSeaEnd;
-          ${isStylized() ? '' : 'uniform vec3 uFogZenith;'} // the stylized shard's fog chunk declares it (stylize.ts)
           varying float vCrest; varying vec3 vOceanW;
           float hash21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
           float vnoise(vec2 p) { vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
@@ -166,7 +165,7 @@ export class Ocean {
             float t = smoothstep(0.0, 1.0, pow(clamp(still / uDeepDepth, 0.0, 1.0), 0.9));   // turquoise lagoon → cobalt, one smooth ramp
             vec3 water = mix(uShallow, uDeep, t);
             water *= clamp(1.0 + fn.x * 4.2 + fn.z * 2.6, 0.58, 1.48);  // facet grade: every triangle reads
-            water = mix(water, water * vec3(0.12, 0.3, 0.75), ${isStylized() ? 'uToonNight' : '0.0'});   // a moonlit sea is deep teal-blue, not lagoon cyan
+            water = mix(water, water * vec3(0.12, 0.3, 0.75), uToonNight);   // a moonlit sea is deep teal-blue, not lagoon cyan
             // ── foam (W2): 2–3 thin broken lace lines along the shore, rings round what stands in the water, caps out deep ──
             float n = vnoise(vOceanW.xz * 0.55 + uTime * 0.15);
             float d0 = shoreD + sin(uTime * 1.1 + dot(vOceanW.xz, vec2(0.07, 0.05))) * 0.3 - vCrest * 0.8;   // the line breathes with the swell

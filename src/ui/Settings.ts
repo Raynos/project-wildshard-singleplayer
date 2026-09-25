@@ -16,13 +16,15 @@
 //
 //
 // The OPTIONS (E55) — every player-facing toggle that used to be a query param, one lookup for all of them:
-//   setting('island')                  → the value THIS page runs with: the URL's param when present (the agents' screenshot
+//   setting('tier')                    → the value THIS page runs with: the URL's param when present (the agents' screenshot
 //                                        harnesses depend on it), else the saved pick, else the default
-//   savedSetting('island') / saveSetting('island', 'blender') / onSettingChange('matte', fn)
-//   BOOT_OPTIONS (renderer, island, quality tier, touch) are read once while the page loads: saving one changes only the
+//   savedSetting('tier') / saveSetting('tier', 'phone') / onSettingChange('time', fn)
+//   BOOT_OPTIONS (renderer, quality tier, touch) are read once while the page loads: saving one changes only the
 //   saved pick — main menu ▸ Settings (src/ui/BootSettings.ts) shows them with APPLY & RELOAD (settingsReloadUrl drops
 //   the overriding params so the reload builds the saved pick). The rest are LIVE (pause menu ▸ Settings, src/ui/Menu.ts):
-//   saving one changes setting() at once and notifies (main.ts hands it to HorizonMatte.setShown / DayNight.setTime).
+//   saving one changes setting() at once and notifies (main.ts hands it to DayNight.setTime).
+//   The Look Lab switches the user has picked a winner for are gone (E136: island, edge, lighting, sky, post, lut, matte):
+//   a value a player saved for one before is never read, and the next save drops it from localStorage.
 //
 // localStorage is wrapped in try/catch (iOS private mode throws on write) — the in-memory copy is the truth for the session.
 export type SettingKey = 'aimAssist' | 'tracers' | 'haptics' | 'autoLock' | 'huntersEye';
@@ -100,45 +102,24 @@ const sfxSet = new Choice<SfxSet>('sfxSet', SFX_SETS, 'best', (q) => q.get('sfx'
 // ── the OPTIONS (E55): the player-facing toggles that were query params — see the header ──
 export const OPTION_VALUES = {
   gpu: ['webgl', 'webgpu', 'webgpu-gl'],               // renderer (src/gpu/flag.ts) — experimental
-  island: ['procedural', 'blender'],                   // Driftwood's spawn cove (src/world/blenderArea.ts) — experimental
   tier: ['auto', 'phone', 'desktop'],                  // quality tier (src/core/tier.ts); auto = phone on a mobile UA
   touch: ['auto', 'on'],                               // on-screen controls (main.ts → TouchControls): auto = coarse pointer
-  matte: ['on', 'off'],                                // the painted horizon (src/world/HorizonMatte.ts) — locked on (E78): only ?matte=0 reads it
   time: ['live', 'midday', 'golden', 'sunset', 'night'], // the day / night clock (src/world/DayNight.ts) — live
-  lut: ['on', 'off'],                                  // the learned colour LUT (src/world/lut.ts, Game.buildComposer) — locked on (E85): only ?nolut reads it
-  // Look Lab (E65): the remaster's TASTE axes, each keeping the pre-remaster look selectable — the user picks, not us
-  lighting: ['toon', 'standard'],                      // Driftwood: the toon ramp (src/world/stylize.ts, L1) — locked in (E87, the user's pick); only ?lighting=standard reads it
-  sky: ['stylized', 'hdri'],                           // Driftwood: the gradient dome + faceted cumulus (L2) — locked in (E83, the user's pick); only ?sky=hdri reads it
-  post: ['clean', 'cinematic'],                        // Driftwood: the clean low-poly post (L5) — locked in (E88, the user's pick); only ?post=cinematic reads it
-  // the Nalati Look Lab (NALATI-MERGE L2, src/nalati/look/lab.ts): wave 6's picks are locked in (N20, the user: terrain
-  // shadows off, terrain AO off, model shading on, yurts procedural, camp people the image-to-3D models) and their switches gone
-  edge: ['off', 'on'],                                 // N23: the berm + spruce lines hiding the slab's edge (src/chunks/nalatiEdge.ts) — a second terrain bake, on the next load
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
 /** read once while the page loads: main menu ▸ Settings, APPLY & RELOAD. Every other option applies live (pause menu). */
-export const BOOT_OPTIONS: readonly OptionKey[] = ['gpu', 'island', 'tier', 'touch'];
-const onOff = (v: string | null): 'on' | 'off' | null => (v === null ? null : v === '0' || v === 'off' || v === 'false' ? 'off' : 'on');
+export const BOOT_OPTIONS: readonly OptionKey[] = ['gpu', 'tier', 'touch'];
 /** per option: the default, the URL params that override it (dropped by settingsReloadUrl) and how they read */
 const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly string[]; url: (q: URLSearchParams) => string | null } } = {
   gpu: { def: 'webgl', params: ['gpu'], url: (q) => { const v = q.get('gpu'); return v === null ? null : v === 'webgpu' || v === 'webgpu-gl' ? v : 'webgl'; } },
-  island: { def: 'blender', params: ['island'], url: (q) => q.get('island') },              // the user's pick for v0.2 (E7): the Blender cove by default
   tier: { def: 'auto', params: ['tier'], url: (q) => q.get('tier') },
   touch: { def: 'auto', params: ['touch'], url: (q) => (q.has('touch') ? 'on' : null) },               // ?touch (any value) forces them, as before
-  matte: { def: 'on', params: ['matte'], url: (q) => onOff(q.get('matte')) },                           // ?matte=0: the before / after captures
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
-  lut: { def: 'on', params: ['nolut'], url: (q) => (q.has('nolut') ? 'off' : null) },                   // ?nolut: the LUT fit's own captures (scripts/fit-lut.py)
-  lighting: { def: 'toon', params: ['lighting'], url: (q) => q.get('lighting') },
-  sky: { def: 'stylized', params: ['sky'], url: (q) => q.get('sky') },
-  post: { def: 'clean', params: ['post'], url: (q) => q.get('post') },
-  edge: { def: 'on', params: ['edge'], url: (q) => onOff(q.get('edge')) },                            // on by default: the user's pick after the N23 board ("Edge on", 2026-09-25); ?edge=0 = the old look
 };
-// Settings ▸ Graphics ▸ Island (X2) saved under its own key before E55: carried over once
-if (saved['island'] === undefined) { try { const legacy = localStorage.getItem('ws.island.v1'); if (legacy !== null) saved['island'] = legacy; } catch { /* private mode */ } }
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => new Choice<OptionValue<K>>(k, OPTION_VALUES[k], OPTION_SPECS[k].def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
-  gpu: option('gpu'), island: option('island'), tier: option('tier'), touch: option('touch'), matte: option('matte'), time: option('time'), lut: option('lut'),
-  lighting: option('lighting'), sky: option('sky'), post: option('post'), edge: option('edge'),
+  gpu: option('gpu'), tier: option('tier'), touch: option('touch'), time: option('time'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 
