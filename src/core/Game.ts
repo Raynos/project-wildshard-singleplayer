@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {
-  EffectComposer, RenderPass, EffectPass, BloomEffect, SMAAEffect, VignetteEffect, ToneMappingEffect,
+  EffectComposer, type RenderPass, EffectPass, BloomEffect, SMAAEffect, VignetteEffect, ToneMappingEffect,
   ToneMappingMode, BlendFunction, GodRaysEffect, LUT3DEffect, KernelSize, SMAAPreset, EdgeDetectionMode, ChromaticAberrationEffect, HueSaturationEffect, BrightnessContrastEffect, NoiseEffect,
 } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
@@ -21,6 +21,7 @@ import type { GpuPath } from '../gpu/GpuPath';
 import { installViewport, viewportHeight } from './viewport';
 import { FIXED_STEP } from './fixedStep';
 import { SHADOW_LAYER } from './shadowLayer';
+import { WorldRenderPass } from './worldDepth';
 
 /** the world's pace during a hit-stop (not 0: nothing downstream has to cope with a zero dt) */
 const HIT_STOP_SCALE = 0.04;
@@ -133,7 +134,9 @@ export class Game {
     const { atmosphere: A } = getActiveChunk();
     const { grade: G, look } = activeGrade(getActiveChunk()); // + the look loop's layer (PH-L1 / L4) unless ?grade=v1
     const composer = new EffectComposer(this.renderer, { frameBufferType: THREE.HalfFloatType, multisampling: 0 });
-    this.renderPass = new RenderPass(this.scene, this.camera);
+    // the scene pass keeps the world's depth for the depth readers below (AO, the volumetric march, the god rays' sun mask):
+    // the viewmodels' depth clear used to leave them the weapon alone (worldDepth.ts; `?aofix=0` = the old pass)
+    this.renderPass = new WorldRenderPass(this.scene, this.camera, composer);
     composer.addPass(this.renderPass);
 
     if (TIER_CONFIG.ao) {

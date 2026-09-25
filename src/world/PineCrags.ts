@@ -37,6 +37,7 @@ import type { TerrainCut } from '../physics/terrain';
 import { attachFogUniforms, volumetricFog } from './Atmosphere';
 import { loadPBR, type PBRSet } from '../core/assets';
 import { TIER } from '../core/tier';
+import { WORLD_DEPTH_FIX } from '../core/worldDepth';
 import { Rng } from '../core/rng';
 import { CHUNK_HALF, CHUNK_SIZE, TERRAIN_RES } from '../core/config';
 import type { Sky } from './Sky';
@@ -865,11 +866,12 @@ export class PineCrags {
     // the sun's corona sprite draws without a depth test (Sky.buildSunDisc): under the roof the disc goes, corona and all
     const [, lz] = caveLocal(p.x, p.z);
     const under = this.inCave(p.x, p.z) && p.y < (this.caveFloorAt(Math.min(36, Math.max(-4, lz))) ?? p.y) + 7;
-    // …and the volumetric march has no business in here either (it would integrate the height fog through the rock)
-    volumetricFog.scale = under ? 1 - ss(-1, 4, lz) : 1;
+    // …and, before the render fix (core/worldDepth.ts; `?aofix=0`), the volumetric march went too: through the viewmodel's
+    // depth clear it integrated 120 m of height fog through the rock. With the world's depth kept it stops at the rock.
+    volumetricFog.scale = under && !WORLD_DEPTH_FIX ? 1 - ss(-1, 4, lz) : 1;
     if (under !== this.under) {
       this.under = under;
-      sky.sunDisc.visible = !under; // the disc is also the god rays' source: through a cleared depth they shone through the rock
+      sky.sunDisc.visible = !under; // the corona has no depth test (and the disc is the god rays' source)
     }
     const near = Math.hypot(p.x - CAVE_FRAME.x, p.z - CAVE_FRAME.z) < 60;
     if (near !== this.caveNear) { this.caveNear = near; if (this.shaft) this.shaft.visible = near; if (this.drips) this.drips.visible = near; }
