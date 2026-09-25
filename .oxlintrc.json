@@ -3,6 +3,8 @@
   // deliberately switched off (one-line reason each) or configured. CI runs `pnpm run lint` (`oxlint`; type-aware via `options` below).
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["typescript", "unicorn", "oxc", "import", "promise"],
+  // Wildshard's own rules (lint/wildshard-plugin.js): wildshard/no-url-switch, on for src/ in `overrides` below.
+  "jsPlugins": ["./lint/wildshard-plugin.js"],
   "options": {
     "typeAware": true, // typescript/no-floating-promises, no-unsafe-*, prefer-nullish-coalescing, ... via oxlint-tsgolint (TS 7)
     "denyWarnings": true,
@@ -131,7 +133,7 @@
   "overrides": [
     {
       // Node-side tooling: build scripts, the Vite config and its plugin, and the Vercel functions in api/.
-      "files": ["scripts/**", "vite/**", "vite.config.ts", "vitest.config.ts", "api/**"],
+      "files": ["scripts/**", "vite/**", "vite.config.ts", "vitest.config.ts", "api/**", "lint/**"],
       "env": { "node": true },
       "rules": {
         "import/no-nodejs-modules": "off", // these run under node
@@ -139,9 +141,20 @@
       }
     },
     {
-      // Dev harness pages (dev/*.html → src/dev/*.ts): they log to the console on purpose.
+      "files": ["lint/**"],
+      "rules": { "import/no-default-export": "off" } // oxlint loads a JS plugin from its default export
+    },
+    {
+      // No URL switches, ever (Jake, 2026-09-25): the game reads only the query params on the fixed allowlist in
+      // lint/url-params.json; every variant goes in pause ▸ Settings ▸ Debug. See AGENTS.md "No URL switches".
+      "files": ["src/**"],
+      "rules": { "wildshard/no-url-switch": "error" }
+    },
+    {
+      // Dev harness pages (dev/*.html → src/dev/*.ts): they log to the console on purpose, and their query params are the
+      // page's own harness (not the game Jake plays), so no-url-switch is off here.
       "files": ["src/dev/**", "dev/**"],
-      "rules": { "eslint/no-console": "off" }
+      "rules": { "eslint/no-console": "off", "wildshard/no-url-switch": "off" }
     },
     {
       "files": ["vite.config.ts", "vitest.config.ts", "capacitor.config.ts"],

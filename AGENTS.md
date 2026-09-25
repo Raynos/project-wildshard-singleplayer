@@ -10,6 +10,23 @@
   start — relay them first. `docs/tasks/ASKS.md` is the legacy table (history up to 2026-09-22): don't
   add rows there; a legacy row that is still open moves to its own file under the same id.
 
+## No URL switches, ever (Jake, 2026-09-25)
+
+Jake plays the game as an iOS home-screen PWA. It has no address bar, so a `?foo=` switch is one he can never flip.
+
+- **Never add a query-string param** for a variant, a look, a tuning value or a feature toggle. Not "just for the
+  A/B", not "temporary".
+- **Every variant goes in pause ▸ Settings ▸ Debug.** Add an `OPTION_VALUES` / `OPTION_SPECS` row in
+  `src/ui/Settings.ts` with no URL override (`params: [], url: () => null`) and a row in its Debug card; `setting()` /
+  `.on()` read it. `src/ui/Menu.ts` hosts the pause menu. E156's ground-cover rows are the pattern to copy.
+- **The params the game may read are a fixed allowlist**, `lint/url-params.json`. `harness` is what the test, capture
+  and bench scripts pass to drive the game headless (tier, touch, chunk, spawn, skipintro, mute, …). Adding to it needs
+  Jake's explicit OK. `legacy` is the old switches, grandfathered until they move to the debug menu (ask E162): only
+  ever remove from it.
+- **The lint enforces it.** `wildshard/no-url-switch` (`lint/wildshard-plugin.js`, on for `src/` except the `src/dev/`
+  harness pages) refuses `.get` / `.has` / `.getAll` of any param not on the list, a param name it cannot read as a
+  string, and raw `location.search` parsing. Don't disable it; move the variant to the menu.
+
 ## Local models: music · SFX · 3D · mockups (read before you generate any asset)
 
 The game's music, sound effects and 3D models are generated **on this Mac** (M5 Max, 128 GB unified memory), not in
