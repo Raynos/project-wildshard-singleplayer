@@ -14,6 +14,9 @@ interface MarchUniforms {
   uNoise: Uniform<Texture>; uFrame: Uniform<number>;
 }
 
+/** the height fog's density the march integrates (× `volumetricFog.scale`) */
+const DENSITY = 0.0045;
+
 /** the march: GLSL shared by the in-place (full-res) effect and the half-res pre-pass */
 const MARCH = (steps: number) => /* glsl */`
   uniform mat4 uInvView; uniform mat4 uInvProj; uniform mat4 uViewProj;
@@ -99,7 +102,7 @@ export class VolumetricsEffect extends Effect {
       uFogColor: new Uniform(new Color(0.6, 0.65, 0.75)),
       uHeight: new Uniform(-8),
       uFalloff: new Uniform(0.12),
-      uDensity: new Uniform(0.0045),
+      uDensity: new Uniform(DENSITY),
       uStrength: new Uniform(0.55),
       uNoise: new Uniform(blueNoise),
       uFrame: new Uniform(0),
@@ -175,6 +178,7 @@ export class VolumetricsEffect extends Effect {
     u.uCamPos.value.copy(cam.position);
     u.uHeight.value = volumetricFog.height ?? fogUniforms.fogHeight.value;
     u.uFalloff.value = volumetricFog.falloff ?? fogUniforms.fogHeightFalloff.value;
+    u.uDensity.value = DENSITY * volumetricFog.scale;
     u.uFrame.value = (this.frame++ % 64);
     if (this.rt && this.marchMat && this.marchScene) {
       this.nearU.value = cam.near; this.farU.value = cam.far;

@@ -34,7 +34,7 @@ import {
 } from '../chunks/pineHollowLayout';
 import type { ColliderDesc } from './registry';
 import type { TerrainCut } from '../physics/terrain';
-import { attachFogUniforms } from './Atmosphere';
+import { attachFogUniforms, volumetricFog } from './Atmosphere';
 import { loadPBR, type PBRSet } from '../core/assets';
 import { TIER } from '../core/tier';
 import { Rng } from '../core/rng';
@@ -489,7 +489,7 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: PBRSet): THREE.MeshStandardM
         {
           // inside, the fill (the emissive term) is the cave's light
           // (the sky's own light has no business under the roof: there the fill carries it, the same from every side)
-          float amb = cAO * max( vCD.r, 0.012 ) * mix( 0.3, 1.0, vCD.g );
+          float amb = cAO * max( vCD.r, 0.012 ) * mix( 0.08, 1.0, vCD.g );
           reflectedLight.indirectDiffuse *= amb;
           reflectedLight.indirectSpecular *= amb * mix( 0.35, 1.0, vCD.g );
         }`);
@@ -558,6 +558,7 @@ export class PineCrags {
   private drips: THREE.Points | null = null;
   private dripState: Float32Array = new Float32Array(0);
   private caveNear = false;
+  private under = false;
   private skin: [THREE.BufferGeometry, THREE.BufferGeometry][] = [];
 
   private constructor(private sky: Sky | null, private kit: Map<string, THREE.BufferGeometry>, private caveGeo: Map<string, THREE.BufferGeometry>, private caveMeta: CaveMeta | null, private mat: THREE.Material | null) {
@@ -861,6 +862,15 @@ export class PineCrags {
     }
     const cave = this.cave;
     if (!cave) return;
+    // the sun's corona sprite draws without a depth test (Sky.buildSunDisc): under the roof the disc goes, corona and all
+    const [, lz] = caveLocal(p.x, p.z);
+    const under = this.inCave(p.x, p.z) && p.y < (this.caveFloorAt(Math.min(36, Math.max(-4, lz))) ?? p.y) + 7;
+    // …and the volumetric march has no business in here either (it would integrate the height fog through the rock)
+    volumetricFog.scale = under ? 1 - ss(-1, 4, lz) : 1;
+    if (under !== this.under) {
+      this.under = under;
+      sky.sunDisc.visible = !under; // the disc is also the god rays' source: through a cleared depth they shone through the rock
+    }
     const near = Math.hypot(p.x - CAVE_FRAME.x, p.z - CAVE_FRAME.z) < 60;
     if (near !== this.caveNear) { this.caveNear = near; if (this.shaft) this.shaft.visible = near; if (this.drips) this.drips.visible = near; }
     if (!near) return;

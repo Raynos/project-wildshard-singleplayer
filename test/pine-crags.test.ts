@@ -78,7 +78,7 @@ describe('the bear cave', () => {
 
   it('has its holes and cuts past the lip, its spots, drips and shaft inside', () => {
     expect(cave.holes.length).toBeGreaterThan(5);
-    expect(cave.cuts.length).toBe(cave.holes.length);
+    expect(cave.cuts.length).toBeGreaterThan(cave.holes.length); // the physics cut runs the whole cave, the drawn hole only the shallow part
     for (const h of cave.holes) { expect(h.lz - h.hd).toBeGreaterThan(1); expect(h.y1).toBeGreaterThan(h.y0 + 1.5); }
     expect(cave.drips.length).toBeGreaterThanOrEqual(4);
     expect(cave.shaft.top[1]).toBeGreaterThan(cave.shaft.foot[1] + 3);

@@ -500,8 +500,8 @@ def cave_light(ob, a):
     sx, sy, sz = SHAFT_FOOT
     d = np.hypot(lx - sx, lz - sz)
     bounce = 0.55 * np.exp(-np.clip(lz, 0, None) / 8.0)
-    pool = 0.42 * np.exp(-(d * d) / (2 * 2.6 * 2.6)) * np.clip(1.2 - (y - sy) / 6.0, 0.3, 1.0)
-    return np.clip(np.maximum.reduce([a, bounce, pool, np.full_like(a, 0.045)]), 0, 1)
+    pool = 0.5 * np.exp(-(d * d) / (2 * 3.6 * 3.6)) * np.clip(1.2 - (y - sy) / 6.0, 0.3, 1.0)
+    return np.clip(np.maximum.reduce([a, bounce, pool, np.full_like(a, 0.06)]), 0, 1)
 
 
 SHAFT_FOOT = (CHIMNEY['lx'] + 0.7, floor_at(CHIMNEY['lz'] + 0.6), CHIMNEY['lz'] + 0.6)
@@ -521,17 +521,21 @@ cv = R.vertex_array(cav)
 clz, clx, cy = -cv[:, 1], cv[:, 0], cv[:, 2]
 holes, cuts = [], []
 lz = -4.0
-while lz < 19.0:
+while lz < 37.0:
     sel = (clz >= lz) & (clz < lz + 1)
     if sel.any():
         x0, x1, ytop = float(clx[sel].min()), float(clx[sel].max()), float(cy[sel].max())
         f = floor_at(lz + 0.5)
+        box = {'lx': (x0 + x1) / 2, 'lz': lz + 0.5, 'hw': (x1 - x0) / 2 + 0.35, 'hd': 0.5 + 0.35, 'y0': f - 0.15, 'y1': ytop + 0.35}
+        # the drawn ground is punched only where it runs through the passage; nearer the mouth it lies under the floor,
+        # and a hole there would open past the hood's front
         gmax = max(ground(x, z) for x in np.linspace(x0 - 2, x1 + 2, 9) for z in (lz - 1, lz + 0.5, lz + 2))
-        if gmax > f - 0.2:
-            box = {'lx': (x0 + x1) / 2, 'lz': lz + 0.5, 'hw': (x1 - x0) / 2 + 0.35, 'hd': 0.5 + 0.35, 'y0': f - 0.15, 'y1': ytop + 0.35}
-            if lz >= 2.0:   # nearer the mouth the ground is under the floor, and a hole there would open past the hood's front
-                holes.append(box)
-                cuts.append({'lx': box['lx'], 'lz': box['lz'], 'hw': box['hw'] + 0.4, 'hd': 0.55, 'below': f - 1.0})
+        if 2.0 <= lz < 19.0 and gmax > f - 0.2:
+            holes.append(box)
+        # the physics heightfield goes under the floor along the whole cave: Rapier's heightfield is solid below its
+        # surface, so the room 25 m under the slope needs it gone too (the ground up there comes back as a trimesh)
+        if lz >= 2.0:
+            cuts.append({'lx': box['lx'], 'lz': box['lz'], 'hw': box['hw'] + 0.4, 'hd': 0.55, 'below': f - 1.0})
     lz += 1.0
 spots = [{'lx': sect(z)[0], 'lz': z, 'r': 2.2} for z in (4.0, 8.0, 12.0, 16.0, 20.0)] + [{'lx': r[1], 'lz': r[0], 'r': min(r[2], r[3]) + 0.5} for r in ROOM]
 # the footprint: the cavity's outline in the frame (a convex hull of lx, lz of its interior past the lip)

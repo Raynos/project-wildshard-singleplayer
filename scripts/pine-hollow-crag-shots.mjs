@@ -28,10 +28,18 @@ const SPOTS = [
   { id: 'lookout-ne', x: 36.47, z: 216.86, yaw: 2.2, pitch: -0.12, y: 57.46 },
   { id: 'lookout-e', x: 35.2, z: 214.5, yaw: 1.75, pitch: -0.2, y: 57.46 },
   { id: 'lookout-w', x: 37.5, z: 214.5, yaw: 4.5, pitch: -0.2, y: 57.46 },
+  // the east catwalk: along the Ridge east of the pass (E), and down its face toward the Hollow (SE)
+  { id: 'deck-e', x: 33.2, z: 214.4, yaw: 1.3, pitch: -0.3, y: 57.46 },
+  { id: 'deck-ne', x: 33.6, z: 215.6, yaw: 2.2, pitch: -0.18, y: 57.46 },
+  { id: 'deck-se', x: 33.4, z: 213.2, yaw: 0.9, pitch: -0.3, y: 57.46 },
   // the Ridge from the Hollow: the N road below the pass, and the pond's west shore toward the waterfall
   { id: 'hollow-n', x: 4, z: 96, yaw: Math.PI, pitch: 0.2 },
   { id: 'pond-n', x: -62, z: 112, yaw: 3.7, pitch: 0.16 },
   { id: 'ridge-foot', x: 70, z: 165, yaw: 2.9, pitch: 0.3 },
+  // the Ridge from the Hollow: the zipline landing's clearing, the pond spur's end looking N at the face
+  { id: 'hollow-zip', x: 8, z: 24, yaw: 3.0, pitch: 0.12 },
+  { id: 'hollow-ne', x: -30, z: 86, yaw: 3.5, pitch: 0.2 },
+  { id: 'hollow-nw', x: 60, z: 110, yaw: 2.8, pitch: 0.22 },
   // the Den: its bowl toward the cave mouth
   { id: 'den', x: 184, z: 180, yaw: 3.93, pitch: 0.08 },
   // inside the cave (its frame: the mouth at (200, 200), local +z into the rock, `cave(lx, lz, lookLx, lookLz, y, pitch)`)
@@ -41,6 +49,7 @@ const SPOTS = [
   cave('cave-room', 0.4, 20.5, 1.5, 30, 8.5, -0.05),
   cave('cave-bed', -2.5, 24.5, 3.9, 31, 8.05, -0.18),
   cave('cave-out', 0.2, 19, -1.0, 6, 8.5, 0.05),
+  cave('cave-shaft', 2.4, 21.2, -2.0, 26.5, 8.3, -0.12),
 ].filter((s) => only.length === 0 || only.includes(s.id));
 
 /** a spot in the cave's frame (PineCrags.caveWorld: yaw π/4 about the mouth (200, 200)): stand at (lx, lz), look at (tx, tz) */
@@ -70,9 +79,12 @@ try {
       await page.waitForFunction(() => Boolean(window.__world?.animals), undefined, { timeout: 300000, polling: 1000 });
     } catch (e) { console.error(`[${tod}] never ready: ${errors.join(' | ')}`); throw e; }
     await page.evaluate(() => { window.__world.animals.calm = true; });
+    // --clearden: the Den's bears (Old Blackpaw waits in the cave mouth) walked off 60 m for the cave's frames
+    const clearDen = argv.includes('--clearden');
     await page.addStyleTag({ content: '#hud,#hud *,.touch-controls,.touch-controls *{display:none!important}' });
     await sleep(SETTLE * 2);
     for (const s of SPOTS) {
+      if (clearDen) await page.evaluate(() => { for (const a of window.__world.animals.animals) if (Math.hypot(a.position.x - 195, a.position.z - 195) < 40) a.position.set(150, a.position.y, 140); });
       await page.evaluate((p) => {
         const w = window.__world; w.freeCamera = false; w.player.spawn(p.x, p.z, p.yaw); w.player.pitch = p.pitch;
         if (p.y !== undefined) w.player.position.y = p.y;

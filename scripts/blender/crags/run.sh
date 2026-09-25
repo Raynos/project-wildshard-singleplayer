@@ -14,7 +14,7 @@ BUILD="${BLENDER_CACHE:-$HOME/.cache/wildshard-blender}/pine-hollow-crags"
 DEST=public/assets/models/pine-hollow-crags
 LOCK="$HOME/projects/localai/.model.lock"
 mkdir -p "$BUILD" "$DEST"
-blend() { lockf -k "$LOCK" "$BLENDER" -b --factory-startup -P "$@" 2>&1 | grep -E '^\[(crags|cave)|Error|Traceback|  File|Exception' || true; }
+blend() { PYTHONDONTWRITEBYTECODE=1 lockf -k "$LOCK" "$BLENDER" -b --factory-startup -P "$@" 2>&1 | grep -E '^\[(crags|cave)|Error|Traceback|  File|Exception' || true; }
 
 if [ "$WHAT" = kit ] || [ "$WHAT" = all ]; then
   blend scripts/blender/crags/build_crags.py -- "$BUILD" "$@"

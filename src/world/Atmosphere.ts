@@ -40,7 +40,9 @@ let pineWeather = false;
  * fog. Pine Hollow's dawn fog (PH-L10) lifts the geometry fog's floor into the bowl, which the march — tuned for a thin
  * haze — would turn into a white-out; the weather keeps the march on the clear-sky floor.
  */
-export const volumetricFog: { height: number | null; falloff: number | null } = { height: null, falloff: null };
+export const volumetricFog: { height: number | null; falloff: number | null; scale: number } = { height: null, falloff: null, scale: 1 };
+// `scale` × the march's density: 0 under a roof the march cannot see (PH-B2's bear cave — the viewmodel's depth clear leaves
+// the march 120 m of height fog through the rock: a white wash on the cave floor)
 
 let installed = false;
 export function installAtmosphere(): void {
