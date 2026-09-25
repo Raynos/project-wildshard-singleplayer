@@ -92,6 +92,7 @@ Blender, image-to-3D, LUT fit, horizon painting, wind, rig bake), never their sh
 | PH-U28 | **Water = A, the new pond** (2026-09-25, `art/pine-hollow/round-7-water/board.jpg`): the sky + skyline probe, no second scene render; `?pond=planar` keeps the before. |
 | PH-U29 | **Horizon = A, the painted 360° far country** (2026-09-25, `art/pine-hollow/round-10-horizon/board.jpg`), day + night; `?horizon=rings` keeps the 17 Sep rings for captures. |
 | PH-U30 | **Weather = A, dawn fog + rain showers** (2026-09-25, `art/pine-hollow/round-11-weather/board.jpg`); `?weather=clear` keeps the before for captures. |
+| PH-U31 | **Crags + cave = A, keep** (2026-09-25, `art/pine-hollow/round-13-crags-cave/board.jpg`): the granite face skin + crag kit + the bear cave; `?crags=v1` keeps the smooth slopes for captures. |
 
 **Boards Jake asked to see before the layout and the models are built.** Each is one portrait decision board, A / B / C / D,
 in `art/pine-hollow/round-<n>-<label>/board.jpg`:
