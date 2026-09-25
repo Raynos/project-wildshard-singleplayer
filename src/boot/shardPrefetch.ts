@@ -37,6 +37,8 @@ import { BIRDS_JSON_URL, BIRDS_URL } from '../pinehollow/life/birdModels';
 import { NPC_KINDS, npcModelUrl } from '../pinehollow/quest/npcModels';
 import { JOURNAL_SKIN } from '../ui/compendium/shards/pine-hollow';
 import { PERSON_FILE, peopleModelUrl, type PersonKey } from '../nalati/campPeopleModels';
+import { blenderModelsBase } from '../world/blenderArea';
+import { CAPTAIN_GLB_URL } from '../entities/species/captainMesh';
 
 /** files in flight at once: the worker's fetches share the pipe with anything the game still asks for */
 const CONCURRENCY = 2;
@@ -56,8 +58,8 @@ export function shardBootRequests(def: ChunkDef): string[] {
 
 /**
  * The files a shard reads at boot WITHOUT declaring them to the loading bar — fetched by the world as it comes up (the
- * shard's colour LUT, its painted horizon, Pine Hollow's rifle / knife / birds / NPCs / trophy-wall chalk, Nalati's camp
- * people). Not in `bootFiles` (plan.done() would wait on them), so the bench found them: the first switch still
+ * shard's colour LUT, its painted horizon, Driftwood's Blender island + the captain, Pine Hollow's rifle / knife / birds /
+ * NPCs / trophy-wall chalk, Nalati's camp people). Not in `bootFiles` (plan.done() would wait on them), so the bench found them: the first switch still
  * downloaded ~1–4 MB of them. Each name comes from the module that loads it; a file the build does not ship is left out.
  */
 export function lateReads(def: ChunkDef): string[] {
@@ -66,6 +68,10 @@ export function lateReads(def: ChunkDef): string[] {
   if (lut !== null) out.push(lut);
   const strips = horizonStrips(def.slug);
   if (strips) { const s = TIER === 'phone' && strips.phone ? strips.phone : strips; out.push(s.day, s.night); }
+  if (def.ocean !== undefined) { // the Blender-built island (main.ts: every open-water shard installs it) and the finale's captain
+    const base = blenderModelsBase('driftwood-isle'), lm = TIER === 'phone' ? '.phone.webp' : '.webp';
+    out.push(tierUrl(`${base}island.glb`), `${base}island.json`, `${base}placements.bin`, `${base}lm-ao${lm}`, `${base}lm-bounce${lm}`, tierUrl(CAPTAIN_GLB_URL));
+  }
   if (def.slug === 'pine-hollow') {
     out.push(tierUrl(LEVER_MODEL_URL), tierUrl(KNIFE_MODEL_URL), tierUrl(BIRDS_URL), BIRDS_JSON_URL, ...NPC_KINDS.map((k) => npcModelUrl(k)));
     if (JOURNAL_SKIN.chalk) out.push(JOURNAL_SKIN.chalk.atlas);

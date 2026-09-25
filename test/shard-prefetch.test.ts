@@ -81,7 +81,7 @@ describe('lateReads and the ?v= URLs (E160)', () => {
       for (const def of CHUNKS) {
         const late = sp.lateReads(def);
         for (const u of late) expect(new URL(u, 'http://x').pathname in PUBLIC_BYTES, `${def.slug} ${u}`).toBe(true);
-        if (def.slug !== 'driftwood-isle') expect(late.length, `${def.slug} (${tier})`).toBeGreaterThan(3);
+        expect(late.length, `${def.slug} (${tier})`).toBeGreaterThan(3);
       }
     }
   });

@@ -17,7 +17,8 @@ import type { BoneDef } from './registry';
  * on the rig's material (AnimalSpecies.map); the vertex colours are white so it shows true. Null until the load finishes
  * (or if it fails): buildCaptain then builds the loft stand-in, so the fight never waits on the file.
  */
-const URL_GLB = '/assets/models/driftwood-hero/captain/captain.glb';
+export const CAPTAIN_GLB_URL = '/assets/models/driftwood-hero/captain/captain.glb';
+const URL_GLB = CAPTAIN_GLB_URL;
 const HEIGHT = 1.9;
 /** metres from the centre line below which a vertex under the shoulders never rides an arm bone (the coat skirt) */
 const ARM_MIN_X = 0.36;
