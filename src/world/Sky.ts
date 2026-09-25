@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { TIER_CONFIG } from '../core/tier';
 import { CSM } from 'three/examples/jsm/csm/CSM.js';
-import { installCascadeCull } from './cascadeCull';
+import { cullToSlice, installCascadeCull } from './cascadeCull';
 import { loadHDR } from '../core/assets';
 import { fogUniforms, isUnderwater, paintedAir, patchCloudShadows, isPaintedAir } from './Atmosphere';
 import { buildPainterlyClouds, skyLayerUniforms, type SkyLayerUniforms } from './PainterlySky';
@@ -135,7 +135,10 @@ export class Sky {
     patchCSMShaderChunk();
     // E147: the low-poly shard's clock steps the sun's shadow; each step crossfades over `?sunfade=` s (0 = pops, as before)
     const fadeS = qn('sunfade', SUN_FADE_S);
-    if (this.stylized && fadeS > 0 && installShadowFadeChunk()) this.shadowFade = new ShadowFade(this.csm, this.camera, this.scene, fadeS);
+    if (this.stylized && fadeS > 0 && installShadowFadeChunk()) {
+      this.shadowFade = new ShadowFade(this.csm, this.camera, this.scene, fadeS);
+      for (const [i, g] of this.shadowFade.ghosts.entries()) cullToSlice(this.csm, this.camera, g.shadow, i); // E153: a ghost draws only its cascade's casters
+    }
     if (getActiveChunk().slug === 'pine-hollow') patchPointLightSkip(); // E142: a far / dark point light skips its BRDF (pointLightSkip.ts)
     patchCloudShadows(); // painterly shards: the drifting cloud shadows in the sun loop (a no-op elsewhere)
     // the stylized shard's low sun (golden hour, dawn) grazes the flat decks: more normal bias or the planks speckle with acne
@@ -357,6 +360,16 @@ export class Sky {
       const texel = (l.shadow.camera.right - l.shadow.camera.left) / l.shadow.mapSize.x;
       if (Number.isFinite(texel) && texel > 0) l.shadow.normalBias = Math.min(0.14, 0.76 * texel);
     }
+  }
+
+  /**
+   * E153: place every shadow for the camera as it is now and draw them at the next render — the cascades, their texel
+   * bias and the fade's ghosts (Game.warmTurn: the boot draws the world once facing each way).
+   */
+  warmShadows(): void {
+    this.csm.update();
+    if (this.texelBias) this.fitNormalBias();
+    this.shadowFade?.warm();
   }
 
   update(dt = 0): void {

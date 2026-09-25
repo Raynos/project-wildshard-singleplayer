@@ -86,29 +86,37 @@ function hull(pts: [number, number][]): number[] {
  * every later change of the camera, the breaks and the light direction by itself (it reads them each frame).
  */
 export function installCascadeCull(csm: CSM, camera: THREE.PerspectiveCamera): void {
+  for (const [i, light] of csm.lights.entries()) cullToSlice(csm, camera, light.shadow, i);
+}
+
+/**
+ * Cull `shadow`'s casters to cascade `i`'s slice footprint, seen from `shadow`'s own camera. A cascade's own shadow, or
+ * (E153) the sun fade's ghost of that cascade (shadowFade.ts): the ghost draws the same slice from the old sun direction,
+ * and without this it drew every caster in its whole ortho box — +34 draws and +0.66 M triangles a frame on the phone
+ * rig, on ~3 frames in 4 (a fade runs most of the time), where its cascades drew a fraction of that.
+ */
+export function cullToSlice(csm: CSM, camera: THREE.PerspectiveCamera, shadow: THREE.DirectionalLightShadow, i: number): void {
   const corners = Array.from({ length: 8 }, () => new THREE.Vector3());
-  for (const [i, light] of csm.lights.entries()) {
-    const shadow = light.shadow, box = shadow.getFrustum(), cull = new CascadeFrustum();
-    shadow.getFrustum = (): THREE.Frustum => {
-      const slice = csm.frustums[i];
-      if (slice === undefined) return box;
-      const last = i === csm.lights.length - 1;
-      const span = Math.min(camera.far, csm.maxFar) - camera.near;
-      // the slice's depths (CSMFrustum.split: break · far) widened by the fade band, in camera-space distance along −z
-      const x = i === 0 ? 0 : csm.breaks[i - 1] ?? 0, y = csm.breaks[i] ?? 1;
-      const d0 = i === 0 ? camera.near : Math.max(camera.near, (x - (csm.fade ? 0.125 * x * x : 0)) * span * 0.98);
-      const d1 = last ? camera.far : (y + (csm.fade ? 0.125 * y * y : 0)) * span * 1.02;
-      for (let j = 0; j < 4; j++) {
-        const n = slice.vertices.near[j], f = slice.vertices.far[j], cn = corners[j], cf = corners[j + 4];
-        if (n === undefined || f === undefined || cn === undefined || cf === undefined) return box;
-        // along each corner ray: a view-space point at depth d is the ray's point scaled by d / −z
-        cn.copy(n).multiplyScalar(d0 / -n.z).applyMatrix4(camera.matrixWorld);
-        cf.copy(f).multiplyScalar(d1 / -f.z).applyMatrix4(camera.matrixWorld);
-      }
-      const cam = shadow.camera;
-      const texel = (cam.right - cam.left) / Math.max(1, shadow.mapSize.x);
-      cull.refresh(box, cam, corners, 0.5 + shadow.normalBias + (shadow.radius + 2) * texel);
-      return cull;
-    };
-  }
+  const box = shadow.getFrustum(), cull = new CascadeFrustum();
+  shadow.getFrustum = (): THREE.Frustum => {
+    const slice = csm.frustums[i];
+    if (slice === undefined) return box;
+    const last = i === csm.lights.length - 1;
+    const span = Math.min(camera.far, csm.maxFar) - camera.near;
+    // the slice's depths (CSMFrustum.split: break · far) widened by the fade band, in camera-space distance along −z
+    const x = i === 0 ? 0 : csm.breaks[i - 1] ?? 0, y = csm.breaks[i] ?? 1;
+    const d0 = i === 0 ? camera.near : Math.max(camera.near, (x - (csm.fade ? 0.125 * x * x : 0)) * span * 0.98);
+    const d1 = last ? camera.far : (y + (csm.fade ? 0.125 * y * y : 0)) * span * 1.02;
+    for (let j = 0; j < 4; j++) {
+      const n = slice.vertices.near[j], f = slice.vertices.far[j], cn = corners[j], cf = corners[j + 4];
+      if (n === undefined || f === undefined || cn === undefined || cf === undefined) return box;
+      // along each corner ray: a view-space point at depth d is the ray's point scaled by d / −z
+      cn.copy(n).multiplyScalar(d0 / -n.z).applyMatrix4(camera.matrixWorld);
+      cf.copy(f).multiplyScalar(d1 / -f.z).applyMatrix4(camera.matrixWorld);
+    }
+    const cam = shadow.camera;
+    const texel = (cam.right - cam.left) / Math.max(1, shadow.mapSize.x);
+    cull.refresh(box, cam, corners, 0.5 + shadow.normalBias + (shadow.radius + 2) * texel);
+    return cull;
+  };
 }

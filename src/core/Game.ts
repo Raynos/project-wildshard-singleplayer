@@ -30,6 +30,8 @@ const HIT_STOP_SCALE = 0.04;
 /** the frame cap's tolerance for vsync timestamp jitter (see Game.start) */
 const FRAME_CAP_SLACK_MS = 4;
 const MAX_FIXED_STEPS = 3; // per frame; past it the backlog is dropped (a stall never replays as a burst)
+/** E153: the boot's warm-up draws of the world, one per quarter-turn (Game.warmTurn) */
+const WARM_TURNS = 4;
 /** the three slots of one fixed step, in order: `pre` readies the world, `step` advances it, `post` moves against it */
 export type FixedPhase = 'pre' | 'step' | 'post';
 
@@ -342,7 +344,7 @@ export class Game {
   async firstFrame(onProgress?: (done: number, total: number, detail: string) => void): Promise<void> {
     if (this.gpu) { await this.gpu.firstFrame(onProgress); return; }
     const frame = (): Promise<void> => new Promise((resolve) => { requestAnimationFrame(() => { setTimeout(resolve, 0); }); }); // rAF alone resumes before the paint
-    onProgress?.(0, 2, 'world + shadows');
+    onProgress?.(0, WARM_TURNS + 2, 'world + shadows');
     await frame();
     // into the composer's input buffer, not the canvas: the canvas target would be a second set of program variants
     const target = (this.composer as unknown as { inputBuffer?: THREE.WebGLRenderTarget }).inputBuffer ?? null;
@@ -353,12 +355,48 @@ export class Game {
     this.renderer.setRenderTarget(prev);
     if (before) perfLog('firstFrame:world', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | '));
     await frame();
-    onProgress?.(1, 2, 'post chain');
+    // E153: the world once facing each way, so a turn finds every pipeline built (warmTurn)
+    for (let k = 1; k <= WARM_TURNS; k++) {
+      onProgress?.(k, WARM_TURNS + 2, `world, turned ${String(k * 360 / WARM_TURNS)}°`);
+      t0 = performance.now(); before = PERFLOAD ? snapshotPrograms(this.renderer) : null;
+      this.warmTurn(k, target);
+      if (before) perfLog(`firstFrame:turn${String(k)}`, performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | '));
+      await frame();
+    }
+    onProgress?.(WARM_TURNS + 1, WARM_TURNS + 2, 'post chain');
     t0 = performance.now(); before = PERFLOAD ? snapshotPrograms(this.renderer) : null;
     this.composer.render(0.016);
     if (before) perfLog('firstFrame:post', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | '));
     await frame();
     if (PERFLOAD) { t0 = performance.now(); before = snapshotPrograms(this.renderer); this.composer.render(0.016); perfLog('secondFrame', performance.now() - t0, this.renderer, newProgramsSince(this.renderer, before).map(describeProgram).join(' | ')); console.info(`[perfload] programs:\n${dumpPrograms(this.renderer).join('\n')}`); }
+  }
+
+  /**
+   * E153: one draw of the world turned `k` quarter-turns from where the player looks, through a 100° square view, with the
+   * shadows placed for that view. The precompile links every program, but the GPU builds a program's pipeline for each
+   * target, blend state and vertex layout only at its first draw (Metal: ANGLE's render-pipeline states, WebKit / iOS
+   * build them on the draw). The boot's one frame drew only what faces the spawn, so turning around built the rest in
+   * play — the waterfall behind the pier, a caster's depth variant in a cascade: 25–35 ms hitches on the M5 with a cold
+   * shader cache, several times that on a phone. Four quarter-turns at 100° cover the circle.
+   */
+  private warmTurn(k: number, target: THREE.WebGLRenderTarget | null): void {
+    const cam = this.camera, sky = this._sky, r = this.renderer;
+    const q = cam.quaternion.clone(), fov = cam.fov, aspect = cam.aspect;
+    const yaw = new THREE.Euler().setFromQuaternion(q, 'YXZ').y;
+    const prev = r.getRenderTarget();
+    try {
+      cam.fov = 100; cam.aspect = 1; cam.updateProjectionMatrix(); sky?.csm.updateFrustums();
+      cam.quaternion.setFromEuler(new THREE.Euler(0, yaw + k * Math.PI * 2 / WARM_TURNS, 0, 'YXZ'));
+      cam.updateMatrixWorld(true);
+      sky?.warmShadows();
+      r.setRenderTarget(target);
+      r.render(this.scene, cam);
+    } finally {
+      r.setRenderTarget(prev);
+      cam.quaternion.copy(q); cam.fov = fov; cam.aspect = aspect; cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
+      sky?.csm.updateFrustums();
+      sky?.warmShadows();
+    }
   }
 
   resize(): void {

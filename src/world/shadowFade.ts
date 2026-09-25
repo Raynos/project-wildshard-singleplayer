@@ -83,6 +83,12 @@ export class ShadowFade {
       g.shadow.mapSize.copy(src.shadow.mapSize);
       g.shadow.bias = src.shadow.bias;
       g.shadow.autoUpdate = false;
+      // E153: draw the map once at the first shadow pass (the boot's firstFrame). three allocates a light's map only when
+      // it renders, and until then every lit program's ghost sampler (sampler2DShadow) is bound to the RGBA empty texture:
+      // GL_INVALID_OPERATION, the draw is dropped. So the world's lit draws were all invalid until the first sun step
+      // (~2 s into play), and that step's frame built every lit Metal pipeline at once: a 1.6–1.9 s freeze on a cold
+      // shader cache on the M5 (WebKit), the "huge lag" of a first load on the phone.
+      g.shadow.needsUpdate = true;
       parent.add(g, g.target);
       this.ghosts.push(g);
     }
@@ -92,6 +98,18 @@ export class ShadowFade {
 
   /** a fade is running: the clock holds its next step */
   get busy(): boolean { return this.t < 1; }
+
+  /**
+   * E153: the boot's warm-up (Sky.warmShadows): settle on the CSM's direction and draw each ghost's map on its cascade's
+   * square at the next render, so the casters' depth draws into the ghost maps are built before play, not at the first
+   * sun step. Only while no fade runs (the boot never has one).
+   */
+  warm(): void {
+    if (this.busy) return;
+    this.last.copy(this.csm.lightDirection);
+    this.from.copy(this.csm.lightDirection);
+    this.ghosts.forEach((g, i) => { this.place(g, i); g.shadow.needsUpdate = true; });
+  }
 
   /** after csm.update(): notice a step, advance the fade, and place the ghosts' shadows while it runs */
   update(dt: number): void {
