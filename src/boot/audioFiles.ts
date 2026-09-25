@@ -58,14 +58,23 @@ export const shardSfxSets = (slug: string): string[] => (slug === PINE && Object
 /** a base style's slots this shard never plays (Pine Hollow: Driftwood's 'island') */
 const unplayed = (slug: string): readonly string[] => (slug === PINE ? ['island'] : []);
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-/** the files of `m`'s beds / hums / one-shots tagged for another shard (`shard: 'nalati'`), which `slug` never plays */
+/**
+ * Driftwood's own sounds in the one shared set, untagged: its creatures (crabs, monkeys, the drowned sailors), the coconuts, the
+ * gulls, the shrine's hum and the island bed. Pine Hollow has none of them (PH-P3, 2026-09-25: ~0.45 MiB and 16 requests of
+ * its phone bar); src/audio/preload.ts leaves them undecoded there too, so nothing asks for them after the bar.
+ */
+export const DRIFTWOOD_SOUNDS: Readonly<Record<'beds' | 'hums' | 'oneshots', readonly string[]>> = {
+  beds: ['island'], hums: ['shrine'],
+  oneshots: ['crab_click', 'crab_snap', 'monkey_chatter', 'monkey_shriek', 'sailor_groan', 'sailor_slash', 'coconut_hit', 'coconut_land', 'gull'],
+};
+/** the files of `m`'s beds / hums / one-shots tagged for another shard (`shard: 'nalati'`) or Driftwood's own, which `slug` never plays */
 function otherShardFiles(m: unknown, slug: string): Set<string> {
   const out = new Set<string>();
   if (slug !== PINE || !isObj(m)) return out;
-  for (const sec of ['beds', 'hums', 'oneshots']) {
+  for (const sec of ['beds', 'hums', 'oneshots'] as const) {
     const entries = m[sec];
     if (!isObj(entries)) continue;
-    for (const v of Object.values(entries)) if (isObj(v) && typeof v['shard'] === 'string') for (const f of manifestFiles(v)) out.add(f);
+    for (const [k, v] of Object.entries(entries)) if ((isObj(v) && typeof v['shard'] === 'string') || DRIFTWOOD_SOUNDS[sec].includes(k)) for (const f of manifestFiles(v)) out.add(f);
   }
   return out;
 }

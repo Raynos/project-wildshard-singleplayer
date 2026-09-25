@@ -17,7 +17,7 @@
 import type { AmbientBed, LoopName, SampleLoop, SteppeLoop } from './Audio';
 import { SFX_MANIFESTS } from '../boot/audio.generated';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
-import { sfxDir } from '../boot/audioFiles';
+import { sfxDir, DRIFTWOOD_SOUNDS } from '../boot/audioFiles';
 
 export const DECODE_RATE = 48000;
 let offline: OfflineAudioContext | undefined;
@@ -90,12 +90,14 @@ function sfxJobs(set: string, bed: AmbientBed): Job[] {
   };
   const beds = isObj(j['beds']) ? j['beds'] : {}, hums = isObj(j['hums']) ? j['hums'] : {}, shots = isObj(j['oneshots']) ? j['oneshots'] : {};
   // this shard's bed first (never the other shard's: a shard change reloads the page), then the rest
-  loop(bed, beds[bed]); loop('underwater', beds['underwater']); loop('pickup', hums['pickup']); loop('shrine', hums['shrine']);
+  // Pine Hollow (the 'forest' bed) has none of Driftwood's own sounds (DRIFTWOOD_SOUNDS: its creatures, the gulls, the shrine's hum)
+  const drift = bed === 'forest';
+  loop(bed, beds[bed]); loop('underwater', beds['underwater']); loop('pickup', hums['pickup']); if (!drift) loop('shrine', hums['shrine']);
   // a sound tagged `shard: 'nalati'` (NALATI-MERGE A1: the one set carries Nalati's sounds) is decoded only on the steppe
   const mine = (v: unknown): boolean => !isObj(v) || v['shard'] !== 'nalati' || bed === 'steppe';
   if (bed === 'steppe') for (const k of STEPPE_LOOPS) loop(k, beds[k]);
   for (const [family, v] of Object.entries(shots)) {
-    if (!mine(v)) continue;
+    if (!mine(v) || (drift && DRIFTWOOD_SOUNDS.oneshots.includes(family))) continue;
     const files = Array.isArray(v) ? v : isObj(v) && Array.isArray(v['files']) ? v['files'] : [];
     const gain = isObj(v) ? num(v['gain'], 1) : 1;
     for (const f of files) {

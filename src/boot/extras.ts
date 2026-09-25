@@ -38,6 +38,7 @@ import { decodeSteppe, steppeBootFiles, steppeFiles, type SteppeBank } from '../
 import { getMusicStyle, getSfxSet } from '../ui/Settings';
 import { CHUNKS, getActiveChunk } from '../chunks/registry';
 import { PLACEHOLDERS } from '../chunks/placeholders';
+import { TIER } from '../core/tier';
 
 /** source path (`../chunks/thumbs/x.jpg`, relative to this file) → the bundle's URL for it */
 const ART_URLS = import.meta.glob<string>(['../chunks/thumbs/*.{jpg,jpeg,png,webp}', '../explore/img/*.{jpg,jpeg,png,webp}'], { eager: true, query: '?url', import: 'default' });
@@ -51,6 +52,9 @@ function artFor(def: ChunkDef): { urls: string[]; bytes: Record<string, number> 
   for (const [key, url] of Object.entries(ART_URLS)) {
     if (url.startsWith('data:')) continue; // inlined into the bundle: nothing to fetch
     if (key.startsWith('../explore/') && def.ocean === undefined) continue; // EXPLORE WORLD is Driftwood's (project/archive/2026-09-23-explore-world.md D4)
+    // the phone tier is portrait-only (RotateGate, E38): another shard's landscape hero is never on screen there — the deck
+    // shows portraits, and the Explore hub only this shard's own landscape (PH-P3, 2026-09-25: 0.57 MiB of Pine Hollow's phone bar)
+    if (TIER === 'phone' && /^\.\.\/chunks\/thumbs\/.+-landscape\.\w+$/.test(key) && !key.includes(`/${def.slug}-landscape.`)) continue;
     const size = ART_BYTES[`src/${key.slice(3)}`];
     if (size === undefined) continue;
     const p = pathOf(url);
