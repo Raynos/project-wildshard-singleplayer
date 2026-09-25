@@ -744,7 +744,7 @@ async function main() {
     nalati?.update(dt, t);
     // swimming holsters the weapon (hands only; Hands.ts follows)
     if (player.swimming !== swimHold) { swimHold = player.swimming; weapons.visible = !swimHold; weapons.setEnabled(!swimHold); }
-    animals.update(dt, t, player.position, player.sprinting);
+    animals.update(dt, t, player.position, player.sprinting, viewer()); // drawn by distance to the viewer (Explore's free camera), AI by the player (E125)
     if (painterly) { aimList.length = 0; for (const a of animals.animals) if (a.mem['hidden'] !== 1 && a.mem['owned'] !== 1 && a !== riding.horse) aimList.push(a); const heart = nalati?.titan.lockTarget() ?? null; if (heart !== null) aimList.push(heart); } // + Jel Ata's heart for the lock-on (NALATI-MERGE H3)
     weapons.update(dt, t); // every weapon ticks (bolts in flight keep flying while the rifle is out)
     rifleDrop?.update(dt, t, game.renderer, game.camera);
