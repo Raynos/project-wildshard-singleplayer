@@ -47,7 +47,7 @@ function hash21(pIn: Node<'vec2'>): Node<'float'> {
 export function registerOcean(): void {
   registerPort('ocean-v2', (src) => {
     const h = harvest(src);
-    const uTime = hFloat(h, 'uTime'), uDeepDepth = hFloat(h, 'uDeepDepth'), uLevel = hFloat(h, 'uLevel'), uChunkHalf = hFloat(h, 'uChunkHalf');
+    const uTime = hFloat(h, 'uTime'), uDeepDepth = hFloat(h, 'uDeepDepth'), uLevel = hFloat(h, 'uLevel'), uChunkHalf = hFloat(h, 'uChunkHalf'), uSeaEnd = hFloat(h, 'uSeaEnd');
     const uShallow = hVec3(h, 'uShallow'), uDeep = hVec3(h, 'uDeep');
     const tSea = need(h, 'tSea').value as THREE.Texture;
     const T = gpuUniforms().toon, F = gpuUniforms().fog;
@@ -123,8 +123,9 @@ export function registerOcean(): void {
     const win = smoothstep(0.6, 0.7, abs(dot(fn, V)));
     const skyU = mix(fogColor, T.uFogZenith, 0.5).mul(1.4);
     const addBelow = mix(uDeep.mul(1.6).add(uShallow.mul(0.15)), skyU, win);
-    const waterA = clamp(select(frontFacing, aTop, float(1)), 0, 1).toVar();
-    const waterAdd = select(frontFacing, addTop, addBelow);
+    const seaEnd = float(1).sub(smoothstep(uSeaEnd.sub(300), uSeaEnd, length(W.xz.sub(cameraPosition.xz)))); // ends at the painted horizon (E125)
+    const waterA = clamp(select(frontFacing, aTop, float(1)), 0, 1).mul(seaEnd).toVar();
+    const waterAdd = select(frontFacing, addTop, addBelow).mul(seaEnd);
     const lit = select(frontFacing, output.rgb, vec3(0)); // below: diffuseColor is black in the GLSL
     const straight = lit.mul(waterA).add(waterAdd).div(max(waterA, 1e-3));
     const { col: fc, factor } = fogAt(W);

@@ -30,6 +30,7 @@ import type { Sky } from './Sky';
 import { TIER_CONFIG } from '../core/tier';
 import { WAVES_GLSL, waveClock } from './waves';
 import { isStylized, toonUniforms } from './stylize';
+import { HORIZON_RADIUS } from './HorizonMatte';
 
 const SEA_RES = 512; // the sea-floor texture: ~1 m per texel over the chunk
 
@@ -111,6 +112,9 @@ export class Ocean {
       Object.assign(shader.uniforms, this.uniforms, {
         uShallow: { value: shallow }, uDeep: { value: deep }, uDeepDepth: { value: def.deepDepth }, uLevel: { value: def.level },
         tSea: { value: this.seaTex }, uChunkHalf: { value: CHUNK_HALF },
+        // the sea ends where the painted horizon stands (E125): past it, the far plane cut it on a hard straight line above the
+        // matte's islands when seen from altitude. The stylized sky is the one that paints the band (HorizonMatte.build)
+        uSeaEnd: { value: isStylized() ? HORIZON_RADIUS : 1e7 },
       });
       shader.vertexShader = shader.vertexShader
         .replace('#include <common>', /* glsl */`#include <common>
@@ -130,7 +134,7 @@ export class Ocean {
       shader.fragmentShader = shader.fragmentShader
         .replace('#include <common>', /* glsl */`#include <common>
           uniform vec3 uShallow; uniform vec3 uDeep; uniform float uDeepDepth; uniform float uTime; uniform float uLevel;
-          uniform sampler2D tSea; uniform float uChunkHalf;
+          uniform sampler2D tSea; uniform float uChunkHalf; uniform float uSeaEnd;
           ${isStylized() ? '' : 'uniform vec3 uFogZenith;'} // the stylized shard's fog chunk declares it (stylize.ts)
           varying float vCrest; varying vec3 vOceanW;
           float hash21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
@@ -210,8 +214,10 @@ export class Ocean {
           }`)
         .replace('#include <opaque_fragment>', /* glsl */`
           {
-            float a = clamp(waterA, 0.0, 1.0);
-            vec3 premul = outgoingLight * a + waterAdd;
+            // fade out over the last 300 m before the painted horizon, so the islands' feet stand on the sea's own far edge
+            float seaEnd = 1.0 - smoothstep(uSeaEnd - 300.0, uSeaEnd, length(vOceanW.xz - cameraPosition.xz));
+            float a = clamp(waterA, 0.0, 1.0) * seaEnd;
+            vec3 premul = outgoingLight * a + waterAdd * seaEnd;
             gl_FragColor = vec4(premul / max(a, 1e-3), a);       // PREMULTIPLIED_ALPHA multiplies it back
           }`);
     };

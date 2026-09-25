@@ -29,6 +29,8 @@ import { MIDDAY_SKY } from './StylizedSky';
 
 /** the band's radius (m): inside the camera's far plane (2600) even at the top edge (R / cos 24° ≈ 2520) */
 const RADIUS = 2300;
+/** the band's radius: the sea (Ocean.ts) fades out just inside it, so the painted islands stand on its far edge (E125) */
+export const HORIZON_RADIUS = RADIUS;
 /** the elevation range the strip's rows cover, bottom → top (degrees, seen from the sea surface at RADIUS) */
 const EL_MIN = -4, EL_MAX = 24;
 const URL_DAY = '/assets/horizon/driftwood-isle-day.webp';
