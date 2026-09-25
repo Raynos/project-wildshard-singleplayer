@@ -97,7 +97,10 @@ export function systemFault(s: GameSystem<unknown>, error: unknown, frame: numbe
   const verdict = recordFault(s, frame, now);
   if (s.faults === 1) console.error(`[faults] system "${s.label}" threw:`, error);
   if (verdict === 'off') console.warn(`[faults] system "${s.label}" switched off after ${s.faults} throws; the game keeps running without it`);
-  if (verdict === 'fatal') console.error(`[faults] core system "${s.label}" failed ${s.faults} times: the frame loop stops`);
+  if (verdict === 'fatal') {
+    console.error(`[faults] core system "${s.label}" failed ${s.faults} times: the frame loop stops`);
+    loop = 'dead'; // before the listeners hear it: the modal must not offer KEEP PLAYING on a loop that is stopping
+  }
   emitFault({ system: s.label, error, verdict });
   return verdict;
 }

@@ -1,7 +1,7 @@
 // src/core/faults.ts (E133): the frame loop's fault isolation. The harness below is Game.ts's loop in miniature — each
 // system in its own try/catch, a throw handed to systemFault — so the tests drive the same counters the game does.
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { FAULT_BURST, FAULT_STREAK, FAULT_WINDOW_MS, describeError, DescribedError, makeSystem, onFault, recordFault, systemFault, type Fault, type GameSystem } from '../src/core/faults';
+import { FAULT_BURST, FAULT_STREAK, FAULT_WINDOW_MS, describeError, DescribedError, loopState, makeSystem, onFault, recordFault, setLoopState, systemFault, type Fault, type GameSystem } from '../src/core/faults';
 
 type Fn = (dt: number) => void;
 interface Harness { systems: GameSystem<Fn>[]; frame: number; now: number; dead: boolean; faults: Fault[]; tick: (n?: number, stepMs?: number) => void }
@@ -90,6 +90,8 @@ describe('fault isolation', () => {
     expect(h.dead).toBe(true);
     expect(h.faults.at(-1)?.verdict).toBe('fatal');
     expect(h.frame).toBe(FAULT_STREAK);
+    expect(loopState()).toBe('dead'); // set before the listeners hear the fatal fault (no KEEP PLAYING)
+    setLoopState('boot');
   });
 
   it('labels: given, else the function name, else the fallback', () => {
