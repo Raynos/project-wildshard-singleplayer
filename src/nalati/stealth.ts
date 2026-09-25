@@ -4,6 +4,7 @@ import type { TargetHit } from '../player/Crossbow';
 import type { NalatiKit } from '../player/nalatiKit';
 import { grassHeightAt } from '../world/GrassTrample';
 import '../ui/styles/stealth.css';
+import { ROW, hudSlots } from '../ui/hudSlots';
 
 /**
  * Nalati crouch + grass stealth (plan row B9; docs/design/nalati/stealth-and-storms.md "Grass stealth",
@@ -16,8 +17,8 @@ import '../ui/styles/stealth.css';
  *   stealth.update(dt, t);       // every frame (reads the creatures' awareness → the eye pip)
  *
  * CROUCH (decision D): crouching exists only in LONG GRASS — `grassHeightAt(player) ≥ LONG_GRASS` (0.7 m, trampling
- * included), with hysteresis: in after 0.3 s, out after 1.0 s. Touch: a CROUCH disc fades in directly above JUMP
- * (the first time per session with a pulse ring + a TALL GRASS chip) and is a TOGGLE. Desktop: C toggles, Ctrl holds —
+ * included), with hysteresis: in after 0.3 s, out after 1.0 s. Touch: a CROUCH disc fades in in the base HUD's slot over
+ * JUMP (hudSlots `up0`; the first time per session with a pulse ring + a TALL GRASS chip) and is a TOGGLE. Desktop: C toggles, Ctrl holds —
  * both gated to long grass like the disc. Jumping (stand + jump in one), sprinting, leaving the grass, the hoverboard,
  * swimming and mounting all stand you up. Driven through `player.keys` ('KeyC' = crouched: Player's own crouch — eye
  * 1.03 m, 2.2 m/s), so Player.ts needs no change and Pine Hollow / Driftwood never see any of this.
@@ -25,13 +26,13 @@ import '../ui/styles/stealth.css';
  * DETECTION: the creatures own their senses (Pack / Herd via wildEnv.playerVisibility — grass cover at you and along the
  * line to them, your speed, the light, hearing with the grass rustle, the wolves' and the stallion's smell from downwind
  * regardless of grass; Wildlife feeds `wildEnv.playerCrouched`). This module READS their awareness for the eye pip under
- * the crosshair (on the phone, layout D, the left status column's last row — NALATI-MERGE H2):
+ * the crosshair (on the phone a row of the base HUD's top-left status column instead — hudSlots, E154):
  *   HIDDEN    crouched, cover ≥ 0.85, every animal within 40 m under 0.2       closed eye, cyan
  *   VISIBLE   in long grass or crouched, nothing aware of you                  open eye, faint
  *   NOTICED   the most aware animal between 0.2 and its alert level             half eye, amber, + a chevron toward it
  *   DETECTED  an animal at its alert level (a pack shadowing / hunting you, a horse's head up)   red "!", vignette pulse
  *   (no pip out of long grass while standing)
- * plus the GRASS cover meter on the left edge while crouched. `state`, `cover`, `threat` (0..1 of the alert level) are
+ * plus the GRASS cover meter while crouched (the left edge; on the phone a status-column row). `state`, `cover`, `threat` (0..1 of the alert level) are
  * readable for other rows (taming: TRUST only builds crouched).
  */
 
@@ -60,6 +61,11 @@ const ALERT = '<svg viewBox="0 0 24 24"><path d="M12 2.5v12.5" stroke="currentCo
 const CROUCH_ICON = '<svg viewBox="0 0 24 24"><path d="M5 5.5 12 12l7-6.5M5 12.5 12 19l7-6.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+function q2(root: HTMLElement, sel: string): HTMLElement {
+  const e = root.querySelector<HTMLElement>(sel);
+  if (e === null) throw new Error(`Stealth: missing ${sel}`);
+  return e;
+}
 
 export class Stealth {
   state: StealthState = 'none';
@@ -83,11 +89,11 @@ export class Stealth {
   // DOM
   private root: HTMLElement; private pip: HTMLElement; private pipIcon: HTMLElement; private pipLabel: HTMLElement;
   private chev: HTMLElement; private meter: HTMLElement; private meterFill: HTMLElement; private hint: HTMLElement;
-  private layer: HTMLElement | null; private disc: HTMLElement | null = null;
-  /** touch, layout D (NALATI-MERGE H2): the eye + state as the left status column's last row (the crosshair stays bare) */
-  private row: HTMLElement | null = null; private rowIcon: HTMLElement | null = null; private rowLabel: HTMLElement | null = null;
+  /** touch (hudSlots, E154): the CROUCH disc, the eye + state and the GRASS meter as rows of the status column */
+  private readonly disc: HTMLElement; private readonly row: HTMLElement; private readonly rowIcon: HTMLElement; private readonly rowLabel: HTMLElement;
+  private readonly grassRow: HTMLElement; private readonly grassRowFill: HTMLElement;
   private shown: StealthState | '' = '';
-  private lastCover = -1; private lastThreat = -1; private lookFrames = 0;
+  private lastCover = -1; private lastThreat = -1;
 
   constructor(opts: StealthOpts) {
     this.player = opts.player; this.wildlife = opts.wildlife; this.isMounted = opts.isMounted ?? (() => false);
@@ -103,8 +109,20 @@ export class Stealth {
     const q = (sel: string): HTMLElement => { const e = this.root.querySelector<HTMLElement>(sel); if (e === null) throw new Error(`Stealth: missing ${sel}`); return e; };
     this.pip = q('.ws-stealth-pip'); this.pipIcon = q('.ws-stealth-eye'); this.pipLabel = q('.ws-stealth-label');
     this.chev = q('.ws-stealth-chev'); this.meter = q('.ws-stealth-grass'); this.meterFill = q('.ws-stealth-grass i'); this.hint = q('.ws-stealth-hint');
-    this.layer = null;
     this.hint.textContent = 'Tall grass · C crouch';
+    // the phone: the base HUD's slots (src/ui/hudSlots.ts) — nothing here is placed by this module
+    this.disc = hudSlots.disc({ cls: 'ws-stealth-crouch', icon: CROUCH_ICON, label: 'Crouch', spot: 'up0', press: () => { this.toggleReq = true; } });
+    this.row = document.createElement('div');
+    this.row.className = 'ws-stealth-row'; this.row.dataset['state'] = 'none';
+    this.row.innerHTML = '<i class="ws-stealth-eye"></i><span class="ws-stealth-label"></span>';
+    this.rowIcon = q2(this.row, '.ws-stealth-eye'); this.rowLabel = q2(this.row, '.ws-stealth-label');
+    hudSlots.statusRow(this.row, ROW.stealth);
+    this.grassRow = document.createElement('div');
+    this.grassRow.className = 'ws-stealth-grassrow';
+    this.grassRow.innerHTML = '<span>Grass</span><b><i></i></b>';
+    this.grassRowFill = q2(this.grassRow, 'i');
+    hudSlots.statusRow(this.grassRow, ROW.grass);
+    hudSlots.onLayer(() => { this.hint.textContent = 'Tall grass'; this.hint.classList.add('touch'); });
     // desktop: C toggles, Ctrl holds — both gated to long grass (preUpdate)
     document.addEventListener('keydown', (e) => {
       if (e.code === 'KeyC' && !e.repeat) this.toggleReq = true;
@@ -133,35 +151,6 @@ export class Stealth {
   /** × 2 for a shot loosed from HIDDEN (landing within SNEAK_WINDOW s), else 1 */
   sneakMultiplier(): number { return this.sneakShot && this.t - this.sneakT < SNEAK_WINDOW ? SNEAK_MUL : 1; }
 
-  /** touch: the CROUCH disc, stacked above JUMP in the TouchControls layer (touch.css `.ws-touch-disc.crouch`); the layer
-   *  carries `.nalati` for the shard's own disc layout (DODGE moves beside JUMP) and `.crouch-avail` while it shows. The
-   *  layer is built after the Nalati wiring (main.ts order), so it is looked for until it exists. */
-  private attachTouch(): void {
-    const layer = document.querySelector<HTMLElement>('#hud .ws-touch');
-    if (layer === null) return;
-    this.layer = layer;
-    layer.classList.add('nalati');
-    const d = document.createElement('button');
-    d.type = 'button'; d.className = 'ws-touch-disc crouch';
-    d.innerHTML = `${CROUCH_ICON}<span>Crouch</span>`;
-    d.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); this.toggleReq = true; });
-    d.addEventListener('pointerup', (e) => { e.stopPropagation(); });
-    layer.append(d);
-    this.disc = d;
-    // layout D (NALATI-MERGE H2, art/hud/round-12-nalati-merge/D-foot.jpg): the eye pip becomes the status column's HIDDEN row
-    const status = layer.querySelector<HTMLElement>('.ws-touch-status');
-    if (status !== null) {
-      const row = document.createElement('div');
-      row.className = 'ws-stealth-row'; row.dataset['state'] = 'none';
-      row.innerHTML = '<i class="ws-stealth-eye"></i><span class="ws-stealth-label"></span>';
-      status.append(row);
-      this.row = row; this.rowIcon = row.querySelector<HTMLElement>('.ws-stealth-eye'); this.rowLabel = row.querySelector<HTMLElement>('.ws-stealth-label');
-      this.shown = '';   // paint it now
-    }
-    this.hint.textContent = 'Tall grass';
-    this.hint.classList.add('touch');
-  }
-
   // ── the crouch: long grass, the toggle, what stands you up ──
   private crouchStep(dt: number): void {
     const p = this.player, k = p.keys;
@@ -182,7 +171,6 @@ export class Stealth {
   // ── detection → the eye pip ──
   update(dt: number, t: number): void {
     this.t = t;
-    if (this.layer === null && (++this.lookFrames % 30) === 1) this.attachTouch();
     const p = this.player.position;
     const crouched = this.player.crouching;
     const g = grassHeightAt(p.x, p.z), h = crouched ? 1.05 : 1.75;
@@ -231,15 +219,19 @@ export class Stealth {
       const icon = s === 'hidden' ? EYE_SHUT : s === 'noticed' ? EYE_HALF : s === 'detected' ? ALERT : EYE_OPEN;
       const label = s === 'hidden' ? 'Hidden' : s === 'noticed' ? 'Noticed' : s === 'detected' ? 'Detected' : 'Visible';
       this.pipIcon.innerHTML = icon; this.pipLabel.textContent = label;
-      if (this.row !== null) { this.row.dataset['state'] = s; if (this.rowIcon !== null) this.rowIcon.innerHTML = icon; if (this.rowLabel !== null) this.rowLabel.textContent = label; }
+      this.row.dataset['state'] = s; this.rowIcon.innerHTML = icon; this.rowLabel.textContent = label;
     }
     // the GRASS meter while crouched
     const crouched = this.player.crouching;
-    this.meter.classList.toggle('on', crouched);
+    this.meter.classList.toggle('on', crouched); this.grassRow.classList.toggle('on', crouched);
     const c = Math.round(this.cover * 100) / 100;
-    if (c !== this.lastCover) { this.lastCover = c; this.meterFill.style.transform = `scaleY(${c.toFixed(2)})`; this.meter.classList.toggle('good', c >= HIDDEN_COVER); }
+    if (c !== this.lastCover) {
+      this.lastCover = c;
+      this.meterFill.style.transform = `scaleY(${c.toFixed(2)})`; this.grassRowFill.style.transform = `scaleX(${c.toFixed(2)})`;
+      this.meter.classList.toggle('good', c >= HIDDEN_COVER); this.grassRow.classList.toggle('good', c >= HIDDEN_COVER);
+    }
     const th = Math.round(this.threat * 50) / 50;
-    if (th !== this.lastThreat) { this.lastThreat = th; this.pip.style.setProperty('--threat', th.toFixed(2)); this.row?.style.setProperty('--threat', th.toFixed(2)); }
+    if (th !== this.lastThreat) { this.lastThreat = th; this.pip.style.setProperty('--threat', th.toFixed(2)); this.row.style.setProperty('--threat', th.toFixed(2)); }
     // the chevron: round the crosshair, pointing at the most aware creature
     const threatening = s === 'noticed' || s === 'detected';
     this.chev.classList.toggle('on', threatening);
@@ -252,13 +244,13 @@ export class Stealth {
     }
     // the crouch disc (touch) and the one-time TALL GRASS chip
     const avail = this.inLongGrass || this.latched;
-    this.layer?.classList.toggle('crouch-avail', avail);
-    this.disc?.classList.toggle('on', this.latched);
+    hudSlots.show(this.disc, avail);
+    this.disc.classList.toggle('on', this.latched);
     if (avail && !this.hinted) {
       this.hinted = true;
-      this.disc?.classList.add('pulse');
+      this.disc.classList.add('pulse');
       this.hint.classList.add('on');
-      setTimeout(() => { this.hint.classList.remove('on'); this.disc?.classList.remove('pulse'); }, 3200);
+      setTimeout(() => { this.hint.classList.remove('on'); this.disc.classList.remove('pulse'); }, 3200);
     }
   }
 }

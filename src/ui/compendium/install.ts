@@ -14,6 +14,7 @@ import * as THREE from 'three';
 import { PINE_HOLLOW_COMPENDIUM } from './shards/pine-hollow';
 import '../styles/compendium.css';
 import { compendiumFor, registerCompendium } from './registry';
+import { hudSlots } from '../hudSlots';
 import { CompendiumState } from './state';
 import { CompendiumTracker } from './tracker';
 import { Journal } from './Journal';
@@ -56,12 +57,11 @@ export function installCompendium(host: CompendiumHost): { state: CompendiumStat
     canSee: (from, to) => { const p = activePhysics(); return p === null || lineOfSight(p, from, to, 1.2); },
   });
 
-  // ── ways in ──
+  // ── ways in ── (the phone's JOURNAL tag: a tag of the base HUD's status column, src/ui/hudSlots.ts)
   const disc = document.createElement('button');
   disc.type = 'button'; disc.className = 'ws-cmp-disc';
   disc.innerHTML = `${GLYPH_BOOK}Journal`;
-  disc.addEventListener('click', () => { if (hud.entered) journal.open(); });
-  (document.getElementById('hud') ?? document.body).append(disc);
+  hudSlots.pill(disc, () => { if (hud.entered) journal.open(); });
   menu.addActionTab('Journal', 'bag', () => { journal.open(); }); // a BAG tab: Map · Inventory · Journal · Achievements
   document.addEventListener('keydown', (e) => {
     if (e.code !== 'KeyN' || e.repeat || !hud.entered || menu.isOpen || journal.isOpen) return;

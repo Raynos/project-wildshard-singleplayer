@@ -128,10 +128,6 @@
 .ws-cmp-tip.show { display: flex; }
 .ws-cmp-tip small { font-size: 8.5px; letter-spacing: 0.18em; color: var(--ws-text-dim); }
 
-/* ── the HUD's journal disc (touch: under PAUSE, beside the status column) ── */
-.ws-cmp-disc { position: absolute; left: 12px; top: calc(var(--ws-top) + 124px); z-index: 6; display: none; align-items: center; gap: 7px; padding: 4px 10px 4px 5px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); border-radius: 999px; color: var(--ws-text); font-family: var(--ws-mono); font-size: 8.5px; letter-spacing: 0.22em; text-transform: uppercase; pointer-events: auto; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-.ws-cmp-disc.show { display: flex; }
-.ws-cmp-disc svg { width: 22px; height: 22px; padding: 4px; border-radius: 50%; border: 1px solid var(--ws-cyan-line); color: var(--ws-cyan); }
-.ws-cmp-disc::after { content: ''; position: absolute; inset: -8px -4px; }
+/* ── the HUD's journal disc (touch: a tag of the base HUD's status column — touch.css .ws-touch-tag, E154): amber while a new page waits ── */
 .ws-cmp-disc.new svg { border-color: var(--ws-amber); color: var(--ws-amber); }
 

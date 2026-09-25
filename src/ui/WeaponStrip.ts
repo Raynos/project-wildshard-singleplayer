@@ -1,7 +1,8 @@
 import type { WeaponId, Weapons } from '../player/Weapons';
 
 /**
- * WeaponStrip — the Nalati weapon slots (plan row B3; mockups art/nalati-grasslands/round-2/1-combat/combat-E-weapon-swap.jpg,
+ * WeaponStrip — the base HUD's weapon slots, on a shard whose ChunkDef has `hud.weaponStrip` (E154: Pine Hollow, Nalati;
+ * built once, by main.ts). First drawn for Nalati (plan row B3; mockups art/nalati-grasslands/round-2/1-combat/combat-E-weapon-swap.jpg,
  * 3 slots per the plan's decision — bow · sabre · spear, the javelins live in the spear slot — and
  * art/nalati-grasslands/round-2/7-controls/controls-desktop-keys.jpg for the desktop hotbar).
  *
@@ -11,9 +12,9 @@ import type { WeaponId, Weapons } from '../player/Weapons';
  * One square glass slot per OWNED weapon in `weapons.available` order (slot n = key n), the held one outlined in cyan, the
  * ammo (arrows / javelins) in the corner, red at 0. **Tap a slot = hold it** (the kit's 0.25 + 0.25 s holster swap);
  * tapping the slot already held = back to the previous weapon (`weapons.last()`, the design's "double-tap = last").
- * Touch: docked in the TouchControls layer as three edge tabs down the LEFT screen edge under the status column (layout D,
- * NALATI-MERGE H2 — art/hud/round-12-nalati-merge/D-*.jpg), the slot number in each tab's corner (the ammo is the column's
- * ARROWS row, src/ui/NalatiHUD.ts), and the layer's SWAP pill is hidden (`.strip`). Desktop: a hotbar bottom-centre with
+ * Touch: docked in the TouchControls layer as edge tabs down the LEFT screen edge under the status column, the slot number
+ * in each tab's corner (the held weapon's ammo is the column's ammo strip, HUD.ts), and the layer's SWAP pill is hidden
+ * (`.strip`). Desktop: a hotbar bottom-centre with
  * the key numbers and names (`.desk`), clickable too.
  * Styles: src/ui/styles/touch.css (`ws-touch-strip`, `ws-touch-slot*`).
  */

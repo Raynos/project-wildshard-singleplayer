@@ -7,8 +7,6 @@ import type { ExtraWeapon, WeaponId, Weapons, WeaponsOptions } from './Weapons';
 import { Sabre, type MountState } from './Sabre';
 import { Spear } from './Spear';
 import { Bow } from './Bow';
-import { WeaponStrip } from '../ui/WeaponStrip';
-import { NalatiHUD } from '../ui/NalatiHUD';
 
 /**
  * nalatiKit — the Nalati Grasslands weapon set (plan row B3; decision: 3 slots — bow · sabre · spear, javelins thrown from
@@ -16,8 +14,8 @@ import { NalatiHUD } from '../ui/NalatiHUD';
  *
  *   const kit = buildNalatiKit({ game, sky, player, forest }, targets, nolock);
  *   const weapons = new Weapons(kit.base, rifle, kit.extras, kit.options);   // the AR-15 stays in the kit, locked
- *   kit.install(weapons, game);                                              // AFTER TouchControls: every slot owned, the strip,
- *                                                                            // the phone HUD's layout D (src/ui/NalatiHUD.ts, NALATI-MERGE H2)
+ *   kit.install(weapons);                                                    // every slot owned, the bow in hand (the weapon strip
+ *                                                                            // is the base HUD's: ChunkDef.hud.weaponStrip, E154)
  *   kit.refill();                                                            // on respawn: the javelins back
  *
  * Slots (keys 1 / 2 / 3, the strip, Q = the last weapon): bow (B2's Bow.ts — held first), sabre (Sabre.ts, the kit's base
@@ -33,10 +31,7 @@ export interface NalatiKit {
   spear: Spear;
   extras: ExtraWeapon[];
   options: WeaponsOptions;
-  strip: WeaponStrip | null;
-  /** Nalati's phone HUD, layout D (NALATI-MERGE H2) — built by install */
-  hud: NalatiHUD | null;
-  install: (weapons: Weapons, game: Game) => void;
+  install: (weapons: Weapons) => void;
   refill: () => void;
   setMount: (m: MountState | null) => void;
   /** the held weapon is a melee one (audio: the sword whoosh / hit sounds) */
@@ -51,15 +46,9 @@ export function buildNalatiKit(world: NalatiWorld, targets: Targets, allowUnlock
     base: sabre, bow, sabre, spear,
     extras: [{ weapon: bow, id: 'bow', name: 'Bow' }, { weapon: spear, id: 'spear', name: 'Spear' }],
     options: { baseId: 'sabre', baseName: 'Sabre', order: ['bow', 'sabre', 'spear'], lastOnQ: true },
-    strip: null,
-    hud: null,
-    install(weapons, game) {
+    install(weapons) {
       for (const e of kit.extras) weapons.unlock(e.id);
       weapons.select('bow', true); // slot 1: the bow is the shard's main weapon
-      kit.strip = new WeaponStrip(weapons);
-      const strip = kit.strip;
-      const hud = kit.hud = new NalatiHUD(weapons);
-      game.onUpdate(() => { strip.update(); hud.update(); });
     },
     refill() { spear.javelins = spear.maxJavelins; bow.addBolts(bow.magazine); },
     setMount(m) { sabre.mount = m; spear.mount = m; bow.setMount(m); },

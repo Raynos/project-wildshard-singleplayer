@@ -16,6 +16,7 @@ import { Weapons, type WeaponId } from '../player/Weapons';
 import { TouchControls } from '../player/TouchControls';
 import { buildNalatiKit } from '../player/nalatiKit';
 import { HUD } from '../ui/HUD';
+import { WeaponStrip } from '../ui/WeaponStrip';
 import { Combat } from '../ui/Combat';
 import { Audio } from '../audio/Audio';
 import { setAimTargets } from '../player/AimTargets';
@@ -48,7 +49,9 @@ const kit = buildNalatiKit({ game, sky, player, forest }, targets, nolock);
 const rifle = new Rifle({ game, sky, player, forest }, targets, { allowUnlocked: nolock });
 const weapons = new Weapons(kit.base, rifle, kit.extras, kit.options);
 new TouchControls(player, weapons, params.has('touch'));
-kit.install(weapons, game);
+kit.install(weapons);
+const strip = new WeaponStrip(weapons); // the base HUD's weapon strip (E154)
+game.onUpdate(() => { strip.update(); });
 const start = params.get('weapon');
 if (start === 'sabre' || start === 'spear') weapons.select(start satisfies WeaponId, true);
 kit.sabre.swingScale = 0.9 * world.num('slow', 1);

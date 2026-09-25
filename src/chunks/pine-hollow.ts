@@ -215,6 +215,7 @@ function speciesMix(x: number, z: number): SpeciesWeights {
 export const PINE_HOLLOW: ChunkDef = {
   id: 'chunk://local/pine-hollow',
   slug: 'pine-hollow',
+  hud: { weaponStrip: true }, // the base HUD's weapon strip: crossbow · lever-action · the Warden's Longbow (PH-C11, E154)
   displayName: 'Pine Hollow',
   gridCoords: '(+3, −2)',
   seed: 1337,

@@ -330,6 +330,14 @@ export interface ChunkHorizon { rings: HorizonRing[]; cloudSea: boolean }
  * melee shards (`meleeShard`): telegraphed charges on an arc, the hurt arc + trauma shake.
  */
 export type ChunkWeapon = 'crossbow' | 'sword' | 'nalati';
+/** the optional pieces of the ONE base HUD a shard switches on (E154) — the layout, the controls and the status column are
+ *  every shard's; a shard's own rows / discs come in through src/ui/hudSlots.ts from its own modules */
+export interface ChunkHud {
+  /** the weapon strip (src/ui/WeaponStrip.ts): tabs down the left edge on the phone, a hotbar on desktop — else the SWAP pill */
+  weaponStrip?: boolean;
+  /** the sun / moon badge on the minimap's rim (Minimap.showDayBadge) */
+  dayBadge?: boolean;
+}
 /** a shard whose weapons are melee-first (Driftwood's swords, Nalati's sabre / spear): AnimalManager's telegraphed charges, the hurt arc */
 export const meleeShard = (def: { weapon?: ChunkWeapon | undefined }): boolean => def.weapon === 'sword' || def.weapon === 'nalati';
 
@@ -380,6 +388,8 @@ export interface ChunkDef {
   style?: ChunkStyle;
   /** player weapon; omitted = 'crossbow' */
   weapon?: ChunkWeapon;
+  /** what this shard switches on in the ONE base HUD every shard shares (E154, src/ui/hudSlots.ts); omitted = the base alone */
+  hud?: ChunkHud;
   /** a painted horizon of its own (Nalati: the plateau rolling on, the snow range south); omitted = the default ridge rings */
   horizon?: ChunkHorizon;
   /**

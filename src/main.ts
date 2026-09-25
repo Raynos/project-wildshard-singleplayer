@@ -47,6 +47,7 @@ import { Rifle } from './player/Rifle';
 import { LeverRifle, preloadLeverModel } from './player/LeverRifle';
 import { Longbow } from './player/Longbow';
 import { WeaponStrip } from './ui/WeaponStrip';
+import { hudSlots } from './ui/hudSlots';
 import { Weapons, type WeaponId } from './player/Weapons';
 import { WeaponPickup } from './player/WeaponPickup';
 import { SKINS, SkinLocker, applySkin, crossbowDisplayModel, skinFor, type SkinDef, type SkinId } from './player/Skins';
@@ -405,15 +406,16 @@ async function main() {
   const weapons = new Weapons(crossbow, rifle, nalatiKit ? nalatiKit.extras : ironSword ? [{ weapon: ironSword, id: 'sword-iron', name: 'Iron sword' }] : longbow ? [{ weapon: longbow, id: 'bow', name: "Warden's longbow" }] : [], nalatiKit?.options); // held weapon = weapons.current; the hooks below are wired once here and forwarded; the rifle is locked until its pickup
   const lockSys = new LockOnSystem(player, weapons, game.camera); // the Zelda lock-on (E50): LOCK / Z, orbit, flick-switch — src/player/LockOnTarget.ts
   new TouchControls(player, weapons, setting('touch') === 'on', lockSys); // on-screen FPS controls on coarse-pointer devices (?touch=1 / main menu ▸ Settings ▸ Touch controls forces)
-  nalatiKit?.install(weapons, game); // Nalati: all three slots owned, the bow in hand, the weapon strip
+  nalatiKit?.install(weapons); // Nalati: all three slots owned, the bow in hand
   weapons.adsHeld = params.has('ads');
   await macrotask();
   const hud = new HUD({ pointerLock: !nolock });
-  const weaponStrip = isPine ? new WeaponStrip(weapons) : null; // the 3-slot weapon strip (Nalati's, PH-C11): tabs down the left edge on touch, a hotbar on desktop
+  const weaponStrip = chunk.hud?.weaponStrip === true ? new WeaponStrip(weapons) : null; // the base HUD's weapon strip (E154; Pine Hollow, Nalati): tabs down the left edge on touch, a hotbar on desktop
   const lockOn = new LockOn(game.camera); // sword lunge target brackets (meleeLock, Sword.ts)
   const speedLines = new SpeedLines(); // dodge / lunge edge streaks
   const perf = new Perf(game); // frame meter top-right (?perf=0 hides)
   const minimap = new Minimap(); // circular minimap (Heightfield is installed by now)
+  if (chunk.hud?.dayBadge === true) minimap.showDayBadge(); // the sun / moon on its rim (Nalati)
   const fullMap = new FullMap(minimap); // the menu's MAP tab (Menu.ts mounts it); tap the minimap / M to open
   const keepAlive = new KeepAlive();
   await macrotask();
@@ -481,10 +483,10 @@ async function main() {
     void loadFeedback().then((f) => f.openQuick());
   });
   menu.onFeedbackTab = (panel) => { void loadFeedback().then((f) => f.mountTab(panel)); };
+  // the ✎ NOTE tag: a tag of the base HUD's status column (src/ui/hudSlots.ts), under the rows
   const noteDisc = document.createElement('button'); noteDisc.type = 'button'; noteDisc.className = 'ws-fb-disc';
   noteDisc.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19z M14 7l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>Note<b class="ws-fb-badge"></b>';
-  noteDisc.addEventListener('click', () => { if (hud.entered && !feedbackHeld) void loadFeedback().then((f) => f.openSheet()); });
-  (document.getElementById('hud') ?? document.body).append(noteDisc);
+  hudSlots.pill(noteDisc, () => { if (hud.entered && !feedbackHeld) void loadFeedback().then((f) => f.openSheet()); });
   const noteBadge = noteDisc.querySelector('b');
   const syncNoteDisc = () => {
     noteDisc.classList.toggle('show', quickNote() && touchUi() && hud.entered);

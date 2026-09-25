@@ -7,6 +7,7 @@ import { openBootSettings } from './BootSettings';
 import { isDev } from '../core/devMode';
 import { bindDevToggle } from './devSwitch';
 import { ToastStack } from './ToastStack';
+import { ROW, hudSlots } from './hudSlots';
 
 /**
  * HUD — DOM overlay in `#hud`, styled by `src/ui/styles/game.css` / `menu.css` (the in-game menu is src/ui/Menu.ts + gmenu.css) on top of `base.css` (Wildshard glass identity; one class prefix per screen, see scripts/check-css.mjs).
@@ -150,8 +151,7 @@ export class HUD {
     if (!hud) document.body.append(this.root);
     this.root.id = 'hud';
     this.build();
-    // the touch layer may be built before or after the HUD (main.ts order): mount the bar strips as soon as it exists
-    if (!this.mountBar()) { const mo = new MutationObserver(() => { if (this.mountBar()) mo.disconnect(); }); mo.observe(this.root, { childList: true }); }
+    this.mountBar();
     document.addEventListener('pointerlockchange', () => {
       if (!this.opts.pointerLock || !this.entered || this.holdPause) return;
       const locked = Boolean(document.pointerLockElement); // undefined where pointer lock is absent (iOS)
@@ -334,19 +334,16 @@ export class HUD {
   }
 
   /** touch (E42): heart · 100 · bar · VITALS top-left under PAUSE / the frame meter, and under it (ranged kit) BOLTS · segments · 27 / 30 · bolt.
-   *  Rendered into TouchControls' `.ws-touch-status` once it exists; the numbers are HUD state, so the HUD owns them. */
-  private mountBar(): boolean {
-    if (this.bar) return true;
-    const bar = this.root.querySelector<HTMLElement>('.ws-touch-status');
-    if (!bar) return false;
+   *  The base's first two rows of the status column (src/ui/hudSlots.ts; docked whenever the touch layer mounts — never
+   *  on a mouse device); the numbers are HUD state, so the HUD owns them. */
+  private mountBar(): void {
     const vitals = el('div', 'ws-game-vitals', `<i class="ws-game-glyph">${SVG_HEART}</i><b class="ws-game-num">100</b><span class="ws-game-vbar"><i></i></span><span class="ws-game-tiny">Vitals</span>`);
     const L = this.last, segN = L.segments ?? 4, reserve = L.reserve ?? 0;
     const bolts = el('div', 'ws-game-bolts', `<span class="ws-game-tiny"><span class="ws-game-weapon">${L.weaponName ?? 'Crossbow'}</span><span class="l">${L.ammoLabel ?? 'Bolts'}</span></span><span class="ws-game-segs">${'<i></i>'.repeat(segN)}</span><b class="ws-game-num"><span class="c">30</span><small> / <span class="m">${L.maxBolts ?? this.opts.maxBolts}</span></small><small class="ws-game-reserve">${reserve > 0 ? `+ ${reserve}` : ''}</small></b><i class="ws-game-glyph">${SVG_BOLT}</i>`);
-    bar.append(vitals, bolts);
+    hudSlots.statusRow(vitals, ROW.vitals, false); hudSlots.statusRow(bolts, ROW.ammo, false);
     if (this.last.noAmmo) bolts.style.display = 'none';
     this.bar = { hval: q(vitals, '.ws-game-num'), hbar: q(vitals, '.ws-game-vbar i'), bolts, bcount: q(bolts, '.c'), segs: Array.from(bolts.querySelectorAll<HTMLElement>('.ws-game-segs i')), segBox: q(bolts, '.ws-game-segs'), label: q(bolts, '.ws-game-tiny .l'), weapon: q(bolts, '.ws-game-weapon'), max: q(bolts, '.m'), reserve: q(bolts, '.ws-game-reserve') };
     this.syncBar('health'); this.syncBar('bolts'); this.syncBar('status');
-    return true;
   }
   /** the touch strip's bars over the magazine: 4 for the crossbow, 6 for the rifle (rebuilt on a weapon change) */
   private buildSegs(n: number): void {

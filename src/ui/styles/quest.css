@@ -74,15 +74,3 @@
   .ws-quest-boss.show { transform: none; }
   .ws-quest-boss-name { font-size: 12.5px; letter-spacing: 0.12em; }
 }
-
-/* ── Nalati's phone HUD, layout D (NALATI-MERGE F10; #hud.nalati-d, src/ui/NalatiHUD.ts): the dialogue box ── main's spot,
-   150–168 px up and 92vw wide, sits on D's right-thumb arc (DODGE / JUMP / AIM, touch.css) and its HOVER tab. On D it sits
-   just above AIM / LOCK / JUMP (the bar + 16 px + two discs), between the weapon tabs (the left edge, 40 px) and CROUCH's
-   column (the right edge: it rises higher, in grass), so the speaker's face above stays clear; with the spear held BRACE
-   stands up there too, so the box climbs over it (the bar + 66 px + two discs, the stealth hint's line). Portrait only:
-   a landscape phone's arc reaches the top of the screen, and main's spot stays. Driftwood never has #hud.nalati-d. */
-@media (orientation: portrait) {
-  #hud.nalati-d .ws-quest-talk { --nh-talk-bar: calc(max(15vh, 104px) + max(env(safe-area-inset-bottom, 0px), var(--ws-home, 0px)) * 0.5); left: max(48px, calc(50% - 280px)); right: max(66px, calc(50% - 280px)); width: auto; bottom: calc(var(--nh-talk-bar) + 24px + min(15vw, 84px) * 2); transform: translateY(12px); }
-  #hud.nalati-d:has(.ws-touch.spear) .ws-quest-talk { bottom: calc(var(--nh-talk-bar) + 74px + min(15vw, 84px) * 2); }
-  #hud.nalati-d .ws-quest-talk.show { transform: none; }
-}

@@ -53,7 +53,8 @@
  *  - HOVER (E80, Jake's pick C, art/hud/round-11-hover-position/C-bar-tab-above-move.jpg): a folder tab on the bar's top
  *    edge above the MOVE label, a toggle (`player.setHover`, mirrors the H key; lit `.on` while riding).
  *  - PAUSE top-left; under it the `?perf` frame meter, then a status column (`.ws-touch-status`) that the HUD (HUD.ts) fills
- *    with the VITALS strip and, on ranged kit, the BOLTS readout — out of the thumb lane.
+ *    with the VITALS strip and, on ranged kit, the BOLTS readout — out of the thumb lane. A shard's own rows, discs and
+ *    tags dock into this layer through src/ui/hudSlots.ts (E154: one base HUD on every shard, no per-shard layout).
  *  - USE: a big band above the right-thumb arc, shown only while the HUD has an interact prompt; it dispatches the same
  *    `KeyE` the keyboard path listens for. There is no RELOAD: `weapons.tryFire()` reloads an empty weapon itself.
  *
@@ -79,6 +80,7 @@ import { AimAssist } from './AimAssist';
 import { lockOn, meleeLock } from './AimTargets';
 import { FlickTracker, LOCK_WEAPONS, addLockOffset, type LockOnSystem } from './LockOnTarget';
 import { getSetting } from '../ui/Settings';
+import { hudSlots } from '../ui/hudSlots';
 
 export const IS_TOUCH = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
 
@@ -163,6 +165,9 @@ export class TouchControls {
     for (const t of ['dragstart', 'contextmenu', 'selectstart'] as const) root.addEventListener(t, cancel);
     for (const t of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(t, cancel, { passive: false });
     for (const n of root.querySelectorAll('*')) n.setAttribute('draggable', 'false');
+    // E154: the one base layer every shard shares — whatever a shard adds (a status row, a disc in a named slot, a tag) goes
+    // through src/ui/hudSlots.ts, which docks it here and nowhere else
+    hudSlots.mount(root, el(root, '.ws-touch-status'));
     const stick = this.stick = el(root, '.ws-touch-stick');
     this.knob = el(stick, 'i');
     const moveZone = el(root, '.ws-touch-zone.move'), lookpad = el(root, '.ws-touch-lookpad');

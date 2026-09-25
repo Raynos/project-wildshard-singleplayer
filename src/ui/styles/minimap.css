@@ -74,3 +74,11 @@
 @media (max-width: 700px) {
   .ws-minimap.bag { right: calc(12px + var(--ws-mm) * 0.065); top: calc(var(--ws-top) + var(--ws-mm) * 0.065); }
 }
+
+/* the day badge (Minimap.showDayBadge — a shard's ChunkDef.hud.dayBadge; Nalati, N16 wave 6): the sun / moon on the rim at
+   4 o'clock, a small glass notch, no text; warm at dawn / golden / dusk */
+.ws-minimap-day { position: absolute; left: 93.3%; top: 75%; width: 17px; height: 17px; margin: -8.5px 0 0 -8.5px; padding: 2px; box-sizing: border-box; border-radius: 50%; background: rgba(6, 10, 18, 0.82); border: 1px solid var(--ws-cyan-line); pointer-events: none; }
+.ws-minimap-day svg { display: block; width: 100%; height: 100%; fill: #ffd98a; stroke: #ffd98a; filter: drop-shadow(0 0 3px rgba(255, 196, 74, 0.6)); }
+.ws-minimap-day.moon svg { fill: #cfe3ff; stroke: none; filter: drop-shadow(0 0 3px rgba(207, 227, 255, 0.6)); }
+.ws-minimap-day[data-phase='golden'] svg, .ws-minimap-day[data-phase='dusk'] svg, .ws-minimap-day[data-phase='dawn'] svg { fill: #ffb45a; stroke: #ffb45a; }
+@media (min-width: 701px) { .ws-minimap-day { width: 22px; height: 22px; margin: -11px 0 0 -11px; padding: 3px; } }

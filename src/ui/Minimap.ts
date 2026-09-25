@@ -43,6 +43,7 @@ import { nalatiWetAt } from '../nalati/wet';
 import { NALATI_WILDLIFE } from '../entities/Wildlife';
 import { activeRegistry } from '../world/registry';
 import { mapShapes, mapWants, type MapPoly, type MapShapes } from './mapShapes';
+import { activeClock } from '../world/WorldClock';
 
 export interface MinimapAnimal {
   kind: string;
@@ -174,6 +175,9 @@ function nalatiGround(x: number, z: number, h: number, slope: number, spruce: nu
   if (high > 0.5 && nalatiWetAt(x, z)) mix(out, MELT, 0.9, out);
 }
 
+const SVG_SUN = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.4" fill="currentColor"/><path d="M12 2.2v3M12 18.8v3M2.2 12h3M18.8 12h3M5.1 5.1l2.1 2.1M16.8 16.8l2.1 2.1M5.1 18.9l2.1-2.1M16.8 7.2l2.1-2.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
+const SVG_MOON = '<svg viewBox="0 0 24 24"><path d="M15.5 3.2a8.8 8.8 0 1 0 5.3 13.9A7.2 7.2 0 0 1 15.5 3.2z" fill="currentColor"/></svg>';
+
 export class Minimap {
   readonly root: HTMLDivElement;
   private canvas: HTMLCanvasElement;
@@ -256,9 +260,29 @@ export class Minimap {
 
   dispose(): void { this.ro?.disconnect(); this.root.remove(); }
 
+  /**
+   * The day badge (a shard's `ChunkDef.hud.dayBadge`; Nalati — N16 wave 6, the user's pick: no text): the sun or the moon
+   * in a small glass notch on the rim at 4 o'clock, from the world clock (`activeClock()`), repainted only on a change.
+   */
+  showDayBadge(): void {
+    if (this.day !== null) return;
+    const el = document.createElement('i');
+    el.className = 'ws-minimap-day';
+    this.root.append(el);
+    this.day = { el, body: '', phase: '' };
+  }
+  private day: { el: HTMLElement; body: string; phase: string } | null = null;
+  private paintDay(): void {
+    const d = this.day, c = activeClock();
+    if (d === null || c === null) return;
+    if (c.body !== d.body) { d.body = c.body; d.el.innerHTML = c.body === 'sun' ? SVG_SUN : SVG_MOON; d.el.classList.toggle('moon', c.body === 'moon'); }
+    if (c.phase !== d.phase) { d.phase = c.phase; d.el.dataset['phase'] = c.phase; }
+  }
+
   // ── per frame ──
   update(pos: { x: number; z: number }, yaw: number, animals: readonly MinimapAnimal[]): void {
     if (!this.visible) return;
+    this.paintDay();
     if (this.layerDirty) this.paintLayer();
     if (this.size === 0) this.fit();
     if (this.size === 0) return;

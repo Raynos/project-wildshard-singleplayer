@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // nalati-hud-capture.mjs — NALATI-MERGE H2 / H3: the phone HUD (layout D, art/hud/round-12-nalati-merge/D-*.jpg) captured
-// in the real build, one scene per frame, plus the live rect of every HUD element (<scene>-rects.json), and a side-by-side
+// in the real build (since E154 the base HUD every shard shares, src/ui/hudSlots.ts), one scene per frame, plus the live rect of every HUD element (<scene>-rects.json), and a side-by-side
 // sheet (engine | mockup) of the scenes that have a mockup.
 //
 //   node scripts/nalati-hud-capture.mjs [--url=http://127.0.0.1:5188] [--out=progress/nalati-merge/h2] [--tag=now]
@@ -38,11 +38,11 @@ const MOCKUP = { foot: 'art/hud/round-12-nalati-merge/D-foot.jpg', saddle: 'art/
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
 const RECT_SEL = {
   pause: '.ws-touch-pause', status: '.ws-touch-status', vitals: '.ws-game-vitals', bolts: '.ws-game-bolts',
-  steed: '.ws-ride-steed.ws-ride-touch', arrows: '.ws-nh-arrows', sky: '.ws-nh-sky', hidden: '.ws-stealth-row', grass: '.ws-stealth-grass', pip: '.ws-stealth-pip',
-  minimap: '.ws-minimap', clock: '.ws-nh-clock', quest: '.ws-quest-obj', weather: '.ws-game-weather', getlow: '.ws-game-getlow',
+  steed: '.ws-ride-steed.ws-ride-touch', hidden: '.ws-stealth-row', grass: '.ws-stealth-grassrow', pip: '.ws-stealth-pip', note: '.ws-fb-disc', journal: '.ws-cmp-disc',
+  minimap: '.ws-minimap', day: '.ws-minimap-day', quest: '.ws-quest-obj', weather: '.ws-game-weather', getlow: '.ws-game-getlow',
   eliteBar: '.ws-elite-bar', eliteBanner: '.ws-elite-banner', bossBar: '.ws-boss-bar', strip: '.ws-touch-strip', pill: '.ws-touch-pill',
   horse: '.ws-ride-horse', hover: '.ws-touch-hover', aim: '.ws-touch-disc.aim', lock: '.ws-touch-disc.lock', dodge: '.ws-touch-disc.dodge',
-  jump: '.ws-touch-disc.jump', crouch: '.ws-touch-disc.crouch', throw: '.ws-touch-disc.throw', brace: '.ws-touch-disc.brace',
+  jump: '.ws-touch-disc.jump', crouch: '.ws-stealth-crouch', throw: '.ws-touch-disc.throw', brace: '.ws-touch-disc.brace',
   gallop: '.ws-ride-gallop', attack: '.ws-touch-attack', lookpad: '.ws-touch-lookpad', use: '.ws-touch-use',
 };
 const q = (base) => `${URL_BASE}/?${base}&mute=1&nolock=1&skipintro=1${DESKTOP ? '' : '&touch=1&tier=phone'}`;

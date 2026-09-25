@@ -23,6 +23,14 @@
 /* top-left status column directly under PAUSE (the frame meter is a pill on PAUSE's row since E47, perf.css): HUD.ts mounts VITALS and,
    on ranged kit, BOLTS here — out of the thumb lane (E37 R18) */
 .ws-touch-status { position: absolute; left: 12px; top: calc(var(--ws-top) + 30px); display: flex; flex-direction: column; align-items: flex-start; gap: 4px; pointer-events: none; }
+/* E154: what a shard adds to the column (src/ui/hudSlots.ts) — a row in VITALS' glass (its content styled by the owner:
+   STEED ride.css, HIDDEN / GRASS stealth.css), and the tappable tags under the rows (✎ NOTE feedback.css, JOURNAL
+   compendium.css). The column is a flex stack ordered by `order` (hudSlots ROW), so nothing is placed by pixel offsets */
+.ws-touch-row { position: relative; display: flex; align-items: center; gap: 7px; width: 170px; height: 22px; padding: 3px 9px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); pointer-events: none; white-space: nowrap; }
+.ws-touch-tag { position: relative; display: none; align-items: center; gap: 7px; margin-top: 4px; padding: 4px 10px 4px 5px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); border-radius: 999px; color: var(--ws-text); font-family: var(--ws-mono); font-size: 8.5px; letter-spacing: 0.22em; text-transform: uppercase; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
+.ws-touch-tag.show { display: flex; }
+.ws-touch-tag::after { content: ''; position: absolute; inset: -8px -4px; }
+.ws-touch-tag svg { width: 22px; height: 22px; padding: 4px; box-sizing: border-box; border-radius: 50%; border: 1px solid var(--ws-cyan-line); color: var(--ws-cyan); }
 
 /* ── the bar: 67 % solid (E42 — Jake: "from 25 % to 33 %" see-through; E34 had it 75 % solid) with NO backdrop blur (E26): the
    world under it reads through, dimmed — a blur smeared it to flat grey (and cost a full-screen-width blur pass on phones) ── */
@@ -94,15 +102,12 @@
 
 /* ── round glass discs on the right-thumb arc, just above the bar (E37 R14 / F9: no gap to hop over) ── */
 .ws-touch-disc { position: absolute; width: var(--disc); height: var(--disc); margin-left: calc(var(--disc) / -2); appearance: none; -webkit-appearance: none; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 50%; background: radial-gradient(circle at 50% 35%, rgba(24, 34, 48, 0.72), rgba(6, 10, 18, 0.82) 70%); border: 1px solid rgba(143, 227, 255, 0.55); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 0 0 3px rgba(6, 10, 18, 0.6), inset 0 0 0 4px rgba(143, 227, 255, 0.18), inset 0 1px 0 rgba(143, 227, 255, 0.2); backdrop-filter: blur(10px) saturate(1.2); -webkit-backdrop-filter: blur(10px) saturate(1.2); color: #fff; font-family: var(--ws-mono); font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; transition: background 0.15s, border-color 0.15s, box-shadow 0.15s; }
-/* DODGE lower-left, JUMP upper-right, both one size: a short even diagonal (42 px across, 50 px up) at the right edge,
-   DODGE's bottom 8 px above the bar */
-.ws-touch-disc.dodge { left: calc(100% - var(--disc) / 2 - 50px); bottom: calc(var(--bar) + 8px); }
+/* DODGE / JUMP / LOCK / AIM sit in the E119 row (the end of this file) */
 .ws-touch-disc.dodge svg { width: 34%; height: 34%; fill: none; }
 .ws-touch-disc.dodge span { font-size: 7.5px; letter-spacing: 0.14em; white-space: nowrap; }
-/* LOCK (E50, the J disc — src/player/LockOnTarget.ts): on the right-thumb arc, one disc left of and one row above DODGE, melee only, hidden in the
+/* LOCK (E50, the J disc — src/player/LockOnTarget.ts): in the E119 row left of DODGE, melee only, hidden in the
    water. Three states from `lockOn.state`: off (dim), available (.lock-available: a cyan rim that pulses), LOCKED (.locked:
    filled cyan). "No target" flashes amber-free, a quick dim shake (.none) */
-.ws-touch-disc.lock { left: calc(100% - var(--disc) * 1.5 - 58px); bottom: calc(var(--bar) + 16px + var(--disc)); }
 .ws-touch:not(.lockable) .ws-touch-disc.lock, .ws-touch.swimming .ws-touch-disc.lock { display: none; } /* .lockable: LockOnTarget's LOCK_WEAPONS (the swords; Nalati's sabre + spear, H3) */
 .ws-touch-disc.lock svg { width: 36%; height: 36%; opacity: 0.55; transition: opacity 0.15s; }
 .ws-touch-disc.lock span { font-size: 7.5px; letter-spacing: 0.16em; white-space: nowrap; opacity: 0.6; }
@@ -139,15 +144,12 @@
 @keyframes ws-touch-dodge-ready { 0% { box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 26px rgba(143, 227, 255, 0.85), inset 0 0 18px rgba(143, 227, 255, 0.45); border-color: var(--ws-cyan); } }
 .ws-touch-disc.dodge.deny { animation: ws-touch-dodge-deny 0.24s ease-out; }
 @keyframes ws-touch-dodge-deny { 20% { transform: translateX(-3px); } 45% { transform: translateX(3px); } 70% { transform: translateX(-2px); } 100% { transform: none; } }
-.ws-touch-disc.jump, .ws-touch-disc.dive { left: calc(100% - var(--disc) / 2 - 8px); bottom: calc(var(--bar) + 58px); }
-/* AIM (ranged kit only — hidden while a sword is held): the iron-sights latch up-right of the FIRE disc, clear of the pill,
-   left of DODGE — the same thumb */
-.ws-touch-disc.aim { left: calc(var(--split) + var(--atk) + var(--disc) / 2); bottom: calc(var(--bar) + 40px); }
+/* AIM (ranged kit only — hidden while a sword is held): the iron-sights latch, in the E119 row */
 .ws-touch.melee .ws-touch-disc.aim { display: none; }
 /* swimming (TouchControls adds .swimming to the layer): JUMP gives its spot to DIVE, a held button; once the eye is under
    (.submerged) a SURFACE disc surfaces in DODGE's spot beside it (DODGE hides in the water) — hold to rise, gone again at the top */
 .ws-touch-disc.dive { display: none; }
-.ws-touch-disc.surface { left: calc(100% - var(--disc) / 2 - 50px); bottom: calc(var(--bar) + 8px); display: none; opacity: 0; transform: translateY(8px); transition: opacity 0.2s, transform 0.2s, background 0.15s; }
+.ws-touch-disc.surface { display: none; opacity: 0; transform: translateY(8px); transition: opacity 0.2s, transform 0.2s, background 0.15s; }
 .ws-touch.swimming .ws-touch-disc.jump { display: none; }
 .ws-touch.swimming .ws-touch-disc.dive { display: flex; }
 .ws-touch.swimming .ws-touch-disc.surface { display: flex; }
@@ -164,20 +166,19 @@
 /* the latched AIM toggle: cyan rim + glow */
 .ws-touch-disc.on { border-color: var(--ws-cyan); color: var(--ws-cyan); background: radial-gradient(circle at 50% 35%, rgba(143, 227, 255, 0.22), rgba(6, 10, 18, 0.85) 70%); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 22px rgba(143, 227, 255, 0.35), inset 0 0 0 3px rgba(6, 10, 18, 0.6), inset 0 0 0 4.5px var(--ws-cyan), inset 0 0 18px rgba(143, 227, 255, 0.2); }
 .ws-touch-disc.on span { color: var(--ws-cyan); }
-/* USE: a big interact band above the right-thumb arc (clear of JUMP's top), shown by TouchControls while the game HUD has a prompt up */
-.ws-touch-use { position: absolute; left: 12px; right: 12px; bottom: calc(var(--bar) + 70px + var(--disc)); height: 60px; display: none; align-items: center; justify-content: center; appearance: none; -webkit-appearance: none; margin: 0; padding: 0; border-radius: 8px; background: rgba(143, 227, 255, 0.16); border: 1px solid var(--ws-cyan); border-left: 4px solid var(--ws-cyan); box-shadow: 0 0 22px rgba(143, 227, 255, 0.25); color: #fff; font-family: var(--ws-display); font-weight: 700; font-size: 19px; letter-spacing: 0.24em; text-transform: uppercase; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+/* USE: a big interact band above the E119 row (placed there, the end of this file), shown by TouchControls while the game HUD has a prompt up */
+.ws-touch-use { position: absolute; left: 12px; right: 12px; height: 60px; display: none; align-items: center; justify-content: center; appearance: none; -webkit-appearance: none; margin: 0; padding: 0; border-radius: 8px; background: rgba(143, 227, 255, 0.16); border: 1px solid var(--ws-cyan); border-left: 4px solid var(--ws-cyan); box-shadow: 0 0 22px rgba(143, 227, 255, 0.25); color: #fff; font-family: var(--ws-display); font-weight: 700; font-size: 19px; letter-spacing: 0.24em; text-transform: uppercase; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
 .ws-touch-use.show { display: flex; }
 .ws-touch-use.down { background: rgba(143, 227, 255, 0.34); }
 /* ─── Nalati (B3, art/nalati-grasslands/round-2/1-combat/): the spear's THROW + BRACE discs and the 3-slot weapon strip ─── */
-/* the spear held (.spear, TouchControls polls weapons.current): THROW (held — wind a javelin up, release to throw) takes AIM's
-   spot, BRACE (held — plant the spear) takes JUMP's (combat-B-spear-brace.png) */
-.ws-touch-disc.throw { left: calc(var(--split) + var(--atk) + var(--disc) / 2); bottom: calc(var(--bar) + 40px); display: none; }
-.ws-touch-disc.brace { left: calc(100% - var(--disc) / 2 - 8px); bottom: calc(var(--bar) + 58px); display: none; }
+/* the spear held (.spear, TouchControls polls weapons.current): THROW (held — wind a javelin up, release to throw) takes the
+   row's 4th slot, BRACE (held — plant the spear) takes JUMP's (combat-B-spear-brace.png; the E119 row below) */
+.ws-touch-disc.throw, .ws-touch-disc.brace { display: none; }
 .ws-touch.spear .ws-touch-disc.aim { display: none; }
 /* the spear's ATTACK is its thrust: it reads ATTACK (no heavy: a hold is THROW's), not FIRE */
 .ws-touch.spear .ws-touch-attack svg.melee, .ws-touch.spear .ws-touch-attack span.melee { display: block; }
 .ws-touch.spear:not(.melee) .ws-touch-attack .ranged { display: none; }
-#hud:not(.nalati-d) .ws-touch.spear .ws-touch-disc.jump { display: none; } /* layout D keeps JUMP with the spear (BRACE moved off it) */
+.ws-touch.spear .ws-touch-disc.jump { display: none; } /* BRACE has JUMP's slot */
 .ws-touch.spear .ws-touch-disc.throw, .ws-touch.spear:not(.swimming) .ws-touch-disc.brace { display: flex; }
 .ws-touch-disc.throw svg, .ws-touch-disc.brace svg { width: 42%; height: 42%; }
 /* Nalati's bow held (.bow, NALATI-MERGE H4 / N18): FIRE is hold-to-draw — "HOLD = DRAW" under FIRE, the ring fills with
@@ -189,9 +190,9 @@
 @keyframes ws-touch-letdown { 0% { opacity: 0.55; } 25% { transform: translateX(-2px); } 55% { transform: translateX(2px); } 100% { opacity: 1; transform: none; } }
 /* the weapon strip (src/ui/WeaponStrip.ts; combat-E-weapon-swap.png, 3 slots per the plan): square glass slots, the held one
    outlined in cyan; tap = hold it, tap the held one = back to the last. It replaces main's SWAP pill (.strip).
-   Touch (layout D, NALATI-MERGE H2, art/hud/round-12-nalati-merge/D-*.jpg): three edge tabs down the LEFT screen edge under
-   the status column (and its GRASS meter), the slot number in the corner — the ammo is the column's ARROWS row. Desktop
-   (.desk, controls-desktop-keys.png): a hotbar bottom-centre, key numbers + names + ammo. */
+   Touch: edge tabs down the LEFT screen edge under the status column, the slot number in the corner — the held weapon's
+   ammo is the column's ammo strip (HUD.ts). Built by main.ts for a shard whose ChunkDef has `hud.weaponStrip` (Pine Hollow,
+   Nalati — E154). Desktop (.desk, controls-desktop-keys.png): a hotbar bottom-centre, key numbers + names + ammo. */
 .ws-touch.strip .ws-touch-pill { display: none; }
 .ws-touch-strip { --slot: 40px; position: absolute; display: flex; z-index: 3; pointer-events: auto; touch-action: none; }
 .ws-touch-strip:not(.desk) { left: 0; top: calc(var(--ws-top) + 240px); flex-direction: column; gap: 5px; }
@@ -214,38 +215,28 @@
 .ws-touch-slot-ammo { position: absolute; right: 4px; bottom: 3px; font-family: var(--ws-display); font-weight: 700; font-size: 11px; line-height: 1; color: #fff; font-variant-numeric: tabular-nums; }
 .ws-touch-strip.desk .ws-touch-slot-ammo { right: 6px; top: 5px; bottom: auto; font-size: 12px; }
 .ws-touch-slot-ammo.empty { color: var(--ws-red); }
-/* ─── Nalati crouch (B9, src/nalati/stealth.ts injects the disc and sets .nalati / .crouch-avail on the layer) ───
-   decision D (art/nalati-grasslands/round-3/3-crouch-disc/): a CROUCH disc the size of JUMP, directly above main's JUMP (8 px
-   gap), shown only in long grass: fades in over 250 ms, out over 400 ms; a toggle (.on = crouched); the first time per
-   session a soft ring pulses twice (.pulse). DODGE / JUMP stay main's arc (E63 T; the old Nalati DODGE override sat on
-   DRAW and LOCK after the merge). */
-.ws-touch-disc.crouch { left: calc(100% - var(--disc) / 2 - 8px); bottom: calc(var(--bar) + 66px + var(--disc)); opacity: 0; pointer-events: none; transform: translateY(6px); transition: opacity 0.4s, transform 0.4s, background 0.15s, box-shadow 0.15s; }
-.ws-touch-disc.crouch svg { width: 40%; height: 40%; fill: none; }
-.ws-touch-disc.crouch span { font-size: 7.5px; letter-spacing: 0.14em; }
-.ws-touch.crouch-avail .ws-touch-disc.crouch { opacity: 1; pointer-events: auto; transform: none; transition: opacity 0.25s, transform 0.25s, background 0.15s, box-shadow 0.15s; }
-.ws-touch.swimming .ws-touch-disc.crouch { display: none; }
-.ws-touch-disc.crouch.pulse { animation: ws-touch-crouch-pulse 1.1s ease-out 2; }
-/* ─── Nalati's right-thumb arc, layout D (NALATI-MERGE H2, D-foot.jpg): JUMP main's, CROUCH above it; the bow's AIM (the
-   zoom toggle, H4) takes the LOCK disc's spot (the bow never locks, the sabre / spear never aim) and DODGE sits between the two,
-   level with JUMP's lower half — D's flatter arc, so nothing overlaps (the old Nalati DODGE sat on DRAW and LOCK); the
-   spear's THROW rides just above FIRE and its BRACE sits up-left of CROUCH, so JUMP and LOCK stay with the spear ── */
-#hud.nalati-d .ws-touch-disc.aim { left: calc(100% - var(--disc) * 1.5 - 58px); bottom: calc(var(--bar) + 16px + var(--disc)); }
-#hud.nalati-d .ws-touch-disc.dodge, #hud.nalati-d .ws-touch-disc.surface { left: calc(100% - var(--disc) / 2 - 70px); bottom: calc(var(--bar) + 8px + var(--disc) / 2); }
-#hud.nalati-d .ws-touch-disc.throw { left: calc(var(--split) + var(--atk) / 2); bottom: calc(var(--bar) + 6px); }
-#hud.nalati-d .ws-touch-disc.brace { left: calc(100% - var(--disc) * 1.75); bottom: calc(var(--bar) + 66px + var(--disc)); }
-@keyframes ws-touch-crouch-pulse { 0% { box-shadow: 0 0 0 0 rgba(143, 227, 255, 0.7), 0 8px 24px rgba(0, 0, 0, 0.4); } 100% { box-shadow: 0 0 0 22px rgba(143, 227, 255, 0), 0 8px 24px rgba(0, 0, 0, 0.4); } }
-
 /* ── E119 (the user, 2026-09-24): LOCK · DODGE · JUMP in ONE row above the LOOK pad, right-aligned, instead of the
    diagonal cluster; HOVER stays where it is. Each slot's stand-ins follow it (DIVE / BRACE → JUMP's, SURFACE → DODGE's);
    AIM / THROW take LOCK's slot when there is no LOCK (the bow / crossbow), else a 4th slot to its left (the spear).
-   Nalati's layout D (#hud.nalati-d) keeps its own places. ── */
-#hud:not(.nalati-d) .ws-touch { --row: calc(var(--bar) + 10px); --rslot: calc(var(--disc) + 8px); }
-#hud:not(.nalati-d) .ws-touch-disc.jump, #hud:not(.nalati-d) .ws-touch-disc.dive, #hud:not(.nalati-d) .ws-touch-disc.brace { left: calc(100% - var(--disc) / 2 - 10px); bottom: var(--row); }
-#hud:not(.nalati-d) .ws-touch-disc.dodge, #hud:not(.nalati-d) .ws-touch-disc.surface { left: calc(100% - var(--disc) / 2 - 10px - var(--rslot)); bottom: var(--row); }
-#hud:not(.nalati-d) .ws-touch-disc.lock { left: calc(100% - var(--disc) / 2 - 10px - var(--rslot) * 2); bottom: var(--row); }
-#hud:not(.nalati-d) .ws-touch:not(.lockable) .ws-touch-disc.aim, #hud:not(.nalati-d) .ws-touch:not(.lockable) .ws-touch-disc.throw { left: calc(100% - var(--disc) / 2 - 10px - var(--rslot) * 2); bottom: var(--row); }
-#hud:not(.nalati-d) .ws-touch.lockable .ws-touch-disc.aim, #hud:not(.nalati-d) .ws-touch.lockable .ws-touch-disc.throw { left: calc(100% - var(--disc) / 2 - 10px - var(--rslot) * 3); bottom: var(--row); }
-#hud:not(.nalati-d) .ws-touch-use { bottom: calc(var(--row) + var(--disc) + 14px); }
+   E154 (the user: "normalize the HUD across all three shards"): every shard, Nalati included — its layout D arc is gone.
+   A shard's own discs (src/ui/hudSlots.ts) take the same slots by name: `.at-r0` JUMP's … `.at-r3` the 4th, `.at-aim`
+   wherever AIM is, `.at-up0` over JUMP (the USE band moves up while one shows), `.at-lean-l / -r` the two edges just
+   above the bar, `.at-edge-r` a tab on the right edge. Hidden until the owner adds `.show`. ── */
+.ws-touch { --row: calc(var(--bar) + 10px); --rslot: calc(var(--disc) + 8px); --r0: calc(100% - var(--disc) / 2 - 10px); }
+.ws-touch-disc.jump, .ws-touch-disc.dive, .ws-touch-disc.brace, .ws-touch-disc.at-r0 { left: var(--r0); bottom: var(--row); }
+.ws-touch-disc.dodge, .ws-touch-disc.surface, .ws-touch-disc.at-r1 { left: calc(var(--r0) - var(--rslot)); bottom: var(--row); }
+.ws-touch-disc.lock, .ws-touch-disc.at-r2 { left: calc(var(--r0) - var(--rslot) * 2); bottom: var(--row); }
+.ws-touch-disc.at-r3 { left: calc(var(--r0) - var(--rslot) * 3); bottom: var(--row); }
+.ws-touch:not(.lockable) .ws-touch-disc.aim, .ws-touch:not(.lockable) .ws-touch-disc.throw, .ws-touch:not(.lockable) .ws-touch-disc.at-aim { left: calc(var(--r0) - var(--rslot) * 2); bottom: var(--row); }
+.ws-touch.lockable .ws-touch-disc.aim, .ws-touch.lockable .ws-touch-disc.throw, .ws-touch.lockable .ws-touch-disc.at-aim { left: calc(var(--r0) - var(--rslot) * 3); bottom: var(--row); }
+.ws-touch-disc.at-up0 { left: var(--r0); bottom: calc(var(--row) + var(--rslot)); }
+.ws-touch-disc.at-lean-l { left: calc(var(--disc) / 2 + 14px); bottom: var(--row); }
+.ws-touch-disc.at-lean-r { left: var(--r0); bottom: var(--row); }
+.ws-touch-disc.at-edge-r { left: auto; right: 0; bottom: auto; top: calc(46% - 60px); margin-left: 0; width: 52px; height: 52px; border-radius: 12px 0 0 12px; border-right: none; font-size: 7px; gap: 2px; }
+.ws-touch-disc.at-edge-r::before, .ws-touch-disc.at-edge-r::after { display: none; }
+.ws-touch-disc.at:not(.show) { display: none; }
+.ws-touch-use { bottom: calc(var(--row) + var(--disc) + 14px); }
+.ws-touch:has(.ws-touch-disc.at-up0.show) .ws-touch-use { bottom: calc(var(--row) + var(--rslot) + var(--disc) + 14px); }
 
 /* ── E152 (the user, 2026-09-25): HOVER was a tab on the bar's top edge, right over MOVE — "too close to the movement".
    Now a small tab on the LEFT EDGE, halfway up the screen: flush with the edge, rounded on the inside, icon over a tiny

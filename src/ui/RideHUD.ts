@@ -1,21 +1,23 @@
 import * as THREE from 'three';
 import './styles/ride.css';
 import type { Mount } from '../player/Mount';
+import { ROW, hudSlots } from './hudSlots';
 
 /**
  * RideHUD — the riding and taming HUD atoms (Nalati B7 / B8; mockups art/nalati-grasslands/round-2/1-combat/
  * combat-A-horse-archery.png, 2-creatures/taming-1-approach.png, taming-2-bucking.png, taming-3-bonded.png,
- * 7-controls/controls-mounted-layout.png). Built into #hud next to the HUD it complements, never inside another
- * screen's markup — the one touch concession is hiding / showing TouchControls' own discs with inline styles:
+ * 7-controls/controls-mounted-layout.png). The touch controls and the STEED row go through the base HUD's slots
+ * (src/ui/hudSlots.ts, E154) — this file never places anything on the phone; the one concession is hiding the base's own
+ * JUMP / DODGE / HOVER / AIM in the saddle with inline visibility:
  *
- *   STEED     amber bar + gait under VITALS while mounted (desktop panel over the health panel; touch: a row of the left
- *             status column under VITALS — the horse, its name, the bar, the gait — layout D, NALATI-MERGE H2)
- *   GALLOP    (touch) a held disc where JUMP is; JUMP, DODGE and the HOVER tab hide in the saddle
- *   HORSE     (touch) a small tab on the right edge: whistles your bonded horse (desktop: X); in the saddle the same tab
- *             reads DISMOUNT, amber, the horse over a down-arrow (N17, D-saddle.jpg — the USE band's DISMOUNT hides while it is up)
+ *   STEED     amber bar + gait under VITALS while mounted (desktop panel over the health panel; touch: a row of the
+ *             status column — the horse, its name, the bar, the gait)
+ *   GALLOP    (touch) a held disc in JUMP's slot (`r0`); JUMP, DODGE and the HOVER tab hide in the saddle
+ *   HORSE     (touch) a small tab on the right edge (`edge-r`): whistles your bonded horse (desktop: X); in the saddle the
+ *             same tab reads DISMOUNT, amber, the horse over a down-arrow (N17 — the USE band's DISMOUNT hides while it is up)
  *   TRUST     the arc over the crosshair while you approach a stallion (heart · horseshoe), and his ALERT ear over his head
- *   HOLD ON   TAMING n/5 + the balance arc while he bucks; LEAN L / LEAN R discs (touch) where AIM / GALLOP were
- *   OFFER     (touch) where AIM is, inside 12 m of the stallion (desktop: hold G)
+ *   HOLD ON   TAMING n/5 + the balance arc while he bucks; LEAN L / LEAN R discs (touch) at the two edges over the bar
+ *   OFFER     (touch) in AIM's slot (`aim`), inside 12 m of the stallion (desktop: hold G)
  *   tags      "TULPAR ♥" over your horse within 30 m
  *
  *   const hud = new RideHUD(mount, camera);   hud.update(taming.view)   // every frame
@@ -61,8 +63,10 @@ export class RideHUD {
   private readonly ear: HTMLElement; private earCol = '';
   private readonly hold: HTMLElement; private readonly holdRound: HTMLElement; private readonly holdMark: SVGGElement;
   private readonly tags = new Map<string, HTMLElement>();
-  private touch: { root: HTMLElement; gallop: HTMLElement; horse: HTMLElement; horseSvg: string; use: HTMLElement | null; leanL: HTMLElement; leanR: HTMLElement; offer: HTMLElement; steed: HTMLElement; sbar: HTMLElement; sname: HTMLElement; gait: HTMLElement } | null = null;
-  private last = { mounted: false, breaking: false, offer: false, steed: -1, gait: '', winded: false };
+  /** the phone's controls + STEED row (hudSlots: detached, and never shown, on a mouse / trackpad device) */
+  private readonly t: { gallop: HTMLElement; horse: HTMLElement; leanL: HTMLElement; leanR: HTMLElement; offer: HTMLElement; steed: HTMLElement; sbar: HTMLElement; sname: HTMLElement; gait: HTMLElement };
+  private layer: HTMLElement | null = null; private use: HTMLElement | null = null;
+  private last = { mounted: true, breaking: true, offer: true, steed: -1, gait: '', winded: false }; // ≠ the first frame's: paint it
 
   constructor(private readonly mount: Mount, private readonly camera: THREE.PerspectiveCamera) {
     this.root = document.getElementById('hud') ?? document.body;
@@ -80,86 +84,66 @@ export class RideHUD {
     if (mk === null) throw new Error('RideHUD: hold marker');
     this.holdMark = mk;
     this.root.append(this.steed, this.trust, this.ear, this.hold);
+    this.t = this.buildTouch();
   }
 
   private q(r: HTMLElement, s: string): HTMLElement { const e = r.querySelector<HTMLElement>(s); if (e === null) throw new Error(`RideHUD: ${s}`); return e; }
 
-  /** the touch discs, once TouchControls' layer exists */
-  private bindTouch(): void {
-    if (this.touch !== null) return;
-    const root = this.root.querySelector<HTMLElement>('.ws-touch');
-    const bar = this.root.querySelector<HTMLElement>('.ws-touch-bar');
-    if (root === null || bar === null) return;
-    const disc = (cls: string, html: string, label: string): HTMLElement => {
-      const b = document.createElement('button'); b.type = 'button'; b.className = `ws-touch-disc ${cls}`; b.innerHTML = `${html}<span>${label}</span>`; b.style.display = 'none'; root.append(b); return b;
-    };
-    const hold = (b: HTMLElement, down: () => void, up: () => void): void => {
-      b.addEventListener('pointerdown', (e) => { e.stopPropagation(); e.preventDefault(); b.classList.add('down'); down(); });
-      const end = (e: Event): void => { e.stopPropagation(); b.classList.remove('down'); up(); };
-      b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end); b.addEventListener('pointerleave', end);
-    };
-    const gallop = disc('ws-ride-gallop', SVG_SHOE, 'Gallop');
-    hold(gallop, () => { this.mount.touchGallop = true; }, () => { this.mount.touchGallop = false; });
+  /** the phone's discs and STEED row, through the base HUD's slots */
+  private buildTouch(): RideHUD['t'] {
+    const gallop = hudSlots.disc({ cls: 'ws-ride-gallop', icon: SVG_SHOE, label: 'Gallop', spot: 'r0', press: () => { this.mount.touchGallop = true; }, release: () => { this.mount.touchGallop = false; } });
     // HORSE ⇄ DISMOUNT (N17): one small tab on the right edge — on foot it whistles your horse, in the saddle it reads
     // DISMOUNT and gets you off (the full-width USE band's DISMOUNT hides, syncUse)
-    const horse = disc('ws-ride-horse', SVG_HORSE, 'Horse');
-    hold(horse, () => { if (this.mount.mounted) { if (!this.mount.breaking) this.mount.dismount(); } else this.mount.whistle(); }, () => undefined);
-    const use = root.querySelector<HTMLElement>('.ws-touch-use');
-    if (use !== null) new MutationObserver(() => { this.syncUse(); }).observe(use, { childList: true, characterData: true, subtree: true });
-    const leanL = disc('ws-ride-lean l', SVG_LEFT, 'Lean L'), leanR = disc('ws-ride-lean r', SVG_RIGHT, 'Lean R');
-    hold(leanL, () => { this.lean = -1; }, () => { if (this.lean < 0) this.lean = 0; });
-    hold(leanR, () => { this.lean = 1; }, () => { if (this.lean > 0) this.lean = 0; });
-    const offer = disc('ws-ride-offer', SVG_HAND, 'Offer');
-    hold(offer, () => { this.offer = true; }, () => { this.offer = false; });
-    // STEED: a row of the left status column under VITALS (layout D, NALATI-MERGE H2 — D-saddle.jpg), the bar's corner without one
+    const horse = hudSlots.disc({ cls: 'ws-ride-horse', icon: SVG_HORSE, label: 'Horse', spot: 'edge-r', press: () => { if (this.mount.mounted) { if (!this.mount.breaking) this.mount.dismount(); } else this.mount.whistle(); } });
+    const leanL = hudSlots.disc({ cls: 'ws-ride-lean', icon: SVG_LEFT, label: 'Lean L', spot: 'lean-l', press: () => { this.lean = -1; }, release: () => { if (this.lean < 0) this.lean = 0; } });
+    const leanR = hudSlots.disc({ cls: 'ws-ride-lean', icon: SVG_RIGHT, label: 'Lean R', spot: 'lean-r', press: () => { this.lean = 1; }, release: () => { if (this.lean > 0) this.lean = 0; } });
+    const offer = hudSlots.disc({ cls: 'ws-ride-offer', icon: SVG_HAND, label: 'Offer', spot: 'aim', press: () => { this.offer = true; }, release: () => { this.offer = false; } });
+    // STEED: a row of the status column under VITALS (D-saddle.jpg's content)
     const steed = document.createElement('div');
     steed.className = 'ws-ride-steed ws-ride-touch';
     steed.innerHTML = `<i class="ws-ride-glyph">${SVG_HORSE}</i><span class="ws-ride-name">Steed</span><span class="ws-ride-sbar"><i style="width:100%"></i></span><span class="ws-ride-gait">stand</span>`;
-    (root.querySelector<HTMLElement>('.ws-touch-status') ?? bar).append(steed);
-    this.touch = { root, gallop, horse, horseSvg: SVG_HORSE, use, leanL, leanR, offer, steed, sbar: this.q(steed, '.ws-ride-sbar i'), sname: this.q(steed, '.ws-ride-name'), gait: this.q(steed, '.ws-ride-gait') };
-    this.last.mounted = !this.mount.mounted; this.last.breaking = !this.mount.breaking; this.last.offer = !this.last.offer;   // force a sync
+    hudSlots.statusRow(steed, ROW.steed);
+    hudSlots.onLayer((layer) => {
+      this.layer = layer;
+      this.use = layer.querySelector<HTMLElement>('.ws-touch-use');
+      if (this.use !== null) new MutationObserver(() => { this.syncUse(); }).observe(this.use, { childList: true, characterData: true, subtree: true });
+    });
+    return { gallop, horse, leanL, leanR, offer, steed, sbar: this.q(steed, '.ws-ride-sbar i'), sname: this.q(steed, '.ws-ride-name'), gait: this.q(steed, '.ws-ride-gait') };
   }
 
   /** the USE band (TouchControls) reading DISMOUNT hides while the DISMOUNT tab is up; any other action in the saddle
    *  (a gate, a chest) still shows it. Event-driven (its label changes / mount changes), never per frame */
   private syncUse(): void {
-    const t = this.touch;
-    const use = t?.use ?? null;
+    const use = this.use;
     if (use === null) return;
     const hide = this.mount.mounted && use.textContent.trim().toLowerCase() === 'dismount';
     use.style.visibility = hide ? 'hidden' : '';
   }
 
-  /** show / hide one of TouchControls' own discs (inline, so its stylesheet stays its own) */
+  /** show / hide one of the base's own controls (inline, so its stylesheet stays its own) */
   private showDisc(sel: string, on: boolean): void {
-    const t = this.touch;
-    if (t === null) return;
-    const d = t.root.querySelector<HTMLElement>(sel);
+    const d = this.layer?.querySelector<HTMLElement>(sel) ?? null;
     if (d !== null) d.style.visibility = on ? '' : 'hidden';
   }
 
   update(view: TamingView | null): void {
-    this.bindTouch();
-    const m = this.mount, t = this.touch;
+    const m = this.mount, t = this.t, touch = hudSlots.touch;
     const mounted = m.mounted, breaking = m.breaking;
     // ── the saddle layout ──
     if (mounted !== this.last.mounted || breaking !== this.last.breaking) {
       this.last.mounted = mounted; this.last.breaking = breaking;
-      this.steed.classList.toggle('show', mounted && !breaking && t === null);
-      if (t !== null) {
-        t.steed.classList.toggle('show', mounted && !breaking);
-        t.gallop.style.display = mounted && !breaking ? 'flex' : 'none';
-        t.leanL.style.display = t.leanR.style.display = breaking ? 'flex' : 'none';
-        this.showDisc('.ws-touch-disc.jump', !mounted);
-        this.showDisc('.ws-touch-disc.dodge', !mounted);
-        this.showDisc('.ws-touch-hover', !mounted);   // main's HOVER folder tab (E80): no board in the saddle
-        this.showDisc('.ws-touch-disc.aim', !breaking);
-        this.showDisc('.ws-touch-disc.heavy', !breaking);
-        t.horse.style.display = breaking ? 'none' : 'flex';
-        t.horse.classList.toggle('ws-ride-dismount', mounted);
-        t.horse.innerHTML = mounted ? `${t.horseSvg}<b class="ws-ride-darrow">${SVG_DOWN}</b><span>Dismount</span>` : `${t.horseSvg}<span>Horse</span>`;
-        this.syncUse();
-      }
+      this.steed.classList.toggle('show', mounted && !breaking && !touch);
+      t.steed.classList.toggle('show', mounted && !breaking);
+      hudSlots.show(t.gallop, mounted && !breaking);
+      hudSlots.show(t.leanL, breaking); hudSlots.show(t.leanR, breaking);
+      this.showDisc('.ws-touch-disc.jump', !mounted);
+      this.showDisc('.ws-touch-disc.dodge', !mounted);
+      this.showDisc('.ws-touch-hover', !mounted);   // the base's HOVER tab: no board in the saddle
+      this.showDisc('.ws-touch-disc.aim', !breaking);
+      hudSlots.show(t.horse, !breaking);
+      t.horse.classList.toggle('ws-ride-dismount', mounted);
+      t.horse.innerHTML = mounted ? `${SVG_HORSE}<b class="ws-ride-darrow">${SVG_DOWN}</b><span>Dismount</span>` : `${SVG_HORSE}<span>Horse</span>`;
+      this.syncUse();
       if (!breaking) this.lean = 0;
     }
     if (mounted) {
@@ -167,12 +151,12 @@ export class RideHUD {
       if (s !== this.last.steed || m.winded !== this.last.winded) {
         this.last.steed = s; this.last.winded = m.winded;
         this.sbar.style.width = `${s}%`; this.steed.classList.toggle('winded', m.winded);
-        if (t !== null) { t.sbar.style.width = `${s}%`; t.steed.classList.toggle('winded', m.winded); t.gallop.classList.toggle('winded', m.winded); }
+        t.sbar.style.width = `${s}%`; t.steed.classList.toggle('winded', m.winded); t.gallop.classList.toggle('winded', m.winded);
       }
       const gait = m.leanLow > 0.5 ? 'gallop · low' : m.gait;
-      if (gait !== this.last.gait) { this.last.gait = gait; this.gait.textContent = gait; if (t !== null) t.gait.textContent = m.gait; } // the phone row is 170 px: the gait alone (D-saddle.jpg)
+      if (gait !== this.last.gait) { this.last.gait = gait; this.gait.textContent = gait; t.gait.textContent = m.gait; } // the phone row is 170 px: the gait alone (D-saddle.jpg)
       const name = m.horse?.label ?? 'Steed';
-      if (this.sname.textContent !== name) { this.sname.textContent = name; if (t !== null) t.sname.textContent = name; }
+      if (this.sname.textContent !== name) { this.sname.textContent = name; t.sname.textContent = name; }
     }
     // ── taming ──
     const trust = view?.trust ?? null;
@@ -198,9 +182,9 @@ export class RideHUD {
       this.hold.classList.toggle('danger', view.danger);
     }
     const offer = (view?.offer ?? false) && !mounted;
-    if (t !== null && offer !== this.last.offer) {
+    if (offer !== this.last.offer) {
       this.last.offer = offer;
-      t.offer.style.display = offer ? 'flex' : 'none';
+      hudSlots.show(t.offer, offer);
       this.showDisc('.ws-touch-disc.aim', !offer && !breaking);
       if (!offer) this.offer = false;
     }
