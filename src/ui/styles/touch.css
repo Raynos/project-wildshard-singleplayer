@@ -234,3 +234,15 @@
 #hud.nalati-d .ws-touch-disc.throw { left: calc(var(--split) + var(--atk) / 2); bottom: calc(var(--bar) + 6px); }
 #hud.nalati-d .ws-touch-disc.brace { left: calc(100% - var(--disc) * 1.75); bottom: calc(var(--bar) + 66px + var(--disc)); }
 @keyframes ws-touch-crouch-pulse { 0% { box-shadow: 0 0 0 0 rgba(143, 227, 255, 0.7), 0 8px 24px rgba(0, 0, 0, 0.4); } 100% { box-shadow: 0 0 0 22px rgba(143, 227, 255, 0), 0 8px 24px rgba(0, 0, 0, 0.4); } }
+
+/* ── E119 (the user, 2026-09-24): LOCK · DODGE · JUMP in ONE row above the LOOK pad, right-aligned, instead of the
+   diagonal cluster; HOVER stays where it is. Each slot's stand-ins follow it (DIVE / BRACE → JUMP's, SURFACE → DODGE's);
+   AIM / THROW take LOCK's slot when there is no LOCK (the bow / crossbow), else a 4th slot to its left (the spear).
+   Nalati's layout D (#hud.nalati-d) keeps its own places. ── */
+#hud:not(.nalati-d) .ws-touch { --row: calc(var(--bar) + 10px); --rslot: calc(var(--disc) + 8px); }
+#hud:not(.nalati-d) .ws-touch-disc.jump, #hud:not(.nalati-d) .ws-touch-disc.dive, #hud:not(.nalati-d) .ws-touch-disc.brace { left: calc(100% - var(--disc) / 2 - 10px); bottom: var(--row); }
+#hud:not(.nalati-d) .ws-touch-disc.dodge, #hud:not(.nalati-d) .ws-touch-disc.surface { left: calc(100% - var(--disc) / 2 - 10px - var(--rslot)); bottom: var(--row); }
+#hud:not(.nalati-d) .ws-touch-disc.lock { left: calc(100% - var(--disc) / 2 - 10px - var(--rslot) * 2); bottom: var(--row); }
+#hud:not(.nalati-d) .ws-touch:not(.lockable) .ws-touch-disc.aim, #hud:not(.nalati-d) .ws-touch:not(.lockable) .ws-touch-disc.throw { left: calc(100% - var(--disc) / 2 - 10px - var(--rslot) * 2); bottom: var(--row); }
+#hud:not(.nalati-d) .ws-touch.lockable .ws-touch-disc.aim, #hud:not(.nalati-d) .ws-touch.lockable .ws-touch-disc.throw { left: calc(100% - var(--disc) / 2 - 10px - var(--rslot) * 3); bottom: var(--row); }
+#hud:not(.nalati-d) .ws-touch-use { bottom: calc(var(--row) + var(--disc) + 14px); }
