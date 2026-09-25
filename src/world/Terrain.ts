@@ -245,17 +245,31 @@ export class Terrain {
     const pos = new Float32Array(res * res * 3), col = new Uint8Array(res * res * 3);
     const wl = getActiveChunk().ocean?.level ?? -1e4;
     const c = new THREE.Color();
+    const hs = new Float32Array(res * res);
+    for (let iz = 0; iz < res; iz++) {
+      if (iz > 0 && iz % 64 === 0) yield;
+      for (let ix = 0; ix < res; ix++) hs[iz * res + ix] = heightAt(-CHUNK_HALF + ix * d, -CHUNK_HALF + iz * d);
+    }
+    const H = (ix: number, iz: number): number => hs[Math.min(n, Math.max(0, iz)) * res + Math.min(n, Math.max(0, ix))] ?? 0;
     for (let iz = 0; iz < res; iz++) {
       if (iz > 0 && iz % 64 === 0) yield;
       for (let ix = 0; ix < res; ix++) {
         const i = iz * res + ix, x = -CHUNK_HALF + ix * d, z = -CHUNK_HALF + iz * d;
-        const y = heightAt(x, z);
+        const y = H(ix, iz);
         pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
         const [, ny] = normalAt(x, z, d * 0.5);
         // a cliff's top edge (L6): steep here but nothing much higher within 2.5 m → the grass lips over it
         let lip = 0;
         if (ny < 0.8) { const hi = Math.max(heightAt(x + 2.5, z), heightAt(x - 2.5, z), heightAt(x, z + 2.5), heightAt(x, z - 2.5)); lip = 1 - ss(hi - y, 0.4, 1.4); }
-        lowPolyGroundColor(c, y - wl, 1 - ny, x, z, lip);
+        let h = y - wl, slope = 1 - ny;
+        if (h < 0) {
+          // a facet takes its provoking (last) vertex's colour — this one's facets span it and these neighbours (the index
+          // pattern below). One that climbs out of the sea is a wall, not seabed: coloured at its middle height and its own
+          // slope, or the creek's walls went seabed-teal (royal blue in shade) up to a cell above the water (E125)
+          const top = Math.max(H(ix - 1, iz - 1), H(ix, iz - 1), H(ix - 1, iz), H(ix - 1, iz + 1), H(ix, iz + 1)) - wl;
+          if (top > 0) { slope = Math.max(slope, 1 - d / Math.hypot(d, top - h)); h = (h + top) * 0.5; }
+        }
+        lowPolyGroundColor(c, h, slope, x, z, lip);
         // the sand paths: trails above the beach are painted sand over the grass (a 3 m bed with a soft edge)
         if (y - wl > 1.5) { const td = trailDistance(x, z); if (td < 4.5) { _pathC.copy(LP.path).multiplyScalar(0.94 + hash2(x, z) * 0.12); c.lerp(_pathC, 1 - ss(td, 2.2, 4.5)); } }
         // clamped: a Uint8Array wraps 256+ to ~0, so a bright sand facet jittered over 1.0 turned mint (r 1.07 → 17)
