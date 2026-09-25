@@ -109,6 +109,12 @@ export interface ChunkAssets {
   groundTints: [RGB, RGB, RGB, RGB];
   /** PBR set for the rock walls of the floating slab */
   slabRock: string;
+  /**
+   * The boreal ground (PINE-HOLLOW PH-L8): the terrain shader's canopy-driven needle litter, moss patches and tiling
+   * breakup, with per-layer normal strengths. `v1` is the ground before the look loop — its layers / tints, the plain
+   * shader — built by `?ground=v1` (src/world/lookFlags.ts). Absent: the plain shader.
+   */
+  boreal?: { normalK: [number, number, number, number]; v1: { groundLayers: [string, string, string, string]; groundTints: [RGB, RGB, RGB, RGB] } };
 }
 
 /** Which tree builder to use and what it should be textured with. */
@@ -160,6 +166,12 @@ export interface ChunkForest {
   scale?: (x: number, z: number) => number;
   /** with a species set (`ChunkTrees.set`): the species mix at (x, z), relative weights (src/world/placement.ts) */
   species?: (x: number, z: number) => SpeciesWeights;
+  /**
+   * The understory (src/world/placement.ts placeUndergrowth; PINE-HOLLOW PH-L8): × the fern and shrub caps (and their
+   * candidate counts); `fernCanopy` lets ferns fill the dense shade outside the fern-cluster noise (≥ 5 trunks in 12 m).
+   * Omitted = the engine's counts.
+   */
+  understory?: { ferns: number; shrubs: number; fernCanopy: boolean };
 }
 
 /** a registered species kind (`src/entities/species/<kind>.ts`): 'deer' | 'boar' built in; bear / elk… as they register */
@@ -230,6 +242,25 @@ export interface ChunkGrade {
   gamma: number;
 }
 
+/**
+ * A shard's look-loop grade (PINE-HOLLOW PH-L1 / L4), laid over `grade` and the day clock unless `?grade=v1`
+ * (src/world/lookFlags.ts): grade overrides, a display-space S-curve and vibrance in GradeEffect, and multipliers on the
+ * clock's volumetric in-scatter / distance fog plus a saturation offset (PineDayNight.look; the presets untouched).
+ */
+export interface ChunkLook {
+  grade: Partial<ChunkGrade>;
+  /** S-curve strength around mid grey (0 = none) */
+  curve: number;
+  /** saturation lift that spares what is already saturated (0 = none) */
+  vibrance: number;
+  /** × the volumetric in-scatter, × the distance fog, + the clock's grade saturation */
+  vol: number;
+  fogDist: number;
+  sat: number;
+  /** × the ground-mist sheets under a high sun (1 at dawn, dusk and night: the mist is the morning's and the night's) */
+  dayMist: number;
+}
+
 export interface SpawnPose { x: number; z: number; yaw: number }
 
 /**
@@ -289,6 +320,8 @@ export interface ChunkDef {
   sky: ChunkSky;
   atmosphere: ChunkAtmosphere;
   grade: ChunkGrade;
+  /** the look loop's grade over `grade` (PH-L1 / L4; `?grade=v1` = without it) */
+  look?: ChunkLook;
   /** where the player stands on entering (feet, metres; yaw radians — π faces +Z, the compass' north) */
   spawn: SpawnPose;
   /** rendering style; omitted = 'pbr' */

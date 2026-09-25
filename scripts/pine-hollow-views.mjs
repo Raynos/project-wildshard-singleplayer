@@ -124,6 +124,14 @@ try {
           } else {
             window.__v9.pose = null; w.freeCamera = false;
             w.player.spawn(cc.x, cc.z, cc.yaw); w.player.pitch = cc.pitch;
+            // the elites ignore `calm` (an elk's head filled the pond's FP back): park anything within 24 m 70 m out, held
+            for (const an of w.animals.animals) {
+              const dx = an.position.x - cc.x, dz = an.position.z - cc.z, d = Math.hypot(dx, dz);
+              if (!an.alive || d > 24) continue;
+              const k = 70 / Math.max(d, 0.01);
+              an.driven = true; an.speed = 0;
+              an.position.set(cc.x + dx * k, window.__hf.heightAt(cc.x + dx * k, cc.z + dz * k), cc.z + dz * k);
+            }
           }
         }, c);
         await sleep(SETTLE);

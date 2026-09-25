@@ -7,6 +7,8 @@ import { attachFogUniforms } from './Atmosphere';
 import type { Sky } from './Sky';
 import { noReflect } from './Water';
 import type { Forest } from './Forest';
+import { getActiveChunk } from '../chunks/registry';
+import { activeGrade } from './lookFlags';
 
 /**
  * Atmosphere particles: sun-lit dust motes, drifting ground mist and falling pine needles.
@@ -70,6 +72,8 @@ export class Particles {
   private uPond = { value: new THREE.Vector3(POND.x, POND.z, POND.r) };
   private uMote = { value: 1.0 };
   private uMist = { value: 1.0 };
+  /** the look loop's daytime mist (ChunkLook.dayMist, PH-L1; `?grade=v1` = 1): × the mist while the sun stands high */
+  private dayMist = activeGrade(getActiveChunk()).look?.dayMist ?? 1;
   private needleOrigin!: THREE.InstancedBufferAttribute;
   private needleInfo!: THREE.InstancedBufferAttribute;
   private lastNeedlePos = new THREE.Vector3(1e9, 0, 0);
@@ -93,7 +97,8 @@ export class Particles {
     this.uTime.value += dt;
     this.uMote.value = this.params.moteIntensity;
     this.uNight.value = this.sky.night;
-    this.uMist.value = this.params.mistOpacity;
+    const lowSun = this.sky.pine?.dusk ?? 1; // 1 at dawn / dusk / night (and on a fixed sky), 0 under a high sun
+    this.uMist.value = this.params.mistOpacity * (this.dayMist + (1 - this.dayMist) * lowSun);
     if (playerPos.distanceToSquared(this.lastNeedlePos) > 8 * 8) {
       this.lastNeedlePos.copy(playerPos);
       this.respawnNeedles(playerPos);

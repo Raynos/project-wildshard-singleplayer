@@ -15,6 +15,7 @@ import { PUBLIC_BYTES } from './bytes.generated';
 import { RAPIER_WASM_URL } from '../physics/wasmUrl';
 import { navmeshUrl } from '../physics/navmeshUrl';
 import { pineHeroUrls } from '../world/pineHero';
+import { groundSet } from '../world/lookFlags';
 import { treeSetOf } from '../world/placement';
 import { BARK_LAYERS, treeSetFiles } from '../world/treeSet';
 import { pineSkyKeyUrls } from '../world/pineSkyKeys';
@@ -27,7 +28,7 @@ const uniq = (xs: string[]) => [...new Set(xs)];
 
 export function chunkFiles(def: ChunkDef): ChunkFiles {
   const baked = bakedTerrainUrl(def.slug); // scripts/bake-chunk.mjs output, when the build has one
-  const terrain = uniq([...(baked ? [baked] : []), ...[...def.assets.groundLayers, def.assets.slabRock].flatMap(pbr)]);
+  const terrain = uniq([...(baked ? [baked] : []), ...[...groundSet(def).layers, def.assets.slabRock].flatMap(pbr)]);
   const cards = bakedCardUrls(def.slug); // scripts/bake-cards.mjs output, when the build has it
   const set = treeSetOf(def.trees, (u) => u in PUBLIC_BYTES); // PH-B4: the Blender species set (?trees=v1: the runtime pines)
   const trees = set

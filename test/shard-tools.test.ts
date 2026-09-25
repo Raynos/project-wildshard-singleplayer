@@ -28,7 +28,8 @@ describe('per-shard pipeline lookups (PH-0.3)', () => {
 
   it('LUT: a shard gets one only when the build has its file', () => {
     expect(lutUrl('driftwood-isle')).toBe('/assets/lut/driftwood-isle.bin');
-    expect(lutUrl('pine-hollow')).toBeNull();
+    expect(lutUrl('pine-hollow')).toBe('/assets/lut/pine-hollow.bin'); // PH-L4, the look loop's fit
+    expect(lutUrl('no-such-shard')).toBeNull();
   });
 
   it('painted horizon: Driftwood its strips and range, Pine Hollow its photoreal pair (PH-L5), others none', () => {

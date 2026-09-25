@@ -6,6 +6,7 @@ import { attachFogUniforms } from './Atmosphere';
 import { getActiveChunk } from '../chunks/registry';
 import { loadBakedTerrain } from './BakedTerrain';
 import { macrotask } from '../boot/plan';
+import { groundSet } from './lookFlags';
 
 // ── low-poly palette (sRGB in, linear out via THREE.Color) ──
 const LP = {
@@ -22,6 +23,105 @@ const LP = {
 const _tmpC = new THREE.Color(), _pathC = new THREE.Color();
 const ss = THREE.MathUtils.smoothstep;
 const hash2 = (x: number, z: number) => { const s = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return s - Math.floor(s); };
+
+/**
+ * The boreal ground (PINE-HOLLOW PH-L8, `ChunkAssets.boreal`; `?ground=v1` builds the plain shader above). Over the same
+ * four splat layers ([needle litter, grass, rock, trail]):
+ *  - tiling breakup: each layer's near albedo is two samplings (the 3.6 m one and a rotated 4.8 m one) mixed by a 9 m
+ *    value noise, the far sample rotated off the near grid (fetched only where blended: the phone's fragment budget), the old 20 m hash blocks replaced by smooth value noise;
+ *  - canopy-driven litter: under the crowns (`canopy`, Forest's map) the needle litter goes darker and rust-warm; in
+ *    the open it stays pale and dry;
+ *  - moss: feather-moss carpets in patches over the litter, most where the canopy is dense (the grass layer, sampled
+ *    rotated at 2.7 m, desaturated and tinted moss green; flatter normal, fully rough);
+ *  - per-layer normal strength (`normalK`, e.g. the crags' rock stronger).
+ * Same textures (no new samplers), one program ('terrain-splat-boreal').
+ */
+const BOREAL_COMMON = /* glsl */`
+          uniform vec4 uNormalK;
+          float vnoise(vec2 p) {
+            vec2 i = floor(p), f = fract(p), q = f * f * (3.0 - 2.0 * f);
+            return mix(mix(hash21(i), hash21(i + vec2(1.0, 0.0)), q.x), mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0, 1.0)), q.x), q.y);
+          }
+          const mat2 ROT_B = mat2(0.8196, 0.5729, -0.5729, 0.8196);   // 0.61 rad
+          const mat2 ROT_F = mat2(0.9323, -0.3616, 0.3616, 0.9323);   // −0.37 rad
+          const mat2 ROT_M = mat2(0.2675, 0.9636, -0.9636, 0.2675);   // 1.3 rad
+          // a layer's albedo: near = the 3.6 m sampling mixed with a rotated 4.8 m one by \`tb\`, far rotated too; each
+          // branch fetches only what it blends (most pixels are wholly near or far, wholly one sampling or the other).
+          // Explicit gradients (gx, gy = the world uv's screen derivatives, taken outside every branch): a fetch inside
+          // non-uniform control flow has no implicit mip level
+          vec4 fetchG(sampler2DArray t, int i, mat2 m, float s, vec2 o, vec2 uv, vec2 gx, vec2 gy) {
+            return textureGrad(t, vec3(m * uv * s + o, float(i)), m * gx * s, m * gy * s);
+          }
+          vec4 sampleB(sampler2DArray t, int i, vec2 uv, float k, float tb, vec2 gx, vec2 gy) {
+            vec4 b = k > 0.001 ? fetchG(t, i, ROT_F, 0.034, vec2(0.37), uv, gx, gy) : vec4(0.0);
+            if (k > 0.999) return b;
+            vec4 a0 = tb < 0.999 ? fetchG(t, i, mat2(1.0), 0.28, vec2(0.0), uv, gx, gy) : vec4(0.0);
+            vec4 a1 = tb > 0.001 ? fetchG(t, i, ROT_B, 0.21, vec2(0.53), uv, gx, gy) : vec4(0.0);
+            return mix(mix(a0, a1, tb), b, k);
+          }
+          // the normal / ARM: the 3.6 m sampling near, the rotated far one away (the albedo hides the repeat)
+          vec4 sampleS(sampler2DArray t, int i, vec2 uv, float k, vec2 gx, vec2 gy) {
+            vec4 b = k > 0.001 ? fetchG(t, i, ROT_F, 0.034, vec2(0.37), uv, gx, gy) : vec4(0.0);
+            if (k > 0.999) return b;
+            return mix(fetchG(t, i, mat2(1.0), 0.28, vec2(0.0), uv, gx, gy), b, k);
+          }
+          vec3 sampleN(int i, vec2 uv, float k, vec2 gx, vec2 gy) {
+            vec3 b = vec3(0.0, 0.0, 1.0);
+            if (k > 0.001) { b = fetchG(tNorm, i, ROT_F, 0.034, vec2(0.37), uv, gx, gy).xyz * 2.0 - 1.0; b.xy = transpose(ROT_F) * b.xy; }
+            if (k > 0.999) return b;
+            return mix(fetchG(tNorm, i, mat2(1.0), 0.28, vec2(0.0), uv, gx, gy).xyz * 2.0 - 1.0, b, k);
+          }
+`;
+
+const BOREAL_MAP = /* glsl */`
+          float camDist = length(vWPos - cameraPosition);
+          vec2 tuv = vWPos.xz;
+          vec4 w = vSplat;
+          w = pow(max(w, vec4(0.0)), vec4(2.2)); w /= max(w.x + w.y + w.z + w.w, 1e-5); // guarded (E67)
+          float kFar = smoothstep(18.0, 70.0, camDist);
+          vec2 gx = dFdx(tuv), gy = dFdy(tuv);
+          float tb = smoothstep(0.3, 0.7, vnoise(tuv * 0.11));
+          vec4 alb = vec4(0.0);
+          vec3 nrm = vec3(0.0);
+          vec3 arm = vec3(0.0);
+          for (int i = 0; i < 4; i++) {
+            float wi = w[i];
+            if (wi < 0.004) continue;
+            vec4 l = sampleB(tDiff, i, tuv, kFar, tb, gx, gy); l.rgb *= uTints[i];
+            alb += l * wi;
+            vec3 n = sampleN(i, tuv, kFar, gx, gy);
+            n.xy *= uNormalK[i];
+            nrm += n * wi;
+            arm += sampleS(tArm, i, tuv, kFar, gx, gy).xyz * wi;
+          }
+          // the litter under the crowns: darker, rust-warm needles (the open floor stays pale and dry)
+          float cano = smoothstep(0.05, 0.8, vCanopy);
+          alb.rgb *= mix(vec3(1.0), vec3(1.05, 0.93, 0.8), w.x * cano);
+          // the open floor between the crowns: dry grass and cowberry grown through the litter, in drifts
+          float openN = smoothstep(0.25, 0.75, vnoise(ROT_F * tuv * 0.05 + 11.0) * 0.7 + vnoise(tuv * 0.23) * 0.3);
+          float open = w.x * (1.0 - cano) * mix(0.35, 0.8, openN);
+          if (open > 0.004) {
+            vec3 gr = sampleS(tDiff, 1, ROT_M * tuv + 5.3, kFar, ROT_M * gx, ROT_M * gy).rgb * vec3(0.7, 0.76, 0.5);
+            alb.rgb = mix(alb.rgb, gr, open);
+          }
+          // feather moss: patches over the litter, thickest in the shade
+          float mossN = vnoise(tuv * 0.07) * 0.65 + vnoise(ROT_M * tuv * 0.29 + 3.1) * 0.35;
+          float moss = w.x * smoothstep(0.45, 0.68, mossN) * (0.3 + 0.7 * cano);
+          if (moss > 0.004) {
+            vec3 g = fetchG(tDiff, 1, ROT_M, 0.37, vec2(0.21), tuv, gx, gy).rgb;
+            float gl = dot(g, vec3(0.299, 0.587, 0.114));
+            vec3 mossC = mix(vec3(gl), g, 0.55) * vec3(0.72, 0.9, 0.42);
+            alb.rgb = mix(alb.rgb, mossC, moss * 0.85);
+            nrm = mix(nrm, vec3(0.0, 0.0, 1.0) * max(length(nrm), 1e-3), moss * 0.5);
+            arm.g = mix(arm.g, 1.0, moss);
+          }
+          float macro = mix(0.86, 1.1, vnoise(tuv * 0.045)) * mix(0.94, 1.05, vnoise(ROT_B * tuv * 0.17 + 7.0));
+          float macro2 = mix(0.9, 1.06, smoothstep(-1.0, 1.0, sin(tuv.x * 0.021 + tuv.y * 0.017) + sin(tuv.x * 0.009 - tuv.y * 0.013)));
+          alb.rgb *= macro * macro2;
+          alb.rgb *= mix(1.0, 0.84, vCanopy);
+          diffuseColor *= alb;
+          vec3 splatNormal = dot(nrm, nrm) > 1e-8 ? normalize(nrm) : vec3(0.0, 0.0, 1.0);
+          vec3 splatArm = arm;`;
 
 export class Terrain {
   group = new THREE.Group();
@@ -62,7 +162,7 @@ export class Terrain {
 
   async build(): Promise<this> {
     if (getActiveChunk().style === 'lowpoly') return this.buildLowPoly();
-    const [layers] = await Promise.all([loadPBRArray([...getActiveChunk().assets.groundLayers], 1024), loadBakedTerrain()]); // baked heights/splat → Heightfield lookups (BakedTerrain.ts)
+    const [layers] = await Promise.all([loadPBRArray([...groundSet(getActiveChunk()).layers], 1024), loadBakedTerrain()]); // baked heights/splat → Heightfield lookups (BakedTerrain.ts)
     await macrotask(); // the layer copies above and the mesh below were one ~110 ms task at 4x CPU
     this.mesh = new THREE.Mesh(this.buildGeometry(), this.buildMaterial(layers));
     this.mesh.receiveShadow = true;
@@ -213,12 +313,15 @@ export class Terrain {
     // a dummy 1×1 normal map keeps three's USE_NORMALMAP path (tbn) alive; the real layers are the arrays
     const dummy = new THREE.DataTexture(new Uint8Array([128, 128, 255, 255]), 1, 1); dummy.needsUpdate = true;
     const mat = new THREE.MeshStandardMaterial({ normalMap: dummy, metalness: 0, roughness: 1, normalScale: new THREE.Vector2(1, 1) });
+    const ground = groundSet(getActiveChunk());
     const u = {
       tDiff: { value: layers.map },
       tNorm: { value: layers.normalMap },
       tArm: { value: layers.armMap },
-      uTints: { value: getActiveChunk().assets.groundTints.map((t) => new THREE.Vector3(...t)) },
+      uTints: { value: ground.tints.map((t) => new THREE.Vector3(...t)) },
+      uNormalK: { value: new THREE.Vector4(...(ground.boreal?.normalK ?? [1, 1, 1, 1])) },
     };
+    const boreal = ground.boreal !== null;
     mat.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, u);
       attachFogUniforms(shader);
@@ -252,8 +355,8 @@ export class Terrain {
             vec4 b = texture(t, vec3(uvB, float(i)));
             return mix(a, b, k);
           }
-          `)
-        .replace('#include <map_fragment>', `
+          ${boreal ? BOREAL_COMMON : ''}`)
+        .replace('#include <map_fragment>', boreal ? BOREAL_MAP : `
           float camDist = length(vWPos - cameraPosition);
           vec2 tuv = vWPos.xz;
           vec4 w = vSplat;
@@ -291,7 +394,7 @@ export class Terrain {
           float ambientOcclusion = ( splatArm.r - 1.0 ) * 0.9 + 1.0;
           reflectedLight.indirectDiffuse *= ambientOcclusion;`);
     };
-    mat.customProgramCacheKey = () => 'terrain-splat';
+    mat.customProgramCacheKey = () => (boreal ? 'terrain-splat-boreal' : 'terrain-splat');
     this.material = mat;
     return mat;
   }

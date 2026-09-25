@@ -10,7 +10,7 @@ region with CIEDE2000 ΔE. The regions belong to a shard's loop cameras and live
   python3 scripts/palette-delta.py art/driftwood-isle/round-4-remaster 'art/driftwood-isle/round-6-loop/ingame-{n}.jpg'
 
 --shard defaults to driftwood-isle; --regions defaults to scripts/palette-regions/<shard>.json. Mockups are
-<mockup dir>/mockup-<n>-*.jpg, n = 1..9.
+<mockup dir>/mockup-<n>-*.jpg, n = the frames the regions name (1..9 for Driftwood).
 
 Regions are fixed rectangles in normalised image coordinates per camera, the same for the mockup and the capture;
 inside each rectangle only the pixels that belong to the material count (a hue / saturation / value filter), so a
@@ -76,15 +76,16 @@ def select(mat, px, cfg):
     lum = px @ np.array([0.299, 0.587, 0.114])
     f = cfg['filters'][mat]
     if isinstance(f, dict):   # a shadow material: darker than a share of the lit material's median
-        lo, hi, smin, vmin, vmax = cfg['filters'][f['shadowOf']]
+        lo, hi, smin, vmin, vmax = cfg['filters'][f['shadowOf']][:5]
         lit = (H >= lo) & (H <= hi) & (S >= smin) & (V >= vmin)
         if lit.sum() < 20: return px[:0]
         med = np.median(lum[lit])
         elo, ehi, esat = f['excludeHue']
         excluded = (H >= elo) & (H <= ehi) & (S > esat)
         return px[(lum < f['below'] * med) & (V > f['vmin']) & ~excluded]
-    lo, hi, smin, vmin, vmax = f
-    return px[(H >= lo) & (H <= hi) & (S >= smin) & (V >= vmin) & (V <= vmax)]
+    lo, hi, smin, vmin, vmax = f[:5]
+    smax = f[5] if len(f) > 5 else 1.0   # an optional 6th: max saturation (a grey material: Pine Hollow's rock)
+    return px[(H >= lo) & (H <= hi) & (S >= smin) & (S <= smax) & (V >= vmin) & (V <= vmax)]
 
 
 def srgb_to_lab(rgb):
@@ -125,10 +126,15 @@ def ciede2000(l1, l2):
     return math.sqrt((dLp / Sl) ** 2 + (dCp / Sc) ** 2 + (dHp / Sh) ** 2 + Rt * (dCp / Sc) * (dHp / Sh))
 
 
+def frames(cfg):
+    """the frame numbers the regions use (Driftwood: 1..9; Pine Hollow's three-zone loop: 1..27)"""
+    return sorted({n for regs in cfg['regions'].values() for n, _ in regs})
+
+
 def report(mock_dir, game_pat, cfg):
     mock_dir = Path(mock_dir)
-    mocks = {n: Image.open(next(mock_dir.glob(f'mockup-{n}-*.jpg'))) for n in range(1, 10)}
-    games = {n: Image.open(game_pat.format(n=n)) for n in range(1, 10) if Path(game_pat.format(n=n)).exists()}
+    mocks = {n: Image.open(next(mock_dir.glob(f'mockup-{n}-*.jpg'))) for n in frames(cfg)}
+    games = {n: Image.open(game_pat.format(n=n)) for n in frames(cfg) if Path(game_pat.format(n=n)).exists()}
     rows, worst = [], 0.0
     for mat, regs in cfg['regions'].items():
         acc = {'m': [], 'g': []}

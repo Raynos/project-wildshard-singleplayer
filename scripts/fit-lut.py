@@ -63,8 +63,8 @@ def lab_to_srgb_arr(lab):
 
 
 def pairs(mock_dir, game_pat, rng, cfg):
-    mocks = {n: Image.open(next(mock_dir.glob(f'mockup-{n}-*.jpg'))) for n in range(1, 10)}
-    games = {n: Image.open(game_pat.format(n=n)) for n in range(1, 10) if Path(game_pat.format(n=n)).exists()}
+    mocks = {n: Image.open(next(mock_dir.glob(f'mockup-{n}-*.jpg'))) for n in PD.frames(cfg)}
+    games = {n: Image.open(game_pat.format(n=n)) for n in PD.frames(cfg) if Path(game_pat.format(n=n)).exists()}
     src, dst, wt = [], [], []
     for mat, regs in cfg['regions'].items():
         m_all = [PD.select(mat, PD.pixels(mocks[n], r), cfg) for n, r in regs if n in games]
@@ -129,7 +129,7 @@ def main(argv=None):
     # predicted table: the captures through the LUT
     pred_dir = Path(a.pred_dir)
     pred_dir.mkdir(parents=True, exist_ok=True)
-    for n in range(1, 10):
+    for n in PD.frames(cfg):
         p = Path(game_pat.format(n=n))
         if p.exists(): apply(lut, Image.open(p)).save(pred_dir / f'pred-{n}.png')
     print('predicted after the LUT:'); PD.report(mock_dir, str(pred_dir / 'pred-{n}.png'), cfg)

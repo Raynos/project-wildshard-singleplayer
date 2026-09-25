@@ -221,9 +221,18 @@ export const PINE_HOLLOW: ChunkDef = {
   terrain: TERRAIN,
 
   assets: {
-    groundLayers: ['forest_ground_04', 'leafy_grass', 'rock_ground', 'stony_dirt_path'],
-    groundTints: [[0.78, 0.74, 0.68], [0.72, 0.8, 0.6], [0.85, 0.85, 0.85], [0.62, 0.56, 0.5]],
+    // PH-L8 (the look loop, art/pine-hollow/round-14-look-loop/): the floor is Poly Haven's pine-needle litter
+    // (forrest_ground_03) on the boreal shader — canopy-warmed litter, moss patches, tiling breakup; `?ground=v1` = before
+    groundLayers: ['forrest_ground_03', 'leafy_grass', 'rock_ground', 'stony_dirt_path'],
+    groundTints: [[0.86, 0.78, 0.68], [0.72, 0.8, 0.6], [0.85, 0.85, 0.85], [0.8, 0.62, 0.45]],
     slabRock: 'rock_ground',
+    boreal: {
+      normalK: [1.2, 1.0, 1.4, 1.1],
+      v1: {
+        groundLayers: ['forest_ground_04', 'leafy_grass', 'rock_ground', 'stony_dirt_path'],
+        groundTints: [[0.78, 0.74, 0.68], [0.72, 0.8, 0.6], [0.85, 0.85, 0.85], [0.62, 0.56, 0.5]],
+      },
+    },
   },
   trees: { factory: 'pine', bark: 'pine_bark', twigAtlas: 'pine_tree_01', noun: 'trees', set: 'pine-hollow-trees' },
   forest: {
@@ -237,6 +246,9 @@ export const PINE_HOLLOW: ChunkDef = {
     /** the old-growth's pines and firs stand a quarter taller (its giants are their own species, PH-B4) */
     scale: (x, z) => 1 + oldGrowthMask(x, z) * 0.25,
     species: speciesMix,
+    // PH-L8: the boreal understory the look loop's targets carpet the floor with — bilberry shrubs × 4, ferns × 1.5 and
+    // into the dense shade (the old-growth)
+    understory: { ferns: 1.5, shrubs: 4, fernCanopy: true },
   },
   // Fauna: MANY SMALL GROUPS across the whole shard (user: "I don't want to search endlessly in an empty
   // forest" — nor nine boars in one clearing). `layoutFauna` lays a ~60 m grid of cells over the chunk (25 m
@@ -292,6 +304,13 @@ export const PINE_HOLLOW: ChunkDef = {
     bloomIntensity: 0.55, bloomThreshold: 0.85,
     shadowTint: [0.9, 0.95, 1.08], highTint: [1.06, 1.0, 0.92],
     lift: [-0.01, -0.008, 0.0], gain: [1.03, 1.02, 1.0], gamma: 1.0,
+  },
+  // PH-L1 / L4 (the look loop, art/pine-hollow/round-14-look-loop/): the photoreal targets' contrast, colour and clear
+  // air — an S-curve + vibrance after the split-tone, warmer shade, the clock's in-scatter veil and distance fog thinned
+  // (its presets untouched); the learned LUT fits the rest. `?grade=v1` = the grade before the loop.
+  look: {
+    grade: { shadowTint: [0.95, 0.97, 1.03] },
+    curve: 0.2, vibrance: 0.2, vol: 0.5, fogDist: 0.55, sat: 0.04, dayMist: 0.25,
   },
   spawn: SPAWN,
 };

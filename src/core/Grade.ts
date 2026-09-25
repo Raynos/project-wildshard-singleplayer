@@ -5,16 +5,35 @@ import type { ChunkGrade } from '../chunks/ChunkDef';
 export type GradeOptions = Pick<ChunkGrade, 'shadowTint' | 'highTint' | 'lift' | 'gain' | 'gamma'>;
 const DEFAULTS: GradeOptions = { shadowTint: [0.9, 0.95, 1.08], highTint: [1.06, 1.0, 0.92], lift: [-0.01, -0.008, 0.0], gain: [1.03, 1.02, 1.0], gamma: 1.0 };
 
+/** the look layer (see the constructor): its uniforms and the two steps, on the display-referred colour */
+const LOOK_PARS = /* glsl */`
+      uniform float uCurve; uniform float uVibrance;`;
+const LOOK_MAIN = /* glsl */`
+        // S-curve in a perceptual (gamma 2.2) domain: deeper shadows, fuller mids, the highlights held
+        vec3 pc = pow(max(c, 0.0), vec3(1.0 / 2.2));
+        pc = mix(pc, pc * pc * (3.0 - 2.0 * pc), uCurve);
+        c = pow(max(pc, 0.0), vec3(2.2));
+        // vibrance: the muted colours lifted more than the saturated ones
+        float vmx = max(c.r, max(c.g, c.b)), vmn = min(c.r, min(c.g, c.b));
+        float vsat = (vmx - vmn) / max(vmx, 1e-4);
+        float vlum = dot(c, vec3(0.2126, 0.7152, 0.0722));
+        c = max(mix(vec3(vlum), c, 1.0 + uVibrance * (1.0 - vsat)), 0.0);`;
+
 /**
  * Final colour grade (runs after tone mapping, in display space): cool shadows / warm highlights
  * split-toning, gentle lift-gamma-gain, and a touch of desaturation in the deepest shadows —
  * the "golden hour film" look of the art/ mockups.
  */
 export class GradeEffect extends Effect {
-  constructor(opts: Partial<GradeOptions> = {}) {
+  /**
+   * `look` (a shard's look-loop layer, PINE-HOLLOW PH-L1 / L4; `?grade=v1` passes none): after the split-tone, an
+   * S-curve around mid grey and a vibrance lift, both live uniforms (`uCurve`, `uVibrance`). Without it the program is
+   * the one it always was (Driftwood's source, byte for byte).
+   */
+  constructor(opts: Partial<GradeOptions> = {}, look: { curve: number; vibrance: number } | null = null) {
     const o = { ...DEFAULTS, ...opts };
     super('GradeEffect', /* glsl */`
-      uniform vec3 uShadowTint; uniform vec3 uHighTint; uniform vec3 uLift; uniform vec3 uGain; uniform float uGamma;
+      uniform vec3 uShadowTint; uniform vec3 uHighTint; uniform vec3 uLift; uniform vec3 uGain; uniform float uGamma;${look ? LOOK_PARS : ''}
       void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
         vec3 c = inputColor.rgb;
         float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
@@ -23,7 +42,7 @@ export class GradeEffect extends Effect {
         c = pow(c, vec3(1.0 / uGamma));
         // deep shadows lose a little saturation, like film
         float ds = smoothstep(0.18, 0.0, l);
-        c = mix(c, vec3(dot(c, vec3(0.3333))), ds * 0.25);
+        c = mix(c, vec3(dot(c, vec3(0.3333))), ds * 0.25);${look ? LOOK_MAIN : ''}
         outputColor = vec4(c, inputColor.a);
       }`, {
       blendFunction: BlendFunction.SRC,
@@ -33,6 +52,7 @@ export class GradeEffect extends Effect {
         ['uLift', new Uniform(new Vector3(...o.lift))],
         ['uGain', new Uniform(new Vector3(...o.gain))],
         ['uGamma', new Uniform(o.gamma)],
+        ...(look ? [['uCurve', new Uniform(look.curve)], ['uVibrance', new Uniform(look.vibrance)]] as [string, Uniform][] : []),
       ]),
     });
   }

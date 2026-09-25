@@ -212,6 +212,8 @@ export function* placeUndergrowth(trees: TreeInstance[], grid: { nearby: (x: num
   const half = CHUNK_HALF - 8;
   const wl = waterLevel();
   const bare = getActiveChunk().forest.density;
+  const us = getActiveChunk().forest.understory;
+  const fernK = us?.ferns ?? 1, shrubK = us?.shrubs ?? 1, fernCanopy = us?.fernCanopy === true;
   /** the tests: pure, no rng — so a candidate's outcome is the one bit the log keeps */
   const accepts = (kind: Kind, x: number, z: number): boolean => {
     if (!inChunk(x, z, 8)) return false;
@@ -229,7 +231,7 @@ export function* placeUndergrowth(trees: TreeInstance[], grid: { nearby: (x: num
     }
     const c = cluster.fbm(x * 0.02 + (kind === 'shrub' ? 40 : 0), z * 0.02, 3);
     const verge = td < 10 || (pm > 0.03 && depth < -0.1);   // trail edge or pond rim: ferns like it here
-    if (kind === 'fern' && c < 0.12 && !verge) return false;
+    if (kind === 'fern' && c < (fernCanopy ? -0.25 : 0.12) && !verge) return false;
     if (kind === 'shrub' && c < -0.1) return false;
     // the grid lookups first, the tree query (the expensive one) last
     const nrm = normalAt(x, z, 0.8);
@@ -244,6 +246,7 @@ export function* placeUndergrowth(trees: TreeInstance[], grid: { nearby: (x: num
     let canopy = 0, trunkD = 1e9;
     for (const tr of near) { const d = Math.hypot(tr.x - x, tr.z - z); if (d < tr.r + (kind === 'moss' ? 0.1 : 0.45)) return false; if (d < 12) canopy++; trunkD = Math.min(trunkD, d - tr.r); }
     if (kind === 'fern' && canopy < 2 && !verge) return false;
+    if (kind === 'fern' && fernCanopy && c < 0.12 && !verge && canopy < 5) return false; // outside a cluster: only the deep shade
     if ((kind === 'litter' || kind === 'stone') && canopy < 1) return false;
     if (kind === 'moss' && trunkD > 2.2) return false;
     return true;
@@ -273,10 +276,10 @@ export function* placeUndergrowth(trees: TreeInstance[], grid: { nearby: (x: num
     }
   };
   const anywhere = (kind: Kind) => tryPlace(kind, rng.range(-half, half), rng.range(-half, half));
-  for (let i = 0; i < 30000 && ferns.length < FERN_MAX * 0.7; i++) anywhere('fern');
+  for (let i = 0; i < 30000 * fernK && ferns.length < FERN_MAX * fernK * 0.7; i++) anywhere('fern');
   yield;
   // trail verges + pond rim: sample near the trails / pond directly so the verge fills up
-  for (let i = 0; i < 12000 && ferns.length < FERN_MAX; i++) {
+  for (let i = 0; i < 12000 * fernK && ferns.length < FERN_MAX * fernK; i++) {
     if (rng.next() < 0.75) {
       const x = rng.range(-half, half), z = rng.range(-half, half);
       tryPlace('fern', x, z);
@@ -286,7 +289,7 @@ export function* placeUndergrowth(trees: TreeInstance[], grid: { nearby: (x: num
     }
   }
   yield;
-  for (let i = 0; i < 9000 && shrubs.length < SHRUB_MAX; i++) anywhere('shrub');
+  for (let i = 0; i < 9000 * shrubK && shrubs.length < SHRUB_MAX * shrubK; i++) anywhere('shrub');
   yield;
   for (let i = 0; i < 18000 && litter.length < LITTER_MAX; i++) anywhere('litter');
   yield;

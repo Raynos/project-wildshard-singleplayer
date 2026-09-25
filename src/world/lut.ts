@@ -9,7 +9,8 @@
  *
  * File: public/assets/lut/<slug>.bin — 33³ × RGBA8, index (b · 33 + g) · 33 + r, display sRGB in → display sRGB out.
  * Kept as raw bytes in a linear-colour-space texture so the sampler passes them through untouched. A shard without a
- * file (the build's byte table, bytes.generated.ts, does not list one) gets no LUT pass and no fetch: Pine Hollow today.
+ * file (the build's byte table, bytes.generated.ts, does not list one) gets no LUT pass and no fetch. Pine Hollow's is PH-L4's
+ * (art/pine-hollow/round-14-look-loop/, fitted over the three zones' 27 frames).
  */
 import * as THREE from 'three';
 import { LookupTexture } from 'postprocessing';

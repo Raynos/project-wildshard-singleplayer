@@ -20,6 +20,7 @@ import { PineDayNight, pineSunAt, type PinePost } from './PineDayNight';
 import { horizonLight } from './Horizon';
 import { GPU_MODE } from '../gpu/flag';
 import { loadLUT } from './lut';
+import { activeGrade } from './lookFlags';
 import type { LookupTexture } from 'postprocessing';
 
 /** the low-poly shard's sun before the day / night clock moves it: mid-morning from the east-south-east, 38° up */
@@ -131,6 +132,8 @@ export class Sky {
     const [pine, , lut] = await Promise.all([PineDayNight.create(this.renderer, this.scene), preloadBakedTextures(), loadLUT(getActiveChunk().slug)]);
     this.lut = lut;
     this.pine = pine;
+    const { look } = activeGrade(getActiveChunk()); // the look loop's haze / saturation layer (PH-L1 / L4; ?grade=v1: none)
+    if (look) Object.assign(pine.look, { vol: look.vol, fogDist: look.fogDist, sat: look.sat });
     pineSunAt(pine.phase, this.sunDir);
     this.scene.background = null;
     this.scene.add(pine.dome);

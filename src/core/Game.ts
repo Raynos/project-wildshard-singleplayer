@@ -8,6 +8,7 @@ import { installAtmosphere } from '../world/Atmosphere';
 import { setAnisotropy } from './assets';
 import { Sky } from '../world/Sky';
 import { GradeEffect } from './Grade';
+import { activeGrade } from '../world/lookFlags';
 import { VolumetricsEffect, makeNoiseTexture } from './Volumetrics';
 import { getActiveChunk } from '../chunks/registry';
 import { TIER_CONFIG, frameCapFps } from './tier';
@@ -129,7 +130,8 @@ export class Game {
   }
 
   buildComposer(): void {
-    const { grade: G, atmosphere: A } = getActiveChunk();
+    const { atmosphere: A } = getActiveChunk();
+    const { grade: G, look } = activeGrade(getActiveChunk()); // + the look loop's layer (PH-L1 / L4) unless ?grade=v1
     const composer = new EffectComposer(this.renderer, { frameBufferType: THREE.HalfFloatType, multisampling: 0 });
     this.renderPass = new RenderPass(this.scene, this.camera);
     composer.addPass(this.renderPass);
@@ -197,7 +199,8 @@ export class Game {
       const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
       const grade = new HueSaturationEffect({ saturation: G.saturation });
       const contrast = new BrightnessContrastEffect({ brightness: G.brightness, contrast: G.contrast });
-      const split = new GradeEffect(G);
+      const split = new GradeEffect(G, look);
+      if (!clean) this.grade = split;
       if (!clean) {
         const chroma = new ChromaticAberrationEffect({ offset: new THREE.Vector2(0.0006, 0.0006), radialModulation: true, modulationOffset: 0.35 });
         const grain = new NoiseEffect({ blendFunction: BlendFunction.OVERLAY, premultiply: true });
@@ -263,6 +266,8 @@ export class Game {
   hitStop(seconds: number): void { this.stopLeft = Math.max(this.stopLeft, seconds); }
   /** skip n8ao's depth-free transparency pre-pass (buildComposer; PH-P2) — a live switch for A/B captures */
   aoLeanTransparency = true;
+  /** the PBR chain's split-tone / look grade (buildComposer; its uniforms are live — the look loop tunes them in place) */
+  grade: GradeEffect | null = null;
 
   /**
    * Build every program the first frame would otherwise compile in one stall — the scene's
