@@ -87,6 +87,8 @@ export interface RockOpts {
   /** B: where the ground (or the water line) meets the rock, in its local y — the paint's foot → crown ramp and the
    * contact AO start there (default −0.3 · r · squash) */
   ground?: number;
+  /** B: added to the icosphere detail of every piece (−1: a lighter rock for a dense scatter) */
+  detail?: number;
 }
 
 /** the material a look draws with: the shared low-poly program for the faceted looks, a smooth-shaded copy for B */
@@ -101,7 +103,7 @@ export const rockIsSmooth = (look: RockLook): boolean => look === 'b';
 export function rockGeometry(look: NewRockLook, r: number, rng: Rng, o: RockOpts = {}): THREE.BufferGeometry {
   const sq = o.squash ?? 0.7, moss = o.moss ?? 0.8, paints = o.palette ?? SHORE_ROCK, pal = paints.faceted;
   if (look === 'a') return fit(chiselled(r, sq, moss, pal, rng), r, r * sq * 1.05, true);
-  if (look === 'b') return smoothPainted(r, sq, moss, paints.smooth, rng, o.ground ?? -0.3 * r * sq);
+  if (look === 'b') return smoothPainted(r, sq, moss, paints.smooth, rng, o.ground ?? -0.3 * r * sq, o.detail ?? 0);
   return fit(slabs(r, sq, moss, pal, rng), r, r * sq * 0.6, true);
 }
 
@@ -422,7 +424,7 @@ function parsePalette(pal: SmoothPalette): Record<keyof SmoothPalette, THREE.Col
   return p;
 }
 
-function smoothPainted(r: number, sq: number, moss: number, palette: SmoothPalette, rng: Rng, ground: number): THREE.BufferGeometry {
+function smoothPainted(r: number, sq: number, moss: number, palette: SmoothPalette, rng: Rng, ground: number, lod: number): THREE.BufferGeometry {
   const pal = parsePalette(palette);
   const pebble = r < 0.3;
   const kinds: Archetype[] = ['dome', 'table', 'wedge', 'block', 'table', 'block'];
@@ -451,7 +453,7 @@ function smoothPainted(r: number, sq: number, moss: number, palette: SmoothPalet
   const meshes: { g: THREE.BufferGeometry; nb: number[][]; crack: Float32Array; piece: Piece }[] = [];
   const u = new THREE.Vector3(), cv = { v: 0 };
   pieces.forEach((p, pi) => {
-    const detail = pebble ? (r < 0.16 ? 0 : 1) : pi === 0 ? (r >= 1.1 ? 4 : r >= 0.6 ? 3 : 2) : (r >= 2 ? 2 : 1);   // 80 · 180 · 320 · 500 tris
+    const detail = Math.max(0, (pebble ? (r < 0.16 ? 0 : 1) : pi === 0 ? (r >= 1.1 ? 4 : r >= 0.6 ? 3 : 2) : (r >= 2 ? 2 : 1)) + lod);   // 20 · 80 · 180 · 320 · 500 tris
     const { g, nb } = unitIco(detail);
     const pos = g.getAttribute('position'), crack = new Float32Array(pos.count);
     for (let i = 0; i < pos.count; i++) {

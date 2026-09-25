@@ -35,6 +35,9 @@ import { TIER } from '../core/tier';
 import type { Sky } from './Sky';
 import type { Collider } from '../player/Player';
 import type { PalmSpec } from './Palms';
+import { rockLook, rockGeometry, rockMaterial, SHORE_ROCK, type NewRockLook } from './rockKit';
+import { Rng } from '../core/rng';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const BASE = '/assets/models/driftwood-blender/';
 /** tiles per side: the casters (palms, rocks, logs; near + far copies) and the ground cover */
@@ -108,8 +111,14 @@ export interface BlenderIslandCtx {
   terrain: THREE.Mesh;
   palms: THREE.Mesh | null;
   palmSpecs: PalmSpec[];
-  /** merged world-space meshes the area replaces (boulders, bushes) */
+  /** merged world-space meshes the area replaces (bushes) */
   replace: (THREE.Mesh | null)[];
+  /**
+   * the shore boulders (Boulders.ts, merged in world space). With the old rocks (`?rocks=now`) the area drops them for the
+   * Blender boulders standing on the same spots; in rockKit's look (B, the default — E114) the Blender boulders are not
+   * built and these stay, so the area's rocks are the game's own (and they are what their colliders were made from)
+   */
+  rocks: THREE.Mesh | null;
   /** GroundCover's group: its instanced plants are hidden inside the area, its static logs dropped there */
   cover: THREE.Object3D | null;
 }
@@ -279,9 +288,19 @@ export class BlenderIsland {
       return tz * n + tx;
     };
     const casters: number[][] = Array.from({ length: CT * CT }, () => []), covers: number[][] = Array.from({ length: VT * VT }, () => []);
+    // E114: in rockKit's look the loose rocks are rockKit's too — the boulders (rock*, rockb*: the shore boulders' spots,
+    // drawn by Boulders.ts instead) are skipped, the small scattered rocks (smallrock*) rebuilt below. The crag plates
+    // on the cliffs (cliff*) stay the Blender ones
+    const look = rockLook(), ownRocks = look !== 'current';
+    const smallRocks: number[] = [];
     for (let i = 0; i < used; i++) {
       const pi = f[i * 10] ?? 0, kind = meta.protos[pi]?.kind ?? 'small';
       const x = f[i * 10 + 1] ?? 0, z = f[i * 10 + 3] ?? 0;
+      if (ownRocks) {
+        const name = meta.protos[pi]?.name ?? '';
+        if (/^rockb?\d+$/.test(name)) continue;
+        if (/^smallrock\d+$/.test(name)) { smallRocks.push(i); continue; }
+      }
       if (kind === 'palm' || kind === 'rock' || kind === 'prop') casters[tileOf(x, z, CT)]?.push(i); else covers[tileOf(x, z, VT)]?.push(i);
     }
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), t = new THREE.Vector3();
@@ -346,6 +365,11 @@ export class BlenderIsland {
       this.tiles.push({ ...rect(k, VT), near: add(g, `island-cover-${k}`, false, coverMat), far: null, cover: true });
       this.stats.propTris += (g.getIndex()?.count ?? 0) / 3;
     }
+    if (ownRocks && smallRocks.length > 0) {
+      const rm = this.smallRocks(smallRocks, f, protos, look, rockMaterial(ctx.sky, look));
+      this.group.add(rm);
+      this.stats.propTris += rm.geometry.getAttribute('position').count / 3;
+    }
     this.stats.placements = used;
     this.stats.draws = this.group.children.length;
     this.group.name = 'blender-island';
@@ -368,6 +392,7 @@ export class BlenderIsland {
       });
     }
     for (const r of ctx.replace) if (r) dropTriangles(r.geometry, (x, z) => !inArea(x, z));
+    if (ctx.rocks && !ownRocks) dropTriangles(ctx.rocks.geometry, (x, z) => !inArea(x, z));
     if (ctx.cover) {
       const clipped = new Set<THREE.Material>();
       ctx.cover.traverse((o) => {
@@ -381,6 +406,45 @@ export class BlenderIsland {
     ctx.palmSpecs.push(...meta.extraPalms);
     this.update(ctx.sky);
     console.info(`[island] blender: terrain ${this.stats.terrainTris} tris, props ${this.stats.propTris} tris in ${this.stats.draws} meshes, ${used}/${count} placements (${TIER})`);
+  }
+
+  /**
+   * E114: the scattered small rocks as rockKit rocks — each at its placement's spot, tilt and yaw, as wide and as tall as
+   * the Blender rock it replaces; one lighter build (detail −1) since there are ~400. One mesh, one draw.
+   */
+  private smallRocks(items: number[], f: Float32Array, protos: Proto[], look: NewRockLook, material: THREE.Material): THREE.Mesh {
+    const size = new Map<number, { half: number; top: number }>();
+    const sizeOf = (pi: number): { half: number; top: number } => {
+      const hit = size.get(pi);
+      if (hit) return hit;
+      const pr = protos[pi];
+      let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity, y1 = 0;
+      if (pr) for (let k = 0; k < pr.pos.length; k += 3) {
+        const x = pr.pos[k] ?? 0, y = pr.pos[k + 1] ?? 0, z = pr.pos[k + 2] ?? 0;
+        x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); y1 = Math.max(y1, y);
+      }
+      const out = { half: Number.isFinite(x0) ? Math.max(x1 - x0, z1 - z0) / 2 : 0.4, top: y1 > 0 ? y1 : 0.25 };
+      size.set(pi, out);
+      return out;
+    };
+    const rng = new Rng(0x5a11 ^ 0x70c8), m = new THREE.Matrix4(), q = new THREE.Quaternion(), t = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1);
+    const parts: THREE.BufferGeometry[] = [];
+    for (const i of items) {
+      const o = i * 10, pi = f[o] ?? 0, sc = f[o + 8] ?? 1, { half, top } = sizeOf(pi);
+      t.set(f[o + 1] ?? 0, f[o + 2] ?? 0, f[o + 3] ?? 0); q.set(f[o + 4] ?? 0, f[o + 5] ?? 0, f[o + 6] ?? 0, f[o + 7] ?? 1);
+      const r = (half * sc) / 1.1, sq = THREE.MathUtils.clamp((top * sc) / (0.92 * r), 0.4, 0.9);
+      // the paint's ground line a little under the centre, as on the shore boulders: these sit only ~0.1 m deep, and a
+      // ground line that high put nearly all of a small rock in the foot's dark and the ground's AO (they drew black)
+      const g = rockGeometry(look, r, rng, { squash: sq, palette: SHORE_ROCK, moss: rng.range(0.3, 0.8), ground: -0.25 * r * sq, detail: -1 });
+      g.applyMatrix4(m.compose(t, q, one));
+      parts.push(g);
+    }
+    const geo = mergeGeometries(parts, false);
+    for (const g of parts) g.dispose();
+    geo.computeBoundingSphere();
+    const mesh = new THREE.Mesh(geo, material);
+    mesh.name = 'island-rocks'; mesh.castShadow = true; mesh.receiveShadow = true;
+    return mesh;
   }
 
   /** per frame: the baked bounce follows the live sun (colour × intensity × elevation over the bake's reference) */
