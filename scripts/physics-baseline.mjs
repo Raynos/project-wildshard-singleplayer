@@ -42,6 +42,17 @@ const POSES = [
   { shard: 'driftwood-isle', name: 'shrine', q: 'x=-86&z=92&yaw=2.47' },
 ];
 
+// `--set=ph`: Pine Hollow's PH-P4 poses (the remaster's zones, the creatures + thralls + the life lane live) instead of the seven
+const PH_POSES = [
+  { shard: 'pine-hollow', name: 'gate', q: 'x=0&z=-200&yaw=3.1416' },
+  { shard: 'pine-hollow', name: 'cabin', q: 'x=-14&z=-62&yaw=3.1416' },
+  { shard: 'pine-hollow', name: 'pond', q: 'x=-56&z=95&yaw=3.1416' },
+  { shard: 'pine-hollow', name: 'hamlet', q: 'x=-150&z=-104&yaw=0' },
+  { shard: 'pine-hollow', name: 'clearing (King, night)', q: 'boss=antler-king&bossGod=1' },
+  { shard: 'pine-hollow', name: 'old-growth night (thralls)', q: 'x=150&z=10&yaw=0&tod=night' },
+  { shard: 'pine-hollow', name: 'cave', q: 'x=192&z=190&yaw=-2.45' },
+];
+
 // ── compare ──
 if (has('compare')) {
   const [a, b] = argv.filter((x) => x.endsWith('.json')).map((p) => JSON.parse(readFileSync(p, 'utf8')));
@@ -75,7 +86,8 @@ const VIDEO = has('video');
 // --trails: instead of the fixed route, walk every path of the shard (its TRAILS after the entry roads) end to end,
 // both ways, a waypoint every 3 m — the stricter 0.35 m / 40° controller must not get stuck on a path players use
 const TRAILS = has('trails');
-const SERVE = resolvePath(flag('serve', ROOT)); // the checkout whose dist/ is served (a clean export of an older commit, for a same-session before / after)
+const SERVE = resolvePath(flag('serve', ROOT));
+if (flag('set', '') === 'ph') POSES.splice(0, POSES.length, ...PH_POSES); // the checkout whose dist/ is served (a clean export of an older commit, for a same-session before / after)
 
 const waitFor = async (fn, ms, what) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await fn()) return; await new Promise((resolve) => { setTimeout(resolve, 250); }); } throw new Error(what); };
 
@@ -122,14 +134,14 @@ if (MODE.includes('poses')) {
     try {
       const r = await page.evaluate(async (frames) => {
         const w = window.__world, g = w.game;
-        const cur = { update: 0, fixed: 0, player: 0, animals: 0, render: 0 };
+        const cur = { update: 0, fixed: 0, world: 0, player: 0, animals: 0, render: 0 };
         const wrap = (obj, key, bucket) => { const orig = obj[key]; obj[key] = function timed(...a) { const t = performance.now(); try { return orig.apply(this, a); } finally { cur[bucket] += performance.now() - t; } }; };
         wrap(w.player, 'update', 'player'); wrap(w.animals, 'update', 'animals'); wrap(g.composer, 'render', 'render');
         const ups = g.updaters;
         for (let i = 0; i < ups.length; i++) { const f = ups[i]; ups[i] = (dt, t) => { const s = performance.now(); f(dt, t); cur.update += performance.now() - s; }; }
         // P2+: the frame phases (Game.onInput / onFixed) — the player's move and the physics step run there, not in `updaters`
         const timeAll = (list, bucket) => { for (let i = 0; i < list.length; i++) { const f = list[i]; list[i] = (dt) => { const s = performance.now(); f(dt); cur[bucket] += performance.now() - s; }; } };
-        if (g.fixed) { timeAll(g.fixed.pre, 'fixed'); timeAll(g.fixed.step, 'fixed'); timeAll(g.fixed.post, 'fixed'); }
+        if (g.fixed) { timeAll(g.fixed.pre, 'fixed'); timeAll(g.fixed.step, 'world'); timeAll(g.fixed.post, 'fixed'); }
         if (g.inputs) timeAll(g.inputs, 'fixed');
         if (w.player.step) wrap(w.player, 'step', 'player');
         const rows = [];
@@ -137,14 +149,17 @@ if (MODE.includes('poses')) {
         for (let n = 0; n < frames; n++) {
           await new Promise((resolve) => { requestAnimationFrame(() => { resolve(undefined); }); });
           const now = performance.now();
-          rows.push({ ...cur, js: cur.update + cur.fixed, frame: now - last, calls: g.lastFrame.calls, tris: g.lastFrame.triangles });
-          last = now; cur.update = 0; cur.fixed = 0; cur.player = 0; cur.animals = 0; cur.render = 0;
+          const steps = g.fixedSteps ?? 0;
+          cur.fixed += cur.world; // "fixed" stays input + every fixed phase (the P9 column); "world" is the Rapier step phase alone
+          rows.push({ ...cur, js: cur.update + cur.fixed, steps, perStep: steps > 0 ? cur.fixed / steps : 0, frame: now - last, calls: g.lastFrame.calls, tris: g.lastFrame.triangles });
+          last = now; cur.update = 0; cur.fixed = 0; cur.world = 0; cur.player = 0; cur.animals = 0; cur.render = 0;
         }
-        return { rows, animals: w.animals.animals.length, pos: { x: w.player.position.x, y: w.player.position.y, z: w.player.position.z } };
+        const motors = w.animals.animals.filter((a) => a.motor).length;
+        return { rows, animals: w.animals.animals.length, motors, pos: { x: w.player.position.x, y: w.player.position.y, z: w.player.position.z } };
       }, FRAMES);
       const pct = (k, p) => { const v = r.rows.map((x) => x[k]).sort((a, b) => a - b); return Math.round(v[Math.min(v.length - 1, Math.floor(v.length * p))] * 100) / 100; };
       result.poses.push({
-        shard: pose.shard, name: pose.name, animals: r.animals,
+        shard: pose.shard, name: pose.name, animals: r.animals, motors: r.motors, stepsP50: pct('steps', 0.5), perStepP50: pct('perStep', 0.5), perStepP95: pct('perStep', 0.95), worldP50: pct('world', 0.5), worldP95: pct('world', 0.95),
         updateP50: pct('js', 0.5), updateP95: pct('js', 0.95), fixedP50: pct('fixed', 0.5), fixedP95: pct('fixed', 0.95), playerP50: pct('player', 0.5), playerP95: pct('player', 0.95),
         animalsP50: pct('animals', 0.5), animalsP95: pct('animals', 0.95), renderP50: pct('render', 0.5), renderP95: pct('render', 0.95),
         frameP50: pct('frame', 0.5), frameP95: pct('frame', 0.95), calls: pct('calls', 0.5), trisM: Math.round(pct('tris', 0.5) / 1e4) / 100, errors,
@@ -268,8 +283,8 @@ writeFileSync(file, `${JSON.stringify(result)}\n`);
 
 console.log(`\n### ${LABEL} — build ${build}, phone tier 390×844, ${CPU}× CPU (walk ${WALK_CPU}×), ${FRAMES} frames per pose\n`);
 if (result.poses.length > 0) {
-  console.log('| pose | animals | frame JS ms p50 / p95 | of it: input + fixed steps | player | animals.update | render | rAF ms p50 / p95 | calls | tris M |\n|---|---|---|---|---|---|---|---|---|---|');
-  for (const p of result.poses) console.log(`| ${p.shard} ${p.name} | ${p.animals} | ${p.updateP50} / ${p.updateP95} | ${p.fixedP50 ?? 0} / ${p.fixedP95 ?? 0} | ${p.playerP50} / ${p.playerP95} | ${p.animalsP50} / ${p.animalsP95} | ${p.renderP50} / ${p.renderP95} | ${p.frameP50} / ${p.frameP95} | ${p.calls} | ${p.trisM} |`);
+  console.log('| pose | animals (motors) | frame JS ms p50 / p95 | of it: input + fixed steps | steps / frame | per step p50 / p95 | Rapier step phase | player | animals.update | render | rAF ms p50 / p95 | calls | tris M |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|');
+  for (const p of result.poses) console.log(`| ${p.shard} ${p.name} | ${p.animals} (${p.motors ?? '?'}) | ${p.updateP50} / ${p.updateP95} | ${p.fixedP50 ?? 0} / ${p.fixedP95 ?? 0} | ${p.stepsP50 ?? '?'} | ${p.perStepP50 ?? '?'} / ${p.perStepP95 ?? '?'} | ${p.worldP50 ?? '?'} / ${p.worldP95 ?? '?'} | ${p.playerP50} / ${p.playerP95} | ${p.animalsP50} / ${p.animalsP95} | ${p.renderP50} / ${p.renderP95} | ${p.frameP50} / ${p.frameP95} | ${p.calls} | ${p.trisM} |`);
 }
 if (result.walk.length > 0) {
   console.log('\n| leg | s | end (x, y, z) | expect y | max y | ground speed p50 m/s | air / swim / slide frames | stuck |\n|---|---|---|---|---|---|---|---|');
