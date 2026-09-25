@@ -515,6 +515,29 @@ variants that share a hull (white hind, pale elk …) in the first variant's coa
   copies down.
 - The n8ao AO look (world AO) is still Jake's call; so is the sound lane's share of the cold bytes.
 
+### Polish (2026-09-24, `5acbe3e`, `c26543d`, `4728b9a`)
+
+Three things the evidence images showed. **HUD stacking** (`5acbe3e`): `src/ui/ToastStack.ts` is the ONE toast queue
+behind `hud.toast` (journal pages / places, elite drops, boss rewards, quest steps, feedback notes): ≤ 3 up, the older
+dimmed, the same text twice restarts its toast; the column steps DOWN under whatever top bar shares its band (the elite's
+pinned bar + NAMED ELITE NEARBY banner, the boss bar / reward, the quest boss bar, the quest chip, the minimap, the kill
+feed), measured only while a toast is up; pushed toward the crosshair the oldest leave early. Phone: right of the weapon
+strip's tabs (they drew over it); desktop: under the quest chip (they drew over the minimap). The elite's name floating
+over its head dims under the toasts and **hides behind walls** (`Elite` host `canSee`, a Rapier line of sight every
+0.2 s: Old Ironhide no longer shows through the cabin). Driftwood's toasts checked phone + desktop. **Birds** (`4728b9a`):
+the raven, great grey owl and pileated woodpecker, perched + flying each, Hunyuan3D-2 full + paint from codex refs
+(`art/pine-hollow/round-16-birds/`), ~0.9–1.2 k tris each, ONE GLB + ONE atlas, in the same instanced draw / program with
+the same flap / fold / head vertex animation (an instance draws its kind and its pose); fetched after `ws:ready`;
+`?birds=proc` = the procedural birds. **Skinning beat** (`4728b9a`): a gloved hand with a drop-point skinning knife
+(Blender, the lever-action's style, 3.5 k / 1.8 k tris, `art/pine-hollow/round-16-knife/sheet.jpg`) on the viewmodels'
+program rises as the view kneels, makes the two strokes on the cuts, drops away; `?knife=proc` = a stand-in. Evidence
+`progress/pine-hollow-polish-01-{hud,birds,skinning}.jpg` (before / after, iPhone 16 Pro; `scripts/pine-hollow-polish-shots.mjs`).
+Phone ruler (same-base exports): calls ±1 at every pose, tris +0.02–0.03 M (the birds' vertices ride every wildlife
+instance), programs 102 / 103 unchanged, 0 compiled through the birds' swap and the beat. **Left:** the owl-in-flight
+mesh is flat-bodied from the side (a top-down ref); the woodpecker perches with its standing legs against the bark; the
+weapons' own depth clears (Crossbow / LeverRifle / Hands) may wash depth-read haze the same way the knife's did (seen
+only on the kneel; unverified in play).
+
 ### S: ship (graduation)
 
 | # | Row |
