@@ -459,6 +459,9 @@ async function measureShard(shard, vp, run, shots) {
     out.warm = { status: warm.status, errors: warm.errors, playMs: warm.playMs, netBytes: warm.netBytes, requests: warm.requests, swFetches: warm.swFetches, longTaskMaxMs: warm.longTaskMaxMs, longTasks: warm.longTasks, byType: warm.byType, swController: warm.swController };
     const page = warm.page;
     if (warm.status === 'ok') {
+      // creatures keep walking, grazing and animating, but stop reacting to the player: an elite charging the pose (Pine
+      // Hollow's Imperial Bull at the pond, Old Ironhide at the cabin) shakes the camera and kills the player mid-sample
+      await page.evaluate(() => { const a = window.__world?.animals; if (a) a.calm = true; });
       await sleep(SETTLE_MS);
       out.memory = await memory(ctx, page);
       console.error(`    memory heap ${fmtMB(out.memory.heapBytes)} MB · GL tex ${fmtMB(out.memory.glTexBytes)} MB · rb ${fmtMB(out.memory.glRbBytes)} MB · buf ${fmtMB(out.memory.glBufBytes)} MB · scene tex est ${fmtMB(out.memory.sceneTexBytes)} MB · ${out.memory.textures} tex / ${out.memory.geometries} geo / ${out.memory.programs} programs`);
