@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
 import { fetchImage, tierUrl } from '../boot/bytes';
-import { initKtx2, ktx2Layers, ktx2Texture } from './ktx2';
+import { initKtx2, ktx2Layers, ktx2Texture, releaseAfterUpload } from './ktx2';
 import { TIER_CONFIG } from './tier';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 
@@ -152,7 +152,7 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
   const buildKtx2 = async (kind: (typeof kinds)[number], srgb: boolean): Promise<THREE.CompressedArrayTexture | null> => {
     const k = await ktx2Layers(ids.map((id) => tierUrl(texUrl(id, kind))), size);
     if (!k) return null;
-    const t = new THREE.CompressedArrayTexture(k.mipmaps, k.n, k.n, ids.length, k.format);
+    const t = releaseAfterUpload(new THREE.CompressedArrayTexture(k.mipmaps, k.n, k.n, ids.length, k.format));
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
     t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter;
     t.generateMipmaps = false; t.anisotropy = maxAniso; t.flipY = false;

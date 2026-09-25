@@ -20,14 +20,17 @@ import * as THREE from 'three';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { TEX_MODE, gpuFile } from '../boot/gpuFiles';
+import { markGpuOnly } from './gpuOnly';
 
 /** where vite/basis.ts copies three's transcoder: versioned by three's revision, so the SW / HTTP caches never mix two */
 export const BASIS_PATH = `/basis/r${THREE.REVISION}/`;
 
 let loader: KTX2Loader | null = null;
+let gameRenderer: THREE.WebGLRenderer | null = null;
 
 /** detect the GPU's formats and start the transcoder download (idempotent) */
 export function initKtx2(renderer: THREE.WebGLRenderer): void {
+  gameRenderer ??= renderer;
   if (loader !== null || TEX_MODE !== 'ktx2') return;
   loader = new KTX2Loader().setTranscoderPath(BASIS_PATH).detectSupport(renderer);
   loader.init().catch((e: unknown) => { console.warn('[ktx2] transcoder failed to load', e); });
@@ -44,8 +47,20 @@ function ktx2Loader(): KTX2Loader {
   } finally { probe.dispose(); probe.forceContextLoss(); }
 }
 
+/**
+ * Once a compressed texture is on the GPU its transcoded mips are dead weight in the JS heap (about as big again as the
+ * GPU copy: +85–130 MB on Pine Hollow's phone boot before this): drop the texture's own reference after its upload.
+ * Clones share the mip data, so it is freed when the last of them has uploaded. An in-place WebGL restore could not
+ * re-upload it, so a context loss reloads the page instead (gpuOnly.ts, GpuRecovery.ts — as iOS's GPU-process loss already does).
+ */
+export function releaseAfterUpload<T extends THREE.CompressedTexture>(t: T): T {
+  t.onUpdate = (): void => { t.mipmaps = []; };
+  return t;
+}
+if (TEX_MODE === 'ktx2') markGpuOnly('KTX2 textures (their mips are dropped from JS once uploaded)');
+
 // every GLTFLoader the game makes (a dozen modules each own one): hand it the KTX2 loader when it parses, so the
-// KHR_texture_basisu models tierUrl swaps in load wherever they are asked for
+// KHR_texture_basisu models tierUrl swaps in load wherever they are asked for; their textures drop their mips once uploaded
 if (TEX_MODE === 'ktx2') {
   const parse: unknown = Object.getOwnPropertyDescriptor(GLTFLoader.prototype, 'parse')?.value;
   if (typeof parse === 'function') {
@@ -53,18 +68,34 @@ if (TEX_MODE === 'ktx2') {
       configurable: true, writable: true,
       value(this: GLTFLoader, ...args: Parameters<GLTFLoader['parse']>): void {
         if (this.ktx2Loader === null) this.setKTX2Loader(ktx2Loader());
-        Reflect.apply(parse, this, args);
+        const [data, path, onLoad, onError] = args;
+        const release = (gltf: Parameters<typeof onLoad>[0]): void => {
+          gltf.scene.traverse((o) => {
+            if (!(o instanceof THREE.Mesh)) return;
+            const mats: unknown[] = Array.isArray(o.material) ? o.material : [o.material];
+            for (const m of mats) if (m instanceof THREE.Material) for (const v of Object.values(m)) if (v instanceof THREE.CompressedTexture) releaseAfterUpload(v);
+          });
+          onLoad(gltf);
+        };
+        Reflect.apply(parse, this, [data, path, release, onError]);
       },
     });
   }
 }
 
+/**
+ * One transcode per file for the requests of one wave (loadPBR's three maps, the cabins' shared sets): the entry is
+ * dropped a task after it lands, so the mips can be freed once its clones have uploaded — a later ask transcodes again.
+ */
 const transcoded = new Map<string, Promise<THREE.CompressedTexture>>();
 function load(url: string, keep: boolean): Promise<THREE.CompressedTexture> {
   let p = transcoded.get(url);
   if (p === undefined) {
     p = ktx2Loader().loadAsync(url);
-    if (keep) transcoded.set(url, p);
+    if (keep) {
+      transcoded.set(url, p);
+      p.finally(() => { setTimeout(() => { transcoded.delete(url); }, 0); }).catch(() => undefined);
+    }
   }
   return p;
 }
@@ -89,7 +120,7 @@ export async function ktx2Texture(served: string, maxSize = Infinity): Promise<T
   }
   t.flipY = false;
   t.generateMipmaps = false;
-  return t;
+  return releaseAfterUpload(t);
 }
 
 /**
@@ -129,9 +160,11 @@ export async function ktx2Layers(served: readonly string[], size: number): Promi
 
 /**
  * Pixels of a texture read back through the GPU (a compressed texture has no image to draw on a canvas): drawn to a w×h
- * sRGB target, rows top-first like a canvas's getImageData. Nalati's sky reads its zenith colour this way.
+ * sRGB target, rows top-first like a canvas's getImageData; null without a renderer. Nalati's sky reads its zenith colour
+ * this way, the painted horizon its floor.
  */
-export function readTexturePixels(renderer: THREE.WebGLRenderer, tex: THREE.Texture, w: number, h: number): Uint8Array {
+export function readTexturePixels(tex: THREE.Texture, w: number, h: number, renderer = gameRenderer): Uint8Array | null {
+  if (renderer === null) return null;
   const rt = new THREE.WebGLRenderTarget(w, h, { depthBuffer: false });
   rt.texture.colorSpace = THREE.SRGBColorSpace;
   const mat = new THREE.MeshBasicMaterial({ map: tex, depthTest: false, depthWrite: false });

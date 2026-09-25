@@ -217,7 +217,7 @@ function report(top) {
 }
 
 const sleep = (ms) => new Promise((resolve) => { setTimeout(resolve, ms); });
-const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info'] });
+const browser = await chromium.launch({ args: ['--mute-audio', '--use-angle=metal', '--ignore-gpu-blocklist', '--enable-precise-memory-info', '--js-flags=--expose-gc'] });
 try {
   const phone = TIER === 'phone';
   const iphone = devices['iPhone 16 Pro'];
@@ -236,6 +236,8 @@ try {
   await page.waitForFunction(() => Boolean(window.__world?.game), undefined, { timeout: 300000, polling: 500 });
   const readyS = (Date.now() - t0) / 1000;
   await sleep(SETTLE);
+  // the JS heap after a full collection: what the page holds, not the garbage the boot left
+  await page.evaluate(async () => { for (let i = 0; i < 3; i++) { window.gc?.(); await new Promise((resolve) => { setTimeout(resolve, 200); }); } });
   const r = await page.evaluate(report, TOP);
   const out = { tag: TAG, chunk: CHUNK, tier: TIER, tex: TEX, query: q, readyS, when: new Date().toISOString(), errors: errors.slice(0, 20), ...r };
   mkdirSync(resolvePath(ROOT, 'progress/texmem'), { recursive: true });

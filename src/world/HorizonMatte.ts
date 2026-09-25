@@ -24,7 +24,7 @@
  *   photoreal strips are drawn at infinity by PaintedHorizon (below), not by this class. Always on — the user locked it in (E78); the `?matte=0` switch is gone (E136).
  */
 import * as THREE from 'three';
-import { ktx2Texture } from '../core/ktx2';
+import { ktx2Texture, readTexturePixels } from '../core/ktx2';
 import type { Sky } from './Sky';
 import { MIDDAY_SKY } from './StylizedSky';
 import { fogUniforms } from './Atmosphere';
@@ -332,12 +332,19 @@ export class PaintedHorizon {
 
 /** the mean linear colour of a painting's bottom 4 % (a 32 × 4 canvas read, once at load) */
 function floorOf(tex: THREE.Texture, out: THREE.Color): void {
-  const img = tex.image as CanvasImageSource & { width: number; height: number };
-  const c = document.createElement('canvas'); c.width = 32; c.height = 4;
-  const g = c.getContext('2d', { willReadFrequently: true });
-  if (!g) return;
-  g.drawImage(img, 0, img.height * 0.96, img.width, img.height * 0.04, 0, 0, 32, 4);
-  const px = g.getImageData(0, 0, 32, 4).data;
+  let px: Uint8Array | Uint8ClampedArray;
+  if (tex instanceof THREE.CompressedTexture) { // E157: no pixels to draw — read the bottom 4 % back through the GPU
+    const all = readTexturePixels(tex, 32, 100);
+    if (!all) return;
+    px = all.subarray(96 * 32 * 4);
+  } else {
+    const img = tex.image as CanvasImageSource & { width: number; height: number };
+    const c = document.createElement('canvas'); c.width = 32; c.height = 4;
+    const g = c.getContext('2d', { willReadFrequently: true });
+    if (!g) return;
+    g.drawImage(img, 0, img.height * 0.96, img.width, img.height * 0.04, 0, 0, 32, 4);
+    px = g.getImageData(0, 0, 32, 4).data;
+  }
   let r = 0, gg = 0, b = 0;
   for (let i = 0; i < px.length; i += 4) { r += (px[i] ?? 0) / 255; gg += (px[i + 1] ?? 0) / 255; b += (px[i + 2] ?? 0) / 255; }
   const n = px.length / 4;

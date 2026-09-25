@@ -210,11 +210,11 @@ export class SkyDomeV2 {
     tex.needsUpdate = true;
     const zenith = new THREE.Color(0.1, 0.25, 0.62);
     try {
-      const rows = readTexturePixels(renderer, tex, 64, 12).subarray(0, 64 * 2 * 4); // the painting's top two rows
+      const rows = readTexturePixels(tex, 64, 12, renderer)?.subarray(0, 64 * 2 * 4) ?? new Uint8Array(0); // the painting's top two rows
       let r = 0, g = 0, b = 0;
       for (let i = 0; i < rows.length; i += 4) { r += rows[i] ?? 0; g += rows[i + 1] ?? 0; b += rows[i + 2] ?? 0; }
       const n = rows.length / 4;
-      zenith.setRGB(r / n / 255, g / n / 255, b / n / 255, THREE.SRGBColorSpace);
+      if (n > 0) zenith.setRGB(r / n / 255, g / n / 255, b / n / 255, THREE.SRGBColorSpace);
     } catch { /* keep the default */ }
     return new SkyDomeV2(tex, tex.image.width, fogLut, zenith);
   }
