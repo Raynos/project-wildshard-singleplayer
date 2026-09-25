@@ -64,6 +64,9 @@ const PENNANT = {
   length: 1.75, hoist: 0.72, cols: 7, rows: 4,
   /** the swallowtail's notch, as a share of the length at the centre line */
   notch: 0.3,
+  /** where along the length the notch starts to pull the centre line back (E138: from the hoist, it bent every column
+   *  line into a chevron, and the sleeve's edge read as a jagged seam across the cloth) */
+  notchFrom: 0.4,
   blue: new THREE.Color('#2f5bd0'), dark: new THREE.Color('#1c3c96'), white: new THREE.Color('#e8f0ff'),
   /** downwind, unit xz (wind.ts WX / WZ) */
   dir: [-0.55, 0.83] as const,
@@ -95,7 +98,7 @@ function pennantDepthMaterial(): THREE.MeshDepthMaterial {
 
 /** the pennant's cloth, in world space: hoisted at (x, z) with its top edge at `yTop` */
 function buildPennant(sky: Sky, x: number, z: number, yTop: number, rng: Rng): THREE.Mesh {
-  const { length: L, hoist: H, cols, rows, notch } = PENNANT;
+  const { length: L, hoist: H, cols, rows, notch, notchFrom } = PENNANT;
   const [dx, dz] = PENNANT.dir, dn = Math.hypot(dx, dz), ax = dx / dn, az = dz / dn, nx = -az, nz = ax;
   // (a along the length 0‥1, v down the hoist 0‥1, side offset off the cloth) → world xyz + the sway weight. The cloth's
   // grid passes u and lets the notch pull the centre of the fly end back; the sigil passes a directly, so it stays a diamond
@@ -114,7 +117,8 @@ function buildPennant(sky: Sky, x: number, z: number, yTop: number, rng: Rng): T
   // the cloth: a grid, the first column a darker sleeve round the pole
   for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) {
     const u0 = c / cols, u1 = (c + 1) / cols, v0 = r / rows, v1 = (r + 1) / rows, color = c === 0 ? PENNANT.dark : PENNANT.blue;
-    const G = (u: number, v: number) => P(u * (1 - notch * (1 - Math.abs(2 * v - 1))), v, 0, u);
+    // the notch pulls the fly end's centre back; the hoist half (the sleeve's edge, the diamond) keeps straight columns
+    const G = (u: number, v: number) => P(u - notch * (1 - Math.abs(2 * v - 1)) * Math.max(0, (u - notchFrom) / (1 - notchFrom)), v, 0, u);
     tri(G(u0, v0), G(u0, v1), G(u1, v1), color, 0.04);
     tri(G(u0, v0), G(u1, v1), G(u1, v0), color, 0.04);
   }

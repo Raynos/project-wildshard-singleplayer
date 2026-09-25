@@ -16,6 +16,7 @@ import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { bakedSkyUrls, loadBakedSky as loadSkyPair } from './BakedSky';
 import { macrotask } from '../boot/plan';
 import { installStylize, toonUniforms } from './stylize';
+import { FILTER_RADII, PHONE_SHADOW_FILTER, installShadowFilter, shadowFilterFromUrl } from './shadowFilter';
 import { StylizedSky } from './StylizedSky';
 import { DayNight, type DayClock } from './DayNight';
 import { setting } from '../ui/Settings';
@@ -35,13 +36,9 @@ export interface ShadowRig { cascades: number; size: number; far: number; margin
 
 /** the phone's rig on the low-poly shard (E123, the user's pick `2c2k`, 2026-09-25, "both 2048 and 2c"): two cascades at
  *  2048², the near one to 14 m — 1.7 cm a texel near you, ~+0.5 ms a frame on the M5 against the one 2048² square it replaced */
+// Its filter and radii are shadowFilter.ts's since E138 (E128's three-PCF near radius of 1.2 is `?pshadowfilter=cheap`;
+// `?pradius=` overrides the near cascade's radius)
 const PHONE_SHADOW: Omit<ShadowRig, 'margin' | 'phone'> = { cascades: 2, size: 2048, far: 80, split: 14 };
-
-/** the PCF radius (texels) of the phone rig's near cascade (E128). three's PCF is 5 hardware-filtered taps whatever the radius,
- *  so this costs nothing. At 0.6 the 1.7 cm texels drew every palm and stair shadow edge as a serrated saw (the E123 "crisp
- *  stair-steps"); 1.2 (a ~2 cm penumbra) draws a clean edge; 2 brings back the dotted IGN fringe and a wider warm rim. The
- *  far cascade (9 cm texels) keeps 0.6. `?pradius=0.6` is the look before E128. */
-const PHONE_NEAR_RADIUS = 1.2;
 
 /**
  * The shadow rig for this tier and shard. The phone's portrait camera (94° vertical FOV) makes a cascade's square far
@@ -126,13 +123,19 @@ export class Sky {
     this.csm.fade = true;
     installCascadeCull(this.csm, this.camera); // each cascade draws only the casters its own slice can see the shadow of (PH-P2)
     if (!TIER_CONFIG.softShadows) this.renderer.shadowMap.type = THREE.PCFShadowMap; // 16-tap PCFSoft → 9-tap PCF on the phone
+    // E138: the phone's low-poly rig filters its shadows with a 7×7 / 5×5 tent, not three's 5 noisy taps (shadowFilter.ts);
+    // `?pshadowfilter=` picks another — here, at boot, before a material compiles (a switch recompiles every one)
+    const filter = this.stylized && (rig.phone || qs.has('pshadowfilter')) ? shadowFilterFromUrl(PHONE_SHADOW_FILTER) : null;
+    if (filter) this.renderer.shadowMap.type = installShadowFilter(filter);
     patchCSMShaderChunk();
     patchCloudShadows(); // painterly shards: the drifting cloud shadows in the sun loop (a no-op elsewhere)
     // the stylized shard's low sun (golden hour, dawn) grazes the flat decks: more normal bias or the planks speckle with acne
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = this.stylized ? 0.14 : 0.05; l.shadow.radius = this.stylized ? 0.6 : 2; }
     this.texelBias = this.stylized !== null && rig.phone;
-    const nearLight = this.csm.lights[0];
-    if (this.stylized && rig.phone && rig.cascades === 2 && nearLight) nearLight.shadow.radius = qn('pradius', PHONE_NEAR_RADIUS);
+    if (filter) {
+      const [nearR, farR] = FILTER_RADII[filter];
+      this.csm.lights.forEach((l, i) => { l.shadow.radius = i === 0 && this.csm.lights.length > 1 ? qn('pradius', nearR) : farR; if (filter === 'vsm') l.shadow.blurSamples = 8; });
+    }
 
     this.hemi = new THREE.HemisphereLight(S.hemiSky, S.hemiGround, S.hemiIntensity);
     this.scene.add(this.hemi);
