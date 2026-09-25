@@ -26,7 +26,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { heightAt } from './Heightfield';
 import { attachFogUniforms } from './Atmosphere';
-import { Waterfall } from './Waterfall';
+import { waterfallFor, type WaterfallLike } from './Waterfall';
 import { SEED } from '../core/config';
 import { LowPolyKit, rock, log, tris, bakeLight, lowPolyMaterial, type BakedLight } from './lowpolyKit';
 import { Rng } from '../core/rng';
@@ -80,7 +80,7 @@ export class Cove {
   caveBounds: CaveBounds = { x: 0, z: 0, r: 0, yMin: 0, yMax: 0 };
   private uniforms = { uTime: { value: 0 } };
   private t = 0;
-  private fall: Waterfall | null = null;
+  private fall: WaterfallLike | null = null;
   private cave: CoveSpec['cave'] = { x: 0, z: 0, yaw: 0, w: 0, h: 0, depth: 0 };
 
   constructor(private sky: Sky) {}
@@ -332,7 +332,8 @@ export class Cove {
     {
       const [tx, tz] = spec.fall.top, [fx, fz] = spec.fall.foot, dx = fx - tx, dz = fz - tz, len = Math.hypot(dx, dz);
       const px = fx + (dx / len) * 1.2, pz = fz + (dz / len) * 1.2;
-      this.fall = new Waterfall({ lip: new THREE.Vector3(tx, heightAt(tx, tz) + 0.3, tz), foot: new THREE.Vector3(px, heightAt(fx, fz) + 0.06, pz), width: 2.2 }).build();
+      // E150: the toon cascade in three terraces (`?waterfall=v1`: the W5 curtain); its foam rings stay inside the 2.4 m pool
+      this.fall = waterfallFor({ lip: new THREE.Vector3(tx, heightAt(tx, tz) + 0.3, tz), foot: new THREE.Vector3(px, heightAt(fx, fz) + 0.06, pz), width: 2.2, ground: heightAt, poolRadius: 2.3, steps: 3 }).build();
       this.group.add(this.fall.group);
     }
 

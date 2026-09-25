@@ -1,94 +1,137 @@
 /**
- * Waterfall v2 (DRIFTWOOD-REMASTER W5) — a stylized cascade for a cliff face: E8 places it in Wreck Cove.
+ * Waterfall v3 (E150) — Driftwood's toon cascade, a stepped faceted curtain in the Wind Waker / Sea of Thieves manner.
+ * The soft, blurred v2 curtain (DRIFTWOOD-REMASTER W5) stays behind `?waterfall=v1` (WaterfallV1.ts).
  *
- *   const fall = new Waterfall({ lip: new THREE.Vector3(x, yTop, z), foot: new THREE.Vector3(x2, yPool, z2), width: 3 }).build();
+ *   const fall = waterfallFor({ lip, foot, width: 2.2, ground: heightAt, poolRadius: 2.3 }).build();
  *   scene.add(fall.group);
  *   game.onUpdate((dt) => fall.update(dt));
  *
- * `lip` is the centre of the brink the water pours over, `foot` the centre of the plunge pool's surface; the sheet leaves
- * the lip moving toward the foot (horizontally) and falls ballistically, so it hangs off the cliff as a curtain instead of
- * lying on the slope. Three draws, all unlit (the sheet reads the sun colour through the fog uniforms, so it follows the
- * day / night clock) and fogged:
- * - **sheet**: a faceted curtain (rows × 4 columns, per-vertex wobble) — cyan-white water with foam streaks that scroll
- *   down it, brighter and wider toward the foot, soft ragged edges.
- * - **splash ring**: foam rings spreading out on the pool from the impact point.
- * - **mist**: soft billboard puffs rising and fading at the foot.
+ * `lip` is the centre of the brink the water pours over, `foot` the centre of the plunge pool's surface. The water runs
+ * from the lip to the foot in `steps` terraces: each is a short flat shelf (the pour-over lip, or the ledge the step
+ * above lands on) and then a ballistic drop. `ground` keeps every vertex a hand above the terrain. Three draws, all unlit
+ * (the sun's colour and direction come through the fog uniforms, so they follow the day / night clock), all fogged:
+ * - **sheet**: the curtain, pleated into flat facets and shaded in three toon bands. Hard-edged bands of colour down each
+ *   drop, a crisp white line at every brink, a scalloped foam band where each step lands, and a few bright streak
+ *   dashes that scroll down it. The edges are cut hard with a thin white rim.
+ * - **pool rings**: faceted (9-sided) foam rings spreading on the plunge pool from a scalloped white core.
+ * - **puffs**: low-poly foam balls boiling at the foot and at each landing, and spray chunks thrown up that shrink away.
+ *   Every puff is a 20-face icosahedron, toon-lit in two bands, all of them one merged mesh posed in the vertex shader.
  */
 import * as THREE from 'three';
 import { attachFogUniforms } from './Atmosphere';
+import { WaterfallV1 } from './WaterfallV1';
 
 export interface WaterfallSpec {
   lip: THREE.Vector3;
   foot: THREE.Vector3;
-  /** width at the lip (m); the curtain spreads ~40 % by the foot */
+  /** width at the lip (m); the curtain spreads ~35 % by the foot */
   width: number;
+  /** the terrain's height: the curtain never dips under it (v3) */
+  ground?: (x: number, z: number) => number;
+  /** the plunge pool's radius (m): the foam rings stay inside it (v3; default 1.1 × width) */
+  poolRadius?: number;
+  /** terraces from the lip to the foot (v3; default 3) */
+  steps?: number;
 }
 
-const NOISE = /* glsl */`
-  float wfHash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
-  float wfNoise(vec2 p) { vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(mix(wfHash(i), wfHash(i + vec2(1.0, 0.0)), u.x), mix(wfHash(i + vec2(0.0, 1.0)), wfHash(i + vec2(1.0, 1.0)), u.x), u.y); }`;
+/** what Cove keeps of either look */
+export interface WaterfallLike {
+  readonly group: THREE.Group;
+  build: () => WaterfallLike;
+  update: (dt: number) => void;
+}
 
-export class Waterfall {
+/** the shelf's share of each terrace (the flat run before the drop) */
+const SHELF = 0.28;
+/** the rows of one terrace, as fractions of it: two across the shelf, the rest down the drop */
+const ROWS_F = [0, 0.14, SHELF, 0.42, 0.56, 0.7, 0.85, 1];
+/** the columns across the curtain; the odd ones stand proud, so the sheet is pleated into flat facets */
+const COLS = 6;
+
+const HASH = /* glsl */`
+  float wfH(float n) { return fract(sin(n * 127.1) * 43758.5453); }`;
+
+export class Waterfall implements WaterfallLike {
   group = new THREE.Group();
   private u = { uTime: { value: 0 } };
 
   constructor(private spec: WaterfallSpec) {}
 
   build(): this {
-    this.group.add(this.buildSheet(), this.buildRing(), this.buildMist());
+    this.group.add(this.buildSheet(), this.buildRings(), this.buildPuffs());
     return this;
   }
 
   update(dt: number): void { this.u.uTime.value += dt; }
 
   /** the fogged unlit material the three parts share the setup of */
-  private material(vert: string, frag: string, extra: Record<string, THREE.IUniform> = {}, blending: THREE.Blending = THREE.NormalBlending): THREE.ShaderMaterial {
+  private material(vert: string, frag: string, extra: Record<string, THREE.IUniform> = {}, side: THREE.Side = THREE.DoubleSide): THREE.ShaderMaterial {
     const m = new THREE.ShaderMaterial({
       uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, extra]),
-      vertexShader: vert, fragmentShader: frag, transparent: true, depthWrite: false, fog: true, side: THREE.DoubleSide, blending,
+      vertexShader: vert, fragmentShader: frag, transparent: true, depthWrite: false, fog: true, side,
     });
     Object.assign(m.uniforms, this.u);
     m.onBeforeCompile = (shader) => { attachFogUniforms(shader); };
     return m;
   }
 
-  private buildSheet(): THREE.Mesh {
-    const { lip, foot, width } = this.spec;
+  /** the curtain's frame: forward (away from the cliff) and sideways unit vectors, the run and the drop */
+  private frame(): { fx: number; fz: number; sx: number; sz: number; run: number; drop: number } {
+    const { lip, foot } = this.spec;
     const dx = foot.x - lip.x, dz = foot.z - lip.z, run = Math.max(0.5, Math.hypot(dx, dz)), drop = Math.max(1, lip.y - foot.y);
-    const fx = dx / run, fz = dz / run, sx = -fz, sz = fx;          // forward (away from the cliff) and sideways
-    const ROWS = Math.max(8, Math.round(drop / 1.2)), COLS = 4;
-    const pos: number[] = [], uv: number[] = [];
-    let seed = 7;
-    const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647 - 0.5; };
-    for (let r = 0; r <= ROWS; r++) {
-      const t = r / ROWS;
-      // ballistic: out along forward ∝ t (constant horizontal speed), down ∝ t² (gravity), ending on the foot
-      const out = run * t, y = lip.y - drop * t * t;
-      const w = width * (1 + 0.4 * t);
-      for (let c = 0; c <= COLS; c++) {
-        const s = c / COLS - 0.5, edge = Math.abs(s) * 2;
-        const wob = r > 0 && r < ROWS ? 0.12 : 0;
-        pos.push(lip.x + fx * out + sx * s * w + rnd() * wob, y + rnd() * wob * (1 - edge * 0.5), lip.z + fz * out + sz * s * w + rnd() * wob);
-        uv.push(c / COLS, t);
-      }
-    }
-    const idx: number[] = [];
-    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
-      const a = r * (COLS + 1) + c, b = a + 1, d = a + COLS + 1, e = d + 1;
-      idx.push(a, d, b, b, d, e);
+    const fx = dx / run, fz = dz / run;
+    return { fx, fz, sx: -fz, sz: fx, run, drop };
+  }
+
+  /** a point on the curtain: terrace k, fraction f down it, s ∈ [-0.5, 0.5] across; `proud` pushes it off the sheet */
+  private at(k: number, f: number, s: number, proud: number, jitter: number): THREE.Vector3 {
+    const { lip, width } = this.spec, steps = this.spec.steps ?? 3;
+    const { fx, fz, sx, sz, run, drop } = this.frame();
+    const t = (k + f) / steps;
+    const onShelf = f <= SHELF;
+    // a shelf barely falls; the drop below it is ballistic (∝ the square of the time since the brink)
+    const g = onShelf ? 0.05 * (f / SHELF) : 0.05 + 0.95 * ((f - SHELF) / (1 - SHELF)) ** 2;
+    const out = run * t + (onShelf ? 0 : proud);
+    const w = width * (1 + 0.35 * t);
+    const x = lip.x + fx * out + sx * s * w, z = lip.z + fz * out + sz * s * w;
+    let y = lip.y - (drop * (k + g)) / steps + (onShelf ? proud : 0) + jitter;
+    if (this.spec.ground) y = Math.max(y, this.spec.ground(x, z) + 0.12);
+    return new THREE.Vector3(x, y, z);
+  }
+
+  private buildSheet(): THREE.Mesh {
+    const steps = this.spec.steps ?? 3, rows = ROWS_F.length - 1;
+    // one grid of corners, row r global (the last row of a terrace is the first of the next), so the facets are watertight
+    const hash = (a: number, b: number): number => { const v = Math.sin(a * 91.7 + b * 47.3) * 43758.5453; return v - Math.floor(v) - 0.5; };
+    const corner = (k: number, ri: number, c: number): THREE.Vector3 => {
+      const row = k * rows + ri, edge = c === 0 || c === COLS, brink = ri === 0 || ri === rows || ROWS_F[ri] === SHELF;
+      const proud = c % 2 === 1 ? 0.07 : 0;
+      const f = ROWS_F[ri] ?? 0;
+      return this.at(k, f, c / COLS - 0.5, proud, edge || brink ? 0 : hash(row, c) * 0.08);
+    };
+    const pos: number[] = [], uv: number[] = [], stp: number[] = [];
+    const push = (k: number, ri: number, c: number): void => {
+      const p = corner(k, ri, c);
+      pos.push(p.x, p.y, p.z);
+      uv.push(c / COLS, (k + (ROWS_F[ri] ?? 0)) / steps);
+      stp.push(ROWS_F[ri] ?? 0, k);
+    };
+    for (let k = 0; k < steps; k++) for (let ri = 0; ri < rows; ri++) for (let c = 0; c < COLS; c++) {
+      push(k, ri, c); push(k, ri + 1, c); push(k, ri, c + 1);
+      push(k, ri, c + 1); push(k, ri + 1, c); push(k, ri + 1, c + 1);
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-    g.setIndex(idx);
-    const ng = g.toNonIndexed(); g.dispose(); // facets: every triangle its own normal (flat shading from derivatives below)
+    g.setAttribute('aStep', new THREE.Float32BufferAttribute(stp, 2));
+    g.computeBoundingSphere();
     const mat = this.material(/* glsl */`
       #include <common>
       #include <fog_pars_vertex>
-      varying vec2 vUv; varying vec3 vW;
+      attribute vec2 aStep;
+      varying vec2 vUv; varying vec2 vStep; varying vec3 vW;
       void main() {
-        vUv = uv;
+        vUv = uv; vStep = aStep;
         vec3 transformed = position;
         vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.0);
         vW = (modelMatrix * vec4(transformed, 1.0)).xyz;
@@ -98,33 +141,55 @@ export class Waterfall {
       #include <common>
       #include <fog_pars_fragment>
       uniform float uTime;
-      varying vec2 vUv; varying vec3 vW;
-      ${NOISE}
+      varying vec2 vUv; varying vec2 vStep; varying vec3 vW;
+      ${HASH}
+      // a hard edge, one screen pixel of anti-aliasing
+      float edge(float e, float x) { float w = fwidth(x) * 0.75; return smoothstep(e - w, e + w, x); }
       void main() {
         vec3 fn = normalize(cross(dFdx(vW), dFdy(vW)));
-        float facet = 0.82 + 0.18 * abs(fn.x + fn.z * 0.6);
-        // foam streaks: noise stretched along the fall, scrolling down it, thicker toward the foot
-        vec2 p = vec2(vUv.x * 7.0, vUv.y * 3.0 - uTime * 1.6);
-        float streak = wfNoise(p) * 0.6 + wfNoise(p * vec2(2.3, 1.7) + 4.0) * 0.4;
-        float foam = smoothstep(0.42 - vUv.y * 0.25, 0.62 - vUv.y * 0.2, streak);
-        vec3 water = mix(vec3(0.18, 0.62, 0.72), vec3(0.95, 0.98, 1.0), foam);
-        vec3 col = water * facet * (0.35 + 0.75 * fogSunColor);
-        float edge = 1.0 - smoothstep(0.32, 0.5, abs(vUv.x - 0.5) + (wfNoise(vec2(vUv.y * 9.0 - uTime * 2.0, 3.0)) - 0.5) * 0.12);
-        float a = edge * mix(0.72, 0.95, foam) * smoothstep(0.0, 0.04, vUv.y + 0.02);
-        gl_FragColor = vec4(col, a);
+        float lit = abs(dot(fn, fogSunDir));
+        float facet = lit > 0.55 ? 1.0 : lit > 0.25 ? 0.86 : 0.74;          // three toon bands across the pleats
+        float f = vStep.x, k = vStep.y;
+        float d = clamp((f - ${SHELF.toFixed(2)}) / ${(1 - SHELF).toFixed(2)}, 0.0, 1.0); // how far down this terrace's drop
+        // the body: glassy cyan where it pours, deeper teal down the drop, in hard bands
+        vec3 col = mix(vec3(0.50, 0.88, 0.94), vec3(0.24, 0.72, 0.84), edge(0.22, d));
+        col = mix(col, vec3(0.15, 0.56, 0.72), edge(0.62, d));
+        // streaks: a few lanes of bright dashes scrolling down, longer and more of them toward the foot of each drop
+        float lanes = 7.0, x = vUv.x * lanes, lane = floor(x), h = wfH(lane + k * 13.0);
+        float inLane = 1.0 - edge(0.09 + 0.08 * h, abs(fract(x) - 0.5 - (h - 0.5) * 0.3));
+        float p = fract(vUv.y * 6.0 - uTime * (1.1 + 0.5 * h) + h * 7.0);
+        float dash = 1.0 - edge(0.22 + 0.3 * d, p);
+        float streak = inLane * dash * step(0.3, h + d * 0.4);
+        col = mix(col, vec3(0.93, 0.99, 1.0), streak);
+        // the brink: a crisp white roll where the shelf tips over, a pale band just below it
+        float brink = 1.0 - edge(0.035, abs(f - ${SHELF.toFixed(2)} - 0.01));
+        col = mix(col, vec3(0.80, 0.97, 1.0), (1.0 - edge(0.1, abs(f - ${(SHELF + 0.08).toFixed(2)}))) * 0.5);
+        col = mix(col, vec3(1.0), brink);
+        // where a drop lands on the next shelf: scalloped foam, bobbing
+        float scallop = 0.16 + 0.05 * sin(vUv.x * 40.0 + k * 2.0 + uTime * 5.0) + 0.03 * sin(vUv.x * 17.0 - uTime * 3.0);
+        float landing = k > 0.5 ? 1.0 - edge(scallop, f) : 0.0;
+        col = mix(col, vec3(0.97, 1.0, 1.0), landing);
+        // the last metre of the last drop churns white into the pool
+        col = mix(col, vec3(0.95, 1.0, 1.0), edge(0.955 + 0.02 * sin(vUv.x * 30.0 + uTime * 6.0), vUv.y));
+        // the sides: a hard cut with a thin white rim
+        float e = abs(vUv.x - 0.5) * 2.0;
+        col = mix(col, vec3(0.9, 0.98, 1.0), edge(0.88, e));
+        float a = (1.0 - edge(0.985, e)) * mix(0.95, 1.0, max(streak, max(brink, landing)));
+        gl_FragColor = vec4(col * facet * (0.35 + 0.75 * fogSunColor), a);
         #include <fog_fragment>
       }`);
-    const mesh = new THREE.Mesh(ng, mat);
+    const mesh = new THREE.Mesh(g, mat);
+    mesh.name = 'waterfall-sheet';
     mesh.renderOrder = 5; // after the sea
     return mesh;
   }
 
-  private buildRing(): THREE.Mesh {
+  private buildRings(): THREE.Mesh {
     const { foot, width } = this.spec;
-    const R = width * 1.6 + 1.2;
-    const g = new THREE.RingGeometry(0.2, R, 24, 3);
+    const R = this.spec.poolRadius ?? width * 1.1;
+    const g = new THREE.CircleGeometry(R, 18);
     g.rotateX(-Math.PI / 2);
-    g.translate(foot.x, foot.y + 0.04, foot.z);
+    g.translate(foot.x, foot.y + 0.05, foot.z);
     const mat = this.material(/* glsl */`
       #include <common>
       #include <fog_pars_vertex>
@@ -141,64 +206,131 @@ export class Waterfall {
       #include <fog_pars_fragment>
       uniform float uTime; uniform float uR;
       varying vec2 vL;
-      ${NOISE}
+      ${HASH}
+      float edge(float e, float x) { float w = fwidth(x) * 0.75; return smoothstep(e - w, e + w, x); }
       void main() {
+        float ang = atan(vL.y, vL.x), seg = 6.2831853 / 9.0;
         float r = length(vL) / uR;
-        float ang = atan(vL.y, vL.x);
-        // rings spreading outward, broken up by noise around the circle
-        float wave = fract(r * 3.0 - uTime * 0.9);
-        float ring = smoothstep(0.75, 0.9, wave) * (1.0 - smoothstep(0.93, 1.0, wave));
-        float n = wfNoise(vec2(ang * 3.0, r * 4.0 - uTime));
-        float core = 1.0 - smoothstep(0.08, 0.35, r);
-        float foam = max(core * (0.6 + 0.4 * n), ring * smoothstep(0.35, 0.7, n)) * (1.0 - smoothstep(0.7, 1.0, r));
-        vec3 col = vec3(0.95, 0.98, 1.0) * (0.35 + 0.75 * fogSunColor);
-        gl_FragColor = vec4(col, foam * 0.9);
+        float rp = r * cos(mod(ang + 0.3, seg) - seg * 0.5);          // the distance to a 9-sided polygon: faceted rings
+        float side = floor((ang + 3.1415927) / seg);
+        // the churn at the core: a white disc with a scalloped rim
+        float core = 1.0 - edge(0.3 + 0.05 * sin(ang * 7.0 + uTime * 4.0), rp);
+        // three rings spreading out, thinning as they go, each broken into dashes on a few of the polygon's sides
+        float ring = 0.0, pale = 0.0;
+        for (int i = 0; i < 3; i++) {
+          float ph = fract(uTime * 0.42 + float(i) / 3.0);
+          float rad = mix(0.3, 0.95, ph), th = mix(0.055, 0.012, ph);
+          float on = step(0.28, wfH(side + float(i) * 11.0 + floor(uTime * 0.42 + float(i) / 3.0) * 3.0));
+          float band = (1.0 - edge(th, abs(rp - rad))) * on;
+          ring = max(ring, band * step(ph, 0.6));
+          pale = max(pale, band * step(0.6, ph));
+        }
+        float foam = max(core, ring);
+        vec3 col = mix(vec3(0.75, 0.93, 0.98), vec3(0.97, 1.0, 1.0), foam);
+        float a = max(foam, pale * 0.75) * (1.0 - edge(0.98, rp));
+        gl_FragColor = vec4(col * (0.35 + 0.75 * fogSunColor), a);
         #include <fog_fragment>
       }`, { uCentre: { value: foot.clone() }, uR: { value: R } });
     const mesh = new THREE.Mesh(g, mat);
+    mesh.name = 'waterfall-rings';
     mesh.renderOrder = 6;
     return mesh;
   }
 
-  private buildMist(): THREE.Points {
-    const { foot, width } = this.spec;
-    const N = 26;
-    const pos = new Float32Array(N * 3), seed = new Float32Array(N);
-    for (let i = 0; i < N; i++) {
-      const a = (i / N) * Math.PI * 2 * 3.7, r = width * 0.4 + ((i * 37) % 11) / 11 * width * 0.8;
-      pos[i * 3] = foot.x + Math.cos(a) * r; pos[i * 3 + 1] = foot.y; pos[i * 3 + 2] = foot.z + Math.sin(a) * r;
-      seed[i] = ((i * 53) % 17) / 17;
+  private buildPuffs(): THREE.Mesh {
+    const { foot, width } = this.spec, steps = this.spec.steps ?? 3;
+    const { fx, fz, sx, sz } = this.frame();
+    const ico = new THREE.IcosahedronGeometry(1, 0);
+    const local = ico.getAttribute('position');
+    // [centre, radius, seed, kind (0 foam at the foot, 1 foam on a landing, 2 spray), out dir x/z]
+    const puffs: { c: THREE.Vector3; r: number; seed: number; kind: number; ox: number; oz: number }[] = [];
+    let seed = 11;
+    const rnd = (): number => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    const wFoot = width * 1.35;
+    for (let i = 0; i < 12; i++) {
+      const s = (i / 11 - 0.5) * wFoot * 0.95, fwd = (rnd() - 0.35) * 0.9;
+      const c = new THREE.Vector3(foot.x + sx * s + fx * fwd, foot.y + 0.1, foot.z + sz * s + fz * fwd);
+      const ox = sx * Math.sign(s) * 0.5 + fx * 0.8, oz = sz * Math.sign(s) * 0.5 + fz * 0.8;
+      puffs.push({ c, r: 0.32 + rnd() * 0.3, seed: rnd(), kind: 0, ox, oz });
     }
+    for (let k = 1; k < steps; k++) for (let i = 0; i < 4; i++) {
+      const s = (i / 3 - 0.5) * 0.75 + (rnd() - 0.5) * 0.1;
+      const c = this.at(k, 0.06, s, 0, 0.05);
+      puffs.push({ c, r: 0.18 + rnd() * 0.12, seed: rnd(), kind: 1, ox: fx * 0.5, oz: fz * 0.5 });
+    }
+    for (let i = 0; i < 8; i++) {
+      const s = (rnd() - 0.5) * wFoot, fwd = rnd() * 0.8;
+      const c = new THREE.Vector3(foot.x + sx * s + fx * fwd, foot.y + 0.3, foot.z + sz * s + fz * fwd);
+      puffs.push({ c, r: 0.14 + rnd() * 0.1, seed: rnd(), kind: 2, ox: fx + sx * (rnd() - 0.5), oz: fz + sz * (rnd() - 0.5) });
+    }
+    const n = local.count, N = puffs.length;
+    const pos = new Float32Array(N * n * 3), centre = new Float32Array(N * n * 3), info = new Float32Array(N * n * 4);
+    puffs.forEach((p, j) => {
+      for (let v = 0; v < n; v++) {
+        const o = (j * n + v) * 3, q = (j * n + v) * 4;
+        pos[o] = local.getX(v); pos[o + 1] = local.getY(v) * 0.8; pos[o + 2] = local.getZ(v); // a little squat
+        centre[o] = p.c.x; centre[o + 1] = p.c.y; centre[o + 2] = p.c.z;
+        info[q] = p.r; info[q + 1] = p.seed; info[q + 2] = p.kind; info[q + 3] = Math.atan2(p.oz, p.ox);
+      }
+    });
+    ico.dispose();
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    g.setAttribute('seed', new THREE.BufferAttribute(seed, 1));
+    g.setAttribute('aCentre', new THREE.BufferAttribute(centre, 3));
+    g.setAttribute('aInfo', new THREE.BufferAttribute(info, 4));
+    g.boundingSphere = new THREE.Sphere(foot.clone().lerp(this.spec.lip, 0.5), foot.distanceTo(this.spec.lip) * 0.5 + width + 4);
     const mat = this.material(/* glsl */`
       #include <common>
       #include <fog_pars_vertex>
-      attribute float seed;
+      attribute vec3 aCentre;
+      attribute vec4 aInfo;
       uniform float uTime;
-      varying float vA;
+      varying vec3 vW; varying float vA; varying float vMist;
       void main() {
-        float life = fract(uTime * 0.18 + seed);
-        vec3 transformed = position + vec3(sin(seed * 20.0 + uTime * 0.4) * life * 1.2, life * 3.5, cos(seed * 13.0 + uTime * 0.3) * life * 1.2);
+        float r = aInfo.x, sd = aInfo.y, kind = aInfo.z;
+        vec2 out2 = vec2(cos(aInfo.w), sin(aInfo.w));
+        vec3 c = aCentre;
+        float s; vA = 1.0; vMist = 0.0;
+        if (kind > 1.5) {
+          // spray: a chunk thrown up off the churn, shrinking away as it rises and drifts out, then again at the foot
+          float life = fract(uTime * 0.35 + sd);
+          c += vec3(out2.x * life * 0.8, sin(life * 2.2) * 1.2, out2.y * life * 0.8);
+          s = r * (1.0 - life);
+          vA = 0.9; vMist = 1.0;
+        } else {
+          // foam: each ball boils up from nothing, drifts a little outward and sinks back
+          float life = fract(uTime * (kind > 0.5 ? 0.9 : 0.62) + sd);
+          c += vec3(out2.x, 0.0, out2.y) * life * (kind > 0.5 ? 0.25 : 0.55);
+          c.y += 0.12 * sin(life * 3.14159) * r;
+          s = r * (0.12 + 0.95 * sin(life * 3.14159));
+        }
+        vec3 transformed = c + position * s;
         vec4 mvPosition = modelViewMatrix * vec4(transformed, 1.0);
+        vW = (modelMatrix * vec4(transformed, 1.0)).xyz;
         gl_Position = projectionMatrix * mvPosition;
-        gl_PointSize = (1.6 + life * 2.6) * 120.0 / max(1.0, -mvPosition.z);
-        vA = sin(life * 3.14159) * 0.22;
         #include <fog_vertex>
       }`, /* glsl */`
       #include <common>
       #include <fog_pars_fragment>
-      varying float vA;
+      varying vec3 vW; varying float vA; varying float vMist;
       void main() {
-        vec2 c = gl_PointCoord - 0.5;
-        float a = smoothstep(0.5, 0.1, length(c)) * vA;
-        gl_FragColor = vec4(vec3(0.92, 0.96, 1.0) * (0.4 + 0.7 * fogSunColor), a);
+        vec3 fn = normalize(cross(dFdx(vW), dFdy(vW)));
+        float ndl = dot(fn, fogSunDir);
+        // two toon bands: sunlit white, a pale-blue shade; the spray is paler
+        vec3 col = ndl > 0.15 ? vec3(0.98, 1.0, 1.0) : vec3(0.64, 0.84, 0.93);
+        col = mix(col, vec3(1.0), vMist * 0.7);
+        gl_FragColor = vec4(col * (0.35 + 0.75 * fogSunColor), vA);
         #include <fog_fragment>
-      }`);
-    const pts = new THREE.Points(g, mat);
-    pts.frustumCulled = false;
-    pts.renderOrder = 7;
-    return pts;
+      }`, {}, THREE.FrontSide);
+    const mesh = new THREE.Mesh(g, mat);
+    mesh.name = 'waterfall-puffs';
+    mesh.renderOrder = 7;
+    return mesh;
   }
+}
+
+/** the toon cascade, or the W5 curtain with `?waterfall=v1` (the taste rule: the old look stays switchable) */
+export function waterfallFor(spec: WaterfallSpec): WaterfallLike {
+  const v1 = typeof location !== 'undefined' && new URLSearchParams(location.search).get('waterfall') === 'v1';
+  return v1 ? new WaterfallV1(spec) : new Waterfall(spec);
 }

@@ -37,6 +37,7 @@ when the images were generated.
 | `rocks/` | `round-1-directions` (09-24) | E114 rock looks: `board.jpg` (NOW / A chiselled / B smooth painted / C layered slabs / D ink outline, mockup only), `mockup-{A..D}` (masked Qwen edits of `ref-live-reef`), `game-{reef,wreck,boulder}-{current,a,b,c}` (`?rocks=`), `boulder-crack-fix-before-after` — see its README |
 | `rocks/` | `round-2-b-final` (09-25) | E114 B (smooth painted) built and made the default: `board.jpg` (before `?rocks=now` / after, iPhone 3× captures: wreck reef, shore, spawn beach, tidepools, Explore Boulder), `{before,after}-*.jpg`, `mockup-vs-after-reef.jpg` — see its README |
 | `rocks/` | `round-3-blender-island` (09-25) | E114 the Blender spawn island's boulders + small rocks in B (crags stay): `board.jpg` (before / after / `?rocks=now`, 3 iPhone cameras), `{before,after,rocks-now}-{spawn,cluster,slope}.jpg` — see its README |
+| `driftwood-isle/` | `round-13-waterfall` (09-25) | E150 toon waterfall (audit T5): `board.jpg` (before `?waterfall=v1` / after, the audit camera + a close one, iPhone 3×), `{before,after}-{audit,close}.jpg`, `waterfall-before-after.mp4` (3 s, fixed camera) — see its README |
 
 The rest of this file is the prompt log for `pine-hollow/round-1-target-look` and the first two HUD rounds.
 
