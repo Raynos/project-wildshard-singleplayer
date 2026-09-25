@@ -580,6 +580,26 @@ mesh is flat-bodied from the side (a top-down ref); the woodpecker perches with 
 weapons' own depth clears (Crossbow / LeverRifle / Hands) may wash depth-read haze the same way the knife's did (seen
 only on the kneel; unverified in play).
 
+### Render fix (2026-09-24, `1305f2d`)
+
+**Cause:** every viewmodel's clearer (renderOrder 999: crossbow, lever-action, longbow, sword, hands, hoverboard, knife)
+clears the depth mid-scene; postprocessing blits the scene target's depth into its stable depth *after* the scene pass,
+so every depth reader saw the weapon alone, the world at the far plane. Pine Hollow desktop: n8ao shaded only the weapon,
+the volumetric march ran 120 m of fog through every wall unshadowed, the god rays' sun shone through rock; phone: the
+march + god rays the same (no AO on the phone). Driftwood: the desktop AO + the faint god rays' mask. Nalati: its look-v2
+chain reads no depth, unaffected. Only while a weapon is out (the menu hides it), i.e. all play.
+**Fix:** `WorldRenderPass` (src/core/worldDepth.ts, Game.ts): the pass's first depth clear blits the world's depth into
+the stable target first; after the pass the viewmodel's depth is merged over it (one full-screen depth-only draw, LESS).
+Weapon pixels, draw order and grade identical (crops match; the world outside the weapon matches a weapon-hidden frame to
+the frame noise). `?aofix=0` = the old pass. The crags lane's cave march fade now applies only under `?aofix=0` (the march
+stops at the rock); the sun-disc hide stays (the corona has no depth test). Volumetrics.ts untouched.
+**Look change** (desktop AO now shades the world; the haze clears to what the fog tuning meant): board
+`art/pine-hollow/round-16-render-fix/board.jpg` (A fixed / B today; cabin, old-growth, cave desktop + phone, Driftwood,
+Nalati) — **waits on Jake**. **Perf** (clean export, same-run A/B): calls +1 (phone ≤ 157, desktop ≤ 272 at the ruler's
+poses); phone 30 lock 91.7–100 % (A) vs 94–100 % (B), work p95 18.7–29.9 vs 25.4–29.3 ms — noise; desktop frame p50
+16.6–20.2 (A) vs 16.6–22.0 ms (B); programs 105/106 phone, 113 desktop in both (the merge program is precompiled with the
+post chain). `progress/pine-hollow-{perf,fps}-renderfix*.json` are in the scratch export, not committed.
+
 ### S: ship (graduation)
 
 | # | Row |
