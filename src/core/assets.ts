@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
-import { fetchImage } from '../boot/bytes';
+import { fetchImage, tierUrl } from '../boot/bytes';
+import { initKtx2, ktx2Layers, ktx2Texture } from './ktx2';
 import { TIER_CONFIG } from './tier';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 
@@ -12,7 +13,7 @@ export interface PBRSet { map: THREE.Texture; normalMap: THREE.Texture; armMap: 
 
 let maxAniso = 8;
 let gpu: THREE.WebGLRenderer | null = null;
-export function setAnisotropy(renderer: THREE.WebGLRenderer): void { gpu = renderer; maxAniso = Math.min(16, renderer.capabilities.getMaxAnisotropy()); }
+export function setAnisotropy(renderer: THREE.WebGLRenderer): void { gpu = renderer; maxAniso = Math.min(16, renderer.capabilities.getMaxAnisotropy()); initKtx2(renderer); }
 
 /**
  * Decoded images, one per URL: the same file asked for twice (rock_ground: terrain slab and cabin
@@ -28,6 +29,15 @@ export function loadImage(url: string, maxSize = TIER_CONFIG.maxTexture): Promis
 }
 
 export async function loadTexture(url: string, srgb = false, repeat = 1): Promise<THREE.Texture> {
+  const k = await ktx2Texture(tierUrl(url), TIER_CONFIG.maxTexture); // E157: the KTX2 stand-in, when the build has one and KTX2 is on (src/core/ktx2.ts)
+  if (k) {
+    k.wrapS = k.wrapT = THREE.RepeatWrapping;
+    k.repeat.set(repeat, repeat);
+    k.anisotropy = maxAniso;
+    k.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+    k.needsUpdate = true;
+    return k;
+  }
   const image = await loadImage(url);
   const t = new THREE.Texture(image);
   t.flipY = !(typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap); // bitmaps are flipped at decode
@@ -87,7 +97,7 @@ export function loadHDR(url: string): Promise<THREE.DataTexture> {
  * were most of the phone's terrain step. The array is allocated empty (`dataReady = false`) and
  * mipmapped once after the last layer. Without a renderer (dev harnesses) the canvas path remains.
  */
-export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize): Promise<{ map: THREE.DataArrayTexture; normalMap: THREE.DataArrayTexture; armMap: THREE.DataArrayTexture }> {
+export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize): Promise<{ map: THREE.DataArrayTexture | THREE.CompressedArrayTexture; normalMap: THREE.DataArrayTexture | THREE.CompressedArrayTexture; armMap: THREE.DataArrayTexture | THREE.CompressedArrayTexture }> {
   const kinds = ['diffuse', 'nor_gl', 'arm'] as const;
   // decoded straight to the layer size (no flip: the layer keeps the file's orientation either way)
   const load = (url: string) => fetchImage(url, size, false, true); // exact: the phone's half-res ARM planes scale up off-thread
@@ -138,7 +148,20 @@ export async function loadPBRArray(ids: string[], size = TIER_CONFIG.layerSize):
     }
     return finish(new THREE.DataArrayTexture(data, size, size, ids.length), srgb);
   };
-  const build = (kind: (typeof kinds)[number], srgb: boolean) => (gpu && !new URLSearchParams(location.search).has('cpuarray') ? buildGPU(kind, srgb, gpu) : buildCPU(kind, srgb));
+  // E157: the layers' KTX2 stand-ins, their mips concatenated into one compressed array (no decode, no upload copies)
+  const buildKtx2 = async (kind: (typeof kinds)[number], srgb: boolean): Promise<THREE.CompressedArrayTexture | null> => {
+    const k = await ktx2Layers(ids.map((id) => tierUrl(texUrl(id, kind))), size);
+    if (!k) return null;
+    const t = new THREE.CompressedArrayTexture(k.mipmaps, k.n, k.n, ids.length, k.format);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter;
+    t.generateMipmaps = false; t.anisotropy = maxAniso; t.flipY = false;
+    t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+    t.needsUpdate = true;
+    return t;
+  };
+  const build = async (kind: (typeof kinds)[number], srgb: boolean): Promise<THREE.DataArrayTexture | THREE.CompressedArrayTexture> =>
+    (await buildKtx2(kind, srgb)) ?? (gpu && !new URLSearchParams(location.search).has('cpuarray') ? buildGPU(kind, srgb, gpu) : buildCPU(kind, srgb));
   const [map, normalMap, armMap] = await Promise.all([build('diffuse', true), build('nor_gl', false), build('arm', false)]);
   return { map, normalMap, armMap };
 }

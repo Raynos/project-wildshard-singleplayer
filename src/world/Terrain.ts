@@ -491,7 +491,7 @@ export class Terrain {
     return geo;
   }
 
-  private buildMaterial(layers: { map: THREE.DataArrayTexture; normalMap: THREE.DataArrayTexture; armMap: THREE.DataArrayTexture }) {
+  private buildMaterial(layers: { map: THREE.Texture; normalMap: THREE.Texture; armMap: THREE.Texture }) { // texture arrays: DataArrayTexture, or CompressedArrayTexture from KTX2 (E157)
     // a dummy 1×1 normal map keeps three's USE_NORMALMAP path (tbn) alive; the real layers are the arrays
     const dummy = new THREE.DataTexture(new Uint8Array([128, 128, 255, 255]), 1, 1); dummy.needsUpdate = true;
     const mat = new THREE.MeshStandardMaterial({ normalMap: dummy, metalness: 0, roughness: 1, normalScale: new THREE.Vector2(1, 1) });

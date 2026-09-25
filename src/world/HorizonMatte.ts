@@ -24,6 +24,7 @@
  *   photoreal strips are drawn at infinity by PaintedHorizon (below), not by this class. Always on — the user locked it in (E78); the `?matte=0` switch is gone (E136).
  */
 import * as THREE from 'three';
+import { ktx2Texture } from '../core/ktx2';
 import type { Sky } from './Sky';
 import { MIDDAY_SKY } from './StylizedSky';
 import { fogUniforms } from './Atmosphere';
@@ -189,12 +190,14 @@ function placeholder(): THREE.Texture {
 }
 
 async function loadTexture(url: string): Promise<THREE.Texture> {
-  const t = await new THREE.TextureLoader().loadAsync(url);
+  // E157: the KTX2 stand-in when there is one (Y-flipped at encode like TextureLoader's flipY; its mips come with the file)
+  const k = await ktx2Texture(url);
+  const t = k ?? await new THREE.TextureLoader().loadAsync(url);
   t.colorSpace = THREE.SRGBColorSpace;
   t.wrapS = THREE.RepeatWrapping;           // the strip is seamless at the 0 / 360° wrap
   t.wrapT = THREE.ClampToEdgeWrapping;
   t.anisotropy = 4;
-  t.generateMipmaps = true;
+  t.generateMipmaps = k === null;
   t.needsUpdate = true;
   return t;
 }

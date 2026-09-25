@@ -12,5 +12,7 @@ public/assets/packs/
 .review/
 # Rapier WASM: copied from node_modules by every build (vite/rapier.ts)
 public/assets/physics/
+# the Basis Universal transcoder for KTX2 textures: copied from three by every build (vite/basis.ts, E157)
+public/basis/
 # Python bytecode from the pipeline scripts (scripts/horizon-matte/config.py, fit-lut.py loading palette-delta.py)
 __pycache__/

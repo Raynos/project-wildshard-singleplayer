@@ -119,6 +119,10 @@ export const OPTION_VALUES = {
   // E158: download the other shards' files in the background once this one is playable (src/boot/shardPrefetch.ts) — the
   // debug menu only (no URL switch); the bench scripts turn it off through the saved settings
   prefetch: ['on', 'off'],
+  // E157: the textures — GPU-compressed KTX2 (ASTC / BC7, src/boot/gpuFiles.ts) or the JPEG / WebP images; 'auto' = TEX_DEFAULT.
+  // A load-time pick (pause ▸ Settings ▸ Debug saves and reloads); no URL switch (Jake: never) — the A/B scripts set it in
+  // the saved settings
+  tex: ['auto', 'ktx2', 'img'],
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -137,6 +141,7 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly 
   coverBlend: { def: 'on', params: [], url: () => null }, coverFar: { def: 'on', params: [], url: () => null },
   coverRange: { def: 'normal', params: [], url: () => null },
   prefetch: { def: 'on', params: [], url: () => null },
+  tex: { def: 'auto', params: [], url: () => null },
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => new Choice<OptionValue<K>>(k, OPTION_VALUES[k], OPTION_SPECS[k].def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
@@ -144,6 +149,7 @@ const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   pinesky: option('pinesky'), weather: option('weather'), fps: option('fps'),
   coverTint: option('coverTint'), coverReach: option('coverReach'), coverBlend: option('coverBlend'), coverFar: option('coverFar'), coverRange: option('coverRange'),
   prefetch: option('prefetch'),
+  tex: option('tex'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 

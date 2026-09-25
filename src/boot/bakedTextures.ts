@@ -14,7 +14,8 @@
  */
 import * as THREE from 'three';
 import { PUBLIC_BYTES } from './bytes.generated';
-import { fetchImage } from './bytes';
+import { fetchImage, tierUrl } from './bytes';
+import { ktx2Texture } from '../core/ktx2';
 import { getActiveChunk } from '../chunks/registry';
 
 const params = typeof location !== 'undefined' ? new URLSearchParams(location.search) : new URLSearchParams();
@@ -23,7 +24,7 @@ const NOBAKE = params.has('nobake');
 
 export interface BakeSpec { name: string; url: string; lossless: boolean; srgb: boolean }
 const exported = new Map<string, { texture: THREE.Texture; lossless: boolean }>();
-const loaded = new Map<string, ImageBitmap | HTMLImageElement>();
+const loaded = new Map<string, ImageBitmap | HTMLImageElement | THREE.CompressedTexture>();
 if (typeof window !== 'undefined') Object.defineProperty(window, '__bakeExport', { get: () => exportAll() });
 
 const dir = (slug: string) => `/assets/baked/${slug}/tex/`;
@@ -54,7 +55,8 @@ export async function preloadBakedTextures(): Promise<number> {
   const slug = getActiveChunk().slug;
   const urls = bakedTextureUrls(slug);
   await Promise.all(urls.map(async (u) => {
-    try { loaded.set(u, await fetchImage(u, Infinity, true)); }
+    // E157: the KTX2 stand-in when there is one (Y-flipped at encode, like fetchImage's bitmap)
+    try { loaded.set(u, (await ktx2Texture(tierUrl(u))) ?? await fetchImage(u, Infinity, true)); }
     catch (e) { console.warn(`[baked] ${u}: ${(e as Error).message}`); }
   }));
   return urls.length;
@@ -68,6 +70,11 @@ export function bakedTexture(name: string, make: () => THREE.Texture, opts: { lo
   const slug = getActiveChunk().slug;
   const url = NOBAKE ? null : urlFor(slug, name);
   const image = url ? loaded.get(url) : undefined;
+  if (image instanceof THREE.CompressedTexture) { // mips come with the file; callers set wrap / filters / colorSpace as for an image
+    const t = image.clone();
+    t.needsUpdate = true;
+    return t;
+  }
   if (image) {
     // settings come from the procedural template: build it cheaply? No — `make` is the expensive part.
     // Callers set filters/wrap/colorSpace on the returned texture themselves (see the call sites).

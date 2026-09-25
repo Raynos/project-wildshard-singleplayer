@@ -5,7 +5,7 @@
  * shards that build none (see the end of chunkFiles).
  */
 import type { ChunkDef } from '../chunks/ChunkDef';
-import { tierUrl, type ChunkFiles } from './bytes';
+import { gpuLayerUrl, gpuUrl, tierUrl, type ChunkFiles } from './bytes';
 import { pbrUrls } from '../core/assets';
 import { bakedTerrainUrl } from '../world/BakedTerrain';
 import { bakedCardUrls } from '../world/BakedCards';
@@ -48,11 +48,12 @@ const painterlyBoot = (): string[] => [
 
 export function chunkFiles(def: ChunkDef): ChunkFiles {
   const baked = bakedTerrainUrl(def.slug); // scripts/bake-chunk.mjs output, when the build has one
-  const terrain = uniq([...(baked ? [baked] : []), ...[...groundSet(def).layers, def.assets.slabRock].flatMap(pbr)]);
+  // the splat layers are a texture array (loadPBRArray: KTX2 twins baked unflipped, gpuLayerUrl); the slab's rock a plain set
+  const terrain = uniq([...(baked ? [baked] : []), ...groundSet(def).layers.flatMap(pbr).map(gpuLayerUrl), ...pbr(def.assets.slabRock)]);
   const cards = bakedCardUrls(def.slug); // scripts/bake-cards.mjs output, when the build has it
   const set = treeSetOf(def.trees, (u) => u in PUBLIC_BYTES); // PH-B4: the Blender species set (?trees=v1: the runtime pines)
   const trees = set
-    ? uniq([...treeSetFiles(set), ...BARK_LAYERS.flatMap(pbr)])
+    ? uniq([...treeSetFiles(set), ...BARK_LAYERS.flatMap(pbr).map(gpuLayerUrl)])
     : uniq([...(cards ? Object.values(cards) : []), ...pbr(def.trees.bark), `/assets/tex/${def.trees.twigAtlas}/twig_rgba.png`, `/assets/tex/${def.trees.twigAtlas}/twig_nor_gl.jpg`, `/assets/tex/${def.trees.twigAtlas}/twig_arm.jpg`]);
   const cabins = uniq([
     ...['wood_trunk_wall', 'wood_planks_grey', 'wood_planks_dirt', 'rough_pine_door', 'stone_wall'].flatMap(pbr),
@@ -71,8 +72,9 @@ export function chunkFiles(def: ChunkDef): ChunkFiles {
   // one (trees.factory 'none' or the painted 'spruce') no tree textures, an open-water one (ocean) builds no cabins or props
   // a painterly one (Nalati) paints its ground and builds no cabins or props either
   const lowpoly = def.style === 'lowpoly' || def.style === 'painterly', treeless = def.trees.factory !== 'pine', ocean = def.ocean !== undefined || def.style === 'painterly';
-  // the phone tier's .phone.webp / .phone.glb copies (fetchImage and three's loaders fetch through the same map)
-  const t = (xs: string[]) => xs.map(tierUrl);
+  // the phone tier's .phone.webp / .phone.glb copies (fetchImage and three's loaders fetch through the same map), and the
+  // KTX2 stand-ins when textures ride as KTX2 (E157, src/boot/gpuFiles.ts) — only the default path's files are declared
+  const t = (xs: string[]) => xs.map(gpuUrl);
   const nav = navmeshUrl(def.slug); // scripts/bake-navmesh.mjs output, when the build has one
   return {
     sky: t(sky),

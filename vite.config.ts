@@ -6,6 +6,7 @@ import type { ServerResponse } from 'node:http';
 import { pwaPlugin } from './vite/pwa-plugin';
 import { contentNamed, hashTree } from './vite/assetHashes';
 import { copyRapierWasm, rapierAlias, rapierPreviewPlugin } from './vite/rapier';
+import { copyBasisTranscoder } from './vite/basis';
 
 // Build stamp: short git sha + build time. Baked into the bundle as __BUILD_ID__ and
 // emitted as /version.json so the running app can tell when the server has a newer build
@@ -49,6 +50,7 @@ function bakeChunks() {
 }
 bakeChunks();
 copyRapierWasm(); // public/assets/physics/rapier.wasm, before the byte table below lists it
+copyBasisTranscoder(); // public/basis/r<three>/: KTX2's transcoder (E157, src/core/ktx2.ts)
 
 // src/boot/bytes.generated.ts: the same table as a committed TS module, so the boot plan's declared
 // denominators need no fetch and `pnpm tsc` fails when a file a chunk declares disappears.

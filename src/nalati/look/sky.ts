@@ -24,6 +24,7 @@
  */
 import * as THREE from 'three';
 import { fetchImage } from '../../boot/bytes';
+import { ktx2Texture, readTexturePixels } from '../../core/ktx2';
 import { nalatiUrl } from '../../world/nalatiTextures';
 import { V2_GRADE_GLSL, gradeUniforms } from './grade';
 import { V2_TINT_GLSL, tintUniforms } from './tint';
@@ -161,6 +162,8 @@ export class SkyDomeV2 {
 
   /** fetch the tier's strip and build the dome (null when the file is missing) */
   static async load(renderer: THREE.WebGLRenderer, fogLut: THREE.Texture): Promise<SkyDomeV2 | null> {
+    const k = await SkyDomeV2.loadKtx2(renderer, fogLut);
+    if (k) return k;
     let image: ImageBitmap | HTMLImageElement;
     try { image = await fetchImage(nalatiUrl('panorama'), Infinity, true); } catch { return null; }
     const tex = new THREE.Texture(image);
@@ -189,5 +192,30 @@ export class SkyDomeV2 {
       }
     } catch { /* keep the default */ }
     return new SkyDomeV2(tex, image.width, fogLut, zenith);
+  }
+
+  /**
+   * E157: the panorama's KTX2 stand-in (Y-flipped at encode, like the bitmap above), or null. A compressed texture has no
+   * pixels to draw on a canvas, so the zenith's top rows are read back through the GPU (the same 64×12 average).
+   */
+  private static async loadKtx2(renderer: THREE.WebGLRenderer, fogLut: THREE.Texture): Promise<SkyDomeV2 | null> {
+    let tex: THREE.CompressedTexture | null;
+    try { tex = await ktx2Texture(nalatiUrl('panorama')); } catch { return null; }
+    if (!tex) return null;
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.ClampToEdgeWrapping;
+    tex.minFilter = THREE.LinearMipmapLinearFilter; tex.magFilter = THREE.LinearFilter;
+    tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    tex.name = 'nalati-panorama';
+    tex.needsUpdate = true;
+    const zenith = new THREE.Color(0.1, 0.25, 0.62);
+    try {
+      const rows = readTexturePixels(renderer, tex, 64, 12).subarray(0, 64 * 2 * 4); // the painting's top two rows
+      let r = 0, g = 0, b = 0;
+      for (let i = 0; i < rows.length; i += 4) { r += rows[i] ?? 0; g += rows[i + 1] ?? 0; b += rows[i + 2] ?? 0; }
+      const n = rows.length / 4;
+      zenith.setRGB(r / n / 255, g / n / 255, b / n / 255, THREE.SRGBColorSpace);
+    } catch { /* keep the default */ }
+    return new SkyDomeV2(tex, tex.image.width, fogLut, zenith);
   }
 }

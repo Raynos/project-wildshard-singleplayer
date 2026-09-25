@@ -25,6 +25,7 @@
  * palms and the reachable crag rocks add theirs. `palmSpecs` gains the new palms (the monkeys climb them).
  */
 import * as THREE from 'three';
+import { ktx2Texture } from '../core/ktx2';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.module.js';
@@ -223,7 +224,11 @@ export class BlenderIsland {
     const phone = TIER === 'phone';
     const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
     const tex = new THREE.TextureLoader();
-    const lm = (name: string) => load<THREE.Texture>((ok, bad) => { tex.load(`${BASE}${name}${phone ? '.phone' : ''}.webp`, ok, undefined, bad); });
+    // E157: the lightmaps' KTX2 stand-ins when there are some (baked unflipped: these load flipY = false, below)
+    const lm = async (name: string): Promise<THREE.Texture> => {
+      const url = `${BASE}${name}${phone ? '.phone' : ''}.webp`;
+      return (await ktx2Texture(url)) ?? load<THREE.Texture>((ok, bad) => { tex.load(url, ok, undefined, bad); });
+    };
     const [gltf, meta, place, ao, bounce] = await Promise.all([
       load<{ scene: THREE.Group }>((ok, bad) => { loader.load(`${BASE}island.glb`, ok, undefined, bad); }),
       fetch(`${BASE}island.json`).then((r) => r.json() as Promise<IslandMeta>),
