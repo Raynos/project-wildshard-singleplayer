@@ -266,3 +266,11 @@ Not codex images. Ten existing codex mockups were remade on this Mac with **Qwen
 one take per image. Qwen keeps the layout and large UI text, but garbles small text, greys Driftwood's toon palette and
 re-composes the camera when given several references. Codex holds the frame closer. Qwen's licence is research-only,
 so nothing it made may ship. Verdicts per image are in the round's `README.md`.
+
+### Branded RESUMING screen (`art/resume/round-1-branded/`, 2026-09-24, E99)
+
+Live captures of the app-switch resume screen in the game at iPhone 16 Pro size, not codex images. The screen is taken
+through the real hide → show path. `board.jpg` sets the three looks side by side: **A** title art (the shard's title
+screen with the wordmark), **B** glass card over the blurred paused game, **C** a navy plate with the shard mark.
+`a-title.jpg`, `b-glass.jpg` and `c-plate.jpg` are the single frames. Jake picked **A**. `picked-a-per-shard.jpg` and
+`picked-a-three-shards.jpg` show A on Driftwood Isle, Pine Hollow and Nalati Grasslands.
