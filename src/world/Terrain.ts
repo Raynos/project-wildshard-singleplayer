@@ -88,15 +88,17 @@ const BOREAL_MAP = /* glsl */`
           vec2 tuv = vWPos.xz;
           vec4 w = vSplat;
           w = pow(max(w, vec4(0.0)), vec4(2.2)); w /= max(w.x + w.y + w.z + w.w, 1e-5); // guarded (E67)
-          // the trails' edges broken by the litter (a ragged, trodden verge instead of a clean 11 m gravel band)
-          {
+          // the trails' edges broken by the litter (a ragged, trodden verge instead of a clean 11 m gravel band). E142 (the
+          // 30-fps-at-2× lane): each noise below is evaluated only where its layer is present — the same result (a weight of 0
+          // zeroes the term), −0.03…−0.06 ms on the M5 at 1206×2622
+          if (w.w > 0.0) {
             float erode = vnoise(tuv * 0.35) * 0.6 + vnoise(ROT_F * tuv * 1.3 + 4.0) * 0.4;
             float wt = w.w * smoothstep(0.1, 0.6, w.w + (erode - 0.5) * 0.7);
             w.x += w.w - wt; w.w = wt;
           }
           float kFar = smoothstep(18.0, 70.0, camDist);
           vec2 gx = dFdx(tuv), gy = dFdy(tuv);
-          float tb = smoothstep(0.3, 0.7, vnoise(tuv * 0.11));
+          float tb = kFar < 0.999 ? smoothstep(0.3, 0.7, vnoise(tuv * 0.11)) : 0.0; // sampleB reads it only below kFar 0.999
           vec4 alb = vec4(0.0);
           vec3 nrm = vec3(0.0);
           vec3 arm = vec3(0.0);
@@ -115,18 +117,18 @@ const BOREAL_MAP = /* glsl */`
           float cano = smoothstep(0.05, 0.8, vCanopy);
           alb.rgb *= mix(vec3(1.0), vec3(1.05, 0.93, 0.8), w.x * cano);
           // the open floor between the crowns: dry grass and cowberry grown through the litter, in drifts
-          float openN = smoothstep(0.25, 0.75, vnoise(ROT_F * tuv * 0.05 + 11.0) * 0.7 + vnoise(tuv * 0.23) * 0.3);
-          float open = w.x * (1.0 - cano) * mix(0.35, 0.8, openN);
+          float openW = w.x * (1.0 - cano);
+          float open = openW > 0.0 ? openW * mix(0.35, 0.8, smoothstep(0.25, 0.75, vnoise(ROT_F * tuv * 0.05 + 11.0) * 0.7 + vnoise(tuv * 0.23) * 0.3)) : 0.0;
           if (open > 0.004) {
             vec3 gr = sampleS(tDiff, 1, ROT_M * tuv + 5.3, kFar, ROT_M * gx, ROT_M * gy).rgb * vec3(0.62, 0.68, 0.44);
             alb.rgb = mix(alb.rgb, gr, open);
           }
           // heath: bilberry / heather mats on the open floor and the grass (darker olive, ~1.5 m patches), none on trails / rock
-          float heath = smoothstep(0.44, 0.72, vnoise(ROT_B * tuv * 0.62 + 2.0) * 0.7 + vnoise(tuv * 1.9) * 0.3) * (w.x + w.y) * (1.0 - 0.6 * cano);
+          float heathW = (w.x + w.y) * (1.0 - 0.6 * cano);
+          float heath = heathW > 0.0 ? smoothstep(0.44, 0.72, vnoise(ROT_B * tuv * 0.62 + 2.0) * 0.7 + vnoise(tuv * 1.9) * 0.3) * heathW : 0.0;
           alb.rgb = mix(alb.rgb, alb.rgb * vec3(0.52, 0.62, 0.36), heath * 0.85);
           // feather moss: patches over the litter, thickest in the shade
-          float mossN = vnoise(tuv * 0.07) * 0.65 + vnoise(ROT_M * tuv * 0.29 + 3.1) * 0.35;
-          float moss = w.x * smoothstep(0.45, 0.68, mossN) * (0.3 + 0.7 * cano);
+          float moss = w.x > 0.0 ? w.x * smoothstep(0.45, 0.68, vnoise(tuv * 0.07) * 0.65 + vnoise(ROT_M * tuv * 0.29 + 3.1) * 0.35) * (0.3 + 0.7 * cano) : 0.0;
           if (moss > 0.004) {
             vec3 g = fetchG(tDiff, 1, ROT_M, 0.37, vec2(0.21), tuv, gx, gy).rgb;
             float gl = dot(g, vec3(0.299, 0.587, 0.114));
