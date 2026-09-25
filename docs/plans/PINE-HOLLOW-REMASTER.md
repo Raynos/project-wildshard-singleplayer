@@ -340,8 +340,8 @@ clearing 126 / 1.55 M.
 | # | Row | Gate |
 |---|---|---|
 | PH-P1 | **The 30 fps tier** (PH-U18): Pine Hollow's phone frame cap locked at 30 (no 30↔60 judder); the phone budget re-derived from Jake's iPhone at 30 (headless proxy: calls / tris logged per pose, target set after PH-0.5) | steady 30 on the iPhone at every pose — **built `bea1910`** (headless: 100 % of drawn frames at 33.3 ms at all 6 poses, 4× CPU work p95 12.6–14.7 ms; the budget below). **Jake's iPhone reading is next** (Low Power off; `?fps=60` for the uncapped comparison) |
-| PH-P2 | **Desktop draws** (E4b): 880–990 → ≤ 300 (merge the cabin detail, BatchedMesh for props, undergrowth by cell) | ≤ 300, 60 fps — **in progress**: 1 059–1 070 → 224–490 (`925f0cf`, `0bf74dc`, `fcb1f66`); ≤ 300 at the pond, shore and hamlet; the gate 358, lookout 376 and cabin 490 wait on the levers under "Left" |
-| PH-P3 | **Load**: ≤ 30 MB cold; KTX2 / Basis for the photoreal sets; a Pine Hollow `SHARD_STEPS` with honest nouns | `bench:ci` with Pine Hollow's own budget |
+| PH-P2 | **Desktop draws** (E4b): 880–990 → ≤ 300 (merge the cabin detail, BatchedMesh for props, undergrowth by cell) | ≤ 300, 60 fps — **built** (`925f0cf`, `0bf74dc`, `fcb1f66`; PERF-2 `f28b92f`): 1 059–1 070 → **170–268** at the 8 poses (tod = day), **≤ 298 at every clock phase and the fixed sunset**, 60 fps (16.4–16.8 ms p50 headless); phone 92–153. See "P as built: PERF-2" |
+| PH-P3 | **Load**: ≤ 30 MB cold; KTX2 / Basis for the photoreal sets; a Pine Hollow `SHARD_STEPS` with honest nouns | `bench:ci` with Pine Hollow's own budget — **built** (`d7c5095`, `d7bdf21`): phone cold 30.27 MB (all seven sky keys now at the bar: the day runs offline), Pine Hollow's rows in `bench.budget.json` all PASS; KTX2 measured and **not adopted** (every group grows at today's quality). See "P as built: PERF-2" |
 | PH-P4 | **Physics**: creature physics LOD, navmesh re-baked for layout v2, `physics-baseline --mode=walk / --trails` 0 stuck, the zipline + cave colliders | ≤ 1.5 ms p50 |
 | PH-P5 | **WebGPU** (V-G2): Pine Hollow on the TSL path; parity at the 9 cameras | mean \|Δ\| under 6/255; WebGL stays default |
 
@@ -404,22 +404,108 @@ forest 3+3, props 3+3, undergrowth 5, water 4, particles 3, terrain 2 and grass 
 
 The old 60 fps line (≤ 150 calls, iPhone ≤ 18 ms) is retired for Pine Hollow.
 
-**Left (desktop ≤ 300 at gate / cabin / lookout).**
-- **Cabin.ts (the assets lane's).** The cabin pose draws 83 main + 76 shadow cabin calls. Merge each cabin's detail
+**Left (desktop ≤ 300 at gate / cabin / lookout).** ~~Cabin.ts, far animals, per-cascade culling~~ — built by PERF-2
+(below); the n8ao AO look stays Jake's call (PERF-2 only skipped the pre-pass that could not change a pixel).
+- ~~**Cabin.ts (the assets lane's).**~~ The cabin pose draws 83 main + 76 shadow cabin calls. Merge each cabin's detail
   (hardware / lantern / fire pit / crates / glass) per material. The near cabin's 20+ detail meshes and the props'
   per-cabin InstancedMeshes could share one `BatchedMesh`, and the detail casters could go into the depth proxy (desktop
   `cabinDetailShadows`). Worth about −100 at the cabin and −40 at the lookout. Import `SHADOW_LAYER` from
   `src/core/shadowLayer.ts` in place of Cabin.ts's own `9`.
-- **Far animals** are ~100 one-draw rigs at 150–400 m: 130 draws at the gate, 119 at the lookout. Hiding past 250 m is
+- ~~**Far animals**~~ are ~100 one-draw rigs at 150–400 m: 130 draws at the gate, 119 at the lookout. Hiding past 250 m is
   inside the noise at the gate, cabin and mid poses, but moved a speck at the lookout vista, so it is a look change and
   Jake's call. The structural fix is a far-animal impostor batch: one draw.
-- **Per-cascade shadow culling.** Near casters are drawn into all 3 cascades (cabin pose: 46 / 65 / 68 per cascade).
+- ~~**Per-cascade shadow culling.**~~ Near casters are drawn into all 3 cascades (cabin pose: 46 / 65 / 68 per cascade).
   Skipping a small caster in a cascade its shadow cannot reach is worth −30 to −40 at the cabin.
 - **n8ao gives the world almost no AO.** In its AO-only view only the crossbow is shaded, because its transparency mask
   cancels the AO wherever nothing transparent is drawn. Its two extra scene renders cost ~40 desktop draws for that.
   Turning `transparencyAware` off would give the world AO (a look change, Jake's call) and save those draws.
 - **The post chain** (37 on desktop, 21 on the phone) and the viewmodel (13, drawn 26 on desktop through n8ao) are
   other lanes' and unchanged.
+
+### P as built: PERF-2 (2026-09-24, `f28b92f`, `d7c5095`, `d7bdf21`)
+
+**Rulers** as above, on clean `git archive` exports (before `3022f40`, after HEAD + these), one headless Chromium on
+Metal, muted. `progress/pine-hollow-drawcalls-p2-{before,after}.json`, `progress/pine-hollow-fps-p2-after.json`.
+
+| pose | desktop calls before → after (tod = day) | desktop tris | phone calls before → after |
+|---|---|---|---|
+| gate | 379 → **211** | 10.46 → 10.43 M | 120 → 105 |
+| cabin | 509 → **268** | 9.63 → 9.88 M | 167 → 153 |
+| pond | 292 → **175** | 5.99 → 5.69 M | 110 → 97 |
+| shore | 303 → **170** | 6.48 → 6.11 M | 110 → 100 |
+| hamlet | 295 → **195** | 7.27 → 7.25 M | 135 → 119 |
+| lookout | 418 → **237** | 8.50 → 8.60 M | 129 → 120 |
+| clearing | 302 → **171** | 9.41 → 9.19 M | 105 → 92 |
+| oldgrowth | 360 → **216** | 10.86 → 11.19 M | 111 → 100 |
+
+- **Every phase:** the worst pose (the cabin) is 267 golden, 268 day, 275 night, 278 sunrise, 284 dusk, 291 sunset on the
+  clock, and **298 on the fixed sunset** (variant B: the longest shadows). lookout-n 129. Desktop 16.4–16.8 ms p50 (headless,
+  vsync-pinned) at all 9 perf poses.
+- **Phone at 4× CPU** (`pine-hollow-fps.mjs`): 100 % of drawn frames at 33.3 ms at all 6 poses, work p95 12.4–19.4 ms (≤ 20).
+- **Programs:** Driftwood 93 / 101 and Pine Hollow's phone 98 are the same program sets (cache keys equal but for minified
+  names); Pine Hollow desktop 107 → 106 (a depth variant no caster uses now).
+
+**What was built.**
+- **The far herd** (`src/entities/farHerd.ts`). Animals drawn per model (a kind:variant, its own coat) in ONE SkinnedMesh
+  whose slots are copies of the model's geometry skinned on the animals' own bones (three's attached-bind skinning: the
+  same world-space vertices), the per-animal tint in the vertex colours, the rigs' own fur program. Desktop: past 150 m,
+  and Pine Hollow's hulls (one group, no shells, no draw LOD) at every distance. The slots stay packed; the rig's layers
+  go to 0 while batched, so what hangs on its bones (the King's kit, a stuck bolt) still draws. Culled by bearing (a far
+  animal's pond reflection sits at its own bearing). The static buffers live on the GPU only (`markGpuOnly`: a lost
+  context reloads).
+- **The shadow herd** (same file, both tiers): every casting animal's shadow in one draw per hull per cascade, on
+  SHADOW_LAYER with the model's fur (the rigs' own skinned depth program); its sphere follows its members.
+- **Per-cascade shadow culling** (`src/world/cascadeCull.ts`). Each cascade culls casters to its slice's footprint in the
+  light's view (the slice widened by CSM's fade band, the last cascade to the camera's far plane, + the PCF kernel and
+  the normal bias): a cascade keeps every caster any of its fragments can read, so every shadow texel read is the same.
+- **Cabin.ts** (a PERF-2 subagent): one depth proxy per cabin within the detail LOD (its detail meshes, fire pit and props'
+  depth, the double-sided glTF casters baked both ways), one per door; the props shared across the three cabins; the
+  three cabins' never-hidden per-material meshes merged (each cabin's part still culled on its own); `SHADOW_LAYER` from
+  `core/shadowLayer.ts`.
+- **n8ao's depth-free transparency pre-pass skipped** (`Game.ts`): its compositer takes max(that pass, (1 − the
+  depth-writing pass) × [no depth-writing transparent drew]) = 1 wherever no depth-writing transparent drew, so it only
+  ever mattered where a depth-free transparent crosses the viewmodel. `game.aoLeanTransparency = false` brings it back.
+- **The lever-action pickup**: one mesh per material + a one-draw shadow proxy (7 + 7 per cascade → 3 + 1).
+
+**Same-instant A/B** (scratch `ab.mjs`: time crawled to 0.01 ms a frame, the animals frozen, the grain off; A = on, B = off:
+per-animal rigs and shadows, no cascade cull, the n8ao pass back): 8 desktop poses with 6 animals staged 9–45 m in front,
+4 phone poses, day, golden (cull only) and rain (n8ao only): |A − B| at or under the A − A2 frame noise everywhere;
+`progress/pine-hollow-P2-01-ab-same-instant.jpg`. The 9-angle views (cabins + lever merged) against two baseline runs:
+inside the base-vs-base noise at all 45 frames. A bug the A/B caught on the way: batches keyed by geometry drew the
+variants that share a hull (white hind, pale elk …) in the first variant's coat — now keyed by model.
+
+**Load** (`bench-load.mjs --viewport=390x844 --query=chunk=pine-hollow&tier=phone`, 4× CPU):
+
+| | before (`3022f40`) | after |
+|---|---|---|
+| wifi cold, over the network | 29.54 MB, 155 requests | **30.27 MB**, 151 |
+| 4G cold, time to play | 31.0 s | 31.8 s |
+| wifi warm, time to play | 5.0 s | 6.0 s |
+| offline launch at night / dawn / dusk | `[pine sky] key night did not load` | every key from the pack |
+
+- Where the bytes went: +1.53 MB, the five sky keys PineDayNight fetched mid-play (E44); −0.69 MB, the procedural fur maps
+  the hulls never read (`?creatures=proc` draws them at runtime); −0.05 MB, the lantern GLBs' duplicate texture (−141 KB
+  on desktop, −5.6 MB of GPU memory).
+- Where they are (MB = the bench's MiB): the boot pack 14.4 (Poly Haven props ≈ 3.4, terrain splat 2.9, creature hulls
+  2.3, sky 2.1, hero props 1.4, …), **audio 11.7 MB (39 %: every style + every set, E44; Driftwood's island tracks ~2.9 MB of it)**, title
+  art 1.9 MB (every shard's), JS 1.7 MB. The sound lane's uncommitted beds + music will add ~3 MB: the 31 MB row will say so.
+- **KTX2 / Basis, measured on the 116 phone textures, not adopted.** At today's quality every group grows: ETC1S q255
+  14.1 MB vs 9.2 (and 4–6 dB worse on the terrain diffuse, blocky normals), UASTC 58 MB; + ~0.25 MB of transcoder. The win is
+  GPU memory (315 → 40–79 MB): only worth a separate tier if the iPhone's memory, not its download, becomes the limit.
+  The three terrain normals ship as 4:2:0 JPEG because their WebP missed the 15 % rule in `scripts/tex-tiers.mjs`.
+- `SHARD_STEPS` is per shard `{ steps, bytes }`: Pine Hollow's nouns name what each step builds (Sky · day / night keys ·
+  Pond · creek · horizon · Cabins · hamlet · landmarks · Herds · elk · deer · boar · bears · Crossbow · lever-action ·
+  longbow) and what each download is. `bench.budget.json` rows carry a `shard`; Pine Hollow's (phone) all PASS.
+
+**Left.**
+- The fixed sunset (B) cabin pose is at 298; if Jake picks B, the next levers are the landmarks' casters (11 at the
+  sunset) as one depth proxy and the boundary's 9 halo sprites as one draw.
+- The **menu** step's 1.05 s main-thread task (title art · explore) on both shards; the bench's 4G warm run re-downloads the
+  14 MB pack (before and after).
+- Desktop animal tris: the hull batch skins a few rigs the frustum would have skipped (+0.3 M at the pond at worst,
+  vertex work only); a desktop far hull LOD (the phone's 3 k hull past ~60 m) would take the tris and the batch's GPU
+  copies down.
+- The n8ao AO look (world AO) is still Jake's call; so is the sound lane's share of the cold bytes.
 
 ### S: ship (graduation)
 
