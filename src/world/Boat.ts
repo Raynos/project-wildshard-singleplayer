@@ -48,6 +48,8 @@ const LENGTH = 6.4, BEAM = 2.2;
 export class Boat {
   group = new THREE.Group();
   mesh!: THREE.Mesh;
+  /** the sail, its own mesh: casts, never receives (E110: a thin swaying two-sided cloth shadowed itself into triangle acne) */
+  sail!: THREE.Mesh;
   colliders: Collider[] = [];
   private t = 0;
   private floorY: number;
@@ -152,6 +154,7 @@ export class Boat {
       }
       g.setAttribute('aSway', new THREE.BufferAttribute(a, 2));
     }
+    const sailParts = parts.splice(sail0);
     // rudder + tiller
     add(new THREE.BoxGeometry(0.06, 1.0, 0.5).translate(0, 0.1, LENGTH / 2 + 0.2), C.trim, 0.05);
     add(new THREE.BoxGeometry(0.05, 0.05, 1.3).translate(0, 0.78, LENGTH / 2 - 0.5), C.mast, 0.05);
@@ -166,7 +169,10 @@ export class Boat {
     this.mesh = new THREE.Mesh(geo, mat);
     this.mesh.castShadow = true; this.mesh.receiveShadow = true;
     this.mesh.customDepthMaterial = swayDepthMaterial();
-    this.group.add(this.mesh);
+    this.sail = new THREE.Mesh(mergeGeometries(sailParts, false), mat);
+    this.sail.castShadow = true; this.sail.receiveShadow = false;
+    this.sail.customDepthMaterial = this.mesh.customDepthMaterial;
+    this.group.add(this.mesh, this.sail);
     this.group.position.set(this.spec.x, this.spec.waterY, this.spec.z);
     this.group.rotation.y = this.spec.heading ?? 0;
 

@@ -98,6 +98,8 @@ export class ModelExplorer implements ExplorePane {
         <div class="ws-x-actions"><button class="ws-x-inworld" type="button">View in world</button></div>
       </div>`);
     this.el.append(this.grid, this.sheet);
+    // index.html swallows touchmove outside [data-scroll]: without the mark the catalog can't scroll on a phone (E109)
+    for (const s of this.el.querySelectorAll<HTMLElement>('.ws-x-grid, .ws-x-filter, .ws-x-variants')) s.dataset['scroll'] = '';
     this.grid.querySelectorAll<HTMLElement>('.ws-x-filter button').forEach((b) => { b.addEventListener('click', () => { this.filter = (b.dataset['f'] ?? 'all') as Category | 'all'; this.renderGrid(); }); });
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-views button').forEach((b) => { b.addEventListener('click', () => { this.setView((b.dataset['v'] ?? 'solid') as View); }); });
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-lights button').forEach((b) => { b.addEventListener('click', () => { this.setLight(Number(b.dataset['l'] ?? -1)); }); });
