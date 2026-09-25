@@ -51,7 +51,7 @@ export type ShardBuilder = (slug: string, first: boolean) => Promise<ShardWorld>
 interface Resident { world: ShardWorld; scope: ShardScope; saved: ShardSnapshot | null; globals: Map<string, unknown> }
 
 /** `window.__*` names that are the page's, not a shard's (the service worker's handle, the host, a test's marker, the Heightfield module) */
-const SHELL_GLOBALS = new Set(['__ws_sw', '__shardHost', '__e155', '__hf']);
+const SHELL_GLOBALS = new Set(['__ws_sw', '__ws_prefetch', '__shardHost', '__e155', '__hf']);
 
 /** one switch, timed (the test and the report read these) */
 export interface SwitchTiming { from: string | null; to: string; kind: 'first' | 'resident' | 'build' | 'rebuild'; ms: number; evicted: string[]; at: number; steps?: Readonly<Record<string, number>> | undefined }

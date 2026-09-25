@@ -47,7 +47,7 @@
 // decodes from the offline cache when first wanted while the old one plays on, then crossfades over ≥ 6 s on the old deck's bar.
 import type { Audio } from './Audio';
 import { getActiveChunk } from '../chunks/registry';
-import { asShell } from '../core/shardScope';
+import { asShell, shell } from '../core/shardScope';
 import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle } from '../ui/Settings';
 import { Deck, decodeStyle, isSteppeSlot, setFiles, type BossPhase, type SlotAudio, type SlotName, type StyleBank } from './Stems';
 import { SteppeScore, type SteppeScene } from './SteppeScore';
@@ -613,7 +613,7 @@ export class Music {
     const files = setFiles(style, 'pine-hollow');
     const idle = (window as unknown as { requestIdleCallback?: (fn: () => void) => void }).requestIdleCallback;
     const go = (): void => { void (async () => { for (const f of files) { try { await cachedBytes(f); } catch { /* offline: decoded later or the theme plays */ } } })(); };
-    if (idle) idle(go); else window.setTimeout(go, 2000);
+    if (idle) idle(go); else shell.setTimeout(go, 2000);
   }
 
   /** Nalati: what the score follows (sound.ts: the zone from SteppeAmbience, the clock, the storm, the King's fight) — the deck
@@ -643,7 +643,7 @@ export class Music {
     this.startSynth(t, 0);
     const arr = ARRANGEMENTS[name];
     const idle = (window as unknown as { requestIdleCallback?: (fn: () => void) => void }).requestIdleCallback;
-    if (idle) idle(() => this.engine.warm(arr)); else window.setTimeout(() => this.engine.warm(arr), 300);
+    if (idle) idle(() => this.engine.warm(arr)); else shell.setTimeout(() => this.engine.warm(arr), 300);
     if (name === 'theme') this.sync();
   }
   private stemsReady(): boolean {
@@ -677,7 +677,7 @@ export class Music {
     const g = this.engine.synthMix.gain;
     holdAt(g, t); g.linearRampToValueAtTime(0, t + fade);
     const gen = ++this.synthGen;
-    window.setTimeout(() => {
+    shell.setTimeout(() => {
       if (gen !== this.synthGen || !this.synthOn) return; // restarted meanwhile
       this.stopTimer(); this.synthOn = false; this.engine.end(this.ctx.currentTime);
     }, Math.max(0, t + fade - this.ctx.currentTime) * 1000 + 150);
@@ -800,7 +800,7 @@ export class Music {
     this.deck = new Deck(this.rig.ctx, a, this.rig.stemBus, t, fade, this.tension(), this._phase);
     audioLog('music', `deck:${a.slot}`, true, a.style);
     this.stopSynth(t, fade);
-    if (this.urlDawn && a.slot !== 'title' && a.style === this._style && this.state.shard === 'pine') { this.urlDawn = false; window.setTimeout(() => this.sting('dawn'), 2000); }
+    if (this.urlDawn && a.slot !== 'title' && a.style === this._style && this.state.shard === 'pine') { this.urlDawn = false; shell.setTimeout(() => this.sting('dawn'), 2000); }
   }
 
   /** the deck (if any) out over a bar on its grid, the synth back in under it */
@@ -847,7 +847,7 @@ export class Music {
   combat(intensity = 0.7): void {
     this.setState({ mode: 'combat', intensity: Math.max(this.state.intensity, intensity) });
     window.clearTimeout(this.combatTimer);
-    this.combatTimer = window.setTimeout(() => { if (this.state.mode === 'combat') this.setState({ mode: 'alert', intensity: 0.5 }); }, 8000);
+    this.combatTimer = shell.setTimeout(() => { if (this.state.mode === 'combat') this.setState({ mode: 'alert', intensity: 0.5 }); }, 8000);
   }
 
   /** the style's sting file while its stems play, else the synth sting; the death sting ducks the stems like the synth (a bar down, 6 s out, a bar back) */

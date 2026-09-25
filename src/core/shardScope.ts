@@ -230,3 +230,15 @@ export function disposeScope(s: ShardScope): void {
 
 /** the shard host runs this page (several shards may be resident): a chunk change is a switch between them, not a new world */
 export function scopesInstalled(): boolean { return installed; }
+
+/**
+ * The page's own timers and listeners, never a shard's: for shell code whose async continuations can run while any
+ * shard is current (the background prefetch's sleeps, an error report's retry). A shard's timers are cleared when it is
+ * evicted; a shell flow must not lose its wake-up with it. (The browser's own functions, taken before the scoping.)
+ */
+const nativeTimeout: (fn: () => void, ms?: number) => number = typeof window === 'undefined' ? (fn, ms) => setTimeout(fn, ms) : window.setTimeout.bind(window);
+export const shell = {
+  setTimeout: (fn: () => void, ms?: number): number => nativeTimeout(fn, ms),
+  listen: (target: EventTarget, type: string, fn: EventListener, options?: boolean | AddEventListenerOptions): void => { EventTarget.prototype.addEventListener.call(target, type, fn, options); },
+  unlisten: (target: EventTarget, type: string, fn: EventListener, options?: boolean | EventListenerOptions): void => { EventTarget.prototype.removeEventListener.call(target, type, fn, options); },
+};

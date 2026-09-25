@@ -49,6 +49,7 @@ import { JOURNAL_SKIN } from '../ui/compendium/shards/pine-hollow';
 import { PERSON_FILE, peopleModelUrl, type PersonKey } from '../nalati/campPeopleModels';
 import { blenderModelsBase } from '../world/blenderArea';
 import { CAPTAIN_GLB_URL } from '../entities/species/captainMesh';
+import { shell } from '../core/shardScope';
 
 /** files in flight at once: the worker's fetches share the pipe with anything the game still asks for */
 const CONCURRENCY = 2;
@@ -177,7 +178,7 @@ function viaWorker(url: string): Promise<Reply | null> {
   if (!ctl) return Promise.resolve(null);
   return new Promise<Reply | null>((resolve) => {
     const ch = new MessageChannel();
-    const timer = setTimeout(() => { resolve(null); }, REPLY_TIMEOUT_MS);
+    const timer = shell.setTimeout(() => { resolve(null); }, REPLY_TIMEOUT_MS);
     ch.port1.onmessage = (e: MessageEvent<{ type?: unknown; status?: unknown; bytes?: unknown }>) => {
       clearTimeout(timer);
       const { status, bytes } = e.data;
@@ -188,17 +189,18 @@ function viaWorker(url: string): Promise<Reply | null> {
   });
 }
 
-const sleep = (ms: number): Promise<void> => new Promise((resolve) => { setTimeout(resolve, ms); });
+// the shell's timers / listeners (E155: several shards live in the page; this download is the page's, not a shard's)
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => { shell.setTimeout(resolve, ms); });
 /** the next idle slot (Safari has no requestIdleCallback: a short timeout stands in) */
 const idle = (): Promise<void> => new Promise((resolve) => {
   if ('requestIdleCallback' in window) window.requestIdleCallback(() => { resolve(); }, { timeout: 2000 });
-  else setTimeout(resolve, 50);
+  else shell.setTimeout(resolve, 50);
 });
 /** resolves while the tab is visible — at once, or on the next visibilitychange that shows it */
 const visible = (): Promise<void> => new Promise((resolve) => {
   if (!document.hidden) { resolve(); return; }
-  const on = (): void => { if (!document.hidden) { document.removeEventListener('visibilitychange', on); resolve(); } };
-  document.addEventListener('visibilitychange', on);
+  const on = (): void => { if (!document.hidden) { shell.unlisten(document, 'visibilitychange', on); resolve(); } };
+  shell.listen(document, 'visibilitychange', on);
 });
 
 /**

@@ -17,6 +17,7 @@
  * (`sendReport` below is the real transport the pages inject).
  */
 import { describeError } from './faults';
+import { shell } from './shardScope';
 
 export const REPORTS_MAX = 10;
 export const QUEUE_MAX = 10;
@@ -75,7 +76,7 @@ export class ErrorReporter {
     this.deps = {
       session: null, local: null,
       now: () => 0,
-      later: (fn, ms) => { setTimeout(fn, ms); },
+      later: (fn, ms) => { shell.setTimeout(fn, ms); }, // the page's retry, not a shard's (src/core/shardScope.ts)
       delayMs: REPORT_DELAY_MS,
       ...deps,
     };
