@@ -75,6 +75,14 @@ onSettingChange('coverBlend', (v) => { blendUniform.value = v === 'on' ? 1 : 0; 
 /** E117 follow-up: the far tier (Debug ▸ Far stand-ins: on / off / far, read at load) and how far it reaches over the phone numbers below */
 const COVER_FAR = setting('coverFar');
 const FAR_K = COVER_FAR === 'far' ? 1.5 : 1;
+/**
+ * E156, Jake: "render all foliage in front of me, only cull what's not in the FOV" / "render distance 500 m". Debug ▸ Foliage
+ * range ▸ 500 m (read at load): every far stand-in's edge is at RANGE_M, so all of the island in view is dressed. The far
+ * job then takes only the cells inside the view's horizontal wedge padded by VIEW_PAD (and every cell within KEEP_ALL_M,
+ * any direction), and rebuilds when the camera moves FAR_REFILL_M or turns TURN_REBUILD — the caps grow by RANGE_CAP.
+ */
+const RANGE_500 = setting('coverRange') === '500';
+const RANGE_M = 500, VIEW_PAD = THREE.MathUtils.degToRad(35), KEEP_ALL_M = 90, TURN_REBUILD = Math.cos(THREE.MathUtils.degToRad(20)), RANGE_CAP = 4;
 /** the far set is rebuilt every FAR_REFILL_M m, within FAR_BUDGET_MS a frame, with FAR_SLACK m of room either side */
 const FAR_REFILL_M = 8, FAR_SLACK = 16, FAR_BUDGET_MS = TIER === 'desktop' ? 2 : 1.5;
 /** shader modes: a near plant that just shrinks away / hands over to its far model; a far model */
@@ -215,6 +223,10 @@ export class GroundCover {
   private farJob: Generator<undefined, undefined, undefined> | null = null;
   private farLast = new THREE.Vector3(1e9, 0, 1e9);
   private farJobAt = new THREE.Vector3();
+  /** the 500 m range's view at the far job's start: the camera's heading (xz, unit) and the wedge's half angle */
+  private farJobDir = new THREE.Vector2(0, 1);
+  private farJobHalf = Math.PI;
+  private camDir = new THREE.Vector3();
   private rFar = 0;
   /** 0 → 1 over ~0.8 s when a far set lands somewhere new (boot, a teleport), so it grows in instead of appearing */
   private farIn = { value: 1 };
@@ -325,9 +337,10 @@ export class GroundCover {
       let farTier: FarTier | null = null;
       const farReach = new THREE.Vector3(0, 0, 1);
       if (farOf && COVER_FAR !== 'off') {
-        const [fg, [fn, ff], fcap0, keep] = farOf, k = REACH_K * FAR_K, fcap = Math.round(fcap0 * keep * CAP_K * FAR_K * FAR_K);
-        farReach.set(fn * k, ff * k, (ff - fn) * k * 0.25);
-        this.rFar = Math.max(this.rFar, farReach.y * REACH_UP + FAR_SLACK + EYE_SLACK);
+        const [fg, [fn, ff], fcap0, keep] = farOf, k = REACH_K * FAR_K, fcap = Math.round(fcap0 * keep * CAP_K * FAR_K * FAR_K * (RANGE_500 ? RANGE_CAP : 1));
+        if (RANGE_500) farReach.set(RANGE_M - 10, RANGE_M, 5); // every far edge in the last 5 m before RANGE_M: no thinning out
+        else farReach.set(fn * k, ff * k, (ff - fn) * k * 0.25);
+        this.rFar = Math.max(this.rFar, RANGE_500 ? RANGE_M + FAR_SLACK + EYE_SLACK : farReach.y * REACH_UP + FAR_SLACK + EYE_SLACK);
         farTier = {
           mesh: instanced(`ground-cover-${name}-far`, fg, material(reach, farReach, MODE_FAR), fcap, tint !== undefined), cap: fcap, reach: farReach, keep,
           stage: { mat: new Float32Array(fcap * 16), col: tint ? new Float32Array(fcap * 3) : null, gnd: new Float32Array(fcap * 3), cov: new Float32Array(fcap * 4), nrm: new Float32Array(fcap * 4), n: 0 },
@@ -559,9 +572,18 @@ export class GroundCover {
   private *farRefill(px: number, py: number, pz: number): Generator<undefined, undefined, undefined> {
     const R = this.rFar, c0x = Math.floor((px - R) / CELL), c1x = Math.floor((px + R) / CELL), c0z = Math.floor((pz - R) / CELL), c1z = Math.floor((pz + R) / CELL);
     const cellsAt: [number, number, number][] = [];
+    // 500 m range: only the island's cells, and past KEEP_ALL_M only those inside the padded view wedge
+    const fx = this.farJobDir.x, fz = this.farJobDir.y, half = this.farJobHalf, isl = (ISLAND.r + CELL * 2) ** 2;
     for (let cz = c0z; cz <= c1z; cz++) for (let cx = c0x; cx <= c1x; cx++) {
       const dx = Math.max(0, cx * CELL - px, px - (cx + 1) * CELL), dz = Math.max(0, cz * CELL - pz, pz - (cz + 1) * CELL);
-      if (dx * dx + dz * dz <= R * R) cellsAt.push([cx, cz, dx * dx + dz * dz]);
+      if (dx * dx + dz * dz > R * R) continue;
+      if (RANGE_500) {
+        const mx = (cx + 0.5) * CELL, mz = (cz + 0.5) * CELL;
+        if ((mx - ISLAND.x) ** 2 + (mz - ISLAND.z) ** 2 > isl) continue;
+        const vx = mx - px, vz = mz - pz, d = Math.hypot(vx, vz);
+        if (d > KEEP_ALL_M && (vx * fx + vz * fz) / d < Math.cos(Math.min(Math.PI, half + Math.asin(Math.min(1, (CELL * 0.75) / d))))) continue;
+      }
+      cellsAt.push([cx, cz, dx * dx + dz * dz]);
     }
     cellsAt.sort((a, b) => a[2] - b[2]);
     for (const k of this.kinds) if (k.far) k.far.stage.n = 0;
@@ -639,7 +661,19 @@ export class GroundCover {
     this.farIn.value = Math.min(1, this.farIn.value + dt / 0.8);
     // the far tier: start a rebuild every FAR_REFILL_M m and step it within the budget (a job always finishes: flying
     // fast, the next one starts from where the camera is by then)
-    if (this.farJob === null && this.farLast.distanceToSquared(viewer) > FAR_REFILL_M * FAR_REFILL_M) {
+    let turned = false;
+    if (RANGE_500) {
+      this.sky.viewCamera.getWorldDirection(this.camDir);
+      const l = Math.hypot(this.camDir.x, this.camDir.z);
+      if (l > 1e-3) turned = (this.camDir.x * this.farJobDir.x + this.camDir.z * this.farJobDir.y) / l < TURN_REBUILD;
+    }
+    if (this.farJob === null && (turned || this.farLast.distanceToSquared(viewer) > FAR_REFILL_M * FAR_REFILL_M)) {
+      if (RANGE_500) {
+        const cam = this.sky.viewCamera, l = Math.hypot(this.camDir.x, this.camDir.z);
+        if (l > 1e-3) this.farJobDir.set(this.camDir.x / l, this.camDir.z / l);
+        // the horizontal half angle the screen covers, plus the pad for a turn while the job runs
+        this.farJobHalf = Math.atan(Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)) * cam.aspect) + VIEW_PAD;
+      }
       this.farJobAt.copy(viewer);
       this.farJob = this.farRefill(viewer.x, viewer.y, viewer.z);
       this.stats.farJobMs = 0; this.stats.farJobFrames = 0;

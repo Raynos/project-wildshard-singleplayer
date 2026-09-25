@@ -475,8 +475,10 @@ export class GameMenu {
       const live = (k: 'coverTint' | 'coverReach' | 'coverBlend', label: string) => picker(label, onOff, () => setting(k), (v) => { saveSetting(k, v); }, (fn) => { onSettingChange(k, fn); });
       const fars: { v: OptionValue<'coverFar'>; text: string }[] = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }, { v: 'far', text: 'Far' }];
       const far = picker('Far stand-ins', fars, () => setting('coverFar'), (v) => { saveSetting('coverFar', v); location.href = settingsReloadUrl(location.href); }, (fn) => { onSettingChange('coverFar', fn); });
-      dbg.append(el('ws-gmenu-label', 'Ground cover'), live('coverTint', 'Ground tint'), live('coverReach', 'Slope reach'), live('coverBlend', 'Far colour blend'), far,
-        el('ws-gmenu-note', 'Ground tint: far ground takes the plants\' colour. Slope reach: plants on slopes stay drawn 1.7× further. Far colour blend: far plants fade into the ground\'s colour. Far stand-ins reloads the page.'));
+      const ranges: { v: OptionValue<'coverRange'>; text: string }[] = [{ v: 'normal', text: 'Normal' }, { v: '500', text: '500 m' }];
+      const range = picker('Foliage range', ranges, () => setting('coverRange'), (v) => { saveSetting('coverRange', v); location.href = settingsReloadUrl(location.href); }, (fn) => { onSettingChange('coverRange', fn); });
+      dbg.append(el('ws-gmenu-label', 'Ground cover'), range, live('coverTint', 'Ground tint'), live('coverReach', 'Slope reach'), live('coverBlend', 'Far colour blend'), far,
+        el('ws-gmenu-note', 'Ground tint: far ground takes the plants\' colour. Slope reach: plants on slopes stay drawn 1.7× further. Far colour blend: far plants fade into the ground\'s colour. Foliage range 500 m: every plant in view to 500 m (full plants near, their stand-ins far). Foliage range and Far stand-ins reload the page.'));
     }
     // E158: the other shards' files download in the background once this one is playable (the next session obeys a change)
     const bg: { v: OptionValue<'prefetch'>; text: string }[] = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }];
