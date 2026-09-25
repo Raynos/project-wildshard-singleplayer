@@ -461,7 +461,11 @@ async function measureShard(shard, vp, run, shots) {
     if (warm.status === 'ok') {
       // creatures keep walking, grazing and animating, but stop reacting to the player: an elite charging the pose (Pine
       // Hollow's Imperial Bull at the pond, Old Ironhide at the cabin) shakes the camera and kills the player mid-sample
-      await page.evaluate(() => { const a = window.__world?.animals; if (a) a.calm = true; });
+      // Pine Hollow's named elites run their own AI (src/game/Elite.ts): with no aware / engage radius they stay at their lairs
+      await page.evaluate(() => {
+        const a = window.__world?.animals; if (a) a.calm = true;
+        for (const e of window.__pineElites?.elites?.entries ?? []) { e.script.def.awareR = 0; e.script.def.engageR = 0; }
+      });
       await sleep(SETTLE_MS);
       out.memory = await memory(ctx, page);
       console.error(`    memory heap ${fmtMB(out.memory.heapBytes)} MB · GL tex ${fmtMB(out.memory.glTexBytes)} MB · rb ${fmtMB(out.memory.glRbBytes)} MB · buf ${fmtMB(out.memory.glBufBytes)} MB · scene tex est ${fmtMB(out.memory.sceneTexBytes)} MB · ${out.memory.textures} tex / ${out.memory.geometries} geo / ${out.memory.programs} programs`);
