@@ -41,11 +41,11 @@ export type NewBushLook = Exclude<BushLook, 'current'>;
 export const BUSH_LOOK_NAMES: Record<BushLook, string> = { current: 'current (icosahedron lobes)', a: 'leaf clump', b: 'sculpted canopy', c: 'leaf cards' };
 
 let chosen: BushLook | null = null;
-/** the look this page was loaded with: `?bush=a|b|c`, anything else is the current look */
+/** the look this page was loaded with: A (leaf clump) unless `?bush=b|c`, or `?bush=current` for the old lobes (the user's pick, 2026-09-25) */
 export function bushLook(): BushLook {
   if (chosen !== null) return chosen;
   const v = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('bush');
-  chosen = v === 'a' || v === 'b' || v === 'c' ? v : 'current';
+  chosen = v === 'b' || v === 'c' || v === 'current' ? v : 'a';
   return chosen;
 }
 

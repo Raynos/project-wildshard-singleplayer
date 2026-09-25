@@ -33,11 +33,13 @@ const PHONE_SHADOW_RIGS: Record<string, Omit<ShadowRig, 'margin' | 'phone'>> = {
   old: { cascades: 1, size: 1024, far: 80, split: 0 },    // before E123: one 189 m square at 1024², 18.5 cm a texel
   '2k': { cascades: 1, size: 2048, far: 80, split: 0 },
   '2c': { cascades: 2, size: 1024, far: 80, split: 14 },
+  '2c2k': { cascades: 2, size: 2048, far: 80, split: 14 }, // the user's pick (2026-09-25, "both 2048 and 2c"): 1.7 cm a texel near you
   near: { cascades: 1, size: 1024, far: 55, split: 0 },
 };
 
-/** the phone's rig on the low-poly shard when the URL names none (E123: `2k`, the same one square at 2048², 9.2 cm a texel) */
-const PHONE_SHADOW_DEFAULT = '2k';
+/** the phone's rig on the low-poly shard when the URL names none (E123, the user's pick: `2c2k`, two cascades at 2048², the near
+ *  one to 14 m — ~+0.5 ms a frame on the M5 against `2k`; `?pshadow=2k` is the one-square rig it replaced) */
+const PHONE_SHADOW_DEFAULT = '2c2k';
 
 /**
  * The shadow rig for this tier and shard. The phone's portrait camera (94° vertical FOV) makes a cascade's square far
