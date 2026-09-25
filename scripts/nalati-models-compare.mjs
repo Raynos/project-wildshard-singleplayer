@@ -27,7 +27,6 @@ const PAINT = flag('paint', '1') !== '0'; // --paint=0: the GLB's own glTF mater
 
 // subject → how to build the procedural twin
 const SUBJECTS = [
-  { name: 'yurt', proc: { yurt: true }, label: 'Yurt', dist: 14 },
   { name: 'horse-saddled', proc: { kind: 'horse', variant: 'camp-bay' }, label: 'Saddled horse', dist: 5.6 },
   { name: 'horse-wild', proc: { kind: 'horse', variant: 'dun' }, label: 'Wild horse', dist: 5.6 },
   { name: 'wolf', proc: { kind: 'wolf' }, label: 'Wolf', dist: 3.4 },

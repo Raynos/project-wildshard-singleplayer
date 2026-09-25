@@ -1,18 +1,16 @@
 /**
- * The camp's people as generated + rigged models (NALATI-MERGE D2) — a Look Lab variant beside Q2's procedural figures,
- * which stay the default (the user's rule: taste is his call). Settings `campPeople` (`?people=proc|blender|gen`):
+ * The camp's people as generated + rigged models (NALATI-MERGE D2) — the user's pick (N20: "Models 3D local ai model is
+ * best"): Nalati's pipeline, the image-to-3D mesh with its base-colour atlas (TRELLIS.2 / Hunyuan3D-2 → Blender normalise
+ * → gltf-transform), the five atlases packed into one texture here. (D2's other take, main's faceted Blender pipeline,
+ * lost and left the tree; Q2's procedural figures stay in campPeople.ts as the rig's frame and the fallback — and
+ * NALATI-FINISH B5 puts their readable faces on these bodies.)
  *
- *   blender  main's pipeline: the image-to-3D mesh through scripts/img2mesh/driftwood_post.py (Blender headless) —
- *            faceted, one flat colour per facet, Cycles AO in the vertex alpha, no texture
- *   gen      Nalati's pipeline: the image-to-3D mesh with its base-colour atlas (TRELLIS.2 / Hunyuan3D-2 → Blender
- *            normalise → gltf-transform), the five atlases packed into one texture here
- *
- * Files: `public/assets/nalati/models/people/<person>.<look>[.phone].glb` (metres, +Y up, feet on y = 0, facing +z;
- * references art/nalati-grasslands/round-10-models-merge/). Loaded only when the variant is picked.
+ * Files: `public/assets/nalati/models/people/<person>.gen[.phone].glb` (metres, +Y up, feet on y = 0, facing +z;
+ * references art/nalati-grasslands/round-10-models-merge/).
  *
  * The rig is the procedural figures' own (src/nalati/campPeople.ts): per figure a ROOT (the feet: its yaw + breath), a
  * HEAD bone at the neck and a right-ARM bone at the shoulder — so the one runtime (turn to you, glance, nod, gesture, the
- * cook's stir, the child's skip) drives either look. All five figures are ONE SkinnedMesh on a 15-bone skeleton: 1 draw +
+ * cook's stir, the child's skip) drives both. All five figures are ONE SkinnedMesh on a 15-bone skeleton: 1 draw +
  * 1 shadow draw, as the procedural BatchedMesh. The weights are made at load, per figure, from its own mesh:
  *   1. fit     scaled to the procedural figure's height, feet on y = 0, centred;
  *   2. pivots  the neck at the narrowest cross-section near the procedural neck, the shoulder at the torso's edge below it;
@@ -29,15 +27,13 @@ import { painterlyMaterial } from '../world/painterly';
 import { rawFromGltf } from '../world/nalati/glbPaint';
 import type { Sky } from '../world/Sky';
 
-export type PeopleLook = 'proc' | 'blender' | 'gen';
-export type ModelPeopleLook = Exclude<PeopleLook, 'proc'>;
 
 /** a figure's procedural frame: its height and the two pivots (feet at the origin, facing +z, +x = its LEFT) */
 export interface PersonFrame { height: number; neck: THREE.Vector3; shoulder: THREE.Vector3 }
 
 /** the rig of one figure: root (feet), head (neck), arm (right shoulder) — world matrices written by the runtime */
 export interface PersonBones { root: THREE.Bone; head: THREE.Bone; arm: THREE.Bone; neck: THREE.Vector3; shoulder: THREE.Vector3 }
-export interface PeopleRig<K extends string> { mesh: THREE.SkinnedMesh; bones: Record<K, PersonBones>; look: ModelPeopleLook }
+export interface PeopleRig<K extends string> { mesh: THREE.SkinnedMesh; bones: Record<K, PersonBones> }
 
 const DIR = '/assets/nalati/models/people/';
 let loader: GLTFLoader | null = null;
@@ -46,8 +42,8 @@ let loader: GLTFLoader | null = null;
 export const PERSON_FILE = { elder: 'elder', herderGate: 'herder-dauren', herderRail: 'herder-erlan', child: 'child', cook: 'cook' } as const;
 export type PersonKey = keyof typeof PERSON_FILE;
 
-export function peopleModelUrl(key: PersonKey, look: ModelPeopleLook): string {
-  return `${DIR}${PERSON_FILE[key]}.${look}${TIER === 'phone' ? '.phone' : ''}.glb`;
+export function peopleModelUrl(key: PersonKey): string {
+  return `${DIR}${PERSON_FILE[key]}.gen${TIER === 'phone' ? '.phone' : ''}.glb`;
 }
 
 interface Figure { key: PersonKey; geometry: THREE.BufferGeometry; map: THREE.Texture | null; neck: THREE.Vector3; shoulder: THREE.Vector3; head: Float32Array; arm: Float32Array }
@@ -190,21 +186,21 @@ function packAtlases(figs: Figure[]): THREE.Texture | null {
 }
 
 /**
- * Load the five figures in one look and rig them as one SkinnedMesh. `frames` = the procedural figures (their heights and
+ * Load the five figures and rig them as one SkinnedMesh. `frames` = the procedural figures (their heights and
  * pivots; campPeople.ts). The bones' world matrices are the runtime's to write (`matrixWorld`, no parents): root = the
  * body matrix, head = root × (neck, the head turn), arm = root × (shoulder, the arm swing) — as the BatchedMesh pieces.
  */
-export async function loadPeopleRig<K extends PersonKey>(sky: Sky, look: ModelPeopleLook, frames: Record<K, PersonFrame>): Promise<PeopleRig<K>> {
+export async function loadPeopleRig<K extends PersonKey>(sky: Sky, frames: Record<K, PersonFrame>): Promise<PeopleRig<K>> {
   if (!loader) { loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder); }
   const gl = loader;
   const keys = Object.keys(frames) as K[];
   const figs = await Promise.all(keys.map(async (key) => {
-    const gltf = await gl.loadAsync(peopleModelUrl(key, look));
+    const gltf = await gl.loadAsync(peopleModelUrl(key));
     const r = rawFromGltf(gltf.scene, `person ${key}`);
     return fitFigure(key, r.geometry, r.map, frames[key]);
   }));
-  const map = look === 'gen' ? packAtlases(figs) : null;
-  // merge: position, normal, color (+ uv for the atlas look), skinIndex / skinWeight (root / head / arm of its figure)
+  const map = packAtlases(figs);
+  // merge: position, normal, color, uv (the packed atlas), skinIndex / skinWeight (root / head / arm of its figure)
   let total = 0, totalIdx = 0;
   for (const f of figs) { total += f.geometry.getAttribute('position').count; totalIdx += f.geometry.getIndex()?.count ?? f.geometry.getAttribute('position').count; }
   const P = new Float32Array(total * 3), N = new Float32Array(total * 3), C = new Float32Array(total * 3), U = new Float32Array(total * 2);
@@ -250,9 +246,9 @@ export async function loadPeopleRig<K extends PersonKey>(sky: Sky, look: ModelPe
   geo.computeBoundingSphere();
   const mat = painterlyMaterial(sky, { map, rim: 0.35, bands: 0.8 });
   const mesh = new THREE.SkinnedMesh(geo, mat);
-  mesh.name = `nalati-camp-people-${look}`;
+  mesh.name = 'nalati-camp-people-gen';
   mesh.bind(new THREE.Skeleton(boneList, inverses), new THREE.Matrix4());
   mesh.frustumCulled = false;   // five figures spread over the camp, moving: the batch did its own culling, this is 1 draw
   mesh.castShadow = true; mesh.receiveShadow = true;
-  return { mesh, bones, look };
+  return { mesh, bones };
 }

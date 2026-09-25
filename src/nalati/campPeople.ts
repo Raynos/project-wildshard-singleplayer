@@ -10,9 +10,10 @@
  *   child   Ayan — a green vest, an embroidered taqiya — skipping rings round the ribbon pole
  *   cook    Gulnar Apa at the iron stove — a long red dress, a velvet waistcoat, a white apron and headscarf, a ladle
  *
- * D2 (the Look Lab, Settings `campPeople`, `?people=proc|blender|gen`): the same five as generated + rigged models, two
- * pipelines (src/nalati/campPeopleModels.ts) — one SkinnedMesh on the figures' own root / head / arm pivots, driven by this
- * runtime; the procedural batch stays the default until the user picks.
+ * D2: the same five as generated + rigged models (src/nalati/campPeopleModels.ts, the image-to-3D pipeline — the user's
+ * pick, N20) — one SkinnedMesh on the figures' own root / head / arm pivots, driven by this runtime. The procedural batch
+ * below is their frame (heights, pivots), shows while they load, and its readable faces are what NALATI-FINISH B5 moves
+ * onto the model bodies.
  *
  * ONE BatchedMesh for all of them (a body, a head and a right arm per figure = 15 instances): 1 draw + 1 shadow draw,
  * whatever the tier (the phone budget, ≤ ~110 calls at the camp). Each figure turns to face you as you come near,
@@ -31,8 +32,7 @@ import { PaintKit, pole, v3, lathe, poiMaterial } from '../world/nalati/paint';
 import type { Sky } from '../world/Sky';
 import type { WorldRegistry, ColliderDesc } from '../world/registry';
 import { CAMP_PEOPLE } from '../game/quest/nalati';
-import { setting, onSettingChange } from '../ui/Settings';
-import { loadPeopleRig, type PersonFrame, type PeopleRig, type ModelPeopleLook } from './campPeopleModels';
+import { loadPeopleRig, type PersonFrame, type PeopleRig } from './campPeopleModels';
 
 export type PersonId = keyof typeof CAMP_PEOPLE;
 
@@ -285,11 +285,10 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
     registry.add({ id: 'nalati-camp-child', name: 'Camp child', category: 'creatures', file: 'src/nalati/campPeople.ts', colliders: [capsule(fig.child, true)], surface: 'flesh', follows: childAnchor });
   }
 
-  // D2: the generated + rigged figures (campPeopleModels.ts), loaded when the Look Lab picks them
+  // D2: the generated + rigged figures (campPeopleModels.ts) on the procedural figures' frames
   const frames = {} as Record<PersonId, PersonFrame>;
   for (const id of ids) { const pp = fig[id].parts; frames[id] = { height: pp.height, neck: pp.neck, shoulder: pp.shoulder }; }
   let rig: PeopleRig<PersonId> | null = null;
-  const rigs = new Map<ModelPeopleLook, Promise<PeopleRig<PersonId> | null>>();
 
   const _hq = new THREE.Quaternion(), _aq = new THREE.Quaternion();
   const pose = (p: Live): void => {
@@ -313,33 +312,14 @@ export function buildCampPeople(sky: Sky, floorAt: (x: number, z: number) => num
     p.headWorld.y += 0.12;
   };
 
-  /** the Look Lab's pick: the procedural batch, or one of the model rigs (loaded once, kept for a switch back) */
-  const applyLook = (): void => {
-    const look = setting('campPeople');
-    if (look === 'proc') {
-      if (rig) rig.mesh.visible = false;
-      rig = null; batch.visible = true;
-      for (const id of ids) pose(fig[id]);
-      return;
-    }
-    let pr = rigs.get(look);
-    if (!pr) {
-      pr = loadPeopleRig(sky, look, frames).then((r) => { r.mesh.visible = false; group.add(r.mesh); return r; })
-        .catch((e: unknown) => { console.warn(`[nalati] camp people (${look}) failed`, e); return null; });
-      rigs.set(look, pr);
-    }
-    void pr.then((r) => {
-      if (r !== null && setting('campPeople') === look) {
-        if (rig) rig.mesh.visible = false;
-        rig = r; r.mesh.visible = true; batch.visible = false;
-        for (const id of ids) pose(fig[id]);
-      }
-      return r;
-    });
-  };
+  // the image-to-3D figures (N20, the user's pick): the procedural batch stands until they have loaded (and stays if they fail)
   for (const id of ids) pose(fig[id]);
-  applyLook();
-  onSettingChange('campPeople', applyLook);
+  void loadPeopleRig(sky, frames).then((r) => {
+    group.add(r.mesh);
+    rig = r; batch.visible = false;
+    for (const id of ids) pose(fig[id]);
+    return r;
+  }).catch((e: unknown) => { console.warn('[nalati] camp people models failed: the procedural figures stay', e); });
 
   let asleep = false;
   const update = (dt: number, t: number, player: THREE.Vector3): void => {

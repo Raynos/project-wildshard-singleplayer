@@ -8,7 +8,7 @@
  *   scene.add(rocks.mesh); player.colliders.push(...rocks.colliders);
  */
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CHUNK_HALF, ROAD_WIDTH } from '../core/config';
 import { heightAt, normalAt, waterLevel, inChunk } from './Heightfield';
 import { Rng } from '../core/rng';
@@ -68,9 +68,14 @@ export class Boulders {
     const c = new THREE.Color();
     for (const b of specs) {
       const detail = b.r > 2 ? 1 : 0;
-      const g = new THREE.IcosahedronGeometry(b.r, detail);
+      // IcosahedronGeometry is NON-indexed (every face owns its corners): weld it first, or each face's copy of a
+      // corner takes its own jitter and the faces split into see-through cracks (E114)
+      const ico = new THREE.IcosahedronGeometry(b.r, detail);
+      ico.deleteAttribute('normal'); ico.deleteAttribute('uv');
+      const g = mergeVertices(ico);
+      ico.dispose();
       const pos = g.getAttribute('position');
-      // jitter the (shared) vertices radially, then squash — do it on the indexed sphere so faces stay closed
+      // jitter the (shared) vertices radially, then squash — on the welded sphere so faces stay closed
       for (let i = 0; i < pos.count; i++) {
         const v = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i));
         const k = 1 + (rng.next() - 0.5) * 0.26;

@@ -2,7 +2,7 @@
  * glbPaint — the generated Nalati models (image-to-3D GLBs in `public/assets/nalati/models/`, README in
  * `art/nalati-grasslands/round-5-models/`) loaded onto the shared painterly look.
  *
- *   const m = await loadNalatiModel(sky, 'yurt');                 // geometry + painterly material, cached per name
+ *   const m = await loadNalatiModel(sky, 'chest');                // geometry + painterly material, cached per name
  *   group.add(instanceModel(m, [{ x, y, z, rot, scale }, …]));    // one draw call for every copy
  *   addModelInstances(group, sky, 'balbal', placements);          // the same, fire-and-forget (adds when loaded)
  *
@@ -13,10 +13,10 @@
  * every other painterly mesh, plus `sky.setupMaterial` for the CSM shadows. The phone tier loads `<name>.phone.glb`
  * (the 512² atlas). `rot` in a placement is the yaw about +y (0 = the model's front faces +Z).
  *
- * `modelsOn(part)` is the adoption flag the POI builders read (`?models=0|1`, `?yurts=0|1`; see below).
+ * `modelsOn(part)` is the adoption flag the POI builders read (`?models=0|1`; see below).
  *
- * `setModelShade(on)` — the Look Lab's "Driftwood's shading for generated models" (NALATI-MERGE L3; Settings
- * `modelShade`, src/nalati/look/lab.ts): the low-poly kit's AO bake (src/world/lowpolyKit.ts bakeAO — hemisphere rays
+ * Model shading — "Driftwood's shading for generated models" (NALATI-MERGE L3; on since N20, the user's pick; look v2
+ * calls `setModelShade(true, scene)` once so a builder's clones get their own bake): the low-poly kit's AO bake (src/world/lowpolyKit.ts bakeAO — hemisphere rays
  * through a voxel grid of the model's own triangles, plus the ground under it) run per VERTEX on every loaded static model,
  * written into its vertex colours (which the atlas multiplies): the undersides, the cracks and the foot of a boulder, a
  * balbal, a cauldron go dark in a warm umber instead of taking the painted sky's cool blue shade on a smooth, AO-less
@@ -29,10 +29,9 @@ import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.j
 import { TIER } from '../../core/tier';
 import { painterlyMaterial, painterlyKnobs } from '../painterly';
 import type { Sky } from '../Sky';
-import { setting } from '../../ui/Settings';
 
 export type NalatiModelName =
-  | 'yurt' | 'horse-saddled' | 'horse-wild' | 'wolf' | 'sheep' | 'snow-leopard' | 'eagle' | 'golden-king' | 'spruce'
+  | 'horse-saddled' | 'horse-wild' | 'wolf' | 'sheep' | 'snow-leopard' | 'eagle' | 'golden-king' | 'spruce'
   | 'balbal' | 'boulder-1' | 'boulder-2' | 'boulder-3' | 'kumis-churn' | 'cauldron' | 'saddle' | 'firewood' | 'chest'
   | 'watchtower' | 'snow-lotus' | 'kokpar-rider';
 /** the models that also ship a far LOD (`<name>.far.glb`: ~10 % of the triangles, vertex colours, no texture) */
@@ -70,22 +69,20 @@ export interface ModelLook {
 }
 
 /**
- * The adoption flags. By default the balbals, the rocks and the camp props are the generated models; the yurts stay
- * procedural (the camp orbit, 2026-09-23: the generated yurt's felt read stained up close); the yurt model is now the
- * Blender one (NALATI-MERGE D1, scripts/blender/nalati_yurt.py), a Look Lab pick (Settings `yurts`, on the next load).
- * `?models=0` → every POI procedural, `?models=1` → every model on (yurts included), `?yurts=1` / `?yurts=0` → the
- * yurts alone, `?creatures=glb` / `?creatures=proc` → the rigged creature GLBs
+ * The adoption flags. By default the balbals, the rocks and the camp props are the generated models; the yurts are
+ * procedural (the camp orbit, 2026-09-23: the generated yurt's felt read stained up close; N20, the user's pick over
+ * NALATI-MERGE D1's Blender yurt, whose model left the tree). `?models=0` → every POI procedural, `?models=1` → every model
+ * on, `?creatures=glb` / `?creatures=proc` → the rigged creature GLBs
  * (src/entities/glbCreatures.ts, on by default since 2026-09-23; `proc` = the procedural creatures) alone.
  */
-export type ModelPart = 'yurt' | 'props' | 'rocks' | 'balbal' | 'creatures';
-const PART_DEFAULT: Readonly<Record<ModelPart, boolean>> = { yurt: false, props: true, rocks: true, balbal: true, creatures: true };
+export type ModelPart = 'props' | 'rocks' | 'balbal' | 'creatures';
+const PART_DEFAULT: Readonly<Record<ModelPart, boolean>> = { props: true, rocks: true, balbal: true, creatures: true };
 
 export function modelsOn(part: ModelPart): boolean {
   if (typeof location === 'undefined') return PART_DEFAULT[part];
   const q = new URLSearchParams(location.search);
   const all = q.get('models');
   if (all === '0') return false;
-  if (part === 'yurt' && all !== '1') return setting('yurts') === 'model';   // the Look Lab pick (the URL's ?yurts= overrides it)
   if (part === 'creatures') { const c = q.get('creatures'); if (c === 'glb' || c === 'proc') return c === 'glb'; }
   if (all === '1') return true;
   return PART_DEFAULT[part];
@@ -115,7 +112,7 @@ const ready = new Map<string, RawModel>();
 /** per loaded static model: its colours as loaded, and with the AO baked in (made the first time the variant is on) */
 const shades = new Map<THREE.BufferGeometry, { plain: Float32Array; ao: Float32Array | null }>();
 /** each model material → the model's own geometry (a builder may draw a fitted clone of it: the dressing's rocks) */
-let modelShadeOn = false;
+let modelShadeOn = true;
 const modelMats = new WeakMap<THREE.Material, THREE.BufferGeometry>();
 const modelMatList = new Set<THREE.Material>();
 /**
@@ -362,7 +359,7 @@ export function addModelInstances(parent: THREE.Object3D, sky: Sky, name: Nalati
 /** each model's size in its own space, W × H × D (m) — the finished GLBs' measured boxes (Blender post), for scaling a
  *  placement to a wanted size before the file has loaded */
 export const MODEL_SIZE: Readonly<Record<NalatiModelName, readonly [number, number, number]>> = {
-  yurt: [4.72, 2.9, 4.76], 'horse-saddled': [0.71, 1.9, 2.31], 'horse-wild': [0.78, 1.75, 2.16], spruce: [5.96, 15.69, 5.58],
+  'horse-saddled': [0.71, 1.9, 2.31], 'horse-wild': [0.78, 1.75, 2.16], spruce: [5.96, 15.69, 5.58],
   wolf: [0.48, 0.85, 0.94], sheep: [0.5, 0.95, 1.19], 'snow-leopard': [0.48, 0.8, 1.33], eagle: [0.43, 0.85, 0.57],
   'golden-king': [0.88, 2.1, 0.68], balbal: [0.68, 1.6, 0.59], 'boulder-1': [1.65, 1.4, 1.66], 'boulder-2': [2.15, 2.0, 2.14],
   'boulder-3': [3.11, 0.8, 2.58], 'kumis-churn': [0.6, 1.1, 0.66], cauldron: [1.57, 1.7, 1.32], saddle: [0.54, 0.6, 0.46],
@@ -372,7 +369,7 @@ export const MODEL_SIZE: Readonly<Record<NalatiModelName, readonly [number, numb
 
 /** triangles per model (desktop GLB; the phone GLB is the same mesh) — for the POIs' tri counts */
 export const MODEL_TRIS: Readonly<Record<NalatiModelName, number>> = {
-  yurt: 4272, 'horse-saddled': 8000, 'horse-wild': 8000, spruce: 2999, wolf: 7523, sheep: 4802, 'snow-leopard': 7997,
+  'horse-saddled': 8000, 'horse-wild': 8000, spruce: 2999, wolf: 7523, sheep: 4802, 'snow-leopard': 7997,
   eagle: 5903, 'golden-king': 8000, balbal: 1473, 'boulder-1': 800, 'boulder-2': 800, 'boulder-3': 800, 'kumis-churn': 1334,
   cauldron: 1406, saddle: 1456, firewood: 1492, chest: 1417, watchtower: 4000, 'snow-lotus': 2233, 'kokpar-rider': 9000,
 };

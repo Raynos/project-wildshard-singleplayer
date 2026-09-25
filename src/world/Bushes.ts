@@ -7,7 +7,7 @@
  *   scene.add(bushes.mesh);
  */
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CHUNK_HALF, ROAD_WIDTH } from '../core/config';
 import { heightAt, normalAt, waterLevel, inChunk } from './Heightfield';
 import { Rng } from '../core/rng';
@@ -63,12 +63,15 @@ export class Bushes {
       if (tint === undefined) continue;
       for (let k = 0; k < lobes; k++) {
         const r = b.r * rng.range(0.55, 1.0);
-        const g = new THREE.IcosahedronGeometry(r, TIER_CONFIG.bushDetail); // 80 tris a lobe on desktop, 20 on the phone
+        const ico = new THREE.IcosahedronGeometry(r, TIER_CONFIG.bushDetail); // 80 tris a lobe on desktop, 20 on the phone
+        ico.deleteAttribute('uv'); ico.deleteAttribute('normal');
+        // three's icosahedron is non-indexed (every face owns its corners): weld them before the jitter, or each copy
+        // moves on its own and the lobe splits into see-through cracks (E116)
+        const g = mergeVertices(ico);
         const pos = g.getAttribute('position');
         for (let i = 0; i < pos.count; i++) { const s = 1 + (rng.next() - 0.5) * 0.25; pos.setXYZ(i, pos.getX(i) * s, pos.getY(i) * s * 0.7, pos.getZ(i) * s); }
         const a = rng.range(0, Math.PI * 2), d = k === 0 ? 0 : rng.range(0.3, b.r * 0.8);
         g.translate(b.x + Math.cos(a) * d, y + r * 0.45, b.z + Math.sin(a) * d);
-        g.deleteAttribute('uv'); g.deleteAttribute('normal');
         const ni = g.index ? g.toNonIndexed() : g;
         const n = ni.getAttribute('position').count, col = new Float32Array(n * 3);
         const p = ni.getAttribute('position');

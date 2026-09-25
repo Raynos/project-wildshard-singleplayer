@@ -25,7 +25,9 @@ like a genuine PS5 game
 ## Status
 
 Playable: `pnpm install && pnpm assets && pnpm dev` → http://localhost:5173 (see `docs/RUNNING.md`).
-Target look: `art/<subject>/round-<n>/` (codex/OpenAI image-gen mockups, index in `art/README.md`); gap list: `docs/AAA-PLAN.md`;
+Target look: `art/<subject>/round-<n>/` (mockups from codex/OpenAI image-gen, or local Qwen-Image-2.1 turbo via
+`scripts/mockup-local.sh`, ~20–35 s per image on the M5 Max; index in `art/README.md`, when to use which in AGENTS.md
+"Mockups"); gap list: `docs/AAA-PLAN.md`;
 progress photos, `timelapse.mp4` and `progress-video.mp4`: `progress/`.
 
 Physics: Rapier 3D (`src/physics/`). Both shards collide for real: the player and nearby creatures on a character

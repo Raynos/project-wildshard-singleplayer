@@ -113,13 +113,8 @@ export const OPTION_VALUES = {
   pinesky: ['clock', 'sunset'],                        // Pine Hollow: the day / night clock (PH-L2, src/world/PineDayNight.ts) or the pre-remaster fixed HDRI sunset — Jake picks (a reload)
   weather: ['live', 'clear', 'fog', 'rain'],           // Pine Hollow: the weather (PH-L10, src/pinehollow/weather.ts) — live: dawn fog + showers; clear = none (the before); fog / rain hold one — live
   fps: ['auto', '30', '60'],                           // frame cap (Game.start, tier.ts frameCapFps): auto = Pine Hollow's phone tier locked at 30 (PH-P1), else the display's rate — live
-  // the Nalati Look Lab (NALATI-MERGE L2, src/nalati/look/lab.ts): wave 6's variants, each off (today's look) until the
-  // user picks — all live (uniforms / a vertex-colour swap), pause menu ▸ Settings ▸ Debug ▸ Look lab, Nalati only
-  terrainShadow: ['off', 'on'],                        // the terrain casts the baked shadows (look/terrainLight.ts): long dusk shadows off the ridges
-  terrainAO: ['off', 'on'],                            // baked terrain AO + a green bounce off the sunlit meadow (look/terrainLight.ts)
-  modelShade: ['off', 'on'],                           // Driftwood's model shading on the generated GLBs: a baked AO in their vertex colours (glbPaint.ts)
-  yurts: ['proc', 'model'],                            // D1: the camp yurts — procedural (today) or the model (Blender, scripts/blender/nalati_yurt.py); on the next load
-  campPeople: ['proc', 'blender', 'gen'],              // D2: the camp's people — Q2's procedural figures, or generated + rigged models (Blender / image-to-3D pipeline; src/nalati/campPeopleModels.ts)
+  // the Nalati Look Lab (NALATI-MERGE L2, src/nalati/look/lab.ts): wave 6's picks are locked in (N20, the user: terrain
+  // shadows off, terrain AO off, model shading on, yurts procedural, camp people the image-to-3D models) and their switches gone
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -141,11 +136,6 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly 
   pinesky: { def: 'clock', params: ['pinesky'], url: (q) => (q.get('tod') === 'sunset-fixed' ? 'sunset' : q.get('pinesky')) }, // ?tod=sunset-fixed: the before shots
   weather: { def: 'live', params: ['weather', 'weatherT'], url: (q) => q.get('weather') },            // ?weather=rain&weatherT=0.5: a held shower (captures)
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
-  terrainShadow: { def: 'off', params: ['tshadow'], url: (q) => onOff(q.get('tshadow')) },   // ?tshadow=1: the before / after sheets
-  terrainAO: { def: 'off', params: ['tao'], url: (q) => onOff(q.get('tao')) },
-  modelShade: { def: 'off', params: ['modelshade'], url: (q) => onOff(q.get('modelshade')) },
-  yurts: { def: 'proc', params: ['yurts'], url: (q) => { const v = q.get('yurts'); return v === null ? null : v === '1' || v === 'model' ? 'model' : 'proc'; } },
-  campPeople: { def: 'proc', params: ['people'], url: (q) => q.get('people') },                 // ?people=blender|gen: the D2 sheets
 };
 // Settings ▸ Graphics ▸ Island (X2) saved under its own key before E55: carried over once
 if (saved['island'] === undefined) { try { const legacy = localStorage.getItem('ws.island.v1'); if (legacy !== null) saved['island'] = legacy; } catch { /* private mode */ } }
@@ -153,7 +143,6 @@ const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => new Choice
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   gpu: option('gpu'), island: option('island'), tier: option('tier'), touch: option('touch'), matte: option('matte'), time: option('time'), lut: option('lut'),
   lighting: option('lighting'), sky: option('sky'), post: option('post'), pinesky: option('pinesky'), weather: option('weather'), fps: option('fps'),
-  terrainShadow: option('terrainShadow'), terrainAO: option('terrainAO'), modelShade: option('modelShade'), yurts: option('yurts'), campPeople: option('campPeople'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 

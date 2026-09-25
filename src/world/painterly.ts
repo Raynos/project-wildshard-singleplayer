@@ -105,18 +105,6 @@ export const painterlyUniforms = {
    * darkens and takes a glossy sun glint + a sky sheen; the painterly grass (GrassPainterly.ts) reads the same uniform.
    */
   uPWet: { value: 0 },
-  /**
-   * the terrain's baked light (the Nalati Look Lab, src/nalati/look/terrainLight.ts; all off by default → today's look):
-   * rgba = the top of the ridges' shadow over each metre (world y), the distance to the ridge casting it (m), how sunlit the
-   * ground there is (N·L × that shadow, mipmapped: the bounce), the ground's sky visibility (the AO)
-   */
-  tPTerrain: { value: null as THREE.Texture | null },
-  /** x, z origin (m), 1 / size (1/m), the bounce's mip */
-  uPTerrainXf: { value: new THREE.Vector4(-256, -256, 1 / 512, 3) },
-  /** x = terrain shadow 0..1, y = AO strength, z = bounce strength, w = 1 once baked */
-  uPTerrainK: { value: new THREE.Vector4(0, 0, 0, 0) },
-  /** the bounce: the sunlit meadow's albedo × the share of the sky it fills for what stands beside it (linear, × the sun) */
-  uPBounce: { value: new THREE.Color(0.22, 0.3, 0.08) },
 };
 
 // live tuning / the parity harness: `window.__painterly.uPWet.value = 1`
@@ -171,50 +159,6 @@ if ( uPSway > 0.0 ) {
 }
 `;
 
-/**
- * GLSL: the terrain's baked light (see `tPTerrain`) — each is 1 / black while its Look Lab switch is off. The terrain
- * surface (src/nalati/terrainSurface.ts) and the grass (src/nalati/look/grass.ts) include it too; every painterly mesh
- * takes the terrain's shadow on its sun term (RE_Direct below).
- *   pTerrainShadow(wp)  1 = lit … 0 = in the shadow a ridge casts
- *   pTerrainAO(wp)      the ground's sky visibility as a multiplier (gullies, hollows under a ridge darker)
- *   pTerrainBounce(wp)  the sunlit ground round here, bounced: irradiance per unit of sun (× the sun's colour)
- */
-export const P_TERRAIN_GLSL = /* glsl */`
-uniform sampler2D tPTerrain;
-uniform vec4 uPTerrainXf;
-uniform vec4 uPTerrainK;
-uniform vec3 uPBounce;
-vec2 pTerrUV( vec3 wp ) { return ( wp.xz - uPTerrainXf.xy ) * uPTerrainXf.z; }
-bool pTerrIn( vec2 uv ) { return uv.x > 0.0 && uv.y > 0.0 && uv.x < 1.0 && uv.y < 1.0; }
-float pTerrainShadow( vec3 wp ) {
-  if ( uPTerrainK.x <= 0.0 || uPTerrainK.w < 0.5 ) return 1.0;
-  vec2 uv = pTerrUV( wp );
-  if ( !pTerrIn( uv ) ) return 1.0;
-  vec2 t = textureLod( tPTerrain, uv, 0.0 ).rg;
-  // soft by the angle the ridge's edge subtends (a painterly ~0.5°), never sharper than 12 cm
-  float lit = smoothstep( -1.0, 1.0, ( wp.y + 0.1 - t.x ) / ( 0.12 + 0.009 * t.y ) );
-  return mix( 1.0, lit, uPTerrainK.x );
-}
-float pTerrainAO( vec3 wp ) {
-  if ( uPTerrainK.y <= 0.0 || uPTerrainK.w < 0.5 ) return 1.0;
-  vec2 uv = pTerrUV( wp );
-  if ( !pTerrIn( uv ) ) return 1.0;
-  float v = textureLod( tPTerrain, uv, 0.0 ).a;
-  return mix( 1.0, mix( 0.5, 1.0, smoothstep( 0.4, 0.95, v ) ), uPTerrainK.y );
-}
-// the bounce reaches what sees the ground more than the sky: a gully's floor and walls, the foot of a slope (1 − the AO's
-// visibility), a little everywhere
-vec3 pTerrainBounce( vec3 wp ) {
-  if ( uPTerrainK.z <= 0.0 || uPTerrainK.w < 0.5 ) return vec3( 0.0 );
-  vec2 uv = pTerrUV( wp );
-  if ( !pTerrIn( uv ) ) return vec3( 0.0 );
-  float seesGround = clamp( 0.2 + 2.5 * ( 1.0 - textureLod( tPTerrain, uv, 0.0 ).a ), 0.0, 1.2 );
-  // the meadow bounces green; the snow ring's scree, granite and snow (above ~50 m) a pale neutral
-  vec3 col = mix( uPBounce, vec3( 0.26 ), smoothstep( 40.0, 60.0, wp.y ) );
-  return col * textureLod( tPTerrain, uv, uPTerrainXf.w ).b * seesGround * uPTerrainK.z;
-}
-`;
-
 const FRAG_PARS = /* glsl */`
 varying vec3 vViewPosition;
 uniform vec3 uPSunRef;
@@ -228,13 +172,6 @@ uniform float uPRim;
 uniform float uPBands;
 uniform float uPShadeAmt;
 uniform float uPFloorAmt;
-${P_TERRAIN_GLSL}
-// the ambient's multiplier and an extra irradiance, set in main() by a surface that bakes its own (the terrain: its AO +
-// the meadow's bounce, terrainSurface.ts) before the lights run; 1 / none for everything else
-float pIndirectK = 1.0;
-vec3 pIndirectAdd = vec3( 0.0 );
-// world position from the view-space one (the view matrix is a rotation + a translation)
-vec3 pWorld( vec3 viewPos ) { return transpose( mat3( viewMatrix ) ) * ( viewPos - viewMatrix[ 3 ].xyz ); }
 
 struct LambertMaterial {
   vec3 diffuseColor;
@@ -266,8 +203,6 @@ void RE_Direct_Lambert( const in IncidentLight directLight, const in vec3 geomet
   float ref = max( dot( uPSunRef, vec3( 1.0 ) ), 1e-4 );
   float vis = clamp( dot( directLight.color, vec3( 1.0 ) ) / ref, 0.0, 1.0 );
   vec3 lightCol = directLight.color / max( vis, 1e-3 );
-  // the terrain's own shadow (a ridge between here and the key light: the Look Lab's baked terrain shadow, 1 when off)
-  if ( uPTerrainK.x > 0.0 ) vis *= pTerrainShadow( pWorld( geometryPosition ) );
   float l = pCel( dotNL * vis );
   // lit side gets the light; the shade side is painted with the sky tint instead of going to black
   vec3 irradiance = lightCol * l + uPShade * ( 1.0 - l ) * uPShadeAmt;
@@ -287,7 +222,7 @@ void RE_Direct_Lambert( const in IncidentLight directLight, const in vec3 geomet
 
 void RE_IndirectDiffuse_Lambert( const in vec3 irradiance, const in vec3 geometryPosition, const in vec3 geometryNormal, const in vec3 geometryViewDir, const in vec3 geometryClearcoatNormal, const in LambertMaterial material, inout ReflectedLight reflectedLight ) {
   float pWet = pWetAt( geometryNormal );
-  reflectedLight.indirectDiffuse += ( irradiance * pIndirectK + pIndirectAdd ) * BRDF_Lambert( material.diffuseColor * ( 1.0 - 0.38 * pWet ) );
+  reflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor * ( 1.0 - 0.38 * pWet ) );
   // wet: the sky's sheen at grazing angles
   reflectedLight.indirectDiffuse += irradiance * pow( 1.0 - saturate( dot( geometryNormal, geometryViewDir ) ), 5.0 ) * pWet * 0.07;
   // the painted floor (see uPFloor): only the channels darker than 0.22 gain, so bright paint is untouched

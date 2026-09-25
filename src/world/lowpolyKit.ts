@@ -512,6 +512,28 @@ export function tris(v: number[]): THREE.BufferGeometry {
 
 const materials = new WeakMap<Sky, Map<string, THREE.MeshStandardMaterial>>();
 
+const SHADOW_NORMAL = 'vec3 shadowWorldNormal = transformNormalByInverseViewMatrix( transformedNormal, viewMatrix );';
+
+/**
+ * E112: turn each face's shadow normal-bias offset toward the light. The kit draws every model two-sided, and a lot of it
+ * is single sheets (the hut's hipped roof, the lookout banner, the wreck's torn sail, fringe, vines). three pushes the
+ * shadow lookup along the geometric normal (`normalBias`, 0.14 m here); on a sheet wound away from the sun that pushes it
+ * through the sheet, so the sunlit face read its own shadow: the whole hut roof sat in shade all day, and the sails and
+ * banner came out dark with ragged lit edges and per-triangle streaks. A face turned from the light is unlit by N·L
+ * anyway, so flipping its offset changes nothing for closed shapes and frees the sheets. No extra draw calls.
+ */
+function patchShadowNormal(shader: { uniforms: Record<string, THREE.IUniform>; vertexShader: string }, lightDir: THREE.Vector3): void {
+  if (!shader.vertexShader.includes('#include <shadowmap_vertex>') || !THREE.ShaderChunk.shadowmap_vertex.includes(SHADOW_NORMAL)) {
+    console.warn('[lowpoly] shadowmap_vertex changed: the E112 shadow-normal flip is off');
+    return;
+  }
+  shader.uniforms['uShadowLightDir'] = { value: lightDir };
+  shader.vertexShader = shader.vertexShader
+    .replace('#include <common>', '#include <common>\nuniform vec3 uShadowLightDir;')
+    .replace('#include <shadowmap_vertex>', THREE.ShaderChunk.shadowmap_vertex.replace(SHADOW_NORMAL,
+      `${SHADOW_NORMAL}\n\t\tif ( dot( shadowWorldNormal, uShadowLightDir ) > 0.0 ) shadowWorldNormal = - shadowWorldNormal;`));
+}
+
 /**
  * The one flat-shaded vertex-colour material every Driftwood model shares (so they batch into one
  * program and the scene pays one material state). `variant` keys an extra copy (e.g. 'glow' with an
@@ -524,7 +546,8 @@ export function lowPolyMaterial(sky: Sky, variant = 'default', init?: (m: THREE.
   if (!m) {
     m = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.88, metalness: 0, side: THREE.DoubleSide });
     // every kit model can sway (M5): geometry without aSway reads weight 0 and stays put
-    m.onBeforeCompile = (sh) => { attachFogUniforms(sh); patchSway(sh); };
+    // csm.lightDirection is the one vector the day / night clock copies the sun (or the moon) into, so the uniform follows it
+    m.onBeforeCompile = (sh) => { attachFogUniforms(sh); patchSway(sh); patchShadowNormal(sh, sky.csm.lightDirection); };
     m.customProgramCacheKey = () => `lowpoly-${variant}`;
     init?.(m);
     sky.setupMaterial(m);

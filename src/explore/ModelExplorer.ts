@@ -36,6 +36,14 @@ const GAIT: Record<Clip, number> = { idle: 0, walk: 1.3, trot: 3.2, charge: 7, h
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
 /** 86 tris · 5.3k tris */
 const trisLabel = (n: number): string => (n < 1000 ? `${n} tris` : `${(n / 1000).toFixed(1)}k tris`);
+/** the turntable's shadow map, every tier: one model in the map, so 2048 is cheap */
+const STUDIO_SHADOW_MAP = 2048;
+
+function setShadowMapSize(l: THREE.DirectionalLight, n: number): void {
+  if (l.shadow.mapSize.x === n) return;
+  l.shadow.mapSize.set(n, n); l.shadow.map?.dispose(); l.shadow.map = null;
+}
+
 const html = (tag: string, cls: string, inner = ''): HTMLElement => { const e = document.createElement(tag); e.className = cls; e.innerHTML = inner; return e; };
 
 export class ModelExplorer implements ExplorePane {
@@ -98,6 +106,8 @@ export class ModelExplorer implements ExplorePane {
         <div class="ws-x-actions"><button class="ws-x-inworld" type="button">View in world</button></div>
       </div>`);
     this.el.append(this.grid, this.sheet);
+    // index.html swallows touchmove outside [data-scroll]: without the mark the catalog can't scroll on a phone (E109)
+    for (const s of this.el.querySelectorAll<HTMLElement>('.ws-x-grid, .ws-x-filter, .ws-x-variants')) s.dataset['scroll'] = '';
     this.grid.querySelectorAll<HTMLElement>('.ws-x-filter button').forEach((b) => { b.addEventListener('click', () => { this.filter = (b.dataset['f'] ?? 'all') as Category | 'all'; this.renderGrid(); }); });
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-views button').forEach((b) => { b.addEventListener('click', () => { this.setView((b.dataset['v'] ?? 'solid') as View); }); });
     this.sheet.querySelectorAll<HTMLElement>('.ws-x-lights button').forEach((b) => { b.addEventListener('click', () => { this.setLight(Number(b.dataset['l'] ?? -1)); }); });
@@ -219,6 +229,7 @@ export class ModelExplorer implements ExplorePane {
     if (!this.current) { this.unisolate(); return; }
     this.setView('solid', false);
     this.restoreLight();
+    this.releaseShadows();
     this.unisolate();
     this.current = null;
   }
@@ -249,6 +260,34 @@ export class ModelExplorer implements ExplorePane {
     this.hidden.clear();
     this.studio.visible = false;
     if (this.savedBackground !== undefined) { this.world.game.scene.background = this.savedBackground; this.savedBackground = undefined; }
+  }
+
+  /** the turntable's shadow (E115): the shard's cascade spans 80 m at 1024 px on a phone, so a 6 m model got a hand's
+   *  width per shadow texel — blocky, swimming as you orbit, and the world's 0.14 m normal bias let light leak past every
+   *  edge. While a model is on show the cascade ends just past it, the map is STUDIO_SHADOW_MAP and the bias ~2.5 texels. */
+  private shadowSaved: { maxFar: number; bias: number[]; size: number } | null = null;
+
+  private fitShadows(): void {
+    const csm = this.world.game.sky.csm;
+    if (!this.shadowSaved) {
+      this.shadowSaved = { maxFar: csm.maxFar, bias: csm.lights.map((l) => l.shadow.normalBias), size: csm.lights[0]?.shadow.mapSize.x ?? 1024 };
+      for (const l of csm.lights) setShadowMapSize(l, STUDIO_SHADOW_MAP);
+    }
+    const far = this.dist + this.floor.scale.x * 1.4; // the floor disc is scaled to the model's (or the lineup's) radius
+    if (Math.abs(far - csm.maxFar) < far * 0.04) return;
+    csm.maxFar = far; csm.updateFrustums();
+    const texel = (far * 1.6) / STUDIO_SHADOW_MAP; // the cascade's box ≈ the view slice's bounding sphere, ~1.6 × far across
+    const saved = this.shadowSaved.bias;
+    csm.lights.forEach((l, i) => { l.shadow.normalBias = Math.min(saved[i] ?? 0.05, texel * 2.5); });
+  }
+
+  private releaseShadows(): void {
+    const s = this.shadowSaved;
+    if (!s) return;
+    this.shadowSaved = null;
+    const csm = this.world.game.sky.csm;
+    csm.maxFar = s.maxFar; csm.updateFrustums();
+    csm.lights.forEach((l, i) => { l.shadow.normalBias = s.bias[i] ?? l.shadow.normalBias; setShadowMapSize(l, s.size); });
   }
 
   private frameModel(o: THREE.Object3D): void {
@@ -531,6 +570,7 @@ export class ModelExplorer implements ExplorePane {
     const { camera } = this.world.game;
     const e = this.current;
     if (e) {
+      this.fitShadows();
       this.idle += dt;
       if (this.idle > 2.5 && !this.drag && this.tierShown.length === 0 && this.lineup === null) this.yaw += dt * 0.22; // the turntable turns while you look (not while comparing tiers / the lineup)
       const cp = Math.cos(this.pitch);

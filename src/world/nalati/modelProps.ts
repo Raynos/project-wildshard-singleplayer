@@ -3,46 +3,21 @@
  * builders when `modelsOn()`. Each twin keeps the procedural piece's footprint, colliders and return value (the flue's
  * mouth, the fire's centre), so smoke, pennants, the yard wear and the player's collision are unchanged; only the
  * look moves to the model. The model goes into a `ModelSink` (one InstancedMesh per model per POI); anything the
- * model lacks (the yurt's stove pipe) is still painted into the POI's kit.
+ * model lacks is still painted into the POI's kit.
  *
  *   const sink = new ModelSink();
- *   const top = addYurtModel(kit, sink, spec, colliders);        // like addYurt
  *   addChestModel(sink, ground, x, z, yaw, colliders);           // like addChest
  *   …  void sink.flush(group, sky);
  *
  * The GLBs face +Z; the procedural kit faces −z at yaw 0, so every twin turns the model by `yaw + π`.
  */
-import * as THREE from 'three';
-import { type PaintKit, M, v3 } from './paint';
-import { YURT_C, type YurtSpec, type YurtTop } from './Yurt';
+import type * as THREE from 'three';
+import { v3 } from './paint';
 import { MODEL_SIZE, type ModelSink } from './glbPaint';
 import type { Collider } from '../../player/Player';
-import type { Box } from './solid';
 import type { Ground } from './types';
 
 const FLIP = Math.PI;
-
-/** the yurt GLB scaled so its eave matches the procedural yurt of radius `s.r`; same octagon colliders; a stove pipe */
-export function addYurtModel(kit: PaintKit, sink: ModelSink, s: YurtSpec, colliders: Box[]): YurtTop {
-  const R = s.r, wallH = 1.55 + (R - 3) * 0.12, rise = R * 0.52;
-  const [w, h, d] = MODEL_SIZE.yurt;
-  const k = (R + 0.22) / (Math.min(w, d) / 2);
-  const H = h * k;
-  sink.add('yurt', { x: s.x, y: s.y - 0.06, z: s.z, rot: s.rot + FLIP, scale: k });
-  const mat = M(s.x, s.y, s.z, s.rot);
-  let flue: THREE.Vector3 | null = null;
-  if (s.flue === true) {
-    // the stove pipe out of the roof behind the crown (local +z is the back: the door is at −z)
-    const fx = R * 0.14, fz = R * 0.2, base = H * 0.78, top = H + 0.75;
-    kit.add(new THREE.CylinderGeometry(0.085, 0.085, top - base, 8).translate(fx, (top + base) / 2, fz), YURT_C.iron, { matrix: mat });
-    kit.add(new THREE.CylinderGeometry(0.16, 0.1, 0.1, 8).translate(fx, top + 0.1, fz), YURT_C.iron, { matrix: mat });
-    flue = v3(fx, top + 0.2, fz).applyMatrix4(mat);
-  }
-  for (const extra of [0, Math.PI / 4]) {
-    colliders.push({ x: s.x, z: s.z, hw: R * 0.93, hd: R * 0.93, rot: -(s.rot + extra), yBottom: s.y - 1, yTop: s.y + wallH + rise * 0.6, ghost: true });
-  }
-  return { crown: v3(0, H - 0.05, 0).applyMatrix4(mat), flue, height: H };
-}
 
 /** the kazan on its tripod over the fire ring (the cauldron GLB); returns the fire's centre for a plume, like addKazan */
 export function addKazanModel(sink: ModelSink, ground: Ground, x: number, z: number, colliders: Collider[], yaw = 0.4): THREE.Vector3 {
