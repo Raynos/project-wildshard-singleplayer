@@ -11,7 +11,7 @@ import { addYurt, yurtSolid } from './Yurt';
 import { PC, addKazan, addCart, addGroundRug, addChest, addBarrel } from './props';
 import { SUMMER_CAMP } from './layout';
 import { ModelSink, modelsOn } from './glbPaint';
-import { addYurtModel, addKazanModel, addChestModel } from './modelProps';
+import { addKazanModel, addChestModel } from './modelProps';
 import { buildYardDecal, wearDisc, wearPath } from './Yard';
 import type { ColliderDesc } from '../registry';
 import type { Box } from './solid';
@@ -24,7 +24,7 @@ export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
   const colliders: Box[] = [];
   const descs: ColliderDesc[] = [];
   const cx = SUMMER_CAMP.x, cz = SUMMER_CAMP.z;
-  const models = modelsOn('props'), yurtModels = modelsOn('yurt'); // the GLB yurts / kazan / chest (modelProps.ts), like the spring camp
+  const models = modelsOn('props'); // the GLB kazan / chest (modelProps.ts), like the spring camp
   const sink = new ModelSink();
   const Y = [{ a: 70, d: 9, r: 2.9, flue: true, pal: 1 }, { a: 175, d: 9.5, r: 2.6, flue: false, pal: 0 }, { a: -60, d: 9, r: 2.7, flue: true, pal: 2, old: true }];
   for (const y of Y) {
@@ -33,7 +33,7 @@ export function buildSummerCamp(ctx: PoiCtx): PoiPiece {
     let gy = ground(x, z);
     for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; gy = Math.min(gy, ground(x + Math.cos(t) * y.r, z + Math.sin(t) * y.r)); }
     const spec = { x, y: gy, z, rot, r: y.r, flue: y.flue, palette: y.pal, old: y.old ?? false };
-    const top = yurtModels ? addYurtModel(kit, sink, spec, colliders) : addYurt(kit, spec, colliders);
+    const top = addYurt(kit, spec, colliders);
     descs.push(...yurtSolid(spec, top.height));
     if (top.flue) smoke.emitter(top.flue, { puffs: 40, rise: 7, size: [0.6, 4.2], life: 9 });
   }

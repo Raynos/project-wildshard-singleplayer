@@ -110,13 +110,8 @@ export const OPTION_VALUES = {
   lighting: ['toon', 'standard'],                      // Driftwood: the toon ramp (src/world/stylize.ts, L1) — locked in (E87, the user's pick); only ?lighting=standard reads it
   sky: ['stylized', 'hdri'],                           // Driftwood: the gradient dome + faceted cumulus (L2) — locked in (E83, the user's pick); only ?sky=hdri reads it
   post: ['clean', 'cinematic'],                        // Driftwood: the clean low-poly post (L5) — locked in (E88, the user's pick); only ?post=cinematic reads it
-  // the Nalati Look Lab (NALATI-MERGE L2, src/nalati/look/lab.ts): wave 6's variants, each off (today's look) until the
-  // user picks — all live (uniforms / a vertex-colour swap), pause menu ▸ Settings ▸ Debug ▸ Look lab, Nalati only
-  terrainShadow: ['off', 'on'],                        // the terrain casts the baked shadows (look/terrainLight.ts): long dusk shadows off the ridges
-  terrainAO: ['off', 'on'],                            // baked terrain AO + a green bounce off the sunlit meadow (look/terrainLight.ts)
-  modelShade: ['off', 'on'],                           // Driftwood's model shading on the generated GLBs: a baked AO in their vertex colours (glbPaint.ts)
-  yurts: ['proc', 'model'],                            // D1: the camp yurts — procedural (today) or the model (Blender, scripts/blender/nalati_yurt.py); on the next load
-  campPeople: ['proc', 'blender', 'gen'],              // D2: the camp's people — Q2's procedural figures, or generated + rigged models (Blender / image-to-3D pipeline; src/nalati/campPeopleModels.ts)
+  // the Nalati Look Lab (NALATI-MERGE L2, src/nalati/look/lab.ts): wave 6's picks are locked in (N20, the user: terrain
+  // shadows off, terrain AO off, model shading on, yurts procedural, camp people the image-to-3D models) and their switches gone
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -135,11 +130,6 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly 
   lighting: { def: 'toon', params: ['lighting'], url: (q) => q.get('lighting') },
   sky: { def: 'stylized', params: ['sky'], url: (q) => q.get('sky') },
   post: { def: 'clean', params: ['post'], url: (q) => q.get('post') },
-  terrainShadow: { def: 'off', params: ['tshadow'], url: (q) => onOff(q.get('tshadow')) },   // ?tshadow=1: the before / after sheets
-  terrainAO: { def: 'off', params: ['tao'], url: (q) => onOff(q.get('tao')) },
-  modelShade: { def: 'off', params: ['modelshade'], url: (q) => onOff(q.get('modelshade')) },
-  yurts: { def: 'proc', params: ['yurts'], url: (q) => { const v = q.get('yurts'); return v === null ? null : v === '1' || v === 'model' ? 'model' : 'proc'; } },
-  campPeople: { def: 'proc', params: ['people'], url: (q) => q.get('people') },                 // ?people=blender|gen: the D2 sheets
 };
 // Settings ▸ Graphics ▸ Island (X2) saved under its own key before E55: carried over once
 if (saved['island'] === undefined) { try { const legacy = localStorage.getItem('ws.island.v1'); if (legacy !== null) saved['island'] = legacy; } catch { /* private mode */ } }
@@ -147,7 +137,6 @@ const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => new Choice
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   gpu: option('gpu'), island: option('island'), tier: option('tier'), touch: option('touch'), matte: option('matte'), time: option('time'), lut: option('lut'),
   lighting: option('lighting'), sky: option('sky'), post: option('post'),
-  terrainShadow: option('terrainShadow'), terrainAO: option('terrainAO'), modelShade: option('modelShade'), yurts: option('yurts'), campPeople: option('campPeople'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 

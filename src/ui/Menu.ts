@@ -364,19 +364,7 @@ export class GameMenu {
       dbg.append(el('ws-gmenu-label', 'Look'), time);
       // Look Lab (E65) is done: the sky (E83), lighting (E87) and post (E88) picks are locked in; the URL alone builds the old looks
     }
-    // the Nalati Look Lab (NALATI-MERGE L2, src/nalati/look/lab.ts): the wave-6 variants, each off (today's look) until the
-    // user picks — all live, the next frame shows the pick
-    if (getActiveChunk().slug === 'nalati-grasslands') {
-      const onOff = [{ v: 'off' as const, text: 'Off' }, { v: 'on' as const, text: 'On' }];
-      const lab = (k: 'terrainShadow' | 'terrainAO' | 'modelShade', label: string) =>
-        picker(label, onOff, () => setting(k), (v) => { saveSetting(k, v); }, (fn) => { onSettingChange(k, fn); });
-      const yurts = picker('Yurts (next load)', [{ v: 'proc' as const, text: 'Procedural' }, { v: 'model' as const, text: 'Blender model' }],
-        () => setting('yurts'), (v) => { saveSetting('yurts', v); }, (fn) => { onSettingChange('yurts', fn); });
-      const people = picker('Camp people', [{ v: 'proc' as const, text: 'Procedural' }, { v: 'blender' as const, text: 'Blender' }, { v: 'gen' as const, text: 'Image-to-3D' }],
-        () => setting('campPeople'), (v) => { saveSetting('campPeople', v); }, (fn) => { onSettingChange('campPeople', fn); });
-      dbg.append(el('ws-gmenu-label', 'Look lab'), lab('terrainShadow', 'Terrain shadows'), lab('terrainAO', 'Terrain AO + bounce'), lab('modelShade', 'Model shading'), yurts, people,
-        el('ws-gmenu-note', 'Taste picks, each a real look: the ridges casting their dusk shadows · gullies darker and a green bounce off the sunlit meadow · the generated rocks and props with a baked AO (Driftwood\'s model shading) · the camp\'s yurts as the Blender model (on the next load) · the camp\'s five people as generated, rigged models (Blender\'s faceted colours or the image-to-3D atlas). Off / Procedural = today.'));
-    }
+    // the Nalati Look Lab (NALATI-MERGE L2): wave 6's picks are locked in (N20) — no switch left
     dbg.append(el('ws-gmenu-note', 'Renderer, island, quality and render scale: Exit to main menu ▸ Settings.'));
     dbg.append(this.buildReview());
   }

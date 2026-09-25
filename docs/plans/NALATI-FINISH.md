@@ -1,6 +1,6 @@
 # NALATI-FINISH — land Nalati on main, then the user's picks and the leftovers
 
-**State:** `in progress` 2026-09-24 — Nalati is on main (b3d4e00, live). Done: U1–U2, P2 (score), P3 (defaults). In flight (an agent, finishing on its own): P1 = the N20 lock-in (shadows OFF, AO OFF, model shading ON, procedural yurts, image-to-3D camp people) + B6 = N23 hide the slab edge (a Look Lab switch + a board for the user). Next session: B5 (camp people's faces), B1–B3, B4; the user: P4 (N11, Low Power Mode off), U3 (delete the branch), his bug list.
+**State:** `in progress` 2026-09-24 — Nalati is on main (b3d4e00, live). Done: U1–U2, P2 (score), P3 (defaults). P1 = the N20 lock-in is done (shadows OFF, AO OFF, model shading ON, procedural yurts, image-to-3D camp people). In flight (an agent, finishing on its own): B6 = N23 hide the slab edge (a Look Lab switch + a board for the user). Next session: B5 (camp people's faces), B1–B3, B4; the user: P4 (N11, Low Power Mode off), U3 (delete the branch), his bug list.
 
 The mini plan for everything left after [NALATI-MERGE](../../project/archive/2026-09-24-nalati-merge.md) (archived
 2026-09-24, every row built on the `nalati-grasslands` branch). The asks: N10, N11, N13, N14, N20, N21, N22.
@@ -23,7 +23,7 @@ deploy). The final fast-forward of main then sends almost nothing.
 
 | # | row | state |
 |---|---|---|
-| P1 | N20 — PICKED (2026-09-24): terrain shadows OFF, terrain AO + bounce OFF, model shading ON, yurts procedural, camp people image-to-3D ("Models 3D local ai model is best"); the lock-in is in flight (the N23 agent, same files). Was: the Look Lab picks after playing: terrain shadows · terrain AO + bounce · model shading · Yurts (procedural / Blender) · Camp people (procedural / Blender / image-to-3D). Then lock the picks in and remove the losing variants | ✅ locked in (2026-09-24): terrain shadows off + terrain AO / bounce off (terrainLight.ts and its receivers gone), model shading always on, yurts procedural (the Blender yurt model gone), camp people the image-to-3D models (the Blender people gone; the procedural figures stay in campPeople.ts as the rig's frame, the fallback and B5's faces); the Look Lab switches, `?tshadow` `?tao` `?modelshade` `?yurts` `?people` gone |
+| P1 | N20 — PICKED (2026-09-24): terrain shadows OFF, terrain AO + bounce OFF, model shading ON, yurts procedural, camp people image-to-3D ("Models 3D local ai model is best"). Was: the Look Lab picks after playing: terrain shadows · terrain AO + bounce · model shading · Yurts (procedural / Blender) · Camp people (procedural / Blender / image-to-3D). Then lock the picks in and remove the losing variants | ✅ locked in (2026-09-24): terrain shadows off + terrain AO / bounce off (terrainLight.ts and its receivers gone), model shading always on, yurts procedural (the Blender yurt model gone), camp people the image-to-3D models (the Blender people gone; the procedural figures stay in campPeople.ts as the rig's frame, the fallback and B5's faces); the Look Lab switches, `?tshadow` `?tao` `?modelshade` `?yurts` `?people` gone |
 | P2 | N21: a take per score slot (grass / sky / snow / night / storm / king, e.g. "king 301") on https://claude.ai/artifact/EQdaQCVdG9Kjnwvs4qaQra; keep or drop the kobyz (MiniMax plays it plucked) | ✅ the user delegated ("pick the music you think is best"): the measured #1 takes stay, the kobyz stays |
 | P3 | N22: confirm the parked defaults: the day glyph on Nalati only · the "DAY" word in HUD D · DODGE on D's arc · the Golden Bow's sun arrow on every full draw · AIM 2×, arms tire at 8 s · the new joke titles · the camp people's look · the Hunyuan-sourced models (for main's licence ask E101) | ✅ answered: glyph / AIM / titles / licence fine; HUD + the Golden Bow the user fixes himself later; the camp people need more work → B5 |
 | P4 | N11: one real-iPhone reading with Low Power Mode off (target 30 fps, max graphics) | needs the user |
@@ -54,5 +54,5 @@ deploy). The final fast-forward of main then sends almost nothing.
 - **The user owes:** his bug list from playing (PAUSE ▸ FEEDBACK in the game drops them into `pnpm inbox:pull`), one
   iPhone reading with Low Power Mode off (P4 / N11), and he fixes the HUD + the Golden Bow himself later (N22).
 - **Evidence + tools:** progress/nalati-merge/*, the Look Lab boards (progress/nalati-merge/look-lab/boards/),
-  scripts/nalati-boot-check.mjs (all three shards, muted), scripts/nalati-looklab.mjs, scripts/nalati-chunk-views.mjs,
+  scripts/nalati-boot-check.mjs (all three shards, muted), scripts/nalati-chunk-views.mjs,
   scripts/nalati-ride-physics.mjs, scripts/nalati-quest-check.mjs, scripts/nalati-hud-capture.mjs.

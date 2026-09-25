@@ -9,7 +9,7 @@
  *   const camp = buildNomadCamp(ctx);      // PoiPiece: object, colliders (boxes, wood), descs (the yurts' felt), tris
  *
  * One merged mesh; the ribbons / pennants go into `ctx.flutter`, the plumes into `ctx.smoke`. With `modelsOn()` (glbPaint.ts:
- * 'yurt' / 'props') the yurts, the kazan, chests, woodpile, churns, ground saddles and the eagle are the generated GLB models instead
+ * 'props') the kazan, chests, woodpile, churns, ground saddles and the eagle are the generated GLB models instead
  * (modelProps.ts: same footprints, colliders, flues), one InstancedMesh per model, added when they have loaded.
  * Terrain request: a flat pad r 30 at (95, 205) (the valley floor, ≈ −8).
  */
@@ -20,7 +20,7 @@ import { PC, addBarrel, addChest, addWoodpile, addStove, addKazan, addCart, addS
 import { buildYardDecal, wearDisc, wearPath } from './Yard';
 import { CAMP, CORRAL, HITCHING_RAIL } from './layout';
 import { ModelSink, modelsOn } from './glbPaint';
-import { addYurtModel, addKazanModel, addChestModel, addWoodpileModel, addChurnModel, addGroundSaddleModel, addEagleModel } from './modelProps';
+import { addKazanModel, addChestModel, addWoodpileModel, addChurnModel, addGroundSaddleModel, addEagleModel } from './modelProps';
 import type { ColliderDesc } from '../registry';
 import type { Box } from './solid';
 import type { PoiCtx, PoiPiece } from './types';
@@ -44,7 +44,7 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
   const colliders: Box[] = [];
   const descs: ColliderDesc[] = [];
   const cx = CAMP.x, cz = CAMP.z;
-  const models = modelsOn('props'), yurtModels = modelsOn('yurt');
+  const models = modelsOn('props');
   const sink = new ModelSink();
 
   // ── yurts ──
@@ -60,7 +60,7 @@ export function buildNomadCamp(ctx: PoiCtx): PoiPiece {
     for (let k = 0; k < 8; k++) { const t = (k / 8) * Math.PI * 2; gy = Math.min(gy, ground(x + Math.cos(t) * y.r, z + Math.sin(t) * y.r)); }
     gy = Math.min(gy, ground(x, z));
     const spec = { x, y: gy, z, rot, r: y.r, flue: y.flue, palette: y.pal, old: y.old ?? false, base: y.base };
-    const top = yurtModels ? addYurtModel(kit, sink, spec, colliders) : addYurt(kit, spec, colliders);
+    const top = addYurt(kit, spec, colliders);
     descs.push(...yurtSolid(spec, top.height));
     if (top.flue) smoke.emitter(top.flue, { puffs: 40, rise: 7, size: [0.6, 4.2], life: 9 });
     // a red pennant on a short pole at the crown of every other yurt

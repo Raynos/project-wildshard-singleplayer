@@ -34,7 +34,7 @@ import { heightAt, trailDistance, splatAt } from '../../world/Heightfield';
 import { grassBaseHeightAt, trailGrass, grassToneAt, groundColorAt, grassBloomAt, flowerSpeciesAt } from '../../world/GrassField';
 import { wind, WIND_GLSL } from '../../world/steppeWind';
 import { trample, TRAMPLE_GLSL } from '../../world/GrassTrample';
-import { painterlyUniforms, P_TERRAIN_GLSL } from '../../world/painterly';
+import { painterlyUniforms } from '../../world/painterly';
 import { fogUniforms, paintedAir } from '../../world/Atmosphere';
 import { dressingCover } from '../../world/nalati/dressing';
 import type { Sky } from '../../world/Sky';
@@ -120,7 +120,6 @@ vec3 gLight(vec3 n, float wrap, float sh) {
 const BLADE_VS = /* glsl */`
 ${COMMON}
 ${LOOK_BAKE_GLSL}
-${P_TERRAIN_GLSL}
 ${WIND_GLSL}
 ${TRAMPLE_GLSL}
 attribute float aT; attribute float aSide;
@@ -128,7 +127,7 @@ uniform float uSpacing; uniform float uPerSide; uniform float uWidth; uniform fl
 uniform vec4 uHole;       // inner ring square: centre x, z, half size, on
 uniform vec3 uNear;       // the card ring's hand-over: r0, r1, the share of blades kept under the cards (1 = no cards)
 uniform float uTime;
-varying float vT; varying vec3 vFogWorldPos; varying float vFogDepth; varying vec3 vN; varying vec3 vCol; varying float vSelf; varying float vSh; varying vec3 vBounce;
+varying float vT; varying vec3 vFogWorldPos; varying float vFogDepth; varying vec3 vN; varying vec3 vCol; varying float vSelf; varying float vSh;
 void main() {
   float per = uPerSide * uPerSide;
   float tile = floor(float(gl_InstanceID) / per);
@@ -192,10 +191,8 @@ void main() {
   vSelf = mix(.3, 1., pow(t, .9)) * mix(.6, 1., r);
   vT = t;
   vFogWorldPos = p;
-  vSh = bakedShadow(p + vec3(0., .12, 0.)) * pTerrainShadow(p + vec3(0., .12, 0.));   // the static bake × the terrain's own (Look Lab)
+  vSh = bakedShadow(p + vec3(0., .12, 0.));   // the static bake
   vSelf *= mix(bakedContact(root), 1., t * .5);   // the contact shade under the yurts / rocks / trunks, most at the roots
-  vSelf *= mix(pTerrainAO(root), 1., t * .35);    // the Look Lab's terrain AO: gullies and hollows darker (1 when off)
-  vBounce = pTerrainBounce(root);                  // … and the sunlit meadow's green bounce (0 when off)
   vec4 mv = viewMatrix * vec4(p, 1.);
   vFogDepth = -mv.z;
   gl_Position = projectionMatrix * mv;
@@ -204,11 +201,11 @@ void main() {
 const BLADE_FS = /* glsl */`
 ${LIGHT}
 #include <fog_pars_fragment>
-varying float vT; varying vec3 vN; varying vec3 vCol; varying float vSelf; varying float vSh; varying vec3 vBounce;
+varying float vT; varying vec3 vN; varying vec3 vCol; varying float vSelf; varying float vSh;
 void main() {
   vec3 v = normalize(vFogWorldPos - cameraPosition);
   float back = pow(clamp(dot(v, uSunView), 0., 1.), 4.) * vT * vT;      // translucent against the sun
-  vec3 lit = vCol * (gLight(normalize(vN), .25, vSh) + uPSunRef * (0.78 / 2.8) * vBounce * uGrassGain) * .8 + uPSunRef * (0.78 / 2.8) * back * vec3(.55, .5, .08) * .9 * uGrassGain * vSh;
+  vec3 lit = vCol * gLight(normalize(vN), .25, vSh) * .8 + uPSunRef * (0.78 / 2.8) * back * vec3(.55, .5, .08) * .9 * uGrassGain * vSh;
   gl_FragColor = vec4(gMood(lit * vSelf), 1.);
   #include <fog_fragment>
 }`;
@@ -216,7 +213,6 @@ void main() {
 const FLOWER_VS = /* glsl */`
 ${COMMON}
 ${LOOK_BAKE_GLSL}
-${P_TERRAIN_GLSL}
 uniform float uSpacing; uniform float uPerSide; uniform float uFade0; uniform float uFade1; uniform float uTime; uniform vec3 uNear;
 varying vec2 vUv; varying float vType; varying vec3 vFogWorldPos; varying float vFogDepth; varying float vSeed; varying float vSh;
 void main() {
@@ -250,7 +246,7 @@ void main() {
   float sway = sin(uTime * 2. + r * 30.) * .03 * position.y;
   vec3 p = vec3(xz.x, groundH(xz) - .02, xz.y) + vec3(right.x, 0., right.y) * (position.x * w + sway) + vec3(0., position.y * h * s, 0.);
   vUv = position.xy + vec2(.5, 0.); vType = type; vFogWorldPos = p; vSeed = r;
-  vSh = bakedShadow(p + vec3(0., .12, 0.)) * pTerrainShadow(p + vec3(0., .12, 0.)) * bakedContact(p) * pTerrainAO(p) + 0.001;
+  vSh = bakedShadow(p + vec3(0., .12, 0.)) * bakedContact(p) + 0.001;
   vec4 mv = viewMatrix * vec4(p, 1.);
   vFogDepth = -mv.z;
   gl_Position = projectionMatrix * mv;
@@ -305,12 +301,11 @@ void main() {
 const CARD_VS = /* glsl */`
 ${COMMON}
 ${LOOK_BAKE_GLSL}
-${P_TERRAIN_GLSL}
 ${WIND_GLSL}
 ${TRAMPLE_GLSL}
 attribute float aQ;       // which of the 3 crossed quads (0, 1, 2 → 0°, 60°, 120° round the clump's own turn)
 uniform float uSpacing; uniform float uPerSide; uniform vec3 uNear; uniform vec4 uCells[16]; uniform float uTime;
-varying vec2 vUv; varying vec3 vFogWorldPos; varying float vFogDepth; varying vec3 vN; varying vec3 vTint; varying float vT; varying float vSh; varying float vSelf; varying vec3 vBounce;
+varying vec2 vUv; varying vec3 vFogWorldPos; varying float vFogDepth; varying vec3 vN; varying vec3 vTint; varying float vT; varying float vSh; varying float vSelf;
 void main() {
   float per = uPerSide * uPerSide;
   float tile = floor(float(gl_InstanceID) / per);
@@ -369,10 +364,9 @@ void main() {
   float gold = clamp(smoothstep(.42, .78, gFbm(xz * .21 + 11.)) * .85 + fld.g * .45, 0., 1.) * (1. - .7 * lush);
   vTint = mix(mix(vec3(.86, .98, .78), vec3(.68, .92, .7), lush), vec3(1.12, .98, .7), gold) * mix(.78, 1.08, r) * mix(.85, 1.05, patchN);
   vT = t;
-  vSelf = mix(.42, 1., smoothstep(0., .8, t)) * mix(bakedContact(root), 1., t * .5) * mix(pTerrainAO(root), 1., t * .35);
-  vBounce = pTerrainBounce(root);
+  vSelf = mix(.42, 1., smoothstep(0., .8, t)) * mix(bakedContact(root), 1., t * .5);
   vFogWorldPos = p;
-  vSh = bakedShadow(p + vec3(0., .12, 0.)) * pTerrainShadow(p + vec3(0., .12, 0.));
+  vSh = bakedShadow(p + vec3(0., .12, 0.));
   vec4 mv = viewMatrix * vec4(p, 1.);
   vFogDepth = -mv.z;
   gl_Position = projectionMatrix * mv;
@@ -382,7 +376,7 @@ const CARD_FS = /* glsl */`
 ${LIGHT}
 #include <fog_pars_fragment>
 uniform sampler2D tCards; uniform float uA2C;
-varying vec2 vUv; varying vec3 vN; varying vec3 vTint; varying float vT; varying float vSh; varying float vSelf; varying vec3 vBounce;
+varying vec2 vUv; varying vec3 vN; varying vec3 vTint; varying float vT; varying float vSh; varying float vSelf;
 void main() {
   vec4 tx = texture(tCards, vUv);
   float a = tx.a;
@@ -392,7 +386,7 @@ void main() {
   vec3 v = normalize(vFogWorldPos - cameraPosition);
   float back = pow(clamp(dot(v, uSunView), 0., 1.), 4.) * vT;
   vec3 alb = tx.rgb * vTint;
-  vec3 lit = alb * (gLight(n, .35, vSh) + uPSunRef * (0.78 / 2.8) * vBounce * uGrassGain) * 1.05 + alb * uPSunRef * (0.78 / 2.8) * back * .9 * uGrassGain * vSh;
+  vec3 lit = alb * gLight(n, .35, vSh) * 1.05 + alb * uPSunRef * (0.78 / 2.8) * back * .9 * uGrassGain * vSh;
   gl_FragColor = vec4(gMood(lit * vSelf), uA2C > .5 ? a : 1.);
   #include <fog_fragment>
 }`;
@@ -511,8 +505,6 @@ export class GrassV2 {
       uHXf: { value: new THREE.Vector4(H_ORG, H_ORG, 1 / HN, HN) },
       uFXf: { value: new THREE.Vector4(-CHUNK_HALF, -CHUNK_HALF, 1 / LAT, LN) },
       uPSunDir: painterlyUniforms.uPSunDir, uPSunRef: painterlyUniforms.uPSunRef, ...bakeUniforms,
-      // the Look Lab's terrain light (terrainLight.ts; P_TERRAIN_GLSL)
-      tPTerrain: painterlyUniforms.tPTerrain, uPTerrainXf: painterlyUniforms.uPTerrainXf, uPTerrainK: painterlyUniforms.uPTerrainK, uPBounce: painterlyUniforms.uPBounce,
       ...grassV2Uniforms,
       ...THREE.UniformsLib.fog, ...fogUniforms, ...paintedAir,
     };
