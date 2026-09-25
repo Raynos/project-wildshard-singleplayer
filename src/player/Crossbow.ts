@@ -177,7 +177,9 @@ const WORKER_TIMEOUT_MS = 20000;
 
 /** Start drawing the viewmodels' texture sets in a worker (the crossbow's only when the shard hands one out). */
 export function startViewmodelTextures(withCrossbow: boolean): void {
-  const sets = withCrossbow ? [...CROSSBOW_SETS, ...RIFLE_SETS] : [...RIFLE_SETS];
+  // E155: a shard built later in the same page (or rebuilt) reuses what an earlier build's worker drew
+  const sets = (withCrossbow ? [...CROSSBOW_SETS, ...RIFLE_SETS] : [...RIFLE_SETS]).filter((n) => !pixelCache.has(n));
+  if (sets.length === 0) { texturesReady = Promise.resolve(); return; }
   let worker: Worker;
   try { worker = new TexturesWorker(); } catch { return; } // no workers: drawn on the main thread
   texturesReady = new Promise<void>((resolve) => {

@@ -105,10 +105,18 @@ function rasterCumulus(W: number, H: number, clusters: Cluster[], rng: Rng, wrap
 }
 
 /**
+ * E159 (SHARD-CACHE M5): the two cloud textures are pure functions of the seed and ~250 ms of CPU to paint: kept for the
+ * page, so a Nalati rebuilt after its eviction only re-uploads them (each renderer uploads its own copy of a texture).
+ */
+const painted = new Map<string, THREE.DataTexture>();
+const keep = (key: string, t: THREE.DataTexture): THREE.DataTexture => { painted.set(key, t); return t; };
+
+/**
  * The horizon bank's atlas: u = compass azimuth 0..360° (0 = north = +z, 90 = east = −x), v = elevation 0..EL_MAX
  * (row 0 at the horizon). Clusters are denser toward the south (the snow range, the planet) where the mockups heap them.
  */
 function makeCumulusAtlas(seed: number): THREE.DataTexture {
+  const hit = painted.get(`atlas:${seed}`); if (hit) return hit;
   const W = 4096, H = 340, pxDeg = W / 360; // ≈ 11.4 px per degree, both axes (H covers EL_MAX)
   const rng = new Rng(seed);
   const clusters: Cluster[] = [];
@@ -118,16 +126,17 @@ function makeCumulusAtlas(seed: number): THREE.DataTexture {
     const az = south ? 100 + rng.next() * 180 : (i * 137.5 + rng.next() * 40) % 360;
     clusters.push({ x: az * pxDeg, base: (3 + rng.next() * (south ? 6 : 9)) * pxDeg, w: ((south ? 7 : 4) + rng.next() * (south ? 12 : 8)) * pxDeg, h: ((south ? 5 : 3) + rng.next() * (south ? 11 : 5)) * pxDeg });
   }
-  return rasterCumulus(W, H, clusters, rng, false, 3 / pxDeg, 0.13);
+  return keep(`atlas:${seed}`, rasterCumulus(W, H, clusters, rng, false, 3 / pxDeg, 0.13));
 }
 
 /** the high puffs' sheet: a tileable scatter of small fair-weather cumulus (planar-projected on the upper sky) */
 function makePuffSheet(seed: number): THREE.DataTexture {
+  const hit = painted.get(`puffs:${seed}`); if (hit) return hit;
   const N = 1024;
   const rng = new Rng(seed ^ 0x9e37);
   const clusters: Cluster[] = [];
   for (let i = 0; i < 22; i++) clusters.push({ x: rng.next() * N, base: rng.next() * N, w: 30 + rng.next() * 70, h: 10 + rng.next() * 30 });
-  return rasterCumulus(N, N, clusters, rng, true, 0.35, 0.16);
+  return keep(`puffs:${seed}`, rasterCumulus(N, N, clusters, rng, true, 0.35, 0.16));
 }
 
 /**

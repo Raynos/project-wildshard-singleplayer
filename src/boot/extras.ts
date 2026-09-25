@@ -108,11 +108,16 @@ function swapCardArt(blobs: ReadonlyMap<string, string>): void {
 
 export interface Preload<T> { wait: (p: StepProgress) => Promise<T> }
 
+/** pictures already in memory (E155: a shard built later in the page, or rebuilt, finds the cards' art decoded) */
+const artLoaded = new Set<string>();
+
 export function startMenuPreload(files: ChunkFiles, def: ChunkDef): Preload<void> {
   const art = files.art;
   const c = counter(art.length + (def.ocean === undefined ? 1 : 2));
   const blobs = new Map<string, string>();
   const images = art.map(async (u) => {
+    if (artLoaded.has(u)) { c.tick(); return; }
+    artLoaded.add(u);
     await whenPrefetched(u);
     try {
       const blob = await (await fetch(u)).blob(); // the counted download, handed over by the queue (the service worker keeps a copy)
@@ -138,12 +143,18 @@ export function startMenuPreload(files: ChunkFiles, def: ChunkDef): Preload<void
   };
 }
 
+/** decoded banks by what they hold (E155: kept for the page — see startAudioPreload) */
+const decoded_ = new Map<string, Promise<unknown>>();
+/** audio files this page already read to the end once */
+const downloaded = new Set<string>();
+
 export interface AudioBanks { music: StyleBank | undefined; sfx: SfxBank; steppe: SteppeBank | undefined }
 
 export function startAudioPreload(files: ChunkFiles, def: ChunkDef): Preload<AudioBanks> {
   const ocean = def.ocean !== undefined, steppe = def.style === 'painterly';
   const style = getMusicStyle(), set = getSfxSet();
-  // the other shard's slot is never played here (a shard change reloads); the steppe has no stems yet (Music.ts shardSlot)
+  // this shard's slot (another shard built in the page decodes its own — Music.useBank adds it to the resident bank);
+  // the steppe has no stems yet (Music.ts shardSlot)
   const slots: SlotName[] = ocean ? ['title', 'island'] : steppe ? ['title'] : ['title', 'pine'];
   const bed: AmbientBed = ocean ? 'island' : steppe ? 'steppe' : 'forest'; // the same bed Audio's constructor picks
   // the steppe: its own score's first slot (the camp is in the valley) + stings, whatever the style — unless the style is synth
@@ -166,16 +177,29 @@ export function startAudioPreload(files: ChunkFiles, def: ChunkDef): Preload<Aud
     if (!r) { r = load(url); reads.set(url, r); }
     return (await r).slice(0); // decodeAudioData detaches what it is given
   };
-  const music = decodeStyle(style, slots, read, decodeBytes, c.tick).catch((e: unknown) => {
+  // E155 / E159 (M5): a bank decoded once is kept for the page — a shard built later, or rebuilt after its eviction, takes it
+  // as is (its files still tick the bar); nothing is decoded twice
+  const once = <T>(key: string, n: number, make: () => Promise<T>): Promise<T> => {
+    const hit = decoded_.get(key) as Promise<T> | undefined;
+    if (hit) { for (let i = 0; i < n; i++) c.tick(); return hit; }
+    const p = make();
+    decoded_.set(key, p);
+    p.catch(() => { decoded_.delete(key); }); // a failure is retried by the next build
+    return p;
+  };
+  const music = once(`music|${style}|${slots.join(',')}`, styleFiles(style, slots).length, () => decodeStyle(style, slots, read, decodeBytes, c.tick)).catch((e: unknown) => {
     if (style !== 'synth') console.info(`[music] ${style}: ${e instanceof Error ? e.message : String(e)} — the synth plays`);
     return undefined;
   });
-  const sfx = decodeSfxSet(set, bed, read, c.tick);
-  const shots = pineShots.length > 0 ? decodePineShots(read, c.tick) : Promise.resolve();
-  const score = steppeNow ? decodeSteppe(['steppe-grass'], read, decodeBytes, true, c.tick) : Promise.resolve(undefined);
-  // every other style / set: downloaded to the last byte (through the service worker, which keeps it), then let go
+  const sfx = once(`sfx|${set}|${bed}`, sfxFiles(set, bed).length, () => decodeSfxSet(set, bed, read, c.tick));
+  const shots = pineShots.length > 0 ? once(`pine-shots|${set}`, pineShots.length, () => decodePineShots(read, c.tick)) : Promise.resolve();
+  const score = steppeNow ? once(`steppe|${style}`, steppeBootFiles().length, () => decodeSteppe(['steppe-grass'], read, decodeBytes, true, c.tick)) : Promise.resolve(undefined);
+  // every other style / set: downloaded to the last byte (through the service worker, which keeps it), then let go — once a page
   const others = rest.map(async (u) => {
-    try { await whenPrefetched(u); const res = await fetch(u); await res.arrayBuffer(); } catch { /* offline with no copy: that style / set decodes to the synth later */ }
+    if (!downloaded.has(u)) {
+      downloaded.add(u);
+      try { await whenPrefetched(u); const res = await fetch(u); await res.arrayBuffer(); } catch { downloaded.delete(u); /* offline with no copy: that style / set decodes to the synth later */ }
+    }
     c.tick();
   });
   return {
