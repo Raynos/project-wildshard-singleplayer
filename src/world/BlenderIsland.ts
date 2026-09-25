@@ -63,7 +63,17 @@ const AO_DIRECT = 0.45;
  * thins out over ~25 m instead of ending in a ring, and it is all under the terrain before its tile switches off.
  */
 const COVER_NEAR = TIER === 'phone' ? 16 : 100, COVER_FAR = TIER === 'phone' ? 40 : 148, COVER_GROW = TIER === 'phone' ? 6 : 12, COVER_SINK = 3;
-const LOD_D = 110, COVER_D = COVER_FAR + 1;
+const LOD_D = 110;
+/**
+ * E156: the big cover — the bushes, the flowering bushes, the hibiscus and the ferns — keeps its reach far longer on the phone.
+ * At COVER_NEAR / COVER_FAR a 1.5 m bush rose out of the ground 16–40 m ahead as you ran at it (Jake's video, 2026-09-25,
+ * by the pier: "they still pop in"), where the rest of the island's cover (GroundCover.ts) stands to 38 m and keeps a far
+ * model to 76 m. They get their own tiles: each stands to BIG_NEAR and sinks at its own edge in [BIG_NEAR + BIG_GROW, BIG_FAR],
+ * over ground the cover grid already tints the colour of the cover (coverTint.ts). The small cover (tufts, beach grass,
+ * flowers) keeps the short reach: at 20 m+ it is a few pixels over the tinted ground.
+ */
+const BIG_COVER = /^(bush|flowerbush|hibiscus|fern)\d+$/;
+const BIG_NEAR = TIER === 'phone' ? 50 : COVER_NEAR, BIG_FAR = TIER === 'phone' ? 80 : COVER_FAR, BIG_GROW = TIER === 'phone' ? 10 : COVER_GROW;
 /**
  * E117: a caster tile's far copy is its near one simplified (meshoptimizer: to FAR_RATIO of the triangles, never past
  * FAR_ERROR of the model's size — ~8 cm on a palm, under a pixel at LOD_D), not the file's hand-made `_lo` palms: those
@@ -91,7 +101,8 @@ function simplified(p: Proto): Proto {
   return { pos, col, index };
 }
 
-interface Tile { x0: number; x1: number; z0: number; z1: number; near: THREE.Mesh; far: THREE.Mesh | null; cover: boolean }
+/** `cover`: the tile's reach (m, camera to its rect) past which it is not drawn — 0 for a caster tile */
+interface Tile { x0: number; x1: number; z0: number; z1: number; near: THREE.Mesh; far: THREE.Mesh | null; cover: number }
 
 interface IslandMeta {
   version: number;
@@ -230,7 +241,7 @@ export class BlenderIsland {
     };
     terrainMat.customProgramCacheKey = () => 'island-terrain';
     ctx.sky.setupMaterial(terrainMat);
-    const makePropsMat = (cover: boolean) => {
+    const makePropsMat = (cover: { near: number; far: number; grow: number; key: string } | null) => {
       const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0, side: THREE.DoubleSide });
       mat.onBeforeCompile = (s) => {
         attachFogUniforms(s);
@@ -239,15 +250,16 @@ export class BlenderIsland {
 	reflectedLight.indirectDiffuse *= vColor.a;
 	reflectedLight.directDiffuse *= mix( 1.0, vColor.a, 0.35 );`);
         // the cover rises out of the ground as you near it (the tiles are merged in world space: position is world)
-        if (cover) s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nattribute float aEdge;').replace('#include <begin_vertex>', `#include <begin_vertex>
-	{ float edge = mix( ${(COVER_NEAR + COVER_GROW).toFixed(1)}, ${COVER_FAR.toFixed(1)}, aEdge );
-	  transformed.y -= smoothstep( edge - ${COVER_GROW.toFixed(1)}, edge, distance( transformed, cameraPosition ) ) * ${COVER_SINK.toFixed(1)}; }`);
+        if (cover !== null) s.vertexShader = s.vertexShader.replace('#include <common>', '#include <common>\nattribute float aEdge;').replace('#include <begin_vertex>', `#include <begin_vertex>
+	{ float edge = mix( ${(cover.near + cover.grow).toFixed(1)}, ${cover.far.toFixed(1)}, aEdge );
+	  transformed.y -= smoothstep( edge - ${cover.grow.toFixed(1)}, edge, distance( transformed, cameraPosition ) ) * ${COVER_SINK.toFixed(1)}; }`);
       };
-      mat.customProgramCacheKey = () => (cover ? 'island-cover' : 'island-props');
+      mat.customProgramCacheKey = () => (cover !== null ? cover.key : 'island-props');
       ctx.sky.setupMaterial(mat);
       return mat;
     };
-    const propsMat = makePropsMat(false), coverMat = makePropsMat(true);
+    const propsMat = makePropsMat(null), coverMat = makePropsMat({ near: COVER_NEAR, far: COVER_FAR, grow: COVER_GROW, key: 'island-cover' });
+    const bigMat = makePropsMat({ near: BIG_NEAR, far: BIG_FAR, grow: BIG_GROW, key: 'island-cover-big' });
 
     // ── terrain tiles ──
     gltf.scene.updateMatrixWorld(true);
@@ -301,7 +313,7 @@ export class BlenderIsland {
       const tz = Math.min(n - 1, Math.max(0, Math.floor((z - area.z0) / (area.z1 - area.z0) * n)));
       return tz * n + tx;
     };
-    const casters: number[][] = Array.from({ length: CT * CT }, () => []), covers: number[][] = Array.from({ length: VT * VT }, () => []);
+    const casters: number[][] = Array.from({ length: CT * CT }, () => []), covers: number[][] = Array.from({ length: VT * VT }, () => []), bigs: number[][] = Array.from({ length: VT * VT }, () => []);
     // E114: the loose rocks are rockKit's — the boulders (rock*, rockb*: the shore boulders' spots, drawn by Boulders.ts
     // instead) are skipped, the small scattered rocks (smallrock*) rebuilt below. The crag plates on the cliffs (cliff*)
     // stay the Blender ones
@@ -312,7 +324,7 @@ export class BlenderIsland {
       const name = meta.protos[pi]?.name ?? '';
       if (/^rockb?\d+$/.test(name)) continue;
       if (/^smallrock\d+$/.test(name)) { smallRocks.push(i); continue; }
-      if (kind === 'palm' || kind === 'rock' || kind === 'prop') casters[tileOf(x, z, CT)]?.push(i); else covers[tileOf(x, z, VT)]?.push(i);
+      if (kind === 'palm' || kind === 'rock' || kind === 'prop') casters[tileOf(x, z, CT)]?.push(i); else (BIG_COVER.test(name) ? bigs : covers)[tileOf(x, z, VT)]?.push(i);
     }
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), t = new THREE.Vector3();
     const e = m.elements;
@@ -367,20 +379,22 @@ export class BlenderIsland {
     for (const [k, items] of casters.entries()) {
       const hi = merge(items, false), lo = merge(items, true);
       if (!hi || !lo) continue;
-      this.tiles.push({ ...rect(k, CT), near: add(hi, `island-casters-${k}`, true), far: add(lo, `island-casters-${k}-far`, true), cover: false });
+      this.tiles.push({ ...rect(k, CT), near: add(hi, `island-casters-${k}`, true), far: add(lo, `island-casters-${k}-far`, true), cover: 0 });
       this.stats.propTris += (hi.getIndex()?.count ?? 0) / 3;
     }
-    for (const [k, items] of covers.entries()) {
-      const g = merge(items, false, true);
-      if (!g) continue;
-      this.tiles.push({ ...rect(k, VT), near: add(g, `island-cover-${k}`, false, coverMat), far: null, cover: true });
-      this.stats.propTris += (g.getIndex()?.count ?? 0) / 3;
+    for (const [set, mat, reach, tag] of [[covers, coverMat, COVER_FAR + 1, 'cover'], [bigs, bigMat, BIG_FAR + 1, 'cover-big']] as const) {
+      for (const [k, items] of set.entries()) {
+        const g = merge(items, false, true);
+        if (!g) continue;
+        this.tiles.push({ ...rect(k, VT), near: add(g, `island-${tag}-${k}`, false, mat), far: null, cover: reach });
+        this.stats.propTris += (g.getIndex()?.count ?? 0) / 3;
+      }
     }
     // E156: the cove's ground wears the cover it carries (coverTint.ts) — what was placed here, splatted into the grid over
     // GroundCover's estimate for this area, then sampled by the cove's terrain
     const coverGrid = CoverGrid.get();
     if (coverGrid) {
-      coverGrid.splat(coverTriangles(this.tiles.filter((tile) => tile.cover).map((tile) => tile.near.geometry)), area.x0, area.x1, area.z0, area.z1, 0.6);
+      coverGrid.splat(coverTriangles(this.tiles.filter((tile) => tile.cover > 0).map((tile) => tile.near.geometry)), area.x0, area.x1, area.z0, area.z1, 0.6);
       for (const tile of terrainTiles) tintTerrain(tile);
     }
     if (smallRocks.length > 0) {
@@ -475,7 +489,7 @@ export class BlenderIsland {
     const cam = sky.viewCamera.position;
     for (const t of this.tiles) {
       const dx = Math.max(t.x0 - cam.x, 0, cam.x - t.x1), dz = Math.max(t.z0 - cam.z, 0, cam.z - t.z1), d = Math.hypot(dx, dz);
-      if (t.cover) t.near.visible = d < COVER_D;
+      if (t.cover > 0) t.near.visible = d < t.cover;
       else { t.near.visible = d < LOD_D; if (t.far) t.far.visible = !t.near.visible; }
     }
   }
