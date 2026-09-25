@@ -1,13 +1,30 @@
 # Plan: game normalization (E127). One core game, three shard modules on top
 
-**State:** `draft` 2026-09-25. Written from three read-only research passes on `main` @ `188fc54`: every shard branch, every duplicate system, the core wiring and the Pine Hollow worktree. **Jake has approved none of it.** It waits on his answers in [§9](#9-decisions-for-jake), first of all Q1: land Pine Hollow first, or refactor first.
+**State:** `blocked` 2026-09-25. All of Jake's decisions are in (11 of them) ([§9](#9-decisions-made-2026-09-25)). **Blocked on the Pine Hollow merge, which is in progress.** Nothing here starts until Pine Hollow is on main. After that, Jake starts a new top-level session to build this plan from [§0](#0-start-here-for-the-build-session). The plan was written from three read-only research passes on `main` @ `188fc54`.
+
+## 0. Start here (for the build session)
+
+1. **Check the gate.** `git log --oneline main | grep -i "pine hollow"`: the remaster must be merged and live. If it isn't, stop and tell Jake.
+2. **Declare the freeze** (§6): a note in `AGENTS.md` and a line in the session brief saying that only this plan lands on main until it is archived.
+3. **Re-count after the merge (step P0).**
+   - Re-run the branch inventory (§2) and the duplicate map (§4) on the merged tree. The Pine merge adds ~30 new shard gates in `main.ts`, 6 in `Sky` / `Atmosphere` / `tier` / `Menu` / `manifest`, and a third parallel tree, `src/pinehollow/` (32 files, ~6.5k lines, with its own sound, kit, bosses, day clock, weather and water).
+   - Fold the Pine duplicates into the D-groups. For example, `PineDayNight` joins D19, `ForestAmbience` joins D12, and `LeverRifle` / `Longbow` join D1 / D2.
+   - Update the numbers in this file.
+4. **Build N0**, the golden master, and record its baselines on a clean export of the merged HEAD.
+5. **Then N1 → N8 in order.** The dedupe runs in waves W1 → W2 → W3 (§5).
+   - The lead session owns the spine files.
+   - Up to 3 subagents take dedupe groups on disjoint folders.
+   - Every push goes golden green → pathspec commit → `scripts/push-main.sh`.
 
 ## 1. Read this first
 
 Jake's words (E127): *"I want one implementation of a thing. I want the three shards to be built on a shared baseline. I want the shards to be standalone things on top of the core gameplay features. I don't want 100s of if statements. This is pure refactor and removing duplicate code and normalizing the shards to share one core game thing."*
 
 **The rules of this plan:**
-1. **Pure refactor.** Nothing a player can see, hear or feel changes, on any shard or any tier. Every step is proven identical by the golden master (N0) before it is pushed. A found bug is filed as its own ask and fixed outside this plan.
+1. **Pure refactor.** Nothing a player can see, hear or feel changes, on any shard or any tier. Every step is proven identical by the golden master (N0) before it is pushed. A bug found along the way is filed as its own ask and fixed outside this plan.
+   - **Two exceptions, both chosen by Jake:**
+     - Deleting the flag-only fallback looks (N8). The default looks don't change.
+     - Moving Driftwood's Drowned Captain onto the shared `Boss` (wave W2). That one does change the feel, so it goes through a before/after board.
 2. **One implementation per thing.** Player, camera, input, health, weapons shell, projectiles, melee, creatures, spawning, bosses, quests, saves, audio engine, HUD, map, post chains, sky rig, day cycle, grass streaming, placement and culling each exist once, in core.
 3. **A shard is a module.**
    - Each shard is one folder: `src/chunks/<slug>/def.ts` (data) and `index.ts` (behaviour), which plugs into core extension points.
@@ -16,7 +33,7 @@ Jake's words (E127): *"I want one implementation of a thing. I want the three sh
 4. **Zero shard branches outside `src/chunks/`.** No `slug ===`, `style ===`, `ocean`, `LOOK_V2`, `isNalati` or `nalatiNow()?.` in core. What differs per shard is either **data** (a field on the def or profile) or **a strategy** the shard hands to core, never an `if`.
 5. **Look stays per shard.** Toon (Driftwood), painterly (Nalati) and PBR (Pine Hollow) stay different. The *logic* is shared; shaders, materials and tables are the shard's data.
 
-**No agent builds, "quickly tries" or partly lands a row until Jake names it.**
+**Nothing is built from this plan until Pine Hollow is merged and Jake starts the build session.** Until then no agent builds, "quickly tries" or partly lands a row.
 
 ## 2. Where we are (numbers)
 
@@ -45,7 +62,7 @@ src/world/                world core: SkyRig, DayCycle, TerrainPainter, CellWind
                           culling, fog/wind/water interfaces, registry
 src/audio/core/           audio engine, ZonedAmbience, ScoreSource, ShardSoundKit interface
 src/ui/                   HUD (widget slots), Menu, Minimap (MinimapPainter strategy), map, touch
-src/chunks/registry.ts    CHUNKS (all defs, for the title screen) + SHARD_LOADERS (dynamic import per slug)
+src/chunks/registry.ts    CHUNKS (all defs) + SHARDS (the modules, static imports: one bundle, Jake's pick)
 src/chunks/<slug>/def.ts  node-safe data (bakers import it) — today's ChunkDef, moved as is
 src/chunks/<slug>/index.ts   the ShardModule (browser only, code-split)
 src/chunks/<slug>/**      everything only that shard uses (Driftwood's builders, src/nalati/**, src/pinehollow/**)
@@ -155,26 +172,48 @@ Line counts are estimates from reading the code. "Risk" means risk to look or fe
 | N2 | **`SystemRegistry`:** the big updater and Nalati's private list become named systems registered in the same order | golden green (phase-list lengths identical) | M |
 | N3 | **Profiles: remove the branches, system by system.** Look (Game post chains, Sky, Terrain, Grass/GrassField, Horizon, Hands, Atmosphere, Ocean) → audio (Audio, Music, preload, extras) → fauna (AnimalFactory, species `setLowPoly` → explicit style argument, AnimalManager `meleeShard`) → HUD / menu / minimap → boot (manifest, prefetch, extras, steps) → Explore. Reverse the core→shard imports | the boundary check passes on each file; golden green | L |
 | N4 | **Shard modules:** Nalati first (`wireNalati` is already most of the shape), then Driftwood (lift `main.ts:160-283` + its audio / quest / enemies), then Pine Hollow | `main.ts` ≤ 150 lines, 0 shard branches; golden green | L |
-| N5 | **Dedupe D1–D21**, in the order of §4's risk column: low-risk first (D5, D7, D9, D10, D13, D18, D20, D21), then feel / sound (D1, D2, D3, D4, D6, D12, D14) each with its own snapshot, then look (D16, D17, D19) last | each group: one implementation, golden green | L (spread over lanes) |
-| N6 | **Folders + code split:** move shard-only files into `src/chunks/<slug>/`, `SHARD_LOADERS` dynamic import, fix doc links. Rebake and prove `terrain.bin` / `navmesh.bin` byte-identical (moving a def changes the bake input hash) | each shard is its own bundle chunk; `main.js` loses the other two shards | M |
-| N7 | **Dev scenes on `bootShard(slug, { slots })`:** the 19 `src/dev/*` harnesses stop copying `main.ts` wiring | no dev scene rebuilds a shard by hand | S–M |
-| N8 | *(only if Jake says yes to Q2)* **Delete the flag-only fallback looks:** `?look=v1` (GrassPainterly, PaintedBackdrop, the painterly/Kuwahara chain), `?paintedrange`, `?kuwahara`, `?lighting=standard`, `?sky=hdri`, `?post=cinematic`, `?matte=0`, `?nolut`, and dead branches (`Enemies.ts:62` non-ocean, `Ocean.ts` non-stylized). Default looks are untouched | the flags are gone; golden green on defaults | S–M |
+| N5 | **Dedupe D1–D21 (plus Pine's duplicates from P0), in three waves.** Details under the table | each group: one implementation, golden green, and for W2 / W3 Jake's OK on the board | L (spread over lanes) |
+| N6 | **Folders:** move all shard-only files into `src/chunks/<slug>/` (Jake: move everything), fix the doc links. **No code split:** it stays one bundle (Jake's pick), with static imports in `registry.ts`. Rebake and prove `terrain.bin` / `navmesh.bin` byte-identical (moving a def changes the bake input hash) | every shard-only file lives under its shard folder; the boundary check is green | M |
+| N7 | **Dev scenes (Jake: convert the useful, delete the rest).** List which of the 19 `src/dev/*` harnesses agents still use (git log and script references). Those move onto `bootShard(slug, { slots })`; the rest are deleted | no dev scene rebuilds a shard by hand | S–M |
+| N9 | **The gate that stays (Jake's pick).** After the plan, a fast subset of the golden master runs on every push to main: per shard, boot with 0 page errors, a short scripted walk (0 stuck) and a swing, ~2 min in total. It runs on the Mac and is serialised by the push lock. The full golden master (poses, pixel diff, the 20 s run) runs nightly and posts its result to the session brief. This is FINISH-LINE S1 | a regression planted on purpose is caught by the per-push subset | S |
+| N8 | *(Jake: yes. Do it early, right after N0, so the later steps carry fewer paths.)* **Delete the flag-only fallback looks:** `?look=v1` (GrassPainterly, PaintedBackdrop, the painterly / Kuwahara chain), `?paintedrange`, `?kuwahara`, `?lighting=standard`, `?sky=hdri`, `?post=cinematic`, `?matte=0`, `?nolut`, `?boat=v1` (this closes E113 with the rebuilt boat, B), and the dead branches (`Enemies.ts:62` non-ocean, `Ocean.ts` non-stylized). `reseedPainterlyGrass` moves to v2 first (`nalati/index.ts` calls it). The default looks are untouched | the flags are gone; golden green on the defaults | S–M |
+
+**The dedupe waves (N5).** Every wave uses the same golden master.
+
+- **W1, low risk (no change to look or feel).** Groups: D5 weapon interfaces + kit registry, D7 BossEncounter + retire, D8 Spawner, D9 NpcRig, D10 quest runtime, D13 music source, D18 sky rig, D20 terrain, placement, post, culling, fog, wind and water, and D21 HUD slots, skins, saves and helpers.
+  - Ships as soon as the golden master is green.
+- **W2, feel and sound (interactive).** Groups: D1 ViewmodelShell, D2 projectiles, D3 MeleeCore, D4 AdsRig, D6 enemy strike timing, D11 FX pools and telegraphs, D12 zoned ambience, D14 sound kit and the `Audio.ts` split, and **the Captain onto the shared `Boss`**.
+  - Each group gets a snapshot or trajectory test first.
+  - Before it ships, the lead sends Jake a **before/after board**: iPhone portrait, labelled, plus a short clip for anything that moves or sounds.
+  - It ships once Jake says OK in chat.
+- **W3, look (interactive, last).** Groups: D16 geometry kit + AO, D17 panorama band, D19 day cycle.
+  - Same board-then-ship as W2.
+  - The day cycle goes last, because `sunAt` must stay exact.
 
 **Definition of done for the whole plan:**
 - The boundary check reports 0 shard branches and 0 core→shard imports.
 - `main.ts` is ≤ 150 lines.
 - Every D-group has exactly one implementation.
-- Each shard is one folder and one bundle chunk.
+- Each shard is one folder (one bundle, as Jake picked).
 - The golden master is green against the pre-refactor baseline on all 3 shards, on desktop and iPhone.
 - `window.__world` keys are unchanged.
 - Every save from before the refactor loads.
 
-## 6. How the work runs (lanes)
+## 6. How the work runs (lanes and freeze)
 
-- **One integrator lane owns the spine** (`main.ts`, `Game.ts`, `bootstrap.ts`, `ChunkDef.ts`, `registry.ts`, `src/core/shard.ts`) for N1–N4 and N6. Nobody else edits those files while the plan runs.
-- **Up to 2 dedupe lanes** take D-groups on disjoint folders (e.g. weapons in `src/player/` and audio in `src/audio/`) once N2 has landed.
-- **Small commits, each proven:** golden green → pathspec commit → `push-main.sh`. A red golden result is reverted, not patched forward.
-- **Feature work on the touched files pauses** while its phase runs: new shard content, Look Lab variants, new systems. That is what FINISH-LINE F0 proposes; this plan is the concrete shape of it.
+**Freeze (Jake's pick: a full feature freeze).** While this plan runs, only its commits land on main.
+- No new features, content, Look Lab variants or other plans' rows.
+- A bug fix that can't wait is the one exception. It goes through the lead session so it doesn't collide with the wave in flight.
+- The freeze ends when the plan is archived.
+
+**Lanes (Jake's pick: a lead plus up to 3 subagents).**
+- **The lead (the top-level session)**
+  - does N0–N4, N6 and N8;
+  - owns the spine files: `main.ts`, `Game.ts`, `bootstrap.ts`, `ChunkDef.ts`, `registry.ts`, `src/core/shard.ts`;
+  - sends the W2 / W3 boards to Jake.
+- **Up to 3 subagents**, each taking one D-group of the current wave, on disjoint folders. For example: weapons in `src/player/`, audio in `src/audio/`, enemies in `src/entities/`. Each runs the golden master before it hands back.
+- **Small commits, each one proven.** Golden green → pathspec commit → `push-main.sh`. A red golden result is reverted, not patched forward.
+- **Screenshots and boards are iPhone portrait only** (Jake plays it as a Safari PWA on iOS). The golden master also records desktop, to check correctness.
 
 ## 7. Found along the way (asks, not rows here: a pure refactor doesn't fix them)
 
@@ -182,20 +221,29 @@ Line counts are estimates from reading the code. "Risk" means risk to look or fe
 - `boot/extras.ts:49,103,124` preloads Explore's art and code only when `def.ocean` is set, so Pine Hollow's and Nalati's Explore are probably missing from the offline preload.
 - `ChunkDef.weapon: 'nalati'` is ignored. `main.ts:365` picks the kit by slug.
 - `ws.elites.v1` is global, not per shard (fine today, since only Nalati has elites; `shardStore` keeps it global).
-- Driftwood's Drowned Captain skips `Boss`. Moving it onto `Boss` would change its feel (gold bar, name card, checkpoints), so it stays as is (Q4).
+- The Drowned Captain skipping `Boss` is no longer only a note: Jake chose to move it onto `Boss` (wave W2, board first).
 
 ## 8. Out of scope
 
 - New features, balance or feel changes (FINISH-LINE D-rows, E126 items).
-- Visual changes of any kind.
+- Visual or feel changes, except the two Jake chose: N8 (deleting the flag-only looks) and the Captain onto `Boss` (W2).
 - An engine switch or an ECS rewrite.
 - WebGPU work beyond keeping `src/gpu/` compiling on the profile.
 
-## 9. Decisions for Jake
+## 9. Decisions (made 2026-09-25)
 
-1. **Pine Hollow: land it first, or refactor first?**
-   - **A: land Pine first (recommended).** The worktree merges into main with 0 conflicts today. The golden baselines then cover the final content, and Pine's 7 `install*` calls already have the shape of a module's `play()` (≈0.5 agent-day extra in N4). This reverses FINISH-LINE F0.3 ("Pine after the shard modules"), which was written when the branch overlapped main on 57 files; it now merges clean. It still needs your go on the remaster's own open rows (PH-S1).
-   - **B: refactor first, then port Pine.** Every Pine edit to `main.ts`, `Game.ts`, `Music.ts`, `boot/steps.ts` and `manifest.ts` becomes a hand port (≈1–2 agent-days), and it gets worse while the branch keeps moving.
-2. **Delete the flag-only fallback looks (N8)?** They are not the default anywhere. Deleting them removes ~1,000 lines and makes the refactor smaller. You picked the defaults in the Look Lab rounds. Yes / no.
-3. **Pause feature work on the spine files while N1–N4 run** (about a week), with one integrator lane plus up to 2 dedupe lanes? Yes / no.
-4. **The Drowned Captain onto the shared `Boss`?** Default: no (it changes Driftwood's feel); park it as a later ask.
+| # | Question | Jake's answer |
+|---|---|---|
+| 1 | Pine Hollow before or after the refactor? | **Pine first.** It is merging into main now: "we're definitely not going to do any normalization until it merges." |
+| 2 | Delete the flag-only fallback looks? | **Yes.** This includes `?boat=v1`, so E113 closes with the rebuilt boat (N8). |
+| 3 | How far does the plan go? | **"Multiple waves of dedupe, low risk first, and high risk is more interactive with me but still in the plan."** That is waves W1 → W2 → W3 (§5). |
+| 4 | Captain onto the shared `Boss`? | **Yes.** In wave W2, with a before/after board. |
+| 5 | How do high-risk waves reach Jake? | **A before/after board, then ship.** iPhone portrait, plus a clip for motion or sound. Jake OKs it in chat, then it goes to main. |
+| 6 | Move shard-only code into the shard folders? | **Move everything** into `src/chunks/<slug>/` (N6). |
+| 7 | Build lanes? | **Lead + up to 3 subagents** (§6). |
+| 8 | Other work on main during the refactor? | **Full feature freeze** (§6). |
+| 9 | Does the golden master outlive the refactor? | **A fast subset becomes the permanent gate.** Every push runs ~2 min per shard: boot, 0 errors, a short walk and a swing. The full golden run goes nightly. This is row N9. |
+| 10 | The 19 dev harness pages? | **Convert the ones agents still use and delete the rest** (N7). |
+| 11 | Split the download per shard? | **No, keep one bundle.** Shard modules are imported statically; `loadShard` just picks one from `SHARDS` (N6). |
+
+**Open:** nothing blocks the start except the Pine Hollow merge. The build session re-counts after the merge (P0) and sends Jake the W2 / W3 boards as it reaches them.
