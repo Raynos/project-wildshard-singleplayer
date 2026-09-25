@@ -30,7 +30,6 @@ export class ObjectiveLine {
   private last = '';
   private lastNav = '';
   private placeT = -Infinity;
-  private toasts: Element | null = null;
 
   constructor() {
     this.root.prepend(el('i', 'ws-quest-obj-dia'));
@@ -65,10 +64,8 @@ export class ObjectiveLine {
   }
 
   /** keep it under the minimap, right-aligned to its right edge (called every frame, re-measured ~once a second: the
-   *  minimap's size and top differ per layout and the home-screen mode); step aside for toasts */
+   *  minimap's size and top differ per layout and the home-screen mode); the toasts stack under it (A1, HUD.toast) */
   update(t: number): void {
-    this.toasts ??= document.querySelector('.ws-game-toasts');
-    this.root.classList.toggle('dim', this.toasts !== null && this.toasts.childElementCount > 0 && window.innerWidth <= 720);
     if (t - this.placeT < 1) return;
     this.placeT = t;
     const r = document.querySelector('.ws-minimap')?.getBoundingClientRect();

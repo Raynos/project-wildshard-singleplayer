@@ -148,8 +148,10 @@
 .ws-game-boundary::before, .ws-game-boundary::after { content: ''; display: block; width: 100%; height: 1px; margin: 6px 0; background: repeating-linear-gradient(90deg, var(--ws-amber) 0 14px, transparent 14px 24px); opacity: 0.6; }
 
 /* ── toasts ── */
-.ws-game-toasts { position: absolute; right: 22px; top: 60px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-.ws-game-toasts .ws-game-toast { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 12px; color: var(--ws-text); animation: ws-feed-in 0.25s ease-out; }
+/* A1 (E130, board art/hud/round-10-toast-placement/board.jpg): right-aligned directly under the quest chip — HUD.toast() reads
+   the chip's box (the minimap's on a shard without one) into --ws-toast-top / --ws-toast-right, so it follows every layout */
+.ws-game-toasts { position: absolute; right: var(--ws-toast-right, 22px); top: var(--ws-toast-top, 60px); display: flex; flex-direction: column; align-items: flex-end; gap: 6px; max-width: min(70vw, 460px); }
+.ws-game-toasts .ws-game-toast { text-align: right; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 12px; color: var(--ws-text); animation: ws-feed-in 0.25s ease-out; }
 .ws-game-toasts .ws-game-toast.out { animation: ws-feed-out 0.5s ease-in forwards; }
 
 /* ── damage flash + vignette ── */
@@ -179,11 +181,11 @@
   .ws-game-compass .ws-game-mark { width: 20px; height: 20px; margin: -10px 0 0 -10px; }
   .ws-game-compass .ws-game-mark.paw svg { width: 18px; height: 18px; }
   .ws-game-compass .ws-game-range { font-size: 10px; padding: 2px 14px 3px; }
-  /* phone: feed + toasts are LEFT-aligned under the fps line, capped at the minimap's left edge (the map owns the top-right) */
+  /* phone: the feed is LEFT-aligned under the fps line, capped at the minimap's left edge; the toasts stay under the quest chip (A1) */
   .ws-game-feed { left: 12px; transform: none; align-items: flex-start; top: calc(var(--ws-top) + 66px); max-width: calc(100vw - 34vw - 14px - 24px); }
   .ws-game-feed .ws-game-item { font-size: 10px; padding: 4px 9px; white-space: normal; text-align: left; }
-  .ws-game-toasts { left: 12px; right: auto; align-items: flex-start; top: calc(var(--ws-top) + 110px); max-width: calc(100vw - 34vw - 14px - 24px); }
-  .ws-game-toasts .ws-game-toast { font-size: 10px; padding: 5px 10px; white-space: normal; text-align: left; }
+  .ws-game-toasts { max-width: 70vw; }
+  .ws-game-toasts .ws-game-toast { font-size: 10px; padding: 5px 10px; white-space: normal; }
   .ws-game-fps { top: calc(104px + env(safe-area-inset-top, 0px)); right: 12px; font-size: 8px; }
   .ws-game-health { left: 12px; top: calc(8px + env(safe-area-inset-top, 0px)); bottom: auto; width: 108px; padding: 6px 9px 7px; }
   .ws-game-health .ws-game-hval { font-size: 15px; }
@@ -206,10 +208,9 @@
 .ws-game-vitals, .ws-game-bolts { position: relative; display: flex; align-items: center; gap: 7px; height: 22px; padding: 3px 9px; background: var(--ws-glass-deep); border: 1px solid var(--ws-cyan-line); pointer-events: none; white-space: nowrap; }
 .ws-game-bolts { height: 24px; }
 /* the left column on touch (E47: the frame meter moved onto PAUSE's row): status (VITALS / BOLTS) +30, ✎ NOTE disc +90 (feedback.css),
-   boss bar +130 (quest.css), then the feed and toasts */
+   boss bar +130 (quest.css), then the feed (the toasts are top-right under the quest chip, A1) */
 @media (max-width: 700px) {
   #hud.touch .ws-game-feed { top: calc(var(--ws-top) + 170px); }
-  #hud.touch .ws-game-toasts { top: calc(var(--ws-top) + 214px); }
 }
 .ws-game-vitals .ws-game-glyph, .ws-game-bolts .ws-game-glyph { display: block; width: 15px; height: 15px; }
 .ws-game-vitals .ws-game-glyph svg, .ws-game-bolts .ws-game-glyph svg { display: block; width: 100%; height: 100%; fill: #fff; filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6)); }
@@ -275,4 +276,5 @@
 #hud.nalati-d .ws-game-getlow i { width: 15px; height: 15px; }
 #hud.nalati-d .ws-game-feed { left: 52px; top: var(--nh-free, calc(var(--ws-top) + 170px)); max-width: calc(100vw - 64px); }
 #hud.nalati-d .ws-game-lockedge.l { left: 46px; } /* clear of the weapon tabs on the left edge */
-#hud.nalati-d .ws-game-toasts { left: 52px; top: calc(var(--nh-free, calc(var(--ws-top) + 170px)) + 44px); max-width: calc(100vw - 64px); }
+/* A1 here: right-aligned under the whole under-minimap stack (quest chip · elite / boss bars · GET LOW), one line below the feed */
+#hud.nalati-d .ws-game-toasts { right: var(--nh-right, 14px); top: calc(var(--nh-free, calc(var(--ws-top) + 170px)) + 44px); }

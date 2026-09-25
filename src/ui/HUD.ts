@@ -445,9 +445,21 @@ export class HUD {
 
   toast(text: string): void {
     const t = el('div', 'ws-glass ws-game-toast', text);
+    this.placeToasts();
     this.toasts.append(t);
-    while (this.toasts.children.length > 4) this.toasts.firstElementChild?.remove();
+    while (this.toasts.children.length > 2) this.toasts.firstElementChild?.remove(); // A1: two at most, the newest last
     setTimeout(() => { t.classList.add('out'); setTimeout(() => { t.remove(); }, 500); }, 3200);
+  }
+
+  /** A1 (E130): the toasts hang right-aligned under the quest chip (placed by QuestUI under the minimap; hidden, its slot
+   *  still is) — on a shard without one, under the minimap. Read at each toast: every layout puts them differently */
+  private placeToasts(): void {
+    const chip = this.root.querySelector('.ws-quest-obj'), anchor = chip ?? this.root.querySelector('.ws-minimap');
+    if (anchor === null) return;
+    const r = anchor.getBoundingClientRect(), host = this.root.getBoundingClientRect();
+    if (r.height === 0) return;
+    this.toasts.style.setProperty('--ws-toast-top', `${Math.round(r.bottom - host.top + (chip ? 8 : 12))}px`); // the rim's ticks poke 6–8 px out
+    this.toasts.style.setProperty('--ws-toast-right', `${Math.round(host.right - r.right)}px`);
   }
 
   damageFlash(): void { this.flash.classList.remove('show'); void this.flash.offsetWidth; this.flash.classList.add('show'); }
