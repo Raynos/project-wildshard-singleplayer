@@ -18,13 +18,15 @@
  *   hares        5 snowshoe hares on open ground around you: they graze, hop, sit up alert when you are near and
  *                bolt in zig-zags when you come closer; the ones left far behind are quietly re-seated around you.
  *
- * Every animal here is ONE instance of `WildlifeMesh` (one draw, one program, no shadow cast). Not shootable: the herd
+ * Every animal here is ONE instance of `WildlifeMesh` (one draw, one program, no shadow cast); the birds are generated
+ * models (birdModels.ts: perched + flying each, one atlas; `?birds=proc` = the procedural ones). Not shootable: the herd
  * (AnimalManager) is the hunt; these are the forest's life. `?life=0` turns it off; `window.__pineLife` has the pieces
  * (captures: `crumbs()`, `owlNow()`, `ravensTo(x, z)`, `beat()`).
  *
  * The skinning beat (`harvest(carcass, give)`): ~1.5 s — the weapon lowered, the view kneels and pitches down to the
- * carcass, two knife strokes (the SFX set's blade-in-flesh, a small kick each), then the drops land (`give`: the pack +
- * the toast) and the view comes back up.
+ * carcass, a gloved hand brings the skinning knife up (skinKnife.ts: the Blender model on the viewmodels' program), two
+ * knife strokes (the SFX set's blade-in-flesh, a small kick each), then the drops land (`give`: the pack + the toast), the
+ * knife drops away and the view comes back up.
  */
 import * as THREE from 'three';
 import type { Game } from '../../core/Game';
@@ -39,6 +41,8 @@ import { cabinMask, heightAt, inChunk, normalAt, pondMask, streamAt, waterLevel 
 import { Rng } from '../../core/rng';
 import { CameraFX } from '../../player/CameraFX';
 import { TrunkProbe } from './trunks';
+import { SkinKnife } from './skinKnife';
+import { loadBirdModels } from './birdModels';
 import { KIND, WildlifeMesh, newPose, type WildKind, type WildPose } from './wildlifeMesh';
 import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, nearestUnvisited, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';
 
@@ -110,6 +114,10 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   const rng = new Rng(0x71fe);
   const wild = new WildlifeMesh(sky, CAPACITY);
   game.scene.add(wild.mesh);
+  // the modelled birds (birdModels.ts; `?birds=proc` keeps these procedural ones): fetched once booted (off the load's
+  // requests and bytes, like the painted horizon), swapped in when they land — same draw, same program
+  const swapBirds = async (): Promise<void> => { const set = await loadBirdModels(); if (set) wild.useBirds(set, game.renderer); };
+  document.addEventListener('ws:ready', () => { setTimeout(() => { void swapBirds(); }, 400); }, { once: true });
   const cam = game.camera;
   const trunks = new TrunkProbe(h.trunks);
 
@@ -623,6 +631,8 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   let beatT = -1, beatCarcass: Animal | null = null, beatGive: (() => void) | null = null, cutsDone = 0;
   let addPitch = 0, addY = 0, lastRx = Number.NaN, lastPy = Number.NaN;
   const fx = CameraFX.for(game);
+  // the gloved hand and the skinning knife the strokes are made with (the weapon is holstered for the beat)
+  const knife = new SkinKnife(game, sky);
   const harvest = (carcass: Animal, give: () => void): void => {
     if (beatT >= 0) { beatGive?.(); } // a second harvest mid-beat (never, the prompt hides): the first one's drops land now
     beatT = 0; beatCarcass = carcass; beatGive = give; cutsDone = 0;
@@ -636,8 +646,9 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     // take last frame's offset back when nothing rewrote the camera since (Player.update rewrites it every frame)
     if (cam.rotation.x === lastRx && cam.position.y === lastPy) { cam.rotation.x -= addPitch; cam.position.y -= addY; }
     addPitch = 0; addY = 0;
-    if (beatT < 0) { lastRx = Number.NaN; lastPy = Number.NaN; return; }
+    if (beatT < 0) { lastRx = Number.NaN; lastPy = Number.NaN; knife.update(-1); return; }
     beatT += dt;
+    knife.update(beatT);
     const env = beatEnvelope(beatT);
     // kneel: down 0.55 m and the view tipped toward the carcass (at most ~35°, never past it)
     let tip = 0.35;

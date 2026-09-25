@@ -104,7 +104,7 @@ try {
     const { ctx, page } = await open(PHONE, `chunk=pine-hollow&tier=phone&touch&tod=0.33${flag('birdq', '') ? `&${flag('birdq', '')}` : ''}`);
     await page.evaluate(() => {
       const w = window.__world; w.animals.calm = true; window.__ls = { pose: null };
-      const L = () => window.__pineLife, at = (b) => (b ? { x: b.pose.x, y: b.pose.y, z: b.pose.z } : null);
+      const L = () => window.__pineLife, at = (b) => (b ? { x: b.pose.x, y: b.pose.y, z: b.pose.z, yaw: b.pose.yaw } : null);
       window.__lsT = {
         raven: () => at(L().ravens.find((b) => b.mode === 'ground')),
         guide: () => at(L().guides.find((b) => b.mode !== 'off')),
@@ -114,21 +114,38 @@ try {
         const p = window.__ls.pose, cam = w.game.camera;
         if (!p) return;
         const t = window.__lsT[p.subject]();
-        if (t) { cam.position.set(t.x + p.off[0], t.y + p.off[1], t.z + p.off[2]); cam.up.set(0, 1, 0); cam.lookAt(t.x, t.y, t.z); }
+        // the offset is in the bird's frame (right, up, forward): the same side of it whichever way it faces
+        const fx = Math.sin(t?.yaw ?? 0), fz = Math.cos(t?.yaw ?? 0);
+        if (t) { cam.position.set(t.x - fz * p.off[0] + fx * p.off[2], t.y + p.off[1], t.z + fx * p.off[0] + fz * p.off[2]); cam.up.set(0, 1, 0); cam.lookAt(t.x, t.y, t.z); }
+        window.__ls.vis ??= cam.children.map((ch) => ch.visible);
+        window.__ls.fov0 ??= cam.fov;
         for (const ch of cam.children) ch.visible = false;
         cam.updateMatrixWorld(true);
         if (Math.abs(cam.fov - p.fov) > 0.01) { cam.fov = p.fov; cam.updateProjectionMatrix(); }
       });
     });
-    // a deer killed in the open glade by the Hollow; the player 34 m off
-    const spot = { x: -30, z: -118 };
-    const kill = await page.evaluate(([x, z]) => {
-      const w = window.__world, T = w.game.camera.position.constructor;
-      const a = w.animals.spawn('deer', x, z, 0.6, 'hind');
-      a.applyDamage(9999, new T(x, window.__hf.heightAt(x, z) + 0.8, z), new T(1, 0, 0));
-      w.player.spawn(x + 34, z + 20, 0);
-      return { x: a.position.x, z: a.position.z };
-    }, [spot.x, spot.z]);
+    // a deer killed in an open glade near the Hollow, well away from the elites' lairs; the player 34 m off
+    const kill = await page.evaluate(() => {
+      const w = window.__world, H = window.__hf, trees = w.forest.trees, T = w.game.camera.position.constructor;
+      const lairs = window.__pineElites.elites.entries.map((e) => e.script.def.lair);
+      let best = { x: -30, z: -118 }, bs = -1e9;
+      for (let i = 0; i < 1600; i++) {
+        const x = -90 + (i % 40) * 4.5, z = -150 + Math.floor(i / 40) * 4.5;
+        if (lairs.some((l) => Math.hypot(l.x - x, l.z - z) < 70)) continue;
+        if (H.heightAt(x, z) < H.waterLevel() + 0.5 || H.cabinMask(x, z) > 0.01 || H.pondMask(x, z) > 0.01 || H.normalAt(x, z)[1] < 0.95 || H.trailDistance(x, z) < 4) continue;
+        let near = 99, ring = 0;
+        for (const t of trees) { const d = Math.hypot(t.x - x, t.z - z); if (d < near) near = d; if (d < 26) ring++; }
+        if (near < 8) continue;
+        const score = Math.min(ring, 14) - Math.abs(near - 10) * 0.3;
+        if (score > bs) { bs = score; best = { x, z }; }
+      }
+      const a = w.animals.spawn('deer', best.x, best.z, 0.6, 'hind');
+      a.applyDamage(9999, new T(best.x, H.heightAt(best.x, best.z) + 0.8, best.z), new T(1, 0, 0));
+      window.__deer = a;
+      w.player.spawn(best.x + 34, best.z + 20, 0);
+      return best;
+    });
+    console.error(`  deer down at ${kill.x}, ${kill.z}`);
     const closeUp = async (name, subject, off, fov) => {
       await page.evaluate((pose) => { window.__world.freeCamera = true; window.__ls.pose = pose; }, { subject, off, fov });
       await page.addStyleTag({ content: '#hud,#hud *,.ws-touch{display:none!important}' });
@@ -139,26 +156,30 @@ try {
       await page.evaluate(() => window.__pineLife.ravensTo());
       await page.waitForFunction(() => window.__pineLife.ravens.filter((r) => r.mode === 'ground').length >= 2, undefined, { timeout: 70_000, polling: 500 }).catch(() => console.error('  ravens: not down'));
       await sleep(2500);
-      await closeUp('birds-ravens', 'raven', [1.1, 0.35, 0.9], 40);
+      await closeUp('birds-ravens', 'raven', [1.0, 0.5, 0.35], 42);
       // the flight pose: a breadcrumb flock overtaking, tracked from beside
       await page.evaluate(() => { window.__ls.pose = null; window.__world.freeCamera = false; window.__pineLife.crumbs(); });
       await sleep(2500);
-      await closeUp('birds-flying', 'guide', [1.6, 0.9, -1.2], 45);
+      await closeUp('birds-flying', 'guide', [1.2, 0.8, -1.4], 45);
       await page.evaluate(() => { window.__ls.pose = null; window.__world.freeCamera = false; window.__pineLife.woodNow(); });
       await page.waitForFunction(() => window.__pineLife.wood.mode === 'perch', undefined, { timeout: 40_000, polling: 500 }).catch(() => console.error('  woodpecker: not perched'));
       await sleep(1500);
-      await closeUp('birds-woodpecker', 'wood', [0.9, 0.1, 0.9], 40);
+      await closeUp('birds-woodpecker', 'wood', [0.75, 0.05, -0.45], 40);
     }
     if (want('beat')) {
       await page.evaluate(() => { document.querySelectorAll('style').forEach((s) => { if (s.textContent.includes('#hud,#hud *')) s.remove(); }); });
-      await page.evaluate(([x, z]) => {
-        const w = window.__world; window.__ls.pose = null; w.freeCamera = false;
-        for (const ch of w.game.camera.children) ch.visible = true;
-        const px = x + 1.8, pz = z + 0.4;
-        w.player.spawn(px, pz, Math.atan2(-(x - px), -(z - pz))); w.player.pitch = -0.25;
-      }, [kill.x, kill.z]);
+      await page.evaluate(() => {
+        const w = window.__world, cam = w.game.camera; window.__ls.pose = null; w.freeCamera = false;
+        const vis = window.__ls.vis; if (vis) cam.children.forEach((ch, i) => { ch.visible = vis[i] ?? ch.visible; });
+        if (window.__ls.fov0) { cam.fov = window.__ls.fov0; cam.updateProjectionMatrix(); }
+        const a = window.__deer.position, px = a.x + 1.8, pz = a.z + 0.4;
+        w.player.spawn(px, pz, Math.atan2(-(a.x - px), -(a.z - pz))); w.player.pitch = -0.25;
+      });
       await sleep(1800);
+      // the harvest itself: [E] at its prompt (or, when the ragdoll lies out of the prompt's 2.6 m, the prompt's call)
       await page.evaluate(() => document.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyE', key: 'e', bubbles: true })));
+      await sleep(50);
+      await page.evaluate(() => { if (window.__pineLife.beat() < 0) window.__world.pineLife.harvest(window.__deer, () => undefined); });
       let i = 0;
       for (const at of [0.2, 0.42, 0.62, 0.86, 1.05, 1.4]) {
         await page.waitForFunction((a) => window.__pineLife.beat() < 0 || window.__pineLife.beat() >= a, at, { timeout: 5000, polling: 16 }).catch(() => undefined);
@@ -174,8 +195,10 @@ try {
       w.game.onLate(() => {
         const p = window.__ls.pose, cam = w.game.camera;
         if (!p) return;
-        const o = window.__pineLife.owl.pose;
-        cam.position.set(o.x + p.off[0], o.y + p.off[1], o.z + p.off[2]); cam.up.set(0, 1, 0); cam.lookAt(o.x, o.y + 0.1, o.z);
+        // from where the player stands (the owl's head follows the player): its face
+        const o = window.__pineLife.owl.pose, pl = w.player.position, d = Math.hypot(pl.x - o.x, pl.z - o.z) || 1;
+        const fx = (pl.x - o.x) / d, fz = (pl.z - o.z) / d;
+        cam.position.set(o.x - fz * p.off[0] + fx * p.off[2], o.y + p.off[1], o.z + fx * p.off[0] + fz * p.off[2]); cam.up.set(0, 1, 0); cam.lookAt(o.x, o.y + 0.1, o.z);
         for (const ch of cam.children) ch.visible = false;
         cam.updateMatrixWorld(true);
         if (Math.abs(cam.fov - p.fov) > 0.01) { cam.fov = p.fov; cam.updateProjectionMatrix(); }
@@ -184,7 +207,7 @@ try {
     });
     await page.waitForFunction(() => window.__pineLife.owl.mode === 'perch', undefined, { timeout: 60_000, polling: 500 }).catch(() => console.error('  owl: not perched'));
     await sleep(1500);
-    await page.evaluate(() => { window.__world.freeCamera = true; window.__ls.pose = { off: [1.0, -0.2, 1.0], fov: 40 }; });
+    await page.evaluate(() => { window.__world.freeCamera = true; window.__ls.pose = { off: [0.4, -0.2, 1.6], fov: 40 }; });
     await page.addStyleTag({ content: '#hud,#hud *,.ws-touch{display:none!important}' });
     await sleep(1500);
     await save(page, 'birds-owl');

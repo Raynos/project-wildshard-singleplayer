@@ -1,0 +1,154 @@
+{
+ "_": "Pine Hollow birds (art/pine-hollow/round-16-birds). glTF/three frame, metres: beak +Z, up +Y, right wing +X, body centre at the origin. shoulderL/R: the wing root (fly: where the wing leaves the body; perch: the folded wing's root on the upper flank); bodyHalfWidth: |x| past which a vertex is wing (fly); neck: the head-turn pivot; head = dot(p \u2212 neck, headAxis) > 0 (fly: headAxis = +Z, i.e. z > headZ; a perched bird sits upright, so use the plane \u2014 headZ / headY are only its axis-aligned fallbacks); tail = dot(p \u2212 tailRoot, tailAxis) > 0 (tailZ the fallback); feetY: the lowest y; beakTip / tailTip: the extreme points; span / length: the mesh's x / z extent; tile: [col,row] of its 512\u00b2 atlas tile (row 0 = top).",
+ "atlas": {
+  "desktop": [2048, 1024],
+  "phone": [1024, 512],
+  "grid": [4, 2]
+ },
+ "meshes": {
+  "raven_perch": {
+   "bbox": {
+    "min": [-0.0945, -0.2181, -0.3059],
+    "max": [0.0953, 0.184, 0.2301]
+   },
+   "shoulderL": [-0.0673, 0.05, 0.025],
+   "shoulderR": [0.0673, 0.05, 0.025],
+   "bodyHalfWidth": 0.0841,
+   "neck": [0, 0.1, 0.05],
+   "headZ": 0.05,
+   "headY": 0.1,
+   "headAxis": [0, 0.8, 0.6],
+   "feetY": -0.2181,
+   "tailRoot": [0, -0.07, -0.12],
+   "tailZ": -0.12,
+   "tailAxis": [0, -0.55, -0.83],
+   "beakTip": [-0.0004, 0.1191, 0.2279],
+   "tailTip": [0.0035, -0.2038, -0.3014],
+   "pivots": "hand-read from grid renders (birds.json), checked by birds_render.py --seg",
+   "tris": 1200,
+   "span": 0.1898,
+   "length": 0.536,
+   "tile": [0, 0]
+  },
+  "raven_fly": {
+   "bbox": {
+    "min": [-0.6003, -0.0803, -0.2872],
+    "max": [0.6015, 0.0986, 0.3332]
+   },
+   "shoulderL": [-0.14, 0.0249, 0.0619],
+   "shoulderR": [0.14, 0.0278, 0.0632],
+   "bodyHalfWidth": 0.14,
+   "neck": [0, 0.03, 0.15],
+   "headZ": 0.15,
+   "headY": 0.03,
+   "headAxis": [0.0, 0.0, 1.0],
+   "feetY": -0.0803,
+   "tailRoot": [0, -0.01, -0.11],
+   "tailZ": -0.11,
+   "tailAxis": [0.0, 0.0, -1.0],
+   "beakTip": [-0.0527, -0.0311, 0.3325],
+   "tailTip": [0.0037, -0.0747, -0.2874],
+   "pivots": "hand-read from grid renders (birds.json), checked by birds_render.py --seg",
+   "tris": 900,
+   "span": 1.2019,
+   "length": 0.6204,
+   "tile": [1, 0]
+  },
+  "owl_perch": {
+   "bbox": {
+    "min": [-0.1827, -0.2631, -0.2785],
+    "max": [0.1801, 0.3076, 0.2635]
+   },
+   "shoulderL": [-0.133, 0.055, 0.04],
+   "shoulderR": [0.133, 0.055, 0.04],
+   "bodyHalfWidth": 0.1663,
+   "neck": [0, 0.11, 0.08],
+   "headZ": 0.08,
+   "headY": 0.11,
+   "headAxis": [0, 0.97, 0.25],
+   "feetY": -0.2631,
+   "tailRoot": [0, -0.12, -0.15],
+   "tailZ": -0.15,
+   "tailAxis": [0, -0.7, -0.7],
+   "beakTip": [0.0049, 0.1891, 0.2644],
+   "tailTip": [0.0035, -0.2488, -0.2817],
+   "pivots": "hand-read from grid renders (birds.json), checked by birds_render.py --seg",
+   "tris": 1195,
+   "span": 0.3629,
+   "length": 0.542,
+   "tile": [2, 0]
+  },
+  "owl_fly": {
+   "bbox": {
+    "min": [-0.6981, -0.1164, -0.3535],
+    "max": [0.6994, 0.1765, 0.3445]
+   },
+   "shoulderL": [-0.1867, -0.0271, 0.0492],
+   "shoulderR": [0.1867, -0.0256, 0.0493],
+   "bodyHalfWidth": 0.1867,
+   "neck": [0, 0.03, 0.17],
+   "headZ": 0.17,
+   "headY": 0.03,
+   "headAxis": [0.0, 0.0, 1.0],
+   "feetY": -0.1164,
+   "tailRoot": [0, -0.03, -0.15],
+   "tailZ": -0.15,
+   "tailAxis": [0.0, 0.0, -1.0],
+   "beakTip": [-0.0003, 0.0233, 0.3463],
+   "tailTip": [-0.0086, -0.1073, -0.3534],
+   "pivots": "hand-read from grid renders (birds.json), checked by birds_render.py --seg",
+   "tris": 900,
+   "span": 1.3975,
+   "length": 0.698,
+   "tile": [3, 0]
+  },
+  "wood_perch": {
+   "bbox": {
+    "min": [-0.0612, -0.2001, -0.215],
+    "max": [0.0614, 0.1298, 0.1481]
+   },
+   "shoulderL": [-0.0269, 0.0175, 0.01],
+   "shoulderR": [0.0269, 0.0175, 0.01],
+   "bodyHalfWidth": 0.0336,
+   "neck": [0, 0.035, 0.02],
+   "headZ": 0.02,
+   "headY": 0.035,
+   "headAxis": [0, 0.8, 0.6],
+   "feetY": -0.2001,
+   "tailRoot": [0, -0.1, -0.1],
+   "tailZ": -0.1,
+   "tailAxis": [0, -0.63, -0.77],
+   "beakTip": [-0.0012, 0.0685, 0.1483],
+   "tailTip": [-0.0001, -0.197, -0.2151],
+   "pivots": "hand-read from grid renders (birds.json), checked by birds_render.py --seg",
+   "tris": 1200,
+   "span": 0.1227,
+   "length": 0.3631,
+   "tile": [0, 1]
+  },
+  "wood_fly": {
+   "bbox": {
+    "min": [-0.3286, -0.0718, -0.1886],
+    "max": [0.3308, 0.0954, 0.2601]
+   },
+   "shoulderL": [-0.066, 0.0256, 0.0719],
+   "shoulderR": [0.066, 0.0251, 0.067],
+   "bodyHalfWidth": 0.066,
+   "neck": [0, 0.05, 0.13],
+   "headZ": 0.13,
+   "headY": 0.05,
+   "headAxis": [0.0, 0.0, 1.0],
+   "feetY": -0.0718,
+   "tailRoot": [0, -0.01, -0.06],
+   "tailZ": -0.06,
+   "tailAxis": [0.0, 0.0, -1.0],
+   "beakTip": [-0.0339, 0.0713, 0.2602],
+   "tailTip": [0.0, -0.0712, -0.1898],
+   "pivots": "hand-read from grid renders (birds.json), checked by birds_render.py --seg",
+   "tris": 900,
+   "span": 0.6594,
+   "length": 0.4486,
+   "tile": [1, 1]
+  }
+ }
+}
