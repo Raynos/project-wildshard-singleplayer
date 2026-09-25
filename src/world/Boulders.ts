@@ -17,6 +17,7 @@ import type { Sky } from './Sky';
 import type { ColliderDesc } from './registry';
 import { TIER_CONFIG } from '../core/tier';
 import { WRECK } from '../chunks/driftwood-isle';
+import { rockLook, rockGeometry, rockMaterial, SHORE_ROCK } from './rockKit';
 
 export interface BoulderSpec { x: number; z: number; r: number; rot?: number; squash?: number }
 
@@ -66,7 +67,14 @@ export class Boulders {
     const rng = new Rng(0x5ea1 ^ 0xb0);
     const parts: THREE.BufferGeometry[] = [];
     const c = new THREE.Color();
+    // E114: ?rocks=a|b|c builds each boulder in a candidate look (rockKit.ts); the current look stays the default
+    const look = rockLook(), lookRng = new Rng(0x5ea1 ^ 0x70c5);
     for (const b of specs) {
+      if (look !== 'current') {
+        const g = rockGeometry(look, b.r, lookRng, { squash: b.squash ?? 0.7, palette: SHORE_ROCK, moss: lookRng.range(0.1, 0.75) });
+        this.place(g, b, parts);
+        continue;
+      }
       const detail = b.r > 2 ? 1 : 0;
       // IcosahedronGeometry is NON-indexed (every face owns its corners): weld it first, or each face's copy of a
       // corner takes its own jitter and the faces split into see-through cracks (E114)
@@ -101,24 +109,42 @@ export class Boulders {
       }
       ni.setAttribute('color', new THREE.BufferAttribute(col, 3));
       parts.push(ni);
-      if (b.r > 0.9) {
-        this.colliders.push({ x: b.x, z: b.z, hw: b.r * 0.8, hd: b.r * 0.8, rot: b.rot ?? 0, yTop: y + b.r * 1.2, yBottom: y - 2 });
-        // the same rock as a hull of its drawn (jittered, squashed, leaned) vertices, relative to its centre
-        const cy = y + b.r * (b.squash ?? 0.7) * 0.35, pts = new Float32Array(p.count * 3);
-        for (let i = 0; i < p.count; i++) { pts[i * 3] = p.getX(i) - b.x; pts[i * 3 + 1] = p.getY(i) - cy; pts[i * 3 + 2] = p.getZ(i) - b.z; }
-        this.hulls.push({ kind: 'hull', x: b.x, y: cy, z: b.z, points: pts });
-      }
+      this.collide(b, y, p);
       this.count++;
     }
     // an empty scatter (a stale terrain, a def with no land) must not throw in mergeGeometries: an empty mesh instead
     if (parts.length === 0) console.warn('[boulders] nothing placed — %d candidates rejected', specs.length);
     const geo = parts.length > 0 ? mergeGeometries(parts, false) : new THREE.BufferGeometry();
     geo.computeBoundingSphere();
-    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0 });
-    this.sky.setupMaterial(mat);
+    let mat: THREE.MeshStandardMaterial;
+    if (look === 'current') {
+      mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.9, metalness: 0 });
+      this.sky.setupMaterial(mat);
+    } else mat = rockMaterial(this.sky, look);
     this.mesh = new THREE.Mesh(geo, mat);
     this.mesh.castShadow = TIER_CONFIG.boulderShadows; this.mesh.receiveShadow = true;
     return this;
+  }
+
+  /** a rockKit rock (centred, non-indexed, painted) posed like the current ones: yawed, leaned with the slope, half sunk */
+  private place(g: THREE.BufferGeometry, b: BoulderSpec, parts: THREE.BufferGeometry[]): void {
+    g.rotateY(b.rot ?? 0);
+    const y = heightAt(b.x, b.z);
+    const [nx, , nz] = normalAt(b.x, b.z, 1.5);
+    g.rotateX(nz * 0.6); g.rotateZ(-nx * 0.6);
+    g.translate(b.x, y + b.r * (b.squash ?? 0.7) * 0.35, b.z);
+    parts.push(g);
+    this.collide(b, y, g.getAttribute('position'));
+    this.count++;
+  }
+
+  /** a rock over 0.9 m collides: the legacy box, and a hull of the vertices it draws (relative to its centre) */
+  private collide(b: BoulderSpec, y: number, p: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): void {
+    if (b.r <= 0.9) return;
+    this.colliders.push({ x: b.x, z: b.z, hw: b.r * 0.8, hd: b.r * 0.8, rot: b.rot ?? 0, yTop: y + b.r * 1.2, yBottom: y - 2 });
+    const cy = y + b.r * (b.squash ?? 0.7) * 0.35, pts = new Float32Array(p.count * 3);
+    for (let i = 0; i < p.count; i++) { pts[i * 3] = p.getX(i) - b.x; pts[i * 3 + 1] = p.getY(i) - cy; pts[i * 3 + 2] = p.getZ(i) - b.z; }
+    this.hulls.push({ kind: 'hull', x: b.x, y: cy, z: b.z, points: pts });
   }
 
   /**

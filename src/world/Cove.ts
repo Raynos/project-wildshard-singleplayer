@@ -29,6 +29,8 @@ import { attachFogUniforms } from './Atmosphere';
 import { Waterfall } from './Waterfall';
 import { SEED } from '../core/config';
 import { LowPolyKit, rock, log, tris, bakeLight, lowPolyMaterial, type BakedLight } from './lowpolyKit';
+import { Rng } from '../core/rng';
+import { rockLook, rockGeometry, rockIsSmooth, rockMaterial, REEF_ROCK } from './rockKit';
 import type { Collider } from '../player/Player';
 import type { Sky } from './Sky';
 import { boxDesc, type ColliderDesc } from './registry';
@@ -129,6 +131,18 @@ export class Cove {
       new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz, 'YXZ')), new THREE.Vector3(s, s, s));
     const boulder = (x: number, y: number, z: number, r: number, side: string, top: string, squash = 0.8, rough = 0.28): void =>
       kit.addTopped(rock(r, 1, rng, squash, rough), side, top, { matrix: m4(x, y, z, rng.range(0, 6.28)), minY: 0.6, jitter: 0.08 });
+    // E114: ?rocks=a|b|c — the loose outdoor rocks (tidepool rims, the plunge pool) in a candidate look (rockKit.ts); the
+    // crag and the cave walls stay as they are (they are structure). The draws `boulder` would take are burnt, so
+    // everything after is placed as today.
+    const look = rockLook(), lookRng = new Rng(SEED ^ 0x70c7), smoothRocks: THREE.BufferGeometry[] = [];
+    const looseRock = (x: number, y: number, z: number, r: number, side: string, top: string, squash = 0.8): void => {
+      if (look === 'current') { boulder(x, y, z, r, side, top, squash); return; }
+      const g = rock(r, 1, rng, squash, 0.28), m = m4(x, y, z, rng.range(0, 6.28));
+      for (let i = g.getAttribute('position').count / 3; i > 0; i--) rng.next();
+      g.dispose();
+      const alt = rockGeometry(look, r, lookRng, { squash, palette: REEF_ROCK, moss: top === C.moss ? 0.8 : 0.3 });
+      if (rockIsSmooth(look)) { alt.applyMatrix4(m); smoothRocks.push(alt); } else kit.addPainted(alt, m);
+    };
     const starfish = (x: number, y: number, z: number, r: number, col: string): void => {
       const v: number[] = [], rot = rng.range(0, 6.28);
       for (let k = 0; k < 5; k++) {
@@ -146,7 +160,7 @@ export class Cove {
       for (let i = 0; i < nR; i++) {
         const a = (i / nR) * Math.PI * 2 + rng.range(-0.2, 0.2), rr = p.r + rng.range(-0.1, 0.35);
         const rx = p.x + Math.cos(a) * rr, rz = p.z + Math.sin(a) * rr, r = rng.range(0.22, 0.5);
-        boulder(rx, heightAt(rx, rz) + r * 0.2, rz, r, rng.next() < 0.3 ? C.rockWet : C.rock, rng.next() < 0.4 ? C.moss : C.rockB, 0.65);
+        looseRock(rx, heightAt(rx, rz) + r * 0.2, rz, r, rng.next() < 0.3 ? C.rockWet : C.rock, rng.next() < 0.4 ? C.moss : C.rockB, 0.65);
         if (rng.next() < 0.28) starfish(rx + rng.range(-0.2, 0.2), heightAt(rx, rz) + 0.16, rz + rng.range(-0.2, 0.2), rng.range(0.12, 0.2), rng.next() < 0.7 ? C.star : C.starPurple);
       }
       const disc = new THREE.CircleGeometry(p.r + 0.05, 10);
@@ -163,14 +177,14 @@ export class Cove {
       for (let i = 0; i < 9; i++) {
         const u = rng.range(0.05, 0.95), side = i % 2 ? 1 : -1, r = rng.range(0.35, 0.8);
         const x = tx + dx * u + sx * side * (w * 0.7 + rng.range(0, 0.5)), z = tz + dz * u + sz * side * (w * 0.7 + rng.range(0, 0.5));
-        boulder(x, heightAt(x, z) + r * 0.25, z, r, C.rockWet, C.moss, 0.7);
+        looseRock(x, heightAt(x, z) + r * 0.25, z, r, C.rockWet, C.moss, 0.7);
       }
       const px = fx + (dx / len) * 1.2, pz = fz + (dz / len) * 1.2, py = heightAt(fx, fz);
       const disc = new THREE.CircleGeometry(2.4, 12); disc.rotateX(-Math.PI / 2); disc.translate(px, py + 0.05, pz);
       poolParts.push(disc);
       for (let i = 0; i < 8; i++) {
         const a = (i / 8) * Math.PI * 2 + rng.range(-0.2, 0.2), x = px + Math.cos(a) * 2.6, z = pz + Math.sin(a) * 2.6, r = rng.range(0.3, 0.6);
-        boulder(x, heightAt(x, z) + r * 0.25, z, r, C.rockWet, C.moss, 0.7);
+        looseRock(x, heightAt(x, z) + r * 0.25, z, r, C.rockWet, C.moss, 0.7);
       }
     }
 
@@ -292,6 +306,13 @@ export class Cove {
     const rocks = new THREE.Mesh(geo, lowPolyMaterial(this.sky));
     rocks.castShadow = true; rocks.receiveShadow = true;
     this.group.add(rocks);
+    if (look !== 'current' && smoothRocks.length > 0) {
+      // the smooth look keeps its own normals: all its loose rocks are one more draw
+      const sm = new THREE.Mesh(mergeGeometries(smoothRocks, false), rockMaterial(this.sky, look));
+      for (const g of smoothRocks) g.dispose();
+      sm.name = 'cove-rocks'; sm.castShadow = true; sm.receiveShadow = true;
+      this.group.add(sm);
+    }
     const gGeo = glow.finish({ ao: false });
     const gc = gGeo.getAttribute('color');
     for (let i = 0; i < gc.count; i++) gc.setXYZ(i, gc.getX(i) * 2.6, gc.getY(i) * 2.6, gc.getZ(i) * 2.6);
