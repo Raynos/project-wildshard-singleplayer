@@ -1,6 +1,6 @@
 # Plan: keep shards in memory — switch shards from the main menu without the loading screen (E155)
 
-**State:** `draft` 2026-09-25 — research only, written from a read-only pass on `main` @ 7007082; the user has approved none of it (they asked for the HUD work, E154, first). Waits on the user's go and on a per-shard memory reading.
+**State:** `in progress` 2026-09-25 — the user said go (E155, "4B with subagent": build it all now, cap 4). One build subagent in an isolated worktree takes M0–M4; the E155 session merges it onto main. Nothing landed yet.
 
 ## The ask (E155)
 
