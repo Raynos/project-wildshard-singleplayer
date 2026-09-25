@@ -37,7 +37,7 @@ export const toonUniforms = {
   /** terminator band colour × strength (×albedo²-ish saturated) */
   uToonTerm: { value: new THREE.Color(0.4, 0.16, 0.06) },
   /** how much of that warm band also rims a cast shadow's edge (1 = as much as a facet's turn, 0 = none; E123) */
-  uToonEdge: { value: 1 },
+  uToonEdge: { value: 0 }, // E145 (the user, 2026-09-25): no warm band round cast shadows — "not great", permanently gone; ?pedge=1 = the old rim
   /** 0..1 how much the shade band keeps of the sun's facet grade (0 = flat toon shade) */
   uToonShadeGrade: { value: 0.0 },
   /** cloud shadows (L4): strength 0..1, scroll time (s), wind (m/s xz), feature size (m) */
