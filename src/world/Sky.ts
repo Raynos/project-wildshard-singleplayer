@@ -136,8 +136,9 @@ export class Sky {
     // E147: the low-poly shard's clock steps the sun's shadow; each step crossfades over `?sunfade=` s (0 = pops, as before)
     const fadeS = qn('sunfade', SUN_FADE_S);
     if (this.stylized && fadeS > 0 && installShadowFadeChunk()) {
-      // E153 B: `?sunfadefilter=cheap` samples the fading-out ghost with the 3×3 tent (4 taps), `5x5` with 9; default: the cascade's own
-      const ghostFilter = qs.get('sunfadefilter');
+      // E153 (the user's pick A+B, "they all look the same, use the cheapest"): the fading-out ghost is sampled with the 3×3
+      // tent (4 taps) by default; `?sunfadefilter=5x5` 9 taps, `?sunfadefilter=full` the cascade's own
+      const ghostFilter = qs.get('sunfadefilter') ?? 'cheap';
       const ghostRadius = ghostFilter === 'cheap' ? 0.6 : ghostFilter === '5x5' ? 1 : null;
       this.shadowFade = new ShadowFade(this.csm, this.camera, this.scene, fadeS, ghostRadius);
       for (const [i, g] of this.shadowFade.ghosts.entries()) cullToSlice(this.csm, this.camera, g.shadow, i); // E153: a ghost draws only its cascade's casters

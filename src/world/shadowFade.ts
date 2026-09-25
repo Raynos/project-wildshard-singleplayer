@@ -23,8 +23,8 @@ import { CSMFrustum } from 'three/examples/jsm/csm/CSMFrustum.js';
 
 /** the fade's progress, 0 = the old direction … 1 = the new (settled); every CSM material shares it */
 export const sunFadeUniform = { value: 1 };
-/** the fade's length (s) unless `?sunfade=` says otherwise */
-export const SUN_FADE_S = 2;
+/** the fade's length (s) unless `?sunfade=` says otherwise (E153, the user's pick A+B: 1 s — the fade runs on ~34 % of frames, not ~74 %) */
+export const SUN_FADE_S = 1;
 /** a larger turn is a jump, not a step: it moves at once */
 const MAX_FADE = 5 * Math.PI / 180;
 
