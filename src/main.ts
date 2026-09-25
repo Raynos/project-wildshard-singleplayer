@@ -81,6 +81,7 @@ import { IslandSfx } from './audio/IslandSfx';
 import { SurfaceMap } from './audio/Surface';
 import { IslandAmbience } from './audio/IslandAmbience';
 import { ForestAmbience } from './audio/ForestAmbience';
+import { installPineAudio } from './pinehollow/audioWiring';
 import { installErrorModal, showError } from './ui/ErrorModal';
 import { onReview, queuedCount, quickNote } from './ui/review';
 import { rotateGated } from './ui/RotateGate';
@@ -570,10 +571,12 @@ async function main() {
     swordEvents.onClang = (point, strength, clang) => { islandSfx.impact(clang, strength, point); }; // stone / wood by what the tip met (P5)
     animals.onWindup = (a) => { const e = a.kind === 'crab' ? 'crab' : a.kind === 'sailor' ? 'sailor' : a.kind === 'boar' || a.kind === 'bear' ? 'boar' : null; if (e !== null) islandSfx.windup(e, a.position); };
   }
-  const ambience = sea ? new IslandAmbience(audio, { sea: sea.level, heightAt, palms: palmSpecs, wreck, cove: Cove.forIsland() }) : chunk.slug === 'pine-hollow' ? new ForestAmbience(audio, { heightAt, cabins, music }) : null; // PH-A2
+  const ambience = sea ? new IslandAmbience(audio, { sea: sea.level, heightAt, palms: palmSpecs, wreck, cove: Cove.forIsland() }) : chunk.slug === 'pine-hollow' ? new ForestAmbience(audio, { heightAt, cabins }) : null; // PH-A2
   if (ambience instanceof ForestAmbience) pineFights?.useSfx(ambience.sfx); // the King's bells / stomp / roar, the thralls
   if (ambience instanceof ForestAmbience) pineQuest?.useSfx(ambience.sfx); // the NPC barks, the lanterns, the zipline, the night's thralls
   if (ambience instanceof ForestAmbience) pineLoadout?.useSfx(ambience.sfx); // the lever gun's shot / echo / cycle, the bow's draw
+  // the A-rows' audio wiring: the clock → night beds + calm-night music, an engaged elite → combat, the layout's zones, deer snorts, doors
+  if (ambience instanceof ForestAmbience) installPineAudio({ game, sky, music, ambience, animals, cabins, eliteEngaged: () => pineFights?.eliteEngaged() ?? false, params });
   // PH-L10 / C7: the dawn fog + the showers (the sky, the fog, the wet PBR, the rain, the puddles, the rings, the herds' shelter)
   const pineWeather = chunk.slug === 'pine-hollow' ? installPineWeather({ game, sky, trees: forest.trees, animals, particles, ambience: ambience instanceof ForestAmbience ? ambience : null, roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined, stagAt: () => pineQuest?.stagAt() ?? null, viewer, horizonVeil: dressing.horizon.painted?.veil ?? null }) : null;
   if (pineWeather) pineLoadout?.useRain(() => pineWeather.weather.rain); // wet bolts drop, pitch-tipped ones fly true

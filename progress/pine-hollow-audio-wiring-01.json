@@ -1,0 +1,1368 @@
+{
+ "url": "http://localhost:4331",
+ "when": "2026-09-25T00:34:14.654Z",
+ "steps": [
+  {
+   "step": "day: boot + first frames",
+   "log": [],
+   "stems": {
+    "source": "stems",
+    "slot": "pine",
+    "scene": "day",
+    "phase": 1,
+    "tension": 0,
+    "layers": []
+   },
+   "extra": {
+    "decoded": 37
+   }
+  },
+  {
+   "step": "lever-action shot (+ cycle, ridge echo)",
+   "log": [
+    {
+     "t": 5440,
+     "kind": "sfx",
+     "name": "leverShot",
+     "ok": true
+    },
+    {
+     "t": 5553,
+     "kind": "sfx",
+     "name": "leverCycle",
+     "ok": true
+    },
+    {
+     "t": 5862,
+     "kind": "sfx",
+     "name": "leverEcho",
+     "ok": true
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "pine",
+    "scene": "day",
+    "phase": 1,
+    "tension": 0,
+    "layers": []
+   }
+  },
+  {
+   "step": "NPC talk: Hale (talk-open bark)",
+   "log": [
+    {
+     "t": 7946,
+     "kind": "bark",
+     "name": "ranger",
+     "ok": true,
+     "detail": "bark-ranger-3"
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "pine",
+    "scene": "day",
+    "phase": 1,
+    "tension": 0,
+    "layers": []
+   },
+   "extra": "ranger"
+  },
+  {
+   "step": "rain",
+   "log": [
+    {
+     "t": 9986,
+     "kind": "bed",
+     "name": "rain-canopy",
+     "ok": false,
+     "detail": "up 1.00 (decoding)"
+    },
+    {
+     "t": 9998,
+     "kind": "bed",
+     "name": "rain-canopy",
+     "ok": true,
+     "detail": "loop in"
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "pine",
+    "scene": "day",
+    "phase": 1,
+    "tension": 0,
+    "layers": []
+   }
+  },
+  {
+   "step": "cabin door open + close",
+   "log": [
+    {
+     "t": 12957,
+     "kind": "sfx",
+     "name": "doorOpen",
+     "ok": true
+    },
+    {
+     "t": 13858,
+     "kind": "sfx",
+     "name": "doorClose",
+     "ok": true
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "pine",
+    "scene": "day",
+    "phase": 1,
+    "tension": 0,
+    "layers": []
+   },
+   "extra": "Close door"
+  },
+  {
+   "step": "day \u2192 night (the clock)",
+   "log": [
+    {
+     "t": 15518,
+     "kind": "bed",
+     "name": "rain-canopy",
+     "ok": true,
+     "detail": "down"
+    },
+    {
+     "t": 17018,
+     "kind": "bed",
+     "name": "night",
+     "ok": false,
+     "detail": "up 0.63 (decoding)"
+    },
+    {
+     "t": 17018,
+     "kind": "bed",
+     "name": "nightfog",
+     "ok": false,
+     "detail": "up 0.20 (decoding)"
+    },
+    {
+     "t": 17034,
+     "kind": "bed",
+     "name": "nightfog",
+     "ok": true,
+     "detail": "loop in"
+    },
+    {
+     "t": 17036,
+     "kind": "bed",
+     "name": "night",
+     "ok": true,
+     "detail": "loop in"
+    },
+    {
+     "t": 17051,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    },
+    {
+     "t": 17216,
+     "kind": "wire",
+     "name": "clock:night",
+     "ok": true,
+     "detail": "1.00"
+    },
+    {
+     "t": 17216,
+     "kind": "music",
+     "name": "scene:night"
+    },
+    {
+     "t": 17217,
+     "kind": "sfx",
+     "name": "deer_snort",
+     "ok": true
+    },
+    {
+     "t": 17257,
+     "kind": "music",
+     "name": "deck:night",
+     "ok": true,
+     "detail": "piano"
+    },
+    {
+     "t": 17984,
+     "kind": "music",
+     "name": "mode:alert"
+    },
+    {
+     "t": 18052,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    },
+    {
+     "t": 19084,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    },
+    {
+     "t": 24084,
+     "kind": "music",
+     "name": "mode:calm"
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "night",
+    "scene": "night",
+    "phase": 1,
+    "tension": 0.2715938091278076,
+    "layers": []
+   }
+  },
+  {
+   "step": "waystone relight (pond lantern)",
+   "log": [
+    {
+     "t": 24468,
+     "kind": "sfx",
+     "name": "lanternCreak",
+     "ok": true
+    },
+    {
+     "t": 24485,
+     "kind": "music",
+     "name": "mode:combat"
+    },
+    {
+     "t": 24518,
+     "kind": "bed",
+     "name": "pond",
+     "ok": false,
+     "detail": "up 0.57 (decoding)"
+    },
+    {
+     "t": 24518,
+     "kind": "bed",
+     "name": "cabin",
+     "ok": true,
+     "detail": "down"
+    },
+    {
+     "t": 24519,
+     "kind": "bed",
+     "name": "waterfall",
+     "ok": false,
+     "detail": "up 0.05 (decoding)"
+    },
+    {
+     "t": 24519,
+     "kind": "zone",
+     "name": "pond"
+    },
+    {
+     "t": 24537,
+     "kind": "bed",
+     "name": "waterfall",
+     "ok": true,
+     "detail": "loop in"
+    },
+    {
+     "t": 24543,
+     "kind": "bed",
+     "name": "pond",
+     "ok": true,
+     "detail": "loop in"
+    },
+    {
+     "t": 24656,
+     "kind": "wire",
+     "name": "elite:engaged"
+    },
+    {
+     "t": 24820,
+     "kind": "sfx",
+     "name": "lanternLight",
+     "ok": true
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "night",
+    "scene": "night",
+    "phase": 1,
+    "tension": 1,
+    "layers": []
+   }
+  },
+  {
+   "step": "zone: waterfall",
+   "log": [
+    {
+     "t": 26585,
+     "kind": "zone",
+     "name": "waterfall"
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "night",
+    "scene": "night",
+    "phase": 1,
+    "tension": 1,
+    "layers": []
+   }
+  },
+  {
+   "step": "zone: creek",
+   "log": [
+    {
+     "t": 29052,
+     "kind": "bed",
+     "name": "pond",
+     "ok": true,
+     "detail": "down"
+    },
+    {
+     "t": 29052,
+     "kind": "bed",
+     "name": "creek",
+     "ok": false,
+     "detail": "up 0.97 (decoding)"
+    },
+    {
+     "t": 29052,
+     "kind": "bed",
+     "name": "waterfall",
+     "ok": true,
+     "detail": "down"
+    },
+    {
+     "t": 29052,
+     "kind": "zone",
+     "name": "creek"
+    },
+    {
+     "t": 29073,
+     "kind": "bed",
+     "name": "creek",
+     "ok": true,
+     "detail": "loop in"
+    },
+    {
+     "t": 29084,
+     "kind": "wire",
+     "name": "elite:clear"
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "night",
+    "scene": "night",
+    "phase": 1,
+    "tension": 1,
+    "layers": []
+   }
+  },
+  {
+   "step": "zone: mill",
+   "log": [
+    {
+     "t": 32298,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "night",
+    "scene": "night",
+    "phase": 1,
+    "tension": 1,
+    "layers": []
+   }
+  },
+  {
+   "step": "zone: ridge",
+   "log": [
+    {
+     "t": 34117,
+     "kind": "bed",
+     "name": "creek",
+     "ok": true,
+     "detail": "down"
+    },
+    {
+     "t": 34117,
+     "kind": "bed",
+     "name": "ridge",
+     "ok": false,
+     "detail": "up 1.00 (decoding)"
+    },
+    {
+     "t": 34118,
+     "kind": "zone",
+     "name": "ridge"
+    },
+    {
+     "t": 34134,
+     "kind": "bed",
+     "name": "ridge",
+     "ok": true,
+     "detail": "loop in"
+    },
+    {
+     "t": 35987,
+     "kind": "music",
+     "name": "mode:alert"
+    },
+    {
+     "t": 36284,
+     "kind": "music",
+     "name": "mode:calm"
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "night",
+    "scene": "night",
+    "phase": 1,
+    "tension": 0.6721166372299194,
+    "layers": []
+   }
+  },
+  {
+   "step": "zone: oldgrowth",
+   "log": [
+    {
+     "t": 36517,
+     "kind": "music",
+     "name": "mode:combat"
+    },
+    {
+     "t": 36584,
+     "kind": "bed",
+     "name": "ridge",
+     "ok": true,
+     "detail": "down"
+    },
+    {
+     "t": 36584,
+     "kind": "bed",
+     "name": "oldgrowth",
+     "ok": false,
+     "detail": "up 0.50 (decoding)"
+    },
+    {
+     "t": 36594,
+     "kind": "zone",
+     "name": "oldgrowth"
+    },
+    {
+     "t": 36613,
+     "kind": "bed",
+     "name": "oldgrowth",
+     "ok": true,
+     "detail": "loop in"
+    },
+    {
+     "t": 37448,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    },
+    {
+     "t": 38449,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "night",
+    "scene": "night",
+    "phase": 1,
+    "tension": 1,
+    "layers": []
+   }
+  },
+  {
+   "step": "zone: cave",
+   "log": [
+    {
+     "t": 39108,
+     "kind": "bed",
+     "name": "oldgrowth",
+     "ok": true,
+     "detail": "down"
+    },
+    {
+     "t": 39108,
+     "kind": "bed",
+     "name": "cave",
+     "ok": false,
+     "detail": "up 0.92 (decoding)"
+    },
+    {
+     "t": 39123,
+     "kind": "zone",
+     "name": "cave"
+    },
+    {
+     "t": 39143,
+     "kind": "bed",
+     "name": "cave",
+     "ok": true,
+     "detail": "loop in"
+    },
+    {
+     "t": 39200,
+     "kind": "wire",
+     "name": "elite:engaged"
+    },
+    {
+     "t": 40500,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    },
+    {
+     "t": 41501,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    },
+    {
+     "t": 41502,
+     "kind": "bed",
+     "name": "hollow",
+     "ok": true,
+     "detail": "down"
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "night",
+    "scene": "night",
+    "phase": 1,
+    "tension": 1,
+    "layers": []
+   }
+  },
+  {
+   "step": "mill wheel turning (the errand done)",
+   "log": [
+    {
+     "t": 41600,
+     "kind": "wire",
+     "name": "elite:clear"
+    },
+    {
+     "t": 41601,
+     "kind": "bed",
+     "name": "hollow",
+     "ok": true,
+     "detail": "up 0.25"
+    },
+    {
+     "t": 41601,
+     "kind": "bed",
+     "name": "creek",
+     "ok": true,
+     "detail": "up 0.80"
+    },
+    {
+     "t": 41601,
+     "kind": "bed",
+     "name": "mill",
+     "ok": false,
+     "detail": "up 0.98 (decoding)"
+    },
+    {
+     "t": 41601,
+     "kind": "bed",
+     "name": "cave",
+     "ok": true,
+     "detail": "down"
+    },
+    {
+     "t": 41601,
+     "kind": "zone",
+     "name": "mill"
+    },
+    {
+     "t": 41615,
+     "kind": "bed",
+     "name": "mill",
+     "ok": true,
+     "detail": "loop in"
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "night",
+    "scene": "night",
+    "phase": 1,
+    "tension": 1,
+    "layers": []
+   }
+  },
+  {
+   "step": "zipline ride",
+   "log": [
+    {
+     "t": 43525,
+     "kind": "music",
+     "name": "sting:chunk",
+     "ok": true
+    },
+    {
+     "t": 43526,
+     "kind": "music",
+     "name": "sting:chunk",
+     "ok": true
+    },
+    {
+     "t": 43526,
+     "kind": "music",
+     "name": "sting:chunk",
+     "ok": true
+    },
+    {
+     "t": 43573,
+     "kind": "wire",
+     "name": "clock:day",
+     "ok": true,
+     "detail": "0.00"
+    },
+    {
+     "t": 43573,
+     "kind": "music",
+     "name": "scene:day"
+    },
+    {
+     "t": 43573,
+     "kind": "music",
+     "name": "deck:pine",
+     "ok": true,
+     "detail": "piano"
+    },
+    {
+     "t": 43634,
+     "kind": "bed",
+     "name": "creek",
+     "ok": true,
+     "detail": "down"
+    },
+    {
+     "t": 43634,
+     "kind": "bed",
+     "name": "mill",
+     "ok": true,
+     "detail": "down"
+    },
+    {
+     "t": 43634,
+     "kind": "bed",
+     "name": "ridge",
+     "ok": true,
+     "detail": "up 1.00"
+    },
+    {
+     "t": 43634,
+     "kind": "bed",
+     "name": "night",
+     "ok": true,
+     "detail": "down"
+    },
+    {
+     "t": 43634,
+     "kind": "bed",
+     "name": "nightfog",
+     "ok": true,
+     "detail": "down"
+    },
+    {
+     "t": 43634,
+     "kind": "zone",
+     "name": "ridge"
+    },
+    {
+     "t": 44128,
+     "kind": "sfx",
+     "name": "zipline",
+     "ok": true
+    },
+    {
+     "t": 47834,
+     "kind": "zone",
+     "name": "hollow"
+    },
+    {
+     "t": 47965,
+     "kind": "sfx",
+     "name": "deer_snort",
+     "ok": true
+    },
+    {
+     "t": 48799,
+     "kind": "bed",
+     "name": "ridge",
+     "ok": true,
+     "detail": "down"
+    },
+    {
+     "t": 49368,
+     "kind": "music",
+     "name": "mode:alert"
+    },
+    {
+     "t": 49566,
+     "kind": "music",
+     "name": "mode:combat"
+    },
+    {
+     "t": 54965,
+     "kind": "sfx",
+     "name": "deer_snort",
+     "ok": true
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "pine",
+    "scene": "day",
+    "phase": 1,
+    "tension": 1,
+    "layers": []
+   }
+  },
+  {
+   "step": "King: into the stones (intro \u2192 phase I)",
+   "log": [
+    {
+     "t": 5498,
+     "kind": "music",
+     "name": "scene:boss"
+    },
+    {
+     "t": 5498,
+     "kind": "music",
+     "name": "deck:pine",
+     "ok": true,
+     "detail": "piano"
+    },
+    {
+     "t": 5498,
+     "kind": "music",
+     "name": "mode:combat"
+    },
+    {
+     "t": 5531,
+     "kind": "sfx",
+     "name": "king_bells",
+     "ok": true
+    },
+    {
+     "t": 5563,
+     "kind": "music",
+     "name": "deck:boss",
+     "ok": true,
+     "detail": "piano"
+    },
+    {
+     "t": 5631,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    },
+    {
+     "t": 8031,
+     "kind": "sfx",
+     "name": "king_roar",
+     "ok": true
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "boss",
+    "scene": "boss",
+    "phase": 1,
+    "layers": [
+     0.6000000238418579,
+     0
+    ]
+   }
+  },
+  {
+   "step": "King: phase II (Lanterns Fall)",
+   "log": [
+    {
+     "t": 12498,
+     "kind": "music",
+     "name": "phase:2"
+    },
+    {
+     "t": 13231,
+     "kind": "sfx",
+     "name": "lanternLight",
+     "ok": true
+    },
+    {
+     "t": 13231,
+     "kind": "sfx",
+     "name": "lanternLight",
+     "ok": true
+    },
+    {
+     "t": 13231,
+     "kind": "sfx",
+     "name": "lanternLight",
+     "ok": true
+    },
+    {
+     "t": 13501,
+     "kind": "music",
+     "name": "mode:alert"
+    },
+    {
+     "t": 13698,
+     "kind": "sfx",
+     "name": "king_bells",
+     "ok": true
+    },
+    {
+     "t": 13731,
+     "kind": "music",
+     "name": "mode:calm"
+    },
+    {
+     "t": 15331,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    },
+    {
+     "t": 15332,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    },
+    {
+     "t": 17398,
+     "kind": "sfx",
+     "name": "king_stomp",
+     "ok": true
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "boss",
+    "scene": "boss",
+    "phase": 2,
+    "layers": [
+     1,
+     0.550000011920929
+    ]
+   },
+   "extra": 825
+  },
+  {
+   "step": "King: phase III (the Last Light)",
+   "log": [
+    {
+     "t": 17497,
+     "kind": "sfx",
+     "name": "king_roar",
+     "ok": true
+    },
+    {
+     "t": 17498,
+     "kind": "music",
+     "name": "phase:3"
+    },
+    {
+     "t": 18531,
+     "kind": "sfx",
+     "name": "king_stomp",
+     "ok": true
+    },
+    {
+     "t": 20864,
+     "kind": "sfx",
+     "name": "thrall_groan",
+     "ok": true
+    },
+    {
+     "t": 21964,
+     "kind": "sfx",
+     "name": "king_roar",
+     "ok": true
+    },
+    {
+     "t": 22397,
+     "kind": "sfx",
+     "name": "thrall_groan",
+     "ok": true
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "boss",
+    "scene": "boss",
+    "phase": 3,
+    "layers": [
+     1,
+     1
+    ]
+   },
+   "extra": 375
+  },
+  {
+   "step": "King: falls (back to the calm)",
+   "log": [
+    {
+     "t": 22498,
+     "kind": "music",
+     "name": "scene:night"
+    },
+    {
+     "t": 22498,
+     "kind": "music",
+     "name": "deck:pine",
+     "ok": true,
+     "detail": "piano"
+    },
+    {
+     "t": 22498,
+     "kind": "music",
+     "name": "sting:chunk",
+     "ok": true
+    },
+    {
+     "t": 22543,
+     "kind": "music",
+     "name": "deck:night",
+     "ok": true,
+     "detail": "piano"
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "night",
+    "scene": "night",
+    "phase": 3,
+    "tension": 0,
+    "layers": []
+   }
+  },
+  {
+   "step": "quest dawn beat (dawn sting)",
+   "log": [
+    {
+     "t": 15124,
+     "kind": "music",
+     "name": "sting:chunk",
+     "ok": true
+    },
+    {
+     "t": 15124,
+     "kind": "music",
+     "name": "sting:chunk",
+     "ok": true
+    },
+    {
+     "t": 15124,
+     "kind": "music",
+     "name": "sting:chunk",
+     "ok": true
+    },
+    {
+     "t": 15124,
+     "kind": "music",
+     "name": "sting:chunk",
+     "ok": true
+    },
+    {
+     "t": 15124,
+     "kind": "music",
+     "name": "sting:chunk",
+     "ok": true
+    },
+    {
+     "t": 15124,
+     "kind": "music",
+     "name": "sting:chunk",
+     "ok": true
+    },
+    {
+     "t": 15124,
+     "kind": "music",
+     "name": "sting:chunk",
+     "ok": true
+    },
+    {
+     "t": 15227,
+     "kind": "wire",
+     "name": "clock:night",
+     "ok": true,
+     "detail": "1.00"
+    },
+    {
+     "t": 15227,
+     "kind": "music",
+     "name": "scene:night"
+    },
+    {
+     "t": 15227,
+     "kind": "music",
+     "name": "deck:night",
+     "ok": true,
+     "detail": "piano"
+    },
+    {
+     "t": 15227,
+     "kind": "bed",
+     "name": "night",
+     "ok": true,
+     "detail": "up 1.00"
+    },
+    {
+     "t": 15227,
+     "kind": "bed",
+     "name": "nightfog",
+     "ok": true,
+     "detail": "up 0.50"
+    },
+    {
+     "t": 15227,
+     "kind": "bed",
+     "name": "dawn",
+     "ok": true,
+     "detail": "down"
+    },
+    {
+     "t": 15294,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    },
+    {
+     "t": 16293,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    },
+    {
+     "t": 17294,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    },
+    {
+     "t": 19126,
+     "kind": "music",
+     "name": "sting:dawn",
+     "ok": true
+    },
+    {
+     "t": 19130,
+     "kind": "music",
+     "name": "sting:dawn-take",
+     "ok": true,
+     "detail": "piano"
+    },
+    {
+     "t": 20793,
+     "kind": "sfx",
+     "name": "deer_snort",
+     "ok": true
+    },
+    {
+     "t": 21060,
+     "kind": "bed",
+     "name": "dawn",
+     "ok": true,
+     "detail": "up 0.05"
+    },
+    {
+     "t": 21758,
+     "kind": "sfx",
+     "name": "thrall_move",
+     "ok": true
+    },
+    {
+     "t": 21758,
+     "kind": "sfx",
+     "name": "thrall_move",
+     "ok": true
+    },
+    {
+     "t": 21758,
+     "kind": "sfx",
+     "name": "thrall_move",
+     "ok": true
+    },
+    {
+     "t": 21926,
+     "kind": "wire",
+     "name": "clock:day",
+     "ok": true,
+     "detail": "0.21"
+    },
+    {
+     "t": 21926,
+     "kind": "music",
+     "name": "scene:day"
+    },
+    {
+     "t": 21926,
+     "kind": "music",
+     "name": "deck:pine",
+     "ok": true,
+     "detail": "piano"
+    },
+    {
+     "t": 22027,
+     "kind": "bed",
+     "name": "nightfog",
+     "ok": true,
+     "detail": "down"
+    },
+    {
+     "t": 22361,
+     "kind": "bed",
+     "name": "night",
+     "ok": true,
+     "detail": "down"
+    },
+    {
+     "t": 22625,
+     "kind": "music",
+     "name": "mode:calm"
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "pine",
+    "scene": "day",
+    "phase": 1,
+    "tension": 0.3459305763244629,
+    "layers": []
+   }
+  },
+  {
+   "step": "OFFLINE: day \u2192 night (calm-night decoded from the offline cache)",
+   "log": [
+    {
+     "t": 6519,
+     "kind": "bed",
+     "name": "night",
+     "ok": false,
+     "detail": "up 0.60 (decoding)"
+    },
+    {
+     "t": 6519,
+     "kind": "bed",
+     "name": "nightfog",
+     "ok": false,
+     "detail": "up 0.18 (decoding)"
+    },
+    {
+     "t": 6539,
+     "kind": "bed",
+     "name": "nightfog",
+     "ok": true,
+     "detail": "loop in"
+    },
+    {
+     "t": 6540,
+     "kind": "bed",
+     "name": "night",
+     "ok": true,
+     "detail": "loop in"
+    },
+    {
+     "t": 6585,
+     "kind": "wire",
+     "name": "clock:night",
+     "ok": true,
+     "detail": "0.97"
+    },
+    {
+     "t": 6585,
+     "kind": "music",
+     "name": "scene:night"
+    },
+    {
+     "t": 6631,
+     "kind": "music",
+     "name": "deck:night",
+     "ok": true,
+     "detail": "piano"
+    },
+    {
+     "t": 7118,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    },
+    {
+     "t": 8118,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    },
+    {
+     "t": 9152,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    },
+    {
+     "t": 18043,
+     "kind": "sfx",
+     "name": "thrall_call",
+     "ok": true
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "night",
+    "scene": "night",
+    "phase": 1,
+    "tension": 0,
+    "layers": []
+   }
+  },
+  {
+   "step": "OFFLINE: a bark",
+   "log": [
+    {
+     "t": 18991,
+     "kind": "bark",
+     "name": "ranger",
+     "ok": true,
+     "detail": "bark-ranger-1"
+    }
+   ],
+   "stems": {
+    "source": "stems",
+    "slot": "night",
+    "scene": "night",
+    "phase": 1,
+    "tension": 0,
+    "layers": []
+   }
+  }
+ ],
+ "lazyAudioFetches": [],
+ "failedAudio": [],
+ "offline": {
+  "ok": true,
+  "bootMs": 2471,
+  "sw": true
+ },
+ "errors": [],
+ "bootMs": 2340,
+ "kingBootMs": 2963,
+ "dawnBootMs": 2616,
+ "triggers": {
+  "music: day\u2192night scene": true,
+  "music: boss + phases 1\u21923": true,
+  "music: back to calm after the King": true,
+  "music: dawn sting": true,
+  "bed: night": true,
+  "bed: rain": true,
+  "zone beds: waterfall / creek / mill / ridge / oldgrowth / cave": true,
+  "sfx: leverShot / leverCycle / leverEcho": true,
+  "sfx: lanternCreak + lanternLight": true,
+  "sfx: zipline": true,
+  "sfx: doors": true,
+  "sfx: King bells / roar / stomp": true,
+  "sfx: thralls (call / groan / move)": true,
+  "sfx: deer snort (seen when a deer went alert on the way)": true,
+  "music: an engaged elite \u2192 combat": true,
+  "bark: talk-open": true,
+  "no audio fetched after the bar": true,
+  "offline reload works": true,
+  "offline: calm-night decodes from the cache": true
+ },
+ "loadBench": {
+  "how": "node scripts/bench-load.mjs --conditions=wifi --cache=cold,warm --viewport=390x844 \"--query=chunk=pine-hollow&tier=phone&mute=1\" --ci, on clean `git archive HEAD` exports (before = 810e9ef, after = 810e9ef + the audio-wiring commit), two runs each",
+  "before": [
+   {
+    "file": "b-mug83bel-2026-09-25T00-29-18.json",
+    "cache": "cold",
+    "netMB": 30.27,
+    "requests": 151,
+    "playMs": 14056,
+    "longTaskMaxMs": 1172
+   },
+   {
+    "file": "b-mug83bel-2026-09-25T00-29-18.json",
+    "cache": "warm",
+    "netMB": 0.0,
+    "requests": 145,
+    "playMs": 6877,
+    "longTaskMaxMs": 1120
+   },
+   {
+    "file": "b-mug83bel-2026-09-25T00-31-22.json",
+    "cache": "cold",
+    "netMB": 30.27,
+    "requests": 151,
+    "playMs": 14142,
+    "longTaskMaxMs": 1300
+   },
+   {
+    "file": "b-mug83bel-2026-09-25T00-31-22.json",
+    "cache": "warm",
+    "netMB": 0.0,
+    "requests": 145,
+    "playMs": 6925,
+    "longTaskMaxMs": 1149
+   }
+  ],
+  "after": [
+   {
+    "file": "b-mug8400h-2026-09-25T00-29-54.json",
+    "cache": "cold",
+    "netMB": 32.81,
+    "requests": 228,
+    "playMs": 16842,
+    "longTaskMaxMs": 1612
+   },
+   {
+    "file": "b-mug8400h-2026-09-25T00-29-54.json",
+    "cache": "warm",
+    "netMB": 0.0,
+    "requests": 222,
+    "playMs": 7925,
+    "longTaskMaxMs": 1307
+   },
+   {
+    "file": "b-mug8400h-2026-09-25T00-30-56.json",
+    "cache": "cold",
+    "netMB": 32.81,
+    "requests": 228,
+    "playMs": 14644,
+    "longTaskMaxMs": 1336
+   },
+   {
+    "file": "b-mug8400h-2026-09-25T00-30-56.json",
+    "cache": "warm",
+    "netMB": 0.0,
+    "requests": 222,
+    "playMs": 7226,
+    "longTaskMaxMs": 1169
+   }
+  ],
+  "summary": "bytes at the bar (phone, wifi/cold): 30.27 MB -> 32.81 MB (+2.54 MB: + Pine Hollow SFX set 3.4 MB + pine-hollow-piano 2.66 MB - the base styles' island slot 3.25 MB); requests 151 -> 228 (the 78 SFX files one by one); warm time-to-play 6.88/6.92 s -> 7.92/7.23 s (63 one-shots + barks decoded at the bar); longest task is the menu step's, noise between runs (before 1172/1300, after 1612/1336 ms)"
+ }
+}

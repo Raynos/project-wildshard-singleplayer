@@ -54,6 +54,8 @@ export interface PineCombat {
   isElite: (a: Animal) => boolean;
   /** Pine Hollow's one-shots (ForestAmbience.sfx), once the ambience exists */
   useSfx: (sfx: PineHollowSfx) => void;
+  /** a named elite's fight is on (its bar pinned): the music holds combat (src/pinehollow/audioWiring.ts) */
+  eliteEngaged: () => boolean;
 }
 
 export function installPineCombat(h: PineCombatHost): PineCombat {
@@ -141,5 +143,6 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
     onPlayerDeath: () => { stunT = 0; introLock = false; legs(); return king.onPlayerDeath(); },
     isElite: isPineElite,
     useSfx: (s) => { sfx = s; },
+    eliteEngaged: () => elites.focus?.state === 'engaged',
   };
 }

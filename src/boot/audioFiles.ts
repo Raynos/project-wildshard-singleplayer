@@ -5,6 +5,11 @@
  * and sets the Settings menu offers (MUSIC_STYLES / SFX_SETS) — neither list is spelled out here, so a set renamed or added
  * in Settings + its sfx.json needs no edit in this file. The selected style / set comes first: it is the one decoded before
  * "playable", so its bytes should land first.
+ *
+ * A shard's own sets ride on its bar only (E44, PINE-HOLLOW-REMASTER A-rows): Pine Hollow adds its music for the selected
+ * style (public/assets/music/pine-hollow-<style>/: calm-night, the Antler King's phases, the dawn sting) and its SFX set
+ * (public/assets/sfx/pine-hollow/: the zoned beds, the one-shots, the barks), and leaves out the base styles' Driftwood slot
+ * ('island' — never played on Pine Hollow; a shard change reloads). Driftwood's list is exactly what it was.
  */
 import { MUSIC_MANIFESTS, SFX_MANIFESTS } from './audio.generated';
 import { PUBLIC_BYTES } from './bytes.generated';
@@ -38,10 +43,30 @@ const filesOf = (dir: string, manifest: unknown): string[] => manifestFiles(mani
 export const musicDir = (style: string): string => `/assets/music/${style}/`;
 export const sfxDir = (set: string): string => `/assets/sfx/${set}/`;
 
-/** the loading bar's `music` and `sfx` byte sources: every file of every style / set, the selected one first */
-export function audioFiles(): { music: string[]; sfx: string[] } {
+const PINE = 'pine-hollow';
+/** the shard's own music sets (dirs under /assets/music/): Pine Hollow's, in the selected style — none for the synth */
+export function shardMusicSets(slug: string): string[] {
+  const style = getMusicStyle(), set = `${PINE}-${style}`;
+  return slug === PINE && style !== 'synth' && Object.hasOwn(MUSIC_MANIFESTS, set) ? [set] : [];
+}
+/** the shard's own SFX sets (dirs under /assets/sfx/): Pine Hollow's — downloaded whatever Settings plays (a switch reads the cache) */
+export const shardSfxSets = (slug: string): string[] => (slug === PINE && Object.hasOwn(SFX_MANIFESTS, PINE) ? [PINE] : []);
+/** a base style's slots this shard never plays (Pine Hollow: Driftwood's 'island') */
+const unplayed = (slug: string): readonly string[] => (slug === PINE ? ['island'] : []);
+/** the manifest without `drop`'s slots */
+function withoutSlots(m: unknown, drop: readonly string[]): unknown {
+  if (drop.length === 0 || typeof m !== 'object' || m === null || Array.isArray(m)) return m;
+  const slots: unknown = (m as Record<string, unknown>)['slots'];
+  if (typeof slots !== 'object' || slots === null || Array.isArray(slots)) return m;
+  return { ...m, slots: Object.fromEntries(Object.entries(slots).filter(([k]) => !drop.includes(k))) };
+}
+
+/** the loading bar's `music` and `sfx` byte sources for shard `slug`: every file of every style / set (the selected one
+ *  first), then the shard's own sets. Without a slug (or on Driftwood): the base styles and sets, every slot. */
+export function audioFiles(slug = ''): { music: string[]; sfx: string[] } {
+  const drop = unplayed(slug);
   return {
-    music: musicStyles().flatMap((s) => filesOf(musicDir(s), MUSIC_MANIFESTS[s])),
-    sfx: sfxSets().flatMap((s) => filesOf(sfxDir(s), SFX_MANIFESTS[s])),
+    music: [...musicStyles().flatMap((s) => filesOf(musicDir(s), withoutSlots(MUSIC_MANIFESTS[s], drop))), ...shardMusicSets(slug).flatMap((s) => filesOf(musicDir(s), MUSIC_MANIFESTS[s]))],
+    sfx: [...sfxSets().flatMap((s) => filesOf(sfxDir(s), SFX_MANIFESTS[s])), ...shardSfxSets(slug).flatMap((s) => filesOf(sfxDir(s), SFX_MANIFESTS[s]))],
   };
 }

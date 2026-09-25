@@ -18,19 +18,23 @@
  *  - `startAudioPreload()`  every audio file downloaded (the service worker caches each on its way in — a menu switch and an
  *                           offline launch read them from there), the selected music style (title + this shard's slot +
  *                           stings) and sound-effect set decoded on an OfflineAudioContext as their bytes land; awaited by
- *                           the 'audio' step, which closes the `music` and `sfx` byte sources.
+ *                           the 'audio' step, which closes the `music` and `sfx` byte sources. On Pine Hollow its own
+ *                           music (the selected style) and SFX set ride along (src/boot/audioFiles.ts), and the set's
+ *                           one-shots + barks are decoded here too (PineHollowSfx `decodePineShots`) — nothing of the
+ *                           shard's sound is fetched after the bar (E44).
  */
 import type { ChunkDef } from '../chunks/ChunkDef';
 import { chunkFiles } from './manifest';
 import { addBytes, type ChunkFiles } from './bytes';
 import { ART_BYTES } from './art.generated';
 import type { StepProgress } from './plan';
-import { audioFiles, musicDir, sfxDir } from './audioFiles';
+import { audioFiles, musicDir, sfxDir, shardMusicSets, shardSfxSets } from './audioFiles';
+import { decodePineShots, pineShotFiles } from '../audio/PineHollowSfx';
 import { whenPrefetched } from './prefetch';
 import { decodeBytes, decodeSfxSet, sfxFiles, type SfxBank } from '../audio/preload';
 import { decodeStyle, styleFiles, type SlotName, type StyleBank } from '../audio/Stems';
 import { getMusicStyle, getSfxSet } from '../ui/Settings';
-import { CHUNKS } from '../chunks/registry';
+import { CHUNKS, getActiveChunk } from '../chunks/registry';
 import { PLACEHOLDERS } from '../chunks/placeholders';
 
 /** source path (`../chunks/thumbs/x.jpg`, relative to this file) → the bundle's URL for it */
@@ -58,12 +62,13 @@ function artFor(def: ChunkDef): { urls: string[]; bytes: Record<string, number> 
 export function bootFiles(def: ChunkDef): ChunkFiles {
   const art = artFor(def);
   addBytes(art.bytes);
-  return { ...chunkFiles(def), art: art.urls, ...audioFiles() };
+  return { ...chunkFiles(def), art: art.urls, ...audioFiles(def.slug) };
 }
 
 /** the art and the audio for the prefetch queue: the selected style + set (decoded in the bar) ahead of the others (downloaded only) */
 export function extraFetches(files: ChunkFiles): string[] {
-  const mine = (p: string): boolean => p.startsWith(musicDir(getMusicStyle())) || p.startsWith(sfxDir(getSfxSet()));
+  const slug = getActiveChunk().slug, own = [...shardMusicSets(slug).map(musicDir), ...shardSfxSets(slug).map(sfxDir)]; // the shard's own sets (Pine Hollow's)
+  const mine = (p: string): boolean => p.startsWith(musicDir(getMusicStyle())) || p.startsWith(sfxDir(getSfxSet())) || own.some((d) => p.startsWith(d));
   const audio = [...files.music, ...files.sfx];
   return [...files.art, ...audio.filter(mine), ...audio.filter((p) => !mine(p))];
 }
@@ -130,7 +135,9 @@ export function startAudioPreload(files: ChunkFiles, def: ChunkDef): Preload<Aud
   const style = getMusicStyle(), set = getSfxSet();
   const slots: SlotName[] = ['title', ocean ? 'island' : 'pine']; // the other shard's slot is never played here (a shard change reloads)
   const bed = ocean ? 'island' : 'forest';
-  const decoded = new Set([...styleFiles(style, slots), ...sfxFiles(set, bed)]);
+  // Pine Hollow's one-shots + barks (its own set, E44): decoded at the bar so no first shot / bark is silent
+  const pineShots = !ocean && shardSfxSets(def.slug).length > 0 && set !== 'synth' ? pineShotFiles() : [];
+  const decoded = new Set([...styleFiles(style, slots), ...sfxFiles(set, bed), ...pineShots]);
   const rest = [...files.music, ...files.sfx].filter((u) => !decoded.has(u));
   const c = counter(decoded.size + rest.length);
   // the boot's counted fetch (the prefetch hands over the bytes it already has); a file two decoders share is read once
@@ -151,6 +158,7 @@ export function startAudioPreload(files: ChunkFiles, def: ChunkDef): Preload<Aud
     return undefined;
   });
   const sfx = decodeSfxSet(set, bed, read, c.tick);
+  const shots = pineShots.length > 0 ? decodePineShots(read, c.tick) : Promise.resolve();
   // every other style / set: downloaded to the last byte (through the service worker, which keeps it), then let go
   const others = rest.map(async (u) => {
     try { await whenPrefetched(u); const res = await fetch(u); await res.arrayBuffer(); } catch { /* offline with no copy: that style / set decodes to the synth later */ }
@@ -159,7 +167,7 @@ export function startAudioPreload(files: ChunkFiles, def: ChunkDef): Preload<Aud
   return {
     async wait(p) {
       c.attach(p, 'audio files');
-      const [m, s] = await Promise.all([music, sfx, ...others]);
+      const [m, s] = await Promise.all([music, sfx, shots, ...others]);
       reads.clear();
       return { music: m, sfx: s };
     },

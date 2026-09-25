@@ -17,15 +17,19 @@
  *   sfx.bark('ranger', npcPos)                     // a random bark of that NPC, never the one it played last
  *   await sfx.bed('pond')                          // a decoded bed loop (ForestAmbience), or undefined
  *
- * Nothing is fetched at the loading bar (the set is not one of Settings' SFX_SETS, so Driftwood's load is untouched): a
- * family is read from the offline cache — or the network, the first time — and decoded when it is first asked for;
- * `prefetch()` pulls the whole set into the cache while the player is in. Settings ▸ Sound effects = Synth silences it.
+ * Loaded at Pine Hollow's loading bar (E44 — src/boot/audioFiles.ts `audioFiles('pine-hollow')`, src/boot/extras.ts; the
+ * set is not one of Settings' SFX_SETS, so Driftwood's bar never lists it): every file is downloaded there (the service
+ * worker keeps each, so an offline launch reads them back), and the one-shots + barks are DECODED there too
+ * (`decodePineShots`, held module-wide in `barShots`) so no first shot / bark is ever silent. The beds are decoded from the
+ * offline cache when a zone first wants one (~6 MB of PCM each; ForestAmbience lets them go again). Settings ▸ Sound
+ * effects = Synth silences the set. Every play / bark lands in `window.__audioLog` (src/audio/audioLog.ts).
  */
 import { SFX_MANIFESTS } from '../boot/audio.generated';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
 import { getSfxSet } from '../ui/Settings';
 import type { Audio } from './Audio';
 import { cachedBytes, decodeBytes } from './preload';
+import { audioLog } from './audioLog';
 
 export type PhBed = 'hollow' | 'pond' | 'cabin' | 'creek' | 'waterfall' | 'mill' | 'ridge' | 'oldgrowth' | 'cave' | 'night' | 'nightfog'
   | 'rain-canopy' | 'rain-open' | 'dawn';
@@ -49,6 +53,37 @@ const file = (v: unknown): string | undefined => (typeof v === 'string' && !v.in
 /** each bark's level against the one-shots (-18 LUFS): a voice sits a little under a gunshot */
 const BARK_GAIN = 0.8;
 
+/** the one-shots + barks decoded at the loading bar (`decodePineShots`), shared by every PineHollowSfx */
+const barShots = new Map<string, AudioBuffer[]>();
+const manifestOf = (): Record<string, unknown> | undefined => { const m = SFX_MANIFESTS[SET]; return isObj(m) ? m : undefined; };
+/** the files of one-shot `family` in `manifest` (URLs) */
+function familyFiles(manifest: Record<string, unknown> | undefined, family: string): string[] {
+  const o = manifest?.['oneshots'], v = isObj(o) ? o[family] : undefined;
+  const list = Array.isArray(v) ? v : isObj(v) && Array.isArray(v['files']) ? v['files'] : [];
+  return list.map(file).filter((u): u is string => u !== undefined);
+}
+/** every one-shot + bark file of the set (URLs) — what the loading bar decodes (`decodePineShots`) */
+export function pineShotFiles(): string[] {
+  const m = manifestOf(), o = m?.['oneshots'];
+  return isObj(o) ? [...new Set(Object.keys(o).flatMap((f) => familyFiles(m, f)))] : [];
+}
+/**
+ * Decode every one-shot + bark of the set at the loading bar (src/boot/extras.ts) from `read` (the bar's counted fetch):
+ * `onFile` ticks per file. A file that fails is skipped (its family plays its other takes, or nothing); never rejects.
+ */
+export async function decodePineShots(read: (url: string) => Promise<ArrayBuffer>, onFile?: () => void): Promise<void> {
+  const m = manifestOf(), o = m?.['oneshots'];
+  if (!isObj(o)) return;
+  await Promise.all(Object.keys(o).map(async (family) => {
+    const bufs: AudioBuffer[] = [];
+    for (const u of familyFiles(m, family)) {
+      try { bufs.push(await decodeBytes(await read(u))); } catch (e) { console.info(`[sfx] ${u}: ${e instanceof Error ? e.message : String(e)} — that take is skipped`); }
+      onFile?.();
+    }
+    if (bufs.length > 0) barShots.set(family, bufs);
+  }));
+}
+
 export class PineHollowSfx {
   private readonly manifest: Record<string, unknown> | undefined;
   private beds = new Map<string, Promise<PhLoop | undefined>>();
@@ -59,14 +94,14 @@ export class PineHollowSfx {
   private prefetched = false;
 
   constructor(private readonly audio: Audio) {
-    const m = SFX_MANIFESTS[SET];
-    this.manifest = isObj(m) ? m : undefined;
+    this.manifest = manifestOf();
   }
 
   /** the build ships the set and Settings plays generated sound effects */
   get available(): boolean { return this.manifest !== undefined && getSfxSet() !== 'synth'; }
   /** diagnostics: which families are decoded */
-  get decoded(): string[] { return [...this.shots.keys()]; }
+  get decoded(): string[] { return [...new Set([...barShots.keys(), ...this.shots.keys()])]; }
+  private buffers(family: string): AudioBuffer[] | undefined { return this.shots.get(family) ?? barShots.get(family); }
 
   setListener(x: number, y: number, z: number, yaw: number): void { this.lx = x; this.ly = y; this.lz = z; this.yaw = yaw; }
 
@@ -100,15 +135,11 @@ export class PineHollowSfx {
   dropBed(name: PhBed): void { this.beds.delete(name); }
 
   /** the files of one-shot `family` in the manifest (URLs) */
-  private files(family: string): string[] {
-    const o = this.manifest?.['oneshots'], v = isObj(o) ? o[family] : undefined;
-    const list = Array.isArray(v) ? v : isObj(v) && Array.isArray(v['files']) ? v['files'] : [];
-    return list.map(file).filter((u): u is string => u !== undefined);
-  }
+  private files(family: string): string[] { return familyFiles(this.manifest, family); }
   /** decode these one-shot families in the background (the first play of an undecoded family is otherwise silent) */
   prewarm(families: readonly string[]): void { for (const f of families) this.load(f); }
   private load(family: string): void {
-    if (!this.available || this.shots.has(family) || this.loading.has(family)) return;
+    if (!this.available || this.buffers(family) || this.loading.has(family)) return;
     const urls = this.files(family);
     if (urls.length === 0) return;
     this.loading.add(family);
@@ -121,11 +152,11 @@ export class PineHollowSfx {
   }
 
   /** a random variant of `family` (±40 cents), placed in the world when `at` is given; false = not decoded (yet) or not shipped */
-  shot(family: PhShot, o: PhPlay = {}): boolean { return this.play(family, o); }
+  shot(family: PhShot, o: PhPlay = {}): boolean { const ok = this.play(family, o); audioLog('sfx', family, ok); return ok; }
   /** any family of the set by name (a PhShot, a bark) — `shot` is the typed door */
   play(family: string, o: PhPlay = {}): boolean {
     if (!this.audio.ready || !this.available) return false;
-    const bufs = this.shots.get(family);
+    const bufs = this.buffers(family);
     if (!bufs) { this.load(family); return false; }
     const buf = bufs[Math.floor(Math.random() * bufs.length)];
     if (!buf) return false;
@@ -157,14 +188,16 @@ export class PineHollowSfx {
   /** one of `npc`'s barks, at random, never the one it played last; false = none decoded yet (they start decoding) */
   bark(npc: Npc, at?: { x: number; y: number; z: number }): boolean {
     const all = this.barks(npc);
-    if (all.length === 0) return false;
-    const ready = all.filter((f) => this.shots.has(f));
+    if (all.length === 0) { audioLog('bark', npc, false, 'none shipped'); return false; }
+    const ready = all.filter((f) => this.buffers(f) !== undefined);
     if (ready.length < all.length) this.prewarm(all);
     const pool = ready.length > 1 ? ready.filter((f) => f !== this.lastBark.get(npc)) : ready;
     const f = pool[Math.floor(Math.random() * pool.length)];
-    if (f === undefined) return false;
+    if (f === undefined) { audioLog('bark', npc, false, 'not decoded'); return false; }
     this.lastBark.set(npc, f);
-    return this.play(f, { at, gain: BARK_GAIN });
+    const ok = this.play(f, { at, gain: BARK_GAIN });
+    audioLog('bark', npc, ok, f);
+    return ok;
   }
 
   /** every file of the set (URLs) */

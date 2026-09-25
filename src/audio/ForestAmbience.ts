@@ -3,7 +3,7 @@
  * pattern with generated beds (src/audio/PineHollowSfx.ts: public/assets/sfx/pine-hollow/, MOSS-SoundEffect v2 vs Stable
  * Audio 3 Medium, the better take per bed).
  *
- *   const amb = new ForestAmbience(audio, { heightAt, cabins, music });
+ *   const amb = new ForestAmbience(audio, { heightAt, cabins });
  *   game.onUpdate((dt) => amb.update(dt, game.camera));   // listener every frame, the zone mix at 10 Hz
  *   amb.night = 0 … 1 · amb.dawn = 0 … 1 · amb.rain = 0 … 1 · amb.thralls = 0 … 1   // the clock / weather / the King's night
  *   amb.setUnderwater(true | false)                      // the pond (next to audio.setUnderwater)
@@ -17,34 +17,37 @@
  *
  * Zones live today: **the Hollow** (everywhere outdoors that is not another zone: wind in the pines, a woodpecker), **the
  * pond** (frogs, a loon, dragonflies; panned toward the water, louder near it) and **the cabin interiors** (the fire's
- * crackle; the outdoor beds — Audio's forest bed through `audio.shadeAmbient`, and these — muffled through the walls). Ready
- * as data: creek, waterfall + the mill wheel, ridge wind, the old-growth hush, the cave, night (owls + crickets, the thralls'
- * far calls in the fog), rain on the canopy vs in the open, the dawn chorus. A bed is decoded the first time its weight is
- * above zero and let go 60 s after it last was (the phone keeps ~6 MB of PCM per 30 s stereo bed).
+ * crackle; the outdoor beds — Audio's forest bed through `audio.shadeAmbient`, and these — muffled through the walls). The
+ * layout's zones are placed by src/pinehollow/audioWiring.ts (`addSpot`): the creek along its bed, the waterfall, the mill
+ * wheel (while it turns), ridge wind on the crest + the lookout, the old-growth hush, the bear cave's mouth; the clock and the
+ * weather drive night (owls + crickets, the thralls' far calls in the fog), rain on the canopy vs in the open, the dawn chorus.
+ * Every file was downloaded at Pine Hollow's loading bar (E44); a bed is decoded from that offline cache the first time its
+ * weight is above zero and let go 60 s after it last was (the phone keeps ~6 MB of PCM per 30 s stereo bed). Beds coming
+ * up / down and zone changes land in `window.__audioLog`.
  *
  * Reverb (PH-A5): ConvolverNodes with generated IRs (src/audio/gen.ts: cabin 0.5 s, den 1.8 s, oldgrowth 1.4 s, bowl 0.9 s),
  * fed from the sfx bus through a send per room whose level follows how far inside it you are; the returns go to
  * `audio.world`. **The cabin reverb is live** (inside any cabin); the bowl's slap is a light send across the Hollow; the den
- * and the old-growth follow their spots once the layout adds them. A room's convolver is only built when first needed.
+ * (the cave's mouth) and the old-growth follow their spots. A room's convolver is only built when first needed.
  * Settings ▸ Sound effects = Synth: no beds (Audio's synth forest bed plays), the reverb still works.
  */
 import type { Camera } from 'three';
 import type { Audio, StepSurface } from './Audio';
 import { PineHollowSfx, type PhBed } from './PineHollowSfx';
 import { CABIN_SITES, POND, hasPond } from '../world/Heightfield';
+import { audioLog } from './audioLog';
 
 export type ForestZone = 'hollow' | 'pond' | 'cabin' | 'creek' | 'waterfall' | 'mill' | 'ridge' | 'oldgrowth' | 'cave';
 type Room = 'cabin' | 'den' | 'oldgrowth' | 'bowl';
-/** a zone the layout places: a circle (x, z, r) that fades in over `fade` metres outside it; `open` = no canopy (rain) */
-export interface ZoneSpot { zone: Exclude<ForestZone, 'hollow' | 'pond' | 'cabin'>; x: number; z: number; r: number; fade?: number; open?: boolean }
+/** a zone the layout places: a circle (x, z, r) that fades in over `fade` metres outside it; `open` = no canopy (rain);
+ *  `gain` = a live 0..1 on its weight (the mill wheel turning or not) */
+export interface ZoneSpot { zone: Exclude<ForestZone, 'hollow' | 'pond' | 'cabin'>; x: number; z: number; r: number; fade?: number; open?: boolean; gain?: () => number }
 
 export interface ForestAmbienceOpts {
   heightAt: (x: number, z: number) => number;
   /** the cabins (src/world/Cabin.ts): their floors say when you are inside */
   cabins?: { floorHeightAt: (x: number, z: number) => number | undefined; firePits?: readonly { x: number; y: number; z: number }[] } | null;
-  /** the music: its Pine Hollow set is prefetched once the ambience is up */
-  music?: { prefetchPine: () => void } | null;
-  /** zones placed by the layout (none today) */
+  /** zones placed by the layout (src/pinehollow/audioWiring.ts adds Pine Hollow's with `addSpot`) */
   spots?: readonly ZoneSpot[];
 }
 
@@ -67,7 +70,7 @@ const CABIN_HALF_W = 2.45;
 const ROCK_SLOPE = 0.32;
 const DROP_S = 60;
 
-interface Bed { name: PhBed; gain: GainNode; pan: StereoPannerNode | undefined; level: number; src: AudioBufferSourceNode | undefined; pending: boolean; idle: number }
+interface Bed { name: PhBed; gain: GainNode; pan: StereoPannerNode | undefined; level: number; src: AudioBufferSourceNode | undefined; pending: boolean; idle: number; heard: boolean }
 
 export class ForestAmbience {
   night = 0; dawn = 0; rain = 0;
@@ -108,9 +111,8 @@ export class ForestAmbience {
     const occl = c.createBiquadFilter(); occl.type = 'lowpass'; occl.frequency.value = 20000; occl.Q.value = 0.5; occl.connect(out); this.occl = occl;
     const sendIn = c.createGain(); sendIn.gain.value = 1; a.sfx.connect(sendIn); this.sendIn = sendIn;
     a.voices.prewarm(['ir-cabin', 'ir-bowl']);
-    this.o.music?.prefetchPine();
-    this.sfx.prefetch();
-    this.sfx.prewarm(['doorOpen', 'doorClose']);
+    // the set's files (and the Pine Hollow music) were downloaded at the loading bar and the one-shots decoded there (E44):
+    // nothing is fetched from here on — a bed decodes from the offline cache when its zone first wants it
     this.scheduleThrall();
   }
 
@@ -122,15 +124,16 @@ export class ForestAmbience {
     const c = this.audio.ctx, g = c.createGain(); g.gain.value = 0;
     let pan: StereoPannerNode | undefined;
     if (PANNED.has(name) && 'createStereoPanner' in c) { pan = c.createStereoPanner(); g.connect(pan).connect(this.occl); } else g.connect(name === 'cabin' ? this.out : this.occl);
-    const b: Bed = { name, gain: g, pan, level: 0, src: undefined, pending: true, idle: 0 };
+    const b: Bed = { name, gain: g, pan, level: 0, src: undefined, pending: true, idle: 0, heard: false };
     this.beds.set(name, b);
     void this.sfx.bed(name).then((l) => {
       b.pending = false;
-      if (!l || this.beds.get(name) !== b) return undefined;
+      if (!l || this.beds.get(name) !== b) { if (!l) audioLog('bed', name, false, 'will not decode'); return undefined; }
       const s = c.createBufferSource(); s.buffer = l.buffer; s.loop = true; s.loopStart = l.loopStart; s.loopEnd = l.loopEnd;
       const k = c.createGain(); k.gain.value = l.gain * LEVEL[name];
       s.connect(k).connect(g); s.start(c.currentTime + 0.05, l.loopStart + Math.random() * (l.loopEnd - l.loopStart));
       b.src = s;
+      audioLog('bed', name, true, 'loop in');
       return undefined;
     });
     return b;
@@ -201,7 +204,7 @@ export class ForestAmbience {
     const spot: Record<string, number> = { creek: 0, waterfall: 0, mill: 0, ridge: 0, oldgrowth: 0, cave: 0 };
     let open = pond > 0.5 ? 1 : 0;
     for (const s of this.spots) {
-      const w = ss(s.r + (s.fade ?? 25), s.r, Math.hypot(x - s.x, z - s.z));
+      const w = ss(s.r + (s.fade ?? 25), s.r, Math.hypot(x - s.x, z - s.z)) * (s.gain ? Math.max(0, Math.min(1, s.gain())) : 1);
       spot[s.zone] = Math.max(spot[s.zone] ?? 0, w);
       if (s.open) open = Math.max(open, w);
     }
@@ -228,6 +231,9 @@ export class ForestAmbience {
       if (!b && w > 0.01 && listed) b = this.bed(name);
       if (!b) continue;
       b.level = w; b.gain.gain.setTargetAtTime(w, t, TAU);
+      // the trigger log: a bed coming up (audible, > 0.05) or going down (< 0.02) — `ok` = its loop is decoded and playing
+      if (!b.heard && w > 0.05) { b.heard = true; audioLog('bed', name, b.src !== undefined, `up ${w.toFixed(2)}${b.pending ? ' (decoding)' : ''}`); }
+      else if (b.heard && w < 0.02) { b.heard = false; audioLog('bed', name, true, 'down'); }
       b.idle = w > 0.005 ? 0 : b.idle + dt;
       if (b.idle > DROP_S && !b.pending) this.dropBed(b);
       else if (b.src) D.beds.push(name);
@@ -254,7 +260,7 @@ export class ForestAmbience {
     D.night = night; D.rain = rain; D.dawn = dawn; D.underwater = uw;
     const ranked: [ForestZone, number][] = [['cabin', cabin], ['cave', cave], ['pond', pond], ['waterfall', D.waterfall], ['mill', D.mill], ['creek', D.creek], ['ridge', ridge], ['oldgrowth', oldgrowth]];
     const top = ranked.reduce<[ForestZone, number]>((b, r) => (r[1] > b[1] ? r : b), ['hollow', 0.5]);
-    if (top[0] !== this.zone) { this.zone = top[0]; this.onZone?.(top[0]); }
+    if (top[0] !== this.zone) { this.zone = top[0]; audioLog('zone', top[0]); this.onZone?.(top[0]); }
   }
   private panTargets(): [PhBed, number, number][] {
     const out: [PhBed, number, number][] = [];

@@ -209,7 +209,8 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
         if (!flags.has(n.needs)) { hud.toast(n.cold); kitSfx.interact('locked', it.position); return; }
         flags.set(flag);
         lm?.setLit(id, true);
-        shot('lanternLight', it.position);
+        shot('lanternCreak', it.position); // its little door swung open, then the wick takes
+        window.setTimeout(() => { shot('lanternLight', it.position); }, 350);
         kitSfx.interact('ignite', it.position);
         hud.toast(`${n.name[0]?.toUpperCase() ?? ''}${n.name.slice(1)} burns again`);
       },

@@ -113,6 +113,159 @@ export const MUSIC_MANIFESTS: Readonly<Record<string, unknown>> = {
    "chunk": "sting-chunk-a4f2ffab.m4a",
    "pickup": "sting-pickup-6ed91318.m4a"
   }
+ },
+ "pine-hollow-folk": {
+  "style": "folk",
+  "set": "pine-hollow",
+  "model": "MiniMax-Music3",
+  "credit": "Music: MiniMax-Music3",
+  "slots": {
+   "night": {
+    "calm": "night-calm-e5eeff22.m4a",
+    "bpm": 86.006,
+    "beatsPerBar": 4,
+    "loopStart": 24.1952,
+    "loopEnd": 71.6336,
+    "duration": 74.432,
+    "tension": "night-tension-0071c7a3.m4a"
+   },
+   "boss": {
+    "calm": "boss-base-1ad74736.m4a",
+    "bpm": 85.562,
+    "beatsPerBar": 4,
+    "loopStart": 15.2787,
+    "loopEnd": 57.3533,
+    "duration": 60.16,
+    "layers": [
+     "boss-bass-2f96accb.m4a",
+     "boss-drums-90b1e7cb.m4a"
+    ],
+    "phases": {
+     "1": [
+      0.6,
+      0
+     ],
+     "2": [
+      1,
+      0.55
+     ],
+     "3": [
+      1,
+      1
+     ]
+    },
+    "phaseNames": {
+     "1": "I - the Warden",
+     "2": "II - Lanterns Fall",
+     "3": "III - the Last Light"
+    }
+   }
+  },
+  "stings": {
+   "dawn": "sting-dawn-35a7550c.m4a"
+  }
+ },
+ "pine-hollow-orchestral": {
+  "style": "orchestral",
+  "set": "pine-hollow",
+  "model": "MiniMax-Music3",
+  "credit": "Music: MiniMax-Music3",
+  "slots": {
+   "night": {
+    "calm": "night-calm-da54e0eb.m4a",
+    "bpm": 85.421,
+    "beatsPerBar": 4,
+    "loopStart": 7.4072,
+    "loopEnd": 41.1225,
+    "duration": 43.9467,
+    "tension": "night-tension-ba25e774.m4a"
+   },
+   "boss": {
+    "calm": "boss-base-d7203ec0.m4a",
+    "bpm": 89.221,
+    "beatsPerBar": 4,
+    "loopStart": 24.381,
+    "loopEnd": 59.3502,
+    "duration": 62.0587,
+    "layers": [
+     "boss-bass-c368d6c3.m4a",
+     "boss-drums-4c4efeb7.m4a"
+    ],
+    "phases": {
+     "1": [
+      0.6,
+      0
+     ],
+     "2": [
+      1,
+      0.55
+     ],
+     "3": [
+      1,
+      1
+     ]
+    },
+    "phaseNames": {
+     "1": "I - the Warden",
+     "2": "II - Lanterns Fall",
+     "3": "III - the Last Light"
+    }
+   }
+  },
+  "stings": {
+   "dawn": "sting-dawn-eafd4a6d.m4a"
+  }
+ },
+ "pine-hollow-piano": {
+  "style": "piano",
+  "set": "pine-hollow",
+  "model": "MiniMax-Music3",
+  "credit": "Music: MiniMax-Music3",
+  "slots": {
+   "night": {
+    "calm": "night-calm-e935c4a1.m4a",
+    "bpm": 93.892,
+    "beatsPerBar": 4,
+    "loopStart": 15.6502,
+    "loopEnd": 46.3238,
+    "duration": 48.896,
+    "tension": "night-tension-48423068.m4a"
+   },
+   "boss": {
+    "calm": "boss-base-8b00b5cf.m4a",
+    "bpm": 84.375,
+    "beatsPerBar": 4,
+    "loopStart": 17.1828,
+    "loopEnd": 51.3161,
+    "duration": 54.1653,
+    "layers": [
+     "boss-bass-0ff27574.m4a",
+     "boss-drums-c4644a0b.m4a"
+    ],
+    "phases": {
+     "1": [
+      0.6,
+      0
+     ],
+     "2": [
+      1,
+      0.55
+     ],
+     "3": [
+      1,
+      1
+     ]
+    },
+    "phaseNames": {
+     "1": "I - the Warden",
+     "2": "II - Lanterns Fall",
+     "3": "III - the Last Light"
+    }
+   }
+  },
+  "stings": {
+   "dawn": "sting-dawn-6b0b4004.m4a"
+  }
  }
 };
 export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
@@ -162,7 +315,7 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
   "oneshots": {
    "crossbowFire": {
     "files": [
-     "crossbowFire-1-40af4c48.m4a"
+     "crossbowFire-3-18ccf9f0.m4a"
     ],
     "gain": 1
    },
@@ -175,21 +328,22 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
    },
    "boltImpact-wood": {
     "files": [
-     "boltImpact-wood-1-2cae58f6.m4a",
-     "boltImpact-wood-2-d803992d.m4a"
+     "boltImpact-wood-2-8e9e99ee.m4a",
+     "boltImpact-wood-3-673a0ef6.m4a"
     ],
     "gain": 1
    },
    "boltImpact-ground": {
     "files": [
-     "boltImpact-ground-2-c6623243.m4a",
-     "boltImpact-ground-1-e51592f5.m4a"
+     "boltImpact-ground-2-5e8a3076.m4a",
+     "boltImpact-ground-1-f81140e6.m4a"
     ],
     "gain": 1
    },
    "boltImpact-flesh": {
     "files": [
-     "boltImpact-flesh-3-da30d4fb.m4a"
+     "boltImpact-flesh-2-13ed7f2c.m4a",
+     "boltImpact-flesh-3-62e25aa5.m4a"
     ],
     "gain": 1
    },
@@ -235,8 +389,8 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
    },
    "reload": {
     "files": [
-     "reload-2-c48de6a0.m4a",
-     "reload-1-a220fb6e.m4a"
+     "reload-3-d81ab6e2.m4a",
+     "reload-1-d3e6d32a.m4a"
     ],
     "gain": 1
    },
@@ -262,15 +416,15 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
    },
    "footstep-litter": {
     "files": [
-     "footstep-litter-2-19b0df36.m4a",
-     "footstep-litter-1-b1476674.m4a"
+     "footstep-litter-1-fe9cd8d9.m4a",
+     "footstep-litter-3-09ceed7a.m4a"
     ],
     "gain": 1
    },
    "footstep-planks": {
     "files": [
-     "footstep-planks-1-cec98032.m4a",
-     "footstep-planks-3-77f11491.m4a"
+     "footstep-planks-3-d919e436.m4a",
+     "footstep-planks-2-ebb5a80c.m4a"
     ],
     "gain": 1
    },
@@ -376,28 +530,27 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
    },
    "boar_squeal": {
     "files": [
-     "boar_squeal-1-6415e380.m4a"
+     "boar_squeal-1-804df37c.m4a"
     ],
     "gain": 1
    },
    "elk_bugle": {
     "files": [
-     "elk_bugle-2-7048925b.m4a",
-     "elk_bugle-1-375e7428.m4a"
+     "elk_bugle-3-f6e8030e.m4a",
+     "elk_bugle-2-0e80875f.m4a"
     ],
     "gain": 1
    },
    "bear_growl": {
     "files": [
-     "bear_growl-3-97b2d496.m4a",
-     "bear_growl-2-7996ef48.m4a"
+     "bear_growl-3-f91d7740.m4a"
     ],
     "gain": 1
    },
    "bear_roar": {
     "files": [
-     "bear_roar-3-6e416479.m4a",
-     "bear_roar-1-cdda7f3d.m4a"
+     "bear_roar-3-9f1e177e.m4a",
+     "bear_roar-2-29e3055e.m4a"
     ],
     "gain": 1
    },
@@ -458,6 +611,411 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
    "coconut_land": {
     "files": [
      "coconut_land-1-42389b0a.m4a"
+    ],
+    "gain": 1
+   },
+   "footstep-mud": {
+    "files": [
+     "footstep-mud-2-99e4a10d.m4a",
+     "footstep-mud-1-1dd22736.m4a"
+    ],
+    "gain": 1
+   },
+   "footstep-rock": {
+    "files": [
+     "footstep-rock-2-58c2cc26.m4a",
+     "footstep-rock-3-98e0e874.m4a"
+    ],
+    "gain": 1
+   },
+   "footstep-wet": {
+    "files": [
+     "footstep-wet-1-58d313a2.m4a"
+    ],
+    "gain": 1
+   }
+  }
+ },
+ "pine-hollow": {
+  "model": "MOSS-SoundEffect v2 + Stable Audio 3 Medium",
+  "credit": "Sound effects: MOSS-SoundEffect v2 · Stable Audio 3 Medium — Powered by Stability AI",
+  "licence": "Per file (see provenance.source): MOSS-SoundEffect v2.0 is Apache-2.0; Stable Audio 3 Medium is the Stability AI Community License (free below USD 1M revenue, register with Stability AI for commercial use, show 'Powered by Stability AI').",
+  "set": "pine-hollow",
+  "beds": {
+   "hollow": {
+    "file": "bed-hollow-1-5c0dc766.m4a",
+    "loopStart": 2.25,
+    "loopEnd": 17.25,
+    "duration": 18.2613,
+    "gain": 0.5,
+    "zone": "hollow",
+    "live": true
+   },
+   "pond": {
+    "file": "bed-pond-1-d085e52c.m4a",
+    "loopStart": 9,
+    "loopEnd": 21,
+    "duration": 22.016,
+    "gain": 0.5,
+    "zone": "pond",
+    "live": true
+   },
+   "cabin": {
+    "file": "bed-cabin-2-c2b7a02b.m4a",
+    "loopStart": 10.25,
+    "loopEnd": 18.25,
+    "duration": 19.264,
+    "gain": 0.5,
+    "zone": "cabin",
+    "live": true
+   },
+   "creek": {
+    "file": "bed-creek-1-e1414cd8.m4a",
+    "loopStart": 8,
+    "loopEnd": 20,
+    "duration": 21.0133,
+    "gain": 0.5,
+    "zone": "creek",
+    "live": false
+   },
+   "waterfall": {
+    "file": "bed-waterfall-1-02ff171d.m4a",
+    "loopStart": 10.5,
+    "loopEnd": 18.5,
+    "duration": 19.52,
+    "gain": 0.5,
+    "zone": "waterfall",
+    "live": false
+   },
+   "mill": {
+    "file": "bed-mill-3-a20c4c53.m4a",
+    "loopStart": 2,
+    "loopEnd": 14,
+    "duration": 15.0187,
+    "gain": 0.5,
+    "zone": "mill",
+    "live": false
+   },
+   "ridge": {
+    "file": "bed-ridge-1-13b5fc89.m4a",
+    "loopStart": 6.25,
+    "loopEnd": 17.25,
+    "duration": 18.2613,
+    "gain": 0.5,
+    "zone": "ridge",
+    "live": false
+   },
+   "oldgrowth": {
+    "file": "bed-oldgrowth-3-deca1782.m4a",
+    "loopStart": 11.75,
+    "loopEnd": 22.75,
+    "duration": 23.7653,
+    "gain": 0.5,
+    "zone": "oldgrowth",
+    "live": false
+   },
+   "cave": {
+    "file": "bed-cave-1-6fb0e4e0.m4a",
+    "loopStart": 10.75,
+    "loopEnd": 22.75,
+    "duration": 23.7653,
+    "gain": 0.5,
+    "zone": "cave",
+    "live": false
+   },
+   "night": {
+    "file": "bed-night-1-bb291c08.m4a",
+    "loopStart": 9.25,
+    "loopEnd": 19.25,
+    "duration": 20.2667,
+    "gain": 0.5,
+    "zone": "night",
+    "live": false
+   },
+   "nightfog": {
+    "file": "bed-nightfog-1-7e88dd54.m4a",
+    "loopStart": 2,
+    "loopEnd": 18,
+    "duration": 19.008,
+    "gain": 0.5,
+    "zone": "night",
+    "live": false
+   },
+   "rain-canopy": {
+    "file": "bed-rain-canopy-3-b1ccc4c3.m4a",
+    "loopStart": 4,
+    "loopEnd": 18,
+    "duration": 19.008,
+    "gain": 0.5,
+    "zone": "rain",
+    "live": false
+   },
+   "rain-open": {
+    "file": "bed-rain-open-1-be866f57.m4a",
+    "loopStart": 11,
+    "loopEnd": 19,
+    "duration": 20.0107,
+    "gain": 0.5,
+    "zone": "rain",
+    "live": false
+   },
+   "dawn": {
+    "file": "bed-dawn-2-2d018c97.m4a",
+    "loopStart": 9.25,
+    "loopEnd": 24.25,
+    "duration": 25.2587,
+    "gain": 0.5,
+    "zone": "dawn",
+    "live": false
+   }
+  },
+  "hums": {},
+  "oneshots": {
+   "deer_snort": {
+    "files": [
+     "deer_snort-2-29cb5be9.m4a"
+    ],
+    "gain": 1
+   },
+   "leverCycle": {
+    "files": [
+     "leverCycle-1-0bc0a070.m4a",
+     "leverCycle-3-db4d61a3.m4a"
+    ],
+    "gain": 1
+   },
+   "leverShot": {
+    "files": [
+     "leverShot-1-f43899bf.m4a",
+     "leverShot-3-551ac455.m4a"
+    ],
+    "gain": 1
+   },
+   "leverEcho": {
+    "files": [
+     "leverEcho-3-31387108.m4a"
+    ],
+    "gain": 1
+   },
+   "longbowDraw": {
+    "files": [
+     "longbowDraw-2-08004dc6.m4a",
+     "longbowDraw-3-13c08903.m4a"
+    ],
+    "gain": 1
+   },
+   "thrall_call": {
+    "files": [
+     "thrall_call-1-d9d16a02.m4a",
+     "thrall_call-3-f6736e19.m4a"
+    ],
+    "gain": 1
+   },
+   "thrall_groan": {
+    "files": [
+     "thrall_groan-2-44c87d6d.m4a",
+     "thrall_groan-3-7fad18a9.m4a"
+    ],
+    "gain": 1
+   },
+   "thrall_move": {
+    "files": [
+     "thrall_move-2-000b58d3.m4a",
+     "thrall_move-3-fbb0b7a0.m4a"
+    ],
+    "gain": 1
+   },
+   "king_bells": {
+    "files": [
+     "king_bells-3-382976e6.m4a"
+    ],
+    "gain": 1
+   },
+   "king_stomp": {
+    "files": [
+     "king_stomp-2-fb8d3696.m4a",
+     "king_stomp-3-fbcd79cf.m4a"
+    ],
+    "gain": 1
+   },
+   "king_roar": {
+    "files": [
+     "king_roar-2-3c879291.m4a",
+     "king_roar-3-ac03b790.m4a"
+    ],
+    "gain": 1
+   },
+   "doorOpen": {
+    "files": [
+     "doorOpen-1-c289151d.m4a"
+    ],
+    "gain": 1
+   },
+   "doorClose": {
+    "files": [
+     "doorClose-3-6e783142.m4a",
+     "doorClose-2-93812e54.m4a"
+    ],
+    "gain": 1
+   },
+   "lanternLight": {
+    "files": [
+     "lanternLight-1-864cd94b.m4a",
+     "lanternLight-2-45776ffa.m4a"
+    ],
+    "gain": 1
+   },
+   "lanternCreak": {
+    "files": [
+     "lanternCreak-1-6d38d61d.m4a",
+     "lanternCreak-3-b84fd75d.m4a"
+    ],
+    "gain": 1
+   },
+   "zipline": {
+    "files": [
+     "zipline-3-1612a3d1.m4a",
+     "zipline-1-894e055e.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-ranger-1": {
+    "files": [
+     "bark-ranger-1-3-b757c6a1.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-ranger-3": {
+    "files": [
+     "bark-ranger-3-2-b0fc9905.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-ranger-4": {
+    "files": [
+     "bark-ranger-4-1-87281e9a.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-ranger-5": {
+    "files": [
+     "bark-ranger-5-2-02a65c3e.m4a",
+     "bark-ranger-5-3-27302687.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-ranger-7": {
+    "files": [
+     "bark-ranger-7-3-8b66382d.m4a",
+     "bark-ranger-7-1-8b4552d2.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-ranger-8": {
+    "files": [
+     "bark-ranger-8-1-6d92f66c.m4a",
+     "bark-ranger-8-3-07112504.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-miller-1": {
+    "files": [
+     "bark-miller-1-2-0db388d1.m4a",
+     "bark-miller-1-1-e3db8e1d.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-miller-2": {
+    "files": [
+     "bark-miller-2-1-b3ab2d49.m4a",
+     "bark-miller-2-3-46ae62f9.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-miller-3": {
+    "files": [
+     "bark-miller-3-3-bdc8c199.m4a",
+     "bark-miller-3-2-b7c218bf.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-miller-4": {
+    "files": [
+     "bark-miller-4-1-1b867b1c.m4a",
+     "bark-miller-4-2-8bf90b08.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-miller-6": {
+    "files": [
+     "bark-miller-6-2-ca606f6a.m4a",
+     "bark-miller-6-1-24d91e2e.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-miller-7": {
+    "files": [
+     "bark-miller-7-3-a8c4238e.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-miller-8": {
+    "files": [
+     "bark-miller-8-3-b396019d.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-trader-1": {
+    "files": [
+     "bark-trader-1-2-11e0f6b3.m4a",
+     "bark-trader-1-3-1f1d6562.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-trader-2": {
+    "files": [
+     "bark-trader-2-1-8ac027ef.m4a",
+     "bark-trader-2-2-9b5ec2d9.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-trader-3": {
+    "files": [
+     "bark-trader-3-2-d71e3d35.m4a",
+     "bark-trader-3-1-928354ac.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-trader-4": {
+    "files": [
+     "bark-trader-4-3-ecc68b8e.m4a",
+     "bark-trader-4-1-2e7e09c3.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-trader-5": {
+    "files": [
+     "bark-trader-5-1-f6ad16fb.m4a",
+     "bark-trader-5-2-5344dcfa.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-trader-6": {
+    "files": [
+     "bark-trader-6-3-f29e1de3.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-trader-7": {
+    "files": [
+     "bark-trader-7-2-5746d56d.m4a"
+    ],
+    "gain": 1
+   },
+   "bark-trader-8": {
+    "files": [
+     "bark-trader-8-3-43cd6fcd.m4a",
+     "bark-trader-8-2-aebeb467.m4a"
     ],
     "gain": 1
    }

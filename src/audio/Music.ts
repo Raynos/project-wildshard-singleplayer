@@ -35,15 +35,18 @@
 // Pine Hollow's own slots (PINE-HOLLOW-REMASTER PH-A1, PH-U12): theme 1 ('pine') stays; `music.setPineScene('night' | 'boss' |
 // 'day')` switches to calm-night or the Antler King's boss track, `music.setBossPhase(1 | 2 | 3)` moves the boss's layers (I the
 // Warden · II Lanterns Fall · III the Last Light) on its bar grid, `music.sting('dawn')` is the quest's reward sting. They live in
-// public/assets/music/pine-hollow-<style>/ (not fetched by the loading bar, so the other shards' load is untouched): a slot is
-// decoded when it is first wanted (the theme plays on meanwhile) and the other Pine Hollow slot's buffers are dropped
-// (~30 MB of PCM each). `prefetchPine()` pulls the selected style's files into the offline cache while the player is in.
+// public/assets/music/pine-hollow-<style>/: Pine Hollow's loading bar downloads the selected style's (E44, src/boot/audioFiles.ts —
+// the other shards' bars never list them) and the service worker keeps them; a slot is decoded from that offline cache when it
+// is first wanted (the theme plays on meanwhile) and the other Pine Hollow slot's buffers are dropped (~30 MB of PCM each).
+// The game drives them from src/pinehollow/audioWiring.ts (the clock → night / day, an engaged elite → combat) and the
+// King's fight (antlerKing.ts → boss + phases); every scene / phase / sting / deck lands in `window.__audioLog`.
 // Quick links: `?music=pine-night`, `?music=pine-boss` (`-2` / `-3` for a phase), `?music=pine-dawn` (the sting after 2 s).
 import type { Audio } from './Audio';
 import { getActiveChunk } from '../chunks/registry';
 import { getNumber, setNumber, onNumber, getMusicStyle, onMusicStyle, type MusicStyle } from '../ui/Settings';
 import { Deck, decodeStyle, setFiles, type BossPhase, type SlotAudio, type SlotName, type StyleBank } from './Stems';
 import { cachedBytes, decodeBytes, trackBusy } from './preload';
+import { audioLog } from './audioLog';
 import {
   ARRANGEMENTS, CHORDS, CHORD_ROOT, DORIAN_OF, STING_CHUNK, STING_DEATH, STING_PICKUP, dorianPitch,
   type Arrangement, type ArrangementName, type ChordName, type LayerId, type MixKey, type NoteEv, type Segment,
@@ -566,6 +569,7 @@ export class Music {
   setPineScene(scene: PineScene): void {
     if (scene === this._scene) return;
     this._scene = scene;
+    audioLog('music', `scene:${scene}`);
     if (scene === 'boss') this._phase = 1;
     this.sync();
   }
@@ -573,6 +577,7 @@ export class Music {
   setBossPhase(phase: BossPhase): void {
     if (phase === this._phase) return;
     this._phase = phase;
+    audioLog('music', `phase:${phase}`);
     if (this.rig && this.deck?.slot === 'boss') this.deck.setPhase(phase, this.rig.ctx.currentTime);
   }
   /** pull the selected style's Pine Hollow files into the offline cache (the service worker keeps what it fetches), once per style,
@@ -741,6 +746,7 @@ export class Music {
       t = now + 0.05; fade = 1; // from silence (play() with the stems already decoded)
     }
     this.deck = new Deck(this.rig.ctx, a, this.rig.stemBus, t, fade, this.tension(), this._phase);
+    audioLog('music', `deck:${a.slot}`, true, a.style);
     this.stopSynth(t, fade);
     if (this.urlDawn && a.slot !== 'title' && a.style === this._style && this.state.shard === 'pine') { this.urlDawn = false; window.setTimeout(() => this.sting('dawn'), 2000); }
   }
@@ -779,6 +785,7 @@ export class Music {
       this.engine.setLevel('lpf', s.underwater ? 600 : 20000, now, s.underwater ? 0.35 : 0.5);
       this.engine.setLevel('chorus', s.underwater ? 0.55 : 0, now, 0.6);
     }
+    if (s.mode !== prev.mode) audioLog('music', `mode:${s.mode}`);
     if (this.playing && (s.mode !== prev.mode || s.shard !== prev.shard || s.intensity !== prev.intensity)) {
       if (this.synthOn) { this.engine.cancelPending(now); this.pump(); }
       this.sync();
@@ -793,6 +800,7 @@ export class Music {
 
   /** the style's sting file while its stems play, else the synth sting; the death sting ducks the stems like the synth (a bar down, 6 s out, a bar back) */
   sting(name: StingName): void {
+    audioLog('music', `sting:${name}`, this.rig !== undefined);
     if (!this.rig) return;
     const { ctx, engine, stemBus } = this.rig, t = ctx.currentTime + 0.02, deck = this.deck;
     if (name === 'dawn') { this.dawn(); return; }
@@ -815,6 +823,7 @@ export class Music {
       const buf = await this.dawnSting(style);
       if (!this.rig) return;
       const { ctx, engine, stemBus } = this.rig, t = ctx.currentTime + 0.02;
+      audioLog('music', 'sting:dawn-take', buf !== undefined, buf ? style : 'synth chord');
       if (!buf) { engine.sting('dawn', t); return; }
       const src = ctx.createBufferSource(); src.buffer = buf; src.connect(engine.stingBus); src.start(t);
       const d = this.deck, beat = d ? d.bar / 4 : 0.5, g = stemBus.gain;
