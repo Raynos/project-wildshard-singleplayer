@@ -138,6 +138,7 @@ export function installPorts(): void {
   registerPort('ground-cover', (src) => {
     const h = harvest(src);
     const uPlayer = v3U(h, 'uPlayer'), uTime = fU(h, 'uTime'), uWind = fU(h, 'uWind'), uReach = v3U(h, 'uReach');
+    const uFarReach = v3U(h, 'uFarReach'), uMode = fU(h, 'uMode'), uFarIn = fU(h, 'uFarIn');
     const m = toonCopy(src, PreDisplacedToonMaterial);
     m.postDisplace = (builder) => {
       // after the instance transform: the instance's own origin and scale come from its matrix
@@ -149,8 +150,13 @@ export function installPorts(): void {
       const away = ioW.xz.sub(uPlayer.xz).toVar();
       const dl = max(length(away), 1e-3).toVar();
       // this plant's edge in [near + grow, far] from its yaw, measured camera to plant in 3D (GroundCover.ts, E117)
-      const edge = mix(uReach.x.add(uReach.z), uReach.y, fract(atan(M.axis0.z.negate(), M.axis0.x).div(6.2831853).add(1))).toVar();
-      const k = float(1).sub(smoothstep(edge.sub(uReach.z), edge, length(ioW.sub(cameraPosition))));
+      const hh = fract(atan(M.axis0.z.negate(), M.axis0.x).div(6.2831853).add(1)).toVar();
+      const edge = mix(uReach.x.add(uReach.z), uReach.y, hh).toVar(), dc = length(ioW.sub(cameraPosition)).toVar();
+      const nearK = float(1).sub(smoothstep(edge.sub(uReach.z), edge, dc)).toVar();
+      // the far tier's model (uMode 2): in as the near one goes, out at its own far edge
+      const fEdge = mix(uFarReach.x.add(uFarReach.z), uFarReach.y, hh);
+      const farK = float(1).sub(nearK).mul(float(1).sub(smoothstep(fEdge.sub(uFarReach.z), fEdge, dc))).mul(uFarIn);
+      const k = select(uMode.greaterThan(1.5), farK, nearK);
       const hgt = max(positionGeometry.y, 0).toVar();
       const push = away.div(dl).mul(float(1).sub(smoothstep(0.35, 1.5, dl))).mul(1.1);
       const ph = ioW.x.mul(0.31).add(ioW.z.mul(0.23));
