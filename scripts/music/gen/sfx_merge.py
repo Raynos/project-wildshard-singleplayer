@@ -22,6 +22,9 @@ PINE-HOLLOW-REMASTER PH-A2..A4: the same rule for another families file whose pe
                sounds ready for events that do not exist yet. Not in Settings' SFX_SETS, so the loading bar does not
                download it for every shard; Pine Hollow reads it itself.
 The decision rows land in scripts/music/gen/sfx-best.json next to round 2's (a `round: "pine-hollow"` and `into` on each).
+Last, merge_ph runs scripts/music/gen/sfx_sprite.py on the rebuilt pine-hollow/ (without it a regeneration would un-pack
+the set): every one-shot + bark goes into ONE audio sprite (the loading bar fetches one file, not 63), and with --raw
+<sfx-raw-dir> (the lossless takes; the analysis venv) the sprite is cut from them and the mono-sourced beds ship mono.
 """
 
 from __future__ import annotations
@@ -44,6 +47,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--jobs", default=None, help="another families file (sfx-ph-jobs.json); needs --stage")
     ap.add_argument("--stage", default=None, help="where sfx_build.py --stage wrote the per-model sets")
+    ap.add_argument("--raw", default=None, help="with --jobs: the sfx raw dir (lossless takes) for sfx_sprite.py")
     args = ap.parse_args()
     ph = args.jobs is not None
     if ph and args.stage is None:
@@ -73,7 +77,7 @@ def main() -> None:
         return int(best["rank"]), float(best["p"])
 
     if ph:
-        merge_ph(fams, sets, ranking, src_root, entry, score)
+        merge_ph(fams, sets, ranking, src_root, entry, score, Path(args.raw) if args.raw else None)
         return
 
     dest = SFX / "best"
@@ -114,7 +118,7 @@ def main() -> None:
     print(f"best: {total / 1e6:.2f} MB, wins {wins}, synth keeps {keeps}")
 
 
-def merge_ph(fams: dict, sets: dict, ranking: dict, src_root: Path, entry, score) -> None:  # noqa: ANN001 - the closures above
+def merge_ph(fams: dict, sets: dict, ranking: dict, src_root: Path, entry, score, raw: Path | None = None) -> None:  # noqa: ANN001 - the closures above
     best_dir, ph_dir = SFX / "best", SFX / "pine-hollow"
     ph_dir.mkdir(parents=True, exist_ok=True)
     for old in ph_dir.glob("*.m4a"):  # this folder holds only this function's output
@@ -172,6 +176,9 @@ def merge_ph(fams: dict, sets: dict, ranking: dict, src_root: Path, entry, score
     table_doc["wins"] = {k: sum(1 for t in table.values() if t["winner"] == k) for k in ("moss", "sa3-medium", "synth", "kept-round-2")}
     (HERE / "sfx-best.json").write_text(json.dumps(table_doc, indent=2) + "\n")
     print(f"pine-hollow: best += {total['best'] / 1e6:.2f} MB, pine-hollow {total['pine-hollow'] / 1e6:.2f} MB, wins {table_doc['wins']}, not shipped {keeps}, not rendered yet {missing}")
+    from sfx_sprite import run as pack  # the rebuilt set is one file per sound again: pack it (and, with --raw, its beds)
+
+    pack(ph_dir, raw)
 
 
 if __name__ == "__main__":

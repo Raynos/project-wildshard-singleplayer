@@ -643,10 +643,10 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
   "set": "pine-hollow",
   "beds": {
    "hollow": {
-    "file": "bed-hollow-1-5c0dc766.m4a",
+    "file": "bed-hollow-1-17c54253.m4a",
     "loopStart": 2.25,
     "loopEnd": 17.25,
-    "duration": 18.2613,
+    "duration": 18.26,
     "gain": 0.5,
     "zone": "hollow",
     "live": true
@@ -697,28 +697,28 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     "live": false
    },
    "ridge": {
-    "file": "bed-ridge-1-13b5fc89.m4a",
+    "file": "bed-ridge-1-6aecf680.m4a",
     "loopStart": 6.25,
     "loopEnd": 17.25,
-    "duration": 18.2613,
+    "duration": 18.26,
     "gain": 0.5,
     "zone": "ridge",
     "live": false
    },
    "oldgrowth": {
-    "file": "bed-oldgrowth-3-deca1782.m4a",
+    "file": "bed-oldgrowth-3-abf1ab68.m4a",
     "loopStart": 11.75,
     "loopEnd": 22.75,
-    "duration": 23.7653,
+    "duration": 23.764,
     "gain": 0.5,
     "zone": "oldgrowth",
     "live": false
    },
    "cave": {
-    "file": "bed-cave-1-6fb0e4e0.m4a",
+    "file": "bed-cave-1-9f212e8f.m4a",
     "loopStart": 10.75,
     "loopEnd": 22.75,
-    "duration": 23.7653,
+    "duration": 23.764,
     "gain": 0.5,
     "zone": "cave",
     "live": false
@@ -751,19 +751,19 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
     "live": false
    },
    "rain-open": {
-    "file": "bed-rain-open-1-be866f57.m4a",
+    "file": "bed-rain-open-1-6035278a.m4a",
     "loopStart": 11,
     "loopEnd": 19,
-    "duration": 20.0107,
+    "duration": 20.0093,
     "gain": 0.5,
     "zone": "rain",
     "live": false
    },
    "dawn": {
-    "file": "bed-dawn-2-2d018c97.m4a",
+    "file": "bed-dawn-2-27bd5ac4.m4a",
     "loopStart": 9.25,
     "loopEnd": 24.25,
-    "duration": 25.2587,
+    "duration": 25.2573,
     "gain": 0.5,
     "zone": "dawn",
     "live": false
@@ -1018,6 +1018,265 @@ export const SFX_MANIFESTS: Readonly<Record<string, unknown>> = {
      "bark-trader-8-2-aebeb467.m4a"
     ],
     "gain": 1
+   }
+  },
+  "sprite": {
+   "file": "oneshots-f725b069.m4a",
+   "gap": 0.2,
+   "duration": 122.531,
+   "clips": {
+    "deer_snort-2-29cb5be9.m4a": [
+     0.2,
+     1.5
+    ],
+    "leverCycle-1-0bc0a070.m4a": [
+     1.9,
+     0.596437
+    ],
+    "leverCycle-3-db4d61a3.m4a": [
+     2.696438,
+     0.977208
+    ],
+    "leverShot-1-f43899bf.m4a": [
+     3.873646,
+     1.945833
+    ],
+    "leverShot-3-551ac455.m4a": [
+     6.019479,
+     1.390458
+    ],
+    "leverEcho-3-31387108.m4a": [
+     7.609938,
+     3
+    ],
+    "longbowDraw-2-08004dc6.m4a": [
+     10.809938,
+     1.5
+    ],
+    "longbowDraw-3-13c08903.m4a": [
+     12.509937,
+     1.5
+    ],
+    "thrall_call-1-d9d16a02.m4a": [
+     14.209938,
+     3.005
+    ],
+    "thrall_call-3-f6736e19.m4a": [
+     17.414938,
+     3.005
+    ],
+    "thrall_groan-2-44c87d6d.m4a": [
+     20.619937,
+     2.407354
+    ],
+    "thrall_groan-3-7fad18a9.m4a": [
+     23.227292,
+     2.447062
+    ],
+    "thrall_move-2-000b58d3.m4a": [
+     25.874354,
+     2.418771
+    ],
+    "thrall_move-3-fbb0b7a0.m4a": [
+     28.493125,
+     2.5
+    ],
+    "king_bells-3-382976e6.m4a": [
+     31.193125,
+     3
+    ],
+    "king_stomp-2-fb8d3696.m4a": [
+     34.393125,
+     2.691146
+    ],
+    "king_stomp-3-fbcd79cf.m4a": [
+     37.284271,
+     2.458542
+    ],
+    "king_roar-2-3c879291.m4a": [
+     39.942813,
+     3.005
+    ],
+    "king_roar-3-ac03b790.m4a": [
+     43.147813,
+     3.005
+    ],
+    "doorOpen-1-c289151d.m4a": [
+     46.352812,
+     1.596958
+    ],
+    "doorClose-3-6e783142.m4a": [
+     48.149771,
+     1.307708
+    ],
+    "doorClose-2-93812e54.m4a": [
+     49.657479,
+     1.379813
+    ],
+    "lanternLight-1-864cd94b.m4a": [
+     51.237292,
+     1.879583
+    ],
+    "lanternLight-2-45776ffa.m4a": [
+     53.316875,
+     1.089063
+    ],
+    "lanternCreak-1-6d38d61d.m4a": [
+     54.605938,
+     3
+    ],
+    "lanternCreak-3-b84fd75d.m4a": [
+     57.805937,
+     3
+    ],
+    "zipline-3-1612a3d1.m4a": [
+     61.005938,
+     3
+    ],
+    "zipline-1-894e055e.m4a": [
+     64.205938,
+     3.005
+    ],
+    "bark-ranger-1-3-b757c6a1.m4a": [
+     67.410938,
+     1.457729
+    ],
+    "bark-ranger-3-2-b0fc9905.m4a": [
+     69.068667,
+     1.423646
+    ],
+    "bark-ranger-4-1-87281e9a.m4a": [
+     70.692312,
+     1.448917
+    ],
+    "bark-ranger-5-2-02a65c3e.m4a": [
+     72.341229,
+     1.699667
+    ],
+    "bark-ranger-5-3-27302687.m4a": [
+     74.240896,
+     1.599938
+    ],
+    "bark-ranger-7-3-8b66382d.m4a": [
+     76.040833,
+     1.468167
+    ],
+    "bark-ranger-7-1-8b4552d2.m4a": [
+     77.709,
+     1.417521
+    ],
+    "bark-ranger-8-1-6d92f66c.m4a": [
+     79.326521,
+     1.4175
+    ],
+    "bark-ranger-8-3-07112504.m4a": [
+     80.944021,
+     1.205208
+    ],
+    "bark-miller-1-2-0db388d1.m4a": [
+     82.349229,
+     1.449104
+    ],
+    "bark-miller-1-1-e3db8e1d.m4a": [
+     83.998333,
+     1.420375
+    ],
+    "bark-miller-2-1-b3ab2d49.m4a": [
+     85.618708,
+     1.382562
+    ],
+    "bark-miller-2-3-46ae62f9.m4a": [
+     87.201271,
+     1.409687
+    ],
+    "bark-miller-3-3-bdc8c199.m4a": [
+     88.810958,
+     1.353208
+    ],
+    "bark-miller-3-2-b7c218bf.m4a": [
+     90.364167,
+     1.408292
+    ],
+    "bark-miller-4-1-1b867b1c.m4a": [
+     91.972458,
+     1.449458
+    ],
+    "bark-miller-4-2-8bf90b08.m4a": [
+     93.621917,
+     1.416313
+    ],
+    "bark-miller-6-2-ca606f6a.m4a": [
+     95.238229,
+     1.274854
+    ],
+    "bark-miller-6-1-24d91e2e.m4a": [
+     96.713083,
+     1.162688
+    ],
+    "bark-miller-7-3-a8c4238e.m4a": [
+     98.075771,
+     1.458458
+    ],
+    "bark-miller-8-3-b396019d.m4a": [
+     99.734229,
+     1.416521
+    ],
+    "bark-trader-1-2-11e0f6b3.m4a": [
+     101.35075,
+     0.886021
+    ],
+    "bark-trader-1-3-1f1d6562.m4a": [
+     102.436771,
+     1.457062
+    ],
+    "bark-trader-2-1-8ac027ef.m4a": [
+     104.093833,
+     1.235125
+    ],
+    "bark-trader-2-2-9b5ec2d9.m4a": [
+     105.528958,
+     1.214771
+    ],
+    "bark-trader-3-2-d71e3d35.m4a": [
+     106.943729,
+     1.485667
+    ],
+    "bark-trader-3-1-928354ac.m4a": [
+     108.629396,
+     1.466958
+    ],
+    "bark-trader-4-3-ecc68b8e.m4a": [
+     110.296354,
+     1.088188
+    ],
+    "bark-trader-4-1-2e7e09c3.m4a": [
+     111.584542,
+     1.235313
+    ],
+    "bark-trader-5-1-f6ad16fb.m4a": [
+     113.019854,
+     1.487979
+    ],
+    "bark-trader-5-2-5344dcfa.m4a": [
+     114.707833,
+     1.463667
+    ],
+    "bark-trader-6-3-f29e1de3.m4a": [
+     116.3715,
+     1.476063
+    ],
+    "bark-trader-7-2-5746d56d.m4a": [
+     118.047562,
+     0.973938
+    ],
+    "bark-trader-8-3-43cd6fcd.m4a": [
+     119.2215,
+     1.423667
+    ],
+    "bark-trader-8-2-aebeb467.m4a": [
+     120.845167,
+     1.486312
+    ]
    }
   }
  }

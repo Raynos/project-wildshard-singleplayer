@@ -20,9 +20,11 @@
  * Loaded at Pine Hollow's loading bar (E44 — src/boot/audioFiles.ts `audioFiles('pine-hollow')`, src/boot/extras.ts; the
  * set is not one of Settings' SFX_SETS, so Driftwood's bar never lists it): every file is downloaded there (the service
  * worker keeps each, so an offline launch reads them back), and the one-shots + barks are DECODED there too
- * (`decodePineShots`, held module-wide in `barShots`) so no first shot / bark is ever silent. The beds are decoded from the
- * offline cache when a zone first wants one (~6 MB of PCM each; ForestAmbience lets them go again). Settings ▸ Sound
- * effects = Synth silences the set. Every play / bark lands in `window.__audioLog` (src/audio/audioLog.ts).
+ * (`decodePineShots`, held module-wide in `barShots`) so no first shot / bark is ever silent. The one-shots + barks ship as
+ * ONE audio sprite (sfx.json `sprite`, scripts/music/gen/sfx_sprite.py): one request, one decode, and each take plays as a
+ * slice of that one buffer; a manifest without a sprite still loads one file per take. The beds are decoded from the
+ * offline cache when a zone first wants one (~6 MB of PCM each, the mono ones half; ForestAmbience lets them go again).
+ * Settings ▸ Sound effects = Synth silences the set. Every play / bark lands in `window.__audioLog` (src/audio/audioLog.ts).
  */
 import { SFX_MANIFESTS } from '../boot/audio.generated';
 import { PUBLIC_BYTES } from '../boot/bytes.generated';
@@ -53,42 +55,93 @@ const file = (v: unknown): string | undefined => (typeof v === 'string' && !v.in
 /** each bark's level against the one-shots (-18 LUFS): a voice sits a little under a gunshot */
 const BARK_GAIN = 0.8;
 
+/** one take of a family: a slice of a decoded buffer — the sprite's (no copy: `start(when, offset, duration)`), or a whole file's */
+interface Clip { buffer: AudioBuffer; offset: number; duration: number }
+const whole = (buffer: AudioBuffer): Clip => ({ buffer, offset: 0, duration: buffer.duration });
+
 /** the one-shots + barks decoded at the loading bar (`decodePineShots`), shared by every PineHollowSfx */
-const barShots = new Map<string, AudioBuffer[]>();
+const barShots = new Map<string, Clip[]>();
 const manifestOf = (): Record<string, unknown> | undefined => { const m = SFX_MANIFESTS[SET]; return isObj(m) ? m : undefined; };
-/** the files of one-shot `family` in `manifest` (URLs) */
-function familyFiles(manifest: Record<string, unknown> | undefined, family: string): string[] {
+/** the file names one-shot `family` lists in `manifest` (its takes; packed into the sprite or files of their own) */
+function familyNames(manifest: Record<string, unknown> | undefined, family: string): string[] {
   const o = manifest?.['oneshots'], v = isObj(o) ? o[family] : undefined;
-  const list = Array.isArray(v) ? v : isObj(v) && Array.isArray(v['files']) ? v['files'] : [];
-  return list.map(file).filter((u): u is string => u !== undefined);
+  const list: unknown[] = Array.isArray(v) ? v : isObj(v) && Array.isArray(v['files']) ? v['files'] : [];
+  return list.filter((f): f is string => typeof f === 'string');
 }
-/** every one-shot + bark file of the set (URLs) — what the loading bar decodes (`decodePineShots`) */
+/** the files of one-shot `family` in `manifest` (URLs) — a set without a sprite */
+const familyFiles = (manifest: Record<string, unknown> | undefined, family: string): string[] =>
+  familyNames(manifest, family).map(file).filter((u): u is string => u !== undefined);
+
+/**
+ * The audio sprite (scripts/music/gen/sfx_sprite.py): every one-shot + bark packed into ONE file, so the loading bar fetches
+ * and decodes one file, not 63. sfx.json `sprite: {file, clips: {<take's file name>: [startSec, durSec]}}`; the families
+ * still list their takes by name. undefined = a set without one (an older build, a regeneration not yet packed): one file
+ * per take, as before.
+ */
+interface Sprite { url: string; clips: ReadonlyMap<string, Readonly<{ offset: number; duration: number }>> }
+function spriteOf(manifest: Record<string, unknown> | undefined): Sprite | undefined {
+  const s = manifest?.['sprite'], url = isObj(s) ? file(s['file']) : undefined, c = isObj(s) ? s['clips'] : undefined;
+  if (url === undefined || !isObj(c)) return undefined;
+  const clips = new Map<string, { offset: number; duration: number }>();
+  for (const [name, v] of Object.entries(c)) {
+    const pair: unknown[] = Array.isArray(v) ? v : [], offset = pair[0], duration = pair[1];
+    if (typeof offset === 'number' && typeof duration === 'number' && offset >= 0 && duration > 0) clips.set(name, { offset, duration });
+  }
+  return { url, clips };
+}
+/** every family of `manifest` cut from the decoded sprite `buffer` into `into` (a take past the buffer's end is left out) */
+function cutSprite(manifest: Record<string, unknown> | undefined, sprite: Sprite, buffer: AudioBuffer, into: Map<string, Clip[]>): void {
+  const o = manifest?.['oneshots'];
+  if (!isObj(o)) return;
+  for (const family of Object.keys(o)) {
+    const clips: Clip[] = [];
+    for (const name of familyNames(manifest, family)) {
+      const c = sprite.clips.get(name);
+      if (c && c.offset + c.duration <= buffer.duration + 0.001) clips.push({ buffer, offset: c.offset, duration: c.duration });
+    }
+    if (clips.length > 0) into.set(family, clips);
+  }
+}
+const why = (e: unknown): string => (e instanceof Error ? e.message : String(e));
+
+/** every one-shot + bark file of the set (URLs) — what the loading bar decodes (`decodePineShots`): the sprite, or one per take */
 export function pineShotFiles(): string[] {
-  const m = manifestOf(), o = m?.['oneshots'];
+  const m = manifestOf(), sprite = spriteOf(m);
+  if (sprite) return [sprite.url];
+  const o = m?.['oneshots'];
   return isObj(o) ? [...new Set(Object.keys(o).flatMap((f) => familyFiles(m, f)))] : [];
 }
 /**
  * Decode every one-shot + bark of the set at the loading bar (src/boot/extras.ts) from `read` (the bar's counted fetch):
- * `onFile` ticks per file. A file that fails is skipped (its family plays its other takes, or nothing); never rejects.
+ * `onFile` ticks per file of `pineShotFiles()` (the sprite: once). A file that fails is skipped (its family plays its other
+ * takes, or nothing — the sprite: every family decodes lazily on its first play instead); never rejects.
  */
 export async function decodePineShots(read: (url: string) => Promise<ArrayBuffer>, onFile?: () => void): Promise<void> {
   const m = manifestOf(), o = m?.['oneshots'];
   if (!isObj(o)) return;
+  const sprite = spriteOf(m);
+  if (sprite) {
+    try { cutSprite(m, sprite, await decodeBytes(await read(sprite.url)), barShots); } catch (e) { console.info(`[sfx] ${sprite.url}: ${why(e)} — the one-shots decode on first play`); }
+    onFile?.();
+    return;
+  }
   await Promise.all(Object.keys(o).map(async (family) => {
-    const bufs: AudioBuffer[] = [];
+    const clips: Clip[] = [];
     for (const u of familyFiles(m, family)) {
-      try { bufs.push(await decodeBytes(await read(u))); } catch (e) { console.info(`[sfx] ${u}: ${e instanceof Error ? e.message : String(e)} — that take is skipped`); }
+      try { clips.push(whole(await decodeBytes(await read(u)))); } catch (e) { console.info(`[sfx] ${u}: ${why(e)} — that take is skipped`); }
       onFile?.();
     }
-    if (bufs.length > 0) barShots.set(family, bufs);
+    if (clips.length > 0) barShots.set(family, clips);
   }));
 }
 
 export class PineHollowSfx {
   private readonly manifest: Record<string, unknown> | undefined;
   private beds = new Map<string, Promise<PhLoop | undefined>>();
-  private shots = new Map<string, AudioBuffer[]>();
+  private shots = new Map<string, Clip[]>();
   private loading = new Set<string>();
+  /** the sprite's lazy decode (the bar did not decode it): once, shared by every family; cleared if it fails */
+  private spriteLoad: Promise<void> | undefined;
   private lastBark = new Map<Npc, string>();
   private lx = 0; private ly = 0; private lz = 0; private yaw = 0;
   private prefetched = false;
@@ -101,7 +154,7 @@ export class PineHollowSfx {
   get available(): boolean { return this.manifest !== undefined && getSfxSet() !== 'synth'; }
   /** diagnostics: which families are decoded */
   get decoded(): string[] { return [...new Set([...barShots.keys(), ...this.shots.keys()])]; }
-  private buffers(family: string): AudioBuffer[] | undefined { return this.shots.get(family) ?? barShots.get(family); }
+  private buffers(family: string): Clip[] | undefined { return this.shots.get(family) ?? barShots.get(family); }
 
   setListener(x: number, y: number, z: number, yaw: number): void { this.lx = x; this.ly = y; this.lz = z; this.yaw = yaw; }
 
@@ -140,14 +193,24 @@ export class PineHollowSfx {
   prewarm(families: readonly string[]): void { for (const f of families) this.load(f); }
   private load(family: string): void {
     if (!this.available || this.buffers(family) || this.loading.has(family)) return;
+    const sprite = spriteOf(this.manifest);
+    if (sprite) { // one decode of the one file cuts every family
+      this.spriteLoad ??= (async () => {
+        try { cutSprite(this.manifest, sprite, await decodeBytes(await cachedBytes(sprite.url)), this.shots); } catch (e) {
+          console.info(`[sfx] ${sprite.url}: ${why(e)} — the one-shots stay silent for now`);
+          this.spriteLoad = undefined; // the next play tries again
+        }
+      })();
+      return;
+    }
     const urls = this.files(family);
     if (urls.length === 0) return;
     this.loading.add(family);
     void (async () => {
-      const bufs: AudioBuffer[] = [];
-      for (const u of urls) { try { bufs.push(await decodeBytes(await cachedBytes(u))); } catch { /* that variant is skipped */ } }
+      const clips: Clip[] = [];
+      for (const u of urls) { try { clips.push(whole(await decodeBytes(await cachedBytes(u)))); } catch { /* that variant is skipped */ } }
       this.loading.delete(family);
-      if (bufs.length > 0) this.shots.set(family, bufs);
+      if (clips.length > 0) this.shots.set(family, clips);
     })();
   }
 
@@ -156,10 +219,10 @@ export class PineHollowSfx {
   /** any family of the set by name (a PhShot, a bark) — `shot` is the typed door */
   play(family: string, o: PhPlay = {}): boolean {
     if (!this.audio.ready || !this.available) return false;
-    const bufs = this.buffers(family);
-    if (!bufs) { this.load(family); return false; }
-    const buf = bufs[Math.floor(Math.random() * bufs.length)];
-    if (!buf) return false;
+    const clips = this.buffers(family);
+    if (!clips) { this.load(family); return false; }
+    const clip = clips[Math.floor(Math.random() * clips.length)];
+    if (!clip) return false;
     const c = this.audio.ctx, t = c.currentTime + 0.01;
     let gain = o.gain ?? 1, pan = o.pan ?? 0, cutoff = 20000;
     if (o.at) {
@@ -170,13 +233,13 @@ export class PineHollowSfx {
       pan = d > 0.5 ? Math.max(-1, Math.min(1, (dx * rx + dz * rz) / d)) * 0.8 : 0;
       cutoff = 12000 / (1 + d / 30);
     }
-    const s = c.createBufferSource(); s.buffer = buf; s.playbackRate.value = 2 ** ((Math.random() * 80 - 40) / 1200);
+    const s = c.createBufferSource(); s.buffer = clip.buffer; s.playbackRate.value = 2 ** ((Math.random() * 80 - 40) / 1200);
     const g = c.createGain(); g.gain.value = gain;
     let node: AudioNode = s.connect(g);
     if (cutoff < 19000) { const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = cutoff; node = node.connect(lp); }
     if (pan !== 0 && 'createStereoPanner' in c) { const p = c.createStereoPanner(); p.pan.value = pan; node = node.connect(p); }
     node.connect(o.out ?? this.audio.sfx);
-    s.start(t);
+    s.start(t, clip.offset, clip.duration); // `duration` is buffer time: the ±40 cents do not change which samples play
     return true;
   }
 

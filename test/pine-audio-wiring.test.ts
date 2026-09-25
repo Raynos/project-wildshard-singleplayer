@@ -20,8 +20,7 @@ describe('the loading bar\'s audio per shard', () => {
     expect(p.music.some((f) => f.includes('/island-'))).toBe(false);
     const own = p.sfx.filter((f) => f.startsWith('/assets/sfx/pine-hollow/'));
     expect(own.some((f) => f.includes('/bed-hollow-'))).toBe(true);
-    expect(own.some((f) => f.includes('/leverShot-'))).toBe(true);
-    expect(own.some((f) => f.includes('/bark-ranger-'))).toBe(true);
+    expect(own.some((f) => f.includes('/oneshots-'))).toBe(true); // the one-shots + barks: one sprite (test/pine-sfx-sprite.test.ts)
     for (const f of d.sfx) expect(p.sfx).toContain(f); // every base set still comes along
   });
 });
