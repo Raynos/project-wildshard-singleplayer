@@ -38,3 +38,5 @@ It overlaps FINISH-LINE's D-rows. This file is the working list for Driftwood; F
 ## Related, running alongside (not in the ten)
 
 - **E133**, error handling: a system that throws gets switched off instead of freezing the game, errors are reported to the inbox, and a "Reload here" crash screen. It's in flight and applies to every shard.
+
+**Shadow A/B, 2026-09-25.** Blind left/right boards on iPhone portrait (`art/driftwood-audit/round-2-shadow-ab/`): edge filter 1.2 vs 0.6, orange line full vs none, and full vs half. The user said "these shadows look the same on both sides". The current look stays, and the orange line (T4) is closed with no change. E133 (error handling) is done, live in `ec91707-mugvskic`.
