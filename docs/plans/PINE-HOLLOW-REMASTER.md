@@ -87,6 +87,7 @@ Blender, image-to-3D, LUT fit, horizon painting, wind, rig bake), never their sh
 | PH-U23 | **NPCs: text dialogue + short generated voice barks** (the SFX engines). No full voice acting. |
 | PH-U24 | **Priority: a parallel track**, equal with Driftwood V2 / HUD / physics polish / Nalati Phase D. |
 | PH-U25 | **Lever-action = A, the Blender model** (2026-09-25, board `art/pine-hollow/round-15-rifle/board.jpg`): case-hardened receiver, oiled walnut, worn bluing; `?rifle=proc` keeps the code-built one for captures. |
+| PH-U26 | **Load: ~34 MB is fine** (2026-09-25, Jake: "34 MB is fine"), superseding PH-U18's ~30 MB: the Pine Hollow phone rows in `bench.budget.json` are 35 MB transfer / 40 s cold 4G. |
 
 **Boards Jake asked to see before the layout and the models are built.** Each is one portrait decision board, A / B / C / D,
 in `art/pine-hollow/round-<n>-<label>/board.jpg`:
