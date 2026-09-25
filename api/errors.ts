@@ -12,8 +12,8 @@
  * instance), no screenshot, no IP stored. Reading them back is password-gated like the inbox. The pull side is
  * `pnpm inbox:pull` (scripts/inbox-pull.mjs), which drops them into `.review/inbox/` as category `error`.
  */
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { get, list, put, type ListBlobResult } from '@vercel/blob';
-import { clientIp, newId, passwordOk } from './inbox';
 
 export const MAX_ERROR_BODY_BYTES = 16 * 1024;
 export const MAX_MESSAGE_CHARS = 500;
@@ -38,6 +38,22 @@ function corsHeaders(req: Request): Record<string, string> {
 
 function json(req: Request, status: number, body: unknown): Response {
   return Response.json(body, { status, headers: { 'cache-control': 'no-store', ...corsHeaders(req) } });
+}
+
+// Self-contained on purpose: Vercel runs each api/ file as its own ESM function, and an extensionless import of a sibling
+// (`./inbox`) does not resolve there (FUNCTION_INVOCATION_FAILED). These three mirror api/inbox.ts.
+/** Constant-time password check; a missing / empty `REVIEW_PASSWORD` rejects everything. */
+export function passwordOk(given: unknown, expected: string | undefined = process.env['REVIEW_PASSWORD']): boolean {
+  if (typeof given !== 'string' || expected === undefined || expected === '') return false;
+  return timingSafeEqual(createHash('sha256').update(given).digest(), createHash('sha256').update(expected).digest());
+}
+export function clientIp(req: Request): string {
+  const first = (req.headers.get('x-forwarded-for') ?? req.headers.get('x-real-ip') ?? '').split(',')[0] ?? '';
+  return first.trim() || 'unknown';
+}
+/** `2026-09-22T18-05-12.345Z-1a2b3c4d`: sortable by time, unguessable tail. */
+export function newId(now = new Date(), rand: () => string = () => randomBytes(4).toString('hex')): string {
+  return `${now.toISOString().replaceAll(':', '-')}-${rand()}`;
 }
 
 // -- rate limit: its own table (a crash loop on one phone must not eat the inbox's budget) --
