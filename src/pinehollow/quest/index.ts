@@ -56,6 +56,7 @@ import { buildHollowLog, hollowLogFloor, HOLLOW_LOG, type HollowLog } from './ho
 import { StagLead } from './stagLead';
 import { NightThralls, isThrall } from './nightThralls';
 import { BEATS, beatFlags, isBeat, type Beat } from './beats';
+import { buildTokenShelf } from './tokenShelf';
 
 export interface PineQuestHost {
   game: Game; sky: Sky; player: Player; animals: AnimalManager;
@@ -150,6 +151,14 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
   // ── the counters, the toasts ──
   const chip = new CountChip();
   const tokenCount = (): number => flags.count(TOKEN_FLAG), resinCount = (): number => flags.count(RESIN_FLAG);
+  // PH-C8: all eight tokens → the pine rack of them on the ranger's mantel (one merged mesh, tokenShelf.ts)
+  const rangerRoot = h.cabins?.roots[0];
+  const shelf = rangerRoot ? buildTokenShelf(sky) : null;
+  if (shelf && rangerRoot) {
+    rangerRoot.add(shelf.mesh);
+    shelf.setShown(tokenCount() === TOKEN_NAMES.length);
+    game.onUpdate(() => { shelf.update(game.camera); });
+  }
   kit.onEvent = (e: InteractEvent) => {
     const d = e.def;
     switch (e.type) {
@@ -164,7 +173,7 @@ export function installPineQuest(h: PineQuestHost): PineQuest {
           chip.show('Carved tokens', tokenCount(), TOKEN_NAMES.length);
           hud.toast(`Carved token — ${TOKEN_NAMES[i] ?? 'somewhere quiet'}`);
           kitSfx.interact('glyph', e.at);
-          if (tokenCount() === TOKEN_NAMES.length) hud.toast('All eight carved tokens — someone whittled the whole Hollow');
+          if (tokenCount() === TOKEN_NAMES.length) { hud.toast("All eight carved tokens — they're on the ranger's mantel now"); shelf?.setShown(true); }
         } else { if (e.text) hud.toast(e.text); kitSfx.interact('chime', e.at); h.music.sting('pickup'); }
         break;
       case 'locked': hud.toast(e.text ?? 'Locked'); kitSfx.interact('locked', e.at); break;
