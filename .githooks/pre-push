@@ -9,5 +9,8 @@ while read -r _local_ref local_sha remote_ref _remote_sha; do
   [ "$local_sha" = "$zero" ] && continue
   if [ "${SKIP_VERCEL_GATE:-}" = 1 ]; then echo "pre-push: SKIP_VERCEL_GATE=1 — vercel gate skipped for $(git rev-parse --short "$local_sha")" >&2; continue; fi
   "$(git rev-parse --show-toplevel)/scripts/vercel-tree-gate.sh" "$local_sha" || exit 1
+  gated=1
 done
+# E161: files under public/ that nothing references — a warning, never a refusal (node scripts/unused-assets.mjs lists them)
+if [ "${gated:-0}" = 1 ]; then node "$(git rev-parse --show-toplevel)/scripts/unused-assets.mjs" --warn >&2 || true; fi
 exit 0
