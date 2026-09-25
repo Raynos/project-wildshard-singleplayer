@@ -39,7 +39,7 @@ async function open(ctxOpts, q, ready = 'window.__world?.hud && window.__pineLif
   return { ctx, page };
 }
 const save = async (page, name) => { const f = resolvePath(OUT, `${name}.png`); writeFileSync(f, await page.screenshot({ type: 'png' })); console.error(`  → ${f}`); };
-const toasts = (page, n) => page.evaluate(([list, k]) => { for (let i = 0; i < k; i++) setTimeout(() => window.__world.hud.toast(list[i % list.length]), i * 120); }, [TOASTS, n]);
+const toasts = (page, n) => page.evaluate(([list, k]) => { for (let i = 0; i < k; i++) setTimeout(() => { window.__world.hud.toast(list[i % list.length]); }, i * 120); }, [TOASTS, n]);
 
 try {
   if (want('hud')) {
