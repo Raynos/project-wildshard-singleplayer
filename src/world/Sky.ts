@@ -24,6 +24,39 @@ import type { LookupTexture } from 'postprocessing';
 /** the key light's shadow direction steps (E89, src/world/DayNight.ts SHADOW_STEP): ≤ ~1 shadow texel about every 1.5 s */
 const KEY_SHADOW_STEP = 0.25 * Math.PI / 180;
 
+/** the sun's shadow map(s): cascade count, map size (px), how far they reach (m), the caster margin (m) and, for two
+ *  cascades, where the near one ends (m) */
+export interface ShadowRig { cascades: number; size: number; far: number; margin: number; split: number; /** the phone's low-poly rig (E123): normal bias in texels */ phone: boolean }
+
+/** `?pshadow=` names for the phone's on-device A/B (E123); `<size>x<cascades>@<far>[/<split>]` spells any other */
+const PHONE_SHADOW_RIGS: Record<string, Omit<ShadowRig, 'margin' | 'phone'>> = {
+  old: { cascades: 1, size: 1024, far: 80, split: 0 },    // before E123: one 189 m square at 1024², 18.5 cm a texel
+  '2k': { cascades: 1, size: 2048, far: 80, split: 0 },
+  '2c': { cascades: 2, size: 1024, far: 80, split: 14 },
+  near: { cascades: 1, size: 1024, far: 55, split: 0 },
+};
+
+/** the phone's rig on the low-poly shard when the URL names none (E123: `2k`, the same one square at 2048², 9.2 cm a texel) */
+const PHONE_SHADOW_DEFAULT = '2k';
+
+/**
+ * The shadow rig for this tier and shard. The phone's portrait camera (94° vertical FOV) makes a cascade's square far
+ * wider than its reach: the one 80 m cascade was 189 m across, so a 1024² texel was 18.5 cm and every shadow edge a
+ * row of 18 cm steps smeared by the PCF (E123: "blocky, blobby, pixelated, bleeding"). `?pshadow=` overrides on the phone.
+ */
+export function shadowRig(stylized: boolean): ShadowRig {
+  const T = TIER_CONFIG;
+  const base: ShadowRig = { cascades: T.cascades, size: T.shadowMapSize, far: T.shadowFar, margin: T.shadowMargin, split: 0, phone: false };
+  if (T.cascades !== 1 || !stylized && !new URLSearchParams(location.search).has('pshadow')) return base; // desktop / the other shards: the tier table
+  const want = new URLSearchParams(location.search).get('pshadow') ?? PHONE_SHADOW_DEFAULT;
+  const named = PHONE_SHADOW_RIGS[want];
+  if (named) return { ...named, margin: base.margin, phone: true };
+  const m = /^(512|1024|2048|4096)x([12])@(\d+)(?:\/(\d+))?$/.exec(want);
+  if (!m) { console.warn(`[sky] ?pshadow=${want}: not a rig (${Object.keys(PHONE_SHADOW_RIGS).join(' · ')} · <size>x<cascades>@<far>[/<split>])`); return base; }
+  const cascades = Number(m[2]);
+  return { size: Number(m[1]), cascades, far: Number(m[3]), split: cascades === 2 ? Number(m[4] ?? 14) : 0, margin: base.margin, phone: true };
+}
+
 /** the low-poly shard's sun before the day / night clock moves it: mid-morning from the east-south-east, 38° up */
 const STYLIZED_SUN = new THREE.Vector3(-0.74, 0.616, -0.27).normalize();
 
@@ -64,10 +97,11 @@ export class Sky {
   async build(): Promise<this> {
     const { sky: S, atmosphere: A, style } = getActiveChunk();
     // Look Lab (E65): the sky (E83) and toon lighting (E87) are locked in; the URL alone still builds the pre-remaster looks
+    const qs = new URLSearchParams(location.search);
     const toon = style === 'lowpoly' && !(settingFromUrl('lighting') && setting('lighting') === 'standard'), // toon locked in (E87): only ?lighting=standard lights it the old way
       stylizedSky = style === 'lowpoly' && !(settingFromUrl('sky') && setting('sky') === 'hdri'); // stylized locked in (E83, the user's Look Lab pick): only ?sky=hdri brings back the photo HDRI
     if (toon) installStylize(); // the toon lighting model (D1) — patched into three's chunk before anything compiles
-    const qs = new URLSearchParams(location.search);
+    if (toon && qs.has('pedge')) toonUniforms.uToonEdge.value = Number.parseFloat(qs.get('pedge') ?? '1') || 0; // E123 A/B: the warm band round cast shadows
     const qn = (k: string, d: number) => { const v = qs.get(k); return v === null ? d : Number.parseFloat(v); };
     const horizon = stylizedSky ? await this.setupStylized() : await this.setupHDRI(qs, qn);
     this.scene.fog = new THREE.Fog(horizon, 1, 1e6); // distances unused: Atmosphere.ts overrides the maths
@@ -78,10 +112,13 @@ export class Sky {
     fogUniforms.fogHeightDensity.value = A.fogHeightDensity;
     fogUniforms.fogDistDensity.value = A.fogDistDensity;
 
+    const rig = shadowRig(this.stylized !== null);
     this.csm = new CSM({
-      camera: this.camera, parent: this.scene, cascades: TIER_CONFIG.cascades, mode: 'practical',
-      maxFar: TIER_CONFIG.shadowFar, shadowMapSize: TIER_CONFIG.shadowMapSize, lightDirection: this.sunDir.clone().negate(),
-      lightIntensity: qn('sunI', S.sunIntensity), shadowBias: -0.00012, lightMargin: TIER_CONFIG.shadowMargin, lightNear: 1, lightFar: 600,
+      camera: this.camera, parent: this.scene, cascades: rig.cascades, mode: rig.split > 0 ? 'custom' : 'practical',
+      // the near cascade ends at `split` m: a tight square round the player (the deck, the pier under foot), the far one takes the rest
+      customSplitsCallback: (_n: number, _near: number, far: number, out: number[]) => { out.push(Math.min(0.9, rig.split / far), 1); },
+      maxFar: rig.far, shadowMapSize: rig.size, lightDirection: this.sunDir.clone().negate(),
+      lightIntensity: qn('sunI', S.sunIntensity), shadowBias: -0.00012, lightMargin: rig.margin, lightNear: 1, lightFar: 600,
     });
     this.csm.fade = true;
     if (!TIER_CONFIG.softShadows) this.renderer.shadowMap.type = THREE.PCFShadowMap; // 16-tap PCFSoft → 9-tap PCF on the phone
@@ -89,6 +126,7 @@ export class Sky {
     patchCloudShadows(); // painterly shards: the drifting cloud shadows in the sun loop (a no-op elsewhere)
     // the stylized shard's low sun (golden hour, dawn) grazes the flat decks: more normal bias or the planks speckle with acne
     for (const l of this.csm.lights) { l.color.copy(this.sunColor); l.shadow.normalBias = this.stylized ? 0.14 : 0.05; l.shadow.radius = this.stylized ? 0.6 : 2; }
+    this.texelBias = this.stylized !== null && rig.phone;
 
     this.hemi = new THREE.HemisphereLight(S.hemiSky, S.hemiGround, S.hemiIntensity);
     this.scene.add(this.hemi);
@@ -248,10 +286,24 @@ export class Sky {
   /** where the key light's shadow wants to point (setKeyLight); null on a shard nothing moves the sun on */
   private keyShadowWant: THREE.Vector3 | null = null;
 
+  /**
+   * E123: on the phone's low-poly rig the normal bias is held in shadow texels, not metres. 0.14 m was ~0.75 of the old
+   * 18.5 cm texel; on a finer map the same 0.14 m only lifts contact shadows off the deck (E112 already flips it for
+   * two-sided sheets). A cascade's square follows the camera's aspect (a resize, a rotation), so it is read each frame.
+   */
+  private texelBias = false;
+  private fitNormalBias(): void {
+    for (const l of this.csm.lights) {
+      const texel = (l.shadow.camera.right - l.shadow.camera.left) / l.shadow.mapSize.x;
+      if (Number.isFinite(texel) && texel > 0) l.shadow.normalBias = Math.min(0.14, 0.76 * texel);
+    }
+  }
+
   update(dt = 0): void {
     const want = this.keyShadowWant;
     if (want !== null && want.angleTo(this.csm.lightDirection) > KEY_SHADOW_STEP) this.csm.lightDirection.copy(want); // a big jump (a Time of day pick, the sun ↔ moon swap) moves at once
-    this.csm.update(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
+    this.csm.update();
+    if (this.texelBias) this.fitNormalBias(); this.cloudUniforms.uTime.value += dt; this.giantUniforms.uTime.value += dt;
     if (this.stylized) { this.dayNight?.update(dt); this.stylized.update(dt); toonUniforms.uCloudTime.value += dt; }
     if (this.painterly) {
       // the sky's clouds and their shadows on the ground drift downwind (the shadows at ~1.6× the wind, as clouds aloft do)
