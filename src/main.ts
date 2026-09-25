@@ -14,6 +14,8 @@ import { Boulders } from './world/Boulders';
 import { Hut } from './world/Hut';
 import { Palms } from './world/Palms';
 import { GroundCover } from './world/GroundCover';
+import { tintTerrain } from './world/coverTint';
+import { area as islandArea } from './world/blenderArea';
 import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE } from './chunks/driftwood-isle';
 import { RopeBridge } from './world/RopeBridge';
 import { Seabed } from './world/Seabed';
@@ -268,7 +270,7 @@ async function main() {
     if (palms) addBuilt('palms', 'Coconut palms', 'nature', 'src/world/Palms.ts', palms.mesh, palms.colliders, 'wood', undefined, palms.colliderDescs());
     // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
     const cover = sea ? new GroundCover(sky, { sea: sea.level, palms: palmSpecs }).build() : null;
-    if (cover) { game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer())); }
+    if (cover) { game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer())); tintTerrain(world.terrain.mesh); } // E156: the ground wears the cover
     ocean?.foamAround(statics); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
     await macrotask();
     const horizon = new Horizon(sky).build();
@@ -300,7 +302,7 @@ async function main() {
       replace: [bushes?.mesh ?? null], cover: dressing.cover?.group ?? null,
     })).catch((e: unknown) => { console.warn('[island] the Blender island did not load; procedural', e); return null; })
     : null;
-  if (blenderIsland) game.onUpdate(() => { blenderIsland.update(sky); });
+  if (blenderIsland) { game.onUpdate(() => { blenderIsland.update(sky); }); dressing.cover?.excludeArea(islandArea); } // E156: the cove dresses its own area
 
   const carpet = await step('grass', async () => {
     // no forest carpet over open water (grass scattered the whole sea floor for 19 s)

@@ -38,6 +38,7 @@ import type { PalmSpec } from './Palms';
 import { rockGeometry, rockMaterial, SHORE_ROCK } from './rockKit';
 import { Rng } from '../core/rng';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { CoverGrid, tintTerrain, triAreas, type CoverTri } from './coverTint';
 
 const BASE = blenderModelsBase('driftwood-isle'); // Driftwood's build: its palms / toon / sea are this file's own
 /** tiles per side: the casters (palms, rocks, logs; near + far copies) and the ground cover */
@@ -171,6 +172,24 @@ function clipInstanced(mat: THREE.Material): void {
   mat.needsUpdate = true;
 }
 
+/** E156: each cover triangle's centre, ground / upright areas and colour, for CoverGrid.splat (the tiles are merged in world space) */
+function* coverTriangles(geos: THREE.BufferGeometry[]): Generator<CoverTri> {
+  const o: CoverTri = { x: 0, z: 0, top: 0, side: 0, r: 0, g: 0, b: 0 };
+  for (const g of geos) {
+    const p = g.getAttribute('position'), c = g.getAttribute('color'), idx = g.getIndex();
+    if (!idx) continue;
+    for (let t = 0; t + 2 < idx.count; t += 3) {
+      const a = idx.getX(t), b = idx.getX(t + 1), d = idx.getX(t + 2);
+      const ax = p.getX(a), az = p.getZ(a), bx = p.getX(b), bz = p.getZ(b), dx = p.getX(d), dz = p.getZ(d);
+      const ar = triAreas(ax, p.getY(a), az, bx, p.getY(b), bz, dx, p.getY(d), dz);
+      o.top = ar.top; o.side = ar.side;
+      o.x = (ax + bx + dx) / 3; o.z = (az + bz + dz) / 3;
+      o.r = (c.getX(a) + c.getX(b) + c.getX(d)) / 3; o.g = (c.getY(a) + c.getY(b) + c.getY(d)) / 3; o.b = (c.getZ(a) + c.getZ(b) + c.getZ(d)) / 3;
+      yield o;
+    }
+  }
+}
+
 function load<T>(f: (ok: (v: T) => void, bad: (e: unknown) => void) => void): Promise<T> { return new Promise<T>((resolve, reject) => { f(resolve, reject); }); }
 
 export class BlenderIsland {
@@ -235,7 +254,7 @@ export class BlenderIsland {
     const protos: Proto[] = [];
     const protoIndex = new Map<string, number>(meta.protos.map((p, i) => [`proto_${p.name}`, i]));
     const v = new THREE.Vector3();
-    const found: THREE.Mesh[] = [];
+    const found: THREE.Mesh[] = [], terrainTiles: THREE.Mesh[] = [];
     gltf.scene.traverse((o) => { if (isMesh(o)) found.push(o); });
     for (const o of found) {
       const pi = protoIndex.get(o.name);
@@ -246,6 +265,7 @@ export class BlenderIsland {
         const m = new THREE.Mesh(o.geometry, terrainMat);
         m.matrixAutoUpdate = false; m.matrix.copy(o.matrixWorld); m.matrixWorld.copy(o.matrixWorld);
         m.name = `island-${o.name}`; m.castShadow = true; m.receiveShadow = true;
+        terrainTiles.push(m);
         if (!o.geometry.hasAttribute('normal')) o.geometry.computeVertexNormals(); // lighting is flat (derivatives); the normals are the shadows' normal bias
         o.geometry.computeBoundingSphere();
         this.group.add(m);
@@ -355,6 +375,13 @@ export class BlenderIsland {
       if (!g) continue;
       this.tiles.push({ ...rect(k, VT), near: add(g, `island-cover-${k}`, false, coverMat), far: null, cover: true });
       this.stats.propTris += (g.getIndex()?.count ?? 0) / 3;
+    }
+    // E156: the cove's ground wears the cover it carries (coverTint.ts) — what was placed here, splatted into the grid over
+    // GroundCover's estimate for this area, then sampled by the cove's terrain
+    const coverGrid = CoverGrid.get();
+    if (coverGrid) {
+      coverGrid.splat(coverTriangles(this.tiles.filter((tile) => tile.cover).map((tile) => tile.near.geometry)), area.x0, area.x1, area.z0, area.z1, 0.6);
+      for (const tile of terrainTiles) tintTerrain(tile);
     }
     if (smallRocks.length > 0) {
       const rm = this.smallRocks(smallRocks, f, protos, rockMaterial(ctx.sky));

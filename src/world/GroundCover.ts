@@ -29,6 +29,12 @@
  * so neither the refill nor new cells hitch a frame. `?coverfar=off` is the near tier alone (the first E117 fix),
  * `?coverfar=far` reaches 1.5× further again.
  *
+ * E156 — the ground wears the cover. Past the far tier the terrain was bare facets, so plants still seemed to appear as
+ * you neared them. `fillCoverGrid` writes what the cover makes the ground look like into coverTint.ts's grid, the
+ * terrains draw it (more of it the flatter they are seen), and a fading plant takes on that colour, not the bare facet's
+ * (`?covertint=0` = off). Plants on sloping ground keep up to 1.7× their reach (a slope facing you fills the screen;
+ * `?coverreach=0` = off).
+ *
  *   const cover = new GroundCover(sky, { sea: sea.level }).build();
  *   scene.add(cover.group);
  *   game.onUpdate((dt) => cover.update(dt, player.position));
@@ -49,6 +55,8 @@ import { windUniforms } from './wind';
 import { rockGeometry } from './rockKit';
 import { TIER } from '../core/tier';
 import { lowPolyGroundColor } from './Terrain';
+import { CoverGrid, COVER_SEEN_GLSL, coverTintUniform, coverSample, coverJitter, triAreas } from './coverTint';
+import type { BlenderArea } from './blenderArea';
 import type { Sky } from './Sky';
 
 export interface GroundCoverOpts {
@@ -69,8 +77,8 @@ const FAR_K = COVER_FAR === 'far' ? 1.5 : 1;
 const FAR_REFILL_M = 8, FAR_SLACK = 16, FAR_BUDGET_MS = TIER === 'desktop' ? 2 : 1.5;
 /** shader modes: a near plant that just shrinks away / hands over to its far model; a far model */
 const MODE_NEAR = 0, MODE_HANDOVER = 1, MODE_FAR = 2;
-/** floats per cached candidate: x y z yaw scale · tint rgb · ground rgb */
-const STRIDE = 11;
+/** floats per cached candidate: x y z yaw scale · tint rgb · ground rgb · ground normal xyz · cover side · cover rgb top (E156) */
+const STRIDE = 19;
 /** the viewer is the player's feet in play; the camera is ~1.7 m over them */
 const EYE_SLACK = 2;
 /** a thin stem's end caps are never seen (in the ground, under the leaves or petals): keep the tube, drop the caps (E117) */
@@ -91,7 +99,7 @@ interface FarTier {
    *  far cover keeps its coverage with fewer instances */
   keep: number;
   /** the next set, filled by the far job and copied in when it is done */
-  stage: { mat: Float32Array; col: Float32Array | null; gnd: Float32Array; n: number };
+  stage: { mat: Float32Array; col: Float32Array | null; gnd: Float32Array; cov: Float32Array; nrm: Float32Array; n: number };
 }
 
 interface Kind {
@@ -103,12 +111,35 @@ interface Kind {
   reach: THREE.Vector3;
   /** instances per m² at (h over the sea, slope, trail distance, shrine distance) */
   density: (h: number, slope: number, td: number, shrineD: number, palm: number) => number;
+  /** E156: its mean colour (linear) and, per plant at scale 1, the ground it covers from above and its upright
+   *  cross-section (m²), for the cover grid */
+  look: { r: number; g: number; b: number; top: number; side: number };
   scale: [number, number];
   /** per-instance tint (multiplies the vertex colours) */
   tint?: (h: number, rng: Rng, out: THREE.Color) => void;
 }
 
 const ss = (e0: number, e1: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+
+/**
+ * E156 C — reach by screen size. A slope rising in front of you fills far more of the screen than flat ground at the same
+ * distance, so the edge of the cover showed there first. Plants on sloping ground keep their reach × up to REACH_UP
+ * (SLOPE_LO … SLOPE_HI of `slope` = 1 − the ground normal's y; 0.01 ≈ 8°, 0.08 ≈ 23°); flat ground keeps today's. It is the
+ * ground's own tilt, not the angle it is seen at: that changes as you walk, and the refill would have to include every
+ * plant the next few metres could bring in — on the phone that was +68 % instances for flat ground. A plant's reach is
+ * fixed, so the refill's rule stays exact (nothing inserted part-grown). It fades out as the camera climbs (REACH_HI m
+ * over the ground): from Explore's height every slope is in view and the caps can't pay for it. `?coverreach=0` = off.
+ */
+const COVER_REACH = new URLSearchParams(location.search).get('coverreach') !== '0';
+const REACH_UP = 1.7, SLOPE_LO = 0.01, SLOPE_HI = 0.08, REACH_HI: [number, number] = [5, 14];
+/**
+ * A cached candidate's reach factor (the shader's, from its normal's y) at the strength the camera's height allows, taken
+ * at the most it can grow to before the next refill (`travel` m of climb or dive at most: the strength follows the height)
+ */
+const reachMax = (v: Float32Array, i: number, strength: number, travel: number): number => {
+  const s = strength >= 1 ? 1 : Math.min(1, strength + travel / (REACH_HI[1] - REACH_HI[0]));
+  return 1 + s * (REACH_UP - 1) * ss(SLOPE_LO, SLOPE_HI, 1 - (v[i + 12] ?? 1));
+};
 
 // ── the far models' pieces (E117 follow-up): one or two triangles each ──
 /** a grass blade leaning out along yaw `a`: base width 2w, height h, lean (0 up … 1 flat) */
@@ -133,18 +164,40 @@ function leafDiamond(yaw: number, len: number, w: number, pitch: number, up: num
   return tris([0, 0, 0, w / 2, 0, m, 0, 0, len, 0, 0, 0, 0, 0, len, -w / 2, 0, m]).rotateX(-pitch).rotateY(yaw).translate(0, up, 0);
 }
 
+/**
+ * E156: a plant model's mean colour (its vertex colours weighted by triangle area) and its ground / upright areas (the
+ * sum of its triangles' projections, ×OVERLAP for the fronds that hide each other), for the cover grid.
+ */
+const OVERLAP = 0.6;
+function lookOf(g: THREE.BufferGeometry): Kind['look'] {
+  const pos = g.getAttribute('position'), col = g.getAttribute('color'), idx = g.getIndex();
+  let r = 0, gg = 0, bb = 0, w = 0, top = 0, side = 0;
+  const n = idx ? idx.count : pos.count;
+  for (let t = 0; t + 2 < n; t += 3) {
+    const i0 = idx ? idx.getX(t) : t, i1 = idx ? idx.getX(t + 1) : t + 1, i2 = idx ? idx.getX(t + 2) : t + 2;
+    const ar = triAreas(pos.getX(i0), pos.getY(i0), pos.getZ(i0), pos.getX(i1), pos.getY(i1), pos.getZ(i1), pos.getX(i2), pos.getY(i2), pos.getZ(i2));
+    const area = ar.top + ar.side;
+    r += col.getX(i2) * area; gg += col.getY(i2) * area; bb += col.getZ(i2) * area; w += area;
+    top += ar.top; side += ar.side;
+  }
+  return w > 0 ? { r: r / w, g: gg / w, b: bb / w, top: top * OVERLAP, side: side * OVERLAP } : { r: 0, g: 0, b: 0, top: 0, side: 0 };
+}
+
 export class GroundCover {
   group = new THREE.Group();
   private kinds: Kind[] = [];
   private cells = new Map<string, Float32Array[]>();
   private last = new THREE.Vector3(1e9, 0, 1e9);
-  private uniforms = { uPlayer: { value: new THREE.Vector3() }, uTime: { value: 0 }, uWind: coverWind };
+  private uniforms = { uPlayer: { value: new THREE.Vector3() }, uTime: { value: 0 }, uWind: coverWind, uReachUp: { value: COVER_REACH ? 1 : 0 } };
+  /** E156: the Blender island's area once it has loaded — its own cover dresses it, so no plant of ours is placed there */
+  private skip: BlenderArea | null = null;
   /** the furthest any plant shows + a refill's travel: the cell window's radius */
   private rMax = 0;
   private cacheMax = 96;
   private avoid: { x: number; z: number; r: number }[] = [];
   private tint = new THREE.Color();
   private ground = new THREE.Color();
+  private cover = coverSample();
   /** the far tier's rebuild: a job stepped within FAR_BUDGET_MS a frame; where the shown / the next set were built from */
   private farJob: Generator<undefined, undefined, undefined> | null = null;
   private farLast = new THREE.Vector3(1e9, 0, 1e9);
@@ -153,7 +206,7 @@ export class GroundCover {
   /** 0 → 1 over ~0.8 s when a far set lands somewhere new (boot, a teleport), so it grows in instead of appearing */
   private farIn = { value: 1 };
   /** measurements for scripts/popin-fly.mjs (group.userData.stats) */
-  readonly stats = { nearRefillMs: 0, farJobMs: 0, farJobFrames: 0, farCells: 0, farCount: 0, cellsBuilt: 0 };
+  readonly stats = { nearRefillMs: 0, farJobMs: 0, farJobFrames: 0, farCells: 0, farCount: 0, cellsBuilt: 0, gridMs: 0 };
 
   constructor(private sky: Sky, private opts: GroundCoverOpts) {
     const cave = Cove.forIsland().cave;
@@ -241,6 +294,7 @@ export class GroundCover {
       const ground = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3);
       ground.setUsage(THREE.DynamicDrawUsage);
       g.setAttribute('aGround', ground);
+      for (const [attr, w] of [['aCover', 4], ['aNrm', 4]] as const) { const a = new THREE.InstancedBufferAttribute(new Float32Array(cap * w), w); a.setUsage(THREE.DynamicDrawUsage); g.setAttribute(attr, a); }
       this.group.add(mesh);
       return mesh;
     };
@@ -248,20 +302,20 @@ export class GroundCover {
     const kind = (name: string, g: THREE.BufferGeometry, cap0: number, [near, far]: [number, number], scale: [number, number], density: Kind['density'], tint?: Kind['tint'], farOf?: [THREE.BufferGeometry, [number, number], number, number]): void => {
       const cap = Math.round(cap0 * CAP_K);
       const reach = new THREE.Vector3(near * REACH_K, far * REACH_K, (far - near) * REACH_K * 0.25);
-      this.rMax = Math.max(this.rMax, reach.y + REFILL_M + EYE_SLACK);
+      this.rMax = Math.max(this.rMax, reach.y * (COVER_REACH ? REACH_UP : 1) + REFILL_M + EYE_SLACK);
       let farTier: FarTier | null = null;
       const farReach = new THREE.Vector3(0, 0, 1);
       if (farOf && COVER_FAR !== 'off') {
         const [fg, [fn, ff], fcap0, keep] = farOf, k = REACH_K * FAR_K, fcap = Math.round(fcap0 * keep * CAP_K * FAR_K * FAR_K);
         farReach.set(fn * k, ff * k, (ff - fn) * k * 0.25);
-        this.rFar = Math.max(this.rFar, farReach.y + FAR_SLACK + EYE_SLACK);
+        this.rFar = Math.max(this.rFar, farReach.y * (COVER_REACH ? REACH_UP : 1) + FAR_SLACK + EYE_SLACK);
         farTier = {
           mesh: instanced(`ground-cover-${name}-far`, fg, material(reach, farReach, MODE_FAR), fcap, tint !== undefined), cap: fcap, reach: farReach, keep,
-          stage: { mat: new Float32Array(fcap * 16), col: tint ? new Float32Array(fcap * 3) : null, gnd: new Float32Array(fcap * 3), n: 0 },
+          stage: { mat: new Float32Array(fcap * 16), col: tint ? new Float32Array(fcap * 3) : null, gnd: new Float32Array(fcap * 3), cov: new Float32Array(fcap * 4), nrm: new Float32Array(fcap * 4), n: 0 },
         };
       }
       const mesh = instanced(`ground-cover-${name}`, g, material(reach, farReach, farTier ? MODE_HANDOVER : MODE_NEAR), cap, tint !== undefined);
-      this.kinds.push({ name, mesh, cap, far: farTier, reach, density, scale, ...(tint ? { tint } : {}) });
+      this.kinds.push({ name, mesh, cap, far: farTier, reach, density, scale, look: lookOf(g), ...(tint ? { tint } : {}) });
     };
     // the far models: a few triangles each, the near model's silhouette from 25 m on (its flowers as flat chips)
     const farRng = new Rng(SEED ^ 0x6cf0);
@@ -310,9 +364,45 @@ export class GroundCover {
     const span = Math.ceil((2 * Math.max(this.rMax, this.rFar)) / CELL) + 1;
     this.cacheMax = Math.max(96, Math.round(span * span * 1.4));
     this.group.userData['stats'] = this.stats;
+    this.fillCoverGrid();
     this.buildDriftwood();
     this.group.name = 'ground-cover';
     return this;
+  }
+
+  /**
+   * E156: the chunk's cover grid from the same rules the cells place by — per 4 m, each kind's expected plants per m²
+   * (≈ 2.03 candidates per m², each kept with p = density / 2) × the ground one covers × its colour.
+   */
+  private fillCoverGrid(): void {
+    const sea = this.opts.sea, grid = CoverGrid.create(), per = 520 / (CELL * CELL), col = new THREE.Color();
+    const t0 = performance.now();
+    grid.fill((x, z, out) => {
+      if (this.avoid.some((a) => (x - a.x) ** 2 + (z - a.z) ** 2 < a.r * a.r)) return;
+      const h = heightAt(x, z) - sea;
+      if (h < 0.4) return;
+      const [, ny] = normalAt(x, z, 0.6), slope = 1 - ny;
+      if (slope > 0.3) return;
+      const td = trailDistance(x, z), sd = Math.hypot(x - SHRINE.x, z - SHRINE.z), palm = this.nearPalm(x, z);
+      let top = 0, side = 0;
+      col.setRGB(0, 0, 0);
+      for (const k of this.kinds) {
+        const n = per * Math.min(1, Math.max(0, k.density(h, slope, td, sd, palm)) / 2), s = (k.scale[0] + k.scale[1]) / 2, ns = n * s * s;
+        const t = ns * k.look.top, sd2 = ns * k.look.side, wt = t + sd2;
+        top += t; side += sd2; col.r += k.look.r * wt; col.g += k.look.g * wt; col.b += k.look.b * wt;
+      }
+      const w = top + side;
+      if (w > 0) { out.r = col.r / w; out.g = col.g / w; out.b = col.b / w; out.top = 1 - Math.exp(-top); out.side = 1 - Math.exp(-side); }
+    }, ISLAND.x - ISLAND.r - 40, ISLAND.x + ISLAND.r + 40, ISLAND.z - ISLAND.r - 40, ISLAND.z + ISLAND.r + 40);
+    this.stats.gridMs = performance.now() - t0;
+  }
+
+  /** E156: the Blender island loaded — it dresses its own area, so the cells stop placing plants there (they were clipped
+   *  in its shader, but each still took an instance and its vertices) */
+  excludeArea(a: BlenderArea): void {
+    this.skip = a;
+    this.cells.clear();
+    this.last.set(1e9, 0, 1e9); this.farLast.set(1e9, 0, 1e9);
   }
 
   /** the sand -> grass edge (the plant fringe) and the dune crest (beach grass) */
@@ -355,14 +445,17 @@ export class GroundCover {
     const rng = new Rng(SEED ^ Math.imul(cx + 1013, 73856093) ^ Math.imul(cz + 2027, 19349663));
     const sea = this.opts.sea;
     const vals: number[][] = this.kinds.map(() => []);
+    const grid = CoverGrid.get();
     // one candidate set per cell (≈ 2 per m²), the terrain read once per point, then a density lottery per kind
     const n = 520;
     for (let i = 0; i < n; i++) {
       const x = (cx + rng.next()) * CELL, z = (cz + rng.next()) * CELL;
       if (this.avoid.some((a) => (x - a.x) ** 2 + (z - a.z) ** 2 < a.r * a.r)) continue;
+      const sk = this.skip;
+      if (sk && x > sk.x0 && x < sk.x1 && z > sk.z0 && z < sk.z1) continue;
       const y = heightAt(x, z), h = y - sea;
       if (h < 0.4) continue;
-      const [, ny] = normalAt(x, z, 0.6), slope = 1 - ny;
+      const [nx, ny, nz] = normalAt(x, z, 0.6), slope = 1 - ny;
       if (slope > 0.3) continue;
       const td = trailDistance(x, z), sd = Math.hypot(x - SHRINE.x, z - SHRINE.z), palm = this.nearPalm(x, z);
       this.kinds.forEach((k, ki) => {
@@ -372,7 +465,10 @@ export class GroundCover {
         if (k.tint) k.tint(h, rng, this.tint); else this.tint.setRGB(1, 1, 1);
         const jy = heightAt(jx, jz), yaw = rng.range(0, Math.PI * 2);
         lowPolyGroundColor(this.ground, jy - sea, slope, jx, jz);
-        vals[ki]?.push(jx, jy - 0.02, jz, yaw, sc, this.tint.r, this.tint.g, this.tint.b, this.ground.r, this.ground.g, this.ground.b);
+        const cv = this.cover;
+        if (grid) grid.sample(jx, jz, cv); else { cv.r = 0; cv.g = 0; cv.b = 0; cv.top = 0; cv.side = 0; }
+        const j = coverJitter(jx, jz);
+        vals[ki]?.push(jx, jy - 0.02, jz, yaw, sc, this.tint.r, this.tint.g, this.tint.b, this.ground.r, this.ground.g, this.ground.b, nx, ny, nz, cv.side, cv.r * j, cv.g * j, cv.b * j, cv.top);
       });
     }
     const out = vals.map((v) => new Float32Array(v));
@@ -386,8 +482,15 @@ export class GroundCover {
     const t0 = performance.now();
     const R = this.rMax, c0x = Math.floor((px - R) / CELL), c1x = Math.floor((px + R) / CELL), c0z = Math.floor((pz - R) / CELL), c1z = Math.floor((pz + R) / CELL);
     const counts = this.kinds.map(() => 0);
-    const TAU = Math.PI * 2;
+    const TAU = Math.PI * 2, up = this.uniforms.uReachUp.value;
+    // nearest cells first (E156): a kind that runs into its cap then drops its furthest (thinnest) plants, not a corner
+    const order: [number, number, number][] = [];
     for (let cz = c0z; cz <= c1z; cz++) for (let cx = c0x; cx <= c1x; cx++) {
+      const dx = Math.max(0, cx * CELL - px, px - (cx + 1) * CELL), dz = Math.max(0, cz * CELL - pz, pz - (cz + 1) * CELL);
+      if (dx * dx + dz * dz <= R * R) order.push([cx, cz, dx * dx + dz * dz]);
+    }
+    order.sort((a, b) => a[2] - b[2]);
+    for (const [cx, cz] of order) {
       const data = this.cell(cx, cz);
       this.kinds.forEach((k, ki) => {
         const v = data[ki];
@@ -395,12 +498,14 @@ export class GroundCover {
         const near = k.reach.x, far = k.reach.y, grow = k.reach.z, slack = REFILL_M + EYE_SLACK;
         const mat = k.mesh.instanceMatrix.array as Float32Array, col = k.mesh.instanceColor ? (k.mesh.instanceColor.array as Float32Array) : null;
         const gnd = k.mesh.geometry.getAttribute('aGround').array as Float32Array;
+        const cov = k.mesh.geometry.getAttribute('aCover').array as Float32Array, nrm = k.mesh.geometry.getAttribute('aNrm').array as Float32Array;
         let n = counts[ki] ?? 0;
         for (let i = 0; i < v.length && n < k.cap; i += STRIDE) {
           const x = v[i] ?? 0, y = v[i + 1] ?? 0, z = v[i + 2] ?? 0, yaw = v[i + 3] ?? 0;
           // this plant's edge (the shader's): yaw / 2π; round the wrap (the GPU's atan may land either side) to the far end
-          const h = yaw / TAU, edge = h < 0.005 || h > 0.995 ? far : near + grow + (far - near - grow) * h, lim = edge + slack;
-          if ((x - px) ** 2 + (y - py) ** 2 + (z - pz) ** 2 > lim * lim) continue;
+          const d2 = (x - px) ** 2 + (y - py) ** 2 + (z - pz) ** 2, rk = COVER_REACH ? reachMax(v, i, up, REFILL_M + EYE_SLACK) : 1;
+          const h = yaw / TAU, edge = (h < 0.005 || h > 0.995 ? far : near + grow + (far - near - grow) * h) * rk, lim = edge + slack;
+          if (d2 > lim * lim) continue;
           const s = v[i + 4] ?? 1, c = Math.cos(yaw) * s, sn = Math.sin(yaw) * s, o = n * 16;
           // a turn about +y, scaled: what Matrix4.compose writes, without the quaternion
           mat[o] = c; mat[o + 1] = 0; mat[o + 2] = -sn; mat[o + 3] = 0;
@@ -409,6 +514,7 @@ export class GroundCover {
           mat[o + 12] = x; mat[o + 13] = y; mat[o + 14] = z; mat[o + 15] = 1;
           if (col) { col[n * 3] = v[i + 5] ?? 1; col[n * 3 + 1] = v[i + 6] ?? 1; col[n * 3 + 2] = v[i + 7] ?? 1; }
           gnd[n * 3] = v[i + 8] ?? 0; gnd[n * 3 + 1] = v[i + 9] ?? 0; gnd[n * 3 + 2] = v[i + 10] ?? 0;
+          nrm.set(v.subarray(i + 11, i + 15), n * 4); cov.set(v.subarray(i + 15, i + 19), n * 4);
           n++;
         }
         counts[ki] = n;
@@ -418,7 +524,7 @@ export class GroundCover {
       k.mesh.count = counts[ki] ?? 0;
       k.mesh.instanceMatrix.needsUpdate = true;
       if (k.mesh.instanceColor) k.mesh.instanceColor.needsUpdate = true;
-      k.mesh.geometry.getAttribute('aGround').needsUpdate = true;
+      for (const a of ['aGround', 'aCover', 'aNrm']) k.mesh.geometry.getAttribute(a).needsUpdate = true;
     });
     this.stats.nearRefillMs = performance.now() - t0;
   }
@@ -437,7 +543,7 @@ export class GroundCover {
     }
     cellsAt.sort((a, b) => a[2] - b[2]);
     for (const k of this.kinds) if (k.far) k.far.stage.n = 0;
-    const TAU = Math.PI * 2, slack = FAR_SLACK + EYE_SLACK;
+    const TAU = Math.PI * 2, slack = FAR_SLACK + EYE_SLACK, up = this.uniforms.uReachUp.value;
     for (const [cx, cz] of cellsAt) {
       if (!this.cells.has(`${cx},${cz}`)) { this.cell(cx, cz); this.stats.cellsBuilt++; yield undefined; } // a new cell is its own slice
       const data = this.cell(cx, cz);
@@ -451,8 +557,10 @@ export class GroundCover {
           const x = v[i] ?? 0, y = v[i + 1] ?? 0, z = v[i + 2] ?? 0, yaw = v[i + 3] ?? 0;
           const h = yaw / TAU, wrap = h < 0.005 || h > 0.995;
           if (keep < 1 && ((h * 97.13) % 1) >= keep) continue;           // not one of the kind's far plants
-          const edge = wrap ? near + grow : near + grow + (far - near - grow) * h, fEdge = wrap ? fFar : fNear + fGrow + (fFar - fNear - fGrow) * h;
-          const d2 = (x - px) ** 2 + (y - py) ** 2 + (z - pz) ** 2, lo = Math.max(0, edge - grow - slack), hi = fEdge + slack;
+          const d2 = (x - px) ** 2 + (y - py) ** 2 + (z - pz) ** 2, rk = COVER_REACH ? reachMax(v, i, up, FAR_SLACK) : 1;
+          const edge = (wrap ? near + grow : near + grow + (far - near - grow) * h) * rk, fEdge = (wrap ? fFar : fNear + fGrow + (fFar - fNear - fGrow) * h) * rk;
+          // the lower bound takes the plant's reach at 1× (the camera may climb and the strength fall before the next rebuild)
+          const lo = Math.max(0, (edge / rk) - grow - slack), hi = fEdge + slack;
           if (d2 > hi * hi || d2 < lo * lo) continue;
           const s = (v[i + 4] ?? 1) * growK, c = Math.cos(yaw) * s, sn = Math.sin(yaw) * s, o = n * 16, m = st.mat;
           m[o] = c; m[o + 1] = 0; m[o + 2] = -sn; m[o + 3] = 0;
@@ -461,6 +569,7 @@ export class GroundCover {
           m[o + 12] = x; m[o + 13] = y; m[o + 14] = z; m[o + 15] = 1;
           if (st.col) { st.col[n * 3] = v[i + 5] ?? 1; st.col[n * 3 + 1] = v[i + 6] ?? 1; st.col[n * 3 + 2] = v[i + 7] ?? 1; }
           st.gnd[n * 3] = v[i + 8] ?? 0; st.gnd[n * 3 + 1] = v[i + 9] ?? 0; st.gnd[n * 3 + 2] = v[i + 10] ?? 0;
+          st.nrm.set(v.subarray(i + 11, i + 15), n * 4); st.cov.set(v.subarray(i + 15, i + 19), n * 4);
           n++;
         }
         st.n = n;
@@ -479,8 +588,10 @@ export class GroundCover {
       };
       copy(mesh.instanceMatrix, st.mat, 16);
       if (mesh.instanceColor && st.col) copy(mesh.instanceColor, st.col, 3);
-      const gnd = mesh.geometry.getAttribute('aGround');
+      const gnd = mesh.geometry.getAttribute('aGround'), cov = mesh.geometry.getAttribute('aCover'), nrm = mesh.geometry.getAttribute('aNrm');
       if (gnd instanceof THREE.BufferAttribute) copy(gnd, st.gnd, 3);
+      if (cov instanceof THREE.BufferAttribute) copy(cov, st.cov, 4);
+      if (nrm instanceof THREE.BufferAttribute) copy(nrm, st.nrm, 4);
       mesh.count = n;
       total += n;
     }
@@ -495,6 +606,8 @@ export class GroundCover {
   update(dt: number, viewer: THREE.Vector3): void {
     this.uniforms.uTime.value += dt;
     this.uniforms.uPlayer.value.copy(viewer);
+    // E156 C: full strength on foot (the viewer is the player's feet), none from Explore's height
+    if (COVER_REACH) this.uniforms.uReachUp.value = 1 - ss(REACH_HI[0], REACH_HI[1], viewer.y - heightAt(viewer.x, viewer.z));
     // in 3D: Explore's camera climbs and dives, and the reach is measured from the camera
     if (this.last.distanceToSquared(viewer) > REFILL_M * REFILL_M) {
       this.last.copy(viewer);
@@ -529,8 +642,9 @@ export class GroundCover {
       attachFogUniforms(sh);
       sh.uniforms['uPlayer'] = u.uPlayer; sh.uniforms['uTime'] = windUniforms.uWindTime; sh.uniforms['uWind'] = u.uWind; sh.uniforms['uReach'] = uReach; sh.uniforms['uBlend'] = uBlend;
       sh.uniforms['uFarReach'] = uFarReach; sh.uniforms['uMode'] = uMode; sh.uniforms['uFarIn'] = uFarIn;
+      sh.uniforms['uReachUp'] = u.uReachUp; sh.uniforms['uCoverTint'] = coverTintUniform;
       sh.vertexShader = sh.vertexShader
-        .replace('#include <common>', '#include <common>\nuniform vec3 uPlayer; uniform float uTime; uniform float uWind; uniform vec3 uReach; uniform float uBlend; uniform vec3 uFarReach; uniform float uMode; uniform float uFarIn;\nattribute vec3 aGround; varying vec3 vGround; varying float vFar;')
+        .replace('#include <common>', `#include <common>\nuniform vec3 uPlayer; uniform float uTime; uniform float uWind; uniform vec3 uReach; uniform float uBlend; uniform vec3 uFarReach; uniform float uMode; uniform float uFarIn; uniform float uReachUp; uniform float uCoverTint;\nattribute vec3 aGround; attribute vec4 aCover; attribute vec4 aNrm; varying vec3 vGround; varying float vFar;${COVER_SEEN_GLSL}`)
         .replace('#include <begin_vertex>', `#include <begin_vertex>
         #ifdef USE_INSTANCING
         {
@@ -539,22 +653,28 @@ export class GroundCover {
           float dl = max(length(away), 1e-3);
           // this plant's edge in [near + grow, far], from its yaw (the refill's h = yaw / 2π)
           float h = fract(atan(-instanceMatrix[0].z, instanceMatrix[0].x) / 6.2831853 + 1.0);
-          float edge = mix(uReach.x + uReach.z, uReach.y, h);
-          float dc = distance(io, cameraPosition);
-          float nearK = 1.0 - smoothstep(edge - uReach.z, edge, dc);
+          vec3 toC = cameraPosition - io;
+          float dc = length(toC);
+          // E156 C: plants on sloping ground keep their reach further out (GroundCover.ts reachMax — the same numbers)
+          float facing = abs(dot(aNrm.xyz, toC / max(dc, 1e-3)));
+          float rk = 1.0 + uReachUp * ${(REACH_UP - 1).toFixed(3)} * smoothstep(${SLOPE_LO.toFixed(3)}, ${SLOPE_HI.toFixed(3)}, 1.0 - aNrm.y);
+          vec3 reach = uReach * rk, farReach = uFarReach * rk;
+          float edge = mix(reach.x + reach.z, reach.y, h);
+          float nearK = 1.0 - smoothstep(edge - reach.z, edge, dc);
           if (uMode > 1.5) {
             // the far model: grows in as the near one shrinks, keeps its colours, then at its own far edge (same h)
             // takes on the ground's colour and shrinks away
-            float fEdge = mix(uFarReach.x + uFarReach.z, uFarReach.y, h);
-            transformed *= (1.0 - nearK) * (1.0 - smoothstep(fEdge - uFarReach.z, fEdge, dc)) * uFarIn;
-            vFar = smoothstep(fEdge - 2.5 * uFarReach.z, fEdge - uFarReach.z, dc) * uBlend;
+            float fEdge = mix(farReach.x + farReach.z, farReach.y, h);
+            transformed *= (1.0 - nearK) * (1.0 - smoothstep(fEdge - farReach.z, fEdge, dc)) * uFarIn;
+            vFar = smoothstep(fEdge - 2.5 * farReach.z, fEdge - farReach.z, dc) * uBlend;
           } else {
             transformed *= nearK;
             // past near it turns into the ground it stands on, all the way by the time it starts to shrink (unless its far
             // model takes over there)
-            vFar = uMode > 0.5 ? 0.0 : smoothstep(uReach.x, max(edge - uReach.z, uReach.x + 1.0), dc) * uBlend;
+            vFar = uMode > 0.5 ? 0.0 : smoothstep(reach.x, max(edge - reach.z, reach.x + 1.0), dc) * uBlend;
           }
-          vGround = aGround;
+          // E156 A: the ground it fades into wears the cover, as the terrain draws it from here (coverTint.ts)
+          vGround = mix(aGround, aCover.rgb, coverSeen(aCover.a, aNrm.w, facing) * uCoverTint);
           float hgt = max(position.y, 0.0);
           vec2 push = (away / dl) * (1.0 - smoothstep(0.35, 1.5, dl)) * 1.1;
           float ph = io.x * 0.31 + io.z * 0.23;
