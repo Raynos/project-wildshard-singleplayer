@@ -1,0 +1,29 @@
+{
+  "$doc": "The regression scorecard's budget (docs/design/scorecard.md), read by scripts/scorecard.mjs --compare. The rule: every row of progress/scorecard/<tag>.json is at or better than the same row of the baseline (progress/scorecard/baseline.json). `kinds` sets the noise band per row kind: a row regresses when it is worse than the baseline by more than max(rel, noise × the baseline's run-to-run spread) × baseline + abs (units: bytes for bytes / memory, ms for time / longtask / frame, fps, counts). `better` is the good direction. SSIM rows must stay ≥ min. `check: false` rows (info) print and never fail. A row the user re-budgets goes in `rebudget` as {row, max | min, why, by}: that limit replaces the baseline comparison for that row. `proposed` rows print a verdict and never fail until the user accepts them (then they move to `rebudget` or become a rule).",
+  "kinds": {
+    "bytes":     { "better": "lower", "rel": 0.01, "noise": 2, "abs": 65536, "why": "transfer is near-deterministic: 1 % or 64 KiB, whichever is larger, or twice the measured spread" },
+    "count":     { "better": "lower", "rel": 0.02, "noise": 2, "abs": 2, "why": "request counts: ±2 requests (a font or an icon racing the service worker)" },
+    "time":      { "better": "lower", "rel": 0.10, "noise": 2, "abs": 150, "why": "time to play / switch: 10 % or twice the measured run-to-run spread, + 150 ms (the page's own 25–100 ms polls)" },
+    "longtask":  { "better": "lower", "rel": 0.15, "noise": 2, "abs": 50, "why": "the longest main-thread task: one task, so noisier than a total" },
+    "memory":    { "better": "lower", "rel": 0.05, "noise": 2, "abs": 2097152, "why": "heap after a forced GC, GPU bytes counted at the GL API: 5 % + 2 MiB" },
+    "objects":   { "better": "lower", "rel": 0.05, "noise": 2, "abs": 2, "why": "renderer.info textures / geometries / programs" },
+    "fps":       { "better": "higher", "rel": 0.10, "noise": 2, "abs": 1, "why": "frames per second over the pose's sample: 10 % or twice the spread" },
+    "frame":     { "better": "lower", "rel": 0.10, "noise": 2, "abs": 1, "why": "p95 frame interval and main-thread ms per frame" },
+    "drawcalls": { "better": "lower", "rel": 0.10, "noise": 2, "abs": 5, "why": "draw calls / triangles at a fixed pose: creatures walking in and out of view move them" },
+    "ssim":      { "better": "higher", "min": 0.98, "margin": 0.01, "why": "the look: SSIM against the golden JPEG ≥ min(0.98, the baseline run 2 vs run 1 SSIM − margin): a pose that moves on its own between two identical builds (grass in the wind, a creature walking) gets its floor from that measured noise" },
+    "info":      { "check": false, "why": "printed, never a verdict: whether a switch navigated / showed the loading screen, prefetch bytes" }
+  },
+  "rebudget": [],
+  "$rules": "Budget rules on top of the row-by-row rule. `rows` is a row-key glob (* = one path segment); `rule`: max (an absolute ceiling, the row's unit: bytes / ms), maxFactor (≤ factor × the baseline's value), noWorse (≤ baseline + its band), improve (< baseline − its band). `status: enforced` fails --compare; any other status (\"proposed — awaiting Jake\") only prints. `goal` prints beside the verdict.",
+  "rules": [
+    { "name": "first-play cold transfer ≤ 1.5× today", "rows": "*/*/cold.netBytes", "rule": "maxFactor", "factor": 1.5, "status": "enforced", "why": "E160, the user 2026-09-25: approved" },
+    { "name": "total SW cache, all three shards ≤ 300 MB", "rows": "switch/*/cacheStorageBytes", "rule": "max", "max": 314572800, "status": "enforced", "why": "E160, the user 2026-09-25: approved" },
+    { "name": "cold time-to-play no worse than today", "rows": "*/*/cold.playMs", "rule": "noWorse", "status": "enforced", "why": "E160, the user 2026-09-25: approved" },
+    { "name": "cold time-to-play no worse than today, Fast 4G", "rows": "*/*/cold4g.playMs", "rule": "noWorse", "status": "enforced", "why": "E160, the user 2026-09-25: approved" },
+    { "name": "Driftwood cold time-to-play on 4G ≤ 22 s", "rows": "driftwood-isle/*/cold4g.playMs", "rule": "max", "max": 22000, "status": "enforced", "why": "E160, the user 2026-09-25: approved (bench.budget.json's 4g/cold row)" },
+    { "name": "Pine Hollow cold time-to-play on 4G ≤ 40 s", "rows": "pine-hollow/*/cold4g.playMs", "rule": "max", "max": 40000, "status": "enforced", "why": "E160, the user 2026-09-25: approved (bench.budget.json's Pine Hollow 4g/cold row)" },
+    { "name": "warm time-to-play: no worse (goal: improve)", "rows": "*/*/warm.playMs", "rule": "noWorse", "goal": "improve", "status": "enforced", "why": "E160, the user 2026-09-25: approved — must improve; enforced as at least no worse than the baseline, the improvement flagged as the goal" },
+    { "name": "shard switch time: no worse (goal: improve)", "rows": "switch/*/*.ms", "rule": "noWorse", "goal": "improve", "status": "enforced", "why": "E160, the user 2026-09-25: approved — must improve; enforced as at least no worse than the baseline, the improvement flagged as the goal" },
+    { "name": "bytes re-downloaded after a one-texture change ≤ 2 MB", "rows": "retouch/*/netBytes", "rule": "max", "max": 2097152, "status": "enforced", "why": "E160, the user 2026-09-25: approved" }
+  ]
+}
