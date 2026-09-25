@@ -1,6 +1,6 @@
 # Plan: keep shards in memory — switch shards from the main menu without the loading screen (E155)
 
-**State:** `in progress` 2026-09-25 — M1–M5 built by the E155 subagent (its worktree branch, rebased on main at 3cc3a33; not merged, not deployed): switch shards from the title deck in the page, 2 resident (E159), an evicted one rebuilt in the page (2.4–3.1 s to its title), a resident return in < 0.1 s with no loader; desktop + phone headless runs PASS (scripts/e155-shard-switch.mjs, progress/268–269). Open: M0 on a real iPhone (the memory of two resident shards; phone-tier cap), the merge + deploy (the E155 session).
+**State:** `in progress` 2026-09-25 — M1–M5 built by the E155 subagent (its worktree branch, rebased on main at 4ff49d2; not merged, not deployed): switch shards from the title deck in the page, 2 resident (E159), an evicted one rebuilt in the page (2.4–3.1 s to its title), a resident return in < 0.1 s with no loader; desktop + phone headless runs PASS (scripts/e155-shard-switch.mjs, progress/268–269). Open: M0 on a real iPhone (the memory of two resident shards; phone-tier cap), the merge + deploy (the E155 session).
 
 ## The ask (E155)
 
