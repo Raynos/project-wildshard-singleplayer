@@ -4,7 +4,7 @@
  *
  *   installCompendium({ chunkId, game, camera, hud, menu, animals, cabins, interactables, weapons, touchUi, nolock });
  *
- * Ways in: the key N (desktop; J is the lock-on's), the pause menu's JOURNAL button, the HUD's journal disc (touch,
+ * Ways in: the key N (desktop; J is the lock-on's), the BAG menu's JOURNAL tab, the HUD's journal disc (touch,
  * under PAUSE), and EXAMINE on a trophy-wall slot (opens on that entry). Hooks (tracker.ts): an animal within 120 m →
  * discovered; in view within 70 m with a clear line → seen; AnimalManager.onKill → taken (+ its weight); a POI's radius
  * → visited. While the book is open the pointer lock and the weapons are released (like the review composer); closing
@@ -62,7 +62,7 @@ export function installCompendium(host: CompendiumHost): { state: CompendiumStat
   disc.innerHTML = `${GLYPH_BOOK}Journal`;
   disc.addEventListener('click', () => { if (hud.entered) journal.open(); });
   (document.getElementById('hud') ?? document.body).append(disc);
-  menu.addHeadButton('Journal', 'ws-cmp-menubtn', () => { journal.open(); });
+  menu.addActionTab('Journal', 'bag', () => { journal.open(); }); // a BAG tab: Map · Inventory · Journal · Achievements
   document.addEventListener('keydown', (e) => {
     if (e.code !== 'KeyN' || e.repeat || !hud.entered || menu.isOpen || journal.isOpen) return;
     e.preventDefault(); journal.open();

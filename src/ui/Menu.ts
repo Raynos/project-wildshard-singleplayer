@@ -40,7 +40,7 @@ const TABS: { id: MenuTab; label: string }[] = [
   { id: 'feedback', label: 'Feedback' }, // only while the review inbox is unlocked (syncReview)
 ];
 /** the two menus when `split`: which one a tab lives in */
-type MenuGroup = 'pause' | 'bag';
+export type MenuGroup = 'pause' | 'bag';
 const GROUP: Record<MenuTab, MenuGroup> = { map: 'bag', inventory: 'bag', achievements: 'bag', settings: 'pause', feedback: 'pause' };
 const TITLE: Record<MenuGroup, string> = { pause: 'Paused', bag: 'Bag' };
 /** the menu's keys (Esc is handled apart: it pauses, and closes whatever tab is open) */
@@ -176,8 +176,9 @@ export class GameMenu {
     const review = reviewUnlocked(), split = this.opts.split === true, group = GROUP[this._tab];
     let shown = 0;
     for (const b of this.tabBar.children) {
-      const id = (b as HTMLElement).dataset['tab'] as MenuTab;
-      const on = (id !== 'feedback' || review) && (!split || GROUP[id] === group);
+      const d = (b as HTMLElement).dataset, id = d['tab'] as MenuTab | undefined;
+      const g = (d['group'] as MenuGroup | undefined) ?? (id === undefined ? 'bag' : GROUP[id]); // an action tab carries its group
+      const on = (id !== 'feedback' || review) && (!split || g === group);
       (b as HTMLElement).hidden = !on;
       if (on) shown++;
     }
@@ -211,12 +212,16 @@ export class GameMenu {
     if (!silent) this.onClose?.();
   }
   toggle(tab: MenuTab): void { if (this._open && this._tab === tab) this.close(); else this.open(tab); }
-  /** an extra header button left of CLOSE, in CLOSE's look (`cls` styles it further — the Compendium's JOURNAL) */
-  addHeadButton(label: string, cls: string, onClick: () => void): HTMLButtonElement {
-    const close = this.sheet.querySelector('.ws-gmenu-close');
-    const b = el(`ws-gmenu-close ${cls}`, esc(label), 'button') as HTMLButtonElement; b.type = 'button';
-    b.addEventListener('click', onClick);
-    close?.before(b);
+  /**
+   * A tab in `group`'s bar that runs `onPick` instead of showing a panel — the Compendium's JOURNAL, a tab in the BAG menu
+   * after Map · Inventory, before Achievements (Jake, 2026-09-25: the header button was "the dumbest place"; pick A).
+   */
+  addActionTab(label: string, group: MenuGroup, onPick: () => void): HTMLButtonElement {
+    const b = el('ws-gmenu-tab', esc(label), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['group'] = group;
+    b.addEventListener('click', onPick);
+    const before = this.tabBar.querySelector('[data-tab="achievements"]');
+    if (before) before.before(b); else this.tabBar.append(b);
+    this.syncTabs();
     return b;
   }
 

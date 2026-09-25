@@ -135,5 +135,3 @@
 .ws-cmp-disc::after { content: ''; position: absolute; inset: -8px -4px; }
 .ws-cmp-disc.new svg { border-color: var(--ws-amber); color: var(--ws-amber); }
 
-/* ── the pause menu's JOURNAL (Menu.addHeadButton: CLOSE's pill, pushed right beside it) ── */
-.ws-gmenu .ws-cmp-menubtn { margin-left: auto; margin-right: 8px; }
