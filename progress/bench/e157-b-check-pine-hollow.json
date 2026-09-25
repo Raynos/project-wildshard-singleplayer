@@ -1,0 +1,282 @@
+{
+ "chunk": "pine-hollow",
+ "a": "/tmp/e157/treeA/dist",
+ "b": "/tmp/e157/treeB/dist",
+ "when": "2026-09-25T19:31:34.547Z",
+ "steps": {
+  "1-cold-visit": {
+   "playS": 5.04,
+   "netMB": 35.89,
+   "requests": 177,
+   "ktx2MB": 0,
+   "ktx2Requests": 0,
+   "top": [
+    "sw /assets/packs/pine-hollow.phone-2eb2d4df.bin 2.75",
+    "sw /assets/packs/pine-hollow.phone-b6230b66.bin 2.57",
+    "sw /assets/packs/pine-hollow.phone-e5f71829.bin 2.48",
+    "sw /assets/packs/pine-hollow.phone-1e4c173f.bin 2.32",
+    "sw /assets/packs/pine-hollow.phone-d940a69d.bin 2.14",
+    "sw /assets/packs/pine-hollow.phone-9ca3d479.bin 1.85",
+    "sw /assets/packs/pine-hollow.phone-7b33612b.bin 1.73",
+    "sw /assets/packs/pine-hollow.phone-120d2f74.bin 1.69"
+   ],
+   "tex": {
+    "mode": "img",
+    "why": "auto: pine-hollow's KTX2 set is not cached (yet)"
+   },
+   "textureMB": 457.8,
+   "compressedMB": 0,
+   "errors": []
+  },
+  "2-background": {
+   "seconds": 3.9,
+   "netMB": 105.5,
+   "requests": 280,
+   "ktx2MB": 83.24,
+   "ktx2Requests": 136,
+   "top": [
+    "sw /assets/gpu/nalati/panorama.phone-6074ed1f.ktx2 3.67",
+    "sw /assets/packs/nalati-grasslands.phone-8e11418b.bin 2.95",
+    "sw /assets/gpu/models/tree_stump_01/tree_stump_01_lod.phone-1d38ed06.glb 2.66",
+    "sw /assets/gpu/models/dead_tree_trunk/dead_tree_trunk_lod.phone-6cc05129.glb 2.46",
+    "sw /assets/packs/nalati-grasslands.phone-3f16903c.bin 2.32",
+    "sw /assets/gpu/models/Lantern_01/Lantern_01_lod.phone-cb8f5638.glb 2.13",
+    "sw /assets/gpu/models/rock_moss_set_01/rock_moss_set_01_lod.phone-cbddf252.glb 1.87",
+    "sw /assets/gpu/tex/rock_ground/nor_gl-4b67681d.ktx2 1.3"
+   ],
+   "status": "done",
+   "ktx2": {
+    "pine-hollow": {
+     "files": 108,
+     "hit": 0,
+     "stored": 108,
+     "failed": 0,
+     "bytes": 72052337,
+     "complete": true
+    },
+    "driftwood-isle": {
+     "files": 9,
+     "hit": 3,
+     "stored": 6,
+     "failed": 0,
+     "bytes": 4046830,
+     "complete": true
+    },
+    "nalati-grasslands": {
+     "files": 24,
+     "hit": 2,
+     "stored": 22,
+     "failed": 0,
+     "bytes": 11187017,
+     "complete": true
+    }
+   },
+   "shards": {
+    "pine-hollow": {
+     "files": 137,
+     "hit": 137,
+     "stored": 0,
+     "failed": 0,
+     "bytes": 0
+    },
+    "driftwood-isle": {
+     "files": 210,
+     "hit": 95,
+     "stored": 115,
+     "failed": 0,
+     "bytes": 9814319
+    },
+    "nalati-grasslands": {
+     "files": 220,
+     "hit": 196,
+     "stored": 24,
+     "failed": 0,
+     "bytes": 12968191
+    }
+   },
+   "swCacheMB": 144.29,
+   "swCaches": {
+    "ws-shell-b-muhcq5rq-7a57684c72": {
+     "entries": 3,
+     "bytes": 75934
+    },
+    "ws-static-872f840116": {
+     "entries": 420,
+     "bytes": 144214977
+    },
+    "ws-immutable": {
+     "entries": 22,
+     "bytes": 7006270
+    }
+   }
+  },
+  "3-reload": {
+   "playS": 2.04,
+   "netMB": 0,
+   "requests": 2,
+   "ktx2MB": 0,
+   "ktx2Requests": 0,
+   "top": [
+    "sw /?chunk=pine-hollow&mute=1&nolock=1&skipintro=1&tier=phone&touch=1 0",
+    "/version.json?t=1790364710650 0"
+   ],
+   "tex": {
+    "mode": "ktx2",
+    "why": "auto: pine-hollow's KTX2 set is cached"
+   },
+   "textureMB": 178.1,
+   "compressedMB": 82.3,
+   "errors": []
+  },
+  "4-offline-reload": {
+   "playS": 1.98,
+   "netMB": 0,
+   "requests": 0,
+   "ktx2MB": 0,
+   "ktx2Requests": 0,
+   "top": [],
+   "tex": {
+    "mode": "ktx2",
+    "why": "auto: pine-hollow's KTX2 set is cached"
+   },
+   "textureMB": 178.1,
+   "compressedMB": 82.3,
+   "errors": []
+  },
+  "4b-warm-images-for-comparison": {
+   "playS": 1.97,
+   "netMB": 0,
+   "requests": 2,
+   "ktx2MB": 0,
+   "ktx2Requests": 0,
+   "top": [
+    "/version.json?t=1790364726715 0",
+    "sw /?chunk=pine-hollow&mute=1&nolock=1&skipintro=1&tier=phone&touch=1 0"
+   ],
+   "tex": {
+    "mode": "img",
+    "why": "picked (Settings ▸ Debug ▸ GPU textures: img)"
+   },
+   "textureMB": 457.8,
+   "compressedMB": 0,
+   "errors": []
+  },
+  "4c-warm-auto-again": {
+   "playS": 1.98,
+   "netMB": 0,
+   "requests": 2,
+   "ktx2MB": 0,
+   "ktx2Requests": 0,
+   "top": [
+    "sw /?chunk=pine-hollow&mute=1&nolock=1&skipintro=1&tier=phone&touch=1 0",
+    "/version.json?t=1790364734718 0"
+   ],
+   "tex": {
+    "mode": "ktx2",
+    "why": "auto: pine-hollow's KTX2 set is cached"
+   },
+   "textureMB": 178.1,
+   "compressedMB": 82.3,
+   "errors": []
+  },
+  "5-deploy": {
+   "netMB": 1.19,
+   "requests": 19,
+   "ktx2MB": 0,
+   "ktx2Requests": 4,
+   "top": [
+    "sw /assets/main-BHIdsw-5.js 1.11",
+    "sw /assets/BlenderIsland-DHeVJCfd.js 0.02",
+    "sw /assets/Explore-X2lKbSE2.js 0.02",
+    "sw /asset-manifest.json 0.01",
+    "sw /assets/index-CDjvfGCV.js 0.01",
+    "sw /assets/Feedback-DDwcH3hV.js 0",
+    "sw /index.html 0",
+    "sw /?chunk=pine-hollow&mute=1&nolock=1&skipintro=1&tier=phone&touch=1 0"
+   ],
+   "worker": "b-muhcq879-ac8e0fe11c",
+   "tex": {
+    "mode": "ktx2",
+    "why": "auto: pine-hollow's KTX2 set is cached"
+   },
+   "textureMB": 178.1,
+   "compressedMB": 82.3,
+   "errors": []
+  },
+  "6-background-after-deploy": {
+   "seconds": 4.8,
+   "netMB": 0,
+   "requests": 0,
+   "ktx2MB": 0,
+   "ktx2Requests": 0,
+   "top": [],
+   "status": "done",
+   "ktx2": {
+    "pine-hollow": {
+     "files": 108,
+     "hit": 108,
+     "stored": 0,
+     "failed": 0,
+     "bytes": 0,
+     "complete": true
+    },
+    "driftwood-isle": {
+     "files": 9,
+     "hit": 9,
+     "stored": 0,
+     "failed": 0,
+     "bytes": 0,
+     "complete": true
+    },
+    "nalati-grasslands": {
+     "files": 24,
+     "hit": 24,
+     "stored": 0,
+     "failed": 0,
+     "bytes": 0,
+     "complete": true
+    }
+   },
+   "shards": {
+    "pine-hollow": {
+     "files": 232,
+     "hit": 232,
+     "stored": 0,
+     "failed": 0,
+     "bytes": 0
+    },
+    "driftwood-isle": {
+     "files": 212,
+     "hit": 212,
+     "stored": 0,
+     "failed": 0,
+     "bytes": 0
+    },
+    "nalati-grasslands": {
+     "files": 242,
+     "hit": 242,
+     "stored": 0,
+     "failed": 0,
+     "bytes": 0
+    }
+   },
+   "swCacheMB": 142.44,
+   "swCaches": {
+    "ws-shell-b-muhcq879-ac8e0fe11c": {
+     "entries": 3,
+     "bytes": 75934
+    },
+    "ws-static-2149372ee9": {
+     "entries": 419,
+     "bytes": 142279518
+    },
+    "ws-immutable": {
+     "entries": 22,
+     "bytes": 7006270
+    }
+   }
+  }
+ },
+ "buildA": "b-muhcq5rq",
+ "buildB": "b-muhcq879"
+}

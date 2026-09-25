@@ -7,7 +7,8 @@
 //   2. the background download         window.__ws_prefetch.done: every shard's boot files, then every KTX2 set; this
 //                                      shard's set must be complete (its marker written); the worker's cache total
 //   3. reload                          the boot loads KTX2 (from the cache: network bytes ≈ 0); GPU texture MB
-//   4. offline reload                  still playable, still KTX2, no page error
+//   4. offline reload                  still playable, still KTX2, no page error; then the same warm launch with Images
+//                                      picked, and with Auto again (warm time-to-play and GPU MB, like for like)
 //   5. a deploy (build B on the same   the old worker serves A, B's worker installs, adopt (as the build pill does), B boots:
 //      origin: --b, a build of the     KTX2 still (the set is the same files, content-named, kept by the cache GC) and no
 //      same tree with a changed        byte under /assets/gpu/ or /basis/ crosses the network — at the boot or in B's
@@ -104,6 +105,12 @@ try {
   await ctx.setOffline(true);
   await launch('4-offline-reload');
   await ctx.setOffline(false);
+  // the same warm launch with Settings ▸ Debug ▸ GPU textures = Images (the comparison: everything cached either way)
+  const setTex = (t) => page.evaluate((v) => { const o = JSON.parse(localStorage.getItem('ws.settings.v1') ?? '{}'); if (v === null) delete o.tex; else o.tex = v; localStorage.setItem('ws.settings.v1', JSON.stringify(o)); }, t);
+  await setTex('img');
+  await launch('4b-warm-images-for-comparison');
+  await setTex(null);
+  await launch('4c-warm-auto-again');
   // 5: the deploy — the old worker serves A, B's worker installs and is adopted, B boots
   if (DIST_B) {
     out.buildB = await serve(DIST_B);

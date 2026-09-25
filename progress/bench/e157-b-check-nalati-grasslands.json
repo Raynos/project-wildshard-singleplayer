@@ -1,0 +1,148 @@
+{
+ "chunk": "nalati-grasslands",
+ "a": "/tmp/e157/treeA/dist",
+ "b": null,
+ "when": "2026-09-25T19:27:39.119Z",
+ "steps": {
+  "1-cold-visit": {
+   "playS": 6.27,
+   "netMB": 29.55,
+   "requests": 265,
+   "ktx2MB": 0,
+   "ktx2Requests": 0,
+   "top": [
+    "sw /assets/packs/nalati-grasslands.phone-8e11418b.bin 2.95",
+    "sw /assets/packs/nalati-grasslands.phone-3f16903c.bin 2.32",
+    "sw /assets/main-0uIBx4JQ.js 1.11",
+    "sw /assets/music/folk/pine-calm-10905c79.m4a 0.85",
+    "sw /assets/music/folk/title-50001128.m4a 0.77",
+    "sw /assets/music/piano/title-3d1f713a.m4a 0.73",
+    "sw /assets/music/piano/pine-calm-923e0056.m4a 0.72",
+    "sw /assets/music/piano/island-calm-05125ed8.m4a 0.68"
+   ],
+   "tex": {
+    "mode": "img",
+    "why": "auto: nalati-grasslands's KTX2 set is not cached (yet)"
+   },
+   "textureMB": 97.7,
+   "compressedMB": 0,
+   "errors": []
+  },
+  "2-background": {
+   "seconds": 3.9,
+   "netMB": 111.84,
+   "requests": 192,
+   "ktx2MB": 83.24,
+   "ktx2Requests": 136,
+   "top": [
+    "sw /assets/gpu/nalati/panorama.phone-6074ed1f.ktx2 3.67",
+    "sw /assets/packs/pine-hollow.phone-2eb2d4df.bin 2.75",
+    "sw /assets/gpu/models/tree_stump_01/tree_stump_01_lod.phone-1d38ed06.glb 2.66",
+    "sw /assets/packs/pine-hollow.phone-b6230b66.bin 2.57",
+    "sw /assets/packs/pine-hollow.phone-e5f71829.bin 2.48",
+    "sw /assets/gpu/models/dead_tree_trunk/dead_tree_trunk_lod.phone-6cc05129.glb 2.46",
+    "sw /assets/packs/pine-hollow.phone-1e4c173f.bin 2.32",
+    "sw /assets/packs/pine-hollow.phone-d940a69d.bin 2.14"
+   ],
+   "status": "done",
+   "ktx2": {
+    "nalati-grasslands": {
+     "files": 24,
+     "hit": 0,
+     "stored": 24,
+     "failed": 0,
+     "bytes": 11771879,
+     "complete": true
+    },
+    "driftwood-isle": {
+     "files": 9,
+     "hit": 2,
+     "stored": 7,
+     "failed": 0,
+     "bytes": 4332956,
+     "complete": true
+    },
+    "pine-hollow": {
+     "files": 108,
+     "hit": 3,
+     "stored": 105,
+     "failed": 0,
+     "bytes": 71181349,
+     "complete": true
+    }
+   },
+   "shards": {
+    "nalati-grasslands": {
+     "files": 220,
+     "hit": 220,
+     "stored": 0,
+     "failed": 0,
+     "bytes": 0
+    },
+    "driftwood-isle": {
+     "files": 210,
+     "hit": 196,
+     "stored": 14,
+     "failed": 0,
+     "bytes": 3710460
+    },
+    "pine-hollow": {
+     "files": 137,
+     "hit": 95,
+     "stored": 42,
+     "failed": 0,
+     "bytes": 26303033
+    }
+   },
+   "swCacheMB": 144.29,
+   "swCaches": {
+    "ws-shell-b-muhcq5rq-7a57684c72": {
+     "entries": 3,
+     "bytes": 75934
+    },
+    "ws-static-872f840116": {
+     "entries": 420,
+     "bytes": 144214977
+    },
+    "ws-immutable": {
+     "entries": 22,
+     "bytes": 7006270
+    }
+   }
+  },
+  "3-reload": {
+   "playS": 3.19,
+   "netMB": 0,
+   "requests": 2,
+   "ktx2MB": 0,
+   "ktx2Requests": 0,
+   "top": [
+    "sw /?chunk=nalati-grasslands&mute=1&nolock=1&skipintro=1&tier=phone&touch=1 0",
+    "/version.json?t=1790364476444 0"
+   ],
+   "tex": {
+    "mode": "ktx2",
+    "why": "auto: nalati-grasslands's KTX2 set is cached"
+   },
+   "textureMB": 64.8,
+   "compressedMB": 11,
+   "errors": []
+  },
+  "4-offline-reload": {
+   "playS": 3.08,
+   "netMB": 0,
+   "requests": 0,
+   "ktx2MB": 0,
+   "ktx2Requests": 0,
+   "top": [],
+   "tex": {
+    "mode": "ktx2",
+    "why": "auto: nalati-grasslands's KTX2 set is cached"
+   },
+   "textureMB": 64.8,
+   "compressedMB": 11,
+   "errors": []
+  }
+ },
+ "buildA": "b-muhcq5rq"
+}
