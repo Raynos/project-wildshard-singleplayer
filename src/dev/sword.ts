@@ -85,7 +85,7 @@ game.onUpdate((dt, t) => {
   hud.setAimInfo(sword.aimInfo);
   hud.setState({
     bolts: sword.state.bolts, loaded: sword.state.loaded, reloading: sword.state.reloading, reloadProgress: sword.state.reloadProgress,
-    health, fps: game.stats.fps, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
+    health, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
     speed: player.speedFactor, ads: sword.state.ads,
   });
 });

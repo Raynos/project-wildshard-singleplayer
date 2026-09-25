@@ -59,7 +59,6 @@ export class Perf {
     root.addEventListener('pointerup', (e) => { cancel(e); this.open(!panel.classList.contains('open')); });
     for (const n of [root, ...root.querySelectorAll('*'), panel, ...panel.querySelectorAll('*')]) n.setAttribute('draggable', 'false');
     document.addEventListener('pointerdown', (e) => { if (e.target instanceof Node && !root.contains(e.target)) this.open(false); }, true);
-    document.querySelectorAll<HTMLElement>('.ws-game-fps').forEach((e) => { e.hidden = true; }); // the HUD's old faint readout; this meter replaces it
     const param = new URLSearchParams(location.search).get('perf');
     const hide = (): boolean => (param === '0' ? true : param === '1' ? false : !isDev());
     this.userHidden = hide(); this.root.hidden = this.userHidden;

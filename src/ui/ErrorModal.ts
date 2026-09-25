@@ -129,7 +129,7 @@ function reloadHere(atSpot: boolean): void {
 function toTitle(): void {
   countReload();
   try { history.replaceState(history.state, '', cleanHref()); } catch { /* the crash flag may follow: it only works for reviewers */ }
-  reloadWithPicks('title');
+  reloadWithPicks();
 }
 
 function build(): HTMLElement {

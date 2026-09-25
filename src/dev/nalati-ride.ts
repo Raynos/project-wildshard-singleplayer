@@ -85,7 +85,7 @@ game.onUpdate((dt, t) => {
   const it = ride.interactable, near = it.radius > 0 && it.position.distanceTo(game.camera.position) < it.radius;
   hud.setState({
     bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, loaded: weapons.state.loaded, reloading: weapons.state.reloading, reloadProgress: weapons.state.reloadProgress,
-    health, fps: game.stats.fps, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills: 0,
+    health, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills: 0,
     speed: player.speedFactor, ads: weapons.state.ads, prompt: near ? `[E] ${it.label}` : undefined,
     ammoLabel: weapons.current.ammoLabel, weaponName: weapons.current.name, segments: weapons.current.segments,
   });

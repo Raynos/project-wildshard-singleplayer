@@ -32,7 +32,7 @@ import { onAudioBusy } from '../audio/preload';
 import { CAN_VIBRATE } from './haptics';
 import { lockReview, onReview, quickNote, reviewUnlocked, setQuickNote, unlockReview } from './review';
 import { isDev, onDev } from '../core/devMode';
-import { devSwitchRows } from './devSwitch';
+import { bindDevToggle, devSwitchRows } from './devSwitch';
 
 export type MenuTab = 'map' | 'inventory' | 'achievements' | 'settings' | 'feedback';
 const TABS: { id: MenuTab; label: string }[] = [
@@ -100,9 +100,11 @@ export class GameMenu {
     this.sheet = el('ws-gmenu-sheet ws-glass');
     this.sheet.innerHTML = `
       <div class="ws-gmenu-head">
-        <div><div class="ws-gmenu-title">Menu</div><div class="ws-gmenu-sub">${esc(def.displayName)} · Shard 1</div></div>
+        <div><div class="ws-gmenu-title">Menu</div><div class="ws-gmenu-sub">${esc(def.displayName)}</div></div>
+        <button class="ws-gmenu-dev" type="button">Dev</button>
         <button class="ws-gmenu-close" type="button">Close</button>
       </div>`;
+    bindDevToggle(this.sheet.querySelector<HTMLElement>('.ws-gmenu-dev') ?? el('ws-gmenu-dev')); // E140: developer mode from the header
     this.tabBar = el('ws-gmenu-tabs');
     for (const t of TABS) {
       const b = el('ws-gmenu-tab', esc(t.label), 'button') as HTMLButtonElement; b.type = 'button'; b.dataset['tab'] = t.id;

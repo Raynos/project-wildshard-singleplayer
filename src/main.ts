@@ -853,7 +853,7 @@ async function main() {
     hud.setState({
       bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, reserve: weapons.state.reserve, loaded: weapons.state.loaded, reloading: weapons.state.reloading, reloadProgress: weapons.state.reloadProgress,
       ammoLabel: weapons.current.ammoLabel, weaponName: weapons.current.name, segments: weapons.current.segments,
-      health, fps: game.stats.fps, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
+      health, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
       prompt, speed: player.speedFactor, ads: weapons.state.ads,
     });
   });

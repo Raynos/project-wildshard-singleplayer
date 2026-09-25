@@ -235,7 +235,6 @@ export class Explore {
   onTap?: (x: number, y: number) => void;
 
   setMode(mode: ExploreMode, opts: Record<string, string> = {}): void {
-    if (mode === 'model' && !this.panes.has('model')) { this.toast('Model Explorer lands next'); return; }
     const prev = this.mode;
     this.mode = mode;
     this.root.dataset['mode'] = mode;

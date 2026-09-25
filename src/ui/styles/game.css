@@ -1,16 +1,5 @@
 /* ─── in-game HUD (src/ui/HUD.ts) ─── prefix ws-game- ─── shared primitives come from base.css */
 
-/* ── top-left: chunk panel ── */
-.ws-game-chunk { position: absolute; left: 22px; top: 20px; padding: 10px 14px 11px; min-width: 250px; }
-.ws-game-chunk .ws-game-title { font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
-.ws-game-chunk .ws-game-title b { color: var(--ws-cyan); font-weight: 700; }
-.ws-game-chunk .ws-game-sub { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ws-cyan-dim); margin-top: 1px; }
-.ws-game-chunk .ws-game-row { display: flex; justify-content: space-between; gap: 16px; font-size: 11px; margin-top: 7px; color: var(--ws-text); }
-.ws-game-chunk .ws-game-row span:first-child { color: var(--ws-text-dim); letter-spacing: 0.12em; font-size: 10px; text-transform: uppercase; }
-.ws-game-chunk .ws-game-id { color: var(--ws-cyan); }
-.ws-game-tag { display: inline-flex; align-items: center; gap: 7px; margin-top: 9px; padding: 3px 8px 3px 7px; border: 1px solid rgba(255, 181, 71, 0.45); color: var(--ws-amber); font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; }
-.ws-game-tag i { width: 6px; height: 6px; background: var(--ws-amber); border-radius: 50%; box-shadow: 0 0 8px var(--ws-amber); animation: ws-blink 1.6s ease-in-out infinite; }
-
 /* ── top-centre: compass band (K1) — smoked glass, hairline cyan top edge, ticks, W · N · E, a notch above, brackets outside ── */
 /* the compass is retired — the minimap (with its heading tab) covers it; the element stays built but hidden (user: "having both is dumb") */
 .ws-game-compass { display: none !important; }
@@ -45,10 +34,6 @@
 .ws-game-feed .ws-game-feed-item b { color: var(--ws-cyan); font-weight: 500; }
 
 /* ── top-right: fps (the faint readout is superseded by Perf.ts's frame meter and stays hidden) ── */
-.ws-game-fps { position: absolute; right: 22px; top: 20px; font-size: 10px; letter-spacing: 0.18em; color: rgba(196, 220, 232, 0.4); text-align: right; line-height: 1.5; }
-.ws-game-fps b { color: rgba(196, 220, 232, 0.7); font-weight: 500; }
-#hud .ws-game-fps { display: none; }
-#hud.intro .ws-game-fps { top: 82px; right: 44px; }
 
 /* ── bottom-left: health ── */
 .ws-game-health { position: absolute; left: 22px; bottom: 22px; padding: 9px 14px 11px; width: 250px; }
@@ -168,14 +153,12 @@
 .ws-game-hitring.show { animation: ws-ring 0.35s ease-out forwards; }
 
 /* play-mode HUD hides while the intro (menu.css) is up */
-#hud.intro .ws-game-chunk, #hud.intro .ws-game-compass, #hud.intro .ws-game-health, #hud.intro .ws-game-ammo, #hud.intro .ws-game-cross, #hud.intro .ws-game-feed, #hud.intro .ws-game-prompt, #hud.intro .ws-game-boundary, #hud.intro .ws-game-toasts { opacity: 0; transition: opacity 0.4s; }
-#hud .ws-game-chunk, #hud .ws-game-compass, #hud .ws-game-health, #hud .ws-game-ammo, #hud .ws-game-feed { transition: opacity 0.6s ease 0.2s; }
+#hud.intro .ws-game-compass, #hud.intro .ws-game-health, #hud.intro .ws-game-ammo, #hud.intro .ws-game-cross, #hud.intro .ws-game-feed, #hud.intro .ws-game-prompt, #hud.intro .ws-game-boundary, #hud.intro .ws-game-toasts { opacity: 0; transition: opacity 0.4s; }
+#hud .ws-game-compass, #hud .ws-game-health, #hud .ws-game-ammo, #hud .ws-game-feed { transition: opacity 0.6s ease 0.2s; }
 #hud .ws-game-cross { transition: opacity 0.15s ease; } /* snappy both ways for the ADS fade (was on the 0.6 s intro reveal above) */
 
 /* ─── in-game HUD on a phone: no chunk metadata, compact compass, vitals top-left, bolts top-right ─── */
 @media (max-width: 700px) {
-  #hud.intro .ws-game-fps { top: calc(66px + env(safe-area-inset-top, 0px)); right: 16px; }
-  .ws-game-chunk { display: none; }
   /* the band's top edge sits at ~9 % of the screen, or under the PAUSE pill (touch.css, top-left at safe-area + 10 px, ~20 px tall + the bracket) when the notch pushes that lower; everything centred stacks under it */
   /* phone: the band floats LEFT at two thirds of the width; the minimap sits beside it on the right */
   /* one row: PAUSE · compass · minimap — the band fills the gap between the pill and the map; fps sits under PAUSE */
@@ -191,7 +174,6 @@
   .ws-game-feed .ws-game-item { font-size: 10px; padding: 4px 9px; white-space: normal; text-align: left; }
   .ws-game-toasts { max-width: 70vw; }
   .ws-game-toasts .ws-game-toast { font-size: 10px; padding: 5px 10px; white-space: normal; }
-  .ws-game-fps { top: calc(104px + env(safe-area-inset-top, 0px)); right: 12px; font-size: 8px; }
   .ws-game-health { left: 12px; top: calc(8px + env(safe-area-inset-top, 0px)); bottom: auto; width: 108px; padding: 6px 9px 7px; }
   .ws-game-health .ws-game-hval { font-size: 15px; }
   .ws-game-health .ws-label { font-size: 8px; }

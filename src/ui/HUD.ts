@@ -4,6 +4,8 @@ import { PLACEHOLDERS } from '../chunks/placeholders';
 import { CABIN_SITES } from '../world/Heightfield';
 import type { GameMenu } from './Menu';
 import { openBootSettings } from './BootSettings';
+import { isDev } from '../core/devMode';
+import { bindDevToggle } from './devSwitch';
 import { ToastStack } from './ToastStack';
 
 /**
@@ -12,7 +14,7 @@ import { ToastStack } from './ToastStack';
  *   const hud = new HUD({ pointerLock?: boolean });   // pointerLock:false in ?nolock dev mode (no pause overlay)
  *   hud.showIntro(() => player.lock())                 // title screen: shard deck + ENTER WORLD / EXPLORE WORLD; any key → onEnter
  *   hud.onExplore = () => …  hud.startExplore()        // EXPLORE WORLD (src/explore/Explore.ts); startExplore = a `?explore=` deep link
- *   hud.setState({ bolts?, loaded, reloading, reloadProgress?, health, fps, pos: {x, z}, yaw, kills, prompt?, speed?, ads?,
+ *   hud.setState({ bolts?, loaded, reloading, reloadProgress?, health, pos: {x, z}, yaw, kills, prompt?, speed?, ads?,
  *                  maxBolts?, reserve?, ammoLabel?, weaponName?, segments? })
  *     — the ammo strip is generic: `bolts` is the held weapon's ammo (BOLTS 27 / 30 for the crossbow, ROUNDS 27 / 30 + 60
  *       with the "AR-15" tag for the rifle — src/player/Weapons.ts)
@@ -39,7 +41,7 @@ import { ToastStack } from './ToastStack';
 export interface HUDState {
   /** bolts carried; undefined = no ammo on this weapon (melee) → the ammo readouts are hidden */
   bolts?: number | undefined; loaded: boolean; reloading: boolean; reloadProgress?: number | undefined;
-  health: number; fps: number; pos: { x: number; z: number }; yaw: number; kills: number;
+  health: number; pos: { x: number; z: number }; yaw: number; kills: number;
   prompt?: string | undefined; speed?: number | undefined; ads?: boolean | undefined; maxBolts?: number | undefined;
   /** generic ammo strip (Weapons.ts): `reserve` rounds beyond the magazine (hidden when 0), `ammoLabel` "Bolts" / "Rounds",
    *  `weaponName` tag ("CROSSBOW" / "AR-15"), `segments` bars over the magazine on the touch strip (4 crossbow, 6 rifle) */
@@ -120,7 +122,6 @@ export class HUD {
   private lastMark = { house: Number.NaN, paw: Number.NaN, range: '' };
   private ppd = 1.2; // compass px per degree — measured from the band (`--ppd`), see build()
   private feed!: HTMLElement; private toasts!: ToastStack; private toastBox!: HTMLElement;
-  private fps!: HTMLElement; private fpsNum!: HTMLElement; private coords!: HTMLElement;
   private healthVal!: HTMLElement; private healthBar!: HTMLElement;
   private ammoCount!: HTMLElement; private ammoNum!: HTMLElement; private ammoStatus!: HTMLElement; private ammoStatusText!: HTMLElement; private reloadBar!: HTMLElement; private pips: HTMLElement[] = [];
   private cross!: HTMLElement; private killX!: HTMLElement; private hitRing!: HTMLElement; private aim!: HTMLElement; private aimText = '';
@@ -129,7 +130,7 @@ export class HUD {
   /** the in-game menu (src/ui/Menu.ts) — pause opens it on Settings; its close is our `onResume` */
   private _menu?: GameMenu;
   private deck?: { cards: DeckCard[]; index: number; select: (i: number, smooth?: boolean) => void; activate: () => void } | undefined;
-  private last: Partial<HUDState> & { statusKey?: string | undefined; headingDeg?: number | undefined; fpsShown?: number | undefined; noAmmo?: boolean | undefined } = {};
+  private last: Partial<HUDState> & { statusKey?: string | undefined; headingDeg?: number | undefined; noAmmo?: boolean | undefined } = {};
   private ammoPanel!: HTMLElement;
   private ammoLabel!: HTMLElement; private ammoMax!: HTMLElement; private ammoReserve!: HTMLElement; private ammoWeapon!: HTMLElement; private pipBox!: HTMLElement;
   private hitTimer = 0; private spread = 7;
@@ -171,16 +172,7 @@ export class HUD {
 
   private build(): void {
     const r = this.root;
-    // chunk panel
-    const def = getActiveChunk();
-    const chunk = el('div', 'ws-glass ws-game-chunk');
-    chunk.innerHTML = `<div class="ws-game-title">Project <b>Wildshard</b></div><div class="ws-game-sub">Chunk playtest</div>
-      <div class="ws-game-row"><span>chunk</span><span class="ws-game-id">${def.id}</span></div>
-      <div class="ws-game-row"><span>grid</span><span>${def.gridCoords}</span></div>
-      <div class="ws-game-row"><span>pos</span><span data-el="coords">+000 · +000</span></div>
-      <div class="ws-game-tag"><i></i>Local build · unuploaded</div>`;
-    this.coords = q(chunk, '[data-el="coords"]');
-    r.append(chunk);
+    // (the desktop chunk panel — chunk:// id, grid, pos, "local build" — is gone: E140, the user's verdict on dead item 1)
 
     // compass: a slim band; the strip sits at the band's centre and slides by the heading (see setState)
     const compass = el('div', 'ws-game-compass');
@@ -213,7 +205,6 @@ export class HUD {
     r.append(compass);
 
     this.feed = el('div', 'ws-game-feed'); r.append(this.feed);
-    this.fps = el('div', 'ws-game-fps', '<b>60</b> FPS<br>R186 · WEBGL2'); r.append(this.fps); this.fpsNum = q(this.fps, 'b');
 
     // health
     const health = el('div', 'ws-glass ws-game-health');
@@ -294,10 +285,6 @@ export class HUD {
       if (this.bar) { this.bar.label.textContent = label; this.bar.weapon.textContent = name; this.bar.max.textContent = String(maxBolts); this.buildSegs(segments); }
     }
     if (reserve !== L.reserve) { L.reserve = reserve; const txt = reserve > 0 ? `+ ${reserve}` : ''; this.ammoReserve.textContent = txt; if (this.bar) this.bar.reserve.textContent = txt; }
-    if (s.fps !== L.fpsShown) { L.fpsShown = s.fps; this.fpsNum.textContent = String(s.fps); }
-    const hx = Math.round(s.pos.x), hz = Math.round(s.pos.z);
-    const lp = L.pos;
-    if (!lp || hx !== lp.x || hz !== lp.z) { L.pos = { x: hx, z: hz }; this.coords.textContent = `${fmt(hx)} · ${fmt(hz)}`; }
     // compass: +Z (the south-gate spawn's forward, yaw π) is north; turning left decreases the heading
     let deg = 180 - (s.yaw * 180) / Math.PI; deg = ((deg % 360) + 360) % 360;
     const degR = Math.round(deg * 2) / 2;
@@ -462,7 +449,9 @@ export class HUD {
 
 
   damageFlash(): void { this.flash.classList.remove('show'); void this.flash.offsetWidth; this.flash.classList.add('show'); }
-  setBoundaryWarning(visible: boolean): void { this.boundary.classList.toggle('show', visible); }
+  /** developer mode only (E140, the user's verdict on dead item 2): players get no edge warning. main.ts calls this every
+   *  frame, so the Developer switch shows / hides it live. */
+  setBoundaryWarning(visible: boolean): void { this.boundary.classList.toggle('show', visible && isDev()); }
 
   set menu(m: GameMenu) { this._menu = m; m.keyGate = () => this.entered && !this.holdPause; m.onClose = () => { this.menuClosedAt = performance.now(); this.onResume?.(); }; m.onExit = () => { this.exitToMenu(); }; }
   get menu(): GameMenu { const m = this._menu; if (!m) throw new Error('HUD: no menu attached (hud.menu = …)'); return m; }
@@ -510,7 +499,7 @@ export class HUD {
         <div class="ws-menu-modes">
           <button class="ws-menu-mode ws-menu-play" type="button"><span class="ws-menu-mode-glyph">${GLYPH_SWORD}</span><b>Enter world</b><small></small></button>
         </div>
-        <div class="ws-menu-row"><button class="ws-menu-settings" type="button">Settings</button><div class="ws-menu-sound">Sound on</div></div>
+        <div class="ws-menu-row"><button class="ws-menu-settings" type="button">Settings</button><div class="ws-menu-sound">Sound on</div><button class="ws-menu-sound ws-menu-dev" type="button">Dev</button></div>
       </div>`;
     const hero = q(intro, '.ws-menu-hero');
     const list = q(intro, '.ws-menu-cards');
@@ -590,7 +579,8 @@ export class HUD {
       this.leaveForExplore();
     });
     q(intro, '.ws-menu-settings').addEventListener('click', (e) => { e.stopPropagation(); openBootSettings(); }); // E55: the reload-to-apply picks
-    const soundBtn = q(intro, '.ws-menu-sound');
+    bindDevToggle(q(intro, '.ws-menu-dev')); // E140: developer mode without opening Settings
+    const soundBtn = q(intro, 'div.ws-menu-sound');
     if (this.soundOff) { soundBtn.classList.add('off'); soundBtn.textContent = 'Sound off'; }
     soundBtn.addEventListener('click', (e) => { e.stopPropagation(); this.soundOff = soundBtn.classList.toggle('off'); soundBtn.textContent = this.soundOff ? 'Sound off' : 'Sound on'; this.onSoundToggle?.(!this.soundOff); });
     // orientation flips swap the hero file and re-centre the selected card (card width is viewport-relative)
@@ -666,4 +656,3 @@ export class HUD {
   }
 }
 
-function fmt(n: number): string { return (n >= 0 ? '+' : '−') + String(Math.abs(n)).padStart(3, '0'); }

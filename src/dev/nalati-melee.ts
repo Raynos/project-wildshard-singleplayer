@@ -85,7 +85,7 @@ game.onUpdate((dt, t) => {
   hud.setAimInfo(weapons.aimInfo);
   hud.setState({
     bolts: weapons.state.ammo, maxBolts: weapons.state.magazine, loaded: weapons.state.loaded, reloading: weapons.state.reloading, reloadProgress: weapons.state.reloadProgress,
-    health, fps: game.stats.fps, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
+    health, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills,
     speed: player.speedFactor, ads: weapons.state.ads,
     ammoLabel: weapons.current.ammoLabel, weaponName: weapons.current.name, segments: weapons.current.segments,
   });

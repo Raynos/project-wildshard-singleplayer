@@ -28,4 +28,4 @@ export const LOAD_SHELL_HTML = `<div class="ws-load-head">
 <div class="ws-load-log" data-el="rows"></div>
 </div>
 </div>
-<div class="ws-load-foot"><span>local build · unuploaded</span><span data-el="foot">an in-progress private project</span></div>`;
+<div class="ws-load-foot"><span data-el="foot"></span></div>`;

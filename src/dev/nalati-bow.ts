@@ -176,7 +176,7 @@ game.onUpdate((dt, t) => {
   hud.setState({
     bolts: bow.state.bolts, loaded: bow.state.loaded, reloading: bow.state.reloading, reloadProgress: bow.state.reloadProgress,
     maxBolts: QUIVER_MAX, ammoLabel: 'Arrows', weaponName: 'Bow', segments: 4,
-    health: 100, fps: game.stats.fps, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills, speed: player.speedFactor, ads: bow.state.ads,
+    health: 100, pos: { x: player.position.x, z: player.position.z }, yaw: player.yaw, kills, speed: player.speedFactor, ads: bow.state.ads,
   });
 });
 game.buildComposer();

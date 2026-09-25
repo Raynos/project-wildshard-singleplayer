@@ -20,6 +20,10 @@
 .ws-gmenu .ws-gmenu-title { font-family: var(--ws-display); font-weight: 700; font-size: 34px; line-height: 1; letter-spacing: 0.34em; text-transform: uppercase; color: #fff; }
 .ws-gmenu .ws-gmenu-sub { margin-top: 8px; font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--ws-text-dim); }
 .ws-gmenu .ws-gmenu-close { padding: 11px 20px; appearance: none; -webkit-appearance: none; background: rgba(143, 227, 255, 0.06); border: 1px solid var(--ws-cyan); color: var(--ws-cyan); font-family: var(--ws-display); font-weight: 700; font-size: 15px; letter-spacing: 0.24em; text-transform: uppercase; cursor: pointer; }
+/* DEV (E140): a small chip left of CLOSE — the title's DEV toggle's twin (text + square: filled on, hollow off) */
+.ws-gmenu .ws-gmenu-dev { align-self: center; flex: none; white-space: nowrap; margin: 0 12px 0 auto; padding: 12px 6px; appearance: none; -webkit-appearance: none; background: none; border: 0; font-family: var(--ws-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ws-text-dim); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.ws-gmenu .ws-gmenu-dev::after { content: ''; display: inline-block; width: 6px; height: 6px; margin-left: 8px; vertical-align: 1px; background: var(--ws-cyan); box-shadow: 0 0 8px var(--ws-cyan); }
+.ws-gmenu .ws-gmenu-dev.off::after { background: transparent; border: 1px solid var(--ws-cyan-dim); box-shadow: none; }
 .ws-gmenu .ws-gmenu-close:active { background: rgba(143, 227, 255, 0.22); }
 
 /* tabs */

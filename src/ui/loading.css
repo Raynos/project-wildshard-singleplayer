@@ -72,3 +72,5 @@
 :root:not([data-dev]) .ws-load .ws-load-track, :root:not([data-dev]) .ws-load .ws-load-log { display: none; }
 :root:not([data-dev]) .ws-load .ws-load-title b { margin-left: 0; }
 :root[data-dev] .ws-load .ws-load-simple { display: none; }
+/* the tagline ("A world that does not exist yet…"): developer mode only (E140, dead item 6) */
+:root:not([data-dev]) .ws-load .ws-load-tagline { display: none; }
