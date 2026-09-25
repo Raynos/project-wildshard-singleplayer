@@ -33,6 +33,7 @@ when the images were generated.
 | `nalati-grasslands/` | `round-10-models-merge` (09-24) | NALATI-MERGE D1 / D2, every model made both ways (Blender pipeline + image-to-3D): `ref-*.jpg` the codex references (A-pose figures, side-on creatures; `refs-sheet.jpg` all eight), `collie` / `ghost-horse` (`.phone`) the Hunyuan3D-2 hulls behind their `*.rigged.glb` bakes; the in-engine sheets are `progress/nalati-merge/d/` |
 | `bushes/` | `round-1-directions` (09-24) | E116 hibiscus bush: `board.jpg` (NOW / A leaf clump / B sculpted canopy / C leaf cards, live phone captures: Explore turntable + in world), `mockups.jpg` (the local-Qwen direction mockups); `?bush=a\|b\|c`, see its README |
 | `rocks/` | `round-1-directions` (09-24) | E114 rock looks: `board.jpg` (NOW / A chiselled / B smooth painted / C layered slabs / D ink outline, mockup only), `mockup-{A..D}` (masked Qwen edits of `ref-live-reef`), `game-{reef,wreck,boulder}-{current,a,b,c}` (`?rocks=`), `boulder-crack-fix-before-after` — see its README |
+| `rocks/` | `round-2-b-final` (09-25) | E114 B (smooth painted) built and made the default: `board.jpg` (before `?rocks=now` / after, iPhone 3× captures: wreck reef, shore, spawn beach, tidepools, Explore Boulder), `{before,after}-*.jpg`, `mockup-vs-after-reef.jpg` — see its README |
 
 The rest of this file is the prompt log for `pine-hollow/round-1-target-look` and the first two HUD rounds.
 
