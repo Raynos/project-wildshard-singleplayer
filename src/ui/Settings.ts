@@ -108,6 +108,13 @@ export const OPTION_VALUES = {
   pinesky: ['clock', 'sunset'],                        // Pine Hollow: the day / night clock (PH-L2, src/world/PineDayNight.ts) or the pre-remaster fixed HDRI sunset — Jake picks (a reload)
   weather: ['live', 'clear', 'fog', 'rain'],           // Pine Hollow: the weather (PH-L10, src/pinehollow/weather.ts) — live: dawn fog + showers; clear = none (the before); fog / rain hold one — live
   fps: ['auto', '30', '60'],                           // frame cap (Game.start, tier.ts frameCapFps): auto = Pine Hollow's phone tier locked at 30 (PH-P1), else the display's rate — live
+  // Driftwood's ground cover (E156, pause ▸ Settings ▸ Debug ▸ Ground cover; no URL switch — Jake: never): the far ground wearing
+  // the cover's colour (coverTint.ts) · plants on slopes kept further out · far plants fading into the ground's colour (E117) — all
+  // live · the far stand-ins (a reload: their meshes and caps are built once)
+  coverTint: ['on', 'off'],
+  coverReach: ['on', 'off'],
+  coverBlend: ['on', 'off'],
+  coverFar: ['on', 'off', 'far'],
 } as const;
 export type OptionKey = keyof typeof OPTION_VALUES;
 export type OptionValue<K extends OptionKey> = (typeof OPTION_VALUES)[K][number];
@@ -122,11 +129,14 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K>; params: readonly 
   pinesky: { def: 'clock', params: ['pinesky'], url: (q) => (q.get('tod') === 'sunset-fixed' ? 'sunset' : q.get('pinesky')) }, // ?tod=sunset-fixed: the before shots
   weather: { def: 'live', params: ['weather', 'weatherT'], url: (q) => q.get('weather') },            // ?weather=rain&weatherT=0.5: a held shower (captures)
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
+  coverTint: { def: 'on', params: [], url: () => null }, coverReach: { def: 'on', params: [], url: () => null }, // the debug menu only
+  coverBlend: { def: 'on', params: [], url: () => null }, coverFar: { def: 'on', params: [], url: () => null },
 };
 const option = <K extends OptionKey>(k: K): Choice<OptionValue<K>> => new Choice<OptionValue<K>>(k, OPTION_VALUES[k], OPTION_SPECS[k].def, OPTION_SPECS[k].url, BOOT_OPTIONS.includes(k));
 const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
   gpu: option('gpu'), tier: option('tier'), touch: option('touch'), time: option('time'),
   pinesky: option('pinesky'), weather: option('weather'), fps: option('fps'),
+  coverTint: option('coverTint'), coverReach: option('coverReach'), coverBlend: option('coverBlend'), coverFar: option('coverFar'),
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
 

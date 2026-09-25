@@ -468,6 +468,16 @@ export class GameMenu {
     // the frame cap (PINE-HOLLOW PH-P1, tier.ts frameCapFps; live): Auto = Pine Hollow's phone tier at a locked 30, else uncapped
     const caps: { v: OptionValue<'fps'>; text: string }[] = [{ v: 'auto', text: 'Auto' }, { v: '30', text: '30' }, { v: '60', text: 'Uncapped' }];
     dbg.append(el('ws-gmenu-label', 'Frame rate'), picker('Frame cap', caps, () => setting('fps'), (v) => { saveSetting('fps', v); }, (fn) => { onSettingChange('fps', fn); }));
+    // Driftwood's ground cover (E156; src/world/GroundCover.ts, coverTint.ts): the variants Jake A/Bs on the phone — every one
+    // here, never in the URL. Tint, slope reach and the far colour blend apply live; the far stand-ins rebuild the page
+    if (getActiveChunk().style === 'lowpoly') {
+      const onOff: { v: 'on' | 'off'; text: string }[] = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }];
+      const live = (k: 'coverTint' | 'coverReach' | 'coverBlend', label: string) => picker(label, onOff, () => setting(k), (v) => { saveSetting(k, v); }, (fn) => { onSettingChange(k, fn); });
+      const fars: { v: OptionValue<'coverFar'>; text: string }[] = [{ v: 'on', text: 'On' }, { v: 'off', text: 'Off' }, { v: 'far', text: 'Far' }];
+      const far = picker('Far stand-ins', fars, () => setting('coverFar'), (v) => { saveSetting('coverFar', v); location.href = settingsReloadUrl(location.href); }, (fn) => { onSettingChange('coverFar', fn); });
+      dbg.append(el('ws-gmenu-label', 'Ground cover'), live('coverTint', 'Ground tint'), live('coverReach', 'Slope reach'), live('coverBlend', 'Far colour blend'), far,
+        el('ws-gmenu-note', 'Ground tint: far ground takes the plants\' colour. Slope reach: plants on slopes stay drawn 1.7× further. Far colour blend: far plants fade into the ground\'s colour. Far stand-ins reloads the page.'));
+    }
     dbg.append(el('ws-gmenu-note', 'Renderer, quality and render scale: Exit to main menu ▸ Settings.'));
     // Review is not debug (E140): playtesters unlock notes with it, so it stays in Settings, with the Developer switch
     p.append(this.buildReview(), ...devSwitchRows());

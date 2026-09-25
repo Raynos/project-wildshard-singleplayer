@@ -13,15 +13,15 @@
  *   const grid = CoverGrid.create();          // GroundCover.build() fills it (grid.fill), the Blender cove splats its own
  *   tintTerrain(terrain.mesh);                // after the fill: aCover per vertex + the shader
  *
- * `?covertint=0` turns it off (the grid is still built; the shader's uCoverTint is 0).
+ * Pause ▸ Settings ▸ Debug ▸ Ground cover ▸ Ground tint turns it off live (the grid stays built; uCoverTint goes to 0).
  */
 import * as THREE from 'three';
 import { CHUNK_HALF, CHUNK_SIZE } from '../core/config';
+import { setting, onSettingChange } from '../ui/Settings';
 
-/** E156 A: on unless `?covertint=0` */
-export const COVER_TINT = new URLSearchParams(location.search).get('covertint') !== '0';
-/** the shaders' switch (a uniform, so a probe can flip it live) */
-export const coverTintUniform = { value: COVER_TINT ? 1 : 0 };
+/** the shaders' switch: pause ▸ Settings ▸ Debug ▸ Ground cover ▸ Ground tint (live) */
+export const coverTintUniform = { value: setting('coverTint') === 'on' ? 1 : 0 };
+onSettingChange('coverTint', (v) => { coverTintUniform.value = v === 'on' ? 1 : 0; });
 
 /** metres per grid cell */
 const STEP = 4;

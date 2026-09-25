@@ -17,7 +17,7 @@
  * next refill (their edge + REFILL_M), so nothing is ever inserted part-grown. The desktop reaches 1.25× further.
  * And past `near` a plant takes on the ground it stands on — the terrain's own facet colour (`aGround`, per instance)
  * and an up-facing normal — so by the time it shrinks away it is already the colour and shade of the grass around it:
- * the thinning band has no edge to see. `?coverblend=0` turns that off (the plants keep their colours to their edge).
+ * the thinning band has no edge to see. Debug ▸ Ground cover ▸ Far colour blend turns that off (the plants keep their colours to their edge).
  *
  * E117 follow-up (the user: "more distant cover") — the far tier. Tufts, ferns, hibiscus, bushes and daisies each get a
  * far model of 3–8 triangles (for tufts only 60 % of them, a little bigger) (the same silhouette at 25 m+, its flowers as flat colour chips). Past its near edge a
@@ -26,14 +26,14 @@
  * and only then takes on the ground's colour and shrinks. So the island stays dressed from Explore's height and far
  * out, with the same no-ring, no-pop rules. The far set is rebuilt every FAR_REFILL_M of travel by a job that runs a
  * slice of cells per frame (FAR_BUDGET_MS) into staging buffers and swaps them in when done, with FAR_SLACK m of room,
- * so neither the refill nor new cells hitch a frame. `?coverfar=off` is the near tier alone (the first E117 fix),
- * `?coverfar=far` reaches 1.5× further again.
+ * so neither the refill nor new cells hitch a frame. Debug ▸ Ground cover ▸ Far stand-ins: Off is the near tier alone (the first
+ * E117 fix), Far reaches 1.5× further again.
  *
  * E156 — the ground wears the cover. Past the far tier the terrain was bare facets, so plants still seemed to appear as
  * you neared them. `fillCoverGrid` writes what the cover makes the ground look like into coverTint.ts's grid, the
  * terrains draw it (more of it the flatter they are seen), and a fading plant takes on that colour, not the bare facet's
- * (`?covertint=0` = off). Plants on sloping ground keep up to 1.7× their reach (a slope facing you fills the screen;
- * `?coverreach=0` = off).
+ * (Debug ▸ Ground cover ▸ Ground tint). Plants on sloping ground keep up to 1.7× their reach (a slope facing you fills the
+ * screen; Debug ▸ Ground cover ▸ Slope reach). No URL switches (Jake, 2026-09-25): every one of these is in the debug menu.
  *
  *   const cover = new GroundCover(sky, { sea: sea.level }).build();
  *   scene.add(cover.group);
@@ -57,6 +57,7 @@ import { TIER } from '../core/tier';
 import { lowPolyGroundColor } from './Terrain';
 import { CoverGrid, COVER_SEEN_GLSL, coverTintUniform, coverSample, coverJitter, triAreas } from './coverTint';
 import type { BlenderArea } from './blenderArea';
+import { setting, onSettingChange } from '../ui/Settings';
 import type { Sky } from './Sky';
 
 export interface GroundCoverOpts {
@@ -68,10 +69,11 @@ export interface GroundCoverOpts {
 const CELL = 16, REFILL_M = 4;
 /** E117: the desktop's reach over the phone's (and its instance caps grow with the area) */
 const REACH_K = TIER === 'desktop' ? 1.25 : 1, CAP_K = TIER === 'desktop' ? 3 : 1.8;
-/** E117: far plants blend into the ground's colour and shade (1); `?coverblend=0` keeps their own to the edge (0) */
-const BLEND = new URLSearchParams(location.search).get('coverblend') === '0' ? 0 : 1;
-/** E117 follow-up: the far tier (`?coverfar=off|on|far`, default on) and how far it reaches over the phone numbers below */
-const COVER_FAR = ((): 'off' | 'on' | 'far' => { const v = new URLSearchParams(location.search).get('coverfar'); return v === 'off' || v === 'far' ? v : 'on'; })();
+/** E117: far plants blend into the ground's colour and shade (1), or keep their own to the edge (0): Debug ▸ Far colour blend, live */
+const blendUniform = { value: setting('coverBlend') === 'on' ? 1 : 0 };
+onSettingChange('coverBlend', (v) => { blendUniform.value = v === 'on' ? 1 : 0; });
+/** E117 follow-up: the far tier (Debug ▸ Far stand-ins: on / off / far, read at load) and how far it reaches over the phone numbers below */
+const COVER_FAR = setting('coverFar');
 const FAR_K = COVER_FAR === 'far' ? 1.5 : 1;
 /** the far set is rebuilt every FAR_REFILL_M m, within FAR_BUDGET_MS a frame, with FAR_SLACK m of room either side */
 const FAR_REFILL_M = 8, FAR_SLACK = 16, FAR_BUDGET_MS = TIER === 'desktop' ? 2 : 1.5;
@@ -128,9 +130,9 @@ const ss = (e0: number, e1: number, x: number): number => { const t = Math.min(1
  * ground's own tilt, not the angle it is seen at: that changes as you walk, and the refill would have to include every
  * plant the next few metres could bring in — on the phone that was +68 % instances for flat ground. A plant's reach is
  * fixed, so the refill's rule stays exact (nothing inserted part-grown). It fades out as the camera climbs (REACH_HI m
- * over the ground): from Explore's height every slope is in view and the caps can't pay for it. `?coverreach=0` = off.
+ * over the ground): from Explore's height every slope is in view and the caps can't pay for it. Debug ▸ Slope reach (live).
  */
-const COVER_REACH = new URLSearchParams(location.search).get('coverreach') !== '0';
+let coverReach = setting('coverReach') === 'on';
 const REACH_UP = 1.7, SLOPE_LO = 0.01, SLOPE_HI = 0.08, REACH_HI: [number, number] = [5, 14];
 /**
  * A cached candidate's reach factor (the shader's, from its normal's y) at the strength the camera's height allows, taken
@@ -199,7 +201,7 @@ export class GroundCover {
   private kinds: Kind[] = [];
   private cells = new Map<string, Float32Array[]>();
   private last = new THREE.Vector3(1e9, 0, 1e9);
-  private uniforms = { uPlayer: { value: new THREE.Vector3() }, uTime: { value: 0 }, uWind: coverWind, uReachUp: { value: COVER_REACH ? 1 : 0 } };
+  private uniforms = { uPlayer: { value: new THREE.Vector3() }, uTime: { value: 0 }, uWind: coverWind, uReachUp: { value: coverReach ? 1 : 0 } };
   /** E156: the Blender island's area once it has loaded — its own cover dresses it, so no plant of ours is placed there */
   private skip: BlenderArea | null = null;
   /** the furthest any plant shows + a refill's travel: the cell window's radius */
@@ -220,6 +222,8 @@ export class GroundCover {
   readonly stats = { nearRefillMs: 0, farJobMs: 0, farJobFrames: 0, farCells: 0, farCount: 0, cellsBuilt: 0, gridMs: 0 };
 
   constructor(private sky: Sky, private opts: GroundCoverOpts) {
+    // Debug ▸ Slope reach, live: the next frame refills both tiers with the new reach
+    onSettingChange('coverReach', (v) => { coverReach = v === 'on'; this.last.set(1e9, 0, 1e9); this.farLast.set(1e9, 0, 1e9); });
     const cave = Cove.forIsland().cave;
     this.avoid = [
       { x: HUT.x, z: HUT.z, r: 9 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 8 }, { x: SHRINE.x, z: SHRINE.z, r: 9.5 },
@@ -313,17 +317,17 @@ export class GroundCover {
       this.group.add(mesh);
       return mesh;
     };
-    /** `farOf`: [far model, [farNear, farFar] m, cap, keep] — the far tier (none when `?coverfar=off`) */
+    /** `farOf`: [far model, [farNear, farFar] m, cap, keep] — the far tier (none when Debug ▸ Far stand-ins is Off) */
     const kind = (name: string, g: THREE.BufferGeometry, cap0: number, [near, far]: [number, number], scale: [number, number], density: Kind['density'], tint?: Kind['tint'], farOf?: [THREE.BufferGeometry, [number, number], number, number]): void => {
       const cap = Math.round(cap0 * CAP_K);
       const reach = new THREE.Vector3(near * REACH_K, far * REACH_K, (far - near) * REACH_K * 0.25);
-      this.rMax = Math.max(this.rMax, reach.y * (COVER_REACH ? REACH_UP : 1) + REFILL_M + EYE_SLACK);
+      this.rMax = Math.max(this.rMax, reach.y * REACH_UP + REFILL_M + EYE_SLACK); // sized for the slope reach, which can be switched on live
       let farTier: FarTier | null = null;
       const farReach = new THREE.Vector3(0, 0, 1);
       if (farOf && COVER_FAR !== 'off') {
         const [fg, [fn, ff], fcap0, keep] = farOf, k = REACH_K * FAR_K, fcap = Math.round(fcap0 * keep * CAP_K * FAR_K * FAR_K);
         farReach.set(fn * k, ff * k, (ff - fn) * k * 0.25);
-        this.rFar = Math.max(this.rFar, farReach.y * (COVER_REACH ? REACH_UP : 1) + FAR_SLACK + EYE_SLACK);
+        this.rFar = Math.max(this.rFar, farReach.y * REACH_UP + FAR_SLACK + EYE_SLACK);
         farTier = {
           mesh: instanced(`ground-cover-${name}-far`, fg, material(reach, farReach, MODE_FAR), fcap, tint !== undefined), cap: fcap, reach: farReach, keep,
           stage: { mat: new Float32Array(fcap * 16), col: tint ? new Float32Array(fcap * 3) : null, gnd: new Float32Array(fcap * 3), cov: new Float32Array(fcap * 4), nrm: new Float32Array(fcap * 4), n: 0 },
@@ -521,7 +525,7 @@ export class GroundCover {
         for (let i = 0; i < v.length && n < k.cap; i += STRIDE) {
           const x = v[i] ?? 0, y = v[i + 1] ?? 0, z = v[i + 2] ?? 0, yaw = v[i + 3] ?? 0;
           // this plant's edge (the shader's): yaw / 2π; round the wrap (the GPU's atan may land either side) to the far end
-          const d2 = (x - px) ** 2 + (y - py) ** 2 + (z - pz) ** 2, rk = COVER_REACH ? reachMax(v, i, up, REFILL_M + EYE_SLACK) : 1;
+          const d2 = (x - px) ** 2 + (y - py) ** 2 + (z - pz) ** 2, rk = coverReach ? reachMax(v, i, up, REFILL_M + EYE_SLACK) : 1;
           const h = yaw / TAU, edge = (h < 0.005 || h > 0.995 ? far : near + grow + (far - near - grow) * h) * rk, lim = edge + slack;
           if (d2 > lim * lim) continue;
           const s = v[i + 4] ?? 1, c = Math.cos(yaw) * s, sn = Math.sin(yaw) * s, o = n * 16;
@@ -575,7 +579,7 @@ export class GroundCover {
           const x = v[i] ?? 0, y = v[i + 1] ?? 0, z = v[i + 2] ?? 0, yaw = v[i + 3] ?? 0;
           const h = yaw / TAU, wrap = h < 0.005 || h > 0.995;
           if (keep < 1 && ((h * 97.13) % 1) >= keep) continue;           // not one of the kind's far plants
-          const d2 = (x - px) ** 2 + (y - py) ** 2 + (z - pz) ** 2, rk = COVER_REACH ? reachMax(v, i, up, FAR_SLACK) : 1;
+          const d2 = (x - px) ** 2 + (y - py) ** 2 + (z - pz) ** 2, rk = coverReach ? reachMax(v, i, up, FAR_SLACK) : 1;
           const edge = (wrap ? near + grow : near + grow + (far - near - grow) * h) * rk, fEdge = (wrap ? fFar : fNear + fGrow + (fFar - fNear - fGrow) * h) * rk;
           // the lower bound takes the plant's reach at 1× (the camera may climb and the strength fall before the next rebuild)
           const lo = Math.max(0, (edge / rk) - grow - slack), hi = fEdge + slack;
@@ -625,7 +629,7 @@ export class GroundCover {
     this.uniforms.uTime.value += dt;
     this.uniforms.uPlayer.value.copy(viewer);
     // E156 C: full strength on foot (the viewer is the player's feet), none from Explore's height
-    if (COVER_REACH) this.uniforms.uReachUp.value = 1 - ss(REACH_HI[0], REACH_HI[1], viewer.y - heightAt(viewer.x, viewer.z));
+    this.uniforms.uReachUp.value = coverReach ? 1 - ss(REACH_HI[0], REACH_HI[1], viewer.y - heightAt(viewer.x, viewer.z)) : 0;
     // in 3D: Explore's camera climbs and dives, and the reach is measured from the camera
     if (this.last.distanceToSquared(viewer) > REFILL_M * REFILL_M) {
       this.last.copy(viewer);
@@ -655,7 +659,7 @@ export class GroundCover {
    * it takes on the ground's colour first.
    */
   private patch(mat: THREE.MeshStandardMaterial, reach: THREE.Vector3, far: THREE.Vector3, mode: number): void {
-    const u = this.uniforms, uReach = { value: reach }, uBlend = { value: BLEND }, uFarReach = { value: far }, uMode = { value: mode }, uFarIn = this.farIn;
+    const u = this.uniforms, uReach = { value: reach }, uBlend = blendUniform, uFarReach = { value: far }, uMode = { value: mode }, uFarIn = this.farIn;
     mat.onBeforeCompile = (sh) => {
       attachFogUniforms(sh);
       sh.uniforms['uPlayer'] = u.uPlayer; sh.uniforms['uTime'] = windUniforms.uWindTime; sh.uniforms['uWind'] = u.uWind; sh.uniforms['uReach'] = uReach; sh.uniforms['uBlend'] = uBlend;
