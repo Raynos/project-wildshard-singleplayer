@@ -19,6 +19,8 @@ interface Pose { x: number; y: number; z: number; yaw: number; pitch: number }
 let poseOf: () => Pose | null = () => null;
 /** where the player stands now (null before ENTER WORLD): main.ts registers it next to installGpuRecovery */
 export function setPoseProvider(fn: () => Pose | null): void { poseOf = fn; }
+/** where the player stands now (null before ENTER WORLD, or if asking throws): the error modal's RELOAD HERE and error reports (E133) */
+export function currentPose(): Pose | null { try { return poseOf(); } catch { return null; } }
 
 /** params that skip the title (dev / deep links): a 'title' reload drops them so it lands on the title */
 const TITLE_SKIPPERS = ['skipintro', 'tour', 'showcase', 'nolock', 'x', 'z', 'yaw', 'pitch', 'at', RELOAD_PARAM];

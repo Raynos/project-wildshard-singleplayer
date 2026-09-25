@@ -86,7 +86,7 @@ async function tapEl(page, selector) {
 }
 
 /** the uncaught-exception modal (src/ui/ErrorModal.ts) is on screen — any step that shows it fails */
-const errorShown = (page) => page.evaluate(() => { const e = document.querySelector('#ws-error'); return e !== null && getComputedStyle(e).display !== 'none' && e.getBoundingClientRect().width > 0; });
+const errorShown = (page) => page.evaluate(() => { const e = document.querySelector('#wserr'); return e !== null && getComputedStyle(e).display !== 'none' && e.getBoundingClientRect().width > 0; });
 const menuOpen = (page) => page.evaluate(() => { const m = document.querySelector('.ws-gmenu'); return m !== null && getComputedStyle(m).pointerEvents !== 'none' && getComputedStyle(m).opacity !== '0'; });
 const launch = () => adb('shell', 'am', 'start', '-W', '-n', `${PKG}/.MainActivity`);
 
